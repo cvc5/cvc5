@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -37,6 +37,17 @@ namespace parser {
 class Command;
 
 /**
+ * The parsing mode, defines how strict we are on accepting non-conforming
+ * inputs.
+ */
+enum class ParsingMode
+{
+  DEFAULT,  // reasonably strict
+  STRICT,   // more strict
+  LENIENT,  // less strict
+};
+
+/**
  * Callback from the parser state to the parser, for command preemption
  * and error handling.
  */
@@ -67,16 +78,16 @@ class CVC5_EXPORT ParserState
    * @attention The parser takes "ownership" of the given
    * input and will delete it on destruction.
    *
-   * @param psc The callback for implementing parser-specific methods
-   * @param solver solver API object
-   * @param symm reference to the symbol manager
-   * @param input the parser input
-   * @param strictMode whether to incorporate strict(er) compliance checks
+   * @param psc The callback for implementing parser-specific methods.
+   * @param solver The solver API object.
+   * @param symm The symbol manager.
+   * @param input The parser input.
+   * @param parsingMode The parsing mode.
    */
   ParserState(ParserStateCallback* psc,
               Solver* solver,
               SymManager* sm,
-              bool strictMode = false);
+              ParsingMode parsingMode = ParsingMode::DEFAULT);
 
   virtual ~ParserState();
 
@@ -91,13 +102,15 @@ class CVC5_EXPORT ParserState
   void disableChecks() { d_checksEnabled = false; }
 
   /** Enable strict parsing, according to the language standards. */
-  void enableStrictMode() { d_strictMode = true; }
+  void enableStrictMode() { d_parsingMode = ParsingMode::STRICT; }
 
   /** Disable strict parsing. Allows certain syntactic infelicities to
       pass without comment. */
-  void disableStrictMode() { d_strictMode = false; }
+  void disableStrictMode() { d_parsingMode = ParsingMode::DEFAULT; }
 
-  bool strictModeEnabled() { return d_strictMode; }
+  bool strictModeEnabled() { return d_parsingMode == ParsingMode::STRICT; }
+
+  bool lenientModeEnabled() { return d_parsingMode == ParsingMode::LENIENT; }
 
   const std::string& getForcedLogic() const;
   bool logicIsForced() const;
@@ -273,13 +286,9 @@ class CVC5_EXPORT ParserState
    *
    * @param name The name of the type
    * @param type The type that should be associated with the name
-   * @param skipExisting If true, the type definition is ignored if the same
-   *                     symbol has already been defined. It is assumed that
-   *                     the definition is the exact same as the existing one.
+   * @param isUser does this correspond to a user sort
    */
-  void defineType(const std::string& name,
-                  const Sort& type,
-                  bool skipExisting = false);
+  void defineType(const std::string& name, const Sort& type, bool isUser);
 
   /**
    * Create a new (parameterized) type definition.
@@ -287,16 +296,12 @@ class CVC5_EXPORT ParserState
    * @param name The name of the type
    * @param params The type parameters
    * @param type The type that should be associated with the name
+   * @param isUser does this correspond to a user sort
    */
   void defineType(const std::string& name,
                   const std::vector<Sort>& params,
-                  const Sort& type);
-
-  /** Create a new type definition (e.g., from an SMT-LIBv2 define-sort). */
-  void defineParameterizedType(const std::string& name,
-                               const std::vector<Sort>& params,
-                               const Sort& type);
-
+                  const Sort& type,
+                  bool isUser);
   /**
    * Creates a new sort with the given name.
    */
@@ -577,7 +582,7 @@ class CVC5_EXPORT ParserState
   bool d_checksEnabled;
 
   /** Are we parsing in strict mode? */
-  bool d_strictMode;
+  ParsingMode d_parsingMode;
 
   /** Are we in parse-only mode? */
   bool d_parseOnly;

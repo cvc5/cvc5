@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -29,9 +29,6 @@ namespace theory {
 // attribute for "contains instantiation constants from"
 struct InstConstantAttributeId {};
 typedef expr::Attribute<InstConstantAttributeId, Node> InstConstantAttribute;
-
-struct BoundVarAttributeId {};
-typedef expr::Attribute<BoundVarAttributeId, Node> BoundVarAttribute;
 
 struct InstVarNumAttributeId {};
 typedef expr::Attribute<InstVarNumAttributeId, uint64_t> InstVarNumAttribute;
@@ -67,6 +64,15 @@ class TermUtil
   /** Get the index of BOUND_VARIABLE v in quantifier q */
   static size_t getVariableNum(Node q, Node v);
 
+  /**
+   * Get a quantified formula, if possible, for which n (or its original form)
+   * contains instantiation constants from. This method is used for determining
+   * when a term is ineligible for instantiation.
+   *
+   * @param n the node to check.
+   * @return (one of) the quantified formulas for which n contains instantiation
+   * constants from, or the null node otherwise.
+   */
   static Node getInstConstAttr( Node n );
   /**
    * Does n (or its original form) contain instantiation constants? This method
@@ -76,8 +82,6 @@ class TermUtil
    * @return true if n has instantiation constants.
    */
   static bool hasInstConstAttr(Node n);
-  static Node getBoundVarAttr( Node n );
-  static bool hasBoundVarAttr( Node n );
   
 private:
   /** get bound vars */
@@ -85,20 +89,6 @@ private:
 public:
   //remove quantifiers
   static Node getRemoveQuantifiers( Node n );
-
- private:
-  /** adds the set of nodes of kind k in n to vars */
-  static void computeVarContainsInternal(Node n,
-                                         Kind k,
-                                         std::vector<Node>& vars);
-
- public:
-  /** adds the set of nodes of kind INST_CONSTANT in n to ics */
-  static void computeInstConstContains(Node n, std::vector<Node>& ics);
-  /** adds the set of nodes of kind BOUND_VARIABLE in n to vars */
-  static void computeVarContains(Node n, std::vector<Node>& vars);
-  /** adds the set of (top-level) nodes of kind FORALL in n to quants */
-  static void computeQuantContains(Node n, std::vector<Node>& quants);
   /**
    * Adds the set of nodes of kind INST_CONSTANT in n that belong to quantified
    * formula q to vars.
@@ -208,6 +198,11 @@ public:
    * minimum and maximum elements, for example tn is Bool or BitVector.
    */
   static Node mkTypeConst(TypeNode tn, bool pol);
+  /**
+   * Ensure that n has type tn, return a term equivalent to it for that type
+   * if possible.
+   */
+  static Node ensureType(Node n, TypeNode tn);
 };/* class TermUtil */
 
 }  // namespace quantifiers

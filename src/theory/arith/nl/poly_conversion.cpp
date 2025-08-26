@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -73,7 +73,7 @@ cvc5::internal::Node as_cvc_upolynomial(const poly::UPolynomial& p, const cvc5::
 
   std::vector<poly::Integer> coeffs = coefficients(p);
 
-  auto* nm = NodeManager::currentNM();
+  auto* nm = var.getNodeManager();
 
   Node res = nm->mkConstReal(Rational(0));
   Node monomial = nm->mkConstReal(Rational(1));
@@ -223,14 +223,14 @@ namespace {
  */
 struct CollectMonomialData
 {
-  CollectMonomialData(VariableMapper& v) : d_vm(v) {}
+  CollectMonomialData(NodeManager* nm, VariableMapper& v) : d_vm(v), d_nm(nm) {}
 
   /** Mapper from poly variables to cvc5 variables */
   VariableMapper& d_vm;
   /** Collections of the monomial terms */
   std::vector<Node> d_terms;
   /** Caches the current node manager */
-  NodeManager* d_nm = NodeManager::currentNM();
+  NodeManager* d_nm;
 };
 /**
  * Callback for lp_polynomial_traverse. Assumes data is actually a
@@ -263,9 +263,11 @@ void collect_monomials(const lp_polynomial_context_t* ctx,
 }
 }  // namespace
 
-cvc5::internal::Node as_cvc_polynomial(const poly::Polynomial& p, VariableMapper& vm)
+cvc5::internal::Node as_cvc_polynomial(NodeManager* nm,
+                                       const poly::Polynomial& p,
+                                       VariableMapper& vm)
 {
-  CollectMonomialData cmd(vm);
+  CollectMonomialData cmd(nm, vm);
   // Do the actual conversion
   lp_polynomial_traverse(p.get_internal(), collect_monomials, &cmd);
 
@@ -368,7 +370,7 @@ std::pair<poly::Polynomial, poly::SignCondition> as_poly_constraint(
 
 Node ran_to_node(const poly::AlgebraicNumber& an, const Node& ran_variable)
 {
-  auto* nm = NodeManager::currentNM();
+  auto* nm = ran_variable.getNodeManager();
 
   const poly::DyadicInterval& di = get_isolating_interval(an);
   if (is_point(di))
@@ -401,7 +403,7 @@ Node value_to_node(const poly::Value& v, const Node& ran_variable)
   Assert(!is_none(v)) << "Can not convert none.";
   Assert(!is_plus_infinity(v)) << "Can not convert plus infinity.";
 
-  auto* nm = NodeManager::currentNM();
+  auto* nm = ran_variable.getNodeManager();
   if (is_algebraic_number(v))
   {
     auto ran = as_algebraic_number(v);
@@ -428,7 +430,7 @@ Node lower_bound_as_node(const Node& var,
                          bool open,
                          bool allowNonlinearLemma)
 {
-  auto* nm = NodeManager::currentNM();
+  auto* nm = var.getNodeManager();
   if (!poly::is_algebraic_number(lower))
   {
     return nm->mkNode(open ? Kind::LEQ : Kind::LT,
@@ -486,7 +488,7 @@ Node upper_bound_as_node(const Node& var,
                          bool open,
                          bool allowNonlinearLemma)
 {
-  auto* nm = NodeManager::currentNM();
+  auto* nm = var.getNodeManager();
   if (!poly::is_algebraic_number(upper))
   {
     return nm->mkNode(open ? Kind::GEQ : Kind::GT,
@@ -543,7 +545,7 @@ Node excluding_interval_to_lemma(const Node& variable,
                                  const poly::Interval& interval,
                                  bool allowNonlinearLemma)
 {
-  auto* nm = NodeManager::currentNM();
+  auto* nm = variable.getNodeManager();
   const auto& lv = poly::get_lower(interval);
   const auto& uv = poly::get_upper(interval);
   if (bitsize(lv) > 100 || bitsize(uv) > 100) return Node();
@@ -810,7 +812,7 @@ poly::IntervalAssignment getBounds(VariableMapper& vm, const BoundInference& bi)
 Node PolyConverter::ran_to_node(const RealAlgebraicNumber& ran,
                                 const Node& ran_variable)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = ran_variable.getNodeManager();
   // if the ran is represented by a poly, run the conversion routine
   if (!ran.d_isRational)
   {
@@ -835,10 +837,10 @@ Node PolyConverter::ran_to_defining_polynomial(const RealAlgebraicNumber& ran,
   return Node::null();
 }
 
-Node PolyConverter::ran_to_lower(const RealAlgebraicNumber& ran)
+Node PolyConverter::ran_to_lower(NodeManager* nm,
+                                 const RealAlgebraicNumber& ran)
 {
-  NodeManager* nm = NodeManager::currentNM();
-  Node ran_variable = nm->mkBoundVar(nm->realType());
+  Node ran_variable = NodeManager::mkBoundVar(nm->realType());
   Node witness = ran_to_node(ran, ran_variable);
   if (witness.getKind() == Kind::WITNESS)
   {
@@ -852,10 +854,10 @@ Node PolyConverter::ran_to_lower(const RealAlgebraicNumber& ran)
   return witness;
 }
 
-Node PolyConverter::ran_to_upper(const RealAlgebraicNumber& ran)
+Node PolyConverter::ran_to_upper(NodeManager* nm,
+                                 const RealAlgebraicNumber& ran)
 {
-  NodeManager* nm = NodeManager::currentNM();
-  Node ran_variable = nm->mkBoundVar(nm->realType());
+  Node ran_variable = NodeManager::mkBoundVar(nm->realType());
   Node witness = ran_to_node(ran, ran_variable);
   if (witness.getKind() == Kind::WITNESS)
   {

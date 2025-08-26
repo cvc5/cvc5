@@ -3,21 +3,52 @@
 (define-rule eq-refl ((t ?)) (= t t) true)
 (define-rule eq-symm ((t ?) (s ?)) (= t s) (= s t))
 
+(define-cond-rule eq-cond-deq ((t ?) (s ?) (r ?))
+  (= (= s r) false)
+  (= (= t s) (= t r))
+  (and (not (= t s)) (not (= t r))))
+
+(define-rule eq-ite-lift ((C Bool) (t ?) (s ?) (r ?))
+  (= (ite C t s) r)
+  (ite C (= t r) (= s r)))
+
 (define-rule distinct-binary-elim ((t ?) (s ?)) (distinct t s) (not (= t s)))
 
 ; bv to arith conversions
 
-;(define-cond-rule uf-bv2nat-int2bv ((w Int) (t ?BitVec))
-;  (= (bvsize t) w)
-;  (int2bv w (bv2nat t))
-;  t)
-;
-;(define-rule uf-int2bv-bv2nat ((w Int) (t Int))
-;  (bv2nat (int2bv w t))
-;  (mod t (^ 2 w)))
+(define-cond-rule uf-bv2nat-int2bv ((w Int) (t ?BitVec))
+  (= (@bvsize t) w)
+  (int_to_bv w (ubv_to_int t))
+  t)
 
+(define-cond-rule uf-bv2nat-int2bv-extend ((w Int) (t ?BitVec) (n Int))
+  (and (> w (@bvsize t)) (= n (- w (@bvsize t))))
+  (int_to_bv w (ubv_to_int t))
+  (concat (@bv 0 n) t))
 
-(define-rule uf-bv2nat-geq-elim ((x ?BitVec) (n Int))
-  (def (w (@bvsize x)))
-  (>= (bv2nat x) n)
-  (ite (>= n w) false (ite (< n 0) true (bvuge x (int2bv w n)))))
+(define-cond-rule uf-bv2nat-int2bv-extract ((w Int) (t ?BitVec) (wm1 Int))
+  (and (< w (@bvsize t)) (= wm1 (- w 1)))
+  (int_to_bv w (ubv_to_int t))
+  (extract wm1 0 t))
+
+(define-rule uf-int2bv-bv2nat ((w Int) (t Int))
+  (ubv_to_int (int_to_bv w t))
+  (mod_total t (int.pow2 w)))
+
+(define-cond-rule uf-bv2nat-geq-elim ((x ?BitVec) (n Int) (w Int))
+  (= w (@bvsize x))
+  (>= (ubv_to_int x) n)
+  (ite (>= n w) false (ite (< n 0) true (bvuge x (int_to_bv w n)))))
+
+(define-rule uf-int2bv-bvult-equiv ((t ?BitVec) (s ?BitVec))
+  (bvult t s)
+  (< (ubv_to_int t) (ubv_to_int s)))
+
+(define-rule uf-int2bv-bvule-equiv ((t ?BitVec) (s ?BitVec))
+  (bvule t s)
+  (<= (ubv_to_int t) (ubv_to_int s)))
+
+(define-cond-rule uf-sbv-to-int-elim ((t ?BitVec) (wm1 Int) (n Int))
+  (and (= wm1 (- (@bvsize t) 1)) (= n (int.pow2 (@bvsize t))))
+  (sbv_to_int t)
+  (ite (= (extract wm1 wm1 t) (@bv 0 1)) (ubv_to_int t) (- (ubv_to_int t) n)))

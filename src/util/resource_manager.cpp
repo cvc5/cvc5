@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -89,6 +89,7 @@ const char* toString(Resource r)
     case Resource::SatConflictStep: return "SatConflictStep";
     case Resource::SygusCheckStep: return "SygusCheckStep";
     case Resource::TheoryCheckStep: return "TheoryCheckStep";
+    case Resource::TheoryFullCheckStep: return "TheoryFullCheckStep";
     case Resource::FindSynthStep: return "FindSynthStep";
     default: return "?Resource?";
   }
@@ -231,6 +232,11 @@ void ResourceManager::spendResource(Resource r)
   Assert(d_resourceWeights.size() > i);
   d_statistics->d_resourceSteps << r;
   spendResource(d_resourceWeights[i]);
+}
+
+uint64_t ResourceManager::getResource(Resource r) const
+{
+  return d_statistics->d_resourceSteps.getValue(r);
 }
 
 void ResourceManager::spendResource(theory::InferenceId iid)

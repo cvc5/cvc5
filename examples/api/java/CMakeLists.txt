@@ -1,10 +1,10 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Mudathir Mohamed, Aina Niemetz, Mathias Preiner
+#   Mudathir Mohamed, Aina Niemetz, Daniel Larraz
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -14,25 +14,21 @@
 ##
 
 set(EXAMPLES_API_JAVA
-   Bags
    BitVectors
    BitVectorsAndArrays
    Combination
    Datatypes
    Exceptions
    Extract
-   FloatingPointArith
    HelloWorld
    LinearArith
    QuickStart
-   Relations
    Sequences
    Sets
    Statistics
    Strings
    SygusFun
    SygusInv
-   Transcendentals
    UnsatCores
    Uf
 )
@@ -64,6 +60,13 @@ endfunction()
 foreach(example ${EXAMPLES_API_JAVA})
   add_java_example(${example})
 endforeach()
+
+if(NOT CVC5_SAFE_BUILD)
+  add_java_example(FloatingPointArith)
+  add_java_example(Bags)
+  add_java_example(Relations)
+  add_java_example(Transcendentals)
+endif()
 
 if(CVC5_USE_COCOA)
   add_java_example(FiniteField)

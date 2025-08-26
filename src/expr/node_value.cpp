@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -97,20 +97,20 @@ std::ostream& operator<<(std::ostream& out, const NodeValue& nv)
 
 void NodeValue::markRefCountMaxedOut()
 {
-  Assert(NodeManager::currentNM() != nullptr)
+  Assert(d_nm != nullptr)
       << "No current NodeManager on incrementing of NodeValue: "
          "maybe a public cvc5 interface function is missing a "
          "NodeManagerScope ?";
-  NodeManager::currentNM()->markRefCountMaxedOut(this);
+  d_nm->markRefCountMaxedOut(this);
 }
 
 void NodeValue::markForDeletion()
 {
-  Assert(NodeManager::currentNM() != nullptr)
+  Assert(d_nm != nullptr)
       << "No current NodeManager on destruction of NodeValue: "
          "maybe a public cvc5 interface function is missing a "
          "NodeManagerScope ?";
-  NodeManager::currentNM()->markForDeletion(this);
+  d_nm->markForDeletion(this);
 }
 
 }  // namespace expr

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -73,7 +73,6 @@ BVSolverBitblastInternal::BVSolverBitblastInternal(
     Env& env, TheoryState* s, TheoryInferenceManager& inferMgr)
     : BVSolver(env, *s, inferMgr),
       d_bitblaster(new BBProof(env, s, false)),
-      d_checker(nodeManager()),
       d_epg(new EagerProofGenerator(d_env))
 {
 }
@@ -169,9 +168,10 @@ Node BVSolverBitblastInternal::getValue(TNode node, bool initialize)
     return node;
   }
 
+  NodeManager* nm = node.getNodeManager();
   if (!d_bitblaster->hasBBTerm(node))
   {
-    return initialize ? utils::mkConst(utils::getSize(node), 0u) : Node();
+    return initialize ? utils::mkConst(nm, utils::getSize(node), 0u) : Node();
   }
 
   Valuation& val = d_state.getValuation();
@@ -193,12 +193,7 @@ Node BVSolverBitblastInternal::getValue(TNode node, bool initialize)
     }
     value = value * 2 + bit;
   }
-  return utils::mkConst(bits.size(), value);
-}
-
-BVProofRuleChecker* BVSolverBitblastInternal::getProofChecker()
-{
-  return &d_checker;
+  return utils::mkConst(nm, bits.size(), value);
 }
 
 }  // namespace bv

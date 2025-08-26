@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -64,16 +64,10 @@ class PreprocessProofGenerator : protected EnvObj, public ProofGenerator
    * @param env Reference to the environment
    * @param c The context this class depends on
    * @param name The name of this generator (for debugging)
-   * @param ra The id to use when no generator is provided for new
-   * assertions
-   * @param rpp The id to use when no generator is provided for
-   * preprocessing steps.
    */
   PreprocessProofGenerator(Env& env,
                            context::Context* c = nullptr,
-                           std::string name = "PreprocessProofGenerator",
-                           TrustId ra = TrustId::PREPROCESS_LEMMA,
-                           TrustId rpp = TrustId::PREPROCESS);
+                           std::string name = "PreprocessProofGenerator");
   ~PreprocessProofGenerator() {}
   /**
    * Notify that n is an input (its proof is ASSUME).
@@ -81,17 +75,37 @@ class PreprocessProofGenerator : protected EnvObj, public ProofGenerator
   void notifyInput(Node n);
   /**
    * Notify that n is a new assertion, where pg can provide a proof of n.
+   *
+   * @param n The formula to assert.
+   * @param pg The proof generator that may provide a proof of n.
+   * @param id The trust id to use, if pg is nullptr.
    */
-  void notifyNewAssert(Node n, ProofGenerator* pg);
-  /**  Notify a new assertion, trust node version. */
-  void notifyNewTrustedAssert(TrustNode tn);
+  void notifyNewAssert(Node n,
+                       ProofGenerator* pg,
+                       TrustId id = TrustId::UNKNOWN_PREPROCESS_LEMMA);
+  /**
+   * Notify a new assertion, trust node version.
+   *
+   * @param tn The trust node
+   * @param id The trust id to use, if the generator of the trust node is null.
+   */
+  void notifyNewTrustedAssert(TrustNode tn,
+                              TrustId id = TrustId::UNKNOWN_PREPROCESS_LEMMA);
   /**
    * Notify that n was replaced by np due to preprocessing, where pg can
    * provide a proof of the equality n=np.
+   * @param n The original formula.
+   * @param np The preprocessed formula.
+   * @param pg The proof generator that may provide a proof of (= n np).
+   * @param id The trust id to use, if the proof generator is null.
    */
-  void notifyPreprocessed(Node n, Node np, ProofGenerator* pg);
+  void notifyPreprocessed(Node n,
+                          Node np,
+                          ProofGenerator* pg,
+                          TrustId id = TrustId::UNKNOWN_PREPROCESS);
   /** Notify preprocessed, trust node version */
-  void notifyTrustedPreprocessed(TrustNode tnp);
+  void notifyTrustedPreprocessed(TrustNode tnp,
+                                 TrustId id = TrustId::UNKNOWN_PREPROCESS);
   /**
    * Get proof for f, which returns a proof based on proving an equality based
    * on transitivity of preprocessing steps, and then using the original
@@ -100,13 +114,6 @@ class PreprocessProofGenerator : protected EnvObj, public ProofGenerator
   std::shared_ptr<ProofNode> getProofFor(Node f) override;
   /** Identify */
   std::string identify() const override;
-  /**
-   * Allocate a helper proof. This returns a fresh lazy proof object that
-   * remains alive in the context. This feature is used to construct
-   * helper proofs for preprocessing, e.g. to support the skeleton of proofs
-   * that connect AssertionPipeline::conjoin steps.
-   */
-  LazyCDProof* allocateHelperProof();
 
  private:
   /**
@@ -126,19 +133,18 @@ class PreprocessProofGenerator : protected EnvObj, public ProofGenerator
    * (2) A trust node LEMMA proving n.
    */
   NodeTrustNodeMap d_src;
-  /** A context-dependent list of LazyCDProof, allocated for conjoin steps */
-  CDProofSet<LazyCDProof> d_helperProofs;
   /**
    * A cd proof for input assertions, this is an empty proof that intentionally
    * returns (ASSUME f) for all f.
    */
   CDProof d_inputPf;
+  /**
+   * A cd proof used for when preprocessing steps are not given justification.
+   * Stores only trust steps.
+   */
+  CDProof d_trustPf;
   /** Name for debugging */
   std::string d_name;
-  /** The trust rule for new assertions with no provided proof generator */
-  TrustId d_ra;
-  /** The trust rule for rewrites with no provided proof generator */
-  TrustId d_rpp;
 };
 
 }  // namespace smt

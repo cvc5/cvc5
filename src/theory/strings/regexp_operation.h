@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Tianyi Liang, Andres Noetzli
+ *   Andrew Reynolds, Tianyi Liang, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -139,13 +139,14 @@ class RegExpOpr : protected EnvObj
   /**
    * Return the unfolded form of mem of the form (str.in_re s r).
    */
-  static Node reduceRegExpPos(Node mem,
+  static Node reduceRegExpPos(NodeManager* nm,
+                              Node mem,
                               SkolemCache* sc,
                               std::vector<Node>& newSkolems);
   /**
    * Return the unfolded form of mem of the form (not (str.in_re s r)).
    */
-  static Node reduceRegExpNeg(Node mem);
+  static Node reduceRegExpNeg(NodeManager* nm, Node mem);
   /**
    * Return the unfolded form of mem of the form
    *   (not (str.in_re s (re.++ r_0 ... r_{n-1})))
@@ -155,7 +156,10 @@ class RegExpOpr : protected EnvObj
    * This uses reLen as an optimization to improve the reduction. If reLen
    * is null, then this optimization is not applied.
    */
-  static Node reduceRegExpNegConcatFixed(Node mem, Node reLen, bool isRev);
+  static Node reduceRegExpNegConcatFixed(NodeManager* nm,
+                                         Node mem,
+                                         Node reLen,
+                                         bool isRev);
   //------------------------ end trusted reductions
   /**
    * This method returns 1 if the empty string is in r, 2 if the empty string

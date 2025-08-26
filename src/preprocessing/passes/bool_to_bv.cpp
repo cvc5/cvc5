@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -58,7 +58,9 @@ PreprocessingPassResult BoolToBV::applyInternal(
     {
       newAssertion = lowerIte((*assertionsToPreprocess)[i]);
     }
-    assertionsToPreprocess->replace(i, rewrite(newAssertion));
+    assertionsToPreprocess->replace(
+        i, newAssertion, nullptr, TrustId::PREPROCESS_BOOL_TO_BV);
+    assertionsToPreprocess->ensureRewritten(i);
     if (assertionsToPreprocess->isInConflict())
     {
       return PreprocessingPassResult::CONFLICT;
@@ -133,8 +135,9 @@ Node BoolToBV::lowerAssertion(const TNode& assertion, bool allowIteIntroduction)
   if (newAssertionType.isBitVector())
   {
     Assert(newAssertionType.getBitVectorSize() == 1);
+    NodeManager* nm = nodeManager();
     newAssertion =
-        nodeManager()->mkNode(Kind::EQUAL, newAssertion, bv::utils::mkOne(1));
+        nm->mkNode(Kind::EQUAL, newAssertion, bv::utils::mkOne(nm, 1));
     newAssertionType = newAssertion.getType();
   }
   Assert(newAssertionType.isBoolean());
@@ -184,16 +187,16 @@ void BoolToBV::visit(const TNode& n, bool allowIteIntroduction)
 {
   Kind k = n.getKind();
 
+  NodeManager* nm = nodeManager();
   // easy case -- just replace boolean constant
   if (k == Kind::CONST_BOOLEAN)
   {
     updateCache(n,
-                (n == bv::utils::mkTrue()) ? bv::utils::mkOne(1)
-                                           : bv::utils::mkZero(1));
+                (n == bv::utils::mkTrue(nm)) ? bv::utils::mkOne(nm, 1)
+                                             : bv::utils::mkZero(nm, 1));
     return;
   }
 
-  NodeManager* nm = nodeManager();
   Kind new_kind = k;
   switch (k)
   {
@@ -262,8 +265,8 @@ void BoolToBV::visit(const TNode& n, bool allowIteIntroduction)
     updateCache(n,
                 nm->mkNode(Kind::ITE,
                            fromCache(n),
-                           bv::utils::mkOne(1),
-                           bv::utils::mkZero(1)));
+                           bv::utils::mkOne(nm, 1),
+                           bv::utils::mkZero(nm, 1)));
     Trace("bool-to-bv") << "BoolToBV::visit forcing " << n
                         << " =>\n"
                         << fromCache(n) << std::endl;
@@ -286,7 +289,9 @@ void BoolToBV::visit(const TNode& n, bool allowIteIntroduction)
     // have been converted (even constants and variables) when forcing
     // with ITE introductions
     updateCache(
-        n, nm->mkNode(Kind::ITE, n, bv::utils::mkOne(1), bv::utils::mkZero(1)));
+        n,
+        nm->mkNode(
+            Kind::ITE, n, bv::utils::mkOne(nm, 1), bv::utils::mkZero(nm, 1)));
     Trace("bool-to-bv") << "BoolToBV::visit forcing " << n
                         << " =>\n"
                         << fromCache(n) << std::endl;
@@ -364,7 +369,7 @@ void BoolToBV::rebuildNode(const TNode& n, Kind new_kind)
 {
   Kind k = n.getKind();
   NodeManager* nm = nodeManager();
-  NodeBuilder builder(new_kind);
+  NodeBuilder builder(nm, new_kind);
 
   Trace("bool-to-bv") << "BoolToBV::rebuildNode with " << n
                       << " and new_kind = " << kindToString(new_kind)

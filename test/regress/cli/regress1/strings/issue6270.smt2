@@ -1,4 +1,4 @@
-; COMMAND-LINE: --strings-exp --nl-ext-tplanes
+; COMMAND-LINE: --nl-ext-tplanes
 ; EXPECT: unsat
 (set-logic ALL)
 (declare-fun i9 () Int)

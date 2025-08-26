@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -34,7 +34,6 @@ InferProofCons::InferProofCons(Env& env, TheorySetsRewriter* tsr)
       d_expMap(context())
 {
   d_false = nodeManager()->mkConst(false);
-  d_tid = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(THEORY_SETS);
 }
 
 void InferProofCons::notifyFact(const Node& conc,
@@ -120,7 +119,7 @@ std::shared_ptr<ProofNode> InferProofCons::getProofFor(Node fact)
   // Try to convert.
   if (!convert(cdp, id, assumps, conc))
   {
-    cdp.addTrustedStep(conc, TrustId::THEORY_INFERENCE, assumps, {d_tid});
+    cdp.addTrustedStep(conc, TrustId::THEORY_INFERENCE_SETS, assumps, {});
   }
   return cdp.getProofFor(fact);
 }
@@ -153,7 +152,11 @@ bool InferProofCons::convert(CDProof& cdp,
       // assumption and rewriting.
       std::vector<Node> exp(assumps.begin() + 1, assumps.end());
       Node aelim = psb.applyPredElim(assumps[0], exp);
-      success = CDProof::isSame(aelim, conc);
+      success = true;
+      if (!CDProof::isSame(aelim, conc))
+      {
+        success = psb.applyPredTransform(aelim, conc, {});
+      }
       // should never fail
       Assert(success);
     }
@@ -326,9 +329,70 @@ bool InferProofCons::convert(CDProof& cdp,
       Assert(success);
     }
     break;
-    case InferenceId::SETS_EQ_CONFLICT:
+    case InferenceId::SETS_FILTER_UP:
+    case InferenceId::SETS_FILTER_DOWN:
+    {
+      Node mem = assumps[0];
+      if (assumps.size() == 2)
+      {
+        // Transform based on the second equality A = B:
+        //
+        //                  ------ REFL
+        //                   x = x               A = B
+        //                  ----------------------------------- CONG
+        // (set.member x A) (set.member x A) = (set.member x B)
+        // ---------------------------------------------------- EQ_RESOLVE
+        // (set.member x B)
+        Assert(assumps[0].getKind() == Kind::SET_MEMBER);
+        Assert(assumps[1].getKind() == Kind::EQUAL);
+        Node refl = psb.tryStep(ProofRule::REFL, {}, {assumps[0][0]});
+        std::vector<Node> cargs;
+        ProofRule cr = expr::getCongRule(assumps[0], cargs);
+        Node aeq = assumps[1];
+        if (aeq[1] == assumps[0][1])
+        {
+          // flip?
+          aeq = aeq[1].eqNode(aeq[0]);
+          psb.tryStep(ProofRule::SYMM, {assumps[1]}, {});
+        }
+        Node eq = psb.tryStep(cr, {refl, aeq}, cargs);
+        Trace("sets-ipc") << "...via CONG is " << eq << ", now try with " << mem
+                          << std::endl;
+        mem = psb.tryStep(ProofRule::EQ_RESOLVE, {mem, eq}, {});
+        Assert(!mem.isNull());
+      }
+      ProofRule pr = (id == InferenceId::SETS_FILTER_UP)
+                         ? ProofRule::SETS_FILTER_UP
+                         : ProofRule::SETS_FILTER_DOWN;
+      std::vector<Node> pfArgs;
+      if (id == InferenceId::SETS_FILTER_UP)
+      {
+        Assert(conc.getKind() == Kind::EQUAL
+               && conc[0].getKind() == Kind::SET_MEMBER
+               && conc[0][1].getKind() == Kind::SET_FILTER);
+        Node pred = conc[0][1][0];
+        pfArgs.push_back(pred);
+      }
+      Node res = psb.tryStep(pr, {mem}, pfArgs);
+      Trace("sets-ipc") << "Filter rule " << id << " returns " << res
+                        << ", expects " << conc << std::endl;
+      success = CDProof::isSame(res, conc);
+      Assert(success);
+    }
+    break;
     case InferenceId::SETS_EQ_MEM_CONFLICT:
     case InferenceId::SETS_EQ_MEM:
+    {
+      // Handles cases:
+      // (and (= S set.empty) (set.member x S)) => false
+      // (and (= S (set.singleton y)) (set.member x S)) => (= x y)
+      Assert(assumps.size()==2);
+      Assert(assumps[0].getKind() == Kind::EQUAL);
+      Assert(assumps[1].getKind() == Kind::SET_MEMBER);
+      success = psb.applyPredTransform(assumps[1], conc, {assumps[0]});
+    }
+      break;
+    case InferenceId::SETS_EQ_CONFLICT:
     default: Trace("sets-ipc") << "Unhandled " << id; break;
   }
   if (success)

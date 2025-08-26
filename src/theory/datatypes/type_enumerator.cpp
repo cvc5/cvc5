@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
+ *   Andrew Reynolds, Gereon Kremer, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -109,7 +109,7 @@ Node DatatypesEnumerator::getTermEnum( TypeNode tn, unsigned i ){
    {
      if (d_child_enum)
      {
-       NodeManager* nm = NodeManager::currentNM();
+       NodeManager* nm = getType().getNodeManager();
        ret = nm->mkConst(CodatatypeBoundVariable(d_type, d_size_limit));
      }
      else
@@ -140,7 +140,7 @@ Node DatatypesEnumerator::getTermEnum( TypeNode tn, unsigned i ){
        }
      }
      Trace("dt-enum-debug") << "Get constructor..." << std::endl;
-     NodeBuilder b(Kind::APPLY_CONSTRUCTOR);
+     NodeBuilder b(getType().getNodeManager(), Kind::APPLY_CONSTRUCTOR);
      if (d_datatype.isParametric())
      {
        b << ctor.getInstantiatedConstructor(d_type);

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -39,8 +39,18 @@ namespace smt {
 class PrintBenchmark
 {
  public:
-  PrintBenchmark(const Printer* p, NodeConverter* c = nullptr)
-      : d_printer(p), d_converter(c)
+  /**
+   * Constructor.
+   * @param nm     The associated node manager.
+   * @param p      The associated printer.
+   * @param sorted True if declarations should be sorted wrt node id.
+   * @param c      The associated node converter.
+   */
+  PrintBenchmark(NodeManager * nm,
+                 const Printer* p,
+                 bool sorted = true,
+                 NodeConverter* c = nullptr)
+      : d_nm(nm), d_printer(p), d_sorted(sorted), d_converter(c)
   {
   }
   /**
@@ -87,13 +97,18 @@ class PrintBenchmark
                       const std::vector<Node>& defs,
                       const std::vector<Node>& assertions);
 
+  /**
+   * Mark that the given symbol should not be printed in benchmark outputs.
+   */
+  static void markNoPrint(Node& sym);
+
  private:
   /**
    * print declared symbols in funs but not processed; updates processed to
    * include what was printed
    */
   void printDeclaredFuns(std::ostream& out,
-                         const std::unordered_set<Node>& funs,
+                         const std::vector<Node>& funs,
                          std::unordered_set<Node>& processed);
   /**
    * Get the connected types. This traverses subfield types of datatypes and
@@ -140,11 +155,15 @@ class PrintBenchmark
    * @return true if the definition was successfully inferred
    */
   bool decomposeDefinition(Node a, bool& isRecDef, Node& sym, Node& body);
+  /** Pointer to the node manager */
+  NodeManager * d_nm;
   /**
    * Pointer to the printer we are using, which is responsible for printing
    * individual commands.
    */
   const Printer* d_printer;
+  /* True if declarations should be sorted wrt node id. */
+  bool d_sorted;
   /** (Optional) node converter */
   NodeConverter* d_converter;
 };

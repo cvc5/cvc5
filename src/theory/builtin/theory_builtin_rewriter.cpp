@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -34,6 +34,8 @@ namespace builtin {
 TheoryBuiltinRewriter::TheoryBuiltinRewriter(NodeManager* nm)
     : TheoryRewriter(nm)
 {
+  registerProofRewriteRule(ProofRewriteRule::DISTINCT_CARD_CONFLICT,
+                           TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::DISTINCT_ELIM,
                            TheoryRewriteCtx::PRE_DSL);
 }
@@ -42,6 +44,21 @@ Node TheoryBuiltinRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
 {
   switch (id)
   {
+    case ProofRewriteRule::DISTINCT_CARD_CONFLICT:
+      if (n.getKind() == Kind::DISTINCT)
+      {
+        TypeNode tn = n[0].getType();
+        // we intentionally only handle booleans and bitvectors here
+        // for the sake of simplicity.
+        if (tn.isBoolean() || tn.isBitVector())
+        {
+          if (tn.isCardinalityLessThan(n.getNumChildren()))
+          {
+            return nodeManager()->mkConst(false);
+          }
+        }
+      }
+      break;
     case ProofRewriteRule::DISTINCT_ELIM:
       if (n.getKind() == Kind::DISTINCT)
       {
@@ -104,12 +121,15 @@ RewriteResponse TheoryBuiltinRewriter::doRewrite(TNode node)
       return RewriteResponse(REWRITE_DONE, rnode);
     }
     case Kind::DISTINCT:
-      if (node[0].getType().isCardinalityLessThan(node.getNumChildren()))
+    {
+      Node ret = rewriteViaRule(ProofRewriteRule::DISTINCT_CARD_CONFLICT, node);
+      if (!ret.isNull())
       {
         // Cardinality of type does not allow to find distinct values for all
         // children of this node.
         return RewriteResponse(REWRITE_DONE, nodeManager()->mkConst<bool>(false));
       }
+    }
       return RewriteResponse(REWRITE_DONE, blastDistinct(node));
     case Kind::APPLY_INDEXED_SYMBOLIC:
     {

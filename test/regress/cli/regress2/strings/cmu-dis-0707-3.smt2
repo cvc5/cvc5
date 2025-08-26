@@ -2,7 +2,7 @@
 (set-logic ALL)
 (set-info :status sat)
 (set-info :smt-lib-version 2.6)
-(set-option :strings-exp true)
+
 (declare-fun value () String)
 (declare-fun name () String)
 (assert (not (not (not (= (ite (str.contains value "?") 1 0) 0))))) 

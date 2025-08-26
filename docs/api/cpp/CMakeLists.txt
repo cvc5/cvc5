@@ -1,10 +1,10 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Aina Niemetz
+#   Aina Niemetz, Gereon Kremer, Mathias Preiner
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -28,6 +28,10 @@ ${DOXYGEN_INPUT_DIR}/cvc5_skolem_id.h
 ")
 set(DOXYGEN_INDEX_FILE ${DOXYGEN_OUTPUT_DIR}/xml/index.xml)
 set(DOXYGEN_PREDEFINED "")
+set(DOXYGEN_WARN_AS_ERROR NO)
+if(TREAT_WARNING_AS_ERROR)
+  set(DOXYGEN_WARN_AS_ERROR FAIL_ON_WARNINGS)
+endif()
 
 # create doxygen config file
 set(DOXYFILE_IN ${CMAKE_CURRENT_SOURCE_DIR}/../Doxyfile.in)

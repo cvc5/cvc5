@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -92,6 +92,8 @@ class HistogramStat
     }
     return *this;
   }
+  /** Get the current value for key `val` */
+  uint64_t getValue(Integral val) { return d_data->getValue(val); }
 
  private:
   /** Construct from a pointer to the internal data */

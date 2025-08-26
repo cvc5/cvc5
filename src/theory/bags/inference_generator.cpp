@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -36,11 +36,11 @@ namespace cvc5::internal {
 namespace theory {
 namespace bags {
 
-InferenceGenerator::InferenceGenerator(SolverState* state, InferenceManager* im)
-    : d_state(state), d_im(im)
+InferenceGenerator::InferenceGenerator(NodeManager* nm,
+                                       SolverState* state,
+                                       InferenceManager* im)
+    : d_nm(nm), d_sm(d_nm->getSkolemManager()), d_state(state), d_im(im)
 {
-  d_nm = NodeManager::currentNM();
-  d_sm = d_nm->getSkolemManager();
   d_true = d_nm->mkConst(true);
   d_zero = d_nm->mkConstInt(Rational(0));
   d_one = d_nm->mkConstInt(Rational(1));
@@ -134,27 +134,6 @@ InferInfo InferenceGenerator::bagMake(Node n, Node e)
   inferInfo.d_conclusion = ite;
   return inferInfo;
 }
-
-/**
- * A bound variable corresponding to the universally quantified integer
- * variable used to range over the distinct elements in a bag, used
- * for axiomatizing the behavior of some term.
- */
-struct FirstIndexVarAttributeId
-{
-};
-typedef expr::Attribute<FirstIndexVarAttributeId, Node> FirstIndexVarAttribute;
-
-/**
- * A bound variable corresponding to the universally quantified integer
- * variable used to range over the distinct elements in a bag, used
- * for axiomatizing the behavior of some term.
- */
-struct SecondIndexVarAttributeId
-{
-};
-typedef expr::Attribute<SecondIndexVarAttributeId, Node>
-    SecondIndexVarAttribute;
 
 InferInfo InferenceGenerator::bagDisequality(Node equality, Node witness)
 {
@@ -435,9 +414,10 @@ std::tuple<InferInfo, Node, Node> InferenceGenerator::mapDown(Node n, Node e)
   Node totalSumEqualCountE = d_nm->mkNode(Kind::EQUAL, totalSum, countE);
 
   BoundVarManager* bvm = d_nm->getBoundVarManager();
-  Node i = bvm->mkBoundVar<FirstIndexVarAttribute>(n, "i", d_nm->integerType());
-  Node j =
-      bvm->mkBoundVar<SecondIndexVarAttribute>(n, "j", d_nm->integerType());
+  Node i = bvm->mkBoundVar(
+      BoundVarId::BAGS_FIRST_INDEX, n, "i", d_nm->integerType());
+  Node j = bvm->mkBoundVar(
+      BoundVarId::BAGS_SECOND_INDEX, n, "j", d_nm->integerType());
   Node iList = d_nm->mkNode(Kind::BOUND_VAR_LIST, i);
   Node jList = d_nm->mkNode(Kind::BOUND_VAR_LIST, j);
   Node iPlusOne = d_nm->mkNode(Kind::ADD, i, d_one);
@@ -470,13 +450,15 @@ std::tuple<InferInfo, Node, Node> InferenceGenerator::mapDown(Node n, Node e)
   Node uf_i_equals_uf_j = d_nm->mkNode(Kind::EQUAL, uf_i, uf_j);
   Node notEqual = d_nm->mkNode(Kind::EQUAL, uf_i, uf_j).negate();
   Node body_j = d_nm->mkNode(Kind::OR, interval_j.negate(), notEqual);
-  Node forAll_j = quantifiers::BoundedIntegers::mkBoundedForall(jList, body_j);
+  Node forAll_j =
+      quantifiers::BoundedIntegers::mkBoundedForall(d_nm, jList, body_j);
   Node disjunct1 = d_nm->mkNode(Kind::AND, {f_iEqualE, addMultiplicity});
   Node disjunct2 = d_nm->mkNode(Kind::AND, {distinct, previousValue});
   Node orNode = disjunct1.orNode(disjunct2);
   Node andNode = d_nm->mkNode(Kind::AND, {forAll_j, geqOne, orNode});
   Node body_i = d_nm->mkNode(Kind::OR, interval_i.negate(), andNode);
-  Node forAll_i = quantifiers::BoundedIntegers::mkBoundedForall(iList, body_i);
+  Node forAll_i =
+      quantifiers::BoundedIntegers::mkBoundedForall(d_nm, iList, body_i);
   Node sizeGTE_zero = d_nm->mkNode(Kind::GEQ, size, d_zero);
   Node conclusion = d_nm->mkNode(
       Kind::AND, {baseCase, totalSumEqualCountE, forAll_i, sizeGTE_zero});
@@ -508,6 +490,8 @@ InferInfo InferenceGenerator::mapDownInjective(Node n, Node y)
 
   Node f_x = d_nm->mkNode(Kind::APPLY_UF, f, x);
   Node y_equals_f_x = y.eqNode(f_x);
+  Node member = d_nm->mkNode(Kind::GEQ, countY, d_one);
+  inferInfo.d_premises.push_back(member);
 
   Node count_x_equals_count_y = countX.eqNode(countY);
   Node conclusion = y_equals_f_x.andNode(count_x_equals_count_y);

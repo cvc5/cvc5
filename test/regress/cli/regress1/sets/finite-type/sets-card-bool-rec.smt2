@@ -1,6 +1,6 @@
 (set-logic QF_ALL)
 (set-info :status sat)
-(set-option :sets-ext true)
+(set-option :sets-exp true)
 (declare-fun A () (Set Bool))
 (declare-fun x () Bool)
 (assert (set.member (set.member x A) A))

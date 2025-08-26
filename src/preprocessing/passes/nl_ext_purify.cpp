@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -35,7 +35,6 @@ Node NlExtPurify::purifyNlTerms(TNode n,
                                 bool beneathMult)
 {
   NodeManager* nm = nodeManager();
-  SkolemManager* sm = nm->getSkolemManager();
   if (beneathMult)
   {
     NodeMap::iterator find = bcache.find(n);
@@ -72,9 +71,10 @@ Node NlExtPurify::purifyNlTerms(TNode n,
       else
       {
         // new variable
-        ret = sm->mkDummySkolem("__purifyNl_var",
-                                n.getType(),
-                                "Variable introduced in purifyNl pass");
+        ret =
+            NodeManager::mkDummySkolem("__purifyNl_var",
+                                       n.getType(),
+                                       "Variable introduced in purifyNl pass");
         Node np = purifyNlTerms(n, cache, bcache, var_eq, false);
         var_eq.push_back(np.eqNode(ret));
         Trace("nl-ext-purify") << "Purify : " << ret << " -> " << np
@@ -125,7 +125,8 @@ PreprocessingPassResult NlExtPurify::applyInternal(
     Node ap = purifyNlTerms(a, cache, bcache, var_eq);
     if (a != ap)
     {
-      assertionsToPreprocess->replace(i, ap);
+      assertionsToPreprocess->replace(
+          i, ap, nullptr, TrustId::PREPROCESS_NL_EXT_PURIFY);
       Trace("nl-ext-purify")
           << "Purify : " << a << " -> " << (*assertionsToPreprocess)[i] << "\n";
     }
@@ -134,7 +135,8 @@ PreprocessingPassResult NlExtPurify::applyInternal(
   {
     for (const Node& ve : var_eq)
     {
-      assertionsToPreprocess->push_back(ve);
+      assertionsToPreprocess->push_back(
+          ve, false, nullptr, TrustId::PREPROCESS_NL_EXT_PURIFY_LEMMA);
     }
   }
   return PreprocessingPassResult::NO_CONFLICT;

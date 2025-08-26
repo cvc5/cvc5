@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -57,6 +57,8 @@ enum class IncompleteId
   // we solved a negated synthesis conjecture and will terminate as a subsolver
   // with unknown
   QUANTIFIERS_SYGUS_SOLVED,
+  // we failed to construct a grammar for a function-to-synthesize
+  QUANTIFIERS_SYGUS_NO_WF_GRAMMAR,
   // incomplete due to separation logic
   SEP,
   // Higher order operators like sets.map were used in combination with set
@@ -87,6 +89,8 @@ enum class IncompleteId
   UNPROCESSED_THEORY_CONFLICT,
   // the prop layer stopped search
   STOP_SEARCH,
+  // due to preprocessing
+  PREPROCESSING,
   //------------------- unknown
   // the reason for the incompleteness is unknown
   UNKNOWN

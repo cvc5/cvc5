@@ -1,4 +1,4 @@
-; DISABLE-TESTER: cpc
+
 (set-logic ALL)
 (set-info :status unsat)
 (declare-datatypes ((ap 0)) (((bp) (cp (p (_ BitVec 2)) (dp (_ BitVec 2))

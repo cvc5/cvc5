@@ -1,10 +1,10 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Leni Aniva, Haniel Barbosa
+#   Leni Aniva, Haniel Barbosa, Andrew Reynolds
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -84,6 +84,7 @@ class Op(Enum):
     BVUSUBO = ('bvusubo', 'BITVECTOR_USUBO')
     BVSSUBO = ('bvssubo', 'BITVECTOR_SSUBO')
     BVSDIVO = ('bvsdivo', 'BITVECTOR_SDIVO')
+    BVNEGO = ('bvnego', 'BITVECTOR_NEGO')
 
     BVITE = ('bvite', 'BITVECTOR_ITE')
     BVCOMP = ('bvcomp', 'BITVECTOR_COMP')
@@ -129,6 +130,16 @@ class Op(Enum):
     POW2 = ('int.pow2', 'POW2')
     TO_INT = ('to_int', 'TO_INTEGER')
     TO_REAL = ('to_real', 'TO_REAL')
+    IS_INT = ('is_int', 'IS_INTEGER')
+    DIVISIBLE = ('divisible', 'DIVISIBLE')
+    
+    SINE = ('sin', 'SINE')
+    COSINE = ('cos', 'COSINE')
+    TANGENT = ('tan', 'TANGENT')
+    SECANT = ('sec', 'SECANT')
+    COSECANT = ('csc', 'COSECANT')
+    COTANGENT = ('cot', 'COTANGENT')
+    REAL_PI = (None, 'PI')  # Handled as constant
 
     INT_ISPOW2 = ('int.ispow2', 'INTS_ISPOW2')  # Backdoor for some bv rewrites
     INT_LENGTH = ('int.log2', 'INTS_LOG2')  # Backdoor for some bv rewrites
@@ -145,8 +156,11 @@ class Op(Enum):
     BOUND_VARS = (None, 'BOUND_VAR_LIST')
     DISTINCT = ('distinct', 'DISTINCT')
 
-    BV_TO_NAT = ('bv2nat', 'BITVECTOR_TO_NAT')
-    INT_TO_BV = ('int2bv', 'INT_TO_BITVECTOR')
+    UBV_TO_INT = ('ubv_to_int', 'BITVECTOR_UBV_TO_INT')
+    SBV_TO_INT = ('sbv_to_int', 'BITVECTOR_SBV_TO_INT')
+    INT_TO_BV = ('int_to_bv', 'INT_TO_BITVECTOR')
+    
+    TYPE_OF = ('@type_of', 'TYPE_OF')
 
     ###########################################################################
     # Strings
@@ -161,7 +175,7 @@ class Op(Enum):
     STRING_AT = ('str.at', 'STRING_CHARAT')
     STRING_CONTAINS = ('str.contains', 'STRING_CONTAINS')
     STRING_LT = ('str.<', 'STRING_LT')
-    STRING_LEQ = ('str.<=', 'STRING.LEQ')
+    STRING_LEQ = ('str.<=', 'STRING_LEQ')
     STRING_INDEXOF = ('str.indexof', 'STRING_INDEXOF')
     STRING_INDEXOF_RE = ('str.indexof_re', 'STRING_INDEXOF_RE')
     STRING_REPLACE = ('str.replace', 'STRING_REPLACE')
@@ -181,6 +195,7 @@ class Op(Enum):
 
     SEQ_UNIT = ('seq.unit', 'SEQ_UNIT')
     SEQ_NTH = ('seq.nth', 'SEQ_NTH')
+    SEQ_EMPTY_OF_TYPE = ('@seq.empty_of_type', 'SEQ_EMPTY_OF_TYPE')
 
     STRING_TO_REGEXP = ('str.to_re', 'STRING_TO_REGEXP')
     REGEXP_CONCAT = ('re.++', 'REGEXP_CONCAT')
@@ -189,6 +204,7 @@ class Op(Enum):
     REGEXP_DIFF = ('re.diff', 'REGEXP_DIFF')
     REGEXP_STAR = ('re.*', 'REGEXP_STAR')
     REGEXP_PLUS = ('re.+', 'REGEXP_PLUS')
+    REGEXP_REPEAT = ('re.^', 'REGEXP_REPEAT')
     REGEXP_OPT = ('re.opt', 'REGEXP_OPT')
     REGEXP_RANGE = ('re.range', 'REGEXP_RANGE')
     REGEXP_COMPLEMENT = ('re.comp', 'REGEXP_COMPLEMENT')
@@ -212,6 +228,7 @@ class Op(Enum):
     SET_CARD = ('set.card', 'SET_CARD')
     SET_IS_EMPTY = ('set.is_empty', 'SET_IS_EMPTY')
     SET_IS_SINGLETON = ('set.is_singleton', 'SET_IS_SINGLETON')
+    SET_EMPTY_OF_TYPE = ('@set.empty_of_type', 'SET_EMPTY_OF_TYPE')
 
 
 class BaseSort(Enum):
@@ -337,6 +354,19 @@ class CInt(Node):
     def __repr__(self):
         return str(self.val)
 
+class CRational(Node):
+    def __init__(self, val):
+        super().__init__([])
+        self.val = val
+
+    def __eq__(self, other):
+        return isinstance(other, CRational) and self.val == other.val
+
+    def __hash__(self):
+        return hash(self.val)
+
+    def __repr__(self):
+        return str(self.val)
 
 class CString(Node):
     def __init__(self, val):

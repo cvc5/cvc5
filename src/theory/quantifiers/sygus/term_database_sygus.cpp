@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -37,13 +37,6 @@ using namespace cvc5::internal::kind;
 namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
-
-/** An attribute for mapping sygus variables to builtin variables */
-struct SygusBuiltinFreeVarAttributeId
-{
-};
-using SygusBuiltinFreeVarAttribute =
-    expr::Attribute<SygusBuiltinFreeVarAttributeId, Node>;
 
 std::ostream& operator<<(std::ostream& os, EnumeratorRole r)
 {
@@ -102,8 +95,7 @@ Node TermDbSygus::getProxyVariable(TypeNode tn, Node c)
     Node k;
     if (anyC == -1)
     {
-      SkolemManager* sm = nm->getSkolemManager();
-      k = sm->mkDummySkolem("sy", tn, "sygus proxy");
+      k = NodeManager::mkDummySkolem("sy", tn, "sygus proxy");
       SygusPrintProxyAttribute spa;
       k.setAttribute(spa, c);
     }
@@ -303,7 +295,7 @@ Node TermDbSygus::getBuiltinFreeVarFor(const Node& v)
   Assert(tn.isSygusDatatype());
   const TypeNode& vtn = tn.getDType().getSygusType();
   BoundVarManager* bvm = nodeManager()->getBoundVarManager();
-  return bvm->mkBoundVar<SygusBuiltinFreeVarAttribute>(v, vtn);
+  return bvm->mkBoundVar(BoundVarId::QUANT_SYGUS_BUILTIN_FV, v, vtn);
 }
 
 bool TermDbSygus::registerSygusType(TypeNode tn)
@@ -505,6 +497,10 @@ void TermDbSygus::registerEnumerator(Node e,
     Assert(d_qim != nullptr);
     d_qim->setRefutationUnsound(
         IncompleteId::QUANTIFIERS_SYGUS_SMART_BLOCK_ANY_CONSTANT);
+    Warning()
+        << "Warning: The SyGuS solver is incomplete when symbolic constants "
+           "are used in grammars and --sygus-repair-const is disabled."
+        << std::endl;
   }
   d_enum_active_gen[e] = isActiveGen;
   d_enum_basic[e] = isActiveGen && !isVarAgnostic;
@@ -513,9 +509,8 @@ void TermDbSygus::registerEnumerator(Node e,
   // populate a pool of terms, or (some cases) of when it is actively generated.
   if (isActiveGen || erole == ROLE_ENUM_POOL)
   {
-    SkolemManager* sm = nm->getSkolemManager();
     // make the guard
-    Node ag = sm->mkDummySkolem("eG", nm->booleanType());
+    Node ag = NodeManager::mkDummySkolem("eG", nm->booleanType());
     // must ensure it is a literal immediately here
     ag = d_qstate.getValuation().ensureLiteral(ag);
     // must ensure that it is asserted as a literal before we begin solving
@@ -530,15 +525,12 @@ void TermDbSygus::registerEnumerator(Node e,
     d_env.output(OutputTag::SYGUS_ENUMERATOR) << "(sygus-enumerator";
     if (!f.isNull())
     {
-      SkolemManager* sm = nm->getSkolemManager();
-      Assert(sm->getInternalId(f)
+      Assert(f.getInternalSkolemId()
              == InternalSkolemId::QUANTIFIERS_SYNTH_FUN_EMBED);
-      Node ff;
-      SkolemId id;
-      sm->isSkolemFunction(f, id, ff);
+      std::vector<Node> ski = f.getSkolemIndices();
       // get the argument, which is stored after the internal identifier
-      Assert(ff.getKind() == Kind::SEXPR && ff.getNumChildren() == 2);
-      d_env.output(OutputTag::SYGUS_ENUMERATOR) << " :synth-fun " << ff[1];
+      Assert(ski.size() == 2);
+      d_env.output(OutputTag::SYGUS_ENUMERATOR) << " :synth-fun " << ski[1];
     }
     d_env.output(OutputTag::SYGUS_ENUMERATOR) << " :role " << erole;
     std::stringstream ss;

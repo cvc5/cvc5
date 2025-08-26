@@ -1,4 +1,4 @@
-; COMMAND-LINE: --strings-exp
+; COMMAND-LINE:
 (set-info :status unsat)
 (set-logic ALL)
 (declare-const actionName String)

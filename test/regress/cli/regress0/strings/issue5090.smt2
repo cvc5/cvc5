@@ -1,4 +1,4 @@
-; COMMAND-LINE: --strings-exp --incremental
+; COMMAND-LINE: --incremental
 (set-logic QF_S)
 (declare-const Str0 String)
 (declare-const Str1 String)

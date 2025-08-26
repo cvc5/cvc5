@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Alex Ozdemir
+ *   Alex Ozdemir, Daniel Larraz, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -35,12 +35,11 @@ FfBitsum::FfBitsum(PreprocessingPassContext* preprocContext)
 {
 }
 
-Node mkAdd(const std::vector<Node>& children)
+Node mkAdd(NodeManager* nm, const std::vector<Node>& children)
 {
   Assert(children.size() > 0);
   return children.size() == 1 ? children[0]
-                              : NodeManager::currentNM()->mkNode(
-                                  Kind::FINITE_FIELD_ADD, children);
+                              : nm->mkNode(Kind::FINITE_FIELD_ADD, children);
 }
 
 PreprocessingPassResult FfBitsum::applyInternal(
@@ -67,7 +66,7 @@ PreprocessingPassResult FfBitsum::applyInternal(
   }
 
   // collect bitsums
-  auto nm = NodeManager::currentNM();
+  auto nm = nodeManager();
   std::unordered_map<Node, Node> cache{};
   for (uint64_t i = 0, n = assertionsToPreprocess->size(); i < n; ++i)
   {
@@ -86,7 +85,7 @@ PreprocessingPassResult FfBitsum::applyInternal(
       else
       {
         Kind oldKind = current.getKind();
-        NodeBuilder builder(oldKind);
+        NodeBuilder builder(nm, oldKind);
         if (current.getMetaKind() == kind::MetaKind::PARAMETERIZED)
         {
           builder << current.getOperator();
@@ -113,7 +112,7 @@ PreprocessingPassResult FfBitsum::applyInternal(
               Trace("ff::bitsum") << "found " << scaled << std::endl;
               bs->second.push_back(scaled);
             }
-            translation = mkAdd(std::move(bs->second));
+            translation = mkAdd(nm, std::move(bs->second));
           }
         }
       }
@@ -122,7 +121,8 @@ PreprocessingPassResult FfBitsum::applyInternal(
     Node newFact = cache[fact];
     if (newFact != fact)
     {
-      assertionsToPreprocess->replace(i, newFact);
+      assertionsToPreprocess->replace(
+          i, newFact, nullptr, TrustId::PREPROCESS_FF_BITSUM);
     }
   }
 

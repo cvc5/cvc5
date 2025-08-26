@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -225,7 +225,7 @@ private:
    * applied to the quantified formula, and that this module is the one that
    * handles it.
    */
-  static Node mkBoundedForall(Node bvl, Node body);
+  static Node mkBoundedForall(NodeManager* nm, Node bvl, Node body);
   /**
    * Has this node been marked as an annotation for a bounded quantified
    * formula? This is true for the annotation in the formula returned by the

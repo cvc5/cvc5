@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -42,7 +42,14 @@ namespace arith {
  * This method ensures we do not spuriously introduce mixed arithmetic, which
  * the proof checker for MACRO_ARITH_SCALE_SUM_UB requires.
  */
-std::vector<Node> getMacroSumUbCoeff(const std::vector<Pf>& pfs,
+std::vector<Node> getMacroSumUbCoeff(NodeManager* nm,
+                                     const std::vector<Pf>& pfs,
+                                     const std::vector<Node>& coeffs);
+/**
+ * Same as above, but with proven formulas.
+ */
+std::vector<Node> getMacroSumUbCoeff(NodeManager* nm,
+                                     const std::vector<Node>& premises,
                                      const std::vector<Node>& coeffs);
 
 /**
@@ -58,9 +65,26 @@ std::vector<Node> getMacroSumUbCoeff(const std::vector<Pf>& pfs,
  * @param cdp The proof to add steps to.
  * @return The conclusion of the proof rule.
  */
-Node expandMacroSumUb(const std::vector<Node>& children,
+Node expandMacroSumUb(NodeManager* nm,
+                      const std::vector<Node>& children,
                       const std::vector<Node>& args,
                       CDProof* cdp);
+
+/**
+ * Return a proof that proves pred, based on pf.
+ * It is expected that pf proves a formula pred' such that pred and pred' are
+ * equivalent up to rewriting. In particular, when applicable, pf is
+ * taken as a premise of a MACRO_SR_PRED_TRANSFORM step that proves pred.
+ * If pf is already a proof of pred, it is returned as-is.
+ *
+ * @param pnm Reference to the proof manager.
+ * @param pf The proof.
+ * @param pred The desired conclusion.
+ * @return The proof of pred.
+ */
+std::shared_ptr<ProofNode> ensurePredTransform(ProofNodeManager* pnm,
+                                               std::shared_ptr<ProofNode>& pf,
+                                               const Node& pred);
 
 }  // namespace arith
 }  // namespace theory

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mudathir Mohamed
+ *   Mudathir Mohamed, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -15,6 +15,9 @@
 
 package io.github.cvc5;
 
+/**
+ * A cvc5 plugin abstract class.
+ */
 public abstract class AbstractPlugin
 {
   /**
@@ -26,6 +29,7 @@ public abstract class AbstractPlugin
     this.termManager = tm;
   }
 
+  /** The associated term manager. */
   protected final TermManager termManager;
 
   /**

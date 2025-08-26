@@ -1,4 +1,4 @@
-; COMMAND-LINE: --seq-array=lazy --strings-exp
+; COMMAND-LINE: --seq-array=lazy
 ; EXPECT: sat
 (set-logic ALL)
 (set-info :status sat)

@@ -1,4 +1,4 @@
-; COMMAND-LINE: --strings-exp
+; COMMAND-LINE:
 ; EXPECT: sat
 (set-logic ALL)
 (declare-fun a () (Seq (Seq Int)))

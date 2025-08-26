@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Andrew Reynolds
+ *   Gereon Kremer, Daniel Larraz, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -116,20 +116,21 @@ void addToSum(Sum& sum, TNode product, const RealAlgebraicNumber& multiplicity)
  * Evaluates `basemultiplicity * baseproduct * sum` into a single node (of kind
  * `ADD`, unless the sum has less than two summands).
  */
-Node collectSumWithBase(const Sum& sum,
+Node collectSumWithBase(NodeManager* nm,
+                        const Sum& sum,
                         const RealAlgebraicNumber& basemultiplicity,
                         const std::vector<Node>& baseproduct)
 {
-  if (sum.empty()) return mkConst(Rational(0));
+  if (sum.empty()) return mkConst(nm, Rational(0));
   // construct the sum as nodes.
-  NodeBuilder nb(Kind::ADD);
+  NodeBuilder nb(nm, Kind::ADD);
   for (const auto& summand : sum)
   {
     Assert(!summand.second.isZero());
     RealAlgebraicNumber mult = summand.second * basemultiplicity;
     std::vector<Node> product = baseproduct;
     rewriter::addToProduct(product, mult, summand.first);
-    nb << mkMultTerm(mult, std::move(product));
+    nb << mkMultTerm(nm, mult, std::move(product));
   }
   if (nb.getNumChildren() == 1)
   {
@@ -185,15 +186,26 @@ void addToSum(Sum& sum, TNode n, bool negate)
     multiplicity = Integer(-1);
   }
   addToProduct(monomial, multiplicity, n);
-  addToSum(sum, mkNonlinearMult(monomial), multiplicity);
+  addToSum(sum, mkNonlinearMult(n.getNodeManager(), monomial), multiplicity);
 }
 
-Node collectSum(const Sum& sum)
+void addMonomialToSum(Sum& sum,
+                      TNode product,
+                      RealAlgebraicNumber& multiplicity)
 {
-  if (sum.empty()) return mkConst(Rational(0));
+  Assert(product.getKind() != Kind::ADD);
+  std::vector<Node> monomial;
+  addToProduct(monomial, multiplicity, product);
+  addToSum(
+      sum, mkNonlinearMult(product.getNodeManager(), monomial), multiplicity);
+}
+
+Node collectSum(NodeManager* nm, const Sum& sum)
+{
+  if (sum.empty()) return mkConst(nm, Rational(0));
   Trace("arith-rewriter") << "Collecting sum " << sum << std::endl;
   // construct the sum as nodes.
-  NodeBuilder nb(Kind::ADD);
+  NodeBuilder nb(nm, Kind::ADD);
   for (const auto& s : sum)
   {
     nb << mkMultTerm(s.second, s.first);
@@ -205,7 +217,8 @@ Node collectSum(const Sum& sum)
   return nb.constructNode();
 }
 
-Node distributeMultiplication(const std::vector<TNode>& factors)
+Node distributeMultiplication(NodeManager* nm,
+                              const std::vector<TNode>& factors)
 {
   if (TraceIsOn("arith-rewriter-distribute"))
   {
@@ -223,7 +236,7 @@ Node distributeMultiplication(const std::vector<TNode>& factors)
   // base factors).
   Sum sum;
   // Add a base summand
-  sum.emplace(mkConst(Rational(1)), RealAlgebraicNumber(Integer(1)));
+  sum.emplace(mkConst(nm, Rational(1)), RealAlgebraicNumber(Integer(1)));
 
   // multiply factors one by one to basmultiplicity * base * sum
   for (const auto& factor : factors)
@@ -265,7 +278,7 @@ Node distributeMultiplication(const std::vector<TNode>& factors)
         addToProduct(newProduct, multiplicity, summand.first);
         addToProduct(newProduct, multiplicity, child);
         std::sort(newProduct.begin(), newProduct.end(), LeafNodeComparator());
-        addToSum(newsum, mkNonlinearMult(newProduct), multiplicity);
+        addToSum(newsum, mkNonlinearMult(nm, newProduct), multiplicity);
       }
     }
     if (TraceIsOn("arith-rewriter-distribute"))
@@ -286,7 +299,7 @@ Node distributeMultiplication(const std::vector<TNode>& factors)
   }
   // now mult(factors) == base * add(sum)
 
-  return collectSumWithBase(sum, basemultiplicity, base);
+  return collectSumWithBase(nm, sum, basemultiplicity, base);
 }
 
 }  // namespace rewriter

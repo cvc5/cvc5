@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Tim King, Andres Noetzli
+ *   Andrew Reynolds, Tim King, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -51,7 +51,7 @@ Node UninterpretedSortEnumerator::operator*()
   {
     throw NoMoreValuesException(getType());
   }
-  return NodeManager::currentNM()->mkConst(
+  return getType().getNodeManager()->mkConst(
       UninterpretedSortValue(getType(), d_count));
 }
 

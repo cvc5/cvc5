@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -36,6 +36,7 @@
 #include "options/language.h"
 #include "options/main_options.h"
 #include "options/option_exception.h"
+#include "options/parser_options.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
 #include "util/didyoumean.h"
@@ -353,6 +354,7 @@ void OptionsHandler::showConfiguration(const std::string& flag, bool value)
 
   std::cout << std::endl;
 
+  print_config_cond("safe-mode", Configuration::isSafeBuild());
   print_config_cond("debug code", Configuration::isDebugBuild());
   print_config_cond("statistics", configuration::isStatisticsBuild());
   print_config_cond("tracing", Configuration::isTracingBuild());
@@ -398,6 +400,18 @@ void OptionsHandler::showTraceTags(const std::string& flag, bool value)
     throw OptionException("trace tags not available in non-tracing build");
   }
   printTags(Configuration::getTraceTags());
+}
+
+void OptionsHandler::strictParsing(const std::string& flag, bool value)
+{
+  if (value)
+  {
+    d_options->write_parser().parsingMode = options::ParsingMode::STRICT;
+  }
+  else if (d_options->parser.parsingMode == options::ParsingMode::STRICT)
+  {
+    d_options->write_parser().parsingMode = options::ParsingMode::DEFAULT;
+  }
 }
 
 }  // namespace options

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
+ *   Andrew Reynolds, Aina Niemetz, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -245,8 +245,9 @@ bool SygusSimpleSymBreak::considerArgKind(
           rt.d_req_kind = k;
           rt.d_children[0].d_req_kind = Kind::ADD;
           rt.d_children[0].d_children[0].d_req_type = dt[c].getArgType(1);
+          NodeManager* nm = tn.getNodeManager();
           rt.d_children[0].d_children[1].d_req_const =
-              NodeManager::currentNM()->mkConstInt(Rational(1));
+              nm->mkConstInt(Rational(1));
           rt.d_children[1].d_req_type = dt[c].getArgType(0);
         }
         else if (k == Kind::LT || k == Kind::GEQ)
@@ -256,8 +257,9 @@ bool SygusSimpleSymBreak::considerArgKind(
           rt.d_children[0].d_req_type = dt[c].getArgType(1);
           rt.d_children[1].d_req_kind = Kind::ADD;
           rt.d_children[1].d_children[0].d_req_type = dt[c].getArgType(0);
+          NodeManager* nm = tn.getNodeManager();
           rt.d_children[1].d_children[1].d_req_const =
-              NodeManager::currentNM()->mkConstInt(Rational(1));
+              nm->mkConstInt(Rational(1));
         }
       }
       else if (pk == Kind::BITVECTOR_NOT)

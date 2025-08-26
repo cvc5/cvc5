@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Clark Barrett, Aina Niemetz
+ *   Andrew Reynolds, Clark Barrett, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -16,6 +16,8 @@
 
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
+#include "expr/skolem_manager.h"
+#include "expr/sort_to_term.h"
 #include "expr/sort_type_size.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
@@ -132,8 +134,9 @@ bool TheoryEngineModelBuilder::isAssignerActive(TheoryModel* tm, Assigner& a)
 
 bool TheoryEngineModelBuilder::isAssignable(TNode n)
 {
-  if (n.getKind() == Kind::SELECT || n.getKind() == Kind::APPLY_SELECTOR
-      || n.getKind() == Kind::SEQ_NTH)
+  Kind k = n.getKind();
+  if (k == Kind::SELECT || k == Kind::APPLY_SELECTOR
+      || k == Kind::SEQ_NTH)
   {
     // selectors are always assignable (where we guarantee that they are not
     // evaluatable here)
@@ -148,12 +151,14 @@ bool TheoryEngineModelBuilder::isAssignable(TNode n)
       return !n.getType().isFunction();
     }
   }
-  else if (n.getKind() == Kind::FLOATINGPOINT_COMPONENT_SIGN)
+  else if (k == Kind::FLOATINGPOINT_COMPONENT_SIGN || k==Kind::SEP_NIL)
   {
-    // Extracting the sign of a floating-point number acts similar to a
+    // - Extracting the sign of a floating-point number acts similar to a
     // selector on a datatype, i.e. if `(sign x)` wasn't assigned a value, we
     // can pick an arbitrary one. Note that the other components of a
     // floating-point number should always be assigned a value.
+    // - sep.nil is a nullary constant that acts like a variable and thus is
+    // assignable.
     return true;
   }
   else
@@ -162,16 +167,15 @@ bool TheoryEngineModelBuilder::isAssignable(TNode n)
     if (!logicInfo().isHigherOrder())
     {
       // no functions exist, all functions are fully applied
-      Assert(n.getKind() != Kind::HO_APPLY);
+      Assert(k != Kind::HO_APPLY);
       Assert(!n.getType().isFunction());
-      return n.isVar() || n.getKind() == Kind::APPLY_UF;
+      return n.isVar() || k == Kind::APPLY_UF;
     }
     else
     {
-      // Assert( n.getKind() != Kind::APPLY_UF );
       return (n.isVar() && !n.getType().isFunction())
-             || n.getKind() == Kind::APPLY_UF
-             || (n.getKind() == Kind::HO_APPLY
+             || k == Kind::APPLY_UF
+             || (k == Kind::HO_APPLY
                  && n[0].getType().getNumChildren() == 2);
     }
   }
@@ -368,10 +372,12 @@ void TheoryEngineModelBuilder::addToTypeList(
         const DType& dt = tn.getDType();
         for (unsigned i = 0; i < dt.getNumConstructors(); i++)
         {
-          for (unsigned j = 0; j < dt[i].getNumArgs(); j++)
+          // Note that we may be a parameteric datatype, in which case the
+          // instantiated sorts need to be considered.
+          TypeNode ctn = dt[i].getInstantiatedConstructorType(tn);
+          for (const TypeNode& ctnc : ctn)
           {
-            TypeNode ctn = dt[i][j].getRangeType();
-            addToTypeList(ctn, type_list, visiting);
+            addToTypeList(ctnc, type_list, visiting);
           }
         }
       }
@@ -584,7 +590,10 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
         }
 
         // (3) Finally, process assignable information
-        evaluable = true;
+        // We are evaluable typically if we are not assignable. However the
+        // one exception is that higher-order variables when in HOL should be
+        // considered neither assignable nor evaluable, which we check for here.
+        evaluable = !n.isVar();
         // expressions that are not assignable should not be given assignment
         // exclusion sets
         Assert(!tm->getAssignmentExclusionSet(n, esetGroup, eset));
@@ -627,7 +636,22 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
     {
       if (eqct.isUninterpretedSort())
       {
+        // we never assign uninterpreted sorts a priori.
+        Assert (constRep.isNull());
         eqc_usort_count[eqct]++;
+        // For uninterpreted sorts when finite model finding is enabled,
+        // we preemptively assign the next value in the enumeration here.
+        // This is important because uninterpreted sorts are considered
+        // "INTERPRETED_FINITE" cardinality when finite model finding is
+        // enabled, and hence would otherwise be assigned using the finite
+        // case below (assigning them to the first value), which we do not
+        // want. Instead, all initial equivalence classes of uninterpreted
+        // sorts are assigned distinct values, and all further values
+        // (e.g. terms introduced as subfields of datatypes) are assign
+        // arbitrary values.
+        constRep = typeConstSet.nextTypeEnum(eqct);
+        Trace("model-value-enum") << "Enum fmf usort " << eqct << " " << constRep
+                                  << " for " << eqc << std::endl;
       }
     }
     // Assign representative for this equivalence class
@@ -933,6 +957,13 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
       {
         i2 = i;
         ++i;
+        if (evaluableEqc.find(*i2) != evaluableEqc.end())
+        {
+          Trace("model-builder")
+              << "  ...do not assign to evaluatable eqc " << *i2 << std::endl;
+          // we never assign to evaluable equivalence classes
+          continue;
+        }
         // check whether it has an assigner object
         itAssignerM = eqcToAssignerMaster.find(*i2);
         if (itAssignerM != eqcToAssignerMaster.end())
@@ -954,13 +985,11 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
         {
           assignable = assignableEqc.find(*i2) != assignableEqc.end();
         }
-        evaluable = evaluableEqc.find(*i2) != evaluableEqc.end();
         Trace("model-builder-debug")
             << "    eqc " << *i2 << " is assignable=" << assignable
-            << ", evaluable=" << evaluable << std::endl;
+            << std::endl;
         if (assignable)
         {
-          Assert(!evaluable || assignOne);
           // this assertion ensures that if we are assigning to a term of
           // Boolean type, then the term must be assignable.
           // Note we only assign to terms of Boolean type if the term occurs in
@@ -977,17 +1006,11 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
             n = itAssigner->second.getNextAssignment();
             Assert(!n.isNull());
           }
-          else if (t.isUninterpretedSort() || !d_env.isFiniteType(t))
+          else if (!d_env.isFiniteType(t))
           {
-            // If its interpreted as infinite, we get a fresh value that does
-            // not occur in the model.
-            // Note we also consider uninterpreted sorts to be infinite here
-            // regardless of whether the cardinality class of t is
-            // CardinalityClass::INTERPRETED_FINITE.
-            // This is required because the UF solver does not explicitly
-            // assign uninterpreted constants to equivalence classes in its
-            // collectModelValues method. Doing so would have the same effect
-            // as running the code in this case.
+            // If its infinite, we get a fresh value that does not occur in the
+            // model. Note that uninterpreted sorts are handled in the finite
+            // case below in the case that finite model finding is enabled.
             bool success;
             do
             {
@@ -1038,14 +1061,23 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
               //---
             } while (!success);
             Assert(!n.isNull());
+            Trace("model-value-enum") << "Enum infinite " << t << " " << n
+                                      << " for " << *i2 << std::endl;
           }
           else
           {
             // Otherwise, we get the first value from the type enumerator.
+            // Note that uninterpreted sorts in finite model finding assign
+            // an arbitrary constant when unassigned. This case is applied
+            // e.g. for datatypes over uninterpreted sorts, where subfields
+            // of the datatype may be introduced when assigning arbitrary
+            // values.
             Trace("model-builder-debug")
                 << "Get first value from finite type..." << std::endl;
             TypeEnumerator te(t);
             n = *te;
+            Trace("model-value-enum") << "Enum finite " << t << " " << n
+                                      << " for " << *i2 << std::endl;
           }
           Trace("model-builder-debug") << "...got " << n << std::endl;
           assignConstantRep(tm, *i2, n);
@@ -1071,7 +1103,15 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
     // that has both assignable and evaluable expressions will get assigned.
     if (!changed)
     {
-      Assert(!assignOne);  // check for infinite loop!
+      Trace("model-builder-debug") << "...must assign one" << std::endl;
+      // Avoid infinite loops: if we are in a deadlock, we abort model building
+      // unsuccessfully here.
+      if (assignOne)
+      {
+        Assert (false) << "Reached a deadlock during model construction";
+        Trace("model-builder-debug") << "...avoid loop, fail" << std::endl;
+        return false;
+      }
       assignOne = true;
     }
   }
@@ -1175,8 +1215,6 @@ void TheoryEngineModelBuilder::debugCheckModel(TheoryModel* tm)
     for (; !eqc_i.isFinished(); ++eqc_i)
     {
       Node n = *eqc_i;
-      static int repCheckInstance = 0;
-      ++repCheckInstance;
       AlwaysAssert(rep.getType() == n.getType())
           << "Representative " << rep << " of " << n
           << " violates type constraints (" << rep.getType() << " and "
@@ -1186,7 +1224,6 @@ void TheoryEngineModelBuilder::debugCheckModel(TheoryModel* tm)
       {
         std::stringstream err;
         err << "Failed representative check:" << std::endl
-            << "( " << repCheckInstance << ") "
             << "n: " << n << std::endl
             << "getValue(n): " << val << std::endl
             << "rep: " << rep << std::endl;
@@ -1295,6 +1332,8 @@ void TheoryEngineModelBuilder::assignFunction(TheoryModel* m, Node f)
 {
   Assert(!logicInfo().isHigherOrder());
   uf::UfModelTree ufmt(f);
+  options::DefaultFunctionValueMode dfvm =
+      options().theory.defaultFunctionValueMode;
   Node default_v;
   for (size_t i = 0; i < m->d_uf_terms[f].size(); i++)
   {
@@ -1315,12 +1354,24 @@ void TheoryEngineModelBuilder::assignFunction(TheoryModel* m, Node f)
     Trace("model-builder") << "  Setting (" << simp << ") to (" << v << ")"
                            << endl;
     ufmt.setValue(m, simp, v);
-    default_v = v;
+    if (dfvm == options::DefaultFunctionValueMode::FIRST)
+    {
+      default_v = v;
+    }
   }
-  if (default_v.isNull())
+  TypeNode rangeType = f.getType().getRangeType();
+  if (dfvm == options::DefaultFunctionValueMode::HOLE)
+  {
+    NodeManager* nm = nodeManager();
+    SkolemManager* sm = nm->getSkolemManager();
+    std::vector<Node> cacheVals;
+    cacheVals.push_back(nm->mkConst(SortToTerm(rangeType)));
+    default_v = sm->mkSkolemFunction(SkolemId::GROUND_TERM, cacheVals);
+  }
+  else if (default_v.isNull())
   {
     // choose default value from model if none exists
-    TypeEnumerator te(f.getType().getRangeType());
+    TypeEnumerator te(rangeType);
     default_v = (*te);
   }
   ufmt.setDefaultValue(m, default_v);
@@ -1341,10 +1392,13 @@ void TheoryEngineModelBuilder::assignFunction(TheoryModel* m, Node f)
 void TheoryEngineModelBuilder::assignHoFunction(TheoryModel* m, Node f)
 {
   Assert(logicInfo().isHigherOrder());
+  Trace("model-builder-debug") << "Assign HO function " << f << std::endl;
   TypeNode type = f.getType();
   std::vector<TypeNode> argTypes = type.getArgTypes();
   std::vector<Node> args;
   std::vector<TNode> apply_args;
+  options::DefaultFunctionValueMode dfvm =
+      options().theory.defaultFunctionValueMode;
   for (unsigned i = 0; i < argTypes.size(); i++)
   {
     Node v = nodeManager()->mkBoundVar(argTypes[i]);
@@ -1354,10 +1408,30 @@ void TheoryEngineModelBuilder::assignHoFunction(TheoryModel* m, Node f)
       apply_args.push_back(v);
     }
   }
-  // start with the base return value (currently we use the same default value
-  // for all functions)
-  TypeEnumerator te(type.getRangeType());
-  Node curr = (*te);
+  // Depending on the default value mode, maybe set the current value (curr).
+  // We also remember a default value (currPre) in case there are no terms
+  // to assign below.
+  TypeNode rangeType = type.getRangeType();
+  Node curr, currPre;
+  if (dfvm == options::DefaultFunctionValueMode::HOLE)
+  {
+    NodeManager* nm = nodeManager();
+    SkolemManager* sm = nm->getSkolemManager();
+    std::vector<Node> cacheVals;
+    cacheVals.push_back(nm->mkConst(SortToTerm(rangeType)));
+    currPre = sm->mkSkolemFunction(SkolemId::GROUND_TERM, cacheVals);
+    curr = currPre;
+  }
+  else
+  {
+    TypeEnumerator te(rangeType);
+    currPre = (*te);
+    if (dfvm == options::DefaultFunctionValueMode::FIRST_ENUM)
+    {
+      curr = currPre;
+    }
+  }
+  curr = currPre;
   std::map<Node, std::vector<Node> >::iterator itht = m->d_ho_uf_terms.find(f);
   if (itht != m->d_ho_uf_terms.end())
   {
@@ -1395,8 +1469,20 @@ void TheoryEngineModelBuilder::assignHoFunction(TheoryModel* m, Node f)
         hnv = rewrite(hnv);
       }
       Assert(hnv.getType() == curr.getType());
-      curr = nodeManager()->mkNode(Kind::ITE, hni, hnv, curr);
+      if (curr.isNull())
+      {
+        curr = hnv;
+      }
+      else
+      {
+        curr = nodeManager()->mkNode(Kind::ITE, hni, hnv, curr);
+      }
     }
+  }
+  // if curr was not set, we set it to currPre.
+  if (curr.isNull())
+  {
+    curr = currPre;
   }
   Node val = nodeManager()->mkNode(
       Kind::LAMBDA, nodeManager()->mkNode(Kind::BOUND_VAR_LIST, args), curr);

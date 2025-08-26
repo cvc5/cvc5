@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -180,6 +180,56 @@ class TheoryLeafTermContext : public TermContext
 
  private:
   theory::TheoryId d_theoryId;
+};
+
+/**
+ * Boolean skeleton term context.
+ * Returns 0 for terms that are part of a Boolean skeleton, 1 otherwise.
+ */
+class BoolSkeletonTermContext : public TermContext
+{
+ public:
+  BoolSkeletonTermContext() {}
+  /** The initial value: assumed to be 0, i.e. in the Boolean skeleton. */
+  uint32_t initialValue() const override;
+  /** Compute the value of the index^th child of t whose hash is tval */
+  uint32_t computeValue(TNode t, uint32_t tval, size_t index) const override;
+};
+
+/**
+ * Returns 1 if we are in a term of Kind k, 0 otherwise.
+ */
+class WithinKindTermContext : public TermContext
+{
+ public:
+  WithinKindTermContext(Kind k) : d_kind(k) {}
+  /** The initial value: not within kind. */
+  uint32_t initialValue() const override;
+  /** Compute the value of the index^th child of t whose hash is tval */
+  uint32_t computeValue(TNode t, uint32_t tval, size_t index) const override;
+
+ protected:
+  /** The kind */
+  Kind d_kind;
+};
+
+/**
+ * Increments value if we are on (repeated) traversals of the given path.
+ * The context value is 0 if the term context is not on the path, or
+ * 1 + depth otherwise.
+ */
+class WithinPathTermContext : public TermContext
+{
+ public:
+  WithinPathTermContext(const std::vector<size_t>& path) : d_path(path) {}
+  /** The initial value: value 1. */
+  uint32_t initialValue() const override;
+  /** Compute the value of the index^th child of t whose hash is tval */
+  uint32_t computeValue(TNode t, uint32_t tval, size_t index) const override;
+
+ protected:
+  /** The path */
+  std::vector<size_t> d_path;
 };
 
 }  // namespace cvc5::internal

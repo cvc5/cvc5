@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Dejan Jovanovic, Mathias Preiner, Aina Niemetz
+ *   Aina Niemetz, Dejan Jovanovic, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -42,7 +42,11 @@ public:
   /** Virtual destructor */
   virtual ~SatSolver() { }
 
-  /** Assert a clause in the solver. */
+  /**
+   * Add clause to SAT solver.
+   * @param clause    The clause to add.
+   * @param removable True to indicate that this clause is not irredundant.
+   */
   virtual ClauseId addClause(SatClause& clause,
                              bool removable) = 0;
 
@@ -61,10 +65,18 @@ public:
    */
   virtual SatVariable newVar(bool isTheoryAtom, bool canErase) = 0;
 
-  /** Create a new (or return an existing) boolean variable representing the constant true */
+  /**
+   * Create a new (or return an existing) boolean variable representing the
+   * constant true.
+   * @return The variable representing true.
+   */
   virtual SatVariable trueVar() = 0;
 
-  /** Create a new (or return an existing) boolean variable representing the constant false */
+  /**
+   * Create a new (or return an existing) boolean variable representing the
+   * constant false.
+   * @return The variable representing false.
+   */
   virtual SatVariable falseVar() = 0;
 
   /** Check the satisfiability of the added clauses */
@@ -122,9 +134,7 @@ class CDCLTSatSolver : public SatSolver
  public:
   virtual ~CDCLTSatSolver(){};
 
-  virtual void initialize(context::Context* context,
-                          prop::TheoryProxy* theoryProxy,
-                          context::UserContext* userContext,
+  virtual void initialize(prop::TheoryProxy* theoryProxy,
                           PropPfManager* ppm) = 0;
 
   virtual void push() = 0;
@@ -175,17 +185,6 @@ class CDCLTSatSolver : public SatSolver
    * @return a complete proof computed by this SAT solver.
    */
   virtual std::shared_ptr<ProofNode> getProof() = 0;
-
-  /**
-   * Get proof sketch, which is used if option prop-proof-mode is SKETCH.
-   * Get a rule r and additional arguments args such that the final proof
-   * will be:
-   *   (r :premises (c1..cn) :args (F args))
-   * where F is a string corresponding to the file name of a DIMACs file
-   * for an unsat core of derived clauses (input or theory lemma) c1...cn.
-   * @return The above rule and arguments packaged as a std::pair.
-   */
-  virtual std::pair<ProofRule, std::vector<Node>> getProofSketch() = 0;
 
 }; /* class CDCLTSatSolver */
 

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -26,13 +26,14 @@
 #include "printer/smt2/smt2_printer.h"
 #include "proof/unsat_core.h"
 #include "smt/model.h"
+#include "theory/uf/function_const.h"
 #include "theory/quantifiers/instantiation_list.h"
 
 using namespace std;
 
 namespace cvc5::internal {
 
-unique_ptr<Printer>
+thread_local unique_ptr<Printer>
     Printer::d_printers[static_cast<size_t>(Language::LANG_MAX)];
 
 unique_ptr<Printer> Printer::makePrinter(Language lang)
@@ -55,12 +56,13 @@ unique_ptr<Printer> Printer::makePrinter(Language lang)
 
 void Printer::toStream(std::ostream& out,
                        TNode n,
-                       const LetBinding* lbind) const
+                       const LetBinding* lbind,
+                       bool lbindTop) const
 {
   // no special implementation, just convert and print with default prefix
   if (lbind != nullptr)
   {
-    Node nc = lbind->convert(n);
+    Node nc = lbind->convert(n, lbindTop);
     toStream(out, nc);
   }
   else
@@ -302,12 +304,15 @@ void Printer::toStreamCmdDefineFunction(std::ostream& out,
   std::stringstream vs;
   vs << v;
   std::vector<Node> formals;
-  Node body = lambda;
   TypeNode rangeType = v.getType();
-  if (body.getKind() == Kind::LAMBDA)
+  // could be a function constant
+  Node lam = theory::uf::FunctionConst::toLambda(lambda);
+  Node body = lambda;
+  if (!lam.isNull())
   {
-    formals.insert(formals.end(), lambda[0].begin(), lambda[0].end());
-    body = lambda[1];
+    Assert(lam.getKind() == Kind::LAMBDA);
+    formals.insert(formals.end(), lam[0].begin(), lam[0].end());
+    body = lam[1];
     Assert(rangeType.isFunction());
     rangeType = rangeType.getRangeType();
   }

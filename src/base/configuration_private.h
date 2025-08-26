@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -29,6 +29,12 @@ namespace cvc5::internal {
 #else /* CVC5_DEBUG */
 #  define IS_DEBUG_BUILD false
 #endif /* CVC5_DEBUG */
+
+#ifdef CVC5_SAFE_MODE
+#  define IS_SAFE_BUILD true
+#else /* CVC5_SAFE_MODE */
+#  define IS_SAFE_BUILD false
+#endif /* CVC5_SAFE_MODE */
 
 #ifdef CVC5_TRACING
 #  define IS_TRACING_BUILD true

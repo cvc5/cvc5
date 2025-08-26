@@ -1,0 +1,25 @@
+(include "../../theories/Arith.eo")
+
+; The "integer-and" operator, see Zohar et al VMCAI 2022.
+; disclaimer: This function is not in SMT-LIB.
+(declare-const iand (-> Int Int Int Int))
+
+; Power function.
+; disclaimer: This function is not a function in SMT-LIB. 
+(declare-parameterized-const ^ ((T Type :implicit))
+  (-> T T (eo::requires ($is_arith_type T) true T)))
+
+; skolems for virtual term substitution
+(declare-const @arith_vts_delta Real)
+(declare-const @arith_vts_delta_free Real)
+(declare-parameterized-const @arith_vts_infinity ((T Type)) T)
+(declare-parameterized-const @arith_vts_infinity_free ((T Type)) T)
+
+; used by --nl-cov
+(declare-const @indexed_root_predicate (-> Int Bool Real Bool))
+
+; skolems for virtual term substitution
+(declare-const @arith_vts_delta Real)
+(declare-const @arith_vts_delta_free Real)
+(declare-parameterized-const @arith_vts_infinity ((T Type)) T)
+(declare-parameterized-const @arith_vts_infinity_free ((T Type)) T)

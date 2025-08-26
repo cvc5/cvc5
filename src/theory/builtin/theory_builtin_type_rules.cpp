@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -185,11 +185,24 @@ TypeNode ApplyIndexedSymbolicTypeRule::computeType(NodeManager* nodeManager,
   return cn.getType();
 }
 
+TypeNode TypeOfTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return TypeNode::null();
+}
+
+TypeNode TypeOfTypeRule::computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check,
+                                     std::ostream* errOut)
+{
+  return nodeManager->builtinOperatorType();
+}
+
 Node SortProperties::mkGroundTerm(TypeNode type)
 {
   // we typically use this method for sorts, although there are other types
   // where it is used as well, e.g. arrays that are not closed enumerable.
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = type.getNodeManager();
   SkolemManager* sm = nm->getSkolemManager();
   std::vector<Node> cacheVals;
   cacheVals.push_back(nm->mkConst(SortToTerm(type)));

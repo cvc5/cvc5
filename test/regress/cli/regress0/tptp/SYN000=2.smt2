@@ -1,3 +1,5 @@
+;; Input has to_int applied to an integer
+; DISABLE-TESTER: alethe
 (set-logic ALL)
 (set-info :status unsat)
 (declare-sort $$unsorted 0)

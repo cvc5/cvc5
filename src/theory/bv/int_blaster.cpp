@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Yoni Zohar, Aina Niemetz, Makai Mann
+ *   Yoni Zohar, Aina Niemetz, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,11 +22,12 @@
 #include <vector>
 
 #include "expr/node.h"
-#include "expr/node_traversal.h"
 #include "expr/node_algorithm.h"
+#include "expr/node_traversal.h"
 #include "expr/skolem_manager.h"
-#include "options/option_exception.h"
 #include "options/uf_options.h"
+#include "proof/proof.h"
+#include "smt/logic_exception.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/logic_info.h"
 #include "theory/rewriter.h"
@@ -55,6 +56,7 @@ IntBlaster::IntBlaster(Env& env,
       d_intblastCache(userContext()),
       d_rangeAssertions(userContext()),
       d_bitwiseAssertions(userContext()),
+      d_iandUtils(nodeManager()),
       d_mode(mode),
       d_context(userContext())
 {
@@ -67,9 +69,19 @@ IntBlaster::IntBlaster(Env& env,
 
 IntBlaster::~IntBlaster() {}
 
+std::shared_ptr<ProofNode> IntBlaster::getProofFor(Node fact)
+{
+  // proofs not yet supported
+  CDProof cdp(d_env);
+  cdp.addTrustedStep(fact, TrustId::INT_BLASTER, {}, {});
+  return cdp.getProofFor(fact);
+}
+
+std::string IntBlaster::identify() const { return "IntBlaster"; }
+
 void IntBlaster::addRangeConstraint(Node node,
                                     uint32_t size,
-                                    std::vector<Node>& lemmas)
+                                    std::vector<TrustNode>& lemmas)
 {
   Node rangeConstraint = mkRangeConstraint(node, size);
   Trace("int-blaster-debug")
@@ -79,12 +91,13 @@ void IntBlaster::addRangeConstraint(Node node,
     Trace("int-blaster-debug")
         << "range constraint added to cache and lemmas " << std::endl;
     d_rangeAssertions.insert(rangeConstraint);
-    lemmas.push_back(rangeConstraint);
+    TrustNode trn = TrustNode::mkTrustLemma(rangeConstraint, this);
+    lemmas.push_back(trn);
   }
 }
 
 void IntBlaster::addBitwiseConstraint(Node bitwiseConstraint,
-                                      std::vector<Node>& lemmas)
+                                      std::vector<TrustNode>& lemmas)
 {
   if (d_bitwiseAssertions.find(bitwiseConstraint) == d_bitwiseAssertions.end())
   {
@@ -92,7 +105,8 @@ void IntBlaster::addBitwiseConstraint(Node bitwiseConstraint,
         << "bitwise constraint added to cache and lemmas: " << bitwiseConstraint
         << std::endl;
     d_bitwiseAssertions.insert(bitwiseConstraint);
-    lemmas.push_back(bitwiseConstraint);
+    TrustNode trn = TrustNode::mkTrustLemma(bitwiseConstraint, this);
+    lemmas.push_back(trn);
   }
 }
 
@@ -151,12 +165,14 @@ Node IntBlaster::makeBinary(Node n)
 /**
  * Translate n to Integers via post-order traversal.
  */
-Node IntBlaster::intBlast(Node n,
-                          std::vector<Node>& lemmas,
-                          std::map<Node, Node>& skolems)
+TrustNode IntBlaster::trustedIntBlast(Node n,
+                                      std::vector<TrustNode>& lemmas,
+                                      std::map<Node, Node>& skolems)
 {
   // make sure the node is re-written
-  n = rewrite(n);
+  Trace("int-blaster-debug") << "n before rewriting: " << n << std::endl;
+  Assert(n == rewrite(n));
+  Trace("int-blaster-debug") << "n after rewriting: " << n << std::endl;
 
   // helper vector for traversal.
   std::vector<Node> toVisit;
@@ -241,13 +257,37 @@ Node IntBlaster::intBlast(Node n,
     }
   }
   Assert(d_intblastCache.find(n) != d_intblastCache.end());
-  return d_intblastCache[n].get();
+  Node res = d_intblastCache[n].get();
+  if (res == n)
+  {
+    return TrustNode::null();
+  }
+  return TrustNode::mkTrustRewrite(n, res, this);
+}
+
+Node IntBlaster::intBlast(Node n,
+                          std::vector<Node>& lemmas,
+                          std::map<Node, Node>& skolems)
+{
+  std::vector<TrustNode> tlemmas;
+  TrustNode tr = trustedIntBlast(n, tlemmas, skolems);
+  for (TrustNode& tlem : tlemmas)
+  {
+    lemmas.emplace_back(tlem.getProven());
+  }
+  if (tr.isNull())
+  {
+    return n;
+  }
+  Assert(tr.getKind() == TrustNodeKind::REWRITE);
+  Assert(tr.getProven()[0] == n);
+  return tr.getProven()[1];
 }
 
 Node IntBlaster::translateWithChildren(
     Node original,
     const std::vector<Node>& translated_children,
-    std::vector<Node>& lemmas)
+    std::vector<TrustNode>& lemmas)
 {
   // The translation of the original node is determined by the kind of
   // the node.
@@ -284,7 +324,7 @@ Node IntBlaster::translateWithChildren(
     */
    if (childrenTypesChanged(original) && logicInfo().isHigherOrder())
    {
-     throw OptionException("bv-to-int does not support higher order logic ");
+     throw LogicException("bv-to-int does not support higher order logic ");
    }
   // Translate according to the kind of the original node.
   switch (oldKind)
@@ -344,7 +384,7 @@ Node IntBlaster::translateWithChildren(
       returnNode = createBVNegNode(translated_children[0], bvsize);
       break;
     }
-    case Kind::BITVECTOR_TO_NAT:
+    case Kind::BITVECTOR_UBV_TO_INT:
     {
       // In this case, we already translated the child to integer.
       // The result is simply the translated child.
@@ -539,6 +579,64 @@ Node IntBlaster::translateWithChildren(
           d_zero);
       break;
     }
+    case Kind::BITVECTOR_UADDO:
+    {
+      uint32_t bvsize = original[0].getType().getBitVectorSize();
+      Node sum = d_nm->mkNode(
+          Kind::ADD, translated_children[0], translated_children[1]);
+      returnNode = d_nm->mkNode(Kind::GEQ, sum, pow2(bvsize));
+      break;
+    }
+    case Kind::BITVECTOR_SADDO:
+    {
+      uint32_t bvsize = original[0].getType().getBitVectorSize();
+      Node signed0 = uts(translated_children[0], bvsize);
+      Node signed1 = uts(translated_children[1], bvsize);
+      Node sum = d_nm->mkNode(Kind::ADD, signed0, signed1);
+      Node disj1 = d_nm->mkNode(Kind::GEQ, sum, pow2(bvsize - 1));
+      Node disj2 = d_nm->mkNode(
+          Kind::LT, sum, d_nm->mkNode(Kind::NEG, pow2(bvsize - 1)));
+      returnNode = d_nm->mkNode(Kind::OR, disj1, disj2);
+      break;
+    }
+    case Kind::BITVECTOR_UMULO:
+    {
+      uint32_t bvsize = original[0].getType().getBitVectorSize();
+      Node mul = d_nm->mkNode(
+          Kind::MULT, translated_children[0], translated_children[1]);
+      returnNode = d_nm->mkNode(Kind::GEQ, mul, pow2(bvsize));
+      break;
+    }
+    case Kind::BITVECTOR_SMULO:
+    {
+      uint32_t bvsize = original[0].getType().getBitVectorSize();
+      Node signed0 = uts(translated_children[0], bvsize);
+      Node signed1 = uts(translated_children[1], bvsize);
+      Node mul = d_nm->mkNode(Kind::MULT, signed0, signed1);
+      Node disj1 = d_nm->mkNode(Kind::GEQ, mul, pow2(bvsize - 1));
+      Node disj2 = d_nm->mkNode(
+          Kind::LT, mul, d_nm->mkNode(Kind::NEG, pow2(bvsize - 1)));
+      returnNode = d_nm->mkNode(Kind::OR, disj1, disj2);
+      break;
+    }
+    case Kind::BITVECTOR_USUBO:
+    {
+      returnNode = d_nm->mkNode(
+          Kind::LT, translated_children[0], translated_children[1]);
+      break;
+    }
+    case Kind::BITVECTOR_SSUBO:
+    {
+      uint32_t bvsize = original[0].getType().getBitVectorSize();
+      Node signed0 = uts(translated_children[0], bvsize);
+      Node signed1 = uts(translated_children[1], bvsize);
+      Node sub = d_nm->mkNode(Kind::SUB, signed0, signed1);
+      Node disj1 = d_nm->mkNode(Kind::GEQ, sub, pow2(bvsize - 1));
+      Node disj2 = d_nm->mkNode(
+          Kind::LT, sub, d_nm->mkNode(Kind::NEG, pow2(bvsize - 1)));
+      returnNode = d_nm->mkNode(Kind::OR, disj1, disj2);
+      break;
+    }
     case Kind::ITE:
     {
       returnNode = d_nm->mkNode(oldKind, translated_children);
@@ -568,7 +666,7 @@ Node IntBlaster::translateWithChildren(
       returnNode = d_nm->mkNode(oldKind, translated_children);
       if (d_mode == options::SolveBVAsIntMode::BITWISE)
       {
-        throw OptionException(
+        throw LogicException(
             "--solve-bv-as-int=bitwise does not support quantifiers");
       }
       break;
@@ -610,11 +708,11 @@ Node IntBlaster::translateWithChildren(
 
 Node IntBlaster::uts(Node x, uint32_t bvsize)
 {
-  Node powNode = pow2(bvsize - 1);
-  Node modNode = d_nm->mkNode(Kind::INTS_MODULUS_TOTAL, x, powNode);
-  Node two = d_nm->mkConstInt(Rational(2));
-  Node twoTimesNode = d_nm->mkNode(Kind::MULT, two, modNode);
-  return d_nm->mkNode(Kind::SUB, twoTimesNode, x);
+  Node signedMin = pow2(bvsize - 1);
+  Node msbOne = d_nm->mkNode(Kind::LT, x, signedMin);
+  Node ite = d_nm->mkNode(Kind::ITE, msbOne, d_zero, pow2(bvsize));
+  Node result = d_nm->mkNode(Kind::SUB, x, ite);
+  return result;
 }
 
 Node IntBlaster::createSignExtendNode(Node x, uint32_t bvsize, uint32_t amount)
@@ -670,7 +768,7 @@ Node IntBlaster::createSignExtendNode(Node x, uint32_t bvsize, uint32_t amount)
 }
 
 Node IntBlaster::translateNoChildren(Node original,
-                                     std::vector<Node>& lemmas,
+                                     std::vector<TrustNode>& lemmas,
                                      std::map<Node, Node>& skolems)
 {
   Trace("int-blaster-debug")
@@ -692,7 +790,8 @@ Node IntBlaster::translateNoChildren(Node original,
         // they will be added once the quantifier itself is handled.
         std::stringstream ss;
         ss << original;
-        translation = d_nm->mkBoundVar(ss.str() + "_int", d_nm->integerType());
+        translation =
+            NodeManager::mkBoundVar(ss.str() + "_int", d_nm->integerType());
       }
       else
       {
@@ -751,32 +850,9 @@ Node IntBlaster::translateNoChildren(Node original,
 Node IntBlaster::translateFunctionSymbol(Node bvUF,
                                          std::map<Node, Node>& skolems)
 {
-  // construct the new function symbol.
-  Node intUF;
-  // old and new types of domain and result
-  TypeNode tn = bvUF.getType();
-  TypeNode bvRange = tn.getRangeType();
-  std::vector<TypeNode> bvDomain = tn.getArgTypes();
-  std::vector<TypeNode> intDomain;
-
-  // if the original range is a bit-vector sort,
-  // the new range should be an integer sort.
-  // Otherwise, we keep the original range.
-  // Similarly for the domain sorts.
-  TypeNode intRange = bvRange.isBitVector() ? d_nm->integerType() : bvRange;
-  for (const TypeNode& d : bvDomain)
-  {
-    intDomain.push_back(d.isBitVector() ? d_nm->integerType() : d);
-  }
-
   // create the new function symbol as a skolem
-  std::ostringstream os;
-  os << "__intblast_fun_" << bvUF << "_int";
   SkolemManager* sm = d_nm->getSkolemManager();
-  intUF = sm->mkDummySkolem(
-      os.str(), d_nm->mkFunctionType(intDomain, intRange), "bv2int function");
-
-  // add definition of old function symbol to skolems.
+  Node intUF = sm->mkSkolemFunction(SkolemId::BV_TO_INT_UF, bvUF);
 
   // formal arguments of the lambda expression.
   std::vector<Node> args;
@@ -787,11 +863,14 @@ Node IntBlaster::translateFunctionSymbol(Node bvUF,
 
   // iterate the arguments, cast BV arguments to integers
   int i = 0;
+  TypeNode tn = bvUF.getType();
+  TypeNode bvRange = tn.getRangeType();
+  std::vector<TypeNode> bvDomain = tn.getArgTypes();
   for (const TypeNode& d : bvDomain)
   {
     // Each bit-vector argument is casted to a natural number
     // Other arguments are left intact.
-    Node fresh_bound_var = d_nm->mkBoundVar(d);
+    Node fresh_bound_var = NodeManager::mkBoundVar(d);
     args.push_back(fresh_bound_var);
     Node castedArg = args[i];
     if (d.isBitVector())
@@ -859,7 +938,7 @@ Node IntBlaster::castToType(Node n, TypeNode tn)
   // casting bit-vectors to ingers
   Assert(n.getType().isBitVector());
   Assert(tn.isInteger());
-  return d_nm->mkNode(Kind::BITVECTOR_TO_NAT, n);
+  return d_nm->mkNode(Kind::BITVECTOR_UBV_TO_INT, n);
 }
 
 Node IntBlaster::reconstructNode(Node originalNode,
@@ -869,7 +948,7 @@ Node IntBlaster::reconstructNode(Node originalNode,
   // first, we adjust the children of the node as needed.
   // re-construct the term with the adjusted children.
   Kind oldKind = originalNode.getKind();
-  NodeBuilder builder(oldKind);
+  NodeBuilder builder(nodeManager(), oldKind);
   if (originalNode.getMetaKind() == kind::metakind::PARAMETERIZED)
   {
     builder << originalNode.getOperator();
@@ -1023,11 +1102,11 @@ Node IntBlaster::translateQuantifiedFormula(Node quantifiedNode)
 Node IntBlaster::createBVAndNode(Node x,
                                  Node y,
                                  uint32_t bvsize,
-                                 std::vector<Node>& lemmas)
+                                 std::vector<TrustNode>& lemmas)
 {
   // We support three configurations:
   // 1. translating to IAND
-  // 2. translating back to BV (using BITVECTOR_TO_NAT and INT_TO_BV
+  // 2. translating back to BV (using BITVECTOR_UBV_TO_INT and INT_TO_BV
   // operators)
   // 3. translating into a sum
   Node returnNode;
@@ -1045,7 +1124,7 @@ Node IntBlaster::createBVAndNode(Node x,
     // perform bvand on the bit-vectors
     Node bvand = d_nm->mkNode(Kind::BITVECTOR_AND, bvx, bvy);
     // translate the result to integers
-    returnNode = d_nm->mkNode(Kind::BITVECTOR_TO_NAT, bvand);
+    returnNode = d_nm->mkNode(Kind::BITVECTOR_UBV_TO_INT, bvand);
   }
   else if (d_mode == options::SolveBVAsIntMode::SUM)
   {
@@ -1086,7 +1165,7 @@ Node IntBlaster::createBVAndNode(Node x,
 Node IntBlaster::createBVOrNode(Node x,
                                 Node y,
                                 uint32_t bvsize,
-                                std::vector<Node>& lemmas)
+                                std::vector<TrustNode>& lemmas)
 {
   // Based on Hacker's Delight section 2-2 equation h:
   // x+y = x|y + x&y

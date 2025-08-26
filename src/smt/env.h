@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -38,6 +38,7 @@ namespace cvc5::internal {
 class NodeManager;
 class StatisticsRegistry;
 class Plugin;
+class ProofLogger;
 class ProofNodeManager;
 class Printer;
 class ResourceManager;
@@ -81,20 +82,37 @@ class Env
 
   /* Access to members------------------------------------------------------- */
   /** Get a pointer to the node manager */
-  NodeManager* getNodeManager();
+  NodeManager* getNodeManager() const;
 
   /** Get a pointer to the Context owned by this Env. */
   context::Context* getContext();
 
   /** Get a pointer to the UserContext owned by this Env. */
   context::UserContext* getUserContext();
-
+  /**
+   * Get the underlying proof manager. Note since proofs depend on option
+   * initialization, this is only available after the SolverEngine that owns
+   * this environment is initialized, and only non-null if proofs are enabled.
+   */
+  smt::PfManager* getProofManager();
+  /**
+   * Get the underlying proof logger. Note since proofs depend on option
+   * initialization, this is only available after the SolverEngine that owns
+   * this environment is initialized, and only non-null if proofs are enabled.
+   */
+  ProofLogger* getProofLogger();
   /**
    * Get the underlying proof node manager. Note since proofs depend on option
    * initialization, this is only available after the SolverEngine that owns
    * this environment is initialized, and only non-null if proofs are enabled.
    */
   ProofNodeManager* getProofNodeManager();
+
+  /**
+   * Check whether proofs are enabled at all, i.e. the proof node manager is
+   * set.
+   */
+  bool isProofProducing() const;
 
   /**
    * Check whether the SAT solver should produce proofs. Other than whether
@@ -231,6 +249,10 @@ class Env
    * based on the assertions.
    */
   bool isFiniteType(TypeNode tn) const;
+  /**
+   * Is first class type.
+   */
+  bool isFirstClassType(TypeNode tn) const;
 
   /**
    * Set the owner of the uninterpreted sort.
@@ -317,7 +339,7 @@ class Env
   /* Private initialization ------------------------------------------------- */
 
   /** Set proof node manager if it exists */
-  void finishInit(ProofNodeManager* pnm);
+  void finishInit(smt::PfManager* pm);
 
   /* Private shutdown ------------------------------------------------------- */
   /**
@@ -333,6 +355,10 @@ class Env
   std::unique_ptr<context::Context> d_context;
   /** User level context owned by this Env */
   std::unique_ptr<context::UserContext> d_userContext;
+  /**
+   * The proof manager of the solver engine.
+   */
+  smt::PfManager* d_pfManager;
   /**
    * A pointer to the proof node manager, which is non-null if proofs are
    * enabled. This is owned by the proof manager of the SolverEngine that owns

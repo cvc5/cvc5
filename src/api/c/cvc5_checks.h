@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -104,6 +104,10 @@ class Cvc5CApiAbortStream
 #define CVC5_CAPI_CHECK_FIND_SYNTH_TARGET(target)                         \
   CVC5_API_CHECK((target) >= 0 && (target) < CVC5_FIND_SYNTH_TARGET_LAST) \
       << "invalid find synthesis target"
+
+#define CVC5_CAPI_CHECK_OPTION_CATEGORY(cat)                      \
+  CVC5_API_CHECK((cat) >= 0 && (cat) < CVC5_OPTION_CATEGORY_LAST) \
+      << "invalid option category"
 
 #define CVC5_CAPI_CHECK_INPUT_LANGUAGE(lang)                       \
   CVC5_API_CHECK((lang) >= 0 && (lang) < CVC5_INPUT_LANGUAGE_LAST) \

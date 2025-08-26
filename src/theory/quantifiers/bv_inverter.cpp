@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -31,8 +31,8 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-BvInverter::BvInverter(const Options& opts, Rewriter* r)
-    : d_opts(opts), d_rewriter(r)
+BvInverter::BvInverter(Rewriter* r)
+    : d_rewriter(r)
 {
 }
 
@@ -43,8 +43,7 @@ Node BvInverter::getSolveVariable(TypeNode tn)
   std::map<TypeNode, Node>::iterator its = d_solve_var.find(tn);
   if (its == d_solve_var.end())
   {
-    SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
-    Node k = sm->mkDummySkolem("slv", tn);
+    Node k = NodeManager::mkDummySkolem("slv", tn);
     d_solve_var[tn] = k;
     return k;
   }
@@ -90,12 +89,12 @@ Node BvInverter::getInversionNode(Node cond, TypeNode tn, BvInverterQuery* m)
 
   if (c.isNull())
   {
-    NodeManager* nm = NodeManager::currentNM();
     if (m)
     {
       Node x = m->getBoundVariable(tn);
       Node ccond = new_cond.substitute(solve_var, x);
-      c = nm->mkNode(Kind::WITNESS, nm->mkNode(Kind::BOUND_VAR_LIST, x), ccond);
+      c = NodeManager::mkNode(
+          Kind::WITNESS, NodeManager::mkNode(Kind::BOUND_VAR_LIST, x), ccond);
       Trace("cegqi-bv-skvinv")
           << "SKVINV : Make " << c << " for " << new_cond << std::endl;
     }
@@ -129,7 +128,7 @@ static bool isInvertible(Kind k, unsigned index)
 Node BvInverter::getPathToPv(Node lit,
                              Node pv,
                              Node sv,
-                             std::vector<unsigned>& path,
+                             std::vector<uint32_t>& path,
                              std::unordered_set<TNode>& visited)
 {
   if (visited.find(lit) == visited.end())
@@ -165,7 +164,7 @@ Node BvInverter::getPathToPv(Node lit,
           {
             children.push_back(j == ii ? litc : lit[j]);
           }
-          return NodeManager::currentNM()->mkNode(lit.getKind(), children);
+          return lit.getNodeManager()->mkNode(lit.getKind(), children);
         }
       }
     }
@@ -177,7 +176,7 @@ Node BvInverter::getPathToPv(Node lit,
                              Node pv,
                              Node sv,
                              Node pvs,
-                             std::vector<unsigned>& path,
+                             std::vector<uint32_t>& path,
                              bool projectNl)
 {
   std::unordered_set<TNode> visited;
@@ -213,7 +212,7 @@ static Node dropChild(Node n, unsigned index)
   if (nchildren < 2) return Node::null();
 
   Kind k = n.getKind();
-  NodeBuilder nb(k);
+  NodeBuilder nb(n.getNodeManager(), k);
   for (unsigned i = 0; i < nchildren; ++i)
   {
     if (i == index) continue;
@@ -225,14 +224,13 @@ static Node dropChild(Node n, unsigned index)
 
 Node BvInverter::solveBvLit(Node sv,
                             Node lit,
-                            std::vector<unsigned>& path,
+                            std::vector<uint32_t>& path,
                             BvInverterQuery* m)
 {
   Assert(!path.empty());
 
   bool pol = true;
-  unsigned index;
-  NodeManager* nm = NodeManager::currentNM();
+  uint32_t index;
   Kind k, litk;
 
   Assert(!path.empty());
@@ -240,6 +238,8 @@ Node BvInverter::solveBvLit(Node sv,
   Assert(index < lit.getNumChildren());
   path.pop_back();
   litk = k = lit.getKind();
+
+  NodeManager* nm = lit.getNodeManager();
 
   /* Note: option --bool-to-bv is currently disabled when CBQI BV
    *       is enabled and the logic is quantified.
@@ -296,15 +296,15 @@ Node BvInverter::solveBvLit(Node sv,
     if (litk == Kind::EQUAL
         && (k == Kind::BITVECTOR_NOT || k == Kind::BITVECTOR_NEG))
     {
-      t = nm->mkNode(k, t);
+      t = NodeManager::mkNode(k, t);
     }
     else if (litk == Kind::EQUAL && k == Kind::BITVECTOR_ADD)
     {
-      t = nm->mkNode(Kind::BITVECTOR_SUB, t, s);
+      t = NodeManager::mkNode(Kind::BITVECTOR_SUB, t, s);
     }
     else if (litk == Kind::EQUAL && k == Kind::BITVECTOR_XOR)
     {
-      t = nm->mkNode(Kind::BITVECTOR_XOR, t, s);
+      t = NodeManager::mkNode(Kind::BITVECTOR_XOR, t, s);
     }
     else if (litk == Kind::EQUAL && k == Kind::BITVECTOR_MULT && s.isConst()
              && bv::utils::getBit(s, 0))
@@ -316,8 +316,8 @@ Node BvInverter::solveBvLit(Node sv,
           << "Compute inverse : " << s_val << " " << mod_val << std::endl;
       Integer inv_val = s_val.modInverse(mod_val);
       Trace("bv-invert-debug") << "Inverse : " << inv_val << std::endl;
-      Node inv = bv::utils::mkConst(w, inv_val);
-      t = nm->mkNode(Kind::BITVECTOR_MULT, inv, t);
+      Node inv = bv::utils::mkConst(nm, w, inv_val);
+      t = NodeManager::mkNode(Kind::BITVECTOR_MULT, inv, t);
     }
     else if (k == Kind::BITVECTOR_MULT)
     {
@@ -349,7 +349,7 @@ Node BvInverter::solveBvLit(Node sv,
     }
     else if (k == Kind::BITVECTOR_CONCAT)
     {
-      if (litk == Kind::EQUAL && d_opts.quantifiers.cegqiBvConcInv)
+      if (litk == Kind::EQUAL)
       {
         /* Compute inverse for s1 o x, x o s2, s1 o x o s2
          * (while disregarding that invertibility depends on si)
@@ -363,7 +363,7 @@ Node BvInverter::solveBvLit(Node sv,
         unsigned upper, lower;
         upper = bv::utils::getSize(t) - 1;
         lower = 0;
-        NodeBuilder nb(Kind::BITVECTOR_CONCAT);
+        NodeBuilder nb(nm, Kind::BITVECTOR_CONCAT);
         for (unsigned i = 0; i < nchildren; i++)
         {
           if (i < index)
@@ -397,7 +397,7 @@ Node BvInverter::solveBvLit(Node sv,
     else if (pol == false)
     {
       Assert(litk == Kind::EQUAL);
-      ic = nm->mkNode(Kind::DISTINCT, x, t);
+      ic = NodeManager::mkNode(Kind::DISTINCT, x, t);
       Trace("bv-invert") << "Add SC_" << litk << "(" << x << "): " << ic
                          << std::endl;
     }
@@ -443,7 +443,7 @@ Node BvInverter::solveBvLit(Node sv,
   else if (pol == false)
   {
     Assert(litk == Kind::EQUAL);
-    ic = nm->mkNode(Kind::DISTINCT, x, t);
+    ic = NodeManager::mkNode(Kind::DISTINCT, x, t);
     Trace("bv-invert") << "Add SC_" << litk << "(" << x << "): " << ic
                        << std::endl;
   }

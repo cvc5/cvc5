@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,10 +21,11 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "proof/valid_witness_proof_generator.h"
 #include "smt/env_obj.h"
 #include "theory/inference_id.h"
-#include "util/statistics_stats.h"
 #include "theory/quantifiers/cegqi/ceg_utils.h"
+#include "util/statistics_stats.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -415,6 +416,10 @@ class CegInstantiator : protected EnvObj
   static CegHandledStatus isCbqiSort(
       TypeNode tn, std::map<TypeNode, CegHandledStatus>& visited);
   //------------------------------------ end  static queries
+  /**
+   * A proof generator for witness terms.
+   */
+  std::unique_ptr<ValidWitnessProofGenerator> d_vwpg;
 };
 
 }  // namespace quantifiers

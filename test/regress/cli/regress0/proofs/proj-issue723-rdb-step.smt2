@@ -1,4 +1,6 @@
 ; EXPECT: unsat
+;; The option below forces the granularity "dsl-rewrite", which leads to an Alethe proof with the operators @bv and @bvsize, where the former is applied to a non-constant argument. This is unsupported.
+; DISABLE-TESTER: alethe
 (set-logic ALL)
 (declare-const x (_ BitVec 1))
 (set-option :check-proof-steps true)

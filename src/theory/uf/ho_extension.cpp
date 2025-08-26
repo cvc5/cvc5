@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -209,7 +209,6 @@ Node HoExtension::getApplyUfForHoApply(Node node)
   Node f = TheoryUfRewriter::decomposeHoApply(node, args, true);
   Node new_f = f;
   NodeManager* nm = nodeManager();
-  SkolemManager* sm = nm->getSkolemManager();
   if (!TheoryUfRewriter::canUseAsApplyUfOperator(f))
   {
     NodeNodeMap::const_iterator itus = d_uf_std_skolem.find(f);
@@ -227,7 +226,7 @@ Node HoExtension::getApplyUfForHoApply(Node node)
         {
           TypeNode vt = v.getType();
           newTypes.push_back(vt);
-          Node nv = nm->mkBoundVar(vt);
+          Node nv = NodeManager::mkBoundVar(vt);
           vs.push_back(v);
           nvs.push_back(nv);
         }
@@ -237,7 +236,7 @@ Node HoExtension::getApplyUfForHoApply(Node node)
 
         newTypes.insert(newTypes.end(), argTypes.begin(), argTypes.end());
         TypeNode nft = nm->mkFunctionType(newTypes, rangeType);
-        new_f = sm->mkDummySkolem("app_uf", nft);
+        new_f = NodeManager::mkDummySkolem("app_uf", nft);
         for (const Node& v : vs)
         {
           new_f = nm->mkNode(Kind::HO_APPLY, new_f, v);
@@ -251,7 +250,7 @@ Node HoExtension::getApplyUfForHoApply(Node node)
       else
       {
         // introduce skolem to make a standard APPLY_UF
-        new_f = sm->mkDummySkolem("app_uf", f.getType());
+        new_f = NodeManager::mkDummySkolem("app_uf", f.getType());
         lem = new_f.eqNode(f);
       }
       Trace("uf-ho-lemma")
@@ -354,39 +353,66 @@ unsigned HoExtension::checkExtensionality(TheoryModel* m)
                    && edeq[0].getKind() == Kind::EQUAL);
             // introducing terms, must add required constraints, e.g. to
             // force equalities between APPLY_UF and HO_APPLY terms
+            bool success = true;
             for (unsigned r = 0; r < 2; r++)
             {
               if (!collectModelInfoHoTerm(edeq[0][r], m))
               {
                 return 1;
               }
+              // Ensure finite skolems are set to arbitrary values eagerly.
+              // This ensures that partial function applications are identified
+              // with one another based on this assignment.
+              for (const Node& hk : edeq[0][r])
+              {
+                TypeNode tnk = hk.getType();
+                if (d_env.isFiniteType(tnk))
+                {
+                  TypeEnumerator te(tnk);
+                  Node v = *te;
+                  if (!m->assertEquality(hk, v, true))
+                  {
+                    success = false;
+                    break;
+                  }
+                }
+              }
+              if (!success)
+              {
+                break;
+              }
             }
-            bool success = false;
-            TypeNode tn = edeq[0][0].getType();
-            Trace("uf-ho-debug")
-                << "Add extensionality deq to model for : " << edeq
-                << std::endl;
-            if (d_env.isFiniteType(tn))
+            if (success)
             {
-              // We are an infinite function type with a finite range sort.
-              // Model construction assigns the first value for all
-              // unconstrained variables for such sorts, which does not
-              // suffice in this context since we are trying to make the
-              // functions disequal. Thus, for such case we enumerate the first
-              // two values for this sort and set the extensionality index to
-              // be equal to these two distinct values.  There must be at least
-              // two values since this is an infinite function sort.
-              TypeEnumerator te(tn);
-              Node v1 = *te;
-              te++;
-              Node v2 = *te;
-              Assert(!v2.isNull() && v2 != v1);
-              success = m->assertEquality(edeq[0][0], v1, true)
-                        && m->assertEquality(edeq[0][1], v2, true);
-            }
-            else
-            {
-              success = m->assertEquality(edeq[0][0], edeq[0][1], false);
+              TypeNode tn = edeq[0][0].getType();
+              Trace("uf-ho-debug")
+                  << "Add extensionality deq to model for : " << edeq
+                  << std::endl;
+              if (d_env.isFiniteType(tn))
+              {
+                // We are an infinite function type with a finite range sort.
+                // Model construction assigns the first value for all
+                // unconstrained variables for such sorts, which does not
+                // suffice in this context since we are trying to make the
+                // functions disequal. Thus, for such case we enumerate the first
+                // two values for this sort and set the extensionality index to
+                // be equal to these two distinct values.  There must be at least
+                // two values since this is an infinite function sort.
+                TypeEnumerator te(tn);
+                Node v1 = *te;
+                te++;
+                Node v2 = *te;
+                Assert(!v2.isNull() && v2 != v1);
+                success = m->assertEquality(edeq[0][0], v1, true);
+                if (success)
+                {
+                  success = m->assertEquality(edeq[0][1], v2, true);
+                }
+              }
+              else
+              {
+                success = m->assertEquality(edeq[0][0], edeq[0][1], false);
+              }
             }
             if (!success)
             {

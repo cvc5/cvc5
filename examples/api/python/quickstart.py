@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ###############################################################################
 # Top contributors (to current version):
-#   Yoni Zohar, Aina Niemetz, Alex Ozdemir
+#   Yoni Zohar, Aina Niemetz, Daniel Larraz
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -48,18 +48,18 @@ if __name__ == "__main__":
   # In this example, we will define constraints over reals and integers.
   # Hence, we first obtain the corresponding sorts.
   #! [docs-python-quickstart-4 start]
-  realSort = solver.getRealSort()
-  intSort = solver.getIntegerSort()
+  realSort = tm.getRealSort()
+  intSort = tm.getIntegerSort()
   #! [docs-python-quickstart-4 end]
 
   # x and y will be real variables, while a and b will be integer variables.
   # Formally, their python type is Term,
   # and they are called "constants" in SMT jargon:
   #! [docs-python-quickstart-5 start]
-  x = solver.mkConst(realSort, "x")
-  y = solver.mkConst(realSort, "y")
-  a = solver.mkConst(intSort, "a")
-  b = solver.mkConst(intSort, "b")
+  x = tm.mkConst(realSort, "x")
+  y = tm.mkConst(realSort, "y")
+  a = tm.mkConst(intSort, "a")
+  b = tm.mkConst(intSort, "b")
   #! [docs-python-quickstart-5 end]
 
   # Our constraints regarding x and y will be:
@@ -75,19 +75,19 @@ if __name__ == "__main__":
   # We will construct these constraints gradually,
   # by defining each of their components.
   # We start with the constant numerals 0 and 1:
-  zero = solver.mkReal(0)
-  one = solver.mkReal(1)
+  zero = tm.mkReal(0)
+  one = tm.mkReal(1)
 
   # Next, we construct the term x + y
-  xPlusY = solver.mkTerm(Kind.ADD, x, y)
+  xPlusY = tm.mkTerm(Kind.ADD, x, y)
 
   # Now we can define the constraints.
   # They use the operators +, <=, and <.
   # In the API, these are denoted by Plus, Leq, and Lt.
-  constraint1 = solver.mkTerm(Kind.LT, zero, x)
-  constraint2 = solver.mkTerm(Kind.LT, zero, y)
-  constraint3 = solver.mkTerm(Kind.LT, xPlusY, one)
-  constraint4 = solver.mkTerm(Kind.LEQ, x, y)
+  constraint1 = tm.mkTerm(Kind.LT, zero, x)
+  constraint2 = tm.mkTerm(Kind.LT, zero, y)
+  constraint3 = tm.mkTerm(Kind.LT, xPlusY, one)
+  constraint4 = tm.mkTerm(Kind.LEQ, x, y)
 
   # Now we assert the constraints to the solver.
   solver.assertFormula(constraint1)
@@ -118,7 +118,7 @@ if __name__ == "__main__":
   # It is also possible to get values for compound terms,
   # even if those did not appear in the original formula.
   #! [docs-python-quickstart-10 start]
-  xMinusY = solver.mkTerm(Kind.SUB, x, y)
+  xMinusY = tm.mkTerm(Kind.SUB, x, y)
   xMinusYVal = solver.getValue(xMinusY)
   #! [docs-python-quickstart-10 end]
 
@@ -164,12 +164,12 @@ if __name__ == "__main__":
   # This time, we inline the construction of terms
   # to the assertion command.
   #! [docs-python-quickstart-15 start]
-  solver.assertFormula(solver.mkTerm(Kind.LT, solver.mkInteger(0), a))
-  solver.assertFormula(solver.mkTerm(Kind.LT, solver.mkInteger(0), b))
+  solver.assertFormula(tm.mkTerm(Kind.LT, tm.mkInteger(0), a))
+  solver.assertFormula(tm.mkTerm(Kind.LT, tm.mkInteger(0), b))
   solver.assertFormula(
-      solver.mkTerm(
-          Kind.LT, solver.mkTerm(Kind.ADD, a, b), solver.mkInteger(1)))
-  solver.assertFormula(solver.mkTerm(Kind.LEQ, a, b))
+      tm.mkTerm(
+          Kind.LT, tm.mkTerm(Kind.ADD, a, b), tm.mkInteger(1)))
+  solver.assertFormula(tm.mkTerm(Kind.LEQ, a, b))
   #! [docs-python-quickstart-15 end]
 
   # We check whether the revised assertion is satisfiable.

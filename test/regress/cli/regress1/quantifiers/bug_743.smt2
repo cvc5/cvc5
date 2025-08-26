@@ -1,6 +1,6 @@
 ; COMMAND-LINE: --lang=smt2.6
 ; EXPECT: unsat
-; DISABLE-TESTER: cpc
+
 
 ;; produced by cvc4_14.drv ;;
 (set-logic AUFBVDTNIRA)

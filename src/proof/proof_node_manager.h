@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -60,7 +60,8 @@ class Rewriter;
 class ProofNodeManager
 {
  public:
-  ProofNodeManager(const Options& opts,
+  ProofNodeManager(NodeManager* nm,
+                   const Options& opts,
                    theory::Rewriter* rr,
                    ProofChecker* pc = nullptr);
   ~ProofNodeManager() {}

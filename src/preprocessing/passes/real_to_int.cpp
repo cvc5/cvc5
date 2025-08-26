@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -218,18 +218,23 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
 PreprocessingPassResult RealToInt::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  // this pass is refutation unsound, "unsat" will be "unknown"
-  assertionsToPreprocess->markRefutationUnsound();
   std::vector<Node> var_eq;
   for (unsigned i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
   {
     Node a = (*assertionsToPreprocess)[i];
     Node ac = realToIntInternal(a, d_cache, var_eq);
-    Trace("real-to-int") << "Converted " << a << " to " << ac << std::endl;
-    assertionsToPreprocess->replace(i, rewrite(ac));
-    if (assertionsToPreprocess->isInConflict())
+    if (ac != a)
     {
-      return PreprocessingPassResult::CONFLICT;
+      // this pass is refutation unsound, "unsat" will be "unknown"
+      assertionsToPreprocess->markRefutationUnsound();
+      Trace("real-to-int") << "Converted " << a << " to " << ac << std::endl;
+      assertionsToPreprocess->replace(
+          i, ac, nullptr, TrustId::PREPROCESS_REAL_TO_INT);
+      assertionsToPreprocess->ensureRewritten(i);
+      if (assertionsToPreprocess->isInConflict())
+      {
+        return PreprocessingPassResult::CONFLICT;
+      }
     }
   }
   return PreprocessingPassResult::NO_CONFLICT;

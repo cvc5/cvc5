@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -292,6 +292,18 @@ public:
   bool isComparableTo(const LogicInfo& other) const {
     return *this <= other || *this >= other;
   }
+
+ private:
+  /**
+   * Checks if the given theory has already been registered.
+   * If the theory is found to be a duplicate, throws an Exception
+   * indicating that the theory with the provided ID is already registered.
+   *
+   * @param theory The identifier of the theory to be checked.
+   * @param id The ID string associated with the theory for error reporting.
+   * @throws cvc5::internal::Exception if the theory is already registered.
+   */
+  void checkDuplicateTheory(theory::TheoryId theory, const char* id);
 
 }; /* class LogicInfo */
 

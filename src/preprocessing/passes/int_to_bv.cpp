@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andres Noetzli, Aina Niemetz, Yoni Zohar
+ *   Andres Noetzli, Yoni Zohar, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -58,14 +58,12 @@ bool childrenTypesChanged(Node n, NodeMap& cache) {
   return false;
 }
 
-
-Node intToBVMakeBinary(TNode n, NodeMap& cache)
+Node intToBVMakeBinary(NodeManager* nm, TNode n, NodeMap& cache)
 {
   for (TNode current : NodeDfsIterable(n, VisitOrder::POSTORDER,
            [&cache](TNode nn) { return cache.count(nn) > 0; }))
   {
     Node result;
-    NodeManager* nm = NodeManager::currentNM();
     if (current.getNumChildren() == 0)
     {
       result = current;
@@ -87,7 +85,7 @@ Node intToBVMakeBinary(TNode n, NodeMap& cache)
     }
     else
     {
-      NodeBuilder builder(current.getKind());
+      NodeBuilder builder(nm, current.getKind());
       if (current.getMetaKind() == kind::metakind::PARAMETERIZED) {
         builder << current.getOperator();
       }
@@ -112,10 +110,9 @@ Node IntToBV::intToBV(TNode n, NodeMap& cache)
   AlwaysAssert(size > 0);
   AlwaysAssert(!options().base.incrementalSolving);
 
-  NodeManager* nm = NodeManager::currentNM();
-  SkolemManager* sm = nm->getSkolemManager();
+  NodeManager* nm = nodeManager();
   NodeMap binaryCache;
-  Node n_binary = intToBVMakeBinary(n, binaryCache);
+  Node n_binary = intToBVMakeBinary(nm, n, binaryCache);
 
   for (TNode current : NodeDfsIterable(n_binary, VisitOrder::POSTORDER,
            [&cache](TNode nn) { return cache.count(nn) > 0; }))
@@ -219,7 +216,7 @@ Node IntToBV::intToBV(TNode n, NodeMap& cache)
            << " to a bit-vector operator. Remove option `--solve-int-as-bv`.";
         throw LogicException(ss.str());
       }
-      NodeBuilder builder(newKind);
+      NodeBuilder builder(nm, newKind);
       if (current.getMetaKind() == kind::metakind::PARAMETERIZED) {
         builder << current.getOperator();
       }
@@ -238,22 +235,23 @@ Node IntToBV::intToBV(TNode n, NodeMap& cache)
       {
         if (current.getType() == nm->integerType())
         {
-          result = sm->mkDummySkolem("__intToBV_var",
-                                     nm->mkBitVectorType(size),
-                                     "Variable introduced in intToBV pass");
+          result =
+              NodeManager::mkDummySkolem("__intToBV_var",
+                                         nm->mkBitVectorType(size),
+                                         "Variable introduced in intToBV pass");
           /**
            * Correctly convert signed/unsigned BV values to Integers as follows
            * x < 0 ? -nat(-x) : nat(x)
            * where x refers to the bit-vector term `result`.
            */
           BitVector bvzero(size, Integer(0));
-          Node negResult = nm->mkNode(Kind::BITVECTOR_TO_NAT,
+          Node negResult = nm->mkNode(Kind::BITVECTOR_UBV_TO_INT,
                                       nm->mkNode(Kind::BITVECTOR_NEG, result));
           Node bv2int = nm->mkNode(
               Kind::ITE,
               nm->mkNode(Kind::BITVECTOR_SLT, result, nm->mkConst(bvzero)),
               nm->mkNode(Kind::NEG, negResult),
-              nm->mkNode(Kind::BITVECTOR_TO_NAT, result));
+              nm->mkNode(Kind::BITVECTOR_UBV_TO_INT, result));
           d_preprocContext->addSubstitution(current, bv2int);
         }
       }

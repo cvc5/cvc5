@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -156,6 +156,17 @@ class BvInstantiator : public Instantiator
                       Node lit,
                       Node alit,
                       CegInstEffort effort);
+  /**
+   * This method takes as input a literal lit, expected to be of kind
+   * EQUAL, BITVECTOR_ULT, or BITVECTOR_SLT, and returns the rewritten form
+   * of lit that we are expected to process. In particular, this method takes
+   * into account the option cegqiBvIneqMode, which determines how inequalities
+   * are processed.
+   * @param ci Pointer to the parent CegInstantiator.
+   * @param lit The literal.
+   * @return the rewritten form of the literal.
+   */
+  Node processAssertionInternal(CegInstantiator* ci, Node lit);
 };
 
 /** Bitvector instantiator preprocess

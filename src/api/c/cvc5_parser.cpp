@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz
+ *   Aina Niemetz, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -204,6 +204,34 @@ const Cvc5Term* cvc5_sm_get_declared_terms(Cvc5SymbolManager* sm, size_t* size)
   *size = res.size();
   CVC5_CAPI_TRY_CATCH_END;
   return *size > 0 ? res.data() : nullptr;
+}
+
+
+void cvc5_sm_get_named_terms(Cvc5SymbolManager* sm,
+                             size_t* size,
+                             Cvc5Term* terms[],
+                             const char** names[])
+{
+  static thread_local std::vector<Cvc5Term> rterms;
+  static thread_local std::vector<const char*> rnames;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(sm);
+  CVC5_CAPI_CHECK_NOT_NULL(size);
+  CVC5_CAPI_CHECK_NOT_NULL(terms);
+  CVC5_CAPI_CHECK_NOT_NULL(names);
+  rterms.clear();
+  rnames.clear();
+  auto res = sm->d_sm.getNamedTerms();
+  auto tm = sm->d_tm;
+  for (auto& t : res)
+  {
+    rterms.push_back(tm->export_term(t.first));
+    rnames.push_back(t.second.c_str());
+  }
+  *size = rterms.size();
+  *terms = rterms.data();
+  *names = rnames.data();
+  CVC5_CAPI_TRY_CATCH_END;
 }
 
 /* -------------------------------------------------------------------------- */

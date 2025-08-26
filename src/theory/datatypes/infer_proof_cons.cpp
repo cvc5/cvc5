@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Hans-Joerg Schurr
+ *   Andrew Reynolds, Aina Niemetz, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -17,6 +17,8 @@
 
 #include "proof/proof.h"
 #include "proof/proof_checker.h"
+#include "proof/proof_node_algorithm.h"
+#include "proof/proof_node_manager.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/model_manager.h"
@@ -32,7 +34,6 @@ namespace datatypes {
 InferProofCons::InferProofCons(Env& env, context::Context* c)
     : EnvObj(env), d_lazyFactMap(c == nullptr ? &d_context : c)
 {
-  d_tdid = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(THEORY_DATATYPES);
 }
 
 void InferProofCons::notifyFact(const std::shared_ptr<DatatypesInference>& di)
@@ -81,6 +82,7 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
              && exp[0].getKind() == Kind::APPLY_CONSTRUCTOR
              && exp[1].getKind() == Kind::APPLY_CONSTRUCTOR
              && exp[0].getOperator() == exp[1].getOperator());
+      Assert(conc.getKind() == Kind::EQUAL);
       Node narg;
       // we may be asked for a proof of (not P) coming from (= P false) or
       // (= false P), or similarly P from (= P true) or (= true P).
@@ -90,22 +92,15 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
       for (size_t i = 0, nchild = exp[0].getNumChildren(); i < nchild; i++)
       {
         bool argSuccess = false;
-        if (conc.getKind() == Kind::EQUAL)
+        if (exp[0][i] == conc[0] && exp[1][i] == conc[1])
         {
-          argSuccess = (exp[0][i] == conc[0] && exp[1][i] == conc[1]);
+          argSuccess = true;
         }
-        else
+        else if (exp[0][i] == conc[1] && exp[1][i] == conc[0])
         {
-          for (size_t j = 0; j < 2; j++)
-          {
-            if (exp[j][i] == concAtom && exp[1 - j][i].isConst()
-                && exp[1 - j][i].getConst<bool>() == concPol)
-            {
-              argSuccess = true;
-              unifConc = exp[0][i].eqNode(exp[1][i]);
-              break;
-            }
-          }
+          // it is for the symmetric fact
+          argSuccess = true;
+          unifConc = conc[1].eqNode(conc[0]);
         }
         if (argSuccess)
         {
@@ -115,39 +110,44 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
       }
       if (!narg.isNull())
       {
-        if (conc.getKind() == Kind::EQUAL)
-        {
-          // normal case where we conclude an equality
-          cdp->addStep(conc, ProofRule::DT_UNIF, {exp}, {narg});
-        }
-        else
-        {
-          // must use true or false elim to prove the final
-          cdp->addStep(unifConc, ProofRule::DT_UNIF, {exp}, {narg});
-          // may use symmetry
-          Node eq = concAtom.eqNode(nm->mkConst(concPol));
-          cdp->addStep(conc,
-                       concPol ? ProofRule::TRUE_ELIM : ProofRule::FALSE_ELIM,
-                       {eq},
-                       {});
-        }
+        addDtUnif(cdp, unifConc, exp, narg);
         success = true;
       }
     }
     break;
     case InferenceId::DATATYPES_INST:
     {
-      if (expv.size() == 1)
+      Assert(conc.getKind() == Kind::EQUAL);
+      Node tst;
+      if (expv.empty())
       {
-        Assert(conc.getKind() == Kind::EQUAL);
-        int n = utils::isTester(exp);
+        // In rare cases, this rule is applied to a constructor without an
+        // explanation and introduces purification variables. In this case, it
+        // can be shown by MACRO_SR_PRED_INTRO. An example of this would be:
+        //   C(a) = C(s(@purify(C(a))))
+        // which requires converting to original form and rewriting.
+        ProofChecker* pc = d_env.getProofNodeManager()->getChecker();
+        Node concc =
+            pc->checkDebug(ProofRule::MACRO_SR_PRED_INTRO, {}, {conc}, conc);
+        if (concc == conc)
+        {
+          cdp->addStep(conc, ProofRule::MACRO_SR_PRED_INTRO, {}, {conc});
+          success = true;
+        }
+      }
+      else if (expv.size() == 1)
+      {
+        tst = exp;
+      }
+      if (!tst.isNull())
+      {
+        int n = utils::isTester(tst);
         if (n >= 0)
         {
-          Node t = exp[0];
-          Node nn = nm->mkConstInt(Rational(n));
-          Node eq = exp.eqNode(conc);
-          cdp->addTheoryRewriteStep(eq, ProofRewriteRule::DT_INST);
-          cdp->addStep(conc, ProofRule::EQ_RESOLVE, {exp, eq}, {});
+          Node eq = tst.eqNode(conc);
+          // ensure the theory rewrite below is correct
+          tryRewriteRule(tst, conc, ProofRewriteRule::DT_INST, cdp);
+          cdp->addStep(conc, ProofRule::EQ_RESOLVE, {tst, eq}, {});
           success = true;
         }
       }
@@ -189,11 +189,14 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
         // s(exp[0]) = s(exp[1])             s(exp[1]) = r
         // --------------------------------------------------- TRANS
         // s(exp[0]) = r
-        Node asn = ProofRuleChecker::mkKindNode(Kind::APPLY_SELECTOR);
+        Node asn = ProofRuleChecker::mkKindNode(nm, Kind::APPLY_SELECTOR);
         Node seq = sl.eqNode(sr);
-        cdp->addStep(seq, ProofRule::CONG, {exp}, {asn, sop});
+        std::vector<Node> cargs;
+        ProofRule cr = expr::getCongRule(sl, cargs);
+        cdp->addStep(seq, cr, {exp}, cargs);
         Node sceq = sr.eqNode(concEq[1]);
-        cdp->addTheoryRewriteStep(sceq, ProofRewriteRule::DT_COLLAPSE_SELECTOR);
+        tryRewriteRule(
+            sr, concEq[1], ProofRewriteRule::DT_COLLAPSE_SELECTOR, cdp);
         cdp->addStep(sl.eqNode(concEq[1]), ProofRule::TRANS, {seq, sceq}, {});
         if (conc.getKind() != Kind::EQUAL)
         {
@@ -248,12 +251,51 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
         //            is-C2(y)  y = x
         //            ----------------- MACRO_SR_PRED_TRANSFORM
         // is-C1(x)   is-C2(x)
-        // ------------------- DT_CLASH
+        // ------------------- 
         // false
-        cdp->addStep(fn,
-                     pol ? ProofRule::DT_CLASH : ProofRule::CONTRA,
-                     {tester1, tester1c},
-                     {});
+        // in the latter, case we prove this by DT_INST + rewriting below.
+        if (!pol)
+        {
+          cdp->addStep(fn, ProofRule::CONTRA,
+                      {tester1, tester1c},
+                      {});
+        }
+        else
+        {
+          // is-C1(x)
+          // ----------- DT_INST + EQ_RESOLVE
+          // x = C1(...)   is-C2(x)
+          // -----------   ----------- DT_INST + EQ_RESOLVE
+          // C1(...) = x   x = C2(...)
+          // ------------------------- TRANS
+          // C1(...) = C2(...)
+          // ----------------- MACRO_DT_CONS_EQ + EQ_RESOLVE
+          /// false
+          Rewriter * rr = d_env.getRewriter();
+          std::vector<Node> insts;
+          for (size_t i=0; i<2; i++)
+          {
+            Node t = i==0 ? tester1 : tester1c;
+            Node inst = rr->rewriteViaRule(ProofRewriteRule::DT_INST, tester1);
+            Assert (!inst.isNull());
+            Assert (inst.getKind()==Kind::EQUAL);
+            Node eq = t.eqNode(inst);
+            cdp->addTheoryRewriteStep(eq, ProofRewriteRule::DT_INST);
+            cdp->addStep(inst, ProofRule::EQ_RESOLVE, {t, eq}, {});
+            if (i==0)
+            {
+              Node instsym = inst[1].eqNode(inst[0]);
+              cdp->addStep(instsym, ProofRule::SYMM, {inst}, {});
+              inst = instsym;
+            }
+            insts.push_back(inst);
+          }
+          Node ceq = insts[0][0].eqNode(insts[1][1]);
+          cdp->addStep(ceq, ProofRule::TRANS, insts, {});
+          Node ceqf = ceq.eqNode(fn);
+          tryRewriteRule(ceqf, conc, ProofRewriteRule::MACRO_DT_CONS_EQ, cdp);
+          cdp->addStep(fn, ProofRule::EQ_RESOLVE, {ceq, ceqf}, {});
+        }
         success = true;
       }
     }
@@ -264,10 +306,160 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
       success = true;
     }
     break;
-    // inferences currently not supported
     case InferenceId::DATATYPES_LABEL_EXH:
-    case InferenceId::DATATYPES_BISIMILAR:
+    {
+      // partition to substitution / testers
+      std::vector<Node> expvs;
+      // placeholder for MACRO_SR_PRED_TRANSFORM below.
+      expvs.push_back(Node::null());
+      std::vector<Node> expvt;
+      std::map<Node, Node> tmap;
+      for (const Node& e : expv)
+      {
+        if (e.getKind() == Kind::NOT && e[0].getKind() == Kind::APPLY_TESTER)
+        {
+          expvt.push_back(e);
+          tmap[e[0].getOperator()] = e;
+        }
+        else if (e.getKind() == Kind::EQUAL)
+        {
+          expvs.push_back(e);
+        }
+      }
+
+      // Exhausted labels. For example, this proves ~is-cons(x) => is-nil(x)
+      // We prove this by:
+      // ------------------------ DT_SPLIT
+      // is-cons(x) or is-nil(x)            ~is-cons(x)
+      // ---------------------------------------------- CHAIN_RESOLUTION
+      // is-nil(x)
+      // The elaboration may be complicated by the fact that the testers are
+      // considered modulo equality of their argument.
+      // For instance, x=y ^ ~is-cons(x) => is-nil(y) would be another
+      // valid input to this elaboration. this is handled below.
+      Assert(conc.getKind() == Kind::APPLY_TESTER);
+      Node t = conc[0];
+      ProofChecker* pc = d_env.getProofNodeManager()->getChecker();
+      Node sconc = pc->checkDebug(ProofRule::DT_SPLIT, {}, {t});
+      if (!sconc.isNull())
+      {
+        Trace("dt-ipc") << "...conclude " << sconc << " by split" << std::endl;
+        cdp->addStep(sconc, ProofRule::DT_SPLIT, {}, {t});
+        Node truen = nm->mkConst(true);
+        Node curr = sconc;
+        std::vector<Node> premises;
+        premises.push_back(sconc);
+        std::vector<Node> pols;
+        std::vector<Node> lits;
+        std::map<Node, Node>::iterator itt;
+        for (const Node& e : sconc)
+        {
+          if (e == conc)
+          {
+            continue;
+          }
+          Node en = e.notNode();
+          premises.push_back(en);
+          pols.emplace_back(truen);
+          lits.emplace_back(e);
+          // must ensure we have a proof of en
+          Assert(e.getKind() == Kind::APPLY_TESTER);
+          bool successLit = false;
+          itt = tmap.find(e.getOperator());
+          if (itt != tmap.end())
+          {
+            if (itt->second == en)
+            {
+              successLit = true;
+            }
+            else
+            {
+              // otherwise maybe provable modulo equality?
+              // This is to handle e.g.
+              // (and (not (is-cons x)) (= x y)) => (is-nil y)
+              expvs[0] = itt->second;
+              Trace("dt-ipc") << "exh-label: " << itt->second << " vs " << en
+                              << ", substitution " << expvs << std::endl;
+              Node res = pc->checkDebug(
+                  ProofRule::MACRO_SR_PRED_TRANSFORM, expvs, {en});
+              if (res == en)
+              {
+                cdp->addStep(
+                    res, ProofRule::MACRO_SR_PRED_TRANSFORM, expvs, {en});
+                successLit = true;
+              }
+            }
+          }
+          if (!successLit)
+          {
+            curr = Node::null();
+            break;
+          }
+        }
+        if (!curr.isNull())
+        {
+          std::vector<Node> args;
+          args.push_back(nm->mkNode(Kind::SEXPR, pols));
+          args.push_back(nm->mkNode(Kind::SEXPR, lits));
+          curr = pc->checkDebug(ProofRule::CHAIN_RESOLUTION, premises, args);
+          if (!curr.isNull())
+          {
+            Trace("dt-ipc")
+                << "...conclude " << curr << " by chain resolution via "
+                << premises << std::endl;
+            cdp->addStep(curr, ProofRule::CHAIN_RESOLUTION, premises, args);
+          }
+        }
+        success = (curr == conc);
+        Assert(success);
+      }
+    }
+    break;
     case InferenceId::DATATYPES_CYCLE:
+    {
+      // the conflict is of the form
+      // (and (= x (C1 ... x1 ...))
+      //      (= x1 (C2 ... x2 ...)) ....
+      //      (= x{n-1} (Cn ... xn ...))
+      //      (= xn (C{n+1} ... x ...)))
+      // We take the first n-1 equalities as a substitution and apply it to
+      // the right hand side of the last equality, and use DT_CYCLE to derive
+      // a conflict.
+      Assert(!expv.empty());
+      Node lastEq = expv[expv.size() - 1];
+      Assert(lastEq.getKind() == Kind::EQUAL);
+      std::vector<Node> subs(expv.begin(), expv.begin() + expv.size() - 1);
+      ProofChecker* pc = d_env.getProofNodeManager()->getChecker();
+      Node eq;
+      if (!subs.empty())
+      {
+        eq = pc->checkDebug(ProofRule::SUBS, subs, {lastEq[1]});
+        Assert(!eq.isNull());
+        cdp->addStep(eq, ProofRule::SUBS, subs, {lastEq[1]});
+      }
+      else
+      {
+        eq = lastEq[1].eqNode(lastEq[1]);
+      }
+      Node eq1 = lastEq[0].eqNode(eq[1]);
+      Trace("dt-ipc-cycle") << "Cycle eq? " << eq1 << std::endl;
+      Node falsen =
+          d_env.getRewriter()->rewriteViaRule(ProofRewriteRule::DT_CYCLE, eq1);
+      if (!falsen.isNull())
+      {
+        Node eqq = eq1.eqNode(falsen);
+        cdp->addTheoryRewriteStep(eqq, ProofRewriteRule::DT_CYCLE);
+        cdp->addStep(falsen, ProofRule::EQ_RESOLVE, {eq1, eqq}, {});
+        if (eq1 != lastEq)
+        {
+          cdp->addStep(eq1, ProofRule::TRANS, {lastEq, eq}, {});
+        }
+        success = true;
+      }
+    }
+    break;
+    // inferences currently not supported
+    case InferenceId::DATATYPES_BISIMILAR:
     default:
       Trace("dt-ipc") << "...no conversion for inference " << infer
                       << std::endl;
@@ -278,11 +470,55 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
   {
     // failed to reconstruct, add trust
     Trace("dt-ipc") << "...failed " << infer << std::endl;
-    cdp->addTrustedStep(conc, TrustId::THEORY_INFERENCE, expv, {d_tdid});
+    cdp->addTrustedStep(conc, TrustId::THEORY_INFERENCE_DATATYPES, expv, {});
   }
   else
   {
     Trace("dt-ipc") << "...success" << std::endl;
+  }
+}
+
+void InferProofCons::tryRewriteRule(TNode a,
+                                    TNode b,
+                                    ProofRewriteRule r,
+                                    CDProof* cdp)
+{
+  Node eq = a.eqNode(b);
+  Node ar = d_env.getRewriter()->rewriteViaRule(r, a);
+  if (ar == b)
+  {
+    cdp->addTheoryRewriteStep(eq, r);
+  }
+  else
+  {
+    cdp->addTrustedStep(eq, TrustId::THEORY_INFERENCE_DATATYPES, {}, {});
+  }
+}
+
+void InferProofCons::addDtUnif(CDProof* cdp,
+                               const Node& conc,
+                               const Node& exp,
+                               const Node& narg)
+{
+  //                         ---------------------------------------- DT_CONS_EQ
+  // C(t1...tn) = C(s1...sn) (C(t1..tn) = C(s1..sn)) = (and t1 = s1 ... tn = sn)
+  // ---------------------------------------------------------------- EQ_RESOLVE
+  // (and t1 = s1 ... tn = sn)
+  // ------------------------ AND_ELIM
+  // ti = si
+  Node consEq =
+      d_env.getRewriter()->rewriteViaRule(ProofRewriteRule::DT_CONS_EQ, exp);
+  Assert(!consEq.isNull());
+  Node ceq = exp.eqNode(consEq);
+  cdp->addTheoryRewriteStep(ceq, ProofRewriteRule::DT_CONS_EQ);
+  cdp->addStep(consEq, ProofRule::EQ_RESOLVE, {exp, ceq}, {});
+  if (consEq.getKind() == Kind::AND)
+  {
+    cdp->addStep(conc, ProofRule::AND_ELIM, {consEq}, {narg});
+  }
+  else
+  {
+    AlwaysAssert(consEq == conc);
   }
 }
 

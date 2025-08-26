@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -38,7 +38,7 @@ class NormalForm {
   {
     typedef typename std::set<NodeTemplate<ref_count> >::const_iterator
         ElementsIterator;
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = setType.getNodeManager();
     if (elements.size() == 0)
     {
       return nm->mkConst(EmptySet(setType));
@@ -154,14 +154,52 @@ class NormalForm {
   
   static Node mkBop( Kind k, std::vector< Node >& els, TypeNode tn, unsigned index = 0 ){
     if( index>=els.size() ){
-      return NodeManager::currentNM()->mkConst(EmptySet(tn));
+      return tn.getNodeManager()->mkConst(EmptySet(tn));
     }else if( index==els.size()-1 ){
       return els[index];
     }else{
-      return NodeManager::currentNM()->mkNode( k, els[index], mkBop( k, els, tn, index+1 ) );
+      return NodeManager::mkNode(k, els[index], mkBop(k, els, tn, index + 1));
     }
   }
 
+  /**
+   * Get the characeristic set for n of cardinality card.
+   *
+   * This is defined in terms of a union of singleton of choose:
+   *
+   * S0: (as set.empty T)
+   * S1: (set.singleton (set.choose n))
+   * ...
+   * Sk: (set.union (set.singleton (set.choose (set.minus n S{k-1}))) S{k-1})
+   *
+   * @param nm Pointer to the node manager
+   * @param n The base set
+   * @param card The cardinality we are considering.
+   * @return The set as described above.
+   */
+  static Node getCharacteristicSet(NodeManager* nm, const Node& n, size_t card)
+  {
+    if (card == 0)
+    {
+      return nm->mkConst(EmptySet(n.getType()));
+    }
+    Node nsr;
+    for (size_t i = 0; i < card; i++)
+    {
+      Node stgt = nsr.isNull() ? n : nm->mkNode(Kind::SET_MINUS, n, nsr);
+      Node choice_i = nm->mkNode(Kind::SET_CHOOSE, stgt);
+      Node sChoiceI = nm->mkNode(Kind::SET_SINGLETON, choice_i);
+      if (nsr.isNull())
+      {
+        nsr = sChoiceI;
+      }
+      else
+      {
+        nsr = nm->mkNode(Kind::SET_UNION, nsr, sChoiceI);
+      }
+    }
+    return nsr;
+  }
 };
 }
 }

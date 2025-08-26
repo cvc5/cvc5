@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -39,11 +39,14 @@ TEST_F(TestTheoryWhiteStringsWord, strings)
   Node a = d_nodeManager->mkConst(String("a"));
   Node b = d_nodeManager->mkConst(String("b"));
   Node aa = d_nodeManager->mkConst(String("aa"));
+  Node aab = d_nodeManager->mkConst(String("aab"));
   Node aaaaa = d_nodeManager->mkConst(String("aaaaa"));
   Node abc = d_nodeManager->mkConst(String("abc"));
   Node bbc = d_nodeManager->mkConst(String("bbc"));
   Node cac = d_nodeManager->mkConst(String("cac"));
   Node abca = d_nodeManager->mkConst(String("abca"));
+  Node abcd = d_nodeManager->mkConst(String("abcd"));
+  Node cd = d_nodeManager->mkConst(String("cd"));
 
   TypeNode stringType = d_nodeManager->stringType();
   ASSERT_TRUE(Word::mkEmptyWord(stringType) == empty);
@@ -103,12 +106,12 @@ TEST_F(TestTheoryWhiteStringsWord, strings)
   ASSERT_EQ(empty, Word::suffix(empty, 0));
   ASSERT_EQ(aa, Word::suffix(aaaaa, 2));
 
-  ASSERT_FALSE(Word::noOverlapWith(abc, empty));
-  ASSERT_TRUE(Word::noOverlapWith(cac, aa));
-  ASSERT_FALSE(Word::noOverlapWith(cac, abc));
-  ASSERT_TRUE(Word::noOverlapWith(cac, b));
-  ASSERT_FALSE(Word::noOverlapWith(cac, a));
-  ASSERT_FALSE(Word::noOverlapWith(abca, a));
+  ASSERT_TRUE(Word::hasBidirectionalOverlap(abc, empty));
+  ASSERT_FALSE(Word::hasBidirectionalOverlap(cac, aa));
+  ASSERT_TRUE(Word::hasBidirectionalOverlap(cac, abc));
+  ASSERT_FALSE(Word::hasBidirectionalOverlap(cac, b));
+  ASSERT_TRUE(Word::hasBidirectionalOverlap(cac, a));
+  ASSERT_TRUE(Word::hasBidirectionalOverlap(abca, a));
 
   ASSERT_TRUE(Word::overlap(abc, empty) == 0);
   ASSERT_TRUE(Word::overlap(aaaaa, abc) == 1);
@@ -121,6 +124,26 @@ TEST_F(TestTheoryWhiteStringsWord, strings)
   ASSERT_TRUE(Word::roverlap(cac, abc) == 1);
   ASSERT_TRUE(Word::roverlap(empty, abc) == 0);
   ASSERT_TRUE(Word::roverlap(aaaaa, aa) == 2);
+  
+  ASSERT_FALSE(Word::hasOverlap(empty, empty, false));
+  ASSERT_FALSE(Word::hasOverlap(empty, a, false));
+  ASSERT_TRUE(Word::hasOverlap(abc, empty, false));
+  ASSERT_FALSE(Word::hasOverlap(abc, aa, false));
+  ASSERT_TRUE(Word::hasOverlap(abc, cd, false));
+  ASSERT_TRUE(Word::hasOverlap(abc, b, false));
+  ASSERT_TRUE(Word::hasOverlap(abc, abcd, false));
+  ASSERT_FALSE(Word::hasOverlap(abc, aab, false));
+  
+  ASSERT_FALSE(Word::hasOverlap(empty, empty, true));
+  ASSERT_FALSE(Word::hasOverlap(empty, a, true));
+  ASSERT_TRUE(Word::hasOverlap(abc, empty, true));
+  ASSERT_TRUE(Word::hasOverlap(abc, aa, true));
+  ASSERT_FALSE(Word::hasOverlap(abc, cd, true));
+  ASSERT_TRUE(Word::hasOverlap(abc, b, true));
+  ASSERT_FALSE(Word::hasOverlap(abc, abcd, true));
+  ASSERT_TRUE(Word::hasOverlap(abc, aab, true));
+  
+  
 }
 }  // namespace test
 }  // namespace cvc5::internal

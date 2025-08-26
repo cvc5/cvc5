@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -75,7 +75,8 @@ class AlfPrintChannelOut : public AlfPrintChannel
  public:
   AlfPrintChannelOut(std::ostream& out,
                      const LetBinding* lbind,
-                     const std::string& tprefix);
+                     const std::string& tprefix,
+                     bool trackWarn);
   void printNode(TNode n) override;
   void printTypeNode(TypeNode tn) override;
   void printAssume(TNode n, size_t i, bool isPush) override;
@@ -100,6 +101,7 @@ class AlfPrintChannelOut : public AlfPrintChannel
    * Print type node to stream in the expected format of ALF.
    */
   void printTypeNodeInternal(std::ostream& out, TypeNode tn);
+  std::ostream& getOStream() { return d_out; }
 
  private:
   /**
@@ -124,6 +126,8 @@ class AlfPrintChannelOut : public AlfPrintChannel
    * associated with trusted steps.
    */
   std::unordered_set<ProofRule> d_warnedRules;
+  /** Are we tracking warned rules? */
+  bool d_trackWarn;
 };
 
 /**
@@ -151,18 +155,11 @@ class AlfPrintChannelPre : public AlfPrintChannel
                       const std::vector<Node>& args,
                       TNode conc) override;
 
-  /** Get variables we encountered in printing */
-  const std::unordered_set<Node>& getVariables() const;
-
  private:
   /** The let binding */
   LetBinding* d_lbind;
   /** For computing free variables */
   std::unordered_set<Node> d_keep;
-  /** The set of variables we have encountered */
-  std::unordered_set<Node> d_vars;
-  /** The visited cache for computing variables */
-  std::unordered_set<TNode> d_varsVisited;
   /** Process that we will print node n in the final proof */
   void processInternal(const Node& n);
 };

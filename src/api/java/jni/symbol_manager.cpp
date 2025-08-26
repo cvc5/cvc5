@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mudathir Mohamed
+ *   Mudathir Mohamed, Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -105,5 +105,41 @@ JNIEXPORT jlongArray JNICALL Java_io_github_cvc5_SymbolManager_getDeclaredTerms(
   std::vector<Term> terms = symbolManager->getDeclaredTerms();
   jlongArray ret = getPointersFromObjects<Term>(env, terms);
   return ret;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
+}
+
+/*
+ * Class:     io_github_cvc5_SymbolManager
+ * Method:    getNamedTerms
+ * Signature: (J)Ljava/util/Map;
+ */
+JNIEXPORT jobject JNICALL Java_io_github_cvc5_SymbolManager_getNamedTerms(
+    JNIEnv* env, jobject, jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  SymbolManager* symbolManager = reinterpret_cast<SymbolManager*>(pointer);
+  std::map<Term, std::string> map = symbolManager->getNamedTerms();
+  // HashMap hashMap = new HashMap();
+  jclass hashMapClass = env->FindClass("Ljava/util/HashMap;");
+  jmethodID constructor = env->GetMethodID(hashMapClass, "<init>", "()V");
+  jobject hashMap = env->NewObject(hashMapClass, constructor);
+  jmethodID putMethod = env->GetMethodID(
+      hashMapClass,
+      "put",
+      "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
+
+  jclass longClass = env->FindClass("Ljava/lang/Long;");
+  jmethodID longConstructor = env->GetMethodID(longClass, "<init>", "(J)V");
+
+  for (const auto& [k, v] : map)
+  {
+    // hashmap.put(key, value);
+    Term* termKey = new Term(k);
+    jobject key = env->NewObject(
+        longClass, longConstructor, reinterpret_cast<jlong>(termKey));
+    jstring value = env->NewStringUTF(v.c_str());
+    env->CallObjectMethod(hashMap, putMethod, key, value);
+  }
+  return hashMap;
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
 }

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mudathir Mohamed, Morgan Deters, Aina Niemetz
+ *   Mudathir Mohamed, Daniel Larraz, Morgan Deters
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,6 +20,8 @@ public class Datatypes
 {
   private static void test(Solver slv, Sort consListSort) throws CVC5ApiException
   {
+    TermManager tm = slv.getTermManager();
+
     // Now our old "consListSpec" is useless--the relevant information
     // has been copied out, so we can throw that spec away.  We can get
     // the complete spec for the datatype from the DatatypeSort, and
@@ -34,10 +36,10 @@ public class Datatypes
     // which is equivalent to consList["cons"].getConstructor().  Note that
     // "nil" is a constructor too, so it needs to be applied with
     // APPLY_CONSTRUCTOR, even though it has no arguments.
-    Term t = slv.mkTerm(Kind.APPLY_CONSTRUCTOR,
+    Term t = tm.mkTerm(Kind.APPLY_CONSTRUCTOR,
         consList.getConstructor("cons").getTerm(),
-        slv.mkInteger(0),
-        slv.mkTerm(Kind.APPLY_CONSTRUCTOR, consList.getConstructor("nil").getTerm()));
+        tm.mkInteger(0),
+        tm.mkTerm(Kind.APPLY_CONSTRUCTOR, consList.getConstructor("nil").getTerm()));
 
     System.out.println("t is " + t + "\n"
         + "sort of cons is " + consList.getConstructor("cons").getTerm().getSort() + "\n"
@@ -48,7 +50,7 @@ public class Datatypes
     // Here we first get the DatatypeConstructor for cons (with
     // consList["cons"]) in order to get the "head" selector symbol
     // to apply.
-    Term t2 = slv.mkTerm(
+    Term t2 = tm.mkTerm(
         Kind.APPLY_SELECTOR, consList.getConstructor("cons").getSelector("head").getTerm(), t);
 
     System.out.println("t2 is " + t2 + "\n"
@@ -81,32 +83,32 @@ public class Datatypes
 
     // You can also define a tester term for constructor 'cons': (_ is cons)
     Term t_is_cons =
-        slv.mkTerm(Kind.APPLY_TESTER, consList.getConstructor("cons").getTesterTerm(), t);
+        tm.mkTerm(Kind.APPLY_TESTER, consList.getConstructor("cons").getTesterTerm(), t);
     System.out.println("t_is_cons is " + t_is_cons + "\n");
     slv.assertFormula(t_is_cons);
     // Updating t at 'head' with value 1 is defined as follows:
-    Term t_updated = slv.mkTerm(Kind.APPLY_UPDATER,
+    Term t_updated = tm.mkTerm(Kind.APPLY_UPDATER,
         consList.getConstructor("cons").getSelector("head").getUpdaterTerm(),
         t,
-        slv.mkInteger(1));
+        tm.mkInteger(1));
     System.out.println("t_updated is " + t_updated + "\n");
-    slv.assertFormula(slv.mkTerm(Kind.DISTINCT, t, t_updated));
+    slv.assertFormula(tm.mkTerm(Kind.DISTINCT, t, t_updated));
 
     // You can also define parameterized datatypes.
     // This example builds a simple parameterized list of sort T, with one
     // constructor "cons".
-    Sort sort = slv.mkParamSort("T");
+    Sort sort = tm.mkParamSort("T");
     DatatypeDecl paramConsListSpec =
-        slv.mkDatatypeDecl("paramlist", new Sort[] {sort}); // give the datatype a name
-    DatatypeConstructorDecl paramCons = slv.mkDatatypeConstructorDecl("cons");
-    DatatypeConstructorDecl paramNil = slv.mkDatatypeConstructorDecl("nil");
+        tm.mkDatatypeDecl("paramlist", new Sort[] {sort}); // give the datatype a name
+    DatatypeConstructorDecl paramCons = tm.mkDatatypeConstructorDecl("cons");
+    DatatypeConstructorDecl paramNil = tm.mkDatatypeConstructorDecl("nil");
     paramCons.addSelector("head", sort);
     paramCons.addSelectorSelf("tail");
     paramConsListSpec.addConstructor(paramCons);
     paramConsListSpec.addConstructor(paramNil);
 
-    Sort paramConsListSort = slv.mkDatatypeSort(paramConsListSpec);
-    Sort paramConsIntListSort = paramConsListSort.instantiate(new Sort[] {slv.getIntegerSort()});
+    Sort paramConsListSort = tm.mkDatatypeSort(paramConsListSpec);
+    Sort paramConsIntListSort = paramConsListSort.instantiate(new Sort[] {tm.getIntegerSort()});
 
     Datatype paramConsList = paramConsListSort.getDatatype();
 
@@ -120,14 +122,14 @@ public class Datatypes
       }
     }
 
-    Term a = slv.mkConst(paramConsIntListSort, "a");
+    Term a = tm.mkConst(paramConsIntListSort, "a");
     System.out.println("term " + a + " is of sort " + a.getSort());
 
-    Term head_a = slv.mkTerm(
+    Term head_a = tm.mkTerm(
         Kind.APPLY_SELECTOR, paramConsList.getConstructor("cons").getSelector("head").getTerm(), a);
     System.out.println("head_a is " + head_a + " of sort " + head_a.getSort() + "\n"
         + "sort of cons is " + paramConsList.getConstructor("cons").getTerm().getSort() + "\n");
-    Term assertion = slv.mkTerm(Kind.GT, head_a, slv.mkInteger(50));
+    Term assertion = tm.mkTerm(Kind.GT, head_a, tm.mkInteger(50));
     System.out.println("Assert " + assertion);
     slv.assertFormula(assertion);
     System.out.println("Expect sat.");
@@ -136,7 +138,8 @@ public class Datatypes
 
   public static void main(String[] args) throws CVC5ApiException
   {
-    Solver slv = new Solver();
+    TermManager tm = new TermManager();
+    Solver slv = new Solver(tm);
     {
       // This example builds a simple "cons list" of integers, with
       // two constructors, "cons" and "nil."
@@ -146,12 +149,12 @@ public class Datatypes
       // Second, it is "resolved" to an actual sort, at which point function
       // symbols are assigned to its constructors, selectors, and testers.
 
-      DatatypeDecl consListSpec = slv.mkDatatypeDecl("list"); // give the datatype a name
-      DatatypeConstructorDecl cons = slv.mkDatatypeConstructorDecl("cons");
-      cons.addSelector("head", slv.getIntegerSort());
+      DatatypeDecl consListSpec = tm.mkDatatypeDecl("list"); // give the datatype a name
+      DatatypeConstructorDecl cons = tm.mkDatatypeConstructorDecl("cons");
+      cons.addSelector("head", tm.getIntegerSort());
       cons.addSelectorSelf("tail");
       consListSpec.addConstructor(cons);
-      DatatypeConstructorDecl nil = slv.mkDatatypeConstructorDecl("nil");
+      DatatypeConstructorDecl nil = tm.mkDatatypeConstructorDecl("nil");
       consListSpec.addConstructor(nil);
 
       System.out.println("spec is:"
@@ -163,7 +166,7 @@ public class Datatypes
       // This step resolves the "SelfSort" reference and creates
       // symbols for all the constructors, etc.
 
-      Sort consListSort = slv.mkDatatypeSort(consListSpec);
+      Sort consListSort = tm.mkDatatypeSort(consListSpec);
 
       test(slv, consListSort);
 
@@ -171,10 +174,10 @@ public class Datatypes
           + ">>> Alternatively, use declareDatatype");
       System.out.println();
 
-      DatatypeConstructorDecl cons2 = slv.mkDatatypeConstructorDecl("cons");
-      cons2.addSelector("head", slv.getIntegerSort());
+      DatatypeConstructorDecl cons2 = tm.mkDatatypeConstructorDecl("cons");
+      cons2.addSelector("head", tm.getIntegerSort());
       cons2.addSelectorSelf("tail");
-      DatatypeConstructorDecl nil2 = slv.mkDatatypeConstructorDecl("nil");
+      DatatypeConstructorDecl nil2 = tm.mkDatatypeConstructorDecl("nil");
       DatatypeConstructorDecl[] ctors = new DatatypeConstructorDecl[] {cons2, nil2};
       Sort consListSort2 = slv.declareDatatype("list2", ctors);
       test(slv, consListSort2);

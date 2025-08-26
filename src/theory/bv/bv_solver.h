@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -92,7 +92,7 @@ class BVSolver : protected EnvObj
 
   virtual TrustNode ppRewrite(TNode t) { return TrustNode::null(); }
 
-  virtual void ppStaticLearn(TNode in, NodeBuilder& learned) {}
+  virtual void ppStaticLearn(TNode in, std::vector<TrustNode>& learned) {}
 
   virtual void presolve() {}
 

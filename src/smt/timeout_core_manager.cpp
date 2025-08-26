@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -267,7 +267,7 @@ Result TimeoutCoreManager::checkSatNext(const std::vector<Node>& nextAssertions,
     {
       std::vector<Node> bench(nextAssertions.begin(), nextAssertions.end());
       std::stringstream ss;
-      smt::PrintBenchmark pb(Printer::getPrinter(ss));
+      smt::PrintBenchmark pb(nodeManager(), Printer::getPrinter(ss));
       pb.printBenchmark(ss, d_env.getLogicInfo().getLogicString(), {}, bench);
       output(OutputTag::TIMEOUT_CORE_BENCHMARK)
           << ";; timeout core" << std::endl;

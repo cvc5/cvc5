@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -45,7 +45,7 @@ TEST_F(TestTheoryWhiteBvIntblaster, intblaster_constants)
 {
   Env& env = d_slvEngine->getEnv();
   // place holders for lemmas and skolem
-  std::vector<Node> lemmas;
+  std::vector<TrustNode> lemmas;
   std::map<Node, Node> skolems;
 
   // bit-vector constant representing the integer 7, with 4 bits
@@ -67,7 +67,7 @@ TEST_F(TestTheoryWhiteBvIntblaster, intblaster_symbolic_constant)
 {
   Env& env = d_slvEngine->getEnv();
   // place holders for lemmas and skolem
-  std::vector<Node> lemmas;
+  std::vector<TrustNode> lemmas;
   std::map<Node, Node> skolems;
 
   // bit-vector variable
@@ -88,7 +88,7 @@ TEST_F(TestTheoryWhiteBvIntblaster, intblaster_uf)
 {
   Env& env = d_slvEngine->getEnv();
   // place holders for lemmas and skolem
-  std::vector<Node> lemmas;
+  std::vector<TrustNode> lemmas;
   std::map<Node, Node> skolems;
 
   // uf from integers and bit-vectors to Bools
@@ -124,7 +124,7 @@ TEST_F(TestTheoryWhiteBvIntblaster, intblaster_with_children)
 {
   Env& env = d_slvEngine->getEnv();
   // place holders for lemmas and skolem
-  std::vector<Node> lemmas;
+  std::vector<TrustNode> lemmas;
   std::map<Node, Node> skolems;
   IntBlaster intBlaster(env, options::SolveBVAsIntMode::SUM, 1);
 
@@ -173,7 +173,7 @@ TEST_F(TestTheoryWhiteBvIntblaster, intblaster_with_children)
   ASSERT_TRUE(result.getType().isInteger());
 
   // bv2nat
-  original = d_nodeManager->mkNode(Kind::BITVECTOR_TO_NAT, v1);
+  original = d_nodeManager->mkNode(Kind::BITVECTOR_UBV_TO_INT, v1);
   result = intBlaster.translateWithChildren(original, {i1}, lemmas);
   ASSERT_TRUE(result.getType().isInteger());
 
@@ -272,7 +272,7 @@ TEST_F(TestTheoryWhiteBvIntblaster, intblaster_bitwise)
 {
   Env& env = d_slvEngine->getEnv();
   // place holders for lemmas and skolem
-  std::vector<Node> lemmas;
+  std::vector<TrustNode> lemmas;
   std::map<Node, Node> skolems;
   IntBlaster intBlaster(env, options::SolveBVAsIntMode::BITWISE, 1);
 

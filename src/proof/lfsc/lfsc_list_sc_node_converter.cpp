@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz
+ *   Andrew Reynolds, Daniel Larraz, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -29,7 +29,6 @@ LfscListScNodeConverter::LfscListScNodeConverter(
 
 Node LfscListScNodeConverter::postConvert(Node n)
 {
-  NodeManager* nm = NodeManager::currentNM();
   Kind k = n.getKind();
   if (d_isPre)
   {
@@ -57,13 +56,13 @@ Node LfscListScNodeConverter::postConvert(Node n)
       children.push_back(f);
       // convert n, since this node will not be converted further
       children.push_back(d_conv.convert(n));
-      Node null = d_conv.getNullTerminator(k, tn);
+      Node null = d_conv.getNullTerminator(d_nm, k, tn);
       Assert(!null.isNull());
       // likewise, convert null
       children.push_back(d_conv.convert(null));
       Node sop = mkOperatorFor("nary_elim", children, tn);
       children.insert(children.begin(), sop);
-      return nm->mkNode(Kind::APPLY_UF, children);
+      return d_nm->mkNode(Kind::APPLY_UF, children);
     }
     return n;
   }
@@ -86,9 +85,9 @@ Node LfscListScNodeConverter::postConvert(Node n)
       Assert(k != Kind::UNDEFINED_KIND);
       // for uniformity, reconstruct in original form
       std::vector<Node> nchildren(n.begin(), n.end());
-      n = nm->mkNode(k, nchildren);
+      n = d_nm->mkNode(k, nchildren);
     }
-    Node null = d_conv.getNullTerminator(k, tn);
+    Node null = d_conv.getNullTerminator(d_nm, k, tn);
     AlwaysAssert(!null.isNull())
         << "No null terminator for " << k << ", " << tn;
     null = d_conv.convert(null);
@@ -106,7 +105,7 @@ Node LfscListScNodeConverter::postConvert(Node n)
     children.push_back(null);
     Node sop = mkOperatorFor("nary_concat", children, tn);
     children.insert(children.begin(), sop);
-    return nm->mkNode(Kind::APPLY_UF, children);
+    return d_nm->mkNode(Kind::APPLY_UF, children);
   }
   return n;
 }
@@ -115,13 +114,12 @@ Node LfscListScNodeConverter::mkOperatorFor(const std::string& name,
                                             const std::vector<Node>& children,
                                             TypeNode retType)
 {
-  NodeManager* nm = NodeManager::currentNM();
   std::vector<TypeNode> childTypes;
   for (const Node& c : children)
   {
     childTypes.push_back(c.getType());
   }
-  TypeNode ftype = nm->mkFunctionType(childTypes, retType);
+  TypeNode ftype = d_nm->mkFunctionType(childTypes, retType);
   return d_conv.mkInternalSymbol(name, ftype);
 }
 

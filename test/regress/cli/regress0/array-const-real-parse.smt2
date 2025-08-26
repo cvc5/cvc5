@@ -1,4 +1,4 @@
-; COMMAND-LINE: --print-arith-lit-token
+; COMMAND-LINE: --arrays-exp --print-arith-lit-token
 (set-logic QF_AUFLIRA)
 (set-info :status sat)
 (declare-fun a () (Array Int Real))

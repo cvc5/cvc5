@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -38,7 +38,7 @@ BagSolver::BagSolver(Env& env,
                      TermRegistry& tr)
     : EnvObj(env),
       d_state(s),
-      d_ig(&s, &im),
+      d_ig(env.getNodeManager(), &s, &im),
       d_im(im),
       d_termReg(tr),
       d_mapCache(userContext())

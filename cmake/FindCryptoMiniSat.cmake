@@ -1,10 +1,10 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Gereon Kremer, Mathias Preiner, Andrew V. Teylu
+#   Gereon Kremer, Mathias Preiner, Daniel Larraz
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -26,12 +26,6 @@ if(cryptominisat5_FOUND)
   set(CryptoMiniSat_FOUND_SYSTEM TRUE)
   add_library(CryptoMiniSat INTERFACE IMPORTED GLOBAL)
   target_link_libraries(CryptoMiniSat INTERFACE cryptominisat5)
-  # TODO(gereon): remove this when
-  # https://github.com/msoos/cryptominisat/pull/645 is merged
-  set_target_properties(
-    CryptoMiniSat PROPERTIES INTERFACE_SYSTEM_INCLUDE_DIRECTORIES
-                             "${CRYPTOMINISAT5_INCLUDE_DIRS}"
-  )
 endif()
 
 if(NOT CryptoMiniSat_FOUND_SYSTEM)
@@ -85,10 +79,6 @@ if(NOT CryptoMiniSat_FOUND_SYSTEM)
   add_library(CryptoMiniSat STATIC IMPORTED GLOBAL)
   set_target_properties(
     CryptoMiniSat PROPERTIES IMPORTED_LOCATION "${CryptoMiniSat_LIBRARIES}"
-  )
-  set_target_properties(
-    CryptoMiniSat PROPERTIES INTERFACE_SYSTEM_INCLUDE_DIRECTORIES
-                             "${CryptoMiniSat_INCLUDE_DIR}"
   )
 endif()
 

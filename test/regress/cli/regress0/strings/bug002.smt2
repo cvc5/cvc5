@@ -1,6 +1,6 @@
 (set-info :smt-lib-version 2.6)
 (set-logic ASLIA)
-(set-option :strings-exp true)
+
 (set-info :status sat)
 
 ; regex = [\*-,\t\*-\|](.{6,}()?)+

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -55,7 +55,6 @@ class TheorySep : public Theory {
 
   /** Trust id (for proofs) */
   Node d_tiid;
-  Node d_tsid;
 
   //whether bounds have been initialized
   bool d_bounds_init;
@@ -327,7 +326,7 @@ class TheorySep : public Theory {
     std::vector< Node > d_heap_locs;
     std::vector< Node > d_heap_locs_model;
     //get value
-    Node getValue( TypeNode tn );
+    Node getValue(NodeManager* nm, TypeNode tn);
   };
   //heap info ( label -> HeapInfo )
   std::map< Node, HeapInfo > d_label_model;

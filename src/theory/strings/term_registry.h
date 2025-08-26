@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -65,6 +65,11 @@ class TermRegistry : protected EnvObj
   uint32_t getAlphabetCardinality() const;
   /** Finish initialize, which sets the inference manager */
   void finishInit(InferenceManager* im);
+  /**
+   * Return a TrustNode of kind LEMMA that provides the eager reduction lemma
+   * for t, or the null trust node if it does not exist.
+   */
+  TrustNode eagerReduceTrusted(const Node& t);
   /** The eager reduce routine
    *
    * Constructs a lemma for t that is incomplete, but communicates pertinent

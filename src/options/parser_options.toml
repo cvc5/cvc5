@@ -7,7 +7,26 @@ name   = "Parser"
   long       = "strict-parsing"
   type       = "bool"
   default    = "false"
-  help       = "be less tolerant of non-conforming inputs"
+  predicates = ["strictParsing"]
+  help       = "be less tolerant of non-conforming inputs, this is an alias for --parsing-mode=strict"
+
+[[option]]
+  name       = "parsingMode"
+  category   = "expert"
+  long       = "parsing-mode=MODE"
+  type       = "ParsingMode"
+  default    = "DEFAULT"
+  help       = "choose parsing mode, see --parsing-mode=help"
+  help_mode  = "Parsing modes."
+[[option.mode.DEFAULT]]
+  name = "default"
+  help = "Be reasonably tolerant of non-conforming inputs."
+[[option.mode.STRICT]]
+  name = "strict"
+  help = "Be less tolerant of non-conforming inputs."
+[[option.mode.LENIENT]]
+  name = "lenient"
+  help = "Be more tolerant of non-conforming inputs."
 
 [[option]]
   name       = "semanticChecks"
@@ -40,6 +59,14 @@ name   = "Parser"
   type       = "bool"
   default    = "false"
   help       = "construct fresh variables always when parsing binders"
+
+[[option]]
+  name       = "termSortOverloading"
+  category   = "expert"
+  long       = "term-sort-overload"
+  type       = "bool"
+  default    = "true"
+  help       = "allow overloading of terms and sorts"
 
 # this is to support security in the online version, and in other similar
 # contexts (--no-include-file disables filesystem access in TPTP and SMT2

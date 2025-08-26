@@ -1,4 +1,4 @@
-; COMMAND-LINE: --produce-proofs -i
+; COMMAND-LINE: -i
 ; EXPECT: unsat
 ; EXPECT: unsat
 (set-logic ALL)

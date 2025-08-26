@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Yoni Zohar
+ *   Yoni Zohar, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,38 +20,37 @@ public class Uf
 {
   public static void main(String[] args) throws CVC5ApiException
   {
-    Solver slv = new Solver();
+    TermManager tm = new TermManager();
+    Solver slv = new Solver(tm);
     {
       slv.setLogic("QF_UF");
 
       // Sorts
-      Sort u = slv.mkUninterpretedSort("U");
-      Sort bool = slv.getBooleanSort();
-      Sort uTou = slv.mkFunctionSort(u, u);
-      Sort uPred = slv.mkFunctionSort(u, bool);
+      Sort u = tm.mkUninterpretedSort("U");
+      Sort bool = tm.getBooleanSort();
+      Sort uTou = tm.mkFunctionSort(u, u);
+      Sort uPred = tm.mkFunctionSort(u, bool);
 
       // Variables
-      Term x = slv.mkConst(u, "x");
-      Term y = slv.mkConst(u, "y");
+      Term x = tm.mkConst(u, "x");
+      Term y = tm.mkConst(u, "y");
 
       // Functions
-      Term f = slv.mkConst(uTou, "f");
-      Term p = slv.mkConst(uPred, "p");
+      Term f = tm.mkConst(uTou, "f");
+      Term p = tm.mkConst(uPred, "p");
 
       // Terms
-      Term f_x = slv.mkTerm(Kind.APPLY_UF, f, x);
-      Term f_y = slv.mkTerm(Kind.APPLY_UF, f, y);
-      Term p_f_x = slv.mkTerm(Kind.APPLY_UF, p, f_x);
-      Term p_f_y = slv.mkTerm(Kind.APPLY_UF, p, f_y);
+      Term f_x = tm.mkTerm(Kind.APPLY_UF, f, x);
+      Term f_y = tm.mkTerm(Kind.APPLY_UF, f, y);
+      Term p_f_x = tm.mkTerm(Kind.APPLY_UF, p, f_x);
+      Term p_f_y = tm.mkTerm(Kind.APPLY_UF, p, f_y);
 
       // Construct the assertions
-      Term assertions = slv.mkTerm(Kind.AND,
-          new Term[] {
-              slv.mkTerm(Kind.EQUAL, x, f_x),
-              slv.mkTerm(Kind.EQUAL, y, f_y),
-              p_f_x.notTerm(), 
-              p_f_y 
-          });
+      Term assertions = tm.mkTerm(Kind.AND,
+          new Term[] {tm.mkTerm(Kind.EQUAL, x, f_x),
+              tm.mkTerm(Kind.EQUAL, y, f_y),
+              p_f_x.notTerm(),
+              p_f_y});
       slv.assertFormula(assertions);
 
       System.out.println("Call checkSat to show that the assertions are satisfiable. \n"

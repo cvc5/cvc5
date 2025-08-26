@@ -1,10 +1,10 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Yoni Zohar, Andrew Reynolds, Gereon Kremer
+#   Yoni Zohar, Aina Niemetz, Andrew Reynolds
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -86,5 +86,5 @@ def test_is_sat_unknown(tm, solver):
     assert not res.isSat()
     assert res.isUnknown()
     ue = res.getUnknownExplanation()
-    assert ue == UnknownExplanation.UNKNOWN_REASON
-    assert str(ue) == "UnknownExplanation.UNKNOWN_REASON"
+    assert ue == UnknownExplanation.INCOMPLETE
+    assert str(ue) == "UnknownExplanation.INCOMPLETE"

@@ -1,0 +1,148 @@
+(include "../theories/Datatypes.eo")
+
+; program: $dt_get_constructors
+; args:
+; - D U: The datatype (or parametric datatype) to get the constructors for.
+; return: The list of constructors of D, as a eo::List.
+; note: >
+;   (Unit) tuples are treated as a special case of datatypes with a single
+;   constructor. Parametric datatypes must reference the type constructor to
+;   extract their constructors, which generates a list of *unannotated*
+;   datatype constructors.
+(program $dt_get_constructors ((D Type) (T Type) (c T) (T1 Type) (T2 Type :list) (U Type) (DC (-> Type Type)))
+  :signature (U) eo::List
+  (
+    (($dt_get_constructors (Tuple T1 T2)) (eo::cons eo::List::cons tuple eo::List::nil))
+    (($dt_get_constructors UnitTuple)     (eo::cons eo::List::cons tuple.unit eo::List::nil))
+    (($dt_get_constructors (DC T))        ($dt_get_constructors DC))   ; user-defined parameteric datatypes, traverse
+    (($dt_get_constructors D)             (eo::dt_constructors D))     ; ordinary user-defined datatypes
+  )
+)
+
+; define: $dt_inst_cons_of
+; args:
+; - D Type: The datatype to get the instantiated constructor for.
+; - c Type: The constructor.
+; return: >
+;   The version of c that has been annotated with its type, if necessary. For
+;   example, given (List Int) and nil, this returns (_ nil (List Int)).
+(define $dt_inst_cons_of ((D Type) (T Type :implicit) (c T))
+  ; we construct two lists here: eo::dt_constructors with and without the annotations
+  ; and rely on the fact that the constructor appears unannotated at the same index
+  ; as it appears annotated in the instantiated list.
+  ($assoc_nil_nth
+    eo::List::cons
+    (eo::dt_constructors D)
+    (eo::list_find eo::List::cons ($dt_get_constructors D) c)))
+
+; program: $tuple_get_selectors_rec
+; args:
+; - T Type: The tuple type to get the selectors for.
+; - n Int: The number of component types we have processed so far.
+; return: The list of selectors of T, as a eo::List.
+; note: >
+;   Tuples use a special selector tuple.select indexed by an integer, which is
+;   why they require a special method here.
+(program $tuple_get_selectors_rec ((D Type) (T Type) (t T) (T1 Type) (T2 Type :list) (n Int))
+  :signature (Type Int) eo::List
+  (
+    (($tuple_get_selectors_rec UnitTuple n)     eo::List::nil)
+    (($tuple_get_selectors_rec (Tuple T1 T2) n) (eo::cons eo::List::cons (tuple.select n) ($tuple_get_selectors_rec T2 (eo::add n 1))))
+  )
+)
+
+; program: $dt_get_selectors
+; args:
+; - D Type: The type to get the selectors for.
+; - c T: The constructor of D.
+; return: The list of selectors of c, as a eo::List.
+; note: >
+;   (Unit) tuples are treated as a special case of datatypes whose selectors are
+;   tuple.select indexed by an integer, which requires the above method.
+(program $dt_get_selectors ((D Type) (T Type) (c Type) (T1 Type) (T2 Type :list))
+  :signature (Type T) eo::List
+  (
+    (($dt_get_selectors (Tuple T1 T2) tuple)  ($tuple_get_selectors_rec (Tuple T1 T2) 0))
+    (($dt_get_selectors UnitTuple tuple.unit) eo::List::nil)
+    (($dt_get_selectors D c)                  (eo::dt_selectors c)) ; user-defined datatypes
+  )
+)
+
+; program: $dt_get_selectors_of_app
+; args:
+; - D Type: The type to get the selectors for.
+; - t T: The constructor application of D.
+; return: The list of selectors of the constructor of t, as a eo::List.
+(program $dt_get_selectors_of_app ((T Type) (U Type) (f (-> U T)) (a U))
+  :signature (Type T) eo::List
+  (
+    (($dt_get_selectors_of_app T (f a))  ($dt_get_selectors_of_app T f))
+    (($dt_get_selectors_of_app T a)      ($dt_get_selectors T a))
+  )
+)
+
+; define: $dt_is_cons
+; args:
+; - t T: The term in question.
+; return: true iff t is a constructor symbol.
+(define $dt_is_cons ((T Type :implicit) (t T))
+  (eo::ite (eo::is_eq t tuple)    ; must check this first
+    true
+    (eo::is_ok (eo::dt_selectors t)))) ; if it has selectors, then it is a constructor
+
+; program: $dt_arg_list
+; args:
+; - t T: The term to inspect, expected to be a constructor application.
+; return: >
+;   The list of arguments of the constructor application t.
+(program $dt_arg_list ((T Type) (U Type) (V Type) (W Type) (t T) (n Int) (t1 V) (t2 W :list))
+  :signature (T) eo::List
+  (
+    ; for tuples, we manually accumulate the list.
+    (($dt_arg_list (tuple t1 t2))  (eo::cons @list t1 ($dt_arg_list t2)))
+    ; otherwise we get the argument list using the utility method
+    (($dt_arg_list t)              ($get_arg_list t))
+  )
+)
+
+; define: $dt_arg_nth
+; args:
+; - t T: The term to inspect, expected to be a constructor application.
+; - n Int: The index of the argument to get.
+; return: >
+;   The nth argument of t.
+(define $dt_arg_nth ((T Type :implicit) (t T) (n Int))
+  ($assoc_nil_nth @list ($dt_arg_list t) n))
+
+; program: $dt_eq_cons
+; args:
+; - t T: The first term, expected to be of datatype type.
+; - s T: The second term, expected to be of datatype type.
+; return: >
+;   True if the constructors of t and s are the same, false if the constructors
+;   of t and s are different, and does not evaluate if at least one of t and s
+;   is not an application of a constructor.
+(program $dt_eq_cons ((T Type) (U Type) (V Type) (W Type) (ct T) (cs V) (f (-> U W)) (a U))
+  :signature (T V) Bool
+  (
+    (($dt_eq_cons (f a) cs) ($dt_eq_cons f cs))
+    (($dt_eq_cons ct (f a)) ($dt_eq_cons ct f))
+    (($dt_eq_cons ct cs)    (eo::requires ($dt_is_cons ct) true
+                              (eo::ite (eo::eq ct cs)
+                                true
+                                (eo::requires ($dt_is_cons cs) true false))))
+  )
+)
+
+; program: $tuple_nth
+; args:
+; - t T: The tuple term.
+; - n Int: The index.
+; return: The n^th component of the tuple.
+(program $tuple_nth ((T Type) (S Type) (U Type) (n Int) (s S) (ts U :list))
+  :signature (T (eo::quote n)) (eo::list_nth Tuple T n)
+  (
+  (($tuple_nth (tuple s ts) 0) s)
+  (($tuple_nth (tuple s ts) n) ($tuple_nth ts (eo::add n -1)))
+  )
+)

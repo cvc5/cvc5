@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -39,12 +39,9 @@ class BaseAlfNodeConverter : public NodeConverter
   /**
    * Returns the operator of node n.
    * @param n The term whose operator we wish to retrieve.
-   * @param reqCast Will the operator be printed in a context where it needs
-   * disambiguation (eo::as)? This makes a difference e.g. for symbols with
-   * overloading.
    * @return the operator.
    */
-  virtual Node getOperatorOfTerm(Node n, bool reqCast = false) = 0;
+  virtual Node getOperatorOfTerm(Node n) = 0;
   /**
    * Type as node, returns a node that prints in the form that ALF will
    * interpret as the type tni. This method is required since types can be
@@ -87,12 +84,9 @@ class AlfNodeConverter : public BaseAlfNodeConverter
    * Return the properly named operator for n of the form (f t1 ... tn), where
    * f could be interpreted or uninterpreted.
    * @param n The term whose operator we wish to retrieve.
-   * @param reqCast Will the operator be printed in a context where it needs
-   * disambiguation (eo::as)? This makes a difference e.g. for symbols with
-   * overloading.
    * @return the operator.
    */
-  Node getOperatorOfTerm(Node n, bool reqCast = false) override;
+  Node getOperatorOfTerm(Node n) override;
   /** Make generic list */
   Node mkList(const std::vector<Node>& args);
   /**
@@ -140,8 +134,8 @@ class AlfNodeConverter : public BaseAlfNodeConverter
    * signature.
    */
   Node maybeMkSkolemFun(Node k);
-  /** Is k a kind that is printed as an indexed operator in ALF? */
-  static bool isIndexedOperatorKind(Kind k);
+  /** Is op an ambiguous datatype constructor? */
+  bool isAmbiguousDtConstructor(const Node& op);
   /** Do we handle the given skolem id? */
   static bool isHandledSkolemId(SkolemId id);
   /** Get indices for printing the operator of n in the ALF format */
@@ -152,10 +146,10 @@ class AlfNodeConverter : public BaseAlfNodeConverter
   TypeNode d_sortType;
   /** Used for getting unique index for uncategorized skolems */
   std::map<Node, size_t> d_constIndex;
-  /** Used for getting unique names for bound variables */
-  std::map<std::string, size_t> d_varIndex;
   /** Cache for typeAsNode */
   std::map<TypeNode, Node> d_typeAsNode;
+  /** Cache for isAmbiguousDtConstructor */
+  std::map<Node, bool> d_ambDt;
 };
 
 }  // namespace proof

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Alex Ozdemir
+ *   Alex Ozdemir, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -64,7 +64,7 @@ class CocoaEncoder : public FieldObj
 {
  public:
   /** Create a new encoder, for this field. */
-  CocoaEncoder(const FfSize& size);
+  CocoaEncoder(NodeManager* nm, const FfSize& size);
   /** Add a fact (one must call this twice per fact, once per stage). */
   void addFact(const Node& fact);
   /** Start Stage::Encode. */

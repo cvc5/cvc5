@@ -92,7 +92,7 @@ name   = "Base"
 [[option]]
   name       = "statisticsAll"
   long       = "stats-all"
-  category   = "expert"
+  category   = "common"
   type       = "bool"
   default    = "false"
   predicates = ["setStatsDetail"]
@@ -101,7 +101,7 @@ name   = "Base"
 [[option]]
   name       = "statisticsInternal"
   long       = "stats-internal"
-  category   = "expert"
+  category   = "common"
   type       = "bool"
   default    = "false"
   predicates = ["setStatsDetail"]
@@ -133,7 +133,7 @@ name   = "Base"
   help       = "exit after preprocessing input"
 
 [[option]]
-  category   = "regular"
+  category   = "expert"
   short      = "t"
   long       = "trace=TAG"
   type       = "std::string"
@@ -272,8 +272,12 @@ name   = "Base"
   example-file = "regress0/printer/print_options_auto.smt2"
 [[option.mode.RARE_DB]]
   name = "rare-db"
-  help = "upon initialization, print the entire set of RARE rewrite rules as they are defined in the proof signature."
-  description = "With ``-o rare-db``, upon initialization, cvc5 prints the entire set of RARE rewrite rules as they are defined in the proof signature."
+  help = "upon initialization, print the set of (non-expert) RARE rewrite rules as they are defined in the proof signature."
+  description = "With ``-o rare-db``, upon initialization, cvc5 prints the entire set of (non-expert) RARE rewrite rules as they are defined in the proof signature."
+[[option.mode.RARE_DB_EXPERT]]
+  name = "rare-db-expert"
+  help = "upon initialization, print the set of expert RARE rewrite rules as they are defined in the proof signature."
+  description = "With ``-o rare-db-expert``, upon initialization, cvc5 prints the entire set of expert RARE rewrite rules as they are defined in the proof signature."
 
 # Stores then enabled output tags.
 [[option]]
@@ -338,12 +342,22 @@ name   = "Base"
   default    = '{}'
 
 [[option]]
-  name       = "safeOptions"
+  name       = "safeMode"
   category   = "expert"
-  long       = "safe-options"
-  type       = "bool"
-  default    = "false"
-  help       = "do not allow setting any option that is not common or regular"
+  long       = "safe-mode=MODE"
+  type       = "SafeMode"
+  default    = "UNRESTRICTED"
+  help       = "modes for restricting expert options and theories"
+  help_mode  = "Modes for restricting expert options and theories."
+[[option.mode.UNRESTRICTED]]
+  name = "unrestricted"
+  help = "Do not restrict options or theories."
+[[option.mode.SAFE]]
+  name = "safe"
+  help = "Do not allow using expert options or theories, more than one regular option, or any feature that does not have full proof and model support."
+[[option.mode.STABLE]]
+  name = "stable"
+  help = "Do not allow using expert options or theories, or more than one regular option. May allow incomplete proofs or models."
 
 [[option]]
   name       = "pluginNotifySatClauseInSolve"

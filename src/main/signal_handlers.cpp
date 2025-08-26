@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -213,7 +213,7 @@ void ill_handler(int sig, siginfo_t* info, void*)
 
 #endif /* __WIN32__ */
 
-static terminate_handler default_terminator;
+static thread_local terminate_handler default_terminator;
 
 void cvc5terminate()
 {
@@ -300,10 +300,10 @@ void install()
   }
   ss.ss_size = SIGSTKSZ;
   ss.ss_flags = 0;
-  if (sigaltstack(&ss, NULL) == -1)
+  /*if (sigaltstack(&ss, NULL) == -1)
   {
     throw Exception(string("sigaltstack() failure: ") + strerror(errno));
-  }
+  }*/
 
   stackSize = limit.rlim_cur;
   stackBase = ss.ss_sp;

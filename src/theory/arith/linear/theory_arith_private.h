@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -164,7 +164,8 @@ private:
   //std::pair<DeltaRational, Node> inferBound(TNode term, bool lb, int maxRounds = -1, const DeltaRational* threshold = NULL);
 
 private:
- static bool decomposeTerm(Node t, Rational& m, Node& p, Rational& c);
+ static bool decomposeTerm(
+     NodeManager* nm, Node t, Rational& m, Node& p, Rational& c);
  bool decomposeLiteral(Node lit,
                        Kind& k,
                        int& dir,
@@ -442,6 +443,11 @@ private:
   //--------------------------------- end initialization
 
   /**
+   * Returns the associated node manager
+   */
+  NodeManager* getNodeManager() const { return nodeManager(); };
+
+  /**
    * Does non-context dependent setup for a node connected to a theory.
    */
   void preRegisterTerm(TNode n);
@@ -470,9 +476,8 @@ private:
                           std::map<Node, Node>& arithModelIllTyped);
   void presolve();
   void notifyRestart();
-  Theory::PPAssertStatus ppAssert(TrustNode tin,
-                                  TrustSubstitutionMap& outSubstitutions);
-  void ppStaticLearn(TNode in, NodeBuilder& learned);
+  bool ppAssert(TrustNode tin, TrustSubstitutionMap& outSubstitutions);
+  void ppStaticLearn(TNode in, std::vector<TrustNode>& learned);
 
   std::string identify() const { return std::string("TheoryArith"); }
 

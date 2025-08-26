@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -33,33 +33,10 @@ SetReduction::SetReduction() {}
 
 SetReduction::~SetReduction() {}
 
-/**
- * A bound variable corresponding to the universally quantified integer
- * variable used to range over (may be distinct) elements in a set, used
- * for axiomatizing the behavior of some term.
- * If there are multiple quantifiers, this variable should be the first one.
- */
-struct FirstIndexVarAttributeId
-{
-};
-typedef expr::Attribute<FirstIndexVarAttributeId, Node> FirstIndexVarAttribute;
-
-/**
- * A bound variable corresponding to the universally quantified integer
- * variable used to range over (may be distinct) elements in a set, used
- * for axiomatizing the behavior of some term.
- * This variable should be the second of multiple quantifiers.
- */
-struct SecondIndexVarAttributeId
-{
-};
-typedef expr::Attribute<SecondIndexVarAttributeId, Node>
-    SecondIndexVarAttribute;
-
 Node SetReduction::reduceFoldOperator(Node node, std::vector<Node>& asserts)
 {
   Assert(node.getKind() == Kind::SET_FOLD);
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = node.getNodeManager();
   SkolemManager* sm = nm->getSkolemManager();
   Node f = node[0];
   Node t = node[1];
@@ -73,8 +50,8 @@ Node SetReduction::reduceFoldOperator(Node node, std::vector<Node>& asserts)
   Node combine = sm->mkSkolemFunction(SkolemId::SETS_FOLD_COMBINE, {f, t, A});
 
   BoundVarManager* bvm = nm->getBoundVarManager();
-  Node i =
-      bvm->mkBoundVar<FirstIndexVarAttribute>(node, "i", nm->integerType());
+  Node i = bvm->mkBoundVar(
+      BoundVarId::SETS_FIRST_INDEX, node, "i", nm->integerType());
   Node iList = nm->mkNode(Kind::BOUND_VAR_LIST, i);
   Node iMinusOne = nm->mkNode(Kind::SUB, i, one);
   Node uf_i = nm->mkNode(Kind::APPLY_UF, uf, i);
@@ -101,7 +78,8 @@ Node SetReduction::reduceFoldOperator(Node node, std::vector<Node>& asserts)
       nm->mkNode(Kind::IMPLIES,
                  interval_i,
                  nm->mkNode(Kind::AND, combine_i_equal, union_i_equal));
-  Node forAll_i = quantifiers::BoundedIntegers::mkBoundedForall(iList, body_i);
+  Node forAll_i =
+      quantifiers::BoundedIntegers::mkBoundedForall(nm, iList, body_i);
   Node nonNegative = nm->mkNode(Kind::GEQ, n, zero);
   Node union_n_equal = A.eqNode(union_n);
   asserts.push_back(forAll_i);
@@ -115,7 +93,7 @@ Node SetReduction::reduceFoldOperator(Node node, std::vector<Node>& asserts)
 Node SetReduction::reduceAggregateOperator(Node node)
 {
   Assert(node.getKind() == Kind::RELATION_AGGREGATE);
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = node.getNodeManager();
   BoundVarManager* bvm = nm->getBoundVarManager();
   Node function = node[0];
   TypeNode elementType = function.getType().getArgTypes()[0];
@@ -126,8 +104,8 @@ Node SetReduction::reduceAggregateOperator(Node node)
   Node groupOp = nm->mkConst(Kind::RELATION_GROUP_OP, op);
   Node group = nm->mkNode(Kind::RELATION_GROUP, {groupOp, A});
 
-  Node set = bvm->mkBoundVar<FirstIndexVarAttribute>(
-      group, "set", nm->mkSetType(elementType));
+  Node set = bvm->mkBoundVar(
+      BoundVarId::SETS_FIRST_INDEX, group, "set", nm->mkSetType(elementType));
   Node foldList = nm->mkNode(Kind::BOUND_VAR_LIST, set);
   Node foldBody = nm->mkNode(Kind::SET_FOLD, function, initialValue, set);
 
@@ -139,12 +117,12 @@ Node SetReduction::reduceAggregateOperator(Node node)
 Node SetReduction::reduceProjectOperator(Node n)
 {
   Assert(n.getKind() == Kind::RELATION_PROJECT);
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = n.getNodeManager();
   Node A = n[0];
   TypeNode elementType = A.getType().getSetElementType();
   ProjectOp projectOp = n.getOperator().getConst<ProjectOp>();
   Node op = nm->mkConst(Kind::TUPLE_PROJECT_OP, projectOp);
-  Node t = nm->mkBoundVar("t", elementType);
+  Node t = NodeManager::mkBoundVar("t", elementType);
   Node projection = nm->mkNode(Kind::TUPLE_PROJECT, op, t);
   Node lambda =
       nm->mkNode(Kind::LAMBDA, nm->mkNode(Kind::BOUND_VAR_LIST, t), projection);

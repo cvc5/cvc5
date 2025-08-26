@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz
+ *   Aina Niemetz, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -134,6 +134,23 @@ CVC5_EXPORT const Cvc5Sort* cvc5_sm_get_declared_sorts(Cvc5SymbolManager* sm,
 CVC5_EXPORT const Cvc5Term* cvc5_sm_get_declared_terms(Cvc5SymbolManager* sm,
                                                        size_t* size);
 
+
+/**
+ * Get the named terms that have been given to them via the :named attribute.
+ *
+ * @param sm    The symbol manager instance.
+ * @param size  The resulting size of `terms` and `names`.
+ * @param terms The resulting term that are mapped to the resulting `names`.
+ * @param names The resulting names.
+ *
+ * @note The resulting `terms` and `names` array pointers are only valid
+ *       until the next call to this function.
+ */
+CVC5_EXPORT void cvc5_sm_get_named_terms(Cvc5SymbolManager* sm,
+                                         size_t* size,
+                                         Cvc5Term* terms[],
+                                         const char** names[]);
+
 /** @} */
 
 /* -------------------------------------------------------------------------- */
@@ -145,9 +162,9 @@ CVC5_EXPORT const Cvc5Term* cvc5_sm_get_declared_terms(Cvc5SymbolManager* sm,
 /**
  * Invoke a given command on the solver and symbol manager sm and return any
  * resulting output as a string.
- * @param cmd        The command to invoke.
- * @param solver     The solver to invoke the command on.
- * @param sm         The symbol manager to invoke the command on.
+ * @param cmd  The command to invoke.
+ * @param cvc5 The solver to invoke the command on.
+ * @param sm   The symbol manager to invoke the command on.
  * @return The output of invoking the command.
  * @note The returned char* pointer is only valid until the next call to this
  *       function.
@@ -158,6 +175,7 @@ CVC5_EXPORT const char* cvc5_cmd_invoke(Cvc5Command cmd,
 
 /**
  * Get a string representation of this command.
+ * @param cmd  The command to invoke.
  * @return The string representation.
  * @note The returned char* pointer is only valid until the next call to this
  *       function.
@@ -166,6 +184,7 @@ CVC5_EXPORT const char* cvc5_cmd_to_string(const Cvc5Command cmd);
 
 /**
  * Get the name for a given command, e.g., "assert".
+ * @param cmd  The command to invoke.
  * @return The name of the command.
  * @note The returned char* pointer is only valid until the next call to this
  *       function.
@@ -226,7 +245,7 @@ CVC5_EXPORT Cvc5SymbolManager* cvc5_parser_get_sm(Cvc5InputParser* parser);
 /**
  * Configure given file as input to a given input parser.
  * @param parser The input parser instance.
- * @param lang the input language (e.g., #CVC5_INPUT_LANGUAGESMT_LIB_2_6)
+ * @param lang the input language (e.g., #CVC5_INPUT_LANGUAGE_SMT_LIB_2_6)
  * @param filename The name of the file to configure.
  */
 CVC5_EXPORT void cvc5_parser_set_file_input(Cvc5InputParser* parser,

@@ -1,6 +1,6 @@
 (set-logic QF_ALL)
 (set-info :status sat)
-(set-option :sets-ext true)
+(set-option :sets-exp true)
 (declare-const universe (Set (Array Int Int)))
 (declare-const A (Set (Array Int Int)))
 (declare-const B (Set (Array Int Int)))

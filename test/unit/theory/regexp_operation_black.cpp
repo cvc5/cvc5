@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Andres Noetzli, Andrew Reynolds
+ *   Aina Niemetz, Andrew Reynolds, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -138,6 +138,40 @@ TEST_F(TestTheoryBlackRegexpOperation, star_wildcards)
   doesNotInclude(_c_a_, _s_s_);
   includes(_abc_, _a_abc_);
   doesNotInclude(_a_abc_, _abc_);
+}
+
+TEST_F(TestTheoryBlackRegexpOperation, generalizedRegExp)
+{
+  RegExpEntail re(d_nodeManager.get(), nullptr);
+
+  TypeNode strType = d_nodeManager->stringType();
+  TypeNode intType = d_nodeManager->integerType();
+
+  Node abc = d_nodeManager->mkConst(String("abc"));
+  Node a = d_nodeManager->mkDummySkolem("a", intType);
+  Node s = d_nodeManager->mkDummySkolem("s", strType);
+  Node fia = d_nodeManager->mkNode(Kind::STRING_ITOS, a);
+  Node fils = d_nodeManager->mkNode(
+      Kind::STRING_ITOS, d_nodeManager->mkNode(Kind::STRING_LENGTH, s));
+
+  Node sigma = d_nodeManager->mkNode(Kind::REGEXP_ALLCHAR);
+  Node sigmaStar = d_nodeManager->mkNode(Kind::REGEXP_STAR, sigma);
+  Node rabc = d_nodeManager->mkNode(Kind::STRING_TO_REGEXP,
+                                    d_nodeManager->mkConst(String("abc")));
+  Node digRange = d_nodeManager->mkNode(Kind::REGEXP_RANGE,
+                                        d_nodeManager->mkConst(String("0")),
+                                        d_nodeManager->mkConst(String("9")));
+  Node digRangeStar = d_nodeManager->mkNode(Kind::REGEXP_STAR, digRange);
+  Node digRangePlus =
+      d_nodeManager->mkNode(Kind::REGEXP_CONCAT, digRange, digRangeStar);
+
+  ASSERT_TRUE(re.getGeneralizedConstRegExp(s).isNull());
+  ASSERT_EQ(re.getGeneralizedConstRegExp(fia), digRangeStar);
+  ASSERT_EQ(re.getGeneralizedConstRegExp(fils), digRangePlus);
+  ASSERT_EQ(re.getGeneralizedConstRegExp(abc), rabc);
+
+  Node ss = d_nodeManager->mkNode(Kind::STRING_CONCAT, s, s);
+  ASSERT_TRUE(re.getGeneralizedConstRegExp(ss).isNull());
 }
 
 }  // namespace test

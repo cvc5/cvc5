@@ -1,4 +1,4 @@
-; COMMAND-LINE: --strings-exp
+; COMMAND-LINE:
 (set-logic QF_SLIA)
 (declare-fun a () String)
 (assert (not (str.in_re (str.replace_re a (re.++ (re.* (re.union (str.to_re "a") (str.to_re ""))) (str.to_re "b")) "") (str.to_re ""))))

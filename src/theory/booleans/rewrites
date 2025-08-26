@@ -14,18 +14,13 @@
 (define-rule bool-impl-true2 ((t Bool)) (=> true t) t)
 (define-rule bool-impl-elim ((t Bool) (s Bool)) (=> t s) (or (not t) s))
 
-(define-rule bool-or-true ((xs Bool :list) (ys Bool :list)) (or xs true ys) true)
-(define-rule* bool-or-false ((xs Bool :list) (ys Bool :list)) (or xs false ys) (or xs ys))
-(define-rule* bool-or-flatten ((xs Bool :list) (b Bool) (ys Bool :list) (zs Bool :list)) (or xs (or b ys) zs) (or xs b ys zs))
-(define-rule* bool-or-dup ((xs Bool :list) (b Bool) (ys Bool :list) (zs Bool :list)) (or xs b ys b zs) (or xs b ys zs))
-
-(define-rule* bool-and-true ((xs Bool :list) (ys Bool :list)) (and xs true ys) (and xs ys))
-(define-rule bool-and-false ((xs Bool :list) (ys Bool :list)) (and xs false ys) false)
-(define-rule* bool-and-flatten ((xs Bool :list) (b Bool) (ys Bool :list) (zs Bool :list)) (and xs (and b ys) zs) (and xs b ys zs))
-(define-rule* bool-and-dup ((xs Bool :list) (b Bool) (ys Bool :list) (zs Bool :list)) (and xs b ys b zs) (and xs b ys zs))
+; used in proof elaboration
+(define-rule bool-dual-impl-eq ((t Bool) (s Bool)) (and (=> t s) (=> s t)) (= t s))
 
 (define-rule bool-and-conf ((xs Bool :list) (w Bool) (ys Bool :list) (zs Bool :list)) (and xs w ys (not w) zs) false)
+(define-rule bool-and-conf2 ((xs Bool :list) (w Bool) (ys Bool :list) (zs Bool :list)) (and xs (not w) ys w zs) false)
 (define-rule bool-or-taut ((xs Bool :list) (w Bool) (ys Bool :list) (zs Bool :list)) (or xs w ys (not w) zs) true)
+(define-rule bool-or-taut2 ((xs Bool :list) (w Bool) (ys Bool :list) (zs Bool :list)) (or xs (not w) ys w zs) true)
 
 (define-rule* bool-or-de-morgan ((x Bool) (y Bool) (zs Bool :list)) 
   (not (or x y zs))
@@ -39,6 +34,19 @@
   (not (and y zs))
   (or (not x) _))
 
+; We only permit distributing from the first child, or otherwise this rule
+; could apply to fix point on all AND children of an OR at once.
+(define-rule* bool-or-and-distrib ((y1 Bool) (y2 Bool) (ys Bool :list) (z1 Bool) (zs Bool :list))
+  (or (and y1 y2 ys) z1 zs)
+  (or (and y2 ys) z1 zs)
+  (and (or y1 z1 zs) _))
+
+; Used for diamonds preprocessing
+(define-rule* bool-implies-or-distrib ((y1 Bool) (y2 Bool) (ys Bool :list) (z Bool))
+  (=> (or y1 y2 ys) z)
+  (=> (or y2 ys) z)
+  (and (=> y1 z) _))
+
 (define-rule bool-xor-refl ((x Bool)) (xor x x) false)
 (define-rule bool-xor-nrefl ((x Bool)) (xor x (not x)) true)
 (define-rule bool-xor-false ((x Bool)) (xor x false) x)
@@ -47,7 +55,8 @@
 (define-rule bool-xor-elim ((x Bool) (y Bool)) (xor x y) (= (not x) y))
 (define-rule bool-not-xor-elim ((x Bool) (y Bool)) (not (xor x y)) (= x y))
 
-(define-rule bool-not-eq-elim ((x Bool) (y Bool)) (not (= x y)) (= (not x) y))
+(define-rule bool-not-eq-elim1 ((x Bool) (y Bool)) (not (= x y)) (= (not x) y))
+(define-rule bool-not-eq-elim2 ((x Bool) (y Bool)) (not (= x y)) (= x (not y)))
 
 (define-cond-rule ite-neg-branch ((c Bool) (x Bool) (y Bool)) (= (not y) x) (ite c x y) (= c x))
 
@@ -58,5 +67,10 @@
 
 (define-rule ite-then-lookahead-self ((c Bool) (x Bool)) (ite c c x) (ite c true x))
 (define-rule ite-else-lookahead-self ((c Bool) (x Bool)) (ite c x c) (ite c x false))
+
+(define-rule ite-then-lookahead-not-self ((c Bool) (x Bool)) (ite c (not c) x) (ite c false x))
+(define-rule ite-else-lookahead-not-self ((c Bool) (x Bool)) (ite c x (not c)) (ite c x true))
+
+(define-rule ite-expand ((c Bool) (x Bool) (y Bool)) (ite c x y) (and (or (not c) x) (or c y)))
 
 (define-rule bool-not-ite-elim ((c Bool) (x Bool) (y Bool)) (not (ite c x y)) (ite c (not x) (not y)))

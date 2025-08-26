@@ -1,12 +1,13 @@
 cimport cpython.ref as cpy_ref
 # import dereference and increment operators
 from cython.operator cimport dereference as deref, preincrement as inc
+from cython import Py_UCS4
 from libc.stdint cimport int32_t, int64_t, uint32_t, uint64_t
-from libc.stddef cimport wchar_t
 from libcpp.set cimport set
 from libcpp.string cimport string
 from libcpp.vector cimport vector
 from libcpp.map cimport map
+from libcpp.optional cimport optional
 from libcpp.pair cimport pair
 from cvc5kinds cimport Kind, SortKind
 from cvc5types cimport BlockModelsMode, LearnedLitType, ProofComponent, ProofFormat, RoundingMode, UnknownExplanation, FindSynthTarget, InputLanguage
@@ -36,19 +37,11 @@ cdef extern from "<functional>" namespace "std" nogil:
         hash()
         size_t operator()(T t)
 
-cdef extern from "<optional>" namespace "std" nogil:
-    # The std::optional wrapper would be available as cpplib.optional with
-    # cython 3.0.0a10 (Jan 2022). Until this version is widely available, we
-    # wrap it manually.
-    cdef cppclass optional[T]:
-        bint has_value()
-        T& value()
-
 cdef extern from "<string>" namespace "std":
-    cdef cppclass wstring:
-        wstring() except +
-        wstring(const wchar_t*, size_t) except +
-        const wchar_t* data() except +
+    cdef cppclass u32string:
+        u32string() except +
+        void resize (size_t n) except +
+        Py_UCS4& operator[](size_t)
         size_t size() except +
 
 cdef extern from "<tuple>" namespace "std" nogil:
@@ -289,7 +282,7 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         Term mkSepEmp() except +
         Term mkSepNil(Sort sort) except +
         Term mkString(const string& s) except +
-        Term mkString(const wstring& s) except +
+        Term mkString(const u32string& s) except +
         Term mkString(const string& s, bint useEscSequences) except +
         Term mkEmptySequence(Sort sort) except +
         Term mkUniverseSet(Sort sort) except +
@@ -407,7 +400,7 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         Term mkSepEmp() except +
         Term mkSepNil(Sort sort) except +
         Term mkString(const string& s) except +
-        Term mkString(const wstring& s) except +
+        Term mkString(const u32string& s) except +
         Term mkString(const string& s, bint useEscSequences) except +
         Term mkEmptySequence(Sort sort) except +
         Term mkUniverseSet(Sort sort) except +
@@ -662,7 +655,7 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         bint isBooleanValue() except +
         bint getBooleanValue() except +
         bint isStringValue() except +
-        wstring getStringValue() except +
+        u32string getU32StringValue() except +
         int32_t getRealOrIntegerValueSign() except +
         bint isIntegerValue() except +
         string getIntegerValue() except +
@@ -718,6 +711,7 @@ cdef extern from "<cvc5/cvc5_parser.h>" namespace "cvc5::parser":
         string getLogic() except +
         vector[Sort] getDeclaredSorts() except +
         vector[Term] getDeclaredTerms() except +
+        map[Term, string] getNamedTerms() except +
 
     cdef cppclass Command:
         Command() except +

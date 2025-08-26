@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz
+ *   Andrew Reynolds, Aina Niemetz, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -67,7 +67,8 @@ struct SubsolverSetupInfo
  * @param needsTimeout Whether we would like to set a timeout
  * @param timeout The timeout (in milliseconds)
  */
-void initializeSubsolver(std::unique_ptr<SolverEngine>& smte,
+void initializeSubsolver(NodeManager* nm,
+                         std::unique_ptr<SolverEngine>& smte,
                          const SubsolverSetupInfo& info,
                          bool needsTimeout = false,
                          unsigned long timeout = 0);

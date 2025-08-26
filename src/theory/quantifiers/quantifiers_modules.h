@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -29,7 +29,7 @@
 #include "theory/quantifiers/inst_strategy_mbqi.h"
 #include "theory/quantifiers/inst_strategy_pool.h"
 #include "theory/quantifiers/inst_strategy_sub_conflict.h"
-#include "theory/quantifiers/mbqi_fast_sygus.h"
+#include "theory/quantifiers/mbqi_enum.h"
 #include "theory/quantifiers/oracle_engine.h"
 #include "theory/quantifiers/quant_conflict_find.h"
 #include "theory/quantifiers/quant_split.h"

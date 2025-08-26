@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,24 +22,19 @@
 #include "expr/node.h"
 #include "options/proof_options.h"
 #include "smt/env_obj.h"
+#include "smt/proof_final_callback.h"
 
 namespace cvc5::internal {
 
 class ProofChecker;
 class ProofNode;
 class ProofNodeManager;
+class ProofLogger;
 class SolverEngine;
 
 namespace rewriter {
 class RewriteDb;
 }
-
-namespace smt {
-
-class Assertions;
-class SmtSolver;
-class PreprocessProofGenerator;
-class ProofPostprocess;
 
 /** Modes for global Proof scopes introducing definitions and assertions. */
 enum class ProofScopeMode
@@ -51,6 +46,12 @@ enum class ProofScopeMode
   /** Proof closed by 2 nested scopes introducing definitions and assertions. */
   DEFINITIONS_AND_ASSERTIONS,
 };
+
+namespace smt {
+
+class Assertions;
+class PreprocessProofGenerator;
+class ProofPostprocess;
 
 /**
  * This class is responsible for managing the proof output of SolverEngine, as
@@ -92,10 +93,17 @@ class PfManager : protected EnvObj
   ~PfManager();
   /**
    * Print the proof on the given output stream in the given format.
+   *
+   * @param out The output stream.
+   * @param fp The proof to print.
+   * @param mode The format (e.g. cpc, alethe) to print.
+   * @param scopeMode The expected form of fp (see ProofScopeMode).
+   * @param assertionNames The named assertions of the input.
    */
   void printProof(std::ostream& out,
                   std::shared_ptr<ProofNode> fp,
                   options::ProofFormatMode mode,
+                  ProofScopeMode scopeMode,
                   const std::map<Node, std::string>& assertionNames =
                       std::map<Node, std::string>());
 
@@ -115,7 +123,7 @@ class PfManager : protected EnvObj
    * @param smt The SMT solver that owns the assertions and the preprocess
    * proof generator.
    */
-  void translateDifficultyMap(std::map<Node, Node>& dmap, SmtSolver& smt);
+  void translateDifficultyMap(std::map<Node, Node>& dmap, Assertions& as);
 
   /**
    * Connect proof to assertions
@@ -128,18 +136,39 @@ class PfManager : protected EnvObj
    * respect to assertions in as. Note this includes equalities of the form
    * (= f (lambda (...) t)) which originate from define-fun commands for f.
    * These are considered assertions in the final proof.
+   *
+   * @param pfn The proof.
+   * @param as Reference to the assertions.
+   * @param scopeMode The expected form of fp (see ProofScopeMode).
    */
   std::shared_ptr<ProofNode> connectProofToAssertions(
       std::shared_ptr<ProofNode> pfn,
-      SmtSolver& smt,
+      Assertions& as,
       ProofScopeMode scopeMode = ProofScopeMode::UNIFIED);
+  /**
+   * Check proof. This call runs the final proof callback, which checks for
+   * pedantic failures and takes statistics.
+   * @param pfn The proof to check.
+   */
+  void checkFinalProof(std::shared_ptr<ProofNode> pfn);
+  /**
+   * Start proof logging. This is called when the SMT solver is initialized
+   * and --proof-log is enabled.
+   * @param out The output stream to log proofs on.
+   * @param as Reference to the assertions.
+   */
+  void startProofLogging(std::ostream& out, Assertions& as);
   //--------------------------- access to utilities
   /** Get a pointer to the ProofChecker owned by this. */
   ProofChecker* getProofChecker() const;
   /** Get a pointer to the ProofNodeManager owned by this. */
   ProofNodeManager* getProofNodeManager() const;
+  /** Get a pointer to the ProofLogger owned by this. */
+  ProofLogger* getProofLogger() const;
   /** Get the rewrite database, containing definitions of rewrites from DSL. */
   rewriter::RewriteDb* getRewriteDatabase() const;
+  /** Get the preprocess proof generator */
+  PreprocessProofGenerator* getPreprocessProofGenerator() const;
   //--------------------------- end access to utilities
  private:
   /**
@@ -160,8 +189,19 @@ class PfManager : protected EnvObj
   std::unique_ptr<ProofChecker> d_pchecker;
   /** A proof node manager based on the above checker */
   std::unique_ptr<ProofNodeManager> d_pnm;
+  /** A proof logger, if proofLog is enabled */
+  std::unique_ptr<ProofLogger> d_plog;
   /** The proof post-processor */
   std::unique_ptr<smt::ProofPostprocess> d_pfpp;
+  /** The preprocess proof generator. */
+  std::unique_ptr<PreprocessProofGenerator> d_pppg;
+  /** The post process callback for finalization */
+  ProofFinalCallback d_finalCb;
+  /**
+   * The finalizer, which is responsible for taking stats and checking for
+   * (lazy) pedantic failures.
+   */
+  ProofNodeUpdater d_finalizer;
 }; /* class SolverEngine */
 
 }  // namespace smt

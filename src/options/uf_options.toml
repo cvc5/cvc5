@@ -3,10 +3,11 @@ name   = "Uninterpreted Functions Theory"
 
 [[option]]
   name       = "ufSymmetryBreaker"
-  category   = "expert"
+  category   = "regular"
   long       = "symmetry-breaker"
   type       = "bool"
-  default    = "false"
+  default    = "true"
+  no_support = ["proofs"]
   help       = "use UF symmetry breaker (Deharbe et al., CADE 2011)"
 
 [[option]]
@@ -77,7 +78,7 @@ name   = "Uninterpreted Functions Theory"
 
 [[option]]
   name       = "eagerArithBvConv"
-  category   = "expert"
+  category   = "regular"
   long       = "eager-arith-bv-conv"
   type       = "bool"
   default    = "false"
@@ -90,3 +91,19 @@ name   = "Uninterpreted Functions Theory"
   type       = "bool"
   default    = "false"
   help       = "model-based inferences for bit-vector to arithmetic conversions"
+
+[[option]]
+  name       = "ufHoExp"
+  category   = "expert"
+  long       = "uf-ho-exp"
+  type       = "bool"
+  default    = "true"
+  help       = "enables the higher-order logic solver in applicable logics"
+
+[[option]]
+  name       = "ufCardExp"
+  category   = "expert"
+  long       = "uf-card-exp"
+  type       = "bool"
+  default    = "true"
+  help       = "allows logics with UF+cardinality"

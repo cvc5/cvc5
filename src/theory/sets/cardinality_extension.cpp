@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -1063,7 +1063,6 @@ void CardinalityExtension::mkModelValueElementsFor(
       std::uint32_t vu = v.getConst<Rational>().getNumerator().toUnsignedInt();
       Assert(els.size() <= vu);
       NodeManager* nm = nodeManager();
-      SkolemManager* sm = nm->getSkolemManager();
       if (elementTypeFinite)
       {
         // get all members of this finite type
@@ -1083,7 +1082,7 @@ void CardinalityExtension::mkModelValueElementsFor(
           // slack elements for the leaves without worrying about conflicts with
           // the current members of this finite type.
 
-          Node slack = sm->mkDummySkolem("slack", elementType);
+          Node slack = NodeManager::mkDummySkolem("slack", elementType);
           Node singleton = nm->mkNode(Kind::SET_SINGLETON, slack);
           els.push_back(singleton);
           d_finite_type_slack_elements[elementType].push_back(slack);
@@ -1092,8 +1091,9 @@ void CardinalityExtension::mkModelValueElementsFor(
         }
         else
         {
-          els.push_back(nm->mkNode(Kind::SET_SINGLETON,
-                                   sm->mkDummySkolem("msde", elementType)));
+          els.push_back(
+              nm->mkNode(Kind::SET_SINGLETON,
+                         NodeManager::mkDummySkolem("msde", elementType)));
         }
       }
     }

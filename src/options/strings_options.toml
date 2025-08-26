@@ -23,6 +23,7 @@ name   = "Strings Theory"
   long       = "strings-lazy-pp"
   type       = "bool"
   default    = "true"
+  no_support = ["proofs"]
   help       = "perform string preprocessing lazily"
 
 [[option]]
@@ -111,6 +112,7 @@ name   = "Strings Theory"
   long       = "re-elim=MODE"
   type       = "RegExpElimMode"
   default    = "OFF"
+  no_support = ["proofs"]
   help       = "regular expression elimination mode"
   help_mode  = "Regular expression elimination modes."
 [[option.mode.OFF]]
@@ -229,17 +231,33 @@ name   = "Strings Theory"
   help       = "The maximum size of string values in models"
 
 [[option]]
-  name       = "stringsCodeElim"
-  category   = "expert"
-  long       = "strings-code-elim"
-  type       = "bool"
-  default    = "false"
-  help       = "eliminate code points during preprocessing"
-
-[[option]]
   name       = "stringRegexpPosConcatEager"
   category   = "expert"
   long       = "strings-re-posc-eager"
   type       = "bool"
   default    = "false"
   help       = "eager reduction of positive membership into concatenation"
+
+[[option]]
+  name       = "stringRegexpDeriveConflicts"
+  category   = "expert"
+  long       = "strings-re-derive-conf"
+  type       = "bool"
+  default    = "false"
+  help       = "use regular expression derive for conflict finding"
+
+[[option]]
+  name       = "stringRecArithApprox"
+  category   = "expert"
+  long       = "strings-rec-arith-approx"
+  type       = "bool"
+  default    = "false"
+  help       = "use possibly recursive reasoning when finding approximations for arithmetic string terms"
+
+[[option]]
+  name       = "regExpFirstClass"
+  category   = "expert"
+  long       = "re-first-class"
+  type       = "bool"
+  default    = "false"
+  help       = "allow regular expressions as first class terms"

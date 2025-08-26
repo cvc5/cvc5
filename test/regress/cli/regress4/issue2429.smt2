@@ -1,5 +1,5 @@
 (set-logic QF_SLIA)
-(set-option :strings-exp true)
+
 (set-option :produce-models true)
 (set-info :status sat)
 

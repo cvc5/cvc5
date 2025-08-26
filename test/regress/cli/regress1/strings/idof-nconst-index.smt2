@@ -1,5 +1,5 @@
 (set-logic ALL)
-(set-option :strings-exp true)
+
 (set-info :status sat)
 (declare-fun s () String)
 (assert (str.contains s "Hello and goodbye!"))

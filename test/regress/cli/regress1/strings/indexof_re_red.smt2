@@ -1,4 +1,4 @@
-; COMMAND-LINE: --strings-exp --incremental
+; COMMAND-LINE: --incremental
 (set-logic QF_SLIA)
 (declare-const x String)
 (declare-const i Int)

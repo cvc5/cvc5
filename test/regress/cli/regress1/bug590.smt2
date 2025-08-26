@@ -1,9 +1,10 @@
+; COMMAND-LINE: --arrays-exp
 ; SCRUBBER: grep -o "unknown\|((charlst2 ("
 ; EXPECT: unknown
 ; EXPECT: ((charlst2 (
 
 (set-logic ALL)
-(set-option :strings-exp true)
+
 (set-option :produce-models true)
 (set-info :smt-lib-version 2.6)
 (set-info :status unknown)

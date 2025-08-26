@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mudathir Mohamed, Andrew Reynolds
+ *   Mudathir Mohamed, Daniel Larraz, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,7 +20,8 @@ public class ParserSymbolManager
 {
   public static void main(String args[]) throws CVC5ApiException
   {
-    Solver slv = new Solver();
+    TermManager tm = new TermManager();
+    Solver slv = new Solver(tm);
 
     SymbolManager sm = new SymbolManager(slv);
 

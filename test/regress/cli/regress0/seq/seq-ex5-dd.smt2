@@ -1,4 +1,4 @@
-; COMMAND-LINE: --strings-exp
+; COMMAND-LINE:
 (set-logic QF_SLIA)
 (set-info :status sat)
 (declare-fun z () (Seq Int))

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -423,8 +423,7 @@ CegisUnifEnumDecisionStrategy::CegisUnifEnumDecisionStrategy(
 Node CegisUnifEnumDecisionStrategy::mkLiteral(unsigned n)
 {
   NodeManager* nm = nodeManager();
-  SkolemManager* sm = nm->getSkolemManager();
-  Node newLit = sm->mkDummySkolem("G_cost", nm->booleanType());
+  Node newLit = NodeManager::mkDummySkolem("G_cost", nm->booleanType());
   unsigned new_size = n + 1;
 
   // allocate an enumerator for each candidate
@@ -432,13 +431,13 @@ Node CegisUnifEnumDecisionStrategy::mkLiteral(unsigned n)
   {
     Node c = ci.first;
     TypeNode ct = c.getType();
-    Node eu = sm->mkDummySkolem("eu", ct);
+    Node eu = NodeManager::mkDummySkolem("eu", ct);
     Node ceu;
     if (!d_useCondPool && !ci.second.d_enums[0].empty())
     {
       // make a new conditional enumerator as well, starting the
       // second type around
-      ceu = sm->mkDummySkolem("cu", ci.second.d_ce_type);
+      ceu = NodeManager::mkDummySkolem("cu", ci.second.d_ce_type);
     }
     // register the new enumerators
     for (unsigned index = 0; index < 2; index++)
@@ -470,10 +469,11 @@ Node CegisUnifEnumDecisionStrategy::mkLiteral(unsigned n)
     {
       // we construct the default integer grammar with no variables, e.g.:
       //   A -> 1 | A + A
-      Node a = nm->mkBoundVar("_virtual_enum_grammar", nm->integerType());
+      Node a =
+          NodeManager::mkBoundVar("_virtual_enum_grammar", nm->integerType());
       SygusGrammar g({}, {a});
       g.addRules(a, {nm->mkConstInt(Rational(1)), nm->mkNode(Kind::ADD, a, a)});
-      d_virtual_enum = sm->mkDummySkolem("_ve", g.resolve());
+      d_virtual_enum = NodeManager::mkDummySkolem("_ve", g.resolve());
       d_tds->registerEnumerator(
           d_virtual_enum, Node::null(), d_parent, ROLE_ENUM_CONSTRAINED);
     }
@@ -516,7 +516,6 @@ void CegisUnifEnumDecisionStrategy::initialize(
   }
   // initialize type information for candidates
   NodeManager* nm = nodeManager();
-  SkolemManager* sm = nm->getSkolemManager();
   for (const Node& e : es)
   {
     Trace("cegis-unif-enum-debug") << "...adding strategy point " << e << "\n";
@@ -562,7 +561,7 @@ void CegisUnifEnumDecisionStrategy::initialize(
     // allocate a condition enumerator for each candidate
     for (std::pair<const Node, StrategyPtInfo>& ci : d_ce_info)
     {
-      Node ceu = sm->mkDummySkolem("cu", ci.second.d_ce_type);
+      Node ceu = NodeManager::mkDummySkolem("cu", ci.second.d_ce_type);
       setUpEnumerator(ceu, ci.second, 1);
     }
   }

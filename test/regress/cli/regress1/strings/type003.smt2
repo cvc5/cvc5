@@ -1,7 +1,7 @@
 (set-info :smt-lib-version 2.6)
 (set-logic QF_SLIA)
 (set-info :status sat)
-(set-option :strings-exp true)
+
 
 (declare-fun i () Int)
 (declare-fun s () String)

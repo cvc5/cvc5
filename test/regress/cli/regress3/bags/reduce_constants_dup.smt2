@@ -1,6 +1,4 @@
 ; DISABLE-TESTER: unsat-core
-; DISABLE-TESTER: proof
-; DISABLE-TESTER: dsl-proof
 ; DISABLE-TESTER: cpc
 ; DISABLE-TESTER: lfsc
 ; test name: testReduceConstantsDup2
@@ -12,7 +10,7 @@
 (set-option :uf-lazy-ll true)
 (set-option :fmf-bound true)
 (set-option :tlimit-per 10000)
-(set-option :strings-exp true)
+
 
 (declare-const EMP (Bag (Tuple (Nullable Int) (Nullable String) (Nullable String) (Nullable Int) (Nullable Int) (Nullable Int) (Nullable Int) (Nullable Int) (Nullable Int))))
 (declare-const q1 (Bag (Tuple (Nullable Int) (Nullable String) (Nullable String) (Nullable Int) (Nullable Int) (Nullable Int) (Nullable Int) (Nullable Int) (Nullable Int))))

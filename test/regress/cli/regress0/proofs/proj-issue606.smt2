@@ -1,0 +1,11 @@
+; EXPECT: sat
+(set-logic ALL)
+(declare-const x9 Bool)
+(set-option :check-proofs true)
+(set-option :incremental true)
+(set-option :proof-check eager)
+(declare-const x Int)
+(assert (< (* x x) 1))
+(check-sat)
+(assert (distinct (or x9 (not x9)) (< (* x x) 1)))
+(push)

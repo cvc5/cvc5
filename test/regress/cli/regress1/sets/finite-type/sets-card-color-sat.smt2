@@ -1,7 +1,7 @@
 (set-logic QF_BVDTLIAFS)
 (set-info :status sat)
 (set-option :produce-models true)
-(set-option :sets-ext true)
+(set-option :sets-exp true)
 (declare-datatype Color ((Red) (Green) (Blue) (Purple)))
 (declare-fun A () (Set Color))
 (declare-fun B () (Set Color))

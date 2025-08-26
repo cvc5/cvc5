@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -46,7 +46,8 @@ class Smt2Printer : public cvc5::internal::Printer
   void toStream(std::ostream& out, TNode n, int toDepth, size_t dag) const;
   void toStream(std::ostream& out,
                 TNode n,
-                const LetBinding* lbind) const override;
+                const LetBinding* lbind,
+                bool lbindTop) const override;
   void toStream(std::ostream& out, Kind k) const override;
   void toStream(std::ostream& out, const smt::Model& m) const override;
   /**
@@ -295,7 +296,9 @@ class Smt2Printer : public cvc5::internal::Printer
   void toStreamSkolem(std::ostream& out,
                       Node cacheVal,
                       SkolemId id,
-                      bool isApplied) const;
+                      bool isApplied,
+                      int toDepth,
+                      const LetBinding* lbind) const;
 
   /**
    * Get the string for a kind k, which returns how the kind k is printed in

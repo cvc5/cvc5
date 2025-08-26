@@ -1,0 +1,29 @@
+name: Setup CMake
+description: Find the minimum required CMake version and set it up
+inputs:
+  shell:
+    default: bash
+
+runs:
+  using: composite
+  steps:
+    - name: Find minimum required CMake version
+      id: cmake
+      shell: ${{ inputs.shell }}
+      run: |
+        echo "::group::Get minimum required CMake version"
+        echo "version=$( \
+          grep "cmake_minimum_required" CMakeLists.txt | \
+          awk -F'[()]' '{print $2}' | \
+          awk '{print $2}' \
+        )" >> "$GITHUB_OUTPUT"
+        echo "::endgroup::"
+
+    - name: Setup CMake
+      # This GH Action has been a bit flaky lately.
+      # Since testing with an old CMake version is not critical,
+      # let's continue even if it fails.
+      continue-on-error: true
+      uses: jwlawson/actions-setup-cmake@v2
+      with:
+        cmake-version: '${{ steps.cmake.outputs.version }}.x'

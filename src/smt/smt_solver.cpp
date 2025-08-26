@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -15,8 +15,15 @@
 
 #include "smt/smt_solver.h"
 
+#include "options/arith_options.h"
+#include "options/arrays_options.h"
+#include "options/bags_options.h"
 #include "options/base_options.h"
+#include "options/datatypes_options.h"
+#include "options/ff_options.h"
+#include "options/fp_options.h"
 #include "options/main_options.h"
+#include "options/sets_options.h"
 #include "options/smt_options.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "prop/prop_engine.h"
@@ -24,6 +31,7 @@
 #include "smt/env.h"
 #include "smt/logic_exception.h"
 #include "smt/preprocessor.h"
+#include "smt/proof_manager.h"
 #include "smt/solver_engine_stats.h"
 #include "theory/logic_info.h"
 #include "theory/theory_engine.h"
@@ -81,7 +89,17 @@ void SmtSolver::finishInit()
   Trace("smt-debug") << "Finishing init for theory engine..." << std::endl;
   d_theoryEngine->finishInit();
   d_propEngine->finishInit();
-  d_pp.finishInit(d_theoryEngine.get(), d_propEngine.get());
+  finishInitPreprocessor();
+
+  if (options().proof.proofLog)
+  {
+    smt::PfManager* pm = d_env.getProofManager();
+    if (pm != nullptr)
+    {
+      // Logs proofs on the base output stream of the solver
+      pm->startProofLogging(options().base.out, d_asserts);
+    }
+  }
 }
 
 void SmtSolver::resetAssertions()
@@ -98,7 +116,7 @@ void SmtSolver::resetAssertions()
   // depend on knowing the associated PropEngine.
   d_propEngine->finishInit();
   // must reset the preprocessor as well
-  d_pp.finishInit(d_theoryEngine.get(), d_propEngine.get());
+  finishInitPreprocessor();
 }
 
 void SmtSolver::interrupt()
@@ -133,6 +151,15 @@ void SmtSolver::preprocess(preprocessing::AssertionPipeline& ap)
 
 void SmtSolver::assertToInternal(preprocessing::AssertionPipeline& ap)
 {
+  // carry information about soundness to the theory engine we are sending to
+  if (ap.isRefutationUnsound())
+  {
+    d_theoryEngine->setRefutationUnsound(theory::IncompleteId::PREPROCESSING);
+  }
+  if (ap.isModelUnsound())
+  {
+    d_theoryEngine->setModelUnsound(theory::IncompleteId::PREPROCESSING);
+  }
   // get the assertions
   const std::vector<Node>& assertions = ap.ref();
   preprocessing::IteSkolemMap& ism = ap.getIteSkolemMap();
@@ -221,6 +248,18 @@ void SmtSolver::resetTrail()
 {
   Assert(d_propEngine != nullptr);
   d_propEngine->resetTrail();
+}
+
+void SmtSolver::finishInitPreprocessor()
+{
+  // determine if we are assigning a preprocess proof generator here
+  smt::PfManager* pm = d_env.getProofManager();
+  smt::PreprocessProofGenerator* pppg = nullptr;
+  if (pm != nullptr)
+  {
+    pppg = pm->getPreprocessProofGenerator();
+  }
+  d_pp.finishInit(d_theoryEngine.get(), d_propEngine.get(), pppg);
 }
 
 }  // namespace smt

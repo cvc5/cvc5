@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -108,6 +108,7 @@ TEST_F(TestTheoryBlackBv, nego)
          d_tm.mkTerm(cvc5::Kind::BITVECTOR_SHL,
                      {d_tm.mkBitVector(w, 1), d_tm.mkBitVector(w, w - 1)})});
     Term rhs = d_tm.mkTerm(cvc5::Kind::BITVECTOR_NEGO, {x});
+    ASSERT_TRUE(rhs.getKind() == cvc5::Kind::BITVECTOR_NEGO);
     Term eq = d_tm.mkTerm(cvc5::Kind::DISTINCT, {lhs, rhs});
     d_solver->assertFormula(eq);
     ASSERT_TRUE(d_solver->checkSat().isUnsat());

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Liana Hadarean, Aina Niemetz, Andres Noetzli
+ *   Liana Hadarean, Yoni Zohar, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -41,6 +41,29 @@ class TheoryBVRewriter : public TheoryRewriter
    * cannot be rewritten.
    */
   Node rewriteViaRule(ProofRewriteRule id, const Node& n) override;
+
+  /**
+   * Override TheoryRewriter::expandDefinition in order to
+   * eliminate overflow operators
+   */
+  Node expandDefinition(Node node) override;
+
+  /**
+   * This function is called when int-blasting is disabled.
+   * It eliminates the following operators:
+   * uaddo, saddo, umulo, smulo, usubu, ssubo.
+   *
+   * When int-blasting is on, we do not want to eliminate them,
+   * but instead translate them directly.
+   *
+   * The other overflow operators, namely
+   * nego and sdivo, are eliminated by the rewriter,
+   * regardless of whether int-blasting is enabled
+   * or disabled, because their elimination
+   * produces simple equalities.
+   */
+  static Node eliminateOverflows(Node node);
+
  private:
   static RewriteResponse IdentityRewrite(TNode node, bool prerewrite = false);
   static RewriteResponse UndefinedRewrite(TNode node, bool prerewrite = false);
@@ -90,16 +113,16 @@ class TheoryBVRewriter : public TheoryRewriter
   static RewriteResponse RewriteRedor(TNode node, bool prerewrite = false);
   static RewriteResponse RewriteRedand(TNode node, bool prerewrite = false);
   static RewriteResponse RewriteNego(TNode node, bool prerewrite = false);
-  static RewriteResponse RewriteUaddo(TNode node, bool prerewrite = false);
-  static RewriteResponse RewriteSaddo(TNode node, bool prerewrite = false);
-  static RewriteResponse RewriteUmulo(TNode node, bool prerewrite = false);
-  static RewriteResponse RewriteSmulo(TNode node, bool prerewrite = false);
-  static RewriteResponse RewriteUsubo(TNode node, bool prerewrite = false);
-  static RewriteResponse RewriteSsubo(TNode node, bool prerewrite = false);
   static RewriteResponse RewriteSdivo(TNode node, bool prerewrite = false);
   static RewriteResponse RewriteEagerAtom(TNode node, bool prerewrite = false);
   static RewriteResponse RewriteSize(TNode node, bool prerewrite = false);
   static RewriteResponse RewriteConstBvSym(TNode node, bool prerewrite = false);
+  /**
+   * Rewrite overflow, used for all bitvector kinds that are eliminated at
+   * preprocessing. This applies the elimination if node is applied to all
+   * constants.
+   */
+  static RewriteResponse RewriteOverflow(TNode node, bool prerewrite = false);
 
   void initializeRewrites();
 

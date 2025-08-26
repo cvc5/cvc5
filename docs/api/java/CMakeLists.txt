@@ -1,10 +1,10 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Gereon Kremer
+#   Hans-Joerg Schurr, Gereon Kremer, Aina Niemetz
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -53,11 +53,18 @@ if(BUILD_BINDINGS_JAVA)
   string(REPLACE "\n" " " JAVADOC_MATHJAX ${JAVADOC_MATHJAX})
   string(REPLACE " " ";" JAVADOC_MATHJAX ${JAVADOC_MATHJAX})
 
+set(Java_DOCLINT -Xdoclint:all)
+if(TREAT_WARNING_AS_ERROR)
+  list(APPEND Java_DOCLINT -Werror)
+endif()
+
   get_target_property(CVC5_JAR_FILE cvc5jar JAR_FILE)
   add_custom_command(
     OUTPUT ${JAVADOC_INDEX_FILE}
     COMMAND
       ${Java_JAVADOC_EXECUTABLE} io.github.cvc5
+      ${Java_DOCLINT}
+      -Xmaxwarns 1000
       -sourcepath ${CMAKE_SOURCE_DIR}/src/api/java/:${CMAKE_BINARY_DIR}/src/api/java/
       -d ${JAVADOC_OUTPUT_DIR}
       -cp ${CVC5_JAR_FILE}

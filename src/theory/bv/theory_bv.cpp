@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mathias Preiner, Aina Niemetz, Andrew Reynolds
+ *   Mathias Preiner, Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -25,7 +25,6 @@
 #include "theory/bv/theory_bv_rewrite_rules_simplification.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/ee_setup_info.h"
-#include "theory/trust_substitutions.h"
 #include "theory/uf/equality_engine.h"
 
 namespace cvc5::internal {
@@ -38,12 +37,14 @@ TheoryBV::TheoryBV(Env& env,
                    std::string name)
     : Theory(THEORY_BV, env, out, valuation, name),
       d_internal(nullptr),
+      d_ppAssert(env, valuation),
       d_rewriter(nodeManager()),
       d_state(env, valuation),
       d_im(env, *this, d_state, "theory::bv::"),
       d_notify(d_im),
       d_invalidateModelCache(context(), true),
-      d_stats(statisticsRegistry(), "theory::bv::")
+      d_stats(statisticsRegistry(), "theory::bv::"),
+      d_checker(nodeManager())
 {
   switch (options().bv.bvSolver)
   {
@@ -63,15 +64,7 @@ TheoryBV::~TheoryBV() {}
 
 TheoryRewriter* TheoryBV::getTheoryRewriter() { return &d_rewriter; }
 
-ProofRuleChecker* TheoryBV::getProofChecker()
-{
-  if (options().bv.bvSolver == options::BVSolver::BITBLAST_INTERNAL)
-  {
-    return static_cast<BVSolverBitblastInternal*>(d_internal.get())
-        ->getProofChecker();
-  }
-  return nullptr;
-}
+ProofRuleChecker* TheoryBV::getProofChecker() { return &d_checker; }
 
 bool TheoryBV::needsEqualityEngine(EeSetupInfo& esi)
 {
@@ -187,100 +180,38 @@ bool TheoryBV::collectModelValues(TheoryModel* m, const std::set<Node>& termSet)
 
 void TheoryBV::propagate(Effort e) { return d_internal->propagate(e); }
 
-Theory::PPAssertStatus TheoryBV::ppAssert(
-    TrustNode tin, TrustSubstitutionMap& outSubstitutions)
+bool TheoryBV::ppAssert(TrustNode tin, TrustSubstitutionMap& outSubstitutions)
 {
   Kind k = tin.getNode().getKind();
   if (k == Kind::EQUAL)
   {
-    auto status = Theory::ppAssert(tin, outSubstitutions);
-    if (status != Theory::PP_ASSERT_STATUS_UNSOLVED)
+    bool status = Theory::ppAssert(tin, outSubstitutions);
+    if (status)
     {
       return status;
     }
-    /**
-     * Eliminate extract over bit-vector variables.
-     *
-     * Given x[h:l] = c, where c is a constant and x is a variable.
-     *
-     * We rewrite to:
-     *
-     * x = sk1::c       if l == 0, where bw(sk1) = bw(x)-1-h
-     * x = c::sk2       if h == bw(x)-1, where bw(sk2) = l
-     * x = sk1::c::sk2  otherwise, where bw(sk1) = bw(x)-1-h and bw(sk2) = l
-     */
-    Node node = rewrite(tin.getNode());
-    if ((node[0].getKind() == Kind::BITVECTOR_EXTRACT && node[1].isConst())
-        || (node[1].getKind() == Kind::BITVECTOR_EXTRACT && node[0].isConst()))
+    if (d_ppAssert.ppAssert(tin, outSubstitutions))
     {
-      Node extract = node[0].isConst() ? node[1] : node[0];
-      if (extract[0].isVar())
-      {
-        Node c = node[0].isConst() ? node[0] : node[1];
-
-        uint32_t high = utils::getExtractHigh(extract);
-        uint32_t low = utils::getExtractLow(extract);
-        uint32_t var_bw = utils::getSize(extract[0]);
-        std::vector<Node> children;
-
-        SkolemManager* sm = nodeManager()->getSkolemManager();
-        // create sk1 with size bw(x)-1-h
-        if (low == 0 || high != var_bw - 1)
-        {
-          Assert(high != var_bw - 1);
-          Node ext = utils::mkExtract(extract[0], var_bw - 1, high + 1);
-          Node skolem = sm->mkPurifySkolem(ext);
-          children.push_back(skolem);
-        }
-
-        children.push_back(c);
-
-        // create sk2 with size l
-        if (high == var_bw - 1 || low != 0)
-        {
-          Assert(low != 0);
-          Node ext = utils::mkExtract(extract[0], low - 1, 0);
-          Node skolem = sm->mkPurifySkolem(ext);
-          children.push_back(skolem);
-        }
-
-        Node concat = utils::mkConcat(children);
-        Assert(utils::getSize(concat) == utils::getSize(extract[0]));
-        if (isLegalElimination(extract[0], concat))
-        {
-          outSubstitutions.addSubstitutionSolved(extract[0], concat, tin);
-          return Theory::PP_ASSERT_STATUS_SOLVED;
-        }
-      }
+      return true;
     }
   }
-  return Theory::PP_ASSERT_STATUS_UNSOLVED;
+  return false;
 }
 
 TrustNode TheoryBV::ppRewrite(TNode t, std::vector<SkolemLemma>& lems)
 {
   Trace("theory-bv-pp-rewrite") << "ppRewrite " << t << "\n";
   Node res = t;
-  if (options().bv.bitwiseEq && RewriteRule<BitwiseEq>::applies(t))
-  {
-    res = rewrite(RewriteRule<BitwiseEq>::run<false>(t));
-  }
   // useful on QF_BV/space/ndist
-  else if (RewriteRule<UltAddOne>::applies(t))
+  if (RewriteRule<UltAddOne>::applies(t))
   {
-    res = rewrite(RewriteRule<UltAddOne>::run<false>(t));
+    res = RewriteRule<UltAddOne>::run<false>(t);
   }
-  // Useful for BV/2017-Preiner-scholl-smt08, but not for QF_BV
-  else if (options().bv.rwExtendEq)
+  // When int-blasting, it is better to handle most overflow operators
+  // natively, rather than to eliminate them eagerly.
+  if (options().smt.solveBVAsInt == options::SolveBVAsIntMode::OFF)
   {
-    if (RewriteRule<SignExtendEqConst>::applies(t))
-    {
-      res = RewriteRule<SignExtendEqConst>::run<false>(t);
-    }
-    else if (RewriteRule<ZeroExtendEqConst>::applies(t))
-    {
-      res = RewriteRule<ZeroExtendEqConst>::run<false>(t);
-    }
+    res = d_rewriter.eliminateOverflows(res);
   }
 
   Trace("theory-bv-pp-rewrite") << "to   " << res << "\n";
@@ -302,7 +233,31 @@ TrustNode TheoryBV::ppStaticRewrite(TNode atom)
       Node res = RewriteRule<SolveEq>::run<false>(atom);
       if (res != atom)
       {
-        res = d_env.getRewriter()->rewrite(res);
+        return TrustNode::mkTrustRewrite(atom, res);
+      }
+    }
+    if (options().bv.bitwiseEq && RewriteRule<BitwiseEq>::applies(atom))
+    {
+      Node res = RewriteRule<BitwiseEq>::run<false>(atom);
+      if (res != atom)
+      {
+        return TrustNode::mkTrustRewrite(atom, res);
+      }
+    }
+    // Useful for BV/2017-Preiner-scholl-smt08, but not for QF_BV
+    if (options().bv.rwExtendEq)
+    {
+      Node res;
+      if (RewriteRule<SignExtendEqConst>::applies(atom))
+      {
+        res = RewriteRule<SignExtendEqConst>::run<false>(atom);
+      }
+      else if (RewriteRule<ZeroExtendEqConst>::applies(atom))
+      {
+        res = RewriteRule<ZeroExtendEqConst>::run<false>(atom);
+      }
+      if (res != atom)
+      {
         return TrustNode::mkTrustRewrite(atom, res);
       }
     }
@@ -344,7 +299,7 @@ void TheoryBV::notifySharedTerm(TNode t)
   d_internal->notifySharedTerm(t);
 }
 
-void TheoryBV::ppStaticLearn(TNode in, NodeBuilder& learned)
+void TheoryBV::ppStaticLearn(TNode in, std::vector<TrustNode>& learned)
 {
   if (in.getKind() == Kind::EQUAL)
   {
@@ -370,7 +325,7 @@ void TheoryBV::ppStaticLearn(TNode in, NodeBuilder& learned)
         if (utils::isOne(s[0]) && utils::isOne(p[0][0])
             && utils::isOne(p[1][0]))
         {
-          Node zero = utils::mkZero(utils::getSize(s));
+          Node zero = utils::mkZero(nodeManager(), utils::getSize(s));
           TNode b = p[0];
           TNode c = p[1];
           // (s : 1 << S) = (b : 1 << B) + (c : 1 << C)
@@ -380,7 +335,8 @@ void TheoryBV::ppStaticLearn(TNode in, NodeBuilder& learned)
 
           Node dis = nodeManager()->mkNode(Kind::OR, b_eq_0, c_eq_0, b_eq_c);
           Node imp = in.impNode(dis);
-          learned << imp;
+          TrustNode trn = TrustNode::mkTrustLemma(imp, nullptr);
+          learned.emplace_back(trn);
         }
       }
     }
@@ -440,7 +396,7 @@ Node TheoryBV::getValue(TNode node)
     }
     else if (it->second.isNull())
     {
-      NodeBuilder nb(cur.getKind());
+      NodeBuilder nb(nodeManager(), cur.getKind());
       if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
       {
         nb << cur.getOperator();

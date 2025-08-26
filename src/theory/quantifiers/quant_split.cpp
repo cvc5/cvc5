@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
+ *   Andrew Reynolds, Mathias Preiner, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -15,18 +15,105 @@
 
 #include "theory/quantifiers/quant_split.h"
 
+#include "expr/bound_var_manager.h"
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "options/quantifiers_options.h"
+#include "options/smt_options.h"
+#include "proof/proof.h"
+#include "proof/proof_generator.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/term_database.h"
+#include "util/rational.h"
 
 using namespace cvc5::internal::kind;
 
 namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
+
+/**
+ * A proof generator for quantifiers splitting inferences
+ */
+class QuantDSplitProofGenerator : protected EnvObj, public ProofGenerator
+{
+ public:
+  QuantDSplitProofGenerator(Env& env) : EnvObj(env), d_index(userContext()) {}
+  virtual ~QuantDSplitProofGenerator() {}
+  /**
+   * Get proof for fact. This expects facts of the form
+   *    q = QuantDSplit::split(nm, q, n)
+   * We prove this by:
+   *    ------ QUANT_VAR_REORDERING ---------------------------- QUANT_DT_SPLIT
+   *    q = q'                      q' = QuantDSplit::split(nm, q', 0)
+   *    --------------------------------------------------------------- TRANS
+   *    q = QuantDSplit::split(nm, q, n)
+   *
+   * where the variables in q' is reordered from q such that the variable to
+   * split comes first.
+   *
+   * Note that this elaboration relies on the fact that the variables
+   * introduced for QuantDSplit::split(nm, q', 0) are the same as those for
+   * QuantDSplit::split(nm, q, n), since q and q' have the same body
+   * and these two splits refer to the same variables, which is the basis
+   * for the bound variables introduced (QDSplitVarAttribute).
+   */
+  std::shared_ptr<ProofNode> getProofFor(Node fact) override
+  {
+    CDProof cdp(d_env);
+    // find the index of the variable that was split for this lemma
+    context::CDHashMap<Node, size_t>::iterator it = d_index.find(fact);
+    if (it == d_index.end())
+    {
+      Assert(false) << "QuantDSplitProofGenerator failed to get proof";
+      return nullptr;
+    }
+    Assert(fact.getKind() == Kind::EQUAL && fact[0].getKind() == Kind::FORALL);
+    Node q = fact[0];
+    std::vector<Node> transEq;
+    if (it->second != 0)
+    {
+      // must reorder variables
+      std::vector<Node> newVars;
+      newVars.push_back(q[0][it->second]);
+      for (size_t i = 0, nvars = q[0].getNumChildren(); i < nvars; i++)
+      {
+        if (i != it->second)
+        {
+          newVars.emplace_back(q[0][i]);
+        }
+      }
+      std::vector<Node> qc(q.begin(), q.end());
+      NodeManager* nm = nodeManager();
+      qc[0] = nm->mkNode(Kind::BOUND_VAR_LIST, newVars);
+      Node qn = nm->mkNode(Kind::FORALL, qc);
+      Node eqq = q.eqNode(qn);
+      cdp.addStep(eqq, ProofRule::QUANT_VAR_REORDERING, {}, {eqq});
+      transEq.emplace_back(eqq);
+      q = qn;
+    }
+    Node eqq2 = q.eqNode(fact[1]);
+    cdp.addTheoryRewriteStep(eqq2, ProofRewriteRule::QUANT_DT_SPLIT);
+    if (!transEq.empty())
+    {
+      transEq.emplace_back(eqq2);
+      cdp.addStep(fact, ProofRule::TRANS, transEq, {});
+    }
+    return cdp.getProofFor(fact);
+  }
+  /** identify */
+  std::string identify() const override { return "QuantDSplitProofGenerator"; }
+  /**
+   * Notify that the given lemma used the given variable index to split. We
+   * store this in d_index and use it to guide proof reconstruction above.
+   */
+  void notifyLemma(const Node& lem, size_t index) { d_index[lem] = index; }
+
+ private:
+  /** Mapping from lemmas to their notified index */
+  context::CDHashMap<Node, size_t> d_index;
+};
 
 QuantDSplit::QuantDSplit(Env& env,
                          QuantifiersState& qs,
@@ -35,7 +122,9 @@ QuantDSplit::QuantDSplit(Env& env,
                          TermRegistry& tr)
     : QuantifiersModule(env, qs, qim, qr, tr),
       d_quant_to_reduce(userContext()),
-      d_added_split(userContext())
+      d_added_split(userContext()),
+      d_pfgen(options().smt.produceProofs ? new QuantDSplitProofGenerator(d_env)
+                                          : nullptr)
 {
 }
 
@@ -49,11 +138,17 @@ void QuantDSplit::checkOwnership(Node q)
   {
     return;
   }
+  // do not split if there is a trigger
+  if (qa.d_hasPattern)
+  {
+    return;
+  }
   bool takeOwnership = false;
   bool doSplit = false;
   QuantifiersBoundInference& qbi = d_qreg.getQuantifiersBoundInference();
   Trace("quant-dsplit-debug") << "Check split quantified formula : " << q << std::endl;
-  for( unsigned i=0; i<q[0].getNumChildren(); i++ ){
+  for (size_t i = 0, nvars = q[0].getNumChildren(); i < nvars; i++)
+  {
     TypeNode tn = q[0][i].getType();
     if( tn.isDatatype() ){
       bool isFinite = d_env.isFiniteType(tn);
@@ -138,9 +233,7 @@ void QuantDSplit::check(Theory::Effort e, QEffort quant_e)
     return;
   }
   Trace("quant-dsplit") << "QuantDSplit::check" << std::endl;
-  NodeManager* nm = nodeManager();
   FirstOrderModel* m = d_treg.getModel();
-  std::vector<Node> lemmas;
   for (NodeIntMap::iterator it = d_quant_to_reduce.begin();
        it != d_quant_to_reduce.end();
        ++it)
@@ -154,66 +247,90 @@ void QuantDSplit::check(Theory::Effort e, QEffort quant_e)
     if (m->isQuantifierAsserted(q) && m->isQuantifierActive(q))
     {
       d_added_split.insert(q);
-      std::vector<Node> bvs;
-      for (unsigned i = 0, nvars = q[0].getNumChildren(); i < nvars; i++)
+      Node qsplit = split(nodeManager(), q, it->second);
+      Node lem = q.eqNode(qsplit);
+      // must remember the variable index if proofs are enabled
+      if (d_pfgen != nullptr)
       {
-        if (static_cast<int>(i) != it->second)
-        {
-          bvs.push_back(q[0][i]);
-        }
+        d_pfgen->notifyLemma(lem, it->second);
       }
-      std::vector<Node> disj;
-      disj.push_back(q.negate());
-      TNode svar = q[0][it->second];
-      TypeNode tn = svar.getType();
-      Assert(tn.isDatatype());
-      std::vector<Node> cons;
-      const DType& dt = tn.getDType();
-      for (unsigned j = 0, ncons = dt.getNumConstructors(); j < ncons; j++)
-      {
-        std::vector<Node> vars;
-        TypeNode dtjtn = dt[j].getInstantiatedConstructorType(tn);
-        Assert(dtjtn.getNumChildren() == dt[j].getNumArgs() + 1);
-        for (unsigned k = 0, nargs = dt[j].getNumArgs(); k < nargs; k++)
-        {
-          TypeNode tns = dtjtn[k];
-          Node v = nm->mkBoundVar(tns);
-          vars.push_back(v);
-        }
-        std::vector<Node> bvs_cmb;
-        bvs_cmb.insert(bvs_cmb.end(), bvs.begin(), bvs.end());
-        bvs_cmb.insert(bvs_cmb.end(), vars.begin(), vars.end());
-        Node c = datatypes::utils::mkApplyCons(tn, dt, j, vars);
-        TNode ct = c;
-        Node body = q[1].substitute(svar, ct);
-        if (!bvs_cmb.empty())
-        {
-          Node bvl = nm->mkNode(Kind::BOUND_VAR_LIST, bvs_cmb);
-          std::vector<Node> children;
-          children.push_back(bvl);
-          children.push_back(body);
-          if (q.getNumChildren() == 3)
-          {
-            Node ipls = q[2].substitute(svar, ct);
-            children.push_back(ipls);
-          }
-          body = nm->mkNode(Kind::FORALL, children);
-        }
-        cons.push_back(body);
-      }
-      Node conc = cons.size() == 1 ? cons[0] : nm->mkNode(Kind::AND, cons);
-      disj.push_back(conc);
-      lemmas.push_back(disj.size() == 1 ? disj[0] : nm->mkNode(Kind::OR, disj));
+      Trace("quant-dsplit") << "QuantDSplit lemma : " << lem << std::endl;
+      d_qim.addPendingLemma(lem,
+                            InferenceId::QUANTIFIERS_DSPLIT,
+                            LemmaProperty::NONE,
+                            d_pfgen.get());
     }
   }
-
-  // add lemmas to quantifiers engine
-  for (const Node& lem : lemmas)
-  {
-    Trace("quant-dsplit") << "QuantDSplit lemma : " << lem << std::endl;
-    d_qim.addPendingLemma(lem, InferenceId::QUANTIFIERS_DSPLIT);
-  }
   Trace("quant-dsplit") << "QuantDSplit::check finished" << std::endl;
+}
+
+Node QuantDSplit::split(NodeManager* nm, const Node& q, size_t index)
+{
+  std::vector<Node> bvs;
+  for (size_t i = 0, nvars = q[0].getNumChildren(); i < nvars; i++)
+  {
+    if (i != index)
+    {
+      bvs.push_back(q[0][i]);
+    }
+  }
+  TNode svar = q[0][index];
+  TypeNode tn = svar.getType();
+  Assert(tn.isDatatype());
+  std::vector<Node> cons;
+  const DType& dt = tn.getDType();
+  BoundVarManager* bvm = nm->getBoundVarManager();
+  size_t varCount = 0;
+  for (size_t j = 0, ncons = dt.getNumConstructors(); j < ncons; j++)
+  {
+    std::vector<Node> vars;
+    TypeNode dtjtn = dt[j].getInstantiatedConstructorType(tn);
+    Assert(dtjtn.getNumChildren() == dt[j].getNumArgs() + 1);
+    for (size_t k = 0, nargs = dt[j].getNumArgs(); k < nargs; k++)
+    {
+      TypeNode tns = dtjtn[k];
+      Node cacheVal = bvm->getCacheValue(q[1], q[0][index], varCount);
+      varCount++;
+      Node v = bvm->mkBoundVar(BoundVarId::QUANT_DT_SPLIT, cacheVal, tns);
+      vars.push_back(v);
+    }
+    std::vector<Node> bvs_cmb;
+    bvs_cmb.insert(bvs_cmb.end(), bvs.begin(), bvs.end());
+    bvs_cmb.insert(bvs_cmb.end(), vars.begin(), vars.end());
+    Node c = datatypes::utils::mkApplyCons(tn, dt, j, vars);
+    TNode ct = c;
+    Node body = q[1].substitute(svar, ct);
+    if (!bvs_cmb.empty())
+    {
+      Node bvl = nm->mkNode(Kind::BOUND_VAR_LIST, bvs_cmb);
+      std::vector<Node> children;
+      children.push_back(bvl);
+      children.push_back(body);
+      if (q.getNumChildren() == 3)
+      {
+        Node ipls = q[2].substitute(svar, ct);
+        children.push_back(ipls);
+      }
+      body = nm->mkNode(Kind::FORALL, children);
+    }
+    cons.push_back(body);
+  }
+  return nm->mkAnd(cons);
+}
+
+std::shared_ptr<ProofNode> QuantDSplit::getQuantDtSplitProof(Env& env,
+                                                             const Node& q,
+                                                             size_t index)
+{
+  Node qs = split(env.getNodeManager(), q, index);
+  if (qs.isNull())
+  {
+    return nullptr;
+  }
+  Node eq = q.eqNode(qs);
+  QuantDSplitProofGenerator pg(env);
+  pg.notifyLemma(eq, index);
+  return pg.getProofFor(eq);
 }
 
 }  // namespace quantifiers

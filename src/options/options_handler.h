@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -110,6 +110,9 @@ class OptionsHandler
   void showVersion(const std::string& flag, bool value);
   /** Show all trace tags and exit */
   void showTraceTags(const std::string& flag, bool value);
+
+  /***************************** parser options *******************************/
+  void strictParsing(const std::string& flag, bool value);
 
  private:
   /** Pointer to the containing Options object.*/

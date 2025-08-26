@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -39,7 +39,8 @@ Node BvInstantiatorUtil::getPvCoeff(TNode pv, TNode n) const
 
   if (n == pv)
   {
-    coeff = bv::utils::mkOne(bv::utils::getSize(pv));
+    NodeManager* nm = nodeManager();
+    coeff = bv::utils::mkOne(nm, bv::utils::getSize(pv));
   }
   /* All multiplications are normalized to pv * (t1 * t2). */
   else if (n.getKind() == Kind::BITVECTOR_MULT
@@ -68,11 +69,10 @@ Node BvInstantiatorUtil::normalizePvMult(
 {
   bool neg, neg_coeff = false;
   bool found_pv = false;
-  NodeManager* nm;
-  NodeBuilder nb(Kind::BITVECTOR_MULT);
+  NodeManager* nm = nodeManager();
+  NodeBuilder nb(nm, Kind::BITVECTOR_MULT);
   BvLinearAttribute is_linear;
 
-  nm = nodeManager();
   for (TNode nc : children)
   {
     if (!contains_pv[nc])
@@ -116,7 +116,7 @@ Node BvInstantiatorUtil::normalizePvMult(
   }
   coeff = rewrite(coeff);
   unsigned size_coeff = bv::utils::getSize(coeff);
-  Node zero = bv::utils::mkZero(size_coeff);
+  Node zero = bv::utils::mkZero(nm, size_coeff);
   if (coeff == zero)
   {
     return zero;
@@ -124,7 +124,7 @@ Node BvInstantiatorUtil::normalizePvMult(
   Node result;
   if (found_pv)
   {
-    if (coeff == bv::utils::mkOne(size_coeff))
+    if (coeff == bv::utils::mkOne(nm, size_coeff))
     {
       return pv;
     }
@@ -164,13 +164,12 @@ Node BvInstantiatorUtil::normalizePvPlus(
     const std::vector<Node>& children,
     std::unordered_map<Node, bool>& contains_pv) const
 {
-  NodeManager* nm;
-  NodeBuilder nb_c(Kind::BITVECTOR_ADD);
-  NodeBuilder nb_l(Kind::BITVECTOR_ADD);
+  NodeManager* nm = nodeManager();
+  NodeBuilder nb_c(nm, Kind::BITVECTOR_ADD);
+  NodeBuilder nb_l(nm, Kind::BITVECTOR_ADD);
   BvLinearAttribute is_linear;
   bool neg;
 
-  nm = nodeManager();
   for (TNode nc : children)
   {
     if (!contains_pv[nc])
@@ -230,7 +229,7 @@ Node BvInstantiatorUtil::normalizePvPlus(
   {
     Node leafs = (nb_l.getNumChildren() == 1) ? nb_l[0] : nb_l.constructNode();
     leafs = rewrite(leafs);
-    Node zero = bv::utils::mkZero(bv::utils::getSize(pv));
+    Node zero = bv::utils::mkZero(nm, bv::utils::getSize(pv));
     /* pv * 0 + t --> t */
     if (pv_mult_coeffs.isNull() || pv_mult_coeffs == zero)
     {
@@ -321,13 +320,13 @@ Node BvInstantiatorUtil::normalizePvEqual(
   }
   else
   {
-    rhs = bv::utils::mkZero(bv::utils::getSize(pv));
+    rhs = bv::utils::mkZero(nm, bv::utils::getSize(pv));
   }
   rhs = rewrite(rhs);
 
   if (lhs == rhs)
   {
-    return bv::utils::mkTrue();
+    return bv::utils::mkTrue(nm);
   }
 
   Node result = lhs.eqNode(rhs);

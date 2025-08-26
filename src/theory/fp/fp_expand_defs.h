@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Martin Brain, Aina Niemetz
+ *   Aina Niemetz, Andrew Reynolds, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -42,9 +42,9 @@ class FpExpandDefs
       CDHashMap<std::pair<TypeNode, TypeNode>, Node, PairTypeNodeHashFunction>;
 
  public:
-  FpExpandDefs() {}
+  FpExpandDefs(NodeManager* nm) : d_nm(nm) {}
   /** expand definitions in node */
-  TrustNode expandDefinition(Node node);
+  Node expandDefinition(Node node);
 
  private:
   /**
@@ -72,10 +72,12 @@ class FpExpandDefs
    * @return The function application.
    */
   Node toRealUF(TNode node);
+  /** The associated node manager. */
+  NodeManager* d_nm;
 }; /* class TheoryFp */
 
 }  // namespace fp
 }  // namespace theory
 }  // namespace cvc5::internal
 
-#endif /* CVC5__THEORY__FP__THEORY_FP_H */
+#endif /* CVC5__THEORY__FP__FP_EXPAND_DEFS_H */

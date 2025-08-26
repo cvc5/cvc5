@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Jeff Trull
+ *   Jeff Trull, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -26,16 +26,18 @@ namespace test {
 class AttrHashFixture : public TestInternal
 {
 public:
-  AttrHashFixture() :
-    d_nodeManager{NodeManager::currentNM()},
-    d_booleanType{NodeManager::currentNM()->booleanType()} {}
+ AttrHashFixture()
+     : d_nodeManager{std::make_unique<NodeManager>()},
+       d_booleanType{d_nodeManager->booleanType()}
+ {
+ }
 
 protected:
 
   template<typename V>
   using Hash = expr::attr::AttrHash<V>;
 
-  NodeManager* d_nodeManager;
+  std::unique_ptr<NodeManager> d_nodeManager;
   TypeNode d_booleanType;
 
 };

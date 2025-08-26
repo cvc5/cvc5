@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -75,7 +75,7 @@ class CandidateGenerator : protected EnvObj
   /** get the next candidate */
   virtual Node getNextCandidate() = 0;
   /** is n a legal candidate? */
-  bool isLegalCandidate(Node n);
+  bool isLegalCandidate(const Node& n);
   /** Identify this generator (for debugging, etc..) */
   virtual std::string identify() const = 0;
 
@@ -142,7 +142,7 @@ class CandidateGeneratorQE : public CandidateGenerator
   /** the current mode of this candidate generator */
   short d_mode;
   /** is n a legal candidate of the required operator? */
-  virtual bool isLegalOpCandidate(Node n);
+  virtual bool isLegalOpCandidate(const Node& n);
   /** the equivalence classes that we have excluded from candidate generation */
   std::map< Node, bool > d_exclude_eqc;
 
@@ -241,7 +241,7 @@ class CandidateGeneratorConsExpand : public CandidateGeneratorQE
   /** the (datatype) type of the input match pattern */
   TypeNode d_mpat_type;
   /** we don't care about the operator of n */
-  bool isLegalOpCandidate(Node n) override;
+  bool isLegalOpCandidate(const Node& n) override;
 };
 
 /**

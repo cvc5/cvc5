@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -39,6 +39,12 @@ class TestApiBlackSymbolManager : public TestParser
   {
     std::stringstream ss;
     ss << "(set-logic " << logic << ")" << std::endl;
+    parseCommand(ss.str());
+  }
+  void parseCommand(const std::string& cmds)
+  {
+    std::stringstream ss;
+    ss << cmds << std::endl;
     InputParser parser(d_solver.get(), d_symman.get());
     parser.setStreamInput(
         modes::InputLanguage::SMT_LIB_2_6, ss, "parser_black");
@@ -67,6 +73,14 @@ TEST_F(TestApiBlackSymbolManager, getDeclaredTermsAndSorts)
 {
   ASSERT_EQ(d_symman->getDeclaredSorts().size(), 0);
   ASSERT_EQ(d_symman->getDeclaredTerms().size(), 0);
+}
+
+TEST_F(TestApiBlackSymbolManager, getNamedTerms)
+{
+  parseAndSetLogic("QF_LIA");
+  ASSERT_EQ(d_symman->getNamedTerms().size(), 0);
+  parseCommand("(assert (! false :named a0))");
+  ASSERT_EQ(d_symman->getNamedTerms().size(), 1);
 }
 
 }  // namespace test

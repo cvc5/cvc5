@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Gereon Kremer, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -28,14 +28,25 @@ namespace cvc5::internal {
 enum class TrustId : uint32_t
 {
   NONE,
+  /** Assertions of the preprocessed input clauses */
+  PREPROCESSED_INPUT,
   /** A lemma sent by a theory without a proof */
   THEORY_LEMMA,
-  /** An internal inference made by a theory without a proof */
-  THEORY_INFERENCE,
-  /** A rewrite of the input formula by a preprocessing pass without a proof */
-  PREPROCESS,
-  /** A lemma added during preprocessing without a proof */
-  PREPROCESS_LEMMA,
+  /**
+   * A step proving false, used as a trust step when the prop engine is not SAT
+   * proof producing (--proof-mode=pp-only).
+   */
+  SMT_REFUTATION,
+  /**
+   * An internal inference made by a theory without a proof. These are split
+   * per theory, and introduced as needed.
+   */
+  THEORY_INFERENCE_ARITH,
+  THEORY_INFERENCE_ARRAYS,
+  THEORY_INFERENCE_DATATYPES,
+  THEORY_INFERENCE_SEP,
+  THEORY_INFERENCE_SETS,
+  THEORY_INFERENCE_STRINGS,
   /** A ppStaticRewrite step */
   PP_STATIC_REWRITE,
   /** A rewrite of the input formula made by a theory during preprocessing
@@ -45,7 +56,59 @@ enum class TrustId : uint32_t
   THEORY_PREPROCESS_LEMMA,
   /** A expanding of definitions of the input formula made without a proof */
   THEORY_EXPAND_DEF,
-
+  /** Specific preprocessing passes */
+  /** BvGauss */
+  PREPROCESS_BV_GUASS,
+  PREPROCESS_BV_GUASS_LEMMA,
+  /** BvToBool preprocessing pass */
+  PREPROCESS_BV_TO_BOOL,
+  /** BvToInt preprocessing pass */
+  PREPROCESS_BV_TO_INT,
+  PREPROCESS_BV_TO_INT_LEMMA,
+  /** BoolToBv preprocessing pass */
+  PREPROCESS_BOOL_TO_BV,
+  /** Ackermann preprocessing pass */
+  PREPROCESS_ACKERMANN,
+  PREPROCESS_ACKERMANN_LEMMA,
+  /** StaticLearning preprocessing pass */
+  PREPROCESS_STATIC_LEARNING_LEMMA,
+  /** HoElim preprocessing pass */
+  PREPROCESS_HO_ELIM,
+  PREPROCESS_HO_ELIM_LEMMA,
+  /** BitvectorEagerAtoms preprocessing pass */
+  PREPROCESS_BITVECTOR_EAGER_ATOMS,
+  /** FfBitsum preprocessing pass */
+  PREPROCESS_FF_BITSUM,
+  /** FfDisjunctiveBit preprocessing pass */
+  PREPROCESS_FF_DISJUNCTIVE_BIT,
+  /** FunDefFmf preprocessing pass */
+  PREPROCESS_FUN_DEF_FMF,
+  /** ITESimp preprocessing pass */
+  PREPROCESS_ITE_SIMP,
+  /** LearnedRewrite preprocessing pass */
+  PREPROCESS_LEARNED_REWRITE,
+  PREPROCESS_LEARNED_REWRITE_LEMMA,
+  /** MipLibTrick preprocessing pass */
+  PREPROCESS_MIPLIB_TRICK,
+  PREPROCESS_MIPLIB_TRICK_LEMMA,
+  /** NlExtPurify preprocessing pass */
+  PREPROCESS_NL_EXT_PURIFY,
+  PREPROCESS_NL_EXT_PURIFY_LEMMA,
+  /** BvIntroPow2 preprocessing pass */
+  PREPROCESS_BV_INTRO_POW2,
+  /** ForeignTheoryRewrite preprocessing pass */
+  PREPROCESS_FOREIGN_THEORY_REWRITE,
+  /** UnconstrainedSimp preprocessing pass */
+  PREPROCESS_UNCONSTRAINED_SIMP,
+  /** QuantifiersPreprocess preprocessing pass */
+  PREPROCESS_QUANTIFIERS_PP,
+  /** RealToInt preprocessing pass */
+  PREPROCESS_REAL_TO_INT,
+  /** SortInferencePass preprocessing pass */
+  PREPROCESS_SORT_INFER,
+  PREPROCESS_SORT_INFER_LEMMA,
+  /** StringsEagerPp preprocessing pass */
+  PREPROCESS_STRINGS_EAGER_PP,
   /**
    * We use :math:`\texttt{IRP}_k(poly)` for an IndexedRootPredicate that is
    * defined as the :math:`k`'th root of the polynomial :math:`poly`. Note that
@@ -95,6 +158,24 @@ enum class TrustId : uint32_t
    * no :math:`x_i` exists that extends the cell and satisfies all assumptions.
    */
   ARITH_NL_COVERING_RECURSIVE,
+  /**
+   * A conversion between a literal used in the inference id lemma
+   * InferenceId::ARITH_NL_COMPARISON and a relation between absolute
+   * values as used by ProofRule::ARITH_MULT_ABS_COMPARISON.
+   */
+  ARITH_NL_COMPARE_LIT_TRANSFORM,
+  /** A lemma from the DIO solver */
+  ARITH_DIO_LEMMA,
+  /** A lemma from the ArithStaticLearner utility */
+  ARITH_STATIC_LEARN,
+  /** A nonlinear comparison lemma that failed proof reconstruction */
+  ARITH_NL_COMPARE_LEMMA,
+  /** A conflict coming from the bitblast solver */
+  BV_BITBLAST_CONFLICT,
+  /** A step from BvPpAssert utility */
+  BV_PP_ASSERT,
+  /** Diamonds preprocessing in TheoryUf::ppStaticLearn */
+  DIAMONDS,
   /** An extended theory rewrite */
   EXT_THEORY_REWRITE,
   /** A rewrite whose proof could not be elaborated */
@@ -110,8 +191,34 @@ enum class TrustId : uint32_t
   SUBS_EQ,
   /** A step of the form (~ s t) = (~ (to_real s) (to_real t)) */
   ARITH_PRED_CAST_TYPE,
+  /**
+   * Strings -- Regular expression elimination
+   *
+   * Proves :math:`F = F'` where :math:`F'` is the result of eliminating regular
+   * expressions from :math:`F` using the routine
+   * :math:`\texttt{strings::RegExpElimination::eliminate}(F, b)` for some
+   * :math:`b`.
+   *
+   * Here, :math:`b` is a Boolean indicating whether we are using aggressive
+   * eliminations.
+   */
+  RE_ELIM,
   /** A quantifiers preprocessing step that was given without a proof */
   QUANTIFIERS_PREPROCESS,
+  /** A quantifiers rewriting step for instantiations, e.g. virtual term
+     substitution */
+  QUANTIFIERS_INST_REWRITE,
+  /** A quantifiers from the --sub-cbqi module */
+  QUANTIFIERS_SUB_CBQI_LEMMA,
+  /** A quantifiers from the nested quantifier elimination module */
+  QUANTIFIERS_NESTED_QE_LEMMA,
+  /** A rewrite performed at TheoryStrings::ppStaticRewrite */
+  STRINGS_PP_STATIC_REWRITE,
+  /**
+   * An existential corresponding to a witness term introduced e.g. in
+   * quantifier instantiation
+   */
+  VALID_WITNESS,
   /** A subtype elimination step that could not be processed */
   SUBTYPE_ELIMINATION,
   /** A rewrite required for showing a macro theory rewrite */
@@ -121,13 +228,20 @@ enum class TrustId : uint32_t
    * require the use of theory rewrites to prove.
    */
   MACRO_THEORY_REWRITE_RCONS_SIMPLE,
+  /** An unproven step from the int-blaster */
+  INT_BLASTER,
+  /** Untracked sources of trust, which are discouraged */
+  /** A rewrite of the input formula by a preprocessing pass without a proof */
+  UNKNOWN_PREPROCESS,
+  /** A lemma added during preprocessing without a proof */
+  UNKNOWN_PREPROCESS_LEMMA,
 };
 /** Converts a trust id to a string. */
 const char* toString(TrustId id);
 /** Write a trust id to out */
 std::ostream& operator<<(std::ostream& out, TrustId id);
 /** Make a trust id node */
-Node mkTrustId(TrustId id);
+Node mkTrustId(NodeManager* nm, TrustId id);
 /** get a trust identifier from a node, return false if we fail */
 bool getTrustId(TNode n, TrustId& i);
 

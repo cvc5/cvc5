@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mudathir Mohamed, Andrew Reynolds
+ *   Mudathir Mohamed, Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -201,7 +201,7 @@ class InputParserTest extends ParserTest
     InputParser p2 = new InputParser(d_solver, p.getSymbolManager());
 
     // possible to construct another parser with a fresh solver
-    Solver s2 = new Solver();
+    Solver s2 = new Solver(d_tm);
     InputParser p3 = new InputParser(s2, d_symman);
     p3.setIncrementalStringInput(InputLanguage.SMT_LIB_2_6, "input_parser_black");
     // logic is automatically set on the solver
@@ -212,13 +212,13 @@ class InputParserTest extends ParserTest
     assertEquals(p3.done(), true);
 
     // using a solver with the same logic is allowed
-    Solver s3 = new Solver();
+    Solver s3 = new Solver(d_tm);
     s3.setLogic("QF_LIA");
     InputParser p4 = new InputParser(s3, d_symman);
     p4.setIncrementalStringInput(InputLanguage.SMT_LIB_2_6, "input_parser_black");
 
     // using a solver with a different logic is not allowed
-    Solver s4 = new Solver();
+    Solver s4 = new Solver(d_tm);
     s4.setLogic("QF_LRA");
     InputParser p5 = new InputParser(s4, d_symman);
     assertThrows(CVC5ApiException.class,

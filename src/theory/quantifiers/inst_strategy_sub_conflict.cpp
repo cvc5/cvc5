@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -38,6 +38,8 @@ InstStrategySubConflict::InstStrategySubConflict(
   // determine the options to use for the verification subsolvers we spawn
   // we start with the provided options
   d_subOptions.copyValues(options());
+  // disable checking first
+  smt::SetDefaults::disableChecking(d_subOptions);
   // requires full proofs
   d_subOptions.write_smt().produceProofs = true;
   // don't do simplification, which can preprocess quantifiers to those not
@@ -48,6 +50,12 @@ InstStrategySubConflict::InstStrategySubConflict(
   d_subOptions.write_smt().produceUnsatCores = true;
   // don't do this strategy
   d_subOptions.write_quantifiers().quantSubCbqi = false;
+  // initialize the trust proof generator if necessary
+  if (d_env.isTheoryProofProducing())
+  {
+    d_tpg.reset(
+        new TrustProofGenerator(env, TrustId::QUANTIFIERS_SUB_CBQI_LEMMA, {}));
+  }
 }
 
 void InstStrategySubConflict::reset_round(Theory::Effort e) {}
@@ -104,7 +112,7 @@ void InstStrategySubConflict::check(Theory::Effort e, QEffort quant_e)
   SubsolverSetupInfo ssi(d_env, d_subOptions);
   std::unique_ptr<SolverEngine> findConflict;
   uint64_t timeout = options().quantifiers.quantSubCbqiTimeout;
-  initializeSubsolver(findConflict, ssi, timeout != 0, timeout);
+  initializeSubsolver(nodeManager(), findConflict, ssi, timeout != 0, timeout);
   // assert and check-sat
   for (const Node& a : assertions)
   {
@@ -154,10 +162,11 @@ void InstStrategySubConflict::check(Theory::Effort e, QEffort quant_e)
         << addedLemmas << "/" << triedLemmas << " instantiated" << std::endl;
     // Add the computed unsat core as a conflict, which will cause a backtrack.
     UnsatCore uc = findConflict->getUnsatCore();
-    Node ucc = NodeManager::currentNM()->mkAnd(uc.getCore());
+    Node ucc = nodeManager()->mkAnd(uc.getCore());
     Trace("qscf-engine-debug") << "Unsat core is " << ucc << std::endl;
     Trace("qscf-engine") << "Core size = " << uc.getCore().size() << std::endl;
-    d_qim.lemma(ucc.notNode(), InferenceId::QUANTIFIERS_SUB_UC);
+    TrustNode trn = TrustNode::mkTrustLemma(ucc.notNode(), d_tpg.get());
+    d_qim.trustedLemma(trn, InferenceId::QUANTIFIERS_SUB_UC);
     // also mark conflicting instance
     d_qstate.notifyConflictingInst();
   }

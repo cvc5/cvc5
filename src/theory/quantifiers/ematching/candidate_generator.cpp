@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -41,9 +41,11 @@ CandidateGenerator::CandidateGenerator(Env& env,
 {
 }
 
-bool CandidateGenerator::isLegalCandidate( Node n ){
-  return d_treg.getTermDatabase()->isTermActive(n)
-         && !quantifiers::TermUtil::hasInstConstAttr(n);
+bool CandidateGenerator::isLegalCandidate(const Node& n)
+{
+  // Note that all terms with instantiation constants should be marked inactive,
+  // so we do only a single check here.
+  return d_treg.getTermDatabase()->isTermActive(n);
 }
 
 CandidateGeneratorQE::CandidateGeneratorQE(Env& env,
@@ -92,11 +94,12 @@ void CandidateGeneratorQE::resetForOperator(Node eqc, Node op)
     }
   }
 }
-bool CandidateGeneratorQE::isLegalOpCandidate( Node n ) {
-  if( n.hasOperator() ){
-    if( isLegalCandidate( n ) ){
-      return d_treg.getTermDatabase()->getMatchOperator(n) == d_op;
-    }
+bool CandidateGeneratorQE::isLegalOpCandidate(const Node& n)
+{
+  const Node opm = d_treg.getTermDatabase()->getMatchOperator(n);
+  if (opm == d_op)
+  {
+    return isLegalCandidate(n);
   }
   return false;
 }
@@ -296,7 +299,7 @@ Node CandidateGeneratorConsExpand::getNextCandidate()
       curr, dt, 0, options().datatypes.dtSharedSelectors);
 }
 
-bool CandidateGeneratorConsExpand::isLegalOpCandidate(Node n)
+bool CandidateGeneratorConsExpand::isLegalOpCandidate(const Node& n)
 {
   return isLegalCandidate(n);
 }

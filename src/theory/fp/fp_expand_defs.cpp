@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Martin Brain, Aina Niemetz
+ *   Aina Niemetz, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -31,16 +31,15 @@ Node FpExpandDefs::minMaxUF(TNode node)
   TypeNode type = node.getType();
   Assert(type.getKind() == Kind::FLOATINGPOINT_TYPE);
 
-  NodeManager* nm = NodeManager::currentNM();
-  return nm->mkNode(Kind::APPLY_UF,
-                    nm->getSkolemManager()->mkSkolemFunction(
-                        kind == Kind::FLOATINGPOINT_MIN
-                                || kind == Kind::FLOATINGPOINT_MIN_TOTAL
-                            ? SkolemId::FP_MIN_ZERO
-                            : SkolemId::FP_MAX_ZERO,
-                        {nm->mkConst(SortToTerm(type))}),
-                    node[0],
-                    node[1]);
+  return d_nm->mkNode(Kind::APPLY_UF,
+                      d_nm->getSkolemManager()->mkSkolemFunction(
+                          kind == Kind::FLOATINGPOINT_MIN
+                                  || kind == Kind::FLOATINGPOINT_MIN_TOTAL
+                              ? SkolemId::FP_MIN_ZERO
+                              : SkolemId::FP_MAX_ZERO,
+                          {d_nm->mkConst(SortToTerm(type))}),
+                      node[0],
+                      node[1]);
 }
 
 Node FpExpandDefs::toUbvSbvUF(TNode node)
@@ -52,14 +51,13 @@ Node FpExpandDefs::toUbvSbvUF(TNode node)
   TypeNode type = node.getType();
   Assert(type.getKind() == Kind::BITVECTOR_TYPE);
 
-  NodeManager* nm = NodeManager::currentNM();
-  return nm->mkNode(
+  return d_nm->mkNode(
       Kind::APPLY_UF,
-      nm->getSkolemManager()->mkSkolemFunction(
+      d_nm->getSkolemManager()->mkSkolemFunction(
           kind == Kind::FLOATINGPOINT_TO_SBV ? SkolemId::FP_TO_SBV
                                              : SkolemId::FP_TO_UBV,
-          {nm->mkConst(SortToTerm(node[1].getType())),
-           nm->mkConst(SortToTerm(type))}),
+          {d_nm->mkConst(SortToTerm(node[1].getType())),
+           d_nm->mkConst(SortToTerm(type))}),
       node[0],
       node[1]);
 }
@@ -70,37 +68,34 @@ Node FpExpandDefs::toRealUF(TNode node)
   TypeNode type = node[0].getType();
   Assert(type.getKind() == Kind::FLOATINGPOINT_TYPE);
 
-  NodeManager* nm = NodeManager::currentNM();
-
-  return nm->mkNode(Kind::APPLY_UF,
-                    nm->getSkolemManager()->mkSkolemFunction(
-                        SkolemId::FP_TO_REAL, {nm->mkConst(SortToTerm(type))}),
-                    node[0]);
+  return d_nm->mkNode(
+      Kind::APPLY_UF,
+      d_nm->getSkolemManager()->mkSkolemFunction(
+          SkolemId::FP_TO_REAL, {d_nm->mkConst(SortToTerm(type))}),
+      node[0]);
 }
 
-TrustNode FpExpandDefs::expandDefinition(Node node)
+Node FpExpandDefs::expandDefinition(Node node)
 {
   Trace("fp-expandDefinition")
       << "FpExpandDefs::expandDefinition(): " << node << std::endl;
 
   Node res = node;
   Kind kind = node.getKind();
-  NodeManager* nm = NodeManager::currentNM();
-
   if (kind == Kind::FLOATINGPOINT_MIN)
   {
-    res = nm->mkNode(
+    res = d_nm->mkNode(
         Kind::FLOATINGPOINT_MIN_TOTAL, node[0], node[1], minMaxUF(node));
   }
   else if (kind == Kind::FLOATINGPOINT_MAX)
   {
-    res = nm->mkNode(
+    res = d_nm->mkNode(
         Kind::FLOATINGPOINT_MAX_TOTAL, node[0], node[1], minMaxUF(node));
   }
   else if (kind == Kind::FLOATINGPOINT_TO_UBV)
   {
-    res = nm->mkNode(  // Kind::FLOATINGPOINT_TO_UBV_TOTAL,
-        nm->mkConst(FloatingPointToUBVTotal(
+    res = d_nm->mkNode(  // Kind::FLOATINGPOINT_TO_UBV_TOTAL,
+        d_nm->mkConst(FloatingPointToUBVTotal(
             node.getOperator().getConst<FloatingPointToUBV>())),
         node[0],
         node[1],
@@ -108,8 +103,8 @@ TrustNode FpExpandDefs::expandDefinition(Node node)
   }
   else if (kind == Kind::FLOATINGPOINT_TO_SBV)
   {
-    res = nm->mkNode(  // Kind::FLOATINGPOINT_TO_SBV_TOTAL,
-        nm->mkConst(FloatingPointToSBVTotal(
+    res = d_nm->mkNode(  // Kind::FLOATINGPOINT_TO_SBV_TOTAL,
+        d_nm->mkConst(FloatingPointToSBVTotal(
             node.getOperator().getConst<FloatingPointToSBV>())),
         node[0],
         node[1],
@@ -117,17 +112,17 @@ TrustNode FpExpandDefs::expandDefinition(Node node)
   }
   else if (kind == Kind::FLOATINGPOINT_TO_REAL)
   {
-    res =
-        nm->mkNode(Kind::FLOATINGPOINT_TO_REAL_TOTAL, node[0], toRealUF(node));
+    res = d_nm->mkNode(
+        Kind::FLOATINGPOINT_TO_REAL_TOTAL, node[0], toRealUF(node));
   }
 
   if (res != node)
   {
     Trace("fp-expandDefinition") << "FpExpandDefs::expandDefinition(): " << node
                                  << " rewritten to " << res << std::endl;
-    return TrustNode::mkTrustRewrite(node, res, nullptr);
+    return res;
   }
-  return TrustNode::null();
+  return Node::null();
 }
 
 }  // namespace fp

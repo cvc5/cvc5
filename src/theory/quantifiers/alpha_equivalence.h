@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -127,6 +127,14 @@ class AlphaEquivalence : protected EnvObj
   TrustNode reduceQuantifier(Node q);
 
  private:
+  /**
+   * Add the alpha equivalence step f = f { vars -> subs } to cdp, where we
+   * ensure that f does not contain vars. Return the conclusion of this step.
+   */
+  Node addAlphaEquivStep(CDProof& cdp,
+                         const Node& f,
+                         const std::vector<Node>& vars,
+                         const std::vector<Node>& subs);
   /** a term canonizer */
   expr::TermCanonize d_termCanon;
   /** the database of quantified formulas registered to this class */

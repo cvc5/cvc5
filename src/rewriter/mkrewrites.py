@@ -4,7 +4,7 @@
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -59,7 +59,7 @@ def gen_mk_skolem(name, sort):
         sort_code = f'nm->mkBitVectorType({sort.children[0]})'
     else:
         die(f'Cannot generate code for {sort}')
-    res = f'Node {name} = nm->mkBoundVar("{name}", {sort_code});'
+    res = f'Node {name} = NodeManager::mkBoundVar("{name}", {sort_code});'
     if sort.is_list:
         res += f'expr::markListVar({name});'
     return res
@@ -72,6 +72,8 @@ def gen_mk_const(expr):
         return f'String("{expr.val}")'
     elif isinstance(expr, CInt):
         return f'Rational({expr.val})'
+    elif isinstance(expr, CRational):
+        return f'internal::Rational("{expr.val}")'
     elif isinstance(expr, App):
         args = [gen_mk_const(child) for child in expr.children]
         if expr.op == Op.NEG:
@@ -83,9 +85,15 @@ def gen_mk_node(defns, expr):
     if defns is not None and expr in defns:
         return defns[expr]
     elif expr.sort and expr.sort.is_const:
-        if isinstance(expr, CInt) or \
-           (isinstance(expr, App) and expr.op == Op.NEG):
-          return f'nm->mkConstRealOrInt({gen_mk_const(expr)})'
+        if isinstance(expr, CInt):
+          return f'nm->mkConstInt({gen_mk_const(expr)})'
+        elif isinstance(expr, CRational):
+          return f'nm->mkConstReal({gen_mk_const(expr)})'
+        elif isinstance(expr, App) and expr.op == Op.NEG:
+          if isinstance(expr.children[0], CInt):
+            return f'nm->mkConstInt({gen_mk_const(expr)})'
+          else:
+            return f'nm->mkConstReal({gen_mk_const(expr)})'
         else:
           return f'nm->mkConst({gen_mk_const(expr)})'
     elif isinstance(expr, Var):
@@ -93,15 +101,18 @@ def gen_mk_node(defns, expr):
     elif isinstance(expr, App):
         args = ",".join(gen_mk_node(defns, child) for child in expr.children)
         if expr.op in {Op.EXTRACT, Op.REPEAT, Op.ZERO_EXTEND,  Op.SIGN_EXTEND,
-                       Op.ROTATE_LEFT, Op.ROTATE_RIGHT, Op.INT_TO_BV, Op.REGEXP_LOOP}:
+                       Op.ROTATE_LEFT, Op.ROTATE_RIGHT, Op.INT_TO_BV,
+                       Op.REGEXP_LOOP, Op.REGEXP_REPEAT, Op.DIVISIBLE}:
           args = f'nm->mkConst(GenericOp(Kind::{gen_kind(expr.op)})),' + args
           return f'nm->mkNode(Kind::APPLY_INDEXED_SYMBOLIC, {{ {args} }})'
+        elif expr.op in {Op.REAL_PI}:
+          return f'nm->mkNullaryOperator(nm->realType(), Kind::PI)'
         return f'nm->mkNode(Kind::{gen_kind(expr.op)}, {{ {args} }})'
     else:
         die(f'Cannot generate code for {expr}')
 
 
-def gen_rewrite_db_rule(defns, rule):
+def gen_rewrite_db_rule(defns, rule, flag_expert):
     fvs_list = ', '.join(bvar.name for bvar in rule.bvars)
 
     if rule.rhs_context:
@@ -110,9 +121,10 @@ def gen_rewrite_db_rule(defns, rule):
     else:
         assert not rule.is_fixed_point
         fixed_point_arg = 'Node::null()'
+    level = "Level::" + ("EXPERT" if flag_expert else "NORMAL")
     return f'db.addRule(ProofRewriteRule::{rule.get_enum()}, {{ {fvs_list} }}, ' \
            f'{gen_mk_node(defns, rule.lhs)}, {gen_mk_node(defns, rule.rhs)}, '\
-           f'{gen_mk_node(defns, rule.cond)}, {fixed_point_arg});'
+           f'{gen_mk_node(defns, rule.cond)}, {fixed_point_arg}, {level});'
 
 
 class Rewrites:
@@ -137,13 +149,15 @@ def type_check(expr) -> bool:
     elif isinstance(expr, CInt):
         expr.sort = Sort(BaseSort.Int, is_const=True)
         hasConst = True
+    elif isinstance(expr, CRational):
+        expr.sort = Sort(BaseSort.Real, is_const=True)
+        hasConst = True
     elif isinstance(expr, App):
         sort = None
         if expr.op == Op.NEG:
             sort = Sort(BaseSort.Int)
         elif expr.op == Op.STRING_LENGTH:
             sort = Sort(BaseSort.Int)
-
         if sort:
             sort.is_const = all(child.sort and child.sort.is_const
                                 for child in expr.children)
@@ -237,7 +251,7 @@ class RewriteDb:
         return f"addRewrites_{self.name}"
 
 
-def gen_individual_rewrite_db(rewrites_file: Path, template):
+def gen_individual_rewrite_db(rewrites_file: Path, template, flag_expert):
     """
     Create rewrite rules from one file only.
     """
@@ -298,7 +312,7 @@ def gen_individual_rewrite_db(rewrites_file: Path, template):
 
     block = []
     for rule in rewrites.rules:
-        block.append(gen_rewrite_db_rule(defns, rule))
+        block.append(gen_rewrite_db_rule(defns, rule, flag_expert))
 
         enum = rule.get_enum()
         ids.append(enum)
@@ -346,21 +360,28 @@ def gen_rewrite_db(args):
 
     decl_individual_rewrites = []
     call_individual_rewrites = []
-    for rewrites_file in args.rewrites_files:
-        db = gen_individual_rewrite_db(Path(rewrites_file), individual_rewrites_cpp)
+    rewrites_files = [(False, f) for f in args.rewrites_files] + [(True, f) for f in args.rewrites_files_expert]
+    for flag_expert, rewrites_file in rewrites_files:
+        db = gen_individual_rewrite_db(Path(rewrites_file), individual_rewrites_cpp, flag_expert)
         ids += db.ids
         printer_code += db.printer_code
-        decl_individual_rewrites.append(f"void {db.function_name}(RewriteDb&);")
-        call_individual_rewrites.append(f"{db.function_name}(db);")
+        decl_individual_rewrites.append(f"void {db.function_name}(NodeManager* nm, RewriteDb&);")
+        call_individual_rewrites.append(f"{db.function_name}(nm, db);")
 
+    # Note that we manually indent by two spaces, since we do not clang-format
+    # the include file automatically.
     def doc(rule: str):
         rule = rule.lower().replace('_', '-')
-        return f'/** Auto-generated from RARE rule {rule} */'
+        return f'  /** Auto-generated from RARE rule {rule} */'
 
+    # Note that we do not automatically clang-format the API include file,
+    # since this breaks the documentation for latex formulas which require
+    # being more than 80 lines currently.
+    # The indendentation on EVALUE lines is manually set to two spaces below.
     cvc5_proof_rule_h = read_tpl_enclosed(src_include_dir, 'cvc5_proof_rule.h')
     with open(os.path.join(bin_include_dir, 'cvc5_proof_rule.h'), 'w') as f:
-        f.write(format_cpp(cvc5_proof_rule_h.format(
-            rules='\n'.join([f'{doc(id)}\nEVALUE({id}),' for id in ids]))))
+        f.write(cvc5_proof_rule_h.format(
+            rules='\n'.join([f'{doc(id)}\n  EVALUE({id}),' for id in ids])))
 
     cvc5_proof_rule_cpp = read_tpl(src_api_dir, 'cvc5_proof_rule_template.cpp')
     os.makedirs(bin_api_dir, exist_ok=True)
@@ -381,9 +402,13 @@ def main():
     subparsers = parser.add_subparsers()
 
     parser_compile = subparsers.add_parser("rewrite-db")
-    parser_compile.add_argument("src_dir", help="Source directory")
-    parser_compile.add_argument("bin_dir", help="Binary directory")
-    parser_compile.add_argument("rewrites_files",
+    parser_compile.add_argument("--src_dir", help="Source directory")
+    parser_compile.add_argument("--bin_dir", help="Binary directory")
+    parser_compile.add_argument("--rewrites_files",
+                                nargs='+',
+                                type=str,
+                                help="Rule files")
+    parser_compile.add_argument("--rewrites_files_expert",
                                 nargs='+',
                                 type=str,
                                 help="Rule files")

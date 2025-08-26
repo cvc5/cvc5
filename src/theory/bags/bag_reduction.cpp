@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -34,33 +34,10 @@ BagReduction::BagReduction() {}
 
 BagReduction::~BagReduction() {}
 
-/**
- * A bound variable corresponding to the universally quantified integer
- * variable used to range over (may be distinct) elements in a bag, used
- * for axiomatizing the behavior of some term.
- * If there are multiple quantifiers, this variable should be the first one.
- */
-struct FirstIndexVarAttributeId
-{
-};
-typedef expr::Attribute<FirstIndexVarAttributeId, Node> FirstIndexVarAttribute;
-
-/**
- * A bound variable corresponding to the universally quantified integer
- * variable used to range over (may be distinct) elements in a bag, used
- * for axiomatizing the behavior of some term.
- * This variable should be the second of multiple quantifiers.
- */
-struct SecondIndexVarAttributeId
-{
-};
-typedef expr::Attribute<SecondIndexVarAttributeId, Node>
-    SecondIndexVarAttribute;
-
 Node BagReduction::reduceFoldOperator(Node node, std::vector<Node>& asserts)
 {
   Assert(node.getKind() == Kind::BAG_FOLD);
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = node.getNodeManager();
   SkolemManager* sm = nm->getSkolemManager();
   Node f = node[0];
   Node t = node[1];
@@ -75,8 +52,8 @@ Node BagReduction::reduceFoldOperator(Node node, std::vector<Node>& asserts)
   Node combine = sm->mkSkolemFunction(SkolemId::BAGS_FOLD_COMBINE, {f, t, A});
 
   BoundVarManager* bvm = nm->getBoundVarManager();
-  Node i =
-      bvm->mkBoundVar<FirstIndexVarAttribute>(node, "i", nm->integerType());
+  Node i = bvm->mkBoundVar(
+      BoundVarId::BAGS_FIRST_INDEX, node, "i", nm->integerType());
   Node iList = nm->mkNode(Kind::BOUND_VAR_LIST, i);
   Node iMinusOne = nm->mkNode(Kind::SUB, i, one);
   Node elements_i = nm->mkNode(Kind::APPLY_UF, elements, i);
@@ -105,7 +82,8 @@ Node BagReduction::reduceFoldOperator(Node node, std::vector<Node>& asserts)
       nm->mkNode(Kind::IMPLIES,
                  interval_i,
                  nm->mkNode(Kind::AND, combine_i_equal, unionDisjoint_i_equal));
-  Node forAll_i = quantifiers::BoundedIntegers::mkBoundedForall(iList, body_i);
+  Node forAll_i =
+      quantifiers::BoundedIntegers::mkBoundedForall(nm, iList, body_i);
   Node nonNegative = nm->mkNode(Kind::GEQ, n, zero);
   Node unionDisjoint_n_equal = A.eqNode(unionDisjoint_n);
   asserts.push_back(forAll_i);
@@ -119,7 +97,7 @@ Node BagReduction::reduceFoldOperator(Node node, std::vector<Node>& asserts)
 Node BagReduction::reduceCardOperator(Node node, std::vector<Node>& asserts)
 {
   Assert(node.getKind() == Kind::BAG_CARD);
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = node.getNodeManager();
   SkolemManager* sm = nm->getSkolemManager();
   Node A = node[0];
   Node zero = nm->mkConstInt(Rational(0));
@@ -134,10 +112,10 @@ Node BagReduction::reduceCardOperator(Node node, std::vector<Node>& asserts)
   Node combine = sm->mkSkolemFunction(SkolemId::BAGS_CARD_COMBINE, A);
 
   BoundVarManager* bvm = nm->getBoundVarManager();
-  Node i =
-      bvm->mkBoundVar<FirstIndexVarAttribute>(node, "i", nm->integerType());
-  Node j =
-      bvm->mkBoundVar<SecondIndexVarAttribute>(node, "j", nm->integerType());
+  Node i = bvm->mkBoundVar(
+      BoundVarId::BAGS_FIRST_INDEX, node, "i", nm->integerType());
+  Node j = bvm->mkBoundVar(
+      BoundVarId::BAGS_SECOND_INDEX, node, "j", nm->integerType());
   Node iList = nm->mkNode(Kind::BOUND_VAR_LIST, i);
   Node jList = nm->mkNode(Kind::BOUND_VAR_LIST, j);
   Node iMinusOne = nm->mkNode(Kind::SUB, i, one);
@@ -174,12 +152,14 @@ Node BagReduction::reduceCardOperator(Node node, std::vector<Node>& asserts)
       nm->mkNode(Kind::EQUAL, elements_i, elements_j);
   Node notEqual = nm->mkNode(Kind::EQUAL, elements_i, elements_j).negate();
   Node body_j = nm->mkNode(Kind::OR, interval_j.negate(), notEqual);
-  Node forAll_j = quantifiers::BoundedIntegers::mkBoundedForall(jList, body_j);
+  Node forAll_j =
+      quantifiers::BoundedIntegers::mkBoundedForall(nm, jList, body_j);
   Node body_i = nm->mkNode(
       Kind::IMPLIES,
       interval_i,
       nm->mkNode(Kind::AND, combine_i_equal, unionDisjoint_i_equal, forAll_j));
-  Node forAll_i = quantifiers::BoundedIntegers::mkBoundedForall(iList, body_i);
+  Node forAll_i =
+      quantifiers::BoundedIntegers::mkBoundedForall(nm, iList, body_i);
   Node nonNegative = nm->mkNode(Kind::GEQ, n, zero);
   Node unionDisjoint_n_equal = A.eqNode(unionDisjoint_n);
   asserts.push_back(forAll_i);
@@ -193,7 +173,7 @@ Node BagReduction::reduceCardOperator(Node node, std::vector<Node>& asserts)
 Node BagReduction::reduceAggregateOperator(Node node)
 {
   Assert(node.getKind() == Kind::TABLE_AGGREGATE);
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = node.getNodeManager();
   BoundVarManager* bvm = nm->getBoundVarManager();
   Node function = node[0];
   TypeNode elementType = function.getType().getArgTypes()[0];
@@ -204,8 +184,8 @@ Node BagReduction::reduceAggregateOperator(Node node)
   Node groupOp = nm->mkConst(Kind::TABLE_GROUP_OP, op);
   Node group = nm->mkNode(Kind::TABLE_GROUP, {groupOp, A});
 
-  Node bag = bvm->mkBoundVar<FirstIndexVarAttribute>(
-      group, "bag", nm->mkBagType(elementType));
+  Node bag = bvm->mkBoundVar(
+      BoundVarId::BAGS_FIRST_INDEX, group, "bag", nm->mkBagType(elementType));
   Node foldList = nm->mkNode(Kind::BOUND_VAR_LIST, bag);
   Node foldBody = nm->mkNode(Kind::BAG_FOLD, function, initialValue, bag);
 
@@ -217,12 +197,12 @@ Node BagReduction::reduceAggregateOperator(Node node)
 Node BagReduction::reduceProjectOperator(Node n)
 {
   Assert(n.getKind() == Kind::TABLE_PROJECT);
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = n.getNodeManager();
   Node A = n[0];
   TypeNode elementType = A.getType().getBagElementType();
   ProjectOp projectOp = n.getOperator().getConst<ProjectOp>();
   Node op = nm->mkConst(Kind::TUPLE_PROJECT_OP, projectOp);
-  Node t = nm->mkBoundVar("t", elementType);
+  Node t = NodeManager::mkBoundVar("t", elementType);
   Node projection = nm->mkNode(Kind::TUPLE_PROJECT, op, t);
   Node lambda =
       nm->mkNode(Kind::LAMBDA, nm->mkNode(Kind::BOUND_VAR_LIST, t), projection);

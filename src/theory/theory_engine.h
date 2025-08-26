@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -263,9 +263,13 @@ class TheoryEngine : protected EnvObj
    * Solve the given literal with a theory that owns it. The proof of tliteral
    * is carried in the trust node. The proof added to substitutionOut should
    * take this proof into account (when proofs are enabled).
+   *
+   * @param tin The literal and its proof generator.
+   * @param outSubstitutions The substitution map to add to, if applicable.
+   * @return true iff the literal can be removed from the input, e.g. when
+   * the substitution it entails is added to outSubstitutions.
    */
-  theory::Theory::PPAssertStatus solve(
-      TrustNode tliteral, theory::TrustSubstitutionMap& substitutionOut);
+  bool solve(TrustNode tliteral, theory::TrustSubstitutionMap& substitutionOut);
 
   /**
    * Preregister a Theory atom with the responsible theory (or
@@ -286,10 +290,12 @@ class TheoryEngine : protected EnvObj
   void check(theory::Theory::Effort effort);
 
   /**
-   * Calls ppStaticLearn() on all theories, accumulating their
-   * combined contributions in the "learned" builder.
+   * Calls ppStaticLearn() on all theories.
+   * Adds any new lemmas learned to the learned vector.
+   * @param in The formula that holds.
+   * @param learned The vector storing the new lemmas learned.
    */
-  void ppStaticLearn(TNode in, NodeBuilder& learned);
+  void ppStaticLearn(TNode in, std::vector<TrustNode>& learned);
 
   /**
    * Calls presolve() on all theories and returns true
@@ -440,6 +446,11 @@ class TheoryEngine : protected EnvObj
    * This function is called from the smt engine's checkModel routine.
    */
   void checkTheoryAssertionsWithModel(bool hardFailure);
+
+  /** Called externally to notify that the current branch is incomplete. */
+  void setModelUnsound(theory::IncompleteId id);
+  /** Called externally that we are unsound (user-context). */
+  void setRefutationUnsound(theory::IncompleteId id);
 
  private:
   typedef context::

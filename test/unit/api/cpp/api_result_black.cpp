@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -97,11 +97,11 @@ TEST_F(TestApiBlackResult, isUnknown)
   ASSERT_FALSE(res.isUnsat());
   ASSERT_TRUE(res.isUnknown());
   cvc5::UnknownExplanation ue = res.getUnknownExplanation();
-  ASSERT_EQ(ue, cvc5::UnknownExplanation::UNKNOWN_REASON);
+  ASSERT_EQ(ue, cvc5::UnknownExplanation::INCOMPLETE);
   {
     std::stringstream ss;
     ss << ue;
-    ASSERT_EQ(ss.str(), "UNKNOWN_REASON");
+    ASSERT_EQ(ss.str(), "INCOMPLETE");
   }
 }
 

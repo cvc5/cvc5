@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -87,7 +87,7 @@ class PseudoBooleanProcessor : public PreprocessingPass
   void addSub(Node from, Node to);
   void learnGeqSub(Node geq);
 
-  static Node mkGeqOne(Node v);
+  static Node mkGeqOne(NodeManager* nm, Node v);
 
   // x ->  <geqZero, leqOne>
   typedef context::CDHashMap<Node, std::pair<Node, Node>> CDNode2PairMap;

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -97,7 +97,7 @@ class CVC5_EXPORT NodeValue
     explicit iterator(const_nv_iterator i) : d_i(i) {}
 
     /** Conversion of a TNode iterator to a Node iterator. */
-    inline operator NodeValue::iterator<NodeTemplate<true> >()
+    inline operator NodeValue::iterator<NodeTemplate<true> >() const
     {
       return iterator<NodeTemplate<true> >(d_i);
     }
@@ -136,11 +136,11 @@ class CVC5_EXPORT NodeValue
       return *this;
     }
 
-    iterator operator+(difference_type p) { return iterator(d_i + p); }
+    iterator operator+(difference_type p) const { return iterator(d_i + p); }
 
-    iterator operator-(difference_type p) { return iterator(d_i - p); }
+    iterator operator-(difference_type p) const { return iterator(d_i - p); }
 
-    difference_type operator-(iterator i) { return d_i - i.d_i; }
+    difference_type operator-(iterator i) const { return d_i - i.d_i; }
 
    private:
     const_nv_iterator d_i;
@@ -152,6 +152,8 @@ class CVC5_EXPORT NodeValue
   Kind getKind() const { return dKindToKind(d_kind); }
 
   kind::MetaKind getMetaKind() const { return kind::metaKindOf(getKind()); }
+
+  NodeManager* getNodeManager() const { return d_nm; }
 
   uint32_t getNumChildren() const
   {
@@ -307,7 +309,6 @@ class CVC5_EXPORT NodeValue
 
   void dec()
   {
-    // FIXME multithreading
     if (__builtin_expect((d_rc < MAX_RC), true))
     {
       --d_rc;
@@ -357,6 +358,9 @@ class CVC5_EXPORT NodeValue
 
   /** Number of children */
   uint32_t d_nchildren : NBITS_NCHILDREN;
+
+  /** Associated node manager. */
+  NodeManager* d_nm = nullptr;
 
   /** Variable number of child nodes */
   NodeValue* d_children[0];

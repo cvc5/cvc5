@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Gereon Kremer
+ *   Andrew Reynolds, Aina Niemetz, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -33,10 +33,11 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-UnifContextIo::UnifContextIo() : d_curr_role(role_invalid)
+UnifContextIo::UnifContextIo(NodeManager* nm)
+    : d_nm(nm), d_curr_role(role_invalid)
 {
-  d_true = NodeManager::currentNM()->mkConst(true);
-  d_false = NodeManager::currentNM()->mkConst(false);
+  d_true = d_nm->mkConst(true);
+  d_false = d_nm->mkConst(false);
 }
 
 NodeRole UnifContextIo::getCurrentRole() { return d_curr_role; }
@@ -275,7 +276,7 @@ Node SubsumeTrie::addTermInternal(Node t,
     }
     return d_term;
   }
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = vals[index].getNodeManager();
   // the current value
   Assert(pol || (vals[index].isConst() && vals[index].getType().isBoolean()));
   Node cv = pol ? vals[index] : nm->mkConst(!vals[index].getConst<bool>());
@@ -515,10 +516,11 @@ SygusUnifIo::SygusUnifIo(Env& env, SynthConjecture* p)
       d_cond_count(0),
       d_sol_term_size(0),
       d_sol_cons_nondet(false),
-      d_solConsUsingInfoGain(false)
+      d_solConsUsingInfoGain(false),
+      d_context(env.getNodeManager())
 {
-  d_true = NodeManager::currentNM()->mkConst(true);
-  d_false = NodeManager::currentNM()->mkConst(false);
+  d_true = nodeManager()->mkConst(true);
+  d_false = nodeManager()->mkConst(false);
 }
 
 SygusUnifIo::~SygusUnifIo() {}
@@ -615,7 +617,7 @@ void SygusUnifIo::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
       Assert(!exp_exc_vec.empty());
       exp_exc = exp_exc_vec.size() == 1
                     ? exp_exc_vec[0]
-                    : NodeManager::currentNM()->mkNode(Kind::AND, exp_exc_vec);
+                    : nodeManager()->mkNode(Kind::AND, exp_exc_vec);
     }
     Trace("sygus-sui-enum")
         << "  ...fail : term is excluded (domain-specific)" << std::endl;
@@ -925,7 +927,7 @@ bool SygusUnifIo::getExplanationForEnumeratorExclude(
     std::vector<Node>& results,
     std::vector<Node>& exp)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   if (useStrContainsEnumeratorExclude(e))
   {
     // This check whether the example evaluates to something that is larger than
@@ -1495,7 +1497,7 @@ Node SygusUnifIo::constructSol(
       if (success)
       {
         Assert(dt_children_cons.size() == etis->d_sol_templ_args.size());
-        // ret_dt = NodeManager::currentNM()->mkNode( APPLY_CONSTRUCTOR,
+        // ret_dt = nodeManager()->mkNode( APPLY_CONSTRUCTOR,
         // dt_children );
         ret_dt = etis->d_sol_templ;
         ret_dt = ret_dt.substitute(etis->d_sol_templ_args.begin(),

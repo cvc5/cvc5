@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -113,8 +113,8 @@ enum class InferenceId
   //-------------------- nonlinear core
   // simple congruence x=y => f(x)=f(y)
   ARITH_NL_CONGRUENCE,
-  // shared term value split (for naive theory combination)
-  ARITH_NL_SHARED_TERM_VALUE_SPLIT,
+  // for theory combination when NL model construction identifies shared terms
+  ARITH_NL_SHARED_TERM_SPLIT,
   // checkModel found a conflict with a quadratic equality
   ARITH_NL_CM_QUADRATIC_EQ,
   //-------------------- nonlinear incremental linearization solver
@@ -364,6 +364,8 @@ enum class InferenceId
   QUANTIFIERS_INST_SYQI,
   // instantiations from model-based instantiation
   QUANTIFIERS_INST_MBQI,
+  // instantiations from model-based instantiation (mbqi-enum)
+  QUANTIFIERS_INST_MBQI_ENUM,
   // instantiations from enumerative instantiation
   QUANTIFIERS_INST_ENUM,
   // instantiations from pool instantiation
@@ -461,6 +463,8 @@ enum class InferenceId
   QUANTIFIERS_SYGUS_COMPLETE_ENUM,
   // infeasible due to side condition (e.g. for abduction)
   QUANTIFIERS_SYGUS_SC_INFEASIBLE,
+  // infeasible due to non-well-founded grammar
+  QUANTIFIERS_SYGUS_NO_WF_GRAMMAR,
   //-------------------- dynamic splitting
   // a dynamic split from quantifiers
   QUANTIFIERS_DSPLIT,
@@ -904,6 +908,10 @@ enum class InferenceId
   STRINGS_REGISTER_TERM,
   // a split during collect model info
   STRINGS_CMI_SPLIT,
+  // constant sequence purification
+  STRINGS_CONST_SEQ_PURIFY,
+  // regular expression equality equivalence
+  STRINGS_RE_EQ_ELIM_EQUIV,
   //-------------------------------------- end strings theory
 
   //-------------------------------------- uf theory
@@ -1010,7 +1018,7 @@ const char* toString(InferenceId i);
 std::ostream& operator<<(std::ostream& out, InferenceId i);
 
 /** Make node from inference id */
-Node mkInferenceIdNode(InferenceId i);
+Node mkInferenceIdNode(NodeManager* nm, InferenceId i);
 
 /** get an inference identifier from a node, return false if we fail */
 bool getInferenceId(TNode n, InferenceId& i);

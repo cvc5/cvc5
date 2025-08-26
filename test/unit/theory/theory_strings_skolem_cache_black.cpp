@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -45,7 +45,7 @@ TEST_F(TestTheoryBlackStringsSkolemCache, mkSkolemCached)
       d_nodeManager->mkNode(Kind::STRING_INDEXOF, a, b, zero));
   Node sc = d_nodeManager->mkNode(Kind::STRING_SUBSTR, c, zero, n);
 
-  SkolemCache sk(nullptr);
+  SkolemCache sk(d_nodeManager.get(), nullptr);
 
   // Check that skolems are shared between:
   //

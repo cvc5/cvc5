@@ -1,4 +1,4 @@
-; COMMAND-LINE: --strings-exp --fmf-fun-rlv -i
+; COMMAND-LINE: --fmf-fun-rlv -i
 ; EXPECT: sat
 ; EXPECT: sat
 ; EXPECT: sat

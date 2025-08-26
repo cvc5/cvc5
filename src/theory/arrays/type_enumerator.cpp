@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -30,7 +30,7 @@ ArrayEnumerator::ArrayEnumerator(TypeNode type, TypeEnumeratorProperties* tep)
       d_tep(tep),
       d_index(type.getArrayIndexType(), tep),
       d_constituentType(type.getArrayConstituentType()),
-      d_nm(NodeManager::currentNM()),
+      d_nm(type.getNodeManager()),
       d_indexVec(),
       d_constituentVec(),
       d_finished(false),
@@ -91,7 +91,7 @@ Node ArrayEnumerator::operator*()
     // since this utility requires all children of n to be constant, which
     // implies the first argument to STORE on the next iteration must be
     // normalized.
-    n = TheoryArraysRewriter::normalizeConstant(n);
+    n = TheoryArraysRewriter::normalizeConstant(d_nm, n);
   }
   Trace("array-type-enum") << "operator * returning: " << n << std::endl;
   return n;

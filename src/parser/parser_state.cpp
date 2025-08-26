@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -37,14 +37,14 @@ namespace parser {
 ParserState::ParserState(ParserStateCallback* psc,
                          Solver* solver,
                          SymManager* sm,
-                         bool strictMode)
+                         ParsingMode parsingMode)
     : d_solver(solver),
       d_tm(d_solver->getTermManager()),
       d_psc(psc),
       d_symman(sm),
       d_symtab(sm->getSymbolTable()),
       d_checksEnabled(true),
-      d_strictMode(strictMode),
+      d_parsingMode(parsingMode),
       d_parseOnly(d_solver->getOptionInfo("parse-only").boolValue())
 {
 }
@@ -217,40 +217,61 @@ std::vector<Term> ParserState::bindBoundVarsCtx(
   std::vector<Term> vars;
   for (std::pair<std::string, Sort>& i : sortedVarNames)
   {
-    bool wasDecl = isDeclared(i.first);
-    Term v = bindBoundVar(i.first, i.second, fresh);
-    vars.push_back(v);
-    // If wasDecl, then:
+    std::map<std::pair<std::string, Sort>, Term>::const_iterator itv =
+        d_varCache.find(i);
+    if (itv == d_varCache.end() || !isDeclared(i.first))
+    {
+      // haven't created this variable yet, or its not declared
+      Term v = bindBoundVar(i.first, i.second, fresh);
+      vars.push_back(v);
+      continue;
+    }
+    Term v = itv->second;
+    // If we are here, then:
     // (1) we are not using fresh declarations
     // (2) there are let binders present,
     // (3) the current variable was shadowed.
     // We must check whether the variable is present in the let bindings.
-    if (wasDecl)
+    bool reqFresh = false;
+    // a dummy variable used for checking containment below
+    Term vr = d_tm.mkVar(v.getSort(), "dummy");
+    // check if it is contained in a let binder, if so, we require making a
+    // fresh variable, despite fresh-binders being false.
+    for (std::vector<std::pair<std::string, Term>>& lbs : letBinders)
     {
-      // a dummy variable used for checking containment below
-      Term vr = d_tm.mkVar(v.getSort(), "dummy");
-      // check if it is contained in a let binder, if so, we fail
-      for (std::vector<std::pair<std::string, Term>>& lbs : letBinders)
+      for (std::pair<std::string, Term>& lb : lbs)
       {
-        for (std::pair<std::string, Term>& lb : lbs)
+        // To test containment, we use Term::substitute.
+        // If the substitution does anything at all, then we will throw a
+        // warning. We expect this warning to be very rare.
+        Term slbt = lb.second.substitute({v}, {vr});
+        if (slbt != lb.second)
         {
-          // To test containment, we use Term::substitute.
-          // If the substitution does anything at all, then
-          // we will throw an error. Thus, this does not
-          // incur a performance penalty versus checking containment.
-          Term slbt = lb.second.substitute({v}, {vr});
-          if (slbt != lb.second)
-          {
-            std::stringstream ss;
-            ss << "Cannot use variable shadowing for " << i.first
-               << " since this symbol occurs in a let term that is present in "
-                  "the current context. Set fresh-binders to true to avoid "
-                  "this error";
-            parseError(ss.str());
-          }
+          reqFresh = true;
+          break;
         }
       }
+      if (reqFresh)
+      {
+        break;
+      }
     }
+    if (reqFresh)
+    {
+      // Note that if this warning is thrown:
+      // 1. proof reference checking will not be accurate in settings where
+      // variables are parsed as canonical.
+      // 2. the parser will not be deterministic for the same input even when
+      // fresh-binders is false, since we are constructing a fresh variable
+      // below.
+      Warning() << "Constructing a fresh variable for " << i.first
+                << " since this symbol occurs in a let term that is present in "
+                   "the current context. Set fresh-binders to true or use -q to avoid "
+                   "this warning."
+                << std::endl;
+    }
+    v = bindBoundVar(i.first, i.second, reqFresh);
+    vars.push_back(v);
   }
   return vars;
 }
@@ -283,50 +304,31 @@ void ParserState::defineVar(const std::string& name,
 
 void ParserState::defineType(const std::string& name,
                              const Sort& type,
-                             bool skipExisting)
+                             bool isUser)
 {
-  if (skipExisting && isDeclared(name, SYM_SORT))
+  if (!isUser && isDeclared(name, SYM_SORT))
   {
     Assert(d_symtab->lookupType(name) == type);
     return;
   }
-  d_symtab->bindType(name, type);
+  d_symman->bindType(name, type, isUser);
   Assert(isDeclared(name, SYM_SORT));
 }
 
 void ParserState::defineType(const std::string& name,
                              const std::vector<Sort>& params,
-                             const Sort& type)
+                             const Sort& type,
+                             bool isUser)
 {
-  d_symtab->bindType(name, params, type);
+  d_symman->bindType(name, params, type, isUser);
   Assert(isDeclared(name, SYM_SORT));
-}
-
-void ParserState::defineParameterizedType(const std::string& name,
-                                          const std::vector<Sort>& params,
-                                          const Sort& type)
-{
-  if (TraceIsOn("parser"))
-  {
-    Trace("parser") << "defineParameterizedType(" << name << ", "
-                    << params.size() << ", [";
-    if (params.size() > 0)
-    {
-      copy(params.begin(),
-           params.end() - 1,
-           ostream_iterator<Sort>(Trace("parser"), ", "));
-      Trace("parser") << params.back();
-    }
-    Trace("parser") << "], " << type << ")" << std::endl;
-  }
-  defineType(name, params, type);
 }
 
 Sort ParserState::mkSort(const std::string& name)
 {
   Trace("parser") << "newSort(" << name << ")" << std::endl;
   Sort type = d_tm.mkUninterpretedSort(name);
-  defineType(name, type);
+  defineType(name, type, true);
   return type;
 }
 
@@ -335,14 +337,14 @@ Sort ParserState::mkSortConstructor(const std::string& name, size_t arity)
   Trace("parser") << "newSortConstructor(" << name << ", " << arity << ")"
                   << std::endl;
   Sort type = d_tm.mkUninterpretedSortConstructorSort(arity, name);
-  defineType(name, vector<Sort>(arity), type);
+  defineType(name, vector<Sort>(arity), type, true);
   return type;
 }
 
 Sort ParserState::mkUnresolvedType(const std::string& name)
 {
   Sort unresolved = d_tm.mkUnresolvedDatatypeSort(name);
-  defineType(name, unresolved);
+  defineType(name, unresolved, true);
   return unresolved;
 }
 
@@ -350,7 +352,7 @@ Sort ParserState::mkUnresolvedTypeConstructor(const std::string& name,
                                               size_t arity)
 {
   Sort unresolved = d_tm.mkUnresolvedDatatypeSort(name, arity);
-  defineType(name, vector<Sort>(arity), unresolved);
+  defineType(name, vector<Sort>(arity), unresolved, true);
   return unresolved;
 }
 
@@ -360,7 +362,7 @@ Sort ParserState::mkUnresolvedTypeConstructor(const std::string& name,
   Trace("parser") << "newSortConstructor(P)(" << name << ", " << params.size()
                   << ")" << std::endl;
   Sort unresolved = d_tm.mkUnresolvedDatatypeSort(name, params.size());
-  defineType(name, params, unresolved);
+  defineType(name, params, unresolved, true);
   Sort t = getParametricSort(name, params);
   return unresolved;
 }
@@ -479,6 +481,8 @@ Sort ParserState::flattenFunctionType(std::vector<Sort>& sorts, Sort range)
 }
 Sort ParserState::mkFlatFunctionType(std::vector<Sort>& sorts, Sort range)
 {
+  // Note we require this flattening since the API explicitly checks that
+  // the range of functions is not a function.
   Sort newRange = flattenFunctionType(sorts, range);
   if (!sorts.empty())
   {
@@ -743,8 +747,8 @@ Term ParserState::mkCharConstant(const std::string& s)
   Assert(s.find_first_not_of("0123456789abcdefABCDEF", 0) == std::string::npos
          && s.size() <= 5 && s.size() > 0)
       << "Unexpected string for hexadecimal character " << s;
-  wchar_t val = static_cast<wchar_t>(std::stoul(s, 0, 16));
-  return d_tm.mkString(std::wstring(1, val));
+  char32_t val = static_cast<char32_t>(std::stoul(s, 0, 16));
+  return d_tm.mkString(std::u32string(1, val));
 }
 
 uint32_t stringToUnsigned(const std::string& str)

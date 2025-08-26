@@ -16,27 +16,21 @@
   ((x ?BitVec) (y ?BitVec))
   (bvsge x y)
   (bvsle y x))
-(define-rule bv-slt-eliminate
-  ((x ?BitVec) (y ?BitVec))
-  (def (pad (bvshl (@bv 1 (@bvsize x)) (@bv (- (@bvsize x) 1) (@bvsize x)))))
-  (bvslt x y)
-  (bvult
-    (bvadd x pad)
-    (bvadd y pad)
-  ))
 (define-rule bv-sle-eliminate
   ((x ?BitVec) (y ?BitVec))
   (bvsle x y)
   (not (bvslt y x)))
 
-(define-rule bv-redor-eliminate
-  ((x ?BitVec))
+(define-cond-rule bv-redor-eliminate
+  ((x ?BitVec) (w Int))
+  (= w (@bvsize x))
   (bvredor x)
-  (bvnot (bvcomp x (@bv 0 (@bvsize x)))))
-(define-rule bv-redand-eliminate
-  ((x ?BitVec))
+  (bvnot (bvcomp x (@bv 0 w))))
+(define-cond-rule bv-redand-eliminate
+  ((x ?BitVec) (w Int))
+  (= w (@bvsize x))
   (bvredand x)
-  (bvcomp x (bvnot (@bv 0 (@bvsize x)))))
+  (bvcomp x (bvnot (@bv 0 w))))
 
 (define-rule bv-ule-eliminate
   ((x ?BitVec) (y ?BitVec))
@@ -46,38 +40,28 @@
   ((x ?BitVec) (y ?BitVec))
   (bvcomp x y)
   (ite (= x y) (@bv 1 1) (@bv 0 1)))
-(define-cond-rule bv-repeat-eliminate-1
-  ((x ?BitVec) (n Int))
-  (> n 1)
-  (repeat n x)
-  (concat x (repeat (- n 1) x)))
-(define-cond-rule bv-repeat-eliminate-2
-  ((x ?BitVec) (n Int))
-  (= n 1)
-  (repeat n x)
-  x)
 
 (define-cond-rule bv-rotate-left-eliminate-1
-  ((x ?BitVec) (amount Int))
+  ((x ?BitVec) (amount Int) (u1 Int) (u2 Int) (l2 Int))
   (def (n (@bvsize x)) (a (mod amount n)))
-  (not (= a 0))
+  (and (not (= a 0)) (= u1 (- n (+ 1 a))) (= u2 (- n 1)) (= l2 (- n a)))
   (rotate_left amount x)
   (concat
-    (extract (- n (+ 1 a)) 0 x)
-    (extract (- n 1) (- n a) x)))
+    (extract u1 0 x)
+    (extract u2 l2 x)))
 (define-cond-rule bv-rotate-left-eliminate-2
   ((x ?BitVec) (amount Int))
   (= (mod amount (@bvsize x)) 0)
   (rotate_left amount x)
   x)
 (define-cond-rule bv-rotate-right-eliminate-1
-  ((x ?BitVec) (amount Int))
+  ((x ?BitVec) (amount Int) (u1 Int) (u2 Int) (l2 Int))
   (def (n (@bvsize x)) (a (mod amount n)))
-  (not (= a 0))
+  (and (not (= a 0)) (= u1 (- a 1)) (= u2 (- n 1)) (= l2 a))
   (rotate_right amount x)
   (concat
-    (extract (- a 1) 0 x)
-    (extract (- n 1) a x)))
+    (extract u1 0 x)
+    (extract u2 l2 x)))
 (define-cond-rule bv-rotate-right-eliminate-2
   ((x ?BitVec) (amount Int))
   (= (mod amount (@bvsize x)) 0)
@@ -97,24 +81,14 @@
   (bvxnor x y)
   (bvnot (bvxor x y)))
 
-(define-rule bv-sdiv-eliminate
-  ((x ?BitVec) (y ?BitVec))
+(define-cond-rule bv-sdiv-eliminate
+  ((x ?BitVec) (y ?BitVec) (nm1 Int))
   (def
-    (n (@bvsize x))
-    (xLt0 (= (extract (- n 1) (- n 1) x) (@bv 1 1)))
-    (yLt0 (= (extract (- n 1) (- n 1) y) (@bv 1 1)))
+    (xLt0 (= (extract nm1 nm1 x) (@bv 1 1)))
+    (yLt0 (= (extract nm1 nm1 y) (@bv 1 1)))
     (rUdiv (bvudiv (ite xLt0 (bvneg x) x) (ite yLt0 (bvneg y) y)))
   )
-  (bvsdiv x y)
-  (ite (xor xLt0 yLt0) (bvneg rUdiv) rUdiv))
-(define-rule bv-sdiv-eliminate-fewer-bitwise-ops
-  ((x ?BitVec) (y ?BitVec))
-  (def
-    (n (@bvsize x))
-    (xLt0 (bvuge x (concat (@bv 1 1) (@bv 0 (- n 1)))))
-    (yLt0 (bvuge y (concat (@bv 1 1) (@bv 0 (- n 1)))))
-    (rUdiv (bvudiv (ite xLt0 (bvneg x) x) (ite yLt0 (bvneg y) y)))
-  )
+  (= nm1 (- (@bvsize x) 1))
   (bvsdiv x y)
   (ite (xor xLt0 yLt0) (bvneg rUdiv) rUdiv))
 
@@ -122,126 +96,100 @@
   ((x ?BitVec) (n Int))
   (zero_extend n x)
   (concat (@bv 0 n) x))
-(define-rule bv-sign-extend-eliminate
-  ((x ?BitVec) (n Int))
-  (def (s (@bvsize x)))
-  (sign_extend n x)
-  (concat (repeat n (extract (- s 1) (- s 1) x)) x))
 
-(define-rule bv-uaddo-eliminate
-  ((x ?BitVec) (y ?BitVec))
+(define-cond-rule bv-uaddo-eliminate
+  ((x ?BitVec) (y ?BitVec) (w Int))
+  (= w (@bvsize x))
   (bvuaddo x y)
-  (= (extract (- (@bvsize x) 1) (- (@bvsize x) 1)
+  (= (extract w w
       (bvadd (concat (@bv 0 1) x) (concat (@bv 0 1) y)))
     (@bv 1 1)
   ))
-(define-rule bv-saddo-eliminate
-  ((x ?BitVec) (y ?BitVec))
+(define-cond-rule bv-saddo-eliminate
+  ((x ?BitVec) (y ?BitVec) (wm1 Int))
   (def
-    (n (@bvsize x))
-    (xS (extract (- n 1) (- n 1) x))
-    (yS (extract (- n 1) (- n 1) y))
-    (aS (extract (- n 1) (- n 1) (bvadd x y)))
+    (xS (extract wm1 wm1 x))
+    (yS (extract wm1 wm1 y))
+    (aS (extract wm1 wm1 (bvadd x y)))
   )
+  (= wm1 (- (@bvsize x) 1))
   (bvsaddo x y)
   (or
-    (and (and (= xS (@bv 0 1)) (= yS (@bv 0 1))) (= aS (@bv 1 1)))
     (and (and (= xS (@bv 1 1)) (= yS (@bv 1 1))) (= aS (@bv 0 1)))
+    (and (and (= xS (@bv 0 1)) (= yS (@bv 0 1))) (= aS (@bv 1 1)))
   ))
-(define-rule bv-sdivo-eliminate
-  ((x ?BitVec) (y ?BitVec))
+(define-cond-rule bv-sdivo-eliminate
+  ((x ?BitVec) (y ?BitVec) (w Int) (wm1 Int))
+  (and (= wm1 (- (@bvsize x) 1)) (= w (@bvsize y)))
   (bvsdivo x y)
   (and
-    (= x (concat (@bv 1 1) (@bv 0 (- (@bvsize x) 1))))
-    (= y (bvnot (@bv 0 (@bvsize y))))
+    (= x (concat (@bv 1 1) (@bv 0 wm1)))
+    (= y (bvnot (@bv 0 w)))
   ))
-(define-rule bv-smod-eliminate
-  ((x ?BitVec) (y ?BitVec))
+(define-cond-rule bv-smod-eliminate
+  ((x ?BitVec) (y ?BitVec) (w Int) (wm1 Int))
   (def
-    (n (@bvsize x))
-    (xLt0 (= (extract (- n 1) (- n 1) x) (@bv 1 1)))
-    (yLt0 (= (extract (- n 1) (- n 1) y) (@bv 1 1)))
-    (xAbs (ite xLt0 (bvneg x) x))
-    (yAbs (ite yLt0 (bvneg y) y))
+    (xLt0 (= (extract wm1 wm1 x) (@bv 1 1)))
+    (yLt0 (= (extract wm1 wm1 y) (@bv 1 1)))
+    (nxLt0 (= (extract wm1 wm1 x) (@bv 0 1)))
+    (nyLt0 (= (extract wm1 wm1 y) (@bv 0 1)))
+    (xAbs (ite nxLt0 x (bvneg x)))
+    (yAbs (ite nyLt0 y (bvneg y)))
     (u (bvurem xAbs yAbs))
   )
+  (and (= w (@bvsize x)) (= wm1 (- (@bvsize x) 1)))
   (bvsmod x y)
-  (ite (= u (@bv 0 n))
+  (ite (= u (@bv 0 w))
     u
-    (ite (and (not xLt0) (not yLt0))
+    (ite (and nxLt0 nyLt0)
       u
-      (ite (and xLt0 (not yLt0))
+      (ite (and xLt0 nyLt0)
         (bvadd (bvneg u) y)
-        (ite (and (not xLt0) yLt0)
-          (bvadd u y)
-          (bvneg u))))))
-(define-rule bv-smod-eliminate-fewer-bitwise-ops
-  ((x ?BitVec) (y ?BitVec))
-  (def
-    (n (@bvsize x))
-    (xLt0 (bvuge x (concat (@bv 1 1) (@bv 0 (- n 1)))))
-    (yLt0 (bvuge y (concat (@bv 1 1) (@bv 0 (- n 1)))))
-    (xAbs (ite xLt0 (bvneg x) x))
-    (yAbs (ite yLt0 (bvneg y) y))
-    (u (bvurem xAbs yAbs))
-  )
-  (bvsmod x y)
-  (ite (= u (@bv 0 n))
-    u
-    (ite (and (not xLt0) (not yLt0))
-      u
-      (ite (and xLt0 (not yLt0))
-        (bvadd (bvneg u) y)
-        (ite (and (not xLt0) yLt0)
+        (ite (and nxLt0 yLt0)
           (bvadd u y)
           (bvneg u))))))
 
-(define-rule bv-srem-eliminate
-  ((x ?BitVec) (y ?BitVec))
+(define-cond-rule bv-srem-eliminate
+  ((x ?BitVec) (y ?BitVec) (nm1 Int))
   (def
-    (n (@bvsize x))
-    (xLt0 (extract (- n 1) (- n 1) x))
-    (yLt0 (extract (- n 1) (- n 1) y))
-    (xAbs (bvite xLt0 (bvneg x) x))
-    (yAbs (bvite yLt0 (bvneg y) y))
-    (u (bvurem xAbs yAbs))
-  )
-  (bvsrem x y)
-  (bvite xLt0 (bvneg u) u))
-(define-rule bv-srem-eliminate-fewer-bitwise-ops
-  ((x ?BitVec) (y ?BitVec))
-  (def
-    (n (@bvsize x))
-    (xLt0 (bvuge x (concat (@bv 1 1) (@bv 0 (- n 1)))))
-    (yLt0 (bvuge y (concat (@bv 1 1) (@bv 0 (- n 1)))))
+    (xLt0 (= (extract nm1 nm1 x) (@bv 1 1)))
+    (yLt0 (= (extract nm1 nm1 y) (@bv 1 1)))
     (xAbs (ite xLt0 (bvneg x) x))
     (yAbs (ite yLt0 (bvneg y) y))
     (u (bvurem xAbs yAbs))
   )
+  (= nm1 (- (@bvsize x) 1))
   (bvsrem x y)
   (ite xLt0 (bvneg u) u))
 
-(define-rule bv-usubo-eliminate
-  ((x ?BitVec) (y ?BitVec))
+(define-cond-rule bv-usubo-eliminate
+  ((x ?BitVec) (y ?BitVec) (n Int))
   (def
-    (n (@bvsize x))
     (s (bvsub (zero_extend 1 x) (zero_extend 1 y)))
   )
+  (= n (@bvsize x))
   (bvusubo x y)
   (= (extract n n s) (@bv 1 1)))
 ; Overflow occurs when
 ; 1. (N - P) = P
 ; 2. (P - N) = N
-(define-rule bv-ssubo-eliminate
-  ((x ?BitVec) (y ?BitVec))
+(define-cond-rule bv-ssubo-eliminate
+  ((x ?BitVec) (y ?BitVec) (nm1 Int))
   (def
     (n (@bvsize x))
-    (xLt0 (= (extract (- n 1) (- n 1) x) (@bv 1 1)))
-    (yLt0 (= (extract (- n 1) (- n 1) y) (@bv 1 1)))
+    (xe (extract nm1 nm1 x))
+    (ye (extract nm1 nm1 y))
     (s (bvsub x y))
-    (sLt0 (= (extract (- n 1) (- n 1) s) (@bv 1 1)))
+    (se (extract nm1 nm1 s))
   )
+  (= nm1 (- n 1))
   (bvssubo x y)
   (or
-    (and xLt0 (not yLt0) (not sLt0))
-    (and (not xLt0) yLt0 sLt0)))
+    (and (and (= xe (@bv 1 1)) (= ye (@bv 0 1))) (= se (@bv 0 1)))
+    (and (and (= xe (@bv 0 1)) (= ye (@bv 1 1))) (= se (@bv 1 1)))))
+
+(define-cond-rule bv-nego-eliminate
+  ((x ?BitVec) (n Int))
+  (= n (- (@bvsize x) 1))
+  (bvnego x)
+  (= x (concat (@bv 1 1) (@bv 0 n))))

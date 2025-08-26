@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Aina Niemetz
+ *   Gereon Kremer, Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -184,10 +184,21 @@ struct StatisticHistogramValue : StatisticBaseValue
     }
     d_hist[v - d_offset]++;
   }
+  /** Get the value stored for key val */
+  uint64_t getValue(Integral val)
+  {
+    int64_t index = static_cast<int64_t>(val);
+    if (index < d_offset)
+    {
+      return 0;
+    }
+    index = index - d_offset;
+    return static_cast<size_t>(index) < d_hist.size() ? d_hist[index] : 0;
+  }
 
   /** Actual data */
   std::vector<uint64_t> d_hist;
-  /** Offset of the entries. d_hist[i] corresponds to Interval(d_offset + i) */
+  /** Offset of the entries. d_hist[i] corresponds to Integral(d_offset + i) */
   int64_t d_offset;
 };
 

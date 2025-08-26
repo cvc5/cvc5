@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Andres Noetzli
+ *   Andrew Reynolds, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -147,6 +147,8 @@ class QuantifiersModule : protected EnvObj
    * Called when a quantified formula q is asserted to the quantifiers theory
    */
   virtual void assertNode(Node q) {}
+  /** notify preprocessed assertion */
+  virtual void ppNotifyAssertions(const std::vector<Node>& assertions) {}
   /**
    * Identify this module (for debugging, dynamic configuration, etc..).
    * This name is printed in -o inst-strategy.

@@ -9,10 +9,15 @@ Usage: $0 [<build type>] [<option> ...]
 
 Build types:
   production
+    Optimized, assertions and tracing disabled
   debug
+    Unoptimized, debug symbols, assertions, and tracing enabled
   testing
+    Optimized debug build
   competition
-  competition-inc
+    Maximally optimized, assertions and tracing disabled, muzzled
+  safe-mode
+    Like production except --safe-mode is set to safe
 
 
 General options;
@@ -76,6 +81,10 @@ CMake Options (Advanced)
 Wasm Options
   --wasm=VALUE             set compilation extension for WebAssembly <WASM, JS or HTML>
   --wasm-flags='STR'       Emscripten flags used in the WebAssembly binary compilation
+  --wasm-web=CONFIG        use predefined web configuration for WASM compilation
+                           (takes precedence over --wasm and --wasm-flags)
+                           Available configurations:
+                             no-modular-static-page - Configuration for static web pages
 
 EOF
   exit 0
@@ -102,6 +111,15 @@ build_dir=build
 install_prefix=default
 program_prefix=""
 
+# Converts a relative path (from the script directory) into
+# an absolute path.
+make_abs_path() {
+  local input_path="$1"
+  local script_dir="$(dirname -- "${BASH_SOURCE[0]}")"
+  local abs_script_dir="$(cd -- "$script_dir" &>/dev/null && pwd)"
+  echo "$abs_script_dir/$input_path"
+}
+
 #--------------------------------------------------------------------------#
 
 buildtype=default
@@ -110,7 +128,6 @@ asan=default
 assertions=default
 auto_download=default
 cln=default
-comp_inc=default
 coverage=default
 cryptominisat=default
 debug_context_mm=default
@@ -131,6 +148,7 @@ pyvenv=default
 java_bindings=default
 editline=default
 build_shared=ON
+safe_mode=default
 static_binary=default
 statistics=default
 tracing=default
@@ -148,6 +166,7 @@ glpk_dir=default
 
 wasm=default
 wasm_flags=""
+wasm_web=default
 
 #--------------------------------------------------------------------------#
 
@@ -320,11 +339,50 @@ do
         esac
         ;;
 
-    --wasm) wasm=WASM ;;
-    --wasm=*) wasm="${1##*=}" ;;
+    --wasm-web) die "missing argument to $1 (try -h)" ;;
+    --wasm-web=*)
+        wasm_web_config="${1##*=}"
+        case $wasm_web_config in
+          no-modular-static-page)
+            wasm=HTML
+            wasm_flags="-s EXPORTED_RUNTIME_METHODS='[\"ccall\",\"cwrap\", \"callMain\", \"FS\"]' -s ENVIRONMENT=web -s EXPORTED_FUNCTIONS=_main -s INVOKE_RUN=1 -s EXIT_RUNTIME=0 -s INCOMING_MODULE_JS_API='[\"arguments\",\"canvas\",\"monitorRunDependencies\",\"print\",\"setStatus\", \"locateFile\",\"printErr\", \"onRuntimeInitialized\", \"preRun\", \"onAbort\", \"stdin\"]' -s ASSERTIONS=1 -s NO_DISABLE_EXCEPTION_CATCHING=1 -s ALLOW_MEMORY_GROWTH=1 -s MAXIMUM_MEMORY=2147483648"
+            wasm_web=ON
+            ;;
+          *)
+            die "invalid wasm-web configuration '$wasm_web_config' (available: no-modular-static-page)"
+            ;;
+        esac
+        ;;
 
-    --wasm-flags) die "missing argument to $1 (try -h)" ;;
-    --wasm-flags=*) wasm_flags="${1#*=}" ;;
+    --wasm) 
+        if [ "$wasm_web" = default ]; then
+          wasm=WASM
+        else
+          echo "Warning: --wasm ignored because --wasm-web configuration is active"
+        fi
+        ;;
+    --wasm=*) 
+        if [ "$wasm_web" = default ]; then
+          wasm="${1##*=}"
+        else
+          echo "Warning: --wasm ignored because --wasm-web configuration is active"
+        fi
+        ;;
+
+    --wasm-flags) 
+        if [ "$wasm_web" = default ]; then
+          die "missing argument to $1 (try -h)"
+        else
+          echo "Warning: --wasm-flags ignored because --wasm-web configuration is active"
+        fi
+        ;;
+    --wasm-flags=*) 
+        if [ "$wasm_web" = default ]; then
+          wasm_flags="${1#*=}"
+        else
+          echo "Warning: --wasm-flags ignored because --wasm-web configuration is active"
+        fi
+        ;;
 
     -D*) cmake_opts="${cmake_opts} $1" ;;
 
@@ -335,7 +393,7 @@ do
          debug)           buildtype=Debug;;
          testing)         buildtype=Testing;;
          competition)     buildtype=Competition;;
-         competition-inc) buildtype=Competition; comp_inc=ON;;
+         safe-mode)       buildtype=Production; safe_mode=ON;;
          *)               die "invalid build type (try -h)";;
        esac
        ;;
@@ -348,6 +406,7 @@ done
 if [ $werror != default ]; then
   export CFLAGS=-Werror
   export CXXFLAGS=-Werror
+  cmake_opts="$cmake_opts -DTREAT_WARNING_AS_ERROR=$werror"
 fi
 
 [ $buildtype != default ] \
@@ -367,8 +426,8 @@ fi
   && cmake_opts="$cmake_opts -DENABLE_IPO=$ipo"
 [ $assertions != default ] \
   && cmake_opts="$cmake_opts -DENABLE_ASSERTIONS=$assertions"
-[ $comp_inc != default ] \
-  && cmake_opts="$cmake_opts -DENABLE_COMP_INC_TRACK=$comp_inc"
+[ $safe_mode != default ] \
+  && cmake_opts="$cmake_opts -DENABLE_SAFE_MODE=$safe_mode"
 [ $coverage != default ] \
   && cmake_opts="$cmake_opts -DENABLE_COVERAGE=$coverage"
 [ $debug_symbols != default ] \
@@ -378,12 +437,12 @@ fi
 [ $gpl != default ] \
   && cmake_opts="$cmake_opts -DENABLE_GPL=$gpl"
 [ $win64 != default ] \
-  && cmake_opts="$cmake_opts -DCMAKE_TOOLCHAIN_FILE=../cmake/Toolchain-mingw64.cmake"
+  && cmake_opts="$cmake_opts -DCMAKE_TOOLCHAIN_FILE=$(make_abs_path 'cmake/Toolchain-mingw64.cmake')"
 # Because 'MSYS Makefiles' has a space in it, we set the variable vs. adding to 'cmake_opts'
 [ $win64_native != default ] \
   && [ $ninja == default ] && export CMAKE_GENERATOR="MSYS Makefiles"
 [ $arm64 != default ] \
-  && cmake_opts="$cmake_opts -DCMAKE_TOOLCHAIN_FILE=../cmake/Toolchain-aarch64.cmake"
+  && cmake_opts="$cmake_opts -DCMAKE_TOOLCHAIN_FILE=$(make_abs_path 'cmake/Toolchain-aarch64.cmake')"
 [ $ninja != default ] && cmake_opts="$cmake_opts -G Ninja"
 [ $muzzle != default ] \
   && cmake_opts="$cmake_opts -DENABLE_MUZZLE=$muzzle"

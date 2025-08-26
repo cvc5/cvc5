@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Tim King, Gereon Kremer, Andrew Reynolds
+ *   Tim King, Gereon Kremer, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -112,10 +112,12 @@ ConstraintCP SimplexDecisionProcedure::generateConflictForBasic(ArithVar basic) 
 
   if(d_variables.cmpAssignmentLowerBound(basic) < 0){
     Assert(d_linEq.nonbasicsAtUpperBounds(basic));
-    return d_linEq.generateConflictBelowLowerBound(basic, *d_conflictBuilder);
+    return d_linEq.generateConflictBelowLowerBound(
+        nodeManager(), basic, *d_conflictBuilder);
   }else if(d_variables.cmpAssignmentUpperBound(basic) > 0){
     Assert(d_linEq.nonbasicsAtLowerBounds(basic));
-    return d_linEq.generateConflictAboveUpperBound(basic, *d_conflictBuilder);
+    return d_linEq.generateConflictAboveUpperBound(
+        nodeManager(), basic, *d_conflictBuilder);
   }else{
     Unreachable();
     return NullConstraint;

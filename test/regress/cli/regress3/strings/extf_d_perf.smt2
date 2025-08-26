@@ -1,4 +1,4 @@
-; COMMAND-LINE: --strings-exp --strings-fmf
+; COMMAND-LINE: --strings-fmf
 ; EXPECT: sat
 (set-logic ALL)
 (declare-fun _substvar_140_ () String)

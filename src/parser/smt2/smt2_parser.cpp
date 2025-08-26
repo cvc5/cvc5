@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,11 +23,11 @@ namespace parser {
 
 Smt2Parser::Smt2Parser(Solver* solver,
                        SymManager* sm,
-                       bool isStrict,
+                       ParsingMode parsingMode,
                        bool isSygus)
     : Parser(solver, sm),
-      d_slex(isStrict, isSygus),
-      d_state(this, solver, sm, isStrict, isSygus),
+      d_slex(parsingMode == ParsingMode::STRICT, isSygus),
+      d_state(this, solver, sm, parsingMode, isSygus),
       d_termParser(d_slex, d_state),
       d_cmdParser(d_slex, d_state, d_termParser)
 {

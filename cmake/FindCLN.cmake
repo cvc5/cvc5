@@ -1,10 +1,10 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Gereon Kremer, Mathias Preiner, Daniel Larraz
+#   Daniel Larraz, Gereon Kremer, Mathias Preiner
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -112,6 +112,13 @@ if(NOT CLN_FOUND_SYSTEM)
         env "CFLAGS=--target=${TOOLCHAIN_PREFIX}"
         env "LDFLAGS=-arch ${CMAKE_OSX_ARCHITECTURES}")
     endif()
+  else()
+    set(CONFIGURE_OPTS --build=${BUILD_TRIPLET}) # Defined in Helpers
+  endif()
+
+  set(CLN_WITH_GMP)
+  if(NOT GMP_FOUND_SYSTEM)
+    set(CLN_WITH_GMP "--with-gmp=<INSTALL_DIR>")
   endif()
 
   ExternalProject_Add(
@@ -122,7 +129,7 @@ if(NOT CLN_FOUND_SYSTEM)
     DOWNLOAD_NAME cln.tar.bz2
     CONFIGURE_COMMAND
       ${CONFIGURE_ENV} ${SHELL} <SOURCE_DIR>/configure
-        --prefix=<INSTALL_DIR> ${LINK_OPTS} --with-pic
+        --prefix=<INSTALL_DIR> ${LINK_OPTS} --with-pic ${CLN_WITH_GMP}
         ${CONFIGURE_OPTS}
     BUILD_BYPRODUCTS ${CLN_BYPRODUCTS}
   )
@@ -163,4 +170,11 @@ else()
   # These libraries are required to compile a program that
   # uses the cvc5 static library.
   install(FILES ${BUILD_BYPRODUCTS} TYPE ${LIB_BUILD_TYPE})
+
+  if(NOT SKIP_SET_RPATH AND BUILD_SHARED_LIBS AND APPLE)
+    foreach(CLN_DYLIB ${BUILD_BYPRODUCTS})
+      get_filename_component(CLN_DYLIB_NAME ${CLN_DYLIB} NAME)
+      update_rpath_macos(${CLN_DYLIB_NAME})
+    endforeach()
+  endif()
 endif()

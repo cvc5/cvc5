@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mudathir Mohamed, Andres Noetzli, Andrew Reynolds
+ *   Mudathir Mohamed, Daniel Larraz, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,7 +21,8 @@ public class Relations
 {
   public static void main(String[] args) throws CVC5ApiException
   {
-    Solver solver = new Solver();
+    TermManager tm = new TermManager();
+    Solver solver = new Solver(tm);
     {
       // Set the logic
       solver.setLogic("ALL");
@@ -32,93 +33,92 @@ public class Relations
       // quantified formulas
       solver.setOption("finite-model-find", "true");
       // we need sets extension to support set.universe operator
-      solver.setOption("sets-ext", "true");
+      solver.setOption("sets-exp", "true");
 
       // (declare-sort Person 0)
-      Sort personSort = solver.mkUninterpretedSort("Person");
+      Sort personSort = tm.mkUninterpretedSort("Person");
 
       // (Tuple Person)
-      Sort tupleArity1 = solver.mkTupleSort(new Sort[] {personSort});
+      Sort tupleArity1 = tm.mkTupleSort(new Sort[] {personSort});
       // (Relation Person)
-      Sort relationArity1 = solver.mkSetSort(tupleArity1);
+      Sort relationArity1 = tm.mkSetSort(tupleArity1);
 
       // (Tuple Person Person)
-      Sort tupleArity2 = solver.mkTupleSort(new Sort[] {personSort, personSort});
+      Sort tupleArity2 = tm.mkTupleSort(new Sort[] {personSort, personSort});
       // (Relation Person Person)
-      Sort relationArity2 = solver.mkSetSort(tupleArity2);
+      Sort relationArity2 = tm.mkSetSort(tupleArity2);
 
       // empty set
-      Term emptySetTerm = solver.mkEmptySet(relationArity1);
+      Term emptySetTerm = tm.mkEmptySet(relationArity1);
 
       // empty relation
-      Term emptyRelationTerm = solver.mkEmptySet(relationArity2);
+      Term emptyRelationTerm = tm.mkEmptySet(relationArity2);
 
       // universe set
-      Term universeSet = solver.mkUniverseSet(relationArity1);
+      Term universeSet = tm.mkUniverseSet(relationArity1);
 
       // variables
-      Term people = solver.mkConst(relationArity1, "people");
-      Term males = solver.mkConst(relationArity1, "males");
-      Term females = solver.mkConst(relationArity1, "females");
-      Term father = solver.mkConst(relationArity2, "father");
-      Term mother = solver.mkConst(relationArity2, "mother");
-      Term parent = solver.mkConst(relationArity2, "parent");
-      Term ancestor = solver.mkConst(relationArity2, "ancestor");
-      Term descendant = solver.mkConst(relationArity2, "descendant");
+      Term people = tm.mkConst(relationArity1, "people");
+      Term males = tm.mkConst(relationArity1, "males");
+      Term females = tm.mkConst(relationArity1, "females");
+      Term father = tm.mkConst(relationArity2, "father");
+      Term mother = tm.mkConst(relationArity2, "mother");
+      Term parent = tm.mkConst(relationArity2, "parent");
+      Term ancestor = tm.mkConst(relationArity2, "ancestor");
+      Term descendant = tm.mkConst(relationArity2, "descendant");
 
-      Term isEmpty1 = solver.mkTerm(EQUAL, males, emptySetTerm);
-      Term isEmpty2 = solver.mkTerm(EQUAL, females, emptySetTerm);
+      Term isEmpty1 = tm.mkTerm(EQUAL, males, emptySetTerm);
+      Term isEmpty2 = tm.mkTerm(EQUAL, females, emptySetTerm);
 
       // (assert (= people (as set.universe (Relation Person))))
-      Term peopleAreTheUniverse = solver.mkTerm(EQUAL, people, universeSet);
+      Term peopleAreTheUniverse = tm.mkTerm(EQUAL, people, universeSet);
       // (assert (not (= males (as set.empty (Relation Person)))))
-      Term maleSetIsNotEmpty = solver.mkTerm(NOT, isEmpty1);
+      Term maleSetIsNotEmpty = tm.mkTerm(NOT, isEmpty1);
       // (assert (not (= females (as set.empty (Relation Person)))))
-      Term femaleSetIsNotEmpty = solver.mkTerm(NOT, isEmpty2);
+      Term femaleSetIsNotEmpty = tm.mkTerm(NOT, isEmpty2);
 
       // (assert (= (set.inter males females)
       //            (as set.empty (Relation Person))))
-      Term malesFemalesIntersection = solver.mkTerm(SET_INTER, males, females);
-      Term malesAndFemalesAreDisjoint =
-          solver.mkTerm(EQUAL, malesFemalesIntersection, emptySetTerm);
+      Term malesFemalesIntersection = tm.mkTerm(SET_INTER, males, females);
+      Term malesAndFemalesAreDisjoint = tm.mkTerm(EQUAL, malesFemalesIntersection, emptySetTerm);
 
       // (assert (not (= father (as set.empty (Relation Person Person)))))
       // (assert (not (= mother (as set.empty (Relation Person Person)))))
-      Term isEmpty3 = solver.mkTerm(EQUAL, father, emptyRelationTerm);
-      Term isEmpty4 = solver.mkTerm(EQUAL, mother, emptyRelationTerm);
-      Term fatherIsNotEmpty = solver.mkTerm(NOT, isEmpty3);
-      Term motherIsNotEmpty = solver.mkTerm(NOT, isEmpty4);
+      Term isEmpty3 = tm.mkTerm(EQUAL, father, emptyRelationTerm);
+      Term isEmpty4 = tm.mkTerm(EQUAL, mother, emptyRelationTerm);
+      Term fatherIsNotEmpty = tm.mkTerm(NOT, isEmpty3);
+      Term motherIsNotEmpty = tm.mkTerm(NOT, isEmpty4);
 
       // fathers are males
       // (assert (set.subset (rel.join father people) males))
-      Term fathers = solver.mkTerm(RELATION_JOIN, father, people);
-      Term fathersAreMales = solver.mkTerm(SET_SUBSET, fathers, males);
+      Term fathers = tm.mkTerm(RELATION_JOIN, father, people);
+      Term fathersAreMales = tm.mkTerm(SET_SUBSET, fathers, males);
 
       // mothers are females
       // (assert (set.subset (rel.join mother people) females))
-      Term mothers = solver.mkTerm(RELATION_JOIN, mother, people);
-      Term mothersAreFemales = solver.mkTerm(SET_SUBSET, mothers, females);
+      Term mothers = tm.mkTerm(RELATION_JOIN, mother, people);
+      Term mothersAreFemales = tm.mkTerm(SET_SUBSET, mothers, females);
 
       // (assert (= parent (set.union father mother)))
-      Term unionFatherMother = solver.mkTerm(SET_UNION, father, mother);
-      Term parentIsFatherOrMother = solver.mkTerm(EQUAL, parent, unionFatherMother);
+      Term unionFatherMother = tm.mkTerm(SET_UNION, father, mother);
+      Term parentIsFatherOrMother = tm.mkTerm(EQUAL, parent, unionFatherMother);
 
       // (assert (= ancestor (rel.tclosure parent)))
-      Term transitiveClosure = solver.mkTerm(RELATION_TCLOSURE, parent);
-      Term ancestorFormula = solver.mkTerm(EQUAL, ancestor, transitiveClosure);
+      Term transitiveClosure = tm.mkTerm(RELATION_TCLOSURE, parent);
+      Term ancestorFormula = tm.mkTerm(EQUAL, ancestor, transitiveClosure);
 
       // (assert (= descendant (rel.transpose ancestor)))
-      Term transpose = solver.mkTerm(RELATION_TRANSPOSE, ancestor);
-      Term descendantFormula = solver.mkTerm(EQUAL, descendant, transpose);
+      Term transpose = tm.mkTerm(RELATION_TRANSPOSE, ancestor);
+      Term descendantFormula = tm.mkTerm(EQUAL, descendant, transpose);
 
       // (assert (forall ((x Person)) (not (set.member (tuple x x) ancestor))))
-      Term x = solver.mkVar(personSort, "x");
-      Term xxTuple = solver.mkTuple(new Term[] {x, x});
-      Term member = solver.mkTerm(SET_MEMBER, xxTuple, ancestor);
-      Term notMember = solver.mkTerm(NOT, member);
+      Term x = tm.mkVar(personSort, "x");
+      Term xxTuple = tm.mkTuple(new Term[] {x, x});
+      Term member = tm.mkTerm(SET_MEMBER, xxTuple, ancestor);
+      Term notMember = tm.mkTerm(NOT, member);
 
-      Term quantifiedVariables = solver.mkTerm(VARIABLE_LIST, x);
-      Term noSelfAncestor = solver.mkTerm(FORALL, quantifiedVariables, notMember);
+      Term quantifiedVariables = tm.mkTerm(VARIABLE_LIST, x);
+      Term noSelfAncestor = tm.mkTerm(FORALL, quantifiedVariables, notMember);
 
       // formulas
       solver.assertFormula(peopleAreTheUniverse);

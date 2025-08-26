@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz
+ *   Andrew Reynolds, Daniel Larraz, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -59,7 +59,7 @@ class DetTrace
    * Construct the formula that this trace represents with respect to variables
    * in vars. For details, see DetTraceTrie::constructFormula below.
    */
-  Node constructFormula(const std::vector<Node>& vars);
+  Node constructFormula(NodeManager* nm, const std::vector<Node>& vars);
   /** Debug print this trace on trace message c */
   void print(const char* c) const;
 
@@ -83,7 +83,9 @@ class DetTrace
      * and vars is [x,y,z], then this method returns:
      *   ( x=1 ^ y=2 ^ z=3 ) V ( x=2 ^ y=3 ^ z=4 ).
      */
-    Node constructFormula(const std::vector<Node>& vars, unsigned index = 0);
+    Node constructFormula(NodeManager* nm,
+                          const std::vector<Node>& vars,
+                          unsigned index = 0);
   };
   /** The above trie data structure for this class */
   DetTraceTrie d_trie;

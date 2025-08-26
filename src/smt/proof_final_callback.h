@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Hans-Joerg Schurr, Haniel Barbosa
+ *   Andrew Reynolds, Hans-Joerg Schurr, Abdalrhman Mohamed
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -43,16 +43,19 @@ class ProofFinalCallback : protected EnvObj, public ProofNodeUpdaterCallback
    * static information to be used by successive calls to update.
    */
   void initializeUpdate();
-  /** Should proof pn be updated? Returns false, adds to stats. */
-  bool shouldUpdate(std::shared_ptr<ProofNode> pn,
-                    const std::vector<Node>& fa,
-                    bool& continueUpdate) override;
+  /** Finalize the proof node, which checks assertions and adds to stats. */
+  void finalize(std::shared_ptr<ProofNode> pn) override;
   /** was pedantic failure */
   bool wasPedanticFailure(std::ostream& out) const;
 
  private:
   /** Counts number of postprocessed proof nodes for each kind of proof rule */
   HistogramStat<ProofRule> d_ruleCount;
+  /**
+   * Counts number of proof nodes for each kind of proof rule that cannot be
+   * printed in CPC+Eunoia.
+   */
+  HistogramStat<ProofRule> d_ruleEouCount;
   /**
    * Counts number of postprocessed proof nodes of rule INSTANTIATE that were
    * marked with the given inference id.
@@ -67,13 +70,22 @@ class ProofFinalCallback : protected EnvObj, public ProofNodeUpdaterCallback
    */
   HistogramStat<ProofRewriteRule> d_theoryRewriteRuleCount;
   /**
+   * Counts number of proof nodes for each kind of THEORY_REWRITE that cannot be
+   * printed in CPC+Eunoia.
+   */
+  HistogramStat<ProofRewriteRule> d_theoryRewriteEouCount;
+  /**
    * Counts number of postprocessed proof nodes for each trusted step
    */
   HistogramStat<TrustId> d_trustIds;
   /**
    * Counts number of theory ids in TRUST_THEORY_REWRITE steps.
    */
-  HistogramStat<theory::TheoryId> d_trustTheoryIdCount;
+  HistogramStat<theory::TheoryId> d_trustTheoryRewriteCount;
+  /**
+   * Counts number of theory ids in TRUST / THEORY_LEMMA steps.
+   */
+  HistogramStat<theory::TheoryId> d_trustTheoryLemmaCount;
   /** Total number of postprocessed rule applications */
   IntStat d_totalRuleCount;
   /** The minimum pedantic level of any rule encountered */
@@ -82,6 +94,11 @@ class ProofFinalCallback : protected EnvObj, public ProofNodeUpdaterCallback
   IntStat d_numFinalProofs;
   /** Was there a pedantic failure? */
   bool d_pedanticFailure;
+  /**
+   * Should we check for proof holes? True if statistics are enabled or if
+   * check-proofs-complete is true.
+   */
+  bool d_checkProofHoles;
   /** The pedantic failure string for debugging */
   std::stringstream d_pedanticFailureOut;
 };

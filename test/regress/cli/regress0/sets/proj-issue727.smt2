@@ -1,6 +1,6 @@
 ; EXPECT: unsat
 (set-logic ALL)
-(set-option :sets-ext true)
+(set-option :sets-exp true)
 (set-option :debug-check-models true)
 (declare-const x (Set Bool))
 (declare-const _x6 (Set Bool))

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -39,10 +39,14 @@ void ProofCnfStream::convertAndAssert(TNode node,
                                       bool input,
                                       ProofGenerator* pg)
 {
+  // this method is re-entrant due to lemmas sent during preregistration of new
+  // lemmas, thus we must remember and revert d_input below.
+  bool backupInput = d_input;
   Trace("cnf") << "ProofCnfStream::convertAndAssert(" << node
                << ", negated = " << (negated ? "true" : "false")
                << ", removable = " << (removable ? "true" : "false")
-               << "), level " << userContext()->getLevel() << "\n";
+               << ", input = " << (input ? "true" : "false") << "), level "
+               << userContext()->getLevel() << "\n";
   d_cnfStream.d_removable = removable;
   d_input = input;
   if (pg)
@@ -57,7 +61,7 @@ void ProofCnfStream::convertAndAssert(TNode node,
                          "ProofCnfStream::convertAndAssert:cnf");
   }
   convertAndAssert(node, negated);
-  d_input = false;
+  d_input = backupInput;
 }
 
 void ProofCnfStream::convertAndAssert(TNode node, bool negated)

@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ###############################################################################
 # Top contributors (to current version):
-#   Mudathir Mohamed, Aina Niemetz, Alex Ozdemir
+#   Mudathir Mohamed, Aina Niemetz, Makai Mann
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -31,7 +31,7 @@ if __name__ == "__main__":
     # quantified formulas
     solver.setOption("finite-model-find", "true")
     # we need sets extension to support set.universe operator
-    solver.setOption("sets-ext", "true")
+    solver.setOption("sets-exp", "true")
 
     integer = tm.getIntegerSort()
     set_ = tm.mkSetSort(integer)

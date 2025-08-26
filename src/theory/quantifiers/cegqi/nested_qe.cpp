@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,6 +21,7 @@
 #include "smt/env.h"
 #include "theory/rewriter.h"
 #include "theory/smt_engine_subsolver.h"
+#include "smt/set_defaults.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -71,7 +72,7 @@ bool NestedQe::hasNestedQuantification(Node q)
 
 Node NestedQe::doNestedQe(Env& env, Node q, bool keepTopLevel)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = env.getNodeManager();
   Node qOrig = q;
   bool inputExists = false;
   if (q.getKind() == Kind::EXISTS)
@@ -137,10 +138,13 @@ Node NestedQe::doQe(Env& env, Node q)
 {
   Assert(q.getKind() == Kind::FORALL);
   Trace("cegqi-nested-qe") << "  Apply qe to " << q << std::endl;
-  NodeManager* nm = NodeManager::currentNM();
-  q = nm->mkNode(Kind::EXISTS, q[0], q[1].negate());
+  q = NodeManager::mkNode(Kind::EXISTS, q[0], q[1].negate());
   std::unique_ptr<SolverEngine> smt_qe;
-  initializeSubsolver(smt_qe, env);
+  Options subOptions;
+  subOptions.copyValues(env.getOptions());
+  smt::SetDefaults::disableChecking(subOptions);
+  SubsolverSetupInfo ssi(env, subOptions);
+  initializeSubsolver(env.getNodeManager(), smt_qe, ssi);
   Node qqe = smt_qe->getQuantifierElimination(q, true);
   if (expr::hasBoundVar(qqe))
   {
