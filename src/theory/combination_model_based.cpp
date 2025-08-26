@@ -15,18 +15,18 @@
 
 #include "theory/combination_model_based.h"
 
+#include "expr/node_trie.h"
 #include "theory/model_manager.h"
 #include "theory/shared_solver.h"
 #include "theory/theory_engine.h"
 #include "theory/theory_model.h"
-#include "expr/node_trie.h"
 
 namespace cvc5::internal {
 namespace theory {
 
 class RepInfo
 {
-public:
+ public:
   Node d_baseRep;
   std::map<Node, std::vector<Node>> d_congTerms;
 };
@@ -48,10 +48,11 @@ void CombinationModelBased::resetModel()
     d_mmanager->resetModel();
   }
 }
-  
+
 void CombinationModelBased::combineTheories()
 {
-  Trace("combination-mb") << "CombinationModelBased::combineTheories" << std::endl;
+  Trace("combination-mb") << "CombinationModelBased::combineTheories"
+                          << std::endl;
   d_mmanager->resetModel();
   // go ahead and build the model now
   if (!d_mmanager->buildModel())
@@ -61,7 +62,7 @@ void CombinationModelBased::combineTheories()
   }
   // A trie for each kind of term, which is used to recognize congruent terms.
   std::map<Kind, NodeTrie> tries;
-  // must double check 
+  // must double check
   TheoryModel* tm = d_mmanager->getModel();
   eq::EqualityEngine* ee = tm->getEqualityEngine();
   eq::EqClassesIterator eqsi = eq::EqClassesIterator(ee);
@@ -78,7 +79,7 @@ void CombinationModelBased::combineTheories()
     {
       Node n = (*eqi);
       ++eqi;
-      if (n.getNumChildren()==0)
+      if (n.getNumChildren() == 0)
       {
         // skip atomic terms
         continue;
@@ -107,7 +108,7 @@ void CombinationModelBased::combineTheories()
         reps.emplace_back(tm->getRepresentative(nc));
       }
       Node ncrep = nt.addOrGetTerm(n, reps);
-      if (ncrep==n)
+      if (ncrep == n)
       {
         continue;
       }
@@ -123,15 +124,15 @@ void CombinationModelBased::combineTheories()
       // the status of its arguments in its equality engine. This handling
       // is based on Theory::addCarePairArgs.
       TheoryId tid = Theory::theoryOf(n);
-      Theory * t = d_te.theoryOf(tid);
-      eq::EqualityEngine * eet = t->getEqualityEngine();
+      Theory* t = d_te.theoryOf(tid);
+      eq::EqualityEngine* eet = t->getEqualityEngine();
       for (const std::pair<const Node, std::vector<Node>>& cts : ri.d_congTerms)
       {
         for (const Node& nother : cts.second)
         {
-          if (cts.first==rcur)
+          if (cts.first == rcur)
           {
-            if (n==nother)
+            if (n == nother)
             {
               continue;
             }
@@ -146,24 +147,28 @@ void CombinationModelBased::combineTheories()
           {
             hasConflict = true;
           }
-          Trace("combination-mb") << "Conflict: " << n << " vs " << nother << std::endl;
-          Trace("combination-mb") << "...reps are " << rcur << " and " << cts.first << std::endl;
-          Assert (nother.getNumChildren()==n.getNumChildren());
-          Assert (eet!=nullptr);
-          for (size_t i=0, nchild=n.getNumChildren(); i<nchild; i++)
+          Trace("combination-mb")
+              << "Conflict: " << n << " vs " << nother << std::endl;
+          Trace("combination-mb")
+              << "...reps are " << rcur << " and " << cts.first << std::endl;
+          Assert(nother.getNumChildren() == n.getNumChildren());
+          Assert(eet != nullptr);
+          for (size_t i = 0, nchild = n.getNumChildren(); i < nchild; i++)
           {
-            if (nother[i]==n[i])
+            if (nother[i] == n[i])
             {
               // reflexive equality, not the issue
               continue;
             }
-            Trace("combination-mb") << "Check argument " << nother[i] << " vs " << n[i] << std::endl;
+            Trace("combination-mb") << "Check argument " << nother[i] << " vs "
+                                    << n[i] << std::endl;
             if (eet->isTriggerTerm(n[i], tid)
                 && eet->isTriggerTerm(nother[i], tid)
                 && !eet->areEqual(n[i], nother[i]))
             {
               TNode x_shared = eet->getTriggerTermRepresentative(n[i], tid);
-              TNode y_shared = eet->getTriggerTermRepresentative(nother[i], tid);
+              TNode y_shared =
+                  eet->getTriggerTermRepresentative(nother[i], tid);
               Node eq = x_shared.eqNode(y_shared);
               if (!eqProcessed.insert(eq).second)
               {

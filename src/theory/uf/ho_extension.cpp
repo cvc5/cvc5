@@ -286,7 +286,7 @@ void HoExtension::computeRelevantTerms(std::set<Node>& termSet)
     {
       Node ht = TheoryUfRewriter::getHoApplyForApplyUf(t);
       // also add all subterms
-      while (ht.getKind()==Kind::HO_APPLY)
+      while (ht.getKind() == Kind::HO_APPLY)
       {
         termSet.insert(ht);
         termSet.insert(ht[1]);
@@ -433,8 +433,10 @@ unsigned HoExtension::checkExtensionality(TheoryModel* m)
                 te++;
                 Node v2 = *te;
                 Assert(!v2.isNull() && v2 != v1);
-                Trace("uf-ho-debug") << "Finite witness: " << edeq[0][0] << " == " << v1 << std::endl;
-                Trace("uf-ho-debug") << "Finite witness: " << edeq[0][1] << " == " << v2 << std::endl;
+                Trace("uf-ho-debug") << "Finite witness: " << edeq[0][0]
+                                     << " == " << v1 << std::endl;
+                Trace("uf-ho-debug") << "Finite witness: " << edeq[0][1]
+                                     << " == " << v2 << std::endl;
                 success = m->assertEquality(edeq[0][0], v1, true);
                 if (success)
                 {
@@ -837,7 +839,7 @@ bool HoExtension::collectModelInfoHoTerm(Node n, TheoryModel* m)
     }
     // also add all subterms
     eq::EqualityEngine* ee = m->getEqualityEngine();
-    while (hn.getKind()==Kind::HO_APPLY)
+    while (hn.getKind() == Kind::HO_APPLY)
     {
       ee->addTerm(hn);
       ee->addTerm(hn[1]);

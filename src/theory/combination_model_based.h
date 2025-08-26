@@ -35,7 +35,7 @@ namespace theory {
  * congruence, we compute this manually in the combineTheories method.
  * For each pair of congruent terms, we split on each pair of arguments that
  * are not already made equal in the theory that owns the congruent terms.
- * 
+ *
  * For example, say f : Int -> Int and the initial model set
  * (f a) = 3, (f (+ b 1)) = 4. If we chose a = 2, b = 1, then
  * (1) a = (+ b 1) = 2
@@ -43,7 +43,7 @@ namespace theory {
  * It should be the case that some argument of these two applications of f
  * are both shared terms, in this case a and b+1, in which case we add the
  * split a = b+1.
- * 
+ *
  * Note that in the above case we had two applications of f that were congruent
  * *and* disequal. Note that terms that are congruent and equal also must be
  * treated similarly, as identifying them may violate theory constraints.
@@ -52,7 +52,7 @@ namespace theory {
  * datatypes, which is *not* communicated to the model. In this case, if the
  * model sets a = 2, b = 1, then (c a) = (c (+ b 1)) = (c 2),
  * i.e. they are congruent and equal, we split must split on a = b+1.
- * 
+ *
  * It is important that this class check for splits for all cases of the above
  * form at once, as in practice there are many possible splits that should be
  * sent all at once, instead of considering one at a time.
@@ -64,11 +64,11 @@ class CombinationModelBased : public CombinationEngine
                         TheoryEngine& te,
                         const std::vector<Theory*>& paraTheories);
   ~CombinationModelBased();
-  /** 
+  /**
    * Reset model
    */
   void resetModel() override;
-  /** 
+  /**
    * Build model
    */
   bool buildModel() override;

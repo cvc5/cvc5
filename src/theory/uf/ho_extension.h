@@ -125,7 +125,7 @@ class HoExtension : protected EnvObj
    * e.g. (@ f a), (@ (@ f a) b) to termSet.
    */
   void computeRelevantTerms(std::set<Node>& termSet);
-  
+
  protected:
   /** get apply uf for ho apply
    *
