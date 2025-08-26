@@ -228,6 +228,8 @@
 (define re.* (# x term (apply f_re.* x)))
 (declare f_re.+ term)
 (define re.+ (# x term (apply f_re.+ x)))
+(declare f_re.^ (! n mpz term))
+(define re.^ (# n mpz (# x term (apply (f_re.^ n) x))))
 (declare f_re.opt term)
 (define re.opt (# x term (apply f_re.opt x)))
 (declare f_re.comp term)

@@ -8150,7 +8150,8 @@ Term Solver::getValue(const Term& term) const
   CVC5_API_RECOVERABLE_CHECK(d_slv->isSmtModeSat())
       << "cannot get value unless after a SAT or UNKNOWN response.";
   CVC5_API_SOLVER_CHECK_TERM(term);
-  CVC5_API_RECOVERABLE_CHECK(term.getSort().getTypeNode().isFirstClass())
+  CVC5_API_RECOVERABLE_CHECK(
+      d_slv->getEnv().isFirstClassType(term.getSort().getTypeNode()))
       << "cannot get value of a term that is not first class.";
   CVC5_API_RECOVERABLE_CHECK(!term.getSort().isDatatype()
                              || term.getSort().getDatatype().isWellFounded())
@@ -8173,7 +8174,8 @@ std::vector<Term> Solver::getValue(const std::vector<Term>& terms) const
       << "cannot get value unless after a SAT or UNKNOWN response.";
   for (const Term& t : terms)
   {
-    CVC5_API_RECOVERABLE_CHECK(t.getSort().getTypeNode().isFirstClass())
+    CVC5_API_RECOVERABLE_CHECK(
+        d_slv->getEnv().isFirstClassType(t.getSort().getTypeNode()))
         << "cannot get value of a term that is not first class.";
     CVC5_API_RECOVERABLE_CHECK(!t.getSort().isDatatype()
                                || t.getSort().getDatatype().isWellFounded())
