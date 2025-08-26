@@ -36,6 +36,19 @@ String::String(const std::wstring& s)
   d_str.resize(s.size());
   for (size_t i = 0, n = s.size(); i < n; ++i)
   {
+    unsigned u = static_cast<unsigned>(s[i]);
+#ifdef CVC5_ASSERTIONS
+    Assert(u < num_codes());
+#endif
+    d_str[i] = u;
+  }
+}
+
+String::String(const std::u32string& s)
+{
+  d_str.resize(s.size());
+  for (size_t i = 0, n = s.size(); i < n; ++i)
+  {
     d_str[i] = static_cast<unsigned>(s[i]);
   }
 }
@@ -308,6 +321,16 @@ std::wstring String::toWString() const
   for (std::size_t i = 0; i < size(); ++i)
   {
     res[i] = static_cast<wchar_t>(d_str[i]);
+  }
+  return res;
+}
+
+std::u32string String::toU32String() const
+{
+  std::u32string res(size(), static_cast<char32_t>(0));
+  for (std::size_t i = 0; i < size(); ++i)
+  {
+    res[i] = static_cast<char32_t>(d_str[i]);
   }
   return res;
 }

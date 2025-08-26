@@ -32,7 +32,7 @@
 ;   A portion of the result of eliminating (bvsmulo a b).
 (program $bv_smulo_elim_rec ((n Int) (xa (BitVec n)) (xb (BitVec n))
                              (ppc (BitVec 1)) (res (BitVec 1)) (i Int) (nm2 Int))
-  ((BitVec n) (BitVec n) (BitVec 1) (BitVec 1) Int Int) (BitVec 1)
+  :signature ((BitVec n) (BitVec n) (BitVec 1) (BitVec 1) Int Int) (BitVec 1)
   (
   (($bv_smulo_elim_rec xa xb ppc res nm2 nm2)   res)
   (($bv_smulo_elim_rec xa xb ppc res i nm2)
@@ -53,10 +53,10 @@
   (eo::define ((w ($bv_bitwidth (eo::typeof a))))
   (eo::define ((wm1 (eo::add w -1)))
   (eo::define ((one (eo::to_bin 1 1)))
-  (eo::ite (eo::is_eq w 1)
+  (eo::ite (eo::eq w 1)
     (= (bvand a b) one)
     (eo::define ((mul (bvmul (sign_extend 1 a) (sign_extend 1 b))))
-    (eo::ite (eo::is_eq w 2)
+    (eo::ite (eo::eq w 2)
       (= (bvxor (extract w w mul) (extract wm1 wm1 mul)) one)
       (eo::define ((xa (bvxor a (sign_extend wm1 (extract wm1 wm1 a)))))
       (eo::define ((xb (bvxor b (sign_extend wm1 (extract wm1 wm1 b)))))
@@ -92,7 +92,7 @@
 ;   A portion of the result of eliminating (bvsmulo a b).
 (program $bv_umulo_elim_rec ((n Int) (a (BitVec n)) (b (BitVec n))
                              (uppc (BitVec 1)) (res (BitVec 1)) (i Int))
-  ((BitVec n) (BitVec n) (BitVec 1) (BitVec 1) Int Int) (BitVec 1)
+  :signature ((BitVec n) (BitVec n) (BitVec 1) (BitVec 1) Int Int) (BitVec 1)
   (
   (($bv_umulo_elim_rec a b uppc res n n)   res)
   (($bv_umulo_elim_rec a b uppc res i n)
@@ -111,7 +111,7 @@
 ;   The result of eliminating (bvumulo a b).
 (define $bv_umulo_elim ((n Int :implicit) (a (BitVec n)) (b (BitVec n)))
   (eo::define ((w ($bv_bitwidth (eo::typeof a))))
-  (eo::ite (eo::is_eq w 1)
+  (eo::ite (eo::eq w 1)
     false
     (eo::define ((wm1 (eo::add w -1)))
     (eo::define ((zero (eo::to_bin 1 0)))
@@ -148,17 +148,16 @@
 ;   (concat (bvand ((_ extract 3 2) #b0011) ((_ extract 3 2) x))
 ;           (bvand ((_ extract 1 0) #b0011) ((_ extract 1 0) x)))
 ;   given input where f is bvand, c is #b0011, and a is x.
-(program $bv_mk_bitwise_slicing_rec
-  ((n Int) (m Int)
+(program $bv_mk_bitwise_slicing_rec ((n Int) (m Int) (k Int)
    (f (-> (BitVec n) (BitVec n) (BitVec n))) (a (BitVec n)) (c (BitVec n))
    (b Bool) (bn Bool) (bs (BitVec m) :list) (start Int) (end Int))
-  ((-> (BitVec n) (BitVec n) (BitVec n)) (BitVec n) (BitVec n) (BitVec m) Bool Int Int) (BitVec n)
+  :signature ((-> (BitVec n) (BitVec n) (BitVec n)) (BitVec k) (BitVec k) (BitVec m) Bool Int Int) (BitVec k)
   (
   (($bv_mk_bitwise_slicing_rec f c a bs bn start -1)
       (eo::cons concat ($nary_app f (extract start 0 c) (extract start 0 a)) @bv_empty))
   (($bv_mk_bitwise_slicing_rec f c a (@from_bools b bs) bn start end)
         (eo::define ((em1 (eo::add end -1)) (ep1 (eo::add end 1)))
-        (eo::ite (eo::is_eq b bn)
+        (eo::ite (eo::eq b bn)
           ($bv_mk_bitwise_slicing_rec f c a bs b start em1)
           (eo::cons concat
             ($nary_app f (extract start ep1 c) (extract start ep1 a))
@@ -173,7 +172,7 @@
 ;   true if we can apply bitwise slicing to f. This is the case if f
 ;   is either bvand, bvor, or bvxor.
 (define $bv_is_bitwise_slicing_op ((n Int :implicit) (f (-> (BitVec n) (BitVec n) (BitVec n))))
-  (eo::or (eo::is_eq f bvand) (eo::is_eq f bvor) (eo::is_eq f bvxor)))
+  (eo::or (eo::eq f bvand) (eo::eq f bvor) (eo::eq f bvxor)))
 
 ; program: $bv_mk_bitwise_slicing
 ; args:
@@ -183,23 +182,21 @@
 ;   (bvand x #b0011) as a, this program will return
 ;   (concat (bvand ((_ extract 3 2) #b0011) ((_ extract 3 2) x))
 ;           (bvand ((_ extract 1 0) #b0011) ((_ extract 1 0) x))).
-(define $bv_mk_bitwise_slicing ((n Int :implicit) (a (BitVec n)))
-  (eo::match ((m Int) (f (-> (BitVec m) (BitVec m) (BitVec m))) (a1 (BitVec m)) (a2 (BitVec m) :list))
-    a
-    (
-    ((f a1 a2)    ($singleton_elim
-                  (eo::define ((c ($bv_get_first_const_child a)))
-                  (eo::requires ($bv_is_bitwise_slicing_op f) true
-                  (eo::requires (eo::is_eq c @bv_empty) false
-                  (eo::define ((wm1 (eo::add (eo::len c) -1)))
-                  ($bv_mk_bitwise_slicing_rec
-                    f
-                    c
-                    (eo::define ((nil (eo::nil f a1 a2)))
-                      ($singleton_elim ($nary_diff f nil a (eo::cons f c nil))))  ; remove the constant and recollect
-                    ($nary_reverse ($bv_mk_bitblast_step_const c))                ; convert the constant to a bitlist
-                    ($bv_bit_set c wm1) wm1 wm1)))))))
-    )
+(program $bv_mk_bitwise_slicing ((n Int) (m Int) (f (-> (BitVec m) (BitVec m) (BitVec m))) (a1 (BitVec n)) (a2 (BitVec n) :list))
+  :signature ((BitVec n)) (BitVec n)
+  (
+  (($bv_mk_bitwise_slicing (f a1 a2))
+              ($singleton_elim
+                (eo::define ((c ($bv_get_first_const_child (f a1 a2))))
+                (eo::requires ($bv_is_bitwise_slicing_op f) true
+                (eo::define ((wm1 (eo::add (eo::len c) -1)))
+                ($bv_mk_bitwise_slicing_rec
+                  f
+                  c
+                  (eo::define ((nil (eo::nil f (eo::typeof a1))))
+                    ($singleton_elim (eo::list_erase f (f a1 a2) c)))         ; remove the constant and recollect
+                  (eo::list_rev @from_bools ($bv_mk_bitblast_step_const c))   ; convert the constant to a bitlist
+                  ($bv_bit_set c wm1) wm1 wm1))))))
   )
 )
 
@@ -224,13 +221,12 @@
 ; - eq Bool: The equality to prove.
 ; requires: >
 ;   We require that $bv_mk_bitblast_step applied to the left hand side returns
-;   the right hand side.
+;   the right hand side. Note that a and b are either Booleans or bitvectors.
 ; conclusion: The given equality.
 ; note: >
 ;   The current implementation only covers some of the operators that may
 ;   appear in ProofRule::BV_BITBLAST_STEP.
-(declare-rule bv_bitblast_step
-  ((n Int) (a (BitVec n)) (b (BitVec n)))
+(declare-rule bv_bitblast_step ((U Type) (a U) (b U))
   :args ((= a b))
   :requires ((($bv_mk_bitblast_step a) b))
   :conclusion (= a b)
@@ -249,7 +245,7 @@
 (declare-rule bv_poly_norm ((n Int) (a (BitVec n)) (b (BitVec n)))
   :args ((= a b))
   :requires (((eo::define ((w ($arith_eval_int_pow_2 ($bv_bitwidth (eo::typeof a)))))
-                (eo::is_eq ($get_bv_poly_norm w a) ($get_bv_poly_norm w b))) true))
+                (eo::eq ($get_bv_poly_norm w a) ($get_bv_poly_norm w b))) true))
   :conclusion (= a b)
 )
 

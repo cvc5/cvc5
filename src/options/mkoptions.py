@@ -64,10 +64,13 @@ OPTION_ATTR_REQ = ['category', 'type']
 OPTION_ATTR_ALL = OPTION_ATTR_REQ + [
     'name', 'short', 'long', 'alias', 'default', 'alternate', 'mode',
     'handler', 'predicates', 'includes', 'minimum', 'maximum', 'help',
-    'help_mode'
+    'help_mode', 'no_support'
 ]
 
 CATEGORY_VALUES = ['common', 'expert', 'regular', 'undocumented']
+
+# legal values for the "no_support" field
+NO_SUPPORT_VALUES = ['proofs', 'models', 'unsat-cores']
 
 ################################################################################
 ################################################################################
@@ -432,6 +435,7 @@ def generate_getinfo_impl(modules):
             'type': option.type,
             'value': 'opts.{}.{}'.format(module.id, option.name),
             'setbyuser': 'opts.{}.{}WasSetByUser'.format(module.id, option.name),
+            'no_support': '',
             'default': option.default if option.default else '{}()'.format(option.type),
             'minimum': option.minimum if option.minimum else '{}',
             'maximum': option.maximum if option.maximum else '{}',
@@ -439,6 +443,8 @@ def generate_getinfo_impl(modules):
         }
         if option.alias:
             fmt['alias'] = ', '.join(map(lambda s: '"{}"'.format(s), option.alias))
+        if option.no_support:
+            fmt['no_support'] = ', '.join(map(lambda s: '"{}"'.format(s), option.no_support))
         if not option.name:
             fmt['setbyuser'] = 'false'
             constr = 'OptionInfo::VoidInfo{{}}'
@@ -454,7 +460,7 @@ def generate_getinfo_impl(modules):
         else:
             constr = 'OptionInfo::VoidInfo{{}}'
         res.append("  case OptionEnum::{}:".format(option.enum_name()))
-        line = '    return OptionInfo{{"{name}", {{{alias}}}, {setbyuser}, {category}, ' + constr + '}};'
+        line = '    return OptionInfo{{"{name}", {{{alias}}}, {{{no_support}}}, {setbyuser}, {category}, ' + constr + '}};'
         res.append(line.format(**fmt))
     res.append("}")
     return '\n  '.join(res)
@@ -1125,6 +1131,12 @@ class Checker:
                     self.__check_option_long(o, alias)
                     if o.alternate:
                         self.__check_option_long(o, 'no-' + alias)
+        if o.no_support:
+            if o.category != "regular":
+                self.perr("has a no_support field but is not a regular option", option=o)
+            for ns in o.no_support:
+                if ns not in NO_SUPPORT_VALUES:
+                    self.perr("has invalid no_support field '{}'", ns, option=o)
         return o
 
 

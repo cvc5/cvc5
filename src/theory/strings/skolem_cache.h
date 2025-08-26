@@ -118,7 +118,49 @@ class SkolemCache
     // For integer b,
     // b > 0 =>
     //    exists k. a = a' ++ k ^ len( k ) = ite( len(a)>b, len(a)-b, 0 )
-    SK_SUFFIX_REM
+    SK_SUFFIX_REM,
+    /**
+     * The next three skolems are used to reason about the match of a regular
+     * expression in string.
+     *
+     * For string a and regular expression ``R``, this skolem is the prefix of
+     * string a before the first, shortest match of ``R`` in ``a``. Formally, if
+     * ``(str.in_re a (re.++ (re.* re.allchar) R (re.* re.allchar)))``, then
+     * there exists strings k_pre, k_match, k_post such that:
+     *       ``(= a (str.++ k_pre k_match k_post))`` and
+     *       ``(= (len k_pre) (indexof_re a R 0))`` and
+     *       ``(forall ((l Int)) (=> (< 0 l (len k_match))
+     *         (not (str.in_re (substr k_match 0 l) R))))`` and
+     *       ``(str.in_re k_match R)``
+     * This skolem is k_pre, and the proceeding two skolems are k_match and
+     * k_post.
+     *
+     * - Number of skolem indices: ``2``
+     *   - ``1:`` The string.
+     *   - ``2:`` The regular expression to match.
+     * - Sort: ``String``
+     */
+    RE_FIRST_MATCH_PRE,
+    /**
+     * For string a and regular expression ``R``, this skolem is the string that
+     * the first, shortest match of ``R`` was matched to in ``a``.
+     *
+     * - Number of skolem indices: ``2``
+     *   - ``1:`` The string.
+     *   - ``2:`` The regular expression to match.
+     * - Sort: ``String``
+     */
+    RE_FIRST_MATCH,
+    /**
+     * For string a and regular expression ``R``, this skolem is the remainder
+     * of ``a`` after the first, shortest match of ``R`` in ``a``.
+     *
+     * - Number of skolem indices: ``2``
+     *   - ``1:`` The string.
+     *   - ``2:`` The regular expression to match.
+     * - Sort: ``String``
+     */
+    RE_FIRST_MATCH_POST,
   };
   /**
    * Returns a skolem of type string that is cached for (a,b,id) and has
@@ -162,6 +204,13 @@ class SkolemCache
    * that could be matched by r.
    */
   static Node mkLengthVar(NodeManager* nm, Node t);
+
+  /** Make RE equality variable
+   *
+   * This returns a string variable that is used for reducing regular
+   * expression equality.
+   */
+  static Node mkRegExpEqVar(NodeManager* nm, Node eq);
   /**
    * Make skolem function, possibly normalizing based on the rewriter of this
    * class. This method should be used whenever it is not possible to define

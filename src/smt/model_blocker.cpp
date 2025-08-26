@@ -18,12 +18,13 @@
 #include "base/modal_exception.h"
 #include "expr/node.h"
 #include "expr/node_algorithm.h"
+#include "expr/non_closed_node_converter.h"
+#include "expr/subs.h"
 #include "options/base_options.h"
 #include "theory/logic_info.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
-#include "expr/subs.h"
 
 using namespace cvc5::internal::kind;
 
@@ -83,7 +84,7 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
     std::vector<TNode> visit;
     visit.insert(visit.end(), asserts.begin(), asserts.end());
     TNode cur;
-    do
+    while (!visit.empty())
     {
       cur = visit.back();
       visit.pop_back();
@@ -214,7 +215,7 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
           }
         }
       }
-    } while (!visit.empty());
+    }
   }
   else
   {
@@ -247,38 +248,69 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
       }
     }
     // otherwise, block all terms that were specified in get-value
-    std::map<TypeNode, std::vector<Node> > nonClosedEnum;
+    std::map<TypeNode, std::vector<Node> > allEnum;
+    std::unordered_set<TypeNode> nonClosedType;
     std::map<Node, Node> nonClosedValue;
     std::unordered_set<Node> terms;
     for (const Node& n : nodesToBlock)
     {
-      TypeNode tn = n.getType();
       Node v = m->getValue(n);
-      if (tn.isClosedEnumerable())
+      TypeNode tn = n.getType();
+      allEnum[tn].push_back(n);
+      if (NonClosedNodeConverter::isClosed(d_env, v))
       {
-        // if its type is closed enumerable, then we can block its value
+        // if its value is closed, then we can block its value
         Node a = n.eqNode(v);
         blockers.insert(a);
       }
       else
       {
-        nonClosedValue[n] = v;
         // otherwise we will block (dis)equality with other variables of its
         // type below
-        nonClosedEnum[tn].push_back(n);
+        nonClosedValue[n] = v;
+        // remember this type has at least one non-closed value
+        nonClosedType.insert(tn);
       }
     }
-    for (const std::pair<const TypeNode, std::vector<Node> >& es :
-         nonClosedEnum)
+    std::map<Node, Node>::iterator itn;
+    for (const TypeNode& tn : nonClosedType)
     {
-      size_t nenum = es.second.size();
+      const std::vector<Node>& enums = allEnum[tn];
+      size_t nenum = enums.size();
       for (size_t i = 0; i < nenum; i++)
       {
-        const Node& vi = nonClosedValue[es.second[i]];
-        for (size_t j = (i + 1); j < nenum; j++)
+        itn = nonClosedValue.find(enums[i]);
+        if (itn == nonClosedValue.end())
         {
-          const Node& vj = nonClosedValue[es.second[j]];
-          Node eq = es.second[i].eqNode(es.second[j]);
+          // closed value, already blocked its value above
+          continue;
+        }
+        // Given x that has a non-closed value, the following loop adds
+        // blockers of the form x != y or x = y, depending on whether y
+        // has the same value as x in the current model, for all other
+        // variables y of the same type as x. We do this even
+        // if y has a closed value in the model.
+        Node vi = itn->second;
+        for (size_t j = 0; j < nenum; j++)
+        {
+          if (i == j)
+          {
+            continue;
+          }
+          Node vj = enums[j];
+          itn = nonClosedValue.find(enums[j]);
+          if (itn != nonClosedValue.end())
+          {
+            if (j < i)
+            {
+              // already processed reverse
+              continue;
+            }
+            vj = itn->second;
+          }
+          // ...otherwise, we are comparing a non-closed and closed value, we
+          // assume these are disequal and leave vj unchanged.
+          Node eq = enums[i].eqNode(enums[j]);
           if (vi != vj)
           {
             eq = eq.notNode();

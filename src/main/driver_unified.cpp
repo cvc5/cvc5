@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Andrew Reynolds, Morgan Deters
+ *   Andrew Reynolds, Gereon Kremer, Morgan Deters
  *
  * This file is part of the cvc5 project.
  *
@@ -78,6 +78,11 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>& solver)
   else if (solver->getOptionInfo("help-regular").boolValue())
   {
     printUsage(progName, dopts.out(), true);
+    exit(1);
+  }
+  else if (solver->getOptionInfo("help-option-categories").boolValue())
+  {
+    printUsageCategories(*solver.get(), dopts.out());
     exit(1);
   }
   for (const auto& name : {"show-config",

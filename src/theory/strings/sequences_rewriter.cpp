@@ -51,6 +51,8 @@ SequencesRewriter::SequencesRewriter(NodeManager* nm,
   d_false = nm->mkConst(false);
   registerProofRewriteRule(ProofRewriteRule::RE_LOOP_ELIM,
                            TheoryRewriteCtx::PRE_DSL);
+  registerProofRewriteRule(ProofRewriteRule::RE_EQ_ELIM,
+                           TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::MACRO_RE_INTER_UNION_INCLUSION,
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::STR_IN_RE_EVAL,
@@ -102,6 +104,7 @@ Node SequencesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
   switch (id)
   {
     case ProofRewriteRule::RE_LOOP_ELIM: return rewriteViaReLoopElim(n);
+    case ProofRewriteRule::RE_EQ_ELIM: return rewriteViaReEqElim(n);
     case ProofRewriteRule::MACRO_RE_INTER_UNION_INCLUSION:
       return rewriteViaMacroReInterUnionInclusion(n);
     case ProofRewriteRule::RE_INTER_INCLUSION:
@@ -1412,6 +1415,20 @@ Node SequencesRewriter::rewriteViaReLoopElim(const Node& node)
                       << std::endl;
   Assert(retNode != node);
   return retNode;
+}
+
+Node SequencesRewriter::rewriteViaReEqElim(const Node& n)
+{
+  if (n.getKind() != Kind::EQUAL || !n[0].getType().isRegExp())
+  {
+    return Node::null();
+  }
+  NodeManager* nm = nodeManager();
+  Node v = SkolemCache::mkRegExpEqVar(nm, n);
+  Node mem1 = nm->mkNode(Kind::STRING_IN_REGEXP, v, n[0]);
+  Node mem2 = nm->mkNode(Kind::STRING_IN_REGEXP, v, n[1]);
+  return nm->mkNode(
+      Kind::FORALL, nm->mkNode(Kind::BOUND_VAR_LIST, v), mem1.eqNode(mem2));
 }
 
 Node SequencesRewriter::rewriteViaStrInReEval(const Node& node)
@@ -3720,10 +3737,13 @@ Node SequencesRewriter::rewriteReplace(Node node)
       std::vector<Node> remc(children0.begin() + lastCheckIndex,
                              children0.end());
       Node rem = utils::mkConcat(remc, stype);
-      Node ret = nm->mkNode(
-          Kind::STRING_CONCAT,
-          nm->mkNode(Kind::STRING_REPLACE, lastLhs, node[1], node[2]),
-          rem);
+      std::vector<Node> rchildren;
+      rchildren.push_back(
+          nm->mkNode(Kind::STRING_REPLACE, lastLhs, node[1], node[2]));
+      // "inline" the components of concatenation, which makes RARE
+      // reconstruction easier.
+      utils::getConcat(rem, rchildren);
+      Node ret = utils::mkConcat(rchildren, lastLhs.getType());
       // for example:
       //   str.replace( x ++ x, "A", y ) ---> str.replace( x, "A", y ) ++ x
       // Since we know that the first occurrence of "A" cannot be in the

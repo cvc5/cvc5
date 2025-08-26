@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Leni Aniva, Liana Hadarean, Aina Niemetz
+ *   Leni Aniva, Liana Hadarean, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
@@ -490,6 +490,29 @@ RewriteResponse TheoryBVRewriter::RewriteConstBvSym(TNode node, bool prerewrite)
       LinearRewriteStrategy<RewriteRule<EvalConstBvSym>>::apply(node);
   return RewriteResponse(REWRITE_DONE, resultNode);
 }
+
+RewriteResponse TheoryBVRewriter::RewriteOverflow(TNode node, bool prerewrite)
+{
+  // If all children are constant, we rewrite based on the definition of the
+  // overflow predicate using eliminateOverflows. We require rewriting this
+  // way to ensure the rewrite does constant folding, which is necessary for
+  // model evaluation.
+  bool allConstChildren = true;
+  for (const Node& nc : node)
+  {
+    if (!nc.isConst())
+    {
+      allConstChildren = false;
+      break;
+    }
+  }
+  if (allConstChildren)
+  {
+    Node nodeo = eliminateOverflows(node);
+    return RewriteResponse(REWRITE_AGAIN_FULL, nodeo);
+  }
+  return RewriteResponse(REWRITE_DONE, node);
+}
 RewriteResponse TheoryBVRewriter::RewriteSize(TNode node, bool prerewrite)
 {
   Node resultNode =
@@ -853,4 +876,16 @@ void TheoryBVRewriter::initializeRewrites()
   d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_SIZE)] = RewriteSize;
   d_rewriteTable[static_cast<uint32_t>(Kind::CONST_BITVECTOR_SYMBOLIC)] =
       RewriteConstBvSym;
+  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_SADDO)] =
+      RewriteOverflow;
+  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_UADDO)] =
+      RewriteOverflow;
+  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_SMULO)] =
+      RewriteOverflow;
+  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_UMULO)] =
+      RewriteOverflow;
+  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_SSUBO)] =
+      RewriteOverflow;
+  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_USUBO)] =
+      RewriteOverflow;
 }

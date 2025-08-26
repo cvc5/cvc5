@@ -1,6 +1,6 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Mathias Preiner, Aina Niemetz, Abdalrhman Mohamed
+#   Mathias Preiner, Andrew Reynolds, Aina Niemetz
 #
 # This file is part of the cvc5 project.
 #
@@ -14,21 +14,18 @@
 ##
 
 set(CVC5_EXAMPLES_API_CPP
-  bags
   bitvectors
   bitvectors_and_arrays
   combination
   datatypes
+  exceptions
   extract
-  floating_point_arith
   helloworld
   linear_arith
   quickstart
-  relations
   sequences
   sets
   strings
-  transcendentals
   parser
   parser_sym_manager
   uf
@@ -37,6 +34,13 @@ set(CVC5_EXAMPLES_API_CPP
 foreach(example ${CVC5_EXAMPLES_API_CPP})
   cvc5_add_example(${example} "" "api/cpp")
 endforeach()
+
+if(NOT CVC5_SAFE_BUILD)
+  cvc5_add_example(floating_point_arith "" "api/cpp")
+  cvc5_add_example(bags "" "api/cpp")
+  cvc5_add_example(relations "" "api/cpp")
+  cvc5_add_example(transcendentals "" "api/cpp")
+endif()
 
 if(CVC5_USE_COCOA)
   cvc5_add_example(finite_field "" "api/cpp")

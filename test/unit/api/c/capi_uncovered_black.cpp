@@ -130,7 +130,7 @@ TEST_F(TestCApiBlackUncovered, deprecated)
   (void)slv.mkSepNil(slv.getIntegerSort());
   (void)slv.mkString("asdfasdf");
   std::wstring s;
-  (void)slv.mkString(s);
+  (void)slv.mkString(s).getStringValue();
   (void)slv.mkEmptySequence(slv.getIntegerSort());
   (void)slv.mkUniverseSet(slv.getIntegerSort());
   (void)slv.mkBitVector(32, 2);
@@ -159,28 +159,19 @@ TEST_F(TestCApiBlackUncovered, stream_operators)
 {
   std::stringstream ss;
   ss << cvc5::Kind::EQUAL << std::to_string(cvc5::Kind::EQUAL);
-  ss << cvc5::SortKind::ARRAY_SORT
-     << std::to_string(cvc5::SortKind::ARRAY_SORT);
-  ss << cvc5::RoundingMode::ROUND_TOWARD_NEGATIVE
-     << std::to_string(cvc5::RoundingMode::ROUND_TOWARD_NEGATIVE);
-  ss << cvc5::UnknownExplanation::UNKNOWN_REASON
-     << std::to_string(cvc5::UnknownExplanation::UNKNOWN_REASON);
-  ss << cvc5::modes::BlockModelsMode::LITERALS
-     << std::to_string(cvc5::modes::BlockModelsMode::LITERALS);
-  ss << cvc5::modes::LearnedLitType::PREPROCESS
-     << std::to_string(cvc5::modes::LearnedLitType::PREPROCESS);
-  ss << cvc5::modes::ProofComponent::FULL
-     << std::to_string(cvc5::modes::ProofComponent::FULL);
-  ss << cvc5::modes::FindSynthTarget::ENUM
-     << std::to_string(cvc5::modes::FindSynthTarget::ENUM);
-  ss << cvc5::modes::InputLanguage::SMT_LIB_2_6
-     << std::to_string(cvc5::modes::InputLanguage::SMT_LIB_2_6);
-  ss << cvc5::modes::ProofFormat::LFSC
-     << std::to_string(cvc5::modes::ProofFormat::LFSC);
+  ss << cvc5::SortKind::ARRAY_SORT;
+  ss << cvc5::RoundingMode::ROUND_TOWARD_NEGATIVE;
+  ss << cvc5::UnknownExplanation::UNKNOWN_REASON;
+  ss << cvc5::modes::BlockModelsMode::LITERALS;
+  ss << cvc5::modes::LearnedLitType::PREPROCESS;
+  ss << cvc5::modes::ProofComponent::FULL;
+  ss << cvc5::modes::FindSynthTarget::ENUM;
+  ss << cvc5::modes::OptionCategory::EXPERT;
+  ss << cvc5::modes::InputLanguage::SMT_LIB_2_6;
+  ss << cvc5::modes::ProofFormat::LFSC;
   ss << cvc5::ProofRule::ASSUME << std::to_string(cvc5::ProofRule::ASSUME);
-  ss << cvc5::ProofRewriteRule::NONE
-     << std::to_string(cvc5::ProofRewriteRule::NONE);
-  ss << cvc5::SkolemId::PURIFY << std::to_string(cvc5::SkolemId::PURIFY);
+  ss << cvc5::ProofRewriteRule::NONE;
+  ss << cvc5::SkolemId::PURIFY;
   ss << d_tm.mkOp(Kind::BITVECTOR_EXTRACT, {4, 0});
   ss << d_tm.mkDatatypeConstructorDecl("cons");
 

@@ -17,10 +17,6 @@
 ; used in proof elaboration
 (define-rule bool-dual-impl-eq ((t Bool) (s Bool)) (and (=> t s) (=> s t)) (= t s))
 
-(define-rule* bool-or-flatten ((xs Bool :list) (b1 Bool) (b2 Bool) (ys Bool :list) (zs Bool :list)) (or xs (or b1 b2 ys) zs) (or xs b1 b2 ys zs))
-
-(define-rule* bool-and-flatten ((xs Bool :list) (b1 Bool) (b2 Bool) (ys Bool :list) (zs Bool :list)) (and xs (and b1 b2 ys) zs) (and xs b1 b2 ys zs))
-
 (define-rule bool-and-conf ((xs Bool :list) (w Bool) (ys Bool :list) (zs Bool :list)) (and xs w ys (not w) zs) false)
 (define-rule bool-and-conf2 ((xs Bool :list) (w Bool) (ys Bool :list) (zs Bool :list)) (and xs (not w) ys w zs) false)
 (define-rule bool-or-taut ((xs Bool :list) (w Bool) (ys Bool :list) (zs Bool :list)) (or xs w ys (not w) zs) true)

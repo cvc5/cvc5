@@ -15,8 +15,11 @@
 
 package io.github.cvc5;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.lang.Long;
 
 /**
  * The {@code Context} class is responsible for tracking and deleting pointers to
@@ -29,28 +32,38 @@ import java.util.List;
 public class Context
 {
   // Store pointers for term managers, solvers, terms, sorts, etc
-  private static final List<AbstractPointer> abstractPointers = new ArrayList<>();
+  private static final Map<Long, AbstractPointer> abstractPointers = new LinkedHashMap<>();
 
   /**
-     * Registers a new {@link AbstractPointer} for later cleanup.
-     *
-     * <p>If the pointer is already registered, it will not be added again.</p>
-     *
-     * @param pointer the {@link AbstractPointer} to register
-     */
-  static void addAbstractPointer(AbstractPointer pointer)
+   * Private constructor to prevent instantiation of this memory management class.
+   */
+  private Context() {}
+
+  /**
+   * Register a new {@link AbstractPointer} for later cleanup.
+   *
+   * <p>If the pointer is already registered, it will not be added again.</p>
+   *
+   * @param pointer the {@link AbstractPointer} to register
+   */
+  static synchronized void addAbstractPointer(AbstractPointer pointer)
   {
-    synchronized (abstractPointers)
-    {
-      if (!abstractPointers.contains(pointer))
-      {
-        abstractPointers.add(pointer);
-      }
+    abstractPointers.put(Long.valueOf(pointer.getPointer()), pointer);
+  }
+
+  /**
+   * Remove a previously registered {@link AbstractPointer} from the context.
+   *
+   * @param pointer the {@link AbstractPointer} to remove
+   */
+  static synchronized void removeAbstractPointer(AbstractPointer pointer) {
+    if (pointer.getPointer() != 0) {
+      abstractPointers.remove(Long.valueOf(pointer.getPointer()));
     }
   }
 
   /**
-   * Deletes all registered native pointers in reverse order of their registration.
+   * Delete all registered native pointers in reverse order of their registration.
    *
    * <p>This method should be called by a single thread once all term managers and
    * solver instances are no longer needed. It ensures that all native memory
@@ -61,15 +74,14 @@ public class Context
    * the {@link AbstractPointer#deletePointer()} method individually on
    * each Java object instead of calling this method.</p>
    */
-  public static void deletePointers()
+  public static synchronized void deletePointers()
   {
-    synchronized (abstractPointers)
-    {
-      for (int i = abstractPointers.size() - 1; i >= 0; i--)
-      {
-        abstractPointers.get(i).deletePointer();
-      }
-      abstractPointers.clear();
+    LinkedList<AbstractPointer> values = new LinkedList<AbstractPointer>(abstractPointers.values());
+    Iterator<AbstractPointer> i = values.descendingIterator();
+    while (i.hasNext()) {
+      i.next().deletePointer();
     }
+
+    abstractPointers.clear();
   }
 }

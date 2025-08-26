@@ -211,7 +211,7 @@ void TheorySetsPrivate::ensureCardinalityEnabled()
       std::stringstream ss;
       ss << "Set cardinality is not supported in this configuration, try "
             "--sets-card-exp.";
-      throw LogicException(ss.str());
+      throw SafeLogicException(ss.str());
     }
     d_hasEnabledCard = true;
   }
@@ -230,7 +230,7 @@ void TheorySetsPrivate::ensureRelationsEnabled()
       std::stringstream ss;
       ss << "Relations are not supported in this configuration, try "
             "--rels-exp.";
-      throw LogicException(ss.str());
+      throw SafeLogicException(ss.str());
     }
     d_hasEnabledRels = true;
   }

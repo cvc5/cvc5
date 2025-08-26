@@ -2,6 +2,13 @@
 (include "../theories/Arith.eo")
 (include "../programs/Utils.eo")
 
+; define: $arith_mk_zero
+; args:
+; - u Type : The type of the zero, which should be Int or Real.
+; return: the zero for the given type.
+(define $arith_mk_zero ((T Type))
+  (eo::ite (eo::is_eq T Int) 0 (eo::requires T Real 0/1)))
+
 ; define: $arith_eval_add
 ; args:
 ; - x T: The first arithmetic term to add.
@@ -13,9 +20,9 @@
 (define $arith_eval_add ((T Type :implicit) (U Type :implicit) (x T) (y U))
   (eo::define ((xq (eo::to_q x)))
   (eo::define ((yq (eo::to_q y)))
-    (eo::ite (eo::is_eq x xq)
+    (eo::ite (eo::eq x xq)
       (eo::add xq yq)
-      (eo::ite (eo::is_eq y yq)
+      (eo::ite (eo::eq y yq)
         (eo::add xq yq)
         (eo::add x y)))))
 )
@@ -29,8 +36,7 @@
 ;   can each be integer or real. This method returns an integer value if x and y
 ;   are both integer, or a rational value otherwise.
 (define $arith_eval_sub ((U Type :implicit) (T Type :implicit) (x U) (y T))
-  ($arith_eval_add x (eo::neg y))
-)
+  ($arith_eval_add x (eo::neg y)))
 
 ; define: $arith_eval_mul
 ; args:
@@ -43,9 +49,9 @@
 (define $arith_eval_mul ((T Type :implicit) (U Type :implicit) (x T) (y U))
   (eo::define ((xq (eo::to_q x)))
   (eo::define ((yq (eo::to_q y)))
-    (eo::ite (eo::is_eq x xq)
+    (eo::ite (eo::eq x xq)
       (eo::mul xq yq)
-      (eo::ite (eo::is_eq y yq)
+      (eo::ite (eo::eq y yq)
         (eo::mul xq yq)
         (eo::mul x y)))))
 )
@@ -75,7 +81,7 @@
 ; return: The log base 2 of x.
 ; note: Helper method for $arith_eval_int_log_2 below.
 (program $arith_eval_int_log_2_rec ((x Int))
-  (Int) Int
+  :signature (Int) Int
   (
   (($arith_eval_int_log_2_rec 1) 0)
   (($arith_eval_int_log_2_rec x) (eo::add 1 ($arith_eval_int_log_2_rec (eo::zdiv x 2))))
@@ -97,7 +103,7 @@
 ; return: 2 to the power of x.
 ; note: Helper method for $arith_eval_int_pow_2 below.
 (program $arith_eval_int_pow_2_rec ((x Int))
-  (Int) Int
+  :signature (Int) Int
   (
   (($arith_eval_int_pow_2_rec 0) 1)
   (($arith_eval_int_pow_2_rec x) (eo::mul 2 ($arith_eval_int_pow_2_rec (eo::add x -1))))
@@ -121,10 +127,10 @@
 ; return: true iff x is a power of two.
 ; note: Helper method for $arith_eval_is_pow_2 below.
 (program $arith_eval_int_is_pow_2_rec ((x Int))
-  (Int) Bool
+  :signature (Int) Bool
   (
   (($arith_eval_int_is_pow_2_rec 1) true)
-  (($arith_eval_int_is_pow_2_rec x) (eo::ite (eo::is_eq (eo::zmod x 2) 0)
+  (($arith_eval_int_is_pow_2_rec x) (eo::ite (eo::eq (eo::zmod x 2) 0)
                                       ($arith_eval_int_is_pow_2_rec (eo::zdiv x 2))
                                       false))
   )
@@ -140,27 +146,3 @@
   (eo::ite (eo::is_z x) 
     (eo::ite (eo::is_neg x) false ($arith_eval_int_is_pow_2_rec x))
     (int.ispow2 x)))
-
-
-; define: $arith_unfold_pow_rec
-; args:
-; - n Int: The number of times to multiply, expected to be a non-negative numeral.
-; - a T: The term to muliply.
-; return: The result of multiplying a, n times.
-(program $arith_unfold_pow_rec ((T Type) (n Int) (a T))
-  (Int T) T
-  (
-    (($arith_unfold_pow_rec 0 a)  1)
-    (($arith_unfold_pow_rec n a)  (eo::cons * a ($arith_unfold_pow_rec (eo::add n -1) a)))
-  )
-)
-
-; define: $arith_unfold_pow
-; args:
-; - n Int: The number of times to multiply.
-; - a T: The term to muliply.
-; return: The result of multiplying a, n times. If n is not a positive numeral, this returns (^ a n).
-(define $arith_unfold_pow ((T Type :implicit) (n Int) (a T))
-  (eo::ite (eo::and (eo::is_z n) (eo::not (eo::is_neg n)))
-    ($arith_unfold_pow_rec n a)
-    (^ a n)))

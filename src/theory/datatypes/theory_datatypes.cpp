@@ -332,7 +332,7 @@ void TheoryDatatypes::preRegisterTerm(TNode n)
         std::stringstream ss;
         ss << "Codatatypes not available in this configuration, try "
               "--datatypes-exp.";
-        throw LogicException(ss.str());
+        throw SafeLogicException(ss.str());
       }
     }
   }
@@ -349,7 +349,7 @@ void TheoryDatatypes::preRegisterTerm(TNode n)
       std::stringstream ss;
       ss << "Match terms not available in this configuration, try "
             "--datatypes-exp.";
-      throw LogicException(ss.str());
+      throw SafeLogicException(ss.str());
     }
       break;
     default:
@@ -1276,6 +1276,9 @@ void TheoryDatatypes::checkCycles() {
   Trace("datatypes-cycle-check") << "Check acyclicity" << std::endl;
   std::vector< Node > cdt_eqc;
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(d_equalityEngine);
+  std::map< TNode, bool > visited;
+  std::map< TNode, bool > proc;
+  std::vector<Node> expl;
   while( !eqcs_i.isFinished() ){
     Node eqc = (*eqcs_i);
     TypeNode tn = eqc.getType();
@@ -1284,9 +1287,6 @@ void TheoryDatatypes::checkCycles() {
         if (options().datatypes.dtCyclic)
         {
           //do cycle checks
-          std::map< TNode, bool > visited;
-          std::map< TNode, bool > proc;
-          std::vector<Node> expl;
           Trace("datatypes-cycle-check") << "...search for cycle starting at " << eqc << std::endl;
           Node cn = searchForCycle( eqc, eqc, visited, proc, expl );
           Trace("datatypes-cycle-check") << "...finish." << std::endl;

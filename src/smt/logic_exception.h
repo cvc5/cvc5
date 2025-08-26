@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Morgan Deters, Aina Niemetz, Mathias Preiner
+ *   Andrew Reynolds, Morgan Deters, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
@@ -40,6 +40,25 @@ class LogicException : public cvc5::internal::Exception
     Exception(msg) {
   }
 }; /* class LogicException */
+
+/**
+ * Prepends a logic exception with the text "Logic restricted in safe mode".
+ * This kind of logic exception should be thrown for any failure that is
+ * admissible in safe mode. The regression testers will consider any exception
+ * having text "in safe mode" as an admissible failure, and skip the benchmark.
+ */
+class SafeLogicException : public LogicException
+{
+ public:
+  SafeLogicException(const std::string& s)
+#ifdef CVC5_SAFE_MODE
+      : LogicException("Logic restricted in safe mode. " + s)
+#else
+      : LogicException(s)
+#endif
+  {
+  }
+};
 
 }  // namespace cvc5::internal
 
