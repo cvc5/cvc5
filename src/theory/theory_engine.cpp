@@ -515,7 +515,8 @@ void TheoryEngine::check(Theory::Effort effort) {
       if (TraceIsOn("theory::assertions-model")) {
         printAssertions("theory::assertions-model");
       }
-      //checks for theories requiring the model go at last call
+      // model in d_tc was reset above
+      // checks for theories requiring the model go at last call
       for (TheoryId theoryId = THEORY_FIRST; theoryId < THEORY_LAST; ++theoryId)
       {
         if (theoryId != THEORY_QUANTIFIERS)

@@ -65,11 +65,7 @@ class CombinationModelBased : public CombinationEngine
                         const std::vector<Theory*>& paraTheories);
   ~CombinationModelBased();
   /**
-   * Build model
-   */
-  bool buildModel() override;
-  /**
-   * Combine theories using a care graph.
+   * Combine theories using the model, as described above.
    */
   void combineTheories() override;
 };

@@ -40,7 +40,6 @@ class CombinationCareGraph : public CombinationEngine
                        const std::vector<Theory*>& paraTheories);
   ~CombinationCareGraph();
 
-  bool buildModel() override;
   /**
    * Combine theories using a care graph.
    */

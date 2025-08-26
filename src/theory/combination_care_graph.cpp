@@ -93,11 +93,5 @@ void CombinationCareGraph::combineTheories()
   }
 }
 
-bool CombinationCareGraph::buildModel()
-{
-  // building the model happens as a separate step
-  return d_mmanager->buildModel();
-}
-
 }  // namespace theory
 }  // namespace cvc5::internal

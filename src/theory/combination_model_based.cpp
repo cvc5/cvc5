@@ -99,6 +99,7 @@ void CombinationModelBased::combineTheories()
       Node ncrep = nt.addOrGetTerm(n, reps);
       if (ncrep == n)
       {
+        // current term is not congruent to others, continue
         continue;
       }
       RepInfo& ri = d_rinfo[ncrep];
@@ -196,12 +197,6 @@ void CombinationModelBased::combineTheories()
     d_sharedSolver->sendLemma(
         tsplit, TheoryId::THEORY_BUILTIN, InferenceId::COMBINATION_SPLIT_MB);
   }
-}
-
-bool CombinationModelBased::buildModel()
-{
-  // building the model happens as a separate step
-  return d_mmanager->buildModel();
 }
 
 }  // namespace theory
