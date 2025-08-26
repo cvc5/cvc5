@@ -52,6 +52,10 @@ namespace theory {
  * datatypes, which is *not* communicated to the model. In this case, if the
  * model sets a = 2, b = 1, then (c a) = (c (+ b 1)) = (c 2),
  * i.e. they are congruent and equal, we split must split on a = b+1.
+ * 
+ * It is important that this class check for splits for all cases of the above
+ * form at once, as in practice there are many possible splits that should be
+ * sent all at once, instead of considering one at a time.
  */
 class CombinationModelBased : public CombinationEngine
 {

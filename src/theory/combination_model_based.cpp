@@ -59,6 +59,7 @@ void CombinationModelBased::combineTheories()
     Trace("combination-mb") << "...failed build model" << std::endl;
     return;
   }
+  // A trie for each kind of term, which is used to recognize congruent terms.
   std::map<Kind, NodeTrie> tries;
   // must double check 
   TheoryModel* tm = d_mmanager->getModel();
@@ -79,22 +80,20 @@ void CombinationModelBased::combineTheories()
       ++eqi;
       if (n.getNumChildren()==0)
       {
+        // skip atomic terms
         continue;
       }
       else if (n.isClosure())
       {
+        // skip quantified formulas
         continue;
       }
       Trace("combination-mb-terms") << "Check term: " << n << std::endl;
-      if (false && !d_sharedSolver->isPreregistered(n))
-      {
-        Trace("combination-mb-terms") << "Not preregistered: " << n << std::endl;
-        continue;
-      }
       Kind k = n.getKind();
       std::vector<Node> reps;
       if (n.getMetaKind() == kind::metakind::PARAMETERIZED)
       {
+        // APPLY_UF, APPLY_CONSTRUCTOR, etc. take operator into account
         reps.push_back(n.getOperator());
       }
       else if (NodeManager::isNAryKind(k))
