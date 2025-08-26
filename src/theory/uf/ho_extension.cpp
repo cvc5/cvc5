@@ -278,6 +278,24 @@ Node HoExtension::getApplyUfForHoApply(Node node)
   return ret;
 }
 
+void HoExtension::computeRelevantTerms(std::set<Node>& termSet)
+{
+  for (const Node& t : termSet)
+  {
+    if (t.getKind() == Kind::APPLY_UF)
+    {
+      Node ht = TheoryUfRewriter::getHoApplyForApplyUf(t);
+      // also add all subterms
+      while (ht.getKind()==Kind::HO_APPLY)
+      {
+        termSet.insert(ht);
+        termSet.insert(ht[1]);
+        ht = ht[0];
+      }
+    }
+  }
+}
+
 unsigned HoExtension::checkExtensionality(TheoryModel* m)
 {
   // if we are in collect model info, we require looking at the model's
@@ -409,10 +427,6 @@ unsigned HoExtension::checkExtensionality(TheoryModel* m)
                   success = m->assertEquality(edeq[0][1], v2, true);
                 }
               }
-              else
-              {
-                success = m->assertEquality(edeq[0][0], edeq[0][1], false);
-              }
             }
             if (!success)
             {
@@ -485,7 +499,7 @@ unsigned HoExtension::checkAppCompletion()
         if (n.getKind() == Kind::APPLY_UF)
         {
           TNode rop = ee->getRepresentative(n.getOperator());
-          if (rlvOp.find(rop) != rlvOp.end())
+          if (true || rlvOp.find(rop) != rlvOp.end())
           {
             // try if its operator is relevant
             curr_sum = applyAppCompletion(n);
@@ -856,6 +870,14 @@ bool HoExtension::collectModelInfoHoTerm(Node n, TheoryModel* m)
                      << std::endl;
       d_im.lemma(eq, InferenceId::UF_HO_MODEL_APP_ENCODE);
       return false;
+    }
+    // also add all subterms
+    eq::EqualityEngine* ee = m->getEqualityEngine();
+    while (hn.getKind()==Kind::HO_APPLY)
+    {
+      ee->addTerm(hn);
+      ee->addTerm(hn[1]);
+      hn = hn[0];
     }
   }
   return true;
