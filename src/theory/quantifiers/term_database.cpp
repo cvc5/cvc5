@@ -453,22 +453,6 @@ void TermDb::computeUfTerms( TNode f ) {
       std::vector<TNode>& reps = d_arg_reps[n];
       Trace("term-db-debug")
           << "Adding term " << n << " with arg reps : " << reps << std::endl;
-<<<<<<< HEAD
-      std::vector<std::vector<TNode> >& frds = d_fmapRelDom[f];
-      size_t rsize = reps.size();
-      // ensure the relevant domain vector has been allocated
-      frds.resize(rsize);
-      for (size_t i = 0; i < rsize; i++)
-      {
-        TNode r = reps[i];
-        std::vector<TNode>& frd = frds[i];
-        if (std::find(frd.begin(), frd.end(), r) == frd.end())
-        {
-          frd.push_back(r);
-        }
-      }
-=======
->>>>>>> 2ae4ede42a9b876e5715620dbeee63fcfe89ce11
       Assert(d_qstate.hasTerm(n));
       Trace("term-db-debug")
           << "  and value : " << d_qstate.getRepresentative(n) << std::endl;
