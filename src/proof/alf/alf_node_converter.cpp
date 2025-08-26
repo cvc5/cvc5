@@ -699,15 +699,11 @@ bool AlfNodeConverter::isHandledSkolemId(SkolemId id)
     case SkolemId::STRINGS_NUM_OCCUR_RE:
     case SkolemId::STRINGS_OCCUR_INDEX:
     case SkolemId::STRINGS_OCCUR_INDEX_RE:
-    case SkolemId::STRINGS_OCCUR_LEN_RE:
     case SkolemId::STRINGS_DEQ_DIFF:
     case SkolemId::STRINGS_REPLACE_ALL_RESULT:
     case SkolemId::STRINGS_ITOS_RESULT:
     case SkolemId::STRINGS_STOI_RESULT:
     case SkolemId::STRINGS_STOI_NON_DIGIT:
-    case SkolemId::RE_FIRST_MATCH_PRE:
-    case SkolemId::RE_FIRST_MATCH:
-    case SkolemId::RE_FIRST_MATCH_POST:
     case SkolemId::RE_UNFOLD_POS_COMPONENT:
     case SkolemId::BAGS_DEQ_DIFF:
     case SkolemId::BAGS_DISTINCT_ELEMENTS:

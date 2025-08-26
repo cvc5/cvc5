@@ -1,6 +1,6 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Aina Niemetz, Mathias Preiner, Daniel Larraz
+#   Aina Niemetz, Mathias Preiner, Gereon Kremer
 #
 # This file is part of the cvc5 project.
 #
@@ -26,7 +26,13 @@ set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
 include(version)
 
-set(CMAKE_C_STANDARD 99)
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+if (WASM STREQUAL "OFF")
+  set(CMAKE_C_EXTENSIONS OFF)
+else()
+  set(CMAKE_C_EXTENSIONS ON)
+endif()
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -111,6 +117,8 @@ cvc5_set_option(USE_PYTHON_VENV ON)
 option(ENABLE_COVERAGE         "Enable support for gcov coverage testing")
 option(ENABLE_DEBUG_CONTEXT_MM "Enable the debug context memory manager")
 option(ENABLE_PROFILING        "Enable support for gprof profiling")
+
+option(TREAT_WARNING_AS_ERROR  "Treat warnings on building as errors")
 
 # Optional dependencies
 #

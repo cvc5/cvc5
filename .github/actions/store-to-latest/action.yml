@@ -37,7 +37,7 @@ runs:
           rel = repo.get_release('latest')
         except:
           print('New `latest` release')
-          rel = repo.create_git_release('latest', 'latest', 'Latest builds')
+          rel = repo.create_git_release('latest', 'latest', 'Latest builds', prerelease=True)
 
         # generate new filename
         package = os.getenv('PACKAGE')

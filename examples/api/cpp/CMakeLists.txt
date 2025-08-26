@@ -1,6 +1,6 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Mathias Preiner, Aina Niemetz, Abdalrhman Mohamed
+#   Mathias Preiner, Andrew Reynolds, Aina Niemetz
 #
 # This file is part of the cvc5 project.
 #
@@ -18,6 +18,7 @@ set(CVC5_EXAMPLES_API_CPP
   bitvectors_and_arrays
   combination
   datatypes
+  exceptions
   extract
   helloworld
   linear_arith

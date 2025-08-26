@@ -1,6 +1,6 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Gereon Kremer, Alex Ozdemir, Haniel Barbosa
+#   Gereon Kremer, Alex Ozdemir, Daniel Larraz
 #
 # This file is part of the cvc5 project.
 #
