@@ -508,7 +508,7 @@ void TheoryEngine::check(Theory::Effort effort) {
     }
 
     // Must consult quantifiers theory for last call to ensure sat, or otherwise add a lemma
-    if( Theory::fullEffort(effort) && ! d_inConflict && ! needCheck() ) 
+    if (Theory::fullEffort(effort) && !d_inConflict && !needCheck())
     {
       d_stats.d_lcEffortChecks++;
       Trace("theory::assertions-model") << endl;
