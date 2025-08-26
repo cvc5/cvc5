@@ -318,11 +318,23 @@ unsigned HoExtension::checkExtensionality(TheoryModel* m)
     if (tn.isFunction() && d_lambdaEqc.find(eqc) == d_lambdaEqc.end())
     {
       hasFunctions = true;
+      std::vector<TypeNode> argTypes = tn.getArgTypes();
+      bool finiteArgTypes = true;
+      if (!d_env.isFiniteType(tn))
+      {
+        for (const TypeNode& tna : argTypes)
+        {
+          if (!d_env.isFiniteType(tna))
+          {
+            finiteArgTypes = false;
+          }
+        }
+      }
       // If during collect model, must have an infinite function type, since
       // such function are not necessary to be handled during solving.
       // If not during collect model, must have a finite function type, since
       // such function symbols must be handled during solving.
-      if (d_env.isFiniteType(tn) != isCollectModel)
+      if (finiteArgTypes != isCollectModel)
       {
         func_eqcs[tn].push_back(eqc);
         Trace("uf-ho-debug")
@@ -421,6 +433,8 @@ unsigned HoExtension::checkExtensionality(TheoryModel* m)
                 te++;
                 Node v2 = *te;
                 Assert(!v2.isNull() && v2 != v1);
+                Trace("uf-ho-debug") << "Finite witness: " << edeq[0][0] << " == " << v1 << std::endl;
+                Trace("uf-ho-debug") << "Finite witness: " << edeq[0][1] << " == " << v2 << std::endl;
                 success = m->assertEquality(edeq[0][0], v1, true);
                 if (success)
                 {
