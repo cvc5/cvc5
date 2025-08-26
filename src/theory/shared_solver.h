@@ -126,8 +126,6 @@ class SharedSolver : protected EnvObj
   void sendLemma(TrustNode trn, TheoryId atomsTo, InferenceId id);
   /** Send conflict to the theory engine */
   void sendConflict(TrustNode trn, InferenceId id);
-  /** Is preregistered? */
-  bool isPreregistered(TNode n) const;
 
  protected:
   /** Solver-specific pre-register shared */

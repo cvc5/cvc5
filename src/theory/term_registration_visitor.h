@@ -107,12 +107,6 @@ class PreRegisterVisitor : protected EnvObj
                           TNode parent,
                           theory::TheoryIdSet preregTheories);
 
-  /** Is preregistered? */
-  bool isPreregistered(TNode n) const
-  {
-    return d_visited.find(n) != d_visited.end();
-  }
-
  private:
   /**
    * Helper for above, called whether we wish to register a term with a theory
@@ -177,12 +171,6 @@ class SharedTermsVisitor : protected EnvObj
    * Clears the internal state.
    */   
   void clear();
-
-  /** Is preregistered? */
-  bool isPreregistered(TNode n) const
-  {
-    return d_preregistered.find(n) != d_preregistered.end();
-  }
 
  private:
   /** The engine */
