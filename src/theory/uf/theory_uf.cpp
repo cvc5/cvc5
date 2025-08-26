@@ -555,7 +555,6 @@ void TheoryUF::processCarePairArgs(TNode a, TNode b)
   }
 }
 
-
 void TheoryUF::computeRelevantTerms(std::set<Node>& termSet)
 {
   if (d_ho!=nullptr)
@@ -580,6 +579,11 @@ void TheoryUF::computeCareGraph() {
   std::vector<Node> keep;
   std::map<Node, TNodeTrie> index;
   std::map<TypeNode, TNodeTrie> typeIndex;
+  // For HO_APPLY, we only consider care pairs of the form (= a b) where
+  // (@ f a) and (@ g b) exist and f = g. Conversely, we do not consider
+  // pairs (= f h) where (@ f a) and (@ h c) exist, as equality between f and
+  // h is managed by our policy for extensionality.
+  std::map<Node, TNodeTrie> hoIndex;
   std::map<Node, size_t> arity;
   for (TNode app : d_functionsTerms)
   {
@@ -606,7 +610,7 @@ void TheoryUF::computeCareGraph() {
         Node op = app.getOperator();
         index[op].addTerm(app, reps);
         arity[op] = reps.size();
-        if (isHigherOrder && d_equalityEngine->hasTerm(op))
+        if (isHigherOrder)
         {
           // Since we use a lazy app-completion scheme for equating fully
           // and partially applied versions of terms, we must add all
@@ -621,13 +625,19 @@ void TheoryUF::computeCareGraph() {
           {
             Node happ = nm->mkNode(Kind::HO_APPLY, curr, c);
             Assert(curr.getType().isFunction());
-            typeIndex[curr.getType()].addTerm(happ, {curr, c});
+            Node f = d_equalityEngine->getRepresentative(curr);
+            hoIndex[f].addTerm(happ, {c});
             curr = happ;
             keep.push_back(happ);
           }
         }
       }
-      else if (k == Kind::HO_APPLY || k == Kind::BITVECTOR_UBV_TO_INT)
+      else if (k == Kind::HO_APPLY)
+      {
+        Node f = d_equalityEngine->getRepresentative(app[0]);
+        hoIndex[f].addTerm(app, {app[1]});
+      }
+      else if (k == Kind::BITVECTOR_UBV_TO_INT)
       {
         // add it to the typeIndex for the function type if HO_APPLY, or the
         // bitvector type if bv2nat. The latter ensures that we compute
@@ -651,12 +661,18 @@ void TheoryUF::computeCareGraph() {
     Assert(arity.find(tt.first) != arity.end());
     nodeTriePathPairProcess(&tt.second, arity[tt.first], d_cpacb);
   }
+  for (std::pair<const Node, TNodeTrie>& tt : hoIndex)
+  {
+    Trace("uf::sharing") << "TheoryUf::computeCareGraph(): Process ho index "
+                         << tt.first << "..." << std::endl;
+    nodeTriePathPairProcess(&tt.second, 1, d_cpacb);
+  }
   for (std::pair<const TypeNode, TNodeTrie>& tt : typeIndex)
   {
     // functions for HO_APPLY which has arity 2, bitvectors for bv2nat which
     // has arity one
     size_t a = tt.first.isFunction() ? 2 : 1;
-    Trace("uf::sharing") << "TheoryUf::computeCareGraph(): Process ho index "
+    Trace("uf::sharing") << "TheoryUf::computeCareGraph(): Process type index "
                          << tt.first << "..." << std::endl;
     // the arity of HO_APPLY is always two
     nodeTriePathPairProcess(&tt.second, a, d_cpacb);
