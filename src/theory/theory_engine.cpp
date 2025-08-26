@@ -470,21 +470,26 @@ void TheoryEngine::check(Theory::Effort effort) {
       {
         d_stats.d_fullEffortChecks++;
         // We do combination if all has been processed and we are in fullcheck
-        if (logicInfo().isSharingEnabled() && !d_factsAsserted && !needCheck()
-            && !d_inConflict)
+        if (!d_factsAsserted && !needCheck() && !d_inConflict)
         {
-          d_stats.d_combineTheoriesCalls++;
-          // Do the combination
-          Trace("theory") << "TheoryEngine::check(" << effort
-                          << "): running combination" << endl;
+          // reset the model in the combination engine, as the above
+          // call to combineTheories may build the model
+          d_tc->resetModel();
+          if (logicInfo().isSharingEnabled())
           {
-            TimerStat::CodeTimer combineTheoriesTimer(
-                d_stats.d_combineTheoriesTime);
-            d_tc->combineTheories();
-          }
-          if (logicInfo().isQuantified())
-          {
-            d_quantEngine->notifyCombineTheories();
+            d_stats.d_combineTheoriesCalls++;
+            // Do the combination
+            Trace("theory") << "TheoryEngine::check(" << effort
+                            << "): running combination" << endl;
+            {
+              TimerStat::CodeTimer combineTheoriesTimer(
+                  d_stats.d_combineTheoriesTime);
+              d_tc->combineTheories();
+            }
+            if (logicInfo().isQuantified())
+            {
+              d_quantEngine->notifyCombineTheories();
+            }
           }
         }
       }
@@ -503,14 +508,13 @@ void TheoryEngine::check(Theory::Effort effort) {
     }
 
     // Must consult quantifiers theory for last call to ensure sat, or otherwise add a lemma
-    if( Theory::fullEffort(effort) && ! d_inConflict && ! needCheck() ) {
+    if( Theory::fullEffort(effort) && ! d_inConflict && ! needCheck() ) 
+    {
       d_stats.d_lcEffortChecks++;
       Trace("theory::assertions-model") << endl;
       if (TraceIsOn("theory::assertions-model")) {
         printAssertions("theory::assertions-model");
       }
-      // reset the model in the combination engine
-      d_tc->resetModel();
       //checks for theories requiring the model go at last call
       for (TheoryId theoryId = THEORY_FIRST; theoryId < THEORY_LAST; ++theoryId)
       {

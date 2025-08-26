@@ -65,10 +65,6 @@ class CombinationModelBased : public CombinationEngine
                         const std::vector<Theory*>& paraTheories);
   ~CombinationModelBased();
   /**
-   * Reset model
-   */
-  void resetModel() override;
-  /**
    * Build model
    */
   bool buildModel() override;

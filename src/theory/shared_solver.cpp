@@ -80,15 +80,6 @@ void SharedSolver::preRegister(TNode atom)
   Trace("theory") << "SharedSolver::preRegister atom finished" << std::endl;
 }
 
-bool SharedSolver::isPreregistered(TNode n) const
-{
-  if (d_logicInfo.isSharingEnabled())
-  {
-    return d_sharedTermsVisitor.isPreregistered(n);
-  }
-  return d_preRegistrationVisitor.isPreregistered(n);
-}
-
 void SharedSolver::preNotifySharedFact(TNode atom)
 {
   if (d_sharedTerms.hasSharedTerms(atom))

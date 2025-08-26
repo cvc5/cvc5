@@ -39,23 +39,12 @@ CombinationModelBased::CombinationModelBased(
 
 CombinationModelBased::~CombinationModelBased() {}
 
-void CombinationModelBased::resetModel()
-{
-  Trace("combination-mb") << "reset model" << std::endl;
-  // already reset/built
-  if (!logicInfo().isSharingEnabled())
-  {
-    d_mmanager->resetModel();
-  }
-}
-
 void CombinationModelBased::combineTheories()
 {
   Trace("combination-mb") << "CombinationModelBased::combineTheories"
                           << std::endl;
-  d_mmanager->resetModel();
   // go ahead and build the model now
-  if (!d_mmanager->buildModel())
+  if (!buildModel())
   {
     Trace("combination-mb") << "...failed build model" << std::endl;
     return;
@@ -67,7 +56,7 @@ void CombinationModelBased::combineTheories()
   eq::EqualityEngine* ee = tm->getEqualityEngine();
   eq::EqClassesIterator eqsi = eq::EqClassesIterator(ee);
   std::vector<Node> splits;
-  bool hasConflict = false;
+  CVC5_UNUSED bool hasConflict = false;
   std::map<Node, RepInfo> d_rinfo;
   std::unordered_set<Node> eqProcessed;
   while (!eqsi.isFinished())

@@ -61,7 +61,7 @@ class CombinationEngine : protected EnvObj
    * Reset the model maintained by this class. This resets all local information
    * that is unique to each check.
    */
-  virtual void resetModel();
+  void resetModel();
   /**
    * Build the model maintained by this class.
    *
