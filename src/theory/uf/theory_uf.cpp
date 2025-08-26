@@ -579,6 +579,10 @@ void TheoryUF::computeCareGraph() {
   std::vector<Node> keep;
   std::map<Node, TNodeTrie> index;
   std::map<TypeNode, TNodeTrie> typeIndex;
+  // For HO_APPLY, we only consider care pairs of the form (= a b) where
+  // (@ f a) and (@ g b) exist and f = g. Conversely, we do not consider
+  // pairs (= f h) where (@ f a) and (@ h c) exist, as equality between f and
+  // h is managed by our policy for extensionality.
   std::map<Node, TNodeTrie> hoIndex;
   std::map<Node, size_t> arity;
   for (TNode app : d_functionsTerms)

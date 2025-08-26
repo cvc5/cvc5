@@ -121,7 +121,8 @@ class HoExtension : protected EnvObj
   bool collectModelInfoHo(TheoryModel* m, const std::set<Node>& termSet);
 
   /**
-   * Compute relevant terms. Used in higher-order.
+   * Compute relevant terms. For each (f a b) in termSet, we add terms
+   * e.g. (@ f a), (@ (@ f a) b) to termSet.
    */
   void computeRelevantTerms(std::set<Node>& termSet);
   

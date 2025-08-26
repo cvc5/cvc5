@@ -478,8 +478,6 @@ unsigned HoExtension::applyAppCompletion(TNode n)
 unsigned HoExtension::checkAppCompletion()
 {
   Trace("uf-ho") << "HoExtension::checkApplyCompletion..." << std::endl;
-  // compute the operators that are relevant (those for which an HO_APPLY exist)
-  std::set<TNode> rlvOp;
   eq::EqualityEngine* ee = d_state.getEqualityEngine();
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(ee);
   std::map<TNode, std::vector<Node> > apply_uf;
@@ -499,59 +497,11 @@ unsigned HoExtension::checkAppCompletion()
         if (n.getKind() == Kind::APPLY_UF)
         {
           TNode rop = ee->getRepresentative(n.getOperator());
-          if (true || rlvOp.find(rop) != rlvOp.end())
+          // always apply app completion
+          curr_sum = applyAppCompletion(n);
+          if (curr_sum > 0)
           {
-            // try if its operator is relevant
-            curr_sum = applyAppCompletion(n);
-            if (curr_sum > 0)
-            {
-              return curr_sum;
-            }
-          }
-          else
-          {
-            // add to pending list
-            apply_uf[rop].push_back(n);
-          }
-          // Arguments are also relevant operators.
-          // It might be possible include fewer terms here, see #1115.
-          for (unsigned k = 0; k < n.getNumChildren(); k++)
-          {
-            if (n[k].getType().isFunction())
-            {
-              TNode rop2 = ee->getRepresentative(n[k]);
-              curr_rops[rop2] = true;
-            }
-          }
-        }
-        else
-        {
-          Assert(n.getKind() == Kind::HO_APPLY);
-          TNode rop = ee->getRepresentative(n[0]);
-          curr_rops[rop] = true;
-        }
-        for (std::map<TNode, bool>::iterator itc = curr_rops.begin();
-             itc != curr_rops.end();
-             ++itc)
-        {
-          TNode rop = itc->first;
-          if (rlvOp.find(rop) == rlvOp.end())
-          {
-            rlvOp.insert(rop);
-            // now, try each pending APPLY_UF for this operator
-            std::map<TNode, std::vector<Node> >::iterator itu =
-                apply_uf.find(rop);
-            if (itu != apply_uf.end())
-            {
-              for (unsigned j = 0, size = itu->second.size(); j < size; j++)
-              {
-                curr_sum = applyAppCompletion(itu->second[j]);
-                if (curr_sum > 0)
-                {
-                  return curr_sum;
-                }
-              }
-            }
+            return curr_sum;
           }
         }
       }
