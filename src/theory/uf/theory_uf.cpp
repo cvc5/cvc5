@@ -606,6 +606,27 @@ void TheoryUF::computeCareGraph() {
         Node op = app.getOperator();
         index[op].addTerm(app, reps);
         arity[op] = reps.size();
+        if (isHigherOrder)
+        {
+          // Since we use a lazy app-completion scheme for equating fully
+          // and partially applied versions of terms, we must add all
+          // sub-chains to the HO index if the operator of this term occurs
+          // in a higher-order context in the equality engine.  In other words,
+          // for (f a b c), this will add the terms:
+          // (HO_APPLY f a), (HO_APPLY (HO_APPLY f a) b),
+          // (HO_APPLY (HO_APPLY (HO_APPLY f a) b) c) to the higher-order
+          // term index for consideration when computing care pairs.
+          Node curr = op;
+          for (const Node& c : app)
+          {
+            Node happ = nm->mkNode(Kind::HO_APPLY, curr, c);
+            Assert(curr.getType().isFunction());
+            Node f = d_equalityEngine->getRepresentative(curr);
+            hoIndex[f].addTerm(happ, {c});
+            curr = happ;
+            keep.push_back(happ);
+          }
+        }
       }
       else if (k == Kind::HO_APPLY)
       {
@@ -638,7 +659,7 @@ void TheoryUF::computeCareGraph() {
   }
   for (std::pair<const Node, TNodeTrie>& tt : hoIndex)
   {
-    Trace("uf::sharing") << "TheoryUf::computeCareGraph(): Process index "
+    Trace("uf::sharing") << "TheoryUf::computeCareGraph(): Process ho index "
                          << tt.first << "..." << std::endl;
     nodeTriePathPairProcess(&tt.second, 1, d_cpacb);
   }
