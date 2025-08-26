@@ -126,6 +126,7 @@ void CombinationModelBased::combineTheories()
       TheoryId tid = Theory::theoryOf(n);
       Theory* t = d_te.theoryOf(tid);
       eq::EqualityEngine* eet = t->getEqualityEngine();
+      Assert (eet!=nullptr);
       for (const std::pair<const Node, std::vector<Node>>& cts : ri.d_congTerms)
       {
         for (const Node& nother : cts.second)
