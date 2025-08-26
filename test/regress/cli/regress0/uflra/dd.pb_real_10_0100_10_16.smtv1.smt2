@@ -1,3 +1,4 @@
+; COMMAND-LINE: --tc-mode=model-based
 ; EXPECT: sat
 (set-logic QF_UFLRA)
 (declare-fun f0_1 (Real) Real)

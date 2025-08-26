@@ -1,3 +1,4 @@
+; COMMAND-LINE: --tc-mode=model-based
 ; EXPECT: sat
 (set-logic ALL)
 (declare-datatypes ((x5 0)) (((x3c) (x4c))))
