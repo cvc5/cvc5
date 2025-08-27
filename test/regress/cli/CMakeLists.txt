@@ -66,6 +66,7 @@ set(regress_0_tests
   regress0/arith/integers/arith-int-079.cvc.smt2
   regress0/arith/integers/arith-interval.cvc.smt2
   regress0/arith/integers/issue6146-stale-vars.smt2
+  regress0/arith/issue12058.smt2
   regress0/arith/issue1399.smt2
   regress0/arith/issue3412.smt2
   regress0/arith/issue3413.smt2
@@ -132,6 +133,7 @@ set(regress_0_tests
   regress0/arrays/incorrect8.minimized.smtv1.smt2
   regress0/arrays/incorrect8.smtv1.smt2
   regress0/arrays/incorrect9.smtv1.smt2
+  regress0/arrays/issue12026.smt2
   regress0/arrays/issue3813-massign-assert.smt2
   regress0/arrays/issue3814.smt2
   regress0/arrays/issue4240.smt2
@@ -1102,6 +1104,7 @@ set(regress_0_tests
   regress0/nl/dd.sin-cos-346-b-chunk-0210_unsat.smt2
   regress0/nl/iand-no-init.smt2
   regress0/nl/issue10145-ir-pow.smt2
+  regress0/nl/issue10140-nl-tc.smt2
   regress0/nl/issue11901-pow-rewrite-type.smt2
   regress0/nl/issue3003.smt2
   regress0/nl/issue3407.smt2
@@ -1142,6 +1145,7 @@ set(regress_0_tests
   regress0/nl/issue8755-nl-logic-exception.smt2
   regress0/nl/issue8835-int-second.smt2
   regress0/nl/issue8934-lr-int-mod-range.smt2
+  regress0/nl/issue9661.smt2
   regress0/nl/lazard-spurious-root.smt2
   regress0/nl/magnitude-wrong-1020-m.smt2
   regress0/nl/mult-po.smt2
@@ -1506,6 +1510,7 @@ set(regress_0_tests
   regress0/prop/cadical_bug6.smt2
   regress0/prop/cadical_bug7.smt2
   regress0/prop/issue11867.smt2
+  regress0/prop/red-psyco-134.smt2
   regress0/push-pop/boolean/fuzz_12.smt2
   regress0/push-pop/boolean/fuzz_13.smt2
   regress0/push-pop/boolean/fuzz_14.smt2
@@ -2095,6 +2100,8 @@ set(regress_0_tests
   regress0/strings/re-consume-star.smt2
   regress0/strings/re-consume-sym.smt2
   regress0/strings/re-consume-sym-sigma.smt2
+  regress0/strings/re-eq-simple.smt2
+  regress0/strings/re-eq-simple-sat.smt2
   regress0/strings/re-include-union.smt2
   regress0/strings/re-inclusion-am-pf.smt2
   regress0/strings/re-inter-all.smt2
@@ -2109,6 +2116,7 @@ set(regress_0_tests
   regress0/strings/regexp_inclusion_reduction.smt2
   regress0/strings/regexp_inclusion.smt2
   regress0/strings/regexp-native-simple.cvc.smt2
+  regress0/strings/regexp-repeat.smt2
   regress0/strings/repl-rewrites2.smt2
   regress0/strings/replace-const.smt2
   regress0/strings/replaceall-eval.smt2
@@ -2719,6 +2727,8 @@ set(regress_1_tests
   regress1/ho/dd.seu589-wrong.smt2
   regress1/ho/fta0328.lfho.smt2
   regress1/ho/ho-fun-sharing-dd.smt2
+  regress1/ho/issue12000.smt2
+  regress1/ho/issue12000-2.smt2
   regress1/ho/issue3136-fconst-bool-bool.smt2
   regress1/ho/issue4065-no-rep.smt2
   regress1/ho/issue4092-sinf.smt2
@@ -3558,6 +3568,7 @@ set(regress_1_tests
   regress1/strings/re-all-char-hard.smt2
   regress1/strings/re-agg-total1.smt2
   regress1/strings/re-agg-total2.smt2
+  regress1/strings/re-dt-sat.smt2
   regress1/strings/re-elim-exact.smt2
   regress1/strings/re-inc-range.smt2
   regress1/strings/re-inter-stack-ovf.smt2
@@ -3778,6 +3789,7 @@ set(regress_1_tests
   regress1/sygus/rand_p_1.sy
   regress1/sygus/real-any-const.sy
   regress1/sygus/real-grammar.sy
+  regress1/sygus/rec-declare-fun.sy
   regress1/sygus/rec-fun-swap.sy
   regress1/sygus/rec-fun-sygus.sy
   regress1/sygus/rec-fun-while-1.sy
@@ -4107,6 +4119,8 @@ set(regression_disabled_tests
   regress0/uf/iso_icl_repgen004.smtv1.smt2
   # previously was an options error, now times out
   regress0/strings/issue7974-incomplete-neg-member.smt2
+  # demonstrates instance where RE inference in necessary, times out
+  regress1/strings/re-uf.smt2
   ###
   regress1/bags/all2.smt2
   regress1/bags/card3.smt2
@@ -4169,6 +4183,8 @@ set(regression_disabled_tests
   regress1/sep/finite-witness-sat.smt2
   regress1/sep/sep-fmf-priority.smt2
   regress1/simple-rdl-definefun.smt2
+  # cannot solve with naive approach to RE equality
+  regress1/strings/re-uf-unsat.smt2
   # does not solve after minor modification to search
   regress1/sygus/car_3.lus.sy
   regress1/sygus/Base16_1.sy

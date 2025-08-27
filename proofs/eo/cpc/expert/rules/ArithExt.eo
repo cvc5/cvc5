@@ -1,0 +1,39 @@
+(include "../theories/ArithExt.eo")
+
+;;;;; ProofRewriteRule::ARITH_POW_ELIM
+
+; define: $arith_unfold_pow_rec
+; args:
+; - n Int: The number of times to multiply, expected to be a non-negative numeral.
+; - a T: The term to muliply.
+; return: The result of multiplying a, n times.
+(program $arith_unfold_pow_rec ((T Type) (n Int) (a T))
+  :signature ((eo::quote n) T) (eo::ite (eo::eq n 0) Int T)
+  (
+    (($arith_unfold_pow_rec 0 a)  1)
+    (($arith_unfold_pow_rec n a)  (eo::cons * a ($arith_unfold_pow_rec (eo::add n -1) a)))
+  )
+)
+
+; define: $arith_unfold_pow
+; args:
+; - n Int: The number of times to multiply.
+; - a T: The term to muliply.
+; return: The result of multiplying a, n times. If n is not a positive numeral, this returns (^ a n).
+(define $arith_unfold_pow ((T Type :implicit) (n Int) (a T))
+  (eo::ite (eo::and (eo::is_z n) (eo::not (eo::is_neg n)))
+    ($arith_unfold_pow_rec n a)
+    (^ a n)))
+    
+; rule: arith-pow-elim
+; implements: ProofRewriteRule::ARITH_POW_ELIM
+; args:
+; - eq Bool: The equality to prove with this rule.
+; requires: n is integral, and b is the multiplication of a, n times.
+; conclusion: the equality between a and b.
+(declare-rule arith-pow-elim ((T Type) (a T) (n T) (b T))
+  :args ((= (^ a n) b))
+  :requires (((eo::to_q (eo::to_z n)) (eo::to_q n))
+             (($singleton_elim ($arith_unfold_pow (eo::to_z n) a)) b))
+  :conclusion (= (^ a n) b)
+)

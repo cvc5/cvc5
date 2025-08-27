@@ -53,6 +53,7 @@ const char* toString(ProofRule rule)
     case ProofRule::REORDERING: return "REORDERING";
     case ProofRule::MACRO_RESOLUTION: return "MACRO_RESOLUTION";
     case ProofRule::MACRO_RESOLUTION_TRUST: return "MACRO_RESOLUTION_TRUST";
+    case ProofRule::CHAIN_M_RESOLUTION: return "CHAIN_M_RESOLUTION";
     case ProofRule::SPLIT: return "SPLIT";
     case ProofRule::EQ_RESOLVE: return "EQ_RESOLVE";
     case ProofRule::MODUS_PONENS: return "MODUS_PONENS";
@@ -338,6 +339,7 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::STR_REPLACE_RE_ALL_EVAL:
       return "str-replace-re-all-eval";
     case ProofRewriteRule::RE_LOOP_ELIM: return "re-loop-elim";
+    case ProofRewriteRule::RE_EQ_ELIM: return "re-eq-elim";
     case ProofRewriteRule::MACRO_RE_INTER_UNION_INCLUSION:
       return "macro-re-inter-union-inclusion";
     case ProofRewriteRule::RE_INTER_INCLUSION: return "re-inter-inclusion";
