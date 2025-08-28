@@ -148,8 +148,10 @@ void SynthEngine::checkOwnership(Node q)
     // see if we should try to infer that it is a recursive function
     if (qa.isFunDef(q) || options().quantifiers.sygusRecFunInfer)
     {
-      FunDefEvaluator* fde = d_treg.getTermDatabaseSygus()->getFunDefEvaluator();
-      // if it can be inferred as a recursive function definition, we take ownership
+      FunDefEvaluator* fde =
+          d_treg.getTermDatabaseSygus()->getFunDefEvaluator();
+      // if it can be inferred as a recursive function definition, we take
+      // ownership
       if (fde->isDefinition(q))
       {
         d_qreg.setOwner(q, this, 2);
@@ -178,7 +180,7 @@ void SynthEngine::registerQuantifier(Node q)
     return;
   }
   // otherwise it should be a recursive function definition
-  Assert (options().quantifiers.sygusRecFun);
+  Assert(options().quantifiers.sygusRecFun);
   // If it is a recursive function definition, add it to the function
   // definition evaluator class.
   Trace("cegqi") << "Registering function definition : " << q << "\n";

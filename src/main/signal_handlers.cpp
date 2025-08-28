@@ -300,10 +300,10 @@ void install()
   }
   ss.ss_size = SIGSTKSZ;
   ss.ss_flags = 0;
-  if (sigaltstack(&ss, NULL) == -1)
+  /*if (sigaltstack(&ss, NULL) == -1)
   {
     throw Exception(string("sigaltstack() failure: ") + strerror(errno));
-  }
+  }*/
 
   stackSize = limit.rlim_cur;
   stackBase = ss.ss_sp;

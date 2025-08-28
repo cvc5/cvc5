@@ -76,7 +76,7 @@ class Parser:
         return int(s[2:])
 
     def symbol(self):
-        special_chars = '=' + '_' + '+' + '-' + '<' + '>' + '*' + '.' + '@' + '/'
+        special_chars = '=' + '_' + '+' + '-' + '<' + '>' + '*' + '.' + '@' + '/' + '^'
         return pp.Word(pp.alphas + special_chars, pp.alphanums + special_chars)
 
     def app_action(self, s, l, t):

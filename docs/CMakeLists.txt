@@ -31,6 +31,7 @@ else()
 endif()
 
 configure_file(conf.py.in ${CMAKE_CURRENT_BINARY_DIR}/conf.py)
+configure_file(references.bib ${CMAKE_CURRENT_BINARY_DIR}/references.bib COPYONLY)
 
 add_custom_target(
   docs

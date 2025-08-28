@@ -282,6 +282,7 @@ std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
       {
         d_state.checkLogicAllowsFunctions();
       }
+      // Note that we previously disallowed declare-fun in sygus here.
       // we allow overloading for function declarations
       cmd.reset(new DeclareFunctionCommand(name, sorts, t));
     }

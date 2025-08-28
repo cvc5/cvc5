@@ -37,8 +37,8 @@ bool FunDefEvaluator::assertDefinition(Node q)
     size_t index;
     if (getDefinitionIndex(q, index))
     {
-      Assert (q[1].getKind()==Kind::EQUAL);
-      addDefinition(q[1][index], q[1][1-index], q);
+      Assert(q[1].getKind() == Kind::EQUAL);
+      addDefinition(q[1][index], q[1][1 - index], q);
       return true;
     }
     Trace("fd-eval") << "...not a definition" << std::endl;
@@ -46,7 +46,7 @@ bool FunDefEvaluator::assertDefinition(Node q)
     return false;
   }
   Node body = QuantAttributes::getFunDefBody(q);
-  Assert (!body.isNull());
+  Assert(!body.isNull());
   addDefinition(head, body, q);
   return true;
 }
@@ -59,21 +59,24 @@ bool FunDefEvaluator::isDefinition(const Node& q) const
 
 bool FunDefEvaluator::getDefinitionIndex(const Node& q, size_t& index) const
 {
-  Assert (q.getKind()==Kind::FORALL);
-  if (q[1].getKind()==Kind::EQUAL)
+  Assert(q.getKind() == Kind::FORALL);
+  if (q[1].getKind() == Kind::EQUAL)
   {
     size_t nvars = q[0].getNumChildren();
-    for (size_t i=0; i<2; i++)
+    // check if we are (f x) = t or t = (f x).
+    for (size_t i = 0; i < 2; i++)
     {
       size_t nchild = q[1][i].getNumChildren();
-      if (q[1][i].getKind()!=Kind::APPLY_UF || nchild!=nvars)
+      if (q[1][i].getKind() != Kind::APPLY_UF || nchild != nvars)
       {
         continue;
       }
       bool isMacro = true;
-      for (size_t j=0; j<nvars; j++)
+      // if this side of the equality is (f x1 ... xn) where the quantified
+      // formula is (forall ((x1 T1) ... (xn Tn)) ...).
+      for (size_t j = 0; j < nvars; j++)
       {
-        if (q[1][i][j]!=q[0][j])
+        if (q[1][i][j] != q[0][j])
         {
           isMacro = false;
           break;
@@ -89,7 +92,9 @@ bool FunDefEvaluator::getDefinitionIndex(const Node& q, size_t& index) const
   return false;
 }
 
-void FunDefEvaluator::addDefinition(const Node& head, const Node& body, const Node& q)
+void FunDefEvaluator::addDefinition(const Node& head,
+                                    const Node& body,
+                                    const Node& q)
 {
   // h possibly with zero arguments?
   Node f = head.hasOperator() ? head.getOperator() : head;
@@ -182,7 +187,8 @@ Node FunDefEvaluator::evaluateDefinitions(Node n) const
             Trace("fd-eval") << "FunDefEvaluator: couldn't reduce condition of "
                                 "ITE to const, FAIL\n";
 
-            Trace("fd-eval") << "...failing eval was " << it->second << std::endl;
+            Trace("fd-eval")
+                << "...failing eval was " << it->second << std::endl;
             return Node::null();
           }
           // pick child to evaluate depending on condition eval
@@ -331,8 +337,10 @@ Node FunDefEvaluator::getLambdaFor(Node f) const
   std::map<Node, FunDefInfo>::const_iterator it = d_funDefMap.find(f);
   if (it != d_funDefMap.end())
   {
-    NodeManager * nm = nodeManager();
-    return nm->mkNode(Kind::LAMBDA, nm->mkNode(Kind::BOUND_VAR_LIST, it->second.d_args), it->second.d_body);
+    NodeManager* nm = nodeManager();
+    return nm->mkNode(Kind::LAMBDA,
+                      nm->mkNode(Kind::BOUND_VAR_LIST, it->second.d_args),
+                      it->second.d_body);
   }
   return Node::null();
 }
