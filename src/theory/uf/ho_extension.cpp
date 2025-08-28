@@ -319,22 +319,28 @@ unsigned HoExtension::checkExtensionality(TheoryModel* m)
     {
       hasFunctions = true;
       std::vector<TypeNode> argTypes = tn.getArgTypes();
-      bool finiteArgTypes = true;
+      // We classify a function here to determine whether we need to apply
+      // extensionality eagerly during solving. We apply extensionality
+      // eagerly during solving if
+      // (A) The function type has finite cardinality, or
+      // (B) All of its arguments have finite cardinality.
+      bool finiteExtType = true;
       if (!d_env.isFiniteType(tn))
       {
         for (const TypeNode& tna : argTypes)
         {
           if (!d_env.isFiniteType(tna))
           {
-            finiteArgTypes = false;
+            finiteExtType = false;
           }
         }
       }
+      // Based on the above classification of finite vs infinite.
       // If during collect model, must have an infinite function type, since
       // such function are not necessary to be handled during solving.
       // If not during collect model, must have a finite function type, since
       // such function symbols must be handled during solving.
-      if (finiteArgTypes != isCollectModel)
+      if (finiteExtType != isCollectModel)
       {
         func_eqcs[tn].push_back(eqc);
         Trace("uf-ho-debug")
