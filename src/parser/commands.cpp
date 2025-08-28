@@ -1450,6 +1450,70 @@ void GetValueCommand::toStream(std::ostream& out) const
 }
 
 /* -------------------------------------------------------------------------- */
+/* class GetModelDomainElementsCommand                                        */
+/* -------------------------------------------------------------------------- */
+
+GetModelDomainElementsCommand::GetModelDomainElementsCommand(cvc5::Sort sort)
+    : d_sort(sort)
+{
+}
+
+cvc5::Sort GetModelDomainElementsCommand::getSort() const { return d_sort; }
+
+void GetModelDomainElementsCommand::invoke(cvc5::Solver* solver, SymManager* sm)
+{
+  try
+  {
+    d_result = solver->getModelDomainElements(d_sort);
+    d_commandStatus = CommandSuccess::instance();
+  }
+  catch (cvc5::CVC5ApiRecoverableException& e)
+  {
+    d_commandStatus = new CommandRecoverableFailure(e.what());
+  }
+  catch (exception& e)
+  {
+    d_commandStatus = new CommandFailure(e.what());
+  }
+}
+
+const std::vector<cvc5::Term>& GetModelDomainElementsCommand::getResult() const
+{
+  return d_result;
+}
+
+void GetModelDomainElementsCommand::printResult(cvc5::Solver* solver,
+                                                std::ostream& out) const
+{
+  out << "(";
+  bool firstTime = true;
+  for (size_t i = 0, rsize = d_result.size(); i < rsize; i++)
+  {
+    if (firstTime)
+    {
+      firstTime = false;
+    }
+    else
+    {
+      out << " ";
+    }
+    out << d_result[i];
+  }
+  out << ")" << std::endl;
+}
+
+std::string GetModelDomainElementsCommand::getCommandName() const
+{
+  return "get-model-domain-elements";
+}
+
+void GetModelDomainElementsCommand::toStream(std::ostream& out) const
+{
+  internal::Printer::getPrinter(out)->toStreamCmdGetModelDomainElements(
+      out, sortToTypeNode(d_sort));
+}
+
+/* -------------------------------------------------------------------------- */
 /* class GetAssignmentCommand                                                 */
 /* -------------------------------------------------------------------------- */
 
