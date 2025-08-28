@@ -167,6 +167,10 @@ private:
    */
   void processCarePairArgs(TNode a, TNode b) override;
   /**
+   * Compute relevant terms. Used in higher-order.
+   */
+  void computeRelevantTerms(std::set<Node>& termSet) override;
+  /**
    * Is t a higher order type? A higher-order type is a function type having
    * an argument type that is also a function type. This is used for checking
    * logic exceptions.
