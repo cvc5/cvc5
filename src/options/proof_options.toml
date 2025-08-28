@@ -129,7 +129,7 @@ name   = "Proof"
 
 [[option]]
   name       = "proofChainMRes"
-  category   = "expert"
+  category   = "regular"
   long       = "proof-chain-m-res"
   type       = "bool"
   default    = "false"
