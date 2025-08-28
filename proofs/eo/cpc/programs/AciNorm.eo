@@ -21,6 +21,33 @@
   )
 )
 
+; program: $get_ai_norm_rec
+; args:
+; - f (-> S S S): The function we are considering, which is assumed to be associative+idempotent and has the given identity.
+; - id S: The nil terminator of f.
+; - s S: The term to process.
+; return: the result of normalizing s based on associative+idempotent+identity reasoning.
+(program $get_ai_norm_rec ((T Type) (S Type) (f (-> S S S)) (id T) (x T) (x1 T) (x2 T))
+  :signature ((-> S S S) T T) T
+  (
+    (($get_ai_norm_rec f id (f x1 x2))  (eo::list_setof f (eo::list_concat f ($get_ai_norm_rec f id x1) ($get_ai_norm_rec f id x2))))
+    (($get_ai_norm_rec f id id)         id)
+    (($get_ai_norm_rec f id x)          (eo::cons f x id))
+  )
+)
+
+; program: $get_ai_norm
+; args:
+; - t U: The term to process.
+; return: the result of normalizing t based on associative+idempotent+identity reasoning.
+(program $get_ai_norm ((S Type) (U Type) (f (-> S S S)) (x U) (y U))
+  :signature (U) U
+  (
+    (($get_ai_norm (f x y)) (eo::define ((id (eo::nil f (eo::typeof (f x y)))))
+                              ($singleton_elim_aci f id ($get_ai_norm_rec f id (f x y)))))
+  )
+)
+
 ; program: $get_a_norm_rec
 ; args:
 ; - f (-> S S S): The function we are considering, which is assumed to be associative and has the given identity.
@@ -33,18 +60,6 @@
     (($get_a_norm_rec f id (f x1 x2))  (eo::list_concat f ($get_a_norm_rec f id x1) ($get_a_norm_rec f id x2)))
     (($get_a_norm_rec f id id)         id)
     (($get_a_norm_rec f id x)          (eo::cons f x id))
-  )
-)
-
-; program: $get_ai_norm
-; args:
-; - t U: The term to process.
-; return: the result of normalizing t based on associative+identity+idempotent reasoning.
-(program $get_ai_norm ((S Type) (U Type) (f (-> S S S)) (x U) (y U))
-  :signature (U) U
-  (
-    (($get_ai_norm (f x y)) (eo::define ((id (eo::nil f (eo::typeof (f x y)))))
-                              ($singleton_elim_aci f id (eo::list_setof f ($get_a_norm_rec f id (f x y))))))
   )
 )
 
@@ -61,10 +76,11 @@
 )
 
 ; A placeholder that indicates that the given list can be sorted with respect
-; to operator f. For example, (@aci_sorted f t) indicates that t is an application
+; to operator f. For example, (@aci.sorted f t) indicates that t is an application
 ; of a commutative operator f. We show the equivalence of two applications marked
 ; in this way using the operator for multiset equality below.
-(declare-parameterized-const @aci_sorted ((U Type :implicit) (T Type :implicit)) (-> U T T))
+(declare-parameterized-const @@aci_sorted ((U Type :implicit) (T Type :implicit)) (-> U T T))
+(define @aci.sorted () @@aci_sorted)
 
 ; program: $aci_norm_eq
 ; args:
@@ -75,8 +91,8 @@
   :signature (U U) Bool
   (
   (($aci_norm_eq t t) true)
-  (($aci_norm_eq (@aci_sorted f t) t) true)
-  (($aci_norm_eq (@aci_sorted f t) (@aci_sorted f s)) (eo::list_meq f t s))
+  (($aci_norm_eq (@aci.sorted f t) t) true)
+  (($aci_norm_eq (@aci.sorted f t) (@aci.sorted f s)) (eo::list_meq f t s))
   (($aci_norm_eq t s) false)
   )
 )

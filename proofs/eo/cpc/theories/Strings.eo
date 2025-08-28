@@ -8,10 +8,10 @@
 
 ; The sequence type.
 ; disclaimer: This sort is not in SMT-LIB.
-(declare-type Seq (Type))
+(declare-const Seq (-> Type Type))
 
 ; disclaimer: This sort is not in SMT-LIB.
-(declare-type Char ())
+(declare-const Char Type)
 
 ; define: String
 ; return: >
@@ -26,7 +26,7 @@
 (define String () (Seq Char))
 
 ; The regular expression type.
-(declare-type RegLan ())
+(declare-const RegLan Type)
 
 ; String literals are strings.
 (declare-consts <string> String)
@@ -115,6 +115,7 @@
 
 (declare-const re.* (-> RegLan RegLan))
 (declare-const re.+ (-> RegLan RegLan))
+(declare-const re.^ (-> Int RegLan RegLan))
 (declare-const re.opt (-> RegLan RegLan))
 (declare-const re.comp (-> RegLan RegLan))
 (declare-const re.range (-> String String RegLan))
@@ -191,21 +192,9 @@
 (declare-parameterized-const @strings_occur_index_re
   ((s String :opaque) (r RegLan :opaque))
   (-> Int Int))
-(declare-parameterized-const @strings_occur_len_re
-  ((s String :opaque) (r RegLan :opaque))
-  (-> Int Int))
 (declare-parameterized-const @strings_replace_all_result
   ((T Type :implicit) (t (Seq T) :opaque))
   (-> Int (Seq T)))
-(declare-parameterized-const @re_first_match_pre
-  ((h String :opaque) (e RegLan :opaque))
-  String)
-(declare-parameterized-const @re_first_match
-  ((i String :opaque) (f RegLan :opaque))
-  String)
-(declare-parameterized-const @re_first_match_post
-  ((j String :opaque) (g RegLan :opaque))
-  String)
 
 (declare-parameterized-const @witness_string_length ((T Type))
   (-> Int Int T))

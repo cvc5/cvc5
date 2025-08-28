@@ -17,6 +17,7 @@
 #include "expr/attribute.h"
 #include "expr/cardinality_constraint.h"
 #include "expr/node_algorithm.h"
+#include "expr/subs.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
@@ -163,6 +164,25 @@ Node TheoryModel::getValue(TNode n) const
                           << "[model-getvalue] returning " << nn << std::endl;
   Assert(nn.getType() == n.getType());
   return nn;
+}
+
+Node TheoryModel::simplify(TNode n) const
+{
+  std::unordered_set<Node> syms;
+  expr::getSymbols(n, syms);
+  // if there are free symbols
+  if (!syms.empty())
+  {
+    // apply a substitution mapping those symbols to their model values
+    Subs subs;
+    for (const Node& s : syms)
+    {
+      subs.add(s, getValue(s));
+    }
+    // rewrite the result
+    return rewrite(subs.apply(n));
+  }
+  return n;
 }
 
 bool TheoryModel::isModelCoreSymbol(Node s) const
@@ -377,7 +397,7 @@ Node TheoryModel::getModelValue(TNode n) const
         Unreachable();
       }
     }
-    else if (!t.isFirstClass())
+    else if (!t.isFirstClass() || t.isRegExp())
     {
       // this is the class for regular expressions
       // we simply invoke the rewriter on them
@@ -529,7 +549,7 @@ bool TheoryModel::assertEqualityEngine(const eq::EqualityEngine* ee,
         if (first) {
           rep = n;
           //add the term (this is specifically for the case of singleton equivalence classes)
-          if (rep.getType().isFirstClass())
+          if (!rep.getType().isRegExp())
           {
             d_equalityEngine->addTerm( rep );
             Trace("model-builder-debug") << "Add term to ee within assertEqualityEngine: " << rep << std::endl;

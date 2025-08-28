@@ -6,7 +6,7 @@
 (include "../programs/Nary.eo")
 (include "../programs/PolyNorm.eo")
 (include "../programs/DistinctValues.eo")
-
+(include "../programs/Nfa.eo")
 
 ; This signature is used for both strings and sequences, where we often
 ; write "string" in the documentation to refer to a string or sequence,
@@ -52,12 +52,15 @@
   )
 )
 
-; define: $char_type_of
+; program: $char_type_of
 ; args:
 ; - T Type: The string-like type to check.
 ; return: the character type of the string-like type T
-(define $char_type_of ((T Type)) 
-  (eo::match ((U Type)) T (((Seq U) U)))
+(program $char_type_of ((U Type))
+  :signature (Type) Type
+  (
+  (($char_type_of (Seq U)) U)
+  )
 )
 
 ; define: $str_concat
@@ -164,7 +167,8 @@
 ;;-------------------- RE evaluation
 
 ; note: used to represent an invalid regular expression below.
-(declare-const @re.null RegLan)
+(declare-const @@re.null RegLan)
+(define @re.null () @@re.null)
 
 ; program: $str_eval_str_in_re_rec
 ; args:
@@ -226,9 +230,16 @@
 ; return: >
 ;   true if s is in regular expression r. Does not evaluate if s is not a string
 ;   literal.
+; note: This method attempts to use the NFA test whenever possible.
 (define $str_eval_str_in_re ((s String) (r RegLan))
   (eo::ite (eo::is_str s)
-    ($str_eval_str_in_re_rec s 0 r @re.null)
+    (eo::define ((nfa ($build_nfa r (@nfa.list @nfa.accept))))
+    (eo::ite (eo::is_ok nfa)
+      ; if this is supported by the NFA signature, use the faster test
+      ($nfa_match "" s nfa @nfa.decline)
+      ; otherwise, must use the backtracking method above.
+      ($str_eval_str_in_re_rec s 0 r @re.null)))
+    ; otherwise if s is not constant, we are unevaluated
     (str.in_re s r)))
 
 ;;;;; first match utilities
@@ -307,8 +318,7 @@
 ; - n Int: A position in s.
 ; return: the term corresponding to the prefix of term s of fixed length n.
 (define $str_prefix ((U Type :implicit) (s (Seq U)) (n Int))
-  (str.substr s 0 n)
-)
+  (str.substr s 0 n))
 
 ; define: $str_suffix_rem
 ; args:
@@ -317,8 +327,7 @@
 ; return: >
 ;   The term corresponding to the suffix of term s starting from position n.
 (define $str_suffix_rem ((U Type :implicit) (s (Seq U)) (n Int))
-  (str.substr s n (- (str.len s) n))
-)
+  (str.substr s n (- (str.len s) n)))
 
 ; define: $str_prefix_rem
 ; args:
@@ -326,8 +335,7 @@
 ; - n Int: A position in s.
 ; return: the term corresponding to the prefix of term s except for length n.
 (define $str_prefix_rem ((U Type :implicit) (s (Seq U)) (n Int))
-  (str.substr s 0 (- (str.len s) n))
-)
+  (str.substr s 0 (- (str.len s) n)))
 
 ; define: $str_suffix
 ; args:
@@ -335,8 +343,7 @@
 ; - n Int: A position in s.
 ; return: the term corresponding to the suffix of term s of length n.
 (define $str_suffix ((U Type :implicit) (s (Seq U)) (n Int))
-  (str.substr s (- (str.len s) n) n)
-)
+  (str.substr s (- (str.len s) n) n))
 
 ; program: $str_unify_split
 ; args:
@@ -378,6 +385,31 @@
 ;   t in s.
 (define $str_first_ctn_post ((U Type :implicit) (s (Seq U)) (t (Seq U)))
   ($str_suffix_rem s (+ (str.len (@purify ($str_first_ctn_pre s t))) (str.len t))))
+
+; define: $re_first_match_pre
+; args:
+; - s String: The string term.
+; - r RegLan: The regular expression.
+; return: the substring of s up to the first match of r in s.
+(define $re_first_match_pre ((s String) (r RegLan))
+  ($str_prefix s (str.indexof_re s r 0)))
+
+; define: $re_first_match_pre
+; args:
+; - s String: The string term.
+; - r RegLan: The regular expression.
+; return: the substring of s that is first shortest match of r in s.
+(define $re_first_match ((s String) (r RegLan))
+  (eo::define ((n (str.indexof_re s r 0)))
+    (str.substr s n (- (@strings_occur_index_re s r 1) n))))
+
+; define: $re_first_match_pre
+; args:
+; - s String: The string term.
+; - r RegLan: The regular expression.
+; return: the substring of s after the first shortest match of r in s.
+(define $re_first_match_post ((s String) (r RegLan))
+  ($str_suffix_rem s (@strings_occur_index_re s r 1)))
 
 ;;-------------------- Utilities
 
@@ -437,8 +469,7 @@
 ;   The result of ensuring that the input t is not a singleton str.++
 ;   application. In particular, if t is of the form (str.++ t1 empty) where
 ;   empty is the empty string for the type of t, we return t1.
-(program $str_nary_elim
-    ((T Type) (t (Seq T)) (ss (Seq T) :list))
+(program $str_nary_elim ((T Type) (t (Seq T)) (ss (Seq T) :list))
     :signature ((Seq T)) (Seq T)
     (
         (($str_nary_elim (str.++ t ss)) (eo::define ((nil ($seq_empty (eo::typeof t))))
@@ -623,9 +654,9 @@
                            (= (occIndex (+ @var.str_index 1)) (+ ii (str.len y)))))))))))))))
     (($str_reduction_pred (str.replace_re s r t))
         (eo::define ((k (@purify (str.replace_re s r t))))
-        (eo::define ((k1 (@re_first_match_pre s r)))
-        (eo::define ((k2 (@re_first_match s r)))
-        (eo::define ((k3 (@re_first_match_post s r)))
+        (eo::define ((k1 (@purify ($re_first_match_pre s r))))
+        (eo::define ((k2 (@purify ($re_first_match s r))))
+        (eo::define ((k3 (@purify ($re_first_match_post s r))))
         (ite (= (str.indexof_re s r 0) -1)
           (= k s)
           (and (= s (str.++ k1 k2 k3))
@@ -642,7 +673,6 @@
         (eo::define ((numOcc (@strings_num_occur_re s r)))
         (eo::define ((result (@strings_replace_all_result (str.replace_re_all s r t))))
         (eo::define ((occIndex (@strings_occur_index_re s r)))
-        (eo::define ((occLen (@strings_occur_len_re s r)))
         (eo::define ((rnemp (re.diff r (str.to_re ""))))
         (eo::define ((ssl (str.substr s (occIndex numOcc) (str.len s))))
         (ite (= (str.indexof_re s rnemp 0) -1)
@@ -657,12 +687,11 @@
                   (or
                     (not (>= @var.str_index 0))
                     (not (< @var.str_index numOcc))
-                    (eo::define ((olen1 (occLen ip1)))
-                    (eo::define ((oindex1 (occIndex ip1)))
                     (eo::define ((oindex (occIndex @var.str_index)))
-                    (eo::define ((ii (- oindex1 olen1)))
+                    (eo::define ((ii (str.indexof_re s rnemp oindex)))
+                    (eo::define ((oindex1 (occIndex ip1)))
+                    (eo::define ((olen1 (- oindex1 ii)))
                       (and (> olen1 0)
-                           (= oindex1 (+ (str.indexof_re s rnemp (occIndex @var.str_index)) olen1))
                            (str.in_re (str.substr s ii olen1) rnemp)
                            (forall ((@var.str_length Int))
                              (or
@@ -671,7 +700,7 @@
                                (not (str.in_re (str.substr s ii @var.str_length) r))))
                            (= (result @var.str_index)
                               (str.++ (str.substr s oindex (- ii oindex)) t (result (+ @var.str_index 1))))
-                      ))))))))))))))))))
+                      )))))))))))))))))
     (($str_reduction_pred (str.indexof_re s r n))
         (eo::define ((k (@purify (str.indexof_re s r n))))
         (ite (or (> n (str.len s)) (> 0 n))
@@ -775,29 +804,24 @@
 ;   We use the optimization that Rj may be (str.to_re tj); otherwise tj is an
 ;   application of the unfolding skolem program @re_unfold_pos_component.
 ; note: A helper method for computing the conclusion of ProofRule::RE_UNFOLD_POS.
-(program $re_unfold_pos_concat_rec ((t String) (r1 RegLan) (r2 RegLan :list) (ro RegLan) (i Int))
+(program $re_unfold_pos_concat_rec ((t String) (r1 RegLan) (r2 RegLan :list) (ro RegLan) (i Int) (s String))
   :signature (String RegLan RegLan Int) (@Pair String Bool)
   (
     (($re_unfold_pos_concat_rec t @re.empty ro i)       (@pair "" true))
+    (($re_unfold_pos_concat_rec t (re.++ (str.to_re s) r2) ro i)
+      (eo::define ((res ($re_unfold_pos_concat_rec t r2 ro (eo::add i 1))))
+      (eo::define ((c ($pair_first res)))
+      (eo::define ((M ($pair_second res)))
+        ; a constant regular expression, append s
+        (@pair (eo::cons str.++ s c) M)))))
     (($re_unfold_pos_concat_rec t (re.++ r1 r2) ro i)
-      ; match recursive call
-      (eo::match ((c String :list) (M Bool :list))
-        ($re_unfold_pos_concat_rec t r2 ro (eo::add i 1))
-        (((@pair c M)
-          ; match on what r1 is
-          (eo::match ((s String) (r RegLan))
-            r1
-            (
-              ; a constant regular expression, append s
-              ((str.to_re s) (@pair (str.++ s c) M))
-              ; otherwise, make the skolem and append with constraint
-              (r            (eo::define ((k (@re_unfold_pos_component t ro i)))
-                            (@pair (str.++ k c) (and (str.in_re k r) M))))
-            )
-          )
-        ))
-      )
-    )
+      (eo::define ((res ($re_unfold_pos_concat_rec t r2 ro (eo::add i 1))))
+      (eo::define ((c ($pair_first res)))
+      (eo::define ((M ($pair_second res)))
+      (eo::define ((k (@re_unfold_pos_component t ro i)))
+        ; otherwise, make the skolem and append with constraint
+        (@pair (eo::cons str.++ k c)
+               (eo::cons and (str.in_re k r1) M)))))))
   )
 )
 
@@ -899,13 +923,12 @@
     ; Check if t is a word constant
     (($str_collect_acc (str.++ t tail))
       (eo::ite ($str_check_length_one t)
-        (eo::match ((s1 (Seq U)) (s2 (Seq U))) 
-          ($str_collect_acc tail)
-          (
-            ((@pair "" s2)  (@pair t s2))
-            ((@pair s1 s2)  (@pair (eo::concat t s1) s2))    ; concatenate the constant
-          )
-        )
+        (eo::define ((res ($str_collect_acc tail)))
+        (eo::define ((s1 ($pair_first res)))
+        (eo::define ((s2 ($pair_second res)))
+          (eo::ite (eo::eq s1 "")
+            (@pair t s2)
+            (@pair (eo::concat t s1) s2)))))    ; concatenate the constant
         (@pair "" (str.++ t tail))))
     (($str_collect_acc "")            (@pair "" ""))
   )
@@ -926,16 +949,14 @@
   :signature ((Seq U)) (Seq U)
   (
     (($str_collect (str.++ t s))
-      (eo::match ((s1 (Seq U)) (s2 (Seq U)))
-        ($str_collect_acc (str.++ t s))
-        (
+      (eo::define ((res ($str_collect_acc (str.++ t s))))
+      (eo::define ((s1 ($pair_first res)))
+      (eo::define ((s2 ($pair_second res)))
+        (eo::ite (eo::eq s1 "")
           ; did not strip a constant prefix, just append t to the result of processing s
-          ((@pair "" s2)  ($str_cons t ($str_collect s)))
+          ($str_cons t ($str_collect s))
           ; stripped a constant prefix, append it to second term in the pair
-          ((@pair s1 s2)  ($str_cons s1 ($str_collect s2)))
-        )
-      )
-    )
+          ($str_cons s1 ($str_collect s2)))))))
     (($str_collect t)       ($str_self_if_empty t))
   )
 )
@@ -1219,6 +1240,18 @@
   )
 )
 
+; program $str_maybe_get_star_body
+; args:
+; - r RegLan: The regular expression
+; return: The body of r if it is a star, or r itself otherwise.
+(program $str_maybe_get_star_body ((r RegLan))
+  :signature (RegLan) RegLan
+  (
+    (($str_maybe_get_star_body (re.* r)) r)
+    (($str_maybe_get_star_body r)        r)
+  )
+)
+
 ; Helper for `$str_re_includes`.
 ; program: $str_re_includes_lhs_star
 ; args:
@@ -1233,13 +1266,7 @@
   (
   (($str_re_includes_lhs_star (re.* r1) r2) (eo::ite (eo::eq r1 re.allchar)
                                               true
-                                              ($str_re_includes r1
-                                                (eo::match ((r3 RegLan))
-                                                  r2
-                                                  (
-                                                    ((re.* r3) r3) ; use the body if a star
-                                                    (r3 r3)        ; otherwise use self
-                                                  )))))
+                                              ($str_re_includes r1 ($str_maybe_get_star_body r2)))) ; use body if a star
   (($str_re_includes_lhs_star r1 r2)        false)
   )
 )
@@ -1723,7 +1750,7 @@
 ; returns: >
 ;   The result of evaluating `(str.from_int n)` given the current accumulated return value.
 (program $str_from_int_eval_rec ((s String) (n Int))
-  :signature (Int String) Bool
+  :signature (Int String) String
   (
   (($str_from_int_eval_rec n s) (eo::ite (eo::eq n 0)
                                   (eo::ite (eo::eq s "") "0" s)
@@ -1883,7 +1910,7 @@
   )
 )
 
-; program: $str_eval_replace_all_rec
+; program: $str_eval_replace_all
 ; args:
 ; - s String: A string.
 ; - t String: A string to find.
