@@ -10,9 +10,6 @@ It is configured via :cpp:func:`cvc5_add_plugin()`.
 
 ----
 
-.. doxygentypedef:: Cvc5Plugin
-    :project: cvc5_c
-
 .. doxygenstruct:: Cvc5Plugin
     :project: cvc5_c
     :members:
