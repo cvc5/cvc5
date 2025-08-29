@@ -46,25 +46,5 @@ runs:
         samedayprefix = '{}-{}-'.format(name, curtime)
         filename = '{}-{}-{}{}'.format(name, curtime, sha[:7], ext)
 
-        # prune old commits
-        assets = list(rel.get_assets())
-        assets.sort(key=lambda x: x.created_at, reverse=True)
-
-        for cnt,asset in enumerate(assets):
-          delete = False
-          # We generate 10 packages per build:
-          # {Linux-x86_64, Linux-arm64, macOS-x86_64, macOS-arm64, Win64-x86_64} * {static, shared}
-          # and 5 JARS {Linux-x86_64, Linux-arm64, macOS-x86_64, macOS-arm64, Win64-x86_64}
-          if cnt >= 30: # Keep at most 2 builds
-            delete = True
-          if asset.name.startswith(samedayprefix):
-            delete = True
-          # convert to timezone-aware datetime
-          age = datetime.datetime.now().replace(tzinfo=datetime.timezone.utc) - asset.created_at
-          if age.days > 7:
-            delete = True
-          if delete:
-            asset.delete_asset()
-
         # upload as asset with proper name
         rel.upload_asset(package, name=filename)
