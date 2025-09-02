@@ -250,7 +250,7 @@ void ExponentialSolver::doTangentLemma(TNode e,
     proof->addStep(lem,
                    ProofRule::ARITH_TRANS_EXP_APPROX_BELOW,
                    {},
-                   {nm->mkConstReal(Rational(d)), c, e[0]});
+                   {nm->mkConstInt(Rational(d)), c, e[0]});
   }
   d_data->d_im.addPendingLemma(
       lem, InferenceId::ARITH_NL_T_TANGENT, proof, true);
