@@ -81,7 +81,7 @@
 ;   sine is symmetric wrt the point 0.
 (declare-rule arith_trans_sine_symmetry ((x Real))
   :args (x)
-  :conclusion (= (+ (sin x) (sin (* -1/1 x))) 0)
+  :conclusion (= (+ (sin x) (sin (* -1/1 x))) 0/1)
 )
 
 ; rule: arith_trans_sine_tangent_zero
