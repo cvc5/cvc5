@@ -309,8 +309,8 @@ void SymManager::Implementation::resetAssertions()
 
 // ---------------------------------------------- SymManager
 
-SymManager::SymManager(cvc5::TermManager& tm)
-    : d_tm(tm),
+SymManager::SymManager(cvc5::TermManager tm)
+    : d_tm(std::move(tm)),
       d_implementation(new SymManager::Implementation()),
       d_globalDeclarations(false),
       d_freshDeclarations(true),
