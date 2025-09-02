@@ -2336,7 +2336,7 @@ enum ENUM(ProofRule)
    *
    * .. math::
    *
-   *   \inferrule{- \mid t}{\sin(t) \leq 1 \land \sin(t) \geq -1.0}
+   *   \inferrule{- \mid t}{\sin(t) \leq 1.0 \land \sin(t) \geq -1.0}
    *
    * \endverbatim
    */
