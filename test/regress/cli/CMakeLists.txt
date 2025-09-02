@@ -133,6 +133,8 @@ set(regress_0_tests
   regress0/arrays/incorrect8.minimized.smtv1.smt2
   regress0/arrays/incorrect8.smtv1.smt2
   regress0/arrays/incorrect9.smtv1.smt2
+  regress0/arrays/issue11908-eec-ensure-atom.smt2
+  regress0/arrays/issue12026.smt2
   regress0/arrays/issue3813-massign-assert.smt2
   regress0/arrays/issue3814.smt2
   regress0/arrays/issue4240.smt2
@@ -1103,6 +1105,7 @@ set(regress_0_tests
   regress0/nl/dd.sin-cos-346-b-chunk-0210_unsat.smt2
   regress0/nl/iand-no-init.smt2
   regress0/nl/issue10145-ir-pow.smt2
+  regress0/nl/issue10140-nl-tc.smt2
   regress0/nl/issue11901-pow-rewrite-type.smt2
   regress0/nl/issue3003.smt2
   regress0/nl/issue3407.smt2
@@ -1143,6 +1146,7 @@ set(regress_0_tests
   regress0/nl/issue8755-nl-logic-exception.smt2
   regress0/nl/issue8835-int-second.smt2
   regress0/nl/issue8934-lr-int-mod-range.smt2
+  regress0/nl/issue9661.smt2
   regress0/nl/lazard-spurious-root.smt2
   regress0/nl/magnitude-wrong-1020-m.smt2
   regress0/nl/mult-po.smt2
@@ -1247,6 +1251,7 @@ set(regress_0_tests
   regress0/parser/issue10889-sexpr-eof.smt2
   regress0/parser/issue11935-err-code-point.smt2
   regress0/parser/issue11991-nwf.smt2
+  regress0/parser/issue12062-overflow.smt2
   regress0/parser/issue5163.smt2
   regress0/parser/issue6908-get-value-uc.smt2
   regress0/parser/issue7274.smt2
@@ -1437,6 +1442,7 @@ set(regress_0_tests
   regress0/proofs/issue277-circuit-propagator.smt2
   regress0/proofs/dd_issue2031-bv-var-elim.smt2
   regress0/proofs/issue10278-pf-clone.smt2
+  regress0/proofs/issue11750.smt2
   regress0/proofs/issue8983-trust-subs.smt2
   regress0/proofs/issue9156-doublePropProof.smt2
   regress0/proofs/issue9172-doublePropProof.smt2
@@ -2113,6 +2119,7 @@ set(regress_0_tests
   regress0/strings/regexp_inclusion_reduction.smt2
   regress0/strings/regexp_inclusion.smt2
   regress0/strings/regexp-native-simple.cvc.smt2
+  regress0/strings/regexp-repeat.smt2
   regress0/strings/repl-rewrites2.smt2
   regress0/strings/replace-const.smt2
   regress0/strings/replaceall-eval.smt2
@@ -2503,7 +2510,7 @@ set(regress_1_tests
   regress1/bug681.smt2
   regress1/bug694-Unapply1.scala-0.smt2
   regress1/bug800.smt2
-  regress1/bags/all1.smt2  
+  regress1/bags/all1.smt2
   regress1/bags/all3.smt2
   regress1/bags/bag_member.smt2
   regress1/bags/bag_partition1.smt2
@@ -2723,6 +2730,8 @@ set(regress_1_tests
   regress1/ho/dd.seu589-wrong.smt2
   regress1/ho/fta0328.lfho.smt2
   regress1/ho/ho-fun-sharing-dd.smt2
+  regress1/ho/issue12000.smt2
+  regress1/ho/issue12000-2.smt2
   regress1/ho/issue3136-fconst-bool-bool.smt2
   regress1/ho/issue4065-no-rep.smt2
   regress1/ho/issue4092-sinf.smt2
@@ -3562,6 +3571,7 @@ set(regress_1_tests
   regress1/strings/re-all-char-hard.smt2
   regress1/strings/re-agg-total1.smt2
   regress1/strings/re-agg-total2.smt2
+  regress1/strings/re-dt-sat.smt2
   regress1/strings/re-elim-exact.smt2
   regress1/strings/re-inc-range.smt2
   regress1/strings/re-inter-stack-ovf.smt2
@@ -3912,7 +3922,7 @@ set(regress_2_tests
   regress2/javafe.ast.StandardPrettyPrint.319_no_forall.smt2
   regress2/javafe.ast.WhileStmt.447_no_forall.smt2
   regress2/nl/issue8693-flatten-to-real.smt2
-  regress2/large-datatypes-cycle.smt2 
+  regress2/large-datatypes-cycle.smt2
   regress2/ooo.rf6.smt2
   regress2/ooo.tag10.smt2
   regress2/piVC_5581bd.smt2
@@ -4112,6 +4122,8 @@ set(regression_disabled_tests
   regress0/uf/iso_icl_repgen004.smtv1.smt2
   # previously was an options error, now times out
   regress0/strings/issue7974-incomplete-neg-member.smt2
+  # demonstrates instance where RE inference in necessary, times out
+  regress1/strings/re-uf.smt2
   ###
   regress1/bags/all2.smt2
   regress1/bags/card3.smt2
@@ -4174,6 +4186,8 @@ set(regression_disabled_tests
   regress1/sep/finite-witness-sat.smt2
   regress1/sep/sep-fmf-priority.smt2
   regress1/simple-rdl-definefun.smt2
+  # cannot solve with naive approach to RE equality
+  regress1/strings/re-uf-unsat.smt2
   # does not solve after minor modification to search
   regress1/sygus/car_3.lus.sy
   regress1/sygus/Base16_1.sy
