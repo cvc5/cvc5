@@ -2379,7 +2379,7 @@ enum ENUM(ProofRule)
    *
    * .. math::
    *
-   *   \inferrule{- \mid t}{(t > 0 \rightarrow \sin(t) < t) \land (t < 0.0
+   *   \inferrule{- \mid t}{(t > 0.0 \rightarrow \sin(t) < t) \land (t < 0.0
    *   \rightarrow \sin(t) > t)}
    *
    * \endverbatim
