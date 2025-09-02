@@ -2208,7 +2208,7 @@ enum ENUM(ProofRule)
    *
    * .. math::
    *
-   *   \inferrule{- \mid t}{(t < 0) \leftrightarrow (\exp(t) < 1)}
+   *   \inferrule{- \mid t}{(t < 0.0) \leftrightarrow (\exp(t) < 1.0)}
    *
    * \endverbatim
    */
@@ -2231,7 +2231,7 @@ enum ENUM(ProofRule)
    *
    * .. math::
    *
-   *   \inferrule{- \mid t}{t \leq 0.0 \lor \exp(t) > t+1}
+   *   \inferrule{- \mid t}{t \leq 0.0 \lor \exp(t) > t+1.0}
    *
    * \endverbatim
    */
