@@ -81,8 +81,8 @@ void ExponentialSolver::checkInitialRefine()
       // initial refinements
       if (d_tf_initial_refine.find(t) == d_tf_initial_refine.end())
       {
-        Node zero = nm->mkConstInt(Rational(0));
-        Node one = nm->mkConstInt(Rational(1));
+        Node zero = nm->mkConstReal(Rational(0));
+        Node one = nm->mkConstReal(Rational(1));
         d_tf_initial_refine[t] = true;
         {
           // exp is always positive: exp(t) > 0
@@ -250,7 +250,7 @@ void ExponentialSolver::doTangentLemma(TNode e,
     proof->addStep(lem,
                    ProofRule::ARITH_TRANS_EXP_APPROX_BELOW,
                    {},
-                   {nm->mkConstInt(Rational(d)), c, e[0]});
+                   {nm->mkConstReal(Rational(d)), c, e[0]});
   }
   d_data->d_im.addPendingLemma(
       lem, InferenceId::ARITH_NL_T_TANGENT, proof, true);
