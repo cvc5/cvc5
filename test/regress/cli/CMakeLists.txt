@@ -1153,6 +1153,7 @@ set(regress_0_tests
   regress0/nl/nia-wrong-tl.smt2
   regress0/nl/nlExtPurify-test.smt2
   regress0/nl/nta/cos-sig-value.smt2
+  regress0/nl/nta/dd.mirko_example_01.k5.bound300.smt2
   regress0/nl/nta/exp-n0.5-lb.smt2
   regress0/nl/nta/exp-n0.5-ub.smt2
   regress0/nl/nta/exp-neg2-unsat-unsound.smt2
