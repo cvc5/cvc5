@@ -3537,6 +3537,8 @@ typedef enum
  *   is denoted as #CVC5_OPTION_INFO_MODES.
  *
  * \endverbatim
+ *
+ *  @note A typedef alias with the same name is also available for convenience.
  */
 struct Cvc5OptionInfo
 {
@@ -3680,6 +3682,8 @@ CVC5_EXPORT const char* cvc5_option_info_to_string(const Cvc5OptionInfo* info);
 
 /**
  * A cvc5 plugin.
+ *
+ * @note A typedef alias with the same name is also available for convenience.
  */
 struct Cvc5Plugin
 {
