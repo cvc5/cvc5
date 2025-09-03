@@ -25,8 +25,9 @@ jobs:
       - name: Set up new version page
         if: startsWith(github.ref, 'refs/tags/')
         uses: ./.github/actions/setup-new-version
-        # when using GITHUB_TOKEN, no further workflows are triggered
         with:
+          # When using GITHUB_TOKEN, no further workflows are triggered
+          # See https://github.com/cvc5/cvc5/pull/8512
           github-token-release: ${{ secrets.ACTION_USER_TOKEN }}
 
   builds:
