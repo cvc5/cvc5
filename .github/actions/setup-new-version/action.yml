@@ -1,0 +1,39 @@
+name: Get new version release page ready
+description: Get new version release page ready
+inputs:
+  github-token-release:
+    description: token to create release page
+runs:
+  using: composite
+  steps:
+    - name: Create release page
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github-token-release }}
+        EXTRACT_FROM_NEWS: |
+          import re
+          from pathlib import Path
+          news_file = Path("NEWS.md")
+          relmsg = ""
+          if news_file.exists():
+              content = news_file.read_text(encoding="utf-8")
+              pattern = re.compile(r'cvc5 [1-9]\.[0-9]+\.[0-9]+\n[=]+\s*\n')
+              m1 = pattern.search(content)
+              if m1:
+                  start = m1.end()
+                  m2 = pattern.search(content, start + 1)
+                  end = m2.start() if m2 else len(content)
+                  relmsg = content[start:end].strip()
+          print(relmsg)
+      run: |
+        tag="${GITHUB_REF#refs/tags/}"
+
+        relmsg=$(python3 -c "$EXTRACT_FROM_NEWS")
+        if [ -z "$relmsg" ]; then
+          echo "No matching section found in NEWS.md, using commit message."
+          relmsg=$(git log -1 --pretty=%B)
+        fi
+
+        gh release create "$tag" \
+          --title "$tag" \
+          --notes "$relmsg"
