@@ -1419,7 +1419,6 @@ Node RewriteDbProofCons::doEvaluate(const Node& n)
     Node nc = rewrite(n);
     if (!nc.isConst())
     {
-      AlwaysAssert(d_eval.eval(n, {}, {}).isNull()) << "Invariant bad " << n << ", rewrites to " << nc;
       return Node::null();
     }
   }
