@@ -23,6 +23,7 @@
 
 #include "expr/sygus_term_enumerator.h"
 #include "smt/env_obj.h"
+#include "theory/inference_id.h"
 #include "theory/quantifiers/sygus/sygus_enumerator.h"
 
 namespace cvc5::internal {
