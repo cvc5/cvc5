@@ -2017,12 +2017,13 @@ Node SequencesRewriter::rewriteRangeRegExp(TNode node)
   Assert(node.getKind() == Kind::REGEXP_RANGE);
   NodeManager* nm = nodeManager();
   unsigned ch[2];
+  bool hasNonConst = false;
   for (size_t i = 0; i < 2; ++i)
   {
     if (!node[i].isConst())
     {
-      // not applied to characters, it is not handled
-      return node;
+      hasNonConst = true;
+      continue;
     }
     else if (node[i].getConst<String>().size()!=1)
     {
@@ -2031,6 +2032,11 @@ Node SequencesRewriter::rewriteRangeRegExp(TNode node)
       return returnRewrite(node, retNode, Rewrite::RE_RANGE_NON_SINGLETON);
     }
     ch[i] = node[i].getConst<String>().front();
+  }
+  if (hasNonConst)
+  {
+    // not applied to characters, it is not handled
+    return node;
   }
 
   if (node[0] == node[1])

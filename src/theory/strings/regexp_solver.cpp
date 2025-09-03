@@ -755,6 +755,7 @@ void RegExpSolver::checkEvaluations()
       // normal forms, which may concretize its variables.
       if (!d_regexp_opr.checkConstRegExp(r))
       {
+        Node rorig = r;
         r = getNormalSymRegExp(r, rnfexp);
         nfexp.insert(nfexp.end(), rnfexp.begin(), rnfexp.end());
         Trace("strings-regexp-nf") << "Term " << atom << " is normalized to "
@@ -784,7 +785,12 @@ void RegExpSolver::checkEvaluations()
             break;
           }
         }
+        if (!d_regexp_opr.checkConstRegExp(r))
+        {
+          continue;
+        }
       }
+      // check partial derivate if it became constant
       if (polarity)
       {
         checkPDerivative(x, r, atom, rnfexp);
