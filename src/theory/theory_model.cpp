@@ -53,6 +53,9 @@ void TheoryModel::finishInit(eq::EqualityEngine* ee)
 {
   Assert(ee != nullptr);
   d_equalityEngine = ee;
+  // we do not do congruence on any kind in the model equality engine, with
+  // the exception of HO_APPLY for the sake of higher-order.
+  d_equalityEngine->addFunctionKind(Kind::HO_APPLY);
   // do not interpret APPLY_UF if we are not assigning function values
   if (!d_enableFuncModels)
   {
