@@ -34,6 +34,7 @@
 #include "theory/arith/rewriter/node_utils.h"
 #include "theory/arith/rewriter/ordering.h"
 #include "theory/arith/rewriter/rewrite_atom.h"
+#include "theory/evaluator.h"
 #include "theory/rewriter.h"
 #include "theory/strings/arith_entail.h"
 #include "theory/theory.h"
@@ -41,7 +42,6 @@
 #include "util/divisible.h"
 #include "util/iand.h"
 #include "util/real_algebraic_number.h"
-#include "theory/evaluator.h"
 
 using namespace cvc5::internal::kind;
 

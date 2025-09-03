@@ -21,8 +21,8 @@
 #include <algorithm>
 #include <unordered_set>
 
-#include "expr/attribute.h"
 #include "expr/algorithm/flatten.h"
+#include "expr/attribute.h"
 #include "expr/node_value.h"
 #include "proof/conv_proof_generator.h"
 #include "proof/proof.h"
