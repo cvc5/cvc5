@@ -2015,18 +2015,24 @@ Node SequencesRewriter::rewriteDifferenceRegExp(TNode node)
 Node SequencesRewriter::rewriteRangeRegExp(TNode node)
 {
   Assert(node.getKind() == Kind::REGEXP_RANGE);
+  NodeManager* nm = nodeManager();
   unsigned ch[2];
   for (size_t i = 0; i < 2; ++i)
   {
-    if (!node[i].isConst() || node[i].getConst<String>().size() != 1)
+    if (!node[i].isConst())
     {
       // not applied to characters, it is not handled
       return node;
     }
+    else if (node[i].getConst<String>().size()!=1)
+    {
+      // non-singleton means empty
+      Node retNode = nm->mkNode(Kind::REGEXP_NONE);
+      return returnRewrite(node, retNode, Rewrite::RE_RANGE_NON_SINGLETON);
+    }
     ch[i] = node[i].getConst<String>().front();
   }
 
-  NodeManager* nm = nodeManager();
   if (node[0] == node[1])
   {
     Node retNode = nm->mkNode(Kind::STRING_TO_REGEXP, node[0]);
