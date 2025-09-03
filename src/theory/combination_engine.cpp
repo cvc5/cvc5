@@ -97,10 +97,7 @@ const EeTheoryInfo* CombinationEngine::getEeTheoryInfo(TheoryId tid) const
 
 void CombinationEngine::resetModel() { d_mmanager->resetModel(); }
 
-bool CombinationEngine::buildModel()
-{
-  return d_mmanager->buildModel();
-}
+bool CombinationEngine::buildModel() { return d_mmanager->buildModel(); }
 
 void CombinationEngine::postProcessModel(bool incomplete)
 {
