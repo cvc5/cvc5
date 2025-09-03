@@ -133,6 +133,7 @@ set(regress_0_tests
   regress0/arrays/incorrect8.minimized.smtv1.smt2
   regress0/arrays/incorrect8.smtv1.smt2
   regress0/arrays/incorrect9.smtv1.smt2
+  regress0/arrays/issue11908-eec-ensure-atom.smt2
   regress0/arrays/issue12026.smt2
   regress0/arrays/issue3813-massign-assert.smt2
   regress0/arrays/issue3814.smt2
@@ -1153,6 +1154,7 @@ set(regress_0_tests
   regress0/nl/nia-wrong-tl.smt2
   regress0/nl/nlExtPurify-test.smt2
   regress0/nl/nta/cos-sig-value.smt2
+  regress0/nl/nta/dd.mirko_example_01.k5.bound300.smt2
   regress0/nl/nta/exp-n0.5-lb.smt2
   regress0/nl/nta/exp-n0.5-ub.smt2
   regress0/nl/nta/exp-neg2-unsat-unsound.smt2
@@ -1251,6 +1253,7 @@ set(regress_0_tests
   regress0/parser/issue10889-sexpr-eof.smt2
   regress0/parser/issue11935-err-code-point.smt2
   regress0/parser/issue11991-nwf.smt2
+  regress0/parser/issue12062-overflow.smt2
   regress0/parser/issue5163.smt2
   regress0/parser/issue6908-get-value-uc.smt2
   regress0/parser/issue7274.smt2
@@ -1441,6 +1444,7 @@ set(regress_0_tests
   regress0/proofs/issue277-circuit-propagator.smt2
   regress0/proofs/dd_issue2031-bv-var-elim.smt2
   regress0/proofs/issue10278-pf-clone.smt2
+  regress0/proofs/issue11750.smt2
   regress0/proofs/issue8983-trust-subs.smt2
   regress0/proofs/issue9156-doublePropProof.smt2
   regress0/proofs/issue9172-doublePropProof.smt2
@@ -2509,7 +2513,7 @@ set(regress_1_tests
   regress1/bug681.smt2
   regress1/bug694-Unapply1.scala-0.smt2
   regress1/bug800.smt2
-  regress1/bags/all1.smt2  
+  regress1/bags/all1.smt2
   regress1/bags/all3.smt2
   regress1/bags/bag_member.smt2
   regress1/bags/bag_partition1.smt2
@@ -3922,7 +3926,7 @@ set(regress_2_tests
   regress2/javafe.ast.StandardPrettyPrint.319_no_forall.smt2
   regress2/javafe.ast.WhileStmt.447_no_forall.smt2
   regress2/nl/issue8693-flatten-to-real.smt2
-  regress2/large-datatypes-cycle.smt2 
+  regress2/large-datatypes-cycle.smt2
   regress2/ooo.rf6.smt2
   regress2/ooo.tag10.smt2
   regress2/piVC_5581bd.smt2
