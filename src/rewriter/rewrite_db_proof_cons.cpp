@@ -1414,6 +1414,15 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
 
 Node RewriteDbProofCons::doEvaluate(const Node& n)
 {
+  if (!expr::hasAbstractSubterm(n))
+  {
+    Node nc = rewrite(n);
+    if (!nc.isConst())
+    {
+      AlwaysAssert(d_eval.eval(n, {}, {}).isNull()) << "Invariant bad " << n << ", rewrites to " << nc;
+      return Node::null();
+    }
+  }
   auto [itv, inserted] = d_evalCache.emplace(n, Node());
   if (inserted)
   {
