@@ -1156,7 +1156,6 @@ RewriteResponse ArithRewriter::postRewriteIAnd(TNode t)
 RewriteResponse ArithRewriter::postRewritePow2(TNode t)
 {
   Assert(t.getKind() == Kind::POW2);
-  NodeManager* nm = nodeManager();
   // if constant, we eliminate
   if (t[0].isConst())
   {
