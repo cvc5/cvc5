@@ -10,7 +10,7 @@ from libcpp.map cimport map
 from libcpp.optional cimport optional
 from libcpp.pair cimport pair
 from cvc5kinds cimport Kind, SortKind
-from cvc5types cimport BlockModelsMode, LearnedLitType, ProofComponent, ProofFormat, RoundingMode, UnknownExplanation, FindSynthTarget, InputLanguage
+from cvc5types cimport BlockModelsMode, LearnedLitType, ProofComponent, ProofFormat, RoundingMode, UnknownExplanation, FindSynthTarget, InputLanguage, OptionCategory
 from cvc5proofrules cimport ProofRewriteRule, ProofRule
 from cvc5skolemids cimport SkolemId
 
@@ -167,6 +167,7 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         string name
         vector[string] aliases
         bint setByUser
+        OptionCategory category
         bint boolValue() except +
         string stringValue() except +
         int intValue() except +
