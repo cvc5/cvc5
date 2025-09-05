@@ -195,7 +195,12 @@ void InstStrategyMbqi::process(Node q)
   Node bquery = rewrite(cbody.negate());
   if (!bquery.isConst())
   {
-    constraints.push_back(bquery);
+    // if no nested check, don't assert the subquery if it contains quantifiers
+    if (options().quantifiers.mbqiNestedCheck
+        || !expr::hasSubtermKind(Kind::FORALL, bquery))
+    {
+      constraints.push_back(bquery);
+    }
   }
   else if (!bquery.getConst<bool>())
   {
@@ -284,13 +289,7 @@ void InstStrategyMbqi::process(Node q)
   {
     mbqiChecker->setTimeLimit(options().quantifiers.mbqiCheckTimeout);
   }
-  // if no nested check, don't assert the subquery, we will get an arbitrary
-  // model.
-  if (options().quantifiers.mbqiNestedCheck
-      || !expr::hasSubtermKind(Kind::FORALL, query))
-  {
-    mbqiChecker->assertFormula(query);
-  }
+  mbqiChecker->assertFormula(query);
   Trace("mbqi") << "*** Check sat..." << std::endl;
   Trace("mbqi") << "  query is : " << SkolemManager::getOriginalForm(query)
                 << std::endl;
@@ -309,7 +308,6 @@ void InstStrategyMbqi::process(Node q)
   for (const Node& v : allVars)
   {
     Node mv = mbqiChecker->getValue(v);
-    Assert(mvToFreshVar.find(mv) == mvToFreshVar.end());
     mvToFreshVar[mv] = v;
     Trace("mbqi-debug") << "mvToFreshVar " << mv << " is " << v << std::endl;
   }
@@ -690,7 +688,6 @@ Result InstStrategyMbqi::checkWithSubsolverSimple(
                             options().quantifiers.mbqiCheckTimeout != 0,
                             options().quantifiers.mbqiCheckTimeout);
 }
-
 
 }  // namespace quantifiers
 }  // namespace theory
