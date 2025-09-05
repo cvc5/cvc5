@@ -23,7 +23,9 @@
 #include <unordered_set>
 
 #include "context/cdhashset.h"
+#include "theory/quantifiers/mbqi_enum.h"
 #include "theory/quantifiers/quant_module.h"
+#include "theory/smt_engine_subsolver.h"
 
 namespace cvc5::internal {
     
@@ -132,6 +134,8 @@ class InstStrategyMbqi : public QuantifiersModule
                         const std::vector<Node>& mvs,
                         InferenceId id,
                         const std::map<Node, Node>& mvToFreshVar);
+  /** Check with subsolver, which takes into account options */
+  Result checkWithSubsolverSimple(Node query, const SubsolverSetupInfo& info);
   /** The quantified formulas that we succeeded in checking */
   std::unordered_set<Node> d_quantChecked;
   /** Kinds that cannot appear in queries */
