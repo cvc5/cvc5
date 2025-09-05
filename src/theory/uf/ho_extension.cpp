@@ -278,6 +278,24 @@ Node HoExtension::getApplyUfForHoApply(Node node)
   return ret;
 }
 
+void HoExtension::computeRelevantTerms(std::set<Node>& termSet)
+{
+  for (const Node& t : termSet)
+  {
+    if (t.getKind() == Kind::APPLY_UF)
+    {
+      Node ht = TheoryUfRewriter::getHoApplyForApplyUf(t);
+      // also add all subterms
+      while (ht.getKind()==Kind::HO_APPLY)
+      {
+        termSet.insert(ht);
+        termSet.insert(ht[1]);
+        ht = ht[0];
+      }
+    }
+  }
+}
+
 unsigned HoExtension::checkExtensionality(TheoryModel* m)
 {
   // if we are in collect model info, we require looking at the model's
@@ -300,11 +318,29 @@ unsigned HoExtension::checkExtensionality(TheoryModel* m)
     if (tn.isFunction() && d_lambdaEqc.find(eqc) == d_lambdaEqc.end())
     {
       hasFunctions = true;
+      std::vector<TypeNode> argTypes = tn.getArgTypes();
+      // We classify a function here to determine whether we need to apply
+      // extensionality eagerly during solving. We apply extensionality
+      // eagerly during solving if
+      // (A) The function type has finite cardinality, or
+      // (B) All of its arguments have finite cardinality.
+      bool finiteExtType = true;
+      if (!d_env.isFiniteType(tn))
+      {
+        for (const TypeNode& tna : argTypes)
+        {
+          if (!d_env.isFiniteType(tna))
+          {
+            finiteExtType = false;
+          }
+        }
+      }
+      // Based on the above classification of finite vs infinite.
       // If during collect model, must have an infinite function type, since
       // such function are not necessary to be handled during solving.
       // If not during collect model, must have a finite function type, since
       // such function symbols must be handled during solving.
-      if (d_env.isFiniteType(tn) != isCollectModel)
+      if (finiteExtType != isCollectModel)
       {
         func_eqcs[tn].push_back(eqc);
         Trace("uf-ho-debug")
@@ -403,15 +439,13 @@ unsigned HoExtension::checkExtensionality(TheoryModel* m)
                 te++;
                 Node v2 = *te;
                 Assert(!v2.isNull() && v2 != v1);
+                Trace("uf-ho-debug") << "Finite witness: " << edeq[0][0] << " == " << v1 << std::endl;
+                Trace("uf-ho-debug") << "Finite witness: " << edeq[0][1] << " == " << v2 << std::endl;
                 success = m->assertEquality(edeq[0][0], v1, true);
                 if (success)
                 {
                   success = m->assertEquality(edeq[0][1], v2, true);
                 }
-              }
-              else
-              {
-                success = m->assertEquality(edeq[0][0], edeq[0][1], false);
               }
             }
             if (!success)
@@ -856,6 +890,14 @@ bool HoExtension::collectModelInfoHoTerm(Node n, TheoryModel* m)
                      << std::endl;
       d_im.lemma(eq, InferenceId::UF_HO_MODEL_APP_ENCODE);
       return false;
+    }
+    // also add all subterms
+    eq::EqualityEngine* ee = m->getEqualityEngine();
+    while (hn.getKind()==Kind::HO_APPLY)
+    {
+      ee->addTerm(hn);
+      ee->addTerm(hn[1]);
+      hn = hn[0];
     }
   }
   return true;
