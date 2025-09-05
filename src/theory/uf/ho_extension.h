@@ -120,6 +120,12 @@ class HoExtension : protected EnvObj
    */
   bool collectModelInfoHo(TheoryModel* m, const std::set<Node>& termSet);
 
+  /**
+   * Compute relevant terms. For each (f a b) in termSet, we add terms
+   * e.g. (@ f a), (@ (@ f a) b) to termSet.
+   */
+  void computeRelevantTerms(std::set<Node>& termSet);
+  
  protected:
   /** get apply uf for ho apply
    *
@@ -196,7 +202,6 @@ class HoExtension : protected EnvObj
    * true if the model m is consistent after this call.
    */
   bool collectModelInfoHoTerm(Node n, TheoryModel* m);
-
  private:
   /** Cache lemma lem, return true if it does not already exist */
   bool cacheLemma(TNode lem);
