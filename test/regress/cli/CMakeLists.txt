@@ -1004,6 +1004,7 @@ set(regress_0_tests
   regress0/ho/issue6536.smt2
   regress0/ho/ite-apply-eq.smt2
   regress0/ho/lambda-cycle.smt2
+  regress0/ho/lambda-elim-sat.smt2
   regress0/ho/lambda-equality-non-canon.smt2
   regress0/ho/lambda-test-deps.smt2
   regress0/ho/lambda-test-deps-simple.smt2

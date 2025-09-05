@@ -127,6 +127,15 @@ TrustNode HoExtension::ppRewrite(Node node, std::vector<SkolemLemma>& lems)
   else if (k == Kind::LAMBDA || k == Kind::FUNCTION_ARRAY_CONST)
   {
     Trace("uf-lazy-ll") << "Preprocess lambda: " << node << std::endl;
+    if (k == Kind::LAMBDA)
+    {
+      Node elimLam = TheoryUfRewriter::canEliminateLambda(nodeManager(), node);
+      if (!elimLam.isNull())
+      {
+        Trace("uf-lazy-ll") << "...eliminates to " << elimLam << std::endl;
+        return TrustNode::mkTrustRewrite(node, elimLam, nullptr);
+      }
+    }
     TrustNode skTrn = d_ll.ppRewrite(node, lems);
     Trace("uf-lazy-ll") << "...return " << skTrn.getNode() << std::endl;
     return skTrn;
