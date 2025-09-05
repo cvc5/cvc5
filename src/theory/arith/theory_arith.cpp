@@ -159,7 +159,7 @@ void TheoryArith::preRegisterTerm(TNode n)
   if (k == Kind::POW || (k == Kind::POW2 && n[0].isConst()))
   {
     std::stringstream ss;
-    ss << "The exponent of the POW(^) or pow2 operator can only be a positive "
+    ss << "The exponent of the POW(^) operator can only be a positive "
           "integral constant below "
        << (expr::NodeValue::MAX_CHILDREN + 1) << ". ";
     ss << "Exception occurred in:" << std::endl;
