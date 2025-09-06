@@ -1022,6 +1022,29 @@ class SolverTest
   }
 
   @Test
+  void getPartitions()
+  {
+    d_solver.setOption("incremental", "false");
+    d_solver.setOption("compute-partitions", "2");
+    d_solver.setOption("partition-strategy", "decision-cube");
+    d_solver.setOption("checks-before-partition", "1");
+    d_solver.setOption("partition-when", "climit");
+    d_solver.setOption("write-partitions-to", "/dev/null");
+
+    Sort real = d_solver.getRealSort();
+
+    Term x = d_solver.mkConst(real, "x");
+    Term y = d_solver.mkConst(real, "y");
+
+    Term c1 = d_solver.mkTerm(
+        Kind.OR, d_solver.mkTerm(Kind.LEQ, x, y), d_solver.mkTerm(Kind.LEQ, x, d_solver.mkReal(5)));
+    d_solver.assertFormula(c1);
+
+    d_solver.checkSat();
+    assertTrue(d_solver.getPartitions().length > 0);
+  }
+
+  @Test
   void getDifficulty()
   {
     d_solver.setOption("produce-difficulty", "true");
