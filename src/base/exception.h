@@ -137,7 +137,7 @@ inline void CheckArgument(bool cond, const T& arg CVC5_UNUSED)
   }
 }
 
-class CVC5_EXPORT LastExceptionBuffer
+class LastExceptionBuffer
 {
  public:
   LastExceptionBuffer();
