@@ -53,16 +53,9 @@ void TheoryModel::finishInit(eq::EqualityEngine* ee)
 {
   Assert(ee != nullptr);
   d_equalityEngine = ee;
-  // The kinds we are treating as function application in congruence
-  d_equalityEngine->addFunctionKind(
-      Kind::APPLY_UF, false, logicInfo().isHigherOrder());
+  // we do not do congruence on any kind in the model equality engine, with
+  // the exception of HO_APPLY for the sake of higher-order.
   d_equalityEngine->addFunctionKind(Kind::HO_APPLY);
-  d_equalityEngine->addFunctionKind(Kind::SELECT);
-  // d_equalityEngine->addFunctionKind(Kind::STORE);
-  d_equalityEngine->addFunctionKind(Kind::APPLY_CONSTRUCTOR);
-  d_equalityEngine->addFunctionKind(Kind::APPLY_SELECTOR);
-  d_equalityEngine->addFunctionKind(Kind::APPLY_TESTER);
-  d_equalityEngine->addFunctionKind(Kind::SEQ_NTH);
   // do not interpret APPLY_UF if we are not assigning function values
   if (!d_enableFuncModels)
   {

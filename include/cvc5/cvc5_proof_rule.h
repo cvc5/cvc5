@@ -2292,7 +2292,7 @@ enum ENUM(ProofRule)
    *
    * .. math::
    *
-   *   p^* := p(d-1) \cdot \frac{1 + t^n}{n!}
+   *   p^* := p(d-1) \cdot (\frac{1 - t^n}{n!})^{-1}
    *
    * :math:`\texttt{secant-pos}(\exp, l, u, t)` denotes the secant of :math:`p`
    * from :math:`(l, \exp(l))` to :math:`(u, \exp(u))` evaluated at :math:`t`,
@@ -2368,7 +2368,7 @@ enum ENUM(ProofRule)
    *
    * .. math::
    *
-   *   \inferrule{- \mid t}{\sin(t) - \sin(-t) = 0.0}
+   *   \inferrule{- \mid t}{\sin(t) + \sin(-t) = 0.0}
    *
    * \endverbatim
    */
