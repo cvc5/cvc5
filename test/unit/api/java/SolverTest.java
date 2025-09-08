@@ -24,6 +24,7 @@ import io.github.cvc5.*;
 import io.github.cvc5.modes.BlockModelsMode;
 import io.github.cvc5.modes.FindSynthTarget;
 import io.github.cvc5.modes.LearnedLitType;
+import io.github.cvc5.modes.OptionCategory;
 import io.github.cvc5.modes.ProofComponent;
 import io.github.cvc5.modes.ProofFormat;
 import java.math.BigInteger;
@@ -672,6 +673,7 @@ class SolverTest
     {
       OptionInfo info = d_solver.getOptionInfo("verbose");
       assertions.add(() -> assertEquals("verbose", info.getName()));
+      assertions.add(() -> assertEquals(OptionCategory.COMMON, info.getCategory()));
       assertions.add(
           () -> assertEquals(Arrays.asList(new String[] {}), Arrays.asList(info.getAliases())));
       assertions.add(() -> assertTrue(info.getBaseInfo() instanceof OptionInfo.VoidInfo));
