@@ -1204,6 +1204,14 @@ name   = "Quantifiers"
   help       = "statically normalize sygus grammars based on flattening (linearization)"
 
 [[option]]
+  name       = "sygusGrammarHoPartial"
+  category   = "expert"
+  long       = "sygus-grammar-ho-partial"
+  type       = "bool"
+  default    = "false"
+  help       = "add partial function applications to the grammar"
+
+[[option]]
   name       = "sygusGrammarConsMode"
   category   = "regular"
   long       = "sygus-grammar-cons=MODE"

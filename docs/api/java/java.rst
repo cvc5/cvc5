@@ -143,6 +143,7 @@ Building cvc5 Java API
   * enum `FindSynthTarget <io/github/cvc5/modes/FindSynthTarget.html>`_
   * enum `InputLanguage <io/github/cvc5/modes/InputLanguage.html>`_
   * enum `LearnedLitType <io/github/cvc5/modes/LearnedLitType.html>`_
+  * enum `OptionCategory <io/github/cvc5/modes/OptionCategory.html>`_
   * enum `ProofComponent <io/github/cvc5/modes/ProofComponent.html>`_
   * enum `ProofFormat <io/github/cvc5/modes/ProofFormat.html>`_
 
