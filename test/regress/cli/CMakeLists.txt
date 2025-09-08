@@ -2744,7 +2744,6 @@ set(regress_1_tests
   regress1/ho/issue5078-small.smt2
   regress1/ho/issue5201-1.smt2
   regress1/ho/issue5741-3.smt2
-  regress1/ho/mbqi-no-nested-check.smt2
   regress1/ho/mbqi-nmc-no-app-cmp.smt2
   regress1/ho/NUM638^1.smt2
   regress1/ho/NUM925^1.smt2

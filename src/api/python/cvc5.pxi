@@ -3959,6 +3959,7 @@ cdef class Solver:
             'name': oi.name.decode(),
             'aliases': [s.decode() for s in oi.aliases],
             'setByUser': oi.setByUser,
+            'category': OptionCategory(<int> oi.category),
         }
 
         # now check which type is actually in the variant
