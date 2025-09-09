@@ -177,6 +177,26 @@ Node ValidWitnessProofGenerator::mkAxiom(NodeManager* nm,
         pred = nm->mkNode(Kind::STRING_LENGTH, v).eqNode(args[1]);
       }
       break;
+    case ProofRule::EXISTS_INV_CONDITION:
+      Assert(args.size() == 1);
+      pred =
+          theory::quantifiers::BvInverter::mkInvertibilityCondition(v, args[0]);
+      Assert(!pred.isNull());
+      break;
+    case ProofRule::MACRO_EXISTS_INV_CONDITION:
+    {
+      Assert(args.size() == 1);
+      Node exists =
+          theory::quantifiers::BvInverter::mkExistsForAnnotation(nm, args[0]);
+      if (exists.isNull())
+      {
+        return Node::null();
+      }
+      spec = mkProofSpec(nm, ProofRule::EXISTS_INV_CONDITION, {exists});
+      pred =
+          theory::quantifiers::BvInverter::mkInvertibilityCondition(v, exists);
+    }
+    break;
     default: break;
   }
   // mark the attribute, to remember proof reconstruction
@@ -198,6 +218,22 @@ Node ValidWitnessProofGenerator::mkSkolem(NodeManager* nm,
     case ProofRule::EXISTS_STRING_LENGTH:
       id = SkolemId::WITNESS_STRING_LENGTH;
       break;
+    case ProofRule::EXISTS_INV_CONDITION:
+      id = SkolemId::WITNESS_INV_CONDITION;
+      break;
+    case ProofRule::MACRO_EXISTS_INV_CONDITION:
+    {
+      Assert(args.size() == 1);
+      Node exists =
+          theory::quantifiers::BvInverter::mkExistsForAnnotation(nm, args[0]);
+      if (exists.isNull())
+      {
+        Assert(false) << "Failed to get exists from " << args[0] << std::endl;
+        return Node::null();
+      }
+      return nm->getSkolemManager()->mkSkolemFunction(
+          SkolemId::WITNESS_INV_CONDITION, {exists});
+    }
     default: break;
   }
   if (id == SkolemId::NONE)
