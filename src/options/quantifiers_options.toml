@@ -210,6 +210,22 @@ name   = "Quantifiers"
   help       = "use model-based quantifier instantiation"
 
 [[option]]
+  name       = "mbqiNestedCheck"
+  category   = "expert"
+  long       = "mbqi-nested-check"
+  type       = "bool"
+  default    = "true"
+  help       = "check nested quantified formulas in MBQI"
+
+[[option]]
+  name       = "mbqiCheckTimeout"
+  category   = "regular"
+  long       = "mbqi-check-timeout=N"
+  type       = "uint64_t"
+  default    = "500"
+  help       = "timeout (in milliseconds) for verifying subcalls for model-based instantiation (0 == no limit)"
+
+[[option]]
   name       = "mbqiEnum"
   category   = "regular"
   long       = "mbqi-enum"
@@ -1194,6 +1210,14 @@ name   = "Quantifiers"
   type       = "bool"
   default    = "false"
   help       = "statically normalize sygus grammars based on flattening (linearization)"
+
+[[option]]
+  name       = "sygusGrammarHoPartial"
+  category   = "expert"
+  long       = "sygus-grammar-ho-partial"
+  type       = "bool"
+  default    = "false"
+  help       = "add partial function applications to the grammar"
 
 [[option]]
   name       = "sygusGrammarConsMode"

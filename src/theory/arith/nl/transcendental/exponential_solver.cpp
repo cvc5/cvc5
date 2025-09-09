@@ -81,8 +81,8 @@ void ExponentialSolver::checkInitialRefine()
       // initial refinements
       if (d_tf_initial_refine.find(t) == d_tf_initial_refine.end())
       {
-        Node zero = nm->mkConstInt(Rational(0));
-        Node one = nm->mkConstInt(Rational(1));
+        Node zero = nm->mkConstReal(Rational(0));
+        Node one = nm->mkConstReal(Rational(1));
         d_tf_initial_refine[t] = true;
         {
           // exp is always positive: exp(t) > 0
