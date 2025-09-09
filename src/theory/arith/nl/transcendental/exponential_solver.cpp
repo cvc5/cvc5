@@ -288,7 +288,7 @@ std::pair<Node, Node> ExponentialSolver::getSecantBounds(TNode e,
     // pick c-1
     bounds.first = rewrite(nm->mkNode(Kind::SUB, center, one));
     // ensure we don't cross zero
-    if (bounds.first.getConst<Rational>().sgn()!=csign)
+    if (bounds.first.getConst<Rational>().sgn() != csign)
     {
       bounds.first = center;
     }
@@ -300,7 +300,7 @@ std::pair<Node, Node> ExponentialSolver::getSecantBounds(TNode e,
     // pick c+1
     bounds.second = rewrite(nm->mkNode(Kind::ADD, center, one));
     // ensure we don't cross zero
-    if (bounds.second.getConst<Rational>().sgn()!=csign)
+    if (bounds.second.getConst<Rational>().sgn() != csign)
     {
       bounds.second = center;
     }

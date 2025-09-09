@@ -153,7 +153,8 @@ Node TranscendentalProofRuleChecker::checkInternal(
     Node t = args[1];
     Node l = args[2];
     Node u = args[3];
-    if (l.getConst<Rational>().sgn()<0 || l.getConst<Rational>()>u.getConst<Rational>())
+    if (l.getConst<Rational>().sgn() < 0
+        || l.getConst<Rational>() > u.getConst<Rational>())
     {
       return Node::null();
     }
@@ -183,7 +184,8 @@ Node TranscendentalProofRuleChecker::checkInternal(
     Node t = args[1];
     Node l = args[2];
     Node u = args[3];
-    if (u.getConst<Rational>().sgn()>0 || l.getConst<Rational>()>u.getConst<Rational>())
+    if (u.getConst<Rational>().sgn() > 0
+        || l.getConst<Rational>() > u.getConst<Rational>())
     {
       return Node::null();
     }
