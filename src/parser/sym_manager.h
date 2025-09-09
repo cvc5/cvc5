@@ -267,7 +267,7 @@ class CVC5_EXPORT SymManager
 
  private:
   /** The API Solver object. */
-  cvc5::TermManager& d_tm;
+  cvc5::TermManager d_tm;
   /** The implementation of the symbol manager */
   class Implementation;
   std::unique_ptr<Implementation> d_implementation;
