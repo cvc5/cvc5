@@ -290,7 +290,7 @@ std::pair<Node, Node> ExponentialSolver::getSecantBounds(TNode e,
     // ensure we don't cross zero
     if (bounds.first.getConst<Rational>().sgn() != csign)
     {
-      bounds.first = center;
+      bounds.first = nm->mkConstReal(Rational(0));
     }
   }
   if (bounds.second.isNull())
@@ -302,7 +302,7 @@ std::pair<Node, Node> ExponentialSolver::getSecantBounds(TNode e,
     // ensure we don't cross zero
     if (bounds.second.getConst<Rational>().sgn() != csign)
     {
-      bounds.second = center;
+      bounds.second = nm->mkConstReal(Rational(0));
     }
   }
   return bounds;
