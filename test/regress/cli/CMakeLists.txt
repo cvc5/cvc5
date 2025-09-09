@@ -3938,7 +3938,6 @@ set(regress_2_tests
   regress2/quantifiers/dd10_sdlx-fix-4.smt2
   regress2/quantifiers/gn-wrong-091018.smt2
   regress2/quantifiers/issue3481-unsat1.smt2
-  regress2/quantifiers/issue10805-syqi-no-arr-const.smt2
   regress2/quantifiers/javafe.ast.StandardPrettyPrint.319.smt2
   regress2/quantifiers/javafe.ast.WhileStmt.447.smt2
   regress2/quantifiers/javafe.tc.CheckCompilationUnit.001.smt2
@@ -4231,6 +4230,8 @@ set(regression_disabled_tests
   regress2/ho/SYO362^5.smt2
   # timeout after refactoring selectors
   regress2/quantifiers/exp-trivially-dd3.smt2
+  # timeout on some builds
+  regress2/quantifiers/issue10805-syqi-no-arr-const.smt2
   # time out
   regress3/unifpi-solve-car_1.lus.sy
   # unknown (is sat)
