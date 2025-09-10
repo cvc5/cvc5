@@ -164,7 +164,7 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
     Node rite = nm->mkNode(Kind::ITE, cond, r, nm->mkNode(Kind::SUB, r, ttm));
     return RewriteResponse(REWRITE_AGAIN_FULL, rite);
   }
-  else if (k==Kind::DISTINCT)
+  else if (k == Kind::DISTINCT)
   {
     Node ret = rewriteViaRule(ProofRewriteRule::DISTINCT_CARD_CONFLICT, node);
     if (!ret.isNull())
@@ -182,14 +182,15 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
       if (!children.insert(c).second)
       {
         // distinct with duplicate childr
-        return RewriteResponse(REWRITE_DONE, nodeManager()->mkConst<bool>(false));
+        return RewriteResponse(REWRITE_DONE,
+                               nodeManager()->mkConst<bool>(false));
       }
     }
     if (allConst)
     {
       return RewriteResponse(REWRITE_DONE, nodeManager()->mkConst<bool>(true));
     }
-    if (node.getNumChildren()<=5)
+    if (node.getNumChildren() <= 5)
     {
       return RewriteResponse(REWRITE_DONE, blastDistinct(node));
     }
@@ -630,7 +631,6 @@ Node TheoryUfRewriter::blastDistinct(TNode in)
 
   NodeManager* nm = nodeManager();
 
-
   if (in.getNumChildren() == 2)
   {
     // if this is the case exactly 1 != pair will be generated so the
@@ -640,9 +640,11 @@ Node TheoryUfRewriter::blastDistinct(TNode in)
 
   // assume that in.getNumChildren() > 2 => diseqs.size() > 1
   std::vector<Node> diseqs;
-  for(TNode::iterator i = in.begin(); i != in.end(); ++i) {
+  for (TNode::iterator i = in.begin(); i != in.end(); ++i)
+  {
     TNode::iterator j = i;
-    while(++j != in.end()) {
+    while (++j != in.end())
+    {
       Node eq = nm->mkNode(Kind::EQUAL, *i, *j);
       Node neq = nm->mkNode(Kind::NOT, eq);
       diseqs.push_back(neq);

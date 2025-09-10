@@ -37,7 +37,7 @@ class HoExtension;
 class ConversionsSolver;
 class LambdaLift;
 
-class TheoryUF : public Theory 
+class TheoryUF : public Theory
 {
  public:
   class NotifyClass : public TheoryEqNotifyClass
@@ -195,9 +195,9 @@ private:
   /** For lazy distinct */
   NodeUIntMap d_ndistinct;
   /** the tester applications */
-  std::map< Node, std::vector<Node>> d_eqcToDistinct;
-  std::map< Node, std::vector<Node>> d_eqcToDMem;
-};/* class TheoryUF */
+  std::map<Node, std::vector<Node>> d_eqcToDistinct;
+  std::map<Node, std::vector<Node>> d_eqcToDMem;
+}; /* class TheoryUF */
 
 }  // namespace uf
 }  // namespace theory

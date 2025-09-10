@@ -204,7 +204,7 @@ void TheoryUF::notifyFact(TNode atom, bool pol, TNode fact, bool isInternal)
           d_equalityEngine->addTerm(nc);
           Node ncr = d_equalityEngine->getRepresentative(nc);
           itr = reps.find(ncr);
-          if (itr==reps.end())
+          if (itr == reps.end())
           {
             reps[ncr] = nc;
             continue;
@@ -222,16 +222,17 @@ void TheoryUF::notifyFact(TNode atom, bool pol, TNode fact, bool isInternal)
         {
           for (const std::pair<const Node, Node>& p : reps)
           {
-            Trace("uf-lazy-distinct") << "Watch " << p.first << " distinct (" << fact << ")" << std::endl;
+            Trace("uf-lazy-distinct") << "Watch " << p.first << " distinct ("
+                                      << fact << ")" << std::endl;
             size_t ndprev = d_ndistinct[p.first];
-            d_ndistinct[p.first] = ndprev+1;
+            d_ndistinct[p.first] = ndprev + 1;
             // ensure the non-context dependent list has the right size in
             // case we backtracked
-            std::vector< Node >& ndlist = d_eqcToDistinct[p.first];
+            std::vector<Node>& ndlist = d_eqcToDistinct[p.first];
             ndlist.resize(ndprev);
             ndlist.emplace_back(fact);
             // also carry the member
-            std::vector< Node >& ndmem = d_eqcToDMem[p.first];
+            std::vector<Node>& ndmem = d_eqcToDMem[p.first];
             ndmem.resize(ndprev);
             ndmem.emplace_back(p.second);
           }
@@ -239,10 +240,11 @@ void TheoryUF::notifyFact(TNode atom, bool pol, TNode fact, bool isInternal)
       }
       else
       {
-        for (size_t i=1, nchild=atom.getNumChildren(); i<nchild; i++)
+        for (size_t i = 1, nchild = atom.getNumChildren(); i < nchild; i++)
         {
           Node eq = atom[0].eqNode(atom[i]);
-          d_im.assertInternalFact(eq, true, InferenceId::UF_NOT_DISTINCT_EQ, fact);
+          d_im.assertInternalFact(
+              eq, true, InferenceId::UF_NOT_DISTINCT_EQ, fact);
         }
       }
     }
@@ -734,28 +736,30 @@ void TheoryUF::eqNotifyMerge(TNode t1, TNode t2)
   }
   Trace("uf-lazy-distinct") << "merge " << t1 << " and " << t2 << std::endl;
   NodeUIntMap::iterator it2 = d_ndistinct.find(t2);
-  if (it2!=d_ndistinct.end())
+  if (it2 != d_ndistinct.end())
   {
     NodeUIntMap::iterator it1 = d_ndistinct.find(t1);
     std::vector<Node>& d1 = d_eqcToDistinct[t1];
     std::vector<Node>& d2 = d_eqcToDistinct[t2];
-    std::vector<Node>::iterator d2e = d2.begin()+it2->second;
-    if (it1!=d_ndistinct.end())
+    std::vector<Node>::iterator d2e = d2.begin() + it2->second;
+    if (it1 != d_ndistinct.end())
     {
-      Trace("uf-lazy-distinct") << "...looking for conflicts in intersection of " << it1->second << " and " << it2->second << std::endl;
+      Trace("uf-lazy-distinct")
+          << "...looking for conflicts in intersection of " << it1->second
+          << " and " << it2->second << std::endl;
       // check for conflicts
-      for (size_t i=0, nd1 = d1.size(); i<nd1; i++)
+      for (size_t i = 0, nd1 = d1.size(); i < nd1; i++)
       {
         Node d = d1[i];
-        Assert (d.getKind()==Kind::DISTINCT);
+        Assert(d.getKind() == Kind::DISTINCT);
         Trace("uf-lazy-distinct") << "...check " << d << std::endl;
         std::vector<Node>::iterator itd1 = std::find(d2.begin(), d2e, d);
-        if (itd1!= d2e)
+        if (itd1 != d2e)
         {
           // conflict
           size_t i2 = std::distance(d2.begin(), itd1);
-          Assert (i<d_eqcToDMem[t1].size());
-          Assert (i2<d_eqcToDMem[t2].size());
+          Assert(i < d_eqcToDMem[t1].size());
+          Assert(i2 < d_eqcToDMem[t2].size());
           Node eq = d_eqcToDMem[t1][i].eqNode(d_eqcToDMem[t2][i2]);
           Trace("uf-lazy-distinct") << "...conflict " << eq << std::endl;
           Node conf = nodeManager()->mkNode(Kind::AND, {eq, d});
@@ -772,7 +776,7 @@ void TheoryUF::eqNotifyMerge(TNode t1, TNode t2)
     std::vector<Node>& d1m = d_eqcToDMem[t1];
     d1m.resize(it2->second);
     std::vector<Node>& d2m = d_eqcToDMem[t2];
-    d1m.insert(d1m.end(), d2m.begin(), d2m.begin()+it2->second);
+    d1m.insert(d1m.end(), d2m.begin(), d2m.begin() + it2->second);
   }
 }
 
