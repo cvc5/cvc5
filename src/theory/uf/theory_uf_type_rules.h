@@ -166,6 +166,10 @@ class BitVectorConversionTypeRule
                               std::ostream* errOut);
 };
 
+/**
+ * Checks that all children of n have the same type and returns the Boolean
+ * type.
+ */
 class DistinctTypeRule
 {
  public:
