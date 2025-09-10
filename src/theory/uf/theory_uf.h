@@ -158,6 +158,8 @@ private:
   void preRegisterFunctionTerm(TNode node);
   /** Explain why this literal is true by building an explanation */
   void explain(TNode literal, Node& exp);
+  /** Check distinct constaints at last call */
+  void checkDistinctLastCall();
 
   /** Overrides to ensure that pairs of lambdas are not considered disequal. */
   bool areCareDisequal(TNode x, TNode y) override;
@@ -216,6 +218,8 @@ private:
   context::CDList<Node> d_negDistinct;
   /** The number of constraints in the above list we have reduced. */
   context::CDO<size_t> d_negDistinctIndex;
+  /** The set of asserted negated distinct constraints */
+  context::CDList<Node> d_posDistinct;
 }; /* class TheoryUF */
 
 }  // namespace uf
