@@ -191,7 +191,7 @@ void TheoryUF::postCheck(Effort level)
           std::vector<Node> rmTerms(atom.begin()+1, atom.end());
           if (rmTerms.size()>1)
           {
-            disj.push_back(nodeManager()->mkNode(Kind::DISTINCT, rmTerms));
+            disj.push_back(nodeManager()->mkNode(Kind::DISTINCT, rmTerms).notNode());
           }
           Node lem = nodeManager()->mkOr(disj);
           d_im.lemma(lem, InferenceId::UF_NOT_DISTINCT_EQ);
