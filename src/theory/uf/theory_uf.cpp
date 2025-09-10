@@ -139,7 +139,8 @@ bool TheoryUF::needsCheckLastEffort()
 {
   // last call effort needed if using finite model finding,
   // arithmetic/bit-vector conversions, or higher-order extension
-  return d_thss != nullptr || d_csolver != nullptr || d_ho!=nullptr || d_negDistinctIndex.get()<d_negDistinct.size();
+  return d_thss != nullptr || d_csolver != nullptr || d_ho != nullptr
+         || d_negDistinctIndex.get() < d_negDistinct.size();
 }
 
 void TheoryUF::postCheck(Effort level)
@@ -163,17 +164,20 @@ void TheoryUF::postCheck(Effort level)
         d_csolver->check();
       }
       // check negated distinct
-      for (size_t i=d_negDistinctIndex.get(), nnd = d_negDistinct.size(); i<nnd; i++)
+      for (size_t i = d_negDistinctIndex.get(), nnd = d_negDistinct.size();
+           i < nnd;
+           i++)
       {
         Node ndistinct = d_negDistinct[i];
-        Assert (ndistinct.getKind()==Kind::NOT && ndistinct[0].getKind()==Kind::DISTINCT);
+        Assert(ndistinct.getKind() == Kind::NOT
+               && ndistinct[0].getKind() == Kind::DISTINCT);
         // check if satisfied
         Node atom = ndistinct[0];
         std::unordered_set<Node> reps;
         bool isSat = false;
         std::vector<Node> disj;
         Node a0 = atom[0];
-        for (size_t j=0, nterms=atom.getNumChildren(); j<nterms; j++)
+        for (size_t j = 0, nterms = atom.getNumChildren(); j < nterms; j++)
         {
           Node ncr = d_equalityEngine->getRepresentative(atom[j]);
           if (!reps.insert(ncr).second)
@@ -181,17 +185,18 @@ void TheoryUF::postCheck(Effort level)
             isSat = true;
             break;
           }
-          if (j>0)
+          if (j > 0)
           {
             disj.push_back(a0.eqNode(atom[j]));
           }
         }
         if (!isSat)
         {
-          std::vector<Node> rmTerms(atom.begin()+1, atom.end());
-          if (rmTerms.size()>1)
+          std::vector<Node> rmTerms(atom.begin() + 1, atom.end());
+          if (rmTerms.size() > 1)
           {
-            disj.push_back(nodeManager()->mkNode(Kind::DISTINCT, rmTerms).notNode());
+            disj.push_back(
+                nodeManager()->mkNode(Kind::DISTINCT, rmTerms).notNode());
           }
           Node lem = nodeManager()->mkOr(disj);
           d_im.lemma(lem, InferenceId::UF_NOT_DISTINCT_EQ);
