@@ -620,7 +620,7 @@ Node TheoryUfRewriter::blastDistinct(TNode in)
   }
 
   // assume that in.getNumChildren() > 2 => diseqs.size() > 1
-  vector<Node> diseqs;
+  std::vector<Node> diseqs;
   for(TNode::iterator i = in.begin(); i != in.end(); ++i) {
     TNode::iterator j = i;
     while(++j != in.end()) {
@@ -630,38 +630,6 @@ Node TheoryUfRewriter::blastDistinct(TNode in)
     }
   }
   return nm->mkNode(Kind::AND, diseqs);
-}
-
-TypeNode DistinctTypeRule::preComputeType(NodeManager* nm, TNode n)
-{
-  return nm->booleanType();
-}
-
-TypeNode DistinctTypeRule::computeType(NodeManager* nodeManager,
-                                       TNode n,
-                                       bool check,
-                                       std::ostream* errOut)
-{
-  if (check)
-  {
-    TNode::iterator child_it = n.begin();
-    TNode::iterator child_it_end = n.end();
-    TypeNode joinType = (*child_it).getTypeOrNull();
-    for (++child_it; child_it != child_it_end; ++child_it)
-    {
-      TypeNode currentType = (*child_it).getType();
-      joinType = joinType.leastUpperBound(currentType);
-      if (joinType.isNull())
-      {
-        if (errOut)
-        {
-          (*errOut) << "Not all arguments are of the same type";
-        }
-        return TypeNode::null();
-      }
-    }
-  }
-  return nodeManager->booleanType();
 }
 
 }  // namespace uf
