@@ -745,6 +745,7 @@ void TheoryUF::eqNotifyMerge(TNode t1, TNode t2)
       for (size_t i=0, nd1 = d1.size(); i<nd1; i++)
       {
         Node d = d1[i];
+        Assert (d.getKind()==Kind::DISTINCT);
         Trace("uf-lazy-distinct") << "...check " << d << std::endl;
         std::vector<Node>::iterator itd1 = std::find(d2.begin(), d2e, d);
         if (itd1!= d2e)
@@ -764,10 +765,10 @@ void TheoryUF::eqNotifyMerge(TNode t1, TNode t2)
     // append lists
     d1.resize(it2->second);
     d1.insert(d1.end(), d2.begin(), d2e);
-    d1 = d_eqcToDMem[t1];
-    d1.resize(it2->second);
-    d2 = d_eqcToDMem[t2];
-    d1.insert(d1.end(), d2.begin(), d2.begin()+it2->second);
+    std::vector<Node>& d1m = d_eqcToDMem[t1];
+    d1m.resize(it2->second);
+    std::vector<Node>& d2m = d_eqcToDMem[t2];
+    d1m.insert(d1m.end(), d2m.begin(), d2m.begin()+it2->second);
   }
 }
 
