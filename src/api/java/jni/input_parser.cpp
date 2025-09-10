@@ -136,7 +136,7 @@ Java_io_github_cvc5_InputParser_setStringInput(JNIEnv* env,
   std::string sName(cName);
   parser->setStringInput(lang, sInput, sName);
   env->ReleaseStringUTFChars(jName, cName);
-  env->ReleaseStringUTFChars(jName, cInput);
+  env->ReleaseStringUTFChars(jInput, cInput);
   CVC5_JAVA_API_TRY_CATCH_END(env);
 }
 
