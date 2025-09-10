@@ -37,6 +37,8 @@ void CombinationCareGraph::combineTheories()
 {
   Trace("combineTheories") << "TheoryEngine::combineTheories()" << std::endl;
 
+  Trace("combination-cg-summary") << "CombinationCareGraph::combineTheories"
+                          << std::endl;
   // Care graph we'll be building
   CareGraph careGraph;
 
@@ -50,6 +52,7 @@ void CombinationCareGraph::combineTheories()
       << "TheoryEngine::combineTheories(): care graph size = "
       << careGraph.size() << std::endl;
 
+  size_t splits = 0;
   // Now add splitters for the ones we are interested in
   prop::PropEngine* propEngine = d_te.getPropEngine();
   for (const CarePair& carePair : careGraph)
@@ -76,6 +79,7 @@ void CombinationCareGraph::combineTheories()
       Node split = equality.orNode(equality.notNode());
       tsplit = TrustNode::mkTrustLemma(split, nullptr);
     }
+    splits++;
     d_sharedSolver->sendLemma(
         tsplit, carePair.d_theory, InferenceId::COMBINATION_SPLIT);
 
@@ -91,6 +95,7 @@ void CombinationCareGraph::combineTheories()
     Node e = d_valuation.ensureLiteral(equality);
     propEngine->preferPhase(e, true);
   }
+  Trace("combination-cg-summary") << "...added " << splits << " splits" << std::endl;
 }
 
 }  // namespace theory

@@ -20,6 +20,7 @@
 #include "theory/shared_solver.h"
 #include "theory/theory_engine.h"
 #include "theory/theory_model.h"
+#include "prop/prop_engine.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -41,12 +42,12 @@ CombinationModelBased::~CombinationModelBased() {}
 
 void CombinationModelBased::combineTheories()
 {
-  Trace("combination-mb") << "CombinationModelBased::combineTheories"
+  Trace("combination-mb-summary") << "CombinationModelBased::combineTheories"
                           << std::endl;
   // go ahead and build the model now
   if (!buildModel())
   {
-    Trace("combination-mb") << "...failed build model" << std::endl;
+    Trace("combination-mb-summary") << "...failed build model" << std::endl;
     return;
   }
   // A trie for each kind of term, which is used to recognize congruent terms.
@@ -133,6 +134,16 @@ void CombinationModelBased::combineTheories()
             // of two terms is permissible, e.g if (f a) became equal to (f b)
             // but no theory has (f a) != (f b). We don't do this optimization
             // currently.
+            if (d_sharedSolver->isShared(n) && d_sharedSolver->isShared(nother))
+            {
+              EqualityStatus es = d_sharedSolver->getEqualityStatus(n, nother);
+              // if shared and we know the equality is true, then we can
+              // skip since these terms should be equal
+              if (es == EQUALITY_TRUE_AND_PROPAGATED || es == EQUALITY_TRUE)
+              {
+                continue;
+              }
+            }
           }
           else
           {
@@ -175,12 +186,14 @@ void CombinationModelBased::combineTheories()
     }
     ++eqsi;
   }
+  Trace("combination-mb-summary") << "...added " << splits.size() << " splits" << std::endl;
   if (splits.empty())
   {
     Assert(!hasConflict) << "Model has conflict but failed to find split";
     Trace("combination-mb") << "...success" << std::endl;
     return;
   }
+  prop::PropEngine* propEngine = d_te.getPropEngine();
   for (const Node& eq : splits)
   {
     TrustNode tsplit;
@@ -196,6 +209,9 @@ void CombinationModelBased::combineTheories()
     }
     d_sharedSolver->sendLemma(
         tsplit, TheoryId::THEORY_BUILTIN, InferenceId::COMBINATION_SPLIT_MB);
+    // similar to care graph, ensure we explore positive first
+    Node e = d_valuation.ensureLiteral(eq);
+    propEngine->preferPhase(e, true);
   }
 }
 
