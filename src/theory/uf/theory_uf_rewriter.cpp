@@ -605,7 +605,7 @@ Node TheoryUfRewriter::canEliminateLambda(NodeManager* nm, const Node& node)
 
 RewriteResponse TheoryUfRewriter::rewriteDistinct(TNode node)
 {
-Node ret = rewriteViaRule(ProofRewriteRule::DISTINCT_CARD_CONFLICT, node);
+  Node ret = rewriteViaRule(ProofRewriteRule::DISTINCT_CARD_CONFLICT, node);
   if (!ret.isNull())
   {
     // Cardinality of type does not allow to find distinct values for all
