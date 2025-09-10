@@ -173,7 +173,10 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
       // children of this node.
       return RewriteResponse(REWRITE_DONE, nodeManager()->mkConst<bool>(false));
     }
-    return RewriteResponse(REWRITE_DONE, blastDistinct(node));
+    if (node.getNumChildren()<=5)
+    {
+      return RewriteResponse(REWRITE_DONE, blastDistinct(node));
+    }
   }
   return RewriteResponse(REWRITE_DONE, node);
 }

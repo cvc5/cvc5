@@ -220,13 +220,18 @@ void TheoryUF::notifyFact(TNode atom, bool pol, TNode fact, bool isInternal)
         {
           for (const std::pair<const Node, Node>& p : reps)
           {
+            Trace("uf-lazy-distinct") << "Watch " << p.first << " distinct (" << fact << ")" << std::endl;
             size_t ndprev = d_ndistinct[p.first];
             d_ndistinct[p.first] = ndprev+1;
             // ensure the non-context dependent list has the right size in
             // case we backtracked
-            std::vector< std::pair<Node, Node> >& ndlist = d_eqcToDistinct[p.first];
+            std::vector< Node >& ndlist = d_eqcToDistinct[p.first];
             ndlist.resize(ndprev);
-            ndlist.emplace_back(p.second, fact);
+            ndlist.emplace_back(fact);
+            // also carry the member
+            std::vector< Node >& ndmem = d_eqcToDMem[p.first];
+            ndmem.resize(ndprev);
+            ndmem.emplace_back(p.second);
           }
         }
       }
@@ -721,8 +726,48 @@ void TheoryUF::eqNotifyNewClass(TNode t) {
 
 void TheoryUF::eqNotifyMerge(TNode t1, TNode t2)
 {
-  if (d_thss != NULL) {
+  if (d_thss != NULL)
+  {
     d_thss->merge(t1, t2);
+  }
+  Trace("uf-lazy-distinct") << "merge " << t1 << " and " << t2 << std::endl;
+  NodeUIntMap::iterator it2 = d_ndistinct.find(t2);
+  if (it2!=d_ndistinct.end())
+  {
+    NodeUIntMap::iterator it1 = d_ndistinct.find(t1);
+    std::vector<Node>& d1 = d_eqcToDistinct[t1];
+    std::vector<Node>& d2 = d_eqcToDistinct[t2];
+    std::vector<Node>::iterator d2e = d2.begin()+it2->second;
+    if (it1!=d_ndistinct.end())
+    {
+      Trace("uf-lazy-distinct") << "...looking for conflicts in intersection of " << it1->second << " and " << it2->second << std::endl;
+      // check for conflicts
+      for (size_t i=0, nd1 = d1.size(); i<nd1; i++)
+      {
+        Node d = d1[i];
+        Trace("uf-lazy-distinct") << "...check " << d << std::endl;
+        std::vector<Node>::iterator itd1 = std::find(d2.begin(), d2e, d);
+        if (itd1!= d2e)
+        {
+          // conflict
+          size_t i2 = std::distance(d2.begin(), itd1);
+          Assert (i<d_eqcToDMem[t1].size());
+          Assert (i2<d_eqcToDMem[t2].size());
+          Node eq = d_eqcToDMem[t1][i].eqNode(d_eqcToDMem[t2][i2]);
+          Trace("uf-lazy-distinct") << "...conflict " << eq << std::endl;
+          d_im.conflictExp(InferenceId::UF_DISTINCT_DEQ, {eq, d}, nullptr);
+          return;
+        }
+        Trace("uf-lazy-distinct") << "...no conflict" << std::endl;
+      }
+    }
+    // append lists
+    d1.resize(it2->second);
+    d1.insert(d1.end(), d2.begin(), d2e);
+    d1 = d_eqcToDMem[t1];
+    d1.resize(it2->second);
+    d2 = d_eqcToDMem[t2];
+    d1.insert(d1.end(), d2.begin(), d2.begin()+it2->second);
   }
 }
 

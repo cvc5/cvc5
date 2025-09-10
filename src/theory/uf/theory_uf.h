@@ -195,7 +195,8 @@ private:
   /** For lazy distinct */
   NodeUIntMap d_ndistinct;
   /** the tester applications */
-  std::map< Node, std::vector< std::pair<Node, Node> > > d_eqcToDistinct;
+  std::map< Node, std::vector<Node>> d_eqcToDistinct;
+  std::map< Node, std::vector<Node>> d_eqcToDMem;
 };/* class TheoryUF */
 
 }  // namespace uf
