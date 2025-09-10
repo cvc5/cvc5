@@ -825,15 +825,15 @@ void TheoryUF::eqNotifyMerge(TNode t1, TNode t2)
     d_thss->merge(t1, t2);
   }
   // Must ensure we track distinct constraints, moving those from t2 into t1.
-  // If the same distinct constraint is in both, we a conflict.
+  // If the same distinct constraint is in both, we are in conflict.
   NodeUIntMap::iterator it2 = d_ndistinct.find(t2);
   if (it2 != d_ndistinct.end())
   {
     Trace("uf-lazy-distinct") << "merge " << t1 << " and " << t2 << std::endl;
     NodeUIntMap::iterator it1 = d_ndistinct.find(t1);
     std::vector<Node>& d1 = d_eqcToDistinct[t1];
-    std::vector<Node>& d2 = d_eqcToDistinct[t2];
     std::vector<Node>& d1m = d_eqcToDMem[t1];
+    std::vector<Node>& d2 = d_eqcToDistinct[t2];
     // the iterator up to which d2 is valid
     std::vector<Node>::iterator d2e = d2.begin() + it2->second;
     if (it1 != d_ndistinct.end())
