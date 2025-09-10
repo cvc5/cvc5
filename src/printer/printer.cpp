@@ -33,8 +33,8 @@ using namespace std;
 
 namespace cvc5::internal {
 
-thread_local unique_ptr<Printer>
-    Printer::d_printers[static_cast<size_t>(Language::LANG_MAX)];
+static thread_local unique_ptr<Printer>
+    global_printers[static_cast<size_t>(Language::LANG_MAX)];
 
 unique_ptr<Printer> Printer::makePrinter(Language lang)
 {
@@ -149,11 +149,11 @@ Printer* Printer::getPrinter(Language lang)
   {
     lang = Language::LANG_SMTLIB_V2_6;  // default
   }
-  if (d_printers[static_cast<size_t>(lang)] == nullptr)
+  if (global_printers[static_cast<size_t>(lang)] == nullptr)
   {
-    d_printers[static_cast<size_t>(lang)] = makePrinter(lang);
+    global_printers[static_cast<size_t>(lang)] = makePrinter(lang);
   }
-  return d_printers[static_cast<size_t>(lang)].get();
+  return global_printers[static_cast<size_t>(lang)].get();
 }
 
 void Printer::printUnknownCommandStatus(std::ostream& out,
