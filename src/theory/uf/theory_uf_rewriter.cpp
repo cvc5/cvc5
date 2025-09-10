@@ -166,22 +166,15 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
   }
   else if (k == Kind::DISTINCT)
   {
-    Node ret = rewriteViaRule(ProofRewriteRule::DISTINCT_CARD_CONFLICT, node);
-    if (!ret.isNull())
-    {
-      // Cardinality of type does not allow to find distinct values for all
-      // children of this node.
-      return RewriteResponse(REWRITE_DONE, nodeManager()->mkConst<bool>(false));
-    }
-    // otherwise, eagerly expand
-    return RewriteResponse(REWRITE_DONE, blastDistinct(node));
+    return rewriteDistinct(node);
   }
   return RewriteResponse(REWRITE_DONE, node);
 }
 
 RewriteResponse TheoryUfRewriter::preRewrite(TNode node)
 {
-  if (node.getKind() == Kind::EQUAL)
+  Kind k = node.getKind();
+  if (k == Kind::EQUAL)
   {
     if (node[0] == node[1])
     {
@@ -192,6 +185,10 @@ RewriteResponse TheoryUfRewriter::preRewrite(TNode node)
       // uninterpreted constants are all distinct
       return RewriteResponse(REWRITE_DONE, nodeManager()->mkConst(false));
     }
+  }
+  else if (k == Kind::DISTINCT)
+  {
+    return rewriteDistinct(node);
   }
   return RewriteResponse(REWRITE_DONE, node);
 }
@@ -604,6 +601,19 @@ Node TheoryUfRewriter::canEliminateLambda(NodeManager* nm, const Node& node)
     }
   }
   return Node::null();
+}
+
+RewriteResponse TheoryUfRewriter::rewriteDistinct(TNode node)
+{
+Node ret = rewriteViaRule(ProofRewriteRule::DISTINCT_CARD_CONFLICT, node);
+  if (!ret.isNull())
+  {
+    // Cardinality of type does not allow to find distinct values for all
+    // children of this node.
+    return RewriteResponse(REWRITE_DONE, nodeManager()->mkConst<bool>(false));
+  }
+  // otherwise, eagerly expand
+  return RewriteResponse(REWRITE_DONE, blastDistinct(node));
 }
 
 Node TheoryUfRewriter::blastDistinct(TNode in)
