@@ -917,6 +917,9 @@ enum class InferenceId
   //-------------------------------------- uf theory
   // Clause from the uf symmetry breaker
   UF_BREAK_SYMMETRY,
+  //
+  UF_NOT_DISTINCT_EQ,
+  UF_DISTINCT_DEQ,
   //-------------------- cardinality extension to UF
   // The inferences below are described in Reynolds' thesis 2013.
   // conflict of the form (card_T n) => (not (distinct t1 ... tn))

@@ -37,7 +37,8 @@ class HoExtension;
 class ConversionsSolver;
 class LambdaLift;
 
-class TheoryUF : public Theory {
+class TheoryUF : public Theory
+{
  public:
   class NotifyClass : public TheoryEqNotifyClass
   {
@@ -189,7 +190,14 @@ private:
   std::map<TypeNode, bool> d_isHoType;
   /** The care pair argument callback, used for theory combination */
   CarePairArgumentCallback d_cpacb;
-};/* class TheoryUF */
+  /** maps nodes to an index in a vector */
+  using NodeUIntMap = context::CDHashMap<Node, size_t>;
+  /** For lazy distinct */
+  NodeUIntMap d_ndistinct;
+  /** the tester applications */
+  std::map<Node, std::vector<Node>> d_eqcToDistinct;
+  std::map<Node, std::vector<Node>> d_eqcToDMem;
+}; /* class TheoryUF */
 
 }  // namespace uf
 }  // namespace theory
