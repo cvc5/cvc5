@@ -16,6 +16,7 @@
 #include "theory/uf/lambda_lift.h"
 
 #include "expr/node_algorithm.h"
+#include "expr/node_converter.h"
 #include "expr/skolem_manager.h"
 #include "expr/sort_type_size.h"
 #include "options/uf_options.h"
@@ -28,6 +29,33 @@ using namespace cvc5::internal::kind;
 namespace cvc5::internal {
 namespace theory {
 namespace uf {
+
+/**
+ * This node converter is used as a heuristic to avoid certain cases of lambda
+ * lifting. For example, (lambda ((x Int)) (f 0)) naively requires lifting
+ * since this lambda may have a circular dependency, e.g. if
+ * f = (lambda ((x Int)) (f 0)). However, this converter converts this lambda
+ * to (lambda ((x Int)) k) where k is the purification skolem for (f 0), where
+ * (= k (f 0)) can be added as a lemma at preprocessing.
+ */
+class PurifyGroundNodeConverter : public NodeConverter
+{
+ public:
+  PurifyGroundNodeConverter(NodeManager* nm) : NodeConverter(nm) {}
+  /** post-convert: convert (non-atomic) ground terms to their purify var */
+  Node postConvert(Node n) override
+  {
+    if (!n.isVar() && !n.isConst() && !expr::hasBoundVar(n))
+    {
+      Node k = SkolemManager::mkPurifySkolem(n);
+      d_pterms.push_back(n);
+      return k;
+    }
+    return n;
+  }
+  /** The list of terms purified by this converter */
+  std::vector<Node> d_pterms;
+};
 
 LambdaLift::LambdaLift(Env& env)
     : EnvObj(env),
@@ -152,6 +180,29 @@ TrustNode LambdaLift::ppRewrite(Node node, std::vector<SkolemLemma>& lems)
     if (!trn.isNull())
     {
       lems.push_back(SkolemLemma(trn, skolem));
+    }
+  }
+  else if (needsLift(lam))
+  {
+    // Maybe it would help to purify the ground subterms? If so we rewrite
+    // and add purification lemmas to lems.
+    PurifyGroundNodeConverter pgnc(nodeManager());
+    Node clam = pgnc.convert(lam);
+    if (!needsLift(clam))
+    {
+      Trace("uf-lazy-ll-purify") << "ppRewrite " << lam << " to " << clam
+                                 << " to avoid lifting." << std::endl;
+      TrustNode trn = ppRewrite(clam, lems);
+      // add purification lemmas for terms we purified
+      for (const Node& t : pgnc.d_pterms)
+      {
+        Node k = SkolemManager::mkPurifySkolem(t);
+        TrustNode trnk = TrustNode::mkTrustLemma(k.eqNode(t));
+        Trace("uf-lazy-ll-purify")
+            << "- purify lemma: " << k.eqNode(t) << std::endl;
+        lems.push_back(SkolemLemma(trnk, k));
+      }
+      return TrustNode::mkTrustRewrite(node, trn.getNode());
     }
   }
   // if no proofs, return lemma with no generator
