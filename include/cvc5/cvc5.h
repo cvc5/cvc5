@@ -1102,7 +1102,7 @@ class CVC5_EXPORT Op
 
   /**
    * Constructor.
-   * @param tm The associated term managaer.
+   * @param nm The associated node manager.
    * @param k The kind of this Op.
    * @param n The internal node that is to be wrapped by this term.
    * @return The Term.
@@ -2958,7 +2958,7 @@ class CVC5_EXPORT Datatype
    private:
     /**
      * Constructor.
-     * @param tm    The associated term manager.
+     * @param nm    The associated node manager.
      * @param dtype The internal datatype to iterate over.
      * @param begin True if this is a begin() iterator.
      */
@@ -2996,7 +2996,7 @@ class CVC5_EXPORT Datatype
  private:
   /**
    * Constructor.
-   * @param tm    The associated term manager.
+   * @param nm    The associated node manager.
    * @param dtype The internal datatype to be wrapped.
    * @return The Datatype.
    */
@@ -3187,7 +3187,7 @@ class CVC5_EXPORT Grammar
  private:
   /**
    * Constructor.
-   * @param tm        The associated term manager.
+   * @param nm        The associated node manager.
    * @param sygusVars The input variables to synth-fun/synth-var.
    * @param ntSymbols The non-terminals of this grammar.
    */
@@ -4531,6 +4531,7 @@ class CVC5_EXPORT TermManager
                                bool fresh = true);
   /**
    * Helper for mk-functions that call NodeManager::mkConst().
+   * @param nm The associated node manager.
    * @param t  The value.
    * @return The value term.
    */
@@ -4541,6 +4542,7 @@ class CVC5_EXPORT TermManager
   Op mkOpHelper(Kind kind, const T& t);
   /**
    * Helper for creating rational values.
+   * @param nm The associated node manager.
    * @param r  The value (either int or real).
    * @param    isInt True to create an integer value.
    * @return The rational value term.
@@ -4661,7 +4663,7 @@ class CVC5_EXPORT Solver
    * Constructor.
    *
    * Constructs solver instance from a given term manager instance.
-   * @param nm The associated node manager.
+   * @param tm The associated term manager.
    */
   Solver(TermManager& tm);
 
