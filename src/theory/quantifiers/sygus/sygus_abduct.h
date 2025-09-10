@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz
+ *   Andrew Reynolds, Aina Niemetz, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -78,7 +78,8 @@ class SygusAbduct
    * term whose free variables are a subset of asserts, is the term
    * t * { varlist -> SygusVarToTermAttribute(varlist) }.
    */
-  static Node mkAbductionConjecture(const std::string& name,
+  static Node mkAbductionConjecture(NodeManager* nm,
+                                    const std::string& name,
                                     const std::vector<Node>& asserts,
                                     const std::vector<Node>& axioms,
                                     TypeNode abdGType);

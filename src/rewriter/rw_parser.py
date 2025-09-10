@@ -1,10 +1,10 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Haniel Barbosa, Leni Aniva
+#   Haniel Barbosa, Leni Aniva, Andrew Reynolds
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -76,7 +76,7 @@ class Parser:
         return int(s[2:])
 
     def symbol(self):
-        special_chars = '=' + '_' + '+' + '-' + '<' + '>' + '*' + '.' + '@' + '/'
+        special_chars = '=' + '_' + '+' + '-' + '<' + '>' + '*' + '.' + '@' + '/' + '^'
         return pp.Word(pp.alphas + special_chars, pp.alphanums + special_chars)
 
     def app_action(self, s, l, t):

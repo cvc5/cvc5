@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,12 +22,14 @@
 #include "expr/node.h"
 #include "options/proof_options.h"
 #include "smt/env_obj.h"
+#include "smt/proof_final_callback.h"
 
 namespace cvc5::internal {
 
 class ProofChecker;
 class ProofNode;
 class ProofNodeManager;
+class ProofLogger;
 class SolverEngine;
 
 namespace rewriter {
@@ -143,11 +145,26 @@ class PfManager : protected EnvObj
       std::shared_ptr<ProofNode> pfn,
       Assertions& as,
       ProofScopeMode scopeMode = ProofScopeMode::UNIFIED);
+  /**
+   * Check proof. This call runs the final proof callback, which checks for
+   * pedantic failures and takes statistics.
+   * @param pfn The proof to check.
+   */
+  void checkFinalProof(std::shared_ptr<ProofNode> pfn);
+  /**
+   * Start proof logging. This is called when the SMT solver is initialized
+   * and --proof-log is enabled.
+   * @param out The output stream to log proofs on.
+   * @param as Reference to the assertions.
+   */
+  void startProofLogging(std::ostream& out, Assertions& as);
   //--------------------------- access to utilities
   /** Get a pointer to the ProofChecker owned by this. */
   ProofChecker* getProofChecker() const;
   /** Get a pointer to the ProofNodeManager owned by this. */
   ProofNodeManager* getProofNodeManager() const;
+  /** Get a pointer to the ProofLogger owned by this. */
+  ProofLogger* getProofLogger() const;
   /** Get the rewrite database, containing definitions of rewrites from DSL. */
   rewriter::RewriteDb* getRewriteDatabase() const;
   /** Get the preprocess proof generator */
@@ -172,10 +189,19 @@ class PfManager : protected EnvObj
   std::unique_ptr<ProofChecker> d_pchecker;
   /** A proof node manager based on the above checker */
   std::unique_ptr<ProofNodeManager> d_pnm;
+  /** A proof logger, if proofLog is enabled */
+  std::unique_ptr<ProofLogger> d_plog;
   /** The proof post-processor */
   std::unique_ptr<smt::ProofPostprocess> d_pfpp;
   /** The preprocess proof generator. */
   std::unique_ptr<PreprocessProofGenerator> d_pppg;
+  /** The post process callback for finalization */
+  ProofFinalCallback d_finalCb;
+  /**
+   * The finalizer, which is responsible for taking stats and checking for
+   * (lazy) pedantic failures.
+   */
+  ProofNodeUpdater d_finalizer;
 }; /* class SolverEngine */
 
 }  // namespace smt

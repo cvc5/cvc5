@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -34,7 +34,6 @@ InferProofCons::InferProofCons(Env& env, TheorySetsRewriter* tsr)
       d_expMap(context())
 {
   d_false = nodeManager()->mkConst(false);
-  d_tid = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(THEORY_SETS);
 }
 
 void InferProofCons::notifyFact(const Node& conc,
@@ -120,7 +119,7 @@ std::shared_ptr<ProofNode> InferProofCons::getProofFor(Node fact)
   // Try to convert.
   if (!convert(cdp, id, assumps, conc))
   {
-    cdp.addTrustedStep(conc, TrustId::THEORY_INFERENCE, assumps, {d_tid});
+    cdp.addTrustedStep(conc, TrustId::THEORY_INFERENCE_SETS, assumps, {});
   }
   return cdp.getProofFor(fact);
 }

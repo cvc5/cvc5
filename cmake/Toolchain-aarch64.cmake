@@ -1,10 +1,10 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Gereon Kremer, Mathias Preiner, Andres Noetzli
+#   Gereon Kremer, Mathias Preiner, Daniel Larraz
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -42,7 +42,7 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
 
   set(CMAKE_SYSTEM_PROCESSOR arm64)
 
-  set(TOOLCHAIN_PREFIX arm64-apple-darwin)
+  set(TOOLCHAIN_PREFIX aarch64-apple-darwin)
 
   set(CMAKE_CROSSCOMPILING_MACOS TRUE)
   set(CMAKE_OSX_ARCHITECTURES arm64 CACHE INTERNAL "")

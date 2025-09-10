@@ -1,0 +1,21 @@
+; COMMAND-LINE: --dt-stc-ind --conjecture-gen
+; DISABLE-TESTER: unsat-core
+; EXPECT: unsat
+(set-logic UFDT)
+(declare-datatype Nat ((zero) (succ (pred Nat))))
+(declare-datatype Lst ((nil) (cons (head Nat) (tail Lst))))
+(declare-fun less (Nat Nat) Bool)
+(assert (forall ((x Nat)) (= (less x zero) false)))
+(assert (forall ((x Nat)) (= (less zero (succ x)) true)))
+(assert (forall ((x Nat) (y Nat)) (= (less (succ x) (succ y)) (less x y))))
+(declare-fun len (Lst) Nat)
+(assert (= (len nil) zero))
+(assert (forall ((x Nat) (y Lst)) (= (len (cons x y)) (succ (len y)))))
+(declare-fun insort (Nat Lst) Lst)
+(assert (forall ((i Nat)) (= (insort i nil) (cons i nil))))
+(assert (forall ((i Nat) (x Nat) (y Lst)) (= (insort i (cons x y)) (ite (less i x) (cons i (cons x y)) (cons x (insort i y))))))
+(declare-fun sort (Lst) Lst)
+(assert (= (sort nil) nil))
+(assert (forall ((x Nat) (y Lst)) (= (sort (cons x y)) (insort x (sort y)))))
+(assert (not (forall ((x Lst)) (= (len (sort x)) (len x)))))
+(check-sat)

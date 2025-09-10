@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -383,7 +383,7 @@ bool PrintBenchmark::decomposeDefinition(Node a,
   {
     isRecDef = true;
     sym = a[1][0].getOperator();
-    body = NodeManager::currentNM()->mkNode(Kind::LAMBDA, a[0], a[1][1]);
+    body = NodeManager::mkNode(Kind::LAMBDA, a[0], a[1][1]);
     return true;
   }
   else

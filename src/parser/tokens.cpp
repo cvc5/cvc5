@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -49,6 +49,7 @@ std::ostream& operator<<(std::ostream& o, Token t)
     case Token::DECLARE_ORACLE_FUN_TOK: o << "DECLARE_ORACLE_FUN_TOK"; break;
     case Token::DECLARE_POOL_TOK: o << "DECLARE_POOL_TOK"; break;
     case Token::DECLARE_SORT_TOK: o << "DECLARE_SORT_TOK"; break;
+    case Token::DECLARE_SORT_PARAMETER_TOK: o << "DECLARE_SORT_PARAMETER_TOK"; break;
     case Token::DECLARE_VAR_TOK: o << "DECLARE_VAR_TOK"; break;
     case Token::DEFINE_CONST_TOK: o << "DEFINE_CONST_TOK"; break;
     case Token::DEFINE_FUNS_REC_TOK: o << "DEFINE_FUNS_REC_TOK"; break;

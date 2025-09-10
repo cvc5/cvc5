@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Hans-Joerg Schurr, Haniel Barbosa
+ *   Andrew Reynolds, Hans-Joerg Schurr, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,17 +27,15 @@ using namespace cvc5::internal::kind;
 
 namespace cvc5::internal {
 
-ProofNodeToSExpr::ProofNodeToSExpr()
+ProofNodeToSExpr::ProofNodeToSExpr(NodeManager* nm) : d_nm(nm)
 {
-  NodeManager* nm = NodeManager::currentNM();
   // use raw symbols so that `:args` is not converted to `|:args|`
-  d_conclusionMarker = nm->mkRawSymbol(":conclusion", nm->sExprType());
-  d_argsMarker = nm->mkRawSymbol(":args", nm->sExprType());
+  d_conclusionMarker = NodeManager::mkRawSymbol(":conclusion", nm->sExprType());
+  d_argsMarker = NodeManager::mkRawSymbol(":args", nm->sExprType());
 }
 
 Node ProofNodeToSExpr::convertToSExpr(const ProofNode* pn, bool printConclusion)
 {
-  NodeManager* nm = NodeManager::currentNM();
   std::map<const ProofNode*, Node>::iterator it;
   std::vector<const ProofNode*> visit;
   std::vector<const ProofNode*> traversing;
@@ -95,8 +93,6 @@ Node ProofNodeToSExpr::convertToSExpr(const ProofNode* pn, bool printConclusion)
       {
         children.push_back(d_argsMarker);
         // needed to ensure builtin operators are not treated as operators
-        // this can be the case for CONG where d_args may contain a builtin
-        // operator
         std::vector<Node> argsPrint;
         for (size_t i = 0, nargs = args.size(); i < nargs; i++)
         {
@@ -104,10 +100,10 @@ Node ProofNodeToSExpr::convertToSExpr(const ProofNode* pn, bool printConclusion)
           Node av = getArgument(args[i], f);
           argsPrint.push_back(av);
         }
-        Node argsC = nm->mkNode(Kind::SEXPR, argsPrint);
+        Node argsC = d_nm->mkNode(Kind::SEXPR, argsPrint);
         children.push_back(argsC);
       }
-      d_pnMap[cur] = nm->mkNode(Kind::SEXPR, children);
+      d_pnMap[cur] = d_nm->mkNode(Kind::SEXPR, children);
     }
   } while (!visit.empty());
   Assert(d_pnMap.find(pn) != d_pnMap.end());
@@ -124,8 +120,7 @@ Node ProofNodeToSExpr::getOrMkProofRuleVariable(ProofRule r)
   }
   std::stringstream ss;
   ss << r;
-  NodeManager* nm = NodeManager::currentNM();
-  Node var = nm->mkBoundVar(ss.str(), nm->sExprType());
+  Node var = NodeManager::mkBoundVar(ss.str(), d_nm->sExprType());
   d_pfrMap[r] = var;
   return var;
 }
@@ -145,8 +140,7 @@ Node ProofNodeToSExpr::getOrMkKindVariable(TNode n)
   }
   std::stringstream ss;
   ss << k;
-  NodeManager* nm = NodeManager::currentNM();
-  Node var = nm->mkBoundVar(ss.str(), nm->sExprType());
+  Node var = NodeManager::mkBoundVar(ss.str(), d_nm->sExprType());
   d_kindMap[k] = var;
   return var;
 }
@@ -167,8 +161,7 @@ Node ProofNodeToSExpr::getOrMkTheoryIdVariable(TNode n)
   }
   std::stringstream ss;
   ss << tid;
-  NodeManager* nm = NodeManager::currentNM();
-  Node var = nm->mkBoundVar(ss.str(), nm->sExprType());
+  Node var = NodeManager::mkBoundVar(ss.str(), d_nm->sExprType());
   d_tidMap[tid] = var;
   return var;
 }
@@ -189,8 +182,7 @@ Node ProofNodeToSExpr::getOrMkMethodIdVariable(TNode n)
   }
   std::stringstream ss;
   ss << mid;
-  NodeManager* nm = NodeManager::currentNM();
-  Node var = nm->mkBoundVar(ss.str(), nm->sExprType());
+  Node var = NodeManager::mkBoundVar(ss.str(), d_nm->sExprType());
   d_midMap[mid] = var;
   return var;
 }
@@ -210,8 +202,7 @@ Node ProofNodeToSExpr::getOrMkTrustIdVariable(TNode n)
   }
   std::stringstream ss;
   ss << tid;
-  NodeManager* nm = NodeManager::currentNM();
-  Node var = nm->mkBoundVar(ss.str(), nm->sExprType());
+  Node var = NodeManager::mkBoundVar(ss.str(), d_nm->sExprType());
   d_tridMap[tid] = var;
   return var;
 }
@@ -231,8 +222,7 @@ Node ProofNodeToSExpr::getOrMkInferenceIdVariable(TNode n)
   }
   std::stringstream ss;
   ss << iid;
-  NodeManager* nm = NodeManager::currentNM();
-  Node var = nm->mkBoundVar(ss.str(), nm->sExprType());
+  Node var = NodeManager::mkBoundVar(ss.str(), d_nm->sExprType());
   d_iidMap[iid] = var;
   return var;
 }
@@ -253,8 +243,7 @@ Node ProofNodeToSExpr::getOrMkDslRewriteVariable(TNode n)
   }
   std::stringstream ss;
   ss << rid;
-  NodeManager* nm = NodeManager::currentNM();
-  Node var = nm->mkBoundVar(ss.str(), nm->sExprType());
+  Node var = NodeManager::mkBoundVar(ss.str(), d_nm->sExprType());
   d_dslrMap[rid] = var;
   return var;
 }
@@ -268,8 +257,7 @@ Node ProofNodeToSExpr::getOrMkNodeVariable(TNode n)
   }
   std::stringstream ss;
   ss << n;
-  NodeManager* nm = NodeManager::currentNM();
-  Node var = nm->mkBoundVar(ss.str(), nm->sExprType());
+  Node var = NodeManager::mkBoundVar(ss.str(), d_nm->sExprType());
   d_nodeMap[n] = var;
   return var;
 }
@@ -295,22 +283,6 @@ ProofNodeToSExpr::ArgFormat ProofNodeToSExpr::getArgumentFormat(
   ProofRule r = pn->getRule();
   switch (r)
   {
-    case ProofRule::CONG:
-    case ProofRule::NARY_CONG:
-    {
-      if (i == 0)
-      {
-        return ArgFormat::KIND;
-      }
-      const std::vector<Node>& args = pn->getArguments();
-      Assert(i < args.size());
-      if (args[i].getNumChildren() == 0
-          && NodeManager::operatorToKind(args[i]) != Kind::UNDEFINED_KIND)
-      {
-        return ArgFormat::NODE_VAR;
-      }
-    }
-    break;
     case ProofRule::SUBS:
     case ProofRule::MACRO_REWRITE:
     case ProofRule::MACRO_SR_EQ_INTRO:
@@ -357,7 +329,7 @@ ProofNodeToSExpr::ArgFormat ProofNodeToSExpr::getArgumentFormat(
       {
         TrustId tid;
         getTrustId(pn->getArguments()[0], tid);
-        if (tid == TrustId::THEORY_LEMMA || tid == TrustId::THEORY_INFERENCE)
+        if (tid == TrustId::THEORY_LEMMA)
         {
           return ArgFormat::THEORY_ID;
         }

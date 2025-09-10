@@ -1,0 +1,50 @@
+name: Store to latest
+description: Store an asset on the release page associated to the latest tag
+inputs:
+  asset-filename:
+    description: filename of the asset
+  github-token:
+    description: token to upload asset to latest
+  
+runs:
+  using: composite
+  steps:
+    - name: Store to latest
+      shell: 'python3 {0}'
+      env:
+        GITHUB_TOKEN: ${{ inputs.github-token }}
+        PACKAGE: ${{ inputs.asset-filename }}
+      run: |
+        import datetime
+        import os
+        from github import Github
+
+        sha = os.getenv('GITHUB_SHA')
+
+        gh = Github(os.getenv('GITHUB_TOKEN'))
+        repo = gh.get_repo(os.getenv('GITHUB_REPOSITORY'))
+
+        try:
+          ref = repo.get_git_ref('tags/latest')
+          # update "latest" to current commit if sha changed
+          if ref.object.sha != sha:
+            ref.edit(sha)
+        except:
+          print('tag `latest` does not exist.')
+          exit
+
+        try:
+          rel = repo.get_release('latest')
+        except:
+          print('New `latest` release')
+          rel = repo.create_git_release('latest', 'latest', 'Latest builds', prerelease=True)
+
+        # generate new filename
+        package = os.getenv('PACKAGE')
+        name,ext = os.path.splitext(package)
+        curtime = repo.get_git_commit(sha).committer.date.strftime('%Y-%m-%d')
+        samedayprefix = '{}-{}-'.format(name, curtime)
+        filename = '{}-{}-{}{}'.format(name, curtime, sha[:7], ext)
+
+        # upload as asset with proper name
+        rel.upload_asset(package, name=filename)

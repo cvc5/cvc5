@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,11 +21,10 @@
 #ifndef CVC5__THEORY__UF__EQUALITY_ENGINE_TYPES_H
 #define CVC5__THEORY__UF__EQUALITY_ENGINE_TYPES_H
 
-#include <string>
-#include <iostream>
-#include <sstream>
+#include <ostream>
 
 #include "util/hash.h"
+#include "expr/node.h"
 
 namespace cvc5::internal {
 namespace theory {

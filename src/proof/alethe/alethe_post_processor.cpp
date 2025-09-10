@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Hanna Lachnitt, Haniel Barbosa, Aina Niemetz
+ *   Haniel Barbosa, Hanna Lachnitt, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -61,7 +61,7 @@ AletheProofPostprocessCallback::AletheProofPostprocessCallback(
     : EnvObj(env), d_anc(anc), d_resPivots(resPivots)
 {
   NodeManager* nm = nodeManager();
-  d_cl = nm->mkBoundVar("cl", nm->sExprType());
+  d_cl = NodeManager::mkBoundVar("cl", nm->sExprType());
   d_true = nm->mkConst(true);
   d_false = nm->mkConst(false);
 }
@@ -89,6 +89,87 @@ bool AletheProofPostprocessCallback::shouldUpdatePost(
   AletheRule rule = getAletheRule(pn->getArguments()[0]);
   return rule == AletheRule::RESOLUTION_OR || rule == AletheRule::REORDERING
          || rule == AletheRule::CONTRACTION;
+}
+
+bool AletheProofPostprocessCallback::updateTheoryRewriteProofRewriteRule(
+    Node res,
+    const std::vector<Node>& children,
+    const std::vector<Node>& args,
+    CDProof* cdp,
+    ProofRewriteRule di)
+{
+  NodeManager* nm = nodeManager();
+  std::vector<Node> new_args = std::vector<Node>();
+  switch (di)
+  {
+    // ======== DISTINCT_ELIM
+    // ======== DISTINCT_CARD_CONFLICT
+    // Both rules are translated according to the clauses pattern to
+    // distinct_elim. The only exception to this is when DISTINCT_ELIM results
+    // in a term with exactly two boolean arguments. The Alethe distinct_elim
+    // rule has a special handling in this case and rewrites the distinct term
+    // to False directly (as the DISTINCT_CARD_CONFLICT rule does in cvc5).
+    // Instead, we output a RARE_REWRITE step using the distinct_two_bool_elim
+    // rule.
+    //
+    // (define-rule distinct_bin_bool_elim ((t1 Bool) (t2 Bool))
+    // (distinct t1 t2)
+    // (not (= t1 t2)))
+    case ProofRewriteRule::DISTINCT_ELIM:
+    case ProofRewriteRule::DISTINCT_CARD_CONFLICT:
+    {
+      Node eq = res[0];
+      Node t1 = eq[0];
+      if (di == ProofRewriteRule::DISTINCT_ELIM && t1.getType().isBoolean()
+          && eq.getNumChildren() == 2)
+      {
+        return addAletheStep(
+            AletheRule::RARE_REWRITE,
+            res,
+            nm->mkNode(Kind::SEXPR, d_cl, res),
+            {},
+            {nm->mkRawSymbol("\"distinct_bin_bool_elim\"", nm->sExprType()),
+             t1,
+             eq[1]},
+            *cdp);
+      }
+      return addAletheStep(AletheRule::DISTINCT_ELIM,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           children,
+                           new_args,
+                           *cdp);
+    }
+    // ======== QUANT_MERGE_PRENEX
+    // This rule is translated according to the clause pattern.
+    case ProofRewriteRule::QUANT_MERGE_PRENEX:
+    {
+      return addAletheStep(AletheRule::QNT_JOIN,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           {},
+                           {},
+                           *cdp);
+    }
+    // ======== QUANT_UNUSED_VARS
+    // This rule is translated according to the clause pattern.
+    case ProofRewriteRule::QUANT_UNUSED_VARS:
+    {
+      return addAletheStep(AletheRule::QNT_RM_UNUSED,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           {},
+                           {},
+                           *cdp);
+    }
+    default: break;
+  }
+  return addAletheStep(AletheRule::HOLE,
+                       res,
+                       nm->mkNode(Kind::SEXPR, d_cl, res),
+                       children,
+                       new_args,
+                       *cdp);
 }
 
 bool AletheProofPostprocessCallback::update(Node res,
@@ -394,6 +475,17 @@ bool AletheProofPostprocessCallback::update(Node res,
 
       return success;
     }
+    // ======== Encode equality introduction
+    // This rule is translated according to the singleton pattern.
+    case ProofRule::ENCODE_EQ_INTRO:
+    {
+      return addAletheStep(AletheRule::REFL,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           {},
+                           {},
+                           *cdp);
+    }
     // The conversion is into a "rare_rewrite" step where the first argument is
     // a string literal with the name of the rewrite, followed by the arguments,
     // where lists are built using the Alethe operator "rare-list", which takes
@@ -407,7 +499,7 @@ bool AletheProofPostprocessCallback::update(Node res,
       {
         std::stringstream ss;
         ss << "\"" << di << "\"";
-        rule = nm->mkRawSymbol(ss.str(), nm->sExprType());
+        rule = NodeManager::mkRawSymbol(ss.str(), nm->sExprType());
       }
       else
       {
@@ -420,12 +512,13 @@ bool AletheProofPostprocessCallback::update(Node res,
         {
           if (args[i].toString() == "")
           {  // TODO: better way
-            new_args.push_back(nm->mkBoundVar("rare-list", nm->sExprType()));
+            new_args.push_back(
+                NodeManager::mkBoundVar("rare-list", nm->sExprType()));
           }
           else if (args[i].getKind() == Kind::SEXPR)
           {
             std::vector<Node> list_arg{
-                nm->mkBoundVar("rare-list", nm->sExprType())};
+                NodeManager::mkBoundVar("rare-list", nm->sExprType())};
             list_arg.insert(list_arg.end(), args[i].begin(), args[i].end());
             new_args.push_back(nm->mkNode(Kind::SEXPR, list_arg));
           }
@@ -442,6 +535,13 @@ bool AletheProofPostprocessCallback::update(Node res,
                            new_args,
                            *cdp);
     }
+    case ProofRule::THEORY_REWRITE:
+    {
+      ProofRewriteRule di;
+      rewriter::getRewriteRule(args[0], di);
+      return updateTheoryRewriteProofRewriteRule(
+          res, children, args, cdp, di);
+    }
     // Both ARITH_POLY_NORM and EVALUATE, which are used by the Rare
     // elaboration, are captured by the "rare_rewrite" rule.
     case ProofRule::ARITH_POLY_NORM:
@@ -451,17 +551,18 @@ bool AletheProofPostprocessCallback::update(Node res,
           res,
           nm->mkNode(Kind::SEXPR, d_cl, res),
           children,
-          {nm->mkRawSymbol("\"arith-poly-norm\"", nm->sExprType())},
+          {NodeManager::mkRawSymbol("\"arith-poly-norm\"", nm->sExprType())},
           *cdp);
     }
     case ProofRule::EVALUATE:
     {
-      return addAletheStep(AletheRule::RARE_REWRITE,
-                           res,
-                           nm->mkNode(Kind::SEXPR, d_cl, res),
-                           children,
-                           {nm->mkRawSymbol("\"evaluate\"", nm->sExprType())},
-                           *cdp);
+      return addAletheStep(
+          AletheRule::RARE_REWRITE,
+          res,
+          nm->mkNode(Kind::SEXPR, d_cl, res),
+          children,
+          {NodeManager::mkRawSymbol("\"evaluate\"", nm->sExprType())},
+          *cdp);
     }
     // If the trusted rule is a theory lemma from arithmetic, we try to phrase
     // it with "lia_generic".
@@ -483,7 +584,8 @@ bool AletheProofPostprocessCallback::update(Node res,
                              *cdp);
       }
       TrustId tid;
-      if (getTrustId(args[0], tid) && tid == TrustId::THEORY_LEMMA)
+      bool hasTrustId = getTrustId(args[0], tid);
+      if (hasTrustId && tid == TrustId::THEORY_LEMMA)
       {
         // if we are in the arithmetic case, we rather add a LIA_GENERIC step
         if (res.getKind() == Kind::NOT && res[0].getKind() == Kind::AND)
@@ -514,8 +616,22 @@ bool AletheProofPostprocessCallback::update(Node res,
         }
       }
       std::stringstream ss;
-      ss << "\"" << args[0] << "\"";
-      std::vector<Node> newArgs{nm->mkRawSymbol(ss.str(), nm->sExprType())};
+      if (hasTrustId)
+      {
+        ss << "\"" << tid << "\"";
+        cvc5::internal::theory::TheoryId thid;
+        if (theory::builtin::BuiltinProofRuleChecker::getTheoryId(args[0],
+                                                                  thid))
+        {
+          ss << " \"" << thid << "\"";
+        }
+      }
+      else
+      {
+        ss << "\"" << args[0] << "\"";
+      }
+      std::vector<Node> newArgs{
+          NodeManager::mkRawSymbol(ss.str(), nm->sExprType())};
       newArgs.insert(newArgs.end(), args.begin() + 1, args.end());
       return addAletheStep(AletheRule::HOLE,
                            res,
@@ -1528,30 +1644,72 @@ bool AletheProofPostprocessCallback::update(Node res,
     }
     // ======== Alpha Equivalence
     //
-    // Given the formula F = (forall ((y1 A1) ... (yn An)) G) and the
-    // substitution sigma = {y1 -> z1, ..., yn -> zn}, the step is represented
-    // as
+    // Given the formula F := (forall ((y1 A1) ... (yn An)) G) and a
+    // substitution sigma, the resulting Alethe steps justifying the conclusion
+    // (= F F*sigma) depend on a number of conditions, which are detailed below.
+    //
+    // If sigma is the identity, F*sigma is the same as F, and the resulting
+    // step is
+    //
+    //  ------------------ refl
+    //  (cl (= F F))
+    //
+    // When sigma is the substitution {y1->z1, ..., yn->zn, ..., yn+k->zn+k}, we
+    // are in the case where G has quantifiers whose variables are yn+1 ... yn+k
+    // and they will be renamed to zn+1 ... zn+k. The generated Alethe proof is
+    //
+    //  --------------------------------------- refl
+    //  (cl (= G G*{y1 -> z1, ..., yn -> zn}))
+    // --------------------------------- bind, z1 ... zn (= y1 z1) ... (= yn zn)
+    //  (cl (= F (forall ((z1 A1) ... (zn An)) G*{y1 -> z1, ..., yn -> zn})))
+    //
+    // i.e., we drop the suffix of the substitution beyond the variables of the
+    // outermost quantifier. This is valid in Alethe because the validity of
+    // "refl", under a rule that introduces a context, such as "bind", is itself
+    // tested modulo alpha-equivalence. An alternative would be to use the rest
+    // of the substitution to do new "bind" steps for the innermost quantifiers.
+    //
+    // If sigma contains more than one variable with the same name but with
+    // different types (which makes them different for cvc5 but not in the
+    // substitution induced by Alethe's context), we introduce an intermediate
+    // alpha equivalence step with fresh variables. For example if F := (forall
+    // ((y1 A1) (y2 A2)) G) and sigma is the substitution {y1 -> z1, y2 -> y1},
+    // where the "y1" in the right hand side has another type "T" other than
+    // "A2", then the resulting steps are
+    //
+    //  --------------------------------------- refl
+    //  (cl (= G G*{y1 -> @v1, y2 -> @v2})
+    // --------------------------------- bind, @v1 @v2 (= y1 @v1) (= y1 @v2)
+    //  (cl (= F (forall ((@v1 A1) (@v2 A2)) G*{y1 -> @v1, y2 -> @v2})
+    //
+    //  --------------------------------------------------- refl
+    //  (cl (= G*{y1->@v1, y2->@v2} (G*{y1->@v1, y2->@v2})*{@v1->z1, @v1->y1})
+    // --------------------------------------- bind, z1 y1 (= @v1 z1) (= @v2 z2)
+    //  (cl (=
+    //    (forall ((@v1 A1) (@v2 A2)) G*{y1 -> @v1, y2 -> @v2})
+    //    (forall ((z1 A1) (y1 A2)) (G*{y1->@v1, y2->@v2})*{@v1->z1, @v1->y1})))
+    //
+    // and finally a transitivity step to conclude an equality between F and
+    // (forall ((z1 A1) (y1 A2)) (G*{y1->@v1, y2->@v2})*{@v1->z1, @v1->y1}).
+    //
+    // If none of the conditions above applies, the resulting Alethe steps are
     //
     //  ------------------ refl
     //  (cl (= G G*sigma))
     // -------------------- bind, z1 ... zn (= y1 z1) ... (= yn zn)
-    //  (= F F*sigma)
-    //
-    // In case the sigma is the identity this step is merely converted to
-    //
-    //  ------------------ refl
-    //  (cl (= F F))
+    //  (cl (= F (forall ((z1 A1) ... (zn An)) G*sigma)))
     case ProofRule::ALPHA_EQUIV:
     {
-      std::vector<Node> varEqs;
       // If y1 ... yn are mapped to y1 ... yn it suffices to use a refl step
       bool allSame = true;
+      std::unordered_set<std::string> lhsNames;
       for (size_t i = 0, size = res[0][0].getNumChildren(); i < size; ++i)
       {
         Node v0 = res[0][0][i], v1 = res[1][0][i];
+        lhsNames.insert(v0.getName());
         allSame = allSame && v0 == v1;
-        varEqs.push_back(v0.eqNode(v1));
       }
+      // when no renaming, no-op
       if (allSame)
       {
         return addAletheStep(AletheRule::REFL,
@@ -1561,19 +1719,83 @@ bool AletheProofPostprocessCallback::update(Node res,
                              {},
                              *cdp);
       }
+      // check if any name in the rhs variables clashes with a name in the lhs
+      bool hasClash = false;
+      for (const Node& v : res[1][0])
+      {
+        if (lhsNames.count(v.getName()))
+        {
+          hasClash = true;
+        }
+      }
+      bool success = true;
+      Node lhsQ = res[0];
+      std::vector<Node> transEqs;
+      if (hasClash)
+      {
+        // create the variables to substitute the lhs variables
+        std::vector<Node> freshRenaming;
+        for (const Node& v : res[0][0])
+        {
+          freshRenaming.emplace_back(NodeManager::mkBoundVar(v.getType()));
+        }
+        std::vector<Node> vars{res[0][0].begin(), res[0][0].end()};
+        Node lhsRenamed = res[0].substitute(vars.begin(),
+                                            vars.end(),
+                                            freshRenaming.begin(),
+                                            freshRenaming.end());
+        // Reflexivity over the quantified bodies
+        Node reflConc =
+            nm->mkNode(Kind::SEXPR, d_cl, res[0][1].eqNode(lhsRenamed[1]));
+        addAletheStep(AletheRule::REFL, reflConc, reflConc, {}, {}, *cdp);
+        // Collect RHS variables first for arguments, then add the entries for
+        // the substitution. In a "bind" rule we must always list all the
+        // variables
+        std::vector<Node> bindArgs{freshRenaming.begin(), freshRenaming.end()};
+        for (size_t i = 0, size = freshRenaming.size(); i < size; ++i)
+        {
+          bindArgs.push_back(vars[i].eqNode(freshRenaming[i]));
+        }
+        transEqs.push_back(res[0].eqNode(lhsRenamed));
+        success &= addAletheStep(AletheRule::ANCHOR_BIND,
+                                 transEqs.back(),
+                                 nm->mkNode(Kind::SEXPR, d_cl, transEqs.back()),
+                                 {reflConc},
+                                 bindArgs,
+                                 *cdp);
+        lhsQ = lhsRenamed;
+      }
       // Reflexivity over the quantified bodies
-      Node vp = nm->mkNode(
-          Kind::SEXPR, d_cl, nm->mkNode(Kind::EQUAL, res[0][1], res[1][1]));
-      addAletheStep(AletheRule::REFL, vp, vp, {}, {}, *cdp);
-      // collect variables first
-      new_args.insert(new_args.end(), res[1][0].begin(), res[1][0].end());
-      new_args.insert(new_args.end(), varEqs.begin(), varEqs.end());
-      return addAletheStep(AletheRule::ANCHOR_BIND,
-                           res,
-                           nm->mkNode(Kind::SEXPR, d_cl, res),
-                           {vp},
-                           new_args,
-                           *cdp);
+      Node reflConc = nm->mkNode(Kind::SEXPR, d_cl, lhsQ[1].eqNode(res[1][1]));
+      addAletheStep(AletheRule::REFL, reflConc, reflConc, {}, {}, *cdp);
+      // Collect RHS variables first for arguments, then add the entries for
+      // the substitution. In a "bind" rule we must always list all the
+      // variables
+      std::vector<Node> bindArgs{res[1][0].begin(), res[1][0].end()};
+      for (size_t i = 0, size = res[1][0].getNumChildren(); i < size; ++i)
+      {
+        bindArgs.push_back(lhsQ[0][i].eqNode(res[1][0][i]));
+      }
+      transEqs.push_back(lhsQ.eqNode(res[1]));
+      success &= addAletheStep(AletheRule::ANCHOR_BIND,
+                               transEqs.back(),
+                               nm->mkNode(Kind::SEXPR, d_cl, transEqs.back()),
+                               {reflConc},
+                               bindArgs,
+                               *cdp);
+      Assert(!hasClash || transEqs.size() == 2);
+      if (hasClash)
+      {
+        return success
+               && addAletheStep(AletheRule::TRANS,
+                                res,
+                                nm->mkNode(Kind::SEXPR, d_cl, res),
+                                transEqs,
+                                {},
+                                *cdp);
+      }
+      Assert(cdp->hasStep(res));
+      return success;
     }
     //================================================= Arithmetic rules
     // ======== Adding Scaled Inequalities
@@ -2125,7 +2347,8 @@ bool AletheProofPostprocessCallback::update(Node res,
           << children << " " << args << std::endl;
       std::stringstream ss;
       ss << "\"" << id << "\"";
-      std::vector<Node> newArgs{nm->mkRawSymbol(ss.str(), nm->sExprType())};
+      std::vector<Node> newArgs{
+          NodeManager::mkRawSymbol(ss.str(), nm->sExprType())};
       newArgs.insert(newArgs.end(), args.begin(), args.end());
       return addAletheStep(AletheRule::HOLE,
                            res,

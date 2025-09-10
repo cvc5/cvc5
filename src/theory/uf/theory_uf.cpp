@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Aina Niemetz
+ *   Andrew Reynolds, Morgan Deters, Dejan Jovanovic
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -50,9 +50,10 @@ TheoryUF::TheoryUF(Env& env,
       d_thss(nullptr),
       d_lambdaLift(new LambdaLift(env)),
       d_ho(nullptr),
+      d_dpfgen(env),
       d_functionsTerms(context()),
       d_symb(env, instanceName),
-      d_rewriter(nodeManager(), env.getRewriter()),
+      d_rewriter(nodeManager()),
       d_checker(nodeManager()),
       d_state(env, valuation),
       d_im(env, *this, d_state, "theory::uf::" + instanceName, false),
@@ -98,7 +99,7 @@ void TheoryUF::finishInit() {
       std::stringstream ss;
       ss << "Logic with cardinality constraints not available in this "
             "configuration, try --uf-card-exp.";
-      throw LogicException(ss.str());
+      throw SafeLogicException(ss.str());
     }
   }
   // Initialize the cardinality constraints solver if the logic includes UF,
@@ -119,23 +120,23 @@ void TheoryUF::finishInit() {
       std::stringstream ss;
       ss << "Higher-order logic not available in this configuration, try "
             "--uf-ho-exp.";
-      throw LogicException(ss.str());
+      throw SafeLogicException(ss.str());
     }
     d_equalityEngine->addFunctionKind(Kind::HO_APPLY);
     d_ho.reset(new HoExtension(d_env, d_state, d_im, *d_lambdaLift.get()));
   }
   // conversion kinds
   d_equalityEngine->addFunctionKind(Kind::INT_TO_BITVECTOR, true);
-  d_equalityEngine->addFunctionKind(Kind::BITVECTOR_TO_NAT, true);
+  d_equalityEngine->addFunctionKind(Kind::BITVECTOR_UBV_TO_INT, true);
 }
 
 //--------------------------------- standard check
 
 bool TheoryUF::needsCheckLastEffort()
 {
-  // last call effort needed if using finite model finding or
-  // arithmetic/bit-vector conversions
-  return d_thss != nullptr || d_csolver != nullptr;
+  // last call effort needed if using finite model finding,
+  // arithmetic/bit-vector conversions, or higher-order extension
+  return d_thss != nullptr || d_csolver != nullptr || d_ho!=nullptr;
 }
 
 void TheoryUF::postCheck(Effort level)
@@ -235,7 +236,7 @@ TrustNode TheoryUF::ppRewrite(TNode node, std::vector<SkolemLemma>& lems)
       std::stringstream ss;
       if (k == Kind::HO_APPLY)
       {
-        ss << "Partial function applications";
+        ss << "Higher-order function applications";
       }
       else
       {
@@ -260,12 +261,12 @@ TrustNode TheoryUF::ppRewrite(TNode node, std::vector<SkolemLemma>& lems)
       throw LogicException(ss.str());
     }
   }
-  else if ((k == Kind::BITVECTOR_TO_NAT || k == Kind::INT_TO_BITVECTOR)
+  else if ((k == Kind::BITVECTOR_UBV_TO_INT || k == Kind::INT_TO_BITVECTOR)
            && options().uf.eagerArithBvConv)
   {
     // eliminate if option specifies to eliminate eagerly
-    Node ret = k == Kind::BITVECTOR_TO_NAT ? arith::eliminateBv2Nat(node)
-                                           : arith::eliminateInt2Bv(node);
+    Node ret = k == Kind::BITVECTOR_UBV_TO_INT ? arith::eliminateBv2Nat(node)
+                                               : arith::eliminateInt2Bv(node);
     return TrustNode::mkTrustRewrite(node, ret);
   }
   if (isHol)
@@ -290,9 +291,6 @@ void TheoryUF::preRegisterTerm(TNode node)
     d_thss->preRegisterTerm(node);
   }
 
-  // we always use APPLY_UF if not higher-order, HO_APPLY if higher-order
-  Assert(node.getKind() != Kind::HO_APPLY || logicInfo().isHigherOrder());
-
   Kind k = node.getKind();
   switch (k)
   {
@@ -300,25 +298,21 @@ void TheoryUF::preRegisterTerm(TNode node)
       // Add the trigger for equality
       d_state.addEqualityEngineTriggerPredicate(node);
       break;
-    case Kind::APPLY_UF:
+    case Kind::APPLY_UF: preRegisterFunctionTerm(node); break;
     case Kind::HO_APPLY:
     {
-      // Maybe it's a predicate
-      if (node.getType().isBoolean())
+      if (!logicInfo().isHigherOrder())
       {
-        d_state.addEqualityEngineTriggerPredicate(node);
+        std::stringstream ss;
+        ss << "Partial function applications are only supported with "
+              "higher-order logic. Try adding the logic prefix HO_.";
+        throw LogicException(ss.str());
       }
-      else
-      {
-        // Function applications/predicates
-        d_equalityEngine->addTerm(node);
-      }
-      // Remember the function and predicate terms
-      d_functionsTerms.push_back(node);
+      preRegisterFunctionTerm(node);
     }
     break;
     case Kind::INT_TO_BITVECTOR:
-    case Kind::BITVECTOR_TO_NAT:
+    case Kind::BITVECTOR_UBV_TO_INT:
     {
       Assert(!options().uf.eagerArithBvConv);
       d_equalityEngine->addTerm(node);
@@ -354,20 +348,43 @@ void TheoryUF::preRegisterTerm(TNode node)
     default:
       // Variables etc
       d_equalityEngine->addTerm(node);
+      if (logicInfo().isHigherOrder())
+      {
+        // When using lazy lambda handling, if node is a lambda function, it must
+        // be marked as a shared term. This is to ensure we split on the equality
+        // of lambda functions with other functions when doing care graph
+        // based theory combination.
+        if (d_lambdaLift->isLambdaFunction(node))
+        {
+          addSharedTerm(node);
+        }
+      }
+      else if (node.getType().isFunction())
+      {
+        std::stringstream ss;
+        ss << "Function terms are only supported with higher-order logic. Try "
+              "adding the logic prefix HO_.";
+        throw LogicException(ss.str());
+      }
       break;
   }
 
-  if (logicInfo().isHigherOrder())
+}
+
+void TheoryUF::preRegisterFunctionTerm(TNode node)
+{
+  // Maybe it's a predicate
+  if (node.getType().isBoolean())
   {
-    // When using lazy lambda handling, if node is a lambda function, it must
-    // be marked as a shared term. This is to ensure we split on the equality
-    // of lambda functions with other functions when doing care graph
-    // based theory combination.
-    if (d_lambdaLift->isLambdaFunction(node))
-    {
-      addSharedTerm(node);
-    }
+    d_state.addEqualityEngineTriggerPredicate(node);
   }
+  else
+  {
+    // Function applications/predicates
+    d_equalityEngine->addTerm(node);
+  }
+  // Remember the function and predicate terms
+  d_functionsTerms.push_back(node);
 }
 
 void TheoryUF::explain(TNode literal, Node& exp)
@@ -434,121 +451,8 @@ void TheoryUF::ppStaticLearn(TNode n, std::vector<TrustNode>& learned)
 {
   //TimerStat::CodeTimer codeTimer(d_staticLearningTimer);
 
-  vector<TNode> workList;
-  workList.push_back(n);
-  std::unordered_set<TNode> processed;
-
-  while(!workList.empty()) {
-    n = workList.back();
-
-    if (n.isClosure())
-    {
-      // unsafe to go under quantifiers; we might pull bound vars out of scope!
-      processed.insert(n);
-      workList.pop_back();
-      continue;
-    }
-
-    bool unprocessedChildren = false;
-    for(TNode::iterator i = n.begin(), iend = n.end(); i != iend; ++i) {
-      if(processed.find(*i) == processed.end()) {
-        // unprocessed child
-        workList.push_back(*i);
-        unprocessedChildren = true;
-      }
-    }
-
-    if(unprocessedChildren) {
-      continue;
-    }
-
-    workList.pop_back();
-    // has node n been processed in the meantime ?
-    if(processed.find(n) != processed.end()) {
-      continue;
-    }
-    processed.insert(n);
-
-    // == DIAMONDS ==
-
-    Trace("diamonds") << "===================== looking at" << endl
-                      << n << endl;
-
-    // binary OR of binary ANDs of EQUALities
-    if (n.getKind() == Kind::OR && n.getNumChildren() == 2
-        && n[0].getKind() == Kind::AND && n[0].getNumChildren() == 2
-        && n[1].getKind() == Kind::AND && n[1].getNumChildren() == 2
-        && (n[0][0].getKind() == Kind::EQUAL)
-        && (n[0][1].getKind() == Kind::EQUAL)
-        && (n[1][0].getKind() == Kind::EQUAL)
-        && (n[1][1].getKind() == Kind::EQUAL))
-    {
-      // now we have (a = b && c = d) || (e = f && g = h)
-
-      Trace("diamonds") << "has form of a diamond!" << endl;
-
-      TNode
-        a = n[0][0][0], b = n[0][0][1],
-        c = n[0][1][0], d = n[0][1][1],
-        e = n[1][0][0], f = n[1][0][1],
-        g = n[1][1][0], h = n[1][1][1];
-
-      // test that one of {a, b} = one of {c, d}, and make "b" the
-      // shared node (i.e. put in the form (a = b && b = d))
-      // note we don't actually care about the shared ones, so the
-      // "swaps" below are one-sided, ignoring b and c
-      if(a == c) {
-        a = b;
-      } else if(a == d) {
-        a = b;
-        d = c;
-      } else if(b == c) {
-        // nothing to do
-      } else if(b == d) {
-        d = c;
-      } else {
-        // condition not satisfied
-        Trace("diamonds") << "+ A fails" << endl;
-        continue;
-      }
-
-      Trace("diamonds") << "+ A holds" << endl;
-
-      // same: one of {e, f} = one of {g, h}, and make "f" the
-      // shared node (i.e. put in the form (e = f && f = h))
-      if(e == g) {
-        e = f;
-      } else if(e == h) {
-        e = f;
-        h = g;
-      } else if(f == g) {
-        // nothing to do
-      } else if(f == h) {
-        h = g;
-      } else {
-        // condition not satisfied
-        Trace("diamonds") << "+ B fails" << endl;
-        continue;
-      }
-
-      Trace("diamonds") << "+ B holds" << endl;
-
-      // now we have (a = b && b = d) || (e = f && f = h)
-      // test that {a, d} == {e, h}
-      if( (a == e && d == h) ||
-          (a == h && d == e) ) {
-        // learn: n implies a == d
-        Trace("diamonds") << "+ C holds" << endl;
-        Node newEquality = a.eqNode(d);
-        Trace("diamonds") << "  ==> " << newEquality << endl;
-        Node lem = n.impNode(newEquality);
-        TrustNode trn = TrustNode::mkTrustLemma(lem, nullptr);
-        learned.emplace_back(trn);
-      } else {
-        Trace("diamonds") << "+ C fails" << endl;
-      }
-    }
-  }
+  // Use the diamonds utility
+  d_dpfgen.ppStaticLearn(n, learned);
 
   if (options().uf.ufSymmetryBreaker)
   {
@@ -651,6 +555,14 @@ void TheoryUF::processCarePairArgs(TNode a, TNode b)
   }
 }
 
+void TheoryUF::computeRelevantTerms(std::set<Node>& termSet)
+{
+  if (d_ho!=nullptr)
+  {
+    d_ho->computeRelevantTerms(termSet);
+  }
+}
+
 void TheoryUF::computeCareGraph() {
   if (d_state.getSharedTerms().empty())
   {
@@ -714,7 +626,7 @@ void TheoryUF::computeCareGraph() {
           }
         }
       }
-      else if (k == Kind::HO_APPLY || k == Kind::BITVECTOR_TO_NAT)
+      else if (k == Kind::HO_APPLY || k == Kind::BITVECTOR_UBV_TO_INT)
       {
         // add it to the typeIndex for the function type if HO_APPLY, or the
         // bitvector type if bv2nat. The latter ensures that we compute

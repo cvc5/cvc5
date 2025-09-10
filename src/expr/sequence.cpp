@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -337,14 +337,6 @@ Sequence Sequence::substr(size_t i, size_t j) const
   std::vector<Node>::const_iterator itr = d_seq.begin() + i;
   std::vector<Node> retVec(itr, itr + j);
   return Sequence(getType(), retVec);
-}
-
-bool Sequence::noOverlapWith(const Sequence& y) const
-{
-  Assert(getType() == y.getType());
-  return y.find(*this) == std::string::npos
-         && this->find(y) == std::string::npos && this->overlap(y) == 0
-         && y.overlap(*this) == 0;
 }
 
 size_t Sequence::maxSize() { return std::numeric_limits<uint32_t>::max(); }

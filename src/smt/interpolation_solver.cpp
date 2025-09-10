@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Ying Sheng, Andrew Reynolds, Aina Niemetz
+ *   Andrew Reynolds, Ying Sheng, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -180,7 +180,7 @@ void InterpolationSolver::checkInterpol(Node interpol,
                             << ": make new SMT engine" << std::endl;
     // Start new SMT engine to check solution
     std::unique_ptr<SolverEngine> itpChecker;
-    initializeSubsolver(itpChecker, ssi);
+    initializeSubsolver(nodeManager(), itpChecker, ssi);
     Trace("check-interpol") << "SolverEngine::checkInterpol: phase " << j
                             << ": asserting formulas" << std::endl;
     if (j == 0)

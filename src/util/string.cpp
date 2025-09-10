@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -32,6 +32,19 @@ namespace cvc5::internal {
 static_assert(UCHAR_MAX == 255, "Unsigned char is assumed to have 256 values.");
 
 String::String(const std::wstring& s)
+{
+  d_str.resize(s.size());
+  for (size_t i = 0, n = s.size(); i < n; ++i)
+  {
+    unsigned u = static_cast<unsigned>(s[i]);
+#ifdef CVC5_ASSERTIONS
+    Assert(u < num_codes());
+#endif
+    d_str[i] = u;
+  }
+}
+
+String::String(const std::u32string& s)
 {
   d_str.resize(s.size());
   for (size_t i = 0, n = s.size(); i < n; ++i)
@@ -312,6 +325,16 @@ std::wstring String::toWString() const
   return res;
 }
 
+std::u32string String::toU32String() const
+{
+  std::u32string res(size(), static_cast<char32_t>(0));
+  for (std::size_t i = 0; i < size(); ++i)
+  {
+    res[i] = static_cast<char32_t>(d_str[i]);
+  }
+  return res;
+}
+
 bool String::isLeq(const String &y) const
 {
   for (unsigned i = 0; i < size(); ++i)
@@ -470,13 +493,6 @@ String String::substr(std::size_t i, std::size_t j) const {
   std::vector<unsigned>::const_iterator itr = d_str.begin() + i;
   ret_vec.insert(ret_vec.end(), itr, itr + j);
   return String(ret_vec);
-}
-
-bool String::noOverlapWith(const String& y) const
-{
-  return y.find(*this) == std::string::npos
-         && this->find(y) == std::string::npos && this->overlap(y) == 0
-         && y.overlap(*this) == 0;
 }
 
 bool String::isNumber() const {

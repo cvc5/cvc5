@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -34,7 +34,7 @@ namespace uf {
 class TheoryUfRewriter : public TheoryRewriter
 {
  public:
-  TheoryUfRewriter(NodeManager* nm, Rewriter* rr);
+  TheoryUfRewriter(NodeManager* nm);
   /** post-rewrite */
   RewriteResponse postRewrite(TNode node) override;
   /** pre-rewrite */
@@ -77,26 +77,20 @@ class TheoryUfRewriter : public TheoryRewriter
    * Then, f and g can be used as APPLY_UF operators, but (ite C f g), (lambda x1. (f x1)) as well as the variable x above are not.
    */
   static bool canUseAsApplyUfOperator(TNode n);
-
- private:
   /**
    * Can we eliminate the lambda n? This is true if n is of the form
    * (LAMBDA x (APPLY_UF f x)), which is equivalent to f.
    * @param n The lambda in question.
    * @return the result of eliminating n, if possible, or null otherwise.
    */
-  static Node canEliminateLambda(const Node& n);
-  /**
-   * Pointer to the rewriter, required for rewriting lambdas that appear
-   * inside of operators that are not in rewritten form. NOTE this is a cyclic
-   * dependency, and should be removed.
-   */
-  Rewriter* d_rr;
+  static Node canEliminateLambda(NodeManager* nm, const Node& n);
+
+ private:
   /** Entry point for rewriting lambdas */
   Node rewriteLambda(Node node);
-  /** rewrite bv2nat */
-  RewriteResponse rewriteBVToNat(TNode node);
-  /** rewrite int2bv */
+  /** rewrite ubv_to_int */
+  RewriteResponse rewriteBVToInt(TNode node);
+  /** rewrite int_to_bv */
   RewriteResponse rewriteIntToBV(TNode node);
 }; /* class TheoryUfRewriter */
 

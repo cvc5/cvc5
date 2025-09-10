@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
+ *   Andrew Reynolds, Andres Noetzli, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -29,26 +29,6 @@ using namespace cvc5::internal::kind;
 namespace cvc5::internal {
 namespace theory {
 namespace strings {
-
-/**
- * A bound variable corresponding to the universally quantified integer
- * variable used to range over the valid positions in a string, used
- * for axiomatizing the behavior of some term.
- */
-struct IndexVarAttributeId
-{
-};
-typedef expr::Attribute<IndexVarAttributeId, Node> IndexVarAttribute;
-
-/**
- * A bound variable corresponding to the universally quantified integer
- * variable used to range over the valid lengths of a string, used for
- * axiomatizing the behavior of some term.
- */
-struct LengthVarAttributeId
-{
-};
-typedef expr::Attribute<LengthVarAttributeId, Node> LengthVarAttribute;
 
 SkolemCache::SkolemCache(NodeManager* nm, Rewriter* rr) : d_nm(nm), d_rr(rr)
 {
@@ -132,7 +112,7 @@ Node SkolemCache::mkTypedSkolemCached(
     {
       Trace("skolem-cache")
           << "Don't know how to handle Skolem ID " << id << std::endl;
-      sk = sm->mkDummySkolem(c, tn, "string skolem");
+      sk = NodeManager::mkDummySkolem(c, tn, "string skolem");
     }
     break;
   }
@@ -152,8 +132,7 @@ Node SkolemCache::mkTypedSkolemCached(TypeNode tn,
 Node SkolemCache::mkSkolem(const char* c)
 {
   // TODO: eliminate this
-  SkolemManager* sm = d_nm->getSkolemManager();
-  Node n = sm->mkDummySkolem(c, d_strType, "string skolem");
+  Node n = NodeManager::mkDummySkolem(c, d_strType, "string skolem");
   d_allSkolems.insert(n);
   return n;
 }
@@ -269,6 +248,33 @@ SkolemCache::normalizeStringSkolem(StringSkolemId id, Node a, Node b)
     a = utils::mkSuffix(a, b);
     b = Node::null();
   }
+  else if (id == RE_FIRST_MATCH_PRE)
+  {
+    id = SK_PURIFY;
+    Node idof = d_nm->mkNode(Kind::STRING_INDEXOF_RE, a, b, d_zero);
+    a = utils::mkPrefix(a, idof);
+    b = Node::null();
+  }
+  else if (id == RE_FIRST_MATCH)
+  {
+    id = SK_PURIFY;
+    Node idof = d_nm->mkNode(Kind::STRING_INDEXOF_RE, a, b, d_zero);
+    Node occ = mkSkolemFun(d_nm, SkolemId::STRINGS_OCCUR_INDEX_RE, a, b);
+    Node one = d_nm->mkConstInt(Rational(1));
+    Node occ1 = d_nm->mkNode(Kind::APPLY_UF, occ, one);
+    a = d_nm->mkNode(
+        Kind::STRING_SUBSTR, a, idof, d_nm->mkNode(Kind::SUB, occ1, idof));
+    b = Node::null();
+  }
+  else if (id == RE_FIRST_MATCH_POST)
+  {
+    id = SK_PURIFY;
+    Node occ = mkSkolemFun(d_nm, SkolemId::STRINGS_OCCUR_INDEX_RE, a, b);
+    Node one = d_nm->mkConstInt(Rational(1));
+    Node occ1 = d_nm->mkNode(Kind::APPLY_UF, occ, one);
+    a = utils::mkSuffix(a, occ1);
+    b = Node::null();
+  }
 
   if (d_rr != nullptr)
   {
@@ -285,14 +291,25 @@ Node SkolemCache::mkIndexVar(NodeManager* nm, Node t)
   TypeNode intType = nm->integerType();
   BoundVarManager* bvm = nm->getBoundVarManager();
   // Note that proof rules may depend on the name of this variable.
-  return bvm->mkBoundVar<IndexVarAttribute>(t, "@var.str_index", intType);
+  return bvm->mkBoundVar(
+      BoundVarId::STRINGS_INDEX, t, "@var.str_index", intType);
 }
 
 Node SkolemCache::mkLengthVar(NodeManager* nm, Node t)
 {
   TypeNode intType = nm->integerType();
   BoundVarManager* bvm = nm->getBoundVarManager();
-  return bvm->mkBoundVar<LengthVarAttribute>(t, "@var.str_length", intType);
+  return bvm->mkBoundVar(
+      BoundVarId::STRINGS_LENGTH, t, "@var.str_length", intType);
+}
+
+Node SkolemCache::mkRegExpEqVar(NodeManager* nm, Node eq)
+{
+  Assert(eq.getKind() == Kind::EQUAL);
+  TypeNode stringType = nm->stringType();
+  BoundVarManager* bvm = nm->getBoundVarManager();
+  return bvm->mkBoundVar(
+      BoundVarId::STRINGS_REG_EXP_EQ, eq, "@var.re_eq", stringType);
 }
 
 Node SkolemCache::mkSkolemFun(NodeManager* nm, SkolemId id, Node a, Node b)

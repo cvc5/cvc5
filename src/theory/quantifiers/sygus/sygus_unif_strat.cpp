@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -173,7 +173,6 @@ void SygusUnifStrategy::registerStrategyPoint(Node et,
 void SygusUnifStrategy::buildStrategyGraph(TypeNode tn, NodeRole nrole)
 {
   NodeManager* nm = nodeManager();
-  SkolemManager* sm = nm->getSkolemManager();
   if (d_tinfo.find(tn) == d_tinfo.end())
   {
     // register type
@@ -196,7 +195,7 @@ void SygusUnifStrategy::buildStrategyGraph(TypeNode tn, NodeRole nrole)
   std::map<EnumRole, Node>::iterator iten = eti.d_enum.find(erole);
   if (iten == eti.d_enum.end())
   {
-    ee = sm->mkDummySkolem("ee", tn);
+    ee = NodeManager::mkDummySkolem("ee", tn);
     eti.d_enum[erole] = ee;
     Trace("sygus-unif-debug")
         << "...enumerator " << ee << " for " << tn.getDType().getName()
@@ -247,7 +246,7 @@ void SygusUnifStrategy::buildStrategyGraph(TypeNode tn, NodeRole nrole)
     for (unsigned k = 0, nargs = dt[j].getNumArgs(); k < nargs; k++)
     {
       TypeNode ttn = dt[j][k].getRangeType();
-      Node kv = sm->mkDummySkolem("ut", ttn);
+      Node kv = NodeManager::mkDummySkolem("ut", ttn);
       sks.push_back(kv);
       cop_to_sks[cop].push_back(kv);
       sktns.push_back(ttn);
@@ -305,7 +304,7 @@ void SygusUnifStrategy::buildStrategyGraph(TypeNode tn, NodeRole nrole)
                                    << std::endl;
         Node esk = nm->mkNode(Kind::DT_SYGUS_EVAL, echildren);
         vs.push_back(esk);
-        Node tvar = sm->mkDummySkolem("templ", esk.getType());
+        Node tvar = NodeManager::mkDummySkolem("templ", esk.getType());
         templ_var_index[tvar] = k;
         Trace("sygus-unif-debug2") << "* template inference : looking for "
                                    << tvar << " for arg " << k << std::endl;
@@ -576,7 +575,7 @@ void SygusUnifStrategy::buildStrategyGraph(TypeNode tn, NodeRole nrole)
           if (cop_to_child_templ[cop].find(j) != cop_to_child_templ[cop].end())
           {
             // it is templated, allocate a fresh variable
-            et = sm->mkDummySkolem("et", ct);
+            et = NodeManager::mkDummySkolem("et", ct);
             Trace("sygus-unif-debug") << "...enumerate " << et << " of type "
                                       << ct.getDType().getName();
             Trace("sygus-unif-debug") << " for arg " << j << " of "
@@ -610,7 +609,7 @@ void SygusUnifStrategy::buildStrategyGraph(TypeNode tn, NodeRole nrole)
           if (sol_templ_children[j].isNull())
           {
             sol_templ_children[j] =
-                nm->mkGroundTerm(cop_to_sks[cop][j].getType());
+                NodeManager::mkGroundTerm(cop_to_sks[cop][j].getType());
           }
         }
         sol_templ_children.insert(sol_templ_children.begin(), cop);

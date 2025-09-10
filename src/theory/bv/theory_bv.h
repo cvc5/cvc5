@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,6 +18,7 @@
 #ifndef CVC5__THEORY__BV__THEORY_BV_H
 #define CVC5__THEORY__BV__THEORY_BV_H
 
+#include "theory/bv/bv_pp_assert.h"
 #include "theory/bv/proof_checker.h"
 #include "theory/bv/theory_bv_rewriter.h"
 #include "theory/theory.h"
@@ -85,8 +86,7 @@ class TheoryBV : public Theory
 
   std::string identify() const override { return std::string("TheoryBV"); }
 
-  PPAssertStatus ppAssert(TrustNode in,
-                          TrustSubstitutionMap& outSubstitutions) override;
+  bool ppAssert(TrustNode in, TrustSubstitutionMap& outSubstitutions) override;
 
   TrustNode ppRewrite(TNode t, std::vector<SkolemLemma>& lems) override;
 
@@ -105,6 +105,9 @@ class TheoryBV : public Theory
 
   /** Internal BV solver. */
   std::unique_ptr<BVSolver> d_internal;
+
+  /** The preprocess assertion utility */
+  BvPpAssert d_ppAssert;
 
   /** The theory rewriter for this theory. */
   TheoryBVRewriter d_rewriter;

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -144,45 +144,6 @@ jobject getDoubleObject(JNIEnv* env, double value);
  * @return a Boolean object
  */
 jobject getBooleanObject(JNIEnv* env, bool value);
-
-/**
- * The java api manager.
- *
- * It is a singleton that is accessible via ApiManager::currentAM().
- */
-class ApiManager
-{
- public:
-  /**
-   * Get the singleton instance.
-   */
-  static ApiManager* currentAM();
-  /**
-   * Create a new global reference to the object referred to by the obj
-   * argument, and store the object to be disposed of later.
-   */
-  jobject addGlobalReference(JNIEnv* env, jlong pointer, jobject object);
-  /**
-   * Store a plugin pointer to be deleted later.
-   */
-  void addPluginPointer(jlong pointer, jlong pluginPointer);
-  /**
-   * Delete resources associated with pointer.
-   */
-  void deletePointer(JNIEnv* env, jlong pointer);
-
- private:
-  /**
-   * A map from pointers to jni global references that need to be freed when
-   * the deletePointer method is called
-   */
-  std::map<jlong, std::vector<jobject> > d_globalReferences;
-  /**
-   * A map to ApiPlugin pointers that need to be freed when
-   * the deletePointer method is called
-   */
-  std::map<jlong, std::vector<jlong> > d_pluginPointers;
-};
 
 /**
  * @param env jni environment

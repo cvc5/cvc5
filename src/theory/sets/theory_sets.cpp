@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -32,7 +32,8 @@ TheorySets::TheorySets(Env& env, OutputChannel& out, Valuation valuation)
     : Theory(THEORY_SETS, env, out, valuation),
       d_skCache(env.getNodeManager(), env.getRewriter()),
       d_state(env, valuation, d_skCache),
-      d_rewriter(nodeManager()),
+      d_rewriter(
+          nodeManager(), options().sets.setsCardExp, options().sets.relsExp),
       d_im(env, *this, &d_rewriter, d_state),
       d_cpacb(*this),
       d_internal(
@@ -191,17 +192,16 @@ TrustNode TheorySets::ppRewrite(TNode n, std::vector<SkolemLemma>& lems)
   return d_internal->ppRewrite(n, lems);
 }
 
-Theory::PPAssertStatus TheorySets::ppAssert(
-    TrustNode tin, TrustSubstitutionMap& outSubstitutions)
+bool TheorySets::ppAssert(TrustNode tin, TrustSubstitutionMap& outSubstitutions)
 {
   TNode in = tin.getNode();
   Trace("sets-proc") << "ppAssert : " << in << std::endl;
-  Theory::PPAssertStatus status = Theory::PP_ASSERT_STATUS_UNSOLVED;
+  bool status = false;
 
   // this is based off of Theory::ppAssert
   if (in.getKind() == Kind::EQUAL)
   {
-    if (in[0].isVar() && isLegalElimination(in[0], in[1]))
+    if (in[0].isVar() && d_valuation.isLegalElimination(in[0], in[1]))
     {
       // We cannot solve for sets if setsExp is enabled, since universe set
       // may appear when this option is enabled, and solving for such a set
@@ -210,15 +210,15 @@ Theory::PPAssertStatus TheorySets::ppAssert(
       if (!in[0].getType().isSet() || !options().sets.setsExp)
       {
         outSubstitutions.addSubstitutionSolved(in[0], in[1], tin);
-        status = Theory::PP_ASSERT_STATUS_SOLVED;
+        status = true;
       }
     }
-    else if (in[1].isVar() && isLegalElimination(in[1], in[0]))
+    else if (in[1].isVar() && d_valuation.isLegalElimination(in[1], in[0]))
     {
       if (!in[0].getType().isSet() || !options().sets.setsExp)
       {
         outSubstitutions.addSubstitutionSolved(in[1], in[0], tin);
-        status = Theory::PP_ASSERT_STATUS_SOLVED;
+        status = true;
       }
     }
   }

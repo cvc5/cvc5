@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Alex Ozdemir
+ *   Alex Ozdemir, Daniel Larraz, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -47,7 +47,10 @@ namespace theory {
 namespace ff {
 
 SubTheory::SubTheory(Env& env, FfStatistics* stats, Integer modulus)
-    : EnvObj(env), FieldObj(modulus), d_facts(context()), d_stats(stats)
+    : EnvObj(env),
+      FieldObj(nodeManager(), modulus),
+      d_facts(context()),
+      d_stats(stats)
 {
   AlwaysAssert(modulus.isProbablePrime()) << "non-prime fields are unsupported";
   // must be initialized before using CoCoA.
@@ -60,6 +63,9 @@ Result SubTheory::postCheck(Theory::Effort e)
 {
   d_conflict.clear();
   d_model.clear();
+  // on some branches, we'll overwrite this result
+  Result result = {
+      Result::UNKNOWN, UnknownExplanation::UNKNOWN_REASON, "internal"};
   if (e == Theory::EFFORT_FULL)
   {
     try
@@ -69,11 +75,11 @@ Result SubTheory::postCheck(Theory::Effort e)
       {
         std::vector<Node> facts{};
         std::copy(d_facts.begin(), d_facts.end(), std::back_inserter(facts));
-        auto result = split(facts, size(), d_env);
-        if (result.has_value())
+        const auto optModel = split(facts, size(), d_env);
+        if (optModel.has_value())
         {
           const auto nm = nodeManager();
-          for (const auto& [var, val] : result.value())
+          for (const auto& [var, val] : optModel.value())
           {
             d_model.insert({var, nm->mkConst<FiniteFieldValue>(val)});
           }
@@ -85,7 +91,7 @@ Result SubTheory::postCheck(Theory::Effort e)
       }
       else if (options().ff.ffSolver == options::FfSolver::GB)
       {
-        CocoaEncoder enc(size());
+        CocoaEncoder enc(nodeManager(), size());
         // collect leaves
         for (const Node& node : d_facts)
         {
@@ -110,7 +116,7 @@ Result SubTheory::postCheck(Theory::Effort e)
           for (const auto& var : CoCoA::indets(enc.polyRing()))
           {
             CoCoA::BigInt characteristic = CoCoA::characteristic(coeffRing());
-            long power = CoCoA::LogCardinality(coeffRing());
+            const long power = CoCoA::LogCardinality(coeffRing());
             CoCoA::BigInt size = CoCoA::power(characteristic, power);
             generators.push_back(CoCoA::power(var, size) - var);
           }
@@ -126,6 +132,7 @@ Result SubTheory::postCheck(Theory::Effort e)
         if (is_trivial)
         {
           Trace("ff::gb") << "Trivial GB" << std::endl;
+          result = Result::UNSAT;
           if (options().ff.ffTraceGb)
           {
             std::vector<size_t> coreIndices = tracer.trace(basis.front());
@@ -160,12 +167,13 @@ Result SubTheory::postCheck(Theory::Effort e)
 
           if (root.empty())
           {
-            // UNSAT
+            result = Result::UNSAT;
             setTrivialConflict();
           }
           else
           {
-            // SAT: populate d_model from the root
+            result = Result::SAT;
+            // populate d_model from the root
             Assert(d_model.empty());
             const auto nm = nodeManager();
             Trace("ff::model") << "Model GF(" << size() << "):" << std::endl;
@@ -186,9 +194,8 @@ Result SubTheory::postCheck(Theory::Effort e)
       {
         Unreachable() << options().ff.ffSolver << std::endl;
       }
-      AlwaysAssert((!d_conflict.empty() ^ !d_model.empty()) || d_facts.empty());
-      return d_facts.empty() || d_conflict.empty() ? Result::SAT
-                                                   : Result::UNSAT;
+      AlwaysAssert(result.getStatus() != Result::UNKNOWN);
+      return result;
     }
     catch (FfTimeoutException& exc)
     {

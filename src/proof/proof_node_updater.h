@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -44,12 +44,13 @@ class ProofNodeUpdaterCallback
    *
    * @param pn the proof node that maybe should be updated
    * @param fa the assumptions in scope
-   * @param continueUpdate whether we should continue recursively updating pn
+   * @param continueUpdate if this is set to false within this method, then we
+   * do not recursively update pn.
    * @return whether we should run the update method on pn
    */
   virtual bool shouldUpdate(std::shared_ptr<ProofNode> pn,
                             const std::vector<Node>& fa,
-                            bool& continueUpdate) = 0;
+                            bool& continueUpdate);
   /**
    * Update the proof rule application, store steps in cdp. Return true if
    * the proof changed. It can be assumed that cdp contains proofs of each
@@ -83,13 +84,8 @@ class ProofNodeUpdaterCallback
                           const std::vector<Node>& children,
                           const std::vector<Node>& args,
                           CDProof* cdp);
-  /**
-   * Can we merge pn into other proofs? This method is only called if we are
-   * merging subproofs with a proof node updater (mergeSubproofs=true).
-   * If we return false for pn, then its contents will never be copied into
-   * another proof, nor will its contents be replaced.
-   */
-  virtual bool canMerge(std::shared_ptr<ProofNode> pn);
+  /** Called when we are done processing pn */
+  virtual void finalize(std::shared_ptr<ProofNode> pn);
 };
 
 /**
@@ -207,6 +203,16 @@ class ProofNodeUpdater : protected EnvObj
       std::shared_ptr<ProofNode>& cur,
       const std::map<Node, std::shared_ptr<ProofNode>>& resCache,
       std::unordered_map<const ProofNode*, bool>& cfaMap);
+  /**
+   * Pre-simplify, which is called on every proof node prior to updating
+   * them based on the callback. This performs initial checks for the
+   * sake of avoiding unecessary calls to post-processing. In particular,
+   * we use a strategy which looks ahead for subproofs (up to a fixed
+   * depth) which prove the same thing as the current node. This method
+   * does nothing if merge subproofs is disabled.
+   * @param cur The proof node to simplify.
+   */
+  void preSimplify(std::shared_ptr<ProofNode> cur);
   /** Are we debugging free assumptions? */
   bool d_debugFreeAssumps;
   /** The initial free assumptions */

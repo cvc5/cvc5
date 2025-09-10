@@ -1,3 +1,4 @@
+; COMMAND-LINE: --arrays-exp
 ; EXPECT: unsat
 (set-logic ALL)
 (set-option :incremental true)

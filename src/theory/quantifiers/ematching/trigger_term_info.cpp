@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -55,7 +55,7 @@ bool TriggerTermInfo::isAtomicTriggerKind(Kind k)
          || k == Kind::SET_INTER || k == Kind::SET_SUBSET
          || k == Kind::SET_MINUS || k == Kind::SET_MEMBER
          || k == Kind::SET_SINGLETON || k == Kind::SEP_PTO
-         || k == Kind::BITVECTOR_TO_NAT || k == Kind::INT_TO_BITVECTOR
+         || k == Kind::BITVECTOR_UBV_TO_INT || k == Kind::INT_TO_BITVECTOR
          || k == Kind::HO_APPLY || k == Kind::STRING_LENGTH
          || k == Kind::SEQ_NTH;
 }

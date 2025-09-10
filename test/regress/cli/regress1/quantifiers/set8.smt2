@@ -1,6 +1,6 @@
 ; COMMAND-LINE: --ieval=use-learn
 ; EXPECT: unsat
-; DISABLE-TESTER: cpc
+
 (set-logic AUFLIA)
 (set-info :source | Set theory. |)
 (set-info :smt-lib-version 2.6)

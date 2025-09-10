@@ -1,10 +1,10 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Andrew Reynolds, Leni Aniva, Mathias Preiner
+#   Andrew Reynolds, Leni Aniva, Abdalrhman Mohamed
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -37,7 +37,7 @@ set(mkrewrites_script ${CMAKE_CURRENT_LIST_DIR}/mkrewrites.py)
 set(REWRITE_OUTPUT_FILES
   rewrites.cpp
 )
-foreach(rewrite_in IN LISTS REWRITES_FILES)
+foreach(rewrite_in IN LISTS REWRITES_FILES REWRITES_FILES_EXPERT)
   # NOTE: In CMake 3.20+, the `cmake_path` command can be used instead
 
   get_filename_component(rewrite_parent ${rewrite_in} DIRECTORY)
@@ -70,12 +70,14 @@ add_custom_command(
       ${Python_EXECUTABLE}
       ${mkrewrites_script}
       rewrite-db
-      ${CMAKE_SOURCE_DIR}
-      ${CMAKE_BINARY_DIR}
-      ${REWRITES_FILES}
+      --src ${CMAKE_SOURCE_DIR}
+      --bin ${CMAKE_BINARY_DIR}
+      --rewrites_files ${REWRITES_FILES}
+      --rewrites_files_expert ${REWRITES_FILES_EXPERT}
     DEPENDS
       ${mkrewrites_script}
       ${REWRITES_FILES}
+      ${REWRITES_FILES_EXPERT}
       ${CMAKE_CURRENT_LIST_DIR}/theory_rewrites_template.cpp
       ${CMAKE_CURRENT_LIST_DIR}/rewrites_template.cpp
       ${CMAKE_SOURCE_DIR}/src/api/cpp/cvc5_proof_rule_template.cpp

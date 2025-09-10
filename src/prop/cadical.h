@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,17 +20,21 @@
 #ifndef CVC5__PROP__CADICAL_H
 #define CVC5__PROP__CADICAL_H
 
-#include <cadical.hpp>
-
 #include "context/cdhashset.h"
 #include "prop/sat_solver.h"
 #include "smt/env_obj.h"
+
+namespace CaDiCaL {
+class Solver;
+class Terminator;
+}  // namespace CaDiCaL
 
 namespace cvc5::internal {
 namespace prop {
 
 class CadicalPropagator;
 class ClauseLearner;
+class ProofTracer;
 
 class CadicalSolver : public CDCLTSatSolver, protected EnvObj
 {
@@ -69,10 +73,7 @@ class CadicalSolver : public CDCLTSatSolver, protected EnvObj
 
   /* CDCLTSatSolver interface --------------------------------------------- */
 
-  void initialize(context::Context* context,
-                  prop::TheoryProxy* theoryProxy,
-                  context::UserContext* userContext,
-                  PropPfManager* ppm) override;
+  void initialize(prop::TheoryProxy* theoryProxy, PropPfManager* ppm) override;
   void push() override;
 
   void pop() override;
@@ -132,6 +133,8 @@ class CadicalSolver : public CDCLTSatSolver, protected EnvObj
   std::unique_ptr<CadicalPropagator> d_propagator;
   /** Clause learner instance for notifications about learned clauses. */
   std::unique_ptr<ClauseLearner> d_clause_learner;
+  /** Proof tracer instance for extracting unsat cores. */
+  std::unique_ptr<ProofTracer> d_proof_tracer;
 
   /**
    * Stores the current set of assumptions provided via solve() and is used to

@@ -1,7 +1,7 @@
 (include "../theories/Builtin.eo")
 
-(declare-type Int ())
-(declare-type Real ())
+(declare-const Int Type)
+(declare-const Real Type)
 
 (declare-consts <numeral> Int)
 (declare-consts <rational> Real)
@@ -14,7 +14,7 @@
 ;   The "type union" of T and U. This method is used for the type rules
 ;   for operators that allow mixed arithmetic.
 (program $arith_typeunion ()
-    (Type Type) Type
+    :signature (Type Type) Type
     (
       (($arith_typeunion Int Int) Int)
       (($arith_typeunion Real Real) Real)
@@ -28,7 +28,7 @@
 ; - T Type: A type.
 ; return: true if T is Int or Real
 (program $is_arith_type ()
-    (Type) Bool
+    :signature (Type) Bool
     (
       (($is_arith_type Int) true)
       (($is_arith_type Real) true)
@@ -41,86 +41,66 @@
 ;   This function is overloaded in SMT-LIB and does not permit mixed arithmetic.
 ;   This function is declared to be :left-assoc in SMT-LIB. We declare
 ;   it with right-assoc-nil to model cvc5's treatment of variadic functions.
-(declare-const + (-> (! Type :var T :implicit)
-                     (! Type :var U :implicit)
-                     T U ($arith_typeunion T U)) :right-assoc-nil 0)
+(declare-parameterized-const + ((T Type :implicit) (U Type :implicit)) 
+  (-> T U ($arith_typeunion T U)) :right-assoc-nil 0)
 ; disclaimer: This function is overloaded in SMT-LIB and does not permit mixed arithmetic.
-(declare-const - (-> (! Type :var T :implicit)
-                     (! Type :var U :implicit)
-                     T U ($arith_typeunion T U)) :left-assoc)
+(declare-parameterized-const - ((T Type :implicit) (U Type :implicit))
+  (-> T U ($arith_typeunion T U)) :left-assoc)
 ; disclaimer: >
 ;   This function is overloaded in SMT-LIB and does not permit mixed arithmetic.
 ;   This function is declared to be :left-assoc in SMT-LIB. We declare
 ;   it with right-assoc-nil to model cvc5's treatment of variadic functions.
-(declare-const * (-> (! Type :var T :implicit)
-                     (! Type :var U :implicit)
-                     T U ($arith_typeunion T U)) :right-assoc-nil 1)
+(declare-parameterized-const * ((T Type :implicit) (U Type :implicit))
+  (-> T U ($arith_typeunion T U)) :right-assoc-nil 1)
 
 ; Core arithmetic predicates
 ; disclaimer: This function is overloaded in SMT-LIB and does not permit mixed arithmetic.
-(declare-const < (-> (! Type :var T :implicit)
-                     (! Type :var U :implicit)
-                     (! T :requires (($is_arith_type T) true))
-                     (! U :requires (($is_arith_type U) true))
-                     Bool)
-                     :chainable and)
+(declare-parameterized-const < ((T Type :implicit) (U Type :implicit))
+  (-> T U
+      (eo::requires ($is_arith_type T) true
+      (eo::requires ($is_arith_type U) true
+        Bool)))
+      :chainable and)
 ; disclaimer: This function is overloaded in SMT-LIB and does not permit mixed arithmetic.
-(declare-const <= (-> (! Type :var T :implicit)
-                      (! Type :var U :implicit)
-                      (! T :requires (($is_arith_type T) true))
-                      (! U :requires (($is_arith_type U) true))
-                      Bool)
-                      :chainable and)
+(declare-parameterized-const <= ((T Type :implicit) (U Type :implicit))
+  (-> T U
+      (eo::requires ($is_arith_type T) true
+      (eo::requires ($is_arith_type U) true
+        Bool)))
+      :chainable and)
 ; disclaimer: This function is overloaded in SMT-LIB and does not permit mixed arithmetic.
-(declare-const > (-> (! Type :var T :implicit)
-                     (! Type :var U :implicit)
-                     (! T :requires (($is_arith_type T) true))
-                     (! U :requires (($is_arith_type U) true))
-                     Bool)
-                     :chainable and)
+(declare-parameterized-const > ((T Type :implicit) (U Type :implicit))
+  (-> T U
+      (eo::requires ($is_arith_type T) true
+      (eo::requires ($is_arith_type U) true
+        Bool)))
+      :chainable and)
 ; disclaimer: This function is overloaded in SMT-LIB and does not permit mixed arithmetic.
-(declare-const >= (-> (! Type :var T :implicit)
-                      (! Type :var U :implicit)
-                      (! T :requires (($is_arith_type T) true))
-                      (! U :requires (($is_arith_type U) true))
-                      Bool)
-                      :chainable and)
+(declare-parameterized-const >= ((T Type :implicit) (U Type :implicit))
+  (-> T U
+      (eo::requires ($is_arith_type T) true
+      (eo::requires ($is_arith_type U) true
+        Bool)))
+      :chainable and)
 
 ; Conversion functions.
 ; disclaimer: The type of this function in SMT-LIB only accepts an Int as argument.
-(declare-const to_real (-> (! Type :var T :implicit)
-                           (! T :requires (($is_arith_type T) true))
-                           Real))
+(declare-parameterized-const to_real ((T Type :implicit))
+  (-> T (eo::requires ($is_arith_type T) true Real)))
 ; disclaimer: The type of this function in SMT-LIB only accepts a Real as argument.
-(declare-const to_int (-> (! Type :var T :implicit)
-                          (! T :requires (($is_arith_type T) true))
-                          Int))
+(declare-parameterized-const to_int ((T Type :implicit))
+  (-> T (eo::requires ($is_arith_type T) true Int)))
 ; disclaimer: The type of this function in SMT-LIB only accepts a Real as argument.
-(declare-const is_int (-> (! Type :var T :implicit)
-                          (! T :requires (($is_arith_type T) true))
-                          Bool))
+(declare-parameterized-const is_int ((T Type :implicit))
+  (-> T (eo::requires ($is_arith_type T) true Bool)))
 ; disclaimer: The type of this function in SMT-LIB only accepts an Int as argument.
-(declare-const abs (-> (! Type :var T :implicit)
-                       (! T :requires (($is_arith_type T) true))
-                       T))
-
-; Power function.
-; disclaimer: This function is not a function in SMT-LIB. 
-(declare-const ^ (-> (! Type :var T :implicit)
-                     (! T :requires (($is_arith_type T) true))
-                     T T))
+(declare-parameterized-const abs ((T Type :implicit))
+  (-> T (eo::requires ($is_arith_type T) true T)))
 
 ; Unary negation, which is overloaded with binary subtraction. We distinguish
 ; these two operators in Eunoia based on their arity when applied, and with
 ; eo::as when they are used in higher-order contexts, e.g. as an argument to
 ; the cong proof rule.
 ; disclaimer: This function is overloaded in SMT-LIB.
-(declare-const - (-> (! Type :var T :implicit)
-                     (! T :requires (($is_arith_type T) true))
-                     T))
-
-; skolems for virtual term substitution
-(declare-const @arith_vts_delta Real)
-(declare-const @arith_vts_delta_free Real)
-(declare-const @arith_vts_infinity (-> (! Type :var T) T))
-(declare-const @arith_vts_infinity_free (-> (! Type :var T) T))
+(declare-parameterized-const - ((T Type :implicit))
+  (-> T (eo::requires ($is_arith_type T) true T)))

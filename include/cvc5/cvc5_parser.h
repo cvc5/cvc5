@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -412,7 +412,7 @@ class CVC5_EXPORT ParserException : public CVC5ApiException
  * An end of file exception.
  * If thrown, API objects can still be used
  */
-class ParserEndOfFileException : public ParserException
+class CVC5_EXPORT ParserEndOfFileException : public ParserException
 {
  public:
   /** default constructor */

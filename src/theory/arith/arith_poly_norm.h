@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Hans-Joerg Schurr
+ *   Andrew Reynolds, Abdalrhman Mohamed, Hans-Joerg Schurr
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -96,8 +96,9 @@ class PolyNorm
    */
   static bool isArithPolyNormRel(TNode a, TNode b, Rational& ca, Rational& cb);
   /**
-   * Get the premise for ProofRule::ARITH_POLY_NORM_REL for a == b, where
-   * ca and cb are the rationals returned by the above method.
+   * Get the premise for ProofRule::ARITH_POLY_NORM_REL or
+   * ProofRule::BV_POLY_NORM_EQ for a == b, where ca and cb are the rationals
+   * returned by the above method.
    */
   static Node getArithPolyNormRelPremise(TNode a,
                                          TNode b,
@@ -130,7 +131,11 @@ class PolyNorm
   static Node multMonoVar(TNode m1, TNode m2);
   /** Get the list of variables whose product is m */
   static std::vector<TNode> getMonoVars(TNode m);
-  /** The data, mapping monomial variables to coefficients */
+  /**
+   * The data, mapping monomial variables to coefficients. A monomial variable
+   * is either an (arithmetic or bitvector) term, treated as a variable, or
+   * an SEXPR of (arithmetic or bitvector) terms, treated as multiplication.
+   */
   std::map<Node, Rational> d_polyNorm;
 };
 

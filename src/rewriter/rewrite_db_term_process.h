@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,6 +22,7 @@
 
 #include "expr/node.h"
 #include "expr/node_converter.h"
+#include "expr/term_context.h"
 #include "proof/conv_proof_generator.h"
 #include "proof/proof.h"
 
@@ -91,6 +92,8 @@ class ProofRewriteDbNodeConverter : protected EnvObj
   std::shared_ptr<ProofNode> convert(const Node& n);
 
  private:
+  /** Term context matching the policy for the converter above */
+  WithinKindTermContext d_wktc;
   /** A pointer to a TConvProofGenerator, if proof producing */
   TConvProofGenerator d_tpg;
   /** A CDProof */

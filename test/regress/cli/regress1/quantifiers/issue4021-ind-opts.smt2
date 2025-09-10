@@ -1,3 +1,5 @@
+; COMMAND-LINE: -q
+; EXPECT: unsat
 ; DISABLE-TESTER: unsat-core
 ; DISABLE-TESTER: proof
 (set-logic HO_ALL)

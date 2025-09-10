@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -209,6 +209,30 @@ std::string to_string(cvc5::modes::FindSynthTarget target)
 {
   std::stringstream ss;
   ss << target;
+  return ss.str();
+}
+}  // namespace std
+
+namespace cvc5::modes {
+std::ostream& operator<<(std::ostream& out, OptionCategory cat)
+{
+  switch (cat)
+  {
+    case OptionCategory::REGULAR: out << "regular"; break;
+    case OptionCategory::EXPERT: out << "expert"; break;
+    case OptionCategory::COMMON: out << "common"; break;
+    case OptionCategory::UNDOCUMENTED: out << "undocumented"; break;
+    default: out << "?";
+  }
+  return out;
+}
+}  // namespace cvc5::modes
+
+namespace std {
+std::string to_string(cvc5::modes::OptionCategory category)
+{
+  std::stringstream ss;
+  ss << category;
   return ss.str();
 }
 }  // namespace std

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -36,7 +36,7 @@ class SygusUnifIo;
 class UnifContextIo : public UnifContext
 {
  public:
-  UnifContextIo();
+  UnifContextIo(NodeManager* nm);
   /** get current role */
   NodeRole getCurrentRole() override;
 
@@ -126,6 +126,8 @@ class UnifContextIo : public UnifContext
   std::map<Node, std::map<NodeRole, bool>> d_visit_role;
 
  private:
+  /** the associated node manager */
+  NodeManager* d_nm;
   /** true and false nodes */
   Node d_true;
   Node d_false;

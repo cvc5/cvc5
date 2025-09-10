@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -126,8 +126,7 @@ void UnconstrainedSimplifier::visitAll(TNode assertion)
 
 Node UnconstrainedSimplifier::newUnconstrainedVar(TypeNode t, TNode var)
 {
-  SkolemManager* sm = nodeManager()->getSkolemManager();
-  Node n = sm->mkDummySkolem(
+  Node n = NodeManager::mkDummySkolem(
       "unconstrained",
       t,
       "a new var introduced because of unconstrained variable "

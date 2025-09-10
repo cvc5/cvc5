@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
+ *   Andrew Reynolds, Aina Niemetz, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,6 +21,7 @@
 #include <string>
 #include <unordered_set>
 
+#include "expr/bound_var_id.h"
 #include "expr/node.h"
 
 namespace cvc5::internal {
@@ -38,12 +39,6 @@ class BoundVarManager
   BoundVarManager();
   ~BoundVarManager();
   /**
-   * Enable or disable keeping cache values. If we keep cache values, then
-   * the bound variables returned by the methods below are deterministic in the
-   * lifetime of the NodeManager we are using.
-   */
-  void enableKeepCacheValues(bool isEnabled = true);
-  /**
    * Make a bound variable of type tn and name tn, cached based on (T, n),
    * where T is an attribute class of the form:
    *   expr::Attribute<id, Node>
@@ -54,32 +49,9 @@ class BoundVarManager
    *
    * Returns the bound variable.
    */
-  template <class T>
-  Node mkBoundVar(Node n, TypeNode tn)
-  {
-    T attr;
-    if (n.hasAttribute(attr))
-    {
-      Assert(n.getAttribute(attr).getType() == tn);
-      return n.getAttribute(attr);
-    }
-    Node v = NodeManager::currentNM()->mkBoundVar(tn);
-    n.setAttribute(attr, v);
-    // if we are keeping cache values, insert it to the set
-    if (d_keepCacheVals)
-    {
-      d_cacheVals.insert(n);
-    }
-    return v;
-  }
+  Node mkBoundVar(BoundVarId id, Node n, TypeNode tn);
   /** Same as above, with a name for the bound variable. */
-  template <class T>
-  Node mkBoundVar(Node n, const std::string& name, TypeNode tn)
-  {
-    Node v = mkBoundVar<T>(n, tn);
-    setNameAttr(v, name);
-    return v;
-  }
+  Node mkBoundVar(BoundVarId id, Node n, const std::string& name, TypeNode tn);
   //---------------------------------- utilities for computing Node hash
   /** get cache value from two nodes, returns SEXPR */
   static Node getCacheValue(TNode cv1, TNode cv2);
@@ -88,17 +60,15 @@ class BoundVarManager
   /** get cache value from two nodes and a size_t, returns SEXPR */
   static Node getCacheValue(TNode cv1, TNode cv2, size_t i);
   /** get cache value, returns a constant rational node */
-  static Node getCacheValue(size_t i);
+  static Node getCacheValue(NodeManager* nm, size_t i);
   /** get cache value, return SEXPR of cv and constant rational node */
   static Node getCacheValue(TNode cv, size_t i);
   //---------------------------------- end utilities for computing Node hash
  private:
   /** Set name of bound variable to name */
   static void setNameAttr(Node v, const std::string& name);
-  /** Whether we keep cache values */
-  bool d_keepCacheVals;
   /** The set of cache values we have used */
-  std::unordered_set<Node> d_cacheVals;
+  std::map<std::tuple<BoundVarId, TypeNode, Node>, Node> d_cache;
 };
 
 }  // namespace cvc5::internal

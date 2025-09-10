@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -52,7 +52,7 @@ class MasterNotifyClass : public theory::eq::EqualityEngineNotify
     return true;
   }
   void eqNotifyConstantTermMerge(TNode t1, TNode t2) override {}
-  void eqNotifyMerge(TNode t1, TNode t2) override {}
+  void eqNotifyMerge(TNode t1, TNode t2) override;
   void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override {}
 
   private:

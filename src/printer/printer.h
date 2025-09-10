@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -390,7 +390,7 @@ class CVC5_EXPORT Printer
   static std::unique_ptr<Printer> makePrinter(Language lang);
 
   /** Printers for each Language */
-  static std::unique_ptr<Printer>
+  static thread_local std::unique_ptr<Printer>
       d_printers[static_cast<size_t>(Language::LANG_MAX)];
 
 }; /* class Printer */

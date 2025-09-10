@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz
+ *   Andrew Reynolds, Daniel Larraz, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -56,7 +56,7 @@ Node LfscListScNodeConverter::postConvert(Node n)
       children.push_back(f);
       // convert n, since this node will not be converted further
       children.push_back(d_conv.convert(n));
-      Node null = d_conv.getNullTerminator(k, tn);
+      Node null = d_conv.getNullTerminator(d_nm, k, tn);
       Assert(!null.isNull());
       // likewise, convert null
       children.push_back(d_conv.convert(null));
@@ -87,7 +87,7 @@ Node LfscListScNodeConverter::postConvert(Node n)
       std::vector<Node> nchildren(n.begin(), n.end());
       n = d_nm->mkNode(k, nchildren);
     }
-    Node null = d_conv.getNullTerminator(k, tn);
+    Node null = d_conv.getNullTerminator(d_nm, k, tn);
     AlwaysAssert(!null.isNull())
         << "No null terminator for " << k << ", " << tn;
     null = d_conv.convert(null);

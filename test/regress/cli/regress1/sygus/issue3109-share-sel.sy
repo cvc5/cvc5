@@ -1,5 +1,5 @@
 ; EXPECT: feasible
-; COMMAND-LINE: --sygus-out=status
+; COMMAND-LINE: --term-sort-overload --sygus-out=status
 (set-logic ALL)
 
 (declare-datatypes ((IntRange 0)) 

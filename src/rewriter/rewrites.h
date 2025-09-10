@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Hans-Joerg Schurr
+ *   Andrew Reynolds, Abdalrhman Mohamed, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -32,10 +32,10 @@ class RewriteDb;
  * rewrite rule database with rules based on the compilation of the DSL
  * rewrite rule files.
  */
-void addRules(RewriteDb& db);
+void addRules(NodeManager* nm, RewriteDb& db);
 
 /** Make node from proof rewrite rule */
-Node mkRewriteRuleNode(ProofRewriteRule rule);
+Node mkRewriteRuleNode(NodeManager* nm, ProofRewriteRule rule);
 
 /** get a proof rewrite rule from a node, return false if we fail */
 bool getRewriteRule(TNode n, ProofRewriteRule& rule);

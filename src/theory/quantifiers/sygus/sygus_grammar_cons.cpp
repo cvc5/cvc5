@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz
+ *   Andrew Reynolds, Aina Niemetz, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,6 +21,7 @@
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/node_algorithm.h"
+#include "options/arrays_options.h"
 #include "options/quantifiers_options.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/strings/word.h"
@@ -72,7 +73,7 @@ SygusGrammar SygusGrammarCons::mkDefaultGrammar(const Env& env,
                                                 const Node& bvl,
                                                 const std::vector<Node>& trules)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = env.getNodeManager();
   std::map<TypeNode, std::vector<Node>>::iterator it;
   SygusGrammar g = mkEmptyGrammar(env, range, bvl, trules);
   std::map<TypeNode, std::vector<Node>> typeToNtSym = getTypeToNtSymMap(g);
@@ -102,7 +103,7 @@ SygusGrammar SygusGrammarCons::mkDefaultGrammar(const Env& env,
     std::vector<TypeNode> argTypes = range.getArgTypes();
     for (const TypeNode& tn : argTypes)
     {
-      Node v = nm->mkBoundVar(tn);
+      Node v = NodeManager::mkBoundVar(tn);
       vars.push_back(v);
       // add variable as a terminal
       trulesAll.push_back(v);
@@ -173,7 +174,7 @@ SygusGrammar SygusGrammarCons::mkEmptyGrammar(const Env& env,
                                               const Node& bvl,
                                               const std::vector<Node>& trules)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = env.getNodeManager();
   // get the variables
   std::vector<Node> vars;
   if (!bvl.isNull())
@@ -190,10 +191,10 @@ SygusGrammar SygusGrammarCons::mkEmptyGrammar(const Env& env,
     // constants don't contribute anything by themselves
     if (!r.isConst())
     {
-      collectTypes(r.getType(), types);
+      collectTypes(nm, r.getType(), types);
     }
   }
-  collectTypes(range, types);
+  collectTypes(nm, range, types);
   // always include Boolean
   TypeNode btype = nm->booleanType();
   types.insert(btype);
@@ -216,25 +217,34 @@ SygusGrammar SygusGrammarCons::mkEmptyGrammar(const Env& env,
   std::vector<Node> ntSyms;
   options::SygusGrammarConsMode tsgcm =
       env.getOptions().quantifiers.sygusGrammarConsMode;
+  std::vector<Node> keep;
   for (const TypeNode& t : tvec)
   {
+    // use fresh variable, to ensure the name below is unique
+    Node an = NodeManager::mkBoundVar(t);
+    keep.emplace_back(an);
     std::stringstream ss;
     ss << "A_";
     if (t.getNumChildren() > 0)
     {
-      ss << t.getKind() << "_" << t.getId();
+      ss << t.getKind();
     }
     else
     {
       ss << t;
     }
-    Node a = nm->mkBoundVar(ss.str(), t);
+    ss << "_" << an.getId();
+    Node a = NodeManager::mkBoundVar(ss.str(), t);
     ntSyms.push_back(a);
     // Some types require more than one non-terminal. Handle these cases here.
     if (t.isReal())
     {
+      an = NodeManager::mkBoundVar(t);
+      keep.emplace_back(an);
+      std::stringstream ssr;
+      ssr << "A_Real_PosC_" << an.getId();
       // the positive real constant grammar, for denominators
-      Node apc = nm->mkBoundVar("A_Real_PosC", t);
+      Node apc = NodeManager::mkBoundVar(ssr.str(), t);
       ntSyms.push_back(apc);
     }
     if (tsgcm == options::SygusGrammarConsMode::ANY_TERM
@@ -242,11 +252,13 @@ SygusGrammar SygusGrammarCons::mkEmptyGrammar(const Env& env,
     {
       if (t.isRealOrInt())
       {
+        an = NodeManager::mkBoundVar(t);
+        keep.emplace_back(an);
         // construction of the any-term grammar requires an auxiliary
         // "any constant".
         std::stringstream ssc;
-        ssc << "A_" << t << "_AnyC";
-        Node aac = nm->mkBoundVar(ssc.str(), t);
+        ssc << "A_" << t << "_AnyC_" << an.getId();
+        Node aac = NodeManager::mkBoundVar(ssc.str(), t);
         ntSyms.push_back(aac);
       }
     }
@@ -266,7 +278,7 @@ void SygusGrammarCons::addDefaultRulesTo(
 {
   TypeNode tn = ntSym.getType();
   std::vector<Node> prevRules = g.getRulesFor(ntSym);
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = env.getNodeManager();
   options::SygusGrammarConsMode tsgcm =
       env.getOptions().quantifiers.sygusGrammarConsMode;
   // add constants
@@ -291,7 +303,7 @@ void SygusGrammarCons::addDefaultRulesTo(
       }
     }
     std::vector<Node> consts;
-    mkSygusConstantsForType(tn, consts);
+    mkSygusConstantsForType(env, tn, consts);
     if (tsgcm == options::SygusGrammarConsMode::ANY_CONST)
     {
       // Use the any constant constructor. Notice that for types that don't
@@ -332,7 +344,7 @@ void SygusGrammarCons::addDefaultRulesTo(
         for (Kind kind : kinds)
         {
           Trace("sygus-grammar-def") << "...add for " << kind << std::endl;
-          addRuleTo(g, typeToNtSym, kind, cargsBin);
+          addRuleTo(nm, g, typeToNtSym, kind, cargsBin);
         }
         if (tn.isReal())
         {
@@ -341,7 +353,7 @@ void SygusGrammarCons::addDefaultRulesTo(
           TypeNode itype = nm->integerType();
           std::vector<TypeNode> cargsToReal;
           cargsToReal.push_back(itype);
-          addRuleTo(g, typeToNtSym, TO_REAL, cargsToReal);
+          addRuleTo(nm, g, typeToNtSym, TO_REAL, cargsToReal);
           */
           Trace("sygus-grammar-def") << "...add for DIVISION" << std::endl;
           Assert(arithNtSym.size() >= 2);
@@ -371,7 +383,7 @@ void SygusGrammarCons::addDefaultRulesTo(
       for (Kind kind : un_kinds)
       {
         Trace("sygus-grammar-def") << "...add for " << kind << std::endl;
-        addRuleTo(g, typeToNtSym, kind, cargsUnary);
+        addRuleTo(nm, g, typeToNtSym, kind, cargsUnary);
       }
       // binary ops
       std::vector<Kind> bin_kinds = {Kind::BITVECTOR_AND,
@@ -393,7 +405,7 @@ void SygusGrammarCons::addDefaultRulesTo(
       for (Kind kind : bin_kinds)
       {
         Trace("sygus-grammar-def") << "...add for " << kind << std::endl;
-        addRuleTo(g, typeToNtSym, kind, cargsBinary);
+        addRuleTo(nm, g, typeToNtSym, kind, cargsBinary);
       }
     }
     else if (tn.isFloatingPoint())
@@ -407,14 +419,14 @@ void SygusGrammarCons::addDefaultRulesTo(
       for (Kind kind : unary_kinds)
       {
         Trace("sygus-grammar-def") << "...add for " << kind << std::endl;
-        addRuleTo(g, typeToNtSym, kind, cargs);
+        addRuleTo(nm, g, typeToNtSym, kind, cargs);
       }
       // binary ops
       {
         Kind kind = Kind::FLOATINGPOINT_REM;
         cargs.push_back(tn);
         Trace("sygus-grammar-def") << "...add for " << kind << std::endl;
-        addRuleTo(g, typeToNtSym, kind, cargs);
+        addRuleTo(nm, g, typeToNtSym, kind, cargs);
       }
       // binary ops with RM
       std::vector<Kind> binary_rm_kinds = {
@@ -426,7 +438,7 @@ void SygusGrammarCons::addDefaultRulesTo(
       for (Kind kind : binary_rm_kinds)
       {
         Trace("sygus-grammar-def") << "...add for " << kind << std::endl;
-        addRuleTo(g, typeToNtSym, kind, cargs_rm);
+        addRuleTo(nm, g, typeToNtSym, kind, cargs_rm);
       }
       // ternary ops with RM
       std::vector<Kind> ternary_rm_kinds = {
@@ -439,14 +451,14 @@ void SygusGrammarCons::addDefaultRulesTo(
       for (Kind kind : ternary_rm_kinds)
       {
         Trace("sygus-grammar-def") << "...add for " << kind << std::endl;
-        addRuleTo(g, typeToNtSym, kind, cargs_rm);
+        addRuleTo(nm, g, typeToNtSym, kind, cargs_rm);
       }
       // quaternary ops
       {
         cargs_rm.push_back(tn);
         Kind kind = Kind::FLOATINGPOINT_FMA;
         Trace("sygus-grammar-def") << "...add for " << kind << std::endl;
-        addRuleTo(g, typeToNtSym, kind, cargs_rm);
+        addRuleTo(nm, g, typeToNtSym, kind, cargs_rm);
       }
     }
     else if (tn.isStringLike())
@@ -455,18 +467,18 @@ void SygusGrammarCons::addDefaultRulesTo(
       std::vector<TypeNode> cargsBinary;
       cargsBinary.push_back(tn);
       cargsBinary.push_back(tn);
-      addRuleTo(g, typeToNtSym, Kind::STRING_CONCAT, cargsBinary);
+      addRuleTo(nm, g, typeToNtSym, Kind::STRING_CONCAT, cargsBinary);
       // length
       std::vector<TypeNode> cargsLen;
       cargsLen.push_back(tn);
-      addRuleTo(g, typeToNtSym, Kind::STRING_LENGTH, cargsLen);
+      addRuleTo(nm, g, typeToNtSym, Kind::STRING_LENGTH, cargsLen);
       if (tn.isSequence())
       {
         TypeNode etype = tn.getSequenceElementType();
         Trace("sygus-grammar-def") << "...add for seq.unit" << std::endl;
         std::vector<TypeNode> cargsSeqUnit;
         cargsSeqUnit.push_back(etype);
-        addRuleTo(g, typeToNtSym, Kind::SEQ_UNIT, cargsSeqUnit);
+        addRuleTo(nm, g, typeToNtSym, Kind::SEQ_UNIT, cargsSeqUnit);
       }
     }
     else if (tn.isArray())
@@ -482,14 +494,14 @@ void SygusGrammarCons::addDefaultRulesTo(
       cargsStore.push_back(tn);
       cargsStore.push_back(indexType);
       cargsStore.push_back(elemType);
-      addRuleTo(g, typeToNtSym, Kind::STORE, cargsStore);
+      addRuleTo(nm, g, typeToNtSym, Kind::STORE, cargsStore);
       // add to constituent type : (select ArrayType IndexType)
       Trace("sygus-grammar-def")
           << "...add select for constituent type" << elemType << "\n";
       std::vector<TypeNode> cargsSelect;
       cargsSelect.push_back(tn);
       cargsSelect.push_back(indexType);
-      addRuleTo(g, typeToNtSym, Kind::SELECT, cargsSelect);
+      addRuleTo(nm, g, typeToNtSym, Kind::SELECT, cargsSelect);
     }
     else if (tn.isSet())
     {
@@ -498,7 +510,7 @@ void SygusGrammarCons::addDefaultRulesTo(
       Trace("sygus-grammar-def") << "...add for singleton" << std::endl;
       std::vector<TypeNode> cargsSingleton;
       cargsSingleton.push_back(etype);
-      addRuleTo(g, typeToNtSym, Kind::SET_SINGLETON, cargsSingleton);
+      addRuleTo(nm, g, typeToNtSym, Kind::SET_SINGLETON, cargsSingleton);
       // add for union, difference, intersection
       std::vector<Kind> bin_kinds = {
           Kind::SET_UNION, Kind::SET_INTER, Kind::SET_MINUS};
@@ -508,7 +520,7 @@ void SygusGrammarCons::addDefaultRulesTo(
       for (Kind kind : bin_kinds)
       {
         Trace("sygus-grammar-def") << "...add for " << kind << std::endl;
-        addRuleTo(g, typeToNtSym, kind, cargsBinary);
+        addRuleTo(nm, g, typeToNtSym, kind, cargsBinary);
       }
     }
     else if (tn.isDatatype())
@@ -539,9 +551,9 @@ void SygusGrammarCons::addDefaultRulesTo(
           Trace("sygus-grammar-def") << "...for " << dt[l][j].getName()
                                      << ", args = " << tn << std::endl;
           Node sel = dt[l][j].getSelector();
-          addRuleTo(g, typeToNtSym, Kind::APPLY_SELECTOR, sel, cargsSel);
+          addRuleTo(nm, g, typeToNtSym, Kind::APPLY_SELECTOR, sel, cargsSel);
         }
-        addRuleTo(g, typeToNtSym, Kind::APPLY_CONSTRUCTOR, cop, cargsCons);
+        addRuleTo(nm, g, typeToNtSym, Kind::APPLY_CONSTRUCTOR, cop, cargsCons);
       }
     }
     else if (tn.isFunction())
@@ -550,7 +562,68 @@ void SygusGrammarCons::addDefaultRulesTo(
       // add APPLY_UF for the previous rules added (i.e. the function variables)
       for (const Node& r : prevRules)
       {
-        addRuleTo(g, typeToNtSym, Kind::APPLY_UF, r, cargs);
+        addRuleTo(nm, g, typeToNtSym, Kind::APPLY_UF, r, cargs);
+      }
+      if (env.getOptions().quantifiers.sygusGrammarHoPartial)
+      {
+        Trace("sygus-grammar-def")
+            << "Add partial applications for " << tn << std::endl;
+        // partial applications
+        for (const std::pair<const TypeNode, std::vector<Node>>& itt :
+             typeToNtSym)
+        {
+          TypeNode ft = itt.first;
+          Trace("sygus-grammar-def")
+              << "...maybe partially applied " << ft << "?" << std::endl;
+          if (!ft.isFunction())
+          {
+            continue;
+          }
+          std::vector<TypeNode> fcargs = ft.getArgTypes();
+          size_t nfcargs = fcargs.size();
+          size_t ncargs = cargs.size();
+          if (nfcargs <= ncargs)
+          {
+            continue;
+          }
+          size_t diff = nfcargs - ncargs;
+          bool isSuffix = true;
+          for (size_t i = 0; i < ncargs; i++)
+          {
+            if (cargs[i] != fcargs[i + diff])
+            {
+              isSuffix = false;
+              break;
+            }
+          }
+          Trace("sygus-grammar-def")
+              << "...suffix is " << isSuffix << std::endl;
+          if (isSuffix && ft.getRangeType() == tn.getRangeType())
+          {
+            std::map<TypeNode, std::vector<Node>>::const_iterator itta;
+            for (const Node& f : itt.second)
+            {
+              Node rule = f;
+              for (size_t i = 0; i < diff; i++)
+              {
+                itta = typeToNtSym.find(fcargs[i]);
+                if (itta == typeToNtSym.end())
+                {
+                  rule = Node::null();
+                  break;
+                }
+                Assert(!itta->second.empty());
+                rule = nm->mkNode(Kind::HO_APPLY, rule, itta->second[0]);
+              }
+              if (!rule.isNull())
+              {
+                Trace("sygus-grammar-def") << "Add partial application " << rule
+                                           << " to " << ntSym << std::endl;
+                g.addRule(ntSym, rule);
+              }
+            }
+          }
+        }
       }
     }
     else if (tn.isUninterpretedSort() || tn.isRoundingMode() || tn.isBoolean())
@@ -646,7 +719,7 @@ void SygusGrammarCons::addDefaultRulesTo(
               g.addRule(ntSym, m);
             }
           }
-          addRuleTo(g, typeToNtSym, Kind::ADD, cargsBin);
+          addRuleTo(nm, g, typeToNtSym, Kind::ADD, cargsBin);
         }
         // initialize the any-constant grammar
         Assert(arithNtSym.size() >= 2);
@@ -680,7 +753,7 @@ void SygusGrammarCons::addDefaultRulesTo(
         {
           cargs.push_back(tn);
         }
-        addRuleTo(g, typeToNtSym, k, cargs);
+        addRuleTo(nm, g, typeToNtSym, k, cargs);
       }
     }
 
@@ -689,7 +762,7 @@ void SygusGrammarCons::addDefaultRulesTo(
       // if there are not constructors yet by this point, which can happen,
       // e.g. for unimplemented types that have no variables in the argument
       // list of the function-to-synthesize, create a fresh ground term
-      g.addRule(ntSym, nm->mkGroundTerm(tn));
+      g.addRule(ntSym, NodeManager::mkGroundTerm(tn));
     }
     // now, ITE which always comes last
     bool considerIte = true;
@@ -714,15 +787,15 @@ void SygusGrammarCons::addDefaultRulesTo(
       cargsIte.push_back(btype);
       cargsIte.push_back(tn);
       cargsIte.push_back(tn);
-      addRuleTo(g, typeToNtSym, Kind::ITE, cargsIte);
+      addRuleTo(nm, g, typeToNtSym, Kind::ITE, cargsIte);
     }
   }
 }
 
-void SygusGrammarCons::collectTypes(const TypeNode& range,
+void SygusGrammarCons::collectTypes(NodeManager* nm,
+                                    const TypeNode& range,
                                     std::unordered_set<TypeNode>& types)
 {
-  NodeManager* nm = NodeManager::currentNM();
   if (types.find(range) != types.end())
   {
     return;
@@ -741,7 +814,7 @@ void SygusGrammarCons::collectTypes(const TypeNode& range,
       std::vector<TypeNode> argTypes = ctn.getArgTypes();
       for (size_t j = 0, nargs = argTypes.size(); j < nargs; ++j)
       {
-        collectTypes(argTypes[j], types);
+        collectTypes(nm, argTypes[j], types);
       }
     }
     return;
@@ -755,7 +828,7 @@ void SygusGrammarCons::collectTypes(const TypeNode& range,
   // otherwise, get the component types
   for (unsigned i = 0, nchild = range.getNumChildren(); i < nchild; i++)
   {
-    collectTypes(range[i], types);
+    collectTypes(nm, range[i], types);
   }
   // add further types based on theory symbols
   if (range.isStringLike())
@@ -779,7 +852,7 @@ void SygusGrammarCons::addDefaultPredicateRulesTo(
     const Node& ntSymBool,
     const std::map<TypeNode, std::vector<Node>>& typeToNtSym)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = env.getNodeManager();
   Assert(!ntSym.getType().isBoolean());
   Assert(ntSymBool.getType().isBoolean());
   TypeNode tn = ntSym.getType();
@@ -810,7 +883,7 @@ void SygusGrammarCons::addDefaultPredicateRulesTo(
     }
     else
     {
-      addRuleTo(g, typeToNtSym, Kind::EQUAL, cargsBin);
+      addRuleTo(nm, g, typeToNtSym, Kind::EQUAL, cargsBin);
     }
   }
 
@@ -827,13 +900,13 @@ void SygusGrammarCons::addDefaultPredicateRulesTo(
     }
     else
     {
-      addRuleTo(g, typeToNtSym, Kind::LEQ, cargsBin);
+      addRuleTo(nm, g, typeToNtSym, Kind::LEQ, cargsBin);
     }
   }
   else if (tn.isBitVector())
   {
     Trace("sygus-grammar-def") << "...add for BV" << std::endl;
-    addRuleTo(g, typeToNtSym, Kind::BITVECTOR_ULT, cargsBin);
+    addRuleTo(nm, g, typeToNtSym, Kind::BITVECTOR_ULT, cargsBin);
   }
   else if (tn.isFloatingPoint())
   {
@@ -849,13 +922,13 @@ void SygusGrammarCons::addDefaultPredicateRulesTo(
     cargsUn.push_back(tn);
     for (Kind kind : fp_unary_predicates)
     {
-      addRuleTo(g, typeToNtSym, kind, cargsUn);
+      addRuleTo(nm, g, typeToNtSym, kind, cargsUn);
     }
     std::vector<Kind> fp_binary_predicates = {Kind::FLOATINGPOINT_LEQ,
                                               Kind::FLOATINGPOINT_LT};
     for (Kind kind : fp_binary_predicates)
     {
-      addRuleTo(g, typeToNtSym, kind, cargsBin);
+      addRuleTo(nm, g, typeToNtSym, kind, cargsBin);
     }
   }
   else if (tn.isDatatype())
@@ -871,7 +944,7 @@ void SygusGrammarCons::addDefaultPredicateRulesTo(
       Trace("sygus-grammar-def")
           << "...for " << dt[kind].getTester() << std::endl;
       Node t = dt[kind].getTester();
-      addRuleTo(g, typeToNtSym, Kind::APPLY_TESTER, t, cargsTester);
+      addRuleTo(nm, g, typeToNtSym, Kind::APPLY_TESTER, t, cargsTester);
     }
   }
   else if (tn.isSet())
@@ -882,14 +955,15 @@ void SygusGrammarCons::addDefaultPredicateRulesTo(
     cargsMember.push_back(etype);
     cargsMember.push_back(tn);
     Trace("sygus-grammar-def") << "...for SET_MEMBER" << std::endl;
-    addRuleTo(g, typeToNtSym, Kind::SET_MEMBER, cargsMember);
+    addRuleTo(nm, g, typeToNtSym, Kind::SET_MEMBER, cargsMember);
   }
 }
 
-void SygusGrammarCons::mkSygusConstantsForType(const TypeNode& type,
+void SygusGrammarCons::mkSygusConstantsForType(const Env& env,
+                                               const TypeNode& type,
                                                std::vector<Node>& ops)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = env.getNodeManager();
   if (type.isRealOrInt())
   {
     ops.push_back(nm->mkConstRealOrInt(type, Rational(0)));
@@ -898,8 +972,8 @@ void SygusGrammarCons::mkSygusConstantsForType(const TypeNode& type,
   else if (type.isBitVector())
   {
     unsigned size = type.getBitVectorSize();
-    ops.push_back(bv::utils::mkZero(size));
-    ops.push_back(bv::utils::mkOne(size));
+    ops.push_back(bv::utils::mkZero(nm, size));
+    ops.push_back(bv::utils::mkOne(nm, size));
   }
   else if (type.isBoolean())
   {
@@ -919,9 +993,15 @@ void SygusGrammarCons::mkSygusConstantsForType(const TypeNode& type,
   else if (type.isArray() || type.isSet())
   {
     // generate constant array over the first element of the constituent type
-    Node c = nm->mkGroundTerm(type);
+    Node c = NodeManager::mkGroundTerm(type);
     // note that c should never contain an uninterpreted sort value
     Assert(!expr::hasSubtermKind(Kind::UNINTERPRETED_SORT_VALUE, c));
+    // don't use array constants if arraysExp is false
+    if (!env.getOptions().arrays.arraysExp
+        && expr::hasSubtermKind(Kind::STORE_ALL, c))
+    {
+      return;
+    }
     ops.push_back(c);
   }
   else if (type.isRoundingMode())
@@ -966,16 +1046,18 @@ std::map<TypeNode, std::vector<Node>> SygusGrammarCons::getTypeToNtSymMap(
 }
 
 bool SygusGrammarCons::addRuleTo(
+    NodeManager* nm,
     SygusGrammar& g,
     const std::map<TypeNode, std::vector<Node>>& typeToNtSym,
     Kind k,
     const std::vector<TypeNode>& args)
 {
   Node op;
-  return addRuleTo(g, typeToNtSym, k, op, args);
+  return addRuleTo(nm, g, typeToNtSym, k, op, args);
 }
 
 bool SygusGrammarCons::addRuleTo(
+    NodeManager* nm,
     SygusGrammar& g,
     const std::map<TypeNode, std::vector<Node>>& typeToNtSym,
     Kind k,
@@ -998,7 +1080,7 @@ bool SygusGrammarCons::addRuleTo(
     Assert(!it->second.empty());
     children.push_back(it->second[0]);
   }
-  Node rule = NodeManager::currentNM()->mkNode(k, children);
+  Node rule = nm->mkNode(k, children);
   TypeNode rtn = rule.getType();
   it = typeToNtSym.find(rtn);
   if (it == typeToNtSym.end())

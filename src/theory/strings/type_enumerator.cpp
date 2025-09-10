@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Andres Noetzli
+ *   Andrew Reynolds, Daniel Larraz, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,7 +23,8 @@ namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
-Node makeStandardModelConstant(const std::vector<unsigned>& vec,
+Node makeStandardModelConstant(NodeManager* nm,
+                               const std::vector<unsigned>& vec,
                                uint32_t cardinality)
 {
   std::vector<unsigned> mvec;
@@ -58,7 +59,7 @@ Node makeStandardModelConstant(const std::vector<unsigned>& vec,
   {
     mvec = vec;
   }
-  return NodeManager::currentNM()->mkConst(String(mvec));
+  return nm->mkConst(String(mvec));
 }
 
 WordIter::WordIter(uint32_t startLength) : d_hasEndLength(false), d_endLength(0)
@@ -127,18 +128,21 @@ Node SEnumLen::getCurrent() const { return d_curr; }
 
 bool SEnumLen::isFinished() const { return d_curr.isNull(); }
 
-StringEnumLen::StringEnumLen(uint32_t startLength,
+StringEnumLen::StringEnumLen(NodeManager* nm,
+                             uint32_t startLength,
                              uint32_t endLength,
                              uint32_t card)
-    : SEnumLen(NodeManager::currentNM()->stringType(), startLength, endLength),
+    : SEnumLen(nm->stringType(), startLength, endLength),
+      d_nm(nm),
       d_cardinality(card)
 {
   mkCurr();
 }
 
-StringEnumLen::StringEnumLen(uint32_t startLength, uint32_t card)
-    : SEnumLen(NodeManager::currentNM()->stringType(), startLength),
-      d_cardinality(card)
+StringEnumLen::StringEnumLen(NodeManager* nm,
+                             uint32_t startLength,
+                             uint32_t card)
+    : SEnumLen(nm->stringType(), startLength), d_nm(nm), d_cardinality(card)
 {
   mkCurr();
 }
@@ -157,24 +161,26 @@ bool StringEnumLen::increment()
 
 void StringEnumLen::mkCurr()
 {
-  d_curr = makeStandardModelConstant(d_witer->getData(), d_cardinality);
+  d_curr = makeStandardModelConstant(d_nm, d_witer->getData(), d_cardinality);
 }
 
-SeqEnumLen::SeqEnumLen(TypeNode tn,
+SeqEnumLen::SeqEnumLen(NodeManager* nm,
+                       TypeNode tn,
                        TypeEnumeratorProperties* tep,
                        uint32_t startLength)
-    : SEnumLen(tn, startLength)
+    : SEnumLen(tn, startLength), d_nm(nm)
 {
   d_elementEnumerator.reset(
       new TypeEnumerator(d_type.getSequenceElementType(), tep));
   mkCurr();
 }
 
-SeqEnumLen::SeqEnumLen(TypeNode tn,
+SeqEnumLen::SeqEnumLen(NodeManager* nm,
+                       TypeNode tn,
                        TypeEnumeratorProperties* tep,
                        uint32_t startLength,
                        uint32_t endLength)
-    : SEnumLen(tn, startLength, endLength)
+    : SEnumLen(tn, startLength, endLength), d_nm(nm)
 {
   d_elementEnumerator.reset(
       new TypeEnumerator(d_type.getSequenceElementType(), tep));
@@ -186,6 +192,7 @@ SeqEnumLen::SeqEnumLen(TypeNode tn,
 
 SeqEnumLen::SeqEnumLen(const SeqEnumLen& wenum)
     : SEnumLen(wenum),
+      d_nm(wenum.d_nm),
       d_elementEnumerator(new TypeEnumerator(*wenum.d_elementEnumerator)),
       d_elementDomain(wenum.d_elementDomain)
 {
@@ -221,8 +228,7 @@ void SeqEnumLen::mkCurr()
     seq.push_back(d_elementDomain[i]);
   }
   // make sequence from seq
-  d_curr = NodeManager::currentNM()->mkConst(
-      Sequence(d_type.getSequenceElementType(), seq));
+  d_curr = d_nm->mkConst(Sequence(d_type.getSequenceElementType(), seq));
 }
 
 SEnumLenSet::SEnumLenSet(TypeEnumeratorProperties* tep) : d_tep(tep) {}
@@ -239,21 +245,23 @@ SEnumLen* SEnumLenSet::getEnumerator(size_t len, TypeNode tn)
   if (tn.isString())  // string-only
   {
     d_sels[key].reset(
-        new StringEnumLen(len,
+        new StringEnumLen(tn.getNodeManager(),
+                          len,
                           len,
                           d_tep ? d_tep->getStringsAlphabetCard()
                                 : utils::getDefaultAlphabetCardinality()));
   }
   else
   {
-    d_sels[key].reset(new SeqEnumLen(tn, d_tep, len, len));
+    d_sels[key].reset(new SeqEnumLen(tn.getNodeManager(), tn, d_tep, len, len));
   }
   return d_sels[key].get();
 }
 
 StringEnumerator::StringEnumerator(TypeNode type, TypeEnumeratorProperties* tep)
     : TypeEnumeratorBase<StringEnumerator>(type),
-      d_wenum(0,
+      d_wenum(type.getNodeManager(),
+              0,
               tep ? tep->getStringsAlphabetCard()
                   : utils::getDefaultAlphabetCardinality())
 {
@@ -279,7 +287,8 @@ bool StringEnumerator::isFinished() { return d_wenum.isFinished(); }
 
 SequenceEnumerator::SequenceEnumerator(TypeNode type,
                                        TypeEnumeratorProperties* tep)
-    : TypeEnumeratorBase<SequenceEnumerator>(type), d_wenum(type, tep, 0)
+    : TypeEnumeratorBase<SequenceEnumerator>(type),
+      d_wenum(type.getNodeManager(), type, tep, 0)
 {
 }
 

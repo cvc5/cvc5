@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -793,7 +793,7 @@ TEST_F(TestApiBlackTerm, getString)
 {
   Term s1 = d_tm.mkString("abcde");
   ASSERT_TRUE(s1.isStringValue());
-  ASSERT_EQ(s1.getStringValue(), L"abcde");
+  ASSERT_EQ(s1.getU32StringValue(), U"abcde");
 }
 
 TEST_F(TestApiBlackTerm, getReal)

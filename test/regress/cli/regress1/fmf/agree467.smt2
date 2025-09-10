@@ -1,6 +1,6 @@
 ; COMMAND-LINE: --finite-model-find
 ; EXPECT: unsat
-; DISABLE-TESTER: cpc
+
 ; Preamble  --------------
 (set-logic AUFDTLIA)
 (set-info :status unsat)

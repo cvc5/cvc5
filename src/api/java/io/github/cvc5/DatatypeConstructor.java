@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -60,7 +60,11 @@ public class DatatypeConstructor extends AbstractPointer implements Iterable<Dat
 
   private native boolean equals(long pointer1, long pointer2);
 
-  /** @return The name of this Datatype constructor. */
+  /**
+   * Get the name of this Datatype constructor.
+   *
+   * @return The name of this Datatype constructor.
+   */
   public String getName()
   {
     return getName(pointer);
@@ -146,6 +150,8 @@ public class DatatypeConstructor extends AbstractPointer implements Iterable<Dat
   private native long getTesterTerm(long pointer);
 
   /**
+   * Get the number of selectors (so far) of this Datatype constructor.
+   *
    * @return The number of selectors (so far) of this Datatype constructor.
    */
   public int getNumSelectors()
@@ -181,6 +187,8 @@ public class DatatypeConstructor extends AbstractPointer implements Iterable<Dat
   private native long getSelector(long pointer, String name);
 
   /**
+   * Determine if this DatatypeConstructor is a null object.
+   *
    * @return True if this DatatypeConstructor is a null object.
    */
   public boolean isNull()
@@ -191,15 +199,26 @@ public class DatatypeConstructor extends AbstractPointer implements Iterable<Dat
   private native boolean isNull(long pointer);
 
   /**
+   * Provide a string representation of the native datatype constructor.
+   * 
+   * @param pointer The native memory address pointing to the datatype constructor. 
    * @return A string representation of this datatype constructor.
    */
   protected native String toString(long pointer);
 
+  /**
+   * ConstIterator is an implementation of the {@link Iterator} interface for iterating over
+   * a collection of {@code DatatypeSelector} objects.
+   * It provides read-only access to the elements.
+   */
   public class ConstIterator implements Iterator<DatatypeSelector>
   {
     private int currentIndex;
     private int size;
 
+    /**
+     * Constructs a new ConstIterator.
+     */
     public ConstIterator()
     {
       currentIndex = -1;

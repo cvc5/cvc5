@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa
+ *   Andrew Reynolds, Haniel Barbosa, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -84,7 +84,7 @@ const char* toString(MethodId id);
 /** Write a rewriter id to out */
 std::ostream& operator<<(std::ostream& out, MethodId id);
 /** Make a method id node */
-Node mkMethodId(MethodId id);
+Node mkMethodId(NodeManager* nm, MethodId id);
 
 /** get a method identifier from a node, return false if we fail */
 bool getMethodId(TNode n, MethodId& i);
@@ -102,7 +102,8 @@ bool getMethodIds(const std::vector<Node>& args,
  * Add method identifiers ids, ida and idr as nodes to args. This does not add
  * ids, ida or idr if their values are the default ones.
  */
-void addMethodIds(std::vector<Node>& args,
+void addMethodIds(NodeManager* nm,
+                  std::vector<Node>& args,
                   MethodId ids,
                   MethodId ida,
                   MethodId idr);

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Hans-Joerg Schurr, Haniel Barbosa
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,6 +18,8 @@
 #include "options/base_options.h"
 #include "options/smt_options.h"
 #include "proof/proof_ensure_closed.h"
+#include "proof/proof_node_algorithm.h"
+#include "smt/env.h"
 
 using namespace cvc5::internal::theory;
 
@@ -27,7 +29,7 @@ namespace smt {
 ProofPostprocessDsl::ProofPostprocessDsl(Env& env, rewriter::RewriteDb* rdb)
     : EnvObj(env), d_rdbPc(env, rdb)
 {
-  d_true = NodeManager::currentNM()->mkConst(true);
+  d_true = nodeManager()->mkConst(true);
   d_tmode = (options().proof.proofGranularityMode
              == options::ProofGranularityMode::DSL_REWRITE_STRICT)
                 ? rewriter::TheoryRewriteMode::RESORT
@@ -43,64 +45,25 @@ void ProofPostprocessDsl::reconstruct(
   }
   Trace("pp-dsl") << "Reconstruct proofs for " << pfs.size()
                   << " trusted steps..." << std::endl;
-  // run an updater for this callback
-  ProofNodeUpdater pnu(d_env, *this, false);
-  for (std::shared_ptr<ProofNode> p : pfs)
+  // Run an updater for this callback. We do subproof merging, as we may
+  // encounter "subgoals" of theory rewrites that are the same. Moreover,
+  // since subproof merging is only in scope for a single run of an updater,
+  // we tie the proofs in pfs together with an AND_INTRO step, if necessary.
+  d_traversing.clear();
+  ProofNodeUpdater pnu(d_env, *this, true);
+  std::shared_ptr<ProofNode> pfn;
+  if (pfs.size() > 1)
   {
-    pnu.process(p);
+    ProofNodeManager* pnm = d_env.getProofNodeManager();
+    pfn = pnm->mkNode(ProofRule::AND_INTRO, pfs, {});
   }
-  // We run until subgoals are empty. Note that this loop is only expected
-  // to run once, and moreover is guaranteed to run only once if the only
-  // trusted steps added have id MACRO_THEORY_REWRITE_RCONS_SIMPLE. However,
-  // in rare cases, an elaboration may require adding a trust step that itself
-  // expects to require theory rewrites to prove (MACRO_THEORY_REWRITE_RCONS)
-  // in which case this loop may run twice. We manually limit this loop to
-  // run no more than 2 times.
-  size_t iter = 0;
-  while (!d_subgoals.empty())
+  else
   {
-    iter++;
-    if (iter >= 3)
-    {
-      // prevent any accidental infinite loops
-      break;
-    }
-    std::vector<std::shared_ptr<ProofNode>> sgs = d_subgoals;
-    Trace("pp-dsl") << "Also reconstruct proofs for " << sgs.size()
-                    << " subgoals..." << std::endl;
-    d_subgoals.clear();
-    // Do not use theory rewrites to fill in remaining subgoals. This prevents
-    // generating subgoals in proofs of subgoals.
-    rewriter::TheoryRewriteMode mprev = d_tmode;
-    TrustId tid;
-    for (std::shared_ptr<ProofNode> p : sgs)
-    {
-      // determine if we should disable theory rewrites, this is the case if the
-      // trust id is MACRO_THEORY_REWRITE_RCONS_SIMPLE.
-      d_tmode = mprev;
-      if (p->getRule() == ProofRule::TRUST)
-      {
-        getTrustId(p->getArguments()[0], tid);
-        if (tid == TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE)
-        {
-          d_tmode = rewriter::TheoryRewriteMode::NEVER;
-        }
-      }
-      pnu.process(p);
-    }
-    d_tmode = mprev;
+    pfn = pfs[0];
   }
-  // should never construct a subgoal for a step from a subgoal
-  if (!d_subgoals.empty())
-  {
-    Trace("pp-dsl") << "REM SUBGOALS: " << std::endl;
-    for (std::shared_ptr<ProofNode> p : d_subgoals)
-    {
-      Warning() << "WARNING: unproven subgoal " << p->getResult() << std::endl;
-      Trace("pp-dsl") << "  " << p->getResult() << std::endl;
-    }
-    d_subgoals.clear();
-  }
+  Trace("pp-dsl-process") << "BEGIN update" << std::endl;
+  pnu.process(pfn);
+  Trace("pp-dsl-process") << "END update" << std::endl;
 }
 
 bool ProofPostprocessDsl::shouldUpdate(std::shared_ptr<ProofNode> pn,
@@ -108,7 +71,34 @@ bool ProofPostprocessDsl::shouldUpdate(std::shared_ptr<ProofNode> pn,
                                        bool& continueUpdate)
 {
   ProofRule id = pn->getRule();
-  return id == ProofRule::TRUST || id == ProofRule::TRUST_THEORY_REWRITE;
+  continueUpdate = true;
+  // we should update if we
+  // - Have rule TRUST or TRUST_THEORY_REWRITE,
+  // - We have no premises
+  // - We are not already recursively expanding >= 3 steps of the above form.
+  // We check for the third criteria by tracking a d_traversing vector.
+  if ((id == ProofRule::TRUST || id == ProofRule::TRUST_THEORY_REWRITE)
+      && pn->getChildren().empty() && d_traversing.size() < 3)
+  {
+    Trace("pp-dsl-process") << "...push " << pn.get() << std::endl;
+    // note that we may be pushing pn more than once, if it is updated from a
+    // trust step to another trust step.
+    d_traversing.push_back(pn);
+    return true;
+  }
+  return false;
+}
+
+void ProofPostprocessDsl::finalize(std::shared_ptr<ProofNode> pn)
+{
+  // clean up d_traversing at post-traversal
+  // note we may have pushed multiple copies of pn consecutively if a proof
+  // was updated to another trust step.
+  while (!d_traversing.empty() && d_traversing.back() == pn)
+  {
+    Trace("pp-dsl-process") << "...pop " << pn.get() << std::endl;
+    d_traversing.pop_back();
+  }
 }
 
 bool ProofPostprocessDsl::update(Node res,
@@ -120,11 +110,7 @@ bool ProofPostprocessDsl::update(Node res,
 {
   continueUpdate = false;
   Assert(id == ProofRule::TRUST || id == ProofRule::TRUST_THEORY_REWRITE);
-  // don't try if children are non-empty
-  if (!children.empty())
-  {
-    return false;
-  }
+  Assert(children.empty());
   Assert(!res.isNull());
   bool reqTrueElim = false;
   // if not an equality, make (= res true).
@@ -135,32 +121,52 @@ bool ProofPostprocessDsl::update(Node res,
   }
   TheoryId tid = THEORY_LAST;
   MethodId mid = MethodId::RW_REWRITE;
+  rewriter::TheoryRewriteMode tm = d_tmode;
   // if theory rewrite, get diagnostic information
   if (id == ProofRule::TRUST_THEORY_REWRITE)
   {
     builtin::BuiltinProofRuleChecker::getTheoryId(args[1], tid);
     getMethodId(args[2], mid);
   }
+  else if (id == ProofRule::TRUST)
+  {
+    TrustId trid;
+    getTrustId(args[0], trid);
+    if (trid == TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE)
+    {
+      // If we are MACRO_THEORY_REWRITE_RCONS_SIMPLE, we do not use
+      // theory rewrites. This policy ensures that macro theory rewrites are
+      // disabled on rewrites which we use for their own reconstruction.
+      tm = rewriter::TheoryRewriteMode::NEVER;
+    }
+  }
   Trace("pp-dsl") << "Prove " << res << " from " << tid << " / " << mid
-                  << ", in mode " << d_tmode << std::endl;
+                  << ", in mode " << tm << std::endl;
   int64_t recLimit = options().proof.proofRewriteRconsRecLimit;
   int64_t stepLimit = options().proof.proofRewriteRconsStepLimit;
   // Attempt to reconstruct the proof of the equality into cdp using the
   // rewrite database proof reconstructor.
   // We record the subgoals in d_subgoals.
-  if (d_rdbPc.prove(
-          cdp, res[0], res[1], recLimit, stepLimit, d_subgoals, d_tmode))
+  if (d_rdbPc.prove(cdp, res[0], res[1], recLimit, stepLimit, tm))
   {
+    // we will update this again, in case the elaboration introduced
+    // new trust steps
+    continueUpdate = true;
     // If we made (= res true) above, conclude the original res.
     if (reqTrueElim)
     {
       cdp->addStep(res[0], ProofRule::TRUE_ELIM, {res}, {});
       res = res[0];
     }
+    Trace("check-dsl") << "Check closed..." << std::endl;
     pfgEnsureClosed(options(), res, cdp, "check-dsl", "check dsl");
     // if successful, we update the proof
     return true;
   }
+  // clean up traversing, since we are setting continueUpdate to false
+  Assert (!d_traversing.empty());
+  Trace("pp-dsl-process") << "...pop due to fail " << d_traversing.back().get() << std::endl;
+  d_traversing.pop_back();
   // otherwise no update
   return false;
 }

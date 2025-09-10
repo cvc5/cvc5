@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mudathir Mohamed, Andrew Reynolds, Aina Niemetz
+ *   Mudathir Mohamed, Aina Niemetz, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -109,6 +109,8 @@ public class DatatypeDecl extends AbstractPointer
   private native boolean isParametric(long pointer);
 
   /**
+   * Determine if this DatatypeDecl is a null object.
+   *
    * @return True if this DatatypeDecl is a null object.
    */
   public boolean isNull()
@@ -123,7 +125,11 @@ public class DatatypeDecl extends AbstractPointer
    */
   protected native String toString(long pointer);
 
-  /** @return The name of this datatype declaration. */
+  /**
+   * Get the name of this datatype declaration.
+   *
+   * @return The name of this datatype declaration.
+   */
   public String getName()
   {
     return getName(pointer);

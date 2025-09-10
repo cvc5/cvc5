@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mathias Preiner, Aina Niemetz
+ *   Mathias Preiner, Aina Niemetz, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -110,9 +110,10 @@ Node NodeBitblaster::getStoredBBAtom(TNode node)
 
 Node NodeBitblaster::getModelFromSatSolver(TNode a, bool fullModel)
 {
+  NodeManager* nm = a.getNodeManager();
   if (!hasBBTerm(a))
   {
-    return utils::mkConst(utils::getSize(a), 0u);
+    return utils::mkConst(nm, utils::getSize(a), 0u);
   }
 
   bool assignment;
@@ -133,7 +134,7 @@ Node NodeBitblaster::getModelFromSatSolver(TNode a, bool fullModel)
     }
     value = value * 2 + bit;
   }
-  return utils::mkConst(bits.size(), value);
+  return utils::mkConst(nm, bits.size(), value);
 }
 
 void NodeBitblaster::computeRelevantTerms(std::set<Node>& termSet)

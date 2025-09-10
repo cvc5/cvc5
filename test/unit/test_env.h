@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Andres Noetzli, Andrew Reynolds
+ *   Gereon Kremer, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -32,12 +32,12 @@ class TestEnv : public TestInternal
   void SetUp() override
   {
     d_options.reset(new Options());
-    d_nodeManager = NodeManager::currentNM();
-    d_env.reset(new Env(d_nodeManager, d_options.get()));
+    d_nodeManager = std::make_unique<NodeManager>();
+    d_env.reset(new Env(d_nodeManager.get(), d_options.get()));
   }
 
   std::unique_ptr<Options> d_options;
-  NodeManager* d_nodeManager;
+  std::unique_ptr<NodeManager> d_nodeManager;
   std::unique_ptr<Env> d_env;
 };
 

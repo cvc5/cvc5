@@ -4,7 +4,7 @@
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -64,7 +64,7 @@ if (Cython_VERSION_CHECK_RESULT EQUAL 0)
               if(ENABLE_AUTO_DOWNLOAD)
                 message(STATUS "Upgrading module Cython")
                 execute_process(COMMAND
-                  ${Python_EXECUTABLE} -m pip install Cython -U
+                  ${Python_EXECUTABLE} -m pip install "Cython<3.1.2" -U
                   RESULT_VARIABLE CYTHON_INSTALL_CMD_EXIT_CODE
                 )
                 if(CYTHON_INSTALL_CMD_EXIT_CODE)
@@ -86,7 +86,7 @@ else()
   if(ENABLE_AUTO_DOWNLOAD)
     message(STATUS "Installing module Cython")
     execute_process(
-      COMMAND ${Python_EXECUTABLE} -m pip install Cython
+      COMMAND ${Python_EXECUTABLE} -m pip install "Cython<3.1.2"
       RESULT_VARIABLE CYTHON_INSTALL_CMD_EXIT_CODE)
     if(CYTHON_INSTALL_CMD_EXIT_CODE)
       message(${Cython_FIND_MODE} "Could not install module Cython")

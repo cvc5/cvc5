@@ -1,6 +1,6 @@
 ;; needs --check-models, as --debug-check-models does not trigger the issue
 ; REQUIRES: poly
-; COMMAND-LINE: --check-models
+; COMMAND-LINE: --check-models --nl-cov
 ; EXPECT: sat
 (set-logic QF_NRA)
 (declare-fun r1 () Real)

@@ -1,0 +1,18 @@
+(include "../theories/BitVectors.eo")
+(include "../theories/Ints.eo")
+
+(declare-parameterized-const int_to_bv ((w Int)) (-> Int (BitVec w)))
+
+(declare-parameterized-const ubv_to_int ((m Int :implicit)) (-> (BitVec m) Int))
+
+(declare-parameterized-const sbv_to_int ((m Int :implicit)) (-> (BitVec m) Int))
+
+; disclaimer: >
+;   This function is not a function in SMT-LIB. It is a (deprecated) synonym of
+;   the SMT-LIB standard operator int_to_bv.
+(define int2bv () int_to_bv)
+
+; disclaimer: >
+;   This function is not a function in SMT-LIB. It is a (deprecated) synonym of
+;   the SMT-LIB standard operator ubv_to_int.
+(define bv2nat () ubv_to_int)

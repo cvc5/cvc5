@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -35,7 +35,7 @@ class SolverState;
 class InferenceGenerator
 {
  public:
-  InferenceGenerator(SolverState* state, InferenceManager* im);
+  InferenceGenerator(NodeManager* nm, SolverState* state, InferenceManager* im);
 
   /**
    * @param n a node of the form (bag.count e A)
@@ -269,9 +269,11 @@ class InferenceGenerator
    * (Bag E)
    * @param y is a node of Type T
    * @return an inference that represents the following conjunction
-   * (and
-   *   (= (bag.count x A) (bag.count y skolem))
-   *   (= (f x) y)
+   * (=> (>= (bag.count y skolem) 1)
+   *   (and
+   *     (= (f x) y)
+   *     (= (bag.count x A) (bag.count y skolem))
+   *   )
    * )
    * where skolem is a fresh variable equals (bag.map f A))
    * and x is a fresh variable unique per n, y.

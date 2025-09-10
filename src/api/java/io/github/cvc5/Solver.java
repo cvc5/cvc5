@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mudathir Mohamed, Aina Niemetz, Andrew Reynolds
+ *   Aina Niemetz, Mudathir Mohamed, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -1930,7 +1930,7 @@ public class Solver extends AbstractPointer
   /**
    * Create a datatype declaration.
    *
-   * Create sorts parameter with {@link Solver#mkParamSort(String)}.
+   * Create sorts parameter with {@link TermManager#mkParamSort(String)}.
    *
    * @api.note This method is experimental and may change in future versions.
    *
@@ -1952,7 +1952,7 @@ public class Solver extends AbstractPointer
   /**
    * Create a datatype declaration.
    *
-   * Create sorts parameter with {@link Solver#mkParamSort(String)}.
+   * Create sorts parameter with {@link TermManager#mkParamSort(String)}.
    *
    * @deprecated
    * This function is deprecated and replaced by
@@ -2311,7 +2311,7 @@ public class Solver extends AbstractPointer
    * ( define-fun-rec <function_def> )
    * }
    *
-   * Create parameter {@code fun} with {@link Solver#mkConst(Sort)}.
+   * Create parameter {@code fun} with {@link TermManager#mkConst(Sort)}.
    *
    * @param fun The sorted function.
    * @param boundVars The parameters to this function.
@@ -2332,7 +2332,7 @@ public class Solver extends AbstractPointer
    * ( define-fun-rec <function_def> )
    * }
    *
-   * Create parameter {@code fun} with {@link Solver#mkConst(Sort)}.
+   * Create parameter {@code fun} with {@link TermManager#mkConst(Sort)}.
    *
    * @param fun The sorted function.
    * @param boundVars The parameters to this function.
@@ -2361,7 +2361,7 @@ public class Solver extends AbstractPointer
    * }
    *
    * Create elements of parameter {@code funs} with
-   * {@link Solver#mkConst(Sort)}.
+   * {@link TermManager#mkConst(Sort)}.
    *
    * @param funs The sorted functions.
    * @param boundVars The list of parameters to the functions.
@@ -2380,7 +2380,7 @@ public class Solver extends AbstractPointer
    * }
    *
    * Create elements of parameter {@code funs} with
-   * {@link Solver#mkConst(Sort)}.
+   * {@link TermManager#mkConst(Sort)}.
    *
    * @param funs The sorted functions.
    * @param boundVars The list of parameters to the functions.
@@ -3122,8 +3122,12 @@ public class Solver extends AbstractPointer
    * Get an interpolant.
    *
    * <p>
-   * This determines a term {@code I} such that {@code A->I} and {@code I->B}
-   * are valid, if such a term exits. {@code A} is the current set of
+   * Given that {@code A->B} is valid,
+   * this function determines a term {@code I} 
+   * over the shared variables of {@code A} and
+   * {@code B},
+   * such that {@code A->I} and {@code I->B}
+   * are valid. {@code A} is the current set of
    * assertions and {@code B} is the conjecture, given as {@code conj}.
    * </p>
    *
@@ -3154,7 +3158,11 @@ public class Solver extends AbstractPointer
    * Get an interpolant.
    *
    * <p>
-   * This determines a term {@code I}, with respect to a given grammar, such
+   * Given that {@code A->B} is valid,
+   * this function determines a term {@code I}, 
+   * over the shared variables of {@code A} and
+   * {@code B},
+   * with respect to a given grammar, such
    * that {@code A->I} and {@code I->B} are valid, if such a term exits.
    * {@code A} is the current set of assertions and {@code B} is the
    * conjecture, given as {@code conj}.

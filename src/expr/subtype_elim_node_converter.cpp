@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
+ *   Andrew Reynolds, Daniel Larraz, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -52,9 +52,10 @@ Node SubtypeElimNodeConverter::postConvert(Node n)
         isRealTypeStrict(n[0].getType()) || isRealTypeStrict(n[1].getType());
   }
   // note that EQUAL is strictly typed so we don't need to handle it here
+  // also TO_REAL applied to reals is always rewritten, so it doesn't need to
+  // be handled.
   if (convertToRealChildren)
   {
-    NodeManager* nm = NodeManager::currentNM();
     std::vector<Node> children;
     bool childChanged = false;
     for (const Node& nc : n)
@@ -65,12 +66,12 @@ Node SubtypeElimNodeConverter::postConvert(Node n)
         if (nc.isConst())
         {
           // we convert constant integers to constant reals
-          children.push_back(nm->mkConstReal(nc.getConst<Rational>()));
+          children.push_back(d_nm->mkConstReal(nc.getConst<Rational>()));
         }
         else
         {
           // otherwise, use TO_REAL
-          children.push_back(nm->mkNode(Kind::TO_REAL, nc));
+          children.push_back(d_nm->mkNode(Kind::TO_REAL, nc));
         }
       }
       else
@@ -82,13 +83,13 @@ Node SubtypeElimNodeConverter::postConvert(Node n)
     {
       return n;
     }
-    return nm->mkNode(k, children);
+    return d_nm->mkNode(k, children);
   }
   // convert skolems as well, e.g. the purify skolem for (> 1 0.0) becomes the
   // purify skolem for (> 1.0 0.0).
   if (n.isVar())
   {
-    SkolemManager* skm = NodeManager::currentNM()->getSkolemManager();
+    SkolemManager* skm = d_nm->getSkolemManager();
     SkolemId id;
     Node cacheVal;
     if (skm->isSkolemFunction(n, id, cacheVal))

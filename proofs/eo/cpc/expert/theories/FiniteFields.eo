@@ -1,0 +1,33 @@
+(include "../../theories/Arith.eo")
+
+; disclaimer: >
+;   This sort is not in the SMT-LIB standard. All further function
+;   symbols over this sort are also not part of the SMT-LIB standard.
+(declare-const FiniteField (-> Int Type))
+
+; program: $ff_size
+; args:
+; - T Type: The finite field type.
+; return: The (integer value) size for a given finite field type.
+(program $ff_size ((n Int))
+  :signature (Type) Int
+  (
+  (($ff_size (FiniteField n)) n)
+  )
+)
+
+; A finite field constant is a term having 2 integer children.
+; note: we do not support the native syntax for finite field values.
+(declare-parameterized-const ff.value ((p Int)) (-> Int (FiniteField p)))
+
+(declare-parameterized-const ff.add ((p Int :implicit))
+    (-> (FiniteField p) (FiniteField p) (FiniteField p)) 
+    :right-assoc-nil (ff.value p 0))
+(declare-parameterized-const ff.neg ((p Int :implicit))
+    (-> (FiniteField p) (FiniteField p)))
+(declare-parameterized-const ff.mul ((p Int :implicit))
+    (-> (FiniteField p) (FiniteField p) (FiniteField p))
+    :right-assoc-nil (ff.value p 1))
+(declare-parameterized-const ff.bitsum ((p Int :implicit))
+    (-> (FiniteField p) (FiniteField p) (FiniteField p))
+    :right-assoc-nil (ff.value p 0))

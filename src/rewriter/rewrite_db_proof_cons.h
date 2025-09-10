@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Abdalrhman Mohamed
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -66,9 +66,6 @@ class RewriteDbProofCons : protected EnvObj
    * @param b The right hand side of the equality.
    * @param recLimit The recursion limit for this call.
    * @param stepLimit The step limit for this call.
-   * @param subgoals The list of proofs introduced when proving (= a b) that
-   * are trusted steps, and thus would require further elaboration from the
-   * caller of this method.
    * @param tmode Determines if/when to try THEORY_REWRITE.
    * @return true if we successfully added a proof of (= a b) to cdp
    */
@@ -77,7 +74,6 @@ class RewriteDbProofCons : protected EnvObj
              const Node& b,
              int64_t recLimit,
              int64_t stepLimit,
-             std::vector<std::shared_ptr<ProofNode>>& subgoals,
              TheoryRewriteMode tmode);
 
  private:
@@ -147,7 +143,7 @@ class RewriteDbProofCons : protected EnvObj
     ProvenInfo()
         : d_id(RewriteProofStatus::FAIL),
           d_dslId(ProofRewriteRule::NONE),
-          d_failMaxDepth(0)
+          d_failMaxDepth(-1)
     {
     }
     /** The identifier of the proof rule, or fail if we failed */
@@ -158,10 +154,10 @@ class RewriteDbProofCons : protected EnvObj
     std::vector<Node> d_vars;
     std::vector<Node> d_subs;
     /**
-     * The maximum depth tried for rules that have failed, where 0 indicates
+     * The maximum depth tried for rules that have failed, where -1 indicates
      * that the formula is unprovable at any depth.
      */
-    uint64_t d_failMaxDepth;
+    int64_t d_failMaxDepth;
     /**
      * Is internal rule? these rules store children (if any) in d_vars.
      */
@@ -173,7 +169,8 @@ class RewriteDbProofCons : protected EnvObj
   };
   /**
    * Prove and store the proof of eq with internal form eqi in cdp if possible,
-   * return true if successful.
+   * return true if successful. Tries the basic utility and all recursion depths
+   * up to recLimit.
    *
    * @param cdp The object to add the proof of eq to.
    * @param eq The equality we are trying to prove.
@@ -181,15 +178,29 @@ class RewriteDbProofCons : protected EnvObj
    * converted from eq using d_rdnc.
    * @param recLimit The recursion limit for this call.
    * @param stepLimit The step limit for this call.
-   * @param subgoals The list of proofs introduced when proving eq that
-   * are trusted steps.
+   * @param tmode Determines if/when to try THEORY_REWRITE.
+   * @return true if we successfully added a proof of (= a b) to cdp
+   */
+  bool proveEqStratified(CDProof* cdp,
+                         const Node& eq,
+                         const Node& eqi,
+                         int64_t recLimit,
+                         int64_t stepLimit,
+                         TheoryRewriteMode tmode);
+  /**
+   * Prove and store the proof of eq with internal form eqi in cdp if possible,
+   * return true if successful. Tries a single recursion depth.
+   *
+   * @param cdp The object to add the proof of eq to.
+   * @param eqi The equality we are trying to prove.
+   * @param recLimit The recursion limit for this call.
+   * @param stepLimit The step limit for this call.
+   * @return true if we successfully added a proof of (= a b) to cdp
    */
   bool proveEq(CDProof* cdp,
-               const Node& eq,
                const Node& eqi,
                int64_t recLimit,
-               int64_t stepLimit,
-               std::vector<std::shared_ptr<ProofNode>>& subgoals);
+               int64_t stepLimit);
   /**
    * Prove internal, which is the main entry point for proven an equality eqi.
    * Returns the proof rule that was used to prove eqi, or
@@ -228,14 +239,15 @@ class RewriteDbProofCons : protected EnvObj
    *
    * @param cdp The proof to add the proof of eqi to
    * @param eqi The proven equality
-   * @param subgoals The list of proofs introduced when proving eq that
-   * are trusted steps.
    */
-  bool ensureProofInternal(CDProof* cdp,
-                           const Node& eqi,
-                           std::vector<std::shared_ptr<ProofNode>>& subgoals);
+  bool ensureProofInternal(CDProof* cdp, const Node& eqi);
   /** Return the evaluation of n, which uses local caching. */
   Node doEvaluate(const Node& n);
+  /**
+   * Return the flattening of n. For example, this returns (+ a b c) for
+   * (+ (+ a b) c). This method is used in the FLATTEN tactic.
+   */
+  Node doFlatten(const Node& n);
   /**
    * A notification that s is equal to n * { vars -> subs }. In this context,
    * s is the current left hand side of a term we are trying to prove and n is
@@ -287,15 +299,6 @@ class RewriteDbProofCons : protected EnvObj
                          ProvenInfo& pi,
                          bool doFixedPoint = false);
   /**
-   * Adds to proof info (d_pcache) s.t. we can show that:
-   * context[placeholder -> source] = context[placeholder -> target]
-   * Note: we assume that the placeholder only appears once
-   */
-  void cacheProofSubPlaceholder(TNode context,
-                                TNode placeholder,
-                                TNode source,
-                                TNode target);
-  /**
    * Rewrite concrete, which returns the result of rewriting n if it contains
    * no abstract subterms, or n itself otherwise.
    *
@@ -333,9 +336,11 @@ class RewriteDbProofCons : protected EnvObj
   /** current target equality to prove */
   Node d_target;
   /** current recursion limit */
-  uint64_t d_currRecLimit;
+  int64_t d_currRecLimit;
   /** current step recursion limit */
   uint64_t d_currStepLimit;
+  /** Did we fail due to a resource limit in the current run? */
+  bool d_currFailResource;
   /** The mode for if/when to try theory rewrites */
   rewriter::TheoryRewriteMode d_tmode;
   /** current rule we are applying to fixed point */

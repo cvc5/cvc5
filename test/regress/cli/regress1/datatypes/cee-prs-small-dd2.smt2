@@ -1,5 +1,5 @@
-; COMMAND-LINE: --ee-mode=distributed
-; COMMAND-LINE: --ee-mode=central
+; COMMAND-LINE: --arrays-exp --ee-mode=distributed
+; COMMAND-LINE: --arrays-exp --ee-mode=central
 ; EXPECT: unsat
 (set-logic ALL)
 (set-info :status unsat)

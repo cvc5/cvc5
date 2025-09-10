@@ -1,5 +1,5 @@
 ; EXPECT: feasible
-; COMMAND-LINE: --sygus-out=status --lang=sygus2 --no-check-synth-sol
+; COMMAND-LINE: --sygus-out=status --lang=sygus2 --no-check-synth-sol --arrays-exp
 (set-logic ALL)
 
 (declare-datatype Packet ((P1) (P2)))

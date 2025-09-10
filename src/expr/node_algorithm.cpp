@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -158,16 +158,75 @@ bool hasSubtermKind(Kind k, Node n)
 }
 
 bool hasSubtermKinds(const std::unordered_set<Kind, kind::KindHashFunction>& ks,
-                     Node n)
+                     TNode n)
 {
   if (ks.empty())
   {
     return false;
   }
   std::unordered_set<TNode> visited;
+  return hasSubtermKinds(ks, n, visited) != Kind::UNDEFINED_KIND;
+}
+
+Kind hasSubtermKinds(const std::unordered_set<Kind, kind::KindHashFunction>& ks,
+                     TNode n,
+                     std::unordered_set<TNode>& visited)
+{
+  Assert(!ks.empty());
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);
+  Kind k;
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    if (visited.find(cur) == visited.end())
+    {
+      k = cur.getKind();
+      if (ks.find(k) != ks.end())
+      {
+        return k;
+      }
+      visited.insert(cur);
+      if (cur.hasOperator())
+      {
+        visit.push_back(cur.getOperator());
+      }
+      visit.insert(visit.end(), cur.begin(), cur.end());
+    }
+  } while (!visit.empty());
+  return Kind::UNDEFINED_KIND;
+}
+
+void getSubtermsKind(Kind k, TNode n, std::unordered_set<Node>& ts, bool nested)
+{
+  std::unordered_set<Kind, kind::KindHashFunction> ks{k};
+  std::map<Kind, std::unordered_set<Node>> tsm;
+  getSubtermsKinds(ks, n, tsm, nested);
+  std::unordered_set<Node>& tsc = tsm[k];
+  ts.insert(tsc.begin(), tsc.end());
+}
+
+void getSubtermsKinds(
+    const std::unordered_set<Kind, kind::KindHashFunction>& ks,
+    TNode n,
+    std::map<Kind, std::unordered_set<Node>>& ts, bool nested)
+{
+  Assert(!ks.empty());
+  for (Kind k : ks)
+  {
+    if (ts.find(k) == ts.end())
+    {
+      ts[k].clear();
+    }
+  }
+  std::unordered_set<TNode> visited;
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(n);
+  Kind k;
+  std::map<Kind, std::unordered_set<Node>>::iterator itt;
   do
   {
     cur = visit.back();
@@ -175,9 +234,15 @@ bool hasSubtermKinds(const std::unordered_set<Kind, kind::KindHashFunction>& ks,
     if (visited.find(cur) == visited.end())
     {
       visited.insert(cur);
-      if (ks.find(cur.getKind()) != ks.end())
+      k = cur.getKind();
+      itt = ts.find(k);
+      if (itt != ts.end())
       {
-        return true;
+        itt->second.insert(cur);
+        if (!nested)
+        {
+          continue;
+        }
       }
       if (cur.hasOperator())
       {
@@ -186,7 +251,6 @@ bool hasSubtermKinds(const std::unordered_set<Kind, kind::KindHashFunction>& ks,
       visit.insert(visit.end(), cur.begin(), cur.end());
     }
   } while (!visit.empty());
-  return false;
 }
 
 bool hasSubterm(TNode n, const std::vector<Node>& t, bool strict)
@@ -619,7 +683,7 @@ void getOperatorsMap(TNode n,
        if (cur.getMetaKind() == kind::metakind::PARAMETERIZED) {
          o = cur.getOperator();
        } else {
-         o = NodeManager::currentNM()->operatorOf(cur.getKind());
+         o = cur.getNodeManager()->operatorOf(cur.getKind());
        }
         ops[tn].insert(o);
       }
@@ -767,6 +831,83 @@ bool match(Node x, Node y, std::unordered_map<Node, Node>& subs)
     }
   }
   return true;
+}
+
+void getConversionConditions(Node n1,
+                             Node n2,
+                             std::vector<Node>& eqs,
+                             bool isHo)
+{
+  std::unordered_set<std::pair<TNode, TNode>, TNodePairHashFunction> visited;
+  std::unordered_set<std::pair<TNode, TNode>, TNodePairHashFunction>::iterator
+      it;
+  std::vector<std::pair<TNode, TNode>> stack;
+  stack.emplace_back(n1, n2);
+  std::pair<TNode, TNode> curr;
+  while (!stack.empty())
+  {
+    curr = stack.back();
+    stack.pop_back();
+    if (curr.first == curr.second)
+    {
+      // holds trivially
+      continue;
+    }
+    Assert(curr.first.getType() == curr.second.getType());
+    it = visited.find(curr);
+    if (it != visited.end())
+    {
+      // already processed
+      continue;
+    }
+    visited.insert(curr);
+    bool rec = false;
+    if (curr.first.getNumChildren() > 0
+        && curr.first.getNumChildren() == curr.second.getNumChildren())
+    {
+      size_t prevSize = stack.size();
+      if (curr.first.getOperator() == curr.second.getOperator())
+      {
+        if (curr.first.isClosure())
+        {
+          // only recurse if equal variable lists
+          rec = (curr.first[0] == curr.second[0]);
+        }
+        else
+        {
+          rec = true;
+        }
+      }
+      else if (isHo && curr.first.getKind() == Kind::APPLY_UF
+               && curr.second.getKind() == Kind::APPLY_UF)
+      {
+        rec = true;
+        // if isHo, we recurse on distinct operators with the same type
+        // note that it is redundant to check type here, as we check the
+        // types of arguments below and undo if necessary
+        stack.emplace_back(curr.first.getOperator(), curr.second.getOperator());
+      }
+      if (rec)
+      {
+        // recurse on children
+        for (size_t i = 0, n = curr.first.getNumChildren(); i < n; ++i)
+        {
+          // if there is a type mismatch, we can't unify
+          if (curr.first[i].getType() != curr.second[i].getType())
+          {
+            stack.resize(prevSize);
+            rec = false;
+            break;
+          }
+          stack.emplace_back(curr.first[i], curr.second[i]);
+        }
+      }
+    }
+    if (!rec)
+    {
+      eqs.push_back(curr.first.eqNode(curr.second));
+    }
+  }
 }
 
 bool isBooleanConnective(TNode cur)

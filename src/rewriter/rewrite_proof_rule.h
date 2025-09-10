@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Hans-Joerg Schurr
+ *   Andrew Reynolds, Abdalrhman Mohamed, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -28,6 +28,16 @@
 
 namespace cvc5::internal {
 namespace rewriter {
+
+/**
+ * The level for a rewrite, which determines which proof signature they are a
+ * part of.
+ */
+enum class Level
+{
+  NORMAL,
+  EXPERT,
+};
 
 /**
  * The definition of a (conditional) rewrite rule. An instance of this
@@ -54,13 +64,16 @@ class RewriteProofRule
    * @param context The term context for the conclusion of the rule. This is
    * non-null for all rules that should be applied to fixed-point. The context
    * is a lambda term that specifies the next position of the term to rewrite.
+   * @param _level The level of the rewrite, which determines which proof
+   * signature they should be added to (normal or expert).
    */
   void init(ProofRewriteRule id,
             const std::vector<Node>& userFvs,
             const std::vector<Node>& fvs,
             const std::vector<Node>& cond,
             Node conc,
-            Node context);
+            Node context,
+            Level _level);
   /** get id */
   ProofRewriteRule getId() const;
   /** get name */
@@ -71,6 +84,11 @@ class RewriteProofRule
   const std::vector<Node>& getVarList() const;
   /** The context that the rule is applied in */
   Node getContext() const { return d_context; }
+  /**
+   * Get path to context variable, for example if
+   * d_context is (lambda x (f a (g x b))), then d_pathToCtx = [1,0].
+   */
+  const std::vector<size_t> getPathToContextVar() const { return d_pathToCtx; }
   /** Does this rule have conditions? */
   bool hasConditions() const;
   /** Get (declared) conditions */
@@ -128,7 +146,12 @@ class RewriteProofRule
   Node getConclusionFor(
       const std::vector<Node>& ss,
       std::vector<std::pair<Kind, std::vector<Node>>>& witnessTerms) const;
-
+  /**
+   * @return the list of applications of Kind::TYPE_OF that appear in the
+   * conclusion or a premise. These require special handling by the
+   * printer.
+   */
+  std::vector<Node> getExplicitTypeOfList() const;
   /**
    * Is variable explicit? An explicit variable is one that does not occur
    * in a condition and thus its value must be specified in a proof
@@ -165,18 +188,20 @@ class RewriteProofRule
                                  const std::vector<Node>& ss,
                                  std::vector<Node>& dvs,
                                  std::vector<Node>& dss) const;
+  /** Get the signature level for the rewrite rule */
+  Level getSignatureLevel() const;
 
  private:
   /** The id of the rule */
   ProofRewriteRule d_id;
   /** The conditions of the rule */
   std::vector<Node> d_cond;
-  /** The obligation generator formulas of the rule */
-  std::vector<Node> d_obGen;
   /** The conclusion of the rule (an equality) */
   Node d_conc;
   /** Is the rule applied in some fixed point context? */
   Node d_context;
+  /** The level */
+  Level d_level;
   /** Whether the rule is in flat form */
   bool d_isFlatForm;
   /** the ordered list of free variables, provided by the user */
@@ -196,6 +221,8 @@ class RewriteProofRule
   std::map<Node, Node> d_listVarCtx;
   /** The match trie (for fixed point matching) */
   expr::NaryMatchTrie d_mt;
+  /** Path to context variable */
+  std::vector<size_t> d_pathToCtx;
 };
 
 }  // namespace rewriter

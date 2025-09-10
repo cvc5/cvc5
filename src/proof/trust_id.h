@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Gereon Kremer, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -28,10 +28,25 @@ namespace cvc5::internal {
 enum class TrustId : uint32_t
 {
   NONE,
+  /** Assertions of the preprocessed input clauses */
+  PREPROCESSED_INPUT,
   /** A lemma sent by a theory without a proof */
   THEORY_LEMMA,
-  /** An internal inference made by a theory without a proof */
-  THEORY_INFERENCE,
+  /**
+   * A step proving false, used as a trust step when the prop engine is not SAT
+   * proof producing (--proof-mode=pp-only).
+   */
+  SMT_REFUTATION,
+  /**
+   * An internal inference made by a theory without a proof. These are split
+   * per theory, and introduced as needed.
+   */
+  THEORY_INFERENCE_ARITH,
+  THEORY_INFERENCE_ARRAYS,
+  THEORY_INFERENCE_DATATYPES,
+  THEORY_INFERENCE_SEP,
+  THEORY_INFERENCE_SETS,
+  THEORY_INFERENCE_STRINGS,
   /** A ppStaticRewrite step */
   PP_STATIC_REWRITE,
   /** A rewrite of the input formula made by a theory during preprocessing
@@ -87,6 +102,8 @@ enum class TrustId : uint32_t
   PREPROCESS_UNCONSTRAINED_SIMP,
   /** QuantifiersPreprocess preprocessing pass */
   PREPROCESS_QUANTIFIERS_PP,
+  /** RealToInt preprocessing pass */
+  PREPROCESS_REAL_TO_INT,
   /** SortInferencePass preprocessing pass */
   PREPROCESS_SORT_INFER,
   PREPROCESS_SORT_INFER_LEMMA,
@@ -141,8 +158,24 @@ enum class TrustId : uint32_t
    * no :math:`x_i` exists that extends the cell and satisfies all assumptions.
    */
   ARITH_NL_COVERING_RECURSIVE,
+  /**
+   * A conversion between a literal used in the inference id lemma
+   * InferenceId::ARITH_NL_COMPARISON and a relation between absolute
+   * values as used by ProofRule::ARITH_MULT_ABS_COMPARISON.
+   */
+  ARITH_NL_COMPARE_LIT_TRANSFORM,
   /** A lemma from the DIO solver */
   ARITH_DIO_LEMMA,
+  /** A lemma from the ArithStaticLearner utility */
+  ARITH_STATIC_LEARN,
+  /** A nonlinear comparison lemma that failed proof reconstruction */
+  ARITH_NL_COMPARE_LEMMA,
+  /** A conflict coming from the bitblast solver */
+  BV_BITBLAST_CONFLICT,
+  /** A step from BvPpAssert utility */
+  BV_PP_ASSERT,
+  /** Diamonds preprocessing in TheoryUf::ppStaticLearn */
+  DIAMONDS,
   /** An extended theory rewrite */
   EXT_THEORY_REWRITE,
   /** A rewrite whose proof could not be elaborated */
@@ -172,6 +205,20 @@ enum class TrustId : uint32_t
   RE_ELIM,
   /** A quantifiers preprocessing step that was given without a proof */
   QUANTIFIERS_PREPROCESS,
+  /** A quantifiers rewriting step for instantiations, e.g. virtual term
+     substitution */
+  QUANTIFIERS_INST_REWRITE,
+  /** A quantifiers from the --sub-cbqi module */
+  QUANTIFIERS_SUB_CBQI_LEMMA,
+  /** A quantifiers from the nested quantifier elimination module */
+  QUANTIFIERS_NESTED_QE_LEMMA,
+  /** A rewrite performed at TheoryStrings::ppStaticRewrite */
+  STRINGS_PP_STATIC_REWRITE,
+  /**
+   * An existential corresponding to a witness term introduced e.g. in
+   * quantifier instantiation
+   */
+  VALID_WITNESS,
   /** A subtype elimination step that could not be processed */
   SUBTYPE_ELIMINATION,
   /** A rewrite required for showing a macro theory rewrite */
@@ -194,7 +241,7 @@ const char* toString(TrustId id);
 /** Write a trust id to out */
 std::ostream& operator<<(std::ostream& out, TrustId id);
 /** Make a trust id node */
-Node mkTrustId(TrustId id);
+Node mkTrustId(NodeManager* nm, TrustId id);
 /** get a trust identifier from a node, return false if we fail */
 bool getTrustId(TNode n, TrustId& i);
 

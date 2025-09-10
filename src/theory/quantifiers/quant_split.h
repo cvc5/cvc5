@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -30,6 +30,8 @@ class QuantifiersEngine;
 
 namespace quantifiers {
 
+class QuantDSplitProofGenerator;
+
 /** Quantifiers dynamic splitting
  *
  * This module identifies quantified formulas that should be "split", e.g.
@@ -50,7 +52,7 @@ namespace quantifiers {
  */
 class QuantDSplit : public QuantifiersModule {
   using NodeSet = context::CDHashSet<Node>;
-  using NodeIntMap = context::CDHashMap<Node, int>;
+  using NodeIntMap = context::CDHashMap<Node, size_t>;
 
  public:
   QuantDSplit(Env& env,
@@ -68,12 +70,26 @@ class QuantDSplit : public QuantifiersModule {
   bool checkCompleteFor(Node q) override;
   /** Identify this module (for debugging, dynamic configuration, etc..) */
   std::string identify() const override { return "QuantDSplit"; }
+  /**
+   * Split the index^th variable of quantified formula q based on its possible
+   * constructors. This variable should have datatype type. This method is
+   * used for ProofRewriteRule::QUANT_DT_SPLIT.
+   */
+  static Node split(NodeManager* nm, const Node& q, size_t index);
+  /**
+   * Get proof for q = split(nm, q, index).
+   */
+  static std::shared_ptr<ProofNode> getQuantDtSplitProof(Env& env,
+                                                         const Node& q,
+                                                         size_t index);
 
  private:
   /** list of relevant quantifiers asserted in the current context */
   NodeIntMap d_quant_to_reduce;
   /** whether we have instantiated quantified formulas */
   NodeSet d_added_split;
+  /** Proof generator */
+  std::shared_ptr<QuantDSplitProofGenerator> d_pfgen;
 };
 
 }

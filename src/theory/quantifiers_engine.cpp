@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -178,6 +178,12 @@ void QuantifiersEngine::ppNotifyAssertions(
   for (QuantifiersModule*& mdl : d_modules)
   {
     mdl->ppNotifyAssertions(assertions);
+  }
+  if (options().quantifiers.mbqi)
+  {
+    // may need to be notified of assertions, for mbqi-enum
+    quantifiers::InstStrategyMbqi* mi = d_qmodules->d_mbqi.get();
+    mi->ppNotifyAssertions(assertions);
   }
 }
 
@@ -642,10 +648,18 @@ void QuantifiersEngine::assertQuantifier( Node f, bool pol ){
     mdl->assertNode(f);
   }
   // add term to the registry
-  d_treg.addTerm(d_qreg.getInstConstantBody(f), true);
+  d_treg.addQuantifierBody(d_qreg.getInstConstantBody(f));
 }
 
-void QuantifiersEngine::eqNotifyNewClass(TNode t) { d_treg.addTerm(t); }
+void QuantifiersEngine::eqNotifyNewClass(TNode t)
+{
+  d_treg.eqNotifyNewClass(t);
+}
+
+void QuantifiersEngine::eqNotifyMerge(TNode t1, TNode t2)
+{
+  d_treg.eqNotifyMerge(t1, t2);
+}
 
 void QuantifiersEngine::markRelevant( Node q ) {
   d_model->markRelevant( q );

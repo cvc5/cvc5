@@ -21,7 +21,7 @@
 ; conclusion: The index of the store is equal to the selected index.
 (declare-rule arrays_read_over_write_contra ((T Type) (U Type) (i T) (j T) (e U) (a (Array T U)))
   :premises ((not (= (select (store a i e) j) (select a j))))
-  :conclusion (= i j)
+  :conclusion (= j i)
 )
 
 ; rule: arrays_read_over_write_1
@@ -47,14 +47,4 @@
 (declare-rule arrays_ext ((T Type) (U Type) (a (Array T U)) (b (Array T U)))
   :premises ((not (= a b)))
   :conclusion (not (= (select a (@array_deq_diff a b)) (select b (@array_deq_diff a b))))
-)
-
-; rule: arrays-select-const
-; implements: ProofRewriteRule::ARRAYS_SELECT_CONST.
-; args:
-; - eq : Bool. The equality between a select of an array constant and the constant it stores.
-; conclusion: The given equality.
-(declare-rule arrays-select-const ((T Type) (U Type) (i T) (c U))
-  :args ((= (select (store_all (Array T U) c) i) c))
-  :conclusion (= (select (store_all (Array T U) c) i) c)
 )

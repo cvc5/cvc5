@@ -1,3 +1,4 @@
+; COMMAND-LINE: --arrays-exp
 ; SCRUBBER: grep -o "unknown\|((charlst2 ("
 ; EXPECT: unknown
 ; EXPECT: ((charlst2 (

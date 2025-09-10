@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -17,6 +17,7 @@
 #include "expr/attribute.h"
 #include "expr/cardinality_constraint.h"
 #include "expr/node_algorithm.h"
+#include "expr/subs.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
@@ -52,16 +53,9 @@ void TheoryModel::finishInit(eq::EqualityEngine* ee)
 {
   Assert(ee != nullptr);
   d_equalityEngine = ee;
-  // The kinds we are treating as function application in congruence
-  d_equalityEngine->addFunctionKind(
-      Kind::APPLY_UF, false, logicInfo().isHigherOrder());
+  // we do not do congruence on any kind in the model equality engine, with
+  // the exception of HO_APPLY for the sake of higher-order.
   d_equalityEngine->addFunctionKind(Kind::HO_APPLY);
-  d_equalityEngine->addFunctionKind(Kind::SELECT);
-  // d_equalityEngine->addFunctionKind(Kind::STORE);
-  d_equalityEngine->addFunctionKind(Kind::APPLY_CONSTRUCTOR);
-  d_equalityEngine->addFunctionKind(Kind::APPLY_SELECTOR);
-  d_equalityEngine->addFunctionKind(Kind::APPLY_TESTER);
-  d_equalityEngine->addFunctionKind(Kind::SEQ_NTH);
   // do not interpret APPLY_UF if we are not assigning function values
   if (!d_enableFuncModels)
   {
@@ -121,8 +115,7 @@ std::vector<Node> TheoryModel::getDomainElements(TypeNode tn) const
     // Sorts are always interpreted as non-empty, thus we add a single element.
     // We use mkGroundValue here, since domain elements must all be
     // of UNINTERPRETED_SORT_VALUE kind.
-    NodeManager* nm = nodeManager();
-    elements.push_back(nm->mkGroundValue(tn));
+    elements.push_back(NodeManager::mkGroundValue(tn));
     return elements;
   }
   return *type_refs;
@@ -164,6 +157,25 @@ Node TheoryModel::getValue(TNode n) const
                           << "[model-getvalue] returning " << nn << std::endl;
   Assert(nn.getType() == n.getType());
   return nn;
+}
+
+Node TheoryModel::simplify(TNode n) const
+{
+  std::unordered_set<Node> syms;
+  expr::getSymbols(n, syms);
+  // if there are free symbols
+  if (!syms.empty())
+  {
+    // apply a substitution mapping those symbols to their model values
+    Subs subs;
+    for (const Node& s : syms)
+    {
+      subs.add(s, getValue(s));
+    }
+    // rewrite the result
+    return rewrite(subs.apply(n));
+  }
+  return n;
 }
 
 bool TheoryModel::isModelCoreSymbol(Node s) const
@@ -320,6 +332,22 @@ Node TheoryModel::getModelValue(TNode n) const
     if (d_semi_evaluated_kinds.find(rk) != d_semi_evaluated_kinds.end())
     {
       Node retSev = evaluateSemiEvalTerm(ret);
+      if (retSev.isNull())
+      {
+        // If null, if an argument is not constant, then it *might* be the
+        // same as a constrained application of rk. In this case, we cannot
+        // evaluate to an arbitrary value, and instead we use ret itself
+        // (unevaluated) as the model value.
+        for (const Node& rc : ret)
+        {
+          if (!rc.isConst())
+          {
+            retSev = ret;
+            break;
+          }
+        }
+        
+      }
       // if the result was entailed, return it
       if (!retSev.isNull())
       {
@@ -350,7 +378,7 @@ Node TheoryModel::getModelValue(TNode n) const
         vector<Node> args;
         for (unsigned i = 0, size = argTypes.size(); i < size; ++i)
         {
-          args.push_back(nm->mkBoundVar(argTypes[i]));
+          args.push_back(NodeManager::mkBoundVar(argTypes[i]));
         }
         Node boundVarList = nm->mkNode(Kind::BOUND_VAR_LIST, args);
         TypeEnumerator te(t.getRangeType());
@@ -362,7 +390,7 @@ Node TheoryModel::getModelValue(TNode n) const
         Unreachable();
       }
     }
-    else if (!t.isFirstClass())
+    else if (!t.isFirstClass() || t.isRegExp())
     {
       // this is the class for regular expressions
       // we simply invoke the rewriter on them
@@ -514,7 +542,7 @@ bool TheoryModel::assertEqualityEngine(const eq::EqualityEngine* ee,
         if (first) {
           rep = n;
           //add the term (this is specifically for the case of singleton equivalence classes)
-          if (rep.getType().isFirstClass())
+          if (!rep.getType().isRegExp())
           {
             d_equalityEngine->addTerm( rep );
             Trace("model-builder-debug") << "Add term to ee within assertEqualityEngine: " << rep << std::endl;
@@ -767,8 +795,8 @@ std::vector< Node > TheoryModel::getFunctionsToAssign() {
     {
       continue;
     }
-    // should not have been solved for in a substitution
-    Assert(d_env.getTopLevelSubstitutions().apply(n) == n);
+    // Note that d_env.getTopLevelSubstitutions().apply(n) may not be n
+    // if we are in incremenal mode.
     if (hasAssignedFunctionDefinition(n))
     {
       continue;
@@ -912,7 +940,9 @@ Node TheoryModel::evaluateSemiEvalTerm(TNode n) const
   {
     std::vector<Node> nargs = getModelValueArgs(n);
     Trace("semi-eval") << "Semi-eval: lookup " << nargs << std::endl;
-    return it->second.existsTerm(nargs);
+    Node result = it->second.existsTerm(nargs);
+    Trace("semi-eval") << "...result is " << result << std::endl;    
+    return result;
   }
   return Node::null();
 }

@@ -86,14 +86,14 @@ can be found in ``<build_dir>/lib``.
 WebAssembly Compilation
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-Compiling cvc5 to WebAssembly needs the Emscripten SDK (version 3.1.18 or 
+Compiling cvc5 to WebAssembly needs the Emscripten SDK (version 3.1.70 or 
 latter). Setting up emsdk can be done as follows:
 
 .. code:: bash
 
   git clone https://github.com/emscripten-core/emsdk.git
   cd emsdk
-  ./emsdk install <version>   # <version> = '3.1.18' is preferable, but 
+  ./emsdk install <version>   # <version> = '3.1.70' is preferable, but 
                               # <version> = 'latest' has high chance of working
   ./emsdk activate <version>
   source ./emsdk_env.sh   # Activate PATH and other environment variables in the
@@ -123,6 +123,13 @@ code).
 `emscripten flags <https://github.com/emscripten-core/emscripten/blob/main/src/settings.js>`_,
 which modifies how the wasm and glue code are built and how they behave. An ``-s``
 should precede each flag.
+
+``--wasm-web`` provides predefined configurations optimized for web deployment.
+This option takes precedence over ``--wasm`` and ``--wasm-flags`` if used together.
+Available configurations:
+
+- ``no-modular-static-page``: Optimized for static web pages with runtime methods,
+environment settings, and memory configuration pre-configured for web deployment.
 
 For example, to generate a HTML page, use:
 
@@ -164,7 +171,7 @@ versions; more recent versions should be compatible.
   + module `tomli <https://pypi.org/project/tomli/>`_ (Python < 3.11)
   + module `pyparsing <https://pypi.org/project/pyparsing/>`_
 - `GMP v6.3 (GNU Multi-Precision arithmetic library) <https://gmplib.org>`_
-- `CaDiCaL >= 1.6.0 (SAT solver) <https://github.com/arminbiere/cadical>`_
+- `CaDiCaL >= 2.1.0 (SAT solver) <https://github.com/arminbiere/cadical>`_
 - `SymFPU <https://github.com/martin-cs/symfpu/tree/CVC4>`_
 
 If ``--auto-download`` is given, the Python modules will be installed automatically in
@@ -207,7 +214,7 @@ CryptoMiniSat (Optional SAT solver)
 can be used for solving bit-vector problems with eager bit-blasting. This
 dependency may improve performance. It can be downloaded and built
 automatically. Configure cvc5 with ``configure.sh --cryptominisat`` to build
-with this dependency.
+with this dependency. Minimum version required is ``5.11.2``.
 
 
 Kissat (Optional SAT solver)
@@ -219,7 +226,7 @@ may improve performance. It can be downloaded and built automatically. Configure
 cvc5 with ``configure.sh --kissat`` to build with this dependency.
 
 
-LibPoly >= v0.1.13 (Optional polynomial library)
+LibPoly >= v0.2.0 (Optional polynomial library)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 `LibPoly <https://github.com/SRI-CSL/libpoly>`_ is required for CAD-based
@@ -274,10 +281,13 @@ cvc5's license is more permissive; see above discussion.)
 Editline library (Improved Interactive Experience)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The `Editline Library <https://thrysoee.dk/editline/>`_ library is optionally
+The `Editline Library <https://thrysoee.dk/editline/>`_ is optionally
 used to provide command editing, tab completion, and history functionality at
 the cvc5 prompt (when running in interactive mode).  Check your distribution for
-a package named "libedit-dev" or "libedit-devel" or similar.
+a package named `libedit-dev`, `libedit-devel`, or similar.  Configure cvc5 with
+``configure.sh --editline`` to build with this dependency.  Additionally,
+to run tests related to interactive mode with this dependency, you will need
+the Python module `pexpect <https://pexpect.readthedocs.io/en/stable/>`_.
 
 
 Google Test Unit Testing Framework (Unit Tests)
@@ -344,6 +354,10 @@ Building the API documentation of cvc5 requires the following dependencies:
   `sphinxcontrib-programoutput <https://sphinxcontrib-programoutput.readthedocs.io>`_
 - `Breathe <https://breathe.readthedocs.io>`_
 
+If ``--auto-download`` is given, Sphinx, the Sphinx extensions, and Breathe will be installed
+automatically in a virtual Python environment if they are missing. To install the modules globally and skip
+the creation of the virtual environment, configure cvc5 with ``./configure.sh --no-pyvenv``.
+
 To build the documentation, configure cvc5 with ``./configure.sh --docs`` and
 run ``make docs`` from within the build directory.
 
@@ -380,40 +394,44 @@ see ``ctest -h``. Some useful options are:
     ctest -jN                  # run all tests in parallel with N threads
     ctest --output-on-failure  # run all tests and print output of failed tests
 
-We have 4 categories of tests:
+We have 3 categories of tests:
 
-- **examples** in directory ``examples`` (label: **example**)
+- **api tests** in directory ``test/api`` (label: **api**)
 - **regression tests** (5 levels) in directory ``test/regress`` (label: 
   **regressN** with N the regression level)
-- **api tests** in directory ``test/api`` (label: **api**)
 - **unit tests** in directory ``test/unit`` (label: **unit**)
 
 
-Testing System Tests
-^^^^^^^^^^^^^^^^^^^^
+Testing API Tests
+^^^^^^^^^^^^^^^^^
 
-The system tests are not built by default.
+The API tests are not built by default.
 
 .. code::
 
-    make apitests                         # build and run all system tests
-    make <api_test>                       # build test/system/<system_test>.<ext>
-    ctest api/<api_test>                  # run test/system/<system_test>.<ext>
+    make apitests                         # build and run all API C++ tests
+    make capitests                        # build and run all API C tests
+    make <api_test>                       # build test/api/cpp/<api_test>.cpp
+    make capi_<api_test>                  # build test/api/c/<api_test>.c
+    ctest api/cpp/<api_test>              # run test/api/cpp/<api_test><.ext>
+    ctest api/c/capi_<api_test>           # run test/api/cpp/capi_<api_test><.ext>
 
-All system test binaries are built into ``<build_dir>/bin/test/system``.
+All API test binaries are built into ``<build_dir>/bin/test/api``.
 
-We use prefix ``api/`` + ``<api_test>`` (for ``<api_test>`` in ``test/api``)
+We use prefix ``api/cpp/`` + ``<api_test>`` (for ``<api_test>`` in ``test/api/cpp``)
+and ``api/c/`` + ``capi_<api_test>`` (for ``<api_test>`` in ``test/api/c``)
 as test target name.
 
 .. code::
 
-    make ouroborous                       # build test/api/ouroborous.cpp
+    make ouroborous                       # build test/api/cpp/ouroborous.cpp
+    make capi_ouroborous                  # build test/api/c/ouroborous.c
     ctest -R ouroborous                   # run all tests that match '*ouroborous*'
-                                          # > runs api/ouroborous
+                                          # > runs api/cpp/ouroborous, api/c/capi_ouroborous
     ctest -R ouroborous$                  # run all tests that match '*ouroborous'
-                                          # > runs api/ouroborous
-    ctest -R api/ouroborous$              # run all tests that match '*api/ouroborous'
-                                          # > runs api/ouroborous
+                                          # > runs api/cpp/ouroborous, api/c/capi_ouroborous
+    ctest -R api/cpp/ouroborous$          # run all tests that match '*api/cpp/ouroborous'
+                                          # > runs api/cpp/ouroborous
 
 
 Testing Unit Tests
@@ -422,7 +440,7 @@ Testing Unit Tests
 The unit tests are not built by default.
 
 Note that cvc5 can only be configured with unit tests in non-static builds with
-assertions enabled.
+assertions enabled (e.g. ``./configure.sh --unit-testing --assertions``).
 
 .. code::
 
@@ -474,8 +492,8 @@ All custom test targets build and run a preconfigured set of tests.
   The default build-and-test target for cvc5, builds and runs all examples,
   all system and unit tests, and regression tests from levels 0 to 2.
 
-- ``make systemtests [-jN] [ARGS=-jN]``
-  Build and run all system tests.
+- ``make apitests [-jN] [ARGS=-jN]``
+  Build and run all API tests.
 
 - ``make units [-jN] [ARGS=-jN]``
   Build and run all unit tests.
@@ -483,12 +501,7 @@ All custom test targets build and run a preconfigured set of tests.
 - ``make regress [-jN] [ARGS=-jN]``
   Build and run regression tests from levels 0 to 2.
 
-- ``make runexamples [-jN] [ARGS=-jN]``
-  Build and run all examples.
-
-- ``make coverage-test [-jN] [ARGS=-jN]``
-  Build and run all tests (system and unit tests, regression tests level 0-4)
-  with gcov to determine code coverage.
+To build the tests without executing them, run `make build-tests`.
 
 We use ``ctest`` as test infrastructure, and by default all test targets
 are configured to **run** in parallel with the maximum number of threads

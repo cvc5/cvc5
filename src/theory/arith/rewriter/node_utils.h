@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Andrew Reynolds
+ *   Gereon Kremer, Andrew Reynolds, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -82,26 +82,22 @@ std::optional<TNode> getZeroChild(const Iterable& parent)
 }
 
 /** Create a Boolean constant node */
-inline Node mkConst(bool value)
-{
-  return NodeManager::currentNM()->mkConst(value);
-}
+inline Node mkConst(NodeManager* nm, bool value) { return nm->mkConst(value); }
 /** Create an integer constant node */
-inline Node mkConst(const Integer& value)
+inline Node mkConst(NodeManager* nm, const Integer& value)
 {
-  return NodeManager::currentNM()->mkConstInt(value);
+  return nm->mkConstInt(value);
 }
 
 /** Create a real algebraic number node */
-inline Node mkConst(const RealAlgebraicNumber& value)
+inline Node mkConst(NodeManager* nm, const RealAlgebraicNumber& value)
 {
-  return NodeManager::currentNM()->mkRealAlgebraicNumber(value);
+  return nm->mkRealAlgebraicNumber(value);
 }
 
 /** Make a nonlinear multiplication from the given factors */
-inline Node mkNonlinearMult(const std::vector<Node>& factors)
+inline Node mkNonlinearMult(NodeManager* nm, const std::vector<Node>& factors)
 {
-  auto* nm = NodeManager::currentNM();
   switch (factors.size())
   {
     case 0: return nm->mkConstInt(Rational(1));
@@ -141,7 +137,8 @@ Node mkMultTerm(const RealAlgebraicNumber& multiplicity, TNode monomial);
  * it may be modified in the process.
  *
  */
-Node mkMultTerm(const RealAlgebraicNumber& multiplicity,
+Node mkMultTerm(NodeManager* nm,
+                const RealAlgebraicNumber& multiplicity,
                 std::vector<Node>&& monomial);
 
 /**

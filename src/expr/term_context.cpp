@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -15,6 +15,7 @@
 
 #include "expr/term_context.h"
 
+#include "expr/node_algorithm.h"
 #include "theory/theory.h"
 
 namespace cvc5::internal {
@@ -143,5 +144,56 @@ uint32_t TheoryLeafTermContext::computeValue(TNode t,
 {
   return theory::Theory::isLeafOf(t, d_theoryId) ? 1 : tval;
 }
+uint32_t BoolSkeletonTermContext::initialValue() const { return 0; }
 
+uint32_t BoolSkeletonTermContext::computeValue(TNode t,
+                                               uint32_t tval,
+                                               size_t child) const
+{
+  if (tval == 0)
+  {
+    if (!expr::isBooleanConnective(t))
+    {
+      return 1;
+    }
+    return 0;
+  }
+  return 1;
+}
+
+uint32_t WithinKindTermContext::initialValue() const { return 0; }
+
+uint32_t WithinKindTermContext::computeValue(TNode t,
+                                             uint32_t tval,
+                                             size_t index) const
+{
+  if (tval == 0)
+  {
+    if (t.getKind() == d_kind)
+    {
+      return 1;
+    }
+    return 0;
+  }
+  return 1;
+}
+
+uint32_t WithinPathTermContext::initialValue() const { return 1; }
+
+uint32_t WithinPathTermContext::computeValue(TNode t,
+                                             uint32_t tval,
+                                             size_t index) const
+{
+  if (tval == 0)
+  {
+    return 0;
+  }
+  Assert(!d_path.empty());
+  size_t cc = (tval - 1) % d_path.size();
+  if (index == d_path[cc])
+  {
+    return tval + 1;
+  }
+  return 0;
+}
 }  // namespace cvc5::internal
