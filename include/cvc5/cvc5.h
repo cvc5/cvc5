@@ -4535,7 +4535,7 @@ class CVC5_EXPORT TermManager
    * @return The value term.
    */
   template <typename T>
-  Term static mkValHelper(NodeManagerSharedPtr nm, const T& t);
+  static Term mkValHelper(NodeManagerSharedPtr nm, const T& t);
   /** Helper for creating operators. */
   template <typename T>
   Op mkOpHelper(Kind kind, const T& t);
@@ -4545,7 +4545,7 @@ class CVC5_EXPORT TermManager
    * @param    isInt True to create an integer value.
    * @return The rational value term.
    */
-  Term static mkRationalValHelper(NodeManagerSharedPtr nm,
+  static Term mkRationalValHelper(NodeManagerSharedPtr nm,
                                   const internal::Rational& r,
                                   bool isInt);
   /**
