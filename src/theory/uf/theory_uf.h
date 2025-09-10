@@ -192,14 +192,29 @@ private:
   CarePairArgumentCallback d_cpacb;
   /** maps nodes to an index in a vector */
   using NodeUIntMap = context::CDHashMap<Node, size_t>;
-  /** For lazy distinct */
+  // For lazy handling of distinct. We map equivalence classes to a set of
+  // distinct constraints that they occur in. For example, if we have an
+  // equivalence class {a, b} where a is the representative, and
+  // distinct(b,c,d) distinct(e,f,a) are constraints, then for example:
+  // d_ndistinct[a] = 2,
+  // d_eqcToDistinct[a] = {distinct(b,c,d), distinct(e,f,a)},
+  // d_eqcToDMem[a] = {b,a}
+  // Similarly if {d} is an equivalence class, then
+  // d_ndistinct[d] = 1,
+  // d_eqcToDistinct[d] = {distinct(b,c,d)},
+  // d_eqcToDMem[d] = {d}
+  // If {a,b} and {d} merge, we recognize a conflict since distinct(b,c,d) is
+  // in both lists, where b=d is the explanation for the conflict, accessible
+  // via d_eqcToDMem.
+  /** The number of entries in d_eqcToDistinct/d_eqcToMem that are valid */
   NodeUIntMap d_ndistinct;
-  /** the tester applications */
+  /** Mapping from equivalence classes to the list of distincts that they belong to */
   std::map<Node, std::vector<Node>> d_eqcToDistinct;
+  /** The corresponding term in the equivalence class, for each entry in d_eqcToDistinct */
   std::map<Node, std::vector<Node>> d_eqcToDMem;
-  /** Negated distinct */
+  /** The set of asserted negated distinct constraints */
   context::CDList<Node> d_negDistinct;
-  /** Negated distinct processed */
+  /** The number of constraints in the above list we have reduced. */
   context::CDO<size_t> d_negDistinctIndex;
 }; /* class TheoryUF */
 
