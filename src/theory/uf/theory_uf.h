@@ -210,9 +210,11 @@ private:
   // via d_eqcToDMem.
   /** The number of entries in d_eqcToDistinct/d_eqcToMem that are valid */
   NodeUIntMap d_ndistinct;
-  /** Mapping from equivalence classes to the list of distincts that they belong to */
+  /** Mapping from equivalence classes to the list of distincts that they belong
+   * to */
   std::map<Node, std::vector<Node>> d_eqcToDistinct;
-  /** The corresponding term in the equivalence class, for each entry in d_eqcToDistinct */
+  /** The corresponding term in the equivalence class, for each entry in
+   * d_eqcToDistinct */
   std::map<Node, std::vector<Node>> d_eqcToDMem;
   /** The set of asserted negated distinct constraints */
   context::CDList<Node> d_negDistinct;

@@ -141,7 +141,8 @@ bool TheoryUF::needsCheckLastEffort()
   // last call effort needed if using finite model finding,
   // arithmetic/bit-vector conversions, or higher-order extension
   return d_thss != nullptr || d_csolver != nullptr || d_ho != nullptr
-         || d_negDistinctIndex.get() < d_negDistinct.size() || !d_posDistinct.empty();
+         || d_negDistinctIndex.get() < d_negDistinct.size()
+         || !d_posDistinct.empty();
 }
 
 void TheoryUF::postCheck(Effort level)
@@ -158,7 +159,7 @@ void TheoryUF::postCheck(Effort level)
   if (!d_state.isInConflict())
   {
     if (level == Effort::EFFORT_LAST_CALL)
-    {    
+    {
       // check with conversions solver at last call effort
       if (d_csolver != nullptr)
       {
@@ -177,17 +178,14 @@ void TheoryUF::postCheck(Effort level)
 
 void TheoryUF::checkDistinctLastCall()
 {
-
   bool addedLemma = false;
   // check negated distinct
   size_t nnd = d_negDistinct.size();
-  for (size_t i = d_negDistinctIndex.get();
-        i < nnd;
-        i++)
+  for (size_t i = d_negDistinctIndex.get(); i < nnd; i++)
   {
     Node ndistinct = d_negDistinct[i];
     Assert(ndistinct.getKind() == Kind::NOT
-            && ndistinct[0].getKind() == Kind::DISTINCT);
+           && ndistinct[0].getKind() == Kind::DISTINCT);
     // check if satisfied
     Node atom = ndistinct[0];
     std::unordered_set<Node> reps;
@@ -236,11 +234,11 @@ void TheoryUF::checkDistinctLastCall()
   // If not, then we add the lemma (~distinct(t1,...,tn) or ti != tj).
   for (const Node& atom : d_posDistinct)
   {
-    Assert (atom.getKind()==Kind::DISTINCT);
+    Assert(atom.getKind() == Kind::DISTINCT);
     // ensure the positive distinct are satisfied in model
     std::unordered_map<Node, Node> vals;
     std::unordered_map<Node, Node>::iterator itr;
-    TheoryModel * tm = d_valuation.getModel();
+    TheoryModel* tm = d_valuation.getModel();
     for (const Node& nc : atom)
     {
       Node ncr = tm->getValue(nc);
@@ -251,7 +249,8 @@ void TheoryUF::checkDistinctLastCall()
         continue;
       }
       Node eq = itr->second.eqNode(nc);
-      Node lem = nodeManager()->mkNode(Kind::OR, {atom.notNode(), eq.notNode()});
+      Node lem =
+          nodeManager()->mkNode(Kind::OR, {atom.notNode(), eq.notNode()});
       TrustNode tlem = TrustNode::mkTrustLemma(lem);
       d_im.lemma(lem, InferenceId::UF_DISTINCT_DEQ_MODEL);
     }
