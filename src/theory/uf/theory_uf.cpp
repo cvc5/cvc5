@@ -824,21 +824,28 @@ void TheoryUF::eqNotifyMerge(TNode t1, TNode t2)
   {
     d_thss->merge(t1, t2);
   }
-  Trace("uf-lazy-distinct") << "merge " << t1 << " and " << t2 << std::endl;
+  // Must ensure we track distinct constraints, moving those from t2 into t1.
+  // If the same distinct constraint is in both, we a conflict.
   NodeUIntMap::iterator it2 = d_ndistinct.find(t2);
   if (it2 != d_ndistinct.end())
   {
+    Trace("uf-lazy-distinct") << "merge " << t1 << " and " << t2 << std::endl;
     NodeUIntMap::iterator it1 = d_ndistinct.find(t1);
     std::vector<Node>& d1 = d_eqcToDistinct[t1];
     std::vector<Node>& d2 = d_eqcToDistinct[t2];
+    std::vector<Node>& d1m = d_eqcToDMem[t1];
+    // the iterator up to which d2 is valid
     std::vector<Node>::iterator d2e = d2.begin() + it2->second;
     if (it1 != d_ndistinct.end())
     {
+      // ensure the list of distinct constraints in t1 is resized now
+      d1.resize(it1->second);
+      d1m.resize(it1->second);
       Trace("uf-lazy-distinct")
           << "...looking for conflicts in intersection of " << it1->second
           << " and " << it2->second << std::endl;
       // check for conflicts
-      for (size_t i = 0, nd1 = d1.size(); i < nd1; i++)
+      for (size_t i = 0; i < it1->second; i++)
       {
         Node d = d1[i];
         Assert(d.getKind() == Kind::DISTINCT);
@@ -860,11 +867,13 @@ void TheoryUF::eqNotifyMerge(TNode t1, TNode t2)
         Trace("uf-lazy-distinct") << "...no conflict" << std::endl;
       }
     }
+    else
+    {
+      d1.clear();
+      d1m.clear();
+    }
     // append lists
-    d1.resize(it2->second);
     d1.insert(d1.end(), d2.begin(), d2e);
-    std::vector<Node>& d1m = d_eqcToDMem[t1];
-    d1m.resize(it2->second);
     std::vector<Node>& d2m = d_eqcToDMem[t2];
     d1m.insert(d1m.end(), d2m.begin(), d2m.begin() + it2->second);
   }
