@@ -58,7 +58,8 @@ TheoryUF::TheoryUF(Env& env,
       d_state(env, valuation),
       d_im(env, *this, d_state, "theory::uf::" + instanceName, false),
       d_notify(d_im, *this),
-      d_cpacb(*this)
+      d_cpacb(*this),
+      d_ndistinct(context())
 {
   d_true = nodeManager()->mkConst(true);
   // indicate we are using the default theory state and inference managers
@@ -187,6 +188,54 @@ void TheoryUF::notifyFact(TNode atom, bool pol, TNode fact, bool isInternal)
         {
           // apply extensionality eagerly using the ho extension
           d_ho->applyExtensionality(fact);
+        }
+      }
+    }
+    break;
+    case Kind::DISTINCT:
+    {
+      if (pol)
+      {
+        std::unordered_map<Node, Node> reps;
+        std::unordered_map<Node, Node>::iterator itr;
+        bool isConflict = false;
+        for (const Node& nc : atom)
+        {
+          d_equalityEngine->addTerm(nc);
+          Node ncr = d_equalityEngine->getRepresentative(nc);
+          itr = reps.find(ncr);
+          if (itr==reps.end())
+          {
+            reps[ncr] = nc;
+            continue;
+          }
+          isConflict = true;
+          // otherwise already a conflict
+          Node eq = itr->second.eqNode(nc);
+          // no proof for now
+          d_im.conflictExp(InferenceId::UF_DISTINCT_DEQ, {eq, fact}, nullptr);
+          break;
+        }
+        if (!isConflict)
+        {
+          for (const std::pair<const Node, Node>& p : reps)
+          {
+            size_t ndprev = d_ndistinct[p.first];
+            d_ndistinct[p.first] = ndprev+1;
+            // ensure the non-context dependent list has the right size in
+            // case we backtracked
+            std::vector< std::pair<Node, Node> >& ndlist = d_eqcToDistinct[p.first];
+            ndlist.resize(ndprev);
+            ndlist.emplace_back(p.second, fact);
+          }
+        }
+      }
+      else
+      {
+        for (size_t i=1, nchild=atom.getNumChildren(); i<nchild; i++)
+        {
+          Node eq = atom[0].eqNode(atom[i]);
+          d_im.assertInternalFact(eq, true, InferenceId::UF_NOT_DISTINCT_EQ, fact);
         }
       }
     }
