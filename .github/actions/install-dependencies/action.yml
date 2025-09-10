@@ -43,7 +43,7 @@ runs:
           g++-aarch64-linux-gnu
         echo "::endgroup::"
 
-    - name: Install software for cross-compiling for Windows
+    - name: Install software for cross-compiling for Windows x86_64
       # Boolean inputs are actually strings:
       # https://github.com/actions/runner/issues/1483
       if: runner.os == 'Linux' && inputs.windows-build == 'true'
@@ -75,8 +75,8 @@ runs:
         echo "$(pwd)" >> $GITHUB_PATH
         echo "$(pwd)/upstream/emscripten" >> $GITHUB_PATH
 
-    - name: Install Windows software
-      if: runner.os == 'Windows' && inputs.windows-build == 'true'
+    - name: Install Windows x86_64 software
+      if: runner.os == 'Windows' && runner.arch == 'X64' && inputs.windows-build == 'true'
       uses: msys2/setup-msys2@v2
       with:
         update: true
@@ -89,6 +89,22 @@ runs:
           mingw-w64-x86_64-cmake
           mingw-w64-x86_64-gcc
           mingw-w64-x86_64-gmp
+          zip
+
+    - name: Install Windows arm64 software
+      if: runner.os == 'Windows' && runner.arch == 'ARM64' && inputs.windows-build == 'true'
+      uses: msys2/setup-msys2@v2
+      with:
+        update: true
+        msystem: CLANGARM64
+        path-type: inherit
+        install: |
+          make
+          mingw-w64-clang-aarch64-autotools
+          mingw-w64-clang-aarch64-ccache
+          mingw-w64-clang-aarch64-clang
+          mingw-w64-clang-aarch64-cmake
+          mingw-w64-clang-aarch64-gmp
           zip
 
     - name: Set up num_proc variable for Linux and Windows
