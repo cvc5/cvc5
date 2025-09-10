@@ -59,7 +59,9 @@ TheoryUF::TheoryUF(Env& env,
       d_im(env, *this, d_state, "theory::uf::" + instanceName, false),
       d_notify(d_im, *this),
       d_cpacb(*this),
-      d_ndistinct(context())
+      d_ndistinct(context()),
+      d_negDistinct(context()),
+      d_negDistinctIndex(context(), 0)
 {
   d_true = nodeManager()->mkConst(true);
   // indicate we are using the default theory state and inference managers
@@ -137,7 +139,7 @@ bool TheoryUF::needsCheckLastEffort()
 {
   // last call effort needed if using finite model finding,
   // arithmetic/bit-vector conversions, or higher-order extension
-  return d_thss != nullptr || d_csolver != nullptr || d_ho!=nullptr;
+  return d_thss != nullptr || d_csolver != nullptr || d_ho!=nullptr || d_negDistinctIndex.get()<d_negDistinct.size();
 }
 
 void TheoryUF::postCheck(Effort level)
@@ -153,10 +155,49 @@ void TheoryUF::postCheck(Effort level)
   }
   if (!d_state.isInConflict())
   {
-    // check with conversions solver at last call effort
-    if (d_csolver != nullptr && level == Effort::EFFORT_LAST_CALL)
+    if (level == Effort::EFFORT_LAST_CALL)
     {
-      d_csolver->check();
+      // check with conversions solver at last call effort
+      if (d_csolver != nullptr)
+      {
+        d_csolver->check();
+      }
+      // check negated distinct
+      for (size_t i=d_negDistinctIndex.get(), nnd = d_negDistinct.size(); i<nnd; i++)
+      {
+        Node ndistinct = d_negDistinct[i];
+        Assert (ndistinct.getKind()==Kind::NOT && ndistinct[0].getKind()==Kind::DISTINCT);
+        // check if satisfied
+        Node atom = ndistinct[0];
+        std::unordered_set<Node> reps;
+        bool isSat = false;
+        std::vector<Node> disj;
+        Node a0 = atom[0];
+        for (size_t j=0, nterms=atom.getNumChildren(); j<nterms; j++)
+        {
+          Node ncr = d_equalityEngine->getRepresentative(atom[j]);
+          if (!reps.insert(ncr).second)
+          {
+            isSat = true;
+            break;
+          }
+          if (j>0)
+          {
+            disj.push_back(a0.eqNode(atom[j]));
+          }
+        }
+        if (!isSat)
+        {
+          std::vector<Node> rmTerms(atom.begin()+1, atom.end());
+          if (rmTerms.size()>1)
+          {
+            disj.push_back(nodeManager()->mkNode(Kind::DISTINCT, rmTerms));
+          }
+          Node lem = nodeManager()->mkOr(disj);
+          d_im.lemma(lem, InferenceId::UF_NOT_DISTINCT_EQ);
+        }
+      }
+      d_negDistinctIndex = d_negDistinct.size();
     }
     // check with the higher-order extension at full effort
     if (fullEffort(level) && logicInfo().isHigherOrder())
@@ -194,6 +235,10 @@ void TheoryUF::notifyFact(TNode atom, bool pol, TNode fact, bool isInternal)
     break;
     case Kind::DISTINCT:
     {
+      for (const Node& nc : atom)
+      {
+        d_equalityEngine->addTerm(nc);
+      }
       if (pol)
       {
         std::unordered_map<Node, Node> reps;
@@ -201,7 +246,6 @@ void TheoryUF::notifyFact(TNode atom, bool pol, TNode fact, bool isInternal)
         bool isConflict = false;
         for (const Node& nc : atom)
         {
-          d_equalityEngine->addTerm(nc);
           Node ncr = d_equalityEngine->getRepresentative(nc);
           itr = reps.find(ncr);
           if (itr == reps.end())
@@ -240,12 +284,7 @@ void TheoryUF::notifyFact(TNode atom, bool pol, TNode fact, bool isInternal)
       }
       else
       {
-        for (size_t i = 1, nchild = atom.getNumChildren(); i < nchild; i++)
-        {
-          Node eq = atom[0].eqNode(atom[i]);
-          d_im.assertInternalFact(
-              eq, true, InferenceId::UF_NOT_DISTINCT_EQ, fact);
-        }
+        d_negDistinct.push_back(fact);
       }
     }
     break;

@@ -197,6 +197,10 @@ private:
   /** the tester applications */
   std::map<Node, std::vector<Node>> d_eqcToDistinct;
   std::map<Node, std::vector<Node>> d_eqcToDMem;
+  /** Negated distinct */
+  context::CDList<Node> d_negDistinct;
+  /** Negated distinct processed */
+  context::CDO<size_t> d_negDistinctIndex;
 }; /* class TheoryUF */
 
 }  // namespace uf
