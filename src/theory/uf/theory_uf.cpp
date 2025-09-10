@@ -212,8 +212,10 @@ void TheoryUF::notifyFact(TNode atom, bool pol, TNode fact, bool isInternal)
           isConflict = true;
           // otherwise already a conflict
           Node eq = itr->second.eqNode(nc);
+          Node conf = nodeManager()->mkNode(Kind::AND, {eq, fact});
+          TrustNode tconf = TrustNode::mkTrustConflict(conf);
           // no proof for now
-          d_im.conflictExp(InferenceId::UF_DISTINCT_DEQ, {eq, fact}, nullptr);
+          d_im.trustedConflict(tconf, InferenceId::UF_DISTINCT_DEQ);
           break;
         }
         if (!isConflict)
@@ -756,7 +758,9 @@ void TheoryUF::eqNotifyMerge(TNode t1, TNode t2)
           Assert (i2<d_eqcToDMem[t2].size());
           Node eq = d_eqcToDMem[t1][i].eqNode(d_eqcToDMem[t2][i2]);
           Trace("uf-lazy-distinct") << "...conflict " << eq << std::endl;
-          d_im.conflictExp(InferenceId::UF_DISTINCT_DEQ, {eq, d}, nullptr);
+          Node conf = nodeManager()->mkNode(Kind::AND, {eq, d});
+          TrustNode tconf = TrustNode::mkTrustConflict(conf);
+          d_im.trustedConflict(tconf, InferenceId::UF_DISTINCT_DEQ);
           return;
         }
         Trace("uf-lazy-distinct") << "...no conflict" << std::endl;
