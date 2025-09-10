@@ -39,11 +39,11 @@ class ProofPostprocess;
  * (1) When preprocessing has completed, determining the set of input clauses.
  * (2) When theory lemmas are learned
  * (3) When a SAT refutation is derived.
- * 
- * Dependending on the proof mode, the notifications for the above three things
+ *
+ * Depending on the proof mode, the notifications for the above three things
  * may be in the form of ProofNode (if proofs are enabled for that component),
  * or Node (if proofs are disabled for that component).
- * 
+ *
  * As with dumped proofs, the granularity of the proofs is subject to the
  * option `proof-granularity`.
  */
@@ -62,7 +62,7 @@ class ProofLogger : protected EnvObj
   /**
    * Called when preprocessing is complete with the proofs of the preprocessed
    * inputs. The free assumptions of proofs in pfns are the preprocessed input
-   * formulas. If preprocess proofs are avialable, this method connects pfn to
+   * formulas. If preprocess proofs are available, this method connects pfn to
    * the original input formulas.
    * @param pfns Proofs of the preprocessed inputs.
    */
@@ -74,6 +74,12 @@ class ProofLogger : protected EnvObj
    * @param n The theory lemma.
    */
   virtual void logTheoryLemma(const Node& n) {}
+  /**
+   * Called when clause `n` is learned internally by the SAT solver, where `n`
+   * is a clause.
+   * @param n The clause.
+   */
+  virtual void logSatLearnedClause(const Node& n) {}
   /**
    * Called when clause `pfn` is added to the SAT solver, where `pfn`
    * is a closed proof of (the CNF conversion of) a theory lemma.
