@@ -174,7 +174,7 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
       return RewriteResponse(REWRITE_DONE, nodeManager()->mkConst<bool>(false));
     }
     // if all constant, rewrites to true/false
-    bool allConst = false;
+    bool allConst = true;
     std::unordered_set<Node> children;
     for (const Node& c : node)
     {
