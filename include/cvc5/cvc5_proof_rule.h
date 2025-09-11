@@ -1239,6 +1239,12 @@ enum ENUM(ProofRule)
   EVALUE(NARY_CONG),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Equality -- Pairwise Congruence**
+   * \endverbatim
+   */
+  EVALUE(PAIRWISE_CONG),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Equality -- True intro**
    *
    * .. math::
