@@ -57,12 +57,9 @@ TheoryUF::TheoryUF(Env& env,
       d_checker(nodeManager()),
       d_state(env, valuation),
       d_im(env, *this, d_state, "theory::uf::" + instanceName, false),
+      d_distinct(env, d_state, d_im),
       d_notify(d_im, *this),
-      d_cpacb(*this),
-      d_ndistinct(context()),
-      d_negDistinct(context()),
-      d_negDistinctIndex(context(), 0),
-      d_posDistinct(context())
+      d_cpacb(*this)
 {
   d_true = nodeManager()->mkConst(true);
   // indicate we are using the default theory state and inference managers
@@ -141,8 +138,7 @@ bool TheoryUF::needsCheckLastEffort()
   // last call effort needed if using finite model finding,
   // arithmetic/bit-vector conversions, or higher-order extension
   return d_thss != nullptr || d_csolver != nullptr || d_ho != nullptr
-         || d_negDistinctIndex.get() < d_negDistinct.size()
-         || !d_posDistinct.empty();
+         || d_distinct.needsCheckLastEffort();
 }
 
 void TheoryUF::postCheck(Effort level)
@@ -166,93 +162,12 @@ void TheoryUF::postCheck(Effort level)
         d_csolver->check();
       }
       // check distinct constraints
-      checkDistinctLastCall();
+      d_distinct.checkDistinctLastCall();
     }
     // check with the higher-order extension at full effort
     if (fullEffort(level) && logicInfo().isHigherOrder())
     {
       d_ho->check();
-    }
-  }
-}
-
-void TheoryUF::checkDistinctLastCall()
-{
-  bool addedLemma = false;
-  // check negated distinct
-  size_t nnd = d_negDistinct.size();
-  for (size_t i = d_negDistinctIndex.get(); i < nnd; i++)
-  {
-    Node ndistinct = d_negDistinct[i];
-    Assert(ndistinct.getKind() == Kind::NOT
-           && ndistinct[0].getKind() == Kind::DISTINCT);
-    // check if satisfied
-    Node atom = ndistinct[0];
-    std::unordered_set<Node> reps;
-    bool isSat = false;
-    std::vector<Node> disj;
-    disj.push_back(atom);
-    Node a0 = atom[0];
-    for (size_t j = 0, nterms = atom.getNumChildren(); j < nterms; j++)
-    {
-      Node ncr = d_equalityEngine->getRepresentative(atom[j]);
-      if (!reps.insert(ncr).second)
-      {
-        isSat = true;
-        break;
-      }
-      if (j > 0)
-      {
-        disj.push_back(a0.eqNode(atom[j]));
-      }
-    }
-    if (!isSat)
-    {
-      std::vector<Node> rmTerms(atom.begin() + 1, atom.end());
-      if (rmTerms.size() > 1)
-      {
-        disj.push_back(
-            nodeManager()->mkNode(Kind::DISTINCT, rmTerms).notNode());
-      }
-      Node lem = nodeManager()->mkOr(disj);
-      if (d_im.lemma(lem, InferenceId::UF_NOT_DISTINCT_EQ))
-      {
-        addedLemma = true;
-      }
-    }
-  }
-  d_negDistinctIndex = nnd;
-  if (addedLemma)
-  {
-    return;
-  }
-  // Note that it still may the case that we have a (distinct t1 ... tn)
-  // constraint where ti and tj were assigned the same value in the model,
-  // but the UF theory was not informed of ti = tj. This is because we
-  // do not insist that distinct induces care pairs in theory combination.
-  // Thus we must double check that are values are distinct in the model.
-  // If not, then we add the lemma (~distinct(t1,...,tn) or ti != tj).
-  for (const Node& atom : d_posDistinct)
-  {
-    Assert(atom.getKind() == Kind::DISTINCT);
-    // ensure the positive distinct are satisfied in model
-    std::unordered_map<Node, Node> vals;
-    std::unordered_map<Node, Node>::iterator itr;
-    TheoryModel* tm = d_valuation.getModel();
-    for (const Node& nc : atom)
-    {
-      Node ncr = tm->getValue(nc);
-      itr = vals.find(ncr);
-      if (itr == vals.end())
-      {
-        vals[ncr] = nc;
-        continue;
-      }
-      Node eq = itr->second.eqNode(nc);
-      Node lem =
-          nodeManager()->mkNode(Kind::OR, {atom.notNode(), eq.notNode()});
-      TrustNode tlem = TrustNode::mkTrustLemma(lem);
-      d_im.lemma(lem, InferenceId::UF_DISTINCT_DEQ_MODEL);
     }
   }
 }
@@ -285,58 +200,8 @@ void TheoryUF::notifyFact(TNode atom, bool pol, TNode fact, bool isInternal)
     break;
     case Kind::DISTINCT:
     {
-      for (const Node& nc : atom)
-      {
-        d_equalityEngine->addTerm(nc);
-      }
-      if (pol)
-      {
-        d_posDistinct.push_back(fact);
-        std::unordered_map<Node, Node> reps;
-        std::unordered_map<Node, Node>::iterator itr;
-        bool isConflict = false;
-        for (const Node& nc : atom)
-        {
-          Node ncr = d_equalityEngine->getRepresentative(nc);
-          itr = reps.find(ncr);
-          if (itr == reps.end())
-          {
-            reps[ncr] = nc;
-            continue;
-          }
-          isConflict = true;
-          // otherwise already a conflict
-          Node eq = itr->second.eqNode(nc);
-          Node conf = nodeManager()->mkNode(Kind::AND, {eq, fact});
-          TrustNode tconf = TrustNode::mkTrustConflict(conf);
-          // no proof for now
-          d_im.trustedConflict(tconf, InferenceId::UF_DISTINCT_DEQ);
-          break;
-        }
-        if (!isConflict)
-        {
-          for (const std::pair<const Node, Node>& p : reps)
-          {
-            Trace("uf-lazy-distinct") << "Watch " << p.first << " distinct ("
-                                      << fact << ")" << std::endl;
-            size_t ndprev = d_ndistinct[p.first];
-            d_ndistinct[p.first] = ndprev + 1;
-            // ensure the non-context dependent list has the right size in
-            // case we backtracked
-            std::vector<Node>& ndlist = d_eqcToDistinct[p.first];
-            ndlist.resize(ndprev);
-            ndlist.emplace_back(fact);
-            // also carry the member
-            std::vector<Node>& ndmem = d_eqcToDMem[p.first];
-            ndmem.resize(ndprev);
-            ndmem.emplace_back(p.second);
-          }
-        }
-      }
-      else
-      {
-        d_negDistinct.push_back(fact);
-      }
+      // call the distinct extension
+      d_distinct.assertDistinct(atom, pol, fact);
     }
     break;
     case Kind::CARDINALITY_CONSTRAINT:
@@ -824,59 +689,8 @@ void TheoryUF::eqNotifyMerge(TNode t1, TNode t2)
   {
     d_thss->merge(t1, t2);
   }
-  // Must ensure we track distinct constraints, moving those from t2 into t1.
-  // If the same distinct constraint is in both, we are in conflict.
-  NodeUIntMap::iterator it2 = d_ndistinct.find(t2);
-  if (it2 != d_ndistinct.end())
-  {
-    Trace("uf-lazy-distinct") << "merge " << t1 << " and " << t2 << std::endl;
-    NodeUIntMap::iterator it1 = d_ndistinct.find(t1);
-    std::vector<Node>& d1 = d_eqcToDistinct[t1];
-    std::vector<Node>& d1m = d_eqcToDMem[t1];
-    std::vector<Node>& d2 = d_eqcToDistinct[t2];
-    // the iterator up to which d2 is valid
-    std::vector<Node>::iterator d2e = d2.begin() + it2->second;
-    if (it1 != d_ndistinct.end())
-    {
-      // ensure the list of distinct constraints in t1 is resized now
-      d1.resize(it1->second);
-      d1m.resize(it1->second);
-      Trace("uf-lazy-distinct")
-          << "...looking for conflicts in intersection of " << it1->second
-          << " and " << it2->second << std::endl;
-      // check for conflicts
-      for (size_t i = 0; i < it1->second; i++)
-      {
-        Node d = d1[i];
-        Assert(d.getKind() == Kind::DISTINCT);
-        Trace("uf-lazy-distinct") << "...check " << d << std::endl;
-        std::vector<Node>::iterator itd1 = std::find(d2.begin(), d2e, d);
-        if (itd1 != d2e)
-        {
-          // conflict
-          size_t i2 = std::distance(d2.begin(), itd1);
-          Assert(i < d_eqcToDMem[t1].size());
-          Assert(i2 < d_eqcToDMem[t2].size());
-          Node eq = d_eqcToDMem[t1][i].eqNode(d_eqcToDMem[t2][i2]);
-          Trace("uf-lazy-distinct") << "...conflict " << eq << std::endl;
-          Node conf = nodeManager()->mkNode(Kind::AND, {eq, d});
-          TrustNode tconf = TrustNode::mkTrustConflict(conf);
-          d_im.trustedConflict(tconf, InferenceId::UF_DISTINCT_DEQ);
-          return;
-        }
-        Trace("uf-lazy-distinct") << "...no conflict" << std::endl;
-      }
-    }
-    else
-    {
-      d1.clear();
-      d1m.clear();
-    }
-    // append lists
-    d1.insert(d1.end(), d2.begin(), d2e);
-    std::vector<Node>& d2m = d_eqcToDMem[t2];
-    d1m.insert(d1m.end(), d2m.begin(), d2m.begin() + it2->second);
-  }
+  // check if we have a conflict due to distinct
+  d_distinct.eqNotifyMerge(t1, t2);
 }
 
 void TheoryUF::eqNotifyDisequal(TNode t1, TNode t2, TNode reason) {

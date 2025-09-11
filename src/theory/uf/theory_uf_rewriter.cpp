@@ -45,6 +45,10 @@ TheoryUfRewriter::TheoryUfRewriter(NodeManager* nm) : TheoryRewriter(nm)
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::DISTINCT_ELIM,
                            TheoryRewriteCtx::PRE_DSL);
+  registerProofRewriteRule(ProofRewriteRule::MACRO_DISTINCT_CONFLICT,
+                           TheoryRewriteCtx::PRE_DSL);
+  registerProofRewriteRule(ProofRewriteRule::MACRO_DISTINCT_TRUE,
+                           TheoryRewriteCtx::PRE_DSL);
 }
 
 RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
@@ -395,6 +399,39 @@ Node TheoryUfRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
           {
             return nodeManager()->mkConst(false);
           }
+        }
+      }
+      break;
+    case ProofRewriteRule::MACRO_DISTINCT_CONFLICT:
+      if (n.getKind() == Kind::DISTINCT)
+      {
+        std::unordered_set<Node> children;
+        for (const Node& c : n)
+        {
+          if (!children.insert(c).second)
+          {
+            // distinct with duplicate child
+            return nodeManager()->mkConst(false);
+          }
+        }
+      }
+      break;
+    case ProofRewriteRule::MACRO_DISTINCT_TRUE:
+      if (n.getKind() == Kind::DISTINCT)
+      {
+        bool allDistinctConst = true;
+        std::unordered_set<Node> children;
+        for (const Node& c : n)
+        {
+          if (!c.isConst() || !children.insert(c).second)
+          {
+            allDistinctConst = false;
+            break;
+          }
+        }
+        if (allDistinctConst)
+        {
+          return nodeManager()->mkConst(true);
         }
       }
       break;

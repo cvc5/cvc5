@@ -2763,6 +2763,32 @@ enum ENUM(ProofRewriteRule)
   EVALUE(ARITH_POW_ELIM),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Equality -- Macro distinct conflict**
+   *
+   * .. math::
+   *
+   *   (distinct \ t_1 \ldots t_n) = \bot
+   *
+   * where :math:`t_i` is :math:`t_j` for some distinct :math:`i`, `j`.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_DISTINCT_CONFLICT),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Equality -- Macro distinct conflict**
+   *
+   * .. math::
+   *
+   *   (distinct \ t_1 \ldots t_n) = \top
+   *
+   * where :math:`t_1, \ldots, t_n` are distinct values.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_DISTINCT_TRUE),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Equality -- Beta reduction**
    *
    * .. math::
