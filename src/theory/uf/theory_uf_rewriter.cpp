@@ -658,8 +658,7 @@ RewriteResponse TheoryUfRewriter::rewriteDistinct(TNode node)
     if (!children.insert(c).second)
     {
       // distinct with duplicate child
-      return RewriteResponse(REWRITE_DONE,
-                              nodeManager()->mkConst<bool>(false));
+      return RewriteResponse(REWRITE_DONE, nodeManager()->mkConst<bool>(false));
     }
   }
   if (allConst)

@@ -90,7 +90,8 @@ Node UfProofRuleChecker::checkInternal(ProofRule id,
     }
     return first.eqNode(curr);
   }
-  else if (id == ProofRule::CONG || id == ProofRule::NARY_CONG || id == ProofRule::PAIRWISE_CONG)
+  else if (id == ProofRule::CONG || id == ProofRule::NARY_CONG
+           || id == ProofRule::PAIRWISE_CONG)
   {
     Assert(children.size() > 0);
     if (args.size() != 1)

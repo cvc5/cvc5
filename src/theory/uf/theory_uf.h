@@ -24,10 +24,10 @@
 #include "theory/theory_eq_notify.h"
 #include "theory/theory_state.h"
 #include "theory/uf/diamonds_proof_generator.h"
+#include "theory/uf/distinct_extension.h"
 #include "theory/uf/proof_checker.h"
 #include "theory/uf/symmetry_breaker.h"
 #include "theory/uf/theory_uf_rewriter.h"
-#include "theory/uf/distinct_extension.h"
 
 namespace cvc5::internal {
 namespace theory {

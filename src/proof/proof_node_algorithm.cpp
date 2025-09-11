@@ -244,9 +244,7 @@ ProofRule getCongRule(const Node& n, std::vector<Node>& args)
   ProofRule r = ProofRule::CONG;
   switch (k)
   {
-    case Kind::DISTINCT:
-      r = ProofRule::PAIRWISE_CONG;
-      break;
+    case Kind::DISTINCT: r = ProofRule::PAIRWISE_CONG; break;
     case Kind::APPLY_UF:
     case Kind::FLOATINGPOINT_LT:
     case Kind::FLOATINGPOINT_LEQ:
