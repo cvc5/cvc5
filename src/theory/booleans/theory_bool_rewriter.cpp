@@ -22,6 +22,7 @@
 #include <unordered_set>
 
 #include "expr/algorithm/flatten.h"
+#include "expr/attribute.h"
 #include "expr/node_value.h"
 #include "proof/conv_proof_generator.h"
 #include "proof/proof.h"
@@ -115,10 +116,16 @@ bool TheoryBoolRewriter::addNnfNormChild(std::vector<Node>& children,
   return true;
 }
 
+struct NnfAttributeId
+{
+};
+typedef expr::Attribute<NnfAttributeId, Node> NnfAttribute;
+
 Node TheoryBoolRewriter::computeNnfNorm(NodeManager* nm,
                                         const Node& n,
                                         TConvProofGenerator* pg)
 {
+  NnfAttribute nnfa;
   Trace("compute-nnf") << "Compute NNF norm " << n << std::endl;
   // at pre-order traversal, we store preKind and preChildren, which
   // determine the Kind and the children for the node to reconstruct.
@@ -136,6 +143,11 @@ Node TheoryBoolRewriter::computeNnfNorm(NodeManager* nm,
     it = visited.find(cur);
     if (it == visited.end())
     {
+      if (!pg && cur.hasAttribute(nnfa))
+      {
+        visited[cur] = cur.getAttribute(nnfa);
+        continue;
+      }
       Kind k = cur.getKind();
       bool negAllCh = false;
       bool negCh1 = false;
@@ -300,6 +312,7 @@ Node TheoryBoolRewriter::computeNnfNorm(NodeManager* nm,
         }
       }
       visited[cur] = ret;
+      cur.setAttribute(nnfa, ret);
     }
   } while (!visit.empty());
   Assert(visited.find(n) != visited.end());

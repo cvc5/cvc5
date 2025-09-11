@@ -156,7 +156,7 @@ void TheoryArith::preRegisterTerm(TNode n)
     }
   }
   // if POW is allowed but was not rewritten
-  if (k == Kind::POW)
+  if (k == Kind::POW || (k == Kind::POW2 && n[0].isConst()))
   {
     std::stringstream ss;
     ss << "The exponent of the POW(^) operator can only be a positive "
