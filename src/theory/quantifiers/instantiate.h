@@ -304,7 +304,9 @@ class Instantiate : public QuantifiersUtil
                                 Node pfArg = Node::null(),
                                 bool doVts = false);
   /** record instantiation, return true if it was not a duplicate */
-  bool recordInstantiationInternal(Node q, const std::vector<Node>& terms, bool isLocal);
+  bool recordInstantiationInternal(Node q,
+                                   const std::vector<Node>& terms,
+                                   bool isLocal);
   /** Get or make the instantiation list for quantified formula q */
   InstLemmaList* getOrMkInstLemmaList(TNode q);
 

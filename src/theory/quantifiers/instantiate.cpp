@@ -64,9 +64,7 @@ Instantiate::Instantiate(Env& env,
   d_useCdInstTrie = options().base.incrementalSolving;
 }
 
-Instantiate::~Instantiate()
-{
-}
+Instantiate::~Instantiate() {}
 
 bool Instantiate::reset(Theory::Effort e)
 {
@@ -614,12 +612,14 @@ Node Instantiate::getInstantiation(Node q,
 }
 
 bool Instantiate::recordInstantiationInternal(Node q,
-                                              const std::vector<Node>& terms, bool isLocal)
+                                              const std::vector<Node>& terms,
+                                              bool isLocal)
 {
   bool ret, retc;
   if (isLocal)
   {
-    // if local, the return value will be based on the SAT-context dependent trie.
+    // if local, the return value will be based on the SAT-context dependent
+    // trie.
     CDInstMatchTrie* trie;
     NodeInstTrieMap::iterator it = d_c_inst_match_trie.find(q);
     if (it != d_c_inst_match_trie.end())
@@ -635,7 +635,8 @@ bool Instantiate::recordInstantiationInternal(Node q,
     }
     retc = trie->addInstMatch(context(), q, terms);
   }
-  // regardless of whether we are local, we record the instantiation in the main trie
+  // regardless of whether we are local, we record the instantiation in the main
+  // trie
   if (d_useCdInstTrie)
   {
     CDInstMatchTrie* trie;
@@ -647,7 +648,7 @@ bool Instantiate::recordInstantiationInternal(Node q,
     else
     {
       Trace("inst-add-debug")
-        << "Adding into context-dependent inst trie" << std::endl;
+          << "Adding into context-dependent inst trie" << std::endl;
       std::shared_ptr<CDInstMatchTrie> strie =
           std::make_shared<CDInstMatchTrie>(userContext());
       d_u_inst_match_trie.insert(q, strie);
@@ -678,8 +679,7 @@ void Instantiate::getInstantiationTermVectors(
 {
   if (d_useCdInstTrie)
   {
-    NodeInstTrieMap::const_iterator it =
-        d_u_inst_match_trie.find(q);
+    NodeInstTrieMap::const_iterator it = d_u_inst_match_trie.find(q);
     if (it != d_u_inst_match_trie.end())
     {
       it->second->getInstantiations(q, tvecs);

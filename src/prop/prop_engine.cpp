@@ -224,7 +224,7 @@ void PropEngine::assertTrustedLemmaInternal(theory::InferenceId id,
   if (local)
   {
     // if local, filter here
-    if (d_localLemmas.find(node)!=d_localLemmas.end())
+    if (d_localLemmas.find(node) != d_localLemmas.end())
     {
       return;
     }
@@ -330,8 +330,10 @@ void PropEngine::assertLemmasInternal(
   }
   for (const theory::SkolemLemma& lem : ppLemmas)
   {
-    assertTrustedLemmaInternal(
-        theory::InferenceId::THEORY_PP_SKOLEM_LEM, lem.d_lemma, removable, local);
+    assertTrustedLemmaInternal(theory::InferenceId::THEORY_PP_SKOLEM_LEM,
+                               lem.d_lemma,
+                               removable,
+                               local);
   }
   // Note that this order is important for theories that send lemmas during
   // preregistration, as it impacts the order in which lemmas are processed
