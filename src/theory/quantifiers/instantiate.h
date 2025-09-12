@@ -102,6 +102,8 @@ class Instantiate : public QuantifiersUtil
 {
   using NodeInstListMap =
       context::CDHashMap<Node, std::shared_ptr<InstLemmaList>>;
+  using NodeInstTrieMap =
+      context::CDHashMap<Node, std::shared_ptr<CDInstMatchTrie>>;
 
  public:
   Instantiate(Env& env,
@@ -302,7 +304,7 @@ class Instantiate : public QuantifiersUtil
                                 Node pfArg = Node::null(),
                                 bool doVts = false);
   /** record instantiation, return true if it was not a duplicate */
-  bool recordInstantiationInternal(Node q, const std::vector<Node>& terms);
+  bool recordInstantiationInternal(Node q, const std::vector<Node>& terms, bool isLocal);
   /** Get or make the instantiation list for quantified formula q */
   InstLemmaList* getOrMkInstLemmaList(TNode q);
 
@@ -338,18 +340,10 @@ class Instantiate : public QuantifiersUtil
    * is disabled, we use d_inst_match_trie for performance reasons.
    */
   std::map<Node, InstMatchTrie> d_inst_match_trie;
-  std::map<Node, CDInstMatchTrie*> d_c_inst_match_trie;
-  /**
-   * The context which d_c_inst_match_trie depends on, if applicable. If
-   * instLocal is true, this is the SAT context, otherwise it is the user
-   * context.
-   */
-  context::Context* d_ictx;
-  /**
-   * The list of quantified formulas for which the domain of d_c_inst_match_trie
-   * is valid.
-   */
-  context::CDHashSet<Node> d_c_inst_match_trie_dom;
+  /** A SAT-context dependent trie of instantiations */
+  NodeInstTrieMap d_c_inst_match_trie;
+  /** A user dependent trie of instantiations */
+  NodeInstTrieMap d_u_inst_match_trie;
   /**
    * A CDProof storing instantiation steps.
    */
