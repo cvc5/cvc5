@@ -409,6 +409,14 @@ bool Instantiate::isLocalInstId(InferenceId id)
   switch (id)
   {
     case InferenceId::QUANTIFIERS_INST_E_MATCHING:
+    case InferenceId::QUANTIFIERS_INST_E_MATCHING_SIMPLE:
+    case InferenceId::QUANTIFIERS_INST_E_MATCHING_MT:
+    case InferenceId::QUANTIFIERS_INST_E_MATCHING_MTL:
+    case InferenceId::QUANTIFIERS_INST_E_MATCHING_HO:
+    case InferenceId::QUANTIFIERS_INST_E_MATCHING_VAR_GEN:
+    case InferenceId::QUANTIFIERS_INST_E_MATCHING_RELATIONAL:
+    case InferenceId::QUANTIFIERS_INST_CBQI_CONFLICT:
+    case InferenceId::QUANTIFIERS_INST_CBQI_PROP:
       return true;
     default:
       break;
