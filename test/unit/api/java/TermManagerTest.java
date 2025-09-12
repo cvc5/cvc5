@@ -100,7 +100,7 @@ class TermManagerTest
     assertDoesNotThrow(() -> d_tm.mkArraySort(bvSort, fpSort));
 
     Solver slv = new Solver();
-    assertDoesNotThrow(() -> slv.mkArraySort(boolSort, boolSort));
+    assertThrows(CVC5ApiException.class, () -> slv.mkArraySort(boolSort, boolSort));
   }
 
   @Test
@@ -142,8 +142,6 @@ class TermManagerTest
   @Test
   void mkDatatypeSorts() throws CVC5ApiException
   {
-    Solver slv = new Solver();
-
     DatatypeDecl dtypeSpec1 = d_tm.mkDatatypeDecl("list1");
     DatatypeConstructorDecl cons1 = d_tm.mkDatatypeConstructorDecl("cons1");
     cons1.addSelector("head1", d_tm.getIntegerSort());
@@ -160,7 +158,7 @@ class TermManagerTest
     assertDoesNotThrow(() -> d_tm.mkDatatypeSorts(decls));
 
     assertThrows(CVC5ApiException.class, () -> d_tm.mkDatatypeSorts(decls));
-    assertThrows(CVC5ApiException.class, () -> slv.mkDatatypeSorts(decls));
+    assertThrows(CVC5ApiException.class, () -> d_solver.mkDatatypeSorts(decls));
 
     DatatypeDecl throwsDtypeSpec = d_tm.mkDatatypeDecl("list");
     DatatypeDecl[] throwsDecls = new DatatypeDecl[] {throwsDtypeSpec};
@@ -179,7 +177,7 @@ class TermManagerTest
     assertDoesNotThrow(() -> d_tm.mkDatatypeSorts(udecls));
 
     assertThrows(CVC5ApiException.class, () -> d_tm.mkDatatypeSorts(udecls));
-    assertThrows(CVC5ApiException.class, () -> slv.mkDatatypeSorts(udecls));
+    assertThrows(CVC5ApiException.class, () -> d_solver.mkDatatypeSorts(udecls));
 
     /* mutually recursive with unresolved parameterized sorts */
     Sort p0 = d_tm.mkParamSort("p0");
@@ -214,9 +212,6 @@ class TermManagerTest
     Sort funSort = d_tm.mkFunctionSort(d_tm.mkUninterpretedSort("u"), d_tm.getIntegerSort());
     // function arguments are allowed
     assertDoesNotThrow(() -> d_tm.mkFunctionSort(funSort, d_tm.getIntegerSort()));
-    // non-first-class arguments are not allowed
-    Sort reSort = d_tm.getRegExpSort();
-    assertThrows(CVC5ApiException.class, () -> d_tm.mkFunctionSort(reSort, d_tm.getIntegerSort()));
 
     assertThrows(CVC5ApiException.class, () -> d_tm.mkFunctionSort(d_tm.getIntegerSort(), funSort));
 
@@ -236,17 +231,19 @@ class TermManagerTest
                 new Sort[] {d_tm.getIntegerSort(), d_tm.mkUninterpretedSort("u")}, funSort2));
 
     Solver slv = new Solver();
-    assertDoesNotThrow(
+    assertThrows(CVC5ApiException.class,
         () -> slv.mkFunctionSort(d_tm.mkUninterpretedSort("u"), d_tm.getIntegerSort()));
 
-    assertDoesNotThrow(
+    assertThrows(CVC5ApiException.class,
         () -> slv.mkFunctionSort(slv.mkUninterpretedSort("u"), d_tm.getIntegerSort()));
 
     Sort[] sorts1 = new Sort[] {d_tm.getBooleanSort(), slv.getIntegerSort(), d_tm.getIntegerSort()};
     Sort[] sorts2 = new Sort[] {slv.getBooleanSort(), slv.getIntegerSort()};
-    assertDoesNotThrow(() -> slv.mkFunctionSort(sorts2, slv.getIntegerSort()));
-    assertDoesNotThrow(() -> slv.mkFunctionSort(sorts1, slv.getIntegerSort()));
-    assertDoesNotThrow(() -> slv.mkFunctionSort(sorts2, d_tm.getIntegerSort()));
+    assertThrows(
+        CVC5ApiException.class, () -> slv.mkFunctionSort(sorts2, d_solver.getIntegerSort()));
+    assertThrows(
+        CVC5ApiException.class, () -> slv.mkFunctionSort(sorts1, d_solver.getIntegerSort()));
+    assertThrows(CVC5ApiException.class, () -> slv.mkFunctionSort(sorts2, d_tm.getIntegerSort()));
   }
 
   @Test
@@ -266,7 +263,8 @@ class TermManagerTest
     assertDoesNotThrow(() -> d_tm.mkPredicateSort(new Sort[] {d_tm.getIntegerSort(), funSort}));
 
     Solver slv = new Solver();
-    assertDoesNotThrow(() -> slv.mkPredicateSort(new Sort[] {d_tm.getIntegerSort()}));
+    assertThrows(
+        CVC5ApiException.class, () -> slv.mkPredicateSort(new Sort[] {d_tm.getIntegerSort()}));
   }
 
   @Test
@@ -282,7 +280,7 @@ class TermManagerTest
     assertDoesNotThrow(() -> recSort.getDatatype());
 
     Solver slv = new Solver();
-    assertDoesNotThrow(() -> slv.mkRecordSort(fields));
+    assertThrows(CVC5ApiException.class, () -> slv.mkRecordSort(fields));
   }
 
   @Test
@@ -292,7 +290,7 @@ class TermManagerTest
     assertDoesNotThrow(() -> d_tm.mkSetSort(d_tm.getIntegerSort()));
     assertDoesNotThrow(() -> d_tm.mkSetSort(d_tm.mkBitVectorSort(4)));
     Solver slv = new Solver();
-    assertDoesNotThrow(() -> slv.mkSetSort(d_tm.mkBitVectorSort(4)));
+    assertThrows(CVC5ApiException.class, () -> slv.mkSetSort(d_tm.mkBitVectorSort(4)));
   }
 
   @Test
@@ -302,7 +300,7 @@ class TermManagerTest
     assertDoesNotThrow(() -> d_tm.mkBagSort(d_tm.getIntegerSort()));
     assertDoesNotThrow(() -> d_tm.mkBagSort(d_tm.mkBitVectorSort(4)));
     Solver slv = new Solver();
-    assertDoesNotThrow(() -> slv.mkBagSort(d_tm.mkBitVectorSort(4)));
+    assertThrows(CVC5ApiException.class, () -> slv.mkBagSort(d_tm.mkBitVectorSort(4)));
   }
 
   @Test
@@ -311,7 +309,7 @@ class TermManagerTest
     assertDoesNotThrow(() -> d_tm.mkSequenceSort(d_tm.getBooleanSort()));
     assertDoesNotThrow(() -> d_tm.mkSequenceSort(d_tm.mkSequenceSort(d_tm.getIntegerSort())));
     Solver slv = new Solver();
-    assertDoesNotThrow(() -> slv.mkSequenceSort(d_tm.getIntegerSort()));
+    assertThrows(CVC5ApiException.class, () -> slv.mkSequenceSort(d_tm.getIntegerSort()));
   }
 
   @Test
@@ -356,7 +354,7 @@ class TermManagerTest
     assertDoesNotThrow(() -> d_tm.mkTupleSort(new Sort[] {d_tm.getIntegerSort(), funSort}));
 
     Solver slv = new Solver();
-    assertDoesNotThrow(() -> slv.mkTupleSort(new Sort[] {d_tm.getIntegerSort()}));
+    assertThrows(CVC5ApiException.class, () -> slv.mkTupleSort(new Sort[] {d_tm.getIntegerSort()}));
   }
 
   @Test
@@ -365,7 +363,7 @@ class TermManagerTest
     assertDoesNotThrow(() -> d_tm.mkNullableSort(d_tm.getIntegerSort()));
 
     Solver slv = new Solver();
-    assertDoesNotThrow(() -> slv.mkNullableSort(d_tm.getIntegerSort()));
+    assertThrows(CVC5ApiException.class, () -> slv.mkNullableSort(d_tm.getIntegerSort()));
   }
 
   @Test
@@ -425,7 +423,7 @@ class TermManagerTest
     assertThrows(CVC5ApiException.class, () -> d_tm.mkVar(new Sort()));
     assertThrows(CVC5ApiException.class, () -> d_tm.mkVar(new Sort(), "a"));
     Solver slv = new Solver();
-    assertDoesNotThrow(() -> slv.mkVar(boolSort, "x"));
+    assertThrows(CVC5ApiException.class, () -> slv.mkVar(boolSort, "x"));
   }
 
   @Test
@@ -468,7 +466,7 @@ class TermManagerTest
         d_tm.mkFloatingPoint(5, 11, d_tm.mkBitVector(16)));
 
     Solver slv = new Solver();
-    assertDoesNotThrow(() -> slv.mkFloatingPoint(3, 5, t1));
+    assertThrows(CVC5ApiException.class, () -> slv.mkFloatingPoint(3, 5, t1));
   }
 
   @Test
@@ -480,40 +478,37 @@ class TermManagerTest
     assertThrows(CVC5ApiException.class, () -> d_tm.mkCardinalityConstraint(si, 3));
     assertThrows(CVC5ApiException.class, () -> d_tm.mkCardinalityConstraint(su, 0));
     Solver slv = new Solver();
-    assertDoesNotThrow(() -> slv.mkCardinalityConstraint(su, 3));
+    assertThrows(CVC5ApiException.class, () -> slv.mkCardinalityConstraint(su, 3));
   }
 
   @Test
   void mkEmptySet() throws CVC5ApiException
   {
-    Solver slv = new Solver();
     Sort s = d_tm.mkSetSort(d_tm.getBooleanSort());
     assertThrows(CVC5ApiException.class, () -> d_tm.mkEmptySet(new Sort()));
     assertDoesNotThrow(() -> d_tm.mkEmptySet(s));
     assertThrows(CVC5ApiException.class, () -> d_tm.mkEmptySet(d_tm.getBooleanSort()));
-    assertDoesNotThrow(() -> slv.mkEmptySet(s));
+    assertDoesNotThrow(() -> d_solver.mkEmptySet(s));
   }
 
   @Test
   void mkEmptyBag() throws CVC5ApiException
   {
-    Solver slv = new Solver();
     Sort s = d_tm.mkBagSort(d_tm.getBooleanSort());
     assertThrows(CVC5ApiException.class, () -> d_tm.mkEmptyBag(new Sort()));
     assertDoesNotThrow(() -> d_tm.mkEmptyBag(s));
     assertThrows(CVC5ApiException.class, () -> d_tm.mkEmptyBag(d_tm.getBooleanSort()));
 
-    assertDoesNotThrow(() -> slv.mkEmptyBag(s));
+    assertDoesNotThrow(() -> d_solver.mkEmptyBag(s));
   }
 
   @Test
   void mkEmptySequence() throws CVC5ApiException
   {
-    Solver slv = new Solver();
     Sort s = d_tm.mkSequenceSort(d_tm.getBooleanSort());
     assertDoesNotThrow(() -> d_tm.mkEmptySequence(s));
     assertDoesNotThrow(() -> d_tm.mkEmptySequence(d_tm.getBooleanSort()));
-    assertDoesNotThrow(() -> slv.mkEmptySequence(s));
+    assertDoesNotThrow(() -> d_solver.mkEmptySequence(s));
   }
 
   @Test
@@ -708,7 +703,7 @@ class TermManagerTest
     assertDoesNotThrow(() -> d_tm.mkSepNil(d_tm.getBooleanSort()));
     assertThrows(CVC5ApiException.class, () -> d_tm.mkSepNil(new Sort()));
     Solver slv = new Solver();
-    assertDoesNotThrow(() -> slv.mkSepNil(d_tm.getIntegerSort()));
+    assertThrows(CVC5ApiException.class, () -> slv.mkSepNil(d_tm.getIntegerSort()));
   }
 
   @Test
@@ -732,7 +727,6 @@ class TermManagerTest
     Term[] v4 = new Term[] {d_tm.mkInteger(1), d_tm.mkInteger(2)};
     Term[] v5 = new Term[] {d_tm.mkInteger(1), new Term()};
     Term[] v6 = new Term[] {};
-    Solver slv = new Solver();
 
     // mkTerm(Kind kind) const
     assertDoesNotThrow(() -> d_tm.mkTerm(PI));
@@ -744,14 +738,14 @@ class TermManagerTest
     assertDoesNotThrow(() -> d_tm.mkTerm(NOT, d_tm.mkTrue()));
     assertThrows(CVC5ApiException.class, () -> d_tm.mkTerm(NOT, new Term()));
     assertThrows(CVC5ApiException.class, () -> d_tm.mkTerm(NOT, a));
-    assertDoesNotThrow(() -> slv.mkTerm(NOT, d_tm.mkTrue()));
+    assertDoesNotThrow(() -> d_solver.mkTerm(NOT, d_tm.mkTrue()));
 
     // mkTerm(Kind kind, Term child1, Term child2) const
     assertDoesNotThrow(() -> d_tm.mkTerm(EQUAL, a, b));
     assertThrows(CVC5ApiException.class, () -> d_tm.mkTerm(EQUAL, new Term(), b));
     assertThrows(CVC5ApiException.class, () -> d_tm.mkTerm(EQUAL, a, new Term()));
     assertThrows(CVC5ApiException.class, () -> d_tm.mkTerm(EQUAL, a, d_tm.mkTrue()));
-    assertDoesNotThrow(() -> slv.mkTerm(EQUAL, a, b));
+    assertDoesNotThrow(() -> d_solver.mkTerm(EQUAL, a, b));
 
     // mkTerm(Kind kind, Term child1, Term child2, Term child3) const
     assertDoesNotThrow(() -> d_tm.mkTerm(ITE, d_tm.mkTrue(), d_tm.mkTrue(), d_tm.mkTrue()));
@@ -766,7 +760,7 @@ class TermManagerTest
 
     assertThrows(CVC5ApiException.class, () -> d_tm.mkTerm(ITE, d_tm.mkTrue(), d_tm.mkTrue(), b));
 
-    assertDoesNotThrow(() -> slv.mkTerm(ITE, d_tm.mkTrue(), d_tm.mkTrue(), d_tm.mkTrue()));
+    assertDoesNotThrow(() -> d_solver.mkTerm(ITE, d_tm.mkTrue(), d_tm.mkTrue(), d_tm.mkTrue()));
 
     // mkTerm(Kind kind, const Term[]& children) const
     assertDoesNotThrow(() -> d_tm.mkTerm(EQUAL, v1));
@@ -785,7 +779,6 @@ class TermManagerTest
     Term[] v2 = new Term[] {d_tm.mkInteger(1), new Term()};
     Term[] v3 = new Term[] {};
     Term[] v4 = new Term[] {d_tm.mkInteger(5)};
-    Solver slv = new Solver();
 
     // simple operator terms
     Op opterm1 = d_tm.mkOp(BITVECTOR_EXTRACT, 2, 1);
@@ -819,7 +812,7 @@ class TermManagerTest
     assertThrows(CVC5ApiException.class, () -> d_tm.mkTerm(opterm1));
     assertThrows(CVC5ApiException.class, () -> d_tm.mkTerm(APPLY_SELECTOR, headTerm));
     assertThrows(CVC5ApiException.class, () -> d_tm.mkTerm(opterm1));
-    assertDoesNotThrow(() -> slv.mkTerm(APPLY_CONSTRUCTOR, nilTerm));
+    assertDoesNotThrow(() -> d_solver.mkTerm(APPLY_CONSTRUCTOR, nilTerm));
 
     // mkTerm(Op op, Term child) const
     assertDoesNotThrow(() -> d_tm.mkTerm(opterm1, a));
@@ -831,7 +824,7 @@ class TermManagerTest
     assertThrows(
         CVC5ApiException.class, () -> d_tm.mkTerm(APPLY_CONSTRUCTOR, consTerm, d_tm.mkInteger(0)));
 
-    assertDoesNotThrow(() -> slv.mkTerm(opterm1, a));
+    assertDoesNotThrow(() -> d_solver.mkTerm(opterm1, a));
 
     // mkTerm(Op op, Term child1, Term child2) const
     assertDoesNotThrow(()
@@ -848,7 +841,7 @@ class TermManagerTest
     assertThrows(CVC5ApiException.class, () -> d_tm.mkTerm(opterm2, new Term(), d_tm.mkInteger(1)));
 
     assertDoesNotThrow(()
-                           -> slv.mkTerm(APPLY_CONSTRUCTOR,
+                           -> d_solver.mkTerm(APPLY_CONSTRUCTOR,
                                consTerm,
                                d_tm.mkInteger(0),
                                d_tm.mkTerm(APPLY_CONSTRUCTOR, nilTerm)));
@@ -880,7 +873,7 @@ class TermManagerTest
     assertThrows(CVC5ApiException.class, () -> d_tm.mkTerm(opterm2, v1));
     assertThrows(CVC5ApiException.class, () -> d_tm.mkTerm(opterm2, v2));
     assertThrows(CVC5ApiException.class, () -> d_tm.mkTerm(opterm2, v3));
-    assertDoesNotThrow(() -> slv.mkTerm(opterm2, v4));
+    assertDoesNotThrow(() -> d_solver.mkTerm(opterm2, v4));
   }
 
   @Test
@@ -899,9 +892,11 @@ class TermManagerTest
     assertDoesNotThrow(() -> d_tm.mkTuple(new Term[] {d_tm.mkReal("5.3")}));
 
     Solver slv = new Solver();
-    assertDoesNotThrow(() -> slv.mkTuple(new Term[] {slv.mkBitVector(3, "101", 2)}));
+    assertThrows(
+        CVC5ApiException.class, () -> slv.mkTuple(new Term[] {d_solver.mkBitVector(3, "101", 2)}));
 
-    assertDoesNotThrow(() -> slv.mkTuple(new Term[] {d_tm.mkBitVector(3, "101", 2)}));
+    assertThrows(
+        CVC5ApiException.class, () -> slv.mkTuple(new Term[] {d_tm.mkBitVector(3, "101", 2)}));
   }
 
   @Test
@@ -912,9 +907,10 @@ class TermManagerTest
     assertDoesNotThrow(() -> d_tm.mkNullableSome(d_tm.mkReal("5.3")));
 
     Solver slv = new Solver();
-    assertDoesNotThrow(() -> slv.mkNullableSome(slv.mkBitVector(3, "101", 2)));
+    assertThrows(
+        CVC5ApiException.class, () -> slv.mkNullableSome(d_solver.mkBitVector(3, "101", 2)));
 
-    assertDoesNotThrow(() -> slv.mkNullableSome(d_tm.mkBitVector(3, "101", 2)));
+    assertThrows(CVC5ApiException.class, () -> slv.mkNullableSome(d_tm.mkBitVector(3, "101", 2)));
   }
 
   @Test
@@ -969,8 +965,7 @@ class TermManagerTest
   {
     assertDoesNotThrow(() -> d_tm.mkUniverseSet(d_tm.getBooleanSort()));
     assertThrows(CVC5ApiException.class, () -> d_tm.mkUniverseSet(new Sort()));
-    Solver slv = new Solver();
-    assertDoesNotThrow(() -> slv.mkUniverseSet(d_tm.getBooleanSort()));
+    assertDoesNotThrow(() -> d_solver.mkUniverseSet(d_tm.getBooleanSort()));
   }
 
   @Test
@@ -989,7 +984,7 @@ class TermManagerTest
     assertThrows(CVC5ApiException.class, () -> d_tm.mkConst(new Sort(), "a"));
 
     Solver slv = new Solver();
-    assertDoesNotThrow(() -> slv.mkConst(boolSort));
+    assertThrows(CVC5ApiException.class, () -> slv.mkConst(boolSort));
   }
 
   @Test
@@ -1009,8 +1004,8 @@ class TermManagerTest
     Solver slv = new Solver();
     Term zero2 = slv.mkInteger(0);
     Sort arrSort2 = slv.mkArraySort(slv.getIntegerSort(), slv.getIntegerSort());
-    assertDoesNotThrow(() -> slv.mkConstArray(arrSort2, zero));
-    assertDoesNotThrow(() -> slv.mkConstArray(arrSort, zero2));
+    assertThrows(CVC5ApiException.class, () -> slv.mkConstArray(arrSort2, zero));
+    assertThrows(CVC5ApiException.class, () -> slv.mkConstArray(arrSort, zero2));
   }
 
   @Test

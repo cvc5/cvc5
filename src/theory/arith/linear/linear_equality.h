@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Tim King, Gereon Kremer, Andrew Reynolds
+ *   Tim King, Gereon Kremer, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
@@ -425,7 +425,7 @@ public:
    * The constraint on a basic variable b is implied by the constraints
    * on its row.  This is a wrapper for propagateRow().
    */
- void propagateBasicFromRow(ConstraintP c, bool produceProofs);
+ void propagateBasicFromRow(NodeManager* nm, ConstraintP c, bool produceProofs);
 
  /**
   * Let v be the variable for the constraint c.
@@ -624,20 +624,27 @@ public:
    *
    * Returns a constraint that is now in conflict.
    */
-  ConstraintCP minimallyWeakConflict(bool aboveUpper, ArithVar basicVar, FarkasConflictBuilder& rc) const;
+ ConstraintCP minimallyWeakConflict(NodeManager* nm,
+                                    bool aboveUpper,
+                                    ArithVar basicVar,
+                                    FarkasConflictBuilder& rc) const;
 
-  /**
-   * Given a basic variable that is know to have a conflict on it,
-   * construct and return a conflict.
-   * Follows section 4.2 in the CAV06 paper.
-   */
-  inline ConstraintCP generateConflictAboveUpperBound(ArithVar conflictVar, FarkasConflictBuilder& rc) const {
-    return minimallyWeakConflict(true, conflictVar, rc);
-  }
+ /**
+  * Given a basic variable that is know to have a conflict on it,
+  * construct and return a conflict.
+  * Follows section 4.2 in the CAV06 paper.
+  */
+ inline ConstraintCP generateConflictAboveUpperBound(
+     NodeManager* nm, ArithVar conflictVar, FarkasConflictBuilder& rc) const
+ {
+   return minimallyWeakConflict(nm, true, conflictVar, rc);
+ }
 
-  inline ConstraintCP generateConflictBelowLowerBound(ArithVar conflictVar, FarkasConflictBuilder& rc) const {
-    return minimallyWeakConflict(false, conflictVar, rc);
-  }
+ inline ConstraintCP generateConflictBelowLowerBound(
+     NodeManager* nm, ArithVar conflictVar, FarkasConflictBuilder& rc) const
+ {
+   return minimallyWeakConflict(nm, false, conflictVar, rc);
+ }
 
   /**
    * Computes the sum of the upper/lower bound of row.

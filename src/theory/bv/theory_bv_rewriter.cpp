@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Leni Aniva, Liana Hadarean, Aina Niemetz
+ *   Leni Aniva, Liana Hadarean, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
@@ -60,13 +60,9 @@ TheoryBVRewriter::TheoryBVRewriter(NodeManager* nm) : TheoryRewriter(nm)
                            TheoryRewriteCtx::POST_DSL);
   registerProofRewriteRule(ProofRewriteRule::MACRO_BV_CONCAT_CONSTANT_MERGE,
                            TheoryRewriteCtx::POST_DSL);
-  registerProofRewriteRule(ProofRewriteRule::BV_UMULO_ELIMINATE,
+  registerProofRewriteRule(ProofRewriteRule::BV_UMULO_ELIM,
                            TheoryRewriteCtx::POST_DSL);
-  registerProofRewriteRule(ProofRewriteRule::BV_SMULO_ELIMINATE,
-                           TheoryRewriteCtx::POST_DSL);
-  registerProofRewriteRule(ProofRewriteRule::BV_ADD_COMBINE_LIKE_TERMS,
-                           TheoryRewriteCtx::POST_DSL);
-  registerProofRewriteRule(ProofRewriteRule::BV_MULT_SIMPLIFY,
+  registerProofRewriteRule(ProofRewriteRule::BV_SMULO_ELIM,
                            TheoryRewriteCtx::POST_DSL);
   registerProofRewriteRule(ProofRewriteRule::BV_BITWISE_SLICING,
                            TheoryRewriteCtx::POST_DSL);
@@ -143,13 +139,10 @@ Node TheoryBVRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       BV_PROOF_REWRITE_CASE(ConcatExtractMerge)
     case ProofRewriteRule::MACRO_BV_CONCAT_CONSTANT_MERGE:
       BV_PROOF_REWRITE_CASE(ConcatConstantMerge)
-    case ProofRewriteRule::BV_UMULO_ELIMINATE:
+    case ProofRewriteRule::BV_UMULO_ELIM:
       BV_PROOF_REWRITE_CASE(UmuloEliminate)
-    case ProofRewriteRule::BV_SMULO_ELIMINATE:
+    case ProofRewriteRule::BV_SMULO_ELIM:
       BV_PROOF_REWRITE_CASE(SmuloEliminate)
-    case ProofRewriteRule::BV_ADD_COMBINE_LIKE_TERMS:
-      BV_PROOF_REWRITE_CASE(AddCombineLikeTerms)
-    case ProofRewriteRule::BV_MULT_SIMPLIFY: BV_PROOF_REWRITE_CASE(MultSimplify)
     case ProofRewriteRule::BV_BITWISE_SLICING:
       BV_PROOF_REWRITE_CASE(BitwiseSlicing)
     case ProofRewriteRule::BV_REPEAT_ELIM:
@@ -206,6 +199,7 @@ RewriteResponse TheoryBVRewriter::RewriteUlt(TNode node, bool prerewrite)
   Node resultNode =
       LinearRewriteStrategy<RewriteRule<EvalUlt>,  // if both arguments are
                                                    // constants evaluates
+                            RewriteRule<UltSelf>,
                             RewriteRule<UltOne>,
                             RewriteRule<UltOnes>,
                             RewriteRule<UltZero>,  // a < 0 rewrites to false,
@@ -229,6 +223,7 @@ RewriteResponse TheoryBVRewriter::RewriteSlt(TNode node, bool prerewrite)
 {
   Node resultNode =
       LinearRewriteStrategy<RewriteRule<EvalSlt>,
+                            RewriteRule<SltSelf>,
                             RewriteRule<MultSltMult>>::apply(node);
 
   return RewriteResponse(REWRITE_DONE, resultNode);
@@ -399,9 +394,8 @@ RewriteResponse TheoryBVRewriter::RewriteExtract(TNode node, bool prerewrite)
 RewriteResponse TheoryBVRewriter::RewriteConcat(TNode node, bool prerewrite)
 {
   TRY_REWRITE(ConcatFlatten)
+  TRY_REWRITE(ConcatExtractMerge)
   Node resultNode = LinearRewriteStrategy<
-      // Merge the adjacent extracts on non-constants
-      RewriteRule<ConcatExtractMerge>,
       // Remove extracts that have no effect
       ApplyRuleToChildren<Kind::BITVECTOR_CONCAT, ExtractWhole>,
       // Merge the adjacent extracts on constants
@@ -495,6 +489,29 @@ RewriteResponse TheoryBVRewriter::RewriteConstBvSym(TNode node, bool prerewrite)
   Node resultNode =
       LinearRewriteStrategy<RewriteRule<EvalConstBvSym>>::apply(node);
   return RewriteResponse(REWRITE_DONE, resultNode);
+}
+
+RewriteResponse TheoryBVRewriter::RewriteOverflow(TNode node, bool prerewrite)
+{
+  // If all children are constant, we rewrite based on the definition of the
+  // overflow predicate using eliminateOverflows. We require rewriting this
+  // way to ensure the rewrite does constant folding, which is necessary for
+  // model evaluation.
+  bool allConstChildren = true;
+  for (const Node& nc : node)
+  {
+    if (!nc.isConst())
+    {
+      allConstChildren = false;
+      break;
+    }
+  }
+  if (allConstChildren)
+  {
+    Node nodeo = eliminateOverflows(node);
+    return RewriteResponse(REWRITE_AGAIN_FULL, nodeo);
+  }
+  return RewriteResponse(REWRITE_DONE, node);
 }
 RewriteResponse TheoryBVRewriter::RewriteSize(TNode node, bool prerewrite)
 {
@@ -859,4 +876,16 @@ void TheoryBVRewriter::initializeRewrites()
   d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_SIZE)] = RewriteSize;
   d_rewriteTable[static_cast<uint32_t>(Kind::CONST_BITVECTOR_SYMBOLIC)] =
       RewriteConstBvSym;
+  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_SADDO)] =
+      RewriteOverflow;
+  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_UADDO)] =
+      RewriteOverflow;
+  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_SMULO)] =
+      RewriteOverflow;
+  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_UMULO)] =
+      RewriteOverflow;
+  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_SSUBO)] =
+      RewriteOverflow;
+  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_USUBO)] =
+      RewriteOverflow;
 }

@@ -99,7 +99,7 @@ void TheoryUF::finishInit() {
       std::stringstream ss;
       ss << "Logic with cardinality constraints not available in this "
             "configuration, try --uf-card-exp.";
-      throw LogicException(ss.str());
+      throw SafeLogicException(ss.str());
     }
   }
   // Initialize the cardinality constraints solver if the logic includes UF,
@@ -120,23 +120,23 @@ void TheoryUF::finishInit() {
       std::stringstream ss;
       ss << "Higher-order logic not available in this configuration, try "
             "--uf-ho-exp.";
-      throw LogicException(ss.str());
+      throw SafeLogicException(ss.str());
     }
     d_equalityEngine->addFunctionKind(Kind::HO_APPLY);
     d_ho.reset(new HoExtension(d_env, d_state, d_im, *d_lambdaLift.get()));
   }
   // conversion kinds
   d_equalityEngine->addFunctionKind(Kind::INT_TO_BITVECTOR, true);
-  d_equalityEngine->addFunctionKind(Kind::BITVECTOR_TO_NAT, true);
+  d_equalityEngine->addFunctionKind(Kind::BITVECTOR_UBV_TO_INT, true);
 }
 
 //--------------------------------- standard check
 
 bool TheoryUF::needsCheckLastEffort()
 {
-  // last call effort needed if using finite model finding or
-  // arithmetic/bit-vector conversions
-  return d_thss != nullptr || d_csolver != nullptr;
+  // last call effort needed if using finite model finding,
+  // arithmetic/bit-vector conversions, or higher-order extension
+  return d_thss != nullptr || d_csolver != nullptr || d_ho!=nullptr;
 }
 
 void TheoryUF::postCheck(Effort level)
@@ -261,12 +261,12 @@ TrustNode TheoryUF::ppRewrite(TNode node, std::vector<SkolemLemma>& lems)
       throw LogicException(ss.str());
     }
   }
-  else if ((k == Kind::BITVECTOR_TO_NAT || k == Kind::INT_TO_BITVECTOR)
+  else if ((k == Kind::BITVECTOR_UBV_TO_INT || k == Kind::INT_TO_BITVECTOR)
            && options().uf.eagerArithBvConv)
   {
     // eliminate if option specifies to eliminate eagerly
-    Node ret = k == Kind::BITVECTOR_TO_NAT ? arith::eliminateBv2Nat(node)
-                                           : arith::eliminateInt2Bv(node);
+    Node ret = k == Kind::BITVECTOR_UBV_TO_INT ? arith::eliminateBv2Nat(node)
+                                               : arith::eliminateInt2Bv(node);
     return TrustNode::mkTrustRewrite(node, ret);
   }
   if (isHol)
@@ -312,7 +312,7 @@ void TheoryUF::preRegisterTerm(TNode node)
     }
     break;
     case Kind::INT_TO_BITVECTOR:
-    case Kind::BITVECTOR_TO_NAT:
+    case Kind::BITVECTOR_UBV_TO_INT:
     {
       Assert(!options().uf.eagerArithBvConv);
       d_equalityEngine->addTerm(node);
@@ -555,6 +555,14 @@ void TheoryUF::processCarePairArgs(TNode a, TNode b)
   }
 }
 
+void TheoryUF::computeRelevantTerms(std::set<Node>& termSet)
+{
+  if (d_ho!=nullptr)
+  {
+    d_ho->computeRelevantTerms(termSet);
+  }
+}
+
 void TheoryUF::computeCareGraph() {
   if (d_state.getSharedTerms().empty())
   {
@@ -618,7 +626,7 @@ void TheoryUF::computeCareGraph() {
           }
         }
       }
-      else if (k == Kind::HO_APPLY || k == Kind::BITVECTOR_TO_NAT)
+      else if (k == Kind::HO_APPLY || k == Kind::BITVECTOR_UBV_TO_INT)
       {
         // add it to the typeIndex for the function type if HO_APPLY, or the
         // bitvector type if bv2nat. The latter ensures that we compute

@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Andrew Reynolds, Daniel Larraz
+ *   Gereon Kremer, Daniel Larraz, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
@@ -186,7 +186,18 @@ void addToSum(Sum& sum, TNode n, bool negate)
     multiplicity = Integer(-1);
   }
   addToProduct(monomial, multiplicity, n);
-  addToSum(sum, mkNonlinearMult(monomial), multiplicity);
+  addToSum(sum, mkNonlinearMult(n.getNodeManager(), monomial), multiplicity);
+}
+
+void addMonomialToSum(Sum& sum,
+                      TNode product,
+                      RealAlgebraicNumber& multiplicity)
+{
+  Assert(product.getKind() != Kind::ADD);
+  std::vector<Node> monomial;
+  addToProduct(monomial, multiplicity, product);
+  addToSum(
+      sum, mkNonlinearMult(product.getNodeManager(), monomial), multiplicity);
 }
 
 Node collectSum(NodeManager* nm, const Sum& sum)
@@ -267,7 +278,7 @@ Node distributeMultiplication(NodeManager* nm,
         addToProduct(newProduct, multiplicity, summand.first);
         addToProduct(newProduct, multiplicity, child);
         std::sort(newProduct.begin(), newProduct.end(), LeafNodeComparator());
-        addToSum(newsum, mkNonlinearMult(newProduct), multiplicity);
+        addToSum(newsum, mkNonlinearMult(nm, newProduct), multiplicity);
       }
     }
     if (TraceIsOn("arith-rewriter-distribute"))

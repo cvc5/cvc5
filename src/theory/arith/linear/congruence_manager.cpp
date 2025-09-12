@@ -192,7 +192,7 @@ void ArithCongruenceManager::watchedVariableIsZero(ConstraintCP lb, ConstraintCP
   {
     pf = d_pnm->mkNode(
         ProofRule::ARITH_TRICHOTOMY, {pfLb, pfUb}, {}, eqC->getProofLiteral());
-    pf = d_pnm->mkNode(ProofRule::MACRO_SR_PRED_TRANSFORM, {pf}, {eq}, eq);
+    pf = ensurePredTransform(d_pnm, pf, eq);
   }
 
   d_keepAlive.push_back(reason);
@@ -225,8 +225,7 @@ void ArithCongruenceManager::watchedVariableIsZero(ConstraintCP eq){
   auto pf = eq->externalExplainByAssertions(nb);
   if (isProofEnabled())
   {
-    pf = d_pnm->mkNode(
-        ProofRule::MACRO_SR_PRED_TRANSFORM, {pf}, {d_watchedEqualities[s]});
+    pf = ensurePredTransform(d_pnm, pf, d_watchedEqualities[s]);
   }
   Node reason = mkAndFromBuilder(nodeManager(), nb);
 
@@ -260,7 +259,7 @@ void ArithCongruenceManager::watchedVariableCannotBeZero(ConstraintCP c){
     {
       Assert(c->getLiteral() == d_watchedEqualities[s].negate());
       // We have to prove equivalence to the watched disequality.
-      pf = d_pnm->mkNode(ProofRule::MACRO_SR_PRED_TRANSFORM, {pf}, {disEq});
+      pf = ensurePredTransform(d_pnm, pf, disEq);
     }
     else
     {
@@ -285,10 +284,10 @@ void ArithCongruenceManager::watchedVariableCannotBeZero(ConstraintCP c){
       std::vector<Node> coeff{nm->mkConstInt(Rational(-1 * cSign)),
                               nm->mkConstInt(Rational(cSign))};
       std::vector<Node> coeffUse = getMacroSumUbCoeff(nm, pfs, coeff);
-      const auto sumPf =
+      auto sumPf =
           d_pnm->mkNode(ProofRule::MACRO_ARITH_SCALE_SUM_UB, pfs, coeffUse);
-      const auto botPf = d_pnm->mkNode(
-          ProofRule::MACRO_SR_PRED_TRANSFORM, {sumPf}, {nm->mkConst(false)});
+      Node fn = nm->mkConst(false);
+      const auto botPf = ensurePredTransform(d_pnm, sumPf, fn);
       std::vector<Node> assumption = {isZero};
       pf = d_pnm->mkScope(botPf, assumption, false);
       if (TraceIsOn("arith::cong::notzero"))
@@ -329,8 +328,7 @@ bool ArithCongruenceManager::propagate(TNode x){
       if (isProofEnabled())
       {
         auto pf = trn.getGenerator()->getProofFor(trn.getProven());
-        auto confPf = d_pnm->mkNode(
-            ProofRule::MACRO_SR_PRED_TRANSFORM, {pf}, {conf.negate()});
+        auto confPf = ensurePredTransform(d_pnm, pf, conf.negate());
         raiseConflict(conf, confPf);
       }
       else
@@ -535,8 +533,11 @@ TrustNode ArithCongruenceManager::explain(TNode external)
       assumptionPfs.push_back(
           d_pnm->mkNode(ProofRule::TRUE_INTRO, {d_pnm->mkAssume(a)}, {}));
     }
-    auto litPf = d_pnm->mkNode(
-        ProofRule::MACRO_SR_PRED_TRANSFORM, {assumptionPfs}, {external});
+    // uses substitution to true
+    auto litPf = d_pnm->mkNode(ProofRule::MACRO_SR_PRED_TRANSFORM,
+                               {assumptionPfs},
+                               {external},
+                               external);
     auto extPf = d_pnm->mkScope(litPf, assumptions);
     return d_pfGenExplain->mkTrustedPropagation(external, trn.getNode(), extPf);
   }

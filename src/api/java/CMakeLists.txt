@@ -1,6 +1,6 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Mudathir Mohamed, Andres Noetzli, Daniel Larraz
+#   Daniel Larraz, Mudathir Mohamed, Andres Noetzli
 #
 # This file is part of the cvc5 project.
 #
@@ -103,13 +103,6 @@ add_custom_target(generate-java-types DEPENDS ${JAVA_TYPES_FILES})
 
 # find java
 find_package(Java 1.8 COMPONENTS Development REQUIRED)
-if(Java_VERSION_MAJOR GREATER_EQUAL 9)
-  # Compile option --release is available from JDK 9 onwards.
-  # It ensures the compiled classes are compatible with
-  # the minimum required version. It expects a single number
-  # and does not support 1.X syntax used in JDK < 9.
-  set(CMAKE_JAVA_COMPILE_FLAGS "--release" "8")
-endif()
 include(UseJava)
 
 # specify java source files
@@ -277,6 +270,8 @@ message(STATUS "JAVA_AWT_INCLUDE_PATH: ${JAVA_AWT_INCLUDE_PATH}")
 set(jni_files
   jni/api_plugin.cpp
   jni/api_plugin.h
+  jni/api_solver.cpp
+  jni/api_solver.h
   jni/api_utilities.cpp
   jni/datatype.cpp
   jni/command.cpp
@@ -314,6 +309,13 @@ target_include_directories(cvc5jni PUBLIC ${PROJECT_SOURCE_DIR}/src)
 target_include_directories(cvc5jni PUBLIC ${CMAKE_BINARY_DIR}/src/)
 target_include_directories(cvc5jni PUBLIC ${JNI_DIR})
 target_link_libraries(cvc5jni PRIVATE cvc5 cvc5parser)
+
+if (WIN32 AND NOT BUILD_SHARED_LIBS)
+  # Statically link all libraries, including MinGW-w64 libraries
+  set_target_properties(cvc5jni PROPERTIES LINK_FLAGS -static)
+  set_target_properties(cvc5jni PROPERTIES LINK_SEARCH_START_STATIC ON)
+  set_target_properties(cvc5jni PROPERTIES LINK_SEARCH_END_STATIC ON)
+endif()
 
 # Java on Windows expects the JNI libraries without the prefix
 if (WIN32)

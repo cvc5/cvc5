@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Abdalrhman Mohamed, Aina Niemetz
+ *   Andrew Reynolds, Aina Niemetz, Abdalrhman Mohamed
  *
  * This file is part of the cvc5 project.
  *
@@ -34,7 +34,9 @@
 #include "rewriter/rewrite_db.h"
 #include "smt/print_benchmark.h"
 #include "theory/strings/theory_strings_utils.h"
+#include "theory/theory.h"
 #include "util/string.h"
+#include "theory/builtin/generic_op.h"
 
 namespace cvc5::internal {
 
@@ -190,6 +192,7 @@ bool AlfPrinter::isHandled(const Options& opts, const ProofNode* pfn)
     case ProofRule::ARITH_POLY_NORM_REL:
     case ProofRule::BV_POLY_NORM:
     case ProofRule::BV_POLY_NORM_EQ:
+    case ProofRule::EXISTS_STRING_LENGTH:
     case ProofRule::DSL_REWRITE: return true;
     case ProofRule::BV_BITBLAST_STEP:
     {
@@ -293,7 +296,7 @@ bool AlfPrinter::isHandledTheoryRewrite(ProofRewriteRule id, const Node& n)
     case ProofRewriteRule::DISTINCT_CARD_CONFLICT:
     case ProofRewriteRule::BETA_REDUCE:
     case ProofRewriteRule::LAMBDA_ELIM:
-    case ProofRewriteRule::BV_TO_NAT_ELIM:
+    case ProofRewriteRule::UBV_TO_INT_ELIM:
     case ProofRewriteRule::INT_TO_BV_ELIM:
     case ProofRewriteRule::ARITH_POW_ELIM:
     case ProofRewriteRule::ARITH_STRING_PRED_ENTAIL:
@@ -317,6 +320,7 @@ bool AlfPrinter::isHandledTheoryRewrite(ProofRewriteRule id, const Node& n)
     case ProofRewriteRule::QUANT_VAR_ELIM_EQ:
     case ProofRewriteRule::QUANT_DT_SPLIT:
     case ProofRewriteRule::RE_LOOP_ELIM:
+    case ProofRewriteRule::RE_EQ_ELIM:
     case ProofRewriteRule::SETS_EVAL_OP:
     case ProofRewriteRule::SETS_INSERT_ELIM:
     case ProofRewriteRule::STR_IN_RE_CONCAT_STAR_CHAR:
@@ -328,6 +332,8 @@ bool AlfPrinter::isHandledTheoryRewrite(ProofRewriteRule id, const Node& n)
     case ProofRewriteRule::STR_REPLACE_RE_ALL_EVAL:
     case ProofRewriteRule::RE_INTER_INCLUSION:
     case ProofRewriteRule::RE_UNION_INCLUSION:
+    case ProofRewriteRule::BV_SMULO_ELIM:
+    case ProofRewriteRule::BV_UMULO_ELIM:
     case ProofRewriteRule::BV_REPEAT_ELIM:
     case ProofRewriteRule::BV_BITWISE_SLICING:
     case ProofRewriteRule::STR_OVERLAP_SPLIT_CTN:
@@ -344,10 +350,11 @@ bool AlfPrinter::isHandledTheoryRewrite(ProofRewriteRule id, const Node& n)
   return false;
 }
 
+
 bool AlfPrinter::isHandledBitblastStep(const Node& eq)
 {
   Assert(eq.getKind() == Kind::EQUAL);
-  if (eq[0].isVar())
+  if (theory::Theory::isLeafOf(eq[0], theory::THEORY_BV))
   {
     return true;
   }
@@ -356,7 +363,30 @@ bool AlfPrinter::isHandledBitblastStep(const Node& eq)
     case Kind::CONST_BITVECTOR:
     case Kind::BITVECTOR_EXTRACT:
     case Kind::BITVECTOR_CONCAT:
-    case Kind::EQUAL: return true;
+    case Kind::BITVECTOR_AND:
+    case Kind::BITVECTOR_OR:
+    case Kind::BITVECTOR_XOR:
+    case Kind::BITVECTOR_XNOR:
+    case Kind::BITVECTOR_NOT:
+    case Kind::BITVECTOR_ADD:
+    case Kind::BITVECTOR_SUB:
+    case Kind::BITVECTOR_NEG:
+    case Kind::BITVECTOR_MULT:
+    case Kind::BITVECTOR_SIGN_EXTEND:
+    case Kind::BITVECTOR_SHL:
+    case Kind::BITVECTOR_ASHR:
+    case Kind::BITVECTOR_LSHR:
+    case Kind::BITVECTOR_UDIV:
+    case Kind::BITVECTOR_UREM:
+    case Kind::EQUAL:
+    case Kind::BITVECTOR_SLT:
+    case Kind::BITVECTOR_SLE:
+    case Kind::BITVECTOR_ULT:
+    case Kind::BITVECTOR_ULE:
+    case Kind::BITVECTOR_ITE:
+    case Kind::BITVECTOR_COMP:
+    case Kind::BITVECTOR_ULTBV:
+    case Kind::BITVECTOR_SLTBV: return true;
     default:
       Trace("alf-printer-debug") << "Cannot bitblast  " << eq[0] << std::endl;
       break;
@@ -377,12 +407,18 @@ bool AlfPrinter::canEvaluate(Node n)
     if (visited.find(cur) == visited.end())
     {
       visited.insert(cur);
-      switch (cur.getKind())
+      Kind k = cur.getKind();
+      if (k==Kind::APPLY_INDEXED_SYMBOLIC)
+      {
+        k = cur.getOperator().getConst<GenericOp>().getKind();
+      }
+      switch (k)
       {
         case Kind::ITE:
         case Kind::NOT:
         case Kind::AND:
         case Kind::OR:
+        case Kind::IMPLIES:
         case Kind::XOR:
         case Kind::CONST_BOOLEAN:
         case Kind::CONST_INTEGER:
@@ -457,7 +493,8 @@ bool AlfPrinter::canEvaluate(Node n)
         case Kind::BITVECTOR_SIGN_EXTEND:
         case Kind::BITVECTOR_ZERO_EXTEND:
         case Kind::CONST_BITVECTOR_SYMBOLIC:
-        case Kind::BITVECTOR_TO_NAT:
+        case Kind::BITVECTOR_UBV_TO_INT:
+        case Kind::BITVECTOR_SBV_TO_INT:
         case Kind::INT_TO_BITVECTOR:
         case Kind::EQUAL: break;  // note that equality falls through
         case Kind::BITVECTOR_SIZE:
@@ -759,9 +796,12 @@ void AlfPrinter::printDslRule(std::ostream& out, ProofRewriteRule r)
   }
   out << ")" << std::endl;
   Node sconc = d_tproc.convert(su.apply(conc));
-  sconc = ltproc.convert(sconc);
+  Node rhs = ltproc.convert(sconc[1]);
+  // do not apply singleton elimination to head
+  AlfListNodeConverter ltprocNse(nodeManager(), d_tproc, adtcConvMap, false);
+  Node lhs = ltprocNse.convert(sconc[0]);
   Assert(sconc.getKind() == Kind::EQUAL);
-  out << "  :conclusion (= " << sconc[0] << " " << sconc[1] << ")" << std::endl;
+  out << "  :conclusion (= " << lhs << " " << rhs << ")" << std::endl;
   out << ")" << std::endl;
 }
 

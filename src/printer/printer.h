@@ -389,10 +389,6 @@ class CVC5_EXPORT Printer
   /** Make a Printer for a given Language */
   static std::unique_ptr<Printer> makePrinter(Language lang);
 
-  /** Printers for each Language */
-  static thread_local std::unique_ptr<Printer>
-      d_printers[static_cast<size_t>(Language::LANG_MAX)];
-
 }; /* class Printer */
 
 }  // namespace cvc5::internal

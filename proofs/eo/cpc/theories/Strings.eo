@@ -8,10 +8,10 @@
 
 ; The sequence type.
 ; disclaimer: This sort is not in SMT-LIB.
-(declare-type Seq (Type))
+(declare-const Seq (-> Type Type))
 
 ; disclaimer: This sort is not in SMT-LIB.
-(declare-type Char ())
+(declare-const Char Type)
 
 ; define: String
 ; return: >
@@ -26,7 +26,7 @@
 (define String () (Seq Char))
 
 ; The regular expression type.
-(declare-type RegLan ())
+(declare-const RegLan Type)
 
 ; String literals are strings.
 (declare-consts <string> String)
@@ -34,71 +34,57 @@
 ; Empty sequence
 ; note: >
 ;   This symbol is used as the term denoting the empty sequence.
-;   This is not the same as seq.empty, which is defined as the
+;   This is not the same as $seq_empty, which is defined as the
 ;   (user-facing) constructor of the empty string or sequence,
-;   defined as seq.empty below. It is never used for strings.
-(declare-const @seq.empty (-> (! Type :var T) T))
+;   defined as $seq_empty below. Note seq.empty is never used for strings.
+; disclaimer: This function is not in SMT-LIB.
+(declare-parameterized-const seq.empty ((T Type :implicit)) (Seq T))
 
-; program: seq.empty
+; define: $seq_empty
 ; args:
 ; - T Type: The string-like type.
 ; return: The empty string of the given string-like type T.
 ; note: >
-;   We define seq.empty in this way since the same symbols in our theory
+;   We define $seq_empty in this way since the same symbols in our theory
 ;   are used for strings and sequences, yet for the purposes of
 ;   e.g. evaluation, strings require using string literals as their
 ;   values. In places where seq.empty can be used for a string or
 ;   sequence (e.g., RARE), we use this program to ensure this is the case.
-; disclaimer: This function is not in SMT-LIB.
-(program seq.empty ((U Type))
-  (Type) (Seq U)
-  (
-    ((seq.empty String)  "")
-    ((seq.empty (Seq U)) (@seq.empty (Seq U)))
-  )
-)
-
-; define: $mk_emptystr
-; note: >
-;   This is used as a macro for constructing the empty string or sequence.
-;   It is equivalent to seq.empty above.
-(define $mk_emptystr () seq.empty)
+(define $seq_empty ((U Type))
+  (eo::ite (eo::is_eq U String) "" (as seq.empty U)))
 
 ; Core functions of strings.
-(declare-const str.len 
-  (-> (! Type :var T :implicit)
-      (Seq T) Int))
+(declare-parameterized-const str.len ((T Type :implicit)) (-> (Seq T) Int))
 
 ; disclaimer: >
 ;   This function is declared in SMT-LIB to be :left-assoc. We
 ;   declare it to be :right-assoc-nil to model cvc5's treatment of variadic
 ;   functions.
-(declare-parameterized-const str.++ ((T Type))
-  (-> (Seq T) (Seq T) (Seq T)) :right-assoc-nil (seq.empty (Seq T)))
+(declare-parameterized-const str.++ ((T Type :implicit))
+  (-> (Seq T) (Seq T) (Seq T)) :right-assoc-nil ($seq_empty (Seq T)))
 
 ; Extended functions for strings.
-(declare-const str.substr (-> (! Type :var T :implicit)
-                              (Seq T) Int Int (Seq T)))
-(declare-const str.contains (-> (! Type :var T :implicit)
-                                (Seq T) (Seq T) Bool))
-(declare-const str.replace (-> (! Type :var T :implicit)
-                               (Seq T) (Seq T) (Seq T) (Seq T)))
-(declare-const str.indexof (-> (! Type :var T :implicit)
-                               (Seq T) (Seq T) Int Int))
-(declare-const str.at (-> (! Type :var T :implicit)
-                          (Seq T) Int (Seq T)))
-(declare-const str.prefixof (-> (! Type :var T :implicit)
-                                (Seq T) (Seq T) Bool))
-(declare-const str.suffixof (-> (! Type :var T :implicit)
-                                (Seq T) (Seq T) Bool))
+(declare-parameterized-const str.substr ((T Type :implicit))
+  (-> (Seq T) Int Int (Seq T)))
+(declare-parameterized-const str.contains ((T Type :implicit))
+  (-> (Seq T) (Seq T) Bool))
+(declare-parameterized-const str.replace ((T Type :implicit))
+  (-> (Seq T) (Seq T) (Seq T) (Seq T)))
+(declare-parameterized-const str.indexof ((T Type :implicit))
+  (-> (Seq T) (Seq T) Int Int))
+(declare-parameterized-const str.at ((T Type :implicit))
+  (-> (Seq T) Int (Seq T)))
+(declare-parameterized-const str.prefixof ((T Type :implicit))
+  (-> (Seq T) (Seq T) Bool))
+(declare-parameterized-const str.suffixof ((T Type :implicit))
+  (-> (Seq T) (Seq T) Bool))
 ; disclaimer: This function is not in SMT-LIB.
-(declare-const str.rev (-> (! Type :var T :implicit)
-                           (Seq T) (Seq T)))
+(declare-parameterized-const str.rev ((T Type :implicit)) (-> (Seq T) (Seq T)))
 ; disclaimer: This function is not in SMT-LIB.
 (declare-const str.unit (-> Int String))
 ; disclaimer: This function is not in SMT-LIB.
-(declare-const str.update (-> (! Type :var T :implicit)
-                              (Seq T) Int (Seq T) (Seq T)))
+(declare-parameterized-const str.update ((T Type :implicit))
+  (-> (Seq T) Int (Seq T) (Seq T)))
 ; disclaimer: This function is not in SMT-LIB.
 (declare-const str.to_lower (-> String String))
 ; disclaimer: This function is not in SMT-LIB.
@@ -110,8 +96,8 @@
 (declare-const str.from_int (-> Int String))
 (declare-const str.< (-> String String Bool))
 (declare-const str.<= (-> String String Bool))
-(declare-const str.replace_all (-> (! Type :var T :implicit)
-                                   (Seq T) (Seq T) (Seq T) (Seq T)))
+(declare-parameterized-const str.replace_all ((T Type :implicit))
+  (-> (Seq T) (Seq T) (Seq T) (Seq T)))
 (declare-const str.replace_re (-> String RegLan String String))
 (declare-const str.replace_re_all (-> String RegLan String String))
 ; disclaimer: This function is not in SMT-LIB.
@@ -129,6 +115,7 @@
 
 (declare-const re.* (-> RegLan RegLan))
 (declare-const re.+ (-> RegLan RegLan))
+(declare-const re.^ (-> Int RegLan RegLan))
 (declare-const re.opt (-> RegLan RegLan))
 (declare-const re.comp (-> RegLan RegLan))
 (declare-const re.range (-> String String RegLan))
@@ -149,9 +136,10 @@
 
 ; Sequence-specific operators.
 ; disclaimer: This function is not in SMT-LIB.
-(declare-const seq.unit (-> (! Type :var T :implicit) T (Seq T)))
+(declare-parameterized-const seq.unit ((T Type :implicit)) (-> T (Seq T)))
 ; disclaimer: This function is not in SMT-LIB.
-(declare-const seq.nth (-> (! Type :var T :implicit) (Seq T) Int (eo::ite (eo::is_eq T Char) Int T)))
+(declare-parameterized-const seq.nth ((T Type :implicit))
+  (-> (Seq T) Int (eo::ite (eo::eq T Char) Int T)))
 
 ; Sequence operators are automatically translated to the string operators.
 ; disclaimer: This function is not in SMT-LIB.
@@ -181,22 +169,32 @@
 
 ; Skolem functions for strings and sequences.
 
-(declare-const @re_unfold_pos_component (-> (! String :opaque) (! RegLan :opaque) (! Int :opaque) String))
-(declare-const @strings_deq_diff (-> (! Type :var T :implicit) (! (Seq T) :opaque) (! (Seq T) :opaque) Int))
-(declare-const @strings_stoi_result (-> (! String :opaque) Int Int))
-(declare-const @strings_stoi_non_digit (-> (! String :opaque) Int))
-(declare-const @strings_itos_result (-> (! Int :opaque) Int Int))
+(declare-parameterized-const @re_unfold_pos_component
+  ((s String :opaque) (r RegLan :opaque) (n Int :opaque)) 
+  String)
+(declare-parameterized-const @strings_deq_diff
+  ((T Type :implicit) (s (Seq T) :opaque) (t (Seq T) :opaque))
+  Int)
+(declare-parameterized-const @strings_stoi_result ((s String :opaque))
+  (-> Int Int))
+(declare-parameterized-const @strings_stoi_non_digit ((s String :opaque)) Int)
+(declare-parameterized-const @strings_itos_result ((n Int :opaque))
+  (-> Int Int))
+(declare-parameterized-const @strings_num_occur
+  ((T Type :implicit) (s (Seq T)) (t (Seq T)))
+  Int)
+(declare-parameterized-const @strings_num_occur_re 
+  ((e String :opaque) (b RegLan :opaque))
+  Int)
+(declare-parameterized-const @strings_occur_index
+  ((T Type :implicit) (s (Seq T)) (t (Seq T)))
+  (-> Int Int))
+(declare-parameterized-const @strings_occur_index_re
+  ((s String :opaque) (r RegLan :opaque))
+  (-> Int Int))
+(declare-parameterized-const @strings_replace_all_result
+  ((T Type :implicit) (t (Seq T) :opaque))
+  (-> Int (Seq T)))
 
-(declare-const @strings_num_occur (-> (! Type :var T :implicit) (! (Seq T) :opaque) (! (Seq T) :opaque) Int))
-(declare-const @strings_num_occur_re (-> (! String :opaque) (! RegLan :opaque) Int))
-(declare-const @strings_occur_index (-> (! Type :var T :implicit) (! (Seq T) :opaque) (! (Seq T) :opaque) Int Int))
-(declare-const @strings_occur_index_re (-> (! String :opaque) (! RegLan :opaque) Int Int))
-(declare-const @strings_occur_len_re (-> (! String :opaque) (! RegLan :opaque) Int Int))
-
-(declare-const @strings_replace_all_result (-> (! Type :var T :implicit) (! (Seq T) :opaque) Int (Seq T)))
-
-(declare-const @re_first_match_pre (-> (! String :opaque) (! RegLan :opaque) String))
-(declare-const @re_first_match (-> (! String :opaque) (! RegLan :opaque) String))
-(declare-const @re_first_match_post (-> (! String :opaque) (! RegLan :opaque) String))
-
-
+(declare-parameterized-const @witness_string_length ((T Type))
+  (-> Int Int T))

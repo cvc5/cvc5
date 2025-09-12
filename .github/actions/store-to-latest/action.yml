@@ -3,68 +3,27 @@ description: Store an asset on the release page associated to the latest tag
 inputs:
   asset-filename:
     description: filename of the asset
-  github-token:
-    description: token to upload asset to latest
+  shell:
+    default: bash
   
 runs:
   using: composite
   steps:
     - name: Store to latest
-      shell: 'python3 {0}'
+      shell: ${{ inputs.shell }}
       env:
-        GITHUB_TOKEN: ${{ inputs.github-token }}
+        GITHUB_TOKEN: ${{ github.token }}
         PACKAGE: ${{ inputs.asset-filename }}
       run: |
-        import datetime
-        import os
-        from github import Github
-
-        sha = os.getenv('GITHUB_SHA')
-
-        gh = Github(os.getenv('GITHUB_TOKEN'))
-        repo = gh.get_repo(os.getenv('GITHUB_REPOSITORY'))
-
-        try:
-          ref = repo.get_git_ref('tags/latest')
-          # update "latest" to current commit if sha changed
-          if ref.object.sha != sha:
-            ref.edit(sha)
-        except:
-          print('tag `latest` does not exist.')
-          exit
-
-        try:
-          rel = repo.get_release('latest')
-        except:
-          print('New `latest` release')
-          rel = repo.create_git_release('latest', 'latest', 'Latest builds')
-
-        # generate new filename
-        package = os.getenv('PACKAGE')
-        name,ext = os.path.splitext(package)
-        curtime = repo.get_git_commit(sha).committer.date.strftime('%Y-%m-%d')
-        samedayprefix = '{}-{}-'.format(name, curtime)
-        filename = '{}-{}-{}{}'.format(name, curtime, sha[:7], ext)
-
-        # prune old commits
-        assets = list(rel.get_assets())
-        assets.sort(key=lambda x: x.created_at, reverse=True)
-
-        for cnt,asset in enumerate(assets):
-          delete = False
-          # We generate 10 packages per build:
-          # {Linux-x86_64, Linux-arm64, macOS-x86_64, macOS-arm64, Win64-x86_64} * {static, shared}
-          # and 5 JARS {Linux-x86_64, Linux-arm64, macOS-x86_64, macOS-arm64, Win64-x86_64}
-          if cnt >= 30: # Keep at most 2 builds
-            delete = True
-          if asset.name.startswith(samedayprefix):
-            delete = True
-          # convert to timezone-aware datetime
-          age = datetime.datetime.now().replace(tzinfo=datetime.timezone.utc) - asset.created_at
-          if age.days > 7:
-            delete = True
-          if delete:
-            asset.delete_asset()
-
-        # upload as asset with proper name
-        rel.upload_asset(package, name=filename)
+        sha="${GITHUB_SHA}"
+        repo="${GITHUB_REPOSITORY}"
+        # Generate filename
+        name="${PACKAGE%.*}"
+        ext="${PACKAGE##*.}"
+        commit_date=$(gh api repos/${repo}/commits/${sha} --jq '.commit.committer.date' | cut -d'T' -f1)
+        # Construct filename
+        filename="${name}-${commit_date}-${sha:0:7}.${ext}"
+        echo "Generated filename: $filename"
+        RENAMED_PACKAGE=$(dirname "$PACKAGE")/$filename
+        mv -- "$PACKAGE" "$RENAMED_PACKAGE"
+        gh release upload latest "$RENAMED_PACKAGE" --repo "${repo}"

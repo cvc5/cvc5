@@ -1103,6 +1103,7 @@ RewriteResponse roundingModeBitBlast(NodeManager* nm,
 {
   Assert(node.getKind() == Kind::ROUNDINGMODE_BITBLAST);
 
+  symfpuSymbolic::SymFpuNM snm(nm);
   BitVector value;
 
   /* \todo fix the numbering of rounding modes so this doesn't need

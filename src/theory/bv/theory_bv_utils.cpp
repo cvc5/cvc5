@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Liana Hadarean, Andrew Reynolds
+ *   Aina Niemetz, Daniel Larraz, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
@@ -384,6 +384,18 @@ Node mkConcat(TNode node, unsigned repeat)
   }
   Node resultNode = result;
   return resultNode;
+}
+
+Node mkRepeat(TNode node, unsigned repeat)
+{
+  Assert(repeat);
+  // This method does not incorporate optimizations,
+  // e.g. automatically converting to concat or dropping repeat
+  // of size one, since we use it to ensure that rewrites match
+  // a particular form as defined in the RARE signatures.
+  NodeManager* nm = node.getNodeManager();
+  Node rop = nm->mkConst(BitVectorRepeat(repeat));
+  return nm->mkNode(rop, node);
 }
 
 /* ------------------------------------------------------------------------- */

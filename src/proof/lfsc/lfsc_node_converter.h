@@ -51,7 +51,9 @@ class LfscNodeConverter : public NodeConverter
    *
    * For examples of null terminators, see aci_norm.h.
    */
-  Node getNullTerminator(Kind k, TypeNode tn = TypeNode::null());
+  Node getNullTerminator(NodeManager* nm,
+                         Kind k,
+                         TypeNode tn = TypeNode::null());
   /**
    * Return the properly named operator for n of the form (f t1 ... tn), where
    * f could be interpreted or uninterpreted.  This method is used for cases

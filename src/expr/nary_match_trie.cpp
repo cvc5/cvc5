@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
+ *   Andrew Reynolds, Mathias Preiner, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
@@ -44,7 +44,7 @@ class NaryMatchFrame
 
 bool NaryMatchTrie::getMatches(Node n, NotifyMatch* ntm) const
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = n.getNodeManager();
   std::vector<Node> vars;
   std::vector<Node> subs;
   std::map<Node, Node> smap;

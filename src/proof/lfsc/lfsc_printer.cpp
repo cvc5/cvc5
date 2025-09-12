@@ -891,7 +891,7 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
             // notice we use d_tproc.getNullTerminator and not
             // expr::getNullTerminator here, which has subtle differences
             // e.g. re.empty vs (str.to_re "").
-            Node null = d_tproc.getNullTerminator(k, v.getType());
+            Node null = d_tproc.getNullTerminator(nm, k, v.getType());
             Node t;
             if (as[i].getNumChildren() == 1)
             {

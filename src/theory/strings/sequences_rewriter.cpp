@@ -51,6 +51,8 @@ SequencesRewriter::SequencesRewriter(NodeManager* nm,
   d_false = nm->mkConst(false);
   registerProofRewriteRule(ProofRewriteRule::RE_LOOP_ELIM,
                            TheoryRewriteCtx::PRE_DSL);
+  registerProofRewriteRule(ProofRewriteRule::RE_EQ_ELIM,
+                           TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::MACRO_RE_INTER_UNION_INCLUSION,
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::STR_IN_RE_EVAL,
@@ -102,6 +104,7 @@ Node SequencesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
   switch (id)
   {
     case ProofRewriteRule::RE_LOOP_ELIM: return rewriteViaReLoopElim(n);
+    case ProofRewriteRule::RE_EQ_ELIM: return rewriteViaReEqElim(n);
     case ProofRewriteRule::MACRO_RE_INTER_UNION_INCLUSION:
       return rewriteViaMacroReInterUnionInclusion(n);
     case ProofRewriteRule::RE_INTER_INCLUSION:
@@ -1113,6 +1116,7 @@ Node SequencesRewriter::rewriteAndOrRegExp(TNode node)
         return returnRewrite(node, ni, Rewrite::RE_AND_EMPTY);
       }
       // otherwise, can ignore
+      changed = true;
     }
     else if (nik == Kind::REGEXP_STAR
              && ni[0].getKind() == Kind::REGEXP_ALLCHAR)
@@ -1122,6 +1126,7 @@ Node SequencesRewriter::rewriteAndOrRegExp(TNode node)
         return returnRewrite(node, ni, Rewrite::RE_OR_ALL);
       }
       // otherwise, can ignore
+      changed = true;
     }
     else if (std::find(node_vec.begin(), node_vec.end(), ni) == node_vec.end())
     {
@@ -1410,6 +1415,20 @@ Node SequencesRewriter::rewriteViaReLoopElim(const Node& node)
                       << std::endl;
   Assert(retNode != node);
   return retNode;
+}
+
+Node SequencesRewriter::rewriteViaReEqElim(const Node& n)
+{
+  if (n.getKind() != Kind::EQUAL || !n[0].getType().isRegExp())
+  {
+    return Node::null();
+  }
+  NodeManager* nm = nodeManager();
+  Node v = SkolemCache::mkRegExpEqVar(nm, n);
+  Node mem1 = nm->mkNode(Kind::STRING_IN_REGEXP, v, n[0]);
+  Node mem2 = nm->mkNode(Kind::STRING_IN_REGEXP, v, n[1]);
+  return nm->mkNode(
+      Kind::FORALL, nm->mkNode(Kind::BOUND_VAR_LIST, v), mem1.eqNode(mem2));
 }
 
 Node SequencesRewriter::rewriteViaStrInReEval(const Node& node)
@@ -2894,6 +2913,16 @@ Node SequencesRewriter::rewriteContains(Node node)
     return returnRewrite(node, cret, Rewrite::CTN_COMPONENT);
   }
   TypeNode stype = node[0].getType();
+  
+  // (str.contains (str.++ ... s ...) (str.substr s n m)) ---> true
+  if (node[1].getKind()==Kind::STRING_SUBSTR)
+  {
+    if (std::find(nc1.begin(), nc1.end(), node[1][0])!=nc1.end())
+    {
+      Node res = nm->mkConst(true);
+      return returnRewrite(node, res, Rewrite::CTN_CONCAT_CTN_SUBSTR);
+    }
+  }
 
   // strip endpoints
   Node retStr =
@@ -3708,10 +3737,13 @@ Node SequencesRewriter::rewriteReplace(Node node)
       std::vector<Node> remc(children0.begin() + lastCheckIndex,
                              children0.end());
       Node rem = utils::mkConcat(remc, stype);
-      Node ret = nm->mkNode(
-          Kind::STRING_CONCAT,
-          nm->mkNode(Kind::STRING_REPLACE, lastLhs, node[1], node[2]),
-          rem);
+      std::vector<Node> rchildren;
+      rchildren.push_back(
+          nm->mkNode(Kind::STRING_REPLACE, lastLhs, node[1], node[2]));
+      // "inline" the components of concatenation, which makes RARE
+      // reconstruction easier.
+      utils::getConcat(rem, rchildren);
+      Node ret = utils::mkConcat(rchildren, lastLhs.getType());
       // for example:
       //   str.replace( x ++ x, "A", y ) ---> str.replace( x, "A", y ) ++ x
       // Since we know that the first occurrence of "A" cannot be in the
@@ -3778,6 +3810,13 @@ Node SequencesRewriter::rewriteReplaceAll(Node node)
   {
     // printing of the rewrite managed by the call above
     return rri;
+  }
+
+  Node cmp_conr = d_stringsEntail.checkContains(node[0], node[1]);
+  if (!cmp_conr.isNull() && !cmp_conr.getConst<bool>())
+  {
+    // ~contains( t, s ) => ( replace_all( t, s, r ) ----> t )
+    return returnRewrite(node, node[0], Rewrite::RPL_NCTN);
   }
 
   return node;

@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Andrew Reynolds, Mathias Preiner
+ *   Gereon Kremer, Daniel Larraz, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
@@ -672,7 +672,7 @@ ProofGenerator* CDCAC::closeProof(const std::vector<Node>& assertions)
 bool CDCAC::checkIntegrality(std::size_t cur_variable, const poly::Value& value)
 {
   Node var = d_constraints.varMapper()(d_variableOrdering[cur_variable]);
-  if (var.getType() != NodeManager::currentNM()->integerType())
+  if (var.getType() != d_env.getNodeManager()->integerType())
   {
     // variable is not integral
     return true;

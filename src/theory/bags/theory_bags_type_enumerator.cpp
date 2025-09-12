@@ -28,7 +28,7 @@ namespace bags {
 
 BagEnumerator::BagEnumerator(TypeNode type, TypeEnumeratorProperties* tep)
     : TypeEnumeratorBase<BagEnumerator>(type),
-      d_nodeManager(NodeManager::currentNM()),
+      d_nodeManager(type.getNodeManager()),
       d_elementTypeEnumerator(type.getBagElementType(), tep)
 {
   d_currentBag = d_nodeManager->mkConst(EmptyBag(type));

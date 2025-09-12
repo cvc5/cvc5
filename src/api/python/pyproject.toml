@@ -5,7 +5,9 @@ requires = [
     "setuptools!=70.2.0; os_name == 'nt'",
     # Avoid issue #283: https://github.com/pypa/distutils/issues/283
     "setuptools<72.2.0; implementation_name == 'pypy'",
-    "Cython>=3"
+    "Cython>=3,<3.1.2",
+    # Avoid issue #6867: https://github.com/cython/cython/issues/6867
+    "Cython<3.1.0; implementation_name == 'pypy' and python_version < '3.9'"
 ]
 build-backend = "setuptools.build_meta"
 
@@ -14,12 +16,6 @@ name="cvc5"
 description="Python bindings for cvc5"
 readme = {text = "Python bindings for cvc5", content-type = "text/plain"}
 dynamic = ["version"]
-license = {text = "BSD-3-Clause AND LGPL-3.0-or-later AND MIT"}
-# BSD-3-Clause      : cvc5 library and Python API
-# GPL-2.0-or-later  : CLN (only in GPL version)
-# GPL-3.0-or-later  : GLPK/glpk-cut-log and CoCoA (only in GPL version)
-# LGPL-3.0-or-later : LibPoly and GMP
-# MIT               : Pythonic API
 
 [project.urls]
 Homepage = "https://cvc5.github.io/"

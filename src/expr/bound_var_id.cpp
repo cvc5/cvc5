@@ -36,6 +36,7 @@ const char* toString(BoundVarId id)
       return "STRINGS_RE_ELIM_STAR_INDEX";
     case BoundVarId::STRINGS_INDEX: return "STRINGS_INDEX";
     case BoundVarId::STRINGS_LENGTH: return "STRINGS_LENGTH";
+    case BoundVarId::STRINGS_REG_EXP_EQ: return "STRINGS_REG_EXP_EQ";
     case BoundVarId::STRINGS_SEQ_MODEL: return "STRINGS_SEQ_MODEL";
     case BoundVarId::STRINGS_VALUE_FOR_LENGTH:
       return "STRINGS_VALUE_FOR_LENGTH";
@@ -46,6 +47,7 @@ const char* toString(BoundVarId id)
     case BoundVarId::QUANT_REW_MINISCOPE: return "QUANT_REW_MINISCOPE";
     case BoundVarId::QUANT_REW_PRENEX: return "QUANT_REW_PRENEX";
     case BoundVarId::QUANT_SYGUS_BUILTIN_FV: return "QUANT_SYGUS_BUILTIN_FV";
+    case BoundVarId::VALID_WITNESS_VAR: return "VALID_WITNESS_VAR";
     default: return "?";
   }
 }

@@ -67,8 +67,8 @@ const char* toString(InferenceId i)
     case InferenceId::ARITH_PP_ELIM_OPERATORS_LEMMA:
       return "ARITH_PP_ELIM_OPERATORS_LEMMA";
     case InferenceId::ARITH_NL_CONGRUENCE: return "ARITH_NL_CONGRUENCE";
-    case InferenceId::ARITH_NL_SHARED_TERM_VALUE_SPLIT:
-      return "ARITH_NL_SHARED_TERM_VALUE_SPLIT";
+    case InferenceId::ARITH_NL_SHARED_TERM_SPLIT:
+      return "ARITH_NL_SHARED_TERM_SPLIT";
     case InferenceId::ARITH_NL_CM_QUADRATIC_EQ:
       return "ARITH_NL_CM_QUADRATIC_EQ";
     case InferenceId::ARITH_NL_SPLIT_ZERO: return "ARITH_NL_SPLIT_ZERO";
@@ -248,6 +248,8 @@ const char* toString(InferenceId i)
     case InferenceId::QUANTIFIERS_INST_CEGQI: return "QUANTIFIERS_INST_CEGQI";
     case InferenceId::QUANTIFIERS_INST_SYQI: return "QUANTIFIERS_INST_SYQI";
     case InferenceId::QUANTIFIERS_INST_MBQI: return "QUANTIFIERS_INST_MBQI";
+    case InferenceId::QUANTIFIERS_INST_MBQI_ENUM:
+      return "QUANTIFIERS_INST_MBQI_ENUM";
     case InferenceId::QUANTIFIERS_INST_ENUM: return "QUANTIFIERS_INST_ENUM";
     case InferenceId::QUANTIFIERS_INST_POOL: return "QUANTIFIERS_INST_POOL";
     case InferenceId::QUANTIFIERS_INST_POOL_TUPLE:
@@ -541,6 +543,10 @@ const char* toString(InferenceId i)
       return "STRINGS_REGISTER_TERM_ATOMIC";
     case InferenceId::STRINGS_REGISTER_TERM: return "STRINGS_REGISTER_TERM";
     case InferenceId::STRINGS_CMI_SPLIT: return "STRINGS_CMI_SPLIT";
+    case InferenceId::STRINGS_CONST_SEQ_PURIFY:
+      return "STRINGS_CONST_SEQ_PURIFY";
+    case InferenceId::STRINGS_RE_EQ_ELIM_EQUIV:
+      return "STRINGS_RE_EQ_ELIM_EQUIV";
 
     case InferenceId::UF_BREAK_SYMMETRY: return "UF_BREAK_SYMMETRY";
     case InferenceId::UF_CARD_CLIQUE: return "UF_CARD_CLIQUE";
@@ -584,8 +590,7 @@ std::ostream& operator<<(std::ostream& out, InferenceId i)
 
 Node mkInferenceIdNode(NodeManager* nm, InferenceId i)
 {
-  return NodeManager::currentNM()->mkConstInt(
-      Rational(static_cast<uint32_t>(i)));
+  return nm->mkConstInt(Rational(static_cast<uint32_t>(i)));
 }
 
 bool getInferenceId(TNode n, InferenceId& i)

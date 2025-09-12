@@ -27,18 +27,6 @@
   (= x y)
   false)
 
-(define-rule str-concat-flatten ((xs ?Seq :list) (s ?Seq) (ys ?Seq :list) (zs ?Seq :list))
-  (str.++ xs (str.++ s ys) zs)
-  (str.++ xs s ys zs))
-
-; flips so that it can be applied to both sides easier
-(define-rule str-concat-flatten-eq ((x ?Seq) (x1 ?Seq :list) (x2 ?Seq :list) (y ?Seq))
-  (= (str.++ (str.++ x x1) x2) y)
-  (= y (str.++ x x1 x2)))
-(define-rule str-concat-flatten-eq-rev ((x ?Seq) (x1 ?Seq :list) (x2 ?Seq :list) (y ?Seq))
-  (= (str.++ x2 (str.++ x1 x)) y)
-  (= y (str.++ x2 x1 x)))
-
 (define-cond-rule str-substr-empty-str ((x ?Seq) (n Int) (m Int))
   (= x (@seq.empty_of_type (@type_of x)))
   (str.substr x n m)
@@ -59,10 +47,25 @@
   (str.substr x n m)
   (@seq.empty_of_type (@type_of x)))
 
+(define-cond-rule str-substr-substr-start-geq-len ((x ?Seq) (n1 Int) (m1 Int) (n2 Int) (m2 Int))
+  (>= n2 m1)
+  (str.substr (str.substr x n1 m1) n2 m2)
+  (@seq.empty_of_type (@type_of x)))
+
 (define-cond-rule str-substr-eq-empty ((s ?Seq) (r ?Seq) (n Int) (m Int))
   (and (= n 0) (> m n) (= r (@seq.empty_of_type (@type_of r))))
   (= (str.substr s n m) r)
   (= s r))
+
+(define-cond-rule str-substr-z-eq-empty-leq ((s ?Seq) (r ?Seq) (m Int))
+  (and (not (= s (@seq.empty_of_type (@type_of s)))) (= r (@seq.empty_of_type (@type_of s))))
+  (= (str.substr s 0 m) r)
+  (<= m 0))
+
+(define-cond-rule str-substr-eq-empty-leq-len ((s ?Seq) (emp ?Seq) (n Int) (m Int))
+  (and (>= n 0) (> m 0) (= emp (@seq.empty_of_type (@type_of emp))))
+  (= (str.substr s n m) emp)
+  (<= (str.len s) n))
 
 (define-cond-rule str-len-replace-inv ((t ?Seq) (s ?Seq) (r ?Seq)) 
   (= (str.len s) (str.len r))
@@ -89,16 +92,6 @@
   (and (>= n 0) (>= m 0) (>= (str.len s) (+ n m)))
   (str.len (str.substr s n m))
   m)
-
-(define-cond-rule str-len-substr-ub1 ((s ?Seq) (n Int) (m Int) (k Int))
-  (and (>= k 0) (>= k m))
-  (>= k (str.len (str.substr s n m)))
-  true)
-
-(define-cond-rule str-len-substr-ub2 ((s ?Seq) (n Int) (m Int) (k Int))
-  (and (>= k 0) (>= k (- (str.len s) n)))
-  (>= k (str.len (str.substr s n m)))
-  true)
 
 (define-cond-rule str-concat-clash ((s1 ?Seq) (s2 ?Seq :list) (t1 ?Seq) (t2 ?Seq :list))
   (and (not (= s1 t1)) (= (str.len s1) (str.len t1)))
@@ -133,21 +126,23 @@
   (= s (str.++ t1 t2 s))
   (= (@seq.empty_of_type (@type_of s)) (str.++ t1 t2)))
 
-(define-cond-rule str-concat-clash-char ((s1 ?Seq) (s2 ?Seq :list) (s3 ?Seq :list) (t1 ?Seq) (t2 ?Seq :list) (t3 ?Seq :list))
-  (and (not (= s1 t1)) (= (str.len s1) (str.len t1)))
-  (= (str.++ (str.++ s1 s2) s3) (str.++ (str.++ t1 t2) t3))
-  false)
-(define-cond-rule str-concat-clash-char-rev ((s1 ?Seq) (s2 ?Seq :list) (s3 ?Seq :list) (t1 ?Seq) (t2 ?Seq :list) (t3 ?Seq :list))
-  (and (not (= s1 t1)) (= (str.len s1) (str.len t1)))
-  (= (str.++ s3 (str.++ s2 s1)) (str.++ t3 (str.++ t2 t1)))
-  false)
-
 (define-rule str-prefixof-elim ((s ?Seq) (t ?Seq))
   (str.prefixof s t)
   (= s (str.substr t 0 (str.len s))))
+
 (define-rule str-suffixof-elim ((s ?Seq) (t ?Seq))
   (str.suffixof s t)
   (= s (str.substr t (- (str.len t) (str.len s)) (str.len s))))
+
+(define-cond-rule str-prefixof-eq ((s ?Seq) (t ?Seq))
+  (>= (str.len s) (str.len t))
+  (str.prefixof s t)
+  (= s t))
+
+(define-cond-rule str-suffixof-eq ((s ?Seq) (t ?Seq))
+  (>= (str.len s) (str.len t))
+  (str.suffixof s t)
+  (= s t))
 
 (define-cond-rule str-prefixof-one ((s ?Seq) (t ?Seq))
   (= (str.len t) 1)
@@ -189,6 +184,11 @@
   (str.substr (str.++ s1 s2 s3) n m)
   (str.substr (str.++ s2 s3) (- n (str.len s1)) m))
 
+(define-cond-rule str-substr-replace ((s ?Seq) (t ?Seq) (r ?Seq) (n Int))
+  (and (= (str.len t) (str.len r)) (= (str.len t) 1))
+  (str.substr (str.replace s t r) 0 n)
+  (str.replace (str.substr s 0 n) t r))
+
 (define-cond-rule str-substr-full ((s ?Seq) (n Int))
   (>= n (str.len s))
   (str.substr s 0 n)
@@ -216,11 +216,6 @@
   (str.contains (str.++ x y z) w)
   (or (str.contains x w) (str.contains (str.++ y z) w)))
 
-(define-cond-rule str-contains-lt-len ((x ?Seq) (y ?Seq))
-  (> (str.len y) (str.len x))
-  (str.contains x y)
-  false)
-
 (define-cond-rule str-contains-leq-len-eq ((x ?Seq) (y ?Seq))
   (>= (str.len y) (str.len x))
   (str.contains x y)
@@ -231,10 +226,10 @@
   (str.contains x y)
   true)
 
-(define-cond-rule str-contains-is-emp ((x ?Seq) (y ?Seq))
-  (= (str.len x) 0)
+(define-cond-rule str-contains-char ((x ?Seq) (y ?Seq))
+  (= (str.len x) 1)
   (str.contains x y)
-  (= x y))
+  (or (= (@seq.empty_of_type (@type_of x)) y) (= x y)))
 
 (define-rule str-at-elim ((x ?Seq) (n Int)) (str.at x n) (str.substr x n 1))
 
@@ -248,9 +243,13 @@
   (str.replace t t s)
   s)
 
-(define-rule str-replace-prefix ((t ?Seq) (r ?Seq :list) (s ?Seq))
-  (str.replace (str.++ t r) t s)
-  (str.++ s r))
+(define-rule str-replace-id ((t ?Seq) (s ?Seq))
+  (str.replace t s s)
+  t)
+
+(define-rule str-replace-prefix ((t1 ?Seq) (t2 ?Seq) (r ?Seq :list) (s ?Seq))
+  (str.replace (str.++ t1 t2 r) t1 s)
+  (str.++ s t2 r))
 
 (define-cond-rule str-replace-no-contains ((t ?Seq) (s ?Seq) (r ?Seq)) 
   (not (str.contains t s))
@@ -278,16 +277,14 @@
   (str.replace t r s)
   (str.++ s t))
 
-(define-cond-rule str-replace-contains-pre ((t1 ?Seq) (t2 ?Seq :list) (s ?Seq) (r ?Seq))
-  (str.contains t1 s)
-  (str.replace (str.++ t1 t2) s r)
-  (str.++ (str.replace t1 s r) t2))
-
-
 (define-cond-rule str-replace-one-pre ((t ?Seq) (s ?Seq) (r ?Seq) (ts ?Seq :list) (ss ?Seq :list))
   (= (str.len s) 1)
   (str.replace (str.++ ts t ss t) s r)
   (str.++ (str.replace (str.++ ts t ss) s r) t))
+
+(define-rule str-replace-find-pre ((t ?Seq) (r ?Seq) (ts ?Seq :list) (ss ?Seq :list))
+  (str.replace (str.++ ts t ss) t r)
+  (str.++ (str.replace (str.++ ts t) t r) ss))
 
 (define-cond-rule str-replace-all-no-contains ((t ?Seq) (s ?Seq) (r ?Seq))
   (not (str.contains t s))
@@ -307,6 +304,15 @@
   (str.len (str.++ s2 s3))
   (+ (str.len s1) _))
 
+(define-rule* str-len-eq-zero-concat-rec ((s1 ?Seq) (s2 ?Seq) (s3 ?Seq :list))
+  (= (str.len (str.++ s1 s2 s3)) 0)
+  (= (str.len (str.++ s2 s3)) 0)
+  (and (= s1 (@seq.empty_of_type (@type_of s1))) _))
+
+(define-rule str-len-eq-zero-base ((s1 ?Seq))
+  (= (str.len s1) 0)
+  (= s1 (@seq.empty_of_type (@type_of s1))))
+
 (define-rule str-indexof-self ((t ?Seq) (n Int))
   (def (emp (@seq.empty_of_type (@type_of t))))
   (str.indexof t t n)
@@ -317,24 +323,39 @@
   (str.indexof t s n)
   (- 1))
 
+(define-cond-rule str-indexof-oob ((t ?Seq) (s ?Seq) (n Int))
+  (> n (str.len t))
+  (str.indexof t s n)
+  (- 1))
+
+(define-cond-rule str-indexof-oob2 ((t ?Seq) (s ?Seq) (n Int))
+  (> 0 n)
+  (str.indexof t s n)
+  (- 1))
+
 (define-cond-rule str-indexof-contains-pre ((t1 ?Seq) (t2 ?Seq :list) (s ?Seq) (n Int))
   (str.contains (str.substr t1 n (str.len t1)) s)
   (str.indexof (str.++ t1 t2) s n)
   (str.indexof t1 s n))
 
-(define-cond-rule str-indexof-find ((t ?Seq) (s ?Seq) (n Int))
-  (and (not (= s (@seq.empty_of_type (@type_of t)))) (str.prefixof s (str.substr t n (str.len t))))
-  (str.indexof t s n)
-  n)
-
 (define-cond-rule str-indexof-find-emp ((t ?Seq) (emp ?Seq) (n Int))
-  (and (= emp (@seq.empty_of_type (@type_of t))) (>= (str.len t) n))
+  (and (= emp (@seq.empty_of_type (@type_of t))) (>= (str.len t) n) (>= n 0))
   (str.indexof t emp n)
   n)
 
-(define-rule str-indexof-re-none ((t ?Seq) (n Int))
+(define-cond-rule str-indexof-eq-irr ((t ?Seq) (s ?Seq) (r ?Seq) (n Int))
+  (and (<= n (str.len t)) (<= n (str.len r)) (= (str.substr t n (str.len t)) (str.substr r n (str.len r))))
+  (= (str.indexof t s n) (str.indexof r s n))
+  true)
+
+(define-rule str-indexof-re-none ((t String) (n Int))
   (str.indexof_re t re.none n)
   (- 1))
+
+(define-cond-rule str-indexof-re-emp-re ((t String) (r RegLan) (n Int))
+  (and (str.in_re "" r) (>= (str.len t) n))
+  (str.indexof_re t r n)
+  n)
 
 (define-rule* str-to-lower-concat ((s1 String) (s2 String) (s3 String :list))
   (str.to_lower (str.++ s1 s2 s3)) 
@@ -413,6 +434,11 @@
   (str.contains (str.from_int n) s)
   false)
 
+(define-cond-rule str-substr-ctn-contra ((t ?Seq) (s ?Seq) (n Int) (m Int))
+  (not (str.contains t s))
+  (str.contains (str.substr t n m) s)
+  false)
+
 (define-rule str-substr-ctn ((s ?Seq) (n Int) (m Int))
   (str.contains s (str.substr s n m))
   true)
@@ -421,6 +447,100 @@
   (and (str.contains s u) (str.contains r u))
   (str.contains (str.replace s t r) u)
   true)
+
+(define-cond-rule str-replace-dual-ctn-false ((s ?Seq) (t ?Seq) (r ?Seq) (u ?Seq))
+  (and (not (str.contains s t)) (not (str.contains s u)))
+  (str.contains s (str.replace t r u))
+  false)
+
+(define-rule str-replace-self-ctn-simp ((s ?Seq) (t ?Seq))
+  (str.contains s (str.replace t s t))
+  (str.contains s t))
+
+(define-cond-rule str-replace-emp-ctn-src ((s ?Seq) (t ?Seq) (emp ?Seq))
+  (= emp (@seq.empty_of_type (@type_of s)))
+  (str.contains s (str.replace emp s t))
+  (= emp (str.replace emp s t)))
+
+(define-cond-rule str-substr-char-start-eq-len ((x ?Seq) (n Int))
+  (>= 1 (str.len x))
+  (str.substr x n n)
+  (@seq.empty_of_type (@type_of x)))
+
+(define-cond-rule str-contains-repl-char ((x ?Seq) (y ?Seq) (z ?Seq) (w ?Seq))
+  (and (= (str.len w) 1) (not (str.contains y w)))
+  (str.contains (str.replace x y z) w)
+  (or (str.contains x w) (and (str.contains x y) (str.contains z w))))
+
+(define-cond-rule str-contains-repl-self-tgt-char ((x ?Seq) (y ?Seq) (w ?Seq))
+  (= (str.len w) 1)
+  (str.contains (str.replace x y x) w)
+  (str.contains x w))
+
+(define-rule str-contains-repl-self ((x ?Seq) (y ?Seq))
+  (str.contains (str.replace x y x) y)
+  (str.contains x y))
+
+(define-rule str-contains-repl-tgt ((x ?Seq) (y ?Seq) (z ?Seq))
+  (str.contains (str.replace x y z) z)
+  (or (str.contains x y) (str.contains x z)))
+
+(define-cond-rule str-repl-repl-len-id ((x ?Seq) (y ?Seq))
+  (>= (str.len y) (str.len x))
+  (str.replace x y x)
+  x)
+
+(define-cond-rule str-repl-repl-src-tgt-no-ctn ((x ?Seq) (y ?Seq) (z ?Seq) (w ?Seq))
+  (not (str.contains z w))
+  (str.replace x w (str.replace z x y))
+  (str.replace x w z))
+
+(define-rule str-repl-repl-tgt-self ((x ?Seq) (y ?Seq))
+  (str.replace x y (str.replace y x y))
+  x)
+
+(define-cond-rule str-repl-repl-tgt-no-ctn ((x ?Seq) (y ?Seq) (z ?Seq) (w ?Seq))
+  (not (str.contains x z))
+  (str.replace x y (str.replace y z w))
+  x)
+
+(define-rule str-repl-repl-src-self ((x ?Seq) (y ?Seq) (z ?Seq))
+  (str.replace x (str.replace y x y) z)
+  (str.replace x y z))
+
+(define-cond-rule str-repl-repl-src-inv-no-ctn1 ((x ?Seq) (y ?Seq) (z ?Seq))
+  (not (str.contains y z))
+  (str.replace x (str.replace y x z) y)
+  (str.replace x y y))
+
+(define-cond-rule str-repl-repl-src-inv-no-ctn2 ((x ?Seq) (y ?Seq) (z ?Seq))
+  (not (str.contains y z))
+  (str.replace x (str.replace y x z) x)
+  (str.replace x y x))
+
+(define-cond-rule str-repl-repl-src-inv-no-ctn3 ((x ?Seq) (y ?Seq) (z ?Seq) (w ?Seq) (u ?Seq))
+  (and (not (str.contains x z)) (not (str.contains x w)))
+  (str.replace x (str.replace y z w) u)
+  (str.replace x y u))
+
+(define-rule str-repl-repl-dual-self ((x ?Seq) (y ?Seq))
+  (str.replace x (str.replace x y x) x)
+  x)
+
+(define-cond-rule str-repl-repl-dual-ite1 ((x ?Seq) (y ?Seq) (z ?Seq) (w ?Seq))
+  (not (str.contains x z))
+  (str.replace x (str.replace x y z) w)
+  (ite (str.contains x y) x w))
+
+(define-cond-rule str-repl-repl-dual-ite2 ((x ?Seq) (y ?Seq) (z ?Seq) (w ?Seq))
+  (and (not (str.contains y z)) (not (str.contains z y)))
+  (str.replace x (str.replace x y z) w)
+  (ite (str.contains x y) x w))
+
+(define-cond-rule str-repl-repl-lookahead-id-simp ((y ?Seq) (z ?Seq) (w ?Seq))
+  (and (not (= w z)) (>= (str.len w) (str.len z)))
+  (str.replace (str.replace y w y) y z)
+  (str.replace (str.replace y w z) y z))
 
 ; =============== Regular expression rules
 
@@ -432,10 +552,7 @@
 
 (define-rule re-plus-elim ((x RegLan)) (re.+ x) (re.++ x (re.* x)))
 
-(define-rule re-concat-emp ((xs RegLan :list) (ys RegLan :list)) (re.++ xs (str.to_re "") ys) (re.++ xs ys))
-(define-rule re-concat-none ((xs RegLan :list) (ys RegLan :list)) (re.++ xs re.none ys) re.none)
-
-(define-rule re-concat-flatten ((xs RegLan :list) (s RegLan) (ys RegLan :list) (zs RegLan :list)) (re.++ xs (re.++ s ys) zs) (re.++ xs s ys zs))
+(define-rule re-repeat-elim ((n Int) (x RegLan)) (re.^ n x) (re.loop n n x))
 
 (define-rule re-concat-star-swap ((xs RegLan :list) (r RegLan) (ys RegLan :list)) (re.++ xs (re.* r) r ys) (re.++ xs r (re.* r) ys))
 
@@ -455,14 +572,14 @@
   _)
 
 (define-rule re-union-all ((xs RegLan :list) (ys RegLan :list)) (re.union xs (re.* re.allchar) ys) (re.* re.allchar))
-(define-rule* re-union-none ((xs RegLan :list) (ys RegLan :list)) (re.union xs re.none ys) (re.union xs ys))
-(define-rule* re-union-flatten ((xs RegLan :list) (b RegLan) (ys RegLan :list) (zs RegLan :list)) (re.union xs (re.union b ys) zs) (re.union xs b ys zs))
-(define-rule* re-union-dup ((xs RegLan :list) (b RegLan) (ys RegLan :list) (zs RegLan :list)) (re.union xs b ys b zs) (re.union xs b ys zs))
+
+; used for macro expansion
+(define-cond-rule re-union-const-elim ((r RegLan) (s String))
+  (str.in_re s r)
+  (re.union (str.to_re s) r)
+  r)
 
 (define-rule* re-inter-all ((xs RegLan :list) (ys RegLan :list)) (re.inter xs (re.* re.allchar) ys) (re.inter xs ys))
-(define-rule re-inter-none ((xs RegLan :list) (ys RegLan :list)) (re.inter xs re.none ys) re.none)
-(define-rule* re-inter-flatten ((xs RegLan :list) (b RegLan) (ys RegLan :list) (zs RegLan :list)) (re.inter xs (re.inter b ys) zs) (re.inter xs b ys zs))
-(define-rule* re-inter-dup ((xs RegLan :list) (b RegLan) (ys RegLan :list) (zs RegLan :list)) (re.inter xs b ys b zs) (re.inter xs b ys zs))
 
 (define-rule re-star-none () (re.* re.none) (str.to_re ""))
 
@@ -501,12 +618,6 @@
   (str.++ s1 (str.substr (str.++ s2 s3) 0 (- n (str.len s1))))
 )
 
-(define-cond-rule str-substr-len-skip ((s1 ?Seq) (s2 ?Seq) (s3 ?Seq :list) (n Int) (m Int))
-  (>= n (str.len s1))
-  (str.substr (str.++ s1 s2 s3) n m)
-  (str.substr (str.++ s2 s3) (- n (str.len s1)) m)
-)
-
 (define-cond-rule str-substr-len-norm ((s ?Seq) (n Int) (m Int))
   (>= m (str.len s))
   (str.substr s n m)
@@ -537,10 +648,30 @@
   (= (str.replace x y z) x)
   (not (str.contains x y)))
 
+(define-cond-rule str-eq-repl-tgt-eq-len ((x ?Seq) (y ?Seq) (z ?Seq))
+  (= (str.len y) (str.len z))
+  (= (str.replace x y z) z)
+  (or (= x y) (= x z)))
+
 (define-cond-rule str-eq-repl-len-one-emp-prefix ((x ?Seq) (y ?Seq) (emp ?Seq))
   (and (= emp (@seq.empty_of_type (@type_of x))) (= (str.len y) 1))
   (= (str.replace x y emp) emp)
   (str.prefixof x y))
+
+(define-cond-rule str-eq-repl-emp-tgt-nemp ((x ?Seq) (y ?Seq) (z ?Seq) (emp ?Seq))
+  (and (= emp (@seq.empty_of_type (@type_of x))) (not (= z emp)))
+  (= (str.replace x y z) emp)
+  (and (= x emp) (not (= y emp))))
+
+
+(define-cond-rule str-eq-repl-nemp-src-emp ((x ?Seq) (y ?Seq) (z ?Seq) (emp ?Seq))
+  (and (= emp (@seq.empty_of_type (@type_of x))) (not (= z emp)))
+  (= (str.replace emp x y) z)
+  (and (= x emp) (= y z)))
+
+(define-rule str-eq-repl-self-src ((x ?Seq) (y ?Seq))
+  (= (str.replace x y x) y)
+  (= x y))
 
 ; =============== Sequences-specific rules
 

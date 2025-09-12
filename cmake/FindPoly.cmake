@@ -50,15 +50,16 @@ if(NOT Poly_FOUND_SYSTEM)
 
   include(ExternalProject)
 
-  set(Poly_VERSION "0.1.13")
+  set(Poly_VERSION "0.2.0")
 
+  set(POLY_PATCH_KWD PATCH_COMMAND)
   check_if_cross_compiling(CCWIN "Windows" "")
   if(CCWIN)
-    set(POLY_PATCH_CMD COMMAND
-      ${CMAKE_SOURCE_DIR}/cmake/deps-utils/Poly-windows-patch.sh <SOURCE_DIR>
+    set(POLY_PATCH_CMD
+      PATCH_COMMAND
+        ${CMAKE_SOURCE_DIR}/cmake/deps-utils/Poly-windows-patch.sh <SOURCE_DIR>
     )
-  else()
-    unset(POLY_PATCH_CMD)
+    set(POLY_PATCH_KWD COMMAND)
   endif()
 
   # On Windows, CMake's default install action places DLLs into the runtime
@@ -139,7 +140,7 @@ if(NOT Poly_FOUND_SYSTEM)
     # of the static libraries, so remove the installation targets for the other
     # versions of LibPoly
     set(POLY_PATCH_CMD ${POLY_PATCH_CMD}
-      COMMAND
+      ${POLY_PATCH_KWD}
         sed -ri.orig
           "/TARGETS (poly|polyxx|static_poly|static_polyxx) /d"
           <SOURCE_DIR>/src/CMakeLists.txt
@@ -155,6 +156,12 @@ if(NOT Poly_FOUND_SYSTEM)
       "${DEPS_BASE}/lib/libpicpolyxx${CMAKE_STATIC_LIBRARY_SUFFIX}")
   endif()
 
+  # Disable a warning triggered by the Emscripten compiler due to code in
+  # a GMP header used by LibPoly.
+  set(POLY_CXX_FLAGS "")
+  if(NOT(WASM STREQUAL "OFF"))
+    set(POLY_CXX_FLAGS -DCMAKE_CXX_FLAGS=-Wno-error=deprecated-literal-operator)
+  endif()
   # We pass the full path of GMP to LibPoly, s.t. we can ensure that LibPoly is
   # able to find the correct version of GMP if we built it locally. This is
   # primarily important for cross-compiling cvc5, because LibPoly's search
@@ -163,19 +170,8 @@ if(NOT Poly_FOUND_SYSTEM)
     Poly-EP
     ${COMMON_EP_CONFIG}
     URL https://github.com/SRI-CSL/libpoly/archive/refs/tags/v${Poly_VERSION}.tar.gz
-    URL_HASH SHA256=ca7092eeeced3dd8bd86cdd3410207802ef1752d7052d92eee3e9e6bb496763c
-    PATCH_COMMAND
-      sed -i.orig
-      "s,add_subdirectory(test/polyxx),add_subdirectory(test/polyxx EXCLUDE_FROM_ALL),g"
-      <SOURCE_DIR>/CMakeLists.txt
-    COMMAND
-      # LibPoly declares a variable `enabled_count` whose value is only written
-      # and never read. Newer versions of Clang throw a warning for this, which
-      # aborts the compilation when -Wall is enabled.
-      sed -i.orig
-      "/enabled_count/d"
-      <SOURCE_DIR>/src/upolynomial/factorization.c
-      ${POLY_PATCH_CMD}
+    URL_HASH SHA256=146adc0d3f6fe8038adb6b8b69dd16114a4be12f520d5c1fb333f3746d233abe
+    ${POLY_PATCH_CMD}
     CMAKE_ARGS -DCMAKE_BUILD_TYPE=Release
                -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
                -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
@@ -185,6 +181,8 @@ if(NOT Poly_FOUND_SYSTEM)
                -DGMP_INCLUDE_DIR=${GMP_INCLUDE_DIR}
                -DGMP_LIBRARY=${GMP_LIBRARIES}
                -DCMAKE_SKIP_INSTALL_ALL_DEPENDENCY=TRUE
+               -DBUILD_TESTING=OFF
+               ${POLY_CXX_FLAGS}
     BUILD_COMMAND ${CMAKE_MAKE_PROGRAM} ${POLY_TARGETS}
     ${POLY_INSTALL_CMD}
     BUILD_BYPRODUCTS ${POLY_BYPRODUCTS}

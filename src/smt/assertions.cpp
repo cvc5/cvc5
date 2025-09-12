@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Andres Noetzli
+ *   Andrew Reynolds, Daniel Larraz, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
@@ -108,10 +108,6 @@ void Assertions::addFormula(TNode n,
 {
   // add to assertion list
   d_assertionList.push_back(n);
-  if (isFunDef)
-  {
-    d_assertionListDefs.push_back(n);
-  }
   if (n.isConst() && n.getConst<bool>())
   {
     // true, nothing to do
@@ -119,7 +115,8 @@ void Assertions::addFormula(TNode n,
   }
   Trace("smt") << "Assertions::addFormula(" << n
                << ", isFunDef = " << isFunDef << std::endl;
-  if (isFunDef)
+  // In non-incremental, we treat higher-order equality as define-fun
+  if (!options().base.incrementalSolving || isFunDef)
   {
     // if a non-recursive define-fun, just add as a top-level substitution
     if (n.getKind() == Kind::EQUAL && n[0].isVar())
@@ -128,6 +125,12 @@ void Assertions::addFormula(TNode n,
           << "Define fun: " << n[0] << " = " << n[1] << std::endl;
       NodeManager* nm = nodeManager();
       TrustSubstitutionMap& tsm = d_env.getTopLevelSubstitutions();
+      if (!isFunDef
+          && (tsm.get().hasSubstitution(n[0])
+              || n[1].getKind() != Kind::LAMBDA))
+      {
+        return;
+      }
       // If it is a lambda, we rewrite the body, otherwise we rewrite itself.
       // For lambdas, we prefer rewriting only the body since we don't want
       // higher-order rewrites (e.g. value normalization) to apply by default.
@@ -147,6 +150,10 @@ void Assertions::addFormula(TNode n,
         // The rewritten form is the rewritten body with original variable list.
         defRew = defRewBody.getNode();
         defRew = nm->mkNode(Kind::LAMBDA, n[1][0], defRew);
+      }
+      if (!isFunDef && expr::hasSubterm(defRew, n[0]))
+      {
+        return;
       }
       // if we need to track proofs
       if (d_env.isProofProducing())
@@ -182,6 +189,7 @@ void Assertions::addFormula(TNode n,
         }
       }
       Trace("smt-define-fun") << "...rewritten to " << defRew << std::endl;
+      d_assertionListDefs.push_back(n);
       d_env.getTopLevelSubstitutions().addSubstitution(
           n[0], defRew, d_defFunRewPf.get());
       return;

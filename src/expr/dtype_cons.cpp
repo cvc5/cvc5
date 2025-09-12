@@ -16,6 +16,7 @@
 
 #include "expr/ascription_type.h"
 #include "expr/dtype.h"
+#include "expr/node_algorithm.h"
 #include "expr/node_manager.h"
 #include "expr/type_matcher.h"
 #include "options/datatypes_options.h"
@@ -91,7 +92,7 @@ Node DTypeConstructor::getConstructor() const
 Node DTypeConstructor::getInstantiatedConstructor(TypeNode returnType) const
 {
   Assert(isResolved());
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = returnType.getNodeManager();
   return nm->mkNode(
       Kind::APPLY_TYPE_ASCRIPTION,
       nm->mkConst(AscriptionType(getInstantiatedConstructorType(returnType))),
@@ -388,12 +389,19 @@ bool DTypeConstructor::computeWellFounded(
   for (size_t i = 0, nargs = getNumArgs(); i < nargs; i++)
   {
     TypeNode t = getArgType(i);
-    if (t.isDatatype())
+    // must look at all types that occur as subterms of t, as we could have
+    // nested recursion.
+    std::unordered_set<TypeNode> ctypes;
+    expr::getComponentTypes(t, ctypes);
+    for (const TypeNode& ct : ctypes)
     {
-      const DType& dt = t.getDType();
-      if (!dt.computeWellFounded(processing))
+      if (ct.isDatatype())
       {
-        return false;
+        const DType& dt = ct.getDType();
+        if (!dt.computeWellFounded(processing))
+        {
+          return false;
+        }
       }
     }
   }
@@ -405,7 +413,7 @@ Node DTypeConstructor::computeGroundTerm(TypeNode t,
                                          std::map<TypeNode, Node>& gt,
                                          bool isValue) const
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = t.getNodeManager();
   std::vector<Node> groundTerms;
   groundTerms.push_back(getConstructor());
   Trace("datatypes-init") << "cons " << d_constructor
@@ -536,7 +544,7 @@ bool DTypeConstructor::resolve(
   Trace("datatypes") << "DTypeConstructor::resolve, self type is " << self
                      << std::endl;
 
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = self.getNodeManager();
   size_t index = 0;
   std::vector<TypeNode> argTypes;
   Trace("datatypes-init") << "Initialize constructor " << d_name << std::endl;
@@ -694,7 +702,7 @@ TypeNode DTypeConstructor::doParametricSubstitution(
       }
     }
   }
-  NodeBuilder nb(NodeManager::currentNM(), range.getKind());
+  NodeBuilder nb(range.getNodeManager(), range.getKind());
   for (size_t i = 0, csize = children.size(); i < csize; ++i)
   {
     nb << children[i];

@@ -43,7 +43,6 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_TermManager_newTermManager(JNIEnv*,
 JNIEXPORT void JNICALL Java_io_github_cvc5_TermManager_deletePointer(
     JNIEnv* env, jobject, jlong pointer)
 {
-  ApiManager::currentAM()->deletePointer(env, pointer);
   delete (reinterpret_cast<TermManager*>(pointer));
 }
 

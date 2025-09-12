@@ -137,7 +137,7 @@ TEST_F(TestApiDeprecated, solver)
   (void)slv.mkSepNil(slv.getIntegerSort());
   (void)slv.mkString("asdfasdf");
   std::wstring s;
-  (void)slv.mkString(s);
+  (void)slv.mkString(s).getStringValue();
   (void)slv.mkEmptySequence(slv.getIntegerSort());
   (void)slv.mkUniverseSet(slv.getIntegerSort());
   (void)slv.mkBitVector(32, 2);

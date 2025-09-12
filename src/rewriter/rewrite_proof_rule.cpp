@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Abdalrhman Mohamed, Aina Niemetz
+ *   Andrew Reynolds, Abdalrhman Mohamed, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
@@ -125,6 +125,30 @@ void RewriteProofRule::init(ProofRewriteRule id,
   if (d_context != Node::null())
   {
     d_mt.addTerm(conc[0]);
+
+    Assert(d_context.getKind() == Kind::LAMBDA);
+    Node var = d_context[0][0];
+    Node curr = d_context[1];
+    while (curr != var)
+    {
+      size_t nchild = curr.getNumChildren();
+      size_t cfind = nchild;
+      for (size_t i = 0; i < nchild; i++)
+      {
+        // TODO (wishue #160): could use utility for finding path
+        if (expr::hasSubterm(curr[i], var))
+        {
+          cfind = i;
+          break;
+        }
+      }
+      if (cfind == nchild)
+      {
+        Unhandled() << "Failed to find context variable";
+      }
+      d_pathToCtx.emplace_back(cfind);
+      curr = curr[cfind];
+    }
   }
 }
 
@@ -221,6 +245,7 @@ Node RewriteProofRule::getConclusionFor(
 {
   Assert(d_fvs.size() == ss.size());
   Node conc = getConclusion(true);
+  NodeManager* nm = conc.getNodeManager();
   std::unordered_map<TNode, Node> visited;
   Node ret = expr::narySubstitute(conc, d_fvs, ss, visited);
   // also compute for the condition
@@ -250,7 +275,7 @@ Node RewriteProofRule::getConclusionFor(
         // list context of the variable.
         Node subsCtx = visited[ctx];
         Assert(!subsCtx.isNull()) << "Failed to get context for " << ctx << " in " << d_id;
-        Node nt = expr::getNullTerminator(ctx.getKind(), subsCtx.getType());
+        Node nt = expr::getNullTerminator(nm, ctx.getKind(), subsCtx.getType());
         wargs.push_back(nt);
       }
       else

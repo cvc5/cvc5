@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
@@ -31,9 +31,8 @@ namespace test {
 class TestNodeTestRules : public TestNode
 {
  protected:
-  TypeNode getTypeConcat(const Node& a, const Node& b)
+  TypeNode getTypeConcat(NodeManager* nm, const Node& a, const Node& b)
   {
-    NodeManager* nm = NodeManager::currentNM();
     Node c = nm->mkNode(Kind::STRING_CONCAT, a, b);
     return c.getTypeOrNull(true);
   }
@@ -41,7 +40,7 @@ class TestNodeTestRules : public TestNode
 
 TEST_F(TestNodeTestRules, gradual_types)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  std::unique_ptr<NodeManager> nm(std::make_unique<NodeManager>());
   TypeNode at = nm->mkAbstractType(Kind::ABSTRACT_TYPE);
   TypeNode aseqt = nm->mkAbstractType(Kind::SEQUENCE_TYPE);
   TypeNode intt = nm->integerType();
@@ -53,13 +52,13 @@ TEST_F(TestNodeTestRules, gradual_types)
   Node ksit = sm->mkDummySkolem("ksit", sit);
   Node one = nm->mkConstInt(Rational(1));
 
-  TypeNode t1 = getTypeConcat(kat, kat);
+  TypeNode t1 = getTypeConcat(nm.get(), kat, kat);
   ASSERT_TRUE(t1 == at);
-  TypeNode t2 = getTypeConcat(kat, kaseqt);
+  TypeNode t2 = getTypeConcat(nm.get(), kat, kaseqt);
   ASSERT_TRUE(t2 == aseqt);
-  TypeNode t3 = getTypeConcat(kat, ksit);
+  TypeNode t3 = getTypeConcat(nm.get(), kat, ksit);
   ASSERT_TRUE(t3 == sit);
-  TypeNode t4 = getTypeConcat(kat, one);
+  TypeNode t4 = getTypeConcat(nm.get(), kat, one);
   ASSERT_TRUE(t4.isNull());
 }
 

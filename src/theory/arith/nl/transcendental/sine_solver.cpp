@@ -147,7 +147,7 @@ void SineSolver::doReductions()
 
 Node SineSolver::getPhaseShiftLemma(const Node& x)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = x.getNodeManager();
   SkolemManager* sm = nm->getSkolemManager();
   Node sinex = nm->mkNode(Kind::SINE, x);
   Node y = sm->mkSkolemFunction(SkolemId::TRANSCENDENTAL_PURIFY_ARG, {sinex});
@@ -226,6 +226,11 @@ void SineSolver::checkInitialRefine()
       // initial refinements
       if (d_tf_initial_refine.find(t) == d_tf_initial_refine.end())
       {
+        NodeManager * nm = nodeManager();
+        Node zero = nm->mkConstReal(Rational(0));
+        Node one = nm->mkConstReal(Rational(1));
+        Node mone = nm->mkConstReal(Rational(-1));
+        Node mpi = nm->mkNode(Kind::MULT, mone, d_pi);
         Trace("nl-ext-debug") << "Process initial refine " << t << std::endl;
         d_tf_initial_refine[t] = true;
         Assert(d_data->isPurified(t));
@@ -233,8 +238,8 @@ void SineSolver::checkInitialRefine()
           // sine bounds: -1 <= sin(t) <= 1
           Node lem = NodeManager::mkNode(
               Kind::AND,
-              NodeManager::mkNode(Kind::LEQ, t, d_data->d_one),
-              NodeManager::mkNode(Kind::GEQ, t, d_data->d_neg_one));
+              NodeManager::mkNode(Kind::LEQ, t, one),
+              NodeManager::mkNode(Kind::GEQ, t, mone));
           CDProof* proof = nullptr;
           if (d_data->isProofEnabled())
           {
@@ -252,11 +257,11 @@ void SineSolver::checkInitialRefine()
               Kind::AND,
               NodeManager::mkNode(
                   Kind::IMPLIES,
-                  NodeManager::mkNode(Kind::GT, t[0], d_data->d_zero),
+                  NodeManager::mkNode(Kind::GT, t[0], zero),
                   NodeManager::mkNode(Kind::LT, t, t[0])),
               NodeManager::mkNode(
                   Kind::IMPLIES,
-                  NodeManager::mkNode(Kind::LT, t[0], d_data->d_zero),
+                  NodeManager::mkNode(Kind::LT, t[0], zero),
                   NodeManager::mkNode(Kind::GT, t, t[0])));
           CDProof* proof = nullptr;
           if (d_data->isProofEnabled())
@@ -276,11 +281,11 @@ void SineSolver::checkInitialRefine()
               Kind::AND,
               NodeManager::mkNode(
                   Kind::IMPLIES,
-                  NodeManager::mkNode(Kind::GT, t[0], d_neg_pi),
+                  NodeManager::mkNode(Kind::GT, t[0], mpi),
                   NodeManager::mkNode(
                       Kind::GT,
                       t,
-                      NodeManager::mkNode(Kind::SUB, d_neg_pi, t[0]))),
+                      NodeManager::mkNode(Kind::SUB, mpi, t[0]))),
               NodeManager::mkNode(
                   Kind::IMPLIES,
                   NodeManager::mkNode(Kind::LT, t[0], d_pi),

@@ -136,13 +136,17 @@ Node BvInstantiator::hasProcessAssertion(CegInstantiator* ci,
                                          Node lit,
                                          CegInstEffort effort)
 {
-  NodeManager* nm = nodeManager();
-  ;
   if (effort == CEG_INST_EFFORT_FULL)
   {
     // always use model values at full effort
     return Node::null();
   }
+  return processAssertionInternal(ci, lit);
+}
+
+Node BvInstantiator::processAssertionInternal(CegInstantiator* ci, Node lit)
+{
+  NodeManager* nm = lit.getNodeManager();
   Node atom = lit.getKind() == Kind::NOT ? lit[0] : lit;
   bool pol = lit.getKind() != Kind::NOT;
   Kind k = atom.getKind();
@@ -530,6 +534,9 @@ Node BvInstantiator::rewriteAssertionForSolvePv(CegInstantiator* ci,
       }
     } while (!trace_visit.empty());
   }
+  // process again, to ensure the policy for cegqiBvIneqMode is handled after
+  // rewriting above.
+  result = processAssertionInternal(ci, result);
 
   return result;
 }

@@ -92,6 +92,8 @@ RewriteResponse BagsRewriter::postRewrite(TNode n)
       case Kind::BAG_CARD: response = rewriteCard(n); break;
       case Kind::BAG_MAP: response = postRewriteMap(n); break;
       case Kind::BAG_FILTER: response = postRewriteFilter(n); break;
+      case Kind::BAG_ALL: response = postRewriteAll(n); break;
+      case Kind::BAG_SOME: response = postRewriteSome(n); break;
       case Kind::BAG_FOLD: response = postRewriteFold(n); break;
       case Kind::BAG_PARTITION: response = postRewritePartition(n); break;
       case Kind::TABLE_PRODUCT: response = postRewriteProduct(n); break;
@@ -577,6 +579,85 @@ BagsRewriteResponse BagsRewriter::postRewriteFilter(const TNode& n) const
     }
 
     default: return BagsRewriteResponse(n, Rewrite::NONE);
+  }
+}
+
+BagsRewriteResponse BagsRewriter::postRewriteAll(TNode n)
+{
+  Assert(n.getKind() == Kind::BAG_ALL);
+  NodeManager* nm = nodeManager();
+  Kind k = n[1].getKind();
+  switch (k)
+  {
+    case Kind::BAG_EMPTY:
+    {
+      // (bag.all p (as bag.empty (Bag T)) = true)
+      return BagsRewriteResponse(nm->mkConst(true), Rewrite::ALL_EMPTY);
+    }
+    case Kind::BAG_MAKE:
+    {
+      // (bag.all p (bag x n)) = (or (p x) (<= n 0)
+      Node px = nm->mkNode(Kind::APPLY_UF, n[0], n[1][0]);
+      Node leq = nm->mkNode(Kind::LEQ, n[1][1], d_zero);
+      Node ret = px.orNode(leq);
+      return BagsRewriteResponse(ret, Rewrite::ALL_BAG_MAKE);
+    }
+    case Kind::BAG_UNION_DISJOINT:
+    {
+      // (bag.all p (bag.union_disjoint A B)) =
+      //   (and (bag.all p A) (bag.all p B))
+      Node a = nm->mkNode(Kind::BAG_ALL, n[0], n[1][0]);
+      Node b = nm->mkNode(Kind::BAG_ALL, n[0], n[1][1]);
+      Node ret = a.andNode(b);
+      return BagsRewriteResponse(ret, Rewrite::ALL_UNION_DISJOINT);
+    }
+    default:
+    {
+      // (bag.all p A) is rewritten as (bag.filter p A) = A
+      Node filter = nm->mkNode(Kind::BAG_FILTER, n[0], n[1]);
+      Node all = filter.eqNode(n[1]);
+      return BagsRewriteResponse(all, Rewrite::ALL_FILTER);
+    }
+  }
+}
+
+BagsRewriteResponse BagsRewriter::postRewriteSome(TNode n)
+{
+  Assert(n.getKind() == Kind::BAG_SOME);
+  NodeManager* nm = nodeManager();
+  Kind k = n[1].getKind();
+  switch (k)
+  {
+    case Kind::BAG_EMPTY:
+    {
+      // (bag.some p (as bag.empty (Set T)) = false)
+      return BagsRewriteResponse(nm->mkConst(false), Rewrite::SOME_EMPTY);
+    }
+    case Kind::BAG_MAKE:
+    {
+      // (bag.some p (bag x n)) = (and (> n 0) (p x))
+      Node px = nm->mkNode(Kind::APPLY_UF, n[0], n[1][0]);
+      Node leq = nm->mkNode(Kind::GEQ, n[1][1], d_zero);
+      Node ret = px.andNode(leq);
+      return BagsRewriteResponse(ret, Rewrite::SOME_BAG_MAKE);
+    }
+    case Kind::BAG_UNION_DISJOINT:
+    {
+      // (bag.some p (bag.union_disjoint A B)) =
+      //   (or (bag.some p A) (bag.union_disjoint p B))
+      Node a = nm->mkNode(Kind::BAG_SOME, n[0], n[1][0]);
+      Node b = nm->mkNode(Kind::BAG_SOME, n[0], n[1][1]);
+      Node ret = a.orNode(b);
+      return BagsRewriteResponse(ret, Rewrite::SOME_UNION_DISJOINT);
+    }
+    default:
+    {
+      // (bag.some p A) is rewritten as (distinct (bag.filter p A) bag.empty))
+      Node filter = nm->mkNode(Kind::BAG_FILTER, n[0], n[1]);
+      Node empty = nm->mkConst(EmptyBag(n[1].getType()));
+      Node some = filter.eqNode(empty).notNode();
+      return BagsRewriteResponse(some, Rewrite::SOME_FILTER);
+    }
   }
 }
 

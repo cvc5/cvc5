@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
@@ -69,6 +69,22 @@ Node expandMacroSumUb(NodeManager* nm,
                       const std::vector<Node>& children,
                       const std::vector<Node>& args,
                       CDProof* cdp);
+
+/**
+ * Return a proof that proves pred, based on pf.
+ * It is expected that pf proves a formula pred' such that pred and pred' are
+ * equivalent up to rewriting. In particular, when applicable, pf is
+ * taken as a premise of a MACRO_SR_PRED_TRANSFORM step that proves pred.
+ * If pf is already a proof of pred, it is returned as-is.
+ *
+ * @param pnm Reference to the proof manager.
+ * @param pf The proof.
+ * @param pred The desired conclusion.
+ * @return The proof of pred.
+ */
+std::shared_ptr<ProofNode> ensurePredTransform(ProofNodeManager* pnm,
+                                               std::shared_ptr<ProofNode>& pf,
+                                               const Node& pred);
 
 }  // namespace arith
 }  // namespace theory

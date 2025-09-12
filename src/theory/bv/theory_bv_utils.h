@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Mathias Preiner, Liana Hadarean
+ *   Aina Niemetz, Daniel Larraz, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
@@ -187,6 +187,8 @@ Node mkConcat(std::vector<Node>& children);
 /* Create concat by repeating given node n times.
  * Returns given node if n = 1. */
 Node mkConcat(TNode node, unsigned repeat);
+/* Create the repeat node ((_ repeat <repeat>) n). */
+Node mkRepeat(TNode node, unsigned repeat);
 
 /* Create bit-vector addition node representing the increment of given node. */
 Node mkInc(TNode t);

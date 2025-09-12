@@ -185,7 +185,7 @@ class CVC5_EXPORT Command
   std::shared_ptr<Cmd> d_cmd;
 }; /* class Command */
 
-std::ostream& operator<<(std::ostream&, const Command&) CVC5_EXPORT;
+ CVC5_EXPORT std::ostream& operator<<(std::ostream&, const Command&);
 
 /**
  * This class is the main interface for retrieving commands and expressions
@@ -412,7 +412,7 @@ class CVC5_EXPORT ParserException : public CVC5ApiException
  * An end of file exception.
  * If thrown, API objects can still be used
  */
-class ParserEndOfFileException : public ParserException
+class CVC5_EXPORT ParserEndOfFileException : public ParserException
 {
  public:
   /** default constructor */

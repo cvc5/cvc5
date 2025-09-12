@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mudathir Mohamed, Andres Noetzli, Aina Niemetz
+ *   Mudathir Mohamed, Daniel Larraz, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
@@ -23,7 +23,7 @@ namespace sets {
 
 SetEnumerator::SetEnumerator(TypeNode type, TypeEnumeratorProperties* tep)
     : TypeEnumeratorBase<SetEnumerator>(type),
-      d_nodeManager(NodeManager::currentNM()),
+      d_nodeManager(type.getNodeManager()),
       d_elementEnumerator(type.getSetElementType(), tep),
       d_isFinished(false),
       d_currentSetIndex(0),

@@ -88,7 +88,6 @@ The C API offers **two modes** of memory management:
    structs/cvc5optioninfo.rst
    structs/cvc5plugin
    enums/cvc5kind
-   enums/cvc5proofrule
    enums/cvc5sortkind
    enums/cvc5roundingmode
    enums/cvc5unknownexplanation
@@ -137,8 +136,6 @@ Enums
 - enum :doc:`enums/cvc5kind`
 - enum :doc:`enums/cvc5sortkind`
 - enum :cpp:enum:`Cvc5OptionInfoKind`
-- enum :cpp:enum:`Cvc5ProofRule`
-- enum :cpp:enum:`Cvc5ProofRewriteRule`
 - enum :doc:`enums/cvc5roundingmode`
 - enum :doc:`enums/cvc5unknownexplanation`
 
@@ -146,6 +143,12 @@ Enums
 
   - enum :cpp:enum:`Cvc5BlockModelsMode`
   - enum :cpp:enum:`Cvc5LearnedLitType`
+  - enum :cpp:enum:`Cvc5FindSynthTarget`
+  - enum :cpp:enum:`Cvc5OptionCategory`
   - enum :cpp:enum:`Cvc5ProofComponent`
   - enum :cpp:enum:`Cvc5ProofFormat`
-  - enum :cpp:enum:`Cvc5FindSynthTarget`
+
+- enums classes for :doc:`proof rules <enums/cvc5proofrule>`
+
+  - enum :cpp:enum:`Cvc5ProofRule`
+  - enum :cpp:enum:`Cvc5ProofRewriteRule`

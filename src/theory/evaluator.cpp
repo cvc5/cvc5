@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andres Noetzli, Andrew Reynolds, Aina Niemetz
+ *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
@@ -17,6 +17,7 @@
 
 #include <math.h>
 
+#include "theory/builtin/theory_builtin_rewriter.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
@@ -109,7 +110,7 @@ EvalResult::~EvalResult()
 
 Node EvalResult::toNode(const TypeNode& tn) const
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = tn.getNodeManager();
   switch (d_tag)
   {
     case EvalResult::BOOL: return nm->mkConst(d_bool);
@@ -242,6 +243,12 @@ EvalResult Evaluator::evalInternal(
           doEval = false;
         }
       }
+      else if (currNode.getKind() == Kind::APPLY_INDEXED_SYMBOLIC)
+      {
+        // we require special handling below to deal with symbolic indexed
+        // operators.
+        doEval = false;
+      }
     }
     for (const auto& currNodeChild : currNode)
     {
@@ -304,6 +311,27 @@ EvalResult Evaluator::evalInternal(
             // Rewrite the result now, if we use the rewriter. We will see below
             // if we are able to turn it into a valid EvalResult.
             currNodeVal = d_rr->rewrite(currNodeVal);
+          }
+          else if (currNodeVal.getKind() == Kind::APPLY_INDEXED_SYMBOLIC)
+          {
+            // To evaluate a symbolic indexed application, we reconstruct
+            // the node here, and verify that all its arguments are constant
+            // using rewriteApplyIndexedSymbolic.
+            // If successful, we evaluate the result in a separate recursive
+            // call, which will only recurse once.
+            Node rr =
+                builtin::TheoryBuiltinRewriter::rewriteApplyIndexedSymbolic(
+                    currNodeVal);
+            if (rr != currNodeVal)
+            {
+              Node rre = eval(rr, args, vals);
+              // only take value if we successfully evaluated, otherwise
+              // it will remain APPLY_INDEXED_SYMBOLIC and fail below.
+              if (!rre.isNull())
+              {
+                currNodeVal = rre;
+              }
+            }
           }
         }
         needsReconstruct = false;
@@ -424,6 +452,13 @@ EvalResult Evaluator::evalInternal(
           {
             res = res || results[currNode[i]].d_bool;
           }
+          results[currNode] = EvalResult(res);
+          break;
+        }
+        case Kind::IMPLIES:
+        {
+          bool res =
+              !results[currNode[0]].d_bool || results[currNode[1]].d_bool;
           results[currNode] = EvalResult(res);
           break;
         }
@@ -1129,6 +1164,19 @@ EvalResult Evaluator::evalInternal(
           results[currNode] = EvalResult(b);
           break;
         }
+        case Kind::BITVECTOR_REPEAT:
+        {
+          BitVector res = results[currNode[0]].d_bv;
+          unsigned amount =
+              currNode.getOperator().getConst<BitVectorRepeat>().d_repeatAmount;
+          BitVector ret = res;
+          for (size_t i = 1; i < amount; i++)
+          {
+            ret = ret.concat(res);
+          }
+          results[currNode] = EvalResult(ret);
+          break;
+        }
         case Kind::BITVECTOR_SIGN_EXTEND:
         {
           BitVector res = results[currNode[0]].d_bv;
@@ -1211,10 +1259,25 @@ EvalResult Evaluator::evalInternal(
           }
           break;
         }
-        case Kind::BITVECTOR_TO_NAT:
+        case Kind::BITVECTOR_UBV_TO_INT:
         {
           BitVector res = results[currNode[0]].d_bv;
           results[currNode] = EvalResult(Rational(res.toInteger()));
+          break;
+        }
+        case Kind::BITVECTOR_SBV_TO_INT:
+        {
+          BitVector res = results[currNode[0]].d_bv;
+          const uint32_t size = currNode[0].getType().getBitVectorSize();
+          if (res.isBitSet(size - 1))
+          {
+            Rational ttm = Rational(Integer(2).pow(size));
+            results[currNode] = EvalResult(Rational(res.toInteger()) - ttm);
+          }
+          else
+          {
+            results[currNode] = EvalResult(Rational(res.toInteger()));
+          }
           break;
         }
         case Kind::INT_TO_BITVECTOR:
@@ -1279,7 +1342,7 @@ Node Evaluator::reconstruct(TNode n,
     return n;
   }
   Trace("evaluator") << "Evaluator: reconstruct " << n << std::endl;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = n.getNodeManager();
   std::unordered_map<TNode, EvalResult>::iterator itr;
   std::unordered_map<TNode, Node>::iterator itn;
   std::vector<Node> echildren;
@@ -1317,6 +1380,7 @@ Node Evaluator::reconstruct(TNode n,
       // could not evaluate this child, look in the node cache
       itn = evalAsNode.find(currNodeChild);
       Assert(itn != evalAsNode.end());
+      Assert(!itn->second.isNull());
       echildren.push_back(itn->second);
     }
     else

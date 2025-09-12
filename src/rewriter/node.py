@@ -156,8 +156,9 @@ class Op(Enum):
     BOUND_VARS = (None, 'BOUND_VAR_LIST')
     DISTINCT = ('distinct', 'DISTINCT')
 
-    BV_TO_NAT = ('bv2nat', 'BITVECTOR_TO_NAT')
-    INT_TO_BV = ('int2bv', 'INT_TO_BITVECTOR')
+    UBV_TO_INT = ('ubv_to_int', 'BITVECTOR_UBV_TO_INT')
+    SBV_TO_INT = ('sbv_to_int', 'BITVECTOR_SBV_TO_INT')
+    INT_TO_BV = ('int_to_bv', 'INT_TO_BITVECTOR')
     
     TYPE_OF = ('@type_of', 'TYPE_OF')
 
@@ -203,6 +204,7 @@ class Op(Enum):
     REGEXP_DIFF = ('re.diff', 'REGEXP_DIFF')
     REGEXP_STAR = ('re.*', 'REGEXP_STAR')
     REGEXP_PLUS = ('re.+', 'REGEXP_PLUS')
+    REGEXP_REPEAT = ('re.^', 'REGEXP_REPEAT')
     REGEXP_OPT = ('re.opt', 'REGEXP_OPT')
     REGEXP_RANGE = ('re.range', 'REGEXP_RANGE')
     REGEXP_COMPLEMENT = ('re.comp', 'REGEXP_COMPLEMENT')

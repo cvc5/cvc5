@@ -455,7 +455,8 @@ const Tableau::Entry* LinearEqualityModule::rowLacksBound(RowIndex ridx, bool ro
   return NULL;
 }
 
-void LinearEqualityModule::propagateBasicFromRow(ConstraintP c,
+void LinearEqualityModule::propagateBasicFromRow(NodeManager* nm,
+                                                 ConstraintP c,
                                                  bool produceProofs)
 {
   Assert(c != NullConstraint);
@@ -470,7 +471,7 @@ void LinearEqualityModule::propagateBasicFromRow(ConstraintP c,
   ConstraintCPVec bounds;
   RationalVectorP coeffs = produceProofs ? new RationalVector() : nullptr;
   propagateRow(bounds, ridx, upperBound, c, coeffs);
-  c->impliedByFarkas(bounds, coeffs, false);
+  c->impliedByFarkas(nm, bounds, coeffs, false);
   c->tryToPropagate();
 
   if(coeffs != RationalVectorPSentinel) { delete coeffs; }
@@ -663,7 +664,12 @@ ConstraintP LinearEqualityModule::weakestExplanation(bool aboveUpper, DeltaRatio
  * Thus we treat aboveUp as multiplying the row by -1 and !aboveUp as 1
  * for the entire row.
  */
-ConstraintCP LinearEqualityModule::minimallyWeakConflict(bool aboveUpper, ArithVar basicVar, FarkasConflictBuilder& fcs) const {
+ConstraintCP LinearEqualityModule::minimallyWeakConflict(
+    NodeManager* nm,
+    bool aboveUpper,
+    ArithVar basicVar,
+    FarkasConflictBuilder& fcs) const
+{
   Assert(!fcs.underConstruction());
   TimerStat::CodeTimer codeTimer(d_statistics.d_weakenTime);
 
@@ -704,7 +710,7 @@ ConstraintCP LinearEqualityModule::minimallyWeakConflict(bool aboveUpper, ArithV
   }
   Assert(fcs.consequentIsSet());
 
-  ConstraintCP conflicted = fcs.commitConflict();
+  ConstraintCP conflicted = fcs.commitConflict(nm);
 
   ++d_statistics.d_weakeningAttempts;
   if(anyWeakenings){

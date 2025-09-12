@@ -1,6 +1,6 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Gereon Kremer, Mathias Preiner, Andres Noetzli
+#   Gereon Kremer, Mathias Preiner, Aina Niemetz
 #
 # This file is part of the cvc5 project.
 #
@@ -32,13 +32,13 @@ if(NOT GTest_FOUND_SYSTEM)
 
     include(ExternalProject)
 
-    set(GTest_VERSION "1.11.0")
+    set(GTest_VERSION "1.17.0")
 
     ExternalProject_Add(
         GTest-EP
         ${COMMON_EP_CONFIG}
-        URL https://github.com/google/googletest/archive/refs/tags/release-${GTest_VERSION}.tar.gz
-        URL_HASH SHA256=b4870bf121ff7795ba20d20bcdd8627b8e088f2d1dab299a031c1034eddc93d5
+        URL https://github.com/google/googletest/archive/refs/tags/v${GTest_VERSION}.tar.gz
+        URL_HASH SHA256=65fab701d9829d38cb77c14acdc431d2108bfdbf8979e40eb8ae567edf10b27c
         DOWNLOAD_NAME gtest.tar.gz
         CMAKE_ARGS
           -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>

@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
+ *   Andrew Reynolds, Daniel Larraz, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
@@ -58,6 +58,7 @@ void ExprMiner::initializeChecker(std::unique_ptr<SolverEngine>& checker,
 {
   Assert (!query.isNull());
   initializeSubsolver(
+      nodeManager(),
       checker,
       info,
       options().quantifiers.sygusExprMinerCheckTimeoutWasSetByUser,

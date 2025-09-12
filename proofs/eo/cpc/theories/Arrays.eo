@@ -3,20 +3,13 @@
 (declare-type Array (Type Type))
 
 ; Core operators.
-(declare-const select (-> (! Type :var U :implicit) (! Type :var T :implicit)
-                          (Array U T) U T))
-(declare-const store (-> (! Type :var U :implicit) (! Type :var T :implicit)
-                          (Array U T) U T (Array U T)))
+(declare-parameterized-const select ((U Type :implicit) (T Type :implicit))
+   (-> (Array U T) U T))
+(declare-parameterized-const store ((U Type :implicit) (T Type :implicit))
+   (-> (Array U T) U T (Array U T)))
 
-; The store all array constant.
-; note: doesn't check that T is (Array x U) for some x
-; disclaimer: This function is not in SMT-LIB.
-(declare-const store_all (-> (! Type :var T) (! Type :var U :implicit) U T))
-
-; The array diff skolem.
-; (@array_deq_diff A B) denotes an index where A and B differ if A and B are not equal.
-(declare-const @array_deq_diff
-   (-> (! Type :var T :implicit) (! Type :var U :implicit)
-   (! (Array T U) :opaque)
-   (! (Array T U) :opaque)
-   T))
+; The array diff skolem. (@array_deq_diff A B) denotes an index where A and B
+; differ if A and B are not equal.
+(declare-parameterized-const @array_deq_diff
+  ((T Type :implicit) (U Type :implicit) (a (Array T U) :opaque) (b (Array T U) :opaque))
+  T)

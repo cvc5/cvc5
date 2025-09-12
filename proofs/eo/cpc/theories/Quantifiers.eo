@@ -1,4 +1,7 @@
 (include "../programs/Utils.eo")
+(include "../programs/Nary.eo")
+
+(include "../theories/Arith.eo")
 
 ; disclaimer: >
 ;   This function is a builtin function symbol of SMT-LIB denoting
@@ -12,18 +15,21 @@
 ;   list as the first child to model cvc5's treatment of quantified formulas.
 (declare-const exists (-> @List Bool Bool) :binder @list)
 
-; program: $get_qskolem_type
+; program: $get_var_list
 ; args:
 ; - F Bool: The quantified formula.
-; - i Int: The integer indicating the index of the variable.
 ; return: >
-;   The type of the @quantifiers_skolemize term for F and i.
-(program $get_qskolem_type ((xs @List) (G Bool) (i Int))
-  (Bool Int) Type
+;   The variable list for F.
+(program $get_var_list ((Q (-> @List Bool Bool)) (xs @List) (G Bool) (i Int))
+  :signature (Bool) @List
   (
-    (($get_qskolem_type (forall xs G) i) (eo::typeof (eo::list_nth @list xs i)))
+    (($get_var_list (Q xs G)) xs)
   )
 )
 
 ; skolems
-(declare-const @quantifiers_skolemize (-> (! Type :var T :implicit) (! Bool :opaque :var F) (! Int :opaque :var i) ($get_qskolem_type F i)))
+(declare-parameterized-const @quantifiers_skolemize ((F Bool :opaque) (i Int :opaque))
+  ($assoc_nil_nth_type @list ($get_var_list F) i))
+
+(declare-parameterized-const @witness_inv_condition ((F Bool :opaque))
+  ($assoc_nil_nth_type @list ($get_var_list F) 0))

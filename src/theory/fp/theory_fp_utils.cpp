@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Martin Brain, Aina Niemetz
+ *   Andrew Reynolds, Martin Brain, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
@@ -62,7 +62,7 @@ void checkForExperimentalFloatingPointType(const Node& n)
             "are supported in default mode. Try the experimental solver via "
             "--fp-exp. Note: There are known issues with the experimental "
             "solver, use at your own risk.";
-      throw LogicException(ss.str());
+      throw SafeLogicException(ss.str());
     }
   }
 }

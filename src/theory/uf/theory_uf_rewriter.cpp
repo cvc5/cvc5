@@ -35,7 +35,7 @@ TheoryUfRewriter::TheoryUfRewriter(NodeManager* nm) : TheoryRewriter(nm)
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::LAMBDA_ELIM,
                            TheoryRewriteCtx::PRE_DSL);
-  registerProofRewriteRule(ProofRewriteRule::BV_TO_NAT_ELIM,
+  registerProofRewriteRule(ProofRewriteRule::UBV_TO_INT_ELIM,
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::INT_TO_BV_ELIM,
                            TheoryRewriteCtx::PRE_DSL);
@@ -141,13 +141,24 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
       return RewriteResponse(REWRITE_AGAIN_FULL, ret);
     }
   }
-  else if (k == Kind::BITVECTOR_TO_NAT)
+  else if (k == Kind::BITVECTOR_UBV_TO_INT)
   {
-    return rewriteBVToNat(node);
+    return rewriteBVToInt(node);
   }
   else if (k == Kind::INT_TO_BITVECTOR)
   {
     return rewriteIntToBV(node);
+  }
+  else if (k == Kind::BITVECTOR_SBV_TO_INT)
+  {
+    NodeManager* nm = nodeManager();
+    Node r = nm->mkNode(Kind::BITVECTOR_UBV_TO_INT, node[0]);
+    const uint32_t size = node[0].getType().getBitVectorSize();
+    Node ttm = nm->mkConstInt(Rational(Integer(2).pow(size)));
+    Node ex = bv::utils::mkExtract(node[0], size - 1, size - 1);
+    Node cond = nm->mkNode(Kind::EQUAL, ex, bv::utils::mkZero(nm, 1));
+    Node rite = nm->mkNode(Kind::ITE, cond, r, nm->mkNode(Kind::SUB, r, ttm));
+    return RewriteResponse(REWRITE_AGAIN_FULL, rite);
   }
   return RewriteResponse(REWRITE_DONE, node);
 }
@@ -226,7 +237,7 @@ Node TheoryUfRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
     {
       if (n.getKind() == Kind::LAMBDA)
       {
-        Node felim = canEliminateLambda(n);
+        Node felim = canEliminateLambda(nodeManager(), n);
         if (!felim.isNull())
         {
           return felim;
@@ -234,9 +245,9 @@ Node TheoryUfRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       }
     }
     break;
-    case ProofRewriteRule::BV_TO_NAT_ELIM:
+    case ProofRewriteRule::UBV_TO_INT_ELIM:
     {
-      if (n.getKind() == Kind::BITVECTOR_TO_NAT)
+      if (n.getKind() == Kind::BITVECTOR_UBV_TO_INT)
       {
         return arith::eliminateBv2Nat(n);
       }
@@ -445,17 +456,18 @@ Node TheoryUfRewriter::rewriteLambda(Node node)
   Trace("builtin-rewrite-debug")
       << "...failed to get array representation." << std::endl;
   // see if it can be eliminated, (lambda ((x T)) (f x)) ---> f
-  Node felim = canEliminateLambda(node);
-  if (!felim.isNull())
+  // we only do this if the resulting eliminated term is a variable
+  Node felim = canEliminateLambda(nodeManager(), node);
+  if (!felim.isNull() && felim.isVar())
   {
     return felim;
   }
   return node;
 }
 
-RewriteResponse TheoryUfRewriter::rewriteBVToNat(TNode node)
+RewriteResponse TheoryUfRewriter::rewriteBVToInt(TNode node)
 {
-  Assert(node.getKind() == Kind::BITVECTOR_TO_NAT);
+  Assert(node.getKind() == Kind::BITVECTOR_UBV_TO_INT);
   NodeManager* nm = nodeManager();
   if (node[0].isConst())
   {
@@ -485,7 +497,7 @@ RewriteResponse TheoryUfRewriter::rewriteIntToBV(TNode node)
         BitVector(size, node[0].getConst<Rational>().getNumerator()));
     return RewriteResponse(REWRITE_AGAIN_FULL, resultNode);
   }
-  else if (node[0].getKind() == Kind::BITVECTOR_TO_NAT)
+  else if (node[0].getKind() == Kind::BITVECTOR_UBV_TO_INT)
   {
     TypeNode otype = node.getType();
     TypeNode itype = node[0][0].getType();
@@ -514,18 +526,19 @@ RewriteResponse TheoryUfRewriter::rewriteIntToBV(TNode node)
   return RewriteResponse(REWRITE_DONE, node);
 }
 
-Node TheoryUfRewriter::canEliminateLambda(const Node& node)
+Node TheoryUfRewriter::canEliminateLambda(NodeManager* nm, const Node& node)
 {
   Assert(node.getKind() == Kind::LAMBDA);
   if (node[1].getKind() == Kind::APPLY_UF)
   {
     size_t nvar = node[0].getNumChildren();
-    if (node[1].getNumChildren() == nvar)
+    size_t nargs = node[1].getNumChildren();
+    if (nargs >= nvar)
     {
       bool matchesList = true;
       for (size_t i = 0; i < nvar; i++)
       {
-        if (node[0][i] != node[1][i])
+        if (node[0][(nvar - 1) - i] != node[1][(nargs - 1) - i])
         {
           matchesList = false;
           break;
@@ -533,7 +546,23 @@ Node TheoryUfRewriter::canEliminateLambda(const Node& node)
       }
       if (matchesList)
       {
-        return node[1].getOperator();
+        Node ret = node[1].getOperator();
+        if (nargs > nvar)
+        {
+          size_t diff = nargs - nvar;
+          for (size_t i = 0; i < diff; i++)
+          {
+            ret = nm->mkNode(Kind::HO_APPLY, ret, node[1][i]);
+          }
+          // For instance we cannot eliminate (lambda ((x Int)) (f x x)) to
+          // (f x).
+          std::vector<Node> vars(node[0].begin(), node[0].end());
+          if (expr::hasSubterm(ret, vars))
+          {
+            return Node::null();
+          }
+        }
+        return ret;
       }
     }
   }

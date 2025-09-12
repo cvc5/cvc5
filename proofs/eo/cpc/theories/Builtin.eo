@@ -2,7 +2,7 @@
 
 ; Note that the Bool sort is native to Eunoia
 
-(declare-const ite (-> (! Type :var A :implicit) Bool A A A))
+(declare-parameterized-const ite ((A Type :implicit)) (-> Bool A A A))
 (declare-const not (-> Bool Bool))
 
 ; disclaimer: >
@@ -21,7 +21,7 @@
 
 (declare-const xor (-> Bool Bool Bool) :left-assoc)
 
-(declare-const = (-> (! Type :var A :implicit) A A Bool) :chainable and)
+(declare-parameterized-const = ((A Type :implicit)) (-> A A Bool) :chainable and)
 
 ; program: $get_lambda_type
 ; args:
@@ -31,7 +31,7 @@
 ;   The type of a lambda having the list of variables L and
 ;   body type B.
 (program $get_lambda_type ((x @List) (xs @List :list) (B Type))
-  (@List Type) Type
+  :signature (@List Type) Type
   (
     (($get_lambda_type (@list x xs) B) (-> (eo::typeof x) ($get_lambda_type xs B)))
     (($get_lambda_type @list.nil B)    B)
@@ -39,9 +39,10 @@
 )
 
 ; disclaimer: this function is not in SMT-LIB.
-(declare-const lambda (-> (! Type :var B :implicit) (! @List :var L) B ($get_lambda_type L B)) :binder @list)
+(declare-parameterized-const lambda ((B Type :implicit) (L @List))
+  (-> B ($get_lambda_type L B)) :binder @list)
 
-(declare-const distinct (-> (! Type :var A :implicit) A A Bool) :pairwise and)
+(declare-parameterized-const distinct ((A Type :implicit)) (-> A A Bool) :pairwise and)
 
 ; The purification skolem.
-(declare-const @purify (-> (! Type :var A :implicit) (! A :opaque) A))
+(declare-parameterized-const @purify ((A Type :implicit) (t A :opaque)) A)

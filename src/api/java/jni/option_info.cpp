@@ -359,3 +359,17 @@ JNIEXPORT jdouble JNICALL Java_io_github_cvc5_OptionInfo_doubleValue(
   return static_cast<jdouble>(ret);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jdouble>(0.0));
 }
+
+/*
+ * Class:     io_github_cvc5_OptionInfo
+ * Method:    getCategory
+ * Signature: (J)I
+ */
+JNIEXPORT jint JNICALL Java_io_github_cvc5_OptionInfo_getCategory(
+    JNIEnv* env, jobject, jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  OptionInfo* current = reinterpret_cast<OptionInfo*>(pointer);
+  return static_cast<jint>(current->category);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}

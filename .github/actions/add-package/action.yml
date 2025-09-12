@@ -5,10 +5,6 @@ inputs:
     description: path to the build directory
   package-name:
     description: target name of the package
-  github-token-latest:
-    description: token to upload package to latest
-  github-token-release:
-    description: token to upload package to release
   shell:
     default: bash
 outputs:
@@ -35,8 +31,7 @@ runs:
         rm -rf ${{ inputs.build-dir }}/install/lib/site-packages
 
         if [[ "$RUNNER_OS" == "Windows" ]]; then
-          if [ -f ${{ inputs.build-dir }}/install/bin/libcvc5.dll ] || \
-             [ -f ${{ inputs.build-dir }}/install/bin/cvc5jni.dll ]; then
+          if [ -f ${{ inputs.build-dir }}/install/bin/libcvc5.dll ]; then
             cp /mingw64/bin/libgcc_s_seh-1.dll ${{ inputs.build-dir }}/install/bin/
             cp /mingw64/bin/libstdc++-6.dll ${{ inputs.build-dir }}/install/bin/
             cp /mingw64/bin/libwinpthread-1.dll ${{ inputs.build-dir }}/install/bin/
@@ -60,25 +55,19 @@ runs:
         mv ${{ inputs.build-dir }}/${{ inputs.package-name }}.zip .
         echo "::endgroup::"
 
-    - name: Install pyGithub
-      shell: ${{ inputs.shell }}
-      run: |
-        # Upgrading pyopenssl resolves the following error:
-        # AttributeError:
-        #   module 'lib' has no attribute 'X509_V_FLAG_NOTIFY_POLICY'
-        python3 -m pip install -U pyopenssl
-        python3 -m pip install pyGithub
-
     - name: Store to latest
       if: github.ref == 'refs/heads/main'
       uses: ./.github/actions/store-to-latest
       with:
         asset-filename: ${{ inputs.package-name }}.zip
-        github-token: ${{ inputs.github-token-latest }}
+        shell: ${{ inputs.shell }}
 
     - name: Store to release
       if: startsWith(github.ref, 'refs/tags/')
-      uses: ./.github/actions/store-to-release
-      with:
-        asset-filename: ${{ inputs.package-name }}.zip
-        github-token: ${{ inputs.github-token-release }}
+      shell: ${{ inputs.shell }}
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        gh release upload $GITHUB_REF_NAME \
+          ${{ inputs.package-name }}.zip \
+          --repo $GITHUB_REPOSITORY

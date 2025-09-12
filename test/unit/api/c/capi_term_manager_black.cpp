@@ -111,9 +111,9 @@ TEST_F(TestCApiBlackTermManager, mk_array_sort)
   ASSERT_DEATH(cvc5_mk_array_sort(d_tm, bvsort, nullptr), "invalid sort");
 
   Cvc5TermManager* tm = cvc5_term_manager_new();
-  // this will throw when NodeManager is not a singleton anymore
-  (void)cvc5_mk_array_sort(
-      d_tm, cvc5_get_boolean_sort(tm), cvc5_get_integer_sort(tm));
+  ASSERT_DEATH(cvc5_mk_array_sort(
+                   d_tm, cvc5_get_boolean_sort(tm), cvc5_get_integer_sort(tm)),
+               "sort is not associated with this term manager");
   cvc5_term_manager_delete(tm);
 }
 
@@ -187,8 +187,9 @@ TEST_F(TestCApiBlackTermManager, mk_dt_sort)
     cvc5_dt_decl_add_constructor(decl, cons);
     Cvc5DatatypeConstructorDecl nil = cvc5_mk_dt_cons_decl(tm, "nil");
     cvc5_dt_decl_add_constructor(decl, nil);
-    // this will throw when NodeManager is not a singleton anymore
-    (void)cvc5_mk_dt_sort(d_tm, decl);
+    ASSERT_DEATH(
+        cvc5_mk_dt_sort(d_tm, decl),
+        "datatype declaration is not associated with this term manager");
     cvc5_term_manager_delete(tm);
   }
 }
@@ -298,8 +299,9 @@ TEST_F(TestCApiBlackTermManager, mk_dt_sorts)
     Cvc5DatatypeConstructorDecl nil2 = cvc5_mk_dt_cons_decl(tm, "nil2");
     cvc5_dt_decl_add_constructor(decl2, nil2);
     std::vector<Cvc5DatatypeDecl> decls = {decl1, decl2};
-    // this will throw when NodeManager is not a singleton anymore
-    (void)cvc5_mk_dt_sorts(d_tm, decls.size(), decls.data());
+    ASSERT_DEATH(
+        cvc5_mk_dt_sorts(d_tm, decls.size(), decls.data()),
+        "expected a datatype declaration associated with this term manager");
     cvc5_term_manager_delete(tm);
   }
 }
@@ -321,11 +323,6 @@ TEST_F(TestCApiBlackTermManager, mk_fun_sort)
   domain = {nullptr};
   ASSERT_DEATH(cvc5_mk_fun_sort(d_tm, domain.size(), domain.data(), d_int),
                "invalid sort at index 0");
-  // non-first-class arguments are not allowed
-  Cvc5Sort regexpsort = cvc5_get_regexp_sort(d_tm);
-  domain = {regexpsort};
-  ASSERT_DEATH(cvc5_mk_fun_sort(d_tm, domain.size(), domain.data(), d_int),
-               "expected first-class sort as domain sort");
   domain = {d_int};
   ASSERT_DEATH(cvc5_mk_fun_sort(d_tm, domain.size(), domain.data(), funsort),
                "expected non-function sort as codomain sort");
@@ -350,11 +347,12 @@ TEST_F(TestCApiBlackTermManager, mk_fun_sort)
   (void)cvc5_mk_fun_sort(d_tm, domain.size(), domain.data(), d_int);
 
   Cvc5TermManager* tm = cvc5_term_manager_new();
-  // this will throw when NodeManager is not a singleton anymore
-  (void)cvc5_mk_fun_sort(
-      tm, domain.size(), domain.data(), cvc5_get_integer_sort(tm));
+  ASSERT_DEATH(cvc5_mk_fun_sort(
+                   tm, domain.size(), domain.data(), cvc5_get_integer_sort(tm)),
+               "expected a sort associated with this term manager");
   domain = {cvc5_get_boolean_sort(tm), cvc5_get_integer_sort(tm)};
-  (void)cvc5_mk_fun_sort(tm, domain.size(), domain.data(), d_int);
+  ASSERT_DEATH(cvc5_mk_fun_sort(tm, domain.size(), domain.data(), d_int),
+               "sort is not associated with this term manager");
   cvc5_term_manager_delete(tm);
 }
 
@@ -393,9 +391,9 @@ TEST_F(TestCApiBlackTermManager, mk_predicate_sort)
   (void)cvc5_mk_predicate_sort(d_tm, sorts.size(), sorts.data());
 
   Cvc5TermManager* tm = cvc5_term_manager_new();
-  // this will throw when NodeManager is not a singleton anymore
   sorts = {d_int};
-  (void)cvc5_mk_predicate_sort(tm, sorts.size(), sorts.data());
+  ASSERT_DEATH(cvc5_mk_predicate_sort(tm, sorts.size(), sorts.data()),
+               "expected a sort associated with this term manager");
   cvc5_term_manager_delete(tm);
 }
 
@@ -427,11 +425,12 @@ TEST_F(TestCApiBlackTermManager, mk_record_sort)
   (void)cvc5_mk_record_sort(d_tm, names.size(), names.data(), sorts.data());
 
   Cvc5TermManager* tm = cvc5_term_manager_new();
-  // this will throw when NodeManager is not a singleton anymore
   sorts = {cvc5_get_boolean_sort(tm),
            cvc5_mk_bv_sort(d_tm, 8),
            cvc5_get_integer_sort(tm)};
-  (void)cvc5_mk_record_sort(d_tm, names.size(), names.data(), sorts.data());
+  ASSERT_DEATH(
+      cvc5_mk_record_sort(d_tm, names.size(), names.data(), sorts.data()),
+      "expected a sort associated with this term manager");
   cvc5_term_manager_delete(tm);
 }
 
@@ -444,8 +443,8 @@ TEST_F(TestCApiBlackTermManager, mk_set_sort)
   ASSERT_DEATH(cvc5_mk_set_sort(nullptr, d_bool), "unexpected NULL argument");
   ASSERT_DEATH(cvc5_mk_set_sort(d_tm, nullptr), "invalid sort");
   Cvc5TermManager* tm = cvc5_term_manager_new();
-  // this will throw when NodeManager is not a singleton anymore
-  (void)cvc5_mk_set_sort(d_tm, cvc5_get_boolean_sort(tm));
+  ASSERT_DEATH(cvc5_mk_set_sort(d_tm, cvc5_get_boolean_sort(tm)),
+               "sort is not associated with this term manager");
   cvc5_term_manager_delete(tm);
 }
 
@@ -458,8 +457,8 @@ TEST_F(TestCApiBlackTermManager, mk_bag_sort)
   ASSERT_DEATH(cvc5_mk_bag_sort(nullptr, d_bool), "unexpected NULL argument");
   ASSERT_DEATH(cvc5_mk_bag_sort(d_tm, nullptr), "invalid sort");
   Cvc5TermManager* tm = cvc5_term_manager_new();
-  // this will throw when NodeManager is not a singleton anymore
-  (void)cvc5_mk_bag_sort(d_tm, cvc5_get_boolean_sort(tm));
+  ASSERT_DEATH(cvc5_mk_bag_sort(d_tm, cvc5_get_boolean_sort(tm)),
+               "sort is not associated with this term manager");
   cvc5_term_manager_delete(tm);
 }
 
@@ -473,8 +472,8 @@ TEST_F(TestCApiBlackTermManager, mk_sequence_sort)
                "unexpected NULL argument");
   ASSERT_DEATH(cvc5_mk_sequence_sort(d_tm, nullptr), "invalid sort");
   Cvc5TermManager* tm = cvc5_term_manager_new();
-  // this will throw when NodeManager is not a singleton anymore
-  (void)cvc5_mk_sequence_sort(d_tm, cvc5_get_boolean_sort(tm));
+  ASSERT_DEATH(cvc5_mk_sequence_sort(d_tm, cvc5_get_boolean_sort(tm)),
+               "sort is not associated with this term manager");
   cvc5_term_manager_delete(tm);
 }
 
@@ -543,9 +542,9 @@ TEST_F(TestCApiBlackTermManager, mk_tuple_sort)
   (void)cvc5_mk_tuple_sort(d_tm, sorts.size(), sorts.data());
 
   Cvc5TermManager* tm = cvc5_term_manager_new();
-  // this will throw when NodeManager is not a singleton anymore
   sorts = {cvc5_get_boolean_sort(tm)};
-  (void)cvc5_mk_tuple_sort(d_tm, sorts.size(), sorts.data());
+  ASSERT_DEATH(cvc5_mk_tuple_sort(d_tm, sorts.size(), sorts.data()),
+               "expected a sort associated with this term manager");
   cvc5_term_manager_delete(tm);
 }
 
@@ -558,8 +557,8 @@ TEST_F(TestCApiBlackTermManager, mk_nullable_sort)
                "unexpected NULL argument");
   ASSERT_DEATH(cvc5_mk_nullable_sort(d_tm, nullptr), "invalid sort");
   Cvc5TermManager* tm = cvc5_term_manager_new();
-  // this will throw when NodeManager is not a singleton anymore
-  (void)cvc5_mk_nullable_sort(tm, d_int);
+  ASSERT_DEATH(cvc5_mk_nullable_sort(tm, d_int),
+               "sort is not associated with this term manager");
   cvc5_term_manager_delete(tm);
 }
 
@@ -684,13 +683,15 @@ TEST_F(TestCApiBlackTermManager, mk_const_array)
   (void)cvc5_mk_const_array(d_tm, arr_sort2, zero);
   (void)cvc5_mk_const_array(d_tm, arr_sort, zero2);
   Cvc5TermManager* tm = cvc5_term_manager_new();
-  // this will throw when NodeManager is not a singleton anymore
-  (void)cvc5_mk_const_array(tm, arr_sort, cvc5_mk_integer_int64(tm, 0));
-  (void)cvc5_mk_const_array(
-      tm,
-      cvc5_mk_array_sort(
-          tm, cvc5_get_integer_sort(tm), cvc5_get_integer_sort(tm)),
-      zero);
+  ASSERT_DEATH(cvc5_mk_const_array(tm, arr_sort, cvc5_mk_integer_int64(tm, 0)),
+               "sort is not associated with this term manager");
+  ASSERT_DEATH(
+      cvc5_mk_const_array(
+          tm,
+          cvc5_mk_array_sort(
+              tm, cvc5_get_integer_sort(tm), cvc5_get_integer_sort(tm)),
+          zero),
+      "term is not associated with this term manager");
   cvc5_term_manager_delete(tm);
 }
 
@@ -707,8 +708,8 @@ TEST_F(TestCApiBlackTermManager, mk_var)
   ASSERT_DEATH(cvc5_mk_var(nullptr, d_bool, ""), "unexpected NULL argument");
   ASSERT_DEATH(cvc5_mk_var(d_tm, nullptr, ""), "invalid sort");
   Cvc5TermManager* tm = cvc5_term_manager_new();
-  // this will throw when NodeManager is not a singleton anymore
-  (void)cvc5_mk_var(tm, d_bool, "b");
+  ASSERT_DEATH(cvc5_mk_var(tm, d_bool, "b"),
+               "sort is not associated with this term manager");
   cvc5_term_manager_delete(tm);
 }
 
@@ -782,14 +783,20 @@ TEST_F(TestCApiBlackTermManager, mk_fp)
       "expected a bit-vector value of size 1");
 
   Cvc5TermManager* tm = cvc5_term_manager_new();
-  // this will throw when NodeManager is not a singleton anymore
-  (void)cvc5_mk_fp(tm, 3, 5, t1);
-  (void)cvc5_mk_fp_from_ieee(
-      tm, sign, cvc5_mk_bv_uint64(tm, 5, 0), cvc5_mk_bv_uint64(tm, 10, 0));
-  (void)cvc5_mk_fp_from_ieee(
-      tm, cvc5_mk_bv_uint64(tm, 1, 0), exp, cvc5_mk_bv_uint64(tm, 10, 0));
-  (void)cvc5_mk_fp_from_ieee(
-      tm, cvc5_mk_bv_uint64(tm, 1, 0), cvc5_mk_bv_uint64(tm, 5, 0), sig);
+  ASSERT_DEATH(cvc5_mk_fp(tm, 3, 5, t1),
+               "term is not associated with this term manager");
+  ASSERT_DEATH(
+      cvc5_mk_fp_from_ieee(
+          tm, sign, cvc5_mk_bv_uint64(tm, 5, 0), cvc5_mk_bv_uint64(tm, 10, 0)),
+      "term is not associated with this term manager");
+  ASSERT_DEATH(
+      cvc5_mk_fp_from_ieee(
+          tm, cvc5_mk_bv_uint64(tm, 1, 0), exp, cvc5_mk_bv_uint64(tm, 10, 0)),
+      "term is not associated with this term manager");
+  ASSERT_DEATH(
+      cvc5_mk_fp_from_ieee(
+          tm, cvc5_mk_bv_uint64(tm, 1, 0), cvc5_mk_bv_uint64(tm, 5, 0), sig),
+      "term is not associated with this term manager");
   cvc5_term_manager_delete(tm);
 }
 
@@ -807,8 +814,8 @@ TEST_F(TestCApiBlackTermManager, mk_cardinality_constraint)
                "expected a value > 0");
 
   Cvc5TermManager* tm = cvc5_term_manager_new();
-  // this will throw when NodeManager is not a singleton anymore
-  (void)cvc5_mk_cardinality_constraint(tm, unsort, 3);
+  ASSERT_DEATH(cvc5_mk_cardinality_constraint(tm, unsort, 3),
+               "sort is not associated with this term manager");
   cvc5_term_manager_delete(tm);
 }
 
@@ -822,8 +829,8 @@ TEST_F(TestCApiBlackTermManager, mk_empty_set)
                "expected null sort or set sort");
 
   Cvc5TermManager* tm = cvc5_term_manager_new();
-  // this will throw when NodeManager is not a singleton anymore
-  (void)cvc5_mk_empty_set(tm, sort);
+  ASSERT_DEATH(cvc5_mk_empty_set(tm, sort),
+               "sort is not associated with this term manager");
   cvc5_term_manager_delete(tm);
 }
 
@@ -837,8 +844,8 @@ TEST_F(TestCApiBlackTermManager, mk_empty_bag)
                "expected null sort or bag sort");
 
   Cvc5TermManager* tm = cvc5_term_manager_new();
-  // this will throw when NodeManager is not a singleton anymore
-  (void)cvc5_mk_empty_bag(tm, sort);
+  ASSERT_DEATH(cvc5_mk_empty_bag(tm, sort),
+               "sort is not associated with this term manager");
   cvc5_term_manager_delete(tm);
 }
 
@@ -852,8 +859,8 @@ TEST_F(TestCApiBlackTermManager, mk_empty_sequence)
   ASSERT_DEATH(cvc5_mk_empty_sequence(d_tm, nullptr), "invalid sort");
 
   Cvc5TermManager* tm = cvc5_term_manager_new();
-  // this will throw when NodeManager is not a singleton anymore
-  (void)cvc5_mk_empty_sequence(tm, sort);
+  ASSERT_DEATH(cvc5_mk_empty_sequence(tm, sort),
+               "sort is not associated with this term manager");
   cvc5_term_manager_delete(tm);
 }
 
@@ -1026,8 +1033,8 @@ TEST_F(TestCApiBlackTermManager, mk_sep_nil)
   ASSERT_DEATH(cvc5_mk_sep_nil(d_tm, nullptr), "invalid sort");
 
   Cvc5TermManager* tm = cvc5_term_manager_new();
-  // this will throw when NodeManager is not a singleton anymore
-  (void)cvc5_mk_sep_nil(tm, d_bool);
+  ASSERT_DEATH(cvc5_mk_sep_nil(tm, d_bool),
+               "sort is not associated with this term manager");
   cvc5_term_manager_delete(tm);
 }
 
@@ -1041,9 +1048,9 @@ TEST_F(TestCApiBlackTermManager, mk_string)
   ASSERT_EQ(
       cvc5_term_to_string(cvc5_mk_string(d_tm, "asdf\\u{005c}nasdf", true)),
       std::string("\"asdf\\u{5c}nasdf\""));
-  const wchar_t* s = L"";
-  ASSERT_EQ(cvc5_term_get_string_value(cvc5_mk_string_from_wchar(d_tm, s)),
-            std::wstring(s));
+  const char32_t* s = U"";
+  ASSERT_EQ(cvc5_term_get_u32string_value(cvc5_mk_string_from_char32(d_tm, s)),
+            std::u32string(s));
 }
 
 TEST_F(TestCApiBlackTermManager, mk_term)
@@ -1222,19 +1229,23 @@ TEST_F(TestCApiBlackTermManager, mk_term)
       args.data());
 
   Cvc5TermManager* tm = cvc5_term_manager_new();
-  // this will throw when NodeManager is not a singleton anymore
-  (void)cvc5_mk_sep_nil(tm, d_bool);
+  ASSERT_DEATH(cvc5_mk_sep_nil(tm, d_bool),
+               "sort is not associated with this term manager");
   args = {t_bool,
           cvc5_mk_const(tm, cvc5_get_boolean_sort(tm), ""),
           cvc5_mk_const(tm, cvc5_get_boolean_sort(tm), "")};
-  (void)cvc5_mk_term(tm, CVC5_KIND_IMPLIES, 3, args.data());
+  ASSERT_DEATH(cvc5_mk_term(tm, CVC5_KIND_IMPLIES, 3, args.data()),
+               "expected a term associated with this term manager");
   args = {cvc5_mk_const(tm, cvc5_get_boolean_sort(tm), ""),
           t_bool,
           cvc5_mk_const(tm, cvc5_get_boolean_sort(tm), "")};
-  (void)cvc5_mk_term(tm, CVC5_KIND_IMPLIES, 3, args.data());
+  ASSERT_DEATH(cvc5_mk_term(tm, CVC5_KIND_IMPLIES, 3, args.data()),
+               "expected a term associated with this term manager");
   args = {cvc5_mk_const(tm, cvc5_get_boolean_sort(tm), ""),
           cvc5_mk_const(tm, cvc5_get_boolean_sort(tm), ""),
           t_bool};
+  ASSERT_DEATH(cvc5_mk_term(tm, CVC5_KIND_IMPLIES, 3, args.data()),
+               "expected a term associated with this term manager");
   cvc5_term_manager_delete(tm);
 }
 
@@ -1342,9 +1353,9 @@ TEST_F(TestCApiBlackTermManager, mk_term_from_op)
   (void)cvc5_mk_term_from_op(d_tm, op2, 1, args.data());
 
   Cvc5TermManager* tm = cvc5_term_manager_new();
-  // this will throw when NodeManager is not a singleton anymore
   args = {cvc5_mk_integer_int64(tm, 1)};
-  (void)cvc5_mk_term_from_op(tm, op2, 1, args.data());
+  ASSERT_DEATH(cvc5_mk_term_from_op(tm, op2, 1, args.data()),
+               "operator is not associated with this term manager");
   idxs = {1};
   (void)cvc5_mk_term_from_op(
       tm, cvc5_mk_op(tm, CVC5_KIND_DIVISIBLE, 1, idxs.data()), 1, args.data());
@@ -1369,9 +1380,9 @@ TEST_F(TestCApiBlackTermManager, mk_tuple)
                "unexpected NULL argument");
   ASSERT_DEATH(cvc5_mk_tuple(nullptr, 0, {}), "unexpected NULL argument");
   Cvc5TermManager* tm = cvc5_term_manager_new();
-  // this will throw when NodeManager is not a singleton anymore
   args = {cvc5_mk_bv(d_tm, 3, "101", 2)};
-  (void)cvc5_mk_tuple(tm, 1, args.data());
+  ASSERT_DEATH(cvc5_mk_tuple(tm, 1, args.data()),
+               "expected a term associated with this term manager");
   cvc5_term_manager_delete(tm);
 }
 
@@ -1385,8 +1396,8 @@ TEST_F(TestCApiBlackTermManager, mk_nullable_some)
   ASSERT_DEATH(cvc5_mk_nullable_some(d_tm, nullptr), "invalid term");
 
   Cvc5TermManager* tm = cvc5_term_manager_new();
-  // this will throw when NodeManager is not a singleton anymore
-  (void)cvc5_mk_nullable_some(tm, cvc5_mk_bv(d_tm, 3, "101", 2));
+  ASSERT_DEATH(cvc5_mk_nullable_some(tm, cvc5_mk_bv(d_tm, 3, "101", 2)),
+               "term is not associated with this term manager");
   cvc5_term_manager_delete(tm);
 }
 
@@ -1406,9 +1417,10 @@ TEST_F(TestCApiBlackTermManager, mk_nullable_val)
 
   ASSERT_DEATH(cvc5_mk_nullable_val(d_tm, nullptr), "invalid term");
   Cvc5TermManager* tm = cvc5_term_manager_new();
-  // this will throw when NodeManager is not a singleton anymore
-  (void)cvc5_mk_nullable_val(
-      tm, cvc5_mk_nullable_some(d_tm, cvc5_mk_integer_int64(d_tm, 5)));
+  ASSERT_DEATH(
+      cvc5_mk_nullable_val(
+          tm, cvc5_mk_nullable_some(d_tm, cvc5_mk_integer_int64(d_tm, 5))),
+      "term is not associated with this term manager");
   cvc5_term_manager_delete(tm);
 }
 
@@ -1428,9 +1440,10 @@ TEST_F(TestCApiBlackTermManager, mk_nullable_is_null)
 
   ASSERT_DEATH(cvc5_mk_nullable_is_null(d_tm, nullptr), "invalid term");
   Cvc5TermManager* tm = cvc5_term_manager_new();
-  // this will throw when NodeManager is not a singleton anymore
-  (void)cvc5_mk_nullable_is_null(
-      tm, cvc5_mk_nullable_some(d_tm, cvc5_mk_integer_int64(d_tm, 5)));
+  ASSERT_DEATH(
+      cvc5_mk_nullable_is_null(
+          tm, cvc5_mk_nullable_some(d_tm, cvc5_mk_integer_int64(d_tm, 5))),
+      "term is not associated with this term manager");
   cvc5_term_manager_delete(tm);
 }
 
@@ -1450,9 +1463,10 @@ TEST_F(TestCApiBlackTermManager, mk_nullable_is_some)
 
   ASSERT_DEATH(cvc5_mk_nullable_is_some(d_tm, nullptr), "invalid term");
   Cvc5TermManager* tm = cvc5_term_manager_new();
-  // this will throw when NodeManager is not a singleton anymore
-  (void)cvc5_mk_nullable_is_some(
-      tm, cvc5_mk_nullable_some(d_tm, cvc5_mk_integer_int64(d_tm, 5)));
+  ASSERT_DEATH(
+      cvc5_mk_nullable_is_some(
+          tm, cvc5_mk_nullable_some(d_tm, cvc5_mk_integer_int64(d_tm, 5))),
+      "term is not associated with this term manager");
   cvc5_term_manager_delete(tm);
 }
 
@@ -1471,8 +1485,8 @@ TEST_F(TestCApiBlackTermManager, mk_nullable_null)
   ASSERT_DEATH(cvc5_mk_nullable_null(d_tm, nullptr), "invalid sort");
 
   Cvc5TermManager* tm = cvc5_term_manager_new();
-  // this will throw when NodeManager is not a singleton anymore
-  (void)cvc5_mk_nullable_null(tm, sort);
+  ASSERT_DEATH(cvc5_mk_nullable_null(tm, sort),
+               "sort is not associated with this term manager");
   cvc5_term_manager_delete(tm);
 }
 
@@ -1494,8 +1508,8 @@ TEST_F(TestCApiBlackTermManager, mk_nullable_lift)
                "unexpected NULL argument");
 
   Cvc5TermManager* tm = cvc5_term_manager_new();
-  // this will throw when NodeManager is not a singleton anymore
-  (void)cvc5_mk_nullable_lift(tm, CVC5_KIND_ADD, 2, args.data());
+  ASSERT_DEATH(cvc5_mk_nullable_lift(tm, CVC5_KIND_ADD, 2, args.data()),
+               "expected a term associated with this term manager");
   cvc5_term_manager_delete(tm);
 }
 
@@ -1507,8 +1521,8 @@ TEST_F(TestCApiBlackTermManager, mk_universe_set)
   ASSERT_DEATH(cvc5_mk_universe_set(d_tm, nullptr), "invalid sort");
 
   Cvc5TermManager* tm = cvc5_term_manager_new();
-  // this will throw when NodeManager is not a singleton anymore
-  (void)cvc5_mk_universe_set(tm, d_bool);
+  ASSERT_DEATH(cvc5_mk_universe_set(tm, d_bool),
+               "sort is not associated with this term manager");
   cvc5_term_manager_delete(tm);
 }
 
@@ -1526,8 +1540,8 @@ TEST_F(TestCApiBlackTermManager, mk_const)
                "unexpected NULL argument");
   ASSERT_DEATH(cvc5_mk_const(d_tm, nullptr, nullptr), "invalid sort");
   Cvc5TermManager* tm = cvc5_term_manager_new();
-  // this will throw when NodeManager is not a singleton anymore
-  (void)cvc5_mk_const(tm, d_bool, nullptr);
+  ASSERT_DEATH(cvc5_mk_const(tm, d_bool, nullptr),
+               "sort is not associated with this term manager");
   cvc5_term_manager_delete(tm);
 }
 

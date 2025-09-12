@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
@@ -70,7 +70,7 @@ class DifficultyPostprocessCallback : public ProofNodeUpdaterCallback
                     const std::vector<Node>& fa,
                     bool& continueUpdate) override;
   /** Get the (acculumated) difficulty map for the last processed proof node */
-  void getDifficultyMap(std::map<Node, Node>& dmap) const;
+  void getDifficultyMap(NodeManager* nm, std::map<Node, Node>& dmap) const;
 
  private:
   /**

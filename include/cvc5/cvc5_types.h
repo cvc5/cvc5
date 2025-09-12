@@ -617,6 +617,60 @@ CVC5_EXPORT std::string to_string(cvc5::modes::FindSynthTarget target);
 
 namespace cvc5::modes {
 #endif
+/* -------------------------------------------------------------------------- */
+/* OptionCategory                                                             */
+/* -------------------------------------------------------------------------- */
+#ifdef CVC5_API_USE_C_ENUMS
+#undef EVALUE
+#define EVALUE(name) CVC5_OPTION_CATEGORY_##name
+#endif
+/**
+ * Option category enumeration.
+ * Specifies the category of an option for user interface purposes.
+ */
+enum ENUM(OptionCategory)
+{
+  /** Option available to regular users */
+  EVALUE(REGULAR) = 0,
+  /** Option available to expert users */
+  EVALUE(EXPERT),
+  /** Common options */
+  EVALUE(COMMON),
+  /** Undocumented options */
+  EVALUE(UNDOCUMENTED),
+#ifdef CVC5_API_USE_C_ENUMS
+  // must be last entry
+  EVALUE(LAST),
+#endif
+};
+#ifdef CVC5_API_USE_C_ENUMS
+#ifndef DOXYGEN_SKIP
+typedef enum ENUM(OptionCategory) ENUM(OptionCategory);
+#endif
+#endif
+#ifdef CVC5_API_USE_C_ENUMS
+/**
+ * Get a string representation of a Cvc5OptionCategory.
+ * @param cat The option category.
+ * @return The string representation.
+ */
+CVC5_EXPORT const char* cvc5_modes_option_category_to_string(
+    Cvc5OptionCategory cat);
+#else
+/**
+ * Serialize an OptionCategory to given stream.
+ * @param out The output stream
+ * @param cat The option category to be serialized to the given output stream
+ * @return The output stream
+ */
+CVC5_EXPORT std::ostream& operator<<(std::ostream& out, OptionCategory cat);
+}
+namespace std {
+CVC5_EXPORT std::string to_string(cvc5::modes::OptionCategory cat);
+}
+
+namespace cvc5::modes {
+#endif
 
 /* -------------------------------------------------------------------------- */
 /* InputLanguage                                                              */

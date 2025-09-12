@@ -112,7 +112,7 @@ void InstStrategySubConflict::check(Theory::Effort e, QEffort quant_e)
   SubsolverSetupInfo ssi(d_env, d_subOptions);
   std::unique_ptr<SolverEngine> findConflict;
   uint64_t timeout = options().quantifiers.quantSubCbqiTimeout;
-  initializeSubsolver(findConflict, ssi, timeout != 0, timeout);
+  initializeSubsolver(nodeManager(), findConflict, ssi, timeout != 0, timeout);
   // assert and check-sat
   for (const Node& a : assertions)
   {

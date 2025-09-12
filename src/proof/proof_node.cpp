@@ -59,7 +59,7 @@ void ProofNode::setValue(
 void ProofNode::printDebug(std::ostream& os, bool printConclusion) const
 {
   // convert to sexpr and print
-  ProofNodeToSExpr pnts(NodeManager::currentNM());
+  ProofNodeToSExpr pnts(d_proven.getNodeManager());
   Node ps = pnts.convertToSExpr(this, printConclusion);
   os << ps;
 }

@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Mudathir Mohamed, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
@@ -82,6 +82,11 @@ enum class BoundVarId
    * axiomatizing the behavior of some term.
    */
   STRINGS_LENGTH,
+  /**
+   * A bound variable quantifying over all strings to reduce a regular
+   * expression equality.
+   */
+  STRINGS_REG_EXP_EQ,
 
   /**
    * A unique (bound variable) which corresponds to
@@ -134,6 +139,12 @@ enum class BoundVarId
   QUANT_REW_PRENEX,
   /** Mapping sygus variables to builtin variables */
   QUANT_SYGUS_BUILTIN_FV,
+  /**
+   * A variable used by the valid witness proof generator. This is cached based
+   * on the skolem that witnesses the variable, whose skolem identifier is one
+   * of WITNESS_*.
+   */
+  VALID_WITNESS_VAR,
 };
 /** Converts a bound variable identifier to a string. */
 const char* toString(BoundVarId id);

@@ -47,6 +47,7 @@ class TypeNode;
 class ProofNode;
 
 class Env;
+class NodeManager;
 class UnsatCore;
 class StatisticsRegistry;
 class Plugin;
@@ -99,7 +100,7 @@ class CVC5_EXPORT SolverEngine
    * If provided, optr is a pointer to a set of options that should initialize
    * the values of the options object owned by this class.
    */
-  SolverEngine(const Options* optr = nullptr);
+  SolverEngine(NodeManager* nm, const Options* optr = nullptr);
   /** Destruct the SMT engine.  */
   ~SolverEngine();
 
@@ -186,7 +187,7 @@ class CVC5_EXPORT SolverEngine
    * @param key The option to set
    * @param value The value to set
    * @param fromUser Whether this option was set by the user. This impacts
-   * whether we enable checks e.g. when --safe-options is enabled.
+   * whether we enable checks e.g. when safe mode is enabled.
    * @throw OptionException, ModalException
    */
   void setOption(const std::string& key,
@@ -508,14 +509,27 @@ class CVC5_EXPORT SolverEngine
    * query). Only permitted if the SolverEngine is set to operate interactively
    * and produce-models is on.
    *
+   * Note that this method may make a subcall to another copy of the SMT solver
+   * (if --check-model-subsolver is enabled). We do this only if the call
+   * originated from the user (fromUser is true), in which case we insist
+   * that we find a concrete value. This means if e is a quantified formula,
+   * we must call a subsolver. Other uses of internal subsolvers (e.g. MBQI)
+   * do not generally insist that the returned value is concrete.
+   *
+   * @param e The term to get the value of.
+   * @param fromUser Whether the call originated from an external user.
    * @throw ModalException, TypeCheckingException, LogicException
    */
-  Node getValue(const Node& e) const;
+  Node getValue(const Node& e, bool fromUser = false);
 
   /**
    * Same as getValue but for a vector of expressions
+   *
+   * @param e The term to get the value of.
+   * @param fromUser Whether the call originated from an external user.
    */
-  std::vector<Node> getValues(const std::vector<Node>& exprs) const;
+  std::vector<Node> getValues(const std::vector<Node>& exprs,
+                              bool fromUser = false);
 
   /**
    * @return the domain elements for uninterpreted sort tn.
@@ -1126,11 +1140,11 @@ class CVC5_EXPORT SolverEngine
   /** Has the above logic been initialized? */
   bool d_userLogicSet;
 
-  /** Have we set a regular option yet? (for --safe-options) */
+  /** Have we set a regular option yet? (for --safe-mode) */
   bool d_safeOptsSetRegularOption;
-  /** The regular option we set (for --safe-options) */
+  /** The regular option we set (for --safe-mode) */
   std::string d_safeOptsRegularOption;
-  /** The value of the regular option we set (for --safe-options) */
+  /** The value of the regular option we set (for --safe-mode) */
   std::string d_safeOptsRegularOptionValue;
   /** Was the option already the default setting */
   bool d_safeOptsSetRegularOptionToDefault;

@@ -23,6 +23,7 @@
 #include "expr/bound_var_manager.h"
 #include "expr/node.h"
 #include "expr/node_algorithm.h"
+#include "expr/non_closed_node_converter.h"
 #include "expr/plugin.h"
 #include "expr/skolem_manager.h"
 #include "expr/subtype_elim_node_converter.h"
@@ -101,8 +102,8 @@ using namespace cvc5::internal::theory;
 
 namespace cvc5::internal {
 
-SolverEngine::SolverEngine(const Options* optr)
-    : d_env(new Env(NodeManager::currentNM(), optr)),
+SolverEngine::SolverEngine(NodeManager* nm, const Options* optr)
+    : d_env(new Env(nm, optr)),
       d_state(new SolverEngineState(*d_env.get())),
       d_ctxManager(nullptr),
       d_routListener(new ResourceOutListener(*this)),
@@ -353,8 +354,7 @@ void SolverEngine::setInfo(const std::string& key, const std::string& value)
     d_env->getStatisticsRegistry().registerValue<std::string>(
         "driver::filename", value);
   }
-  else if (key == "smt-lib-version"
-           && !getOptions().base.inputLanguageWasSetByUser)
+  else if (key == "smt-lib-version")
   {
     if (value != "2" && value != "2.6")
     {
@@ -601,7 +601,7 @@ void SolverEngine::defineFunctionsRec(
     debugCheckFunctionBody(formulas[i], formals[i], funcs[i]);
   }
 
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = d_env->getNodeManager();
   for (unsigned i = 0, size = funcs.size(); i < size; i++)
   {
     // we assert a quantified formula
@@ -745,9 +745,17 @@ std::shared_ptr<ProofNode> SolverEngine::getAvailableSatProof()
     ProofNodeManager* pnm = d_pfManager->getProofNodeManager();
     for (const Node& a : assertions)
     {
-      ps.push_back(pnm->mkAssume(a));
+      // skip true assertions
+      if (!a.isConst() || !a.getConst<bool>())
+      {
+        ps.push_back(pnm->mkAssume(a));
+      }
     }
-    pePfn = pnm->mkNode(ProofRule::SAT_REFUTATION, ps, {});
+    // since we do not have the theory lemmas, this is an SMT refutation trust
+    // step, not a SAT refutation.
+    NodeManager* nm = d_env->getNodeManager();
+    Node fn = nm->mkConst(false);
+    pePfn = pnm->mkTrustedNode(TrustId::SMT_REFUTATION, ps, {}, fn);
   }
   return pePfn;
 }
@@ -1102,7 +1110,7 @@ void SolverEngine::declareOracleFun(
   beginCall();
   QuantifiersEngine* qe = getAvailableQuantifiersEngine("declareOracleFun");
   qe->declareOracleFun(var);
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = d_env->getNodeManager();
   std::vector<Node> inputs;
   std::vector<Node> outputs;
   TypeNode tn = var.getType();
@@ -1131,7 +1139,7 @@ void SolverEngine::declareOracleFun(
   Node constraint = nm->mkConst(true);
   // make the oracle constant which carries the method implementation
   Oracle oracle(fn);
-  Node o = NodeManager::currentNM()->mkOracle(oracle);
+  Node o = nm->mkOracle(oracle);
   // set the attribute, which ensures we remember the method implementation for
   // the oracle function
   var.setAttribute(theory::OracleInterfaceAttribute(), o);
@@ -1174,7 +1182,7 @@ Node SolverEngine::simplify(const Node& t, bool applySubs)
   return ret;
 }
 
-Node SolverEngine::getValue(const Node& t) const
+Node SolverEngine::getValue(const Node& t, bool fromUser)
 {
   ensureWellFormedTerm(t, "get value");
   Trace("smt") << "SMT getValue(" << t << ")" << endl;
@@ -1223,8 +1231,56 @@ Node SolverEngine::getValue(const Node& t) const
   // holds for models that do not have approximate values.
   if (!m->isValue(resultNode))
   {
-    d_env->warning() << "Could not evaluate " << resultNode
-                     << " in getValue." << std::endl;
+    bool subSuccess = false;
+    if (fromUser && d_env->getOptions().smt.checkModelSubsolver)
+    {
+      // invoke satisfiability check
+      // ensure symbols have been substituted
+      resultNode = m->simplify(resultNode);
+      // Note that we must be a "closed" term, i.e. one that can be
+      // given in an assertion.
+      if (NonClosedNodeConverter::isClosed(*d_env.get(), resultNode))
+      {
+        // set up a resource limit
+        ResourceManager* rm = getResourceManager();
+        rm->beginCall();
+        TypeNode rtn = resultNode.getType();
+        SkolemManager* skm = d_env->getNodeManager()->getSkolemManager();
+        Node k = skm->mkInternalSkolemFunction(
+            InternalSkolemId::GET_VALUE_PURIFY, rtn, {resultNode});
+        // the query is (k = resultNode)
+        Node checkQuery = resultNode.eqNode(k);
+        Options subOptions;
+        subOptions.copyValues(d_env->getOptions());
+        smt::SetDefaults::disableChecking(subOptions);
+        // ensure no infinite loop
+        subOptions.write_smt().checkModelSubsolver = false;
+        subOptions.write_smt().modelVarElimUneval = false;
+        subOptions.write_smt().simplificationMode =
+            options::SimplificationMode::NONE;
+        // initialize the subsolver
+        SubsolverSetupInfo ssi(*d_env.get(), subOptions);
+        std::unique_ptr<SolverEngine> getValueChecker;
+        initializeSubsolver(d_env->getNodeManager(), getValueChecker, ssi);
+        // disable all checking options
+        SetDefaults::disableChecking(getValueChecker->getOptions());
+        getValueChecker->assertFormula(checkQuery);
+        Result r = getValueChecker->checkSat();
+        if (r == Result::SAT)
+        {
+          // value is the result of getting the value of k
+          resultNode = getValueChecker->getValue(k);
+          subSuccess = m->isValue(resultNode);
+        }
+        // end resource limit
+        rm->refresh();
+      }
+    }
+    if (!subSuccess)
+    {
+      d_env->warning() << "Could not evaluate " << resultNode << " in getValue."
+                       << std::endl;
+    }
   }
 
   if (d_env->getOptions().smt.abstractValues)
@@ -1233,7 +1289,7 @@ Node SolverEngine::getValue(const Node& t) const
     if (rtn.isArray())
     {
       // construct the skolem function
-      SkolemManager* skm = NodeManager::currentNM()->getSkolemManager();
+      SkolemManager* skm = d_env->getNodeManager()->getSkolemManager();
       Node a = skm->mkInternalSkolemFunction(
           InternalSkolemId::ABSTRACT_VALUE, rtn, {resultNode});
       // add to top-level substitutions if applicable
@@ -1246,16 +1302,16 @@ Node SolverEngine::getValue(const Node& t) const
       Trace("smt") << "--- abstract value >> " << resultNode << endl;
     }
   }
-
   return resultNode;
 }
 
-std::vector<Node> SolverEngine::getValues(const std::vector<Node>& exprs) const
+std::vector<Node> SolverEngine::getValues(const std::vector<Node>& exprs,
+                                          bool fromUser)
 {
   std::vector<Node> result;
   for (const Node& e : exprs)
   {
-    result.push_back(getValue(e));
+    result.push_back(getValue(e, fromUser));
   }
   return result;
 }
@@ -1442,6 +1498,7 @@ void SolverEngine::printProof(std::ostream& out,
                               modes::ProofFormat proofFormat,
                               const std::map<Node, std::string>& assertionNames)
 {
+  out << "(" << std::endl;
   // we print in the format based on the proof mode
   options::ProofFormatMode mode = options::ProofFormatMode::NONE;
   switch (proofFormat)
@@ -1463,7 +1520,7 @@ void SolverEngine::printProof(std::ostream& out,
                           mode,
                           ProofScopeMode::DEFINITIONS_AND_ASSERTIONS,
                           assertionNames);
-  out << std::endl;
+  out << ")" << std::endl;
 }
 
 std::vector<Node> SolverEngine::getSubstitutedAssertions()
@@ -2155,11 +2212,13 @@ void SolverEngine::setOption(const std::string& key,
                              const std::string& value,
                              bool fromUser)
 {
-  if (fromUser && options().base.safeOptions)
+  if (fromUser && options().base.safeMode != options::SafeMode::UNRESTRICTED)
   {
+    // Note that the text "in safe mode" must appear in the error messages or
+    // CI will fail, as it searches for this text.
     if (key == "trace")
     {
-      throw FatalOptionException("cannot use trace messages with safe-options");
+      throw FatalOptionException("cannot use trace messages in safe mode");
     }
     // verify its a regular option
     options::OptionInfo oinfo = options::getInfo(getOptions(), key);
@@ -2168,12 +2227,12 @@ void SolverEngine::setOption(const std::string& key,
       // option exception
       std::stringstream ss;
       ss << "expert option " << key
-         << " cannot be set when safe-options is true.";
+         << " cannot be set in safe mode.";
       // If we are setting to a default value, the exception can be avoided
       // by omitting the expert option.
       if (getOption(key) == value)
       {
-        // note this is not the case for options which safe-options explicitly
+        // note this is not the case for options which safe mode explicitly
         // disables.
         ss << " The value for " << key << " is already its current value ("
            << value << "). Omitting this option may avoid this exception.";
@@ -2182,6 +2241,26 @@ void SolverEngine::setOption(const std::string& key,
     }
     else if (oinfo.category == options::OptionInfo::Category::REGULAR)
     {
+      if (options().base.safeMode == options::SafeMode::SAFE && !oinfo.noSupports.empty())
+      {
+        std::stringstream ss;
+        ss << "cannot set option " << key
+           << " in safe mode, as this option does not support ";
+        bool firstTime = true;
+        for (const std::string& s : oinfo.noSupports)
+        {
+          if (!firstTime)
+          {
+            ss << ", ";
+          }
+          else
+          {
+            firstTime = false;
+          }
+          ss << s;
+        }
+        throw FatalOptionException(ss.str());
+      }
       if (!d_safeOptsSetRegularOption)
       {
         d_safeOptsSetRegularOption = true;
@@ -2194,7 +2273,7 @@ void SolverEngine::setOption(const std::string& key,
         // option exception
         std::stringstream ss;
         ss << "cannot set two regular options (" << d_safeOptsRegularOption
-           << " and " << key << ") when safe-options is true.";
+           << " and " << key << ") in safe mode.";
         // similar to above, if setting to default value for either of the
         // regular options.
         for (size_t i = 0; i < 2; i++)
@@ -2205,7 +2284,7 @@ void SolverEngine::setOption(const std::string& key,
                                   : (getOption(key) == value);
           if (isDefault)
           {
-            // note this is not the case for options which safe-options
+            // note this is not the case for options which safe mode
             // explicitly disables.
             ss << " The value for " << rkey << " is already its current value ("
                << rvalue << "). Omitting this option may avoid this exception.";

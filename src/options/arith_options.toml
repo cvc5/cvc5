@@ -498,6 +498,7 @@ name   = "Arithmetic Theory"
   long       = "nl-cov"
   type       = "bool"
   default    = "true"
+  no_support = ["proofs"]
   help       = "whether to use the cylindrical algebraic coverings solver for non-linear arithmetic"
 
 [[option]]

@@ -108,6 +108,7 @@ TEST_F(TestTheoryBlackBv, nego)
          d_tm.mkTerm(cvc5::Kind::BITVECTOR_SHL,
                      {d_tm.mkBitVector(w, 1), d_tm.mkBitVector(w, w - 1)})});
     Term rhs = d_tm.mkTerm(cvc5::Kind::BITVECTOR_NEGO, {x});
+    ASSERT_TRUE(rhs.getKind() == cvc5::Kind::BITVECTOR_NEGO);
     Term eq = d_tm.mkTerm(cvc5::Kind::DISTINCT, {lhs, rhs});
     d_solver->assertFormula(eq);
     ASSERT_TRUE(d_solver->checkSat().isUnsat());

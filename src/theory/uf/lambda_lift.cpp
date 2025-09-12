@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Hans-Joerg Schurr
+ *   Andrew Reynolds, Aina Niemetz, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
@@ -16,17 +16,46 @@
 #include "theory/uf/lambda_lift.h"
 
 #include "expr/node_algorithm.h"
+#include "expr/node_converter.h"
 #include "expr/skolem_manager.h"
+#include "expr/sort_type_size.h"
 #include "options/uf_options.h"
+#include "proof/proof.h"
 #include "smt/env.h"
 #include "theory/uf/function_const.h"
-#include "expr/sort_type_size.h"
 
 using namespace cvc5::internal::kind;
 
 namespace cvc5::internal {
 namespace theory {
 namespace uf {
+
+/**
+ * This node converter is used as a heuristic to avoid certain cases of lambda
+ * lifting. For example, (lambda ((x Int)) (f 0)) naively requires lifting
+ * since this lambda may have a circular dependency, e.g. if
+ * f = (lambda ((x Int)) (f 0)). However, this converter converts this lambda
+ * to (lambda ((x Int)) k) where k is the purification skolem for (f 0), where
+ * (= k (f 0)) can be added as a lemma at preprocessing.
+ */
+class PurifyGroundNodeConverter : public NodeConverter
+{
+ public:
+  PurifyGroundNodeConverter(NodeManager* nm) : NodeConverter(nm) {}
+  /** post-convert: convert (non-atomic) ground terms to their purify var */
+  Node postConvert(Node n) override
+  {
+    if (!n.isVar() && !n.isConst() && !expr::hasBoundVar(n))
+    {
+      Node k = SkolemManager::mkPurifySkolem(n);
+      d_pterms.push_back(n);
+      return k;
+    }
+    return n;
+  }
+  /** The list of terms purified by this converter */
+  std::vector<Node> d_pterms;
+};
 
 LambdaLift::LambdaLift(Env& env)
     : EnvObj(env),
@@ -55,8 +84,23 @@ TrustNode LambdaLift::lift(Node node)
   {
     return TrustNode::mkTrustLemma(assertion);
   }
-  return d_epg->mkTrustNode(
-      assertion, ProofRule::MACRO_SR_PRED_INTRO, {}, {assertion});
+  Node skolem = getSkolemFor(node);
+  Assert(!skolem.isNull());
+  Node eq = skolem.eqNode(node);
+  // --------------- MACRO_SR_PRED_INTRO
+  // k = lambda x. t
+  // ------------------- MACRO_SR_PRED_INTRO
+  // forall x. (k x) = t
+  // We do this in two steps, where k -> lambda x. t is used as a subsitution
+  // to avoid rare proof checking errors where the conclusion is not
+  // provable in one step. In particular, in some rare cases we have that
+  // rewrite(toOriginal(rewrite(F))) is not true. For instance, we may end
+  // up with (@ (@ f a) b) = (f a b) which does not rewrite to true.
+  CDProof cdp(d_env);
+  cdp.addStep(eq, ProofRule::MACRO_SR_PRED_INTRO, {}, {eq});
+  cdp.addStep(assertion, ProofRule::MACRO_SR_PRED_INTRO, {eq}, {assertion});
+  std::shared_ptr<ProofNode> pf = cdp.getProofFor(assertion);
+  return d_epg->mkTrustNode(assertion, pf);
 }
 
 bool LambdaLift::needsLift(const Node& lam)
@@ -138,6 +182,29 @@ TrustNode LambdaLift::ppRewrite(Node node, std::vector<SkolemLemma>& lems)
       lems.push_back(SkolemLemma(trn, skolem));
     }
   }
+  else if (needsLift(lam))
+  {
+    // Maybe it would help to purify the ground subterms? If so we rewrite
+    // and add purification lemmas to lems.
+    PurifyGroundNodeConverter pgnc(nodeManager());
+    Node clam = pgnc.convert(lam);
+    if (!needsLift(clam))
+    {
+      Trace("uf-lazy-ll-purify") << "ppRewrite " << lam << " to " << clam
+                                 << " to avoid lifting." << std::endl;
+      TrustNode trn = ppRewrite(clam, lems);
+      // add purification lemmas for terms we purified
+      for (const Node& t : pgnc.d_pterms)
+      {
+        Node k = SkolemManager::mkPurifySkolem(t);
+        TrustNode trnk = TrustNode::mkTrustLemma(k.eqNode(t));
+        Trace("uf-lazy-ll-purify")
+            << "- purify lemma: " << k.eqNode(t) << std::endl;
+        lems.push_back(SkolemLemma(trnk, k));
+      }
+      return TrustNode::mkTrustRewrite(node, trn.getNode());
+    }
+  }
   // if no proofs, return lemma with no generator
   if (d_epg == nullptr)
   {
@@ -165,15 +232,12 @@ bool LambdaLift::isLambdaFunction(TNode n) const
 
 Node LambdaLift::getAssertionFor(TNode node)
 {
-  TNode skolem = getSkolemFor(node);
-  if (skolem.isNull())
-  {
-    return Node::null();
-  }
   Node assertion;
   Node lambda = FunctionConst::toLambda(node);
   if (!lambda.isNull())
   {
+    TNode skolem = getSkolemFor(node);
+    Assert(!skolem.isNull());
     NodeManager* nm = node.getNodeManager();
     // The new assertion
     std::vector<Node> children;
@@ -211,8 +275,8 @@ Node LambdaLift::getAssertionFor(TNode node)
 Node LambdaLift::getSkolemFor(TNode node)
 {
   Node skolem;
-  Kind k = node.getKind();
-  if (k == Kind::LAMBDA)
+  Node lambda = FunctionConst::toLambda(node);
+  if (!lambda.isNull())
   {
     // if a lambda, return the purification variable for the node. We ignore
     // lambdas with free variables, which can occur beneath quantifiers

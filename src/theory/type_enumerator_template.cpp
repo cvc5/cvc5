@@ -37,13 +37,13 @@ TypeEnumeratorInterface* TypeEnumerator::mkTypeEnumerator(
       switch (type.getConst<TypeConstant>())
       {
         // clang-format off
-        ${mk_type_enumerator_type_constant_cases}
+${mk_type_enumerator_type_constant_cases}
           // clang-format on
         default: Unhandled() << "No type enumerator for type `" << type << "'";
       }
       Unreachable();
       // clang-format off
-      ${mk_type_enumerator_cases}
+${mk_type_enumerator_cases}
       // clang-format on
     default: Unhandled() << "No type enumerator for type `" << type << "'";
   }

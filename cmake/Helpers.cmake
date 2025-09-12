@@ -1,6 +1,6 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Mathias Preiner, Aina Niemetz, Andrew V. Jones
+#   Mathias Preiner, Daniel Larraz, Aina Niemetz
 #
 # This file is part of the cvc5 project.
 #
@@ -18,6 +18,30 @@ if(NOT WIN32)
   string(ASCII 27 Esc)
   set(Yellow "${Esc}[33m")
   set(ResetColor "${Esc}[m")
+endif()
+
+# Build triplet used when compiling GMP, CLN, and GLPK to ensure that
+# optimizations using very specific CPU instructions are not enabled.
+# This makes the binary more portable.
+set(BUILD_TRIPLET "${CMAKE_HOST_SYSTEM_PROCESSOR}")
+if(CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
+  if(CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "x86_64")
+    set(BUILD_TRIPLET "x86_64-linux-gnu")
+  elseif(CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "aarch64")
+    set(BUILD_TRIPLET "aarch64-linux-gnu")
+  endif()
+elseif(CMAKE_HOST_SYSTEM_NAME STREQUAL "Darwin")
+  if(CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "x86_64")
+    set(BUILD_TRIPLET "x86_64-apple-darwin")
+  elseif(CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "arm64")
+    set(BUILD_TRIPLET "aarch64-apple-darwin")
+  endif()
+elseif(CMAKE_HOST_SYSTEM_NAME STREQUAL "Windows")
+  if(CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "x86_64")
+    set(BUILD_TRIPLET "x86_64-w64-mingw32")
+  elseif(CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "aarch64")
+    set(BUILD_TRIPLET "aarch64-w64-mingw32")
+  endif()
 endif()
 
 # Add a C flag to the global list of C flags.

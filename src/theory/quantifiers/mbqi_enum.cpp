@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Daniel Larraz
+ *   Andrew Reynolds, Lydia Kondylidou, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
@@ -206,7 +206,8 @@ bool MbqiEnum::constructInstantiation(
     const Node& query,
     const std::vector<Node>& vars,
     std::vector<Node>& mvs,
-    const std::map<Node, Node>& mvFreshVar)
+    const std::map<Node, Node>& mvFreshVar,
+    std::vector<std::pair<Node, InferenceId>>& auxLemmas)
 {
   Assert(q[0].getNumChildren() == vars.size());
   Assert(vars.size() == mvs.size());
@@ -313,7 +314,9 @@ bool MbqiEnum::constructInstantiation(
       }
     } while (!success);
   }
-  return true;
+  // try the instantiation
+  return d_parent.tryInstantiation(
+      q, mvs, InferenceId::QUANTIFIERS_INST_MBQI_ENUM, mvFreshVar);
 }
 }  // namespace quantifiers
 }  // namespace theory

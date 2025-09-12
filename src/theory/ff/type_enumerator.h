@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Alex Ozdemir
+ *   Alex Ozdemir, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
@@ -49,7 +49,7 @@ class FiniteFieldEnumerator : public TypeEnumeratorBase<FiniteFieldEnumerator>
     {
       throw NoMoreValuesException(getType());
     }
-    return NodeManager::currentNM()->mkConst<FiniteFieldValue>(
+    return getType().getNodeManager()->mkConst<FiniteFieldValue>(
         FiniteFieldValue(d_currentInt, d_modulus));
   }
 

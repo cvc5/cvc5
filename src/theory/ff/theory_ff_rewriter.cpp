@@ -184,6 +184,31 @@ Node TheoryFiniteFieldsRewriter::postRewriteFfMult(TNode t)
   return mkNary(Kind::FINITE_FIELD_MULT, std::move(factors));
 }
 
+Node TheoryFiniteFieldsRewriter::postRewriteFfBitsum(TNode t)
+{
+  const TypeNode field = t.getType();
+  Assert(field.isFiniteField());
+
+  FiniteFieldValue one = FiniteFieldValue::mkOne(field.getFfSize());
+  FiniteFieldValue two = one + one;
+  FiniteFieldValue multiplier = one;
+  FiniteFieldValue acc = FiniteFieldValue::mkZero(field.getFfSize());
+
+  for (const auto& child : t)
+  {
+    if (child.isConst())
+    {
+      acc = acc + multiplier * child.getConst<FiniteFieldValue>();
+    }
+    else
+    {
+      return t;
+    }
+    multiplier *= two;
+  }
+  return nodeManager()->mkConst(acc);
+}
+
 Node TheoryFiniteFieldsRewriter::postRewriteFfEq(TNode t)
 {
   Assert(t.getKind() == Kind::EQUAL);
@@ -220,6 +245,8 @@ RewriteResponse TheoryFiniteFieldsRewriter::postRewrite(TNode t)
     }
     case Kind::FINITE_FIELD_MULT:
       return RewriteResponse(REWRITE_DONE, postRewriteFfMult(t));
+    case Kind::FINITE_FIELD_BITSUM:
+      return RewriteResponse(REWRITE_DONE, postRewriteFfBitsum(t));
     case Kind::EQUAL: return RewriteResponse(REWRITE_DONE, postRewriteFfEq(t));
     default: return RewriteResponse(REWRITE_DONE, t);
   }

@@ -76,7 +76,7 @@ class ProofGenerator;
 class SkolemManager
 {
  public:
-  SkolemManager();
+  SkolemManager(NodeManager* nm);
   ~SkolemManager() {}
   /**
    * Make purification skolem. This skolem is unique for each t, which we
@@ -227,6 +227,8 @@ class SkolemManager
    */
   static bool isCommutativeSkolemId(SkolemId id);
  private:
+  /** The associated node manager. */
+  NodeManager* d_nm;
   /** Cache of skolem functions for mkSkolemFunction above. */
   std::map<std::tuple<SkolemId, TypeNode, Node>, Node> d_skolemFuns;
   /** Backwards mapping of above */

@@ -1,0 +1,56 @@
+# kinds.toml
+#
+# For documentation on this file format, please refer to
+# src/theory/builtin/kinds.toml.
+#
+
+[theory]
+id                 = "THEORY_SEP"
+base_class         = "::cvc5::internal::theory::sep::TheorySep"
+base_class_header  = "theory/sep/theory_sep.h"
+properties         = ["polite", "stable-infinite", "parametric", "check", "presolve"]
+typechecker_header = "theory/sep/theory_sep_type_rules.h"
+
+[rewriter]
+class  = "::cvc5::internal::theory::sep::TheorySepRewriter"
+header = "theory/sep/theory_sep_rewriter.h"
+
+[[kinds]]
+type     = "nullaryoperator"
+name     = "SEP_NIL"
+comment  = "separation nil"
+typerule = "::cvc5::internal::theory::sep::SepNilTypeRule"
+
+[[kinds]]
+type     = "nullaryoperator"
+name     = "SEP_EMP"
+comment  = "separation logic empty heap constraint"
+typerule = "::cvc5::internal::theory::sep::SepEmpTypeRule"
+
+[[kinds]]
+type     = "operator"
+name     = "SEP_PTO"
+children = 2
+comment  = "points to relation"
+typerule = "::cvc5::internal::theory::sep::SepPtoTypeRule"
+
+[[kinds]]
+type     = "operator"
+name     = "SEP_STAR"
+children = "2:"
+comment  = "separation star"
+typerule = "::cvc5::internal::theory::sep::SepStarTypeRule"
+
+[[kinds]]
+type     = "operator"
+name     = "SEP_WAND"
+children = 2
+comment  = "separation magic wand"
+typerule = "::cvc5::internal::theory::sep::SepWandTypeRule"
+
+[[kinds]]
+type     = "operator"
+name     = "SEP_LABEL"
+children = 2
+comment  = "separation label (internal use only)"
+typerule = "::cvc5::internal::theory::sep::SepLabelTypeRule"

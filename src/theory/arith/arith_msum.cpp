@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Andres Noetzli
+ *   Andrew Reynolds, Aina Niemetz, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
@@ -95,7 +95,7 @@ bool ArithMSum::getMonomialSumLit(Node lit, std::map<Node, Node>& msum)
       {
         // subtract the other side
         std::map<Node, Node> msum2;
-        NodeManager* nm = NodeManager::currentNM();
+        NodeManager* nm = lit.getNodeManager();
         if (getMonomialSum(lit[1], msum2))
         {
           for (std::map<Node, Node>::iterator it = msum2.begin();
@@ -160,7 +160,7 @@ int ArithMSum::isolate(
   std::map<Node, Node>::const_iterator itv = msum.find(v);
   if (itv != msum.end())
   {
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = v.getNodeManager();
     std::vector<Node> children;
     Rational r =
         itv->second.isNull() ? Rational(1) : itv->second.getConst<Rational>();
@@ -219,7 +219,7 @@ int ArithMSum::isolate(
   int ires = isolate(v, msum, veq_c, val, k);
   if (ires != 0)
   {
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = v.getNodeManager();
     Node vc = v;
     if (!veq_c.isNull())
     {
@@ -301,7 +301,7 @@ bool ArithMSum::decompose(Node n, Node v, Node& coeff, Node& rem)
     {
       coeff = it->second;
       msum.erase(v);
-      rem = mkNode(NodeManager::currentNM(), msum);
+      rem = mkNode(n.getNodeManager(), msum);
       return true;
     }
   }

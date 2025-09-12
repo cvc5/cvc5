@@ -4,7 +4,7 @@
 ; - y T: The second term to compare.
 ; return: true if x >= y, where x and y are assumed to be arithmetic values.
 (define $compare_geq ((T Type :implicit) (x T) (y T))
-  (eo::ite (eo::is_eq x y) true (eo::gt x y)))
+  (eo::ite (eo::eq x y) true (eo::gt x y)))
 
 ; define: $sgn
 ; args:
@@ -13,16 +13,55 @@
 (define $sgn ((T Type :implicit) (x T))
   (eo::ite (eo::is_neg x) -1 (eo::ite (eo::is_neg (eo::neg x)) 1 0)))
 
-(declare-type @Pair (Type Type))
-(declare-const @pair (-> (! Type :var U :implicit) (! Type :var T :implicit) U T (@Pair U T)))
+(declare-const @@Pair (-> Type Type Type))
+(define @Pair () @@Pair)
+(declare-parameterized-const @@pair ((U Type :implicit) (T Type :implicit)) (-> U T (@Pair U T)))
+(define @pair () @@pair)
 
-; untyped list
-(declare-type @List ())
-(declare-const @list.nil @List)
-(declare-const @list (-> (! Type :var T :implicit) T @List @List) :right-assoc-nil @list.nil)
+; program: $pair_first
+; args:
+; - t (@Pair T S)
+; return: The first element in the pair
+(program $pair_first ((T Type) (S Type) (t T) (s S))
+  :signature ((@Pair T S)) T
+  (
+  (($pair_first (@pair t s)) t)
+  )
+)
+
+; program: $pair_second
+; args:
+; - t (@Pair T S)
+; return: The second element in the pair
+(program $pair_second ((T Type) (S Type) (t T) (s S))
+  :signature ((@Pair T S)) S
+  (
+  (($pair_second (@pair t s)) s)
+  )
+)
+
+; untyped list.
+; note: >
+;   We use this as a synonym for eo::List. We use this syntax as it avoids
+;   the usage of eo:: in proofs.
+(define @List () eo::List)
+(define @list.nil () eo::List::nil)
+(define @list () eo::List::cons)
 
 ; note: This is a forward declaration of $evaluate_list defined in Cpc.eo.
-(program $evaluate_list () (@List) @List)
+(program $evaluate_list () :signature (@List) @List)
+
+; program: $evaluate_internal
+; args:
+; - t T: The original term.
+; - l @List: A list containing the evaluation of t.
+; return: The evaluation of t.
+(program $evaluate_internal ((T Type) (t T) (tev T))
+  :signature (T @List) T
+  (
+  (($evaluate_internal t (@list tev)) tev)
+  )
+)
 
 ; define: $evaluate
 ; args:
@@ -32,21 +71,8 @@
 ;   This method is defined in terms of the forward declaration $evaluate_list here.
 ;   The implementation of this method depends on defining the evaluation for all
 ;   theories and thus is contained in Cpc.eo.
-(define $evaluate ((T Type :implicit) (t T)) (eo::list_nth @list ($evaluate_list (@list t)) 0))
-
-; program: $get_fun
-; args:
-; - t S: The term to inspect.
-; return: >
-;   The function at the head of the application of t, or t itself if it is not
-;   an application.
-(program $get_fun ((T Type) (S Type) (U Type) (f (-> T S)) (x T) (y S))
-  (S) U
-  (
-    (($get_fun (f x))  ($get_fun f))
-    (($get_fun y)      y)
-  )
-)
+(define $evaluate ((T Type :implicit) (t T))
+  ($evaluate_internal t ($evaluate_list (@list t))))
 
 ; program: $get_arg_list_rec
 ; args:
@@ -56,7 +82,7 @@
 ;   The list of arguments provided to the function at the head of t appended to
 ;   acc, or acc if t is not a function application.
 (program $get_arg_list_rec ((T Type) (S Type) (f (-> T S)) (x T) (y S) (acc @List))
-  (S @List) @List
+  :signature (S @List) @List
   (
     (($get_arg_list_rec (f x) acc)  ($get_arg_list_rec f (eo::cons @list x acc)))
     (($get_arg_list_rec y acc)      acc)
@@ -77,10 +103,10 @@
 ; - t S: The term to inspect.
 ; return: True if and only if t is an application of f.
 (program $is_app ((T Type) (S Type) (U Type) (f (-> T U)) (g (-> T S)) (x T) (y S))
-  ((-> T U) S) Bool
+  :signature ((-> T U) S) Bool
   (
     (($is_app f (g x))  ($is_app f g))
-    (($is_app f x)      (eo::is_eq f x))
+    (($is_app f x)      (eo::eq f x))
   )
 )
 
@@ -99,31 +125,6 @@
 (define $compare_var ((T Type :implicit) (U Type :implicit) (a T) (b U))
   (eo::cmp b a))
 
-; define: $head
-; args:
-; - x S: The term to inspect.
-; return: >
-;   The head of x, where x is expected to be an application of an n-ary
-;   function marked :right-assoc-nil.
-; return: the head of x, where x is expected to be a function application.
-(define $head ((S Type :implicit) (x S))
-  (eo::match ((T Type) (U Type) (f (-> T U U)) (x1 T) (x2 U :list))
-    x
-    (((f x1 x2) x1)))
-)
-
-; define: $tail
-; args:
-; - x S: The term to inspect.
-; return: >
-;   The tail of x, where x is expected to be an application of an n-ary
-;   function marked :right-assoc-nil.
-(define $tail ((U Type :implicit) (x U))
-  (eo::match ((T Type) (U Type) (f (-> T U U)) (x1 T) (x2 U :list))
-    x
-    (((f x1 x2) x2)))
-)
-
 ; program: $singleton_elim
 ; args:
 ; - s S: The term to proces.
@@ -131,10 +132,10 @@
 ;   The result of applying singleton elimination for s. In particular,
 ;   if s is of the form (f x1 x2) where x2 is the nil terminator of f, then we
 ;   return x1. Otherwise, we return s unchanged.
-(program $singleton_elim ((T Type) (S Type) (U Type) (f (-> T U S)) (x S) (x1 T) (x2 T :list))
-  (S) S
+(program $singleton_elim ((T Type) (S Type) (U Type) (f (-> T U S)) (x S) (x1 S) (x2 T))
+  :signature (S) S
   (
-    (($singleton_elim (f x1 x2))  (eo::ite (eo::is_eq x2 (eo::nil f x1 x2)) x1 (f x1 x2)))
+    (($singleton_elim (f x1 x2))  (eo::ite (eo::eq x2 (eo::nil f (eo::typeof (f x1 x2)))) x1 (f x1 x2)))
     (($singleton_elim x)          x)
   )
 )
@@ -142,8 +143,10 @@
 ;; =============== for results
 
 ; Used for representing partial results of the method below.
-(declare-const @result.null Bool)
-(declare-const @result.invalid Bool)
+(declare-const @@result.null Bool)
+(define @result.null () @@result.null)
+(declare-const @@result.invalid Bool)
+(define @result.invalid () @@result.invalid)
 
 ; program: $result_combine
 ; args:
@@ -156,7 +159,7 @@
 ;   In summary, ($result_combine b1 ... ($result_combine bn @result.null)) returns
 ;   b1 if b1...bn are the same or @result.invalid otherwise.
 (program $result_combine ((b1 Bool) (b2 Bool))
-  (Bool Bool) Bool
+  :signature (Bool Bool) Bool
   (
     (($result_combine b1 @result.null) b1)
     (($result_combine b1 b1)           b1)
@@ -174,12 +177,12 @@
 ; - B U: The term that is potentially a pairwise application of f for the given elements.
 ; - rem @List: The list of elements we have yet to process on the LHS.
 ; return: True if B is a pairwise application of f for the given arguments.
-(program $is_pairwise ((T Type) (U Type) (f (-> T T U)) (op (-> U U U)) (a T) (b T) (bs T :list) (B U :list) (nil U) (rem @List :list))
-  ((-> T T U) (-> U U U) T @List U @List) Bool
+(program $is_pairwise ((T Type) (U Type) (f (-> T T U)) (op (-> U U U)) (a T) (b T) (bs @List :list) (B U :list) (nil U) (rem @List :list))
+  :signature ((-> T T U) (-> U U U) T @List U @List) Bool
   (
   (($is_pairwise f op a (@list b bs) (op (f a b) B) rem) ($is_pairwise f op a bs B rem))
   (($is_pairwise f op a @list.nil B (@list b rem))       ($is_pairwise f op b rem B rem))
-  (($is_pairwise f op a @list.nil nil @list.nil)         (eo::requires nil (eo::nil op) true))
+  (($is_pairwise f op a @list.nil nil @list.nil)         (eo::requires nil (eo::nil op (eo::typeof a)) true))
   )
 )
 
@@ -191,7 +194,7 @@
 ; - B U: The term that is potentially a pairwise application of f starting with a.
 ; return: The list of arguments that a is related to.
 (program $extract_pairwise_args_rec ((T Type) (U Type) (f (-> T T U)) (op (-> U U U)) (a T) (b T) (c T) (B U :list))
-  ((-> T T U) (-> U U U) T U) @List
+  :signature ((-> T T U) (-> U U U) T U) @List
   (
   (($extract_pairwise_args_rec f op a (op (f a c) B)) (eo::cons @list c ($extract_pairwise_args_rec f op a B)))
   (($extract_pairwise_args_rec f op a B)              @list.nil)  ; no further elements
@@ -211,7 +214,7 @@
 ;   its desugared version (and (distinct a b) (distinct a c) (distinct b c)) is
 ;   indeed obtained by desugaring distinct in the expected way.
 (program $extract_pairwise_args ((T Type) (U Type) (f (-> T T U)) (op (-> U U U)) (a T) (b T) (B U :list))
-  ((-> T T U) (-> U U U) U) @List
+  :signature ((-> T T U) (-> U U U) U) @List
   (
   (($extract_pairwise_args f op (op (f a b) B)) (eo::define ((D (op (f a b) B)))
                                                 (eo::define ((elems ($extract_pairwise_args_rec f op a D)))

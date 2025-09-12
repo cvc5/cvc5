@@ -97,7 +97,7 @@ def validate_exception():
 # obtaining the heap/nil expressions when using separation logic.
 def validate_getters():
     tm  = cvc5.TermManager()
-    slv = cvc5.Solver()
+    slv = cvc5.Solver(tm)
 
     # Setup some options for cvc5
     slv.setLogic("QF_ALL")

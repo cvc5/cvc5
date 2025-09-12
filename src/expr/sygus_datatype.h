@@ -88,7 +88,8 @@ class SygusDatatype
    * the arguments argTypes should correspond to sygus datatypes that encode
    * the types of the arguments of the kind.
    */
-  void addConstructor(Kind k,
+  void addConstructor(NodeManager* nm,
+                      Kind k,
                       const std::vector<TypeNode>& argTypes,
                       int weight = -1);
   /**

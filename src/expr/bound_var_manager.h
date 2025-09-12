@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
+ *   Andrew Reynolds, Aina Niemetz, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
@@ -60,7 +60,7 @@ class BoundVarManager
   /** get cache value from two nodes and a size_t, returns SEXPR */
   static Node getCacheValue(TNode cv1, TNode cv2, size_t i);
   /** get cache value, returns a constant rational node */
-  static Node getCacheValue(size_t i);
+  static Node getCacheValue(NodeManager* nm, size_t i);
   /** get cache value, return SEXPR of cv and constant rational node */
   static Node getCacheValue(TNode cv, size_t i);
   //---------------------------------- end utilities for computing Node hash

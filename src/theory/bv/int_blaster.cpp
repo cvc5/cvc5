@@ -384,7 +384,7 @@ Node IntBlaster::translateWithChildren(
       returnNode = createBVNegNode(translated_children[0], bvsize);
       break;
     }
-    case Kind::BITVECTOR_TO_NAT:
+    case Kind::BITVECTOR_UBV_TO_INT:
     {
       // In this case, we already translated the child to integer.
       // The result is simply the translated child.
@@ -938,7 +938,7 @@ Node IntBlaster::castToType(Node n, TypeNode tn)
   // casting bit-vectors to ingers
   Assert(n.getType().isBitVector());
   Assert(tn.isInteger());
-  return d_nm->mkNode(Kind::BITVECTOR_TO_NAT, n);
+  return d_nm->mkNode(Kind::BITVECTOR_UBV_TO_INT, n);
 }
 
 Node IntBlaster::reconstructNode(Node originalNode,
@@ -1106,7 +1106,7 @@ Node IntBlaster::createBVAndNode(Node x,
 {
   // We support three configurations:
   // 1. translating to IAND
-  // 2. translating back to BV (using BITVECTOR_TO_NAT and INT_TO_BV
+  // 2. translating back to BV (using BITVECTOR_UBV_TO_INT and INT_TO_BV
   // operators)
   // 3. translating into a sum
   Node returnNode;
@@ -1124,7 +1124,7 @@ Node IntBlaster::createBVAndNode(Node x,
     // perform bvand on the bit-vectors
     Node bvand = d_nm->mkNode(Kind::BITVECTOR_AND, bvx, bvy);
     // translate the result to integers
-    returnNode = d_nm->mkNode(Kind::BITVECTOR_TO_NAT, bvand);
+    returnNode = d_nm->mkNode(Kind::BITVECTOR_UBV_TO_INT, bvand);
   }
   else if (d_mode == options::SolveBVAsIntMode::SUM)
   {

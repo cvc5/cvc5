@@ -74,8 +74,8 @@ TEST_F(TestApiBlackTermManager, mkArraySort)
   ASSERT_NO_THROW(d_tm.mkArraySort(boolSort, boolSort));
 
   TermManager tm;
-  // this will throw when NodeManager is not a singleton anymore
-  ASSERT_NO_THROW(d_tm.mkArraySort(tm.getBooleanSort(), tm.getIntegerSort()));
+  ASSERT_THROW(d_tm.mkArraySort(tm.getBooleanSort(), tm.getIntegerSort()),
+               CVC5ApiException);
 }
 
 TEST_F(TestApiBlackTermManager, mkBitVectorSort)
@@ -141,8 +141,7 @@ TEST_F(TestApiBlackTermManager, mkDatatypeSort)
     dtypeSpec.addConstructor(cons);
     DatatypeConstructorDecl nil = tm.mkDatatypeConstructorDecl("nil");
     dtypeSpec.addConstructor(nil);
-    // this will throw when NodeManager is not a singleton anymore
-    ASSERT_NO_THROW(d_tm.mkDatatypeSort(dtypeSpec));
+    ASSERT_THROW(d_tm.mkDatatypeSort(dtypeSpec), CVC5ApiException);
   }
 }
 
@@ -224,8 +223,7 @@ TEST_F(TestApiBlackTermManager, mkDatatypeSorts)
     DatatypeConstructorDecl nil2 = tm.mkDatatypeConstructorDecl("nil2");
     dtypeSpec2.addConstructor(nil2);
     std::vector<DatatypeDecl> decls = {dtypeSpec1, dtypeSpec2};
-    // this will throw when NodeManager is not a singleton anymore
-    ASSERT_NO_THROW(d_tm.mkDatatypeSorts(decls));
+    ASSERT_THROW(d_tm.mkDatatypeSorts(decls), CVC5ApiException);
   }
 
   /* Note: More tests are in datatype_api_black. */
@@ -239,10 +237,6 @@ TEST_F(TestApiBlackTermManager, mkFunctionSort)
                                      d_tm.getIntegerSort());
   // function arguments are allowed
   ASSERT_NO_THROW(d_tm.mkFunctionSort({funSort}, d_tm.getIntegerSort()));
-  // non-first-class arguments are not allowed
-  Sort reSort = d_tm.getRegExpSort();
-  ASSERT_THROW(d_tm.mkFunctionSort({reSort}, d_tm.getIntegerSort()),
-               CVC5ApiException);
   ASSERT_THROW(d_tm.mkFunctionSort({d_tm.getIntegerSort()}, funSort),
                CVC5ApiException);
   ASSERT_NO_THROW(d_tm.mkFunctionSort(
@@ -265,10 +259,11 @@ TEST_F(TestApiBlackTermManager, mkFunctionSort)
   ASSERT_NO_THROW(d_tm.mkFunctionSort(sorts1, d_tm.getIntegerSort()));
 
   TermManager tm;
-  // this will throw when NodeManager is not a singleton anymore
-  ASSERT_NO_THROW(tm.mkFunctionSort(sorts2, tm.getIntegerSort()));
-  ASSERT_NO_THROW(tm.mkFunctionSort({tm.getBooleanSort(), tm.getIntegerSort()},
-                                    d_tm.getIntegerSort()));
+  ASSERT_THROW(tm.mkFunctionSort(sorts2, tm.getIntegerSort()),
+               CVC5ApiException);
+  ASSERT_THROW(tm.mkFunctionSort({tm.getBooleanSort(), tm.getIntegerSort()},
+                                 d_tm.getIntegerSort()),
+               CVC5ApiException);
 }
 
 TEST_F(TestApiBlackTermManager, mkParamSort)
@@ -289,8 +284,7 @@ TEST_F(TestApiBlackTermManager, mkPredicateSort)
   ASSERT_NO_THROW(d_tm.mkPredicateSort({d_tm.getIntegerSort()}));
 
   TermManager tm;
-  // this will throw when NodeManager is not a singleton anymore
-  ASSERT_NO_THROW(tm.mkPredicateSort({d_tm.getIntegerSort()}));
+  ASSERT_THROW(tm.mkPredicateSort({d_tm.getIntegerSort()}), CVC5ApiException);
 }
 
 TEST_F(TestApiBlackTermManager, mkRecordSort)
@@ -307,10 +301,10 @@ TEST_F(TestApiBlackTermManager, mkRecordSort)
   ASSERT_NO_THROW(d_tm.mkRecordSort(fields));
 
   TermManager tm;
-  // this will throw when NodeManager is not a singleton anymore
-  ASSERT_NO_THROW(tm.mkRecordSort({{"b", tm.getBooleanSort()},
-                                   {"bv", d_tm.mkBitVectorSort(8)},
-                                   {"i", tm.getIntegerSort()}}));
+  ASSERT_THROW(tm.mkRecordSort({{"b", tm.getBooleanSort()},
+                                {"bv", d_tm.mkBitVectorSort(8)},
+                                {"i", tm.getIntegerSort()}}),
+               CVC5ApiException);
 }
 
 TEST_F(TestApiBlackTermManager, mkSetSort)
@@ -320,8 +314,7 @@ TEST_F(TestApiBlackTermManager, mkSetSort)
   ASSERT_NO_THROW(d_tm.mkSetSort(d_tm.mkBitVectorSort(4)));
   ASSERT_NO_THROW(d_tm.mkSetSort(d_tm.mkBitVectorSort(4)));
   TermManager tm;
-  // this will throw when NodeManager is not a singleton anymore
-  ASSERT_NO_THROW(d_tm.mkSetSort(tm.getBooleanSort()));
+  ASSERT_THROW(d_tm.mkSetSort(tm.getBooleanSort()), CVC5ApiException);
 }
 
 TEST_F(TestApiBlackTermManager, mkBagSort)
@@ -331,8 +324,7 @@ TEST_F(TestApiBlackTermManager, mkBagSort)
   ASSERT_NO_THROW(d_tm.mkBagSort(d_tm.mkBitVectorSort(4)));
   ASSERT_NO_THROW(d_tm.mkBagSort(d_tm.mkBitVectorSort(4)));
   TermManager tm;
-  // this will throw when NodeManager is not a singleton anymore
-  ASSERT_NO_THROW(d_tm.mkBagSort(tm.getBooleanSort()));
+  ASSERT_THROW(d_tm.mkBagSort(tm.getBooleanSort()), CVC5ApiException);
 }
 
 TEST_F(TestApiBlackTermManager, mkSequenceSort)
@@ -342,8 +334,7 @@ TEST_F(TestApiBlackTermManager, mkSequenceSort)
       d_tm.mkSequenceSort(d_tm.mkSequenceSort(d_tm.getIntegerSort())));
   ASSERT_NO_THROW(d_tm.mkSequenceSort(d_tm.getIntegerSort()));
   TermManager tm;
-  // this will throw when NodeManager is not a singleton anymore
-  ASSERT_NO_THROW(d_tm.mkSequenceSort(tm.getBooleanSort()));
+  ASSERT_THROW(d_tm.mkSequenceSort(tm.getBooleanSort()), CVC5ApiException);
 }
 
 TEST_F(TestApiBlackTermManager, mkAbstractSort)
@@ -385,8 +376,7 @@ TEST_F(TestApiBlackTermManager, mkTupleSort)
 
   ASSERT_NO_THROW(d_tm.mkTupleSort({d_tm.getIntegerSort()}));
   TermManager tm;
-  // this will throw when NodeManager is not a singleton anymore
-  ASSERT_NO_THROW(d_tm.mkTupleSort({tm.getBooleanSort()}));
+  ASSERT_THROW(d_tm.mkTupleSort({tm.getBooleanSort()}), CVC5ApiException);
 }
 
 TEST_F(TestApiBlackTermManager, mkNullableSort)
@@ -394,8 +384,7 @@ TEST_F(TestApiBlackTermManager, mkNullableSort)
   ASSERT_NO_THROW(d_tm.mkNullableSort(d_tm.getIntegerSort()));
   ASSERT_NO_THROW(d_tm.mkNullableSort(d_tm.getIntegerSort()));
   TermManager tm;
-  // this will throw when NodeManager is not a singleton anymore
-  ASSERT_NO_THROW(d_tm.mkNullableSort(tm.getIntegerSort()));
+  ASSERT_THROW(d_tm.mkNullableSort(tm.getIntegerSort()), CVC5ApiException);
 }
 
 TEST_F(TestApiBlackTermManager, mkBitVector)
@@ -493,10 +482,11 @@ TEST_F(TestApiBlackTermManager, mkConstArray)
   ASSERT_NO_THROW(d_tm.mkConstArray(arrSort2, zero));
   ASSERT_NO_THROW(d_tm.mkConstArray(arrSort, zero2));
   TermManager tm;
-  // this will throw when NodeManager is not a singleton anymore
-  ASSERT_NO_THROW(tm.mkConstArray(arrSort, tm.mkInteger(0)));
-  ASSERT_NO_THROW(tm.mkConstArray(
-      tm.mkArraySort(tm.getIntegerSort(), tm.getIntegerSort()), zero));
+  ASSERT_THROW(tm.mkConstArray(arrSort, tm.mkInteger(0)), CVC5ApiException);
+  ASSERT_THROW(
+      tm.mkConstArray(tm.mkArraySort(tm.getIntegerSort(), tm.getIntegerSort()),
+                      zero),
+      CVC5ApiException);
 }
 
 TEST_F(TestApiBlackTermManager, mkVar)
@@ -512,8 +502,7 @@ TEST_F(TestApiBlackTermManager, mkVar)
   ASSERT_THROW(d_tm.mkVar(Sort(), "a"), CVC5ApiException);
   ASSERT_NO_THROW(d_tm.mkVar(boolSort, "x"));
   TermManager tm;
-  // this will throw when NodeManager is not a singleton anymore
-  ASSERT_NO_THROW(tm.mkVar(boolSort, "c"));
+  ASSERT_THROW(tm.mkVar(boolSort, "c"), CVC5ApiException);
 }
 
 TEST_F(TestApiBlackTermManager, mkBoolean)
@@ -580,14 +569,16 @@ TEST_F(TestApiBlackTermManager, mkFloatingPoint)
       CVC5ApiException);
 
   TermManager tm;
-  // this will throw when NodeManager is not a singleton anymore
-  ASSERT_NO_THROW(tm.mkFloatingPoint(3, 5, t1));
-  ASSERT_NO_THROW(tm.mkFloatingPoint(
-      d_tm.mkBitVector(1), tm.mkBitVector(5), tm.mkBitVector(10)));
-  ASSERT_NO_THROW(tm.mkFloatingPoint(
-      tm.mkBitVector(1), d_tm.mkBitVector(5), tm.mkBitVector(10)));
-  ASSERT_NO_THROW(tm.mkFloatingPoint(
-      tm.mkBitVector(1), tm.mkBitVector(5), d_tm.mkBitVector(10)));
+  ASSERT_THROW(tm.mkFloatingPoint(3, 5, t1), CVC5ApiException);
+  ASSERT_THROW(tm.mkFloatingPoint(
+                   d_tm.mkBitVector(1), tm.mkBitVector(5), tm.mkBitVector(10)),
+               CVC5ApiException);
+  ASSERT_THROW(tm.mkFloatingPoint(
+                   tm.mkBitVector(1), d_tm.mkBitVector(5), tm.mkBitVector(10)),
+               CVC5ApiException);
+  ASSERT_THROW(tm.mkFloatingPoint(
+                   tm.mkBitVector(1), tm.mkBitVector(5), d_tm.mkBitVector(10)),
+               CVC5ApiException);
 }
 
 TEST_F(TestApiBlackTermManager, mkCardinalityConstraint)
@@ -599,8 +590,7 @@ TEST_F(TestApiBlackTermManager, mkCardinalityConstraint)
   ASSERT_THROW(d_tm.mkCardinalityConstraint(su, 0), CVC5ApiException);
   ASSERT_NO_THROW(d_tm.mkCardinalityConstraint(su, 3));
   TermManager tm;
-  // this will throw when NodeManager is not a singleton anymore
-  ASSERT_NO_THROW(tm.mkCardinalityConstraint(su, 3));
+  ASSERT_THROW(tm.mkCardinalityConstraint(su, 3), CVC5ApiException);
 }
 
 TEST_F(TestApiBlackTermManager, mkEmptySet)
@@ -611,8 +601,7 @@ TEST_F(TestApiBlackTermManager, mkEmptySet)
   ASSERT_THROW(d_tm.mkEmptySet(d_tm.getBooleanSort()), CVC5ApiException);
   ASSERT_NO_THROW(d_tm.mkEmptySet(s));
   TermManager tm;
-  // this will throw when NodeManager is not a singleton anymore
-  ASSERT_NO_THROW(tm.mkEmptySet(s));
+  ASSERT_THROW(tm.mkEmptySet(s), CVC5ApiException);
 }
 
 TEST_F(TestApiBlackTermManager, mkEmptyBag)
@@ -623,8 +612,7 @@ TEST_F(TestApiBlackTermManager, mkEmptyBag)
   ASSERT_THROW(d_tm.mkEmptyBag(d_tm.getBooleanSort()), CVC5ApiException);
   ASSERT_NO_THROW(d_tm.mkEmptyBag(s));
   TermManager tm;
-  // this will throw when NodeManager is not a singleton anymore
-  ASSERT_NO_THROW(tm.mkEmptyBag(s));
+  ASSERT_THROW(tm.mkEmptyBag(s), CVC5ApiException);
 }
 
 TEST_F(TestApiBlackTermManager, mkEmptySequence)
@@ -634,8 +622,7 @@ TEST_F(TestApiBlackTermManager, mkEmptySequence)
   ASSERT_NO_THROW(d_tm.mkEmptySequence(d_tm.getBooleanSort()));
   ASSERT_NO_THROW(d_tm.mkEmptySequence(s));
   TermManager tm;
-  // this will throw when NodeManager is not a singleton anymore
-  ASSERT_NO_THROW(tm.mkEmptySequence(s));
+  ASSERT_THROW(tm.mkEmptySequence(s), CVC5ApiException);
 }
 
 TEST_F(TestApiBlackTermManager, mkFalse)
@@ -777,8 +764,7 @@ TEST_F(TestApiBlackTermManager, mkSepNil)
   ASSERT_THROW(d_tm.mkSepNil(Sort()), CVC5ApiException);
   ASSERT_NO_THROW(d_tm.mkSepNil(d_tm.getIntegerSort()));
   TermManager tm;
-  // this will throw when NodeManager is not a singleton anymore
-  ASSERT_NO_THROW(tm.mkSepNil(d_tm.getBooleanSort()));
+  ASSERT_THROW(tm.mkSepNil(d_tm.getBooleanSort()), CVC5ApiException);
 }
 
 TEST_F(TestApiBlackTermManager, mkString)
@@ -788,8 +774,8 @@ TEST_F(TestApiBlackTermManager, mkString)
   ASSERT_EQ(d_tm.mkString("asdf\\nasdf").toString(), "\"asdf\\u{5c}nasdf\"");
   ASSERT_EQ(d_tm.mkString("asdf\\u{005c}nasdf", true).toString(),
             "\"asdf\\u{5c}nasdf\"");
-  std::wstring s;
-  ASSERT_EQ(d_tm.mkString(s).getStringValue(), s);
+  std::u32string s;
+  ASSERT_EQ(d_tm.mkString(s).getU32StringValue(), s);
 }
 
 TEST_F(TestApiBlackTermManager, mkTerm)
@@ -891,13 +877,15 @@ TEST_F(TestApiBlackTermManager, mkTerm)
       d_tm.mkTerm(d_tm.mkOp(Kind::HO_APPLY), {t_fun, t_bool, t_bool, t_bool}));
 
   TermManager tm;
-  // this will throw when NodeManager is not a singleton anymore
-  ASSERT_NO_THROW(
-      d_tm.mkTerm(Kind::ITE, {d_tm.mkTrue(), tm.mkTrue(), tm.mkTrue()}));
-  ASSERT_NO_THROW(
-      d_tm.mkTerm(Kind::ITE, {tm.mkTrue(), d_tm.mkTrue(), tm.mkTrue()}));
-  ASSERT_NO_THROW(
-      d_tm.mkTerm(Kind::ITE, {tm.mkTrue(), tm.mkTrue(), d_tm.mkTrue()}));
+  ASSERT_THROW(
+      d_tm.mkTerm(Kind::ITE, {d_tm.mkTrue(), tm.mkTrue(), tm.mkTrue()}),
+      CVC5ApiException);
+  ASSERT_THROW(
+      d_tm.mkTerm(Kind::ITE, {tm.mkTrue(), d_tm.mkTrue(), tm.mkTrue()}),
+      CVC5ApiException);
+  ASSERT_THROW(
+      d_tm.mkTerm(Kind::ITE, {tm.mkTrue(), tm.mkTrue(), d_tm.mkTrue()}),
+      CVC5ApiException);
 }
 
 TEST_F(TestApiBlackTermManager, mkTermFromOp)
@@ -987,10 +975,9 @@ TEST_F(TestApiBlackTermManager, mkTermFromOp)
   ASSERT_NO_THROW(d_tm.mkTerm(opterm2, {v4}));
 
   TermManager tm;
-  // this will throw when NodeManager is not a singleton anymore
-  ASSERT_NO_THROW(tm.mkTerm(opterm2, {tm.mkInteger(1)}));
-  ASSERT_NO_THROW(
-      tm.mkTerm(tm.mkOp(Kind::DIVISIBLE, {1}), {d_tm.mkInteger(1)}));
+  ASSERT_THROW(tm.mkTerm(opterm2, {tm.mkInteger(1)}), CVC5ApiException);
+  ASSERT_THROW(tm.mkTerm(tm.mkOp(Kind::DIVISIBLE, {1}), {d_tm.mkInteger(1)}),
+               CVC5ApiException);
 }
 
 TEST_F(TestApiBlackTermManager, mkTrue)
@@ -1006,9 +993,9 @@ TEST_F(TestApiBlackTermManager, mkTuple)
   ASSERT_NO_THROW(d_tm.mkTuple({d_tm.mkReal("5.3")}));
   ASSERT_NO_THROW(d_tm.mkTuple({d_tm.mkBitVector(3, "101", 2)}));
   ASSERT_NO_THROW(d_tm.mkTuple({d_tm.mkBitVector(3, "101", 2)}));
+
   TermManager tm;
-  // this will throw when NodeManager is not a singleton anymore
-  ASSERT_NO_THROW(tm.mkTuple({d_tm.mkBitVector(3, "101", 2)}));
+  ASSERT_THROW(tm.mkTuple({d_tm.mkBitVector(3, "101", 2)}), CVC5ApiException);
 }
 
 TEST_F(TestApiBlackTermManager, mkNullableSome)
@@ -1018,9 +1005,10 @@ TEST_F(TestApiBlackTermManager, mkNullableSome)
   ASSERT_NO_THROW(d_tm.mkNullableSome(d_tm.mkReal("5.3")));
   ASSERT_NO_THROW(d_tm.mkNullableSome(d_tm.mkBitVector(3, "101", 2)));
   ASSERT_NO_THROW(d_tm.mkNullableSome(d_tm.mkBitVector(3, "101", 2)));
+
   TermManager tm;
-  // this will throw when NodeManager is not a singleton anymore
-  ASSERT_NO_THROW(tm.mkNullableSome(d_tm.mkBitVector(3, "101", 2)));
+  ASSERT_THROW(tm.mkNullableSome(d_tm.mkBitVector(3, "101", 2)),
+               CVC5ApiException);
 }
 
 TEST_F(TestApiBlackTermManager, mkNullableVal)
@@ -1028,10 +1016,11 @@ TEST_F(TestApiBlackTermManager, mkNullableVal)
   Term value = d_tm.mkNullableVal(d_tm.mkNullableSome(d_tm.mkInteger(5)));
   value = d_solver->simplify(value);
   ASSERT_EQ(5, value.getInt32Value());
+
   TermManager tm;
-  // this will throw when NodeManager is not a singleton anymore
-  ASSERT_NO_THROW(
-      tm.mkNullableVal(d_tm.mkNullableSome(d_tm.mkBitVector(3, "101", 2))));
+  ASSERT_THROW(
+      tm.mkNullableVal(d_tm.mkNullableSome(d_tm.mkBitVector(3, "101", 2))),
+      CVC5ApiException);
 }
 
 TEST_F(TestApiBlackTermManager, mkNullableIsNull)
@@ -1039,9 +1028,10 @@ TEST_F(TestApiBlackTermManager, mkNullableIsNull)
   Term value = d_tm.mkNullableIsNull(d_tm.mkNullableSome(d_tm.mkInteger(5)));
   value = d_solver->simplify(value);
   ASSERT_EQ(false, value.getBooleanValue());
+
   TermManager tm;
-  // this will throw when NodeManager is not a singleton anymore
-  ASSERT_NO_THROW(tm.mkNullableIsNull(d_tm.mkNullableSome(d_tm.mkInteger(5))));
+  ASSERT_THROW(tm.mkNullableIsNull(d_tm.mkNullableSome(d_tm.mkInteger(5))),
+               CVC5ApiException);
 }
 
 TEST_F(TestApiBlackTermManager, mkNullableIsSome)
@@ -1049,9 +1039,10 @@ TEST_F(TestApiBlackTermManager, mkNullableIsSome)
   Term value = d_tm.mkNullableIsSome(d_tm.mkNullableSome(d_tm.mkInteger(5)));
   value = d_solver->simplify(value);
   ASSERT_EQ(true, value.getBooleanValue());
+
   TermManager tm;
-  // this will throw when NodeManager is not a singleton anymore
-  ASSERT_NO_THROW(tm.mkNullableIsSome(d_tm.mkNullableSome(d_tm.mkInteger(5))));
+  ASSERT_THROW(tm.mkNullableIsSome(d_tm.mkNullableSome(d_tm.mkInteger(5))),
+               CVC5ApiException);
 }
 
 TEST_F(TestApiBlackTermManager, mkNullableNull)
@@ -1061,10 +1052,11 @@ TEST_F(TestApiBlackTermManager, mkNullableNull)
   Term value = d_tm.mkNullableIsNull(nullableNull);
   value = d_solver->simplify(value);
   ASSERT_EQ(true, value.getBooleanValue());
+
   TermManager tm;
-  // this will throw when NodeManager is not a singleton anymore
-  ASSERT_NO_THROW(tm.mkNullableIsNull(
-      d_tm.mkNullableNull(d_tm.mkNullableSort(d_tm.getBooleanSort()))));
+  ASSERT_THROW(tm.mkNullableIsNull(d_tm.mkNullableNull(
+                   d_tm.mkNullableSort(d_tm.getBooleanSort()))),
+               CVC5ApiException);
 }
 
 TEST_F(TestApiBlackTermManager, mkNullableLift)
@@ -1074,11 +1066,12 @@ TEST_F(TestApiBlackTermManager, mkNullableLift)
   Term some3 = d_tm.mkNullableLift(Kind::ADD, {some1, some2});
   Term three = d_solver->simplify(d_tm.mkNullableVal(some3));
   ASSERT_EQ(3, three.getInt32Value());
+
   TermManager tm;
-  // this will throw when NodeManager is not a singleton anymore
-  ASSERT_NO_THROW(tm.mkNullableLift(Kind::ADD,
-                                    {d_tm.mkNullableSome(d_tm.mkInteger(1)),
-                                     d_tm.mkNullableSome(d_tm.mkInteger(2))}));
+  ASSERT_THROW(tm.mkNullableLift(Kind::ADD,
+                                 {d_tm.mkNullableSome(d_tm.mkInteger(1)),
+                                  d_tm.mkNullableSome(d_tm.mkInteger(2))}),
+               CVC5ApiException);
 }
 
 TEST_F(TestApiBlackTermManager, mkUniverseSet)
@@ -1086,9 +1079,9 @@ TEST_F(TestApiBlackTermManager, mkUniverseSet)
   ASSERT_NO_THROW(d_tm.mkUniverseSet(d_tm.getBooleanSort()));
   ASSERT_THROW(d_tm.mkUniverseSet(Sort()), CVC5ApiException);
   ASSERT_NO_THROW(d_tm.mkUniverseSet(d_tm.getBooleanSort()));
+
   TermManager tm;
-  // this will throw when NodeManager is not a singleton anymore
-  ASSERT_NO_THROW(tm.mkUniverseSet(d_tm.getBooleanSort()));
+  ASSERT_THROW(tm.mkUniverseSet(d_tm.getBooleanSort()), CVC5ApiException);
 }
 
 TEST_F(TestApiBlackTermManager, mkConst)
@@ -1105,9 +1098,9 @@ TEST_F(TestApiBlackTermManager, mkConst)
   ASSERT_THROW(d_tm.mkConst(Sort()), CVC5ApiException);
   ASSERT_THROW(d_tm.mkConst(Sort(), "a"), CVC5ApiException);
   ASSERT_NO_THROW(d_tm.mkConst(boolSort));
+
   TermManager tm;
-  // this will throw when NodeManager is not a singleton anymore
-  ASSERT_NO_THROW(tm.mkConst(boolSort));
+  ASSERT_THROW(tm.mkConst(boolSort), CVC5ApiException);
 }
 
 TEST_F(TestApiBlackTermManager, mkSkolem)

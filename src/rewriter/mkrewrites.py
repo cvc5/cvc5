@@ -101,7 +101,8 @@ def gen_mk_node(defns, expr):
     elif isinstance(expr, App):
         args = ",".join(gen_mk_node(defns, child) for child in expr.children)
         if expr.op in {Op.EXTRACT, Op.REPEAT, Op.ZERO_EXTEND,  Op.SIGN_EXTEND,
-                       Op.ROTATE_LEFT, Op.ROTATE_RIGHT, Op.INT_TO_BV, Op.REGEXP_LOOP, Op.DIVISIBLE}:
+                       Op.ROTATE_LEFT, Op.ROTATE_RIGHT, Op.INT_TO_BV,
+                       Op.REGEXP_LOOP, Op.REGEXP_REPEAT, Op.DIVISIBLE}:
           args = f'nm->mkConst(GenericOp(Kind::{gen_kind(expr.op)})),' + args
           return f'nm->mkNode(Kind::APPLY_INDEXED_SYMBOLIC, {{ {args} }})'
         elif expr.op in {Op.REAL_PI}:
@@ -364,8 +365,8 @@ def gen_rewrite_db(args):
         db = gen_individual_rewrite_db(Path(rewrites_file), individual_rewrites_cpp, flag_expert)
         ids += db.ids
         printer_code += db.printer_code
-        decl_individual_rewrites.append(f"void {db.function_name}(RewriteDb&);")
-        call_individual_rewrites.append(f"{db.function_name}(db);")
+        decl_individual_rewrites.append(f"void {db.function_name}(NodeManager* nm, RewriteDb&);")
+        call_individual_rewrites.append(f"{db.function_name}(nm, db);")
 
     # Note that we manually indent by two spaces, since we do not clang-format
     # the include file automatically.

@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Tim King, Andrew Reynolds, Aina Niemetz
+ *   Tim King, Aina Niemetz, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
@@ -204,7 +204,7 @@ inline void flattenAnd(Node n, std::vector<TNode>& out){
 inline Node flattenAnd(Node n){
   std::vector<TNode> out;
   flattenAnd(n, out);
-  return NodeManager::currentNM()->mkNode(Kind::AND, out);
+  return n.getNodeManager()->mkNode(Kind::AND, out);
 }
 
 /** Make zero of the given type */
@@ -223,8 +223,7 @@ inline Node getIdentityType(const TypeNode& tn, Kind k)
   {
     case Kind::ADD: return mkZero(tn);
     case Kind::MULT:
-    case Kind::NONLINEAR_MULT:
-      return NodeManager::currentNM()->mkConstRealOrInt(tn, 1);
+    case Kind::NONLINEAR_MULT: return NodeManager::mkConstRealOrInt(tn, 1);
     default: Unreachable(); return Node::null();  // silence warning
   }
 }
@@ -249,7 +248,7 @@ inline Node safeConstructNaryType(const TypeNode& tn,
   {
     case 0: return getIdentityType(tn, k);
     case 1: return children[0];
-    default: return NodeManager::currentNM()->mkNode(k, children);
+    default: return tn.getNodeManager()->mkNode(k, children);
   }
 }
 

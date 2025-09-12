@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Tim King, Andres Noetzli
+ *   Andrew Reynolds, Tim King, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
@@ -51,7 +51,7 @@ Node UninterpretedSortEnumerator::operator*()
   {
     throw NoMoreValuesException(getType());
   }
-  return NodeManager::currentNM()->mkConst(
+  return getType().getNodeManager()->mkConst(
       UninterpretedSortValue(getType(), d_count));
 }
 

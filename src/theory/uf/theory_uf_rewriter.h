@@ -77,20 +77,20 @@ class TheoryUfRewriter : public TheoryRewriter
    * Then, f and g can be used as APPLY_UF operators, but (ite C f g), (lambda x1. (f x1)) as well as the variable x above are not.
    */
   static bool canUseAsApplyUfOperator(TNode n);
-
- private:
   /**
    * Can we eliminate the lambda n? This is true if n is of the form
    * (LAMBDA x (APPLY_UF f x)), which is equivalent to f.
    * @param n The lambda in question.
    * @return the result of eliminating n, if possible, or null otherwise.
    */
-  static Node canEliminateLambda(const Node& n);
+  static Node canEliminateLambda(NodeManager* nm, const Node& n);
+
+ private:
   /** Entry point for rewriting lambdas */
   Node rewriteLambda(Node node);
-  /** rewrite bv2nat */
-  RewriteResponse rewriteBVToNat(TNode node);
-  /** rewrite int2bv */
+  /** rewrite ubv_to_int */
+  RewriteResponse rewriteBVToInt(TNode node);
+  /** rewrite int_to_bv */
   RewriteResponse rewriteIntToBV(TNode node);
 }; /* class TheoryUfRewriter */
 

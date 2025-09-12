@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Mathias Preiner
+ *   Andrew Reynolds, Daniel Larraz, Haniel Barbosa
  *
  * This file is part of the cvc5 project.
  *
@@ -40,7 +40,7 @@ void SygusDatatype::addConstructor(Node op,
 
 void SygusDatatype::addAnyConstantConstructor(TypeNode tn)
 {
-  SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
+  SkolemManager* sm = tn.getNodeManager()->getSkolemManager();
   // add an "any constant" proxy variable
   Node av =
       sm->mkInternalSkolemFunction(InternalSkolemId::SYGUS_ANY_CONSTANT, tn);
@@ -51,11 +51,11 @@ void SygusDatatype::addAnyConstantConstructor(TypeNode tn)
   builtinArg.push_back(tn);
   addConstructor(av, cname, builtinArg, 0);
 }
-void SygusDatatype::addConstructor(Kind k,
+void SygusDatatype::addConstructor(NodeManager* nm,
+                                   Kind k,
                                    const std::vector<TypeNode>& argTypes,
                                    int weight)
 {
-  NodeManager* nm = NodeManager::currentNM();
   addConstructor(nm->operatorOf(k), kindToString(k), argTypes, weight);
 }
 

@@ -586,7 +586,7 @@ bool isSingletonClause(TNode res,
     return true;
   }
   size_t i;
-  Node trueNode = NodeManager::currentNM()->mkConst(true);
+  Node trueNode = res.getNodeManager()->mkConst(true);
   // Find out the last child to introduced res, if any. We only need to
   // look at the last one because any previous introduction would have
   // been eliminated.
