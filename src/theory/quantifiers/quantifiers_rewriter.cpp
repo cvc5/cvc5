@@ -1706,6 +1706,60 @@ Node QuantifiersRewriter::computeVarElimination(Node body,
     }
     Trace("var-elim-quant") << "Return " << body << std::endl;
   }
+  // Leibniz equality elimination
+  // Pattern: P(t1, ...) => P(t2, ...), represented as ¬P(t1, ...) ∨ P(t2, ...)
+  if (body.getKind() == Kind::OR)
+  {
+    Node lit0 = body[0];
+    Node lit1 = body[1];
+    Node boundVar; // predicate P
+    std::vector<Node> args1, args2; // arguments of P
+    if (lit0.getKind() == Kind::NOT)
+    {
+      Node inner = lit0[0]; // P(t1, ...)
+      if (inner.getKind() == Kind::APPLY_UF)
+      {
+        boundVar = inner.getOperator();          // P
+        args1 = std::vector<Node>(inner.begin(), inner.end()); // collect all arguments
+      }
+      else return body;
+    }
+    else return body;
+    if (lit1.getKind() == Kind::APPLY_UF && lit1.getOperator() == boundVar)
+    {
+      args2 = std::vector<Node>(lit1.begin(), lit1.end()); // collect all arguments
+    }
+    else return body;
+    // make sure the arity matches
+    if (args1.size() != args2.size()) return body;
+    // sanity check: ensure boundVar does not occur in arguments
+    for (const Node& a : args1)
+    {
+      if (expr::hasSubterm(a, boundVar, false)) return body;
+    }
+    for (const Node& a : args2)
+    {
+      if (expr::hasSubterm(a, boundVar, false)) return body;
+    }
+    // build a conjunction of equalities for all arguments
+    NodeManager* nm = nodeManager();
+    std::vector<Node> eqs;
+    for (size_t i = 0; i < args1.size(); ++i)
+    {
+      eqs.push_back(nm->mkNode(Kind::EQUAL, args1[i], args2[i]));
+    }
+    Node eq;
+    if (eqs.size() == 1)
+    {
+      eq = eqs[0]; // single equality
+    }
+    else
+    {
+      eq = nm->mkNode(Kind::AND, eqs); // multiple equalities combined
+    }
+    Trace("var-elim-quant") << "Detected Leibniz equality in " << body << ", returning: " << eq << std::endl;
+    return eq;
+  }
   return body;
 }
 
