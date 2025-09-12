@@ -183,6 +183,10 @@ class Smt2Printer : public cvc5::internal::Printer
   void toStreamCmdGetValue(std::ostream& out,
                            const std::vector<Node>& n) const override;
 
+  /** Print get-model-domain-elements command */
+  void toStreamCmdGetModelDomainElements(std::ostream& out,
+                                         TypeNode type) const override;
+
   /** Print get-assignment command */
   void toStreamCmdGetAssignment(std::ostream& out) const override;
 
