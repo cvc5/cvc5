@@ -260,7 +260,7 @@ bool TheoryInferenceManager::trustedLemma(const TrustNode& tlem,
 {
   // if the policy says to cache lemmas, check the cache and return false if
   // we are a duplicate
-  if (d_cacheLemmas)
+  if (d_cacheLemmas && !isLemmaPropertyLocal(p))
   {
     if (!cacheLemma(tlem.getNode(), p))
     {
