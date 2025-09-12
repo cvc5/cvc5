@@ -52,15 +52,14 @@ Instantiate::Instantiate(Env& env,
       d_qreg(qr),
       d_treg(tr),
       d_insts(userContext()),
-      d_c_inst_match_trie(context()),
-      d_u_inst_match_trie(userContext()),
+      d_uimt(userContext()),
+      d_cimt(context()),
       d_pfInst(isProofEnabled()
                    ? new CDProof(env, userContext(), "Instantiate::pfInst")
                    : nullptr)
 {
-  // We need to use context-dependent trie if incremental or if inst-local is
-  // set to true. The context is determined above when initializing
-  // d_u_inst_match_trie_dom.
+  // We need to use user context-dependent trie for the main instantiation
+  // trie if incremental.
   d_useCdInstTrie = options().base.incrementalSolving;
 }
 
@@ -192,8 +191,12 @@ bool Instantiate::addInstantiationInternal(
     }
   }
 #endif
-  bool isLocal = options().quantifiers.instLocal;
-  // TODO: some instantiation type should never be local
+  bool isLocal = false;
+  if (options().quantifiers.instLocal)
+  {
+    // determine if it is an instantiation type that is treated as local
+    isLocal = isLocalInstId(id);
+  }
 
   // Note we check for entailment before checking for term vector duplication.
   // Although checking for term vector duplication is a faster check, it is
@@ -401,6 +404,18 @@ bool Instantiate::addInstantiationInternal(
   return true;
 }
 
+bool Instantiate::isLocalInstId(InferenceId id)
+{
+  switch (id)
+  {
+    case InferenceId::QUANTIFIERS_INST_E_MATCHING:
+      return true;
+    default:
+      break;
+  }
+  return false;
+}
+
 void Instantiate::processInstantiationRep(Node q, std::vector<Node>& terms)
 {
   Assert(q.getKind() == Kind::FORALL);
@@ -526,16 +541,16 @@ bool Instantiate::existsInstantiation(Node q, const std::vector<Node>& terms)
 {
   if (d_useCdInstTrie)
   {
-    NodeInstTrieMap::iterator it = d_u_inst_match_trie.find(q);
-    if (it != d_u_inst_match_trie.end())
+    NodeInstTrieMap::iterator it = d_uimt.find(q);
+    if (it != d_uimt.end())
     {
       return it->second->existsInstMatch(userContext(), q, terms);
     }
   }
   else
   {
-    std::map<Node, InstMatchTrie>::iterator it = d_inst_match_trie.find(q);
-    if (it != d_inst_match_trie.end())
+    std::map<Node, InstMatchTrie>::iterator it = d_imt.find(q);
+    if (it != d_imt.end())
     {
       return it->second.existsInstMatch(q, terms);
     }
@@ -615,14 +630,13 @@ bool Instantiate::recordInstantiationInternal(Node q,
                                               const std::vector<Node>& terms,
                                               bool isLocal)
 {
-  bool ret, retc;
   if (isLocal)
   {
     // if local, the return value will be based on the SAT-context dependent
     // trie.
     CDInstMatchTrie* trie;
-    NodeInstTrieMap::iterator it = d_c_inst_match_trie.find(q);
-    if (it != d_c_inst_match_trie.end())
+    NodeInstTrieMap::iterator it = d_cimt.find(q);
+    if (it != d_cimt.end())
     {
       trie = it->second.get();
     }
@@ -630,18 +644,22 @@ bool Instantiate::recordInstantiationInternal(Node q,
     {
       std::shared_ptr<CDInstMatchTrie> strie =
           std::make_shared<CDInstMatchTrie>(context());
-      d_u_inst_match_trie.insert(q, strie);
+      d_uimt.insert(q, strie);
       trie = strie.get();
     }
-    retc = trie->addInstMatch(context(), q, terms);
+    if (!trie->addInstMatch(context(), q, terms))
+    {
+      return false;
+    }
   }
-  // regardless of whether we are local, we record the instantiation in the main
-  // trie
+  // regardless of whether we are local, we record the instantiation in the main trie.
+  // if the instantiation is local, we will ignore whether or not it already exists.
+  bool ret;
   if (d_useCdInstTrie)
   {
     CDInstMatchTrie* trie;
-    NodeInstTrieMap::iterator it = d_u_inst_match_trie.find(q);
-    if (it != d_u_inst_match_trie.end())
+    NodeInstTrieMap::iterator it = d_uimt.find(q);
+    if (it != d_uimt.end())
     {
       trie = it->second.get();
     }
@@ -651,7 +669,7 @@ bool Instantiate::recordInstantiationInternal(Node q,
           << "Adding into context-dependent inst trie" << std::endl;
       std::shared_ptr<CDInstMatchTrie> strie =
           std::make_shared<CDInstMatchTrie>(userContext());
-      d_u_inst_match_trie.insert(q, strie);
+      d_uimt.insert(q, strie);
       trie = strie.get();
     }
     ret = trie->addInstMatch(userContext(), q, terms);
@@ -659,9 +677,9 @@ bool Instantiate::recordInstantiationInternal(Node q,
   else
   {
     Trace("inst-add-debug") << "Adding into inst trie" << std::endl;
-    ret = d_inst_match_trie[q].addInstMatch(q, terms);
+    ret = d_imt[q].addInstMatch(q, terms);
   }
-  return isLocal ? retc : ret;
+  return isLocal ? true : ret;
 }
 
 void Instantiate::getInstantiatedQuantifiedFormulas(std::vector<Node>& qs) const
@@ -679,8 +697,8 @@ void Instantiate::getInstantiationTermVectors(
 {
   if (d_useCdInstTrie)
   {
-    NodeInstTrieMap::const_iterator it = d_u_inst_match_trie.find(q);
-    if (it != d_u_inst_match_trie.end())
+    NodeInstTrieMap::const_iterator it = d_uimt.find(q);
+    if (it != d_uimt.end())
     {
       it->second->getInstantiations(q, tvecs);
     }
@@ -688,8 +706,8 @@ void Instantiate::getInstantiationTermVectors(
   else
   {
     std::map<Node, InstMatchTrie>::const_iterator it =
-        d_inst_match_trie.find(q);
-    if (it != d_inst_match_trie.end())
+        d_imt.find(q);
+    if (it != d_imt.end())
     {
       it->second.getInstantiations(q, tvecs);
     }
@@ -701,14 +719,14 @@ void Instantiate::getInstantiationTermVectors(
 {
   if (d_useCdInstTrie)
   {
-    for (const auto& t : d_u_inst_match_trie)
+    for (const auto& t : d_uimt)
     {
       getInstantiationTermVectors(t.first, insts[t.first]);
     }
   }
   else
   {
-    for (const auto& t : d_inst_match_trie)
+    for (const auto& t : d_imt)
     {
       getInstantiationTermVectors(t.first, insts[t.first]);
     }

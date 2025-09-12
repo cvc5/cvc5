@@ -83,8 +83,8 @@ class InstLemmaList
  *
  * This class is used for generating instantiation lemmas.  It maintains an
  * instantiation trie, which is represented by a different data structure
- * depending on whether incremental solving is enabled (see d_inst_match_trie
- * and d_c_inst_match_trie).
+ * depending on whether incremental solving is enabled (see d_imt
+ * and d_cimt).
  *
  * Below, we say an instantiation lemma for q = forall x. F under substitution
  * { x -> t } is the formula:
@@ -307,6 +307,11 @@ class Instantiate : public QuantifiersUtil
   bool recordInstantiationInternal(Node q,
                                    const std::vector<Node>& terms,
                                    bool isLocal);
+  /**
+   * Return true if id is an instantiation type that should be considered
+   * local when using inst-local.
+   */
+  static bool isLocalInstId(InferenceId id);
   /** Get or make the instantiation list for quantified formula q */
   InstLemmaList* getOrMkInstLemmaList(TNode q);
 
@@ -339,13 +344,17 @@ class Instantiate : public QuantifiersUtil
   /** list of all instantiations produced for each quantifier
    *
    * We store context (dependent, independent) versions. If incremental solving
-   * is disabled, we use d_inst_match_trie for performance reasons.
+   * is disabled, we use d_imt for performance reasons.
    */
-  std::map<Node, InstMatchTrie> d_inst_match_trie;
-  /** A SAT-context dependent trie of instantiations */
-  NodeInstTrieMap d_c_inst_match_trie;
+  std::map<Node, InstMatchTrie> d_imt;
   /** A user dependent trie of instantiations */
-  NodeInstTrieMap d_u_inst_match_trie;
+  NodeInstTrieMap d_uimt;
+  /**
+   * A SAT-context dependent trie of instantiations, used for inst-local only.
+   * Local instantiations are stored both in d_cimt and in the
+   * main instantiation trie (d_imt or d_uimt).
+   */
+  NodeInstTrieMap d_cimt;
   /**
    * A CDProof storing instantiation steps.
    */
