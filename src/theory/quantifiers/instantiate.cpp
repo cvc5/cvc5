@@ -652,7 +652,7 @@ bool Instantiate::recordInstantiationInternal(Node q,
     {
       std::shared_ptr<CDInstMatchTrie> strie =
           std::make_shared<CDInstMatchTrie>(context());
-      d_uimt.insert(q, strie);
+      d_cimt.insert(q, strie);
       trie = strie.get();
     }
     if (!trie->addInstMatch(context(), q, terms))
