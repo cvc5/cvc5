@@ -137,7 +137,7 @@ This option takes precedence over ``--wasm`` and ``--wasm-flags`` if used togeth
 Available configurations:
 
 - ``no-modular-static-page``: Optimized for static web pages with runtime methods,
-environment settings, and memory configuration pre-configured for web deployment.
+  environment settings, and memory configuration pre-configured for web deployment.
 
 For example, to generate a HTML page, use:
 
