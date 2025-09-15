@@ -106,7 +106,7 @@ const char* toString(ProofRule rule)
     case ProofRule::TRANS: return "TRANS";
     case ProofRule::CONG: return "CONG";
     case ProofRule::NARY_CONG: return "NARY_CONG";
-    case ProofRule::PAIRWISE_CONG: return "PAIRWISE_CONG";
+    case ProofRule::ARG_LIST_CONG: return "ARG_LIST_CONG";
     case ProofRule::TRUE_INTRO: return "TRUE_INTRO";
     case ProofRule::TRUE_ELIM: return "TRUE_ELIM";
     case ProofRule::FALSE_INTRO: return "FALSE_INTRO";
