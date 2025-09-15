@@ -88,6 +88,7 @@ class TheoryUfRewriter : public TheoryRewriter
    * Blast distinct, which eliminates the distinct operator.
    */
   static Node blastDistinct(NodeManager* nm, TNode node);
+
  private:
   /** Entry point for rewriting lambdas */
   Node rewriteLambda(Node node);

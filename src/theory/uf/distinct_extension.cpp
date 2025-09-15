@@ -16,10 +16,10 @@
 #include "theory/uf/distinct_extension.h"
 
 #include "options/smt_options.h"
-#include "proof/proof_generator.h"
-#include "proof/proof_node_manager.h"
-#include "proof/proof_node_algorithm.h"
 #include "proof/proof.h"
+#include "proof/proof_generator.h"
+#include "proof/proof_node_algorithm.h"
+#include "proof/proof_node_manager.h"
 #include "theory/uf/theory_uf_rewriter.h"
 
 namespace cvc5::internal {
@@ -49,7 +49,7 @@ class DistinctProofGenerator : protected EnvObj, public ProofGenerator
       std::vector<Node> cpremises;
       for (const Node& e : distinct)
       {
-        if (e==fact[0][0][0])
+        if (e == fact[0][0][0])
         {
           cpremises.push_back(fact[0][0]);
         }
@@ -64,7 +64,7 @@ class DistinctProofGenerator : protected EnvObj, public ProofGenerator
       // --------------------------------- cong
       // distinct(a,b,c) = distinct(c,b,c)
       Node ceq = expr::proveCong(d_env, &cdp, distinct, cpremises);
-      Assert (ceq.getKind()==Kind::EQUAL && ceq[0]!=ceq[1]);
+      Assert(ceq.getKind() == Kind::EQUAL && ceq[0] != ceq[1]);
       Trace("distinct-pf") << "...prove by congruence " << ceq << std::endl;
       // distinct(c,b,c) = false
       Node falsen = nodeManager()->mkConst(false);
@@ -100,8 +100,8 @@ DistinctExtension::DistinctExtension(Env& env,
       d_negDistinct(context()),
       d_negDistinctIndex(context(), 0),
       d_posDistinct(context()),
- d_dproof(options().smt.produceProofs ? new DistinctProofGenerator(d_env)
-                                      : nullptr)
+      d_dproof(options().smt.produceProofs ? new DistinctProofGenerator(d_env)
+                                           : nullptr)
 {
 }
 

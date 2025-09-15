@@ -15,12 +15,12 @@
 
 #include "proof/proof_node_algorithm.h"
 
+#include "proof/proof.h"
+#include "proof/proof_checker.h"
 #include "proof/proof_node.h"
+#include "proof/proof_node_manager.h"
 #include "proof/proof_rule_checker.h"
 #include "theory/builtin/generic_op.h"
-#include "proof/proof.h"
-#include "proof/proof_node_manager.h"
-#include "proof/proof_checker.h"
 
 namespace cvc5::internal {
 namespace expr {
@@ -285,8 +285,8 @@ ProofRule getCongRule(const Node& n, std::vector<Node>& args)
 
 Node proveCong(Env& env,
                CDProof* cdp,
-                const Node& n,
-                const std::vector<Node>& premises)
+               const Node& n,
+               const std::vector<Node>& premises)
 {
   std::vector<Node> cpremises = premises;
   std::vector<Node> cargs;
