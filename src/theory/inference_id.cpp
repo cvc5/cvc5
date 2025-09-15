@@ -549,7 +549,7 @@ const char* toString(InferenceId i)
       return "STRINGS_RE_EQ_ELIM_EQUIV";
 
     case InferenceId::UF_BREAK_SYMMETRY: return "UF_BREAK_SYMMETRY";
-    case InferenceId::UF_NOT_DISTINCT_EQ: return "UF_NOT_DISTINCT_EQ";
+    case InferenceId::UF_NOT_DISTINCT_ELIM: return "UF_NOT_DISTINCT_ELIM";
     case InferenceId::UF_DISTINCT_DEQ: return "UF_DISTINCT_DEQ";
     case InferenceId::UF_DISTINCT_DEQ_MODEL: return "UF_DISTINCT_DEQ_MODEL";
     case InferenceId::UF_CARD_CLIQUE: return "UF_CARD_CLIQUE";

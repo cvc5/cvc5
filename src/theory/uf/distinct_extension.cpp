@@ -17,6 +17,7 @@
 
 #include "options/smt_options.h"
 #include "proof/proof_generator.h"
+#include "theory/uf/theory_uf_rewriter.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -196,9 +197,6 @@ void DistinctExtension::checkDistinctLastCall()
     Node atom = ndistinct[0];
     std::unordered_set<Node> reps;
     bool isSat = false;
-    std::vector<Node> disj;
-    disj.push_back(atom);
-    Node a0 = atom[0];
     for (size_t j = 0, nterms = atom.getNumChildren(); j < nterms; j++)
     {
       Node ncr = d_state.getRepresentative(atom[j]);
@@ -207,21 +205,15 @@ void DistinctExtension::checkDistinctLastCall()
         isSat = true;
         break;
       }
-      if (j > 0)
-      {
-        disj.push_back(a0.eqNode(atom[j]));
-      }
     }
     if (!isSat)
     {
-      std::vector<Node> rmTerms(atom.begin() + 1, atom.end());
-      if (rmTerms.size() > 1)
-      {
-        disj.push_back(
-            nodeManager()->mkNode(Kind::DISTINCT, rmTerms).notNode());
-      }
+      std::vector<Node> disj;
+      disj.push_back(atom);
+      Node batom = TheoryUfRewriter::blastDistinct(nodeManager(), atom);
+      disj.push_back(batom.notNode());
       Node lem = nodeManager()->mkOr(disj);
-      if (d_im.lemma(lem, InferenceId::UF_NOT_DISTINCT_EQ))
+      if (d_im.lemma(lem, InferenceId::UF_NOT_DISTINCT_ELIM))
       {
         addedLemma = true;
       }

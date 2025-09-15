@@ -1,0 +1,11 @@
+; EXPECT: sat
+(set-logic ALL)
+(declare-const a Int)
+(declare-const b Int)
+(declare-const c Int)
+(declare-const d Int)
+(declare-const e Int)
+(declare-const f Int)
+(declare-const g Int)
+(assert (not (distinct a b c d e f g)))
+(check-sat)

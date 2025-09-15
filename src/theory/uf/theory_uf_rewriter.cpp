@@ -438,7 +438,7 @@ Node TheoryUfRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
     case ProofRewriteRule::DISTINCT_ELIM:
       if (n.getKind() == Kind::DISTINCT)
       {
-        return blastDistinct(n);
+        return blastDistinct(nodeManager(), n);
       }
       break;
     default: break;
@@ -667,16 +667,14 @@ RewriteResponse TheoryUfRewriter::rewriteDistinct(TNode node)
   }
   if (node.getNumChildren() <= 5)
   {
-    return RewriteResponse(REWRITE_DONE, blastDistinct(node));
+    return RewriteResponse(REWRITE_DONE, blastDistinct(nodeManager(), node));
   }
   return RewriteResponse(REWRITE_DONE, node);
 }
 
-Node TheoryUfRewriter::blastDistinct(TNode in)
+Node TheoryUfRewriter::blastDistinct(NodeManager* nm, TNode in)
 {
   Assert(in.getKind() == Kind::DISTINCT);
-
-  NodeManager* nm = nodeManager();
 
   if (in.getNumChildren() == 2)
   {
