@@ -2773,7 +2773,7 @@ enum ENUM(ProofRewriteRule)
   EVALUE(ARITH_POW_ELIM),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Equality -- Macro distinct conflict**
+   * **Equality -- Distinct conflict**
    *
    * .. math::
    *
@@ -2783,10 +2783,10 @@ enum ENUM(ProofRewriteRule)
    *
    * \endverbatim
    */
-  EVALUE(MACRO_DISTINCT_CONFLICT),
+  EVALUE(DISTINCT_CONFLICT),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Equality -- Macro distinct conflict**
+   * **Equality -- Distinct conflict**
    *
    * .. math::
    *
@@ -2796,7 +2796,7 @@ enum ENUM(ProofRewriteRule)
    *
    * \endverbatim
    */
-  EVALUE(MACRO_DISTINCT_TRUE),
+  EVALUE(DISTINCT_TRUE),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Equality -- Beta reduction**

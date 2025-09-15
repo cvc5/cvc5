@@ -45,9 +45,9 @@ TheoryUfRewriter::TheoryUfRewriter(NodeManager* nm) : TheoryRewriter(nm)
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::DISTINCT_ELIM,
                            TheoryRewriteCtx::PRE_DSL);
-  registerProofRewriteRule(ProofRewriteRule::MACRO_DISTINCT_CONFLICT,
+  registerProofRewriteRule(ProofRewriteRule::DISTINCT_CONFLICT,
                            TheoryRewriteCtx::PRE_DSL);
-  registerProofRewriteRule(ProofRewriteRule::MACRO_DISTINCT_TRUE,
+  registerProofRewriteRule(ProofRewriteRule::DISTINCT_TRUE,
                            TheoryRewriteCtx::PRE_DSL);
 }
 

@@ -1211,7 +1211,6 @@ set(regress_0_tests
   regress0/nl/tpp-fail-pf-012921.smt2
   regress0/nl/very-easy-sat.smt2
   regress0/nl/very-simple-unsat.smt2
-  regress0/not-distinct-simple.smt2
   regress0/opt-abd-no-use.smt2
   regress0/options/ast-and-sexpr.smt2
   regress0/options/didyoumean.smt2
@@ -2261,6 +2260,7 @@ set(regress_0_tests
   regress0/uf/cnf-iff.smt2
   regress0/uf/cnf-ite.smt2
   regress0/uf/dead_dnd002.smtv1.smt2
+  regress0/uf/distinct-true.smt2
   regress0/uf/eq_diamond1.smtv1.smt2
   regress0/uf/eq_diamond14.reduced.smtv1.smt2
   regress0/uf/eq_diamond14.reduced2.smtv1.smt2
@@ -2280,6 +2280,8 @@ set(regress_0_tests
   regress0/uf/iso_brn001.smtv1.smt2
   regress0/uf/issue2947.smt2
   regress0/uf/issue4446.smt2
+  regress0/uf/lazy-distinct.smt2
+  regress0/uf/lazy-distinct-not.smt2
   regress0/uf/NEQ016_size5_reduced2a.smtv1.smt2
   regress0/uf/NEQ016_size5_reduced2b.smtv1.smt2
   regress0/uf/pred.smtv1.smt2
