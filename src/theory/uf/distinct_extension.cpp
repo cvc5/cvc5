@@ -59,18 +59,24 @@ class DistinctProofGenerator : protected EnvObj, public ProofGenerator
           cpremises.push_back(Node::null());
         }
       }
-      //        ------   -----
-      // a = c   b = b   c = c
-      // --------------------------------- cong
-      // distinct(a,b,c) = distinct(c,b,c)
+      //                      ------  -----
+      //              a = c   b = b   c = c
+      //              ------------------------- cong  -------------------
+      //              dist(a,b,c) = dist(c,b,c)       dist(c,b,c) = false
+      //              ----------------------------------------------------
+      // dist(a,b,c)  dist(a,b,c) = false
+      // --------------------------------
+      // false
+      // --------------------- scope {a=c,dist(a,b,c)}
+      // ~(a=c ^ dist(a,b,c))
       Node ceq = expr::proveCong(d_env, &cdp, distinct, cpremises);
       Assert(ceq.getKind() == Kind::EQUAL && ceq[0] != ceq[1]);
       Trace("distinct-pf") << "...prove by congruence " << ceq << std::endl;
-      // distinct(c,b,c) = false
+      // dist(c,b,c) = false
       Node falsen = nodeManager()->mkConst(false);
       Node eq = ceq[1].eqNode(falsen);
       cdp.addStep(eq, ProofRule::MACRO_SR_PRED_INTRO, {}, {eq});
-      // distinct(a,b,c) = false
+      // dist(a,b,c) = false
       Node eq2 = ceq[0].eqNode(falsen);
       cdp.addStep(eq2, ProofRule::TRANS, {ceq, eq}, {});
       // false
@@ -255,7 +261,8 @@ void DistinctExtension::checkDistinctLastCall()
       Node batom = TheoryUfRewriter::blastDistinct(nodeManager(), atom);
       disj.push_back(batom.notNode());
       Node lem = nodeManager()->mkOr(disj);
-      if (d_im.lemma(lem, InferenceId::UF_NOT_DISTINCT_ELIM))
+      TrustNode tlem = TrustNode::mkTrustLemma(lem, d_dproof.get());
+      if (d_im.trustedLemma(tlem, InferenceId::UF_NOT_DISTINCT_ELIM))
       {
         addedLemma = true;
       }
@@ -293,7 +300,7 @@ void DistinctExtension::checkDistinctLastCall()
       }
       Node eq = itr->second.eqNode(nc);
       Node lem =
-          nodeManager()->mkNode(Kind::OR, {atom.notNode(), eq.notNode()});
+          nodeManager()->mkNode(Kind::AND, {eq, atom}).notNode();
       TrustNode tlem = TrustNode::mkTrustLemma(lem, d_dproof.get());
       d_im.lemma(lem, InferenceId::UF_DISTINCT_DEQ_MODEL);
     }
