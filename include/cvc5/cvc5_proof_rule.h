@@ -2783,7 +2783,7 @@ enum ENUM(ProofRewriteRule)
    *
    * \endverbatim
    */
-  EVALUE(DISTINCT_CONFLICT),
+  EVALUE(DISTINCT_FALSE),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Equality -- Distinct conflict**

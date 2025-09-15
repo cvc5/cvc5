@@ -244,8 +244,8 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::MACRO_ARITH_STRING_PRED_ENTAIL:
       return "macro-arith-string-pred-entail";
     case ProofRewriteRule::ARITH_POW_ELIM: return "arith-pow-elim";
-    case ProofRewriteRule::DISTINCT_CONFLICT:
-      return "distinct-conflict";
+    case ProofRewriteRule::DISTINCT_FALSE:
+      return "distinct-false";
     case ProofRewriteRule::DISTINCT_TRUE: return "distinct-true";
     case ProofRewriteRule::BETA_REDUCE: return "beta-reduce";
     case ProofRewriteRule::LAMBDA_ELIM: return "lambda-elim";

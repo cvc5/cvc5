@@ -45,7 +45,7 @@ TheoryUfRewriter::TheoryUfRewriter(NodeManager* nm) : TheoryRewriter(nm)
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::DISTINCT_ELIM,
                            TheoryRewriteCtx::PRE_DSL);
-  registerProofRewriteRule(ProofRewriteRule::DISTINCT_CONFLICT,
+  registerProofRewriteRule(ProofRewriteRule::DISTINCT_FALSE,
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::DISTINCT_TRUE,
                            TheoryRewriteCtx::PRE_DSL);
@@ -402,7 +402,7 @@ Node TheoryUfRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
         }
       }
       break;
-    case ProofRewriteRule::DISTINCT_CONFLICT:
+    case ProofRewriteRule::DISTINCT_FALSE:
       if (n.getKind() == Kind::DISTINCT)
       {
         std::unordered_set<Node> children;
