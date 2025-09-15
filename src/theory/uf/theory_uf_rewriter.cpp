@@ -402,7 +402,7 @@ Node TheoryUfRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
         }
       }
       break;
-    case ProofRewriteRule::MACRO_DISTINCT_CONFLICT:
+    case ProofRewriteRule::DISTINCT_CONFLICT:
       if (n.getKind() == Kind::DISTINCT)
       {
         std::unordered_set<Node> children;
@@ -416,7 +416,7 @@ Node TheoryUfRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
         }
       }
       break;
-    case ProofRewriteRule::MACRO_DISTINCT_TRUE:
+    case ProofRewriteRule::DISTINCT_TRUE:
       if (n.getKind() == Kind::DISTINCT)
       {
         bool allDistinctConst = true;
