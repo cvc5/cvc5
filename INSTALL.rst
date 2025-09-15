@@ -43,14 +43,22 @@ Compilation on Windows
 ^^^^^^^^^^^^^^^^^^^^^^
 
 Install `MSYS2 <https://www.msys2.org/>`_ and `Python <https://www.python.org/downloads/windows/>`_ on your system.
-Launch a `MINGW64 environment <https://www.msys2.org/docs/environments/>`_ and
-install the required packages for building cvc5:
+Then, launch the appropriate `MSYS2 environment <https://www.msys2.org/docs/environments/>`_ and
+install the required dependencies:
+
+- On x86_64 machines, open a `MINGW64` shell and run:
 
 .. code:: bash
 
   pacman -S git make mingw-w64-x86_64-cmake mingw-w64-x86_64-gcc mingw-w64-x86_64-gmp zip
 
-Clone the cvc5 repository and follow the general build steps above.
+- On ARM64 machines, open a `CLANGARM64` shell and run:
+
+.. code:: bash
+
+  pacman -S git make mingw-w64-clang-aarch64-cmake mingw-w64-clang-aarch64-clang mingw-w64-clang-aarch64-gmp zip
+
+After that, clone the cvc5 repository and follow the general build steps above.
 The built binary ``cvc5.exe`` and the DLL libraries are located in
 ``<build_dir>/bin``. The import libraries and the static libraries
 can be found in ``<build_dir>/lib``.
@@ -86,14 +94,14 @@ can be found in ``<build_dir>/lib``.
 WebAssembly Compilation
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-Compiling cvc5 to WebAssembly needs the Emscripten SDK (version 3.1.18 or 
+Compiling cvc5 to WebAssembly needs the Emscripten SDK (version 3.1.70 or 
 latter). Setting up emsdk can be done as follows:
 
 .. code:: bash
 
   git clone https://github.com/emscripten-core/emsdk.git
   cd emsdk
-  ./emsdk install <version>   # <version> = '3.1.18' is preferable, but 
+  ./emsdk install <version>   # <version> = '3.1.70' is preferable, but 
                               # <version> = 'latest' has high chance of working
   ./emsdk activate <version>
   source ./emsdk_env.sh   # Activate PATH and other environment variables in the
@@ -123,6 +131,13 @@ code).
 `emscripten flags <https://github.com/emscripten-core/emscripten/blob/main/src/settings.js>`_,
 which modifies how the wasm and glue code are built and how they behave. An ``-s``
 should precede each flag.
+
+``--wasm-web`` provides predefined configurations optimized for web deployment.
+This option takes precedence over ``--wasm`` and ``--wasm-flags`` if used together.
+Available configurations:
+
+- ``no-modular-static-page``: Optimized for static web pages with runtime methods,
+environment settings, and memory configuration pre-configured for web deployment.
 
 For example, to generate a HTML page, use:
 

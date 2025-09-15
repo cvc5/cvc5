@@ -1,0 +1,45 @@
+name: Add WASM artifacts for cvc5
+description: |
+  Uploads WASM artifacts (cvc5.wasm and cvc5.js) to latest and release
+inputs:
+  build-dir:
+    description: path to the build directory containing WASM files
+    required: true
+  wasm-name:
+    description: base name for the WASM package (without extension)
+    required: true
+  shell:
+    description: shell to use for commands
+    default: bash
+runs:
+  using: composite
+  steps:
+    - name: Prepare WASM artifacts
+      shell: ${{ inputs.shell }}
+      run: |
+        echo "::group::Prepare WASM artifacts"
+        mkdir -p ${{ inputs.wasm-name }}
+        cp ${{ inputs.build-dir }}/bin/cvc5.wasm ${{ inputs.wasm-name }}/
+        cp ${{ inputs.build-dir }}/bin/cvc5.js ${{ inputs.wasm-name }}/
+
+        # Create a ZIP file containing both files
+        zip -r ${{ inputs.wasm-name }} ${{ inputs.wasm-name }}
+        echo "::endgroup::"
+
+    - name: Store WASM package to latest
+      if: github.ref == 'refs/heads/main'
+      uses: ./.github/actions/store-to-latest
+      with:
+        asset-filename: ${{ inputs.wasm-name }}.zip
+        shell: ${{ inputs.shell }}
+
+    - name: Store WASM package to release
+      if: startsWith(github.ref, 'refs/tags/')
+      shell: ${{ inputs.shell }}
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        gh release upload $GITHUB_REF_NAME \
+          ${{ inputs.wasm-name }}.zip \
+          --repo $GITHUB_REPOSITORY
+

@@ -7,7 +7,31 @@ env:
     HOMEBREW_NO_INSTALL_FROM_API: ""
 
 jobs:
+  setup-release-pages:
+    name: Set up release pages
+    runs-on: ubuntu-latest
+    concurrency:
+      group: setup-release-pages
+      cancel-in-progress: false
+    steps:
+      - name: Checkout code
+        if: (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
+        uses: actions/checkout@v4
+
+      - name: Set up latest page
+        if: github.ref == 'refs/heads/main'
+        uses: ./.github/actions/setup-latest
+
+      - name: Set up new version page
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: ./.github/actions/setup-new-version
+        with:
+          # When using GITHUB_TOKEN, no further workflows are triggered
+          # See https://github.com/cvc5/cvc5/pull/8512
+          github-token-release: ${{ secrets.ACTION_USER_TOKEN }}
+
   builds:
+    needs: [setup-release-pages]
     strategy:
       matrix:
         has-tag:
@@ -26,14 +50,12 @@ jobs:
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
 
           - name: ubuntu:safe-mode
-            os: ubuntu-24.04
-            config: safe-mode --auto-download --all-bindings --editline --docs --docs-ga -DBUILD_GMP=1
+            os: ubuntu-22.04
+            config: safe-mode --auto-download --all-bindings --editline -DBUILD_GMP=1
             cache-key: production-safe
             strip-bin: strip
             python-bindings: true
             java-bindings: true
-            java-version: 21
-            build-documentation: true
             check-examples: true
             exclude_regress: 3-4
             run_regression_args: --tester base --tester proof --tester cpc --tester model --tester synth --tester abduct --tester dump
@@ -113,9 +135,10 @@ jobs:
 
           - name: wasm:production
             os: ubuntu-22.04
-            config: production --static --static-binary --auto-download --wasm=JS --wasm-flags='-s MODULARIZE'
+            config: production --static --static-binary --auto-download --wasm-web=no-modular-static-page
             cache-key: productionwasm
             wasm-build: true
+            wasm-pkg-name: cvc5-Wasm
             build-shared: false
             build-static: true
 
@@ -128,13 +151,18 @@ jobs:
             exclude_regress: 3-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
 
+            # Job used to build the documentation
           - name: ubuntu:production-dbg
-            os: ubuntu-22.04
-            config: production --auto-download --assertions --tracing --unit-testing --all-bindings --editline --cocoa --gpl -DBUILD_GMP=1
+            os: ubuntu-24.04 # Use Doxygen version from this Ubuntu release
+            config: >-
+              production --auto-download --assertions --tracing --unit-testing --editline
+              --cocoa --gpl --all-bindings --docs --docs-ga -DBUILD_GMP=1
             cache-key: dbg
+            python-bindings: true
+            java-version: 21 # Use Javadoc from this Java version
+            build-documentation: true
             exclude_regress: 3-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester proof --tester dump
-            python-bindings: true
 
           - name: ubuntu:production-dbg-clang
             os: ubuntu-22.04
@@ -285,9 +313,6 @@ jobs:
       with:
         build-dir: ${{ steps.configure-and-build.outputs.shared-build-dir }}
         package-name: ${{ matrix.build.package-name }}-shared${{ matrix.build.gpl-tag }}
-        # when using GITHUB_TOKEN, no further workflows are triggered
-        github-token-latest: ${{ secrets.GITHUB_TOKEN }}
-        github-token-release: ${{ secrets.ACTION_USER_TOKEN }}
         shell: ${{ matrix.build.shell }}
 
     - name: Create and add static package to latest and release
@@ -297,9 +322,14 @@ jobs:
       with:
         build-dir: ${{ steps.configure-and-build.outputs.static-build-dir }}
         package-name: ${{ matrix.build.package-name }}-static${{ matrix.build.gpl-tag }}
-        # when using GITHUB_TOKEN, no further workflows are triggered
-        github-token-latest: ${{ secrets.GITHUB_TOKEN }}
-        github-token-release: ${{ secrets.ACTION_USER_TOKEN }}
+        shell: ${{ matrix.build.shell }}
+
+    - name: Create and add WASM to latest and release
+      if: matrix.build.wasm-pkg-name && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
+      uses: ./.github/actions/add-wasm
+      with:
+        build-dir: ${{ steps.configure-and-build.outputs.static-build-dir }}
+        wasm-name: ${{ matrix.build.wasm-pkg-name }}${{ matrix.build.gpl-tag }}
         shell: ${{ matrix.build.shell }}
 
     - name: Create and add JAR to latest and release
@@ -309,6 +339,94 @@ jobs:
         install-path: ${{ steps.create-static-package.outputs.install-path }}
         jar-libs-dir: cvc5-libs
         jar-name: ${{ matrix.build.package-name }}${{ matrix.build.gpl-tag }}-java-api
-        github-token-latest: ${{ secrets.GITHUB_TOKEN }}
-        github-token-release: ${{ secrets.ACTION_USER_TOKEN }}
         shell: ${{ matrix.build.shell }}
+
+
+  cleanup-artifacts:
+    name: Clean up artifacts from latest
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    needs: [builds]
+    concurrency:
+      group: cleanup-artifacts
+      cancel-in-progress: false
+    steps:
+    - name: Prune old assets
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      shell: 'python3 {0}'
+      run: |
+        import subprocess
+        import json
+        from datetime import datetime, timezone, timedelta
+        import re
+        import os
+
+        repo = os.environ["GITHUB_REPOSITORY"]
+
+        # Fetch latest release info
+        release_json = subprocess.run(
+            ["gh", "api", f"repos/{repo}/releases/tags/latest"],
+            capture_output=True,
+            text=True,
+            check=True
+        ).stdout
+        release = json.loads(release_json)
+
+        assets = release.get("assets", [])
+        now = datetime.now(timezone.utc)
+        seven_days_ago = now - timedelta(days=7)
+
+        # Set of assets to delete
+        delete_ids = set()
+
+        # Dictionary to group assets by prefix and date
+        # for filenames like "prefix-date-sha.ext"
+        # Structure: { prefix: { date: [asset1, asset2, ...] } }
+        prefix_date_assets = {}
+
+        # Group assets by prefix and date (excluding assets older than 7 days)
+        for asset in assets:
+            name = asset["name"]
+            created_at = datetime.fromisoformat(asset["created_at"].replace("Z", "+00:00"))
+
+            # Mark for deletion assets older than 7 days
+            if created_at < seven_days_ago:
+                delete_ids.add((asset["id"], asset["name"]))
+                continue
+
+            # Extract prefix and date from filenames like:
+            # "prefix-YYYY-MM-DD-sha.ext"
+            m = re.match(r"^(.+)-(\d{4}-\d{2}-\d{2})-.*$", name)
+            if not m:
+                continue
+
+            prefix, date_str = m.group(1), m.group(2)
+            # Append asset to the relevant prefix/date group
+            prefix_date_assets.setdefault(prefix, {}).setdefault(date_str, []).append(asset)
+
+        keep_ids = set()
+        # For each prefix, keep only:
+        # - The 2 most recent dates
+        # - The newest asset for each date
+        for prefix, date_assets in prefix_date_assets.items():
+            sorted_dates = sorted(date_assets.keys(), reverse=True)
+            top_two_dates = sorted_dates[:2]
+
+            for date in top_two_dates:
+                newest_asset = max(date_assets[date], key=lambda a: a["created_at"])
+                keep_ids.add(newest_asset["id"])
+
+        # Mark for deletion all assets not in keep_ids
+        for asset in assets:
+            if asset["id"] not in keep_ids:
+                delete_ids.add((asset["id"], asset["name"]))
+
+        # Delete old assets
+        for asset_id, asset_name in delete_ids:
+            print(f"Deleting asset {asset_name} ({asset_id})")
+            subprocess.run([
+                "gh", "api",
+                "--method", "DELETE",
+                f"repos/{repo}/releases/assets/{asset_id}"
+            ], check=True)

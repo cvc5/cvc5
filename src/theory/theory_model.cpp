@@ -53,16 +53,9 @@ void TheoryModel::finishInit(eq::EqualityEngine* ee)
 {
   Assert(ee != nullptr);
   d_equalityEngine = ee;
-  // The kinds we are treating as function application in congruence
-  d_equalityEngine->addFunctionKind(
-      Kind::APPLY_UF, false, logicInfo().isHigherOrder());
+  // we do not do congruence on any kind in the model equality engine, with
+  // the exception of HO_APPLY for the sake of higher-order.
   d_equalityEngine->addFunctionKind(Kind::HO_APPLY);
-  d_equalityEngine->addFunctionKind(Kind::SELECT);
-  // d_equalityEngine->addFunctionKind(Kind::STORE);
-  d_equalityEngine->addFunctionKind(Kind::APPLY_CONSTRUCTOR);
-  d_equalityEngine->addFunctionKind(Kind::APPLY_SELECTOR);
-  d_equalityEngine->addFunctionKind(Kind::APPLY_TESTER);
-  d_equalityEngine->addFunctionKind(Kind::SEQ_NTH);
   // do not interpret APPLY_UF if we are not assigning function values
   if (!d_enableFuncModels)
   {
@@ -397,7 +390,7 @@ Node TheoryModel::getModelValue(TNode n) const
         Unreachable();
       }
     }
-    else if (!t.isFirstClass())
+    else if (!t.isFirstClass() || t.isRegExp())
     {
       // this is the class for regular expressions
       // we simply invoke the rewriter on them
@@ -549,7 +542,7 @@ bool TheoryModel::assertEqualityEngine(const eq::EqualityEngine* ee,
         if (first) {
           rep = n;
           //add the term (this is specifically for the case of singleton equivalence classes)
-          if (rep.getType().isFirstClass())
+          if (!rep.getType().isRegExp())
           {
             d_equalityEngine->addTerm( rep );
             Trace("model-builder-debug") << "Add term to ee within assertEqualityEngine: " << rep << std::endl;

@@ -57,6 +57,13 @@ Node AletheLetBinding::convert(NodeManager* nm,
     if (it == visited.end())
     {
       uint32_t id = getId(cur);
+      // do not letify partially applied terms, which may have been generated
+      // during RARE elaboration.
+      if (cur.getKind() == Kind::HO_APPLY && cur.getType().isFunction())
+      {
+        visited[cur] = cur;
+        continue;
+      }
       // do not letify id 0
       if (id > 0)
       {
