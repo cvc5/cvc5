@@ -274,11 +274,32 @@
   :conclusion (= b1 b2)
 )
 
+(program $mk_distinct-elim2-rec ((T Type) (x T) (y T) (xs @List :list) (b Bool))
+  :signature (T @List Bool) Bool
+  (
+  (($mk_distinct-elim2-rec x (@list y xs) b)  (eo::cons and (not (= x y)) ($mk_distinct-elim2-rec x xs b)))
+  (($mk_distinct-elim2-rec x @list.nil b)     b)
+  )
+)
+(program $mk_distinct-elim2 ((T Type) (x T) (xs @List :list))
+  :signature (Bool) Bool
+  (
+  (($mk_distinct-elim2 (distinct x xs))   ($mk_distinct-elim2-rec x xs ($mk_distinct-elim2 (distinct xs))))
+  (($mk_distinct-elim2 (distinct xs))     true) ; nil case
+  )
+)
 
-; FIXME: remove
-(declare-parameterized-const distinct2 ((xs @List))
-  Bool
-  :arg-list @list)
+; rule: distinct-elim
+; implements: ProofRewriteRule::DISTINCT_ELIM.
+; args:
+; - eq Bool: The equality between formulas b1 and b2 to prove.
+; requires: Showing that eliminating the operator "distinct" from b1 results in b2.
+; conclusion: The equality (= b1 b2).
+(declare-rule distinct-elim2 ((b1 Bool) (b2 Bool))
+  :args ((= b1 b2))
+  :requires ((($mk_distinct-elim2 b1) b2))
+  :conclusion (= b1 b2)
+)
 
 ; rule: distinct-true
 ; implements: ProofRewriteRule::DISTINCT_TRUE.
@@ -286,9 +307,9 @@
 ; - eq Bool: The equality between an application of distinct and true.
 ; requires: Showing that all elements of the application are distinct.
 ; conclusion: The given equality.
-(declare-rule distinct-true ((xs @List))
+(declare-rule distinct-true ((T Type) (U Type) (xs U :list) (f (-> U T)))
   :args ((= (distinct2 xs) true))
-  :requires ((($are_distinct_terms_list xs (eo::typeof (eo::list_nth xs 0))) true))
+  :requires ((($are_distinct_terms_list xs ($assoc_nil_nth_type @list xs 0)) true))
   :conclusion (= (distinct2 xs) true)
 )
 
@@ -298,9 +319,9 @@
 ; - eq Bool: The equality between an application of distinct and false.
 ; requires: Showing that there is a duplicate element in xs.
 ; conclusion: The given equality.
-(declare-rule distinct-false ((xs @List))
+(declare-rule distinct-false ((T Type) (U Type) (xs U) (f (-> U T)))
   :args ((= (distinct2 xs) false))
-  :requires (((eo::eq (eo::list_setof xs) xs) false))
+  :requires (((eo::eq (eo::list_setof @list xs) xs) false))
   :conclusion (= (distinct2 xs) false)
 )
 

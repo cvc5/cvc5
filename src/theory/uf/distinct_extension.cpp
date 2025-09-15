@@ -17,6 +17,9 @@
 
 #include "options/smt_options.h"
 #include "proof/proof_generator.h"
+#include "proof/proof_node_manager.h"
+#include "proof/proof_node_algorithm.h"
+#include "proof/proof.h"
 #include "theory/uf/theory_uf_rewriter.h"
 
 namespace cvc5::internal {
@@ -35,12 +38,51 @@ class DistinctProofGenerator : protected EnvObj, public ProofGenerator
    */
   std::shared_ptr<ProofNode> getProofFor(Node fact) override
   {
-    Trace("ajr-temp") << "Get proof for: " << fact << std::endl;
+    CDProof cdp(d_env);
+    bool success = false;
+    Trace("distinct-pf") << "Get proof for: " << fact << std::endl;
     if (fact.getKind() == Kind::NOT && fact[0].getKind() == Kind::AND
         && fact[0][0].getKind() == Kind::EQUAL
         && fact[0][1].getKind() == Kind::DISTINCT)
     {
-      // Node falsen = nodeManager()->mkConst(false);
+      Node distinct = fact[0][1];
+      std::vector<Node> cpremises;
+      for (const Node& e : distinct)
+      {
+        if (e==fact[0][0][0])
+        {
+          cpremises.push_back(fact[0][0]);
+        }
+        else
+        {
+          // otherwise will be refl
+          cpremises.push_back(Node::null());
+        }
+      }
+      //        ------   -----
+      // a = c   b = b   c = c
+      // --------------------------------- cong
+      // distinct(a,b,c) = distinct(c,b,c)
+      Node ceq = expr::proveCong(d_env, &cdp, distinct, cpremises);
+      Assert (ceq.getKind()==Kind::EQUAL && ceq[0]!=ceq[1]);
+      Trace("distinct-pf") << "...prove by congruence " << ceq << std::endl;
+      // distinct(c,b,c) = false
+      Node falsen = nodeManager()->mkConst(false);
+      Node eq = ceq[1].eqNode(falsen);
+      cdp.addStep(eq, ProofRule::MACRO_SR_PRED_INTRO, {}, {eq});
+      // distinct(a,b,c) = false
+      Node eq2 = ceq[0].eqNode(falsen);
+      cdp.addStep(eq2, ProofRule::TRANS, {ceq, eq}, {});
+      // false
+      cdp.addStep(falsen, ProofRule::EQ_RESOLVE, {distinct, eq2}, {});
+      std::shared_ptr<ProofNode> pfn = cdp.getProofFor(falsen);
+      std::vector<Node> assumps{fact[0][0], fact[0][1]};
+      return d_env.getProofNodeManager()->mkScope(pfn, assumps);
+    }
+    if (!success)
+    {
+      cdp.addTrustedStep(fact, TrustId::UF_DISTINCT, {}, {});
+      return cdp.getProofFor(fact);
     }
     return nullptr;
   }
@@ -57,9 +99,9 @@ DistinctExtension::DistinctExtension(Env& env,
       d_ndistinct(context()),
       d_negDistinct(context()),
       d_negDistinctIndex(context(), 0),
-      d_posDistinct(context())
-// d_dproof(options().smt.produceProofs ? new DistinctProofGenerator(d_env)
-//                                       : nullptr)
+      d_posDistinct(context()),
+ d_dproof(options().smt.produceProofs ? new DistinctProofGenerator(d_env)
+                                      : nullptr)
 {
 }
 

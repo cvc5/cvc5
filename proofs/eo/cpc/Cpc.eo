@@ -515,6 +515,13 @@
   :conclusion (= D false)
 )
 
+(declare-rule distinct-card-conflict2 ((T Type) (U Type) (xs U :list) (f (-> U T)))
+  :args ((= (distinct2 xs) false))
+  :requires (((eo::gt (eo::list_len @list xs) ($compute_card ($assoc_nil_nth_type @list xs 0)))
+              true))
+  :conclusion (= (distinct2 xs) false)
+)
+
 ;;;;; trusted
 
 ; rule: trust

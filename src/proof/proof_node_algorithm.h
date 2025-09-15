@@ -22,10 +22,12 @@
 
 #include "cvc5/cvc5_proof_rule.h"
 #include "expr/node.h"
+#include "smt/env.h"
 
 namespace cvc5::internal {
 
 class ProofNode;
+class CDProof;
 
 namespace expr {
 
@@ -130,6 +132,25 @@ bool containsSubproof(ProofNode* pn,
  */
 ProofRule getCongRule(const Node& n, std::vector<Node>& args);
 
+/**
+* Prove congruence for left hand side term n.
+* If n is a term of the form (f t1 ... tn), this proves
+*  (= (f t1 ... sn) (f s1 .... sn))
+* where si is different from ti iff premises[i] is the equality (= ti si).
+* Note that we permit providing null premises[i] in which case si is ti
+* and we prove (= ti ti) by REFL. For example, given
+*   n = (f b a c) and premises = { null, a=b, null }
+* we prove:
+*   ----- REFL        ---- REFL
+*   b = b      a = b  c = c
+*   ------------------------ CONG
+*   (f b a c) = (f b b c)
+*/
+Node proveCong(Env& env,
+               CDProof* cdp,
+                const Node& n,
+                const std::vector<Node>& premises);
+  
 }  // namespace expr
 }  // namespace cvc5::internal
 
