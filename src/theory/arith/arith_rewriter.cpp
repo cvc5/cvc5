@@ -34,6 +34,7 @@
 #include "theory/arith/rewriter/node_utils.h"
 #include "theory/arith/rewriter/ordering.h"
 #include "theory/arith/rewriter/rewrite_atom.h"
+#include "theory/datatypes/tuple_utils.h"
 #include "theory/rewriter.h"
 #include "theory/strings/arith_entail.h"
 #include "theory/theory.h"
@@ -467,6 +468,7 @@ RewriteResponse ArithRewriter::preRewriteTerm(TNode t){
       case Kind::INTS_DIVISION_TOTAL:
       case Kind::INTS_MODULUS_TOTAL: return rewriteIntsDivModTotal(t, true);
       case Kind::ABS: return rewriteAbs(t);
+      case Kind::STAR_CONTAINS: return rewriteStarContains(t);
       case Kind::IAND:
       case Kind::POW2:
       case Kind::INTS_ISPOW2:
@@ -523,6 +525,7 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
       case Kind::TO_REAL: return rewriteToReal(t);
       case Kind::TO_INTEGER: return rewriteExtIntegerOp(t);
       case Kind::PI: return RewriteResponse(REWRITE_DONE, t);
+      case Kind::STAR_CONTAINS: return rewriteStarContains(t);
       // expert cases
       case Kind::POW:
       case Kind::EXPONENTIAL:
@@ -1059,6 +1062,29 @@ RewriteResponse ArithRewriter::rewriteIntsDivModTotal(TNode t, bool pre)
       Node ret = nm->mkConstInt(0);
       return returnRewrite(t, ret, Rewrite::DIV_OVER_MOD);
     }
+  }
+  return RewriteResponse(REWRITE_DONE, t);
+}
+
+RewriteResponse ArithRewriter::rewriteStarContains(TNode t)
+{
+  Assert(t.getKind() == Kind::STAR_CONTAINS);
+  Node ys = t[2];
+  // if ys is the zero vector, return true
+  std::vector<Node> elements = datatypes::TupleUtils::getTupleElements(ys);
+  bool isZero = true;
+  for (const Node& e : elements)
+  {
+    if (!e.isConst() || !e.getConst<Rational>().isZero())
+    {
+      isZero = false;
+      break;
+    }
+  }
+  NodeManager* nm = nodeManager();
+  if (isZero)
+  {
+    return RewriteResponse(REWRITE_DONE, nm->mkConst(true));
   }
   return RewriteResponse(REWRITE_DONE, t);
 }
