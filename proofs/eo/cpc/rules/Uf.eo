@@ -246,19 +246,31 @@
 
 ;;-------------------- Instances of THEORY_REWRITE
 
-(program $mk_distinct-elim-rec ((T Type) (x T) (y T) (xs @List :list) (b Bool))
+; program: $mk_distinct_elim_rec
+; args:
+; - t T: The current term we are processing.
+; - xs @List: The remaining terms to process.
+; - b Bool: The current accumulated elimination of distinct.
+; return: >
+;   The result of eliminating distinct after taking into account t.
+(program $mk_distinct_elim_rec ((T Type) (x T) (y T) (xs @List :list) (b Bool))
   :signature (T @List Bool) Bool
   (
-  (($mk_distinct-elim-rec x (@list y xs) b)  (eo::cons and (not (= x y)) ($mk_distinct-elim-rec x xs b)))
-  (($mk_distinct-elim-rec x @list.nil b)     b)
+  (($mk_distinct_elim_rec x (@list y xs) b)  (eo::cons and (not (= x y)) ($mk_distinct_elim_rec x xs b)))
+  (($mk_distinct_elim_rec x @list.nil b)     b)
   )
 )
 
-(program $mk_distinct-elim ((T Type) (x T) (xs @List :list))
+; program: $mk_distinct_elim_rec
+; args:
+; - b Bool: The distinct term.
+; return: >
+;   The result of eliminating the distinct term as a conjunction of disequalities.
+(program $mk_distinct_elim ((T Type) (x T) (xs @List :list))
   :signature (Bool) Bool
   (
-  (($mk_distinct-elim (distinct x xs))   ($mk_distinct-elim-rec x xs ($mk_distinct-elim (distinct xs))))
-  (($mk_distinct-elim (distinct xs))     true) ; nil case
+  (($mk_distinct_elim (distinct x xs))   ($mk_distinct_elim_rec x xs ($mk_distinct_elim (distinct xs))))
+  (($mk_distinct_elim (distinct xs))     true) ;; nil case (only match is when `xs` is nil)
   )
 )
 
@@ -270,7 +282,7 @@
 ; conclusion: The equality (= b1 b2).
 (declare-rule distinct-elim ((b1 Bool) (b2 Bool))
   :args ((= b1 b2))
-  :requires ((($singleton_elim ($mk_distinct-elim b1)) b2))
+  :requires ((($singleton_elim ($mk_distinct_elim b1)) b2))
   :conclusion (= b1 b2)
 )
 

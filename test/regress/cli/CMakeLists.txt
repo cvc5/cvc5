@@ -2282,6 +2282,7 @@ set(regress_0_tests
   regress0/uf/issue4446.smt2
   regress0/uf/lazy-distinct.smt2
   regress0/uf/lazy-distinct-not.smt2
+  regress0/uf/lazy-distinct-not-unsat.smt2
   regress0/uf/NEQ016_size5_reduced2a.smtv1.smt2
   regress0/uf/NEQ016_size5_reduced2b.smtv1.smt2
   regress0/uf/pred.smtv1.smt2
