@@ -237,7 +237,7 @@ Node TheoryUfRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
     {
       if (n.getKind() == Kind::LAMBDA)
       {
-        Node felim = canEliminateLambda(n);
+        Node felim = canEliminateLambda(nodeManager(), n);
         if (!felim.isNull())
         {
           return felim;
@@ -456,8 +456,9 @@ Node TheoryUfRewriter::rewriteLambda(Node node)
   Trace("builtin-rewrite-debug")
       << "...failed to get array representation." << std::endl;
   // see if it can be eliminated, (lambda ((x T)) (f x)) ---> f
-  Node felim = canEliminateLambda(node);
-  if (!felim.isNull())
+  // we only do this if the resulting eliminated term is a variable
+  Node felim = canEliminateLambda(nodeManager(), node);
+  if (!felim.isNull() && felim.isVar())
   {
     return felim;
   }
@@ -525,18 +526,19 @@ RewriteResponse TheoryUfRewriter::rewriteIntToBV(TNode node)
   return RewriteResponse(REWRITE_DONE, node);
 }
 
-Node TheoryUfRewriter::canEliminateLambda(const Node& node)
+Node TheoryUfRewriter::canEliminateLambda(NodeManager* nm, const Node& node)
 {
   Assert(node.getKind() == Kind::LAMBDA);
   if (node[1].getKind() == Kind::APPLY_UF)
   {
     size_t nvar = node[0].getNumChildren();
-    if (node[1].getNumChildren() == nvar)
+    size_t nargs = node[1].getNumChildren();
+    if (nargs >= nvar)
     {
       bool matchesList = true;
       for (size_t i = 0; i < nvar; i++)
       {
-        if (node[0][i] != node[1][i])
+        if (node[0][(nvar - 1) - i] != node[1][(nargs - 1) - i])
         {
           matchesList = false;
           break;
@@ -544,7 +546,23 @@ Node TheoryUfRewriter::canEliminateLambda(const Node& node)
       }
       if (matchesList)
       {
-        return node[1].getOperator();
+        Node ret = node[1].getOperator();
+        if (nargs > nvar)
+        {
+          size_t diff = nargs - nvar;
+          for (size_t i = 0; i < diff; i++)
+          {
+            ret = nm->mkNode(Kind::HO_APPLY, ret, node[1][i]);
+          }
+          // For instance we cannot eliminate (lambda ((x Int)) (f x x)) to
+          // (f x).
+          std::vector<Node> vars(node[0].begin(), node[0].end());
+          if (expr::hasSubterm(ret, vars))
+          {
+            return Node::null();
+          }
+        }
+        return ret;
       }
     }
   }

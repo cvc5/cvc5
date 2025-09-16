@@ -1004,6 +1004,7 @@ set(regress_0_tests
   regress0/ho/issue6536.smt2
   regress0/ho/ite-apply-eq.smt2
   regress0/ho/lambda-cycle.smt2
+  regress0/ho/lambda-elim-sat.smt2
   regress0/ho/lambda-equality-non-canon.smt2
   regress0/ho/lambda-test-deps.smt2
   regress0/ho/lambda-test-deps-simple.smt2
@@ -1153,6 +1154,7 @@ set(regress_0_tests
   regress0/nl/nia-wrong-tl.smt2
   regress0/nl/nlExtPurify-test.smt2
   regress0/nl/nta/cos-sig-value.smt2
+  regress0/nl/nta/dd.mirko_example_01.k5.bound300.smt2
   regress0/nl/nta/exp-n0.5-lb.smt2
   regress0/nl/nta/exp-n0.5-ub.smt2
   regress0/nl/nta/exp-neg2-unsat-unsound.smt2
@@ -2619,6 +2621,7 @@ set(regress_1_tests
   regress1/constarr3.smt2
   regress1/cores/issue5604.smt2
   regress1/cores/issue6988-arith-sanity.smt2
+  regress1/datatypes/nullables/dd_nullables8-m-add-term.smt2
   regress1/datatypes/nullables/nullables1.smt2
   regress1/datatypes/nullables/nullables2.smt2
   regress1/datatypes/nullables/nullables3.smt2
@@ -2679,6 +2682,7 @@ set(regress_1_tests
   regress1/fmf/constr-ground-to.smt2
   regress1/fmf/datatypes-ufinite-nested.smt2
   regress1/fmf/datatypes-ufinite.smt2
+  regress1/fmf/dd_nun-0208-to-nmc.smt2
   regress1/fmf/dt-proper-model.smt2
   regress1/fmf/fc-pigeonhole19.smt2
   regress1/fmf/fib-core.smt2
@@ -2740,6 +2744,7 @@ set(regress_1_tests
   regress1/ho/issue5078-small.smt2
   regress1/ho/issue5201-1.smt2
   regress1/ho/issue5741-3.smt2
+  regress1/ho/mbqi-nmc-no-app-cmp.smt2
   regress1/ho/NUM638^1.smt2
   regress1/ho/NUM925^1.smt2
   regress1/ho/proj-issue139-2.smt2
@@ -3929,10 +3934,10 @@ set(regress_2_tests
   regress2/push-pop/DRAGON_4_e2_2799_e3_1915.lus.ic3.1.min.smt2
   regress2/quantifiers/AdditiveMethods_AdditiveMethods..ctor.smt2
   regress2/quantifiers/cee-event-wrong-sat.smt2
+  regress2/quantifiers/dd_net_policy.smt2
   regress2/quantifiers/dd10_sdlx-fix-4.smt2
   regress2/quantifiers/gn-wrong-091018.smt2
   regress2/quantifiers/issue3481-unsat1.smt2
-  regress2/quantifiers/issue10805-syqi-no-arr-const.smt2
   regress2/quantifiers/javafe.ast.StandardPrettyPrint.319.smt2
   regress2/quantifiers/javafe.ast.WhileStmt.447.smt2
   regress2/quantifiers/javafe.tc.CheckCompilationUnit.001.smt2
@@ -4225,6 +4230,8 @@ set(regression_disabled_tests
   regress2/ho/SYO362^5.smt2
   # timeout after refactoring selectors
   regress2/quantifiers/exp-trivially-dd3.smt2
+  # timeout on some builds
+  regress2/quantifiers/issue10805-syqi-no-arr-const.smt2
   # time out
   regress3/unifpi-solve-car_1.lus.sy
   # unknown (is sat)

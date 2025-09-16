@@ -32,6 +32,7 @@ jobs:
           - macos-x86_64
           - macos-arm64
           - windows-x86_64
+          - windows-arm64
         gpl: [false, true]
         include:
           - name: manylinux-x86_64
@@ -53,8 +54,13 @@ jobs:
           - name: windows-x86_64
             os: windows-latest
             shell: 'msys2 {0}'
+          - name: windows-arm64
+            os: windows-11-arm
+            shell: 'msys2 {0}'
         exclude:
           - name: windows-x86_64
+            gpl: true
+          - name: windows-arm64
             gpl: true
     defaults:
       run:
@@ -74,7 +80,7 @@ jobs:
         echo "$HOME/.venv/bin" >> $GITHUB_PATH
 
     - uses: msys2/setup-msys2@v2
-      if: runner.os == 'Windows'
+      if: runner.os == 'Windows' && runner.arch == 'X64'
       with:
         msystem: mingw64
         path-type: inherit
@@ -83,6 +89,17 @@ jobs:
           mingw-w64-x86_64-cmake
           mingw-w64-x86_64-gcc
           mingw-w64-x86_64-gmp
+
+    - uses: msys2/setup-msys2@v2
+      if: runner.os == 'Windows' && runner.arch == 'ARM64'
+      with:
+        msystem: clangarm64
+        path-type: inherit
+        install: |
+          make
+          mingw-w64-clang-aarch64-cmake
+          mingw-w64-clang-aarch64-clang
+          mingw-w64-clang-aarch64-gmp
 
     # cibuildwheel requires pyproject.toml to be present from the beginning
     - name: Create pyproject.toml
@@ -105,7 +122,7 @@ jobs:
       if: runner.os == 'Windows'
       id: mingw64-path
       shell: msys2 {0}
-      run: echo "bin=$(cygpath -m $(dirname $(which gcc)))" >> $GITHUB_OUTPUT
+      run: echo "bin=$(cygpath -m $(dirname $(which cc)))" >> $GITHUB_OUTPUT
 
     - name: Build wheels
       uses: pypa/cibuildwheel@v2.23.3
@@ -129,6 +146,8 @@ jobs:
         CIBW_ENVIRONMENT_MACOS: >
           DYLD_LIBRARY_PATH="$(pwd)/install/lib:$DYLD_LIBRARY_PATH"
           MACOSX_DEPLOYMENT_TARGET=${{ matrix.macos-target }}
+        CIBW_ENVIRONMENT_WINDOWS: >
+          PATH="${{ steps.mingw64-path.outputs.bin }};$PATH"
         CIBW_TEST_COMMAND: python {project}/examples/api/python/quickstart.py
         CIBW_TEST_SKIP: "cp38-macosx_arm64" # Silence warning. See: https://github.com/pypa/cibuildwheel/pull/1171
 

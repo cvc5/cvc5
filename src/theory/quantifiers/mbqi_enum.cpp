@@ -206,7 +206,8 @@ bool MbqiEnum::constructInstantiation(
     const Node& query,
     const std::vector<Node>& vars,
     std::vector<Node>& mvs,
-    const std::map<Node, Node>& mvFreshVar)
+    const std::map<Node, Node>& mvFreshVar,
+    std::vector<std::pair<Node, InferenceId>>& auxLemmas)
 {
   Assert(q[0].getNumChildren() == vars.size());
   Assert(vars.size() == mvs.size());

@@ -1,0 +1,25 @@
+name: Get latest tag and release page ready
+description: Get latest tag and release page ready
+runs:
+  using: composite
+  steps:
+    - name: Update latest tag
+      shell: bash
+      run: |
+        git config user.name github-actions
+        git config user.email github-actions@github.com
+        git tag -f latest
+        git push --tags -f
+
+    - name: Create the latest release if it doesn't already exist
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        if ! gh release view latest --repo $GITHUB_REPOSITORY &>/dev/null; then
+          gh release create latest \
+            --title "latest" \
+            --notes "Latest builds" \
+            --prerelease \
+            --repo $GITHUB_REPOSITORY
+        fi
