@@ -48,6 +48,8 @@ enum class InferenceId
   EQ_CONSTANT_MERGE,
   // a split from theory combination
   COMBINATION_SPLIT,
+  // a split from (model-based) theory combination
+  COMBINATION_SPLIT_MB,
   // a conflict due to rewriting an asserted literal
   CONFLICT_REWRITE_LIT,
   // an explained theory propagation
