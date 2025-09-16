@@ -31,7 +31,7 @@ void UfProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(ProofRule::TRANS, this);
   pc->registerChecker(ProofRule::CONG, this);
   pc->registerChecker(ProofRule::NARY_CONG, this);
-  pc->registerChecker(ProofRule::ARG_LIST_CONG, this);
+  pc->registerChecker(ProofRule::PAIRWISE_CONG, this);
   pc->registerChecker(ProofRule::TRUE_INTRO, this);
   pc->registerChecker(ProofRule::TRUE_ELIM, this);
   pc->registerChecker(ProofRule::FALSE_INTRO, this);
@@ -91,7 +91,7 @@ Node UfProofRuleChecker::checkInternal(ProofRule id,
     return first.eqNode(curr);
   }
   else if (id == ProofRule::CONG || id == ProofRule::NARY_CONG
-           || id == ProofRule::ARG_LIST_CONG)
+           || id == ProofRule::PAIRWISE_CONG)
   {
     Assert(children.size() > 0);
     if (args.size() != 1)

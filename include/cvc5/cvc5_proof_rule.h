@@ -1240,19 +1240,19 @@ enum ENUM(ProofRule)
   EVALUE(NARY_CONG),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Equality -- Argument list Congruence**
+   * **Equality -- Pairwise Congruence**
    *
    * .. math::
    *
    *   \inferrule{t_1=s_1,\dots,t_n=s_n\mid f(t_1,\dots, t_n)}{f(t_1,\dots, t_n) = f(s_1,\dots, s_n)}
    *
    * This rule is used for terms :math:`f(t_1,\dots, t_n)` whose kinds
-   * :math:`k` have variadic arity and are treated as taking an argument list.
+   * :math:`k` have variadic arity and are pairwise.
    * Currently, this rule is used only for congruence of terms whose kind is
    * ``cvc5::Kind::DISTINCT``.
    * \endverbatim
    */
-  EVALUE(ARG_LIST_CONG),
+  EVALUE(PAIRWISE_CONG),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Equality -- True intro**
