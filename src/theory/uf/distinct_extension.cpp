@@ -42,6 +42,7 @@ class DistinctProofGenerator : protected EnvObj, public ProofGenerator
     bool success = false;
     Trace("distinct-pf") << "Get proof for: " << fact << std::endl;
     if (fact.getKind() == Kind::NOT && fact[0].getKind() == Kind::AND
+       && fact[0].getNumChildren()==2
         && fact[0][0].getKind() == Kind::EQUAL
         && fact[0][1].getKind() == Kind::DISTINCT)
     {
@@ -75,7 +76,7 @@ class DistinctProofGenerator : protected EnvObj, public ProofGenerator
       // dist(c,b,c) = false
       Node falsen = nodeManager()->mkConst(false);
       Node eq = ceq[1].eqNode(falsen);
-      cdp.addStep(eq, ProofRule::MACRO_SR_PRED_INTRO, {}, {eq});
+      cdp.addTheoryRewriteStep(eq, ProofRewriteRule::DISTINCT_FALSE);
       // dist(a,b,c) = false
       Node eq2 = ceq[0].eqNode(falsen);
       cdp.addStep(eq2, ProofRule::TRANS, {ceq, eq}, {});
@@ -84,6 +85,29 @@ class DistinctProofGenerator : protected EnvObj, public ProofGenerator
       std::shared_ptr<ProofNode> pfn = cdp.getProofFor(falsen);
       std::vector<Node> assumps{fact[0][0], fact[0][1]};
       return d_env.getProofNodeManager()->mkScope(pfn, assumps);
+    }
+    else if (fact.getKind()==Kind::IMPLIES && fact[1].getKind()==Kind::DISTINCT)
+    {
+      Node atom = fact[1];
+      Node batom = TheoryUfRewriter::blastDistinct(nodeManager(), atom);
+      if (batom==fact[0])
+      {
+        Node eq = atom.eqNode(batom);
+        cdp.addTheoryRewriteStep(eq, ProofRewriteRule::DISTINCT_ELIM);
+        Node eqs = eq[1].eqNode(eq[0]);
+        cdp.addStep(eqs, ProofRule::SYMM, {}, {eq});
+        cdp.addStep(atom, ProofRule::EQ_RESOLVE, {batom, eqs}, {});
+        //   ----------------
+        // B  B = dist(a,b,c)
+        // ------------------
+        // dist(a,b,c)
+        // ---------------- scope {B}
+        // B => dist(a,b,c)
+        // where B is the result of eliminating distinct.
+        std::shared_ptr<ProofNode> pfn = cdp.getProofFor(fact[1]);
+        std::vector<Node> assumps{fact[0]};
+        return d_env.getProofNodeManager()->mkScope(pfn, assumps);
+      }
     }
     if (!success)
     {
@@ -256,11 +280,8 @@ void DistinctExtension::checkDistinctLastCall()
     }
     if (!isSat)
     {
-      std::vector<Node> disj;
-      disj.push_back(atom);
       Node batom = TheoryUfRewriter::blastDistinct(nodeManager(), atom);
-      disj.push_back(batom.notNode());
-      Node lem = nodeManager()->mkOr(disj);
+      Node lem = nodeManager()->mkNode(Kind::IMPLIES, batom, atom);
       TrustNode tlem = TrustNode::mkTrustLemma(lem, d_dproof.get());
       if (d_im.trustedLemma(tlem, InferenceId::UF_NOT_DISTINCT_ELIM))
       {
