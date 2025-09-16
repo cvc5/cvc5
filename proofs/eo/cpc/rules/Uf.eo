@@ -142,7 +142,6 @@
     :conclusion (= t ($mk_nary_cong_rhs t E))
 )
 
-
 ;;;;; ProofRule::ARG_LIST_CONG
 
 ; rule: arg_list_cong

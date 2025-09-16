@@ -47,7 +47,9 @@
 ;   This function is declared pairwise in SMT-LIB. We annotate it as taking an
 ;   argument list for the sake of performance.
 (declare-parameterized-const distinct ((xs @List))
-  Bool
+  (eo::requires
+    ($assoc_nil_same_type @list xs) true
+    Bool)
   :arg-list @list)
   
 ; The purification skolem.
