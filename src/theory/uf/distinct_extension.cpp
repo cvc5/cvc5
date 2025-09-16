@@ -39,7 +39,6 @@ class DistinctProofGenerator : protected EnvObj, public ProofGenerator
   std::shared_ptr<ProofNode> getProofFor(Node fact) override
   {
     CDProof cdp(d_env);
-    bool success = false;
     Trace("distinct-pf") << "Get proof for: " << fact << std::endl;
     if (fact.getKind() == Kind::NOT && fact[0].getKind() == Kind::AND
        && fact[0].getNumChildren()==2
@@ -109,12 +108,8 @@ class DistinctProofGenerator : protected EnvObj, public ProofGenerator
         return d_env.getProofNodeManager()->mkScope(pfn, assumps);
       }
     }
-    if (!success)
-    {
-      cdp.addTrustedStep(fact, TrustId::UF_DISTINCT, {}, {});
-      return cdp.getProofFor(fact);
-    }
-    return nullptr;
+    cdp.addTrustedStep(fact, TrustId::UF_DISTINCT, {}, {});
+    return cdp.getProofFor(fact);
   }
   /** identify */
   std::string identify() const override { return "DistinctProofGenerator"; }
@@ -323,7 +318,7 @@ void DistinctExtension::checkDistinctLastCall()
       Node lem =
           nodeManager()->mkNode(Kind::AND, {eq, atom}).notNode();
       TrustNode tlem = TrustNode::mkTrustLemma(lem, d_dproof.get());
-      d_im.lemma(lem, InferenceId::UF_DISTINCT_DEQ_MODEL);
+      d_im.trustedLemma(tlem, InferenceId::UF_DISTINCT_DEQ_MODEL);
     }
   }
 }
