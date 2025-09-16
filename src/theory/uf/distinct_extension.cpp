@@ -35,6 +35,9 @@ class DistinctProofGenerator : protected EnvObj, public ProofGenerator
   DistinctProofGenerator(Env& env) : EnvObj(env) {}
   virtual ~DistinctProofGenerator() {}
   /**
+   * Get proof for, which expects lemmas of the form
+   * (not (and (= x y) (distinct ... x ... y ...))), or
+   * (=> B (distinct ....)) where B is the result of expanding distinct.
    */
   std::shared_ptr<ProofNode> getProofFor(Node fact) override
   {
@@ -188,6 +191,7 @@ void DistinctExtension::assertDistinct(TNode atom, bool pol, TNode fact)
   }
   else
   {
+    // otherwise track that the negated distinct term
     d_negDistinct.push_back(fact);
   }
 }

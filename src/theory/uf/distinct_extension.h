@@ -34,7 +34,10 @@ namespace uf {
 class DistinctProofGenerator;
 
 /**
- * Lazy handling of distinct
+ * Lazy handling of distinct. This subsolver manages distinct constraints by
+ * tracking if the equivalence class of two children of positively asserted
+ * distinct are merged. It also reduces negatively asserted distincts if
+ * necessary based on the constructed model.
  */
 class DistinctExtension : protected EnvObj
 {
@@ -42,13 +45,15 @@ class DistinctExtension : protected EnvObj
   DistinctExtension(Env& env, TheoryState& state, TheoryInferenceManager& im);
   /** Do we need a last call check? */
   bool needsCheckLastEffort();
-  /** Assert distinct */
+  /** Assert distinct, may return a conflict */
   void assertDistinct(TNode atom, bool pol, TNode fact);
-  /** Called when t1 and t2 merge */
+  /** Called when t1 and t2 merge, may return a conflict */
   void eqNotifyMerge(TNode t1, TNode t2);
-  /** Check distinct constaints at last call */
+  /**
+   * Check distinct constaints at last call. This ensures that all distinct
+   * constraints are satisfied by the model.
+   */
   void checkDistinctLastCall();
-
  private:
   /** Reference to the state object */
   TheoryState& d_state;
