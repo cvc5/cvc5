@@ -1175,7 +1175,7 @@ enum ENUM(Kind)
    * of vectors from S. 
    * Here we are interested only in sets of vectors given using 
    * set-builder notation (set comprehension). 
-   * The syntax of the star member operator is 
+   * The syntax of the operator is 
    * (int.star-contains ((x_1 Int) ... (x_n Int)) p (y_1,..., y_n))
    * where ((x_1 Int) ... (x_n Int)) are integer bound variables,
    * p is a first order formula of sort bool with free variables
