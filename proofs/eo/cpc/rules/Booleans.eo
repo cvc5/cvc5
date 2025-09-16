@@ -225,7 +225,7 @@
     :premise-list C and
     :args (Cr pols lits)
     :requires (((eo::define ((Cc (eo::list_setof or ($chain_m_resolve C pols lits))))
-                  (eo::ite (eo::eq ($from_clause Cc) Cr) true (eo::list_minclude or Cc Cr))) true))
+                  (eo::ite (eo::eq ($from_clause Cc) Cr) true (eo::list_minclude or Cr Cc))) true))
     :conclusion Cr
 )
 
