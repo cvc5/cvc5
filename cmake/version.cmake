@@ -60,8 +60,10 @@ if(CVC5_IS_RELEASE STREQUAL "false")
     list(LENGTH VERSION_LIST VERSION_LIST_LENGTH)
   endwhile()
 
-  set(CVC5_VERSION "${NEXT_CVC5_VERSION}-dev")
-  set(CVC5_FULL_VERSION "${NEXT_CVC5_VERSION}-dev")
+  set(CVC5_VERSION "${NEXT_CVC5_VERSION}.dev")
+  set(CVC5_FULL_VERSION "${NEXT_CVC5_VERSION}.dev")
+  # Development segment MUST follow the format devN, where N is a sequence of digits.
+  set(CVC5_WHEEL_VERSION "${NEXT_CVC5_VERSION}.dev0")
 endif()
 
 # now use git to retrieve additional version information
@@ -97,7 +99,9 @@ if(GIT_FOUND)
     )
 
     if(CVC5_IS_RELEASE STREQUAL "false")
-      set(CVC5_FULL_VERSION "${CVC5_FULL_VERSION}-${GIT_BRANCH}@${GIT_COMMIT}")
+      set(CVC5_FULL_VERSION "${CVC5_FULL_VERSION}+${GIT_BRANCH}@${GIT_COMMIT}")
+      # A local version id MUST start with + and contain only ASCII letters, digits, and periods.
+      set(CVC5_WHEEL_VERSION "${CVC5_WHEEL_VERSION}+${GIT_COMMIT}")
     endif()
 
     # result is != 0 if worktree is dirty
