@@ -126,6 +126,21 @@ jobs:
             exclude_regress: 1-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
 
+          - name: win64:production-arm64
+            os: windows-11-arm
+            config: production --auto-download --all-bindings
+            cache-key: production-win64-native-arm64
+            strip-bin: strip
+            python-bindings: true
+            java-bindings: true
+            java-version: 21
+            windows-build: true
+            shell: 'msys2 {0}'
+            check-examples: true
+            package-name: cvc5-Win64-arm64
+            exclude_regress: 1-4
+            run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
+
           - name: win64:production-cross
             os: ubuntu-latest
             config: production --auto-download --win64
