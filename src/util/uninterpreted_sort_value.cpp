@@ -31,6 +31,13 @@ std::ostream& operator<<(std::ostream& out, const UninterpretedSortValue& val)
   return out << "@" << val.getType() << "_" << val.getIndex();
 }
 
+std::string UninterpretedSortValue::getSymbol() const
+{
+  std::ostringstream ss;
+  ss << *this;
+  return ss.str();
+}
+
 UninterpretedSortValue::UninterpretedSortValue(const TypeNode& type,
                                                const Integer& index)
     : d_type(new TypeNode(type)), d_index(index)

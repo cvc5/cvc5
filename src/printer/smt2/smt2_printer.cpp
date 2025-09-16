@@ -206,19 +206,6 @@ void Smt2Printer::toStream(std::ostream& out, Kind k) const
   out << smtKindString(k);
 }
 
-void toStreamUninterpretedSortValue(std::ostream& out,
-                                    const UninterpretedSortValue& v)
-{
-  if (v.getType().isInstantiated())
-  {
-    out << "|" << v << "|";
-  }
-  else
-  {
-    out << v;
-  }
-}
-
 bool Smt2Printer::toStreamBase(std::ostream& out,
                                TNode n,
                                const LetBinding* lbind,
@@ -398,9 +385,8 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
     case Kind::UNINTERPRETED_SORT_VALUE:
     {
       const UninterpretedSortValue& v = n.getConst<UninterpretedSortValue>();
-      out << "(as ";
-      toStreamUninterpretedSortValue(out, v);
-      out << " " << n.getType() << ")";
+      out << "(as " << cvc5::internal::quoteSymbol(v.getSymbol()) << " "
+          << n.getType() << ")";
       break;
     }
     case Kind::CARDINALITY_CONSTRAINT_OP:
@@ -1614,9 +1600,7 @@ void Smt2Printer::toStreamModelSort(std::ostream& out,
       // prints as raw symbol
       const UninterpretedSortValue& av =
           trn.getConst<UninterpretedSortValue>();
-      out << "(";
-      toStreamUninterpretedSortValue(out, av);
-      out << ")";
+      out << "(" << cvc5::internal::quoteSymbol(av.getSymbol()) << ")";
     }
     out << "))" << std::endl;
     return;
@@ -1640,7 +1624,7 @@ void Smt2Printer::toStreamModelSort(std::ostream& out,
         // prints as raw symbol
         const UninterpretedSortValue& av =
             trn.getConst<UninterpretedSortValue>();
-        toStreamUninterpretedSortValue(out, av);
+        out << cvc5::internal::quoteSymbol(av.getSymbol());
       }
       else
       {

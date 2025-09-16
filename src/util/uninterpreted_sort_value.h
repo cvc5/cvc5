@@ -35,6 +35,7 @@ class UninterpretedSortValue
 
   const Integer& getIndex() const { return d_index; }
   const TypeNode& getType() const;
+  std::string getSymbol() const;
 
   bool operator==(const UninterpretedSortValue& val) const;
   bool operator!=(const UninterpretedSortValue& val) const
