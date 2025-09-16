@@ -1232,11 +1232,27 @@ enum ENUM(ProofRule)
    *   \inferrule{t_1=s_1,\dots,t_n=s_n\mid f(t_1,\dots, t_n)}{f(t_1,\dots, t_n) = f(s_1,\dots, s_n)}
    *
    * This rule is used for terms :math:`f(t_1,\dots, t_n)` whose kinds
-   * :math:`k` have variadic arity, such as ``cvc5::Kind::AND``,
-   * ``cvc5::Kind::PLUS`` and so on.
+   * :math:`k` have variadic arity and are treated as right associative
+   * with a nil terminator, such as ``cvc5::Kind::AND``, ``cvc5::Kind::PLUS``
+   * and so on.
    * \endverbatim
    */
   EVALUE(NARY_CONG),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Equality -- Argument list Congruence**
+   *
+   * .. math::
+   *
+   *   \inferrule{t_1=s_1,\dots,t_n=s_n\mid f(t_1,\dots, t_n)}{f(t_1,\dots, t_n) = f(s_1,\dots, s_n)}
+   *
+   * This rule is used for terms :math:`f(t_1,\dots, t_n)` whose kinds
+   * :math:`k` have variadic arity and are treated as taking an argument list.
+   * Currently, this rule is used only for congruence of terms whose kind is
+   * ``cvc5::Kind::DISTINCT``.
+   * \endverbatim
+   */
+  EVALUE(ARG_LIST_CONG),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Equality -- True intro**
@@ -2755,6 +2771,32 @@ enum ENUM(ProofRewriteRule)
    * \endverbatim
    */
   EVALUE(ARITH_POW_ELIM),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Equality -- Distinct conflict**
+   *
+   * .. math::
+   *
+   *   (distinct \ t_1 \ldots t_n) = \bot
+   *
+   * where :math:`t_i` is :math:`t_j` for some distinct :math:`i`, `j`.
+   *
+   * \endverbatim
+   */
+  EVALUE(DISTINCT_FALSE),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Equality -- Distinct conflict**
+   *
+   * .. math::
+   *
+   *   (distinct \ t_1 \ldots t_n) = \top
+   *
+   * where :math:`t_1, \ldots, t_n` are distinct values.
+   *
+   * \endverbatim
+   */
+  EVALUE(DISTINCT_TRUE),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Equality -- Beta reduction**

@@ -106,6 +106,7 @@ const char* toString(ProofRule rule)
     case ProofRule::TRANS: return "TRANS";
     case ProofRule::CONG: return "CONG";
     case ProofRule::NARY_CONG: return "NARY_CONG";
+    case ProofRule::ARG_LIST_CONG: return "ARG_LIST_CONG";
     case ProofRule::TRUE_INTRO: return "TRUE_INTRO";
     case ProofRule::TRUE_ELIM: return "TRUE_ELIM";
     case ProofRule::FALSE_INTRO: return "FALSE_INTRO";
@@ -243,6 +244,8 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::MACRO_ARITH_STRING_PRED_ENTAIL:
       return "macro-arith-string-pred-entail";
     case ProofRewriteRule::ARITH_POW_ELIM: return "arith-pow-elim";
+    case ProofRewriteRule::DISTINCT_FALSE: return "distinct-false";
+    case ProofRewriteRule::DISTINCT_TRUE: return "distinct-true";
     case ProofRewriteRule::BETA_REDUCE: return "beta-reduce";
     case ProofRewriteRule::LAMBDA_ELIM: return "lambda-elim";
     case ProofRewriteRule::MACRO_LAMBDA_CAPTURE_AVOID:
