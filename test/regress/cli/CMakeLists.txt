@@ -436,6 +436,7 @@ set(regress_0_tests
   regress0/bv/dd.773_sqlite3.smt2
   regress0/bv/dd.kmdf_osrusbfx2_exe_testapp.c.smt2
   regress0/bv/dd.try_small_difret.smt2
+  regress0/bv/distinct-qf-bv.smt2
   regress0/bv/div_mod.cvc.smt2
   regress0/bv/div-zero-eval-tests.smt2
   regress0/bv/divtest_2_5.smt2
