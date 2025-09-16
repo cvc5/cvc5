@@ -649,27 +649,8 @@ RewriteResponse TheoryUfRewriter::rewriteDistinct(TNode node)
     // children of this node.
     return RewriteResponse(REWRITE_DONE, nodeManager()->mkConst<bool>(false));
   }
-  // if all constant, rewrites to true/false
-  bool allConst = true;
-  std::unordered_set<Node> children;
-  for (const Node& c : node)
-  {
-    allConst = allConst && c.isConst();
-    if (!children.insert(c).second)
-    {
-      // distinct with duplicate child
-      return RewriteResponse(REWRITE_DONE, nodeManager()->mkConst<bool>(false));
-    }
-  }
-  if (allConst)
-  {
-    return RewriteResponse(REWRITE_DONE, nodeManager()->mkConst<bool>(true));
-  }
-  if (node.getNumChildren() <= 5)
-  {
-    return RewriteResponse(REWRITE_DONE, blastDistinct(nodeManager(), node));
-  }
-  return RewriteResponse(REWRITE_DONE, node);
+  // otherwise, eagerly expand
+  return RewriteResponse(REWRITE_DONE, blastDistinct(nodeManager(), node));
 }
 
 Node TheoryUfRewriter::blastDistinct(NodeManager* nm, TNode in)
