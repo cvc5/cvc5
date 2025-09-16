@@ -47,6 +47,9 @@ cvc5 1.3.0
 ## Changes
 
 - Bumped CaDiCaL to version 2.1.3.
+- Corrected an issue with where errors are printed. Based on the SMT-LIB
+  standard, we now always print user-facing errors on the regular output
+  channel of the solver (stdout by default).
 - The proof granularity is now `dsl-rewrite` by default. The regression test
   `make regress-dsl-proof` is deleted and is now equivalent to
   `make regress-proof`.
