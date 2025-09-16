@@ -115,7 +115,7 @@
       ; if the clause is not a unit literal to remove
       (eo::ite (eo::eq ln Cc)
         (@pair Cr rlp)
-        ; concatenate the result of remove the negative pivot and all further positive pivots
+        ; concatenate the result of removing the negative pivot and all further positive pivots
         (@pair (eo::list_concat or (eo::list_diff or Cc rln) Cr) rlp)))))))
   )
 )
@@ -205,7 +205,7 @@
 ; rule: chain_m_resolution
 ; implements: ProofRule::CHAIN_M_RESOLUTION.
 ; premises:
-; - Cs [:list]: >
+; - C [:list]: >
 ;   The premises of the chain resolution step, collected as
 ;   a conjunction. The first is taken as the left resolvent, and the remaining
 ;   are taken as the right resolvents, to be resolved in order.
