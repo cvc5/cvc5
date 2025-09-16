@@ -15,6 +15,7 @@
 
 #include "theory/arith/theory_arith_type_rules.h"
 
+#include "expr/node_algorithm.h"
 #include "util/rational.h"
 
 namespace cvc5::internal {
@@ -280,6 +281,102 @@ TypeNode IndexedRootPredicateTypeRule::computeType(NodeManager* nodeManager,
       if (errOut)
       {
         (*errOut) << "expecting polynomial as second argument";
+      }
+      return TypeNode::null();
+    }
+  }
+  return nodeManager->booleanType();
+}
+
+TypeNode StarContainsTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return TypeNode::null();
+}
+
+TypeNode StarContainsTypeRule::computeType(NodeManager* nodeManager,
+                                           TNode n,
+                                           bool check,
+                                           std::ostream* errOut)
+{
+  Assert(n.getKind() == Kind::STAR_CONTAINS);
+  Node xs = n[0];
+  Node p = n[1];
+  TypeNode ys = n[2].getTypeOrNull();
+  if (xs.isNull() || xs.isNull() || p.isNull())
+  {
+    if (errOut)
+    {
+      (*errOut) << "expecting concrete types for STAR_CONTAINS operator";
+    }
+    return TypeNode::null();
+  }
+  if (!ys.isTuple())
+  {
+    if (errOut)
+    {
+      (*errOut) << "expecting a tuple for the third argument of STAR_CONTAINS "
+                   "operator";
+    }
+    return TypeNode::null();
+  }
+  std::vector<TypeNode> elements = ys.getTupleTypes();
+  // Check if any element is even
+  bool any = std::any_of(elements.begin(),
+                         elements.end(),
+                         [](TypeNode element) { return !element.isInteger(); });
+
+  if (any)
+  {
+    if (errOut)
+    {
+      (*errOut) << "expecting a tuple of integers for the third argument of "
+                   "STAR_CONTAINS operator";
+    }
+    return TypeNode::null();
+  }
+
+  if (xs.getKind() != Kind::BOUND_VAR_LIST)
+  {
+    if (errOut)
+    {
+      (*errOut) << "expecting a list of bound variables for the first "
+                   "argument of STAR_CONTAINS operator";
+    }
+    return TypeNode::null();
+  }
+  std::unordered_set<Node> boundVariables;
+  for (const auto& x : xs)
+  {
+    if (!x.getType().isInteger())
+    {
+      if (errOut)
+      {
+        (*errOut) << "expecting a list of bound variables of integer type for "
+                     "the first argument of STAR_CONTAINS operator";
+      }
+      return TypeNode::null();
+    }
+    boundVariables.insert(x);
+  }
+  if (!p.getType().isBoolean())
+  {
+    if (errOut)
+    {
+      (*errOut) << "expecting a predicate for the second argument of "
+                   "STAR_CONTAINS operator";
+    }
+    return TypeNode::null();
+  }
+  std::unordered_set<Node> freeVariables;
+  expr::getFreeVariables(p, freeVariables);
+  for (const auto& freeVariable : freeVariables)
+  {
+    if (boundVariables.count(freeVariable) == 0)
+    {
+      if (errOut)
+      {
+        (*errOut) << "expecting the predicate to contain only free variables "
+                     "of the first argument of STAR_CONTAINS operator";
       }
       return TypeNode::null();
     }

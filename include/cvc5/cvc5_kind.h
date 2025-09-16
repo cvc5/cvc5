@@ -1168,6 +1168,24 @@ enum ENUM(Kind)
    * \endrst
    */
   EVALUE(PI),
+  /**
+   * Star contains predicate. 
+   * Given a set S of integer vectors of the same dimension, 
+   * the star operator represents the set of all linear combinations 
+   * of vectors from S. 
+   * Here we are interested only in sets of vectors given using 
+   * set-builder notation (set comprehension). 
+   * The syntax of the star member operator is 
+   * (int.star-contains ((x_1 Int) ... (x_n Int)) p (y_1,..., y_n))
+   * where ((x_1 Int) ... (x_n Int)) are integer bound variables,
+   * p is a first order formula of sort bool with free variables
+   * among x_1,...,x_n, and (y_1,..., y_n) is a vector of integers.
+   * Either p(y_1,..., y_n) holds or there is exists 
+   * nonnegative integers lambda_1,...,lambda_k  and vectors
+   * v_1,...,v_k such that p(v_i) holds for all i=1,...,k and
+   * (y_1,..., y_n) = lambda_1*v_1 + ... + lambda_k*v_k.
+   */
+  EVALUE(STAR_CONTAINS),
 
   /* BV -------------------------------------------------------------------- */
 
