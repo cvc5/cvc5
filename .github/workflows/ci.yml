@@ -7,7 +7,31 @@ env:
     HOMEBREW_NO_INSTALL_FROM_API: ""
 
 jobs:
+  setup-release-pages:
+    name: Set up release pages
+    runs-on: ubuntu-latest
+    concurrency:
+      group: setup-release-pages
+      cancel-in-progress: false
+    steps:
+      - name: Checkout code
+        if: (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
+        uses: actions/checkout@v4
+
+      - name: Set up latest page
+        if: github.ref == 'refs/heads/main'
+        uses: ./.github/actions/setup-latest
+
+      - name: Set up new version page
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: ./.github/actions/setup-new-version
+        with:
+          # When using GITHUB_TOKEN, no further workflows are triggered
+          # See https://github.com/cvc5/cvc5/pull/8512
+          github-token-release: ${{ secrets.ACTION_USER_TOKEN }}
+
   builds:
+    needs: [setup-release-pages]
     strategy:
       matrix:
         has-tag:
@@ -99,6 +123,21 @@ jobs:
             shell: 'msys2 {0}'
             check-examples: true
             package-name: cvc5-Win64-x86_64
+            exclude_regress: 1-4
+            run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
+
+          - name: win64:production-arm64
+            os: windows-11-arm
+            config: production --auto-download --all-bindings
+            cache-key: production-win64-native-arm64
+            strip-bin: strip
+            python-bindings: true
+            java-bindings: true
+            java-version: 21
+            windows-build: true
+            shell: 'msys2 {0}'
+            check-examples: true
+            package-name: cvc5-Win64-arm64
             exclude_regress: 1-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
 
@@ -233,15 +272,6 @@ jobs:
         wasm-build: ${{ matrix.build.wasm-build }}
         shell: ${{ matrix.build.shell }}
 
-    - name: Install pyGithub
-      if: matrix.build.package-name || matrix.build.wasm-pkg-name
-      run: |
-        # Upgrading pyopenssl resolves the following error:
-        # AttributeError:
-        #   module 'lib' has no attribute 'X509_V_FLAG_NOTIFY_POLICY'
-        python3 -m pip install -U pyopenssl
-        python3 -m pip install pyGithub
-
     - name: Setup caches
       uses: ./.github/actions/setup-cache
       with:
@@ -298,9 +328,6 @@ jobs:
       with:
         build-dir: ${{ steps.configure-and-build.outputs.shared-build-dir }}
         package-name: ${{ matrix.build.package-name }}-shared${{ matrix.build.gpl-tag }}
-        # when using GITHUB_TOKEN, no further workflows are triggered
-        github-token-latest: ${{ secrets.GITHUB_TOKEN }}
-        github-token-release: ${{ secrets.ACTION_USER_TOKEN }}
         shell: ${{ matrix.build.shell }}
 
     - name: Create and add static package to latest and release
@@ -310,9 +337,6 @@ jobs:
       with:
         build-dir: ${{ steps.configure-and-build.outputs.static-build-dir }}
         package-name: ${{ matrix.build.package-name }}-static${{ matrix.build.gpl-tag }}
-        # when using GITHUB_TOKEN, no further workflows are triggered
-        github-token-latest: ${{ secrets.GITHUB_TOKEN }}
-        github-token-release: ${{ secrets.ACTION_USER_TOKEN }}
         shell: ${{ matrix.build.shell }}
 
     - name: Create and add WASM to latest and release
@@ -321,8 +345,6 @@ jobs:
       with:
         build-dir: ${{ steps.configure-and-build.outputs.static-build-dir }}
         wasm-name: ${{ matrix.build.wasm-pkg-name }}${{ matrix.build.gpl-tag }}
-        github-token-latest: ${{ secrets.GITHUB_TOKEN }}
-        github-token-release: ${{ secrets.ACTION_USER_TOKEN }}
         shell: ${{ matrix.build.shell }}
 
     - name: Create and add JAR to latest and release
@@ -332,8 +354,6 @@ jobs:
         install-path: ${{ steps.create-static-package.outputs.install-path }}
         jar-libs-dir: cvc5-libs
         jar-name: ${{ matrix.build.package-name }}${{ matrix.build.gpl-tag }}-java-api
-        github-token-latest: ${{ secrets.GITHUB_TOKEN }}
-        github-token-release: ${{ secrets.ACTION_USER_TOKEN }}
         shell: ${{ matrix.build.shell }}
 
 

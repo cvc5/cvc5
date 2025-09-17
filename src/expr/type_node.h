@@ -933,27 +933,6 @@ inline void TypeNode::printAst(std::ostream& out, int indent) const {
   d_nv->printAst(out, indent);
 }
 
-inline bool TypeNode::isBoolean() const {
-  return (getKind() == Kind::TYPE_CONSTANT
-          && getConst<TypeConstant>() == BOOLEAN_TYPE);
-}
-
-inline bool TypeNode::isString() const {
-  return getKind() == Kind::TYPE_CONSTANT
-         && getConst<TypeConstant>() == STRING_TYPE;
-}
-
-/** Is this a regexp type */
-inline bool TypeNode::isRegExp() const {
-  return getKind() == Kind::TYPE_CONSTANT
-         && getConst<TypeConstant>() == REGEXP_TYPE;
- }
-
-inline bool TypeNode::isRoundingMode() const {
-  return getKind() == Kind::TYPE_CONSTANT
-         && getConst<TypeConstant>() == ROUNDINGMODE_TYPE;
-}
-
 inline bool TypeNode::isArray() const { return getKind() == Kind::ARRAY_TYPE; }
 
 inline bool TypeNode::isFiniteField() const
