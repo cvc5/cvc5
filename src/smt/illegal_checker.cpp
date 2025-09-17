@@ -61,6 +61,7 @@ IllegalChecker::IllegalChecker(Env& e)
   if (logicInfo().isTheoryEnabled(theory::THEORY_ARITH)
       && !options().arith.arithExp)
   {
+    d_illegalKinds.insert(Kind::POW);
     d_illegalKinds.insert(Kind::PI);
     d_illegalKinds.insert(Kind::EXPONENTIAL);
     d_illegalKinds.insert(Kind::SINE);
@@ -83,6 +84,8 @@ IllegalChecker::IllegalChecker(Env& e)
       && !options().datatypes.datatypesExp)
   {
     d_illegalKinds.insert(Kind::MATCH);
+    // catches all occurrences of nullables
+    d_illegalKinds.insert(Kind::NULLABLE_TYPE);
   }
   if (logicInfo().hasCardinalityConstraints() && !options().uf.ufCardExp)
   {

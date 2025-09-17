@@ -15,8 +15,17 @@
 
 package io.github.cvc5;
 
+/**
+ * A recoverable API exception.
+ * If thrown, API objects can still be used.
+ */
 public class CVC5ApiRecoverableException extends CVC5ApiException
 {
+  /**
+   * Construct with message from a string.
+   *
+   * @param message The error message.
+   */
   public CVC5ApiRecoverableException(String message)
   {
     super(message);

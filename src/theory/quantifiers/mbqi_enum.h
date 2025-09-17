@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Daniel Larraz
+ *   Andrew Reynolds, Lydia Kondylidou, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
@@ -23,6 +23,7 @@
 
 #include "expr/sygus_term_enumerator.h"
 #include "smt/env_obj.h"
+#include "theory/inference_id.h"
 #include "theory/quantifiers/sygus/sygus_enumerator.h"
 
 namespace cvc5::internal {
@@ -135,13 +136,16 @@ class MbqiEnum : protected EnvObj
    * @param mvs The model values of vars found in the subsolver for MBQI.
    * @param mvFreshVar Maps model values to variables, for the purposes
    * of representing term models for uninterpreted sorts.
+   * @param auxLemmas Other lemmas to add.
    * @return true if we successfully modified the instantiation.
    */
-  bool constructInstantiation(const Node& q,
-                              const Node& query,
-                              const std::vector<Node>& vars,
-                              std::vector<Node>& mvs,
-                              const std::map<Node, Node>& mvFreshVar);
+  bool constructInstantiation(
+      const Node& q,
+      const Node& query,
+      const std::vector<Node>& vars,
+      std::vector<Node>& mvs,
+      const std::map<Node, Node>& mvFreshVar,
+      std::vector<std::pair<Node, InferenceId>>& auxLemmas);
 
  private:
   /**

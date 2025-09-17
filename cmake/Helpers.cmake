@@ -1,6 +1,6 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Mathias Preiner, Aina Niemetz, Andrew V. Jones
+#   Mathias Preiner, Daniel Larraz, Aina Niemetz
 #
 # This file is part of the cvc5 project.
 #
@@ -34,7 +34,7 @@ elseif(CMAKE_HOST_SYSTEM_NAME STREQUAL "Darwin")
   if(CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "x86_64")
     set(BUILD_TRIPLET "x86_64-apple-darwin")
   elseif(CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "arm64")
-    set(BUILD_TRIPLET "arm64-apple-darwin")
+    set(BUILD_TRIPLET "aarch64-apple-darwin")
   endif()
 elseif(CMAKE_HOST_SYSTEM_NAME STREQUAL "Windows")
   if(CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "x86_64")

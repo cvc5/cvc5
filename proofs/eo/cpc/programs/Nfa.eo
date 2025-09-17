@@ -1,0 +1,146 @@
+(include "../theories/Strings.eo")
+
+; Declares a new sort which will be used to represent the states and transitions
+; of the automaton.
+(declare-const @@Nfa Type)
+(define @Nfa () @@Nfa)
+
+; Declares a sort which represents a single character or a set of characters
+; for an NFA transition.
+(define @nfa.char () String)
+
+; Declares the non-accepting trap state (also known as a sink state).
+(declare-const @@nfa_decline @Nfa)
+(define @nfa.decline () @@nfa_decline)
+
+; This represents the terminal or final state of the NFA.
+; A path in the NFA is accepting if it reaches this state.
+(declare-const @@nfa_accept @Nfa)
+(define @nfa.accept () @@nfa_accept)
+
+; Declares a right-associative function to hold a list of states.
+(declare-const @@nfa_list (-> @Nfa @Nfa @Nfa) :right-assoc-nil @nfa.decline)
+(define @nfa.list () @@nfa_list)
+
+; Declares a function which takes a character condition and
+; an NFA. This is the core construct for a state
+; in the NFA. The first char argument specifies the character(s) for a transition
+; from this state. The second @Nfa argument is the next state upon a match.
+(declare-const @@nfa_trans (-> @nfa.char @Nfa @Nfa))
+(define @nfa.trans () @@nfa_trans)
+
+; Declares a transition that can be taken on any character.
+(declare-const @@nfa_allchar @nfa.char)
+(define @nfa.allchar () @@nfa_allchar)
+
+; Creates a character set for a transition from a given range.
+; The two Int arguments represent Unicode code points, allowing for ranges
+; like 'a' to 'z' or any other character block.
+(declare-const @@nfa_range (-> Int Int @nfa.char))
+(define @nfa.range () @@nfa_range)
+
+; Represents a special epsilon transition that pushes the current state onto the stack.
+; This is used to save the current position, for example, before entering a loop.
+(declare-const @@nfa_push (-> @Nfa @Nfa))
+(define @nfa.push () @@nfa_push)
+
+; Represents a special epsilon transition that pops a state from the stack.
+; This is used to restore a saved state, for example, upon exiting a loop.
+(declare-const @@nfa_pop (-> @Nfa @Nfa))
+(define @nfa.pop () @@nfa_pop)
+
+; This program recursively translates a regular expression (RegLan) into its
+; corresponding Nondeterministic Finite Automaton (@Nfa) representation.
+;
+; program: $build_nfa
+; args:
+; - regex RegLan: The regular expression to translate.
+; - tail @Nfa: >
+; The tail represents the "rest of the automaton" that should be
+; connected to the end of the NFA fragment currently being built. For example,
+; when building the NFA for the regex "ab", the function first builds the NFA for "b"
+; with the final accepting state as its tail. Then, it builds the NFA for "a", using 
+; the just created NFA for "b" as its tail. This elegantly links the automaton parts together.
+; return: The @Nfa that was built from the regex.
+(program $build_nfa ((tail @Nfa) (s String) (r1 RegLan) (rr RegLan :list) (c0 String) (c1 String))
+  :signature (RegLan @Nfa) @Nfa
+  (
+    (($build_nfa (re.* r1) tail) (eo::cons @nfa.list (@nfa.push ($build_nfa r1 (@nfa.list (@nfa.pop tail)))) tail))
+    (($build_nfa re.allchar tail) (@nfa.list (@nfa.trans @nfa.allchar tail)))
+    (($build_nfa re.none tail) (@nfa.list))
+    (($build_nfa (re.union r1 rr) tail) (eo::list_concat @nfa.list ($build_nfa r1 tail) ($build_nfa rr tail)))
+    (($build_nfa (re.++ r1 rr) tail) ($build_nfa r1 ($build_nfa rr tail)))
+    (($build_nfa @re.empty tail) tail)
+    (($build_nfa (re.range c0 c1) tail) (@nfa.list (@nfa.trans (@nfa.range (eo::to_z c0) (eo::to_z c1)) tail)))
+    (($build_nfa (str.to_re s) tail)  (@nfa.list (@nfa.trans (eo::extract s 0 0) ($build_nfa (str.to_re (eo::extract s 1 (eo::len s))) tail))))
+    (($build_nfa re.all tail) ($build_nfa (re.* re.allchar) tail))
+  )
+)
+
+; A helper function that computes the epsilon closure for a set of states.
+;
+; This implementation extends the standard concept to handle special actions:
+;  - It recursively follows all reachable states from the input states list.
+;  - It manages the @nfa.push and @nfa.pop actions by modifying the stack.
+;  - It avoids infinite loops by adding each unique state configuration to the
+;    nexts set only once.
+;
+; program: $add_to_nexts
+; args:
+; - states @Nfa:    The list of states to explore for epsilon transitions.
+; - stack @Nfa:     The current context stack, used for push and pop actions.
+; - nexts @Nfa:     The accumulating set of reachable states (the closure).
+; return: The reachable states from the input states.
+(program $add_to_nexts ((t @Nfa) (st @Nfa) (tt @Nfa :list) (stt @Nfa :list) (nexts @Nfa))
+  :signature (@Nfa @Nfa @Nfa) @Nfa
+  (
+    (($add_to_nexts @nfa.decline st nexts) nexts)
+    (($add_to_nexts (@nfa.list (@nfa.push t) tt) st nexts) 
+      ($add_to_nexts tt st ($add_to_nexts t (eo::cons @nfa.list t st) nexts))
+    )
+    (($add_to_nexts (@nfa.list (@nfa.pop t) tt) (@nfa.list st stt) nexts)
+      (eo::ite (eo::is_neg (eo::list_find @nfa.list nexts (@nfa.list (@nfa.pop t) (@nfa.list st stt))))
+        ($add_to_nexts (eo::list_concat @nfa.list st tt) (@nfa.list st stt) (eo::cons @nfa.list (@nfa.list (@nfa.pop t) (@nfa.list st stt)) ($add_to_nexts t stt nexts)))
+        ($add_to_nexts tt (@nfa.list st stt) nexts)
+      )
+    )
+    (($add_to_nexts (@nfa.list t tt) st nexts)
+      (eo::ite (eo::is_neg (eo::list_find @nfa.list nexts (@nfa.list t st)))
+        ($add_to_nexts tt st (eo::cons @nfa.list (@nfa.list t st) nexts))
+        ($add_to_nexts tt st nexts)
+      )
+    )
+  )
+)
+
+; Simulates the NFA to determine if it accepts an input string.
+;
+; The simulation moves character by character, with each step's next_states
+; becoming the next step's current_states. The match is successful if an
+; accepting state is reached at the end of the string.
+; program: $nfa_match
+; args:
+; - c String:              The character being evaluated in the current step.
+; - s String:              The remaining part of the input string.
+; - current_states @Nfa:    The states the NFA is currently in. For each of these,
+;                          the function checks for valid transitions based on the current character.
+; - next_states @Nfa:       An accumulating list of states the NFA will be in after the current character is processed.
+; return: True if the NFA accepts the string, false otherwise.
+(program $nfa_match ((c String) (s String) (nexts @Nfa) (tt @Nfa :list) (t @Nfa)
+                (st @Nfa) (z0 Int) (z1 Int))
+  :signature (@nfa.char String @Nfa @Nfa) Bool
+  (
+    (($nfa_match c s @nfa.decline @nfa.decline) false)
+    (($nfa_match c "" @nfa.decline nexts) (eo::not (eo::is_neg (eo::list_find @nfa.list nexts (@nfa.list @nfa.accept @nfa.decline)))))
+    (($nfa_match "" s t @nfa.decline) ($nfa_match "" s @nfa.decline ($add_to_nexts t @nfa.decline @nfa.decline)))
+    (($nfa_match c s @nfa.decline nexts) ($nfa_match (eo::extract s 0 0) (eo::extract s 1 (eo::len s)) nexts @nfa.decline))
+    (($nfa_match c s (@nfa.list (@nfa.list (@nfa.trans c t) st) tt) nexts)  ($nfa_match c s tt ($add_to_nexts t st nexts)))
+    (($nfa_match c s (@nfa.list (@nfa.list (@nfa.trans @nfa.allchar t) st) tt) nexts)  ($nfa_match c s tt ($add_to_nexts t st nexts)))
+    (($nfa_match c s (@nfa.list (@nfa.list (@nfa.trans (@nfa.range z0 z1) t) st) tt) nexts)
+      (eo::ite (eo::and ($compare_geq (eo::to_z c) z0) ($compare_geq z1 (eo::to_z c)))  
+        ($nfa_match c s tt ($add_to_nexts t st nexts))
+        ($nfa_match c s tt nexts))
+    )
+    (($nfa_match c s (@nfa.list t tt) nexts)  ($nfa_match c s tt nexts))
+  )
+)

@@ -12,10 +12,11 @@
 ;
 ; =============================================================================
 
-(include "./theories/ArithExt.eo")
+(include "./rules/ArithExt.eo")
 (include "./theories/Bags.eo")
 (include "./theories/FloatingPoints.eo")
 (include "./theories/FiniteFields.eo")
+(include "./theories/Nullables.eo")
 (include "./theories/SepLogic.eo")
 (include "./rules/ArraysExt.eo")
 (include "./rules/Transcendentals.eo")
@@ -30,7 +31,7 @@
 (declare-const fmf.combined_card (-> Int Bool))
 
 ; Used in the --ho-elim preprocessing pass
-(declare-type @ho-elim-sort (Type))
+(declare-const @ho-elim-sort (-> Type Type))
 (declare-parameterized-const @fmf-fun-sort ((T Type :implicit)) (-> T Type))
 
 ; Dataypes shared selector
@@ -46,11 +47,11 @@
 ;   of being either associative and commutative (resp. associative) we call
 ;   the method $get_aci_norm (resp. $get_a_norm).
 (program $get_aci_normal_form_expert ((T Type) (x1 Bool) (x2 Bool :list) (m Int) (xf1 (FiniteField m)) (xf2 (FiniteField m) :list))
-  (T) T
+  :signature (T) T
   (
-    (($get_aci_normal_form_expert (sep x1 x2))       (@aci_sorted sep ($get_a_norm (sep x1 x2))))
-    (($get_aci_normal_form_expert (ff.add xf1 xf2))  (@aci_sorted ff.add ($get_a_norm (ff.add xf1 xf2))))
-    (($get_aci_normal_form_expert (ff.mul xf1 xf2))  (@aci_sorted ff.mul ($get_a_norm (ff.mul xf1 xf2))))
+    (($get_aci_normal_form_expert (sep x1 x2))       (@aci.sorted sep ($get_a_norm (sep x1 x2))))
+    (($get_aci_normal_form_expert (ff.add xf1 xf2))  (@aci.sorted ff.add ($get_a_norm (ff.add xf1 xf2))))
+    (($get_aci_normal_form_expert (ff.mul xf1 xf2))  (@aci.sorted ff.mul ($get_a_norm (ff.mul xf1 xf2))))
   )
 )
 

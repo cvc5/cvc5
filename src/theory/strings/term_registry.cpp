@@ -196,6 +196,17 @@ void TermRegistry::preRegisterTerm(TNode n)
       << "TheoryString::preregister : " << n << std::endl;
   // check for logic exceptions
   Kind k = n.getKind();
+  if (k == Kind::EQUAL && n[0].getType().isRegExp())
+  {
+    // if an equality between regular expressions was introduced during solving,
+    // e.g. by theory combination, we send the equivalance for its quantified
+    // reduction here, e.g.
+    // (R1 = R2) = (forall s. (s in R1) = (s in R2)).
+    Node res =
+        d_env.getRewriter()->rewriteViaRule(ProofRewriteRule::RE_EQ_ELIM, n);
+    Node lem = nodeManager()->mkNode(Kind::EQUAL, n, res);
+    d_im->lemma(lem, InferenceId::STRINGS_RE_EQ_ELIM_EQUIV);
+  }
   if (k == Kind::STRING_IN_REGEXP)
   {
     d_im->preferPhase(n, true);

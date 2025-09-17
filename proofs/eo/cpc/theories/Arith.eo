@@ -1,7 +1,7 @@
 (include "../theories/Builtin.eo")
 
-(declare-type Int ())
-(declare-type Real ())
+(declare-const Int Type)
+(declare-const Real Type)
 
 (declare-consts <numeral> Int)
 (declare-consts <rational> Real)
@@ -96,11 +96,6 @@
 ; disclaimer: The type of this function in SMT-LIB only accepts an Int as argument.
 (declare-parameterized-const abs ((T Type :implicit))
   (-> T (eo::requires ($is_arith_type T) true T)))
-
-; Power function.
-; disclaimer: This function is not a function in SMT-LIB. 
-(declare-parameterized-const ^ ((T Type :implicit))
-  (-> T T (eo::requires ($is_arith_type T) true T)))
 
 ; Unary negation, which is overloaded with binary subtraction. We distinguish
 ; these two operators in Eunoia based on their arity when applied, and with

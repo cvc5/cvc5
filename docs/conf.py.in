@@ -139,10 +139,10 @@ mathjax3_config = {
       '[+]': ['ams', 'bussproofs'],
     },
     'macros': {
-      'xor': '\\mathbin{xor}',
-      'ite': ['#1 \\mathbin{?} #2 \\mathbin{:} #3', 3],
-      'inferrule': ['\\begin{prooftree}\AxiomC{$#1$}\\UnaryInfC{$#2$}\\end{prooftree}', 2],
-      'inferruleSC': ['\\begin{prooftree}\AxiomC{$#1$}\RightLabel{ #3}\\UnaryInfC{$#2$}\\end{prooftree}', 3],
+      'xor': r'\mathbin{xor}',
+      'ite': [r'#1 \mathbin{?} #2 \mathbin{:} #3', 3],
+      'inferrule': [r'\begin{prooftree}\AxiomC{$#1$}\UnaryInfC{$#2$}\end{prooftree}', 2],
+      'inferruleSC': [r'\begin{prooftree}\AxiomC{$#1$}\RightLabel{ #3}\UnaryInfC{$#2$}\end{prooftree}', 3],
     }
   }
 }
@@ -166,47 +166,47 @@ googleanalytics_enabled = ${GOOGLE_ANALYTICS_ENABLE}
 
 # Configuration for tabs: title, language and group for detecting missing files
 examples_types = {
-        '\.cpp$': {
+        r'\.cpp$': {
                 'title': 'C++',
                 'lang': 'c++',
                 'group': 'c++'
         },
-        '\.c$': {
+        r'\.c$': {
                 'title': 'C',
                 'lang': 'c',
                 'group': 'c'
         },
-        '\.h$': {
+        r'\.h$': {
                 'title': 'C++ (header)',
                 'lang': 'c++',
                 'group': 'c++'
         },
-        '\.java$': {
+        r'\.java$': {
                 'title': 'Java',
                 'lang': 'java',
                 'group': 'java'
         },
-        '^<examples>.*pythonic.*\.py$': {
+        r'^<examples>.*pythonic.*\.py$': {
                 'title': 'Python (pythonic)',
                 'lang': 'python',
                 'group': 'py-pythonicapi'
         },
-        '^<examples>.*\.py$': {
+        r'^<examples>.*\.py$': {
                 'title': 'Python (base)',
                 'lang': 'python',
                 'group': 'py-regular'
         },
-        '^<pythonicapi>.*\.py$': {
+        r'^<pythonicapi>.*\.py$': {
                 'title': 'Python (pythonic)',
                 'lang': 'python',
                 'group': 'py-pythonicapi'
         },
-        '\.smt2$': {
+        r'\.smt2$': {
                 'title': 'SMT-LIBv2',
                 'lang': 'smtlib',
                 'group': 'smt2'
         },
-        '\.sy$': {
+        r'\.sy$': {
                 'title': 'SyGuS',
                 'lang': 'smtlib',
                 'group': 'smt2'
@@ -214,12 +214,12 @@ examples_types = {
 }
 # Special file patterns
 examples_file_patterns = {
-        '^<examples>(.*)': {
+        r'^<examples>(.*)': {
                 'local': '/../examples{}',
                 'url': 'https://github.com/cvc5/cvc5/tree/main/examples{}',
                 'urlname': 'examples{}',
         },
-        '<pythonicapi>(.*)': {
+        r'<pythonicapi>(.*)': {
                 'local': '/' + os.path.relpath('${CMAKE_BINARY_DIR}/deps/src/CVC5PythonicAPI', '${CMAKE_CURRENT_SOURCE_DIR}') + '{}',
                 'url': 'https://github.com/cvc5/cvc5_pythonic_api/tree/main{}',
                 'urlname': 'cvc5_pythonic_api:{}',

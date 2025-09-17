@@ -60,6 +60,19 @@
 ; ./expert/CpcExpert.eo. This contains all definitions of theories and rules
 ; that are not supported by cvc5 when safe mode is enabled.
 ; 
+; Typically, we use $ as the prefix of symbols introduced by define and
+; program.  For clarity, we sometimes use @ as the prefix of symbols introduced
+; by simple define commands.
+;
+; All symbols introduced by declare-const and declare-parameterized-const that
+; are prefixed by @ are not part of the SMT-LIB standard and are used to model
+; cvc5's internal symbols, including its skolems, other internally introduced
+; terms, and extensions.
+;
+; Furthermote, all symbols prefixed by @@ are furthermore used only internally
+; to define this signature and will never appear in a formula that a proof
+; rule concludes, nor will it appear in a proof script.
+;
 ; =============================================================================
 
 (include "./rules/Builtin.eo")
@@ -86,6 +99,7 @@
 ; note: >
 ;   @const corresponds to generic abstract constants, which correspond to internally
 ;   introduced terms that do not have a formal definition in the signature.
+;   This symbol is intentionally unused in this signature.
 (declare-parameterized-const @const ((id Int :opaque) (T Type :opaque)) T)
 
 ; note: >
@@ -355,21 +369,21 @@
 ;   particular, if t is an application of a known operator that has the property
 ;   of being either associative and commutative (resp. associative) we call
 ;   the method $get_ai_norm (resp. $get_a_norm), possibly wrapping the
-;   placeholder @aci_sorted.
+;   placeholder @aci.sorted.
 (program $get_aci_normal_form ((T Type) (x T)
                                (b1 Bool) (b2 Bool :list)
                                (r1 RegLan) (r2 RegLan :list)
                                (m Int) (xb1 (BitVec m)) (xb2 (BitVec m) :list)
                                (U Type) (xs1 (Seq U)) (xs2 (Seq U) :list))
-  (T) T
+  :signature (T) T
   (
-    (($get_aci_normal_form (or b1 b2))        (@aci_sorted or ($get_ai_norm (or b1 b2))))
-    (($get_aci_normal_form (and b1 b2))       (@aci_sorted and ($get_ai_norm (and b1 b2))))
-    (($get_aci_normal_form (re.union r1 r2))  (@aci_sorted re.union ($get_ai_norm (re.union r1 r2))))
-    (($get_aci_normal_form (re.inter r1 r2))  (@aci_sorted re.inter ($get_ai_norm (re.inter r1 r2))))
-    (($get_aci_normal_form (bvor xb1 xb2))    (@aci_sorted bvor ($get_ai_norm (bvor xb1 xb2))))
-    (($get_aci_normal_form (bvand xb1 xb2))   (@aci_sorted bvand ($get_ai_norm (bvand xb1 xb2))))
-    (($get_aci_normal_form (bvxor xb1 xb2))   (@aci_sorted bvxor ($get_a_norm (bvxor xb1 xb2))))
+    (($get_aci_normal_form (or b1 b2))        (@aci.sorted or ($get_ai_norm (or b1 b2))))
+    (($get_aci_normal_form (and b1 b2))       (@aci.sorted and ($get_ai_norm (and b1 b2))))
+    (($get_aci_normal_form (re.union r1 r2))  (@aci.sorted re.union ($get_ai_norm (re.union r1 r2))))
+    (($get_aci_normal_form (re.inter r1 r2))  (@aci.sorted re.inter ($get_ai_norm (re.inter r1 r2))))
+    (($get_aci_normal_form (bvor xb1 xb2))    (@aci.sorted bvor ($get_ai_norm (bvor xb1 xb2))))
+    (($get_aci_normal_form (bvand xb1 xb2))   (@aci.sorted bvand ($get_ai_norm (bvand xb1 xb2))))
+    (($get_aci_normal_form (bvxor xb1 xb2))   (@aci.sorted bvxor ($get_a_norm (bvxor xb1 xb2))))
     (($get_aci_normal_form (str.++ xs1 xs2))  ($get_a_norm (str.++ xs1 xs2)))
     (($get_aci_normal_form (re.++ r1 r2))     ($get_a_norm (re.++ r1 r2)))
     (($get_aci_normal_form (concat xb1 xb2))  ($get_a_norm (concat xb1 xb2)))
@@ -428,7 +442,7 @@
 (program $get_zero ((S Type) (b1 Bool) (b2 Bool :list)
                     (r1 RegLan) (r2 RegLan :list)
                     (m Int) (xb1 (BitVec m)) (xb2 (BitVec m) :list))
-  (S) S
+  :signature (S) S
   (
   (($get_zero (or b1 b2))        true)
   (($get_zero (and b1 b2))       false)
@@ -447,7 +461,7 @@
 ; return: >
 ;   true, if zero is the zero element for t and is found as a subterm of t beneath f-applications.
 (program $is_absorb ((T Type) (U Type) (f (-> U U U)) (t1 T) (t2 T) (zero T))
-  (T T) Bool
+  :signature (T T) Bool
   (
   (($is_absorb (f t1 t2) zero) ($is_absorb_rec f (f t1 t2) zero))
   )
