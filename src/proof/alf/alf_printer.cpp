@@ -1251,8 +1251,8 @@ void AlfPrinter::printStepPost(AlfPrintChannel* out, const ProofNode* pn)
       {
         // Manually increment proof id counter and premises. Note they will only be
         // used locally here to chain together the pops mentioned above.
-        tmpId = d_pfIdCounter;
         d_pfIdCounter++;
+        tmpId = d_pfIdCounter;
         out->printStep(rname, Node::null(), tmpId, premises, {}, true);
         // The current id is the premises of the next.
         premises.clear();
