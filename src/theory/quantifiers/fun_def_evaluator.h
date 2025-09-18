@@ -21,9 +21,9 @@
 #include <map>
 #include <vector>
 
+#include "context/cdhashmap.h"
 #include "expr/node.h"
 #include "smt/env_obj.h"
-#include "context/cdhashmap.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -35,8 +35,7 @@ namespace quantifiers {
 class FunDefEvaluator : protected EnvObj
 {
  public:
-  FunDefEvaluator(Env& env,
-          context::Context* c = nullptr);
+  FunDefEvaluator(Env& env, context::Context* c = nullptr);
   ~FunDefEvaluator() {}
   /**
    * Assert definition of a (recursive) function definition given by quantified

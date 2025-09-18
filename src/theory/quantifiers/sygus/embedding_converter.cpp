@@ -15,6 +15,7 @@
 
 #include "theory/quantifiers/sygus/embedding_converter.h"
 
+#include "expr/node_algorithm.h"
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
 #include "printer/smt2/smt2_printer.h"
@@ -26,7 +27,6 @@
 #include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "util/rational.h"
-#include "expr/node_algorithm.h"
 
 using namespace cvc5::internal::kind;
 
@@ -99,7 +99,7 @@ Node EmbeddingConverter::process(Node q,
                                  const std::map<Node, Node>& templates,
                                  const std::map<Node, Node>& templates_arg)
 {
-  Assert (q.getKind()==Kind::FORALL);
+  Assert(q.getKind() == Kind::FORALL);
   // convert to deep embedding and finalize single invocation here
   // now, construct the grammar
   Trace("cegqi") << "SynthConjecture : convert to deep embedding..."
@@ -437,7 +437,7 @@ void EmbeddingConverter::inferDtGrammars(const Node& q)
 
   // TODO: check if any datatypes have syntactic constraints??
   std::vector<Node> disj;
-  if (q[1].getKind()==Kind::OR)
+  if (q[1].getKind() == Kind::OR)
   {
     disj.insert(disj.end(), q[1].begin(), q[1].end());
   }
@@ -452,15 +452,15 @@ void EmbeddingConverter::inferDtGrammars(const Node& q)
     std::map<Node, std::vector<Node>> cases;
     if (isSyntacticConstraint(dtVars, dd, nts, cases))
     {
-      
     }
   }
 }
 
-bool EmbeddingConverter::isSyntacticConstraint(const std::unordered_set<Node> dtVars,
-                                               const Node& n, 
-                                               std::map<Node, Node>& nts, 
-                                               std::map<Node, std::vector<Node>>& rules)
+bool EmbeddingConverter::isSyntacticConstraint(
+    const std::unordered_set<Node> dtVars,
+    const Node& n,
+    std::map<Node, Node>& nts,
+    std::map<Node, std::vector<Node>>& rules)
 {
   return false;
 #if 0

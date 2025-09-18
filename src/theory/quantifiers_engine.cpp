@@ -153,7 +153,7 @@ FunDefEvaluator* QuantifiersEngine::getFunDefEvaluator() const
 {
   return d_funDefEval.get();
 }
-  
+
 void QuantifiersEngine::presolve() {
   Trace("quant-engine-proc") << "QuantifiersEngine : presolve " << std::endl;
   d_numInstRoundsLemma = 0;
@@ -193,7 +193,7 @@ void QuantifiersEngine::ppNotifyAssertions(
   }
   for (const Node& def : assertions)
   {
-    if (def.getKind()==Kind::FORALL && def[1].getKind()==Kind::EQUAL)
+    if (def.getKind() == Kind::FORALL && def[1].getKind() == Kind::EQUAL)
     {
       d_funDefEval->assertDefinition(def);
     }

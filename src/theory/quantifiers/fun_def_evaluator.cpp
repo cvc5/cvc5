@@ -26,8 +26,10 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-FunDefEvaluator::FunDefEvaluator(Env& env,
-          context::Context* c) : EnvObj(env), d_funDefMap(c==nullptr ? &d_context : c) {}
+FunDefEvaluator::FunDefEvaluator(Env& env, context::Context* c)
+    : EnvObj(env), d_funDefMap(c == nullptr ? &d_context : c)
+{
+}
 
 bool FunDefEvaluator::assertDefinition(Node q)
 {
@@ -107,7 +109,7 @@ void FunDefEvaluator::addDefinition(const Node& head,
     fdi->d_body = body;
     fdi->d_args.insert(fdi->d_args.end(), q[0].begin(), q[0].end());
     Trace("fd-eval") << "FunDefEvaluator: function " << f << " is defined with "
-                    << fdi->d_args << " / " << fdi->d_body << std::endl;
+                     << fdi->d_args << " / " << fdi->d_body << std::endl;
     d_funDefMap.insert(f, fdi);
   }
 }
@@ -325,7 +327,8 @@ bool FunDefEvaluator::hasDefinitions() const { return !d_funDefMap.empty(); }
 std::vector<Node> FunDefEvaluator::getDefinitions() const
 {
   std::vector<Node> defs;
-  for (FunDefMap::iterator it = d_funDefMap.begin(); it != d_funDefMap.end(); ++it)
+  for (FunDefMap::iterator it = d_funDefMap.begin(); it != d_funDefMap.end();
+       ++it)
   {
     defs.emplace_back(it->second->d_quant);
   }

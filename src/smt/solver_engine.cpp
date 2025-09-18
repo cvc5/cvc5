@@ -1175,11 +1175,11 @@ Node SolverEngine::simplify(const Node& t, bool applySubs)
   }
   // now rewrite
   Node ret = d_env->getRewriter()->rewrite(tt);
-  // simplify modulo recursive functions 
+  // simplify modulo recursive functions
   if (options().smt.simplifyRecFun)
   {
     QuantifiersEngine* qe = d_smtSolver->getQuantifiersEngine();
-    if (qe!=nullptr)
+    if (qe != nullptr)
     {
       quantifiers::FunDefEvaluator* fdef = qe->getFunDefEvaluator();
       Node rete = fdef->evaluateDefinitions(ret);

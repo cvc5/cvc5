@@ -1914,7 +1914,7 @@ void Smt2Printer::toStreamCmdDeclareType(std::ostream& out,
   if (d_variant == Variant::alf_variant)
   {
     out << "(declare-const " << cvc5::internal::quoteSymbol(id) << " ";
-    if (arity>0)
+    if (arity > 0)
     {
       out << "(->";
       for (size_t i = 0; i < arity; i++)
