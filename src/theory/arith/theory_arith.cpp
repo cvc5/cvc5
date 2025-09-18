@@ -306,6 +306,12 @@ bool TheoryArith::preNotifyFact(
   Trace("arith-check") << "TheoryArith::preNotifyFact: " << fact
                        << ", isPrereg=" << isPrereg
                        << ", isInternal=" << isInternal << std::endl;
+  // ToDo: review this if statement
+  if (atom.getKind() == Kind::STAR_CONTAINS)
+  {
+    // star contains in not a standard arith predicate, so we return false
+    return false;
+  }
   // We do not assert to the equality engine of arithmetic in the standard way,
   // hence we return "true" to indicate we are finished with this fact.
   bool ret = true;

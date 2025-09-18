@@ -76,11 +76,11 @@ namespace inferbounds {
   class InferBoundAlgorithm;
 }
 class InferBoundsResult;
-  
+
 /**
  * Implementation of QF_LRA.
  * Based upon:
- * http://research.microsoft.com/en-us/um/people/leonardo/cav06.pdf
+ * https://leodemoura.github.io/files/cav06.pdf
  */
 class TheoryArithPrivate : protected EnvObj
 {

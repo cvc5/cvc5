@@ -396,6 +396,10 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
     return RewriteResponse(REWRITE_DONE, rewriter::mkConst(d_nm, *response));
   }
 
+  if (kind == Kind::STAR_CONTAINS)
+  {
+    return rewriteStarContains(atom);
+  }
   Assert(isRelationOperator(kind));
 
   if (auto response = rewriter::tryEvaluateRelation(kind, left, right);
@@ -525,7 +529,6 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
       case Kind::TO_REAL: return rewriteToReal(t);
       case Kind::TO_INTEGER: return rewriteExtIntegerOp(t);
       case Kind::PI: return RewriteResponse(REWRITE_DONE, t);
-      case Kind::STAR_CONTAINS: return rewriteStarContains(t);
       // expert cases
       case Kind::POW:
       case Kind::EXPONENTIAL:

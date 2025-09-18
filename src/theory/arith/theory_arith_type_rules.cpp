@@ -290,7 +290,7 @@ TypeNode IndexedRootPredicateTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode StarContainsTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
-  return TypeNode::null();
+  return nm->booleanType();
 }
 
 TypeNode StarContainsTypeRule::computeType(NodeManager* nodeManager,
