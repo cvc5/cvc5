@@ -1175,15 +1175,18 @@ Node SolverEngine::simplify(const Node& t, bool applySubs)
   }
   // now rewrite
   Node ret = d_env->getRewriter()->rewrite(tt);
-  // simplify modulo recursive functions
-  QuantifiersEngine* qe = d_smtSolver->getQuantifiersEngine();
-  if (qe!=nullptr)
+  // simplify modulo recursive functions 
+  if (options().smt.simplifyRecFun)
   {
-    quantifiers::FunDefEvaluator* fdef = qe->getFunDefEvaluator();
-    Node rete = fdef->evaluateDefinitions(ret);
-    if (!rete.isNull())
+    QuantifiersEngine* qe = d_smtSolver->getQuantifiersEngine();
+    if (qe!=nullptr)
     {
-      ret = rete;
+      quantifiers::FunDefEvaluator* fdef = qe->getFunDefEvaluator();
+      Node rete = fdef->evaluateDefinitions(ret);
+      if (!rete.isNull())
+      {
+        ret = rete;
+      }
     }
   }
   // make so that the returned term does not involve arithmetic subtyping
