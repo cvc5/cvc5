@@ -56,7 +56,7 @@ cvc5_add_capi_test(reset_assertions "")
 cvc5_add_capi_test(smt2_compliance "")
 cvc5_add_capi_test(two_solvers "")
 
-if (NOT ENABLE_SAFE_MODE)
+if (NOT ENABLE_SAFE_MODE AND NOT ENABLE_STABLE_MODE)
   cvc5_add_capi_test(sep_log_api "")
 endif()
 
