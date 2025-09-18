@@ -27,6 +27,7 @@
 #include "theory/theory_model.h"
 #include "theory/theory_state.h"
 #include "theory/theory.h"
+#include "proof/eager_proof_generator.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -53,6 +54,7 @@ class DistinctExtension : protected EnvObj
   /** Called when t1 and t2 merge, may return a conflict */
   void eqNotifyMerge(TNode t1, TNode t2);
  private:
+  Node d_false;
   /** Reference to the state object */
   TheoryState& d_state;
   /** Reference to the inference manager */
@@ -89,6 +91,8 @@ class DistinctExtension : protected EnvObj
   context::CDList<Node> d_posDistinct;
   /** A proof generator for disequal congruent terms */
   std::shared_ptr<DistinctProofGenerator> d_dproof;
+  /** Eager proof generator */
+  std::shared_ptr<EagerProofGenerator> d_epg;
   /** The pending conflict if one exists */
   context::CDO<Node> d_pendingConflict;
 };

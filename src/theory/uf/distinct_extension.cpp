@@ -35,57 +35,66 @@ class DistinctProofGenerator : protected EnvObj, public ProofGenerator
   DistinctProofGenerator(Env& env) : EnvObj(env) {}
   virtual ~DistinctProofGenerator() {}
   /**
+   * Proves false from an element equality and a distinct constraint, as
+   * described below.
+   */
+  std::shared_ptr<ProofNode> getConflictProof(Node eeq, Node distinct)
+  {
+    CDProof cdp(d_env);
+    std::vector<Node> cpremises;
+    for (const Node& e : distinct)
+    {
+      if (e == eeq[0])
+      {
+        cpremises.push_back(eeq);
+      }
+      else
+      {
+        // otherwise will be refl
+        cpremises.push_back(Node::null());
+      }
+    }
+    //                      ------  -----
+    //              a = c   b = b   c = c
+    //              ------------------------- cong  -------------------
+    //              dist(a,b,c) = dist(c,b,c)       dist(c,b,c) = false
+    //              ----------------------------------------------------
+    // dist(a,b,c)  dist(a,b,c) = false
+    // --------------------------------
+    // false
+    // --------------------- scope {a=c,dist(a,b,c)}
+    // ~(a=c ^ dist(a,b,c))
+    Node ceq = expr::proveCong(d_env, &cdp, distinct, cpremises);
+    Assert(ceq.getKind() == Kind::EQUAL && ceq[0] != ceq[1]);
+    Trace("distinct-pf") << "...prove by congruence " << ceq << std::endl;
+    // dist(c,b,c) = false
+    Node falsen = nodeManager()->mkConst(false);
+    Node eq = ceq[1].eqNode(falsen);
+    cdp.addTheoryRewriteStep(eq, ProofRewriteRule::DISTINCT_FALSE);
+    // dist(a,b,c) = false
+    Node eq2 = ceq[0].eqNode(falsen);
+    cdp.addStep(eq2, ProofRule::TRANS, {ceq, eq}, {});
+    // false
+    cdp.addStep(falsen, ProofRule::EQ_RESOLVE, {distinct, eq2}, {});
+    return cdp.getProofFor(falsen);
+  }
+  /**
    * Get proof for, which expects lemmas of the form
    * (not (and (= x y) (distinct ... x ... y ...))), or
    * (=> B (distinct ....)) where B is the result of expanding distinct.
    */
   std::shared_ptr<ProofNode> getProofFor(Node fact) override
   {
-    CDProof cdp(d_env);
     Trace("distinct-pf") << "Get proof for: " << fact << std::endl;
     if (fact.getKind() == Kind::NOT && fact[0].getKind() == Kind::AND
        && fact[0].getNumChildren()==2
         && fact[0][0].getKind() == Kind::EQUAL
         && fact[0][1].getKind() == Kind::DISTINCT)
     {
+      Node eq = fact[0][0];
       Node distinct = fact[0][1];
-      std::vector<Node> cpremises;
-      for (const Node& e : distinct)
-      {
-        if (e == fact[0][0][0])
-        {
-          cpremises.push_back(fact[0][0]);
-        }
-        else
-        {
-          // otherwise will be refl
-          cpremises.push_back(Node::null());
-        }
-      }
-      //                      ------  -----
-      //              a = c   b = b   c = c
-      //              ------------------------- cong  -------------------
-      //              dist(a,b,c) = dist(c,b,c)       dist(c,b,c) = false
-      //              ----------------------------------------------------
-      // dist(a,b,c)  dist(a,b,c) = false
-      // --------------------------------
-      // false
-      // --------------------- scope {a=c,dist(a,b,c)}
-      // ~(a=c ^ dist(a,b,c))
-      Node ceq = expr::proveCong(d_env, &cdp, distinct, cpremises);
-      Assert(ceq.getKind() == Kind::EQUAL && ceq[0] != ceq[1]);
-      Trace("distinct-pf") << "...prove by congruence " << ceq << std::endl;
-      // dist(c,b,c) = false
-      Node falsen = nodeManager()->mkConst(false);
-      Node eq = ceq[1].eqNode(falsen);
-      cdp.addTheoryRewriteStep(eq, ProofRewriteRule::DISTINCT_FALSE);
-      // dist(a,b,c) = false
-      Node eq2 = ceq[0].eqNode(falsen);
-      cdp.addStep(eq2, ProofRule::TRANS, {ceq, eq}, {});
-      // false
-      cdp.addStep(falsen, ProofRule::EQ_RESOLVE, {distinct, eq2}, {});
-      std::shared_ptr<ProofNode> pfn = cdp.getProofFor(falsen);
-      std::vector<Node> assumps{fact[0][0], fact[0][1]};
+      std::shared_ptr<ProofNode> pfn = getConflictProof(eq, distinct);
+      std::vector<Node> assumps{eq, distinct};
       return d_env.getProofNodeManager()->mkScope(pfn, assumps);
     }
     else if (fact.getKind()==Kind::IMPLIES && fact[1].getKind()==Kind::DISTINCT)
@@ -94,6 +103,7 @@ class DistinctProofGenerator : protected EnvObj, public ProofGenerator
       Node batom = TheoryUfRewriter::blastDistinct(nodeManager(), atom);
       if (batom==fact[0])
       {
+        CDProof cdp(d_env);
         Node eq = atom.eqNode(batom);
         cdp.addTheoryRewriteStep(eq, ProofRewriteRule::DISTINCT_ELIM);
         Node eqs = eq[1].eqNode(eq[0]);
@@ -111,6 +121,7 @@ class DistinctProofGenerator : protected EnvObj, public ProofGenerator
         return d_env.getProofNodeManager()->mkScope(pfn, assumps);
       }
     }
+    CDProof cdp(d_env);
     cdp.addTrustedStep(fact, TrustId::UF_DISTINCT, {}, {});
     return cdp.getProofFor(fact);
   }
@@ -128,10 +139,13 @@ DistinctExtension::DistinctExtension(Env& env,
       d_negDistinct(context()),
       d_negDistinctIndex(context(), 0),
       d_posDistinct(context()),
-      d_dproof(options().smt.produceProofs ? new DistinctProofGenerator(d_env)
+      d_dproof(d_env.isTheoryProofProducing() ? new DistinctProofGenerator(d_env)
                                            : nullptr),
+      d_epg(d_env.isTheoryProofProducing() ? new EagerProofGenerator(d_env, context(), "DistinctEpg")
+      : nullptr),
       d_pendingConflict(context())
 {
+  d_false = nodeManager()->mkConst(false);
 }
 
 bool DistinctExtension::needsCheckLastEffort()
@@ -149,7 +163,6 @@ void DistinctExtension::assertDistinct(TNode atom, bool pol, TNode fact)
   if (pol)
   {
     d_posDistinct.push_back(fact);
-#if 0
     std::unordered_map<Node, Node> reps;
     std::unordered_map<Node, Node>::iterator itr;
     bool isConflict = false;
@@ -165,8 +178,12 @@ void DistinctExtension::assertDistinct(TNode atom, bool pol, TNode fact)
       isConflict = true;
       // otherwise already a conflict
       Node eq = itr->second.eqNode(nc);
-      // can send the conflict immediately
-      d_im.conflictExp(InferenceId::UF_DISTINCT_DEQ, {eq, fact}, d_dproof.get());
+      if (d_env.isTheoryProofProducing())
+      {
+        std::shared_ptr<ProofNode> pfn = d_dproof->getConflictProof(eq, fact);
+        d_epg->setProofFor(d_false, pfn);
+      }
+      d_im.conflictExp(InferenceId::UF_DISTINCT_DEQ, {eq, fact}, d_epg.get());
       break;
     }
     if (!isConflict)
@@ -188,7 +205,6 @@ void DistinctExtension::assertDistinct(TNode atom, bool pol, TNode fact)
         ndmem.emplace_back(p.second);
       }
     }
-#endif
   }
   else
   {
@@ -236,7 +252,7 @@ void DistinctExtension::eqNotifyMerge(TNode t1, TNode t2)
           AlwaysAssert(d_state.areEqual(d_eqcToDMem[t1][i], d_eqcToDMem[t2][i2]));
           Trace("uf-lazy-distinct") << "...conflict " << eq << " " << d << std::endl;
           std::vector<Node> exp{eq, d};
-          //d_pendingConflict = nodeManager()->mkAnd(exp);
+          d_pendingConflict = nodeManager()->mkAnd(exp);
           return;
         }
         Trace("uf-lazy-distinct") << "...no conflict" << std::endl;
@@ -260,7 +276,13 @@ void DistinctExtension::check(Theory::Effort level)
   {
     Node conf = d_pendingConflict.get();
     std::vector<Node> exp(conf.begin(), conf.end());
-    d_im.conflictExp(InferenceId::UF_DISTINCT_DEQ, exp, d_dproof.get());
+    if (d_env.isTheoryProofProducing())
+    {
+      Assert (exp.size()==2);
+      std::shared_ptr<ProofNode> pfn = d_dproof->getConflictProof(exp[0], exp[1]);
+      d_epg->setProofFor(d_false, pfn);
+    }
+    d_im.conflictExp(InferenceId::UF_DISTINCT_DEQ, exp, d_epg.get());
     return;
   }
   if (level != Theory::Effort::EFFORT_LAST_CALL)
