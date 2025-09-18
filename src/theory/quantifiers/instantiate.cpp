@@ -663,7 +663,7 @@ bool Instantiate::recordInstantiationInternal(Node q,
     // invocation techniques. These applications typically use CEGQI, which
     // should never use local instantiations or else the solutions for
     // QE and sygus will be incorrect.
-    return trie->addInstMatch(context(), q, terms));
+    return trie->addInstMatch(context(), q, terms);
   }
   bool ret;
   if (d_useCdInstTrie)
