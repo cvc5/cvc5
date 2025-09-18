@@ -36,7 +36,8 @@ class DistinctProofGenerator : protected EnvObj, public ProofGenerator
   virtual ~DistinctProofGenerator() {}
   /**
    * Proves false from an element equality and a distinct constraint, as
-   * described below.
+   * described below. This is used both for giving proofs of lemmas and
+   * conflicts.
    */
   std::shared_ptr<ProofNode> getConflictProof(Node eeq, Node distinct)
   {
