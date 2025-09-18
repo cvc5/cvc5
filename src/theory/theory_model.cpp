@@ -26,6 +26,7 @@
 #include "theory/trust_substitutions.h"
 #include "theory/uf/function_const.h"
 #include "util/rational.h"
+#include "util/uninterpreted_sort_value.h"
 
 using namespace std;
 using namespace cvc5::internal::kind;
@@ -108,8 +109,8 @@ std::vector<Node> TheoryModel::getDomainElements(TypeNode tn) const
   // must be an uninterpreted sort
   Assert(tn.isUninterpretedSort());
   std::vector<Node> elements;
-  const std::vector<Node>* type_refs = d_rep_set.getTypeRepsOrNull(tn);
-  if (type_refs == nullptr || type_refs->empty())
+  const std::vector<Node>* type_reps = d_rep_set.getTypeRepsOrNull(tn);
+  if (type_reps == nullptr || type_reps->empty())
   {
     // This is called when t is a sort that does not occur in this model.
     // Sorts are always interpreted as non-empty, thus we add a single element.
@@ -118,7 +119,15 @@ std::vector<Node> TheoryModel::getDomainElements(TypeNode tn) const
     elements.push_back(NodeManager::mkGroundValue(tn));
     return elements;
   }
-  return *type_refs;
+  // The representatives are skolems. We convert them to uninterpreted sort
+  // values here for printing purposes.
+  NodeManager* nm = nodeManager();
+  for (size_t i = 0, size = type_reps->size(); i < size; i++)
+  {
+    UninterpretedSortValue usv = UninterpretedSortValue(tn, Integer(i));
+    elements.push_back(nm->mkConst<UninterpretedSortValue>(usv));
+  }
+  return elements;
 }
 
 Node TheoryModel::getValue(TNode n) const

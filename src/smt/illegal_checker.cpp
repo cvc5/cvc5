@@ -171,7 +171,7 @@ void IllegalChecker::checkAssertions(Assertions& as)
       ss << "Cannot handle assertion with term of kind " << k
          << " in this configuration.";
       // suggested options only in non-safe builds
-#ifndef CVC5_SAFE_MODE
+#if !defined(CVC5_SAFE_MODE) && !defined(CVC5_STABLE_MODE)
       if (k == Kind::STORE_ALL)
       {
         ss << " Try --arrays-exp.";
