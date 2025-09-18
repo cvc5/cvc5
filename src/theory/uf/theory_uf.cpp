@@ -93,6 +93,8 @@ void TheoryUF::finishInit() {
   Assert(d_equalityEngine != nullptr);
   // combined cardinality constraints are not evaluated in getModelValue
   d_valuation.setUnevaluatedKind(Kind::COMBINED_CARDINALITY_CONSTRAINT);
+  // distinct should not be sent to the model
+  d_valuation.setIrrelevantKind(Kind::DISTINCT);
   if (logicInfo().hasCardinalityConstraints())
   {
     if (!options().uf.ufCardExp)
