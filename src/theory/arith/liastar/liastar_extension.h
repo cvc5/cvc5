@@ -142,7 +142,7 @@ class LiaStarExtension : EnvObj
   /** Extended theory, responsible for context-dependent simplification. */
   ExtTheory d_extTheory;
   /** Do we have any liaStar terms? */
-  bool d_hasLiaStarTerms;
+  context::CDO<bool> d_hasLiaStarTerms;
 }; /* class LiaStarExtension */
 
 }  // namespace liastar

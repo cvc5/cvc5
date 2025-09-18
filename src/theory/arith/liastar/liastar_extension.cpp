@@ -40,7 +40,8 @@ LiaStarExtension::LiaStarExtension(Env& env, TheoryArith& containing)
       d_im(containing.getInferenceManager()),
       d_checkCounter(0),
       d_extTheoryCb(d_astate.getEqualityEngine()),
-      d_extTheory(env, d_extTheoryCb, d_im)
+      d_extTheory(env, d_extTheoryCb, d_im),
+      d_hasLiaStarTerms(context(), false)
 {
   d_extTheory.addFunctionKind(Kind::STAR_CONTAINS);
   d_true = nodeManager()->mkConst(true);
@@ -54,6 +55,7 @@ void LiaStarExtension::preRegisterTerm(TNode n)
   // eliminated by context-dependent simplification.
   if (d_extTheory.hasFunctionKind(n.getKind()))
   {
+    d_hasLiaStarTerms = true;
     d_extTheory.registerTerm(n);
   }
 }
@@ -107,11 +109,12 @@ Result::Status LiaStarExtension::modelBasedRefinement(
   std::vector<Node> assertions;
   getAssertions(assertions);
 
-  Trace("nl-ext-mv-assert")
-      << "Getting model values... check for [model-false]" << std::endl;
+  Trace("liastar-assert") << "Getting model values... check for [model-false]"
+                          << std::endl;
   // get the assertions that are false in the model
   const std::vector<Node> false_asserts = getUnsatisfiedAssertions(assertions);
-  Trace("nl-ext") << "# false asserts = " << false_asserts.size() << std::endl;
+  Trace("liastar-assert") << "# false asserts = " << false_asserts.size()
+                          << std::endl;
 
   // get the extended terms belonging to this theory
   std::vector<Node> xtsAll;
@@ -127,20 +130,20 @@ Result::Status LiaStarExtension::modelBasedRefinement(
     }
   }
 
-  if (TraceIsOn("nl-ext-debug"))
+  if (TraceIsOn("liastar-assert"))
   {
-    Trace("nl-ext-debug") << "  processing LiaStarExtension::check : "
-                          << std::endl;
-    Trace("nl-ext-debug") << "     " << false_asserts.size()
-                          << " false assertions" << std::endl;
-    Trace("nl-ext-debug") << "     " << xts.size()
-                          << " extended terms: " << std::endl;
-    Trace("nl-ext-debug") << "       ";
+    Trace("liastar-assert")
+        << "  processing LiaStarExtension::check : " << std::endl;
+    Trace("liastar-assert")
+        << "     " << false_asserts.size() << " false assertions" << std::endl;
+    Trace("liastar-assert")
+        << "     " << xts.size() << " extended terms: " << std::endl;
+    Trace("liastar-assert") << "       ";
     for (unsigned j = 0; j < xts.size(); j++)
     {
-      Trace("nl-ext-debug") << xts[j] << " ";
+      Trace("liastar-assert") << xts[j] << " ";
     }
-    Trace("nl-ext-debug") << std::endl;
+    Trace("liastar-assert") << std::endl;
   }
 
   // did not add lemmas
