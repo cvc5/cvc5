@@ -310,6 +310,7 @@ bool TheoryArith::preNotifyFact(
   if (atom.getKind() == Kind::STAR_CONTAINS)
   {
     // star contains in not a standard arith predicate, so we return false
+    // to indicate this fact is not processed at preNotifyFact.
     return false;
   }
   // We do not assert to the equality engine of arithmetic in the standard way,

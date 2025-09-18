@@ -21,6 +21,7 @@
 
 #include "expr/node.h"
 #include "smt/env_obj.h"
+#include "theory/arith/liastar/liastar_ext_theory_callback.h"
 #include "theory/ext_theory.h"
 #include "theory/theory.h"
 #include "util/result.h"
@@ -84,11 +85,7 @@ class LiaStarExtension : EnvObj
                        const std::set<Node>& termSet);
 
   /** Does this class need a call to check(...) at last call effort? */
-  bool hasLiastarTerms() const { return d_hasLiastarTerms; }
-
-  /** Process side effect se */
-  /**ToDo: check if liastar extension needs its own lemma class */
-  void processSideEffect(const NlLemma& se);
+  bool hasLiaStarTerms() const { return d_hasLiaStarTerms; }
 
  private:
   /** Model-based refinement
@@ -129,39 +126,6 @@ class LiaStarExtension : EnvObj
   std::vector<Node> getUnsatisfiedAssertions(
       const std::vector<Node>& assertions);
 
-  //---------------------------check model
-  /** Check model
-   *
-   * Checks the current model based on solving for equalities, and using error
-   * bounds on the Taylor approximation.
-   *
-   * If this function returns true, then all assertions in the input argument
-   * "assertions" are satisfied for all interpretations of variables within
-   * their computed bounds (as stored in d_check_model_bounds).
-   *
-   * For details, see Section 3 of Cimatti et al CADE 2017 under the heading
-   * "Detecting Satisfiable Formulas".
-   */
-  bool checkModel(const std::vector<Node>& assertions);
-  //---------------------------end check model
-  /** compute relevant assertions */
-  void computeRelevantAssertions(const std::vector<Node>& assertions,
-                                 std::vector<Node>& keep);
-
-  /** run check strategy
-   *
-   * Check assertions for consistency in the effort LAST_CALL with a subset of
-   * the assertions, false_asserts, that evaluate to false in the current model.
-   *
-   * xts : the list of (non-reduced) extended terms in the current context.
-   *
-   * This method adds lemmas to d_im directly.
-   */
-  void runStrategy(Theory::Effort effort,
-                   const std::vector<Node>& assertions,
-                   const std::vector<Node>& false_asserts,
-                   const std::vector<Node>& xts);
-
   /** commonly used terms */
   Node d_true;
   // The theory of arithmetic containing this extension.
@@ -169,32 +133,16 @@ class LiaStarExtension : EnvObj
   /** A reference to the arithmetic state object */
   TheoryState& d_astate;
   InferenceManager& d_im;
-  /** The statistics class */
-  NlStats d_stats;
-  // needs last call effort
-  context::CDO<bool> d_hasNlTerms;
   /**
    * The number of times we have the called main check method
    * (modelBasedRefinement). This counter is used for interleaving strategies.
    */
   unsigned d_checkCounter;
-  /** The callback for the extended theory below */
-  NlExtTheoryCallback d_extTheoryCb;
+  LiaStarExtTheoryCallback d_extTheoryCb;
   /** Extended theory, responsible for context-dependent simplification. */
   ExtTheory d_extTheory;
-  /** The non-linear model object
-   *
-   * This class is responsible for computing model values for arithmetic terms
-   * and for establishing when we are able to answer "SAT".
-   */
-  NlModel d_model;
-  /**
-   * Holds common lookup data for the checks implemented in the "nl-ext"
-   * solvers (from Cimatti et al., TACAS 2017).
-   */
-  ExtState d_extState;
-  /** The strategy for the nonlinear extension. */
-  Strategy d_strategy;
+  /** Do we have any liaStar terms? */
+  bool d_hasLiaStarTerms;
 }; /* class LiaStarExtension */
 
 }  // namespace liastar
