@@ -26,7 +26,8 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-FunDefEvaluator::FunDefEvaluator(Env& env) : EnvObj(env) {}
+FunDefEvaluator::FunDefEvaluator(Env& env,
+          context::Context* c) : EnvObj(env), d_funDefs(c==nullptr ? &d_context : c) {}
 
 bool FunDefEvaluator::assertDefinition(Node q)
 {
@@ -98,15 +99,17 @@ void FunDefEvaluator::addDefinition(const Node& head,
 {
   // h possibly with zero arguments?
   Node f = head.hasOperator() ? head.getOperator() : head;
-  Assert(d_funDefMap.find(f) == d_funDefMap.end())
-      << "FunDefEvaluator::assertDefinition: function already defined";
-  d_funDefs.push_back(q);
-  FunDefInfo& fdi = d_funDefMap[f];
-  fdi.d_quant = q;
-  fdi.d_body = body;
-  fdi.d_args.insert(fdi.d_args.end(), q[0].begin(), q[0].end());
-  Trace("fd-eval") << "FunDefEvaluator: function " << f << " is defined with "
-                   << fdi.d_args << " / " << fdi.d_body << std::endl;
+  d_funDefs.insert(q);
+  // compute the information if necessary
+  if (d_funDefMap.find(f) == d_funDefMap.end())
+  {
+    FunDefInfo& fdi = d_funDefMap[f];
+    fdi.d_quant = q;
+    fdi.d_body = body;
+    fdi.d_args.insert(fdi.d_args.end(), q[0].begin(), q[0].end());
+    Trace("fd-eval") << "FunDefEvaluator: function " << f << " is defined with "
+                    << fdi.d_args << " / " << fdi.d_body << std::endl;
+  }
 }
 
 Node FunDefEvaluator::evaluateDefinitions(Node n) const
@@ -317,11 +320,16 @@ Node FunDefEvaluator::evaluateDefinitions(Node n) const
   return visited[n];
 }
 
-bool FunDefEvaluator::hasDefinitions() const { return !d_funDefMap.empty(); }
+bool FunDefEvaluator::hasDefinitions() const { return !d_funDefs.empty(); }
 
-const std::vector<Node>& FunDefEvaluator::getDefinitions() const
+std::vector<Node> FunDefEvaluator::getDefinitions() const
 {
-  return d_funDefs;
+  std::vector<Node> defs;
+  for (const Node& d : d_funDefs)
+  {
+    defs.emplace_back(d);
+  }
+  return defs;
 }
 Node FunDefEvaluator::getDefinitionFor(Node f) const
 {

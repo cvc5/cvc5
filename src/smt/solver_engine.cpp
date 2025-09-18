@@ -1177,20 +1177,15 @@ Node SolverEngine::simplify(const Node& t, bool applySubs)
   Node ret = d_env->getRewriter()->rewrite(tt);
   if (options().smt.simplifyInferRecFun)
   {
-    quantifiers::FunDefEvaluator fdef(*d_env.get());
-    const context::CDList<Node>& assertions =
-        d_smtSolver->getPreprocessedAssertions();
-    for (const Node& def : assertions)
+    QuantifiersEngine* qe = d_smtSolver->getQuantifiersEngine();
+    if (qe!=nullptr)
     {
-      if (def.getKind()==Kind::FORALL && def[1].getKind()==Kind::EQUAL)
+      quantifiers::FunDefEvaluator* fdef = qe->getFunDefEvaluator();
+      Node rete = fdef->evaluateDefinitions(ret);
+      if (!rete.isNull())
       {
-        fdef.assertDefinition(def);
+        ret = rete;
       }
-    }
-    Node rete = fdef.evaluateDefinitions(ret);
-    if (!rete.isNull())
-    {
-      ret = rete;
     }
   }
   // make so that the returned term does not involve arithmetic subtyping

@@ -50,6 +50,7 @@ class TermDb;
 class TermDbSygus;
 class TermEnumeration;
 class TermRegistry;
+class FunDefEvaluator;
 }
 
 /**
@@ -76,6 +77,8 @@ class QuantifiersEngine : protected EnvObj
   quantifiers::QModelBuilder* getModelBuilder() const;
   /** get term database sygus */
   quantifiers::TermDbSygus* getTermDatabaseSygus() const;
+  /** get the function definition evaluator */
+  quantifiers::FunDefEvaluator* getFunDefEvaluator() const;
   //---------------------- end utilities
   /** presolve */
   void presolve();
@@ -193,6 +196,8 @@ class QuantifiersEngine : protected EnvObj
   quantifiers::QuantifiersRegistry& d_qreg;
   /** The term registry */
   quantifiers::TermRegistry& d_treg;
+  /** The function definition evaluator */
+  std::unique_ptr<quantifiers::FunDefEvaluator> d_funDefEval;
   /** model builder */
   std::unique_ptr<quantifiers::QModelBuilder> d_builder;
   /** extended model object */

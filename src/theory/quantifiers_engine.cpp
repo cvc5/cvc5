@@ -59,6 +59,7 @@ QuantifiersEngine::QuantifiersEngine(Env& env,
       d_pnm(pnm),
       d_qreg(qr),
       d_treg(tr),
+      d_funDefEval(new FunDefEvaluator(env)),
       d_model(nullptr),
       d_quants_prereg(userContext()),
       d_quants_red(userContext()),
@@ -148,6 +149,11 @@ TermDbSygus* QuantifiersEngine::getTermDatabaseSygus() const
 }
 /// !!!!!!!!!!!!!!
 
+FunDefEvaluator* QuantifiersEngine::getFunDefEvaluator() const
+{
+  return d_funDefEval.get();
+}
+  
 void QuantifiersEngine::presolve() {
   Trace("quant-engine-proc") << "QuantifiersEngine : presolve " << std::endl;
   d_numInstRoundsLemma = 0;
@@ -184,6 +190,13 @@ void QuantifiersEngine::ppNotifyAssertions(
     // may need to be notified of assertions, for mbqi-enum
     quantifiers::InstStrategyMbqi* mi = d_qmodules->d_mbqi.get();
     mi->ppNotifyAssertions(assertions);
+  }
+  for (const Node& def : assertions)
+  {
+    if (def.getKind()==Kind::FORALL && def[1].getKind()==Kind::EQUAL)
+    {
+      d_funDefEval->assertDefinition(def);
+    }
   }
 }
 
