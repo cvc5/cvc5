@@ -129,7 +129,8 @@ DistinctExtension::DistinctExtension(Env& env,
       d_negDistinctIndex(context(), 0),
       d_posDistinct(context()),
       d_dproof(options().smt.produceProofs ? new DistinctProofGenerator(d_env)
-                                           : nullptr)
+                                           : nullptr),
+      d_pendingConflict(context())
 {
 }
 
@@ -148,6 +149,7 @@ void DistinctExtension::assertDistinct(TNode atom, bool pol, TNode fact)
   if (pol)
   {
     d_posDistinct.push_back(fact);
+#if 0
     std::unordered_map<Node, Node> reps;
     std::unordered_map<Node, Node>::iterator itr;
     bool isConflict = false;
@@ -163,6 +165,7 @@ void DistinctExtension::assertDistinct(TNode atom, bool pol, TNode fact)
       isConflict = true;
       // otherwise already a conflict
       Node eq = itr->second.eqNode(nc);
+      // can send the conflict immediately
       d_im.conflictExp(InferenceId::UF_DISTINCT_DEQ, {eq, fact}, d_dproof.get());
       break;
     }
@@ -185,6 +188,7 @@ void DistinctExtension::assertDistinct(TNode atom, bool pol, TNode fact)
         ndmem.emplace_back(p.second);
       }
     }
+#endif
   }
   else
   {
@@ -213,7 +217,7 @@ void DistinctExtension::eqNotifyMerge(TNode t1, TNode t2)
       d1.resize(it1->second);
       d1m.resize(it1->second);
       Trace("uf-lazy-distinct")
-          << "...looking for conflicts in intersection of " << it1->second
+          << "...looking for conflicts in intersection of # terms = " << it1->second
           << " and " << it2->second << std::endl;
       // check for conflicts
       for (size_t i = 0; i < it1->second; i++)
@@ -229,8 +233,10 @@ void DistinctExtension::eqNotifyMerge(TNode t1, TNode t2)
           Assert(i < d_eqcToDMem[t1].size());
           Assert(i2 < d_eqcToDMem[t2].size());
           Node eq = d_eqcToDMem[t1][i].eqNode(d_eqcToDMem[t2][i2]);
-          Trace("uf-lazy-distinct") << "...conflict " << eq << std::endl;
-          d_im.conflictExp(InferenceId::UF_DISTINCT_DEQ, {eq, d}, d_dproof.get());
+          AlwaysAssert(d_state.areEqual(d_eqcToDMem[t1][i], d_eqcToDMem[t2][i2]));
+          Trace("uf-lazy-distinct") << "...conflict " << eq << " " << d << std::endl;
+          std::vector<Node> exp{eq, d};
+          //d_pendingConflict = nodeManager()->mkAnd(exp);
           return;
         }
         Trace("uf-lazy-distinct") << "...no conflict" << std::endl;
@@ -248,8 +254,19 @@ void DistinctExtension::eqNotifyMerge(TNode t1, TNode t2)
   }
 }
 
-void DistinctExtension::checkDistinctLastCall()
+void DistinctExtension::check(Theory::Effort level)
 {
+  if (!d_pendingConflict.get().isNull())
+  {
+    Node conf = d_pendingConflict.get();
+    std::vector<Node> exp(conf.begin(), conf.end());
+    d_im.conflictExp(InferenceId::UF_DISTINCT_DEQ, exp, d_dproof.get());
+    return;
+  }
+  if (level != Theory::Effort::EFFORT_LAST_CALL)
+  {
+    return;
+  }
   TheoryModel* tm = d_state.getModel();
   bool addedLemma = false;
   // check negated distinct

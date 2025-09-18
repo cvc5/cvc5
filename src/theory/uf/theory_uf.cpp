@@ -163,9 +163,8 @@ void TheoryUF::postCheck(Effort level)
       {
         d_csolver->check();
       }
-      // check distinct constraints
-      d_distinct.checkDistinctLastCall();
     }
+    d_distinct.check(level);
     // check with the higher-order extension at full effort
     if (fullEffort(level) && logicInfo().isHigherOrder())
     {
