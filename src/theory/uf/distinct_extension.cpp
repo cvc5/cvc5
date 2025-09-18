@@ -87,8 +87,7 @@ class DistinctProofGenerator : protected EnvObj, public ProofGenerator
   {
     Trace("distinct-pf") << "Get proof for: " << fact << std::endl;
     if (fact.getKind() == Kind::NOT && fact[0].getKind() == Kind::AND
-       && fact[0].getNumChildren()==2
-        && fact[0][0].getKind() == Kind::EQUAL
+        && fact[0].getNumChildren() == 2 && fact[0][0].getKind() == Kind::EQUAL
         && fact[0][1].getKind() == Kind::DISTINCT)
     {
       Node eq = fact[0][0];
@@ -97,11 +96,12 @@ class DistinctProofGenerator : protected EnvObj, public ProofGenerator
       std::vector<Node> assumps{eq, distinct};
       return d_env.getProofNodeManager()->mkScope(pfn, assumps);
     }
-    else if (fact.getKind()==Kind::IMPLIES && fact[1].getKind()==Kind::DISTINCT)
+    else if (fact.getKind() == Kind::IMPLIES
+             && fact[1].getKind() == Kind::DISTINCT)
     {
       Node atom = fact[1];
       Node batom = TheoryUfRewriter::blastDistinct(nodeManager(), atom);
-      if (batom==fact[0])
+      if (batom == fact[0])
       {
         CDProof cdp(d_env);
         Node eq = atom.eqNode(batom);
@@ -139,10 +139,12 @@ DistinctExtension::DistinctExtension(Env& env,
       d_negDistinct(context()),
       d_negDistinctIndex(context(), 0),
       d_posDistinct(context()),
-      d_dproof(d_env.isTheoryProofProducing() ? new DistinctProofGenerator(d_env)
-                                           : nullptr),
-      d_epg(d_env.isTheoryProofProducing() ? new EagerProofGenerator(d_env, context(), "DistinctEpg")
-      : nullptr),
+      d_dproof(d_env.isTheoryProofProducing()
+                   ? new DistinctProofGenerator(d_env)
+                   : nullptr),
+      d_epg(d_env.isTheoryProofProducing()
+                ? new EagerProofGenerator(d_env, context(), "DistinctEpg")
+                : nullptr),
       d_pendingConflict(context())
 {
   d_false = nodeManager()->mkConst(false);
@@ -233,8 +235,8 @@ void DistinctExtension::eqNotifyMerge(TNode t1, TNode t2)
       d1.resize(it1->second);
       d1m.resize(it1->second);
       Trace("uf-lazy-distinct")
-          << "...looking for conflicts in intersection of # terms = " << it1->second
-          << " and " << it2->second << std::endl;
+          << "...looking for conflicts in intersection of # terms = "
+          << it1->second << " and " << it2->second << std::endl;
       // check for conflicts
       for (size_t i = 0; i < it1->second; i++)
       {
@@ -249,8 +251,10 @@ void DistinctExtension::eqNotifyMerge(TNode t1, TNode t2)
           Assert(i < d_eqcToDMem[t1].size());
           Assert(i2 < d_eqcToDMem[t2].size());
           Node eq = d_eqcToDMem[t1][i].eqNode(d_eqcToDMem[t2][i2]);
-          AlwaysAssert(d_state.areEqual(d_eqcToDMem[t1][i], d_eqcToDMem[t2][i2]));
-          Trace("uf-lazy-distinct") << "...conflict " << eq << " " << d << std::endl;
+          AlwaysAssert(
+              d_state.areEqual(d_eqcToDMem[t1][i], d_eqcToDMem[t2][i2]));
+          Trace("uf-lazy-distinct")
+              << "...conflict " << eq << " " << d << std::endl;
           std::vector<Node> exp{eq, d};
           d_pendingConflict = nodeManager()->mkAnd(exp);
           return;
@@ -278,8 +282,9 @@ void DistinctExtension::check(Theory::Effort level)
     std::vector<Node> exp(conf.begin(), conf.end());
     if (d_env.isTheoryProofProducing())
     {
-      Assert (exp.size()==2);
-      std::shared_ptr<ProofNode> pfn = d_dproof->getConflictProof(exp[0], exp[1]);
+      Assert(exp.size() == 2);
+      std::shared_ptr<ProofNode> pfn =
+          d_dproof->getConflictProof(exp[0], exp[1]);
       d_epg->setProofFor(d_false, pfn);
     }
     d_im.conflictExp(InferenceId::UF_DISTINCT_DEQ, exp, d_epg.get());
@@ -353,8 +358,7 @@ void DistinctExtension::check(Theory::Effort level)
         continue;
       }
       Node eq = itr->second.eqNode(nc);
-      Node lem =
-          nodeManager()->mkNode(Kind::AND, {eq, atom}).notNode();
+      Node lem = nodeManager()->mkNode(Kind::AND, {eq, atom}).notNode();
       TrustNode tlem = TrustNode::mkTrustLemma(lem, d_dproof.get());
       d_im.trustedLemma(tlem, InferenceId::UF_DISTINCT_DEQ_MODEL);
     }

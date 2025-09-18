@@ -22,12 +22,12 @@
 #include "context/cdhashset.h"
 #include "context/cdo.h"
 #include "expr/node.h"
+#include "proof/eager_proof_generator.h"
 #include "smt/env_obj.h"
+#include "theory/theory.h"
 #include "theory/theory_inference_manager.h"
 #include "theory/theory_model.h"
 #include "theory/theory_state.h"
-#include "theory/theory.h"
-#include "proof/eager_proof_generator.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -53,6 +53,7 @@ class DistinctExtension : protected EnvObj
   void assertDistinct(TNode atom, bool pol, TNode fact);
   /** Called when t1 and t2 merge, may return a conflict */
   void eqNotifyMerge(TNode t1, TNode t2);
+
  private:
   Node d_false;
   /** Reference to the state object */

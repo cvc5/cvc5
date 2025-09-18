@@ -18,8 +18,8 @@
 #include "expr/kind.h"
 #include "proof/proof_node_manager.h"
 #include "theory/builtin/theory_builtin_rewriter.h"
-#include "theory/uf/theory_uf_rewriter.h"
 #include "theory/theory_model.h"
+#include "theory/uf/theory_uf_rewriter.h"
 #include "theory/valuation.h"
 
 namespace cvc5::internal {
@@ -60,7 +60,7 @@ void TheoryBuiltin::finishInit()
 
 TrustNode TheoryBuiltin::ppStaticRewrite(TNode n)
 {
-  if (n.getKind()==Kind::DISTINCT)
+  if (n.getKind() == Kind::DISTINCT)
   {
     Node bn = uf::TheoryUfRewriter::blastDistinct(nodeManager(), n);
     return TrustNode::mkTrustRewrite(n, bn);

@@ -49,6 +49,7 @@ class TheoryBuiltin : public Theory
    * distinct in logics that do not include UF.
    */
   TrustNode ppStaticRewrite(TNode n) override;
+
  private:
   /** The theory rewriter for this theory. */
   TheoryBuiltinRewriter d_rewriter;
