@@ -61,7 +61,7 @@ foreach(example ${EXAMPLES_API_JAVA})
   add_java_example(${example})
 endforeach()
 
-if(NOT CVC5_SAFE_BUILD)
+if((NOT CVC5_SAFE_BUILD) AND (NOT CVC5_STABLE_BUILD))
   add_java_example(FloatingPointArith)
   add_java_example(Bags)
   add_java_example(Relations)
