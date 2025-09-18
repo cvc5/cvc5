@@ -1,4 +1,5 @@
 ; DISABLE-TESTER: dump
+; REQUIRES: no-competition
 ; COMMAND-LINE: --finite-model-find
 ; EXPECT: sat
 ; EXPECT: (((_ fmf.card (to_ nat_ term_) 1) false) ((_ fmf.card (to_ nat_ term_) 2) true))
