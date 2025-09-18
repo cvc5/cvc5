@@ -112,13 +112,14 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
     }
     std::vector<Node> vecElements =
         datatypes::TupleUtils::getTupleElements(vec);
-    Trace("liastar-ext-debug") << "literal: " << literal << std::endl;
-    Trace("liastar-ext-debug") << "predicate: " << predicate << std::endl;
     Node substitute = predicate.substitute(variables.begin(),
                                            variables.end(),
                                            vecElements.begin(),
                                            vecElements.end());
+    Trace("liastar-ext-debug") << "literal: " << literal << std::endl;
+    Trace("liastar-ext-debug") << "predicate: " << predicate << std::endl;
     Trace("liastar-ext-debug") << "substitute: " << substitute << std::endl;
+    d_im.addPendingLemma(substitute, InferenceId::ARITH_LIA_STAR);
   }
   Trace("liastar-ext") << "unsatisfied = " << unsatisfied.size() << std::endl;
 }
