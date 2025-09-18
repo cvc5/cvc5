@@ -23,7 +23,7 @@
 
 #include "expr/node.h"
 #include "smt/env_obj.h"
-#include "context/cdhashset.h"
+#include "context/cdhashmap.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -93,10 +93,9 @@ class FunDefEvaluator : protected EnvObj
   };
   /** A dummy context used by this class if none is provided */
   context::Context d_context;
+  using FunDefMap = context::CDHashMap<Node, std::shared_ptr<FunDefInfo>>;
   /** maps functions to the above information */
-  std::map<Node, FunDefInfo> d_funDefMap;
-  /** list of all active definitions */
-  context::CDHashSet<Node> d_funDefs;
+  FunDefMap d_funDefMap;
 };
 
 }  // namespace quantifiers

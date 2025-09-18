@@ -34,14 +34,6 @@ name   = "SMT Layer"
   help       = "apply Boolean constant propagation as a substitution during simplification"
 
 [[option]]
-  name       = "simplifyInferRecFun"
-  category   = "expert"
-  long       = "simplify-infer-rec-fun"
-  type       = "bool"
-  default    = "true"
-  help       = "simplify terms based on recursive function definitions in the simplify command"
-
-[[option]]
   name       = "staticLearning"
   category   = "regular"
   long       = "static-learning"
