@@ -46,6 +46,7 @@ LiaStarExtension::LiaStarExtension(Env& env, TheoryArith& containing)
 {
   d_extTheory.addFunctionKind(Kind::STAR_CONTAINS);
   d_true = nodeManager()->mkConst(true);
+  d_false = nodeManager()->mkConst(false);
 }
 
 LiaStarExtension::~LiaStarExtension() {}
@@ -116,10 +117,26 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
                                            variables.end(),
                                            vecElements.begin(),
                                            vecElements.end());
+    std::vector<Node> keys;
+    std::vector<Node> values;
+
+    for (const auto& [key, value] : arithModel)
+    {
+      keys.push_back(key);
+      values.push_back(value);
+    }
+
+    Node value = substitute.substitute(
+        keys.begin(), keys.end(), values.begin(), values.end());
+    value = rewrite(value);
     Trace("liastar-ext-debug") << "literal: " << literal << std::endl;
     Trace("liastar-ext-debug") << "predicate: " << predicate << std::endl;
     Trace("liastar-ext-debug") << "substitute: " << substitute << std::endl;
-    d_im.addPendingLemma(substitute, InferenceId::ARITH_LIA_STAR);
+    Trace("liastar-ext-debug") << "value: " << value << std::endl;
+    if (value == d_false)
+    {
+      d_im.addPendingLemma(substitute, InferenceId::ARITH_LIA_STAR);
+    }
   }
   Trace("liastar-ext") << "unsatisfied = " << unsatisfied.size() << std::endl;
 }

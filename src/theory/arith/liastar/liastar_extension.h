@@ -102,6 +102,7 @@ class LiaStarExtension : EnvObj
 
   /** commonly used terms */
   Node d_true;
+  Node d_false;
   // The theory of arithmetic containing this extension.
   TheoryArith& d_arith;
   /** A reference to the arithmetic state object */
