@@ -88,22 +88,6 @@ class LiaStarExtension : EnvObj
   bool hasLiaStarTerms() const { return d_hasLiaStarTerms; }
 
  private:
-  /** Model-based refinement
-   *
-   * This is the main entry point of this class for generating lemmas on the
-   * output channel of the theory of arithmetic.
-   *
-   * It is currently run at last call effort. It applies lemma schemas
-   * described in Reynolds et al. FroCoS 2017 that are based on ruling out
-   * the current candidate model.
-   *
-   * This function returns whether we found a satisfying assignment
-   * (Result::SAT), or not (Result::UNSAT). Note that UNSAT does not
-   * necessarily means the whole query is UNSAT, but that the linear model was
-   * refuted by a lemma.
-   */
-  Result::Status modelBasedRefinement(const std::set<Node>& termSet);
-
   /** get assertions
    *
    * Let M be the set of assertions known by THEORY_ARITH. This function adds a
@@ -115,16 +99,6 @@ class LiaStarExtension : EnvObj
    * (2) M' may contain t = c if both t >= c and t <= c are in M.
    */
   void getAssertions(std::vector<Node>& assertions);
-  /** check model
-   *
-   * Returns the subset of assertions whose concrete values we cannot show are
-   * true in the current model. Notice that we typically cannot compute concrete
-   * values for assertions involving transcendental functions. Any assertion
-   * whose model value cannot be computed is included in the return value of
-   * this function.
-   */
-  std::vector<Node> getUnsatisfiedAssertions(
-      const std::vector<Node>& assertions);
 
   /** commonly used terms */
   Node d_true;

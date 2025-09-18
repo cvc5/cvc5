@@ -21,6 +21,7 @@
 #include "theory/arith/inference_manager.h"
 #include "theory/arith/nl/nl_lemma_utils.h"
 #include "theory/arith/theory_arith.h"
+#include "theory/datatypes/tuple_utils.h"
 #include "theory/ext_theory.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
@@ -62,92 +63,64 @@ void LiaStarExtension::preRegisterTerm(TNode n)
 
 void LiaStarExtension::getAssertions(std::vector<Node>& assertions)
 {
-  Trace("liastar-assert") << "Getting assertions..." << std::endl;
+  Trace("liastar-ext") << "Getting assertions..." << std::endl;
   Valuation v = d_arith.getValuation();
   std::cout << v.needCheck() << std::endl;
   for (auto it = d_arith.facts_begin(); it != d_arith.facts_end(); ++it)
   {
     Node lit = (*it).d_assertion;
-    Trace("liastar-assert") << "Adding " << lit << std::endl;
-    assertions.push_back(lit);
+    if (lit.getKind() == Kind::STAR_CONTAINS)
+    {
+      // for now, we only care about positive poalrity of star-contains
+      Trace("liastar-ext") << "Adding " << lit << std::endl;
+      assertions.push_back(lit);
+    }
   }
-  Trace("liastar-assert") << "...keep " << assertions.size() << " / "
-                          << d_arith.numAssertions() << " assertions."
-                          << std::endl;
-}
-
-std::vector<Node> LiaStarExtension::getUnsatisfiedAssertions(
-    const std::vector<Node>& assertions)
-{
-  std::vector<Node> false_asserts;
-  for (const auto& lit : assertions)
-  {
-    Trace("liastar-assert-false") << lit << std::endl;
-  }
-  return false_asserts;
+  Trace("liastar-ext") << "...keep " << assertions.size() << " / "
+                       << d_arith.numAssertions() << " assertions."
+                       << std::endl;
 }
 
 void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
                                        const std::set<Node>& termSet)
 {
   // run a last call effort check
-  Trace("nl-ext") << "interceptModel: do model-based refinement" << std::endl;
-  Result::Status res = modelBasedRefinement(termSet);
-  if (res == Result::SAT)
-  {
-    Trace("nl-ext") << "interceptModel: do model repair" << std::endl;
-    // modify the model values
-  }
-}
-
-Result::Status LiaStarExtension::modelBasedRefinement(
-    const std::set<Node>& termSet)
-{
+  Trace("liastar-ext") << "interceptModel: do model-based refinement"
+                       << std::endl;
+  Trace("liastar-ext") << " model is : " << arithModel << std::endl;
+  Trace("liastar-ext") << " termSet is: " << termSet << std::endl;
   d_checkCounter++;
 
   // get the assertions
   std::vector<Node> assertions;
   getAssertions(assertions);
 
-  Trace("liastar-assert") << "Getting model values... check for [model-false]"
-                          << std::endl;
+  Trace("liastar-ext") << "liastar assertions: " << assertions << std::endl;
   // get the assertions that are false in the model
-  const std::vector<Node> false_asserts = getUnsatisfiedAssertions(assertions);
-  Trace("liastar-assert") << "# false asserts = " << false_asserts.size()
-                          << std::endl;
-
-  // get the extended terms belonging to this theory
-  std::vector<Node> xtsAll;
-  d_extTheory.getTerms(xtsAll);
-  // only consider those that are currently relevant based on the current
-  // assertions, i.e. those contained in termSet
-  std::vector<Node> xts;
-  for (const Node& x : xtsAll)
+  const std::vector<Node> unsatisfied;
+  for (const auto& literal : assertions)
   {
-    if (termSet.find(x) != termSet.end())
-    {
-      xts.push_back(x);
-    }
-  }
+    Assert(literal.getKind() == Kind::STAR_CONTAINS);
+    Node variables = literal[0];
+    Node predicate = literal[1];
+    Node vec = literal[2];
 
-  if (TraceIsOn("liastar-assert"))
-  {
-    Trace("liastar-assert")
-        << "  processing LiaStarExtension::check : " << std::endl;
-    Trace("liastar-assert")
-        << "     " << false_asserts.size() << " false assertions" << std::endl;
-    Trace("liastar-assert")
-        << "     " << xts.size() << " extended terms: " << std::endl;
-    Trace("liastar-assert") << "       ";
-    for (unsigned j = 0; j < xts.size(); j++)
+    std::unordered_set<Node> boundVariables;
+    for (const auto& v : variables)
     {
-      Trace("liastar-assert") << xts[j] << " ";
+      boundVariables.insert(v);
     }
-    Trace("liastar-assert") << std::endl;
+    std::vector<Node> vecElements =
+        datatypes::TupleUtils::getTupleElements(vec);
+    Trace("liastar-ext-debug") << "literal: " << literal << std::endl;
+    Trace("liastar-ext-debug") << "predicate: " << predicate << std::endl;
+    Node substitute = predicate.substitute(variables.begin(),
+                                           variables.end(),
+                                           vecElements.begin(),
+                                           vecElements.end());
+    Trace("liastar-ext-debug") << "substitute: " << substitute << std::endl;
   }
-
-  // did not add lemmas
-  return Result::SAT;
+  Trace("liastar-ext") << "unsatisfied = " << unsatisfied.size() << std::endl;
 }
 
 }  // namespace liastar
