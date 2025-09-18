@@ -19,6 +19,10 @@ Unreleased
     `cvc5_term_get_string_value` are now deprecated in favor of
     the new functions `cvc5_mk_string_from_char32` and
     `cvc5_term_get_u32string_value`.
+- A build configuration `stable-mode` is available via our configure script.
+  Similar to the build configuration `safe-mode`, this configuration guards
+  against all cvc5 features that are not robust, but in constrast it does not
+  guarantee full proof and model support.
 
 cvc5 1.3.0
 ==========
