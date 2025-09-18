@@ -163,10 +163,7 @@ void DistinctExtension::assertDistinct(TNode atom, bool pol, TNode fact)
       isConflict = true;
       // otherwise already a conflict
       Node eq = itr->second.eqNode(nc);
-      Node conf = nodeManager()->mkNode(Kind::AND, {eq, fact});
-      TrustNode tconf = TrustNode::mkTrustConflict(conf, d_dproof.get());
-      // no proof for now
-      d_im.trustedConflict(tconf, InferenceId::UF_DISTINCT_DEQ);
+      d_im.conflictExp(InferenceId::UF_DISTINCT_DEQ, {eq, fact}, d_dproof.get());
       break;
     }
     if (!isConflict)
@@ -233,9 +230,7 @@ void DistinctExtension::eqNotifyMerge(TNode t1, TNode t2)
           Assert(i2 < d_eqcToDMem[t2].size());
           Node eq = d_eqcToDMem[t1][i].eqNode(d_eqcToDMem[t2][i2]);
           Trace("uf-lazy-distinct") << "...conflict " << eq << std::endl;
-          Node conf = nodeManager()->mkNode(Kind::AND, {eq, d});
-          TrustNode tconf = TrustNode::mkTrustConflict(conf, d_dproof.get());
-          d_im.trustedConflict(tconf, InferenceId::UF_DISTINCT_DEQ);
+          d_im.conflictExp(InferenceId::UF_DISTINCT_DEQ, {eq, d}, d_dproof.get());
           return;
         }
         Trace("uf-lazy-distinct") << "...no conflict" << std::endl;
