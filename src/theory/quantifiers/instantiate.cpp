@@ -655,13 +655,16 @@ bool Instantiate::recordInstantiationInternal(Node q,
       d_cimt.insert(q, strie);
       trie = strie.get();
     }
-    if (!trie->addInstMatch(context(), q, terms))
-    {
-      return false;
-    }
+    // Note that we do not add to the main trie. This means that this
+    // instantiation won't be recorded when asked for the global list
+    // of instantiations (SolverEngine::getInstantiatedQuantifiedFormulas and
+    // related methods). Note that the global list of instantiations is
+    // relied on e.g. for quantifier elimination, and for SyGuS single
+    // invocation techniques. These applications typically use CEGQI, which
+    // should never use local instantiations or else the solutions for
+    // QE and sygus will be incorrect.
+    return trie->addInstMatch(context(), q, terms));
   }
-  // regardless of whether we are local, we record the instantiation in the main trie.
-  // if the instantiation is local, we will ignore whether or not it already exists.
   bool ret;
   if (d_useCdInstTrie)
   {
@@ -687,7 +690,7 @@ bool Instantiate::recordInstantiationInternal(Node q,
     Trace("inst-add-debug") << "Adding into inst trie" << std::endl;
     ret = d_imt[q].addInstMatch(q, terms);
   }
-  return isLocal ? true : ret;
+  return ret;
 }
 
 void Instantiate::getInstantiatedQuantifiedFormulas(std::vector<Node>& qs) const
