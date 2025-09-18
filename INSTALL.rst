@@ -417,8 +417,9 @@ The API tests are not built by default.
 
 .. code::
 
-    make apitests                         # build and run all API C++ tests
+    make apitests                         # build and run all API tests
     make capitests                        # build and run all API C tests
+    make cppapitests                      # build and run all API C++ tests
     make <api_test>                       # build test/api/cpp/<api_test>.cpp
     make capi_<api_test>                  # build test/api/c/<api_test>.c
     ctest api/cpp/<api_test>              # run test/api/cpp/<api_test><.ext>
