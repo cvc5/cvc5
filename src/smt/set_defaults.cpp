@@ -1827,32 +1827,31 @@ void SetDefaults::setDefaultDecisionMode(const LogicInfo& logic,
                       // ALL or its supersets
           logic.hasEverything()
           ? options::DecisionMode::JUSTIFICATION
-          : (  // QF_BV
-              (!logic.isQuantified() && logic.isPure(THEORY_BV)) ||
-                      // QF_AUFBV or QF_ABV or QF_UFBV
-                      (!logic.isQuantified()
-                       && (logic.isTheoryEnabled(THEORY_ARRAYS)
-                           || logic.isTheoryEnabled(THEORY_UF))
-                       && logic.isTheoryEnabled(THEORY_BV))
-                      ||
-                      // QF_AUFLIA (and may be ends up enabling
-                      // QF_AUFLRA?)
-                      (!logic.isQuantified()
-                       && logic.isTheoryEnabled(THEORY_ARRAYS)
-                       && logic.isTheoryEnabled(THEORY_UF)
-                       && logic.isTheoryEnabled(THEORY_ARITH))
-                      ||
-                      // QF_LRA
-                      (!logic.isQuantified() && logic.isPure(THEORY_ARITH)
-                       && logic.isLinear() && !logic.isDifferenceLogic()
-                       && !logic.areIntegersUsed())
-                      ||
-                      // Quantifiers
-                      logic.isQuantified() ||
-                      // Strings
-                      logic.isTheoryEnabled(THEORY_STRINGS)
-                  ? options::DecisionMode::JUSTIFICATION
-                  : options::DecisionMode::INTERNAL);
+          : (
+                // QF_AUFBV or QF_ABV or QF_UFBV
+                (!logic.isQuantified()
+                 && (logic.isTheoryEnabled(THEORY_ARRAYS)
+                     || logic.isTheoryEnabled(THEORY_UF))
+                 && logic.isTheoryEnabled(THEORY_BV))
+                        ||
+                        // QF_AUFLIA (and may be ends up enabling
+                        // QF_AUFLRA?)
+                        (!logic.isQuantified()
+                         && logic.isTheoryEnabled(THEORY_ARRAYS)
+                         && logic.isTheoryEnabled(THEORY_UF)
+                         && logic.isTheoryEnabled(THEORY_ARITH))
+                        ||
+                        // QF_LRA
+                        (!logic.isQuantified() && logic.isPure(THEORY_ARITH)
+                         && logic.isLinear() && !logic.isDifferenceLogic()
+                         && !logic.areIntegersUsed())
+                        ||
+                        // Quantifiers
+                        logic.isQuantified() ||
+                        // Strings
+                        logic.isTheoryEnabled(THEORY_STRINGS)
+                    ? options::DecisionMode::JUSTIFICATION
+                    : options::DecisionMode::INTERNAL);
 
   bool stoponly =
       // ALL or its supersets
