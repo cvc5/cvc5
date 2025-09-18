@@ -17,6 +17,6 @@ cvc5_add_python_api_test(issue5074 "issues")
 cvc5_add_python_api_test(issue6111 "issues")
 cvc5_add_python_api_test(proj-issue306 "issues")
 
-if (NOT ENABLE_SAFE_MODE)
+if (NOT ENABLE_SAFE_MODE AND NOT ENABLE_STABLE_MODE)
   cvc5_add_python_api_test(issue4889 "issues")
 endif()
