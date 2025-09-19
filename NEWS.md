@@ -62,10 +62,11 @@ cvc5 1.3.0
 - The quantifier instatiation strategy `--mbqi-fast-sygus` has been renamed to
   `--mbqi-enum`.
 - **API**
-  + Added support for creating and using multiple `TermManager` instances within
-    the same thread and across different threads (not thread-safe). Previously,
-    all `TermManager` objects in a thread shared a single memory reference, which
-    could not be used across threads.
+  + Added support for multiple `TermManager` instances within the same thread and
+    across threads. Previously, all `TermManager` objects in a thread shared
+    a single memory reference and could not be shared across threads.
+    Instances can now be shared across threads, but they are not thread-safe and
+    must be protected from concurrent access.
 
 
 cvc5 1.2.1
