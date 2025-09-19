@@ -323,7 +323,7 @@
   ; base case
   (($mk_arith_mult_sign_sgn sgn true 1)   sgn)  
   ; handles the singleton antecedant case
-  (($mk_arith_mult_sign_sgn sgn l m)      ($mk_arith_mult_sign_sgn sgn (eo::cons and l true) m))
+  (($mk_arith_mult_sign_sgn sgn l m)      ($mk_arith_mult_sign_sgn sgn (and l) m))
   )
 )
 

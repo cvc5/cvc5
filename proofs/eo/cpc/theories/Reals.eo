@@ -18,4 +18,5 @@
       Real))) :left-assoc)
 
 ; skolems
+; note: equivalent to (lambda ((x Real)) (/ x 0.0)).
 (declare-const @div_by_zero (-> Real Real))

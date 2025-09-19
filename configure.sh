@@ -18,6 +18,8 @@ Build types:
     Maximally optimized, assertions and tracing disabled, muzzled
   safe-mode
     Like production except --safe-mode is set to safe
+  stable-mode
+    Like production except --safe-mode is set to stable
 
 
 General options;
@@ -394,6 +396,7 @@ do
          testing)         buildtype=Testing;;
          competition)     buildtype=Competition;;
          safe-mode)       buildtype=Production; safe_mode=ON;;
+         stable-mode)     buildtype=Production; stable_mode=ON;;
          *)               die "invalid build type (try -h)";;
        esac
        ;;
@@ -428,6 +431,8 @@ fi
   && cmake_opts="$cmake_opts -DENABLE_ASSERTIONS=$assertions"
 [ $safe_mode != default ] \
   && cmake_opts="$cmake_opts -DENABLE_SAFE_MODE=$safe_mode"
+[ $stable_mode != default ] \
+  && cmake_opts="$cmake_opts -DENABLE_STABLE_MODE=$stable_mode"
 [ $coverage != default ] \
   && cmake_opts="$cmake_opts -DENABLE_COVERAGE=$coverage"
 [ $debug_symbols != default ] \

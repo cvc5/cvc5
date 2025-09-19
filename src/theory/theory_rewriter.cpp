@@ -142,7 +142,7 @@ RewriteResponse NoOpTheoryRewriter::preRewrite(TNode node)
      << " is disabled in this configuration, but got a constraint in that "
         "theory.";
   // suggested options only in non-safe builds
-#ifndef CVC5_SAFE_MODE
+#if !defined(CVC5_SAFE_MODE) && !defined(CVC5_STABLE_MODE)
   // hardcoded, for better error messages.
   switch (d_tid)
   {

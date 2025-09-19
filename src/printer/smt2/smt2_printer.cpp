@@ -385,9 +385,8 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
     case Kind::UNINTERPRETED_SORT_VALUE:
     {
       const UninterpretedSortValue& v = n.getConst<UninterpretedSortValue>();
-      std::stringstream ss;
-      ss << "(as " << v << " " << n.getType() << ")";
-      out << ss.str();
+      out << "(as " << cvc5::internal::quoteSymbol(v.getSymbol()) << " "
+          << n.getType() << ")";
       break;
     }
     case Kind::CARDINALITY_CONSTRAINT_OP:
@@ -1602,7 +1601,7 @@ void Smt2Printer::toStreamModelSort(std::ostream& out,
       // prints as raw symbol
       const UninterpretedSortValue& av =
           trn.getConst<UninterpretedSortValue>();
-      out << "(" << av << ")";
+      out << "(" << cvc5::internal::quoteSymbol(av.getSymbol()) << ")";
     }
     out << "))" << std::endl;
     return;
@@ -1626,7 +1625,7 @@ void Smt2Printer::toStreamModelSort(std::ostream& out,
         // prints as raw symbol
         const UninterpretedSortValue& av =
             trn.getConst<UninterpretedSortValue>();
-        out << av;
+        out << cvc5::internal::quoteSymbol(av.getSymbol());
       }
       else
       {
@@ -1959,6 +1958,12 @@ void Smt2Printer::toStreamCmdGetValue(std::ostream& out,
   out << "))";
 }
 
+void Smt2Printer::toStreamCmdGetModelDomainElements(std::ostream& out,
+                                                    TypeNode type) const
+{
+  out << "(get-model-domain-elements " << type << ")";
+}
+
 void Smt2Printer::toStreamCmdGetModel(std::ostream& out) const
 {
   out << "(get-model)";
@@ -2139,7 +2144,9 @@ void Smt2Printer::toStreamCmdDatatypeDeclaration(
     return;
   }
   out << "(declare-";
-  if (d0.isCodatatype())
+  // Ethos does not support codatatypes, we just print as an ordinary
+  // datatype for now
+  if (d0.isCodatatype() && d_variant != Variant::alf_variant)
   {
     out << "co";
   }
