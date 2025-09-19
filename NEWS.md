@@ -63,7 +63,9 @@ cvc5 1.3.0
   `--mbqi-enum`.
 - **API**
   + Added support for creating and using multiple `TermManager` instances within
-    the same thread and across different threads (not thread-safe).
+    the same thread and across different threads (not thread-safe). Previously,
+    all `TermManager` objects in a thread shared a single memory reference, which
+    could not be used across threads.
 
 
 cvc5 1.2.1
