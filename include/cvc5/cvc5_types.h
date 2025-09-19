@@ -730,8 +730,7 @@ namespace cvc5::modes {
 #endif
 
 /* -------------------------------------------------------------------------- */
-/* Objective kinds                                                            */
-/* This enumeration is experimental and may be subject to change              */
+/* ObjectiveKind                                                            */
 /* -------------------------------------------------------------------------- */
 
 #ifdef CVC5_API_USE_C_ENUMS
@@ -739,6 +738,11 @@ namespace cvc5::modes {
 #define EVALUE(name) CVC5_OBJECTIVE_KIND_##name
 #endif
 
+/**
+ * Optimization objective kind enumeration.
+ * Specifies the kind of an optimization objective for user interface purposes.
+ * This enumeration is experimental and may be subject to change.
+ */
 enum ENUM(ObjectiveKind)
 {
   /** No objective kind specified. */
@@ -795,8 +799,7 @@ namespace cvc5::modes {
 #endif
 
 /* -------------------------------------------------------------------------- */
-/* Strategy kinds                                                             */
-/* This enumeration is experimental and may be subject to change              */
+/* StrategyKind                                                             */
 /* -------------------------------------------------------------------------- */
 
 #ifdef CVC5_API_USE_C_ENUMS
@@ -804,6 +807,12 @@ namespace cvc5::modes {
 #define EVALUE(name) CVC5_OMT_STRATEGY_KIND_##name
 #endif
 
+/**
+ * Optimization strategy kind enumeration.
+ * Specifies the strategy for solving an optimization problem for 
+ * user interface purposes.
+ * This enumeration is experimental and may be subject to change.
+ */
 enum ENUM(OMTStrategyKind)
 {
   /** No strategy kind specified. */  
