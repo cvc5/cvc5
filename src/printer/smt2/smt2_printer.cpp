@@ -1913,16 +1913,20 @@ void Smt2Printer::toStreamCmdDeclareType(std::ostream& out,
 {
   if (d_variant == Variant::alf_variant)
   {
-    out << "(declare-type " << cvc5::internal::quoteSymbol(id) << " (";
-    for (size_t i = 0; i < arity; i++)
+    out << "(declare-const " << cvc5::internal::quoteSymbol(id) << " ";
+    if (arity > 0)
     {
-      if (i > 0)
+      out << "(->";
+      for (size_t i = 0; i < arity; i++)
       {
-        out << " ";
+        out << " Type";
       }
-      out << "Type";
+      out << " Type))";
     }
-    out << "))";
+    else
+    {
+      out << "Type)";
+    }
     return;
   }
   out << "(declare-sort " << cvc5::internal::quoteSymbol(id) << " " << arity
