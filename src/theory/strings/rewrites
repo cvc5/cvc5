@@ -587,6 +587,16 @@
 
 (define-rule re-star-star ((x RegLan)) (re.* (re.* x)) (re.* x))
 
+(define-cond-rule re-range-non-singleton-1 ((s String) (t String))
+  (not (= (str.len s) 1))
+  (re.range s t)
+  re.none)
+  
+(define-cond-rule re-range-non-singleton-2 ((s String) (t String))
+  (not (= (str.len t) 1))
+  (re.range s t)
+  re.none)
+
 (define-rule re-star-union-drop-emp ((x RegLan :list) (y RegLan :list))
   (re.* (re.union x (str.to_re "") y))
   (re.* (re.union x y)))
