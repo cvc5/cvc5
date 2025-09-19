@@ -1240,7 +1240,7 @@ enum ENUM(ProofRule)
   EVALUE(NARY_CONG),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Equality -- Argument list Congruence**
+   * **Equality -- Pairwise Congruence**
    *
    * .. math::
    *
@@ -1252,7 +1252,7 @@ enum ENUM(ProofRule)
    * ``cvc5::Kind::DISTINCT``.
    * \endverbatim
    */
-  EVALUE(ARG_LIST_CONG),
+  EVALUE(PAIRWISE_CONG),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Equality -- True intro**

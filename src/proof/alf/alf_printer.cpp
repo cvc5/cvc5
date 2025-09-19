@@ -80,7 +80,7 @@ bool AlfPrinter::isHandled(const Options& opts, const ProofNode* pfn)
     case ProofRule::TRANS:
     case ProofRule::CONG:
     case ProofRule::NARY_CONG:
-    case ProofRule::ARG_LIST_CONG:
+    case ProofRule::PAIRWISE_CONG:
     case ProofRule::HO_CONG:
     case ProofRule::TRUE_INTRO:
     case ProofRule::TRUE_ELIM:

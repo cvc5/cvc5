@@ -142,10 +142,10 @@
     :conclusion (= t ($mk_nary_cong_rhs t E))
 )
 
-;;;;; ProofRule::ARG_LIST_CONG
+;;;;; ProofRule::PAIRWISE_CONG
 
 ; rule: arg_list_cong
-; implements: ProofRule::ARG_LIST_CONG
+; implements: ProofRule::PAIRWISE_CONG
 ; premises:
 ; - E [:list]: A conjunction of equalities to apply arg-list-congruence to.
 ; args:
@@ -156,7 +156,7 @@
 ; conclusion: >
 ;   An equality between applications of f whose argument lists are given
 ;   by the equalities in E.
-(declare-rule arg_list_cong ((E Bool) (T Type) (U Type) (xs U) (f (-> U T)))
+(declare-rule pairwise_cong ((E Bool) (T Type) (U Type) (xs U) (f (-> U T)))
     :premise-list E and
     :args ((f xs))
     :conclusion (= (f xs) (f ($mk_nary_cong_rhs xs E)))
