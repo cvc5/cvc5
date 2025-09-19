@@ -167,7 +167,7 @@
   )
 )
 
-; define: $are_distinct_terms_list_rec
+; define: $are_distinct_terms_list
 ; args:
 ; - xs @List: A list of terms, each expected to be of type T.
 ; - T Type: The type of the terms in the list.
