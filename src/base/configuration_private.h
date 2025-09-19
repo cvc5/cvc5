@@ -36,6 +36,12 @@ namespace cvc5::internal {
 #  define IS_SAFE_BUILD false
 #endif /* CVC5_SAFE_MODE */
 
+#ifdef CVC5_STABLE_MODE
+#  define IS_STABLE_BUILD true
+#else /* CVC5_STABLE_MODE */
+#  define IS_STABLE_BUILD false
+#endif /* CVC5_STABLE_MODE */
+
 #ifdef CVC5_TRACING
 #  define IS_TRACING_BUILD true
 #else /* CVC5_TRACING */

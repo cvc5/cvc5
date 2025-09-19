@@ -355,6 +355,7 @@ void OptionsHandler::showConfiguration(const std::string& flag, bool value)
   std::cout << std::endl;
 
   print_config_cond("safe-mode", Configuration::isSafeBuild());
+  print_config_cond("stable-mode", Configuration::isStableBuild());
   print_config_cond("debug code", Configuration::isDebugBuild());
   print_config_cond("statistics", configuration::isStatisticsBuild());
   print_config_cond("tracing", Configuration::isTracingBuild());

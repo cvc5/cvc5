@@ -356,7 +356,8 @@ class CpcTester(Tester):
             )
             # if we throw an admissible error (with text "in safe mode"), we
             # allow the benchmark to be skipped.
-            if benchmark_info.safe_mode and (re.search(r'in safe mode', output.decode()) or re.search(r'in safe mode', error.decode())):
+            if ((benchmark_info.safe_mode or benchmark_info.stable_mode) and
+                (re.search(r'in safe mode', output.decode()) or re.search(r'in safe mode', error.decode()))):
                 return EXIT_SKIP
             cpc_sig_dir = os.path.abspath(g_args.cpc_sig_dir)
             tmpf.write(("(include \"" + cpc_sig_dir + "/cpc/Cpc.eo\")").encode())
@@ -563,7 +564,8 @@ BenchmarkInfo = collections.namedtuple(
         "expected_exit_status",
         "command_line_args",
         "compare_outputs",
-        "safe_mode"
+        "safe_mode",
+        "stable_mode"
     ],
 )
 
@@ -714,7 +716,8 @@ def run_benchmark(benchmark_info):
     )
     # For all testers, if we throw an admissible error (with text
     # "in safe mode"), we allow the benchmark to be skipped.
-    if benchmark_info.safe_mode and (re.search(r'in safe mode', output.decode()) or re.search(r'in safe mode', error.decode())):
+    if ((benchmark_info.safe_mode or benchmark_info.stable_mode) and
+        (re.search(r'in safe mode', output.decode()) or re.search(r'in safe mode', error.decode()))):
         return (output, error, EXIT_SKIP)
 
     # If a scrubber command has been specified then apply it to the output.
@@ -916,7 +919,8 @@ def run_regression(
             expected_exit_status=expected_exit_status,
             command_line_args=all_args,
             compare_outputs=True,
-            safe_mode=("safe-mode" in cvc5_features)
+            safe_mode=("safe-mode" in cvc5_features),
+            stable_mode=("stable-mode" in cvc5_features)
         )
         for tester_name, tester in g_testers.items():
             if tester_name in testers and tester.applies(benchmark_info):
