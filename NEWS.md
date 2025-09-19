@@ -61,6 +61,9 @@ cvc5 1.3.0
   features but does not insist on complete proofs or models.
 - The quantifier instatiation strategy `--mbqi-fast-sygus` has been renamed to
   `--mbqi-enum`.
+- **API**
+  + Added support for creating and using multiple `TermManager` instances within
+    the same thread and across different threads (not thread-safe).
 
 
 cvc5 1.2.1
