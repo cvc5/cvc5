@@ -1,0 +1,8 @@
+(set-logic ALL)
+(set-info :status sat)
+(declare-const a Int)
+(declare-const b Int)
+(declare-const c Int)
+(assert (distinct a b c))
+(assert (int.star-contains ((x Int) (y Int) (z Int)) (= x (+ y z)) (tuple a b c)))
+(check-sat)

@@ -12,8 +12,9 @@
  * Extension to the theory of arithmetic handling lia star operator.
  */
 
-#include "theory/arith/liastar/liastar_extension.h"
+#include "liastar_extension.h"
 
+#include "liastar_utils.h"
 #include "options/arith_options.h"
 #include "options/smt_options.h"
 #include "theory/arith/arith_utilities.h"
@@ -66,7 +67,6 @@ void LiaStarExtension::getAssertions(std::vector<Node>& assertions)
 {
   Trace("liastar-ext") << "Getting assertions..." << std::endl;
   Valuation v = d_arith.getValuation();
-  std::cout << v.needCheck() << std::endl;
   for (auto it = d_arith.facts_begin(); it != d_arith.facts_end(); ++it)
   {
     Node lit = (*it).d_assertion;
@@ -102,21 +102,7 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
   for (const auto& literal : assertions)
   {
     Assert(literal.getKind() == Kind::STAR_CONTAINS);
-    Node variables = literal[0];
-    Node predicate = literal[1];
-    Node vec = literal[2];
-
-    std::unordered_set<Node> boundVariables;
-    for (const auto& v : variables)
-    {
-      boundVariables.insert(v);
-    }
-    std::vector<Node> vecElements =
-        datatypes::TupleUtils::getTupleElements(vec);
-    Node substitute = predicate.substitute(variables.begin(),
-                                           variables.end(),
-                                           vecElements.begin(),
-                                           vecElements.end());
+    Node vectorPredicate = LiaStarUtils::getVectorPredicate(literal);
     std::vector<Node> keys;
     std::vector<Node> values;
 
@@ -126,16 +112,31 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
       values.push_back(value);
     }
 
-    Node value = substitute.substitute(
+    Node value = vectorPredicate.substitute(
         keys.begin(), keys.end(), values.begin(), values.end());
     value = rewrite(value);
-    Trace("liastar-ext-debug") << "literal: " << literal << std::endl;
-    Trace("liastar-ext-debug") << "predicate: " << predicate << std::endl;
-    Trace("liastar-ext-debug") << "substitute: " << substitute << std::endl;
+
     Trace("liastar-ext-debug") << "value: " << value << std::endl;
     if (value == d_false)
     {
-      d_im.addPendingLemma(substitute, InferenceId::ARITH_LIA_STAR);
+      // the candidate model does not satisfy the star predicate.
+      // This does not mean the vector is not a member of the star set,
+      // because it could be a linear combinations of other vectors in the set.
+      // But we don't know them at this point.
+      // So to make progress, we split on whether the vector before evaluation,
+      // which may contain variables, satisfies the predicate or not.
+      // So if we have
+      // (star-contains ((x1 ... x_n) (p x1 ... x_n) (tuple y1 ... y_n)))
+      // we add the lemma
+      // (or (p y1 ... y_n) (not (p y1 ... y_n)) hoping that
+      // (p y1 ... y_n) holds to force LIA solver to find a model.
+      // If not, then we need to work harder with (not (p y1 ... y_n))
+      // to find a linear combination of vectors if it is satisfiable.
+      NodeManager* nm = nodeManager();
+      Node lemma =
+          nm->mkNode(Kind::OR, vectorPredicate, vectorPredicate.negate());
+      d_im.addPendingLemma(lemma, InferenceId::ARITH_LIA_STAR);
+      Trace("liastar-ext") << "lemma = " << lemma << std::endl;
     }
   }
   Trace("liastar-ext") << "unsatisfied = " << unsatisfied.size() << std::endl;

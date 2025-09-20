@@ -415,6 +415,8 @@ libcvc5_add_sources(
   theory/arith/liastar/liastar_ext_theory_callback.h
   theory/arith/liastar/liastar_extension.cpp
   theory/arith/liastar/liastar_extension.h
+  theory/arith/liastar/liastar_utils.cpp
+  theory/arith/liastar/liastar_utils.h
   theory/arith/linear/approx_simplex.cpp
   theory/arith/linear/approx_simplex.h
   theory/arith/linear/arith_static_learner.cpp

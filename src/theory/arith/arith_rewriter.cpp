@@ -29,6 +29,7 @@
 #include "smt/logic_exception.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/arith_utilities.h"
+#include "theory/arith/liastar/liastar_utils.h"
 #include "theory/arith/operator_elim.h"
 #include "theory/arith/rewriter/addition.h"
 #include "theory/arith/rewriter/node_utils.h"
@@ -1088,6 +1089,18 @@ RewriteResponse ArithRewriter::rewriteStarContains(TNode t)
   if (isZero)
   {
     return RewriteResponse(REWRITE_DONE, nm->mkConst(true));
+  }
+  // if the vector is a constant vector, we can evaluate the predicate
+  // and see if it holds.
+  if (ys.isConst())
+  {
+    Node vectorPredicate = liastar::LiaStarUtils::getVectorPredicate(t);
+    Evaluator eval(nullptr);
+    Node value = eval.eval(vectorPredicate, {}, {});
+    if (value == d_nm->mkConst(true))
+    {
+      return RewriteResponse(REWRITE_DONE, nm->mkConst(true));
+    }
   }
   return RewriteResponse(REWRITE_DONE, t);
 }

@@ -28,9 +28,6 @@
 
 namespace cvc5::internal {
 namespace theory {
-namespace eq {
-class EqualityEngine;
-}
 namespace arith {
 
 class InferenceManager;

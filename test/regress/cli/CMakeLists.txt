@@ -2456,6 +2456,7 @@ set(regress_1_tests
   regress1/abduction/sygus-abduct-test-user.smt2
   regress1/abduction/uf-abduct.smt2
   regress1/abduction/yoni-true-sol.smt2
+  regress1/arith/liastar/predicate_sat.smt2
   regress1/arith/arith-brab-test.smt2
   regress1/arith/arith-int-004.cvc.smt2
   regress1/arith/arith-int-011.cvc.smt2
