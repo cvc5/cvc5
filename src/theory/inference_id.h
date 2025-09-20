@@ -181,6 +181,8 @@ enum class InferenceId
   ARITH_NL_ICP_CONFLICT,
   // propagation / contraction of variable bounds from icp
   ARITH_NL_ICP_PROPAGATION,
+  // lia star extension
+  ARITH_LIA_STAR,
   //-------------------- ff inference
   // ---------------------------------- end arith theory
 

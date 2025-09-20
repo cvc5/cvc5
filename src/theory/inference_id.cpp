@@ -114,6 +114,7 @@ const char* toString(InferenceId i)
     case InferenceId::ARITH_NL_ICP_CONFLICT: return "ARITH_NL_ICP_CONFLICT";
     case InferenceId::ARITH_NL_ICP_PROPAGATION:
       return "ARITH_NL_ICP_PROPAGATION";
+    case InferenceId::ARITH_LIA_STAR: return "ARITH_LIA_STAR";
     case InferenceId::FF_LEMMA: return "FF_LEMMA";
 
     case InferenceId::ARRAYS_EXT: return "ARRAYS_EXT";
