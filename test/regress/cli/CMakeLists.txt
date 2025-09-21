@@ -1185,6 +1185,10 @@ set(regress_0_tests
   regress0/nl/pow2-native-1.smt2
   regress0/nl/pow2-native-2.smt2
   regress0/nl/pow2-native-3.smt2
+  regress0/nl/pow2-native-4.smt2
+  regress0/nl/pow2-native-5.smt2
+  regress0/nl/pow2-native-6.smt2
+  regress0/nl/pow2-native-7.smt2
   regress0/nl/pow2-pow.smt2
   regress0/nl/pow2-pow-isabelle.smt2
   regress0/nl/proj-issue-348.smt2
