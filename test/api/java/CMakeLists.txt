@@ -49,7 +49,7 @@ macro(cvc5_add_java_api_test name dir)
   endif()
   add_test(${testname}
       ${Java_JAVA_EXECUTABLE}
-        -Djava.library.path=${JAVA_LIB_PATH}
+        -Djava.library.path="${JAVA_LIB_PATH}"
         -cp "${CVC5_JAR_PATH}${PATH_SEP}${test_bin_dir}/${name}.jar" ${name}
     )
   set_tests_properties(${testname} PROPERTIES LABELS "api japi")
