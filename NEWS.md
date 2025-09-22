@@ -23,8 +23,9 @@ Unreleased
   Similar to the build configuration `safe-mode`, this configuration guards
   against all cvc5 features that are not robust, but in constrast it does not
   guarantee full proof and model support.
-- Minor updates to the CPC proof signature, and are checkable by Ethos 0.2.1
-  (`./contrib/get-ethos-checker`).
+- Minor updates to the CPC proof signature. The current CPC proofs are checkable
+  by Ethos 0.2.1 (`./contrib/get-ethos-checker`).
+
 cvc5 1.3.0
 ==========
 
