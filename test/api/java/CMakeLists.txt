@@ -26,6 +26,12 @@ add_custom_target(japitests
   COMMAND ctest --output-on-failure -L "japi" -j${CTEST_NTHREADS} $$ARGS
   DEPENDS build-japitests)
 
+if(WIN32)
+  set(PATH_SEP ";")
+else()
+  set(PATH_SEP ":")
+endif()
+
 macro(cvc5_add_java_api_test name dir)
   set(test_bin_dir ${CMAKE_BINARY_DIR}/bin/test/api/java/${dir})
   add_jar(${name}
@@ -42,7 +48,7 @@ macro(cvc5_add_java_api_test name dir)
   add_test(${testname}
       ${Java_JAVA_EXECUTABLE}
         -Djava.library.path=${CVC5_JNI_PATH}
-        -cp ${CVC5_JAR_PATH}:${test_bin_dir}/${name}.jar ${name}
+        -cp ${CVC5_JAR_PATH}${PATH_SEP}${test_bin_dir}/${name}.jar ${name}
     )
   set_tests_properties(${testname} PROPERTIES LABELS "api japi")
   add_dependencies(build-japitests ${name})
