@@ -48,7 +48,7 @@ macro(cvc5_add_java_api_test name dir)
   add_test(${testname}
       ${Java_JAVA_EXECUTABLE}
         -Djava.library.path=${CVC5_JNI_PATH}
-        -cp ${CVC5_JAR_PATH}${PATH_SEP}${test_bin_dir}/${name}.jar ${name}
+        -cp "${CVC5_JAR_PATH}${PATH_SEP}${test_bin_dir}/${name}.jar" ${name}
     )
   set_tests_properties(${testname} PROPERTIES LABELS "api japi")
   add_dependencies(build-japitests ${name})
