@@ -48,7 +48,7 @@ macro(cvc5_add_java_api_test name dir)
   add_dependencies(build-japitests ${name})
 endmacro()
 
-# TODO: Set Java API test infrastructure for Windows
+# TODO: Set Java API test infrastructure for Windows (see issue #12143)
 if(NOT WIN32)
 
   add_subdirectory(issues)
