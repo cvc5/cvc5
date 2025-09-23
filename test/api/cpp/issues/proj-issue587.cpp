@@ -23,6 +23,7 @@ int main(void)
   solver.setOption("incremental", "false");
   solver.setOption("sygus-core-connective", "true");
   solver.setOption("produce-abducts", "true");
+  solver.setOption("sets-exp", "true");
   Sort s0 = tm.getBooleanSort();
   Sort s1 = tm.mkSetSort(s0);
   Sort s2 = tm.mkSetSort(s1);
