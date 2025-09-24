@@ -1,6 +1,6 @@
 This file contains a summary of important user-visible changes.
 
-Unreleased
+cvc5 1.3.1
 ==========
 
 ## Changes
