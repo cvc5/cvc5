@@ -241,9 +241,6 @@ def test_mk_function_sort(tm):
     tm.mkFunctionSort(funSort, tm.getIntegerSort())
 
     # non-first-class arguments are not allowed
-    reSort = tm.getRegExpSort()
-    with pytest.raises(RuntimeError):
-        tm.mkFunctionSort(reSort, tm.getIntegerSort())
     with pytest.raises(RuntimeError):
         tm.mkFunctionSort(tm.getIntegerSort(), funSort)
 

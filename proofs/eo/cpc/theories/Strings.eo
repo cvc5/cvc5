@@ -50,8 +50,13 @@
 ;   e.g. evaluation, strings require using string literals as their
 ;   values. In places where seq.empty can be used for a string or
 ;   sequence (e.g., RARE), we use this program to ensure this is the case.
-(define $seq_empty ((U Type))
-  (eo::ite (eo::is_eq U String) "" (as seq.empty U)))
+(program $seq_empty ((T Type))
+  :signature ((eo::quote T)) T
+  (
+  (($seq_empty String)  "")
+  (($seq_empty T)       (as seq.empty T))
+  )
+)
 
 ; Core functions of strings.
 (declare-parameterized-const str.len ((T Type :implicit)) (-> (Seq T) Int))
@@ -80,8 +85,6 @@
   (-> (Seq T) (Seq T) Bool))
 ; disclaimer: This function is not in SMT-LIB.
 (declare-parameterized-const str.rev ((T Type :implicit)) (-> (Seq T) (Seq T)))
-; disclaimer: This function is not in SMT-LIB.
-(declare-const str.unit (-> Int String))
 ; disclaimer: This function is not in SMT-LIB.
 (declare-parameterized-const str.update ((T Type :implicit))
   (-> (Seq T) Int (Seq T) (Seq T)))
@@ -115,6 +118,7 @@
 
 (declare-const re.* (-> RegLan RegLan))
 (declare-const re.+ (-> RegLan RegLan))
+(declare-const re.^ (-> Int RegLan RegLan))
 (declare-const re.opt (-> RegLan RegLan))
 (declare-const re.comp (-> RegLan RegLan))
 (declare-const re.range (-> String String RegLan))
@@ -138,7 +142,7 @@
 (declare-parameterized-const seq.unit ((T Type :implicit)) (-> T (Seq T)))
 ; disclaimer: This function is not in SMT-LIB.
 (declare-parameterized-const seq.nth ((T Type :implicit))
-  (-> (Seq T) Int (eo::ite (eo::eq T Char) Int T)))
+  (-> (Seq T) Int T))
 
 ; Sequence operators are automatically translated to the string operators.
 ; disclaimer: This function is not in SMT-LIB.
@@ -191,21 +195,9 @@
 (declare-parameterized-const @strings_occur_index_re
   ((s String :opaque) (r RegLan :opaque))
   (-> Int Int))
-(declare-parameterized-const @strings_occur_len_re
-  ((s String :opaque) (r RegLan :opaque))
-  (-> Int Int))
 (declare-parameterized-const @strings_replace_all_result
   ((T Type :implicit) (t (Seq T) :opaque))
   (-> Int (Seq T)))
-(declare-parameterized-const @re_first_match_pre
-  ((h String :opaque) (e RegLan :opaque))
-  String)
-(declare-parameterized-const @re_first_match
-  ((i String :opaque) (f RegLan :opaque))
-  String)
-(declare-parameterized-const @re_first_match_post
-  ((j String :opaque) (g RegLan :opaque))
-  String)
 
 (declare-parameterized-const @witness_string_length ((T Type))
   (-> Int Int T))

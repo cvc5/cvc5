@@ -26,6 +26,7 @@
 #include "theory/trust_substitutions.h"
 #include "theory/uf/function_const.h"
 #include "util/rational.h"
+#include "util/uninterpreted_sort_value.h"
 
 using namespace std;
 using namespace cvc5::internal::kind;
@@ -53,16 +54,9 @@ void TheoryModel::finishInit(eq::EqualityEngine* ee)
 {
   Assert(ee != nullptr);
   d_equalityEngine = ee;
-  // The kinds we are treating as function application in congruence
-  d_equalityEngine->addFunctionKind(
-      Kind::APPLY_UF, false, logicInfo().isHigherOrder());
+  // we do not do congruence on any kind in the model equality engine, with
+  // the exception of HO_APPLY for the sake of higher-order.
   d_equalityEngine->addFunctionKind(Kind::HO_APPLY);
-  d_equalityEngine->addFunctionKind(Kind::SELECT);
-  // d_equalityEngine->addFunctionKind(Kind::STORE);
-  d_equalityEngine->addFunctionKind(Kind::APPLY_CONSTRUCTOR);
-  d_equalityEngine->addFunctionKind(Kind::APPLY_SELECTOR);
-  d_equalityEngine->addFunctionKind(Kind::APPLY_TESTER);
-  d_equalityEngine->addFunctionKind(Kind::SEQ_NTH);
   // do not interpret APPLY_UF if we are not assigning function values
   if (!d_enableFuncModels)
   {
@@ -115,8 +109,8 @@ std::vector<Node> TheoryModel::getDomainElements(TypeNode tn) const
   // must be an uninterpreted sort
   Assert(tn.isUninterpretedSort());
   std::vector<Node> elements;
-  const std::vector<Node>* type_refs = d_rep_set.getTypeRepsOrNull(tn);
-  if (type_refs == nullptr || type_refs->empty())
+  const std::vector<Node>* type_reps = d_rep_set.getTypeRepsOrNull(tn);
+  if (type_reps == nullptr || type_reps->empty())
   {
     // This is called when t is a sort that does not occur in this model.
     // Sorts are always interpreted as non-empty, thus we add a single element.
@@ -125,7 +119,15 @@ std::vector<Node> TheoryModel::getDomainElements(TypeNode tn) const
     elements.push_back(NodeManager::mkGroundValue(tn));
     return elements;
   }
-  return *type_refs;
+  // The representatives are skolems. We convert them to uninterpreted sort
+  // values here for printing purposes.
+  NodeManager* nm = nodeManager();
+  for (size_t i = 0, size = type_reps->size(); i < size; i++)
+  {
+    UninterpretedSortValue usv = UninterpretedSortValue(tn, Integer(i));
+    elements.push_back(nm->mkConst<UninterpretedSortValue>(usv));
+  }
+  return elements;
 }
 
 Node TheoryModel::getValue(TNode n) const
@@ -397,7 +399,7 @@ Node TheoryModel::getModelValue(TNode n) const
         Unreachable();
       }
     }
-    else if (!t.isFirstClass())
+    else if (!t.isFirstClass() || t.isRegExp())
     {
       // this is the class for regular expressions
       // we simply invoke the rewriter on them
@@ -549,7 +551,7 @@ bool TheoryModel::assertEqualityEngine(const eq::EqualityEngine* ee,
         if (first) {
           rep = n;
           //add the term (this is specifically for the case of singleton equivalence classes)
-          if (rep.getType().isFirstClass())
+          if (!rep.getType().isRegExp())
           {
             d_equalityEngine->addTerm( rep );
             Trace("model-builder-debug") << "Add term to ee within assertEqualityEngine: " << rep << std::endl;

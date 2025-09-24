@@ -323,7 +323,7 @@
   ; base case
   (($mk_arith_mult_sign_sgn sgn true 1)   sgn)  
   ; handles the singleton antecedant case
-  (($mk_arith_mult_sign_sgn sgn l m)      ($mk_arith_mult_sign_sgn sgn (eo::cons and l true) m))
+  (($mk_arith_mult_sign_sgn sgn l m)      ($mk_arith_mult_sign_sgn sgn (and l) m))
   )
 )
 
@@ -543,19 +543,4 @@
              (($is_eq_maybe_to_real x (- x1 x2)) true)
              (($is_eq_maybe_to_real y (- y1 y2)) true))
   :conclusion (= (r x1 x2) (r y1 y2))
-)
-
-;;;;; ProofRewriteRule::ARITH_POW_ELIM
-
-; rule: arith-pow-elim
-; implements: ProofRewriteRule::ARITH_POW_ELIM
-; args:
-; - eq Bool: The equality to prove with this rule.
-; requires: n is integral, and b is the multiplication of a, n times.
-; conclusion: the equality between a and b.
-(declare-rule arith-pow-elim ((T Type) (a T) (n T) (b T))
-  :args ((= (^ a n) b))
-  :requires (((eo::to_q (eo::to_z n)) (eo::to_q n))
-             (($singleton_elim ($arith_unfold_pow (eo::to_z n) a)) b))
-  :conclusion (= (^ a n) b)
 )

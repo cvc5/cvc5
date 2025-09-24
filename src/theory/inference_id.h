@@ -113,8 +113,8 @@ enum class InferenceId
   //-------------------- nonlinear core
   // simple congruence x=y => f(x)=f(y)
   ARITH_NL_CONGRUENCE,
-  // shared term value split (for naive theory combination)
-  ARITH_NL_SHARED_TERM_VALUE_SPLIT,
+  // for theory combination when NL model construction identifies shared terms
+  ARITH_NL_SHARED_TERM_SPLIT,
   // checkModel found a conflict with a quadratic equality
   ARITH_NL_CM_QUADRATIC_EQ,
   //-------------------- nonlinear incremental linearization solver
@@ -914,6 +914,8 @@ enum class InferenceId
   STRINGS_CMI_SPLIT,
   // constant sequence purification
   STRINGS_CONST_SEQ_PURIFY,
+  // regular expression equality equivalence
+  STRINGS_RE_EQ_ELIM_EQUIV,
   //-------------------------------------- end strings theory
 
   //-------------------------------------- uf theory

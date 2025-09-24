@@ -41,6 +41,10 @@ TheoryUfRewriter::TheoryUfRewriter(NodeManager* nm) : TheoryRewriter(nm)
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::MACRO_LAMBDA_CAPTURE_AVOID,
                            TheoryRewriteCtx::PRE_DSL);
+  registerProofRewriteRule(ProofRewriteRule::DISTINCT_CARD_CONFLICT,
+                           TheoryRewriteCtx::PRE_DSL);
+  registerProofRewriteRule(ProofRewriteRule::DISTINCT_ELIM,
+                           TheoryRewriteCtx::PRE_DSL);
 }
 
 RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
@@ -160,12 +164,17 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
     Node rite = nm->mkNode(Kind::ITE, cond, r, nm->mkNode(Kind::SUB, r, ttm));
     return RewriteResponse(REWRITE_AGAIN_FULL, rite);
   }
+  else if (k == Kind::DISTINCT)
+  {
+    return rewriteDistinct(node);
+  }
   return RewriteResponse(REWRITE_DONE, node);
 }
 
 RewriteResponse TheoryUfRewriter::preRewrite(TNode node)
 {
-  if (node.getKind() == Kind::EQUAL)
+  Kind k = node.getKind();
+  if (k == Kind::EQUAL)
   {
     if (node[0] == node[1])
     {
@@ -176,6 +185,10 @@ RewriteResponse TheoryUfRewriter::preRewrite(TNode node)
       // uninterpreted constants are all distinct
       return RewriteResponse(REWRITE_DONE, nodeManager()->mkConst(false));
     }
+  }
+  else if (k == Kind::DISTINCT)
+  {
+    return rewriteDistinct(node);
   }
   return RewriteResponse(REWRITE_DONE, node);
 }
@@ -237,7 +250,7 @@ Node TheoryUfRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
     {
       if (n.getKind() == Kind::LAMBDA)
       {
-        Node felim = canEliminateLambda(n);
+        Node felim = canEliminateLambda(nodeManager(), n);
         if (!felim.isNull())
         {
           return felim;
@@ -370,6 +383,27 @@ Node TheoryUfRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       }
     }
     break;
+    case ProofRewriteRule::DISTINCT_CARD_CONFLICT:
+      if (n.getKind() == Kind::DISTINCT)
+      {
+        TypeNode tn = n[0].getType();
+        // we intentionally only handle booleans and bitvectors here
+        // for the sake of simplicity.
+        if (tn.isBoolean() || tn.isBitVector())
+        {
+          if (tn.isCardinalityLessThan(n.getNumChildren()))
+          {
+            return nodeManager()->mkConst(false);
+          }
+        }
+      }
+      break;
+    case ProofRewriteRule::DISTINCT_ELIM:
+      if (n.getKind() == Kind::DISTINCT)
+      {
+        return blastDistinct(n);
+      }
+      break;
     default: break;
   }
   return Node::null();
@@ -456,8 +490,9 @@ Node TheoryUfRewriter::rewriteLambda(Node node)
   Trace("builtin-rewrite-debug")
       << "...failed to get array representation." << std::endl;
   // see if it can be eliminated, (lambda ((x T)) (f x)) ---> f
-  Node felim = canEliminateLambda(node);
-  if (!felim.isNull())
+  // we only do this if the resulting eliminated term is a variable
+  Node felim = canEliminateLambda(nodeManager(), node);
+  if (!felim.isNull() && felim.isVar())
   {
     return felim;
   }
@@ -525,18 +560,19 @@ RewriteResponse TheoryUfRewriter::rewriteIntToBV(TNode node)
   return RewriteResponse(REWRITE_DONE, node);
 }
 
-Node TheoryUfRewriter::canEliminateLambda(const Node& node)
+Node TheoryUfRewriter::canEliminateLambda(NodeManager* nm, const Node& node)
 {
   Assert(node.getKind() == Kind::LAMBDA);
   if (node[1].getKind() == Kind::APPLY_UF)
   {
     size_t nvar = node[0].getNumChildren();
-    if (node[1].getNumChildren() == nvar)
+    size_t nargs = node[1].getNumChildren();
+    if (nargs >= nvar)
     {
       bool matchesList = true;
       for (size_t i = 0; i < nvar; i++)
       {
-        if (node[0][i] != node[1][i])
+        if (node[0][(nvar - 1) - i] != node[1][(nargs - 1) - i])
         {
           matchesList = false;
           break;
@@ -544,11 +580,68 @@ Node TheoryUfRewriter::canEliminateLambda(const Node& node)
       }
       if (matchesList)
       {
-        return node[1].getOperator();
+        Node ret = node[1].getOperator();
+        if (nargs > nvar)
+        {
+          size_t diff = nargs - nvar;
+          for (size_t i = 0; i < diff; i++)
+          {
+            ret = nm->mkNode(Kind::HO_APPLY, ret, node[1][i]);
+          }
+          // For instance we cannot eliminate (lambda ((x Int)) (f x x)) to
+          // (f x).
+          std::vector<Node> vars(node[0].begin(), node[0].end());
+          if (expr::hasSubterm(ret, vars))
+          {
+            return Node::null();
+          }
+        }
+        return ret;
       }
     }
   }
   return Node::null();
+}
+
+RewriteResponse TheoryUfRewriter::rewriteDistinct(TNode node)
+{
+  Node ret = rewriteViaRule(ProofRewriteRule::DISTINCT_CARD_CONFLICT, node);
+  if (!ret.isNull())
+  {
+    // Cardinality of type does not allow to find distinct values for all
+    // children of this node.
+    return RewriteResponse(REWRITE_DONE, nodeManager()->mkConst<bool>(false));
+  }
+  // otherwise, eagerly expand
+  return RewriteResponse(REWRITE_DONE, blastDistinct(node));
+}
+
+Node TheoryUfRewriter::blastDistinct(TNode in)
+{
+  Assert(in.getKind() == Kind::DISTINCT);
+
+  NodeManager* nm = nodeManager();
+
+  if (in.getNumChildren() == 2)
+  {
+    // if this is the case exactly 1 != pair will be generated so the
+    // AND is not required
+    return nm->mkNode(Kind::NOT, nm->mkNode(Kind::EQUAL, in[0], in[1]));
+  }
+
+  // assume that in.getNumChildren() > 2 => diseqs.size() > 1
+  std::vector<Node> diseqs;
+  for (TNode::iterator i = in.begin(); i != in.end(); ++i)
+  {
+    TNode::iterator j = i;
+    while (++j != in.end())
+    {
+      Node eq = nm->mkNode(Kind::EQUAL, *i, *j);
+      Node neq = nm->mkNode(Kind::NOT, eq);
+      diseqs.push_back(neq);
+    }
+  }
+  return nm->mkNode(Kind::AND, diseqs);
 }
 
 }  // namespace uf

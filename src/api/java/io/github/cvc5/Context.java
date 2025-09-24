@@ -21,19 +21,40 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.lang.Long;
 
+/**
+ * The {@code Context} class is responsible for tracking and deleting pointers to
+ * native C++ cvc5 objects associated with their corresponding Java counterparts.
+ *
+ * <p>This class maintains a centralized registry of {@link AbstractPointer}
+ * instances, such as those used for term managers, solvers, terms, sorts, etc and
+ * ensures that all native memory is properly released when no longer needed.</p>
+ */
 public class Context
 {
-  // store pointers for terms, sorts, etc
-
+  // Store pointers for term managers, solvers, terms, sorts, etc
   private static Map<Long, AbstractPointer> abstractPointers = new LinkedHashMap<>();
 
+  /**
+   * Private constructor to prevent instantiation of this memory management class.
+   */
+  private Context() {}
+
+  /**
+   * Register a new {@link AbstractPointer} for later cleanup.
+   *
+   * <p>If the pointer is already registered, it will not be added again.</p>
+   *
+   * @param pointer the {@link AbstractPointer} to register
+   */
   static void addAbstractPointer(AbstractPointer pointer)
   {
     abstractPointers.put(Long.valueOf(pointer.getPointer()), pointer);
   }
 
   /**
-   * Remove our record of a cpp pointer when it is deleted.
+   * Remove a previously registered {@link AbstractPointer} from the context.
+   *
+   * @param pointer the {@link AbstractPointer} to remove
    */
   static void removeAbstractPointer(AbstractPointer pointer) {
     if (pointer.getPointer() != 0) {
@@ -42,7 +63,16 @@ public class Context
   }
 
   /**
-   * Delete all cpp pointers for terms, sorts, etc
+   * Delete all registered native pointers in reverse order of their registration.
+   *
+   * <p>This method should be called by a single thread once all term managers and
+   * solver instances are no longer needed. It ensures that all native memory
+   * associated with registered {@link AbstractPointer}s is released to
+   * prevent memory leaks.</p>
+   *
+   * <p>For more fine-grained control over memory release, consider using
+   * the {@link AbstractPointer#deletePointer()} method individually on
+   * each Java object instead of calling this method.</p>
    */
   public static void deletePointers()
   {

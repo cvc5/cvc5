@@ -34,6 +34,7 @@
 #include "theory/arith/rewriter/node_utils.h"
 #include "theory/arith/rewriter/ordering.h"
 #include "theory/arith/rewriter/rewrite_atom.h"
+#include "theory/evaluator.h"
 #include "theory/rewriter.h"
 #include "theory/strings/arith_entail.h"
 #include "theory/theory.h"
@@ -377,7 +378,7 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
       return RewriteResponse(REWRITE_DONE, rewriter::mkConst(d_nm, true));
     }
     NodeManager* nm = nodeManager();
-    return RewriteResponse(REWRITE_AGAIN,
+    return RewriteResponse(REWRITE_AGAIN_FULL,
                            nm->mkNode(Kind::EQUAL,
                                       nm->mkNode(Kind::INTS_MODULUS_TOTAL,
                                                  atom[0],
@@ -462,15 +463,15 @@ RewriteResponse ArithRewriter::preRewriteTerm(TNode t){
       case Kind::ADD: return preRewritePlus(t);
       case Kind::MULT:
       case Kind::NONLINEAR_MULT: return preRewriteMult(t);
-      case Kind::IAND: return RewriteResponse(REWRITE_DONE, t);
-      case Kind::POW2: return RewriteResponse(REWRITE_DONE, t);
-      case Kind::INTS_ISPOW2: return RewriteResponse(REWRITE_DONE, t);
-      case Kind::INTS_LOG2: return RewriteResponse(REWRITE_DONE, t);
       case Kind::INTS_DIVISION:
       case Kind::INTS_MODULUS: return rewriteIntsDivMod(t, true);
       case Kind::INTS_DIVISION_TOTAL:
       case Kind::INTS_MODULUS_TOTAL: return rewriteIntsDivModTotal(t, true);
       case Kind::ABS: return rewriteAbs(t);
+      case Kind::IAND:
+      case Kind::POW2:
+      case Kind::INTS_ISPOW2:
+      case Kind::INTS_LOG2:
       case Kind::EXPONENTIAL:
       case Kind::SINE:
       case Kind::COSINE:
@@ -522,17 +523,10 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
       case Kind::ABS: return rewriteAbs(t);
       case Kind::TO_REAL: return rewriteToReal(t);
       case Kind::TO_INTEGER: return rewriteExtIntegerOp(t);
-      case Kind::POW:
-      {
-        Node tx = expandPowConst(nodeManager(), t);
-        if (!tx.isNull())
-        {
-          return RewriteResponse(REWRITE_AGAIN_FULL, tx);
-        }
-        return RewriteResponse(REWRITE_DONE, t);
-      }
       case Kind::PI: return RewriteResponse(REWRITE_DONE, t);
+      case Kind::POW2: return postRewritePow2(t);
       // expert cases
+      case Kind::POW:
       case Kind::EXPONENTIAL:
       case Kind::SINE:
       case Kind::COSINE:
@@ -547,8 +541,7 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
       case Kind::ARCSECANT:
       case Kind::ARCCOTANGENT:
       case Kind::SQRT:
-      case Kind::IAND:
-      case Kind::POW2: return postRewriteExpert(t);
+      case Kind::IAND: return postRewriteExpert(t);
       default: Unreachable();
     }
   }
@@ -561,6 +554,15 @@ RewriteResponse ArithRewriter::postRewriteExpert(TNode t)
   }
   switch (t.getKind())
   {
+    case Kind::POW:
+    {
+      Node tx = expandPowConst(nodeManager(), t);
+      if (!tx.isNull())
+      {
+        return RewriteResponse(REWRITE_AGAIN_FULL, tx);
+      }
+      return RewriteResponse(REWRITE_DONE, t);
+    }
     case Kind::EXPONENTIAL:
     case Kind::SINE:
     case Kind::COSINE:
@@ -576,7 +578,6 @@ RewriteResponse ArithRewriter::postRewriteExpert(TNode t)
     case Kind::ARCCOTANGENT:
     case Kind::SQRT: return postRewriteTranscendental(t);
     case Kind::IAND: return postRewriteIAnd(t);
-    case Kind::POW2: return postRewritePow2(t);
     default: Unreachable();
   }
 }
@@ -1155,21 +1156,18 @@ RewriteResponse ArithRewriter::postRewriteIAnd(TNode t)
 RewriteResponse ArithRewriter::postRewritePow2(TNode t)
 {
   Assert(t.getKind() == Kind::POW2);
-  NodeManager* nm = nodeManager();
   // if constant, we eliminate
   if (t[0].isConst())
   {
     // pow2 is only supported for integers
     Assert(t[0].getType().isInteger());
-    Integer i = t[0].getConst<Rational>().getNumerator();
-    if (i < 0)
+    // use the evaluator definition for rewriting this
+    Evaluator eval(nullptr);
+    Node ret = eval.eval(t, {}, {});
+    if (!ret.isNull())
     {
-      return RewriteResponse(REWRITE_DONE, rewriter::mkConst(d_nm, Integer(0)));
+      return RewriteResponse(REWRITE_DONE, ret);
     }
-    // (pow2 t) ---> (pow 2 t) and continue rewriting to eliminate pow
-    Node two = rewriter::mkConst(d_nm, Integer(2));
-    Node ret = nm->mkNode(Kind::POW, two, t[0]);
-    return RewriteResponse(REWRITE_AGAIN, ret);
   }
   return RewriteResponse(REWRITE_DONE, t);
 }

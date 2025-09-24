@@ -12,7 +12,7 @@
 ;
 ; =============================================================================
 
-(include "./theories/ArithExt.eo")
+(include "./rules/ArithExt.eo")
 (include "./theories/Bags.eo")
 (include "./theories/FloatingPoints.eo")
 (include "./theories/FiniteFields.eo")
@@ -31,7 +31,7 @@
 (declare-const fmf.combined_card (-> Int Bool))
 
 ; Used in the --ho-elim preprocessing pass
-(declare-type @ho-elim-sort (Type))
+(declare-const @ho-elim-sort (-> Type Type))
 (declare-parameterized-const @fmf-fun-sort ((T Type :implicit)) (-> T Type))
 
 ; Dataypes shared selector

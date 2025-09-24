@@ -1414,6 +1414,19 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
 
 Node RewriteDbProofCons::doEvaluate(const Node& n)
 {
+  // Only possible to evaluate if we rewrite to a constant. This is worthwhile
+  // to check since the rewrite of n has likely already been computed, whereas
+  // the evaluator below is not (globally) cached. We can do this optimization
+  // only if the term does not contain abstract subterms, which should not be
+  // sent to the rewriter.
+  if (!expr::hasAbstractSubterm(n))
+  {
+    Node nc = rewrite(n);
+    if (!nc.isConst())
+    {
+      return Node::null();
+    }
+  }
   auto [itv, inserted] = d_evalCache.emplace(n, Node());
   if (inserted)
   {
