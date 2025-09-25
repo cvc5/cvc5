@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Tim King, Andres Noetzli
+ *   Andrew Reynolds, Tim King, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
@@ -76,6 +76,7 @@ class String
   {
   }
   explicit String(const std::wstring& s);
+  explicit String(const std::u32string& s);
   explicit String(const char* s, bool useEscSequences = false)
       : d_str(toInternal(std::string(s), useEscSequences))
   {
@@ -130,6 +131,13 @@ class String
    * and std::wstring use 32bit characters.
    */
   std::wstring toWString() const;
+  /**
+   * Converts this string to a std::u32string.
+   *
+   * Unlike toString(), this method uses no escape sequences as both this class
+   * and std::u32string use 32bit characters.
+   */
+  std::u32string toU32String() const;
   /** is this the empty string? */
   bool empty() const { return d_str.empty(); }
   /** is less than or equal to string y */

@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Paul Meng, Mathias Preiner
+ *   Gereon Kremer, Paul Meng, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
@@ -31,6 +31,12 @@ namespace cvc5::main {
 void printUsage(const std::string& binary,
                 std::ostream& os,
                 bool printRegular = false);
+
+/**
+ * Print overall command-line options, partitioned into categories.
+ */
+void printUsageCategories(cvc5::Solver& solver,
+                          std::ostream& os);
 
 /**
  * Initialize the Options object options based on the given

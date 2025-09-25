@@ -21,6 +21,7 @@
 
 import os
 import sysconfig
+import platform
 from setuptools import setup
 
 ext_filename = 'cvc5_python_base' + sysconfig.get_config_var('EXT_SUFFIX')
@@ -67,14 +68,20 @@ else:
         'binding': False,
     }
 
-    extra_compile_args = ["-std=c++17", "-fno-var-tracking"]
+    extra_compile_args = [
+        "-std=c++17",
+        "-fno-var-tracking",
+        # Suppress deprecation warnings for deprecated members of OptionInfo
+        "-Wno-deprecated-declarations"
+    ]
 
     if sys.platform == 'win32':
         # Compile argument '-DMS_WIN64' fixes a division by zero error
         # See https://stackoverflow.com/q/64898146
         extra_compile_args += ["-DMS_WIN64"]
-        # Add default MSYS2 installation path for local development
-        os.environ['PATH'] += r';C:\msys64\mingw64\bin'
+        machine = platform.machine().lower()
+        if machine in ["arm64", "aarch64"]:
+            os.environ['CXX'] = r'aarch64-w64-mingw32-clang++'
 
     ext_options = {
         "libraries" : ["cvc5", "cvc5parser"],

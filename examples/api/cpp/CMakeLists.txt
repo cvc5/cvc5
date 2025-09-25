@@ -1,6 +1,6 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Mathias Preiner, Aina Niemetz, Abdalrhman Mohamed
+#   Mathias Preiner, Andrew Reynolds, Aina Niemetz
 #
 # This file is part of the cvc5 project.
 #
@@ -18,6 +18,7 @@ set(CVC5_EXAMPLES_API_CPP
   bitvectors_and_arrays
   combination
   datatypes
+  exceptions
   extract
   helloworld
   linear_arith
@@ -34,7 +35,7 @@ foreach(example ${CVC5_EXAMPLES_API_CPP})
   cvc5_add_example(${example} "" "api/cpp")
 endforeach()
 
-if(NOT CVC5_SAFE_BUILD)
+if((NOT CVC5_SAFE_BUILD) AND (NOT CVC5_STABLE_BUILD))
   cvc5_add_example(floating_point_arith "" "api/cpp")
   cvc5_add_example(bags "" "api/cpp")
   cvc5_add_example(relations "" "api/cpp")

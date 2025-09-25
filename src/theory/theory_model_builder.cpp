@@ -1392,6 +1392,7 @@ void TheoryEngineModelBuilder::assignFunction(TheoryModel* m, Node f)
 void TheoryEngineModelBuilder::assignHoFunction(TheoryModel* m, Node f)
 {
   Assert(logicInfo().isHigherOrder());
+  Trace("model-builder-debug") << "Assign HO function " << f << std::endl;
   TypeNode type = f.getType();
   std::vector<TypeNode> argTypes = type.getArgTypes();
   std::vector<Node> args;
@@ -1485,7 +1486,7 @@ void TheoryEngineModelBuilder::assignHoFunction(TheoryModel* m, Node f)
   }
   Node val = nodeManager()->mkNode(
       Kind::LAMBDA, nodeManager()->mkNode(Kind::BOUND_VAR_LIST, args), curr);
-  Trace("model-builder-debug") << "...assign via ho function" << std::endl;
+  Trace("model-builder-debug") << "...assign via ho function to " << val << std::endl;
   m->assignFunctionDefinition(f, val);
 }
 

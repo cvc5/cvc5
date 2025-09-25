@@ -5,9 +5,9 @@ import traceback
 
 cimport cpython.ref as cpy_ref
 from cython.operator cimport dereference, preincrement
+from cpython.unicode cimport PyUnicode_DATA, PyUnicode_KIND, PyUnicode_READ, PyUnicode_FromKindAndData, PyUnicode_4BYTE_KIND
 
 from libc.stdint cimport int32_t, int64_t, uint32_t, uint64_t
-from libc.stddef cimport wchar_t
 
 from libcpp cimport bool as c_bool
 from libcpp.pair cimport pair
@@ -43,7 +43,7 @@ from cvc5 cimport Proof as c_Proof
 from cvc5 cimport Sort as c_Sort
 from cvc5 cimport Term as c_Term
 from cvc5 cimport hash as c_hash
-from cvc5 cimport wstring as c_wstring
+from cvc5 cimport u32string as c_u32string
 from cvc5 cimport tuple as c_tuple
 from cvc5 cimport get0, get1, get2
 from cvc5kinds cimport Kind as c_Kind
@@ -55,11 +55,6 @@ from cvc5types cimport InputLanguage as c_InputLanguage
 from cvc5proofrules cimport ProofRewriteRule as c_ProofRewriteRule
 from cvc5proofrules cimport ProofRule as c_ProofRule
 from cvc5skolemids cimport SkolemId as c_SkolemId
-
-cdef extern from "Python.h":
-    wchar_t* PyUnicode_AsWideCharString(object, Py_ssize_t *) except NULL
-    object PyUnicode_FromWideChar(const wchar_t*, Py_ssize_t)
-    void PyMem_Free(void*)
 
 # Style Guidelines
 ### Using PEP-8 spacing recommendations
@@ -191,8 +186,11 @@ cdef class SymbolManager:
         """
             Constructor.
             Initialize with associated Solver or TermManager instance.
-            .. warning:: Initializing with associated solver instance is
-                         deprecated and will be removed in a future release.
+
+            .. warning::
+
+                Initializing with associated solver instance is deprecated and
+                will be removed in a future release.
         """
         if isinstance(tm, TermManager):
             self.csm = new c_SymbolManager(dereference((<TermManager?>tm).ctm))
@@ -215,9 +213,7 @@ cdef class SymbolManager:
 
     def getLogic(self):
         """
-            .. note::
-
-                Asserts :py:meth:`isLogicSet()`.
+            .. note:: Asserts :py:meth:`isLogicSet()`.
 
             :return: The logic used by this symbol manager.
         """
@@ -505,8 +501,9 @@ cdef class Datatype:
 
     def isParametric(self):
         """
-            .. warning:: This function is experimental and may change in future
-                         versions.
+            .. warning::
+
+                This function is experimental and may change in future versions.
 
             :return: True if this datatype is parametric.
         """
@@ -526,8 +523,9 @@ cdef class Datatype:
 
     def isRecord(self):
         """
-            .. warning:: This function is experimental and may change in future
-                         versions.
+            .. warning::
+
+                This function is experimental and may change in future versions.
 
             :return: True if this datatype corresponds to a record.
         """
@@ -660,8 +658,9 @@ cdef class DatatypeConstructor:
                 above (nullary) application of ``nil`` with
                 ``TermManager.mkTerm(APPLY_CONSTRUCTOR, t)``.
 
-            .. warning:: This function is experimental and may change in future
-                         versions.
+            .. warning::
+
+                This function is experimental and may change in future versions.
 
             :param retSort: The desired return sort of the constructor.
             :return: The constructor term.
@@ -806,8 +805,9 @@ cdef class DatatypeDecl:
 
     def isParametric(self):
         """
-            .. warning:: This function is experimental and may change in future
-                         versions.
+            .. warning::
+
+                This function is experimental and may change in future versions.
 
             :return: True if this datatype declaration is parametric.
         """
@@ -1333,8 +1333,9 @@ cdef class TermManager:
         """
             Create a sort parameter.
 
-            .. warning:: This function is experimental and may change in future
-                         versions.
+            .. warning::
+
+                This function is experimental and may change in future versions.
 
             :param symbol: The name of the sort.
             :return: The sort parameter.
@@ -1345,15 +1346,16 @@ cdef class TermManager:
 
     def mkSkolem(self, id, *indices):
         """
-            Create a skolem. 
+            Create a skolem.
 
-            .. warning:: This function is experimental and may change in future
-                         versions.
+            .. warning::
+
+                This function is experimental and may change in future versions.
 
             :param id: The skolem id.
             :param indices: The indices for the skolem.
-            :return: The skolem with the given id and indices. 
-        """  
+            :return: The skolem with the given id and indices.
+        """
         cdef vector[c_Term] v
         for t in indices:
             v.push_back((<Term?> t).cterm)
@@ -1361,14 +1363,15 @@ cdef class TermManager:
 
     def getNumIndicesForSkolemId(self, id):
         """
-            Get the number of indices for a skolem id. 
+            Get the number of indices for a skolem id.
 
-            .. warning:: This function is experimental and may change in future
-                         versions.
+            .. warning::
+
+                This function is experimental and may change in future versions.
 
             :param id: The skolem id.
-            :return: The number of indice for a skolem with the given id. 
-        """  
+            :return: The number of indice for a skolem with the given id.
+        """
         return self.ctm.getNumIndicesForSkolemId(<c_SkolemId> id.value)
 
     def mkPredicateSort(self, *sorts):
@@ -1387,8 +1390,9 @@ cdef class TermManager:
         """
             Create a record sort
 
-            .. warning:: This function is experimental and may change in future
-                         versions.
+            .. warning::
+
+                This function is experimental and may change in future versions.
 
             :param fields: The list of fields of the record.
             :return: The record sort.
@@ -1445,23 +1449,24 @@ cdef class TermManager:
             :py:obj:`STRING_SORT <Kind.STRING_SORT>` cannot.
 
             .. note::
-            Providing the kind :py:obj:`ABSTRACT_SORT <Kind.ABSTRACT_SORT>`
-            as an argument to this method returns the (fully) unspecified sort,
-            denoted ``?``.
+                Providing the kind :py:obj:`ABSTRACT_SORT <Kind.ABSTRACT_SORT>`
+                as an argument to this method returns the (fully) unspecified
+                sort, denoted ``?``.
 
             .. note::
-            Providing a kind of sort that has no indices and a fixed arity of
-            argument sorts will return the sort of kind ``kind`` whose
-            arguments are the unspecified sort. For example,
-            ``mkAbstractSort(ARRAY_SORT)`` will return the sort
-            ``(ARRAY_SORT ? ?)`` instead of the abstract sort whose abstract
-            kind is py:obj:`ARRAY_SORT <Kind.ARRAY_SORT>`.
+                Providing a kind of sort that has no indices and a fixed arity
+                of argument sorts will return the sort of kind ``kind`` whose
+                arguments are the unspecified sort. For example,
+                ``mkAbstractSort(ARRAY_SORT)`` will return the sort
+                ``(ARRAY_SORT ? ?)`` instead of the abstract sort whose
+                abstract kind is py:obj:`ARRAY_SORT <Kind.ARRAY_SORT>`.
 
             :param k: The kind of the abstract sort
             :return: The abstract sort.
 
-            .. warning:: This function is experimental and may change in future
-                         versions.
+            .. warning::
+
+                This function is experimental and may change in future versions.
         """
         return _sort(self, self.ctm.mkAbstractSort(<c_SortKind> kind.value))
 
@@ -1717,7 +1722,7 @@ cdef class TermManager:
 
             First converts the arguments to a temporary string, either
             ``"<numerator>"`` or ``"<numerator>/<denominator>"``. This temporary
-            string is forwarded to :cpp:func:`cvc5::Solver::mkReal()` and should
+            string is forwarded to :cpp:func:`cvc5::TermManager::mkReal()` and should
             thus represent an integer, a decimal number or a fraction.
 
             :param numerator: The numerator.
@@ -1776,8 +1781,9 @@ cdef class TermManager:
         """
             Create a separation logic empty term.
 
-            .. warning:: This function is experimental and may change in future
-                         versions.
+            .. warning::
+
+                This function is experimental and may change in future versions.
 
             :return: The separation logic empty term.
         """
@@ -1787,8 +1793,9 @@ cdef class TermManager:
         """
             Create a separation logic nil term.
 
-            .. warning:: This function is experimental and may change in future
-                         versions.
+            .. warning::
+
+                This function is experimental and may change in future versions.
 
             :param sort: The sort of the nil term.
             :return: The separation logic nil term.
@@ -1807,15 +1814,23 @@ cdef class TermManager:
                                     unicode character
             :return: The String constant.
         """
-        cdef Py_ssize_t size
         if isinstance(useEscSequences, bool):
             return _term(
                 self,
                 self.ctm.mkString(s.encode(), <bint> useEscSequences))
-        cdef wchar_t* tmp = PyUnicode_AsWideCharString(s, &size)
-        cdef Term res = _term(self, self.ctm.mkString(c_wstring(tmp, size)))
-        PyMem_Free(tmp)
-        return res
+
+        cdef Py_ssize_t n = len(s)
+        cdef int kind = PyUnicode_KIND(s)
+        cdef void* data = PyUnicode_DATA(s)
+        cdef Py_ssize_t i
+
+        cdef c_u32string result
+        result.resize(n)
+
+        for i in range(n):
+            result[i] = <Py_UCS4>PyUnicode_READ(kind, data, i)
+
+        return _term(self, self.ctm.mkString(result))
 
     def mkEmptySequence(self, Sort sort):
         """
@@ -2000,13 +2015,13 @@ cdef class TermManager:
             (sign bit, exponent, significand). Arguments must be either given
             as (int, int, Term) or (Term, Term, Term).
 
-            :param arg0  The size of the exponent or the sign bit.
-            :param arg1  The size of the signifcand or the bit-vector
+            :param arg0: The size of the exponent or the sign bit.
+            :param arg1: The size of the signifcand or the bit-vector
                          representing the exponent.
             :param arg2: The value of the floating-point constant as a
                          bit-vector term or the bit-vector representing the
                          significand.
-            :return The floating-point value.
+            :return: The floating-point value.
         """
         if isinstance(arg0, int):
             return _term(
@@ -2021,8 +2036,9 @@ cdef class TermManager:
         """
             Create cardinality constraint.
 
-            .. warning:: This function is experimental and may change in future
-                         versions.
+            .. warning::
+
+                This function is experimental and may change in future versions.
 
             :param sort: Sort of the constraint.
             :param index: The upper bound for the cardinality of the sort.
@@ -2149,10 +2165,10 @@ cdef class Plugin:
 
     def check(self):
         """
-        Call to check, return list of lemmas to add to the SAT solver.
-        This method is called periodically, roughly at every SAT decision.
+            Call to check, return list of lemmas to add to the SAT solver.
+            This method is called periodically, roughly at every SAT decision.
 
-        :return: The list of lemmas to add to the SAT solver.
+            :return: The list of lemmas to add to the SAT solver.
         """
         lemmas = []
         for l in self.cplugin.plugin_check():
@@ -2161,25 +2177,27 @@ cdef class Plugin:
 
     def notifySatClause(self, Term cl):
         """
-        Notify SAT clause, called when cl is a clause learned by the SAT solver.
+            Notify SAT clause, called when cl is a clause learned by the SAT
+            solver.
 
-        :param cl: The learned clause.
+            :param cl: The learned clause.
         """
         self.cplugin.plugin_notifySatClause(cl.cterm)
 
     def notifyTheoryLemma(self, Term lem):
         """
-        Notify theory lemma, called when lem is a theory lemma sent by a theory solver.
+            Notify theory lemma, called when lem is a theory lemma sent by a
+            theory solver.
 
-        :param lem: The theory lemma.
+            :param lem: The theory lemma.
         """
         self.cplugin.plugin_notifyTheoryLemma(lem.cterm)
 
     def getName(self):
         """
-        Get the name of the plugin (for debugging).
+            Get the name of the plugin (for debugging).
 
-        :return: The name of the plugin.
+            :return: The name of the plugin.
         """
         raise NotImplementedError
 
@@ -2218,8 +2236,11 @@ cdef class Solver:
         """
             Get the Boolean sort.
             :return: Sort Boolean.
-            .. warning:: This function is deprecated and will be removed in a
-                         future release.
+
+            .. warning::
+
+                This function is deprecated and will be removed in a future
+                release.
         """
         return self.tm.getBooleanSort()
 
@@ -2227,8 +2248,11 @@ cdef class Solver:
         """
             Get the integer sort.
             :return: Sort Integer.
-            .. warning:: This function is deprecated and will be removed in a
-                         future release.
+
+            .. warning::
+
+                This function is deprecated and will be removed in a future
+                release.
         """
         return self.tm.getIntegerSort()
 
@@ -2236,8 +2260,11 @@ cdef class Solver:
         """
             Get the real sort.
             :return: Sort Real.
-            .. warning:: This function is deprecated and will be removed in a
-                         future release.
+
+            .. warning::
+
+                This function is deprecated and will be removed in a future
+                release.
         """
         return self.tm.getRealSort()
 
@@ -2245,8 +2272,11 @@ cdef class Solver:
         """
             Get the regular expression sort.
             :return: The sort of regular expressions.
-            .. warning:: This function is deprecated and will be removed in a
-                         future release.
+
+            .. warning::
+
+                This function is deprecated and will be removed in a future
+                release.
         """
         return self.tm.getRegExpSort()
 
@@ -2254,16 +2284,22 @@ cdef class Solver:
         """
             Get the rounding mode sort.
             :return: Sort RoundingMode.
-            .. warning:: This function is deprecated and will be removed in a
-                         future release.
+
+            .. warning::
+
+                This function is deprecated and will be removed in a future
+                release.
         """
         return self.tm.getRoundingModeSort()
 
     def getStringSort(self):
         """
             :return: Sort String.
-            .. warning:: This function is deprecated and will be removed in a
-                         future release.
+
+            .. warning::
+
+                This function is deprecated and will be removed in a future
+                release.
         """
         return self.tm.getStringSort()
 
@@ -2274,8 +2310,11 @@ cdef class Solver:
             :param indexSort: The array index sort.
             :param elemSort: The array element sort.
             :return: The array sort.
-            .. warning:: This function is deprecated and will be removed in a
-                         future release.
+
+            .. warning::
+
+                This function is deprecated and will be removed in a future
+                release.
         """
         return self.tm.mkArraySort(indexSort, elemSort)
 
@@ -2285,8 +2324,11 @@ cdef class Solver:
 
             :param size: The bit-width of the bit-vector sort
             :return: The bit-vector sort
-            .. warning:: This function is deprecated and will be removed in a
-                         future release.
+
+            .. warning::
+
+                This function is deprecated and will be removed in a future
+                release.
         """
         return self.tm.mkBitVectorSort(size)
 
@@ -2298,8 +2340,11 @@ cdef class Solver:
                         sort.
             :param sig: The bit-width of the significand of the floating-point
                         sort.
-            .. warning:: This function is deprecated and will be removed in a
-                         future release.
+
+            .. warning::
+
+                This function is deprecated and will be removed in a future
+                release.
         """
         return self.tm.mkFloatingPointSort(exp, sig)
 
@@ -2317,8 +2362,11 @@ cdef class Solver:
                          An integer or string of base 10 if the base is not
                          explicitly given, and else a string in the given base.
             :param base: The base of the string representation of ``size``.
-            .. warning:: This function is deprecated and will be removed in a
-                         future release.
+
+            .. warning::
+
+                This function is deprecated and will be removed in a future
+                release.
         """
         return self.tm.mkFiniteFieldSort(size, base)
 
@@ -2329,8 +2377,11 @@ cdef class Solver:
             :param dtypedecl: The datatype declaration from which the sort is
                               created.
             :return: The datatype sort.
-            .. warning:: This function is deprecated and will be removed in a
-                         future release.
+
+            .. warning::
+
+                This function is deprecated and will be removed in a future
+                release.
         """
         return self.tm.mkDatatypeSort(dtypedecl)
 
@@ -2346,8 +2397,11 @@ cdef class Solver:
             :param dtypedecls: The datatype declarations from which the sort is
                                created.
             :return: The datatype sorts.
-            .. warning:: This function is deprecated and will be removed in a
-                         future release.
+
+            .. warning::
+
+                This function is deprecated and will be removed in a future
+                release.
         """
         return self.tm.mkDatatypeSorts(dtypedecls)
 
@@ -2358,8 +2412,11 @@ cdef class Solver:
             :param sorts: The sort of the function arguments.
             :param codomain: The sort of the function return value.
             :return: The function sort.
-            .. warning:: This function is deprecated and will be removed in a
-                         future release.
+
+            .. warning::
+
+                This function is deprecated and will be removed in a future
+                release.
         """
         return self.tm.mkFunctionSort(sorts, codomain)
 
@@ -2369,30 +2426,35 @@ cdef class Solver:
 
             :param symbol: The name of the sort.
             :return: The sort parameter.
-            .. warning:: This function is experimental and may change in future
-                         versions.
-            .. warning:: This function is deprecated and will be removed in a
-                         future release.
+
+            .. warning::
+
+                This function is experimental and may change in future versions.
+
+            .. warning::
+
+                This function is deprecated and will be removed in a future
+                release.
         """
         return self.tm.mkParamSort(symbolname)
 
     def mkSkolem(self, id, *indices):
         """
-            Create a skolem. 
+            Create a skolem.
 
             :param id: The skolem id.
             :param indices: The indices for the skolem.
-            :return: The skolem with the given id and indices. 
-        """  
+            :return: The skolem with the given id and indices.
+        """
         return self.tm.mkSkolem(id, indices)
 
     def getNumIndicesForSkolemId(self, id):
         """
-            Get the number of indices for a skolem id. 
+            Get the number of indices for a skolem id.
 
             :param id: The skolem id.
-            :return: The number of indice for a skolem with the given id. 
-        """  
+            :return: The number of indice for a skolem with the given id.
+        """
         return self.tm.getNumIndicesForSkolemId(id)
 
     def mkPredicateSort(self, *sorts):
@@ -2401,8 +2463,11 @@ cdef class Solver:
 
             :param sorts: The list of sorts of the predicate.
             :return: The predicate sort.
-            .. warning:: This function is deprecated and will be removed in a
-                         future release.
+
+            .. warning::
+
+                This function is deprecated and will be removed in a future
+                release.
         """
         return self.tm.mkPredicateSort(sorts)
 
@@ -2410,16 +2475,19 @@ cdef class Solver:
         """
             Create a record sort
 
-            .. warning:: This function is experimental and may change in future
-                         versions.
             :param fields: The list of fields of the record.
             :return: The record sort.
             :note: This function is deprecated and will be removed in a future
                    release.
-            .. warning:: This function is experimental and may change in future
-                         versions.
-            .. warning:: This function is deprecated and will be removed in a
-                         future release.
+
+            .. warning::
+
+                This function is experimental and may change in future versions.
+
+            .. warning::
+
+                This function is deprecated and will be removed in a future
+                release.
         """
         return self.tm.mkRecordSort(fields)
 
@@ -2429,8 +2497,11 @@ cdef class Solver:
 
             :param elemSort: The sort of the set elements.
             :return: The set sort.
-            .. warning:: This function is deprecated and will be removed in a
-                         future release.
+
+            .. warning::
+
+                This function is deprecated and will be removed in a future
+                release.
         """
         return self.tm.mkSetSort(elemSort)
 
@@ -2440,8 +2511,11 @@ cdef class Solver:
 
             :param elemSort: The sort of the bag elements.
             :return: The bag sort.
-            .. warning:: This function is deprecated and will be removed in a
-                         future release.
+
+            .. warning::
+
+                This function is deprecated and will be removed in a future
+                release.
         """
         return self.tm.mkBagSort(elemSort)
 
@@ -2451,8 +2525,11 @@ cdef class Solver:
 
             :param elemSort: The sort of the sequence elements
             :return: The sequence sort.
-            .. warning:: This function is deprecated and will be removed in a
-                         future release.
+
+            .. warning::
+
+                This function is deprecated and will be removed in a future
+                release.
         """
         return self.tm.mkSequenceSort(elemSort)
 
@@ -2470,24 +2547,29 @@ cdef class Solver:
             :py:obj:`STRING_SORT <Kind.STRING_SORT>` cannot.
 
             .. note::
-            Providing the kind :py:obj:`ABSTRACT_SORT <Kind.ABSTRACT_SORT>`
-            as an argument to this method returns the (fully) unspecified sort,
-            denoted ``?``.
+                Providing the kind :py:obj:`ABSTRACT_SORT <Kind.ABSTRACT_SORT>`
+                as an argument to this method returns the (fully) unspecified
+                sort, denoted ``?``.
 
             .. note::
-            Providing a kind of sort that has no indices and a fixed arity of
-            argument sorts will return the sort of ``kind`` whose arguments are
-            the unspecified sort. For example, ``mkAbstractSort(ARRAY_SORT)`` will
-            return the sort ``(ARRAY_SORT ? ?)`` instead of the abstract sort whose
-            abstract kind is py:obj:`ARRAY_SORT <Kind.ARRAY_SORT>`.
+                Providing a kind of sort that has no indices and a fixed arity
+                of argument sorts will return the sort of ``kind`` whose
+                arguments are the unspecified sort. For example,
+                ``mkAbstractSort(ARRAY_SORT)`` will return the sort
+                ``(ARRAY_SORT ? ?)`` instead of the abstract sort whose
+                abstract kind is py:obj:`ARRAY_SORT <Kind.ARRAY_SORT>`.
 
             :param k: The kind of the abstract sort
             :return: The abstract sort.
 
-            .. warning:: This function is experimental and may change in future
-                         versions.
-            .. warning:: This function is deprecated and will be removed in a
-                         future release.
+            .. warning::
+
+                This function is experimental and may change in future versions.
+
+            .. warning::
+
+                This function is deprecated and will be removed in a future
+                release.
         """
         return self.tm.mkAbstractSort(kind)
 
@@ -2497,8 +2579,11 @@ cdef class Solver:
 
             :param symbol: The name of the sort.
             :return: The uninterpreted sort.
-            .. warning:: This function is deprecated and will be removed in a
-                         future release.
+
+            .. warning::
+
+                This function is deprecated and will be removed in a future
+                release.
         """
         return self.tm.mkUninterpretedSort(name)
 
@@ -2512,8 +2597,11 @@ cdef class Solver:
             :param symbol: The name of the sort.
             :param arity: The number of sort parameters of the sort.
             :return: The unresolved sort.
-            .. warning:: This function is deprecated and will be removed in a
-                         future release.
+
+            .. warning::
+
+                This function is deprecated and will be removed in a future
+                release.
         """
         return self.tm.mkUnresolvedDatatypeSort(name, arity)
 
@@ -2527,8 +2615,11 @@ cdef class Solver:
             :param symbol: The symbol of the sort.
             :param arity: The arity of the sort (must be > 0).
             :return: The sort constructor sort.
-            .. warning:: This function is deprecated and will be removed in a
-                         future release.
+
+            .. warning::
+
+                This function is deprecated and will be removed in a future
+                release.
         """
         return self.tm.mkUninterpretedSortConstructorSort(arity, symbol)
 
@@ -2538,8 +2629,11 @@ cdef class Solver:
 
             :param sorts: Of the elements of the tuple.
             :return: The tuple sort.
-            .. warning:: This function is deprecated and will be removed in a
-                         future release.
+
+            .. warning::
+
+                This function is deprecated and will be removed in a future
+                release.
         """
         return self.tm.mkTupleSort(sorts)
 
@@ -2549,8 +2643,11 @@ cdef class Solver:
 
             :param elemSort: The sort of the element of the nullable.
             :return: The nullable sort.
-            .. warning:: This function is deprecated and will be removed in a
-                         future release.
+
+            .. warning::
+
+                This function is deprecated and will be removed in a future
+                release.
         """
         return self.tm.mkNullableSort(elemSort)
 
@@ -2567,8 +2664,10 @@ cdef class Solver:
 
             where ``*args`` is a comma-separated list of terms.
 
-            .. warning:: This function is deprecated and will be removed in a
-                         future release.
+            .. warning::
+
+                This function is deprecated and will be removed in a future
+                release.
         """
         return self.tm.mkTerm(kind_or_op, *args)
 
@@ -2579,8 +2678,11 @@ cdef class Solver:
 
             :param terms: The elements in the tuple.
             :return: The tuple Term.
-            .. warning:: This function is deprecated and will be removed in a
-                         future release.
+
+            .. warning::
+
+                This function is deprecated and will be removed in a future
+                release.
         """
         return self.tm.mkTuple(terms)
 
@@ -2590,8 +2692,11 @@ cdef class Solver:
 
             :param term: The elements value.
             :return: The element value wrapped in some constructor.
-            .. warning:: This function is deprecated and will be removed in a
-                         future release.
+
+            .. warning::
+
+                This function is deprecated and will be removed in a future
+                release.
         """
         return self.tm.mkNullableSome(term)
 
@@ -2601,8 +2706,11 @@ cdef class Solver:
 
             :param term: A nullable term.
             :return: The element value of the nullable term.
-            .. warning:: This function is deprecated and will be removed in a
-                         future release.
+
+            .. warning::
+
+                This function is deprecated and will be removed in a future
+                release.
         """
         return self.tm.mkNullableVal(term)
 
@@ -2612,8 +2720,11 @@ cdef class Solver:
 
             :param term: A nullable term.
             :return: A tester whether term is null.
-            .. warning:: This function is deprecated and will be removed in a
-                         future release.
+
+            .. warning::
+
+                This function is deprecated and will be removed in a future
+                release.
         """
         return self.tm.mkNullableIsNull(term)
 
@@ -2623,8 +2734,11 @@ cdef class Solver:
 
             :param term: A nullable term.
             :return: A tester whether term is some.
-            .. warning:: This function is deprecated and will be removed in a
-                         future release.
+
+            .. warning::
+
+                This function is deprecated and will be removed in a future
+                release.
         """
         return self.tm.mkNullableIsSome(term)
 
@@ -2634,8 +2748,11 @@ cdef class Solver:
 
             :param term: The sort of the Nullable element.
             :return: The null constant.
-            .. warning:: This function is deprecated and will be removed in a
-                         future release.
+
+            .. warning::
+
+                This function is deprecated and will be removed in a future
+                release.
         """
         return self.tm.mkNullableNull(sort)
 
@@ -2654,8 +2771,11 @@ cdef class Solver:
             :return: A term of Kind NULLABLE_LIFT where the first child
                      is a lambda expression, and the remaining children are
                      the original arguments.
-            .. warning:: This function is deprecated and will be removed in a
-                         future release.
+
+            .. warning::
+
+                This function is deprecated and will be removed in a future
+                release.
         """
         return self.tm.mkNullableLift(kind, *args)
 
@@ -2669,8 +2789,10 @@ cdef class Solver:
             - ``Op mkOp(Kind kind, const string& arg)``
             - ``Op mkOp(Kind kind, uint32_t arg0, ...)``
 
-            .. warning:: This function is deprecated and will be removed in a
-                         future release.
+            .. warning::
+
+                This function is deprecated and will be removed in a future
+                release.
         """
         return self.tm.mkOp(k, *args)
 
@@ -2679,8 +2801,11 @@ cdef class Solver:
             Create a Boolean true constant.
 
             :return: The true constant.
-            .. warning:: This function is deprecated and will be removed in a
-                         future release.
+
+            .. warning::
+
+                This function is deprecated and will be removed in a future
+                release.
         """
         return self.tm.mkTrue()
 
@@ -2689,8 +2814,11 @@ cdef class Solver:
             Create a Boolean false constant.
 
             :return: The false constant.
-            .. warning:: This function is deprecated and will be removed in a
-                         future release.
+
+            .. warning::
+
+                This function is deprecated and will be removed in a future
+                release.
         """
         return self.tm.mkFalse()
 
@@ -2700,8 +2828,11 @@ cdef class Solver:
 
             :param val: The value of the constant.
             :return: The Boolean constant.
-            .. warning:: This function is deprecated and will be removed in a
-                         future release.
+
+            .. warning::
+
+                This function is deprecated and will be removed in a future
+                release.
         """
         return self.tm.mkBoolean(val)
 
@@ -2710,8 +2841,11 @@ cdef class Solver:
             Create a constant representing the number Pi.
 
             :return: A constant representing :py:obj:`PI <Kind.PI>`.
-            .. warning:: This function is deprecated and will be removed in a
-                         future release.
+
+            .. warning::
+
+                This function is deprecated and will be removed in a future
+                release.
         """
         return self.tm.mkPi()
 
@@ -2722,8 +2856,11 @@ cdef class Solver:
             :param val: Representation of the constant: either a string or
                         integer.
             :return: A constant of sort Integer.
-            .. warning:: This function is deprecated and will be removed in a
-                         future release.
+
+            .. warning::
+
+                This function is deprecated and will be removed in a future
+                release.
         """
         return self.tm.mkInteger(val)
 
@@ -2733,14 +2870,17 @@ cdef class Solver:
 
             First converts the arguments to a temporary string, either
             ``"<numerator>"`` or ``"<numerator>/<denominator>"``. This temporary
-            string is forwarded to :cpp:func:`cvc5::Solver::mkReal()` and should
+            string is forwarded to :cpp:func:`cvc5::TermManager::mkReal()` and should
             thus represent an integer, a decimal number or a fraction.
 
             :param numerator: The numerator.
             :param denominator: The denominator, or ``None``.
             :return: A real term with literal value.
-            .. warning:: This function is deprecated and will be removed in a
-                         future release.
+
+            .. warning::
+
+                This function is deprecated and will be removed in a future
+                release.
         """
         return self.tm.mkReal(numerator, denominator)
 
@@ -2749,8 +2889,11 @@ cdef class Solver:
             Create a regular expression all (``re.all``) term.
 
             :return: The all term.
-            .. warning:: This function is deprecated and will be removed in a
-                         future release.
+
+            .. warning::
+
+                This function is deprecated and will be removed in a future
+                release.
         """
         return self.tm.mkRegexpAll()
 
@@ -2759,8 +2902,11 @@ cdef class Solver:
             Create a regular expression allchar (``re.allchar``) term.
 
             :return: The allchar term.
-            .. warning:: This function is deprecated and will be removed in a
-                         future release.
+
+            .. warning::
+
+                This function is deprecated and will be removed in a future
+                release.
         """
         return self.tm.mkRegexpAllchar()
 
@@ -2769,8 +2915,11 @@ cdef class Solver:
             Create a regular expression none (``re.none``) term.
 
             :return: The none term.
-            .. warning:: This function is deprecated and will be removed in a
-                         future release.
+
+            .. warning::
+
+                This function is deprecated and will be removed in a future
+                release.
         """
         return self.tm.mkRegexpNone()
 
@@ -2780,8 +2929,11 @@ cdef class Solver:
 
             :param sort: The sort of the set elements.
             :return: The empty set constant.
-            .. warning:: This function is deprecated and will be removed in a
-                         future release.
+
+            .. warning::
+
+                This function is deprecated and will be removed in a future
+                release.
         """
         return self.tm.mkEmptySet(s)
 
@@ -2791,8 +2943,11 @@ cdef class Solver:
 
             :param sort: The sort of the bag elements.
             :return: The empty bag constant.
-            .. warning:: This function is deprecated and will be removed in a
-                         future release.
+
+            .. warning::
+
+                This function is deprecated and will be removed in a future
+                release.
         """
         return self.tm.mkEmptyBag(s)
 
@@ -2801,10 +2956,15 @@ cdef class Solver:
             Create a separation logic empty term.
 
             :return: The separation logic empty term.
-            .. warning:: This function is experimental and may change in future
-                         versions.
-            .. warning:: This function is deprecated and will be removed in a
-                         future release.
+
+            .. warning::
+
+                This function is experimental and may change in future versions.
+
+            .. warning::
+
+                This function is deprecated and will be removed in a future
+                release.
         """
         return self.tm.mkSepEmp()
 
@@ -2814,10 +2974,15 @@ cdef class Solver:
 
             :param sort: The sort of the nil term.
             :return: The separation logic nil term.
-            .. warning:: This function is experimental and may change in future
-                         versions.
-            .. warning:: This function is deprecated and will be removed in a
-                         future release.
+
+            .. warning::
+
+                This function is experimental and may change in future versions.
+
+            .. warning::
+
+                This function is deprecated and will be removed in a future
+                release.
         """
         return self.tm.mkSepNil(sort)
 
@@ -2832,8 +2997,11 @@ cdef class Solver:
                                     should be converted to the corresponding
                                     unicode character
             :return: The String constant.
-            .. warning:: This function is deprecated and will be removed in a
-                         future release.
+
+            .. warning::
+
+                This function is deprecated and will be removed in a future
+                release.
         """
         return self.tm.mkString(s, useEscSequences)
 
@@ -2843,8 +3011,11 @@ cdef class Solver:
 
             :param sort: The element sort of the sequence.
             :return: The empty sequence with given element sort.
-            .. warning:: This function is deprecated and will be removed in a
-                         future release.
+
+            .. warning::
+
+                This function is deprecated and will be removed in a future
+                release.
         """
         return self.tm.mkEmptySequence(sort)
 
@@ -2854,8 +3025,11 @@ cdef class Solver:
 
             :param sort: The sort of the set elements
             :return: The universe set constant
-            .. warning:: This function is deprecated and will be removed in a
-                         future release.
+
+            .. warning::
+
+                This function is deprecated and will be removed in a future
+                release.
         """
         return self.tm.mkUniverseSet(sort)
 
@@ -2874,8 +3048,11 @@ cdef class Solver:
             :param base: The base of the string representation (second form
                          only).
             :return: A Term representing a bit-vector value.
-            .. warning:: This function is deprecated and will be removed in a
-                         future release.
+
+            .. warning::
+
+                This function is deprecated and will be removed in a future
+                release.
         """
         return self.tm.mkBitVector(size, *args)
 
@@ -2895,8 +3072,11 @@ cdef class Solver:
             :param sort: The field to create the element in.
             :param base: The base of the string representation of ``value``.
             :return: A Term representing a finite field value.
-            .. warning:: This function is deprecated and will be removed in a
-                         future release.
+
+            .. warning::
+
+                This function is deprecated and will be removed in a future
+                release.
         """
         return self.tm.mkFiniteFieldElem(value, sort, base)
 
@@ -2909,8 +3089,11 @@ cdef class Solver:
             :param val: The constant value to store (must match the sort's
                         element sort).
             :return: The constant array term.
-            .. warning:: This function is deprecated and will be removed in a
-                         future release.
+
+            .. warning::
+
+                This function is deprecated and will be removed in a future
+                release.
         """
         return self.tm.mkConstArray(sort, val)
 
@@ -2921,8 +3104,11 @@ cdef class Solver:
             :param exp: Number of bits in the exponent.
             :param sig: Number of bits in the significand.
             :return: The floating-point constant.
-            .. warning:: This function is deprecated and will be removed in a
-                         future release.
+
+            .. warning::
+
+                This function is deprecated and will be removed in a future
+                release.
         """
         return self.tm.mkFloatingPointPosInf(exp, sig)
 
@@ -2933,8 +3119,11 @@ cdef class Solver:
             :param exp: Number of bits in the exponent.
             :param sig: Number of bits in the significand.
             :return: The floating-point constant.
-            .. warning:: This function is deprecated and will be removed in a
-                         future release.
+
+            .. warning::
+
+                This function is deprecated and will be removed in a future
+                release.
         """
         return self.tm.mkFloatingPointNegInf(exp, sig)
 
@@ -2945,8 +3134,11 @@ cdef class Solver:
             :param exp: Number of bits in the exponent.
             :param sig: Number of bits in the significand.
             :return: The floating-point constant.
-            .. warning:: This function is deprecated and will be removed in a
-                         future release.
+
+            .. warning::
+
+                This function is deprecated and will be removed in a future
+                release.
         """
         return self.tm.mkFloatingPointNaN(exp, sig)
 
@@ -2957,8 +3149,11 @@ cdef class Solver:
             :param exp: Number of bits in the exponent.
             :param sig: Number of bits in the significand.
             :return: The floating-point constant.
-            .. warning:: This function is deprecated and will be removed in a
-                         future release.
+
+            .. warning::
+
+                This function is deprecated and will be removed in a future
+                release.
         """
         return self.tm.mkFloatingPointPosZero(exp, sig)
 
@@ -2969,8 +3164,11 @@ cdef class Solver:
             :param exp: Number of bits in the exponent.
             :param sig: Number of bits in the significand.
             :return: The floating-point constant.
-            .. warning:: This function is deprecated and will be removed in a
-                         future release.
+
+            .. warning::
+
+                This function is deprecated and will be removed in a future
+                release.
         """
         return self.tm.mkFloatingPointNegZero(exp, sig)
 
@@ -2980,8 +3178,11 @@ cdef class Solver:
 
             :param rm: The floating point rounding mode this constant
                        represents.
-            .. warning:: This function is deprecated and will be removed in a
-                         future release.
+
+            .. warning::
+
+                This function is deprecated and will be removed in a future
+                release.
         """
         return self.tm.mkRoundingMode(rm)
 
@@ -2992,15 +3193,18 @@ cdef class Solver:
             (sign bit, exponent, significand). Arguments must be either given
             as (int, int, Term) or (Term, Term, Term).
 
-            :param arg0  The size of the exponent or the sign bit.
-            :param arg1  The size of the signifcand or the bit-vector
+            :param arg0: The size of the exponent or the sign bit.
+            :param arg1: The size of the signifcand or the bit-vector
                          representing the exponent.
             :param arg2: The value of the floating-point constant as a
                          bit-vector term or the bit-vector representing the
                          significand.
-            :return The floating-point value.
-            .. warning:: This function is deprecated and will be removed in a
-                         future release.
+            :return: The floating-point value.
+
+            .. warning::
+
+                This function is deprecated and will be removed in a future
+                release.
         """
         return self.tm.mkFloatingPoint(arg0, arg1, arg2)
 
@@ -3008,13 +3212,17 @@ cdef class Solver:
         """
             Create cardinality constraint.
 
-            .. warning:: This function is experimental and may change in future
-                         versions.
+            .. warning::
+
+                This function is experimental and may change in future versions.
 
             :param sort: Sort of the constraint.
             :param index: The upper bound for the cardinality of the sort.
-            .. warning:: This function is deprecated and will be removed in a
-                         future release.
+
+            .. warning::
+
+                This function is deprecated and will be removed in a future
+                release.
         """
         return self.tm.mkCardinalityConstraint(sort, index)
 
@@ -3033,8 +3241,11 @@ cdef class Solver:
             :param symbol: The name of the constant. If None, a default symbol
                            is used.
             :return: The first-order constant.
-            .. warning:: This function is deprecated and will be removed in a
-                         future release.
+
+            .. warning::
+
+                This function is deprecated and will be removed in a future
+                release.
         """
         return self.tm.mkConst(sort, symbol)
 
@@ -3046,8 +3257,11 @@ cdef class Solver:
             :param sort: The sort of the variable.
             :param symbol: The name of the variable.
             :return: The variable.
-            .. warning:: This function is deprecated and will be removed in a
-                         future release.
+
+            .. warning::
+
+                This function is deprecated and will be removed in a future
+                release.
         """
         return self.tm.mkVar(sort, symbol)
 
@@ -3057,8 +3271,11 @@ cdef class Solver:
 
             :param name: The name of the constructor.
             :return: The datatype constructor declaration.
-            .. warning:: This function is deprecated and will be removed in a
-                         future release.
+
+            .. warning::
+
+                This function is deprecated and will be removed in a future
+                release.
         """
         return self.tm.mkDatatypeConstructorDecl(name)
 
@@ -3069,8 +3286,11 @@ cdef class Solver:
             :param name: The name of the datatype.
             :param isCoDatatype: True if a codatatype is to be constructed.
             :return: The datatype declaration.
-            .. warning:: This function is deprecated and will be removed in a
-                         future release.
+
+            .. warning::
+
+                This function is deprecated and will be removed in a future
+                release.
         """
         return self.tm.mkDatatypeDecl(name, sorts_or_bool, isCoDatatype)
 
@@ -3078,12 +3298,13 @@ cdef class Solver:
         """
             Simplify a term or formula based on rewriting and (optionally)
             applying substitutions for solved variables.
-            
+
             If applySubs is true, then for example, if `(= x 0)` was asserted to
             this solver, this method may replace occurrences of `x` with `0`.
 
-            .. warning:: This function is experimental and may change in future
-                         versions.
+            .. warning::
+
+                This function is experimental and may change in future versions.
 
             :param t: The term to simplify.
             :param applySubs: Whether to apply substitutions for solved
@@ -3457,10 +3678,10 @@ cdef class Solver:
 
             .. note::
 
-              This corresponds to :py:meth:`Solver.mkUninterpretedSort()` if
-              arity = 0, and to
-              :py:meth:`Solver.mkUninterpretedSortConstructorSort()` if
-              arity > 0.
+                This corresponds to :py:meth:`TermManager.mkUninterpretedSort()` if
+                arity = 0, and to
+                :py:meth:`TermManager.mkUninterpretedSortConstructorSort()` if
+                arity > 0.
 
             :param symbol: The name of the sort.
             :param arity: The arity of the sort.
@@ -3597,8 +3818,10 @@ cdef class Solver:
             Requires to enable option
             :ref:`produce-proofs <lbl-option-produce-proofs>`.
 
-            .. warning:: This function is experimental and may change in future
-                         versions.
+            .. warning::
+
+                This function is experimental and may change in future versions.
+
             :param c: The component of the proof to return.
             :return: A vector of proof nodes.
         """
@@ -3614,8 +3837,9 @@ cdef class Solver:
             Prints proof into a string with a selected proof format mode.
             Other aspects of printing are taken from the solver options.
 
-            .. warning:: This function is experimental and may change in
-                         future versions.
+            .. warning::
+
+                This function is experimental and may change in future versions.
 
             :param proof: A proof, usually obtained from
                           :py:meth:`getProof()`.
@@ -3644,8 +3868,9 @@ cdef class Solver:
 
                 ( get-learned-literals )
 
-            .. warning:: This function is experimental and may change in future
-                         versions.
+            .. warning::
+
+                This function is experimental and may change in future versions.
 
             :param type: The type of learned literals to return
             :return: The list of literals.
@@ -3734,6 +3959,7 @@ cdef class Solver:
             'name': oi.name.decode(),
             'aliases': [s.decode() for s in oi.aliases],
             'setByUser': oi.setByUser,
+            'category': OptionCategory(<int> oi.category),
         }
 
         # now check which type is actually in the variant
@@ -3826,11 +4052,12 @@ cdef class Solver:
 
             .. note::
 
-              In contrast to SMT-LIB, the API does not distinguish between
-              named and unnamed assertions when producing an unsatisfiable
-              core. Additionally, the API allows this option to be called after
-              a check with assumptions. A subset of those assumptions may be
-              included in the unsatisfiable core returned by this method.
+                In contrast to SMT-LIB, the API does not distinguish between
+                named and unnamed assertions when producing an unsatisfiable
+                core. Additionally, the API allows this option to be called
+                after a check with assumptions. A subset of those assumptions
+                may be included in the unsatisfiable core returned by this
+                method.
 
             :return: A set of terms representing the unsatisfiable core.
         """
@@ -3850,13 +4077,14 @@ cdef class Solver:
                 (get-unsat-core-lemmas)
 
             Requires the SAT proof unsat core mode, so to enable option
-            :ref:`unsat-core-mode=sat-proof <lbl-option-unsat-core-mode>`.
+            :ref:`unsat-cores-mode=sat-proof <lbl-option-unsat-cores-mode>`.
 
-            .. warning:: This function is experimental and may change in
-                         future versions.
+            .. warning::
+
+                This function is experimental and may change in future versions.
 
             :return: A set of terms representing the lemmas used to derive
-            unsatisfiability.
+                     unsatisfiability.
         """
         coreLemmas = []
         for a in self.csolver.getUnsatCoreLemmas():
@@ -3869,8 +4097,9 @@ cdef class Solver:
             intended to be called immediately after any response to a
             :py:meth:`Solver.checkSat()` call.
 
-            .. warning:: This function is experimental and may change in future
-                         versions.
+            .. warning::
+
+                This function is experimental and may change in future versions.
 
             :return: A map from (a subset of) the input assertions to a real
                      value that is an estimate of how difficult each assertion
@@ -3892,27 +4121,28 @@ cdef class Solver:
             assertions that cause a timeout. Note it does not require being
             proceeded by a call to checkSat.
 
+            This function may make multiple checks for satisfiability internally,
+            each limited by the timeout value given by
+            :ref:`timeout-core-timeout <lbl-option-timeout-core-timeout>`.
+
             .. code-block:: smtlib
 
                 (get-timeout-core)
 
-            .. warning:: This function is experimental and may change in future
-                         versions.
+            .. warning::
+
+                This function is experimental and may change in future versions.
 
             :return: The result of the timeout core computation. This is a pair
-            containing a result and a list of formulas. If the result is unknown
-            and the reason is timeout, then the list of formulas correspond to a
-            subset of the current assertions that cause a timeout in the
-            specified time
-            :ref:`timeout-core-timeout <lbl-option-timeout-core-timeout>`.
-            If the result is unsat, then the list of formulas correspond to an
-            unsat core for the current assertions. Otherwise, the result is sat,
-            indicating that the current assertions are satisfiable, and
-            the list of formulas is empty.
-
-            This function may make multiple checks for satisfiability internally,
-            each limited by the timeout value given by
-            :ref:`timeout-core-timeout <lbl-option-timeout-core-timeout>`.
+                     containing a result and a list of formulas. If the result is unknown
+                     and the reason is timeout, then the list of formulas correspond to a
+                     subset of the current assertions that cause a timeout in the
+                     specified time
+                     :ref:`timeout-core-timeout <lbl-option-timeout-core-timeout>`.
+                     If the result is unsat, then the list of formulas correspond to an
+                     unsat core for the current assertions. Otherwise, the result is sat,
+                     indicating that the current assertions are satisfiable, and
+                     the list of formulas is empty.
         """
         cdef pair[c_Result, vector[c_Term]] res
         res = self.csolver.getTimeoutCore()
@@ -3929,28 +4159,29 @@ cdef class Solver:
             that cause a timeout when added to the current assertions. Note it
             does not require being proceeded by a call to checkSat.
 
+            This function may make multiple checks for satisfiability internally,
+            each limited by the timeout value given by
+            :ref:`timeout-core-timeout <lbl-option-timeout-core-timeout>`.
+
             .. code-block:: smtlib
 
                 (get-timeout-core)
 
-            .. warning:: This function is experimental and may change in future
-                         versions.
+            .. warning::
+
+                This function is experimental and may change in future versions.
 
             :param assumptions: The formulas to assume.
             :return: The result of the timeout core computation. This is a pair
-             containing a result and a list of formulas. If the result is unknown
-             and the reason is timeout, then the list of formulas correspond to a
-             subset of assumptions that cause a timeout when added to the current
-             assertions in the specified time
-            :ref:`timeout-core-timeout <lbl-option-timeout-core-timeout>`.
-             If the result is unsat, then the list of formulas plus the current
-             assertions correspond to an unsat core for the current assertions.
-             Otherwise, the result is sat, indicating that the given assumptions plus
-             the current assertions are satisfiable, and the list of formulas is empty.
-
-            This function may make multiple checks for satisfiability internally,
-            each limited by the timeout value given by
-            :ref:`timeout-core-timeout <lbl-option-timeout-core-timeout>`.
+                     containing a result and a list of formulas. If the result is unknown
+                     and the reason is timeout, then the list of formulas correspond to a
+                     subset of assumptions that cause a timeout when added to the current
+                     assertions in the specified time
+                     :ref:`timeout-core-timeout <lbl-option-timeout-core-timeout>`.
+                     If the result is unsat, then the list of formulas plus the current
+                     assertions correspond to an unsat core for the current assertions.
+                     Otherwise, the result is sat, indicating that the given assumptions plus
+                     the current assertions are satisfiable, and the list of formulas is empty.
         """
         cdef vector[c_Term] v
         for a in assumptions:
@@ -4006,8 +4237,9 @@ cdef class Solver:
             checkSat using the current model. This function will only return
             false (for any v) if the model-cores option has been set.
 
-            .. warning:: This function is experimental and may change in future
-                         versions.
+            .. warning::
+
+                This function is experimental and may change in future versions.
 
             :param v: The term in question.
             :return: True if v is a model core symbol.
@@ -4028,8 +4260,9 @@ cdef class Solver:
             Currently, the only logics supported by quantifier elimination
             are LRA and LIA.
 
-            .. warning:: This function is experimental and may change in future
-                         versions.
+            .. warning::
+
+                This function is experimental and may change in future versions.
 
             :param q: A quantified formula of the form
                       :math:`Q\\bar{x_1}\\dots Q\\bar{x}_n. P( x_1 \\dots x_i, y_1 \\dots y_j)`
@@ -4063,8 +4296,9 @@ cdef class Solver:
             Currently, the only logics supported by quantifier elimination
             are LRA and LIA.
 
-          .. warning:: This function is experimental and may change in future
-                         versions.
+          .. warning::
+
+              This function is experimental and may change in future versions.
 
             :param q: A quantified formula of the form
                  :math:`Q\\bar{x_1} ... Q\\bar{x_n}. P( x_1...x_i, y_1...y_j)`
@@ -4113,8 +4347,9 @@ cdef class Solver:
             Requires to enable option
             :ref:`produce-models <lbl-option-produce-models>`.
 
-            .. warning:: This function is experimental and may change in future
-                         versions.
+            .. warning::
+
+                This function is experimental and may change in future versions.
 
             :param sorts: The list of uninterpreted sorts that should be
                           printed in the model.
@@ -4138,8 +4373,9 @@ cdef class Solver:
         """
             When using separation logic, obtain the term for the heap.
 
-            .. warning:: This function is experimental and may change in future
-                         versions.
+            .. warning::
+
+                This function is experimental and may change in future versions.
 
             :return: The term for the heap.
         """
@@ -4149,8 +4385,9 @@ cdef class Solver:
         """
             When using separation logic, obtain the term for nil.
 
-            .. warning:: This function is experimental and may change in future
-                         versions.
+            .. warning::
+
+                This function is experimental and may change in future versions.
 
             :return: The term for nil.
         """
@@ -4162,8 +4399,9 @@ cdef class Solver:
             datatype sort to the given ones. This function should be invoked
             exactly once, before any separation logic constraints are provided.
 
-            .. warning:: This function is experimental and may change in future
-                         versions.
+            .. warning::
+
+                This function is experimental and may change in future versions.
 
             :param locSort: The location sort of the heap.
             :param dataSort: The data sort of the heap.
@@ -4180,8 +4418,9 @@ cdef class Solver:
 
                 ( declare-pool <symbol> <sort> ( <term>* ) )
 
-            .. warning:: This function is experimental and may change in future
-                         versions.
+            .. warning::
+
+                This function is experimental and may change in future versions.
 
             :param symbol: The name of the pool.
             :param sort: The sort of the elements of the pool.
@@ -4337,8 +4576,9 @@ cdef class Solver:
                  :ref:`produce-interpolants <lbl-option-produce-interpolants>`
                  to be set to a mode different from :code:`none`.
 
-            .. warning:: This function is experimental and may change in future
-                        versions.
+            .. warning::
+
+                This function is experimental and may change in future versions.
 
             :param conj: The conjecture term.
             :param grammar: A grammar for the interpolant.
@@ -4371,8 +4611,9 @@ cdef class Solver:
             :ref:`produce-interpolants <lbl-option-produce-interpolants>` to be
             set to a mode different from ``none``.
 
-            .. warning:: This function is experimental and may change in future
-                         versions.
+            .. warning::
+
+                This function is experimental and may change in future versions.
 
             :param output: The term where the result will be stored.
             :return: True iff an interpolant was found.
@@ -4394,8 +4635,9 @@ cdef class Solver:
             Requires to enable option
             :ref:`produce-abducts <lbl-option-produce-abducts>`.
 
-            .. warning:: This function is experimental and may change in future
-                         versions.
+            .. warning::
+
+                This function is experimental and may change in future versions.
 
             :param conj: The conjecture term.
             :param grammar: A grammar for the abduct.
@@ -4427,8 +4669,9 @@ cdef class Solver:
             Requires to enable incremental mode, and
             option :ref:`produce-abducts <lbl-option-produce-abducts>`.
 
-            .. warning:: This function is experimental and may change in future
-                         versions.
+            .. warning::
+
+                This function is experimental and may change in future versions.
 
             :param output: The term where the result will be stored.
             :return: True iff an abduct was found.
@@ -4450,8 +4693,9 @@ cdef class Solver:
             :ref:`produce-models <lbl-option-produce-models>`
             to a mode other than ``none``.
 
-            .. warning:: This function is experimental and may change in future
-                         versions.
+            .. warning::
+
+                This function is experimental and may change in future versions.
 
             :param mode: The mode to use for blocking
         """
@@ -4471,8 +4715,9 @@ cdef class Solver:
            Requires enabling option
            :ref:`produce-models <lbl-option-produce-models>`.
 
-           .. warning:: This function is experimental and may change in future
-                        versions.
+           .. warning::
+
+                This function is experimental and may change in future versions.
         """
         cdef vector[c_Term] nts
         for t in terms:
@@ -4484,8 +4729,9 @@ cdef class Solver:
             Return a string that contains information about all instantiations
             made by the quantifiers module.
 
-            .. warning:: This function is experimental and may change in future
-                         versions.
+            .. warning::
+
+                This function is experimental and may change in future versions.
         """
         return self.csolver.getInstantiations()
 
@@ -4548,8 +4794,9 @@ cdef class Sort:
 
     def getKind(self):
         """
-            .. warning:: This function is experimental and may change in future
-                         versions.
+            .. warning::
+
+                This function is experimental and may change in future versions.
 
             :return: The :py:class:`SortKind` of this sort.
         """
@@ -4721,8 +4968,9 @@ cdef class Sort:
         """
             Determine if this is a record sort.
 
-            .. warning:: This function is experimental and may change in future
-                         versions.
+            .. warning::
+
+                This function is experimental and may change in future versions.
 
             :return: True if the sort is a record sort.
         """
@@ -4774,8 +5022,9 @@ cdef class Sort:
 
             :return: True if the sort is an abstract sort.
 
-            .. warning:: This function is experimental and may change in future
-                         versions.
+            .. warning::
+
+                This function is experimental and may change in future versions.
         """
         return self.csort.isAbstract()
 
@@ -4833,8 +5082,9 @@ cdef class Sort:
 
             Create sorts parameter with :py:meth:`TermManager.mkParamSort()`
 
-            .. warning:: This function is experimental and may change in future
-                         versions.
+            .. warning::
+
+                This function is experimental and may change in future versions.
 
             :param params: The list of sort parameters to instantiate with
             :return: The instantiated sort
@@ -4871,8 +5121,9 @@ cdef class Sort:
             ``(Array A B) .substitute([A, C], [(Array C D), (Array A B)])``
             will return ``(Array (Array C D) B)``.
 
-            .. warning:: This function is experimental and may change in future
-                         versions.
+            .. warning::
+
+                This function is experimental and may change in future versions.
 
             :param sort_or_list_1: The subsort or subsorts to be substituted
                                    within this sort.
@@ -5006,10 +5257,12 @@ cdef class Sort:
     def getAbstractedKind(self):
         """
             :return: The sort kind of an abstract sort, which denotes the kind
-            of sorts that this abstract sort denotes.
+                     of sorts that this abstract sort denotes.
 
-            .. warning:: This function is experimental and may change in future
-                         versions.
+            .. warning::
+
+                This function is experimental and may change in future versions.
+
         """
         return SortKind(<int> self.csort.getAbstractedKind())
 
@@ -5426,15 +5679,21 @@ cdef class Term:
             .. note:: Asserts :py:meth:`isStringValue()`.
 
             .. note::
-               This function is not to be confused with :py:meth:`__str__()`
-               which returns the term in some string representation, whatever
-               data it may hold.
+
+                This function is not to be confused with :py:meth:`__str__()`
+                which returns the term in some string representation, whatever
+                data it may hold.
 
             :return: The string term as a native string value.
         """
-        cdef Py_ssize_t size
-        cdef c_wstring s = self.cterm.getStringValue()
-        return PyUnicode_FromWideChar(s.data(), s.size())
+        cdef c_u32string s = self.cterm.getU32StringValue()
+        cdef Py_ssize_t n = s.size()
+
+        if n == 0:
+            return u""
+
+        return PyUnicode_FromKindAndData(PyUnicode_4BYTE_KIND, <const void*>&s[0], n)
+
 
     def getRealOrIntegerValueSign(self):
         """
@@ -5577,8 +5836,9 @@ cdef class Term:
         """
             :return: True if the term is a cardinality constraint.
 
-            .. warning:: This function is experimental and may change in future
-                         versions.
+            .. warning::
+
+                This function is experimental and may change in future versions.
         """
         return self.cterm.isCardinalityConstraint()
 
@@ -5589,8 +5849,9 @@ cdef class Term:
             :return: The sort the cardinality constraint is for and its upper
                      bound.
 
-            .. warning:: This function is experimental and may change in future
-                         versions.
+            .. warning::
+
+                This function is experimental and may change in future versions.
         """
         cdef pair[c_Sort, uint32_t] p
         p = self.cterm.getCardinalityConstraint()
@@ -5600,8 +5861,9 @@ cdef class Term:
         """
             :return: True if the term is a real algebraic number.
 
-            .. warning:: This function is experimental and may change in future
-                         versions.
+            .. warning::
+
+                This function is experimental and may change in future versions.
         """
         return self.cterm.isRealAlgebraicNumber()
 
@@ -5642,8 +5904,9 @@ cdef class Term:
         """
             :return: True if the term is a skolem.
 
-            .. warning:: This function is experimental and may change in future
-                         versions.
+            .. warning::
+
+                This function is experimental and may change in future versions.
         """
         return self.cterm.isSkolem()
 
@@ -5651,8 +5914,11 @@ cdef class Term:
         """
             Get skolem identifier of this term.
             .. note:: Asserts :py:meth:`isSkolem()`.
-            .. warning:: This function is experimental and may change in future
-                         versions.
+
+            .. warning::
+
+                This function is experimental and may change in future versions.
+
             :return: The skolem identifier of this term.
         """
         return SkolemId(<int> self.cterm.getSkolemId())
@@ -5660,12 +5926,15 @@ cdef class Term:
     def getSkolemIndices(self):
         """
             .. note:: Asserts :py:meth:`isSkolem()`.
-            .. warning:: This function is experimental and may change in future
-                         versions.
+
+            .. warning::
+
+                This function is experimental and may change in future versions.
 
            :return: The skolem indices of this term. This is list of terms that
-            the skolem function is indexed by. For example, the array diff
-            skolem `SkolemId.ARRAY_DEQ_DIFF` is indexed by two arrays.
+                    the skolem function is indexed by. For example, the array
+                    diff skolem `SkolemId.ARRAY_DEQ_DIFF` is indexed by two
+                    arrays.
         """
         indices = []
         for i in self.cterm.getSkolemIndices():
@@ -5908,7 +6177,7 @@ cdef public api:
         cdef vector[c_Term] result
         try:
             func = getattr(self, method.decode())
-            terms = func() 
+            terms = func()
             for t in terms:
                 result.push_back((<Term?> t).cterm)
         except Exception as e:
@@ -5922,3 +6191,4 @@ cdef public api:
             func(_term(self._Plugin__term_manager(), t))
         except Exception as e:
             error[0] = traceback.format_exc().encode()
+

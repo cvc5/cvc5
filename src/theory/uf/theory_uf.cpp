@@ -134,9 +134,9 @@ void TheoryUF::finishInit() {
 
 bool TheoryUF::needsCheckLastEffort()
 {
-  // last call effort needed if using finite model finding or
-  // arithmetic/bit-vector conversions
-  return d_thss != nullptr || d_csolver != nullptr;
+  // last call effort needed if using finite model finding,
+  // arithmetic/bit-vector conversions, or higher-order extension
+  return d_thss != nullptr || d_csolver != nullptr || d_ho!=nullptr;
 }
 
 void TheoryUF::postCheck(Effort level)
@@ -552,6 +552,14 @@ void TheoryUF::processCarePairArgs(TNode a, TNode b)
         d_im.lemma(lemma, InferenceId::UF_HO_CG_SPLIT);
       }
     }
+  }
+}
+
+void TheoryUF::computeRelevantTerms(std::set<Node>& termSet)
+{
+  if (d_ho!=nullptr)
+  {
+    d_ho->computeRelevantTerms(termSet);
   }
 }
 

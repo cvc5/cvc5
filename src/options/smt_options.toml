@@ -47,6 +47,7 @@ name   = "SMT Layer"
   long       = "learned-rewrite"
   type       = "bool"
   default    = "false"
+  no_support = ["proofs", "unsat-cores"]
   help       = "rewrite the input based on learned literals"
 
 [[option]]
@@ -81,6 +82,14 @@ name   = "SMT Layer"
   type       = "bool"
   default    = "true"
   help       = "allow variable elimination based on unevaluatable terms to variables"
+
+[[option]]
+  name       = "checkModelSubsolver"
+  category   = "common"
+  long       = "check-model-subsolver"
+  type       = "bool"
+  default    = "true"
+  help       = "use subsolver to compute values when applicable in calls to get-value and check-models"
 
 [[option]]
   name       = "modelCoresMode"
@@ -234,7 +243,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "checkSynthSol"
-  category   = "regular"
+  category   = "common"
   long       = "check-synth-sol"
   type       = "bool"
   default    = "false"
@@ -475,7 +484,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "checkInterpolants"
-  category   = "regular"
+  category   = "common"
   long       = "check-interpolants"
   type       = "bool"
   default    = "false"
@@ -483,7 +492,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "checkAbducts"
-  category   = "regular"
+  category   = "common"
   long       = "check-abducts"
   type       = "bool"
   default    = "false"

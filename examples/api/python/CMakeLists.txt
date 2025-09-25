@@ -1,6 +1,6 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Andres Noetzli, Daniel Larraz, Alex Ozdemir
+#   Daniel Larraz, Andres Noetzli, Andrew Reynolds
 #
 # This file is part of the cvc5 project.
 #
@@ -34,6 +34,29 @@ set(EXAMPLES_API_PYTHON
   uf
 )
 
+# Examples that have a Pythonic version.
+# This list should include any such example,
+# even if it is only conditionally added (e.g.,
+# based on CVC5_USE_COCOA or NOT CVC5_SAFE_BUILD).
+set(EXAMPLES_API_PYTHON_PYTHONIC
+  bitvectors_and_arrays
+  bitvectors
+  combination
+  datatypes
+  exceptions
+  extract
+  floating_point
+  helloworld
+  id
+  linear_arith
+  quickstart
+  sequences
+  sets
+  strings
+  transcendentals
+  uf
+)
+
 find_package(Python ${CVC5_BINDINGS_PYTHON_VERSION} EXACT REQUIRED)
 
 # Check whether the cvc5 module is already installed
@@ -55,23 +78,36 @@ if(NOT (PYTHON_CVC5_RC EQUAL 0))
   OUTPUT_STRIP_TRAILING_WHITESPACE)
 endif()
 
-function(create_python_example example)
-  set(example_test example/api/python/${example})
+function(_add_python_test example subdir)
+  string(REPLACE "/" "_" subdir_name "${subdir}") # unique test name
+  set(test_name example/${subdir_name}/${example})
+
   add_test(
-    NAME ${example_test}
-    COMMAND
-      "${Python_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/api/python/${example}.py"
+    NAME     ${test_name}
+    COMMAND  "${Python_EXECUTABLE}"
+             "${CMAKE_SOURCE_DIR}/${subdir}/${example}.py"
   )
-  set_tests_properties(${example_test} PROPERTIES
-    LABELS "example"
-    ENVIRONMENT PYTHONPATH=${PYTHON_MODULE_PATH})
+  set_tests_properties(${test_name} PROPERTIES
+    LABELS      "example"
+    ENVIRONMENT "PYTHONPATH=${PYTHON_MODULE_PATH}"
+  )
+endfunction()
+
+function(create_python_example example)
+  # Base Python API example
+  _add_python_test(${example} "api/python")
+
+  # Only add the Pythonic version if it is in the list
+  if (example IN_LIST EXAMPLES_API_PYTHON_PYTHONIC)
+    _add_python_test(${example} "api/python/pythonic")
+  endif()
 endfunction()
 
 foreach(example ${EXAMPLES_API_PYTHON})
   create_python_example(${example})
 endforeach()
 
-if(NOT CVC5_SAFE_BUILD)
+if((NOT CVC5_SAFE_BUILD) AND (NOT CVC5_STABLE_BUILD))
   create_python_example("floating_point")
   create_python_example("bags")
   create_python_example("relations")

@@ -1,6 +1,6 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Gereon Kremer, Alex Ozdemir, Haniel Barbosa
+#   Gereon Kremer, Alex Ozdemir, Daniel Larraz
 #
 # This file is part of the cvc5 project.
 #
@@ -34,12 +34,12 @@ else()
     check_auto_download("CVC5PythonicAPI" "--no-python-bindings")
   endif()
 
-  set(CVC5PythonicAPI_VERSION "be54c2388b3271f657cad41cf5e3d6bc97cd51a1")
+  set(CVC5PythonicAPI_VERSION "76b1acfb03c3548d5a471739dd28cd596872e426")
   ExternalProject_Add(
     CVC5PythonicAPI
     ${COMMON_EP_CONFIG}
     URL https://github.com/cvc5/cvc5_pythonic_api/archive/${CVC5PythonicAPI_VERSION}.zip
-    URL_HASH SHA256=2bbee4592f7e01869a1512d11d57dcd88453f44076306c0d294877e81e2c0ca9
+    URL_HASH SHA256=718d3fb867e71b94d7a844366ec61bd2a7bbd9b66f52876f236ac28953c9091f
     CONFIGURE_COMMAND ""
     BUILD_COMMAND ""
     INSTALL_COMMAND ""

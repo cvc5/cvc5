@@ -1276,6 +1276,9 @@ void TheoryDatatypes::checkCycles() {
   Trace("datatypes-cycle-check") << "Check acyclicity" << std::endl;
   std::vector< Node > cdt_eqc;
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(d_equalityEngine);
+  std::map< TNode, bool > visited;
+  std::map< TNode, bool > proc;
+  std::vector<Node> expl;
   while( !eqcs_i.isFinished() ){
     Node eqc = (*eqcs_i);
     TypeNode tn = eqc.getType();
@@ -1284,9 +1287,6 @@ void TheoryDatatypes::checkCycles() {
         if (options().datatypes.dtCyclic)
         {
           //do cycle checks
-          std::map< TNode, bool > visited;
-          std::map< TNode, bool > proc;
-          std::vector<Node> expl;
           Trace("datatypes-cycle-check") << "...search for cycle starting at " << eqc << std::endl;
           Node cn = searchForCycle( eqc, eqc, visited, proc, expl );
           Trace("datatypes-cycle-check") << "...finish." << std::endl;
@@ -1843,13 +1843,18 @@ void TheoryDatatypes::computeRelevantTerms(std::set<Node>& termSet)
     }
     // scan the equivalence class
     bool foundCons = false;
+    bool hasRlv = false;
     eq::EqClassIterator eqc_i = eq::EqClassIterator(r, d_equalityEngine);
     while (!eqc_i.isFinished())
     {
       TNode n = *eqc_i;
       ++eqc_i;
-      if (n.getKind() == Kind::APPLY_CONSTRUCTOR
-          && termSet.find(n) != termSet.end())
+      if (termSet.find(n) == termSet.end())
+      {
+        continue;
+      }
+      hasRlv = true;
+      if (n.getKind() == Kind::APPLY_CONSTRUCTOR)
       {
         // change the recorded constructor to be a relevant one
         ei->d_constructor = n;
@@ -1857,11 +1862,22 @@ void TheoryDatatypes::computeRelevantTerms(std::set<Node>& termSet)
         break;
       }
     }
+    // if no relevant terms whatsoever, we skip
+    if (!hasRlv)
+    {
+      continue;
+    }
     // If there are no constructors that are relevant, we consider the
     // recorded constructor to be relevant.
     if (!foundCons)
     {
-      termSet.insert(ei->d_constructor.get());
+      Node cons = ei->d_constructor.get();
+      termSet.insert(cons);
+      // its arguments are also relevant
+      for (const Node& nc : cons)
+      {
+        termSet.insert(nc);
+      }
     }
   }
 }

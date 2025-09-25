@@ -204,6 +204,27 @@ CardinalityClass TypeNode::getCardinalityClass()
   return ret;
 }
 
+bool TypeNode::isBoolean() const {
+  return (getKind() == Kind::TYPE_CONSTANT
+          && getConst<TypeConstant>() == BOOLEAN_TYPE);
+}
+
+bool TypeNode::isString() const {
+  return getKind() == Kind::TYPE_CONSTANT
+         && getConst<TypeConstant>() == STRING_TYPE;
+}
+
+/** Is this a regexp type */
+bool TypeNode::isRegExp() const {
+  return getKind() == Kind::TYPE_CONSTANT
+         && getConst<TypeConstant>() == REGEXP_TYPE;
+ }
+
+bool TypeNode::isRoundingMode() const {
+  return getKind() == Kind::TYPE_CONSTANT
+         && getConst<TypeConstant>() == ROUNDINGMODE_TYPE;
+}
+
 bool TypeNode::isCardinalityLessThan(size_t n)
 {
   if (isBoolean())
@@ -297,8 +318,7 @@ bool TypeNode::isFirstClass() const
          && k != Kind::TESTER_TYPE && k != Kind::UPDATER_TYPE
          && k != Kind::ABSTRACT_TYPE
          && (k != Kind::TYPE_CONSTANT
-             || (getConst<TypeConstant>() != REGEXP_TYPE
-                 && getConst<TypeConstant>() != SEXPR_TYPE));
+             || getConst<TypeConstant>() != SEXPR_TYPE);
 }
 
 bool TypeNode::isWellFounded() const { return kind::isWellFounded(*this); }

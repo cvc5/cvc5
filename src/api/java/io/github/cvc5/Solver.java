@@ -1930,7 +1930,7 @@ public class Solver extends AbstractPointer
   /**
    * Create a datatype declaration.
    *
-   * Create sorts parameter with {@link Solver#mkParamSort(String)}.
+   * Create sorts parameter with {@link TermManager#mkParamSort(String)}.
    *
    * @api.note This method is experimental and may change in future versions.
    *
@@ -1952,7 +1952,7 @@ public class Solver extends AbstractPointer
   /**
    * Create a datatype declaration.
    *
-   * Create sorts parameter with {@link Solver#mkParamSort(String)}.
+   * Create sorts parameter with {@link TermManager#mkParamSort(String)}.
    *
    * @deprecated
    * This function is deprecated and replaced by
@@ -2311,7 +2311,7 @@ public class Solver extends AbstractPointer
    * ( define-fun-rec <function_def> )
    * }
    *
-   * Create parameter {@code fun} with {@link Solver#mkConst(Sort)}.
+   * Create parameter {@code fun} with {@link TermManager#mkConst(Sort)}.
    *
    * @param fun The sorted function.
    * @param boundVars The parameters to this function.
@@ -2332,7 +2332,7 @@ public class Solver extends AbstractPointer
    * ( define-fun-rec <function_def> )
    * }
    *
-   * Create parameter {@code fun} with {@link Solver#mkConst(Sort)}.
+   * Create parameter {@code fun} with {@link TermManager#mkConst(Sort)}.
    *
    * @param fun The sorted function.
    * @param boundVars The parameters to this function.
@@ -2361,7 +2361,7 @@ public class Solver extends AbstractPointer
    * }
    *
    * Create elements of parameter {@code funs} with
-   * {@link Solver#mkConst(Sort)}.
+   * {@link TermManager#mkConst(Sort)}.
    *
    * @param funs The sorted functions.
    * @param boundVars The list of parameters to the functions.
@@ -2380,7 +2380,7 @@ public class Solver extends AbstractPointer
    * }
    *
    * Create elements of parameter {@code funs} with
-   * {@link Solver#mkConst(Sort)}.
+   * {@link TermManager#mkConst(Sort)}.
    *
    * @param funs The sorted functions.
    * @param boundVars The list of parameters to the functions.

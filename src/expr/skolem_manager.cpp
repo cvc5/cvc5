@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Amalee Wilson
+ *   Andrew Reynolds, Daniel Larraz, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
@@ -401,7 +401,6 @@ TypeNode SkolemManager::getTypeFor(SkolemId id,
     case SkolemId::MOD_BY_ZERO:
     case SkolemId::STRINGS_OCCUR_INDEX:
     case SkolemId::STRINGS_OCCUR_INDEX_RE:
-    case SkolemId::STRINGS_OCCUR_LEN_RE:
     case SkolemId::STRINGS_STOI_RESULT:
     case SkolemId::STRINGS_ITOS_RESULT:
     case SkolemId::BAGS_MAP_SUM:
@@ -431,9 +430,6 @@ TypeNode SkolemManager::getTypeFor(SkolemId id,
     case SkolemId::BAGS_DISTINCT_ELEMENTS_SIZE:
     case SkolemId::BAGS_MAP_INDEX: return d_nm->integerType();
     // string skolems
-    case SkolemId::RE_FIRST_MATCH_PRE:
-    case SkolemId::RE_FIRST_MATCH:
-    case SkolemId::RE_FIRST_MATCH_POST:
     case SkolemId::RE_UNFOLD_POS_COMPONENT: return d_nm->stringType();
     case SkolemId::ARRAY_DEQ_DIFF:
     {
@@ -673,11 +669,7 @@ size_t SkolemManager::getNumIndicesForSkolemId(SkolemId id) const
     case SkolemId::STRINGS_OCCUR_INDEX:
     case SkolemId::STRINGS_NUM_OCCUR_RE:
     case SkolemId::STRINGS_OCCUR_INDEX_RE:
-    case SkolemId::STRINGS_OCCUR_LEN_RE:
     case SkolemId::STRINGS_DEQ_DIFF:
-    case SkolemId::RE_FIRST_MATCH_PRE:
-    case SkolemId::RE_FIRST_MATCH:
-    case SkolemId::RE_FIRST_MATCH_POST:
     case SkolemId::BAGS_DEQ_DIFF:
     case SkolemId::TABLES_GROUP_PART_ELEMENT:
     case SkolemId::RELATIONS_GROUP_PART_ELEMENT:

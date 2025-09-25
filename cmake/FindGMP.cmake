@@ -77,8 +77,9 @@ if(NOT GMP_FOUND_SYSTEM)
   set(GMP_INCLUDE_DIR "${DEPS_BASE}/include/")
 
   # Newer versions of gcc use C23 as default C standard but GMP (as of 6.3.0)
-  # only supports C17. Thus, we fix it to C17.
-  set(GMP_CFLAGS "-std=gnu17")
+  # only supports C17. To also support older compiler versions, we fix the
+  # standard for GMP to C99.
+  set(GMP_CFLAGS "-std=gnu99")
 
   if(BUILD_SHARED_LIBS)
     set(LINK_OPTS --enable-shared --disable-static)
@@ -120,6 +121,8 @@ if(NOT GMP_FOUND_SYSTEM)
         env "LDFLAGS=-arch ${CMAKE_OSX_ARCHITECTURES}")
       set(GMP_CFLAGS "${GMP_CFLAGS} --target=${TOOLCHAIN_PREFIX}")
     endif()
+  else()
+    set(CONFIGURE_OPTS --build=${BUILD_TRIPLET}) # Defined in Helpers
   endif()
   set(CONFIGURE_ENV ${CONFIGURE_ENV} env "CFLAGS=${GMP_CFLAGS}")
 
@@ -130,7 +133,7 @@ if(NOT GMP_FOUND_SYSTEM)
   ExternalProject_Add(
     GMP-EP
     ${COMMON_EP_CONFIG}
-    URL https://ftp.gnu.org/gnu/gmp/gmp-${GMP_VERSION}.tar.bz2
+    URL https://github.com/cvc5/cvc5-deps/blob/main/gmp-${GMP_VERSION}.tar.bz2?raw=true
     URL_HASH SHA256=ac28211a7cfb609bae2e2c8d6058d66c8fe96434f740cf6fe2e47b000d1c20cb
     CONFIGURE_COMMAND
       ${CONFIGURE_ENV}
