@@ -66,7 +66,6 @@ void LiaStarExtension::preRegisterTerm(TNode n)
 void LiaStarExtension::getAssertions(std::vector<Node>& assertions)
 {
   Trace("liastar-ext") << "Getting assertions..." << std::endl;
-  Valuation v = d_arith.getValuation();
   for (auto it = d_arith.facts_begin(); it != d_arith.facts_end(); ++it)
   {
     Node lit = (*it).d_assertion;
@@ -136,6 +135,14 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
       Node lemma =
           nm->mkNode(Kind::OR, vectorPredicate, vectorPredicate.negate());
       d_im.addPendingLemma(lemma, InferenceId::ARITH_LIA_STAR);
+      if (d_im.hasPendingLemma())
+      {
+        Trace("liastar-ext") << "has not sent the lemma before" << std::endl;
+      }
+      else
+      {
+        Trace("liastar-ext") << "has already sent the lemma" << std::endl;
+      }
       Trace("liastar-ext") << "lemma = " << lemma << std::endl;
     }
   }
