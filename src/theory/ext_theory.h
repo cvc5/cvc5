@@ -18,7 +18,7 @@
  *
  * At a high level, this technique implements a generic inference scheme based
  * on the combination of SAT-context-dependent equality reasoning and
- * SAT-context-indepedent rewriting.
+ * SAT-context-independent rewriting.
  *
  * As a simple example, say
  * (1) TheoryStrings tells us that the following facts hold in the SAT context:
