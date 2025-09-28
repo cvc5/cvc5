@@ -584,6 +584,22 @@ JNIEXPORT jlongArray JNICALL Java_io_github_cvc5_Solver_getUnsatCoreLemmas(
 
 /*
  * Class:     io_github_cvc5_Solver
+ * Method:    getPartitions
+ * Signature: (J)[J
+ */
+JNIEXPORT jlongArray JNICALL
+Java_io_github_cvc5_Solver_getPartitions(JNIEnv* env, jobject, jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = reinterpret_cast<Solver*>(pointer);
+  std::vector<Term> partitions = solver->getPartitions();
+  jlongArray ret = getPointersFromObjects<Term>(env, partitions);
+  return ret;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
+}
+
+/*
+ * Class:     io_github_cvc5_Solver
  * Method:    getDifficulty
  * Signature: (J)Ljava/util/Map;
  */
