@@ -140,6 +140,17 @@ bool AletheProofPostprocessCallback::updateTheoryRewriteProofRewriteRule(
                            new_args,
                            *cdp);
     }
+    // ======== EXISTS_ELIM
+    // This rule is translated according to the clause pattern.
+    case ProofRewriteRule::EXISTS_ELIM:
+    {
+      return addAletheStep(AletheRule::CONNECTIVE_DEF,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           {},
+                           {},
+                           *cdp);
+    }
     // ======== QUANT_MERGE_PRENEX
     // This rule is translated according to the clause pattern.
     case ProofRewriteRule::QUANT_MERGE_PRENEX:
