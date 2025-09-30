@@ -23,6 +23,7 @@
 #include "theory/arith/nl/nl_lemma_utils.h"
 #include "theory/arith/theory_arith.h"
 #include "theory/datatypes/tuple_utils.h"
+#include "theory/evaluator.h"
 #include "theory/ext_theory.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
@@ -96,12 +97,24 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
   getAssertions(assertions);
 
   Trace("liastar-ext") << "liastar assertions: " << assertions << std::endl;
-  // get the assertions that are false in the model
-  const std::vector<Node> unsatisfied;
+  NodeManager* nm = nodeManager();
   for (const auto& literal : assertions)
   {
     Assert(literal.getKind() == Kind::STAR_CONTAINS);
-    Node vectorPredicate = LiaStarUtils::getVectorPredicate(literal);
+    auto [vectorPredicate, nonnegative] =
+        LiaStarUtils::getVectorPredicate(literal, nm);
+    // assert that vector elements are non negative
+    d_im.addPendingLemma(nonnegative, InferenceId::ARITH_LIA_STAR);
+    // add a spliting lemma for vector predicate
+
+    Node split = vectorPredicate.orNode(vectorPredicate.notNode());
+    d_im.addPendingLemma(split, InferenceId::ARITH_LIA_STAR);
+    d_im.doPendingLemmas();
+    if (d_im.hasSentLemma())
+    {
+      Trace("liastar-ext") << "Sending lemma: " << split << std::endl;
+      continue;
+    }
     std::vector<Node> keys;
     std::vector<Node> values;
 
@@ -115,8 +128,43 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
         keys.begin(), keys.end(), values.begin(), values.end());
     value = rewrite(value);
 
+    // Node vectorValue = literal[2].substitute(
+    //     keys.begin(), keys.end(), values.begin(), values.end());
+    std::vector<Node> elements;
+    Node vectorValue;
+    if (literal[2].isConst())
+    {
+      vectorValue = literal[2];
+    }
+    else
+    {
+      for (size_t i = 0; i < literal[2].getType().getTupleLength(); i++)
+      {
+        Node eValue = datatypes::TupleUtils::nthElementOfTuple(literal[2], i);
+        elements.push_back(arithModel[eValue]);
+      }
+      vectorValue = datatypes::TupleUtils::constructTupleFromElements(
+          literal[2].getType(),
+          elements,
+          0,
+          literal[2].getType().getTupleLength() - 1);
+      vectorValue = rewrite(vectorValue);
+    }
     Trace("liastar-ext-debug") << "value: " << value << std::endl;
-    if (value == d_false)
+    Trace("liastar-ext-debug") << "vector value of: " << literal[2] << " is "
+                               << vectorValue << std::endl;
+    Node v = literal[2];
+    if (value == d_true)
+    {
+      Trace("liastar-ext-debug")
+          << "----------------------------------------" << std::endl;
+      Trace("liastar-ext-debug") << literal << std::endl;
+      Trace("liastar-ext-debug")
+          << "----------------------------------------" << std::endl;
+      d_processedVectors.push_back(v);
+      return;
+    }
+    else  //(value == d_false)
     {
       // the candidate model does not satisfy the star predicate.
       // This does not mean the vector is not a member of the star set,
@@ -131,10 +179,11 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
       // (p y1 ... y_n) holds to force LIA solver to find a model.
       // If not, then we need to work harder with (not (p y1 ... y_n))
       // to find a linear combination of vectors if it is satisfiable.
-      NodeManager* nm = nodeManager();
+
       Node lemma =
           nm->mkNode(Kind::OR, vectorPredicate, vectorPredicate.negate());
       d_im.addPendingLemma(lemma, InferenceId::ARITH_LIA_STAR);
+      Trace("liastar-ext") << "lemma = " << lemma << std::endl;
       if (d_im.hasPendingLemma())
       {
         Trace("liastar-ext") << "has not sent the lemma before" << std::endl;
@@ -142,11 +191,42 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
       else
       {
         Trace("liastar-ext") << "has already sent the lemma" << std::endl;
+        // more work need to be done
+        if (std::find(d_processedVectors.begin(), d_processedVectors.end(), v)
+            != d_processedVectors.end())
+        {
+          Trace("liastar-ext") << "already processed vector " << v << std::endl;
+          return;
+        }
+        Node v1 = nm->getSkolemManager()->mkDummySkolem("v1", v.getType());
+        Node v2 = nm->getSkolemManager()->mkDummySkolem("v2", v.getType());
+
+        auto size = v1.getType().getTupleTypes().size();
+
+        for (size_t i = 0; i < size; i++)
+        {
+          Node v_i = datatypes::TupleUtils::nthElementOfTuple(v, i);
+          Node v1_i = datatypes::TupleUtils::nthElementOfTuple(v1, i);
+          Node v2_i = datatypes::TupleUtils::nthElementOfTuple(v2, i);
+          Node plus = nm->mkNode(Kind::ADD, v1_i, v2_i);
+          Node constraint = v_i.eqNode(plus);
+          d_im.addPendingLemma(constraint, InferenceId::ARITH_LIA_STAR);
+          Trace("liastar-ext")
+              << "Added constraint:  " << constraint << std::endl;
+        }
+
+        Node v1Literal =
+            nm->mkNode(Kind::STAR_CONTAINS, literal[0], literal[1], v1);
+        Node v2Literal =
+            nm->mkNode(Kind::STAR_CONTAINS, literal[0], literal[1], v2);
+        d_im.addPendingLemma(v1Literal, InferenceId::ARITH_LIA_STAR);
+        d_im.addPendingLemma(v2Literal, InferenceId::ARITH_LIA_STAR);
+        Trace("liastar-ext") << "Add v1:  " << v1Literal << std::endl;
+        Trace("liastar-ext") << "Add v2:  " << v2Literal << std::endl;
+        d_processedVectors.push_back(v);
       }
-      Trace("liastar-ext") << "lemma = " << lemma << std::endl;
     }
   }
-  Trace("liastar-ext") << "unsatisfied = " << unsatisfied.size() << std::endl;
 }
 
 }  // namespace liastar

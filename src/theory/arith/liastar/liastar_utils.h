@@ -29,9 +29,9 @@ class LiaStarUtils
   /**
    * @param n a node of the form (int.star-contains (x1 ... xn) (p x1 ... xn)
    * (y1 ... yn))
-   * @return (p y1 ... yn)
+   * @return <(p y1 ... yn), (and (>= y1 0) ... (>= yn 0))
    */
-  static Node getVectorPredicate(Node n);
+  static std::pair<Node, Node> getVectorPredicate(Node n, NodeManager* nm);
 };
 }  // namespace liastar
 }  // namespace arith

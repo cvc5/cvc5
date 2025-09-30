@@ -16,6 +16,7 @@
 #include "liastar_utils.h"
 
 #include "theory/datatypes/tuple_utils.h"
+#include "util/rational.h"
 
 using namespace cvc5::internal::kind;
 
@@ -24,7 +25,7 @@ namespace theory {
 namespace arith {
 namespace liastar {
 
-Node LiaStarUtils::getVectorPredicate(Node n)
+std::pair<Node, Node> LiaStarUtils::getVectorPredicate(Node n, NodeManager* nm)
 {
   Assert(n.getKind() == Kind::STAR_CONTAINS);
   Node variables = n[0];
@@ -43,8 +44,14 @@ Node LiaStarUtils::getVectorPredicate(Node n)
                                          vecElements.end());
   Trace("liastar-ext-debug") << "n: " << n << std::endl;
   Trace("liastar-ext-debug") << "predicate: " << predicate << std::endl;
+  Node nonnegativeConstraints = nm->mkConst<bool>(true);
+  for (const auto& v : vecElements)
+  {
+    Node nonnegative = nm->mkNode(Kind::GEQ, v, nm->mkConstInt(Rational(0)));
+    nonnegativeConstraints = nonnegativeConstraints.andNode(nonnegative);
+  }
   Trace("liastar-ext-debug") << "substitute: " << substitute << std::endl;
-  return substitute;
+  return std::make_pair(substitute, nonnegativeConstraints);
 }
 }  // namespace liastar
 }  // namespace arith

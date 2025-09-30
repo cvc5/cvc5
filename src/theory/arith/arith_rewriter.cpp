@@ -1094,9 +1094,10 @@ RewriteResponse ArithRewriter::rewriteStarContains(TNode t)
   // and see if it holds.
   if (ys.isConst())
   {
-    Node vectorPredicate = liastar::LiaStarUtils::getVectorPredicate(t);
+    auto [vectorPredicate, nonnegative] =
+        liastar::LiaStarUtils::getVectorPredicate(t, nm);
     Evaluator eval(nullptr);
-    Node value = eval.eval(vectorPredicate, {}, {});
+    Node value = eval.eval(vectorPredicate.andNode(nonnegative), {}, {});
     if (value == d_nm->mkConst(true))
     {
       return RewriteResponse(REWRITE_DONE, nm->mkConst(true));
