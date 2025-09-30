@@ -97,6 +97,7 @@ void TheoryArith::finishInit()
   {
     d_nonlinearExtension.reset(new nl::NonlinearExtension(d_env, *this));
     d_liaStarExtension.reset(new liastar::LiaStarExtension(d_env, *this));
+    d_valuation.setIrrelevantKind(Kind::STAR_CONTAINS);
   }
   d_eqSolver->finishInit();
   // finish initialize in the old linear solver
