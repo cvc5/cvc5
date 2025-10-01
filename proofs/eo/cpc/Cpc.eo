@@ -163,9 +163,9 @@
       (($run_evaluate (to_int x))          (eo::to_z ($run_evaluate x)))
       (($run_evaluate (is_int x))          (eo::define ((ex ($run_evaluate x))) (eo::eq (eo::to_q (eo::to_z ex)) (eo::to_q ex))))
       (($run_evaluate (abs x))             (eo::define ((ex ($run_evaluate x))) (eo::ite (eo::is_neg ex) (eo::neg ex) ex)))
-      (($run_evaluate (int.log2 i1))       ($arith_eval_int_log_2 ($run_evaluate i1)))
+      (($run_evaluate (int.log2 i1))       ($run_evaluate (ite (< i1 0) 0 (div i1 (int.pow2 i1)))))
       (($run_evaluate (int.pow2 i1))       ($arith_eval_int_pow_2 ($run_evaluate i1)))
-      (($run_evaluate (int.ispow2 i1))     ($arith_eval_int_is_pow_2 ($run_evaluate i1)))
+      (($run_evaluate (int.ispow2 i1))     ($run_evaluate (and (>= i1 0) (= i1 (int.pow2 (int.log2 i1))))))
 
       ; strings
       (($run_evaluate (str.++ sx sys))      (eo::concat ($run_evaluate sx) ($run_evaluate sys)))
