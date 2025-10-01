@@ -1297,11 +1297,11 @@ EvalResult Evaluator::evalInternal(
           {
             BitVector res(w.toUnsignedInt(), i);
             // should not have overflowed
-            if (res.getValue()==i)
+            if (res.getValue() == i)
             {
               handled = true;
-              Trace("evaluator") << currNode << " evalutes to "
-                                << res << std::endl;
+              Trace("evaluator")
+                  << currNode << " evalutes to " << res << std::endl;
               results[currNode] = EvalResult(res);
             }
           }
