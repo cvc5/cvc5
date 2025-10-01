@@ -132,11 +132,10 @@ PfManager::PfManager(Env& env)
     d_pfpp->setEliminateRule(ProofRule::MACRO_SR_PRED_INTRO);
     d_pfpp->setEliminateRule(ProofRule::MACRO_SR_PRED_ELIM);
     d_pfpp->setEliminateRule(ProofRule::MACRO_SR_PRED_TRANSFORM);
-    // Alethe does not require macro resolution to be expanded
-    if (options().proof.proofFormatMode != options::ProofFormatMode::ALETHE)
+    // Alethe does not require chain multiset resolution to be expanded
+    if (options().proof.proofFormatMode != options::ProofFormatMode::ALETHE && !options().proof.proofChainMRes)
     {
-      d_pfpp->setEliminateRule(ProofRule::MACRO_RESOLUTION_TRUST);
-      d_pfpp->setEliminateRule(ProofRule::MACRO_RESOLUTION);
+      d_pfpp->setEliminateRule(ProofRule::CHAIN_M_RESOLUTION);
     }
     d_pfpp->setEliminateRule(ProofRule::MACRO_ARITH_SCALE_SUM_UB);
     if (options().proof.proofGranularityMode

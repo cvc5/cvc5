@@ -477,31 +477,23 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
     cdp->addStep(eq[1], ProofRule::EQ_RESOLVE, {children[0], eq}, {});
     return args[0];
   }
-  else if (id == ProofRule::MACRO_RESOLUTION
-           || id == ProofRule::MACRO_RESOLUTION_TRUST)
+  else if (id == ProofRule::CHAIN_M_RESOLUTION)
   {
     ProofNodeManager* pnm = d_env.getProofNodeManager();
     // first generate the naive chain_resolution
     std::vector<Node> pols;
     std::vector<Node> lits;
-    Assert((args.size() + 1) % 2 == 0);
+    Assert(args.size()==3);
     for (size_t i = 1, nargs = args.size(); i < nargs; i = i + 2)
     {
-      pols.push_back(args[i]);
-      lits.push_back(args[i + 1]);
+      pols.push_back(args[1][i]);
+      lits.push_back(args[2][i]);
     }
     Assert(pols.size() == children.size() - 1);
     NodeManager* nm = nodeManager();
     std::vector<Node> chainResArgs;
     chainResArgs.push_back(nm->mkNode(Kind::SEXPR, pols));
     chainResArgs.push_back(nm->mkNode(Kind::SEXPR, lits));
-    if (options().proof.proofChainMRes)
-    {
-      chainResArgs.insert(chainResArgs.begin(), args[0]);
-      cdp->addStep(
-          args[0], ProofRule::CHAIN_M_RESOLUTION, children, chainResArgs);
-      return args[0];
-    }
     Node chainConclusion = d_pc->checkDebug(
         ProofRule::CHAIN_RESOLUTION, children, chainResArgs, Node::null(), "");
     Trace("smt-proof-pp-debug") << "Original conclusion: " << args[0] << "\n";
@@ -515,7 +507,7 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
     //   FACTORING step
     // - if the order is not the same, add a REORDERING step
     // - if there are literals in chainConclusion that are not in the original
-    //   conclusion, we need to transform the MACRO_RESOLUTION into a series of
+    //   conclusion, we need to transform the CHAIN_M_RESOLUTION into a series of
     //   CHAIN_RESOLUTION + FACTORING steps, so that we explicitly eliminate all
     //   these "crowding" literals. We do this via FACTORING so we avoid adding
     //   an exponential number of premises, which would happen if we just
