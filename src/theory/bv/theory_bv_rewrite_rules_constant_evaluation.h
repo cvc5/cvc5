@@ -506,7 +506,13 @@ inline Node RewriteRule<EvalConstBvSym>::apply(TNode node)
                       << std::endl;
   Integer a = node[0].getConst<Rational>().getNumerator();
   Integer b = node[1].getConst<Rational>().getNumerator();
-  return utils::mkConst(node.getNodeManager(), b.toUnsignedInt(), a);
+  BitVector val(b.toUnsignedInt(), a);
+  // only rewrites if no overflow
+  if (val.getValue()==a)
+  {
+    return node.getNodeManager()->mkConst(val);
+  }
+  return node;
 }
 
 template <>
