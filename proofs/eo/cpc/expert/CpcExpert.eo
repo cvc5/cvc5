@@ -22,6 +22,7 @@
 (include "./rules/Transcendentals.eo")
 (include "./rules/SetsExt.eo")
 (include "./rules/RewritesExpert.eo")
+(include "./rules/QuantifiersExpert.eo")
 
 (include "../programs/AciNorm.eo")
 
@@ -36,7 +37,6 @@
 
 ; Dataypes shared selector
 (declare-parameterized-const @shared_selector ((D Type :opaque) (T Type :opaque) (n Int :opaque)) (-> D T))
-
 
 ; program: $get_aci_normal_form_expert
 ; args:
