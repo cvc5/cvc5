@@ -484,10 +484,10 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
     Assert(args.size() == 3);
     std::vector<Node> pols(args[1].begin(), args[1].end());
     std::vector<Node> lits(args[2].begin(), args[2].end());
-    Assert (lits.size()==pols.size());
+    Assert(lits.size() == pols.size());
     Assert(pols.size() == children.size() - 1);
     NodeManager* nm = nodeManager();
-    std::vector<Node> chainResArgs(args.begin()+1, args.end());
+    std::vector<Node> chainResArgs(args.begin() + 1, args.end());
     Node chainConclusion = d_pc->checkDebug(
         ProofRule::CHAIN_RESOLUTION, children, chainResArgs, Node::null(), "");
     Trace("smt-proof-pp-debug") << "Original conclusion: " << args[0] << "\n";
