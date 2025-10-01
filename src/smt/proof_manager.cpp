@@ -133,7 +133,8 @@ PfManager::PfManager(Env& env)
     d_pfpp->setEliminateRule(ProofRule::MACRO_SR_PRED_ELIM);
     d_pfpp->setEliminateRule(ProofRule::MACRO_SR_PRED_TRANSFORM);
     // Alethe does not require chain multiset resolution to be expanded
-    if (options().proof.proofFormatMode != options::ProofFormatMode::ALETHE && !options().proof.proofChainMRes)
+    if (options().proof.proofFormatMode != options::ProofFormatMode::ALETHE
+        && !options().proof.proofChainMRes)
     {
       d_pfpp->setEliminateRule(ProofRule::CHAIN_M_RESOLUTION);
     }

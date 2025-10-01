@@ -483,7 +483,7 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
     // first generate the naive chain_resolution
     std::vector<Node> pols;
     std::vector<Node> lits;
-    Assert(args.size()==3);
+    Assert(args.size() == 3);
     for (size_t i = 1, nargs = args.size(); i < nargs; i = i + 2)
     {
       pols.push_back(args[1][i]);
@@ -507,10 +507,10 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
     //   FACTORING step
     // - if the order is not the same, add a REORDERING step
     // - if there are literals in chainConclusion that are not in the original
-    //   conclusion, we need to transform the CHAIN_M_RESOLUTION into a series of
-    //   CHAIN_RESOLUTION + FACTORING steps, so that we explicitly eliminate all
-    //   these "crowding" literals. We do this via FACTORING so we avoid adding
-    //   an exponential number of premises, which would happen if we just
+    //   conclusion, we need to transform the CHAIN_M_RESOLUTION into a series
+    //   of CHAIN_RESOLUTION + FACTORING steps, so that we explicitly eliminate
+    //   all these "crowding" literals. We do this via FACTORING so we avoid
+    //   adding an exponential number of premises, which would happen if we just
     //   repeated in the premises the clauses needed for eliminating crowding
     //   literals, which could themselves add crowding literals.
     if (chainConclusion == args[0])

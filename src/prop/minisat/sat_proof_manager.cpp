@@ -482,8 +482,7 @@ void SatProofManager::explainLit(SatLiteral lit,
       Trace("sat-proof") << "SatProofManager::explainLit:   " << children[i];
       if (i > 0)
       {
-        Trace("sat-proof") << " [" << lits[i] << ", "
-                           << pols[i] << "]";
+        Trace("sat-proof") << " [" << lits[i] << ", " << pols[i] << "]";
       }
       Trace("sat-proof") << "\n";
     }
