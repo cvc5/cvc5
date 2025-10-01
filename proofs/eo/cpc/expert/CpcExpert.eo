@@ -38,10 +38,6 @@
 ; Dataypes shared selector
 (declare-parameterized-const @shared_selector ((D Type :opaque) (T Type :opaque) (n Int :opaque)) (-> D T))
 
-; witness for invertibility condition
-(declare-parameterized-const @witness_inv_condition ((F Bool :opaque))
-  ($assoc_nil_nth_type @list ($get_var_list F) 0))
-
 ; program: $get_aci_normal_form_expert
 ; args:
 ; - t S: The term to compute the normal form for.
