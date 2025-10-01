@@ -704,9 +704,10 @@ bool AletheProofPostprocessCallback::update(Node res,
       }
       else if (id == ProofRule::CHAIN_M_RESOLUTION)
       {
-        Assert (args.size()==3 && args[1].getNumChildren()==args[2].getNumChildren());
-        //cargs.insert(cargs.end(), args.begin() + 1, args.end());
-        for (size_t i=0, nsteps=args[1].getNumChildren(); i<nsteps; i++)
+        Assert(args.size() == 3
+               && args[1].getNumChildren() == args[2].getNumChildren());
+        // cargs.insert(cargs.end(), args.begin() + 1, args.end());
+        for (size_t i = 0, nsteps = args[1].getNumChildren(); i < nsteps; i++)
         {
           cargs.push_back(args[1][i]);
           cargs.push_back(args[2][i]);
