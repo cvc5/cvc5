@@ -706,7 +706,7 @@ bool AletheProofPostprocessCallback::update(Node res,
       {
         Assert(args.size() == 3
                && args[1].getNumChildren() == args[2].getNumChildren());
-        // cargs.insert(cargs.end(), args.begin() + 1, args.end());
+        // Alethe expects the polarity/literals to be interleaved
         for (size_t i = 0, nsteps = args[1].getNumChildren(); i < nsteps; i++)
         {
           cargs.push_back(args[1][i]);
