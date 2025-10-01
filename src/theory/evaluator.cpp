@@ -1292,13 +1292,20 @@ EvalResult Evaluator::evalInternal(
         {
           Integer i = results[currNode[0]].d_rat.getNumerator();
           Integer w = results[currNode[1]].d_rat.getNumerator();
+          bool handled = false;
           if (w.fitsUnsignedInt())
           {
-            Trace("evaluator") << currNode << " evalutes to "
-                               << BitVector(w.toUnsignedInt(), i) << std::endl;
-            results[currNode] = EvalResult(BitVector(w.toUnsignedInt(), i));
+            BitVector res(w.toUnsignedInt(), i);
+            // should not have overflowed
+            if (res.getValue()==i)
+            {
+              handled = true;
+              Trace("evaluator") << currNode << " evalutes to "
+                                << res << std::endl;
+              results[currNode] = EvalResult(res);
+            }
           }
-          else
+          if (!handled)
           {
             processUnhandled(
                 currNode, currNodeVal, evalAsNode, results, needsReconstruct);
