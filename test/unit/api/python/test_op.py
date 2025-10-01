@@ -36,7 +36,7 @@ def test_get_kind(tm):
 
 
 def test_is_null(tm):
-    x = Op(tm)
+    x = Op()
     assert x.isNull()
     y = tm.mkOp(Kind.BITVECTOR_EXTRACT, 31, 1)
     assert not y.isNull()
