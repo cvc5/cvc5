@@ -481,19 +481,13 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
   {
     ProofNodeManager* pnm = d_env.getProofNodeManager();
     // first generate the naive chain_resolution
-    std::vector<Node> pols;
-    std::vector<Node> lits;
     Assert(args.size() == 3);
-    for (size_t i = 1, nargs = args.size(); i < nargs; i = i + 2)
-    {
-      pols.push_back(args[1][i]);
-      lits.push_back(args[2][i]);
-    }
+    std::vector<Node> pols(args[1].begin(), args[1].end());
+    std::vector<Node> lits(args[2].begin(), args[2].end());
+    Assert (lits.size()==pols.size());
     Assert(pols.size() == children.size() - 1);
     NodeManager* nm = nodeManager();
-    std::vector<Node> chainResArgs;
-    chainResArgs.push_back(nm->mkNode(Kind::SEXPR, pols));
-    chainResArgs.push_back(nm->mkNode(Kind::SEXPR, lits));
+    std::vector<Node> chainResArgs(args.begin()+1, args.end());
     Node chainConclusion = d_pc->checkDebug(
         ProofRule::CHAIN_RESOLUTION, children, chainResArgs, Node::null(), "");
     Trace("smt-proof-pp-debug") << "Original conclusion: " << args[0] << "\n";
@@ -551,7 +545,13 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
     //
     // Thus we rely on the standard utility to determine if args[0] is singleton
     // based on the premises and arguments of the resolution
-    std::vector<Node> chainResArgsOrig{args.begin() + 1, args.end()};
+    std::vector<Node> chainResArgsOrig;
+    // the proof utilities below expect to interleave literals and polarities
+    for (size_t i = 0, nsteps = args[1].getNumChildren(); i < nsteps; i++)
+    {
+      chainResArgsOrig.push_back(args[1][i]);
+      chainResArgsOrig.push_back(args[2][i]);
+    }
     if (proof::isSingletonClause(args[0], children, chainResArgsOrig))
     {
       conclusionLits.push_back(args[0]);
@@ -569,17 +569,18 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
     // chain.
     if (chainConclusionLitsSet != conclusionLitsSet)
     {
+      chainResArgsOrig.insert(chainResArgsOrig.begin(), args[0]);
       Trace("smt-proof-pp-debug") << "..need to eliminate crowding lits.\n";
       Trace("crowding-lits") << "..need to eliminate crowding lits.\n";
       Trace("crowding-lits") << "..premises: " << children << "\n";
-      Trace("crowding-lits") << "..args: " << args << "\n";
+      Trace("crowding-lits") << "..args: " << chainResArgsOrig << "\n";
       chainConclusion =
           proof::eliminateCrowdingLits(nm,
                                        d_env.getOptions().proof.optResReconSize,
                                        chainConclusionLits,
                                        conclusionLits,
                                        children,
-                                       args,
+                                       chainResArgsOrig,
                                        cdp,
                                        pnm);
       // update vector of lits. Note that the set is no longer used, so we don't
