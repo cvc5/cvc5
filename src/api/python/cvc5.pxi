@@ -93,7 +93,7 @@ cdef Op _op(tm: TermManager, op: c_Op):
   o.tm = tm
   return o
 
-cdef Term _term(tm: TermManager, term: c_Term):
+cdef Term _term(TermManager tm, const c_Term& term):
   t = Term()
   t.cterm = term
   t.tm = tm
