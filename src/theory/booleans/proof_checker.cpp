@@ -309,7 +309,7 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
     Assert(args.size() == 3);
     pols.insert(pols.end(), args[1].begin(), args[1].end());
     lits.insert(lits.end(), args[2].begin(), args[2].end());
-    if (pols.size()!=lits.size())
+    if (pols.size() != lits.size())
     {
       return Node::null();
     }
