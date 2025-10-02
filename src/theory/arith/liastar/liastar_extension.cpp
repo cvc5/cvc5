@@ -49,6 +49,7 @@ LiaStarExtension::LiaStarExtension(Env& env, TheoryArith& containing)
   d_extTheory.addFunctionKind(Kind::STAR_CONTAINS);
   d_true = nodeManager()->mkConst(true);
   d_false = nodeManager()->mkConst(false);
+  d_zero = nodeManager()->mkConstInt(Rational(0));
 }
 
 LiaStarExtension::~LiaStarExtension() {}
@@ -196,7 +197,7 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
             != d_processedVectors.end())
         {
           Trace("liastar-ext") << "already processed vector " << v << std::endl;
-          return;
+          continue;
         }
         Node v1 = nm->getSkolemManager()->mkDummySkolem("v1", v.getType());
         Node v2 = nm->getSkolemManager()->mkDummySkolem("v2", v.getType());
@@ -221,12 +222,27 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
             nm->mkNode(Kind::STAR_CONTAINS, literal[0], literal[1], v2);
         d_im.addPendingLemma(v1Literal, InferenceId::ARITH_LIA_STAR);
         d_im.addPendingLemma(v2Literal, InferenceId::ARITH_LIA_STAR);
+        d_im.addPendingLemma(isNotZeroVector(v1), InferenceId::ARITH_LIA_STAR);
+        d_im.addPendingLemma(isNotZeroVector(v2), InferenceId::ARITH_LIA_STAR);
         Trace("liastar-ext") << "Add v1:  " << v1Literal << std::endl;
         Trace("liastar-ext") << "Add v2:  " << v2Literal << std::endl;
         d_processedVectors.push_back(v);
+        d_im.doPendingLemmas();
       }
     }
   }
+}
+
+Node LiaStarExtension::isNotZeroVector(Node v)
+{
+  std::vector<Node> elements = datatypes::TupleUtils::getTupleElements(v);
+  Node notZero = d_false;
+  for (Node element : elements)
+  {
+    notZero = notZero.orNode(element.eqNode(d_zero).notNode());
+  }
+  Trace("liastar-ext") << v << " is not zero: " << notZero << std::endl;
+  return notZero;
 }
 
 }  // namespace liastar

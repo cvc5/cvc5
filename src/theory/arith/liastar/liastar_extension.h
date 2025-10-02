@@ -97,9 +97,12 @@ class LiaStarExtension : EnvObj
    */
   void getAssertions(std::vector<Node>& assertions);
 
+  Node isNotZeroVector(Node v);
+
   /** commonly used terms */
   Node d_true;
   Node d_false;
+  Node d_zero;
   // The theory of arithmetic containing this extension.
   TheoryArith& d_arith;
   /** A reference to the arithmetic state object */
