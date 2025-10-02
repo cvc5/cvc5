@@ -1827,12 +1827,15 @@ void SetDefaults::setDefaultDecisionMode(const LogicInfo& logic,
                       // ALL or its supersets
           logic.hasEverything()
           ? options::DecisionMode::JUSTIFICATION
-          : (
-                // QF_AUFBV or QF_ABV or QF_UFBV
-                (!logic.isQuantified()
-                 && (logic.isTheoryEnabled(THEORY_ARRAYS)
-                     || logic.isTheoryEnabled(THEORY_UF))
-                 && logic.isTheoryEnabled(THEORY_BV))
+          : (  // QF_BV without internal bit-blasting
+                (!logic.isQuantified() && logic.isPure(THEORY_BV)
+                 && opts.bv.bvSolver != options::BVSolver::BITBLAST_INTERNAL)
+                        ||
+                        // QF_AUFBV or QF_ABV or QF_UFBV
+                        (!logic.isQuantified()
+                         && (logic.isTheoryEnabled(THEORY_ARRAYS)
+                             || logic.isTheoryEnabled(THEORY_UF))
+                         && logic.isTheoryEnabled(THEORY_BV))
                         ||
                         // QF_AUFLIA (and may be ends up enabling
                         // QF_AUFLRA?)

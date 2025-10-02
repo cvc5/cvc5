@@ -1,6 +1,6 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Yoni Zohar, Aina Niemetz
+#   Daniel Larraz
 #
 # This file is part of the cvc5 project.
 #
@@ -13,18 +13,10 @@
 # The build system configuration.
 ##
 
-add_custom_target(build-apitests)
-add_dependencies(build-tests build-apitests)
+cvc5_add_python_api_test(issue5074 "issues")
+cvc5_add_python_api_test(issue6111 "issues")
+cvc5_add_python_api_test(proj-issue306 "issues")
 
-add_subdirectory(c)
-add_subdirectory(cpp)
-if (BUILD_BINDINGS_PYTHON)
-  add_subdirectory(python)
+if (NOT ENABLE_SAFE_MODE AND NOT ENABLE_STABLE_MODE)
+  cvc5_add_python_api_test(issue4889 "issues")
 endif()
-if (BUILD_BINDINGS_JAVA)
-  add_subdirectory(java)
-endif()
-
-add_custom_target(apitests
-  COMMAND ctest --output-on-failure -L "api" -j${CTEST_NTHREADS} $$ARGS
-  DEPENDS build-apitests)

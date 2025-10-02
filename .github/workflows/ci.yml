@@ -1,4 +1,11 @@
-on: [push, pull_request]
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Tag of the release to build (leave empty for current branch)"
+
 name: CI
 
 # Prevents github from relying on clones of homebrew-core or homebrew-cask.
@@ -258,8 +265,10 @@ jobs:
       cancel-in-progress: ${{ github.repository != 'cvc5/cvc5' || startsWith(github.ref, 'refs/pull/') }}
 
     steps:
-
     - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        ref: ${{ github.event.inputs.release_tag }}
 
     # Ensure that the Java bindings, Java API tests, and Java examples are compatible
     # with the minimum required Java version (currently Java 8).

@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mudathir Mohamed, Andres Noetzli
+ *   Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
@@ -10,24 +10,20 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * The cvc5 java API.
+ * Test for issue #12117
  */
 
-package io.github.cvc5;
+import io.github.cvc5.*;
 
-/**
- * Base class for all API exceptions.
- * If thrown, all API objects may be in an unsafe state.
- */
-public class CVC5ApiException extends RuntimeException
-{
-  /**
-   * Construct with message from a string.
-   *
-   * @param message The error message.
-   */
-  public CVC5ApiException(String message)
-  {
-    super(message);
-  }
+public class Issue12117 {
+    public static void main(String[] args) {
+        TermManager tm = new TermManager();
+        try {
+            // Attempt to create a string term with a high Unicode surrogate
+            Term t = tm.mkString("\uD880\uDC4C");
+            System.out.println("Term created: " + t);
+        } catch (CVC5ApiException e) {
+            System.out.println("Exception occurred: " + e.getMessage());
+        }
+    }
 }

@@ -44,11 +44,11 @@ def test_mk_datatype_sort(tm):
 
 def test_is_null(tm):
     # creating empty (null) objects.
-    dtypeSpec = DatatypeDecl(tm)
-    cons = DatatypeConstructorDecl(tm)
-    d = Datatype(tm)
-    consConstr = DatatypeConstructor(tm)
-    sel = DatatypeSelector(tm)
+    dtypeSpec = DatatypeDecl()
+    cons = DatatypeConstructorDecl()
+    d = Datatype()
+    consConstr = DatatypeConstructor()
+    sel = DatatypeSelector()
 
     # verifying that the objects are considered null.
     assert dtypeSpec.isNull()
@@ -196,7 +196,7 @@ def test_datatype_structs(tm):
     cons = tm.mkDatatypeConstructorDecl("cons")
     cons.addSelector("head", intSort)
     cons.addSelectorSelf("tail")
-    nullSort = Sort(tm)
+    nullSort = Sort()
     with pytest.raises(RuntimeError):
         cons.addSelector("null", nullSort)
     dtypeSpec.addConstructor(cons)
@@ -303,7 +303,7 @@ def test_datatype_names(tm):
 
     # possible to construct null datatype declarations if not using mkDatatypeDecl
     with pytest.raises(RuntimeError):
-        DatatypeDecl(tm).getName()
+        DatatypeDecl().getName()
 
 
 def test_parametric_datatype(tm):
@@ -565,7 +565,6 @@ def test_datatype_specialized_cons(tm):
     iargs = [isort]
     listInt = dtsorts[0].instantiate(iargs)
 
-    testConsTerm = Term(tm)
     # get the specialized constructor term for list[Int]
     testConsTerm = nilc.getInstantiatedTerm(listInt)
     assert testConsTerm != nilc.getTerm()

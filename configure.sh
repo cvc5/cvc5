@@ -151,6 +151,7 @@ java_bindings=default
 editline=default
 build_shared=ON
 safe_mode=default
+stable_mode=default
 static_binary=default
 statistics=default
 tracing=default
