@@ -1,5 +1,6 @@
 (set-logic ALL)
 (set-info :status sat)
+(set-option :quiet true)
 (declare-const a Int)
 (declare-const b Int)
 (declare-const c Int)
