@@ -1,3 +1,4 @@
+; COMMAND-LINE: --sets-exp
 ; EXPECT: unsat
 (set-logic ALL)
 (declare-const __ (_ BitVec 1))

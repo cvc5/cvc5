@@ -1,3 +1,4 @@
+; COMMAND-LINE: --fmf-bound-sets
 (set-logic HO_ALL)
 (set-info :status sat)
 (set-option :finite-model-find true)

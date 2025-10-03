@@ -4422,14 +4422,10 @@ enum ENUM(ProofRewriteRule)
   EVALUE(SETS_MINUS_MEMBER),
   /** Auto-generated from RARE rule sets-union-member */
   EVALUE(SETS_UNION_MEMBER),
-  /** Auto-generated from RARE rule sets-choose-singleton */
-  EVALUE(SETS_CHOOSE_SINGLETON),
   /** Auto-generated from RARE rule sets-minus-self */
   EVALUE(SETS_MINUS_SELF),
   /** Auto-generated from RARE rule sets-is-empty-elim */
   EVALUE(SETS_IS_EMPTY_ELIM),
-  /** Auto-generated from RARE rule sets-is-singleton-elim */
-  EVALUE(SETS_IS_SINGLETON_ELIM),
   /** Auto-generated from RARE rule str-eq-ctn-false */
   EVALUE(STR_EQ_CTN_FALSE),
   /** Auto-generated from RARE rule str-eq-ctn-full-false1 */
@@ -4800,6 +4796,10 @@ enum ENUM(ProofRewriteRule)
   EVALUE(SETS_CARD_MINUS),
   /** Auto-generated from RARE rule sets-card-emp */
   EVALUE(SETS_CARD_EMP),
+  /** Auto-generated from RARE rule sets-choose-singleton */
+  EVALUE(SETS_CHOOSE_SINGLETON),
+  /** Auto-generated from RARE rule sets-is-singleton-elim */
+  EVALUE(SETS_IS_SINGLETON_ELIM),
 // ${rules}$
 #ifdef CVC5_API_USE_C_ENUMS
   // must be last entry
