@@ -2499,6 +2499,145 @@ enum ENUM(ProofRule)
   EVALUE(ARITH_TRANS_SINE_APPROX_BELOW_POS),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Finite Fields - Polynomial Conversion**
+   *
+   * .. math::
+   *
+   *   \inferrule{- \mid \ell_1, \dots, \ell_n, G}
+   *   {(\ell_1 \land \dots \land l_n) \iff \mathcal V(\langle G \rangle) \neq \emptyset}
+   *
+   * where each :math:`\ell_i` is a literal in the Finite Fields theory, :math:`G = (g_1, \dots, g_m)`
+   * in which each :math:`g_i` is a polynomial that represents the literal :math:`\ell_i`.
+   * \endverbatim
+   */
+  EVALUE(FF_POLY_CONVERSION),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Finite Fields -- Field Polynomial Inclusion**
+   *
+   * .. math::
+   *
+   *   \inferrule{\mathcal V(\langle G \rangle) \mid F}
+   *   {\mathcal V(\langle G \cup F \rangle) \neq \emptyset}
+   *
+   * where each :math:`G, F` are a set of polynomials. In particular, F contains only field polynomials,
+   * \endverbatim
+   */
+  EVALUE(FF_FIELD_POLYS),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Finite Fields -- Ideal Membership: Zero**
+   *
+   * .. math::
+   *
+   *   \inferrule{- \mid G}{0 \in \langle G \rangle}
+   *
+   *
+   * where :math:`G` is a set of polynomials.
+   * \endverbatim
+   */
+  EVALUE(FF_Z),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Finite Fields -- Ideal Membership: Generators**
+   *
+   * .. math::
+   *
+   *   \inferrule{- \mid p, G}{p \in \langle G \rangle}
+   *
+   *
+   * where :math:`G` is a set of polynomials and :math:`p \in G`
+   * \endverbatim
+   */
+  EVALUE(FF_G),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Finite Fields -- Ideal Membership: Result of reduction**
+   *
+   * .. math::
+   *
+   *   \inferrule{p \in \langle G \rangle, r_1 \in \langle G \rangle, \dots, \langle r_k \in \langle G \rangle \mid \mathtt{Seq}_r, \mathtt{reduce}(p, R)}
+   *   {\mathtt{reduce}(p, R) \in \langle G \rangle}
+   *
+   * where :math:`G` is a set of polynomials, :math:`R = \{r_1, \dots, r_k\}`
+   * and :math:`\mathtt{Seq}_r` is the sequence of reductors in a :math:`\mathtt{reduce}` operation.
+   * \endverbatim
+   */
+  EVALUE(FF_R_UP),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Finite Fields -- Ideal Membership: Membership Test**
+   *
+   * .. math::
+   *
+   *   \inferrule{0 \in \langle G \rangle, g_1 \in \langle G \rangle, \dots, \langle g_m \in \langle G \rangle \mid \mathtt{Seq}_r, p}
+   *   {p \in \langle G \rangle}
+   *
+   * where :math:`G` is a set of polynomials, :math:`p` is the polynomial we are testing the membership
+   * and :math:`\mathtt{Seq}_r` is the sequence of reductors such that :math:`\mathtt{reduce}(p, R) = 0`.
+   * \endverbatim
+   */
+  EVALUE(FF_R_DOWN),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Finite Fields -- Ideal Membership: S-Polynomials**
+   *
+   * .. math::
+   *
+   *   \inferrule{p \in \langle G \rangle, q \in \langle G \rangle \mid \mathtt{spoly}(p, q)}
+   *   {\mathtt{spoly}(p, q) \in \langle G \rangle }
+   *
+   * where :math:`G` is a set of polynomials.
+   * \endverbatim
+   */
+  EVALUE(FF_S),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Finite Fields -- Branch on Roots of a univariate polynomial**
+   *
+   * .. math::
+   *
+   *   \inferrule{\mathcal{V}(\langle G \rangle) \neq \emptyset, p \in \langle G \rangle, g_1 \in \langle G \rangle, \dots, g_m \in \langle G \rangle \mid N, \mathtt{Roots} (p)}
+   *   {\lor_{v \in \mathtt{Roots}(p)} \mathcal V(\langle G \cup \{x - v \}\rangle) \neq \emptyset}
+   *
+   * where :math:`p` is an univariate polynomial, G is a set of polynomials and N is the
+   * set of non-assigned variables. This rule unifies both Triangular
+   * and Univariate present in the paper Ozdemir et al, CAV 2023, "Satisfiability
+   * Modulo Finite Fields".
+   * \endverbatim
+   */
+  EVALUE(FF_ROOT_BRANCH),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Finite Fields -- Exhaustive search through all elements of a finite field**
+   *
+   * .. math::
+   *
+   *   \inferrule{\mathcal{V}(\langle G \rangle) \neq \emptyset, g_1 \in \langle G \rangle, \dots, g_m \in \langle G \rangle \mid N}
+   *   {\lor_{x \in N} \lor_{v \in F_p} \mathcal V(\langle G \cup \{x - v \}\rangle) \neq \emptyset}
+   *
+   * where :math:`N` is the set of unassigned variables, :math:`F_p` is the fixed prime field
+   * and G is  a set of polynomials.
+   * This rule is an analogue of FF_ROOT_BRANCH where instead of restricting our search in the
+   * roots of a univariate polynomial, we have to look at all possible cases.
+   * \endverbatim
+   */
+  EVALUE(FF_EXHAUST_BRANCH),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Finite Fields -- Refutation**
+   *
+   * .. math::
+   *
+   *   \inferrule{1 \in \langle G \rangle \mid -}
+   *   {\mathcal V(\langle G \rangle) = \emptyset}
+   *
+   * where :math:`G` is a set of polynomials.
+   * \endverbatim
+   */
+  EVALUE(FF_ONE_UNSAT),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **External -- LFSC**
    *
    * Place holder for LFSC rules.
