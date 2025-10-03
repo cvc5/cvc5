@@ -450,7 +450,7 @@ inline bool DotPrinter::isInput(const ProofNode* pn)
 inline bool DotPrinter::isSat(const ProofRule& rule)
 {
   return ProofRule::CHAIN_RESOLUTION <= rule
-         && rule <= ProofRule::MACRO_RESOLUTION_TRUST;
+         && rule <= ProofRule::CHAIN_M_RESOLUTION;
 }
 
 inline bool DotPrinter::isCNF(const ProofRule& rule)

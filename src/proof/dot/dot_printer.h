@@ -40,8 +40,8 @@ enum class ProofNodeClusterType : uint8_t
   FIRST_SCOPE = 0,
   // ======== SAT
   // Type of proof node cluster that is between FIRST_SCOPE and CNF.
-  // The rules are: CHAIN_RESOLUTION, FACTORING, REORDERING, MACRO_RESOLUTION
-  // and MACRO_RESOLUTION_TRUST.
+  // The rules are: CHAIN_RESOLUTION, FACTORING, REORDERING and
+  // CHAIN_M_RESOLUTION.
   SAT,
   // ======== CNF
   // Type of proof node cluster that is below SAT and above THEORY_LEMMA or
@@ -168,8 +168,7 @@ class DotPrinter : protected EnvObj
   inline bool isInput(const ProofNode* pn);
 
   /** Verify if the rule is in the SAT range (i.e. a ProofRule that is
-   * CHAIN_RESOLUTION, FACTORING, REORDERING, MACRO_RESOLUTION or
-   * MACRO_RESOLUTION_TRUST).
+   * CHAIN_RESOLUTION, FACTORING, REORDERING or CHAIN_M_RESOLUTION).
    * @param rule The rule to be verified.
    * @return The bool indicating if the rule is or not in the SAT range.
    */

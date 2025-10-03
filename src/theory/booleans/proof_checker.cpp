@@ -31,8 +31,6 @@ void BoolProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(ProofRule::SPLIT, this);
   pc->registerChecker(ProofRule::RESOLUTION, this);
   pc->registerChecker(ProofRule::CHAIN_RESOLUTION, this);
-  pc->registerTrustedChecker(ProofRule::MACRO_RESOLUTION_TRUST, this, 3);
-  pc->registerChecker(ProofRule::MACRO_RESOLUTION, this);
   pc->registerChecker(ProofRule::CHAIN_M_RESOLUTION, this);
   pc->registerChecker(ProofRule::FACTORING, this);
   pc->registerChecker(ProofRule::REORDERING, this);
@@ -298,13 +296,7 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
                           << pop;
     return nm->mkOr(lhsClause);
   }
-  if (id == ProofRule::MACRO_RESOLUTION_TRUST)
-  {
-    Assert(children.size() > 1);
-    Assert(args.size() == 2 * (children.size() - 1) + 1);
-    return args[0];
-  }
-  if (id == ProofRule::MACRO_RESOLUTION || id == ProofRule::CHAIN_M_RESOLUTION)
+  if (id == ProofRule::CHAIN_M_RESOLUTION)
   {
     Assert(children.size() > 1);
     Trace("bool-pfcheck") << "macro_res: " << args[0] << "\n" << push;
@@ -314,21 +306,12 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
     std::vector<Node> lhsClause, rhsClause;
     Node lhsElim, rhsElim;
     std::vector<Node> pols, lits;
-    if (id == ProofRule::MACRO_RESOLUTION)
+    Assert(args.size() == 3);
+    pols.insert(pols.end(), args[1].begin(), args[1].end());
+    lits.insert(lits.end(), args[2].begin(), args[2].end());
+    if (pols.size() != lits.size())
     {
-      Assert(args.size() == 2 * (children.size() - 1) + 1);
-      for (size_t i = 1, nargs = args.size(); i < nargs; i = i + 2)
-      {
-        pols.push_back(args[i]);
-        lits.push_back(args[i + 1]);
-      }
-    }
-    else
-    {
-      Assert(args.size() == 3);
-      Assert(id == ProofRule::CHAIN_M_RESOLUTION);
-      pols.insert(pols.end(), args[1].begin(), args[1].end());
-      lits.insert(lits.end(), args[2].begin(), args[2].end());
+      return Node::null();
     }
     if (children[0].getKind() != Kind::OR
         || (pols[0] == trueNode && children[0] == lits[0])

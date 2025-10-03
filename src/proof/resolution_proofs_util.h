@@ -37,7 +37,7 @@ namespace proof {
  * literals removed implicitly by macro resolution. For example
  *
  *      l0 v l0 v l0 v l1 v l2    ~l0 v l1   ~l1
- * (1)  ----------------------------------------- MACRO_RES
+ * (1)  ----------------------------------------- CHAIN_M_RES
  *                 l2
  *
  * but
@@ -48,8 +48,8 @@ namespace proof {
  *
  * where l0 and l1 are crowding literals in the second proof.
  *
- * There are two views for how MACRO_RES implicitly removes the crowding
- * literal, i.e., how MACRO_RES can be expanded into CHAIN_RES so that
+ * There are two views for how CHAIN_M_RES implicitly removes the crowding
+ * literal, i.e., how CHAIN_M_RES can be expanded into CHAIN_RES so that
  * crowding literals are removed. The first is that (1) becomes
  *
  *  l0 v l0 v l0 v l1 v l2  ~l0 v l1  ~l0 v l1  ~l0 v l1  ~l1  ~l1  ~l1  ~l1
@@ -67,7 +67,7 @@ namespace proof {
  * chains going from dozens to thousands of premises. Such examples do occur
  * in practice, even in our regressions.
  *
- * The second way of expanding MACRO_RES, which avoids this exponential
+ * The second way of expanding CHAIN_M_RES, which avoids this exponential
  * behavior, is so that (1) becomes
  *
  *      l0 v l0 v l0 v l1 v l2
@@ -82,7 +82,7 @@ namespace proof {
  *
  * This method first determines what are the crowding literals by checking
  * what literals occur in clauseLits that do not occur in targetClauseLits
- * (the latter contains the literals from the original MACRO_RES conclusion
+ * (the latter contains the literals from the original CHAIN_M_RES conclusion
  * while the former the literals from a direct application of CHAIN_RES). Then
  * it builds a proof such as (4) and adds the steps to cdp. The final
  * conclusion is returned.
@@ -99,12 +99,12 @@ namespace proof {
  * @param reorderPremises Whether to optimize elemination by reordering premises
  * @param clauseLits literals in the conclusion of a CHAIN_RESOLUTION step
  * with children and args[1:]
- * @param clauseLits literals in the conclusion of a MACRO_RESOLUTION step
+ * @param clauseLits literals in the conclusion of a CHAIN_M_RESOLUTION step
  * with children and args
  * @param children a list of clauses
- * @param args a list of arguments to a MACRO_RESOLUTION step
+ * @param args a list of arguments to a CHAIN_M_RESOLUTION step
  * @param cdp a CDProof
- * @return The resulting node of transforming MACRO_RESOLUTION into
+ * @return The resulting node of transforming CHAIN_M_RESOLUTION into
  * CHAIN_RESOLUTION according to the above idea.
  */
 Node eliminateCrowdingLits(NodeManager* nm,
