@@ -144,7 +144,7 @@ bool ProcessAssertions::apply(AssertionPipeline& ap)
     outPA << ";; normalize start" << std::endl;
     dumpAssertionsToStream(outPA, ap);
     outPA << ";; normalize end" << std::endl;
-    // return true;
+    return true;
   }
 
   Trace("smt") << " assertions     : " << ap.size() << endl;
