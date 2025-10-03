@@ -21,6 +21,7 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "prop/relevant_preregistrar.h"
 #include "smt/env_obj.h"
 
 namespace cvc5::internal {
@@ -29,8 +30,6 @@ class TheoryEngine;
 
 namespace prop {
 
-class CDCLTSatSolver;
-class CnfStream;
 class TheoryPreregistrarNotify;
 
 /**
@@ -81,6 +80,8 @@ class TheoryPreregistrar : protected EnvObj
   void preRegisterToTheory(const std::vector<TNode>& toPreregister);
   /** Theory engine */
   TheoryEngine* d_theoryEngine;
+  /** Policy implementing preregistration based on relevance */
+  std::unique_ptr<RelevantPreregistrar> d_rlvPrereg;
   /**
    * Cache preregistered SAT literals, mapped to the SAT context level they
    * were registered at. On backtrack, all literals that were registered at
