@@ -1015,7 +1015,7 @@ PreprocessingPassResult Normalize::applyInternal(
             std::string new_sort_name = "S" + std::string(8 - numDigits(sortCounter), '0') + std::to_string(sortCounter);
             sortCounter++;
             // std::cout << "Normalizing sort " << ctn << " to " << new_sort_name << std::endl;
-            TypeNode new_sort = NodeManager::currentNM()->mkSort(new_sort_name);
+            TypeNode new_sort = nodeManager()->mkSort(new_sort_name);
             normalizedSorts[ctn] = new_sort;
         }
     }
@@ -1025,7 +1025,7 @@ PreprocessingPassResult Normalize::applyInternal(
     
 
     auto startSortNormalizerCreation = std::chrono::high_resolution_clock::now();
-    NormalizeSortNodeConverter* sortNormalizer = new NormalizeSortNodeConverter(normalizedSorts, NodeManager::currentNM());
+    NormalizeSortNodeConverter* sortNormalizer = new NormalizeSortNodeConverter(normalizedSorts, nodeManager());
     auto endSortNormalizerCreation = std::chrono::high_resolution_clock::now();
     auto durationSortNormalizerCreation = std::chrono::duration_cast<std::chrono::milliseconds>(endSortNormalizerCreation - startSortNormalizerCreation).count();
     
@@ -1035,7 +1035,7 @@ PreprocessingPassResult Normalize::applyInternal(
     
     std::unordered_map<Node, Node> freeVar2node;
     std::unordered_map<Node, Node> boundVar2node;
-    NodeManager* nodeManager = NodeManager::currentNM();
+    // NodeManager* nodeManager = NodeManager::currentNM();
     std::unordered_map<std::string, std::string> normalizedName;
 
     bool hasQID = false;
@@ -1043,7 +1043,7 @@ PreprocessingPassResult Normalize::applyInternal(
     {
         for (const auto& ni : eqClass)
         {            
-            Node renamed = rename(ni->node, freeVar2node, boundVar2node, normalizedName, normalizedSorts, nodeManager, d_preprocContext, sortNormalizer, hasQID);  
+            Node renamed = rename(ni->node, freeVar2node, boundVar2node, normalizedName, normalizedSorts, nodeManager(), d_preprocContext, sortNormalizer, hasQID);  
             ni->node = renamed;          
         }
     }
@@ -1113,7 +1113,7 @@ PreprocessingPassResult Normalize::applyInternal(
         {
             for (const auto& ni : eqClass)
             {            
-                Node renamed = renameQid(ni->node, qidRenamed, normalizedName, nodeManager);  
+                Node renamed = renameQid(ni->node, qidRenamed, normalizedName, nodeManager());  
                 ni->node = renamed;          
             }
         }
