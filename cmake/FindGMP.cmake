@@ -143,6 +143,7 @@ if(NOT GMP_FOUND_SYSTEM)
           --with-pic
           --enable-cxx
           ${CONFIGURE_OPTS}
+    BUILD_COMMAND ${MAKE_CMD}
     BUILD_BYPRODUCTS ${GMP_LIBRARIES}
   )
 endif()
