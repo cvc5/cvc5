@@ -541,7 +541,14 @@ bool isTrivialEquality(const Node& n)
     return false;
 }
 
-
+bool isTrue(const Node& n)
+{
+    if (n.isConst() && n.getType().isBoolean())
+    {
+        return n.getConst<bool>();
+    }
+    return false;
+}
 
 
 // Same as getTypes. But this one colelcts types in a vector instead of an unordered_set
@@ -740,7 +747,7 @@ PreprocessingPassResult Normalize::applyInternal(
     std::vector<std::shared_ptr<NodeInfo>> nodeInfos;
     for (const Node& assertion : assertionsToPreprocess->ref())
     {
-        if (isTrivialEquality(assertion))
+        if (isTrivialEquality(assertion) || isTrue(assertion))
         {
             continue;
         }
