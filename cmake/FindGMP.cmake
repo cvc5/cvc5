@@ -135,6 +135,8 @@ if(NOT GMP_FOUND_SYSTEM)
     ${COMMON_EP_CONFIG}
     URL https://github.com/cvc5/cvc5-deps/blob/main/gmp-${GMP_VERSION}.tar.bz2?raw=true
     URL_HASH SHA256=ac28211a7cfb609bae2e2c8d6058d66c8fe96434f740cf6fe2e47b000d1c20cb
+    PATCH_COMMAND
+      ${CMAKE_SOURCE_DIR}/cmake/deps-utils/gmp-demos-patch.sh <SOURCE_DIR>
     CONFIGURE_COMMAND
       ${CONFIGURE_ENV}
           ${CONFIGURE_CMD_WRAPPER} ${SHELL} <SOURCE_DIR>/configure
