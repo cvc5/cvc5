@@ -1,3 +1,4 @@
+; COMMAND-LINE: --sets-exp
 ; EXPECT: unsat
 ; EXPECT: unsat
 ; EXPECT: unsat

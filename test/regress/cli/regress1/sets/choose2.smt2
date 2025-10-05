@@ -1,3 +1,4 @@
+; COMMAND-LINE: --sets-exp
 (set-logic ALL)
 (set-info :status unsat)
 (set-option :produce-models true)

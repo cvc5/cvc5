@@ -317,7 +317,7 @@ void BoundedIntegers::process( Node q, Node n, bool pol,
       }
     }
   }
-  else if (n.getKind() == Kind::SET_MEMBER)
+  else if (n.getKind() == Kind::SET_MEMBER && options().quantifiers.fmfBoundSets)
   {
     // Note this is incomplete when combined with cardinality constraints,
     // since we may introduce slack elements during model construction.

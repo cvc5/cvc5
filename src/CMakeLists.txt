@@ -1456,7 +1456,7 @@ set(REWRITES_FILES
 # be partitioned into their own proof signature
 set(REWRITES_FILES_EXPERT
   ${PROJECT_SOURCE_DIR}/src/theory/arith/rewrites-transcendentals
-  ${PROJECT_SOURCE_DIR}/src/theory/sets/rewrites-card
+  ${PROJECT_SOURCE_DIR}/src/theory/sets/rewrites-ext
 )
 
 #-----------------------------------------------------------------------------#

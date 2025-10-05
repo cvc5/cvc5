@@ -1,3 +1,4 @@
+; COMMAND-LINE: --fmf-bound-sets
 ; EXPECT: unknown
 (set-logic ALL)
 (set-option :produce-models true)

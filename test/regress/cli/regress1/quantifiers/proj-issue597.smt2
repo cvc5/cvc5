@@ -1,4 +1,4 @@
-; COMMAND-LINE: --mbqi -q
+; COMMAND-LINE: --mbqi --sets-exp -q
 ; EXPECT: sat
 (set-logic ALL)
 (set-option :ieval use)

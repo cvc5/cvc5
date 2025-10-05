@@ -93,6 +93,14 @@ IllegalChecker::IllegalChecker(Env& e)
   }
   if (logicInfo().isTheoryEnabled(theory::THEORY_SETS))
   {
+    if (!options().sets.setsExp)
+    {
+      d_illegalKinds.insert(Kind::SET_UNIVERSE);
+      d_illegalKinds.insert(Kind::SET_COMPLEMENT);
+      d_illegalKinds.insert(Kind::SET_COMPREHENSION);
+      d_illegalKinds.insert(Kind::SET_CHOOSE);
+      d_illegalKinds.insert(Kind::SET_IS_SINGLETON);
+    }
     if (!options().sets.setsCardExp)
     {
       d_illegalKinds.insert(Kind::SET_CARD);

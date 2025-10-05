@@ -1,3 +1,4 @@
+; COMMAND-LINE: --sets-exp
 (set-logic ALL)
 (set-option :incremental true)
 (set-option :produce-models true)
