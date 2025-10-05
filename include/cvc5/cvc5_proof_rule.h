@@ -4686,6 +4686,10 @@ enum ENUM(ProofRewriteRule)
   EVALUE(RE_STAR_EMP),
   /** Auto-generated from RARE rule re-star-star */
   EVALUE(RE_STAR_STAR),
+  /** Auto-generated from RARE rule re-range-non-singleton-1 */
+  EVALUE(RE_RANGE_NON_SINGLETON_1),
+  /** Auto-generated from RARE rule re-range-non-singleton-2 */
+  EVALUE(RE_RANGE_NON_SINGLETON_2),
   /** Auto-generated from RARE rule re-star-union-drop-emp */
   EVALUE(RE_STAR_UNION_DROP_EMP),
   /** Auto-generated from RARE rule re-loop-neg */
