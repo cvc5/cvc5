@@ -95,7 +95,7 @@ bool MacroRewriteElaborator::ensureProofForSimplify(CDProof* cdp,
   cdp->addTrustedStep(ceq, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE, {}, {});
   std::vector<Node> premises;
   premises.push_back(ceq);
-  Node equiv2 = expr::proveCong(d_env, cdp, eq0c, premises);
+  Node equiv2 = proveCong(cdp, eq0c, premises);
   Assert(equiv2.getKind() == Kind::EQUAL);
   transEq.push_back(equiv2);
   if (equiv2[1] != eq[1])
@@ -231,7 +231,7 @@ bool MacroRewriteElaborator::ensureProofForExtractConcat(CDProof* cdp,
   Trace("bv-rew-elab") << "  - grouped concat: " << ceq << std::endl;
   cdp->addStep(ceq, ProofRule::ACI_NORM, {}, {ceq});
   std::vector<Node> transEq;
-  Node equiv1 = expr::proveCong(d_env, cdp, eq[0], {ceq});
+  Node equiv1 = proveCong(cdp, eq[0], {ceq});
   transEq.push_back(equiv1);
   Trace("bv-rew-elab") << "- grouped extract-concat: " << equiv1 << std::endl;
   Assert(equiv1.getKind() == Kind::EQUAL);
@@ -418,6 +418,36 @@ bool MacroRewriteElaborator::ensureProofForAndOrXorConcatPullup(CDProof* cdp,
       equiv2, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE, {}, {});
   cdp->addStep(eq, ProofRule::TRANS, {equiv1, equiv2}, {});
   return true;
+}
+
+Node MacroRewriteElaborator::proveCong(CDProof* cdp,
+                                       const Node& n,
+                                       const std::vector<Node>& premises)
+{
+  std::vector<Node> cpremises = premises;
+  std::vector<Node> cargs;
+  ProofRule cr = expr::getCongRule(n, cargs);
+  cpremises.resize(n.getNumChildren());
+  // add REFL if a premise is not provided
+  for (size_t i = 0, npremises = cpremises.size(); i < npremises; i++)
+  {
+    if (cpremises[i].isNull())
+    {
+      Node refl = n[i].eqNode(n[i]);
+      cdp->addStep(refl, ProofRule::REFL, {}, {n[i]});
+      cpremises[i] = refl;
+    }
+  }
+  Trace("brc-macro") << "- cong " << cr << " " << cpremises << " " << cargs
+                     << std::endl;
+  ProofChecker* pc = d_env.getProofNodeManager()->getChecker();
+  Node eq = pc->checkDebug(cr, cpremises, cargs);
+  Trace("brc-macro") << "...returns " << eq << std::endl;
+  if (!eq.isNull())
+  {
+    cdp->addStep(eq, cr, cpremises, cargs);
+  }
+  return eq;
 }
 
 }  // namespace bv
