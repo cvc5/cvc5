@@ -40,8 +40,11 @@ Node SubtypeElimNodeConverter::postConvert(Node n)
   {
     convertToRealChildren = isRealTypeStrict(n.getType());
   }
-  else if (k == Kind::DIVISION || k == Kind::DIVISION_TOTAL
-           || k == Kind::TO_INTEGER || k == Kind::IS_INTEGER)
+  else if (k == Kind::DIVISION || k == Kind::DIVISION_TOTAL)
+  {
+    convertToRealChildren = n[0].getType().isReal() || n[1].getType().isReal();
+  }
+  else if (k == Kind::TO_INTEGER || k == Kind::IS_INTEGER)
   {
     // always ensure that the arguments of these operators are Real
     convertToRealChildren = true;
