@@ -109,6 +109,8 @@ enum class TrustId : uint32_t
   PREPROCESS_SORT_INFER_LEMMA,
   /** StringsEagerPp preprocessing pass */
   PREPROCESS_STRINGS_EAGER_PP,
+  /** A step from the distinct extension */
+  UF_DISTINCT,
   /**
    * We use :math:`\texttt{IRP}_k(poly)` for an IndexedRootPredicate that is
    * defined as the :math:`k`'th root of the polynomial :math:`poly`. Note that
