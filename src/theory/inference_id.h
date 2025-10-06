@@ -922,7 +922,7 @@ enum class InferenceId
   // Clause from the uf symmetry breaker
   UF_BREAK_SYMMETRY,
   // Lemma of the form
-  // (~distinct(t1...tn) => ~blastDistinct(distinct(t1...tn)), used when
+  // (~distinct(t1...tn) => ~blastDistinct(distinct(t1...tn))
   UF_NOT_DISTINCT_ELIM,
   // Conflict of the form (distinct(t1...tn) ^ ti = tj)
   UF_DISTINCT_DEQ,
