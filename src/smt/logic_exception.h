@@ -51,7 +51,7 @@ class SafeLogicException : public LogicException
 {
  public:
   SafeLogicException(const std::string& s)
-#ifdef CVC5_SAFE_MODE
+#if defined(CVC5_SAFE_MODE) || defined(CVC5_STABLE_MODE)
       : LogicException("Logic restricted in safe mode. " + s)
 #else
       : LogicException(s)

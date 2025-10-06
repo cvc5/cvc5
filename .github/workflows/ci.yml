@@ -1,4 +1,11 @@
-on: [push, pull_request]
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Tag of the release to build (leave empty for current branch)"
+
 name: CI
 
 # Prevents github from relying on clones of homebrew-core or homebrew-cask.
@@ -59,6 +66,17 @@ jobs:
             check-examples: true
             exclude_regress: 3-4
             run_regression_args: --tester base --tester proof --tester cpc --tester model --tester synth --tester abduct --tester dump
+
+          - name: ubuntu:stable-mode
+            os: ubuntu-22.04
+            config: stable-mode --auto-download --all-bindings --editline -DBUILD_GMP=1
+            cache-key: production-stable
+            strip-bin: strip
+            python-bindings: true
+            java-bindings: true
+            check-examples: true
+            exclude_regress: 3-4
+            run_regression_args: --tester base --tester proof --tester cpc --tester model --tester dump
 
           - name: ubuntu:production-arm64
             os: ubuntu-22.04-arm
@@ -247,8 +265,10 @@ jobs:
       cancel-in-progress: ${{ github.repository != 'cvc5/cvc5' || startsWith(github.ref, 'refs/pull/') }}
 
     steps:
-
     - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        ref: ${{ github.event.inputs.release_tag }}
 
     # Ensure that the Java bindings, Java API tests, and Java examples are compatible
     # with the minimum required Java version (currently Java 8).

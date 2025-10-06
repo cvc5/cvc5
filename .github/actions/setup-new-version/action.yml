@@ -28,6 +28,12 @@ runs:
       run: |
         tag="${GITHUB_REF#refs/tags/}"
 
+        # Check if release already exists
+        if gh release view "$tag" >/dev/null 2>&1; then
+          echo "Release for tag $tag already exists. Skipping creation."
+          exit 0
+        fi
+
         relmsg=$(python3 -c "$EXTRACT_FROM_NEWS")
         if [ -z "$relmsg" ]; then
           echo "No matching section found in NEWS.md, using commit message."

@@ -63,6 +63,8 @@ public:
 
   static bool isSafeBuild();
 
+  static bool isStableBuild();
+
   static bool isDebugBuild();
 
   static bool isTracingBuild();

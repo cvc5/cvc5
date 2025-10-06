@@ -80,10 +80,17 @@ void Pow2Solver::checkInitialRefine()
     d_initRefine.insert(i);
     // initial refinement lemmas
     std::vector<Node> conj;
-    // x>=0 -> x < pow2(x)
-    Node xgeq0 = nm->mkNode(Kind::LEQ, d_zero, i[0]);
-    Node xltpow2x = nm->mkNode(Kind::LT, i[0], i);
-    conj.push_back(nm->mkNode(Kind::IMPLIES, xgeq0, xltpow2x));
+    // x>=0 -> pow2(x) > 0
+    Node xgeq0 = nm->mkNode(Kind::GEQ, i[0], d_zero);
+    Node nonegative = nm->mkNode(Kind::GT, i, d_zero);
+    conj.push_back(nm->mkNode(Kind::IMPLIES, xgeq0, nonegative));
+
+    // even: x != 0 -> pow2(x) mod 2 = 0
+    Node xgt0 = nm->mkNode(Kind::DISTINCT, i[0], d_zero);
+    Node mod2 = nm->mkNode(Kind::INTS_MODULUS, i, d_two);
+    Node even = nm->mkNode(Kind::EQUAL, mod2, d_zero);
+    conj.push_back(nm->mkNode(Kind::IMPLIES, xgt0, even));
+
     Node lem = nm->mkAnd(conj);
     Trace("pow2-lemma") << "Pow2Solver::Lemma: " << lem << " ; INIT_REFINE"
                         << std::endl;
@@ -143,24 +150,65 @@ void Pow2Solver::checkFullRefine()
       Integer y = valYConcrete.getConst<Rational>().getNumerator();
       Integer pow2y = valPow2yAbstract.getConst<Rational>().getNumerator();
 
-      if (x < y && pow2x >= pow2y)
+      if (x >= 0 && x < y && pow2x >= pow2y)
       {
-        Node assumption = nm->mkNode(Kind::LEQ, n[0], m[0]);
-        Node conclusion = nm->mkNode(Kind::LEQ, n, m);
+        // 0 <= x /\ x < y => pow2(x) < pow2(y)
+        Node x_lt_y = nm->mkNode(Kind::LT, n[0], m[0]);
+        Node xgeq0 = nm->mkNode(Kind::LEQ, d_zero, n[0]);
+        Node assumption = nm->mkNode(Kind::AND, xgeq0, x_lt_y);
+        Node conclusion = nm->mkNode(Kind::LT, n, m);
         Node lem = nm->mkNode(Kind::IMPLIES, assumption, conclusion);
         d_im.addPendingLemma(
             lem, InferenceId::ARITH_NL_POW2_MONOTONE_REFINE, nullptr, true);
-        }
+      }
+      else if (y <= 0 && y < x && pow2x <= pow2y)
+      {
+        // 0 <= y /\ y < x => pow2(y) < pow2(x)
+        Node assumption = nm->mkNode(Kind::LT, m[0], n[0]);
+        Node conclusion = nm->mkNode(Kind::LT, m, n);
+        Node lem = nm->mkNode(Kind::IMPLIES, assumption, conclusion);
+        d_im.addPendingLemma(
+            lem, InferenceId::ARITH_NL_POW2_MONOTONE_REFINE, nullptr, true);
+      }
     }
 
-    // triviality lemmas: pow2(x) = 0 whenever x < 0
+    // neg lemmas: pow2(x) = 0 whenever x < 0
     if (x < 0 && pow2x != 0)
     {
       Node assumption = nm->mkNode(Kind::LT, n[0], d_zero);
       Node conclusion = nm->mkNode(Kind::EQUAL, n, mkZero(n.getType()));
       Node lem = nm->mkNode(Kind::IMPLIES, assumption, conclusion);
       d_im.addPendingLemma(
-          lem, InferenceId::ARITH_NL_POW2_TRIVIAL_CASE_REFINE, nullptr, true);
+          lem, InferenceId::ARITH_NL_POW2_NEG_REFINE, nullptr, true);
+    }
+
+    // div 0: x div pow2(x) = 0 whenever x >= 0
+    if (x >= 0 && x > pow2x)
+    {
+      Node assumption = nm->mkNode(Kind::GEQ, n[0], d_zero);
+      Node div_zero = nm->mkNode(Kind::INTS_DIVISION, n[0], n);
+      Node conclusion = nm->mkNode(Kind::EQUAL, div_zero, d_zero);
+      Node lem = nm->mkNode(Kind::IMPLIES, assumption, conclusion);
+      d_im.addPendingLemma(
+          lem, InferenceId::ARITH_NL_POW2_DIV0_CASE_REFINE, nullptr, true);
+    }
+
+    // lower bound: x >= 7 => pow2(x) > kx + k^2
+    if (x >= 7 && pow2x <= x * x * 2)
+    {
+      Node d_seven = nm->mkConstInt(Rational(7));
+      Node k_gt_5 = nm->mkNode(Kind::GEQ, valXConcrete, d_seven);
+      Node x_gt_k = nm->mkNode(Kind::GEQ, n[0], valXConcrete);
+      Node assumption = nm->mkNode(Kind::AND, x_gt_k, k_gt_5);
+      Node kx = nm->mkNode(Kind::MULT, valXConcrete, n[0]);
+      Node k_squar = nm->mkNode(Kind::MULT, valXConcrete, valXConcrete);
+      Node kx_plus_k_squar = nm->mkNode(Kind::ADD, kx, k_squar);
+      Node conclusion = nm->mkNode(Kind::GT, n, kx_plus_k_squar);
+      Node lem = nm->mkNode(Kind::IMPLIES, assumption, conclusion);
+      d_im.addPendingLemma(lem,
+                           InferenceId::ARITH_NL_POW2_LOWER_BOUND_CASE_REFINE,
+                           nullptr,
+                           true);
     }
 
     // Place holder for additional lemma schemas
