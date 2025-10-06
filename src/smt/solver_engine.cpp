@@ -1176,7 +1176,7 @@ Node SolverEngine::simplify(const Node& t, bool applySubs)
   // now rewrite
   Node ret = d_env->getRewriter()->rewrite(tt);
   // simplify modulo recursive functions
-  if (options().smt.simplifyRecFun)
+  if (applySubs && options().smt.simplifyRecFun)
   {
     QuantifiersEngine* qe = d_smtSolver->getQuantifiersEngine();
     if (qe != nullptr)
