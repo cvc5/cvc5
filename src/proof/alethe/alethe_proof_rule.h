@@ -433,14 +433,14 @@ enum class AletheRule : uint32_t
   MINISCOPE_DISTRIBUTE,
   // ======== miniscope_split
   // > i. (= (forall (x1 ... xn) (or F1 ... Fm))
-  // (or (forall (x1,1 ... x1,n) F1) ... (forall (x1,m ... xm,n) Fm)))
+  // (or (forall (x1,1 ... x1,n1) F1) ... (forall (xm,1 ... xm,nm) Fm)))
   //
   // or
   //
   // > i. (= (exists (x1 ... xn) (and F1 ... Fm))
-  // (and (exists (x1,1 ... x1,n) F1) ... (exists (x1,m ... xm,n) Fm)))
+  // (and (exists (x1,1 ... x1,n1) F1) ... (exists (xm,1 ... xm,nm) Fm)))
   //
-  // where {x1,1,...,xm,n} is a subset of {x1,...,xn} and the right side of the
+  // where {x1,1,...,xm,nm} is a subset of {x1,...,xn} and the right side of the
   // equality has no free variables in {x1,...,xn}
   MINISCOPE_SPLIT,
   // ======== miniscope_ite
