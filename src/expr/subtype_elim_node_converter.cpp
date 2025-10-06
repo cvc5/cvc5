@@ -45,7 +45,8 @@ Node SubtypeElimNodeConverter::postConvert(Node n)
     // always ensure that the arguments of these operators are Real
     convertToRealChildren = true;
   }
-  else if (k == Kind::DIVISION || k == Kind::DIVISION_TOTAL || k == Kind::GEQ || k == Kind::GT || k == Kind::LEQ || k == Kind::LT)
+  else if (k == Kind::DIVISION || k == Kind::DIVISION_TOTAL || k == Kind::GEQ
+           || k == Kind::GT || k == Kind::LEQ || k == Kind::LT)
   {
     convertToRealChildren =
         isRealTypeStrict(n[0].getType()) || isRealTypeStrict(n[1].getType());

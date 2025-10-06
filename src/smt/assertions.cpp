@@ -114,10 +114,14 @@ void Assertions::addFormula(TNode n,
     {
       SubtypeElimNodeConverter senc(nodeManager());
       Node nc = senc.convert(n);
-      if (nc!=n)
+      if (nc != n)
       {
-        Warning() << "Input involves mixed arithmetic, which is not SMT-LIB compliant." << std::endl;
-        Warning() << "This assertion will be rewritten to avoid mixed arithmetic." << std::endl;
+        Warning() << "Input involves mixed arithmetic, which is not SMT-LIB "
+                     "compliant."
+                  << std::endl;
+        Warning()
+            << "This assertion will be rewritten to avoid mixed arithmetic."
+            << std::endl;
         Warning() << "Assertion is: " << n << std::endl;
         addFormula(nc, isFunDef, maybeHasFv);
         return;
