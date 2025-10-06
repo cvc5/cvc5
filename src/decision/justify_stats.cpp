@@ -25,7 +25,8 @@ JustifyStatistics::JustifyStatistics(StatisticsRegistry& sr)
       d_numStatusBacktrack(sr.registerInt("JustifyStrategy::StatusBacktrack")),
       d_maxStackSize(sr.registerInt("JustifyStrategy::MaxStackSize")),
       d_maxAssertionsSize(sr.registerInt("JustifyStrategy::MaxAssertionsSize")),
-      d_maxSkolemDefsSize(sr.registerInt("JustifyStrategy::MaxSkolemDefsSize"))
+      d_maxSkolemDefsSize(sr.registerInt("JustifyStrategy::MaxSkolemDefsSize")),
+      d_time(sr.registerTimer("JustifyStrategy::getNextTime"))
 {
 }
 
