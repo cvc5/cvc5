@@ -73,6 +73,7 @@ Result SynthVerify::verify(Node query,
   Result r;
   do
   {
+    Trace("sygus-engine") << "  *** Verify with subcall..." << std::endl;
     if (queryp.isConst())
     {
       if (!queryp.getConst<bool>())
@@ -85,7 +86,6 @@ Result SynthVerify::verify(Node query,
       }
       // sat, but we need to get arbtirary model values below
     }
-    Trace("sygus-engine") << "  *** Verify with subcall..." << std::endl;
     SubsolverSetupInfo ssi(d_subOptions,
                            d_subLogicInfo,
                            d_env.getSepLocType(),

@@ -91,12 +91,6 @@ class EmbeddingConverter : protected EnvObj
   static bool hasSyntaxRestrictions(Node q);
 
  private:
-  /** Infer datatype grammar */
-  void inferDtGrammars(const Node& q);
-  bool isSyntacticConstraint(const std::unordered_set<Node> dtVars,
-                             const Node& n,
-                             std::map<Node, Node>& nts,
-                             std::map<Node, std::vector<Node>>& rules);
   /** The sygus term database we are using */
   TermDbSygus* d_tds;
   /** parent conjecture

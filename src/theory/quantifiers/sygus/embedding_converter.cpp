@@ -15,7 +15,6 @@
 
 #include "theory/quantifiers/sygus/embedding_converter.h"
 
-#include "expr/node_algorithm.h"
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
 #include "printer/smt2/smt2_printer.h"
@@ -99,7 +98,6 @@ Node EmbeddingConverter::process(Node q,
                                  const std::map<Node, Node>& templates,
                                  const std::map<Node, Node>& templates_arg)
 {
-  Assert(q.getKind() == Kind::FORALL);
   // convert to deep embedding and finalize single invocation here
   // now, construct the grammar
   Trace("cegqi") << "SynthConjecture : convert to deep embedding..."
@@ -114,11 +112,6 @@ Node EmbeddingConverter::process(Node q,
   }
   std::map<TypeNode, std::unordered_set<Node>> exc_cons;
   std::map<TypeNode, std::unordered_set<Node>> inc_cons;
-
-  if (options().quantifiers.sygusDtInferGrammar)
-  {
-    inferDtGrammars(q);
-  }
 
   std::vector<Node> ebvl;
   for (unsigned i = 0; i < q[0].getNumChildren(); i++)
@@ -412,169 +405,6 @@ Node EmbeddingConverter::convertToEmbedding(Node n)
   Assert(visited.find(n) != visited.end());
   Assert(!visited.find(n)->second.isNull());
   return visited[n];
-}
-
-void EmbeddingConverter::inferDtGrammars(const Node& q)
-{
-  Trace("infer-dt-grammar") << "Infer datatype grammars " << q << std::endl;
-  std::unordered_set<Node> dtVars;
-  for (const Node& sf : q[0])
-  {
-    // if non-null, v encodes the syntactic restrictions (via an inductive
-    // datatype) on sf from the input.
-    TypeNode preGrammarType = SygusUtils::getSygusType(sf);
-    if (preGrammarType.isNull() && sf.getType().isDatatype())
-    {
-      Trace("infer-dt-grammar") << "...target " << sf << std::endl;
-      dtVars.insert(sf);
-    }
-  }
-  if (dtVars.empty())
-  {
-    Trace("infer-dt-grammar") << "...no targets" << std::endl;
-    return;
-  }
-
-  // TODO: check if any datatypes have syntactic constraints??
-  std::vector<Node> disj;
-  if (q[1].getKind() == Kind::OR)
-  {
-    disj.insert(disj.end(), q[1].begin(), q[1].end());
-  }
-  else
-  {
-    disj.push_back(q[1]);
-  }
-  for (const Node& d : disj)
-  {
-    Node dd = d.negate();
-    std::map<Node, Node> nts;
-    std::map<Node, std::vector<Node>> cases;
-    if (isSyntacticConstraint(dtVars, dd, nts, cases))
-    {
-    }
-  }
-}
-
-bool EmbeddingConverter::isSyntacticConstraint(
-    const std::unordered_set<Node> dtVars,
-    const Node& n,
-    std::map<Node, Node>& nts,
-    std::map<Node, std::vector<Node>>& rules)
-{
-  return false;
-#if 0
-  Trace("infer-dt-grammar") << "isSyntacticConstraint: " << n << std::endl;
-  if (n.getKind()!=Kind::APPLY_UF || n.getNumChildren()!=1)
-  {
-    Trace("infer-dt-grammar") << "...not unary predicate" << std::endl;
-    return false;
-  }
-  if (dtVars.find(n[0])==dtVars.end())
-  {
-    Trace("infer-dt-grammar") << "...not unary predicate to relevant variable" << std::endl;
-    return false;
-  }
-  FunDefEvaluator* fde = d_tds->getFunDefEvaluator();
-  Node f = n.getOperator();
-  if (nts.find(f)!=nts.end())
-  {
-    // already computed, true
-    return true;
-  }
-  Node def = fde->getLambdaFor(f);
-  if (def.isNull())
-  {
-    Trace("infer-dt-grammar") << "...not unary predicate to relevant variable" << std::endl;
-    return false;
-  }
-  //Node v = nm->mkBoundVar(n[0].getType());
-  std::vector<Node>& curRules = rules[f];
-  NodeManager * nm = nodeManager();
-  Node predInit = nm->mkNode(Kind::APPLY_UF, def, n[0]);
-  predInit = rewrite(predInit);
-  Trace("infer-dt-grammar") << "Definition is: " << predInit << std::endl;
-  std::vector<std::tuple<Node, Node, std::vector<Node>>> toVisit;
-  std::tuple<Node, Node, std::vector<Node>> cur;
-  toVisit.emplace_back(predInit, n[0], std::vector<Node>{n[0]});
-  size_t iter = 0;
-  Node truen = nm->mkConst(true);
-  do
-  {
-    iter++;
-    cur = toVisit.back();
-    toVisit.pop_back();
-    Node pred = std::get<0>(cur);
-    Node t = std::get<1>(cur);
-    std::vector<Node> vars = std::get<2>(cur);
-    Trace("infer-dt-grammar") << "Process:" << std::endl;
-    Trace("infer-dt-grammar") << "- predicate " << pred << std::endl;
-    Trace("infer-dt-grammar") << "- term " << t << std::endl;
-    Trace("infer-dt-grammar") << "- variables " << vars << std::endl;
-    if (pred.isConst())
-    {
-      if (!pred.getConst<bool>())
-      {
-        // predicate is infeasible, continue
-        continue;
-      }
-      Trace("infer-dt-grammar") << "*** Predicate true, add " << t << std::endl;
-      continue;
-    }
-    if (vars.empty())
-    {
-      Trace("infer-dt-grammar") << "Done instantiating?, add " << t << std::endl;
-      // TODO?
-      continue;
-    }
-    TNode curVar = vars.back();
-    vars.pop_back();
-    if (curVar.getType().isDatatype())
-    {
-      // close recursive
-      Subs s;
-      for (std::pair<const Node, std::vector<Node>>& r : rules)
-      {
-        Node recPred = nm->mkNode(Kind::APPLY_UF, r.first, curVar);
-        s.add(recPred, truen);
-      }
-      pred = s.apply(pred);
-      pred = rewrite(pred);
-      if (expr::hasSubterm(pred, curVar))
-      {
-        const DType& dt = curVar.getType().getDType();
-        for (size_t i = 0, ndt = dt.getNumConstructors(); i < ndt; ++i)
-        {
-          Node ic = datatypes::utils::getInstCons(curVar, dt, i, false);
-          Trace("infer-dt-grammar") << "  Expand: " << ic << std::endl;
-          TNode tic = ic;
-          Node tExpand = t.substitute(curVar, tic);
-          Node predExpand = pred.substitute(curVar, tic);
-          predExpand = rewrite(predExpand);
-          Trace("infer-dt-grammar") << "  ...predicate is " << predExpand << std::endl;
-          std::vector<Node> newVars = vars;
-          if (ic.getNumChildren()>0)
-          {
-            newVars.insert(newVars.end(), ic.begin(), ic.end());
-          }
-          toVisit.emplace_back(predExpand, tExpand, newVars);
-        }
-      }
-      else
-      {
-        toVisit.emplace_back(pred, t, vars);
-      }
-      continue;
-    }
-    else
-    {
-      Trace("infer-dt-grammar") << "Close non-datatype " << curVar << std::endl;
-      toVisit.emplace_back(pred, t, vars);
-    }
-  }while (!toVisit.empty());
-  
-  return false;
-#endif
 }
 
 }  // namespace quantifiers

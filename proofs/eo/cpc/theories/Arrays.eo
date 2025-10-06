@@ -13,7 +13,3 @@
 (declare-parameterized-const @array_deq_diff
   ((T Type :implicit) (U Type :implicit) (a (Array T U) :opaque) (b (Array T U) :opaque))
   T)
-
-; The store all array constant.
-; disclaimer: This function is not in SMT-LIB.
-(declare-parameterized-const const ((T Type :implicit) (U Type :implicit)) (-> U (Array T U)))
