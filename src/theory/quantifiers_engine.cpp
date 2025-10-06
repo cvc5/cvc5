@@ -190,6 +190,8 @@ void QuantifiersEngine::ppNotifyAssertions(
     quantifiers::InstStrategyMbqi* mi = d_qmodules->d_mbqi.get();
     mi->ppNotifyAssertions(assertions);
   }
+  // assertions may correspond to recursive function definitions, notify
+  // the function definition evaluator.
   FunDefEvaluator * fde = d_treg.getFunDefEvaluator();
   Assert (fde!=nullptr);
   for (const Node& def : assertions)
