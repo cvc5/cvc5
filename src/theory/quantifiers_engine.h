@@ -196,8 +196,6 @@ class QuantifiersEngine : protected EnvObj
   quantifiers::QuantifiersRegistry& d_qreg;
   /** The term registry */
   quantifiers::TermRegistry& d_treg;
-  /** The function definition evaluator */
-  std::unique_ptr<quantifiers::FunDefEvaluator> d_funDefEval;
   /** model builder */
   std::unique_ptr<quantifiers::QModelBuilder> d_builder;
   /** extended model object */

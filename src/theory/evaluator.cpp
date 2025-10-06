@@ -664,7 +664,7 @@ EvalResult Evaluator::evalInternal(
         case Kind::INTS_ISPOW2:
         {
           const Rational& x = results[currNode[0]].d_rat;
-          results[currNode] = EvalResult(x.getNumerator().isPow2() != 0);
+          results[currNode] = EvalResult(x.getNumerator().isPow2());
           break;
         }
         case Kind::INTS_LOG2:

@@ -59,7 +59,6 @@ QuantifiersEngine::QuantifiersEngine(Env& env,
       d_pnm(pnm),
       d_qreg(qr),
       d_treg(tr),
-      d_funDefEval(new FunDefEvaluator(env)),
       d_model(nullptr),
       d_quants_prereg(userContext()),
       d_quants_red(userContext()),
@@ -151,7 +150,7 @@ TermDbSygus* QuantifiersEngine::getTermDatabaseSygus() const
 
 FunDefEvaluator* QuantifiersEngine::getFunDefEvaluator() const
 {
-  return d_funDefEval.get();
+  return d_treg.getFunDefEvaluator();
 }
 
 void QuantifiersEngine::presolve() {
@@ -191,11 +190,13 @@ void QuantifiersEngine::ppNotifyAssertions(
     quantifiers::InstStrategyMbqi* mi = d_qmodules->d_mbqi.get();
     mi->ppNotifyAssertions(assertions);
   }
+  FunDefEvaluator * fde = d_treg.getFunDefEvaluator();
+  Assert (fde!=nullptr);
   for (const Node& def : assertions)
   {
     if (def.getKind() == Kind::FORALL && def[1].getKind() == Kind::EQUAL)
     {
-      d_funDefEval->assertDefinition(def);
+      fde->assertDefinition(def);
     }
   }
 }
