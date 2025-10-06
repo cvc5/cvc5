@@ -248,6 +248,7 @@ ProofRule getCongRule(const Node& n, std::vector<Node>& args)
   switch (k)
   {
     case Kind::APPLY_UF:
+    case Kind::DISTINCT:
     case Kind::FLOATINGPOINT_LT:
     case Kind::FLOATINGPOINT_LEQ:
     case Kind::FLOATINGPOINT_GT:

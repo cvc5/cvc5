@@ -90,23 +90,6 @@ class MacroRewriteElaborator : protected EnvObj
    * @return true if added a closed proof of eq to cdp.
    */
   bool ensureProofForAndOrXorConcatPullup(CDProof* cdp, const Node& eq);
-  /**
-   * Prove congruence for left hand side term n.
-   * If n is a term of the form (f t1 ... tn), this proves
-   *  (= (f t1 ... sn) (f s1 .... sn))
-   * where si is different from ti iff premises[i] is the equality (= ti si).
-   * Note that we permit providing null premises[i] in which case si is ti
-   * and we prove (= ti ti) by REFL. For example, given
-   *   n = (f b a c) and premises = { null, a=b, null }
-   * we prove:
-   *   ----- REFL        ---- REFL
-   *   b = b      a = b  c = c
-   *   ------------------------ CONG
-   *   (f b a c) = (f b b c)
-   */
-  Node proveCong(CDProof* cdp,
-                 const Node& n,
-                 const std::vector<Node>& premises);
 };
 
 }  // namespace bv
