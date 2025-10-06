@@ -1232,9 +1232,8 @@ enum ENUM(ProofRule)
    *   \inferrule{t_1=s_1,\dots,t_n=s_n\mid f(t_1,\dots, t_n)}{f(t_1,\dots, t_n) = f(s_1,\dots, s_n)}
    *
    * This rule is used for terms :math:`f(t_1,\dots, t_n)` whose kinds
-   * :math:`k` have variadic arity and are treated as right associative
-   * with a nil terminator, such as ``cvc5::Kind::AND``, ``cvc5::Kind::PLUS``
-   * and so on.
+   * :math:`k` have variadic arity and are treated as associative,
+   * such as ``cvc5::Kind::AND``, ``cvc5::Kind::PLUS`` and so on.
    * \endverbatim
    */
   EVALUE(NARY_CONG),
@@ -2777,9 +2776,9 @@ enum ENUM(ProofRewriteRule)
    *
    * .. math::
    *
-   *   (distinct \ t_1 \ldots t_n) = \bot
+   *   \mathit{distinct}(t_1, \ldots, t_n) = \bot
    *
-   * where :math:`t_i` is :math:`t_j` for some distinct :math:`i`, `j`.
+   * where :math:`t_i` is :math:`t_j` for some distinct :math:`i`, :math:`j`.
    *
    * \endverbatim
    */
@@ -2790,7 +2789,7 @@ enum ENUM(ProofRewriteRule)
    *
    * .. math::
    *
-   *   (distinct \ t_1 \ldots t_n) = \top
+   *   \mathit{distinct}(t_1, \ldots, t_n) = \top
    *
    * where :math:`t_1, \ldots, t_n` are distinct values.
    *
