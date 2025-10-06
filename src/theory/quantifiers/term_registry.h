@@ -127,6 +127,7 @@ class TermRegistry : protected EnvObj
   FirstOrderModel* getModel() const;
   /** Get the function definition evaluator utility */
   FunDefEvaluator* getFunDefEvaluator() const;
+
  private:
   /**
    * Add term n, which notifies the term database that the ground term n

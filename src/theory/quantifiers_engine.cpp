@@ -192,8 +192,8 @@ void QuantifiersEngine::ppNotifyAssertions(
   }
   // assertions may correspond to recursive function definitions, notify
   // the function definition evaluator.
-  FunDefEvaluator * fde = d_treg.getFunDefEvaluator();
-  Assert (fde!=nullptr);
+  FunDefEvaluator* fde = d_treg.getFunDefEvaluator();
+  Assert(fde != nullptr);
   for (const Node& def : assertions)
   {
     if (def.getKind() == Kind::FORALL && def[1].getKind() == Kind::EQUAL)
