@@ -1196,14 +1196,6 @@ name   = "Quantifiers"
   help       = "statically add constants appearing in conjecture to grammars"
 
 [[option]]
-  name       = "sygusDtInferGrammar"
-  category   = "expert"
-  long       = "sygus-dt-infer-grammar"
-  type       = "bool"
-  default    = "false"
-  help       = "attempt to infer datatype grammars based on (recursive) syntactic constraints"
-
-[[option]]
   name       = "sygusGrammarNorm"
   category   = "expert"
   long       = "sygus-grammar-norm"
