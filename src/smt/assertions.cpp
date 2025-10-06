@@ -19,6 +19,7 @@
 
 #include "base/modal_exception.h"
 #include "expr/node_algorithm.h"
+#include "expr/subtype_elim_node_converter.h"
 #include "options/base_options.h"
 #include "options/expr_options.h"
 #include "options/language.h"
@@ -106,6 +107,23 @@ void Assertions::addFormula(TNode n,
                             bool isFunDef,
                             bool maybeHasFv)
 {
+  // if we are proof producing and don't permit subtypes, we rewrite now
+  if (d_env.isProofProducing())
+  {
+    if (options().proof.proofElimSubtypes)
+    {
+      SubtypeElimNodeConverter senc(nodeManager());
+      Node nc = senc.convert(n);
+      if (nc!=n)
+      {
+        Warning() << "Input involves mixed arithmetic, which is not SMT-LIB compliant." << std::endl;
+        Warning() << "This assertion will be rewritten to avoid mixed arithmetic." << std::endl;
+        Warning() << "Assertion is: " << n << std::endl;
+        addFormula(nc, isFunDef, maybeHasFv);
+        return;
+      }
+    }
+  }
   // add to assertion list
   d_assertionList.push_back(n);
   if (n.isConst() && n.getConst<bool>())

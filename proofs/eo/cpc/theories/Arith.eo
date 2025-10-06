@@ -54,34 +54,18 @@
   (-> T U ($arith_typeunion T U)) :right-assoc-nil 1)
 
 ; Core arithmetic predicates
-; disclaimer: This function is overloaded in SMT-LIB and does not permit mixed arithmetic.
-(declare-parameterized-const < ((T Type :implicit) (U Type :implicit))
-  (-> T U
-      (eo::requires ($is_arith_type T) true
-      (eo::requires ($is_arith_type U) true
-        Bool)))
-      :chainable and)
-; disclaimer: This function is overloaded in SMT-LIB and does not permit mixed arithmetic.
-(declare-parameterized-const <= ((T Type :implicit) (U Type :implicit))
-  (-> T U
-      (eo::requires ($is_arith_type T) true
-      (eo::requires ($is_arith_type U) true
-        Bool)))
-      :chainable and)
-; disclaimer: This function is overloaded in SMT-LIB and does not permit mixed arithmetic.
-(declare-parameterized-const > ((T Type :implicit) (U Type :implicit))
-  (-> T U
-      (eo::requires ($is_arith_type T) true
-      (eo::requires ($is_arith_type U) true
-        Bool)))
-      :chainable and)
-; disclaimer: This function is overloaded in SMT-LIB and does not permit mixed arithmetic.
-(declare-parameterized-const >= ((T Type :implicit) (U Type :implicit))
-  (-> T U
-      (eo::requires ($is_arith_type T) true
-      (eo::requires ($is_arith_type U) true
-        Bool)))
-      :chainable and)
+(declare-parameterized-const < ((T Type :implicit))
+  (-> T T (eo::requires ($is_arith_type T) true Bool))
+  :chainable and)
+(declare-parameterized-const <= ((T Type :implicit))
+  (-> T T (eo::requires ($is_arith_type T) true Bool))
+  :chainable and)
+(declare-parameterized-const > ((T Type :implicit))
+  (-> T T (eo::requires ($is_arith_type T) true Bool))
+  :chainable and)
+(declare-parameterized-const >= ((T Type :implicit))
+  (-> T T (eo::requires ($is_arith_type T) true Bool))
+  :chainable and)
 
 ; Conversion functions.
 ; disclaimer: The type of this function in SMT-LIB only accepts an Int as argument.
