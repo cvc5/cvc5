@@ -252,7 +252,7 @@ void DistinctExtension::eqNotifyMerge(TNode t1, TNode t2)
           Assert(i < d_eqcToDMem[t1].size());
           Assert(i2 < d_eqcToDMem[t2].size());
           Node eq = d_eqcToDMem[t1][i].eqNode(d_eqcToDMem[t2][i2]);
-          AlwaysAssert(
+          Assert(
               d_state.areEqual(d_eqcToDMem[t1][i], d_eqcToDMem[t2][i2]));
           Trace("uf-lazy-distinct")
               << "...conflict " << eq << " " << d << std::endl;
