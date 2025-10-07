@@ -428,26 +428,28 @@ macro(create_venv)
   endif()
 endmacro()
 
-if(ENABLE_AUTO_DOWNLOAD AND USE_PYTHON_VENV)
-  # Set up Python venv if one doesn't exist already
-  set(VENV_PATH "${CMAKE_BINARY_DIR}/venv-${Python_VERSION}")
-  if(NOT EXISTS ${VENV_PATH})
-    create_venv()
-  endif()
+if(ENABLE_AUTO_DOWNLOAD)
+  if(USE_PYTHON_VENV)
+    # Set up Python venv if one doesn't exist already
+    set(VENV_PATH "${CMAKE_BINARY_DIR}/venv-${Python_VERSION}")
+    if(NOT EXISTS ${VENV_PATH})
+      create_venv()
+    endif()
 
-  # Set up variables to find Python within the virtual environment
-  set(ENV{VIRTUAL_ENV} "${VENV_PATH}")
-  unset(Python_EXECUTABLE CACHE)
-  if(EXISTS ${VENV_PATH}/bin/python3)
-    set(Python_EXECUTABLE ${VENV_PATH}/bin/python3)
-  elseif(EXISTS ${VENV_PATH}/Scripts/python.exe)
-    set(Python_EXECUTABLE ${VENV_PATH}/Scripts/python.exe)
-  else()
-    message(FATAL_ERROR "Could not find Python interpreter in venv")
-  endif()
+    # Set up variables to find Python within the virtual environment
+    set(ENV{VIRTUAL_ENV} "${VENV_PATH}")
+    unset(Python_EXECUTABLE CACHE)
+    if(EXISTS ${VENV_PATH}/bin/python3)
+      set(Python_EXECUTABLE ${VENV_PATH}/bin/python3)
+    elseif(EXISTS ${VENV_PATH}/Scripts/python.exe)
+      set(Python_EXECUTABLE ${VENV_PATH}/Scripts/python.exe)
+    else()
+      message(FATAL_ERROR "Could not find Python interpreter in venv")
+    endif()
 
-  # Find the Python interpreter within the virtual environment
-  find_package(Python COMPONENTS Interpreter REQUIRED)
+    # Find the Python interpreter within the virtual environment
+    find_package(Python COMPONENTS Interpreter REQUIRED)
+  endif()
   find_package(Pip REQUIRED)
 endif()
 
