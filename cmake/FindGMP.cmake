@@ -181,7 +181,7 @@ else()
   # On Windows, this installs the import libraries (LIB) and
   # the DLL libraries (BIN)
   install(
-    DIRECTORY ${DEPS_BASE}/${CMAKE_INSTALL_LIBDIR}/
+    DIRECTORY ${DEPS_BASE}/lib/
     TYPE LIB
     FILES_MATCHING PATTERN libgmp* PATTERN gmp*.pc
   )
