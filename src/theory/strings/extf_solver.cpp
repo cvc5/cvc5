@@ -540,12 +540,12 @@ void ExtfSolver::checkExtfInference(Node n,
   // see if any previous term rewrote to nr, if so, we can conclude that
   // term is equal to n.
   std::map<Node, Node>::iterator ito = d_extfToOrig.find(nr);
-  if (ito!=d_extfToOrig.end())
+  if (ito != d_extfToOrig.end())
   {
     Node no = ito->second;
     if (!d_state.areEqual(n, no))
     {
-      Assert (d_extfInfoTmp.find(no)!=d_extfInfoTmp.end());
+      Assert(d_extfInfoTmp.find(no) != d_extfInfoTmp.end());
       ExtfInfoTmp& eito = d_extfInfoTmp[no];
       Node conc = n.eqNode(no);
       Trace("strings-extf-infer")
@@ -559,7 +559,7 @@ void ExtfSolver::checkExtfInference(Node n,
   }
   // store that n rewrites to nr
   d_extfToOrig[nr] = n;
-  
+
   if (in.d_const.isNull())
   {
     return;
