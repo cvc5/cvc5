@@ -348,6 +348,7 @@ void ExtfSolver::checkExtfEval(int effort)
           << "Check extf " << n << " == " << sn
           << ", constant = " << einfo.d_const << ", effort=" << effort
           << ", exp " << exp << std::endl;
+      einfo.d_initExp.insert(einfo.d_initExp.end(), exp.begin(), exp.end());
       einfo.d_exp.insert(einfo.d_exp.end(), exp.begin(), exp.end());
       // inference is rewriting the substituted node
       Node nrc = rewrite(sn);
@@ -551,9 +552,10 @@ void ExtfSolver::checkExtfInference(Node n,
       Trace("strings-extf-infer")
           << "infer same rewrite: " << conc << std::endl;
       std::vector<Node> exp;
-      exp.push_back(nodeManager()->mkAnd(in.d_exp));
-      exp.push_back(nodeManager()->mkAnd(eito.d_exp));
-      d_im.sendInternalInference(exp, conc, InferenceId::STRINGS_EXTF_REW_SAME);
+      exp.insert(exp.end(), in.d_initExp.begin(), in.d_initExp.end());
+      exp.insert(exp.end(), eito.d_initExp.begin(), eito.d_initExp.end());
+      Trace("strings-extf-infer") << "..explaination is " << exp << std::endl;
+      d_im.sendInference(exp, conc, InferenceId::STRINGS_EXTF_REW_SAME);
     }
     return;
   }

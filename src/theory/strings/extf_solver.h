@@ -70,6 +70,7 @@ class ExtfInfoTmp
    * The explanation for why t is equal to its context-dependent simplified
    * form.
    */
+  std::vector<Node> d_initExp;
   std::vector<Node> d_exp;
   /** This flag is false if t is reduced in the model. */
   bool d_modelActive;
