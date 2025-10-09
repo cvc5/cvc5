@@ -116,7 +116,18 @@ void printUsageCategories(cvc5::Solver& solver, std::ostream& os)
       }
       else
       {
-        ssRegularNoSupport << "- " << name << std::endl;
+        ssRegularNoSupport << "- " << name << " [";
+        bool firstTime = true;
+        for (std::string ns : info.noSupports)
+        {
+          if (!firstTime)
+          {
+            ssRegularNoSupport << ", ";
+          }
+          firstTime = false;
+          ssRegularNoSupport << ns;
+        }
+        ssRegularNoSupport << "]" << std::endl;
       }
     }
     else if (info.category == cvc5::modes::OptionCategory::COMMON)
