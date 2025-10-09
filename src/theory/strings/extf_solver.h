@@ -268,6 +268,8 @@ class ExtfSolver : public InferSideEffectProcess, protected EnvObj
   std::vector<Node> d_emptyVec;
   /** map extended functions to the above information */
   std::map<Node, ExtfInfoTmp> d_extfInfoTmp;
+  /** map from reduced extended functions to their original */
+  std::map<Node, Node> d_extfToOrig;
   /** any non-reduced extended functions exist? */
   context::CDO<bool> d_hasExtf;
   /** extended functions inferences cache */
