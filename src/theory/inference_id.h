@@ -879,6 +879,8 @@ enum class InferenceId
   // It is generally only inferred if P is a predicate over known terms.
   STRINGS_EXTF_EQ_REW,
   // two terms rewrite to the same thing
+  // in particular this is of the form (E1 ^ E2) => t1 = t2
+  // where E1 => t1 = tr and E2 => t2 = tr.
   STRINGS_EXTF_REW_SAME,
   // contain transitive
   //   ( str.contains( s, t ) ^ ~contains( s, r ) ) => ~contains( t, r ).
