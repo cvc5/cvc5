@@ -366,6 +366,15 @@ Node rename(
                             //     cnodes
                             // );
 
+                            // Create substitution variable with original type for substitution
+                            Node substVar = nodeManager->getSkolemManager()->mkDummySkolem(
+                                new_var_name,
+                                current.getType(),
+                                "normalized " + current.toString() + " to " + new_var_name,
+                                SkolemFlags::SKOLEM_EXACT_NAME
+                            );
+
+                            // Create normalized variable with normalized type for the final result
                             Node ret = nodeManager->getSkolemManager()->mkDummySkolem(
                                 new_var_name,
                                 sortNormalizer->convertType(current.getType()),
@@ -375,7 +384,7 @@ Node rename(
 
                             freeVar2node[current] = ret;
                             normalized[current] = ret;
-                            d_preprocContext->addSubstitution(current, ret);
+                            d_preprocContext->addSubstitution(current, substVar);
 
                             // normalizedName[current.toString()] = new_var_name;
                             normalizedName[std::to_string(current.getId())] = new_var_name;
