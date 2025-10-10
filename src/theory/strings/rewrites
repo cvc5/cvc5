@@ -597,12 +597,12 @@
   re.none)
 
 (define-cond-rule re-inter-cstring ((x RegLan) (ys RegLan :list) (s String))
-  (str.in_re s (re.inter x ys))
+  (str.in_re s (re.inter (str.to_re s) x ys))
   (re.inter (str.to_re s) x ys) 
   (str.to_re s))
 
 (define-cond-rule re-inter-cstring-neg ((x RegLan) (ys RegLan :list) (s String))
-  (not (str.in_re s (re.inter x ys)))
+  (not (str.in_re s (re.inter (str.to_re s) x ys)))
   (re.inter (str.to_re s) x ys)
   re.none)
 
