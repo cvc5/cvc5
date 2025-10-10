@@ -1042,6 +1042,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
   if (isOutputOn(OutputTag::NORMALIZE))
   {
     SET_AND_NOTIFY(smt, printDefs, false, "normalization");
+    SET_AND_NOTIFY(base, preprocessOnly, true, "normalize output");
   }
 }
 
