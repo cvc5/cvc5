@@ -928,15 +928,50 @@ bool BasicRewriteRCons::ensureProofMacroReInterUnionInclusion(CDProof* cdp,
 bool BasicRewriteRCons::ensureProofMacroReInterUnionConstElim(CDProof* cdp,
                                                               const Node& eq)
 {
+  NodeManager* nm = nodeManager();
   Trace("brc-macro") << "Expand macro re inter union const elim for " << eq
                      << std::endl;
   if (eq[0].getKind() == Kind::REGEXP_INTER)
   {
+    theory::strings::ArithEntail ae(nm, nullptr);
+    theory::strings::StringsEntail se(nullptr, ae);
+    theory::strings::SequencesRewriter srew(nm, ae, se, nullptr);
+    Node tgt;
+    Node res = srew.rewriteViaMacroReInterUnionConstElim(eq[0], tgt);
+    if (eq[1].getKind()==Kind::STRING_TO_REGEXP)
+    {
+      tgt = eq[1];
+    }
+    else
+    {
+      Assert (eq[1].getKind()==Kind::REGEXP_NONE && !tgt.isNull());
+    }
+    Trace("brc-macro") << "...target is " << tgt << std::endl;
     // RARE should suffice to show the intersection case
     // via rules re-inter-cstring or re-inter-cstring-neg
     // Note these may require calling membership evaluation as a subcall,
     // so we mark this non-simple.
-    cdp->addTrustedStep(eq, TrustId::MACRO_THEORY_REWRITE_RCONS, {}, {});
+    // We must ensure that the constant regexp is the first child to match
+    // these rules. This means either the right hand side is the first child,
+    // or the witness to the conflict is inserted as the first child, which
+    // is idempotent via ACI_NORM.
+    if (!tgt.isNull() && tgt!=eq[0][0])
+    {
+      std::vector<Node> newChildren;
+      newChildren.push_back(tgt);
+      newChildren.insert(newChildren.end(), eq[0].begin(), eq[0].end());
+      Node rnew = nm->mkNode(Kind::REGEXP_INTER, newChildren);
+      Node eq1 = eq[0].eqNode(rnew);
+      Node eq2 = rnew.eqNode(eq[1]);
+      Trace("brc-macro") << "...decompose to " << eq1 << ", " << eq2 << std::endl;
+      cdp->addStep(eq1, ProofRule::ACI_NORM, {}, {eq1});
+      cdp->addTrustedStep(eq2, TrustId::MACRO_THEORY_REWRITE_RCONS, {}, {});
+      cdp->addStep(eq, ProofRule::TRANS, {eq1, eq2}, {});
+    }
+    else
+    {
+      cdp->addTrustedStep(eq, TrustId::MACRO_THEORY_REWRITE_RCONS, {}, {});
+    }
     return true;
   }
   Assert(eq[0].getKind() == Kind::REGEXP_UNION);
@@ -965,7 +1000,6 @@ bool BasicRewriteRCons::ensureProofMacroReInterUnionConstElim(CDProof* cdp,
   }
   Node curr = eq[1];
   std::vector<Node> transEq;
-  NodeManager* nm = nodeManager();
   for (size_t i = 0, ndiff = diff.size(); i < ndiff; i++)
   {
     size_t ii = (ndiff - i - 1);
