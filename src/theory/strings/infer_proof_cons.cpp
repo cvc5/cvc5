@@ -203,6 +203,7 @@ bool InferProofCons::convert(Env& env,
     case InferenceId::STRINGS_LEN_NORM:
     case InferenceId::STRINGS_NORMAL_FORM:
     case InferenceId::STRINGS_CODE_PROXY:
+    case InferenceId::STRINGS_EXTF_REW_SAME:
     {
       size_t idMax = 0;
       // These three inference assume the substitution is applied to the
@@ -210,7 +211,8 @@ bool InferProofCons::convert(Env& env,
       // will allow the substitutions to fire in term context value one.
       if (infer == InferenceId::STRINGS_EXTF
           || infer == InferenceId::STRINGS_EXTF_N
-          || infer == InferenceId::STRINGS_LEN_NORM)
+          || infer == InferenceId::STRINGS_LEN_NORM
+          || infer == InferenceId::STRINGS_EXTF_REW_SAME)
       {
         idMax = 1;
       }

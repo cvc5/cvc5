@@ -533,6 +533,7 @@ const char* toString(InferenceId i)
     case InferenceId::STRINGS_EXTF_D: return "STRINGS_EXTF_D";
     case InferenceId::STRINGS_EXTF_D_N: return "STRINGS_EXTF_D_N";
     case InferenceId::STRINGS_EXTF_EQ_REW: return "STRINGS_EXTF_EQ_REW";
+    case InferenceId::STRINGS_EXTF_REW_SAME: return "STRINGS_EXTF_REW_SAME";
     case InferenceId::STRINGS_CTN_TRANS: return "STRINGS_CTN_TRANS";
     case InferenceId::STRINGS_CTN_DECOMPOSE: return "STRINGS_CTN_DECOMPOSE";
     case InferenceId::STRINGS_CTN_NEG_EQUAL: return "STRINGS_CTN_NEG_EQUAL";
