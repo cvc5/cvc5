@@ -1,3 +1,4 @@
+; COMMAND-LINE: --var-ent-eq-elim-quant
 ; EXPECT: unsat
 (set-logic BV)
 (assert
