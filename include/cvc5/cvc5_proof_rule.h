@@ -2844,7 +2844,7 @@ enum ENUM(ProofRewriteRule)
    *
    *   Q X_1.\> \ldots Q X_n.\> F = Q X.\> F
    *
-   * where Q is either \forall or \exists and :math:`X_1` is the subset of :math:`X`
+   * where :math:`Q` is either :math:`\forall` or :math:`\exists` and :math:`X_1` is the subset of :math:`X`
    * where :math:`X_1 \ldots X_n` are lists of variables and :math:`X` is the
    * result of removing duplicates from :math:`X_1 \ldots X_n`.
    *
