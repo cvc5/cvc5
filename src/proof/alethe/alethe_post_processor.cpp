@@ -152,7 +152,7 @@ bool AletheProofPostprocessCallback::updateTheoryRewriteProofRewriteRule(
                            *cdp);
     }
     // ======== QUANT_MINISCOPE_AND
-    // These rules are translated according to the clause pattern.
+    // This rule is translated according to the clause pattern.
     case ProofRewriteRule::QUANT_MINISCOPE_AND:
     {
       return addAletheStep(AletheRule::MINISCOPE_DISTRIBUTE,
