@@ -1699,7 +1699,7 @@ Node SequencesRewriter::rewriteViaMacroStrStripEndpoints(
 }
 
 Node SequencesRewriter::rewriteViaMacroReInterUnionConstElim(const Node& n,
-                                            Node& conflict)
+                                                             Node& conflict)
 {
   Kind k = n.getKind();
   if (k != Kind::REGEXP_INTER && k != Kind::REGEXP_UNION)

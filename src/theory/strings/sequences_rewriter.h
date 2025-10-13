@@ -65,8 +65,8 @@ class SequencesRewriter : public TheoryRewriter
    * that led to the conflict (which is a str.to_re regexp that is not contained
    * in another child).
    */
-  Node rewriteViaMacroReInterUnionConstElim(const Node& n,
-                                            Node& conflict);
+  Node rewriteViaMacroReInterUnionConstElim(const Node& n, Node& conflict);
+
  protected:
   /** rewrite regular expression all
    *

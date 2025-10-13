@@ -938,13 +938,13 @@ bool BasicRewriteRCons::ensureProofMacroReInterUnionConstElim(CDProof* cdp,
     theory::strings::SequencesRewriter srew(nm, ae, se, nullptr);
     Node tgt;
     Node res = srew.rewriteViaMacroReInterUnionConstElim(eq[0], tgt);
-    if (eq[1].getKind()==Kind::STRING_TO_REGEXP)
+    if (eq[1].getKind() == Kind::STRING_TO_REGEXP)
     {
       tgt = eq[1];
     }
     else
     {
-      Assert (eq[1].getKind()==Kind::REGEXP_NONE && !tgt.isNull());
+      Assert(eq[1].getKind() == Kind::REGEXP_NONE && !tgt.isNull());
     }
     Trace("brc-macro") << "...target is " << tgt << std::endl;
     // RARE should suffice to show the intersection case
@@ -955,7 +955,7 @@ bool BasicRewriteRCons::ensureProofMacroReInterUnionConstElim(CDProof* cdp,
     // these rules. This means either the right hand side is the first child,
     // or the witness to the conflict is inserted as the first child, which
     // is idempotent via ACI_NORM.
-    if (!tgt.isNull() && tgt!=eq[0][0])
+    if (!tgt.isNull() && tgt != eq[0][0])
     {
       std::vector<Node> newChildren;
       newChildren.push_back(tgt);
@@ -963,7 +963,8 @@ bool BasicRewriteRCons::ensureProofMacroReInterUnionConstElim(CDProof* cdp,
       Node rnew = nm->mkNode(Kind::REGEXP_INTER, newChildren);
       Node eq1 = eq[0].eqNode(rnew);
       Node eq2 = rnew.eqNode(eq[1]);
-      Trace("brc-macro") << "...decompose to " << eq1 << ", " << eq2 << std::endl;
+      Trace("brc-macro") << "...decompose to " << eq1 << ", " << eq2
+                         << std::endl;
       cdp->addStep(eq1, ProofRule::ACI_NORM, {}, {eq1});
       cdp->addTrustedStep(eq2, TrustId::MACRO_THEORY_REWRITE_RCONS, {}, {});
       cdp->addStep(eq, ProofRule::TRANS, {eq1, eq2}, {});
