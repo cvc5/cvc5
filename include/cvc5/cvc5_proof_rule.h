@@ -2859,7 +2859,7 @@ enum ENUM(ProofRewriteRule)
    *
    *   Q X_1.\> \ldots Q X_n.\> F = Q X_1 \ldots X_n.\> F
    *
-   * where Q is either \forall or \exists and :math:`X_1 \ldots X_n` are lists of variables.
+   * where :math:`Q` is either :math:`\forall` or :math:`\exists` and :math:`X_1 \ldots X_n` are lists of variables.
    *
    * \endverbatim
    */
