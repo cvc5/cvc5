@@ -48,7 +48,7 @@ class NonClosedNodeConverter : protected EnvObj, public NodeConverter
   /** Get the purification skolems introduced */
   const std::vector<Node>& getSkolems() const;
   /** Is this node "closed", i.e. able to be re-asserted in a normal input? */
-  static bool isClosed(const Env& env, const Node& n);
+  static bool isClosed(Env& env, const Node& n);
 
  private:
   /** Get the non-closed kinds, based on the options */

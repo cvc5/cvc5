@@ -618,6 +618,7 @@ const static std::unordered_map<internal::Kind,
         {internal::Kind::BITVECTOR_SGE, Kind::BITVECTOR_SGE},
         {internal::Kind::BITVECTOR_ULTBV, Kind::BITVECTOR_ULTBV},
         {internal::Kind::BITVECTOR_SLTBV, Kind::BITVECTOR_SLTBV},
+        {internal::Kind::BITVECTOR_NEGO, Kind::BITVECTOR_NEGO},
         {internal::Kind::BITVECTOR_UADDO, Kind::BITVECTOR_UADDO},
         {internal::Kind::BITVECTOR_SADDO, Kind::BITVECTOR_SADDO},
         {internal::Kind::BITVECTOR_UMULO, Kind::BITVECTOR_UMULO},
@@ -3375,9 +3376,7 @@ std::string Term::getUninterpretedSortValue() const
       << "Term to be an abstract value when calling "
          "getUninterpretedSortValue()";
   //////// all checks before this line
-  std::stringstream ss;
-  ss << d_node->getConst<internal::UninterpretedSortValue>();
-  return ss.str();
+  return d_node->getConst<internal::UninterpretedSortValue>().getSymbol();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -6380,6 +6379,12 @@ Term TermManager::mkString(const std::string& s, bool useEscSequences)
 Term TermManager::mkString(const std::wstring& s)
 {
   CVC5_API_TRY_CATCH_BEGIN;
+  for (size_t i = 0, n = s.size(); i < n; ++i)
+  {
+    CVC5_API_CHECK(static_cast<unsigned>(s[i]) < internal::String::num_codes())
+        << "Expected unicode string whose characters are less than code point "
+        << internal::String::num_codes();
+  }
   //////// all checks before this line
   return mkValHelper(internal::String(s));
   ////////
@@ -6389,6 +6394,12 @@ Term TermManager::mkString(const std::wstring& s)
 Term TermManager::mkString(const std::u32string& s)
 {
   CVC5_API_TRY_CATCH_BEGIN;
+  for (size_t i = 0, n = s.size(); i < n; ++i)
+  {
+    CVC5_API_CHECK(static_cast<unsigned>(s[i]) < internal::String::num_codes())
+        << "Expected unicode string whose characters are less than code point "
+        << internal::String::num_codes();
+  }
   //////// all checks before this line
   return mkValHelper(internal::String(s));
   ////////
@@ -8121,7 +8132,7 @@ Term Solver::getValueHelper(const Term& term) const
       << "cannot get value of term containing "
       << (wasShadow ? "shadowed" : "free") << " variables";
   //////// all checks before this line
-  internal::Node value = d_slv->getValue(*term.d_node);
+  internal::Node value = d_slv->getValue(*term.d_node, true);
   Term res = Term(&d_tm, value);
   Assert(res.getSort() == term.getSort());
   return res;
@@ -8137,7 +8148,8 @@ Term Solver::getValue(const Term& term) const
   CVC5_API_RECOVERABLE_CHECK(d_slv->isSmtModeSat())
       << "cannot get value unless after a SAT or UNKNOWN response.";
   CVC5_API_SOLVER_CHECK_TERM(term);
-  CVC5_API_RECOVERABLE_CHECK(term.getSort().getTypeNode().isFirstClass())
+  CVC5_API_RECOVERABLE_CHECK(
+      d_slv->getEnv().isFirstClassType(term.getSort().getTypeNode()))
       << "cannot get value of a term that is not first class.";
   CVC5_API_RECOVERABLE_CHECK(!term.getSort().isDatatype()
                              || term.getSort().getDatatype().isWellFounded())
@@ -8160,7 +8172,8 @@ std::vector<Term> Solver::getValue(const std::vector<Term>& terms) const
       << "cannot get value unless after a SAT or UNKNOWN response.";
   for (const Term& t : terms)
   {
-    CVC5_API_RECOVERABLE_CHECK(t.getSort().getTypeNode().isFirstClass())
+    CVC5_API_RECOVERABLE_CHECK(
+        d_slv->getEnv().isFirstClassType(t.getSort().getTypeNode()))
         << "cannot get value of a term that is not first class.";
     CVC5_API_RECOVERABLE_CHECK(!t.getSort().isDatatype()
                                || t.getSort().getDatatype().isWellFounded())

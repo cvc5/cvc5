@@ -61,6 +61,7 @@ IllegalChecker::IllegalChecker(Env& e)
   if (logicInfo().isTheoryEnabled(theory::THEORY_ARITH)
       && !options().arith.arithExp)
   {
+    d_illegalKinds.insert(Kind::POW);
     d_illegalKinds.insert(Kind::PI);
     d_illegalKinds.insert(Kind::EXPONENTIAL);
     d_illegalKinds.insert(Kind::SINE);
@@ -83,6 +84,8 @@ IllegalChecker::IllegalChecker(Env& e)
       && !options().datatypes.datatypesExp)
   {
     d_illegalKinds.insert(Kind::MATCH);
+    // catches all occurrences of nullables
+    d_illegalKinds.insert(Kind::NULLABLE_TYPE);
   }
   if (logicInfo().hasCardinalityConstraints() && !options().uf.ufCardExp)
   {
@@ -168,7 +171,7 @@ void IllegalChecker::checkAssertions(Assertions& as)
       ss << "Cannot handle assertion with term of kind " << k
          << " in this configuration.";
       // suggested options only in non-safe builds
-#ifndef CVC5_SAFE_MODE
+#if !defined(CVC5_SAFE_MODE) && !defined(CVC5_STABLE_MODE)
       if (k == Kind::STORE_ALL)
       {
         ss << " Try --arrays-exp.";

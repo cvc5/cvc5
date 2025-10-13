@@ -198,7 +198,7 @@
 ;   corresponding to decomposing s at position n, and that the decomposed term
 ;   has length n.
 (declare-rule string_decompose ((U Type) (s (Seq U)) (n Int) (b Bool))
-  :premises ((>= (str.len s) n))
+  :premises ((>= n 0) (>= (str.len s) n))
   :args (b)
   :conclusion (eo::ite b
                 (eo::define ((kp (@purify ($str_prefix_rem s n)))
@@ -551,6 +551,17 @@
   :requires (((eo::is_neg (eo::add (eo::neg l) u)) false)
              (($str_mk_re_loop_elim l (eo::add (eo::neg l) u) r1) r2))
   :conclusion (= (re.loop l u r1) r2)
+)
+
+; rule: re-eq-elim
+; implements: ProofRewriteRule::RE_EQ_ELIM
+; args:
+; - eq Bool: The equality to prove whose left hand side is an equality between regular expressions.
+; conclusion: The given equality.
+(declare-rule re-eq-elim ((r1 RegLan) (r2 RegLan) (Q Bool))
+  :args ((= (= r1 r2) Q))
+  :requires ((Q (forall ((@var.re_eq String)) (= (str.in_re @var.re_eq r1) (str.in_re @var.re_eq r2)))))
+  :conclusion (= (= r1 r2) Q)
 )
 
 ; rule: re-inter-inclusion

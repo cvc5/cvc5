@@ -113,8 +113,8 @@ enum class InferenceId
   //-------------------- nonlinear core
   // simple congruence x=y => f(x)=f(y)
   ARITH_NL_CONGRUENCE,
-  // shared term value split (for naive theory combination)
-  ARITH_NL_SHARED_TERM_VALUE_SPLIT,
+  // for theory combination when NL model construction identifies shared terms
+  ARITH_NL_SHARED_TERM_SPLIT,
   // checkModel found a conflict with a quadratic equality
   ARITH_NL_CM_QUADRATIC_EQ,
   //-------------------- nonlinear incremental linearization solver
@@ -169,8 +169,12 @@ enum class InferenceId
   ARITH_NL_POW2_VALUE_REFINE,
   // monotonicity refinements (Pow2Solver::checkFullRefine)
   ARITH_NL_POW2_MONOTONE_REFINE,
-  // trivial refinements (Pow2Solver::checkFullRefine)
-  ARITH_NL_POW2_TRIVIAL_CASE_REFINE,
+  // neg refinements (Pow2Solver::checkFullRefine)
+  ARITH_NL_POW2_NEG_REFINE,
+  // div0 refinements (Pow2Solver::checkFullRefine)
+  ARITH_NL_POW2_DIV0_CASE_REFINE,
+  // lower bound refinements (Pow2Solver::checkFullRefine)
+  ARITH_NL_POW2_LOWER_BOUND_CASE_REFINE,
   //-------------------- nonlinear coverings solver
   // conflict / infeasible subset obtained from coverings
   ARITH_NL_COVERING_CONFLICT,
@@ -910,6 +914,8 @@ enum class InferenceId
   STRINGS_CMI_SPLIT,
   // constant sequence purification
   STRINGS_CONST_SEQ_PURIFY,
+  // regular expression equality equivalence
+  STRINGS_RE_EQ_ELIM_EQUIV,
   //-------------------------------------- end strings theory
 
   //-------------------------------------- uf theory

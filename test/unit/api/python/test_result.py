@@ -30,7 +30,7 @@ def solver(tm):
 
 
 def test_is_null(tm, solver):
-    res_null = Result(solver)
+    res_null = Result()
     assert res_null.isNull()
     assert not res_null.isSat()
     assert not res_null.isUnsat()

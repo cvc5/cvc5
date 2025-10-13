@@ -131,3 +131,10 @@ K2       = "INT_TO_BITVECTOR_OP"
 children = 1
 comment  = "integer conversion to bit-vector; first parameter is an INT_TO_BITVECTOR_OP, second is an integer term"
 typerule = "::cvc5::internal::theory::uf::BitVectorConversionTypeRule"
+
+[[kinds]]
+type     = "operator"
+name     = "DISTINCT"
+children = "2:" 
+comment  = "disequality (N-ary, sorts must match)"
+typerule = "::cvc5::internal::theory::uf::DistinctTypeRule"

@@ -185,7 +185,7 @@ class CVC5_EXPORT Command
   std::shared_ptr<Cmd> d_cmd;
 }; /* class Command */
 
-std::ostream& operator<<(std::ostream&, const Command&) CVC5_EXPORT;
+ CVC5_EXPORT std::ostream& operator<<(std::ostream&, const Command&);
 
 /**
  * This class is the main interface for retrieving commands and expressions

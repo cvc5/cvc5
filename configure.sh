@@ -18,6 +18,8 @@ Build types:
     Maximally optimized, assertions and tracing disabled, muzzled
   safe-mode
     Like production except --safe-mode is set to safe
+  stable-mode
+    Like production except --safe-mode is set to stable
 
 
 General options;
@@ -81,6 +83,10 @@ CMake Options (Advanced)
 Wasm Options
   --wasm=VALUE             set compilation extension for WebAssembly <WASM, JS or HTML>
   --wasm-flags='STR'       Emscripten flags used in the WebAssembly binary compilation
+  --wasm-web=CONFIG        use predefined web configuration for WASM compilation
+                           (takes precedence over --wasm and --wasm-flags)
+                           Available configurations:
+                             no-modular-static-page - Configuration for static web pages
 
 EOF
   exit 0
@@ -145,6 +151,7 @@ java_bindings=default
 editline=default
 build_shared=ON
 safe_mode=default
+stable_mode=default
 static_binary=default
 statistics=default
 tracing=default
@@ -162,6 +169,7 @@ glpk_dir=default
 
 wasm=default
 wasm_flags=""
+wasm_web=default
 
 #--------------------------------------------------------------------------#
 
@@ -334,11 +342,50 @@ do
         esac
         ;;
 
-    --wasm) wasm=WASM ;;
-    --wasm=*) wasm="${1##*=}" ;;
+    --wasm-web) die "missing argument to $1 (try -h)" ;;
+    --wasm-web=*)
+        wasm_web_config="${1##*=}"
+        case $wasm_web_config in
+          no-modular-static-page)
+            wasm=HTML
+            wasm_flags="-s EXPORTED_RUNTIME_METHODS='[\"ccall\",\"cwrap\", \"callMain\", \"FS\"]' -s ENVIRONMENT=web -s EXPORTED_FUNCTIONS=_main -s INVOKE_RUN=1 -s EXIT_RUNTIME=0 -s INCOMING_MODULE_JS_API='[\"arguments\",\"canvas\",\"monitorRunDependencies\",\"print\",\"setStatus\", \"locateFile\",\"printErr\", \"onRuntimeInitialized\", \"preRun\", \"onAbort\", \"stdin\"]' -s ASSERTIONS=1 -s NO_DISABLE_EXCEPTION_CATCHING=1 -s ALLOW_MEMORY_GROWTH=1 -s MAXIMUM_MEMORY=2147483648"
+            wasm_web=ON
+            ;;
+          *)
+            die "invalid wasm-web configuration '$wasm_web_config' (available: no-modular-static-page)"
+            ;;
+        esac
+        ;;
 
-    --wasm-flags) die "missing argument to $1 (try -h)" ;;
-    --wasm-flags=*) wasm_flags="${1#*=}" ;;
+    --wasm) 
+        if [ "$wasm_web" = default ]; then
+          wasm=WASM
+        else
+          echo "Warning: --wasm ignored because --wasm-web configuration is active"
+        fi
+        ;;
+    --wasm=*) 
+        if [ "$wasm_web" = default ]; then
+          wasm="${1##*=}"
+        else
+          echo "Warning: --wasm ignored because --wasm-web configuration is active"
+        fi
+        ;;
+
+    --wasm-flags) 
+        if [ "$wasm_web" = default ]; then
+          die "missing argument to $1 (try -h)"
+        else
+          echo "Warning: --wasm-flags ignored because --wasm-web configuration is active"
+        fi
+        ;;
+    --wasm-flags=*) 
+        if [ "$wasm_web" = default ]; then
+          wasm_flags="${1#*=}"
+        else
+          echo "Warning: --wasm-flags ignored because --wasm-web configuration is active"
+        fi
+        ;;
 
     -D*) cmake_opts="${cmake_opts} $1" ;;
 
@@ -350,6 +397,7 @@ do
          testing)         buildtype=Testing;;
          competition)     buildtype=Competition;;
          safe-mode)       buildtype=Production; safe_mode=ON;;
+         stable-mode)     buildtype=Production; stable_mode=ON;;
          *)               die "invalid build type (try -h)";;
        esac
        ;;
@@ -362,6 +410,7 @@ done
 if [ $werror != default ]; then
   export CFLAGS=-Werror
   export CXXFLAGS=-Werror
+  cmake_opts="$cmake_opts -DTREAT_WARNING_AS_ERROR=$werror"
 fi
 
 [ $buildtype != default ] \
@@ -383,6 +432,8 @@ fi
   && cmake_opts="$cmake_opts -DENABLE_ASSERTIONS=$assertions"
 [ $safe_mode != default ] \
   && cmake_opts="$cmake_opts -DENABLE_SAFE_MODE=$safe_mode"
+[ $stable_mode != default ] \
+  && cmake_opts="$cmake_opts -DENABLE_STABLE_MODE=$stable_mode"
 [ $coverage != default ] \
   && cmake_opts="$cmake_opts -DENABLE_COVERAGE=$coverage"
 [ $debug_symbols != default ] \

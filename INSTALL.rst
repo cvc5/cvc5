@@ -43,14 +43,22 @@ Compilation on Windows
 ^^^^^^^^^^^^^^^^^^^^^^
 
 Install `MSYS2 <https://www.msys2.org/>`_ and `Python <https://www.python.org/downloads/windows/>`_ on your system.
-Launch a `MINGW64 environment <https://www.msys2.org/docs/environments/>`_ and
-install the required packages for building cvc5:
+Then, launch the appropriate `MSYS2 environment <https://www.msys2.org/docs/environments/>`_ and
+install the required dependencies:
+
+- On x86_64 machines, open a `MINGW64` shell and run:
 
 .. code:: bash
 
   pacman -S git make mingw-w64-x86_64-cmake mingw-w64-x86_64-gcc mingw-w64-x86_64-gmp zip
 
-Clone the cvc5 repository and follow the general build steps above.
+- On ARM64 machines, open a `CLANGARM64` shell and run:
+
+.. code:: bash
+
+  pacman -S git make mingw-w64-clang-aarch64-cmake mingw-w64-clang-aarch64-clang mingw-w64-clang-aarch64-gmp zip
+
+After that, clone the cvc5 repository and follow the general build steps above.
 The built binary ``cvc5.exe`` and the DLL libraries are located in
 ``<build_dir>/bin``. The import libraries and the static libraries
 can be found in ``<build_dir>/lib``.
@@ -86,14 +94,14 @@ can be found in ``<build_dir>/lib``.
 WebAssembly Compilation
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-Compiling cvc5 to WebAssembly needs the Emscripten SDK (version 3.1.18 or 
+Compiling cvc5 to WebAssembly needs the Emscripten SDK (version 3.1.70 or 
 latter). Setting up emsdk can be done as follows:
 
 .. code:: bash
 
   git clone https://github.com/emscripten-core/emsdk.git
   cd emsdk
-  ./emsdk install <version>   # <version> = '3.1.18' is preferable, but 
+  ./emsdk install <version>   # <version> = '3.1.70' is preferable, but 
                               # <version> = 'latest' has high chance of working
   ./emsdk activate <version>
   source ./emsdk_env.sh   # Activate PATH and other environment variables in the
@@ -123,6 +131,13 @@ code).
 `emscripten flags <https://github.com/emscripten-core/emscripten/blob/main/src/settings.js>`_,
 which modifies how the wasm and glue code are built and how they behave. An ``-s``
 should precede each flag.
+
+``--wasm-web`` provides predefined configurations optimized for web deployment.
+This option takes precedence over ``--wasm`` and ``--wasm-flags`` if used together.
+Available configurations:
+
+- ``no-modular-static-page``: Optimized for static web pages with runtime methods,
+  environment settings, and memory configuration pre-configured for web deployment.
 
 For example, to generate a HTML page, use:
 
@@ -347,6 +362,10 @@ Building the API documentation of cvc5 requires the following dependencies:
   `sphinxcontrib-programoutput <https://sphinxcontrib-programoutput.readthedocs.io>`_
 - `Breathe <https://breathe.readthedocs.io>`_
 
+If ``--auto-download`` is given, Sphinx, the Sphinx extensions, and Breathe will be installed
+automatically in a virtual Python environment if they are missing. To install the modules globally and skip
+the creation of the virtual environment, configure cvc5 with ``./configure.sh --no-pyvenv``.
+
 To build the documentation, configure cvc5 with ``./configure.sh --docs`` and
 run ``make docs`` from within the build directory.
 
@@ -383,40 +402,45 @@ see ``ctest -h``. Some useful options are:
     ctest -jN                  # run all tests in parallel with N threads
     ctest --output-on-failure  # run all tests and print output of failed tests
 
-We have 4 categories of tests:
+We have 3 categories of tests:
 
-- **examples** in directory ``examples`` (label: **example**)
+- **api tests** in directory ``test/api`` (label: **api**)
 - **regression tests** (5 levels) in directory ``test/regress`` (label: 
   **regressN** with N the regression level)
-- **api tests** in directory ``test/api`` (label: **api**)
 - **unit tests** in directory ``test/unit`` (label: **unit**)
 
 
-Testing System Tests
-^^^^^^^^^^^^^^^^^^^^
+Testing API Tests
+^^^^^^^^^^^^^^^^^
 
-The system tests are not built by default.
+The API tests are not built by default.
 
 .. code::
 
-    make apitests                         # build and run all system tests
-    make <api_test>                       # build test/system/<system_test>.<ext>
-    ctest api/<api_test>                  # run test/system/<system_test>.<ext>
+    make apitests                         # build and run all API tests
+    make capitests                        # build and run all API C tests
+    make cppapitests                      # build and run all API C++ tests
+    make <api_test>                       # build test/api/cpp/<api_test>.cpp
+    make capi_<api_test>                  # build test/api/c/<api_test>.c
+    ctest api/cpp/<api_test>              # run test/api/cpp/<api_test><.ext>
+    ctest api/c/capi_<api_test>           # run test/api/cpp/capi_<api_test><.ext>
 
-All system test binaries are built into ``<build_dir>/bin/test/system``.
+All API test binaries are built into ``<build_dir>/bin/test/api``.
 
-We use prefix ``api/`` + ``<api_test>`` (for ``<api_test>`` in ``test/api``)
+We use prefix ``api/cpp/`` + ``<api_test>`` (for ``<api_test>`` in ``test/api/cpp``)
+and ``api/c/`` + ``capi_<api_test>`` (for ``<api_test>`` in ``test/api/c``)
 as test target name.
 
 .. code::
 
-    make ouroborous                       # build test/api/ouroborous.cpp
+    make ouroborous                       # build test/api/cpp/ouroborous.cpp
+    make capi_ouroborous                  # build test/api/c/ouroborous.c
     ctest -R ouroborous                   # run all tests that match '*ouroborous*'
-                                          # > runs api/ouroborous
+                                          # > runs api/cpp/ouroborous, api/c/capi_ouroborous
     ctest -R ouroborous$                  # run all tests that match '*ouroborous'
-                                          # > runs api/ouroborous
-    ctest -R api/ouroborous$              # run all tests that match '*api/ouroborous'
-                                          # > runs api/ouroborous
+                                          # > runs api/cpp/ouroborous, api/c/capi_ouroborous
+    ctest -R api/cpp/ouroborous$          # run all tests that match '*api/cpp/ouroborous'
+                                          # > runs api/cpp/ouroborous
 
 
 Testing Unit Tests
@@ -425,7 +449,7 @@ Testing Unit Tests
 The unit tests are not built by default.
 
 Note that cvc5 can only be configured with unit tests in non-static builds with
-assertions enabled.
+assertions enabled (e.g. ``./configure.sh --unit-testing --assertions``).
 
 .. code::
 
@@ -477,8 +501,8 @@ All custom test targets build and run a preconfigured set of tests.
   The default build-and-test target for cvc5, builds and runs all examples,
   all system and unit tests, and regression tests from levels 0 to 2.
 
-- ``make systemtests [-jN] [ARGS=-jN]``
-  Build and run all system tests.
+- ``make apitests [-jN] [ARGS=-jN]``
+  Build and run all API tests.
 
 - ``make units [-jN] [ARGS=-jN]``
   Build and run all unit tests.
@@ -486,12 +510,7 @@ All custom test targets build and run a preconfigured set of tests.
 - ``make regress [-jN] [ARGS=-jN]``
   Build and run regression tests from levels 0 to 2.
 
-- ``make runexamples [-jN] [ARGS=-jN]``
-  Build and run all examples.
-
-- ``make coverage-test [-jN] [ARGS=-jN]``
-  Build and run all tests (system and unit tests, regression tests level 0-4)
-  with gcov to determine code coverage.
+To build the tests without executing them, run `make build-tests`.
 
 We use ``ctest`` as test infrastructure, and by default all test targets
 are configured to **run** in parallel with the maximum number of threads

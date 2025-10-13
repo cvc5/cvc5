@@ -2555,12 +2555,26 @@ bool BasicRewriteRCons::ensureProofMacroQuantVarElimIneq(CDProof* cdp,
   std::reverse(normLits.begin(), normLits.end());
   // make the max or min of all terms based on isUpper
   Node iterm;
+  Assert(qnorm[0].getNumChildren() == 1);
+  TypeNode qvarType = qnorm[0][0].getType();
   for (const Node& nl : normLits)
   {
     Node atom = nl.getKind() == Kind::NOT ? nl[0] : nl;
     Trace("brc-macro") << "...process normalized atom " << atom << std::endl;
     Kind k = atom.getKind();
     Node itc = atom[1];
+    // ensure types are correct, meaning we require inserting a cast to real
+    if (qvarType!=itc.getType())
+    {
+      if (qvarType.isReal() && itc.getType().isInteger())
+      {
+        itc = nm->mkNode(Kind::TO_REAL, itc);
+      }
+      else
+      {
+        Assert (false) << "Can't cast " << itc << " to " << qvarType;
+      }
+    }
     if (k != Kind::GEQ && k != Kind::LEQ)
     {
       itc = rewrite(nm->mkNode(
@@ -2584,7 +2598,6 @@ bool BasicRewriteRCons::ensureProofMacroQuantVarElimIneq(CDProof* cdp,
   // instantiate
   ProofChecker* pc = d_env.getProofNodeManager()->getChecker();
   Node iarg = nm->mkNode(Kind::SEXPR, iterm);
-  Assert(qnorm[0].getNumChildren() == 1);
   Trace("brc-macro") << "Instantiate: " << qnorm << " / " << iarg << std::endl;
   Node inst = pc->checkDebug(ProofRule::INSTANTIATE, {qnorm}, {iarg});
   cdp->addStep(inst, ProofRule::INSTANTIATE, {qnorm}, {iarg});

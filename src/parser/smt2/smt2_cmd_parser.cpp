@@ -58,6 +58,7 @@ Smt2CmdParser::Smt2CmdParser(Smt2Lexer& lex,
   d_table["get-unsat-core"] = Token::GET_UNSAT_CORE_TOK;
   d_table["get-unsat-core-lemmas"] = Token::GET_UNSAT_CORE_LEMMAS_TOK;
   d_table["get-value"] = Token::GET_VALUE_TOK;
+  d_table["get-model-domain-elements"] = Token::GET_MODEL_DOMAIN_ELEMENTS_TOK;
   d_table["pop"] = Token::POP_TOK;
   d_table["push"] = Token::PUSH_TOK;
   d_table["reset-assertions"] = Token::RESET_ASSERTIONS_TOK;
@@ -282,15 +283,9 @@ std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
       {
         d_state.checkLogicAllowsFunctions();
       }
+      // Note that we previously disallowed declare-fun in sygus here.
       // we allow overloading for function declarations
-      if (d_state.sygus())
-      {
-        d_lex.parseError("declare-fun are not allowed in sygus version 2.0");
-      }
-      else
-      {
-        cmd.reset(new DeclareFunctionCommand(name, sorts, t));
-      }
+      cmd.reset(new DeclareFunctionCommand(name, sorts, t));
     }
     break;
     // (declare-heap (<sort> <sort>))
@@ -767,6 +762,14 @@ std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
       }
       cmd.reset(new GetValueCommand(terms));
       d_state.popScope();
+    }
+    break;
+    // (get-model-domain-elements <sort>)
+    case Token::GET_MODEL_DOMAIN_ELEMENTS_TOK:
+    {
+      d_state.checkThatLogicIsSet();
+      cvc5::Sort sort = d_tparser.parseSort();
+      cmd.reset(new GetModelDomainElementsCommand(sort));
     }
     break;
     // (inv-constraint <symbol> <symbol> <symbol> <symbol>)

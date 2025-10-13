@@ -1,6 +1,6 @@
 This file contains a summary of important user-visible changes.
 
-Unreleased
+cvc5 1.3.1
 ==========
 
 ## Changes
@@ -19,6 +19,12 @@ Unreleased
     `cvc5_term_get_string_value` are now deprecated in favor of
     the new functions `cvc5_mk_string_from_char32` and
     `cvc5_term_get_u32string_value`.
+- A build configuration `stable-mode` is available via our configure script.
+  Similar to the build configuration `safe-mode`, this configuration guards
+  against all cvc5 features that are not robust, but in constrast it does not
+  guarantee full proof and model support.
+- Minor updates to the CPC proof signature. The current CPC proofs are checkable
+  by Ethos 0.2.1 (`./contrib/get-ethos-checker`).
 
 cvc5 1.3.0
 ==========
@@ -57,6 +63,12 @@ cvc5 1.3.0
   features but does not insist on complete proofs or models.
 - The quantifier instatiation strategy `--mbqi-fast-sygus` has been renamed to
   `--mbqi-enum`.
+- **API**
+  + Added support for multiple `TermManager` instances within the same thread and
+    across threads. Previously, all `TermManager` objects in a thread shared
+    a single memory reference and could not be shared across threads.
+    Instances can now be shared across threads, but they are not thread-safe and
+    must be protected from concurrent access.
 
 
 cvc5 1.2.1
