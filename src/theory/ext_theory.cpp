@@ -309,8 +309,6 @@ void ExtTheory::registerTerm(Node n)
       d_ext_func_terms[n] = true;
       d_has_extf = n;
       d_extf_info[n].d_vars = collectVars(n);
-      //std::vector<Node>& vars = d_extf_info[n].d_vars;
-      //vars.insert(vars.end(), n.begin(), n.end());
     }
   }
 }
