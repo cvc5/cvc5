@@ -1,5 +1,5 @@
 ; COMMAND-LINE: --var-ent-eq-elim-quant
-; EXPECT: unsat
+; EXPECT: sat
 (set-logic BV)
 (assert
   (forall ((x (_ BitVec 32)))
