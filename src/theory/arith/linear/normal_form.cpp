@@ -71,32 +71,7 @@ bool VarList::isSorted(iterator start, iterator end) {
 }
 
 bool VarList::isMember(Node n) {
-  if(Variable::isMember(n)) {
-    return true;
-  }
-  if (n.getKind() == Kind::NONLINEAR_MULT)
-  {
-    Node::iterator curr = n.begin(), end = n.end();
-    Node prev = *curr;
-    if(!Variable::isMember(prev)) return false;
-
-    Variable::VariableNodeCmp cmp;
-
-    while( (++curr) != end) {
-      if(!Variable::isMember(*curr)) return false;
-      // prev <= curr : accept
-      // !(prev <= curr) : reject
-      // !(!(prev > curr)) : reject
-      // curr < prev : reject
-      if((cmp(*curr, prev))) return false;
-      prev = *curr;
-    }
-    return true;
-  }
-  else
-  {
-    return false;
-  }
+  return Variable::isMember(n);
 }
 
 int VarList::cmp(const VarList& vl) const {
@@ -142,30 +117,6 @@ VarList VarList::parseVarList(Node n) {
   //   }
   //   return VarList(n);
   // }
-}
-
-VarList VarList::operator*(const VarList& other) const {
-  if(this->empty()) {
-    return other;
-  } else if(other.empty()) {
-    return *this;
-  } else {
-    vector<Node> result;
-
-    internal_iterator
-      thisBegin = this->internalBegin(),
-      thisEnd = this->internalEnd(),
-      otherBegin = other.internalBegin(),
-      otherEnd = other.internalEnd();
-
-    Variable::VariableNodeCmp cmp;
-    std::merge(thisBegin, thisEnd, otherBegin, otherEnd, std::back_inserter(result), cmp);
-
-    Assert(result.size() >= 2);
-    NodeManager* nm = result[0].getNodeManager();
-    Node mult = nm->mkNode(Kind::NONLINEAR_MULT, result);
-    return VarList::parseVarList(mult);
-  }
 }
 
 bool Monomial::isMember(TNode n){
@@ -230,13 +181,6 @@ Monomial Monomial::operator*(const Constant& c) const {
   //   Constant newConstant = this->getConstant() * c;
   //   return Monomial::mkMonomial(newConstant, getVarList());
   // }
-}
-
-Monomial Monomial::operator*(const Monomial& mono) const {
-  Constant newConstant = this->getConstant() * mono.getConstant();
-  VarList newVL = this->getVarList() * mono.getVarList();
-
-  return Monomial::mkMonomial(newConstant, newVL);
 }
 
 // vector<Monomial> Monomial::sumLikeTerms(const std::vector<Monomial> & monos)
@@ -345,7 +289,7 @@ Polynomial Polynomial::exactDivide(const Integer& z) const {
     return (*this);
   }else {
     Constant invz = Constant::mkConstant(nm, Rational(1, z));
-    Polynomial prod = (*this) * Monomial::mkMonomial(invz);
+    Polynomial prod = (*this) * invz;
     Assert(prod.isIntegral());
     return prod;
   }
@@ -430,37 +374,6 @@ Polynomial Polynomial::operator*(const Constant& c) const{
   //   Assert(Monomial::isStrictlySorted(newMonos));
   //   return Polynomial::mkPolynomial(newMonos);
   // }
-}
-
-Polynomial Polynomial::operator*(const Monomial& mono) const {
-  NodeManager* nm = getNode().getNodeManager();
-  if(mono.isZero()) {
-    return Polynomial(mono); //Don't multiply by zero
-  } else {
-    std::vector<Monomial> newMonos;
-    for(iterator i = this->begin(), end = this->end(); i != end; ++i) {
-      newMonos.push_back(mono * (*i));
-    }
-
-    // We may need to sort newMonos.
-    // Suppose this = (+ x y), mono = x, (* x y).getId() < (* x x).getId()
-    // newMonos = <(* x x), (* x y)> after this loop.
-    // This is not sorted according to the current VarList order.
-    Monomial::sort(newMonos);
-    return Polynomial::mkPolynomial(nm, newMonos);
-  }
-}
-
-Polynomial Polynomial::operator*(const Polynomial& poly) const {
-  NodeManager* nm = getNode().getNodeManager();
-  Polynomial res = Polynomial::mkZero(nm);
-  for(iterator i = this->begin(), end = this->end(); i != end; ++i) {
-    Monomial curr = *i;
-    Polynomial prod = poly * curr;
-    Polynomial sum  = res + prod;
-    res = sum;
-  }
-  return res;
 }
 
 Monomial Polynomial::selectAbsMinimum() const {
