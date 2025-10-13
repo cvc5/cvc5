@@ -2830,7 +2830,7 @@ enum ENUM(ProofRewriteRule)
    *
    *   Q X.\> F = Q X_1.\> F
    *
-   * where Q is either \forall or \exists and :math:`X_1` is the subset of :math:`X`
+   * where :math:`Q` is either :math:`\forall or :math:`\exists` and :math:`X_1` is the subset of :math:`X`
    * that appear free in :math:`F` and :math:`X_1` does not contain duplicate variables.
    *
    * \endverbatim
