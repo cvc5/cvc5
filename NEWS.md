@@ -1,5 +1,13 @@
 This file contains a summary of important user-visible changes.
 
+cvc5 1.3.2 prerelease
+=====================
+
+## Changes
+
+- We now use a more efficient version of resolution by default in CPC proofs
+  (proof rule `CHAIN_M_RESOLUTION`).
+
 cvc5 1.3.1
 ==========
 
