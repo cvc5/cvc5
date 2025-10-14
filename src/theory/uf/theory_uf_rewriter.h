@@ -84,6 +84,10 @@ class TheoryUfRewriter : public TheoryRewriter
    * @return the result of eliminating n, if possible, or null otherwise.
    */
   static Node canEliminateLambda(NodeManager* nm, const Node& n);
+  /**
+   * Blast distinct, which eliminates the distinct operator.
+   */
+  static Node blastDistinct(NodeManager* nm, TNode node);
 
  private:
   /** Entry point for rewriting lambdas */
@@ -94,10 +98,6 @@ class TheoryUfRewriter : public TheoryRewriter
   RewriteResponse rewriteIntToBV(TNode node);
   /** rewrite distinct */
   RewriteResponse rewriteDistinct(TNode node);
-  /**
-   * Blast distinct, which eliminates the distinct operator.
-   */
-  Node blastDistinct(TNode node);
 }; /* class TheoryUfRewriter */
 
 }  // namespace uf

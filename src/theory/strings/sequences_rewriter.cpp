@@ -94,7 +94,7 @@ SequencesRewriter::SequencesRewriter(NodeManager* nm,
   registerProofRewriteRule(ProofRewriteRule::MACRO_STR_COMPONENT_CTN,
                            TheoryRewriteCtx::POST_DSL);
   registerProofRewriteRule(ProofRewriteRule::SEQ_EVAL_OP,
-                           TheoryRewriteCtx::PRE_DSL);
+                           TheoryRewriteCtx::DSL_SUBCALL);
   // make back pointer to this (for rewriting contains)
   se.d_rewriter = this;
 }
