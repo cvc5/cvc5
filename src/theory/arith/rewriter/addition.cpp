@@ -195,7 +195,7 @@ void addToSumNoMixed(Sum& sum, TNode n, bool negate)
   {
     for (const auto& child : n)
     {
-      if (child.getKind()==Kind::TO_REAL)
+      if (child.getKind() == Kind::TO_REAL)
       {
         addToSum(sum, child[0], negate);
       }
