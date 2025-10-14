@@ -307,7 +307,8 @@
                                               (eo::concat ($run_evaluate ($bv_unfold_repeat ($run_evaluate n) ($bv_sign_bit ex))) ex)))
       (($run_evaluate (zero_extend n xb))  (eo::define ((ex ($run_evaluate xb)))
                                               (eo::concat ($run_evaluate ($bv_unfold_repeat ($run_evaluate n) #b0)) ex)))
-      (($run_evaluate (@bv n m))           (eo::to_bin ($run_evaluate m) ($run_evaluate n)))
+      (($run_evaluate (@bv n m))           (eo::requires (eo::eq n 0) false ; zero bitwidth disallowed
+                                             (eo::to_bin ($run_evaluate m) ($run_evaluate n))))
       (($run_evaluate (@bvsize xb))        ($bv_bitwidth (eo::typeof xb)))
 
       ; arith bv conversions
