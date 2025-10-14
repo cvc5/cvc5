@@ -3158,8 +3158,8 @@ bool BasicRewriteRCons::tryTheoryRewrite(CDProof* cdp,
 }
 
 bool BasicRewriteRCons::doTheoryRewrite(CDProof* cdp,
-                        const Node& eq,
-                        ProofRewriteRule r)
+                                        const Node& eq,
+                                        ProofRewriteRule r)
 {
   Node er = d_env.getRewriter()->rewriteViaRule(r, eq[0]);
   if (er == eq[1])
