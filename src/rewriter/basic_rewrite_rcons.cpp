@@ -3146,6 +3146,7 @@ bool BasicRewriteRCons::tryTheoryRewrite(CDProof* cdp,
                 {mkRewriteRuleNode(nodeManager(), prid), eq},
                 false))
     {
+      Trace("trewrite-rcons") << "...got " << prid << std::endl;
       // Theory rewrites may require macro expansion
       ensureProofForTheoryRewrite(cdp, prid, eq);
       return true;
