@@ -175,7 +175,14 @@ void addToSum(Sum& sum, TNode n, bool negate)
   {
     for (const auto& child : n)
     {
-      addToSum(sum, child, negate);
+      if (child.getKind()==Kind::TO_REAL)
+      {
+        addToSum(sum, child[0], negate);
+      }
+      else
+      {
+        addToSum(sum, child, negate);
+      }
     }
     return;
   }
