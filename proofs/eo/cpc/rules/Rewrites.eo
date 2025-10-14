@@ -541,7 +541,7 @@
 (declare-rule bv-concat-merge-const ((@n0 Int) (@n1 Int) (xs1 (BitVec @n0) :list) (n1 Int) (w1 Int) (n2 Int) (w2 Int) (ww1 Int) (zs1 (BitVec @n1) :list))
   :premises ((= ww1 (+ w1 w2)))
   :args (xs1 n1 w1 n2 w2 ww1 zs1)
-  :conclusion (= (concat xs1 (@bv n1 w1) (@bv n2 w2) zs1) ($singleton_elim (concat xs1 (@bv (+ (* n1 (int.pow2 w2)) n2) ww1) zs1)))
+  :conclusion (= (concat xs1 (@bv n1 w1) (@bv n2 w2) zs1) (eo::define ((_let_1 (int.pow2 w2))) ($singleton_elim (concat xs1 (@bv (+ (* n1 _let_1) (mod n2 _let_1)) ww1) zs1))))
 )
 (declare-rule bv-commutative-add ((@n0 Int) (@n1 Int) (x1 (BitVec @n0)) (y1 (BitVec @n1)))
   :args (x1 y1)
