@@ -47,7 +47,7 @@
 ; Case 4: Elision from the higher portion
 (define-cond-rule bv-extract-concat-4
   ((x ?BitVec) (y ?BitVec) (xs ?BitVec :list) (i Int) (j Int))
-  (< j (- (@bvsize (concat x xs y)) (@bvsize x)))
+  (< j (- (@bvsize (concat x y xs)) (@bvsize x)))
   (extract j i (concat x xs y))
   (extract j i (concat xs y)))
 
