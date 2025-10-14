@@ -179,13 +179,23 @@ Node SubtypeElimConverterCallback::convert(Node res,
           ProofRule::MACRO_SR_PRED_INTRO, children, cargs, resc, newRes, cdp);
     }
     break;
-    default: break;
+    default:
+    {
+      // otherwise just try MACRO_SR_PRED_TRANSFORM
+      Node curr = newRes;
+      success = tryWith(ProofRule::MACRO_SR_PRED_TRANSFORM, {curr}, {resc}, resc, newRes, cdp);
+      if (success)
+      {
+        cdp->addStep(curr, id, children, args);
+      }
+    }
+      break;
   }
   if (!success)
   {
     // if we did not succeed, just add a trust step
     Trace("pf-subtype-elim-warn")
-        << "WARNING: Introduction of subtyping via rule " << id;
+        << "WARNING: Introduction of subtyping via rule " << id << std::endl;
     cdp->addTrustedStep(resc, TrustId::SUBTYPE_ELIMINATION, children, {});
   }
   return resc;
