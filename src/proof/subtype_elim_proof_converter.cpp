@@ -207,6 +207,15 @@ Node SubtypeElimConverterCallback::convert(Node res,
       Assert(res.getKind() == Kind::EQUAL);
       if (resr[1] == resc)
       {
+        // if successful we have
+        // P
+        // --  ------ by term conversion + rewrite steps
+        // Q   Q = R
+        // ---------- EQ_RESOLVE
+        // R
+        // where P is the premises of this step after subtype elimination,
+        // Q is what is proven by the original rule and P, and R is the original
+        // conclusion after subtype elimination.
         cdp->addProof(pfn);
         cdp->addStep(resc, ProofRule::EQ_RESOLVE, {newRes, resr}, {});
         cdp->addStep(newRes, id, children, args);
