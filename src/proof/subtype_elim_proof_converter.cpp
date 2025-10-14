@@ -186,7 +186,9 @@ Node SubtypeElimConverterCallback::convert(Node res,
       std::vector<Node> matchConds;
       expr::getConversionConditions(newRes, resc, matchConds);
       // Otherwise find a set of equalities that suffice to show the difference,
-      // and use conversion proof generator.
+      // and use conversion proof generator. For example if we have
+      // (= x (to_real 0)) but need (= x 0.0), then matchConds contains
+      // { (= (to_real 0) 0.0) }.
       TConvProofGenerator tcpg(d_env,
                                nullptr,
                                TConvPolicy::ONCE,
