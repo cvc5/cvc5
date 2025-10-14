@@ -18,7 +18,9 @@
 #include "proof/proof.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_node_algorithm.h"
+#include "proof/conv_proof_generator.h"
 #include "proof/proof_node_manager.h"
+#include "expr/node_algorithm.h"
 #include "smt/env.h"
 
 namespace cvc5::internal {
@@ -181,12 +183,33 @@ Node SubtypeElimConverterCallback::convert(Node res,
     break;
     default:
     {
-      // otherwise just try MACRO_SR_PRED_TRANSFORM
-      Node curr = newRes;
-      success = tryWith(ProofRule::MACRO_SR_PRED_TRANSFORM, {curr}, {resc}, resc, newRes, cdp);
-      if (success)
+      std::vector<Node> matchConds;
+      expr::getConversionConditions(newRes, resc, matchConds);
+      // Otherwise find a set of equalities that suffice to show the difference,
+      // and use conversion proof generator.
+      TConvProofGenerator tcpg(d_env,
+                              nullptr,
+                              TConvPolicy::ONCE,
+                              TConvCachePolicy::NEVER,
+                              "SubtypeElimConvert",
+                              nullptr,
+                              true);
+      for (const Node& mc : matchConds)
       {
-        cdp->addStep(curr, id, children, args);
+        tcpg.addRewriteStep(mc[0],
+                            mc[1],
+                            nullptr,
+                            true,
+                            TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE);
+      }
+      std::shared_ptr<ProofNode> pfn = tcpg.getProofForRewriting(newRes);
+      Node resr = pfn->getResult();
+      Assert (res.getKind()==Kind::EQUAL);
+      if (resr[1] == resc)
+      {
+        cdp->addProof(pfn);
+        cdp->addStep(resc, ProofRule::EQ_RESOLVE, {newRes, resr}, {});
+        cdp->addStep(newRes, id, children, args);
       }
     }
       break;
