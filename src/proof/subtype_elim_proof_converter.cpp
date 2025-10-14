@@ -15,12 +15,12 @@
 
 #include "proof/subtype_elim_proof_converter.h"
 
+#include "expr/node_algorithm.h"
+#include "proof/conv_proof_generator.h"
 #include "proof/proof.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_node_algorithm.h"
-#include "proof/conv_proof_generator.h"
 #include "proof/proof_node_manager.h"
-#include "expr/node_algorithm.h"
 #include "smt/env.h"
 
 namespace cvc5::internal {
@@ -188,12 +188,12 @@ Node SubtypeElimConverterCallback::convert(Node res,
       // Otherwise find a set of equalities that suffice to show the difference,
       // and use conversion proof generator.
       TConvProofGenerator tcpg(d_env,
-                              nullptr,
-                              TConvPolicy::ONCE,
-                              TConvCachePolicy::NEVER,
-                              "SubtypeElimConvert",
-                              nullptr,
-                              true);
+                               nullptr,
+                               TConvPolicy::ONCE,
+                               TConvCachePolicy::NEVER,
+                               "SubtypeElimConvert",
+                               nullptr,
+                               true);
       for (const Node& mc : matchConds)
       {
         tcpg.addRewriteStep(mc[0],
@@ -204,7 +204,7 @@ Node SubtypeElimConverterCallback::convert(Node res,
       }
       std::shared_ptr<ProofNode> pfn = tcpg.getProofForRewriting(newRes);
       Node resr = pfn->getResult();
-      Assert (res.getKind()==Kind::EQUAL);
+      Assert(res.getKind() == Kind::EQUAL);
       if (resr[1] == resc)
       {
         cdp->addProof(pfn);
@@ -212,7 +212,7 @@ Node SubtypeElimConverterCallback::convert(Node res,
         cdp->addStep(newRes, id, children, args);
       }
     }
-      break;
+    break;
   }
   if (!success)
   {
