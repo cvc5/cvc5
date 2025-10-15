@@ -27,7 +27,7 @@ cat << EOF > $REWRITE_SIG
 
 EOF
 
-echo "(check-sat)" | $cvc5 -o rare-db --force-logic=ALL --produce-proofs --proof-granularity=dsl-rewrite | sed '$ d' >> $REWRITE_SIG
+echo "(check-sat)" | $cvc5 -o rare-db --force-logic=ALL --produce-proofs --proof-granularity=dsl-rewrite --dag-thresh=0 | sed '$ d' >> $REWRITE_SIG
 
 # use eo::define instead of let
 sed -i 's/(let/(eo::define/g' $REWRITE_SIG
@@ -45,7 +45,7 @@ cat << EOF > $EXPERT_REWRITE_SIG
 EOF
 
 
-echo "(check-sat)" | $cvc5 -o rare-db-expert --force-logic=ALL --produce-proofs --proof-granularity=dsl-rewrite | sed '$ d' >> $EXPERT_REWRITE_SIG
+echo "(check-sat)" | $cvc5 -o rare-db-expert --force-logic=ALL --produce-proofs --proof-granularity=dsl-rewrite --dag-thresh=0 | sed '$ d' >> $EXPERT_REWRITE_SIG
 
 # use eo::define instead of let
 sed -i 's/(let/(eo::define/g' $EXPERT_REWRITE_SIG
