@@ -81,10 +81,11 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "varEntEqElimQuant"
-  category   = "expert"
+  category   = "regular"
   long       = "var-ent-eq-elim-quant"
   type       = "bool"
-  default    = "false"
+  default    = "true"
+  no_support = ["proofs"]
   help       = "enable variable elimination for quantified formulas that infers entailed equalities corresponding to eliminations"
 
 [[option]]
