@@ -161,8 +161,8 @@ void PropEngine::assertInputFormulas(
 {
   Assert(!d_inCheckSat) << "Sat solver in solve()!";
   // now presolve with prop proof manager so proof logging is on. This must be
-  // done *before* the checkSat because when asserting formulas to the theory
-  // engine, lemmas may already be generated.
+  // done *before* the PropEngine checkSat call because when asserting formulas
+  // to the theory engine lemmas may already be generated.
   if (d_ppm != nullptr)
   {
     d_ppm->presolve();
