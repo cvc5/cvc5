@@ -407,8 +407,9 @@
     (bvugt y (@bv 0 w))
   ))
 
-(define-rule bv-ult-one
+(define-cond-rule bv-ult-one
   ((x ?BitVec) (n Int))
+  (> (@bvsize x) 0)
   (bvult x (@bv 1 n))
   (= x (@bv 0 n)))
 
