@@ -1292,9 +1292,9 @@ EvalResult Evaluator::evalInternal(
         {
           Integer i = results[currNode[0]].d_rat.getNumerator();
           Integer w = results[currNode[1]].d_rat.getNumerator();
-          // requires positive bitwidth
-          if (w.sgn()==1 && w.fitsUnsignedInt())
+          if (w.fitsUnsignedInt())
           {
+            Assert (w.sgn()>=0);
             Trace("evaluator") << currNode << " evalutes to "
                                << BitVector(w.toUnsignedInt(), i) << std::endl;
             results[currNode] = EvalResult(BitVector(w.toUnsignedInt(), i));
