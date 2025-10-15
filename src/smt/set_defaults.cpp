@@ -167,7 +167,7 @@ void SetDefaults::setDefaultsPre(Options& opts)
       SET_AND_NOTIFY(quantifiers, cegqiMidpoint, true, "safe options");
       // proofs not yet supported on main
       SET_AND_NOTIFY(quantifiers, cegqiBv, false, "safe options");
-      // class of rewrites in quantifiers we don't have support for but is
+      // class of rewrites in quantifiers we don't have proof support for but is
       // enabled by default
       SET_AND_NOTIFY(quantifiers, varEntEqElimQuant, false, "safe options");
       // if we check proofs, we require that they are checked for completeness,
