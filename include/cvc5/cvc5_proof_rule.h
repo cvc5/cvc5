@@ -4572,6 +4572,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_INDEXOF_OOB2),
   /** Auto-generated from RARE rule str-indexof-contains-pre */
   EVALUE(STR_INDEXOF_CONTAINS_PRE),
+  /** Auto-generated from RARE rule str-indexof-contains-concat-pre */
+  EVALUE(STR_INDEXOF_CONTAINS_CONCAT_PRE),
   /** Auto-generated from RARE rule str-indexof-find-emp */
   EVALUE(STR_INDEXOF_FIND_EMP),
   /** Auto-generated from RARE rule str-indexof-eq-irr */

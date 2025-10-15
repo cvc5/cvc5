@@ -338,6 +338,10 @@
   (str.indexof (str.++ t1 t2) s n)
   (str.indexof t1 s n))
 
+(define-rule str-indexof-contains-concat-pre ((t1 ?Seq :list) (t ?Seq) (t2 ?Seq :list) (s ?Seq))
+  (str.indexof (str.++ t1 t s t2) s 0)
+  (str.indexof (str.++ t1 t) s 0))
+
 (define-cond-rule str-indexof-find-emp ((t ?Seq) (emp ?Seq) (n Int))
   (and (= (str.len emp) 0) (>= (str.len t) n) (>= n 0))
   (str.indexof t emp n)
