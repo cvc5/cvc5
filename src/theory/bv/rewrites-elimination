@@ -99,7 +99,7 @@
 
 (define-cond-rule bv-uaddo-eliminate
   ((x ?BitVec) (y ?BitVec) (w Int))
-  (= w (@bvsize x))
+  (and (> (@bvsize x) 0) (= w (@bvsize x)))
   (bvuaddo x y)
   (= (extract w w
       (bvadd (concat (@bv 0 1) x) (concat (@bv 0 1) y)))
@@ -112,7 +112,7 @@
     (yS (extract wm1 wm1 y))
     (aS (extract wm1 wm1 (bvadd x y)))
   )
-  (= wm1 (- (@bvsize x) 1))
+  (and (> (@bvsize x) 0) (= wm1 (- (@bvsize x) 1)))
   (bvsaddo x y)
   (or
     (and (and (= xS (@bv 1 1)) (= yS (@bv 1 1))) (= aS (@bv 0 1)))
@@ -120,7 +120,7 @@
   ))
 (define-cond-rule bv-sdivo-eliminate
   ((x ?BitVec) (y ?BitVec) (w Int) (wm1 Int))
-  (and (= wm1 (- (@bvsize x) 1)) (= w (@bvsize y)))
+  (and (> (@bvsize x) 0) (= wm1 (- (@bvsize x) 1)) (= w (@bvsize y)))
   (bvsdivo x y)
   (and
     (= x (concat (@bv 1 1) (@bv 0 wm1)))
@@ -167,7 +167,7 @@
   (def
     (s (bvsub (zero_extend 1 x) (zero_extend 1 y)))
   )
-  (= n (@bvsize x))
+  (and (> (@bvsize x) 0) (= n (@bvsize x)))
   (bvusubo x y)
   (= (extract n n s) (@bv 1 1)))
 ; Overflow occurs when
@@ -182,7 +182,7 @@
     (s (bvsub x y))
     (se (extract nm1 nm1 s))
   )
-  (= nm1 (- n 1))
+  (and (> (@bvsize x) 0) (= nm1 (- n 1)))
   (bvssubo x y)
   (or
     (and (and (= xe (@bv 1 1)) (= ye (@bv 0 1))) (= se (@bv 0 1)))
@@ -190,6 +190,6 @@
 
 (define-cond-rule bv-nego-eliminate
   ((x ?BitVec) (n Int))
-  (= n (- (@bvsize x) 1))
+  (and (> (@bvsize x) 0) (= n (- (@bvsize x) 1)))
   (bvnego x)
   (= x (concat (@bv 1 1) (@bv 0 n))))

@@ -82,7 +82,7 @@
   (concat (extract en 0 x) (@bv 0 amount)))
 (define-cond-rule bv-shl-by-const-2
   ((x ?BitVec) (amount Int) (sz Int) (w Int))
-  (and (>= amount (@bvsize x)) (= w (@bvsize x)))
+  (and (>= amount (@bvsize x)) (< amount (int.pow2 (@bvsize x))) (= w (@bvsize x)))
   (bvshl x (@bv amount sz))
   (@bv 0 w))
 (define-rule bv-lshr-by-const-0
@@ -97,7 +97,7 @@
   (concat (@bv 0 amount) (extract nm1 amount x)))
 (define-cond-rule bv-lshr-by-const-2
   ((x ?BitVec) (amount Int) (sz Int))
-  (>= amount (@bvsize x))
+  (and (>= amount (@bvsize x)) (< amount (int.pow2 (@bvsize x))))
   (bvlshr x (@bv amount sz))
   (@bv 0 sz))
 (define-rule bv-ashr-by-const-0
