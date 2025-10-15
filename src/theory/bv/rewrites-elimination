@@ -99,7 +99,7 @@
 
 (define-cond-rule bv-uaddo-eliminate
   ((x ?BitVec) (y ?BitVec) (w Int))
-  (and (> (@bvsize x) 0) (= w (@bvsize x)))
+  (= w (@bvsize x))
   (bvuaddo x y)
   (= (extract w w
       (bvadd (concat (@bv 0 1) x) (concat (@bv 0 1) y)))
@@ -167,7 +167,7 @@
   (def
     (s (bvsub (zero_extend 1 x) (zero_extend 1 y)))
   )
-  (and (> (@bvsize x) 0) (= n (@bvsize x)))
+  (= n (@bvsize x))
   (bvusubo x y)
   (= (extract n n s) (@bv 1 1)))
 ; Overflow occurs when
