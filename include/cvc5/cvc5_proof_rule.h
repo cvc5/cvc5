@@ -2886,10 +2886,10 @@ enum ENUM(ProofRewriteRule)
    *
    * .. math::
    *
-   *   \forall X.\> F = \forall X_1.\> F
+   *   Q X.\> F = Q X_1.\> F
    *
-   * where :math:`X_1` is the subset of :math:`X` that appear free in :math:`F`
-   * and :math:`X_1` does not contain duplicate variables.
+   * where :math:`Q` is either :math:`\forall or :math:`\exists` and :math:`X_1` is the subset of :math:`X`
+   * that appear free in :math:`F` and :math:`X_1` does not contain duplicate variables.
    *
    * \endverbatim
    */
@@ -2900,8 +2900,9 @@ enum ENUM(ProofRewriteRule)
    *
    * .. math::
    *
-   *   \forall X_1.\> \ldots \forall X_n.\> F = \forall X.\> F
+   *   Q X_1.\> \ldots Q X_n.\> F = Q X.\> F
    *
+   * where :math:`Q` is either :math:`\forall` or :math:`\exists` and :math:`X_1` is the subset of :math:`X`
    * where :math:`X_1 \ldots X_n` are lists of variables and :math:`X` is the
    * result of removing duplicates from :math:`X_1 \ldots X_n`.
    *
@@ -2914,9 +2915,9 @@ enum ENUM(ProofRewriteRule)
    *
    * .. math::
    *
-   *   \forall X_1.\> \ldots \forall X_n.\> F = \forall X_1 \ldots X_n.\> F
+   *   Q X_1.\> \ldots Q X_n.\> F = Q X_1 \ldots X_n.\> F
    *
-   * where :math:`X_1 \ldots X_n` are lists of variables.
+   * where :math:`Q` is either :math:`\forall` or :math:`\exists` and :math:`X_1 \ldots X_n` are lists of variables.
    *
    * \endverbatim
    */
@@ -4691,6 +4692,10 @@ enum ENUM(ProofRewriteRule)
   EVALUE(RE_STAR_EMP),
   /** Auto-generated from RARE rule re-star-star */
   EVALUE(RE_STAR_STAR),
+  /** Auto-generated from RARE rule re-range-non-singleton-1 */
+  EVALUE(RE_RANGE_NON_SINGLETON_1),
+  /** Auto-generated from RARE rule re-range-non-singleton-2 */
+  EVALUE(RE_RANGE_NON_SINGLETON_2),
   /** Auto-generated from RARE rule re-star-union-drop-emp */
   EVALUE(RE_STAR_UNION_DROP_EMP),
   /** Auto-generated from RARE rule re-loop-neg */
@@ -4731,8 +4736,6 @@ enum ENUM(ProofRewriteRule)
   EVALUE(SEQ_NTH_UNIT),
   /** Auto-generated from RARE rule seq-rev-unit */
   EVALUE(SEQ_REV_UNIT),
-  /** Auto-generated from RARE rule seq-len-empty */
-  EVALUE(SEQ_LEN_EMPTY),
   /** Auto-generated from RARE rule re-in-empty */
   EVALUE(RE_IN_EMPTY),
   /** Auto-generated from RARE rule re-in-sigma */

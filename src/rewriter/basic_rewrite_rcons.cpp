@@ -2252,7 +2252,10 @@ bool BasicRewriteRCons::ensureProofMacroQuantVarElimEq(CDProof* cdp,
   cdp->addStep(eqq, cr, {eqBody}, cargs);
   finalTransEq.push_back(eqq);
   eqq = body1p.eqNode(body2);
-  cdp->addTheoryRewriteStep(eqq, ProofRewriteRule::QUANT_VAR_ELIM_EQ);
+  if (!doTheoryRewrite(cdp, eqq, ProofRewriteRule::QUANT_VAR_ELIM_EQ))
+  {
+    return false;
+  }
   finalTransEq.push_back(eqq);
   Node beq = body1.eqNode(body2);
   cdp->addStep(beq, ProofRule::TRANS, finalTransEq, {});
@@ -3150,6 +3153,19 @@ bool BasicRewriteRCons::tryTheoryRewrite(CDProof* cdp,
       ensureProofForTheoryRewrite(cdp, prid, eq);
       return true;
     }
+  }
+  return false;
+}
+
+bool BasicRewriteRCons::doTheoryRewrite(CDProof* cdp,
+                                        const Node& eq,
+                                        ProofRewriteRule r)
+{
+  Node er = d_env.getRewriter()->rewriteViaRule(r, eq[0]);
+  if (er == eq[1])
+  {
+    cdp->addTheoryRewriteStep(eq, r);
+    return true;
   }
   return false;
 }
