@@ -64,8 +64,8 @@
 ; - xs @List: The list of terms to find.
 ; - bvs @List: The current bound variables.
 ; return: >
-;   true if any atomic (0-ary) subterm of t is in xs in a position not bound by
-;   a quantified formula, or in the already bound variables bvs.
+;   true if any atomic (0-ary) subterm of t is in xs and is not a bound variable
+;   of t at that position or in the set of already bound variables bvs.
 (program $contains_aterm_list_free_rec 
   ((T Type) (U Type) (S Type) (x U) (f (-> T S)) (a T) (xs @List) (bvs @List) (x U) (ys @List :list) (F Bool))
   :signature (T @List @List) Bool
@@ -83,6 +83,16 @@
         (eo::is_neg (eo::list_find @list bvs x))))
   )
 )
+
+; define: $contains_aterm_list_free
+; args:
+; - t T: The term to process.
+; - xs @List: The list of terms to find.
+; return: >
+;   true if any atomic (0-ary) subterm of t is in xs and is not a bound
+;   variable of t at that position.
+(define $contains_aterm_list_free ((T Type :implicit) (x T) (xs @List))
+  ($contains_aterm_list_free_rec x xs @list.nil))
 
 ; program: $substitute_simul
 ; args:
