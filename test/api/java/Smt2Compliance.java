@@ -54,8 +54,8 @@ public class Smt2Compliance
     testGetInfo(solver, ":status");
     testGetInfo(solver, ":reason-unknown");
     testGetInfo(solver, ":arbitrary-undefined-keyword");
-    testGetInfo(solver, ":<=");  // legal
-    testGetInfo(solver, ":->");  // legal
+    testGetInfo(solver, ":<="); // legal
+    testGetInfo(solver, ":->"); // legal
     testGetInfo(solver, ":all-statistics");
 
     System.exit(0);

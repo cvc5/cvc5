@@ -27,39 +27,41 @@
 
 import io.github.cvc5.*;
 import io.github.cvc5.modes.*;
-
 import java.io.*;
 
 public class Ouroborous
 {
   public static void main(String[] args)
   {
-    try {
+    try
+    {
       System.exit(runTest());
-    } catch (CVC5ApiException e) {
+    }
+    catch (CVC5ApiException e)
+    {
       System.err.println(e.getMessage());
-    } catch (Exception e) {
+    }
+    catch (Exception e)
+    {
       System.err.println("non-cvc5 exception thrown");
       e.printStackTrace();
     }
     System.exit(1);
   }
 
-  private static String parse(String instr,
-                              String inputLanguage,
-                              String outputLanguage) throws CVC5ApiException
+  private static String parse(String instr, String inputLanguage, String outputLanguage)
+      throws CVC5ApiException
   {
     assert inputLanguage.equals("smt2");
     assert outputLanguage.equals("smt2");
 
-    String declarations =
-        "(set-logic ALL)\n" +
-        "(declare-sort U 0)\n" +
-        "(declare-fun f (U) U)\n" +
-        "(declare-fun x () U)\n" +
-        "(declare-fun y () U)\n" +
-        "(assert (= (f x) x))\n" +
-        "(declare-fun a () (Array U (Array U U)))\n";
+    String declarations = "(set-logic ALL)\n"
+        + "(declare-sort U 0)\n"
+        + "(declare-fun f (U) U)\n"
+        + "(declare-fun x () U)\n"
+        + "(declare-fun y () U)\n"
+        + "(assert (= (f x) x))\n"
+        + "(declare-fun a () (Array U (Array U U)))\n";
 
     TermManager tm = new TermManager();
     Solver solver = new Solver(tm);
@@ -72,9 +74,11 @@ public class Ouroborous
     parser.setStringInput(InputLanguage.SMT_LIB_2_6, declarations, "internal-buffer");
 
     Command c;
-    while (true) {
+    while (true)
+    {
       c = parser.nextCommand();
-      if (c == null || c.isNull()) {
+      if (c == null || c.isNull())
+      {
         break;
       }
       c.invoke(solver, symman);
@@ -89,16 +93,15 @@ public class Ouroborous
     return s;
   }
 
-  private static String translate(String instr,
-                                  String inputLanguage,
-                                  String outputLanguage) throws CVC5ApiException
+  private static String translate(String instr, String inputLanguage, String outputLanguage)
+      throws CVC5ApiException
   {
     assert inputLanguage.equals("smt2");
     assert outputLanguage.equals("smt2");
 
     System.out.println("==============================================");
-    System.out.println("translating from " + inputLanguage + " to " +
-                       outputLanguage + " this string:");
+    System.out.println(
+        "translating from " + inputLanguage + " to " + outputLanguage + " this string:");
     System.out.println(instr);
 
     String outstr = parse(instr, inputLanguage, outputLanguage);

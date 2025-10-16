@@ -30,7 +30,8 @@ public class SepLogApi
    */
   public static int validateException()
   {
-    try {
+    try
+    {
       TermManager tm = new TermManager();
       Solver slv = new Solver(tm);
 
@@ -59,14 +60,15 @@ public class SepLogApi
 
       Result r = slv.checkSat();
       /* If this is UNSAT, we have an issue; so bail-out */
-      if (!r.isSat()) {
+      if (!r.isSat())
+      {
         return -1;
       }
 
       /*
-      * We now try to obtain our separation logic expressions from the solver --
-      * we want to validate that we get our expected exceptions.
-      */
+       * We now try to obtain our separation logic expressions from the solver --
+       * we want to validate that we get our expected exceptions.
+       */
       boolean caughtOnHeap = false;
       boolean caughtOnNil = false;
 
@@ -74,32 +76,43 @@ public class SepLogApi
           "cannot obtain separation logic expressions if not using the separation logic theory.";
 
       /* test the heap expression */
-      try {
+      try
+      {
         Term heapExpr = slv.getValueSepHeap();
-      } catch (CVC5ApiException e) {
+      }
+      catch (CVC5ApiException e)
+      {
         caughtOnHeap = true;
-        if (!e.getMessage().equals(expected)) {
+        if (!e.getMessage().equals(expected))
+        {
           return -1;
         }
       }
 
       /* test the nil expression */
-      try {
+      try
+      {
         Term nilExpr = slv.getValueSepNil();
-      } catch (CVC5ApiException e) {
+      }
+      catch (CVC5ApiException e)
+      {
         caughtOnNil = true;
-        if (!e.getMessage().equals(expected)) {
+        if (!e.getMessage().equals(expected))
+        {
           return -1;
         }
       }
 
-      if (!caughtOnHeap || !caughtOnNil) {
+      if (!caughtOnHeap || !caughtOnNil)
+      {
         return -1;
       }
 
       /* All tests pass! */
       return 0;
-    } catch (CVC5ApiException e) {
+    }
+    catch (CVC5ApiException e)
+    {
       e.printStackTrace();
       return -1;
     }
@@ -110,7 +123,8 @@ public class SepLogApi
    */
   public static int validateGetters()
   {
-    try {
+    try
+    {
       TermManager tm = new TermManager();
       Solver slv = new Solver(tm);
 
@@ -167,7 +181,8 @@ public class SepLogApi
       Result r = slv.checkSat();
 
       /* If this is UNSAT, we have an issue; so bail-out */
-      if (!r.isSat()) {
+      if (!r.isSat())
+      {
         return -1;
       }
 
@@ -176,12 +191,14 @@ public class SepLogApi
       Term nilExpr = slv.getValueSepNil();
 
       /* If the heap is not a separating conjunction, bail-out */
-      if (heapExpr.getKind() != Kind.SEP_STAR) {
+      if (heapExpr.getKind() != Kind.SEP_STAR)
+      {
         return -1;
       }
 
       /* If nil is not a direct equality, bail-out */
-      if (nilExpr.getKind() != Kind.EQUAL) {
+      if (nilExpr.getKind() != Kind.EQUAL)
+      {
         return -1;
       }
 
@@ -194,9 +211,11 @@ public class SepLogApi
       boolean checkedP2 = false;
 
       /* Walk all the children */
-      for (Term child : heapExpr) {
+      for (Term child : heapExpr)
+      {
         /* If we don't have a PTO operator, bail-out */
-        if (child.getKind() != Kind.SEP_PTO) {
+        if (child.getKind() != Kind.SEP_PTO)
+        {
           return -1;
         }
 
@@ -205,25 +224,29 @@ public class SepLogApi
         Term value = slv.getValue(child.getChild(1));
 
         /* If the current address is the value for p1 */
-        if (addr.equals(valForP1)) {
+        if (addr.equals(valForP1))
+        {
           checkedP1 = true;
 
           /* If it doesn't match the random constant, we have a problem */
-          if (!value.equals(randomConstant)) {
+          if (!value.equals(randomConstant))
+          {
             return -1;
           }
           continue;
         }
 
         /* If the current address is the value for p2 */
-        if (addr.equals(valForP2)) {
+        if (addr.equals(valForP2))
+        {
           checkedP2 = true;
           /*
            * Our earlier constraint was that what p2 points to must be *greater*
            * than the random constant -- if we get a value that is LTE, then
            * something has gone wrong!
            */
-          if (value.getIntegerValue().compareTo(randomConstant.getIntegerValue()) <= 0) {
+          if (value.getIntegerValue().compareTo(randomConstant.getIntegerValue()) <= 0)
+          {
             return -1;
           }
           continue;
@@ -240,7 +263,8 @@ public class SepLogApi
        * If we complete the loop and we haven't validated both p1 and p2, then we
        * have a problem
        */
-      if (!checkedP1 || !checkedP2) {
+      if (!checkedP1 || !checkedP2)
+      {
         return -1;
       }
 
@@ -250,12 +274,15 @@ public class SepLogApi
        * The value for nil from the solver should be the value we originally tied
        * nil to
        */
-      if (!valueForNil.equals(exprNilVal)) {
+      if (!valueForNil.equals(exprNilVal))
+      {
         return -1;
       }
       /* All tests pass! */
       return 0;
-    } catch (CVC5ApiException e) {
+    }
+    catch (CVC5ApiException e)
+    {
       e.printStackTrace();
       return -1;
     }
@@ -265,13 +292,15 @@ public class SepLogApi
   {
     /* check that we get an exception when we should */
     int checkException = validateException();
-    if (checkException != 0) {
+    if (checkException != 0)
+    {
       System.exit(checkException);
     }
 
     /* check the getters */
     int checkGetters = validateGetters();
-    if (checkGetters != 0) {
+    if (checkGetters != 0)
+    {
       System.exit(checkGetters);
     }
 

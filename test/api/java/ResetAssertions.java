@@ -49,4 +49,3 @@ public class ResetAssertions
     System.out.println(slv.checkSat());
   }
 }
-

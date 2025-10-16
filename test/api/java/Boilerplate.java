@@ -19,15 +19,20 @@
 
 import io.github.cvc5.*;
 
-public class Boilerplate {
-    public static void main(String[] args) {
-        TermManager tm = new TermManager();
-        Solver slv = new Solver(tm);
-        Result r = slv.checkSatAssuming(tm.mkBoolean(false));
-        if (r.isUnsat()) {
-            System.exit(0);
-        } else {
-            System.exit(1);
-        }
+public class Boilerplate
+{
+  public static void main(String[] args)
+  {
+    TermManager tm = new TermManager();
+    Solver slv = new Solver(tm);
+    Result r = slv.checkSatAssuming(tm.mkBoolean(false));
+    if (r.isUnsat())
+    {
+      System.exit(0);
     }
+    else
+    {
+      System.exit(1);
+    }
+  }
 }
