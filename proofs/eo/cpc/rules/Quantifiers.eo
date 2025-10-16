@@ -65,6 +65,7 @@
 ; requires:
 ; - vs is a list of variables.
 ; - ts is a list of variables.
+; - t does not contain any free occurrence of the variables vs.
 ; - t does not contain any occurence of the range variables ts.
 ; conclusion: >
 ;   The result of applying the substitution specified by vs and ts to
@@ -73,6 +74,7 @@
   :args (t vs ts)
   :requires ((($is_var_list vs) true)
              (($is_var_list ts) true)
+             ;(($contains_aterm_list_free t vs) false)
              (($contains_aterm_list t ts) false))
   :conclusion (= t ($substitute_simul t vs ts))
 )
