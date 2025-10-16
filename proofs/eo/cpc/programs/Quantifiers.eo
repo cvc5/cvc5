@@ -67,13 +67,13 @@
 ;   true if any atomic (0-ary) subterm of t is in xs and is not a bound variable
 ;   of t at that position or in the set of already bound variables bvs.
 (program $contains_aterm_list_free_rec 
-  ((T Type) (U Type) (S Type) (x U) (f (-> T S)) (a T) (xs @List) (bvs @List) (x U) (ys @List :list) (F Bool))
+  ((T Type) (U Type) (S Type) (x U) (f (-> T S)) (a T) (xs @List) (bvs @List) (x U) (ys @List :list))
   :signature (T @List @List) Bool
   (
     ; we assume that any function taking a list as a first argument is a binder
-    (($contains_aterm_list_free_rec (f (@list x ys) F) xs bvs)
+    (($contains_aterm_list_free_rec (f (@list x ys) a) xs bvs)
       ; concatenate these variables to the list of bound variables
-      ($contains_aterm_list_free_rec F xs (eo::list_concat @list (@list x ys) bvs)))
+      ($contains_aterm_list_free_rec a xs (eo::list_concat @list (@list x ys) bvs)))
     ; otherwise normal recursion
     (($contains_aterm_list_free_rec (f a) xs bvs)
       (eo::ite ($contains_aterm_list_free_rec f xs bvs) true ($contains_aterm_list_free_rec a xs bvs)))
