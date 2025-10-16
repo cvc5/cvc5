@@ -132,7 +132,7 @@ name   = "Proof"
   category   = "regular"
   long       = "proof-chain-m-res"
   type       = "bool"
-  default    = "false"
+  default    = "true"
   help       = "Use chain multiset resolution"
 
 [[option]]

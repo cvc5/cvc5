@@ -1,10 +1,4 @@
-on:
-  push:
-  pull_request:
-  workflow_dispatch:
-    inputs:
-      release_tag:
-        description: "Tag of the release to build (leave empty for current branch)"
+on: [push, pull_request]
 
 name: CI
 
@@ -266,9 +260,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-        ref: ${{ github.event.inputs.release_tag }}
 
     # Ensure that the Java bindings, Java API tests, and Java examples are compatible
     # with the minimum required Java version (currently Java 8).
