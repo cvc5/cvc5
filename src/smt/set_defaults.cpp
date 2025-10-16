@@ -860,6 +860,13 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
     SET_AND_NOTIFY_VAL_SYM(
         arith, arithStandardCheckVarOrderPivots, varOrderPivots, "logic");
   }
+  // DIO solver typically makes things worse for quantifier-free logics with
+  // non-linear arithmetic.
+  if (!logic.isQuantified() && logic.isTheoryEnabled(THEORY_ARITH) && !logic.isLinear())
+  {
+    SET_AND_NOTIFY(
+        arith, arithDioSolver, false, "quantifier-free non-linear logic");
+  }
   if (logic.isPure(THEORY_ARITH) && !logic.areRealsUsed())
   {
     SET_AND_NOTIFY(
