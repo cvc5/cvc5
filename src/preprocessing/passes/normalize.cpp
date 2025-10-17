@@ -53,7 +53,7 @@ Normalize::Normalize(PreprocessingPassContext* preprocContext)
 void generateEncoding(
     const Node& root,
     std::string& encoding,
-    std::map<std::string, int32_t>& role)
+    std::map<std::string, int32_t>& role)   // The role map must remain ordered to ensure we are comparing as-intended pairs of symbols in super-pattern part of the algorithm
 {
     std::stack<std::pair<Node, Node>> stack; // Pair of node, parent
     std::unordered_map<Node, bool> visited;
@@ -934,7 +934,6 @@ PreprocessingPassResult Normalize::applyInternal(
     
     std::unordered_map<Node, Node> freeVar2node;
     std::unordered_map<Node, Node> boundVar2node;
-    // NodeManager* nodeManager = NodeManager::currentNM();
     std::unordered_map<std::string, std::string> normalizedName;
 
     bool hasQID = false;
