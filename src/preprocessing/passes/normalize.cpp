@@ -53,7 +53,7 @@ Normalize::Normalize(PreprocessingPassContext* preprocContext)
 void generateEncoding(
     const Node& root,
     std::string& encoding,
-    std::map<std::string, int32_t>& role)   // The role map must remain ordered to ensure we are comparing as-intended pairs of symbols in super-pattern part of the algorithm
+    std::unordered_map<std::string, int32_t>& role)
 {
     std::stack<std::pair<Node, Node>> stack; // Pair of node, parent
     std::unordered_map<Node, bool> visited;
@@ -230,7 +230,7 @@ void generateEncoding(
 std::unique_ptr<NodeInfo> Normalize::getNodeInfo(const Node& node)
 {
     std::string encoding;
-    std::map<std::string, int32_t> role;
+    std::unordered_map<std::string, int32_t> role;
     generateEncoding(node, encoding, role);
 
     std::vector<std::pair<std::string, int32_t>> varNames(role.begin(), role.end());

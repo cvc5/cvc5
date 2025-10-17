@@ -22,6 +22,7 @@
 #include <unordered_map>
 
 #include "preprocessing/preprocessing_pass.h"
+#include <unordered_map>
 
 namespace cvc5::internal {
 namespace preprocessing {
