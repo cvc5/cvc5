@@ -271,7 +271,7 @@ Node rename(
     std::unordered_map<Node, Node>& freeVar2node,
     std::unordered_map<Node, Node>& boundVar2node,
     std::unordered_map<std::string, std::string>& normalizedName,
-    std::map<TypeNode, TypeNode> normalizedSorts,
+    std::unordered_map<TypeNode, TypeNode> normalizedSorts,
     NodeManager* nodeManager,
     PreprocessingPassContext* d_preprocContext,
     NormalizeSortNodeConverter* sortNormalizer,
@@ -915,7 +915,7 @@ PreprocessingPassResult Normalize::applyInternal(
     }
 
     
-    std::map<TypeNode, TypeNode> normalizedSorts;
+    std::unordered_map<TypeNode, TypeNode> normalizedSorts;
     int sortCounter = 0;
     for (const TypeNode& ctn : types)
     {
