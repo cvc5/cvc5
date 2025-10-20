@@ -1,8 +1,6 @@
 ; COMMAND-LINE: --solve-bv-as-int=sum --bvand-integer-granularity=1
 ; COMMAND-LINE: --solve-bv-as-int=bitwise --bvand-integer-granularity=1
 ; EXPECT: unsat
-; unsat-core times out on some builds
-; DISABLE-TESTER: unsat-core
 (set-logic QF_BV)
 (declare-fun T4_180 () (_ BitVec 32))
 (assert (and 
