@@ -434,7 +434,8 @@ void PfManager::translateDifficultyMap(std::map<Node, Node>& dmap,
   for (const std::shared_ptr<ProofNode>& c : children)
   {
     Node res = c->getResult();
-    Assert(dmapp.find(res) != dmapp.end()) << "Could not find assumption " << res;
+    Assert(dmapp.find(res) != dmapp.end())
+        << "Could not find assumption " << res;
     Trace("difficulty-debug") << "  process: " << res << std::endl;
     Trace("difficulty-debug") << "  .dvalue: " << dmapp[res] << std::endl;
     Trace("difficulty-debug") << "  ..proof: " << *c.get() << std::endl;

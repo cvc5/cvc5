@@ -311,7 +311,7 @@ void SetDefaults::setDefaultsPre(Options& opts)
   // don't need to process subtypes if we are not producing full proofs
   if (opts.smt.proofMode < options::ProofMode::FULL)
   {
-      SET_AND_NOTIFY(proof, proofElimSubtypes, false, "partial proofs");
+    SET_AND_NOTIFY(proof, proofElimSubtypes, false, "partial proofs");
   }
   if (!opts.smt.produceProofs)
   {

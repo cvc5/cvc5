@@ -461,7 +461,8 @@ bool BasicRewriteRCons::ensureProofMacroArithIntRelation(CDProof* cdp,
   if (rk == Kind::GEQ)
   {
     // use the correct type
-    Node cceil = nm->mkConstRealOrInt(p.first.getType(), p.second.getConst<Rational>().ceiling());
+    Node cceil = nm->mkConstRealOrInt(p.first.getType(),
+                                      p.second.getConst<Rational>().ceiling());
     tgt = nm->mkNode(rk, p.first, cceil);
   }
   // the last step can be shown by the RARE rules
