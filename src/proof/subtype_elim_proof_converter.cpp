@@ -206,7 +206,7 @@ Node SubtypeElimConverterCallback::convert(Node res,
       }
       std::shared_ptr<ProofNode> pfn = tcpg.getProofForRewriting(newRes);
       Node resr = pfn->getResult();
-      Assert(res.getKind() == Kind::EQUAL);
+      Assert(resr.getKind() == Kind::EQUAL);
       if (resr[1] == resc)
       {
         // if successful we have
