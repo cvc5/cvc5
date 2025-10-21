@@ -297,6 +297,7 @@ void ExtfSolver::checkExtfEval(int effort)
   Trace("strings-extf-list")
       << "Active extended functions, effort=" << effort << " : " << std::endl;
   d_extfInfoTmp.clear();
+  d_extfToOrig.clear();
   NodeManager* nm = nodeManager();
   bool has_nreduce = false;
   std::vector<Node> terms = d_extt.getActive();
@@ -347,6 +348,7 @@ void ExtfSolver::checkExtfEval(int effort)
           << "Check extf " << n << " == " << sn
           << ", constant = " << einfo.d_const << ", effort=" << effort
           << ", exp " << exp << std::endl;
+      einfo.d_initExp.insert(einfo.d_initExp.end(), exp.begin(), exp.end());
       einfo.d_exp.insert(einfo.d_exp.end(), exp.begin(), exp.end());
       // inference is rewriting the substituted node
       Node nrc = rewrite(sn);
@@ -536,6 +538,30 @@ void ExtfSolver::checkExtfInference(Node n,
                                     ExtfInfoTmp& in,
                                     int effort)
 {
+  // see if any previous term rewrote to nr, if so, we can conclude that
+  // term is equal to n.
+  std::map<Node, Node>::iterator ito = d_extfToOrig.find(nr);
+  if (ito != d_extfToOrig.end())
+  {
+    Node no = ito->second;
+    if (!d_state.areEqual(n, no))
+    {
+      Assert(d_extfInfoTmp.find(no) != d_extfInfoTmp.end());
+      ExtfInfoTmp& eito = d_extfInfoTmp[no];
+      Node conc = n.eqNode(no);
+      Trace("strings-extf-infer")
+          << "infer same rewrite: " << conc << std::endl;
+      std::vector<Node> exp;
+      exp.insert(exp.end(), in.d_initExp.begin(), in.d_initExp.end());
+      exp.insert(exp.end(), eito.d_initExp.begin(), eito.d_initExp.end());
+      Trace("strings-extf-infer") << "..explaination is " << exp << std::endl;
+      d_im.sendInference(exp, conc, InferenceId::STRINGS_EXTF_REW_SAME);
+    }
+    return;
+  }
+  // store that n rewrites to nr
+  d_extfToOrig[nr] = n;
+
   if (in.d_const.isNull())
   {
     return;

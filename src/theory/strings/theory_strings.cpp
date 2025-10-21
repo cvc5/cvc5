@@ -1156,11 +1156,7 @@ TrustNode TheoryStrings::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
         throw LogicException(
             "expecting a constant string term in regexp range");
       }
-      if (nc.getConst<String>().size() != 1)
-      {
-        throw LogicException(
-            "expecting a single constant string term in regexp range");
-      }
+      Assert (nc.getConst<String>().size() == 1);
     }
   }
 

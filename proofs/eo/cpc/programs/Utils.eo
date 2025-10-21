@@ -110,6 +110,18 @@
   )
 )
 
+; program: $is_var_list
+; args:
+; - xs @List: The list of terms.
+; return: true if all terms in xs are variables.
+(program $is_var_list ((U Type) (x U) (xs @List :list))
+  :signature (@List) Bool
+  (
+    (($is_var_list (@list x xs))  (eo::ite (eo::is_var x) ($is_var_list xs) false))
+    (($is_var_list @list.nil)     true)
+  )
+)
+
 ; define: $compare_var
 ; args:
 ; - a T: The first term to compare.

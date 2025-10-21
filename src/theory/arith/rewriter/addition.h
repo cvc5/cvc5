@@ -45,7 +45,7 @@ namespace rewriter {
  * done in-place instead of copying the result out of the std::unordered_map
  * into a sortable container.
  */
-using Sum = std::map<Node, RealAlgebraicNumber, TermComparator>;
+using Sum = std::map<Node, RealAlgebraicNumber, LeafNodeComparator>;
 
 /**
  * Print a sum. Does not use a particularly useful syntax and is thus only meant
