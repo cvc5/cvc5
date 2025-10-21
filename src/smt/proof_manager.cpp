@@ -383,7 +383,6 @@ void PfManager::translateDifficultyMap(std::map<Node, Node>& dmap,
     return;
   }
   std::map<Node, Node> dmapp;
-  dmap.clear();
   Trace("difficulty-proc") << "Get ppAsserts" << std::endl;
   std::vector<Node> ppAsserts;
   SubtypeElimNodeConverter senc(nodeManager());
@@ -403,6 +402,7 @@ void PfManager::translateDifficultyMap(std::map<Node, Node>& dmap,
     // internally by the difficuly manager.
     ppAsserts.push_back(assertion);
   }
+  dmap.clear();
   Trace("difficulty-proc") << "Make SAT refutation" << std::endl;
   // assume a SAT refutation from all input assertions that were marked
   // as having a difficulty
