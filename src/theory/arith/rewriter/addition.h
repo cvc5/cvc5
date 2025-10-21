@@ -74,6 +74,13 @@ bool isIntegral(const Sum& sum);
 void addToSum(Sum& sum, TNode n, bool negate = false);
 
 /**
+ * Same as above, but also handles occurrences of TO_REAL.
+ * @param sum The sum to add to.
+ * @param n The term to add to sum.
+ * @param negate Whether to negate n.
+ */
+void addToSumNoMixed(Sum& sum, TNode n, bool negate = false);
+/**
  * Add the arithmetic term `product` to the given sum with coefficient
  * `multiplicity`. It should be the case that `product` is itself a monomial
  * (not an addition term).
