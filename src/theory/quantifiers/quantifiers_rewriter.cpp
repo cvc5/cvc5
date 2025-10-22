@@ -1704,7 +1704,8 @@ Node QuantifiersRewriter::computeVarElimination(Node body,
                                                 std::vector<Node>& args,
                                                 QAttributes& qa) const
 {
-  if (!d_opts.quantifiers.varElimQuant && !d_opts.quantifiers.varIneqElimQuant)
+  if (!d_opts.quantifiers.varElimQuant && !d_opts.quantifiers.varIneqElimQuant 
+    && !d_opts.quantifiers.leibnizEqElim)
   {
     return body;
   }
