@@ -189,6 +189,20 @@ void addToSum(Sum& sum, TNode n, bool negate)
   addToSum(sum, mkNonlinearMult(n.getNodeManager(), monomial), multiplicity);
 }
 
+void addToSumNoMixed(Sum& sum, TNode n, bool negate)
+{
+  if (n.getKind() == Kind::ADD)
+  {
+    for (const auto& child : n)
+    {
+      addToSum(
+          sum, child.getKind() == Kind::TO_REAL ? child[0] : child, negate);
+    }
+    return;
+  }
+  addToSum(sum, n, negate);
+}
+
 void addMonomialToSum(Sum& sum,
                       TNode product,
                       RealAlgebraicNumber& multiplicity)

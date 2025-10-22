@@ -82,9 +82,9 @@ Node TranscendentalProofRuleChecker::checkInternal(
     const std::vector<Node>& args)
 {
   NodeManager* nm = nodeManager();
-  Node zero = nm->mkConstInt(Rational(0));
-  Node one = nm->mkConstInt(Rational(1));
-  Node mone = nm->mkConstInt(Rational(-1));
+  Node zero = nm->mkConstReal(Rational(0));
+  Node one = nm->mkConstReal(Rational(1));
+  Node mone = nm->mkConstReal(Rational(-1));
   Node pi = nm->mkNullaryOperator(nm->realType(), Kind::PI);
   Node mpi = nm->mkNode(Kind::MULT, mone, pi);
   Trace("nl-trans-checker") << "Checking " << id << std::endl;
@@ -153,6 +153,11 @@ Node TranscendentalProofRuleChecker::checkInternal(
     Node t = args[1];
     Node l = args[2];
     Node u = args[3];
+    if (l.getConst<Rational>().sgn() < 0
+        || l.getConst<Rational>() > u.getConst<Rational>())
+    {
+      return Node::null();
+    }
     TaylorGenerator tg(nm);
     TaylorGenerator::ApproximationBounds bounds;
     tg.getPolynomialApproximationBounds(Kind::EXPONENTIAL, d / 2, bounds);
@@ -179,6 +184,11 @@ Node TranscendentalProofRuleChecker::checkInternal(
     Node t = args[1];
     Node l = args[2];
     Node u = args[3];
+    if (u.getConst<Rational>().sgn() > 0
+        || l.getConst<Rational>() > u.getConst<Rational>())
+    {
+      return Node::null();
+    }
     TaylorGenerator tg(nm);
     TaylorGenerator::ApproximationBounds bounds;
     tg.getPolynomialApproximationBounds(Kind::EXPONENTIAL, d / 2, bounds);

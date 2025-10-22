@@ -81,10 +81,11 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "varEntEqElimQuant"
-  category   = "expert"
+  category   = "regular"
   long       = "var-ent-eq-elim-quant"
   type       = "bool"
-  default    = "false"
+  default    = "true"
+  no_support = ["proofs"]
   help       = "enable variable elimination for quantified formulas that infers entailed equalities corresponding to eliminations"
 
 [[option]]
@@ -208,6 +209,22 @@ name   = "Quantifiers"
   type       = "bool"
   default    = "false"
   help       = "use model-based quantifier instantiation"
+
+[[option]]
+  name       = "mbqiNestedCheck"
+  category   = "expert"
+  long       = "mbqi-nested-check"
+  type       = "bool"
+  default    = "true"
+  help       = "check nested quantified formulas in MBQI"
+
+[[option]]
+  name       = "mbqiCheckTimeout"
+  category   = "regular"
+  long       = "mbqi-check-timeout=N"
+  type       = "uint64_t"
+  default    = "500"
+  help       = "timeout (in milliseconds) for verifying subcalls for model-based instantiation (0 == no limit)"
 
 [[option]]
   name       = "mbqiEnum"
@@ -1188,6 +1205,14 @@ name   = "Quantifiers"
   help       = "statically normalize sygus grammars based on flattening (linearization)"
 
 [[option]]
+  name       = "sygusGrammarHoPartial"
+  category   = "expert"
+  long       = "sygus-grammar-ho-partial"
+  type       = "bool"
+  default    = "false"
+  help       = "add partial function applications to the grammar"
+
+[[option]]
   name       = "sygusGrammarConsMode"
   category   = "regular"
   long       = "sygus-grammar-cons=MODE"
@@ -1335,7 +1360,7 @@ name   = "Quantifiers"
   long       = "sygus-rec-fun"
   type       = "bool"
   default    = "true"
-  help       = "enable efficient support for recursive functions in sygus grammars"
+  help       = "enable efficient support for recursive functions in sygus"
 
 [[option]]
   name       = "sygusRecFunEvalLimit"
@@ -1344,6 +1369,14 @@ name   = "Quantifiers"
   type       = "uint64_t"
   default    = "1000"
   help       = "use a hard limit for how many times in a given evaluator call a recursive function can be evaluated (so infinite loops can be avoided)"
+
+[[option]]
+  name       = "sygusRecFunInfer"
+  category   = "expert"
+  long       = "sygus-rec-fun-infer"
+  type       = "bool"
+  default    = "true"
+  help       = "automatically infer recursive definitions for sygus"
 
 [[option]]
   name       = "sygusVerifyInstMaxRounds"
@@ -1796,6 +1829,14 @@ name   = "Quantifiers"
   type       = "bool"
   default    = "true"
   help       = "use store axiom during ho-elim"
+
+[[option]]
+  name       = "instLocal"
+  category   = "regular"
+  long       = "inst-local"
+  type       = "bool"
+  default    = "false"
+  help       = "Instantiations are local to the SAT context"
 
 ### SyGuS instantiation options
 

@@ -29,7 +29,7 @@ def solver(tm):
 
 
 def test_is_null(solver):
-    res_null = SynthResult(solver)
+    res_null = SynthResult()
     assert res_null.isNull()
     assert not res_null.hasSolution()
     assert not res_null.hasNoSolution()
@@ -64,7 +64,7 @@ def test_has_solution(tm, solver):
 
 
 def test_has_no_solution(solver):
-    res_null = SynthResult(solver)
+    res_null = SynthResult()
     assert not res_null.hasNoSolution()
 
 

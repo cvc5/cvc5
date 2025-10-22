@@ -113,8 +113,8 @@ enum class InferenceId
   //-------------------- nonlinear core
   // simple congruence x=y => f(x)=f(y)
   ARITH_NL_CONGRUENCE,
-  // shared term value split (for naive theory combination)
-  ARITH_NL_SHARED_TERM_VALUE_SPLIT,
+  // for theory combination when NL model construction identifies shared terms
+  ARITH_NL_SHARED_TERM_SPLIT,
   // checkModel found a conflict with a quadratic equality
   ARITH_NL_CM_QUADRATIC_EQ,
   //-------------------- nonlinear incremental linearization solver
@@ -169,8 +169,12 @@ enum class InferenceId
   ARITH_NL_POW2_VALUE_REFINE,
   // monotonicity refinements (Pow2Solver::checkFullRefine)
   ARITH_NL_POW2_MONOTONE_REFINE,
-  // trivial refinements (Pow2Solver::checkFullRefine)
-  ARITH_NL_POW2_TRIVIAL_CASE_REFINE,
+  // neg refinements (Pow2Solver::checkFullRefine)
+  ARITH_NL_POW2_NEG_REFINE,
+  // div0 refinements (Pow2Solver::checkFullRefine)
+  ARITH_NL_POW2_DIV0_CASE_REFINE,
+  // lower bound refinements (Pow2Solver::checkFullRefine)
+  ARITH_NL_POW2_LOWER_BOUND_CASE_REFINE,
   //-------------------- nonlinear coverings solver
   // conflict / infeasible subset obtained from coverings
   ARITH_NL_COVERING_CONFLICT,
@@ -874,6 +878,10 @@ enum class InferenceId
   // Typically, t is an application of an extended function and s is a constant.
   // It is generally only inferred if P is a predicate over known terms.
   STRINGS_EXTF_EQ_REW,
+  // two terms rewrite to the same thing
+  // in particular this is of the form (E1 ^ E2) => t1 = t2
+  // where E1 => t1 = tr and E2 => t2 = tr.
+  STRINGS_EXTF_REW_SAME,
   // contain transitive
   //   ( str.contains( s, t ) ^ ~contains( s, r ) ) => ~contains( t, r ).
   STRINGS_CTN_TRANS,
@@ -910,6 +918,8 @@ enum class InferenceId
   STRINGS_CMI_SPLIT,
   // constant sequence purification
   STRINGS_CONST_SEQ_PURIFY,
+  // regular expression equality equivalence
+  STRINGS_RE_EQ_ELIM_EQUIV,
   //-------------------------------------- end strings theory
 
   //-------------------------------------- uf theory

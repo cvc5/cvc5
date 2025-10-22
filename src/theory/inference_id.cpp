@@ -67,8 +67,8 @@ const char* toString(InferenceId i)
     case InferenceId::ARITH_PP_ELIM_OPERATORS_LEMMA:
       return "ARITH_PP_ELIM_OPERATORS_LEMMA";
     case InferenceId::ARITH_NL_CONGRUENCE: return "ARITH_NL_CONGRUENCE";
-    case InferenceId::ARITH_NL_SHARED_TERM_VALUE_SPLIT:
-      return "ARITH_NL_SHARED_TERM_VALUE_SPLIT";
+    case InferenceId::ARITH_NL_SHARED_TERM_SPLIT:
+      return "ARITH_NL_SHARED_TERM_SPLIT";
     case InferenceId::ARITH_NL_CM_QUADRATIC_EQ:
       return "ARITH_NL_CM_QUADRATIC_EQ";
     case InferenceId::ARITH_NL_SPLIT_ZERO: return "ARITH_NL_SPLIT_ZERO";
@@ -106,8 +106,12 @@ const char* toString(InferenceId i)
       return "ARITH_NL_POW2_VALUE_REFINE";
     case InferenceId::ARITH_NL_POW2_MONOTONE_REFINE:
       return "ARITH_NL_POW2_MONOTONE_REFINE";
-    case InferenceId::ARITH_NL_POW2_TRIVIAL_CASE_REFINE:
-      return "ARITH_NL_POW2_TRIVIAL_CASE_REFINE";
+    case InferenceId::ARITH_NL_POW2_NEG_REFINE:
+      return "ARITH_NL_POW2_NEG_REFINE";
+    case InferenceId::ARITH_NL_POW2_DIV0_CASE_REFINE:
+      return "ARITH_NL_POW2_DIV0_CASE_REFINE";
+    case InferenceId::ARITH_NL_POW2_LOWER_BOUND_CASE_REFINE:
+      return "ARITH_NL_POW2_LOWER_BOUND_CASE_REFINE";
     case InferenceId::ARITH_NL_COVERING_CONFLICT: return "ARITH_NL_COVERING_CONFLICT";
     case InferenceId::ARITH_NL_COVERING_EXCLUDED_INTERVAL:
       return "ARITH_NL_COVERING_EXCLUDED_INTERVAL";
@@ -529,6 +533,7 @@ const char* toString(InferenceId i)
     case InferenceId::STRINGS_EXTF_D: return "STRINGS_EXTF_D";
     case InferenceId::STRINGS_EXTF_D_N: return "STRINGS_EXTF_D_N";
     case InferenceId::STRINGS_EXTF_EQ_REW: return "STRINGS_EXTF_EQ_REW";
+    case InferenceId::STRINGS_EXTF_REW_SAME: return "STRINGS_EXTF_REW_SAME";
     case InferenceId::STRINGS_CTN_TRANS: return "STRINGS_CTN_TRANS";
     case InferenceId::STRINGS_CTN_DECOMPOSE: return "STRINGS_CTN_DECOMPOSE";
     case InferenceId::STRINGS_CTN_NEG_EQUAL: return "STRINGS_CTN_NEG_EQUAL";
@@ -545,6 +550,8 @@ const char* toString(InferenceId i)
     case InferenceId::STRINGS_CMI_SPLIT: return "STRINGS_CMI_SPLIT";
     case InferenceId::STRINGS_CONST_SEQ_PURIFY:
       return "STRINGS_CONST_SEQ_PURIFY";
+    case InferenceId::STRINGS_RE_EQ_ELIM_EQUIV:
+      return "STRINGS_RE_EQ_ELIM_EQUIV";
 
     case InferenceId::UF_BREAK_SYMMETRY: return "UF_BREAK_SYMMETRY";
     case InferenceId::UF_CARD_CLIQUE: return "UF_CARD_CLIQUE";

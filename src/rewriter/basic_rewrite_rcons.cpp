@@ -2252,7 +2252,10 @@ bool BasicRewriteRCons::ensureProofMacroQuantVarElimEq(CDProof* cdp,
   cdp->addStep(eqq, cr, {eqBody}, cargs);
   finalTransEq.push_back(eqq);
   eqq = body1p.eqNode(body2);
-  cdp->addTheoryRewriteStep(eqq, ProofRewriteRule::QUANT_VAR_ELIM_EQ);
+  if (!doTheoryRewrite(cdp, eqq, ProofRewriteRule::QUANT_VAR_ELIM_EQ))
+  {
+    return false;
+  }
   finalTransEq.push_back(eqq);
   Node beq = body1.eqNode(body2);
   cdp->addStep(beq, ProofRule::TRANS, finalTransEq, {});
@@ -2555,12 +2558,26 @@ bool BasicRewriteRCons::ensureProofMacroQuantVarElimIneq(CDProof* cdp,
   std::reverse(normLits.begin(), normLits.end());
   // make the max or min of all terms based on isUpper
   Node iterm;
+  Assert(qnorm[0].getNumChildren() == 1);
+  TypeNode qvarType = qnorm[0][0].getType();
   for (const Node& nl : normLits)
   {
     Node atom = nl.getKind() == Kind::NOT ? nl[0] : nl;
     Trace("brc-macro") << "...process normalized atom " << atom << std::endl;
     Kind k = atom.getKind();
     Node itc = atom[1];
+    // ensure types are correct, meaning we require inserting a cast to real
+    if (qvarType!=itc.getType())
+    {
+      if (qvarType.isReal() && itc.getType().isInteger())
+      {
+        itc = nm->mkNode(Kind::TO_REAL, itc);
+      }
+      else
+      {
+        Assert (false) << "Can't cast " << itc << " to " << qvarType;
+      }
+    }
     if (k != Kind::GEQ && k != Kind::LEQ)
     {
       itc = rewrite(nm->mkNode(
@@ -2584,7 +2601,6 @@ bool BasicRewriteRCons::ensureProofMacroQuantVarElimIneq(CDProof* cdp,
   // instantiate
   ProofChecker* pc = d_env.getProofNodeManager()->getChecker();
   Node iarg = nm->mkNode(Kind::SEXPR, iterm);
-  Assert(qnorm[0].getNumChildren() == 1);
   Trace("brc-macro") << "Instantiate: " << qnorm << " / " << iarg << std::endl;
   Node inst = pc->checkDebug(ProofRule::INSTANTIATE, {qnorm}, {iarg});
   cdp->addStep(inst, ProofRule::INSTANTIATE, {qnorm}, {iarg});
@@ -3133,10 +3149,24 @@ bool BasicRewriteRCons::tryTheoryRewrite(CDProof* cdp,
                 {mkRewriteRuleNode(nodeManager(), prid), eq},
                 false))
     {
+      Trace("trewrite-rcons") << "...got " << prid << std::endl;
       // Theory rewrites may require macro expansion
       ensureProofForTheoryRewrite(cdp, prid, eq);
       return true;
     }
+  }
+  return false;
+}
+
+bool BasicRewriteRCons::doTheoryRewrite(CDProof* cdp,
+                                        const Node& eq,
+                                        ProofRewriteRule r)
+{
+  Node er = d_env.getRewriter()->rewriteViaRule(r, eq[0]);
+  if (er == eq[1])
+  {
+    cdp->addTheoryRewriteStep(eq, r);
+    return true;
   }
   return false;
 }

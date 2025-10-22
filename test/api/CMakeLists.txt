@@ -13,8 +13,18 @@
 # The build system configuration.
 ##
 
+add_custom_target(build-apitests)
+add_dependencies(build-tests build-apitests)
+
 add_subdirectory(c)
 add_subdirectory(cpp)
 if (BUILD_BINDINGS_PYTHON)
   add_subdirectory(python)
 endif()
+if (BUILD_BINDINGS_JAVA)
+  add_subdirectory(java)
+endif()
+
+add_custom_target(apitests
+  COMMAND ctest --output-on-failure -L "api" -j${CTEST_NTHREADS} $$ARGS
+  DEPENDS build-apitests)

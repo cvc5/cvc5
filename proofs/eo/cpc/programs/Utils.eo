@@ -13,8 +13,10 @@
 (define $sgn ((T Type :implicit) (x T))
   (eo::ite (eo::is_neg x) -1 (eo::ite (eo::is_neg (eo::neg x)) 1 0)))
 
-(declare-type @Pair (Type Type))
-(declare-parameterized-const @pair ((U Type :implicit) (T Type :implicit)) (-> U T (@Pair U T)))
+(declare-const @@Pair (-> Type Type Type))
+(define @Pair () @@Pair)
+(declare-parameterized-const @@pair ((U Type :implicit) (T Type :implicit)) (-> U T (@Pair U T)))
+(define @pair () @@pair)
 
 ; program: $pair_first
 ; args:
@@ -108,6 +110,18 @@
   )
 )
 
+; program: $is_var_list
+; args:
+; - xs @List: The list of terms.
+; return: true if all terms in xs are variables.
+(program $is_var_list ((U Type) (x U) (xs @List :list))
+  :signature (@List) Bool
+  (
+    (($is_var_list (@list x xs))  (eo::ite (eo::is_var x) ($is_var_list xs) false))
+    (($is_var_list @list.nil)     true)
+  )
+)
+
 ; define: $compare_var
 ; args:
 ; - a T: The first term to compare.
@@ -141,8 +155,10 @@
 ;; =============== for results
 
 ; Used for representing partial results of the method below.
-(declare-const @result.null Bool)
-(declare-const @result.invalid Bool)
+(declare-const @@result.null Bool)
+(define @result.null () @@result.null)
+(declare-const @@result.invalid Bool)
+(define @result.invalid () @@result.invalid)
 
 ; program: $result_combine
 ; args:

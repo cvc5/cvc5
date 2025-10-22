@@ -81,8 +81,8 @@ void ExponentialSolver::checkInitialRefine()
       // initial refinements
       if (d_tf_initial_refine.find(t) == d_tf_initial_refine.end())
       {
-        Node zero = nm->mkConstInt(Rational(0));
-        Node one = nm->mkConstInt(Rational(1));
+        Node zero = nm->mkConstReal(Rational(0));
+        Node one = nm->mkConstReal(Rational(1));
         d_tf_initial_refine[t] = true;
         {
           // exp is always positive: exp(t) > 0
@@ -279,6 +279,7 @@ std::pair<Node, Node> ExponentialSolver::getSecantBounds(TNode e,
 {
   std::pair<Node, Node> bounds = d_data->getClosestSecantPoints(e, center, d);
 
+  int csign = center.getConst<Rational>().sgn();
   // Check if we already have neighboring secant points
   if (bounds.first.isNull())
   {
@@ -286,6 +287,11 @@ std::pair<Node, Node> ExponentialSolver::getSecantBounds(TNode e,
     Node one = nm->mkConstInt(Rational(1));
     // pick c-1
     bounds.first = rewrite(nm->mkNode(Kind::SUB, center, one));
+    // ensure we don't cross zero
+    if (bounds.first.getConst<Rational>().sgn() != csign)
+    {
+      bounds.first = nm->mkConstReal(Rational(0));
+    }
   }
   if (bounds.second.isNull())
   {
@@ -293,6 +299,11 @@ std::pair<Node, Node> ExponentialSolver::getSecantBounds(TNode e,
     Node one = nm->mkConstInt(Rational(1));
     // pick c+1
     bounds.second = rewrite(nm->mkNode(Kind::ADD, center, one));
+    // ensure we don't cross zero
+    if (bounds.second.getConst<Rational>().sgn() != csign)
+    {
+      bounds.second = nm->mkConstReal(Rational(0));
+    }
   }
   return bounds;
 }
