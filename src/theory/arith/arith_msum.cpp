@@ -193,7 +193,7 @@ int ArithMSum::isolate(
       {
         if (vtn.isInteger())
         {
-          veq_c = nm->mkConstRealOrInt(v.getType(), r.abs());
+          veq_c = nm->mkConstRealOrInt(r.abs());
         }
         else
         {
