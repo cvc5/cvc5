@@ -1,3 +1,4 @@
+; COMMAND-LINE: --mbqi --leibniz-elim
 ; EXPECT: unsat
 (set-logic HO_ALL)
 (declare-sort a 0)
