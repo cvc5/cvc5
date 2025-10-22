@@ -94,7 +94,7 @@ SequencesRewriter::SequencesRewriter(NodeManager* nm,
   registerProofRewriteRule(ProofRewriteRule::MACRO_STR_COMPONENT_CTN,
                            TheoryRewriteCtx::POST_DSL);
   registerProofRewriteRule(ProofRewriteRule::SEQ_EVAL_OP,
-                           TheoryRewriteCtx::PRE_DSL);
+                           TheoryRewriteCtx::DSL_SUBCALL);
   // make back pointer to this (for rewriting contains)
   se.d_rewriter = this;
 }
@@ -2015,18 +2015,30 @@ Node SequencesRewriter::rewriteDifferenceRegExp(TNode node)
 Node SequencesRewriter::rewriteRangeRegExp(TNode node)
 {
   Assert(node.getKind() == Kind::REGEXP_RANGE);
+  NodeManager* nm = nodeManager();
   unsigned ch[2];
+  bool hasNonConst = false;
   for (size_t i = 0; i < 2; ++i)
   {
-    if (!node[i].isConst() || node[i].getConst<String>().size() != 1)
+    if (!node[i].isConst())
     {
-      // not applied to characters, it is not handled
-      return node;
+      hasNonConst = true;
+      continue;
+    }
+    else if (node[i].getConst<String>().size()!=1)
+    {
+      // non-singleton means empty
+      Node retNode = nm->mkNode(Kind::REGEXP_NONE);
+      return returnRewrite(node, retNode, Rewrite::RE_RANGE_NON_SINGLETON);
     }
     ch[i] = node[i].getConst<String>().front();
   }
+  if (hasNonConst)
+  {
+    // not applied to characters, it is not handled
+    return node;
+  }
 
-  NodeManager* nm = nodeManager();
   if (node[0] == node[1])
   {
     Node retNode = nm->mkNode(Kind::STRING_TO_REGEXP, node[0]);

@@ -162,6 +162,39 @@ bool AletheProofPostprocessCallback::updateTheoryRewriteProofRewriteRule(
                            {},
                            *cdp);
     }
+    // ======== QUANT_MINISCOPE_AND
+    // This rule is translated according to the clause pattern.
+    case ProofRewriteRule::QUANT_MINISCOPE_AND:
+    {
+      return addAletheStep(AletheRule::MINISCOPE_DISTRIBUTE,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           {},
+                           {},
+                           *cdp);
+    }
+    // ======== QUANT_MINISCOPE_OR
+    // This rule is translated according to the clause pattern.
+    case ProofRewriteRule::QUANT_MINISCOPE_OR:
+    {
+      return addAletheStep(AletheRule::MINISCOPE_SPLIT,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           {},
+                           {},
+                           *cdp);
+    }
+    // ======== QUANT_MINISCOPE_ITE
+    // This rule is translated according to the clause pattern.
+    case ProofRewriteRule::QUANT_MINISCOPE_ITE:
+    {
+      return addAletheStep(AletheRule::MINISCOPE_ITE,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           {},
+                           {},
+                           *cdp);
+    }
     // ======== QUANT_UNUSED_VARS
     // This rule is translated according to the clause pattern.
     case ProofRewriteRule::QUANT_UNUSED_VARS:
