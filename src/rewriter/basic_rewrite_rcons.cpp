@@ -445,7 +445,17 @@ bool BasicRewriteRCons::ensureProofMacroArithIntRelation(CDProof* cdp,
       theory::arith::rewriter::decomposeRelation(nm, rewRel[0], rewRel[1]);
   Assert(p.second.isConst());
   Assert(!p.second.getConst<Rational>().isIntegral());
-  Node rew = nm->mkNode(rk, nm->mkNode(Kind::TO_REAL, p.first), p.second);
+  Node iterm = p.first;
+  if (p.first.getType().isReal())
+  {
+    Trace("brc-macro") << "Real term convert to integer: " << p.first << std::endl;
+    theory::arith::rewriter::Sum sum;
+    theory::arith::rewriter::addToSumNoMixed(sum, p.first, false);
+    iterm = collectSum(nodeManager(), sum);
+    Trace("brc-macro") << "...converts to " << iterm << std::endl;
+  }
+  Node rewLhs = nm->mkNode(Kind::TO_REAL, iterm);
+  Node rew = nm->mkNode(rk, rewLhs, p.second);
   Trace("brc-macro") << "...setup relation is " << rew << std::endl;
   Node eqq = rewRel.eqNode(rew);
   transEq.push_back(eqq);
@@ -468,11 +478,13 @@ bool BasicRewriteRCons::ensureProofMacroArithIntRelation(CDProof* cdp,
   // the last step can be shown by the RARE rules
   // arith-int-eq-conflict or arith-int-geq-tighten
   eqq = rew.eqNode(tgt);
+  Trace("brc-macro") << "...subgoal (1): " << eqq << std::endl;
   cdp->addTrustedStep(eqq, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE, {}, {});
   transEq.push_back(eqq);
   if (tgt != eq[1])
   {
     eqq = tgt.eqNode(eq[1]);
+    Trace("brc-macro") << "...subgoal (2): " << eqq << std::endl;
     cdp->addTrustedStep(
         eqq, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE, {}, {});
     transEq.push_back(eqq);
@@ -3140,6 +3152,7 @@ bool BasicRewriteRCons::tryTheoryRewrite(CDProof* cdp,
                                          theory::TheoryRewriteCtx ctx)
 {
   Assert(eq.getKind() == Kind::EQUAL);
+  Trace("trewrite-rcons") << "Find rule " << eq << std::endl;
   ProofRewriteRule prid = d_env.getRewriter()->findRule(eq[0], eq[1], ctx);
   if (prid != ProofRewriteRule::NONE)
   {
