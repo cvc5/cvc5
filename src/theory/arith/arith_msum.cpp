@@ -193,7 +193,7 @@ int ArithMSum::isolate(
       {
         if (vtn.isInteger())
         {
-          veq_c = nm->mkConstRealOrInt(r.abs());
+          veq_c = nm->mkConstRealOrInt(v.getType(), r.abs());
         }
         else
         {
@@ -202,7 +202,7 @@ int ArithMSum::isolate(
         }
       }
       val = r.sgn() == 1 ? nm->mkNode(
-                Kind::MULT, nm->mkConstRealOrInt(Rational(-1)), val)
+                Kind::MULT, nm->mkConstRealOrInt(val.getType(), Rational(-1)), val)
                          : val;
       return (r.sgn() == 1 || k == Kind::EQUAL) ? 1 : -1;
     }
