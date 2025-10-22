@@ -140,6 +140,17 @@ bool AletheProofPostprocessCallback::updateTheoryRewriteProofRewriteRule(
                            new_args,
                            *cdp);
     }
+    // ======== EXISTS_ELIM
+    // This rule is translated according to the clause pattern.
+    case ProofRewriteRule::EXISTS_ELIM:
+    {
+      return addAletheStep(AletheRule::CONNECTIVE_DEF,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           {},
+                           {},
+                           *cdp);
+    }
     // ======== QUANT_MERGE_PRENEX
     // This rule is translated according to the clause pattern.
     case ProofRewriteRule::QUANT_MERGE_PRENEX:
@@ -680,8 +691,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     //  * the corresponding proof node is C
     case ProofRule::RESOLUTION:
     case ProofRule::CHAIN_RESOLUTION:
-    case ProofRule::MACRO_RESOLUTION:
-    case ProofRule::MACRO_RESOLUTION_TRUST:
+    case ProofRule::CHAIN_M_RESOLUTION:
     {
       std::vector<Node> cargs;
       if (id == ProofRule::CHAIN_RESOLUTION)
@@ -692,10 +702,16 @@ bool AletheProofPostprocessCallback::update(Node res,
           cargs.push_back(args[1][i]);
         }
       }
-      else if (id == ProofRule::MACRO_RESOLUTION
-               || id == ProofRule::MACRO_RESOLUTION_TRUST)
+      else if (id == ProofRule::CHAIN_M_RESOLUTION)
       {
-        cargs.insert(cargs.end(), args.begin() + 1, args.end());
+        Assert(args.size() == 3
+               && args[1].getNumChildren() == args[2].getNumChildren());
+        // Alethe expects the polarity/literals to be interleaved
+        for (size_t i = 0, nsteps = args[1].getNumChildren(); i < nsteps; i++)
+        {
+          cargs.push_back(args[1][i]);
+          cargs.push_back(args[2][i]);
+        }
       }
       else
       {

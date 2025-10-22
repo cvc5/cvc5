@@ -441,6 +441,12 @@ void Printer::toStreamCmdGetValue(std::ostream& out,
   printUnknownCommand(out, "get-value");
 }
 
+void Printer::toStreamCmdGetModelDomainElements(std::ostream& out,
+                                                TypeNode type) const
+{
+  printUnknownCommand(out, "get-model-domain-elements");
+}
+
 void Printer::toStreamCmdGetAssignment(std::ostream& out) const
 {
   printUnknownCommand(out, "get-assignment");

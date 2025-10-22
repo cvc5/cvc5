@@ -137,7 +137,7 @@ This option takes precedence over ``--wasm`` and ``--wasm-flags`` if used togeth
 Available configurations:
 
 - ``no-modular-static-page``: Optimized for static web pages with runtime methods,
-environment settings, and memory configuration pre-configured for web deployment.
+  environment settings, and memory configuration pre-configured for web deployment.
 
 For example, to generate a HTML page, use:
 
@@ -417,8 +417,9 @@ The API tests are not built by default.
 
 .. code::
 
-    make apitests                         # build and run all API C++ tests
+    make apitests                         # build and run all API tests
     make capitests                        # build and run all API C tests
+    make cppapitests                      # build and run all API C++ tests
     make <api_test>                       # build test/api/cpp/<api_test>.cpp
     make capi_<api_test>                  # build test/api/c/<api_test>.c
     ctest api/cpp/<api_test>              # run test/api/cpp/<api_test><.ext>

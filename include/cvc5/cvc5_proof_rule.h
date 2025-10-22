@@ -583,42 +583,6 @@ enum ENUM(ProofRule)
   EVALUE(REORDERING),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Boolean -- N-ary Resolution + Factoring + Reordering**
-   *
-   * .. math::
-   *
-   *   \inferrule{C_1 \dots C_n \mid C, pol_1,L_1 \dots pol_{n-1},L_{n-1}}{C}
-   *
-   * where
-   *
-   * - let :math:`C_1 \dots C_n` be nodes viewed as clauses, as defined in
-   *   :cpp:enumerator:`RESOLUTION <cvc5::ProofRule::RESOLUTION>`
-   * - let :math:`C_1 \diamond_{L,\mathit{pol}} C_2` represent the resolution of
-   *   :math:`C_1` with :math:`C_2` with pivot :math:`L` and polarity
-   *   :math:`pol`, as defined in
-   *   :cpp:enumerator:`RESOLUTION <cvc5::ProofRule::RESOLUTION>`
-   * - let :math:`C_1'` be equal, in its set representation, to :math:`C_1`,
-   * - for each :math:`i > 1`, let :math:`C_i'` be equal, in its set
-   *   representation, to :math:`C_{i-1} \diamond_{L_{i-1},\mathit{pol}_{i-1}}
-   *   C_i'`
-   *
-   * The result of the chain resolution is :math:`C`, which is equal, in its set
-   * representation, to :math:`C_n'`
-   * \endverbatim
-   */
-  EVALUE(MACRO_RESOLUTION),
-  /**
-   * \verbatim embed:rst:leading-asterisk
-   * **Boolean -- N-ary Resolution + Factoring + Reordering unchecked**
-   *
-   * Same as
-   * :cpp:enumerator:`MACRO_RESOLUTION <cvc5::ProofRule::MACRO_RESOLUTION>`, but
-   * not checked by the internal proof checker.
-   * \endverbatim
-   */
-  EVALUE(MACRO_RESOLUTION_TRUST),
-  /**
-   * \verbatim embed:rst:leading-asterisk
    * **Boolean -- Chain multiset resolution**
    *
    * This rule combines Resolution + Factoring + Reordering.
@@ -1232,11 +1196,26 @@ enum ENUM(ProofRule)
    *   \inferrule{t_1=s_1,\dots,t_n=s_n\mid f(t_1,\dots, t_n)}{f(t_1,\dots, t_n) = f(s_1,\dots, s_n)}
    *
    * This rule is used for terms :math:`f(t_1,\dots, t_n)` whose kinds
-   * :math:`k` have variadic arity, such as ``cvc5::Kind::AND``,
-   * ``cvc5::Kind::PLUS`` and so on.
+   * :math:`k` have variadic arity and are treated as associative,
+   * such as ``cvc5::Kind::AND``, ``cvc5::Kind::PLUS`` and so on.
    * \endverbatim
    */
   EVALUE(NARY_CONG),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Equality -- Pairwise Congruence**
+   *
+   * .. math::
+   *
+   *   \inferrule{t_1=s_1,\dots,t_n=s_n\mid f(t_1,\dots, t_n)}{f(t_1,\dots, t_n) = f(s_1,\dots, s_n)}
+   *
+   * This rule is used for terms :math:`f(t_1,\dots, t_n)` whose kinds
+   * :math:`k` have variadic arity and are pairwise.
+   * Currently, this rule is used only for congruence of terms whose kind is
+   * ``cvc5::Kind::DISTINCT``.
+   * \endverbatim
+   */
+  EVALUE(PAIRWISE_CONG),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Equality -- True intro**
@@ -2755,6 +2734,32 @@ enum ENUM(ProofRewriteRule)
    * \endverbatim
    */
   EVALUE(ARITH_POW_ELIM),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Equality -- Distinct conflict**
+   *
+   * .. math::
+   *
+   *   \mathit{distinct}(t_1, \ldots, t_n) = \bot
+   *
+   * where :math:`t_i` is :math:`t_j` for some distinct :math:`i`, :math:`j`.
+   *
+   * \endverbatim
+   */
+  EVALUE(DISTINCT_FALSE),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Equality -- Distinct conflict**
+   *
+   * .. math::
+   *
+   *   \mathit{distinct}(t_1, \ldots, t_n) = \top
+   *
+   * where :math:`t_1, \ldots, t_n` are distinct values.
+   *
+   * \endverbatim
+   */
+  EVALUE(DISTINCT_TRUE),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Equality -- Beta reduction**

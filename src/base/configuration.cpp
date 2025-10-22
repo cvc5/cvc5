@@ -37,6 +37,11 @@ bool Configuration::isSafeBuild()
   return IS_SAFE_BUILD;
 }
 
+bool Configuration::isStableBuild()
+{
+  return IS_STABLE_BUILD;
+}
+
 bool Configuration::isDebugBuild() {
   return IS_DEBUG_BUILD;
 }

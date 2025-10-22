@@ -3376,9 +3376,7 @@ std::string Term::getUninterpretedSortValue() const
       << "Term to be an abstract value when calling "
          "getUninterpretedSortValue()";
   //////// all checks before this line
-  std::stringstream ss;
-  ss << d_node->getConst<internal::UninterpretedSortValue>();
-  return ss.str();
+  return d_node->getConst<internal::UninterpretedSortValue>().getSymbol();
   ////////
   CVC5_API_TRY_CATCH_END;
 }

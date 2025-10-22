@@ -121,21 +121,6 @@
     (eo::ite (eo::is_neg x) 0 ($arith_eval_int_pow_2_rec x))
     (int.pow2 x)))
 
-; program: $arith_eval_int_is_pow_2_rec
-; args:
-; - x  Int: The term to compute whether it is a power of two, assumed to be a positive numeral value.
-; return: true iff x is a power of two.
-; note: Helper method for $arith_eval_is_pow_2 below.
-(program $arith_eval_int_is_pow_2_rec ((x Int))
-  :signature (Int) Bool
-  (
-  (($arith_eval_int_is_pow_2_rec 1) true)
-  (($arith_eval_int_is_pow_2_rec x) (eo::ite (eo::eq (eo::zmod x 2) 0)
-                                      ($arith_eval_int_is_pow_2_rec (eo::zdiv x 2))
-                                      false))
-  )
-)
-
 ; define: $arith_eval_is_pow_2
 ; args:
 ; - x Int: The term to compute whether it is a power of two.
@@ -144,5 +129,7 @@
 ;   the term (int.ispow2 x).
 (define $arith_eval_int_is_pow_2 ((x Int))
   (eo::ite (eo::is_z x) 
-    (eo::ite (eo::is_neg x) false ($arith_eval_int_is_pow_2_rec x))
+    (eo::ite (eo::is_neg x)
+      false
+      (eo::eq x ($arith_eval_int_pow_2 ($arith_eval_int_log_2 x))))
     (int.ispow2 x)))

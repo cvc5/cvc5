@@ -93,7 +93,7 @@ cdef Op _op(tm: TermManager, op: c_Op):
   o.tm = tm
   return o
 
-cdef Term _term(tm: TermManager, term: c_Term):
+cdef Term _term(TermManager tm, const c_Term& term):
   t = Term()
   t.cterm = term
   t.tm = tm
@@ -270,6 +270,9 @@ cdef class Command:
     """
     cdef c_Command cc
 
+    def __init__(self):
+        pass
+
     def __str__(self):
         return self.cc.toString().decode()
 
@@ -445,6 +448,9 @@ cdef class Datatype:
     cdef c_Datatype cdt
     cdef TermManager tm
 
+    def __init__(self):
+        pass
+
     def __getitem__(self, index):
         """
             Get the datatype constructor with the given index, where index can
@@ -574,6 +580,9 @@ cdef class DatatypeConstructor:
     """
     cdef c_DatatypeConstructor cdtcons
     cdef TermManager tm
+
+    def __init__(self):
+        pass
 
     def __getitem__(self, index):
         """
@@ -722,6 +731,9 @@ cdef class DatatypeConstructorDecl:
     cdef c_DatatypeConstructorDecl cdtconsdecl
     cdef TermManager tm
 
+    def __init__(self):
+        pass
+
     def addSelector(self, str name, Sort sort):
         """
             Add datatype selector declaration.
@@ -788,6 +800,9 @@ cdef class DatatypeDecl:
     cdef c_DatatypeDecl cdtdecl
     cdef TermManager tm
 
+    def __init__(self):
+        pass
+
     def addConstructor(self, DatatypeConstructorDecl ctor):
         """
             Add a datatype constructor declaration.
@@ -840,6 +855,9 @@ cdef class DatatypeSelector:
     """
     cdef c_DatatypeSelector cdtsel
     cdef TermManager tm
+
+    def __init__(self):
+        pass
 
     def getName(self):
         """
@@ -910,6 +928,9 @@ cdef class Op:
     cdef c_Op cop
     cdef TermManager tm
 
+    def __init__(self):
+        pass
+
     def __eq__(self, Op other):
         return self.cop == other.cop
 
@@ -974,6 +995,9 @@ cdef class Grammar:
     cdef c_Grammar  cgrammar
     cdef TermManager tm
 
+    def __init__(self):
+        pass
+
     def __str__(self):
         return self.cgrammar.toString().decode()
 
@@ -1031,10 +1055,10 @@ cdef class Result:
 
         Wrapper class for :cpp:class:`cvc5::Result`.
     """
-    cdef c_Result cr
-    def __cinit__(self):
-        # gets populated by solver
-        self.cr = c_Result()
+    cdef c_Result cr # gets populated by solver
+
+    def __init__(self):
+        pass
 
     def isNull(self):
         """
@@ -1098,10 +1122,10 @@ cdef class SynthResult:
       which we call synthesis queries. This class indicates whether the
       synthesis query has a solution, has no solution, or is unknown.
     """
-    cdef c_SynthResult cr
-    def __cinit__(self):
-        # gets populated by solver
-        self.cr = c_SynthResult()
+    cdef c_SynthResult cr # gets populated by solver
+
+    def __init__(self):
+        pass
 
     def __eq__(self, SynthResult other):
         return self.cr == other.cr
@@ -1168,6 +1192,9 @@ cdef class TermManager:
         res = Statistics()
         res.cstats = self.ctm.getStatistics()
         return res
+
+    def __init__(self):
+        pass
 
     def __cinit__(self):
         self.ctm = new c_TermManager()
@@ -1477,7 +1504,6 @@ cdef class TermManager:
             :param symbol: The name of the sort.
             :return: The uninterpreted sort.
         """
-        cdef Sort sort = Sort(self)
         if name is None:
           return _sort(self, self.ctm.mkUninterpretedSort())
         return _sort(self, self.ctm.mkUninterpretedSort(name.encode()))
@@ -1508,7 +1534,6 @@ cdef class TermManager:
             :param arity: The arity of the sort (must be > 0).
             :return: The sort constructor sort.
         """
-        cdef Sort sort = Sort(self)
         if symbol is None:
           return _sort(self, self.ctm.mkUninterpretedSortConstructorSort(arity))
         return _sort(
@@ -4765,6 +4790,9 @@ cdef class Sort:
     cdef c_Sort csort
     cdef TermManager tm
 
+    def __init__(self):
+        pass
+
     def __eq__(self, Sort other):
         return self.csort == other.csort
 
@@ -5424,6 +5452,9 @@ cdef class Term:
     cdef c_Term cterm
     cdef TermManager tm
 
+    def __init__(self):
+        pass
+
     def __eq__(self, Term other):
         return self.cterm == other.cterm
 
@@ -5550,9 +5581,7 @@ cdef class Term:
 
                 This is safe to call when :py:meth:`hasOp()` returns True.
         """
-        cdef Op op = Op(self.tm)
-        op.cop = self.cterm.getOp()
-        return op
+        return _op(self.tm, self.cterm.getOp())
 
     def hasSymbol(self):
         """
@@ -6114,6 +6143,9 @@ cdef class Proof:
     """
     cdef c_Proof cproof
     cdef TermManager tm
+
+    def __init__(self):
+        pass
 
     def __eq__(self, Proof other):
         return self.cproof == other.cproof

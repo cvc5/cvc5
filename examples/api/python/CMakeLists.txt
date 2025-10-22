@@ -107,7 +107,7 @@ foreach(example ${EXAMPLES_API_PYTHON})
   create_python_example(${example})
 endforeach()
 
-if(NOT CVC5_SAFE_BUILD)
+if((NOT CVC5_SAFE_BUILD) AND (NOT CVC5_STABLE_BUILD))
   create_python_example("floating_point")
   create_python_example("bags")
   create_python_example("relations")
