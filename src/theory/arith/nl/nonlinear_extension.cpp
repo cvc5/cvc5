@@ -702,7 +702,7 @@ void NonlinearExtension::explainFlattenMonomials(
   Node conc = a.eqNode(b);
   Node lemf = nm->mkNode(Kind::IMPLIES, nm->mkAnd(exp), conc);
   NlLemma lem(InferenceId::ARITH_NL_FLATTEN_MON, lemf);
-  addPendingLemma(lem);
+  d_im.addPendingLemma(lem);
 }
 
 void NonlinearExtension::explainFlattenMonomialsCyclic(
