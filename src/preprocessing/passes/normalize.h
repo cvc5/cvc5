@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * 
+ * Normalizes the input benchmark regardless of the symbol names and assertion order. 
  */
 
  #include "cvc5_private.h"
