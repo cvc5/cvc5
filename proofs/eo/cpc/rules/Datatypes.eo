@@ -26,7 +26,7 @@
 ;   $mk_dt_split method.
 (declare-rule dt_split ((D Type) (x D))
   :args (x)
-  :conclusion ($singleton_elim ($mk_dt_split ($dt_get_constructors (eo::typeof x)) x))
+  :conclusion (eo::list_singleton_elim or ($mk_dt_split ($dt_get_constructors (eo::typeof x)) x))
 )
 
 ;;;;; ProofRewriteRule::DT_INST
@@ -178,7 +178,7 @@
 ; conclusion: The given equality.
 (declare-rule dt-cons-eq ((D Type) (t D) (s D) (B Bool))
   :args ((= (= t s) B))
-  :requires ((($singleton_elim ($mk_dt_cons_eq t s)) B))
+  :requires (((eo::list_singleton_elim and ($mk_dt_cons_eq t s)) B))
   :conclusion (= (= t s) B)
 )
 

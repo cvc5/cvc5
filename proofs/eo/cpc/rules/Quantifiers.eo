@@ -309,7 +309,7 @@
   :signature (T Bool) Bool
   (
   (($mk_quant_var_elim_eq x (not (= x t)))        ($mk_quant_var_elim_eq_subs x t false))
-  (($mk_quant_var_elim_eq x (or (not (= x t)) F)) ($mk_quant_var_elim_eq_subs x t ($singleton_elim F)))
+  (($mk_quant_var_elim_eq x (or (not (= x t)) F)) ($mk_quant_var_elim_eq_subs x t (eo::list_singleton_elim or F)))
   )
 )
 

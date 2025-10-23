@@ -1,26 +1,5 @@
 (include "../programs/Utils.eo")
 
-; program: $singleton_elim_aci
-; args:
-; - f (-> S S S): The function we are considering.
-; - id S: The nil terminator of f.
-; - s S: The term to process.
-; return: >
-;   The result of applying singleton elimination for s, where s should
-;   be an application of f. In particular, if s is of the form (f x1 x2) where
-;   x2 is the nil terminator of f, then we return x1. Otherwise, we return s
-;   unchanged.
-; note: >
-;   This method is similar in purpose to $singleton_elim, but insists that
-;   the function and its nil terminator are provided explicitly.
-(program $singleton_elim_aci ((S Type) (U Type) (f (-> S S S)) (id U) (x U) (x1 U) (x2 U))
-  :signature ((-> S S S) U U) U
-  (
-    (($singleton_elim_aci f id (f x1 x2))  (eo::ite (eo::eq x2 id) x1 (f x1 x2)))
-    (($singleton_elim_aci f id x)          x)
-  )
-)
-
 ; program: $get_ai_norm_rec
 ; args:
 ; - f (-> S S S): The function we are considering, which is assumed to be associative+idempotent and has the given identity.
@@ -44,7 +23,7 @@
   :signature (U) U
   (
     (($get_ai_norm (f x y)) (eo::define ((id (eo::nil f (eo::typeof (f x y)))))
-                              ($singleton_elim_aci f id ($get_ai_norm_rec f id (f x y)))))
+                              (eo::list_singleton_elim f ($get_ai_norm_rec f id (f x y)))))
   )
 )
 
@@ -71,7 +50,7 @@
   :signature (U) U
   (
     (($get_a_norm (f x y))  (eo::define ((id (eo::nil f (eo::typeof (f x y)))))
-                              ($singleton_elim_aci f id ($get_a_norm_rec f id (f x y)))))
+                              (eo::list_singleton_elim f ($get_a_norm_rec f id (f x y)))))
   )
 )
 

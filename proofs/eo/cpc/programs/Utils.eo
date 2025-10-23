@@ -137,21 +137,6 @@
 (define $compare_var ((T Type :implicit) (U Type :implicit) (a T) (b U))
   (eo::cmp b a))
 
-; program: $singleton_elim
-; args:
-; - s S: The term to proces.
-; return: >
-;   The result of applying singleton elimination for s. In particular,
-;   if s is of the form (f x1 x2) where x2 is the nil terminator of f, then we
-;   return x1. Otherwise, we return s unchanged.
-(program $singleton_elim ((T Type) (S Type) (U Type) (f (-> T U S)) (x S) (x1 S) (x2 T))
-  :signature (S) S
-  (
-    (($singleton_elim (f x1 x2))  (eo::ite (eo::eq x2 (eo::nil f (eo::typeof (f x1 x2)))) x1 (f x1 x2)))
-    (($singleton_elim x)          x)
-  )
-)
-
 ;; =============== for results
 
 ; Used for representing partial results of the method below.
