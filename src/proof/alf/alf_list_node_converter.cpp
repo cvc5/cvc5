@@ -121,7 +121,8 @@ Node AlfListNodeConverter::postConvert(Node n)
     // prints as an operator parameterized by a variadic function, due to use of
     // raw symbol in mkInternalApp.
     std::stringstream ss;
-    ss << "eo::list_singleton_elim " << printer::smt2::Smt2Printer::smtKindString(k);
+    ss << "eo::list_singleton_elim "
+       << printer::smt2::Smt2Printer::smtKindString(k);
     return d_tproc.mkInternalApp(ss.str(), {n}, n.getType());
   }
   return n;
