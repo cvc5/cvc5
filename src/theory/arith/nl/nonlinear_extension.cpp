@@ -666,6 +666,43 @@ void NonlinearExtension::checkFlattenMonomials(
 void NonlinearExtension::explainFlattenMonomials(
     const Node& a, const Node& b, const std::map<Node, Node>& repEq)
 {
+  std::vector<Node> toProcess;
+  toProcess.push_back(a);
+  toProcess.push_back(b);
+  std::unordered_set<Node> processed;
+  std::vector<Node> exp;
+  ArithSubs as;
+  size_t i = 0;
+  std::map<Node, Node>::const_iterator itr;
+  eq::EqualityEngine* ee = d_astate.getEqualityEngine();
+  // expand
+  while (i<toProcess.size())
+  {
+    Node v = toProcess[i];
+    i++;
+    if (!processed.insert(v).second)
+    {
+      continue;
+    }
+    if (v.getKind()==Kind::NONLINEAR_MULT)
+    {
+      toProcess.insert(toProcess.end(), v.begin(), v.end());
+      continue;
+    }
+    Node vr = ee->getRepresentative(v);
+    itr = repEq.find(vr);
+    if (itr!=repEq.end() && itr->second!=v)
+    {
+      exp.push_back(v.eqNode(itr->second));
+      toProcess.push_back(itr->second);
+    }
+  }
+  Trace("nl-ff") << "...explanation is " << exp << std::endl;
+  NodeManager * nm = nodeManager();
+  Node conc = a.eqNode(b);
+  Node lemf = nm->mkNode(Kind::IMPLIES, nm->mkAnd(exp), conc);
+  NlLemma lem(InferenceId::ARITH_NL_FLATTEN_MON, lemf);
+  addPendingLemma(lem);
 }
 
 void NonlinearExtension::explainFlattenMonomialsCyclic(
