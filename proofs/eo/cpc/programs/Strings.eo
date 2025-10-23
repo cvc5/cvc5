@@ -996,9 +996,12 @@
 (program $str_mk_re_loop_elim_rec ((n Int) (d Int) (r RegLan) (rr RegLan :list))
   :signature (Int Int RegLan RegLan) RegLan
   (
-    (($str_mk_re_loop_elim_rec 0 0 r rr) (eo::cons re.union (eo::list_singleton_elim re.union rr) re.none))
-    (($str_mk_re_loop_elim_rec 0 d r rr) (eo::cons re.union (eo::list_singleton_elim re.union rr) ($str_mk_re_loop_elim_rec 0 (eo::add d -1) r (re.++ r rr))))
-    (($str_mk_re_loop_elim_rec n d r rr) ($str_mk_re_loop_elim_rec (eo::add n -1) d r (re.++ r rr)))
+    (($str_mk_re_loop_elim_rec 0 0 r rr)
+      (eo::cons re.union (eo::list_singleton_elim re.++ rr) re.none))
+    (($str_mk_re_loop_elim_rec 0 d r rr)
+      (eo::cons re.union (eo::list_singleton_elim re.++ rr) ($str_mk_re_loop_elim_rec 0 (eo::add d -1) r (re.++ r rr))))
+    (($str_mk_re_loop_elim_rec n d r rr)
+      ($str_mk_re_loop_elim_rec (eo::add n -1) d r (re.++ r rr)))
   )
 )
 
