@@ -996,8 +996,8 @@
 (program $str_mk_re_loop_elim_rec ((n Int) (d Int) (r RegLan) (rr RegLan :list))
   :signature (Int Int RegLan RegLan) RegLan
   (
-    (($str_mk_re_loop_elim_rec 0 0 r rr) (eo::cons re.union ($singleton_elim rr) re.none))
-    (($str_mk_re_loop_elim_rec 0 d r rr) (eo::cons re.union ($singleton_elim rr) ($str_mk_re_loop_elim_rec 0 (eo::add d -1) r (re.++ r rr))))
+    (($str_mk_re_loop_elim_rec 0 0 r rr) (eo::cons re.union (eo::list_singleton_elim re.union rr) re.none))
+    (($str_mk_re_loop_elim_rec 0 d r rr) (eo::cons re.union (eo::list_singleton_elim re.union rr) ($str_mk_re_loop_elim_rec 0 (eo::add d -1) r (re.++ r rr))))
     (($str_mk_re_loop_elim_rec n d r rr) ($str_mk_re_loop_elim_rec (eo::add n -1) d r (re.++ r rr)))
   )
 )
@@ -1015,8 +1015,7 @@
 ;   where r^k is (re.++ r ... r), where r is repeated k times when k>1, or
 ;   r if k=1 or @re.empty if k=0.
 (define $str_mk_re_loop_elim ((n Int) (d Int) (r RegLan))
-  ($singleton_elim ($str_mk_re_loop_elim_rec n d r @re.empty))
-)
+  (eo::list_singleton_elim re.union ($str_mk_re_loop_elim_rec n d r @re.empty)))
 
 ; program: $str_mk_str_in_re_concat_star_char
 ; args:
