@@ -186,7 +186,7 @@
   :signature ((BitVec n)) (BitVec n)
   (
   (($bv_mk_bitwise_slicing (f a1 a2))
-              (eo::list_singleton_elim f
+              (eo::list_singleton_elim concat
                 (eo::define ((c ($bv_get_first_const_child (f a1 a2))))
                 (eo::requires ($bv_is_bitwise_slicing_op f) true
                 (eo::define ((wm1 (eo::add (eo::len c) -1)))
