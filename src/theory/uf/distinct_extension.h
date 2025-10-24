@@ -84,7 +84,7 @@ class DistinctExtension : protected EnvObj
   // d_eqcToDMem[a] indicates that b is the child of distinct(b,c,d) that is
   // in the equivalence class of a, and similarly d_eqcToDMem[d] indicates that
   // d is the child of distinct(b,c,d) that is in the equivalence class of d.
-  /** 
+  /**
    * The number of entries in d_eqcToDistinct/d_eqcToMem that are valid in the
    * current SAT context.
    * We track this because d_eqcToDistinct/d_eqcToMem are *not* stored in a
