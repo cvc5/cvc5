@@ -38,13 +38,13 @@ bool SubtypeElimConverterCallback::shouldConvert(std::shared_ptr<ProofNode> pn)
   const std::vector<Node>& args = pn->getArguments();
   for (const Node& a : args)
   {
-    if (d_nconv.convert(a)!=a)
+    if (d_nconv.convert(a) != a)
     {
       return true;
     }
   }
   Node res = pn->getResult();
-  return d_nconv.convert(res)!=res;
+  return d_nconv.convert(res) != res;
 }
 
 Node SubtypeElimConverterCallback::convert(Node res,

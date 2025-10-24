@@ -22,6 +22,7 @@
 #include "expr/elim_shadow_converter.h"
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
+#include "expr/subtype_elim_node_converter.h"
 #include "options/quantifiers_options.h"
 #include "proof/conv_proof_generator.h"
 #include "proof/proof.h"
@@ -40,7 +41,6 @@
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/uf/theory_uf_rewriter.h"
 #include "util/rational.h"
-#include "expr/subtype_elim_node_converter.h"
 
 using namespace std;
 using namespace cvc5::internal::kind;
@@ -345,7 +345,8 @@ Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       {
         return Node::null();
       }
-      Trace("quant-rewrite-proof") << "Var elim rewrite " << n << ", id " << id << "?" << std::endl;
+      Trace("quant-rewrite-proof")
+          << "Var elim rewrite " << n << ", id " << id << "?" << std::endl;
       std::vector<Node> args(n[0].begin(), n[0].end());
       std::vector<Node> vars;
       std::vector<Node> subs;
@@ -406,7 +407,8 @@ Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
         std::vector<Node> qc(n.begin(), n.end());
         qc[1] =
             body.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
-        Trace("quant-rewrite-proof") << "...returns body " << qc[1] << std::endl;
+        Trace("quant-rewrite-proof")
+            << "...returns body " << qc[1] << std::endl;
         if (args.empty())
         {
           return qc[1];

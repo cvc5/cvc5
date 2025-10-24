@@ -21,8 +21,11 @@ namespace cvc5::internal {
 
 ProofNodeConverterCallback::ProofNodeConverterCallback() {}
 ProofNodeConverterCallback::~ProofNodeConverterCallback() {}
-bool ProofNodeConverterCallback::shouldConvert(std::shared_ptr<ProofNode> pn) { return false; }
-  
+bool ProofNodeConverterCallback::shouldConvert(std::shared_ptr<ProofNode> pn)
+{
+  return false;
+}
+
 ProofNodeConverter::ProofNodeConverter(Env& env,
                                        ProofNodeConverterCallback& cb,
                                        bool autoSym)
@@ -84,7 +87,7 @@ std::shared_ptr<ProofNode> ProofNodeConverter::process(
         it = visited.find(cp);
         Assert(it != visited.end());
         pchildren.push_back(it->second);
-        childChanged = childChanged || cp!=it->second;
+        childChanged = childChanged || cp != it->second;
         Trace("pf-convert") << "- " << cp->getRule() << " " << cp->getResult()
                             << " ... " << it->second->getResult() << std::endl;
       }
