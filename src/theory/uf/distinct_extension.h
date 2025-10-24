@@ -51,7 +51,12 @@ class DistinctExtension : protected EnvObj
   bool needsCheckLastEffort();
   /** Assert distinct, may return a conflict */
   void assertDistinct(TNode atom, bool pol, TNode fact);
-  /** Called when t1 and t2 merge, may return a conflict */
+  /**
+   * Called when t1 and t2 merge, may return a conflict if there exists a
+   * distinct constraint with children (s1...sn) where si is in the equivalence
+   * class of t1 and sj is in the equivalence class of t2. This is recognized
+   * based on the comment below.
+   */
   void eqNotifyMerge(TNode t1, TNode t2);
 
  private:
@@ -74,27 +79,46 @@ class DistinctExtension : protected EnvObj
   // d_eqcToDistinct[d] = {distinct(b,c,d)},
   // d_eqcToDMem[d] = {d}
   // If {a,b} and {d} merge, we recognize a conflict since distinct(b,c,d) is
-  // in both lists, where b=d is the explanation for the conflict, accessible
-  // via d_eqcToDMem.
-  /** The number of entries in d_eqcToDistinct/d_eqcToMem that are valid */
+  // in both lists (d_eqcToDistinct[a] and d_eqcToDistinct[d]), where b=d is
+  // the explanation for the conflict, accessible via d_eqcToDMem. In particular
+  // d_eqcToDMem[a] indicates that b is the child of distinct(b,c,d) that is
+  // in the equivalence class of a, and similarly d_eqcToDMem[d] indicates that
+  // d is the child of distinct(b,c,d) that is in the equivalence class of d.
+  /** 
+   * The number of entries in d_eqcToDistinct/d_eqcToMem that are valid in the
+   * current SAT context.
+   * We track this because d_eqcToDistinct/d_eqcToMem are *not* stored in a
+   * context dependent manner for efficiency, but whose entries are valid only
+   * in the current SAT context.
+   */
   NodeUIntMap d_ndistinct;
-  /** Mapping from equivalence classes to the list of distincts that they belong
-   * to */
+  /**
+   * Mapping from equivalence classes to the list of distincts that they belong
+   * to.
+   */
   std::map<Node, std::vector<Node>> d_eqcToDistinct;
-  /** The corresponding term in the equivalence class, for each entry in
-   * d_eqcToDistinct */
+  /**
+   * The corresponding term in the equivalence class, for each entry in
+   * d_eqcToDistinct, as described in the comment above.
+   */
   std::map<Node, std::vector<Node>> d_eqcToDMem;
   /** The set of asserted negated distinct constraints */
   context::CDList<Node> d_negDistinct;
   /** The number of constraints in the above list we have reduced. */
   context::CDO<size_t> d_negDistinctIndex;
-  /** The set of asserted negated distinct constraints */
+  /** The set of asserted positive distinct constraints */
   context::CDList<Node> d_posDistinct;
   /** A proof generator for disequal congruent terms */
   std::shared_ptr<DistinctProofGenerator> d_dproof;
   /** Eager proof generator */
   std::shared_ptr<EagerProofGenerator> d_epg;
-  /** The pending conflict if one exists */
+  /**
+   * The pending conflict if one exists. These are of the form described in
+   * InferenceId::UF_DISTINCT_DEQ. Pending conflicts are necessary since we
+   * may discover a conflict when two equivalence classes merge, but we should
+   * wait until the equality engine is finished merging before reporting the
+   * conflict.
+   */
   context::CDO<Node> d_pendingConflict;
 };
 
