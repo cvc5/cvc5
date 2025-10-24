@@ -41,6 +41,10 @@ class SubtypeElimConverterCallback : public ProofNodeConverterCallback,
   SubtypeElimConverterCallback(Env& env);
   virtual ~SubtypeElimConverterCallback() {}
   /**
+   * Should we convert the given proof node? True if pn has mixed arithmetic.
+   */
+  bool shouldConvert(std::shared_ptr<ProofNode> pn) override;
+  /**
    * This converts all proofs of formulas F to proofs of d_nconv.convert(F),
    * where d_nconv is the utility that eliminates mixed arithmetic from F.
    *

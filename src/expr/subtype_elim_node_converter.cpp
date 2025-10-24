@@ -40,14 +40,21 @@ Node SubtypeElimNodeConverter::postConvert(Node n)
   {
     convertToRealChildren = isRealTypeStrict(n.getType());
   }
-  else if (k == Kind::DIVISION || k == Kind::DIVISION_TOTAL
-           || k == Kind::TO_INTEGER || k == Kind::IS_INTEGER)
+  else if (k == Kind::TO_INTEGER || k == Kind::IS_INTEGER)
   {
     // always ensure that the arguments of these operators are Real
     convertToRealChildren = true;
   }
-  else if (k == Kind::GEQ || k == Kind::GT || k == Kind::LEQ || k == Kind::LT)
+  else if (k == Kind::DIVISION || k == Kind::DIVISION_TOTAL || k == Kind::GEQ
+           || k == Kind::GT || k == Kind::LEQ || k == Kind::LT)
   {
+    // Each of the above terms we allow overloading (both arguments Int, or both
+    // arguments Real) but not mixing arithmetic types.
+    // This means that we allow real division between integer terms here, in
+    // contrast to the SMT-LIB standard which only defines real division for
+    // real terms. We do so to allow rational constants e.g. (/ 1 3) to be
+    // represented as division terms, which avoids the need for logic-specific
+    // parsing of the syntax for rational values in SMT-LIB.
     convertToRealChildren =
         isRealTypeStrict(n[0].getType()) || isRealTypeStrict(n[1].getType());
   }

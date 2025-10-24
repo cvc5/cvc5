@@ -46,7 +46,7 @@ name   = "Proof"
   category   = "expert"
   long       = "proof-elim-subtypes"
   type       = "bool"
-  default    = "false"
+  default    = "true"
   help       = "Eliminate subtypes (mixed arithmetic) in proofs"
 
 [[option]]
