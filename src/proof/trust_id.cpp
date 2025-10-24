@@ -87,6 +87,7 @@ const char* toString(TrustId id)
     case TrustId::PREPROCESS_STRINGS_EAGER_PP:
       return "PREPROCESS_STRINGS_EAGER_PP";
     // other
+    case TrustId::UF_DISTINCT: return "UF_DISTINCT";
     case TrustId::ARITH_NL_COVERING_DIRECT: return "ARITH_NL_COVERING_DIRECT";
     case TrustId::ARITH_NL_COVERING_RECURSIVE:
       return "ARITH_NL_COVERING_RECURSIVE";
