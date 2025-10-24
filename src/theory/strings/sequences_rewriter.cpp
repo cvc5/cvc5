@@ -94,7 +94,7 @@ SequencesRewriter::SequencesRewriter(NodeManager* nm,
   registerProofRewriteRule(ProofRewriteRule::MACRO_STR_COMPONENT_CTN,
                            TheoryRewriteCtx::POST_DSL);
   registerProofRewriteRule(ProofRewriteRule::SEQ_EVAL_OP,
-                           TheoryRewriteCtx::PRE_DSL);
+                           TheoryRewriteCtx::DSL_SUBCALL);
   // make back pointer to this (for rewriting contains)
   se.d_rewriter = this;
 }
@@ -203,7 +203,10 @@ Node SequencesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       return rewriteViaMacroStrStripEndpoints(n, nb, nrem, ne);
     }
     case ProofRewriteRule::MACRO_RE_INTER_UNION_CONST_ELIM:
-      return rewriteViaMacroReInterUnionConstElim(n);
+    {
+      Node conflict;
+      return rewriteViaMacroReInterUnionConstElim(n, conflict);
+    }
     case ProofRewriteRule::MACRO_STR_COMPONENT_CTN:
     {
       if (n.getKind() == Kind::STRING_CONTAINS)
@@ -1184,7 +1187,8 @@ Node SequencesRewriter::rewriteAndOrRegExp(TNode node)
     }
   }
   // try to eliminate components via constant membership tests
-  Node retNode = rewriteViaMacroReInterUnionConstElim(node);
+  Node conflict;
+  Node retNode = rewriteViaMacroReInterUnionConstElim(node, conflict);
   if (!retNode.isNull())
   {
     return returnRewrite(node, retNode, Rewrite::RE_ANDOR_CONST_REMOVE);
@@ -1694,7 +1698,8 @@ Node SequencesRewriter::rewriteViaMacroStrStripEndpoints(
   return Node::null();
 }
 
-Node SequencesRewriter::rewriteViaMacroReInterUnionConstElim(const Node& n)
+Node SequencesRewriter::rewriteViaMacroReInterUnionConstElim(const Node& n,
+                                                             Node& conflict)
 {
   Kind k = n.getKind();
   if (k != Kind::REGEXP_INTER && k != Kind::REGEXP_UNION)
@@ -1764,6 +1769,7 @@ Node SequencesRewriter::rewriteViaMacroReInterUnionConstElim(const Node& n)
         Trace("strings-rewrite-debug") << "...not included" << std::endl;
         if (k == Kind::REGEXP_INTER)
         {
+          conflict = c;
           // (re.inter .. (str.to_re c) .. R ..) ---> re.none
           // if c is not a member of R.
           return nodeManager()->mkNode(Kind::REGEXP_NONE);
@@ -2015,18 +2021,30 @@ Node SequencesRewriter::rewriteDifferenceRegExp(TNode node)
 Node SequencesRewriter::rewriteRangeRegExp(TNode node)
 {
   Assert(node.getKind() == Kind::REGEXP_RANGE);
+  NodeManager* nm = nodeManager();
   unsigned ch[2];
+  bool hasNonConst = false;
   for (size_t i = 0; i < 2; ++i)
   {
-    if (!node[i].isConst() || node[i].getConst<String>().size() != 1)
+    if (!node[i].isConst())
     {
-      // not applied to characters, it is not handled
-      return node;
+      hasNonConst = true;
+      continue;
+    }
+    else if (node[i].getConst<String>().size()!=1)
+    {
+      // non-singleton means empty
+      Node retNode = nm->mkNode(Kind::REGEXP_NONE);
+      return returnRewrite(node, retNode, Rewrite::RE_RANGE_NON_SINGLETON);
     }
     ch[i] = node[i].getConst<String>().front();
   }
+  if (hasNonConst)
+  {
+    // not applied to characters, it is not handled
+    return node;
+  }
 
-  NodeManager* nm = nodeManager();
   if (node[0] == node[1])
   {
     Node retNode = nm->mkNode(Kind::STRING_TO_REGEXP, node[0]);

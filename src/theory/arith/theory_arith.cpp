@@ -170,6 +170,10 @@ void TheoryArith::preRegisterTerm(TNode n)
   {
     d_nonlinearExtension->preRegisterTerm(n);
   }
+  else if (n.getKind()==Kind::NONLINEAR_MULT)
+  {
+    throw LogicException("A non-linear term was asserted to arithmetic in a linear logic.");
+  }
   d_internal.preRegisterTerm(n);
 }
 

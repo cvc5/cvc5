@@ -132,9 +132,7 @@ void DioSolver::pushInputConstraint(const Comparison& eq, Node reason){
   Assert(eq.getNode().getKind() == Kind::EQUAL);
 
   SumPair sp = eq.toSumPair();
-  if(sp.isNonlinear()){
-    return;
-  }
+  Assert(!sp.isNonlinear());
 
 
 

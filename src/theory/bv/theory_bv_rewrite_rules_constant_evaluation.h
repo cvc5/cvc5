@@ -493,9 +493,9 @@ Node RewriteRule<EvalComp>::apply(TNode node) {
 template <>
 inline bool RewriteRule<EvalConstBvSym>::applies(TNode node)
 {
-  // second argument must be positive and fit unsigned int
+  // second argument must be non-negative and fit unsigned int
   return (node.getKind() == Kind::CONST_BITVECTOR_SYMBOLIC && node[0].isConst()
-          && node[1].isConst() && node[1].getConst<Rational>().sgn() == 1
+          && node[1].isConst() && node[1].getConst<Rational>().sgn() >= 0
           && node[1].getConst<Rational>().getNumerator().fitsUnsignedInt());
 }
 

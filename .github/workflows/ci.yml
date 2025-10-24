@@ -1,10 +1,4 @@
-on:
-  push:
-  pull_request:
-  workflow_dispatch:
-    inputs:
-      release_tag:
-        description: "Tag of the release to build (leave empty for current branch)"
+on: [push, pull_request]
 
 name: CI
 
@@ -97,7 +91,7 @@ jobs:
             strip-bin: aarch64-linux-gnu-strip
 
           - name: macos:production
-            os: macos-13
+            os: macos-15-intel
             config: production --auto-download --all-bindings --editline -DBUILD_GMP=1
             cache-key: production
             strip-bin: strip
@@ -110,7 +104,7 @@ jobs:
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
 
           - name: macos:production-arm64
-            os: macos-14
+            os: macos-15
             config: production --auto-download --all-bindings --editline -DBUILD_GMP=1
             cache-key: production-arm64
             strip-bin: strip
@@ -124,7 +118,7 @@ jobs:
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
 
           - name: macos:production-arm64-cross
-            os: macos-13
+            os: macos-15-intel
             config: production --auto-download --all-bindings --editline --arm64
             cache-key: production-arm64-cross
             strip-bin: strip
@@ -223,7 +217,7 @@ jobs:
             gpl-tag: -gpl
 
           - name: macos:production-gpl
-            os: macos-13
+            os: macos-15-intel
             config: production --auto-download --editline --gpl --cln --glpk --cocoa -DBUILD_GMP=1 -DBUILD_CLN=1
             cache-key: production-gpl
             strip-bin: strip
@@ -232,7 +226,7 @@ jobs:
             gpl-tag: -gpl
 
           - name: macos:production-arm64-gpl
-            os: macos-14
+            os: macos-15
             config: production --auto-download --editline --gpl --cln --glpk --cocoa -DBUILD_GMP=1 -DBUILD_CLN=1
             cache-key: production-arm64-gpl
             strip-bin: strip
@@ -266,9 +260,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-        ref: ${{ github.event.inputs.release_tag }}
 
     # Ensure that the Java bindings, Java API tests, and Java examples are compatible
     # with the minimum required Java version (currently Java 8).
