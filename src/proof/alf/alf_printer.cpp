@@ -323,6 +323,7 @@ bool AlfPrinter::isHandledTheoryRewrite(ProofRewriteRule id, const Node& n)
     case ProofRewriteRule::QUANT_VAR_ELIM_EQ:
     case ProofRewriteRule::QUANT_DT_SPLIT:
     case ProofRewriteRule::RE_LOOP_ELIM:
+    case ProofRewriteRule::RE_EQ_ELIM:
     case ProofRewriteRule::SETS_EVAL_OP:
     case ProofRewriteRule::SETS_INSERT_ELIM:
     case ProofRewriteRule::STR_IN_RE_CONCAT_STAR_CHAR:

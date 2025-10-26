@@ -1,6 +1,7 @@
 /******************************************************************************
  * Top contributors (to current version):
  *   Yoni Zohar, Aina Niemetz, Andrew Reynolds
+ *
  * This file is part of the cvc5 project.
  *
  * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
