@@ -194,7 +194,10 @@ bool AlfPrinter::isHandled(const Options& opts, const ProofNode* pfn)
     case ProofRule::BV_POLY_NORM:
     case ProofRule::BV_POLY_NORM_EQ:
     case ProofRule::EXISTS_STRING_LENGTH:
-    case ProofRule::DSL_REWRITE: return true;
+    case ProofRule::DSL_REWRITE:
+    case ProofRule::BV_INTBLAST:
+    case ProofRule::BV_INTBLAST_BOUNDS:
+      return true;
     case ProofRule::BV_BITBLAST_STEP:
     {
       return isHandledBitblastStep(pfn->getArguments()[0]);
@@ -321,7 +324,6 @@ bool AlfPrinter::isHandledTheoryRewrite(ProofRewriteRule id, const Node& n)
     case ProofRewriteRule::QUANT_VAR_ELIM_EQ:
     case ProofRewriteRule::QUANT_DT_SPLIT:
     case ProofRewriteRule::RE_LOOP_ELIM:
-    case ProofRewriteRule::RE_EQ_ELIM:
     case ProofRewriteRule::SETS_EVAL_OP:
     case ProofRewriteRule::SETS_INSERT_ELIM:
     case ProofRewriteRule::STR_IN_RE_CONCAT_STAR_CHAR:
@@ -350,7 +352,6 @@ bool AlfPrinter::isHandledTheoryRewrite(ProofRewriteRule id, const Node& n)
   }
   return false;
 }
-
 
 bool AlfPrinter::isHandledBitblastStep(const Node& eq)
 {

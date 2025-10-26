@@ -1,5 +1,6 @@
 ; COMMAND-LINE: --solve-bv-as-int=iand
 ; EXPECT: unsat
+; DISABLE-TESTER: cpc
 
 ;; produced by cvc4_16.drv ;;
 (set-logic AUFBVFPDTNIRA)

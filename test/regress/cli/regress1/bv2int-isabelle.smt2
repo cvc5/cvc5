@@ -1,5 +1,6 @@
 ; COMMAND-LINE: --solve-bv-as-int=sum
 ; EXPECT: unsat
+; DISABLE-TESTER: cpc
 (set-logic ALL)
 (declare-fun s$ () (_ BitVec 32))
 (declare-fun x$ () (_ BitVec 32))

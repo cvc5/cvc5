@@ -118,6 +118,8 @@ const char* toString(ProofRule rule)
     case ProofRule::ARRAYS_READ_OVER_WRITE_1: return "ARRAYS_READ_OVER_WRITE_1";
     case ProofRule::ARRAYS_EXT: return "ARRAYS_EXT";
     //================================================= Bit-Vector rules
+    case ProofRule::BV_INTBLAST: return "BV_INTBLAST";
+    case ProofRule::BV_INTBLAST_BOUNDS: return "BV_INTBLAST_BOUNDS";
     case ProofRule::MACRO_BV_BITBLAST: return "MACRO_BV_BITBLAST";
     case ProofRule::BV_BITBLAST_STEP: return "BV_BITBLAST_STEP";
     case ProofRule::BV_EAGER_ATOM: return "BV_EAGER_ATOM";
@@ -340,7 +342,6 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::STR_REPLACE_RE_ALL_EVAL:
       return "str-replace-re-all-eval";
     case ProofRewriteRule::RE_LOOP_ELIM: return "re-loop-elim";
-    case ProofRewriteRule::RE_EQ_ELIM: return "re-eq-elim";
     case ProofRewriteRule::MACRO_RE_INTER_UNION_INCLUSION:
       return "macro-re-inter-union-inclusion";
     case ProofRewriteRule::RE_INTER_INCLUSION: return "re-inter-inclusion";
