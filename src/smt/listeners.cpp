@@ -25,6 +25,7 @@ ResourceOutListener::ResourceOutListener(SolverEngine& slv) : d_slv(slv) {}
 void ResourceOutListener::notify()
 {
   d_slv.interrupt();
+  // throw ResourceOutException();
 }
 
 }  // namespace smt

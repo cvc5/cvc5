@@ -439,6 +439,7 @@ void PropEngine::outputIncompleteReason(UnknownExplanation uexp,
 }
 
 Result PropEngine::checkSat() {
+  Trace("limit") << "PropEngine::checkSat() ENTERED" << std::endl;
   Assert(!d_inCheckSat) << "Sat solver in solve()!";
   Trace("prop") << "PropEngine::checkSat()" << std::endl;
 
