@@ -24,6 +24,7 @@
 #include "base/modal_exception.h"
 #include "base/output.h"
 #include "options/base_options.h"
+#include "options/main_options.h"
 #include "options/option_exception.h"
 #include "options/options.h"
 #include "util/statistics_registry.h"
@@ -226,17 +227,19 @@ void ResourceManager::spendResource(uint64_t amount)
       l->notify();
     }
     
-    // Throw exception to stop execution
-    std::stringstream ss;
-    if (outOfTime())
-    {
-      ss << "Time limit exceeded (" << d_perCallTimer.elapsed() << "ms)";
+    if (d_options.driver.earlyExit) {
+      // Throw exception to stop execution
+      std::stringstream ss;
+      if (outOfTime())
+      {
+        ss << "Time limit exceeded (" << d_perCallTimer.elapsed() << "ms)";
+      }
+      else
+      {
+        ss << "Resource limit exceeded (" << d_cumulativeResourceUsed << " resources used)";
+      }
+      throw RecoverableModalException(ss.str());
     }
-    else
-    {
-      ss << "Resource limit exceeded (" << d_cumulativeResourceUsed << " resources used)";
-    }
-    throw RecoverableModalException(ss.str());
   }
 }
 
