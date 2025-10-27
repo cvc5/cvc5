@@ -658,7 +658,7 @@ void NonlinearExtension::checkFlattenMonomials(
       addToFlattenMonMap(ff.first, ff.second, ffMap, repsProcessed);
     }
   }
-  if (Trace.isOn("nl-ff"))
+  if (TraceIsOn("nl-ff"))
   {
     Trace("nl-ff") << "Final flat form:" << std::endl;
     for (std::pair<const Node, Node>& ff : ffMap)
