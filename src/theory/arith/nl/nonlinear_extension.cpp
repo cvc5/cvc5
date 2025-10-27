@@ -28,8 +28,8 @@
 #include "theory/ext_theory.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
-#include "util/rational.h"
 #include "util/random.h"
+#include "util/rational.h"
 
 using namespace cvc5::internal::kind;
 
@@ -537,7 +537,7 @@ void NonlinearExtension::checkFlattenMonomials(
       }
       else if (n.isConst())
       {
-        if (n.getConst<Rational>()==rone)
+        if (n.getConst<Rational>() == rone)
         {
           one = n;
         }
@@ -668,15 +668,16 @@ void NonlinearExtension::checkFlattenMonomials(
     Trace("nl-ff") << "Final substitution:" << std::endl;
     for (size_t i = 0, ns = as.d_subs.size(); i < ns; i++)
     {
-      Trace("nl-ff") << "  " << as.d_vars[i] << " |-> " << as.d_subs[i] << std::endl;
+      Trace("nl-ff") << "  " << as.d_vars[i] << " |-> " << as.d_subs[i]
+                     << std::endl;
     }
   }
 }
 
 void NonlinearExtension::addToFlattenMonMap(const Node& ns,
-                              const Node& n,
-                              std::map<Node, Node>& ffMap,
-                              const std::map<Node, Node>& repEq)
+                                            const Node& n,
+                                            std::map<Node, Node>& ffMap,
+                                            const std::map<Node, Node>& repEq)
 {
   std::map<Node, Node>::const_iterator itr = ffMap.find(ns);
   if (itr == ffMap.end())
@@ -691,7 +692,7 @@ void NonlinearExtension::addToFlattenMonMap(const Node& ns,
   }
   // otherwise infer they are equal
   Trace("nl-ff") << "*** Equal: " << n << " == " << itr->second
-                << ", both equal to " << ns << std::endl;
+                 << ", both equal to " << ns << std::endl;
   std::vector<Node> toProcess;
   toProcess.push_back(n);
   toProcess.push_back(itr->second);
@@ -700,7 +701,7 @@ void NonlinearExtension::addToFlattenMonMap(const Node& ns,
   ArithSubs as;
   size_t i = 0;
   // expand
-  while (i<toProcess.size())
+  while (i < toProcess.size())
   {
     Node v = toProcess[i];
     i++;
@@ -708,7 +709,7 @@ void NonlinearExtension::addToFlattenMonMap(const Node& ns,
     {
       continue;
     }
-    if (v.getKind()==Kind::NONLINEAR_MULT)
+    if (v.getKind() == Kind::NONLINEAR_MULT)
     {
       toProcess.insert(toProcess.end(), v.begin(), v.end());
       continue;
@@ -717,14 +718,14 @@ void NonlinearExtension::addToFlattenMonMap(const Node& ns,
     // no-op if v is not in the equality engine.
     Node vr = d_astate.getRepresentative(v);
     itr = repEq.find(vr);
-    if (itr!=repEq.end() && itr->second!=v)
+    if (itr != repEq.end() && itr->second != v)
     {
       exp.push_back(v.eqNode(itr->second));
       toProcess.push_back(itr->second);
     }
   }
   Trace("nl-ff") << "...explanation is " << exp << std::endl;
-  NodeManager * nm = nodeManager();
+  NodeManager* nm = nodeManager();
   Node conc = itr->second.eqNode(n);
   Node lemf = nm->mkNode(Kind::IMPLIES, nm->mkAnd(exp), conc);
   NlLemma lem(InferenceId::ARITH_NL_FLATTEN_MON, lemf);
