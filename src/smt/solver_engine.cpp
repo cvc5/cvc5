@@ -810,10 +810,36 @@ Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions)
   // update the state to indicate we are about to run a check-sat
   d_state->notifyCheckSat();
 
-  // Call the SMT solver driver to check for satisfiability. Note that in the
-  // case of options like e.g. deep restarts, this may invokve multiple calls
-  // to check satisfiability in the underlying SMT solver
-  Result r = d_smtDriver->checkSat(assumptions);
+  Result r;
+  try {
+    // Call the SMT solver driver to check for satisfiability. Note that in the
+    // case of options like e.g. deep restarts, this may invoke multiple calls
+    // to check satisfiability in the underlying SMT solver
+    r = d_smtDriver->checkSat(assumptions);
+  }
+  catch (const RecoverableModalException& e) {
+    // Resource limit exceeded during solving
+    Trace("smt") << "SolverEngine::checkSatInternal: caught exception: " 
+                 << e.getMessage() << endl;
+    
+    ResourceManager* rm = getResourceManager();
+    UnknownExplanation why = UnknownExplanation::INTERRUPTED;
+    if (rm->outOfTime())
+    {
+      why = UnknownExplanation::TIMEOUT;
+    }
+    else if (rm->outOfResources())
+    {
+      why = UnknownExplanation::RESOURCEOUT;
+    }
+    
+    r = Result(Result::UNKNOWN, why);
+    // Notify state of the result
+    d_state->notifyCheckSatResult(r);
+    // Set filename and return
+    const std::string& filename = d_env->getOptions().driver.filename;
+    return Result(r, filename);
+  }
 
   Trace("smt") << "SolverEngine::checkSat(" << assumptions << ") => " << r
                << endl;
