@@ -598,11 +598,18 @@ void NonlinearExtension::checkFlattenMonomials(
       itr = ffMap.find(ns);
       if (itr != ffMap.end())
       {
-        Trace("nl-ff") << "*** Equal: " << n << " == " << itr->second
-                       << ", both equal to " << ns << std::endl;
-        explainFlattenMonomials(itr->second, n, repsProcessed);
+        // if not already equal
+        if (!ee->areEqual(n, itr->second))
+        {
+          Trace("nl-ff") << "*** Equal: " << n << " == " << itr->second
+                        << ", both equal to " << ns << std::endl;
+          explainFlattenMonomials(itr->second, n, repsProcessed);
+        }
       }
-      ffMap[ns] = n;
+      else
+      {
+        ffMap[ns] = n;
+      }
     }
     if (baseTerms.empty())
     {
