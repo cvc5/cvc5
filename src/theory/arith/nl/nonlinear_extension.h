@@ -177,8 +177,9 @@ class NonlinearExtension : EnvObj
                                  std::vector<Node>& keep);
   /** Equality inference based on flattening monomials */
   void checkFlattenMonomials(const std::vector<Node>& assertions);
-  void explainFlattenMonomials(const Node& a,
-                               const Node& b,
+  void addToFlattenMonMap(const Node& ns,
+                               const Node& n,
+                              std::map<Node, Node>& ffMap,
                                const std::map<Node, Node>& repEq);
   void explainFlattenMonomialsCyclic(const Node& a,
                                      const Node& b,

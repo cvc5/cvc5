@@ -509,6 +509,7 @@ void NonlinearExtension::checkFlattenMonomials(
   // substitution as to s gives t.
   std::map<Node, Node> ffMap;
   eq::EqualityEngine* ee = d_astate.getEqualityEngine();
+  Trace("nl-ff") << "Equality engine: " << ee->debugPrintEqc() << std::endl;
   eq::EqClassesIterator eqcsi = eq::EqClassesIterator(ee);
   Rational rone(1);
   while (!eqcsi.isFinished())
@@ -565,7 +566,7 @@ void NonlinearExtension::checkFlattenMonomials(
     // try to find an NL term that does not induce a cycle with any baseTerm
     for (const Node& n : nlTerms)
     {
-      Node ns = rewrite(as.apply(n));
+      Node ns = rewrite(as.applyArith(n));
       std::map<Node, size_t> ff;
       Assert(ns.getKind() != Kind::MULT);
       if (ns.getKind() == Kind::NONLINEAR_MULT)
@@ -595,21 +596,8 @@ void NonlinearExtension::checkFlattenMonomials(
       {
         rep = ns;
       }
-      itr = ffMap.find(ns);
-      if (itr != ffMap.end())
-      {
-        // if not already equal
-        if (!ee->areEqual(n, itr->second))
-        {
-          Trace("nl-ff") << "*** Equal: " << n << " == " << itr->second
-                        << ", both equal to " << ns << std::endl;
-          explainFlattenMonomials(itr->second, n, repsProcessed);
-        }
-      }
-      else
-      {
-        ffMap[ns] = n;
-      }
+      // add to flatten map, which may recognize an inference
+      addToFlattenMonMap(ns, n, ffMap, repsProcessed);
     }
     if (baseTerms.empty())
     {
@@ -667,22 +655,50 @@ void NonlinearExtension::checkFlattenMonomials(
     }
     for (std::pair<const Node, Node>& ff : ffMapNew)
     {
-      ffMap[ff.first] = ff.second;
+      addToFlattenMonMap(ff.first, ff.second, ffMap, repsProcessed);
+    }
+  }
+  if (Trace.isOn("nl-ff"))
+  {
+    Trace("nl-ff") << "Final flat form:" << std::endl;
+    for (std::pair<const Node, Node>& ff : ffMap)
+    {
+      Trace("nl-ff") << "  " << ff.first << " <- " << ff.second << std::endl;
+    }
+    Trace("nl-ff") << "Final substitution:" << std::endl;
+    for (size_t i = 0, ns = as.d_subs.size(); i < ns; i++)
+    {
+      Trace("nl-ff") << "  " << as.d_vars[i] << " |-> " << as.d_subs[i] << std::endl;
     }
   }
 }
 
-void NonlinearExtension::explainFlattenMonomials(
-    const Node& a, const Node& b, const std::map<Node, Node>& repEq)
+void NonlinearExtension::addToFlattenMonMap(const Node& ns,
+                              const Node& n,
+                              std::map<Node, Node>& ffMap,
+                              const std::map<Node, Node>& repEq)
 {
+  std::map<Node, Node>::const_iterator itr = ffMap.find(ns);
+  if (itr == ffMap.end())
+  {
+    ffMap[ns] = n;
+    return;
+  }
+  // if not already equal
+  if (d_astate.areEqual(n, itr->second))
+  {
+    return;
+  }
+  // otherwise infer they are equal
+  Trace("nl-ff") << "*** Equal: " << n << " == " << itr->second
+                << ", both equal to " << ns << std::endl;
   std::vector<Node> toProcess;
-  toProcess.push_back(a);
-  toProcess.push_back(b);
+  toProcess.push_back(n);
+  toProcess.push_back(itr->second);
   std::unordered_set<Node> processed;
   std::vector<Node> exp;
   ArithSubs as;
   size_t i = 0;
-  std::map<Node, Node>::const_iterator itr;
   // expand
   while (i<toProcess.size())
   {
@@ -709,7 +725,7 @@ void NonlinearExtension::explainFlattenMonomials(
   }
   Trace("nl-ff") << "...explanation is " << exp << std::endl;
   NodeManager * nm = nodeManager();
-  Node conc = a.eqNode(b);
+  Node conc = itr->second.eqNode(n);
   Node lemf = nm->mkNode(Kind::IMPLIES, nm->mkAnd(exp), conc);
   NlLemma lem(InferenceId::ARITH_NL_FLATTEN_MON, lemf);
   d_im.addPendingLemma(lem);
