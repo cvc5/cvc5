@@ -540,6 +540,7 @@ void NonlinearExtension::checkFlattenMonomials(
         {
           one = n;
         }
+        // ignore other constants
       }
       else if (mvs.find(n) != mvs.end())
       {
