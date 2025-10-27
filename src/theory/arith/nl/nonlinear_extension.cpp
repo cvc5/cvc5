@@ -29,6 +29,7 @@
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
 #include "util/rational.h"
+#include "util/random.h"
 
 using namespace cvc5::internal::kind;
 
@@ -504,9 +505,12 @@ void NonlinearExtension::checkFlattenMonomials(
   ArithSubs as;
   std::map<Node, Node> repsProcessed;
   std::map<Node, Node>::iterator itr;
+  // Mapping normalized terms t to the term s such that applying the
+  // substitution as to s gives t.
   std::map<Node, Node> ffMap;
   eq::EqualityEngine* ee = d_astate.getEqualityEngine();
   eq::EqClassesIterator eqcsi = eq::EqClassesIterator(ee);
+  Rational rone(1);
   while (!eqcsi.isFinished())
   {
     Node vr = (*eqcsi);
@@ -520,7 +524,7 @@ void NonlinearExtension::checkFlattenMonomials(
     eq::EqClassIterator eqci = eq::EqClassIterator(vr, ee);
     std::unordered_set<Node> baseTerms;
     std::vector<Node> nlTerms;
-    Node cr;
+    Node one;
     Node firstBaseTerm;
     while (!eqci.isFinished())
     {
@@ -532,8 +536,10 @@ void NonlinearExtension::checkFlattenMonomials(
       }
       else if (n.isConst())
       {
-        Assert(cr.isNull());
-        cr = n;
+        if (n.getConst<Rational>()==rone)
+        {
+          one = n;
+        }
       }
       else if (mvs.find(n) != mvs.end())
       {
@@ -546,20 +552,15 @@ void NonlinearExtension::checkFlattenMonomials(
       }
       ++eqci;
     }
-    // don't care about constants?
-    /*
-    // if there is a constant, all terms map to constant
-    if (!cr.isNull())
-    {
-      for (const Node& b : baseTerms)
-      {
-        as.add(b, cr);
-      }
-      repsProcessed[vr] = cr;
-      continue;
-    }
-    */
+    std::shuffle(nlTerms.begin(), nlTerms.end(), Random::getRandom());
     Node rep;
+    // one is always used as the representative, which is intuitively the empty
+    // multiplication
+    if (!one.isNull())
+    {
+      rep = one;
+      nlTerms.clear();
+    }
     // try to find an NL term that does not induce a cycle with any baseTerm
     for (const Node& n : nlTerms)
     {
@@ -674,7 +675,6 @@ void NonlinearExtension::explainFlattenMonomials(
   ArithSubs as;
   size_t i = 0;
   std::map<Node, Node>::const_iterator itr;
-  eq::EqualityEngine* ee = d_astate.getEqualityEngine();
   // expand
   while (i<toProcess.size())
   {
@@ -689,7 +689,9 @@ void NonlinearExtension::explainFlattenMonomials(
       toProcess.insert(toProcess.end(), v.begin(), v.end());
       continue;
     }
-    Node vr = ee->getRepresentative(v);
+    // get the representative via arithmetic state, which note may be a
+    // no-op if v is not in the equality engine.
+    Node vr = d_astate.getRepresentative(v);
     itr = repEq.find(vr);
     if (itr!=repEq.end() && itr->second!=v)
     {
