@@ -641,7 +641,7 @@ void NonlinearExtension::checkFlattenMonomials(
     std::vector<Node> ffMapOld;
     for (std::pair<const Node, Node>& ff : ffMap)
     {
-      Node fnew = asTmp.apply(ff.first);
+      Node fnew = asTmp.applyArith(ff.first);
       if (fnew != ff.first)
       {
         fnew = rewrite(fnew);
@@ -698,7 +698,6 @@ void NonlinearExtension::addToFlattenMonMap(const Node& ns,
   toProcess.push_back(itr->second);
   std::unordered_set<Node> processed;
   std::vector<Node> exp;
-  ArithSubs as;
   size_t i = 0;
   // expand
   while (i < toProcess.size())
@@ -718,7 +717,7 @@ void NonlinearExtension::addToFlattenMonMap(const Node& ns,
     // no-op if v is not in the equality engine.
     Node vr = d_astate.getRepresentative(v);
     itr = repEq.find(vr);
-    if (itr != repEq.end() && itr->second != v)
+    if (itr != repEq.end() && itr->second != vr)
     {
       exp.push_back(v.eqNode(itr->second));
       toProcess.push_back(itr->second);
@@ -727,6 +726,27 @@ void NonlinearExtension::addToFlattenMonMap(const Node& ns,
   Trace("nl-ff") << "...explanation is " << exp << std::endl;
   NodeManager* nm = nodeManager();
   Node conc = itr->second.eqNode(n);
+  /*
+  ArithSubs as;
+  for (const Node& e : exp)
+  {
+    ArithSubs asTmp;
+    asTmp.add(e[0], e[1]);
+    for (size_t j = 0, nums = as.d_subs.size(); j < nums; j++)
+    {
+      as.d_subs[j] = asTmp.applyArith(as.d_subs[j]);
+    }
+    as.append(asTmp);
+  }
+  Node concs = rewrite(as.applyArith(conc));
+  Trace("nl-ff") << "Explaining substitution:" << std::endl;
+  for (size_t j = 0, nums = as.d_subs.size(); j < nums; j++)
+  {
+    Trace("nl-ff") << "  " << as.d_vars[j] << " |-> " << as.d_subs[j]
+                    << std::endl;
+  }
+  AlwaysAssert(concs.isConst() && concs.getConst<bool>()) << "...simplifies to " << concs;
+  */
   Node lemf = nm->mkNode(Kind::IMPLIES, nm->mkAnd(exp), conc);
   NlLemma lem(InferenceId::ARITH_NL_FLATTEN_MON, lemf);
   d_im.addPendingLemma(lem);
