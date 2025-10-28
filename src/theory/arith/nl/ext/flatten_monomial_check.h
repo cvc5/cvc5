@@ -25,7 +25,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace arith {
 namespace nl {
-  
+
 class FlattenMonProofGenerator;
 
 class FlattenMonomialCheck : protected EnvObj

@@ -15,20 +15,20 @@
 
 #include "theory/arith/nl/ext/flatten_monomial_check.h"
 
+#include "proof/conv_proof_generator.h"
+#include "proof/proof.h"
+#include "proof/proof_node.h"
 #include "theory/arith/arith_subs.h"
 #include "theory/arith/nl/nl_lemma_utils.h"
 #include "theory/uf/equality_engine.h"
 #include "util/random.h"
 #include "util/rational.h"
-#include "proof/conv_proof_generator.h"
-#include "proof/proof.h"
-#include "proof/proof_node.h"
 
 namespace cvc5::internal {
 namespace theory {
 namespace arith {
 namespace nl {
-  
+
 /**
  * A proof generator for lemmas added by the flatten monomial class.
  */
@@ -42,7 +42,7 @@ class FlattenMonProofGenerator : protected EnvObj, public ProofGenerator
   std::shared_ptr<ProofNode> getProofFor(Node fact) override
   {
     Trace("nl-ff") << "Flatten monomial getProofFor: " << fact << std::endl;
-    Assert (fact.getKind()==Kind::IMPLIES);
+    Assert(fact.getKind() == Kind::IMPLIES);
     ArithSubsTermContext astc;
     TConvProofGenerator tcnv(d_env,
                              nullptr,
@@ -52,21 +52,22 @@ class FlattenMonProofGenerator : protected EnvObj, public ProofGenerator
                              &astc);
     CDProof cdp(d_env);
     std::vector<Node> antec;
-    if (fact[0].getKind()==Kind::AND)
+    if (fact[0].getKind() == Kind::AND)
     {
       antec.insert(antec.end(), fact[0].begin(), fact[0].end());
     }
-    else {
+    else
+    {
       antec.push_back(fact[0]);
     }
     for (const Node& a : antec)
     {
-      Assert (a.getKind()==Kind::EQUAL);
+      Assert(a.getKind() == Kind::EQUAL);
       tcnv.addRewriteStep(a[0], a[1], &cdp);
     }
     Node conc = fact[1];
     std::shared_ptr<ProofNode> pfn = tcnv.getProofForRewriting(conc[0]);
-    if (pfn->getResult()==conc)
+    if (pfn->getResult() == conc)
     {
       cdp.addProof(pfn);
       cdp.addStep(fact, ProofRule::SCOPE, {conc}, antec);
@@ -84,10 +85,12 @@ class FlattenMonProofGenerator : protected EnvObj, public ProofGenerator
 FlattenMonomialCheck::FlattenMonomialCheck(Env& env,
                                            TheoryState& astate,
                                            InferenceManager& im)
-    : EnvObj(env), d_astate(astate), d_im(im), d_pfgen(d_env.isTheoryProofProducing()
-                   ? new 
-class FlattenMonProofGenerator(d_env)
-                   : nullptr)
+    : EnvObj(env),
+      d_astate(astate),
+      d_im(im),
+      d_pfgen(d_env.isTheoryProofProducing()
+                  ? new class FlattenMonProofGenerator(d_env)
+                  : nullptr)
 {
 }
 
@@ -345,7 +348,10 @@ void FlattenMonomialCheck::addToFlattenMonMap(const Node& ns,
         << "...simplifies to " << concs1 << " and " << concs2;
   }
   Node lemf = nm->mkNode(Kind::IMPLIES, nm->mkAnd(exp), conc);
-  NlLemma lem(InferenceId::ARITH_NL_FLATTEN_MON, lemf, LemmaProperty::NONE, d_pfgen.get());
+  NlLemma lem(InferenceId::ARITH_NL_FLATTEN_MON,
+              lemf,
+              LemmaProperty::NONE,
+              d_pfgen.get());
   d_im.addPendingLemma(lem);
 }
 
