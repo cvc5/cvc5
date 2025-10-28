@@ -690,8 +690,8 @@ void NonlinearExtension::addToFlattenMonMap(const Node& ns,
   }
   Node on = itr->second;
   // otherwise infer they are equal
-  Trace("nl-ff") << "*** Equal: " << n << " == " << on
-                 << ", both equal to " << ns << std::endl;
+  Trace("nl-ff") << "*** Equal: " << n << " == " << on << ", both equal to "
+                 << ns << std::endl;
   std::vector<Node> toProcess;
   toProcess.push_back(n);
   toProcess.push_back(on);
@@ -745,9 +745,10 @@ void NonlinearExtension::addToFlattenMonMap(const Node& ns,
     for (size_t j = 0, nums = as.d_subs.size(); j < nums; j++)
     {
       Trace("nl-ff") << "  " << as.d_vars[j] << " |-> " << as.d_subs[j]
-                      << std::endl;
+                     << std::endl;
     }
-    Assert(concs1==concs2) << "...simplifies to " << concs1 << " and " << concs2;
+    Assert(concs1 == concs2)
+        << "...simplifies to " << concs1 << " and " << concs2;
   }
   Node lemf = nm->mkNode(Kind::IMPLIES, nm->mkAnd(exp), conc);
   NlLemma lem(InferenceId::ARITH_NL_FLATTEN_MON, lemf);

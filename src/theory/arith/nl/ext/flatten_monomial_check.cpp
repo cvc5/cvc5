@@ -17,16 +17,21 @@
 
 #include "theory/arith/arith_subs.h"
 #include "theory/arith/nl/nl_lemma_utils.h"
+#include "theory/uf/equality_engine.h"
 #include "util/random.h"
 #include "util/rational.h"
-#include "theory/uf/equality_engine.h"
 
 namespace cvc5::internal {
 namespace theory {
 namespace arith {
 namespace nl {
 
-FlattenMonomialCheck::FlattenMonomialCheck(Env& env, TheoryState& astate, InferenceManager& im) : EnvObj(env), d_astate(astate), d_im(im){}
+FlattenMonomialCheck::FlattenMonomialCheck(Env& env,
+                                           TheoryState& astate,
+                                           InferenceManager& im)
+    : EnvObj(env), d_astate(astate), d_im(im)
+{
+}
 
 void FlattenMonomialCheck::check(const std::vector<Node>& mvec)
 {
@@ -204,9 +209,9 @@ void FlattenMonomialCheck::check(const std::vector<Node>& mvec)
 }
 
 void FlattenMonomialCheck::addToFlattenMonMap(const Node& ns,
-                        const Node& n,
-                        std::map<Node, Node>& ffMap,
-                        const std::map<Node, Node>& repEq)
+                                              const Node& n,
+                                              std::map<Node, Node>& ffMap,
+                                              const std::map<Node, Node>& repEq)
 {
   std::map<Node, Node>::const_iterator itr = ffMap.find(ns);
   if (itr == ffMap.end())
@@ -221,8 +226,8 @@ void FlattenMonomialCheck::addToFlattenMonMap(const Node& ns,
   }
   Node on = itr->second;
   // otherwise infer they are equal
-  Trace("nl-ff") << "*** Equal: " << n << " == " << on
-                 << ", both equal to " << ns << std::endl;
+  Trace("nl-ff") << "*** Equal: " << n << " == " << on << ", both equal to "
+                 << ns << std::endl;
   std::vector<Node> toProcess;
   toProcess.push_back(n);
   toProcess.push_back(on);
@@ -276,18 +281,17 @@ void FlattenMonomialCheck::addToFlattenMonMap(const Node& ns,
     for (size_t j = 0, nums = as.d_subs.size(); j < nums; j++)
     {
       Trace("nl-ff") << "  " << as.d_vars[j] << " |-> " << as.d_subs[j]
-                      << std::endl;
+                     << std::endl;
     }
-    Assert(concs1==concs2) << "...simplifies to " << concs1 << " and " << concs2;
+    Assert(concs1 == concs2)
+        << "...simplifies to " << concs1 << " and " << concs2;
   }
   Node lemf = nm->mkNode(Kind::IMPLIES, nm->mkAnd(exp), conc);
   NlLemma lem(InferenceId::ARITH_NL_FLATTEN_MON, lemf);
   d_im.addPendingLemma(lem);
 }
 
-
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
 }  // namespace cvc5::internal
-

@@ -41,7 +41,7 @@ class FlattenMonomialCheck : protected EnvObj
   TheoryState& d_astate;
   /** The inference manager that we push conflicts and lemmas to. */
   InferenceManager& d_im;
-  /** 
+  /**
    * Add to the flattened map. May add a lemma if ns already exists.
    */
   void addToFlattenMonMap(const Node& ns,
