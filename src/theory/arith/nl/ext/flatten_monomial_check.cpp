@@ -18,9 +18,9 @@
 #include "proof/conv_proof_generator.h"
 #include "proof/proof.h"
 #include "proof/proof_node.h"
+#include "theory/arith/arith_poly_norm.h"
 #include "theory/arith/arith_subs.h"
 #include "theory/arith/nl/nl_lemma_utils.h"
-#include "theory/arith/arith_poly_norm.h"
 #include "theory/uf/equality_engine.h"
 #include "util/random.h"
 #include "util/rational.h"
@@ -84,7 +84,8 @@ class FlattenMonProofGenerator : protected EnvObj, public ProofGenerator
     }
     else
     {
-      Trace("nl-ff") << "...failed to get proof (" << res1[1] << ", " << res2[1] << ")" << std::endl;
+      Trace("nl-ff") << "...failed to get proof (" << res1[1] << ", " << res2[1]
+                     << ")" << std::endl;
       cdp.addTrustedStep(fact, TrustId::ARITH_NL_FLATTEN_MON_LEMMA, {}, {});
     }
     return cdp.getProofFor(fact);
