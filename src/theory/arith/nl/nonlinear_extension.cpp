@@ -725,7 +725,8 @@ void NonlinearExtension::addToFlattenMonMap(const Node& ns,
   Trace("nl-ff") << "...explanation is " << exp << std::endl;
   NodeManager* nm = nodeManager();
   Node conc = on.eqNode(n);
-  if (TraceIsOn("nl-ff"))
+  // double check that the substitution implies the conclusion is equal
+  if (Configuration::isAssertionBuild())
   {
     ArithSubs as;
     for (const Node& e : exp)
@@ -746,7 +747,7 @@ void NonlinearExtension::addToFlattenMonMap(const Node& ns,
       Trace("nl-ff") << "  " << as.d_vars[j] << " |-> " << as.d_subs[j]
                       << std::endl;
     }
-    AlwaysAssert(concs1==concs2) << "...simplifies to " << concs1 << " and " << concs2;
+    Assert(concs1==concs2) << "...simplifies to " << concs1 << " and " << concs2;
   }
   Node lemf = nm->mkNode(Kind::IMPLIES, nm->mkAnd(exp), conc);
   NlLemma lem(InferenceId::ARITH_NL_FLATTEN_MON, lemf);
