@@ -549,10 +549,10 @@ void NonlinearExtension::runStrategy(Theory::Effort effort,
         d_monomialBoundsSlv.init();
         d_monomialSlv.init(xts);
         break;
-      case InferStep::NL_FLATTEN_MON: 
+      case InferStep::NL_FLATTEN_MON:
       {
         std::vector<Node>& mvec = d_extState.d_ms_vars;
-        d_fmSlv.check(mvec); 
+        d_fmSlv.check(mvec);
       }
       break;
       case InferStep::NL_MONOMIAL_INFER_BOUNDS:
