@@ -27,6 +27,7 @@
 #include "theory/arith/nl/ext/factoring_check.h"
 #include "theory/arith/nl/ext/monomial_bounds_check.h"
 #include "theory/arith/nl/ext/monomial_check.h"
+#include "theory/arith/nl/ext/flatten_monomial_check.h"
 #include "theory/arith/nl/ext/split_zero_check.h"
 #include "theory/arith/nl/ext/tangent_plane_check.h"
 #include "theory/arith/nl/ext_theory_callback.h"
@@ -175,12 +176,6 @@ class NonlinearExtension : EnvObj
   /** compute relevant assertions */
   void computeRelevantAssertions(const std::vector<Node>& assertions,
                                  std::vector<Node>& keep);
-  /** Equality inference based on flattening monomials */
-  void checkFlattenMonomials(const std::vector<Node>& assertions);
-  void addToFlattenMonMap(const Node& ns,
-                          const Node& n,
-                          std::map<Node, Node>& ffMap,
-                          const std::map<Node, Node>& repEq);
   /** run check strategy
    *
    * Check assertions for consistency in the effort LAST_CALL with a subset of
@@ -239,6 +234,8 @@ class NonlinearExtension : EnvObj
   MonomialBoundsCheck d_monomialBoundsSlv;
   /** Solver for lemmas about monomials. */
   MonomialCheck d_monomialSlv;
+  /** Solver for flattening monomials */
+  FlattenMonomialCheck d_fmSlv;
   /** Solver for lemmas that split multiplication at zero. */
   SplitZeroCheck d_splitZeroSlv;
   /** Solver for tangent plane lemmas. */
