@@ -2520,7 +2520,7 @@ enum ENUM(ProofRule)
    *   \inferrule{\mathcal V(\langle G \rangle) \mid F}
    *   {\mathcal V(\langle G \cup F \rangle) \neq \emptyset}
    *
-   * where each :math:`G, F` are a set of polynomials. In particular, F contains only field polynomials,
+   * where each :math:`G, F` are a set of polynomials. In particular, F contains only field polynomials.
    * \endverbatim
    */
   EVALUE(FF_FIELD_POLYS),
@@ -2532,78 +2532,98 @@ enum ENUM(ProofRule)
    *
    *   \inferrule{- \mid G}{0 \in \langle G \rangle}
    *
-   *
    * where :math:`G` is a set of polynomials.
    * \endverbatim
    */
-  EVALUE(FF_Z),
+  EVALUE(FF_IDEAL_ZERO),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Finite Fields -- Ideal Membership: Generators**
    *
    * .. math::
    *
-   *   \inferrule{- \mid p, G}{p \in \langle G \rangle}
+   *   \inferrule{- \mid p, G}{p \in \langle G \rangle}{\text{if } p \in G}
    *
-   *
-   * where :math:`G` is a set of polynomials and :math:`p \in G`
+   * where :math:`G` is a set of polynomials and :math:`p \in G`.
    * \endverbatim
    */
-  EVALUE(FF_G),
+  EVALUE(FF_IDEAL_GENERATOR),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Finite Fields -- Ideal Membership: Result of reduction**
    *
    * .. math::
    *
-   *   \inferrule{p \in \langle G \rangle, r_1 \in \langle G \rangle, \dots, \langle r_k \in \langle G \rangle \mid \mathtt{Seq}_r, \mathtt{reduce}(p, R)}
+   *   \inferrule{p \in \langle G \rangle, r_1 \in \langle G \rangle, \dots, \langle r_k \in \langle G \rangle \mid \mathtt{Seq}_m, \mathtt{Seq}_r, \mathtt{reduce}(p, R)}
    *   {\mathtt{reduce}(p, R) \in \langle G \rangle}
    *
    * where :math:`G` is a set of polynomials, :math:`R = \{r_1, \dots, r_k\}`
-   * and :math:`\mathtt{Seq}_r` is the sequence of reductors in a :math:`\mathtt{reduce}` operation.
+   * :math:`\mathtt{reduce}(p, R)` is the result of reducing the polynomial :math:`\mathtt{p}` by elements in the set :math:`R`.
+   * :math:`\mathtt{Seq}_m` is the sequence of multipliers used in a :math:`\mathtt{reduce}` operation and 
+   * :math:`\mathtt{Seq}_r` is the sequence of reductors used in a :math:`\mathtt{reduce}` operation.
    * \endverbatim
    */
-  EVALUE(FF_R_UP),
+  EVALUE(FF_IDEAL_REDUCE_DOWN),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Finite Fields -- Ideal Membership: Membership Test**
    *
    * .. math::
    *
-   *   \inferrule{0 \in \langle G \rangle, g_1 \in \langle G \rangle, \dots, \langle g_m \in \langle G \rangle \mid \mathtt{Seq}_r, p}
-   *   {p \in \langle G \rangle}
+   *   \inferrule{0 \in \langle G \rangle, r_1 \in \langle G \rangle, \dots, \langle r_m \in \langle G \rangle \mid \mathtt{Seq}_m \mathtt{Seq}_r, p}
+   *   {p \in \langle G \rangle}{\text{if} \mathtt{reduce}(p, R) = 0}
    *
-   * where :math:`G` is a set of polynomials, :math:`p` is the polynomial we are testing the membership
-   * and :math:`\mathtt{Seq}_r` is the sequence of reductors such that :math:`\mathtt{reduce}(p, R) = 0`.
+   * where :math:`G` is a set of polynomials, :math:`R = \{r_1, \dots, r_m\}`
+   * :math:`p` is the polynomial we are testing the membership
+   * :math:`\mathtt{reduce}(p, R)` is the result of reducing the polynomial :math:`\mathtt{p}` by elements in the set \(R\),
+   * such that :math:`\mathtt{reduce}(p, R) = 0`.
+   * :math:`\mathtt{Seq}_m` is the sequence of multipliers used in a :math:`\mathtt{reduce}` operation and 
+   * :math:`\mathtt{Seq}_r` is the sequence of reductors used in a :math:`\mathtt{reduce}` operation.
    * \endverbatim
    */
-  EVALUE(FF_R_DOWN),
+  EVALUE(FF_IDEAL_REDUCE_UP),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Finite Fields -- Ideal Membership: S-Polynomials**
    *
    * .. math::
    *
-   *   \inferrule{p \in \langle G \rangle, q \in \langle G \rangle \mid \mathtt{spoly}(p, q)}
-   *   {\mathtt{spoly}(p, q) \in \langle G \rangle }
+   *   \inferrule{p \in \langle G \rangle, q \in \langle G \rangle \mid c_1, c_2, \mathtt{spoly}(p, q)}
+   *   {\mathtt{spoly}(p, q) \in \langle G \rangle}
    *
-   * where :math:`G` is a set of polynomials.
+   * where :math:`G` is a set of polynomials and \(c_1, c_2\) are polynomials such that
+   * :math:`\mathtt{spoly}(p, q) = c_1 * p + c_2* q`.
    * \endverbatim
    */
-  EVALUE(FF_S),
+  EVALUE(FF_IDEAL_SPOLY),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Finite Fields -- Ideal Membership: Monic Polynomials**
+   *
+   * .. math::
+   *
+   *   \inferrule{p \in \langle G \rangle \mid c, \mathtt{monic}(p)}
+   *   {\mathtt{monic}(p) \in \langle G \rangle }
+   *
+   * where :math:`G` is a set of polynomials, and :math:`c` is a constant in the field such that
+   * :math:`\mathtt{monic}(p) = c * p` and :math:`\mathtt{monic}(p)` is a monic polynomial. 
+   * \endverbatim
+   */
+  EVALUE(FF_IDEAL_MONIC),  
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Finite Fields -- Branch on Roots of a univariate polynomial**
    *
    * .. math::
    *
-   *   \inferrule{\mathcal{V}(\langle G \rangle) \neq \emptyset, p \in \langle G \rangle, g_1 \in \langle G \rangle, \dots, g_m \in \langle G \rangle \mid N, \mathtt{Roots} (p)}
+   *   \inferrule{\mathcal{V}(\langle G \rangle) \neq \emptyset, p \in \langle G \rangle \mid N, \mathtt{Roots} (p)}
    *   {\lor_{v \in \mathtt{Roots}(p)} \mathcal V(\langle G \cup \{x - v \}\rangle) \neq \emptyset}
    *
-   * where :math:`p` is an univariate polynomial, G is a set of polynomials and N is the
-   * set of non-assigned variables. This rule unifies both Triangular
-   * and Univariate present in the paper Ozdemir et al, CAV 2023, "Satisfiability
-   * Modulo Finite Fields".
+   * where :math:`p` is an univariate polynomial in variable :math:`x`, G is a set of polynomials and
+   * N is the set of non-assigned variables, such that  :math:`x \not \in N`.
+   *
+   * This rule states that when there is a univariate polynomial in the ideal generated by :math:`G` then
+   * during common root search, it is enough to branch on the roots of such polynomial.
    * \endverbatim
    */
   EVALUE(FF_ROOT_BRANCH),
@@ -2613,13 +2633,14 @@ enum ENUM(ProofRule)
    *
    * .. math::
    *
-   *   \inferrule{\mathcal{V}(\langle G \rangle) \neq \emptyset, g_1 \in \langle G \rangle, \dots, g_m \in \langle G \rangle \mid N}
+   *   \inferrule{\mathcal{V}(\langle G \rangle) \neq \emptyset \mid N}
    *   {\lor_{x \in N} \lor_{v \in F_p} \mathcal V(\langle G \cup \{x - v \}\rangle) \neq \emptyset}
    *
    * where :math:`N` is the set of unassigned variables, :math:`F_p` is the fixed prime field
-   * and G is  a set of polynomials.
-   * This rule is an analogue of FF_ROOT_BRANCH where instead of restricting our search in the
-   * roots of a univariate polynomial, we have to look at all possible cases.
+   * and :math:`G`` is  a set of polynomials.
+   * 
+   * This rule is an analogue of FF_ROOT_BRANCH where instead of branching on the
+   * roots of a univariate polynomial, it branches on all possible values in the field.
    * \endverbatim
    */
   EVALUE(FF_EXHAUST_BRANCH),
