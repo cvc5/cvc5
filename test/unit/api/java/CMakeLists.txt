@@ -39,13 +39,19 @@ set(java_test_src_files
   ${CMAKE_CURRENT_SOURCE_DIR}/ProofTest.java
 )
 
+if(WIN32)
+  set(PATH_SEP ";")
+else()
+  set(PATH_SEP ":")
+endif()
+
 # build junit tests
 add_custom_command(
   OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/tests/SolverTest.class
   DEPENDS JUnit-EP-jar cvc5jar ${java_test_src_files}
   COMMAND
     ${Java_JAVAC_EXECUTABLE} ${java_test_src_files}
-    -cp ${JUnit_JAR}:${CVC5_JAR_PATH} # add JUnit and cvc5 jar files to the class path
+    -cp "${JUnit_JAR}${PATH_SEP}${CVC5_JAR_PATH}" # add JUnit and cvc5 jar files to the class path
     -d . # specify the output directory for the generated .class files
   COMMENT "Build junit tests"
   VERBATIM
@@ -58,10 +64,11 @@ add_dependencies(build-units build-junit-tests)
 macro(cvc5_add_java_api_test name)
   add_test (NAME unit/api/java/${name}
     COMMAND
+      ${ENV_PATH_CMD}
       ${Java_JAVA_EXECUTABLE}
       -Djava.library.path=${CVC5_JNI_PATH}
       -jar ${JUnit_JAR}
-      -cp ${JUnit_JAR}:${CVC5_JAR_PATH}:.
+      -cp "${JUnit_JAR}${PATH_SEP}${CVC5_JAR_PATH}${PATH_SEP}."
       -select-package tests
       -n tests.${name}
   )
