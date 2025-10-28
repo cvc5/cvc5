@@ -20,6 +20,7 @@
 #include "proof/proof_node.h"
 #include "theory/arith/arith_subs.h"
 #include "theory/arith/nl/nl_lemma_utils.h"
+#include "theory/arith/arith_poly_norm.h"
 #include "theory/uf/equality_engine.h"
 #include "util/random.h"
 #include "util/rational.h"
@@ -66,14 +67,24 @@ class FlattenMonProofGenerator : protected EnvObj, public ProofGenerator
       tcnv.addRewriteStep(a[0], a[1], &cdp);
     }
     Node conc = fact[1];
-    std::shared_ptr<ProofNode> pfn = tcnv.getProofForRewriting(conc[0]);
-    if (pfn->getResult() == conc)
+    std::shared_ptr<ProofNode> pfn1 = tcnv.getProofForRewriting(conc[0]);
+    std::shared_ptr<ProofNode> pfn2 = tcnv.getProofForRewriting(conc[1]);
+    Node res1 = pfn1->getResult();
+    Node res2 = pfn2->getResult();
+    if (PolyNorm::isArithPolyNorm(res1[1], res2[1]))
     {
-      cdp.addProof(pfn);
+      cdp.addProof(pfn1);
+      cdp.addProof(pfn2);
+      Node res2s = res2[1].eqNode(res2[0]);
+      cdp.addStep(res2s, ProofRule::SYMM, {res2}, {});
+      Node concr = res1[1].eqNode(res2[1]);
+      cdp.addStep(concr, ProofRule::ARITH_POLY_NORM, {}, {concr});
+      cdp.addStep(conc, ProofRule::TRANS, {res1, concr, res2s}, {});
       cdp.addStep(fact, ProofRule::SCOPE, {conc}, antec);
     }
     else
     {
+      Trace("nl-ff") << "...failed to get proof (" << res1[1] << ", " << res2[1] << ")" << std::endl;
       cdp.addTrustedStep(fact, TrustId::ARITH_NL_FLATTEN_MON_LEMMA, {}, {});
     }
     return cdp.getProofFor(fact);
