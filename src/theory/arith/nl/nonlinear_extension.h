@@ -181,9 +181,6 @@ class NonlinearExtension : EnvObj
                           const Node& n,
                           std::map<Node, Node>& ffMap,
                           const std::map<Node, Node>& repEq);
-  void explainFlattenMonomialsCyclic(const Node& a,
-                                     const Node& b,
-                                     const std::map<Node, Node>& repEq);
   /** run check strategy
    *
    * Check assertions for consistency in the effort LAST_CALL with a subset of

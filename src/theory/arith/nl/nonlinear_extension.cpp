@@ -588,8 +588,8 @@ void NonlinearExtension::checkFlattenMonomials(
           Trace("nl-ff") << "*** Cyclic: " << n << " == " << ns
                          << ", in equivalence class of " << f.first
                          << std::endl;
-          explainFlattenMonomialsCyclic(f.first, n, repsProcessed);
           cyclic = true;
+          break;
         }
       }
       if (!cyclic)
@@ -752,11 +752,6 @@ void NonlinearExtension::addToFlattenMonMap(const Node& ns,
   Node lemf = nm->mkNode(Kind::IMPLIES, nm->mkAnd(exp), conc);
   NlLemma lem(InferenceId::ARITH_NL_FLATTEN_MON, lemf);
   d_im.addPendingLemma(lem);
-}
-
-void NonlinearExtension::explainFlattenMonomialsCyclic(
-    const Node& a, const Node& b, const std::map<Node, Node>& repEq)
-{
 }
 
 void NonlinearExtension::runStrategy(Theory::Effort effort,
