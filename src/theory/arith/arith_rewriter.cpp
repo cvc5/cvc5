@@ -229,8 +229,9 @@ Node ArithRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
         Node a = n[0].getKind() == Kind::TO_REAL ? n[0][0] : n[0];
         Node b = n[1].getKind() == Kind::TO_REAL ? n[1][0] : n[1];
         rewriter::Sum sum;
-        rewriter::addToSum(sum, a, false);
-        rewriter::addToSum(sum, b, true);
+        // allow dropping TO_REAL
+        rewriter::addToSumNoMixed(sum, a, false);
+        rewriter::addToSumNoMixed(sum, b, true);
         if (rewriter::isIntegral(sum))
         {
           std::pair<Node, Node> p = decomposeSum(d_nm, std::move(sum));
@@ -251,8 +252,9 @@ Node ArithRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
         Node a = n[0].getKind() == Kind::TO_REAL ? n[0][0] : n[0];
         Node b = n[1].getKind() == Kind::TO_REAL ? n[1][0] : n[1];
         rewriter::Sum sum;
-        rewriter::addToSum(sum, a, false);
-        rewriter::addToSum(sum, b, true);
+        // allow dropping TO_REAL
+        rewriter::addToSumNoMixed(sum, a, false);
+        rewriter::addToSumNoMixed(sum, b, true);
         if (rewriter::isIntegral(sum))
         {
           // decompose the sum into a non-constant and constant part
