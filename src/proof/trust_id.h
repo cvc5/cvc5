@@ -170,6 +170,8 @@ enum class TrustId : uint32_t
   ARITH_STATIC_LEARN,
   /** A nonlinear comparison lemma that failed proof reconstruction */
   ARITH_NL_COMPARE_LEMMA,
+  /** A nonlinear flatten monomial lemma that failed proof reconstruction */
+  ARITH_NL_FLATTEN_MON_LEMMA,
   /** A conflict coming from the bitblast solver */
   BV_BITBLAST_CONFLICT,
   /** A step from BvPpAssert utility */

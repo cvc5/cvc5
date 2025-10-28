@@ -25,6 +25,8 @@ namespace cvc5::internal {
 namespace theory {
 namespace arith {
 namespace nl {
+  
+class FlattenMonProofGenerator;
 
 class FlattenMonomialCheck : protected EnvObj
 {
@@ -41,6 +43,8 @@ class FlattenMonomialCheck : protected EnvObj
   TheoryState& d_astate;
   /** The inference manager that we push conflicts and lemmas to. */
   InferenceManager& d_im;
+  /** Proof generator */
+  std::shared_ptr<FlattenMonProofGenerator> d_pfgen;
   /**
    * Add to the flattened map. May add a lemma if ns already exists.
    */
