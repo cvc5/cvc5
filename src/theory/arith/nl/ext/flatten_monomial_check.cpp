@@ -179,7 +179,6 @@ void FlattenMonomialCheck::check(const std::vector<Node>& mvec)
       }
       ++eqci;
     }
-    std::shuffle(nlTerms.begin(), nlTerms.end(), Random::getRandom());
     Node rep;
     // one is always used as the representative, which is intuitively the empty
     // multiplication
@@ -188,6 +187,10 @@ void FlattenMonomialCheck::check(const std::vector<Node>& mvec)
       rep = one;
       nlTerms.clear();
     }
+    // Note there are multiple choices for which non-linear term to consider.
+    // We choose only one of them here, and randomize the choice, since we
+    // want to increase the diversity of substitutions we consider.
+    std::shuffle(nlTerms.begin(), nlTerms.end(), Random::getRandom());
     // try to find an NL term that does not induce a cycle with any baseTerm
     for (const Node& n : nlTerms)
     {
