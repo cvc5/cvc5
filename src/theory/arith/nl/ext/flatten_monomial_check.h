@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Tim King
+ *   Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Check for monomial bound inference lemmas.
+ * Check for flattening monomials lemmas.
  */
 
 #ifndef CVC5__THEORY__ARITH__NL__EXT__FLATTEN_MONOMIAL_CHECK_H
