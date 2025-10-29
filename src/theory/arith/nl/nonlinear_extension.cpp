@@ -28,7 +28,6 @@
 #include "theory/ext_theory.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
-#include "util/random.h"
 #include "util/rational.h"
 
 using namespace cvc5::internal::kind;
