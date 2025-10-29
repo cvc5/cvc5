@@ -10,8 +10,9 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- *
+ * Normalizes sort nodes.
  */
+
 #ifndef CVC5__EXPR__NORMALIZE_SORT_NODE_CONVERTER_H
 #define CVC5__EXPR__NORMALIZE_SORT_NODE_CONVERTER_H
 
