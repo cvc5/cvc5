@@ -20,15 +20,15 @@
 #include "expr/subs.h"
 #include "options/arrays_options.h"
 #include "printer/smt2/smt2_printer.h"
-#include "theory/quantifiers/mbqi_enum.h"
+#include "smt/set_defaults.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/instantiate.h"
+#include "theory/quantifiers/mbqi_enum.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/skolemize.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/uf/function_const.h"
-#include "smt/set_defaults.h"
 
 using namespace std;
 using namespace cvc5::internal::kind;
