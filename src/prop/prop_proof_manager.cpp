@@ -521,6 +521,14 @@ void PropPfManager::notifyExplainedPropagation(TrustNode trn)
   }
 }
 
+void PropPfManager::notifySatClause(const Node& clause)
+{
+  if (d_plog != nullptr)
+  {
+    d_plog->logSatLearnedClause(clause);
+  }
+}
+
 Node PropPfManager::getLastExplainedPropagation() const
 {
   return d_currPropagationProcessed;
