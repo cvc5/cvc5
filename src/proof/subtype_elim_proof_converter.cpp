@@ -206,7 +206,7 @@ Node SubtypeElimConverterCallback::convert(Node res,
       }
       std::shared_ptr<ProofNode> pfn = tcpg.getProofForRewriting(newRes);
       Node resr = pfn->getResult();
-      Assert(res.getKind() == Kind::EQUAL);
+      Assert(resr.getKind() == Kind::EQUAL);
       if (resr[1] == resc)
       {
         // if successful we have
@@ -220,7 +220,7 @@ Node SubtypeElimConverterCallback::convert(Node res,
         // conclusion after subtype elimination.
         cdp->addProof(pfn);
         cdp->addStep(resc, ProofRule::EQ_RESOLVE, {newRes, resr}, {});
-        cdp->addStep(newRes, id, children, args);
+        cdp->addStep(newRes, id, children, cargs);
       }
     }
     break;

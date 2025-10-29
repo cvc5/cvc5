@@ -51,6 +51,16 @@ endmacro()
 # TODO: Set Java API test infrastructure for Windows (see issue #12143)
 if(NOT WIN32)
 
+  cvc5_add_java_api_test(Boilerplate "")
+  cvc5_add_java_api_test(Ouroborous "")
+  cvc5_add_java_api_test(ResetAssertions "")
+  cvc5_add_java_api_test(Smt2Compliance "")
+  cvc5_add_java_api_test(TwoSolvers "")
+
+  if (NOT ENABLE_SAFE_MODE AND NOT ENABLE_STABLE_MODE)
+    cvc5_add_java_api_test(SepLogApi "")
+  endif()
+
   add_subdirectory(issues)
 
 endif()

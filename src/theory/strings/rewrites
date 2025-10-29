@@ -610,14 +610,14 @@
   (re.loop n m r)
   re.none)
 
-(define-cond-rule re-inter-cstring ((xs RegLan :list) (ys RegLan :list) (s String))
-  (str.in_re s (re.inter xs ys))
-  (re.inter xs (str.to_re s) ys) 
+(define-cond-rule re-inter-cstring ((x RegLan) (ys RegLan :list) (s String))
+  (str.in_re s (re.inter (str.to_re s) x ys))
+  (re.inter (str.to_re s) x ys) 
   (str.to_re s))
 
-(define-cond-rule re-inter-cstring-neg ((xs RegLan :list) (ys RegLan :list) (s String))
-  (not (str.in_re s (re.inter xs ys)))
-  (re.inter xs (str.to_re s) ys)
+(define-cond-rule re-inter-cstring-neg ((x RegLan) (ys RegLan :list) (s String))
+  (not (str.in_re s (re.inter (str.to_re s) x ys)))
+  (re.inter (str.to_re s) x ys)
   re.none)
 
 (define-cond-rule str-substr-len-include ((s1 ?Seq) (s2 ?Seq :list) (n Int) (m Int))

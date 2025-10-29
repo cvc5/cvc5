@@ -100,7 +100,6 @@ void printUsageCategories(cvc5::Solver& solver, std::ostream& os)
   std::stringstream ssRegular;
   std::stringstream ssRegularNoSupport;
   std::stringstream ssExpert;
-  std::stringstream ssUndocumented;
   for (const auto& name : options::getNames())
   {
     auto info = solver.getOptionInfo(name);
@@ -116,7 +115,18 @@ void printUsageCategories(cvc5::Solver& solver, std::ostream& os)
       }
       else
       {
-        ssRegularNoSupport << "- " << name << std::endl;
+        ssRegularNoSupport << "- " << name << " [";
+        bool firstTime = true;
+        for (std::string ns : info.noSupports)
+        {
+          if (!firstTime)
+          {
+            ssRegularNoSupport << ", ";
+          }
+          firstTime = false;
+          ssRegularNoSupport << ns;
+        }
+        ssRegularNoSupport << "]" << std::endl;
       }
     }
     else if (info.category == cvc5::modes::OptionCategory::COMMON)
@@ -126,7 +136,6 @@ void printUsageCategories(cvc5::Solver& solver, std::ostream& os)
     else
     {
       Assert(info.category == cvc5::modes::OptionCategory::UNDOCUMENTED);
-      ssUndocumented << "- " << name << std::endl;
     }
   }
   os << "Common options:" << std::endl;
@@ -137,8 +146,6 @@ void printUsageCategories(cvc5::Solver& solver, std::ostream& os)
   os << ssRegularNoSupport.str();
   os << "Expert options:" << std::endl;
   os << ssExpert.str();
-  os << "Undocumented options:" << std::endl;
-  os << ssUndocumented.str();
 }
 
 /**

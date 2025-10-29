@@ -82,7 +82,9 @@ endmacro()
 
 # add specific test files
 cvc5_add_python_api_test(boilerplate "")
+cvc5_add_python_api_test(ouroborous "")
 cvc5_add_python_api_test(reset_assertions "")
+cvc5_add_python_api_test(smt2_compliance "")
 cvc5_add_python_api_test(two_solvers "")
 
 if (NOT ENABLE_SAFE_MODE AND NOT ENABLE_STABLE_MODE)
