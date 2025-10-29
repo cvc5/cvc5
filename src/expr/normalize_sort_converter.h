@@ -15,9 +15,10 @@
 #ifndef CVC5__EXPR__NORMALIZE_SORT_NODE_CONVERTER_H
 #define CVC5__EXPR__NORMALIZE_SORT_NODE_CONVERTER_H
 
+#include <unordered_map>
+
 #include "cvc5_private.h"
 #include "expr/node_converter.h"
-#include <unordered_map>
 
 namespace cvc5::internal {
 
@@ -31,8 +32,9 @@ class NormalizeSortNodeConverter : public NodeConverter
    * Constructor
    * @param normalizedSorts A map that defines how types should be normalized.
    */
-  NormalizeSortNodeConverter(const std::unordered_map<TypeNode, TypeNode>& normalizedSorts,
-                           NodeManager* nm);
+  NormalizeSortNodeConverter(
+      const std::unordered_map<TypeNode, TypeNode>& normalizedSorts,
+      NodeManager* nm);
 
   /** Destructor */
   ~NormalizeSortNodeConverter() override {}
@@ -41,7 +43,8 @@ class NormalizeSortNodeConverter : public NodeConverter
   /**
    * Overrides the postConvertType method to normalize types.
    * @param tn The type node to normalize.
-   * @return The normalized type node if it exists in the map, or tn itself otherwise.
+   * @return The normalized type node if it exists in the map, or tn itself
+   * otherwise.
    */
   TypeNode postConvertType(TypeNode tn) override;
 
