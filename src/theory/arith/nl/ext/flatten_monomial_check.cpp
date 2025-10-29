@@ -39,11 +39,27 @@ class FlattenMonProofGenerator : protected EnvObj, public ProofGenerator
   FlattenMonProofGenerator(Env& env) : EnvObj(env) {}
   virtual ~FlattenMonProofGenerator() {}
   /**
+   * getProofFor, which expects a lemma for the form
+   *   x1 = t1 ^ ... xn = tn => s1 = s2
+   * where s1 and s2 are multiplication terms.
+   * We add the proof:
+   * ...                                           ...
+   * -------- convert  --------- ARITH_POLY_NORM   --------- convert, SYMM
+   * s1 = s1r          s1r = s2r                   s2r = s2
+   * ------------------------------------------------------ TRANS
+   * s1 = s2
+   * -------------------------------- SCOPE
+   * x1 = t1 ^ ... xn = tn => s1 = s2
+   * 
+   * where the convert steps use the equalities as rewrite steps.
    */
   std::shared_ptr<ProofNode> getProofFor(Node fact) override
   {
     Trace("nl-ff") << "Flatten monomial getProofFor: " << fact << std::endl;
     Assert(fact.getKind() == Kind::IMPLIES);
+    // Since we use the applyArith routine, we must use a term context
+    // object that defines in which contexts to apply the rewrite
+    // (ArithSubsTermContext).
     ArithSubsTermContext astc;
     TConvProofGenerator tcnv(d_env,
                              nullptr,

@@ -391,7 +391,7 @@ name   = "Arithmetic Theory"
   category   = "regular"
   long       = "nl-ext-flatten-mon"
   type       = "bool"
-  default    = "false"
+  default    = "true"
   help       = "use inference schema based on flattening monomials"
 
 [[option]]
