@@ -14,7 +14,7 @@
 ; conclusion: the equality between a and b.
 (declare-rule bv-repeat-elim ((k1 Int) (k2 Int) (n Int) (a (BitVec k1)) (b (BitVec k2)))
   :args ((= (repeat n a) b))
-  :requires ((($singleton_elim ($bv_unfold_repeat n a)) b))
+  :requires (((eo::list_singleton_elim concat ($bv_unfold_repeat n a)) b))
   :conclusion (= (repeat n a) b)
 )
 
@@ -186,7 +186,7 @@
   :signature ((BitVec n)) (BitVec n)
   (
   (($bv_mk_bitwise_slicing (f a1 a2))
-              ($singleton_elim
+              (eo::list_singleton_elim concat
                 (eo::define ((c ($bv_get_first_const_child (f a1 a2))))
                 (eo::requires ($bv_is_bitwise_slicing_op f) true
                 (eo::define ((wm1 (eo::add (eo::len c) -1)))
@@ -194,7 +194,7 @@
                   f
                   c
                   (eo::define ((nil (eo::nil f (eo::typeof a1))))
-                    ($singleton_elim (eo::list_erase f (f a1 a2) c)))         ; remove the constant and recollect
+                    (eo::list_singleton_elim f (eo::list_erase f (f a1 a2) c))) ; remove the constant and recollect
                   (eo::list_rev @from_bools ($bv_mk_bitblast_step_const c))   ; convert the constant to a bitlist
                   ($bv_bit_set c wm1) wm1 wm1))))))
   )
