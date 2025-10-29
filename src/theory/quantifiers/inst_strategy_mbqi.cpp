@@ -45,6 +45,7 @@ InstStrategyMbqi::InstStrategyMbqi(Env& env,
     : QuantifiersModule(env, qs, qim, qr, tr), d_globalSyms(userContext())
 {
   // some kinds may appear in model values that cannot be asserted
+  // if arraysExp is enabled, we allow STORE_ALL terms in assertions.
   if (!options().arrays.arraysExp)
   {
     d_nonClosedKinds.insert(Kind::STORE_ALL);
