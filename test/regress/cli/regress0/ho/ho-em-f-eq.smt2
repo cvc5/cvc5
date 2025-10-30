@@ -1,3 +1,4 @@
+; EXPECT: unsat
 (set-logic HO_ALL)
 (declare-fun P (Int Int) Bool)
 (declare-fun Q (Int Int) Bool)
