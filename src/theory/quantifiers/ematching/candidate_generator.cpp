@@ -53,8 +53,8 @@ CandidateGeneratorQE::CandidateGeneratorQE(Env& env,
                                            TermRegistry& tr,
                                            Node pat)
     : CandidateGenerator(env, qs, tr),
+    d_pat(pat),
       d_termIter(0),
-      d_termIterList(nullptr),
       d_mode(cand_term_none)
 {
   d_op = d_treg.getTermDatabase()->getMatchOperator(pat);
@@ -68,10 +68,19 @@ void CandidateGeneratorQE::resetForOperator(Node eqc, Node op)
   d_termIter = 0;
   d_eqc = eqc;
   d_op = op;
-  d_termIterList = d_treg.getTermDatabase()->getGroundTermList(d_op);
   if (eqc.isNull())
   {
-    d_mode = cand_term_db;
+    TNodeTrie* tat = d_treg.getTermDatabase()->getTermArgTrie(d_op);
+    d_termIterList.clear();
+    if (tat!=nullptr)
+    {
+      d_termIterList = tat->getLeaves(d_pat.getNumChildren());
+      d_mode = cand_term_db;
+    }
+    else
+    {
+      d_mode = cand_term_none;
+    }
   }else{
     if( isExcludedEqc( eqc ) ){
       d_mode = cand_term_none;
@@ -111,17 +120,12 @@ Node CandidateGeneratorQE::getNextCandidate(){
 Node CandidateGeneratorQE::getNextCandidateInternal()
 {
   if( d_mode==cand_term_db ){
-    if (d_termIterList == nullptr)
-    {
-      d_mode = cand_term_none;
-      return Node::null();
-    }
     Trace("cand-gen-qe") << "...get next candidate in tbd" << std::endl;
     //get next candidate term in the uf term database
-    size_t tlLimit = d_termIterList->d_list.size();
+    size_t tlLimit = d_termIterList.size();
     while (d_termIter < tlLimit)
     {
-      Node n = d_termIterList->d_list[d_termIter];
+      Node n = d_termIterList[d_termIter];
       d_termIter++;
       if( isLegalCandidate( n ) ){
         if (d_treg.getTermDatabase()->hasTermCurrent(n))
@@ -263,16 +267,18 @@ void CandidateGeneratorConsExpand::reset(Node eqc)
   d_termIter = 0;
   if (eqc.isNull())
   {
+    d_mode = cand_term_none;
     // generates too many instantiations at top-level when eqc is null, thus
     // set mode to none unless option is set.
     if (options().quantifiers.consExpandTriggers)
     {
-      d_termIterList = d_treg.getTermDatabase()->getGroundTermList(d_op);
-      d_mode = cand_term_db;
-    }
-    else
-    {
-      d_mode = cand_term_none;
+      TNodeTrie* tat = d_treg.getTermDatabase()->getTermArgTrie(d_op);
+      d_termIterList.clear();
+      if (tat!=nullptr)
+      {
+        d_termIterList = tat->getLeaves(d_pat.getNumChildren());
+        d_mode = cand_term_db;
+      }
     }
   }
   else
