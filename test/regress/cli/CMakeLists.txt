@@ -1100,6 +1100,7 @@ set(regress_0_tests
   regress0/nl/all-logic.smt2
   regress0/nl/coeff-sat.smt2
   regress0/nl/combined-uf.smt2
+  regress0/nl/dd_aprove496_nl_ext.smt2
   regress0/nl/dd.fuzz01.smtv1-to-real-idem.smt2
   regress0/nl/dd.iand-wrong-0513-pp.smt2
   regress0/nl/dd.polypaver-bench-exp-3d-chunk-0067.smt2
@@ -2863,6 +2864,7 @@ set(regress_1_tests
   regress1/nl/metitarski_3_4_2e.smt2
   regress1/nl/mirko-050417.smt2
   regress1/nl/nl-eq-infer.smt2
+  regress1/nl/nl-ext-flatten-simp.smt2
   regress1/nl/nl-help-unsat-quant.smt2
   regress1/nl/nl-unk-quant.smt2
   regress1/nl/nl_uf_lalt.smt2
