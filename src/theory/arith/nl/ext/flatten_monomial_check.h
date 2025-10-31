@@ -36,7 +36,7 @@ class FlattenMonProofGenerator;
  * applies this substitution to non-linear multiplication terms and derives
  * equalities. For example, given equivalence classes:
  * 
- * { x, u*w, x*z }
+ * { x, u*w, x*t }
  * { v, z*w }
  * { v*u }
  * { x*z }
@@ -51,7 +51,7 @@ class FlattenMonProofGenerator;
  * variables in that class map to a representative variable. In the above
  * example, this would allow us to infer the lemma e.g. i=j => i*j*j = j*j*j.
  * Note that we ignore cyclic substitutions. For instance we could have inferred
- * x -> x*z in the example above, but do not since this is cyclic.
+ * x -> x*t in the example above, but do not since this is cyclic.
  * Furthermore note that 1 is treated as the empty monomial; all other constants
  * are ignored.
  */

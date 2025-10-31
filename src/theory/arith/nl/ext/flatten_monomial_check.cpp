@@ -170,6 +170,7 @@ void FlattenMonomialCheck::check(const std::vector<Node>& mvec)
       }
       else if (mvs.find(n) != mvs.end())
       {
+        // note we only care about variables that appear in monomials (in mvs)
         baseTerms.insert(n);
         if (firstBaseTerm.isNull())
         {
@@ -187,6 +188,8 @@ void FlattenMonomialCheck::check(const std::vector<Node>& mvec)
       rep = one;
       nlTerms.clear();
     }
+    // First, we normalize all non-linear terms in this equivalence class. We
+    // also track a representative in case it is necessary below.
     // Note there are multiple choices for which non-linear term to consider.
     // We choose only one of them here, and randomize the choice, since we
     // want to increase the diversity of substitutions we consider.
@@ -195,26 +198,23 @@ void FlattenMonomialCheck::check(const std::vector<Node>& mvec)
     for (const Node& n : nlTerms)
     {
       Node ns = rewrite(as.applyArith(n));
-      std::map<Node, size_t> ff;
+      std::unordered_set<Node> ff;
       Assert(ns.getKind() != Kind::MULT);
       if (ns.getKind() == Kind::NONLINEAR_MULT)
       {
-        for (const Node& nsc : ns)
-        {
-          ff[nsc]++;
-        }
+        ff.insert(ns.begin(), ns.end());
       }
       else
       {
-        ff[ns]++;
+        ff.insert(ns);
       }
       bool cyclic = false;
-      for (std::pair<const Node, size_t>& f : ff)
+      for (const Node& f : ff)
       {
-        if (baseTerms.find(f.first) != baseTerms.end())
+        if (baseTerms.find(f) != baseTerms.end())
         {
           Trace("nl-ff") << "*** Cyclic: " << n << " == " << ns
-                         << ", in equivalence class of " << f.first
+                         << ", in equivalence class of " << f
                          << std::endl;
           cyclic = true;
           break;
@@ -227,6 +227,7 @@ void FlattenMonomialCheck::check(const std::vector<Node>& mvec)
       // add to flatten map, which may recognize an inference
       addToFlattenMonMap(ns, n, ffMap, repsProcessed);
     }
+    // Now check to see if we need to update the substitution.
     if (baseTerms.empty())
     {
       Trace("nl-ff") << "...no base terms, continue." << std::endl;
