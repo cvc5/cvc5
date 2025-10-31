@@ -53,7 +53,7 @@ CandidateGeneratorQE::CandidateGeneratorQE(Env& env,
                                            TermRegistry& tr,
                                            Node pat)
     : CandidateGenerator(env, qs, tr),
-    d_pat(pat),
+      d_pat(pat),
       d_termIter(0),
       d_mode(cand_term_none)
 {
@@ -72,7 +72,7 @@ void CandidateGeneratorQE::resetForOperator(Node eqc, Node op)
   {
     TNodeTrie* tat = d_treg.getTermDatabase()->getTermArgTrie(d_op);
     d_termIterList.clear();
-    if (tat!=nullptr)
+    if (tat != nullptr)
     {
       d_termIterList = tat->getLeaves(d_pat.getNumChildren());
       d_mode = cand_term_db;
@@ -127,11 +127,15 @@ Node CandidateGeneratorQE::getNextCandidateInternal()
     {
       Node n = d_termIterList[d_termIter];
       d_termIter++;
-      if( d_exclude_eqc.empty() ){
+      if (d_exclude_eqc.empty())
+      {
         return n;
-      }else{
+      }
+      else
+      {
         Node r = d_qs.getRepresentative(n);
-        if( d_exclude_eqc.find( r )==d_exclude_eqc.end() ){
+        if (d_exclude_eqc.find(r) == d_exclude_eqc.end())
+        {
           Trace("cand-gen-qe") << "...returning " << n << std::endl;
           return n;
         }
@@ -269,7 +273,7 @@ void CandidateGeneratorConsExpand::reset(Node eqc)
     {
       TNodeTrie* tat = d_treg.getTermDatabase()->getTermArgTrie(d_op);
       d_termIterList.clear();
-      if (tat!=nullptr)
+      if (tat != nullptr)
       {
         d_termIterList = tat->getLeaves(d_pat.getNumChildren());
         d_mode = cand_term_db;
