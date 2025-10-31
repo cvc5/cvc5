@@ -387,6 +387,14 @@ name   = "Arithmetic Theory"
   help       = "use factoring inference in non-linear incremental linearization solver"
 
 [[option]]
+  name       = "nlExtFlattenMon"
+  category   = "regular"
+  long       = "nl-ext-flatten-mon"
+  type       = "bool"
+  default    = "true"
+  help       = "use inference schema based on flattening monomials"
+
+[[option]]
   name       = "nlExtTangentPlanes"
   category   = "regular"
   long       = "nl-ext-tplanes"

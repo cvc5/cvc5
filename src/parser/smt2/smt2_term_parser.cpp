@@ -560,7 +560,7 @@ Term Smt2TermParser::parseTerm()
             }
             else if (key == ":qid")
             {
-              std::string sym = parseSymbol(CHECK_UNDECLARED, SYM_VARIABLE);
+              std::string sym = parseSymbol(CHECK_NONE, SYM_VARIABLE);
               // must create a variable whose name is the name of the quantified
               // formula, not a string.
               attrValue = tm.mkConst(tm.getBooleanSort(), sym);

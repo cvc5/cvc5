@@ -35,6 +35,7 @@ std::ostream& operator<<(std::ostream& os, InferStep step)
     case InferStep::COVERINGS_INIT: return os << "COVERINGS_INIT";
     case InferStep::COVERINGS_FULL: return os << "COVERINGS_FULL";
     case InferStep::NL_FACTORING: return os << "NL_FACTORING";
+    case InferStep::NL_FLATTEN_MON: return os << "NL_FLATTEN_MON";
     case InferStep::IAND_INIT: return os << "IAND_INIT";
     case InferStep::IAND_FULL: return os << "IAND_FULL";
     case InferStep::IAND_INITIAL: return os << "IAND_INITIAL";
@@ -137,6 +138,10 @@ void Strategy::initializeStrategy(const Options& options)
   {
     one << InferStep::NL_MONOMIAL_SIGN << InferStep::BREAK;
     one << InferStep::NL_MONOMIAL_MAGNITUDE0 << InferStep::BREAK;
+  }
+  if (options.arith.nlExtFlattenMon)
+  {
+    one << InferStep::NL_FLATTEN_MON << InferStep::BREAK;
   }
   if (options.arith.nlExt == options::NlExtMode::FULL)
   {
