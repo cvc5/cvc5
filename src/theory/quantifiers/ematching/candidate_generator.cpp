@@ -127,18 +127,13 @@ Node CandidateGeneratorQE::getNextCandidateInternal()
     {
       Node n = d_termIterList[d_termIter];
       d_termIter++;
-      if( isLegalCandidate( n ) ){
-        if (d_treg.getTermDatabase()->hasTermCurrent(n))
-        {
-          if( d_exclude_eqc.empty() ){
-            return n;
-          }else{
-            Node r = d_qs.getRepresentative(n);
-            if( d_exclude_eqc.find( r )==d_exclude_eqc.end() ){
-              Trace("cand-gen-qe") << "...returning " << n << std::endl;
-              return n;
-            }
-          }
+      if( d_exclude_eqc.empty() ){
+        return n;
+      }else{
+        Node r = d_qs.getRepresentative(n);
+        if( d_exclude_eqc.find( r )==d_exclude_eqc.end() ){
+          Trace("cand-gen-qe") << "...returning " << n << std::endl;
+          return n;
         }
       }
     }
