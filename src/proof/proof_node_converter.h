@@ -38,8 +38,19 @@ class ProofNodeManager;
 class ProofNodeConverterCallback
 {
  public:
-  ProofNodeConverterCallback() {}
-  virtual ~ProofNodeConverterCallback() {}
+  ProofNodeConverterCallback();
+  virtual ~ProofNodeConverterCallback();
+  /**
+   * Should proof pn be converted?
+   *
+   * Note this method is called on proof nodes whose premises were not
+   * recursively converted by this callback. We always call convert for such
+   * proof nodes.
+   *
+   * @param pn the proof node that maybe should be converted
+   * @return whether we should run the convert method on pn
+   */
+  virtual bool shouldConvert(std::shared_ptr<ProofNode> pn);
   /**
    * Convert the proof rule application, store steps in cdp. Return a non-null
    * formula if successful, which should be given a closed proof in cdp. It can

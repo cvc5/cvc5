@@ -72,8 +72,8 @@ bool RewriteDbProofCons::prove(
   // clear the evaluate cache
   d_evalCache.clear();
   Node eq = a.eqNode(b);
-  Trace("rpc") << "RewriteDbProofCons::prove: " << a << " == " << b
-               << std::endl;
+  Trace("rpc") << "RewriteDbProofCons::prove: " << a << " == " << b << ", mode "
+               << tmode << std::endl;
   // As a heuristic, always apply CONG if we are an equality between two
   // binder terms with the same quantifier prefix or ALPHA_EQUIV if they have
   // a different prefix whose types are the same.

@@ -1,5 +1,6 @@
 ; COMMAND-LINE: --no-nl-cov
 ; EXPECT: unsat
+; DISABLE-TESTER: alethe
 (set-logic ALL)
 (declare-fun s () Real)
 (declare-fun k () Real)

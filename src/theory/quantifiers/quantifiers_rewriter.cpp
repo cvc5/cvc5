@@ -22,6 +22,7 @@
 #include "expr/elim_shadow_converter.h"
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
+#include "expr/subtype_elim_node_converter.h"
 #include "options/quantifiers_options.h"
 #include "proof/conv_proof_generator.h"
 #include "proof/proof.h"
@@ -344,6 +345,8 @@ Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       {
         return Node::null();
       }
+      Trace("quant-rewrite-proof")
+          << "Var elim rewrite " << n << ", id " << id << "?" << std::endl;
       std::vector<Node> args(n[0].begin(), n[0].end());
       std::vector<Node> vars;
       std::vector<Node> subs;
@@ -404,6 +407,8 @@ Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
         std::vector<Node> qc(n.begin(), n.end());
         qc[1] =
             body.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
+        Trace("quant-rewrite-proof")
+            << "...returns body " << qc[1] << std::endl;
         if (args.empty())
         {
           return qc[1];
@@ -1799,6 +1804,7 @@ Node QuantifiersRewriter::computePrenex(Node q,
       std::vector<Node>& argVec = pol ? args : nargs;
       //for doing prenexing of same-signed quantifiers
       //must rename each variable that already exists
+      SubtypeElimNodeConverter senc(nodeManager());
       for (const Node& v : body[0])
       {
         terms.push_back(v);
@@ -1821,6 +1827,7 @@ Node QuantifiersRewriter::computePrenex(Node q,
           {
             Node ii = nm->mkConstInt(index);
             Node cacheVal = nm->mkNode(Kind::SEXPR, {q, body, v, ii});
+            cacheVal = senc.convert(cacheVal);
             vv = bvm->mkBoundVar(BoundVarId::QUANT_REW_PRENEX, cacheVal, vt);
             index++;
           } while (std::find(argVec.begin(), argVec.end(), vv) != argVec.end());
@@ -2091,6 +2098,7 @@ Node QuantifiersRewriter::computeMiniscoping(Node q,
       // forall x. P1 ^ ... ^ Pn ---> forall x. P1 ^ ... ^ forall x. Pn
       NodeBuilder t(nm, k);
       std::vector<Node> argsc;
+      SubtypeElimNodeConverter senc(nodeManager());
       for (size_t i = 0, nchild = body.getNumChildren(); i < nchild; i++)
       {
         if (argsc.empty())
@@ -2101,6 +2109,7 @@ Node QuantifiersRewriter::computeMiniscoping(Node q,
           {
             TypeNode vt = v.getType();
             Node cacheVal = BoundVarManager::getCacheValue(q, v, i);
+            cacheVal = senc.convert(cacheVal);
             Node vv =
                 bvm->mkBoundVar(BoundVarId::QUANT_REW_MINISCOPE, cacheVal, vt);
             argsc.push_back(vv);
