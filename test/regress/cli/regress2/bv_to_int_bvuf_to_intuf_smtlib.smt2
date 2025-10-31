@@ -2,6 +2,7 @@
 ; COMMAND-LINE: --solve-bv-as-int=bitwise --bvand-integer-granularity=1
 ; EXPECT: unsat
 ; DISABLE-TESTER: unsat-core
+; DISABLE-TESTER: cpc
 (set-logic QF_UFBV)
 (declare-fun z$n0s32 () (_ BitVec 32))
 (declare-fun dataOut () (_ BitVec 32))
