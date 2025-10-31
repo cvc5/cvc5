@@ -14,7 +14,6 @@
  */
 
 #include "expr/normalize_sort_converter.h"
-#include <unordered_map>
 
 #include <unordered_map>
 
