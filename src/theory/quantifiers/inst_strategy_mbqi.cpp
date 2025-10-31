@@ -18,16 +18,17 @@
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "expr/subs.h"
+#include "options/arrays_options.h"
 #include "printer/smt2/smt2_printer.h"
-#include "theory/quantifiers/mbqi_enum.h"
+#include "smt/set_defaults.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/instantiate.h"
+#include "theory/quantifiers/mbqi_enum.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/skolemize.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/uf/function_const.h"
-#include "smt/set_defaults.h"
 
 using namespace std;
 using namespace cvc5::internal::kind;
@@ -44,7 +45,11 @@ InstStrategyMbqi::InstStrategyMbqi(Env& env,
     : QuantifiersModule(env, qs, qim, qr, tr), d_globalSyms(userContext())
 {
   // some kinds may appear in model values that cannot be asserted
-  d_nonClosedKinds.insert(Kind::STORE_ALL);
+  // if arraysExp is enabled, we allow STORE_ALL terms in assertions.
+  if (!options().arrays.arraysExp)
+  {
+    d_nonClosedKinds.insert(Kind::STORE_ALL);
+  }
   d_nonClosedKinds.insert(Kind::CODATATYPE_BOUND_VARIABLE);
   d_nonClosedKinds.insert(Kind::UNINTERPRETED_SORT_VALUE);
   // may appear in certain models e.g. strings of excessive length
