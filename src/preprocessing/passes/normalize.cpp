@@ -43,10 +43,10 @@ void generateEncoding(
 {
     std::stack<std::pair<Node, Node>> stack; // Pair of node, parent
     std::unordered_map<Node, bool> visited;
-    std::unordered_map<Node, uint32_t> subtreeIdMap;
-    std::unordered_map<std::string, uint32_t> symbolMap;
-    uint32_t varIdCounter = 1;
-    uint32_t subtreeIdCounter = 1;
+    std::unordered_map<Node, size_t> subtreeIdMap;
+    std::unordered_map<std::string, size_t> symbolMap;
+    size_t varIdCounter = 1;
+    size_t subtreeIdCounter = 1;
     int32_t cnt = 0;
 
     std::vector<std::string> nodeEncodings;
@@ -127,7 +127,7 @@ void generateEncoding(
                 }
 
                 // Assign an ID to this node
-                uint32_t id = subtreeIdCounter++;
+                size_t id = subtreeIdCounter++;
                 subtreeIdMap[n] = id;
 
                 // Build the encoding string
@@ -166,13 +166,13 @@ void generateEncoding(
                         }
 
                         // Include variable ID
-                        uint32_t varId = symbolMap[symbol];
+                        size_t varId = symbolMap[symbol];
                         nodeEncoding += std::to_string(varId) + ",";
                     }
                     else
                     {
                         // Subtree: Include '|' followed by its ID and '|'
-                        uint32_t childId = subtreeIdMap[child];
+                        size_t childId = subtreeIdMap[child];
                         nodeEncoding += "|" + std::to_string(childId) + "|,";
                     }
                 }
@@ -267,10 +267,10 @@ Node rename(
     std::unordered_map<Node, bool> visited;
 
     // Initialize a global variable counter for variable renaming
-    static int globalVarCounter = 0;
+    static size_t globalVarCounter = 0;
 
     // Initialize a variable counter for bound variables
-    int boundVarCounter = 0;
+    size_t boundVarCounter = 0;
     boundVar2node.clear();
 
 
@@ -300,7 +300,7 @@ Node rename(
                         }
                         else
                         {
-                            int id = boundVarCounter++;
+                            size_t id = boundVarCounter++;
                             std::string new_var_name =
                                 "u" + std::string(8 - numDigits(id), '0') + std::to_string(id);
                             Node ret = nodeManager->mkBoundVar(new_var_name, 
@@ -322,7 +322,7 @@ Node rename(
                         else
                         {
                             std::vector<Node> cnodes;
-                            int id = globalVarCounter++;
+                            size_t id = globalVarCounter++;
                             std::string new_var_name =
                                 "v" + std::string(8 - numDigits(id), '0') + std::to_string(id);
                             // Create substitution variable with original type for substitution
@@ -394,7 +394,7 @@ Node rename(
                         }
                         else
                         {
-                            int id = boundVarCounter++;
+                            size_t id = boundVarCounter++;
                             std::string new_var_name =
                                 "u" + std::string(8 - numDigits(id), '0') + std::to_string(id);
 
@@ -413,7 +413,7 @@ Node rename(
                 }
 
                 // Push unvisited children onto the stack
-                for (int i = current.getNumChildren() - 1; i >= 0; i--)
+                for (int i = current.getNumChildren() - 1; i >= 0; --i)
                 {
                     Node child = current[i];
                     if (visited.find(child) == visited.end())
@@ -570,7 +570,7 @@ Node renameQid(
   // Each element is a pair: (current node, its parent).
   std::stack<std::pair<Node, Node>> stack;
   // Global counter for qid renaming (starting at 1).
-  static int qidCounter = 1;
+  static size_t qidCounter = 1;
 
   // Push the root node with a null parent.
   stack.push({n, Node()});
@@ -722,7 +722,7 @@ PreprocessingPassResult Normalize::applyInternal(
     // Step 3: Classify assertions into equivalence classes
     
     std::vector<std::vector<NodeInfo*>> eqClasses;
-    std::unordered_map<std::string, uint32_t> seenEncodings;
+    std::unordered_map<std::string, size_t> seenEncodings;
     for (auto& niPtr : nodeInfos) {
         NodeInfo* current = niPtr.get();
         auto it = seenEncodings.find(current->encoding);
@@ -743,7 +743,7 @@ PreprocessingPassResult Normalize::applyInternal(
 
     // Set IDs for all nodes. Used for super-pattern computation
     
-    uint32_t idCnt = 0;
+    size_t idCnt = 0;
     for (const auto& eqClass : eqClasses)
     {
         for (const auto& ni : eqClass)
@@ -785,7 +785,7 @@ PreprocessingPassResult Normalize::applyInternal(
                             Assert(roleIt != nodeInfo->role.end());
 
                             // Get the equivalence class ID for this node
-                            uint32_t eqClassId = nodeInfo->id;
+                            size_t eqClassId = nodeInfo->id;
 
                             // Push the non-negative value to the corresponding segment in the superpattern
                             superpattern[eqClassId].push_back(roleIt->second);
@@ -936,7 +936,7 @@ PreprocessingPassResult Normalize::applyInternal(
     }
 
     // Replace assertions with normalized versions
-    uint32_t idx = 0;
+    size_t idx = 0;
     for (const auto& eqClass: eqClasses)
     {
         for (const auto& ni : eqClass)
