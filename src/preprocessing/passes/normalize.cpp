@@ -30,12 +30,24 @@ namespace cvc5::internal {
 namespace preprocessing {
 namespace passes {
 
+/**
+ * Constructor for the Normalize preprocessing pass.
+ *
+ * @param preprocContext The preprocessing pass context.
+ */
 Normalize::Normalize(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "normalize"),
     d_statistics(statisticsRegistry())
     {};
 
-
+/**
+ * Generates a compressed encoding (also known as a pattern) of the given node's DAG structure.
+ * Additionally, calculates the role map, which is used later for super-pattern comparison.
+ *
+ * @param root The node itself
+ * @param encoding The resulting compressed encoding string.
+ * @param role A map tracking the first occurrence index of each symbol (used in super-patterns).
+ */
 void generateEncoding(
     const Node& root,
     std::string& encoding,
@@ -213,6 +225,12 @@ void generateEncoding(
 
 
 
+/**
+ * Retrieves information about a node, including its encoding and role map.
+ *
+ * @param node The node to analyze.
+ * @return A unique pointer to the NodeInfo structure containing the node's details.
+ */
 std::unique_ptr<NodeInfo> Normalize::getNodeInfo(const Node& node)
 {
     std::string encoding;
@@ -230,7 +248,13 @@ std::unique_ptr<NodeInfo> Normalize::getNodeInfo(const Node& node)
 
 
 
-int numDigits(int n)
+/**
+ * Calculates the number of digits in a given non-negative integer.
+ *
+ * @param n The non-negative integer to analyze.
+ * @return The number of digits in the non-negative integer.
+ */
+size_t numDigits(size_t n)
 {
     if (n == 0)
     {
@@ -245,7 +269,20 @@ int numDigits(int n)
     return count;
 }
 
-
+/**
+ * Renames variables in a node to ensure consistent naming.
+ *
+ * @param n The node to rename.
+ * @param freeVar2node Map for free variable substitutions.
+ * @param boundVar2node Map for bound variable substitutions.
+ * @param normalizedName Map for storing normalized variable names.
+ * @param normalizedSorts Map for normalized sorts.
+ * @param nodeManager The node manager for creating new nodes.
+ * @param d_preprocContext The preprocessing pass context.
+ * @param sortNormalizer The sort normalizer for type conversion.
+ * @param hasQID Flag indicating if quantifier IDs are present.
+ * @return The renamed node.
+ */
 Node rename(
     const Node& n,
     std::unordered_map<Node, Node>& freeVar2node,
@@ -485,6 +522,12 @@ Node rename(
 
 
 
+/**
+ * Checks if a node represents a trivial equality (e.g., x = x).
+ *
+ * @param n The node to check.
+ * @return True if the node is a trivial equality, false otherwise.
+ */
 bool isTrivialEquality(const Node& n)
 {
     if (n.getKind() == cvc5::internal::Kind::EQUAL)
@@ -498,6 +541,12 @@ bool isTrivialEquality(const Node& n)
     return false;
 }
 
+/**
+ * Checks if a node represents the constant true.
+ *
+ * @param n The node to check.
+ * @return True if the node is the constant true, false otherwise.
+ */
 bool isTrue(const Node& n)
 {
     if (n.isConst() && n.getType().isBoolean())
@@ -507,7 +556,14 @@ bool isTrue(const Node& n)
     return false;
 }
 
-
+/**
+ * Collects all unique types present in a node's subtree.
+ *
+ * @param n The root node of the subtree.
+ * @param types Vector to store the collected types.
+ * @param visited Set to track visited nodes.
+ * @param mark Set to track collected types.
+ */
 void collectTypes(TNode n,
               std::vector<TypeNode>& types,
               std::unordered_set<TNode>& visited,
@@ -556,6 +612,15 @@ void collectTypes(TNode n,
 
 
 
+/**
+ * Renames quantifier IDs (QIDs) in a node to ensure consistent naming.
+ *
+ * @param n The node to rename.
+ * @param qidRenamed Map for storing renamed QIDs.
+ * @param normalizedName Map for storing normalized QID names.
+ * @param nodeManager The node manager for creating new nodes.
+ * @return The renamed node.
+ */
 Node renameQid(
     const Node& n,
     std::unordered_map<Node, Node>& qidRenamed,
