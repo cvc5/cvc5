@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- *
+ * This pre-processing pass implementes the normalizer in the FMCAD 2025 paper. 
  */
 
 #include "preprocessing/passes/normalize.h"
@@ -24,9 +24,7 @@
 #include <unordered_map>
 #include <stack>
 
-using namespace cvc5::internal::theory;
 using namespace cvc5::internal::kind;
-
 
 namespace cvc5::internal {
 namespace preprocessing {
@@ -232,12 +230,6 @@ std::unique_ptr<NodeInfo> Normalize::getNodeInfo(const Node& node)
 
 
 
-bool sameClass(const NodeInfo& a, const NodeInfo& b) // Check if two nodes have the same encoding and pattern
-{
-    return a.encoding == b.encoding;
-}
-
-
 int numDigits(int n)
 {
     if (n == 0)
@@ -301,7 +293,6 @@ Node rename(
                 {
                     if (current.getKind() == cvc5::internal::Kind::BOUND_VARIABLE)
                     {
-                        // Handle bound variable
                         auto it_bv = boundVar2node.find(current);
                         if (it_bv != boundVar2node.end())
                         {
@@ -309,28 +300,20 @@ Node rename(
                         }
                         else
                         {
-                            // int id = globalVarCounter++;
                             int id = boundVarCounter++;
                             std::string new_var_name =
                                 "u" + std::string(8 - numDigits(id), '0') + std::to_string(id);
-                            // Node ret = nodeManager->mkBoundVar(new_var_name, current.getType());
-                            // Node ret = nodeManager->mkBoundVar(new_var_name, 
-                                // normalizedSorts.find(current.getType()) != normalizedSorts.end() ? normalizedSorts[current.getType()] : current.getType()
-                            // );
                             Node ret = nodeManager->mkBoundVar(new_var_name, 
                                 sortNormalizer->convertType(current.getType())
                             );
 
                             boundVar2node[current] = ret;
                             normalized[current] = ret;
-
-                            // normalizedName[current.toString()] = new_var_name;
                             normalizedName[std::to_string(current.getId())] = new_var_name;
                         }
                     }
                     else
                     {
-                        // Handle free variable using nodes as keys
                         auto it_fv = freeVar2node.find(current);
                         if (it_fv != freeVar2node.end())
                         {
@@ -342,18 +325,6 @@ Node rename(
                             int id = globalVarCounter++;
                             std::string new_var_name =
                                 "v" + std::string(8 - numDigits(id), '0') + std::to_string(id);
-                            // cnodes.push_back(nodeManager->mkConst(String(new_var_name, false)));
-                            // Node gt = nodeManager->mkConst(SortToTerm(
-                            //     sortNormalizer->convertType(current.getType())
-                            // ));
-
-                            // cnodes.push_back(gt);
-                            // Node ret = nodeManager->getSkolemManager()->mkInternalSkolemFunction(
-                            //     InternalSkolemId::NORMALIZE_INPUT_VARIABLE,
-                            //     sortNormalizer->convertType(current.getType()),
-                            //     cnodes
-                            // );
-
                             // Create substitution variable with original type for substitution
                             Node substVar = nodeManager->getSkolemManager()->mkDummySkolem(
                                 new_var_name,
@@ -373,8 +344,6 @@ Node rename(
                             freeVar2node[current] = ret;
                             normalized[current] = ret;
                             d_preprocContext->addSubstitution(current, substVar);
-
-                            // normalizedName[current.toString()] = new_var_name;
                             normalizedName[std::to_string(current.getId())] = new_var_name;
                         }
                     }
@@ -395,7 +364,6 @@ Node rename(
 
                 if (!hasQID && current.getKind() == cvc5::internal::Kind::INST_ATTRIBUTE)
                 {
-                    // If any child is a variable, it's a qid
                     for (size_t i = 0; i < current.getNumChildren(); ++i)
                     {
                         Node child = current[i];
@@ -426,13 +394,9 @@ Node rename(
                         }
                         else
                         {
-                            // int id = globalVarCounter++;
                             int id = boundVarCounter++;
                             std::string new_var_name =
                                 "u" + std::string(8 - numDigits(id), '0') + std::to_string(id);
-                            // Node newBv = nodeManager->mkBoundVar(new_var_name, bv.getType());
-                            // boundVar2node[bv] = newBv;
-                            // normalized[bv] = newBv;
 
                             Node ret = nodeManager->mkBoundVar(new_var_name, 
                                 sortNormalizer->convertType(bv.getType())
@@ -443,7 +407,6 @@ Node rename(
                         normalizedBoundVars.push_back(normalized[bv]);
                     }
 
-                    // Replace the bound variables in the quantifier
                     Node normalizedBoundVarList = nodeManager->mkNode(
                         cvc5::internal::Kind::BOUND_VAR_LIST, normalizedBoundVars);
                     normalized[bound_vars] = normalizedBoundVarList;
@@ -476,7 +439,6 @@ Node rename(
         {
             // Second time seeing this node, process it after its children
 
-            // Prepare children for node creation
             std::vector<Node> children;
 
             if (current.getKind() == cvc5::internal::Kind::APPLY_UF)
@@ -492,7 +454,6 @@ Node rename(
                 children.push_back(current.getOperator());
             }
 
-            // Add normalized children
             for (size_t i = 0; i < current.getNumChildren(); ++i)
             {
                 Node child = current[i];
@@ -501,7 +462,6 @@ Node rename(
                 children.push_back(childIt->second);
             }
 
-            // Create the new node with normalized children
             Node ret = nodeManager->mkNode(current.getKind(), children);
             normalized[current] = ret;
 
@@ -547,8 +507,6 @@ bool isTrue(const Node& n)
     return false;
 }
 
-
-// Same as getTypes. But this one colelcts types in a vector instead of an unordered_set
 
 void collectTypes(TNode n,
               std::vector<TypeNode>& types,
