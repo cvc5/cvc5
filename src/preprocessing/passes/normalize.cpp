@@ -697,8 +697,9 @@ PreprocessingPassResult Normalize::applyInternal(
 {
     TimerStat::CodeTimer codeTimer(d_statistics.d_passTime);
 
-    // Step 1: Get NodeInfo for all assertions
-    
+    // ----------------------------------------
+    // Step 1: Collect NodeInfo for all assertions
+    // ----------------------------------------
     std::vector<std::shared_ptr<NodeInfo>> nodeInfos;
     for (const Node& assertion : assertionsToPreprocess->ref())
     {
@@ -710,39 +711,49 @@ PreprocessingPassResult Normalize::applyInternal(
         nodeInfos.push_back(std::move(ni));
     }
 
-    // Step 2: Store assertions in which every symbol occurs (will be used for super-pattern computation)
-    
+    // ----------------------------------------
+    // Step 2: Store symbol occurrences for super-pattern computation
+    // ----------------------------------------
     std::unordered_map<std::string, std::vector<std::shared_ptr<NodeInfo>>> symbolOccurrences;
-    for (const auto& nodeInfo : nodeInfos) {
-        for (const auto& [symbol, _] : nodeInfo->varNames) {
+    for (const auto& nodeInfo : nodeInfos)
+    {
+        for (const auto& [symbol, _] : nodeInfo->varNames)
+        {
             symbolOccurrences[symbol].push_back(nodeInfo);
         }
     }
 
+    // ----------------------------------------
     // Step 3: Classify assertions into equivalence classes
-    
+    // ----------------------------------------
     std::vector<std::vector<NodeInfo*>> eqClasses;
     std::unordered_map<std::string, size_t> seenEncodings;
-    for (auto& niPtr : nodeInfos) {
+    for (auto& niPtr : nodeInfos)
+    {
         NodeInfo* current = niPtr.get();
         auto it = seenEncodings.find(current->encoding);
-        if (it != seenEncodings.end()) {
+        if (it != seenEncodings.end())
+        {
             eqClasses[it->second].push_back(current);
-        } else {
+        }
+        else
+        {
             seenEncodings[current->encoding] = eqClasses.size();
             std::vector<NodeInfo*> newClass;
             newClass.push_back(current);
             eqClasses.push_back(std::move(newClass));
         }
     }
-    // Step 3: Sort equivalence classes based on encodings
+
+    // ----------------------------------------
+    // Step 4: Sort equivalence classes based on encodings
+    // ----------------------------------------
     std::sort(eqClasses.begin(), eqClasses.end(),
         [](const std::vector<NodeInfo*>& a, const std::vector<NodeInfo*>& b) {
             return a[0]->encoding > b[0]->encoding;
         });
 
-    // Set IDs for all nodes. Used for super-pattern computation
-    
+    // Assign IDs to equivalence classes for super-pattern computation
     size_t idCnt = 0;
     for (const auto& eqClass : eqClasses)
     {
@@ -752,35 +763,37 @@ PreprocessingPassResult Normalize::applyInternal(
         }
         idCnt++;
     }
-    // Step 4: Sort within equivalence classes
-    std::unordered_map<std::string, std::vector<std::vector<int32_t>>> patternCache; // Cache of superpatterns
-
-
-    for (auto& eqClass : eqClasses) {
+    // ----------------------------------------
+    // Step 5: Sort within equivalence classes
+    // ----------------------------------------
+    std::unordered_map<std::string, std::vector<std::vector<int32_t>>> patternCache;
+    for (auto& eqClass : eqClasses)
+    {
         std::sort(eqClass.begin(), eqClass.end(),
             [&eqClasses, &patternCache, &symbolOccurrences](NodeInfo* a, NodeInfo* b) {
-
                 auto itA = a->varNames.begin();
                 auto itB = b->varNames.begin();
 
-                while (itA != a->varNames.end() && itB != b->varNames.end()) {
-                    const std::string& symbolA = itA->first; 
-                    const std::string& symbolB = itB->first; 
+                while (itA != a->varNames.end() && itB != b->varNames.end())
+                {
+                    const std::string& symbolA = itA->first;
+                    const std::string& symbolB = itB->first;
 
-                    auto getOrComputeSuperpattern = [&](const std::string &symbol) -> const std::vector<std::vector<int32_t>>& {
+                    auto getOrComputeSuperpattern = [&](const std::string& symbol) -> const std::vector<std::vector<int32_t>>& {
                         auto it = patternCache.find(symbol);
-                        if (it != patternCache.end()) {
-                            return it->second; // Return cached superpattern if it exists
+                        if (it != patternCache.end())
+                        {
+                            return it->second;
                         }
 
                         // Initialize the superpattern with empty vectors for each segment
                         std::vector<std::vector<int32_t>> superpattern(eqClasses.size());
-
                         auto symbolIt = symbolOccurrences.find(symbol);
                         Assert(symbolIt != symbolOccurrences.end());
 
                         // Iterate over all occurrences of the symbol
-                        for (const auto& nodeInfo : symbolIt->second) {
+                        for (const auto& nodeInfo : symbolIt->second) 
+                        {
                             auto roleIt = nodeInfo->role.find(symbol);
                             Assert(roleIt != nodeInfo->role.end());
 
@@ -792,19 +805,20 @@ PreprocessingPassResult Normalize::applyInternal(
                         }
 
                         // Sort each segment in the superpattern and compute the -1 count
-                        for (size_t i = 0; i < superpattern.size(); ++i) {
+                        for (size_t i = 0; i < superpattern.size(); ++i) 
+                        {
                             std::sort(superpattern[i].begin(), superpattern[i].end());
                             // The count of -1s is the size of the equivalence class minus the number of non-negative values
                             superpattern[i].insert(superpattern[i].begin(), eqClasses[i].size() - superpattern[i].size());
                         }
 
-                        // Cache the superpattern
-                        auto &ret = patternCache[symbol];
+                        auto& ret = patternCache[symbol];
                         ret = std::move(superpattern);
                         return ret;
                     };
 
-                    if (symbolA == symbolB) {
+                    if (symbolA == symbolB)
+                    {
                         ++itA;
                         ++itB;
                         continue;
@@ -814,24 +828,28 @@ PreprocessingPassResult Normalize::applyInternal(
                     const std::vector<std::vector<int32_t>>& superpatternB = getOrComputeSuperpattern(symbolB);
 
                     // Compare superpatterns segment by segment
-                    for (size_t i = 0; i < superpatternA.size(); ++i) {
+                    for (size_t i = 0; i < superpatternA.size(); ++i) 
+                    {
                         const auto& patA = superpatternA[i];
                         const auto& patB = superpatternB[i];
 
                         // Compare the count of -1s in the segment
-                        if (patA[0] != patB[0]) {
+                        if (patA[0] != patB[0]) 
+                        {
                             return patA[0] < patB[0];
                         }
 
                         // Compare the non-negative values in the segment
-                        for (size_t j = 1; j < patA.size() && j < patB.size(); ++j) {
+                        for (size_t j = 1; j < patA.size() && j < patB.size(); ++j) 
+                        {
                             if (patA[j] != patB[j]) {
                                 return patA[j] < patB[j];
                             }
                         }
 
                         // If one segment has more non-negative values, it is considered greater
-                        if (patA.size() != patB.size()) {
+                        if (patA.size() != patB.size()) 
+                        {
                             return patA.size() < patB.size();
                         }
                     }
@@ -848,19 +866,20 @@ PreprocessingPassResult Normalize::applyInternal(
             });
     }
 
-    
+    // ----------------------------------------
+    // Step 6: Collect and normalize types
+    // ----------------------------------------
     std::vector<TypeNode> types;
     std::unordered_set<TNode> visited;
     std::unordered_set<TypeNode> mark;
     for (const std::vector<NodeInfo*>& eqClass : eqClasses) 
     {
-        for (NodeInfo* nodeInfo : eqClass) 
+        for (NodeInfo* nodeInfo : eqClass)
         {
             collectTypes(nodeInfo->node, types, visited, mark);
         }
     }
 
-    
     std::unordered_map<TypeNode, TypeNode> normalizedSorts;
     int sortCounter = 0;
     for (const TypeNode& ctn : types)
@@ -876,8 +895,9 @@ PreprocessingPassResult Normalize::applyInternal(
 
     NormalizeSortNodeConverter* sortNormalizer = new NormalizeSortNodeConverter(normalizedSorts, nodeManager());
 
-    // Step 5: Normalize the nodes based on the sorted order
-    
+    // ----------------------------------------
+    // Step 7: Normalize nodes based on sorted order
+    // ----------------------------------------
     std::unordered_map<Node, Node> freeVar2node;
     std::unordered_map<Node, Node> boundVar2node;
     std::unordered_map<std::string, std::string> normalizedName;
@@ -886,14 +906,15 @@ PreprocessingPassResult Normalize::applyInternal(
     for (const auto& eqClass : eqClasses)
     {
         for (const auto& ni : eqClass)
-        {            
-            Node renamed = rename(ni->node, freeVar2node, boundVar2node, normalizedName, normalizedSorts, nodeManager(), d_preprocContext, sortNormalizer, hasQID);  
-            ni->node = renamed;          
+        {
+            Node renamed = rename(ni->node, freeVar2node, boundVar2node, normalizedName, normalizedSorts, nodeManager(), d_preprocContext, sortNormalizer, hasQID);
+            ni->node = renamed;
         }
     }
 
-    // Step 6: Sort the nodes within each equivalence class based on the normalized node names
-    
+    // ----------------------------------------
+    // Step 8: Sort nodes within equivalence classes based on normalized names
+    // ----------------------------------------
     for (auto& eqClass : eqClasses)
     {
         std::sort(eqClass.begin(), eqClass.end(),
@@ -920,24 +941,27 @@ PreprocessingPassResult Normalize::applyInternal(
             });
     }
 
-    // Step 7: Reassign qid top to bottom
-    
+    // ----------------------------------------
+    // Step 9: Reassign qid top to bottom
+    // ----------------------------------------
     std::unordered_map<Node, Node> qidRenamed;
     if (hasQID)
     {
         for (const auto& eqClass : eqClasses)
         {
             for (const auto& ni : eqClass)
-            {            
-                Node renamed = renameQid(ni->node, qidRenamed, normalizedName, nodeManager());  
-                ni->node = renamed;          
+            {
+                Node renamed = renameQid(ni->node, qidRenamed, normalizedName, nodeManager());
+                ni->node = renamed;
             }
         }
     }
 
-    // Replace assertions with normalized versions
+    // ----------------------------------------
+    // Step 10: Replace assertions with normalized versions
+    // ----------------------------------------
     size_t idx = 0;
-    for (const auto& eqClass: eqClasses)
+    for (const auto& eqClass : eqClasses)
     {
         for (const auto& ni : eqClass)
         {
