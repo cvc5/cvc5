@@ -281,7 +281,7 @@ name   = "Base"
 [[option.mode.NORMALIZE]]
   name = "normalize"
   help = "prints the benchmark after normalization"
-  description = "With ``-o normalize``, cvc5 prints the benchmark after normalization."
+  description = "With ``-o normalize``, cvc5 prints the benchmark after normalization and terminates."
   example-file = "regress0/printer/normalize.smt2"
 
   
