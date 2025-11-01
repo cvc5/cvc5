@@ -14,26 +14,14 @@
  */
 
 #include "preprocessing/passes/normalize.h"
-
 #include "preprocessing/assertion_pipeline.h"
-#include "theory/rewriter.h"
-#include "theory/strings/theory_strings_preprocess.h"
-#include "expr/node_manager.h"
-#include "expr/node_manager_attributes.h"
-#include "expr/sort_to_term.h"
-#include "util/string.h"
-#include "expr/node_converter.h"
-#include "expr/node_algorithm.h"
 #include "util/statistics_registry.h"
 #include "preprocessing/preprocessing_pass_context.h" 
 #include "expr/cardinality_constraint.h"
 #include "expr/normalize_sort_converter.h"
 #include "expr/skolem_manager.h"
 
-#include <map>
 #include <unordered_map>
-#include <memory>
-#include <tuple>
 #include <stack>
 
 using namespace cvc5::internal::theory;
