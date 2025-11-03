@@ -134,6 +134,8 @@ enum class InferenceId
   ARITH_NL_RES_INFER_BOUNDS,
   // tangent planes (NlSolver::checkTangentPlanes)
   ARITH_NL_TANGENT_PLANE,
+  // flatten monomials (NonlinearExtension::checkFlattenMonomials).
+  ARITH_NL_FLATTEN_MON,
   //-------------------- nonlinear transcendental solver
   // sine symmetry
   ARITH_NL_T_SINE_SYMM,

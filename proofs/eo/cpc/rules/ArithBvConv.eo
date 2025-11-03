@@ -34,7 +34,7 @@
 (declare-rule ubv-to-int-elim ((n Int) (b (BitVec n)) (m Int))
   :args ((= (ubv_to_int b) m))
   :requires (((eo::define ((w ($bv_bitwidth (eo::typeof b))))
-                ($singleton_elim ($abconv_ubv_to_int_elim b 0 w 1))) m))
+                (eo::list_singleton_elim + ($abconv_ubv_to_int_elim b 0 w 1))) m))
   :conclusion (= (ubv_to_int b) m)
 )
 
@@ -68,6 +68,6 @@
 ; conclusion: The given equality.
 (declare-rule int-to-bv-elim ((w Int) (n Int) (b (BitVec w)))
   :args ((= (int2bv w n) b))
-  :requires ((($singleton_elim ($abconv_int_to_bv_elim n w ($arith_eval_int_pow_2 w))) b))
+  :requires (((eo::list_singleton_elim concat ($abconv_int_to_bv_elim n w ($arith_eval_int_pow_2 w))) b))
   :conclusion (= (int2bv w n) b)
 )

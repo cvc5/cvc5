@@ -64,6 +64,8 @@ enum class InferStep
   NL_INIT,
   /** Nl factoring lemmas */
   NL_FACTORING,
+  /** Nl monomial equality propagation by flattening */
+  NL_FLATTEN_MON,
   /** Nl lemmas for monomial bound inference */
   NL_MONOMIAL_INFER_BOUNDS,
   /** Nl lemmas for monomial magnitudes (class 0) */
