@@ -1558,12 +1558,18 @@ void TheoryDatatypes::checkSplit()
   // get the relevant term set, currently all datatype equivalence classes
   // in the equality engine
   std::unordered_set<Node> termSetReps;
+  std::unordered_set<Node> termSetSelReps;
   for (const Node& t : termSet)
   {
     Trace("datatypes-debug") << "- term: " << t << std::endl;
     if (t.getType().isDatatype())
     {
       termSetReps.insert(d_equalityEngine->getRepresentative(t));
+    }
+    Kind tk = t.getKind();
+    if (tk == Kind::APPLY_SELECTOR || tk == Kind::DT_HEIGHT_BOUND)
+    {
+      termSetSelReps.insert(d_equalityEngine->getRepresentative(t[0]));
     }
   }
   std::map<TypeNode, Node> rec_singletons;
@@ -1677,7 +1683,7 @@ void TheoryDatatypes::checkSplit()
       Trace("datatypes-debug") << "...returned " << ifin << std::endl;
       if (!ifin)
       {
-        if (!eqc || !eqc->d_selectors)
+        if (termSetSelReps.find(n)==termSetSelReps.end())
         {
           needSplit = false;
           break;
