@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Zvike Berger
+ *   Zvika Berger
  *
  * This file is part of the cvc5 project.
  *
