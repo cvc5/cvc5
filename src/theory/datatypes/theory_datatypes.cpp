@@ -1706,6 +1706,7 @@ void TheoryDatatypes::checkSplit()
     else
     {
       Assert(consIndex != -1 || dt.isSygus());
+      bool sentLemma = false;
       if (options().datatypes.dtBinarySplit && consIndex != -1)
       {
         Node test = utils::mkTester(n, consIndex, dt);
@@ -1715,8 +1716,11 @@ void TheoryDatatypes::checkSplit()
         NodeBuilder nb(nodeManager(), Kind::OR);
         nb << test << test.notNode();
         Node lemma = nb;
-        d_im.lemma(lemma, InferenceId::DATATYPES_BINARY_SPLIT);
-        d_im.preferPhase(test, true);
+        if (d_im.lemma(lemma, InferenceId::DATATYPES_BINARY_SPLIT))
+        {
+          sentLemma = true;
+          d_im.preferPhase(test, true);
+        }
       }
       else
       {
@@ -1724,10 +1728,10 @@ void TheoryDatatypes::checkSplit()
                           << endl;
         Node lemma = utils::mkSplit(n, dt);
         Trace("dt-split-debug") << "Split lemma is : " << lemma << std::endl;
-        d_im.sendDtLemma(
+        sentLemma = d_im.sendDtLemma(
             lemma, InferenceId::DATATYPES_SPLIT, LemmaProperty::SEND_ATOMS);
       }
-      if (!options().datatypes.dtBlastSplits)
+      if (sentLemma && !options().datatypes.dtBlastSplits)
       {
         return;
       }
