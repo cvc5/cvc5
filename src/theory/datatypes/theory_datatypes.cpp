@@ -1552,6 +1552,7 @@ Node TheoryDatatypes::searchForCycle(TNode n,
 
 void TheoryDatatypes::checkSplit()
 {
+  Trace("datatypes-debug") << "Check splits" << std::endl;
   std::set<Node> termSet;
   collectAssertedTermsForModel(termSet);
   // get the relevant term set, currently all datatype equivalence classes
@@ -1559,6 +1560,7 @@ void TheoryDatatypes::checkSplit()
   std::unordered_set<Node> termSetReps;
   for (const Node& t : termSet)
   {
+    Trace("datatypes-debug") << "- term: " << t << std::endl;
     if (t.getType().isDatatype())
     {
       termSetReps.insert(d_equalityEngine->getRepresentative(t));
