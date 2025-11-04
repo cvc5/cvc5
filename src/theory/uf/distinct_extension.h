@@ -89,7 +89,11 @@ class DistinctExtension : protected EnvObj
    * current SAT context.
    * We track this because d_eqcToDistinct/d_eqcToMem are *not* stored in a
    * context dependent manner for efficiency, but whose entries are valid only
-   * in the current SAT context.
+   * in the current SAT context. For example, in a SAT context we could have
+   * allocated 3 entries in d_eqcToDistinct[a] and d_eqcToDMem[a]. When
+   * we backtrack, d_ndistinct[a] could be equal to 1, while these two vectors
+   * will still have size 3, meaning that only the first element in these lists
+   * should be considered.
    */
   NodeUIntMap d_ndistinct;
   /**
