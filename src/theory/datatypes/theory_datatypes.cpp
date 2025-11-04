@@ -1727,7 +1727,7 @@ void TheoryDatatypes::checkSplit()
         Trace("dt-split") << "*************Split for constructors on " << n
                           << endl;
         Node lemma = utils::mkSplit(n, dt);
-        Trace("dt-split- debug") << "Split lemma is : " << lemma << std::endl;
+        Trace("dt-split-debug") << "Split lemma is : " << lemma << std::endl;
         sentLemma = d_im.sendDtLemma(
             lemma, InferenceId::DATATYPES_SPLIT, LemmaProperty::SEND_ATOMS);
       }
