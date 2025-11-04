@@ -1553,11 +1553,14 @@ Node TheoryDatatypes::searchForCycle(TNode n,
 void TheoryDatatypes::checkSplit()
 {
   Trace("datatypes-debug") << "Check splits" << std::endl;
+  // We first compute the set of asserted terms. This is a subset of those
+  // in the equality engine, which may include preregistered but not asserted
+  // terms.
   std::set<Node> termSet;
   collectAssertedTermsForModel(termSet);
-  // get the relevant term set, currently all datatype equivalence classes
-  // in the equality engine
+  // The set of equivalence classes for which there is a relevant term.
   std::unordered_set<Node> termSetReps;
+  // The set of equivalence classes that have a selector applied to them.
   std::unordered_set<Node> termSetSelReps;
   for (const Node& t : termSet)
   {
@@ -1567,6 +1570,7 @@ void TheoryDatatypes::checkSplit()
       termSetReps.insert(d_equalityEngine->getRepresentative(t));
     }
     Kind tk = t.getKind();
+    // height bound is also considered a selector
     if (tk == Kind::APPLY_SELECTOR || tk == Kind::DT_HEIGHT_BOUND)
     {
       termSetSelReps.insert(d_equalityEngine->getRepresentative(t[0]));
