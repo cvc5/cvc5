@@ -779,6 +779,7 @@ set(regress_0_tests
   regress0/datatypes/rec2.cvc.smt2
   regress0/datatypes/rec4.cvc.smt2
   regress0/datatypes/rewriter.cvc.smt2
+  regress0/datatypes/rlv-term-simple.smt2
   regress0/datatypes/sc-cdt1.smt2
   regress0/datatypes/some-boolean-tests.cvc.smt2
   regress0/datatypes/stream-singleton.smt2
