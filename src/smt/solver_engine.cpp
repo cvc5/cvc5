@@ -938,6 +938,9 @@ void SolverEngine::assertFormulaInternal(const Node& formula)
   Trace("smt") << "SolverEngine::assertFormula(" << formula << ")" << endl;
   Node f = formula;
   // If we are proof producing and don't permit subtypes, we rewrite now.
+  // Otherwise we will have an assumption with mixed arithmetic which is
+  // not permitted in proofs that cannot be eliminated, and will require a
+  // trust step.
   // We don't care if we are an internal subsolver, as this rewriting only
   // impacts having exportable, complete proofs, which is not an issue for
   // internal subsolvers.
@@ -947,18 +950,8 @@ void SolverEngine::assertFormulaInternal(const Node& formula)
     {
       SubtypeElimNodeConverter senc(d_env->getNodeManager());
       f = senc.convert(formula);
-      /*
-      if (f != formula)
-      {
-        Warning() << "Input involves mixed arithmetic, which is not SMT-LIB "
-                     "compliant."
-                  << std::endl;
-        Warning()
-            << "This assertion will be rewritten to avoid mixed arithmetic."
-            << std::endl;
-        Warning() << "Assertion is: " << formula << std::endl;
-      }
-      */
+      // note we could throw a warning here if formula and f are different,
+      // but currently don't.
     }
   }
   d_smtSolver->getAssertions().assertFormula(f);
