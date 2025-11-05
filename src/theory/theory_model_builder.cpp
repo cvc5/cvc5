@@ -1177,6 +1177,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
 
 void TheoryEngineModelBuilder::postProcessModel(bool incomplete, TheoryModel* m)
 {
+  Trace("model-builder") << "postProcessModel" << std::endl;
   // assign functions if necessary
   if (m->areFunctionValuesEnabled())
   {
