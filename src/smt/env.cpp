@@ -261,7 +261,7 @@ bool Env::isFiniteType(TypeNode tn) const
                                   d_options.quantifiers.finiteModelFind);
 }
 
-bool Env::isCardinalityClassFinite(CardinalityClass cc) const
+bool Env::isFiniteCardinalityClass(CardinalityClass cc) const
 {
   return isCardinalityClassFinite(cc,
                                   d_options.quantifiers.finiteModelFind);

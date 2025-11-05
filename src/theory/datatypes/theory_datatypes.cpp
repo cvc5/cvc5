@@ -1670,7 +1670,7 @@ void TheoryDatatypes::checkSplit()
       // Notice that we split here on all datatypes except the
       // ones that have infinite cardinality, which depends on whether
       // finite model finding is enabled.
-      bool ifin = d_env.isCardinalityClassFinite(
+      bool ifin = d_env.isFiniteCardinalityClass(
           dt[j].getCardinalityClass(tn));
       Trace("datatypes-debug") << "...returned " << ifin << std::endl;
       if (!ifin)

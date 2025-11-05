@@ -252,7 +252,7 @@ class Env
   /**
    * Is the given cardinality class infinite based on the options?
    */
-  bool isCardinalityClassFinite(CardinalityClass cc) const;
+  bool isFiniteCardinalityClass(CardinalityClass cc) const;
   /**
    * Is first class type.
    */
