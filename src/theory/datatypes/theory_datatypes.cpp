@@ -1674,8 +1674,7 @@ void TheoryDatatypes::checkSplit()
       // datatype constructor is finite or not. For example, a datatype
       // constructor leaf : U -> Tree where U is an uninterpreted sort is
       // finite iff finite model finding is enabled.
-      bool ifin = d_env.isFiniteCardinalityClass(
-          dt[j].getCardinalityClass(tn));
+      bool ifin = d_env.isFiniteCardinalityClass(dt[j].getCardinalityClass(tn));
       Trace("datatypes-debug") << "...returned " << ifin << std::endl;
       if (!ifin)
       {

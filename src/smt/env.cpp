@@ -263,8 +263,7 @@ bool Env::isFiniteType(TypeNode tn) const
 
 bool Env::isFiniteCardinalityClass(CardinalityClass cc) const
 {
-  return isCardinalityClassFinite(cc,
-                                  d_options.quantifiers.finiteModelFind);
+  return isCardinalityClassFinite(cc, d_options.quantifiers.finiteModelFind);
 }
 
 bool Env::isFirstClassType(TypeNode tn) const
