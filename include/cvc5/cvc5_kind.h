@@ -539,6 +539,40 @@ enum ENUM(Kind)
    *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&)
    */
   EVALUE(IAND),
+      /**
+   * parametric Integer and.
+   *
+   * \rst
+   * Operator for parametric bit-wise ``AND`` over integers, parameterized by a (positive)
+   * bit-width :math:`k`.
+   *
+   * .. code:: smtlib
+   *
+   *     (piand k i_1 i_2)
+   *
+   * is equivalent to
+   *
+   * .. code:: smtlib
+   *
+   *     (ubv_to_int (bvand ((_ int_to_bv k) i_1) ((_ int_to_bv k) i_2)))
+   *
+   * for all integers ``k``, ``i_1``, ``i_2``.
+   *
+   * - Arity: ``3``
+   *
+   *   - ``1..3:`` Terms of Sort Int
+   *
+   * \endrst
+   *
+   * - Create Term of this Kind with:
+   *
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&)
+   *
+   * - Create Op of this kind with:
+   *
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&)
+   */
+  EVALUE(PIAND),
   /**
    * Power of two.
    *
