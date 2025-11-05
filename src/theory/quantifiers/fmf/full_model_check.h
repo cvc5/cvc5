@@ -177,6 +177,7 @@ protected:
 
   bool useSimpleModels();
  private:
+  void assignFunctions(TheoryModel* m) override;
   /**
    * Register quantified formula.
    * This checks whether q can be handled by model-based instantiation and
@@ -190,6 +191,8 @@ protected:
    * class that is specialized for this class.
    */
   std::unique_ptr<FirstOrderModelFmc> d_fm;
+  /** Have we assigned functions this round? */
+  bool d_assignedFuncs;
 };/* class FullModelChecker */
 
 }  // namespace fmcheck

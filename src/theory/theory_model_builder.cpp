@@ -1177,6 +1177,11 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
 
 void TheoryEngineModelBuilder::postProcessModel(bool incomplete, TheoryModel* m)
 {
+  // assign functions if necessary
+  if (m->areFunctionValuesEnabled())
+  {
+    assignFunctions(m);
+  }
   // if we are incomplete, there is no guarantee on the model.
   // thus, we do not check the model here.
   if (incomplete)
@@ -1321,10 +1326,6 @@ bool TheoryEngineModelBuilder::preProcessBuildModel(TheoryModel* m)
 
 bool TheoryEngineModelBuilder::processBuildModel(TheoryModel* m)
 {
-  if (m->areFunctionValuesEnabled())
-  {
-    assignFunctions(m);
-  }
   return true;
 }
 
