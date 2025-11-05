@@ -895,6 +895,7 @@ set(regress_0_tests
   regress0/fmf/bug-041417-set-options.cvc.smt2
   regress0/fmf/bug782.smt2
   regress0/fmf/cruanes-no-minimal-unk.smt2
+  regress0/fmf/dd_issue12208.smt2
   regress0/fmf/fc-simple.smt2
   regress0/fmf/fc-unsat-pent.smt2
   regress0/fmf/fc-unsat-tot-2.smt2

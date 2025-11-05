@@ -66,7 +66,7 @@ class InferenceManager : public InferenceManagerBuffered
   /**
    * Send lemma immediately on the output channel
    */
-  void sendDtLemma(Node lem,
+  bool sendDtLemma(Node lem,
                    InferenceId id,
                    LemmaProperty p = LemmaProperty::NONE);
   /**
