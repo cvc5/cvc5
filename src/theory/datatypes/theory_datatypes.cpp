@@ -1667,9 +1667,13 @@ void TheoryDatatypes::checkSplit()
         consIndex = j;
       }
       Trace("datatypes-debug") << j << " compute finite..." << std::endl;
-      // Notice that we split here on all datatypes except the
-      // ones that have infinite cardinality, which depends on whether
-      // finite model finding is enabled.
+      // Notice that whether there exists infinitely many datatype values
+      // for a given constructor depends on whether finite model finding is
+      // enabled (which interprets uninterpreted sorts as finite). Thus we
+      // require asking the Env class whether the cardinality class of the
+      // datatype constructor is finite or not. For example, a datatype
+      // constructor leaf : U -> Tree where U is an uninterpreted sort is
+      // finite iff finite model finding is enabled.
       bool ifin = d_env.isFiniteCardinalityClass(
           dt[j].getCardinalityClass(tn));
       Trace("datatypes-debug") << "...returned " << ifin << std::endl;
