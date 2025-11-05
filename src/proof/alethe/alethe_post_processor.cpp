@@ -206,6 +206,186 @@ bool AletheProofPostprocessCallback::updateTheoryRewriteProofRewriteRule(
                            {},
                            *cdp);
     }
+    // ======== QUANT_VAR_ELIM_EQ
+    //
+    // The conclusion of this rule can take any of the following three forms:
+    //  a) (forall ((x)) (or (not (= x t)) F)) = F{x->t}
+    //  b) (forall ((x)) (or (not (= x t)) F1 ... Fn)) = (or F1 ... Fn){x->t}
+    //  c) (forall ((x)) (not (= x t))) = false
+    //
+    //
+    // In case a:
+    //   Let G = F{x->t},
+    //   r1 = (or (not (= t t)) G)
+    //   rwr = "or-not-refl-empty", t, G
+    //
+    // In case b:
+    //   Let Gi = Fi{x->t},
+    //   F = (or F1 ... Fn),
+    //   G = (or G1 ... Gn),
+    //   r1 = (or (not (= t t)) G1 ... Gn)
+    //   rwr = "or-not-refl"
+    //
+    // Then, for both a and b:
+    //
+    // --------- refl
+    //   VP1_1
+    // --------- anchor_onepoint, (:= (x T) t)    ------ rare_rewrite, rwr
+    //    VP1                                       VP2
+    // ------------------------------------------------- trans
+    //                  (cl (= r1 G))
+    //
+    // VP1_1: (cl (= res[0][1] G))
+    // VP1: (cl (= (forall ((x)) res[0][1]) r1))
+    // VP2: (cl (= r1 G))
+    // (define-rule or-not-refl-empty ((t ?) (x Bool)) (or (not (= t t)) x) x)
+    // (define-rule or-not-refl ((t ?) (x Bool) (xs Bool :list) (or (not (= t
+    // t)) x xs) (or x xs))
+    //
+    // In case c:
+    //
+    //                    --------- rare_rewrite, bool-not-false
+    //                      VP1_2
+    //                    --------- symm
+    //                      VP1_3
+    //   --------- refl   --------- equiv1
+    //     VP1_1            VP1_4
+    //   -------------------------- resolution
+    //            VP1_4
+    //	 ---------------------- anchor_onepoint, (:= (x T) t)
+    //             res
+    //
+    // VP1_1: (cl (= x t))
+    // VP1_2: (cl (= (= (not (= x t)) false) (= x t)))
+    // VP1_3: (cl (= (= x t) (= (not (= x t)) false)))
+    // VP1_4: (cl (not (= x t)) (= (not (= x t)) false))
+    // VP1_5: (cl (= (not (= x t)) false))
+    // (define-rule bool-not-false ((x Bool)) (= (not x) false) x)
+    //
+    case ProofRewriteRule::QUANT_VAR_ELIM_EQ:
+    {
+      Node LHS_body = res[0][1];
+      // Case a) & b)
+      if (LHS_body.getKind() == Kind::OR)
+      {
+        Node x_t = LHS_body[0][0];
+        Node x = x_t[0];
+        Node t = x_t[1];
+        Node not_t_t = nm->mkNode(Kind::EQUAL, t, t).notNode();
+        Node RHS = res[1];
+
+        Node F;
+        Node G;
+        Node r1;
+        std::vector<Node> rwr_args = {};
+
+        if (LHS_body.getNumChildren() == 2)
+        {
+          F = LHS_body[1];
+          G = RHS;
+          r1 = nm->mkNode(Kind::OR, not_t_t, G);
+          rwr_args = {
+              nm->mkRawSymbol("\"or-not-refl-empty\"", nm->sExprType()), t, G};
+        }
+        else
+        {
+          std::vector<Node> F_clauses = {};
+          F_clauses.insert(
+              F_clauses.end(), LHS_body.begin() + 1, LHS_body.end());
+          F = nm->mkNode(Kind::OR, F_clauses);
+
+          std::vector<Node> G_clauses = {};
+          G_clauses.insert(G_clauses.end(), RHS.begin(), RHS.end());
+          G = nm->mkNode(Kind::OR, G_clauses);
+
+          G_clauses.insert(G_clauses.begin(), not_t_t);
+          r1 = nm->mkNode(Kind::OR, G_clauses);
+          std::vector<Node> list_arg{
+              NodeManager::mkBoundVar("rare-list", nm->sExprType())};
+          list_arg.insert(list_arg.end(), G.begin() + 1, G.end());
+          rwr_args = {nm->mkRawSymbol("\"or-not-refl\"", nm->sExprType()),
+                      t,
+                      G[0],
+                      nm->mkNode(Kind::SEXPR, list_arg)};
+        }
+        Node vp1_1 = nm->mkNode(Kind::EQUAL, LHS_body, r1);
+        Node vp1 = nm->mkNode(Kind::EQUAL, res[0], r1);
+        Node vp2 = nm->mkNode(Kind::EQUAL, r1, G);
+        new_args.push_back(nm->mkNode(Kind::EQUAL, x, t));
+
+        return addAletheStep(AletheRule::REFL,
+                             vp1_1,
+                             nm->mkNode(Kind::SEXPR, d_cl, vp1_1),
+                             {},
+                             {},
+                             *cdp)
+               && addAletheStep(AletheRule::ANCHOR_ONEPOINT,
+                                vp1,
+                                nm->mkNode(Kind::SEXPR, d_cl, vp1),
+                                {vp1_1},
+                                new_args,
+                                *cdp)
+               && addAletheStep(AletheRule::RARE_REWRITE,
+                                vp2,
+                                nm->mkNode(Kind::SEXPR, d_cl, vp2),
+                                {},
+                                rwr_args,
+                                *cdp)
+               && addAletheStep(AletheRule::TRANS,
+                                res,
+                                nm->mkNode(Kind::SEXPR, d_cl, res),
+                                {vp1, vp2},
+                                {},
+                                *cdp);
+      }
+      // Case c)
+      else
+      {
+        Node true_node = nm->mkConst(true);
+        Node vp1_1 = LHS_body[0];
+        Node x = vp1_1[0];
+        Node t = vp1_1[1];
+        Node vp1_5 = nm->mkNode(Kind::EQUAL, vp1_1.notNode(), true_node);
+        Node vp1_2 = nm->mkNode(Kind::EQUAL, vp1_4, vp1_1);
+        Node vp1_3 = nm->mkNode(Kind::EQUAL, vp1_1, vp1_4);
+        Node vp1_4 = nm->mkNode(Kind::OR, vp1_1.notNode(), vp1_4);
+        std::vector<Node> rwr_args = {
+            nm->mkRawSymbol("\"bool-not-false\"", nm->sExprType()), vp1_1};
+        return addAletheStep(AletheRule::REFL,
+                             vp1_1,
+                             nm->mkNode(Kind::SEXPR, d_cl, vp1_1),
+                             {},
+                             {},
+                             *cdp)
+               && addAletheStep(AletheRule::RARE_REWRITE,
+                                vp1_2,
+                                nm->mkNode(Kind::SEXPR, d_cl, vp1_2),
+                                {},
+                                rwr_args,
+                                *cdp)
+               && addAletheStep(AletheRule::SYMM,
+                                vp1_3,
+                                nm->mkNode(Kind::SEXPR, d_cl, vp1_3),
+                                {vp1_2},
+				{},
+                                *cdp)
+               && addAletheStepFromOr(
+                   AletheRule::EQUIV1, vp1_4, {vp1_3}, rwr_args, *cdp)
+               && addAletheStep(AletheRule::RESOLUTION,
+                                vp1_5,
+                                nm->mkNode(Kind::SEXPR, d_cl, vp1_4),
+                                {vp1_1, vp1_4},
+                                d_resPivots ? std::vector<Node>{vp1_1, d_true}
+                                            : std::vector<Node>(),
+                                *cdp)
+               && addAletheStep(AletheRule::ANCHOR_ONEPOINT,
+                                res,
+                                nm->mkNode(Kind::SEXPR, d_cl, res),
+                                {vp1_5},
+                                new_args,
+                                *cdp);
+      }
+    }
     default: break;
   }
   return addAletheStep(AletheRule::HOLE,
