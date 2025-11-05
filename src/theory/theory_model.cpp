@@ -17,6 +17,8 @@
 #include "expr/attribute.h"
 #include "expr/cardinality_constraint.h"
 #include "expr/node_algorithm.h"
+#include "expr/skolem_manager.h"
+#include "expr/sort_to_term.h"
 #include "expr/subs.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
@@ -25,11 +27,9 @@
 #include "smt/env.h"
 #include "theory/trust_substitutions.h"
 #include "theory/uf/function_const.h"
+#include "theory/uf/theory_uf_model.h"
 #include "util/rational.h"
 #include "util/uninterpreted_sort_value.h"
-#include "theory/uf/theory_uf_model.h"
-#include "expr/skolem_manager.h"
-#include "expr/sort_to_term.h"
 
 using namespace std;
 using namespace cvc5::internal::kind;
@@ -381,7 +381,7 @@ Node TheoryModel::getModelValue(TNode n) const
         {
           assignFunctionDefault(n);
           entry = d_uf_models.find(n);
-          Assert (entry != d_uf_models.end());
+          Assert(entry != d_uf_models.end());
         }
         // Existing function
         ret = entry->second;
@@ -690,10 +690,13 @@ Node TheoryModel::getRepresentative(TNode a) const
 {
   if( d_equalityEngine->hasTerm( a ) ){
     Node r = d_equalityEngine->getRepresentative( a );
-  std::map<Node, Node>::const_iterator itr = d_reps.find(r);
-    if( itr!=d_reps.end() ){
+    std::map<Node, Node>::const_iterator itr = d_reps.find(r);
+    if (itr != d_reps.end())
+    {
       return itr->second;
-    }else{
+    }
+    else
+    {
       return r;
     }
   }else{
@@ -738,10 +741,9 @@ bool TheoryModel::areFunctionValuesEnabled() const
   return d_enableFuncModels;
 }
 
-
 void TheoryModel::assignFunctionDefault(Node f) const
 {
-  Assert (d_uf_models.find(f)==d_uf_models.end());
+  Assert(d_uf_models.find(f) == d_uf_models.end());
   if (logicInfo().isHigherOrder())
   {
     assignFunctionDefaultHo(f);
@@ -752,8 +754,8 @@ void TheoryModel::assignFunctionDefault(Node f) const
   options::DefaultFunctionValueMode dfvm =
       options().theory.defaultFunctionValueMode;
   Node default_v;
-  std::map<Node, std::vector<Node> >::const_iterator itu = d_uf_terms.find(f);
-  if (itu!=d_uf_terms.end())
+  std::map<Node, std::vector<Node>>::const_iterator itu = d_uf_terms.find(f);
+  if (itu != d_uf_terms.end())
   {
     for (const Node& un : itu->second)
     {
@@ -763,15 +765,15 @@ void TheoryModel::assignFunctionDefault(Node f) const
       for (size_t j = 0; j < un.getNumChildren(); ++j)
       {
         Node rc = getRepresentative(un[j]);
-        Trace("model-builder-debug2") << "    get rep : " << un[j] << " returned "
-                                      << rc << std::endl;
+        Trace("model-builder-debug2")
+            << "    get rep : " << un[j] << " returned " << rc << std::endl;
         Assert(rewrite(rc) == rc);
         children.push_back(rc);
       }
       Node simp = nodeManager()->mkNode(un.getKind(), children);
       Node v = getRepresentative(un);
-      Trace("model-builder") << "  Setting (" << simp << ") to (" << v << ")"
-                            << endl;
+      Trace("model-builder")
+          << "  Setting (" << simp << ") to (" << v << ")" << endl;
       ufmt.setValue(this, simp, v);
       if (dfvm == options::DefaultFunctionValueMode::FIRST)
       {
@@ -807,7 +809,6 @@ void TheoryModel::assignFunctionDefault(Node f) const
   Trace("model-builder-debug") << "...assign via function" << std::endl;
   assignFunctionDefinition(f, val);
 }
-
 
 void TheoryModel::assignFunctionDefaultHo(Node f) const
 {
@@ -852,7 +853,8 @@ void TheoryModel::assignFunctionDefaultHo(Node f) const
     }
   }
   curr = currPre;
-  std::map<Node, std::vector<Node> >::const_iterator itht = d_ho_uf_terms.find(f);
+  std::map<Node, std::vector<Node>>::const_iterator itht =
+      d_ho_uf_terms.find(f);
   if (itht != d_ho_uf_terms.end())
   {
     for (size_t i = 0; i < itht->second.size(); i++)
@@ -867,10 +869,10 @@ void TheoryModel::assignFunctionDefaultHo(Node f) const
       Assert(hni.getType() == args[0].getType());
       hni = rewrite(args[0].eqNode(hni));
       Node hnv = getRepresentative(hn);
-      Trace("model-builder-debug2") << "      get rep val : " << hn
-                                    << " returned " << hnv << std::endl;
-      // hnv is expected to be constant but may not be the case if e.g. a non-trivial
-      // lambda is given as argument to this function.
+      Trace("model-builder-debug2")
+          << "      get rep val : " << hn << " returned " << hnv << std::endl;
+      // hnv is expected to be constant but may not be the case if e.g. a
+      // non-trivial lambda is given as argument to this function.
       if (!apply_args.empty())
       {
         // Convert to lambda, which is necessary if hnv is a function array
@@ -906,11 +908,13 @@ void TheoryModel::assignFunctionDefaultHo(Node f) const
   }
   Node val = nodeManager()->mkNode(
       Kind::LAMBDA, nodeManager()->mkNode(Kind::BOUND_VAR_LIST, args), curr);
-  Trace("model-builder-debug") << "...assign via ho function to " << val << std::endl;
+  Trace("model-builder-debug")
+      << "...assign via ho function to " << val << std::endl;
   assignFunctionDefinition(f, val);
 }
 
-void TheoryModel::assignFunctionDefinition( Node f, Node f_def ) const {
+void TheoryModel::assignFunctionDefinition(Node f, Node f_def) const
+{
   Trace("model-builder") << "  Assigning function (" << f << ") to (" << f_def << ")" << endl;
   Assert(d_uf_models.find(f) == d_uf_models.end());
 
