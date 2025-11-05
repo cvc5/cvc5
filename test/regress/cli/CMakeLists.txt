@@ -892,6 +892,7 @@ set(regress_0_tests
   regress0/fmf/bug-041417-set-options.cvc.smt2
   regress0/fmf/bug782.smt2
   regress0/fmf/cruanes-no-minimal-unk.smt2
+  regress0/fmf/dd_issue12208.smt2
   regress0/fmf/fc-simple.smt2
   regress0/fmf/fc-unsat-pent.smt2
   regress0/fmf/fc-unsat-tot-2.smt2
@@ -1100,6 +1101,7 @@ set(regress_0_tests
   regress0/nl/all-logic.smt2
   regress0/nl/coeff-sat.smt2
   regress0/nl/combined-uf.smt2
+  regress0/nl/dd_aprove496_nl_ext.smt2
   regress0/nl/dd.fuzz01.smtv1-to-real-idem.smt2
   regress0/nl/dd.iand-wrong-0513-pp.smt2
   regress0/nl/dd.polypaver-bench-exp-3d-chunk-0067.smt2
@@ -1697,6 +1699,7 @@ set(regress_0_tests
   regress0/quantifiers/qcf-rel-dom-opt.smt2
   regress0/quantifiers/qe-closed-str-re.smt2
   regress0/quantifiers/quant-model-simplification.smt2
+  regress0/quantifiers/quant-qid-decl.smt2
   regress0/quantifiers/rew-to-scala.smt2
   regress0/quantifiers/selector-trigger.smt2
   regress0/quantifiers/simp-len.smt2
@@ -2863,6 +2866,7 @@ set(regress_1_tests
   regress1/nl/metitarski_3_4_2e.smt2
   regress1/nl/mirko-050417.smt2
   regress1/nl/nl-eq-infer.smt2
+  regress1/nl/nl-ext-flatten-simp.smt2
   regress1/nl/nl-help-unsat-quant.smt2
   regress1/nl/nl-unk-quant.smt2
   regress1/nl/nl_uf_lalt.smt2

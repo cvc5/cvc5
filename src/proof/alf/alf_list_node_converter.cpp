@@ -118,7 +118,12 @@ Node AlfListNodeConverter::postConvert(Node n)
   // if less than 2 non-list children, it might collapse to a single element
   if (nlistChildren < 2)
   {
-    return d_tproc.mkInternalApp("$singleton_elim", {n}, n.getType());
+    // prints as an operator parameterized by a variadic function, due to use of
+    // raw symbol in mkInternalApp.
+    std::stringstream ss;
+    ss << "eo::list_singleton_elim "
+       << printer::smt2::Smt2Printer::smtKindString(k);
+    return d_tproc.mkInternalApp(ss.str(), {n}, n.getType());
   }
   return n;
 }
