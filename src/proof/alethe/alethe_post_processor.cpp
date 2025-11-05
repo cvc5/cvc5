@@ -313,9 +313,9 @@ bool AletheProofPostprocessCallback::updateTheoryRewriteProofRewriteRule(
         Node x = vp1_1[0];
         Node t = vp1_1[1];
         Node vp1_5 = nm->mkNode(Kind::EQUAL, vp1_1.notNode(), true_node);
-        Node vp1_2 = nm->mkNode(Kind::EQUAL, vp1_4, vp1_1);
-        Node vp1_3 = nm->mkNode(Kind::EQUAL, vp1_1, vp1_4);
-        Node vp1_4 = nm->mkNode(Kind::OR, vp1_1.notNode(), vp1_4);
+        Node vp1_2 = nm->mkNode(Kind::EQUAL, vp1_5, vp1_1);
+        Node vp1_3 = nm->mkNode(Kind::EQUAL, vp1_1, vp1_5);
+        Node vp1_4 = nm->mkNode(Kind::OR, vp1_1.notNode(), vp1_5);
         std::vector<Node> rwr_args = {
             nm->mkRawSymbol("\"bool-not-false\"", nm->sExprType()), vp1_1};
         return addAletheStep(AletheRule::REFL,
