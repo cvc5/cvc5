@@ -254,7 +254,7 @@ class TheoryModel : protected EnvObj
   /** does the equality engine of this model have term a? */
   bool hasTerm(TNode a);
   /** get the representative of a in the equality engine of this model */
-  Node getRepresentative(TNode a);
+  Node getRepresentative(TNode a) const;
   /** are a and b equal in the equality engine of this model? */
   bool areEqual(TNode a, TNode b);
   /** are a and b disequal in the equality engine of this model? */
@@ -315,7 +315,9 @@ class TheoryModel : protected EnvObj
   /** are function values enabled? */
   bool areFunctionValuesEnabled() const;
   /** assign function value f to definition f_def */
-  void assignFunctionDefinition( Node f, Node f_def );
+  void assignFunctionDefinition( Node f, Node f_def ) const;
+  void assignFunctionDefault(Node f) const;
+  void assignFunctionDefaultHo(Node f) const;
   /** have we assigned function f? */
   bool hasAssignedFunctionDefinition(Node f) const;
   /** get the list of functions to assign. 
@@ -377,7 +379,7 @@ class TheoryModel : protected EnvObj
    * Map of representatives of equality engine to used representatives in
    * representative set
    */
-  std::map<Node, Node> d_reps;
+  mutable std::map<Node, Node> d_reps;
   /** Map of terms to their assignment exclusion set. */
   std::map<Node, std::vector<Node> > d_assignExcSet;
   /**
@@ -460,7 +462,7 @@ class TheoryModel : protected EnvObj
    * After the model is built, the domain of this map is all terms of function
    * type that appear as terms in d_equalityEngine.
    */
-  std::map<Node, Node> d_uf_models;
+  mutable std::map<Node, Node> d_uf_models;
   //---------------------------- end function values
 };/* class TheoryModel */
 
