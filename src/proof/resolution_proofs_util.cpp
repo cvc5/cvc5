@@ -22,7 +22,7 @@
 namespace cvc5::internal {
 namespace proof {
 
-/** The information relevant for converting MACRO_RESOLUTION steps into
+/** The information relevant for converting CHAIN_M_RESOLUTION steps into
  * CHAIN_RESOLUTION+FACTORING steps when "crowding literals" are present. See
  * `ProofPostprocessCallback::eliminateCrowdingLits` for more information. */
 struct CrowdingLitInfo
@@ -351,9 +351,9 @@ Node eliminateCrowdingLits(NodeManager* nm,
                   newArgs.begin() + (2 * maxSafeMove) - 1);
       // Being pedantic here we should assert that the rotated
       // newChildren/newArgs still yield the same conclusion with a
-      // MACRO_RESOLUTION step. However this can be very expensive to check, so
-      // we don't do this. Only if one is debugging this code this test should
-      // be added.
+      // CHAIN_M_RESOLUTION step. However this can be very expensive to check,
+      // so we don't do this. Only if one is debugging this code this test
+      // should be added.
 
       // Now we need to update the indices, since we have changed newChildren.
       // For every crowding literal whose information indices are in the

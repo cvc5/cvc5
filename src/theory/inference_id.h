@@ -134,6 +134,8 @@ enum class InferenceId
   ARITH_NL_RES_INFER_BOUNDS,
   // tangent planes (NlSolver::checkTangentPlanes)
   ARITH_NL_TANGENT_PLANE,
+  // flatten monomials (NonlinearExtension::checkFlattenMonomials).
+  ARITH_NL_FLATTEN_MON,
   //-------------------- nonlinear transcendental solver
   // sine symmetry
   ARITH_NL_T_SINE_SYMM,
@@ -878,6 +880,10 @@ enum class InferenceId
   // Typically, t is an application of an extended function and s is a constant.
   // It is generally only inferred if P is a predicate over known terms.
   STRINGS_EXTF_EQ_REW,
+  // two terms rewrite to the same thing
+  // in particular this is of the form (E1 ^ E2) => t1 = t2
+  // where E1 => t1 = tr and E2 => t2 = tr.
+  STRINGS_EXTF_REW_SAME,
   // contain transitive
   //   ( str.contains( s, t ) ^ ~contains( s, r ) ) => ~contains( t, r ).
   STRINGS_CTN_TRANS,

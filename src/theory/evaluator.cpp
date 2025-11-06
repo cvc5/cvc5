@@ -1294,6 +1294,7 @@ EvalResult Evaluator::evalInternal(
           Integer w = results[currNode[1]].d_rat.getNumerator();
           if (w.fitsUnsignedInt())
           {
+            Assert(w.sgn() >= 0);
             Trace("evaluator") << currNode << " evalutes to "
                                << BitVector(w.toUnsignedInt(), i) << std::endl;
             results[currNode] = EvalResult(BitVector(w.toUnsignedInt(), i));

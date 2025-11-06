@@ -489,6 +489,8 @@ libcvc5_add_sources(
   theory/arith/nl/ext/constraint.h
   theory/arith/nl/ext/factoring_check.cpp
   theory/arith/nl/ext/factoring_check.h
+  theory/arith/nl/ext/flatten_monomial_check.cpp
+  theory/arith/nl/ext/flatten_monomial_check.h
   theory/arith/nl/ext/monomial.cpp
   theory/arith/nl/ext/monomial.h
   theory/arith/nl/ext/monomial_bounds_check.cpp
@@ -507,6 +509,7 @@ libcvc5_add_sources(
   theory/arith/nl/ext_theory_callback.h
   theory/arith/nl/iand_solver.cpp
   theory/arith/nl/iand_solver.h
+  theory/arith/nl/piand_solver.h
   theory/arith/nl/icp/candidate.cpp
   theory/arith/nl/icp/candidate.h
   theory/arith/nl/icp/contraction_origins.cpp

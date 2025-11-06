@@ -454,6 +454,10 @@ class BasicRewriteRCons : protected EnvObj
                         const Node& eq,
                         theory::TheoryRewriteCtx ctx);
   /**
+   * Try a specific theory rewrite to prove eq. Return true if successful.
+   */
+  bool doTheoryRewrite(CDProof* cdp, const Node& eq, ProofRewriteRule r);
+  /**
    * Counts number of proof nodes for each kind of THEORY_REWRITE that were
    * expanded in macro elimination by this class.
    */

@@ -15,6 +15,8 @@
 
 #include "proof/subtype_elim_proof_converter.h"
 
+#include "expr/node_algorithm.h"
+#include "proof/conv_proof_generator.h"
 #include "proof/proof.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_node_algorithm.h"
@@ -179,13 +181,55 @@ Node SubtypeElimConverterCallback::convert(Node res,
           ProofRule::MACRO_SR_PRED_INTRO, children, cargs, resc, newRes, cdp);
     }
     break;
-    default: break;
+    default:
+    {
+      std::vector<Node> matchConds;
+      expr::getConversionConditions(newRes, resc, matchConds);
+      // Otherwise find a set of equalities that suffice to show the difference,
+      // and use conversion proof generator. For example if we have
+      // (= x (to_real 0)) but need (= x 0.0), then matchConds contains
+      // { (= (to_real 0) 0.0) }.
+      TConvProofGenerator tcpg(d_env,
+                               nullptr,
+                               TConvPolicy::ONCE,
+                               TConvCachePolicy::NEVER,
+                               "SubtypeElimConvert",
+                               nullptr,
+                               true);
+      for (const Node& mc : matchConds)
+      {
+        tcpg.addRewriteStep(mc[0],
+                            mc[1],
+                            nullptr,
+                            true,
+                            TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE);
+      }
+      std::shared_ptr<ProofNode> pfn = tcpg.getProofForRewriting(newRes);
+      Node resr = pfn->getResult();
+      Assert(resr.getKind() == Kind::EQUAL);
+      if (resr[1] == resc)
+      {
+        // if successful we have
+        // P
+        // --  ------ by term conversion + rewrite steps
+        // Q   Q = R
+        // ---------- EQ_RESOLVE
+        // R
+        // where P is the premises of this step after subtype elimination,
+        // Q is what is proven by the original rule and P, and R is the original
+        // conclusion after subtype elimination.
+        cdp->addProof(pfn);
+        cdp->addStep(resc, ProofRule::EQ_RESOLVE, {newRes, resr}, {});
+        cdp->addStep(newRes, id, children, cargs);
+      }
+    }
+    break;
   }
   if (!success)
   {
     // if we did not succeed, just add a trust step
     Trace("pf-subtype-elim-warn")
-        << "WARNING: Introduction of subtyping via rule " << id;
+        << "WARNING: Introduction of subtyping via rule " << id << std::endl;
     cdp->addTrustedStep(resc, TrustId::SUBTYPE_ELIMINATION, children, {});
   }
   return resc;

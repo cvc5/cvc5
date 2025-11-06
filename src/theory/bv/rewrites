@@ -47,7 +47,7 @@
 ; Case 4: Elision from the higher portion
 (define-cond-rule bv-extract-concat-4
   ((x ?BitVec) (y ?BitVec) (xs ?BitVec :list) (i Int) (j Int))
-  (< j (- (@bvsize (concat x xs y)) (@bvsize x)))
+  (< j (- (@bvsize (concat x y xs)) (@bvsize x)))
   (extract j i (concat x xs y))
   (extract j i (concat xs y)))
 
@@ -204,7 +204,7 @@
    (zs ?BitVec :list))
   (= ww (+ w1 w2))
   (concat xs (@bv n1 w1) (@bv n2 w2) zs)
-  (concat xs (@bv (+ (* n1 (int.pow2 w2)) n2) ww) zs))
+  (concat xs (@bv (+ (* n1 (int.pow2 w2)) (mod n2 (int.pow2 w2))) ww) zs))
 
 ; These rules should be subsumed by ARITH_POLY_NORM, but removing them increases the number of holes
 (define-rule bv-commutative-add ((x ?BitVec) (y ?BitVec))

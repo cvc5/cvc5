@@ -53,6 +53,7 @@ NonlinearExtension::NonlinearExtension(Env& env, TheoryArith& containing)
       d_factoringSlv(d_env, &d_extState),
       d_monomialBoundsSlv(d_env, &d_extState),
       d_monomialSlv(d_env, &d_extState),
+      d_fmSlv(d_env, d_astate, d_im),
       d_splitZeroSlv(d_env, &d_extState),
       d_tangentPlaneSlv(d_env, &d_extState),
       d_covSlv(d_env, d_im, d_model),
@@ -547,6 +548,12 @@ void NonlinearExtension::runStrategy(Theory::Effort effort,
         d_monomialBoundsSlv.init();
         d_monomialSlv.init(xts);
         break;
+      case InferStep::NL_FLATTEN_MON:
+      {
+        std::vector<Node>& mvec = d_extState.d_ms_vars;
+        d_fmSlv.check(mvec);
+      }
+      break;
       case InferStep::NL_MONOMIAL_INFER_BOUNDS:
         d_monomialBoundsSlv.checkBounds(assertions, false_asserts);
         break;

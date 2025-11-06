@@ -445,7 +445,17 @@ bool BasicRewriteRCons::ensureProofMacroArithIntRelation(CDProof* cdp,
       theory::arith::rewriter::decomposeRelation(nm, rewRel[0], rewRel[1]);
   Assert(p.second.isConst());
   Assert(!p.second.getConst<Rational>().isIntegral());
-  Node rew = nm->mkNode(rk, nm->mkNode(Kind::TO_REAL, p.first), p.second);
+  Node iterm = p.first;
+  if (p.first.getType().isReal())
+  {
+    Trace("brc-macro") << "Real term convert to integer: " << p.first << std::endl;
+    theory::arith::rewriter::Sum sum;
+    theory::arith::rewriter::addToSumNoMixed(sum, p.first, false);
+    iterm = collectSum(nodeManager(), sum);
+    Trace("brc-macro") << "...converts to " << iterm << std::endl;
+  }
+  Node rewLhs = nm->mkNode(Kind::TO_REAL, iterm);
+  Node rew = nm->mkNode(rk, rewLhs, p.second);
   Trace("brc-macro") << "...setup relation is " << rew << std::endl;
   Node eqq = rewRel.eqNode(rew);
   transEq.push_back(eqq);
@@ -460,17 +470,21 @@ bool BasicRewriteRCons::ensureProofMacroArithIntRelation(CDProof* cdp,
   // arith-int-geq-tighten verbatim
   if (rk == Kind::GEQ)
   {
-    Node cceil = nm->mkConstInt(p.second.getConst<Rational>().ceiling());
+    // use the correct type
+    Node cceil = nm->mkConstRealOrInt(p.first.getType(),
+                                      p.second.getConst<Rational>().ceiling());
     tgt = nm->mkNode(rk, p.first, cceil);
   }
   // the last step can be shown by the RARE rules
   // arith-int-eq-conflict or arith-int-geq-tighten
   eqq = rew.eqNode(tgt);
+  Trace("brc-macro") << "...subgoal (1): " << eqq << std::endl;
   cdp->addTrustedStep(eqq, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE, {}, {});
   transEq.push_back(eqq);
   if (tgt != eq[1])
   {
     eqq = tgt.eqNode(eq[1]);
+    Trace("brc-macro") << "...subgoal (2): " << eqq << std::endl;
     cdp->addTrustedStep(
         eqq, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE, {}, {});
     transEq.push_back(eqq);
@@ -928,15 +942,51 @@ bool BasicRewriteRCons::ensureProofMacroReInterUnionInclusion(CDProof* cdp,
 bool BasicRewriteRCons::ensureProofMacroReInterUnionConstElim(CDProof* cdp,
                                                               const Node& eq)
 {
+  NodeManager* nm = nodeManager();
   Trace("brc-macro") << "Expand macro re inter union const elim for " << eq
                      << std::endl;
   if (eq[0].getKind() == Kind::REGEXP_INTER)
   {
+    theory::strings::ArithEntail ae(nm, nullptr);
+    theory::strings::StringsEntail se(nullptr, ae);
+    theory::strings::SequencesRewriter srew(nm, ae, se, nullptr);
+    Node tgt;
+    Node res = srew.rewriteViaMacroReInterUnionConstElim(eq[0], tgt);
+    if (eq[1].getKind() == Kind::STRING_TO_REGEXP)
+    {
+      tgt = eq[1];
+    }
+    else
+    {
+      Assert(eq[1].getKind() == Kind::REGEXP_NONE && !tgt.isNull());
+    }
+    Trace("brc-macro") << "...target is " << tgt << std::endl;
     // RARE should suffice to show the intersection case
     // via rules re-inter-cstring or re-inter-cstring-neg
     // Note these may require calling membership evaluation as a subcall,
     // so we mark this non-simple.
-    cdp->addTrustedStep(eq, TrustId::MACRO_THEORY_REWRITE_RCONS, {}, {});
+    // We must ensure that the constant regexp is the first child to match
+    // these rules. This means either the right hand side is the first child,
+    // or the witness to the conflict is inserted as the first child, which
+    // is idempotent via ACI_NORM.
+    if (!tgt.isNull() && tgt != eq[0][0])
+    {
+      std::vector<Node> newChildren;
+      newChildren.push_back(tgt);
+      newChildren.insert(newChildren.end(), eq[0].begin(), eq[0].end());
+      Node rnew = nm->mkNode(Kind::REGEXP_INTER, newChildren);
+      Node eq1 = eq[0].eqNode(rnew);
+      Node eq2 = rnew.eqNode(eq[1]);
+      Trace("brc-macro") << "...decompose to " << eq1 << ", " << eq2
+                         << std::endl;
+      cdp->addStep(eq1, ProofRule::ACI_NORM, {}, {eq1});
+      cdp->addTrustedStep(eq2, TrustId::MACRO_THEORY_REWRITE_RCONS, {}, {});
+      cdp->addStep(eq, ProofRule::TRANS, {eq1, eq2}, {});
+    }
+    else
+    {
+      cdp->addTrustedStep(eq, TrustId::MACRO_THEORY_REWRITE_RCONS, {}, {});
+    }
     return true;
   }
   Assert(eq[0].getKind() == Kind::REGEXP_UNION);
@@ -965,7 +1015,6 @@ bool BasicRewriteRCons::ensureProofMacroReInterUnionConstElim(CDProof* cdp,
   }
   Node curr = eq[1];
   std::vector<Node> transEq;
-  NodeManager* nm = nodeManager();
   for (size_t i = 0, ndiff = diff.size(); i < ndiff; i++)
   {
     size_t ii = (ndiff - i - 1);
@@ -2252,7 +2301,10 @@ bool BasicRewriteRCons::ensureProofMacroQuantVarElimEq(CDProof* cdp,
   cdp->addStep(eqq, cr, {eqBody}, cargs);
   finalTransEq.push_back(eqq);
   eqq = body1p.eqNode(body2);
-  cdp->addTheoryRewriteStep(eqq, ProofRewriteRule::QUANT_VAR_ELIM_EQ);
+  if (!doTheoryRewrite(cdp, eqq, ProofRewriteRule::QUANT_VAR_ELIM_EQ))
+  {
+    return false;
+  }
   finalTransEq.push_back(eqq);
   Node beq = body1.eqNode(body2);
   cdp->addStep(beq, ProofRule::TRANS, finalTransEq, {});
@@ -3135,6 +3187,7 @@ bool BasicRewriteRCons::tryTheoryRewrite(CDProof* cdp,
                                          theory::TheoryRewriteCtx ctx)
 {
   Assert(eq.getKind() == Kind::EQUAL);
+  Trace("trewrite-rcons") << "Find rule " << eq << std::endl;
   ProofRewriteRule prid = d_env.getRewriter()->findRule(eq[0], eq[1], ctx);
   if (prid != ProofRewriteRule::NONE)
   {
@@ -3146,10 +3199,24 @@ bool BasicRewriteRCons::tryTheoryRewrite(CDProof* cdp,
                 {mkRewriteRuleNode(nodeManager(), prid), eq},
                 false))
     {
+      Trace("trewrite-rcons") << "...got " << prid << std::endl;
       // Theory rewrites may require macro expansion
       ensureProofForTheoryRewrite(cdp, prid, eq);
       return true;
     }
+  }
+  return false;
+}
+
+bool BasicRewriteRCons::doTheoryRewrite(CDProof* cdp,
+                                        const Node& eq,
+                                        ProofRewriteRule r)
+{
+  Node er = d_env.getRewriter()->rewriteViaRule(r, eq[0]);
+  if (er == eq[1])
+  {
+    cdp->addTheoryRewriteStep(eq, r);
+    return true;
   }
   return false;
 }
