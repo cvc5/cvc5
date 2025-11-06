@@ -51,11 +51,11 @@ std::ostream& operator<<(std::ostream& os, EnumeratorRole r)
   return os;
 }
 
-TermDbSygus::TermDbSygus(Env& env, QuantifiersState& qs)
+TermDbSygus::TermDbSygus(Env& env, QuantifiersState& qs, FunDefEvaluator* fde)
     : EnvObj(env),
       d_qstate(qs),
       d_syexp(new SygusExplain(env, this)),
-      d_funDefEval(new FunDefEvaluator(env)),
+      d_funDefEval(fde),
       d_eval_unfold(new SygusEvalUnfold(env, this)),
       d_ochecker(env.getOracleChecker())
 {
