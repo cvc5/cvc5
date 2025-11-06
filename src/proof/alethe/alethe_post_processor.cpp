@@ -184,14 +184,14 @@ bool AletheProofPostprocessCallback::updateTheoryRewriteProofRewriteRule(
     // In case a:
     //   Let G = F{x->t},
     //   r1 = (or (not (= t t)) G)
-    //   rwr = "or-not-refl-empty", t, G
+    //   rwr = "or-not-refl", t, G, ()
     //
     // In case b:
     //   Let Gi = Fi{x->t},
     //   F = (or F1 ... Fn),
     //   G = (or G1 ... Gn),
     //   r1 = (or (not (= t t)) G1 ... Gn)
-    //   rwr = "or-not-refl"
+    //   rwr = "or-not-refl", t, G0, (G1 ... Gn)
     //
     // Then, for both a and b:
     //
@@ -202,10 +202,9 @@ bool AletheProofPostprocessCallback::updateTheoryRewriteProofRewriteRule(
     // ------------------------------------------------- trans
     //                  (cl (= r1 G))
     //
-    // VP1_1: (cl (= res[0][1] G))
+    // VP1_1: (cl (= res[0][1] r1))
     // VP1: (cl (= (forall ((x)) res[0][1]) r1))
     // VP2: (cl (= r1 G))
-    // (define-rule or-not-refl-empty ((t ?) (x Bool)) (or (not (= t t)) x) x)
     // (define-rule or-not-refl ((t ?) (x Bool) (xs Bool :list) (or (not (= t
     // t)) x xs) (or x xs))
     //
@@ -245,14 +244,18 @@ bool AletheProofPostprocessCallback::updateTheoryRewriteProofRewriteRule(
         Node G;
         Node r1;
         std::vector<Node> rwr_args = {};
+        std::vector<Node> list_arg{
+            NodeManager::mkBoundVar("rare-list", nm->sExprType())};
 
         if (LHS_body.getNumChildren() == 2)
         {
           F = LHS_body[1];
           G = RHS;
           r1 = nm->mkNode(Kind::OR, not_t_t, G);
-          rwr_args = {
-              nm->mkRawSymbol("\"or-not-refl-empty\"", nm->sExprType()), t, G};
+          rwr_args = {nm->mkRawSymbol("\"or-not-refl\"", nm->sExprType()),
+                      t,
+                      G,
+                      nm->mkNode(Kind::SEXPR, list_arg)};
         }
         else
         {
@@ -267,8 +270,6 @@ bool AletheProofPostprocessCallback::updateTheoryRewriteProofRewriteRule(
 
           G_clauses.insert(G_clauses.begin(), not_t_t);
           r1 = nm->mkNode(Kind::OR, G_clauses);
-          std::vector<Node> list_arg{
-              NodeManager::mkBoundVar("rare-list", nm->sExprType())};
           list_arg.insert(list_arg.end(), G.begin() + 1, G.end());
           rwr_args = {nm->mkRawSymbol("\"or-not-refl\"", nm->sExprType()),
                       t,
