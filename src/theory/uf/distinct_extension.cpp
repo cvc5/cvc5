@@ -159,6 +159,10 @@ bool DistinctExtension::needsCheckLastEffort()
 
 void DistinctExtension::assertDistinct(TNode atom, bool pol, TNode fact)
 {
+  // since we do not do congruence over distinct, we need to add all
+  // children of distinct as terms to the equality engine. This ensures that
+  // the model will assign values to them, which may be used during the check
+  // method of this class.
   for (const Node& nc : atom)
   {
     d_state.addTerm(nc);
@@ -169,6 +173,8 @@ void DistinctExtension::assertDistinct(TNode atom, bool pol, TNode fact)
     std::unordered_map<Node, Node> reps;
     std::unordered_map<Node, Node>::iterator itr;
     bool isConflict = false;
+    // see if we are in conflict, which is the case if for
+    // distinct(t1...tn) it is already the case that ti=tj for some i,j.
     for (const Node& nc : atom)
     {
       Node ncr = d_state.getRepresentative(nc);
@@ -197,8 +203,8 @@ void DistinctExtension::assertDistinct(TNode atom, bool pol, TNode fact)
             << "Watch " << p.first << " distinct (" << fact << ")" << std::endl;
         size_t ndprev = d_ndistinct[p.first];
         d_ndistinct[p.first] = ndprev + 1;
-        // ensure the non-context dependent list has the right size in
-        // case we backtracked
+        // Ensure the non-context dependent list has the right size in
+        // case we backtracked. This is tracked via d_ndistinct.
         std::vector<Node>& ndlist = d_eqcToDistinct[p.first];
         ndlist.resize(ndprev);
         ndlist.emplace_back(fact);
@@ -238,7 +244,9 @@ void DistinctExtension::eqNotifyMerge(TNode t1, TNode t2)
       Trace("uf-lazy-distinct")
           << "...looking for conflicts in intersection of # terms = "
           << it1->second << " and " << it2->second << std::endl;
-      // check for conflicts
+      // check for conflicts, in particular if any distinct constraint
+      // associated with the first equivalence class is also associated with
+      // the second equivalence class.
       for (size_t i = 0; i < it1->second; i++)
       {
         Node d = d1[i];
@@ -296,7 +304,11 @@ void DistinctExtension::check(Theory::Effort level)
   }
   TheoryModel* tm = d_state.getModel();
   bool addedLemma = false;
-  // check negated distinct
+  // Check negated distinct. We first check if the negated distinct constraint
+  // is satisfied in this SAT context, which is the case if for
+  // distinct(t1...tn), we have that the equality engine has ti=tj for some
+  // i != j. If not, we reduce the negated distinct based on the method
+  // TheoryUfRewriter::blastDistinct.
   size_t nnd = d_negDistinct.size();
   for (size_t i = d_negDistinctIndex.get(); i < nnd; i++)
   {
@@ -340,8 +352,9 @@ void DistinctExtension::check(Theory::Effort level)
   // constraint where ti and tj were assigned the same value in the model,
   // but the UF theory was not informed of ti = tj. This is because we
   // do not insist that distinct induces care pairs in theory combination.
-  // Thus we must double check that are values are distinct in the model.
-  // If not, then we add the lemma (~distinct(t1,...,tn) or ti != tj).
+  // Thus we must double check that all values are distinct in the model.
+  // If not, then we add the lemma (~distinct(t1,...,tn) or ti != tj) for
+  // each pair of terms that have equal values.
   for (const Node& atom : d_posDistinct)
   {
     Assert(atom.getKind() == Kind::DISTINCT);
