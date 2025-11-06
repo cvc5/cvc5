@@ -206,6 +206,28 @@ bool AletheProofPostprocessCallback::updateTheoryRewriteProofRewriteRule(
                            {},
                            *cdp);
     }
+    // ======== BV_BITWISE_SLICING
+    // This rule is translated according to the clause pattern.
+    case ProofRewriteRule::BV_BITWISE_SLICING:
+    {
+      return addAletheStep(AletheRule::BV_BITWISE_SLICING,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           children,
+                           {},
+                           *cdp);
+    }
+    // ======== BV_REPEAT_ELIM
+    // This rule is translated according to the clause pattern.
+    case ProofRewriteRule::BV_REPEAT_ELIM:
+    {
+      return addAletheStep(AletheRule::BV_REPEAT_ELIM,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           children,
+                           {},
+                           *cdp);
+    }
     default: break;
   }
   return addAletheStep(AletheRule::HOLE,

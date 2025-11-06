@@ -146,6 +146,9 @@ const char* aletheRuleToString(AletheRule id)
     case AletheRule::BV_BITBLAST_STEP_CONST: return "bv_bitblast_step_const";
     case AletheRule::BV_BITBLAST_STEP_SIGN_EXTEND:
       return "bv_bitblast_step_sign_extend";
+    //================================================= Temporary
+    case AletheRule::BV_BITWISE_SLICING: return "bv_bitwise_slicing";
+    case AletheRule::BV_REPEAT_ELIM: return "bv_repeat_elim";
     //================================================= Hole
     case AletheRule::HOLE: return "hole";
     //================================================= Undefined rule
