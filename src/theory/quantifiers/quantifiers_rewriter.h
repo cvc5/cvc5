@@ -332,6 +332,10 @@ class QuantifiersRewriter : public TheoryRewriter
   Node computeVarElimination(Node body,
                              std::vector<Node>& args,
                              QAttributes& qa) const;
+  bool matchUfLiteral(Node lit,
+                    Node& op,
+                    std::vector<Node>& argsOut,
+                    bool& neg) const;
   //-------------------------------------end variable elimination
   //-------------------------------------conditional splitting
   /** compute conditional splitting
