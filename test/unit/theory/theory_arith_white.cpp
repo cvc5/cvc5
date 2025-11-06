@@ -20,6 +20,7 @@
 #include "expr/node.h"
 #include "smt/smt_solver.h"
 #include "test_smt.h"
+#include "theory/arith/nl/piand_solver.h"
 #include "theory/arith/theory_arith.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/theory.h"

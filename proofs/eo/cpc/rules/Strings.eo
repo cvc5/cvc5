@@ -359,9 +359,9 @@
         (eo::define ((n ($str_fixed_len_re r1)))
           (eo::ite rev
           (or (not (str.in_re ($str_suffix s n) r1))
-              (not (str.in_re ($str_prefix s (- (str.len s) n)) ($singleton_elim ($str_re_rev rev r2)))))
+              (not (str.in_re ($str_prefix s (- (str.len s) n)) (eo::list_singleton_elim re.++ ($str_re_rev rev r2)))))
           (or (not (str.in_re ($str_prefix s n) r1))
-              (not (str.in_re ($str_suffix_rem s n) ($singleton_elim r2)))))))
+              (not (str.in_re ($str_suffix_rem s n) (eo::list_singleton_elim re.++ r2)))))))
   )
 )
 
@@ -406,7 +406,7 @@
         (or (< @var.str_index 0)
             (< (str.len t) @var.str_index)
             (not (str.in_re ($str_prefix t @var.str_index) r1))
-            (not (str.in_re ($str_suffix_rem t @var.str_index) ($singleton_elim r2))))))
+            (not (str.in_re ($str_suffix_rem t @var.str_index) (eo::list_singleton_elim re.++ r2))))))
   )
 )
 
@@ -885,7 +885,7 @@
 ;   The result of evaluating (str.replace_re_all s r t).
 (define $str_eval_replace_re_all ((s String) (r RegLan) (t String))
   (eo::define ((rnemp (re.inter r (re.comp (str.to_re ""))))) ; looking for non-empty matches
-  ($singleton_elim ($str_eval_replace_re_all_rec s rnemp t ($str_first_match s rnemp)))))
+  (eo::list_singleton_elim str.++ ($str_eval_replace_re_all_rec s rnemp t ($str_first_match s rnemp)))))
 
 ; rule: str-replace-re-all-eval
 ; implements: ProofRewriteRule::STR_REPLACE_RE_ALL_EVAL

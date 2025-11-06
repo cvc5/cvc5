@@ -14,7 +14,7 @@
  *
  * This indirectly also tests some corner cases w.r.t. context-dependent
  * datastructures: resetAssertions() pops the contexts to zero but some
- * context-dependent datastructures are created at leevel 1, which the
+ * context-dependent datastructures are created at level 1, which the
  * datastructure needs to handle properly problematic.
  */
 
