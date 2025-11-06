@@ -539,7 +539,7 @@ enum ENUM(Kind)
    *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&)
    */
   EVALUE(IAND),
-      /**
+  /**
    * parametric Integer and.
    *
    * \rst
@@ -568,9 +568,6 @@ enum ENUM(Kind)
    *
    *   - TermManager::mkTerm(const Op&, const std::vector<Term>&)
    *
-   * - Create Op of this kind with:
-   *
-   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&)
    */
   EVALUE(PIAND),
   /**
