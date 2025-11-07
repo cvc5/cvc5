@@ -93,8 +93,6 @@ Node OperatorElim::eliminateOperators(NodeManager* nm,
       << "node: " << node << std::endl;
   SkolemManager* sm = nm->getSkolemManager();
   Kind k = node.getKind();
-  Node one = nm->mkConstReal(Rational(1));
-  Node zero = nm->mkConstReal(Rational(0));
   switch (k)
   {
     case Kind::TO_INTEGER:
@@ -110,6 +108,11 @@ Node OperatorElim::eliminateOperators(NodeManager* nm,
       // 0 <= node[0] - toIntSkolem < 1
       Node pterm = nm->mkNode(Kind::TO_INTEGER, node[0]);
       Node v = sm->mkPurifySkolem(pterm);
+
+      Node one = nm->mkConstReal(Rational(1));
+      Node zero = nm->mkConstReal(Rational(0));
+
+
       Node vr = nm->mkNode(Kind::TO_REAL, v);
       Node diff = nm->mkNode(Kind::SUB, node[0], vr);
       Node lem = mkInRange(diff, zero, one);
@@ -123,6 +126,12 @@ Node OperatorElim::eliminateOperators(NodeManager* nm,
     }
     case Kind::INTS_LOG2:
     {
+      if (partialOnly)
+      {
+        // not eliminating total operators
+        return node;
+      }
+      Node one = nm->mkConstInt(Integer(1));
       Node x = node[0];
       Node v = sm->mkPurifySkolem(node);
       Node sv = nm->mkNode(Kind::ADD, v, one);
@@ -132,6 +141,11 @@ Node OperatorElim::eliminateOperators(NodeManager* nm,
       Node lem2 = nm->mkNode(Kind::LT, x, ptv1);
       Node lem = nm->mkNode(Kind::AND, lem1, lem2);
       lems.emplace_back(lem, v);
+
+      Trace("arith-op-elim") << "INTS_LOG2: node" << node << std::endl;
+      Trace("arith-op-elim") << "INTS_LOG2: x" << x << std::endl;
+      Trace("arith-op-elim") << "INTS_LOG2: v" << v << std::endl;
+      Trace("arith-op-elim") << "INTS_LOG2: lem" << lem << std::endl;
       return v;
     }
     case Kind::INTS_DIVISION_TOTAL:

@@ -1162,6 +1162,7 @@ RewriteResponse ArithRewriter::postRewritePow2(TNode t)
   if (t[0].isConst())
   {
     // pow2 is only supported for integers
+    Trace("arith-rewriter") << "ArithRewriter::postRewritePow2, t:" << t << std::endl;
     Assert(t[0].getType().isInteger());
     // use the evaluator definition for rewriting this
     Evaluator eval(nullptr);
