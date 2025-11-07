@@ -581,6 +581,9 @@ void TheoryEngine::check(Theory::Effort effort) {
             }
           }
         }
+        // Do post-processing of model from the theories (e.g. used for
+        // THEORY_SEP to construct heap model)
+        d_tc->postProcessModel(d_modelUnsound.get());
       }
     }
   } catch(const theory::Interrupted&) {
@@ -681,9 +684,6 @@ TheoryModel* TheoryEngine::getBuiltModel()
   {
     return nullptr;
   }
-  // Do post-processing of model from the theories (e.g. used for
-  // THEORY_SEP to construct heap model)
-  d_tc->postProcessModel(d_modelUnsound.get());
   return d_tc->getModel();
 }
 
