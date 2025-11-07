@@ -15,7 +15,6 @@
 
 #include "preprocessing/passes/normalize.h"
 
-#include <stack>
 #include <unordered_map>
 
 #include "expr/cardinality_constraint.h"
@@ -54,7 +53,7 @@ void generateEncoding(const Node& root,
                       std::string& encoding,
                       std::unordered_map<std::string, int32_t>& role)
 {
-  std::stack<std::pair<Node, Node>> stack;  // Pair of node, parent
+  std::vector<std::pair<Node, Node>> stack;  // Pair of node, parent
   std::unordered_map<Node, bool> visited;
   std::unordered_map<Node, size_t> subtreeIdMap;
   std::unordered_map<std::string, size_t> symbolMap;
@@ -64,12 +63,12 @@ void generateEncoding(const Node& root,
 
   std::vector<std::string> nodeEncodings;
 
-  stack.push({root, root});
+  stack.push_back({root, root});
 
   while (!stack.empty())
   {
     // Get current node and its parent
-    auto [n, parent] = stack.top();
+    auto [n, parent] = stack.back();
 
     auto [it, inserted] = visited.emplace(n, false);
     if (inserted)
@@ -84,7 +83,7 @@ void generateEncoding(const Node& root,
           if (visited.find(child) == visited.end())
           {
             // Push child with current node n as its parent
-            stack.push({child, n});
+            stack.push_back({child, n});
           }
         }
       }
@@ -108,7 +107,7 @@ void generateEncoding(const Node& root,
         }
 
         it->second = true;
-        stack.pop();
+        stack.pop_back();
       }
     }
     else if (!it->second)
@@ -118,12 +117,12 @@ void generateEncoding(const Node& root,
       if (n.isVar())
       {
         // Variables are processed when included in operator nodes
-        stack.pop();
+        stack.pop_back();
       }
       else if (n.isConst())
       {
         // Constants are processed when included in operator nodes
-        stack.pop();
+        stack.pop_back();
       }
       else
       {
@@ -208,13 +207,13 @@ void generateEncoding(const Node& root,
 
         // Mark as processed and pop
         it->second = true;
-        stack.pop();
+        stack.pop_back();
       }
     }
     else
     {
       // Node has already been processed
-      stack.pop();
+      stack.pop_back();
     }
   }
 
@@ -299,7 +298,7 @@ Node rename(const Node& n,
   std::unordered_map<Node, Node> normalized;
 
   // Stack for iterative traversal
-  std::stack<Node> stack;
+  std::vector<Node> stack;
 
   // Map to keep track of visited nodes
   std::unordered_map<Node, bool> visited;
@@ -312,11 +311,11 @@ Node rename(const Node& n,
   boundVar2node.clear();
 
   // Push the root node onto the stack
-  stack.push(n);
+  stack.push_back(n);
 
   while (!stack.empty())
   {
-    Node current = stack.top();
+    Node current = stack.back();
 
     auto [it, inserted] = visited.emplace(current, false);
     if (inserted)
@@ -394,7 +393,7 @@ Node rename(const Node& n,
 
         // Mark as processed and pop from the stack
         it->second = true;
-        stack.pop();
+        stack.pop_back();
       }
       else
       {
@@ -456,7 +455,7 @@ Node rename(const Node& n,
           Node child = current[i];
           if (visited.find(child) == visited.end())
           {
-            stack.push(child);
+            stack.push_back(child);
           }
         }
 
@@ -466,7 +465,7 @@ Node rename(const Node& n,
           Node op = current.getOperator();
           if (visited.find(op) == visited.end())
           {
-            stack.push(op);
+            stack.push_back(op);
           }
         }
 
@@ -505,12 +504,12 @@ Node rename(const Node& n,
 
       // Mark as processed and pop from the stack
       it->second = true;
-      stack.pop();
+      stack.pop_back();
     }
     else
     {
       // Node has already been processed
-      stack.pop();
+      stack.pop_back();
     }
   }
 
@@ -621,17 +620,17 @@ Node renameQid(const Node& n,
   std::unordered_map<Node, bool> visited;
   // Stack for iterative traversal.
   // Each element is a pair: (current node, its parent).
-  std::stack<std::pair<Node, Node>> stack;
+  std::vector<std::pair<Node, Node>> stack;
   // Global counter for qid renaming (starting at 1).
   static size_t qidCounter = 1;
 
   // Push the root node with a null parent.
-  stack.push({n, Node()});
+  stack.push_back({n, Node()});
 
   while (!stack.empty())
   {
     // Get current node and its parent.
-    auto [current, parent] = stack.top();
+    auto [current, parent] = stack.back();
 
     // Try inserting current node into visited.
     auto [it, inserted] = visited.emplace(current, false);
@@ -679,7 +678,7 @@ Node renameQid(const Node& n,
         }
         // Mark this node as processed.
         visited[current] = true;
-        stack.pop();
+        stack.pop_back();
       }
       else
       {
@@ -688,13 +687,13 @@ Node renameQid(const Node& n,
         for (int i = current.getNumChildren() - 1; i >= 0; --i)
         {
           Node child = current[i];
-          stack.push({child, current});
+          stack.push_back({child, current});
         }
         // For APPLY_UF nodes, push the operator.
         if (current.getKind() == cvc5::internal::Kind::APPLY_UF)
         {
           Node op = current.getOperator();
-          stack.push({op, current});
+          stack.push_back({op, current});
         }
         // Leave the node for a second visit.
       }
@@ -727,12 +726,12 @@ Node renameQid(const Node& n,
       Node ret = nodeManager->mkNode(current.getKind(), children);
       normalized[current] = ret;
       visited[current] = true;
-      stack.pop();
+      stack.pop_back();
     }
     else
     {
       // Node already processed.
-      stack.pop();
+      stack.pop_back();
     }
   }
 
