@@ -31,6 +31,155 @@ namespace preprocessing {
 namespace passes {
 
 /**
+ * Compute (and cache) the superpattern for a given symbol (used in Step 5).
+ *
+ * A superpattern has one segment per equivalence class. Each segment begins
+ * with the count of -1 values (the number of members of the class where the
+ * symbol does not occur) followed by the sorted list of non-negative role
+ * indices where the symbol does occur.
+ *
+ * @param symbol The symbol whose superpattern is requested.
+ * @param eqClasses The equivalence classes of assertions (NodeInfo*).
+ * @param symbolOccurrences Map from symbol to the assertions in which it
+ *        occurs.
+ * @param patternCache Cache mapping symbols to their computed superpatterns.
+ * @return A const reference to the cached superpattern for the symbol.
+ */
+static const std::vector<std::vector<int32_t>>& getOrComputeSuperpattern(
+  const std::string& symbol,
+  const std::vector<std::vector<NodeInfo*>>& eqClasses,
+  const std::unordered_map<std::string,
+               std::vector<std::shared_ptr<NodeInfo>>>&
+    symbolOccurrences,
+  std::unordered_map<std::string, std::vector<std::vector<int32_t>>>&
+    patternCache)
+{
+  auto it = patternCache.find(symbol);
+  if (it != patternCache.end())
+  {
+    return it->second;
+  }
+
+  // Initialize the superpattern with empty vectors for each segment
+  std::vector<std::vector<int32_t>> superpattern(eqClasses.size());
+  auto symbolIt = symbolOccurrences.find(symbol);
+  Assert(symbolIt != symbolOccurrences.end());
+
+  // Iterate over all occurrences of the symbol
+  for (const auto& nodeInfo : symbolIt->second)
+  {
+    auto roleIt = nodeInfo->role.find(symbol);
+    Assert(roleIt != nodeInfo->role.end());
+
+    // Get the equivalence class ID for this node
+    size_t eqClassId = nodeInfo->id;
+
+    // Push the non-negative value to the corresponding segment in the superpattern
+    superpattern[eqClassId].push_back(roleIt->second);
+  }
+
+  // Sort each segment in the superpattern and compute the -1 count
+  for (size_t i = 0; i < superpattern.size(); ++i)
+  {
+    std::sort(superpattern[i].begin(), superpattern[i].end());
+    // The count of -1s is the size of the equivalence class minus
+    // the number of non-negative values
+    superpattern[i].insert(superpattern[i].begin(),
+                           eqClasses[i].size() - superpattern[i].size());
+  }
+
+  auto& ret = patternCache[symbol];
+  ret = std::move(superpattern);
+  return ret;
+}
+
+/**
+ * Comparator for NodeInfo* based on their superpatterns (used in Step 5).
+ *
+ * Comparison proceeds segment-by-segment:
+ *  - Compare the leading -1 count for the segment.
+ *  - Then compare the occurrence positions lexicographically.
+ *  - If one segment has more positions, it is considered greater.
+ *
+ * Superpatterns are computed on demand and cached in patternCache.
+ *
+ * @param a First NodeInfo.
+ * @param b Second NodeInfo.
+ * @param eqClasses Equivalence classes (for segment sizing).
+ * @param patternCache Cache of computed superpatterns.
+ * @param symbolOccurrences Occurrence lists per symbol.
+ * @return True if a should come before b.
+ */
+static bool compareBySuperpattern(
+  NodeInfo* a,
+  NodeInfo* b,
+  const std::vector<std::vector<NodeInfo*>>& eqClasses,
+  std::unordered_map<std::string, std::vector<std::vector<int32_t>>>&
+    patternCache,
+  const std::unordered_map<std::string,
+               std::vector<std::shared_ptr<NodeInfo>>>&
+    symbolOccurrences)
+{
+  auto itA = a->varNames.begin();
+  auto itB = b->varNames.begin();
+
+  while (itA != a->varNames.end() && itB != b->varNames.end())
+  {
+    const std::string& symbolA = itA->first;
+    const std::string& symbolB = itB->first;
+
+    if (symbolA == symbolB)
+    {
+      ++itA;
+      ++itB;
+      continue;
+    }
+
+    const auto& superpatternA = getOrComputeSuperpattern(
+        symbolA, eqClasses, symbolOccurrences, patternCache);
+    const auto& superpatternB = getOrComputeSuperpattern(
+        symbolB, eqClasses, symbolOccurrences, patternCache);
+
+    // Compare superpatterns segment by segment
+    for (size_t i = 0; i < superpatternA.size(); ++i)
+    {
+      const auto& patA = superpatternA[i];
+      const auto& patB = superpatternB[i];
+
+      // Compare the count of -1s in the segment
+      if (patA[0] != patB[0])
+      {
+        return patA[0] < patB[0];
+      }
+
+      // Compare the non-negative values in the segment
+      for (size_t j = 1; j < patA.size() && j < patB.size(); ++j)
+      {
+        if (patA[j] != patB[j])
+        {
+          return patA[j] < patB[j];
+        }
+      }
+
+      // If one segment has more non-negative values, it is considered greater
+      if (patA.size() != patB.size())
+      {
+        return patA.size() < patB.size();
+      }
+    }
+
+    ++itA;
+    ++itB;
+  }
+
+  // Handle cases where one iterator reaches the end before the other
+  if (itA != a->varNames.end()) return true;
+  if (itB != b->varNames.end()) return false;
+
+  return false;
+}
+
+/**
  * Constructor for the Normalize preprocessing pass.
  *
  * @param preprocContext The preprocessing pass context.
@@ -815,109 +964,8 @@ PreprocessingPassResult Normalize::applyInternal(
     std::sort(
         eqClass.begin(),
         eqClass.end(),
-        [&eqClasses, &patternCache, &symbolOccurrences](NodeInfo* a,
-                                                        NodeInfo* b) {
-          auto itA = a->varNames.begin();
-          auto itB = b->varNames.begin();
-
-          while (itA != a->varNames.end() && itB != b->varNames.end())
-          {
-            const std::string& symbolA = itA->first;
-            const std::string& symbolB = itB->first;
-
-            auto getOrComputeSuperpattern = [&](const std::string& symbol)
-                -> const std::vector<std::vector<int32_t>>& {
-              auto it = patternCache.find(symbol);
-              if (it != patternCache.end())
-              {
-                return it->second;
-              }
-
-              // Initialize the superpattern with empty vectors for each segment
-              std::vector<std::vector<int32_t>> superpattern(eqClasses.size());
-              auto symbolIt = symbolOccurrences.find(symbol);
-              Assert(symbolIt != symbolOccurrences.end());
-
-              // Iterate over all occurrences of the symbol
-              for (const auto& nodeInfo : symbolIt->second)
-              {
-                auto roleIt = nodeInfo->role.find(symbol);
-                Assert(roleIt != nodeInfo->role.end());
-
-                // Get the equivalence class ID for this node
-                size_t eqClassId = nodeInfo->id;
-
-                // Push the non-negative value to the corresponding segment in
-                // the superpattern
-                superpattern[eqClassId].push_back(roleIt->second);
-              }
-
-              // Sort each segment in the superpattern and compute the -1 count
-              for (size_t i = 0; i < superpattern.size(); ++i)
-              {
-                std::sort(superpattern[i].begin(), superpattern[i].end());
-                // The count of -1s is the size of the equivalence class minus
-                // the number of non-negative values
-                superpattern[i].insert(
-                    superpattern[i].begin(),
-                    eqClasses[i].size() - superpattern[i].size());
-              }
-
-              auto& ret = patternCache[symbol];
-              ret = std::move(superpattern);
-              return ret;
-            };
-
-            if (symbolA == symbolB)
-            {
-              ++itA;
-              ++itB;
-              continue;
-            }
-
-            const std::vector<std::vector<int32_t>>& superpatternA =
-                getOrComputeSuperpattern(symbolA);
-            const std::vector<std::vector<int32_t>>& superpatternB =
-                getOrComputeSuperpattern(symbolB);
-
-            // Compare superpatterns segment by segment
-            for (size_t i = 0; i < superpatternA.size(); ++i)
-            {
-              const auto& patA = superpatternA[i];
-              const auto& patB = superpatternB[i];
-
-              // Compare the count of -1s in the segment
-              if (patA[0] != patB[0])
-              {
-                return patA[0] < patB[0];
-              }
-
-              // Compare the non-negative values in the segment
-              for (size_t j = 1; j < patA.size() && j < patB.size(); ++j)
-              {
-                if (patA[j] != patB[j])
-                {
-                  return patA[j] < patB[j];
-                }
-              }
-
-              // If one segment has more non-negative values, it is considered
-              // greater
-              if (patA.size() != patB.size())
-              {
-                return patA.size() < patB.size();
-              }
-            }
-
-            ++itA;
-            ++itB;
-          }
-
-          // Handle cases where one iterator reaches the end before the other
-          if (itA != a->varNames.end()) return true;
-          if (itB != b->varNames.end()) return false;
-
-          return false;
+          [&](NodeInfo* a, NodeInfo* b) {
+          return compareBySuperpattern(a, b, eqClasses, patternCache, symbolOccurrences);
         });
   }
 
