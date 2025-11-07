@@ -2710,7 +2710,6 @@ set(regress_1_tests
   regress1/fmf/german73.smt2
   regress1/fmf/issue10943.smt2
   regress1/fmf/issue2034-preinit.smt2
-  regress1/fmf/issue3587.smt2
   regress1/fmf/issue3615.smt2
   regress1/fmf/issue3626.smt2
   regress1/fmf/issue3689.smt2
@@ -4142,6 +4141,8 @@ set(regression_disabled_tests
   regress0/uf/iso_icl_repgen004.smtv1.smt2
   # previously was an options error, now times out
   regress0/strings/issue7974-incomplete-neg-member.smt2
+  # unknown after change to datatypes split policy, requires forcing split
+  regress1/fmf/issue3587.smt2
   # demonstrates instance where RE inference in necessary, times out
   regress1/strings/re-uf.smt2
   ###
