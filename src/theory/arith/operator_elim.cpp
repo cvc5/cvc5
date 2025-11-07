@@ -89,8 +89,12 @@ Node OperatorElim::eliminateOperators(NodeManager* nm,
                                       bool partialOnly,
                                       bool& wasNonLinear)
 {
+  Trace("arith-op-elim")
+      << "node: " << node << std::endl;
   SkolemManager* sm = nm->getSkolemManager();
   Kind k = node.getKind();
+  Node one = nm->mkConstReal(Rational(1));
+  Node zero = nm->mkConstReal(Rational(0));
   switch (k)
   {
     case Kind::TO_INTEGER:
@@ -107,8 +111,6 @@ Node OperatorElim::eliminateOperators(NodeManager* nm,
       Node pterm = nm->mkNode(Kind::TO_INTEGER, node[0]);
       Node v = sm->mkPurifySkolem(pterm);
       Node vr = nm->mkNode(Kind::TO_REAL, v);
-      Node one = nm->mkConstReal(Rational(1));
-      Node zero = nm->mkConstReal(Rational(0));
       Node diff = nm->mkNode(Kind::SUB, node[0], vr);
       Node lem = mkInRange(diff, zero, one);
       lems.emplace_back(lem, v);
@@ -119,7 +121,19 @@ Node OperatorElim::eliminateOperators(NodeManager* nm,
       Assert(k == Kind::TO_INTEGER);
       return v;
     }
-
+    case Kind::INTS_LOG2:
+    {
+      Node x = node[0];
+      Node v = sm->mkPurifySkolem(node);
+      Node sv = nm->mkNode(Kind::ADD, v, one);
+      Node ptv = nm->mkNode(Kind::POW2, v);
+      Node ptv1 = nm->mkNode(Kind::POW2, sv);
+      Node lem1 = nm->mkNode(Kind::LEQ, ptv, x);
+      Node lem2 = nm->mkNode(Kind::LT, x, ptv1);
+      Node lem = nm->mkNode(Kind::AND, lem1, lem2);
+      lems.emplace_back(lem, v);
+      return v;
+    }
     case Kind::INTS_DIVISION_TOTAL:
     case Kind::INTS_MODULUS_TOTAL:
     {
@@ -190,12 +204,14 @@ Node OperatorElim::eliminateOperators(NodeManager* nm,
       }
       // add the skolem lemma to lems
       lems.emplace_back(lem, v);
-      if (k == Kind::INTS_MODULUS_TOTAL)
-      {
-        Node nn = nm->mkNode(Kind::SUB, num, nm->mkNode(Kind::MULT, den, v));
-        return nn;
-      }
-      return v;
+      Assert(k == Kind::INTS_MODULUS_TOTAL); 
+      Node nn = nm->mkNode(Kind::SUB, num, nm->mkNode(Kind::MULT, den, v));
+      Trace("arith-op-elim")
+          << "lem " << lem<< std::endl;
+      Trace("arith-op-elim")
+          << "nn " << nn<< std::endl;
+
+      return nn;
     }
     case Kind::DIVISION_TOTAL:
     {

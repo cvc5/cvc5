@@ -85,6 +85,8 @@ set(regress_0_tests
   regress0/arith/issue9643.smt2
   regress0/arith/ite-lift.smt2
   regress0/arith/leq.01.smtv1.smt2
+  regress0/arith/log1.smt2
+  regress0/arith/log2.smt2
   regress0/arith/miplib.cvc.smt2
   regress0/arith/miplib2.cvc.smt2
   regress0/arith/miplib4.cvc.smt2
