@@ -77,9 +77,8 @@ void generateEncoding(const Node& root,
       if (!n.isVar() && !n.isConst())
       {
         // Operator node
-        for (size_t i = 0; i < n.getNumChildren(); ++i)
+        for (const Node& child : n)
         {
-          Node child = n[i];
           if (visited.find(child) == visited.end())
           {
             // Push child with current node n as its parent
@@ -402,9 +401,8 @@ Node rename(const Node& n,
         if (!hasQID
             && current.getKind() == cvc5::internal::Kind::INST_ATTRIBUTE)
         {
-          for (size_t i = 0; i < current.getNumChildren(); ++i)
+          for (const Node& child : current)
           {
-            Node child = current[i];
             if (child.isVar())
             {
               hasQID = true;
@@ -421,9 +419,8 @@ Node rename(const Node& n,
 
           // Normalize bound variables and update boundVar2node
           std::vector<Node> normalizedBoundVars;
-          for (size_t i = 0; i < bound_vars.getNumChildren(); ++i)
+          for (const Node& bv : bound_vars)
           {
-            Node bv = bound_vars[i];
             auto it_bv = boundVar2node.find(bv);
             if (it_bv != boundVar2node.end())
             {
@@ -450,9 +447,8 @@ Node rename(const Node& n,
         }
 
         // Push unvisited children onto the stack
-        for (int i = current.getNumChildren() - 1; i >= 0; --i)
+        for (const Node& child : current)
         {
-          Node child = current[i];
           if (visited.find(child) == visited.end())
           {
             stack.push_back(child);
@@ -491,9 +487,8 @@ Node rename(const Node& n,
         children.push_back(current.getOperator());
       }
 
-      for (size_t i = 0; i < current.getNumChildren(); ++i)
+      for (const Node& child : current)
       {
-        Node child = current[i];
         auto childIt = normalized.find(child);
         Assert(childIt != normalized.end());
         children.push_back(childIt->second);
@@ -715,9 +710,8 @@ Node renameQid(const Node& n,
         children.push_back(current.getOperator());
       }
       // Add normalized children.
-      for (size_t i = 0; i < current.getNumChildren(); i++)
+      for (const Node& child : current)
       {
-        Node child = current[i];
         auto childIt = normalized.find(child);
         Assert(childIt != normalized.end());
         children.push_back(childIt->second);
@@ -943,7 +937,7 @@ PreprocessingPassResult Normalize::applyInternal(
   }
 
   std::unordered_map<TypeNode, TypeNode> normalizedSorts;
-  size_t sortCounter = 0;
+  int sortCounter = 0;
   for (const TypeNode& ctn : types)
   {
     if (ctn.isUninterpretedSort() && ctn.getNumChildren() == 0)
