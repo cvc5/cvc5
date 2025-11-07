@@ -180,6 +180,34 @@ static bool compareBySuperpattern(
 }
 
 /**
+ * Comparator for NodeInfo* based on normalized variable names (used in Step 8).
+ *
+ * @param a First NodeInfo.
+ * @param b Second NodeInfo.
+ * @param normalizedName Map from original symbol to normalized name.
+ * @return True if a should come before b.
+ */
+static bool compareByNormalizedNames(
+    NodeInfo* a,
+    NodeInfo* b,
+    std::unordered_map<std::string, std::string>& normalizedName)
+{
+  size_t sz = std::min(a->varNames.size(), b->varNames.size());
+  for (size_t i = 0; i < sz; ++i)
+  {
+    const std::string& symbolA = a->varNames[i].first;
+    const std::string& symbolB = b->varNames[i].first;
+    const std::string& normNameA = normalizedName[symbolA];
+    const std::string& normNameB = normalizedName[symbolB];
+    if (normNameA != normNameB)
+    {
+      return normNameA < normNameB;
+    }
+  }
+  return false;
+}
+
+/**
  * Constructor for the Normalize preprocessing pass.
  *
  * @param preprocContext The preprocessing pass context.
@@ -1031,32 +1059,10 @@ PreprocessingPassResult Normalize::applyInternal(
   // ----------------------------------------
   for (auto& eqClass : eqClasses)
   {
-    std::sort(eqClass.begin(),
+        std::sort(eqClass.begin(),
               eqClass.end(),
-              [&normalizedName](NodeInfo* a, NodeInfo* b) {
-                // Loop on the roles, retrieve the normalized names and compare
-                // them
-
-                // varNames has old names before renaming. We need to sort based
-                // on the new names
-
-                size_t sz =
-                    std::min(a->varNames.size(),
-                             b->varNames.size());  // They are the same size
-                for (size_t i = 0; i < sz; ++i)
-                {
-                  const std::string& symbolA = a->varNames[i].first;
-                  const std::string& symbolB = b->varNames[i].first;
-                  const std::string& normNameA = normalizedName[symbolA];
-                  const std::string& normNameB = normalizedName[symbolB];
-
-                  if (normNameA != normNameB)
-                  {
-                    return normNameA < normNameB;
-                  }
-                }
-
-                return false;
+              [&](NodeInfo* a, NodeInfo* b) {
+                return compareByNormalizedNames(a, b, normalizedName);
               });
   }
 
