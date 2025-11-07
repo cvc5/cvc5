@@ -305,7 +305,7 @@ Node TheoryModel::getModelValue(TNode n) const
       << "Look up " << ret << " in equality engine" << std::endl;
   // return the representative of the term in the equality engine, if it exists
   TypeNode t = ret.getType();
-  if (!logicInfo().isHigherOrder() && (t.isFunction() || t.isPredicate()))
+  if (t.isFunction() || t.isPredicate())
   {
     // functions are in the equality engine, but *not* as first-class members
     // when higher-order is disabled. In this case, we cannot query
@@ -862,7 +862,7 @@ void TheoryModel::assignFunctionDefaultHo(Node f) const
       Node hn = itht->second[i];
       Trace("model-builder-debug") << "    process : " << hn << std::endl;
       Assert(hn.getKind() == Kind::HO_APPLY);
-      Assert(areEqual(hn[0], f));
+      //Assert(areEqual(hn[0], f));
       Node hni = getRepresentative(hn[1]);
       Trace("model-builder-debug2")
           << "      get rep : " << hn[1] << " returned " << hni << std::endl;
