@@ -747,12 +747,12 @@ void TheoryModel::assignFunctionDefault(Node f) const
   if (logicInfo().isHigherOrder())
   {
     Trace("model-builder") << "  Assign function value for " << f
-                            << " based on curried HO_APPLY" << std::endl;
+                           << " based on curried HO_APPLY" << std::endl;
     assignFunctionDefaultHo(f);
     return;
   }
   Trace("model-builder") << "  Assign function value for " << f
-                          << " based on APPLY_UF" << std::endl;
+                         << " based on APPLY_UF" << std::endl;
   Assert(!logicInfo().isHigherOrder());
   uf::UfModelTree ufmt(f);
   options::DefaultFunctionValueMode dfvm =
@@ -866,7 +866,7 @@ void TheoryModel::assignFunctionDefaultHo(Node f) const
       Node hn = itht->second[i];
       Trace("model-builder-debug") << "    process : " << hn << std::endl;
       Assert(hn.getKind() == Kind::HO_APPLY);
-      //Assert(areEqual(hn[0], f));
+      // Assert(areEqual(hn[0], f));
       Node hni = getRepresentative(hn[1]);
       Trace("model-builder-debug2")
           << "      get rep : " << hn[1] << " returned " << hni << std::endl;
