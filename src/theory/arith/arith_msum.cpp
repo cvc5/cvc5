@@ -201,9 +201,11 @@ int ArithMSum::isolate(
               Kind::MULT, val, nm->mkConstReal(Rational(1) / r.abs()));
         }
       }
-      val = r.sgn() == 1 ? nm->mkNode(
-                Kind::MULT, nm->mkConstRealOrInt(Rational(-1)), val)
-                         : val;
+      val = r.sgn() == 1
+                ? nm->mkNode(Kind::MULT,
+                             nm->mkConstRealOrInt(val.getType(), Rational(-1)),
+                             val)
+                : val;
       return (r.sgn() == 1 || k == Kind::EQUAL) ? 1 : -1;
     }
   }
