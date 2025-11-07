@@ -559,6 +559,22 @@ enum ENUM(Kind)
    */
   EVALUE(POW2),
   /**
+   * Log of base two.
+   *
+   * Operator for the inverse of raising ``2`` to a non-negative integer power.
+   *
+   * - Arity: ``1``
+   *
+   *   - ``1:`` Term of Sort Int
+   *
+   * - Create Term of this Kind with:
+   *
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&)
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&)
+   *
+   */
+  EVALUE(INTS_LOG2),
+  /**
    * Arithmetic subtraction, left associative.
    *
    * - Arity: ``n > 1``
