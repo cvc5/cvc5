@@ -372,7 +372,7 @@ Node TheoryModel::getModelValue(TNode n) const
       Trace("model-getvalue-debug")
           << "...not semi-evaluated entailed" << std::endl;
     }
-    if (t.isFunction() || t.isPredicate())
+    if (t.isFunction())
     {
       if (d_enableFuncModels)
       {
