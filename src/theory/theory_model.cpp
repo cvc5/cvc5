@@ -746,9 +746,13 @@ void TheoryModel::assignFunctionDefault(Node f) const
   Assert(d_uf_models.find(f) == d_uf_models.end());
   if (logicInfo().isHigherOrder())
   {
+    Trace("model-builder") << "  Assign function value for " << f
+                            << " based on curried HO_APPLY" << std::endl;
     assignFunctionDefaultHo(f);
     return;
   }
+  Trace("model-builder") << "  Assign function value for " << f
+                          << " based on APPLY_UF" << std::endl;
   Assert(!logicInfo().isHigherOrder());
   uf::UfModelTree ufmt(f);
   options::DefaultFunctionValueMode dfvm =
