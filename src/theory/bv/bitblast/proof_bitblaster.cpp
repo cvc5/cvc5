@@ -141,11 +141,7 @@ void BBProof::bbAtom(TNode node)
     Node result = d_bb->getStoredBBAtom(node);
 
     // Retrieve bit-blasted `rwNode` without post-rewrite.
-    Node bbt = rwNode.getKind() == Kind::CONST_BOOLEAN
-                       || rwNode.getKind() == Kind::BITVECTOR_BIT
-                   ? rwNode
-                   : d_bb->applyAtomBBStrategy(rwNode);
-
+    Node bbt = d_bb->applyAtomBBStrategy(rwNode);
     Node rbbt = reconstruct(rwNode);
 
     d_tcpg->addRewriteStep(

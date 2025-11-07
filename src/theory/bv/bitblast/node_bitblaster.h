@@ -60,8 +60,7 @@ class NodeBitblaster : public TBitblaster<Node>, protected EnvObj
 
   /**
    * Bit-blast `node` and return the result without applying any rewrites.
-   *
-   * This method is used by BBProof and does not cache the result for `node`.
+   * This method does not use the cache of the result for `node`.
    */
   Node applyAtomBBStrategy(TNode node);
 

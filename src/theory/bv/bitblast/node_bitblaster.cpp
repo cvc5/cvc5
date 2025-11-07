@@ -38,15 +38,8 @@ void NodeBitblaster::bbAtom(TNode node)
   /* Note: We rewrite here since it's not guaranteed (yet) that facts sent
    * to theories are rewritten.
    */
-  Node normalized = rewrite(node);
-  Node atom_bb =
-      normalized.getKind() != Kind::CONST_BOOLEAN
-              && normalized.getKind() != Kind::BITVECTOR_BIT
-          ? d_atomBBStrategies[static_cast<uint32_t>(normalized.getKind())](
-                normalized, this)
-          : normalized;
-
-  storeBBAtom(node, rewrite(atom_bb));
+  Node atom_bb = rewrite(applyAtomBBStrategy(rewrite(node)));
+  storeBBAtom(node, atom_bb);
 }
 
 void NodeBitblaster::storeBBAtom(TNode atom, Node atom_bb)
@@ -123,9 +116,13 @@ bool NodeBitblaster::isVariable(TNode node) const
 
 Node NodeBitblaster::applyAtomBBStrategy(TNode node)
 {
-  Assert(node.getKind() != Kind::CONST_BOOLEAN);
-  Assert(node.getKind() != Kind::BITVECTOR_BIT);
-  return d_atomBBStrategies[static_cast<uint32_t>(node.getKind())](node, this);
+  Kind kind = node.getKind();
+  if (kind == Kind::CONST_BOOLEAN
+    || kind == Kind::BITVECTOR_BIT)
+  {
+    return node;
+  }
+  return d_atomBBStrategies[static_cast<uint32_t>(kind)](node, this);
 }
 
 }  // namespace bv
