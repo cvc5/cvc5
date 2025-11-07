@@ -662,7 +662,6 @@ Node renameQid(const Node& n,
                 SkolemFlags::SKOLEM_EXACT_NAME);
             qidRenamed[current] = ret;
             normalized[current] = ret;
-            // normalizedName[current.toString()] = new_var_name;
             normalizedName[std::to_string(current.getId())] = new_var_name;
           }
         }
