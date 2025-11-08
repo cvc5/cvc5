@@ -108,10 +108,8 @@ Node OperatorElim::eliminateOperators(NodeManager* nm,
       Node pterm = nm->mkNode(Kind::TO_INTEGER, node[0]);
       Node v = sm->mkPurifySkolem(pterm);
       Node vr = nm->mkNode(Kind::TO_REAL, v);
-
       Node one = nm->mkConstReal(Rational(1));
       Node zero = nm->mkConstReal(Rational(0));
-
       Node diff = nm->mkNode(Kind::SUB, node[0], vr);
       Node lem = mkInRange(diff, zero, one);
       lems.emplace_back(lem, v);
