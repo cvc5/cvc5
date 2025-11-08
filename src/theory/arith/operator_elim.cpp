@@ -127,6 +127,8 @@ Node OperatorElim::eliminateOperators(NodeManager* nm,
         // not eliminating total operators
         return node;
       }
+      // for a fresh skolem v, the elimination is:
+      // (int.log2 x) --> (and (<= (int.pow2 k) x) (< x (* 2 (int.pow2 k))))
       Node one = nm->mkConstInt(Integer(1));
       Node x = node[0];
       Node v = sm->mkPurifySkolem(node);
