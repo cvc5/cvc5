@@ -89,8 +89,7 @@ Node OperatorElim::eliminateOperators(NodeManager* nm,
                                       bool partialOnly,
                                       bool& wasNonLinear)
 {
-  Trace("arith-op-elim")
-      << "node: " << node << std::endl;
+  Trace("arith-op-elim") << "node: " << node << std::endl;
   SkolemManager* sm = nm->getSkolemManager();
   Kind k = node.getKind();
   switch (k)
@@ -111,7 +110,6 @@ Node OperatorElim::eliminateOperators(NodeManager* nm,
 
       Node one = nm->mkConstReal(Rational(1));
       Node zero = nm->mkConstReal(Rational(0));
-
 
       Node vr = nm->mkNode(Kind::TO_REAL, v);
       Node diff = nm->mkNode(Kind::SUB, node[0], vr);
@@ -218,12 +216,10 @@ Node OperatorElim::eliminateOperators(NodeManager* nm,
       }
       // add the skolem lemma to lems
       lems.emplace_back(lem, v);
-      Assert(k == Kind::INTS_MODULUS_TOTAL); 
+      Assert(k == Kind::INTS_MODULUS_TOTAL);
       Node nn = nm->mkNode(Kind::SUB, num, nm->mkNode(Kind::MULT, den, v));
-      Trace("arith-op-elim")
-          << "lem " << lem<< std::endl;
-      Trace("arith-op-elim")
-          << "nn " << nn<< std::endl;
+      Trace("arith-op-elim") << "lem " << lem << std::endl;
+      Trace("arith-op-elim") << "nn " << nn << std::endl;
 
       return nn;
     }
