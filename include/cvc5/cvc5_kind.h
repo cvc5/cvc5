@@ -559,9 +559,8 @@ enum ENUM(Kind)
    *     (ubv_to_int x)
    *
    * such that x is the bitwise and of bit-vectors b1 and b2, such that 
-   * b1 is the bit-vector 
-   * of width k representing (mod i_1 2^k) and b2 is the bit-vector 
-   * of width k representing (mod i_2 2^k),
+   * b1 is the bit-vector of width k representing (mod i_1 2^k) and
+   * b2 is the bit-vector  of width k representing (mod i_2 2^k),
    * for all integers ``k``, ``i_1``, ``i_2``.
    * 
    * If k <= 0 then
