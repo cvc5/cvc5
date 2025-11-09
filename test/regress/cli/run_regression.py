@@ -22,7 +22,6 @@ import os
 import re
 import shutil
 import subprocess
-import shlex
 import sys
 import tempfile
 import threading
