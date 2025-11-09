@@ -1,4 +1,6 @@
 ;EXPECT: sat
 (set-logic ALL)
-(assert (= (int.log2 (- 2)) 0))
+(declare-const x Int)
+(assert (< x 0))
+(assert (= (int.log2 x) 0))
 (check-sat)

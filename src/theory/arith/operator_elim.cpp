@@ -128,16 +128,27 @@ Node OperatorElim::eliminateOperators(NodeManager* nm,
         return node;
       }
       // for a fresh skolem v, the elimination is:
-      // (int.log2 x) --> (and (<= (int.pow2 k) x) (< x (* 2 (int.pow2 k))))
+      // (int.log2 x) --> v, with lemmas: 
+      // (=> (> x 0) (and (<= (int.pow2 v) x) (< x (* 2 (int.pow2 v)))))
+      // (=> (<= x 0) (= v 0))
+      Node zero = nm->mkConstInt(Integer(0));
       Node one = nm->mkConstInt(Integer(1));
       Node x = node[0];
       Node v = sm->mkPurifySkolem(node);
       Node sv = nm->mkNode(Kind::ADD, v, one);
       Node ptv = nm->mkNode(Kind::POW2, v);
       Node ptv1 = nm->mkNode(Kind::POW2, sv);
-      Node lem1 = nm->mkNode(Kind::LEQ, ptv, x);
-      Node lem2 = nm->mkNode(Kind::LT, x, ptv1);
-      Node lem = nm->mkNode(Kind::AND, lem1, lem2);
+      Node pos_assumption = nm->mkNode(Kind::LT, zero, x);
+      Node pos_prop1 = nm->mkNode(Kind::LEQ, ptv, x);
+      Node pos_prop2 = nm->mkNode(Kind::LT, x, ptv1);
+      Node pos_prop = nm->mkNode(Kind::AND, pos_prop1, pos_prop2);
+      Node pos_lem = nm->mkNode(Kind::IMPLIES, pos_assumption, pos_prop);
+      
+      Node neg_assumption = nm->mkNode(Kind::NOT, pos_assumption);
+      Node neg_prop = nm->mkNode(Kind::EQUAL, v, zero);
+      Node neg_lem = nm->mkNode(Kind::IMPLIES, neg_assumption, neg_prop);
+
+      Node lem = nm->mkNode(Kind::AND, pos_lem, neg_lem);
       lems.emplace_back(lem, v);
 
       Trace("arith-op-elim") << "INTS_LOG2: node" << node << std::endl;
