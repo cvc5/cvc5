@@ -20,9 +20,9 @@ import collections
 import difflib
 import os
 import re
-import shlex
 import shutil
 import subprocess
+import shlex
 import sys
 import tempfile
 import threading
