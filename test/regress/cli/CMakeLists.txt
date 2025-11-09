@@ -1593,6 +1593,7 @@ set(regress_0_tests
   regress0/quantifiers/dd_p15_dio_lemma.smt2
   regress0/quantifiers/dd_psyco_186-ineq-elim.smt2
   regress0/quantifiers/dd_quick_sort-q-rew.smt2
+  regress0/quantifiers/dd_RND_4_16-ve-subtype.smt2
   regress0/quantifiers/dd_rts-quant-elim-eq-tester.smt2
   regress0/quantifiers/dd_small_pipeline_3.smt2
   regress0/quantifiers/dd_spark2014-pat.smt2

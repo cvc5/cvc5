@@ -31,6 +31,22 @@ SubtypeElimConverterCallback::SubtypeElimConverterCallback(Env& env)
   d_pc = d_env.getProofNodeManager()->getChecker();
 }
 
+bool SubtypeElimConverterCallback::shouldConvert(std::shared_ptr<ProofNode> pn)
+{
+  // needs to convert if an argument or the result has mixed arithmetic, which
+  // is true if the node converter modifies the term.
+  const std::vector<Node>& args = pn->getArguments();
+  for (const Node& a : args)
+  {
+    if (d_nconv.convert(a) != a)
+    {
+      return true;
+    }
+  }
+  Node res = pn->getResult();
+  return d_nconv.convert(res) != res;
+}
+
 Node SubtypeElimConverterCallback::convert(Node res,
                                            ProofRule id,
                                            const std::vector<Node>& children,
