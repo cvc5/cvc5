@@ -1821,11 +1821,8 @@ Node QuantifiersRewriter::computeVarElimination(Node body,
   return body;
 }
 
-// Matches a literal used in Leibniz-equality detection, recognizing
-// patterns of the form P(t1...tn) or ¬P(t1...tn).
-//
-// In the Leibniz step, we need to determine whether each side of a two-literal
-// disjunction is a (possibly negated) application of the same predicate symbol.
+// This function is used by the Leibniz-equality elimination step to check
+// whether a term has the shape P(t1, ..., tn) or ¬P(t1, ..., tn).
 bool QuantifiersRewriter::matchUfLiteral(Node lit,
                                          Node& op,
                                          std::vector<Node>& argsOut,
