@@ -1710,8 +1710,8 @@ Node QuantifiersRewriter::computeVarElimination(Node body,
                                                 std::vector<Node>& args,
                                                 QAttributes& qa) const
 {
-  if (!d_opts.quantifiers.varElimQuant && !d_opts.quantifiers.varIneqElimQuant 
-    && !d_opts.quantifiers.leibnizEqElim)
+  if (!d_opts.quantifiers.varElimQuant && !d_opts.quantifiers.varIneqElimQuant
+      && !d_opts.quantifiers.leibnizEqElim)
   {
     return body;
   }
@@ -1753,21 +1753,22 @@ Node QuantifiersRewriter::computeVarElimination(Node body,
   // Leibniz equality elimination
   if (d_opts.quantifiers.leibnizEqElim)
   {
-    if (body.getKind() == Kind::OR && body.getNumChildren() == 2) // the body must have exactly 2 children
+    if (body.getKind() == Kind::OR
+        && body.getNumChildren() == 2)  // the body must have exactly 2 children
     {
       Node termA = body[0];
       Node termB = body[1];
       Node opA, opB;
       std::vector<Node> argsA, argsB;
       bool negA = false, negB = false;
-      if (!matchUfLiteral(termA, opA, argsA, negA) || !matchUfLiteral(termB, opB, argsB, negB))
+      if (!matchUfLiteral(termA, opA, argsA, negA)
+          || !matchUfLiteral(termB, opB, argsB, negB))
       {
         return body;
       }
 
       // need pattern (not P(t1)) or P(t2) (either child can be the negated one)
-      if (opA != opB ||
-          !((negA && !negB) || (negB && !negA)))
+      if (opA != opB || !((negA && !negB) || (negB && !negA)))
       {
         return body;
       }
@@ -1775,9 +1776,10 @@ Node QuantifiersRewriter::computeVarElimination(Node body,
       std::vector<Node> t1 = negA ? argsA : argsB;
       std::vector<Node> t2 = negA ? argsB : argsA;
 
-      // operator P must be one of the quantifier's bound variables (otherwise this is not Leibniz)
+      // operator P must be one of the quantifier's bound variables (otherwise
+      // this is not Leibniz)
       auto it = std::find(args.begin(), args.end(), opA);
-      if (it == args.end()) 
+      if (it == args.end())
       {
         return body;
       }
@@ -1789,7 +1791,8 @@ Node QuantifiersRewriter::computeVarElimination(Node body,
       // ensure P does not occur inside the argument terms
       for (size_t i = 0; i < t1.size(); ++i)
       {
-        if (expr::hasSubterm(t1[i], opA, false) || expr::hasSubterm(t2[i], opA, false))
+        if (expr::hasSubterm(t1[i], opA, false)
+            || expr::hasSubterm(t2[i], opA, false))
         {
           return body;
         }
@@ -1810,13 +1813,19 @@ Node QuantifiersRewriter::computeVarElimination(Node body,
       // remove the predicate variable from the quantifier variable list
       args.erase(it);
 
-      Trace("var-elim-quant") << "Detected Leibniz equality in " << body << ", returning: " << eq << std::endl;
+      Trace("var-elim-quant") << "Detected Leibniz equality in " << body
+                              << ", returning: " << eq << std::endl;
       return eq;
     }
   }
   return body;
 }
 
+// Matches a literal used in Leibniz-equality detection, recognizing
+// patterns of the form P(t1...tn) or ¬P(t1...tn).
+//
+// In the Leibniz step, we need to determine whether each side of a two-literal
+// disjunction is a (possibly negated) application of the same predicate symbol.
 bool QuantifiersRewriter::matchUfLiteral(Node lit,
                                          Node& op,
                                          std::vector<Node>& argsOut,
