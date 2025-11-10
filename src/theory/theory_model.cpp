@@ -817,6 +817,32 @@ void TheoryModel::assignFunctionDefault(Node f) const
 void TheoryModel::assignFunctionDefaultHo(Node f) const
 {
   Assert(logicInfo().isHigherOrder());
+  // collect all HO_APPLY terms, modulo equality of the function
+  std::vector<Node> hoTerms;
+  std::map<Node, std::vector<Node>>::const_iterator itht;
+  if (d_equalityEngine->hasTerm(f))
+  {
+    Node r = d_equalityEngine->getRepresentative(f);
+    eq::EqClassIterator eqc_i = eq::EqClassIterator(r, d_equalityEngine);
+    while( !eqc_i.isFinished() ) 
+    {
+      Node n = *eqc_i;
+      ++eqc_i;
+      itht = d_ho_uf_terms.find(n);
+      if (itht != d_ho_uf_terms.end())
+      {
+        hoTerms.insert(hoTerms.end(), itht->second.begin(), itht->second.end());
+      }
+    }
+  }
+  else
+  {
+    itht = d_ho_uf_terms.find(f);
+    if (itht != d_ho_uf_terms.end())
+    {
+      hoTerms.insert(hoTerms.end(), itht->second.begin(), itht->second.end());
+    }
+  }
   Trace("model-builder-debug") << "Assign HO function " << f << std::endl;
   TypeNode type = f.getType();
   std::vector<TypeNode> argTypes = type.getArgTypes();
@@ -857,52 +883,52 @@ void TheoryModel::assignFunctionDefaultHo(Node f) const
     }
   }
   curr = currPre;
-  std::map<Node, std::vector<Node>>::const_iterator itht =
-      d_ho_uf_terms.find(f);
-  if (itht != d_ho_uf_terms.end())
+  for (const Node& hn : hoTerms)
   {
-    for (size_t i = 0; i < itht->second.size(); i++)
+    Trace("model-builder-debug") << "    process : " << hn << std::endl;
+    Assert(hn.getKind() == Kind::HO_APPLY);
+    // Assert(areEqual(hn[0], f));
+    Node hni = getRepresentative(hn[1]);
+    Trace("model-builder-debug2")
+        << "      get rep : " << hn[1] << " returned " << hni << std::endl;
+    Assert(hni.getType() == args[0].getType());
+    hni = rewrite(args[0].eqNode(hni));
+    // FIXME: ensure the function has been assigned?
+    Node hnv = getRepresentative(hn);
+    if (!apply_args.empty() && d_uf_models.find(hnv)==d_uf_models.end())
     {
-      Node hn = itht->second[i];
-      Trace("model-builder-debug") << "    process : " << hn << std::endl;
-      Assert(hn.getKind() == Kind::HO_APPLY);
-      // Assert(areEqual(hn[0], f));
-      Node hni = getRepresentative(hn[1]);
-      Trace("model-builder-debug2")
-          << "      get rep : " << hn[1] << " returned " << hni << std::endl;
-      Assert(hni.getType() == args[0].getType());
-      hni = rewrite(args[0].eqNode(hni));
-      Node hnv = getRepresentative(hn);
-      Trace("model-builder-debug2")
-          << "      get rep val : " << hn << " returned " << hnv << std::endl;
-      // hnv is expected to be constant but may not be the case if e.g. a
-      // non-trivial lambda is given as argument to this function.
-      if (!apply_args.empty())
+      assignFunctionDefaultHo(hnv);
+      hnv = getRepresentative(hnv);
+    }
+    Trace("model-builder-debug2")
+        << "      get rep val : " << hn << " returned " << hnv << std::endl;
+    // hnv is expected to be constant but may not be the case if e.g. a
+    // non-trivial lambda is given as argument to this function.
+    if (!apply_args.empty())
+    {
+      // Convert to lambda, which is necessary if hnv is a function array
+      // constant.
+      hnv = uf::FunctionConst::toLambda(hnv);
+      Assert(!hnv.isNull() && hnv.getKind() == Kind::LAMBDA
+              && hnv[0].getNumChildren() + 1 == args.size());
+      std::vector<TNode> largs;
+      for (unsigned j = 0; j < hnv[0].getNumChildren(); j++)
       {
-        // Convert to lambda, which is necessary if hnv is a function array
-        // constant.
-        hnv = uf::FunctionConst::toLambda(hnv);
-        Assert(!hnv.isNull() && hnv.getKind() == Kind::LAMBDA
-               && hnv[0].getNumChildren() + 1 == args.size());
-        std::vector<TNode> largs;
-        for (unsigned j = 0; j < hnv[0].getNumChildren(); j++)
-        {
-          largs.push_back(hnv[0][j]);
-        }
-        Assert(largs.size() == apply_args.size());
-        hnv = hnv[1].substitute(
-            largs.begin(), largs.end(), apply_args.begin(), apply_args.end());
-        hnv = rewrite(hnv);
+        largs.push_back(hnv[0][j]);
       }
-      Assert(hnv.getType() == curr.getType());
-      if (curr.isNull())
-      {
-        curr = hnv;
-      }
-      else
-      {
-        curr = nodeManager()->mkNode(Kind::ITE, hni, hnv, curr);
-      }
+      Assert(largs.size() == apply_args.size());
+      hnv = hnv[1].substitute(
+          largs.begin(), largs.end(), apply_args.begin(), apply_args.end());
+      hnv = rewrite(hnv);
+    }
+    Assert(hnv.getType() == curr.getType());
+    if (curr.isNull())
+    {
+      curr = hnv;
+    }
+    else
+    {
+      curr = nodeManager()->mkNode(Kind::ITE, hni, hnv, curr);
     }
   }
   // if curr was not set, we set it to currPre.

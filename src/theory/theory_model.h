@@ -378,27 +378,27 @@ class TheoryModel : protected EnvObj
    */
   void assignRepresentative(const Node& r, const Node& n, bool isFinal = true);
   /** assign function f based on the model m.
-   * This construction is based on "dag form". For example:
-   * (f 0 1) = 1
-   * (f 0 2) = 2
-   * (f 1 1) = 3
-   * ...
-   * becomes:
-   * f = (lambda xy. (ite (= x 0) (ite (= y 1) 1
-   *                              (ite (= y 2) 2 ...))
-   *                 (ite (= x 1) (ite (= y 1) 3 ...)
-   *                              ...))
-   *
-   * where the above is represented as a directed acyclic graph (dag).
-   * This construction is accomplished by assigning values to (f c)
-   * terms before f, e.g.
-   * (f 0) = (lambda y. (ite (= y 1) 1
-   *                    (ite (= y 2) 2 ...))
-   * (f 1) = (lambda y. (ite (= y 1) 3 ...))
-   * where
-   * f = (lambda xy. (ite (= x 0) ((f 0) y)
-   *                 (ite (= x 1) ((f 1) y) ...))
-   */
+  * This construction is based on "dag form". For example:
+  * (f 0 1) = 1
+  * (f 0 2) = 2
+  * (f 1 1) = 3
+  * ...
+  * becomes:
+  * f = (lambda xy. (ite (= x 0) (ite (= y 1) 1
+  *                              (ite (= y 2) 2 ...))
+  *                 (ite (= x 1) (ite (= y 1) 3 ...)
+  *                              ...))
+  *
+  * where the above is represented as a directed acyclic graph (dag).
+  * This construction is accomplished by assigning values to (f c)
+  * terms before f, e.g.
+  * (f 0) = (lambda y. (ite (= y 1) 1
+  *                    (ite (= y 2) 2 ...))
+  * (f 1) = (lambda y. (ite (= y 1) 3 ...))
+  * where
+  * f = (lambda xy. (ite (= x 0) ((f 0) y)
+  *                 (ite (= x 1) ((f 1) y) ...))
+  */
   void assignFunctionDefaultHo(Node f) const;
   /** Unique name of this model */
   std::string d_name;
