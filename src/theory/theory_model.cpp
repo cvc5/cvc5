@@ -1015,52 +1015,7 @@ std::vector< Node > TheoryModel::getFunctionsToAssign() {
       continue;
     }
     Trace("model-builder-fun-debug") << "Look at function : " << n << std::endl;
-    if (logicInfo().isHigherOrder())
-    {
-      // if in higher-order mode, assign function definitions modulo equality
-      Node r = getRepresentative(n);
-      if (hasAssignedFunctionDefinition(r))
-      {
-        continue;
-      }
-      std::map<Node, Node>::iterator itf = func_to_rep.find(r);
-      if (itf == func_to_rep.end())
-      {
-        func_to_rep[r] = n;
-        funcs_to_assign.push_back( n );
-        Trace("model-builder-fun") << "Make function " << n;
-        Trace("model-builder-fun")
-            << " the assignable function in its equivalence class."
-            << std::endl;
-      }
-      else
-      {
-        // must combine uf terms
-        Trace("model-builder-fun")
-            << "Copy " << it->second.size() << " uf terms";
-        d_uf_terms[itf->second].insert(d_uf_terms[itf->second].end(),
-                                       it->second.begin(),
-                                       it->second.end());
-        std::map<Node, std::vector<Node>>::iterator ith = d_ho_uf_terms.find(n);
-        if (ith != d_ho_uf_terms.end())
-        {
-          d_ho_uf_terms[itf->second].insert(d_ho_uf_terms[itf->second].end(),
-                                            ith->second.begin(),
-                                            ith->second.end());
-          Trace("model-builder-fun")
-              << " and " << ith->second.size() << " ho uf terms";
-        }
-        Trace("model-builder-fun")
-            << " from " << n << " to its assignable representative function "
-            << itf->second << std::endl;
-        it->second.clear();
-      }
-    }
-    else
-    {
-      Trace("model-builder-fun") << "Function to assign : " << n << std::endl;
-      funcs_to_assign.push_back(n);
-    }
+    funcs_to_assign.push_back(n);
   }
 
   Trace("model-builder-fun") << "return " << funcs_to_assign.size() << " functions to assign..." << std::endl;
