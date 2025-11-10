@@ -3223,6 +3223,7 @@ set(regress_1_tests
   regress1/quantifiers/sygus-inst-nia-psyco-060.smt2
   regress1/quantifiers/sygus-inst-lambda.smt2
   regress1/quantifiers/symmetric_unsat_7.smt2
+  regress1/quantifiers/t3_rw1063_cg_nl.smt2
   regress1/quantifiers/tpp-unit-fail-qbv.smt2
   regress1/quantifiers/ufdt-solve-model-built.smt2
   regress1/quantifiers/var-eq-trigger.smt2

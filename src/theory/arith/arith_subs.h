@@ -68,12 +68,8 @@ class ArithSubsTermContext : public TermContext
   {
     if (tval == 0)
     {
-      if (!d_traverseMult && t.getKind()==Kind::NONLINEAR_MULT)
-      {
-        return 1;
-      }
       // if we should not traverse, return 1
-      if (!ArithSubs::shouldTraverse(t))
+      if (!ArithSubs::shouldTraverse(t, d_traverseMult))
       {
         return 1;
       }
