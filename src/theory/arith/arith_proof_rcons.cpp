@@ -21,7 +21,7 @@
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/arith_subs.h"
 #include "util/rational.h"
- 
+
 namespace cvc5::internal {
 namespace theory {
 namespace arith {
