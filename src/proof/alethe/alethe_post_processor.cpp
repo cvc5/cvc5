@@ -1512,14 +1512,14 @@ bool AletheProofPostprocessCallback::update(Node res,
     //
     // ------- rare_rewrite, ite_eq
     //   VP1
-    // ------- equiv2                          ------- true
-    //   VP2                                     VP3
+    // ------- equiv2                       ---------- true
+    //   VP2                                  d_true
     // ----------------------------------------------- resolution
     //   (cl (C?(= (C?t1:t2) t1):(= (C?t1:t2) t2)))*
     //
     // VP1: (cl (= (C?(= (C?t1:t2) t1):(= (C?t1:t2) t2)) true))
     // VP2: (cl (C?(= (C?t1:t2) t1):(= (C?t1:t2) t2)) (not true))
-    // VP3: (cl true)
+    // d_true: (cl true)
     //
     // * the corresponding proof node is (C?(= (C?t1:t2) t1):(= (C?t1:t2) t2))
     //
@@ -1530,11 +1530,12 @@ bool AletheProofPostprocessCallback::update(Node res,
     {
       Node vp1 = nm->mkNode(Kind::EQUAL,res,d_true);
       Node vp2 = nm->mkNode(Kind::OR,res,d_true.notNode());
+      Node args_0 = args[0];
       return addAletheStep(AletheRule::RARE_REWRITE,
                            vp1,
                            nm->mkNode(Kind::SEXPR, d_cl, vp1),
                            {},
-                           {nm->mkRawSymbol("\"ite-eq\"", nm->sExprType()),args[0][0],args[0][1],args[0][2]},
+                           {nm->mkRawSymbol("\"ite-eq\"", nm->sExprType()),args_0[0],args_0[1],args_0[2]},
                            *cdp)
        && addAletheStepFromOr(AletheRule::EQUIV2,
                            vp2,
