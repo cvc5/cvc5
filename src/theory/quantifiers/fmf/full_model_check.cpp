@@ -362,13 +362,10 @@ bool FullModelChecker::preProcessBuildModel(TheoryModel* m) {
       preInitializeType(m, v.getType());
     }
   }
-  return true;
-}
-bool FullModelChecker::processBuildModel(TheoryModel* m)
-{
   d_assignedFuncs = false;
   return true;
 }
+
 void FullModelChecker::assignFunctions(TheoryModel* m)
 {
   if (d_assignedFuncs)

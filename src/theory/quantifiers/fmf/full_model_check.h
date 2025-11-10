@@ -173,7 +173,6 @@ protected:
 
   /** process build model */
   bool preProcessBuildModel(TheoryModel* m) override;
-  bool processBuildModel(TheoryModel* m) override;
 
   bool useSimpleModels();
  private:
