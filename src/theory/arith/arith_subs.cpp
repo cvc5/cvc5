@@ -59,7 +59,7 @@ Node ArithSubs::applyArith(const Node& n, bool traverseNlMult) const
       }
       else
       {
-        if (!shouldTraverse(cur))
+        if (!shouldTraverse(cur, traverseNlMult))
         {
           // Do not traverse beneath applications that belong to another theory
           // besides (core) arithmetic. Notice that transcendental function
