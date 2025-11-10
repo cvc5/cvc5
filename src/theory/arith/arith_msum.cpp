@@ -17,6 +17,7 @@
 
 #include "theory/rewriter.h"
 #include "util/rational.h"
+#include "theory/arith/arith_utilities.h"
 
 using namespace cvc5::internal::kind;
 
@@ -160,6 +161,7 @@ int ArithMSum::isolate(
   std::map<Node, Node>::const_iterator itv = msum.find(v);
   if (itv != msum.end())
   {
+    bool isReal = v.getType().isReal();
     NodeManager* nm = v.getNodeManager();
     std::vector<Node> children;
     Rational r =
@@ -181,6 +183,10 @@ int ArithMSum::isolate(
           else
           {
             m = it->second;
+          }
+          if (isReal)
+          {
+            m = arith::castToReal(nm, m);
           }
           children.push_back(m);
         }
