@@ -589,7 +589,6 @@ void FullModelChecker::assignFunctions(TheoryModel* m)
       m->assignFunctionDefinition(it->first, f_def);
     }
   }
-  TheoryEngineModelBuilder::assignFunctions(m);
 }
 
 void FullModelChecker::preInitializeType(TheoryModel* m, TypeNode tn)

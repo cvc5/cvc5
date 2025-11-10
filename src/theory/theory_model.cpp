@@ -743,7 +743,10 @@ bool TheoryModel::areFunctionValuesEnabled() const
 
 void TheoryModel::assignFunctionDefault(Node f) const
 {
-  Assert(d_uf_models.find(f) == d_uf_models.end());
+  if (d_uf_models.find(f) != d_uf_models.end())
+  {
+    return;
+  }
   if (logicInfo().isHigherOrder())
   {
     Trace("model-builder") << "  Assign function value for " << f
@@ -893,13 +896,12 @@ void TheoryModel::assignFunctionDefaultHo(Node f) const
         << "      get rep : " << hn[1] << " returned " << hni << std::endl;
     Assert(hni.getType() == args[0].getType());
     hni = rewrite(args[0].eqNode(hni));
-    // FIXME: ensure the function has been assigned?
-    Node hnv = getRepresentative(hn);
-    if (!apply_args.empty() && d_uf_models.find(hnv) == d_uf_models.end())
+    // if assigning function, ensure the function has been assigned
+    if (!apply_args.empty())
     {
-      assignFunctionDefaultHo(hnv);
-      hnv = getRepresentative(hnv);
+      assignFunctionDefault(hn);
     }
+    Node hnv = getRepresentative(hn);
     Trace("model-builder-debug2")
         << "      get rep val : " << hn << " returned " << hnv << std::endl;
     // hnv is expected to be constant but may not be the case if e.g. a
