@@ -305,7 +305,7 @@ FullModelChecker::FullModelChecker(Env& env,
                                    TermRegistry& tr)
     : QModelBuilder(env, qs, qim, qr, tr),
       d_fm(new FirstOrderModelFmc(env, qs, qr, tr)),
-      d_assignedFuncs(false)
+      d_initFuncs(false)
 {
   d_true = nodeManager()->mkConst(true);
   d_false = nodeManager()->mkConst(false);
@@ -362,17 +362,17 @@ bool FullModelChecker::preProcessBuildModel(TheoryModel* m) {
       preInitializeType(m, v.getType());
     }
   }
-  d_assignedFuncs = false;
+  d_initFuncs = false;
   return true;
 }
 
 void FullModelChecker::initializeFunctions(TheoryModel* m)
 {
-  if (d_assignedFuncs)
+  if (d_initFuncs)
   {
     return;
   }
-  d_assignedFuncs = true;
+  d_initFuncs = true;
   if (!m->areFunctionValuesEnabled())
   {
     // nothing to do if no functions
@@ -381,7 +381,6 @@ void FullModelChecker::initializeFunctions(TheoryModel* m)
   // if higher-order, we must use the standard assignment method
   if (logicInfo().isHigherOrder())
   {
-    TheoryEngineModelBuilder::assignFunctions(m);
     return;
   }
   FirstOrderModelFmc* fm = d_fm.get();
