@@ -34,12 +34,27 @@ class ProofNodeManager;
 /**
  * A virtual callback class for converting ProofNode. An example use case of
  * this class is to transform a proof so that it does not use mixed arithmetic.
+ *
+ * We convert proofs in a bottom-up manner using an overloaded method convert.
  */
 class ProofNodeConverterCallback
 {
  public:
-  ProofNodeConverterCallback() {}
-  virtual ~ProofNodeConverterCallback() {}
+  ProofNodeConverterCallback();
+  virtual ~ProofNodeConverterCallback();
+  /**
+   * Should proof pn be converted?
+   *
+   * Proofs are converted in a bottom-up manner (i.e. at post-traversal).
+   * This method is used as an optimization to see if the proof node requires
+   * any conversion. This method is called on proof nodes whose premises were
+   * *not* modified already by this converter. We always call convert for proof
+   * nodes whose premises were modified.
+   *
+   * @param pn the proof node that maybe should be converted
+   * @return whether we should run the convert method on pn
+   */
+  virtual bool shouldConvert(std::shared_ptr<ProofNode> pn);
   /**
    * Convert the proof rule application, store steps in cdp. Return a non-null
    * formula if successful, which should be given a closed proof in cdp. It can
