@@ -3229,6 +3229,7 @@ set(regress_1_tests
   regress1/quantifiers/var-eq-trigger.smt2
   regress1/quantifiers/var-eq-trigger-simple.smt2
   regress1/quantifiers/z3.620661-no-fv-trigger.smt2
+  regress1/quantifiers/z3.855483_dio_nl.smt2
   regress1/rels/addr_book_1.cvc.smt2
   regress1/rels/addr_book_1_1.cvc.smt2
   regress1/rels/bv1-unit.cvc.smt2
