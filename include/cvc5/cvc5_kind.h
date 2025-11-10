@@ -573,7 +573,7 @@ enum ENUM(Kind)
    *   - TermManager::mkTerm(const Op&, const std::vector<Term>&)
    *
    */
-  EVALUE(INTS_LOG2),
+  EVALUE(LOG2),
   /**
    * Arithmetic subtraction, left associative.
    *
