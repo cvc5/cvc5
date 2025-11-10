@@ -110,8 +110,8 @@ bool ArithSubs::shouldTraverse(const Node& n, bool traverseNlMult)
   Kind k = n.getKind();
   TheoryId ctid = theory::kindToTheoryId(k);
   if ((ctid != THEORY_ARITH && ctid != THEORY_BOOL && ctid != THEORY_BUILTIN)
-      || isTranscendentalKind(k)
-      || (!traverseNlMult && (k == Kind::NONLINEAR_MULT || k == Kind::IAND)))
+      || isTranscendentalKind(k) || k == Kind::IAND
+      || (!traverseNlMult && Kind::NONLINEAR_MULT))
   {
     return false;
   }
