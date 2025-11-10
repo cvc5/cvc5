@@ -414,13 +414,17 @@ bool ArithCongruenceManager::propagate(TNode x){
         // (not (>= (+ f(x) (* -1 f(f(x)))) 0)),
         // whereas since x in f(x) is not in an arithmetic context, we want
         // (not (>= (+ f(x) (* -1 f(x))) 0)).
-        ArithSubsTermContext astc;
+        // Furthermore note that we should not traverse non-linear
+        // multiplication here, as this inference was inferred via linear
+        // arithmetic which treats non-linear arithmetic as an abstraction.
+        ArithSubsTermContext astc(false);
         TConvProofGenerator tcnv(d_env,
                                  nullptr,
                                  TConvPolicy::FIXPOINT,
                                  TConvCachePolicy::NEVER,
                                  "ArithRConsTConv",
                                  &astc);
+        Trace("arith-cm-proof") << "add step " << peq[0] << " -> " << peq[1] << ", rewrite " << neg << std::endl;
         tcnv.addRewriteStep(peq[0], peq[1], &cdp);
         std::shared_ptr<ProofNode> pfna = tcnv.getProofForRewriting(neg);
         Node negr = pfna->getResult()[1];
