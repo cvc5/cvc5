@@ -110,11 +110,11 @@ bool ArithSubs::shouldTraverse(const Node& n, bool traverseNlMult)
   Kind k = n.getKind();
   TheoryId ctid = theory::kindToTheoryId(k);
   // We always treat transcendental kinds as a black box.
-  // Conversely, we always traverse other extended arithmetic operators e.g.
-  // IAND, POW2 here.
+  // On the other hand, other extended operators e.g. IAND are treated similarly
+  // to multiplication.
   if ((ctid != THEORY_ARITH && ctid != THEORY_BOOL && ctid != THEORY_BUILTIN)
       || isTranscendentalKind(k)
-      || (!traverseNlMult && k == Kind::NONLINEAR_MULT))
+      || (!traverseNlMult && (k == Kind::NONLINEAR_MULT || isExtendedNonLinearKind(k))))
   {
     return false;
   }
