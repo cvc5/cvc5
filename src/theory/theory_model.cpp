@@ -824,7 +824,7 @@ void TheoryModel::assignFunctionDefaultHo(Node f) const
   {
     Node r = d_equalityEngine->getRepresentative(f);
     eq::EqClassIterator eqc_i = eq::EqClassIterator(r, d_equalityEngine);
-    while( !eqc_i.isFinished() ) 
+    while (!eqc_i.isFinished())
     {
       Node n = *eqc_i;
       ++eqc_i;
@@ -895,7 +895,7 @@ void TheoryModel::assignFunctionDefaultHo(Node f) const
     hni = rewrite(args[0].eqNode(hni));
     // FIXME: ensure the function has been assigned?
     Node hnv = getRepresentative(hn);
-    if (!apply_args.empty() && d_uf_models.find(hnv)==d_uf_models.end())
+    if (!apply_args.empty() && d_uf_models.find(hnv) == d_uf_models.end())
     {
       assignFunctionDefaultHo(hnv);
       hnv = getRepresentative(hnv);
@@ -910,7 +910,7 @@ void TheoryModel::assignFunctionDefaultHo(Node f) const
       // constant.
       hnv = uf::FunctionConst::toLambda(hnv);
       Assert(!hnv.isNull() && hnv.getKind() == Kind::LAMBDA
-              && hnv[0].getNumChildren() + 1 == args.size());
+             && hnv[0].getNumChildren() + 1 == args.size());
       std::vector<TNode> largs;
       for (unsigned j = 0; j < hnv[0].getNumChildren(); j++)
       {
