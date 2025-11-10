@@ -1511,9 +1511,9 @@ bool AletheProofPostprocessCallback::update(Node res,
     // ======== If-then-else equivalence
     //
     // ------- rare_rewrite, ite_eq
-    //   vp1
+    //   VP1
     // ------- equiv2                          ------- true
-    //   vp2                                     vp3
+    //   VP2                                     VP3
     // ----------------------------------------------- resolution
     //   (cl (C?(= (C?t1:t2) t1):(= (C?t1:t2) t2)))*
     //
@@ -1523,7 +1523,8 @@ bool AletheProofPostprocessCallback::update(Node res,
     //
     // * the corresponding proof node is (C?(= (C?t1:t2) t1):(= (C?t1:t2) t2))
     //
-    // (define-rule ite_eq ((C bool) (t1 ?) (t2 ?)) (ite C (= (C?t1:t2) t1) (= (C?t1:t2) t2)) true)
+    // (define-rule ite_eq ((C bool) (t1 ?) (t2 ?)) (ite C (= (C?t1:t2) t1) (=
+    // (C?t1:t2) t2)) true)
     //
     case ProofRule::ITE_EQ:
     {
