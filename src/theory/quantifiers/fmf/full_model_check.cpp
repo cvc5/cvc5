@@ -366,7 +366,7 @@ bool FullModelChecker::preProcessBuildModel(TheoryModel* m) {
   return true;
 }
 
-void FullModelChecker::assignFunctions(TheoryModel* m)
+void FullModelChecker::initializeFunctions(TheoryModel* m)
 {
   if (d_assignedFuncs)
   {
@@ -663,7 +663,7 @@ void FullModelChecker::debugPrint(const char * tr, Node n, bool dispStar) {
 
 int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, int effort ) {
   // ensure that functions are assigned
-  assignFunctions(fm->getTheoryModel());
+  initializeFunctions(fm->getTheoryModel());
   Trace("fmc") << "Full model check " << f << ", effort = " << effort << "..." << std::endl;
   // register the quantifier
   registerQuantifiedFormula(f);

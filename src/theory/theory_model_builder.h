@@ -176,7 +176,7 @@ class TheoryEngineModelBuilder : protected EnvObj
    * If HO logic is disabled, we call assignFunction for all functions.
    * If HO logic is enabled, we call assignHoFunction.
    */
-  virtual void assignFunctions(TheoryModel* m);
+  void assignFunctions(TheoryModel* m);
 
  private:
   /** normalized cache

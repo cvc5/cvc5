@@ -176,7 +176,12 @@ protected:
 
   bool useSimpleModels();
  private:
-  void assignFunctions(TheoryModel* m) override;
+  /**
+   * Initialize functions for exhaustive instantiate. Called at the beginning
+   * of doExhaustiveInstantiation to ensure data structures in this class are
+   * initialized.
+   */
+  void initializeFunctions(TheoryModel* m);
   /**
    * Register quantified formula.
    * This checks whether q can be handled by model-based instantiation and
