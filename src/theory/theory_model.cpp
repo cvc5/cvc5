@@ -890,14 +890,20 @@ void TheoryModel::assignFunctionDefaultHo(Node f) const
   {
     Trace("model-builder-debug") << "    process : " << hn << std::endl;
     Assert(hn.getKind() == Kind::HO_APPLY);
-    // Assert(areEqual(hn[0], f));
+    Assert(getRepresentative(hn[0])==getRepresentative(f));
+    // if the argument is a function, ensure that it has been assigned as well
+    if (hn[1].getType().isFunction())
+    {
+      assignFunctionDefault(hn[1]);
+    }
     Node hni = getRepresentative(hn[1]);
     Trace("model-builder-debug2")
         << "      get rep : " << hn[1] << " returned " << hni << std::endl;
     Assert(hni.getType() == args[0].getType());
     hni = rewrite(args[0].eqNode(hni));
-    // if assigning function, ensure the function has been assigned
-    if (!apply_args.empty())
+    // if we are returning a function, ensure the return function has been
+    // assigned
+    if (hn.getType().isFunction())
     {
       assignFunctionDefault(hn);
     }

@@ -1339,14 +1339,6 @@ void TheoryEngineModelBuilder::assignFunctions(TheoryModel* m)
   Trace("model-builder") << "Assigning function values..." << std::endl;
   std::vector<Node> funcs_to_assign = m->getFunctionsToAssign();
 
-  if (logicInfo().isHigherOrder())
-  {
-    // sort based on type size if higher-order
-    Trace("model-builder") << "Sort functions by type..." << std::endl;
-    SortTypeSize sts;
-    std::sort(funcs_to_assign.begin(), funcs_to_assign.end(), sts);
-  }
-
   if (TraceIsOn("model-builder"))
   {
     Trace("model-builder") << "...have " << funcs_to_assign.size()
