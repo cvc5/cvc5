@@ -424,7 +424,8 @@ bool ArithCongruenceManager::propagate(TNode x){
                                  TConvCachePolicy::NEVER,
                                  "ArithRConsTConv",
                                  &astc);
-        Trace("arith-cm-proof") << "add step " << peq[0] << " -> " << peq[1] << ", rewrite " << neg << std::endl;
+        Trace("arith-cm-proof") << "add step " << peq[0] << " -> " << peq[1]
+                                << ", rewrite " << neg << std::endl;
         tcnv.addRewriteStep(peq[0], peq[1], &cdp);
         std::shared_ptr<ProofNode> pfna = tcnv.getProofForRewriting(neg);
         Node negr = pfna->getResult()[1];
