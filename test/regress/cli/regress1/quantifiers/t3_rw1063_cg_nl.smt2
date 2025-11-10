@@ -1,4 +1,4 @@
-(set-info :smt-lib-version 2.6)
+; EXPECT: unsat
 (set-logic UFNIA)
 (declare-fun pow2 (Int) Int)
 (define-fun intmax ((k Int)) Int (- (pow2 k) 1))
