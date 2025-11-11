@@ -1178,11 +1178,8 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
 void TheoryEngineModelBuilder::postProcessModel(bool incomplete, TheoryModel* m)
 {
   Trace("model-builder") << "postProcessModel" << std::endl;
-  // assign functions if necessary
-  if (m->areFunctionValuesEnabled())
-  {
-    assignFunctions(m);
-  }
+  // Note that we do not insist that functions are assigned here, they can
+  // continue to be built on demand in the theory model.
   // if we are incomplete, there is no guarantee on the model.
   // thus, we do not check the model here.
   if (incomplete)
@@ -1328,37 +1325,6 @@ bool TheoryEngineModelBuilder::preProcessBuildModel(TheoryModel* m)
 bool TheoryEngineModelBuilder::processBuildModel(TheoryModel* m)
 {
   return true;
-}
-
-void TheoryEngineModelBuilder::assignFunctions(TheoryModel* m)
-{
-  if (!options().theory.assignFunctionValues)
-  {
-    return;
-  }
-  Trace("model-builder") << "Assigning function values..." << std::endl;
-  std::vector<Node> funcs_to_assign = m->getFunctionsToAssign();
-
-  if (TraceIsOn("model-builder"))
-  {
-    Trace("model-builder") << "...have " << funcs_to_assign.size()
-                           << " functions to assign:" << std::endl;
-    for (unsigned k = 0; k < funcs_to_assign.size(); k++)
-    {
-      Node f = funcs_to_assign[k];
-      Trace("model-builder") << "  [" << k << "] : " << f << " : "
-                             << f.getType() << std::endl;
-    }
-  }
-
-  // construct function values
-  for (unsigned k = 0; k < funcs_to_assign.size(); k++)
-  {
-    Node f = funcs_to_assign[k];
-    Trace("model-builder") << "  Function #" << k << " is " << f << std::endl;
-    m->assignFunctionDefault(f);
-  }
-  Trace("model-builder") << "Finished assigning function values." << std::endl;
 }
 
 }  // namespace theory

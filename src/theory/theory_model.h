@@ -68,7 +68,7 @@ namespace theory {
  * - hasTerm, getRepresentative, areEqual, areDisequal
  * - getEqualityEngine
  * - getRepSet
- * - hasAssignedFunctionDefinition, getFunctionsToAssign
+ * - hasAssignedFunctionDefinition
  * - getValue
  *
  * The above functions can be used for a model m after it has been
@@ -256,7 +256,7 @@ class TheoryModel : protected EnvObj
   /** get the representative of a in the equality engine of this model */
   Node getRepresentative(TNode a) const;
   /** are a and b equal in the equality engine of this model? */
-  bool areEqual(TNode a, TNode b);
+  bool areEqual(TNode a, TNode b) const;
   /** are a and b disequal in the equality engine of this model? */
   bool areDisequal(TNode a, TNode b);
   /** get the equality engine for this model */
@@ -316,29 +316,8 @@ class TheoryModel : protected EnvObj
   bool areFunctionValuesEnabled() const;
   /** assign function value f to definition f_def */
   void assignFunctionDefinition(Node f, Node f_def) const;
-  /** assign function f based on the model m.
-   * If not higher-order, this construction is based on "table form". For
-   * example:
-   * (f 0 1) = 1
-   * (f 0 2) = 2
-   * (f 1 1) = 3
-   * ...
-   * becomes:
-   * f = (lambda xy. (ite (and (= x 0) (= y 1)) 1
-   *                 (ite (and (= x 0) (= y 2)) 2
-   *                 (ite (and (= x 1) (= y 1)) 3 ...))).
-   * If higher-order, we call assignFunctionDefaultHo instead.
-   */
-  void assignFunctionDefault(Node f) const;
   /** have we assigned function f? */
   bool hasAssignedFunctionDefinition(Node f) const;
-  /** get the list of functions to assign. 
-  * This list will contain all terms of function type that are terms in d_equalityEngine.
-  * If higher-order is enabled, we ensure that this list is sorted by type size.
-  * This allows us to assign functions T -> T before ( T x T ) -> T and before ( T -> T ) -> T,
-  * which is required for "dag form" model construction (see TheoryModelBuilder::assignHoFunction).
-  */
-  std::vector< Node > getFunctionsToAssign();
   //---------------------------- end function values
   /** Get the name of this model */
   const std::string& getName() const;
@@ -378,6 +357,21 @@ class TheoryModel : protected EnvObj
    */
   void assignRepresentative(const Node& r, const Node& n, bool isFinal = true);
   /** assign function f based on the model m.
+   * If not higher-order, this construction is based on "table form". For
+   * example:
+   * (f 0 1) = 1
+   * (f 0 2) = 2
+   * (f 1 1) = 3
+   * ...
+   * becomes:
+   * f = (lambda xy. (ite (and (= x 0) (= y 1)) 1
+   *                 (ite (and (= x 0) (= y 2)) 2
+   *                 (ite (and (= x 1) (= y 1)) 3 ...))).
+   * If higher-order, we call assignFunctionDefaultHo instead.
+   * @param f The function to assign.
+   */
+  void assignFunctionDefault(Node f) const;
+  /** assign function f based on the model m.
    * This construction is based on "dag form". For example:
    * (f 0 1) = 1
    * (f 0 2) = 2
@@ -398,6 +392,7 @@ class TheoryModel : protected EnvObj
    * where
    * f = (lambda xy. (ite (= x 0) ((f 0) y)
    *                 (ite (= x 1) ((f 1) y) ...))
+   * @param f The function to assign.
    */
   void assignFunctionDefaultHo(Node f) const;
   /** Unique name of this model */

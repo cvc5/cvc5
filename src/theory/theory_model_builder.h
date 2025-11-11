@@ -168,15 +168,6 @@ class TheoryEngineModelBuilder : protected EnvObj
   void addToTypeList(TypeNode tn,
                      std::vector<TypeNode>& type_list,
                      std::unordered_set<TypeNode>& visiting);
-  /** assign functions
-   *
-   * Assign all unassigned functions in the model m (those returned by
-   * TheoryModel::getFunctionsToAssign),
-   * using the two functions above. Currently:
-   * If HO logic is disabled, we call assignFunction for all functions.
-   * If HO logic is enabled, we call assignHoFunction.
-   */
-  void assignFunctions(TheoryModel* m);
 
  private:
   /** normalized cache

@@ -711,7 +711,7 @@ Node TheoryModel::getRepresentative(TNode a) const
   return a;
 }
 
-bool TheoryModel::areEqual(TNode a, TNode b)
+bool TheoryModel::areEqual(TNode a, TNode b) const
 {
   if( a==b ){
     return true;
@@ -897,7 +897,7 @@ void TheoryModel::assignFunctionDefaultHo(Node f) const
   {
     Trace("model-builder-debug") << "    process : " << hn << std::endl;
     Assert(hn.getKind() == Kind::HO_APPLY);
-    Assert(getRepresentative(hn[0]) == getRepresentative(f));
+    Assert(areEqual(hn[0], f));
     // get representative of the argument, which note may recursively compute
     // more function values.
     Node hni = getRepresentative(hn[1]);
@@ -999,33 +999,6 @@ void TheoryModel::assignFunctionDefinition(Node f, Node f_def) const
 bool TheoryModel::hasAssignedFunctionDefinition(Node f) const
 {
   return d_uf_models.find(f) != d_uf_models.end();
-}
-
-std::vector< Node > TheoryModel::getFunctionsToAssign() {
-  std::vector< Node > funcs_to_assign;
-  std::map< Node, Node > func_to_rep;
-
-  // collect functions
-  for( std::map< Node, std::vector< Node > >::iterator it = d_uf_terms.begin(); it != d_uf_terms.end(); ++it ){
-    Node n = it->first;
-    Assert(!n.isNull());
-    // lambdas do not need assignments
-    if (!isAssignableUf(n))
-    {
-      continue;
-    }
-    // Note that d_env.getTopLevelSubstitutions().apply(n) may not be n
-    // if we are in incremenal mode.
-    if (hasAssignedFunctionDefinition(n))
-    {
-      continue;
-    }
-    Trace("model-builder-fun-debug") << "Look at function : " << n << std::endl;
-    funcs_to_assign.push_back(n);
-  }
-
-  Trace("model-builder-fun") << "return " << funcs_to_assign.size() << " functions to assign..." << std::endl;
-  return funcs_to_assign;
 }
 
 const std::string& TheoryModel::getName() const { return d_name; }
