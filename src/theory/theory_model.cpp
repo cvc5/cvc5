@@ -685,6 +685,7 @@ Node TheoryModel::getRepresentative(TNode a) const
   {
     Node r = d_equalityEngine->getRepresentative( a );
     std::map<Node, Node>::const_iterator itr = d_reps.find(r);
+    // note that d_reps[r]=r for equivalence classes that haven't been assigned
     if (itr != d_reps.end() && itr->second != r)
     {
       return itr->second;
