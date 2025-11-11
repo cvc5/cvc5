@@ -356,7 +356,9 @@ class TheoryModel : protected EnvObj
    * r is a function.
    */
   void assignRepresentative(const Node& r, const Node& n, bool isFinal = true);
-  /** assign function f based on the model m.
+  /**
+   * Assign function f, which is called on demand when the model for f is
+   * required by this class (e.g. in getValue or getRepresentative).
    * If not higher-order, this construction is based on "table form". For
    * example:
    * (f 0 1) = 1
@@ -371,7 +373,9 @@ class TheoryModel : protected EnvObj
    * @param f The function to assign.
    */
   void assignFunctionDefault(Node f) const;
-  /** assign function f based on the model m.
+  /**
+   * Assign function f when the logic is higher-order. This is called on demand
+   * when the model for f is required by his class.
    * This construction is based on "dag form". For example:
    * (f 0 1) = 1
    * (f 0 2) = 2
