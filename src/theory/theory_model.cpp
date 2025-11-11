@@ -305,7 +305,7 @@ Node TheoryModel::getModelValue(TNode n) const
       << "Look up " << ret << " in equality engine" << std::endl;
   // return the representative of the term in the equality engine, if it exists
   TypeNode t = ret.getType();
-  if (t.isFunction())
+  if (!logicInfo().isHigherOrder() && t.isFunction())
   {
     // functions are in the equality engine, but *not* as first-class members
     // when higher-order is disabled. In this case, we cannot query
@@ -318,16 +318,10 @@ Node TheoryModel::getModelValue(TNode n) const
   {
     Trace("model-getvalue-debug")
         << "get value from representative " << ret << "..." << std::endl;
-    ret = d_equalityEngine->getRepresentative(ret);
-    Assert(d_reps.find(ret) != d_reps.end());
-    std::map<Node, Node>::const_iterator it2 = d_reps.find(ret);
-    if (it2 != d_reps.end())
-    {
-      ret = it2->second;
-      d_modelCache[n] = ret;
-      Trace("model-getvalue-debug") << "...set rep is " << ret << std::endl;
-      return ret;
-    }
+    ret = getRepresentative(ret);
+    d_modelCache[n] = ret;
+    Trace("model-getvalue-debug") << "...set rep is " << ret << std::endl;
+    return ret;
   }
 
   Kind rk = ret.getKind();
@@ -377,16 +371,14 @@ Node TheoryModel::getModelValue(TNode n) const
       if (d_enableFuncModels)
       {
         std::map<Node, Node>::const_iterator entry = d_uf_models.find(n);
+        // If we have not assigned the function, assign it now
         if (entry == d_uf_models.end())
         {
           assignFunctionDefault(n);
           entry = d_uf_models.find(n);
           Assert(entry != d_uf_models.end());
         }
-        // Existing function
         ret = entry->second;
-        d_modelCache[n] = ret;
-        return ret;
       }
       else
       {
