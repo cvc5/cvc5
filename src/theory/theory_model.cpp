@@ -832,6 +832,7 @@ void TheoryModel::assignFunctionDefaultHo(Node f) const
   std::map<Node, std::vector<Node>>::const_iterator itht;
   if (d_equalityEngine->hasTerm(f))
   {
+    // if we are in the equality, look up each function in the equivalence class
     Node r = d_equalityEngine->getRepresentative(f);
     eq::EqClassIterator eqc_i = eq::EqClassIterator(r, d_equalityEngine);
     while (!eqc_i.isFinished())
@@ -847,6 +848,7 @@ void TheoryModel::assignFunctionDefaultHo(Node f) const
   }
   else
   {
+    // otherwise just take the function itself
     itht = d_ho_uf_terms.find(f);
     if (itht != d_ho_uf_terms.end())
     {
@@ -860,7 +862,7 @@ void TheoryModel::assignFunctionDefaultHo(Node f) const
   std::vector<TNode> apply_args;
   options::DefaultFunctionValueMode dfvm =
       options().theory.defaultFunctionValueMode;
-  for (unsigned i = 0; i < argTypes.size(); i++)
+  for (size_t i = 0; i < argTypes.size(); i++)
   {
     Node v = nodeManager()->mkBoundVar(argTypes[i]);
     args.push_back(v);
@@ -919,11 +921,7 @@ void TheoryModel::assignFunctionDefaultHo(Node f) const
       hnv = uf::FunctionConst::toLambda(hnv);
       Assert(!hnv.isNull() && hnv.getKind() == Kind::LAMBDA
              && hnv[0].getNumChildren() + 1 == args.size());
-      std::vector<TNode> largs;
-      for (unsigned j = 0; j < hnv[0].getNumChildren(); j++)
-      {
-        largs.push_back(hnv[0][j]);
-      }
+      std::vector<TNode> largs(hnv[0].begin(), hnv[0].end());
       Assert(largs.size() == apply_args.size());
       hnv = hnv[1].substitute(
           largs.begin(), largs.end(), apply_args.begin(), apply_args.end());
