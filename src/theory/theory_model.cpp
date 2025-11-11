@@ -947,7 +947,8 @@ void TheoryModel::assignFunctionDefaultHo(Node f) const
   assignFunctionDefinition(f, val);
 }
 
-void TheoryModel::assignFunctionDefinition( Node f, Node f_def ) {
+void TheoryModel::assignFunctionDefinition( Node f, Node f_def ) const
+{
   Trace("model-builder") << "  Assigning function (" << f << ") to (" << f_def << ")" << endl;
   Assert(d_uf_models.find(f) == d_uf_models.end());
 
