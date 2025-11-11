@@ -315,7 +315,7 @@ class TheoryModel : protected EnvObj
   /** are function values enabled? */
   bool areFunctionValuesEnabled() const;
   /** assign function value f to definition f_def */
-  void assignFunctionDefinition( Node f, Node f_def ) const;
+  void assignFunctionDefinition(Node f, Node f_def) const;
   /** have we assigned function f? */
   bool hasAssignedFunctionDefinition(Node f) const;
   /** get the list of functions to assign. 
