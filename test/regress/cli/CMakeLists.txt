@@ -3223,11 +3223,13 @@ set(regress_1_tests
   regress1/quantifiers/sygus-inst-nia-psyco-060.smt2
   regress1/quantifiers/sygus-inst-lambda.smt2
   regress1/quantifiers/symmetric_unsat_7.smt2
+  regress1/quantifiers/t3_rw1063_cg_nl.smt2
   regress1/quantifiers/tpp-unit-fail-qbv.smt2
   regress1/quantifiers/ufdt-solve-model-built.smt2
   regress1/quantifiers/var-eq-trigger.smt2
   regress1/quantifiers/var-eq-trigger-simple.smt2
   regress1/quantifiers/z3.620661-no-fv-trigger.smt2
+  regress1/quantifiers/z3.855483_dio_nl.smt2
   regress1/rels/addr_book_1.cvc.smt2
   regress1/rels/addr_book_1_1.cvc.smt2
   regress1/rels/bv1-unit.cvc.smt2
