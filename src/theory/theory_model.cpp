@@ -689,11 +689,11 @@ bool TheoryModel::hasTerm(TNode a)
 
 Node TheoryModel::getRepresentative(TNode a) const
 {
-  if ( d_equalityEngine->hasTerm( a ) )
+  if (d_equalityEngine->hasTerm(a))
   {
     Node r = d_equalityEngine->getRepresentative( a );
     std::map<Node, Node>::const_iterator itr = d_reps.find(r);
-    if (itr != d_reps.end() && itr->second!=r)
+    if (itr != d_reps.end() && itr->second != r)
     {
       return itr->second;
     }
@@ -703,7 +703,7 @@ Node TheoryModel::getRepresentative(TNode a) const
     {
       assignFunctionDefault(r);
       itr = d_reps.find(r);
-      Assert (itr != d_reps.end());
+      Assert(itr != d_reps.end());
       return itr->second;
     }
     return r;
@@ -897,7 +897,7 @@ void TheoryModel::assignFunctionDefaultHo(Node f) const
   {
     Trace("model-builder-debug") << "    process : " << hn << std::endl;
     Assert(hn.getKind() == Kind::HO_APPLY);
-    Assert(getRepresentative(hn[0])==getRepresentative(f));
+    Assert(getRepresentative(hn[0]) == getRepresentative(f));
     // get representative of the argument, which note may recursively compute
     // more function values.
     Node hni = getRepresentative(hn[1]);
