@@ -577,6 +577,7 @@ void TheoryModel::assignRepresentative(const Node& r,
                                        const Node& n,
                                        bool isFinal)
 {
+  Trace("model-builder-reps") << "Assign rep : " << r << " " << n << std::endl;
   Assert(r.getType() == n.getType());
   TypeNode tn = r.getType();
   if (isFinal && logicInfo().isHigherOrder() && tn.isFunction())
@@ -688,20 +689,26 @@ bool TheoryModel::hasTerm(TNode a)
 
 Node TheoryModel::getRepresentative(TNode a) const
 {
-  if( d_equalityEngine->hasTerm( a ) ){
+  if ( d_equalityEngine->hasTerm( a ) )
+  {
     Node r = d_equalityEngine->getRepresentative( a );
     std::map<Node, Node>::const_iterator itr = d_reps.find(r);
-    if (itr != d_reps.end())
+    if (itr != d_reps.end() && itr->second!=r)
     {
       return itr->second;
     }
-    else
+    // special case: functions are constructed lazily so if we are higher-order
+    // and are looking for the representative of a function eqc, compute it now
+    if (logicInfo().isHigherOrder() && a.getType().isFunction())
     {
-      return r;
+      assignFunctionDefault(r);
+      itr = d_reps.find(r);
+      Assert (itr != d_reps.end());
+      return itr->second;
     }
-  }else{
-    return a;
+    return r;
   }
+  return a;
 }
 
 bool TheoryModel::areEqual(TNode a, TNode b)
@@ -891,22 +898,15 @@ void TheoryModel::assignFunctionDefaultHo(Node f) const
     Trace("model-builder-debug") << "    process : " << hn << std::endl;
     Assert(hn.getKind() == Kind::HO_APPLY);
     Assert(getRepresentative(hn[0])==getRepresentative(f));
-    // if the argument is a function, ensure that it has been assigned as well
-    if (hn[1].getType().isFunction())
-    {
-      assignFunctionDefault(hn[1]);
-    }
+    // get representative of the argument, which note may recursively compute
+    // more function values.
     Node hni = getRepresentative(hn[1]);
     Trace("model-builder-debug2")
         << "      get rep : " << hn[1] << " returned " << hni << std::endl;
     Assert(hni.getType() == args[0].getType());
     hni = rewrite(args[0].eqNode(hni));
-    // if we are returning a function, ensure the return function has been
-    // assigned
-    if (hn.getType().isFunction())
-    {
-      assignFunctionDefault(hn);
-    }
+    // get representative of the returned term, which note may recursively
+    // compute more function values.
     Node hnv = getRepresentative(hn);
     Trace("model-builder-debug2")
         << "      get rep val : " << hn << " returned " << hnv << std::endl;
