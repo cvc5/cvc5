@@ -96,6 +96,10 @@ class IMGenerator : protected EnvObj
    * A heuristic value indicating how active this generator is.
    */
   virtual int getActiveScore() { return 0; }
+  /**
+   * Get the inference id, for statistics.
+   */
+  virtual InferenceId getInferenceId() { return InferenceId::NONE; }
 
  protected:
   /** send instantiation

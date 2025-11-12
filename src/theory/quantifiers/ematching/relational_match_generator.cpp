@@ -122,6 +122,8 @@ int RelationalMatchGenerator::getNextMatch(InstMatch& m)
   return -1;
 }
 
+  InferenceId RelationalMatchGenerator::getInferenceId() { return InferenceId::QUANTIFIERS_INST_E_MATCHING_RELATIONAL; }
+  
 }  // namespace inst
 }  // namespace quantifiers
 }  // namespace theory

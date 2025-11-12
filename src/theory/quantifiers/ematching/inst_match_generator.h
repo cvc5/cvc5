@@ -185,6 +185,8 @@ class InstMatchGenerator : public IMGenerator {
       std::map<Node, InstMatchGenerator*>& pat_map_init);
   //-------------------------------end construction of inst match generators
 
+  /** Get the inference id, for statistics. */
+  InferenceId getInferenceId() override { return InferenceId::QUANTIFIERS_INST_E_MATCHING; }
  protected:
   /** constructors
    *

@@ -303,6 +303,8 @@ void InstMatchGeneratorMulti::processNewInstantiations(InstMatch& m,
   }
 }
 
+  InferenceId InstMatchGeneratorMulti::getInferenceId() { return InferenceId::QUANTIFIERS_INST_E_MATCHING_MT; }
+  
 }  // namespace inst
 }  // namespace quantifiers
 }  // namespace theory

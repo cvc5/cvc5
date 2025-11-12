@@ -208,6 +208,7 @@ int InstMatchGeneratorSimple::getActiveScore()
   return static_cast<int>(ngt);
 }
 
+  InferenceId InstMatchGeneratorSimple::getInferenceId() { return InferenceId::QUANTIFIERS_INST_E_MATCHING_SIMPLE; }
 }  // namespace inst
 }  // namespace quantifiers
 }  // namespace theory

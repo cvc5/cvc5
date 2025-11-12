@@ -80,6 +80,8 @@ int VarMatchGeneratorTermSubs::getNextMatch(InstMatch& m)
   return -1;
 }
 
+InferenceId VarMatchGeneratorTermSubs:getInferenceId() { return InferenceId::QUANTIFIERS_INST_E_MATCHING_VAR_GEN; }
+
 }  // namespace inst
 }  // namespace quantifiers
 }  // namespace theory

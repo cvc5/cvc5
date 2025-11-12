@@ -185,7 +185,8 @@ uint64_t Trigger::addInstantiations()
 
 bool Trigger::sendInstantiation(std::vector<Node>& m, InferenceId id)
 {
-  return d_qim.getInstantiate()->addInstantiation(d_quant, m, id, d_trNode);
+  InferenceId id2 = d_mg->getInferenceId();
+  return d_qim.getInstantiate()->addInstantiation(d_quant, m, id2, d_trNode);
 }
 
 int Trigger::getActiveScore() { return d_mg->getActiveScore(); }

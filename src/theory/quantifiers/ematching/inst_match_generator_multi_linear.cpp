@@ -173,6 +173,8 @@ int InstMatchGeneratorMultiLinear::getNextMatch(InstMatch& m)
   return ret_val;
 }
 
+InferenceId InstMatchGeneratorMultiLinear::getInferenceId() { return InferenceId::QUANTIFIERS_INST_E_MATCHING_MTL; }
+
 }  // namespace inst
 }  // namespace quantifiers
 }  // namespace theory
