@@ -186,7 +186,11 @@ class InstMatchGenerator : public IMGenerator {
   //-------------------------------end construction of inst match generators
 
   /** Get the inference id, for statistics. */
-  InferenceId getInferenceId() override { return InferenceId::QUANTIFIERS_INST_E_MATCHING; }
+  InferenceId getInferenceId() override
+  {
+    return InferenceId::QUANTIFIERS_INST_E_MATCHING;
+  }
+
  protected:
   /** constructors
    *

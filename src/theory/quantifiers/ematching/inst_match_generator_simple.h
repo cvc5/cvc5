@@ -57,6 +57,7 @@ class InstMatchGeneratorSimple : public IMGenerator
   int getActiveScore() override;
   /** Get the inference id, for statistics. */
   InferenceId getInferenceId() override;
+
  private:
   /** quantified formula for the trigger term */
   Node d_quant;
