@@ -117,19 +117,7 @@ class ArithMSum
    * Input c is a m-constant.
    * Returns the term t if c.isNull() or c*t otherwise.
    */
-  static inline Node mkCoeffTerm(Node c, Node t)
-  {
-    if (c.isNull())
-    {
-      return t;
-    }
-    Assert (c.isConst());
-    NodeManager* nm = t.getNodeManager();
-    // ensure no mixed arithmetic
-    return nm->mkNode(Kind::MULT,
-                      nm->mkConstRealOrInt(t.getType(), c.getConst<Rational>()),
-                      t);
-  }
+  static Node mkCoeffTerm(Node c, Node t);
 
   /** isolate variable v in constraint ([msum] <k> 0)
    *
