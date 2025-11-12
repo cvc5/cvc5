@@ -159,7 +159,7 @@ Node ArithMSum::mkCoeffTerm(Node c, Node t)
   {
     return t;
   }
-  Assert (c.isConst());
+  Assert(c.isConst());
   NodeManager* nm = t.getNodeManager();
   Rational r = c.getConst<Rational>();
   TypeNode tt = t.getType();
@@ -168,15 +168,14 @@ Node ArithMSum::mkCoeffTerm(Node c, Node t)
   {
     if (!tt.isReal())
     {
-      Assert (tt.isInteger());
+      Assert(tt.isInteger());
       return nm->mkNode(Kind::MULT, c, nm->mkNode(Kind::TO_REAL, t));
     }
   }
-  return nm->mkNode(Kind::MULT,
-                    nm->mkConstRealOrInt(tt, c.getConst<Rational>()),
-                    t);
+  return nm->mkNode(
+      Kind::MULT, nm->mkConstRealOrInt(tt, c.getConst<Rational>()), t);
 }
-  
+
 int ArithMSum::isolate(
     Node v, const std::map<Node, Node>& msum, Node& veq_c, Node& val, Kind k)
 {
@@ -209,7 +208,7 @@ int ArithMSum::isolate(
           }
           if (isReal && !m.getType().isReal())
           {
-            Assert (m.getType().isInteger());
+            Assert(m.getType().isInteger());
             m = arith::castToReal(nm, m);
           }
           children.push_back(m);
