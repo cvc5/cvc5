@@ -184,8 +184,9 @@ int ArithMSum::isolate(
           {
             m = it->second;
           }
-          if (isReal)
+          if (isReal && !m.getType().isReal())
           {
+            Assert (m.getType().isInteger());
             m = arith::castToReal(nm, m);
           }
           children.push_back(m);

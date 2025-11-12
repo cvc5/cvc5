@@ -123,6 +123,7 @@ class ArithMSum
     {
       return t;
     }
+    Assert (c.isConst());
     NodeManager* nm = t.getNodeManager();
     // ensure no mixed arithmetic
     return nm->mkNode(Kind::MULT,
