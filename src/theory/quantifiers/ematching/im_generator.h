@@ -99,7 +99,7 @@ class IMGenerator : protected EnvObj
   /**
    * Get the inference id, for statistics.
    */
-  virtual InferenceId getInferenceId() { return InferenceId::NONE; }
+  virtual InferenceId getInferenceId() = 0;
 
  protected:
   /** send instantiation
