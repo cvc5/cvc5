@@ -105,7 +105,7 @@ int RelationalMatchGenerator::getNextMatch(InstMatch& m)
     {
       Trace("relational-match-gen") << "...success" << std::endl;
       int ret = continueNextMatch(
-          m, InferenceId::QUANTIFIERS_INST_E_MATCHING_RELATIONAL);
+          m);
       if (ret > 0)
       {
         Trace("relational-match-gen") << "...returned " << ret << std::endl;

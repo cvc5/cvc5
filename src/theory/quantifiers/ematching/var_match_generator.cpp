@@ -65,7 +65,7 @@ int VarMatchGeneratorTermSubs::getNextMatch(InstMatch& m)
     else
     {
       ret_val = continueNextMatch(
-          m, InferenceId::QUANTIFIERS_INST_E_MATCHING_VAR_GEN);
+          m);
       if (ret_val > 0)
       {
         return ret_val;
@@ -80,7 +80,7 @@ int VarMatchGeneratorTermSubs::getNextMatch(InstMatch& m)
   return -1;
 }
 
-InferenceId VarMatchGeneratorTermSubs:getInferenceId() { return InferenceId::QUANTIFIERS_INST_E_MATCHING_VAR_GEN; }
+InferenceId VarMatchGeneratorTermSubs::getInferenceId() { return InferenceId::QUANTIFIERS_INST_E_MATCHING_VAR_GEN; }
 
 }  // namespace inst
 }  // namespace quantifiers
