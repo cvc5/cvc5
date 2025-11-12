@@ -60,6 +60,13 @@ Node SubtypeElimConverterCallback::convert(Node res,
   }
   // get the converted form of the conclusion, which we must prove.
   Node resc = d_nconv.convert(res);
+  // trivial case: use refl. This handles all cases where e.g. rewriting
+  // introduced mixed arithmetic.
+  if (resc.getKind()==Kind::EQUAL && resc[0]==resc[1])
+  {
+    cdp->addStep(resc, ProofRule::REFL, {}, {resc[0]});
+    return resc;
+  }
   // in very rare cases a direct child may already be the proof we want
   if (std::find(children.begin(), children.end(), resc) != children.end())
   {
