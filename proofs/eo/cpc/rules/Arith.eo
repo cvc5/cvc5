@@ -447,6 +447,8 @@
   (($arith_reduction_pred (mod_total a b))  (eo::define ((k (@purify (div_total a b))))
                                               (and (= (mod_total a b) (- a (* b k))) ($arith_int_div_total_reduction a b))))
   (($arith_reduction_pred (abs u))          (= (abs u) (ite (< u ($arith_mk_zero (eo::typeof u))) (- u) u)))
+  (($arith_reduction_pred (int.log2 u))  (eo::define ((k (@purify (int.log2 u))))
+                                              (and (= (int.log2 u) k) (=> (<= u 0) (= k 0)) (=> (> u 0) (and (<= (int.pow2 k) u) (< u (int.pow2 (+ k 1))))))))
   )
 )
 
