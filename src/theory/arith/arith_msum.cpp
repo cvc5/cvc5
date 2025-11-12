@@ -15,9 +15,9 @@
 
 #include "theory/arith/arith_msum.h"
 
+#include "theory/arith/arith_utilities.h"
 #include "theory/rewriter.h"
 #include "util/rational.h"
-#include "theory/arith/arith_utilities.h"
 
 using namespace cvc5::internal::kind;
 

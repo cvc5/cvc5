@@ -123,9 +123,11 @@ class ArithMSum
     {
       return t;
     }
-    NodeManager * nm = t.getNodeManager();
+    NodeManager* nm = t.getNodeManager();
     // ensure no mixed arithmetic
-    return nm->mkNode(Kind::MULT, nm->mkConstRealOrInt(t.getType(), c.getConst<Rational>()), t);
+    return nm->mkNode(Kind::MULT,
+                      nm->mkConstRealOrInt(t.getType(), c.getConst<Rational>()),
+                      t);
   }
 
   /** isolate variable v in constraint ([msum] <k> 0)
