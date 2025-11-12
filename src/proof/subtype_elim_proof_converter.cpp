@@ -61,7 +61,8 @@ Node SubtypeElimConverterCallback::convert(Node res,
   // get the converted form of the conclusion, which we must prove.
   Node resc = d_nconv.convert(res);
   // trivial case: use refl. This handles all cases where e.g. rewriting
-  // introduced mixed arithmetic.
+  // introduced mixed arithmetic. This happens commonly so we shortcut as
+  // an optimization here.
   if (resc.getKind()==Kind::EQUAL && resc[0]==resc[1])
   {
     cdp->addStep(resc, ProofRule::REFL, {}, {resc[0]});
