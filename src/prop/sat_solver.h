@@ -134,7 +134,7 @@ class CDCLTSatSolver : public SatSolver
  public:
   virtual ~CDCLTSatSolver(){};
 
-  virtual void initialize(prop::TheoryProxy* theoryProxy,
+  virtual void initialize(TheoryProxy* theoryProxy,
                           PropPfManager* ppm) = 0;
 
   virtual void push() = 0;
