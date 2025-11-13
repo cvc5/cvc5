@@ -339,7 +339,7 @@ else()
   add_jar(cvc5jar
     SOURCES
     ${JAVA_FILES}
-    VERSION ${CVC5_VERSION}
+    VERSION ${CVC5_MAVEN_VERSION}
     OUTPUT_NAME cvc5
   )
 endif()
