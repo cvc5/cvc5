@@ -425,6 +425,17 @@
       (=> (> v 0) (and lb (< u (* v (+ k 1)))))
       (=> (< v 0) (and lb (< u (* v (+ k -1))))))))))
 
+
+; define: $arith_int_log2_reduction
+; args:
+; - u Int: The argument to log2.
+;return: the reduction predicate for (log2 u).
+(define $arith_int_log2_reduction ((u Int))
+  (eo::define ((k (@purify (int.log2 u))))
+  (eo::define ((i (< 0 u)))
+  (and (=> i (and (<= (int.pow2 k) u)  (< u (int.pow2 (+ k 1))))) (=> (not i) (= k 0))))))
+
+
 ; program: $arith_reduction_pred
 ; args:
 ; - t T: The term we are considering, which is expected to be an application of an extended arithmetic operator.
@@ -448,7 +459,7 @@
                                               (and (= (mod_total a b) (- a (* b k))) ($arith_int_div_total_reduction a b))))
   (($arith_reduction_pred (abs u))          (= (abs u) (ite (< u ($arith_mk_zero (eo::typeof u))) (- u) u)))
   (($arith_reduction_pred (int.log2 u))  (eo::define ((k (@purify (int.log2 u))))
-                                              (and (= (int.log2 u) k) (=> (<= u 0) (= k 0)) (=> (> u 0) (and (<= (int.pow2 k) u) (< u (int.pow2 (+ k 1))))))))
+                                              (and (= (int.log2 u) k) ($arith_int_log2_reduction u))))
   )
 )
 
