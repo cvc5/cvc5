@@ -1599,6 +1599,7 @@ set(regress_0_tests
   regress0/quantifiers/dd_check_ic_sext_4_4.smt2
   regress0/quantifiers/dd_german169_semi_eval.smt2
   regress0/quantifiers/dd_kmdf_osrubvfx2.smt2
+  regress0/quantifiers/dd_nra_key_subtype_ineq.smt2
   regress0/quantifiers/dd_p15_dio_lemma.smt2
   regress0/quantifiers/dd_psyco_186-ineq-elim.smt2
   regress0/quantifiers/dd_quick_sort-q-rew.smt2
