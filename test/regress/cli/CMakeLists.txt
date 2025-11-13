@@ -1571,6 +1571,7 @@ set(regress_0_tests
   regress0/push-pop/test.01.cvc.smt2
   regress0/push-pop/tiny_bug.smt2
   regress0/push-pop/units.cvc.smt2
+  regress0/quantifiers/abv-const-array-inst.smt2
   regress0/quantifiers/agg-rew-test-cf.smt2
   regress0/quantifiers/agg-rew-test.smt2
   regress0/quantifiers/alpha-eq-var-reorder.smt2
