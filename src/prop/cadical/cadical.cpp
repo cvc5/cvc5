@@ -107,10 +107,8 @@ void CadicalSolver::init()
 
   d_true = newVar();
   d_false = newVar();
-  d_solver->add(toCadicalVar(d_true));
-  d_solver->add(0);
-  d_solver->add(-toCadicalVar(d_false));
-  d_solver->add(0);
+  d_solver->clause(toCadicalVar(d_true));
+  d_solver->clause(-toCadicalVar(d_false));
 
   bool logProofs = false;
   // TODO (wishue #154): determine how to initialize the proofs for CaDiCaL
