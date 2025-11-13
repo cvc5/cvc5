@@ -843,6 +843,8 @@ void Smt2State::setLogic(std::string name)
     {
       // integer version of AND
       addIndexedOperator(Kind::IAND, "iand");
+      // parametric integer version of AND
+      addOperator(Kind::PIAND, "piand");
       // pow2
       addOperator(Kind::POW2, "int.pow2");
       // log2
