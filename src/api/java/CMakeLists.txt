@@ -323,8 +323,6 @@ if (WIN32)
   set_target_properties(cvc5jni PROPERTIES IMPORT_PREFIX "")
 endif()
 
-set(CVC5_JAR "cvc5-${CVC5_VERSION}.jar")
-
 # Create cvc5.jar file
 if (WIN32)
   # CMake creates a symbolic link pointing to the jar with
