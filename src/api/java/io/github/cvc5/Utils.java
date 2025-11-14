@@ -51,7 +51,7 @@ public final class Utils
     /**
      * Apple macOS operating system.
      */
-    MAC,
+    OSX,
     /**
      * Linux-based operating system.
      */
@@ -78,10 +78,55 @@ public final class Utils
       if (osName.startsWith("windows"))
         return WINDOWS;
       if (osName.startsWith("mac"))
-        return MAC;
+        return OSX;
       if (osName.startsWith("linux"))
         return LINUX;
       return UNKNOWN;
+    }
+  }
+
+  /**
+   * Represent the CPU architecture supported by cvc5.
+   *
+   * It includes logic to detect the current CPU architecture at runtime.
+   */
+  public enum CPUArchitecture {
+    /**
+     * ARMv8 64 bit.
+     */
+    AARCH_64,
+    /**
+     * Intel x86_64/AMD 64 bit.
+     */
+    X86_64,
+    /**
+     * Unknown or unsupported CPU architecture.
+     */
+    UNKNOWN;
+
+     /**
+     * The detected CPU architecture on which the application is currently running.
+     */
+    public static final CPUArchitecture CURRENT = detectCPUArchitecture();
+
+    /**
+     * Detect the current CPU architecture by examining the {@code os.arch} system property.
+     *
+     * @return the {@link CPUArchitecture} enum constant that matches the current CPU architecture,
+     *         or {@link #UNKNOWN} if it cannot be determined.
+     */
+    private static CPUArchitecture detectCPUArchitecture()
+    {
+      String osArch = System.getProperty("os.arch").toLowerCase(Locale.ROOT);
+      switch (osArch) {
+        case "aarch64":
+          return AARCH_64;
+        case "amd64":
+        case "x86_64":
+          return X86_64;
+        default:
+          return UNKNOWN;
+      }
     }
   }
 
@@ -181,18 +226,20 @@ public final class Utils
         switch (OS.CURRENT)
         {
           case WINDOWS: filename = "cvc5jni.dll"; break;
-          case MAC: filename = "libcvc5jni.dylib"; break;
+          case OSX: filename = "libcvc5jni.dylib"; break;
           default:
             // We assume it is Linux or a Unix-based system.
             // If not, there's nothing more we can do anyway.
             filename = "libcvc5jni.so";
         }
 
+        String subdir = "/" + OS.CURRENT.name() + "/" + CPUArchitecture.CURRENT.name();
+        subdir = subdir.toLowerCase(Locale.ROOT);
         // Create a temporary directory to store the libraries
         Path tempDir = Files.createTempDirectory("cvc5-libs");
         tempDir.toFile().deleteOnExit(); // Mark the directory for deletion on exit
 
-        loadLibraryFromJar(tempDir, LIBPATH_IN_JAR, filename);
+        loadLibraryFromJar(tempDir, LIBPATH_IN_JAR + subdir, filename);
       }
       catch (Exception ex)
       {

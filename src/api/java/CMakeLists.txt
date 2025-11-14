@@ -310,6 +310,34 @@ target_include_directories(cvc5jni PUBLIC ${CMAKE_BINARY_DIR}/src/)
 target_include_directories(cvc5jni PUBLIC ${JNI_DIR})
 target_link_libraries(cvc5jni PRIVATE cvc5 cvc5parser)
 
+# Normalize the system name and CPU architecture according to the conventions of
+# the os-maven-plugin, so that the JNI library is built under the path
+# ${JNI_PREFIX}/${SYS_NAME}/${CPU_ARCH}. This enables the creation of
+# a single JAR that can contain native JNI libraries for multiple OSes and
+# CPU architectures simultaneously.
+# Additionally, it prevents file collisions when multiple JARs containing
+# a native JNI library for the same OS but different architectures are added to
+# the classpath at the same time.
+set(JNI_PREFIX "cvc5-libs")
+string(TOLOWER "${CMAKE_SYSTEM_PROCESSOR}" CPU_ARCH)
+# Normalize supported CPU architectures
+if(CPU_ARCH MATCHES "x86_64|amd64")
+  set(CPU_ARCH "x86_64")
+elseif(CPU_ARCH MATCHES "aarch64|arm64")
+  set(CPU_ARCH "aarch_64")
+endif()
+# Normalize supported system names
+string(TOLOWER "${CMAKE_SYSTEM_NAME}" SYS_NAME)
+if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+  set(SYS_NAME "osx")
+endif()
+
+set(JNI_OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/${JNI_PREFIX}/${SYS_NAME}/${CPU_ARCH}")
+set_target_properties(cvc5jni PROPERTIES
+  LIBRARY_OUTPUT_DIRECTORY "${JNI_OUTPUT_DIR}"
+  RUNTIME_OUTPUT_DIRECTORY "${JNI_OUTPUT_DIR}"
+)
+
 if (WIN32 AND NOT BUILD_SHARED_LIBS)
   # Statically link all libraries, including MinGW-w64 libraries
   set_target_properties(cvc5jni PROPERTIES LINK_FLAGS -static)
