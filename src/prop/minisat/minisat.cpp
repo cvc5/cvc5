@@ -106,7 +106,7 @@ void MinisatSatSolver::toSatClause(const Minisat::Clause& clause,
   Assert((unsigned)clause.size() == sat_clause.size());
 }
 
-void MinisatSatSolver::initialize(TheoryProxy* theoryProxy, PropPfManager* ppm)
+void MinisatSatSolver::initialize(TheoryProxy* theoryProxy)
 {
   if (options().decision.decisionMode != options::DecisionMode::INTERNAL)
   {
@@ -121,25 +121,32 @@ void MinisatSatSolver::initialize(TheoryProxy* theoryProxy, PropPfManager* ppm)
                               theoryProxy,
                               context(),
                               userContext(),
-                              ppm,
                               options().base.incrementalSolving
                                   || options().decision.decisionMode
                                          != options::DecisionMode::INTERNAL);
 
   d_statistics.init(d_minisat);
+  initialize();
+}
+
+void MinisatSatSolver::initialize()
+{
+}
+
+void MinisatSatSolver::attachProofManager(PropPfManager *ppm)
+{
+  d_minisat->attachProofManager(ppm);
 
   // Since the prop engine asserts "true" to the CNF stream regardless of what
   // is in the input (see PropEngine::finishInit), if a real "true" assertion is
   // made to the SAT solver via the Proof CNF stream, that would be ignored,
-  // since there is already "true" in the CNF stream. Thus the SAT proof would
+  // since there is already "true" in the CNF stream. Thus, the SAT proof would
   // not have True as an assumption, which can lead to issues when building its
   // proof. To prevent this problem, we track it directly here.
   SatProofManager* spfm = d_minisat->getProofManager();
-  if (spfm)
-  {
-    NodeManager* nm = nodeManager();
-    spfm->registerSatAssumptions({nm->mkConst(true)});
-  }
+  Assert(spfm != nullptr);
+  NodeManager* nm = nodeManager();
+  spfm->registerSatAssumptions({nm->mkConst(true)});
 }
 
 // Like initialize() above, but called just before each search when in
@@ -180,6 +187,14 @@ ClauseId MinisatSatSolver::addClause(SatClause& clause, bool removable)
   Assert(!options().smt.produceUnsatCores || options().smt.produceProofs
          || clause_id != ClauseIdError);
   return clause_id;
+}
+
+ClauseId MinisatSatSolver::addXorClause(SatClause& clause,
+                                        bool rhs,
+                                        bool removable)
+{
+  Unreachable() << "Minisat does not support native XOR reasoning";
+  return 0;
 }
 
 SatVariable MinisatSatSolver::newVar(bool isTheoryAtom, bool canErase)

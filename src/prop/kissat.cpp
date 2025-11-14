@@ -72,7 +72,7 @@ KissatSolver::KissatSolver(StatisticsRegistry& registry,
 {
 }
 
-void KissatSolver::init()
+void KissatSolver::initialize()
 {
   d_true = newVar();
   d_false = newVar();
@@ -98,6 +98,7 @@ ClauseId KissatSolver::addClause(SatClause& clause, bool removable)
 ClauseId KissatSolver::addXorClause(SatClause& clause, bool rhs, bool removable)
 {
   Unreachable() << "Kissat does not support adding XOR clauses.";
+  return 0;
 }
 
 SatVariable KissatSolver::newVar(bool isTheoryAtom, bool canErase)
