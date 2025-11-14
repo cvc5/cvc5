@@ -15,6 +15,7 @@
 
 #include "theory/strings/arith_entail.h"
 
+#include "expr/aci_norm.h"
 #include "expr/attribute.h"
 #include "expr/node_algorithm.h"
 #include "proof/conv_proof_generator.h"
@@ -26,7 +27,6 @@
 #include "theory/strings/word.h"
 #include "theory/theory.h"
 #include "util/rational.h"
-#include "expr/aci_norm.h"
 
 using namespace cvc5::internal::kind;
 
@@ -178,25 +178,26 @@ Node ArithEntail::rewriteLengthIntro(const Node& n,
       {
         ret = nm->mkNode(k, children);
       }
-      if (k == Kind::STRING_LENGTH && (ret[0].getKind()==Kind::STRING_CONCAT || ret[0].isConst()))
+      if (k == Kind::STRING_LENGTH
+          && (ret[0].getKind() == Kind::STRING_CONCAT || ret[0].isConst()))
       {
         Node arg = ret[0];
         // First ensure ACI norm, which ensures that we fully flatten
         // e.g. (len (str.++ (str.++ a b) c)) ---> (len (str.++ a b c)) --->
         // (+ (len a) (len b) (len c)) below.
-        if (arg.getKind()==Kind::STRING_CONCAT)
+        if (arg.getKind() == Kind::STRING_CONCAT)
         {
           arg = expr::getACINormalForm(arg);
-          if (arg!=ret[0])
+          if (arg != ret[0])
           {
             Node ret2 = nm->mkNode(k, {arg});
             if (pg != nullptr)
             {
               pg->addRewriteStep(ret,
-                                ret2,
-                                nullptr,
-                                false,
-                                TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE);
+                                 ret2,
+                                 nullptr,
+                                 false,
+                                 TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE);
             }
             ret = ret2;
           }
@@ -220,10 +221,10 @@ Node ArithEntail::rewriteLengthIntro(const Node& n,
         if (pg != nullptr)
         {
           pg->addRewriteStep(ret,
-                            rret,
-                            nullptr,
-                            false,
-                            TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE);
+                             rret,
+                             nullptr,
+                             false,
+                             TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE);
         }
         ret = rret;
       }
