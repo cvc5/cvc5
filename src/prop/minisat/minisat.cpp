@@ -184,6 +184,14 @@ ClauseId MinisatSatSolver::addClause(SatClause& clause, bool removable)
   return clause_id;
 }
 
+ClauseId MinisatSatSolver::addXorClause(SatClause& clause,
+                                        bool rhs,
+                                        bool removable)
+{
+  Unreachable() << "Minisat does not support native XOR reasoning";
+  return 0;
+}
+
 SatVariable MinisatSatSolver::newVar(bool isTheoryAtom, bool canErase)
 {
   return d_minisat->newVar(true, true, isTheoryAtom, canErase);
