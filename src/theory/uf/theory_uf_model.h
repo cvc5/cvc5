@@ -44,19 +44,28 @@ public:
   //clear
   void clear();
   /** setValue function */
-  void setValue( TheoryModel* m, Node n, Node v, std::vector< int >& indexOrder, bool ground, int argIndex );
+  void setValue(const TheoryModel* m,
+                Node n,
+                Node v,
+                std::vector<int>& indexOrder,
+                bool ground,
+                int argIndex);
   /** getFunctionValue */
   Node getFunctionValue(const std::vector<Node>& args,
                         int index,
                         Node argDefaultValue);
   /** update function */
-  void update( TheoryModel* m );
+  void update(const TheoryModel* m);
   /** simplify function */
   void simplify( Node op, Node defaultVal, int argIndex );
   /** is total ? */
   bool isTotal( Node op, int argIndex );
 public:
-  void debugPrint( std::ostream& out, TheoryModel* m, std::vector< int >& indexOrder, int ind = 0, int arg = 0 );
+ void debugPrint(std::ostream& out,
+                 const TheoryModel* m,
+                 std::vector<int>& indexOrder,
+                 int ind = 0,
+                 int arg = 0);
 };
 
 class UfModelTree
@@ -87,11 +96,13 @@ public:
     * For each argument of n with ModelBasisAttribute() set to true will be considered default arguments if ground=false
     *
     */
-  void setValue( TheoryModel* m, Node n, Node v, bool ground = true ){
+  void setValue(const TheoryModel* m, Node n, Node v, bool ground = true)
+  {
     d_tree.setValue( m, n, v, d_index_order, ground, 0 );
   }
   /** setDefaultValue function */
-  void setDefaultValue( TheoryModel* m, Node v ){
+  void setDefaultValue(const TheoryModel* m, Node v)
+  {
     d_tree.setValue( m, Node::null(), v, d_index_order, false, 0 );
   }
   /** getFunctionValue
@@ -104,7 +115,7 @@ public:
   /** update
     *   This will update all values in the tree to be representatives in m.
     */
-  void update( TheoryModel* m ){ d_tree.update( m ); }
+  void update(const TheoryModel* m) { d_tree.update(m); }
   /** simplify the tree */
   void simplify() { d_tree.simplify( d_op, Node::null(), 0 ); }
   /** is this tree total? */
@@ -112,9 +123,10 @@ public:
   /** is this tree empty? */
   bool isEmpty() { return d_tree.isEmpty(); }
 public:
-  void debugPrint( std::ostream& out, TheoryModel* m, int ind = 0 ){
-    d_tree.debugPrint( out, m, d_index_order, ind );
-  }
+ void debugPrint(std::ostream& out, const TheoryModel* m, int ind = 0)
+ {
+   d_tree.debugPrint(out, m, d_index_order, ind);
+ }
 };
 
 }
