@@ -55,6 +55,8 @@ class InstMatchGeneratorSimple : public IMGenerator
   uint64_t addInstantiations(InstMatch& m) override;
   /** Get active score. */
   int getActiveScore() override;
+  /** Get the inference id, for statistics. */
+  InferenceId getInferenceId() override;
 
  private:
   /** quantified formula for the trigger term */
