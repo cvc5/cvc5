@@ -26,6 +26,7 @@
 #include "theory/strings/word.h"
 #include "theory/theory.h"
 #include "util/rational.h"
+#include "expr/aci_norm.h"
 
 using namespace cvc5::internal::kind;
 
@@ -177,13 +178,25 @@ Node ArithEntail::rewriteLengthIntro(const Node& n,
       {
         ret = nm->mkNode(k, children);
       }
-      if (k == Kind::STRING_LENGTH)
+      if (k == Kind::STRING_LENGTH && ret[0].getKind()==Kind::STRING_CONCAT)
       {
-        std::vector<Node> cc;
-        for (const Node& c : children)
+        // first ensure ACI norm
+        Node arg = expr::getACINormalForm(ret[0]);
+        if (arg!=ret[0])
         {
-          utils::getConcat(c, cc);
+          Node ret2 = nm->mkNode(k, {arg});
+          if (pg != nullptr)
+          {
+            pg->addRewriteStep(ret,
+                              ret2,
+                              nullptr,
+                              false,
+                              TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE);
+          }
+          ret = ret2;
         }
+        std::vector<Node> cc;
+        utils::getConcat(arg, cc);
         std::vector<Node> sum;
         for (const Node& c : cc)
         {
