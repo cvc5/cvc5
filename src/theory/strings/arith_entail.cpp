@@ -178,24 +178,28 @@ Node ArithEntail::rewriteLengthIntro(const Node& n,
       {
         ret = nm->mkNode(k, children);
       }
-      if (k == Kind::STRING_LENGTH && ret[0].getKind()==Kind::STRING_CONCAT)
+      if (k == Kind::STRING_LENGTH && (ret[0].getKind()==Kind::STRING_CONCAT || ret[0].isConst()))
       {
+        Node arg = ret[0];
         // First ensure ACI norm, which ensures that we fully flatten
         // e.g. (len (str.++ (str.++ a b) c)) ---> (len (str.++ a b c)) --->
         // (+ (len a) (len b) (len c)) below.
-        Node arg = expr::getACINormalForm(ret[0]);
-        if (arg!=ret[0])
+        if (arg.getKind()==Kind::STRING_CONCAT)
         {
-          Node ret2 = nm->mkNode(k, {arg});
-          if (pg != nullptr)
+          arg = expr::getACINormalForm(arg);
+          if (arg!=ret[0])
           {
-            pg->addRewriteStep(ret,
-                              ret2,
-                              nullptr,
-                              false,
-                              TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE);
+            Node ret2 = nm->mkNode(k, {arg});
+            if (pg != nullptr)
+            {
+              pg->addRewriteStep(ret,
+                                ret2,
+                                nullptr,
+                                false,
+                                TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE);
+            }
+            ret = ret2;
           }
-          ret = ret2;
         }
         std::vector<Node> cc;
         utils::getConcat(arg, cc);
@@ -216,10 +220,10 @@ Node ArithEntail::rewriteLengthIntro(const Node& n,
         if (pg != nullptr)
         {
           pg->addRewriteStep(ret,
-                             rret,
-                             nullptr,
-                             false,
-                             TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE);
+                            rret,
+                            nullptr,
+                            false,
+                            TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE);
         }
         ret = rret;
       }
