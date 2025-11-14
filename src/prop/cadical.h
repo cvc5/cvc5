@@ -113,7 +113,7 @@ class CadicalSolver : public CDCLTSatSolver, protected EnvObj
    * Initialize SAT solver instance.
    * Note: Split out to not call virtual functions in constructor.
    */
-  void init();
+  void initialize() override;
 
   /**
    * Set resource limit.

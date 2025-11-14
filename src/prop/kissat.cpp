@@ -72,7 +72,7 @@ KissatSolver::KissatSolver(StatisticsRegistry& registry,
 {
 }
 
-void KissatSolver::init()
+void KissatSolver::initialize()
 {
   d_true = newVar();
   d_false = newVar();

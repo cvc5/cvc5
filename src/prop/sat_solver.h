@@ -32,25 +32,27 @@ namespace cvc5::internal {
 
 namespace prop {
 
+class SatSolverFactory;
 class SatProofManager;
 class TheoryProxy;
 
-class SatSolver {
+class SatSolver
+{
+  friend class SatSolverFactory;
 
 public:
 
   /** Virtual destructor */
-  virtual ~SatSolver() { }
+  virtual ~SatSolver() = default;
 
   /**
    * Add clause to SAT solver.
    * @param clause    The clause to add.
    * @param removable True to indicate that this clause is not irredundant.
    */
-  virtual ClauseId addClause(SatClause& clause,
-                             bool removable) = 0;
+  virtual ClauseId addClause(SatClause& clause, bool removable) = 0;
 
-  /** Return true if the solver supports native xor resoning */
+  /** Return true if the solver supports native xor reasoning */
   virtual bool nativeXor() { return false; }
 
   /** Add a clause corresponding to rhs = l1 xor .. xor ln  */
@@ -127,14 +129,21 @@ public:
     Unimplemented() << "getUnsatAssumptions not implemented";
   }
 
+private:
+
+  /** Is called by the SatSolverFactory right after construction. */
+  virtual void initialize() = 0;
+
 };/* class SatSolver */
 
 class CDCLTSatSolver : public SatSolver
 {
- public:
-  virtual ~CDCLTSatSolver(){};
+  friend class SatSolverFactory;
 
-  virtual void initialize(TheoryProxy* theoryProxy) = 0;
+ public:
+
+  /** Virtual destructor */
+  ~CDCLTSatSolver() override = default;
 
   virtual void attachProofManager(PropPfManager* ppm) = 0;
 
@@ -186,6 +195,20 @@ class CDCLTSatSolver : public SatSolver
    * @return a complete proof computed by this SAT solver.
    */
   virtual std::shared_ptr<ProofNode> getProof() = 0;
+
+private:
+
+  /**
+   * Regular initialization to generate a solver that does not have
+   * CDCLT features. To be called by SatSolverFactory.
+   */
+  void initialize() override = 0;
+
+  /**
+   * Used instead of initialize() to initializes the solver to act as
+   * CDCLT solver. To be called by SatSolverFactory.
+   */
+  virtual void initialize(TheoryProxy* theoryProxy) = 0;
 
 }; /* class CDCLTSatSolver */
 
