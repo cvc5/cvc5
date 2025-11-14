@@ -18,8 +18,9 @@
 #ifndef CVC5__PROP__SAT_SOLVER_FACTORY_H
 #define CVC5__PROP__SAT_SOLVER_FACTORY_H
 
+#include <util/resource_manager.h>
+
 #include <string>
-#include <vector>
 
 #include "context/context.h"
 #include "prop/sat_solver.h"
@@ -34,28 +35,47 @@ class TheoryProxy;
 class SatSolverFactory
 {
  public:
-  static CDCLTSatSolver* createCDCLTMinisat(Env& env,
-                                            StatisticsRegistry& registry,
-                                            TheoryProxy* theory_proxy);
+  enum SatSolverType
+  {
+    MINISAT,
+    CADICAL,
+    CRYPTO_MINISAT,
+    KISSAT,
+  };
 
-  static CDCLTSatSolver* createCadical(Env& env,
-                                       StatisticsRegistry& registry,
-                                       ResourceManager* resmgr,
-                                       const std::string& name = "");
+  template<SatSolverType T>
+  static SatSolver* createSatSolver(Env& env,
+                                    StatisticsRegistry& registry,
+                                    ResourceManager* resmgr,
+                                    const std::string& name = "");
 
-  static CDCLTSatSolver* createCadicalCDCLT(Env& env,
-                                            StatisticsRegistry& registry,
-                                            ResourceManager* resmgr,
-                                            TheoryProxy* theory_proxy,
-                                            const std::string& name = "");
+  template<SatSolverType T>
+  static CDCLTSatSolver* createCDCLTSatSolver(Env& env,
+                                              StatisticsRegistry& registry,
+                                              ResourceManager* resmgr,
+                                              TheoryProxy* theory_proxy,
+                                              const std::string& name = "");
+};
 
-  static SatSolver* createCryptoMinisat(StatisticsRegistry& registry,
-                                        ResourceManager* resmgr,
-                                        const std::string& name = "");
+template<>
+SatSolver* SatSolverFactory::createSatSolver<SatSolverFactory::CADICAL>(
+  Env&, StatisticsRegistry&, ResourceManager*, const std::string&);
 
-  static SatSolver* createKissat(StatisticsRegistry& registry,
-                                 const std::string& name = "");
-}; /* class SatSolverFactory */
+template<>
+SatSolver* SatSolverFactory::createSatSolver<SatSolverFactory::KISSAT>(
+  Env&, StatisticsRegistry&, ResourceManager*, const std::string&);
+
+template<>
+SatSolver* SatSolverFactory::createSatSolver<SatSolverFactory::CRYPTO_MINISAT>(
+  Env&, StatisticsRegistry&, ResourceManager*, const std::string&);
+
+template<>
+CDCLTSatSolver* SatSolverFactory::createCDCLTSatSolver<SatSolverFactory::MINISAT>(
+  Env&, StatisticsRegistry&, ResourceManager*, TheoryProxy*, const std::string&);
+
+template<>
+CDCLTSatSolver* SatSolverFactory::createCDCLTSatSolver<SatSolverFactory::CADICAL>(
+  Env&, StatisticsRegistry&, ResourceManager*, TheoryProxy*, const std::string&);
 
 }  // namespace prop
 }  // namespace cvc5::internal
