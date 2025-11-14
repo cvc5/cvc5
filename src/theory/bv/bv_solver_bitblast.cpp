@@ -346,27 +346,24 @@ bool BVSolverBitblast::collectModelValues(TheoryModel* m,
 
 void BVSolverBitblast::initSatSolver()
 {
-  switch (options().bv.bvSatSolver)
-  {
-    case options::BvSatSolverMode::CRYPTOMINISAT:
-      d_satSolver.reset(prop::SatSolverFactory::createCryptoMinisat(
-          statisticsRegistry(),
-          d_env.getResourceManager(),
-          "theory::bv::BVSolverBitblast::"));
-      break;
-    default:
-      d_satSolver.reset(prop::SatSolverFactory::createCadical(
-          d_env,
-          statisticsRegistry(),
-          d_env.getResourceManager(),
-          "theory::bv::BVSolverBitblast::"));
-  }
-  d_cnfStream.reset(new prop::CnfStream(d_env,
-                                        d_satSolver.get(),
-                                        d_bbRegistrar.get(),
-                                        d_nullContext.get(),
-                                        prop::FormulaLitPolicy::INTERNAL,
-                                        "theory::bv::BVSolverBitblast"));
+  d_satSolver.reset(
+    (options().bv.bvSatSolver == options::BvSatSolverMode::CRYPTOMINISAT ?
+    prop::SatSolverFactory::createSatSolver<prop::SatSolverFactory::CRYPTO_MINISAT> :
+    prop::SatSolverFactory::createSatSolver<prop::SatSolverFactory::CADICAL>) (
+      d_env,
+      statisticsRegistry(),
+      d_env.getResourceManager(),
+      "theory::bv::BVSolverBitblast::")
+  );
+
+  d_cnfStream.reset(
+    new prop::CnfStream(d_env,
+      d_satSolver.get(),
+      d_bbRegistrar.get(),
+      d_nullContext.get(),
+      prop::FormulaLitPolicy::INTERNAL,
+      "theory::bv::BVSolverBitblast")
+  );
 }
 
 Node BVSolverBitblast::getValue(TNode node, bool initialize)

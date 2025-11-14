@@ -23,18 +23,41 @@
 namespace cvc5::internal {
 namespace prop {
 
-CDCLTSatSolver* SatSolverFactory::createCDCLTMinisat(Env& env,
-                                   StatisticsRegistry& registry,
-                                   TheoryProxy* theory_proxy)
+template<> SatSolver* SatSolverFactory::createSatSolver<SatSolverFactory::CADICAL>(
+  Env& env,
+  StatisticsRegistry& registry,
+  ResourceManager* resmgr,
+  const std::string& name)
 {
-  MinisatSatSolver* res = new MinisatSatSolver(env, registry);
-  res->initialize(theory_proxy);
+  CadicalSolver* res = new CadicalSolver(env, registry, name);
+  res->initialize();
+  res->setResourceLimit(resmgr);
   return res;
 }
 
-SatSolver* SatSolverFactory::createCryptoMinisat(StatisticsRegistry& registry,
-                                                 ResourceManager* resmgr,
-                                                 const std::string& name)
+template<>
+SatSolver* SatSolverFactory::createSatSolver<SatSolverFactory::KISSAT>(
+  Env& env,
+  StatisticsRegistry& registry,
+  ResourceManager* resmgr,
+  const std::string& name)
+{
+#ifdef CVC5_USE_KISSAT
+  KissatSolver* res = new KissatSolver(registry, name);
+  res->initialize();
+  return res;
+#else
+  Unreachable() << "cvc5 was not compiled with Kissat support.";
+  return nullptr;
+#endif
+}
+
+template<>
+SatSolver* SatSolverFactory::createSatSolver<SatSolverFactory::CRYPTO_MINISAT>(
+  Env& env,
+  StatisticsRegistry& registry,
+  ResourceManager* resmgr,
+  const std::string& name)
 {
 #ifdef CVC5_USE_CRYPTOMINISAT
   CryptoMinisatSolver* res = new CryptoMinisatSolver(registry, name);
@@ -50,41 +73,31 @@ SatSolver* SatSolverFactory::createCryptoMinisat(StatisticsRegistry& registry,
 #endif
 }
 
-CDCLTSatSolver* SatSolverFactory::createCadical(Env& env,
-                                                StatisticsRegistry& registry,
-                                                ResourceManager* resmgr,
-                                                const std::string& name)
+template<>
+CDCLTSatSolver* SatSolverFactory::createCDCLTSatSolver<SatSolverFactory::MINISAT>(
+  Env& env,
+  StatisticsRegistry& registry,
+  ResourceManager* resmgr,
+  TheoryProxy* theory_proxy,
+  const std::string& name)
 {
-  CadicalSolver* res = new CadicalSolver(env, registry, name);
-  res->initialize();
-  res->setResourceLimit(resmgr);
+  MinisatSatSolver* res = new MinisatSatSolver(env, registry);
+  res->initialize(theory_proxy);
   return res;
 }
 
-CDCLTSatSolver* SatSolverFactory::createCadicalCDCLT(
-    Env& env,
-    StatisticsRegistry& registry,
-    ResourceManager* resmgr,
-    TheoryProxy* theory_proxy,
-    const std::string& name)
+template<>
+CDCLTSatSolver* SatSolverFactory::createCDCLTSatSolver<SatSolverFactory::CADICAL>(
+  Env& env,
+  StatisticsRegistry& registry,
+  ResourceManager* resmgr,
+  TheoryProxy* theory_proxy,
+  const std::string& name)
 {
   CadicalSolver* res = new CadicalSolver(env, registry, name);
   res->setResourceLimit(resmgr);
   res->initialize(theory_proxy);
   return res;
-}
-
-SatSolver* SatSolverFactory::createKissat(StatisticsRegistry& registry,
-                                          const std::string& name)
-{
-#ifdef CVC5_USE_KISSAT
-  KissatSolver* res = new KissatSolver(registry, name);
-  res->initialize();
-  return res;
-#else
-  Unreachable() << "cvc5 was not compiled with Kissat support.";
-  return nullptr;
-#endif
 }
 
 }  // namespace prop

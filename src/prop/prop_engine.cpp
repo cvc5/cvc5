@@ -88,16 +88,11 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
   // make the theory proxy first
   d_theoryProxy = new TheoryProxy(d_env, this, d_theoryEngine, d_skdm.get());
 
-  if (options().prop.satSolver == options::SatSolverMode::MINISAT)
-  {
-    d_satSolver =
-        SatSolverFactory::createCDCLTMinisat(d_env, statisticsRegistry(), d_theoryProxy);
-  }
-  else
-  {
-    d_satSolver = SatSolverFactory::createCadicalCDCLT(
-        d_env, statisticsRegistry(), env.getResourceManager(), d_theoryProxy, "");
-  }
+  d_satSolver = (options().prop.satSolver == options::SatSolverMode::MINISAT ?
+    SatSolverFactory::createCDCLTSatSolver<SatSolverFactory::MINISAT> :
+    SatSolverFactory::createCDCLTSatSolver<SatSolverFactory::CADICAL>)(
+      env, statisticsRegistry(), env.getResourceManager(), d_theoryProxy, "");
+
   // create CnfStream with new SAT solver
   d_cnfStream = new CnfStream(env,
                               d_satSolver,
