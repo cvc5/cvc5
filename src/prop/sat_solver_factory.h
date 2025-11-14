@@ -29,11 +29,14 @@
 namespace cvc5::internal {
 namespace prop {
 
+class TheoryProxy;
+
 class SatSolverFactory
 {
  public:
   static CDCLTSatSolver* createCDCLTMinisat(Env& env,
-                                            StatisticsRegistry& registry);
+                                            StatisticsRegistry& registry,
+                                            TheoryProxy* theory_proxy);
 
   static CDCLTSatSolver* createCadical(Env& env,
                                        StatisticsRegistry& registry,
@@ -43,6 +46,7 @@ class SatSolverFactory
   static CDCLTSatSolver* createCadicalCDCLT(Env& env,
                                             StatisticsRegistry& registry,
                                             ResourceManager* resmgr,
+                                            TheoryProxy* theory_proxy,
                                             const std::string& name = "");
 
   static SatSolver* createCryptoMinisat(StatisticsRegistry& registry,
