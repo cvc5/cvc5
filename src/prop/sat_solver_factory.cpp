@@ -23,7 +23,8 @@
 namespace cvc5::internal {
 namespace prop {
 
-template<> SatSolver* SatSolverFactory::createSatSolver<SatSolverFactory::CADICAL>(
+template<>
+SatSolver* SatSolverFactory::createSatSolver<SatSolverFactory::CADICAL>(
   Env& env,
   StatisticsRegistry& registry,
   ResourceManager* resmgr,
