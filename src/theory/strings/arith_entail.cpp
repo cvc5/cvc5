@@ -180,7 +180,9 @@ Node ArithEntail::rewriteLengthIntro(const Node& n,
       }
       if (k == Kind::STRING_LENGTH && ret[0].getKind()==Kind::STRING_CONCAT)
       {
-        // first ensure ACI norm
+        // First ensure ACI norm, which ensures that we fully flatten
+        // e.g. (len (str.++ (str.++ a b) c)) ---> (len (str.++ a b c)) --->
+        // (+ (len a) (len b) (len c)) below.
         Node arg = expr::getACINormalForm(ret[0]);
         if (arg!=ret[0])
         {
