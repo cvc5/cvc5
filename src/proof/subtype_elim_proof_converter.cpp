@@ -75,7 +75,7 @@ Node SubtypeElimConverterCallback::convert(Node res,
   {
     // For example, if x:Real, y:Int, this rule the arguments 
     // (and (> x 0.0) (> y 0)), (* x y) proves
-    // (= (and (> x 0.0) (> y 0)) (> (* x y) 0.0)). Subtype elimination
+    // (=> (and (> x 0.0) (> y 0)) (> (* x y) 0.0)). Subtype elimination
     // converts this initially to (and (> x 0.0) (> y 0)), (* x (to_real y)),
     // which is not a valid proof step since y does not match (to_real y).
     // This further converts the arguments to
