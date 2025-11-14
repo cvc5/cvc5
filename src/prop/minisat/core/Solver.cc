@@ -135,7 +135,6 @@ Solver::Solver(Env& env,
                cvc5::internal::prop::TheoryProxy* proxy,
                context::Context* context,
                context::UserContext* userContext,
-               PropPfManager* ppm,
                bool enableIncremental)
     : EnvObj(env),
       d_proxy(proxy),
@@ -208,11 +207,6 @@ Solver::Solver(Env& env,
       propagation_budget(-1),
       asynch_interrupt(false)
 {
-  if (ppm)
-  {
-    d_pfManager.reset(
-        new SatProofManager(env, this, proxy->getCnfStream(), ppm));
-  }
 
   // Create the constant variables
   varTrue = newVar(true, false, false);
@@ -223,11 +217,12 @@ Solver::Solver(Env& env,
   uncheckedEnqueue(mkLit(varFalse, true));
 }
 
-
-Solver::~Solver()
+void Solver::attachProofManager(prop::PropPfManager *ppm)
 {
+  Assert(d_pfManager.get() == nullptr);
+  d_pfManager.reset(
+      new SatProofManager(d_env, this, d_proxy->getCnfStream(), ppm));
 }
-
 
 //=================================================================================================
 // Minor methods:

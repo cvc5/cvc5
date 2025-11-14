@@ -1555,8 +1555,7 @@ CadicalSolver::Statistics::Statistics(StatisticsRegistry& registry,
 
 /* CDCLTSatSolver Interface ------------------------------------------------- */
 
-void CadicalSolver::initialize(prop::TheoryProxy* theoryProxy,
-                               PropPfManager* ppm)
+void CadicalSolver::initialize(TheoryProxy* theoryProxy)
 {
   d_proxy = theoryProxy;
   d_propagator.reset(new CadicalPropagator(
@@ -1575,6 +1574,12 @@ void CadicalSolver::initialize(prop::TheoryProxy* theoryProxy,
 
   init();
 }
+
+void CadicalSolver::attachProofManager(PropPfManager* ppm)
+{
+  // not implemented yet
+}
+
 
 void CadicalSolver::push()
 {

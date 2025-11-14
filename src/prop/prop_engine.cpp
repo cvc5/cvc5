@@ -84,6 +84,10 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
   Trace("prop") << "Constructing the PropEngine" << std::endl;
   context::UserContext* userContext = d_env.getUserContext();
 
+  // CNF stream, SAT solver and theory proxy required pointers to each other,
+  // make the theory proxy first
+  d_theoryProxy = new TheoryProxy(d_env, this, d_theoryEngine, d_skdm.get());
+
   if (options().prop.satSolver == options::SatSolverMode::MINISAT)
   {
     d_satSolver =
@@ -94,27 +98,25 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
     d_satSolver = SatSolverFactory::createCadicalCDCLT(
         d_env, statisticsRegistry(), env.getResourceManager(), "");
   }
-
-  // CNF stream and theory proxy required pointers to each other, make the
-  // theory proxy first
-  d_theoryProxy = new TheoryProxy(d_env, this, d_theoryEngine, d_skdm.get());
+  // connect SAT solver
+  d_satSolver->initialize(d_theoryProxy);
+  // create CnfStream with new SAT solver
   d_cnfStream = new CnfStream(env,
                               d_satSolver,
                               d_theoryProxy,
                               userContext,
                               FormulaLitPolicy::TRACK,
                               "prop");
-
   // connect theory proxy
   d_theoryProxy->finishInit(d_satSolver, d_cnfStream);
   // if proof producing at all
   if (options().smt.produceProofs)
   {
-    d_ppm.reset(
-        new PropPfManager(env, d_satSolver, *d_cnfStream, d_assumptions));
+    PropPfManager *ppm =
+        new PropPfManager(env, d_satSolver, *d_cnfStream, d_assumptions);
+    d_ppm.reset(ppm);
+    d_satSolver->attachProofManager(ppm);
   }
-  // connect SAT solver
-  d_satSolver->initialize(d_theoryProxy, d_ppm.get());
 }
 
 void PropEngine::finishInit()
