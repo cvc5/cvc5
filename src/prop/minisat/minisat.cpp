@@ -126,6 +126,11 @@ void MinisatSatSolver::initialize(TheoryProxy* theoryProxy)
                                          != options::DecisionMode::INTERNAL);
 
   d_statistics.init(d_minisat);
+  initialize();
+}
+
+void MinisatSatSolver::initialize()
+{
 }
 
 void MinisatSatSolver::attachProofManager(PropPfManager *ppm)

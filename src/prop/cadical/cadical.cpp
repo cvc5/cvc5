@@ -89,7 +89,7 @@ CadicalSolver::CadicalSolver(Env& env,
 {
 }
 
-void CadicalSolver::init()
+void CadicalSolver::initialize()
 {
   d_solver->set("quiet", 1);  // CaDiCaL is verbose by default
 
@@ -357,7 +357,7 @@ void CadicalSolver::initialize(TheoryProxy* theoryProxy)
     d_solver->connect_proof_tracer(d_proof_tracer.get(), true);
   }
 
-  init();
+  initialize();
 }
 
 void CadicalSolver::attachProofManager(PropPfManager* ppm)

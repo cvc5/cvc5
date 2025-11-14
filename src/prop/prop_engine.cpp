@@ -91,15 +91,13 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
   if (options().prop.satSolver == options::SatSolverMode::MINISAT)
   {
     d_satSolver =
-        SatSolverFactory::createCDCLTMinisat(d_env, statisticsRegistry());
+        SatSolverFactory::createCDCLTMinisat(d_env, statisticsRegistry(), d_theoryProxy);
   }
   else
   {
     d_satSolver = SatSolverFactory::createCadicalCDCLT(
-        d_env, statisticsRegistry(), env.getResourceManager(), "");
+        d_env, statisticsRegistry(), env.getResourceManager(), d_theoryProxy, "");
   }
-  // connect SAT solver
-  d_satSolver->initialize(d_theoryProxy);
   // create CnfStream with new SAT solver
   d_cnfStream = new CnfStream(env,
                               d_satSolver,

@@ -81,7 +81,7 @@ CryptoMinisatSolver::CryptoMinisatSolver(StatisticsRegistry& registry,
 {
 }
 
-void CryptoMinisatSolver::init()
+void CryptoMinisatSolver::initialize()
 {
   d_true = newVar();
   d_false = newVar();

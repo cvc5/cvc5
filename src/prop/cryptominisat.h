@@ -89,7 +89,7 @@ class CryptoMinisatSolver : public SatSolver
    * Initialize SAT solver instance.
    * Note: Split out to not call virtual functions in constructor.
    */
-  void init();
+  void initialize() override;
 
   /**
    * Set time limit per solve() call.
