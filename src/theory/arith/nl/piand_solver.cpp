@@ -79,7 +79,6 @@ Node PIAndSolver::valueBasedLemma(Node i) { return i; }
 
 Node PIAndSolver::sumBasedLemma(Node i, Kind kind) { return i; }
 
-
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
