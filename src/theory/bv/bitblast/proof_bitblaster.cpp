@@ -135,7 +135,7 @@ void BBProof::bbAtom(TNode node)
     }
 
     /* Bit-blast given rewritten bit-vector atom `node`.
-     * Note: This will pre and post-rewrite and store it in the bit-blasting
+     * Note: This will pre- and post-rewrite and store it in the bit-blasting
      * cache. */
     d_bb->bbAtom(node);
     Node result = d_bb->getStoredBBAtom(node);

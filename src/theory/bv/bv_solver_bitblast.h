@@ -96,7 +96,7 @@ class BVSolverBitblast : public BVSolver
   std::unique_ptr<BBRegistrar> d_bbRegistrar;
   std::unique_ptr<context::Context> d_nullContext;
 
-  /** SAT solver back end (configured via options::bvSatSolver. */
+  /** SAT solver back end (configured via options::bvSatSolver). */
   std::unique_ptr<prop::SatSolver> d_satSolver;
   /** CNF stream. */
   std::unique_ptr<prop::CnfStream> d_cnfStream;
