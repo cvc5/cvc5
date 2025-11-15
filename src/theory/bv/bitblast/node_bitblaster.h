@@ -33,8 +33,8 @@ class NodeBitblaster : public TBitblaster<Node>, protected EnvObj
   using Bits = std::vector<Node>;
 
  public:
-  NodeBitblaster(Env& env, TheoryState* state);
-  ~NodeBitblaster() = default;
+  explicit NodeBitblaster(Env& env);
+  ~NodeBitblaster() override = default;
 
   /** Bit-blast term 'node' and return bit-blasted 'bits'. */
   void bbTerm(TNode node, Bits& bits) override;
@@ -49,19 +49,14 @@ class NodeBitblaster : public TBitblaster<Node>, protected EnvObj
   /** Check if atom was already bit-blasted. */
   bool hasBBAtom(TNode atom) const override;
   /** Get bit-blasted node stored for atom. */
-  Node getStoredBBAtom(TNode node);
+  Node getStoredBBAtom(TNode node) const;
   /** Create 'bits' for variable 'var'. */
   void makeVariable(TNode var, Bits& bits) override;
 
   /** Add d_variables to termSet. */
-  void computeRelevantTerms(std::set<Node>& termSet);
-  /** Collect model values for all relevant terms given in 'relevantTerms'. */
-  bool collectModelValues(TheoryModel* m, const std::set<Node>& relevantTerms);
-
-  prop::SatSolver* getSatSolver() override { Unreachable(); }
-
+  void collectVariables(std::set<Node>& termSet) const;
   /** Checks whether node is a variable introduced via `makeVariable`.*/
-  bool isVariable(TNode node);
+  bool isVariable(TNode node) const;
 
   /**
    * Bit-blast `node` and return the result without applying any rewrites.
@@ -71,15 +66,10 @@ class NodeBitblaster : public TBitblaster<Node>, protected EnvObj
   Node applyAtomBBStrategy(TNode node);
 
  private:
-  /** Query SAT solver for assignment of node 'a'. */
-  Node getModelFromSatSolver(TNode a, bool fullModel) override;
-
   /** Caches variables for which we already created bits. */
   TNodeSet d_variables;
   /** Stores bit-blasted atoms. */
   std::unordered_map<Node, Node> d_bbAtoms;
-  /** Theory state. */
-  TheoryState* d_state;
 };
 
 }  // namespace bv

@@ -23,14 +23,8 @@
 #include <vector>
 
 #include "expr/node.h"
-#include "prop/cnf_stream.h"
-#include "prop/registrar.h"
-#include "prop/sat_solver.h"
-#include "prop/sat_solver_types.h"
 #include "theory/bv/bitblast/bitblast_strategies_template.h"
-#include "theory/rewriter.h"
 #include "theory/theory.h"
-#include "theory/valuation.h"
 #include "util/resource_manager.h"
 
 namespace cvc5::internal {
@@ -53,17 +47,12 @@ class TBitblaster
   typedef std::vector<T> Bits;
   typedef std::unordered_map<Node, Bits> TermDefMap;
   typedef std::unordered_set<TNode> TNodeSet;
-  typedef std::unordered_map<Node, Node> ModelCache;
 
   typedef void (*TermBBStrategy)(TNode, Bits&, TBitblaster<T>*);
   typedef T (*AtomBBStrategy)(TNode, TBitblaster<T>*);
 
   // caches and mappings
   TermDefMap d_termCache;
-  ModelCache d_modelCache;
-  // sat solver used for bitblasting and associated CnfStream
-  std::unique_ptr<context::Context> d_nullContext;
-  std::unique_ptr<prop::CnfStream> d_cnfStream;
 
   void initAtomBBStrategies();
   void initTermBBStrategies();
@@ -73,9 +62,6 @@ class TBitblaster
   /// kind
   TermBBStrategy d_termBBStrategies[static_cast<uint32_t>(Kind::LAST_KIND)];
   AtomBBStrategy d_atomBBStrategies[static_cast<uint32_t>(Kind::LAST_KIND)];
-  virtual Node getModelFromSatSolver(TNode node, bool fullModel) = 0;
-  virtual prop::SatSolver* getSatSolver() = 0;
-
 
  public:
   TBitblaster();
@@ -90,15 +76,6 @@ class TBitblaster
   bool hasBBTerm(TNode node) const;
   void getBBTerm(TNode node, Bits& bits) const;
   virtual void storeBBTerm(TNode term, const Bits& bits);
-
-  /**
-   * Return a constant representing the value of a in the  model.
-   * If fullModel is true set unconstrained bits to 0. If not return
-   * NullNode() for a fully or partially unconstrained.
-   *
-   */
-  Node getTermModel(TNode node, bool fullModel);
-  void invalidateModelCache();
 };
 
 // Bitblaster implementation
@@ -204,10 +181,7 @@ void TBitblaster<T>::initTermBBStrategies()
 
 template <class T>
 TBitblaster<T>::TBitblaster()
-    : d_termCache(),
-      d_modelCache(),
-      d_nullContext(new context::Context()),
-      d_cnfStream()
+    : d_termCache()
 {
   initAtomBBStrategies();
   initTermBBStrategies();
@@ -229,12 +203,6 @@ template <class T>
 void TBitblaster<T>::storeBBTerm(TNode node, const Bits& bits)
 {
   d_termCache.insert(std::make_pair(node, bits));
-}
-
-template <class T>
-void TBitblaster<T>::invalidateModelCache()
-{
-  d_modelCache.clear();
 }
 
 }  // namespace bv

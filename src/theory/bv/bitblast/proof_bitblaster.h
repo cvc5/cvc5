@@ -34,10 +34,8 @@ class BBProof : protected EnvObj
   using Bits = std::vector<Node>;
 
  public:
-  BBProof(Env& env,
-          TheoryState* state,
-          bool fineGrained);
-  ~BBProof();
+  BBProof(Env& env, bool fineGrained);
+  ~BBProof() override;
 
   /** Bit-blast atom 'node'. */
   void bbAtom(TNode node);
@@ -49,10 +47,13 @@ class BBProof : protected EnvObj
   Node getStoredBBAtom(TNode node);
   /** Get bit-blasted bits stored for node. */
   void getBBTerm(TNode node, Bits& bits) const;
-  /** Collect model values for all relevant terms given in 'relevantTerms'. */
-  bool collectModelValues(TheoryModel* m, const std::set<Node>& relevantTerms);
 
-  BitblastProofGenerator* getProofGenerator();
+  BitblastProofGenerator* getProofGenerator() const;
+
+  /** Add d_variables to termSet. */
+  void collectVariables(std::set<Node>& termSet) const;
+  /** Checks whether node is a variable introduced via `makeVariable`.*/
+  bool isVariable(TNode node) const;
 
  private:
   /** Return true if proofs are enabled. */

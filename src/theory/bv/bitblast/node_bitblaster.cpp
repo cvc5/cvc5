@@ -16,14 +16,13 @@
 
 #include "options/bv_options.h"
 #include "theory/theory_model.h"
-#include "theory/theory_state.h"
 
 namespace cvc5::internal {
 namespace theory {
 namespace bv {
 
-NodeBitblaster::NodeBitblaster(Env& env, TheoryState* s)
-    : TBitblaster<Node>(), EnvObj(env), d_state(s)
+NodeBitblaster::NodeBitblaster(Env& env)
+    : TBitblaster<Node>(), EnvObj(env)
 {
 }
 
@@ -94,7 +93,7 @@ void NodeBitblaster::bbTerm(TNode node, Bits& bits)
   storeBBTerm(node, bits);
 }
 
-Node NodeBitblaster::getStoredBBAtom(TNode node)
+Node NodeBitblaster::getStoredBBAtom(TNode node) const
 {
   bool negated = false;
   if (node.getKind() == Kind::NOT)
@@ -108,36 +107,7 @@ Node NodeBitblaster::getStoredBBAtom(TNode node)
   return negated ? atom_bb.negate() : atom_bb;
 }
 
-Node NodeBitblaster::getModelFromSatSolver(TNode a, bool fullModel)
-{
-  NodeManager* nm = a.getNodeManager();
-  if (!hasBBTerm(a))
-  {
-    return utils::mkConst(nm, utils::getSize(a), 0u);
-  }
-
-  bool assignment;
-  Bits bits;
-  getBBTerm(a, bits);
-  Integer value(0);
-  Integer one(1), zero(0);
-  for (int i = bits.size() - 1; i >= 0; --i)
-  {
-    Integer bit;
-    if (d_state->hasSatValue(bits[i], assignment))
-    {
-      bit = assignment ? one : zero;
-    }
-    else
-    {
-      bit = zero;
-    }
-    value = value * 2 + bit;
-  }
-  return utils::mkConst(nm, bits.size(), value);
-}
-
-void NodeBitblaster::computeRelevantTerms(std::set<Node>& termSet)
+void NodeBitblaster::collectVariables(std::set<Node>& termSet) const
 {
   Assert(options().bv.bitblastMode == options::BitblastMode::EAGER);
   for (const auto& var : d_variables)
@@ -146,27 +116,7 @@ void NodeBitblaster::computeRelevantTerms(std::set<Node>& termSet)
   }
 }
 
-bool NodeBitblaster::collectModelValues(TheoryModel* m,
-                                        const std::set<Node>& relevantTerms)
-{
-  for (const auto& var : relevantTerms)
-  {
-    if (d_variables.find(var) == d_variables.end()) continue;
-
-    Node const_value = getModelFromSatSolver(var, true);
-    Assert(const_value.isNull() || const_value.isConst());
-    if (!const_value.isNull())
-    {
-      if (!m->assertEquality(var, const_value, true))
-      {
-        return false;
-      }
-    }
-  }
-  return true;
-}
-
-bool NodeBitblaster::isVariable(TNode node)
+bool NodeBitblaster::isVariable(TNode node) const
 {
   return d_variables.find(node) != d_variables.end();
 }

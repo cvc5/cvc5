@@ -24,9 +24,9 @@ namespace cvc5::internal {
 namespace theory {
 namespace bv {
 
-BBProof::BBProof(Env& env, TheoryState* state, bool fineGrained)
+BBProof::BBProof(Env& env, bool fineGrained)
     : EnvObj(env),
-      d_bb(new NodeBitblaster(env, state)),
+      d_bb(new NodeBitblaster(env)),
       d_tcontext(new TheoryLeafTermContext(theory::THEORY_BV)),
       d_tcpg(new TConvProofGenerator(
           env,
@@ -196,13 +196,20 @@ void BBProof::getBBTerm(TNode node, Bits& bits) const
   d_bb->getBBTerm(node, bits);
 }
 
-bool BBProof::collectModelValues(TheoryModel* m,
-                                 const std::set<Node>& relevantTerms)
+void BBProof::collectVariables(std::set<Node>& termSet) const
 {
-  return d_bb->collectModelValues(m, relevantTerms);
+  d_bb->collectVariables(termSet);
 }
 
-BitblastProofGenerator* BBProof::getProofGenerator() { return d_bbpg.get(); }
+bool BBProof::isVariable(TNode node) const
+{
+  return d_bb->isVariable(node);
+}
+
+BitblastProofGenerator* BBProof::getProofGenerator() const
+{
+  return d_bbpg.get();
+}
 
 bool BBProof::isProofsEnabled() const { return d_env.isTheoryProofProducing(); }
 
