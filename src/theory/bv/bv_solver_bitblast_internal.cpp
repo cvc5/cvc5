@@ -72,7 +72,7 @@ void collectBVAtoms(TNode n, std::unordered_set<Node>& atoms)
 BVSolverBitblastInternal::BVSolverBitblastInternal(
     Env& env, TheoryState* s, TheoryInferenceManager& inferMgr)
     : BVSolver(env, *s, inferMgr),
-      d_bitblaster(new BBProof(env, s, false)),
+      d_bitblaster(new BBProof(env, false)),
       d_epg(new EagerProofGenerator(d_env))
 {
 }
@@ -158,7 +158,21 @@ TrustNode BVSolverBitblastInternal::explain(TNode n)
 bool BVSolverBitblastInternal::collectModelValues(TheoryModel* m,
                                                   const std::set<Node>& termSet)
 {
-  return d_bitblaster->collectModelValues(m, termSet);
+  for (const auto& var : termSet)
+  {
+    if (!d_bitblaster->isVariable(var)) continue;
+
+    Node const_value = getValue(var, true);
+    Assert(const_value.isNull() || const_value.isConst());
+    if (!const_value.isNull())
+    {
+      if (!m->assertEquality(var, const_value, true))
+      {
+        return false;
+      }
+    }
+  }
+  return true;
 }
 
 Node BVSolverBitblastInternal::getValue(TNode node, bool initialize)
@@ -174,15 +188,14 @@ Node BVSolverBitblastInternal::getValue(TNode node, bool initialize)
     return initialize ? utils::mkConst(nm, utils::getSize(node), 0u) : Node();
   }
 
-  Valuation& val = d_state.getValuation();
-
   std::vector<Node> bits;
   d_bitblaster->getBBTerm(node, bits);
-  Integer value(0), one(1), zero(0), bit;
+  Integer value(0);
+  const Integer one(1), zero(0);
   for (size_t i = 0, size = bits.size(), j = size - 1; i < size; ++i, --j)
   {
-    bool satValue;
-    if (val.hasSatValue(bits[j], satValue))
+    Integer bit;
+    if (bool satValue; d_state.hasSatValue(bits[j], satValue))
     {
       bit = satValue ? one : zero;
     }

@@ -111,7 +111,7 @@ BVSolverBitblast::BVSolverBitblast(Env& env,
                                    TheoryState* s,
                                    TheoryInferenceManager& inferMgr)
     : BVSolver(env, *s, inferMgr),
-      d_bitblaster(new NodeBitblaster(env, s)),
+      d_bitblaster(new NodeBitblaster(env)),
       d_bbRegistrar(new BBRegistrar(d_bitblaster.get())),
       d_nullContext(new context::Context()),
       d_bbFacts(context()),
@@ -298,7 +298,7 @@ void BVSolverBitblast::computeRelevantTerms(std::set<Node>& termSet)
    */
   if (options().bv.bitblastMode == options::BitblastMode::EAGER)
   {
-    d_bitblaster->computeRelevantTerms(termSet);
+    d_bitblaster->collectVariables(termSet);
   }
 }
 
