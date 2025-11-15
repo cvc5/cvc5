@@ -34,7 +34,6 @@ typedef std::unordered_set<TNode> TNodeSet;
 /**
  * The Bitblaster that manages the mapping between Nodes
  * and their bitwise definition
- *
  */
 
 template <class T>
