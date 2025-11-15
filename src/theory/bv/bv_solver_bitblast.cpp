@@ -417,7 +417,7 @@ void BVSolverBitblast::handleEagerAtom(TNode fact, bool assertFact)
   }
 
   /* convertAndAssert() does not make the connection between the bit-vector
-   * atom and it's bit-blasted form (it only calls preRegister() from the
+   * atom and its bit-blasted form (it only calls preRegister() from the
    * registrar). Thus, we add the equalities now. */
   auto& registeredAtoms = d_bbRegistrar->getRegisteredAtoms();
   for (auto atom : registeredAtoms)
