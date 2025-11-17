@@ -176,8 +176,7 @@ void TBitblaster<T>::initTermBBStrategies()
 }
 
 template <class T>
-TBitblaster<T>::TBitblaster()
-    : d_termCache()
+TBitblaster<T>::TBitblaster() : d_termCache()
 {
   initAtomBBStrategies();
   initTermBBStrategies();
