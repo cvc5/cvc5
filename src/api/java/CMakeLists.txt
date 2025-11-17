@@ -344,6 +344,21 @@ endif()
 
 add_dependencies(cvc5jar generate-java-kinds cvc5jni cvc5 cvc5parser)
 
+if(BUILD_DOCS)
+  # Build cvc5-sources.jar to enable viewing, navigation, and debugging of the library source code
+  set(SOURCES_JAR ${CMAKE_CURRENT_BINARY_DIR}/cvc5-sources.jar)
+
+  add_custom_command(
+      OUTPUT ${SOURCES_JAR}
+      COMMAND ${Java_JAR_EXECUTABLE} cf ${SOURCES_JAR}
+              -C ${CMAKE_CURRENT_LIST_DIR} io/github/cvc5
+              -C ${CMAKE_CURRENT_BINARY_DIR} io/github/cvc5
+      DEPENDS ${JAVA_FILES}
+      COMMENT "Generating sources JAR"
+  )
+  add_custom_target(cvc5-sources-jar ALL DEPENDS ${SOURCES_JAR})
+endif()
+
 # Install in the same directory of cvc5-targets.
 # On Windows, CMake's default install action places
 # DLLs into the runtime path (by default "bin")
