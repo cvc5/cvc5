@@ -33,7 +33,7 @@ class BVSolver : protected EnvObj
   BVSolver(Env& env, TheoryState& state, TheoryInferenceManager& inferMgr)
       : EnvObj(env), d_state(state), d_im(inferMgr){};
 
-  virtual ~BVSolver() {}
+  ~BVSolver() override {}
 
   /**
    * Returns true if we need an equality engine. If so, we initialize the
