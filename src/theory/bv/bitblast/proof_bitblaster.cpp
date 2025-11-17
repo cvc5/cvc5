@@ -197,10 +197,7 @@ void BBProof::collectVariables(std::set<Node>& termSet) const
   d_bb->collectVariables(termSet);
 }
 
-bool BBProof::isVariable(TNode node) const
-{
-  return d_bb->isVariable(node);
-}
+bool BBProof::isVariable(TNode node) const { return d_bb->isVariable(node); }
 
 BitblastProofGenerator* BBProof::getProofGenerator() const
 {

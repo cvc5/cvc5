@@ -21,10 +21,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace bv {
 
-NodeBitblaster::NodeBitblaster(Env& env)
-    : TBitblaster<Node>(), EnvObj(env)
-{
-}
+NodeBitblaster::NodeBitblaster(Env& env) : TBitblaster<Node>(), EnvObj(env) {}
 
 void NodeBitblaster::bbAtom(TNode node)
 {
@@ -117,8 +114,7 @@ bool NodeBitblaster::isVariable(TNode node) const
 Node NodeBitblaster::applyAtomBBStrategy(TNode node)
 {
   Kind kind = node.getKind();
-  if (kind == Kind::CONST_BOOLEAN
-    || kind == Kind::BITVECTOR_BIT)
+  if (kind == Kind::CONST_BOOLEAN || kind == Kind::BITVECTOR_BIT)
   {
     return node;
   }
