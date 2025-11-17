@@ -108,9 +108,9 @@ class BBRegistrar : public prop::Registrar
 };
 
 BVSolverBitblast::BVSolverBitblast(Env& env,
-                                   TheoryState* s,
+                                   TheoryState& state,
                                    TheoryInferenceManager& inferMgr)
-    : BVSolver(env, *s, inferMgr),
+    : BVSolver(env, state, inferMgr),
       d_bitblaster(new NodeBitblaster(env)),
       d_bbRegistrar(new BBRegistrar(d_bitblaster.get())),
       d_nullContext(new context::Context()),
