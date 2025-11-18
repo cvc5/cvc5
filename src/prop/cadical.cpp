@@ -1304,7 +1304,7 @@ CadicalSolver::CadicalSolver(Env& env,
 {
 }
 
-void CadicalSolver::init()
+void CadicalSolver::initialize()
 {
   d_solver->set("quiet", 1);  // CaDiCaL is verbose by default
 
@@ -1322,10 +1322,8 @@ void CadicalSolver::init()
 
   d_true = newVar();
   d_false = newVar();
-  d_solver->add(toCadicalVar(d_true));
-  d_solver->add(0);
-  d_solver->add(-toCadicalVar(d_false));
-  d_solver->add(0);
+  d_solver->clause(toCadicalVar(d_true));
+  d_solver->clause(-toCadicalVar(d_false));
 
   bool logProofs = false;
   // TODO (wishue #154): determine how to initialize the proofs for CaDiCaL
@@ -1557,8 +1555,7 @@ CadicalSolver::Statistics::Statistics(StatisticsRegistry& registry,
 
 /* CDCLTSatSolver Interface ------------------------------------------------- */
 
-void CadicalSolver::initialize(prop::TheoryProxy* theoryProxy,
-                               PropPfManager* ppm)
+void CadicalSolver::initialize(TheoryProxy* theoryProxy)
 {
   d_proxy = theoryProxy;
   d_propagator.reset(new CadicalPropagator(
@@ -1575,7 +1572,12 @@ void CadicalSolver::initialize(prop::TheoryProxy* theoryProxy,
     d_solver->connect_proof_tracer(d_proof_tracer.get(), true);
   }
 
-  init();
+  initialize();
+}
+
+void CadicalSolver::attachProofManager(PropPfManager* ppm)
+{
+  // not implemented yet
 }
 
 void CadicalSolver::push()
