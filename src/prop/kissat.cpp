@@ -74,8 +74,8 @@ KissatSolver::KissatSolver(StatisticsRegistry& registry,
 
 void KissatSolver::initialize()
 {
-  d_true = newVar();
-  d_false = newVar();
+  d_true = newVar(false, true);
+  d_false = newVar(false, true);
   kissat_add(d_solver, toKissatVar(d_true));
   kissat_add(d_solver, 0);
   kissat_add(d_solver, -toKissatVar(d_false));
@@ -123,11 +123,13 @@ SatValue KissatSolver::solve()
 SatValue KissatSolver::solve(long unsigned int&)
 {
   Unimplemented() << "Setting limits for Kissat not supported yet";
+  return SAT_VALUE_UNKNOWN;
 };
 
 SatValue KissatSolver::solve(const std::vector<SatLiteral>& assumptions)
 {
   Unimplemented() << "Incremental solving with Kissat not supported yet";
+  return SAT_VALUE_UNKNOWN;
 }
 
 void KissatSolver::interrupt() { kissat_terminate(d_solver); }
@@ -147,6 +149,7 @@ SatValue KissatSolver::modelValue(SatLiteral l)
 uint32_t KissatSolver::getAssertionLevel() const
 {
   Unreachable() << "Kissat does not support assertion levels.";
+  return -1;
 }
 
 bool KissatSolver::ok() const { return d_okay; }
