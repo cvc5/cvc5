@@ -90,7 +90,7 @@ SimpSolver::SimpSolver(Env& env,
     }
 }
 
-void SimpSolver::attachProofManager(prop::PropPfManager *ppm)
+void SimpSolver::attachProofManager(prop::PropPfManager* ppm)
 {
   Solver::attachProofManager(ppm);
   use_simplification = false;

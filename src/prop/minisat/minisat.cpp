@@ -128,11 +128,9 @@ void MinisatSatSolver::initialize(TheoryProxy* theoryProxy)
   initialize();
 }
 
-void MinisatSatSolver::initialize()
-{
-}
+void MinisatSatSolver::initialize() {}
 
-void MinisatSatSolver::attachProofManager(PropPfManager *ppm)
+void MinisatSatSolver::attachProofManager(PropPfManager* ppm)
 {
   d_minisat->attachProofManager(ppm);
 }

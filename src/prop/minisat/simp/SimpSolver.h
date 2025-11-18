@@ -50,7 +50,7 @@ class SimpSolver : public Solver {
 
   virtual ~SimpSolver() = default;
 
-  void attachProofManager(prop::PropPfManager *ppm) override;
+  void attachProofManager(prop::PropPfManager* ppm) override;
 
   // Problem specification:
   //
