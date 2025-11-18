@@ -88,11 +88,7 @@ class SatSolver
   virtual SatValue solve(long unsigned int&) = 0;
 
   /** Check satisfiability under assumptions */
-  virtual SatValue solve(const std::vector<SatLiteral>& assumptions)
-  {
-    Unimplemented() << "Solving under assumptions not implemented";
-    return SAT_VALUE_UNKNOWN;
-  };
+  virtual SatValue solve(const std::vector<SatLiteral>& assumptions) = 0;
 
   /**
    * Tell SAT solver to only do propagation on next solve().

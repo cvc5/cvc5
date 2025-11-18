@@ -90,6 +90,11 @@ class FakeSatSolver : public SatSolver
     return SAT_VALUE_UNKNOWN;
   }
 
+  SatValue solve(const std::vector<SatLiteral>& assumptions) override
+  {
+    return SAT_VALUE_UNKNOWN;
+  }
+
   SatValue value(SatLiteral l) override { return SAT_VALUE_UNKNOWN; }
 
   SatValue modelValue(SatLiteral l) override { return SAT_VALUE_UNKNOWN; }
@@ -207,7 +212,7 @@ TEST_F(TestPropWhiteCnfStream, implies)
   ASSERT_TRUE(d_satSolver->addClauseCalled());
 }
 
-TEST_F(TestPropWhiteCnfStream, not )
+TEST_F(TestPropWhiteCnfStream, not)
 {
   Node a = d_nodeManager->mkVar(d_nodeManager->booleanType());
   d_cnfStream->convertAndAssert(
