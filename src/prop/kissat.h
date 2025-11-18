@@ -51,6 +51,8 @@ class KissatSolver : public SatSolver
   SatValue solve(long unsigned int&) override;
   SatValue solve(const std::vector<SatLiteral>& assumptions) override;
 
+  void getUnsatAssumptions(std::vector<SatLiteral>& unsat_assumptions) override;
+
   void interrupt() override;
 
   SatValue value(SatLiteral l) override;

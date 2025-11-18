@@ -132,6 +132,12 @@ SatValue KissatSolver::solve(const std::vector<SatLiteral>& assumptions)
   return SAT_VALUE_UNKNOWN;
 }
 
+void KissatSolver::getUnsatAssumptions(
+    std::vector<SatLiteral>& unsat_assumptions)
+{
+  Unreachable() << "Kissat does not support unsat assumptions.";
+}
+
 void KissatSolver::interrupt() { kissat_terminate(d_solver); }
 
 SatValue KissatSolver::value(SatLiteral l)
