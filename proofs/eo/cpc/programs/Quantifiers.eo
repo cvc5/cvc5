@@ -117,7 +117,7 @@
 ; return: The return type of the application.
 ; note: A helper to define the type of the $beta_reduce program below.
 (program $beta_reduce_type ((T Type) (U Type) (x T) (xs @List :list))
-  (Type @List) Type
+  :signature (Type @List) Type
   (
   (($beta_reduce_type (-> T U) (@list x xs)) ($beta_reduce_type U xs))
   (($beta_reduce_type T @list.nil)           T)
