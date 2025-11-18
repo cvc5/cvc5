@@ -1580,7 +1580,6 @@ void CadicalSolver::attachProofManager(PropPfManager* ppm)
   // not implemented yet
 }
 
-
 void CadicalSolver::push()
 {
   d_context->push();  // SAT context for cvc5

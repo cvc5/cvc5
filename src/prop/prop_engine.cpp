@@ -88,10 +88,15 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
   // make the theory proxy first
   d_theoryProxy = new TheoryProxy(d_env, this, d_theoryEngine, d_skdm.get());
 
-  d_satSolver = (options().prop.satSolver == options::SatSolverMode::MINISAT ?
-    SatSolverFactory::createCDCLTSatSolver<SatSolverFactory::MINISAT> :
-    SatSolverFactory::createCDCLTSatSolver<SatSolverFactory::CADICAL>)(
-      env, statisticsRegistry(), env.getResourceManager(), d_theoryProxy, "");
+  d_satSolver =
+      (options().prop.satSolver == options::SatSolverMode::MINISAT
+           ? SatSolverFactory::createCDCLTSatSolver<SatSolverFactory::MINISAT>
+           : SatSolverFactory::createCDCLTSatSolver<SatSolverFactory::CADICAL>)(
+                                             env,
+                                             statisticsRegistry(),
+                                             env.getResourceManager(),
+                                             d_theoryProxy,
+                                             "");
 
   // create CnfStream with new SAT solver
   d_cnfStream = new CnfStream(env,
@@ -105,7 +110,7 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
   // if proof producing at all
   if (options().smt.produceProofs)
   {
-    PropPfManager *ppm =
+    PropPfManager* ppm =
         new PropPfManager(env, d_satSolver, *d_cnfStream, d_assumptions);
     d_ppm.reset(ppm);
     d_satSolver->attachProofManager(ppm);

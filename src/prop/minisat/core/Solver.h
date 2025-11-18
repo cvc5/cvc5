@@ -142,7 +142,7 @@ public:
   * Initializes the SAT proof manager.
   * Can only be called once right after initialization.
   */
- virtual void attachProofManager(prop::PropPfManager *ppm);
+ virtual void attachProofManager(prop::PropPfManager* ppm);
 
  /** Retrieve the SAT proof manager */
  cvc5::internal::prop::SatProofManager* getProofManager();
