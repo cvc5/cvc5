@@ -362,8 +362,7 @@ jobs:
       if: matrix.build.java-bindings && matrix.build.package-name && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
       uses: ./.github/actions/add-jar
       with:
-        install-path: ${{ steps.create-static-package.outputs.install-path }}
-        jar-libs-dir: cvc5-libs
+        build-dir: ${{ steps.configure-and-build.outputs.static-build-dir }}
         jar-name: ${{ matrix.build.package-name }}${{ matrix.build.gpl-tag }}-java-api
         shell: ${{ matrix.build.shell }}
 
