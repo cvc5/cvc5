@@ -207,7 +207,6 @@ Solver::Solver(Env& env,
       propagation_budget(-1),
       asynch_interrupt(false)
 {
-
   // Create the constant variables
   varTrue = newVar(true, false, false);
   varFalse = newVar(false, false, false);
@@ -217,7 +216,7 @@ Solver::Solver(Env& env,
   uncheckedEnqueue(mkLit(varFalse, true));
 }
 
-void Solver::attachProofManager(prop::PropPfManager *ppm)
+void Solver::attachProofManager(prop::PropPfManager* ppm)
 {
   Assert(d_pfManager.get() == nullptr);
   d_pfManager.reset(

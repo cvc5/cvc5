@@ -39,17 +39,17 @@ class SatSolverFactory
   {
     MINISAT,
     CADICAL,
-    CRYPTO_MINISAT,
+    CRYPTOMINISAT,
     KISSAT,
   };
 
-  template<SatSolverType T>
+  template <SatSolverType T>
   static SatSolver* createSatSolver(Env& env,
                                     StatisticsRegistry& registry,
                                     ResourceManager* resmgr,
                                     const std::string& name = "");
 
-  template<SatSolverType T>
+  template <SatSolverType T>
   static CDCLTSatSolver* createCDCLTSatSolver(Env& env,
                                               StatisticsRegistry& registry,
                                               ResourceManager* resmgr,
@@ -57,25 +57,35 @@ class SatSolverFactory
                                               const std::string& name = "");
 };
 
-template<>
+template <>
 SatSolver* SatSolverFactory::createSatSolver<SatSolverFactory::CADICAL>(
-  Env&, StatisticsRegistry&, ResourceManager*, const std::string&);
+    Env&, StatisticsRegistry&, ResourceManager*, const std::string&);
 
-template<>
+template <>
 SatSolver* SatSolverFactory::createSatSolver<SatSolverFactory::KISSAT>(
-  Env&, StatisticsRegistry&, ResourceManager*, const std::string&);
+    Env&, StatisticsRegistry&, ResourceManager*, const std::string&);
 
-template<>
-SatSolver* SatSolverFactory::createSatSolver<SatSolverFactory::CRYPTO_MINISAT>(
-  Env&, StatisticsRegistry&, ResourceManager*, const std::string&);
+template <>
+SatSolver* SatSolverFactory::createSatSolver<SatSolverFactory::CRYPTOMINISAT>(
+    Env&, StatisticsRegistry&, ResourceManager*, const std::string&);
 
-template<>
-CDCLTSatSolver* SatSolverFactory::createCDCLTSatSolver<SatSolverFactory::MINISAT>(
-  Env&, StatisticsRegistry&, ResourceManager*, TheoryProxy*, const std::string&);
+template <>
+CDCLTSatSolver*
+SatSolverFactory::createCDCLTSatSolver<SatSolverFactory::MINISAT>(
+    Env&,
+    StatisticsRegistry&,
+    ResourceManager*,
+    TheoryProxy*,
+    const std::string&);
 
-template<>
-CDCLTSatSolver* SatSolverFactory::createCDCLTSatSolver<SatSolverFactory::CADICAL>(
-  Env&, StatisticsRegistry&, ResourceManager*, TheoryProxy*, const std::string&);
+template <>
+CDCLTSatSolver*
+SatSolverFactory::createCDCLTSatSolver<SatSolverFactory::CADICAL>(
+    Env&,
+    StatisticsRegistry&,
+    ResourceManager*,
+    TheoryProxy*,
+    const std::string&);
 
 }  // namespace prop
 }  // namespace cvc5::internal

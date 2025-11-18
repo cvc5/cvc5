@@ -40,7 +40,7 @@ class SatSolver
 {
   friend class SatSolverFactory;
 
-public:
+ public:
 
   /** Virtual destructor */
   virtual ~SatSolver() = default;
@@ -129,19 +129,17 @@ public:
     Unimplemented() << "getUnsatAssumptions not implemented";
   }
 
-private:
-
+ private:
   /** Is called by the SatSolverFactory right after construction. */
   virtual void initialize() = 0;
 
-};/* class SatSolver */
+};
 
 class CDCLTSatSolver : public SatSolver
 {
   friend class SatSolverFactory;
 
  public:
-
   /** Virtual destructor */
   ~CDCLTSatSolver() override = default;
 
@@ -196,8 +194,7 @@ class CDCLTSatSolver : public SatSolver
    */
   virtual std::shared_ptr<ProofNode> getProof() = 0;
 
-private:
-
+ private:
   /**
    * Regular initialization to generate a solver that does not have
    * CDCLT features. To be called by SatSolverFactory.

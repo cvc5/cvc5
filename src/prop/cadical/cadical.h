@@ -77,7 +77,7 @@ class CadicalSolver : public CDCLTSatSolver, protected EnvObj
 
   void initialize(TheoryProxy* theoryProxy) override;
 
-  void attachProofManager(PropPfManager *ppm) override;
+  void attachProofManager(PropPfManager* ppm) override;
 
   void push() override;
 
