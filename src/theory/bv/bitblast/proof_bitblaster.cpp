@@ -45,12 +45,8 @@ BBProof::BBProof(Env& env, bool fineGrained)
 {
 }
 
-BBProof::~BBProof() {}
-
 void BBProof::bbAtom(TNode node)
 {
-  bool fineProofs = isProofsEnabled() && d_recordFineGrainedProofs;
-
   /* Bit-blasting bit-vector atoms consists of 3 steps:
    *   1. rewrite the atom
    *   2. bit-blast the rewritten atom
@@ -63,7 +59,7 @@ void BBProof::bbAtom(TNode node)
    * bit-blasting of bit-vector terms that happens implicitly when calling the
    * corresponding bit-blasting strategy in d_bb->bbAtom(...).
    */
-  if (fineProofs)
+  if (isProofsEnabled() && d_recordFineGrainedProofs)
   {
     std::vector<TNode> visit;
     std::unordered_set<TNode> visited;
