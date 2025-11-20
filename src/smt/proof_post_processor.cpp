@@ -988,7 +988,7 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
     Node eq = args[0];
     Assert(eq.getKind() == Kind::EQUAL);
     bb.bbAtom(eq[0]);
-    Node bbAtom = bb.getStoredBBAtom(eq[0]);
+    Node bbAtom = bb.getBBAtom(eq[0]);
     bb.getProofGenerator()->addProofTo(eq[0].eqNode(bbAtom), cdp);
     return eq;
   }

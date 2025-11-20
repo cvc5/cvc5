@@ -138,7 +138,7 @@ void BBProof::bbAtom(TNode node)
      * Note: This will pre- and post-rewrite and store it in the bit-blasting
      * cache. */
     d_bb->bbAtom(node);
-    Node result = d_bb->getStoredBBAtom(node);
+    Node result = d_bb->getBBAtom(node);
 
     // Retrieve bit-blasted `rwNode` without post-rewrite.
     Node bbt = d_bb->applyAtomBBStrategy(rwNode);
@@ -156,7 +156,7 @@ void BBProof::bbAtom(TNode node)
     /* Record coarse-grain bit-blast proof step. */
     if (isProofsEnabled() && !d_recordFineGrainedProofs)
     {
-      Node bbt = getStoredBBAtom(node);
+      Node bbt = getBBAtom(node);
       d_bbpg->addBitblastStep(Node(), Node(), node.eqNode(bbt));
     }
   }
@@ -182,10 +182,7 @@ bool BBProof::hasBBAtom(TNode atom) const { return d_bb->hasBBAtom(atom); }
 
 bool BBProof::hasBBTerm(TNode atom) const { return d_bb->hasBBTerm(atom); }
 
-Node BBProof::getStoredBBAtom(TNode node)
-{
-  return d_bb->getStoredBBAtom(node);
-}
+Node BBProof::getBBAtom(TNode node) const { return d_bb->getBBAtom(node); }
 
 void BBProof::getBBTerm(TNode node, Bits& bits) const
 {

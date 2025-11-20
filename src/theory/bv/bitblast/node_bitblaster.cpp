@@ -44,11 +44,6 @@ void NodeBitblaster::storeBBAtom(TNode atom, Node atom_bb)
   d_bbAtoms.emplace(atom, atom_bb);
 }
 
-void NodeBitblaster::storeBBTerm(TNode node, const Bits& bits)
-{
-  d_termCache.emplace(node, bits);
-}
-
 bool NodeBitblaster::hasBBAtom(TNode lit) const
 {
   if (lit.getKind() == Kind::NOT)
@@ -68,8 +63,6 @@ void NodeBitblaster::makeVariable(TNode var, Bits& bits)
   d_variables.insert(var);
 }
 
-Node NodeBitblaster::getBBAtom(TNode node) const { return node; }
-
 void NodeBitblaster::bbTerm(TNode node, Bits& bits)
 {
   Assert(node.getType().isBitVector());
@@ -83,7 +76,7 @@ void NodeBitblaster::bbTerm(TNode node, Bits& bits)
   storeBBTerm(node, bits);
 }
 
-Node NodeBitblaster::getStoredBBAtom(TNode node) const
+Node NodeBitblaster::getBBAtom(TNode node) const
 {
   bool negated = false;
   if (node.getKind() == Kind::NOT)
@@ -99,11 +92,7 @@ Node NodeBitblaster::getStoredBBAtom(TNode node) const
 
 void NodeBitblaster::collectVariables(std::set<Node>& termSet) const
 {
-  Assert(options().bv.bitblastMode == options::BitblastMode::EAGER);
-  for (const auto& var : d_variables)
-  {
-    termSet.insert(var);
-  }
+  termSet.insert(d_variables.cbegin(), d_variables.cend());
 }
 
 bool NodeBitblaster::isVariable(TNode node) const
@@ -119,6 +108,22 @@ Node NodeBitblaster::applyAtomBBStrategy(TNode node)
     return node;
   }
   return d_atomBBStrategies[static_cast<uint32_t>(kind)](node, this);
+}
+
+bool NodeBitblaster::hasBBTerm(TNode node) const
+{
+  return d_bbTerms.find(node) != d_bbTerms.end();
+}
+
+void NodeBitblaster::getBBTerm(TNode node, Bits& bits) const
+{
+  Assert(hasBBTerm(node));
+  bits = d_bbTerms.find(node)->second;
+}
+
+void NodeBitblaster::storeBBTerm(TNode node, const Bits& bits)
+{
+  d_bbTerms.insert(std::make_pair(node, bits));
 }
 
 }  // namespace bv

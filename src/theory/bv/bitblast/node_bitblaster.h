@@ -17,6 +17,7 @@
 #ifndef CVC5__THEORY__BV__BITBLAST_NODE_BITBLASTER_H
 #define CVC5__THEORY__BV__BITBLAST_NODE_BITBLASTER_H
 
+#include "theory/theory.h"
 #include "theory/bv/bitblast/bitblaster.h"
 
 namespace cvc5::internal {
@@ -36,27 +37,26 @@ class NodeBitblaster : public TBitblaster<Node>, protected EnvObj
   explicit NodeBitblaster(Env& env);
   ~NodeBitblaster() override = default;
 
-  /** Bit-blast term 'node' and return bit-blasted 'bits'. */
-  void bbTerm(TNode node, Bits& bits) override;
   /** Bit-blast atom 'node'. */
   void bbAtom(TNode node) override;
-  /** Get bit-blasted atom, returns 'atom' itself since it's Boolean. */
-  Node getBBAtom(TNode atom) const override;
-  /** Store Boolean node representing the bit-blasted atom. */
-  void storeBBAtom(TNode atom, Node atom_bb) override;
-  /** Store bits of bit-blasted term. */
-  void storeBBTerm(TNode node, const Bits& bits) override;
   /** Check if atom was already bit-blasted. */
   bool hasBBAtom(TNode atom) const override;
   /** Get bit-blasted node stored for atom. */
-  Node getStoredBBAtom(TNode node) const;
+  Node getBBAtom(TNode atom) const override;
+
+  /** Bit-blast term 'node' and return bit-blasted 'bits'. */
+  void bbTerm(TNode node, Bits& bits) override;
+  /** Check if term was already bit-blasted. */
+  bool hasBBTerm(TNode node) const override;
+  /** Fills 'bits' with generated bits of term 'node'. */
+  void getBBTerm(TNode node, Bits& bits) const override;
+
   /** Create 'bits' for variable 'var'. */
   void makeVariable(TNode var, Bits& bits) override;
-
-  /** Add d_variables to termSet. */
-  void collectVariables(std::set<Node>& termSet) const;
   /** Checks whether node is a variable introduced via `makeVariable`.*/
   bool isVariable(TNode node) const;
+  /** Add d_variables to termSet. */
+  void collectVariables(std::set<Node>& termSet) const;
 
   /**
    * Bit-blast `node` and return the result without applying any rewrites.
@@ -64,11 +64,19 @@ class NodeBitblaster : public TBitblaster<Node>, protected EnvObj
    */
   Node applyAtomBBStrategy(TNode node);
 
+ protected:
+  /** Store Boolean node representing the bit-blasted atom. */
+  void storeBBAtom(TNode atom, Node atom_bb);
+  /** Store bits of bit-blasted term. */
+  void storeBBTerm(TNode node, const Bits& bits);
+
  private:
   /** Caches variables for which we already created bits. */
-  TNodeSet d_variables;
+  std::unordered_set<Node> d_variables;
   /** Stores bit-blasted atoms. */
   std::unordered_map<Node, Node> d_bbAtoms;
+  /** Stores bit-blasted terms. */
+  std::unordered_map<Node, Bits> d_bbTerms;
 };
 
 }  // namespace bv
