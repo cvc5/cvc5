@@ -180,7 +180,7 @@ void BVSolverBitblast::postCheck(Theory::Effort level)
       else
       {
         d_bitblaster->bbAtom(fact);
-        Node bb_fact = d_bitblaster->getStoredBBAtom(fact);
+        Node bb_fact = d_bitblaster->getBBAtom(fact);
         d_cnfStream->convertAndAssert(bb_fact, false, false);
       }
     }
@@ -204,7 +204,7 @@ void BVSolverBitblast::postCheck(Theory::Effort level)
       else
       {
         d_bitblaster->bbAtom(fact);
-        Node bb_fact = d_bitblaster->getStoredBBAtom(fact);
+        Node bb_fact = d_bitblaster->getBBAtom(fact);
         d_cnfStream->ensureLiteral(bb_fact);
         lit = d_cnfStream->getLiteral(bb_fact);
       }
@@ -422,7 +422,7 @@ void BVSolverBitblast::handleEagerAtom(TNode fact, bool assertFact)
   auto& registeredAtoms = d_bbRegistrar->getRegisteredAtoms();
   for (auto atom : registeredAtoms)
   {
-    Node bb_atom = d_bitblaster->getStoredBBAtom(atom);
+    Node bb_atom = d_bitblaster->getBBAtom(atom);
     d_cnfStream->convertAndAssert(atom.eqNode(bb_atom), false, false);
   }
   // Clear cache since we only need to do this once per bit-blasted atom.

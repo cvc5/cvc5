@@ -44,7 +44,7 @@ class BBProof : protected EnvObj
   /** Check if term was already bit-blasted. */
   bool hasBBTerm(TNode node) const;
   /** Get bit-blasted node stored for atom. */
-  Node getStoredBBAtom(TNode node);
+  Node getBBAtom(TNode node) const;
   /** Get bit-blasted bits stored for node. */
   void getBBTerm(TNode node, Bits& bits) const;
 
