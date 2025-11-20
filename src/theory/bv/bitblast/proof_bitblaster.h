@@ -35,7 +35,7 @@ class BBProof : protected EnvObj
 
  public:
   BBProof(Env& env, bool fineGrained);
-  ~BBProof() override;
+  ~BBProof() override = default;
 
   /** Bit-blast atom 'node'. */
   void bbAtom(TNode node);
