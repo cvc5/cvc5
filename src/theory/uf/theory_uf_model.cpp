@@ -35,7 +35,13 @@ void UfModelTreeNode::clear(){
 }
 
 //set value function
-void UfModelTreeNode::setValue( TheoryModel* m, Node n, Node v, std::vector< int >& indexOrder, bool ground, int argIndex ){
+void UfModelTreeNode::setValue(const TheoryModel* m,
+                               Node n,
+                               Node v,
+                               std::vector<int>& indexOrder,
+                               bool ground,
+                               int argIndex)
+{
   if( d_data.empty() ){
     //overwrite value if either at leaf or this is a fresh tree
     d_value = v;
@@ -98,7 +104,8 @@ Node UfModelTreeNode::getFunctionValue(const std::vector<Node>& args,
 }
 
 //update function
-void UfModelTreeNode::update( TheoryModel* m ){
+void UfModelTreeNode::update(const TheoryModel* m)
+{
   if( !d_value.isNull() ){
     d_value = m->getRepresentative( d_value );
   }
@@ -179,7 +186,12 @@ void indent( std::ostream& out, int ind ){
   }
 }
 
-void UfModelTreeNode::debugPrint( std::ostream& out, TheoryModel* m, std::vector< int >& indexOrder, int ind, int arg ){
+void UfModelTreeNode::debugPrint(std::ostream& out,
+                                 const TheoryModel* m,
+                                 std::vector<int>& indexOrder,
+                                 int ind,
+                                 int arg)
+{
   if( !d_data.empty() ){
     for( std::map< Node, UfModelTreeNode >::iterator it = d_data.begin(); it != d_data.end(); ++it ){
       if( !it->first.isNull() ){
