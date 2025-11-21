@@ -319,7 +319,7 @@ class QuantifiersRewriter : public TheoryRewriter
                                std::map<Node, Node>& pcons,
                                std::map<Node, std::map<int, Node> >& ncons,
                                std::vector<Node>& conj) const;
-
+  /** Apply alpha-renaming after variable elimination to avoid variable capturing */
   void alphaRenameForVarElim(Node& body, Node slv) const;                       
   //-------------------------------------variable elimination
   /** compute variable elimination
