@@ -1803,6 +1803,11 @@ Node QuantifiersRewriter::computeVarElimination(Node body,
   // if we eliminated a variable, update body and reprocess
   if (!vars.empty())
   {
+    for (const Node& sub : subs)
+    {
+      // apply alpha-renaming to avoid variable capture
+      alphaRenameForVarElim(body, sub);
+    }
     Trace("var-elim-quant-debug")
         << "VE " << vars.size() << "/" << args.size() << std::endl;
     Assert(vars.size() == subs.size());
