@@ -1713,10 +1713,16 @@ void QuantifiersRewriter::alphaRenameForVarElim(Node& body, Node slv) const
   BoundVarManager* bvm = nm->getBoundVarManager();
   std::vector<Node> stack;
   stack.emplace_back(body);
+  std::unordered_set<Node> visited;
   while (!stack.empty())
   {
     Node n = stack.back();
     stack.pop_back();
+    // skip if already processed
+    if (!visited.insert(n).second)
+    {
+      continue;
+    }
     // rename bound variables in quantifiers
     if ((n.getKind() == Kind::FORALL || n.getKind() == Kind::EXISTS))
     {
@@ -1760,11 +1766,14 @@ void QuantifiersRewriter::alphaRenameForVarElim(Node& body, Node slv) const
         body = body.substitute(
             oldNodes.begin(), oldNodes.end(), newNodes.begin(), newNodes.end());
       }
-      // continue traversal into the quantifier body
-      stack.emplace_back(qbody);
+      else
+      {
+        // continue traversal into the quantifier body
+        stack.emplace_back(qbody);
+      }
       continue;
     }
-    // push all children into the stack
+    // push children
     for (unsigned i = 0; i < n.getNumChildren(); ++i)
     {
       stack.emplace_back(n[i]);
