@@ -111,6 +111,14 @@ enum class BoundVarId
    * formulas appear on the right hand sides of substitutions in preprocessing.
    * They are eliminated by the rewriter.
    */
+  ALPHA_RENAME,
+  /**
+   * Cached on (q, q', v), which is used during
+   * alpha-renaming of bound variables v in quantified subformula q' of q.
+   * This ensures that shadowed or conflicting bound variables are replaced
+   * with fresh ones to avoid capture when performing variable elimination
+   * or preprocessing substitutions.
+   */
   ELIM_SHADOW,
   /**
    * Cached on (F, lit, a) where lit is the tested
