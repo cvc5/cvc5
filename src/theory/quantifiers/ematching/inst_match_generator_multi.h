@@ -53,6 +53,8 @@ class InstMatchGeneratorMulti : public IMGenerator
   bool reset(Node eqc) override;
   /** Add instantiations. */
   uint64_t addInstantiations(InstMatch& m) override;
+  /** Get the inference id, for statistics. */
+  InferenceId getInferenceId() override;
 
  private:
   /** process new match
