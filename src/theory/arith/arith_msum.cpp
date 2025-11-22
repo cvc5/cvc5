@@ -15,8 +15,8 @@
 
 #include "theory/arith/arith_msum.h"
 
+#include "theory/arith/arith_utilities.h"
 #include "theory/rewriter.h"
-#include "util/rational.h"
 
 using namespace cvc5::internal::kind;
 
@@ -153,6 +153,29 @@ Node ArithMSum::mkNode(NodeManager* nm, const std::map<Node, Node>& msum)
                                      : nm->mkConstInt(Rational(0)));
 }
 
+Node ArithMSum::mkCoeffTerm(Node c, Node t)
+{
+  if (c.isNull())
+  {
+    return t;
+  }
+  Assert(c.isConst());
+  NodeManager* nm = t.getNodeManager();
+  Rational r = c.getConst<Rational>();
+  TypeNode tt = t.getType();
+  // ensure no mixed arithmetic
+  if (!r.isIntegral())
+  {
+    if (!tt.isReal())
+    {
+      Assert(tt.isInteger());
+      return nm->mkNode(Kind::MULT, c, nm->mkNode(Kind::TO_REAL, t));
+    }
+  }
+  return nm->mkNode(
+      Kind::MULT, nm->mkConstRealOrInt(tt, c.getConst<Rational>()), t);
+}
+
 int ArithMSum::isolate(
     Node v, const std::map<Node, Node>& msum, Node& veq_c, Node& val, Kind k)
 {
@@ -160,6 +183,7 @@ int ArithMSum::isolate(
   std::map<Node, Node>::const_iterator itv = msum.find(v);
   if (itv != msum.end())
   {
+    bool isReal = v.getType().isReal();
     NodeManager* nm = v.getNodeManager();
     std::vector<Node> children;
     Rational r =
@@ -181,6 +205,11 @@ int ArithMSum::isolate(
           else
           {
             m = it->second;
+          }
+          if (isReal && !m.getType().isReal())
+          {
+            Assert(m.getType().isInteger());
+            m = arith::castToReal(nm, m);
           }
           children.push_back(m);
         }
