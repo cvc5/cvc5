@@ -65,6 +65,8 @@ class TBitblaster
   /** Fills 'bits' with generated bits of term 'node'. */
   virtual void getBBTerm(TNode node, Bits& bits) const = 0;
 
+  /** Create a single bit given an atom 'node'. */
+  virtual T makeAtom(TNode node) = 0;
   /** Create 'bits' for variable 'var'. */
   virtual void makeVariable(TNode node, Bits& bits) = 0;
 };

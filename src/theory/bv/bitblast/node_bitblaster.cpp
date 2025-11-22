@@ -63,6 +63,11 @@ void NodeBitblaster::makeVariable(TNode var, Bits& bits)
   d_variables.insert(var);
 }
 
+Node NodeBitblaster::makeAtom(TNode node)
+{
+  return node;
+}
+
 void NodeBitblaster::bbTerm(TNode node, Bits& bits)
 {
   Assert(node.getType().isBitVector());
