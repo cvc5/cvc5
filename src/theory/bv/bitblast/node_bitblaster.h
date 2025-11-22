@@ -51,6 +51,8 @@ class NodeBitblaster : public TBitblaster<Node>, protected EnvObj
   /** Fills 'bits' with generated bits of term 'node'. */
   void getBBTerm(TNode node, Bits& bits) const override;
 
+  /** Get bit for atom, returns 'atom' itself since it's Boolean. */
+  Node makeAtom(TNode node) override;
   /** Create 'bits' for variable 'var'. */
   void makeVariable(TNode var, Bits& bits) override;
   /** Checks whether node is a variable introduced via `makeVariable`.*/
