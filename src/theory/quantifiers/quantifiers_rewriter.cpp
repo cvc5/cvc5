@@ -852,8 +852,7 @@ Node QuantifiersRewriter::computeProcessTerms2(
       // shadowing at prerewrite.
       for (size_t i = 0, nvars = ret[0].getNumChildren(); i < nvars; i++)
       {
-        const Node& v = ret[0][i];
-        Assert(std::find(args.begin(), args.end(), v) == args.end());
+        Assert(std::find(args.begin(), args.end(), ret[0][i]) == args.end());
       }
     }
   }
