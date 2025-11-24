@@ -79,6 +79,8 @@ QuantifiersRewriter::QuantifiersRewriter(NodeManager* nm,
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::QUANT_UNUSED_VARS,
                            TheoryRewriteCtx::PRE_DSL);
+  registerProofRewriteRule(ProofRewriteRule::MACRO_QUANT_ELIM_SHADOW,
+                           TheoryRewriteCtx::PRE_DSL);
   // QUANT_MERGE_PRENEX is part of the reconstruction for
   // MACRO_QUANT_MERGE_PRENEX
   registerProofRewriteRule(ProofRewriteRule::MACRO_QUANT_MERGE_PRENEX,
@@ -106,6 +108,18 @@ Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
 {
   switch (id)
   {
+    case ProofRewriteRule::MACRO_QUANT_ELIM_SHADOW: 
+    {
+      if (n.isClosure())
+      {
+        Node ns = ElimShadowNodeConverter::eliminateShadow(n);
+        if (ns != n)
+        {
+          return ns;
+        }
+      }
+      return Node::null();
+    }
     case ProofRewriteRule::EXISTS_ELIM:
     {
       if (n.getKind() != Kind::EXISTS)
