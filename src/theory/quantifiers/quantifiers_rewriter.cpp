@@ -850,8 +850,9 @@ Node QuantifiersRewriter::computeProcessTerms2(
     {
       // Ensure no shadowing, which should be guaranteed since we eliminate
       // shadowing at prerewrite.
-      for (const Node& v : ret[0])
+      for (size_t i = 0, nvars = ret[0].getNumChildren(); i < nvars; i++)
       {
+        const Node& v = ret[0][i];
         Assert (std::find(args.begin(), args.end(), v) == args.end());
       }
     }
