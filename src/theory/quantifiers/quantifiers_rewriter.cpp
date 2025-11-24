@@ -562,6 +562,14 @@ RewriteResponse QuantifiersRewriter::preRewrite(TNode q)
     {
       return RewriteResponse(REWRITE_AGAIN_FULL, qm);
     }
+    // ensure shadowing is eliminated at this point, as some rewrites (e.g.
+    // variable elimination) can be unsound with quantified formulas with
+    // shadowing.
+    Node qms = ElimShadowNodeConverter::eliminateShadow(qm);
+    if (qms!=qm)
+    {
+      return RewriteResponse(REWRITE_AGAIN_FULL, qms);
+    }
   }
   return RewriteResponse(REWRITE_DONE, q);
 }
