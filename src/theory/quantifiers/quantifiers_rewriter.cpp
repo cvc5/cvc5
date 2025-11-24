@@ -566,7 +566,7 @@ RewriteResponse QuantifiersRewriter::preRewrite(TNode q)
     // variable elimination) can be unsound with quantified formulas with
     // shadowing.
     Node qms = ElimShadowNodeConverter::eliminateShadow(qm);
-    if (qms!=qm)
+    if (qms != qm)
     {
       return RewriteResponse(REWRITE_AGAIN_FULL, qms);
     }
@@ -853,7 +853,7 @@ Node QuantifiersRewriter::computeProcessTerms2(
       for (size_t i = 0, nvars = ret[0].getNumChildren(); i < nvars; i++)
       {
         const Node& v = ret[0][i];
-        Assert (std::find(args.begin(), args.end(), v) == args.end());
+        Assert(std::find(args.begin(), args.end(), v) == args.end());
       }
     }
   }
