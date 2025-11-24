@@ -393,10 +393,10 @@ bool ArithCongruenceManager::propagate(TNode x){
       cdp.addStep(proven[1], ProofRule::MODUS_PONENS, {antec, proven}, {});
       std::shared_ptr<ProofNode> pf;
       bool success = false;
-      for (size_t i=0; i<2; i++)
+      for (size_t i = 0; i < 2; i++)
       {
-        Node lit1 = i==0 ? neg : proven[1];
-        Node lit2 = i==0 ? proven[1] : neg;
+        Node lit1 = i == 0 ? neg : proven[1];
+        Node lit2 = i == 0 ? proven[1] : neg;
         Trace("arith-cm-proof") << "same " << lit1 << " " << lit2 << std::endl;
         Rational rx, ry;
         // We are robust to cases where proven[1] and neg[0] are equivalent via
