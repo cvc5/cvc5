@@ -1631,6 +1631,7 @@ set(regress_0_tests
   regress0/quantifiers/issue11752-prenex-norm.smt2
   regress0/quantifiers/issue11968-rd-typed.smt2
   regress0/quantifiers/issue12172-ent-var-elim.smt2
+  regress0/quantifiers/issue12252-var-elim-shadow.smt2
   regress0/quantifiers/issue2031-bv-var-elim.smt2
   regress0/quantifiers/issue2033-macro-arith.smt2
   regress0/quantifiers/issue2035.smt2
