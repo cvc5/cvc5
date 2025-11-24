@@ -73,7 +73,7 @@ Node SubtypeElimConverterCallback::convert(Node res,
   {
     case ProofRule::ARITH_MULT_SIGN:
     {
-      // For example, if x:Real, y:Int, this rule the arguments
+      // For example, if x:Real, y:Int, this rule with the arguments
       // (and (> x 0.0) (> y 0)), (* x y) proves
       // (=> (and (> x 0.0) (> y 0)) (> (* x y) 0.0)). Subtype elimination
       // converts this initially to (and (> x 0.0) (> y 0)), (* x (to_real y)),
