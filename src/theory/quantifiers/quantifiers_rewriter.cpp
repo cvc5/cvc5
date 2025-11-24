@@ -872,7 +872,7 @@ Node QuantifiersRewriter::computeProcessTerms2(
       }
     }
   }
-  else if (ret.getKind() == Kind::EQUAL
+  if (ret.getKind() == Kind::EQUAL
            && iteLiftMode != options::IteLiftQuantMode::NONE)
   {
     for (size_t i = 0; i < 2; i++)
