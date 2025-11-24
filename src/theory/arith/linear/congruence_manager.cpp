@@ -25,6 +25,7 @@
 #include "smt/env.h"
 #include "theory/arith/arith_proof_utilities.h"
 #include "theory/arith/arith_subs.h"
+#include "theory/arith/arith_poly_norm.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/linear/constraint.h"
 #include "theory/arith/linear/partial_model.h"
@@ -391,11 +392,23 @@ bool ArithCongruenceManager::propagate(TNode x){
       }
       cdp.addStep(proven[1], ProofRule::MODUS_PONENS, {antec, proven}, {});
       std::shared_ptr<ProofNode> pf;
-      bool success = false;
-      if (neg.getKind() == Kind::NOT && neg[0] == proven[1])
+      bool success = false;  
+      Rational rx, ry;
+      // We are robust to cases where proven[1] and neg[0] are equivalent via
+      // arith poly norm here, where in most cases neg[0] is proven[1]
+      if (neg.getKind() == Kind::NOT && PolyNorm::isArithPolyNormRel(proven[1],neg[0], rx, ry))
       {
+        if (neg[0]!=proven[1])
+        {
+          Node eqa = proven[1].eqNode(neg[0]);
+          Node premise =
+            PolyNorm::getArithPolyNormRelPremise(proven[1],neg[0], rx, ry);
+          cdp.addStep(premise, ProofRule::ARITH_POLY_NORM, {}, {premise});
+          cdp.addStep(eqa, ProofRule::ARITH_POLY_NORM_REL, {premise}, {eqa});
+          cdp.addStep(neg[0], ProofRule::EQ_RESOLVE, {proven[1], eqa}, {});
+        }
         // L1 and L2 are negation of one another, just use CONTRA
-        cdp.addStep(falsen, ProofRule::CONTRA, {proven[1], neg}, {});
+        cdp.addStep(falsen, ProofRule::CONTRA, {neg[0], neg}, {});
         success = true;
       }
       else if (proven[1].getKind() == Kind::EQUAL)
