@@ -71,48 +71,49 @@ Node SubtypeElimConverterCallback::convert(Node res,
   // proof rule
   switch (id)
   {
-  case ProofRule::ARITH_MULT_SIGN:
-  {
-    // For example, if x:Real, y:Int, this rule the arguments 
-    // (and (> x 0.0) (> y 0)), (* x y) proves
-    // (=> (and (> x 0.0) (> y 0)) (> (* x y) 0.0)). Subtype elimination
-    // converts this initially to (and (> x 0.0) (> y 0)), (* x (to_real y)),
-    // which is not a valid proof step since y does not match (to_real y).
-    // This further converts the arguments to
-    // (and (> x 0.0) (> (to_real y) 0.0)), (* x (to_real y)).
-    Assert (cargs.size()==2 && cargs[1].getKind()==Kind::NONLINEAR_MULT);
-    Assert (cargs[0].getKind()==Kind::AND);
-    Assert (cargs[1].getNumChildren()==cargs[0].getNumChildren());
-    std::vector<Node> nconj;
-    bool childChanged = false;
-    for (size_t i=0, nchild = cargs[1].getNumChildren(); i<nchild; i++)
+    case ProofRule::ARITH_MULT_SIGN:
     {
-      if (cargs[1][i].getKind()==Kind::TO_REAL)
+      // For example, if x:Real, y:Int, this rule the arguments
+      // (and (> x 0.0) (> y 0)), (* x y) proves
+      // (=> (and (> x 0.0) (> y 0)) (> (* x y) 0.0)). Subtype elimination
+      // converts this initially to (and (> x 0.0) (> y 0)), (* x (to_real y)),
+      // which is not a valid proof step since y does not match (to_real y).
+      // This further converts the arguments to
+      // (and (> x 0.0) (> (to_real y) 0.0)), (* x (to_real y)).
+      Assert(cargs.size() == 2 && cargs[1].getKind() == Kind::NONLINEAR_MULT);
+      Assert(cargs[0].getKind() == Kind::AND);
+      Assert(cargs[1].getNumChildren() == cargs[0].getNumChildren());
+      std::vector<Node> nconj;
+      bool childChanged = false;
+      for (size_t i = 0, nchild = cargs[1].getNumChildren(); i < nchild; i++)
       {
-        bool neg = cargs[0][i].getKind()==Kind::NOT;
-        Node atom = neg ? cargs[0][i][0] : cargs[0][i];
-        if (cargs[1][i][0] == atom[0])
+        if (cargs[1][i].getKind() == Kind::TO_REAL)
         {
-          Assert (atom[1].isConst() && atom[1].getConst<Rational>().sgn()==0);
-          childChanged = true;
-          Node newAtom = nm->mkNode(atom.getKind(), cargs[1][i], nm->mkConstReal(Rational(0)));
-          newAtom = neg ? newAtom.notNode() : newAtom;
-          nconj.push_back(newAtom);
-          continue;
+          bool neg = cargs[0][i].getKind() == Kind::NOT;
+          Node atom = neg ? cargs[0][i][0] : cargs[0][i];
+          if (cargs[1][i][0] == atom[0])
+          {
+            Assert(atom[1].isConst()
+                   && atom[1].getConst<Rational>().sgn() == 0);
+            childChanged = true;
+            Node newAtom = nm->mkNode(
+                atom.getKind(), cargs[1][i], nm->mkConstReal(Rational(0)));
+            newAtom = neg ? newAtom.notNode() : newAtom;
+            nconj.push_back(newAtom);
+            continue;
+          }
         }
+        nconj.push_back(cargs[0][i]);
       }
-      nconj.push_back(cargs[0][i]);
+      if (childChanged)
+      {
+        cargs[0] = nm->mkAnd(nconj);
+      }
     }
-    if (childChanged)
-    {
-      cargs[0] = nm->mkAnd(nconj);
-    }
-  }
-  break;
-  default:
     break;
+    default: break;
   }
-  
+
   Node newRes;
   // check if succeeds with no changes
   if (tryWith(id, children, cargs, resc, newRes, cdp))
