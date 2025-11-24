@@ -257,7 +257,7 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::EXISTS_ELIM: return "exists-elim";
     case ProofRewriteRule::QUANT_UNUSED_VARS: return "quant-unused-vars";
     case ProofRewriteRule::MACRO_QUANT_ELIM_SHADOW:
-      return "macro-quant-merge-prenex";
+      return "macro-quant-elim-shadow";
     case ProofRewriteRule::MACRO_QUANT_MERGE_PRENEX:
       return "macro-quant-merge-prenex";
     case ProofRewriteRule::QUANT_MERGE_PRENEX: return "quant-merge-prenex";
