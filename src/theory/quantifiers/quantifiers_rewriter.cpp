@@ -860,18 +860,6 @@ Node QuantifiersRewriter::computeProcessTerms2(
   Trace("quantifiers-rewrite-term-debug2")
       << "Returning " << ret << " for " << body << std::endl;
   // do context-independent rewriting
-  if (Configuration::isAssertionBuild())
-  {
-    if (ret.isClosure())
-    {
-      // Ensure no shadowing, which should be guaranteed since we eliminate
-      // shadowing at prerewrite.
-      for (size_t i = 0, nvars = ret[0].getNumChildren(); i < nvars; i++)
-      {
-        Assert(std::find(args.begin(), args.end(), ret[0][i]) == args.end());
-      }
-    }
-  }
   if (ret.getKind() == Kind::EQUAL
            && iteLiftMode != options::IteLiftQuantMode::NONE)
   {
@@ -1869,7 +1857,6 @@ Node QuantifiersRewriter::computePrenex(Node q,
                          nm->mkNode(Kind::OR, body[0], body[1].notNode()));
     return computePrenex(q, nn, args, nargs, pol, prenexAgg);
   }else if( body.getType().isBoolean() ){
-    Assert(k != Kind::EXISTS);
     bool childrenChanged = false;
     std::vector< Node > newChildren;
     for (size_t i = 0, nchild = body.getNumChildren(); i < nchild; i++)
