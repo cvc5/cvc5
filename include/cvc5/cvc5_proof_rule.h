@@ -2896,6 +2896,20 @@ enum ENUM(ProofRewriteRule)
   EVALUE(QUANT_UNUSED_VARS),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Quantifiers -- Macro eliminate shadowing**
+   *
+   * .. math::
+   *
+   *   Q X.\> F = Q X.\> G
+   *
+   * where :math:`Q` is either :math:`\forall` or :math:`\exists` and
+   * :math:`Q X.\> G` has no instances of variable shadowing.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_QUANT_ELIM_SHADOW),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Quantifiers -- Macro merge prenex**
    *
    * .. math::
