@@ -115,6 +115,7 @@ Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
         Node ns = ElimShadowNodeConverter::eliminateShadow(n);
         if (ns != n)
         {
+          Trace("quant-rewrite-proof") << "Rewrite " << n << " to " << ns << std::endl;
           return ns;
         }
       }
@@ -579,8 +580,8 @@ RewriteResponse QuantifiersRewriter::preRewrite(TNode q)
     // ensure shadowing is eliminated at this point, as some rewrites (e.g.
     // variable elimination) can be unsound with quantified formulas with
     // shadowing.
-    Node qms = ElimShadowNodeConverter::eliminateShadow(qm);
-    if (qms != qm)
+    Node qms = rewriteViaRule(ProofRewriteRule::MACRO_QUANT_ELIM_SHADOW, qm);
+    if (!qms.isNull())
     {
       return RewriteResponse(REWRITE_AGAIN_FULL, qms);
     }

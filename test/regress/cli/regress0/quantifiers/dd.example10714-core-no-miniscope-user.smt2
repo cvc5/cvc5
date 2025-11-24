@@ -1,0 +1,10 @@
+; EXPECT: unsat
+(set-logic ALL)
+(declare-sort m 0)
+(declare-datatypes ((u 0)) (((u))))
+(declare-fun t (u) m)
+(declare-fun l (u) Int)
+(define-fun h ((p u)) Bool false)
+(declare-fun o (m Int Int) u)
+(assert (forall ((p u)) (! (= true (h (o (t u) (l u) 0))) :pattern (u))))
+(check-sat)
