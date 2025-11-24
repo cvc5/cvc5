@@ -216,8 +216,9 @@ int ArithMSum::isolate(
       }
       val = children.size() > 1
                 ? nm->mkNode(Kind::ADD, children)
-                : (children.size() == 1 ? children[0]
-                                        : nm->mkConstRealOrInt(v.getType(), Rational(0)));
+                : (children.size() == 1
+                       ? children[0]
+                       : nm->mkConstRealOrInt(v.getType(), Rational(0)));
       if (!r.isOne() && !r.isNegativeOne())
       {
         if (vtn.isInteger())

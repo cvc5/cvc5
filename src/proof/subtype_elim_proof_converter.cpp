@@ -63,7 +63,7 @@ Node SubtypeElimConverterCallback::convert(Node res,
   // trivial case: use refl. This handles all cases where e.g. rewriting
   // introduced mixed arithmetic. This happens commonly so we shortcut as
   // an optimization here.
-  if (resc.getKind()==Kind::EQUAL && resc[0]==resc[1])
+  if (resc.getKind() == Kind::EQUAL && resc[0] == resc[1])
   {
     cdp->addStep(resc, ProofRule::REFL, {}, {resc[0]});
     return resc;
