@@ -108,7 +108,7 @@ Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
 {
   switch (id)
   {
-    case ProofRewriteRule::MACRO_QUANT_ELIM_SHADOW: 
+    case ProofRewriteRule::MACRO_QUANT_ELIM_SHADOW:
     {
       if (n.isClosure())
       {

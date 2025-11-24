@@ -2892,12 +2892,10 @@ bool BasicRewriteRCons::ensureProofMacroBvEqSolve(CDProof* cdp, const Node& eq)
   return true;
 }
 
-bool BasicRewriteRCons::ensureProofMacroElimShadow(CDProof* cdp,
-                                                           const Node& eq)
+bool BasicRewriteRCons::ensureProofMacroElimShadow(CDProof* cdp, const Node& eq)
 
 {
-  Trace("brc-macro") << "Expand macro eliminate shadow for " << eq
-                     << std::endl;
+  Trace("brc-macro") << "Expand macro eliminate shadow for " << eq << std::endl;
   // Get equalities between subterms that are disequal in LHS/RHS. These will
   // be added as rewrite steps below.
   std::vector<Node> matchConds;
