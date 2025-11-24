@@ -17,7 +17,7 @@ find_package(Java REQUIRED)
 include(UseJava)
 
 get_target_property(CVC5_JAR_PATH cvc5jar JAR_FILE)
-get_filename_component(CVC5_JNI_PATH ${CVC5_JAR_PATH} DIRECTORY)
+get_target_property(CVC5_JNI_LIBDIR cvc5jni LIBRARY_OUTPUT_DIRECTORY)
 
 add_custom_target(build-japitests)
 add_dependencies(build-apitests build-japitests)
@@ -48,7 +48,7 @@ macro(cvc5_add_java_api_test name dir)
   add_test(${testname}
       ${ENV_PATH_CMD}
       ${Java_JAVA_EXECUTABLE}
-        -Djava.library.path=${CVC5_JNI_PATH}
+        -Djava.library.path=${CVC5_JNI_LIBDIR}
         -cp "${CVC5_JAR_PATH}${PATH_SEP}${test_bin_dir}/${name}.jar" ${name}
     )
   set_tests_properties(${testname} PROPERTIES LABELS "api japi")

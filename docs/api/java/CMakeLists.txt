@@ -53,10 +53,10 @@ if(BUILD_BINDINGS_JAVA)
   string(REPLACE "\n" " " JAVADOC_MATHJAX ${JAVADOC_MATHJAX})
   string(REPLACE " " ";" JAVADOC_MATHJAX ${JAVADOC_MATHJAX})
 
-set(Java_DOCLINT -Xdoclint:all)
-if(TREAT_WARNING_AS_ERROR)
-  list(APPEND Java_DOCLINT -Werror)
-endif()
+  set(Java_DOCLINT -Xdoclint:all)
+  if(TREAT_WARNING_AS_ERROR)
+    list(APPEND Java_DOCLINT -Werror)
+  endif()
 
   get_target_property(CVC5_JAR_FILE cvc5jar JAR_FILE)
   add_custom_command(
@@ -80,6 +80,18 @@ endif()
   )
 
   add_custom_target(docs-java-javadoc DEPENDS ${JAVADOC_INDEX_FILE})
-  add_dependencies(docs-java docs-java-javadoc)
+
+  # Build cvc5-javadoc.jar to enable IDE tooltips and API documentation
+  set(JAVADOC_JAR ${CMAKE_CURRENT_BINARY_DIR}/cvc5-javadoc.jar)
+  add_custom_command(
+    OUTPUT ${JAVADOC_JAR}
+    COMMAND ${Java_JAR_EXECUTABLE} cf ${JAVADOC_JAR} -C ${JAVADOC_OUTPUT_DIR} .
+    DEPENDS ${JAVADOC_INDEX_FILE}
+    COMMENT "Generating javadoc JAR"
+  )
+
+  add_custom_target(javadoc-jar ALL DEPENDS ${JAVADOC_JAR})
+
+  add_dependencies(docs-java docs-java-javadoc javadoc-jar)
 endif()
 

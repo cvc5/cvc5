@@ -148,8 +148,7 @@ void InstMatchGeneratorSimple::addInstantiations(InstMatch& m,
     }
     // we do not need the trigger parent for simple triggers (no post-processing
     // required)
-    if (sendInstantiation(terms,
-                          InferenceId::QUANTIFIERS_INST_E_MATCHING_SIMPLE))
+    if (sendInstantiation(terms))
     {
       addedLemmas++;
       Trace("simple-trigger")
@@ -208,6 +207,10 @@ int InstMatchGeneratorSimple::getActiveScore()
   return static_cast<int>(ngt);
 }
 
+InferenceId InstMatchGeneratorSimple::getInferenceId()
+{
+  return InferenceId::QUANTIFIERS_INST_E_MATCHING_SIMPLE;
+}
 }  // namespace inst
 }  // namespace quantifiers
 }  // namespace theory
