@@ -115,7 +115,8 @@ Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
         Node ns = ElimShadowNodeConverter::eliminateShadow(n);
         if (ns != n)
         {
-          Trace("quant-rewrite-proof") << "Rewrite " << n << " to " << ns << std::endl;
+          Trace("quant-rewrite-proof")
+              << "Rewrite " << n << " to " << ns << std::endl;
           return ns;
         }
       }

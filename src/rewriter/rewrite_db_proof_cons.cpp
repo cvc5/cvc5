@@ -206,8 +206,7 @@ Node RewriteDbProofCons::preprocessClosureEq(CDProof* cdp,
 {
   // if it is a single step rewrite, do not preprocess
   theory::Rewriter* rr = d_env.getRewriter();
-  ProofRewriteRule prid =
-      rr->findRule(a, b, theory::TheoryRewriteCtx::PRE_DSL);
+  ProofRewriteRule prid = rr->findRule(a, b, theory::TheoryRewriteCtx::PRE_DSL);
   if (prid != ProofRewriteRule::NONE)
   {
     // a simple theory rewrite happens to solve it, do not continue
