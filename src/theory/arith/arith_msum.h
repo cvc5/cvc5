@@ -114,7 +114,7 @@ class ArithMSum
 
   /** make coefficent term
    *
-   * Input c is a m-constant.
+   * Input c is an m-constant.
    * Returns the term t if c.isNull() or c*t otherwise.
    */
   static Node mkCoeffTerm(Node c, Node t);
