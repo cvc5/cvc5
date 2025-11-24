@@ -127,6 +127,7 @@ std::shared_ptr<ProofNode> ArithNlCompareProofGenerator::getProofFor(Node fact)
       {
         size_t ii = 1 - i;
         Node a = eprod[ii][0];
+        a = a.getKind()==Kind::TO_REAL ? a[0] : a;
         size_t na = mexp[ii][a];
         size_t nb = mexp[i][a];
         // Don't take more than this side has. This handles cases like
@@ -147,7 +148,9 @@ std::shared_ptr<ProofNode> ArithNlCompareProofGenerator::getProofFor(Node fact)
         // premises where monomials on RHS/LHS occur in consecutive premises,
         // as they are ordered by model value in the MonomialCheck solver.
         Node a = eprod[0][0];
+        a = a.getKind()==Kind::TO_REAL ? a[0] : a;
         Node b = eprod[1][0];
+        b = b.getKind()==Kind::TO_REAL ? b[0] : b;
         size_t na = mexp[0][a];
         size_t nb = mexp[1][b];
         size_t n = na > nb ? nb : na;
@@ -265,7 +268,7 @@ std::shared_ptr<ProofNode> ArithNlCompareProofGenerator::getProofFor(Node fact)
   Node newConc =
       pc->checkDebug(ProofRule::ARITH_MULT_ABS_COMPARISON, expcFinal, {});
   Trace("arith-nl-compare")
-      << "...grouped conclusion is " << newConc << std::endl;
+      << "...grouped conclusion is " << newConc << " from " << expcFinal << std::endl;
   Assert(!newConc.isNull());
   cdp.addStep(newConc, ProofRule::ARITH_MULT_ABS_COMPARISON, expcFinal, {});
   // the grouped literal should be equivalent by rewriting
@@ -349,6 +352,11 @@ Kind ArithNlCompareProofGenerator::decomposeCompareLit(const Node& lit,
 void ArithNlCompareProofGenerator::addProduct(const Node& n,
                                               std::vector<Node>& vec)
 {
+  if (n.getKind()==Kind::TO_REAL)
+  {
+    addProduct(n[0], vec);
+    return;
+  }
   if (n.getKind() == Kind::NONLINEAR_MULT)
   {
     vec.insert(vec.end(), n.begin(), n.end());
