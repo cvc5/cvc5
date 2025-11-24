@@ -844,31 +844,16 @@ Node QuantifiersRewriter::computeProcessTerms2(
   Trace("quantifiers-rewrite-term-debug2")
       << "Returning " << ret << " for " << body << std::endl;
   // do context-independent rewriting
-  if (ret.isClosure())
+  if (Configuration::isAssertionBuild())
   {
-    // Ensure no shadowing. If this term is a closure quantifying a variable
-    // in args, then we introduce fresh variable(s) and replace this closure
-    // to be over the fresh variables instead.
-    std::vector<Node> oldVars;
-    std::vector<Node> newVars;
-    for (size_t i = 0, nvars = ret[0].getNumChildren(); i < nvars; i++)
+    if (ret.isClosure())
     {
-      const Node& v = ret[0][i];
-      if (std::find(args.begin(), args.end(), v) != args.end())
+      // Ensure no shadowing, which should be guaranteed since we eliminate
+      // shadowing at prerewrite.
+      for (const Node& v : ret[0])
       {
-        Trace("quantifiers-rewrite-unshadow")
-            << "Found shadowed variable " << v << " in " << q << std::endl;
-        oldVars.push_back(v);
-        Node nv = ElimShadowNodeConverter::getElimShadowVar(q, ret, i);
-        newVars.push_back(nv);
+        Assert (std::find(args.begin(), args.end(), v) == args.end());
       }
-    }
-    if (!oldVars.empty())
-    {
-      Assert(oldVars.size() == newVars.size());
-      Node sbody = ret.substitute(
-          oldVars.begin(), oldVars.end(), newVars.begin(), newVars.end());
-      ret = sbody;
     }
   }
   else if (ret.getKind() == Kind::EQUAL
