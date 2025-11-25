@@ -331,8 +331,11 @@ unsigned HoExtension::checkExtensionality(TheoryModel* m)
       // We classify a function here to determine whether we need to apply
       // extensionality eagerly during solving. We apply extensionality
       // eagerly during solving if
-      // (A) The function type has finite cardinality, or
-      // (B) All of its arguments have finite cardinality.
+      // (A) The function type has finite cardinality,
+      // (B) All of its arguments have finite cardinality, or
+      // (C) It has a function as an argument.
+      // The latter is required so that we recursively consider extensionality
+      // between function constants introduced for extensionality lemmas.
       bool finiteExtType = true;
       if (!d_env.isFiniteType(tn))
       {
@@ -341,6 +344,11 @@ unsigned HoExtension::checkExtensionality(TheoryModel* m)
           if (!d_env.isFiniteType(tna))
           {
             finiteExtType = false;
+          }
+          if (tna.isFunction())
+          {
+            finiteExtType = true;
+            break;
           }
         }
       }
