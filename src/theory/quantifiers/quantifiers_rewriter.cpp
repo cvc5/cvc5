@@ -22,6 +22,7 @@
 #include "expr/elim_shadow_converter.h"
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
+#include "expr/subtype_elim_node_converter.h"
 #include "options/quantifiers_options.h"
 #include "proof/conv_proof_generator.h"
 #include "proof/proof.h"
@@ -78,6 +79,8 @@ QuantifiersRewriter::QuantifiersRewriter(NodeManager* nm,
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::QUANT_UNUSED_VARS,
                            TheoryRewriteCtx::PRE_DSL);
+  registerProofRewriteRule(ProofRewriteRule::MACRO_QUANT_ELIM_SHADOW,
+                           TheoryRewriteCtx::PRE_DSL);
   // QUANT_MERGE_PRENEX is part of the reconstruction for
   // MACRO_QUANT_MERGE_PRENEX
   registerProofRewriteRule(ProofRewriteRule::MACRO_QUANT_MERGE_PRENEX,
@@ -105,6 +108,20 @@ Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
 {
   switch (id)
   {
+    case ProofRewriteRule::MACRO_QUANT_ELIM_SHADOW:
+    {
+      if (n.isClosure())
+      {
+        Node ns = ElimShadowNodeConverter::eliminateShadow(n);
+        if (ns != n)
+        {
+          Trace("quant-rewrite-proof")
+              << "Rewrite " << n << " to " << ns << std::endl;
+          return ns;
+        }
+      }
+      return Node::null();
+    }
     case ProofRewriteRule::EXISTS_ELIM:
     {
       if (n.getKind() != Kind::EXISTS)
@@ -344,6 +361,8 @@ Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       {
         return Node::null();
       }
+      Trace("quant-rewrite-proof")
+          << "Var elim rewrite " << n << ", id " << id << "?" << std::endl;
       std::vector<Node> args(n[0].begin(), n[0].end());
       std::vector<Node> vars;
       std::vector<Node> subs;
@@ -404,6 +423,8 @@ Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
         std::vector<Node> qc(n.begin(), n.end());
         qc[1] =
             body.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
+        Trace("quant-rewrite-proof")
+            << "...returns body " << qc[1] << std::endl;
         if (args.empty())
         {
           return qc[1];
@@ -556,6 +577,14 @@ RewriteResponse QuantifiersRewriter::preRewrite(TNode q)
     if (q != qm)
     {
       return RewriteResponse(REWRITE_AGAIN_FULL, qm);
+    }
+    // ensure shadowing is eliminated at this point, as some rewrites (e.g.
+    // variable elimination) can be unsound with quantified formulas with
+    // shadowing.
+    Node qms = rewriteViaRule(ProofRewriteRule::MACRO_QUANT_ELIM_SHADOW, qm);
+    if (!qms.isNull())
+    {
+      return RewriteResponse(REWRITE_AGAIN_FULL, qms);
     }
   }
   return RewriteResponse(REWRITE_DONE, q);
@@ -831,34 +860,7 @@ Node QuantifiersRewriter::computeProcessTerms2(
   Trace("quantifiers-rewrite-term-debug2")
       << "Returning " << ret << " for " << body << std::endl;
   // do context-independent rewriting
-  if (ret.isClosure())
-  {
-    // Ensure no shadowing. If this term is a closure quantifying a variable
-    // in args, then we introduce fresh variable(s) and replace this closure
-    // to be over the fresh variables instead.
-    std::vector<Node> oldVars;
-    std::vector<Node> newVars;
-    for (size_t i = 0, nvars = ret[0].getNumChildren(); i < nvars; i++)
-    {
-      const Node& v = ret[0][i];
-      if (std::find(args.begin(), args.end(), v) != args.end())
-      {
-        Trace("quantifiers-rewrite-unshadow")
-            << "Found shadowed variable " << v << " in " << q << std::endl;
-        oldVars.push_back(v);
-        Node nv = ElimShadowNodeConverter::getElimShadowVar(q, ret, i);
-        newVars.push_back(nv);
-      }
-    }
-    if (!oldVars.empty())
-    {
-      Assert(oldVars.size() == newVars.size());
-      Node sbody = ret.substitute(
-          oldVars.begin(), oldVars.end(), newVars.begin(), newVars.end());
-      ret = sbody;
-    }
-  }
-  else if (ret.getKind() == Kind::EQUAL
+  if (ret.getKind() == Kind::EQUAL
            && iteLiftMode != options::IteLiftQuantMode::NONE)
   {
     for (size_t i = 0; i < 2; i++)
@@ -1799,6 +1801,7 @@ Node QuantifiersRewriter::computePrenex(Node q,
       std::vector<Node>& argVec = pol ? args : nargs;
       //for doing prenexing of same-signed quantifiers
       //must rename each variable that already exists
+      SubtypeElimNodeConverter senc(nodeManager());
       for (const Node& v : body[0])
       {
         terms.push_back(v);
@@ -1821,6 +1824,7 @@ Node QuantifiersRewriter::computePrenex(Node q,
           {
             Node ii = nm->mkConstInt(index);
             Node cacheVal = nm->mkNode(Kind::SEXPR, {q, body, v, ii});
+            cacheVal = senc.convert(cacheVal);
             vv = bvm->mkBoundVar(BoundVarId::QUANT_REW_PRENEX, cacheVal, vt);
             index++;
           } while (std::find(argVec.begin(), argVec.end(), vv) != argVec.end());
@@ -1853,7 +1857,6 @@ Node QuantifiersRewriter::computePrenex(Node q,
                          nm->mkNode(Kind::OR, body[0], body[1].notNode()));
     return computePrenex(q, nn, args, nargs, pol, prenexAgg);
   }else if( body.getType().isBoolean() ){
-    Assert(k != Kind::EXISTS);
     bool childrenChanged = false;
     std::vector< Node > newChildren;
     for (size_t i = 0, nchild = body.getNumChildren(); i < nchild; i++)
@@ -2091,6 +2094,7 @@ Node QuantifiersRewriter::computeMiniscoping(Node q,
       // forall x. P1 ^ ... ^ Pn ---> forall x. P1 ^ ... ^ forall x. Pn
       NodeBuilder t(nm, k);
       std::vector<Node> argsc;
+      SubtypeElimNodeConverter senc(nodeManager());
       for (size_t i = 0, nchild = body.getNumChildren(); i < nchild; i++)
       {
         if (argsc.empty())
@@ -2101,6 +2105,7 @@ Node QuantifiersRewriter::computeMiniscoping(Node q,
           {
             TypeNode vt = v.getType();
             Node cacheVal = BoundVarManager::getCacheValue(q, v, i);
+            cacheVal = senc.convert(cacheVal);
             Node vv =
                 bvm->mkBoundVar(BoundVarId::QUANT_REW_MINISCOPE, cacheVal, vt);
             argsc.push_back(vv);

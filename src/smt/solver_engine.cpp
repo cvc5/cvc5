@@ -936,7 +936,25 @@ void SolverEngine::assertFormulaInternal(const Node& formula)
   // as an optimization we do not check whether formula is well-formed here, and
   // defer this check for certain cases within the assertions module.
   Trace("smt") << "SolverEngine::assertFormula(" << formula << ")" << endl;
-  d_smtSolver->getAssertions().assertFormula(formula);
+  Node f = formula;
+  // If we are proof producing and don't permit subtypes, we rewrite now.
+  // Otherwise we will have an assumption with mixed arithmetic which is
+  // not permitted in proofs that cannot be eliminated, and will require a
+  // trust step.
+  // We don't care if we are an internal subsolver, as this rewriting only
+  // impacts having exportable, complete proofs, which is not an issue for
+  // internal subsolvers.
+  if (d_env->isProofProducing() && !d_isInternalSubsolver)
+  {
+    if (options().proof.proofElimSubtypes)
+    {
+      SubtypeElimNodeConverter senc(d_env->getNodeManager());
+      f = senc.convert(formula);
+      // note we could throw a warning here if formula and f are different,
+      // but currently don't.
+    }
+  }
+  d_smtSolver->getAssertions().assertFormula(f);
 }
 
 /*
