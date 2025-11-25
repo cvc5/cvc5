@@ -68,7 +68,7 @@ bool ArithProofRCons::solveEquality(CDProof& cdp,
     Trace("arith-proof-rcons")
         << "SUBS: " << m.first << " = " << val << std::endl;
     Node eq = m.first.eqNode(val);
-    if (as != eq)
+    if (!CDProof::isSame(as, eq))
     {
       cdp.addStep(eq, ProofRule::MACRO_SR_PRED_TRANSFORM, {as}, {eq});
     }
@@ -114,7 +114,7 @@ Node ArithProofRCons::applySR(CDProof& cdp,
     cdp.addProof(pfn);
     cdp.addStep(as, ProofRule::EQ_RESOLVE, {a, a.eqNode(as)}, {});
   }
-  if (as != asr)
+  if (!CDProof::isSame(as, asr))
   {
     cdp.addStep(asr, ProofRule::MACRO_SR_PRED_TRANSFORM, {as}, {asr});
   }
