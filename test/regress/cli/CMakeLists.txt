@@ -1477,6 +1477,7 @@ set(regress_0_tests
   regress0/proofs/issue9669-clause-level-opt-incremental.smt2
   regress0/proofs/issue9770-open-sat-proof.smt2
   regress0/proofs/issue9927.smt2
+  regress0/proofs/issue12240-cyclic-proof.smt2
   regress0/proofs/lfsc-test-1.smt2
   regress0/proofs/macro-quant-prenex-simple.smt2
   regress0/proofs/nomerge-alethe-pf.smt2
