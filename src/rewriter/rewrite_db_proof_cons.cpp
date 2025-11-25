@@ -204,6 +204,14 @@ Node RewriteDbProofCons::preprocessClosureEq(CDProof* cdp,
                                              const Node& a,
                                              const Node& b)
 {
+  // if it is a single step rewrite, do not preprocess
+  theory::Rewriter* rr = d_env.getRewriter();
+  ProofRewriteRule prid = rr->findRule(a, b, theory::TheoryRewriteCtx::PRE_DSL);
+  if (prid != ProofRewriteRule::NONE)
+  {
+    // a simple theory rewrite happens to solve it, do not continue
+    return Node::null();
+  }
   // Ensure patterns are removed by calling d_rdnc postConvert (single step),
   // which also ensures differences e.g. LAMBDA vs FUNCTION_ARRAY_CONST are
   // resolved. We do not apply convert recursively here.
@@ -217,14 +225,6 @@ Node RewriteDbProofCons::preprocessClosureEq(CDProof* cdp,
   // only apply this to standard binders (those with 2 children)
   if (ai.getNumChildren() != 2 || bi.getNumChildren() != 2)
   {
-    return Node::null();
-  }
-  theory::Rewriter* rr = d_env.getRewriter();
-  ProofRewriteRule prid =
-      rr->findRule(ai, bi, theory::TheoryRewriteCtx::PRE_DSL);
-  if (prid != ProofRewriteRule::NONE)
-  {
-    // a simple theory rewrite happens to solve it, do not continue
     return Node::null();
   }
   Node eq;
