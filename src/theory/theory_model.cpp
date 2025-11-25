@@ -904,6 +904,8 @@ void TheoryModel::assignFunctionDefaultHo(Node f) const
     Trace("model-builder-debug2")
         << "      get rep : " << hn[1] << " returned " << hni << std::endl;
     Assert(hni.getType() == args[0].getType());
+    // rewrite to ensure the equality is properly oriented, as required by
+    // function constants
     hni = rewrite(args[0].eqNode(hni));
     // get representative of the returned term, which note may recursively
     // compute more function values.
