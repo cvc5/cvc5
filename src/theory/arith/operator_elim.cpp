@@ -147,7 +147,6 @@ Node OperatorElim::eliminateOperators(NodeManager* nm,
       Node neg_assumption = nm->mkNode(Kind::NOT, pos_assumption);
       Node neg_prop = nm->mkNode(Kind::EQUAL, v, zero);
       Node neg_lem = nm->mkNode(Kind::IMPLIES, neg_assumption, neg_prop);
-
       Node lem = nm->mkNode(Kind::AND, pos_lem, neg_lem);
       lems.emplace_back(lem, v);
 
