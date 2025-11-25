@@ -76,9 +76,9 @@ class TBitblaster
 template <class T>
 void TBitblaster<T>::initAtomBBStrategies()
 {
-  for (auto& d_atomBBStrategy : d_atomBBStrategies)
+  for (auto& atomBBStrategy : d_atomBBStrategies)
   {
-    d_atomBBStrategy = UndefinedAtomBBStrategy<T>;
+    atomBBStrategy = UndefinedAtomBBStrategy<T>;
   }
   // clang-format off
   // setting default bb strategies for atoms
@@ -97,9 +97,9 @@ void TBitblaster<T>::initAtomBBStrategies()
 template <class T>
 void TBitblaster<T>::initTermBBStrategies()
 {
-  for (auto& d_termBBStrategy : d_termBBStrategies)
+  for (auto& termBBStrategy : d_termBBStrategies)
   {
-    d_termBBStrategy = DefaultVarBB<T>;
+    termBBStrategy = DefaultVarBB<T>;
   }
   // clang-format off
   // setting default bb strategies for terms
