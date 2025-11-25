@@ -336,18 +336,18 @@ unsigned HoExtension::checkExtensionality(TheoryModel* m)
       // (C) It has a function as an argument.
       // The latter is required so that we recursively consider extensionality
       // between function constants introduced for extensionality lemmas.
-      bool finiteExtType = true;
+      bool eagerExtType = true;
       if (!d_env.isFiniteType(tn))
       {
         for (const TypeNode& tna : argTypes)
         {
           if (!d_env.isFiniteType(tna))
           {
-            finiteExtType = false;
+            eagerExtType = false;
           }
           if (tna.isFunction())
           {
-            finiteExtType = true;
+            eagerExtType = true;
             break;
           }
         }
@@ -357,7 +357,7 @@ unsigned HoExtension::checkExtensionality(TheoryModel* m)
       // such function are not necessary to be handled during solving.
       // If not during collect model, must have a finite function type, since
       // such function symbols must be handled during solving.
-      if (finiteExtType != isCollectModel)
+      if (eagerExtType != isCollectModel)
       {
         func_eqcs[tn].push_back(eqc);
         Trace("uf-ho-debug")
