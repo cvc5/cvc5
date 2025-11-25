@@ -214,7 +214,7 @@ bool AlfPrinter::isHandled(const Options& opts, const ProofNode* pfn)
              || k == Kind::DIVISION || k == Kind::DIVISION_TOTAL
              || k == Kind::INTS_DIVISION || k == Kind::INTS_DIVISION_TOTAL
              || k == Kind::INTS_MODULUS || k == Kind::INTS_MODULUS_TOTAL
-             || k == Kind::ABS;
+             || k == Kind::ABS || k == Kind::INTS_LOG2;
     }
     break;
     case ProofRule::STRING_REDUCTION:

@@ -147,7 +147,6 @@ Node OperatorElim::eliminateOperators(NodeManager* nm,
       Node neg_assumption = nm->mkNode(Kind::NOT, pos_assumption);
       Node neg_prop = nm->mkNode(Kind::EQUAL, v, zero);
       Node neg_lem = nm->mkNode(Kind::IMPLIES, neg_assumption, neg_prop);
-
       Node lem = nm->mkNode(Kind::AND, pos_lem, neg_lem);
       lems.emplace_back(lem, v);
 
@@ -254,9 +253,14 @@ Node OperatorElim::eliminateOperators(NodeManager* nm,
       wasNonLinear = true;
       Node rw = nm->mkNode(k, num, den);
       Node v = sm->mkPurifySkolem(rw);
-      Node lem = nm->mkNode(Kind::IMPLIES,
-                            den.eqNode(mkZero(den.getType())).negate(),
-                            mkEquality(nm->mkNode(Kind::MULT, den, v), num));
+      if (num.getType().isInteger())
+      {
+        num = nm->mkNode(Kind::TO_REAL, num);
+      }
+      Node lem = nm->mkNode(
+          Kind::IMPLIES,
+          den.eqNode(mkZero(den.getType())).negate(),
+          nm->mkNode(Kind::EQUAL, nm->mkNode(Kind::MULT, den, v), num));
       lems.emplace_back(lem, v);
       return v;
       break;
