@@ -108,7 +108,7 @@ class DistinctProofGenerator : protected EnvObj, public ProofGenerator
         Node eq = atom.eqNode(batom);
         cdp.addTheoryRewriteStep(eq, ProofRewriteRule::DISTINCT_ELIM);
         Node eqs = eq[1].eqNode(eq[0]);
-        cdp.addStep(eqs, ProofRule::SYMM, {}, {eq});
+        // eqs proven via eq based on auto-symm handling in CDProof
         cdp.addStep(atom, ProofRule::EQ_RESOLVE, {batom, eqs}, {});
         //   ----------------
         // B  B = dist(a,b,c)
