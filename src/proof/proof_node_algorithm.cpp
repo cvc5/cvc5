@@ -247,7 +247,6 @@ ProofRule getCongRule(const Node& n, std::vector<Node>& args)
   ProofRule r = ProofRule::CONG;
   switch (k)
   {
-    // distinct takes an argument list
     case Kind::APPLY_UF:
     case Kind::DISTINCT:
     case Kind::FLOATINGPOINT_LT:
