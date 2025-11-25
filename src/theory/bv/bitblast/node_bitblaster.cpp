@@ -128,7 +128,7 @@ void NodeBitblaster::getBBTerm(TNode node, Bits& bits) const
 
 void NodeBitblaster::storeBBTerm(TNode node, const Bits& bits)
 {
-  d_bbTerms.insert(std::make_pair(node, bits));
+  d_bbTerms.emplace(node, bits);
 }
 
 }  // namespace bv
