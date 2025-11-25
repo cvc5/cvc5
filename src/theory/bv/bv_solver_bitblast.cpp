@@ -118,17 +118,15 @@ BVSolverBitblast::BVSolverBitblast(Env& env,
       d_bbInputFacts(context()),
       d_assumptions(context()),
       d_assertions(context()),
-      d_epg(env.isTheoryProofProducing()
-                ? new EagerProofGenerator(env, userContext(), "")
-                : nullptr),
-      d_bvProofChecker(nodeManager()),
       d_factLiteralCache(context()),
       d_literalFactCache(context()),
       d_resetNotify(new NotifyResetAssertions(userContext()))
 {
   if (env.isTheoryProofProducing())
   {
-    d_bvProofChecker.registerTo(env.getProofNodeManager()->getChecker());
+    d_epg.reset(new EagerProofGenerator(env, userContext(), ""));
+    d_bvProofChecker.reset(new BVProofRuleChecker(nodeManager()));
+    d_bvProofChecker->registerTo(env.getProofNodeManager()->getChecker());
   }
 
   initSatSolver();
