@@ -1118,6 +1118,7 @@ set(regress_0_tests
   regress0/nl/issue10145-ir-pow.smt2
   regress0/nl/issue10140-nl-tc.smt2
   regress0/nl/issue11901-pow-rewrite-type.smt2
+  regress0/nl/issue12239-subtype-elim.smt2
   regress0/nl/issue3003.smt2
   regress0/nl/issue3407.smt2
   regress0/nl/issue3411.smt2
@@ -1461,6 +1462,7 @@ set(regress_0_tests
   regress0/proofs/dd_issue2031-bv-var-elim.smt2
   regress0/proofs/issue10278-pf-clone.smt2
   regress0/proofs/issue11750.smt2
+  regress0/proofs/issue12254-pf-arith-cm.smt2
   regress0/proofs/issue8983-trust-subs.smt2
   regress0/proofs/issue9156-doublePropProof.smt2
   regress0/proofs/issue9172-doublePropProof.smt2
@@ -1598,6 +1600,7 @@ set(regress_0_tests
   regress0/quantifiers/dd_check_cc_bvxor_x_s_4.smt2
   regress0/quantifiers/dd_check_eq_bvnot_32bit.smt2
   regress0/quantifiers/dd_check_ic_sext_4_4.smt2
+  regress0/quantifiers/dd.example10714-core-no-miniscope-user.smt2
   regress0/quantifiers/dd_german169_semi_eval.smt2
   regress0/quantifiers/dd_kmdf_osrubvfx2.smt2
   regress0/quantifiers/dd_p15_dio_lemma.smt2
@@ -1633,6 +1636,8 @@ set(regress_0_tests
   regress0/quantifiers/issue11752-prenex-norm.smt2
   regress0/quantifiers/issue11968-rd-typed.smt2
   regress0/quantifiers/issue12172-ent-var-elim.smt2
+  regress0/quantifiers/issue12252-var-elim-shadow.smt2
+  regress0/quantifiers/issue12252-var-elim-shadow-min.smt2
   regress0/quantifiers/issue2031-bv-var-elim.smt2
   regress0/quantifiers/issue2033-macro-arith.smt2
   regress0/quantifiers/issue2035.smt2
@@ -2050,6 +2055,7 @@ set(regress_0_tests
   regress0/strings/issue11710-numeric-max.smt2
   regress0/strings/issue11890-eec-model.smt2
   regress0/strings/issue12027-str-ae.smt2
+  regress0/strings/issue12241-aci.smt2
   regress0/strings/issue1189.smt2
   regress0/strings/issue2958.smt2
   regress0/strings/issue3440.smt2
