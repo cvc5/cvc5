@@ -124,7 +124,6 @@ BVSolverBitblast::BVSolverBitblast(Env& env,
       d_bvProofChecker(nodeManager()),
       d_factLiteralCache(context()),
       d_literalFactCache(context()),
-      d_propagate(options().bv.bitvectorPropagate),
       d_resetNotify(new NotifyResetAssertions(userContext()))
 {
   if (env.isTheoryProofProducing())
@@ -147,7 +146,7 @@ void BVSolverBitblast::postCheck(Theory::Effort level)
   if (level != Theory::Effort::EFFORT_FULL)
   {
     /* Do bit-level propagation only if the SAT solver supports it. */
-    if (!d_propagate || !d_satSolver->setPropagateOnly())
+    if (!options().bv.bitvectorPropagate || !d_satSolver->setPropagateOnly())
     {
       return;
     }

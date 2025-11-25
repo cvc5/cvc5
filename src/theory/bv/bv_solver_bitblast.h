@@ -18,13 +18,13 @@
 #ifndef CVC5__THEORY__BV__BV_SOLVER_BITBLAST_H
 #define CVC5__THEORY__BV__BV_SOLVER_BITBLAST_H
 
-#include <unordered_map>
+#include <memory>
 
+#include "smt/env_obj.h"
 #include "context/cdqueue.h"
 #include "proof/eager_proof_generator.h"
 #include "prop/cnf_stream.h"
 #include "prop/sat_solver.h"
-#include "smt/env_obj.h"
 #include "theory/bv/bitblast/node_bitblaster.h"
 #include "theory/bv/bv_solver.h"
 #include "theory/bv/proof_checker.h"
@@ -103,14 +103,12 @@ class BVSolverBitblast : public BVSolver
 
   /**
    * Bit-blast queue for facts sent to this solver.
-   *
    * Gets populated on preNotifyFact().
    */
   context::CDQueue<Node> d_bbFacts;
 
   /**
    * Bit-blast queue for user-level 0 input facts sent to this solver.
-   *
    * Get populated on preNotifyFact().
    */
   context::CDQueue<Node> d_bbInputFacts;
@@ -132,9 +130,6 @@ class BVSolverBitblast : public BVSolver
   /** Reverse map of `d_factLiteralCache`. */
   context::CDHashMap<prop::SatLiteral, Node, prop::SatLiteralHashFunction>
       d_literalFactCache;
-
-  /** Option to enable/disable bit-level propagation. */
-  bool d_propagate;
 
   /** Notifies when reset-assertion was called. */
   std::unique_ptr<NotifyResetAssertions> d_resetNotify;
