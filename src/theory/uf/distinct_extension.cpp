@@ -26,6 +26,110 @@ namespace cvc5::internal {
 namespace theory {
 namespace uf {
 
+/**
+ * A proof generator for lemmas added by the distinct extension
+ */
+class DistinctProofGenerator : protected EnvObj, public ProofGenerator
+{
+ public:
+  DistinctProofGenerator(Env& env) : EnvObj(env) {}
+  virtual ~DistinctProofGenerator() {}
+  /**
+   * Proves false from an element equality and a distinct constraint, as
+   * described below. This is used both for giving proofs of lemmas and
+   * conflicts.
+   */
+  std::shared_ptr<ProofNode> getConflictProof(Node eeq, Node distinct)
+  {
+    CDProof cdp(d_env);
+    std::vector<Node> cpremises;
+    for (const Node& e : distinct)
+    {
+      if (e == eeq[0])
+      {
+        cpremises.push_back(eeq);
+      }
+      else
+      {
+        // otherwise will be refl
+        cpremises.push_back(Node::null());
+      }
+    }
+    //                      ------  -----
+    //              a = c   b = b   c = c
+    //              ------------------------- cong  -------------------
+    //              dist(a,b,c) = dist(c,b,c)       dist(c,b,c) = false
+    //              ----------------------------------------------------
+    // dist(a,b,c)  dist(a,b,c) = false
+    // --------------------------------
+    // false
+    // --------------------- scope {a=c,dist(a,b,c)}
+    // ~(a=c ^ dist(a,b,c))
+    Node ceq = expr::proveCong(d_env, &cdp, distinct, cpremises);
+    Assert(ceq.getKind() == Kind::EQUAL && ceq[0] != ceq[1]);
+    Trace("distinct-pf") << "...prove by congruence " << ceq << std::endl;
+    // dist(c,b,c) = false
+    Node falsen = nodeManager()->mkConst(false);
+    Node eq = ceq[1].eqNode(falsen);
+    cdp.addTheoryRewriteStep(eq, ProofRewriteRule::DISTINCT_FALSE);
+    // dist(a,b,c) = false
+    Node eq2 = ceq[0].eqNode(falsen);
+    cdp.addStep(eq2, ProofRule::TRANS, {ceq, eq}, {});
+    // false
+    cdp.addStep(falsen, ProofRule::EQ_RESOLVE, {distinct, eq2}, {});
+    return cdp.getProofFor(falsen);
+  }
+  /**
+   * Get proof for, which expects lemmas of the form
+   * (not (and (= x y) (distinct ... x ... y ...))), or
+   * (=> B (distinct ....)) where B is the result of expanding distinct.
+   */
+  std::shared_ptr<ProofNode> getProofFor(Node fact) override
+  {
+    Trace("distinct-pf") << "Get proof for: " << fact << std::endl;
+    if (fact.getKind() == Kind::NOT && fact[0].getKind() == Kind::AND
+        && fact[0].getNumChildren() == 2 && fact[0][0].getKind() == Kind::EQUAL
+        && fact[0][1].getKind() == Kind::DISTINCT)
+    {
+      Node eq = fact[0][0];
+      Node distinct = fact[0][1];
+      std::shared_ptr<ProofNode> pfn = getConflictProof(eq, distinct);
+      std::vector<Node> assumps{eq, distinct};
+      return d_env.getProofNodeManager()->mkScope(pfn, assumps);
+    }
+    else if (fact.getKind() == Kind::IMPLIES
+             && fact[1].getKind() == Kind::DISTINCT)
+    {
+      Node atom = fact[1];
+      Node batom = TheoryUfRewriter::blastDistinct(nodeManager(), atom);
+      if (batom == fact[0])
+      {
+        CDProof cdp(d_env);
+        Node eq = atom.eqNode(batom);
+        cdp.addTheoryRewriteStep(eq, ProofRewriteRule::DISTINCT_ELIM);
+        Node eqs = eq[1].eqNode(eq[0]);
+        // eqs proven via eq based on auto-symm handling in CDProof
+        cdp.addStep(atom, ProofRule::EQ_RESOLVE, {batom, eqs}, {});
+        //   ----------------
+        // B  B = dist(a,b,c)
+        // ------------------
+        // dist(a,b,c)
+        // ---------------- scope {B}
+        // B => dist(a,b,c)
+        // where B is the result of eliminating distinct.
+        std::shared_ptr<ProofNode> pfn = cdp.getProofFor(fact[1]);
+        std::vector<Node> assumps{fact[0]};
+        return d_env.getProofNodeManager()->mkScope(pfn, assumps);
+      }
+    }
+    CDProof cdp(d_env);
+    cdp.addTrustedStep(fact, TrustId::UF_DISTINCT, {}, {});
+    return cdp.getProofFor(fact);
+  }
+  /** identify */
+  std::string identify() const override { return "DistinctProofGenerator"; }
+};
+
 DistinctExtension::DistinctExtension(Env& env,
                                      TheoryState& state,
                                      TheoryInferenceManager& im)
@@ -36,7 +140,9 @@ DistinctExtension::DistinctExtension(Env& env,
       d_negDistinct(context()),
       d_negDistinctIndex(context(), 0),
       d_posDistinct(context()),
-      d_dproof(nullptr),
+      d_dproof(d_env.isTheoryProofProducing()
+                   ? new DistinctProofGenerator(d_env)
+                   : nullptr),
       d_epg(d_env.isTheoryProofProducing()
                 ? new EagerProofGenerator(d_env, context(), "DistinctEpg")
                 : nullptr),
@@ -81,6 +187,11 @@ void DistinctExtension::assertDistinct(TNode atom, bool pol, TNode fact)
       isConflict = true;
       // otherwise already a conflict
       Node eq = itr->second.eqNode(nc);
+      if (d_env.isTheoryProofProducing())
+      {
+        std::shared_ptr<ProofNode> pfn = d_dproof->getConflictProof(eq, fact);
+        d_epg->setProofFor(d_false, pfn);
+      }
       d_im.conflictExp(InferenceId::UF_DISTINCT_DEQ, {eq, fact}, d_epg.get());
       break;
     }
@@ -177,6 +288,13 @@ void DistinctExtension::check(Theory::Effort level)
   {
     Node conf = d_pendingConflict.get();
     std::vector<Node> exp(conf.begin(), conf.end());
+    if (d_env.isTheoryProofProducing())
+    {
+      Assert(exp.size() == 2);
+      std::shared_ptr<ProofNode> pfn =
+          d_dproof->getConflictProof(exp[0], exp[1]);
+      d_epg->setProofFor(d_false, pfn);
+    }
     d_im.conflictExp(InferenceId::UF_DISTINCT_DEQ, exp, d_epg.get());
     return;
   }
@@ -214,7 +332,7 @@ void DistinctExtension::check(Theory::Effort level)
     {
       Node batom = TheoryUfRewriter::blastDistinct(nodeManager(), atom);
       Node lem = nodeManager()->mkNode(Kind::IMPLIES, batom, atom);
-      TrustNode tlem = TrustNode::mkTrustLemma(lem, nullptr);
+      TrustNode tlem = TrustNode::mkTrustLemma(lem, d_dproof.get());
       if (d_im.trustedLemma(tlem, InferenceId::UF_NOT_DISTINCT_ELIM))
       {
         addedLemma = true;
@@ -254,7 +372,7 @@ void DistinctExtension::check(Theory::Effort level)
       }
       Node eq = itr->second.eqNode(nc);
       Node lem = nodeManager()->mkNode(Kind::AND, {eq, atom}).notNode();
-      TrustNode tlem = TrustNode::mkTrustLemma(lem, nullptr);
+      TrustNode tlem = TrustNode::mkTrustLemma(lem, d_dproof.get());
       d_im.trustedLemma(tlem, InferenceId::UF_DISTINCT_DEQ_MODEL);
     }
   }
