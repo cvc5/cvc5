@@ -1739,20 +1739,25 @@ bool BasicRewriteRCons::ensureProofMacroStrConstNCtnConcat(CDProof* cdp,
   Node concat = eqi[1][1][1];
   AlwaysAssert(concat.getKind() == Kind::STRING_CONCAT
                && concat.getNumChildren() == 3);
-  std::vector<Node> cc;
-  cc.push_back(concat[0]);
-  cc.insert(cc.end(), concat[1].begin(), concat[1].end());
-  cc.push_back(concat[2]);
-  Node cf = nm->mkNode(Kind::STRING_CONCAT, cc);
-  Node eqa = concat.eqNode(cf);
-  if (!cdp->addStep(eqa, ProofRule::ACI_NORM, {}, {eqa}))
+  Node cf = concat;
+  Node eqsf = eqi[1][1];
+  if (concat[1].getKind()==Kind::STRING_CONCAT)
   {
-    Trace("brc-macro") << "...failed ACI" << std::endl;
-    Assert(false);
-    return false;
+    std::vector<Node> cc;
+    cc.push_back(concat[0]);
+    cc.insert(cc.end(), concat[1].begin(), concat[1].end());
+    cc.push_back(concat[2]);
+    cf = nm->mkNode(Kind::STRING_CONCAT, cc);
+    Node eqa = concat.eqNode(cf);
+    if (!cdp->addStep(eqa, ProofRule::ACI_NORM, {}, {eqa}))
+    {
+      Trace("brc-macro") << "...failed ACI" << std::endl;
+      Assert(false);
+      return false;
+    }
+    eqsf = eqi[1][1][0].eqNode(cf);
+    cdp->addStep(eqsf, ProofRule::TRANS, {eqi[1][1], eqa}, {});
   }
-  Node eqsf = eqi[1][1][0].eqNode(cf);
-  cdp->addStep(eqsf, ProofRule::TRANS, {eqi[1][1], eqa}, {});
   Node eqsfs = proveSymm(cdp, eqsf);
   Trace("brc-macro") << "Have : " << eqsfs << std::endl;
 
@@ -3091,6 +3096,7 @@ bool BasicRewriteRCons::proveIneqWeaken(CDProof* cdp,
 
 Node BasicRewriteRCons::proveGeneralReMembership(CDProof* cdp, const Node& n)
 {
+  Trace("brc-macro") << "proveGeneralReMembership " << n << std::endl;
   NodeManager* nm = nodeManager();
   theory::strings::RegExpEntail re(nm, nullptr);
   Node gre = re.getGeneralizedConstRegExp(n);
@@ -3117,10 +3123,12 @@ Node BasicRewriteRCons::proveGeneralReMembership(CDProof* cdp, const Node& n)
   }
   if (premises.size() == 1)
   {
+    Trace("brc-macro") << "...returns (singleton) " << premises[0] << std::endl;
     return premises[0];
   }
   ProofChecker* pc = d_env.getProofNodeManager()->getChecker();
   Node memc = pc->checkDebug(ProofRule::RE_CONCAT, premises, {});
+  Trace("brc-macro") << "...returns " << memc << " from " << premises << std::endl;
   cdp->addStep(memc, ProofRule::RE_CONCAT, premises, {});
   return memc;
 }
