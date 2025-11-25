@@ -62,7 +62,6 @@ void JustificationStrategy::presolve()
 
 SatLiteral JustificationStrategy::getNextInternal(bool& stopSearch)
 {
-  CodeTimer codeTimer(d_stats.d_time);
   // ensure we have an assertion
   if (!refreshCurrentAssertion())
   {
