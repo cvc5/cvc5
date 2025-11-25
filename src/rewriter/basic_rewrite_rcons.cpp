@@ -2523,9 +2523,7 @@ bool BasicRewriteRCons::ensureProofMacroQuantVarElimIneq(CDProof* cdp,
     }
     Trace("brc-macro") << "... processes to " << elimVar << " <> " << val
                        << std::endl;
-    // rewrite it, should be provable with ARITH_POLY_NORM since monomials
-    // should be already rewritten.
-    val = rewrite(val);
+    // do not rewrite here, which can reintroduce mixed arithmetic
     Node nlit;
     if (k == Kind::GEQ)
     {
@@ -2635,10 +2633,11 @@ bool BasicRewriteRCons::ensureProofMacroQuantVarElimIneq(CDProof* cdp,
     }
     if (k != Kind::GEQ && k != Kind::LEQ)
     {
-      itc = rewrite(nm->mkNode(
+      // do not rewrite here, which can reintroduce mixed arithmetic
+      itc = nm->mkNode(
           Kind::ADD,
           itc,
-          nm->mkConstRealOrInt(itc.getType(), Rational(isUpper ? -1 : 1))));
+          nm->mkConstRealOrInt(itc.getType(), Rational(isUpper ? -1 : 1)));
     }
     if (iterm.isNull())
     {
