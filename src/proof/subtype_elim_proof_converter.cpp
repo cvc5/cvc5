@@ -22,6 +22,7 @@
 #include "proof/proof_node_algorithm.h"
 #include "proof/proof_node_manager.h"
 #include "smt/env.h"
+#include "util/rational.h"
 
 namespace cvc5::internal {
 
@@ -29,6 +30,22 @@ SubtypeElimConverterCallback::SubtypeElimConverterCallback(Env& env)
     : EnvObj(env), d_nconv(nodeManager())
 {
   d_pc = d_env.getProofNodeManager()->getChecker();
+}
+
+bool SubtypeElimConverterCallback::shouldConvert(std::shared_ptr<ProofNode> pn)
+{
+  // needs to convert if an argument or the result has mixed arithmetic, which
+  // is true if the node converter modifies the term.
+  const std::vector<Node>& args = pn->getArguments();
+  for (const Node& a : args)
+  {
+    if (d_nconv.convert(a) != a)
+    {
+      return true;
+    }
+  }
+  Node res = pn->getResult();
+  return d_nconv.convert(res) != res;
 }
 
 Node SubtypeElimConverterCallback::convert(Node res,
@@ -49,6 +66,54 @@ Node SubtypeElimConverterCallback::convert(Node res,
   {
     return resc;
   }
+  NodeManager* nm = nodeManager();
+  // cases where arguments may need additional fixing before trying
+  // proof rule
+  switch (id)
+  {
+    case ProofRule::ARITH_MULT_SIGN:
+    {
+      // For example, if x:Real, y:Int, this rule with the arguments
+      // (and (> x 0.0) (> y 0)), (* x y) proves
+      // (=> (and (> x 0.0) (> y 0)) (> (* x y) 0.0)). Subtype elimination
+      // converts this initially to (and (> x 0.0) (> y 0)), (* x (to_real y)),
+      // which is not a valid proof step since y does not match (to_real y).
+      // This further converts the arguments to
+      // (and (> x 0.0) (> (to_real y) 0.0)), (* x (to_real y)).
+      Assert(cargs.size() == 2 && cargs[1].getKind() == Kind::NONLINEAR_MULT);
+      Assert(cargs[0].getKind() == Kind::AND);
+      Assert(cargs[1].getNumChildren() == cargs[0].getNumChildren());
+      std::vector<Node> nconj;
+      bool childChanged = false;
+      for (size_t i = 0, nchild = cargs[1].getNumChildren(); i < nchild; i++)
+      {
+        if (cargs[1][i].getKind() == Kind::TO_REAL)
+        {
+          bool neg = cargs[0][i].getKind() == Kind::NOT;
+          Node atom = neg ? cargs[0][i][0] : cargs[0][i];
+          if (cargs[1][i][0] == atom[0])
+          {
+            Assert(atom[1].isConst()
+                   && atom[1].getConst<Rational>().sgn() == 0);
+            childChanged = true;
+            Node newAtom = nm->mkNode(
+                atom.getKind(), cargs[1][i], nm->mkConstReal(Rational(0)));
+            newAtom = neg ? newAtom.notNode() : newAtom;
+            nconj.push_back(newAtom);
+            continue;
+          }
+        }
+        nconj.push_back(cargs[0][i]);
+      }
+      if (childChanged)
+      {
+        cargs[0] = nm->mkAnd(nconj);
+      }
+    }
+    break;
+    default: break;
+  }
+
   Node newRes;
   // check if succeeds with no changes
   if (tryWith(id, children, cargs, resc, newRes, cdp))
@@ -111,7 +176,6 @@ Node SubtypeElimConverterCallback::convert(Node res,
     case ProofRule::ARITH_SUM_UB:
     {
       success = true;
-      NodeManager* nm = nodeManager();
       Assert(resc.getNumChildren() == 2);
       Assert(resc[0].getNumChildren() == children.size());
       Assert(resc[1].getNumChildren() == children.size());
@@ -154,7 +218,6 @@ Node SubtypeElimConverterCallback::convert(Node res,
       //
       // there t'~s' is a predicate over reals and t~s is a mixed integer
       // predicate.
-      NodeManager* nm = nodeManager();
       Node sc = resc[0][0];
       Node relOld = resc[0][1];
       Node relNew = nm->mkNode(relOld.getKind(), resc[1][0][1], resc[1][1][1]);

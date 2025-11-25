@@ -240,7 +240,9 @@ public:
      case Kind::INTS_MODULUS_TOTAL:
      case Kind::DIVISION_TOTAL: return isDivMember(n);
      case Kind::IAND:
+     case Kind::PIAND:
      case Kind::POW2:
+     case Kind::INTS_LOG2:
      case Kind::POW:
      case Kind::EXPONENTIAL:
      case Kind::SINE:
