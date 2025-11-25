@@ -761,7 +761,6 @@ void TheoryModel::assignFunctionDefault(Node f) const
   }
   Trace("model-builder") << "  Assign function value for " << f
                          << " based on APPLY_UF" << std::endl;
-  Assert(!logicInfo().isHigherOrder());
   uf::UfModelTree ufmt(f);
   options::DefaultFunctionValueMode dfvm =
       options().theory.defaultFunctionValueMode;
@@ -825,7 +824,8 @@ void TheoryModel::assignFunctionDefault(Node f) const
 void TheoryModel::assignFunctionDefaultHo(Node f) const
 {
   Assert(logicInfo().isHigherOrder());
-  // collect all HO_APPLY terms, modulo equality of the function
+  // collect all HO_APPLY terms, modulo equality of the function, which will
+  // determine the relevant points of the function value we construct below.
   std::vector<Node> hoTerms;
   std::map<Node, std::vector<Node>>::const_iterator itht;
   if (d_equalityEngine->hasTerm(f))
