@@ -103,7 +103,7 @@ class PIAndSolver : protected EnvObj
 
   NodeSet d_initRefine;
   /** all PIAND terms, for each bit-width */
-  
+
   std::map<Node, std::vector<Node>> d_piands;
 
   /**
