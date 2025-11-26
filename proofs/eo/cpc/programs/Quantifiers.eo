@@ -1,22 +1,6 @@
 (include "../theories/Builtin.eo")
 (include "../theories/Quantifiers.eo")
 
-; program: $substitute
-; args:
-; - arg1 S: The domain of the substitution.
-; - arg2 S: The range of the substitution.
-; - arg3 U: The term to process.
-; return: the result of replacing all occurrences of arg1 with arg2 in arg3.
-(program $substitute
-  ((T Type) (U Type) (S Type) (x S) (y S) (f (-> T U)) (a T) (z U))
-  :signature (S S U) U
-  (
-  (($substitute x y (f a))         (_ ($substitute x y f) ($substitute x y a)))
-  (($substitute x y x)             y)
-  (($substitute x y z)             z)
-  )
-)
-
 ; program: $contains_subterm
 ; args:
 ; - arg1 S: The term to process.
@@ -67,11 +51,11 @@
 ;   true if any atomic (0-ary) subterm of t is in xs and is not a bound variable
 ;   of t at that position or in the set of already bound variables bvs.
 (program $contains_aterm_list_free_rec 
-  ((T Type) (U Type) (S Type) (x U) (f (-> T S)) (a T) (xs @List) (bvs @List) (x U) (ys @List :list))
+  ((T Type) (U Type) (S Type) (x U) (q (-> @List T S)) (f (-> T S)) (a T) (xs @List) (bvs @List) (x U) (ys @List :list))
   :signature (T @List @List) Bool
   (
     ; we assume that any function taking a list as a first argument is a binder
-    (($contains_aterm_list_free_rec (f (@list x ys) a) xs bvs)
+    (($contains_aterm_list_free_rec (q (@list x ys) a) xs bvs)
       ; concatenate these variables to the list of bound variables
       ($contains_aterm_list_free_rec a xs (eo::list_concat @list (@list x ys) bvs)))
     ; otherwise normal recursion
@@ -93,6 +77,28 @@
 ;   variable of t at that position.
 (define $contains_aterm_list_free ((T Type :implicit) (x T) (xs @List))
   ($contains_aterm_list_free_rec x xs @list.nil))
+
+
+; program: $substitute
+; args:
+; - arg1 S: The domain of the substitution.
+; - arg2 S: The range of the substitution.
+; - arg3 U: The term to process.
+; return: the result of replacing all occurrences of arg1 with arg2 in arg3.
+(program $substitute
+  ((T Type) (U Type) (S Type) (x S) (y S) (f (-> T U)) (a T) (z U)
+   (q (-> @List T S)) (V Type) (v V) (vs @List :list))
+  :signature (S S U) U
+  (
+  ; for quantifiers, we ensure no variable capture, get stuck otherwise
+  (($substitute x y (q (@list v vs) a))
+    (eo::requires ($contains_aterm_list y vs) false
+      (q (@list v vs) ($substitute x y a))))
+  (($substitute x y (f a))              (_ ($substitute x y f) ($substitute x y a)))
+  (($substitute x y x)                  y)
+  (($substitute x y z)                  z)
+  )
+)
 
 ; program: $substitute_simul
 ; args:
