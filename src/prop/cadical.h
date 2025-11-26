@@ -49,7 +49,7 @@ class CadicalSolver : public CDCLTSatSolver, protected EnvObj
 
   ClauseId addXorClause(SatClause& clause, bool rhs, bool removable) override;
 
-  SatVariable newVar(bool isTheoryAtom = false, bool canErase = true) override;
+  SatVariable newVar(bool isTheoryAtom, bool canErase) override;
 
   SatVariable trueVar() override;
 
@@ -73,7 +73,10 @@ class CadicalSolver : public CDCLTSatSolver, protected EnvObj
 
   /* CDCLTSatSolver interface --------------------------------------------- */
 
-  void initialize(prop::TheoryProxy* theoryProxy, PropPfManager* ppm) override;
+  void initialize(TheoryProxy* theoryProxy) override;
+
+  void attachProofManager(PropPfManager* ppm) override;
+
   void push() override;
 
   void pop() override;
@@ -110,7 +113,7 @@ class CadicalSolver : public CDCLTSatSolver, protected EnvObj
    * Initialize SAT solver instance.
    * Note: Split out to not call virtual functions in constructor.
    */
-  void init();
+  void initialize() override;
 
   /**
    * Set resource limit.

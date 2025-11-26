@@ -42,6 +42,8 @@ class FakeSatSolver : public SatSolver
  public:
   FakeSatSolver() : d_nextVar(0), d_addClauseCalled(false) {}
 
+  void initialize() override {}
+
   SatVariable newVar(bool theoryAtom, bool canErase) override
   {
     return d_nextVar++;
@@ -86,6 +88,15 @@ class FakeSatSolver : public SatSolver
   SatValue solve(long unsigned int& resource) override
   {
     return SAT_VALUE_UNKNOWN;
+  }
+
+  SatValue solve(const std::vector<SatLiteral>& assumptions) override
+  {
+    return SAT_VALUE_UNKNOWN;
+  }
+
+  void getUnsatAssumptions(std::vector<SatLiteral>& unsat_assumptions) override
+  {
   }
 
   SatValue value(SatLiteral l) override { return SAT_VALUE_UNKNOWN; }
@@ -205,7 +216,7 @@ TEST_F(TestPropWhiteCnfStream, implies)
   ASSERT_TRUE(d_satSolver->addClauseCalled());
 }
 
-TEST_F(TestPropWhiteCnfStream, not )
+TEST_F(TestPropWhiteCnfStream, not)
 {
   Node a = d_nodeManager->mkVar(d_nodeManager->booleanType());
   d_cnfStream->convertAndAssert(
