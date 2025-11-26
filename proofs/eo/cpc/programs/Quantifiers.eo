@@ -79,7 +79,7 @@
   ; for quantifiers, we ensure no variable capture, get stuck otherwise.
   (($substitute x y (q (@list v vs) a))
     (eo::requires ($contains_aterm_list y (@list v vs)) false
-      (q (@list v vs) ($substitute x y a))))
+      (q ($substitute x y (@list v vs)) ($substitute x y a))))
   (($substitute x y (f a))              (_ ($substitute x y f) ($substitute x y a)))
   (($substitute x y x)                  y)
   (($substitute x y z)                  z)
@@ -100,7 +100,7 @@
   ; for quantifiers, we ensure no variable capture, get stuck otherwise.
   (($substitute_simul (q (@list v vs) a) xs ss)
     (eo::requires ($contains_aterm_list ss (@list v vs)) false
-      (q (@list v vs) ($substitute_simul a xs ss))))
+      (q ($substitute_simul (@list v vs) xs ss) ($substitute_simul a xs ss))))
   (($substitute_simul (f a) xs ss)                  (_ ($substitute_simul f xs ss) ($substitute_simul a xs ss)))
   (($substitute_simul x xs ss)                      (eo::define ((i (eo::list_find @list xs x)))
                                                       (eo::ite (eo::is_neg i) x ($assoc_nil_nth @list ss i))))
