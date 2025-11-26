@@ -296,45 +296,41 @@ void BVSolverBitblast::computeRelevantTerms(std::set<Node>& termSet)
   if (options().bv.bitblastMode == options::BitblastMode::EAGER)
   {
     d_bitblaster->collectVariables(termSet);
+    std::vector<TNode> tmp;
+    d_cnfStream->getBooleanVariables(tmp);
+    termSet.insert(tmp.begin(), tmp.end());
   }
 }
 
 bool BVSolverBitblast::collectModelValues(TheoryModel* m,
                                           const std::set<Node>& termSet)
 {
+  NodeManager* nm = nodeManager();
   for (const auto& term : termSet)
   {
-    if (!d_bitblaster->isVariable(term))
+    Node value;
+    if (d_bitblaster->isVariable(term))
+    {
+      value = getValue(term, true);
+    }
+    else if (d_cnfStream->hasLiteral(term))
+    {
+      // Only in eager bitblasting are boolean variables added as relevant terms
+      Assert(options().bv.bitblastMode == options::BitblastMode::EAGER);
+      prop::SatLiteral bit = d_cnfStream->getLiteral(term);
+      prop::SatValue val = d_satSolver->modelValue(bit);
+      Assert(val != prop::SAT_VALUE_UNKNOWN);
+      value = nm->mkConst(val == prop::SAT_VALUE_TRUE);
+    }
+    else
     {
       continue;
     }
 
-    Node value = getValue(term, true);
     Assert(value.isConst());
     if (!m->assertEquality(term, value, true))
     {
       return false;
-    }
-  }
-
-  // In eager bitblast mode we also have to collect the model values for
-  // Boolean variables in the CNF stream.
-  if (options().bv.bitblastMode == options::BitblastMode::EAGER)
-  {
-    NodeManager* nm = nodeManager();
-    std::vector<TNode> vars;
-    d_cnfStream->getBooleanVariables(vars);
-    for (TNode var : vars)
-    {
-      Assert(d_cnfStream->hasLiteral(var));
-      prop::SatLiteral bit = d_cnfStream->getLiteral(var);
-      prop::SatValue value = d_satSolver->modelValue(bit);
-      Assert(value != prop::SAT_VALUE_UNKNOWN);
-      if (!m->assertEquality(
-              var, nm->mkConst(value == prop::SAT_VALUE_TRUE), true))
-      {
-        return false;
-      }
     }
   }
 
