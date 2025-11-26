@@ -24,9 +24,9 @@ namespace cvc5::internal {
 namespace theory {
 namespace bv {
 
-BBProof::BBProof(Env& env, TheoryState* state, bool fineGrained)
+BBProof::BBProof(Env& env, bool fineGrained)
     : EnvObj(env),
-      d_bb(new NodeBitblaster(env, state)),
+      d_bb(new NodeBitblaster(env)),
       d_tcontext(new TheoryLeafTermContext(theory::THEORY_BV)),
       d_tcpg(new TConvProofGenerator(
           env,
@@ -45,12 +45,8 @@ BBProof::BBProof(Env& env, TheoryState* state, bool fineGrained)
 {
 }
 
-BBProof::~BBProof() {}
-
 void BBProof::bbAtom(TNode node)
 {
-  bool fineProofs = isProofsEnabled() && d_recordFineGrainedProofs;
-
   /* Bit-blasting bit-vector atoms consists of 3 steps:
    *   1. rewrite the atom
    *   2. bit-blast the rewritten atom
@@ -63,7 +59,7 @@ void BBProof::bbAtom(TNode node)
    * bit-blasting of bit-vector terms that happens implicitly when calling the
    * corresponding bit-blasting strategy in d_bb->bbAtom(...).
    */
-  if (fineProofs)
+  if (isProofsEnabled() && d_recordFineGrainedProofs)
   {
     std::vector<TNode> visit;
     std::unordered_set<TNode> visited;
@@ -135,17 +131,13 @@ void BBProof::bbAtom(TNode node)
     }
 
     /* Bit-blast given rewritten bit-vector atom `node`.
-     * Note: This will pre and post-rewrite and store it in the bit-blasting
+     * Note: This will pre- and post-rewrite and store it in the bit-blasting
      * cache. */
     d_bb->bbAtom(node);
-    Node result = d_bb->getStoredBBAtom(node);
+    Node result = d_bb->getBBAtom(node);
 
     // Retrieve bit-blasted `rwNode` without post-rewrite.
-    Node bbt = rwNode.getKind() == Kind::CONST_BOOLEAN
-                       || rwNode.getKind() == Kind::BITVECTOR_BIT
-                   ? rwNode
-                   : d_bb->applyAtomBBStrategy(rwNode);
-
+    Node bbt = d_bb->applyAtomBBStrategy(rwNode);
     Node rbbt = reconstruct(rwNode);
 
     d_tcpg->addRewriteStep(
@@ -160,7 +152,7 @@ void BBProof::bbAtom(TNode node)
     /* Record coarse-grain bit-blast proof step. */
     if (isProofsEnabled() && !d_recordFineGrainedProofs)
     {
-      Node bbt = getStoredBBAtom(node);
+      Node bbt = getBBAtom(node);
       d_bbpg->addBitblastStep(Node(), Node(), node.eqNode(bbt));
     }
   }
@@ -186,23 +178,24 @@ bool BBProof::hasBBAtom(TNode atom) const { return d_bb->hasBBAtom(atom); }
 
 bool BBProof::hasBBTerm(TNode atom) const { return d_bb->hasBBTerm(atom); }
 
-Node BBProof::getStoredBBAtom(TNode node)
-{
-  return d_bb->getStoredBBAtom(node);
-}
+Node BBProof::getBBAtom(TNode node) const { return d_bb->getBBAtom(node); }
 
 void BBProof::getBBTerm(TNode node, Bits& bits) const
 {
   d_bb->getBBTerm(node, bits);
 }
 
-bool BBProof::collectModelValues(TheoryModel* m,
-                                 const std::set<Node>& relevantTerms)
+void BBProof::collectVariables(std::set<Node>& termSet) const
 {
-  return d_bb->collectModelValues(m, relevantTerms);
+  d_bb->collectVariables(termSet);
 }
 
-BitblastProofGenerator* BBProof::getProofGenerator() { return d_bbpg.get(); }
+bool BBProof::isVariable(TNode node) const { return d_bb->isVariable(node); }
+
+BitblastProofGenerator* BBProof::getProofGenerator() const
+{
+  return d_bbpg.get();
+}
 
 bool BBProof::isProofsEnabled() const { return d_env.isTheoryProofProducing(); }
 

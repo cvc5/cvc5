@@ -108,28 +108,25 @@ class BBRegistrar : public prop::Registrar
 };
 
 BVSolverBitblast::BVSolverBitblast(Env& env,
-                                   TheoryState* s,
+                                   TheoryState& state,
                                    TheoryInferenceManager& inferMgr)
-    : BVSolver(env, *s, inferMgr),
-      d_bitblaster(new NodeBitblaster(env, s)),
+    : BVSolver(env, state, inferMgr),
+      d_bitblaster(new NodeBitblaster(env)),
       d_bbRegistrar(new BBRegistrar(d_bitblaster.get())),
       d_nullContext(new context::Context()),
       d_bbFacts(context()),
       d_bbInputFacts(context()),
       d_assumptions(context()),
       d_assertions(context()),
-      d_epg(env.isTheoryProofProducing()
-                ? new EagerProofGenerator(env, userContext(), "")
-                : nullptr),
-      d_bvProofChecker(nodeManager()),
       d_factLiteralCache(context()),
       d_literalFactCache(context()),
-      d_propagate(options().bv.bitvectorPropagate),
       d_resetNotify(new NotifyResetAssertions(userContext()))
 {
   if (env.isTheoryProofProducing())
   {
-    d_bvProofChecker.registerTo(env.getProofNodeManager()->getChecker());
+    d_epg.reset(new EagerProofGenerator(env, userContext(), ""));
+    d_bvProofChecker.reset(new BVProofRuleChecker(nodeManager()));
+    d_bvProofChecker->registerTo(env.getProofNodeManager()->getChecker());
   }
 
   initSatSolver();
@@ -147,7 +144,7 @@ void BVSolverBitblast::postCheck(Theory::Effort level)
   if (level != Theory::Effort::EFFORT_FULL)
   {
     /* Do bit-level propagation only if the SAT solver supports it. */
-    if (!d_propagate || !d_satSolver->setPropagateOnly())
+    if (!options().bv.bitvectorPropagate || !d_satSolver->setPropagateOnly())
     {
       return;
     }
@@ -180,7 +177,7 @@ void BVSolverBitblast::postCheck(Theory::Effort level)
       else
       {
         d_bitblaster->bbAtom(fact);
-        Node bb_fact = d_bitblaster->getStoredBBAtom(fact);
+        Node bb_fact = d_bitblaster->getBBAtom(fact);
         d_cnfStream->convertAndAssert(bb_fact, false, false);
       }
     }
@@ -204,7 +201,7 @@ void BVSolverBitblast::postCheck(Theory::Effort level)
       else
       {
         d_bitblaster->bbAtom(fact);
-        Node bb_fact = d_bitblaster->getStoredBBAtom(fact);
+        Node bb_fact = d_bitblaster->getBBAtom(fact);
         d_cnfStream->ensureLiteral(bb_fact);
         lit = d_cnfStream->getLiteral(bb_fact);
       }
@@ -298,7 +295,7 @@ void BVSolverBitblast::computeRelevantTerms(std::set<Node>& termSet)
    */
   if (options().bv.bitblastMode == options::BitblastMode::EAGER)
   {
-    d_bitblaster->computeRelevantTerms(termSet);
+    d_bitblaster->collectVariables(termSet);
   }
 }
 
@@ -417,12 +414,12 @@ void BVSolverBitblast::handleEagerAtom(TNode fact, bool assertFact)
   }
 
   /* convertAndAssert() does not make the connection between the bit-vector
-   * atom and it's bit-blasted form (it only calls preRegister() from the
+   * atom and its bit-blasted form (it only calls preRegister() from the
    * registrar). Thus, we add the equalities now. */
   auto& registeredAtoms = d_bbRegistrar->getRegisteredAtoms();
   for (auto atom : registeredAtoms)
   {
-    Node bb_atom = d_bitblaster->getStoredBBAtom(atom);
+    Node bb_atom = d_bitblaster->getBBAtom(atom);
     d_cnfStream->convertAndAssert(atom.eqNode(bb_atom), false, false);
   }
   // Clear cache since we only need to do this once per bit-blasted atom.
