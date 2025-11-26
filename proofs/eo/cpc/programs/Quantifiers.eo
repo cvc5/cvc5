@@ -112,7 +112,7 @@
   :signature (S @List @List) S
   (
   ; for quantifiers, we ensure no variable capture, get stuck otherwise.
-  (($substitute x y (q (@list v vs) a))
+  (($substitute_simul (q (@list v vs) a) xs ss)
     (eo::requires ($contains_aterm_list ss vs) false
       (q (@list v vs) ($substitute_simul a xs ss))))
   (($substitute_simul (f a) xs ss)                  (_ ($substitute_simul f xs ss) ($substitute_simul a xs ss)))
