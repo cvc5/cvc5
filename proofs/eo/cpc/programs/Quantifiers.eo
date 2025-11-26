@@ -71,12 +71,14 @@
 ; - arg2 S: The range of the substitution.
 ; - arg3 U: The term to process.
 ; return: the result of replacing all occurrences of arg1 with arg2 in arg3.
+; note: This method does not evaluate if variable capture is encountered.
 (program $substitute
   ((T Type) (U Type) (S Type) (x S) (y S) (f (-> T U)) (a T) (z U)
    (q (-> @List T S)) (V Type) (v V) (vs @List :list))
   :signature (S S U) U
   (
-  ; for quantifiers, we ensure no variable capture, get stuck otherwise.
+  ; we assume that any function taking a list as a first argument is a binder
+  ; for binders, we ensure no variable capture, get stuck otherwise.
   (($substitute x y (q (@list v vs) a))
     (eo::requires ($contains_aterm_list y (@list v vs)) false
       (q ($substitute x y (@list v vs)) ($substitute x y a))))
@@ -92,12 +94,14 @@
 ; - xs @List: The list of variables to substitute.
 ; - ss @List: The terms to substitute.
 ; return: the result of simultaneously substituting xs to ss in t.
+; note: This method does not evaluate if variable capture is encountered.
 (program $substitute_simul
   ((T Type) (S Type) (x S) (f (-> T S)) (a T) (xs @List :list) (ss @List :list) (s S) (y S)
    (q (-> @List T S)) (V Type) (v V) (vs @List :list))
   :signature (S @List @List) S
   (
-  ; for quantifiers, we ensure no variable capture, get stuck otherwise.
+  ; we assume that any function taking a list as a first argument is a binder
+  ; for binders, we ensure no variable capture, get stuck otherwise.
   (($substitute_simul (q (@list v vs) a) xs ss)
     (eo::requires ($contains_aterm_list ss (@list v vs)) false
       (q ($substitute_simul (@list v vs) xs ss) ($substitute_simul a xs ss))))
