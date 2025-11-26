@@ -1001,6 +1001,7 @@ set(regress_0_tests
   regress0/ho/issue11734-nested-lambda.smt2
   regress0/ho/issue11923-2-finite-ho-deq.smt2
   regress0/ho/issue11923-finite-ho-deq.smt2
+  regress0/ho/issue12256-fun-arg-ext.smt2
   regress0/ho/issue4434-const-preserve.smt2
   regress0/ho/issue4477.smt2
   regress0/ho/issue4990-care-graph.smt2
