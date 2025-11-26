@@ -105,8 +105,8 @@ void CadicalSolver::initialize()
     d_solver->connect_external_propagator(d_propagator.get());
   }
 
-  d_true = newVar();
-  d_false = newVar();
+  d_true = newVar(false, true);
+  d_false = newVar(false, true);
   d_solver->clause(toCadicalVar(d_true));
   d_solver->clause(-toCadicalVar(d_false));
 
@@ -373,7 +373,7 @@ void CadicalSolver::push()
   // Set new activation literal for pushed user level
   // Note: This happens after the push to ensure that the activation literal's
   // introduction level is the current user level.
-  SatVariable alit = newVar(false);
+  SatVariable alit = newVar(false, true);
   d_propagator->set_activation_lit(alit);
 }
 

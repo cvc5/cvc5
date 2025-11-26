@@ -48,7 +48,7 @@ class CryptoMinisatSolver : public SatSolver
 
   bool nativeXor() override { return true; }
 
-  SatVariable newVar(bool isTheoryAtom = false, bool canErase = true) override;
+  SatVariable newVar(bool isTheoryAtom, bool canErase) override;
 
   SatVariable trueVar() override;
   SatVariable falseVar() override;
