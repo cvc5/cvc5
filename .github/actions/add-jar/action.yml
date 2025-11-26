@@ -3,10 +3,8 @@ description: |
   Creates a JAR that includes the cvc5 Java bindings
   along with the necessary native libraries.
 inputs:
-  install-path:
-    description: path to the directory with installed artifacts
-  jar-libs-dir:
-    description: name of the directory that will contain the libraries within the JAR
+  build-dir:
+    description: path to the build directory
   jar-name:
     description: target name of the JAR
   shell:
@@ -14,42 +12,13 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Create JAR contents (Linux)
-      if: runner.os == 'Linux'
-      shell: ${{ inputs.shell }}
-      run: |
-        echo "::group::Create JAR contents (Linux)"
-        mkdir ${{ inputs.jar-libs-dir }}
-        cd ${{ inputs.jar-libs-dir }}
-        cp ${{ inputs.install-path }}/lib/libcvc5jni.so .
-        echo "::endgroup::"
-
-    - name: Create JAR contents (macOS)
-      if: runner.os == 'macOS'
-      shell: ${{ inputs.shell }}
-      run: |
-        echo "::group::Create JAR contents (macOS)"
-        mkdir ${{ inputs.jar-libs-dir }}
-        cd ${{ inputs.jar-libs-dir }}
-        cp ${{ inputs.install-path }}/lib/libcvc5jni.dylib .
-        echo "::endgroup::"
-
-    - name: Create JAR contents (Windows)
-      if: runner.os == 'Windows'
-      shell: ${{ inputs.shell }}
-      run: |
-        echo "::group::Create JAR contents (Windows)"
-        mkdir ${{ inputs.jar-libs-dir }}
-        cd ${{ inputs.jar-libs-dir }}
-        cp ${{ inputs.install-path }}/bin/cvc5jni.dll .
-        echo "::endgroup::"
-
     - name: Create JAR
       shell: ${{ inputs.shell }}
       run: |
         echo "::group::Create JAR"
-        unzip ${{ inputs.install-path }}/share/java/cvc5.jar
-        jar cf ${{ inputs.jar-name }}.jar AUTHORS COPYING licenses io ${{ inputs.jar-libs-dir }}
+        unzip ${{ inputs.build-dir }}/src/api/java/cvc5.jar
+        jar cf ${{ inputs.jar-name }}.jar AUTHORS COPYING licenses io \
+            -C ${{ inputs.build-dir }}/src/api/java/ cvc5-libs
         echo "::endgroup::"
 
     - name: Test JAR

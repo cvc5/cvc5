@@ -62,8 +62,10 @@ if(CVC5_IS_RELEASE STREQUAL "false")
 
   set(CVC5_VERSION "${NEXT_CVC5_VERSION}.dev")
   set(CVC5_FULL_VERSION "${NEXT_CVC5_VERSION}.dev")
-  # Development segment MUST follow the format devN, where N is a sequence of digits.
+  # Python: Development segment MUST follow the format devN, where N is a sequence of digits.
   set(CVC5_WHEEL_VERSION "${NEXT_CVC5_VERSION}.dev0")
+  # Java: Development version is distinguished by the suffix "-SNAPSHOT"
+  set(CVC5_MAVEN_VERSION "${NEXT_CVC5_VERSION}-SNAPSHOT")
 endif()
 
 # now use git to retrieve additional version information

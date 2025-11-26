@@ -14,7 +14,8 @@ function download {
   fi
 }
 
-CVC_DIR=$(dirname $(dirname "$0"))
+SCRIPT_DIR="$(dirname "$(realpath "$0")")"
+CVC_DIR=`realpath $SCRIPT_DIR/../`
 mkdir -p $CVC_DIR/deps
 pushd $CVC_DIR/deps
 

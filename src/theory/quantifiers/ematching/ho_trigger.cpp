@@ -204,7 +204,7 @@ uint64_t HigherOrderTrigger::addInstantiations()
   return addedHoLemmas + addedFoLemmas;
 }
 
-bool HigherOrderTrigger::sendInstantiation(std::vector<Node>& m, InferenceId id)
+bool HigherOrderTrigger::sendInstantiation(std::vector<Node>& m)
 {
   if (options().quantifiers.hoMatching)
   {
@@ -373,7 +373,7 @@ bool HigherOrderTrigger::sendInstantiation(std::vector<Node>& m, InferenceId id)
   else
   {
     // do not run higher-order matching
-    return d_qim.getInstantiate()->addInstantiation(d_quant, m, id);
+    return Trigger::sendInstantiation(m);
   }
 }
 
