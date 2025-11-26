@@ -90,7 +90,7 @@
    (q (-> @List T S)) (V Type) (v V) (vs @List :list))
   :signature (S S U) U
   (
-  ; for quantifiers, we ensure no variable capture, get stuck otherwise
+  ; for quantifiers, we ensure no variable capture, get stuck otherwise.
   (($substitute x y (q (@list v vs) a))
     (eo::requires ($contains_aterm_list y vs) false
       (q (@list v vs) ($substitute x y a))))
@@ -107,9 +107,14 @@
 ; - ss @List: The terms to substitute.
 ; return: the result of simultaneously substituting xs to ss in t.
 (program $substitute_simul
-  ((T Type) (S Type) (x S) (f (-> T S)) (a T) (xs @List :list) (ss @List :list) (s S) (y S))
+  ((T Type) (S Type) (x S) (f (-> T S)) (a T) (xs @List :list) (ss @List :list) (s S) (y S)
+   (q (-> @List T S)) (V Type) (v V) (vs @List :list))
   :signature (S @List @List) S
   (
+  ; for quantifiers, we ensure no variable capture, get stuck otherwise.
+  (($substitute x y (q (@list v vs) a))
+    (eo::requires ($contains_aterm_list ss vs) false
+      (q (@list v vs) ($substitute_simul a xs ss))))
   (($substitute_simul (f a) xs ss)                  (_ ($substitute_simul f xs ss) ($substitute_simul a xs ss)))
   (($substitute_simul x xs ss)                      (eo::define ((i (eo::list_find @list xs x)))
                                                       (eo::ite (eo::is_neg i) x ($assoc_nil_nth @list ss i))))
