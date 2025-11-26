@@ -374,6 +374,7 @@ jobs:
         (matrix.build.upload-maven-doc ||
          (matrix.build.java-bindings && matrix.build.package-name))
       uses: ./.github/actions/upload-mvn-files
+      continue-on-error: true
       with:
         build-dir: ${{ steps.configure-and-build.outputs.static-build-dir }}
         upload-main: ${{ matrix.build.upload-maven-main }}
@@ -384,6 +385,7 @@ jobs:
     name: Publish to Maven central
     if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
+    continue-on-error: true
     needs: [builds]
     steps:
     - name: Set up Maven Central
