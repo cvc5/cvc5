@@ -1,31 +1,17 @@
 (include "../theories/Builtin.eo")
 (include "../theories/Quantifiers.eo")
 
-; program: $contains_subterm
+; program: $contains_aterm
 ; args:
 ; - arg1 S: The term to process.
-; - arg2 U: The term to find.
+; - arg2 U: The (0-ary) term to find.
 ; return: The result is true if arg2 is a subterm of arg1.
-(program $contains_subterm
+(program $contains_aterm
   ((T Type) (U Type) (S Type) (x U) (y S) (f (-> T S)) (a T))
   :signature (S U) Bool
   (
-  (($contains_subterm x x)      true)
-  (($contains_subterm (f a) x)  (eo::ite ($contains_subterm f x) true ($contains_subterm a x)))
-  (($contains_subterm x y)      false)
-  )
-)
-
-; program: $contains_subterm_list
-; args:
-; - arg1 T: The term to process.
-; - arg2 @List: The list of terms to find.
-; return: true if any term in arg2 is a subterm of arg1.
-(program $contains_subterm_list ((T Type) (U Type) (t T) (x U) (xs @List :list))
-  :signature (T @List) Bool
-  (
-    (($contains_subterm_list t (@list x xs)) (eo::ite ($contains_subterm t x) true ($contains_subterm_list t xs)))
-    (($contains_subterm_list t @list.nil)    false)
+  (($contains_aterm (f a) x)  (eo::ite ($contains_aterm f x) true ($contains_aterm a x)))
+  (($contains_aterm x y)      (eo::eq x y))
   )
 )
 
