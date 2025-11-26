@@ -409,7 +409,7 @@ jobs:
     - name: Deploy to Maven Central
       run: |
         cd ./maven
-        mvn deploy -Prelease -Dartifacts.dir=./ -Djavadoc.dir=./
+        mvn deploy --batch-mode -Prelease -Dartifacts.dir=./ -Djavadoc.dir=./
       env:
         MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
         MAVEN_TOKEN: ${{ secrets.MAVEN_TOKEN }}
