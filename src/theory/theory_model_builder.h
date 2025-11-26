@@ -168,50 +168,6 @@ class TheoryEngineModelBuilder : protected EnvObj
   void addToTypeList(TypeNode tn,
                      std::vector<TypeNode>& type_list,
                      std::unordered_set<TypeNode>& visiting);
-  /** assign function f based on the model m.
-  * This construction is based on "table form". For example:
-  * (f 0 1) = 1
-  * (f 0 2) = 2
-  * (f 1 1) = 3
-  * ...
-  * becomes:
-  * f = (lambda xy. (ite (and (= x 0) (= y 1)) 1
-  *                 (ite (and (= x 0) (= y 2)) 2
-  *                 (ite (and (= x 1) (= y 1)) 3 ...)))
-  */
-  void assignFunction(TheoryModel* m, Node f);
-  /** assign function f based on the model m.
-  * This construction is based on "dag form". For example:
-  * (f 0 1) = 1
-  * (f 0 2) = 2
-  * (f 1 1) = 3
-  * ...
-  * becomes:
-  * f = (lambda xy. (ite (= x 0) (ite (= y 1) 1
-  *                              (ite (= y 2) 2 ...))
-  *                 (ite (= x 1) (ite (= y 1) 3 ...)
-  *                              ...))
-  *
-  * where the above is represented as a directed acyclic graph (dag).
-  * This construction is accomplished by assigning values to (f c)
-  * terms before f, e.g.
-  * (f 0) = (lambda y. (ite (= y 1) 1
-  *                    (ite (= y 2) 2 ...))
-  * (f 1) = (lambda y. (ite (= y 1) 3 ...))
-  * where
-  * f = (lambda xy. (ite (= x 0) ((f 0) y)
-  *                 (ite (= x 1) ((f 1) y) ...))
-  */
-  void assignHoFunction(TheoryModel* m, Node f);
-  /** assign functions
-   *
-   * Assign all unassigned functions in the model m (those returned by
-   * TheoryModel::getFunctionsToAssign),
-   * using the two functions above. Currently:
-   * If HO logic is disabled, we call assignFunction for all functions.
-   * If HO logic is enabled, we call assignHoFunction.
-   */
-  void assignFunctions(TheoryModel* m);
 
  private:
   /** normalized cache

@@ -68,7 +68,7 @@ namespace theory {
  * - hasTerm, getRepresentative, areEqual, areDisequal
  * - getEqualityEngine
  * - getRepSet
- * - hasAssignedFunctionDefinition, getFunctionsToAssign
+ * - hasAssignedFunctionDefinition
  * - getValue
  *
  * The above functions can be used for a model m after it has been
@@ -318,13 +318,6 @@ class TheoryModel : protected EnvObj
   void assignFunctionDefinition(Node f, Node f_def) const;
   /** have we assigned function f? */
   bool hasAssignedFunctionDefinition(Node f) const;
-  /** get the list of functions to assign. 
-  * This list will contain all terms of function type that are terms in d_equalityEngine.
-  * If higher-order is enabled, we ensure that this list is sorted by type size.
-  * This allows us to assign functions T -> T before ( T x T ) -> T and before ( T -> T ) -> T,
-  * which is required for "dag form" model construction (see TheoryModelBuilder::assignHoFunction).
-  */
-  std::vector< Node > getFunctionsToAssign();
   //---------------------------- end function values
   /** Get the name of this model */
   const std::string& getName() const;
