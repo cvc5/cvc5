@@ -57,9 +57,13 @@ TEST_F(TestCApiBlackTypes, printEnum)
   ASSERT_DEATH(
       cvc5_modes_proof_format_to_string(static_cast<Cvc5ProofFormat>(-5)),
       "invalid proof format");
+  ASSERT_DEATH(cvc5_objective_kind_to_string(static_cast<Cvc5ObjectiveKind>(-5)),
+               "invalid objective kind");
+  ASSERT_DEATH(cvc5_omt_strategy_kind_to_string(static_cast<Cvc5OMTStrategyKind>(-5)),
+               "invalid OMT strategy kind");
   std::string expected =
       "CVC5_KIND_LT CVC5_SORT_KIND_ARRAY_SORT RTZ UNKNOWN_REASON literals "
-      "preprocess full enum smt_lib_2_6 lfsc";
+      "preprocess full enum smt_lib_2_6 lfsc OBJECTIVE_MAX STRATEGY_BINARY";
   std::stringstream ss;
   ss << cvc5_kind_to_string(CVC5_KIND_LT) << " ";
   ss << cvc5_sort_kind_to_string(CVC5_SORT_KIND_ARRAY_SORT) << " ";
@@ -76,7 +80,11 @@ TEST_F(TestCApiBlackTypes, printEnum)
      << " ";
   ss << cvc5_modes_input_language_to_string(CVC5_INPUT_LANGUAGE_SMT_LIB_2_6)
      << " ";
-  ss << cvc5_modes_proof_format_to_string(CVC5_PROOF_FORMAT_LFSC);
+  ss << cvc5_modes_proof_format_to_string(CVC5_PROOF_FORMAT_LFSC)
+     << " ";
+  ss << cvc5_objective_kind_to_string(CVC5_OBJECTIVE_KIND_OBJECTIVE_MAX) 
+     << " ";
+  ss << cvc5_omt_strategy_kind_to_string(CVC5_OMT_STRATEGY_KIND_STRATEGY_BINARY);   
   ASSERT_EQ(ss.str(), expected);
 }
 
