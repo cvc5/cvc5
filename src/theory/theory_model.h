@@ -271,6 +271,10 @@ class TheoryModel : protected EnvObj
    * @return The value of n.
    */
   Node getValue(TNode n) const;
+  /**
+   * Get all symbols in the model
+   */
+  std::unordered_set<Node> getAllSymbols() const;
 
   /**
    * Simplify n based on the values in this class. This applies a substitution
