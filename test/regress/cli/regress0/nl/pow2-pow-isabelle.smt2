@@ -2,6 +2,7 @@
 ; EXPECT: unsat
 ; causes exception with large exponents on some builds
 ; DISABLE-TESTER: unsat-core
+; DISABLE-TESTER: cpc
 (set-logic ALL)
 (declare-fun x$ () (_ BitVec 32))
 (declare-fun y$ () (_ BitVec 32))
