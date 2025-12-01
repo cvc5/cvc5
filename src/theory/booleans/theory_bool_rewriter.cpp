@@ -297,6 +297,7 @@ Node TheoryBoolRewriter::computeNnfNorm(NodeManager* nm,
       }
       else if (k==Kind::UNDEFINED_KIND)
       {
+        // handles the case of double negation, which takes the inner child itself
         Assert (children.size()==1);
         ret = children[0];
       }
