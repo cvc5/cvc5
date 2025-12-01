@@ -364,7 +364,8 @@ void BasicRewriteRCons::ensureProofForTheoryRewrite(CDProof* cdp,
   if (handledMacro)
   {
     d_theoryRewriteMacroExpand << id;
-    Trace("brc-macro-debug") << "Proof is " << *cdp->getProofFor(eq) << std::endl;
+    Trace("brc-macro-debug")
+        << "Proof is " << *cdp->getProofFor(eq) << std::endl;
     return;
   }
   // default, just add the rewrite
