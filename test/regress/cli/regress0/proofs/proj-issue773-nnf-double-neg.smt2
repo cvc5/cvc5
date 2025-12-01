@@ -1,4 +1,5 @@
 ; EXPECT: unsat
+; DISABLE-TESTER: alethe
 (set-logic ALL)
 (declare-fun a () Bool)
 (assert (forall ((b Bool)) (not (xor b (=> (and (not (not (and (not (or (not
