@@ -30,8 +30,6 @@ SatSolverFactory::Factory SatSolverFactory::getFactory(
   {
     case options::BvSatSolverMode::CADICAL:
       return createSatSolver<options::BvSatSolverMode::CADICAL>;
-    case options::BvSatSolverMode::MINISAT:
-      return createSatSolver<options::BvSatSolverMode::MINISAT>;
     case options::BvSatSolverMode::KISSAT:
       return createSatSolver<options::BvSatSolverMode::KISSAT>;
     case options::BvSatSolverMode::CRYPTOMINISAT:
