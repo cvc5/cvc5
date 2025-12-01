@@ -346,15 +346,12 @@ bool BVSolverBitblast::collectModelValues(TheoryModel* m,
 
 void BVSolverBitblast::initSatSolver()
 {
-  using prop::SatSolverFactory;
-  d_satSolver.reset(
-      (options().bv.bvSatSolver == options::BvSatSolverMode::CRYPTOMINISAT
-           ? SatSolverFactory::createSatSolver<SatSolverFactory::CRYPTOMINISAT>
-           : SatSolverFactory::createSatSolver<SatSolverFactory::CADICAL>)(
-                                             d_env,
-                                             statisticsRegistry(),
-                                             d_env.getResourceManager(),
-                                             "theory::bv::BVSolverBitblast::"));
+  const auto factory = prop::SatSolverFactory::getFactory(options().bv.bvSatSolver);
+  d_satSolver.reset(factory(d_env,
+                               statisticsRegistry(),
+                               d_env.getResourceManager(),
+                               "theory::bv::BVSolverBitblast::"));
+
   d_cnfStream.reset(new prop::CnfStream(d_env,
                                         d_satSolver.get(),
                                         d_bbRegistrar.get(),

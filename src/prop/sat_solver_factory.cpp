@@ -23,8 +23,43 @@
 namespace cvc5::internal {
 namespace prop {
 
+SatSolverFactory::Factory SatSolverFactory::getFactory(
+  options::BvSatSolverMode mode)
+{
+  switch (mode)
+  {
+    case options::BvSatSolverMode::CADICAL:
+      return createSatSolver<options::BvSatSolverMode::CADICAL>;
+    case options::BvSatSolverMode::MINISAT:
+      return createSatSolver<options::BvSatSolverMode::MINISAT>;
+    case options::BvSatSolverMode::KISSAT:
+      return createSatSolver<options::BvSatSolverMode::KISSAT>;
+    case options::BvSatSolverMode::CRYPTOMINISAT:
+      return createSatSolver<options::BvSatSolverMode::CRYPTOMINISAT>;
+    default:
+      Unreachable();
+      return nullptr;
+  }
+}
+
+SatSolverFactory::CDCLTFactory SatSolverFactory::getFactory(
+    options::SatSolverMode mode)
+{
+  using options::SatSolverMode;
+  switch (mode)
+  {
+    case SatSolverMode::CADICAL:
+      return createCDCLTSatSolver<SatSolverMode::CADICAL>;
+    case SatSolverMode::MINISAT:
+      return createCDCLTSatSolver<SatSolverMode::MINISAT>;
+    default:
+      Unreachable();
+      return nullptr;
+  }
+}
+
 template <>
-SatSolver* SatSolverFactory::createSatSolver<SatSolverFactory::CADICAL>(
+SatSolver* SatSolverFactory::createSatSolver<options::BvSatSolverMode::CADICAL>(
     Env& env,
     StatisticsRegistry& registry,
     ResourceManager* resmgr,
@@ -37,7 +72,7 @@ SatSolver* SatSolverFactory::createSatSolver<SatSolverFactory::CADICAL>(
 }
 
 template <>
-SatSolver* SatSolverFactory::createSatSolver<SatSolverFactory::KISSAT>(
+SatSolver* SatSolverFactory::createSatSolver<options::BvSatSolverMode::KISSAT>(
     Env& env,
     StatisticsRegistry& registry,
     ResourceManager* resmgr,
@@ -54,7 +89,7 @@ SatSolver* SatSolverFactory::createSatSolver<SatSolverFactory::KISSAT>(
 }
 
 template <>
-SatSolver* SatSolverFactory::createSatSolver<SatSolverFactory::CRYPTOMINISAT>(
+SatSolver* SatSolverFactory::createSatSolver<options::BvSatSolverMode::CRYPTOMINISAT>(
     Env& env,
     StatisticsRegistry& registry,
     ResourceManager* resmgr,
@@ -76,7 +111,7 @@ SatSolver* SatSolverFactory::createSatSolver<SatSolverFactory::CRYPTOMINISAT>(
 
 template <>
 CDCLTSatSolver*
-SatSolverFactory::createCDCLTSatSolver<SatSolverFactory::MINISAT>(
+SatSolverFactory::createCDCLTSatSolver<options::SatSolverMode::MINISAT>(
     Env& env,
     StatisticsRegistry& registry,
     ResourceManager* resmgr,
@@ -90,7 +125,7 @@ SatSolverFactory::createCDCLTSatSolver<SatSolverFactory::MINISAT>(
 
 template <>
 CDCLTSatSolver*
-SatSolverFactory::createCDCLTSatSolver<SatSolverFactory::CADICAL>(
+SatSolverFactory::createCDCLTSatSolver<options::SatSolverMode::CADICAL>(
     Env& env,
     StatisticsRegistry& registry,
     ResourceManager* resmgr,
