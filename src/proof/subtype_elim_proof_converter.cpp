@@ -81,7 +81,8 @@ Node SubtypeElimConverterCallback::convert(Node res,
   {
     case ProofRule::ARITH_MULT_SIGN:
     {
-      Trace("pf-subtype-elim") << "preconvert arith mult sign " << cargs << std::endl;
+      Trace("pf-subtype-elim")
+          << "preconvert arith mult sign " << cargs << std::endl;
       // For example, if x:Real, y:Int, this rule with the arguments
       // (and (> x 0.0) (> y 0)), (* x y) proves
       // (=> (and (> x 0.0) (> y 0)) (> (* x y) 0.0)). Subtype elimination
@@ -101,12 +102,12 @@ Node SubtypeElimConverterCallback::convert(Node res,
       }
       // map premises to their index
       std::map<Node, size_t> premiseIndex;
-      for (size_t i=0, nprem=premise.size(); i<nprem; i++)
+      for (size_t i = 0, nprem = premise.size(); i < nprem; i++)
       {
         Node p = premise[i];
         bool neg = p.getKind() == Kind::NOT;
         Node atom = neg ? p[0] : p;
-        Assert (p.getNumChildren()==2);
+        Assert(p.getNumChildren() == 2);
         premiseIndex[atom[0]] = i;
       }
       std::vector<Node> nconj;
@@ -119,12 +120,11 @@ Node SubtypeElimConverterCallback::convert(Node res,
         if (cargs[1][i].getKind() == Kind::TO_REAL)
         {
           itp = premiseIndex.find(cargs[1][i][0]);
-          Assert (itp!=premiseIndex.end());
+          Assert(itp != premiseIndex.end());
           Node p = premise[itp->second];
           bool neg = p.getKind() == Kind::NOT;
           Node atom = neg ? p[0] : p;
-          Assert(atom[1].isConst()
-                  && atom[1].getConst<Rational>().sgn() == 0);
+          Assert(atom[1].isConst() && atom[1].getConst<Rational>().sgn() == 0);
           childChanged = true;
           Node newAtom = nm->mkNode(
               atom.getKind(), cargs[1][i], nm->mkConstReal(Rational(0)));
