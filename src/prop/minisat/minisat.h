@@ -54,9 +54,6 @@ class MinisatSatSolver : public CDCLTSatSolver, protected EnvObj
   void attachProofManager(PropPfManager* ppm) override;
 
   ClauseId addClause(SatClause& clause, bool removable) override;
-  ClauseId addXorClause(CVC5_UNUSED SatClause& clause,
-                        CVC5_UNUSED bool rhs,
-                        CVC5_UNUSED bool removable) override;
 
   SatVariable newVar(bool isTheoryAtom, bool canErase) override;
   SatVariable trueVar() override { return d_minisat->trueVar(); }

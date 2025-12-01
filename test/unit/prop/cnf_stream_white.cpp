@@ -59,14 +59,6 @@ class FakeSatSolver : public SatSolver
     return ClauseIdUndef;
   }
 
-  ClauseId addXorClause(SatClause& clause, bool rhs, bool removable) override
-  {
-    d_addClauseCalled = true;
-    return ClauseIdUndef;
-  }
-
-  bool nativeXor() override { return false; }
-
   void reset() { d_addClauseCalled = false; }
 
   unsigned int addClauseCalled() { return d_addClauseCalled; }

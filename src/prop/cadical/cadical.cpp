@@ -258,15 +258,7 @@ ClauseId CadicalSolver::addClause(SatClause& clause, bool removable)
   return ClauseIdError;
 }
 
-ClauseId CadicalSolver::addXorClause(CVC5_UNUSED SatClause& clause,
-                                     CVC5_UNUSED bool rhs,
-                                     CVC5_UNUSED bool removable)
-{
-  Unreachable() << "CaDiCaL does not support adding XOR clauses.";
-  return 0;
-}
-
-SatVariable CadicalSolver::newVar(bool isTheoryAtom, CVC5_UNUSED bool canErase)
+SatVariable CadicalSolver::newVar(bool isTheoryAtom, bool canErase)
 {
   ++d_statistics.d_numVariables;
   if (d_propagator)

@@ -49,12 +49,8 @@ class CadicalSolver : public CDCLTSatSolver, protected EnvObj
 
   ClauseId addClause(SatClause& clause, bool removable) override;
 
-  ClauseId addXorClause(SatClause& clause, bool rhs, bool removable) override;
-
   SatVariable newVar(bool isTheoryAtom, bool canErase) override;
-
   SatVariable trueVar() override;
-
   SatVariable falseVar() override;
 
   SatValue solve() override;

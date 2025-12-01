@@ -40,10 +40,7 @@ class KissatSolver : public SatSolver
 
   ClauseId addClause(SatClause& clause, bool removable) override;
 
-  ClauseId addXorClause(SatClause& clause, bool rhs, bool removable) override;
-
   SatVariable newVar(bool isTheoryAtom, bool canErase) override;
-
   SatVariable trueVar() override;
   SatVariable falseVar() override;
 
