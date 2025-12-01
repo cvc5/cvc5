@@ -18,14 +18,15 @@
 #ifndef CVC5__PROP__SAT_SOLVER_FACTORY_H
 #define CVC5__PROP__SAT_SOLVER_FACTORY_H
 
-#include <util/resource_manager.h>
-
 #include <string>
 
-#include "context/context.h"
-#include "prop/sat_solver.h"
-#include "smt/env.h"
+#include "options/bv_options.h"
+#include "options/prop_options.h"
 #include "util/statistics_stats.h"
+#include "util/resource_manager.h"
+
+#include "smt/env.h"
+#include "prop/sat_solver.h"
 
 namespace cvc5::internal {
 namespace prop {
@@ -35,43 +36,49 @@ class TheoryProxy;
 class SatSolverFactory
 {
  public:
-  enum SatSolverType
-  {
-    MINISAT,
-    CADICAL,
-    CRYPTOMINISAT,
-    KISSAT,
-  };
+  using Factory = SatSolver* (*) (Env&,
+                                  StatisticsRegistry&,
+                                  ResourceManager*,
+                                  const std::string&);
 
-  template <SatSolverType T>
+  using CDCLTFactory = CDCLTSatSolver* (*) (Env&,
+                                            StatisticsRegistry&,
+                                            ResourceManager*,
+                                            TheoryProxy*,
+                                            const std::string&);
+
+  template <options::BvSatSolverMode T>
   static SatSolver* createSatSolver(Env& env,
                                     StatisticsRegistry& registry,
                                     ResourceManager* resmgr,
                                     const std::string& name = "");
 
-  template <SatSolverType T>
+  template <options::SatSolverMode T>
   static CDCLTSatSolver* createCDCLTSatSolver(Env& env,
                                               StatisticsRegistry& registry,
                                               ResourceManager* resmgr,
                                               TheoryProxy* theory_proxy,
                                               const std::string& name = "");
+
+  static Factory getFactory(options::BvSatSolverMode);
+  static CDCLTFactory getFactory(options::SatSolverMode);
 };
 
 template <>
-SatSolver* SatSolverFactory::createSatSolver<SatSolverFactory::CADICAL>(
+SatSolver* SatSolverFactory::createSatSolver<options::BvSatSolverMode::CADICAL>(
     Env&, StatisticsRegistry&, ResourceManager*, const std::string&);
 
 template <>
-SatSolver* SatSolverFactory::createSatSolver<SatSolverFactory::KISSAT>(
+SatSolver* SatSolverFactory::createSatSolver<options::BvSatSolverMode::KISSAT>(
     Env&, StatisticsRegistry&, ResourceManager*, const std::string&);
 
 template <>
-SatSolver* SatSolverFactory::createSatSolver<SatSolverFactory::CRYPTOMINISAT>(
+SatSolver* SatSolverFactory::createSatSolver<options::BvSatSolverMode::CRYPTOMINISAT>(
     Env&, StatisticsRegistry&, ResourceManager*, const std::string&);
 
 template <>
 CDCLTSatSolver*
-SatSolverFactory::createCDCLTSatSolver<SatSolverFactory::MINISAT>(
+SatSolverFactory::createCDCLTSatSolver<options::SatSolverMode::MINISAT>(
     Env&,
     StatisticsRegistry&,
     ResourceManager*,
@@ -80,7 +87,7 @@ SatSolverFactory::createCDCLTSatSolver<SatSolverFactory::MINISAT>(
 
 template <>
 CDCLTSatSolver*
-SatSolverFactory::createCDCLTSatSolver<SatSolverFactory::CADICAL>(
+SatSolverFactory::createCDCLTSatSolver<options::SatSolverMode::CADICAL>(
     Env&,
     StatisticsRegistry&,
     ResourceManager*,
