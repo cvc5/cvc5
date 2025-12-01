@@ -295,10 +295,11 @@ Node TheoryBoolRewriter::computeNnfNorm(NodeManager* nm,
         Assert(k == Kind::OR || k == Kind::AND);
         ret = nm->mkConst(k == Kind::OR);
       }
-      else if (k==Kind::UNDEFINED_KIND)
+      else if (k == Kind::UNDEFINED_KIND)
       {
-        // handles the case of double negation, which takes the inner child itself
-        Assert (children.size()==1);
+        // handles the case of double negation, which takes the inner child
+        // itself
+        Assert(children.size() == 1);
         ret = children[0];
       }
       else if (childChanged || k != ok)
@@ -319,9 +320,9 @@ Node TheoryBoolRewriter::computeNnfNorm(NodeManager* nm,
           pcc.push_back(it->second);
         }
         Node pcpc;
-        if (k==Kind::UNDEFINED_KIND)
+        if (k == Kind::UNDEFINED_KIND)
         {
-          Assert (pcc.size()==1);
+          Assert(pcc.size() == 1);
           pcpc = pcc[0];
         }
         else
