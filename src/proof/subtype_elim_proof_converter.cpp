@@ -107,7 +107,7 @@ Node SubtypeElimConverterCallback::convert(Node res,
         Node p = premise[i];
         bool neg = p.getKind() == Kind::NOT;
         Node atom = neg ? p[0] : p;
-        Assert(p.getNumChildren() == 2);
+        Assert(atom.getNumChildren() == 2);
         premiseIndex[atom[0]] = i;
       }
       std::vector<Node> nconj;
