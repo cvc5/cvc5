@@ -50,7 +50,7 @@ if(NOT Poly_FOUND_SYSTEM)
 
   include(ExternalProject)
 
-  set(Poly_VERSION "0.2.0")
+  set(Poly_VERSION "0.2.1")
 
   set(POLY_PATCH_KWD PATCH_COMMAND)
   check_if_cross_compiling(CCWIN "Windows" "")
@@ -170,7 +170,7 @@ if(NOT Poly_FOUND_SYSTEM)
     Poly-EP
     ${COMMON_EP_CONFIG}
     URL https://github.com/SRI-CSL/libpoly/archive/refs/tags/v${Poly_VERSION}.tar.gz
-    URL_HASH SHA256=146adc0d3f6fe8038adb6b8b69dd16114a4be12f520d5c1fb333f3746d233abe
+    URL_HASH SHA256=b662ea4d7515426aeccda090339dbb086629a2f6ba4688b7710a892f7d2c7c58
     ${POLY_PATCH_CMD}
     CMAKE_ARGS -DCMAKE_BUILD_TYPE=Release
                -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>

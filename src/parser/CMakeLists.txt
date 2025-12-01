@@ -72,6 +72,13 @@ target_compile_definitions(cvc5parserapi-objs PUBLIC -D__BUILDING_CVC5LIB -Dcvc5
 add_dependencies(cvc5parser-objs gen-expr gen-options)
 add_dependencies(cvc5parserapi-objs cvc5parser-objs gen-expr)
 
+if(USE_POLY)
+  add_dependencies(cvc5parser-objs Polyxx)
+  target_include_directories(cvc5parser-objs SYSTEM PRIVATE ${Poly_INCLUDE_DIR})
+  add_dependencies(cvc5parserapi-objs Polyxx)
+  target_include_directories(cvc5parserapi-objs SYSTEM PRIVATE ${Poly_INCLUDE_DIR})
+endif()
+
 add_library(cvc5parser
   $<TARGET_OBJECTS:cvc5parser-objs>
   $<TARGET_OBJECTS:cvc5parserapi-objs>
