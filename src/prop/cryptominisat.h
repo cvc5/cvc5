@@ -44,12 +44,9 @@ class CryptoMinisatSolver : public SatSolver
   ~CryptoMinisatSolver() override;
 
   ClauseId addClause(SatClause& clause, bool removable) override;
-  ClauseId addXorClause(SatClause& clause, bool rhs, bool removable) override;
-
-  bool nativeXor() override { return true; }
+  ClauseId addXorClause(SatClause& clause, bool rhs, bool removable);
 
   SatVariable newVar(bool isTheoryAtom, bool canErase) override;
-
   SatVariable trueVar() override;
   SatVariable falseVar() override;
 

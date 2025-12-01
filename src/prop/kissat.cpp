@@ -95,12 +95,6 @@ ClauseId KissatSolver::addClause(SatClause& clause, bool removable)
   return ClauseIdError;
 }
 
-ClauseId KissatSolver::addXorClause(SatClause& clause, bool rhs, bool removable)
-{
-  Unreachable() << "Kissat does not support adding XOR clauses.";
-  return 0;
-}
-
 SatVariable KissatSolver::newVar(bool isTheoryAtom, bool canErase)
 {
   ++d_statistics.d_numVariables;
