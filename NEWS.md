@@ -10,6 +10,8 @@ cvc5 1.3.2 prerelease
 - We now use a more efficient version of resolution by default in CPC proofs
   (proof rule `CHAIN_M_RESOLUTION`) for representing SAT proofs from Minisat.
 - CPC proofs now have no mixed arithmetic by default.
+- Minor updates and fixes to the CPC proof signature. The current CPC proofs are
+  checkable by Ethos 0.2.2 (`./contrib/get-ethos-checker`).
 
 cvc5 1.3.1
 ==========
