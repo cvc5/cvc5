@@ -177,7 +177,7 @@ protected:
   bool useSimpleModels();
  private:
   /**
-   * Initialize functions for exhaustive instantiate. Called at the beginning
+   * Initialize functions for exhaustive instantiation. Called at the beginning
    * of doExhaustiveInstantiation to ensure data structures in this class are
    * initialized.
    */
