@@ -370,6 +370,7 @@ jobs:
 
     - name: Upload Maven artifacts
       if: >
+        github.repository == 'cvc5/cvc5' &&
         (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')) &&
         (matrix.build.upload-maven-doc ||
          (matrix.build.java-bindings && matrix.build.package-name))
@@ -383,7 +384,7 @@ jobs:
 
   publish-to-maven-central:
     name: Publish to Maven central
-    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
+    if: github.repository == 'cvc5/cvc5' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
     runs-on: ubuntu-latest
     continue-on-error: true
     needs: [builds]
@@ -407,9 +408,10 @@ jobs:
         merge-multiple: true
 
     - name: Deploy to Maven Central
+      continue-on-error: true
       run: |
         cd ./maven
-        mvn deploy -Prelease -Dartifacts.dir=./ -Djavadoc.dir=./
+        mvn deploy --batch-mode -Prelease -Dartifacts.dir=./ -Djavadoc.dir=./
       env:
         MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
         MAVEN_TOKEN: ${{ secrets.MAVEN_TOKEN }}
