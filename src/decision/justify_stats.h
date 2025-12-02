@@ -40,6 +40,8 @@ class JustifyStatistics
   IntStat d_maxAssertionsSize;
   /** Maximum skolem definition size we considered */
   IntStat d_maxSkolemDefsSize;
+  /** Get next decision time */
+  TimerStat d_time;
 };
 
 }
