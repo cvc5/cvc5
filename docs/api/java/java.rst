@@ -141,7 +141,7 @@ Building cvc5 Java API
      $ ls install/lib
        cmake             libcvc5parser.so.1  libpoly.so        libpolyxx.so
        libcvc5jni.so     libcvc5.so          libpoly.so.0      libpolyxx.so.0
-       libcvc5parser.so  libcvc5.so.1        libpoly.so.0.2.0  libpolyxx.so.0.2.0
+       libcvc5parser.so  libcvc5.so.1        libpoly.so.0.2.1  libpolyxx.so.0.2.1
      $ ls install/share/java/
        cvc5-1.3.2-SNAPSHOT.jar  cvc5.jar
 
