@@ -46,13 +46,13 @@ namespace passes {
  * @return A const reference to the cached superpattern for the symbol.
  */
 static const std::vector<std::vector<int32_t>>& getOrComputeSuperpattern(
-  const std::string& symbol,
-  const std::vector<std::vector<NodeInfo*>>& eqClasses,
-  const std::unordered_map<std::string,
-               std::vector<std::shared_ptr<NodeInfo>>>&
-    symbolOccurrences,
-  std::unordered_map<std::string, std::vector<std::vector<int32_t>>>&
-    patternCache)
+    const std::string& symbol,
+    const std::vector<std::vector<NodeInfo*>>& eqClasses,
+    const std::unordered_map<std::string,
+                             std::vector<std::shared_ptr<NodeInfo>>>&
+        symbolOccurrences,
+    std::unordered_map<std::string, std::vector<std::vector<int32_t>>>&
+        patternCache)
 {
   auto it = patternCache.find(symbol);
   if (it != patternCache.end())
@@ -74,7 +74,8 @@ static const std::vector<std::vector<int32_t>>& getOrComputeSuperpattern(
     // Get the equivalence class ID for this node
     size_t eqClassId = nodeInfo->id;
 
-    // Push the non-negative value to the corresponding segment in the superpattern
+    // Push the non-negative value to the corresponding segment in the
+    // superpattern
     superpattern[eqClassId].push_back(roleIt->second);
   }
 
@@ -111,14 +112,14 @@ static const std::vector<std::vector<int32_t>>& getOrComputeSuperpattern(
  * @return True if a should come before b.
  */
 static bool compareBySuperpattern(
-  NodeInfo* a,
-  NodeInfo* b,
-  const std::vector<std::vector<NodeInfo*>>& eqClasses,
-  std::unordered_map<std::string, std::vector<std::vector<int32_t>>>&
-    patternCache,
-  const std::unordered_map<std::string,
-               std::vector<std::shared_ptr<NodeInfo>>>&
-    symbolOccurrences)
+    NodeInfo* a,
+    NodeInfo* b,
+    const std::vector<std::vector<NodeInfo*>>& eqClasses,
+    std::unordered_map<std::string, std::vector<std::vector<int32_t>>>&
+        patternCache,
+    const std::unordered_map<std::string,
+                             std::vector<std::shared_ptr<NodeInfo>>>&
+        symbolOccurrences)
 {
   auto itA = a->varNames.begin();
   auto itB = b->varNames.begin();
@@ -989,12 +990,10 @@ PreprocessingPassResult Normalize::applyInternal(
       patternCache;
   for (auto& eqClass : eqClasses)
   {
-    std::sort(
-        eqClass.begin(),
-        eqClass.end(),
-          [&](NodeInfo* a, NodeInfo* b) {
-          return compareBySuperpattern(a, b, eqClasses, patternCache, symbolOccurrences);
-        });
+    std::sort(eqClass.begin(), eqClass.end(), [&](NodeInfo* a, NodeInfo* b) {
+      return compareBySuperpattern(
+          a, b, eqClasses, patternCache, symbolOccurrences);
+    });
   }
 
   // ----------------------------------------
@@ -1059,11 +1058,9 @@ PreprocessingPassResult Normalize::applyInternal(
   // ----------------------------------------
   for (auto& eqClass : eqClasses)
   {
-        std::sort(eqClass.begin(),
-              eqClass.end(),
-              [&](NodeInfo* a, NodeInfo* b) {
-                return compareByNormalizedNames(a, b, normalizedName);
-              });
+    std::sort(eqClass.begin(), eqClass.end(), [&](NodeInfo* a, NodeInfo* b) {
+      return compareByNormalizedNames(a, b, normalizedName);
+    });
   }
 
   // ----------------------------------------
