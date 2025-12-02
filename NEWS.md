@@ -5,8 +5,11 @@ cvc5 1.3.2 prerelease
 
 ## Changes
 
+- Fixes a bug related to variable elimination for quantified formulas that have
+  variable shadowing.
 - We now use a more efficient version of resolution by default in CPC proofs
   (proof rule `CHAIN_M_RESOLUTION`) for representing SAT proofs from Minisat.
+- CPC proofs now have no mixed arithmetic by default.
 
 cvc5 1.3.1
 ==========
