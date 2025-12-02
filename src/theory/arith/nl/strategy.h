@@ -49,6 +49,13 @@ enum class InferStep
   /** An initial IAND check */
   IAND_INITIAL,
 
+  /** Initialize the PIAND solver */
+  PIAND_INIT,
+  /** A full PIAND check */
+  PIAND_FULL,
+  /** An initial PIAND check */
+  PIAND_INITIAL,
+
   /** Initialize the POW2 solver */
   POW2_INIT,
   /** A full POW2 check */
