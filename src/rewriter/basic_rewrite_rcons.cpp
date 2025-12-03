@@ -2036,8 +2036,7 @@ bool BasicRewriteRCons::ensureProofMacroQuantPrenex(CDProof* cdp,
         if (eqc[1].getKind() == Kind::FORALL)
         {
           // just add subgoal, likely alpha equivalence
-          cdp->addTrustedStep(
-              eqc, TrustId::MACRO_THEORY_REWRITE_RCONS, {}, {});
+          cdp->addTrustedStep(eqc, TrustId::MACRO_THEORY_REWRITE_RCONS, {}, {});
           continue;
         }
         // maybe the result of QUANT_UNUSED_VARS?
