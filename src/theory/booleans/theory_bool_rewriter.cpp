@@ -232,6 +232,8 @@ Node TheoryBoolRewriter::computeNnfNorm(NodeManager* nm,
       else
       {
         // double negation visits the child
+        // we set the preKind to UNDEFINED_KIND, which indicates a no-op when
+        // reconstructing the node at post-rewrite.
         preKind[cur] = Kind::UNDEFINED_KIND;
         visited[cur] = Node::null();
         visit.push_back(cur);
