@@ -104,8 +104,6 @@ class ArithRewriter : public TheoryRewriter
 
   /** postRewrite IAND */
   RewriteResponse postRewriteIAnd(TNode t);
-  /** postRewrite PIAND */
-  RewriteResponse postRewritePIAnd(TNode t);
   /** postRewrite POW2 */
   RewriteResponse postRewritePow2(TNode t);
   /** postRewrite INTS_IS_POW2 */
