@@ -171,7 +171,6 @@ Node TheoryBoolRewriter::computeNnfNorm(NodeManager* nm,
         {
           // double negation cancels
           preCur = cur[0][0];
-          visited[cur] = preCur;
         }
         else if (cur[0].getKind() == Kind::OR
                  || cur[0].getKind() == Kind::IMPLIES)
@@ -212,12 +211,12 @@ Node TheoryBoolRewriter::computeNnfNorm(NodeManager* nm,
         visited[cur] = cur;
         continue;
       }
+      std::vector<Node>& pc = preChildren[cur];
       if (preCur.isNull())
       {
         preKind[cur] = k;
         visited[cur] = Node::null();
         visit.push_back(cur);
-        std::vector<Node>& pc = preChildren[cur];
         for (size_t i = 0, nchild = ncur.getNumChildren(); i < nchild; ++i)
         {
           Node c =
@@ -229,6 +228,17 @@ Node TheoryBoolRewriter::computeNnfNorm(NodeManager* nm,
         {
           preCur = nm->mkNode(k, pc);
         }
+      }
+      else
+      {
+        // double negation visits the child
+        // we set the preKind to UNDEFINED_KIND, which indicates a no-op when
+        // reconstructing the node at post-rewrite.
+        preKind[cur] = Kind::UNDEFINED_KIND;
+        visited[cur] = Node::null();
+        visit.push_back(cur);
+        visit.push_back(preCur);
+        pc.push_back(preCur);
       }
       // if proof producing, possibly add a pre-rewrite step
       if (pg != nullptr)
@@ -287,6 +297,13 @@ Node TheoryBoolRewriter::computeNnfNorm(NodeManager* nm,
         Assert(k == Kind::OR || k == Kind::AND);
         ret = nm->mkConst(k == Kind::OR);
       }
+      else if (k == Kind::UNDEFINED_KIND)
+      {
+        // handles the case of double negation, which takes the inner child
+        // itself
+        Assert(children.size() == 1);
+        ret = children[0];
+      }
       else if (childChanged || k != ok)
       {
         ret = (children.size() == 1 && k != Kind::NOT)
@@ -304,7 +321,16 @@ Node TheoryBoolRewriter::computeNnfNorm(NodeManager* nm,
           Assert(!it->second.isNull());
           pcc.push_back(it->second);
         }
-        Node pcpc = nm->mkNode(k, pcc);
+        Node pcpc;
+        if (k == Kind::UNDEFINED_KIND)
+        {
+          Assert(pcc.size() == 1);
+          pcpc = pcc[0];
+        }
+        else
+        {
+          pcpc = nm->mkNode(k, pcc);
+        }
         if (pcpc != ret)
         {
           pg->addRewriteStep(

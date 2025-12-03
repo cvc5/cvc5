@@ -1511,6 +1511,7 @@ set(regress_0_tests
   regress0/proofs/proj-issue723-rdb-step.smt2
   regress0/proofs/proj-issue765-open.smt2
   regress0/proofs/proj-issue771-brc-dup.smt2
+  regress0/proofs/proj-issue773-nnf-double-neg.smt2
   regress0/proofs/proof-components.smt2
   regress0/proofs/qgu-fuzz-1-bool-sat.smt2
   regress0/proofs/qgu-fuzz-2-bool-chainres-checking.smt2
