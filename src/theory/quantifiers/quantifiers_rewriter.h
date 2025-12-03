@@ -390,10 +390,12 @@ class QuantifiersRewriter : public TheoryRewriter
   Node computeOperation(Node q,
                         RewriteStep computeOption,
                         QAttributes& qa) const;
-  /** 
+  /**
    * Compute if the substitution is safe (does not introduce variable capture).
    */
-  static bool isSafeSubstitution(const Node& n, const std::vector<Node>& vars, const std::vector<Node>& subs);
+  static bool isSafeSubstitution(const Node& n,
+                                 const std::vector<Node>& vars,
+                                 const std::vector<Node>& subs);
   /** Pointer to rewriter, used for computeExtendedRewrite above */
   Rewriter* d_rewriter;
   /** Reference to the options */

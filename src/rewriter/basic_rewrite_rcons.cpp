@@ -364,8 +364,6 @@ void BasicRewriteRCons::ensureProofForTheoryRewrite(CDProof* cdp,
   if (handledMacro)
   {
     d_theoryRewriteMacroExpand << id;
-    Trace("brc-macro-debug")
-        << "Proof is " << *cdp->getProofFor(eq) << std::endl;
     return;
   }
   // default, just add the rewrite
@@ -2914,49 +2912,15 @@ bool BasicRewriteRCons::ensureProofMacroElimShadow(CDProof* cdp, const Node& eq)
                            "MacroLambdaAppElimShadow",
                            nullptr,
                            true);
-  CDProof tmp(d_env);
   for (const Node& mc : matchConds)
   {
     Trace("brc-macro") << "- subgoal " << mc << std::endl;
     // the step should be shown by alpha-equivalance
-    Assert(mc.getKind() == Kind::EQUAL);
-    Assert(mc[0].isClosure() && mc[0].getKind() == mc[1].getKind());
-    // the proof generator for the fact, or nullptr if the subgoal should be
-    // provable indpendently.
-    ProofGenerator* pg = nullptr;
-    // We may have eliminated a duplicate variable
-    if (mc[0][0].getNumChildren() > mc[1][0].getNumChildren())
-    {
-      std::vector<Node> vars;
-      for (const Node& v : mc[0][0])
-      {
-        if (std::find(vars.begin(), vars.end(), v) == vars.end())
-        {
-          vars.push_back(v);
-        }
-      }
-      if (vars.size() < mc[0][0].getNumChildren())
-      {
-        // e.g.
-        // -------------------------------- TR  ---------------------------- TR
-        // forall xx. P[x] = forall x. P[x]     forall x. P = forall y. P[y]
-        // -------------------------------------------------------------- TRANS
-        // forall xx. P[x] = forall y. P[y]
-        NodeManager* nm = nodeManager();
-        std::vector<Node> nc(mc[0].begin(), mc[0].end());
-        nc[0] = nm->mkNode(Kind::BOUND_VAR_LIST, vars);
-        Node mtmp = nm->mkNode(mc[0].getKind(), nc);
-        Node eq1 = mc[0].eqNode(mtmp);
-        tmp.addTrustedStep(eq1, TrustId::MACRO_THEORY_REWRITE_RCONS, {}, {});
-        Node eq2 = mtmp.eqNode(mc[1]);
-        tmp.addTrustedStep(
-            eq2, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE, {}, {});
-        tmp.addStep(mc, ProofRule::TRANS, {eq1, eq2}, {});
-        pg = &tmp;
-      }
-    }
-    tcpg.addRewriteStep(
-        mc[0], mc[1], pg, true, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE);
+    tcpg.addRewriteStep(mc[0],
+                        mc[1],
+                        nullptr,
+                        true,
+                        TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE);
   }
   std::shared_ptr<ProofNode> pfn = tcpg.getProofForRewriting(eq[0]);
   Node res = pfn->getResult();

@@ -2511,7 +2511,9 @@ bool QuantifiersRewriter::isPrenexNormalForm( Node n ) {
   }
 }
 
-bool QuantifiersRewriter::isSafeSubstitution(const Node& n, const std::vector<Node>& vars, const std::vector<Node>& subs)
+bool QuantifiersRewriter::isSafeSubstitution(const Node& n,
+                                             const std::vector<Node>& vars,
+                                             const std::vector<Node>& subs)
 {
   std::unordered_set<Node> fvs;
   for (const Node& s : subs)
@@ -2523,13 +2525,13 @@ bool QuantifiersRewriter::isSafeSubstitution(const Node& n, const std::vector<No
     return true;
   }
   std::vector<Node> fvl(fvs.begin(), fvs.end());
-  NodeManager * nm = n.getNodeManager();
+  NodeManager* nm = n.getNodeManager();
   // use the shadow elimination converter to see if eliminating shadowing of
   // the given variables is necessary. The substitution is safe only if
   // the variables are not shadowed.
   Node lam = nm->mkNode(Kind::LAMBDA, nm->mkNode(Kind::BOUND_VAR_LIST, fvl), n);
   Node lams = ElimShadowNodeConverter::eliminateShadow(lam);
-  return (lam==lams);
+  return (lam == lams);
 }
 
 }  // namespace quantifiers
