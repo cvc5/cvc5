@@ -6,13 +6,6 @@
 (define $compare_geq ((T Type :implicit) (x T) (y T))
   (eo::ite (eo::eq x y) true (eo::gt x y)))
 
-; define: $sgn
-; args:
-; - x T: The term to inspect. Assumed to be an arithmetic value.
-; return: The sign of x: -1 if x < 0, 1 if x > 0, and 0 otherwise.
-(define $sgn ((T Type :implicit) (x T))
-  (eo::ite (eo::is_neg x) -1 (eo::ite (eo::is_neg (eo::neg x)) 1 0)))
-
 (declare-const @@Pair (-> Type Type Type))
 (define @Pair () @@Pair)
 (declare-parameterized-const @@pair ((U Type :implicit) (T Type :implicit)) (-> U T (@Pair U T)))

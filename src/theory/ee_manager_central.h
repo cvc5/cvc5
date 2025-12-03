@@ -61,8 +61,6 @@ class EqEngineManagerCentral : public EqEngineManager
    * per theories and connects them to a master equality engine.
    */
   void initializeTheories() override;
-  /** Notify this class that we are building the model. */
-  void notifyBuildingModel();
 
   /**
    * Return true if the theory with the given id uses central equality engine
