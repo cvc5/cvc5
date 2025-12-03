@@ -173,10 +173,15 @@ protected:
 
   /** process build model */
   bool preProcessBuildModel(TheoryModel* m) override;
-  bool processBuildModel(TheoryModel* m) override;
 
   bool useSimpleModels();
  private:
+  /**
+   * Initialize functions for exhaustive instantiation. Called at the beginning
+   * of doExhaustiveInstantiation to ensure data structures in this class are
+   * initialized.
+   */
+  void initializeFunctions(TheoryModel* m);
   /**
    * Register quantified formula.
    * This checks whether q can be handled by model-based instantiation and
@@ -190,6 +195,8 @@ protected:
    * class that is specialized for this class.
    */
   std::unique_ptr<FirstOrderModelFmc> d_fm;
+  /** Have we intialized functions this round? */
+  bool d_initFuncs;
 };/* class FullModelChecker */
 
 }  // namespace fmcheck
