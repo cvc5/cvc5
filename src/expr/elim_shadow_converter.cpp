@@ -43,22 +43,42 @@ Node ElimShadowNodeConverter::postConvert(Node n)
   {
     return n;
   }
+  bool changed = false;
   std::vector<Node> oldVars;
   std::vector<Node> newVars;
   for (size_t i = 0, nvars = n[0].getNumChildren(); i < nvars; i++)
   {
     const Node& v = n[0][i];
+    // if there are duplicate variables in the current quantified formula, these
+    // are dropped.
+    if (std::find(oldVars.begin(), oldVars.end(), v)!=oldVars.end())
+    {
+      changed = true;
+      continue;
+    }
+    oldVars.push_back(v);
     if (std::find(d_vars.begin(), d_vars.end(), v) != d_vars.end())
     {
+      changed = true;
       Node nv = getElimShadowVar(d_closure, n, i);
-      oldVars.push_back(v);
       newVars.push_back(nv);
     }
+    else
+    {
+      newVars.push_back(v);
+    }
   }
-  if (!newVars.empty())
+  if (changed)
   {
-    return n.substitute(
-        oldVars.begin(), oldVars.end(), newVars.begin(), newVars.end());
+    std::vector<Node> children;
+    children.push_back(d_nm->mkNode(Kind::BOUND_VAR_LIST, newVars));
+    for (size_t i=1, nchild=n.getNumChildren(); i<nchild; i++)
+    {
+      Node nc = n[i].substitute(
+          oldVars.begin(), oldVars.end(), newVars.begin(), newVars.end());
+      children.push_back(nc);
+    }
+    return d_nm->mkNode(n.getKind(), children);
   }
   return n;
 }
