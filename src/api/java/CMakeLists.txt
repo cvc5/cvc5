@@ -387,6 +387,21 @@ if(BUILD_DOCS)
   add_custom_target(cvc5-sources-jar ALL DEPENDS ${SOURCES_JAR})
 endif()
 
+if(NOT BUILD_SHARED_LIBS)
+  # Build a JAR including the native library for publication to Maven Central
+  set(NATIVE_JAR ${CMAKE_CURRENT_BINARY_DIR}/cvc5-${SYS_NAME}-${CPU_ARCH}.jar)
+  add_custom_command(
+      OUTPUT ${NATIVE_JAR}
+      COMMAND ${Java_JAR_EXECUTABLE} cf ${NATIVE_JAR} -C ${CMAKE_CURRENT_BINARY_DIR} ${JNI_PREFIX}
+      DEPENDS cvc5jni
+      COMMENT "Generating native JAR"
+  )
+  add_custom_target(cvc5-native-jar ALL DEPENDS ${NATIVE_JAR})
+endif()
+
+# POM file for publishing cvc5 Java bindings to Maven Central
+configure_file(pom.xml.in ${CMAKE_BINARY_DIR}/pom.xml @ONLY)
+
 # Install in the same directory of cvc5-targets.
 # On Windows, CMake's default install action places
 # DLLs into the runtime path (by default "bin")
