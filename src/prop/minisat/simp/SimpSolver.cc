@@ -59,14 +59,18 @@ SimpSolver::SimpSolver(Env& env,
       simp_garbage_frac(opt_simp_garbage_frac),
       use_asymm(opt_use_asymm),
       // make sure this is not enabled if unsat cores or proofs are on
-      use_rcheck(opt_use_rcheck && !options().smt.produceUnsatCores),
+      use_rcheck(opt_use_rcheck
+        && !options().smt.produceUnsatCores
+        && !env.isSatProofProducing()),
       merges(0),
       asymm_lits(0),
       eliminated_vars(0),
       elimorder(1),
       use_simplification(
           options().prop.minisatSimpMode != options::MinisatSimpMode::NONE
-          && !enableIncremental && !options().smt.produceUnsatCores),
+          && !enableIncremental
+          && !options().smt.produceUnsatCores
+          && !env.isSatProofProducing()),
       occurs(ClauseDeleted(ca)),
       elim_heap(ElimLt(n_occ)),
       bwdsub_assigns(0),
@@ -93,9 +97,8 @@ SimpSolver::SimpSolver(Env& env,
 
 void SimpSolver::attachProofManager(prop::PropPfManager* ppm)
 {
+  Assert(!use_simplification && !use_rcheck);
   Solver::attachProofManager(ppm);
-  use_simplification = false;
-  use_rcheck = false;
 }
 
 Var SimpSolver::newVar(bool sign, bool dvar, bool isTheoryAtom, bool canErase)
