@@ -386,11 +386,7 @@ Node ArithNlCompareProofGenerator::isDisequalZero(const Node& g)
   if (g.getKind() == Kind::NOT && g[0].getKind() == Kind::EQUAL
       && g[0][1].isConst() && g[0][1].getConst<Rational>().isZero())
   {
-    if (g[0][0].getKind()==Kind::TO_REAL)
-    {
-      return g[0][0][0];
-    }
-    return g[0][0];
+    return g[0][0].getKind() == Kind::TO_REAL ? g[0][0][0] : g[0][0];
   }
   return Node::null();
 }
