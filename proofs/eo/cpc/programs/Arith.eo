@@ -2,6 +2,13 @@
 (include "../theories/Arith.eo")
 (include "../programs/Utils.eo")
 
+; define: $sgn
+; args:
+; - x T: The term to inspect. Assumed to be an arithmetic value.
+; return: The sign of x: -1 if x < 0, 1 if x > 0, and 0 otherwise.
+(define $sgn ((T Type :implicit) (x T))
+  (eo::ite (eo::is_neg x) -1 (eo::ite (eo::is_neg (eo::neg x)) 1 0)))
+
 ; define: $arith_mk_zero
 ; args:
 ; - u Type : The type of the zero, which should be Int or Real.
@@ -92,10 +99,9 @@
 ; args:
 ; - x Int: The term to compute the log (base 2) of.
 ; return: >
-;   the log base 2 of x. If x is not strictly positive, we return
-;   the term (int.log2 x).
+;   the log base 2 of x. If x is not strictly positive, we return 0.
 (define $arith_eval_int_log_2 ((x Int))
-  (eo::ite (eo::is_neg (eo::neg x)) ($arith_eval_int_log_2_rec x) (int.log2 x)))
+  (eo::ite (eo::is_neg (eo::neg x)) ($arith_eval_int_log_2_rec x) 0))
 
 ; program: $arith_eval_int_pow_2_rec
 ; args:

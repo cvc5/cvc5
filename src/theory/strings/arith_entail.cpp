@@ -15,6 +15,7 @@
 
 #include "theory/strings/arith_entail.h"
 
+#include "expr/aci_norm.h"
 #include "expr/attribute.h"
 #include "expr/node_algorithm.h"
 #include "proof/conv_proof_generator.h"
@@ -177,13 +178,32 @@ Node ArithEntail::rewriteLengthIntro(const Node& n,
       {
         ret = nm->mkNode(k, children);
       }
-      if (k == Kind::STRING_LENGTH)
+      if (k == Kind::STRING_LENGTH
+          && (ret[0].getKind() == Kind::STRING_CONCAT || ret[0].isConst()))
       {
-        std::vector<Node> cc;
-        for (const Node& c : children)
+        Node arg = ret[0];
+        // First ensure ACI norm, which ensures that we fully flatten
+        // e.g. (len (str.++ (str.++ a b) c)) ---> (len (str.++ a b c)) --->
+        // (+ (len a) (len b) (len c)) below.
+        if (arg.getKind() == Kind::STRING_CONCAT)
         {
-          utils::getConcat(c, cc);
+          arg = expr::getACINormalForm(arg);
+          if (arg != ret[0])
+          {
+            Node ret2 = nm->mkNode(k, {arg});
+            if (pg != nullptr)
+            {
+              pg->addRewriteStep(ret,
+                                 ret2,
+                                 nullptr,
+                                 false,
+                                 TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE);
+            }
+            ret = ret2;
+          }
         }
+        std::vector<Node> cc;
+        utils::getConcat(arg, cc);
         std::vector<Node> sum;
         for (const Node& c : cc)
         {

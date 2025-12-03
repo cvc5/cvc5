@@ -114,13 +114,10 @@ class ArithMSum
 
   /** make coefficent term
    *
-   * Input c is a m-constant.
+   * Input c is an m-constant.
    * Returns the term t if c.isNull() or c*t otherwise.
    */
-  static inline Node mkCoeffTerm(Node c, Node t)
-  {
-    return c.isNull() ? t : NodeManager::mkNode(Kind::MULT, c, t);
-  }
+  static Node mkCoeffTerm(Node c, Node t);
 
   /** isolate variable v in constraint ([msum] <k> 0)
    *

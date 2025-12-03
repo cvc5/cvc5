@@ -482,6 +482,11 @@ enum class AletheRule : uint32_t
   BV_BITBLAST_STEP_CONCAT,
   BV_BITBLAST_STEP_CONST,
   BV_BITBLAST_STEP_SIGN_EXTEND,
+  // ======== temporary
+  // These rules are not in the Alethe standard, they are defined by
+  // their respective CPC counterpart for now.
+  BV_BITWISE_SLICING,
+  BV_REPEAT_ELIM,
   // ======== hole
   // Used for unjustified steps
   HOLE,

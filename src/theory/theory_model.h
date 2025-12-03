@@ -68,7 +68,7 @@ namespace theory {
  * - hasTerm, getRepresentative, areEqual, areDisequal
  * - getEqualityEngine
  * - getRepSet
- * - hasAssignedFunctionDefinition, getFunctionsToAssign
+ * - hasAssignedFunctionDefinition
  * - getValue
  *
  * The above functions can be used for a model m after it has been
@@ -254,9 +254,9 @@ class TheoryModel : protected EnvObj
   /** does the equality engine of this model have term a? */
   bool hasTerm(TNode a);
   /** get the representative of a in the equality engine of this model */
-  Node getRepresentative(TNode a);
+  Node getRepresentative(TNode a) const;
   /** are a and b equal in the equality engine of this model? */
-  bool areEqual(TNode a, TNode b);
+  bool areEqual(TNode a, TNode b) const;
   /** are a and b disequal in the equality engine of this model? */
   bool areDisequal(TNode a, TNode b);
   /** get the equality engine for this model */
@@ -315,16 +315,9 @@ class TheoryModel : protected EnvObj
   /** are function values enabled? */
   bool areFunctionValuesEnabled() const;
   /** assign function value f to definition f_def */
-  void assignFunctionDefinition( Node f, Node f_def );
+  void assignFunctionDefinition(Node f, Node f_def) const;
   /** have we assigned function f? */
   bool hasAssignedFunctionDefinition(Node f) const;
-  /** get the list of functions to assign. 
-  * This list will contain all terms of function type that are terms in d_equalityEngine.
-  * If higher-order is enabled, we ensure that this list is sorted by type size.
-  * This allows us to assign functions T -> T before ( T x T ) -> T and before ( T -> T ) -> T,
-  * which is required for "dag form" model construction (see TheoryModelBuilder::assignHoFunction).
-  */
-  std::vector< Node > getFunctionsToAssign();
   //---------------------------- end function values
   /** Get the name of this model */
   const std::string& getName() const;
@@ -363,6 +356,49 @@ class TheoryModel : protected EnvObj
    * r is a function.
    */
   void assignRepresentative(const Node& r, const Node& n, bool isFinal = true);
+  /**
+   * Assign function f, which is called on demand when the model for f is
+   * required by this class (e.g. in getValue or getRepresentative).
+   * If not higher-order, this construction is based on "table form". For
+   * example:
+   * (f 0 1) = 1
+   * (f 0 2) = 2
+   * (f 1 1) = 3
+   * ...
+   * becomes:
+   * f = (lambda xy. (ite (and (= x 0) (= y 1)) 1
+   *                 (ite (and (= x 0) (= y 2)) 2
+   *                 (ite (and (= x 1) (= y 1)) 3 ...))).
+   * If higher-order, we call assignFunctionDefaultHo instead.
+   * @param f The function to assign.
+   */
+  void assignFunctionDefault(Node f) const;
+  /**
+   * Assign function f when the logic is higher-order. This is called on demand
+   * when the model for f is required by his class.
+   * This construction is based on "dag form". For example:
+   * (f 0 1) = 1
+   * (f 0 2) = 2
+   * (f 1 1) = 3
+   * ...
+   * becomes:
+   * f = (lambda xy. (ite (= x 0) (ite (= y 1) 1
+   *                              (ite (= y 2) 2 ...))
+   *                 (ite (= x 1) (ite (= y 1) 3 ...)
+   *                              ...))
+   *
+   * where the above is represented as a directed acyclic graph (dag).
+   * This construction is accomplished by assigning values to (f c)
+   * terms before f, e.g.
+   * (f 0) = (lambda y. (ite (= y 1) 1
+   *                    (ite (= y 2) 2 ...))
+   * (f 1) = (lambda y. (ite (= y 1) 3 ...))
+   * where
+   * f = (lambda xy. (ite (= x 0) ((f 0) y)
+   *                 (ite (= x 1) ((f 1) y) ...))
+   * @param f The function to assign.
+   */
+  void assignFunctionDefaultHo(Node f) const;
   /** Unique name of this model */
   std::string d_name;
   /** equality engine containing all known equalities/disequalities */
@@ -377,7 +413,7 @@ class TheoryModel : protected EnvObj
    * Map of representatives of equality engine to used representatives in
    * representative set
    */
-  std::map<Node, Node> d_reps;
+  mutable std::map<Node, Node> d_reps;
   /** Map of terms to their assignment exclusion set. */
   std::map<Node, std::vector<Node> > d_assignExcSet;
   /**
@@ -460,7 +496,7 @@ class TheoryModel : protected EnvObj
    * After the model is built, the domain of this map is all terms of function
    * type that appear as terms in d_equalityEngine.
    */
-  std::map<Node, Node> d_uf_models;
+  mutable std::map<Node, Node> d_uf_models;
   //---------------------------- end function values
 };/* class TheoryModel */
 
