@@ -224,14 +224,6 @@ name   = "Proof"
   help       = "Print reference to original file instead of redeclaring"
 
 [[option]]
-  name       = "dratBinaryFormat"
-  category   = "expert"
-  long       = "drat-binary-format"
-  type       = "bool"
-  default    = "false"
-  help       = "Print the DRAT proof in binary format"
-
-[[option]]
   name       = "satProofMinDimacs"
   category   = "expert"
   long       = "sat-proof-min-dimacs"
