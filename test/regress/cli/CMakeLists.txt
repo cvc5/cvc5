@@ -1514,6 +1514,9 @@ set(regress_0_tests
   regress0/proofs/proj-issue723-rdb-step.smt2
   regress0/proofs/proj-issue765-open.smt2
   regress0/proofs/proj-issue771-brc-dup.smt2
+  regress0/proofs/proj-issue774-mult-sign.smt2
+  regress0/proofs/proj-issue773-nnf-double-neg.smt2
+  regress0/proofs/proj-issue775-mult-sign.smt2
   regress0/proofs/proof-components.smt2
   regress0/proofs/qgu-fuzz-1-bool-sat.smt2
   regress0/proofs/qgu-fuzz-2-bool-chainres-checking.smt2
@@ -2963,6 +2966,7 @@ set(regress_1_tests
   regress1/proj-issue719-zll-repeat.smt2
   regress1/proj-issue764-block-model.smt2
   regress1/proj-issue766-block-model.smt2
+  regress1/proj-issue772-nlc-unk.smt2
   regress1/proof00.smt2
   regress1/proofs/add_two_base.smt2
   regress1/proofs/alpha-eq-var-shadow.smt2
