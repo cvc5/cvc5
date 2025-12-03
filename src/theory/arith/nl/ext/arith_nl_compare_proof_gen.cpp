@@ -213,7 +213,7 @@ std::shared_ptr<ProofNode> ArithNlCompareProofGenerator::getProofFor(Node fact)
       if (e.getKind() != ck)
       {
         // needs to have a disequal to zero explanation
-        Assert (e.getKind()==Kind::EQUAL && e[0].getKind()==Kind::ABS);
+        Assert(e.getKind() == Kind::EQUAL && e[0].getKind() == Kind::ABS);
         Node etgt = e[0][0];
         Node deqAssump;
         Node zero = nm->mkConstRealOrInt(etgt.getType(), Rational(0));
@@ -239,12 +239,12 @@ std::shared_ptr<ProofNode> ArithNlCompareProofGenerator::getProofFor(Node fact)
           }
           deqAssump = itd->second;
           Node vv = isDisequalZero(deqAssump);
-          if (vv!=etgt)
+          if (vv != etgt)
           {
             // We may have to change (not (= v 0)) to (not (= (to_real v) 0.0)).
             // We add a trust step which should be provable by arith poly norm.
             Node deqTgt = ceq.notNode();
-            Assert (deqTgt!=deqAssump);
+            Assert(deqTgt != deqAssump);
             Node equiv = deqAssump.eqNode(deqTgt);
             cdp.addTrustedStep(equiv, TrustId::ARITH_NL_COMPARE_LEMMA, {}, {});
             cdp.addStep(deqTgt, ProofRule::EQ_RESOLVE, {deqAssump, equiv}, {});
