@@ -250,8 +250,14 @@ libcvc5_add_sources(
   proof/alethe/alethe_printer.cpp
   proof/alethe/alethe_proof_rule.cpp
   proof/alethe/alethe_proof_rule.h
-  prop/cadical.cpp
-  prop/cadical.h
+  prop/cadical/cadical.cpp
+  prop/cadical/cadical.h
+  prop/cadical/cdclt_propagator.cpp
+  prop/cadical/cdclt_propagator.h
+  prop/cadical/proof_tracer.cpp
+  prop/cadical/proof_tracer.h
+  prop/cadical/util.cpp
+  prop/cadical/util.h
   prop/cnf_stream.cpp
   prop/cnf_stream.h
   prop/cryptominisat.cpp

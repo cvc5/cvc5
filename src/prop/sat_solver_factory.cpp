@@ -15,7 +15,7 @@
 
 #include "prop/sat_solver_factory.h"
 
-#include "prop/cadical.h"
+#include "prop/cadical/cadical.h"
 #include "prop/cryptominisat.h"
 #include "prop/kissat.h"
 #include "prop/minisat/minisat.h"
