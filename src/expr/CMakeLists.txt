@@ -123,6 +123,8 @@ libcvc5_add_sources(
   variadic_trie.h
   non_closed_node_converter.cpp
   non_closed_node_converter.h
+  normalize_sort_converter.cpp
+  normalize_sort_converter.h
 )
 
 libcvc5_add_sources(GENERATED

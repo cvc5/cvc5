@@ -32,9 +32,11 @@ class Terminator;
 namespace cvc5::internal {
 namespace prop {
 
+namespace cadical {
 class CadicalPropagator;
-class ClauseLearner;
 class ProofTracer;
+}  // namespace cadical
+class ClauseLearner;
 
 class CadicalSolver : public CDCLTSatSolver, protected EnvObj
 {
@@ -130,11 +132,11 @@ class CadicalSolver : public CDCLTSatSolver, protected EnvObj
   /** The associated theory proxy (for CDCL(T) mode). */
   prop::TheoryProxy* d_proxy = nullptr;
   /** The CaDiCaL propagator (for CDCL(T) mode). */
-  std::unique_ptr<CadicalPropagator> d_propagator;
+  std::unique_ptr<cadical::CadicalPropagator> d_propagator;
   /** Clause learner instance for notifications about learned clauses. */
   std::unique_ptr<ClauseLearner> d_clause_learner;
   /** Proof tracer instance for extracting unsat cores. */
-  std::unique_ptr<ProofTracer> d_proof_tracer;
+  std::unique_ptr<cadical::ProofTracer> d_proof_tracer;
 
   /**
    * Stores the current set of assumptions provided via solve() and is used to

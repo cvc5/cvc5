@@ -305,7 +305,7 @@ Node TheoryModel::getModelValue(TNode n) const
       << "Look up " << ret << " in equality engine" << std::endl;
   // return the representative of the term in the equality engine, if it exists
   TypeNode t = ret.getType();
-  if (!logicInfo().isHigherOrder() && (t.isFunction() || t.isPredicate()))
+  if (!logicInfo().isHigherOrder() && t.isFunction())
   {
     // functions are in the equality engine, but *not* as first-class members
     // when higher-order is disabled. In this case, we cannot query
@@ -318,16 +318,10 @@ Node TheoryModel::getModelValue(TNode n) const
   {
     Trace("model-getvalue-debug")
         << "get value from representative " << ret << "..." << std::endl;
-    ret = d_equalityEngine->getRepresentative(ret);
-    Assert(d_reps.find(ret) != d_reps.end());
-    std::map<Node, Node>::const_iterator it2 = d_reps.find(ret);
-    if (it2 != d_reps.end())
-    {
-      ret = it2->second;
-      d_modelCache[n] = ret;
-      Trace("model-getvalue-debug") << "...set rep is " << ret << std::endl;
-      return ret;
-    }
+    ret = getRepresentative(ret);
+    d_modelCache[n] = ret;
+    Trace("model-getvalue-debug") << "...set rep is " << ret << std::endl;
+    return ret;
   }
 
   Kind rk = ret.getKind();
@@ -372,29 +366,19 @@ Node TheoryModel::getModelValue(TNode n) const
       Trace("model-getvalue-debug")
           << "...not semi-evaluated entailed" << std::endl;
     }
-    if (t.isFunction() || t.isPredicate())
+    if (t.isFunction())
     {
       if (d_enableFuncModels)
       {
         std::map<Node, Node>::const_iterator entry = d_uf_models.find(n);
-        if (entry != d_uf_models.end())
+        // If we have not assigned the function, assign it now
+        if (entry == d_uf_models.end())
         {
-          // Existing function
-          ret = entry->second;
-          d_modelCache[n] = ret;
-          return ret;
+          assignFunctionDefault(n);
+          entry = d_uf_models.find(n);
+          Assert(entry != d_uf_models.end());
         }
-        // Unknown function symbol: return LAMBDA x. c, where c is the first
-        // constant in the enumeration of the range type
-        vector<TypeNode> argTypes = t.getArgTypes();
-        vector<Node> args;
-        for (unsigned i = 0, size = argTypes.size(); i < size; ++i)
-        {
-          args.push_back(NodeManager::mkBoundVar(argTypes[i]));
-        }
-        Node boundVarList = nm->mkNode(Kind::BOUND_VAR_LIST, args);
-        TypeEnumerator te(t.getRangeType());
-        ret = nm->mkNode(Kind::LAMBDA, boundVarList, *te);
+        ret = entry->second;
       }
       else
       {
@@ -585,6 +569,7 @@ void TheoryModel::assignRepresentative(const Node& r,
                                        const Node& n,
                                        bool isFinal)
 {
+  Trace("model-builder-reps") << "Assign rep : " << r << " " << n << std::endl;
   Assert(r.getType() == n.getType());
   TypeNode tn = r.getType();
   if (isFinal && logicInfo().isHigherOrder() && tn.isFunction())
@@ -696,17 +681,27 @@ bool TheoryModel::hasTerm(TNode a)
 
 Node TheoryModel::getRepresentative(TNode a) const
 {
-  if( d_equalityEngine->hasTerm( a ) ){
+  if (d_equalityEngine->hasTerm(a))
+  {
     Node r = d_equalityEngine->getRepresentative( a );
     std::map<Node, Node>::const_iterator itr = d_reps.find(r);
-    if (itr != d_reps.end())
+    // note that d_reps[r]=r for equivalence classes that haven't been assigned
+    if (itr != d_reps.end() && itr->second != r)
     {
       return itr->second;
     }
+    // special case: functions are constructed lazily so if we are higher-order
+    // and are looking for the representative of a function eqc, compute it now
+    if (logicInfo().isHigherOrder() && a.getType().isFunction())
+    {
+      assignFunctionDefault(r);
+      itr = d_reps.find(r);
+      Assert(itr != d_reps.end());
+      return itr->second;
+    }
     return r;
-  }else{
-    return a;
   }
+  return a;
 }
 
 bool TheoryModel::areEqual(TNode a, TNode b) const
@@ -997,78 +992,6 @@ void TheoryModel::assignFunctionDefinition(Node f, Node f_def) const
 bool TheoryModel::hasAssignedFunctionDefinition(Node f) const
 {
   return d_uf_models.find(f) != d_uf_models.end();
-}
-
-std::vector< Node > TheoryModel::getFunctionsToAssign() {
-  std::vector< Node > funcs_to_assign;
-  std::map< Node, Node > func_to_rep;
-
-  // collect functions
-  for( std::map< Node, std::vector< Node > >::iterator it = d_uf_terms.begin(); it != d_uf_terms.end(); ++it ){
-    Node n = it->first;
-    Assert(!n.isNull());
-    // lambdas do not need assignments
-    if (!isAssignableUf(n))
-    {
-      continue;
-    }
-    // Note that d_env.getTopLevelSubstitutions().apply(n) may not be n
-    // if we are in incremenal mode.
-    if (hasAssignedFunctionDefinition(n))
-    {
-      continue;
-    }
-    Trace("model-builder-fun-debug") << "Look at function : " << n << std::endl;
-    if (logicInfo().isHigherOrder())
-    {
-      // if in higher-order mode, assign function definitions modulo equality
-      Node r = getRepresentative(n);
-      if (hasAssignedFunctionDefinition(r))
-      {
-        continue;
-      }
-      std::map<Node, Node>::iterator itf = func_to_rep.find(r);
-      if (itf == func_to_rep.end())
-      {
-        func_to_rep[r] = n;
-        funcs_to_assign.push_back( n );
-        Trace("model-builder-fun") << "Make function " << n;
-        Trace("model-builder-fun")
-            << " the assignable function in its equivalence class."
-            << std::endl;
-      }
-      else
-      {
-        // must combine uf terms
-        Trace("model-builder-fun")
-            << "Copy " << it->second.size() << " uf terms";
-        d_uf_terms[itf->second].insert(d_uf_terms[itf->second].end(),
-                                       it->second.begin(),
-                                       it->second.end());
-        std::map<Node, std::vector<Node>>::iterator ith = d_ho_uf_terms.find(n);
-        if (ith != d_ho_uf_terms.end())
-        {
-          d_ho_uf_terms[itf->second].insert(d_ho_uf_terms[itf->second].end(),
-                                            ith->second.begin(),
-                                            ith->second.end());
-          Trace("model-builder-fun")
-              << " and " << ith->second.size() << " ho uf terms";
-        }
-        Trace("model-builder-fun")
-            << " from " << n << " to its assignable representative function "
-            << itf->second << std::endl;
-        it->second.clear();
-      }
-    }
-    else
-    {
-      Trace("model-builder-fun") << "Function to assign : " << n << std::endl;
-      funcs_to_assign.push_back(n);
-    }
-  }
-
-  Trace("model-builder-fun") << "return " << funcs_to_assign.size() << " functions to assign..." << std::endl;
-  return funcs_to_assign;
 }
 
 const std::string& TheoryModel::getName() const { return d_name; }

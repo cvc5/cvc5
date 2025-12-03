@@ -216,8 +216,6 @@ bool EqEngineManagerCentral::usesCentralEqualityEngine(const Options& opts,
          || id == THEORY_SEP || id == THEORY_ARRAYS || id == THEORY_BV;
 }
 
-void EqEngineManagerCentral::notifyBuildingModel() {}
-
 EqEngineManagerCentral::CentralNotifyClass::CentralNotifyClass(
     EqEngineManagerCentral& eemc)
     : d_eemc(eemc), d_mNotify(nullptr), d_quantEngine(nullptr)
