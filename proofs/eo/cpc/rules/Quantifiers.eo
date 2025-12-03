@@ -74,8 +74,8 @@
   :args (t vs ts)
   :requires ((($is_var_list vs) true)
              (($is_var_list ts) true)
-             (($contains_aterm_list_free t vs) false)
-             (($contains_aterm_list t ts) false))
+             (($contains_atomic_term_list_free t vs) false)
+             (($contains_atomic_term_list t ts) false))
   :conclusion (= t ($substitute_simul t vs ts))
 )
 
@@ -137,7 +137,7 @@
   (
   (($mk_quant_unused_vars_rec @list.nil F)    @list.nil)
   (($mk_quant_unused_vars_rec (@list x xs) F) (eo::define ((r ($mk_quant_unused_vars_rec xs F)))
-                                              (eo::ite ($contains_subterm F x)
+                                              (eo::ite ($contains_atomic_term F x)
                                                 ; remove the duplicate of x in r if it exists
                                                 (eo::cons @list x (eo::list_erase @list r x))
                                                 r)))
@@ -244,12 +244,12 @@
 (program $is_quant_miniscope_or ((x @List) (xs @List :list) (ys @List :list) (f Bool) (fs Bool :list) (g Bool) (gs Bool :list))
   :signature (@List Bool Bool) Bool
   (
-  (($is_quant_miniscope_or x (or f fs) (or f gs))                     (eo::requires ($contains_aterm_list f x) false
+  (($is_quant_miniscope_or x (or f fs) (or f gs))                     (eo::requires ($contains_atomic_term_list f x) false
                                                                         ($is_quant_miniscope_or x fs gs)))
-  (($is_quant_miniscope_or x (or f fs) (or (forall @list.nil f) gs))  (eo::requires ($contains_aterm_list f x) false
+  (($is_quant_miniscope_or x (or f fs) (or (forall @list.nil f) gs))  (eo::requires ($contains_atomic_term_list f x) false
                                                                         ($is_quant_miniscope_or x fs gs)))
   (($is_quant_miniscope_or (@list x xs) (or f fs) (or (forall (@list x ys) f) gs))  
-                                                                      (eo::requires ($contains_subterm gs x) false
+                                                                      (eo::requires ($contains_atomic_term gs x) false
                                                                         ($is_quant_miniscope_or xs (or f fs) (or (forall ys f) gs))))
   (($is_quant_miniscope_or @list.nil false false)                     true)
   (($is_quant_miniscope_or x f g)                                     false)
@@ -282,7 +282,7 @@
 ; conclusion: The given equality.
 (declare-rule quant-miniscope-ite ((x @List) (A Bool) (F1 Bool) (F2 Bool) (G Bool))
   :args ((= (forall x (ite A F1 F2)) (ite A (forall x F1) (forall x F2))))
-  :requires ((($contains_aterm_list A x) false))
+  :requires ((($contains_atomic_term_list A x) false))
   :conclusion (= (forall x (ite A F1 F2)) (ite A (forall x F1) (forall x F2)))
 )
 
@@ -295,7 +295,7 @@
 ; return: >
 ;    The result of eliminating x from F. This method does not evaluate if t contains x.
 (define $mk_quant_var_elim_eq_subs ((T Type :implicit) (x T) (t T) (F Bool))
-  (eo::requires ($contains_subterm t x) false ($substitute x t F)))
+  (eo::requires ($contains_atomic_term t x) false ($substitute x t F)))
 
 ; program: $mk_quant_var_elim_eq
 ; args:
@@ -342,9 +342,9 @@
 (program $is_quant_dt_split_conj ((T Type) (U Type) (C Type) (W Type) (x T) (cx T) (c (-> U W)) (y U) (ys @List :list) (zs @List :list) (F Bool) (G Bool))
   :signature (T C @List Bool Bool) Bool
   (
-    (($is_quant_dt_split_conj x c (@list y ys) F (forall (@list y zs) G)) (eo::requires ($contains_subterm zs y) false  ; ensure no shadowing
+    (($is_quant_dt_split_conj x c (@list y ys) F (forall (@list y zs) G)) (eo::requires ($contains_atomic_term zs y) false  ; ensure no shadowing
                                                                             ($is_quant_dt_split_conj x c ys F (forall zs G))))
-    (($is_quant_dt_split_conj x c @list.nil F (forall (@list y zs) G))    (eo::requires ($contains_subterm zs y) false  ; ensure no shadowing
+    (($is_quant_dt_split_conj x c @list.nil F (forall (@list y zs) G))    (eo::requires ($contains_atomic_term zs y) false  ; ensure no shadowing
                                                                             ($is_quant_dt_split_conj x (c y) @list.nil F (forall zs G))))
     (($is_quant_dt_split_conj x c @list.nil F (forall @list.nil G))       ($is_quant_dt_split_conj x c @list.nil F G))
     (($is_quant_dt_split_conj x cx @list.nil F G)                         (eo::eq ($substitute x cx F) G))

@@ -1001,6 +1001,7 @@ set(regress_0_tests
   regress0/ho/issue11734-nested-lambda.smt2
   regress0/ho/issue11923-2-finite-ho-deq.smt2
   regress0/ho/issue11923-finite-ho-deq.smt2
+  regress0/ho/issue12256-fun-arg-ext.smt2
   regress0/ho/issue4434-const-preserve.smt2
   regress0/ho/issue4477.smt2
   regress0/ho/issue4990-care-graph.smt2
@@ -1509,6 +1510,7 @@ set(regress_0_tests
   regress0/proofs/proj-issue711-open-sat-proof.smt2
   regress0/proofs/proj-issue723-rdb-step.smt2
   regress0/proofs/proj-issue765-open.smt2
+  regress0/proofs/proj-issue771-brc-dup.smt2
   regress0/proofs/proj-issue773-nnf-double-neg.smt2
   regress0/proofs/proof-components.smt2
   regress0/proofs/qgu-fuzz-1-bool-sat.smt2
