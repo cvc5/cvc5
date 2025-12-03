@@ -51,7 +51,7 @@ Node ElimShadowNodeConverter::postConvert(Node n)
     const Node& v = n[0][i];
     // if there are duplicate variables in the current quantified formula, these
     // are dropped.
-    if (std::find(oldVars.begin(), oldVars.end(), v)!=oldVars.end())
+    if (std::find(oldVars.begin(), oldVars.end(), v) != oldVars.end())
     {
       changed = true;
       continue;
@@ -72,7 +72,7 @@ Node ElimShadowNodeConverter::postConvert(Node n)
   {
     std::vector<Node> children;
     children.push_back(d_nm->mkNode(Kind::BOUND_VAR_LIST, newVars));
-    for (size_t i=1, nchild=n.getNumChildren(); i<nchild; i++)
+    for (size_t i = 1, nchild = n.getNumChildren(); i < nchild; i++)
     {
       Node nc = n[i].substitute(
           oldVars.begin(), oldVars.end(), newVars.begin(), newVars.end());
