@@ -2921,8 +2921,10 @@ bool BasicRewriteRCons::ensureProofMacroElimShadow(CDProof* cdp, const Node& eq)
     // the step should be shown by alpha-equivalance
     Assert(mc.getKind() == Kind::EQUAL);
     Assert(mc[0].isClosure() && mc[0].getKind() == mc[1].getKind());
+    // the proof generator for the fact, or nullptr if the subgoal should be
+    // provable indpendently.
     ProofGenerator* pg = nullptr;
-    // may have eliminated a variable
+    // We may have eliminated a duplicate variable
     if (mc[0][0].getNumChildren() > mc[1][0].getNumChildren())
     {
       std::vector<Node> vars;
@@ -2935,6 +2937,11 @@ bool BasicRewriteRCons::ensureProofMacroElimShadow(CDProof* cdp, const Node& eq)
       }
       if (vars.size() < mc[0][0].getNumChildren())
       {
+        // e.g.
+        // -------------------------------- TR  ---------------------------- TR
+        // forall xx. P[x] = forall x. P[x]     forall x. P = forall y. P[y]
+        // -------------------------------------------------------------- TRANS
+        // forall xx. P[x] = forall y. P[y]
         NodeManager* nm = nodeManager();
         std::vector<Node> nc(mc[0].begin(), mc[0].end());
         nc[0] = nm->mkNode(Kind::BOUND_VAR_LIST, vars);
