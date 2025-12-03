@@ -128,6 +128,8 @@ libcvc5_add_sources(
   preprocessing/passes/theory_preprocess.h
   preprocessing/passes/unconstrained_simplifier.cpp
   preprocessing/passes/unconstrained_simplifier.h
+  preprocessing/passes/normalize.cpp
+  preprocessing/passes/normalize.h
   preprocessing/preprocessing_pass.cpp
   preprocessing/preprocessing_pass.h
   preprocessing/preprocessing_pass_context.cpp
@@ -509,6 +511,7 @@ libcvc5_add_sources(
   theory/arith/nl/ext_theory_callback.h
   theory/arith/nl/iand_solver.cpp
   theory/arith/nl/iand_solver.h
+  theory/arith/nl/piand_solver.cpp
   theory/arith/nl/piand_solver.h
   theory/arith/nl/icp/candidate.cpp
   theory/arith/nl/icp/candidate.h

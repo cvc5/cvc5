@@ -22,7 +22,74 @@ provides more details on the individual classes.
 
 ----
 
-Using Self-Contained cvc5 Java API JAR
+Using the cvc5 Java API in a Maven project
+------------------------------------------
+
+.. note::
+
+   As of version 1.3.1, a stable release has not yet been published to Maven Central.
+   Only snapshot builds are available in the Central Portal Snapshots repository.
+
+To use the library in your Maven project, add the following
+repository and dependency settings:
+
+.. code-block:: xml
+
+  <repositories>
+    <repository>
+      <name>Central Portal Snapshots</name>
+      <id>central-portal-snapshots</id>
+      <url>https://central.sonatype.com/repository/maven-snapshots/</url>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </repository>
+  </repositories>
+
+  <dependencies>
+    <!-- cvc5 Java bindings (pure Java API) -->
+    <dependency>
+      <groupId>io.github.cvc5</groupId>
+      <artifactId>cvc5</artifactId>
+      <version>${cvc5.version}-SNAPSHOT</version>
+    </dependency>
+
+    <!-- cvc5 native JNI library for the target platform -->
+    <dependency>
+      <groupId>io.github.cvc5</groupId>
+      <artifactId>cvc5</artifactId>
+      <version>${cvc5.version}-SNAPSHOT</version>
+      <classifier>${os.classifier}</classifier>
+    </dependency>
+  </dependencies>
+
+Here, ``${cvc5.version}`` refers to the version following the latest stable release
+(e.g., use ``1.3.2`` if the latest stable version is ``1.3.1``).
+The ``${os.classifier}`` variable specifies the operating system and CPU architecture
+(e.g., ``linux-x86_64`` or ``osx-aarch_64``).
+
+You can automatically retrieve the correct classifier using the
+`os-maven-plugin <https://github.com/trustin/os-maven-plugin>`_:
+
+.. code-block:: xml
+
+  <build>
+    <extensions>
+      <extension>
+        <groupId>kr.motd.maven</groupId>
+        <artifactId>os-maven-plugin</artifactId>
+        <version>1.7.0</version>
+      </extension>
+    </extensions>
+  </build>
+
+After adding the plugin, use ``${os.detected.classifier}`` as the classifier value.
+
+
+Using self-contained cvc5 Java API JAR
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Starting from version 1.2.1, a JAR file containing the cvc5 Java API and
@@ -72,11 +139,11 @@ Building cvc5 Java API
      $ make install
 
      $ ls install/lib
-       cmake  libcvc5jni.so  libcvc5parser.so  libcvc5parser.so.1  libcvc5.so
-       libpicpoly.a  libpicpolyxx.a  libpoly.so libpoly.so.0  libpoly.so.0.1.9
-       libpolyxx.so  libpolyxx.so.0  libpolyxx.so.0.1.9  objects-Production
+       cmake             libcvc5parser.so.1  libpoly.so        libpolyxx.so
+       libcvc5jni.so     libcvc5.so          libpoly.so.0      libpolyxx.so.0
+       libcvc5parser.so  libcvc5.so.1        libpoly.so.0.2.0  libpolyxx.so.0.2.0
      $ ls install/share/java/
-       cvc5-0.0.5-dev.jar  cvc5.jar
+       cvc5-1.3.2-SNAPSHOT.jar  cvc5.jar
 
      # compile example QuickStart.java with cvc5 jar file
      $ javac -cp "install/share/java/cvc5.jar" ../examples/api/java/QuickStart.java -d .
@@ -87,10 +154,12 @@ Building cvc5 Java API
        result: sat
        value for x: 1/6
        value for y: 1/6
+       value for x - y: 0/1
+       computed correctly
        expected: unsat
        result: unsat
        unsat core size: 3
-       unsat core:
+       unsat core: 
        (< 0 a)
        (< 0 b)
        (< (+ a b) 1)
