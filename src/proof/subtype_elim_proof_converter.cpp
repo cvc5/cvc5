@@ -81,6 +81,8 @@ Node SubtypeElimConverterCallback::convert(Node res,
   {
     case ProofRule::ARITH_MULT_SIGN:
     {
+      Trace("pf-subtype-elim")
+          << "preconvert arith mult sign " << cargs << std::endl;
       // For example, if x:Real, y:Int, this rule with the arguments
       // (and (> x 0.0) (> y 0)), (* x y) proves
       // (=> (and (> x 0.0) (> y 0)) (> (* x y) 0.0)). Subtype elimination
@@ -89,33 +91,50 @@ Node SubtypeElimConverterCallback::convert(Node res,
       // This further converts the arguments to
       // (and (> x 0.0) (> (to_real y) 0.0)), (* x (to_real y)).
       Assert(cargs.size() == 2 && cargs[1].getKind() == Kind::NONLINEAR_MULT);
-      Assert(cargs[0].getKind() == Kind::AND);
-      Assert(cargs[1].getNumChildren() == cargs[0].getNumChildren());
+      std::vector<Node> premise;
+      if (cargs[0].getKind() == Kind::AND)
+      {
+        premise.insert(premise.end(), cargs[0].begin(), cargs[0].end());
+      }
+      else
+      {
+        premise.push_back(cargs[0]);
+      }
+      // map premises to their index
+      std::map<Node, size_t> premiseIndex;
+      for (size_t i = 0, nprem = premise.size(); i < nprem; i++)
+      {
+        Node p = premise[i];
+        bool neg = p.getKind() == Kind::NOT;
+        Node atom = neg ? p[0] : p;
+        Assert(atom.getNumChildren() == 2);
+        premiseIndex[atom[0]] = i;
+      }
       std::vector<Node> nconj;
       bool childChanged = false;
+      // for each to_real(x) in the monomial, go back and modify the premise
+      // x ~ 0 to to_real(x) ~ 0.0
+      std::map<Node, size_t>::iterator itp;
       for (size_t i = 0, nchild = cargs[1].getNumChildren(); i < nchild; i++)
       {
         if (cargs[1][i].getKind() == Kind::TO_REAL)
         {
-          bool neg = cargs[0][i].getKind() == Kind::NOT;
-          Node atom = neg ? cargs[0][i][0] : cargs[0][i];
-          if (cargs[1][i][0] == atom[0])
-          {
-            Assert(atom[1].isConst()
-                   && atom[1].getConst<Rational>().sgn() == 0);
-            childChanged = true;
-            Node newAtom = nm->mkNode(
-                atom.getKind(), cargs[1][i], nm->mkConstReal(Rational(0)));
-            newAtom = neg ? newAtom.notNode() : newAtom;
-            nconj.push_back(newAtom);
-            continue;
-          }
+          itp = premiseIndex.find(cargs[1][i][0]);
+          Assert(itp != premiseIndex.end());
+          Node p = premise[itp->second];
+          bool neg = p.getKind() == Kind::NOT;
+          Node atom = neg ? p[0] : p;
+          Assert(atom[1].isConst() && atom[1].getConst<Rational>().sgn() == 0);
+          childChanged = true;
+          Node newAtom = nm->mkNode(
+              atom.getKind(), cargs[1][i], nm->mkConstReal(Rational(0)));
+          newAtom = neg ? newAtom.notNode() : newAtom;
+          premise[itp->second] = newAtom;
         }
-        nconj.push_back(cargs[0][i]);
       }
       if (childChanged)
       {
-        cargs[0] = nm->mkAnd(nconj);
+        cargs[0] = nm->mkAnd(premise);
       }
     }
     break;
