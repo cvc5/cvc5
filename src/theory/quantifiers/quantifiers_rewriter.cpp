@@ -54,6 +54,7 @@ std::ostream& operator<<(std::ostream& out, RewriteStep s)
 {
   switch (s)
   {
+    case COMPUTE_ELIM_SHADOW: out << "COMPUTE_ELIM_SHADOW"; break;
     case COMPUTE_ELIM_SYMBOLS: out << "COMPUTE_ELIM_SYMBOLS"; break;
     case COMPUTE_MINISCOPING: out << "COMPUTE_MINISCOPING"; break;
     case COMPUTE_AGGRESSIVE_MINISCOPING:
@@ -108,6 +109,20 @@ Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
 {
   switch (id)
   {
+    case ProofRewriteRule::MACRO_QUANT_ELIM_SHADOW:
+    {
+      if (n.isClosure())
+      {
+        Node ns = ElimShadowNodeConverter::eliminateShadow(n);
+        if (ns != n)
+        {
+          Trace("quant-rewrite-proof")
+              << "Rewrite " << n << " to " << ns << std::endl;
+          return ns;
+        }
+      }
+      return Node::null();
+    }
     case ProofRewriteRule::EXISTS_ELIM:
     {
       if (n.getKind() != Kind::EXISTS)
@@ -838,34 +853,7 @@ Node QuantifiersRewriter::computeProcessTerms2(
   Trace("quantifiers-rewrite-term-debug2")
       << "Returning " << ret << " for " << body << std::endl;
   // do context-independent rewriting
-  if (ret.isClosure())
-  {
-    // Ensure no shadowing. If this term is a closure quantifying a variable
-    // in args, then we introduce fresh variable(s) and replace this closure
-    // to be over the fresh variables instead.
-    std::vector<Node> oldVars;
-    std::vector<Node> newVars;
-    for (size_t i = 0, nvars = ret[0].getNumChildren(); i < nvars; i++)
-    {
-      const Node& v = ret[0][i];
-      if (std::find(args.begin(), args.end(), v) != args.end())
-      {
-        Trace("quantifiers-rewrite-unshadow")
-            << "Found shadowed variable " << v << " in " << q << std::endl;
-        oldVars.push_back(v);
-        Node nv = ElimShadowNodeConverter::getElimShadowVar(q, ret, i);
-        newVars.push_back(nv);
-      }
-    }
-    if (!oldVars.empty())
-    {
-      Assert(oldVars.size() == newVars.size());
-      Node sbody = ret.substitute(
-          oldVars.begin(), oldVars.end(), newVars.begin(), newVars.end());
-      ret = sbody;
-    }
-  }
-  else if (ret.getKind() == Kind::EQUAL
+  if (ret.getKind() == Kind::EQUAL
            && iteLiftMode != options::IteLiftQuantMode::NONE)
   {
     for (size_t i = 0; i < 2; i++)
@@ -2328,7 +2316,7 @@ bool QuantifiersRewriter::doOperation(Node q,
       qa.d_hasPattern
       && d_opts.quantifiers.userPatternsQuant == options::UserPatMode::STRICT;
   bool is_std = isStandard(qa, d_opts);
-  if (computeOption == COMPUTE_ELIM_SYMBOLS)
+  if (computeOption==COMPUTE_ELIM_SHADOW || computeOption == COMPUTE_ELIM_SYMBOLS)
   {
     return true;
   }
@@ -2408,10 +2396,19 @@ bool QuantifiersRewriter::doOperation(Node q,
 //general method for computing various rewrites
 Node QuantifiersRewriter::computeOperation(Node f,
                                            RewriteStep computeOption,
-                                           QAttributes& qa) const
+                                           QAttributes& qa)
 {
   Trace("quantifiers-rewrite-debug") << "Compute operation " << computeOption << " on " << f << " " << qa.d_qid_num << std::endl;
-  if (computeOption == COMPUTE_MINISCOPING)
+  if (computeOption == COMPUTE_ELIM_SHADOW)
+  {
+    Node qr = rewriteViaRule(ProofRewriteRule::MACRO_QUANT_ELIM_SHADOW, f);
+    if (!qr.isNull())
+    {
+      return qr;
+    }
+    return f;
+  }
+  else if (computeOption == COMPUTE_MINISCOPING)
   {
     if (d_opts.quantifiers.prenexQuant == options::PrenexQuantMode::NORMAL)
     {

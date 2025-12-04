@@ -42,8 +42,10 @@ struct QAttributes;
  */
 enum RewriteStep
 {
+  /** Eliminate shadowing */
+  COMPUTE_ELIM_SHADOW = 0,
   /** Eliminate symbols (e.g. implies, xor) */
-  COMPUTE_ELIM_SYMBOLS = 0,
+  COMPUTE_ELIM_SYMBOLS,
   /** Miniscoping */
   COMPUTE_MINISCOPING,
   /** Aggressive miniscoping */
@@ -395,7 +397,7 @@ class QuantifiersRewriter : public TheoryRewriter
    */
   Node computeOperation(Node q,
                         RewriteStep computeOption,
-                        QAttributes& qa) const;
+                        QAttributes& qa);
   /**
    * Compute if the substitution is safe (does not introduce variable capture).
    */
