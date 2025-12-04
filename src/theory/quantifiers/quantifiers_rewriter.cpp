@@ -80,7 +80,7 @@ QuantifiersRewriter::QuantifiersRewriter(NodeManager* nm,
   registerProofRewriteRule(ProofRewriteRule::QUANT_UNUSED_VARS,
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::MACRO_QUANT_ELIM_SHADOW,
-                          TheoryRewriteCtx::PRE_DSL);
+                           TheoryRewriteCtx::PRE_DSL);
   // QUANT_MERGE_PRENEX is part of the reconstruction for
   // MACRO_QUANT_MERGE_PRENEX
   registerProofRewriteRule(ProofRewriteRule::MACRO_QUANT_MERGE_PRENEX,
@@ -1140,7 +1140,7 @@ bool QuantifiersRewriter::isSafeSubsTerm(const Node& body, const Node& s)
 {
   std::unordered_set<Node> fvs;
   expr::getFreeVariables(s, fvs);
-  return !expr::hasBoundVar(body, fvs);  
+  return !expr::hasBoundVar(body, fvs);
 }
 
 Node QuantifiersRewriter::getVarElimEq(Node lit,

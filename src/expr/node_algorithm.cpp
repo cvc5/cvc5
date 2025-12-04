@@ -369,7 +369,7 @@ bool hasBoundVar(TNode n, const std::unordered_set<Node>& fvs)
       // check if any is contained in fvs
       for (const Node& v : current[0])
       {
-        if (fvs.find(v)!=fvs.end())
+        if (fvs.find(v) != fvs.end())
         {
           return true;
         }
