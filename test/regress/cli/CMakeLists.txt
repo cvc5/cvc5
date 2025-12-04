@@ -992,6 +992,7 @@ set(regress_0_tests
   regress0/ho/fta0210.smt2
   regress0/ho/fun-subtyping.smt2
   regress0/ho/ho-exponential-model.smt2
+  regress0/ho/ho-leibniz-rewrite.smt2
   regress0/ho/ho-match-fun-suffix.smt2
   regress0/ho/ho-matching-enum-2.smt2
   regress0/ho/ho-matching-enum.smt2
