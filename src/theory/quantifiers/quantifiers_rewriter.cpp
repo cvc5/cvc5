@@ -2316,7 +2316,8 @@ bool QuantifiersRewriter::doOperation(Node q,
       qa.d_hasPattern
       && d_opts.quantifiers.userPatternsQuant == options::UserPatMode::STRICT;
   bool is_std = isStandard(qa, d_opts);
-  if (computeOption==COMPUTE_ELIM_SHADOW || computeOption == COMPUTE_ELIM_SYMBOLS)
+  if (computeOption == COMPUTE_ELIM_SHADOW
+      || computeOption == COMPUTE_ELIM_SYMBOLS)
   {
     return true;
   }

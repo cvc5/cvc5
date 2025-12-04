@@ -16,8 +16,8 @@
 #include "expr/elim_shadow_converter.h"
 
 #include "expr/bound_var_manager.h"
-#include "util/rational.h"
 #include "expr/subtype_elim_node_converter.h"
+#include "util/rational.h"
 
 using namespace cvc5::internal::kind;
 

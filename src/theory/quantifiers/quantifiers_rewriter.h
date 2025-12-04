@@ -395,9 +395,7 @@ class QuantifiersRewriter : public TheoryRewriter
   /**
    * Return the rewritten form of q after applying operator computeOption to it.
    */
-  Node computeOperation(Node q,
-                        RewriteStep computeOption,
-                        QAttributes& qa);
+  Node computeOperation(Node q, RewriteStep computeOption, QAttributes& qa);
   /**
    * Compute if the substitution is safe (does not introduce variable capture).
    */
