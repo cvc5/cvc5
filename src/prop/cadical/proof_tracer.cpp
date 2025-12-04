@@ -25,6 +25,27 @@
 
 namespace cvc5::internal::prop::cadical {
 
+namespace {
+
+Node toNode(NodeManager* nm, TheoryProxy* proxy, const SatClause& clause)
+{
+  if (clause.empty())
+  {
+    return nm->mkConst(false);
+  }
+  std::vector<Node> lits;
+  for (const auto& lit : clause)
+  {
+    lits.push_back(proxy->getNode(lit));
+  }
+  // Sat clause is sorted by literal id. Ensure that node-level clause is
+  // sorted by node ids.
+  std::sort(lits.begin(), lits.end());
+  return lits.size() == 1 ? lits[0] : nm->mkNode(Kind::OR, lits);
+}
+
+}  // namespace
+
 ProofTracer::ProofTracer(const CadicalPropagator& propagator)
     : d_propagator(propagator)
 {
