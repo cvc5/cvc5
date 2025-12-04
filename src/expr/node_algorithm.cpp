@@ -351,6 +351,60 @@ bool hasBoundVar(TNode n)
   return n.getAttribute(HasBoundVarAttr());
 }
 
+bool hasBoundVar(TNode n, const std::unordered_set<Node>& fvs)
+{
+  if (fvs.empty())
+  {
+    return false;
+  }
+  std::unordered_set<TNode> visited;
+  std::vector<TNode> toProcess;
+  toProcess.push_back(n);
+  // incrementally iterate and add to toProcess
+  for (unsigned i = 0; i < toProcess.size(); ++i)
+  {
+    TNode current = toProcess[i];
+    if (current.isClosure())
+    {
+      // check if any is contained in fvs
+      for (const Node& v : current[0])
+      {
+        if (fvs.find(v)!=fvs.end())
+        {
+          return true;
+        }
+      }
+    }
+    for (unsigned j = 0, j_end = current.getNumChildren(); j <= j_end; ++j)
+    {
+      TNode child;
+      // try children then operator
+      if (j < j_end)
+      {
+        child = current[j];
+      }
+      else if (current.hasOperator())
+      {
+        child = current.getOperator();
+      }
+      else
+      {
+        break;
+      }
+      if (visited.find(child) != visited.end())
+      {
+        continue;
+      }
+      else
+      {
+        visited.insert(child);
+        toProcess.push_back(child);
+      }
+    }
+  }
+  return false;
+}
+
 /**
  * Check variables internal, which is used as a helper to implement many of the
  * methods in this file.

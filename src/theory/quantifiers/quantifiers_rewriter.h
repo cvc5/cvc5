@@ -98,6 +98,12 @@ class QuantifiersRewriter : public TheoryRewriter
    * the type of v.
    */
   static bool isVarElim(Node v, Node s);
+  /** 
+   * Returns true if s is a term that is safe to use in the domain of
+   * substitutions applied to body. This is false iff s has a free variable
+   * that is bound in body.
+   */
+  static bool isSafeSubsTerm(const Node& body, const Node& s);
   /** get variable elimination literal
    *
    * If n asserted with polarity pol in body, and is equivalent to an equality

@@ -403,7 +403,7 @@ Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
         return ret;
       }
       // if we eliminated a variable, update body and reprocess
-      if (!vars.empty() && isSafeSubstitution(n[1], vars, subs))
+      if (!vars.empty())
       {
         Assert(vars.size() == subs.size());
         std::vector<Node> qc(n.begin(), n.end());
@@ -1136,6 +1136,13 @@ bool QuantifiersRewriter::isVarElim(Node v, Node s)
   return !expr::hasSubterm(s, v) && s.getType() == v.getType();
 }
 
+bool QuantifiersRewriter::isSafeSubsTerm(const Node& body, const Node& s)
+{
+  std::unordered_set<Node> fvs;
+  expr::getFreeVariables(s, fvs);
+  return !expr::hasBoundVar(body, fvs);  
+}
+
 Node QuantifiersRewriter::getVarElimEq(Node lit,
                                        const std::vector<Node>& args,
                                        Node& var,
@@ -1405,7 +1412,7 @@ bool QuantifiersRewriter::getVarElimLit(Node body,
           }
         }
       }
-      if (!solvedVar.isNull())
+      if (!solvedVar.isNull() && isSafeSubsTerm(body, solvedSubs))
       {
         if (cdp != nullptr)
         {
@@ -1454,7 +1461,7 @@ bool QuantifiersRewriter::getVarElimLit(Node body,
   {
     Node var;
     Node slv = getVarElimEq(lit, args, var, cdp);
-    if (!slv.isNull())
+    if (!slv.isNull() && isSafeSubsTerm(body, slv))
     {
       Assert(!var.isNull());
       std::vector<Node>::iterator ita =
@@ -1736,7 +1743,7 @@ Node QuantifiersRewriter::computeVarElimination(Node body,
     }
   }
   // if we eliminated a variable, update body and reprocess
-  if (!vars.empty() && isSafeSubstitution(body, vars, subs))
+  if (!vars.empty())
   {
     Trace("var-elim-quant-debug")
         << "VE " << vars.size() << "/" << args.size() << std::endl;
@@ -2511,29 +2518,6 @@ bool QuantifiersRewriter::isPrenexNormalForm( Node n ) {
   {
     return !expr::hasClosure(n);
   }
-}
-
-bool QuantifiersRewriter::isSafeSubstitution(const Node& n,
-                                             const std::vector<Node>& vars,
-                                             const std::vector<Node>& subs)
-{
-  std::unordered_set<Node> fvs;
-  for (const Node& s : subs)
-  {
-    expr::getFreeVariables(s, fvs);
-  }
-  if (fvs.empty())
-  {
-    return true;
-  }
-  std::vector<Node> fvl(fvs.begin(), fvs.end());
-  NodeManager* nm = n.getNodeManager();
-  // use the shadow elimination converter to see if eliminating shadowing of
-  // the given variables is necessary. The substitution is safe only if
-  // the variables are not shadowed.
-  Node lam = nm->mkNode(Kind::LAMBDA, nm->mkNode(Kind::BOUND_VAR_LIST, fvl), n);
-  Node lams = ElimShadowNodeConverter::eliminateShadow(lam);
-  return (lam == lams);
 }
 
 }  // namespace quantifiers
