@@ -1,0 +1,492 @@
+(include "../programs/BitVectors.eo")
+(include "../theories/ArithBvConv.eo")
+(include "../programs/Quantifiers.eo")
+
+; define: $nosugar
+; args:
+; - f (-> T U V): a (right/left)-associative-nil operator
+; - x T: the first argument
+; - y U: the second argument
+; return: (f x y) exactly, not (f x (f y nil)).
+(define $nosugar ((T Type :implicit) (U Type :implicit) (V Type :implicit) (f (-> T U V)) (x T) (y U :list)) (f x y))
+
+; define: $subt
+; args:
+; - n Int
+; - m Int
+; return: the result of $subtracting m from n (n - m)
+(define $subt ((n Int) (m Int)) (eo::add n (eo::neg m)))
+
+; define: $uts
+; args:
+; - k Int: the bitwidth
+; - x Int: the value
+; return: the signed value of x, regarding it as an unsigned value
+(define $uts ((k Int) (x Int)) (- x (ite (< x ($arith_eval_int_pow_2 ($subt k 1))) 0 ($arith_eval_int_pow_2 k))))
+
+; define: $intExtract
+; args:
+; - x Int: the value
+; - i Int: the bit to extract
+; - size Int: the bitwidth of x
+; return: the ith bit of x, regarded as the value of a bitvector of size size.
+(define $intExtract ((x Int) (i Int) (size Int))
+    (mod_total (div_total x ($arith_eval_int_pow_2 (eo::mul i size))) ($arith_eval_int_pow_2 size)))
+
+; define: $max_int
+; args:
+; - n Int: the bitwidth
+; return: the maximum value that can be stored in a(n unsigned) bitvector of size n
+(define $max_int ((n Int)) ($subt ($arith_eval_int_pow_2 n) 1))
+
+; define: $get_bsize
+; - a (BitVec n): a bitvector
+; return: the size/bitwidth of a (n)
+(define $get_bsize ((n Int :implicit) (a (BitVec n))) ($bv_bitwidth (eo::typeof a)))
+
+; program: $bv_remove_nil
+; - a (BitVec n): a bitvector expression
+; return: >
+;   The expression a, where all nil-terminators are removed.
+;   This is done on the following binary operators:
+;   bvadd; bvmul; bvand; bvor; bvxor; concat
+(program $bv_remove_nil ((T Type) (n Int) (m Int) (a1 (BitVec n)) (a2 (BitVec n) :list) (a3 (BitVec m) :list) (b1 Bool) (b2 Bool :list) (t T))
+    :signature (T) T
+    (
+        (($bv_remove_nil (bvadd a1 a2))            (eo::ite (eo::is_eq (eo::to_z a2) (eo::to_z 0))
+                                                    ($bv_remove_nil a1) ($nosugar bvadd ($bv_remove_nil a1) ($bv_remove_nil a2))))
+        (($bv_remove_nil (bvmul a1 a2))            (eo::ite (eo::is_eq (eo::to_z a2) (eo::to_z 1))
+                                                    ($bv_remove_nil a1) ($nosugar bvmul ($bv_remove_nil a1) ($bv_remove_nil a2))))
+        (($bv_remove_nil (bvand a1 a2))            (eo::ite (eo::is_eq (eo::to_z a2) (eo::to_z ($max_int ($get_bsize ($bv_remove_nil a1)))))
+                                                    ($bv_remove_nil a1) ($nosugar bvand ($bv_remove_nil a1) ($bv_remove_nil a2))))
+        (($bv_remove_nil (bvor a1 a2))             (eo::ite (eo::is_eq (eo::to_z a2) (eo::to_z 0))
+                                                    ($bv_remove_nil a1) ($nosugar bvor ($bv_remove_nil a1) ($bv_remove_nil a2))))
+        (($bv_remove_nil (bvxor a1 a2))            (eo::ite (eo::is_eq (eo::to_z a2) (eo::to_z 0))
+                                                    ($bv_remove_nil a1) ($nosugar bvxor ($bv_remove_nil a1) ($bv_remove_nil a2))))
+        (($bv_remove_nil (concat a1 a3))           (eo::ite (eo::is_eq a3 @bv_empty)
+                                                    ($bv_remove_nil a1) ($nosugar concat ($bv_remove_nil a1) ($bv_remove_nil a3))))
+        (($bv_remove_nil t)                        t)
+    )
+)
+
+; define: $bv_int_zero
+; return: the numerical value of 0
+(define $bv_int_zero     ()                                  (eo::to_z 0))
+
+; define: $bv_int_add
+; args:
+; - n1, n2 Int: intblasted integers
+; - k Int: the bitwidth
+; return: the result of adding n1 and n2, regarded as intblasted values of bitvectors of bitwidth k.
+(define $bv_int_add      ((n1 Int) (n2 Int) (k Int))         (mod_total (+ n1 n2) ($arith_eval_int_pow_2 k)))
+
+; define: $bv_int_mul
+; args:
+; - n1, n2 Int: intblasted integers
+; - k Int: the bitwidth
+; return: the result of multiplying n1 and n2, regarded as intblasted values of bitvectors of bitwidth k.
+(define $bv_int_mul      ((n1 Int) (n2 Int) (k Int))         (mod_total (* n1 n2) ($arith_eval_int_pow_2 k)))
+
+; define: $bv_int_sub
+; args:
+; - n1, n2 Int: intblasted integers
+; - k Int: the bitwidth
+; return: the result of n1 - n2, where n1 and n2 are regarded as intblasted values of bitvectors of bitwidth k.
+(define $bv_int_sub      ((n1 Int) (n2 Int) (k Int))         (mod_total (- n1 n2) ($arith_eval_int_pow_2 k)))
+
+; define: $bv_int_udiv
+; args:
+; - n1, n2 Int: intblasted integers
+; - k Int: the bitwidth
+; return: the result of unsigned division between n1 and n2, regarded as intblasted values of bitvectors of bitwidth k.
+(define $bv_int_udiv     ((n1 Int) (n2 Int) (k Int))         (ite (= n2 0) (- ($arith_eval_int_pow_2 k) 1) (div_total n1 n2)))
+
+; define: $bv_int_urem
+; args:
+; - n1, n2 Int: intblasted integers
+; - k Int: the bitwidth
+; return: the result of unsigned modulo between n1 and n2, regarded as intblasted values of bitvectors of bitwidth k.
+(define $bv_int_urem     ((n1 Int) (n2 Int) (k Int))         (ite (= n2 0) n1 (mod_total n1 n2)))
+
+; define: $bv_int_not
+; args:
+; - n1 Int: intblasted integer
+; - k Int: the bitwidth
+; return: the value of the bitvector which is the additive inverse of n1.
+(define $bv_int_not      ((n1 Int) (k Int))                  (- ($max_int k) n1))
+
+; define: $bv_int_neg
+; args:
+; - n1 Int: intblasted integer
+; - k Int: the bitwidth
+; return: the value of the bitvector which is the bitwise negation of n1.
+(define $bv_int_neg      ((n1 Int) (k Int))                  ($bv_int_add ($bv_int_not n1 k) 1 k))
+
+; define: $bv_int_modpow2
+; args:
+; - n1 Int: intblasted integer
+; - k Int: the bitwidth
+; return: the value of n1 if it were stored in k bits.
+(define $bv_int_modpow2  ((n1 Int) (k Int))                  (mod_total n1 ($arith_eval_int_pow_2 k)))
+
+; define: $bv_int_not
+; args:
+; - n1, n2 Int: intblasted integers
+; - k, m Int: bitwidths
+; return: the value of concatenating n1 and n2, viewed as bitvectors of width k and m respectively.
+(define $bv_int_concat   ((n1 Int) (n2 Int) (k Int) (m Int)) (+ (* n1 ($arith_eval_int_pow_2 m)) n2))
+
+; define: $bv_int_int_shl
+; args:
+; - n1, n2 Int: intblasted integers
+; - k Int: the bitwidth
+; return: the value of shifting n1 left by n2 bits.
+; note: this uses the internal int.pow2 operator.
+(define $bv_int_int_shl  ((n1 Int) (n2 Int) (k Int))         (mod_total (* n1 (int.pow2 n2)) ($arith_eval_int_pow_2 k)))
+
+; program: $bv_int_shl_r
+; note: see definition below for usage
+(program $bv_int_shl_r   ((n1 Int) (n2 Int) (i Int) (k Int))
+    :signature (Int Int Int Int) Int
+    (
+        (($bv_int_shl_r n1 n2 0 k)   (eo::to_z 0))
+        (($bv_int_shl_r n1 n2 i k)   (eo::define ((body (mod_total (* n1 ($arith_eval_int_pow_2 ($subt i 1))) ($arith_eval_int_pow_2 k)))) (ite (= n2 ($subt i 1)) body ($bv_int_shl_r n1 n2 ($subt i 1) k))))
+    )
+)
+
+; define: $bv_int_int_shl
+; args:
+; - n1, n2 Int: intblasted integers
+; - k Int: the bitwidth
+; return: the value of shifting n1 left by n2 bits.
+; note: this is done recursively, without using the internal int.pow2 operator.
+(define $bv_int_shl      ((n1 Int) (n2 Int) (k Int))         ($bv_int_shl_r n1 n2 k k))
+
+; define: $bv_int_int_lshr
+; args:
+; - n1, n2 Int: intblasted integers
+; - k Int: the bitwidth
+; return: the value of logical shift right of n1 by n2.
+; note: this is done using the internal int.pow2 operator.
+(define $bv_int_int_lshr ((n1 Int) (n2 Int) (k Int))         (div_total n1 (int.pow2 n2)))
+
+; program: $bv_int_lshr_r
+; note: see the definition below for usage.
+(program $bv_int_lshr_r  ((n1 Int) (n2 Int) (i Int) (k Int))
+    :signature (Int Int Int Int) Int
+    (
+        (($bv_int_lshr_r n1 n2 0 k)   (eo::to_z 0))
+        (($bv_int_lshr_r n1 n2 i k)   (eo::define ((body (div_total n1 ($arith_eval_int_pow_2 ($subt i 1))))) (ite (= n2 ($subt i 1)) body ($bv_int_lshr_r n1 n2 ($subt i 1) k))))
+    )
+)
+
+; program: $bv_int_lshr
+; args:
+; - n1, n2 Int: intblasted integers
+; - k Int: the bitwidth
+; return: the value logical shift right of n1 by n2.
+; note: this is done recursively, without using the internal int.pow2 operator.
+(define $bv_int_lshr     ((n1 Int) (n2 Int) (k Int))         ($bv_int_lshr_r n1 n2 k k))
+
+; program: $bv_int_ashr
+; args:
+; - n1, n2 Int: intblasted integers
+; - k Int: the bitwidth
+; return: the value of the arithmetic shift right of n1 by n2.
+(define $bv_int_ahsr     ((n1 Int) (n2 Int) (k Int))         ; condition = (< n1 ($arith_eval_int_pow_2 ($subt k 1)))
+                                                            ; thenNode = ($bv_int_lshr n1 n2 k)
+                                                            ; m1 = ($bv_int_not n1 k)
+                                                            ; m2 = n2
+                                                            ; elseNode = ($bv_int_not ($bv_int_lshr m1 m2 k) k)
+                                                            ; (ite condition thenNone elseNode)
+                                                            (ite (< n1 ($arith_eval_int_pow_2 ($subt k 1)))
+                                                                ($bv_int_lshr n1 n2 k)
+                                                                ($bv_int_not ($bv_int_lshr ($bv_int_not n1 k) n2 k) k)))
+; define: $bv_int_extract
+; args:
+; - n1 Int: intblasted integer
+; - u l Int: the upper and lower bounds
+; return: the value of extracting the subvector [l:u] from n1
+(define $bv_int_extract  ((n1 Int) (u Int) (l Int))          ($bv_int_modpow2 (div_total n1 ($arith_eval_int_pow_2 l)) (eo::add ($subt u l) 1)))
+
+; program: $bv_int_iand_sum
+; args:
+; - n1 n2 Int: intblasted integers
+; - i: the bitwidth
+; return: the value of the bitwise and of n1 and n2.
+; note: this corresponds to the sum method of intblasting, used by --solve-bv-as-int=sum
+(program $bv_int_iand_sum ((n1 Int) (n2 Int) (i Int))
+    :signature (Int Int Int) Int
+    (
+        (($bv_int_iand_sum n1 n2 i)        (eo::ite (eo::is_eq i (eo::to_z 0)) 0
+                                                (eo::define ((j ($subt i 1)))
+                                                (eo::define ((n1j ($intExtract n1 j 1)) (n2j ($intExtract n2 j 1)))
+                                                    (+ ($bv_int_iand_sum n1 n2 j) (* ($arith_eval_int_pow_2 j)
+                                                        (ite (and (= n1j 1) (= n2j 1)) 1 0)
+                                                    ))
+                                                ))
+                                            )
+        )
+    )
+)
+
+; define: $bv_int_or
+; args:
+; - n1, n2 Int: intblasted integers
+; - k Int: the bitwidth
+; return: the value bitwise or between n1 and n2
+(define $bv_int_or   ((n1 Int) (n2 Int :list) (k Int))         ($bv_int_sub ($bv_int_add n1 n2 k) ($bv_int_iand_sum n1 n2 k) k))
+
+; define: $bv_int_xor
+; args:
+; - n1, n2 Int: intblasted integers
+; - k Int: the bitwidth
+; return: the value bitwise exclusive or between n1 and n2
+(define $bv_int_xor  ((n1 Int) (n2 Int :list) (k Int))         ($bv_int_sub ($bv_int_or n1 n2 k) ($bv_int_iand_sum n1 n2 k) k))
+
+; define: $bound_var_rename
+; args:
+; - x T: a variable to rename
+; return: a new variable whose name is the name of x concatenated with _int (e.g. x -> x_int)
+(define $bound_var_rename ((T Type :implicit) (x T))     (eo::var (eo::concat (eo::nameof x) "_int") Int))
+
+; define: $get_range_constraint
+; args:
+; - x T: a BitVector variable
+; return: the range constraint for x (0 <= x < 2^n)
+(program $get_range_constraint ((T Type) (x T))
+    :signature (T) Bool
+    (
+        (($get_range_constraint x)       (and (>= ($bound_var_rename x) 0) (not (>= ($bound_var_rename x) ($arith_eval_int_pow_2 ($get_bsize x))))))
+    )
+)
+
+; program: $intblast_variables_list
+; args:
+; - vars @List: a list of variables to get the range constraints of
+; return: (new variables, range constraints)
+; note: >
+;   Since the range constraints of a single variable is not the conjunction of its range constraint with true,
+;   the argument to $intblast_variables_list must be a list of length >1.
+;   This is an auxillary program for $intblast_variables.
+(program $intblast_variables_list ((T Type) (x T) (xs T :list))
+    :signature (@List) (@Pair @List Bool)
+    (
+        (($intblast_variables_list @list.nil)       (@pair @list.nil true))
+        (($intblast_variables_list (@list x xs))    (eo::define ((variables_rest ($intblast_variables_list xs)))
+                                                            (@pair (eo::cons @list ($bound_var_rename x) ($pair_first variables_rest)) (eo::cons and ($get_range_constraint x) ($pair_second variables_rest)))
+                                                    ))
+    )
+)
+
+; program: $intblast_variables
+; args:
+; - vars @List: a list of variables to get the range constraints of
+; return: (new variables, range constraints)
+(program $intblast_variables ((T Type) (x T) (xs T :list))
+    :signature (@List) (@Pair @List Bool)
+    (
+        (($intblast_variables @list.nil)                (@pair @list.nil true))
+        (($intblast_variables (@list x))                (@pair (@list ($bound_var_rename x)) ($get_range_constraint x)))
+        (($intblast_variables (@list x xs))             ($intblast_variables_list (@list x xs)))
+    )
+)
+
+; program: $bv_change_qvar_names
+; args:
+; - vars @List: a list of BitVector variables
+; return: >
+;   A list vars' which are the terms that vars is intblasted to.
+;   For x, this is (_ @purify (ubv_to_int x)).
+;   This must be replaced with x_int.
+(program $bv_change_qvar_names ((T Type) (x T) (xs T :list))
+    :signature (@List) @List
+    (
+        (($bv_change_qvar_names @list.nil)              @list.nil)
+        (($bv_change_qvar_names (@list x xs))           (eo::cons @list (_ @purify (ubv_to_int x)) ($bv_change_qvar_names xs)))
+    )
+)
+
+; define: $bv_int_forall
+; args:
+; - l @List: the list of bound variables
+; - phi Bool: the formula quantified over
+; return: the intblasting result of (forall l phi).
+(define $bv_int_forall ((l @List) (phi Bool)) (eo::define ((l_r ($intblast_variables l)) (wrong ($bv_change_qvar_names l))) (forall ($pair_first l_r) (=> ($pair_second l_r) ($substitute_simul phi wrong ($pair_first l_r))))))
+
+; define: $bv_int_exists
+; args:
+; - l @List: the list of bound variables
+; - phi Bool: the formula quantified over
+; return: the intblasting result of (exists l phi).
+(define $bv_int_exists ((l @List) (phi Bool)) (eo::define ((l_r ($intblast_variables l)) (wrong ($bv_change_qvar_names l))) (exists ($pair_first l_r) (and ($pair_second l_r) ($substitute_simul phi wrong ($pair_first l_r))))))
+
+; define: $bv_int_uaddo
+; args:
+; - n1, n2 Int: intblasted values
+; - k Int: the bitwidth
+; return: if the unsigned addition of n1 and n2 overflows.
+(define $bv_int_uaddo ((n1 Int) (n2 Int) (k Int)) (>= (+ n1 n2) ($arith_eval_int_pow_2 k)))
+
+; define: $bv_int_saddo
+; args:
+; - n1, n2 Int: intblasted values
+; - k Int: the bitwidth
+; return: if the signed addition of n1 and n2 overflows.
+(define $bv_int_saddo ((n1 Int) (n2 Int) (k Int)) (
+    eo::define ((s0 ($uts k n1)) (s1 ($uts k n2))) (
+    eo::define ((sum (+ s0 s1))) (
+    eo::define ((d1 (>= sum ($arith_eval_int_pow_2 ($subt k 1)))) (d2 (< sum (- ($arith_eval_int_pow_2 ($subt k 1)))))) (
+    or d1 d2
+)))))
+
+; define: $bv_int_umulo
+; args:
+; - n1, n2 Int: intblasted values
+; - k Int: the bitwidth
+; return: if the unsigned multiplication of n1 and n2 overflows.
+(define $bv_int_umulo ((n1 Int) (n2 Int) (k Int)) (>= (* n1 n2) ($arith_eval_int_pow_2 k)))
+
+; define: $bv_int_smulo
+; args:
+; - n1, n2 Int: intblasted values
+; - k Int: the bitwidth
+; return: if the signed multiplication of n1 and n2 overflows.
+(define $bv_int_smulo ((n1 Int) (n2 Int) (k Int)) (
+    eo::define ((s0 ($uts k n1)) (s1 ($uts k n2))) (
+    eo::define ((mul (* s0 s1))) (
+    eo::define ((d1 (>= mul ($arith_eval_int_pow_2 ($subt k 1)))) (d2 (< mul (- ($arith_eval_int_pow_2 ($subt k 1)))))) (
+    or d1 d2
+)))))
+
+; define: $bv_int_usubo
+; args:
+; - n1, n2 Int: intblasted values
+; - k Int: the bitwidth
+; return: if the unsigned subtraction of n1 and n2 overflows.
+(define $bv_int_usubo ((n1 Int) (n2 Int) (k Int)) (< n1 n2))
+
+; define: $bv_int_ssubo
+; args:
+; - n1, n2 Int: intblasted values
+; - k Int: the bitwidth
+; return: if the signed subtraction of n1 and n2 overflows.
+(define $bv_int_ssubo ((n1 Int) (n2 Int) (k Int)) (
+    eo::define ((s0 ($uts k n1)) (s1 ($uts k n2))) (
+    eo::define ((sub (- s0 s1))) (
+    eo::define ((d1 (>= sub ($arith_eval_int_pow_2 ($subt k 1)))) (d2 (< sub (- ($arith_eval_int_pow_2 ($subt k 1)))))) (
+    or d1 d2
+)))))
+
+; define: $intblast_C
+; args:
+; - expr T: a BitVector expression
+; return: the result of intblasting expr.
+(program $intblast_C
+    ((T Type) (x T) (n Int) (a1 (BitVec n)) (a2 (BitVec n) :list) (m Int) (a3 (BitVec m) :list) (u Int) (l Int) (ac (BitVec 1)) (b Bool) (bB Bool :list))
+    :signature (T) T
+    (
+        (($intblast_C @bv_empty)                 $bv_int_zero)
+        (($intblast_C (bvadd a1 a2))             ($bv_int_add ($intblast_C ($bv_remove_nil a1)) ($intblast_C ($bv_remove_nil a2)) ($get_bsize a1)))
+        (($intblast_C (bvmul a1 a2))             ($bv_int_mul ($intblast_C ($bv_remove_nil a1)) ($intblast_C ($bv_remove_nil a2)) ($get_bsize a1)))
+        (($intblast_C (bvudiv a1 a2))            ($bv_int_udiv ($intblast_C ($bv_remove_nil a1)) ($intblast_C ($bv_remove_nil a2)) ($get_bsize a1)))
+        (($intblast_C (bvurem a1 a2))            ($bv_int_urem ($intblast_C ($bv_remove_nil a1)) ($intblast_C ($bv_remove_nil a2)) ($get_bsize a1)))
+        (($intblast_C (bvnot a1))                ($bv_int_not ($intblast_C ($bv_remove_nil a1)) ($get_bsize a1)))
+        (($intblast_C (bvneg a1))                ($bv_int_neg ($intblast_C ($bv_remove_nil a1)) ($get_bsize a1)))
+        (($intblast_C (ubv_to_int a1))           ($intblast_C ($bv_remove_nil a1)))
+; Check this:
+        (($intblast_C (int_to_bv n u))           ($bv_int_modpow2 u n))
+        (($intblast_C (bvand a1 a2))             ($bv_int_iand_sum ($intblast_C ($bv_remove_nil a1)) ($intblast_C ($bv_remove_nil a2)) ($get_bsize a1)))
+        (($intblast_C (bvor a1 a2))              ($bv_int_or ($intblast_C ($bv_remove_nil a1)) ($intblast_C ($bv_remove_nil a2)) ($get_bsize a1)))
+        (($intblast_C (bvxor a1 a2))             ($bv_int_xor ($intblast_C ($bv_remove_nil a1)) ($intblast_C ($bv_remove_nil a2)) ($get_bsize a1)))
+        (($intblast_C (bvshl a1 a2))             ($bv_int_shl ($intblast_C ($bv_remove_nil a1)) ($intblast_C ($bv_remove_nil a2)) ($get_bsize a1)))
+        (($intblast_C (bvlshr a1 a2))            ($bv_int_lshr ($intblast_C ($bv_remove_nil a1)) ($intblast_C ($bv_remove_nil a2)) ($get_bsize a1)))
+        (($intblast_C (bvashr a1 a2))            ($bv_int_ahsr ($intblast_C ($bv_remove_nil a1)) ($intblast_C ($bv_remove_nil a2)) ($get_bsize a1)))
+        (($intblast_C (bvite ac a1 a2))          (ite (= ($intblast_C ac) 1) ($intblast_C ($bv_remove_nil a1)) ($intblast_C ($bv_remove_nil a2))))
+        (($intblast_C (zero_extend a1))          ($intblast_C ($bv_remove_nil a1)))
+; figure this out
+;       (($intblast_C (sign_extend a1))          ($bv_int_sextend a1 ($get_bsize a1)))
+        (($intblast_C (concat a1 a3))            ($bv_int_concat ($intblast_C ($bv_remove_nil a1)) ($intblast_C ($bv_remove_nil a3)) ($get_bsize a1) ($get_bsize a3)))
+        (($intblast_C (extract u l a1))          ($bv_int_extract ($intblast_C ($bv_remove_nil a1)) u l))
+        (($intblast_C (= a1 a2))                 (= ($intblast_C ($bv_remove_nil a1)) ($intblast_C ($bv_remove_nil a2))))
+        (($intblast_C (not a1))                  (not ($intblast_C ($bv_remove_nil a1))))
+        (($intblast_C (and b bB))                ($nosugar and ($intblast_C ($bv_remove_nil b)) ($intblast_C ($bv_remove_nil bB))))
+        (($intblast_C (or b bB))                 ($nosugar or ($intblast_C b) ($intblast_C bB)))
+        (($intblast_C (xor b bB))                ($nosugar xor ($intblast_C b) ($intblast_C bB)))
+        (($intblast_C (=> b bB))                 ($nosugar => ($intblast_C b) ($intblast_C bB)))
+        (($intblast_C (ite b a1 a2))             (ite ($intblast_C b) ($intblast_C ($bv_remove_nil a1)) ($intblast_C ($bv_remove_nil a2))))
+        (($intblast_C (bvult a1 a2))             (< ($intblast_C ($bv_remove_nil a1)) ($intblast_C ($bv_remove_nil a2))))
+        (($intblast_C (bvslt a1 a2))             (< ($uts ($get_bsize a1) ($intblast_C ($bv_remove_nil a1))) ($uts ($get_bsize a1) ($intblast_C ($bv_remove_nil a2)))))
+        (($intblast_C (bvule a1 a2))             (<= ($intblast_C ($bv_remove_nil a1)) ($intblast_C ($bv_remove_nil a2))))
+        (($intblast_C (bvsle a1 a2))             (<= ($uts ($get_bsize a1) ($intblast_C ($bv_remove_nil a1))) ($uts ($get_bsize a1) ($intblast_C ($bv_remove_nil a2)))))
+        (($intblast_C (bvugt a1 a2))             (> ($intblast_C ($bv_remove_nil a1)) ($intblast_C ($bv_remove_nil a2))))
+        (($intblast_C (bvuge a1 a2))             (>= ($intblast_C ($bv_remove_nil a1)) ($intblast_C ($bv_remove_nil a2))))
+        (($intblast_C (bvultbv a1 a2))           (ite (< ($intblast_C ($bv_remove_nil a1)) ($intblast_C ($bv_remove_nil a2))) 1 0))
+        (($intblast_C (bvsltbv a1 a2))           (ite (< ($uts ($get_bsize a1) ($intblast_C ($bv_remove_nil a1))) ($uts ($get_bsize a1) ($intblast_C ($bv_remove_nil a2)))) 1 0))
+        (($intblast_C (bvcomp a1 a2))            (ite (= ($intblast_C ($bv_remove_nil a1)) ($intblast_C ($bv_remove_nil a2))) 1 0))
+        (($intblast_C (bvuaddo a1 a2))           ($bv_int_uaddo ($intblast_C a1) ($intblast_C a2) ($get_bsize a1)))
+        (($intblast_C (bvsaddo a1 a2))           ($bv_int_saddo ($intblast_C a1) ($intblast_C a2) ($get_bsize a1)))
+        (($intblast_C (bvumulo a1 a2))           ($bv_int_umulo ($intblast_C a1) ($intblast_C a2) ($get_bsize a1)))
+        (($intblast_C (bvsmulo a1 a2))           ($bv_int_smulo ($intblast_C a1) ($intblast_C a2) ($get_bsize a1)))
+        (($intblast_C (bvusubo a1 a2))           ($bv_int_usubo ($intblast_C a1) ($intblast_C a2) ($get_bsize a1)))
+        (($intblast_C (bvssubo a1 a2))           ($bv_int_ssubo ($intblast_C a1) ($intblast_C a2) ($get_bsize a1)))
+        (($intblast_C (forall l a1))             ($bv_int_forall l ($intblast_C a1)))
+        (($intblast_C (exists l a1))             ($bv_int_exists l ($intblast_C a1)))
+; lines 582 - 640
+        (($intblast_C x)                         (eo::ite (eo::is_bin x)
+                                                    (eo::to_z x)
+                                                 (eo::ite (eo::is_bool x)
+                                                    x
+                                                 (eo::ite (eo::is_z x)
+                                                    x
+                                                    (_ @purify (ubv_to_int x))
+                                                ))))
+    )
+)
+
+; program: $intblast_eq_check
+; args:
+; - b Bool: an equality between a BitVec expression and an Int expression.
+; return: whether they are equivalent
+(program $intblast_eq_check ((T Type) (a1 T) (a2 T))
+    :signature (Bool) Bool
+    (
+        (($intblast_eq_check (= a1 a2))         (eo::is_eq ($intblast_C ($bv_remove_nil a1)) a2))
+    )
+)
+
+; program: $intblast_get_size
+; args:
+; - x Int: an intblasted variable.
+; return: the bitwidth of what intblasted to x.
+(program $intblast_get_size ((n Int) (v (BitVec n)))
+    :signature (Int) Int
+    (
+        (($intblast_get_size (_ @purify (ubv_to_int v)))       ($get_bsize v))
+    )
+)
+
+; program: $intblast_check_bound
+; args:
+; - b: a bound (inequality) to check.
+; return: if the bound is a valid bound.
+(program $intblast_check_bound ((n1 Int) (n2 Int))
+    :signature (Bool) Bool
+    (
+        (($intblast_check_bound (>= n1 n2))         (eo::is_eq n2 0))
+        (($intblast_check_bound (not (>= n1 n2)))   (eo::is_eq n2 ($arith_eval_int_pow_2 ($intblast_get_size n1))))
+    )
+)
+
+; program: $intblast_check_bound
+; args:
+; - b: a conjunction of bounds (inequalities) to check.
+; return: if all the bounds in the conjunction are valid.
+(program $intblast_check_bounds ((b1 Bool) (b2 Bool :list))
+    :signature (Bool) Bool
+    (
+        (($intblast_check_bounds true)                  true)
+        (($intblast_check_bounds (and b1 b2))           (eo::and ($intblast_check_bound b1) ($intblast_check_bounds b2)))
+    )
+)
+

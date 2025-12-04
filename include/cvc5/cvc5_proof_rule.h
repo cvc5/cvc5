@@ -1393,6 +1393,8 @@ enum ENUM(ProofRule)
    * where :math:`F` is of kind ``BITVECTOR_EAGER_ATOM``.
    * \endverbatim
    */
+  EVALUE(BV_INTBLAST),
+  EVALUE(BV_INTBLAST_BOUNDS),
   EVALUE(BV_EAGER_ATOM),
   /**
    * \verbatim embed:rst:leading-asterisk
