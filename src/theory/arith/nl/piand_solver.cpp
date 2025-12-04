@@ -118,7 +118,7 @@ void PIAndSolver::checkInitialRefine()
           nm->mkNode(Kind::AND, k_gt_0, x_modpow2_eq_max, y_range);
       conj.push_back(nm->mkNode(Kind::IMPLIES, assum_max_x, i.eqNode(y)));
 
-      // min: y = 0 -> piand(k,x,y) = 0
+      // min-y: y = 0 -> piand(k,x,y) = 0
       Node eq_y_zero = nm->mkNode(Kind::EQUAL, y, d_zero);
       conj.push_back(nm->mkNode(Kind::IMPLIES, eq_y_zero, i.eqNode(d_zero)));
 
@@ -146,7 +146,7 @@ void PIAndSolver::checkInitialRefine()
       Node i_leq_y = nm->mkNode(Kind::LEQ, i, y);
       conj.push_back(nm->mkNode(Kind::IMPLIES, y_geq_zero, i_leq_y));
 
-      // negative bitwidth: k <= 0 -> piand(k,x, y) = 0
+      // non-positive bitwidth: k <= 0 -> piand(k,x, y) = 0
       Node k_le_0 = nm->mkNode(Kind::LEQ, k, d_zero);
       conj.push_back(nm->mkNode(Kind::IMPLIES, k_le_0, i.eqNode(d_zero)));
 
