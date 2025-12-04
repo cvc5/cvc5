@@ -420,6 +420,14 @@ Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       // if we eliminated a variable, update body and reprocess
       if (!vars.empty())
       {
+        // ensure the substitution is safe
+        for (const Node& s : subs)
+        {
+          if (!isSafeSubsTerm(body, s))
+          {
+            return Node::null();
+          }
+        }
         Assert(vars.size() == subs.size());
         std::vector<Node> qc(n.begin(), n.end());
         qc[1] =
@@ -2403,11 +2411,7 @@ Node QuantifiersRewriter::computeOperation(Node f,
   if (computeOption == COMPUTE_ELIM_SHADOW)
   {
     Node qr = rewriteViaRule(ProofRewriteRule::MACRO_QUANT_ELIM_SHADOW, f);
-    if (!qr.isNull())
-    {
-      return qr;
-    }
-    return f;
+    return qr.isNull() ? f : qr;
   }
   else if (computeOption == COMPUTE_MINISCOPING)
   {
