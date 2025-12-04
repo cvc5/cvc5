@@ -17,6 +17,7 @@
 
 #include "expr/bound_var_manager.h"
 #include "util/rational.h"
+#include "expr/subtype_elim_node_converter.h"
 
 using namespace cvc5::internal::kind;
 
@@ -71,6 +72,9 @@ Node ElimShadowNodeConverter::getElimShadowVar(const Node& q,
   BoundVarManager* bvm = nm->getBoundVarManager();
   Node ii = nm->mkConstInt(Rational(i));
   Node cacheVal = BoundVarManager::getCacheValue(q, n, ii);
+  // must be robust to subtype elimination
+  SubtypeElimNodeConverter senc(nm);
+  cacheVal = senc.convert(cacheVal);
   return bvm->mkBoundVar(BoundVarId::ELIM_SHADOW, cacheVal, n[0][i].getType());
 }
 
