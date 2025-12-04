@@ -103,48 +103,60 @@ void PIAndSolver::checkInitialRefine()
       Node y_geq_zero = nm->mkNode(Kind::GEQ, y, d_zero);
       Node y_lt_pow2 = nm->mkNode(Kind::LT, y, twok);
       Node y_range = nm->mkNode(Kind::AND, y_geq_zero, y_lt_pow2);
+
       // initial refinement lemmas
       std::vector<Node> conj;
-      Assert(x <= y);
-      // max: x > 0 && x < 2^k && y = 2^k -1 -> piand(k,x,y) = x
+
+      // x is an upper bound: x > 0 && x < 2^k && y = 2^k -1 -> piand(k,x,y) = x
       Node y_modpow2_eq_max = nm->mkNode(Kind::EQUAL, y, twok_minus_one);
       Node assum_max = nm->mkNode(Kind::AND, k_gt_0, y_modpow2_eq_max, x_range);
       conj.push_back(nm->mkNode(Kind::IMPLIES, assum_max, i.eqNode(x)));
-      // max: y > 0 && y < 2^k && x = 2^k -1 -> piand(k,x,y) = y
+
+      // y is an upper bound: y > 0 && y < 2^k && x = 2^k -1 -> piand(k,x,y) = y
       Node x_modpow2_eq_max = nm->mkNode(Kind::EQUAL, x, twok_minus_one);
       Node assum_max_x =
           nm->mkNode(Kind::AND, k_gt_0, x_modpow2_eq_max, y_range);
       conj.push_back(nm->mkNode(Kind::IMPLIES, assum_max_x, i.eqNode(y)));
+
       // min: y = 0 -> piand(k,x,y) = 0
       Node eq_y_zero = nm->mkNode(Kind::EQUAL, y, d_zero);
       conj.push_back(nm->mkNode(Kind::IMPLIES, eq_y_zero, i.eqNode(d_zero)));
+
       // min-x: x = 0 -> piand(k,x,y) = 0
       Node eq_x_zero = nm->mkNode(Kind::EQUAL, x, d_zero);
       conj.push_back(nm->mkNode(Kind::IMPLIES, eq_x_zero, i.eqNode(d_zero)));
+
       // idempotence: k > 0 && x > 0 && x < 2^k && x = y -> piand(k,x,y) = x
       Node eq_y_x = nm->mkNode(Kind::EQUAL, y, x);
       Node assum_idempotence = nm->mkNode(Kind::AND, k_gt_0, eq_y_x, x_range);
       conj.push_back(nm->mkNode(Kind::IMPLIES, assum_idempotence, i.eqNode(x)));
+
       // symmetry: piand(k,x,y) = piand(k,y,x)
       Node piand_y_x = nm->mkNode(Kind::PIAND, k, y, x);
       conj.push_back(nm->mkNode(Kind::EQUAL, i, piand_y_x));
+
       // range1: 0 <= piand(k,x,y)
       conj.push_back(nm->mkNode(Kind::LEQ, d_zero, i));
+
       // range 2: 0 <= x -> piand(k,x,y) <= x
       Node i_leq_x = nm->mkNode(Kind::LEQ, i, x);
       conj.push_back(nm->mkNode(Kind::IMPLIES, x_geq_zero, i_leq_x));
+
       // range 3: 0 <= y -> piand(k,x,y) <= y
       Node i_leq_y = nm->mkNode(Kind::LEQ, i, y);
       conj.push_back(nm->mkNode(Kind::IMPLIES, y_geq_zero, i_leq_y));
+
       // negative bitwidth: k <= 0 -> piand(k,x, y) = 0
       Node k_le_0 = nm->mkNode(Kind::LEQ, k, d_zero);
       conj.push_back(nm->mkNode(Kind::IMPLIES, k_le_0, i.eqNode(d_zero)));
-      // lsb lemmas: x mod 2 = 0 => piand(k,x,y) % 2 = 0
+
+      // lsb lemma for x: x mod 2 = 0 => piand(k,x,y) % 2 = 0
       Node piand_mod_two = nm->mkNode(Kind::INTS_MODULUS, i, d_two);
       Node arg1Mod2_eq_zero = nm->mkNode(Kind::EQUAL, arg1Mod2, d_zero);
       conj.push_back(nm->mkNode(
           Kind::IMPLIES, arg1Mod2_eq_zero, piand_mod_two.eqNode(d_zero)));
-      // lsb lemmas: y mod 2 = 0 => piand(k,x,y) % 2 = 0
+
+      // lsb lemma for y: y mod 2 = 0 => piand(k,x,y) % 2 = 0
       Node arg0Mod2_eq_zero = nm->mkNode(Kind::EQUAL, arg0Mod2, d_zero);
       conj.push_back(nm->mkNode(
           Kind::IMPLIES, arg0Mod2_eq_zero, piand_mod_two.eqNode(d_zero)));
@@ -160,56 +172,9 @@ void PIAndSolver::checkInitialRefine()
 
 void PIAndSolver::checkFullRefine() {}
 
-Node PIAndSolver::valueBasedLemma(Node i)
-{
-  Assert(i.getKind() == Kind::PIAND);
+Node PIAndSolver::valueBasedLemma(Node i) { return i; }
 
-  Node k = i[0];
-  Node x = i[1];
-  Node y = i[2];
-
-  Node valK = d_model.computeConcreteModelValue(k);
-  Node valX = d_model.computeConcreteModelValue(x);
-  Node valY = d_model.computeConcreteModelValue(y);
-
-  NodeManager* nm = nodeManager();
-  Node valC = nm->mkNode(Kind::PIAND, valK, valX, valY);
-
-  valC = rewrite(valC);
-  Node lem = nm->mkNode(
-      Kind::IMPLIES,
-      nm->mkNode(Kind::AND, k.eqNode(valK), x.eqNode(valX), y.eqNode(valY)),
-      i.eqNode(valC));
-  return lem;
-}
-
-Node PIAndSolver::sumBasedLemma(Node i, Kind kind)
-{
-  Assert(i.getKind() == Kind::PIAND);
-  Node k = d_model.computeConcreteModelValue(i[0]);
-  Node x = i[1];
-  Node y = i[2];
-  uint64_t granularity = options().smt.BVAndIntegerGranularity;
-  uint64_t int_k = k.getConst<Rational>().getNumerator().toUnsignedInt();
-  NodeManager* nm = nodeManager();
-  // i[0] >= k => i = sum
-  Node width = nm->mkNode(kind, i[0], k);
-  Node condition;
-  kind = Kind::EQUAL;
-  Node pow2_k = nm->mkConstInt(Integer(2).pow(int_k));
-  Node zero = nm->mkConstInt(Rational(0));
-  Node x_pos = nm->mkNode(Kind::GEQ, x, zero);
-  Node y_pos = nm->mkNode(Kind::GEQ, y, zero);
-  Node x_lt_pow2 = nm->mkNode(Kind::LT, x, pow2_k);
-  Node y_lt_pow2 = nm->mkNode(Kind::LT, y, pow2_k);
-  Node bound_x = nm->mkNode(Kind::AND, x_lt_pow2, x_pos);
-  Node bound_y = nm->mkNode(Kind::AND, y_lt_pow2, y_pos);
-  condition = nm->mkNode(Kind::AND, bound_x, width);
-  Node then =
-      nm->mkNode(kind, i, d_iandUtils.createSumNode(x, y, int_k, granularity));
-  Node lem = nm->mkNode(Kind::IMPLIES, condition, then);
-  return lem;
-}
+Node PIAndSolver::sumBasedLemma(Node i, Kind kind) { return i; }
 
 }  // namespace nl
 }  // namespace arith
