@@ -442,6 +442,7 @@ void ExtfSolver::checkExtfEval(int effort)
             Trace("strings-extf")
                 << "  resolve extf : " << sn << " -> " << nrc << std::endl;
             InferenceId inf = effort == 0 ? InferenceId::STRINGS_EXTF : InferenceId::STRINGS_EXTF_N;
+            Trace("ajr-temp") << "Conclude " << inf << " " << conc << " via " << einfo.d_exp << std::endl;
             d_im.sendInference(einfo.d_exp, conc, inf, false, true);
             d_statistics.d_cdSimplifications << n.getKind();
           }
