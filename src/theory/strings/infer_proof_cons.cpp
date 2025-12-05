@@ -54,9 +54,11 @@ class StringCoreTermContext : public TermContext
     {
       Kind k = t.getKind();
       // kinds we wish to substitute beneath
-      if (k == Kind::NOT || k == Kind::EQUAL || k == Kind::STRING_CONCAT)
+      // note that if we are already nested (tval>0), then we do not allow
+      // traversing these kinds.
+      if ((k == Kind::NOT || k == Kind::EQUAL || k == Kind::STRING_CONCAT) && tval==0)
       {
-        return tval;
+        return 0;
       }
       return tval + 1;
     }
