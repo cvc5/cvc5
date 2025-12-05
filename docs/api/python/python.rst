@@ -69,7 +69,7 @@ command instead of ``make install``:
   cmake --install . --component python-api
 
 For Windows, the steps above must be executed in
-a MINGW64 or CLANGARM64 environment with the required
+a CLANG64 or CLANGARM64 environment with the required
 dependencies installed
 (see the :doc:`installation instructions <../../installation/installation>`).
 

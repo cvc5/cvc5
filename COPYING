@@ -68,17 +68,20 @@ The implementation of the floating point solver in cvc5 depends on symfpu
 See https://raw.githubusercontent.com/martin-cs/symfpu/CVC4/LICENSE for
 copyright and licensing information.
 
-When building with GCC or MinGW-w64, cvc5 links against the libgcc and
-libstdc++ libraries, which are licensed under the GNU GPL v3 with
-the GCC Runtime Library exception. See the files licenses/gpl-3.0.txt and
-licenses/GCC-exception-3.1.txt for a copy of the license and the exception,
-respectively. Note that according to the terms of GPLv3 with the GCC-exception,
-both cvc5's source, and the combined work (cvc5 linked with the libraries) may
-(and do) remain under the more permissive modified BSD license.
+When building with GCC, cvc5 links against the libgcc and libstdc++ libraries,
+which are licensed under the GNU GPL v3 with the GCC Runtime Library exception.
+See the files licenses/gpl-3.0.txt and licenses/GCC-exception-3.1.txt for
+a copy of the license and the exception, respectively. Note that according to
+the terms of GPLv3 with the GCC-exception, both cvc5's source, and
+the combined work (cvc5 linked with the libraries) may (and do) remain under
+the more permissive modified BSD license.
 
-On Windows, cvc5 also links against the Winpthreads library from the MinGW-w64
-project (https://github.com/ldx/winpthreads).  See licenses/winpthreads-LICENSE
-for copyright and licensing information.
+When building with LLVM Clang, cvc5 links against the libc++ library,
+which is licensed under the Apache License v2.0 with LLVM Exceptions.
+See the file licenses/apache-2.0-with-llvm-exceptions.txt for a copy.
+Note that according to the terms of the license, both cvc5's source, and
+the combined work (cvc5 linked with the library) may (and do) remain under
+the more permissive modified BSD license.
 
 cvc5 optionally links against the following libraries:
 
