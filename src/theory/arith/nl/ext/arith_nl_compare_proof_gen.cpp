@@ -213,16 +213,14 @@ std::shared_ptr<ProofNode> ArithNlCompareProofGenerator::getProofFor(Node fact)
       if (e.getKind() != ck)
       {
         // needs to have a disequal to zero explanation
-        std::vector<Node> eprod[2];
-        decomposeCompareLit(e, eprod[0], eprod[1]);
+        Assert(e.getKind() == Kind::EQUAL && e[0].getKind() == Kind::ABS);
+        Node etgt = e[0][0];
         Node deqAssump;
-        if (eprod[0].size() == 0)
+        Node zero = nm->mkConstRealOrInt(etgt.getType(), Rational(0));
+        Node ceq = etgt.eqNode(zero);
+        if (etgt.isConst())
         {
-          Assert(eprod[1].size() == 1);
-          Node one = nm->mkConstRealOrInt(eprod[1][0].getType(), Rational(1));
-          Node zero = nm->mkConstRealOrInt(eprod[1][0].getType(), Rational(0));
           // case where we require showing 1 != 0
-          Node ceq = one.eqNode(zero);
           Node ceqf = ceq.eqNode(nm->mkConst(false));
           cdp.addStep(ceqf, ProofRule::EVALUATE, {}, {ceq});
           deqAssump = ceq.notNode();
@@ -232,7 +230,7 @@ std::shared_ptr<ProofNode> ArithNlCompareProofGenerator::getProofFor(Node fact)
         }
         else
         {
-          itd = deq.find(eprod[0][0]);
+          itd = deq.find(etgt);
           if (itd == deq.end())
           {
             Assert(false) << "ArithNlCompareProofGenerator failed explain deq";
@@ -240,6 +238,18 @@ std::shared_ptr<ProofNode> ArithNlCompareProofGenerator::getProofFor(Node fact)
             break;
           }
           deqAssump = itd->second;
+          Node vv = isDisequalZero(deqAssump);
+          if (vv != etgt)
+          {
+            // We may have to change (not (= v 0)) to (not (= (to_real v) 0.0)).
+            // We add a trust step which should be provable by arith poly norm.
+            Node deqTgt = ceq.notNode();
+            Assert(deqTgt != deqAssump);
+            Node equiv = deqAssump.eqNode(deqTgt);
+            cdp.addTrustedStep(equiv, TrustId::ARITH_NL_COMPARE_LEMMA, {}, {});
+            cdp.addStep(deqTgt, ProofRule::EQ_RESOLVE, {deqAssump, equiv}, {});
+            deqAssump = deqTgt;
+          }
         }
         Node guardEq = nm->mkNode(Kind::AND, e, deqAssump);
         cdp.addStep(guardEq, ProofRule::AND_INTRO, {e, deqAssump}, {});
@@ -376,7 +386,7 @@ Node ArithNlCompareProofGenerator::isDisequalZero(const Node& g)
   if (g.getKind() == Kind::NOT && g[0].getKind() == Kind::EQUAL
       && g[0][1].isConst() && g[0][1].getConst<Rational>().isZero())
   {
-    return g[0][0];
+    return g[0][0].getKind() == Kind::TO_REAL ? g[0][0][0] : g[0][0];
   }
   return Node::null();
 }
