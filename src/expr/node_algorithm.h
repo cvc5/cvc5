@@ -107,6 +107,14 @@ bool hasSubterm(TNode n, const std::vector<Node>& t, bool strict = false);
 bool hasBoundVar(TNode n);
 
 /**
+ * @param n The node under investigation
+ * @param fvs The variables to find
+ * @return true iff n contains a variable fvs as a bound variable (i.e. as
+ * the child of a variable list of a binder).
+ */
+bool hasBoundVar(TNode n, const std::unordered_set<Node>& fvs);
+
+/**
  * Returns true iff the node n contains a free variable, that is, a node
  * of kind BOUND_VARIABLE that is not bound in n.
  *
