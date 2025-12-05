@@ -108,8 +108,9 @@ bool hasBoundVar(TNode n);
 
 /**
  * @param n The node under investigation
- * @param v The variable to find
- * @return true iff n contains v as a bound variable.
+ * @param fvs The variables to find
+ * @return true iff n contains a variable fvs as a bound variable (i.e. as
+ * the child of a variable list of a binder).
  */
 bool hasBoundVar(TNode n, const std::unordered_set<Node>& fvs);
 
