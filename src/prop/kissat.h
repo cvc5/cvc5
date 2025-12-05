@@ -38,18 +38,17 @@ class KissatSolver : public SatSolver
  public:
   ~KissatSolver() override;
 
-  ClauseId addClause(SatClause& clause, bool removable) override;
+  ClauseId addClause(const SatClause& clause, bool removable) override;
 
-  ClauseId addXorClause(SatClause& clause, bool rhs, bool removable) override;
-
-  SatVariable newVar(bool isTheoryAtom = false, bool canErase = true) override;
-
+  SatVariable newVar(bool isTheoryAtom, bool canErase) override;
   SatVariable trueVar() override;
   SatVariable falseVar() override;
 
   SatValue solve() override;
   SatValue solve(long unsigned int&) override;
   SatValue solve(const std::vector<SatLiteral>& assumptions) override;
+
+  void getUnsatAssumptions(std::vector<SatLiteral>& unsat_assumptions) override;
 
   void interrupt() override;
 
@@ -75,12 +74,13 @@ class KissatSolver : public SatSolver
    * Private to disallow creation outside of SatSolverFactory.
    * Function init() must be called after creation.
    */
-  KissatSolver(StatisticsRegistry& registry, const std::string& name = "");
+  explicit KissatSolver(StatisticsRegistry& registry, const std::string& name = "");
+
   /**
    * Initialize SAT solver instance.
    * Note: Split out to not call virtual functions in constructor.
    */
-  void init();
+  void initialize() override;
 
   kissat* d_solver;
 

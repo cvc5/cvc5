@@ -43,13 +43,10 @@ class CryptoMinisatSolver : public SatSolver
  public:
   ~CryptoMinisatSolver() override;
 
-  ClauseId addClause(SatClause& clause, bool removable) override;
-  ClauseId addXorClause(SatClause& clause, bool rhs, bool removable) override;
+  ClauseId addClause(const SatClause& clause, bool removable) override;
+  ClauseId addXorClause(SatClause& clause, bool rhs, bool removable);
 
-  bool nativeXor() override { return true; }
-
-  SatVariable newVar(bool isTheoryAtom = false, bool canErase = true) override;
-
+  SatVariable newVar(bool isTheoryAtom, bool canErase) override;
   SatVariable trueVar() override;
   SatVariable falseVar() override;
 
@@ -89,7 +86,7 @@ class CryptoMinisatSolver : public SatSolver
    * Initialize SAT solver instance.
    * Note: Split out to not call virtual functions in constructor.
    */
-  void init();
+  void initialize() override;
 
   /**
    * Set time limit per solve() call.
