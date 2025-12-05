@@ -870,6 +870,12 @@ RewriteResponse ArithRewriter::rewriteDiv(TNode t, bool pre)
     // requires again full since ensureReal may have added a to_real
     return RewriteResponse(REWRITE_AGAIN_FULL, mult);
   }
+  // We also convert integral rationals in the numerator to integers,
+  // e.g. (/ 1.0 x) ---> (/ 1 x).
+  if (left.getKind()==Kind::CONST_RATIONAL && left.getConst<Rational>().isIntegral())
+  {
+    left = nm->mkConstInt(left.getConst<Rational>());
+  }
   // may have changed due to removing to_real
   if (left!=t[0] || right!=t[1])
   {
