@@ -46,14 +46,15 @@ class MinisatSatSolver : public CDCLTSatSolver, protected EnvObj
   static Minisat::lbool  toMinisatlbool(SatValue val);
   //(Commented because not in use) static bool            tobool(SatValue val);
 
-  static void  toMinisatClause(SatClause& clause, Minisat::vec<Minisat::Lit>& minisat_clause);
+  static void  toMinisatClause(const SatClause& clause,
+                              Minisat::vec<Minisat::Lit>& minisat_clause);
   static void  toSatClause    (const Minisat::Clause& clause, SatClause& sat_clause);
 
   void initialize() override;
   void initialize(TheoryProxy* theoryProxy) override;
   void attachProofManager(PropPfManager* ppm) override;
 
-  ClauseId addClause(SatClause& clause, bool removable) override;
+  ClauseId addClause(const SatClause& clause, bool removable) override;
 
   SatVariable newVar(bool isTheoryAtom, bool canErase) override;
   SatVariable trueVar() override { return d_minisat->trueVar(); }
