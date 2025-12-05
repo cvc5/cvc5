@@ -56,7 +56,8 @@ class StringCoreTermContext : public TermContext
       // kinds we wish to substitute beneath
       // note that if we are already nested (tval>0), then we do not allow
       // traversing these kinds.
-      if ((k == Kind::NOT || k == Kind::EQUAL || k == Kind::STRING_CONCAT) && tval==0)
+      if ((k == Kind::NOT || k == Kind::EQUAL || k == Kind::STRING_CONCAT)
+          && tval == 0)
       {
         return 0;
       }
