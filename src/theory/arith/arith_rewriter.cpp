@@ -872,7 +872,8 @@ RewriteResponse ArithRewriter::rewriteDiv(TNode t, bool pre)
   }
   // We also convert integral rationals in the numerator to integers,
   // e.g. (/ 1.0 x) ---> (/ 1 x).
-  if (left.getKind()==Kind::CONST_RATIONAL && left.getConst<Rational>().isIntegral())
+  if (left.getKind() == Kind::CONST_RATIONAL
+      && left.getConst<Rational>().isIntegral())
   {
     left = nm->mkConstInt(left.getConst<Rational>());
   }
