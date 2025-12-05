@@ -84,7 +84,7 @@ void KissatSolver::initialize()
 
 KissatSolver::~KissatSolver() { kissat_release(d_solver); }
 
-ClauseId KissatSolver::addClause(SatClause& clause, bool removable)
+ClauseId KissatSolver::addClause(const SatClause& clause, bool removable)
 {
   for (const SatLiteral& lit : clause)
   {

@@ -25,6 +25,8 @@
 namespace cvc5::internal {
 namespace prop {
 
+class SatSolver;
+
 /**
  * Boolean values of the SAT solver.
  */

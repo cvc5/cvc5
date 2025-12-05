@@ -59,12 +59,12 @@ SatValue toSatLiteralValue(CMSat::lbool res)
   return SAT_VALUE_FALSE;
 }
 
-void toInternalClause(SatClause& clause,
+void toInternalClause(const SatClause& clause,
                       std::vector<CMSat::Lit>& internal_clause)
 {
-  for (unsigned i = 0; i < clause.size(); ++i)
+  for (const SatLiteral i : clause)
   {
-    internal_clause.push_back(toInternalLit(clause[i]));
+    internal_clause.push_back(toInternalLit(i));
   }
   Assert(clause.size() == internal_clause.size());
 }
@@ -135,7 +135,8 @@ ClauseId CryptoMinisatSolver::addXorClause(SatClause& clause,
   return ClauseIdError;
 }
 
-ClauseId CryptoMinisatSolver::addClause(SatClause& clause, bool removable){
+ClauseId CryptoMinisatSolver::addClause(const SatClause& clause, bool removable)
+{
   Trace("sat::cryptominisat") << "Add clause " << clause <<"\n";
 
   if (!d_okay) {

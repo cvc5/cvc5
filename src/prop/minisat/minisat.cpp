@@ -90,10 +90,12 @@ Minisat::lbool MinisatSatSolver::toMinisatlbool(SatValue val)
   return false;
   }*/
 
-void MinisatSatSolver::toMinisatClause(SatClause& clause,
-                                           Minisat::vec<Minisat::Lit>& minisat_clause) {
-  for (unsigned i = 0; i < clause.size(); ++i) {
-    minisat_clause.push(toMinisatLit(clause[i]));
+void MinisatSatSolver::toMinisatClause(
+    const SatClause& clause, Minisat::vec<Minisat::Lit>& minisat_clause)
+{
+  for (const SatLiteral i : clause)
+  {
+    minisat_clause.push(toMinisatLit(i));
   }
   Assert(clause.size() == (unsigned)minisat_clause.size());
 }
@@ -170,7 +172,7 @@ void MinisatSatSolver::setupOptions() {
   d_minisat->restart_inc = options().prop.satRestartInc;
 }
 
-ClauseId MinisatSatSolver::addClause(SatClause& clause, bool removable)
+ClauseId MinisatSatSolver::addClause(const SatClause& clause, bool removable)
 {
   Minisat::vec<Minisat::Lit> minisat_clause;
   toMinisatClause(clause, minisat_clause);

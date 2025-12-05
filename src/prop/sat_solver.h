@@ -50,14 +50,13 @@ class SatSolver
    * @param clause    The clause to add.
    * @param removable True to indicate that this clause is not irredundant.
    */
-  virtual ClauseId addClause(SatClause& clause, bool removable) = 0;
+  virtual ClauseId addClause(const SatClause& clause, bool removable) = 0;
 
   /**
    * Create a new boolean variable in the solver.
    * @param isTheoryAtom is this a theory atom that needs to be asserted to
    * theory
    * @param canErase whether the sat solver can safely eliminate this variable
-   *
    */
   virtual SatVariable newVar(bool isTheoryAtom, bool canErase) = 0;
 

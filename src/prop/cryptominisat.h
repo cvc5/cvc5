@@ -43,7 +43,7 @@ class CryptoMinisatSolver : public SatSolver
  public:
   ~CryptoMinisatSolver() override;
 
-  ClauseId addClause(SatClause& clause, bool removable) override;
+  ClauseId addClause(const SatClause& clause, bool removable) override;
   ClauseId addXorClause(SatClause& clause, bool rhs, bool removable);
 
   SatVariable newVar(bool isTheoryAtom, bool canErase) override;

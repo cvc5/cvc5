@@ -47,7 +47,7 @@ class CadicalSolver : public CDCLTSatSolver, protected EnvObj
 
   /* SatSolver interface -------------------------------------------------- */
 
-  ClauseId addClause(SatClause& clause, bool removable) override;
+  ClauseId addClause(const SatClause& clause, bool removable) override;
 
   SatVariable newVar(bool isTheoryAtom, bool canErase) override;
   SatVariable trueVar() override;
