@@ -88,7 +88,10 @@ class ICPSolver : protected EnvObj
     std::vector<Node> d_conflict;
 
     /** Initialized the variable bounds with a variable mapper */
-    ICPState(Env& env, VariableMapper& vm) : d_bounds(env) {}
+    ICPState(Env& env, VariableMapper& vm)
+        : d_bounds(env), d_assignment(vm.polyCtx)
+    {
+    }
 
     /** Reset this state */
     void reset()

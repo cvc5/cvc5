@@ -72,7 +72,8 @@ PropagationResult Candidate::propagate(poly::IntervalAssignment& ia,
     case PropagationResult::CONTRACTED:
     case PropagationResult::CONTRACTED_WITHOUT_CURRENT:
     {
-      Trace("nl-icp") << *this << " contracted " << lhs << " -> " << cur
+      Trace("nl-icp") << *this << " contracted "
+                      << stream_variable(polyCtx, lhs) << " -> " << cur
                       << std::endl;
       auto old = ia.get(lhs);
       bool strong = false;
@@ -107,7 +108,7 @@ PropagationResult Candidate::propagate(poly::IntervalAssignment& ia,
 
 std::ostream& operator<<(std::ostream& os, const Candidate& c)
 {
-  os << c.lhs << " " << c.rel << " ";
+  os << stream_variable(c.polyCtx, c.lhs) << " " << c.rel << " ";
   if (c.rhsmult != poly::Rational(1)) os << c.rhsmult << " * ";
   return os << c.rhs;
 }

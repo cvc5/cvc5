@@ -52,7 +52,7 @@ poly::Variable VariableMapper::operator()(const cvc5::internal::Node& n)
     {
       name = "v_" + std::to_string(n.getId());
     }
-    it = mVarCVCpoly.emplace(n, poly::Variable(name.c_str())).first;
+    it = mVarCVCpoly.emplace(n, poly::Variable(polyCtx, name.c_str())).first;
     mVarpolyCVC.emplace(it->second, n);
   }
   return it->second;
@@ -62,7 +62,8 @@ cvc5::internal::Node VariableMapper::operator()(const poly::Variable& n)
 {
   auto it = mVarpolyCVC.find(n);
   Assert(it != mVarpolyCVC.end())
-      << "Expect variable " << n << " to be added already.";
+      << "Expect variable " << stream_variable(polyCtx, n)
+      << " to be added already.";
   return it->second;
 }
 
@@ -160,19 +161,20 @@ poly::Polynomial as_poly_polynomial_impl(cvc5::internal::Node n,
   denominator = poly::Integer(1);
   if (n.isVar())
   {
-    return poly::Polynomial(vm(n));
+    return poly::Polynomial(vm.polyCtx, vm(n));
   }
   if (n.isConst())
   {
       Rational r = n.getConst<Rational>();
       denominator = poly_utils::toInteger(r.getDenominator());
-      return poly::Polynomial(poly_utils::toInteger(r.getNumerator()));
+      return poly::Polynomial(vm.polyCtx,
+                              poly_utils::toInteger(r.getNumerator()));
   }
   switch (n.getKind())
   {
     case Kind::ADD:
     {
-      poly::Polynomial res;
+      poly::Polynomial res(vm.polyCtx);
       poly::Integer denom;
       for (const auto& child : n)
       {
@@ -188,7 +190,7 @@ poly::Polynomial as_poly_polynomial_impl(cvc5::internal::Node n,
     case Kind::MULT:
     case Kind::NONLINEAR_MULT:
     {
-      poly::Polynomial res(denominator);
+      poly::Polynomial res(vm.polyCtx, denominator);
       poly::Integer denom;
       for (const auto& child : n)
       {
@@ -197,9 +199,9 @@ poly::Polynomial as_poly_polynomial_impl(cvc5::internal::Node n,
       }
       return res;
     }
-    default: return poly::Polynomial(vm(n));
+    default: return poly::Polynomial(vm.polyCtx, vm(n));
   }
-  return poly::Polynomial();
+  return poly::Polynomial(vm.polyCtx);
 }
 poly::Polynomial as_poly_polynomial(const cvc5::internal::Node& n, VariableMapper& vm)
 {
@@ -247,7 +249,7 @@ void collect_monomials(const lp_polynomial_context_t* ctx,
   for (std::size_t i = 0; i < m->n; ++i)
   {
     // variable exponent pair
-    Node var = d->d_vm(m->p[i].x);
+    Node var = d->d_vm(poly::Variable(m->p[i].x));
     if (m->p[i].d > 1)
     {
       Node exp = d->d_nm->mkConstReal(m->p[i].d);
@@ -789,7 +791,7 @@ std::size_t bitsize(const poly::Value& v)
 
 poly::IntervalAssignment getBounds(VariableMapper& vm, const BoundInference& bi)
 {
-  poly::IntervalAssignment res;
+  poly::IntervalAssignment res(vm.polyCtx);
   for (const auto& vb : bi.get())
   {
     poly::Variable v = vm(vb.first);
