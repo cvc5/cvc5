@@ -375,6 +375,7 @@ void TheoryEngine::printAssertions(const char* tag) {
  * @param effort the effort level to use
  */
 void TheoryEngine::check(Theory::Effort effort) {
+  Trace("limit") << "TheoryEngine::check() ENTERED, d_interrupted=" << d_interrupted << std::endl;
   // spendResource();
 
   // Reset the interrupt flag
@@ -394,6 +395,7 @@ void TheoryEngine::check(Theory::Effort effort) {
     }                                                                    \
     if (rm->out())                                                       \
     {                                                                    \
+      Trace("limit") << "Interrupt at theory engine" << std::endl;       \
       interrupt();                                                       \
       return;                                                            \
     }                                                                    \
@@ -428,6 +430,14 @@ void TheoryEngine::check(Theory::Effort effort) {
 
     // Check until done
     while (d_factsAsserted && !d_inConflict && !d_lemmasAdded) {
+      Trace("limit") << "TheoryEngine::check() LOOP START, d_interrupted=" << d_interrupted << std::endl;
+      
+      if (d_interrupted) {
+        Trace("limit") << "TheoryEngine::check(): INTERRUPTED, breaking loop" << std::endl;
+        Trace("theory") << "TheoryEngine::check(" << effort 
+                        << "): interrupted, returning" << endl;
+        return;
+      }
 
       Trace("theory") << "TheoryEngine::check(" << effort << "): running check" << endl;
 
