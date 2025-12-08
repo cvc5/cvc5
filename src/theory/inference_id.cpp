@@ -359,6 +359,8 @@ const char* toString(InferenceId i)
       return "QUANTIFIERS_TDB_DEQ_CONG";
     case InferenceId::QUANTIFIERS_CEGQI_WITNESS:
       return "QUANTIFIERS_CEGQI_WITNESS";
+    case InferenceId::QUANTIFIERS_RECHECK_SPLIT:
+      return "QUANTIFIERS_RECHECK_SPLIT";
 
     case InferenceId::SEP_PTO_NEG_PROP: return "SEP_PTO_NEG_PROP";
     case InferenceId::SEP_PTO_PROP: return "SEP_PTO_PROP";

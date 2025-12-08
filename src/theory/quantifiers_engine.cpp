@@ -194,19 +194,18 @@ void QuantifiersEngine::check( Theory::Effort e ){
   {
     // if we are about to say "unknown", see if anything can be done as a last
     // resort to avoid this
-    if (setModelUnsoundId != IncompleteId::NONE)
+    if (setModelUnsoundId != IncompleteId::NONE && shouldRecheck(e, setModelUnsoundId))
     {
-      // check if we should check again
-      bool recheck = shouldRecheck(e, setModelUnsoundId);
-      if (recheck)
-      {
-        // check again
-        d_qim.clearPending();
-        setModelUnsoundId = IncompleteId::NONE;
-        checkInternal(e, setModelUnsoundId);
-      }
+      Trace("quant-engine-debug") << "*** Run recheck" << std::endl;
+      NodeManager * nm = nodeManager();
+      // We send a dummy split to ensure we check again
+      // We do this instead of checking again here since some modules (e.g. fmf)
+      // assume that models are only built once per last call effort check.
+      Node k = nm->mkDummySkolem("recheck", nm->booleanType());
+      Node ksplit = nm->mkNode(Kind::OR, k, k.notNode());
+      d_qim.lemma(ksplit, InferenceId::QUANTIFIERS_RECHECK_SPLIT);
     }
-    if (!d_qim.hasSentLemma())
+    else
     {
       if (setModelUnsoundId != IncompleteId::NONE)
       {
@@ -236,18 +235,26 @@ bool QuantifiersEngine::shouldRecheck(Theory::Effort e,
     TermDb* tdb = d_treg.getTermDatabase();
     eq::EqualityEngine* ee = d_qstate.getEqualityEngine();
     Assert(ee->consistent());
+    bool recheck = false;
     eq::EqClassesIterator eqcsi = eq::EqClassesIterator(ee);
     while (!eqcsi.isFinished())
     {
       eq::EqClassIterator eqci = eq::EqClassIterator(*eqcsi, ee);
       while (!eqci.isFinished())
       {
-        tdb->setHasTerm(*eqci);
+        Node n = *eqci;
+        // to ensure we saturate, we only recheck if at least one new term
+        // was added to the term database
+        if (!tdb->hasTermCurrent(n))
+        {
+          tdb->setHasTerm(*eqci);
+          recheck = true;
+        }
         ++eqci;
       }
       ++eqcsi;
     }
-    return true;
+    return recheck;
   }
   return false;
 }
