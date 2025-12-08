@@ -34,7 +34,7 @@ runs:
           if [ -f ${{ inputs.build-dir }}/install/bin/libcvc5.dll ]; then
             cp /clang64/bin/libc++.dll ${{ inputs.build-dir }}/install/bin/
           else
-            cp /clang64/lib/libgmp.a ${{ inputs.build-dir }}/install/bin/
+            cp /clang64/lib/libgmp.a ${{ inputs.build-dir }}/install/lib/
           fi
         fi
 
