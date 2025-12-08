@@ -190,7 +190,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
   IncompleteId setModelUnsoundId = IncompleteId::NONE;
   checkInternal(e, setModelUnsoundId);
   // SAT case
-  if (e == Theory::EFFORT_LAST_CALL && !d_qim.hasSentLemma())
+  if (e == Theory::EFFORT_LAST_CALL && !d_qstate.getValuation().needCheck())
   {
     // if we are about to say "unknown", see if anything can be done as a last
     // resort to avoid this
