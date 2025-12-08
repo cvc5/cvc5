@@ -186,8 +186,75 @@ void QuantifiersEngine::ppNotifyAssertions(
     mi->ppNotifyAssertions(assertions);
   }
 }
-
 void QuantifiersEngine::check( Theory::Effort e ){
+  IncompleteId setModelUnsoundId = IncompleteId::NONE;
+  checkInternal(e, setModelUnsoundId);
+  // SAT case
+  if (e == Theory::EFFORT_LAST_CALL && !d_qim.hasSentLemma())
+  {
+    // if we are about to say "unknown", see if anything can be done as a last
+    // resort to avoid this
+    if (setModelUnsoundId != IncompleteId::NONE)
+    {
+      // check if we should check again
+      bool recheck = shouldRecheck(e, setModelUnsoundId);
+      if (recheck)
+      {
+        // check again
+        d_qim.clearPending();
+        setModelUnsoundId = IncompleteId::NONE;
+        checkInternal(e, setModelUnsoundId);
+      }
+    }
+    if (!d_qim.hasSentLemma())
+    {
+      if (setModelUnsoundId != IncompleteId::NONE)
+      {
+        Trace("quant-engine") << "Set incomplete flag." << std::endl;
+        d_qim.setModelUnsound(setModelUnsoundId);
+      }
+      // output debug stats
+      d_qim.getInstantiate()->debugPrintModel();
+    }
+  }
+  d_qim.clearPending();
+}
+
+bool QuantifiersEngine::shouldRecheck(Theory::Effort e,
+                                      IncompleteId setModelUnsoundId)
+{
+  // special case: IncompleteId::QUANTIFIERS_RECORDED_INST indicates we wish
+  // to intentionally answer unknown for partial quantifier elimination
+  if (setModelUnsoundId == IncompleteId::QUANTIFIERS_RECORDED_INST)
+  {
+    return false;
+  }
+  // If the term database mode is relevant, we instead now mark all terms
+  // as relevant.
+  if (options().quantifiers.termDbMode == options::TermDbMode::RELEVANT)
+  {
+    TermDb* tdb = d_treg.getTermDatabase();
+    eq::EqualityEngine* ee = d_qstate.getEqualityEngine();
+    Assert(ee->consistent());
+    eq::EqClassesIterator eqcsi = eq::EqClassesIterator(ee);
+    while (!eqcsi.isFinished())
+    {
+      eq::EqClassIterator eqci = eq::EqClassIterator(*eqcsi, ee);
+      while (!eqci.isFinished())
+      {
+        tdb->setHasTerm(*eqci);
+        ++eqci;
+      }
+      ++eqcsi;
+    }
+    return true;
+  }
+  return false;
+}
+
+void QuantifiersEngine::checkInternal(Theory::Effort e,
+                                      IncompleteId& setModelUnsoundId)
+{
   QuantifiersStatistics& stats = d_qstate.getStats();
   CodeTimer codeTimer(stats.d_time);
   Assert(d_qstate.getEqualityEngine() != nullptr);
@@ -242,14 +309,11 @@ void QuantifiersEngine::check( Theory::Effort e ){
   }
 
   d_qim.reset();
-  bool setModelUnsound = false;
-  IncompleteId setModelUnsoundId = IncompleteId::QUANTIFIERS;
   if (options().quantifiers.instMaxRounds >= 0
       && d_numInstRoundsLemma
              >= static_cast<uint32_t>(options().quantifiers.instMaxRounds))
   {
     needsCheck = false;
-    setModelUnsound = true;
     setModelUnsoundId = IncompleteId::QUANTIFIERS_MAX_INST_ROUNDS;
   }
 
@@ -414,16 +478,15 @@ void QuantifiersEngine::check( Theory::Effort e ){
                 Trace("quant-engine-debug") << "Set incomplete because utility "
                                             << util->identify().c_str()
                                             << " was incomplete." << std::endl;
-                setModelUnsound = true;
               }
             }
             if (d_qstate.isInConflict())
             {
               // we reported a conflicting lemma, should return
-              setModelUnsound = true;
+              setModelUnsoundId = IncompleteId::QUANTIFIERS;
             }
             //if we have a chance not to set incomplete
-            if (!setModelUnsound)
+            if (setModelUnsoundId == IncompleteId::NONE)
             {
               //check if we should set the incomplete flag
               for (QuantifiersModule*& mdl : d_modules)
@@ -434,11 +497,10 @@ void QuantifiersEngine::check( Theory::Effort e ){
                       << "Set incomplete because module "
                       << mdl->identify().c_str() << " was incomplete."
                       << std::endl;
-                  setModelUnsound = true;
                   break;
                 }
               }
-              if (!setModelUnsound)
+              if (setModelUnsoundId == IncompleteId::NONE)
               {
                 //look at individual quantified formulas, one module must claim completeness for each one
                 for( unsigned i=0; i<d_model->getNumAssertedQuantifiers(); i++ ){
@@ -458,7 +520,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
                   }
                   if( !hasCompleteM ){
                     Trace("quant-engine-debug") << "Set incomplete because " << q << " was not fully processed." << std::endl;
-                    setModelUnsound = true;
+                    setModelUnsoundId = IncompleteId::QUANTIFIERS;
                     break;
                   }else{
                     Assert(qmd != NULL);
@@ -467,9 +529,9 @@ void QuantifiersEngine::check( Theory::Effort e ){
                 }
               }
             }
-            // if setModelUnsound = false, we will answer SAT, otherwise we will
-            // run at quant_e QEFFORT_LAST_CALL
-            if (!setModelUnsound)
+            // if setModelUnsoundId is not set, we will answer SAT, otherwise we
+            // will run at quant_e QEFFORT_LAST_CALL
+            if (setModelUnsoundId == IncompleteId::NONE)
             {
               break;
             }
@@ -497,19 +559,6 @@ void QuantifiersEngine::check( Theory::Effort e ){
     // increment counter
     d_qstate.incrementInstRoundCounters(e);
   }
-
-  //SAT case
-  if (e == Theory::EFFORT_LAST_CALL && !d_qim.hasSentLemma())
-  {
-    if (setModelUnsound)
-    {
-      Trace("quant-engine") << "Set incomplete flag." << std::endl;
-      d_qim.setModelUnsound(setModelUnsoundId);
-    }
-    //output debug stats
-    d_qim.getInstantiate()->debugPrintModel();
-  }
-  d_qim.clearPending();
 }
 
 void QuantifiersEngine::notifyCombineTheories() {
