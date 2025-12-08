@@ -775,7 +775,7 @@ Node ExtfSolver::getCurrentSubstitutionFor(int effort,
     {
       // if the normal base is a term (str.++ t1 t2), and we are a term
       // (str.++ s1 s2), then we explain the normal form concatentation of
-      // s1 and s1, instead of adding (= (str.++ s1 s2) (str.++ t1 t2)) and
+      // s1 and s2, instead of explaining (= (str.++ s1 s2) (str.++ t1 t2)) and
       // concatentating the normal form explanation of t1 and t2. This
       // ensures the explanation when taking as a substitution does not have
       // concatentation terms on the LHS of equalities, which can lead to
