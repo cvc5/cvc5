@@ -228,6 +228,11 @@ bool QuantifiersEngine::shouldRecheck(Theory::Effort e,
   {
     return false;
   }
+  // do not recheck with sygus
+  if (options().quantifiers.sygus)
+  {
+    return false;
+  }
   // If the term database mode is relevant, we instead now mark all terms
   // as relevant.
   if (options().quantifiers.termDbMode == options::TermDbMode::RELEVANT)
