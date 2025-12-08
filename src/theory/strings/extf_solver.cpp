@@ -442,7 +442,8 @@ void ExtfSolver::checkExtfEval(int effort)
             Trace("strings-extf")
                 << "  resolve extf : " << sn << " -> " << nrc << std::endl;
             InferenceId inf = effort == 0 ? InferenceId::STRINGS_EXTF : InferenceId::STRINGS_EXTF_N;
-            Trace("ajr-temp") << "Conclude " << inf << " " << conc << " via " << einfo.d_exp << std::endl;
+            Trace("ajr-temp") << "Conclude " << inf << " " << conc << " via "
+                              << einfo.d_exp << std::endl;
             d_im.sendInference(einfo.d_exp, conc, inf, false, true);
             d_statistics.d_cdSimplifications << n.getKind();
           }
@@ -772,7 +773,7 @@ Node ExtfSolver::getCurrentSubstitutionFor(int effort,
     }
     NormalForm& nfnr = d_csolver.getNormalForm(nr);
     Node ns;
-    if (n.getKind()==Kind::STRING_CONCAT && n!=nfnr.d_base)
+    if (n.getKind() == Kind::STRING_CONCAT && n != nfnr.d_base)
     {
       // if the normal base is a term (str.++ t1 t2), and we are a term
       // (str.++ s1 s2), then we explain the normal form concatentation of
@@ -785,7 +786,7 @@ Node ExtfSolver::getCurrentSubstitutionFor(int effort,
       for (const Node& nc : n)
       {
         Node ncr = d_state.getRepresentative(nc);
-        Assert (d_csolver.hasNormalForm(ncr));
+        Assert(d_csolver.hasNormalForm(ncr));
         NormalForm& nfnrc = d_csolver.getNormalForm(ncr);
         Node nsc = d_csolver.getNormalString(nfnrc.d_base, exp);
         d_im.addToExplanation(nc, nfnrc.d_base, exp);
