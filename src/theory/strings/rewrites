@@ -291,6 +291,11 @@
   (str.replace_all t s r)
   t)
 
+(define-cond-rule str-replace-all-empty ((t ?Seq) (s ?Seq) (r ?Seq))
+  (= (str.len s) 0)
+  (str.replace_all t s r)
+  t)
+
 (define-rule str-replace-re-none ((t ?Seq) (r ?Seq))
   (str.replace_re t re.none r)
   t)
