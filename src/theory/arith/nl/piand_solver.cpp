@@ -269,8 +269,7 @@ void PIAndSolver::checkFullRefine()
           Node x2_lt_pow2 = nm->mkNode(Kind::LT, x2, twok);
           Node x2_range = nm->mkNode(Kind::AND, x2_geq_zero, x2_lt_pow2);
 
-          // difference: x != x2 /\ y = y2 => piand(k,x,y) != x2 \/ piand(k,x2,
-          // y2) != x
+          // difference: x != x2 /\ y = y2 => piand(k,x,y) != x2 \/ piand(k,x2,y2) != x
           if (model_k > 0 && model_k == model_k2 && model_x != model_x2
               && model_y == model_y2 && model_piand == model_x2
               && model_piand2 == model_x)

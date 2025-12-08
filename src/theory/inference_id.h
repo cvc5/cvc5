@@ -167,7 +167,7 @@ enum class InferenceId
   //-------------------- nonlinear piand solver
   // initial refinements (PIAndSolver::checkInitialRefine)
   ARITH_NL_PIAND_INIT_REFINE,
-    // sum refinements (PIAndSolver::checkFullRefine)
+  // sum refinements (PIAndSolver::checkFullRefine)
   ARITH_NL_PIAND_SUM_REFINE,
   // base case refinements (PIAndSolver::checkFullRefine)
   ARITH_NL_PIAND_BASE_CASE_REFINE,
