@@ -194,10 +194,11 @@ void QuantifiersEngine::check( Theory::Effort e ){
   {
     // if we are about to say "unknown", see if anything can be done as a last
     // resort to avoid this
-    if (setModelUnsoundId != IncompleteId::NONE && shouldRecheck(e, setModelUnsoundId))
+    if (setModelUnsoundId != IncompleteId::NONE
+        && shouldRecheck(e, setModelUnsoundId))
     {
       Trace("quant-engine-debug") << "*** Run recheck" << std::endl;
-      NodeManager * nm = nodeManager();
+      NodeManager* nm = nodeManager();
       // We send a dummy split to ensure we check again
       // We do this instead of checking again here since some modules (e.g. fmf)
       // assume that models are only built once per last call effort check.
