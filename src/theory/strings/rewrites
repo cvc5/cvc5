@@ -405,6 +405,10 @@
   (str.to_int (str.++ s1 s2 s3))
   (- 1))
 
+(define-rule str-is-digit-elim ((s String))
+  (str.is_digit s)
+  (and (<= 48 (str.to_code s)) (<= (str.to_code s) 57)))
+
 (define-rule str-leq-empty ((s String))
   (str.<= "" s)
   true)

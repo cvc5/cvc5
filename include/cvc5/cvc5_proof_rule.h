@@ -4616,6 +4616,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_TO_UPPER_FROM_INT),
   /** Auto-generated from RARE rule str-to-int-concat-neg-one */
   EVALUE(STR_TO_INT_CONCAT_NEG_ONE),
+  /** Auto-generated from RARE rule str-is-digit-elim */
+  EVALUE(STR_IS_DIGIT_ELIM),
   /** Auto-generated from RARE rule str-leq-empty */
   EVALUE(STR_LEQ_EMPTY),
   /** Auto-generated from RARE rule str-leq-empty-eq */
