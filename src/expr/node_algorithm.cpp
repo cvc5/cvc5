@@ -391,13 +391,12 @@ bool hasBoundVar(TNode n, const std::unordered_set<Node>& fvs)
       {
         break;
       }
-      if (visited.find(child) != visited.end())
+      if (!visited.insert(child).second)
       {
         continue;
       }
       else
       {
-        visited.insert(child);
         toProcess.push_back(child);
       }
     }
