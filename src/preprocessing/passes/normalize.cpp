@@ -936,9 +936,9 @@ PreprocessingPassResult Normalize::applyInternal(
       symbolOccurrences;
   for (const auto& nodeInfo : nodeInfos)
   {
-    for (const auto& [symbol, _] : nodeInfo->varNames)
+    for (const auto& varName : nodeInfo->varNames)
     {
-      symbolOccurrences[symbol].push_back(nodeInfo);
+      symbolOccurrences[varName.first].push_back(nodeInfo);
     }
   }
 
