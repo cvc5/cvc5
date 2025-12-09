@@ -79,9 +79,13 @@ else:
         # Compile argument '-DMS_WIN64' fixes a division by zero error
         # See https://stackoverflow.com/q/64898146
         extra_compile_args += ["-DMS_WIN64"]
-        machine = platform.machine().lower()
-        if machine in ["arm64", "aarch64"]:
-            os.environ['CXX'] = r'aarch64-w64-mingw32-clang++'
+        # Respect user preference
+        if not os.environ.get("CXX"):
+            machine = platform.machine().lower()
+            if machine in ["x86_64", "amd64"]:
+                os.environ['CXX'] = r'x86_64-w64-mingw32-clang++'
+            elif machine in ["arm64", "aarch64"]:
+                os.environ['CXX'] = r'aarch64-w64-mingw32-clang++'
 
     ext_options = {
         "libraries" : ["cvc5", "cvc5parser"],
