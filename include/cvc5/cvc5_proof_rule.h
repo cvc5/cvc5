@@ -4566,6 +4566,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_REPLACE_FIND_PRE),
   /** Auto-generated from RARE rule str-replace-all-no-contains */
   EVALUE(STR_REPLACE_ALL_NO_CONTAINS),
+  /** Auto-generated from RARE rule str-replace-all-empty */
+  EVALUE(STR_REPLACE_ALL_EMPTY),
   /** Auto-generated from RARE rule str-replace-re-none */
   EVALUE(STR_REPLACE_RE_NONE),
   /** Auto-generated from RARE rule str-replace-re-all-none */
@@ -4614,6 +4616,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_TO_UPPER_FROM_INT),
   /** Auto-generated from RARE rule str-to-int-concat-neg-one */
   EVALUE(STR_TO_INT_CONCAT_NEG_ONE),
+  /** Auto-generated from RARE rule str-is-digit-elim */
+  EVALUE(STR_IS_DIGIT_ELIM),
   /** Auto-generated from RARE rule str-leq-empty */
   EVALUE(STR_LEQ_EMPTY),
   /** Auto-generated from RARE rule str-leq-empty-eq */
