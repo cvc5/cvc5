@@ -3,6 +3,12 @@ description: Install necessary dependencies on the target system
 inputs:
   with-documentation:
     default: false
+  use-clang:
+    default: false
+    type: boolean
+  use-libcxx:
+    default: false
+    type: boolean
   windows-build:
     default: false
     type: boolean
@@ -32,6 +38,22 @@ runs:
           libfl-dev
         echo "SED=sed" >> $GITHUB_ENV
         echo "::endgroup::"
+
+    - name: Set Clang as the compiler
+      if: inputs.use-clang
+      shell: ${{ inputs.shell }}
+      run: |
+        echo "CC=clang" >> $GITHUB_ENV
+        echo "CXX=clang++" >> $GITHUB_ENV
+
+    - name: Install and set up libc++ as the standard C++ library
+      if: inputs.use-libcxx
+      shell: ${{ inputs.shell }}
+      run: |
+        sudo apt-get install -y libc++-dev libc++abi-dev
+        CLANG_DIR="$(dirname $(realpath $(which clang++)))"
+        echo "-stdlib=libc++ -lc++abi" > clang++.cfg
+        sudo cp clang++.cfg $CLANG_DIR/
 
     - name: Install software for cross-compiling for arm64 Linux
       if: runner.os == 'Linux'

@@ -73,6 +73,18 @@ jobs:
             exclude_regress: 3-4
             run_regression_args: --tester base --tester proof --tester cpc --tester model --tester dump
 
+          - name: ubuntu:production-libc++
+            os: ubuntu-24.04
+            use-clang: true
+            use-libcxx: true
+            config: production --auto-download -DBUILD_GMP=1
+            cache-key: production-libcxx
+            strip-bin: strip
+            check-examples: true
+            package-name: cvc5-Linux-x86_64-libcxx
+            exclude_regress: 3-4
+            run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
+
           - name: ubuntu:production-arm64
             os: ubuntu-22.04-arm
             config: production --auto-download --all-bindings --editline -DBUILD_GMP=1
@@ -82,6 +94,18 @@ jobs:
             java-bindings: true
             check-examples: true
             package-name: cvc5-Linux-arm64
+            exclude_regress: 3-4
+            run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
+
+          - name: ubuntu:production-arm64-libc++
+            os: ubuntu-24.04-arm
+            use-clang: true
+            use-libcxx: true
+            config: production --auto-download -DBUILD_GMP=1
+            cache-key: production-arm64-libcxx
+            strip-bin: strip
+            check-examples: true
+            package-name: cvc5-Linux-arm64-libcxx
             exclude_regress: 3-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
 
@@ -172,7 +196,7 @@ jobs:
 
           - name: ubuntu:production-clang
             os: ubuntu-22.04
-            env: CC=clang CXX=clang++
+            use-clang: true
             config: production --auto-download --no-poly
             cache-key: productionclang
             check-examples: true
@@ -195,7 +219,7 @@ jobs:
 
           - name: ubuntu:production-dbg-clang
             os: ubuntu-22.04
-            env: CC=clang CXX=clang++
+            use-clang: true
             config: production --auto-download --assertions --tracing --cln --gpl
             cache-key: dbgclang
             exclude_regress: 3-4
@@ -281,6 +305,8 @@ jobs:
       uses: ./.github/actions/install-dependencies
       with:
         with-documentation: ${{ matrix.build.build-documentation }}
+        use-clang: ${{ matrix.build.use-clang }}
+        use-libcxx: ${{ matrix.build.use-libcxx }}
         windows-build: ${{ matrix.build.windows-build }}
         wasm-build: ${{ matrix.build.wasm-build }}
         shell: ${{ matrix.build.shell }}
@@ -297,7 +323,6 @@ jobs:
       id: configure-and-build
       uses: ./.github/actions/configure-and-build
       with:
-        configure-env: ${{ matrix.build.env }}
         configure-config: ${{ matrix.build.config }}
         macos-target: ${{ matrix.build.macos-target }}
         build-shared: ${{ matrix.build.build-shared }}
