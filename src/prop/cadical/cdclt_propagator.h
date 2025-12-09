@@ -165,9 +165,7 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator,
   /**
    * Add new CaDiCaL variable.
    * @param var            The variable to add.
-   * @param level          The current user assertion level.
    * @param is_theory_atom True if variable is a theory atom.
-   * @param in_search      True if SAT solver is currently in search().
    */
   void add_new_var(const SatVariable& var, bool is_theory_atom);
 
@@ -194,7 +192,10 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator,
    */
   void user_pop();
 
-  bool is_fixed(SatVariable var) const { return d_var_info[var].is_fixed; }
+  bool is_fixed(SatVariable var) const
+  {
+    return var < d_var_info.size() && d_var_info[var].is_fixed;
+  }
 
   /**
    * Configure and record preferred phase of variable.
@@ -256,10 +257,10 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator,
   {
     uint32_t level_intro = 0;     // user level at which variable was created
     uint32_t level_fixed = 0;     // user level at which variable was fixed
+    int32_t assignment = 0;       // current variable assignment
     bool is_theory_atom = false;  // is variable a theory atom
     bool is_fixed = false;        // has variable fixed assignment
     bool is_active = true;        // is variable active
-    int32_t assignment = 0;       // current variable assignment
     int8_t phase = 0;             // preferred phase
   };
   /** Maps SatVariable to corresponding info struct. */
