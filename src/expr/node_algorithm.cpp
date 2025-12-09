@@ -60,13 +60,12 @@ bool hasSubterm(TNode n, TNode t, bool strict)
       {
         return true;
       }
-      if (visited.find(child) != visited.end())
+      if (!visited.insert(child).second)
       {
         continue;
       }
       else
       {
-        visited.insert(child);
         toProcess.push_back(child);
       }
     }
@@ -140,9 +139,8 @@ bool hasSubtermKind(Kind k, Node n)
   {
     cur = visit.back();
     visit.pop_back();
-    if (visited.find(cur) == visited.end())
+    if (visited.insert(cur).second)
     {
-      visited.insert(cur);
       if (cur.getKind() == k)
       {
         return true;
@@ -231,9 +229,8 @@ void getSubtermsKinds(
   {
     cur = visit.back();
     visit.pop_back();
-    if (visited.find(cur) == visited.end())
+    if (visited.insert(cur).second)
     {
-      visited.insert(cur);
       k = cur.getKind();
       itt = ts.find(k);
       if (itt != ts.end())
@@ -293,13 +290,12 @@ bool hasSubterm(TNode n, const std::vector<Node>& t, bool strict)
       {
         return true;
       }
-      if (visited.find(child) != visited.end())
+      if (!visited.insert(child).second)
       {
         continue;
       }
       else
       {
-        visited.insert(child);
         toProcess.push_back(child);
       }
     }
@@ -444,10 +440,8 @@ bool checkVariablesInternal(TNode n,
     {
       continue;
     }
-    std::unordered_set<TNode>::iterator itv = visited.find(cur);
-    if (itv == visited.end())
+    if (visited.insert(cur).second)
     {
-      visited.insert(cur);
       if (cur.getKind() == Kind::BOUND_VARIABLE)
       {
         if (scope.find(cur) == scope.end())
