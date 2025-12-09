@@ -19,7 +19,6 @@
 #include "preprocessing/passes/apply_substs.h"
 
 #include "context/cdo.h"
-#include "expr/beta_reduce_converter.h"
 #include "options/base_options.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_context.h"
@@ -55,25 +54,12 @@ PreprocessingPassResult ApplySubsts::applyInternal(
                           << std::endl;
     d_preprocContext->spendResource(Resource::PreprocessStep);
 
-    if (isOutputOn(OutputTag::NORMALIZE))
-    {
-      BetaReduceNodeConverter bnc(nodeManager());
-      theory::SubstitutionMap& sm =
-          d_preprocContext->getTopLevelSubstitutions().get();
+    theory::TrustSubstitutionMap& tlsm =
+        d_preprocContext->getTopLevelSubstitutions();
+    assertionsToPreprocess->replaceTrusted(
+        i,
+        tlsm.applyTrusted((*assertionsToPreprocess)[i], d_env.getRewriter()));
 
-      Node ar = sm.apply((*assertionsToPreprocess)[i]);
-      ar = bnc.convert(ar);
-
-      assertionsToPreprocess->replace(i, ar);
-    }
-    else
-    {
-      theory::TrustSubstitutionMap& tlsm =
-          d_preprocContext->getTopLevelSubstitutions();
-      assertionsToPreprocess->replaceTrusted(
-          i,
-          tlsm.applyTrusted((*assertionsToPreprocess)[i], d_env.getRewriter()));
-    }
     Trace("apply-substs") << "  got " << (*assertionsToPreprocess)[i]
                           << std::endl;
     // if rewritten to false, we are done

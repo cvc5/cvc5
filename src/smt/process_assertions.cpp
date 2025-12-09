@@ -17,6 +17,7 @@
 
 #include <utility>
 
+#include "expr/beta_reduce_converter.h"
 #include "options/arith_options.h"
 #include "options/base_options.h"
 #include "options/bv_options.h"
@@ -27,6 +28,7 @@
 #include "options/strings_options.h"
 #include "options/uf_options.h"
 #include "preprocessing/assertion_pipeline.h"
+#include "preprocessing/preprocessing_pass_context.h"
 #include "preprocessing/preprocessing_pass_registry.h"
 #include "printer/printer.h"
 #include "smt/assertions.h"
@@ -60,9 +62,7 @@ ProcessAssertions::ProcessAssertions(Env& env, SolverEngineStatistics& stats)
   d_true = nodeManager()->mkConst(true);
 }
 
-ProcessAssertions::~ProcessAssertions()
-{
-}
+ProcessAssertions::~ProcessAssertions() {}
 
 void ProcessAssertions::finishInit(PreprocessingPassContext* pc)
 {
@@ -127,6 +127,32 @@ bool ProcessAssertions::apply(AssertionPipeline& ap)
   Trace("smt-proc")
       << "ProcessAssertions::processAssertions() : pre-definition-expansion"
       << endl;
+
+  if (isOutputOn(OutputTag::NORMALIZE))
+  {
+    // For normalization, apply substitutions WITHOUT rewriting, then beta
+    // reduction This preserves the exact structure for normalization purposes
+    BetaReduceNodeConverter bnc(nodeManager());
+    theory::SubstitutionMap& sm =
+        d_preprocessingPassContext->getTopLevelSubstitutions().get();
+
+    for (size_t i = 0, size = ap.size(); i < size; ++i)
+    {
+      Node ar = sm.apply(ap[i]);
+      ar = bnc.convert(ar);
+      ap.replace(i, ar);
+    }
+
+    // Now apply the normalize pass for variable renaming and sorting
+    applyPass("normalize", ap);
+
+    std::ostream& outPA = d_env.output(OutputTag::NORMALIZE);
+    outPA << ";; normalize start" << std::endl;
+    dumpAssertionsToStream(outPA, ap);
+    outPA << ";; normalize end" << std::endl;
+    return true;
+  }
+
   // Apply substitutions first. If we are non-incremental, this has only the
   // effect of replacing defined functions with their definitions.
   // We do not call theory-specific expand definitions here, since we want
@@ -135,16 +161,6 @@ bool ProcessAssertions::apply(AssertionPipeline& ap)
   Trace("smt-proc")
       << "ProcessAssertions::processAssertions() : post-definition-expansion"
       << endl;
-
-  if (isOutputOn(OutputTag::NORMALIZE))
-  {
-    applyPass("normalize", ap);
-    std::ostream& outPA = d_env.output(OutputTag::NORMALIZE);
-    outPA << ";; normalize start" << std::endl;
-    dumpAssertionsToStream(outPA, ap);
-    outPA << ";; normalize end" << std::endl;
-    return true;
-  }
 
   Trace("smt") << " assertions     : " << ap.size() << endl;
 
@@ -322,7 +338,7 @@ bool ProcessAssertions::apply(AssertionPipeline& ap)
   {
     applyPass("ho-elim", ap);
   }
-  
+
   // begin: INVARIANT to maintain: no reordering of assertions or
   // introducing new ones
 
@@ -337,7 +353,8 @@ bool ProcessAssertions::apply(AssertionPipeline& ap)
   {
     applyPass("ff-disjunctive-bit", ap);
   }
-  if (options().ff.ffBitsum || options().ff.ffSolver == options::FfSolver::SPLIT_GB)
+  if (options().ff.ffBitsum
+      || options().ff.ffSolver == options::FfSolver::SPLIT_GB)
   {
     applyPass("ff-bitsum", ap);
   }
