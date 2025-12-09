@@ -109,12 +109,6 @@ jobs:
             exclude_regress: 3-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
 
-          - name: ubuntu:production-arm64-cross
-            os: ubuntu-latest
-            config: production --auto-download --arm64
-            cache-key: production-arm64-cross
-            strip-bin: aarch64-linux-gnu-strip
-
           - name: macos:production
             os: macos-15-intel
             config: production --auto-download --all-bindings --editline -DBUILD_GMP=1
@@ -141,13 +135,6 @@ jobs:
             macos-target: 11.0
             exclude_regress: 3-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
-
-          - name: macos:production-arm64-cross
-            os: macos-15-intel
-            config: production --auto-download --all-bindings --editline --arm64
-            cache-key: production-arm64-cross
-            strip-bin: strip
-            python-bindings: true
 
           - name: win64:production
             os: windows-latest
@@ -177,13 +164,6 @@ jobs:
             package-name: cvc5-Win64-arm64
             exclude_regress: 1-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
-
-          - name: win64:production-cross
-            os: ubuntu-latest
-            config: production --auto-download --win64
-            cache-key: production-win64-cross
-            strip-bin: x86_64-w64-mingw32-strip
-            windows-build: true
 
           - name: wasm:production
             os: ubuntu-22.04
