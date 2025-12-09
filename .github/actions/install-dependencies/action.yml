@@ -40,14 +40,14 @@ runs:
         echo "::endgroup::"
 
     - name: Set Clang as the compiler
-      if: inputs.use-clang
+      if: inputs.use-clang == 'true'
       shell: ${{ inputs.shell }}
       run: |
         echo "CC=clang" >> $GITHUB_ENV
         echo "CXX=clang++" >> $GITHUB_ENV
 
     - name: Install and set up libc++ as the standard C++ library
-      if: inputs.use-libcxx
+      if: inputs.use-libcxx == 'true'
       shell: ${{ inputs.shell }}
       run: |
         sudo apt-get install -y libc++-dev libc++abi-dev
