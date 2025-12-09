@@ -877,6 +877,8 @@ bool TheoryEngine::solve(TrustNode tliteral,
   if (!isTheoryEnabled(tid) && tid != THEORY_SAT_SOLVER)
   {
     // don't throw an exception yet
+    // Instead ppStaticRewrite will be called on atom, which may throw an
+    // exception if the term is not rewritten.
     return false;
   }
 
