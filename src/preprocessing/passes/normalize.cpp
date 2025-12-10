@@ -625,7 +625,7 @@ Node rename(const Node& n,
         }
 
         // Push unvisited children onto the stack
-        for (size_t i = current.getNumChildren() - 1; i >= 0; --i)
+        for (int i = current.getNumChildren() - 1; i >= 0; --i)
         {
           const Node& child = current[i];
           if (visited.find(child) == visited.end())
