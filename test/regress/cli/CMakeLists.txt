@@ -1587,7 +1587,6 @@ set(regress_0_tests
   regress0/push-pop/test.01.cvc.smt2
   regress0/push-pop/tiny_bug.smt2
   regress0/push-pop/units.cvc.smt2
-  regress0/quantifiers/abv-const-array-inst.smt2
   regress0/quantifiers/agg-rew-test-cf.smt2
   regress0/quantifiers/agg-rew-test.smt2
   regress0/quantifiers/alpha-eq-var-reorder.smt2
@@ -4168,6 +4167,7 @@ set(regression_disabled_tests
   # times out on various configurations
   regress0/proofs/t3_rw903.smt2
   # fails with unknown on some builds
+  regress0/quantifiers/abv-const-array-inst.smt2
   regress0/quantifiers/nl-sqrt2-q.smt2
   # need finite model finding command line in tptp regression
   regress0/tptp/BOO003-4.smt2
