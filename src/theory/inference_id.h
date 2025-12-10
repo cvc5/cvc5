@@ -502,9 +502,6 @@ enum class InferenceId
   // An existential corresponding to a witness term generated based on BV
   // invertibility conditions.
   QUANTIFIERS_CEGQI_WITNESS,
-  // A recheck lemma (k or ~k), used when quantifiers engine requests another
-  // check.
-  QUANTIFIERS_RECHECK_SPLIT,
   //-------------------------------------- end quantifiers theory
 
   // ---------------------------------- sep theory

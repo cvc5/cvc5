@@ -198,13 +198,11 @@ void QuantifiersEngine::check( Theory::Effort e ){
         && shouldRecheck(e, setModelUnsoundId))
     {
       Trace("quant-engine-debug") << "*** Run recheck" << std::endl;
-      NodeManager* nm = nodeManager();
-      // We send a dummy split to ensure we check again
+      // We simply mark the output channel is used, which will ensure we are
+      // called again to check.
       // We do this instead of checking again here since some modules (e.g. fmf)
       // assume that models are only built once per last call effort check.
-      Node k = nm->mkDummySkolem("recheck", nm->booleanType());
-      Node ksplit = nm->mkNode(Kind::OR, k, k.notNode());
-      d_qim.lemma(ksplit, InferenceId::QUANTIFIERS_RECHECK_SPLIT);
+      d_qim.markUsed();
     }
     else
     {
