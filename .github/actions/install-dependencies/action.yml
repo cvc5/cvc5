@@ -97,11 +97,12 @@ runs:
         echo "$(pwd)" >> $GITHUB_PATH
         echo "$(pwd)/upstream/emscripten" >> $GITHUB_PATH
 
+    # Pin MSYS2 installation to use Clang 19.1.4 (required by lean-cvc5)
     - name: Install Windows x86_64 software
       if: runner.os == 'Windows' && runner.arch == 'X64' && inputs.windows-build == 'true'
-      uses: msys2/setup-msys2@v2
+      uses: msys2/setup-msys2@d44ca8e88d8b43d56cf5670f91747359d5537f97
       with:
-        update: true
+        update: false
         msystem: CLANG64
         path-type: inherit
         install: |
@@ -113,11 +114,12 @@ runs:
           mingw-w64-clang-x86_64-gmp
           zip
 
+    # Pin MSYS2 installation to use Clang 19.1.4 (required by lean-cvc5)
     - name: Install Windows arm64 software
       if: runner.os == 'Windows' && runner.arch == 'ARM64' && inputs.windows-build == 'true'
-      uses: msys2/setup-msys2@v2
+      uses: msys2/setup-msys2@d44ca8e88d8b43d56cf5670f91747359d5537f97
       with:
-        update: true
+        update: false
         msystem: CLANGARM64
         path-type: inherit
         install: |
