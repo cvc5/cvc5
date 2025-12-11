@@ -30,7 +30,7 @@ class SatSolver;
 /**
  * Boolean values of the SAT solver.
  */
-enum SatValue {
+enum SatValue : uint8_t {
   SAT_VALUE_UNKNOWN,
   SAT_VALUE_TRUE,
   SAT_VALUE_FALSE
@@ -40,10 +40,13 @@ enum SatValue {
 inline SatValue invertValue(SatValue v)
 {
   if(v == SAT_VALUE_UNKNOWN) return SAT_VALUE_UNKNOWN;
-  else if(v == SAT_VALUE_TRUE) return SAT_VALUE_FALSE;
-  else return SAT_VALUE_TRUE;
+  return v == SAT_VALUE_TRUE ? SAT_VALUE_FALSE : SAT_VALUE_TRUE;
 }
 
+inline SatValue operator~(SatValue v)
+{
+  return invertValue(v);
+}
 
 /**
  * A variable of the SAT solver.
