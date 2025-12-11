@@ -174,15 +174,6 @@ jobs:
             build-shared: false
             build-static: true
 
-          - name: ubuntu:production-clang
-            os: ubuntu-22.04
-            use-clang: true
-            config: production --auto-download --no-poly
-            cache-key: productionclang
-            check-examples: true
-            exclude_regress: 3-4
-            run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
-
             # Job used to build the documentation
           - name: ubuntu:production-dbg
             os: ubuntu-24.04 # Use Doxygen version from this Ubuntu release
