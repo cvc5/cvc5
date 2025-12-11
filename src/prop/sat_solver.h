@@ -195,41 +195,6 @@ class CDCLTSatSolver : public SatSolver
 
 }; /* class CDCLTSatSolver */
 
-inline std::ostream& operator <<(std::ostream& out, prop::SatLiteral lit) {
-  out << lit.toString();
-  return out;
-}
-
-inline std::ostream& operator <<(std::ostream& out, const prop::SatClause& clause) {
-  out << "clause:";
-  for(unsigned i = 0; i < clause.size(); ++i) {
-    out << " " << clause[i];
-  }
-  out << ";";
-  return out;
-}
-
-inline std::ostream& operator <<(std::ostream& out, prop::SatValue val) {
-  std::string str;
-  switch(val) {
-  case prop::SAT_VALUE_UNKNOWN:
-    str = "_";
-    break;
-  case prop::SAT_VALUE_TRUE:
-    str = "1";
-    break;
-  case prop::SAT_VALUE_FALSE:
-    str = "0";
-    break;
-  default:
-    str = "Error";
-    break;
-  }
-
-  out << str;
-  return out;
-}
-
 }  // namespace prop
 }  // namespace cvc5::internal
 
