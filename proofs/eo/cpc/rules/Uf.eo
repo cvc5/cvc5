@@ -260,7 +260,7 @@
   )
 )
 
-; program: $mk_distinct_elim_rec
+; program: $mk_distinct_elim
 ; args:
 ; - b Bool: The distinct term.
 ; return: >
