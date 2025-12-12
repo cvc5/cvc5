@@ -1,7 +1,7 @@
 This file contains a summary of important user-visible changes.
 
-cvc5 1.3.2 prerelease
-=====================
+cvc5 1.3.2
+==========
 
 ## Changes
 
