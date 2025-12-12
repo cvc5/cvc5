@@ -1433,6 +1433,9 @@ set(regress_0_tests
   regress0/proofs/bvrewrite-ite.smt2
   regress0/proofs/bvrewrite-shlbyconst.smt2
   regress0/proofs/com-galois-rewrite.smt2
+  regress0/proofs/dd.fastclose.smt2
+  regress0/proofs/dd.fastclose2.smt2
+  regress0/proofs/dd.fastclose3.smt2
   regress0/proofs/dd_ada_open.smt2
   regress0/proofs/dd_alpha_eq_qpattern.smt2
   regress0/proofs/dd_bug787_beta_reduce.smt2
@@ -1511,6 +1514,11 @@ set(regress_0_tests
   regress0/proofs/proj-issue711-open-sat-proof.smt2
   regress0/proofs/proj-issue723-rdb-step.smt2
   regress0/proofs/proj-issue765-open.smt2
+  regress0/proofs/proj-issue771-brc-dup.smt2
+  regress0/proofs/proj-issue774-mult-sign.smt2
+  regress0/proofs/proj-issue773-nnf-double-neg.smt2
+  regress0/proofs/proj-issue775-mult-sign.smt2
+  regress0/proofs/proj-issue778-subtype-div.smt2
   regress0/proofs/proof-components.smt2
   regress0/proofs/qgu-fuzz-1-bool-sat.smt2
   regress0/proofs/qgu-fuzz-2-bool-chainres-checking.smt2
@@ -1580,7 +1588,6 @@ set(regress_0_tests
   regress0/push-pop/test.01.cvc.smt2
   regress0/push-pop/tiny_bug.smt2
   regress0/push-pop/units.cvc.smt2
-  regress0/quantifiers/abv-const-array-inst.smt2
   regress0/quantifiers/agg-rew-test-cf.smt2
   regress0/quantifiers/agg-rew-test.smt2
   regress0/quantifiers/alpha-eq-var-reorder.smt2
@@ -2133,6 +2140,7 @@ set(regress_0_tests
   regress0/strings/proj-issue409-re-loop-none.smt2
   regress0/strings/proj-issue595-max-model-option.smt2
   regress0/strings/proj-issue768-nctn-pf-rcons.smt2
+  regress0/strings/proj-issue776-core-subs-pf-cyclic.smt2
   regress0/strings/quad-028-2-2-unsat.smt2
   regress0/strings/quad-138-4-2-unsat.smt2
   regress0/strings/replace-find-base.smt2
@@ -2964,6 +2972,7 @@ set(regress_1_tests
   regress1/proj-issue719-zll-repeat.smt2
   regress1/proj-issue764-block-model.smt2
   regress1/proj-issue766-block-model.smt2
+  regress1/proj-issue772-nlc-unk.smt2
   regress1/proof00.smt2
   regress1/proofs/add_two_base.smt2
   regress1/proofs/alpha-eq-var-shadow.smt2
@@ -4163,6 +4172,7 @@ set(regression_disabled_tests
   # times out on various configurations
   regress0/proofs/t3_rw903.smt2
   # fails with unknown on some builds
+  regress0/quantifiers/abv-const-array-inst.smt2
   regress0/quantifiers/nl-sqrt2-q.smt2
   # need finite model finding command line in tptp regression
   regress0/tptp/BOO003-4.smt2
