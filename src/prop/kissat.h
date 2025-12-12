@@ -56,8 +56,6 @@ class KissatSolver : public SatSolver
 
   SatValue modelValue(SatLiteral l) override;
 
-  uint32_t getAssertionLevel() const override;
-
   bool ok() const override;
 
  private:

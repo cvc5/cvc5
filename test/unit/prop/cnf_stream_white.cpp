@@ -63,8 +63,6 @@ class FakeSatSolver : public SatSolver
 
   unsigned int addClauseCalled() { return d_addClauseCalled; }
 
-  unsigned getAssertionLevel() const override { return 0; }
-
   bool isDecision(Node) const { return false; }
 
   void unregisterVar(SatLiteral lit) {}

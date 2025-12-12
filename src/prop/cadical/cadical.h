@@ -65,8 +65,6 @@ class CadicalSolver : public CDCLTSatSolver, protected EnvObj
 
   SatValue modelValue(SatLiteral l) override;
 
-  uint32_t getAssertionLevel() const override;
-
   bool ok() const override;
 
   /* CDCLTSatSolver interface --------------------------------------------- */
@@ -74,6 +72,8 @@ class CadicalSolver : public CDCLTSatSolver, protected EnvObj
   void initialize(TheoryProxy* theoryProxy) override;
 
   void attachProofManager(PropPfManager* ppm) override;
+
+  uint32_t getAssertionLevel() const override;
 
   void push() override;
 
