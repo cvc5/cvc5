@@ -1,5 +1,12 @@
 This file contains a summary of important user-visible changes.
 
+cvc5 1.3.3 prerelease
+=====================
+
+## Changes
+
+- We now use a lazy approach for handling `distinct` constraints.
+
 cvc5 1.3.2
 ==========
 
