@@ -313,12 +313,6 @@ SatValue CadicalSolver::modelValue(SatLiteral l)
   return toSatValueLit(l.isNegated() ? -val : val);
 }
 
-uint32_t CadicalSolver::getAssertionLevel() const
-{
-  Assert(d_propagator);
-  return d_propagator->current_user_level();
-}
-
 bool CadicalSolver::ok() const { return d_inSatMode; }
 
 CadicalSolver::Statistics::Statistics(StatisticsRegistry& registry,
@@ -367,6 +361,12 @@ void CadicalSolver::push()
   // introduction level is the current user level.
   SatVariable alit = newVar(false, true);
   d_propagator->set_activation_lit(alit);
+}
+
+uint32_t CadicalSolver::getAssertionLevel() const
+{
+  Assert(d_propagator);
+  return d_propagator->current_user_level();
 }
 
 void CadicalSolver::pop()

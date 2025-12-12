@@ -99,9 +99,6 @@ class SatSolver
   /** Call modelValue() when the search is done.*/
   virtual SatValue modelValue(SatLiteral l) = 0;
 
-  /** Get the current assertion level */
-  virtual uint32_t getAssertionLevel() const = 0;
-
   /** Check if the solver is in an inconsistent state */
   virtual bool ok() const = 0;
 
@@ -130,6 +127,9 @@ class CDCLTSatSolver : public SatSolver
   ~CDCLTSatSolver() override = default;
 
   virtual void attachProofManager(PropPfManager* ppm) = 0;
+
+  /** Get the current assertion level */
+  virtual uint32_t getAssertionLevel() const = 0;
 
   virtual void push() = 0;
 
