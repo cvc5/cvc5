@@ -340,6 +340,18 @@ class QuantifiersRewriter : public TheoryRewriter
   Node computeVarElimination(Node body,
                              std::vector<Node>& args,
                              QAttributes& qa) const;
+  /**
+   * Checks if a given literal is an application of an uninterpreted function or
+   * its negation, e.g., P(t1,...,tn) or ¬P(t1,...,tn).
+   *
+   * This function is used in quantifier rewriting, e.g., for Leibniz equality
+   * elimination, to extract the operator, its arguments, and negation status
+   * from a literal node.
+  */
+  bool matchUfLiteral(Node lit,
+                    Node& op,
+                    std::vector<Node>& argsOut,
+                    bool& neg) const;
   //-------------------------------------end variable elimination
   //-------------------------------------conditional splitting
   /** compute conditional splitting

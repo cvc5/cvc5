@@ -41,6 +41,7 @@
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/uf/theory_uf_rewriter.h"
 #include "util/rational.h"
+#include "quantifiers_rewriter.h"
 
 using namespace std;
 using namespace cvc5::internal::kind;
@@ -1714,7 +1715,8 @@ Node QuantifiersRewriter::computeVarElimination(Node body,
                                                 std::vector<Node>& args,
                                                 QAttributes& qa) const
 {
-  if (!d_opts.quantifiers.varElimQuant && !d_opts.quantifiers.varIneqElimQuant)
+  if (!d_opts.quantifiers.varElimQuant && !d_opts.quantifiers.varIneqElimQuant
+      && !d_opts.quantifiers.leibnizEqElim)
   {
     return body;
   }
@@ -1753,7 +1755,95 @@ Node QuantifiersRewriter::computeVarElimination(Node body,
     }
     Trace("var-elim-quant") << "Return " << body << std::endl;
   }
+  // Leibniz equality elimination
+  if (d_opts.quantifiers.leibnizEqElim)
+  {
+    if (body.getKind() == Kind::OR
+        && body.getNumChildren() == 2)  // the body must have exactly 2 children
+    {
+      Node termA = body[0];
+      Node termB = body[1];
+      Node opA, opB;
+      std::vector<Node> argsA, argsB;
+      bool negA = false, negB = false;
+      if (!matchUfLiteral(termA, opA, argsA, negA)
+          || !matchUfLiteral(termB, opB, argsB, negB))
+      {
+        return body;
+      }
+
+      // need pattern (not P(t1)) or P(t2) (either child can be the negated one)
+      if (opA != opB || !((negA && !negB) || (negB && !negA)))
+      {
+        return body;
+      }
+      // identify which side is t1 and which is t2
+      std::vector<Node> t1 = negA ? argsA : argsB;
+      std::vector<Node> t2 = negA ? argsB : argsA;
+
+      // operator P must be one of the quantifier's bound variables (otherwise
+      // this is not Leibniz)
+      auto it = std::find(args.begin(), args.end(), opA);
+      if (it == args.end())
+      {
+        return body;
+      }
+      // arity must match
+      if (t1.size() != t2.size())
+      {
+        return body;
+      }
+      // ensure P does not occur inside the argument terms
+      for (size_t i = 0; i < t1.size(); ++i)
+      {
+        if (expr::hasSubterm(t1[i], opA, false)
+            || expr::hasSubterm(t2[i], opA, false))
+        {
+          return body;
+        }
+      }
+      // check operator type: it should be a predicate
+      TypeNode ptype = opA.getType();
+      if (!ptype.isFunction() || !ptype.getRangeType().isBoolean()) return body;
+      if (size_t(ptype.getNumChildren()) != t1.size() + 1) return body;
+
+      NodeManager* nm = nodeManager();
+      std::vector<Node> eqs;
+      for (size_t i = 0; i < t1.size(); ++i)
+      {
+        eqs.push_back(nm->mkNode(Kind::EQUAL, t1[i], t2[i]));
+      }
+      Node eq = (eqs.size() == 1) ? eqs[0] : nm->mkNode(Kind::AND, eqs);
+
+      // remove the predicate variable from the quantifier variable list
+      args.erase(it);
+
+      Trace("var-elim-quant") << "Detected Leibniz equality in " << body
+                              << ", returning: " << eq << std::endl;
+      return eq;
+    }
+  }
   return body;
+}
+
+// This function is used by the Leibniz-equality elimination step to check
+// whether a term has the shape P(t1, ..., tn) or ¬P(t1, ..., tn).
+bool QuantifiersRewriter::matchUfLiteral(Node lit,
+                                         Node& op,
+                                         std::vector<Node>& argsOut,
+                                         bool& neg) const
+{
+  neg = (lit.getKind() == Kind::NOT);
+  Node atom = neg ? lit[0] : lit;
+
+  if (atom.getKind() != Kind::APPLY_UF)
+  {
+    return false;
+  }
+
+  op = atom.getOperator();
+  argsOut.assign(atom.begin(), atom.end());
+  return true;
 }
 
 Node QuantifiersRewriter::computeDtVarExpand(NodeManager* nm,
