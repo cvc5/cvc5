@@ -39,9 +39,9 @@ class BVSolverBitblastInternal : public BVSolver
 {
  public:
   BVSolverBitblastInternal(Env& env,
-                           TheoryState* state,
+                           TheoryState& state,
                            TheoryInferenceManager& inferMgr);
-  ~BVSolverBitblastInternal() = default;
+  ~BVSolverBitblastInternal() override = default;
 
   bool needsEqualityEngine(EeSetupInfo& esi) override;
 
