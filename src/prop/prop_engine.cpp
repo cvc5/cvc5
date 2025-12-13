@@ -15,8 +15,6 @@
 
 #include "prop/prop_engine.h"
 
-#include <iomanip>
-#include <map>
 #include <utility>
 
 #include "base/check.h"
@@ -31,7 +29,6 @@
 #include "options/smt_options.h"
 #include "proof/proof_node_algorithm.h"
 #include "prop/cnf_stream.h"
-#include "prop/minisat/minisat.h"
 #include "prop/proof_cnf_stream.h"
 #include "prop/prop_proof_manager.h"
 #include "prop/sat_solver.h"
@@ -119,9 +116,23 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
 
 void PropEngine::finishInit()
 {
-  NodeManager* nm = nodeManager();
-  d_cnfStream->convertAndAssert(nm->mkConst(true), false, false);
-  d_cnfStream->convertAndAssert(nm->mkConst(false).notNode(), false, false);
+  // Make sure that true/false are not free assumptions in the proof.
+  if (d_ppm)
+  {
+    NodeManager* nm = nodeManager();
+    d_ppm->convertAndAssert(theory::InferenceId::INPUT,
+                            nm->mkConst(true),
+                            false,
+                            false,
+                            true,
+                            nullptr);
+    d_ppm->convertAndAssert(theory::InferenceId::INPUT,
+                            nm->mkConst(false).notNode(),
+                            false,
+                            false,
+                            true,
+                            nullptr);
+  }
 }
 
 PropEngine::~PropEngine() {
