@@ -30,6 +30,8 @@ void BVProofRuleChecker::registerTo(ProofChecker* pc)
 {
   pc->registerTrustedChecker(ProofRule::MACRO_BV_BITBLAST, this, 2);
   pc->registerChecker(ProofRule::BV_BITBLAST_STEP, this);
+  pc->registerChecker(ProofRule::BV_INTBLAST, this);
+  pc->registerChecker(ProofRule::BV_INTBLAST_BOUNDS, this);
   pc->registerChecker(ProofRule::BV_POLY_NORM, this);
   pc->registerChecker(ProofRule::BV_POLY_NORM_EQ, this);
   pc->registerChecker(ProofRule::BV_EAGER_ATOM, this);
@@ -51,6 +53,19 @@ Node BVProofRuleChecker::checkInternal(ProofRule id,
     Assert(children.empty());
     Assert(args.size() == 1);
     Assert(args[0].getKind() == Kind::EQUAL);
+    return args[0];
+  }
+  else if (id == ProofRule::BV_INTBLAST)
+  {
+    Assert(children.empty());
+    Assert(args.size() == 1);
+    Assert(args[0].getKind() == Kind::EQUAL);
+    return args[0];
+  }
+  else if (id == ProofRule::BV_INTBLAST_BOUNDS)
+  {
+    Assert(children.empty());
+    Assert(args.size() == 1);
     return args[0];
   }
   else if (id == ProofRule::BV_EAGER_ATOM)

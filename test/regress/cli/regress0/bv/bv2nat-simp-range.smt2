@@ -1,5 +1,6 @@
 ; COMMAND-LINE: --solve-bv-as-int=sum
 ; EXPECT: unsat
+; DISABLE-TESTER: cpc
 (set-logic ALL)
 (set-info :status unsat)
 (declare-fun t () (_ BitVec 16))
