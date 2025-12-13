@@ -38,14 +38,14 @@ TEST_F(TestApiWhiteTerm, getOp)
   Op ext = d_tm.mkOp(Kind::BITVECTOR_EXTRACT, {4, 0});
   Term extb = d_tm.mkTerm(ext, {b});
 
-  ASSERT_EQ(ab.getOp(), Op(&d_solver->getTermManager(), Kind::SELECT));
+  ASSERT_EQ(ab.getOp(), d_tm.mkOp(Kind::SELECT));
   // can compare directly to a Kind (will invoke Op constructor)
-  ASSERT_EQ(ab.getOp(), Op(&d_solver->getTermManager(), Kind::SELECT));
+  ASSERT_EQ(ab.getOp(), d_tm.mkOp(Kind::SELECT));
 
   Term f = d_tm.mkConst(funsort, "f");
   Term fx = d_tm.mkTerm(Kind::APPLY_UF, {f, x});
 
-  ASSERT_EQ(fx.getOp(), Op(&d_solver->getTermManager(), Kind::APPLY_UF));
+  ASSERT_EQ(fx.getOp(), d_tm.mkOp(Kind::APPLY_UF));
   // testing rebuild from op and children
 
   // Test Datatypes Ops
@@ -74,14 +74,10 @@ TEST_F(TestApiWhiteTerm, getOp)
   Term headTerm = d_tm.mkTerm(Kind::APPLY_SELECTOR, {headOpTerm, consTerm});
   Term tailTerm = d_tm.mkTerm(Kind::APPLY_SELECTOR, {tailOpTerm, consTerm});
 
-  ASSERT_EQ(nilTerm.getOp(),
-            Op(&d_solver->getTermManager(), Kind::APPLY_CONSTRUCTOR));
-  ASSERT_EQ(consTerm.getOp(),
-            Op(&d_solver->getTermManager(), Kind::APPLY_CONSTRUCTOR));
-  ASSERT_EQ(headTerm.getOp(),
-            Op(&d_solver->getTermManager(), Kind::APPLY_SELECTOR));
-  ASSERT_EQ(tailTerm.getOp(),
-            Op(&d_solver->getTermManager(), Kind::APPLY_SELECTOR));
+  ASSERT_EQ(nilTerm.getOp(), d_tm.mkOp(Kind::APPLY_CONSTRUCTOR));
+  ASSERT_EQ(consTerm.getOp(), d_tm.mkOp(Kind::APPLY_CONSTRUCTOR));
+  ASSERT_EQ(headTerm.getOp(), d_tm.mkOp(Kind::APPLY_SELECTOR));
+  ASSERT_EQ(tailTerm.getOp(), d_tm.mkOp(Kind::APPLY_SELECTOR));
 }
 }  // namespace test
 }  // namespace cvc5::internal

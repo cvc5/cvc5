@@ -25,7 +25,7 @@ class TestApiWhiteOp : public TestApi
 
 TEST_F(TestApiWhiteOp, opFromKind)
 {
-  Op plus(&d_solver->getTermManager(), Kind::ADD);
+  Op plus = d_solver->getTermManager().mkOp(Kind::ADD);
   ASSERT_FALSE(plus.isIndexed());
   ASSERT_EQ(0, plus.getNumIndices());
   ASSERT_EQ(plus, d_tm.mkOp(Kind::ADD));
