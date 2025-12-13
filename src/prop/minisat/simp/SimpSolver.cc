@@ -51,23 +51,25 @@ SimpSolver::SimpSolver(Env& env,
                        prop::TheoryProxy* proxy,
                        context::Context* context,
                        context::UserContext* userContext,
-                       prop::PropPfManager* ppm,
                        bool enableIncremental)
-    : Solver(env, proxy, context, userContext, ppm, enableIncremental),
+    : Solver(env, proxy, context, userContext, enableIncremental),
       grow(opt_grow),
       clause_lim(opt_clause_lim),
       subsumption_lim(opt_subsumption_lim),
       simp_garbage_frac(opt_simp_garbage_frac),
       use_asymm(opt_use_asymm),
       // make sure this is not enabled if unsat cores or proofs are on
-      use_rcheck(opt_use_rcheck && !options().smt.produceUnsatCores && !ppm),
+      use_rcheck(opt_use_rcheck && !options().smt.produceUnsatCores
+                 && !options().smt.produceProofs),
       merges(0),
       asymm_lits(0),
       eliminated_vars(0),
       elimorder(1),
       use_simplification(
           options().prop.minisatSimpMode != options::MinisatSimpMode::NONE
-          && !enableIncremental && !options().smt.produceUnsatCores && !ppm),
+          && !enableIncremental
+          && !options().smt.produceUnsatCores
+          && !options().smt.produceProofs),
       occurs(ClauseDeleted(ca)),
       elim_heap(ElimLt(n_occ)),
       bwdsub_assigns(0),
@@ -92,9 +94,10 @@ SimpSolver::SimpSolver(Env& env,
     }
 }
 
-
-SimpSolver::~SimpSolver()
+void SimpSolver::attachProofManager(prop::PropPfManager* ppm)
 {
+  Assert(!use_simplification && !use_rcheck);
+  Solver::attachProofManager(ppm);
 }
 
 Var SimpSolver::newVar(bool sign, bool dvar, bool isTheoryAtom, bool canErase)
