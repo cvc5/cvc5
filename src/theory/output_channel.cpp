@@ -147,6 +147,11 @@ void OutputChannel::trustedLemma(TrustNode plem,
   d_engine->lemma(plem, id, p, d_theory);
 }
 
+void OutputChannel::markUsed()
+{
+  d_engine->d_outputChannelUsed = true;
+}
+
 TheoryId OutputChannel::getId() const { return d_theory; }
 
 }  // namespace theory
