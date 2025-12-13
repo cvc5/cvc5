@@ -162,6 +162,13 @@ class CDCAC : protected EnvObj
   CoveringsProofGenerator* getProof() { return d_proof.get(); }
 
  private:
+  /** Return the variable_printer for a given libpoly variable. */
+  poly::detail::variable_printer get_stream_variable(const poly::Variable& v);
+
+  /** Map a vector of libpoly variables to a vector of variable_printers. */
+  std::vector<poly::detail::variable_printer> get_stream_variables(
+      const std::vector<poly::Variable>& vars);
+
   /** Check whether proofs are enabled */
   bool isProofEnabled() const { return d_proof != nullptr; }
 
