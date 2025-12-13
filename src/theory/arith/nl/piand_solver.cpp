@@ -174,7 +174,6 @@ void PIAndSolver::checkFullRefine()
 {
   NodeManager* nm = nodeManager();
   Trace("piand-check") << "PIAndSolver::checkFullRefine";
-  Trace("piand-check") << "PIAND terms: " << std::endl;
   for (const std::pair<const Node, std::vector<Node> >& is : d_piands)
   {
     int index = 0;
@@ -208,10 +207,6 @@ void PIAndSolver::checkFullRefine()
         Trace("piand-check") << "...already correct" << std::endl;
         continue;
       }
-
-      Node lem_sum = sumBasedLemma(i, Kind::GEQ);
-      d_im.addPendingLemma(
-          lem_sum, InferenceId::ARITH_NL_PIAND_SUM_REFINE, nullptr, true);
 
       Integer ione = 1;
       Integer itwo = 2;
@@ -343,11 +338,13 @@ void PIAndSolver::checkFullRefine()
         d_im.addPendingLemma(
             x_one_lem, InferenceId::ARITH_NL_PIAND_ONE_REFINE, nullptr, true);
       }
+
+      Node lem_sum = sumBasedLemma(i, Kind::GEQ);
+      d_im.addPendingLemma(
+          lem_sum, InferenceId::ARITH_NL_PIAND_SUM_REFINE, nullptr, true);
     }
   }
 }
-
-Node PIAndSolver::valueBasedLemma(Node i) { return i; }
 
 Node PIAndSolver::sumBasedLemma(Node i, Kind kind) { return i; }
 
