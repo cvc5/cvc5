@@ -1162,6 +1162,8 @@ RewriteResponse ArithRewriter::postRewritePow2(TNode t)
   if (t[0].isConst())
   {
     // pow2 is only supported for integers
+    Trace("arith-rewriter")
+        << "ArithRewriter::postRewritePow2, t:" << t << std::endl;
     Assert(t[0].getType().isInteger());
     // use the evaluator definition for rewriting this
     Evaluator eval(nullptr);
@@ -1194,13 +1196,16 @@ RewriteResponse ArithRewriter::postRewriteIntsLog2(TNode t)
   // if constant, we eliminate
   if (t[0].isConst())
   {
-    // pow2 is only supported for integers
+    // log2 is only supported for integers
     Assert(t[0].getType().isInteger());
     const Rational& r = t[0].getConst<Rational>();
+    // default to 0 for negative inputs
     if (r.sgn() < 0)
     {
       return RewriteResponse(REWRITE_DONE, rewriter::mkConst(d_nm, Integer(0)));
     }
+    // for non-negative inputs, this
+    // is captured by `length()` of `Integer`.
     Integer i = r.getNumerator();
     size_t const length = i.length();
     return RewriteResponse(REWRITE_DONE,

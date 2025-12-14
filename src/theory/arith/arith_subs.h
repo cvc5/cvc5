@@ -60,7 +60,9 @@ class ArithSubs : public Subs
 class ArithSubsTermContext : public TermContext
 {
  public:
-  ArithSubsTermContext() {}
+  ArithSubsTermContext(bool traverseMult = true) : d_traverseMult(traverseMult)
+  {
+  }
   /** The initial value: valid. */
   uint32_t initialValue() const override { return 0; }
   /** Compute the value of the index^th child of t whose hash is tval */
@@ -69,7 +71,7 @@ class ArithSubsTermContext : public TermContext
     if (tval == 0)
     {
       // if we should not traverse, return 1
-      if (!ArithSubs::shouldTraverse(t))
+      if (!ArithSubs::shouldTraverse(t, d_traverseMult))
       {
         return 1;
       }
@@ -77,6 +79,10 @@ class ArithSubsTermContext : public TermContext
     }
     return tval;
   }
+
+ private:
+  /** Should we traverse (non-linear) multiplication? */
+  bool d_traverseMult;
 };
 
 }  // namespace arith

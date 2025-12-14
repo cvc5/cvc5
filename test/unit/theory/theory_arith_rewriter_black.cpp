@@ -13,6 +13,8 @@
  * Black box testing of rewriter for arithmetic.
  */
 
+#ifdef CVC5_USE_POLY
+
 #include "test_smt.h"
 #include "util/rational.h"
 #include "util/real_algebraic_number.h"
@@ -116,3 +118,4 @@ TEST_F(TestTheoryArithRewriterBlack, Abs)
 
 }  // namespace test
 }  // namespace cvc5::internal
+#endif

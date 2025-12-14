@@ -45,6 +45,7 @@ jobs:
             strip-bin: strip
             python-bindings: true
             java-bindings: true
+            upload-maven-main: true
             check-examples: true
             package-name: cvc5-Linux-x86_64
             exclude_regress: 3-4
@@ -188,6 +189,7 @@ jobs:
             python-bindings: true
             java-version: 21 # Use Javadoc from this Java version
             build-documentation: true
+            upload-maven-doc: true
             exclude_regress: 3-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester proof --tester dump
 
@@ -362,11 +364,70 @@ jobs:
       if: matrix.build.java-bindings && matrix.build.package-name && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
       uses: ./.github/actions/add-jar
       with:
-        install-path: ${{ steps.create-static-package.outputs.install-path }}
-        jar-libs-dir: cvc5-libs
+        build-dir: ${{ steps.configure-and-build.outputs.static-build-dir }}
         jar-name: ${{ matrix.build.package-name }}${{ matrix.build.gpl-tag }}-java-api
         shell: ${{ matrix.build.shell }}
 
+    - name: Upload Maven artifacts
+      if: >
+        github.repository == 'cvc5/cvc5' &&
+        (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')) &&
+        (matrix.build.upload-maven-doc ||
+         (matrix.build.java-bindings && matrix.build.package-name))
+      uses: ./.github/actions/upload-mvn-files
+      continue-on-error: true
+      with:
+        build-dir: ${{ steps.configure-and-build.outputs.static-build-dir }}
+        upload-main: ${{ matrix.build.upload-maven-main }}
+        artifact-suffix: ${{ matrix.build.package-name || 'docs' }}
+        shell: ${{ matrix.build.shell }}
+
+  publish-to-maven-central:
+    name: Publish to Maven central
+    if: github.repository == 'cvc5/cvc5' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    needs: [builds]
+    steps:
+    - name: Set up Maven Central
+      uses: actions/setup-java@v5
+      with:
+        distribution: 'temurin'
+        java-version: '11'
+        server-id: central
+        server-username: MAVEN_USERNAME
+        server-password: MAVEN_TOKEN
+        gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
+        gpg-passphrase: MAVEN_GPG_PASSPHRASE
+
+    - name: Download Maven JAR artifacts
+      uses: actions/download-artifact@v5
+      with:
+        path: ./maven
+        pattern: mvn-*
+        merge-multiple: true
+
+    - name: Deploy to Maven Central
+      continue-on-error: true
+      run: |
+        cd ./maven
+        mvn deploy --batch-mode -Prelease -Dartifacts.dir=./ -Djavadoc.dir=./
+      env:
+        MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
+        MAVEN_TOKEN: ${{ secrets.MAVEN_TOKEN }}
+        MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
+
+    - name: Delete mvn-* artifacts from this run
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        echo "Getting artifacts for run $GITHUB_RUN_ID"
+        gh api /repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts \
+          --jq '.artifacts[] | select(.name | startswith("mvn-")) | .id' \
+          | while read id; do
+            echo "Deleting artifact id $id"
+            gh api -X DELETE /repos/${{ github.repository }}/actions/artifacts/$id
+          done
 
   cleanup-artifacts:
     name: Clean up artifacts from latest

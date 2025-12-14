@@ -104,8 +104,7 @@ int RelationalMatchGenerator::getNextMatch(InstMatch& m)
     if (m.set(d_vindex, s))
     {
       Trace("relational-match-gen") << "...success" << std::endl;
-      int ret = continueNextMatch(
-          m, InferenceId::QUANTIFIERS_INST_E_MATCHING_RELATIONAL);
+      int ret = continueNextMatch(m);
       if (ret > 0)
       {
         Trace("relational-match-gen") << "...returned " << ret << std::endl;
@@ -120,6 +119,11 @@ int RelationalMatchGenerator::getNextMatch(InstMatch& m)
     }
   }
   return -1;
+}
+
+InferenceId RelationalMatchGenerator::getInferenceId()
+{
+  return InferenceId::QUANTIFIERS_INST_E_MATCHING_RELATIONAL;
 }
 
 }  // namespace inst

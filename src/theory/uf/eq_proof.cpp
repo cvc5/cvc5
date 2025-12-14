@@ -344,7 +344,8 @@ bool EqProof::expandTransitivityForDisequalities(
                        ProofRule::TRANS,
                        copy1ofExpPremises,
                        {},
-                       true);
+                       true,
+                       CDPOverwrite::NEVER);
           }
           if (copy2ofExpPremises.size() > 1
               && !assumptions.count(transConclusion2))
@@ -353,7 +354,8 @@ bool EqProof::expandTransitivityForDisequalities(
                        ProofRule::TRANS,
                        copy2ofExpPremises,
                        {},
-                       true);
+                       true,
+                       CDPOverwrite::NEVER);
           }
         }
       }
@@ -440,8 +442,12 @@ bool EqProof::expandTransitivityForDisequalities(
           << expansionConclusion << " with premises " << expansionPremises
           << "\n";
       // create expansion step
-      p->addStep(
-          expansionConclusion, ProofRule::TRANS, expansionPremises, {}, true);
+      p->addStep(expansionConclusion,
+                 ProofRule::TRANS,
+                 expansionPremises,
+                 {},
+                 true,
+                 CDPOverwrite::NEVER);
     }
   }
   Trace("eqproof-conv")
@@ -480,7 +486,8 @@ bool EqProof::expandTransitivityForDisequalities(
         premises[0][0]);
     std::vector<Node> cargs;
     ProofRule rule = expr::getCongRule(congConclusion[0], cargs);
-    p->addStep(congConclusion, rule, substPremises, cargs, true);
+    p->addStep(
+        congConclusion, rule, substPremises, cargs, true, CDPOverwrite::NEVER);
     Trace("eqproof-conv") << "EqProof::expandTransitivityForDisequalities: via "
                              "congruence derived "
                           << congConclusion << "\n";
@@ -493,7 +500,12 @@ bool EqProof::expandTransitivityForDisequalities(
     // check to avoid cyclic proofs
     if (!assumptions.count(transConclusion))
     {
-      p->addStep(transConclusion, ProofRule::TRANS, premises, {}, true);
+      p->addStep(transConclusion,
+                 ProofRule::TRANS,
+                 premises,
+                 {},
+                 true,
+                 CDPOverwrite::NEVER);
       Trace("eqproof-conv") << "EqProof::expandTransitivityForDisequalities: "
                                "via transitivity derived "
                             << transConclusion << "\n";
@@ -508,7 +520,8 @@ bool EqProof::expandTransitivityForDisequalities(
                  ProofRule::MACRO_SR_PRED_TRANSFORM,
                  {transConclusion},
                  {conclusion},
-                 true);
+                 true,
+                 CDPOverwrite::NEVER);
       Trace("eqproof-conv") << "EqProof::expandTransitivityForDisequalities: "
                                "via macro transform derived "
                             << conclusion << "\n";
@@ -527,12 +540,15 @@ bool EqProof::expandTransitivityForDisequalities(
     p->addStep(newExpansionConclusion,
                ProofRule::TRUE_INTRO,
                {expansionConclusion},
-               {});
+               {},
+               true,
+               CDPOverwrite::NEVER);
     premises.push_back(newExpansionConclusion);
     Trace("eqproof-conv") << ProofRule::TRANS << " from " << premises << "\n";
     buildTransitivityChain(conclusion, premises);
     // create final transitivity step
-    p->addStep(conclusion, ProofRule::TRANS, premises, {}, true);
+    p->addStep(
+        conclusion, ProofRule::TRANS, premises, {}, true, CDPOverwrite::NEVER);
   }
   return true;
 }
@@ -593,7 +609,8 @@ bool EqProof::expandTransitivityForTheoryDisequalities(
   //   (= (= t1 t2) (= c1 c2))         (= (= c1 c2) false)
   //  --------------------------------------------------------------------- TR
   //                   (= (= t1 t2) false)
-  Node constApp = conclusion.getNodeManager()->mkNode(Kind::EQUAL, constChildren);
+  Node constApp =
+      conclusion.getNodeManager()->mkNode(Kind::EQUAL, constChildren);
   Node constEquality = constApp.eqNode(conclusion[1 - termPos]);
   Trace("eqproof-conv")
       << "EqProof::expandTransitivityForTheoryDisequalities: adding "
@@ -609,12 +626,18 @@ bool EqProof::expandTransitivityForTheoryDisequalities(
       << subChildren << "\n";
   std::vector<Node> cargs;
   ProofRule rule = expr::getCongRule(conclusion[termPos], cargs);
-  p->addStep(congConclusion, rule, {subChildren}, cargs, true);
+  p->addStep(
+      congConclusion, rule, {subChildren}, cargs, true, CDPOverwrite::NEVER);
   Trace("eqproof-conv") << "EqProof::expandTransitivityForDisequalities: via "
                            "congruence derived "
                         << congConclusion << "\n";
   std::vector<Node> transitivityChildren{congConclusion, constEquality};
-  p->addStep(conclusion, ProofRule::TRANS, {transitivityChildren}, {});
+  p->addStep(conclusion,
+             ProofRule::TRANS,
+             {transitivityChildren},
+             {},
+             true,
+             CDPOverwrite::NEVER);
   return true;
 }
 
@@ -847,7 +870,12 @@ Node EqProof::addToProof(CDProof* p) const
       Trace("eqproof-conv")
           << "EqProof::addToProof: conclude " << newConclusion << " via "
           << elimRule << " step for " << elimPremise << "\n";
-      p->addStep(newConclusion, elimRule, {elimPremise}, {});
+      p->addStep(newConclusion,
+                 elimRule,
+                 {elimPremise},
+                 {},
+                 true,
+                 CDPOverwrite::NEVER);
     }
   }
   return newConclusion;
@@ -932,6 +960,9 @@ Node EqProof::addToProof(CDProof* p,
       // used in the proof p
       Node introConclusion =
           constIndex == 1 ? d_node : d_node[1].eqNode(d_node[0]);
+      // Note that we do not ensure children here because introPremise is being
+      // added as an assumption implicitly, instead of explicitly as d_node
+      // would, below
       p->addStep(introConclusion, introRule, {introPremise}, {});
     }
     else
@@ -959,7 +990,7 @@ Node EqProof::addToProof(CDProof* p,
       }
       Trace("eqproof-conv") << "EqProof::addToProof: adding " << intro
                             << " step for " << d_node << "\n";
-      p->addStep(conclusion, intro, {d_node}, {});
+      p->addStep(conclusion, intro, {d_node}, {}, true, CDPOverwrite::NEVER);
     }
     // Keep track of assumptions to avoid cyclic proofs. Both the assumption and
     // its symmetric are added
@@ -1005,7 +1036,12 @@ Node EqProof::addToProof(CDProof* p,
       Node conclusion =
           d_node[0].eqNode(d_node.getNodeManager()->mkConst<bool>(false));
       p->addStep(d_node, ProofRule::MACRO_SR_PRED_INTRO, {}, {d_node});
-      p->addStep(conclusion, ProofRule::FALSE_INTRO, {d_node}, {});
+      p->addStep(conclusion,
+                 ProofRule::FALSE_INTRO,
+                 {d_node},
+                 {},
+                 true,
+                 CDPOverwrite::NEVER);
       visited[d_node] = conclusion;
       return conclusion;
     }
@@ -1096,11 +1132,17 @@ Node EqProof::addToProof(CDProof* p,
     Trace("eqproof-conv") << "EqProof::addToProof: adding  " << rule
                           << " step for " << congConclusion << " from "
                           << subChildren << "\n";
-    p->addStep(congConclusion, rule, {subChildren}, cargs, true);
+    p->addStep(
+        congConclusion, rule, {subChildren}, cargs, true, CDPOverwrite::NEVER);
     Trace("eqproof-conv") << "EqProof::addToProof: adding  " << ProofRule::TRANS
                           << " step for original conclusion " << d_node << "\n";
     std::vector<Node> transitivityChildren{congConclusion, constEquality};
-    p->addStep(d_node, ProofRule::TRANS, {transitivityChildren}, {});
+    p->addStep(d_node,
+               ProofRule::TRANS,
+               {transitivityChildren},
+               {},
+               true,
+               CDPOverwrite::NEVER);
     visited[d_node] = d_node;
     return d_node;
   }
@@ -1193,7 +1235,12 @@ Node EqProof::addToProof(CDProof* p,
         // recursively processed.
         if (children.size() > 1)
         {
-          p->addStep(conclusion, ProofRule::TRANS, children, {}, true);
+          p->addStep(conclusion,
+                     ProofRule::TRANS,
+                     children,
+                     {},
+                     true,
+                     CDPOverwrite::NEVER);
         }
       }
     }
@@ -1425,8 +1472,12 @@ Node EqProof::addToProof(CDProof* p,
           << "EqProof::addToProof: adding trans step for cong premise "
           << transConclusion << " with children " << transitivityChildren[i]
           << "\n";
-      p->addStep(
-          transConclusion, ProofRule::TRANS, transitivityChildren[i], {}, true);
+      p->addStep(transConclusion,
+                 ProofRule::TRANS,
+                 transitivityChildren[i],
+                 {},
+                 true,
+                 CDPOverwrite::NEVER);
     }
   }
   // first-order case
@@ -1449,7 +1500,7 @@ Node EqProof::addToProof(CDProof* p,
       }
       Trace("eqproof-conv") << " and children " << children << "\n";
     }
-    p->addStep(conclusion, r, children, args, true);
+    p->addStep(conclusion, r, children, args, true, CDPOverwrite::NEVER);
   }
   // higher-order case
   else
@@ -1462,7 +1513,8 @@ Node EqProof::addToProof(CDProof* p,
                ProofRule::HO_CONG,
                children,
                {ProofRuleChecker::mkKindNode(nm, Kind::APPLY_UF)},
-               true);
+               true,
+               CDPOverwrite::NEVER);
   }
   // If the conclusion of the congruence step changed due to the n-ary handling,
   // we obtained for example (= (f (f t1 t2 t3) t4) (f (f t5 t6) t7)), which is
@@ -1470,7 +1522,7 @@ Node EqProof::addToProof(CDProof* p,
   // rewriting
   if (!CDProof::isSame(conclusion, d_node))
   {
-    Trace("eqproof-conv") << "EqProof::addToProof: try to flatten via a"
+    Trace("eqproof-conv") << "EqProof::addToProof: try to flatten via a "
                           << ProofRule::MACRO_SR_PRED_TRANSFORM
                           << " step the rebuilt conclusion " << conclusion
                           << " into " << d_node << "\n";
@@ -1498,7 +1550,12 @@ Node EqProof::addToProof(CDProof* p,
           << "EqProof::addToProof: adding a trust flattening rewrite step\n";
       Node bridgeEq = conclusion.eqNode(d_node);
       p->addTrustedStep(bridgeEq, TrustId::FLATTENING_REWRITE, {}, {});
-      p->addStep(d_node, ProofRule::EQ_RESOLVE, {conclusion, bridgeEq}, {});
+      p->addStep(d_node,
+                 ProofRule::EQ_RESOLVE,
+                 {conclusion, bridgeEq},
+                 {},
+                 true,
+                 CDPOverwrite::NEVER);
     }
     else
     {
@@ -1506,7 +1563,8 @@ Node EqProof::addToProof(CDProof* p,
                  ProofRule::MACRO_SR_PRED_TRANSFORM,
                  {conclusion},
                  {d_node},
-                 true);
+                 true,
+                 CDPOverwrite::NEVER);
     }
   }
   visited[d_node] = d_node;

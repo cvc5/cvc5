@@ -139,6 +139,18 @@ bool isTranscendentalKind(Kind k)
   return false;
 }
 
+bool isExtendedNonLinearKind(Kind k)
+{
+  switch (k)
+  {
+    case Kind::IAND:
+    case Kind::POW2:
+    case Kind::POW: return true;
+    default: break;
+  }
+  return false;
+}
+
 Node getApproximateConstant(Node c, bool isLower, unsigned prec)
 {
   if (!c.isConst())
