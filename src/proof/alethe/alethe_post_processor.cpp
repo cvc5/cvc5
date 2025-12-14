@@ -1528,34 +1528,32 @@ bool AletheProofPostprocessCallback::update(Node res,
     //
     case ProofRule::ITE_EQ:
     {
-      Node vp1 = nm->mkNode(Kind::EQUAL,res,d_true);
-      Node vp2 = nm->mkNode(Kind::OR,res,d_true.notNode());
+      Node vp1 = nm->mkNode(Kind::EQUAL, res, d_true);
+      Node vp2 = nm->mkNode(Kind::OR, res, d_true.notNode());
       Node args_0 = args[0];
       return addAletheStep(AletheRule::RARE_REWRITE,
                            vp1,
                            nm->mkNode(Kind::SEXPR, d_cl, vp1),
                            {},
-                           {nm->mkRawSymbol("\"ite-eq\"", nm->sExprType()),args_0[0],args_0[1],args_0[2]},
+                           {nm->mkRawSymbol("\"ite-eq\"", nm->sExprType()),
+                            args_0[0],
+                            args_0[1],
+                            args_0[2]},
                            *cdp)
-       && addAletheStepFromOr(AletheRule::EQUIV2,
-                           vp2,
-                           {vp1},
-                           {},
-                           *cdp)
-       && addAletheStep(AletheRule::TRUE,
-                           d_true,
-                           nm->mkNode(Kind::SEXPR, d_cl, d_true),
-                           {},
-                           {},
-                           *cdp)
-       && addAletheStep(AletheRule::RESOLUTION,
-                           res,
-                           nm->mkNode(Kind::SEXPR, d_cl, res),
-                           {vp2,d_true},
-                           d_resPivots
-                           ? std::vector<Node>{d_true,d_false}
-                           : std::vector<Node>(),
-                           *cdp);
+             && addAletheStepFromOr(AletheRule::EQUIV2, vp2, {vp1}, {}, *cdp)
+             && addAletheStep(AletheRule::TRUE,
+                              d_true,
+                              nm->mkNode(Kind::SEXPR, d_cl, d_true),
+                              {},
+                              {},
+                              *cdp)
+             && addAletheStep(AletheRule::RESOLUTION,
+                              res,
+                              nm->mkNode(Kind::SEXPR, d_cl, res),
+                              {vp2, d_true},
+                              d_resPivots ? std::vector<Node>{d_true, d_false}
+                                          : std::vector<Node>(),
+                              *cdp);
     }
     // ======== Skolemize
     //
