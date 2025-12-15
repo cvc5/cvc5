@@ -328,7 +328,7 @@ void PIAndSolver::checkFullRefine()
             y_one_lem, InferenceId::ARITH_NL_PIAND_ONE_REFINE, nullptr, true);
       }
 
-      // one: k > 0 && x mod 2 = 1 -> piand(k,x,y) = y mod 2
+      // one: k > 0 && x = 1 -> piand(k,x,y) = y mod 2
       if (model_k > 0 && model_x == 1 && model_piand != model_y.modByPow2(1))
       {
         Node x_equal_one = nm->mkNode(Kind::EQUAL, x, d_one);
