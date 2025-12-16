@@ -601,11 +601,27 @@ bool AletheProofPostprocessCallback::update(Node res,
     case ProofRule::THEORY_REWRITE:
     {
       ProofRewriteRule di;
-      rewriter::getRewriteRule(args[0], di);
+      bool success = true;
 
-      if !(updateTheoryRewriteProofRewriteRule(res, children, args, cdp, di))
+      if (rewriter::getRewriteRule(args[0], di))
       {
-        new_args.push_back(di);
+        std::stringstream ss;
+        ss << "\"" << di << "\"";
+        Node rule = NodeManager::mkRawSymbol(ss.str(), nm->sExprType());
+
+        if (!updateTheoryRewriteProofRewriteRule(res, children, args, cdp, di))
+        {
+          success = false;
+          new_args.push_back(rule);
+        }
+      }
+      else
+      {
+        success = false;
+      }
+
+      if (!success)
+      {
         return addAletheStep(AletheRule::HOLE,
                              res,
                              nm->mkNode(Kind::SEXPR, d_cl, res),
