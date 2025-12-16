@@ -1888,6 +1888,17 @@ bool AletheProofPostprocessCallback::update(Node res,
       Assert(cdp->hasStep(res));
       return success;
     }
+    // ======== Variable reordering
+    // This rule is translated according to the clause pattern.
+    case ProofRule::QUANT_VAR_REORDERING:
+    {
+      return addAletheStep(AletheRule::REFL,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           {},
+                           {},
+                           *cdp);
+    }
     //================================================= Arithmetic rules
     // ======== Adding Scaled Inequalities
     //
