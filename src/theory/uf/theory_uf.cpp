@@ -579,8 +579,8 @@ void TheoryUF::computeRelevantTerms(std::set<Node>& termSet)
 
 void TheoryUF::computeCareGraph() {
   bool isHigherOrder = logicInfo().isHigherOrder();
-  // note that if we are higher-order, we may still conceptually generate
-  // splits for function arguments
+  // note that if we are higher-order, we may still generate splits for
+  // function arguments
   if (d_state.getSharedTerms().empty() && !isHigherOrder)
   {
     return;
