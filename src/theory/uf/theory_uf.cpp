@@ -578,7 +578,8 @@ void TheoryUF::computeRelevantTerms(std::set<Node>& termSet)
 }
 
 void TheoryUF::computeCareGraph() {
-  if (d_state.getSharedTerms().empty())
+  bool isHigherOrder = logicInfo().isHigherOrder();
+  if (d_state.getSharedTerms().empty() && !isHigherOrder)
   {
     return;
   }
@@ -588,7 +589,6 @@ void TheoryUF::computeCareGraph() {
   // function type for the latter.
   Trace("uf::sharing") << "TheoryUf::computeCareGraph(): Build term indices..."
                        << std::endl;
-  bool isHigherOrder = logicInfo().isHigherOrder();
   // temporary keep set for higher-order indexing below
   std::vector<Node> keep;
   std::map<Node, TNodeTrie> index;
