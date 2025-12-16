@@ -230,12 +230,7 @@ bool AletheProofPostprocessCallback::updateTheoryRewriteProofRewriteRule(
     }
     default: break;
   }
-  return addAletheStep(AletheRule::HOLE,
-                       res,
-                       nm->mkNode(Kind::SEXPR, d_cl, res),
-                       children,
-                       new_args,
-                       *cdp);
+  return false;
 }
 
 bool AletheProofPostprocessCallback::update(Node res,
@@ -607,8 +602,18 @@ bool AletheProofPostprocessCallback::update(Node res,
     {
       ProofRewriteRule di;
       rewriter::getRewriteRule(args[0], di);
-      return updateTheoryRewriteProofRewriteRule(
-          res, children, args, cdp, di);
+
+      if !(updateTheoryRewriteProofRewriteRule(res, children, args, cdp, di))
+      {
+        new_args.push_back(di);
+        return addAletheStep(AletheRule::HOLE,
+                             res,
+                             nm->mkNode(Kind::SEXPR, d_cl, res),
+                             children,
+                             new_args,
+                             *cdp);
+      }
+      return true;
     }
     // Both ARITH_POLY_NORM and EVALUATE, which are used by the Rare
     // elaboration, are captured by the "rare_rewrite" rule.
