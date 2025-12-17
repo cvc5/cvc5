@@ -626,6 +626,8 @@ enum class InferenceId
   //    ( explain_constant(x, c1) ^ explain_constant(x, c2) ^ x = y) => false
   // where c1 != c2.
   STRINGS_I_CONST_CONFLICT,
+  // An initial cycle conflict
+  STRINGS_I_CYCLE_CONFLICT,
   // initial normalize
   // Given two concatenation terms, this is applied when we find that they are
   // equal after e.g. removing strings that are currently empty. For example:
