@@ -754,12 +754,14 @@ RewriteResponse ArithRewriter::postRewriteMult(TNode t){
                            rewriter::maybeEnsureReal(t.getType(), *res));
   }
 
+  RewriteStatus rs = REWRITE_DONE;
   Node ret;
   // Distribute over addition
   if (std::any_of(children.begin(), children.end(), [](TNode child) {
         return child.getKind() == Kind::ADD;
       }))
   {
+    rs = REWRITE_AGAIN_FULL;
     ret = rewriter::distributeMultiplication(d_nm, children);
   }
   else
