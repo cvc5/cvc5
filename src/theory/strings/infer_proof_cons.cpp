@@ -206,7 +206,7 @@ bool InferProofCons::convert(Env& env,
     case InferenceId::STRINGS_EXTF_REW_SAME:
     {
       size_t idMax = 0;
-      // These three inference assume the substitution is applied to the
+      // These inferences assume the substitution is applied to the
       // *arguments* of extended functions and the length function, so we
       // will allow the substitutions to fire in term context value one.
       if (infer == InferenceId::STRINGS_EXTF
@@ -235,6 +235,7 @@ bool InferProofCons::convert(Env& env,
     case InferenceId::STRINGS_EXTF_D:
     case InferenceId::STRINGS_EXTF_D_N:
     case InferenceId::STRINGS_I_CONST_CONFLICT:
+    case InferenceId::STRINGS_I_CYCLE_CONFLICT:
     case InferenceId::STRINGS_UNIT_CONST_CONFLICT:
     case InferenceId::STRINGS_ARITH_BOUND_CONFLICT:
     {
