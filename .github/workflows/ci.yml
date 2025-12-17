@@ -407,7 +407,10 @@ jobs:
       continue-on-error: true
       run: |
         cd ./maven
-        mvn deploy --batch-mode -Prelease -Dartifacts.dir=./ -Djavadoc.dir=./
+        mkdir -p ./src/api/java ./docs/api/java
+        mv cvc5-javadoc.jar ./docs/api/java/
+        mv *.jar ./src/api/java/
+        mvn deploy --batch-mode -Prelease
       env:
         MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
         MAVEN_TOKEN: ${{ secrets.MAVEN_TOKEN }}
