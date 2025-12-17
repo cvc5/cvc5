@@ -974,6 +974,7 @@ set(regress_0_tests
   regress0/ho/apply-collapse-sat.smt2
   regress0/ho/apply-collapse-unsat.smt2
   regress0/ho/bug_nodbuilding_interpreted_SYO042^1.smt2
+  regress0/ho/cg-no-shared.smt2
   regress0/ho/cong-full-apply.smt2
   regress0/ho/cong.smt2
   regress0/ho/datatype-field-ho.smt2
