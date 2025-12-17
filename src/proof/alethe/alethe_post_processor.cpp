@@ -1508,18 +1508,52 @@ bool AletheProofPostprocessCallback::update(Node res,
                            {},
                            *cdp);
     }
-    // ======== Replace term by its axiom definition
-    // For now this introduces a hole. The processing in the future should
-    // generate corresponding Alethe steps for each particular axiom for term
-    // removal (for example for the ITE case).
+    // ======== If-then-else equivalence
+    //
+    // ------- rare_rewrite, ite_eq
+    //   VP1
+    // ------- equiv2                       ---------- true
+    //   VP2                                  d_true
+    // ----------------------------------------------- resolution
+    //   (cl (C?(= (C?t1:t2) t1):(= (C?t1:t2) t2)))*
+    //
+    // VP1: (cl (= (C?(= (C?t1:t2) t1):(= (C?t1:t2) t2)) true))
+    // VP2: (cl (C?(= (C?t1:t2) t1):(= (C?t1:t2) t2)) (not true))
+    // d_true: (cl true)
+    //
+    // * the corresponding proof node is (C?(= (C?t1:t2) t1):(= (C?t1:t2) t2))
+    //
+    // (define-rule ite_eq ((C bool) (t1 ?) (t2 ?)) (ite C (= (C?t1:t2) t1) (=
+    // (C?t1:t2) t2)) true)
+    //
     case ProofRule::ITE_EQ:
     {
-      return addAletheStep(AletheRule::HOLE,
-                           res,
-                           nm->mkNode(Kind::SEXPR, d_cl, res),
+      Node vp1 = nm->mkNode(Kind::EQUAL, res, d_true);
+      Node vp2 = nm->mkNode(Kind::OR, res, d_true.notNode());
+      Node args_0 = args[0];
+      return addAletheStep(AletheRule::RARE_REWRITE,
+                           vp1,
+                           nm->mkNode(Kind::SEXPR, d_cl, vp1),
                            {},
-                           {},
-                           *cdp);
+                           {nm->mkRawSymbol("\"ite-eq\"", nm->sExprType()),
+                            args_0[0],
+                            args_0[1],
+                            args_0[2]},
+                           *cdp)
+             && addAletheStepFromOr(AletheRule::EQUIV2, vp2, {vp1}, {}, *cdp)
+             && addAletheStep(AletheRule::TRUE,
+                              d_true,
+                              nm->mkNode(Kind::SEXPR, d_cl, d_true),
+                              {},
+                              {},
+                              *cdp)
+             && addAletheStep(AletheRule::RESOLUTION,
+                              res,
+                              nm->mkNode(Kind::SEXPR, d_cl, res),
+                              {vp2, d_true},
+                              d_resPivots ? std::vector<Node>{d_true, d_false}
+                                          : std::vector<Node>(),
+                              *cdp);
     }
     // ======== Skolemize
     //

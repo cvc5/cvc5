@@ -876,13 +876,10 @@ bool TheoryEngine::solve(TrustNode tliteral,
   // Note that ppAssert is called before ppRewrite.
   if (!isTheoryEnabled(tid) && tid != THEORY_SAT_SOLVER)
   {
-    stringstream ss;
-    ss << "The logic was specified as " << logicInfo().getLogicString()
-       << ", which doesn't include " << tid
-       << ", but got a theory atom for that theory." << std::endl
-       << "The atom:" << std::endl
-       << atom;
-    throw LogicException(ss.str());
+    // don't throw an exception yet
+    // Instead ppStaticRewrite will be called on atom, which may throw an
+    // exception if the term is not rewritten.
+    return false;
   }
 
   bool solveStatus = d_theoryTable[tid]->ppAssert(tliteral, substitutionOut);
@@ -943,6 +940,13 @@ TrustNode TheoryEngine::ppStaticRewrite(TNode term)
   TheoryId tid = d_env.theoryOf(term);
   if (!isTheoryEnabled(tid) && tid != THEORY_SAT_SOLVER)
   {
+    // If the theory is not enabled, then we require eliminating the term
+    // here.
+    TrustNode tret = d_theoryTable[THEORY_BUILTIN]->ppStaticRewrite(term);
+    if (!tret.isNull())
+    {
+      return tret;
+    }
     stringstream ss;
     ss << "The logic was specified as " << logicInfo().getLogicString()
        << ", which doesn't include " << tid

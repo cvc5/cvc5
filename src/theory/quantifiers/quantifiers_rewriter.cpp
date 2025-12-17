@@ -55,6 +55,7 @@ std::ostream& operator<<(std::ostream& out, RewriteStep s)
 {
   switch (s)
   {
+    case COMPUTE_ELIM_SHADOW: out << "COMPUTE_ELIM_SHADOW"; break;
     case COMPUTE_ELIM_SYMBOLS: out << "COMPUTE_ELIM_SYMBOLS"; break;
     case COMPUTE_MINISCOPING: out << "COMPUTE_MINISCOPING"; break;
     case COMPUTE_AGGRESSIVE_MINISCOPING:
@@ -420,6 +421,14 @@ Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       // if we eliminated a variable, update body and reprocess
       if (!vars.empty())
       {
+        // ensure the substitution is safe
+        for (const Node& s : subs)
+        {
+          if (!isSafeSubsTerm(body, s))
+          {
+            return Node::null();
+          }
+        }
         Assert(vars.size() == subs.size());
         std::vector<Node> qc(n.begin(), n.end());
         qc[1] =
@@ -578,14 +587,6 @@ RewriteResponse QuantifiersRewriter::preRewrite(TNode q)
     if (q != qm)
     {
       return RewriteResponse(REWRITE_AGAIN_FULL, qm);
-    }
-    // ensure shadowing is eliminated at this point, as some rewrites (e.g.
-    // variable elimination) can be unsound with quantified formulas with
-    // shadowing.
-    Node qms = rewriteViaRule(ProofRewriteRule::MACRO_QUANT_ELIM_SHADOW, qm);
-    if (!qms.isNull())
-    {
-      return RewriteResponse(REWRITE_AGAIN_FULL, qms);
     }
   }
   return RewriteResponse(REWRITE_DONE, q);
@@ -1132,6 +1133,13 @@ bool QuantifiersRewriter::isVarElim(Node v, Node s)
   return !expr::hasSubterm(s, v) && s.getType() == v.getType();
 }
 
+bool QuantifiersRewriter::isSafeSubsTerm(const Node& body, const Node& s)
+{
+  std::unordered_set<Node> fvs;
+  expr::getFreeVariables(s, fvs);
+  return !expr::hasBoundVar(body, fvs);
+}
+
 Node QuantifiersRewriter::getVarElimEq(Node lit,
                                        const std::vector<Node>& args,
                                        Node& var,
@@ -1401,7 +1409,7 @@ bool QuantifiersRewriter::getVarElimLit(Node body,
           }
         }
       }
-      if (!solvedVar.isNull())
+      if (!solvedVar.isNull() && isSafeSubsTerm(body, solvedSubs))
       {
         if (cdp != nullptr)
         {
@@ -1450,7 +1458,7 @@ bool QuantifiersRewriter::getVarElimLit(Node body,
   {
     Node var;
     Node slv = getVarElimEq(lit, args, var, cdp);
-    if (!slv.isNull())
+    if (!slv.isNull() && isSafeSubsTerm(body, slv))
     {
       Assert(!var.isNull());
       std::vector<Node>::iterator ita =
@@ -1947,6 +1955,7 @@ Node QuantifiersRewriter::computePrenex(Node q,
                          nm->mkNode(Kind::OR, body[0], body[1].notNode()));
     return computePrenex(q, nn, args, nargs, pol, prenexAgg);
   }else if( body.getType().isBoolean() ){
+    Assert(k != Kind::EXISTS);
     bool childrenChanged = false;
     std::vector< Node > newChildren;
     for (size_t i = 0, nchild = body.getNumChildren(); i < nchild; i++)
@@ -2405,7 +2414,8 @@ bool QuantifiersRewriter::doOperation(Node q,
       qa.d_hasPattern
       && d_opts.quantifiers.userPatternsQuant == options::UserPatMode::STRICT;
   bool is_std = isStandard(qa, d_opts);
-  if (computeOption == COMPUTE_ELIM_SYMBOLS)
+  if (computeOption == COMPUTE_ELIM_SHADOW
+      || computeOption == COMPUTE_ELIM_SYMBOLS)
   {
     return true;
   }
@@ -2485,10 +2495,15 @@ bool QuantifiersRewriter::doOperation(Node q,
 //general method for computing various rewrites
 Node QuantifiersRewriter::computeOperation(Node f,
                                            RewriteStep computeOption,
-                                           QAttributes& qa) const
+                                           QAttributes& qa)
 {
   Trace("quantifiers-rewrite-debug") << "Compute operation " << computeOption << " on " << f << " " << qa.d_qid_num << std::endl;
-  if (computeOption == COMPUTE_MINISCOPING)
+  if (computeOption == COMPUTE_ELIM_SHADOW)
+  {
+    Node qr = rewriteViaRule(ProofRewriteRule::MACRO_QUANT_ELIM_SHADOW, f);
+    return qr.isNull() ? f : qr;
+  }
+  else if (computeOption == COMPUTE_MINISCOPING)
   {
     if (d_opts.quantifiers.prenexQuant == options::PrenexQuantMode::NORMAL)
     {

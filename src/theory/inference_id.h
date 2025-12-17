@@ -164,6 +164,9 @@ enum class InferenceId
   ARITH_NL_IAND_SUM_REFINE,
   // bitwise refinements (IAndSolver::checkFullRefine)
   ARITH_NL_IAND_BITWISE_REFINE,
+  //-------------------- nonlinear piand solver
+  // initial refinements (PIAndSolver::checkInitialRefine)
+  ARITH_NL_PIAND_INIT_REFINE,
   //-------------------- nonlinear pow2 solver
   // initial refinements (Pow2Solver::checkInitialRefine)
   ARITH_NL_POW2_INIT_REFINE,

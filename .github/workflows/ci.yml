@@ -17,7 +17,7 @@ jobs:
     steps:
       - name: Checkout code
         if: (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up latest page
         if: github.ref == 'refs/heads/main'
@@ -73,6 +73,18 @@ jobs:
             exclude_regress: 3-4
             run_regression_args: --tester base --tester proof --tester cpc --tester model --tester dump
 
+          - name: ubuntu:production-libc++
+            os: ubuntu-24.04
+            use-clang: true
+            use-libcxx: true
+            config: production --auto-download -DBUILD_GMP=1
+            cache-key: production-libcxx
+            strip-bin: strip
+            check-examples: true
+            package-name: cvc5-Linux-x86_64-libcxx
+            exclude_regress: 3-4
+            run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
+
           - name: ubuntu:production-arm64
             os: ubuntu-22.04-arm
             config: production --auto-download --all-bindings --editline -DBUILD_GMP=1
@@ -85,11 +97,17 @@ jobs:
             exclude_regress: 3-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
 
-          - name: ubuntu:production-arm64-cross
-            os: ubuntu-latest
-            config: production --auto-download --arm64
-            cache-key: production-arm64-cross
-            strip-bin: aarch64-linux-gnu-strip
+          - name: ubuntu:production-arm64-libc++
+            os: ubuntu-24.04-arm
+            use-clang: true
+            use-libcxx: true
+            config: production --auto-download -DBUILD_GMP=1
+            cache-key: production-arm64-libcxx
+            strip-bin: strip
+            check-examples: true
+            package-name: cvc5-Linux-arm64-libcxx
+            exclude_regress: 3-4
+            run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
 
           - name: macos:production
             os: macos-15-intel
@@ -117,13 +135,6 @@ jobs:
             macos-target: 11.0
             exclude_regress: 3-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
-
-          - name: macos:production-arm64-cross
-            os: macos-15-intel
-            config: production --auto-download --all-bindings --editline --arm64
-            cache-key: production-arm64-cross
-            strip-bin: strip
-            python-bindings: true
 
           - name: win64:production
             os: windows-latest
@@ -154,13 +165,6 @@ jobs:
             exclude_regress: 1-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
 
-          - name: win64:production-cross
-            os: ubuntu-latest
-            config: production --auto-download --win64
-            cache-key: production-win64-cross
-            strip-bin: x86_64-w64-mingw32-strip
-            windows-build: true
-
           - name: wasm:production
             os: ubuntu-22.04
             config: production --static --static-binary --auto-download --wasm-web=no-modular-static-page
@@ -169,15 +173,6 @@ jobs:
             wasm-pkg-name: cvc5-Wasm
             build-shared: false
             build-static: true
-
-          - name: ubuntu:production-clang
-            os: ubuntu-22.04
-            env: CC=clang CXX=clang++
-            config: production --auto-download --no-poly
-            cache-key: productionclang
-            check-examples: true
-            exclude_regress: 3-4
-            run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
 
             # Job used to build the documentation
           - name: ubuntu:production-dbg
@@ -195,7 +190,7 @@ jobs:
 
           - name: ubuntu:production-dbg-clang
             os: ubuntu-22.04
-            env: CC=clang CXX=clang++
+            use-clang: true
             config: production --auto-download --assertions --tracing --cln --gpl
             cache-key: dbgclang
             exclude_regress: 3-4
@@ -261,11 +256,11 @@ jobs:
       cancel-in-progress: ${{ github.repository != 'cvc5/cvc5' || startsWith(github.ref, 'refs/pull/') }}
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     # Ensure that the Java bindings, Java API tests, and Java examples are compatible
     # with the minimum required Java version (currently Java 8).
-    - uses: actions/setup-java@v4
+    - uses: actions/setup-java@v5
       with:
         distribution: 'temurin'
         java-version: ${{ matrix.build.java-version || '8' }}
@@ -281,6 +276,8 @@ jobs:
       uses: ./.github/actions/install-dependencies
       with:
         with-documentation: ${{ matrix.build.build-documentation }}
+        use-clang: ${{ matrix.build.use-clang }}
+        use-libcxx: ${{ matrix.build.use-libcxx }}
         windows-build: ${{ matrix.build.windows-build }}
         wasm-build: ${{ matrix.build.wasm-build }}
         shell: ${{ matrix.build.shell }}
@@ -297,7 +294,6 @@ jobs:
       id: configure-and-build
       uses: ./.github/actions/configure-and-build
       with:
-        configure-env: ${{ matrix.build.env }}
         configure-config: ${{ matrix.build.config }}
         macos-target: ${{ matrix.build.macos-target }}
         build-shared: ${{ matrix.build.build-shared }}
@@ -411,7 +407,10 @@ jobs:
       continue-on-error: true
       run: |
         cd ./maven
-        mvn deploy --batch-mode -Prelease -Dartifacts.dir=./ -Djavadoc.dir=./
+        mkdir -p ./src/api/java ./docs/api/java
+        mv cvc5-javadoc.jar ./docs/api/java/
+        mv *.jar ./src/api/java/
+        mvn deploy --batch-mode -Prelease
       env:
         MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
         MAVEN_TOKEN: ${{ secrets.MAVEN_TOKEN }}

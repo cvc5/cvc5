@@ -27,8 +27,10 @@ Using the cvc5 Java API in a Maven project
 
 .. note::
 
-   As of version 1.3.1, a stable release has not yet been published to Maven Central.
-   Only snapshot builds are available in the Central Portal Snapshots repository.
+   As of version 1.3.2, a release that includes the native JNI libraries has not yet
+   been published to Maven Central. Only snapshot builds, available in 
+   the Central Portal Snapshots repository, provide both the Java API and 
+   the JNI library.
 
 To use the library in your Maven project, add the following
 repository and dependency settings:
@@ -67,7 +69,7 @@ repository and dependency settings:
   </dependencies>
 
 Here, ``${cvc5.version}`` refers to the version following the latest stable release
-(e.g., use ``1.3.2`` if the latest stable version is ``1.3.1``).
+(e.g., use ``1.3.3`` if the latest stable version is ``1.3.2``).
 The ``${os.classifier}`` variable specifies the operating system and CPU architecture
 (e.g., ``linux-x86_64`` or ``osx-aarch_64``).
 
