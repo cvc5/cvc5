@@ -761,6 +761,8 @@ RewriteResponse ArithRewriter::postRewriteMult(TNode t){
         return child.getKind() == Kind::ADD;
       }))
   {
+    // if we distribute multiplication, we rewrite again to ensure the
+    // sum is sorted.
     rs = REWRITE_AGAIN_FULL;
     ret = rewriter::distributeMultiplication(d_nm, children);
   }
@@ -792,7 +794,7 @@ RewriteResponse ArithRewriter::postRewriteMult(TNode t){
     ret = rewriter::mkMultTerm(d_nm, ran, std::move(leafs));
   }
   ret = rewriter::maybeEnsureReal(t.getType(), ret);
-  return RewriteResponse(REWRITE_DONE, ret);
+  return RewriteResponse(rs, ret);
 }
 
 RewriteResponse ArithRewriter::rewriteDiv(TNode t, bool pre)
