@@ -32,7 +32,7 @@ import java.lang.Long;
 public class Context
 {
   // Store pointers for term managers, solvers, terms, sorts, etc
-  private static Map<Long, AbstractPointer> abstractPointers = new LinkedHashMap<>();
+  private static final Map<Long, AbstractPointer> abstractPointers = new LinkedHashMap<>();
 
   /**
    * Private constructor to prevent instantiation of this memory management class.
@@ -46,7 +46,7 @@ public class Context
    *
    * @param pointer the {@link AbstractPointer} to register
    */
-  static void addAbstractPointer(AbstractPointer pointer)
+  static synchronized void addAbstractPointer(AbstractPointer pointer)
   {
     abstractPointers.put(Long.valueOf(pointer.getPointer()), pointer);
   }
@@ -56,7 +56,7 @@ public class Context
    *
    * @param pointer the {@link AbstractPointer} to remove
    */
-  static void removeAbstractPointer(AbstractPointer pointer) {
+  static synchronized void removeAbstractPointer(AbstractPointer pointer) {
     if (pointer.getPointer() != 0) {
       abstractPointers.remove(Long.valueOf(pointer.getPointer()));
     }
@@ -74,7 +74,7 @@ public class Context
    * the {@link AbstractPointer#deletePointer()} method individually on
    * each Java object instead of calling this method.</p>
    */
-  public static void deletePointers()
+  public static synchronized void deletePointers()
   {
     LinkedList<AbstractPointer> values = new LinkedList<AbstractPointer>(abstractPointers.values());
     Iterator<AbstractPointer> i = values.descendingIterator();
