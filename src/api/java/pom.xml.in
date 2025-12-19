@@ -415,7 +415,16 @@
                                 <configuration>
                                     <rules>
                                         <requireActiveProfile>
-                                            <profiles>sources,javadoc,linux-x86_64,linux-aarch_64,osx-x86_64,osx-aarch_64,windows-x86_64,windows-aarch_64</profiles>
+                                            <profiles>sources,javadoc</profiles>
+                                        </requireActiveProfile>
+                                         <requireActiveProfile>
+                                            <profiles>linux-x86_64,linux-aarch_64</profiles>
+                                        </requireActiveProfile>
+                                         <requireActiveProfile>
+                                            <profiles>osx-x86_64,osx-aarch_64</profiles>
+                                        </requireActiveProfile>
+                                         <requireActiveProfile>
+                                            <profiles>windows-x86_64,windows-aarch_64</profiles>
                                         </requireActiveProfile>
                                     </rules>
                                     <fail>true</fail>
@@ -423,6 +432,7 @@
                             </execution>
                         </executions>
                     </plugin>
+
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-gpg-plugin</artifactId>
