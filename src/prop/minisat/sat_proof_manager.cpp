@@ -745,19 +745,19 @@ void SatProofManager::finalizeProof(Node inConflictNode,
 
 void SatProofManager::storeUnitConflict(Minisat::Lit inConflict)
 {
-  Assert(d_conflictLit == undefSatVariable);
+  Assert(d_conflictLit == undefSatLiteral);
   d_conflictLit = MinisatSatSolver::toSatLiteral(inConflict);
 }
 
 void SatProofManager::finalizeProof()
 {
-  Assert(d_conflictLit != undefSatVariable);
+  Assert(d_conflictLit != undefSatLiteral);
   Trace("sat-proof")
       << "SatProofManager::finalizeProof: conflicting (lazy) satLit: "
       << d_conflictLit << "\n";
   finalizeProof(d_cnfStream->getNode(d_conflictLit), {d_conflictLit});
   // reset since if in incremental mode this may be used again
-  d_conflictLit = undefSatVariable;
+  d_conflictLit = undefSatLiteral;
 }
 
 void SatProofManager::finalizeProof(Minisat::Lit inConflict, bool adding)
