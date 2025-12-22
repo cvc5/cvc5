@@ -1049,6 +1049,7 @@ set(regress_0_tests
   regress0/ineq_slack.smtv1.smt2
   regress0/int-to-bv/basic.smt2
   regress0/int-to-bv/issue8935-unsupported-operators.smt2
+  regress0/int-to-bv/issue12319-int-to-bv.smt2
   regress0/int-to-bv/neg-consts.smt2
   regress0/int-to-bv/not-enough-bits.smt2
   regress0/int-to-bv/overflow.smt2
@@ -2172,6 +2173,7 @@ set(regress_0_tests
   regress0/strings/regexp-native-simple.cvc.smt2
   regress0/strings/regexp-repeat.smt2
   regress0/strings/repl-rewrites2.smt2
+  regress0/strings/replace-all-rew-more.smt2
   regress0/strings/replace-const.smt2
   regress0/strings/replaceall-eval.smt2
   regress0/strings/rewrites-re-concat.smt2
