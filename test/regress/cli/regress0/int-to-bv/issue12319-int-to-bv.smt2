@@ -1,5 +1,4 @@
 ; COMMAND-LINE: --solve-int-as-bv=1
-; REQUIRES: no-competition
 ; SCRUBBER: grep -o "Cannot translate to BV"
 ; EXPECT: Cannot translate to BV
 ; EXIT: 1
