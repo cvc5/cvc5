@@ -120,7 +120,7 @@ Node IntToBV::intToBV(TNode n, NodeMap& cache)
     TypeNode tn = current.getType();
     // we only permit pure integer problems to be converted to BV with this
     // preprocessing pass.
-    if (!tn.isBoolean() && !tn.isInteger())
+    if (current.isClosure() || (!tn.isBoolean() && !tn.isInteger()))
     {
       throw TypeCheckingExceptionPrivate(
           current, string("Cannot translate to BV: ") + current.toString());
