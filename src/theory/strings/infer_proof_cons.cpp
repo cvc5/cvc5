@@ -226,10 +226,10 @@ bool InferProofCons::convert(Env& env,
       Trace("strings-ipc-core") << "- " << conc << std::endl;
       Trace("strings-ipc-core") << "- to " << concr << std::endl;
       if (psb.applyPredIntro(concr,
-                                  {},
-                                  MethodId::SB_DEFAULT,
-                                  MethodId::SBA_SEQUENTIAL,
-                                  MethodId::RW_EXT_REWRITE))
+                             {},
+                             MethodId::SB_DEFAULT,
+                             MethodId::SBA_SEQUENTIAL,
+                             MethodId::RW_EXT_REWRITE))
       {
         // maybe extended rewrite
         useBuffer = true;
