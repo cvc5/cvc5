@@ -225,11 +225,7 @@ bool InferProofCons::convert(Env& env,
       Trace("strings-ipc-core") << "Rewrote conclusion" << std::endl;
       Trace("strings-ipc-core") << "- " << conc << std::endl;
       Trace("strings-ipc-core") << "- to " << concr << std::endl;
-      if (psb.applyPredIntro(concr, {}))
-      {
-        useBuffer = true;
-      }
-      else if (psb.applyPredIntro(concr,
+      if (psb.applyPredIntro(concr,
                                   {},
                                   MethodId::SB_DEFAULT,
                                   MethodId::SBA_SEQUENTIAL,
