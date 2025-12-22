@@ -361,7 +361,9 @@ void FlattenMonomialCheck::addToFlattenMonMap(const Node& ns,
     for (const Node& e : exp)
     {
       ArithSubs asTmp;
-      asTmp.add(e[0], e[1]);
+      Node es = as.applyArith(e[1]);
+      asTmp.add(e[0], es);
+      Assert (!expr::hasSubterm(es, e[0]));
       for (size_t j = 0, nums = as.d_subs.size(); j < nums; j++)
       {
         as.d_subs[j] = asTmp.applyArith(as.d_subs[j]);
