@@ -545,7 +545,9 @@ void BaseSolver::checkConstantEquivalenceClasses(TermIndex* ti,
             {
               if (d_state.areEqual(nctc, nr))
               {
-                d_im.sendInference(exp, nctc.eqNode(n).notNode(), InferenceId::STRINGS_I_CYCLE_CONFLICT);
+                d_im.sendInference(exp,
+                                   nctc.eqNode(n).notNode(),
+                                   InferenceId::STRINGS_I_CYCLE_CONFLICT);
                 return;
               }
             }

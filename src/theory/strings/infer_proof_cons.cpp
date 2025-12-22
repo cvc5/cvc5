@@ -229,10 +229,11 @@ bool InferProofCons::convert(Env& env,
       {
         useBuffer = true;
       }
-      else if (psb.applyPredIntro(concr, {},
-                                     MethodId::SB_DEFAULT,
-                                     MethodId::SBA_SEQUENTIAL,
-                                     MethodId::RW_EXT_REWRITE))
+      else if (psb.applyPredIntro(concr,
+                                  {},
+                                  MethodId::SB_DEFAULT,
+                                  MethodId::SBA_SEQUENTIAL,
+                                  MethodId::RW_EXT_REWRITE))
       {
         // maybe extended rewrite
         useBuffer = true;

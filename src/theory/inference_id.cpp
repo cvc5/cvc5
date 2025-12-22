@@ -450,7 +450,8 @@ const char* toString(InferenceId i)
     case InferenceId::STRINGS_I_CONST_MERGE: return "STRINGS_I_CONST_MERGE";
     case InferenceId::STRINGS_I_CONST_CONFLICT:
       return "STRINGS_I_CONST_CONFLICT";
-    case InferenceId::STRINGS_I_CYCLE_CONFLICT: return "STRINGS_I_CYCLE_CONFLICT";
+    case InferenceId::STRINGS_I_CYCLE_CONFLICT:
+      return "STRINGS_I_CYCLE_CONFLICT";
     case InferenceId::STRINGS_I_NORM: return "STRINGS_I_NORM";
     case InferenceId::STRINGS_UNIT_SPLIT: return "STRINGS_UNIT_SPLIT";
     case InferenceId::STRINGS_UNIT_INJ_OOB: return "STRINGS_UNIT_INJ_OOB";
