@@ -2,6 +2,7 @@
 
 (include "../programs/PolyNorm.eo")
 (include "../programs/Bitblasting.eo")
+(include "../programs/Intblasting.eo")
 
 
 ;;;;; ProofRewriteRule::BV_REPEAT_ELIM
@@ -270,3 +271,32 @@
   :requires (((eo::to_z one) 1) ((eo::zmod (eo::to_z cx) 2) 1) ((eo::zmod (eo::to_z cy) 2) 1))
   :conclusion (= (= xb1 xb2) (= yb1 yb2))
 )
+
+;;;;; ProofRule::BV_INTBLAST_BOUNDS
+
+; rule: bv_intblast_bounds
+; implements: ProofRule::BV_INTBLAST_BOUNDS
+; args:
+; - b Bool: the range constraint to check
+; requires: that b is a correct range constraint.
+; conclusion: b
+(declare-rule bv_intblast_bounds ((b Bool))
+    :args (b)
+    :requires (((eo::is_eq ($intblast_check_bounds b) true) true))
+    :conclusion b
+)
+
+;;;;; ProofRule::BV_INTBLAST
+
+; rule: bv_intblast
+; implements: ProofRule::BV_INTBLAST
+; args:
+; - b Bool: an equivalence between a BitVec expression and an Int expression.
+; requires: if b is (= bvexpr iexpr), that intblasting bvexpr will give iexpr.
+; conclusion: b
+(declare-rule bv_intblast ((b Bool))
+    :args (b)
+    :requires (((eo::is_eq ($intblast_eq_check b) true) true))
+    :conclusion b
+)
+
