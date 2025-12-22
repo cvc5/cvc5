@@ -319,7 +319,7 @@ SatValue CadicalSolver::value(SatLiteral l) { return d_propagator->value(l); }
 SatValue CadicalSolver::modelValue(SatLiteral l)
 {
   Assert(d_inSatMode);
-  auto val = d_solver->val(toCadicalLit(l.getSatVariable()));
+  auto val = d_solver->val(toCadicalVar(l.getSatVariable()));
   return toSatValueLit(l.isNegated() ? -val : val);
 }
 
@@ -414,7 +414,7 @@ std::vector<SatLiteral> CadicalSolver::getDecisions() const
   std::vector<SatLiteral> decisions;
   for (SatLiteral lit : d_propagator->get_decisions())
   {
-    if (lit != 0)
+    if (lit != undefSatLiteral)
     {
       decisions.push_back(lit);
     }
