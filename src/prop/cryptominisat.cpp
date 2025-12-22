@@ -59,12 +59,12 @@ SatValue toSatLiteralValue(CMSat::lbool res)
   return SAT_VALUE_FALSE;
 }
 
-void toInternalClause(SatClause& clause,
+void toInternalClause(const SatClause& clause,
                       std::vector<CMSat::Lit>& internal_clause)
 {
-  for (unsigned i = 0; i < clause.size(); ++i)
+  for (const SatLiteral i : clause)
   {
-    internal_clause.push_back(toInternalLit(clause[i]));
+    internal_clause.push_back(toInternalLit(i));
   }
   Assert(clause.size() == internal_clause.size());
 }
@@ -81,10 +81,10 @@ CryptoMinisatSolver::CryptoMinisatSolver(StatisticsRegistry& registry,
 {
 }
 
-void CryptoMinisatSolver::init()
+void CryptoMinisatSolver::initialize()
 {
-  d_true = newVar();
-  d_false = newVar();
+  d_true = newVar(false, true);
+  d_false = newVar(false, true);
 
   std::vector<CMSat::Lit> clause(1);
   clause[0] = CMSat::Lit(d_true, false);
@@ -135,7 +135,8 @@ ClauseId CryptoMinisatSolver::addXorClause(SatClause& clause,
   return ClauseIdError;
 }
 
-ClauseId CryptoMinisatSolver::addClause(SatClause& clause, bool removable){
+ClauseId CryptoMinisatSolver::addClause(const SatClause& clause, bool removable)
+{
   Trace("sat::cryptominisat") << "Add clause " << clause <<"\n";
 
   if (!d_okay) {
@@ -229,12 +230,6 @@ SatValue CryptoMinisatSolver::value(SatLiteral l){
 }
 
 SatValue CryptoMinisatSolver::modelValue(SatLiteral l) { return value(l); }
-
-uint32_t CryptoMinisatSolver::getAssertionLevel() const
-{
-  Unreachable() << "No interface to get assertion level in Cryptominisat";
-  return -1;
-}
 
 // Satistics for CryptoMinisatSolver
 
