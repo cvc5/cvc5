@@ -204,6 +204,7 @@ bool InferProofCons::convert(Env& env,
     case InferenceId::STRINGS_NORMAL_FORM:
     case InferenceId::STRINGS_CODE_PROXY:
     case InferenceId::STRINGS_EXTF_REW_SAME:
+    case InferenceId::STRINGS_I_CYCLE_CONFLICT:
     {
       size_t idMax = 0;
       // These inferences assume the substitution is applied to the
@@ -228,6 +229,14 @@ bool InferProofCons::convert(Env& env,
       {
         useBuffer = true;
       }
+      else if (psb.applyPredIntro(concr, {},
+                                     MethodId::SB_DEFAULT,
+                                     MethodId::SBA_SEQUENTIAL,
+                                     MethodId::RW_EXT_REWRITE))
+      {
+        // maybe extended rewrite
+        useBuffer = true;
+      }
     }
     break;
     // ========================== substitution + rewriting
@@ -235,7 +244,6 @@ bool InferProofCons::convert(Env& env,
     case InferenceId::STRINGS_EXTF_D:
     case InferenceId::STRINGS_EXTF_D_N:
     case InferenceId::STRINGS_I_CONST_CONFLICT:
-    case InferenceId::STRINGS_I_CYCLE_CONFLICT:
     case InferenceId::STRINGS_UNIT_CONST_CONFLICT:
     case InferenceId::STRINGS_ARITH_BOUND_CONFLICT:
     {
