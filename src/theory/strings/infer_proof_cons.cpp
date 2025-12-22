@@ -204,9 +204,10 @@ bool InferProofCons::convert(Env& env,
     case InferenceId::STRINGS_NORMAL_FORM:
     case InferenceId::STRINGS_CODE_PROXY:
     case InferenceId::STRINGS_EXTF_REW_SAME:
+    case InferenceId::STRINGS_I_CYCLE_CONFLICT:
     {
       size_t idMax = 0;
-      // These three inference assume the substitution is applied to the
+      // These inferences assume the substitution is applied to the
       // *arguments* of extended functions and the length function, so we
       // will allow the substitutions to fire in term context value one.
       if (infer == InferenceId::STRINGS_EXTF
@@ -224,8 +225,13 @@ bool InferProofCons::convert(Env& env,
       Trace("strings-ipc-core") << "Rewrote conclusion" << std::endl;
       Trace("strings-ipc-core") << "- " << conc << std::endl;
       Trace("strings-ipc-core") << "- to " << concr << std::endl;
-      if (psb.applyPredIntro(concr, {}))
+      if (psb.applyPredIntro(concr,
+                             {},
+                             MethodId::SB_DEFAULT,
+                             MethodId::SBA_SEQUENTIAL,
+                             MethodId::RW_EXT_REWRITE))
       {
+        // maybe extended rewrite
         useBuffer = true;
       }
     }
