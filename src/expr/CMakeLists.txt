@@ -29,6 +29,8 @@ libcvc5_add_sources(
   attribute_unique_id.h
   bound_var_id.cpp
   bound_var_id.h
+  beta_reduce_converter.cpp
+  beta_reduce_converter.h
   bound_var_manager.cpp
   bound_var_manager.h
   cardinality_constraint.cpp
