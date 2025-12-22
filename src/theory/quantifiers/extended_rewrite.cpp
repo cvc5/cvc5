@@ -102,6 +102,7 @@ bool ExtendedRewriter::addToChildren(Node nc,
 
 Node ExtendedRewriter::extendedRewrite(Node n) const
 {
+  Trace("q-ext-rewrite-debug") << "extendedRewrite: " << n << std::endl;
   n = d_rew.rewrite(n);
 
   // has it already been computed?
