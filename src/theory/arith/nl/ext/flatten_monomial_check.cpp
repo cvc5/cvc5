@@ -15,6 +15,7 @@
 
 #include "theory/arith/nl/ext/flatten_monomial_check.h"
 
+#include "expr/node_algorithm.h"
 #include "proof/conv_proof_generator.h"
 #include "proof/proof.h"
 #include "proof/proof_node.h"
