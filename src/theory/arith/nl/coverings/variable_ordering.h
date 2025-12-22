@@ -45,11 +45,13 @@ enum class VariableOrderingStrategy
 class VariableOrdering
 {
  public:
-  VariableOrdering();
-  ~VariableOrdering();
+  VariableOrdering(const poly::Context& ctx) : d_polyCtx(ctx){};
   std::vector<poly::Variable> operator()(
       const Constraints::ConstraintVector& polys,
       VariableOrderingStrategy vos) const;
+
+ private:
+  const poly::Context& d_polyCtx;
 };
 
 /**
@@ -58,7 +60,9 @@ class VariableOrdering
  * computed by get_variable_information if no variable is specified.
  */
 std::vector<poly_utils::VariableInformation> collectInformation(
-    const Constraints::ConstraintVector& polys, bool with_totals = false);
+    const poly::Context& polyCtx,
+    const Constraints::ConstraintVector& polys,
+    bool with_totals = false);
 
 }  // namespace coverings
 }  // namespace nl

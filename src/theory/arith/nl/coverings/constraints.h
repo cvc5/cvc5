@@ -40,6 +40,8 @@ class Constraints
   using Constraint = std::tuple<poly::Polynomial, poly::SignCondition, Node>;
   using ConstraintVector = std::vector<Constraint>;
 
+  Constraints(const poly::Context& ctx) : d_varMapper(ctx) {}
+
   VariableMapper& varMapper() { return d_varMapper; }
 
   /**
