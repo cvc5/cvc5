@@ -24,8 +24,7 @@
 #include <CoCoA/ring.H>
 
 #include <memory>
-#include <set>
-#include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include "expr/node.h"
@@ -36,7 +35,7 @@ namespace theory {
 namespace ff {
 
 /**
- * Find a common zero for all poynomials in this ideal. Figure 5 from [OKTB23].
+ * Find a common zero for all polynomials in this ideal. Figure 5 from [OKTB23].
  */
 std::vector<CoCoA::RingElem> findZero(const CoCoA::ideal& ideal, const Env& env);
 
@@ -63,7 +62,7 @@ class AssignmentEnumerator
 class ListEnumerator : public AssignmentEnumerator
 {
  public:
-  ListEnumerator(const std::vector<CoCoA::RingElem>&& options);
+  ListEnumerator(std::vector<CoCoA::RingElem>&& options);
   ~ListEnumerator() override;
   std::optional<CoCoA::RingElem> next() override;
   std::string name() override;

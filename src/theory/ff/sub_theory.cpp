@@ -43,7 +43,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace ff {
 
-SubTheory::SubTheory(Env& env, FfStatistics* stats, Integer modulus)
+SubTheory::SubTheory(Env& env, FfStatistics* stats, const Integer& modulus)
     : EnvObj(env),
       FieldObj(nodeManager(), modulus),
       d_facts(context()),
@@ -113,8 +113,8 @@ Result SubTheory::postCheck(Theory::Effort e)
           CoCoA::PolyRing polyRing(enc.polyRing());
           for (const auto& var : CoCoA::indets(polyRing))
           {
-            CoCoA::BigInt characteristic = CoCoA::characteristic(coeffRing());
-            const long power = CoCoA::LogCardinality(coeffRing());
+            CoCoA::BigInt characteristic = CoCoA::characteristic(enc.coeffRing());
+            const long power = CoCoA::LogCardinality(enc.coeffRing());
             CoCoA::BigInt size = CoCoA::power(characteristic, power);
             generators.push_back(CoCoA::power(var, size) - var);
           }

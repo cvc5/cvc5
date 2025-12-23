@@ -37,9 +37,9 @@ namespace cvc5::internal {
 namespace theory {
 namespace ff {
 
-AssignmentEnumerator::~AssignmentEnumerator() {};
+AssignmentEnumerator::~AssignmentEnumerator() = default;
 
-ListEnumerator::ListEnumerator(const std::vector<CoCoA::RingElem>&& options)
+ListEnumerator::ListEnumerator(std::vector<CoCoA::RingElem>&& options)
     : d_remainingOptions(std::move(options))
 {
   std::reverse(d_remainingOptions.begin(), d_remainingOptions.end());
@@ -65,7 +65,7 @@ std::string ListEnumerator::name() { return "list"; }
 
 std::unique_ptr<ListEnumerator> factorEnumerator(CoCoA::RingElem univariatePoly)
 {
-  int varIdx = CoCoA::UnivariateIndetIndex(univariatePoly);
+  long varIdx = CoCoA::UnivariateIndetIndex(univariatePoly);
   Assert(varIdx >= 0);
   Trace("ff::model::factor") << "roots for: " << univariatePoly << std::endl;
   std::vector<CoCoA::RingElem> theRoots = roots(univariatePoly);
@@ -128,8 +128,8 @@ std::pair<size_t, CoCoA::RingElem> extractAssignment(
 {
   Assert(CoCoA::deg(elem) == 1);
   Assert(CoCoA::NumTerms(elem) <= 2);
-  CoCoA::RingElem m = CoCoA::monic(elem);
-  int varNumber = CoCoA::UnivariateIndetIndex(elem);
+  const CoCoA::RingElem m = CoCoA::monic(elem);
+  long varNumber = CoCoA::UnivariateIndetIndex(elem);
   Assert(varNumber >= 0);
   return {varNumber, -CoCoA::ConstantCoeff(m)};
 }
@@ -142,7 +142,7 @@ std::unordered_set<std::string> assignedVars(const CoCoA::ideal& ideal)
   {
     if (CoCoA::deg(g) == 1)
     {
-      int varNumber = CoCoA::UnivariateIndetIndex(g);
+      long varNumber = CoCoA::UnivariateIndetIndex(g);
       if (varNumber >= 0)
       {
         ret.insert(ostring(CoCoA::indet(ideal->myRing(), varNumber)));
@@ -167,7 +167,7 @@ std::unique_ptr<AssignmentEnumerator> applyRule(const CoCoA::ideal& ideal)
   const auto& gens = CoCoA::GBasis(ideal);
   for (const auto& p : gens)
   {
-    int varNumber = CoCoA::UnivariateIndetIndex(p);
+    long varNumber = CoCoA::UnivariateIndetIndex(p);
     if (varNumber >= 0 && CoCoA::deg(p) > 1)
     {
       return factorEnumerator(p);

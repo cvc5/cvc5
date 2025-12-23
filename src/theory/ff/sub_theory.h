@@ -61,7 +61,7 @@ class SubTheory : protected EnvObj, public FieldObj
    * Parameters:
    * * modulus: the size of this field for this theory, a prime.
    */
-  SubTheory(Env& env, FfStatistics* stats, Integer modulus);
+  SubTheory(Env& env, FfStatistics* stats, const Integer& modulus);
 
   /**
    * Assert a fact to this theory.
