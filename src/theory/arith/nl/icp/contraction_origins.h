@@ -34,7 +34,7 @@ namespace icp {
  * (like x>0) yields an origin for this variable. For every contraction, we then
  * add a new origin that recursively holds the old origins, usually those of all
  * variables involved in the contraction. When generating a conflict or a lemma,
- * a recursive walk through this structure allow to retrieve all input theory
+ * a recursive walk through this structure allows one to retrieve all input theory
  * atoms that contributed to the new fact or the conflict.
  */
 class ContractionOriginManager
