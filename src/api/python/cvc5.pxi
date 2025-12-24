@@ -5425,7 +5425,7 @@ cdef class Statistics:
         """
             Get all statistics as a dictionary.
 
-            :param internal:  True to also inclue internal statistics.
+            :param internal:  True to also include internal statistics.
             :param defaulted: True to also include unchanged statistics.
             :return: A dictionary with all available statistics.
         """
