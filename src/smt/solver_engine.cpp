@@ -1773,6 +1773,13 @@ std::vector<Node> SolverEngine::getUnsatCoreLemmas()
   return d_ucManager->getUnsatCoreLemmas(false);
 }
 
+std::vector<Node> SolverEngine::getPartitions()
+{
+  Trace("smt") << "SMT getPartitions()" << std::endl;
+  finishInit();
+  return d_smtSolver->getTheoryEngine()->getPartitions();
+}
+
 void SolverEngine::getRelevantQuantTermVectors(
     std::map<Node, InstantiationList>& insts,
     std::map<Node, std::vector<Node>>& sks,
