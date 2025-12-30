@@ -1889,15 +1889,53 @@ bool AletheProofPostprocessCallback::update(Node res,
       return success;
     }
     // ======== Variable reordering
-    // This rule is translated according to the clause pattern.
+    // Let X = ((x1 T1) ... (xn Tn)) and Y = ((y1 U1) ... (yn Un)) and Z = ((x1 T1) ... (xn Tn) (y1 U1) ... (yn Un))
+    // Then, res is (cl (= (forall ((x1 T1) ... (xn Tn)) F) (forall ((y1 U1) ... (yn Un)) F)))
+    //
+    // VP1: (cl (= (forall Z F) (forall X F)))
+    // VP2: (cl (= (forall X F) (forall Z F)))
+    // VP3: (cl (= (forall Z F) (forall Y F)))
+    //
+    // ----- QNT_RM_UNUSED
+    //  VP1
+    // ----- SYMM  ----- QNT_RM_UNUSED
+    //  VP2         VP3
+    // ----------------- TRANS
+    //        res
     case ProofRule::QUANT_VAR_REORDERING:
     {
-      return addAletheStep(AletheRule::REFL,
+      Node forall_X = res[0];
+      Node forall_Y = res[1];
+      Node F = forall_X[1];
+      Node X = forall_X[0]; 
+      Node Y = forall_Y[1];
+      std::vector<Node> Z_clauses;
+      Z_clauses.insert(Z_clauses.end(),X.begin(),X.end());
+      Z_clauses.insert(Z_clauses.end(),Y.begin(),Y.end());
+      Node Z = nm->mkNode(Kind::FORALL,nm->mkNode(Kind::BOUND_VAR_LIST,Z_clauses),F);
+      Node VP1 = nm->mkNode(Kind::EQUAL,Z,X);
+      Node VP2 = nm->mkNode(Kind::EQUAL,X,Z);
+      Node VP3 = nm->mkNode(Kind::EQUAL,Z,Y);
+
+      return addAletheStep(AletheRule::QNT_RM_UNUSED,
+                           VP1,
+                           nm->mkNode(Kind::SEXPR, d_cl, VP1),
+                           {},
+                           {},
+                           *cdp)
+	&& addAletheStep(AletheRule::QNT_RM_UNUSED,
+                           VP2,
+                           nm->mkNode(Kind::SEXPR, d_cl, VP2),
+                           {},
+                           {},
+                           *cdp)
+	&& addAletheStep(AletheRule::TRANS,
                            res,
                            nm->mkNode(Kind::SEXPR, d_cl, res),
                            {},
                            {},
                            *cdp);
+
     }
     //================================================= Arithmetic rules
     // ======== Adding Scaled Inequalities
