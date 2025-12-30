@@ -540,6 +540,17 @@ void BaseSolver::checkConstantEquivalenceClasses(TermIndex* ti,
             Trace("strings-debug")
                 << "Set eqc best content " << n << " to " << nct
                 << ", explanation = " << bei.d_exp << std::endl;
+            // we have e.g. (= x (str.++ "A" x)), which is a conflict.
+            for (const Node& nctc : nct)
+            {
+              if (d_state.areEqual(nctc, nr))
+              {
+                d_im.sendInference(exp,
+                                   nctc.eqNode(n).notNode(),
+                                   InferenceId::STRINGS_I_CYCLE_CONFLICT);
+                return;
+              }
+            }
           }
         }
       }
