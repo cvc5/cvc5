@@ -58,7 +58,8 @@ inline std::ostream& operator<<(std::ostream& os, const IAWrapper& iaw)
       {
         os << ", ";
       }
-      os << v.first << " -> " << iaw.ia.get(v.first);
+      os << stream_variable(iaw.vm.polyCtx, v.first) << " -> "
+         << iaw.ia.get(v.first);
     }
   }
   return os << " }";
@@ -66,7 +67,10 @@ inline std::ostream& operator<<(std::ostream& os, const IAWrapper& iaw)
 }  // namespace
 
 ICPSolver::ICPSolver(Env& env, InferenceManager& im)
-    : EnvObj(env), d_im(im), d_state(env, d_mapper)
+    : EnvObj(env),
+      d_mapper(nodeManager()->getPolyContext()),
+      d_im(im),
+      d_state(env, d_mapper)
 {
 }
 
@@ -110,6 +114,8 @@ std::vector<Candidate> ICPSolver::constructCandidates(const Node& n)
     Node veq_c;
     Node val;
 
+    const poly::Context& polyCtx = nodeManager()->getPolyContext();
+
     int isolated = ArithMSum::isolate(v, msum, veq_c, val, k);
     if (isolated == 1)
     {
@@ -132,7 +138,13 @@ std::vector<Candidate> ICPSolver::constructCandidates(const Node& n)
       {
         rhsmult = poly_utils::toRational(veq_c.getConst<Rational>());
       }
-      Candidate res{lhs, rel, rhs, poly::inverse(rhsmult), n, collectVariables(val)};
+      Candidate res{polyCtx,
+                    lhs,
+                    rel,
+                    rhs,
+                    poly::inverse(rhsmult),
+                    n,
+                    collectVariables(val)};
       Trace("nl-icp") << "\tAdded " << res << " from " << n << std::endl;
       result.emplace_back(res);
     }
@@ -156,7 +168,13 @@ std::vector<Candidate> ICPSolver::constructCandidates(const Node& n)
       {
         rhsmult = poly_utils::toRational(veq_c.getConst<Rational>());
       }
-      Candidate res{lhs, rel, rhs, poly::inverse(rhsmult), n, collectVariables(val)};
+      Candidate res{polyCtx,
+                    lhs,
+                    rel,
+                    rhs,
+                    poly::inverse(rhsmult),
+                    n,
+                    collectVariables(val)};
       Trace("nl-icp") << "\tAdded " << res << " from " << n << std::endl;
       result.emplace_back(res);
     }

@@ -84,7 +84,7 @@ struct LazardEvaluationState;
 class LazardEvaluation
 {
  public:
-  LazardEvaluation(StatisticsRegistry& reg);
+  LazardEvaluation(StatisticsRegistry& reg, const poly::Context& ctx);
   ~LazardEvaluation();
 
   /**
