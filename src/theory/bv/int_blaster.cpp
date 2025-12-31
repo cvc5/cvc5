@@ -71,9 +71,21 @@ IntBlaster::~IntBlaster() {}
 
 std::shared_ptr<ProofNode> IntBlaster::getProofFor(Node fact)
 {
-  // proofs not yet supported
   CDProof cdp(d_env);
-  cdp.addTrustedStep(fact, TrustId::INT_BLASTER, {}, {});
+
+  if (fact.getKind() == Kind::EQUAL)
+  {
+    // step for equality between vector formula and intblasted formula
+    Assert(fact.getNumChildren() == 2);
+    cdp.addStep(fact, ProofRule::BV_INTBLAST, {}, {fact});
+  }
+  else
+  {
+    Assert(fact.getKind() == Kind::AND);
+    // otherwise step for lemma bounds
+    cdp.addStep(fact, ProofRule::BV_INTBLAST_BOUNDS, {}, {fact});
+  }
+
   return cdp.getProofFor(fact);
 }
 
@@ -151,10 +163,10 @@ Node IntBlaster::makeBinary(Node n)
           || k == Kind::BITVECTOR_AND || k == Kind::BITVECTOR_OR
           || k == Kind::BITVECTOR_XOR || k == Kind::BITVECTOR_CONCAT))
   {
-    result = n[0];
-    for (uint32_t i = 1; i < numChildren; i++)
+    result = n[numChildren - 1];
+    for (uint32_t i = numChildren - 1; i > 0; i--)
     {
-      result = d_nm->mkNode(n.getKind(), result, n[i]);
+      result = d_nm->mkNode(n.getKind(), n[i - 1], result);
     }
   }
   d_binarizeCache[n] = result;

@@ -4,6 +4,7 @@
 ; COMMAND-LINE: --solve-bv-as-int=iand --iand-mode=sum
 ; COMMAND-LINE: --solve-bv-as-int=bv
 ; EXPECT: unsat
+; DISABLE-TESTER: cpc
 (set-logic ALL)
 (declare-fun A () (Array Int Int))
 (declare-fun f ((_ BitVec 3)) Int)

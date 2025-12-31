@@ -118,6 +118,8 @@ const char* toString(ProofRule rule)
     case ProofRule::ARRAYS_READ_OVER_WRITE_1: return "ARRAYS_READ_OVER_WRITE_1";
     case ProofRule::ARRAYS_EXT: return "ARRAYS_EXT";
     //================================================= Bit-Vector rules
+    case ProofRule::BV_INTBLAST: return "BV_INTBLAST";
+    case ProofRule::BV_INTBLAST_BOUNDS: return "BV_INTBLAST_BOUNDS";
     case ProofRule::MACRO_BV_BITBLAST: return "MACRO_BV_BITBLAST";
     case ProofRule::BV_BITBLAST_STEP: return "BV_BITBLAST_STEP";
     case ProofRule::BV_EAGER_ATOM: return "BV_EAGER_ATOM";
