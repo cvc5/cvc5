@@ -80,6 +80,10 @@ Node BuiltinProofRuleChecker::applySubstitutionRewrite(
     MethodId idr)
 {
   Node nks = applySubstitution(n, exp, ids, ida);
+  if (nks.isNull())
+  {
+    return nks;
+  }
   return d_env.rewriteViaMethod(nks, idr);
 }
 
@@ -409,6 +413,10 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
     exp.insert(exp.end(), children.begin() + 1, children.end());
     Node res1 = applySubstitutionRewrite(children[0], exp, ids, ida, idr);
     Node res2 = applySubstitutionRewrite(args[0], exp, ids, ida, idr);
+    if (res1.isNull() || res2.isNull())
+    {
+      return Node::null();
+    }
     // if not already equal, do rewriting
     if (res1 != res2)
     {
