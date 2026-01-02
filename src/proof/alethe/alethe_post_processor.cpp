@@ -543,6 +543,19 @@ bool AletheProofPostprocessCallback::update(Node res,
 
       return success;
     }
+    // ======== Absorb
+    case ProofRule::ABSORB:
+    {
+      AletheRule rule;
+      switch (res.getKind())
+      {
+        case Kind::OR: rule = AletheRule::OR_SIMPLIFY; break;
+        case Kind::AND: rule = AletheRule::AND_SIMPLIFY; break;
+        default: rule = AletheRule::HOLE;
+      }
+      return addAletheStep(
+          rule, res, nm->mkNode(Kind::SEXPR, d_cl, res), {}, {}, *cdp);
+    }
     // ======== Encode equality introduction
     // This rule is translated according to the singleton pattern.
     case ProofRule::ENCODE_EQ_INTRO:
