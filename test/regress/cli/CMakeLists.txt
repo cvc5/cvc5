@@ -974,6 +974,7 @@ set(regress_0_tests
   regress0/ho/apply-collapse-sat.smt2
   regress0/ho/apply-collapse-unsat.smt2
   regress0/ho/bug_nodbuilding_interpreted_SYO042^1.smt2
+  regress0/ho/cg-no-shared.smt2
   regress0/ho/cong-full-apply.smt2
   regress0/ho/cong.smt2
   regress0/ho/datatype-field-ho.smt2
@@ -993,6 +994,7 @@ set(regress_0_tests
   regress0/ho/fta0210.smt2
   regress0/ho/fun-subtyping.smt2
   regress0/ho/ho-exponential-model.smt2
+  regress0/ho/ho-leibniz-rewrite.smt2
   regress0/ho/ho-match-fun-suffix.smt2
   regress0/ho/ho-matching-enum-2.smt2
   regress0/ho/ho-matching-enum.smt2
@@ -1047,6 +1049,7 @@ set(regress_0_tests
   regress0/ineq_slack.smtv1.smt2
   regress0/int-to-bv/basic.smt2
   regress0/int-to-bv/issue8935-unsupported-operators.smt2
+  regress0/int-to-bv/issue12319-int-to-bv.smt2
   regress0/int-to-bv/neg-consts.smt2
   regress0/int-to-bv/not-enough-bits.smt2
   regress0/int-to-bv/overflow.smt2
@@ -1221,6 +1224,7 @@ set(regress_0_tests
   regress0/nl/proj-issue637-rr-type.smt2
   regress0/nl/proj-issue767-subtype-nl-abs.smt2
   regress0/nl/proj-issue769-nl-compare-rcons.smt2
+  regress0/nl/proj-issue779-arith-distro-nidem.smt2
   regress0/nl/real-as-int.smt2
   regress0/nl/real-div-ufnra.smt2
   regress0/nl/sin-cos-346-b-chunk-0169.smt2
@@ -2169,6 +2173,7 @@ set(regress_0_tests
   regress0/strings/regexp-native-simple.cvc.smt2
   regress0/strings/regexp-repeat.smt2
   regress0/strings/repl-rewrites2.smt2
+  regress0/strings/replace-all-rew-more.smt2
   regress0/strings/replace-const.smt2
   regress0/strings/replaceall-eval.smt2
   regress0/strings/rewrites-re-concat.smt2
