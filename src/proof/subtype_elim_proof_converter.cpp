@@ -16,6 +16,7 @@
 #include "proof/subtype_elim_proof_converter.h"
 
 #include "expr/node_algorithm.h"
+#include "theory/arith/arith_utilities.h"
 #include "proof/conv_proof_generator.h"
 #include "proof/proof.h"
 #include "proof/proof_checker.h"
@@ -138,6 +139,26 @@ Node SubtypeElimConverterCallback::convert(Node res,
       }
     }
     break;
+    case ProofRule::ARITH_MULT_POS:
+    case ProofRule::ARITH_MULT_NEG:
+    {
+      if (cargs[0].getType().isInteger())
+      {
+        // real relation multiplied by integer, cast the multiplicand to real
+        Assert (cargs.size()==2 && cargs[1].getNumChildren()==2);
+        if (cargs[1][0].getType().isReal())
+        {
+          cargs[0] = theory::arith::castToReal(nm, cargs[0]);
+        }
+      }
+      else if (cargs[1][0].getType().isInteger())
+      {
+        // integer relation multiplied by real, cast to a real relation
+        cargs[1] = nm->mkNode(cargs[1].getKind(), theory::arith::castToReal(nm,cargs[1][0]),
+                                 theory::arith::castToReal(nm,cargs[1][1]));
+      }
+    }
+    break;
     default: break;
   }
 
@@ -245,19 +266,31 @@ Node SubtypeElimConverterCallback::convert(Node res,
       //
       // there t'~s' is a predicate over reals and t~s is a mixed integer
       // predicate.
-      Node sc = resc[0][0];
-      Node relOld = resc[0][1];
-      Node relNew = nm->mkNode(relOld.getKind(), resc[1][0][1], resc[1][1][1]);
-      if (prove(relOld, relNew, cdp))
+      bool csuccess = true;
+      for (size_t i=0; i<2; i++)
       {
-        Node relNewMult = resc[1];
-        Node antec = nm->mkNode(Kind::AND, sc, relNew);
-        Node rimpl = nm->mkNode(Kind::IMPLIES, antec, relNewMult);
-        cdp->addStep(rimpl, id, {}, {args[0], relNew});
-        cdp->addStep(antec, ProofRule::AND_INTRO, {sc, relNew}, {});
-        cdp->addStep(relNewMult, ProofRule::MODUS_PONENS, {antec, rimpl}, {});
-        cdp->addStep(resc, ProofRule::SCOPE, {relNewMult}, {sc, relOld});
-        success = true;
+        Node relOld = resc[0][i];
+        Trace("pf-subtype-elim") << "Old relation: " << relOld << std::endl;
+        Node relNew = newRes[0][i];
+        Trace("pf-subtype-elim") << "New relation: " << relNew << std::endl;
+        if (!prove(relOld, relNew, cdp))
+        {
+          csuccess = false;
+          break;
+        }
+      }
+      if (csuccess)
+      {
+        Node antec = newRes[0];
+        Node rimpl = nm->mkNode(Kind::IMPLIES, antec, newRes[1]);
+        cdp->addStep(rimpl, id, {}, {cargs[0], newRes[0][1]});
+        cdp->addStep(antec, ProofRule::AND_INTRO, {newRes[0][0], newRes[0][1]}, {});
+        cdp->addStep(newRes[1], ProofRule::MODUS_PONENS, {antec, rimpl}, {});
+        if (prove(newRes[1], resc[1], cdp))
+        {
+          cdp->addStep(resc, ProofRule::SCOPE, {resc[1]}, {resc[0][0], resc[0][1]});
+          success = true;
+        }
       }
     }
     break;
