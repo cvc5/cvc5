@@ -539,6 +539,7 @@ bool AletheProofPostprocessCallback::update(Node res,
       return success;
     }
     // ======== Absorb
+    // This rule is translated according to the singleton pattern.
     case ProofRule::ABSORB:
     {
       AletheRule rule;
