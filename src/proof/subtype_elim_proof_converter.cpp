@@ -281,11 +281,9 @@ Node SubtypeElimConverterCallback::convert(Node res,
       }
       if (csuccess)
       {
-        Node antec = newRes[0];
-        Node rimpl = nm->mkNode(Kind::IMPLIES, antec, newRes[1]);
-        cdp->addStep(rimpl, id, {}, {cargs[0], newRes[0][1]});
-        cdp->addStep(antec, ProofRule::AND_INTRO, {newRes[0][0], newRes[0][1]}, {});
-        cdp->addStep(newRes[1], ProofRule::MODUS_PONENS, {antec, rimpl}, {});
+        cdp->addStep(newRes, id, {}, {cargs[0], newRes[0][1]});
+        cdp->addStep(newRes[0], ProofRule::AND_INTRO, {newRes[0][0], newRes[0][1]}, {});
+        cdp->addStep(newRes[1], ProofRule::MODUS_PONENS, {newRes[0], newRes}, {});
         if (prove(newRes[1], resc[1], cdp))
         {
           cdp->addStep(resc, ProofRule::SCOPE, {resc[1]}, {resc[0][0], resc[0][1]});
