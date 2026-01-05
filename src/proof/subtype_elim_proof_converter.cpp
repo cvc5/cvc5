@@ -251,7 +251,8 @@ Node SubtypeElimConverterCallback::convert(Node res,
     case ProofRule::ARITH_MULT_NEG:
     {
       // This handles the case where we multiply an integer relation by
-      // a rational. We tranform the proof as follows:
+      // a rational, or multiply a real relation by an integer.
+      // We tranform the proof for the latter as follows:
       //
       //            ----- ASSUME
       //            t~s
@@ -265,7 +266,7 @@ Node SubtypeElimConverterCallback::convert(Node res,
       // (=> (and c>0 t~s) (c*t'~c*s'))
       //
       // there t'~s' is a predicate over reals and t~s is a mixed integer
-      // predicate.
+      // predicate. The former is handled similarly.
       bool csuccess = true;
       for (size_t i=0; i<2; i++)
       {
