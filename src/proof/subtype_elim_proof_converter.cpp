@@ -16,13 +16,13 @@
 #include "proof/subtype_elim_proof_converter.h"
 
 #include "expr/node_algorithm.h"
-#include "theory/arith/arith_utilities.h"
 #include "proof/conv_proof_generator.h"
 #include "proof/proof.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_node_algorithm.h"
 #include "proof/proof_node_manager.h"
 #include "smt/env.h"
+#include "theory/arith/arith_utilities.h"
 #include "util/rational.h"
 
 namespace cvc5::internal {
@@ -145,7 +145,7 @@ Node SubtypeElimConverterCallback::convert(Node res,
       if (cargs[0].getType().isInteger())
       {
         // real relation multiplied by integer, cast the multiplicand to real
-        Assert (cargs.size()==2 && cargs[1].getNumChildren()==2);
+        Assert(cargs.size() == 2 && cargs[1].getNumChildren() == 2);
         if (cargs[1][0].getType().isReal())
         {
           cargs[0] = theory::arith::castToReal(nm, cargs[0]);
@@ -154,8 +154,9 @@ Node SubtypeElimConverterCallback::convert(Node res,
       else if (cargs[1][0].getType().isInteger())
       {
         // integer relation multiplied by real, cast to a real relation
-        cargs[1] = nm->mkNode(cargs[1].getKind(), theory::arith::castToReal(nm,cargs[1][0]),
-                                 theory::arith::castToReal(nm,cargs[1][1]));
+        cargs[1] = nm->mkNode(cargs[1].getKind(),
+                              theory::arith::castToReal(nm, cargs[1][0]),
+                              theory::arith::castToReal(nm, cargs[1][1]));
       }
     }
     break;
@@ -268,7 +269,7 @@ Node SubtypeElimConverterCallback::convert(Node res,
       // there t'~s' is a predicate over reals and t~s is a mixed integer
       // predicate. The former is handled similarly.
       bool csuccess = true;
-      for (size_t i=0; i<2; i++)
+      for (size_t i = 0; i < 2; i++)
       {
         Node relOld = resc[0][i];
         Trace("pf-subtype-elim") << "Old relation: " << relOld << std::endl;
@@ -283,11 +284,14 @@ Node SubtypeElimConverterCallback::convert(Node res,
       if (csuccess)
       {
         cdp->addStep(newRes, id, {}, {cargs[0], newRes[0][1]});
-        cdp->addStep(newRes[0], ProofRule::AND_INTRO, {newRes[0][0], newRes[0][1]}, {});
-        cdp->addStep(newRes[1], ProofRule::MODUS_PONENS, {newRes[0], newRes}, {});
+        cdp->addStep(
+            newRes[0], ProofRule::AND_INTRO, {newRes[0][0], newRes[0][1]}, {});
+        cdp->addStep(
+            newRes[1], ProofRule::MODUS_PONENS, {newRes[0], newRes}, {});
         if (prove(newRes[1], resc[1], cdp))
         {
-          cdp->addStep(resc, ProofRule::SCOPE, {resc[1]}, {resc[0][0], resc[0][1]});
+          cdp->addStep(
+              resc, ProofRule::SCOPE, {resc[1]}, {resc[0][0], resc[0][1]});
           success = true;
         }
       }
