@@ -59,7 +59,6 @@ bool MacroRewriteElaborator::ensureProofFor(CDProof* cdp,
 bool MacroRewriteElaborator::ensureProofForSimplify(CDProof* cdp,
                                                     const Node& eq)
 {
-  
   // below, we group all of the constant children into one nested
   // child, prove the grouping by ACI_NORM, evaluate the constant
   // child, then prove the equality by another instance of ACI_NORM
