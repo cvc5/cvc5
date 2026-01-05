@@ -98,7 +98,7 @@ bool ProcessAssertions::apply(AssertionPipeline& ap)
   {
     std::ostream& outPA = d_env.output(OutputTag::PRE_ASSERTS);
     outPA << ";; pre-asserts start" << std::endl;
-    dumpAssertionsToStream(outPA, ap);
+    dumpAssertionsToStream(outPA, ap, options().smt.printDefs);
     outPA << ";; pre-asserts end" << std::endl;
   }
 
@@ -388,7 +388,7 @@ bool ProcessAssertions::apply(AssertionPipeline& ap)
   {
     std::ostream& outPA = d_env.output(OutputTag::POST_ASSERTS);
     outPA << ";; post-asserts start" << std::endl;
-    dumpAssertionsToStream(outPA, ap);
+    dumpAssertionsToStream(outPA, ap, options().smt.printDefs);
     outPA << ";; post-asserts end" << std::endl;
   }
 
@@ -489,7 +489,7 @@ void ProcessAssertions::dumpAssertions(const std::string& key,
     return;
   }
   std::stringstream ss;
-  dumpAssertionsToStream(ss, ap);
+  dumpAssertionsToStream(ss, ap, options().smt.printDefs);
   Trace(key) << ";;; " << key << " start" << std::endl;
   Trace(key) << ss.str();
   Trace(key) << ";;; " << key << " end " << std::endl;
@@ -520,7 +520,7 @@ void ProcessAssertions::dumpAssertionsToStream(std::ostream& os,
   const theory::SubstitutionMap& sm = d_env.getTopLevelSubstitutions().get();
   const std::unordered_map<Node, Node>& ss = sm.getSubstitutions();
 
-  if (printDefs && options().smt.printDefs)
+  if (printDefs)
   {
     for (const std::pair<const Node, Node>& s : ss)
     {
