@@ -148,7 +148,7 @@ bool ProcessAssertions::apply(AssertionPipeline& ap)
 
     std::ostream& outPA = d_env.output(OutputTag::NORMALIZE);
     outPA << ";; normalize start" << std::endl;
-    dumpAssertionsToStream(outPA, ap);
+    dumpAssertionsToStream(outPA, ap, false);
     outPA << ";; normalize end" << std::endl;
     return true;
   }
@@ -496,7 +496,8 @@ void ProcessAssertions::dumpAssertions(const std::string& key,
 }
 
 void ProcessAssertions::dumpAssertionsToStream(std::ostream& os,
-                                               const AssertionPipeline& ap)
+                                               const AssertionPipeline& ap,
+                                               bool printDefs)
 {
   PrintBenchmark pb(nodeManager(), Printer::getPrinter(os));
   std::vector<Node> assertions;
@@ -519,7 +520,7 @@ void ProcessAssertions::dumpAssertionsToStream(std::ostream& os,
   const theory::SubstitutionMap& sm = d_env.getTopLevelSubstitutions().get();
   const std::unordered_map<Node, Node>& ss = sm.getSubstitutions();
 
-  if (options().smt.printDefs)
+  if (printDefs && options().smt.printDefs)
   {
     for (const std::pair<const Node, Node>& s : ss)
     {

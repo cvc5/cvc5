@@ -1038,12 +1038,6 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
     SET_AND_NOTIFY_IF_NOT_USER_VAL_SYM(
         arith, nlExt, options::NlExtMode::FULL, "logic with transcendentals");
   }
-
-  if (isOutputOn(OutputTag::NORMALIZE))
-  {
-    SET_AND_NOTIFY(smt, printDefs, false, "normalization");
-    SET_AND_NOTIFY(base, preprocessOnly, true, "normalize output");
-  }
 }
 
 bool SetDefaults::isSygus(const Options& opts) const
