@@ -34,6 +34,10 @@ struct FfStatistics
    */
   TimerStat d_reductionTime;
   /**
+   * Number of reductions where 1 was in the ideal.
+   */
+  IntStat d_numTrivialUnsat;
+  /**
    * Time spent in model construction
    */
   TimerStat d_modelConstructionTime;
@@ -41,6 +45,14 @@ struct FfStatistics
    * Number of times that model construction gave an error
    */
   IntStat d_numConstructionErrors;
+  /**
+   * Number of times the ideal was zero dimensional.
+   */
+  IntStat d_idealMinPoly;
+  /**
+   * Number of times the ideal was positive dimensional.
+   */
+  IntStat d_idealPosDim;
 
   FfStatistics(StatisticsRegistry& reg, const std::string& prefix);
 };

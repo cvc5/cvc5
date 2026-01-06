@@ -120,9 +120,12 @@ Result SubTheory::postCheck(Theory::Effort e)
           }
         }
         Tracer tracer(generators);
+        ++d_stats->d_numReductions;
         if (options().ff.ffTraceGb) tracer.setFunctionPointers();
+        d_stats->d_reductionTime.start();
         CoCoA::ideal ideal = CoCoA::ideal(generators);
         const auto basis = GBasisTimeout(ideal, d_env.getResourceManager());
+        d_stats->d_reductionTime.stop();
         if (options().ff.ffTraceGb) tracer.unsetFunctionPointers();
 
         // if it is trivial, create a conflict
@@ -130,6 +133,7 @@ Result SubTheory::postCheck(Theory::Effort e)
         if (is_trivial)
         {
           Trace("ff::gb") << "Trivial GB" << std::endl;
+          ++d_stats->d_numTrivialUnsat;
           result = Result::UNSAT;
           if (options().ff.ffTraceGb)
           {
@@ -161,7 +165,7 @@ Result SubTheory::postCheck(Theory::Effort e)
           Trace("ff::gb") << "Non-trivial GB" << std::endl;
 
           // common root (vec of CoCoA base ring elements)
-          std::vector<CoCoA::RingElem> root = findZero(ideal, d_env);
+          std::vector<CoCoA::RingElem> root = findZero(ideal, d_env, d_stats);
 
           if (root.empty())
           {
@@ -197,6 +201,8 @@ Result SubTheory::postCheck(Theory::Effort e)
     }
     catch (FfTimeoutException& exc)
     {
+      if (d_stats->d_reductionTime.running())
+        d_stats->d_reductionTime.stop();
       return {Result::UNKNOWN, UnknownExplanation::TIMEOUT, exc.getMessage()};
     }
   }
