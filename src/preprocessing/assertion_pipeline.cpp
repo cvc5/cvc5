@@ -59,6 +59,12 @@ void AssertionPipeline::push_back(
     // case where "false" was already seen as an input assertion.
     return;
   }
+  // If proof enabled, notify the preprocess proof generator.
+  // Note that we notify the preprocess proof generator that we have a proof
+  // of the assertion here, even when we use AND elimination to add each
+  // conjunct of n, if it is a conjunction. The reason is that in rare cases we
+  // may reinfer n (say via rewriting another assumption) which may lead to
+  // a cyclic proof if that rewriting assumed n.
   if (isProofEnabled())
   {
     if (!isInput)
