@@ -651,6 +651,8 @@ set(regress_0_tests
   regress0/bv/issue9518_2.smt2
   regress0/bv/issue9519.smt2
   regress0/bv/issue10057.smt2
+  regress0/bv/issue12336-xor-simp.smt2
+  regress0/bv/issue12336-xor-simp-s.smt2
   regress0/bv/le-elim-conv.smt2
   regress0/bv/macro-rewrites.smt2
   regress0/bv/mul-neg-unsat.smt2
