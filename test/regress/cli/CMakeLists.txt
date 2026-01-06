@@ -325,6 +325,8 @@ set(regress_0_tests
   regress0/bv/bv2nat-ground-c.smt2
   regress0/bv/bv2nat-simp-range.smt2
   regress0/bv/bv_to_int1.smt2
+  regress0/bv/bv_to_int_12342.smt2
+  regress0/bv/bv_to_int_12337.smt2
   regress0/bv/bv_to_int_415.smt2
   regress0/bv/bv_to_int_5230_binary.smt2
   regress0/bv/bv_to_int_5230_missing_op.smt2
@@ -333,6 +335,7 @@ set(regress_0_tests
   regress0/bv/bv_to_int_5293_1.smt2
   regress0/bv/bv_to_int_5293_2.smt2
   regress0/bv/bv_to_int_8412.smt2
+  regress0/bv/bv_to_int_8798.smt2
   regress0/bv/bv_to_int_9071.smt2
   regress0/bv/bv_to_int_9071_bv4.smt2
   regress0/bv/bv_to_int_9071_th_sym.smt2
