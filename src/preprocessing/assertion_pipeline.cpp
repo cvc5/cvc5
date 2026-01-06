@@ -59,6 +59,20 @@ void AssertionPipeline::push_back(
     // case where "false" was already seen as an input assertion.
     return;
   }
+  if (isProofEnabled())
+  {
+    if (!isInput)
+    {
+      // notice this is always called, regardless of whether pgen is nullptr
+      d_pppg->notifyNewAssert(n, pgen, trustId);
+    }
+    else
+    {
+      Assert(pgen == nullptr);
+      // n is an input assertion, whose proof should be ASSUME.
+      d_pppg->notifyInput(n);
+    }
+  }
   if (n == d_false)
   {
     markConflict();
@@ -135,20 +149,6 @@ void AssertionPipeline::push_back(
   }
   Trace("assert-pipeline") << "Assertions: ...new assertion " << n
                            << ", isInput=" << isInput << std::endl;
-  if (isProofEnabled())
-  {
-    if (!isInput)
-    {
-      // notice this is always called, regardless of whether pgen is nullptr
-      d_pppg->notifyNewAssert(n, pgen, trustId);
-    }
-    else
-    {
-      Assert(pgen == nullptr);
-      // n is an input assertion, whose proof should be ASSUME.
-      d_pppg->notifyInput(n);
-    }
-  }
 }
 
 void AssertionPipeline::pushBackTrusted(TrustNode trn,
