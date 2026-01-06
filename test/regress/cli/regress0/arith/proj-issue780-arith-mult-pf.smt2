@@ -1,4 +1,5 @@
 ; EXPECT: unsat
+; DISABLE-TESTER: alethe
 (set-logic ALL)
 (declare-fun skoX () Real) (declare-fun skoY () Real) (declare-fun skoZ () Real) 
 (assert (let ((?v_2 (<= 0 skoY))(?v_0 (* skoX (- 1)))) (let ((?v_3 0)(?v_4 (<= (* skoZ
