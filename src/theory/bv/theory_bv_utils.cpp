@@ -416,7 +416,7 @@ Node mkDec(TNode t)
 
 Node flattenAnd(std::vector<TNode>& queue)
 {
-  TNodeSet nodes;
+  std::unordered_set<Node> nodes;
   while (!queue.empty())
   {
     TNode current = queue.back();

@@ -30,9 +30,6 @@ namespace cvc5::internal {
 namespace theory {
 namespace bv {
 
-typedef std::unordered_set<Node> NodeSet;
-typedef std::unordered_set<TNode> TNodeSet;
-
 namespace utils {
 
 typedef std::unordered_map<TNode, bool> TNodeBoolMap;
