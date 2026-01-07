@@ -187,7 +187,7 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator,
    *
    * @param alit The activation literal for the current user assertion level.
    */
-  void set_activation_lit(SatVariable& alit);
+  void set_activation_lit(SatVariable alit);
 
   /**
    * Pop user assertion level.

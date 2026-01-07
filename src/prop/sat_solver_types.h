@@ -51,10 +51,10 @@ typedef uint64_t SatVariable;
 /**
  * Undefined SAT solver variable.
  */
-const SatVariable undefSatVariable = SatVariable(-1);
+constexpr SatVariable undefSatVariable = SatVariable(-1);
 
 /**
- * A SAT literal is a variable or an negated variable.
+ * A SAT literal is a variable or a negated variable.
  */
 class SatLiteral {
 
@@ -63,40 +63,39 @@ class SatLiteral {
    */
   uint64_t d_value;
 
-public:
+ public:
 
   /**
    * Construct an undefined SAT literal.
    */
-  SatLiteral()
-  : d_value(undefSatVariable)
-  {}
+  constexpr SatLiteral() : d_value(undefSatVariable) {}
 
   /**
    * Construct a literal given a possible negated variable.
    */
-  SatLiteral(SatVariable var, bool negated = false) {
-    d_value = var + var + (int)negated;
+  constexpr explicit SatLiteral(SatVariable var, bool negated = false)
+      : d_value(var + var + static_cast<int>(negated))
+  {
   }
 
   /**
    * Returns the variable of the literal.
    */
-  SatVariable getSatVariable() const {
+  constexpr SatVariable getSatVariable() const {
     return d_value >> 1;
   }
 
   /**
    * Returns true if the literal is a negated variable.
    */
-  bool isNegated() const {
+  constexpr bool isNegated() const {
     return d_value & 1;
   }
 
   /**
    * Negate the given literal.
    */
-  SatLiteral operator ~ () const {
+  constexpr SatLiteral operator ~ () const {
     return SatLiteral(getSatVariable(), !isNegated());
   }
 
@@ -136,26 +135,26 @@ public:
   /**
    * Returns the hash value of a literal.
    */
-  size_t hash() const {
+  constexpr size_t hash() const {
     return (size_t)d_value;
   }
 
-  uint64_t toInt() const {
+  constexpr uint64_t toInt() const {
     return d_value; 
   }
   
   /**
    * Returns true if the literal is undefined.
    */
-  bool isNull() const {
+  constexpr bool isNull() const {
     return getSatVariable() == undefSatVariable;
   }
 };
 
 /**
- * A constant representing a undefined literal.
+ * A constant representing an undefined literal.
  */
-const SatLiteral undefSatLiteral = SatLiteral(undefSatVariable);
+constexpr SatLiteral undefSatLiteral = SatLiteral(undefSatVariable);
 
 /**
  * Helper for hashing the literals.
