@@ -327,6 +327,8 @@ Node buildRealEquality(NodeManager* nm, Sum&& sum)
   {
     // if both were changed, then this implies we could make an integer equality
     // instead.
+    Assert(lhs.getType().isInteger());
+    Assert(rhs.getType().isInteger());
     return buildRelation(Kind::EQUAL, lhs, rhs);
   }
   Assert(lhsr.getType().isReal() || lhsr.getType().isFullyAbstract());
