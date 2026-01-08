@@ -84,6 +84,7 @@ class CoveringsSolver: protected EnvObj
   /**
    * Add the variable assignment `var = value` to the nonlinear model.
    * Depending on `value`, it is either added as substitution or witness.
+   * @return true iff the substitution was added to the model.
    */
   bool addToModel(TNode var, TNode value) const;
 
