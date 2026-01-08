@@ -304,9 +304,10 @@ bool NlModel::addSubstitution(TNode v, TNode s)
   //   {x -> y, y -> (exp x)}
   // Where note that {x->y}.applyArith((exp x)) = (exp x), but
   // {x->y}.applyArith((exp x)) = (exp y), which is caught here.
-  Node subsFull = d_substitutions.apply(s);
-  if (expr::hasSubterm(subsFull, v))
+  Node subsFull = d_substitutions.applyArith(s);
+  if (ArithSubs::hasArithSubterm(subsFull, v))
   {
+    Trace("nl-ext-model") << "ERROR: has subterm " << subsFull << std::endl;
     return false;
   }
 

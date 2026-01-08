@@ -235,7 +235,7 @@ bool CoveringsSolver::constructModelIfAvailable(std::vector<Node>& assertions)
 #endif
 }
 
-void CoveringsSolver::addToModel(TNode var, TNode value) const
+bool CoveringsSolver::addToModel(TNode var, TNode value) const
 {
   Assert(value.getType().isRealOrInt());
   // we must take its substituted form here, since other solvers (e.g. the
@@ -256,7 +256,7 @@ void CoveringsSolver::addToModel(TNode var, TNode value) const
     }
   }
   Trace("nl-cov") << "-> " << var << " = " << svalue << std::endl;
-  d_model.addSubstitution(var, svalue);
+  return d_model.addSubstitution(var, svalue);
 }
 
 }  // namespace nl
