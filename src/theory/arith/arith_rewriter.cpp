@@ -754,12 +754,16 @@ RewriteResponse ArithRewriter::postRewriteMult(TNode t){
                            rewriter::maybeEnsureReal(t.getType(), *res));
   }
 
+  RewriteStatus rs = REWRITE_DONE;
   Node ret;
   // Distribute over addition
   if (std::any_of(children.begin(), children.end(), [](TNode child) {
         return child.getKind() == Kind::ADD;
       }))
   {
+    // if we distribute multiplication, we rewrite again to ensure the
+    // sum is sorted.
+    rs = REWRITE_AGAIN_FULL;
     ret = rewriter::distributeMultiplication(d_nm, children);
   }
   else
@@ -790,7 +794,7 @@ RewriteResponse ArithRewriter::postRewriteMult(TNode t){
     ret = rewriter::mkMultTerm(d_nm, ran, std::move(leafs));
   }
   ret = rewriter::maybeEnsureReal(t.getType(), ret);
-  return RewriteResponse(REWRITE_DONE, ret);
+  return RewriteResponse(rs, ret);
 }
 
 RewriteResponse ArithRewriter::rewriteDiv(TNode t, bool pre)
@@ -869,6 +873,12 @@ RewriteResponse ArithRewriter::rewriteDiv(TNode t, bool pre)
     }
     // requires again full since ensureReal may have added a to_real
     return RewriteResponse(REWRITE_AGAIN_FULL, mult);
+  }
+  // We also convert integral rationals in the numerator to integers,
+  // e.g. (/ 1 x) ---> (/ 1.0 x).
+  if (left.getKind() == Kind::CONST_INTEGER)
+  {
+    left = nm->mkConstReal(left.getConst<Rational>());
   }
   // may have changed due to removing to_real
   if (left!=t[0] || right!=t[1])

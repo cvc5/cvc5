@@ -625,8 +625,9 @@ Node rename(const Node& n,
         }
 
         // Push unvisited children onto the stack
-        for (const Node& child : current)
+        for (int i = current.getNumChildren() - 1; i >= 0; --i)
         {
+          const Node& child = current[i];
           if (visited.find(child) == visited.end())
           {
             stack.push_back(child);
@@ -935,9 +936,9 @@ PreprocessingPassResult Normalize::applyInternal(
       symbolOccurrences;
   for (const auto& nodeInfo : nodeInfos)
   {
-    for (const auto& [symbol, _] : nodeInfo->varNames)
+    for (const auto& varName : nodeInfo->varNames)
     {
-      symbolOccurrences[symbol].push_back(nodeInfo);
+      symbolOccurrences[varName.first].push_back(nodeInfo);
     }
   }
 

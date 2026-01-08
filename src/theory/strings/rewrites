@@ -291,6 +291,20 @@
   (str.replace_all t s r)
   t)
 
+(define-cond-rule str-replace-all-empty ((t ?Seq) (s ?Seq) (r ?Seq))
+  (= (str.len s) 0)
+  (str.replace_all t s r)
+  t)
+
+(define-rule str-replace-all-id ((t ?Seq) (s ?Seq))
+  (str.replace_all t s s)
+  t)
+
+(define-cond-rule str-replace-all-self ((t ?Seq) (s ?Seq))
+  (not (= (str.len t) 0))
+  (str.replace_all t t s)
+  s)
+
 (define-rule str-replace-re-none ((t ?Seq) (r ?Seq))
   (str.replace_re t re.none r)
   t)
@@ -399,6 +413,10 @@
   (= (str.to_int s2) (- 1))
   (str.to_int (str.++ s1 s2 s3))
   (- 1))
+
+(define-rule str-is-digit-elim ((s String))
+  (str.is_digit s)
+  (and (<= 48 (str.to_code s)) (<= (str.to_code s) 57)))
 
 (define-rule str-leq-empty ((s String))
   (str.<= "" s)
