@@ -127,10 +127,11 @@ bool ArithSubs::hasArithSubterm(TNode n, TNode t, bool traverseNlMult)
   std::vector<TNode> toProcess;
   toProcess.push_back(n);
   TNode cur;
-  do {
+  do
+  {
     cur = toProcess.back();
     toProcess.pop_back();
-    if (cur==t)
+    if (cur == t)
     {
       return true;
     }
