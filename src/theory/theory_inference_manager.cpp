@@ -581,10 +581,7 @@ void TheoryInferenceManager::safePoint(Resource r)
   d_out.safePoint(r);
 }
 
-void TheoryInferenceManager::markUsed()
-{
-  d_out.markUsed();
-}
+void TheoryInferenceManager::markUsed() { d_out.markUsed(); }
 
 void TheoryInferenceManager::setModelUnsound(IncompleteId id)
 {

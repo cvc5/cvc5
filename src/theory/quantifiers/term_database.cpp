@@ -122,8 +122,8 @@ TermDb::TermDb(Env& env, QuantifiersState& qs, QuantifiersRegistry& qr)
   d_true = nodeManager()->mkConst(true);
   d_false = nodeManager()->mkConst(false);
   options::TermDbMode tdbmode = options().quantifiers.termDbMode;
-  d_trackRlv = (tdbmode == options::TermDbMode::RELEVANT || 
-  tdbmode == options::TermDbMode::RELEVANT_ALL_DELAY);
+  d_trackRlv = (tdbmode == options::TermDbMode::RELEVANT
+                || tdbmode == options::TermDbMode::RELEVANT_ALL_DELAY);
 }
 
 TermDb::~TermDb(){

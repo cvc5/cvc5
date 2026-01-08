@@ -390,7 +390,7 @@ class TheoryInferenceManager : protected EnvObj
    * dependent.
    */
   void setRefutationUnsound(IncompleteId id);
-  /** 
+  /**
    * Mark used. Called when we wish to mark that the output channel is used,
    * for example, if we wish to recheck.
    */
