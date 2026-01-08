@@ -234,7 +234,7 @@ bool QuantifiersEngine::shouldRecheck(Theory::Effort e,
   }
   // If the term database mode is relevant, we instead now mark all terms
   // as relevant.
-  if (options().quantifiers.termDbMode == options::TermDbMode::RELEVANT)
+  if (options().quantifiers.termDbMode == options::TermDbMode::RELEVANT_ALL_DELAY)
   {
     TermDb* tdb = d_treg.getTermDatabase();
     eq::EqualityEngine* ee = d_qstate.getEqualityEngine();

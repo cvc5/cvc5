@@ -230,6 +230,8 @@ class TermDb : public QuantifiersUtil {
   QuantifiersInferenceManager* d_qim;
   /** The quantifiers registry */
   QuantifiersRegistry& d_qreg;
+  /** Whether we are tracking relevant terms */
+  bool d_trackRlv;
   /** A context for the data structures below, when not context-dependent */
   context::Context d_termsContext;
   /** The context we are using for the data structures below */

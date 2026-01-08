@@ -121,6 +121,9 @@ TermDb::TermDb(Env& env, QuantifiersState& qs, QuantifiersRegistry& qr)
 {
   d_true = nodeManager()->mkConst(true);
   d_false = nodeManager()->mkConst(false);
+  options::TermDbMode tdbmode = options().quantifiers.termDbMode;
+  d_trackRlv = (tdbmode == options::TermDbMode::RELEVANT || 
+  tdbmode == options::TermDbMode::RELEVANT_ALL_DELAY);
 }
 
 TermDb::~TermDb(){
@@ -284,7 +287,7 @@ bool TermDb::isMatchable(TNode n) { return !getMatchOperator(n).isNull(); }
 
 void TermDb::eqNotifyMerge(TNode t1, TNode t2)
 {
-  if (options().quantifiers.termDbMode == options::TermDbMode::RELEVANT)
+  if (d_trackRlv)
   {
     // Since the equivalence class of t1 and t2 merged, we now consider these
     // two terms to be relevant in the current context. Note technically this
@@ -577,7 +580,7 @@ bool TermDb::hasTermCurrent(const Node& n, bool useMode) const
   {
     return true;
   }
-  else if (options().quantifiers.termDbMode == options::TermDbMode::RELEVANT)
+  else if (d_trackRlv)
   {
     return d_has_map.find( n )!=d_has_map.end();
   }
@@ -691,7 +694,7 @@ bool TermDb::reset( Theory::Effort effort ){
   Assert(d_qstate.getEqualityEngine()->consistent());
 
   //compute has map
-  if (options().quantifiers.termDbMode == options::TermDbMode::RELEVANT)
+  if (d_trackRlv)
   {
     d_term_elig_eqc.clear();
     const LogicInfo& logicInfo = d_qstate.getLogicInfo();
