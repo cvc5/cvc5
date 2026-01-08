@@ -59,7 +59,7 @@ class ArithSubs : public Subs
   * @param traverseNlMult Whether to traverse applications of NONLINEAR_MULT.
   * @return true iff t is a subterm in n
   */
-  bool hasArithSubterm(TNode n, TNode t, bool traverseNlMult = true);
+  static bool hasArithSubterm(TNode n, TNode t, bool traverseNlMult = true);
 };
 
 /**

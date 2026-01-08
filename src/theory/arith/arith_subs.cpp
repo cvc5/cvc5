@@ -128,18 +128,18 @@ bool ArithSubs::hasArithSubterm(TNode n, TNode t, bool traverseNlMult)
   toProcess.push_back(n);
   TNode cur;
   do {
-    cur = visit.back();
-    visit.pop_back();
+    cur = toProcess.back();
+    toProcess.pop_back();
     if (cur==t)
     {
       return true;
     }
-    if (!visited.insert(cur).second || !shouldTraverse(cur))
+    if (!visited.insert(cur).second || !shouldTraverse(cur, traverseNlMult))
     {
       continue;
     }
-    visit.insert(visit.end(), cur.begin(), cur.end());
-  } while (!visit.empty());
+    toProcess.insert(toProcess.end(), cur.begin(), cur.end());
+  } while (!toProcess.empty());
   return false;
 }
 
