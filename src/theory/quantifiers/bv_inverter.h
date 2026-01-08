@@ -53,7 +53,7 @@ class BvInverterQuery
 class BvInverter
 {
  public:
-  BvInverter(Rewriter* r = nullptr);
+  BvInverter(NodeManager* nm, Rewriter* r = nullptr);
   ~BvInverter() {}
   /** get dummy fresh variable of type tn, used as argument for sv */
   Node getSolveVariable(TypeNode tn);
@@ -98,6 +98,28 @@ class BvInverter
                   std::vector<uint32_t>& path,
                   BvInverterQuery* m);
 
+  /**
+   * This is the main entry point for constructing invertibility conditions
+   * in proofs.
+   *
+   * @param v A term to witness the invertbility condition.
+   * @param exists A formula of the form (exists x (<rel> (<op> ... x ...) t))
+   * or (exists x (<rel> x t)).
+   * @return The invertibility condition for exists, witnessed by v. This
+   * method returns a formula of the form (C => R[v]) where R[x] is the
+   * body of the existential above. Furthermore, note that
+   * (exists x C => R[x]) is a valid formula.
+   */
+  static Node mkInvertibilityCondition(const Node& v, const Node& exists);
+
+  /**
+   * @param n An s-expression denoting a list of arguments for specifying an
+   * invertbility condition, e.g. (EQUAL, true, t, (SEXPR bvudiv s1 s2), 0).
+   * @return The existential formula which can be used as the input the
+   * mkInvertibilityCondition method, e.g. (exists x (= (bvudiv x s2) t)).
+   */
+  static Node mkExistsForAnnotation(NodeManager* nm, const Node& n);
+
  private:
   /** Helper function for getPathToPv */
   Node getPathToPv(Node lit,
@@ -106,6 +128,32 @@ class BvInverter
                    std::vector<uint32_t>& path,
                    std::unordered_set<TNode>& visited);
 
+  /**
+   * This expects an annotation of the form returned by mkAnnotation
+   * or mkAnnotationBase. This returns a witness term to be used internally
+   * in CEGQI, in particular one that has been annotated with the given
+   * annotation for the purposes of tracking proofs.
+   * @param annot The annotation.
+   * @return The witness term.
+   */
+  Node mkWitness(const Node& annot) const;
+  /**
+   * Returns an annotation used for the (internal) proof rule
+   * MACRO_EXISTS_INV_CONDITION. In particular, this method returns an
+   * s-expression (SEXPR <litk> <pol> t (SEXPR op s1 ... sn) <index>)
+   * where each of these arguments are stored as nodes. We store s as an
+   * s-expression because we do not want the rewriter to change the structure
+   * of s, as it is important that <index> denotes a valid position in s that
+   * we are solving for.
+   */
+  static Node mkAnnotation(
+      NodeManager* nm, Kind litk, bool pol, Node t, Node s, unsigned index);
+  /**
+   * Same as above, but used for the base case of invertibility conditions.
+   * This method returns an s-expression of the form
+   * (SEXPR <litk> <pol> t).
+   */
+  static Node mkAnnotationBase(NodeManager* nm, Kind litk, bool pol, Node t);
   /** Helper function for getInv.
    *
    * This expects a condition cond where:
@@ -125,6 +173,8 @@ class BvInverter
    * to this call is null.
    */
   Node getInversionNode(Node cond, TypeNode tn, BvInverterQuery* m);
+  /** Pointer to node manager */
+  NodeManager* d_nm;
   /** (Optional) rewriter used as helper in getInversionNode */
   Rewriter* d_rewriter;
   /** Dummy variables for each type */
