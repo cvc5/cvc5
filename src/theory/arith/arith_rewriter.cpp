@@ -428,6 +428,7 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
   // Now we have (sum <kind> 0)
   if (rewriter::isIntegral(sum))
   {
+    Trace("arith-rewriter") << "...sum is integral" << std::endl;
     if (kind == Kind::EQUAL)
     {
       return RewriteResponse(
@@ -439,6 +440,7 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
   }
   else
   {
+    Trace("arith-rewriter") << "...sum is not integral" << std::endl;
     if (kind == Kind::EQUAL)
     {
       return RewriteResponse(REWRITE_DONE,
@@ -1122,6 +1124,13 @@ RewriteResponse ArithRewriter::postRewriteIAnd(TNode t)
   // if constant, we eliminate
   if (t[0].isConst() && t[1].isConst())
   {
+    if (bsize==0)
+    {
+      // ((_ iand 0) c1 c2) ---> 0
+      // we don't allow bitvectors of width zero, just return 0
+      Node zero = nm->mkConstInt(Rational(0));
+      return RewriteResponse(REWRITE_DONE, zero);
+    }
     Node iToBvop = nm->mkConst(IntToBitVector(bsize));
     Node arg1 = nm->mkNode(Kind::INT_TO_BITVECTOR, iToBvop, t[0]);
     Node arg2 = nm->mkNode(Kind::INT_TO_BITVECTOR, iToBvop, t[1]);
