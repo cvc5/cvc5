@@ -216,9 +216,10 @@ class TermDb : public QuantifiersUtil {
   Node getEligibleTermInEqc(TNode r);
   /**
    * Set has term. This marks that n should be added to the term indicies
-   * used for E-matching when term-db is RELEVANT. This method is called on all
-   * terms that appear in assertions, and on all terms that appear in the master
-   * equality engine at last call effort.
+   * used for E-matching when term-db is RELEVANT or RELEVANT_ALL_DELAY. This
+   * method is called on all terms that appear in assertions, and on all terms
+   * that appear in the master equality engine at last call effort if term-db is
+   * RELEVANT_ALL_DELAY.
    * @param n the term to add.
    */
   void setHasTerm(Node n);
