@@ -557,7 +557,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     {
       std::map<Node, Node> emptyMap;
       Node t = res[0];
-      Node tf = applyAcSimp(t);
+      Node tf = applyAcSimp(emptyMap, t);
       Node vp1 = nm->mkNode(Kind::EQUAL, t, tf);
       Node vp2 = nm->mkNode(Kind::EQUAL, tf, res[1]);
       AletheRule rule;

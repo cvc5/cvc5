@@ -13,6 +13,8 @@
  * Algorithms used by the Alethe post processor
  */
 
+#include "proof/alethe/alethe_post_processor_algorithm.h"
+
 #include "expr/nary_term_util.h"
 #include "proof/alethe/alethe_post_processor.h"
 
@@ -22,76 +24,86 @@ namespace cvc5::internal {
 
 namespace proof {
 
-// Naive implementation, probably want to implement caching at some point
+// Closely follows the algorithm implemented in carcara
+// (https://github.com/ufmg-smite/carcara) Note that when removing duplicates we
+// keep the first occurence.
 Node applyAcSimp(std::map<Node, Node>& cache, Node term)
 {
+  NodeManager* nm = nodeManager();
   if (cache.find(term) != cache.end())
   {
     return cache[term];
   }
-  Kind k = term.getKind();
-  Node result;
-  // std::cout << "term: " << term << " kind " << k << std::endl;
+  if (term.getNumChildren() == 0)
+  {
+    return term;
+  }
   if (term.getMetaKind() == metakind::PARAMETERIZED)
   {
     // not supported
+    Trace("alethe-proof") << "... reached a parameterized operator during "
+                             "flattening the term which is not supported. Will "
+                             "not flatten any subterm of the current term "
+                          << term << "\n";
     return term;
   }
-  std::vector<Node> new_children;
+
+  Kind k = term.getKind();
+  Node ac_term;
+  std::vector<Node> ac_children;
   if (k == Kind::AND || k == Kind::OR)
   {
     for (Node child : term)
     {
-      Node new_term = applyAcSimp(cache, child);
-      Kind k_new_term = new_term.getKind();
-      if (k_new_term == k)
+      Node ac_child = applyAcSimp(cache, child);
+      Kind k_ac_child = ac_child.getKind();
+      if (k_ac_child == k)
       {
-        for (Node c : new_term)
+        // flatten
+        for (Node c : ac_child)
         {
-          if (std::find(new_children.begin(), new_children.end(), c)
-              == new_children.end())
+          if (std::find(ac_children.begin(), ac_children.end(), c)
+              == ac_children.end())
           {
-            new_children.push_back(c);
+            ac_children.push_back(c);
           }
         }
       }
       else
       {
-        if (std::find(new_children.begin(), new_children.end(), new_term)
-            == new_children.end())
+        // do not flatten, add entire child term
+        if (std::find(ac_children.begin(), ac_children.end(), ac_child)
+            == ac_children.end())
         {
-          new_children.push_back(new_term);
+          ac_children.push_back(ac_child);
         }
       }
     }
-    if (new_children.size() == 1)
+    if (ac_children.size() == 1)
     {
-      return new_children[0];
+      // duplicate removal let to binary term with only one child
+      return ac_children[0];
     }
     else
     {
-      result = nm->mkNode(k, new_children);
+      ac_term = nm->mkNode(k, ac_children);
     }
-  }
-  else if (term.getNumChildren() == 0)
-  {
-    return term;
   }
   else
   {
     for (Node child : term)
     {
-      Node new_term = applyAcSimp(cache, child);
-      new_children.push_back(new_term);
+      Node ac_child = applyAcSimp(cache, child);
+      ac_children.push_back(ac_child);
     }
     if (k == Kind::APPLY_UF)
     {
-      new_children.insert(new_children.begin(), term.getOperator());
+      ac_children.insert(ac_children.begin(), term.getOperator());
     }
-    result = NodeManager::currentNM()->mkNode(k, new_children);
+    ac_term = nm->mkNode(k, ac_children);
   }
-  cache.insert({term, result});
-  return result;
+  cache.insert({term, ac_term});
+  return ac_term;
 }
 
 }  // namespace proof
