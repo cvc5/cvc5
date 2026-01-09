@@ -19,6 +19,7 @@
 
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
+#include "proof/alethe/alethe_post_processor_algorithm.h"
 #include "proof/alethe/alethe_proof_rule.h"
 #include "proof/proof.h"
 #include "proof/proof_checker.h"
@@ -537,6 +538,50 @@ bool AletheProofPostprocessCallback::update(Node res,
       }
 
       return success;
+    }
+    // ======== Absorb
+    //
+    // ------- ac_simp   ------- <op>_simplify
+    //   VP1               VP2
+    // ------------------------- trans
+    //            res
+    //
+    // VP1: (cl (= t tf))
+    // VP2: (cl (= tf z))
+    //
+    // where tf=Alethe_Post_Processor_Algorithms.ac_simp(t) and <op> is the
+    // top-level operator of t. Note that ac_simp is over-eager in flattening
+    // the formula but since this step simplifies to a zero element this does
+    // not matter and only impacts performance marginally.
+    case ProofRule::ABSORB:
+    {
+      std::map<Node, Node> emptyMap;
+      Node t = res[0];
+      Node tf = applyAcSimp(emptyMap, t);
+      Node vp1 = nm->mkNode(Kind::EQUAL, t, tf);
+      Node vp2 = nm->mkNode(Kind::EQUAL, tf, res[1]);
+      AletheRule rule;
+      switch (res.getKind())
+      {
+        case Kind::OR: rule = AletheRule::OR_SIMPLIFY; break;
+        case Kind::AND: rule = AletheRule::AND_SIMPLIFY; break;
+        default: rule = AletheRule::HOLE;
+      }
+
+      return addAletheStep(AletheRule::AC_SIMP,
+                           vp1,
+                           nm->mkNode(Kind::SEXPR, d_cl, vp1),
+                           {},
+                           {},
+                           *cdp)
+             && addAletheStep(
+                 rule, vp2, nm->mkNode(Kind::SEXPR, d_cl, vp2), {}, {}, *cdp)
+             && addAletheStep(AletheRule::TRANS,
+                              res,
+                              nm->mkNode(Kind::SEXPR, d_cl, res),
+                              {vp1, vp2},
+                              {},
+                              *cdp);
     }
     // ======== Encode equality introduction
     // This rule is translated according to the singleton pattern.
