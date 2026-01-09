@@ -1,3 +1,4 @@
+; REQUIRES: poly
 ; EXPECT: sat
 (set-logic QF_UFNRA)
 (declare-fun x1 () Real)
