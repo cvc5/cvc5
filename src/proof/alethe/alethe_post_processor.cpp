@@ -19,6 +19,7 @@
 
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
+#include "proof/alethe/alethe_post_processor_algorithm.h"
 #include "proof/alethe/alethe_proof_rule.h"
 #include "proof/proof.h"
 #include "proof/proof_checker.h"
@@ -539,7 +540,16 @@ bool AletheProofPostprocessCallback::update(Node res,
       return success;
     }
     // ======== Absorb
-    // This rule is translated according to the singleton pattern.
+    //
+    // ------- ac_simp   ------- <op>_simplify
+    //   VP1               VP2
+    // ------------------------- trans
+    //            res
+    //
+    // VP1: (cl (= t t'))
+    // VP2: (cl (= t' z))
+    //
+    // where t'=Alethe_Post_Processor_Algorithms.ac_simp(t) and <op> is the top-level operator of t.
     case ProofRule::ABSORB:
     {
       AletheRule rule;
