@@ -18,24 +18,21 @@
 
 #include "proof/proof_node_manager.h"
 
-
-
-
 namespace cvc5::internal {
 
 namespace proof {
 
-  /** Transforms a term by applying associativity and idempotency into its ac normal form.
-   *
-   * @param cache A mapping between subterms of the input term and their ac normal form. Should be empty in the beginning.
-   * @param term The term that should be transformed.
-   * @return The term in ac normal form. 
-   */
-  Node applyAcSimp(std::map<Node,Node>& cache, Node term);
+/** Transforms a term by applying associativity and idempotency into its ac
+ * normal form.
+ *
+ * @param cache A mapping between subterms of the input term and their ac normal
+ * form. Should be empty in the beginning.
+ * @param term The term that should be transformed.
+ * @return The term in ac normal form.
+ */
+Node applyAcSimp(std::map<Node, Node>& cache, Node term);
 
 }  // namespace proof
 }  // namespace cvc5::internal
 
 #endif
-
-
