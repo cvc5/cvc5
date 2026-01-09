@@ -84,8 +84,9 @@ class CoveringsSolver: protected EnvObj
   /**
    * Add the variable assignment `var = value` to the nonlinear model.
    * Depending on `value`, it is either added as substitution or witness.
+   * @return true iff the substitution was added to the model.
    */
-  void addToModel(TNode var, TNode value) const;
+  bool addToModel(TNode var, TNode value) const;
 
   /**
    * The variable used to encode real algebraic numbers to nodes.

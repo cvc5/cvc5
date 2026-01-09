@@ -121,6 +121,29 @@ bool ArithSubs::shouldTraverse(const Node& n, bool traverseNlMult)
   return true;
 }
 
+bool ArithSubs::hasArithSubterm(TNode n, TNode t, bool traverseNlMult)
+{
+  std::unordered_set<TNode> visited;
+  std::vector<TNode> toProcess;
+  toProcess.push_back(n);
+  TNode cur;
+  do
+  {
+    cur = toProcess.back();
+    toProcess.pop_back();
+    if (cur == t)
+    {
+      return true;
+    }
+    if (!visited.insert(cur).second || !shouldTraverse(cur, traverseNlMult))
+    {
+      continue;
+    }
+    toProcess.insert(toProcess.end(), cur.begin(), cur.end());
+  } while (!toProcess.empty());
+  return false;
+}
+
 }  // namespace arith
 }  // namespace theory
 }  // namespace cvc5::internal
