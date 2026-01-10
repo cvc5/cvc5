@@ -46,11 +46,11 @@ Install `MSYS2 <https://www.msys2.org/>`_ and `Python <https://www.python.org/do
 Then, launch the appropriate `MSYS2 environment <https://www.msys2.org/docs/environments/>`_ and
 install the required dependencies:
 
-- On x86_64 machines, open a `MINGW64` shell and run:
+- On x86_64 machines, open a `CLANG64` shell and run:
 
 .. code:: bash
 
-  pacman -S git make mingw-w64-x86_64-cmake mingw-w64-x86_64-gcc mingw-w64-x86_64-gmp zip
+  pacman -S git make mingw-w64-clang-x86_64-cmake mingw-w64-clang-x86_64-clang mingw-w64-clang-x86_64-gmp zip
 
 - On ARM64 machines, open a `CLANGARM64` shell and run:
 
@@ -234,7 +234,7 @@ may improve performance. It can be downloaded and built automatically. Configure
 cvc5 with ``configure.sh --kissat`` to build with this dependency.
 
 
-LibPoly >= v0.2.0 (Optional polynomial library)
+LibPoly >= v0.2.1 (Optional polynomial library)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 `LibPoly <https://github.com/SRI-CSL/libpoly>`_ is required for CAD-based
@@ -330,7 +330,7 @@ Dependencies for Language Bindings
   - `Cython <https://cython.org/>`_ >= 3.0.0
   - `pip <https://pip.pypa.io/>`_ >= 23.0
   - `pytest <https://docs.pytest.org/en/6.2.x/>`_
-  - `repairwheel <https://github.com/jvolkman/repairwheel>`_ >= 0.3.1
+  - `repairwheel <https://github.com/jvolkman/repairwheel>`_ >= 0.3.2
   - `setuptools <https://setuptools.pypa.io/>`_ >= 66.1.0
   - The source for the `pythonic API <https://github.com/cvc5/cvc5_pythonic_api>`_
 

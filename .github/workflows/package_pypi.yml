@@ -44,11 +44,11 @@ jobs:
             arch: aarch64
             shell: bash
           - name: macos-x86_64
-            os: macos-13
+            os: macos-15-intel
             macos-target: 10.13
             shell: bash
           - name: macos-arm64
-            os: macos-14
+            os: macos-15
             macos-target: 11
             shell: bash
           - name: windows-x86_64
@@ -67,7 +67,7 @@ jobs:
         shell: ${{ matrix.shell }}
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         fetch-depth: 0
         ref: ${{ github.event.inputs.release_tag }}
@@ -82,13 +82,13 @@ jobs:
     - uses: msys2/setup-msys2@v2
       if: runner.os == 'Windows' && runner.arch == 'X64'
       with:
-        msystem: mingw64
+        msystem: clang64
         path-type: inherit
         install: |
           make
-          mingw-w64-x86_64-cmake
-          mingw-w64-x86_64-gcc
-          mingw-w64-x86_64-gmp
+          mingw-w64-clang-x86_64-cmake
+          mingw-w64-clang-x86_64-clang
+          mingw-w64-clang-x86_64-gmp
 
     - uses: msys2/setup-msys2@v2
       if: runner.os == 'Windows' && runner.arch == 'ARM64'
@@ -125,7 +125,7 @@ jobs:
       run: echo "bin=$(cygpath -m $(dirname $(which cc)))" >> $GITHUB_OUTPUT
 
     - name: Build wheels
-      uses: pypa/cibuildwheel@v3.1.4
+      uses: pypa/cibuildwheel@v3.3.0
       with:
         package-dir: ./build/src/api/python/
       env:
@@ -155,7 +155,7 @@ jobs:
         CIBW_TEST_COMMAND: python {project}/examples/api/python/quickstart.py
         CIBW_TEST_SKIP: "cp38-macosx_arm64" # Silence warning. See: https://github.com/pypa/cibuildwheel/pull/1171
 
-    # - uses: actions/upload-artifact@v4
+    # - uses: actions/upload-artifact@v5
     #   with:
     #     name: wheels-${{ matrix.name }}
     #     path: ./wheelhouse/*.whl

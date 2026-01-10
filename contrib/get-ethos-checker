@@ -14,7 +14,8 @@ function download {
   fi
 }
 
-CVC_DIR=$(dirname $(dirname "$0"))
+SCRIPT_DIR="$(dirname "$(realpath "$0")")"
+CVC_DIR=`realpath $SCRIPT_DIR/../`
 mkdir -p $CVC_DIR/deps
 pushd $CVC_DIR/deps
 
@@ -26,7 +27,7 @@ EO_DIR="$BASE_DIR/ethos-checker"
 mkdir -p $EO_DIR
 
 # download and unpack ethos
-ETHOS_VERSION="7059fc50a12d1efa6c075163d445f34edceab1ae"
+ETHOS_VERSION="59e9ea6a077e1fd73dfc3107966b9f5603896c86"
 download "https://github.com/cvc5/ethos/archive/$ETHOS_VERSION.tar.gz" $BASE_DIR/tmp/ethos.tgz
 tar --strip 1 -xzf $BASE_DIR/tmp/ethos.tgz -C $EO_DIR
 

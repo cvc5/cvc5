@@ -428,34 +428,29 @@ macro(create_venv)
   endif()
 endmacro()
 
-if(ENABLE_AUTO_DOWNLOAD AND USE_PYTHON_VENV)
-  # Set up Python venv if one doesn't exist already
-  set(VENV_PATH "${CMAKE_BINARY_DIR}/venv-${Python_VERSION}")
-  if(NOT EXISTS ${VENV_PATH})
-    find_package(Pip REQUIRED)
-    create_venv()
-  else()
-    if(NOT (EXISTS ${VENV_PATH}/bin/pip OR EXISTS ${VENV_PATH}/Scripts/pip.exe))
-      # This situation may be possible if cvc5 was built before 715f649
-      execute_process(COMMAND ${CMAKE_COMMAND} -E remove_directory ${VENV_PATH})
-      find_package(Pip REQUIRED)
+if(ENABLE_AUTO_DOWNLOAD)
+  if(USE_PYTHON_VENV)
+    # Set up Python venv if one doesn't exist already
+    set(VENV_PATH "${CMAKE_BINARY_DIR}/venv-${Python_VERSION}")
+    if(NOT EXISTS ${VENV_PATH})
       create_venv()
     endif()
-  endif()
 
-  # Set up variables to find Python within the virtual environment
-  set(ENV{VIRTUAL_ENV} "${VENV_PATH}")
-  unset(Python_EXECUTABLE CACHE)
-  if(EXISTS ${VENV_PATH}/bin/python3)
-    set(Python_EXECUTABLE ${VENV_PATH}/bin/python3)
-  elseif(EXISTS ${VENV_PATH}/Scripts/python.exe)
-    set(Python_EXECUTABLE ${VENV_PATH}/Scripts/python.exe)
-  else()
-    message(FATAL_ERROR "Could not find Python interpreter in venv")
-  endif()
+    # Set up variables to find Python within the virtual environment
+    set(ENV{VIRTUAL_ENV} "${VENV_PATH}")
+    unset(Python_EXECUTABLE CACHE)
+    if(EXISTS ${VENV_PATH}/bin/python3)
+      set(Python_EXECUTABLE ${VENV_PATH}/bin/python3)
+    elseif(EXISTS ${VENV_PATH}/Scripts/python.exe)
+      set(Python_EXECUTABLE ${VENV_PATH}/Scripts/python.exe)
+    else()
+      message(FATAL_ERROR "Could not find Python interpreter in venv")
+    endif()
 
-  # Find the Python interpreter within the virtual environment
-  find_package(Python COMPONENTS Interpreter REQUIRED)
+    # Find the Python interpreter within the virtual environment
+    find_package(Python COMPONENTS Interpreter REQUIRED)
+  endif()
+  find_package(Pip REQUIRED)
 endif()
 
 find_package(GMP 6.3 REQUIRED)
@@ -588,7 +583,7 @@ if(ENABLE_SAFE_MODE)
 endif()
 
 if(USE_POLY)
-  find_package(Poly 0.2.0 REQUIRED)
+  find_package(Poly 0.2.1 REQUIRED)
   add_definitions(-DCVC5_USE_POLY)
   set(CVC5_USE_POLY_IMP 1)
 else()

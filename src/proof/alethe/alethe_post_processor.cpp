@@ -162,6 +162,39 @@ bool AletheProofPostprocessCallback::updateTheoryRewriteProofRewriteRule(
                            {},
                            *cdp);
     }
+    // ======== QUANT_MINISCOPE_AND
+    // This rule is translated according to the clause pattern.
+    case ProofRewriteRule::QUANT_MINISCOPE_AND:
+    {
+      return addAletheStep(AletheRule::MINISCOPE_DISTRIBUTE,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           {},
+                           {},
+                           *cdp);
+    }
+    // ======== QUANT_MINISCOPE_OR
+    // This rule is translated according to the clause pattern.
+    case ProofRewriteRule::QUANT_MINISCOPE_OR:
+    {
+      return addAletheStep(AletheRule::MINISCOPE_SPLIT,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           {},
+                           {},
+                           *cdp);
+    }
+    // ======== QUANT_MINISCOPE_ITE
+    // This rule is translated according to the clause pattern.
+    case ProofRewriteRule::QUANT_MINISCOPE_ITE:
+    {
+      return addAletheStep(AletheRule::MINISCOPE_ITE,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           {},
+                           {},
+                           *cdp);
+    }
     // ======== QUANT_UNUSED_VARS
     // This rule is translated according to the clause pattern.
     case ProofRewriteRule::QUANT_UNUSED_VARS:
@@ -173,14 +206,31 @@ bool AletheProofPostprocessCallback::updateTheoryRewriteProofRewriteRule(
                            {},
                            *cdp);
     }
+    // ======== BV_BITWISE_SLICING
+    // This rule is translated according to the clause pattern.
+    case ProofRewriteRule::BV_BITWISE_SLICING:
+    {
+      return addAletheStep(AletheRule::BV_BITWISE_SLICING,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           children,
+                           {},
+                           *cdp);
+    }
+    // ======== BV_REPEAT_ELIM
+    // This rule is translated according to the clause pattern.
+    case ProofRewriteRule::BV_REPEAT_ELIM:
+    {
+      return addAletheStep(AletheRule::BV_REPEAT_ELIM,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           children,
+                           {},
+                           *cdp);
+    }
     default: break;
   }
-  return addAletheStep(AletheRule::HOLE,
-                       res,
-                       nm->mkNode(Kind::SEXPR, d_cl, res),
-                       children,
-                       new_args,
-                       *cdp);
+  return false;
 }
 
 bool AletheProofPostprocessCallback::update(Node res,
@@ -196,6 +246,8 @@ bool AletheProofPostprocessCallback::update(Node res,
   NodeManager* nm = nodeManager();
   std::vector<Node> new_args = std::vector<Node>();
 
+  // See proof_rule.h for documentation on the proof rules translated below. Any
+  // comment might use variable names as introduced there.
   switch (id)
   {
     // To keep the original shape of the proof node it is necessary to rederive
@@ -549,9 +601,23 @@ bool AletheProofPostprocessCallback::update(Node res,
     case ProofRule::THEORY_REWRITE:
     {
       ProofRewriteRule di;
-      rewriter::getRewriteRule(args[0], di);
-      return updateTheoryRewriteProofRewriteRule(
-          res, children, args, cdp, di);
+
+      if (rewriter::getRewriteRule(args[0], di))
+      {
+        if (updateTheoryRewriteProofRewriteRule(res, children, args, cdp, di))
+        {
+          return true;
+        }
+        std::stringstream ss;
+        ss << "\"" << di << "\"";
+        new_args.push_back(NodeManager::mkRawSymbol(ss.str(), nm->sExprType()));
+      }
+      return addAletheStep(AletheRule::HOLE,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           children,
+                           new_args,
+                           *cdp);
     }
     // Both ARITH_POLY_NORM and EVALUATE, which are used by the Rare
     // elaboration, are captured by the "rare_rewrite" rule.
@@ -691,8 +757,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     //  * the corresponding proof node is C
     case ProofRule::RESOLUTION:
     case ProofRule::CHAIN_RESOLUTION:
-    case ProofRule::MACRO_RESOLUTION:
-    case ProofRule::MACRO_RESOLUTION_TRUST:
+    case ProofRule::CHAIN_M_RESOLUTION:
     {
       std::vector<Node> cargs;
       if (id == ProofRule::CHAIN_RESOLUTION)
@@ -703,10 +768,16 @@ bool AletheProofPostprocessCallback::update(Node res,
           cargs.push_back(args[1][i]);
         }
       }
-      else if (id == ProofRule::MACRO_RESOLUTION
-               || id == ProofRule::MACRO_RESOLUTION_TRUST)
+      else if (id == ProofRule::CHAIN_M_RESOLUTION)
       {
-        cargs.insert(cargs.end(), args.begin() + 1, args.end());
+        Assert(args.size() == 3
+               && args[1].getNumChildren() == args[2].getNumChildren());
+        // Alethe expects the polarity/literals to be interleaved
+        for (size_t i = 0, nsteps = args[1].getNumChildren(); i < nsteps; i++)
+        {
+          cargs.push_back(args[1][i]);
+          cargs.push_back(args[2][i]);
+        }
       }
       else
       {
@@ -740,8 +811,6 @@ bool AletheProofPostprocessCallback::update(Node res,
           AletheRule::RESOLUTION_OR, res, conclusion, children, newArgs, *cdp);
     }
     // ======== Factoring
-    // See proof_rule.h for documentation on the FACTORING rule. This comment
-    // uses variable names as introduced there.
     //
     // If C2 = (or F1 ... Fn) but C1 != (or C2 ... C2), then VC2 = (cl F1 ...
     // Fn) Otherwise, VC2 = (cl C2).
@@ -779,8 +848,6 @@ bool AletheProofPostprocessCallback::update(Node res,
           AletheRule::REORDERING, res, children, {}, *cdp);
     }
     // ======== Split
-    // See proof_rule.h for documentation on the SPLIT rule. This comment
-    // uses variable names as introduced there.
     //
     // --------- not_not      --------- not_not
     //    VP1                    VP2
@@ -842,8 +909,6 @@ bool AletheProofPostprocessCallback::update(Node res,
                  *cdp);
     }
     // ======== Modus ponens
-    // See proof_rule.h for documentation on the MODUS_PONENS rule. This comment
-    // uses variable names as introduced there.
     //
     //     (P2:(=> F1 F2))
     // ------------------------ implies
@@ -868,8 +933,6 @@ bool AletheProofPostprocessCallback::update(Node res,
                               *cdp);
     }
     // ======== Double negation elimination
-    // See proof_rule.h for documentation on the NOT_NOT_ELIM rule. This comment
-    // uses variable names as introduced there.
     //
     // ---------------------------------- not_not
     //  (VP1:(cl (not (not (not F))) F))           (P:(not (not F)))
@@ -892,8 +955,6 @@ bool AletheProofPostprocessCallback::update(Node res,
                               *cdp);
     }
     // ======== Contradiction
-    // See proof_rule.h for documentation on the CONTRA rule. This
-    // comment uses variable names as introduced there.
     //
     //  P1   P2
     // --------- resolution
@@ -922,8 +983,6 @@ bool AletheProofPostprocessCallback::update(Node res,
                            *cdp);
     }
     // ======== And introduction
-    // See proof_rule.h for documentation on the AND_INTRO rule. This
-    // comment uses variable names as introduced there.
     //
     //
     // ----- and_neg
@@ -1458,22 +1517,54 @@ bool AletheProofPostprocessCallback::update(Node res,
                            {},
                            *cdp);
     }
-    // ======== Replace term by its axiom definition
-    // For now this introduces a hole. The processing in the future should
-    // generate corresponding Alethe steps for each particular axiom for term
-    // removal (for example for the ITE case).
+    // ======== If-then-else equivalence
+    //
+    // ------- rare_rewrite, ite_eq
+    //   VP1
+    // ------- equiv2                       ---------- true
+    //   VP2                                  d_true
+    // ----------------------------------------------- resolution
+    //   (cl (C?(= (C?t1:t2) t1):(= (C?t1:t2) t2)))*
+    //
+    // VP1: (cl (= (C?(= (C?t1:t2) t1):(= (C?t1:t2) t2)) true))
+    // VP2: (cl (C?(= (C?t1:t2) t1):(= (C?t1:t2) t2)) (not true))
+    // d_true: (cl true)
+    //
+    // * the corresponding proof node is (C?(= (C?t1:t2) t1):(= (C?t1:t2) t2))
+    //
+    // (define-rule ite_eq ((C bool) (t1 ?) (t2 ?)) (ite C (= (C?t1:t2) t1) (=
+    // (C?t1:t2) t2)) true)
+    //
     case ProofRule::ITE_EQ:
     {
-      return addAletheStep(AletheRule::HOLE,
-                           res,
-                           nm->mkNode(Kind::SEXPR, d_cl, res),
+      Node vp1 = nm->mkNode(Kind::EQUAL, res, d_true);
+      Node vp2 = nm->mkNode(Kind::OR, res, d_true.notNode());
+      Node args_0 = args[0];
+      return addAletheStep(AletheRule::RARE_REWRITE,
+                           vp1,
+                           nm->mkNode(Kind::SEXPR, d_cl, vp1),
                            {},
-                           {},
-                           *cdp);
+                           {nm->mkRawSymbol("\"ite-eq\"", nm->sExprType()),
+                            args_0[0],
+                            args_0[1],
+                            args_0[2]},
+                           *cdp)
+             && addAletheStepFromOr(AletheRule::EQUIV2, vp2, {vp1}, {}, *cdp)
+             && addAletheStep(AletheRule::TRUE,
+                              d_true,
+                              nm->mkNode(Kind::SEXPR, d_cl, d_true),
+                              {},
+                              {},
+                              *cdp)
+             && addAletheStep(AletheRule::RESOLUTION,
+                              res,
+                              nm->mkNode(Kind::SEXPR, d_cl, res),
+                              {vp2, d_true},
+                              d_resPivots ? std::vector<Node>{d_true, d_false}
+                                          : std::vector<Node>(),
+                              *cdp);
     }
     // ======== Skolemize
-    // See proof_rule.h for documentation on the SKOLEMIZE rule. This
-    // comment uses variable names as introduced there.
     //
     // In cvc5 this is applied solely to terms (not (forall (...)  F)),
     // concluding (not F*sigma'), where sigma' is the cumulative substitution
@@ -1618,8 +1709,6 @@ bool AletheProofPostprocessCallback::update(Node res,
     }
     //================================================= Quantifiers rules
     // ======== Instantiate
-    // See proof_rule.h for documentation on the INSTANTIATE rule. This
-    // comment uses variable names as introduced there.
     //
     // ----- FORALL_INST, t1 ... tn
     //  VP1

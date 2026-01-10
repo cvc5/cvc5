@@ -1,5 +1,28 @@
 This file contains a summary of important user-visible changes.
 
+cvc5 1.3.3 prerelease
+=====================
+
+## Changes
+
+- We now use a lazy approach for handling `distinct` constraints.
+
+cvc5 1.3.2
+==========
+
+## Changes
+
+- Fixes a bug related to variable elimination for quantified formulas that have
+  variable shadowing.
+- We now use a more efficient version of resolution by default in CPC proofs
+  (proof rule `CHAIN_M_RESOLUTION`) for representing SAT proofs from Minisat.
+- CPC proofs now have no mixed arithmetic by default.
+- Updates to the linear and non-linear arithmetic solver, including a new
+  lemma schema for multiplication (`--nl-ext-flatten-mon`), as well as
+  minor improvements to the Diophantine Equation solver.
+- Minor updates and fixes to the CPC proof signature. The current CPC proofs are
+  checkable by Ethos 0.2.2 (`./contrib/get-ethos-checker`).
+
 cvc5 1.3.1
 ==========
 

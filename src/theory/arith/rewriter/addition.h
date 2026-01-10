@@ -45,7 +45,7 @@ namespace rewriter {
  * done in-place instead of copying the result out of the std::unordered_map
  * into a sortable container.
  */
-using Sum = std::map<Node, RealAlgebraicNumber, TermComparator>;
+using Sum = std::map<Node, RealAlgebraicNumber, LeafNodeComparator>;
 
 /**
  * Print a sum. Does not use a particularly useful syntax and is thus only meant
@@ -73,6 +73,13 @@ bool isIntegral(const Sum& sum);
  */
 void addToSum(Sum& sum, TNode n, bool negate = false);
 
+/**
+ * Same as above, but also handles occurrences of TO_REAL.
+ * @param sum The sum to add to.
+ * @param n The term to add to sum.
+ * @param negate Whether to negate n.
+ */
+void addToSumNoMixed(Sum& sum, TNode n, bool negate = false);
 /**
  * Add the arithmetic term `product` to the given sum with coefficient
  * `multiplicity`. It should be the case that `product` is itself a monomial

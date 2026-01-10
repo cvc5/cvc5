@@ -89,6 +89,7 @@ Node OperatorElim::eliminateOperators(NodeManager* nm,
                                       bool partialOnly,
                                       bool& wasNonLinear)
 {
+  Trace("arith-op-elim") << "node: " << node << std::endl;
   SkolemManager* sm = nm->getSkolemManager();
   Kind k = node.getKind();
   switch (k)
@@ -106,19 +107,55 @@ Node OperatorElim::eliminateOperators(NodeManager* nm,
       // 0 <= node[0] - toIntSkolem < 1
       Node pterm = nm->mkNode(Kind::TO_INTEGER, node[0]);
       Node v = sm->mkPurifySkolem(pterm);
+      Node vr = nm->mkNode(Kind::TO_REAL, v);
       Node one = nm->mkConstReal(Rational(1));
       Node zero = nm->mkConstReal(Rational(0));
-      Node diff = nm->mkNode(Kind::SUB, node[0], v);
+      Node diff = nm->mkNode(Kind::SUB, node[0], vr);
       Node lem = mkInRange(diff, zero, one);
       lems.emplace_back(lem, v);
       if (k == Kind::IS_INTEGER)
       {
-        return mkEquality(node[0], v);
+        return nm->mkNode(Kind::EQUAL, node[0], vr);
       }
       Assert(k == Kind::TO_INTEGER);
       return v;
     }
+    case Kind::INTS_LOG2:
+    {
+      if (partialOnly)
+      {
+        // not eliminating total operators
+        return node;
+      }
+      // for a fresh skolem v, the elimination is:
+      // (int.log2 x) --> v, with lemmas: 
+      // (=> (> x 0) (and (<= (int.pow2 v) x) (< x (* 2 (int.pow2 v)))))
+      // (=> (<= x 0) (= v 0))
+      Node zero = nm->mkConstInt(Integer(0));
+      Node one = nm->mkConstInt(Integer(1));
+      Node x = node[0];
+      Node v = sm->mkPurifySkolem(node);
+      Node sv = nm->mkNode(Kind::ADD, v, one);
+      Node ptv = nm->mkNode(Kind::POW2, v);
+      Node ptv1 = nm->mkNode(Kind::POW2, sv);
+      Node pos_assumption = nm->mkNode(Kind::LT, zero, x);
+      Node pos_prop1 = nm->mkNode(Kind::LEQ, ptv, x);
+      Node pos_prop2 = nm->mkNode(Kind::LT, x, ptv1);
+      Node pos_prop = nm->mkNode(Kind::AND, pos_prop1, pos_prop2);
+      Node pos_lem = nm->mkNode(Kind::IMPLIES, pos_assumption, pos_prop);
+      
+      Node neg_assumption = nm->mkNode(Kind::NOT, pos_assumption);
+      Node neg_prop = nm->mkNode(Kind::EQUAL, v, zero);
+      Node neg_lem = nm->mkNode(Kind::IMPLIES, neg_assumption, neg_prop);
+      Node lem = nm->mkNode(Kind::AND, pos_lem, neg_lem);
+      lems.emplace_back(lem, v);
 
+      Trace("arith-op-elim") << "INTS_LOG2: node" << node << std::endl;
+      Trace("arith-op-elim") << "INTS_LOG2: x" << x << std::endl;
+      Trace("arith-op-elim") << "INTS_LOG2: v" << v << std::endl;
+      Trace("arith-op-elim") << "INTS_LOG2: lem" << lem << std::endl;
+      return v;
+    }
     case Kind::INTS_DIVISION_TOTAL:
     case Kind::INTS_MODULUS_TOTAL:
     {
@@ -189,6 +226,7 @@ Node OperatorElim::eliminateOperators(NodeManager* nm,
       }
       // add the skolem lemma to lems
       lems.emplace_back(lem, v);
+      Trace("arith-op-elim") << "lem " << lem << std::endl;
       if (k == Kind::INTS_MODULUS_TOTAL)
       {
         Node nn = nm->mkNode(Kind::SUB, num, nm->mkNode(Kind::MULT, den, v));
@@ -215,9 +253,14 @@ Node OperatorElim::eliminateOperators(NodeManager* nm,
       wasNonLinear = true;
       Node rw = nm->mkNode(k, num, den);
       Node v = sm->mkPurifySkolem(rw);
-      Node lem = nm->mkNode(Kind::IMPLIES,
-                            den.eqNode(mkZero(den.getType())).negate(),
-                            mkEquality(nm->mkNode(Kind::MULT, den, v), num));
+      if (num.getType().isInteger())
+      {
+        num = nm->mkNode(Kind::TO_REAL, num);
+      }
+      Node lem = nm->mkNode(
+          Kind::IMPLIES,
+          den.eqNode(mkZero(den.getType())).negate(),
+          nm->mkNode(Kind::EQUAL, nm->mkNode(Kind::MULT, den, v), num));
       lems.emplace_back(lem, v);
       return v;
       break;

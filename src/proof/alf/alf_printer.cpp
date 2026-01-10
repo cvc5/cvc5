@@ -80,6 +80,7 @@ bool AlfPrinter::isHandled(const Options& opts, const ProofNode* pfn)
     case ProofRule::TRANS:
     case ProofRule::CONG:
     case ProofRule::NARY_CONG:
+    case ProofRule::PAIRWISE_CONG:
     case ProofRule::HO_CONG:
     case ProofRule::TRUE_INTRO:
     case ProofRule::TRUE_ELIM:
@@ -214,7 +215,7 @@ bool AlfPrinter::isHandled(const Options& opts, const ProofNode* pfn)
              || k == Kind::DIVISION || k == Kind::DIVISION_TOTAL
              || k == Kind::INTS_DIVISION || k == Kind::INTS_DIVISION_TOTAL
              || k == Kind::INTS_MODULUS || k == Kind::INTS_MODULUS_TOTAL
-             || k == Kind::ABS;
+             || k == Kind::ABS || k == Kind::INTS_LOG2;
     }
     break;
     case ProofRule::STRING_REDUCTION:
@@ -295,6 +296,8 @@ bool AlfPrinter::isHandledTheoryRewrite(ProofRewriteRule id, const Node& n)
   {
     case ProofRewriteRule::DISTINCT_ELIM:
     case ProofRewriteRule::DISTINCT_CARD_CONFLICT:
+    case ProofRewriteRule::DISTINCT_TRUE:
+    case ProofRewriteRule::DISTINCT_FALSE:
     case ProofRewriteRule::BETA_REDUCE:
     case ProofRewriteRule::LAMBDA_ELIM:
     case ProofRewriteRule::UBV_TO_INT_ELIM:

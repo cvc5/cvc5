@@ -72,8 +72,8 @@ bool RewriteDbProofCons::prove(
   // clear the evaluate cache
   d_evalCache.clear();
   Node eq = a.eqNode(b);
-  Trace("rpc") << "RewriteDbProofCons::prove: " << a << " == " << b
-               << std::endl;
+  Trace("rpc") << "RewriteDbProofCons::prove: " << a << " == " << b << ", mode "
+               << tmode << std::endl;
   // As a heuristic, always apply CONG if we are an equality between two
   // binder terms with the same quantifier prefix or ALPHA_EQUIV if they have
   // a different prefix whose types are the same.
@@ -204,6 +204,14 @@ Node RewriteDbProofCons::preprocessClosureEq(CDProof* cdp,
                                              const Node& a,
                                              const Node& b)
 {
+  // if it is a single step rewrite, do not preprocess
+  theory::Rewriter* rr = d_env.getRewriter();
+  ProofRewriteRule prid = rr->findRule(a, b, theory::TheoryRewriteCtx::PRE_DSL);
+  if (prid != ProofRewriteRule::NONE)
+  {
+    // a simple theory rewrite happens to solve it, do not continue
+    return Node::null();
+  }
   // Ensure patterns are removed by calling d_rdnc postConvert (single step),
   // which also ensures differences e.g. LAMBDA vs FUNCTION_ARRAY_CONST are
   // resolved. We do not apply convert recursively here.
@@ -217,14 +225,6 @@ Node RewriteDbProofCons::preprocessClosureEq(CDProof* cdp,
   // only apply this to standard binders (those with 2 children)
   if (ai.getNumChildren() != 2 || bi.getNumChildren() != 2)
   {
-    return Node::null();
-  }
-  theory::Rewriter* rr = d_env.getRewriter();
-  ProofRewriteRule prid =
-      rr->findRule(ai, bi, theory::TheoryRewriteCtx::PRE_DSL);
-  if (prid != ProofRewriteRule::NONE)
-  {
-    // a simple theory rewrite happens to solve it, do not continue
     return Node::null();
   }
   Node eq;
@@ -1403,8 +1403,11 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
         else
         {
           Assert(status == RewriteProofStatus::THEORY_REWRITE);
-          // use the utility, possibly to do macro expansion
-          d_trrc.ensureProofForTheoryRewrite(cdp, pcur.d_dslId, cur);
+          // Use the utility, possibly to do macro expansion.
+          // We use a fresh CDProof to avoid duplicate substeps.
+          CDProof cdpt(d_env);
+          d_trrc.ensureProofForTheoryRewrite(&cdpt, pcur.d_dslId, cur);
+          cdp->addProof(cdpt.getProofFor(cur));
         }
       }
     }

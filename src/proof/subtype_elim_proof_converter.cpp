@@ -15,11 +15,14 @@
 
 #include "proof/subtype_elim_proof_converter.h"
 
+#include "expr/node_algorithm.h"
+#include "proof/conv_proof_generator.h"
 #include "proof/proof.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_node_algorithm.h"
 #include "proof/proof_node_manager.h"
 #include "smt/env.h"
+#include "util/rational.h"
 
 namespace cvc5::internal {
 
@@ -27,6 +30,22 @@ SubtypeElimConverterCallback::SubtypeElimConverterCallback(Env& env)
     : EnvObj(env), d_nconv(nodeManager())
 {
   d_pc = d_env.getProofNodeManager()->getChecker();
+}
+
+bool SubtypeElimConverterCallback::shouldConvert(std::shared_ptr<ProofNode> pn)
+{
+  // needs to convert if an argument or the result has mixed arithmetic, which
+  // is true if the node converter modifies the term.
+  const std::vector<Node>& args = pn->getArguments();
+  for (const Node& a : args)
+  {
+    if (d_nconv.convert(a) != a)
+    {
+      return true;
+    }
+  }
+  Node res = pn->getResult();
+  return d_nconv.convert(res) != res;
 }
 
 Node SubtypeElimConverterCallback::convert(Node res,
@@ -42,11 +61,86 @@ Node SubtypeElimConverterCallback::convert(Node res,
   }
   // get the converted form of the conclusion, which we must prove.
   Node resc = d_nconv.convert(res);
+  // trivial case: use refl. This handles all cases where e.g. rewriting
+  // introduced mixed arithmetic. This happens commonly so we shortcut as
+  // an optimization here.
+  if (resc.getKind() == Kind::EQUAL && resc[0] == resc[1])
+  {
+    cdp->addStep(resc, ProofRule::REFL, {}, {resc[0]});
+    return resc;
+  }
   // in very rare cases a direct child may already be the proof we want
   if (std::find(children.begin(), children.end(), resc) != children.end())
   {
     return resc;
   }
+  NodeManager* nm = nodeManager();
+  // cases where arguments may need additional fixing before trying
+  // proof rule
+  switch (id)
+  {
+    case ProofRule::ARITH_MULT_SIGN:
+    {
+      Trace("pf-subtype-elim")
+          << "preconvert arith mult sign " << cargs << std::endl;
+      // For example, if x:Real, y:Int, this rule with the arguments
+      // (and (> x 0.0) (> y 0)), (* x y) proves
+      // (=> (and (> x 0.0) (> y 0)) (> (* x y) 0.0)). Subtype elimination
+      // converts this initially to (and (> x 0.0) (> y 0)), (* x (to_real y)),
+      // which is not a valid proof step since y does not match (to_real y).
+      // This further converts the arguments to
+      // (and (> x 0.0) (> (to_real y) 0.0)), (* x (to_real y)).
+      Assert(cargs.size() == 2 && cargs[1].getKind() == Kind::NONLINEAR_MULT);
+      std::vector<Node> premise;
+      if (cargs[0].getKind() == Kind::AND)
+      {
+        premise.insert(premise.end(), cargs[0].begin(), cargs[0].end());
+      }
+      else
+      {
+        premise.push_back(cargs[0]);
+      }
+      // map premises to their index
+      std::map<Node, size_t> premiseIndex;
+      for (size_t i = 0, nprem = premise.size(); i < nprem; i++)
+      {
+        Node p = premise[i];
+        bool neg = p.getKind() == Kind::NOT;
+        Node atom = neg ? p[0] : p;
+        Assert(atom.getNumChildren() == 2);
+        premiseIndex[atom[0]] = i;
+      }
+      std::vector<Node> nconj;
+      bool childChanged = false;
+      // for each to_real(x) in the monomial, go back and modify the premise
+      // x ~ 0 to to_real(x) ~ 0.0
+      std::map<Node, size_t>::iterator itp;
+      for (size_t i = 0, nchild = cargs[1].getNumChildren(); i < nchild; i++)
+      {
+        if (cargs[1][i].getKind() == Kind::TO_REAL)
+        {
+          itp = premiseIndex.find(cargs[1][i][0]);
+          Assert(itp != premiseIndex.end());
+          Node p = premise[itp->second];
+          bool neg = p.getKind() == Kind::NOT;
+          Node atom = neg ? p[0] : p;
+          Assert(atom[1].isConst() && atom[1].getConst<Rational>().sgn() == 0);
+          childChanged = true;
+          Node newAtom = nm->mkNode(
+              atom.getKind(), cargs[1][i], nm->mkConstReal(Rational(0)));
+          newAtom = neg ? newAtom.notNode() : newAtom;
+          premise[itp->second] = newAtom;
+        }
+      }
+      if (childChanged)
+      {
+        cargs[0] = nm->mkAnd(premise);
+      }
+    }
+    break;
+    default: break;
+  }
+
   Node newRes;
   // check if succeeds with no changes
   if (tryWith(id, children, cargs, resc, newRes, cdp))
@@ -109,7 +203,6 @@ Node SubtypeElimConverterCallback::convert(Node res,
     case ProofRule::ARITH_SUM_UB:
     {
       success = true;
-      NodeManager* nm = nodeManager();
       Assert(resc.getNumChildren() == 2);
       Assert(resc[0].getNumChildren() == children.size());
       Assert(resc[1].getNumChildren() == children.size());
@@ -152,7 +245,6 @@ Node SubtypeElimConverterCallback::convert(Node res,
       //
       // there t'~s' is a predicate over reals and t~s is a mixed integer
       // predicate.
-      NodeManager* nm = nodeManager();
       Node sc = resc[0][0];
       Node relOld = resc[0][1];
       Node relNew = nm->mkNode(relOld.getKind(), resc[1][0][1], resc[1][1][1]);
@@ -179,13 +271,55 @@ Node SubtypeElimConverterCallback::convert(Node res,
           ProofRule::MACRO_SR_PRED_INTRO, children, cargs, resc, newRes, cdp);
     }
     break;
-    default: break;
+    default:
+    {
+      std::vector<Node> matchConds;
+      expr::getConversionConditions(newRes, resc, matchConds);
+      // Otherwise find a set of equalities that suffice to show the difference,
+      // and use conversion proof generator. For example if we have
+      // (= x (to_real 0)) but need (= x 0.0), then matchConds contains
+      // { (= (to_real 0) 0.0) }.
+      TConvProofGenerator tcpg(d_env,
+                               nullptr,
+                               TConvPolicy::ONCE,
+                               TConvCachePolicy::NEVER,
+                               "SubtypeElimConvert",
+                               nullptr,
+                               true);
+      for (const Node& mc : matchConds)
+      {
+        tcpg.addRewriteStep(mc[0],
+                            mc[1],
+                            nullptr,
+                            true,
+                            TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE);
+      }
+      std::shared_ptr<ProofNode> pfn = tcpg.getProofForRewriting(newRes);
+      Node resr = pfn->getResult();
+      Assert(resr.getKind() == Kind::EQUAL);
+      if (resr[1] == resc)
+      {
+        // if successful we have
+        // P
+        // --  ------ by term conversion + rewrite steps
+        // Q   Q = R
+        // ---------- EQ_RESOLVE
+        // R
+        // where P is the premises of this step after subtype elimination,
+        // Q is what is proven by the original rule and P, and R is the original
+        // conclusion after subtype elimination.
+        cdp->addProof(pfn);
+        cdp->addStep(resc, ProofRule::EQ_RESOLVE, {newRes, resr}, {});
+        cdp->addStep(newRes, id, children, cargs);
+      }
+    }
+    break;
   }
   if (!success)
   {
     // if we did not succeed, just add a trust step
     Trace("pf-subtype-elim-warn")
-        << "WARNING: Introduction of subtyping via rule " << id;
+        << "WARNING: Introduction of subtyping via rule " << id << std::endl;
     cdp->addTrustedStep(resc, TrustId::SUBTYPE_ELIMINATION, children, {});
   }
   return resc;

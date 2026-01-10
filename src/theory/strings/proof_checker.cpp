@@ -357,7 +357,10 @@ Node StringProofRuleChecker::checkInternal(ProofRule id,
   }
   else if (id == ProofRule::RE_CONCAT)
   {
-    Assert(children.size() >= 2);
+    if (children.size() < 2)
+    {
+      return Node::null();
+    }
     Assert(args.empty());
     std::vector<Node> ts;
     std::vector<Node> rs;

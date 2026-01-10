@@ -6,7 +6,6 @@
 (include "../programs/Nary.eo")
 (include "../programs/PolyNorm.eo")
 (include "../programs/DistinctValues.eo")
-(include "../programs/Nfa.eo")
 
 ; This signature is used for both strings and sequences, where we often
 ; write "string" in the documentation to refer to a string or sequence,
@@ -166,81 +165,109 @@
 
 ;;-------------------- RE evaluation
 
-; note: used to represent an invalid regular expression below.
-(declare-const @@re.null RegLan)
-(define @re.null () @@re.null)
-
-; program: $str_eval_str_in_re_rec
+; program: $re_nullable
 ; args:
-; - s String: The string to inspect.
-; - n Int: The number of characters that must be consumed in s.
-; - r1 RegLan: The regular expression to inspect.
-; - r2 RegLan: The remaining regular expression to be processed after r1, if it exists.
-; return: >
-;   The call ($str_eval_str_in_re_rec s 0 r1 @re.null) returns true if s is in r1.
-;   The call ($str_eval_str_in_re_rec s n r1 r2) returns true if s = s1 ++ s2 for some s1, s2 such that:
-;   - s1 in r1
-;   - s2 in r2
-;   - s1 contains at least n characters.
-; note: >
-;   This method has an exponential runtime. It is a placeholder for a
-;   more efficient algorithm (via NFAs) to be written later.
-(program $str_eval_str_in_re_rec ((s String) (s1 String) (s2 String) (n Int) (r1 RegLan) (rr RegLan :list) (r2 RegLan) (sr String))
-  :signature (String Int RegLan RegLan) Bool
+; - r RegLan: The regular language to check.
+; returns: Bool
+;   Whether the regular language r contains the empty string.
+(program $re_nullable ((r RegLan) (rr RegLan :list))
+  :signature (RegLan) Bool
   (
-  (($str_eval_str_in_re_rec s 0 (re.++ r1 rr) @re.null)     ($str_eval_str_in_re_rec s 0 r1 rr))
-  (($str_eval_str_in_re_rec s 0 (re.inter r1 rr) @re.null)  (eo::ite ($str_eval_str_in_re_rec s 0 r1 @re.null)
-                                                              ($str_eval_str_in_re_rec s 0 rr @re.null)
-                                                              false))
-  (($str_eval_str_in_re_rec s 0 (re.union r1 rr) @re.null)  (eo::ite ($str_eval_str_in_re_rec s 0 r1 @re.null)
-                                                              true
-                                                              ($str_eval_str_in_re_rec s 0 rr @re.null)))
-  (($str_eval_str_in_re_rec s 0 (re.* r1) @re.null)         (eo::ite (eo::eq s "")
-                                                              true
-                                                              ; to make progress, first component must be non-empty
-                                                              ($str_eval_str_in_re_rec s 1 r1 (re.* r1))))
-  (($str_eval_str_in_re_rec s 0 (str.to_re sr) @re.null)    (eo::eq s sr))
-  (($str_eval_str_in_re_rec s 0 (re.range s1 s2) @re.null)  (eo::define ((cs (eo::to_z s)))
-                                                            (eo::requires ($str_is_char_range s1 s2) true
-                                                            (eo::ite (eo::eq (eo::len s) 1)
-                                                                (eo::and ($compare_geq cs (eo::to_z s1))
-                                                                         ($compare_geq (eo::to_z s2) cs))
-                                                                false))))
-  (($str_eval_str_in_re_rec s 0 re.allchar @re.null)        (eo::eq (eo::len s) 1))
-  (($str_eval_str_in_re_rec s 0 re.all @re.null)            true)
-  (($str_eval_str_in_re_rec s 0 re.none @re.null)           false)
-  (($str_eval_str_in_re_rec s 0 (re.comp r1) @re.null)      (eo::not ($str_eval_str_in_re_rec s 0 r1 @re.null)))
-  (($str_eval_str_in_re_rec s n r1 r2)                      (eo::define ((ls (eo::len s)))
-                                                            (eo::define ((ss1 (eo::extract s 0 (eo::add n -1))))
-                                                            (eo::define ((ss2 (eo::extract s n ls)))
-                                                            (eo::define ((res (eo::ite ($str_eval_str_in_re_rec ss1 0 r1 @re.null)
-                                                                       (eo::ite ($str_eval_str_in_re_rec ss2 0 r2 @re.null)
-                                                                         true false)
-                                                                       false)))
-                                                            (eo::ite res true
-                                                            (eo::ite (eo::eq n ls) false
-                                                              ($str_eval_str_in_re_rec s (eo::add n 1) r1 r2))))))))
+    (($re_nullable re.all)          true)
+    (($re_nullable @re.empty)       true)
+    (($re_nullable (re.* r))        true)
+    (($re_nullable (re.union r rr)) (eo::or ($re_nullable r) ($re_nullable rr)))
+    (($re_nullable (re.inter r rr)) (eo::and ($re_nullable r) ($re_nullable rr)))
+    (($re_nullable (re.++ r rr))    (eo::and ($re_nullable r) ($re_nullable rr)))
+    (($re_nullable (re.comp r))     (eo::not ($re_nullable r)))
+    (($re_nullable r)               false)
   )
 )
 
-; define: $str_eval_str_in_re
+; program: $re_ac_merge
 ; args:
-; - s String: The string to inspect.
-; - r RegLan: The regular expression to inspect.
-; return: >
-;   true if s is in regular expression r. Does not evaluate if s is not a string
-;   literal.
-; note: This method attempts to use the NFA test whenever possible.
-(define $str_eval_str_in_re ((s String) (r RegLan))
-  (eo::ite (eo::is_str s)
-    (eo::define ((nfa ($build_nfa r (@nfa.list @nfa.accept))))
-    (eo::ite (eo::is_ok nfa)
-      ; if this is supported by the NFA signature, use the faster test
-      ($nfa_match "" s nfa @nfa.decline)
-      ; otherwise, must use the backtracking method above.
-      ($str_eval_str_in_re_rec s 0 r @re.null)))
-    ; otherwise if s is not constant, we are unevaluated
-    (str.in_re s r)))
+; - f (-> RegLan RegLan RegLan): The constructor for the associative and commutative operator (re.union, re.inter).
+; - r1 RegLan: A regular language term.
+; - rr1 RegLan :list: A list of regular language terms for the first argument.
+; - r2 RegLan: Another regular language term.
+; - rr2 RegLan :list: A list of regular language terms for the second argument.
+; returns: RegLan
+;   A function to flatten the construction of an AC list regular expression operator.
+(program $re_ac_merge ((f (-> RegLan RegLan RegLan)) (r1 RegLan) (rr1 RegLan :list) (r2 RegLan) (rr2 RegLan :list))
+  :signature ((-> RegLan RegLan RegLan) RegLan RegLan) RegLan
+  (
+    (($re_ac_merge re.union re.none r1)      r1)
+    (($re_ac_merge re.inter re.none r1)      re.none)
+    (($re_ac_merge f r1 r1)                  r1)
+    (($re_ac_merge f (f r1 rr1) (f r2 rr2))  (eo::list_concat f (eo::list_diff f (f r1 rr1) (f r2 rr2)) (f r2 rr2)))
+    (($re_ac_merge f (f r1 rr1) r2)          (eo::ite (eo::is_neg (eo::list_find f (f r1 rr1) r2)) (eo::cons f r2 (f r1 rr1)) (f r1 rr1)))
+    (($re_ac_merge f r2 (f r1 rr1))          (eo::ite (eo::is_neg (eo::list_find f (f r1 rr1) r2)) (eo::cons f r2 (f r1 rr1)) (f r1 rr1)))
+    (($re_ac_merge f r1 r2)                  (f r1 (f r2 (eo::nil f RegLan))))
+  )
+)
+
+; program: $re_concat_merge
+; args:
+; - r1 RegLan: The first term of the concatenation.
+; - rr1 RegLan :list: The list of remaining terms in the first concatenation.
+; - r2 RegLan: The second term of the concatenation.
+; - rr2 RegLan :list: The list of remaining terms in the second concatenation.
+; returns: RegLan
+;   A function to flatten the concatenation (re.++) of two regular expressions.
+(program $re_concat_merge ((r1 RegLan) (rr1 RegLan :list) (r2 RegLan) (rr2 RegLan :list))
+  :signature (RegLan RegLan) RegLan
+  (
+    (($re_concat_merge (re.++ r1 rr1) (re.++ r2 rr2))  (eo::list_concat re.++ (re.++ r1 rr1) (re.++ r2 rr2)))
+    (($re_concat_merge re.none r1)                     re.none)
+    (($re_concat_merge r1 (re.++ r2 rr2))              (eo::cons re.++ r1 (re.++ r2 rr2)))
+    (($re_concat_merge @re.empty r1)                   r1)
+    (($re_concat_merge r1 @re.empty)                   r1)
+    (($re_concat_merge r1 r2)                          (re.++ r1 r2))
+  )
+)
+
+; program: $derivative
+; args:
+; - c String: The single character to take the derivative with respect to.
+; - s1 String: A string argument, used for str.to_re or re.range.
+; - s2 String: A string argument, used for re.range.
+; - r RegLan: The regular language expression.
+; - rr RegLan :list: A list of regular language terms (for re.union/re.inter).
+; returns: RegLan
+;   Computes the Brzozowski derivative of a regular language with respect to a character c.
+(program $derivative ((c String) (s1 String) (s2 String) (r RegLan) (rr RegLan :list))
+  :signature (String RegLan) RegLan
+  (    
+    (($derivative c (re.union r rr))   ($re_ac_merge re.union ($derivative c r) ($derivative c rr) ))
+    (($derivative c (re.++ r rr))      
+      (eo::ite ($re_nullable r) ($re_ac_merge re.union ($derivative c rr) ($re_concat_merge ($derivative c r) rr)) ($re_concat_merge ($derivative c r) rr)))
+    (($derivative c (re.inter r rr))   ($re_ac_merge re.inter ($derivative c r) ($derivative c rr) ))
+    (($derivative c (re.comp r))       (re.comp ($derivative c r)))
+    (($derivative c (re.* r))          ($re_concat_merge ($derivative c r) (re.* r)))
+    (($derivative c (str.to_re s1))    (eo::ite (eo::is_eq (eo::extract s1 0 0) c) (str.to_re (eo::extract s1 1 (eo::add -1 (eo::len s1)))) re.none))
+    (($derivative c (re.range s1 s2))  (eo::ite (eo::and ($compare_geq (eo::to_z c) (eo::to_z s1)) ($compare_geq (eo::to_z s2) (eo::to_z c))) @re.empty re.none))
+    (($derivative c re.none)           re.none)
+    (($derivative c @re.empty)         re.none)
+    (($derivative c re.all)            re.all)
+    (($derivative c re.allchar)        @re.empty)
+  )
+)
+
+; program: $str_eval_str_in_re
+; args:
+; - s String: The input string.
+; - r RegLan: The regular expression.
+; returns: Bool
+;   Checks if the string s is accepted by the regular language L(r) using the derivative method.
+;   String s is accepted if and only if the derivative is nullable.
+(program $str_eval_str_in_re ((s String) (r RegLan))
+  :signature (String RegLan) Bool
+  (
+    (($str_eval_str_in_re "" r)       ($re_nullable r))
+    (($str_eval_str_in_re s re.none)  false)
+    (($str_eval_str_in_re s r)        ($str_eval_str_in_re (eo::extract s 1 (eo::add -1 (eo::len s))) ($derivative (eo::extract s 0 0) r)))
+  )
+)
 
 ;;;;; first match utilities
 
@@ -996,9 +1023,12 @@
 (program $str_mk_re_loop_elim_rec ((n Int) (d Int) (r RegLan) (rr RegLan :list))
   :signature (Int Int RegLan RegLan) RegLan
   (
-    (($str_mk_re_loop_elim_rec 0 0 r rr) (eo::cons re.union ($singleton_elim rr) re.none))
-    (($str_mk_re_loop_elim_rec 0 d r rr) (eo::cons re.union ($singleton_elim rr) ($str_mk_re_loop_elim_rec 0 (eo::add d -1) r (re.++ r rr))))
-    (($str_mk_re_loop_elim_rec n d r rr) ($str_mk_re_loop_elim_rec (eo::add n -1) d r (re.++ r rr)))
+    (($str_mk_re_loop_elim_rec 0 0 r rr)
+      (eo::cons re.union (eo::list_singleton_elim re.++ rr) re.none))
+    (($str_mk_re_loop_elim_rec 0 d r rr)
+      (eo::cons re.union (eo::list_singleton_elim re.++ rr) ($str_mk_re_loop_elim_rec 0 (eo::add d -1) r (re.++ r rr))))
+    (($str_mk_re_loop_elim_rec n d r rr)
+      ($str_mk_re_loop_elim_rec (eo::add n -1) d r (re.++ r rr)))
   )
 )
 
@@ -1015,8 +1045,7 @@
 ;   where r^k is (re.++ r ... r), where r is repeated k times when k>1, or
 ;   r if k=1 or @re.empty if k=0.
 (define $str_mk_re_loop_elim ((n Int) (d Int) (r RegLan))
-  ($singleton_elim ($str_mk_re_loop_elim_rec n d r @re.empty))
-)
+  (eo::list_singleton_elim re.union ($str_mk_re_loop_elim_rec n d r @re.empty)))
 
 ; program: $str_mk_str_in_re_concat_star_char
 ; args:
