@@ -35,6 +35,11 @@ class TheoryArith;
 
 namespace liastar {
 
+// Arbitrary‑precision integers.
+typedef mpz_class Integer;
+// type the constraint matrix
+typedef std::vector<std::vector<Integer>> Matrix;
+
 /** Liastar extension class
  *
  * This class implements model-based refinement schemes
@@ -98,6 +103,19 @@ class LiaStarExtension : EnvObj
   void getAssertions(std::vector<Node>& assertions);
 
   Node isNotZeroVector(Node v);
+
+  /**
+   * Argument n must be a node of the form (int.star-contains ((x1 Int) ... (xn
+   * Int)) p v) This functions convert the predicate p (which in QFLIA) to a
+   * list of matrices representing a disjunction of set of inequalities in
+   * Normaliz matrix form A x b >= 0 where A is a matrix and x = (x1 ... xn 1).
+   * This form is used
+   */
+  const std::vector<Matrix> convertQFLIAToMatrices(Node n) const;
+
+  void collectConstraintsBFS(Node n,
+                             Matrix matrix,
+                             std::vector<Matrix>& matrices);
 
   /** commonly used terms */
   Node d_true;

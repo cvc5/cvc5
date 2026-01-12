@@ -15,6 +15,7 @@
 #include "liastar_extension.h"
 
 #include "liastar_utils.h"
+#include "libnormaliz/libnormaliz.h"
 #include "options/arith_options.h"
 #include "options/smt_options.h"
 #include "theory/arith/arith_utilities.h"
@@ -35,6 +36,10 @@ namespace cvc5::internal {
 namespace theory {
 namespace arith {
 namespace liastar {
+
+using namespace libnormaliz;
+
+using libnormaliz::operator<<;
 
 LiaStarExtension::LiaStarExtension(Env& env, TheoryArith& containing)
     : EnvObj(env),
@@ -191,7 +196,7 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
       // So to make progress, we split on whether the vector before evaluation,
       // which may contain variables, satisfies the predicate or not.
       // So if we have
-      // (star-contains ((x1 ... x_n) (p x1 ... x_n) (tuple y1 ... y_n)))
+      // (star-contains (x1 ... x_n) (p x1 ... x_n) (tuple y1 ... y_n)))
       // we add the lemma
       // (or (p y1 ... y_n) (not (p y1 ... y_n)) hoping that
       // (p y1 ... y_n) holds to force LIA solver to find a model.
@@ -216,33 +221,32 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
           Trace("liastar-ext") << "already processed vector " << v << std::endl;
           continue;
         }
-        Node v1 = nm->getSkolemManager()->mkDummySkolem("v1", v.getType());
-        Node v2 = nm->getSkolemManager()->mkDummySkolem("v2", v.getType());
 
-        auto size = v1.getType().getTupleTypes().size();
+        std::vector<Matrix> matrices = convertQFLIAToMatrices(literal);
 
-        for (size_t i = 0; i < size; i++)
+        std::vector<Cone<Integer>> cones;
+        for (const auto& matrix : matrices)
         {
-          Node v_i = datatypes::TupleUtils::nthElementOfTuple(v, i);
-          Node v1_i = datatypes::TupleUtils::nthElementOfTuple(v1, i);
-          Node v2_i = datatypes::TupleUtils::nthElementOfTuple(v2, i);
-          Node plus = nm->mkNode(Kind::ADD, v1_i, v2_i);
-          Node constraint = v_i.eqNode(plus);
-          d_im.addPendingLemma(constraint, InferenceId::ARITH_LIA_STAR);
+          Cone<Integer> cone(Type::inequalities, matrix);
+          cone.compute(ConeProperty::HilbertBasis);
+          cone.compute(ConeProperty::ModuleGenerators);
+
           Trace("liastar-ext")
-              << "Added constraint:  " << constraint << std::endl;
+              << "Hilbert basis (recession cone):" << std::endl;
+
+          for (const auto& z : cone.getHilbertBasis())
+          {
+            std::cout << z;
+          }
+
+          Trace("liastar-ext") << "Module generators:" << std::endl;
+          for (const auto& z : cone.getModuleGenerators())
+          {
+            std::cout << z;
+          }
+          cones.push_back(cone);
         }
 
-        Node v1Literal =
-            nm->mkNode(Kind::STAR_CONTAINS, literal[0], literal[1], v1);
-        Node v2Literal =
-            nm->mkNode(Kind::STAR_CONTAINS, literal[0], literal[1], v2);
-        d_im.addPendingLemma(v1Literal, InferenceId::ARITH_LIA_STAR);
-        d_im.addPendingLemma(v2Literal, InferenceId::ARITH_LIA_STAR);
-        d_im.addPendingLemma(isNotZeroVector(v1), InferenceId::ARITH_LIA_STAR);
-        d_im.addPendingLemma(isNotZeroVector(v2), InferenceId::ARITH_LIA_STAR);
-        Trace("liastar-ext") << "Add v1:  " << v1Literal << std::endl;
-        Trace("liastar-ext") << "Add v2:  " << v2Literal << std::endl;
         d_processedVectors.push_back(v);
         d_im.doPendingLemmas();
       }
@@ -260,6 +264,50 @@ Node LiaStarExtension::isNotZeroVector(Node v)
   }
   Trace("liastar-ext") << v << " is not zero: " << notZero << std::endl;
   return notZero;
+}
+
+const std::vector<Matrix> LiaStarExtension::convertQFLIAToMatrices(Node n) const
+{
+  Assert(n.getKind() == Kind::STAR_CONTAINS);
+  Matrix nonNegativeConstraints;
+
+  Node variables = n[0];
+  Node predicate = n[1];
+  size_t dimension = variables.getNumChildren();
+  std::cout << "variables: " << variables << std::endl;
+  std::cout << "variables: " << variables.getKind() << std::endl;
+  std::cout << "variables: " << variables.getNumChildren() << std::endl;
+  std::cout << "predicate: " << predicate << std::endl;
+  std::cout << "predicate: " << rewrite(predicate) << std::endl;
+
+  for (size_t i = 0; i < dimension; i++)
+  {
+    // initialize a vector of dimension + 1 with all zeros
+    std::vector<Integer> constraint(dimension + 1, Integer(0));
+    // 0 x1 + ... 1 * x_i + ... 0 x_n + 0 >= 0
+    constraint[i] = Integer(1);
+    nonNegativeConstraints.push_back(constraint);
+  }
+
+  std::vector<Matrix> matrices;
+  // cvc5 converts nodes with Kinds distinct and <, <= operators to >=
+  // and does not change nodes with Kinds =, ite which are not compatible
+  // with Normaliz which requires constraints to be the form
+  // a1 x1 + ... + an xn + b >= 0
+  // The following code convert predicate into a equivalent formula in DNF
+  // where the constraints in each disjunction construct a matrix in Normaliz
+  switch (predicate.getKind())
+  {
+    case Kind::AND:
+    default: std::cout << "" << std::endl;
+  }
+  return matrices;
+}
+
+void LiaStarExtension::collectConstraintsBFS(Node n,
+                                             Matrix matrix,
+                                             std::vector<Matrix>& matrices)
+{
 }
 
 }  // namespace liastar
