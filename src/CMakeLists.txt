@@ -1605,6 +1605,14 @@ else()
   target_link_libraries(cvc5 PUBLIC $<BUILD_INTERFACE:GMP> $<INSTALL_INTERFACE:gmp>)
 endif()
 
+add_dependencies(cvc5-obj Normaliz)
+target_include_directories(cvc5-obj PRIVATE ${Normaliz_INCLUDE_DIR})
+if(BUILD_SHARED_LIBS)
+  target_link_libraries(cvc5 PRIVATE $<BUILD_INTERFACE:Normaliz> $<INSTALL_INTERFACE:Normaliz>)
+else()
+  target_link_libraries(cvc5 PUBLIC $<BUILD_INTERFACE:Normaliz> $<INSTALL_INTERFACE:Normaliz>)
+endif()
+
 #-----------------------------------------------------------------------------#
 # Visit main subdirectory after creating target cvc5. For target main, we have
 # to manually add library dependencies since we can't use
