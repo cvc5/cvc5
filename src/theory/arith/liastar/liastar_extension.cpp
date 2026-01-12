@@ -102,6 +102,7 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
   for (const auto& literal : assertions)
   {
     Assert(literal.getKind() == Kind::STAR_CONTAINS);
+    Node vec = literal[2];
     auto [vectorPredicate, nonnegative] =
         LiaStarUtils::getVectorPredicate(literal, nm);
     // assert that vector elements are non negative
@@ -139,10 +140,24 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
     }
     else
     {
+      Trace("liastar-ext-debug") << "value: " << value << std::endl;
+      Trace("liastar-ext-debug") << "vector value of: " << literal[2] << " is "
+                                 << vectorValue << std::endl;
       for (size_t i = 0; i < literal[2].getType().getTupleLength(); i++)
       {
         Node eValue = datatypes::TupleUtils::nthElementOfTuple(literal[2], i);
-        elements.push_back(arithModel[eValue]);
+        Trace("liastar-ext-debug") << "eValue: " << eValue << std::endl;
+        if (eValue.isConst())
+        {
+          elements.push_back(eValue);
+        }
+        else
+        {
+          Node modelValue = arithModel[eValue];
+          Trace("liastar-ext-debug")
+              << "modelValue: " << modelValue << std::endl;
+          elements.push_back(modelValue);
+        }
       }
       vectorValue = datatypes::TupleUtils::constructTupleFromElements(
           literal[2].getType(),
