@@ -292,7 +292,7 @@ class AletheTester(Tester):
                 benchmark_info.timeout,
             )
             if (re.search(r'Proof unsupported by Alethe', output.decode()) or re.search(r'Proof unsupported by Alethe', error.decode())):
-                return EXIT_SKIP
+                return EXIT_SKIP 
             # strip the unsat and parentheses
             output, exit_code = self.strip_proof_body(output)
             if exit_code == EXIT_FAILURE:
@@ -325,6 +325,23 @@ class AletheTester(Tester):
                 print()
                 print_outputs(output, error)
                 return EXIT_FAILURE
+            #Carcara does not understand some SMT-LIB operators, especially from the FixedSizeBitVectors theory.
+            #There are also some operators such as bbterm that are new in the Alethe standard but not supported
+            #by Carcara yet.
+            pattern = re.compile(
+              r"\[ERROR\]\s+parser error:\s+(?:"
+              r"identifier\s+'([^']+)'\s+is not defined"
+              r"|"
+              r"not a valid indexed operator:\s+'([^']+)'"
+              r")"
+            )
+            undefId = pattern.search(error)
+            if undefId:
+              identifier = undefId.group(1) or undefId.group(2)
+              ignoreId={"@bbterm","@bit_of","@bvsize","@bv","ubv_to_int","int_to_bv","int.pow2","repeat","rotate_right","rotate_left"}
+              if identifier in ignoreId:
+               return EXIT_SKIP
+            print(error)
         if exit_code == EXIT_OK:
             print_ok("OK")
         return exit_code
