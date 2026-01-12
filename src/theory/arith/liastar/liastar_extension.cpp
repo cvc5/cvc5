@@ -68,16 +68,18 @@ void LiaStarExtension::preRegisterTerm(TNode n)
 void LiaStarExtension::getAssertions(std::vector<Node>& assertions)
 {
   Trace("liastar-ext") << "Getting assertions..." << std::endl;
+  Trace("liastar-ext") << "---------------------" << std::endl;
   for (auto it = d_arith.facts_begin(); it != d_arith.facts_end(); ++it)
   {
     Node lit = (*it).d_assertion;
+    Trace("liastar-ext") << lit << std::endl;
     if (lit.getKind() == Kind::STAR_CONTAINS)
     {
       // for now, we only care about positive poalrity of star-contains
-      Trace("liastar-ext") << "Adding " << lit << std::endl;
       assertions.push_back(lit);
     }
   }
+  Trace("liastar-ext") << "---------------------" << std::endl;
   Trace("liastar-ext") << "...keep " << assertions.size() << " / "
                        << d_arith.numAssertions() << " assertions."
                        << std::endl;
