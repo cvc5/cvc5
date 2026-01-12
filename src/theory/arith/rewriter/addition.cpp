@@ -146,6 +146,7 @@ bool isIntegral(const Sum& sum)
   for (const auto& s: sum)
   {
     queue.emplace_back(s.first);
+    if (!s.second.isRational()) return false;
   }
   while (!queue.empty())
   {
