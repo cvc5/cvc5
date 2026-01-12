@@ -605,6 +605,7 @@ if(USE_EDITLINE)
 endif()
 
 find_package(SymFPU REQUIRED)
+find_package(Normaliz REQUIRED)
 
 if(GPL_LIBS)
   if(NOT ENABLE_GPL)
