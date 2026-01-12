@@ -428,6 +428,7 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
   // Now we have (sum <kind> 0)
   if (rewriter::isIntegral(sum))
   {
+    Trace("arith-rewriter") << "...sum is integral" << std::endl;
     if (kind == Kind::EQUAL)
     {
       return RewriteResponse(
@@ -439,6 +440,7 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
   }
   else
   {
+    Trace("arith-rewriter") << "...sum is not integral" << std::endl;
     if (kind == Kind::EQUAL)
     {
       return RewriteResponse(REWRITE_DONE,
