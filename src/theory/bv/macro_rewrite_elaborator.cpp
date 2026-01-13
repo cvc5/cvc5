@@ -83,7 +83,7 @@ bool MacroRewriteElaborator::ensureProofForSimplify(CDProof* cdp,
     // As a corner case, (xor (not a) a) --> #b1111 is not handled by RARE
     // reconstruction, we do (xor (not a) a) --> (xor (not a) a #b0000) -->
     // #b1111 instead.
-    if (k==Kind::BITVECTOR_XOR && eq[1].isConst())
+    if (k == Kind::BITVECTOR_XOR && eq[1].isConst())
     {
       std::vector<Node> children(eq[0].begin(), eq[0].end());
       Node nil = expr::getNullTerminator(nm, k, eq[1].getType());
@@ -93,7 +93,8 @@ bool MacroRewriteElaborator::ensureProofForSimplify(CDProof* cdp,
       cdp->addStep(equiv, ProofRule::ACI_NORM, {}, {equiv});
       Node equiv2 = t.eqNode(eq[1]);
       // just try simple
-      cdp->addTrustedStep(equiv2, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE, {}, {});
+      cdp->addTrustedStep(
+          equiv2, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE, {}, {});
       cdp->addStep(eq, ProofRule::TRANS, {equiv, equiv2}, {});
       return true;
     }
