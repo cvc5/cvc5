@@ -2869,6 +2869,9 @@ set(regress_1_tests
   regress1/nl/issue10000.smt2
   regress1/nl/issue10139-iand.smt2
   regress1/nl/issue10724-real-as-int-types.smt2
+  regress1/nl/issue11386-1-nl-cov-cyclic.smt2
+  regress1/nl/issue11386-2-nl-cov-cyclic.smt2
+  regress1/nl/issue11386-3-nl-cov-cyclic.smt2
   regress1/nl/issue3300-approx-sqrt-witness.smt2
   regress1/nl/issue3441.smt2
   regress1/nl/issue3617.smt2
