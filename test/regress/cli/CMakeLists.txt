@@ -325,6 +325,8 @@ set(regress_0_tests
   regress0/bv/bv2nat-ground-c.smt2
   regress0/bv/bv2nat-simp-range.smt2
   regress0/bv/bv_to_int1.smt2
+  regress0/bv/bv_to_int_12342.smt2
+  regress0/bv/bv_to_int_12337.smt2
   regress0/bv/bv_to_int_415.smt2
   regress0/bv/bv_to_int_5230_binary.smt2
   regress0/bv/bv_to_int_5230_missing_op.smt2
@@ -333,6 +335,7 @@ set(regress_0_tests
   regress0/bv/bv_to_int_5293_1.smt2
   regress0/bv/bv_to_int_5293_2.smt2
   regress0/bv/bv_to_int_8412.smt2
+  regress0/bv/bv_to_int_8798.smt2
   regress0/bv/bv_to_int_9071.smt2
   regress0/bv/bv_to_int_9071_bv4.smt2
   regress0/bv/bv_to_int_9071_th_sym.smt2
@@ -1166,6 +1169,7 @@ set(regress_0_tests
   regress0/nl/issue8835-int-second.smt2
   regress0/nl/issue8934-lr-int-mod-range.smt2
   regress0/nl/issue9661.smt2
+  regress0/nl/issue12296.smt2
   regress0/nl/lazard-spurious-root.smt2
   regress0/nl/magnitude-wrong-1020-m.smt2
   regress0/nl/mult-po.smt2
@@ -1411,6 +1415,7 @@ set(regress_0_tests
   regress0/printer/learned-lit-output.smt2
   regress0/printer/let_shadowing.smt2
   regress0/printer/model-u-print.smt2
+  regress0/printer/normalize.smt2
   regress0/printer/portfolio-out.smt2
   regress0/printer/portfolio-out-err.smt2
   regress0/printer/post-asserts-output.smt2
@@ -2866,6 +2871,9 @@ set(regress_1_tests
   regress1/nl/issue10000.smt2
   regress1/nl/issue10139-iand.smt2
   regress1/nl/issue10724-real-as-int-types.smt2
+  regress1/nl/issue11386-1-nl-cov-cyclic.smt2
+  regress1/nl/issue11386-2-nl-cov-cyclic.smt2
+  regress1/nl/issue11386-3-nl-cov-cyclic.smt2
   regress1/nl/issue3300-approx-sqrt-witness.smt2
   regress1/nl/issue3441.smt2
   regress1/nl/issue3617.smt2
@@ -2889,6 +2897,8 @@ set(regress_1_tests
   regress1/nl/issue8162-drop-pi-bound.smt2
   regress1/nl/issue8960-lr-to-real-model.smt2
   regress1/nl/issue8963-to-real-model.smt2
+  regress1/nl/issue9054-ran-rewriter.smt2
+  regress1/nl/issue9167-ran-rewriter.smt2
   regress1/nl/issue9113-1-iand-cg.smt2
   regress1/nl/issue9113-2-iand.smt2
   regress1/nl/issue9113-iand-cg.smt2
@@ -2933,6 +2943,7 @@ set(regress_1_tests
   regress1/nl/proj-issue302.smt2
   regress1/nl/proj-issue530.smt2
   regress1/nl/proj-issue667-init-bound.smt2
+  regress1/nl/proj-issue782-ran-rewriter.smt2
   regress1/nl/quant-nl.smt2
   regress1/nl/red-exp.smt2
   regress1/nl/rewriting-sums.smt2
@@ -3630,6 +3641,8 @@ set(regress_1_tests
   regress1/strings/proj-issue585-cbqi-t-cons.smt2
   regress1/strings/proj-issue647.smt2
   regress1/strings/proj-issue659.smt2
+  regress1/strings/proj-issue779-2-extr.smt2
+  regress1/strings/proj-issue779-2-icycle.smt2
   regress1/strings/prop-engine-order.smt2
   regress1/strings/query4674.smt2
   regress1/strings/query8485.smt2
