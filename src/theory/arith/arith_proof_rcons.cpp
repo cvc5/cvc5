@@ -68,7 +68,7 @@ bool ArithProofRCons::solveEquality(CDProof& cdp,
     Trace("arith-proof-rcons")
         << "SUBS: " << m.first << " = " << val << std::endl;
     Node eq = m.first.eqNode(val);
-    if (as != eq)
+    if (!CDProof::isSame(as, eq))
     {
       cdp.addStep(eq, ProofRule::MACRO_SR_PRED_TRANSFORM, {as}, {eq});
     }
@@ -80,7 +80,7 @@ bool ArithProofRCons::solveEquality(CDProof& cdp,
       stmp.add(m.first, val);
       for (size_t i = 0, ns = asubs.d_subs.size(); i < ns; i++)
       {
-        asubs.d_subs[i] = stmp.applyArith(asubs.d_subs[i]);
+        asubs.d_subs[i] = stmp.applyArith(asubs.d_subs[i], false);
       }
     }
     asubs.add(m.first, val);
@@ -94,7 +94,7 @@ bool ArithProofRCons::solveEquality(CDProof& cdp,
 
 Node ArithProofRCons::applySR(ArithSubs& asubs, const Node& a)
 {
-  Node as = asubs.applyArith(a);
+  Node as = asubs.applyArith(a, false);
   return rewrite(as);
 }
 
@@ -103,7 +103,7 @@ Node ArithProofRCons::applySR(CDProof& cdp,
                               ArithSubs& asubs,
                               const Node& a)
 {
-  Node as = asubs.applyArith(a);
+  Node as = asubs.applyArith(a, false);
   Node asr = rewrite(as);
   Trace("arith-proof-rcons") << "...have " << asr << std::endl;
   if (a != as)
@@ -114,7 +114,7 @@ Node ArithProofRCons::applySR(CDProof& cdp,
     cdp.addProof(pfn);
     cdp.addStep(as, ProofRule::EQ_RESOLVE, {a, a.eqNode(as)}, {});
   }
-  if (as != asr)
+  if (!CDProof::isSame(as, asr))
   {
     cdp.addStep(asr, ProofRule::MACRO_SR_PRED_TRANSFORM, {as}, {asr});
   }
@@ -141,7 +141,8 @@ std::shared_ptr<ProofNode> ArithProofRCons::getProofFor(Node fact)
     }
     ArithSubs asubs;
     std::vector<Node> assumpsNoSolve;
-    ArithSubsTermContext astc;
+    // Do not traverse non-linear terms
+    ArithSubsTermContext astc(false);
     // This proof generator is intended to provide proofs for asubs.applyArith.
     // In particular, we maintain the invariant that if
     // asubs.applyArith(a) = as, then tcnv.getProofForRewriting(a) returns a
@@ -173,7 +174,7 @@ std::shared_ptr<ProofNode> ArithProofRCons::getProofFor(Node fact)
           continue;
         }
         Trace("arith-proof-rcons") << "- process " << a << std::endl;
-        Node as = asubs.applyArith(a);
+        Node as = asubs.applyArith(a, false);
         Node asr = rewrite(as);
         Trace("arith-proof-rcons") << "  - SR to " << asr << std::endl;
         if (asr == d_false)

@@ -15,6 +15,7 @@
 
 package io.github.cvc5;
 
+import io.github.cvc5.modes.OptionCategory;
 import java.math.BigInteger;
 
 /**
@@ -58,6 +59,11 @@ public class OptionInfo extends AbstractPointer
     this.name = getName(pointer);
     this.aliases = getAliases(pointer);
     this.setByUser = getSetByUser(pointer);
+    try {
+      this.category = OptionCategory.fromInt(getCategory(pointer));
+    } catch (CVC5ApiException e) {
+      throw new RuntimeException("Invalid OptionCategory value", e);
+    }
     this.baseInfo = getBaseInfo(pointer);
   }
 
@@ -318,4 +324,19 @@ public class OptionInfo extends AbstractPointer
   }
 
   private native double doubleValue(long pointer);
+
+  /** The option category */
+  private final OptionCategory category;
+
+  /**
+   * Get the category of the option.
+   *
+   * @return The option category.
+   */
+  public OptionCategory getCategory()
+  {
+    return category;
+  }
+
+  private native int getCategory(long pointer);
 }

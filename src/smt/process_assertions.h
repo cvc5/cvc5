@@ -116,7 +116,8 @@ class ProcessAssertions : protected EnvObj
    * Dump assertions to stream os using the print benchmark utility.
    */
   void dumpAssertionsToStream(std::ostream& os,
-                              const preprocessing::AssertionPipeline& ap);
+                              const preprocessing::AssertionPipeline& ap,
+                              bool printDefs = true);
   /** apply pass */
   preprocessing::PreprocessingPassResult applyPass(
       const std::string& pass, preprocessing::AssertionPipeline& ap);

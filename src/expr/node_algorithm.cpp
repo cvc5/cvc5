@@ -60,13 +60,12 @@ bool hasSubterm(TNode n, TNode t, bool strict)
       {
         return true;
       }
-      if (visited.find(child) != visited.end())
+      if (!visited.insert(child).second)
       {
         continue;
       }
       else
       {
-        visited.insert(child);
         toProcess.push_back(child);
       }
     }
@@ -140,9 +139,8 @@ bool hasSubtermKind(Kind k, Node n)
   {
     cur = visit.back();
     visit.pop_back();
-    if (visited.find(cur) == visited.end())
+    if (visited.insert(cur).second)
     {
-      visited.insert(cur);
       if (cur.getKind() == k)
       {
         return true;
@@ -231,9 +229,8 @@ void getSubtermsKinds(
   {
     cur = visit.back();
     visit.pop_back();
-    if (visited.find(cur) == visited.end())
+    if (visited.insert(cur).second)
     {
-      visited.insert(cur);
       k = cur.getKind();
       itt = ts.find(k);
       if (itt != ts.end())
@@ -293,13 +290,12 @@ bool hasSubterm(TNode n, const std::vector<Node>& t, bool strict)
       {
         return true;
       }
-      if (visited.find(child) != visited.end())
+      if (!visited.insert(child).second)
       {
         continue;
       }
       else
       {
-        visited.insert(child);
         toProcess.push_back(child);
       }
     }
@@ -351,6 +347,59 @@ bool hasBoundVar(TNode n)
   return n.getAttribute(HasBoundVarAttr());
 }
 
+bool hasBoundVar(TNode n, const std::unordered_set<Node>& fvs)
+{
+  if (fvs.empty())
+  {
+    return false;
+  }
+  std::unordered_set<TNode> visited;
+  std::vector<TNode> toProcess;
+  toProcess.push_back(n);
+  // incrementally iterate and add to toProcess
+  for (unsigned i = 0; i < toProcess.size(); ++i)
+  {
+    TNode current = toProcess[i];
+    if (current.isClosure())
+    {
+      // check if any is contained in fvs
+      for (const Node& v : current[0])
+      {
+        if (fvs.find(v) != fvs.end())
+        {
+          return true;
+        }
+      }
+    }
+    for (unsigned j = 0, j_end = current.getNumChildren(); j <= j_end; ++j)
+    {
+      TNode child;
+      // try children then operator
+      if (j < j_end)
+      {
+        child = current[j];
+      }
+      else if (current.hasOperator())
+      {
+        child = current.getOperator();
+      }
+      else
+      {
+        break;
+      }
+      if (!visited.insert(child).second)
+      {
+        continue;
+      }
+      else
+      {
+        toProcess.push_back(child);
+      }
+    }
+  }
+  return false;
+}
+
 /**
  * Check variables internal, which is used as a helper to implement many of the
  * methods in this file.
@@ -391,10 +440,8 @@ bool checkVariablesInternal(TNode n,
     {
       continue;
     }
-    std::unordered_set<TNode>::iterator itv = visited.find(cur);
-    if (itv == visited.end())
+    if (visited.insert(cur).second)
     {
-      visited.insert(cur);
       if (cur.getKind() == Kind::BOUND_VARIABLE)
       {
         if (scope.find(cur) == scope.end())

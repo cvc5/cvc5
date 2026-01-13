@@ -62,6 +62,8 @@ class RelationalMatchGenerator : public InstMatchGenerator
   bool reset(Node eqc) override;
   /** Get the next match. */
   int getNextMatch(InstMatch& m) override;
+  /** Get the inference id, for statistics. */
+  InferenceId getInferenceId() override;
 
  private:
   /** the variable */

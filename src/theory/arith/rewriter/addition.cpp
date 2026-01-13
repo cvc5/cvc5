@@ -146,6 +146,7 @@ bool isIntegral(const Sum& sum)
   for (const auto& s: sum)
   {
     queue.emplace_back(s.first);
+    if (!s.second.isRational()) return false;
   }
   while (!queue.empty())
   {
@@ -187,6 +188,26 @@ void addToSum(Sum& sum, TNode n, bool negate)
   }
   addToProduct(monomial, multiplicity, n);
   addToSum(sum, mkNonlinearMult(n.getNodeManager(), monomial), multiplicity);
+}
+
+void addToSumNoMixed(Sum& sum, TNode n, bool negate)
+{
+  Kind k = n.getKind();
+  if (k == Kind::ADD)
+  {
+    for (const auto& child : n)
+    {
+      addToSum(
+          sum, child.getKind() == Kind::TO_REAL ? child[0] : child, negate);
+    }
+    return;
+  }
+  else if (k == Kind::TO_REAL)
+  {
+    addToSum(sum, n[0], negate);
+    return;
+  }
+  addToSum(sum, n, negate);
 }
 
 void addMonomialToSum(Sum& sum,

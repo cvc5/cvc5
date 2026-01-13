@@ -167,13 +167,15 @@ void SetDefaults::setDefaultsPre(Options& opts)
       SET_AND_NOTIFY(quantifiers, cegqiMidpoint, true, "safe options");
       // proofs not yet supported on main
       SET_AND_NOTIFY(quantifiers, cegqiBv, false, "safe options");
+      // class of rewrites in quantifiers we don't have proof support for but is
+      // enabled by default
+      SET_AND_NOTIFY(quantifiers, varEntEqElimQuant, false, "safe options");
       // if we check proofs, we require that they are checked for completeness,
       // unless the granularity is intentionally set to lower.
-      if (opts.smt.checkProofs
-          && !opts.proof.checkProofsCompleteWasSetByUser
+      if (opts.smt.checkProofs && !opts.proof.checkProofsCompleteWasSetByUser
           && (!opts.proof.proofGranularityModeWasSetByUser
               || opts.proof.proofGranularityMode
-                    >= options::ProofGranularityMode::DSL_REWRITE))
+                     >= options::ProofGranularityMode::DSL_REWRITE))
       {
         SET_AND_NOTIFY(
             proof, checkProofsComplete, true, "safe options with check-proofs")
@@ -857,6 +859,14 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
     SET_AND_NOTIFY_VAL_SYM(
         arith, arithStandardCheckVarOrderPivots, varOrderPivots, "logic");
   }
+  // DIO solver typically makes things worse for quantifier-free logics with
+  // non-linear arithmetic.
+  if (!logic.isQuantified() && logic.isTheoryEnabled(THEORY_ARITH)
+      && !logic.isLinear())
+  {
+    SET_AND_NOTIFY(
+        arith, arithDioSolver, false, "quantifier-free non-linear logic");
+  }
   if (logic.isPure(THEORY_ARITH) && !logic.areRealsUsed())
   {
     SET_AND_NOTIFY(
@@ -895,8 +905,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
   // We only enable them if SyGuS is enabled.
   if (isSygus(opts))
   {
-    SET_AND_NOTIFY_IF_NOT_USER(
-        datatypes, dtSharedSelectors, true, "SyGuS");
+    SET_AND_NOTIFY_IF_NOT_USER(datatypes, dtSharedSelectors, true, "SyGuS");
   }
 
   if (opts.prop.minisatSimpMode == options::MinisatSimpMode::ALL)
@@ -1023,10 +1032,15 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
         arith, nlExt, options::NlExtMode::FULL, "no support for libpoly");
 #endif
   }
-  if (logic.isTheoryEnabled(theory::THEORY_ARITH) && logic.areTranscendentalsUsed())
+  if (logic.isTheoryEnabled(theory::THEORY_ARITH)
+      && logic.areTranscendentalsUsed())
   {
     SET_AND_NOTIFY_IF_NOT_USER_VAL_SYM(
         arith, nlExt, options::NlExtMode::FULL, "logic with transcendentals");
+  }
+  if (isOutputOn(OutputTag::NORMALIZE))
+  {
+    SET_AND_NOTIFY(base, preprocessOnly, true, "normalize output");
   }
 }
 
@@ -1827,48 +1841,50 @@ void SetDefaults::setDefaultDecisionMode(const LogicInfo& logic,
                       // ALL or its supersets
           logic.hasEverything()
           ? options::DecisionMode::JUSTIFICATION
-          : (  // QF_BV
-              (!logic.isQuantified() && logic.isPure(THEORY_BV)) ||
-                      // QF_AUFBV or QF_ABV or QF_UFBV
-                      (!logic.isQuantified()
-                       && (logic.isTheoryEnabled(THEORY_ARRAYS)
-                           || logic.isTheoryEnabled(THEORY_UF))
-                       && logic.isTheoryEnabled(THEORY_BV))
-                      ||
-                      // QF_AUFLIA (and may be ends up enabling
-                      // QF_AUFLRA?)
-                      (!logic.isQuantified()
-                       && logic.isTheoryEnabled(THEORY_ARRAYS)
-                       && logic.isTheoryEnabled(THEORY_UF)
-                       && logic.isTheoryEnabled(THEORY_ARITH))
-                      ||
-                      // QF_LRA
-                      (!logic.isQuantified() && logic.isPure(THEORY_ARITH)
-                       && logic.isLinear() && !logic.isDifferenceLogic()
-                       && !logic.areIntegersUsed())
-                      ||
-                      // Quantifiers
-                      logic.isQuantified() ||
-                      // Strings
-                      logic.isTheoryEnabled(THEORY_STRINGS)
-                  ? options::DecisionMode::JUSTIFICATION
-                  : options::DecisionMode::INTERNAL);
+          : (  // QF_BV without internal bit-blasting
+                (!logic.isQuantified() && logic.isPure(THEORY_BV)
+                 && opts.bv.bvSolver != options::BVSolver::BITBLAST_INTERNAL)
+                        ||
+                        // QF_AUFBV or QF_ABV or QF_UFBV
+                        (!logic.isQuantified()
+                         && (logic.isTheoryEnabled(THEORY_ARRAYS)
+                             || logic.isTheoryEnabled(THEORY_UF))
+                         && logic.isTheoryEnabled(THEORY_BV))
+                        ||
+                        // QF_AUFLIA (and may be ends up enabling
+                        // QF_AUFLRA?)
+                        (!logic.isQuantified()
+                         && logic.isTheoryEnabled(THEORY_ARRAYS)
+                         && logic.isTheoryEnabled(THEORY_UF)
+                         && logic.isTheoryEnabled(THEORY_ARITH))
+                        ||
+                        // QF_LRA
+                        (!logic.isQuantified() && logic.isPure(THEORY_ARITH)
+                         && logic.isLinear() && !logic.isDifferenceLogic()
+                         && !logic.areIntegersUsed())
+                        ||
+                        // Quantifiers
+                        logic.isQuantified() ||
+                        // Strings
+                        logic.isTheoryEnabled(THEORY_STRINGS)
+                    ? options::DecisionMode::JUSTIFICATION
+                    : options::DecisionMode::INTERNAL);
 
   bool stoponly =
       // ALL or its supersets
       logic.hasEverything() || logic.isTheoryEnabled(THEORY_STRINGS)
           ? false
           : (  // QF_AUFLIA
-              (!logic.isQuantified() && logic.isTheoryEnabled(THEORY_ARRAYS)
-               && logic.isTheoryEnabled(THEORY_UF)
-               && logic.isTheoryEnabled(THEORY_ARITH))
-                      ||
-                      // QF_LRA
-                      (!logic.isQuantified() && logic.isPure(THEORY_ARITH)
-                       && logic.isLinear() && !logic.isDifferenceLogic()
-                       && !logic.areIntegersUsed())
-                  ? true
-                  : false);
+                (!logic.isQuantified() && logic.isTheoryEnabled(THEORY_ARRAYS)
+                 && logic.isTheoryEnabled(THEORY_UF)
+                 && logic.isTheoryEnabled(THEORY_ARITH))
+                        ||
+                        // QF_LRA
+                        (!logic.isQuantified() && logic.isPure(THEORY_ARITH)
+                         && logic.isLinear() && !logic.isDifferenceLogic()
+                         && !logic.areIntegersUsed())
+                    ? true
+                    : false);
 
   if (stoponly)
   {

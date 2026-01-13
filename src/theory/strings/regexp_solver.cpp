@@ -784,7 +784,14 @@ void RegExpSolver::checkEvaluations()
             break;
           }
         }
+        // if we are still not a constant regex, do not compute partial
+        // derivative below.
+        if (!d_regexp_opr.checkConstRegExp(r))
+        {
+          continue;
+        }
       }
+      // check partial derivate if it became constant
       if (polarity)
       {
         checkPDerivative(x, r, atom, rnfexp);

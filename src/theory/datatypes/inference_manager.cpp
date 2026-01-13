@@ -77,16 +77,15 @@ void InferenceManager::process()
   doPendingFacts();
 }
 
-void InferenceManager::sendDtLemma(Node lem, InferenceId id, LemmaProperty p)
+bool InferenceManager::sendDtLemma(Node lem, InferenceId id, LemmaProperty p)
 {
   if (isProofEnabled())
   {
     TrustNode trn = processDtLemma(lem, Node::null(), id);
-    trustedLemma(trn, id);
-    return;
+    return trustedLemma(trn, id);
   }
   // otherwise send as a normal lemma directly
-  lemma(lem, id, p);
+  return lemma(lem, id, p);
 }
 
 void InferenceManager::sendDtConflict(const std::vector<Node>& conf, InferenceId id)

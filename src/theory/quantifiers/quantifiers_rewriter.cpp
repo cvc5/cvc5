@@ -22,6 +22,7 @@
 #include "expr/elim_shadow_converter.h"
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
+#include "expr/subtype_elim_node_converter.h"
 #include "options/quantifiers_options.h"
 #include "proof/conv_proof_generator.h"
 #include "proof/proof.h"
@@ -40,6 +41,7 @@
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/uf/theory_uf_rewriter.h"
 #include "util/rational.h"
+#include "quantifiers_rewriter.h"
 
 using namespace std;
 using namespace cvc5::internal::kind;
@@ -53,6 +55,7 @@ std::ostream& operator<<(std::ostream& out, RewriteStep s)
 {
   switch (s)
   {
+    case COMPUTE_ELIM_SHADOW: out << "COMPUTE_ELIM_SHADOW"; break;
     case COMPUTE_ELIM_SYMBOLS: out << "COMPUTE_ELIM_SYMBOLS"; break;
     case COMPUTE_MINISCOPING: out << "COMPUTE_MINISCOPING"; break;
     case COMPUTE_AGGRESSIVE_MINISCOPING:
@@ -77,6 +80,8 @@ QuantifiersRewriter::QuantifiersRewriter(NodeManager* nm,
   registerProofRewriteRule(ProofRewriteRule::EXISTS_ELIM,
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::QUANT_UNUSED_VARS,
+                           TheoryRewriteCtx::PRE_DSL);
+  registerProofRewriteRule(ProofRewriteRule::MACRO_QUANT_ELIM_SHADOW,
                            TheoryRewriteCtx::PRE_DSL);
   // QUANT_MERGE_PRENEX is part of the reconstruction for
   // MACRO_QUANT_MERGE_PRENEX
@@ -105,6 +110,20 @@ Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
 {
   switch (id)
   {
+    case ProofRewriteRule::MACRO_QUANT_ELIM_SHADOW:
+    {
+      if (n.isClosure())
+      {
+        Node ns = ElimShadowNodeConverter::eliminateShadow(n);
+        if (ns != n)
+        {
+          Trace("quant-rewrite-proof")
+              << "Rewrite " << n << " to " << ns << std::endl;
+          return ns;
+        }
+      }
+      return Node::null();
+    }
     case ProofRewriteRule::EXISTS_ELIM:
     {
       if (n.getKind() != Kind::EXISTS)
@@ -344,6 +363,8 @@ Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       {
         return Node::null();
       }
+      Trace("quant-rewrite-proof")
+          << "Var elim rewrite " << n << ", id " << id << "?" << std::endl;
       std::vector<Node> args(n[0].begin(), n[0].end());
       std::vector<Node> vars;
       std::vector<Node> subs;
@@ -400,10 +421,20 @@ Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       // if we eliminated a variable, update body and reprocess
       if (!vars.empty())
       {
+        // ensure the substitution is safe
+        for (const Node& s : subs)
+        {
+          if (!isSafeSubsTerm(body, s))
+          {
+            return Node::null();
+          }
+        }
         Assert(vars.size() == subs.size());
         std::vector<Node> qc(n.begin(), n.end());
         qc[1] =
             body.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
+        Trace("quant-rewrite-proof")
+            << "...returns body " << qc[1] << std::endl;
         if (args.empty())
         {
           return qc[1];
@@ -831,34 +862,7 @@ Node QuantifiersRewriter::computeProcessTerms2(
   Trace("quantifiers-rewrite-term-debug2")
       << "Returning " << ret << " for " << body << std::endl;
   // do context-independent rewriting
-  if (ret.isClosure())
-  {
-    // Ensure no shadowing. If this term is a closure quantifying a variable
-    // in args, then we introduce fresh variable(s) and replace this closure
-    // to be over the fresh variables instead.
-    std::vector<Node> oldVars;
-    std::vector<Node> newVars;
-    for (size_t i = 0, nvars = ret[0].getNumChildren(); i < nvars; i++)
-    {
-      const Node& v = ret[0][i];
-      if (std::find(args.begin(), args.end(), v) != args.end())
-      {
-        Trace("quantifiers-rewrite-unshadow")
-            << "Found shadowed variable " << v << " in " << q << std::endl;
-        oldVars.push_back(v);
-        Node nv = ElimShadowNodeConverter::getElimShadowVar(q, ret, i);
-        newVars.push_back(nv);
-      }
-    }
-    if (!oldVars.empty())
-    {
-      Assert(oldVars.size() == newVars.size());
-      Node sbody = ret.substitute(
-          oldVars.begin(), oldVars.end(), newVars.begin(), newVars.end());
-      ret = sbody;
-    }
-  }
-  else if (ret.getKind() == Kind::EQUAL
+  if (ret.getKind() == Kind::EQUAL
            && iteLiftMode != options::IteLiftQuantMode::NONE)
   {
     for (size_t i = 0; i < 2; i++)
@@ -1127,6 +1131,13 @@ bool QuantifiersRewriter::isVarElim(Node v, Node s)
 {
   Assert(v.getKind() == Kind::BOUND_VARIABLE);
   return !expr::hasSubterm(s, v) && s.getType() == v.getType();
+}
+
+bool QuantifiersRewriter::isSafeSubsTerm(const Node& body, const Node& s)
+{
+  std::unordered_set<Node> fvs;
+  expr::getFreeVariables(s, fvs);
+  return !expr::hasBoundVar(body, fvs);
 }
 
 Node QuantifiersRewriter::getVarElimEq(Node lit,
@@ -1398,7 +1409,7 @@ bool QuantifiersRewriter::getVarElimLit(Node body,
           }
         }
       }
-      if (!solvedVar.isNull())
+      if (!solvedVar.isNull() && isSafeSubsTerm(body, solvedSubs))
       {
         if (cdp != nullptr)
         {
@@ -1447,7 +1458,7 @@ bool QuantifiersRewriter::getVarElimLit(Node body,
   {
     Node var;
     Node slv = getVarElimEq(lit, args, var, cdp);
-    if (!slv.isNull())
+    if (!slv.isNull() && isSafeSubsTerm(body, slv))
     {
       Assert(!var.isNull());
       std::vector<Node>::iterator ita =
@@ -1704,7 +1715,8 @@ Node QuantifiersRewriter::computeVarElimination(Node body,
                                                 std::vector<Node>& args,
                                                 QAttributes& qa) const
 {
-  if (!d_opts.quantifiers.varElimQuant && !d_opts.quantifiers.varIneqElimQuant)
+  if (!d_opts.quantifiers.varElimQuant && !d_opts.quantifiers.varIneqElimQuant
+      && !d_opts.quantifiers.leibnizEqElim)
   {
     return body;
   }
@@ -1743,7 +1755,95 @@ Node QuantifiersRewriter::computeVarElimination(Node body,
     }
     Trace("var-elim-quant") << "Return " << body << std::endl;
   }
+  // Leibniz equality elimination
+  if (d_opts.quantifiers.leibnizEqElim)
+  {
+    if (body.getKind() == Kind::OR
+        && body.getNumChildren() == 2)  // the body must have exactly 2 children
+    {
+      Node termA = body[0];
+      Node termB = body[1];
+      Node opA, opB;
+      std::vector<Node> argsA, argsB;
+      bool negA = false, negB = false;
+      if (!matchUfLiteral(termA, opA, argsA, negA)
+          || !matchUfLiteral(termB, opB, argsB, negB))
+      {
+        return body;
+      }
+
+      // need pattern (not P(t1)) or P(t2) (either child can be the negated one)
+      if (opA != opB || !((negA && !negB) || (negB && !negA)))
+      {
+        return body;
+      }
+      // identify which side is t1 and which is t2
+      std::vector<Node> t1 = negA ? argsA : argsB;
+      std::vector<Node> t2 = negA ? argsB : argsA;
+
+      // operator P must be one of the quantifier's bound variables (otherwise
+      // this is not Leibniz)
+      auto it = std::find(args.begin(), args.end(), opA);
+      if (it == args.end())
+      {
+        return body;
+      }
+      // arity must match
+      if (t1.size() != t2.size())
+      {
+        return body;
+      }
+      // ensure P does not occur inside the argument terms
+      for (size_t i = 0; i < t1.size(); ++i)
+      {
+        if (expr::hasSubterm(t1[i], opA, false)
+            || expr::hasSubterm(t2[i], opA, false))
+        {
+          return body;
+        }
+      }
+      // check operator type: it should be a predicate
+      TypeNode ptype = opA.getType();
+      if (!ptype.isFunction() || !ptype.getRangeType().isBoolean()) return body;
+      if (size_t(ptype.getNumChildren()) != t1.size() + 1) return body;
+
+      NodeManager* nm = nodeManager();
+      std::vector<Node> eqs;
+      for (size_t i = 0; i < t1.size(); ++i)
+      {
+        eqs.push_back(nm->mkNode(Kind::EQUAL, t1[i], t2[i]));
+      }
+      Node eq = (eqs.size() == 1) ? eqs[0] : nm->mkNode(Kind::AND, eqs);
+
+      // remove the predicate variable from the quantifier variable list
+      args.erase(it);
+
+      Trace("var-elim-quant") << "Detected Leibniz equality in " << body
+                              << ", returning: " << eq << std::endl;
+      return eq;
+    }
+  }
   return body;
+}
+
+// This function is used by the Leibniz-equality elimination step to check
+// whether a term has the shape P(t1, ..., tn) or ¬P(t1, ..., tn).
+bool QuantifiersRewriter::matchUfLiteral(Node lit,
+                                         Node& op,
+                                         std::vector<Node>& argsOut,
+                                         bool& neg) const
+{
+  neg = (lit.getKind() == Kind::NOT);
+  Node atom = neg ? lit[0] : lit;
+
+  if (atom.getKind() != Kind::APPLY_UF)
+  {
+    return false;
+  }
+
+  op = atom.getOperator();
+  argsOut.assign(atom.begin(), atom.end());
+  return true;
 }
 
 Node QuantifiersRewriter::computeDtVarExpand(NodeManager* nm,
@@ -1799,6 +1899,7 @@ Node QuantifiersRewriter::computePrenex(Node q,
       std::vector<Node>& argVec = pol ? args : nargs;
       //for doing prenexing of same-signed quantifiers
       //must rename each variable that already exists
+      SubtypeElimNodeConverter senc(nodeManager());
       for (const Node& v : body[0])
       {
         terms.push_back(v);
@@ -1821,6 +1922,7 @@ Node QuantifiersRewriter::computePrenex(Node q,
           {
             Node ii = nm->mkConstInt(index);
             Node cacheVal = nm->mkNode(Kind::SEXPR, {q, body, v, ii});
+            cacheVal = senc.convert(cacheVal);
             vv = bvm->mkBoundVar(BoundVarId::QUANT_REW_PRENEX, cacheVal, vt);
             index++;
           } while (std::find(argVec.begin(), argVec.end(), vv) != argVec.end());
@@ -2091,6 +2193,7 @@ Node QuantifiersRewriter::computeMiniscoping(Node q,
       // forall x. P1 ^ ... ^ Pn ---> forall x. P1 ^ ... ^ forall x. Pn
       NodeBuilder t(nm, k);
       std::vector<Node> argsc;
+      SubtypeElimNodeConverter senc(nodeManager());
       for (size_t i = 0, nchild = body.getNumChildren(); i < nchild; i++)
       {
         if (argsc.empty())
@@ -2101,6 +2204,7 @@ Node QuantifiersRewriter::computeMiniscoping(Node q,
           {
             TypeNode vt = v.getType();
             Node cacheVal = BoundVarManager::getCacheValue(q, v, i);
+            cacheVal = senc.convert(cacheVal);
             Node vv =
                 bvm->mkBoundVar(BoundVarId::QUANT_REW_MINISCOPE, cacheVal, vt);
             argsc.push_back(vv);
@@ -2310,7 +2414,8 @@ bool QuantifiersRewriter::doOperation(Node q,
       qa.d_hasPattern
       && d_opts.quantifiers.userPatternsQuant == options::UserPatMode::STRICT;
   bool is_std = isStandard(qa, d_opts);
-  if (computeOption == COMPUTE_ELIM_SYMBOLS)
+  if (computeOption == COMPUTE_ELIM_SHADOW
+      || computeOption == COMPUTE_ELIM_SYMBOLS)
   {
     return true;
   }
@@ -2390,10 +2495,15 @@ bool QuantifiersRewriter::doOperation(Node q,
 //general method for computing various rewrites
 Node QuantifiersRewriter::computeOperation(Node f,
                                            RewriteStep computeOption,
-                                           QAttributes& qa) const
+                                           QAttributes& qa)
 {
   Trace("quantifiers-rewrite-debug") << "Compute operation " << computeOption << " on " << f << " " << qa.d_qid_num << std::endl;
-  if (computeOption == COMPUTE_MINISCOPING)
+  if (computeOption == COMPUTE_ELIM_SHADOW)
+  {
+    Node qr = rewriteViaRule(ProofRewriteRule::MACRO_QUANT_ELIM_SHADOW, f);
+    return qr.isNull() ? f : qr;
+  }
+  else if (computeOption == COMPUTE_MINISCOPING)
   {
     if (d_opts.quantifiers.prenexQuant == options::PrenexQuantMode::NORMAL)
     {

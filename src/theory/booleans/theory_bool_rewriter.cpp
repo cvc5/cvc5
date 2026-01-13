@@ -22,6 +22,7 @@
 #include <unordered_set>
 
 #include "expr/algorithm/flatten.h"
+#include "expr/attribute.h"
 #include "expr/node_value.h"
 #include "proof/conv_proof_generator.h"
 #include "proof/proof.h"
@@ -115,10 +116,16 @@ bool TheoryBoolRewriter::addNnfNormChild(std::vector<Node>& children,
   return true;
 }
 
+struct NnfAttributeId
+{
+};
+typedef expr::Attribute<NnfAttributeId, Node> NnfAttribute;
+
 Node TheoryBoolRewriter::computeNnfNorm(NodeManager* nm,
                                         const Node& n,
                                         TConvProofGenerator* pg)
 {
+  NnfAttribute nnfa;
   Trace("compute-nnf") << "Compute NNF norm " << n << std::endl;
   // at pre-order traversal, we store preKind and preChildren, which
   // determine the Kind and the children for the node to reconstruct.
@@ -136,6 +143,11 @@ Node TheoryBoolRewriter::computeNnfNorm(NodeManager* nm,
     it = visited.find(cur);
     if (it == visited.end())
     {
+      if (!pg && cur.hasAttribute(nnfa))
+      {
+        visited[cur] = cur.getAttribute(nnfa);
+        continue;
+      }
       Kind k = cur.getKind();
       bool negAllCh = false;
       bool negCh1 = false;
@@ -159,7 +171,6 @@ Node TheoryBoolRewriter::computeNnfNorm(NodeManager* nm,
         {
           // double negation cancels
           preCur = cur[0][0];
-          visited[cur] = preCur;
         }
         else if (cur[0].getKind() == Kind::OR
                  || cur[0].getKind() == Kind::IMPLIES)
@@ -200,12 +211,12 @@ Node TheoryBoolRewriter::computeNnfNorm(NodeManager* nm,
         visited[cur] = cur;
         continue;
       }
+      std::vector<Node>& pc = preChildren[cur];
       if (preCur.isNull())
       {
         preKind[cur] = k;
         visited[cur] = Node::null();
         visit.push_back(cur);
-        std::vector<Node>& pc = preChildren[cur];
         for (size_t i = 0, nchild = ncur.getNumChildren(); i < nchild; ++i)
         {
           Node c =
@@ -217,6 +228,17 @@ Node TheoryBoolRewriter::computeNnfNorm(NodeManager* nm,
         {
           preCur = nm->mkNode(k, pc);
         }
+      }
+      else
+      {
+        // double negation visits the child
+        // we set the preKind to UNDEFINED_KIND, which indicates a no-op when
+        // reconstructing the node at post-rewrite.
+        preKind[cur] = Kind::UNDEFINED_KIND;
+        visited[cur] = Node::null();
+        visit.push_back(cur);
+        visit.push_back(preCur);
+        pc.push_back(preCur);
       }
       // if proof producing, possibly add a pre-rewrite step
       if (pg != nullptr)
@@ -275,6 +297,13 @@ Node TheoryBoolRewriter::computeNnfNorm(NodeManager* nm,
         Assert(k == Kind::OR || k == Kind::AND);
         ret = nm->mkConst(k == Kind::OR);
       }
+      else if (k == Kind::UNDEFINED_KIND)
+      {
+        // handles the case of double negation, which takes the inner child
+        // itself
+        Assert(children.size() == 1);
+        ret = children[0];
+      }
       else if (childChanged || k != ok)
       {
         ret = (children.size() == 1 && k != Kind::NOT)
@@ -292,7 +321,16 @@ Node TheoryBoolRewriter::computeNnfNorm(NodeManager* nm,
           Assert(!it->second.isNull());
           pcc.push_back(it->second);
         }
-        Node pcpc = nm->mkNode(k, pcc);
+        Node pcpc;
+        if (k == Kind::UNDEFINED_KIND)
+        {
+          Assert(pcc.size() == 1);
+          pcpc = pcc[0];
+        }
+        else
+        {
+          pcpc = nm->mkNode(k, pcc);
+        }
         if (pcpc != ret)
         {
           pg->addRewriteStep(
@@ -300,6 +338,7 @@ Node TheoryBoolRewriter::computeNnfNorm(NodeManager* nm,
         }
       }
       visited[cur] = ret;
+      cur.setAttribute(nnfa, ret);
     }
   } while (!visit.empty());
   Assert(visited.find(n) != visited.end());

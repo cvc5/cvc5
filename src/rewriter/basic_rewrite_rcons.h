@@ -369,14 +369,17 @@ class BasicRewriteRCons : protected EnvObj
   bool ensureProofMacroBvEqSolve(CDProof* cdp, const Node& eq);
   /**
    * Elaborate a rewrite eq that was proven by
-   * ProofRewriteRule::MACRO_LAMBDA_CAPTURE_AVOID.
+   * ProofRewriteRule::MACRO_LAMBDA_CAPTURE_AVOID or
+   * ProofRewriteRule::MACRO_QUANT_ELIM_SHADOW. This rule uses the conversion
+   * utility to generate small step rewrites to justify the overall rewrite.
    *
    * @param cdp The proof to add to.
    * @param eq The rewrite proven by
-   * ProofRewriteRule::MACRO_LAMBDA_CAPTURE_AVOID.
+   * ProofRewriteRule::MACRO_LAMBDA_CAPTURE_AVOID or
+   * ProofRewriteRule::MACRO_QUANT_ELIM_SHADOW.
    * @return true if added a closed proof of eq to cdp.
    */
-  bool ensureProofMacroLambdaCaptureAvoid(CDProof* cdp, const Node& eq);
+  bool ensureProofMacroElimShadow(CDProof* cdp, const Node& eq);
   /**
    * Elaborate a rewrite eq that was proven by
    * ProofRewriteRule::MACRO_ARRAYS_NORMALIZE_OP.
@@ -453,6 +456,10 @@ class BasicRewriteRCons : protected EnvObj
   bool tryTheoryRewrite(CDProof* cdp,
                         const Node& eq,
                         theory::TheoryRewriteCtx ctx);
+  /**
+   * Try a specific theory rewrite to prove eq. Return true if successful.
+   */
+  bool doTheoryRewrite(CDProof* cdp, const Node& eq, ProofRewriteRule r);
   /**
    * Counts number of proof nodes for each kind of THEORY_REWRITE that were
    * expanded in macro elimination by this class.
