@@ -1306,6 +1306,7 @@ set(regress_0_tests
   regress0/parser/issue10156-bad-tester.smt2
   regress0/parser/issue10489.smt2
   regress0/parser/issue11763-quoted-dt-cons.smt2
+  regress0/parser/issue12356.smt2
   regress0/parser/linear_arithmetic_err1.smt2
   regress0/parser/linear_arithmetic_err2.smt2
   regress0/parser/linear_arithmetic_err3.smt2
