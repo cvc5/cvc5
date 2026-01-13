@@ -1124,6 +1124,7 @@ set(regress_0_tests
   regress0/nl/dd.polypaver-bench-exp-3d-chunk-0067.smt2
   regress0/nl/dd.sin-cos-346-b-chunk-0210.smt2
   regress0/nl/dd.sin-cos-346-b-chunk-0210_unsat.smt2
+  regress0/nl/iand0.smt2
   regress0/nl/iand-no-init.smt2
   regress0/nl/issue10145-ir-pow.smt2
   regress0/nl/issue10140-nl-tc.smt2

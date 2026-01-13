@@ -15,6 +15,7 @@
 
 #include "theory/arith/theory_arith_type_rules.h"
 
+#include "util/iand.h"
 #include "util/rational.h"
 
 namespace cvc5::internal {
@@ -216,6 +217,17 @@ TypeNode IAndTypeRule::computeType(NodeManager* nodeManager,
   {
     TypeNode arg1 = n[0].getTypeOrNull();
     TypeNode arg2 = n[1].getTypeOrNull();
+    Node op = n.getOperator();
+    uint32_t bsize = op.getConst<IntAnd>().d_size;
+    if (bsize <= 0)
+    {
+      if (errOut)
+      {
+        (*errOut) << "iand must be indexed by a positive integer. Index is: "
+                  << bsize;
+      }
+      return TypeNode::null();
+    }
     if (!isMaybeInteger(arg1) || !isMaybeInteger(arg2))
     {
       if (errOut)
