@@ -296,18 +296,91 @@ const std::vector<Matrix> LiaStarExtension::convertQFLIAToMatrices(Node n) const
   // a1 x1 + ... + an xn + b >= 0
   // The following code convert predicate into a equivalent formula in DNF
   // where the constraints in each disjunction construct a matrix in Normaliz
-  switch (predicate.getKind())
-  {
-    case Kind::AND:
-    default: std::cout << "" << std::endl;
-  }
+  Matrix matrix;
+  collectBooleanConstraintsDFS(variables, n, matrix, matrices);
   return matrices;
 }
 
-void LiaStarExtension::collectConstraintsBFS(Node n,
-                                             Matrix matrix,
-                                             std::vector<Matrix>& matrices)
+void LiaStarExtension::collectBooleanConstraintsDFS(
+    Node variables, Node n, Matrix& matrix, std::vector<Matrix>& matrices) const
 {
+  switch (n.getKind())
+  {
+    case Kind::AND:
+    {
+      for (size_t i = 0; i < n.getNumChildren(); i++)
+      {
+        collectBooleanConstraintsDFS(variables, n[i], matrix, matrices);
+      }
+      break;
+    }
+    case Kind::OR:
+    {
+      for (size_t i = 0; i < n.getNumChildren(); i++)
+      {
+        Matrix disjunct(matrix);
+        collectBooleanConstraintsDFS(variables, n[i], disjunct, matrices);
+      }
+      break;
+    }
+    case Kind::EQUAL:
+    {
+      Matrix leftConstraints(matrix), rightConstraints(matrix);
+      Node left = collectArithmeticConstraintsDFS(
+          variables, n[0], leftConstraints, matrices, Kind::EQUAL);
+      Node right = collectArithmeticConstraintsDFS(
+          variables, n[0], rightConstraints, matrices, Kind::EQUAL);
+      // (= x y) becomes (or (>= x y)  (>= y x))
+      // Node equality = leftConstraints.push_back()
+      std::vector<Integer> leftConstraint =
+          getConstraint(variables, left, right);
+      leftConstraints.push_back(leftConstraint);
+      std::vector<Integer> rightConstraint =
+          getConstraint(variables, right, left);
+      rightConstraints.push_back(rightConstraint);
+
+      for (size_t i = 0; i < n.getNumChildren(); i++)
+      {
+        Matrix disjunct(matrix);
+        collectBooleanConstraintsDFS(variables, n[i], disjunct, matrices);
+      }
+      break;
+    }
+    case Kind::ITE:
+    {
+      // two cases of ite expressions in LIA.
+      // Either the type is Bool or Int.
+      // here only the boolean case is possible.
+      // The integer case is handled in collectArithmeticConstraintsDFS
+      Assert(n.getType().isBoolean());
+      Node condition = n[0];
+      Node thenNode = n[1];
+      Node elseNode = n[2];
+      Node notCondition = rewrite(condition.notNode());
+      Matrix thenConstraints(matrix);
+      Matrix elseConstraints(matrix);
+      collectBooleanConstraintsDFS(
+          variables, condition, thenConstraints, matrices);
+      collectBooleanConstraintsDFS(
+          variables, thenNode, thenConstraints, matrices);
+      collectBooleanConstraintsDFS(
+          variables, notCondition, elseConstraints, matrices);
+      collectBooleanConstraintsDFS(
+          variables, elseNode, elseConstraints, matrices);
+    }
+    break;
+    default: break;
+  }
+}
+
+Node LiaStarExtension::collectArithmeticConstraintsDFS(
+    Node variables,
+    Node n,
+    Matrix& matrix,
+    std::vector<Matrix>& matrices,
+    Kind kind) const
+{
+  return Node();
 }
 
 }  // namespace liastar

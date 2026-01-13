@@ -113,9 +113,26 @@ class LiaStarExtension : EnvObj
    */
   const std::vector<Matrix> convertQFLIAToMatrices(Node n) const;
 
-  void collectConstraintsBFS(Node n,
-                             Matrix matrix,
-                             std::vector<Matrix>& matrices);
+  void collectBooleanConstraintsDFS(Node variables,
+                                    Node n,
+                                    Matrix& matrix,
+                                    std::vector<Matrix>& matrices) const;
+
+  Node collectArithmeticConstraintsDFS(Node variables,
+                                       Node n,
+                                       Matrix& matrix,
+                                       std::vector<Matrix>& matrices,
+                                       Kind kind) const;
+
+  /**
+   * get a row constraint for left >= right where variables
+   * is a node of Kind BOUND_VAR_LIST
+   * This function returns a list of integers representing a row constraint of
+   * the form a1 x_1 + ... + an_xn + b >= 0
+   */
+  std::vector<Integer> getConstraint(Node variables,
+                                     Node left,
+                                     Node right) const;
 
   /** commonly used terms */
   Node d_true;
