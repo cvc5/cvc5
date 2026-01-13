@@ -428,6 +428,7 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
   // Now we have (sum <kind> 0)
   if (rewriter::isIntegral(sum))
   {
+    Trace("arith-rewriter") << "...sum is integral" << std::endl;
     if (kind == Kind::EQUAL)
     {
       return RewriteResponse(
@@ -439,6 +440,7 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
   }
   else
   {
+    Trace("arith-rewriter") << "...sum is not integral" << std::endl;
     if (kind == Kind::EQUAL)
     {
       return RewriteResponse(REWRITE_DONE,
@@ -754,12 +756,16 @@ RewriteResponse ArithRewriter::postRewriteMult(TNode t){
                            rewriter::maybeEnsureReal(t.getType(), *res));
   }
 
+  RewriteStatus rs = REWRITE_DONE;
   Node ret;
   // Distribute over addition
   if (std::any_of(children.begin(), children.end(), [](TNode child) {
         return child.getKind() == Kind::ADD;
       }))
   {
+    // if we distribute multiplication, we rewrite again to ensure the
+    // sum is sorted.
+    rs = REWRITE_AGAIN_FULL;
     ret = rewriter::distributeMultiplication(d_nm, children);
   }
   else
@@ -790,7 +796,7 @@ RewriteResponse ArithRewriter::postRewriteMult(TNode t){
     ret = rewriter::mkMultTerm(d_nm, ran, std::move(leafs));
   }
   ret = rewriter::maybeEnsureReal(t.getType(), ret);
-  return RewriteResponse(REWRITE_DONE, ret);
+  return RewriteResponse(rs, ret);
 }
 
 RewriteResponse ArithRewriter::rewriteDiv(TNode t, bool pre)
