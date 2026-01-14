@@ -119,7 +119,7 @@ class LiaStarExtension : EnvObj
       std::vector<Node>& branchConstraints,
       std::vector<std::vector<Node>>& disjunctions);
 
-  std::vector<std::pair<Node, Node>> collectArithmeticConstraints(Node n);
+  std::vector<std::pair<std::vector<Node>, Node>> collectArithmeticConstraints(Node n);
 
   /**
    * This function returns a list of matrices representing cones (disjunctions)

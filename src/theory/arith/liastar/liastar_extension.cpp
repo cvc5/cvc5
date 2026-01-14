@@ -332,23 +332,18 @@ void LiaStarExtension::collectBooleanConstraintsDFS(
     }
     case Kind::EQUAL:
     {
-      std::vector<std::pair<Node, Node>> left =
+      std::vector<std::pair<std::vector<Node>, Node>> left =
           collectArithmeticConstraints(n[0]);
-      std::vector<std::pair<Node, Node>> right =
+      std::vector<std::pair<std::vector<Node>, Node>> right =
           collectArithmeticConstraints(n[1]);
       for (const auto& l : left)
       {
         for (const auto& r : right)
         {
           std::vector<Node> shared(branchConstraints);
-          if (l.first != d_true)
-          {
-            shared.push_back(l.first);
-          }
-          if (l.second != d_true)
-          {
-            shared.push_back(l.first);
-          }
+          // collect constraints from the two operands
+          shared.insert(shared.end(), l.first.begin(), l.first.end());
+          shared.insert(shared.end(), r.first.begin(), r.first.end());
           // (= x y) becomes (or (>= x y)  (>= y x))
           std::vector<Node> leftDirection(shared);
           leftDirection.push_back(d_nm->mkNode(Kind::GEQ, l.second, r.second));
@@ -387,34 +382,35 @@ void LiaStarExtension::collectBooleanConstraintsDFS(
   }
 }
 
-std::vector<std::pair<Node, Node>>
+std::vector<std::pair<std::vector<Node>, Node>>
 LiaStarExtension::collectArithmeticConstraints(Node n)
 {
-  std::vector<std::pair<Node, Node>> pairs;
+  std::vector<std::pair<std::vector<Node>, Node>> pairs;
   Assert(n.getType().isInteger());
   switch (n.getKind())
   {
     case Kind::VARIABLE:
     case Kind::CONST_INTEGER:
     {
-      pairs.push_back({d_true, n});
+      pairs.push_back({{}, n});
       return pairs;
     }
     case Kind::ADD:
     case Kind::SUB:
     {
-      std::vector<std::pair<Node, Node>> left =
+      std::vector<std::pair<std::vector<Node>, Node>> left =
           collectArithmeticConstraints(n[0]);
-      std::vector<std::pair<Node, Node>> right =
+      std::vector<std::pair<std::vector<Node>, Node>> right =
           collectArithmeticConstraints(n[1]);
       // combine the conditions of left and right
       for (const auto& l : left)
       {
         for (const auto& r : right)
         {
-          Node constraint = rewrite(l.first.andNode(r.first));
+          std::vector<Node> constraints(l.first);
+          constraints.insert(constraints.end(), r.first.begin(), r.first.end());
           Node result = rewrite(d_nm->mkNode(n.getKind(), l.second, r.second));
-          pairs.push_back({constraint, result});
+          pairs.push_back({constraints, result});
         }
       }
       break;
