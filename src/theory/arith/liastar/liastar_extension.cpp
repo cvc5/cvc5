@@ -291,6 +291,10 @@ const std::vector<Matrix> LiaStarExtension::convertQFLIAToMatrices(Node n)
     nonNegativeConstraints.push_back(constraint);
   }
 
+  std::cout << "DNF: " << predicate << std::endl;
+  predicate = LiaStarUtils::toDNF(predicate, &d_env);
+  std::cout << "DNF: " << predicate << std::endl;
+
   std::vector<std::vector<Node>> disjunctions;
   // cvc5 converts nodes with Kinds distinct and <, <= operators to >=
   // and does not change nodes with Kinds =, ite which are not compatible

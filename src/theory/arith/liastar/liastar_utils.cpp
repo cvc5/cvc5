@@ -58,7 +58,13 @@ std::pair<Node, Node> LiaStarUtils::getVectorPredicate(Node n, NodeManager* nm)
 Node LiaStarUtils::toDNF(Node n, Env* e)
 {
   Assert(n.getType().isBoolean());
-  return booleanDNF(n, e).first;
+  Node dnf = n;
+  bool changed = false;
+  do
+  {
+    std::tie(dnf, changed) = LiaStarUtils::booleanDNF(dnf, e);
+  } while (changed);
+  return dnf;
 }
 
 std::pair<Node, bool> LiaStarUtils::booleanDNF(Node n, Env* e)
@@ -116,7 +122,33 @@ std::pair<Node, bool> LiaStarUtils::booleanDNF(Node n, Env* e)
       }
       return {computed, true};
     }
-    default: throw "Unexpected kind";
+    case Kind::OR:
+    {
+      bool leftBool = false;
+      Node leftNode = n[0];
+      do
+      {
+        std::tie(leftNode, leftBool) = LiaStarUtils::booleanDNF(leftNode, e);
+      } while (leftBool);
+      bool rightBool = false;
+      Node rightNode = n[1];
+      do
+      {
+        std::tie(rightNode, rightBool) = LiaStarUtils::booleanDNF(rightNode, e);
+      } while (rightBool);
+
+      Node computed = nm->mkNode(Kind::OR, leftNode, rightNode);
+      if (computed == n)
+      {
+        return {n, false};
+      }
+      return {computed, true};
+    }
+    default:
+    {
+      std::cout << "n: " << n << ", kind: " << n.getKind() << std::endl;
+      throw "Unexpected kind";
+    }
   }
 }
 
