@@ -430,7 +430,7 @@ bool ArithCongruenceManager::propagate(TNode x){
         {
           // if we have (= (to_real t) c) where c is a rational, we do:
           //                     -------------------------- ARITH_POLY_NORM_REL
-          // (= (to_real t) c)   (= (= (to_real t) c) (= t c))
+          // (= (to_real t) c)   (= (= (to_real t) c) (= t c'))
           // ------------------------------------------------- EQ_RESOLVE
           // (= t c')
           // where c' is integer equivalent of c.
