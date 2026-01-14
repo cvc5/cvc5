@@ -356,7 +356,7 @@ Node PIAndSolver::sumBasedLemma(Node i, Kind kind)
   uint64_t granularity = options().smt.BVAndIntegerGranularity;
   uint64_t int_k = k.getConst<Rational>().getNumerator().toUnsignedInt();
   NodeManager* nm = nodeManager();
-  // (i[0] >= k /\  0 <= x < 2^k) => i = sum
+  // (i[0] >= k /\  0 <= x < 2^k /\  0 <= y < 2^k) => i = sum
   Node width = nm->mkNode(kind, i[0], k);
   Node condition;
   Node pow2_k = nm->mkConstInt(Integer(2).pow(int_k));
@@ -364,8 +364,10 @@ Node PIAndSolver::sumBasedLemma(Node i, Kind kind)
   Node x_pos = nm->mkNode(Kind::GEQ, x, zero);
   Node y_pos = nm->mkNode(Kind::GEQ, y, zero);
   Node x_lt_pow2 = nm->mkNode(Kind::LT, x, pow2_k);
+  Node y_lt_pow2 = nm->mkNode(Kind::LT, y, pow2_k);
   Node bound_x = nm->mkNode(Kind::AND, x_lt_pow2, x_pos);
-  condition = nm->mkNode(Kind::AND, bound_x, width);
+  Node bound_y = nm->mkNode(Kind::AND, y_lt_pow2, y_pos);
+  condition = nm->mkNode(Kind::AND, bound_x, bound_y, width);
   Node then = nm->mkNode(
       Kind::EQUAL, i, d_iandUtils.createSumNode(x, y, int_k, granularity));
   Node lem = nm->mkNode(Kind::IMPLIES, condition, then);
