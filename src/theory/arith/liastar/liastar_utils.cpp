@@ -16,6 +16,7 @@
 #include "liastar_utils.h"
 
 #include "theory/datatypes/tuple_utils.h"
+#include "theory/rewriter.h"
 #include "util/rational.h"
 
 using namespace cvc5::internal::kind;
@@ -53,6 +54,72 @@ std::pair<Node, Node> LiaStarUtils::getVectorPredicate(Node n, NodeManager* nm)
   Trace("liastar-ext-debug") << "substitute: " << substitute << std::endl;
   return std::make_pair(substitute, nonnegativeConstraints);
 }
+
+Node LiaStarUtils::toDNF(Node n, Env* e)
+{
+  Assert(n.getType().isBoolean());
+  return booleanDNF(n, e).first;
+}
+
+std::pair<Node, bool> LiaStarUtils::booleanDNF(Node n, Env* e)
+{
+  NodeManager* nm = e->getNodeManager();
+  auto rw = e->getRewriter();
+  switch (n.getKind())
+  {
+    case Kind::GEQ: return {n, false};
+    case Kind::EQUAL:
+    {
+      Node l = nm->mkNode(Kind::GEQ, n[0], n[1]);
+      Node r = nm->mkNode(Kind::GEQ, n[1], n[0]);
+      return {nm->mkNode(Kind::OR, l, r), true};
+    }
+    case Kind::ITE:
+    {
+      Node l = n[0].andNode(n[1]);
+      Node r = rw->rewrite(n[0].notNode().andNode(n[2]));
+      return {nm->mkNode(Kind::OR, l, r), true};
+    }
+    case Kind::AND:
+    {
+      bool leftBool = false;
+      Node leftNode = n[0];
+      do
+      {
+        std::tie(leftNode, leftBool) = LiaStarUtils::booleanDNF(leftNode, e);
+      } while (leftBool);
+      bool rightBool = false;
+      Node rightNode = n[1];
+      do
+      {
+        std::tie(rightNode, rightBool) = LiaStarUtils::booleanDNF(rightNode, e);
+      } while (rightBool);
+      // check if any of the children is a disjunction
+      if (leftNode.getKind() == Kind::OR)
+      {
+        // (A or B) and C <=> (A and B) or (B and C)
+        Node l = leftNode[0].andNode(rightNode);
+        Node r = leftNode[1].andNode(rightNode);
+        return {l.orNode(r), true};
+      }
+      if (rightNode.getKind() == Kind::OR)
+      {
+        // A and (B or C)  <=> (A and B) or (A and C)
+        Node l = leftNode.andNode(rightNode[0]);
+        Node r = leftNode.andNode(rightNode[1]);
+        return {l.orNode(r), true};
+      }
+      Node computed = nm->mkNode(Kind::AND, leftNode, rightNode);
+      if (computed == n)
+      {
+        return {n, false};
+      }
+      return {computed, true};
+    }
+    default: throw "Unexpected kind";
+  }
+}
+
 }  // namespace liastar
 }  // namespace arith
 }  // namespace theory

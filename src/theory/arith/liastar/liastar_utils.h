@@ -17,7 +17,7 @@
 #define CVC5__THEORY__LIASTAR__UTILS_H
 
 #include "expr/node.h"
-
+#include "smt/env.h"
 namespace cvc5::internal {
 namespace theory {
 namespace arith {
@@ -32,6 +32,14 @@ class LiaStarUtils
    * @return <(p y1 ... yn), (and (>= y1 0) ... (>= yn 0))
    */
   static std::pair<Node, Node> getVectorPredicate(Node n, NodeManager* nm);
+  /**
+   * @param a node in LIA that only contains =, >=, ite in its tree
+   * @return a node in DNF where ite and = are eliminated
+   */
+  static Node toDNF(Node n, Env* e);
+
+ private:
+  static std::pair<Node, bool> booleanDNF(Node n, Env* e);
 };
 }  // namespace liastar
 }  // namespace arith
