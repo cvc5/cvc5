@@ -299,7 +299,9 @@ const std::vector<Matrix> LiaStarExtension::convertQFLIAToMatrices(Node n)
   // The following code convert predicate into a equivalent formula in DNF
   // where the constraints in each disjunction construct a matrix in Normaliz
   std::vector<Node> branchConstraints;
-  collectBooleanConstraintsDFS(variables, n, branchConstraints, disjunctions);
+  collectBooleanConstraintsDFS(
+      variables, predicate, branchConstraints, disjunctions);
+  std::cout << "disjunctions:\n" << disjunctions << std::endl;
   std::vector<Matrix> matrices = getMatrices(variables, disjunctions);
   return matrices;
 }
@@ -319,6 +321,7 @@ void LiaStarExtension::collectBooleanConstraintsDFS(
         collectBooleanConstraintsDFS(
             variables, n[i], branchConstraints, disjunctions);
       }
+      disjunctions.push_back(branchConstraints);
       break;
     }
     case Kind::OR:
@@ -327,6 +330,7 @@ void LiaStarExtension::collectBooleanConstraintsDFS(
       {
         std::vector<Node> disjunct(branchConstraints);
         collectBooleanConstraintsDFS(variables, n[i], disjunct, disjunctions);
+        disjunctions.push_back(disjunct);
       }
       break;
     }
@@ -389,7 +393,7 @@ LiaStarExtension::collectArithmeticConstraints(Node n)
   Assert(n.getType().isInteger());
   switch (n.getKind())
   {
-    case Kind::VARIABLE:
+    case Kind::BOUND_VARIABLE:
     case Kind::CONST_INTEGER:
     {
       pairs.push_back({{}, n});
@@ -413,7 +417,15 @@ LiaStarExtension::collectArithmeticConstraints(Node n)
           pairs.push_back({constraints, result});
         }
       }
-      break;
+      return pairs;
+    }
+
+    case Kind::MULT:
+    {
+      Assert(n[0].isConst() || n[1].isConst())
+          << n << " is not linear" << std::endl;
+      pairs.push_back({{}, n});
+      return pairs;
     }
 
     case Kind::ITE:
@@ -422,7 +434,8 @@ LiaStarExtension::collectArithmeticConstraints(Node n)
     }
     default:
     {
-      Assert(false) << "Unexpected kind: " << n << std::endl;
+      Assert(false) << "Unexpected kind: " << n << ", kind: " << n.getKind()
+                    << std::endl;
     }
   }
 }
