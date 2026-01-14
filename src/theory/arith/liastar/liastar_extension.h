@@ -111,33 +111,34 @@ class LiaStarExtension : EnvObj
    * Normaliz matrix form A x b >= 0 where A is a matrix and x = (x1 ... xn 1).
    * This form is used
    */
-  const std::vector<Matrix> convertQFLIAToMatrices(Node n) const;
+  const std::vector<Matrix> convertQFLIAToMatrices(Node n);
 
-  void collectBooleanConstraintsDFS(Node variables,
-                                    Node n,
-                                    Matrix& matrix,
-                                    std::vector<Matrix>& matrices) const;
+  void collectBooleanConstraintsDFS(
+      Node variables,
+      Node n,
+      std::vector<Node>& branchConstraints,
+      std::vector<std::vector<Node>>& disjunctions);
 
-  Node collectArithmeticConstraintsDFS(Node variables,
-                                       Node n,
-                                       Matrix& matrix,
-                                       std::vector<Matrix>& matrices,
-                                       Kind kind) const;
+  std::vector<std::pair<Node, Node>> collectArithmeticConstraints(Node n);
 
   /**
-   * get a row constraint for left >= right where variables
-   * is a node of Kind BOUND_VAR_LIST
-   * This function returns a list of integers representing a row constraint of
-   * the form a1 x_1 + ... + an_xn + b >= 0
+   * This function returns a list of matrices representing cones (disjunctions)
+   * where the rows of each matrix are constraints of the form a1 x_1 + ... +
+   * an_xn + b >= 0
+   * @param variables is a node of Kind BOUND_VAR_LIST
+   * @param disjunctions is a list of list of nodes where each one has kind GEQ
+   * and linear in the variables in the first argument
    */
-  std::vector<Integer> getConstraint(Node variables,
-                                     Node left,
-                                     Node right) const;
+  std::vector<Matrix> getMatrices(Node variables,
+                                  std::vector<std::vector<Node>> disjunctions);
 
+  /** node manager */
+  NodeManager* d_nm;
   /** commonly used terms */
   Node d_true;
   Node d_false;
   Node d_zero;
+  Node d_one;
   // The theory of arithmetic containing this extension.
   TheoryArith& d_arith;
   /** A reference to the arithmetic state object */
