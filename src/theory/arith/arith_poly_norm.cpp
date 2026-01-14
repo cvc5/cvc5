@@ -18,6 +18,7 @@
 #include "expr/attribute.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "util/bitvector.h"
+#include "theory/arith/arith_poly_norm.h"
 
 using namespace cvc5::internal::kind;
 
