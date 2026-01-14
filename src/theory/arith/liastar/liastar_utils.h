@@ -40,6 +40,7 @@ class LiaStarUtils
 
  private:
   static std::pair<Node, bool> booleanDNF(Node n, Env* e);
+  static std::vector<std::pair<Node, Node>> integerDNF(Node n, Env* e);
 };
 }  // namespace liastar
 }  // namespace arith

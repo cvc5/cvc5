@@ -113,14 +113,6 @@ class LiaStarExtension : EnvObj
    */
   const std::vector<Matrix> convertQFLIAToMatrices(Node n);
 
-  void collectBooleanConstraintsDFS(
-      Node variables,
-      Node n,
-      std::vector<Node>& branchConstraints,
-      std::vector<std::vector<Node>>& disjunctions);
-
-  std::vector<std::pair<std::vector<Node>, Node>> collectArithmeticConstraints(Node n);
-
   /**
    * This function returns a list of matrices representing cones (disjunctions)
    * where the rows of each matrix are constraints of the form a1 x_1 + ... +

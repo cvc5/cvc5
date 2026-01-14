@@ -57,7 +57,6 @@ std::pair<Node, Node> LiaStarUtils::getVectorPredicate(Node n, NodeManager* nm)
 
 Node LiaStarUtils::toDNF(Node n, Env* e)
 {
-  Assert(n.getType().isBoolean());
   Node dnf = n;
   bool changed = false;
   do
@@ -69,11 +68,45 @@ Node LiaStarUtils::toDNF(Node n, Env* e)
 
 std::pair<Node, bool> LiaStarUtils::booleanDNF(Node n, Env* e)
 {
+  Assert(n.getType().isBoolean());
   NodeManager* nm = e->getNodeManager();
   auto rw = e->getRewriter();
-  switch (n.getKind())
+  Kind k = n.getKind();
+  switch (k)
   {
-    case Kind::GEQ: return {n, false};
+    case Kind::CONST_BOOLEAN: return {n, false};
+
+    case Kind::GEQ:
+    {
+      // (>=
+      //    (ite (>= x y) a b)
+      //    (ite (>= x z) c d))
+      // should return
+      // (or
+      //   (and (>= x y) (>= x z)              (>= a c))
+      //   (and (>= x y) (>= z (+ x 1))        (>= a d))
+      //   (and (>= y (+ x 1)) (>= x z))       (>= b c))
+      //   (and (>= y (+ x 1)) (>= z (+ x 1))) (>= b d))
+      std::vector<std::pair<Node, Node>> left = integerDNF(n[0], e);
+      std::vector<std::pair<Node, Node>> right = integerDNF(n[1], e);
+      if (left.size() == 1 && right.size() == 1)
+      {
+        return {n, false};
+      }
+      Node geq = nm->mkConst<bool>(false);
+      // combine the conditions of left and right
+      for (const auto& l : left)
+      {
+        for (const auto& r : right)
+        {
+          Node condition = l.first.andNode(r.first);
+          Node result = nm->mkNode(k, l.second, r.second);
+          Node combined = condition.andNode(result);
+          geq = geq.orNode(combined);
+        }
+      }
+      return {geq, true};
+    }
     case Kind::EQUAL:
     {
       Node l = nm->mkNode(Kind::GEQ, n[0], n[1]);
@@ -144,6 +177,115 @@ std::pair<Node, bool> LiaStarUtils::booleanDNF(Node n, Env* e)
       }
       return {computed, true};
     }
+    case Kind::NOT:
+    {
+      Kind kind = n[0].getKind();
+      switch (kind)
+      {
+        case Kind::NOT:
+        {
+          // (not (not a)) is rewritten as just a
+          Node ret = rw->rewrite(n[0][0]);
+          return {ret, true};
+        }
+        case Kind::GEQ:
+        {
+          //(not (>= a b)) is rewritten as (>= b (+ a 1))
+          Node a = n[0][0];
+          Node b = n[0][1];
+          Node aPlusOne = nm->mkNode(Kind::ADD, a, nm->mkConstInt(Rational(1)));
+          Node ret = nm->mkNode(kind, b, aPlusOne);
+          return {ret, true};
+        }
+        case Kind::OR:
+        {
+          // (not (or a b)) is rewritten as (and (not a) (not b))
+          Node a = n[0][0].notNode();
+          Node b = n[0][1].notNode();
+          Node ret = nm->mkNode(Kind::AND, a, b);
+          ret = rw->rewrite(ret);
+          return {ret, true};
+        }
+        case Kind::AND:
+        {
+          // (not (and a b)) is rewritten as (or (not a) (not b))
+          Node a = n[0][0].notNode();
+          Node b = n[0][1].notNode();
+          Node ret = nm->mkNode(Kind::OR, a, b);
+          ret = rw->rewrite(ret);
+          return {ret, true};
+        }
+        default: break;
+      }
+      break;
+    }
+    default:
+    {
+      std::cout << "n: " << n << ", kind: " << n.getKind() << std::endl;
+      throw "Unexpected kind";
+    }
+  }
+}
+
+std::vector<std::pair<Node, Node>> LiaStarUtils::integerDNF(Node n, Env* e)
+{
+  Assert(n.getType().isInteger());
+  NodeManager* nm = e->getNodeManager();
+  Node trueConst = nm->mkConst<bool>(true);
+  auto rw = e->getRewriter();
+  Kind k = n.getKind();
+  switch (k)
+  {
+    case Kind::BOUND_VARIABLE:
+    case Kind::CONST_INTEGER: return {{trueConst, n}};
+    case Kind::ADD:
+    case Kind::SUB:
+    case Kind::MULT:
+    {
+      // (+
+      //    (ite (>= x y) a b)
+      //    (ite (>= x z) c d))
+      // should return 4 cases
+      // <(and (>= x y) (>= x z))            ,(+ a c)>
+      // <(and (>= x y) (>= z (+ x 1)))      ,(+ a d)>
+      // <(and (>= y (+ x 1)) (>= x z))      ,(+ b c)>
+      // <(and (>= y (+ x 1)) (>= z (+ x 1))),(+ b d)>
+      std::vector<std::pair<Node, Node>> left = integerDNF(n[0], e);
+      std::vector<std::pair<Node, Node>> right = integerDNF(n[1], e);
+      std::vector<std::pair<Node, Node>> combined;
+      // combine the conditions of left and right
+      for (const auto& l : left)
+      {
+        for (const auto& r : right)
+        {
+          Node condition = rw->rewrite(l.first.andNode(r.first));
+          Node result = rw->rewrite(nm->mkNode(k, l.second, r.second));
+          combined.push_back({condition, result});
+        }
+      }
+      return combined;
+    }
+    case Kind::ITE:
+    {
+      std::vector<std::pair<Node, Node>> iteResult;
+      Node condition = toDNF(n[0], e);
+      std::vector<std::pair<Node, Node>> thenDNF = integerDNF(n[1], e);
+      for (const auto& pair : thenDNF)
+      {
+        Node newCondition = pair.first.andNode(condition);
+        iteResult.push_back({newCondition, pair.second});
+      }
+
+      Node notCondition = rw->rewrite(condition.notNode());
+      std::vector<std::pair<Node, Node>> elseDNF = integerDNF(n[2], e);
+      for (const auto& pair : elseDNF)
+      {
+        Node newCondition = pair.first.andNode(notCondition);
+        iteResult.push_back({newCondition, pair.second});
+      }
+      return iteResult;
+    }
+
     default:
     {
       std::cout << "n: " << n << ", kind: " << n.getKind() << std::endl;
