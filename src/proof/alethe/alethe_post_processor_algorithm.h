@@ -26,6 +26,7 @@ namespace proof {
 /** Transforms a term by applying associativity and idempotency into its ac
  * normal form.
  *
+ * @param env The environment
  * @param cache A mapping between subterms of the input term and their ac normal
  * form. Should be empty in the beginning.
  * @param term The term that should be transformed.
