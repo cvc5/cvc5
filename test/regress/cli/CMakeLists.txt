@@ -1211,6 +1211,17 @@ set(regress_0_tests
   regress0/nl/nta/sin-sym-schema.smt2
   regress0/nl/nta/sqrt-simple.smt2
   regress0/nl/nta/tan-rewrite.smt2
+  regress0/nl/piand-base.smt2
+  regress0/nl/piand-difference.smt2
+  regress0/nl/piand-idempotence.smt2
+  regress0/nl/piand-lsb.smt2
+  regress0/nl/piand-max.smt2
+  regress0/nl/piand-min.smt2
+  regress0/nl/piand-negative.smt2
+  regress0/nl/piand-one.smt2
+  regress0/nl/piand-possitive.smt2
+  regress0/nl/piand-range.smt2
+  regress0/nl/piand-symmetry.smt2
   regress0/nl/pow2-native-0.smt2
   regress0/nl/pow2-native-1.smt2
   regress0/nl/pow2-native-2.smt2

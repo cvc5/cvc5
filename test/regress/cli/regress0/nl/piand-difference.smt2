@@ -1,0 +1,13 @@
+; EXPECT: unsat
+; DISABLE-TESTER: proof
+(set-logic QF_NIA)
+(declare-const k Int)
+(declare-const x Int)
+(declare-const y Int)
+(declare-const w Int)
+(declare-const z Int)
+(assert (distinct x w))
+(assert (= y z))
+(assert (= (piand k w z) x))
+(assert (= (piand k x y) w))
+(check-sat)
