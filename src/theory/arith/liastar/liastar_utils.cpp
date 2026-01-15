@@ -70,6 +70,7 @@ std::pair<Node, bool> LiaStarUtils::booleanDNF(Node n, Env* e)
 {
   Assert(n.getType().isBoolean());
   NodeManager* nm = e->getNodeManager();
+  Node falseNode = nm->mkConst<bool>(false);
   auto rw = e->getRewriter();
   Kind k = n.getKind();
   switch (k)
@@ -93,7 +94,7 @@ std::pair<Node, bool> LiaStarUtils::booleanDNF(Node n, Env* e)
       {
         return {n, false};
       }
-      Node geq = nm->mkConst<bool>(false);
+      Node geq = falseNode;
       // combine the conditions of left and right
       for (const auto& l : left)
       {
@@ -102,7 +103,14 @@ std::pair<Node, bool> LiaStarUtils::booleanDNF(Node n, Env* e)
           Node condition = l.first.andNode(r.first);
           Node result = nm->mkNode(k, l.second, r.second);
           Node combined = condition.andNode(result);
-          geq = geq.orNode(combined);
+          if (geq == falseNode)
+          {
+            geq = combined;
+          }
+          else
+          {
+            geq = geq.orNode(combined);
+          }
         }
       }
       return {geq, true};
@@ -272,7 +280,15 @@ std::vector<std::pair<Node, Node>> LiaStarUtils::integerDNF(Node n, Env* e)
       std::vector<std::pair<Node, Node>> thenDNF = integerDNF(n[1], e);
       for (const auto& pair : thenDNF)
       {
-        Node newCondition = pair.first.andNode(condition);
+        Node newCondition;
+        if (pair.first == trueConst)
+        {
+          newCondition = condition;
+        }
+        else
+        {
+          newCondition = pair.first.andNode(condition);
+        }
         iteResult.push_back({newCondition, pair.second});
       }
 
@@ -280,7 +296,15 @@ std::vector<std::pair<Node, Node>> LiaStarUtils::integerDNF(Node n, Env* e)
       std::vector<std::pair<Node, Node>> elseDNF = integerDNF(n[2], e);
       for (const auto& pair : elseDNF)
       {
-        Node newCondition = pair.first.andNode(notCondition);
+        Node newCondition;
+        if (pair.first == trueConst)
+        {
+          newCondition = notCondition;
+        }
+        else
+        {
+          newCondition = pair.first.andNode(notCondition);
+        }
         iteResult.push_back({newCondition, pair.second});
       }
       return iteResult;

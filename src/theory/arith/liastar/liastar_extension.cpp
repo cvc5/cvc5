@@ -291,9 +291,18 @@ const std::vector<Matrix> LiaStarExtension::convertQFLIAToMatrices(Node n)
     nonNegativeConstraints.push_back(constraint);
   }
 
+  predicate = d_nm->mkNode(
+      Kind::GEQ,
+      d_nm->mkNode(Kind::ITE,
+                   d_nm->mkNode(Kind::GEQ, variables[0], variables[1]),
+                   variables[0],
+                   variables[1]),
+      d_nm->mkNode(Kind::ITE,
+                   d_nm->mkNode(Kind::GEQ, variables[2], variables[3]),
+                   variables[2],
+                   variables[3]));
   std::cout << "DNF: " << predicate << std::endl;
   predicate = LiaStarUtils::toDNF(predicate, &d_env);
-  predicate = rewrite(predicate);
   std::cout << "DNF: " << predicate << std::endl;
 
   std::vector<std::vector<Node>> disjunctions;
