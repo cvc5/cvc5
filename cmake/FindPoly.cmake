@@ -53,10 +53,23 @@ if(NOT Poly_FOUND_SYSTEM)
   set(Poly_VERSION "0.2.1")
 
   set(POLY_PATCH_KWD PATCH_COMMAND)
+  if (NO_GLOBAL_POLY_CTX)
+    find_program(PATCH_BIN patch)
+    if(NOT PATCH_BIN)
+      message(FATAL_ERROR "Can not patch LibPoly, missing binary for patch")
+    endif()
+    set(POLY_PATCH_CMD
+      ${POLY_PATCH_KWD}
+        patch -p1 -d <SOURCE_DIR>
+        -i ${CMAKE_CURRENT_LIST_DIR}/deps-utils/poly-global-ctx.patch
+    )
+    set(POLY_PATCH_KWD COMMAND)
+  endif()
+
   check_if_cross_compiling(CCWIN "Windows" "")
   if(CCWIN)
     set(POLY_PATCH_CMD
-      PATCH_COMMAND
+      ${POLY_PATCH_KWD}
         ${CMAKE_SOURCE_DIR}/cmake/deps-utils/Poly-windows-patch.sh <SOURCE_DIR>
     )
     set(POLY_PATCH_KWD COMMAND)
