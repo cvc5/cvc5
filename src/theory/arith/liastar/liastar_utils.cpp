@@ -70,7 +70,8 @@ std::pair<Node, bool> LiaStarUtils::booleanDNF(Node n, Env* e)
 {
   Assert(n.getType().isBoolean());
   NodeManager* nm = e->getNodeManager();
-  Node falseNode = nm->mkConst<bool>(false);
+  Node falseConst = nm->mkConst<bool>(false);
+  Node trueConst = nm->mkConst<bool>(true);
   auto rw = e->getRewriter();
   Kind k = n.getKind();
   switch (k)
@@ -94,16 +95,31 @@ std::pair<Node, bool> LiaStarUtils::booleanDNF(Node n, Env* e)
       {
         return {n, false};
       }
-      Node geq = falseNode;
+      Node geq = falseConst;
       // combine the conditions of left and right
       for (const auto& l : left)
       {
         for (const auto& r : right)
         {
-          Node condition = l.first.andNode(r.first);
           Node result = nm->mkNode(k, l.second, r.second);
-          Node combined = condition.andNode(result);
-          if (geq == falseNode)
+          Node combined;
+          if (l.first == trueConst && r.first == trueConst)
+          {
+            combined = result;
+          }
+          else if (l.first == trueConst && r.first != trueConst)
+          {
+            combined = result.andNode(r.first);
+          }
+          else if (l.first != trueConst && r.first == trueConst)
+          {
+            combined = result.andNode(l.first);
+          }
+          else
+          {
+            combined = result.andNode(l.first).andNode(r.first);
+          }
+          if (geq == falseConst)
           {
             geq = combined;
           }

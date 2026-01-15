@@ -293,10 +293,9 @@ const std::vector<Matrix> LiaStarExtension::convertQFLIAToMatrices(Node n)
 
   predicate = d_nm->mkNode(
       Kind::GEQ,
-      d_nm->mkNode(Kind::ITE,
-                   d_nm->mkNode(Kind::GEQ, variables[0], variables[1]),
-                   variables[0],
-                   variables[1]),
+      d_nm->mkNode(Kind::ADD,
+                   d_nm->mkConstInt(Rational(1)),
+                   d_nm->mkConstInt(Rational(2))),
       d_nm->mkNode(Kind::ITE,
                    d_nm->mkNode(Kind::GEQ, variables[2], variables[3]),
                    variables[2],
