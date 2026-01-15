@@ -276,11 +276,8 @@ const std::vector<Matrix> LiaStarExtension::convertQFLIAToMatrices(Node n)
   Node variables = n[0];
   Node predicate = n[1];
   size_t dimension = variables.getNumChildren();
+  Trace("liastar-ext") << "convertQFLIAToMatrices::n: " << n << std::endl;
   std::cout << "variables: " << variables << std::endl;
-  std::cout << "variables: " << variables.getKind() << std::endl;
-  std::cout << "variables: " << variables.getNumChildren() << std::endl;
-  std::cout << "predicate: " << predicate << std::endl;
-  std::cout << "predicate: " << rewrite(predicate) << std::endl;
 
   for (size_t i = 0; i < dimension; i++)
   {
@@ -291,27 +288,40 @@ const std::vector<Matrix> LiaStarExtension::convertQFLIAToMatrices(Node n)
     nonNegativeConstraints.push_back(constraint);
   }
 
-  std::cout << "DNF: " << predicate << std::endl;
+  Trace("liastar-ext") << "predicate: " << predicate << std::endl;
+  std::cout << "predicate: " << predicate << std::endl;
   predicate = LiaStarUtils::toDNF(predicate, &d_env);
-  std::cout << "DNF: " << predicate << std::endl;
+  Trace("liastar-ext") << "predicate in dnf: " << predicate << std::endl;
+  std::cout << "predicate in dnf: " << predicate << std::endl;
 
-  std::vector<std::vector<Node>> disjunctions;
-  // cvc5 converts nodes with Kinds distinct and <, <= operators to >=
-  // and does not change nodes with Kinds =, ite which are not compatible
-  // with Normaliz which requires constraints to be the form
-  // a1 x1 + ... + an xn + b >= 0
-  // The following code convert predicate into a equivalent formula in DNF
   // where the constraints in each disjunction construct a matrix in Normaliz
 
-  std::vector<Matrix> matrices = getMatrices(variables, disjunctions);
+  std::vector<Matrix> matrices = getMatrices(variables, predicate);
   return matrices;
 }
 
-std::vector<Matrix> LiaStarExtension::getMatrices(
-    Node variables, std::vector<std::vector<Node>> disjunctions)
+std::vector<Matrix> LiaStarExtension::getMatrices(Node variables,
+                                                  Node predicate)
 {
   std::vector<Matrix> matrices;
+  Kind k = predicate.getKind();
+  switch (k)
+  {
+    case Kind::GEQ:
+    {
+      break;
+    }
+    case Kind::AND:
+    {
+      break;
+    }
+    case Kind::OR:
+    {
+      break;
+    }
 
+    default: break;
+  }
   return matrices;
 }
 

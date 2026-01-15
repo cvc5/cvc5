@@ -118,11 +118,9 @@ class LiaStarExtension : EnvObj
    * where the rows of each matrix are constraints of the form a1 x_1 + ... +
    * an_xn + b >= 0
    * @param variables is a node of Kind BOUND_VAR_LIST
-   * @param disjunctions is a list of list of nodes where each one has kind GEQ
-   * and linear in the variables in the first argument
+   * @param predicate is a LIA predicate in DNF format
    */
-  std::vector<Matrix> getMatrices(Node variables,
-                                  std::vector<std::vector<Node>> disjunctions);
+  std::vector<Matrix> getMatrices(Node variables, Node predicate);
 
   /** node manager */
   NodeManager* d_nm;

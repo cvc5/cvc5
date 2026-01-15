@@ -51,17 +51,6 @@ namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
-/**
- * Flatten a node into a vector of its (direct or indirect) children, collecting
- * how many times each child occurs in the sum.
- * A sequence of kinds is given that indicate which kinds to traverse over.
- * This method is similar to expr::algorithm::flatten but does not use a tree
- * traversal. Instead it merges subterms, based on counting the number of
- * occurrences, as a Rational.
- * @param t The node to be flattened
- * @param children The resulting list of children
- * @param kinds A sequence of kinds to consider for flattening
- */
 template <typename... Kinds>
 bool flattenAndCollectSum(TNode t,
                           std::vector<std::pair<TNode, Rational>>& children,
