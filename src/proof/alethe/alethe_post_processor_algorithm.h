@@ -17,6 +17,7 @@
 #define CVC5__PROOF__ALETHE__ALETHE_PROOF_PROCESSOR_ALGORITHM_H
 
 #include "proof/proof_node_manager.h"
+#include "smt/env.h"
 
 namespace cvc5::internal {
 
@@ -30,7 +31,7 @@ namespace proof {
  * @param term The term that should be transformed.
  * @return The term in ac normal form.
  */
-Node applyAcSimp(std::map<Node, Node>& cache, Node term);
+Node applyAcSimp(Env& env, std::map<Node, Node>& cache, Node term);
 
 }  // namespace proof
 }  // namespace cvc5::internal

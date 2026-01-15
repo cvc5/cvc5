@@ -27,9 +27,9 @@ namespace proof {
 // Closely follows the algorithm implemented in carcara
 // (https://github.com/ufmg-smite/carcara) Note that when removing duplicates we
 // keep the first occurence.
-Node applyAcSimp(std::map<Node, Node>& cache, Node term)
+Node applyAcSimp(Env& env, std::map<Node, Node>& cache, Node term)
 {
-  NodeManager* nm = nodeManager();
+  NodeManager* nm = env.getNodeManager();
   if (cache.find(term) != cache.end())
   {
     return cache[term];
@@ -55,7 +55,7 @@ Node applyAcSimp(std::map<Node, Node>& cache, Node term)
   {
     for (Node child : term)
     {
-      Node ac_child = applyAcSimp(cache, child);
+      Node ac_child = applyAcSimp(env, cache, child);
       Kind k_ac_child = ac_child.getKind();
       if (k_ac_child == k)
       {
@@ -93,7 +93,7 @@ Node applyAcSimp(std::map<Node, Node>& cache, Node term)
   {
     for (Node child : term)
     {
-      Node ac_child = applyAcSimp(cache, child);
+      Node ac_child = applyAcSimp(env, cache, child);
       ac_children.push_back(ac_child);
     }
     if (k == Kind::APPLY_UF)
