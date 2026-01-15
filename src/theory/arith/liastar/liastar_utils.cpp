@@ -15,6 +15,7 @@
 
 #include "liastar_utils.h"
 
+#include "expr/algorithm/flatten.h"
 #include "theory/datatypes/tuple_utils.h"
 #include "theory/rewriter.h"
 #include "util/rational.h"
@@ -63,6 +64,17 @@ Node LiaStarUtils::toDNF(Node n, Env* e)
   {
     std::tie(dnf, changed) = LiaStarUtils::booleanDNF(dnf, e);
   } while (changed);
+  NodeManager* nm = e->getNodeManager();
+  dnf = expr::algorithm::flatten(nm, dnf);
+  if (dnf.getNumChildren() > 0)
+  {
+    std::vector<Node> children;
+    for (const auto& child : dnf)
+    {
+      children.push_back(expr::algorithm::flatten(nm, child));
+    }
+    dnf = nm->mkNode(dnf.getKind(), children);
+  }
   return dnf;
 }
 
@@ -301,9 +313,9 @@ std::pair<Node, bool> LiaStarUtils::booleanDNF(Node n, Env* e)
     default:
     {
       std::cout << "n: " << n << ", kind: " << n.getKind() << std::endl;
-      throw "Unexpected kind";
     }
   }
+  throw "Unexpected kind";
 }
 
 std::vector<std::pair<Node, Node>> LiaStarUtils::integerDNF(Node n, Env* e)

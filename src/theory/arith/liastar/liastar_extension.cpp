@@ -290,16 +290,7 @@ const std::vector<Matrix> LiaStarExtension::convertQFLIAToMatrices(Node n)
     constraint[i] = Integer(1);
     nonNegativeConstraints.push_back(constraint);
   }
-  
-  predicate = d_nm->mkNode(
-      Kind::EQUAL,
-      d_nm->mkNode(Kind::ADD,
-                   d_nm->mkConstInt(Rational(1)),
-                   d_nm->mkConstInt(Rational(2))),
-      d_nm->mkNode(Kind::ITE,
-                   d_nm->mkNode(Kind::GEQ, variables[2], variables[3]),
-                   variables[2],
-                   variables[3]));
+
   std::cout << "DNF: " << predicate << std::endl;
   predicate = LiaStarUtils::toDNF(predicate, &d_env);
   std::cout << "DNF: " << predicate << std::endl;
