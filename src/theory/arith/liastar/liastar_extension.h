@@ -111,7 +111,7 @@ class LiaStarExtension : EnvObj
    * Normaliz matrix form A x b >= 0 where A is a matrix and x = (x1 ... xn 1).
    * This form is used
    */
-  const std::vector<Matrix> convertQFLIAToMatrices(Node n);
+  const std::vector<std::pair<Matrix, Node>> convertQFLIAToMatrices(Node n);
 
   /**
    * This function returns a list of matrices representing cones (disjunctions)
@@ -120,10 +120,8 @@ class LiaStarExtension : EnvObj
    * @param variables is a node of Kind BOUND_VAR_LIST
    * @param predicate is a LIA predicate in DNF format
    */
-  std::vector<Matrix> getMatrices(Node variables, Node predicate);
-
-  std::vector<Integer> getRow(Node variables,
-                              std::vector<std::pair<TNode, Rational>> sum);
+  std::vector<std::pair<Matrix, Node>> getMatrices(Node variables,
+                                                   Node predicate);
 
   /** node manager */
   NodeManager* d_nm;

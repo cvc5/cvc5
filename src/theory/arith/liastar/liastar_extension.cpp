@@ -226,12 +226,16 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
           continue;
         }
 
-        std::vector<Matrix> matrices = convertQFLIAToMatrices(literal);
+        std::vector<std::pair<Matrix, Node>> pairs =
+            convertQFLIAToMatrices(literal);
 
         std::vector<Cone<Integer>> cones;
-        for (const auto& matrix : matrices)
+        for (const auto& pair : pairs)
         {
-          Cone<Integer> cone(Type::inequalities, matrix);
+          Trace("liastar-ext") << "---------------------------" << std::endl;
+          Trace("liastar-ext") << "Cone for node " << std::endl
+                               << pair.second << std::endl;
+          Cone<Integer> cone(Type::inequalities, pair.first);
           cone.compute(ConeProperty::HilbertBasis);
           cone.compute(ConeProperty::ModuleGenerators);
 
@@ -270,25 +274,16 @@ Node LiaStarExtension::isNotZeroVector(Node v)
   return notZero;
 }
 
-const std::vector<Matrix> LiaStarExtension::convertQFLIAToMatrices(Node n)
+const std::vector<std::pair<Matrix, Node>>
+LiaStarExtension::convertQFLIAToMatrices(Node n)
 {
   Assert(n.getKind() == Kind::STAR_CONTAINS);
-  Matrix nonNegativeConstraints;
 
   Node variables = n[0];
   Node predicate = n[1];
   size_t dimension = variables.getNumChildren();
   Trace("liastar-ext") << "convertQFLIAToMatrices::n: " << n << std::endl;
   std::cout << "variables: " << variables << std::endl;
-
-  for (size_t i = 0; i < dimension; i++)
-  {
-    // initialize a vector of dimension + 1 with all zeros
-    std::vector<Integer> constraint(dimension + 1, Integer(0));
-    // 0 x1 + ... 1 * x_i + ... 0 x_n + 0 >= 0
-    constraint[i] = Integer(1);
-    nonNegativeConstraints.push_back(constraint);
-  }
 
   Trace("liastar-ext") << "predicate: " << predicate << std::endl;
   std::cout << "predicate: " << predicate << std::endl;
@@ -298,72 +293,102 @@ const std::vector<Matrix> LiaStarExtension::convertQFLIAToMatrices(Node n)
 
   // where the constraints in each disjunction construct a matrix in Normaliz
 
-  std::vector<Matrix> matrices = getMatrices(variables, predicate);
-  return matrices;
+  std::vector<std::pair<Matrix, Node>> pairs =
+      getMatrices(variables, predicate);
+
+  Matrix nonNegativeConstraints;
+  for (size_t i = 0; i < dimension; i++)
+  {
+    // initialize a vector of dimension + 1 with all zeros
+    std::vector<Integer> constraint(dimension + 1, Integer(0));
+    // 0 x1 + ... 1 * x_i + ... 0 x_n + 0 >= 0
+    constraint[i] = Integer(1);
+    nonNegativeConstraints.push_back(constraint);
+  }
+  for (auto& pair : pairs)
+  {
+    pair.first.insert(pair.first.end(),
+                      nonNegativeConstraints.begin(),
+                      nonNegativeConstraints.end());
+  }
+
+  return pairs;
 }
 
-std::vector<Matrix> LiaStarExtension::getMatrices(Node variables,
-                                                  Node predicate)
+std::vector<std::pair<Matrix, Node>> LiaStarExtension::getMatrices(
+    Node variables, Node predicate)
 {
-  std::vector<Matrix> matrices;
+  std::vector<std::pair<Matrix, Node>> pairs;
   Kind k = predicate.getKind();
   switch (k)
   {
     case Kind::GEQ:
     {
       // (>= l r) becomes (>= (- l r) 0)
-      Node norm = d_nm->mkNode(Kind::SUB, predicate[0], predicate[1]);
-      norm = rewrite(norm);
-      std::cout << "norm: " << norm << std::endl;
-      std::vector<std::pair<TNode, Rational>> sum;
-      auto p = theory::arith::linear::Polynomial::parsePolynomial(norm);
-      std::cout << "p: " << p.numMonomials() << std::endl;
-      for (const auto& m : p)
+      Node node = d_nm->mkNode(Kind::SUB, predicate[0], predicate[1]);
+      node = rewrite(node);
+      linear::Polynomial polynomial = linear::Polynomial::parsePolynomial(node);
+      Assert(polynomial.isIntegral())
+          << node << " is expected to be linear" << std::endl;
+      size_t size = variables.getNumChildren();
+      std::vector<Integer> coefficients(size + 1, Integer(0));
+      for (const linear::Monomial& monomial : polynomial)
       {
-        auto c = m.getConstant();
-        auto v = m.getVarList();
-
-        auto n = m.getNode();
-        std::cout << "n:" << n << std::endl;
+        linear::Constant c = monomial.getConstant();
+        for (size_t i = 0; i < size; i++)
+        {
+          if (monomial.isConstant())
+          {
+            coefficients[size] += c.getValue().getNumerator().getValue();
+          }
+          else
+          {
+            linear::VarList varList = monomial.getVarList();
+            for (const auto& var : varList)
+            {
+              if (var.getNode() == variables[i])
+              {
+                coefficients[i] += c.getValue().getNumerator().getValue();
+              }
+            }
+          }
+        }
       }
-      std::vector<Integer> row = getRow(variables, sum);
+      std::cout << "polynomial  : " << polynomial.getNode() << std::endl;
+      std::cout << "coefficients: " << coefficients << std::endl;
       Matrix matrix;
-      matrix.push_back(row);
-      matrices.push_back(matrix);
-      return matrices;
+      matrix.push_back(coefficients);
+      pairs.push_back({matrix, predicate});
+      return pairs;
     }
     case Kind::AND:
     {
       Matrix matrix;
       for (size_t i = 0; i < predicate.getNumChildren(); i++)
       {
-        std::vector<Matrix> m = getMatrices(variables, predicate[i]);
-        matrix.push_back(m[0][0]);
+        std::vector<std::pair<Matrix, Node>> m =
+            getMatrices(variables, predicate[i]);
+        matrix.push_back(m[0].first[0]);
       }
-      matrices.push_back(matrix);
-      return matrices;
+      pairs.push_back({matrix, predicate});
+      std::cout << "node  : " << predicate << std::endl;
+      std::cout << "matrix: " << std::endl << matrix << std::endl;
+      return pairs;
     }
     case Kind::OR:
     {
       for (size_t i = 0; i < predicate.getNumChildren(); i++)
       {
-        std::vector<Matrix> m = getMatrices(variables, predicate[i]);
-        matrices.push_back(m[0]);
+        std::vector<std::pair<Matrix, Node>> m =
+            getMatrices(variables, predicate[i]);
+        pairs.push_back(m[0]);
       }
-      return matrices;
+      return pairs;
     }
 
     default: break;
   }
-  return matrices;
-}
-
-std::vector<Integer> LiaStarExtension::getRow(
-    Node variables, std::vector<std::pair<TNode, Rational>> sum)
-{
-  std::vector<Integer> row;
-  std::cout << "row: " << sum << std::endl;
-  return row;
+  return pairs;
 }
 
 }  // namespace liastar
