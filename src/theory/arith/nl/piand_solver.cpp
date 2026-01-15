@@ -334,9 +334,9 @@ void PIAndSolver::checkFullRefine()
       if (model_k > 0 && model_x == 1 && model_piand != model_y.modByPow2(1))
       {
         Node x_equal_one = nm->mkNode(Kind::EQUAL, x, d_one);
-        Node asuum_lsb2 = nm->mkNode(Kind::AND, k_gt_0, x_equal_one);
+        Node asum_lsb2 = nm->mkNode(Kind::AND, k_gt_0, x_equal_one);
         Node lsb2 = nm->mkNode(Kind::EQUAL, i, arg1Mod2);
-        Node x_one_lem = nm->mkNode(Kind::IMPLIES, asuum_lsb2, lsb2);
+        Node x_one_lem = nm->mkNode(Kind::IMPLIES, asum_lsb2, lsb2);
         d_im.addPendingLemma(
             x_one_lem, InferenceId::ARITH_NL_PIAND_ONE_REFINE, nullptr, true);
       }
