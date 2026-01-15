@@ -293,6 +293,7 @@ const std::vector<Matrix> LiaStarExtension::convertQFLIAToMatrices(Node n)
 
   std::cout << "DNF: " << predicate << std::endl;
   predicate = LiaStarUtils::toDNF(predicate, &d_env);
+  predicate = rewrite(predicate);
   std::cout << "DNF: " << predicate << std::endl;
 
   std::vector<std::vector<Node>> disjunctions;
