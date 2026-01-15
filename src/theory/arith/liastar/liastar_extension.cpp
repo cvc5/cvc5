@@ -18,9 +18,11 @@
 #include "libnormaliz/libnormaliz.h"
 #include "options/arith_options.h"
 #include "options/smt_options.h"
+#include "theory/arith/arith_rewriter.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/bound_inference.h"
 #include "theory/arith/inference_manager.h"
+#include "theory/arith/linear/normal_form.h"
 #include "theory/arith/nl/nl_lemma_utils.h"
 #include "theory/arith/theory_arith.h"
 #include "theory/datatypes/tuple_utils.h"
@@ -309,20 +311,59 @@ std::vector<Matrix> LiaStarExtension::getMatrices(Node variables,
   {
     case Kind::GEQ:
     {
-      break;
+      // (>= l r) becomes (>= (- l r) 0)
+      Node norm = d_nm->mkNode(Kind::SUB, predicate[0], predicate[1]);
+      norm = rewrite(norm);
+      std::cout << "norm: " << norm << std::endl;
+      std::vector<std::pair<TNode, Rational>> sum;
+      auto p = theory::arith::linear::Polynomial::parsePolynomial(norm);
+      std::cout << "p: " << p.numMonomials() << std::endl;
+      for (const auto& m : p)
+      {
+        auto c = m.getConstant();
+        auto v = m.getVarList();
+
+        auto n = m.getNode();
+        std::cout << "n:" << n << std::endl;
+      }
+      std::vector<Integer> row = getRow(variables, sum);
+      Matrix matrix;
+      matrix.push_back(row);
+      matrices.push_back(matrix);
+      return matrices;
     }
     case Kind::AND:
     {
-      break;
+      Matrix matrix;
+      for (size_t i = 0; i < predicate.getNumChildren(); i++)
+      {
+        std::vector<Matrix> m = getMatrices(variables, predicate[i]);
+        matrix.push_back(m[0][0]);
+      }
+      matrices.push_back(matrix);
+      return matrices;
     }
     case Kind::OR:
     {
-      break;
+      for (size_t i = 0; i < predicate.getNumChildren(); i++)
+      {
+        std::vector<Matrix> m = getMatrices(variables, predicate[i]);
+        matrices.push_back(m[0]);
+      }
+      return matrices;
     }
 
     default: break;
   }
   return matrices;
+}
+
+std::vector<Integer> LiaStarExtension::getRow(
+    Node variables, std::vector<std::pair<TNode, Rational>> sum)
+{
+  std::vector<Integer> row;
+  std::cout << "row: " << sum << std::endl;
+  return row;
 }
 
 }  // namespace liastar

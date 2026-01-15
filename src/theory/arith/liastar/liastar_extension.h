@@ -122,6 +122,9 @@ class LiaStarExtension : EnvObj
    */
   std::vector<Matrix> getMatrices(Node variables, Node predicate);
 
+  std::vector<Integer> getRow(Node variables,
+                              std::vector<std::pair<TNode, Rational>> sum);
+
   /** node manager */
   NodeManager* d_nm;
   /** commonly used terms */
