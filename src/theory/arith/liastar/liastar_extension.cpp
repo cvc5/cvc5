@@ -290,9 +290,9 @@ const std::vector<Matrix> LiaStarExtension::convertQFLIAToMatrices(Node n)
     constraint[i] = Integer(1);
     nonNegativeConstraints.push_back(constraint);
   }
-
+  
   predicate = d_nm->mkNode(
-      Kind::GEQ,
+      Kind::EQUAL,
       d_nm->mkNode(Kind::ADD,
                    d_nm->mkConstInt(Rational(1)),
                    d_nm->mkConstInt(Rational(2))),
