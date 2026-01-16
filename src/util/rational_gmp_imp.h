@@ -47,6 +47,10 @@ class Rational
 {
  public:
   /**
+   * Constructs a Rational from a mpz_class object.
+   */
+  Rational(const mpz_class& val) : d_value(val) {}
+  /**
    * Constructs a Rational from a mpq_class object.
    * Does a deep copy.
    * Assumes that the value is in canonical form, and thus does not

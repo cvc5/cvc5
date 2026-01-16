@@ -39,7 +39,7 @@ namespace liastar {
 typedef mpz_class Integer;
 // type the constraint matrix
 typedef std::vector<std::vector<Integer>> Matrix;
-
+typedef std::vector<Node> Vector;
 /** Liastar extension class
  *
  * This class implements model-based refinement schemes
@@ -145,7 +145,8 @@ class LiaStarExtension : EnvObj
   ExtTheory d_extTheory;
   /** Do we have any liaStar terms? */
   context::CDO<bool> d_hasLiaStarTerms;
-  
+  std::vector<Node> d_processedStarTerms;
+
 }; /* class LiaStarExtension */
 
 }  // namespace liastar

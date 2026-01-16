@@ -114,6 +114,7 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
   {
     Assert(literal.getKind() == Kind::STAR_CONTAINS);
     Node vec = literal[2];
+    size_t dimension = vec.getNumChildren();
     auto [vectorPredicate, nonnegative] =
         LiaStarUtils::getVectorPredicate(literal, nm);
     // assert that vector elements are non negative
@@ -187,7 +188,7 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
           << "----------------------------------------" << std::endl;
       Trace("liastar-ext-debug") << literal << std::endl;
       Trace("liastar-ext-debug")
-          << "----------------------------------------" << std::endl;      
+          << "----------------------------------------" << std::endl;
       return;
     }
     else  //(value == d_false)
@@ -217,12 +218,21 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
       else
       {
         Trace("liastar-ext") << "has already sent the lemma" << std::endl;
-        // more work need to be done        
-
+        if (std::find(d_processedStarTerms.begin(),
+                      d_processedStarTerms.end(),
+                      literal)
+            != d_processedStarTerms.end())
+        {
+          continue;
+        }
+        // more work need to be done
         std::vector<std::pair<Matrix, Node>> pairs =
             convertQFLIAToMatrices(literal);
 
         std::vector<Cone<Integer>> cones;
+        std::vector<std::pair<Vector, std::vector<Vector>>> lambdas;
+        std::vector<Node> starConstraints;
+        std::vector<Integer> zeroVector(dimension, Integer(0));
         for (const auto& pair : pairs)
         {
           Trace("liastar-ext") << "---------------------------" << std::endl;
@@ -234,20 +244,78 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
 
           Trace("liastar-ext")
               << "Hilbert basis (recession cone):" << std::endl;
-
-          for (const auto& z : cone.getHilbertBasis())
+          for (const auto& basis : cone.getHilbertBasis())
           {
-            std::cout << z;
+            std::cout << basis << std::endl;
           }
 
           Trace("liastar-ext") << "Module generators:" << std::endl;
-          for (const auto& z : cone.getModuleGenerators())
+          std::vector<std::vector<Integer>> generators = {zeroVector};
+          if (cone.getModuleGenerators().size() > 0)
           {
-            std::cout << z;
+            generators = cone.getModuleGenerators();
+          }
+          for (const auto& generator : generators)
+          {
+            std::cout << generator << std::endl;
+            Node mu = d_nm->mkDummySkolem("mu", d_nm->integerType());
+            starConstraints.push_back(d_nm->mkNode(Kind::GEQ, mu, d_zero));
+            Vector point;
+            for (const auto& element : generator)
+            {
+              Node constant = d_nm->mkConstInt(Rational(element));
+              Node monomial = d_nm->mkNode(Kind::MULT, constant, mu);
+              point.push_back(monomial);
+            }
+            std::vector<Vector> rays;
+            for (const auto& basis : cone.getHilbertBasis())
+            {
+              Node lambda =
+                  d_nm->mkDummySkolem(mu.getName() + "l", d_nm->integerType());
+              // (>= l 0)
+              starConstraints.push_back(
+                  d_nm->mkNode(Kind::GEQ, lambda, d_zero));
+              // (=> (= mu 0) (= l 0))
+              starConstraints.push_back(
+                  d_nm->mkNode(Kind::EQUAL, mu, d_zero)
+                      .impNode(d_nm->mkNode(Kind::EQUAL, lambda, d_zero)));
+
+              Vector ray;
+              for (const auto& element : basis)
+              {
+                Node constant = d_nm->mkConstInt(Rational(element));
+                Node monomial = d_nm->mkNode(Kind::MULT, constant, lambda);
+                ray.push_back(monomial);
+              }
+              rays.push_back(ray);
+            }
+            lambdas.push_back({point, rays});
           }
           cones.push_back(cone);
         }
-        
+
+        // sum constraints
+        Vector sums(dimension, d_zero);
+        for (const auto& pair : lambdas)
+        {
+          for (size_t i = 0; i < dimension; i++)
+          {
+            sums[i] = d_nm->mkNode(Kind::ADD, sums[i], pair.first[i]);
+            for (const auto& v : pair.second)
+            {
+              sums[i] = d_nm->mkNode(Kind::ADD, sums[i], v[i]);
+            }
+          }
+        }
+
+        for (size_t i = 0; i < dimension; i++)
+        {
+          starConstraints.push_back(v[i].eqNode(sums[i]));
+        }
+        Node lemma = d_nm->mkNode(Kind::AND, starConstraints);
+        std::cout << "star lemma: " << lemma << std::endl;
+        d_im.addPendingLemma(lemma, InferenceId::ARITH_LIA_STAR);
+        d_processedStarTerms.push_back(literal);
         d_im.doPendingLemmas();
       }
     }
