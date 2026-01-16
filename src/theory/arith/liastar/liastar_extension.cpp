@@ -187,8 +187,7 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
           << "----------------------------------------" << std::endl;
       Trace("liastar-ext-debug") << literal << std::endl;
       Trace("liastar-ext-debug")
-          << "----------------------------------------" << std::endl;
-      d_processedVectors.push_back(v);
+          << "----------------------------------------" << std::endl;      
       return;
     }
     else  //(value == d_false)
@@ -218,13 +217,7 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
       else
       {
         Trace("liastar-ext") << "has already sent the lemma" << std::endl;
-        // more work need to be done
-        if (std::find(d_processedVectors.begin(), d_processedVectors.end(), v)
-            != d_processedVectors.end())
-        {
-          Trace("liastar-ext") << "already processed vector " << v << std::endl;
-          continue;
-        }
+        // more work need to be done        
 
         std::vector<std::pair<Matrix, Node>> pairs =
             convertQFLIAToMatrices(literal);
@@ -254,8 +247,7 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
           }
           cones.push_back(cone);
         }
-
-        d_processedVectors.push_back(v);
+        
         d_im.doPendingLemmas();
       }
     }

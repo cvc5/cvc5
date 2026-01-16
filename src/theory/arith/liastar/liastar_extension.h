@@ -145,8 +145,7 @@ class LiaStarExtension : EnvObj
   ExtTheory d_extTheory;
   /** Do we have any liaStar terms? */
   context::CDO<bool> d_hasLiaStarTerms;
-
-  std::vector<Node> d_processedVectors;
+  
 }; /* class LiaStarExtension */
 
 }  // namespace liastar
