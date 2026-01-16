@@ -159,7 +159,7 @@ bool allVarsAssigned(const CoCoA::ideal& ideal)
 }
 
 std::unique_ptr<AssignmentEnumerator> applyRule(const CoCoA::ideal& ideal,
-                                                FfStatistics* stats)
+                                                FfStatistics* stats = nullptr)
 {
   CoCoA::PolyRing polyRing(ideal->myRing());
   Assert(!isUnsat(ideal));
@@ -177,7 +177,7 @@ std::unique_ptr<AssignmentEnumerator> applyRule(const CoCoA::ideal& ideal,
   // now, we check the dimension
   if (CoCoA::IsZeroDim(ideal))
   {
-    ++stats->d_idealMinPoly;
+    if (stats) ++stats->d_idealMinPoly;
     // If zero-dimensional, we compute a minimal polynomial in some unset
     // variable.
     std::unordered_set<std::string> alreadySet = assignedVars(ideal);
@@ -195,7 +195,7 @@ std::unique_ptr<AssignmentEnumerator> applyRule(const CoCoA::ideal& ideal,
   }
   else
   {
-    ++stats->d_idealPosDim;
+    if (stats) ++stats->d_idealPosDim;
     // If positive dimensional, we make a list of unset variables and
     // round-robin guess.
     //
@@ -219,7 +219,6 @@ std::vector<CoCoA::RingElem> findZero(const CoCoA::ideal& initialIdeal,
                                       const Env& env,
                                       FfStatistics* stats)
 {
-  CodeTimer timer(stats->d_modelConstructionTime);
   CoCoA::ring polyRing = initialIdeal->myRing();
   // We maintain two stacks:
   // * one of ideals

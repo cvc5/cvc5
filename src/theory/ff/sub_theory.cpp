@@ -165,7 +165,9 @@ Result SubTheory::postCheck(Theory::Effort e)
           Trace("ff::gb") << "Non-trivial GB" << std::endl;
 
           // common root (vec of CoCoA base ring elements)
+          d_stats->d_modelConstructionTime.start();
           std::vector<CoCoA::RingElem> root = findZero(ideal, d_env, d_stats);
+          d_stats->d_modelConstructionTime.stop();
 
           if (root.empty())
           {
@@ -203,6 +205,8 @@ Result SubTheory::postCheck(Theory::Effort e)
     {
       if (d_stats->d_reductionTime.running())
         d_stats->d_reductionTime.stop();
+      if (d_stats->d_modelConstructionTime.running())
+        d_stats->d_modelConstructionTime.stop();
       return {Result::UNKNOWN, UnknownExplanation::TIMEOUT, exc.getMessage()};
     }
   }

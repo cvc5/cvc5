@@ -40,7 +40,7 @@ namespace ff {
  */
 std::vector<CoCoA::RingElem> findZero(const CoCoA::ideal& ideal,
                                       const Env& env,
-                                      FfStatistics* stats);
+                                      FfStatistics* stats = nullptr);
 
 /**
  * Enumerates **assignment**s: monic, degree-one, univariate polynomials.
