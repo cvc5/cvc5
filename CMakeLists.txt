@@ -121,6 +121,9 @@ option(ENABLE_PROFILING        "Enable support for gprof profiling")
 
 option(TREAT_WARNING_AS_ERROR  "Treat warnings on building as errors")
 
+# Ensure cvc5 does not use LibPoly's global context by stripping all related code
+option(NO_GLOBAL_POLY_CTX      "Remove global context from LibPoly source code")
+
 # Optional dependencies
 #
 # >> 2-valued: ON OFF
