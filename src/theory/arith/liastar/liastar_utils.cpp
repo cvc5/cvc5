@@ -327,10 +327,11 @@ std::pair<Node, bool> LiaStarUtils::booleanDNF(Node n, Env* e)
     }
     default:
     {
-      std::cout << "n: " << n << ", kind: " << n.getKind() << std::endl;
+      break;
     }
   }
-  throw "Unexpected kind";
+  InternalError() << "Unexpected kind. Node " << n
+                  << " has kind: " << n.getKind() << std::endl;
 }
 
 std::vector<std::pair<Node, Node>> LiaStarUtils::integerDNF(Node n, Env* e)
@@ -410,10 +411,11 @@ std::vector<std::pair<Node, Node>> LiaStarUtils::integerDNF(Node n, Env* e)
 
     default:
     {
-      std::cout << "n: " << n << ", kind: " << n.getKind() << std::endl;
-      throw "Unexpected kind";
+      break;
     }
   }
+  InternalError() << "Unexpected kind. Node " << n
+                  << " has kind: " << n.getKind() << std::endl;
 }
 
 }  // namespace liastar
