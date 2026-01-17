@@ -40,7 +40,9 @@ class TestLiaStarUtils : public TestSmt
 
 TEST_F(TestLiaStarUtils, toDNF)
 {
-  // (not (>= (+ (* 3 x) (* (- 1) y)) 9))
+  // (not (>= (+ (* 3 x) (* (- 1) y)) 9)), i.e., not (3*x - y >= 9)
+  // expected (9 >= 3 * x - y + 1)
+  // (>= 9 (+ (- (* 3 x) y) 1))
   TypeNode intType = d_nodeManager->integerType();
   Node three = d_nodeManager->mkConstInt(Rational(3));
   Node one = d_nodeManager->mkConstInt(Rational(1));
@@ -49,16 +51,13 @@ TEST_F(TestLiaStarUtils, toDNF)
   Node y = d_nodeManager->mkBoundVar("y", intType);
   Node threeTimesX = d_nodeManager->mkNode(Kind::MULT, three, x);
   Node minus = d_nodeManager->mkNode(Kind::SUB, threeTimesX, y);
-  Node gte = d_nodeManager->mkNode(Kind::GEQ, minus, nine);
-  Node notGTE = gte.notNode();
-  std::cout << "not: " << notGTE << std::endl;
-  Env e(d_nodeManager.get(), nullptr);
-  auto rw = e.getRewriter();
-  Node r = rw->rewrite(notGTE);
-  std::cout << "r: " << r << std::endl;
-  Node dnf = liastar::LiaStarUtils::toDNF(notGTE, &e);
-  std::cout << "dnf: " << dnf << std::endl;
-  ASSERT_EQ(notGTE, dnf);
+  Node geq = d_nodeManager->mkNode(Kind::GEQ, minus, nine);
+  Node notGEQ = geq.notNode();
+  Env& e = d_slvEngine->getEnv();
+  Node dnf = liastar::LiaStarUtils::toDNF(notGEQ, &e);
+  Node expected = d_nodeManager->mkNode(
+      Kind::GEQ, nine, d_nodeManager->mkNode(Kind::ADD, minus, one));
+  ASSERT_EQ(expected, dnf);
 }
 }  // namespace test
 }  // namespace cvc5::internal
