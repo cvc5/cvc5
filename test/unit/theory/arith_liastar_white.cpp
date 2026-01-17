@@ -46,6 +46,7 @@ TEST_F(TestLiaStarUtils, toDNF)
   TypeNode intType = d_nodeManager->integerType();
   Node three = d_nodeManager->mkConstInt(Rational(3));
   Node one = d_nodeManager->mkConstInt(Rational(1));
+  Node two = d_nodeManager->mkConstInt(Rational(2));
   Node nine = d_nodeManager->mkConstInt(Rational(9));
   Node x = d_nodeManager->mkBoundVar("x", intType);
   Node y = d_nodeManager->mkBoundVar("y", intType);
@@ -57,6 +58,24 @@ TEST_F(TestLiaStarUtils, toDNF)
   Node dnf = liastar::LiaStarUtils::toDNF(notGEQ, &e);
   Node expected = d_nodeManager->mkNode(
       Kind::GEQ, nine, d_nodeManager->mkNode(Kind::ADD, minus, one));
+  ASSERT_EQ(expected, dnf);
+
+  // 2x + 3y <= 20
+  // (not (>= (+ (* 2 x) (* 3 y)) 21)), i.e., 2x + 3y <= 20
+  // expected (21 >= (+ (+ (* 2 x) (* 3 y)) 1))
+  // (>= 21 (+ (+ (* 2 x) (* 3 y)) 1))
+  Node twentyOne = d_nodeManager->mkConstInt(Rational(21));
+
+  Node twoTimesX = d_nodeManager->mkNode(Kind::MULT, two, x);
+  Node threeTimesY = d_nodeManager->mkNode(Kind::MULT, three, y);
+  Node plus = d_nodeManager->mkNode(Kind::ADD, twoTimesX, threeTimesY);
+  geq = d_nodeManager->mkNode(Kind::GEQ, plus, twentyOne);
+  notGEQ = geq.notNode();
+  dnf = liastar::LiaStarUtils::toDNF(notGEQ, &e);
+  expected = d_nodeManager->mkNode(
+      Kind::GEQ,
+      twentyOne,
+      d_nodeManager->mkNode(Kind::ADD, twoTimesX, threeTimesY, one));
   ASSERT_EQ(expected, dnf);
 }
 }  // namespace test
