@@ -258,7 +258,12 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
           for (const auto& generator : generators)
           {
             std::cout << generator << std::endl;
-            Node mu = d_nm->mkDummySkolem("mu", d_nm->integerType());
+            Node mu = d_one;
+            if (generator != zeroVector)
+            {
+              mu = d_nm->mkDummySkolem("mu", d_nm->integerType());
+            }
+
             starConstraints.push_back(d_nm->mkNode(Kind::GEQ, mu, d_zero));
             Vector point;
             for (const auto& element : generator)
@@ -269,9 +274,8 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
             }
             std::vector<Vector> rays;
             for (const auto& basis : cone.getHilbertBasis())
-            {
-              Node lambda =
-                  d_nm->mkDummySkolem(mu.getName() + "l", d_nm->integerType());
+            {              
+              Node lambda = d_nm->mkDummySkolem("l", d_nm->integerType());
               // (>= l 0)
               starConstraints.push_back(
                   d_nm->mkNode(Kind::GEQ, lambda, d_zero));
@@ -295,15 +299,15 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
         }
 
         // sum constraints
-        Vector sums(dimension, d_zero);
+        Vector sums(dimension);
         for (const auto& pair : lambdas)
         {
           for (size_t i = 0; i < dimension; i++)
           {
-            sums[i] = d_nm->mkNode(Kind::ADD, sums[i], pair.first[i]);
-            for (const auto& v : pair.second)
+            sums[i] = pair.first[i];
+            for (const auto& ray : pair.second)
             {
-              sums[i] = d_nm->mkNode(Kind::ADD, sums[i], v[i]);
+              sums[i] = d_nm->mkNode(Kind::ADD, sums[i], ray[i]);
             }
           }
         }
@@ -312,9 +316,9 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
         {
           starConstraints.push_back(v[i].eqNode(sums[i]));
         }
-        Node lemma = d_nm->mkNode(Kind::AND, starConstraints);
+        lemma = d_nm->mkNode(Kind::AND, starConstraints);
         lemma = rewrite(lemma);
-        std::cout << "star lemma: " << lemma << std::endl;        
+        std::cout << "star lemma: " << lemma << std::endl;
         d_im.addPendingLemma(lemma, InferenceId::ARITH_LIA_STAR);
         d_processedStarTerms.push_back(literal);
         d_im.doPendingLemmas();
