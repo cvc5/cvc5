@@ -274,7 +274,7 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
             }
             std::vector<Vector> rays;
             for (const auto& basis : cone.getHilbertBasis())
-            {              
+            {
               Node lambda = d_nm->mkDummySkolem("l", d_nm->integerType());
               // (>= l 0)
               starConstraints.push_back(
@@ -399,14 +399,15 @@ std::vector<std::pair<Matrix, Node>> LiaStarExtension::getMatrices(
       std::vector<Integer> coefficients(size + 1, Integer(0));
       for (const linear::Monomial& monomial : polynomial)
       {
+        std::cout << "monomial: " << monomial.getNode() << std::endl;
         linear::Constant c = monomial.getConstant();
-        for (size_t i = 0; i < size; i++)
+        if (monomial.isConstant())
         {
-          if (monomial.isConstant())
-          {
-            coefficients[size] += c.getValue().getNumerator().getValue();
-          }
-          else
+          coefficients[size] += c.getValue().getNumerator().getValue();
+        }
+        else
+        {
+          for (size_t i = 0; i < size; i++)
           {
             linear::VarList varList = monomial.getVarList();
             for (const auto& var : varList)

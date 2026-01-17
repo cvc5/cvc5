@@ -212,14 +212,25 @@ std::pair<Node, bool> LiaStarUtils::booleanDNF(Node n, Env* e)
     }
     case Kind::AND:
     {
-      bool leftBool = false;
+      if (n.getNumChildren() == 1)
+      {
+        return {n[0], true};
+      }
+      Assert(n.getNumChildren() > 1);
       Node leftNode = n[0];
+      Node rightNode = n[1];
+      if (n.getNumChildren() > 2)
+      {
+        std::vector<Node> rest(n.begin() + 1, n.end());
+        rightNode = nm->mkNode(Kind::AND, rest);
+      }
+      bool leftBool = false;
       do
       {
         std::tie(leftNode, leftBool) = LiaStarUtils::booleanDNF(leftNode, e);
       } while (leftBool);
       bool rightBool = false;
-      Node rightNode = n[1];
+
       do
       {
         std::tie(rightNode, rightBool) = LiaStarUtils::booleanDNF(rightNode, e);
