@@ -239,7 +239,7 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
           Trace("liastar-ext") << "Cone for node " << std::endl
                                << pair.second << std::endl;
           std::cout << "Matrix: " << std::endl << pair.first << std::endl;
-          Cone<Integer> cone(Type::inequalities, pair.first);
+          Cone<Integer> cone(Type::inhom_inequalities, pair.first);
           cone.compute(ConeProperty::HilbertBasis);
           cone.compute(ConeProperty::ModuleGenerators);
 
