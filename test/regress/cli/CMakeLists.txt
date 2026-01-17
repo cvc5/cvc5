@@ -2517,6 +2517,7 @@ set(regress_1_tests
   regress1/arith/liastar/f2_unsat.smt2
   regress1/arith/liastar/sat1.smt2
   regress1/arith/liastar/sat2.smt2
+  regress1/arith/liastar/simple.smt2
   regress1/arith/arith-brab-test.smt2
   regress1/arith/arith-int-004.cvc.smt2
   regress1/arith/arith-int-011.cvc.smt2
