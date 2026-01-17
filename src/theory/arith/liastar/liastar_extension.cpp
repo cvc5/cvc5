@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -42,6 +42,18 @@ namespace liastar {
 using namespace libnormaliz;
 
 using libnormaliz::operator<<;
+
+template <typename T>
+std::string toString(const std::vector<T>& l)
+{
+  std::stringstream ss;
+  for (const auto& i : l)
+  {
+    ss << i << " ";
+  }
+  ss << std::endl;
+  return ss.str();
+}
 
 LiaStarExtension::LiaStarExtension(Env& env, TheoryArith& containing)
     : EnvObj(env),
@@ -84,14 +96,11 @@ void LiaStarExtension::getAssertions(std::vector<Node>& assertions)
     Trace("liastar-ext") << lit << std::endl;
     if (lit.getKind() == Kind::STAR_CONTAINS)
     {
-      // for now, we only care about positive poalrity of star-contains
+      // for now, we only care about positive polarity of star-contains
       assertions.push_back(lit);
     }
   }
   Trace("liastar-ext") << "---------------------" << std::endl;
-  Trace("liastar-ext") << "...keep " << assertions.size() << " / "
-                       << d_arith.numAssertions() << " assertions."
-                       << std::endl;
 }
 
 void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
@@ -142,8 +151,6 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
         keys.begin(), keys.end(), values.begin(), values.end());
     value = rewrite(value);
 
-    // Node vectorValue = literal[2].substitute(
-    //     keys.begin(), keys.end(), values.begin(), values.end());
     std::vector<Node> elements;
     Node vectorValue;
     if (literal[2].isConst())
@@ -233,21 +240,21 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
         std::vector<std::pair<Vector, std::vector<Vector>>> lambdas;
         std::vector<Node> starConstraints;
         std::vector<Integer> zeroVector(dimension, Integer(0));
-        for (const auto& pair : pairs)
+        for (const std::pair<Matrix, Node>& pair : pairs)
         {
           Trace("liastar-ext") << "---------------------------" << std::endl;
           Trace("liastar-ext") << "Cone for node " << std::endl
                                << pair.second << std::endl;
-          std::cout << "Matrix: " << std::endl << pair.first << std::endl;
+          Trace("liastar-ext") << "Matrix: " << std::endl
+                               << print(pair.first) << std::endl;
           Cone<Integer> cone(Type::inhom_inequalities, pair.first);
           cone.compute(ConeProperty::HilbertBasis);
           cone.compute(ConeProperty::ModuleGenerators);
 
-          Trace("liastar-ext")
-              << "Hilbert basis (recession cone):" << std::endl;
+          Trace("liastar-ext") << "Hilbert basis:" << std::endl;
           for (const auto& basis : cone.getHilbertBasis())
           {
-            std::cout << basis << std::endl;
+            Trace("liastar-ext") << toString(basis) << std::endl;
           }
 
           Trace("liastar-ext") << "Module generators:" << std::endl;
@@ -258,7 +265,7 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
           }
           for (const auto& generator : generators)
           {
-            std::cout << generator << std::endl;
+            Trace("liastar-ext") << toString(generator) << std::endl;
             Node mu = d_one;
             if (generator != zeroVector)
             {
@@ -319,7 +326,7 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
         }
         lemma = d_nm->mkNode(Kind::AND, starConstraints);
         lemma = rewrite(lemma);
-        std::cout << "star lemma: " << lemma << std::endl;
+        Trace("liastar-ext") << "star lemma: " << lemma << std::endl;
         d_im.addPendingLemma(lemma, InferenceId::ARITH_LIA_STAR);
         d_processedStarTerms.push_back(literal);
         d_im.doPendingLemmas();
@@ -349,13 +356,13 @@ LiaStarExtension::convertQFLIAToMatrices(Node n)
   Node predicate = n[1];
   size_t dimension = variables.getNumChildren();
   Trace("liastar-ext") << "convertQFLIAToMatrices::n: " << n << std::endl;
-  std::cout << "variables: " << variables << std::endl;
+  Trace("liastar-ext") << "variables: " << variables << std::endl;
 
   Trace("liastar-ext") << "predicate: " << predicate << std::endl;
-  std::cout << "predicate: " << predicate << std::endl;
+  Trace("liastar-ext") << "predicate: " << predicate << std::endl;
   predicate = LiaStarUtils::toDNF(predicate, &d_env);
   Trace("liastar-ext") << "predicate in dnf: " << predicate << std::endl;
-  std::cout << "predicate in dnf: " << predicate << std::endl;
+  Trace("liastar-ext") << "predicate in dnf: " << predicate << std::endl;
 
   // where the constraints in each disjunction construct a matrix in Normaliz
 
@@ -400,7 +407,7 @@ std::vector<std::pair<Matrix, Node>> LiaStarExtension::getMatrices(
       std::vector<Integer> coefficients(size + 1, Integer(0));
       for (const linear::Monomial& monomial : polynomial)
       {
-        std::cout << "monomial: " << monomial.getNode() << std::endl;
+        Trace("liastar-ext") << "monomial: " << monomial.getNode() << std::endl;
         linear::Constant c = monomial.getConstant();
         if (monomial.isConstant())
         {
@@ -421,8 +428,10 @@ std::vector<std::pair<Matrix, Node>> LiaStarExtension::getMatrices(
           }
         }
       }
-      std::cout << "polynomial  : " << polynomial.getNode() << std::endl;
-      std::cout << "coefficients: " << coefficients << std::endl;
+      Trace("liastar-ext") << "polynomial  : " << polynomial.getNode()
+                           << std::endl;
+      Trace("liastar-ext") << "coefficients: " << toString(coefficients)
+                           << std::endl;
       Matrix matrix;
       matrix.push_back(coefficients);
       pairs.push_back({matrix, predicate});
@@ -438,8 +447,9 @@ std::vector<std::pair<Matrix, Node>> LiaStarExtension::getMatrices(
         matrix.push_back(m[0].first[0]);
       }
       pairs.push_back({matrix, predicate});
-      std::cout << "node  : " << predicate << std::endl;
-      std::cout << "matrix: " << std::endl << matrix << std::endl;
+      Trace("liastar-ext") << "node  : " << predicate << std::endl;
+      Trace("liastar-ext") << "matrix: " << std::endl
+                           << toString(matrix) << std::endl;
       return pairs;
     }
     case Kind::OR:
