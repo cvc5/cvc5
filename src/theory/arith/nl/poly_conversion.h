@@ -40,6 +40,9 @@ namespace nl {
 /** Bijective mapping between cvc5 variables and poly variables. */
 struct VariableMapper
 {
+  VariableMapper(const poly::Context& ctx) : polyCtx(ctx) {}
+  /** The libpoly context */
+  const poly::Context& polyCtx;
   /** A mapping from cvc5 variables to poly variables. */
   std::map<cvc5::internal::Node, poly::Variable> mVarCVCpoly;
   /** A mapping from poly variables to cvc5 variables. */

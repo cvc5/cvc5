@@ -127,6 +127,7 @@ std::shared_ptr<ProofNode> ArithNlCompareProofGenerator::getProofFor(Node fact)
       {
         size_t ii = 1 - i;
         Node a = eprod[ii][0];
+        a = a.getKind() == Kind::TO_REAL ? a[0] : a;
         size_t na = mexp[ii][a];
         size_t nb = mexp[i][a];
         // Don't take more than this side has. This handles cases like
@@ -147,7 +148,9 @@ std::shared_ptr<ProofNode> ArithNlCompareProofGenerator::getProofFor(Node fact)
         // premises where monomials on RHS/LHS occur in consecutive premises,
         // as they are ordered by model value in the MonomialCheck solver.
         Node a = eprod[0][0];
+        a = a.getKind() == Kind::TO_REAL ? a[0] : a;
         Node b = eprod[1][0];
+        b = b.getKind() == Kind::TO_REAL ? b[0] : b;
         size_t na = mexp[0][a];
         size_t nb = mexp[1][b];
         size_t n = na > nb ? nb : na;
@@ -210,16 +213,14 @@ std::shared_ptr<ProofNode> ArithNlCompareProofGenerator::getProofFor(Node fact)
       if (e.getKind() != ck)
       {
         // needs to have a disequal to zero explanation
-        std::vector<Node> eprod[2];
-        decomposeCompareLit(e, eprod[0], eprod[1]);
+        Assert(e.getKind() == Kind::EQUAL && e[0].getKind() == Kind::ABS);
+        Node etgt = e[0][0];
         Node deqAssump;
-        if (eprod[0].size() == 0)
+        Node zero = nm->mkConstRealOrInt(etgt.getType(), Rational(0));
+        Node ceq = etgt.eqNode(zero);
+        if (etgt.isConst())
         {
-          Assert(eprod[1].size() == 1);
-          Node one = nm->mkConstRealOrInt(eprod[1][0].getType(), Rational(1));
-          Node zero = nm->mkConstRealOrInt(eprod[1][0].getType(), Rational(0));
           // case where we require showing 1 != 0
-          Node ceq = one.eqNode(zero);
           Node ceqf = ceq.eqNode(nm->mkConst(false));
           cdp.addStep(ceqf, ProofRule::EVALUATE, {}, {ceq});
           deqAssump = ceq.notNode();
@@ -229,7 +230,7 @@ std::shared_ptr<ProofNode> ArithNlCompareProofGenerator::getProofFor(Node fact)
         }
         else
         {
-          itd = deq.find(eprod[0][0]);
+          itd = deq.find(etgt);
           if (itd == deq.end())
           {
             Assert(false) << "ArithNlCompareProofGenerator failed explain deq";
@@ -237,6 +238,18 @@ std::shared_ptr<ProofNode> ArithNlCompareProofGenerator::getProofFor(Node fact)
             break;
           }
           deqAssump = itd->second;
+          Node vv = isDisequalZero(deqAssump);
+          if (vv != etgt)
+          {
+            // We may have to change (not (= v 0)) to (not (= (to_real v) 0.0)).
+            // We add a trust step which should be provable by arith poly norm.
+            Node deqTgt = ceq.notNode();
+            Assert(deqTgt != deqAssump);
+            Node equiv = deqAssump.eqNode(deqTgt);
+            cdp.addTrustedStep(equiv, TrustId::ARITH_NL_COMPARE_LEMMA, {}, {});
+            cdp.addStep(deqTgt, ProofRule::EQ_RESOLVE, {deqAssump, equiv}, {});
+            deqAssump = deqTgt;
+          }
         }
         Node guardEq = nm->mkNode(Kind::AND, e, deqAssump);
         cdp.addStep(guardEq, ProofRule::AND_INTRO, {e, deqAssump}, {});
@@ -264,8 +277,8 @@ std::shared_ptr<ProofNode> ArithNlCompareProofGenerator::getProofFor(Node fact)
   ProofChecker* pc = d_env.getProofNodeManager()->getChecker();
   Node newConc =
       pc->checkDebug(ProofRule::ARITH_MULT_ABS_COMPARISON, expcFinal, {});
-  Trace("arith-nl-compare")
-      << "...grouped conclusion is " << newConc << std::endl;
+  Trace("arith-nl-compare") << "...grouped conclusion is " << newConc
+                            << " from " << expcFinal << std::endl;
   Assert(!newConc.isNull());
   cdp.addStep(newConc, ProofRule::ARITH_MULT_ABS_COMPARISON, expcFinal, {});
   // the grouped literal should be equivalent by rewriting
@@ -349,6 +362,11 @@ Kind ArithNlCompareProofGenerator::decomposeCompareLit(const Node& lit,
 void ArithNlCompareProofGenerator::addProduct(const Node& n,
                                               std::vector<Node>& vec)
 {
+  if (n.getKind() == Kind::TO_REAL)
+  {
+    addProduct(n[0], vec);
+    return;
+  }
   if (n.getKind() == Kind::NONLINEAR_MULT)
   {
     vec.insert(vec.end(), n.begin(), n.end());
@@ -368,7 +386,7 @@ Node ArithNlCompareProofGenerator::isDisequalZero(const Node& g)
   if (g.getKind() == Kind::NOT && g[0].getKind() == Kind::EQUAL
       && g[0][1].isConst() && g[0][1].getConst<Rational>().isZero())
   {
-    return g[0][0];
+    return g[0][0].getKind() == Kind::TO_REAL ? g[0][0][0] : g[0][0];
   }
   return Node::null();
 }

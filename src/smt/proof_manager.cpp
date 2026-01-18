@@ -15,6 +15,7 @@
 
 #include "smt/proof_manager.h"
 
+#include "expr/subtype_elim_node_converter.h"
 #include "options/base_options.h"
 #include "options/main_options.h"
 #include "options/smt_options.h"
@@ -132,11 +133,11 @@ PfManager::PfManager(Env& env)
     d_pfpp->setEliminateRule(ProofRule::MACRO_SR_PRED_INTRO);
     d_pfpp->setEliminateRule(ProofRule::MACRO_SR_PRED_ELIM);
     d_pfpp->setEliminateRule(ProofRule::MACRO_SR_PRED_TRANSFORM);
-    // Alethe does not require macro resolution to be expanded
-    if (options().proof.proofFormatMode != options::ProofFormatMode::ALETHE)
+    // Alethe does not require chain multiset resolution to be expanded
+    if (options().proof.proofFormatMode != options::ProofFormatMode::ALETHE
+        && !options().proof.proofChainMRes)
     {
-      d_pfpp->setEliminateRule(ProofRule::MACRO_RESOLUTION_TRUST);
-      d_pfpp->setEliminateRule(ProofRule::MACRO_RESOLUTION);
+      d_pfpp->setEliminateRule(ProofRule::CHAIN_M_RESOLUTION);
     }
     d_pfpp->setEliminateRule(ProofRule::MACRO_ARITH_SCALE_SUM_UB);
     if (options().proof.proofGranularityMode
@@ -381,19 +382,27 @@ void PfManager::translateDifficultyMap(std::map<Node, Node>& dmap,
   {
     return;
   }
-  std::map<Node, Node> dmapp = dmap;
-  dmap.clear();
+  std::map<Node, Node> dmapp;
   Trace("difficulty-proc") << "Get ppAsserts" << std::endl;
   std::vector<Node> ppAsserts;
-  for (const std::pair<const Node, Node>& ppa : dmapp)
+  SubtypeElimNodeConverter senc(nodeManager());
+  for (const std::pair<const Node, Node>& ppa : dmap)
   {
-    Trace("difficulty") << "  preprocess difficulty: " << ppa.second << " for "
+    Node assertion = ppa.first;
+    // proof may eliminate mixed arithmetic from the assertion
+    if (options().proof.proofElimSubtypes)
+    {
+      assertion = senc.convert(ppa.first);
+    }
+    dmapp[assertion] = ppa.second;
+    Trace("difficulty") << "  preprocess difficulty: " << assertion << " for "
                         << ppa.first << std::endl;
     // The difficulty manager should only report difficulty for preprocessed
     // assertions, or we will get an open proof below. This is ensured
     // internally by the difficuly manager.
     ppAsserts.push_back(ppa.first);
   }
+  dmap.clear();
   Trace("difficulty-proc") << "Make SAT refutation" << std::endl;
   // assume a SAT refutation from all input assertions that were marked
   // as having a difficulty
@@ -425,7 +434,8 @@ void PfManager::translateDifficultyMap(std::map<Node, Node>& dmap,
   for (const std::shared_ptr<ProofNode>& c : children)
   {
     Node res = c->getResult();
-    Assert(dmapp.find(res) != dmapp.end());
+    Assert(dmapp.find(res) != dmapp.end())
+        << "Could not find assumption " << res;
     Trace("difficulty-debug") << "  process: " << res << std::endl;
     Trace("difficulty-debug") << "  .dvalue: " << dmapp[res] << std::endl;
     Trace("difficulty-debug") << "  ..proof: " << *c.get() << std::endl;

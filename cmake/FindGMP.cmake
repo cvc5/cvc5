@@ -80,6 +80,7 @@ if(NOT GMP_FOUND_SYSTEM)
   # only supports C17. To also support older compiler versions, we fix the
   # standard for GMP to C99.
   set(GMP_CFLAGS "-std=gnu99")
+  set(GMP_CXXFLAGS "")
 
   if(BUILD_SHARED_LIBS)
     set(LINK_OPTS --enable-shared --disable-static)
@@ -120,11 +121,12 @@ if(NOT GMP_FOUND_SYSTEM)
         ${CONFIGURE_ENV}
         env "LDFLAGS=-arch ${CMAKE_OSX_ARCHITECTURES}")
       set(GMP_CFLAGS "${GMP_CFLAGS} --target=${TOOLCHAIN_PREFIX}")
+      set(GMP_CXXFLAGS "${GMP_CXXFLAGS} --target=${TOOLCHAIN_PREFIX}")
     endif()
   else()
     set(CONFIGURE_OPTS --build=${BUILD_TRIPLET}) # Defined in Helpers
   endif()
-  set(CONFIGURE_ENV ${CONFIGURE_ENV} env "CFLAGS=${GMP_CFLAGS}")
+  set(CONFIGURE_ENV ${CONFIGURE_ENV} env "CXXFLAGS=${GMP_CXXFLAGS}" env "CFLAGS=${GMP_CFLAGS}")
 
   # `CC_FOR_BUILD`, `--host`, and `--build` are passed to `configure` to ensure
   # that cross-compilation works (as suggested in the GMP documentation).
@@ -135,6 +137,7 @@ if(NOT GMP_FOUND_SYSTEM)
     ${COMMON_EP_CONFIG}
     URL https://github.com/cvc5/cvc5-deps/blob/main/gmp-${GMP_VERSION}.tar.bz2?raw=true
     URL_HASH SHA256=ac28211a7cfb609bae2e2c8d6058d66c8fe96434f740cf6fe2e47b000d1c20cb
+    BUILD_IN_SOURCE ON
     CONFIGURE_COMMAND
       ${CONFIGURE_ENV}
           ${CONFIGURE_CMD_WRAPPER} ${SHELL} <SOURCE_DIR>/configure
@@ -179,7 +182,7 @@ else()
   # On Windows, this installs the import libraries (LIB) and
   # the DLL libraries (BIN)
   install(
-    DIRECTORY ${DEPS_BASE}/${CMAKE_INSTALL_LIBDIR}/
+    DIRECTORY ${DEPS_BASE}/lib/
     TYPE LIB
     FILES_MATCHING PATTERN libgmp* PATTERN gmp*.pc
   )

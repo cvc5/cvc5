@@ -70,6 +70,7 @@ class ExtfInfoTmp
    * The explanation for why t is equal to its context-dependent simplified
    * form.
    */
+  std::vector<Node> d_initExp;
   std::vector<Node> d_exp;
   /** This flag is false if t is reduced in the model. */
   bool d_modelActive;
@@ -268,6 +269,8 @@ class ExtfSolver : public InferSideEffectProcess, protected EnvObj
   std::vector<Node> d_emptyVec;
   /** map extended functions to the above information */
   std::map<Node, ExtfInfoTmp> d_extfInfoTmp;
+  /** map from reduced extended functions to their original */
+  std::map<Node, Node> d_extfToOrig;
   /** any non-reduced extended functions exist? */
   context::CDO<bool> d_hasExtf;
   /** extended functions inferences cache */

@@ -59,6 +59,14 @@ class SequencesRewriter : public TheoryRewriter
                                         std::vector<Node>& nb,
                                         std::vector<Node>& nrem,
                                         std::vector<Node>& ne);
+  /**
+   * Rewrite based on MACRO_RE_INTER_UNION_CONST_ELIM. If we rewrite to re.none,
+   * then n is a regexp intersection and conflict is updated to the child of n
+   * that led to the conflict (which is a str.to_re regexp that is not contained
+   * in another child).
+   */
+  Node rewriteViaMacroReInterUnionConstElim(const Node& n, Node& conflict);
+
  protected:
   /** rewrite regular expression all
    *
@@ -180,8 +188,6 @@ class SequencesRewriter : public TheoryRewriter
                                            StringsEntail& sent);
   /** Rewrite based on MACRO_STR_IN_RE_INCLUSION */
   Node rewriteViaMacroStrInReInclusion(const Node& n);
-  /** Rewrite based on MACRO_RE_INTER_UNION_CONST_ELIM */
-  Node rewriteViaMacroReInterUnionConstElim(const Node& n);
   /** Rewrite based on MACRO_STR_SPLIT_CTN */
   Node rewriteViaMacroStrSplitCtn(const Node& n);
   /** Rewrite based on STR_INDEXOF_RE_EVAL */

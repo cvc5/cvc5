@@ -42,8 +42,10 @@ struct QAttributes;
  */
 enum RewriteStep
 {
+  /** Eliminate shadowing */
+  COMPUTE_ELIM_SHADOW = 0,
   /** Eliminate symbols (e.g. implies, xor) */
-  COMPUTE_ELIM_SYMBOLS = 0,
+  COMPUTE_ELIM_SYMBOLS,
   /** Miniscoping */
   COMPUTE_MINISCOPING,
   /** Aggressive miniscoping */
@@ -98,6 +100,12 @@ class QuantifiersRewriter : public TheoryRewriter
    * the type of v.
    */
   static bool isVarElim(Node v, Node s);
+  /**
+   * Returns true if s is a term that is safe to use in the domain of
+   * substitutions applied to body. This is false iff s has a free variable
+   * that is bound in body.
+   */
+  static bool isSafeSubsTerm(const Node& body, const Node& s);
   /** get variable elimination literal
    *
    * If n asserted with polarity pol in body, and is equivalent to an equality
@@ -332,6 +340,18 @@ class QuantifiersRewriter : public TheoryRewriter
   Node computeVarElimination(Node body,
                              std::vector<Node>& args,
                              QAttributes& qa) const;
+  /**
+   * Checks if a given literal is an application of an uninterpreted function or
+   * its negation, e.g., P(t1,...,tn) or ¬P(t1,...,tn).
+   *
+   * This function is used in quantifier rewriting, e.g., for Leibniz equality
+   * elimination, to extract the operator, its arguments, and negation status
+   * from a literal node.
+  */
+  bool matchUfLiteral(Node lit,
+                    Node& op,
+                    std::vector<Node>& argsOut,
+                    bool& neg) const;
   //-------------------------------------end variable elimination
   //-------------------------------------conditional splitting
   /** compute conditional splitting
@@ -387,9 +407,7 @@ class QuantifiersRewriter : public TheoryRewriter
   /**
    * Return the rewritten form of q after applying operator computeOption to it.
    */
-  Node computeOperation(Node q,
-                        RewriteStep computeOption,
-                        QAttributes& qa) const;
+  Node computeOperation(Node q, RewriteStep computeOption, QAttributes& qa);
   /** Pointer to rewriter, used for computeExtendedRewrite above */
   Rewriter* d_rewriter;
   /** Reference to the options */

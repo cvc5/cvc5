@@ -34,6 +34,6 @@
 (declare-rule arith-pow-elim ((T Type) (a T) (n T) (b T))
   :args ((= (^ a n) b))
   :requires (((eo::to_q (eo::to_z n)) (eo::to_q n))
-             (($singleton_elim ($arith_unfold_pow (eo::to_z n) a)) b))
+             ((eo::list_singleton_elim * ($arith_unfold_pow (eo::to_z n) a)) b))
   :conclusion (= (^ a n) b)
 )

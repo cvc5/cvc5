@@ -310,6 +310,34 @@ target_include_directories(cvc5jni PUBLIC ${CMAKE_BINARY_DIR}/src/)
 target_include_directories(cvc5jni PUBLIC ${JNI_DIR})
 target_link_libraries(cvc5jni PRIVATE cvc5 cvc5parser)
 
+# Normalize the system name and CPU architecture according to the conventions of
+# the os-maven-plugin, so that the JNI library is built under the path
+# ${JNI_PREFIX}/${SYS_NAME}/${CPU_ARCH}. This enables the creation of
+# a single JAR that can contain native JNI libraries for multiple OSes and
+# CPU architectures simultaneously.
+# Additionally, it prevents file collisions when multiple JARs containing
+# a native JNI library for the same OS but different architectures are added to
+# the classpath at the same time.
+set(JNI_PREFIX "cvc5-libs")
+string(TOLOWER "${CMAKE_SYSTEM_PROCESSOR}" CPU_ARCH)
+# Normalize supported CPU architectures
+if(CPU_ARCH MATCHES "x86_64|amd64")
+  set(CPU_ARCH "x86_64")
+elseif(CPU_ARCH MATCHES "aarch64|arm64")
+  set(CPU_ARCH "aarch_64")
+endif()
+# Normalize supported system names
+string(TOLOWER "${CMAKE_SYSTEM_NAME}" SYS_NAME)
+if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+  set(SYS_NAME "osx")
+endif()
+
+set(JNI_OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/${JNI_PREFIX}/${SYS_NAME}/${CPU_ARCH}")
+set_target_properties(cvc5jni PROPERTIES
+  LIBRARY_OUTPUT_DIRECTORY "${JNI_OUTPUT_DIR}"
+  RUNTIME_OUTPUT_DIRECTORY "${JNI_OUTPUT_DIR}"
+)
+
 if (WIN32 AND NOT BUILD_SHARED_LIBS)
   # Statically link all libraries, including MinGW-w64 libraries
   set_target_properties(cvc5jni PROPERTIES LINK_FLAGS -static)
@@ -322,8 +350,6 @@ if (WIN32)
   set_target_properties(cvc5jni PROPERTIES PREFIX "")
   set_target_properties(cvc5jni PROPERTIES IMPORT_PREFIX "")
 endif()
-
-set(CVC5_JAR "cvc5-${CVC5_VERSION}.jar")
 
 # Create cvc5.jar file
 if (WIN32)
@@ -339,12 +365,42 @@ else()
   add_jar(cvc5jar
     SOURCES
     ${JAVA_FILES}
-    VERSION ${CVC5_VERSION}
+    VERSION ${CVC5_MAVEN_VERSION}
     OUTPUT_NAME cvc5
   )
 endif()
 
 add_dependencies(cvc5jar generate-java-kinds cvc5jni cvc5 cvc5parser)
+
+if(BUILD_DOCS)
+  # Build cvc5-sources.jar to enable viewing, navigation, and debugging of the library source code
+  set(SOURCES_JAR ${CMAKE_CURRENT_BINARY_DIR}/cvc5-sources.jar)
+
+  add_custom_command(
+      OUTPUT ${SOURCES_JAR}
+      COMMAND ${Java_JAR_EXECUTABLE} cf ${SOURCES_JAR}
+              -C ${CMAKE_CURRENT_LIST_DIR} io/github/cvc5
+              -C ${CMAKE_CURRENT_BINARY_DIR} io/github/cvc5
+      DEPENDS ${JAVA_FILES}
+      COMMENT "Generating sources JAR"
+  )
+  add_custom_target(cvc5-sources-jar ALL DEPENDS ${SOURCES_JAR})
+endif()
+
+if(NOT BUILD_SHARED_LIBS)
+  # Build a JAR including the native library for publication to Maven Central
+  set(NATIVE_JAR ${CMAKE_CURRENT_BINARY_DIR}/cvc5-${SYS_NAME}-${CPU_ARCH}.jar)
+  add_custom_command(
+      OUTPUT ${NATIVE_JAR}
+      COMMAND ${Java_JAR_EXECUTABLE} cf ${NATIVE_JAR} -C ${CMAKE_CURRENT_BINARY_DIR} ${JNI_PREFIX}
+      DEPENDS cvc5jni
+      COMMENT "Generating native JAR"
+  )
+  add_custom_target(cvc5-native-jar ALL DEPENDS ${NATIVE_JAR})
+endif()
+
+# POM file for publishing cvc5 Java bindings to Maven Central
+configure_file(pom.xml.in ${CMAKE_BINARY_DIR}/pom.xml @ONLY)
 
 # Install in the same directory of cvc5-targets.
 # On Windows, CMake's default install action places

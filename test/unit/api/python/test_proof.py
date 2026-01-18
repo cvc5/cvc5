@@ -72,7 +72,7 @@ def create_rewrite_proof(tm, solver):
 
 
 def test_null_proof(solver):
-  proof = cvc5.Proof(solver)
+  proof = cvc5.Proof()
   assert proof.getRule() == ProofRule.UNKNOWN
   assert hash(ProofRule.UNKNOWN) == hash(ProofRule.UNKNOWN)
   assert proof.getResult().isNull()
@@ -119,7 +119,7 @@ def test_get_arguments(tm, solver):
 def test_eq(tm, solver):
     x = create_proof(tm, solver)
     y = x.getChildren()[0]
-    z = cvc5.Proof(solver)
+    z = cvc5.Proof()
 
     assert x == x
     assert not x != x

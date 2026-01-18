@@ -50,13 +50,26 @@ if(NOT Poly_FOUND_SYSTEM)
 
   include(ExternalProject)
 
-  set(Poly_VERSION "0.2.0")
+  set(Poly_VERSION "0.2.1")
 
   set(POLY_PATCH_KWD PATCH_COMMAND)
+  if (NO_GLOBAL_POLY_CTX)
+    find_program(PATCH_BIN patch)
+    if(NOT PATCH_BIN)
+      message(FATAL_ERROR "Can not patch LibPoly, missing binary for patch")
+    endif()
+    set(POLY_PATCH_CMD
+      ${POLY_PATCH_KWD}
+        patch -p1 -d <SOURCE_DIR>
+        -i ${CMAKE_CURRENT_LIST_DIR}/deps-utils/poly-global-ctx.patch
+    )
+    set(POLY_PATCH_KWD COMMAND)
+  endif()
+
   check_if_cross_compiling(CCWIN "Windows" "")
   if(CCWIN)
     set(POLY_PATCH_CMD
-      PATCH_COMMAND
+      ${POLY_PATCH_KWD}
         ${CMAKE_SOURCE_DIR}/cmake/deps-utils/Poly-windows-patch.sh <SOURCE_DIR>
     )
     set(POLY_PATCH_KWD COMMAND)
@@ -170,7 +183,7 @@ if(NOT Poly_FOUND_SYSTEM)
     Poly-EP
     ${COMMON_EP_CONFIG}
     URL https://github.com/SRI-CSL/libpoly/archive/refs/tags/v${Poly_VERSION}.tar.gz
-    URL_HASH SHA256=146adc0d3f6fe8038adb6b8b69dd16114a4be12f520d5c1fb333f3746d233abe
+    URL_HASH SHA256=f9920afc876f998633348b9cbfcf180757ada48cc872040256c60ad0707b5a0f
     ${POLY_PATCH_CMD}
     CMAKE_ARGS -DCMAKE_BUILD_TYPE=Release
                -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>

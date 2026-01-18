@@ -46,7 +46,7 @@ name   = "Proof"
   category   = "expert"
   long       = "proof-elim-subtypes"
   type       = "bool"
-  default    = "false"
+  default    = "true"
   help       = "Eliminate subtypes (mixed arithmetic) in proofs"
 
 [[option]]
@@ -129,10 +129,10 @@ name   = "Proof"
 
 [[option]]
   name       = "proofChainMRes"
-  category   = "expert"
+  category   = "regular"
   long       = "proof-chain-m-res"
   type       = "bool"
-  default    = "false"
+  default    = "true"
   help       = "Use chain multiset resolution"
 
 [[option]]

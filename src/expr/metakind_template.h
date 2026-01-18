@@ -94,7 +94,7 @@ typedef cvc5::internal::kind::metakind::MetaKind_t MetaKind;
 /**
  * Get the metakind for a particular kind.
  */
-MetaKind metaKindOf(Kind k);
+CVC5_EXPORT MetaKind metaKindOf(Kind k);
 
 /**
  * Map a kind of the operator to the kind of the enclosing expression. For

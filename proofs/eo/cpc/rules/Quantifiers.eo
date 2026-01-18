@@ -1,7 +1,6 @@
 (include "../programs/Quantifiers.eo")
 (include "../programs/Datatypes.eo")
 (include "../theories/Quantifiers.eo")
-(include "../theories/BitVectors.eo")
 
 ; rule: instantiate
 ; implements: ProofRule::INSTANTIATE.
@@ -55,21 +54,32 @@
   :conclusion (= (@purify x) x)
 )
 
+;;;;; ProofRule::ALPHA_EQUIV
+
 ; rule: alpha_equiv
 ; implements: ProofRule::ALPHA_EQUIV.
 ; args:
 ; - t T: The term to apply to alpha equivalence to.
 ; - vs @List: The list of variables to substitute from.
 ; - ts @List: The list of (renamed) variables to substitute into.
-; requires: t does not contain any occurence of the range variables ts.
+; requires:
+; - vs is a list of variables.
+; - ts is a list of variables.
+; - t does not contain any free occurrence of the variables vs.
+; - t does not contain any occurence of the range variables ts.
 ; conclusion: >
 ;   The result of applying the substitution specified by vs and ts to
 ;   t. The substitution is valid renaming due to the requirement check.
 (declare-rule alpha_equiv ((T Type) (t T) (vs @List) (ts @List))
   :args (t vs ts)
-  :requires ((($contains_aterm_list t ts) false))
+  :requires ((($is_var_list vs) true)
+             (($is_var_list ts) true)
+             (($contains_atomic_term_list_free t vs) false)
+             (($contains_atomic_term_list t ts) false))
   :conclusion (= t ($substitute_simul t vs ts))
 )
+
+;;;;; ProofRewriteRule::BETA_REDUCE
 
 ; rule: beta-reduce
 ; implements: ProofRewriteRule::BETA_REDUCE.
@@ -127,7 +137,7 @@
   (
   (($mk_quant_unused_vars_rec @list.nil F)    @list.nil)
   (($mk_quant_unused_vars_rec (@list x xs) F) (eo::define ((r ($mk_quant_unused_vars_rec xs F)))
-                                              (eo::ite ($contains_subterm F x)
+                                              (eo::ite ($contains_atomic_term F x)
                                                 ; remove the duplicate of x in r if it exists
                                                 (eo::cons @list x (eo::list_erase @list r x))
                                                 r)))
@@ -234,12 +244,12 @@
 (program $is_quant_miniscope_or ((x @List) (xs @List :list) (ys @List :list) (f Bool) (fs Bool :list) (g Bool) (gs Bool :list))
   :signature (@List Bool Bool) Bool
   (
-  (($is_quant_miniscope_or x (or f fs) (or f gs))                     (eo::requires ($contains_aterm_list f x) false
+  (($is_quant_miniscope_or x (or f fs) (or f gs))                     (eo::requires ($contains_atomic_term_list f x) false
                                                                         ($is_quant_miniscope_or x fs gs)))
-  (($is_quant_miniscope_or x (or f fs) (or (forall @list.nil f) gs))  (eo::requires ($contains_aterm_list f x) false
+  (($is_quant_miniscope_or x (or f fs) (or (forall @list.nil f) gs))  (eo::requires ($contains_atomic_term_list f x) false
                                                                         ($is_quant_miniscope_or x fs gs)))
   (($is_quant_miniscope_or (@list x xs) (or f fs) (or (forall (@list x ys) f) gs))  
-                                                                      (eo::requires ($contains_subterm gs x) false
+                                                                      (eo::requires ($contains_atomic_term gs x) false
                                                                         ($is_quant_miniscope_or xs (or f fs) (or (forall ys f) gs))))
   (($is_quant_miniscope_or @list.nil false false)                     true)
   (($is_quant_miniscope_or x f g)                                     false)
@@ -272,7 +282,7 @@
 ; conclusion: The given equality.
 (declare-rule quant-miniscope-ite ((x @List) (A Bool) (F1 Bool) (F2 Bool) (G Bool))
   :args ((= (forall x (ite A F1 F2)) (ite A (forall x F1) (forall x F2))))
-  :requires ((($contains_aterm_list A x) false))
+  :requires ((($contains_atomic_term_list A x) false))
   :conclusion (= (forall x (ite A F1 F2)) (ite A (forall x F1) (forall x F2)))
 )
 
@@ -285,7 +295,7 @@
 ; return: >
 ;    The result of eliminating x from F. This method does not evaluate if t contains x.
 (define $mk_quant_var_elim_eq_subs ((T Type :implicit) (x T) (t T) (F Bool))
-  (eo::requires ($contains_subterm t x) false ($substitute x t F)))
+  (eo::requires ($contains_atomic_term t x) false ($substitute x t F)))
 
 ; program: $mk_quant_var_elim_eq
 ; args:
@@ -299,7 +309,7 @@
   :signature (T Bool) Bool
   (
   (($mk_quant_var_elim_eq x (not (= x t)))        ($mk_quant_var_elim_eq_subs x t false))
-  (($mk_quant_var_elim_eq x (or (not (= x t)) F)) ($mk_quant_var_elim_eq_subs x t ($singleton_elim F)))
+  (($mk_quant_var_elim_eq x (or (not (= x t)) F)) ($mk_quant_var_elim_eq_subs x t (eo::list_singleton_elim or F)))
   )
 )
 
@@ -332,9 +342,9 @@
 (program $is_quant_dt_split_conj ((T Type) (U Type) (C Type) (W Type) (x T) (cx T) (c (-> U W)) (y U) (ys @List :list) (zs @List :list) (F Bool) (G Bool))
   :signature (T C @List Bool Bool) Bool
   (
-    (($is_quant_dt_split_conj x c (@list y ys) F (forall (@list y zs) G)) (eo::requires ($contains_subterm zs y) false  ; ensure no shadowing
+    (($is_quant_dt_split_conj x c (@list y ys) F (forall (@list y zs) G)) (eo::requires ($contains_atomic_term zs y) false  ; ensure no shadowing
                                                                             ($is_quant_dt_split_conj x c ys F (forall zs G))))
-    (($is_quant_dt_split_conj x c @list.nil F (forall (@list y zs) G))    (eo::requires ($contains_subterm zs y) false  ; ensure no shadowing
+    (($is_quant_dt_split_conj x c @list.nil F (forall (@list y zs) G))    (eo::requires ($contains_atomic_term zs y) false  ; ensure no shadowing
                                                                             ($is_quant_dt_split_conj x (c y) @list.nil F (forall zs G))))
     (($is_quant_dt_split_conj x c @list.nil F (forall @list.nil G))       ($is_quant_dt_split_conj x c @list.nil F G))
     (($is_quant_dt_split_conj x cx @list.nil F G)                         (eo::eq ($substitute x cx F) G))
@@ -376,74 +386,4 @@
   :args ((= (forall (@list x ys) F) G))
   :requires ((($is_quant_dt_split x ($dt_get_constructors (eo::typeof x)) ys F G) true))
   :conclusion (= (forall (@list x ys) F) G)
-)
-
-;;;;; ProofRule::EXISTS_INV_CONDITION
-
-; program: $mk_inv_cond_op_disj
-; args:
-; - f (-> (BitVec n) (BitVec n)): The unary function to apply, e.g. (bvashr s).
-; - t (BitVec n): The right hand side of the equation.
-; - w Int: The upper bound of bit-vector constants to consider.
-; - n Int: The current constant we are considering.
-; return: >
-;    A disjunct used in the invertibility conditions for some shift operators.
-(program $mk_inv_cond_op_disj ((n Int) (f (-> (BitVec n) (BitVec n))) (w Int) (t (BitVec n)))
-  :signature ((-> (BitVec n) (BitVec n)) (BitVec n) Int Int) Bool
-  (
-  (($mk_inv_cond_op_disj f t w w)  (eo::cons or (= (f (eo::to_bin w w)) t) false))
-  (($mk_inv_cond_op_disj f t w n)  (eo::cons or (= (f (eo::to_bin w n)) t) ($mk_inv_cond_op_disj f t w (eo::add n 1))))
-  )
-)
-
-; program: $mk_invertibility_condition
-; args:
-; - x (BitVec n): A bitvector variable to solve for.
-; - R Bool: A relation involving x.
-; return: >
-;    The invertibility condition for x in R. This is a quantifier-free formula that is
-;    equivalent to (exists x. R).
-(program $mk_invertibility_condition ((n Int) (m Int) (x (BitVec n)) (s (BitVec n)) (ss (BitVec n) :list) (t (BitVec n))
-                                      (k Int) (tk (BitVec k)) (nil (BitVec n) :list))
-  :signature ((BitVec n) Bool) Bool
-  (
-  (($mk_invertibility_condition x (= (bvmul x s nil) t))    (eo::requires (eo::to_z nil) 1
-                                                              (= (bvand (bvor (bvneg s) s) t) t)))
-  (($mk_invertibility_condition x (= (bvudiv x s) t))       (= (bvudiv (bvmul s t) s) t))
-  (($mk_invertibility_condition x (= (bvudiv s x) t))       (= (bvudiv s (bvudiv s t)) t))
-  (($mk_invertibility_condition x (= (bvurem x s) t))       (bvuge (bvnot (bvneg s)) t))
-  (($mk_invertibility_condition x (= (bvurem s x) t))       (bvuge (bvand (bvsub (bvadd t t) s) s) t))
-  (($mk_invertibility_condition x (= (bvor x ss) t))        (= t (bvor t ss)))
-  (($mk_invertibility_condition x (= (bvand x ss) t))       (= t (bvand t ss)))
-  (($mk_invertibility_condition x (= (bvashr x s) t))       (eo::define ((w ($bv_bitwidth (eo::typeof x))))
-                                                            (eo::define ((k (eo::to_bin w w)))
-                                                            (eo::define ((u (bvult s k)))
-                                                              (and (=> u (= (bvashr (bvshl t s) s) t))
-                                                                   (=> (not u) (or (= t (eo::not (eo::to_bin w 0))) (= t (eo::to_bin w 0)))))))))
-  (($mk_invertibility_condition x (= (bvashr s x) t))       (eo::define ((w ($bv_bitwidth (eo::typeof x))))
-                                                              (eo::cons or (= s t) ($mk_inv_cond_op_disj (bvashr s) t w 1))))
-  (($mk_invertibility_condition x (= (bvshl x s) t))        (= (bvshl (bvlshr t s) s) t))
-  (($mk_invertibility_condition x (= (bvshl s x) t))        (eo::define ((w ($bv_bitwidth (eo::typeof x))))
-                                                              (eo::cons or (= s t) ($mk_inv_cond_op_disj (bvshl s) t w 1))))
-  (($mk_invertibility_condition x (= (bvlshr x s) t))       (= (bvlshr (bvshl t s) s) t))
-  (($mk_invertibility_condition x (= (bvlshr s x) t))       (eo::define ((w ($bv_bitwidth (eo::typeof x))))
-                                                              (eo::cons or (= s t) ($mk_inv_cond_op_disj (bvlshr s) t w 1))))
-  (($mk_invertibility_condition x (= (sign_extend m x) tk)) (eo::define ((hi (eo::add ($bv_bitwidth (eo::typeof tk)) -1)))
-                                                            (eo::define ((lo (eo::add hi (eo::neg m))))
-                                                            (eo::define ((ex (extract hi lo tk)))
-                                                            (eo::define ((zero (eo::to_bin (eo::add m 1) 0)))
-                                                              (or (= ex zero) (= ex (eo::not zero))))))))
-  )
-)
-
-; rule: exists_inv_condition
-; implements: ProofRule::EXISTS_INV_CONDITION
-; args:
-; - B Bool: An existential for which the invertibility condition is based on.
-; conclusion: >
-;   The invertibility condition implies that the body of the existential has a solution,
-;   as given by the @witness_inv_condition skolem.
-(declare-rule exists_inv_condition ((n Int) (x (BitVec n)) (R Bool))
-  :args ((exists (@list x) R))
-  :conclusion (=> ($mk_invertibility_condition x R) ($substitute x (@witness_inv_condition (exists (@list x) R)) R))
 )

@@ -134,6 +134,8 @@ enum class InferenceId
   ARITH_NL_RES_INFER_BOUNDS,
   // tangent planes (NlSolver::checkTangentPlanes)
   ARITH_NL_TANGENT_PLANE,
+  // flatten monomials (NonlinearExtension::checkFlattenMonomials).
+  ARITH_NL_FLATTEN_MON,
   //-------------------- nonlinear transcendental solver
   // sine symmetry
   ARITH_NL_T_SINE_SYMM,
@@ -162,6 +164,21 @@ enum class InferenceId
   ARITH_NL_IAND_SUM_REFINE,
   // bitwise refinements (IAndSolver::checkFullRefine)
   ARITH_NL_IAND_BITWISE_REFINE,
+  //-------------------- nonlinear piand solver
+  // initial refinements (PIAndSolver::checkInitialRefine)
+  ARITH_NL_PIAND_INIT_REFINE,
+  // sum refinements (PIAndSolver::checkFullRefine)
+  ARITH_NL_PIAND_SUM_REFINE,
+  // base case refinements (PIAndSolver::checkFullRefine)
+  ARITH_NL_PIAND_BASE_CASE_REFINE,
+  // difference refinements (PIAndSolver::checkFullRefine)
+  ARITH_NL_PIAND_DIFFERENCE_REFINE,
+  // symetry refinements (PIAndSolver::checkFullRefine)
+  ARITH_NL_PIAND_SYMETRY_REFINE,
+  // contradition refinements (PIAndSolver::checkFullRefine)
+  ARITH_NL_PIAND_CONTRADITION_REFINE,
+  // one refinements (PIAndSolver::checkFullRefine)
+  ARITH_NL_PIAND_ONE_REFINE,
   //-------------------- nonlinear pow2 solver
   // initial refinements (Pow2Solver::checkInitialRefine)
   ARITH_NL_POW2_INIT_REFINE,
@@ -169,8 +186,12 @@ enum class InferenceId
   ARITH_NL_POW2_VALUE_REFINE,
   // monotonicity refinements (Pow2Solver::checkFullRefine)
   ARITH_NL_POW2_MONOTONE_REFINE,
-  // trivial refinements (Pow2Solver::checkFullRefine)
-  ARITH_NL_POW2_TRIVIAL_CASE_REFINE,
+  // neg refinements (Pow2Solver::checkFullRefine)
+  ARITH_NL_POW2_NEG_REFINE,
+  // div0 refinements (Pow2Solver::checkFullRefine)
+  ARITH_NL_POW2_DIV0_CASE_REFINE,
+  // lower bound refinements (Pow2Solver::checkFullRefine)
+  ARITH_NL_POW2_LOWER_BOUND_CASE_REFINE,
   //-------------------- nonlinear coverings solver
   // conflict / infeasible subset obtained from coverings
   ARITH_NL_COVERING_CONFLICT,
@@ -617,6 +638,9 @@ enum class InferenceId
   //    ( explain_constant(x, c1) ^ explain_constant(x, c2) ^ x = y) => false
   // where c1 != c2.
   STRINGS_I_CONST_CONFLICT,
+  // An initial cycle conflict, for instance
+  //   ( x = x ++ y ) ^ y = "B" => false
+  STRINGS_I_CYCLE_CONFLICT,
   // initial normalize
   // Given two concatenation terms, this is applied when we find that they are
   // equal after e.g. removing strings that are currently empty. For example:
@@ -874,6 +898,10 @@ enum class InferenceId
   // Typically, t is an application of an extended function and s is a constant.
   // It is generally only inferred if P is a predicate over known terms.
   STRINGS_EXTF_EQ_REW,
+  // two terms rewrite to the same thing
+  // in particular this is of the form (E1 ^ E2) => t1 = t2
+  // where E1 => t1 = tr and E2 => t2 = tr.
+  STRINGS_EXTF_REW_SAME,
   // contain transitive
   //   ( str.contains( s, t ) ^ ~contains( s, r ) ) => ~contains( t, r ).
   STRINGS_CTN_TRANS,
@@ -917,6 +945,13 @@ enum class InferenceId
   //-------------------------------------- uf theory
   // Clause from the uf symmetry breaker
   UF_BREAK_SYMMETRY,
+  // Lemma of the form
+  // (~distinct(t1...tn) => ~blastDistinct(distinct(t1...tn))
+  UF_NOT_DISTINCT_ELIM,
+  // Conflict of the form (distinct(t1...tn) ^ ti = tj)
+  UF_DISTINCT_DEQ,
+  // Lemma of the form (~distinct(t1...tn) or ti != tj) sent during last call
+  UF_DISTINCT_DEQ_MODEL,
   //-------------------- cardinality extension to UF
   // The inferences below are described in Reynolds' thesis 2013.
   // conflict of the form (card_T n) => (not (distinct t1 ... tn))

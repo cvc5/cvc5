@@ -137,13 +137,17 @@ TEST_F(TestTheoryWhiteArithCoverings, test_univariate_isolation)
 
 TEST_F(TestTheoryWhiteArithCoverings, test_multivariate_isolation)
 {
-  poly::Variable x("x");
-  poly::Variable y("y");
-  poly::Variable z("z");
+  poly::Context ctx;
+  poly::Variable v_x(ctx, "x");
+  poly::Variable v_y(ctx, "y");
+  poly::Variable v_z(ctx, "z");
+  poly::Polynomial x(ctx, v_x);
+  poly::Polynomial y(ctx, v_y);
+  poly::Polynomial z(ctx, v_z);
 
-  poly::Assignment a;
-  a.set(x, get_ran({-2, 0, 1}, 1, 2));
-  a.set(y, get_ran({-2, 0, 0, 0, 1}, 1, 2));
+  poly::Assignment a(ctx);
+  a.set(v_x, get_ran({-2, 0, 1}, 1, 2));
+  a.set(v_y, get_ran({-2, 0, 0, 0, 1}, 1, 2));
 
   poly::Polynomial poly = (y * y + x) - z;
 
@@ -166,8 +170,11 @@ TEST_F(TestTheoryWhiteArithCoverings, test_univariate_factorization)
 TEST_F(TestTheoryWhiteArithCoverings, test_projection)
 {
   // Gereon's thesis, Ex 5.1
-  poly::Variable x("x");
-  poly::Variable y("y");
+  poly::Context ctx;
+  poly::Variable v_x(ctx, "x");
+  poly::Variable v_y(ctx, "y");
+  poly::Polynomial x(ctx, v_x);
+  poly::Polynomial y(ctx, v_y);
 
   poly::Polynomial p = (y + 1) * (y + 1) - x * x * x + 3 * x - 2;
   poly::Polynomial q = (x + 1) * y - 3;
@@ -181,21 +188,6 @@ TEST_F(TestTheoryWhiteArithCoverings, test_projection)
   EXPECT_EQ(res[4],
             x * x * x * x * x + 2 * x * x * x * x - 2 * x * x * x - 5 * x * x
                 - 7 * x - 14);
-}
-
-poly::Polynomial up_to_poly(const poly::UPolynomial& p, poly::Variable var)
-{
-  poly::Polynomial res;
-  poly::Polynomial mult = 1;
-  for (const auto& coeff : coefficients(p))
-  {
-    if (!is_zero(coeff))
-    {
-      res += mult * coeff;
-    }
-    mult *= var;
-  }
-  return res;
 }
 
 TEST_F(TestTheoryWhiteArithCoverings, lazard_simp)
@@ -226,23 +218,28 @@ TEST_F(TestTheoryWhiteArithCoverings, lazard_simp)
 #ifdef CVC5_USE_COCOA
 TEST_F(TestTheoryWhiteArithCoverings, lazard_eval)
 {
-  poly::Variable x("x");
-  poly::Variable y("y");
-  poly::Variable z("z");
-  poly::Variable f("f");
+  const poly::Context& ctx = d_nodeManager->getPolyContext();
+  poly::Variable v_x(ctx, "x");
+  poly::Variable v_y(ctx, "y");
+  poly::Variable v_z(ctx, "z");
+  poly::Variable v_f(ctx, "f");
+  poly::Polynomial x(ctx, v_x);
+  poly::Polynomial y(ctx, v_y);
+  poly::Polynomial z(ctx, v_z);
+  poly::Polynomial f(ctx, v_f);
   poly::AlgebraicNumber ax = get_ran({-2, 0, 1}, 1, 2);
   poly::AlgebraicNumber ay = get_ran({-2, 0, 0, 0, 1}, 1, 2);
   poly::AlgebraicNumber az = get_ran({-3, 0, 1}, 1, 2);
 
   Options opts;
   Env env(d_nodeManager.get(), &opts);
-  coverings::LazardEvaluation lazard(env.getStatisticsRegistry());
-  lazard.add(x, ax);
-  lazard.add(y, ay);
-  lazard.add(z, az);
+  coverings::LazardEvaluation lazard(env.getStatisticsRegistry(), ctx);
+  lazard.add(v_x, ax);
+  lazard.add(v_y, ay);
+  lazard.add(v_z, az);
 
   poly::Polynomial q = (x * x - 2) * (y * y * y * y - 2) * z * f;
-  lazard.addFreeVariable(f);
+  lazard.addFreeVariable(v_f);
   auto qred = lazard.reducePolynomial(q);
   EXPECT_EQ(qred, std::vector<poly::Polynomial>{f});
 }
@@ -252,9 +249,14 @@ TEST_F(TestTheoryWhiteArithCoverings, test_cdcac_1)
 {
   Options opts;
   Env env(d_nodeManager.get(), &opts);
+  const poly::Context& ctx = d_nodeManager->getPolyContext();
   coverings::CDCAC cac(env, {});
-  poly::Variable x = cac.getConstraints().varMapper()(make_real_variable("x"));
-  poly::Variable y = cac.getConstraints().varMapper()(make_real_variable("y"));
+  poly::Variable v_x =
+      cac.getConstraints().varMapper()(make_real_variable("x"));
+  poly::Variable v_y =
+      cac.getConstraints().varMapper()(make_real_variable("y"));
+  poly::Polynomial x(ctx, v_x);
+  poly::Polynomial y(ctx, v_y);
 
   cac.getConstraints().addConstraint(
       4 * y - x * x + 4, poly::SignCondition::LT, dummy(1));
@@ -274,9 +276,14 @@ TEST_F(TestTheoryWhiteArithCoverings, test_cdcac_2)
 {
   Options opts;
   Env env(d_nodeManager.get(), &opts);
+  const poly::Context& ctx = d_nodeManager->getPolyContext();
   coverings::CDCAC cac(env, {});
-  poly::Variable x = cac.getConstraints().varMapper()(make_real_variable("x"));
-  poly::Variable y = cac.getConstraints().varMapper()(make_real_variable("y"));
+  poly::Variable v_x =
+      cac.getConstraints().varMapper()(make_real_variable("x"));
+  poly::Variable v_y =
+      cac.getConstraints().varMapper()(make_real_variable("y"));
+  poly::Polynomial x(ctx, v_x);
+  poly::Polynomial y(ctx, v_y);
 
   cac.getConstraints().addConstraint(y - pow(-x - 3, 11) + pow(-x - 3, 10) + 1,
                                      poly::SignCondition::GT,
@@ -307,10 +314,17 @@ TEST_F(TestTheoryWhiteArithCoverings, test_cdcac_3)
 {
   Options opts;
   Env env(d_nodeManager.get(), &opts);
+  const poly::Context& ctx = d_nodeManager->getPolyContext();
   coverings::CDCAC cac(env, {});
-  poly::Variable x = cac.getConstraints().varMapper()(make_real_variable("x"));
-  poly::Variable y = cac.getConstraints().varMapper()(make_real_variable("y"));
-  poly::Variable z = cac.getConstraints().varMapper()(make_real_variable("z"));
+  poly::Variable v_x =
+      cac.getConstraints().varMapper()(make_real_variable("x"));
+  poly::Variable v_y =
+      cac.getConstraints().varMapper()(make_real_variable("y"));
+  poly::Variable v_z =
+      cac.getConstraints().varMapper()(make_real_variable("z"));
+  poly::Polynomial x(ctx, v_x);
+  poly::Polynomial y(ctx, v_y);
+  poly::Polynomial z(ctx, v_z);
 
   cac.getConstraints().addConstraint(
       x * x + y * y + z * z - 1, poly::SignCondition::LT, dummy(1));
@@ -330,10 +344,17 @@ TEST_F(TestTheoryWhiteArithCoverings, test_cdcac_4)
 {
   Options opts;
   Env env(d_nodeManager.get(), &opts);
+  const poly::Context& ctx = d_nodeManager->getPolyContext();
   coverings::CDCAC cac(env, {});
-  poly::Variable x = cac.getConstraints().varMapper()(make_real_variable("x"));
-  poly::Variable y = cac.getConstraints().varMapper()(make_real_variable("y"));
-  poly::Variable z = cac.getConstraints().varMapper()(make_real_variable("z"));
+  poly::Variable v_x =
+      cac.getConstraints().varMapper()(make_real_variable("x"));
+  poly::Variable v_y =
+      cac.getConstraints().varMapper()(make_real_variable("y"));
+  poly::Variable v_z =
+      cac.getConstraints().varMapper()(make_real_variable("z"));
+  poly::Polynomial x(ctx, v_x);
+  poly::Polynomial y(ctx, v_y);
+  poly::Polynomial z(ctx, v_z);
 
   cac.getConstraints().addConstraint(
       -z * z + y * y + x * x - 25, poly::SignCondition::GT, dummy(1));
@@ -387,6 +408,7 @@ TEST_F(TestTheoryWhiteArithCoverings, test_cdcac_proof_1)
   opts.write_smt().proofMode = options::ProofMode::FULL;
   opts.write_smt().produceProofs = true;
   Env env(d_nodeManager.get(), &opts);
+  const poly::Context& ctx = d_nodeManager->getPolyContext();
   smt::PfManager pfm(env);
   env.finishInit(&pfm);
   EXPECT_TRUE(env.isTheoryProofProducing());
@@ -400,8 +422,12 @@ TEST_F(TestTheoryWhiteArithCoverings, test_cdcac_proof_1)
   coverings::CDCAC cac(env, {});
   EXPECT_TRUE(cac.getProof() != nullptr);
   cac.startNewProof();
-  poly::Variable x = cac.getConstraints().varMapper()(make_real_variable("x"));
-  poly::Variable y = cac.getConstraints().varMapper()(make_real_variable("y"));
+  poly::Variable v_x =
+      cac.getConstraints().varMapper()(make_real_variable("x"));
+  poly::Variable v_y =
+      cac.getConstraints().varMapper()(make_real_variable("y"));
+  poly::Polynomial x(ctx, v_x);
+  poly::Polynomial y(ctx, v_y);
 
   cac.getConstraints().addConstraint(
       4 * y - x * x + 4, poly::SignCondition::LT, dummy(1));

@@ -15,8 +15,6 @@
 
 #include "prop/prop_engine.h"
 
-#include <iomanip>
-#include <map>
 #include <utility>
 
 #include "base/check.h"
@@ -31,7 +29,6 @@
 #include "options/smt_options.h"
 #include "proof/proof_node_algorithm.h"
 #include "prop/cnf_stream.h"
-#include "prop/minisat/minisat.h"
 #include "prop/proof_cnf_stream.h"
 #include "prop/prop_proof_manager.h"
 #include "prop/sat_solver.h"
@@ -77,7 +74,8 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
       d_theoryLemmaPg(d_env, d_env.getUserContext(), "PropEngine::ThLemmaPg"),
       d_ppm(nullptr),
       d_interrupted(false),
-      d_assumptions(d_env.getUserContext()),
+      d_assumptions(userContext()),
+      d_localLemmas(userContext()),
       d_stats(statisticsRegistry())
 {
   Trace("prop") << "Constructing the PropEngine" << std::endl;
@@ -118,9 +116,23 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
 
 void PropEngine::finishInit()
 {
-  NodeManager* nm = nodeManager();
-  d_cnfStream->convertAndAssert(nm->mkConst(true), false, false);
-  d_cnfStream->convertAndAssert(nm->mkConst(false).notNode(), false, false);
+  // Make sure that true/false are not free assumptions in the proof.
+  if (d_ppm)
+  {
+    NodeManager* nm = nodeManager();
+    d_ppm->convertAndAssert(theory::InferenceId::INPUT,
+                            nm->mkConst(true),
+                            false,
+                            false,
+                            true,
+                            nullptr);
+    d_ppm->convertAndAssert(theory::InferenceId::INPUT,
+                            nm->mkConst(false).notNode(),
+                            false,
+                            false,
+                            true,
+                            nullptr);
+  }
 }
 
 PropEngine::~PropEngine() {
@@ -159,6 +171,13 @@ void PropEngine::assertInputFormulas(
     std::unordered_map<size_t, Node>& skolemMap)
 {
   Assert(!d_inCheckSat) << "Sat solver in solve()!";
+  // now presolve with prop proof manager so proof logging is on. This must be
+  // done *before* the PropEngine checkSat call because when asserting formulas
+  // to the theory engine lemmas may already be generated.
+  if (d_ppm != nullptr)
+  {
+    d_ppm->presolve();
+  }
   d_theoryProxy->notifyInputFormulas(assertions, skolemMap);
   int64_t natomsPre = d_cnfStream->d_stats.d_numAtoms.get();
   for (const Node& node : assertions)
@@ -216,9 +235,19 @@ void PropEngine::assertLemma(theory::InferenceId id,
 
 void PropEngine::assertTrustedLemmaInternal(theory::InferenceId id,
                                             TrustNode trn,
-                                            bool removable)
+                                            bool removable,
+                                            bool local)
 {
   Node node = trn.getNode();
+  if (local)
+  {
+    // if local, filter here
+    if (d_localLemmas.find(node) != d_localLemmas.end())
+    {
+      return;
+    }
+    d_localLemmas.insert(node);
+  }
   Trace("prop::lemmas") << "assertLemma(" << node << ")" << std::endl;
   if (isOutputOn(OutputTag::LEMMAS))
   {
@@ -315,12 +344,14 @@ void PropEngine::assertLemmasInternal(
     {
       trn = d_theoryProxy->inprocessLemma(trn);
     }
-    assertTrustedLemmaInternal(id, trn, removable);
+    assertTrustedLemmaInternal(id, trn, removable, local);
   }
   for (const theory::SkolemLemma& lem : ppLemmas)
   {
-    assertTrustedLemmaInternal(
-        theory::InferenceId::THEORY_PP_SKOLEM_LEM, lem.d_lemma, removable);
+    assertTrustedLemmaInternal(theory::InferenceId::THEORY_PP_SKOLEM_LEM,
+                               lem.d_lemma,
+                               removable,
+                               local);
   }
   // Note that this order is important for theories that send lemmas during
   // preregistration, as it impacts the order in which lemmas are processed
@@ -437,12 +468,6 @@ Result PropEngine::checkSat() {
   {
     outputIncompleteReason(UnknownExplanation::REQUIRES_FULL_CHECK);
     return Result(Result::UNKNOWN, UnknownExplanation::REQUIRES_FULL_CHECK);
-  }
-
-  // now presolve with prop proof manager so proof logging is on
-  if (d_ppm != nullptr)
-  {
-    d_ppm->presolve();
   }
 
   // Note this currently ignores conflicts (a dangerous practice).

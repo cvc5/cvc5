@@ -55,6 +55,14 @@ TypeNode UfTypeRule::computeType(NodeManager* nodeManager,
     // otherwise, application of abstract function is always abstract
     return nodeManager->mkAbstractType(Kind::ABSTRACT_TYPE);
   }
+  if (fType.getNumChildren() <= n.getNumChildren())
+  {
+    if (errOut)
+    {
+      (*errOut) << "too many arguments to operator";
+    }
+    return TypeNode::null();
+  }
   if (check)
   {
     TNode::iterator argument_it = n.begin();
@@ -349,6 +357,37 @@ TypeNode BitVectorConversionTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->integerType();
 }
 
+TypeNode DistinctTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return nm->booleanType();
+}
+
+TypeNode DistinctTypeRule::computeType(NodeManager* nodeManager,
+                                       TNode n,
+                                       bool check,
+                                       std::ostream* errOut)
+{
+  if (check)
+  {
+    TNode::iterator child_it = n.begin();
+    TNode::iterator child_it_end = n.end();
+    TypeNode joinType = (*child_it).getTypeOrNull();
+    for (++child_it; child_it != child_it_end; ++child_it)
+    {
+      TypeNode currentType = (*child_it).getType();
+      joinType = joinType.leastUpperBound(currentType);
+      if (joinType.isNull())
+      {
+        if (errOut)
+        {
+          (*errOut) << "Not all arguments are of the same type";
+        }
+        return TypeNode::null();
+      }
+    }
+  }
+  return nodeManager->booleanType();
+}
 }  // namespace uf
 }  // namespace theory
 }  // namespace cvc5::internal

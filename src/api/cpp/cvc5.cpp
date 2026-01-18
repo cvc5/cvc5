@@ -148,7 +148,9 @@ const static std::unordered_map<Kind, std::pair<internal::Kind, std::string>>
         KIND_ENUM(Kind::ADD, internal::Kind::ADD),
         KIND_ENUM(Kind::MULT, internal::Kind::MULT),
         KIND_ENUM(Kind::IAND, internal::Kind::IAND),
+        KIND_ENUM(Kind::PIAND, internal::Kind::PIAND),
         KIND_ENUM(Kind::POW2, internal::Kind::POW2),
+        KIND_ENUM(Kind::LOG2, internal::Kind::INTS_LOG2),
         KIND_ENUM(Kind::SUB, internal::Kind::SUB),
         KIND_ENUM(Kind::NEG, internal::Kind::NEG),
         KIND_ENUM(Kind::DIVISION, internal::Kind::DIVISION),
@@ -547,7 +549,9 @@ const static std::unordered_map<internal::Kind,
         {internal::Kind::MULT, Kind::MULT},
         {internal::Kind::NONLINEAR_MULT, Kind::MULT},
         {internal::Kind::IAND, Kind::IAND},
+        {internal::Kind::PIAND, Kind::PIAND},
         {internal::Kind::POW2, Kind::POW2},
+        {internal::Kind::INTS_LOG2, Kind::LOG2},
         {internal::Kind::SUB, Kind::SUB},
         {internal::Kind::NEG, Kind::NEG},
         {internal::Kind::DIVISION, Kind::DIVISION},
@@ -3376,9 +3380,7 @@ std::string Term::getUninterpretedSortValue() const
       << "Term to be an abstract value when calling "
          "getUninterpretedSortValue()";
   //////// all checks before this line
-  std::stringstream ss;
-  ss << d_node->getConst<internal::UninterpretedSortValue>();
-  return ss.str();
+  return d_node->getConst<internal::UninterpretedSortValue>().getSymbol();
   ////////
   CVC5_API_TRY_CATCH_END;
 }

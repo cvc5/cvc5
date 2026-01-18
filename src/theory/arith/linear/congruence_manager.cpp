@@ -23,6 +23,7 @@
 #include "proof/proof_node.h"
 #include "proof/proof_node_manager.h"
 #include "smt/env.h"
+#include "theory/arith/arith_poly_norm.h"
 #include "theory/arith/arith_proof_utilities.h"
 #include "theory/arith/arith_subs.h"
 #include "theory/arith/arith_utilities.h"
@@ -392,18 +393,58 @@ bool ArithCongruenceManager::propagate(TNode x){
       cdp.addStep(proven[1], ProofRule::MODUS_PONENS, {antec, proven}, {});
       std::shared_ptr<ProofNode> pf;
       bool success = false;
-      if (neg.getKind() == Kind::NOT && neg[0] == proven[1])
+      for (size_t i = 0; i < 2; i++)
       {
-        // L1 and L2 are negation of one another, just use CONTRA
-        cdp.addStep(falsen, ProofRule::CONTRA, {proven[1], neg}, {});
-        success = true;
+        Node lit1 = i == 0 ? neg : proven[1];
+        Node lit2 = i == 0 ? proven[1] : neg;
+        Trace("arith-cm-proof") << "same " << lit1 << " " << lit2 << std::endl;
+        Rational rx, ry;
+        // We are robust to cases where proven[1] and neg[0] are equivalent via
+        // arith poly norm here, where in most cases neg[0] is proven[1]
+        if (lit1.getKind() == Kind::NOT
+            && PolyNorm::isArithPolyNormRel(lit2, lit1[0], rx, ry))
+        {
+          if (lit1[0] != lit2)
+          {
+            Node eqa = lit2.eqNode(lit1[0]);
+            Node premise =
+                PolyNorm::getArithPolyNormRelPremise(lit2, lit1[0], rx, ry);
+            cdp.addStep(premise, ProofRule::ARITH_POLY_NORM, {}, {premise});
+            cdp.addStep(eqa, ProofRule::ARITH_POLY_NORM_REL, {premise}, {eqa});
+            cdp.addStep(lit1[0], ProofRule::EQ_RESOLVE, {lit2, eqa}, {});
+          }
+          // L1 and L2 are negation of one another, just use CONTRA
+          cdp.addStep(falsen, ProofRule::CONTRA, {lit1[0], lit1}, {});
+          success = true;
+          break;
+        }
       }
-      else if (proven[1].getKind() == Kind::EQUAL)
+      if (!success && proven[1].getKind() == Kind::EQUAL)
       {
         // otherwise typically proven[1] is of the form (= t c) or (= c t) where
         // neg is the (negation of) a relation involving t.
         Node peq = proven[1][0].isConst() ? proven[1][1].eqNode(proven[1][0])
                                           : proven[1];
+        Assert (peq.getKind()==Kind::EQUAL);
+        if (peq[0].getKind()==Kind::TO_REAL)
+        {
+          // if we have (= (to_real t) c) where c is a rational, we do:
+          //                     -------------------------- ARITH_POLY_NORM_REL
+          // (= (to_real t) c)   (= (= (to_real t) c) (= t c'))
+          // ------------------------------------------------- EQ_RESOLVE
+          // (= t c')
+          // where c' is integer equivalent of c.
+          Assert (peq[1].isConst() && peq[1].getConst<Rational>().isIntegral());
+          Node ic = nm->mkConstInt(peq[1].getConst<Rational>());
+          Node peqi = peq[0][0].eqNode(ic);
+          Node equiv = peq.eqNode(peqi);
+          Rational cx, cy;
+          Node premise = PolyNorm::getArithPolyNormRelPremise(peq, peqi, cx, cy);
+          cdp.addStep(premise, ProofRule::ARITH_POLY_NORM, {}, {premise});
+          cdp.addStep(equiv, ProofRule::ARITH_POLY_NORM_REL, {premise}, {equiv});
+          cdp.addStep(peqi, ProofRule::EQ_RESOLVE, {peq, equiv}, {});
+          peq = peqi;
+        }
         ProofChecker* pc = d_env.getProofNodeManager()->getChecker();
         // We substitute t -> c within the arithmetic context of neg.
         // In particular using an arithmetic context ensures that this rewrite
@@ -414,13 +455,18 @@ bool ArithCongruenceManager::propagate(TNode x){
         // (not (>= (+ f(x) (* -1 f(f(x)))) 0)),
         // whereas since x in f(x) is not in an arithmetic context, we want
         // (not (>= (+ f(x) (* -1 f(x))) 0)).
-        ArithSubsTermContext astc;
+        // Furthermore note that we should not traverse non-linear
+        // multiplication here, as this inference was inferred via linear
+        // arithmetic which treats non-linear arithmetic as an abstraction.
+        ArithSubsTermContext astc(false);
         TConvProofGenerator tcnv(d_env,
                                  nullptr,
                                  TConvPolicy::FIXPOINT,
                                  TConvCachePolicy::NEVER,
                                  "ArithRConsTConv",
                                  &astc);
+        Trace("arith-cm-proof") << "add step " << peq[0] << " -> " << peq[1]
+                                << ", rewrite " << neg << std::endl;
         tcnv.addRewriteStep(peq[0], peq[1], &cdp);
         std::shared_ptr<ProofNode> pfna = tcnv.getProofForRewriting(neg);
         Node negr = pfna->getResult()[1];

@@ -36,6 +36,8 @@ ${holder_ref_inits}$
   {
 #ifdef CVC5_SAFE_MODE
     d_base->safeMode = options::SafeMode::SAFE;
+#elif CVC5_STABLE_MODE
+    d_base->safeMode = options::SafeMode::STABLE;
 #endif
   }
 

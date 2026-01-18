@@ -583,42 +583,6 @@ enum ENUM(ProofRule)
   EVALUE(REORDERING),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Boolean -- N-ary Resolution + Factoring + Reordering**
-   *
-   * .. math::
-   *
-   *   \inferrule{C_1 \dots C_n \mid C, pol_1,L_1 \dots pol_{n-1},L_{n-1}}{C}
-   *
-   * where
-   *
-   * - let :math:`C_1 \dots C_n` be nodes viewed as clauses, as defined in
-   *   :cpp:enumerator:`RESOLUTION <cvc5::ProofRule::RESOLUTION>`
-   * - let :math:`C_1 \diamond_{L,\mathit{pol}} C_2` represent the resolution of
-   *   :math:`C_1` with :math:`C_2` with pivot :math:`L` and polarity
-   *   :math:`pol`, as defined in
-   *   :cpp:enumerator:`RESOLUTION <cvc5::ProofRule::RESOLUTION>`
-   * - let :math:`C_1'` be equal, in its set representation, to :math:`C_1`,
-   * - for each :math:`i > 1`, let :math:`C_i'` be equal, in its set
-   *   representation, to :math:`C_{i-1} \diamond_{L_{i-1},\mathit{pol}_{i-1}}
-   *   C_i'`
-   *
-   * The result of the chain resolution is :math:`C`, which is equal, in its set
-   * representation, to :math:`C_n'`
-   * \endverbatim
-   */
-  EVALUE(MACRO_RESOLUTION),
-  /**
-   * \verbatim embed:rst:leading-asterisk
-   * **Boolean -- N-ary Resolution + Factoring + Reordering unchecked**
-   *
-   * Same as
-   * :cpp:enumerator:`MACRO_RESOLUTION <cvc5::ProofRule::MACRO_RESOLUTION>`, but
-   * not checked by the internal proof checker.
-   * \endverbatim
-   */
-  EVALUE(MACRO_RESOLUTION_TRUST),
-  /**
-   * \verbatim embed:rst:leading-asterisk
    * **Boolean -- Chain multiset resolution**
    *
    * This rule combines Resolution + Factoring + Reordering.
@@ -1232,11 +1196,26 @@ enum ENUM(ProofRule)
    *   \inferrule{t_1=s_1,\dots,t_n=s_n\mid f(t_1,\dots, t_n)}{f(t_1,\dots, t_n) = f(s_1,\dots, s_n)}
    *
    * This rule is used for terms :math:`f(t_1,\dots, t_n)` whose kinds
-   * :math:`k` have variadic arity, such as ``cvc5::Kind::AND``,
-   * ``cvc5::Kind::PLUS`` and so on.
+   * :math:`k` have variadic arity and are treated as associative,
+   * such as ``cvc5::Kind::AND``, ``cvc5::Kind::PLUS`` and so on.
    * \endverbatim
    */
   EVALUE(NARY_CONG),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Equality -- Pairwise Congruence**
+   *
+   * .. math::
+   *
+   *   \inferrule{t_1=s_1,\dots,t_n=s_n\mid f(t_1,\dots, t_n)}{f(t_1,\dots, t_n) = f(s_1,\dots, s_n)}
+   *
+   * This rule is used for terms :math:`f(t_1,\dots, t_n)` whose kinds
+   * :math:`k` have variadic arity and are pairwise.
+   * Currently, this rule is used only for congruence of terms whose kind is
+   * ``cvc5::Kind::DISTINCT``.
+   * \endverbatim
+   */
+  EVALUE(PAIRWISE_CONG),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Equality -- True intro**
@@ -1888,7 +1867,7 @@ enum ENUM(ProofRule)
    *
    *   \inferrule{t \not \in \mathit{re}.\text{++}(R_1, \ldots, R_n)\mid -}{\forall L. L < 0 \vee \mathit{str.len}(t) < L \vee \mathit{pre}(t, L) \not \in R_1 \vee \mathit{suf}(t, L) \not \in \mathit{re}.\text{++}(R_2, \ldots, R_n)}
    *
-   * Note that in either case the varaible :math:`L` has type :math:`Int` and
+   * Note that in either case the variable :math:`L` has type :math:`Int` and
    * name `"@var.str_index"`.
    *
    * \endverbatim
@@ -2208,7 +2187,7 @@ enum ENUM(ProofRule)
    *
    * .. math::
    *
-   *   \inferrule{- \mid t}{(t < 0) \leftrightarrow (\exp(t) < 1)}
+   *   \inferrule{- \mid t}{(t < 0.0) \leftrightarrow (\exp(t) < 1.0)}
    *
    * \endverbatim
    */
@@ -2219,7 +2198,7 @@ enum ENUM(ProofRule)
    *
    * .. math::
    *
-   *   \inferrule{- \mid t}{\exp(t) > 0}
+   *   \inferrule{- \mid t}{\exp(t) > 0.0}
    *
    * \endverbatim
    */
@@ -2231,7 +2210,7 @@ enum ENUM(ProofRule)
    *
    * .. math::
    *
-   *   \inferrule{- \mid t}{t \leq 0 \lor \exp(t) > t+1}
+   *   \inferrule{- \mid t}{t \leq 0.0 \lor \exp(t) > t+1.0}
    *
    * \endverbatim
    */
@@ -2242,7 +2221,7 @@ enum ENUM(ProofRule)
    *
    * .. math::
    *
-   *   \inferrule{- \mid t}{(t=0) \leftrightarrow (\exp(t) = 1)}
+   *   \inferrule{- \mid t}{(t=0.0) \leftrightarrow (\exp(t) = 1.0)}
    *
    * \endverbatim
    */
@@ -2292,7 +2271,7 @@ enum ENUM(ProofRule)
    *
    * .. math::
    *
-   *   p^* := p(d-1) \cdot \frac{1 + t^n}{n!}
+   *   p^* := p(d-1) \cdot (\frac{1 - t^n}{n!})^{-1}
    *
    * :math:`\texttt{secant-pos}(\exp, l, u, t)` denotes the secant of :math:`p`
    * from :math:`(l, \exp(l))` to :math:`(u, \exp(u))` evaluated at :math:`t`,
@@ -2336,7 +2315,7 @@ enum ENUM(ProofRule)
    *
    * .. math::
    *
-   *   \inferrule{- \mid t}{\sin(t) \leq 1 \land \sin(t) \geq -1}
+   *   \inferrule{- \mid t}{\sin(t) \leq 1.0 \land \sin(t) \geq -1.0}
    *
    * \endverbatim
    */
@@ -2368,7 +2347,7 @@ enum ENUM(ProofRule)
    *
    * .. math::
    *
-   *   \inferrule{- \mid t}{\sin(t) - \sin(-t) = 0}
+   *   \inferrule{- \mid t}{\sin(t) + \sin(-t) = 0.0}
    *
    * \endverbatim
    */
@@ -2379,7 +2358,7 @@ enum ENUM(ProofRule)
    *
    * .. math::
    *
-   *   \inferrule{- \mid t}{(t > 0 \rightarrow \sin(t) < t) \land (t < 0
+   *   \inferrule{- \mid t}{(t > 0.0 \rightarrow \sin(t) < t) \land (t < 0.0
    *   \rightarrow \sin(t) > t)}
    *
    * \endverbatim
@@ -2757,6 +2736,32 @@ enum ENUM(ProofRewriteRule)
   EVALUE(ARITH_POW_ELIM),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Equality -- Distinct conflict**
+   *
+   * .. math::
+   *
+   *   \mathit{distinct}(t_1, \ldots, t_n) = \bot
+   *
+   * where :math:`t_i` is :math:`t_j` for some distinct :math:`i`, :math:`j`.
+   *
+   * \endverbatim
+   */
+  EVALUE(DISTINCT_FALSE),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Equality -- Distinct conflict**
+   *
+   * .. math::
+   *
+   *   \mathit{distinct}(t_1, \ldots, t_n) = \top
+   *
+   * where :math:`t_1, \ldots, t_n` are distinct values.
+   *
+   * \endverbatim
+   */
+  EVALUE(DISTINCT_TRUE),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Equality -- Beta reduction**
    *
    * .. math::
@@ -2881,22 +2886,37 @@ enum ENUM(ProofRewriteRule)
    *
    * .. math::
    *
-   *   \forall X.\> F = \forall X_1.\> F
+   *   Q X.\> F = Q X_1.\> F
    *
-   * where :math:`X_1` is the subset of :math:`X` that appear free in :math:`F`
-   * and :math:`X_1` does not contain duplicate variables.
+   * where :math:`Q` is either :math:`\forall or :math:`\exists` and :math:`X_1` is the subset of :math:`X`
+   * that appear free in :math:`F` and :math:`X_1` does not contain duplicate variables.
    *
    * \endverbatim
    */
   EVALUE(QUANT_UNUSED_VARS),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Quantifiers -- Macro eliminate shadowing**
+   *
+   * .. math::
+   *
+   *   Q X.\> F = Q X.\> G
+   *
+   * where :math:`Q` is either :math:`\forall` or :math:`\exists` and
+   * :math:`Q X.\> G` has no instances of variable shadowing.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_QUANT_ELIM_SHADOW),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Quantifiers -- Macro merge prenex**
    *
    * .. math::
    *
-   *   \forall X_1.\> \ldots \forall X_n.\> F = \forall X.\> F
+   *   Q X_1.\> \ldots Q X_n.\> F = Q X.\> F
    *
+   * where :math:`Q` is either :math:`\forall` or :math:`\exists` and :math:`X_1` is the subset of :math:`X`
    * where :math:`X_1 \ldots X_n` are lists of variables and :math:`X` is the
    * result of removing duplicates from :math:`X_1 \ldots X_n`.
    *
@@ -2909,9 +2929,9 @@ enum ENUM(ProofRewriteRule)
    *
    * .. math::
    *
-   *   \forall X_1.\> \ldots \forall X_n.\> F = \forall X_1 \ldots X_n.\> F
+   *   Q X_1.\> \ldots Q X_n.\> F = Q X_1 \ldots X_n.\> F
    *
-   * where :math:`X_1 \ldots X_n` are lists of variables.
+   * where :math:`Q` is either :math:`\forall` or :math:`\exists` and :math:`X_1 \ldots X_n` are lists of variables.
    *
    * \endverbatim
    */
@@ -4546,6 +4566,12 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_REPLACE_FIND_PRE),
   /** Auto-generated from RARE rule str-replace-all-no-contains */
   EVALUE(STR_REPLACE_ALL_NO_CONTAINS),
+  /** Auto-generated from RARE rule str-replace-all-empty */
+  EVALUE(STR_REPLACE_ALL_EMPTY),
+  /** Auto-generated from RARE rule str-replace-all-id */
+  EVALUE(STR_REPLACE_ALL_ID),
+  /** Auto-generated from RARE rule str-replace-all-self */
+  EVALUE(STR_REPLACE_ALL_SELF),
   /** Auto-generated from RARE rule str-replace-re-none */
   EVALUE(STR_REPLACE_RE_NONE),
   /** Auto-generated from RARE rule str-replace-re-all-none */
@@ -4566,6 +4592,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_INDEXOF_OOB2),
   /** Auto-generated from RARE rule str-indexof-contains-pre */
   EVALUE(STR_INDEXOF_CONTAINS_PRE),
+  /** Auto-generated from RARE rule str-indexof-contains-concat-pre */
+  EVALUE(STR_INDEXOF_CONTAINS_CONCAT_PRE),
   /** Auto-generated from RARE rule str-indexof-find-emp */
   EVALUE(STR_INDEXOF_FIND_EMP),
   /** Auto-generated from RARE rule str-indexof-eq-irr */
@@ -4592,6 +4620,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_TO_UPPER_FROM_INT),
   /** Auto-generated from RARE rule str-to-int-concat-neg-one */
   EVALUE(STR_TO_INT_CONCAT_NEG_ONE),
+  /** Auto-generated from RARE rule str-is-digit-elim */
+  EVALUE(STR_IS_DIGIT_ELIM),
   /** Auto-generated from RARE rule str-leq-empty */
   EVALUE(STR_LEQ_EMPTY),
   /** Auto-generated from RARE rule str-leq-empty-eq */
@@ -4686,6 +4716,10 @@ enum ENUM(ProofRewriteRule)
   EVALUE(RE_STAR_EMP),
   /** Auto-generated from RARE rule re-star-star */
   EVALUE(RE_STAR_STAR),
+  /** Auto-generated from RARE rule re-range-non-singleton-1 */
+  EVALUE(RE_RANGE_NON_SINGLETON_1),
+  /** Auto-generated from RARE rule re-range-non-singleton-2 */
+  EVALUE(RE_RANGE_NON_SINGLETON_2),
   /** Auto-generated from RARE rule re-star-union-drop-emp */
   EVALUE(RE_STAR_UNION_DROP_EMP),
   /** Auto-generated from RARE rule re-loop-neg */
@@ -4726,8 +4760,6 @@ enum ENUM(ProofRewriteRule)
   EVALUE(SEQ_NTH_UNIT),
   /** Auto-generated from RARE rule seq-rev-unit */
   EVALUE(SEQ_REV_UNIT),
-  /** Auto-generated from RARE rule seq-len-empty */
-  EVALUE(SEQ_LEN_EMPTY),
   /** Auto-generated from RARE rule re-in-empty */
   EVALUE(RE_IN_EMPTY),
   /** Auto-generated from RARE rule re-in-sigma */

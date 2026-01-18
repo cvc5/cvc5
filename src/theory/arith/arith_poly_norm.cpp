@@ -18,6 +18,7 @@
 #include "expr/attribute.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "util/bitvector.h"
+#include "theory/arith/arith_poly_norm.h"
 
 using namespace cvc5::internal::kind;
 
@@ -516,11 +517,23 @@ bool PolyNorm::isArithPolyNormRel(TNode a, TNode b, Rational& ca, Rational& cb)
     Assert(a[0].getType().isComparableTo(a[1].getType()));
     Assert(b[0].getType().isComparableTo(b[1].getType()));
     eqtn = a[0].getType().leastUpperBound(a[1].getType());
-    eqtn = eqtn.leastUpperBound(b[0].getType().leastUpperBound(b[1].getType()));
-    // could happen if we are comparing equalities of different types
-    if (!eqtn.isRealOrInt() && !eqtn.isBitVector())
+    TypeNode eqtn2 = b[0].getType().leastUpperBound(b[1].getType());
+    if (eqtn.isRealOrInt())
     {
-      return false;
+      // we can prove equivalence of Real vs Int equalities
+      if (!eqtn2.isRealOrInt())
+      {
+        return false;
+      }
+    }
+    else
+    {
+      eqtn = eqtn.leastUpperBound(eqtn2);
+      // could happen if we are comparing equalities of different types
+      if (!eqtn.isBitVector())
+      {
+        return false;
+      }
     }
   }
   else if (k != Kind::GEQ && k != Kind::LEQ && k != Kind::GT && k != Kind::LT)
