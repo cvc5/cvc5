@@ -89,8 +89,6 @@ class LiaStarExtension : EnvObj
   /** Does this class need a call to check(...) at last call effort? */
   bool hasLiaStarTerms() const { return d_hasLiaStarTerms; }
 
-  std::string print(Matrix matrix) const;
-
  private:
   /** get assertions
    *

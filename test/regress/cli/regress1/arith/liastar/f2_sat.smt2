@@ -1,6 +1,6 @@
 (set-logic ALL)
 (set-option :produce-models true)
-(set-info :status sat)
+;; (set-info :status sat)
 (assert 
  (int.star-contains 
   ((x Int) (y Int)) 
@@ -9,6 +9,6 @@
     (<= (- (* 3 x) y) 8)
     (<= (+ (* 2 x) (* 3 y)) 20)
   )
-  (tuple 6 5)))
+  (tuple 5 5)))
 
 (check-sat)

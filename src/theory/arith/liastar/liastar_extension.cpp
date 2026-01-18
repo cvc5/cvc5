@@ -246,7 +246,7 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
           Trace("liastar-ext") << "Cone for node " << std::endl
                                << pair.second << std::endl;
           Trace("liastar-ext") << "Matrix: " << std::endl
-                               << print(pair.first) << std::endl;
+                               << toString(pair.first) << std::endl;
           Cone<Integer> cone(Type::inhom_inequalities, pair.first);
           cone.compute(ConeProperty::HilbertBasis);
           cone.compute(ConeProperty::ModuleGenerators);
@@ -307,12 +307,12 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
         }
 
         // sum constraints
-        Vector sums(dimension);
-        for (const auto& pair : lambdas)
+        Vector sums(dimension, d_zero);
+        for (const std::pair<Vector, std::vector<Vector>>& pair : lambdas)
         {
           for (size_t i = 0; i < dimension; i++)
           {
-            sums[i] = pair.first[i];
+            sums[i] = d_nm->mkNode(Kind::ADD, sums[i], pair.first[i]);
             for (const auto& ray : pair.second)
             {
               sums[i] = d_nm->mkNode(Kind::ADD, sums[i], ray[i]);
@@ -325,6 +325,8 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
           starConstraints.push_back(v[i].eqNode(sums[i]));
         }
         lemma = d_nm->mkNode(Kind::AND, starConstraints);
+        Trace("liastar-ext")
+            << "starConstraints: " << starConstraints << std::endl;
         lemma = rewrite(lemma);
         Trace("liastar-ext") << "star lemma: " << lemma << std::endl;
         d_im.addPendingLemma(lemma, InferenceId::ARITH_LIA_STAR);
