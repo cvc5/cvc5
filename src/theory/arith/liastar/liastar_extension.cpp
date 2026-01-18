@@ -325,8 +325,8 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
           starConstraints.push_back(v[i].eqNode(sums[i]));
         }
         lemma = d_nm->mkNode(Kind::AND, starConstraints);
-        Trace("liastar-ext")
-            << "starConstraints: " << starConstraints << std::endl;
+        Trace("liastar-ext") << "starConstraints: " << std::endl
+                             << toString(starConstraints) << std::endl;
         lemma = rewrite(lemma);
         Trace("liastar-ext") << "star lemma: " << lemma << std::endl;
         d_im.addPendingLemma(lemma, InferenceId::ARITH_LIA_STAR);
