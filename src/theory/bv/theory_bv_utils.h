@@ -42,7 +42,7 @@ typedef std::unordered_set<Node> NodeSet;
 unsigned getSize(TNode node);
 
 /* Get bit at given index. */
-const bool getBit(TNode node, unsigned i);
+bool getBit(TNode node, unsigned i);
 
 /* Get the upper index of given extract node. */
 unsigned getExtractHigh(TNode node);

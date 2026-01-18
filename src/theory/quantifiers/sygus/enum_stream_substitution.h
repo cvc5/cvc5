@@ -257,7 +257,7 @@ class EnumStreamSubstitution : protected EnvObj
      */
     void getLastComb(std::vector<Node>& vars);
     /** retrieve subclass id */
-    const unsigned getSubclassId() const;
+    unsigned getSubclassId() const;
 
    private:
     /** subclass id of variables being combined */

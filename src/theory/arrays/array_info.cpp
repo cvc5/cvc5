@@ -304,7 +304,7 @@ const Info* ArrayInfo::getInfo(const TNode a) const{
   return emptyInfo;
 }
 
-const bool ArrayInfo::isNonLinear(const TNode a) const
+bool ArrayInfo::isNonLinear(const TNode a) const
 {
   CNodeInfoMap::const_iterator it = info_map.find(a);
 
@@ -314,7 +314,7 @@ const bool ArrayInfo::isNonLinear(const TNode a) const
   return false;
 }
 
-const bool ArrayInfo::rIntro1Applied(const TNode a) const
+bool ArrayInfo::rIntro1Applied(const TNode a) const
 {
   CNodeInfoMap::const_iterator it = info_map.find(a);
 

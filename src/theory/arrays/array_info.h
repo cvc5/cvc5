@@ -159,9 +159,9 @@ public:
 
   const Info* getInfo(const TNode a) const;
 
-  const bool isNonLinear(const TNode a) const;
+  bool isNonLinear(const TNode a) const;
 
-  const bool rIntro1Applied(const TNode a) const;
+  bool rIntro1Applied(const TNode a) const;
 
   const TNode getModelRep(const TNode a) const;
 
