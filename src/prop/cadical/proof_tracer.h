@@ -31,27 +31,28 @@ namespace cvc5::internal::prop::cadical {
 class CadicalPropagator;
 
 /**
- * Proof tracer implementation for computing unsat cores from CaDiCaL.
+ * Proof tracer implementation for tracing CaDiCaL LRUP proofs.
  *
  * This tracer keeps track of the original clauses sent to CaDiCaL (input
- * clauses and theory lemmas) as well as the antecedents of each derived clause.
- * Derived clauses are not stored since they are not needed for unsat cores.
+ * clauses and theory lemmas) as well as derived clauses and their the
+ * antecedents. All input clauses added during solving are considered theory
+ * lemmas.
  *
  * When the empty clause (ProofTracer::conclude_unsat) is derived we store
  * the final clause ids that were used to derive the empty clause in
- * d_final_clauses. The original clauses that are reachable from the
- * final clause ids through the stored antecedents correspond to the unsat core,
- * which is computed in ProofTracer::compute_unsat_core.
+ * d_final_clauses. The input clauses that are reachable from the
+ * final clause ids through the stored antecedents correspond to the unsat core.
  */
 
 class ProofTracer : public CaDiCaL::Tracer
 {
  public:
-  enum class ClauseType
+  enum class ClauseType : uint8_t
   {
     ASSUMPTION,  // assumption clause
     INPUT,       // input clause
-    THEORY,      // theory lemmas
+    THEORY,      // theory lemma
+    DERIVED,     // derived clause
   };
 
   struct ClauseInfo
@@ -90,16 +91,42 @@ class ProofTracer : public CaDiCaL::Tracer
   void conclude_unsat(CaDiCaL::ConclusionType type,
                       const std::vector<uint64_t>& clause_ids) override;
 
-  void compute_unsat_core(std::vector<SatClause>& unsat_core,
-                          bool include_theory_lemmas = true) const;
+  /**
+   * Backwards traversal of clausal proof starting from the empty clause.
+   * @param core Proof core containing visited clause ids.
+   */
+  void compute_proof_core(std::vector<uint64_t>& core) const;
+
+  /**
+   * Generates the chain resolution proof from CaDiCaL's LRUP proof.
+   */
+  std::shared_ptr<ProofNode> get_chain_resolution_proof(ProofNodeManager* pnm,
+                                                        NodeManager* nm,
+                                                        TheoryProxy* proxy);
 
  private:
+  /**
+   * Helper to find pivot literals.
+   * @param marked_vars Cache of already marked variables.
+   * @param lit Current literal to mark.
+   * @return Whether other polarity of given literal has been already marked.
+   */
+  bool mark_var(std::unordered_map<int32_t, uint8_t>& marked_vars, int32_t lit);
+
+  /**
+   * Produce a chain resolution proof step for a derived clause.
+   */
+  std::shared_ptr<ProofNode> chain_resolution_step(
+      uint64_t cid,
+      TheoryProxy* proxy,
+      ProofNodeManager* pnm,
+      NodeManager* nm,
+      const std::unordered_map<uint64_t, std::shared_ptr<ProofNode>>& steps,
+      const std::unordered_set<int64_t>& activation_literals);
+
   const CadicalPropagator& d_propagator;
-  // Maps clause id to its antecedents.
-  std::vector<std::vector<uint64_t>> d_antecedents;
-  // Maps original clause ids to their literals and clause type.
-  std::unordered_map<uint64_t, std::pair<std::vector<int>, ClauseType>>
-      d_orig_clauses;
+  // Maps clause ids to clause info.
+  std::vector<ClauseInfo> d_clauses;
   // Stores the final clause ids used to conclude unsat.
   std::vector<uint64_t> d_final_clauses;
 };
