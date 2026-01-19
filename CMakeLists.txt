@@ -248,6 +248,7 @@ add_check_cxx_flag("-Wsuggest-override")
 add_check_cxx_flag("-Wnon-virtual-dtor")
 add_check_c_cxx_flag("-Wignored-qualifiers")
 add_check_c_cxx_flag("-Wimplicit-fallthrough")
+add_check_c_cxx_flag("-Wmissing-field-initializers")
 add_check_c_cxx_flag("-Wshadow")
 add_check_c_cxx_flag("-fno-operator-names")
 
