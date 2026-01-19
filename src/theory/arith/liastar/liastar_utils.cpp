@@ -58,7 +58,8 @@ std::pair<Node, Node> LiaStarUtils::getVectorPredicate(Node n, NodeManager* nm)
 
 Node LiaStarUtils::toDNF(Node n, Env* e)
 {
-  Node dnf = n;
+  auto rw = e->getRewriter();
+  Node dnf = rw->rewrite(n);
   bool changed = false;
   do
   {
@@ -80,7 +81,8 @@ Node LiaStarUtils::toDNF(Node n, Env* e)
 
 std::pair<Node, bool> LiaStarUtils::booleanDNF(Node n, Env* e)
 {
-  Assert(n.getType().isBoolean());
+  Assert(n.getType().isBoolean())
+      << "Expected " << n << " to be boolean" << std::endl;
   NodeManager* nm = e->getNodeManager();
   Node falseConst = nm->mkConst<bool>(false);
   Node trueConst = nm->mkConst<bool>(true);
