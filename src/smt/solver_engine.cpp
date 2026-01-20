@@ -1828,7 +1828,7 @@ void SolverEngine::getRelevantQuantTermVectors(
     std::map<Node, InstantiationList>& insts,
     std::map<Node, std::vector<Node>>& sks,
     bool getDebugInfo)
-{  
+{
   // see if another solver engine was responsible for the last status
   SolverEngine* ssolver = d_state->getStatusSolver();
   if (ssolver != nullptr)

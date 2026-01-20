@@ -869,7 +869,7 @@ class CVC5_EXPORT SolverEngine
    * Return the set of assertions, after applying top-level substitutions.
    */
   std::vector<Node> getSubstitutedAssertions();
-  
+
   // disallow copy/assignment
   SolverEngine(const SolverEngine&) = delete;
   SolverEngine& operator=(const SolverEngine&) = delete;
