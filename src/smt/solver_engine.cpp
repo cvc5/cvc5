@@ -678,15 +678,7 @@ TheoryModel* SolverEngine::getAvailableModel(const char* c) const
     ss << "Cannot " << c << " when produce-models options is off.";
     throw ModalException(ss.str().c_str());
   }
-  // check if there is an SMT solver besides the default that is responsible
-  // for the last status.
-  SmtSolver* msolver = d_state->getStatusSolver();
-  if (msolver==nullptr)
-  {
-    // if null, then we assume it is the default one.
-    msolver = d_smtSolver.get();
-  }
-  TheoryEngine* te = msolver->getTheoryEngine();
+  TheoryEngine* te = d_smtSolver->getTheoryEngine();
   Assert(te != nullptr);
   // If the solver is in UNKNOWN mode, we use the latest available model (e.g.,
   // one that was generated for a last call check). Note that the model is SAT
@@ -719,7 +711,7 @@ TheoryModel* SolverEngine::getAvailableModel(const char* c) const
     // we get the assertions using the getAssertionsInternal, which does not
     // impact whether we are in "sat" mode
     std::vector<Node> asserts = getAssertionsInternal();
-    msolver->getPreprocessor()->applySubstitutions(asserts);
+    d_smtSolver->getPreprocessor()->applySubstitutions(asserts);
     ModelCoreBuilder mcb(*d_env.get());
     mcb.setModelCore(asserts, m, opts.smt.modelCoresMode);
   }
@@ -906,7 +898,7 @@ std::pair<Result, std::vector<Node>> SolverEngine::getTimeoutCore(
   // A call to get-timeout-core is the same as a check-sat, except that the
   // solver that has the model/proof is the SMT solver owned by the timeout
   // core manager.
-  SmtSolver * solver = d_tcm->getSubSolver()->d_smtSolver.get();
+  SolverEngine * solver = d_tcm->getSubSolver();
   Assert (solver!=nullptr);
   d_state->notifyCheckSatResult(ret.first, solver);
   endCall();
@@ -1219,6 +1211,12 @@ Node SolverEngine::simplify(const Node& t, bool applySubs)
 
 Node SolverEngine::getValue(const Node& t, bool fromUser)
 {
+  // see if another solver engine was responsible for the last status
+  SolverEngine * ssolver = d_state->getStatusSolver();
+  if (ssolver!=nullptr)
+  {
+    return ssolver->getValue(t, fromUser);
+  }
   ensureWellFormedTerm(t, "get value");
   Trace("smt") << "SMT getValue(" << t << ")" << endl;
   TypeNode expectedType = t.getType();
@@ -1374,6 +1372,12 @@ bool SolverEngine::isModelCoreSymbol(Node n)
 std::string SolverEngine::getModel(const std::vector<TypeNode>& declaredSorts,
                                    const std::vector<Node>& declaredFuns)
 {
+  // see if another solver engine was responsible for the last status
+  SolverEngine * ssolver = d_state->getStatusSolver();
+  if (ssolver!=nullptr)
+  {
+    return ssolver->getModel(declaredSorts, declaredFuns);
+  }
   // !!! Note that all methods called here should have a version at the API
   // level. This is to ensure that the information associated with a model is
   // completely accessible by the user. This is currently not rigorously
@@ -1622,6 +1626,12 @@ std::vector<Node> SolverEngine::getLearnedLiterals(modes::LearnedLitType t)
 
 void SolverEngine::checkProof()
 {
+  // see if another solver engine was responsible for the last status
+  SolverEngine * ssolver = d_state->getStatusSolver();
+  if (ssolver!=nullptr)
+  {
+    return ssolver->checkProof();
+  }
   Assert(d_env->getOptions().smt.produceProofs);
   if (d_env->isSatProofProducing())
   {
@@ -1805,6 +1815,12 @@ void SolverEngine::getRelevantQuantTermVectors(
 std::vector<std::shared_ptr<ProofNode>> SolverEngine::getProof(
     modes::ProofComponent c)
 {
+  // see if another solver engine was responsible for the last status
+  SolverEngine * ssolver = d_state->getStatusSolver();
+  if (ssolver!=nullptr)
+  {
+    return ssolver->getProof(c);
+  }
   Trace("smt") << "SMT getProof()\n";
   const Options& opts = d_env->getOptions();
   if (!opts.smt.produceProofs)
@@ -2030,6 +2046,7 @@ bool SolverEngine::getSubsolverSynthSolutions(std::map<Node, Node>& solMap)
 
 Node SolverEngine::getQuantifierElimination(Node q, bool doFull)
 {
+  Assert (d_state->getStatusSolver()==nullptr);
   beginCall(true);
   Node result = d_quantElimSolver->getQuantifierElimination(
       q, doFull, d_isInternalSubsolver);
@@ -2039,6 +2056,7 @@ Node SolverEngine::getQuantifierElimination(Node q, bool doFull)
 
 Node SolverEngine::getInterpolant(const Node& conj, const TypeNode& grammarType)
 {
+  Assert (d_state->getStatusSolver()==nullptr);
   beginCall(true);
   // Analogous to getAbduct, ensure that assertions are current.
   d_smtDriver->refreshAssertions();
