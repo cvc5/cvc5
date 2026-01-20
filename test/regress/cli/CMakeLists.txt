@@ -2282,6 +2282,8 @@ set(regress_0_tests
   regress0/test9.cvc.smt2
   regress0/timeout_core_empty.smt2
   regress0/timeout_core_simple.smt2
+  regress0/to-core-model.smt2
+  regress0/to-core-proof.smt2
   regress0/tptp/ARI086=1.smt2
   regress0/tptp/DAT001=1.smt2
   regress0/tptp/is_rat_simple.smt2
