@@ -1537,6 +1537,12 @@ void SolverEngine::printProof(std::ostream& out,
                               modes::ProofFormat proofFormat,
                               const std::map<Node, std::string>& assertionNames)
 {
+  // see if another solver engine was responsible for the last status
+  SolverEngine* ssolver = d_state->getStatusSolver();
+  if (ssolver != nullptr)
+  {
+    return ssolver->printProof(out, fp, proofFormat, assertionNames);
+  }
   out << "(" << std::endl;
   // we print in the format based on the proof mode
   options::ProofFormatMode mode = options::ProofFormatMode::NONE;
