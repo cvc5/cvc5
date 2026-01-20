@@ -1531,6 +1531,39 @@ enum ENUM(ProofRule)
   EVALUE(EXISTS_STRING_LENGTH),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Quantifiers -- Exists invertibility condition**
+   *
+   * .. math::
+   *   \inferrule{-\mid \exists x.\> R[x]} {C \rightarrow R[k]}
+   *
+   * where :math:`k` is the skolem with identifier
+   * :cpp:enumerator:`WITNESS_INV_CONDITION <cvc5::SkolemId::WITNESS_INV_CONDITION>`
+   * indexed by the argument of this proof rule.
+   *
+   * This rule expects :math:`\exists x.\> R[x]` an equation that is handled
+   * as a case in the paper Niemetz et al, CAV 2018, "Solving Quantified
+   * Bit-Vectors using Invertibility Conditions".
+   *
+   * Note that :math:`\exists x.\> C \rightarrow R[x]` is a valid formula.
+   *
+   * \endverbatim
+   */
+  EVALUE(EXISTS_INV_CONDITION),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Quantifiers -- Macro exists invertibility condition**
+   *
+   * .. math::
+   *   \inferrule{-\mid s} {C \rightarrow R[k]}
+   *
+   * where :math:`s` is the internal specification of an existential
+   * :math:`\exists x.\> R[x]`.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_EXISTS_INV_CONDITION),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Sets -- Singleton injectivity**
    *
    * .. math::
