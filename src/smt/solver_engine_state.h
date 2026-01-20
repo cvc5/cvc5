@@ -143,8 +143,8 @@ class SolverEngineState : protected EnvObj
   /** Get the status of the last check-sat */
   Result getStatus() const;
   /**
-   * Get the SMT solver that is responsible for the checkSatisfiability result.
-   * If null, the default SMT solver of solver engine is used.
+   * Get the solver engine that is responsible for the checkSatisfiability
+   * result. If null, then the parent solver engine is assumed.
    */
   SolverEngine* getStatusSolver() const;
   /** Get the SMT mode we are in */
@@ -175,8 +175,7 @@ class SolverEngineState : protected EnvObj
    */
   Result d_status;
   /**
-   * The SMT solver that is responsible for the checkSatisfiability result.
-   * If null, the default SMT solver of solver engine is used.
+   * The solver engine that is responsible for the checkSatisfiability result.
    */
   SolverEngine* d_statusSolver;
   /**
