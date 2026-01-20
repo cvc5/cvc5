@@ -880,7 +880,27 @@ void TheorySetsPrivate::checkMapDown()
       exp.push_back(pair.second);
       d_state.addEqualityToExp(B, term, exp);
       Node y = pair.second[0];
-
+      // check if y is already an image of an element x in A
+      bool preimageFound = false;
+      const std::map<Node, Node>& aElements =
+          d_state.getMembers(d_state.getRepresentative(A));
+      for (const std::pair<const Node, Node>& p : aElements)
+      {
+        Node z = p.second[0];
+        Node f_z = nm->mkNode(Kind::APPLY_UF, f, z);
+        f_z = nm->getSkolemManager()->getOriginalForm(f_z);
+        f_z = rewrite(f_z);
+        if (d_state.getRepresentative(f_z) == d_state.getRepresentative(y))
+        {
+          preimageFound = true;
+          break;
+        }
+      }
+      if (preimageFound)
+      {
+        // skip, we already have a preimage for y
+        continue;
+      }
       // general case
       // (=>
       //   (and
@@ -891,11 +911,14 @@ void TheorySetsPrivate::checkMapDown()
       //     (= (f x) y))
       // )
       Node x = sm->mkSkolemFunction(SkolemId::SETS_MAP_DOWN_ELEMENT, {term, y});
-
       d_state.registerMapSkolemElement(term, x);
+
       Node memberA = nm->mkNode(Kind::SET_MEMBER, x, A);
       Node f_x = nm->mkNode(Kind::APPLY_UF, f, x);
+      f_x = nm->getSkolemManager()->getOriginalForm(f_x);
+      f_x = rewrite(f_x);
       Node equal = f_x.eqNode(y);
+      equal = rewrite(equal);
       Node fact = memberA.andNode(equal);
       d_im.assertInference(fact, InferenceId::SETS_MAP_DOWN_POSITIVE, exp);
       if (d_state.isInConflict())
