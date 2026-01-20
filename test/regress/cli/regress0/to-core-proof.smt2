@@ -1,4 +1,5 @@
-; SCRUBBER: grep -v -E 'unsat'
+; COMMAND-LINE: --produce-proofs --check-proofs
+; SCRUBBER: grep -E 'unsat'
 ; EXPECT: unsat
 ; DISABLE-TESTER: lfsc
 ; DISABLE-TESTER: cpc

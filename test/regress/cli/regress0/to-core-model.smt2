@@ -1,4 +1,5 @@
-; SCRUBBER: grep -v -E 'sat'
+; COMMAND-LINE: --produce-models --check-models
+; SCRUBBER: grep -E 'sat'
 ; EXPECT: sat
 (set-logic ALL)
 (set-option :produce-unsat-cores true)
