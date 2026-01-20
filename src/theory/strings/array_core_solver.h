@@ -35,7 +35,6 @@ class ArrayCoreSolver : protected EnvObj
                   SolverState& s,
                   InferenceManager& im,
                   TermRegistry& tr,
-                  CoreSolver& cs,
                   ExtfSolver& es,
                   ExtTheory& extt);
   ~ArrayCoreSolver();
@@ -114,8 +113,6 @@ class ArrayCoreSolver : protected EnvObj
   InferenceManager& d_im;
   /** Reference to the term registry of theory of strings */
   TermRegistry& d_termReg;
-  /** reference to the core solver, used for certain queries */
-  CoreSolver& d_csolver;
   /** reference to the extended solver, used for certain queries */
   ExtfSolver& d_esolver;
   /** the extended theory object for the theory of strings */
