@@ -64,7 +64,7 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_getTermManager(JNIEnv* env,
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
-  TermManager* tm = &solver->getTermManager();
+  TermManager* tm = new TermManager(solver->getTermManager());
   return reinterpret_cast<jlong>(tm);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
