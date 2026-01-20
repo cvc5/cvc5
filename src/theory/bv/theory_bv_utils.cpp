@@ -258,7 +258,7 @@ Node mkConst(NodeManager* nm, unsigned size, unsigned int value)
   return nm->mkConst<BitVector>(val);
 }
 
-Node mkConst(NodeManager* nm, unsigned size, Integer& value)
+Node mkConst(NodeManager* nm, unsigned size, const Integer& value)
 {
   return nm->mkConst<BitVector>(BitVector(size, value));
 }
