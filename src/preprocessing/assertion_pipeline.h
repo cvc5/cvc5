@@ -207,9 +207,6 @@ class AssertionPipeline : protected EnvObj
    */
   IteSkolemMap d_iteSkolemMap;
 
-  /** Size of d_nodes when preprocessing starts */
-  size_t d_realAssertionsEnd;
-
   /**
    * If true, we store the substitutions as assertions. This is necessary when
    * doing incremental solving because we cannot apply them to existing
@@ -224,10 +221,6 @@ class AssertionPipeline : protected EnvObj
    */
   std::unordered_set<size_t> d_substsIndices;
 
-  /** Index of the first assumption */
-  size_t d_assumptionsStart;
-  /** The number of assumptions */
-  size_t d_numAssumptions;
   /** The proof generator, if one is provided */
   smt::PreprocessProofGenerator* d_pppg;
   /** Are we in conflict? */

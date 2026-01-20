@@ -63,7 +63,7 @@ class Plugin
    */
   virtual std::string getName() = 0;
 
- private:
+ protected:
   /** Pointer to node manager */
   NodeManager* d_nm;
 };

@@ -41,8 +41,8 @@ TheoryBags::TheoryBags(Env& env, OutputChannel& out, Valuation valuation)
       d_notify(*this, d_im),
       d_statistics(statisticsRegistry()),
       d_rewriter(nodeManager(), env.getRewriter(), &d_statistics.d_rewrites),
-      d_termReg(env, d_state, d_im),
-      d_solver(env, d_state, d_im, d_termReg),
+      d_termReg(env, d_state),
+      d_solver(env, d_state, d_im),
       d_cpacb(*this)
 {
   // use the official theory state and inference manager objects
