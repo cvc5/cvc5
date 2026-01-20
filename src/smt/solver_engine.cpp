@@ -272,6 +272,7 @@ SolverEngine::~SolverEngine()
 
     d_pfManager.reset(nullptr);
     d_ucManager.reset(nullptr);
+    d_tcm.reset(nullptr);
 
     d_abductSolver.reset(nullptr);
     d_interpolSolver.reset(nullptr);
@@ -677,9 +678,12 @@ TheoryModel* SolverEngine::getAvailableModel(const char* c) const
     ss << "Cannot " << c << " when produce-models options is off.";
     throw ModalException(ss.str().c_str());
   }
+  // check if there is an SMT solver besides the default that is responsible
+  // for the last status.
   SmtSolver* msolver = d_state->getStatusSolver();
   if (msolver==nullptr)
   {
+    // if null, then we assume it is the default one.
     msolver = d_smtSolver.get();
   }
   TheoryEngine* te = msolver->getTheoryEngine();
@@ -865,10 +869,13 @@ std::pair<Result, std::vector<Node>> SolverEngine::getTimeoutCore(
 {
   Trace("smt") << "SolverEngine::getTimeoutCore()" << std::endl;
   beginCall(true);
+  if (d_tcm==nullptr)
+  {
+    d_tcm.reset(new TimeoutCoreManager(*d_env.get()));
+  }
   // refresh the assertions, to ensure we have applied preprocessing to
   // all current assertions
   d_smtDriver->refreshAssertions();
-  TimeoutCoreManager tcm(*d_env.get());
   // get the preprocessed assertions
   const context::CDList<Node>& assertions =
       d_smtSolver->getPreprocessedAssertions();
@@ -881,7 +888,7 @@ std::pair<Result, std::vector<Node>> SolverEngine::getTimeoutCore(
     ppSkolemMap[pk.first] = pk.second;
   }
   std::pair<Result, std::vector<Node>> ret =
-      tcm.getTimeoutCore(passerts, ppSkolemMap, assumptions);
+      d_tcm->getTimeoutCore(passerts, ppSkolemMap, assumptions);
   // convert the preprocessed assertions to input assertions
   std::vector<Node> core;
   if (assumptions.empty())
@@ -899,7 +906,8 @@ std::pair<Result, std::vector<Node>> SolverEngine::getTimeoutCore(
   // A call to get-timeout-core is the same as a check-sat, except that the
   // solver that has the model/proof is the SMT solver owned by the timeout
   // core manager.
-  SmtSolver * solver = tcm.getSubSolver()->d_smtSolver.get();
+  SmtSolver * solver = d_tcm->getSubSolver()->d_smtSolver.get();
+  Assert (solver!=nullptr);
   d_state->notifyCheckSatResult(ret.first, solver);
   endCall();
   return std::pair<Result, std::vector<Node>>(ret.first, core);

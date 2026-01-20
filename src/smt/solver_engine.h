@@ -75,6 +75,7 @@ class FindSynthSolver;
 struct SolverEngineStatistics;
 class PfManager;
 class UnsatCoreManager;
+class TimeoutCoreManager;
 
 }  // namespace smt
 
@@ -1119,6 +1120,10 @@ class CVC5_EXPORT SolverEngine
    * The unsat core manager, which produces unsat cores and related information
    * from refutations. */
   std::unique_ptr<smt::UnsatCoreManager> d_ucManager;
+  /**
+   * The timeout core manager, for responding to get-timeout-core commands.
+   */
+  std::unique_ptr<smt::TimeoutCoreManager> d_tcm;
 
   /** The solver for sygus queries */
   std::unique_ptr<smt::SygusSolver> d_sygusSolver;
