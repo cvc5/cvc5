@@ -835,26 +835,6 @@ class CVC5_EXPORT SolverEngine
   void setTimeLimit(uint64_t millis);
 
   /**
-   * Get the current resource usage count for this SolverEngine.  This
-   * function can be used to ascertain reasonable values to pass as
-   * resource limits to setResourceLimit().
-   */
-  unsigned long getResourceUsage() const;
-
-  /** Get the current millisecond count for this SolverEngine.  */
-  unsigned long getTimeUsage() const;
-
-  /**
-   * Get the remaining resources that can be consumed by this SolverEngine
-   * according to the currently-set cumulative resource limit.  If there
-   * is not a cumulative resource limit set, this function throws a
-   * ModalException.
-   *
-   * @throw ModalException
-   */
-  unsigned long getResourceRemaining() const;
-
-  /**
    * Print statistics from the statistics registry in the env object owned by
    * this SolverEngine. Safe to use in a signal handler.
    */
@@ -876,13 +856,6 @@ class CVC5_EXPORT SolverEngine
   ResourceManager* getResourceManager() const;
 
   /**
-   * Get substituted assertions.
-   *
-   * Return the set of assertions, after applying top-level substitutions.
-   */
-  std::vector<Node> getSubstitutedAssertions();
-
-  /**
    * Get the enviornment from this solver engine.
    */
   Env& getEnv();
@@ -890,6 +863,13 @@ class CVC5_EXPORT SolverEngine
  private:
   /* .......................................................................  */
 
+  /**
+   * Get substituted assertions.
+   *
+   * Return the set of assertions, after applying top-level substitutions.
+   */
+  std::vector<Node> getSubstitutedAssertions();
+  
   // disallow copy/assignment
   SolverEngine(const SolverEngine&) = delete;
   SolverEngine& operator=(const SolverEngine&) = delete;

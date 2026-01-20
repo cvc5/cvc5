@@ -1706,6 +1706,12 @@ UnsatCore SolverEngine::getUnsatCoreInternal(bool isInternal)
 
 void SolverEngine::checkUnsatCore()
 {
+  // see if another solver engine was responsible for the last status
+  SolverEngine* ssolver = d_state->getStatusSolver();
+  if (ssolver != nullptr)
+  {
+    return ssolver->checkUnsatCore();
+  }
   Assert(d_env->getOptions().smt.produceUnsatCores)
       << "cannot check unsat core if unsat cores are turned off";
 
@@ -1752,6 +1758,12 @@ void SolverEngine::checkUnsatCore()
 
 void SolverEngine::checkModel(bool hardFailure)
 {
+  // see if another solver engine was responsible for the last status
+  SolverEngine* ssolver = d_state->getStatusSolver();
+  if (ssolver != nullptr)
+  {
+    return ssolver->checkModel(hardFailure);
+  }
   const CDList<Node>& al = d_smtSolver->getAssertions().getAssertionList();
   // we always enable the assertion list, so it is able to be checked
 
@@ -1777,12 +1789,24 @@ void SolverEngine::checkModel(bool hardFailure)
 
 UnsatCore SolverEngine::getUnsatCore()
 {
+  // see if another solver engine was responsible for the last status
+  SolverEngine* ssolver = d_state->getStatusSolver();
+  if (ssolver != nullptr)
+  {
+    return ssolver->getUnsatCore();
+  }
   Trace("smt") << "SMT getUnsatCore()" << std::endl;
   return getUnsatCoreInternal(false);
 }
 
 std::vector<Node> SolverEngine::getUnsatCoreLemmas()
 {
+  // see if another solver engine was responsible for the last status
+  SolverEngine* ssolver = d_state->getStatusSolver();
+  if (ssolver != nullptr)
+  {
+    return ssolver->getUnsatCoreLemmas();
+  }
   Trace("smt") << "SMT getUnsatCoreLemmas()" << std::endl;
   finishInit();
   if (!d_env->getOptions().smt.produceUnsatCores)
@@ -1804,7 +1828,13 @@ void SolverEngine::getRelevantQuantTermVectors(
     std::map<Node, InstantiationList>& insts,
     std::map<Node, std::vector<Node>>& sks,
     bool getDebugInfo)
-{
+{  
+  // see if another solver engine was responsible for the last status
+  SolverEngine* ssolver = d_state->getStatusSolver();
+  if (ssolver != nullptr)
+  {
+    return ssolver->getRelevantQuantTermVectors(insts, sks, getDebugInfo);
+  }
   Assert(d_state->getMode() == SmtMode::UNSAT);
   Assert(d_env->isTheoryProofProducing());
   // note that we don't have to connect the SAT proof to the input assertions,
@@ -1920,6 +1950,12 @@ void SolverEngine::proofToString(std::ostream& out,
 
 void SolverEngine::printInstantiations(std::ostream& out)
 {
+  // see if another solver engine was responsible for the last status
+  SolverEngine* ssolver = d_state->getStatusSolver();
+  if (ssolver != nullptr)
+  {
+    return ssolver->printInstantiations(out);
+  }
   QuantifiersEngine* qe = getAvailableQuantifiersEngine("printInstantiations");
 
   // First, extract and print the skolemizations
@@ -2012,6 +2048,12 @@ void SolverEngine::printInstantiations(std::ostream& out)
 void SolverEngine::getInstantiationTermVectors(
     std::map<Node, std::vector<std::vector<Node>>>& insts)
 {
+  // see if another solver engine was responsible for the last status
+  SolverEngine* ssolver = d_state->getStatusSolver();
+  if (ssolver != nullptr)
+  {
+    return ssolver->getInstantiationTermVectors(insts);
+  }
   QuantifiersEngine* qe =
       getAvailableQuantifiersEngine("getInstantiationTermVectors");
   // get the list of all instantiations
@@ -2020,6 +2062,7 @@ void SolverEngine::getInstantiationTermVectors(
 
 bool SolverEngine::getSynthSolutions(std::map<Node, Node>& solMap)
 {
+  Assert(d_state->getStatusSolver() == nullptr);
   if (d_sygusSolver == nullptr)
   {
     throw RecoverableModalException(
@@ -2033,6 +2076,7 @@ bool SolverEngine::getSynthSolutions(std::map<Node, Node>& solMap)
 
 bool SolverEngine::getSubsolverSynthSolutions(std::map<Node, Node>& solMap)
 {
+  Assert(d_state->getStatusSolver() == nullptr);
   if (d_sygusSolver == nullptr)
   {
     throw RecoverableModalException(
@@ -2074,6 +2118,7 @@ Node SolverEngine::getInterpolant(const Node& conj, const TypeNode& grammarType)
 
 Node SolverEngine::getInterpolantNext()
 {
+  Assert(d_state->getStatusSolver() == nullptr);
   beginCall(true);
   if (d_state->getMode() != SmtMode::INTERPOL)
   {
@@ -2093,6 +2138,7 @@ Node SolverEngine::getInterpolantNext()
 
 Node SolverEngine::getAbduct(const Node& conj, const TypeNode& grammarType)
 {
+  Assert(d_state->getStatusSolver() == nullptr);
   beginCall(true);
   // ensure that assertions are current
   d_smtDriver->refreshAssertions();
@@ -2110,6 +2156,7 @@ Node SolverEngine::getAbduct(const Node& conj, const TypeNode& grammarType)
 
 Node SolverEngine::getAbductNext()
 {
+  Assert(d_state->getStatusSolver() == nullptr);
   beginCall(true);
   if (d_state->getMode() != SmtMode::ABDUCT)
   {
@@ -2233,21 +2280,6 @@ void SolverEngine::setResourceLimit(uint64_t units, bool cumulative)
 void SolverEngine::setTimeLimit(uint64_t millis)
 {
   d_env->d_options.write_base().perCallMillisecondLimit = millis;
-}
-
-unsigned long SolverEngine::getResourceUsage() const
-{
-  return getResourceManager()->getResourceUsage();
-}
-
-unsigned long SolverEngine::getTimeUsage() const
-{
-  return getResourceManager()->getTimeUsage();
-}
-
-unsigned long SolverEngine::getResourceRemaining() const
-{
-  return getResourceManager()->getResourceRemaining();
 }
 
 void SolverEngine::printStatisticsSafe(int fd) const
