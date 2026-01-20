@@ -747,6 +747,7 @@ set(regress_0_tests
   regress0/datatypes/datatype2.cvc.smt2
   regress0/datatypes/datatype3.cvc.smt2
   regress0/datatypes/datatype4.cvc.smt2
+  regress0/datatypes/dd.ddatv-delta2.smt2
   regress0/datatypes/dd.pair-real-bool-const-conf.smt2
   regress0/datatypes/dt-2.6.smt2
   regress0/datatypes/dt-cons-eq-simple.smt2
@@ -824,6 +825,7 @@ set(regress_0_tests
   regress0/decision/bitvec5.smtv1.smt2
   regress0/decision/bug347.smtv1.smt2
   regress0/decision/bug374b.smt2
+  regress0/decision/dd.bv2nat-types.smt2
   regress0/decision/error122.delta01.smtv1.smt2
   regress0/decision/error122.smtv1.smt2
   regress0/decision/error20.delta01.smtv1.smt2
@@ -2712,6 +2714,7 @@ set(regress_1_tests
   regress1/datatypes/proj-issue433-tester-merge-pf.smt2
   regress1/datatypes/tuple_projection.smt2
   regress1/decision/bug374a.smtv1.smt2
+  regress1/decision/dd.issue6483-prereg-rlv.smt2
   regress1/decision/error3.smtv1.smt2
   regress1/decision/issue5454-2.smt2
   regress1/decision/issue5454-3.smt2
