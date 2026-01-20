@@ -4116,6 +4116,24 @@ cdef class Solver:
             coreLemmas.append(_term(self.tm, a))
         return coreLemmas
 
+    def getPartitions(self):
+        """
+            Get the partitioning formulas for this problem.
+
+            Requires requesting partitions
+            :ref:`compute-partitions=N`.
+
+            .. warning:: This function is experimental and may change in
+                         future versions.
+
+            :return: A set of terms representing the partitioning formulas
+            for this problem.
+        """
+        partitions = []
+        for a in self.csolver.getPartitions():
+            partitions.append(_term(self.tm, a))
+        return partitions
+
     def getDifficulty(self):
         """
             Get a difficulty estimate for an asserted formula. This function is

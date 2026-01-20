@@ -729,6 +729,12 @@ class CVC5_EXPORT SolverEngine
   std::vector<Node> getUnsatCoreLemmas();
 
   /**
+   * Get the partitioning formulas for this problem if compute-partitions was
+   * set.
+   */
+  std::vector<Node> getPartitions();
+
+  /**
    * Get a refutation proof (only if immediately preceded by an UNSAT query).
    * Only permitted if cvc5 was built with proof support and the proof option
    * is on.

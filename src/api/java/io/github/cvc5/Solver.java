@@ -2588,6 +2588,22 @@ public class Solver extends AbstractPointer
   private native long[] getUnsatCoreLemmas(long pointer);
 
   /**
+   * Get the partitioning formulas for this problem.
+   * Requires requesting partitions {@code compute-partitions=N}
+   *
+   * @api.note This method is experimental and may change in future versions.
+   *
+   * @return A set of terms representing the partitioning formulas for this problem.
+   */
+  public Term[] getPartitions()
+  {
+    long[] retPointers = getPartitions(pointer);
+    return Utils.getTerms(retPointers);
+  }
+
+  private native long[] getPartitions(long pointer);
+
+  /**
    * Get a difficulty estimate for an asserted formula. This method is
    * intended to be called immediately after any response to a checkSat.
    *

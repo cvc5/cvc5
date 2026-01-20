@@ -458,6 +458,7 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         vector[Term] getUnsatAssumptions() except +
         vector[Term] getUnsatCore() except +
         vector[Term] getUnsatCoreLemmas() except +
+        vector[Term] getPartitions() except +
         map[Term,Term] getDifficulty() except +
         pair[Result, vector[Term]] getTimeoutCore() except +
         pair[Result, vector[Term]] getTimeoutCoreAssuming(const vector[Term]& assumptions) except +
