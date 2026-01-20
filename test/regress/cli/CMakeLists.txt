@@ -651,6 +651,8 @@ set(regress_0_tests
   regress0/bv/issue9518_2.smt2
   regress0/bv/issue9519.smt2
   regress0/bv/issue10057.smt2
+  regress0/bv/issue12336-xor-simp.smt2
+  regress0/bv/issue12336-xor-simp-s.smt2
   regress0/bv/le-elim-conv.smt2
   regress0/bv/macro-rewrites.smt2
   regress0/bv/mul-neg-unsat.smt2
@@ -1122,6 +1124,7 @@ set(regress_0_tests
   regress0/nl/dd.polypaver-bench-exp-3d-chunk-0067.smt2
   regress0/nl/dd.sin-cos-346-b-chunk-0210.smt2
   regress0/nl/dd.sin-cos-346-b-chunk-0210_unsat.smt2
+  regress0/nl/iand0.smt2
   regress0/nl/iand-no-init.smt2
   regress0/nl/issue10145-ir-pow.smt2
   regress0/nl/issue10140-nl-tc.smt2
@@ -1306,6 +1309,7 @@ set(regress_0_tests
   regress0/parser/issue10156-bad-tester.smt2
   regress0/parser/issue10489.smt2
   regress0/parser/issue11763-quoted-dt-cons.smt2
+  regress0/parser/issue12356.smt2
   regress0/parser/linear_arithmetic_err1.smt2
   regress0/parser/linear_arithmetic_err2.smt2
   regress0/parser/linear_arithmetic_err3.smt2
@@ -1492,6 +1496,7 @@ set(regress_0_tests
   regress0/proofs/issue9770-open-sat-proof.smt2
   regress0/proofs/issue9927.smt2
   regress0/proofs/issue12240-cyclic-proof.smt2
+  regress0/proofs/issue12355-cm-mixed-arith.smt2
   regress0/proofs/lfsc-test-1.smt2
   regress0/proofs/macro-quant-prenex-simple.smt2
   regress0/proofs/nomerge-alethe-pf.smt2
@@ -2869,6 +2874,9 @@ set(regress_1_tests
   regress1/nl/issue10000.smt2
   regress1/nl/issue10139-iand.smt2
   regress1/nl/issue10724-real-as-int-types.smt2
+  regress1/nl/issue11386-1-nl-cov-cyclic.smt2
+  regress1/nl/issue11386-2-nl-cov-cyclic.smt2
+  regress1/nl/issue11386-3-nl-cov-cyclic.smt2
   regress1/nl/issue3300-approx-sqrt-witness.smt2
   regress1/nl/issue3441.smt2
   regress1/nl/issue3617.smt2

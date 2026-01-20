@@ -175,7 +175,7 @@ class SynthConjecture : protected EnvObj
   /** Reference to the quantifiers inference manager */
   QuantifiersInferenceManager& d_qim;
   /** The quantifiers registry */
-  QuantifiersRegistry& d_qreg;
+  CVC5_UNUSED_FIELD QuantifiersRegistry& d_qreg; // Only used in DEBUG
   /** Reference to the term registry */
   TermRegistry& d_treg;
   /** reference to the statistics of parent */

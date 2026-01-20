@@ -299,14 +299,13 @@ bool NlModel::addSubstitution(TNode v, TNode s)
       return false;
     }
   }
-  // Check if the substitution is cyclic when looking inside of abstracted
-  // arithmetic terms. This prevents substitutions like:
-  //   {x -> y, y -> (exp x)}
-  // Where note that {x->y}.applyArith((exp x)) = (exp x), but
-  // {x->y}.applyArith((exp x)) = (exp y), which is caught here.
-  Node subsFull = d_substitutions.apply(s);
-  if (expr::hasSubterm(subsFull, v))
+  // Check if the substitution is cyclic, considering arithmetic subterms.
+  // This prevents an assignment like x -> (* 2 x) but allows an assignment
+  // like x -> (f x) where f is an uninterpreted function.
+  Node subsFull = d_substitutions.applyArith(s);
+  if (ArithSubs::hasArithSubterm(subsFull, v))
   {
+    Trace("nl-ext-model") << "ERROR: has subterm " << subsFull << std::endl;
     return false;
   }
 

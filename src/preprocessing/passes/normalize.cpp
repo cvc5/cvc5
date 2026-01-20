@@ -468,7 +468,7 @@ Node rename(const Node& n,
             std::unordered_map<TypeNode, TypeNode> normalizedSorts,
             NodeManager* nodeManager,
             PreprocessingPassContext* d_preprocContext,
-            NormalizeSortNodeConverter* sortNormalizer,
+            NormalizeSortNodeConverter& sortNormalizer,
             bool& hasQID)
 {
   // Map to cache normalized nodes
@@ -518,7 +518,7 @@ Node rename(const Node& n,
                                          + std::string(8 - numDigits(id), '0')
                                          + std::to_string(id);
               Node ret = nodeManager->mkBoundVar(
-                  new_var_name, sortNormalizer->convertType(current.getType()));
+                  new_var_name, sortNormalizer.convertType(current.getType()));
 
               boundVar2node[current] = ret;
               normalized[current] = ret;
@@ -551,7 +551,7 @@ Node rename(const Node& n,
               // result
               Node ret = nodeManager->getSkolemManager()->mkDummySkolem(
                   new_var_name,
-                  sortNormalizer->convertType(current.getType()),
+                  sortNormalizer.convertType(current.getType()),
                   "normalized " + current.toString() + " to " + new_var_name,
                   SkolemFlags::SKOLEM_EXACT_NAME);
 
@@ -612,7 +612,7 @@ Node rename(const Node& n,
                                          + std::to_string(id);
 
               Node ret = nodeManager->mkBoundVar(
-                  new_var_name, sortNormalizer->convertType(bv.getType()));
+                  new_var_name, sortNormalizer.convertType(bv.getType()));
               boundVar2node[bv] = ret;
               normalized[bv] = ret;
             }
@@ -1026,8 +1026,7 @@ PreprocessingPassResult Normalize::applyInternal(
     }
   }
 
-  NormalizeSortNodeConverter* sortNormalizer =
-      new NormalizeSortNodeConverter(normalizedSorts, nodeManager());
+  NormalizeSortNodeConverter sortNormalizer(normalizedSorts, nodeManager());
 
   // ----------------------------------------
   // Step 7: Normalize nodes based on sorted order
