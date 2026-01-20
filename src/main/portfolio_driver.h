@@ -35,12 +35,17 @@ namespace cvc5::main {
 class ExecutionContext
 {
  public:
+  ExecutionContext(CommandExecutor* executor)
+      : d_executor(executor), d_hasReadCheckSat(false)
+  {
+  }
+
   /** The command executor used for solving */
   CommandExecutor* d_executor;
+  /* Whether a check-sat command has been read */
+  bool d_hasReadCheckSat;
   /** The logic, if it has been set by a command */
   std::optional<std::string> d_logic;
-  /* Whether a check-sat command has been read */
-  bool d_hasReadCheckSat = false;
   /** The last stored declarations and named terms **/
   std::vector<cvc5::Sort> d_sorts;
   std::vector<cvc5::Term> d_terms;
