@@ -383,6 +383,14 @@ void PropEngine::notifyExplainedPropagation(TrustNode texp)
   }
 }
 
+void PropEngine::notifySatClause(const Node& clause)
+{
+  if (d_ppm != nullptr)
+  {
+    d_ppm->notifySatClause(clause);
+  }
+}
+
 void PropEngine::preferPhase(TNode n, bool phase)
 {
   Trace("prop") << "preferPhase(" << n << ", " << phase << ")" << std::endl;
