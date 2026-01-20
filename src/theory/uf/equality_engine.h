@@ -28,6 +28,7 @@
 
 #include "context/cdhashmap.h"
 #include "context/cdo.h"
+#include "context/context_dynamic_notify_obj.h"
 #include "expr/kind_map.h"
 #include "expr/node.h"
 #include "smt/env_obj.h"
@@ -53,7 +54,7 @@ class ProofEqEngine;
  * Class for keeping an incremental congruence closure over a set of terms. It provides
  * notifications via an EqualityEngineNotify object.
  */
-class EqualityEngine : public context::ContextNotifyObj, protected EnvObj
+class EqualityEngine : public context::ContextDynamicNotifyObj, protected EnvObj
 {
   friend class EqClassesIterator;
   friend class EqClassIterator;
@@ -170,7 +171,11 @@ class EqualityEngine : public context::ContextNotifyObj, protected EnvObj
   bool isTriggerTerm(TNode t, TheoryId theoryTag) const;
   //--------------------updates
   /** Adds a term to the term database. */
-  void addTerm(TNode t) { addTermInternal(t, false); }
+  void addTerm(TNode t)
+  {
+    markNeedsRestore();
+    addTermInternal(t, false);
+  }
   /**
    * Adds a predicate p with given polarity. The predicate asserted
    * should be in the congruence closure kinds (otherwise it's
@@ -466,7 +471,7 @@ class EqualityEngine : public context::ContextNotifyObj, protected EnvObj
   void undoMerge(EqualityNode& class1, EqualityNode& class2, EqualityNodeId class2Id);
 
   /** Backtrack the information if necessary */
-  void backtrack();
+  void notifyRestore() override;
 
   /**
    * Trigger that will be updated
@@ -650,11 +655,6 @@ class EqualityEngine : public context::ContextNotifyObj, protected EnvObj
    * Adds a trigger equality to the database with the trigger node and polarity for notification.
    */
   void addTriggerEqualityInternal(TNode t1, TNode t2, TNode trigger, bool polarity);
-
-  /**
-   * This method gets called on backtracks from the context manager.
-   */
-  void contextNotifyPop() override { backtrack(); }
 
   /**
    * Constructor initialization stuff.

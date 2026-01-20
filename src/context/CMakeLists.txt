@@ -28,6 +28,8 @@ set(LIBCONTEXT_SOURCES
   cdtrail_queue.h
   context.cpp
   context.h
+  context_dynamic_notify_obj.cpp
+  context_dynamic_notify_obj.h
   context_mm.cpp
   context_mm.h
   default_clean_up.h
