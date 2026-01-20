@@ -861,7 +861,7 @@ std::pair<Result, std::vector<Node>> SolverEngine::getTimeoutCore(
 {
   Trace("smt") << "SolverEngine::getTimeoutCore()" << std::endl;
   beginCall(true);
-  if (d_tcm==nullptr)
+  if (d_tcm == nullptr)
   {
     d_tcm.reset(new TimeoutCoreManager(*d_env.get()));
   }
@@ -898,8 +898,8 @@ std::pair<Result, std::vector<Node>> SolverEngine::getTimeoutCore(
   // A call to get-timeout-core is the same as a check-sat, except that the
   // solver that has the model/proof is the SMT solver owned by the timeout
   // core manager.
-  SolverEngine * solver = d_tcm->getSubSolver();
-  Assert (solver!=nullptr);
+  SolverEngine* solver = d_tcm->getSubSolver();
+  Assert(solver != nullptr);
   d_state->notifyCheckSatResult(ret.first, solver);
   endCall();
   return std::pair<Result, std::vector<Node>>(ret.first, core);
@@ -1212,8 +1212,8 @@ Node SolverEngine::simplify(const Node& t, bool applySubs)
 Node SolverEngine::getValue(const Node& t, bool fromUser)
 {
   // see if another solver engine was responsible for the last status
-  SolverEngine * ssolver = d_state->getStatusSolver();
-  if (ssolver!=nullptr)
+  SolverEngine* ssolver = d_state->getStatusSolver();
+  if (ssolver != nullptr)
   {
     return ssolver->getValue(t, fromUser);
   }
@@ -1373,8 +1373,8 @@ std::string SolverEngine::getModel(const std::vector<TypeNode>& declaredSorts,
                                    const std::vector<Node>& declaredFuns)
 {
   // see if another solver engine was responsible for the last status
-  SolverEngine * ssolver = d_state->getStatusSolver();
-  if (ssolver!=nullptr)
+  SolverEngine* ssolver = d_state->getStatusSolver();
+  if (ssolver != nullptr)
   {
     return ssolver->getModel(declaredSorts, declaredFuns);
   }
@@ -1627,8 +1627,8 @@ std::vector<Node> SolverEngine::getLearnedLiterals(modes::LearnedLitType t)
 void SolverEngine::checkProof()
 {
   // see if another solver engine was responsible for the last status
-  SolverEngine * ssolver = d_state->getStatusSolver();
-  if (ssolver!=nullptr)
+  SolverEngine* ssolver = d_state->getStatusSolver();
+  if (ssolver != nullptr)
   {
     return ssolver->checkProof();
   }
@@ -1816,8 +1816,8 @@ std::vector<std::shared_ptr<ProofNode>> SolverEngine::getProof(
     modes::ProofComponent c)
 {
   // see if another solver engine was responsible for the last status
-  SolverEngine * ssolver = d_state->getStatusSolver();
-  if (ssolver!=nullptr)
+  SolverEngine* ssolver = d_state->getStatusSolver();
+  if (ssolver != nullptr)
   {
     return ssolver->getProof(c);
   }
@@ -2046,7 +2046,7 @@ bool SolverEngine::getSubsolverSynthSolutions(std::map<Node, Node>& solMap)
 
 Node SolverEngine::getQuantifierElimination(Node q, bool doFull)
 {
-  Assert (d_state->getStatusSolver()==nullptr);
+  Assert(d_state->getStatusSolver() == nullptr);
   beginCall(true);
   Node result = d_quantElimSolver->getQuantifierElimination(
       q, doFull, d_isInternalSubsolver);
@@ -2056,7 +2056,7 @@ Node SolverEngine::getQuantifierElimination(Node q, bool doFull)
 
 Node SolverEngine::getInterpolant(const Node& conj, const TypeNode& grammarType)
 {
-  Assert (d_state->getStatusSolver()==nullptr);
+  Assert(d_state->getStatusSolver() == nullptr);
   beginCall(true);
   // Analogous to getAbduct, ensure that assertions are current.
   d_smtDriver->refreshAssertions();

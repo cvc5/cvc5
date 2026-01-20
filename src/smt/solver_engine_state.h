@@ -86,7 +86,7 @@ class SolverEngineState : protected EnvObj
    *
    * @param r The result of the check-sat call.
    */
-  void notifyCheckSatResult(const Result& r, SolverEngine* solver=nullptr);
+  void notifyCheckSatResult(const Result& r, SolverEngine* solver = nullptr);
   /**
    * Notify that the result of the last check-synth or check-synth-next was r.
    * @param r The result of the check-synth or check-synth-next call.
