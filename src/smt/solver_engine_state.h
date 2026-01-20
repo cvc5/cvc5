@@ -32,6 +32,8 @@ class SolverEngine;
 
 namespace smt {
 
+class SmtSolver;
+
 /**
  * This utility is responsible for maintaining the basic state of the
  * SolverEngine.
@@ -86,7 +88,7 @@ class SolverEngineState : protected EnvObj
    *
    * @param r The result of the check-sat call.
    */
-  void notifyCheckSatResult(const Result& r);
+  void notifyCheckSatResult(const Result& r, SmtSolver* solver=nullptr);
   /**
    * Notify that the result of the last check-synth or check-synth-next was r.
    * @param r The result of the check-synth or check-synth-next call.
@@ -142,6 +144,11 @@ class SolverEngineState : protected EnvObj
   bool isQueryMade() const;
   /** Get the status of the last check-sat */
   Result getStatus() const;
+  /**
+   * Get the SMT solver that is responsible for the checkSatisfiability result.
+   * If null, the default SMT solver of solver engine is used.
+   */
+  SmtSolver* getStatusSolver() const;
   /** Get the SMT mode we are in */
   SmtMode getMode() const;
   //---------------------------- end queries
@@ -169,7 +176,11 @@ class SolverEngineState : protected EnvObj
    * SolverEngine.
    */
   Result d_status;
-
+  /**
+   * The SMT solver that is responsible for the checkSatisfiability result.
+   * If null, the default SMT solver of solver engine is used.
+   */
+  SmtSolver* d_statusSolver;
   /**
    * The expected status of the next satisfiability check.
    */

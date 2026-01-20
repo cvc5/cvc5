@@ -677,8 +677,12 @@ TheoryModel* SolverEngine::getAvailableModel(const char* c) const
     ss << "Cannot " << c << " when produce-models options is off.";
     throw ModalException(ss.str().c_str());
   }
-
-  TheoryEngine* te = d_smtSolver->getTheoryEngine();
+  SmtSolver* msolver = d_state->getStatusSolver();
+  if (msolver==nullptr)
+  {
+    msolver = d_smtSolver.get();
+  }
+  TheoryEngine* te = msolver->getTheoryEngine();
   Assert(te != nullptr);
   // If the solver is in UNKNOWN mode, we use the latest available model (e.g.,
   // one that was generated for a last call check). Note that the model is SAT
@@ -711,7 +715,7 @@ TheoryModel* SolverEngine::getAvailableModel(const char* c) const
     // we get the assertions using the getAssertionsInternal, which does not
     // impact whether we are in "sat" mode
     std::vector<Node> asserts = getAssertionsInternal();
-    d_smtSolver->getPreprocessor()->applySubstitutions(asserts);
+    msolver->getPreprocessor()->applySubstitutions(asserts);
     ModelCoreBuilder mcb(*d_env.get());
     mcb.setModelCore(asserts, m, opts.smt.modelCoresMode);
   }
@@ -892,6 +896,11 @@ std::pair<Result, std::vector<Node>> SolverEngine::getTimeoutCore(
     // not necessary to convert, since we computed the assumptions already
     core = ret.second;
   }
+  // A call to get-timeout-core is the same as a check-sat, except that the
+  // solver that has the model/proof is the SMT solver owned by the timeout
+  // core manager.
+  SmtSolver * solver = tcm.getSubSolver()->d_smtSolver.get();
+  d_state->notifyCheckSatResult(ret.first, solver);
   endCall();
   return std::pair<Result, std::vector<Node>>(ret.first, core);
 }

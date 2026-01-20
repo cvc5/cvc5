@@ -30,6 +30,7 @@ SolverEngineState::SolverEngineState(Env& env)
       d_fullyInited(false),
       d_queryMade(false),
       d_status(),
+      d_statusSolver(nullptr),
       d_expectedStatus(),
       d_smtMode(SmtMode::START)
 {
@@ -65,7 +66,7 @@ void SolverEngineState::notifyCheckSat()
   d_smtMode = SmtMode::ASSERT;
 }
 
-void SolverEngineState::notifyCheckSatResult(const Result& r)
+void SolverEngineState::notifyCheckSatResult(const Result& r, SmtSolver* solver)
 {
   // Note that a query has been made
   d_queryMade = true;
@@ -92,6 +93,8 @@ void SolverEngineState::notifyCheckSatResult(const Result& r)
     case Result::SAT: d_smtMode = SmtMode::SAT; break;
     default: d_smtMode = SmtMode::SAT_UNKNOWN;
   }
+  // store the status solver
+  d_statusSolver = solver;
 }
 
 void SolverEngineState::notifyCheckSynthResult(const SynthResult& r)
@@ -186,6 +189,8 @@ void SolverEngineState::notifyUserPop()
 }
 
 Result SolverEngineState::getStatus() const { return d_status; }
+
+SmtSolver* SolverEngineState::getStatusSolver() const { return d_statusSolver; }
 
 bool SolverEngineState::isFullyInited() const { return d_fullyInited; }
 
