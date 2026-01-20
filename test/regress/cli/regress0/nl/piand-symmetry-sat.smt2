@@ -1,5 +1,4 @@
 ; EXPECT: sat
-; DISABLE-TESTER: proof
 (set-logic QF_NIA)
 (declare-const k Int)
 (declare-const x Int)
