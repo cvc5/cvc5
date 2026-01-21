@@ -1,0 +1,13 @@
+amb_space 5
+inhom_inequalities 8
+0 -1 1 0 0 0
+1 0 0 0 0 0
+-1 0 0 0 0 0
+0 0 0 1 0 0
+0 0 0 -1 0 0
+0 1 -1 0 0 0
+0 0 0 0 1 0 
+0 0 0 0 -1 0
+nonnegative
+HilbertBasis
+ModuleGenerators

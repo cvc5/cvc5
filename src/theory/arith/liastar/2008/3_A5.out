@@ -1,0 +1,50 @@
+1 module generators
+2 Hilbert basis elements of recession monoid
+1 vertices of polyhedron
+2 extreme rays of recession cone
+3 support hyperplanes of polyhedron (homogenized)
+
+embedding dimension = 6
+affine dimension of the polyhedron = 2
+rank of recession monoid = 2
+
+size of partial triangulation   = 0
+resulting sum of |det|s = 0
+
+dehomogenization:
+0 0 0 0 0 1 
+
+
+module rank = 1
+
+***********************************************************************
+A5
+1 module generators:
+ 1 1 0 0 0 1
+
+2 Hilbert basis elements of recession monoid:
+ 0 1 1 0 0 0
+ 1 1 0 0 0 0
+
+1 vertices of polyhedron:
+ 1 1 0 0 0 1
+
+2 extreme rays of recession cone:
+ 0 1 1 0 0 0
+ 1 1 0 0 0 0
+
+3 support hyperplanes of polyhedron (homogenized):
+ 0 0  0 0 0  1
+ 0 0  1 0 0  0
+ 0 1 -1 0 0 -1
+
+3 equations:
+ 1 -1 1 0 0 0
+ 0  0 0 1 0 0
+ 0  0 0 0 1 0
+
+3 basis elements of generated  lattice:
+ 1 0 -1 0 0 0
+ 0 1  1 0 0 0
+ 0 0  0 0 0 1
+

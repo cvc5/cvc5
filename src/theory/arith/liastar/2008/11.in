@@ -1,0 +1,22 @@
+/* F*(x1, L, x, z1, z2)
+F <=> z1 = ite(x1 = ite(L <= x, 0, L − x), 0, 1) ∧ 
+      z2 = ite(x <= L, 0, 1)
+
+11
+----------------
+L >= x + 1 
+x1 <= L − x - 1
+z1 = 1
+x <= L
+z2 = 0
+*/
+amb_space 5
+constraints 5 symbolic
+x[2] >= x[3] + 1;
+x[1] <= x[2] - x[3] - 1;
+x[4] = 1;
+x[3] <= x[2] ;
+x[5] = 0;
+nonnegative
+HilbertBasis
+ModuleGenerators

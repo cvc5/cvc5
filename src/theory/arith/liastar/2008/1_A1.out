@@ -1,0 +1,42 @@
+1 Hilbert basis elements
+1 lattice points in polytope (Hilbert basis elements of degree 1)
+1 extreme rays
+1 support hyperplanes
+
+embedding dimension = 5
+rank = 1
+external index = 1
+
+size of partial triangulation   = 0
+resulting sum of |det|s = 0
+
+grading:
+0 1 0 0 0 
+
+degrees of extreme rays:
+1:1  
+
+Hilbert basis elements are of degree 1
+
+***********************************************************************
+A1
+1 lattice points in polytope (Hilbert basis elements of degree 1):
+ 0 1 1 0 0
+
+0 further Hilbert basis elements of higher degree:
+
+1 extreme rays:
+ 0 1 1 0 0
+
+1 support hyperplanes:
+ 0 0 1 0 0
+
+4 equations:
+ 1 0  0 0 0
+ 0 1 -1 0 0
+ 0 0  0 1 0
+ 0 0  0 0 1
+
+1 basis elements of generated  lattice:
+ 0 1 1 0 0
+
