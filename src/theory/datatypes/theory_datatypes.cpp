@@ -122,6 +122,7 @@ void TheoryDatatypes::finishInit()
   // testers are not relevant for model building
   d_valuation.setIrrelevantKind(Kind::APPLY_TESTER);
   d_valuation.setIrrelevantKind(Kind::DT_SYGUS_BOUND);
+  d_valuation.setIrrelevantKind(Kind::DT_SYGUS_EVAL);
   // selectors don't always evaluate
   d_valuation.setSemiEvaluatedKind(Kind::APPLY_SELECTOR);
 }
