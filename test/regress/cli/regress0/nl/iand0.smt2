@@ -1,6 +1,7 @@
 ; DISABLE-TESTER: dump
 ; EXPECT:
 ; SCRUBBER: grep -v "iand.must.be"
+; REQUIRES: no-competition
 ; EXIT: 1
 (set-logic QF_ANIA)
 (declare-const x Bool)
