@@ -248,6 +248,9 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
           Trace("liastar-ext") << "Matrix: " << std::endl
                                << toString(pair.first) << std::endl;
           Cone<Integer> cone(Type::inhom_inequalities, pair.first);
+          cone.setNonnegative(true);
+          // always use infinite precision for integers
+          cone.deactivateChangeOfPrecision();
           cone.compute(ConeProperty::HilbertBasis);
           cone.compute(ConeProperty::ModuleGenerators);
 

@@ -97,6 +97,8 @@ TEST_F(TestLiaStarUtils, toDNF2008Paper)
   // (and
   //  (= z1 (ite (= x1 (ite (<= L x) 0 (- L x))) 0 1))
   //  (= z2 (ite (<= x L) 0 1)))
+  // expected DNF is 12 disjunctions
+  
   Node x1 = nm->mkBoundVar("x1", intType);
   Node L = nm->mkBoundVar("L", intType);
   Node x = nm->mkBoundVar("x", intType);
