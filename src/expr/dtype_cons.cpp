@@ -54,11 +54,8 @@ void DTypeConstructor::addArg(std::string selectorName, TypeNode rangeType)
   // create the proper selector type)
   Assert(!isResolved());
   Assert(!rangeType.isNull());
-  Node sel =
-      NodeManager::mkDummySkolem("unresolved_" + selectorName,
-                                 rangeType,
-                                 "is an unresolved selector type placeholder",
-                                 SkolemFlags::SKOLEM_EXACT_NAME);
+  Node sel = NodeManager::mkDummySkolem(
+      "unresolved_" + selectorName, rangeType, SkolemFlags::SKOLEM_EXACT_NAME);
   // can use null updater for now
   Node nullNode;
   Trace("datatypes") << "DTypeConstructor::addArg: " << sel << std::endl;
@@ -187,7 +184,7 @@ const std::vector<std::shared_ptr<DTypeSelector> >& DTypeConstructor::getArgs()
   return d_args;
 }
 
-Cardinality DTypeConstructor::getCardinality(TypeNode t) const
+Cardinality DTypeConstructor::getCardinality() const
 {
   Assert(isResolved());
 
@@ -610,13 +607,11 @@ bool DTypeConstructor::resolve(
     arg->d_selector =
         NodeManager::mkDummySkolem(argName,
                                    nm->mkSelectorType(self, range),
-                                   "is a selector",
                                    SkolemFlags::SKOLEM_EXACT_NAME);
     std::string updateName("update_" + argName);
     arg->d_updater =
         NodeManager::mkDummySkolem(updateName,
                                    nm->mkDatatypeUpdateType(self, range),
-                                   "is a selector",
                                    SkolemFlags::SKOLEM_EXACT_NAME);
     // must set indices to ensure datatypes::utils::indexOf works
     arg->d_selector.setAttribute(DTypeConsIndexAttr(), cindex);
@@ -645,14 +640,11 @@ bool DTypeConstructor::resolve(
   // The name of the tester variable does not matter, it is only used
   // internally.
   std::string testerName("is_" + d_name);
-  d_tester = NodeManager::mkDummySkolem(testerName,
-                                        nm->mkTesterType(self),
-                                        "is a tester",
-                                        SkolemFlags::SKOLEM_EXACT_NAME);
+  d_tester = NodeManager::mkDummySkolem(
+      testerName, nm->mkTesterType(self), SkolemFlags::SKOLEM_EXACT_NAME);
   d_constructor =
       NodeManager::mkDummySkolem(getName(),
                                  nm->mkConstructorType(argTypes, self),
-                                 "is a constructor",
                                  SkolemFlags::SKOLEM_EXACT_NAME);
   Assert(d_constructor.getType().isDatatypeConstructor());
   // associate constructor with all selectors

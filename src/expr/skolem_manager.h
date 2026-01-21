@@ -183,15 +183,11 @@ class SkolemManager
    * debugging output.  Use SKOLEM_EXACT_NAME flag if you don't want
    * a unique ID appended and use prefix as the name.
    * @param type the type of the skolem variable to create
-   * @param comment a comment for dumping output; if declarations are
-   * being dumped, this is included in a comment before the declaration
-   * and can be quite useful for debugging
    * @param flags an optional mask of bits from SkolemFlags to control
    * skolem behavior
    */
   Node mkDummySkolem(const std::string& prefix,
                      const TypeNode& type,
-                     const std::string& comment = "",
                      SkolemFlags flags = SkolemFlags::SKOLEM_DEFAULT);
   /** Returns true if n is a skolem that stands for an abstract value */
   bool isAbstractValue(TNode n) const;

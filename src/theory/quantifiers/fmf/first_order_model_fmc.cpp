@@ -92,8 +92,7 @@ Node FirstOrderModelFmc::getStar(TypeNode tn)
   {
     return it->second;
   }
-  Node st = NodeManager::mkDummySkolem(
-      "star", tn, "skolem created for full-model checking");
+  Node st = NodeManager::mkDummySkolem("star", tn);
   d_type_star[tn] = st;
   st.setAttribute(IsStarAttribute(), true);
   return st;

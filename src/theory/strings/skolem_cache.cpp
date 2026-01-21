@@ -112,7 +112,7 @@ Node SkolemCache::mkTypedSkolemCached(
     {
       Trace("skolem-cache")
           << "Don't know how to handle Skolem ID " << id << std::endl;
-      sk = NodeManager::mkDummySkolem(c, tn, "string skolem");
+      sk = NodeManager::mkDummySkolem(c, tn);
     }
     break;
   }
@@ -132,7 +132,7 @@ Node SkolemCache::mkTypedSkolemCached(TypeNode tn,
 Node SkolemCache::mkSkolem(const char* c)
 {
   // TODO: eliminate this
-  Node n = NodeManager::mkDummySkolem(c, d_strType, "string skolem");
+  Node n = NodeManager::mkDummySkolem(c, d_strType);
   d_allSkolems.insert(n);
   return n;
 }
