@@ -33,7 +33,7 @@ class BVSolver : protected EnvObj
   BVSolver(Env& env, TheoryState& state, TheoryInferenceManager& inferMgr)
       : EnvObj(env), d_state(state), d_im(inferMgr){};
 
-  virtual ~BVSolver() {}
+  ~BVSolver() override {}
 
   /**
    * Returns true if we need an equality engine. If so, we initialize the
@@ -42,7 +42,7 @@ class BVSolver : protected EnvObj
    */
   virtual bool needsEqualityEngine(EeSetupInfo& esi) { return false; }
 
-  virtual void finishInit(){};
+  virtual void finishInit() {}
 
   virtual void preRegisterTerm(TNode n) = 0;
 
@@ -56,7 +56,7 @@ class BVSolver : protected EnvObj
   /**
    * Forwarded from TheoryBV::postCheck().
    */
-  virtual void postCheck(Theory::Effort level = Theory::Effort::EFFORT_FULL){};
+  virtual void postCheck(Theory::Effort level = Theory::Effort::EFFORT_FULL) {}
   /**
    * Forwarded from TheoryBV:preNotifyFact().
    */

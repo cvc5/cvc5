@@ -16,16 +16,12 @@
 
 #include "options/bv_options.h"
 #include "theory/theory_model.h"
-#include "theory/theory_state.h"
 
 namespace cvc5::internal {
 namespace theory {
 namespace bv {
 
-NodeBitblaster::NodeBitblaster(Env& env, TheoryState* s)
-    : TBitblaster<Node>(), EnvObj(env), d_state(s)
-{
-}
+NodeBitblaster::NodeBitblaster(Env& env) : TBitblaster<Node>(), EnvObj(env) {}
 
 void NodeBitblaster::bbAtom(TNode node)
 {
@@ -39,25 +35,13 @@ void NodeBitblaster::bbAtom(TNode node)
   /* Note: We rewrite here since it's not guaranteed (yet) that facts sent
    * to theories are rewritten.
    */
-  Node normalized = rewrite(node);
-  Node atom_bb =
-      normalized.getKind() != Kind::CONST_BOOLEAN
-              && normalized.getKind() != Kind::BITVECTOR_BIT
-          ? d_atomBBStrategies[static_cast<uint32_t>(normalized.getKind())](
-                normalized, this)
-          : normalized;
-
-  storeBBAtom(node, rewrite(atom_bb));
+  Node atom_bb = rewrite(applyAtomBBStrategy(rewrite(node)));
+  storeBBAtom(node, atom_bb);
 }
 
 void NodeBitblaster::storeBBAtom(TNode atom, Node atom_bb)
 {
   d_bbAtoms.emplace(atom, atom_bb);
-}
-
-void NodeBitblaster::storeBBTerm(TNode node, const Bits& bits)
-{
-  d_termCache.emplace(node, bits);
 }
 
 bool NodeBitblaster::hasBBAtom(TNode lit) const
@@ -79,7 +63,10 @@ void NodeBitblaster::makeVariable(TNode var, Bits& bits)
   d_variables.insert(var);
 }
 
-Node NodeBitblaster::getBBAtom(TNode node) const { return node; }
+Node NodeBitblaster::makeAtom(TNode node)
+{
+  return node;
+}
 
 void NodeBitblaster::bbTerm(TNode node, Bits& bits)
 {
@@ -94,7 +81,7 @@ void NodeBitblaster::bbTerm(TNode node, Bits& bits)
   storeBBTerm(node, bits);
 }
 
-Node NodeBitblaster::getStoredBBAtom(TNode node)
+Node NodeBitblaster::getBBAtom(TNode node) const
 {
   bool negated = false;
   if (node.getKind() == Kind::NOT)
@@ -108,74 +95,40 @@ Node NodeBitblaster::getStoredBBAtom(TNode node)
   return negated ? atom_bb.negate() : atom_bb;
 }
 
-Node NodeBitblaster::getModelFromSatSolver(TNode a, bool fullModel)
+void NodeBitblaster::collectVariables(std::set<Node>& termSet) const
 {
-  NodeManager* nm = a.getNodeManager();
-  if (!hasBBTerm(a))
-  {
-    return utils::mkConst(nm, utils::getSize(a), 0u);
-  }
-
-  bool assignment;
-  Bits bits;
-  getBBTerm(a, bits);
-  Integer value(0);
-  Integer one(1), zero(0);
-  for (int i = bits.size() - 1; i >= 0; --i)
-  {
-    Integer bit;
-    if (d_state->hasSatValue(bits[i], assignment))
-    {
-      bit = assignment ? one : zero;
-    }
-    else
-    {
-      bit = zero;
-    }
-    value = value * 2 + bit;
-  }
-  return utils::mkConst(nm, bits.size(), value);
+  termSet.insert(d_variables.cbegin(), d_variables.cend());
 }
 
-void NodeBitblaster::computeRelevantTerms(std::set<Node>& termSet)
-{
-  Assert(options().bv.bitblastMode == options::BitblastMode::EAGER);
-  for (const auto& var : d_variables)
-  {
-    termSet.insert(var);
-  }
-}
-
-bool NodeBitblaster::collectModelValues(TheoryModel* m,
-                                        const std::set<Node>& relevantTerms)
-{
-  for (const auto& var : relevantTerms)
-  {
-    if (d_variables.find(var) == d_variables.end()) continue;
-
-    Node const_value = getModelFromSatSolver(var, true);
-    Assert(const_value.isNull() || const_value.isConst());
-    if (!const_value.isNull())
-    {
-      if (!m->assertEquality(var, const_value, true))
-      {
-        return false;
-      }
-    }
-  }
-  return true;
-}
-
-bool NodeBitblaster::isVariable(TNode node)
+bool NodeBitblaster::isVariable(TNode node) const
 {
   return d_variables.find(node) != d_variables.end();
 }
 
 Node NodeBitblaster::applyAtomBBStrategy(TNode node)
 {
-  Assert(node.getKind() != Kind::CONST_BOOLEAN);
-  Assert(node.getKind() != Kind::BITVECTOR_BIT);
-  return d_atomBBStrategies[static_cast<uint32_t>(node.getKind())](node, this);
+  Kind kind = node.getKind();
+  if (kind == Kind::CONST_BOOLEAN || kind == Kind::BITVECTOR_BIT)
+  {
+    return node;
+  }
+  return d_atomBBStrategies[static_cast<uint32_t>(kind)](node, this);
+}
+
+bool NodeBitblaster::hasBBTerm(TNode node) const
+{
+  return d_bbTerms.find(node) != d_bbTerms.end();
+}
+
+void NodeBitblaster::getBBTerm(TNode node, Bits& bits) const
+{
+  Assert(hasBBTerm(node));
+  bits = d_bbTerms.find(node)->second;
+}
+
+void NodeBitblaster::storeBBTerm(TNode node, const Bits& bits)
+{
+  d_bbTerms.emplace(node, bits);
 }
 
 }  // namespace bv

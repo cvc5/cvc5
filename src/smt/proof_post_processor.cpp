@@ -984,11 +984,11 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
   }
   else if (id == ProofRule::MACRO_BV_BITBLAST)
   {
-    bv::BBProof bb(d_env, nullptr, true);
+    bv::BBProof bb(d_env, true);
     Node eq = args[0];
     Assert(eq.getKind() == Kind::EQUAL);
     bb.bbAtom(eq[0]);
-    Node bbAtom = bb.getStoredBBAtom(eq[0]);
+    Node bbAtom = bb.getBBAtom(eq[0]);
     bb.getProofGenerator()->addProofTo(eq[0].eqNode(bbAtom), cdp);
     return eq;
   }
