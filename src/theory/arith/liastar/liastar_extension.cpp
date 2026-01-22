@@ -15,6 +15,7 @@
 #include "liastar_extension.h"
 
 #include "liastar_utils.h"
+#include "libnormaliz/input.h"
 #include "libnormaliz/libnormaliz.h"
 #include "options/arith_options.h"
 #include "options/smt_options.h"
@@ -247,7 +248,34 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
                                << pair.second << std::endl;
           Trace("liastar-ext") << "Matrix: " << std::endl
                                << toString(pair.first) << std::endl;
-          Cone<Integer> cone(Type::inhom_inequalities, pair.first);
+
+          libnormaliz::OptionsHandler options;
+
+          std::map<libnormaliz::PolyParam::Param, std::vector<std::string>>
+              poly_param_input;
+          std::map<libnormaliz::NumParam::Param, long> num_param_input;
+          std::map<libnormaliz::BoolParam::Param, bool> bool_param_input;
+
+          libnormaliz::renf_class_ptr number_field_ref;
+
+          std::stringstream in;
+          in << "amb_space " << dimension << std::endl;
+          in << "constraints " << pair.first.size() << " symbolic" << std::endl;
+          for(auto constraint : pair.first)
+          {
+
+          }
+          in << "nonnegative" << std::endl;
+          in << "HilbertBasis" << std::endl;
+          in << "ModuleGenerators" << std::endl;
+          std::map<Type::InputType, libnormaliz::Matrix<Integer>> input;
+          input = libnormaliz::readNormalizInput<Integer>(in,
+                                                          options,
+                                                          num_param_input,
+                                                          bool_param_input,
+                                                          poly_param_input,
+                                                          number_field_ref);
+          Cone<Integer> cone(input);
           cone.setNonnegative(true);
           // always use infinite precision for integers
           cone.deactivateChangeOfPrecision();
