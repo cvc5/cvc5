@@ -234,20 +234,18 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
           continue;
         }
         // more work need to be done
-        std::vector<std::pair<Matrix, Node>> pairs =
+        std::vector<std::pair<std::vector<std::string>, Node>> pairs =
             convertQFLIAToMatrices(literal);
 
         std::vector<Cone<Integer>> cones;
         std::vector<std::pair<Vector, std::vector<Vector>>> lambdas;
         std::vector<Node> starConstraints;
         std::vector<Integer> zeroVector(dimension, Integer(0));
-        for (const std::pair<Matrix, Node>& pair : pairs)
+        for (const std::pair<std::vector<std::string>, Node>& pair : pairs)
         {
           Trace("liastar-ext") << "---------------------------" << std::endl;
           Trace("liastar-ext") << "Cone for node " << std::endl
                                << pair.second << std::endl;
-          Trace("liastar-ext") << "Matrix: " << std::endl
-                               << toString(pair.first) << std::endl;
 
           libnormaliz::OptionsHandler options;
 
@@ -258,23 +256,29 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
 
           libnormaliz::renf_class_ptr number_field_ref;
 
-          std::stringstream in;
-          in << "amb_space " << dimension << std::endl;
-          in << "constraints " << pair.first.size() << " symbolic" << std::endl;
-          for(auto constraint : pair.first)
+          std::stringstream ss;
+          ss << "amb_space " << dimension << std::endl;
+          ss << "constraints " << pair.first.size() << " symbolic" << std::endl;
+          for (auto constraint : pair.first)
           {
-
+            ss << constraint << std::endl;
           }
-          in << "nonnegative" << std::endl;
-          in << "HilbertBasis" << std::endl;
-          in << "ModuleGenerators" << std::endl;
-          std::map<Type::InputType, libnormaliz::Matrix<Integer>> input;
-          input = libnormaliz::readNormalizInput<Integer>(in,
-                                                          options,
-                                                          num_param_input,
-                                                          bool_param_input,
-                                                          poly_param_input,
-                                                          number_field_ref);
+          ss << "nonnegative" << std::endl;
+          ss << "HilbertBasis" << std::endl;
+          ss << "ModuleGenerators" << std::endl;
+          Trace("liastar-ext") << "normaliz input:" << std::endl;
+          Trace("liastar-ext") << ss.str() << std::endl;
+
+          // here we use mpq_class instead of Integer (or mpz_class)
+          // because libnormaliz.so only has implementation for
+          // readNormalizInput<mpq_class>
+          std::map<Type::InputType, libnormaliz::Matrix<mpq_class>> input;
+          input = libnormaliz::readNormalizInput<mpq_class>(ss,
+                                                            options,
+                                                            num_param_input,
+                                                            bool_param_input,
+                                                            poly_param_input,
+                                                            number_field_ref);
           Cone<Integer> cone(input);
           cone.setNonnegative(true);
           // always use infinite precision for integers
@@ -380,14 +384,13 @@ Node LiaStarExtension::isNotZeroVector(Node v)
   return notZero;
 }
 
-const std::vector<std::pair<Matrix, Node>>
+const std::vector<std::pair<std::vector<std::string>, Node>>
 LiaStarExtension::convertQFLIAToMatrices(Node n)
 {
   Assert(n.getKind() == Kind::STAR_CONTAINS);
 
   Node variables = n[0];
   Node predicate = n[1];
-  size_t dimension = variables.getNumChildren();
   Trace("liastar-ext") << "convertQFLIAToMatrices::n: " << n << std::endl;
   Trace("liastar-ext") << "variables: " << variables << std::endl;
 
@@ -399,98 +402,59 @@ LiaStarExtension::convertQFLIAToMatrices(Node n)
 
   // where the constraints in each disjunction construct a matrix in Normaliz
 
-  std::vector<std::pair<Matrix, Node>> pairs =
+  std::vector<std::pair<std::vector<std::string>, Node>> pairs =
       getMatrices(variables, predicate);
-
-  Matrix nonNegativeConstraints;
-  for (size_t i = 0; i < dimension; i++)
-  {
-    // initialize a vector of dimension + 1 with all zeros
-    std::vector<Integer> constraint(dimension + 1, Integer(0));
-    // 0 x1 + ... 1 * x_i + ... 0 x_n + 0 >= 0
-    constraint[i] = Integer(1);
-    nonNegativeConstraints.push_back(constraint);
-  }
-  for (auto& pair : pairs)
-  {
-    pair.first.insert(pair.first.end(),
-                      nonNegativeConstraints.begin(),
-                      nonNegativeConstraints.end());
-  }
-
   return pairs;
 }
 
-std::vector<std::pair<Matrix, Node>> LiaStarExtension::getMatrices(
-    Node variables, Node predicate)
+std::vector<std::pair<std::vector<std::string>, Node>>
+LiaStarExtension::getMatrices(Node variables, Node n)
 {
-  std::vector<std::pair<Matrix, Node>> pairs;
-  Kind k = predicate.getKind();
+  Assert(n.getType().isBoolean()) << "n: " << n << std::endl;
+  std::vector<std::pair<std::vector<std::string>, Node>> pairs;
+  Kind k = n.getKind();
   switch (k)
   {
+    case Kind::LT:
+    case Kind::GT:
+    case Kind::LEQ:
     case Kind::GEQ:
+    case Kind::EQUAL:
     {
-      // (>= l r) becomes (>= (- l r) 0)
-      Node node = d_nm->mkNode(Kind::SUB, predicate[0], predicate[1]);
-      node = rewrite(node);
-      linear::Polynomial polynomial = linear::Polynomial::parsePolynomial(node);
-      Assert(polynomial.isIntegral())
-          << node << " is expected to be linear" << std::endl;
-      size_t size = variables.getNumChildren();
-      std::vector<Integer> coefficients(size + 1, Integer(0));
-      for (const linear::Monomial& monomial : polynomial)
-      {
-        Trace("liastar-ext") << "monomial: " << monomial.getNode() << std::endl;
-        linear::Constant c = monomial.getConstant();
-        if (monomial.isConstant())
-        {
-          coefficients[size] += c.getValue().getNumerator().getValue();
-        }
-        else
-        {
-          for (size_t i = 0; i < size; i++)
-          {
-            linear::VarList varList = monomial.getVarList();
-            for (const auto& var : varList)
-            {
-              if (var.getNode() == variables[i])
-              {
-                coefficients[i] += c.getValue().getNumerator().getValue();
-              }
-            }
-          }
-        }
-      }
-      Trace("liastar-ext") << "polynomial  : " << polynomial.getNode()
-                           << std::endl;
-      Trace("liastar-ext") << "coefficients: " << toString(coefficients)
-                           << std::endl;
-      Matrix matrix;
-      matrix.push_back(coefficients);
-      pairs.push_back({matrix, predicate});
+      //
+      linear::Polynomial l = linear::Polynomial::parsePolynomial(n[0]);
+      linear::Polynomial r = linear::Polynomial::parsePolynomial(n[1]);
+      std::string lTerm = getString(variables, l);
+      std::string rTerm = getString(variables, r);
+      std::string kString = k == Kind::LT    ? " < "
+                            : k == Kind::GT  ? " > "
+                            : k == Kind::LEQ ? " <= "
+                            : k == Kind::GEQ ? " >= "
+                                             : " = ";
+      std::string constraint = lTerm + kString + rTerm + ";";
+      std::vector<std::string> constraints;
+      constraints.push_back(constraint);
+      pairs.push_back({constraints, n});
       return pairs;
     }
     case Kind::AND:
     {
-      Matrix matrix;
-      for (size_t i = 0; i < predicate.getNumChildren(); i++)
+      std::vector<std::string> constraints;
+      for (size_t i = 0; i < n.getNumChildren(); i++)
       {
-        std::vector<std::pair<Matrix, Node>> m =
-            getMatrices(variables, predicate[i]);
-        matrix.push_back(m[0].first[0]);
+        std::vector<std::pair<std::vector<std::string>, Node>> m =
+            getMatrices(variables, n[i]);
+        constraints.push_back(m[0].first[0]);
       }
-      pairs.push_back({matrix, predicate});
-      Trace("liastar-ext") << "node  : " << predicate << std::endl;
-      Trace("liastar-ext") << "matrix: " << std::endl
-                           << toString(matrix) << std::endl;
+      pairs.push_back({constraints, n});
       return pairs;
     }
     case Kind::OR:
     {
-      for (size_t i = 0; i < predicate.getNumChildren(); i++)
+      for (size_t i = 0; i < n.getNumChildren(); i++)
       {
-        std::vector<std::pair<Matrix, Node>> m =
-            getMatrices(variables, predicate[i]);
+        std::vector<std::pair<std::vector<std::string>, Node>> m =
+            getMatrices(variables, n[i]);
         pairs.push_back(m[0]);
       }
       return pairs;
@@ -499,6 +463,55 @@ std::vector<std::pair<Matrix, Node>> LiaStarExtension::getMatrices(
     default: break;
   }
   return pairs;
+}
+
+std::string LiaStarExtension::getString(Node variables, linear::Polynomial& p)
+{
+  Assert(variables.getKind() == Kind::BOUND_VAR_LIST)
+      << "variables: " << variables << std::endl;
+
+  size_t size = variables.getNumChildren();
+  Assert(p.isIntegral()) << p.getNode() << " is expected to be linear"
+                         << std::endl;
+  std::stringstream ss;
+  int index = 0;
+  for (const linear::Monomial& monomial : p)
+  {
+    Trace("liastar-ext-debug")
+        << "monomial: " << monomial.getNode() << std::endl;
+    linear::Constant c = monomial.getConstant();
+    Rational r = c.getValue().abs();
+    if (index > 0)
+    {
+      // print the sign
+      ss << (c.isNegative() ? " - " : " + ");
+    }
+    index++;
+    if (monomial.isConstant())
+    {
+      ss << r;
+      continue;
+    }
+    if (r != Rational(1))
+    {
+      ss << r;
+    }
+    // find the variable
+    for (size_t i = 0; i < size; i++)
+    {
+      linear::VarList varList = monomial.getVarList();
+      for (const auto& var : varList)
+      {
+        if (var.getNode() == variables[i])
+        {
+          ss << "x[" << i + 1 << "]";
+        }
+      }
+    }
+  }
+  Trace("liastar-ext-debug") << "polynomial  : " << p.getNode() << std::endl;
+  Trace("liastar-ext-debug") << "string : " << ss.str() << std::endl;
+  return ss.str();
 }
 
 }  // namespace liastar

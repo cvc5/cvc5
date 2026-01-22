@@ -92,7 +92,11 @@ std::pair<Node, bool> LiaStarUtils::booleanDNF(Node n, Env* e)
   {
     case Kind::CONST_BOOLEAN: return {n, false};
 
+    case Kind::LT:
+    case Kind::GT:
+    case Kind::LEQ:
     case Kind::GEQ:
+    case Kind::EQUAL:
     {
       // (>=
       //    (ite (>= x y) a b)
@@ -144,67 +148,6 @@ std::pair<Node, bool> LiaStarUtils::booleanDNF(Node n, Env* e)
         }
       }
       return {geq, true};
-    }
-    case Kind::EQUAL:
-    {
-      if (n[0].getType().isInteger())
-      {
-        // (=
-        //    (ite (>= x y) a b)
-        //    (ite (>= x z) c d))
-        // should return
-        // (or
-        //   (and (>= x y) (>= x z)              (>= a c) (>= c a))
-        //   (and (>= x y) (>= z (+ x 1))        (>= a d) (>= d a))
-        //   (and (>= y (+ x 1)) (>= x z))       (>= b c) (>= c b))
-        //   (and (>= y (+ x 1)) (>= z (+ x 1))) (>= b d) (>= d b))
-        std::vector<std::pair<Node, Node>> left = integerDNF(n[0], e);
-        std::vector<std::pair<Node, Node>> right = integerDNF(n[1], e);
-        if (left.size() == 1 && right.size() == 1)
-        {
-          Node l = nm->mkNode(Kind::GEQ, n[0], n[1]);
-          Node r = nm->mkNode(Kind::GEQ, n[1], n[0]);
-          return {l.andNode(r), false};
-        }
-        Node eq = falseConst;
-        // combine the conditions of left and right
-        for (const auto& l : left)
-        {
-          for (const auto& r : right)
-          {
-            Node geq1 = nm->mkNode(Kind::GEQ, l.second, r.second);
-            Node geq2 = nm->mkNode(Kind::GEQ, r.second, l.second);
-            Node result = geq1.andNode(geq2);
-            Node combined;
-            if (l.first == trueConst && r.first == trueConst)
-            {
-              combined = result;
-            }
-            else if (l.first == trueConst && r.first != trueConst)
-            {
-              combined = result.andNode(r.first);
-            }
-            else if (l.first != trueConst && r.first == trueConst)
-            {
-              combined = result.andNode(l.first);
-            }
-            else
-            {
-              combined = result.andNode(l.first).andNode(r.first);
-            }
-            if (eq == falseConst)
-            {
-              eq = combined;
-            }
-            else
-            {
-              eq = eq.orNode(combined);
-            }
-          }
-        }
-        return {eq, true};
-      }
-      break;
     }
     case Kind::ITE:
     {
@@ -293,16 +236,42 @@ std::pair<Node, bool> LiaStarUtils::booleanDNF(Node n, Env* e)
         case Kind::NOT:
         {
           // (not (not a)) is rewritten as just a
-          Node ret = rw->rewrite(n[0][0]);
+          Node ret = n[0][0];
+          return {ret, true};
+        }
+        case Kind::LT:
+        {
+          //(not (< a b)) is rewritten as (>= a b)
+          Node ret = nm->mkNode(Kind::GEQ, n[0][0], n[0][1]);
+          return {ret, true};
+        }
+        case Kind::GT:
+        {
+          //(not (> a b)) is rewritten as (<= a b)
+          Node ret = nm->mkNode(Kind::LEQ, n[0][0], n[0][1]);
+          return {ret, true};
+        }
+        case Kind::LEQ:
+        {
+          //(not (<= a b)) is rewritten as (> a b)
+          Node ret = nm->mkNode(Kind::GT, n[0][0], n[0][1]);
           return {ret, true};
         }
         case Kind::GEQ:
         {
-          //(not (>= a b)) is rewritten as (>= b (+ a 1))
+          //(not (>= a b)) is rewritten as (< a b)
+          Node ret = nm->mkNode(Kind::LT, n[0][0], n[0][1]);
+          return {ret, true};
+        }
+        case Kind::EQUAL:
+        {
+          // (not (= a b)) is rewritten as (or (> a b) (< a b))
           Node a = n[0][0];
           Node b = n[0][1];
-          Node aPlusOne = nm->mkNode(Kind::ADD, a, nm->mkConstInt(Rational(1)));
-          Node ret = nm->mkNode(kind, b, aPlusOne);
+          Node gt = nm->mkNode(Kind::GT, a, b);
+          Node lt = nm->mkNode(Kind::LT, a, b);
+          Node ret = gt.orNode(lt);
+          ret = rw->rewrite(ret);
           return {ret, true};
         }
         case Kind::OR:

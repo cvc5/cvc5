@@ -22,6 +22,7 @@
 #include "expr/node.h"
 #include "smt/env_obj.h"
 #include "theory/arith/liastar/liastar_ext_theory_callback.h"
+#include "theory/arith/linear/normal_form.h"
 #include "theory/ext_theory.h"
 #include "theory/theory.h"
 #include "util/result.h"
@@ -111,7 +112,8 @@ class LiaStarExtension : EnvObj
    * Normaliz matrix form A x b >= 0 where A is a matrix and x = (x1 ... xn 1).
    * This form is used
    */
-  const std::vector<std::pair<Matrix, Node>> convertQFLIAToMatrices(Node n);
+  const std::vector<std::pair<std::vector<std::string>, Node>>
+  convertQFLIAToMatrices(Node n);
 
   /**
    * This function returns a list of matrices representing cones (disjunctions)
@@ -120,9 +122,10 @@ class LiaStarExtension : EnvObj
    * @param variables is a node of Kind BOUND_VAR_LIST
    * @param predicate is a LIA predicate in DNF format
    */
-  std::vector<std::pair<Matrix, Node>> getMatrices(Node variables,
-                                                   Node predicate);
+  std::vector<std::pair<std::vector<std::string>, Node>> getMatrices(
+      Node variables, Node predicate);
 
+  std::string getString(Node variables, arith::linear::Polynomial& p);
   /** node manager */
   NodeManager* d_nm;
   /** commonly used terms */
