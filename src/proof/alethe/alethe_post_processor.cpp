@@ -963,12 +963,11 @@ bool AletheProofPostprocessCallback::update(Node res,
     // * the corresponding proof node is false
     case ProofRule::CONTRA:
     {
-      return addAletheStep(AletheRule::RESOLUTION,
+      return addAletheStep(AletheRule::RESOLUTION_OR,
                            res,
                            nm->mkNode(Kind::SEXPR, d_cl),
                            children,
-                           d_resPivots ? std::vector<Node>{children[0], d_true}
-                                       : std::vector<Node>(),
+                           {children[0], d_true},
                            *cdp);
     }
     // ======== And elimination
