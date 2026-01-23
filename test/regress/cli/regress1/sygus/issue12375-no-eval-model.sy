@@ -1,4 +1,4 @@
-; COMMAND-LINE: --sygus-out=status
+; COMMAND-LINE: --sygus-out=status -q
 ; EXPECT: feasible
 (set-logic ALL)
 (declare-datatypes ((Term 0)) (
