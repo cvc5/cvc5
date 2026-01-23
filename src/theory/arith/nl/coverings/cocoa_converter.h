@@ -42,6 +42,8 @@ namespace coverings {
 class CoCoAConverter
 {
  public:
+  CoCoAConverter(const poly::Context& ctx) : d_polyCtx(ctx) {}
+
   /** Add mapping from libpoly variable to a CoCoA variable */
   void addVar(const poly::Variable& pv, const CoCoA::RingElem& cv)
   {
@@ -107,6 +109,10 @@ class CoCoAConverter
   /** Helper class for the conversion of a libpoly polynomial to CoCoA. */
   struct CoCoAPolyConstructor
   {
+    CoCoAPolyConstructor(const CoCoAConverter& state, const CoCoA::ring& ring)
+        : d_state(state), d_ring(ring)
+    {
+    }
     const CoCoAConverter& d_state;
     const CoCoA::ring& d_ring;
     CoCoA::RingElem d_result;
@@ -125,6 +131,9 @@ class CoCoAConverter
    * variables.
    */
   std::map<std::pair<long, size_t>, poly::Variable> d_varCP;
+
+  /** The libpoly context */
+  const poly::Context& d_polyCtx;
 };
 
 }  // namespace coverings

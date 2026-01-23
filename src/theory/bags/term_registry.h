@@ -40,7 +40,7 @@ class TermRegistry : protected EnvObj
   typedef context::CDHashMap<Node, Node> NodeMap;
 
  public:
-  TermRegistry(Env& env, SolverState& state, InferenceManager& im);
+  TermRegistry(Env& env, SolverState& state);
 
   /**
    * Returns the existing empty bag for type tn
@@ -49,8 +49,6 @@ class TermRegistry : protected EnvObj
   Node getEmptyBag(TypeNode tn);
 
  private:
-  /** The inference manager */
-  InferenceManager& d_im;
   /** Map from bag terms to their proxy variables */
   NodeMap d_proxy;
   /** Backwards map of above */

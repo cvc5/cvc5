@@ -230,7 +230,7 @@ Node Env::rewriteViaMethod(TNode n, MethodId idr)
   }
   if (idr == MethodId::RW_EXT_REWRITE)
   {
-    return d_rewriter->extendedRewrite(n);
+    return d_rewriter->extendedRewrite(n, false);
   }
   if (idr == MethodId::RW_EXT_REWRITE_AGG)
   {

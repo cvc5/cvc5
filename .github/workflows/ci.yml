@@ -188,10 +188,11 @@ jobs:
             exclude_regress: 3-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester proof --tester dump
 
+          # Use NO_GLOBAL_POLY_CTX=1 to ensure cvc5 does not use LibPoly's global context (testing purposes)
           - name: ubuntu:production-dbg-clang
             os: ubuntu-22.04
             use-clang: true
-            config: production --auto-download --assertions --tracing --cln --gpl
+            config: production --auto-download --assertions --tracing --cln --gpl -DNO_GLOBAL_POLY_CTX=1
             cache-key: dbgclang
             exclude_regress: 3-4
             run_regression_args: --tester cpc --tester alethe --tester base --tester model --tester synth --tester abduct --tester unsat-core --tester dump
@@ -407,7 +408,10 @@ jobs:
       continue-on-error: true
       run: |
         cd ./maven
-        mvn deploy --batch-mode -Prelease -Dartifacts.dir=./ -Djavadoc.dir=./
+        mkdir -p ./src/api/java ./docs/api/java
+        mv cvc5-javadoc.jar ./docs/api/java/
+        mv *.jar ./src/api/java/
+        mvn deploy --batch-mode -Prelease
       env:
         MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
         MAVEN_TOKEN: ${{ secrets.MAVEN_TOKEN }}

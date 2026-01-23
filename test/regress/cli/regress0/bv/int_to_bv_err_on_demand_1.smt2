@@ -1,5 +1,7 @@
-; COMMAND-LINE: --solve-int-as-bv=4 
-; EXPECT: sat
+; COMMAND-LINE: --solve-int-as-bv=4
+; SCRUBBER: grep -o "Cannot translate to BV"
+; EXPECT: Cannot translate to BV
+; EXIT: 1
 (set-logic ALL)
 (declare-sort S 0)
 (declare-fun a () Int)

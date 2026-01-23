@@ -42,6 +42,17 @@
 // warning about it.  This might be the case for e.g. a variable
 // only used in DEBUG builds.
 #define CVC5_UNUSED [[maybe_unused]]
+// For the specific case of an unused private field, use the
+// following macro. This warning is only emitted by Clang.
+// When using GCC, applying [[maybe_unused]] to a field triggers
+// a warning that the attribute is ignored, so we avoid it there.
+#if defined(__clang__)
+  #define CVC5_UNUSED_FIELD [[maybe_unused]]
+#else
+  // GCC and others: leave blank to avoid "attribute ignored" warnings.
+  #define CVC5_UNUSED_FIELD
+#endif
+
 #define CVC5_NORETURN [[noreturn]]
 #define CVC5_WARN_UNUSED_RESULT [[nodiscard]]
 

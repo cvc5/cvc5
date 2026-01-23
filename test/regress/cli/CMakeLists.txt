@@ -325,6 +325,8 @@ set(regress_0_tests
   regress0/bv/bv2nat-ground-c.smt2
   regress0/bv/bv2nat-simp-range.smt2
   regress0/bv/bv_to_int1.smt2
+  regress0/bv/bv_to_int_12342.smt2
+  regress0/bv/bv_to_int_12337.smt2
   regress0/bv/bv_to_int_415.smt2
   regress0/bv/bv_to_int_5230_binary.smt2
   regress0/bv/bv_to_int_5230_missing_op.smt2
@@ -333,6 +335,7 @@ set(regress_0_tests
   regress0/bv/bv_to_int_5293_1.smt2
   regress0/bv/bv_to_int_5293_2.smt2
   regress0/bv/bv_to_int_8412.smt2
+  regress0/bv/bv_to_int_8798.smt2
   regress0/bv/bv_to_int_9071.smt2
   regress0/bv/bv_to_int_9071_bv4.smt2
   regress0/bv/bv_to_int_9071_th_sym.smt2
@@ -648,6 +651,8 @@ set(regress_0_tests
   regress0/bv/issue9518_2.smt2
   regress0/bv/issue9519.smt2
   regress0/bv/issue10057.smt2
+  regress0/bv/issue12336-xor-simp.smt2
+  regress0/bv/issue12336-xor-simp-s.smt2
   regress0/bv/le-elim-conv.smt2
   regress0/bv/macro-rewrites.smt2
   regress0/bv/mul-neg-unsat.smt2
@@ -974,6 +979,7 @@ set(regress_0_tests
   regress0/ho/apply-collapse-sat.smt2
   regress0/ho/apply-collapse-unsat.smt2
   regress0/ho/bug_nodbuilding_interpreted_SYO042^1.smt2
+  regress0/ho/cg-no-shared.smt2
   regress0/ho/cong-full-apply.smt2
   regress0/ho/cong.smt2
   regress0/ho/datatype-field-ho.smt2
@@ -993,6 +999,7 @@ set(regress_0_tests
   regress0/ho/fta0210.smt2
   regress0/ho/fun-subtyping.smt2
   regress0/ho/ho-exponential-model.smt2
+  regress0/ho/ho-leibniz-rewrite.smt2
   regress0/ho/ho-match-fun-suffix.smt2
   regress0/ho/ho-matching-enum-2.smt2
   regress0/ho/ho-matching-enum.smt2
@@ -1047,6 +1054,7 @@ set(regress_0_tests
   regress0/ineq_slack.smtv1.smt2
   regress0/int-to-bv/basic.smt2
   regress0/int-to-bv/issue8935-unsupported-operators.smt2
+  regress0/int-to-bv/issue12319-int-to-bv.smt2
   regress0/int-to-bv/neg-consts.smt2
   regress0/int-to-bv/not-enough-bits.smt2
   regress0/int-to-bv/overflow.smt2
@@ -1116,6 +1124,7 @@ set(regress_0_tests
   regress0/nl/dd.polypaver-bench-exp-3d-chunk-0067.smt2
   regress0/nl/dd.sin-cos-346-b-chunk-0210.smt2
   regress0/nl/dd.sin-cos-346-b-chunk-0210_unsat.smt2
+  regress0/nl/iand0.smt2
   regress0/nl/iand-no-init.smt2
   regress0/nl/issue10145-ir-pow.smt2
   regress0/nl/issue10140-nl-tc.smt2
@@ -1161,6 +1170,7 @@ set(regress_0_tests
   regress0/nl/issue8835-int-second.smt2
   regress0/nl/issue8934-lr-int-mod-range.smt2
   regress0/nl/issue9661.smt2
+  regress0/nl/issue12296.smt2
   regress0/nl/lazard-spurious-root.smt2
   regress0/nl/magnitude-wrong-1020-m.smt2
   regress0/nl/mult-po.smt2
@@ -1221,6 +1231,7 @@ set(regress_0_tests
   regress0/nl/proj-issue637-rr-type.smt2
   regress0/nl/proj-issue767-subtype-nl-abs.smt2
   regress0/nl/proj-issue769-nl-compare-rcons.smt2
+  regress0/nl/proj-issue779-arith-distro-nidem.smt2
   regress0/nl/real-as-int.smt2
   regress0/nl/real-div-ufnra.smt2
   regress0/nl/sin-cos-346-b-chunk-0169.smt2
@@ -1298,6 +1309,7 @@ set(regress_0_tests
   regress0/parser/issue10156-bad-tester.smt2
   regress0/parser/issue10489.smt2
   regress0/parser/issue11763-quoted-dt-cons.smt2
+  regress0/parser/issue12356.smt2
   regress0/parser/linear_arithmetic_err1.smt2
   regress0/parser/linear_arithmetic_err2.smt2
   regress0/parser/linear_arithmetic_err3.smt2
@@ -1405,6 +1417,7 @@ set(regress_0_tests
   regress0/printer/learned-lit-output.smt2
   regress0/printer/let_shadowing.smt2
   regress0/printer/model-u-print.smt2
+  regress0/printer/normalize.smt2
   regress0/printer/portfolio-out.smt2
   regress0/printer/portfolio-out-err.smt2
   regress0/printer/post-asserts-output.smt2
@@ -1483,6 +1496,7 @@ set(regress_0_tests
   regress0/proofs/issue9770-open-sat-proof.smt2
   regress0/proofs/issue9927.smt2
   regress0/proofs/issue12240-cyclic-proof.smt2
+  regress0/proofs/issue12355-cm-mixed-arith.smt2
   regress0/proofs/lfsc-test-1.smt2
   regress0/proofs/macro-quant-prenex-simple.smt2
   regress0/proofs/nomerge-alethe-pf.smt2
@@ -2169,6 +2183,7 @@ set(regress_0_tests
   regress0/strings/regexp-native-simple.cvc.smt2
   regress0/strings/regexp-repeat.smt2
   regress0/strings/repl-rewrites2.smt2
+  regress0/strings/replace-all-rew-more.smt2
   regress0/strings/replace-const.smt2
   regress0/strings/replaceall-eval.smt2
   regress0/strings/rewrites-re-concat.smt2
@@ -2859,6 +2874,9 @@ set(regress_1_tests
   regress1/nl/issue10000.smt2
   regress1/nl/issue10139-iand.smt2
   regress1/nl/issue10724-real-as-int-types.smt2
+  regress1/nl/issue11386-1-nl-cov-cyclic.smt2
+  regress1/nl/issue11386-2-nl-cov-cyclic.smt2
+  regress1/nl/issue11386-3-nl-cov-cyclic.smt2
   regress1/nl/issue3300-approx-sqrt-witness.smt2
   regress1/nl/issue3441.smt2
   regress1/nl/issue3617.smt2
@@ -2882,6 +2900,8 @@ set(regress_1_tests
   regress1/nl/issue8162-drop-pi-bound.smt2
   regress1/nl/issue8960-lr-to-real-model.smt2
   regress1/nl/issue8963-to-real-model.smt2
+  regress1/nl/issue9054-ran-rewriter.smt2
+  regress1/nl/issue9167-ran-rewriter.smt2
   regress1/nl/issue9113-1-iand-cg.smt2
   regress1/nl/issue9113-2-iand.smt2
   regress1/nl/issue9113-iand-cg.smt2
@@ -2926,6 +2946,7 @@ set(regress_1_tests
   regress1/nl/proj-issue302.smt2
   regress1/nl/proj-issue530.smt2
   regress1/nl/proj-issue667-init-bound.smt2
+  regress1/nl/proj-issue782-ran-rewriter.smt2
   regress1/nl/quant-nl.smt2
   regress1/nl/red-exp.smt2
   regress1/nl/rewriting-sums.smt2
@@ -3623,6 +3644,8 @@ set(regress_1_tests
   regress1/strings/proj-issue585-cbqi-t-cons.smt2
   regress1/strings/proj-issue647.smt2
   regress1/strings/proj-issue659.smt2
+  regress1/strings/proj-issue779-2-extr.smt2
+  regress1/strings/proj-issue779-2-icycle.smt2
   regress1/strings/prop-engine-order.smt2
   regress1/strings/query4674.smt2
   regress1/strings/query8485.smt2

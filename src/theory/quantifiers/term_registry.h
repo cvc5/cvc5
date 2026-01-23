@@ -134,8 +134,6 @@ class TermRegistry : protected EnvObj
    * @param withinQuant whether n occurs within a quantified formula body
    */
   void addTermInternal(TNode n, bool withinQuant = false);
-  /** Whether we are using the fmc model */
-  bool d_useFmcModel;
   /** term enumeration utility */
   std::unique_ptr<TermEnumeration> d_termEnum;
   /** term enumeration utility */

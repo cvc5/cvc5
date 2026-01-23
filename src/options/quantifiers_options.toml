@@ -227,6 +227,14 @@ name   = "Quantifiers"
   help       = "timeout (in milliseconds) for verifying subcalls for model-based instantiation (0 == no limit)"
 
 [[option]]
+  name       = "leibnizEqElim"
+  category   = "expert"
+  long       = "leibniz-elim"
+  type       = "bool"
+  default    = "false"
+  help       = "Leibniz equality elimination for quantified formulas"
+
+[[option]]
   name       = "mbqiEnum"
   category   = "regular"
   long       = "mbqi-enum"
