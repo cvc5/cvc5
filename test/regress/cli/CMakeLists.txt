@@ -3787,6 +3787,7 @@ set(regress_1_tests
   regress1/sygus/interpol_from_pono_2.smt2
   regress1/sygus/interpolant-conj-simple.smt2
   regress1/sygus/issue10708-unconstrained-int.sy
+  regress1/sygus/issue12375-no-eval-model.sy
   regress1/sygus/issue2914.sy
   regress1/sygus/issue2935.sy
   regress1/sygus/issue3109-share-sel.sy
