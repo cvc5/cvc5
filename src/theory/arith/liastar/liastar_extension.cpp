@@ -16,7 +16,6 @@
 
 #include "liastar_utils.h"
 #include "libnormaliz/input.h"
-#include "libnormaliz/libnormaliz.h"
 #include "options/arith_options.h"
 #include "options/smt_options.h"
 #include "theory/arith/arith_rewriter.h"
@@ -124,7 +123,6 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
   {
     Assert(literal.getKind() == Kind::STAR_CONTAINS);
     Node vec = literal[2];
-    size_t dimension = vec.getNumChildren();
     auto [vectorPredicate, nonnegative] =
         LiaStarUtils::getVectorPredicate(literal, nm);
     // assert that vector elements are non negative
@@ -189,7 +187,6 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
     Trace("liastar-ext-debug") << "value: " << value << std::endl;
     Trace("liastar-ext-debug") << "vector value of: " << literal[2] << " is "
                                << vectorValue << std::endl;
-    Node v = literal[2];
     if (value == d_true)
     {
       Trace("liastar-ext-debug")
@@ -237,128 +234,8 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
         std::vector<std::pair<std::vector<std::string>, Node>> pairs =
             convertQFLIAToMatrices(literal);
 
-        std::vector<Cone<Integer>> cones;
-        std::vector<std::pair<Vector, std::vector<Vector>>> lambdas;
-        std::vector<Node> starConstraints;
-        std::vector<Integer> zeroVector(dimension, Integer(0));
-        for (const std::pair<std::vector<std::string>, Node>& pair : pairs)
-        {
-          Trace("liastar-ext") << "---------------------------" << std::endl;
-          Trace("liastar-ext") << "Cone for node " << std::endl
-                               << pair.second << std::endl;
+        auto [cones, starConstraints] = getCones(literal, pairs);
 
-          libnormaliz::OptionsHandler options;
-
-          std::map<libnormaliz::PolyParam::Param, std::vector<std::string>>
-              poly_param_input;
-          std::map<libnormaliz::NumParam::Param, long> num_param_input;
-          std::map<libnormaliz::BoolParam::Param, bool> bool_param_input;
-
-          libnormaliz::renf_class_ptr number_field_ref;
-
-          std::stringstream ss;
-          ss << "amb_space " << dimension << std::endl;
-          ss << "constraints " << pair.first.size() << " symbolic" << std::endl;
-          for (auto constraint : pair.first)
-          {
-            ss << constraint << std::endl;
-          }
-          ss << "nonnegative" << std::endl;
-          ss << "HilbertBasis" << std::endl;
-          ss << "ModuleGenerators" << std::endl;
-          Trace("liastar-ext") << "normaliz input:" << std::endl;
-          Trace("liastar-ext") << ss.str() << std::endl;
-
-          // here we use mpq_class instead of Integer (or mpz_class)
-          // because libnormaliz.so only has implementation for
-          // readNormalizInput<mpq_class>
-          std::map<Type::InputType, libnormaliz::Matrix<mpq_class>> input;
-          input = libnormaliz::readNormalizInput<mpq_class>(ss,
-                                                            options,
-                                                            num_param_input,
-                                                            bool_param_input,
-                                                            poly_param_input,
-                                                            number_field_ref);
-          Cone<Integer> cone(input);
-          cone.setNonnegative(true);
-          // always use infinite precision for integers
-          cone.deactivateChangeOfPrecision();
-          cone.compute(ConeProperty::HilbertBasis);
-          cone.compute(ConeProperty::ModuleGenerators);
-
-          Trace("liastar-ext") << "Hilbert basis:" << std::endl;
-          for (const auto& basis : cone.getHilbertBasis())
-          {
-            Trace("liastar-ext") << toString(basis) << std::endl;
-          }
-
-          Trace("liastar-ext") << "Module generators:" << std::endl;
-          std::vector<std::vector<Integer>> generators = {zeroVector};
-          if (cone.getModuleGenerators().size() > 0)
-          {
-            generators = cone.getModuleGenerators();
-          }
-          for (const auto& generator : generators)
-          {
-            Trace("liastar-ext") << toString(generator) << std::endl;
-            Node mu = d_one;
-            if (generator != zeroVector)
-            {
-              mu = d_nm->mkDummySkolem("mu", d_nm->integerType());
-            }
-
-            starConstraints.push_back(d_nm->mkNode(Kind::GEQ, mu, d_zero));
-            Vector point;
-            for (const auto& element : generator)
-            {
-              Node constant = d_nm->mkConstInt(Rational(element));
-              Node monomial = d_nm->mkNode(Kind::MULT, constant, mu);
-              point.push_back(monomial);
-            }
-            std::vector<Vector> rays;
-            for (const auto& basis : cone.getHilbertBasis())
-            {
-              Node lambda = d_nm->mkDummySkolem("l", d_nm->integerType());
-              // (>= l 0)
-              starConstraints.push_back(
-                  d_nm->mkNode(Kind::GEQ, lambda, d_zero));
-              // (=> (= mu 0) (= l 0))
-              starConstraints.push_back(
-                  d_nm->mkNode(Kind::EQUAL, mu, d_zero)
-                      .impNode(d_nm->mkNode(Kind::EQUAL, lambda, d_zero)));
-
-              Vector ray;
-              for (const auto& element : basis)
-              {
-                Node constant = d_nm->mkConstInt(Rational(element));
-                Node monomial = d_nm->mkNode(Kind::MULT, constant, lambda);
-                ray.push_back(monomial);
-              }
-              rays.push_back(ray);
-            }
-            lambdas.push_back({point, rays});
-          }
-          cones.push_back(cone);
-        }
-
-        // sum constraints
-        Vector sums(dimension, d_zero);
-        for (const std::pair<Vector, std::vector<Vector>>& pair : lambdas)
-        {
-          for (size_t i = 0; i < dimension; i++)
-          {
-            sums[i] = d_nm->mkNode(Kind::ADD, sums[i], pair.first[i]);
-            for (const auto& ray : pair.second)
-            {
-              sums[i] = d_nm->mkNode(Kind::ADD, sums[i], ray[i]);
-            }
-          }
-        }
-
-        for (size_t i = 0; i < dimension; i++)
-        {
-          starConstraints.push_back(v[i].eqNode(sums[i]));
-        }
         lemma = d_nm->mkNode(Kind::AND, starConstraints);
         Trace("liastar-ext") << "starConstraints: " << std::endl
                              << toString(starConstraints) << std::endl;
@@ -370,6 +247,138 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
       }
     }
   }
+}
+
+std::pair<std::vector<libnormaliz::Cone<Integer>>, std::vector<Node>>
+LiaStarExtension::getCones(
+    Node n, const std::vector<std::pair<std::vector<std::string>, Node>>& pairs)
+{
+  std::vector<Cone<Integer>> cones;
+  Node vec = n[2];
+  size_t dimension = vec.getNumChildren();
+  std::vector<Integer> zeroVector(dimension, Integer(0));
+  std::vector<std::pair<Vector, std::vector<Vector>>> lambdas;
+  std::vector<Node> starConstraints;
+
+  for (const std::pair<std::vector<std::string>, Node>& pair : pairs)
+  {
+    Trace("liastar-ext") << "---------------------------" << std::endl;
+    Trace("liastar-ext") << "Cone for node " << std::endl
+                         << pair.second << std::endl;
+
+    libnormaliz::OptionsHandler options;
+
+    std::map<libnormaliz::PolyParam::Param, std::vector<std::string>>
+        poly_param_input;
+    std::map<libnormaliz::NumParam::Param, long> num_param_input;
+    std::map<libnormaliz::BoolParam::Param, bool> bool_param_input;
+
+    libnormaliz::renf_class_ptr number_field_ref;
+
+    std::stringstream ss;
+    ss << "amb_space " << dimension << std::endl;
+    ss << "constraints " << pair.first.size() << " symbolic" << std::endl;
+    for (auto constraint : pair.first)
+    {
+      ss << constraint << std::endl;
+    }
+    ss << "nonnegative" << std::endl;
+    ss << "HilbertBasis" << std::endl;
+    ss << "ModuleGenerators" << std::endl;
+    Trace("liastar-ext") << "normaliz input:" << std::endl;
+    Trace("liastar-ext") << ss.str() << std::endl;
+
+    // here we use mpq_class instead of Integer (or mpz_class)
+    // because libnormaliz.so only has implementation for
+    // readNormalizInput<mpq_class>
+    std::map<Type::InputType, libnormaliz::Matrix<mpq_class>> input;
+    input = libnormaliz::readNormalizInput<mpq_class>(ss,
+                                                      options,
+                                                      num_param_input,
+                                                      bool_param_input,
+                                                      poly_param_input,
+                                                      number_field_ref);
+    Cone<Integer> cone(input);
+    cone.setNonnegative(true);
+    // always use infinite precision for integers
+    cone.deactivateChangeOfPrecision();
+    cone.compute(ConeProperty::HilbertBasis);
+    cone.compute(ConeProperty::ModuleGenerators);
+
+    Trace("liastar-ext") << "Hilbert basis:" << std::endl;
+    for (const auto& basis : cone.getHilbertBasis())
+    {
+      Trace("liastar-ext") << toString(basis) << std::endl;
+    }
+
+    Trace("liastar-ext") << "Module generators:" << std::endl;
+    std::vector<std::vector<Integer>> generators = {zeroVector};
+    if (cone.getModuleGenerators().size() > 0)
+    {
+      generators = cone.getModuleGenerators();
+    }
+    for (const auto& generator : generators)
+    {
+      Trace("liastar-ext") << toString(generator) << std::endl;
+      Node mu = d_one;
+      if (generator != zeroVector)
+      {
+        mu = d_nm->mkDummySkolem("mu", d_nm->integerType());
+      }
+
+      starConstraints.push_back(d_nm->mkNode(Kind::GEQ, mu, d_zero));
+      Vector point;
+      for (const auto& element : generator)
+      {
+        Node constant = d_nm->mkConstInt(Rational(element));
+        Node monomial = d_nm->mkNode(Kind::MULT, constant, mu);
+        point.push_back(monomial);
+      }
+      std::vector<Vector> rays;
+      for (const auto& basis : cone.getHilbertBasis())
+      {
+        Node lambda = d_nm->mkDummySkolem("l", d_nm->integerType());
+        // (>= l 0)
+        starConstraints.push_back(d_nm->mkNode(Kind::GEQ, lambda, d_zero));
+        // (=> (= mu 0) (= l 0))
+        starConstraints.push_back(
+            d_nm->mkNode(Kind::EQUAL, mu, d_zero)
+                .impNode(d_nm->mkNode(Kind::EQUAL, lambda, d_zero)));
+
+        Vector ray;
+        for (const auto& element : basis)
+        {
+          Node constant = d_nm->mkConstInt(Rational(element));
+          Node monomial = d_nm->mkNode(Kind::MULT, constant, lambda);
+          ray.push_back(monomial);
+        }
+        rays.push_back(ray);
+      }
+      lambdas.push_back({point, rays});
+    }
+    cones.push_back(cone);
+  }
+
+  // sum constraints
+  Vector sums(dimension, d_zero);
+  for (const std::pair<Vector, std::vector<Vector>>& pair : lambdas)
+  {
+    for (size_t i = 0; i < dimension; i++)
+    {
+      sums[i] = d_nm->mkNode(Kind::ADD, sums[i], pair.first[i]);
+      for (const auto& ray : pair.second)
+      {
+        sums[i] = d_nm->mkNode(Kind::ADD, sums[i], ray[i]);
+      }
+    }
+  }
+
+  for (size_t i = 0; i < dimension; i++)
+  {
+    starConstraints.push_back(vec[i].eqNode(sums[i]));
+  }
+
+  return std::make_pair(cones, starConstraints);
 }
 
 Node LiaStarExtension::isNotZeroVector(Node v)

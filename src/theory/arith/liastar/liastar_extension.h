@@ -20,6 +20,7 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "libnormaliz/libnormaliz.h"
 #include "smt/env_obj.h"
 #include "theory/arith/liastar/liastar_ext_theory_callback.h"
 #include "theory/arith/linear/normal_form.h"
@@ -124,6 +125,10 @@ class LiaStarExtension : EnvObj
    */
   std::vector<std::pair<std::vector<std::string>, Node>> getMatrices(
       Node variables, Node predicate);
+
+  std::pair<std::vector<libnormaliz::Cone<Integer>>, std::vector<Node>>
+  getCones(Node n,
+           const std::vector<std::pair<std::vector<std::string>, Node>>& pairs);
 
   std::string getString(Node variables, arith::linear::Polynomial& p);
   /** node manager */
