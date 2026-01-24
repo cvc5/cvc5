@@ -130,6 +130,9 @@ class LiaStarExtension : EnvObj
   getCones(Node n,
            const std::vector<std::pair<std::vector<std::string>, Node>>& pairs);
 
+  std::vector<Node> getLia(Node n,
+                           std::vector<libnormaliz::Cone<Integer>>& cones);
+
   std::string getString(Node variables, arith::linear::Polynomial& p);
   /** node manager */
   NodeManager* d_nm;

@@ -235,6 +235,13 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
             convertQFLIAToMatrices(literal);
 
         auto [cones, starConstraints] = getCones(literal, pairs);
+        std::vector<Node> lia = getLia(literal, cones);
+
+        Trace("liastar-ext") << "lia constraint: " << std::endl;
+        for (const Node& node : lia)
+        {
+          Trace("liastar-ext") << node << std::endl;
+        }
 
         lemma = d_nm->mkNode(Kind::AND, starConstraints);
         Trace("liastar-ext") << "starConstraints: " << std::endl
@@ -379,6 +386,88 @@ LiaStarExtension::getCones(
   }
 
   return std::make_pair(cones, starConstraints);
+}
+
+std::vector<Node> LiaStarExtension::getLia(
+    Node n, std::vector<libnormaliz::Cone<Integer>>& cones)
+{
+  Node vec = n[0];
+  size_t dimension = vec.getNumChildren();
+  std::vector<Node> disjunctions;
+  std::vector<Integer> zeroVector(dimension, Integer(0));
+
+  for (libnormaliz::Cone<Integer>& cone : cones)
+  {
+    Trace("liastar-ext") << "Hilbert basis:" << std::endl;
+    for (const auto& basis : cone.getHilbertBasis())
+    {
+      Trace("liastar-ext") << toString(basis) << std::endl;
+    }
+
+    Trace("liastar-ext") << "Module generators:" << std::endl;
+    std::vector<std::vector<Integer>> generators = {zeroVector};
+    if (cone.getModuleGenerators().size() > 0)
+    {
+      generators = cone.getModuleGenerators();
+    }
+    for (const auto& generator : generators)
+    {
+      std::vector<Node> conjunctions;
+      Vector point;
+      for (const auto& element : generator)
+      {
+        Node constant = d_nm->mkConstInt(Rational(element));
+        point.push_back(constant);
+      }
+
+      std::vector<Vector> rays;
+      std::vector<Node> boundVariables;
+      auto bases = cone.getHilbertBasis();
+      for (size_t index = 0; index < bases.size(); index++)
+      {
+        auto basis = bases[index];
+        std::string name = "l" + std::to_string(index);
+        Node lambda = d_nm->mkBoundVar(name, d_nm->integerType());
+        boundVariables.push_back(lambda);
+        // (>= l 0)
+        conjunctions.push_back(d_nm->mkNode(Kind::GEQ, lambda, d_zero));
+
+        Vector ray;
+        for (const auto& element : basis)
+        {
+          Node constant = d_nm->mkConstInt(Rational(element));
+          Node monomial = rewrite(d_nm->mkNode(Kind::MULT, constant, lambda));
+          ray.push_back(monomial);
+        }
+        rays.push_back(ray);
+      }
+
+      // sum constraints
+      Vector sums(dimension, d_zero);
+      for (size_t i = 0; i < dimension; i++)
+      {
+        sums[i] = rewrite(d_nm->mkNode(Kind::ADD, sums[i], point[i]));
+        for (const auto& ray : rays)
+        {
+          sums[i] = rewrite(d_nm->mkNode(Kind::ADD, sums[i], ray[i]));
+        }
+      }
+
+      for (size_t i = 0; i < dimension; i++)
+      {
+        conjunctions.push_back(vec[i].eqNode(sums[i]));
+      }
+      Node conjunction = d_nm->mkNode(Kind::AND, conjunctions);
+      if (boundVariables.size() > 0)
+      {
+        Node variables = d_nm->mkNode(Kind::BOUND_VAR_LIST, boundVariables);
+        conjunction = d_nm->mkNode(Kind::EXISTS, variables, conjunction);
+      }
+      disjunctions.push_back(conjunction);
+    }
+  }
+
+  return disjunctions;
 }
 
 Node LiaStarExtension::isNotZeroVector(Node v)
