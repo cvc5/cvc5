@@ -426,7 +426,7 @@ std::vector<Node> LiaStarExtension::getLia(
       for (size_t index = 0; index < bases.size(); index++)
       {
         auto basis = bases[index];
-        std::string name = "l" + std::to_string(index);
+        std::string name = "l" + std::to_string(index + 1);
         Node lambda = d_nm->mkBoundVar(name, d_nm->integerType());
         boundVariables.push_back(lambda);
         // (>= l 0)
