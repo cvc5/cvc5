@@ -493,9 +493,7 @@ LiaStarExtension::convertQFLIAToMatrices(Node n)
   Trace("liastar-ext") << "variables: " << variables << std::endl;
 
   Trace("liastar-ext") << "predicate: " << predicate << std::endl;
-  Trace("liastar-ext") << "predicate: " << predicate << std::endl;
   predicate = LiaStarUtils::toDNF(predicate, &d_env);
-  Trace("liastar-ext") << "predicate in dnf: " << predicate << std::endl;
   Trace("liastar-ext") << "predicate in dnf: " << predicate << std::endl;
 
   // where the constraints in each disjunction construct a matrix in Normaliz
