@@ -235,12 +235,22 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
             convertQFLIAToMatrices(literal);
 
         auto [cones, starConstraints] = getCones(literal, pairs);
-        std::vector<Node> lia = getLia(literal, cones);
+        std::vector<std::pair<Node, Node>> lia = getLia(literal, cones);
 
         Trace("liastar-ext") << "lia constraint: " << std::endl;
-        for (const Node& node : lia)
+        for (size_t i = 0; i < lia.size(); i++)
         {
-          Trace("liastar-ext") << node << std::endl;
+          Trace("liastar-ext") << "(push 1)" << std::endl;
+          Trace("liastar-ext") << "(echo \"" << i << "\")" << std::endl;
+          Trace("liastar-ext") << "(assert " << std::endl
+                               << "  (distinct" << std::endl
+                               << "    ";
+          Trace("liastar-ext") << lia[i].first << std::endl << "    ";
+          Trace("liastar-ext") << lia[i].second << std::endl
+                               << "  )" << std::endl
+                               << ")" << std::endl;
+          Trace("liastar-ext") << "(check-sat)" << std::endl;
+          Trace("liastar-ext") << "(pop 1)" << std::endl;
         }
 
         lemma = d_nm->mkNode(Kind::AND, starConstraints);
@@ -256,11 +266,12 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
   }
 }
 
-std::pair<std::vector<libnormaliz::Cone<Integer>>, std::vector<Node>>
+std::pair<std::vector<std::pair<Node, libnormaliz::Cone<Integer>>>,
+          std::vector<Node>>
 LiaStarExtension::getCones(
     Node n, const std::vector<std::pair<std::vector<std::string>, Node>>& pairs)
 {
-  std::vector<Cone<Integer>> cones;
+  std::vector<std::pair<Node, Cone<Integer>>> cones;
   Node vec = n[2];
   size_t dimension = vec.getNumChildren();
   std::vector<Integer> zeroVector(dimension, Integer(0));
@@ -292,6 +303,7 @@ LiaStarExtension::getCones(
     ss << "nonnegative" << std::endl;
     ss << "HilbertBasis" << std::endl;
     ss << "ModuleGenerators" << std::endl;
+    ss << "AffineDim" << std::endl;
     Trace("liastar-ext") << "normaliz input:" << std::endl;
     Trace("liastar-ext") << ss.str() << std::endl;
 
@@ -311,6 +323,14 @@ LiaStarExtension::getCones(
     cone.deactivateChangeOfPrecision();
     cone.compute(ConeProperty::HilbertBasis);
     cone.compute(ConeProperty::ModuleGenerators);
+    cone.compute(ConeProperty::AffineDim);
+
+    if (cone.getAffineDim() == -1)
+    {
+      // the cone is empty skip.
+      Trace("liastar-ext") << "empty cone" << std::endl;
+      continue;
+    }
 
     Trace("liastar-ext") << "Hilbert basis:" << std::endl;
     for (const auto& basis : cone.getHilbertBasis())
@@ -363,7 +383,7 @@ LiaStarExtension::getCones(
       }
       lambdas.push_back({point, rays});
     }
-    cones.push_back(cone);
+    cones.push_back({pair.second, cone});
   }
 
   // sum constraints
@@ -388,16 +408,18 @@ LiaStarExtension::getCones(
   return std::make_pair(cones, starConstraints);
 }
 
-std::vector<Node> LiaStarExtension::getLia(
-    Node n, std::vector<libnormaliz::Cone<Integer>>& cones)
+std::vector<std::pair<Node, Node>> LiaStarExtension::getLia(
+    Node n, std::vector<std::pair<Node, libnormaliz::Cone<Integer>>>& cones)
 {
   Node vec = n[0];
   size_t dimension = vec.getNumChildren();
-  std::vector<Node> disjunctions;
+  std::vector<std::pair<Node, Node>> disjunctions;
   std::vector<Integer> zeroVector(dimension, Integer(0));
 
-  for (libnormaliz::Cone<Integer>& cone : cones)
+  for (auto& pair : cones)
   {
+    Node node = pair.first;
+    libnormaliz::Cone<Integer> cone = pair.second;
     Trace("liastar-ext") << "Hilbert basis:" << std::endl;
     for (const auto& basis : cone.getHilbertBasis())
     {
@@ -463,7 +485,7 @@ std::vector<Node> LiaStarExtension::getLia(
         Node variables = d_nm->mkNode(Kind::BOUND_VAR_LIST, boundVariables);
         conjunction = d_nm->mkNode(Kind::EXISTS, variables, conjunction);
       }
-      disjunctions.push_back(conjunction);
+      disjunctions.push_back({node, conjunction});
     }
   }
 
@@ -493,13 +515,13 @@ LiaStarExtension::convertQFLIAToMatrices(Node n)
   Trace("liastar-ext") << "variables: " << variables << std::endl;
 
   Trace("liastar-ext") << "predicate: " << predicate << std::endl;
-  predicate = LiaStarUtils::toDNF(predicate, &d_env);
-  Trace("liastar-ext") << "predicate in dnf: " << predicate << std::endl;
+  Node dnf = LiaStarUtils::toDNF(predicate, &d_env);
+  Trace("liastar-ext") << "predicate in dnf: " << dnf << std::endl;
 
   // where the constraints in each disjunction construct a matrix in Normaliz
 
   std::vector<std::pair<std::vector<std::string>, Node>> pairs =
-      getMatrices(variables, predicate);
+      getMatrices(variables, dnf);
   return pairs;
 }
 
@@ -552,6 +574,8 @@ LiaStarExtension::getMatrices(Node variables, Node n)
         std::vector<std::pair<std::vector<std::string>, Node>> m =
             getMatrices(variables, n[i]);
         pairs.push_back(m[0]);
+        Trace("liastar-ext")
+            << "Disjunction " << i << ": " << n[i] << std::endl;
       }
       return pairs;
     }

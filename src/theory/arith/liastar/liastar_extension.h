@@ -126,12 +126,13 @@ class LiaStarExtension : EnvObj
   std::vector<std::pair<std::vector<std::string>, Node>> getMatrices(
       Node variables, Node predicate);
 
-  std::pair<std::vector<libnormaliz::Cone<Integer>>, std::vector<Node>>
+  std::pair<std::vector<std::pair<Node, libnormaliz::Cone<Integer>>>,
+            std::vector<Node>>
   getCones(Node n,
            const std::vector<std::pair<std::vector<std::string>, Node>>& pairs);
 
-  std::vector<Node> getLia(Node n,
-                           std::vector<libnormaliz::Cone<Integer>>& cones);
+  std::vector<std::pair<Node, Node>> getLia(
+      Node n, std::vector<std::pair<Node, libnormaliz::Cone<Integer>>>& cones);
 
   std::string getString(Node variables, arith::linear::Polynomial& p);
   /** node manager */

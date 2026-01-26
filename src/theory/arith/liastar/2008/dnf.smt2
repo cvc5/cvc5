@@ -1,11 +1,18 @@
 
 (set-logic ALL) 
-(set-option :produce-models true)
+
+(set-option :produce-models true) 
+
 (set-option :dag-thresh 0) 
+
 (declare-fun x1 () Int) 
+
 (declare-fun L () Int) 
+
 (declare-fun x () Int) 
+
 (declare-fun z1 () Int) 
+
 (declare-fun z2 () Int) 
 
 (declare-fun predicate () Bool) 
@@ -16,6 +23,7 @@
 (assert (>= x 0)) 
 (assert (>= z1 0)) 
 (assert (>= z2 0)) 
+
 
 (assert 
   (= predicate 
@@ -105,8 +113,8 @@
       (and (= z1 1) 
         (< (+ L (* (- 1) x)) 1) 
         (>= (+ L (* (- 1) x)) 1) (= z2 1) 
-        (< (+ L (* (- 1) x)) 0)))))
+        (< (+ L (* (- 1) x)) 0))))) 
 
-(assert (distinct predicate dnf))
-
+(assert 
+  (distinct predicate dnf)) 
 (check-sat)
