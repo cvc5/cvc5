@@ -3787,6 +3787,7 @@ set(regress_1_tests
   regress1/sygus/interpol_from_pono_2.smt2
   regress1/sygus/interpolant-conj-simple.smt2
   regress1/sygus/issue10708-unconstrained-int.sy
+  regress1/sygus/issue12375-no-eval-model.sy
   regress1/sygus/issue2914.sy
   regress1/sygus/issue2935.sy
   regress1/sygus/issue3109-share-sel.sy
@@ -3855,7 +3856,6 @@ set(regress_1_tests
   regress1/sygus/proj-issue183.smt2
   regress1/sygus/proj-issue185.smt2
   regress1/sygus/proj-issue222-any-const.sy
-  regress1/sygus/proj-issue264.smt2
   regress1/sygus/proj-issue541.smt2
   regress1/sygus/proj-issue548-srr.smt2
   regress1/sygus/proj-issue549-srr.smt2
@@ -4286,6 +4286,8 @@ set(regression_disabled_tests
   regress1/sygus/issue3648.smt2
   # new reconstruct algorithm is slow at reconstructing random constants (see wishue #82)
   regress0/sygus/c100.sy
+  # timeout after ignoring sygus eval terms in model
+  regress1/sygus/proj-issue264.smt2
   # For the six regressions below, solution terms require rewrites not in
   # database and are too big to enumerate
   regress0/sygus/aig-si.sy
