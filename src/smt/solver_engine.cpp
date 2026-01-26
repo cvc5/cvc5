@@ -2108,8 +2108,9 @@ void SolverEngine::getInstantiationTermVectors(
 
 std::vector<Node> SolverEngine::getAssertions()
 {
+  // ensure this solver engine has been initialized
+  finishInit();
   Trace("smt") << "SMT getAssertions()" << endl;
-  beginCall();
   // note we always enable assertions, so it is available here
   return getAssertionsInternal();
 }
