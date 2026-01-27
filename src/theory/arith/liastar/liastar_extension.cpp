@@ -257,7 +257,15 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
                        lia.end(),
                        std::back_inserter(disjunctions),
                        [](auto& p) { return p.second; });
-        Node liaFormula = d_nm->mkNode(Kind::OR, disjunctions);
+        Node liaFormula;
+        if (disjunctions.size() == 1)
+        {
+          liaFormula = disjunctions[0];
+        }
+        else
+        {
+          liaFormula = d_nm->mkNode(Kind::OR, disjunctions);
+        }
         Trace("liastar-ext") << "lia formula: " << liaFormula << std::endl;
         Node star = d_nm->mkNode(Kind::AND, starConstraints);
         Trace("liastar-ext") << "starConstraints: " << std::endl
@@ -310,7 +318,6 @@ LiaStarExtension::getCones(
     ss << "nonnegative" << std::endl;
     ss << "HilbertBasis" << std::endl;
     ss << "ModuleGenerators" << std::endl;
-    ss << "AffineDim" << std::endl;
     Trace("liastar-ext") << "normaliz input:" << std::endl;
     Trace("liastar-ext") << ss.str() << std::endl;
 
@@ -330,13 +337,16 @@ LiaStarExtension::getCones(
     cone.deactivateChangeOfPrecision();
     cone.compute(ConeProperty::HilbertBasis);
     cone.compute(ConeProperty::ModuleGenerators);
-    cone.compute(ConeProperty::AffineDim);
 
-    if (cone.getAffineDim() == -1)
+    if (cone.isInhomogeneous())
     {
-      // the cone is empty skip.
-      Trace("liastar-ext") << "empty cone" << std::endl;
-      continue;
+      // AffineDim is only computed for inhomogeneous cones
+      if (cone.getAffineDim() == -1)
+      {
+        // the cone is empty skip.
+        Trace("liastar-ext") << "empty cone" << std::endl;
+        continue;
+      }
     }
 
     Trace("liastar-ext") << "Hilbert basis:" << std::endl;
