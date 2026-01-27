@@ -181,7 +181,6 @@ std::vector<CACInterval> CDCAC::getUnsatIntervals(std::size_t cur_variable)
             d_constraints.varMapper(),
             p,
             d_assignment,
-            sc,
             i,
             n,
             res.back().d_id);

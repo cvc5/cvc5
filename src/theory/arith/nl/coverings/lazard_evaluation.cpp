@@ -876,7 +876,7 @@ void LazardEvaluation::add(const poly::Variable& var, const poly::Value& val)
   d_state->d_assignment.set(var, val);
 }
 
-void LazardEvaluation::addFreeVariable(const poly::Variable& var) {}
+void LazardEvaluation::addFreeVariable(CVC5_UNUSED const poly::Variable& var) {}
 
 std::vector<poly::Polynomial> LazardEvaluation::reducePolynomial(
     const poly::Polynomial& p) const
