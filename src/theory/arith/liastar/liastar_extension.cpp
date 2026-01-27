@@ -96,8 +96,13 @@ void LiaStarExtension::getAssertions(std::vector<Node>& assertions)
     Trace("liastar-ext") << lit << std::endl;
     if (lit.getKind() == Kind::STAR_CONTAINS)
     {
-      // for now, we only care about positive polarity of star-contains
+      // positive polarity of star-contains
       assertions.push_back(lit);
+    }
+    if (lit.getKind() == Kind::NOT && lit[0].getKind() == Kind::STAR_CONTAINS)
+    {
+      // negative polarity of star-contains
+      assertions.push_back(lit[0]);
     }
   }
   Trace("liastar-ext") << "---------------------" << std::endl;
