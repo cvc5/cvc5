@@ -259,10 +259,11 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
                        [](auto& p) { return p.second; });
         Node liaFormula = d_nm->mkNode(Kind::OR, disjunctions);
         Trace("liastar-ext") << "lia formula: " << liaFormula << std::endl;
-        lemma = d_nm->mkNode(Kind::AND, starConstraints);
+        Node star = d_nm->mkNode(Kind::AND, starConstraints);
         Trace("liastar-ext") << "starConstraints: " << std::endl
                              << toString(starConstraints) << std::endl;
-        lemma = rewrite(lemma);
+        star = rewrite(star);
+        lemma = literal.eqNode(star);
         Trace("liastar-ext") << "star lemma: " << lemma << std::endl;
         d_im.addPendingLemma(lemma, InferenceId::ARITH_LIA_STAR);
         d_processedStarTerms.push_back(literal);
