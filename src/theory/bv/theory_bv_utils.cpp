@@ -37,7 +37,7 @@ unsigned getSize(TNode node)
   return node.getType().getBitVectorSize();
 }
 
-const bool getBit(TNode node, unsigned i)
+bool getBit(TNode node, unsigned i)
 {
   Assert(i < getSize(node) && node.getKind() == Kind::CONST_BITVECTOR);
   return node.getConst<BitVector>().extract(i, i).getValue() == 1u;

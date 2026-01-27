@@ -109,6 +109,10 @@ class CoCoAConverter
   /** Helper class for the conversion of a libpoly polynomial to CoCoA. */
   struct CoCoAPolyConstructor
   {
+    CoCoAPolyConstructor(const CoCoAConverter& state, const CoCoA::ring& ring)
+        : d_state(state), d_ring(ring)
+    {
+    }
     const CoCoAConverter& d_state;
     const CoCoA::ring& d_ring;
     CoCoA::RingElem d_result;

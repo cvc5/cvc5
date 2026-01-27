@@ -31,8 +31,7 @@ Smt2State::Smt2State(ParserStateCallback* psc,
                      bool isSygus)
     : ParserState(psc, solver, sm, parsingMode),
       d_isSygus(isSygus),
-      d_logicSet(false),
-      d_seenSetLogic(false)
+      d_logicSet(false)
 {
   d_freshBinders = (d_solver->getOption("fresh-binders") == "true");
 }

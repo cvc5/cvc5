@@ -41,10 +41,8 @@ InferenceManager::InferenceManager(Env& env,
       d_termReg(tr),
       d_extt(e),
       d_statistics(statistics),
-      d_ipc(isProofEnabled() ? new InferProofCons(env, context(), d_statistics)
-                             : nullptr),
-      d_ipcl(isProofEnabled() ? new InferProofCons(env, context(), d_statistics)
-                              : nullptr)
+      d_ipc(isProofEnabled() ? new InferProofCons(env, context()) : nullptr),
+      d_ipcl(isProofEnabled() ? new InferProofCons(env, context()) : nullptr)
 {
   NodeManager* nm = nodeManager();
   d_zero = nm->mkConstInt(Rational(0));

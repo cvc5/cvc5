@@ -206,8 +206,6 @@ class CegInstantiator : protected EnvObj
   QuantifiersRegistry& d_qreg;
   /** Reference to the term registry */
   TermRegistry& d_treg;
-  /** The parent of this instantiator */
-  InstStrategyCegqi* d_parent;
 
   //-------------------------------globally cached
   /** cache from nodes to the set of variables it contains
