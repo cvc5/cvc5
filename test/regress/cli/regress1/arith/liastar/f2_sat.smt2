@@ -1,6 +1,7 @@
 (set-logic ALL)
 (set-option :produce-models true)
-;; (set-info :status sat)
+(set-option :quiet true)
+(set-info :status sat)
 (assert 
  (int.star-contains 
   ((x Int) (y Int)) 
