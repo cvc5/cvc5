@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz
+ *   Mudathir Mohamed
  *
  * This file is part of the cvc5 project.
  *
@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Unit tests for arithmetic polynomial normalization.
+ * Unit tests for lia star extension.
  */
 
 #include <iostream>
