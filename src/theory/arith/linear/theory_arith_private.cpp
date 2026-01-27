@@ -60,7 +60,7 @@
 #include "theory/arith/linear/normal_form.h"
 #include "theory/arith/linear/partial_model.h"
 #include "theory/arith/linear/simplex.h"
-// #include "theory/arith/nl/nonlinear_extension.h"
+#include "theory/arith/nl/nonlinear_extension.h"
 #include "theory/arith/theory_arith.h"
 #include "theory/ext_theory.h"
 #include "theory/quantifiers/fmf/bounded_integers.h"
