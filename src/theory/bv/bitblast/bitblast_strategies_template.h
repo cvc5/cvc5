@@ -39,12 +39,12 @@ namespace bv {
  */
 
 template <class T>
-T UndefinedAtomBBStrategy(TNode node, TBitblaster<T>* bb) {
+T UndefinedAtomBBStrategy(TNode node, CVC5_UNUSED TBitblaster<T>* bb)
+{
   Trace("bitvector") << "TheoryBV::Bitblaster Undefined bitblasting strategy for kind: "
                      << node.getKind() << "\n";
-  Unreachable(); 
+  Unreachable();
 }
-
 
 template <class T>
 T DefaultEqBB(TNode node, TBitblaster<T>* bb) {
@@ -118,16 +118,18 @@ T DefaultUleBB(TNode node, TBitblaster<T>* bb){
 }
 
 template <class T>
-T DefaultUgtBB(TNode node, TBitblaster<T>* bb){
+T DefaultUgtBB(TNode node, CVC5_UNUSED TBitblaster<T>* bb)
+{
   Trace("bitvector-bb") << "Bitblasting node " << node  << "\n";
   // should be rewritten 
-  Unimplemented(); 
+  Unimplemented();
 }
 template <class T>
-T DefaultUgeBB(TNode node, TBitblaster<T>* bb){
+T DefaultUgeBB(TNode node, CVC5_UNUSED TBitblaster<T>* bb)
+{
   Trace("bitvector-bb") << "Bitblasting node " << node  << "\n";
   // should be rewritten 
-  Unimplemented(); 
+  Unimplemented();
 }
 
 template <class T>
@@ -155,21 +157,22 @@ T DefaultSleBB(TNode node, TBitblaster<T>* bb){
   T res = sLessThanBB(a, b, true); 
   return res;
 }
- 
+
 template <class T>
-T DefaultSgtBB(TNode node, TBitblaster<T>* bb){
+T DefaultSgtBB(TNode node, CVC5_UNUSED TBitblaster<T>* bb)
+{
   Trace("bitvector-bb") << "Bitblasting node " << node  << "\n";
   // should be rewritten 
-  Unimplemented(); 
+  Unimplemented();
 }
 
 template <class T>
-T DefaultSgeBB(TNode node, TBitblaster<T>* bb){
+T DefaultSgeBB(TNode node, CVC5_UNUSED TBitblaster<T>* bb)
+{
   Trace("bitvector-bb") << "Bitblasting node " << node  << "\n";
   // should be rewritten 
-  Unimplemented(); 
+  Unimplemented();
 }
-
 
 /// Term bitblasting strategies 
 
@@ -181,10 +184,13 @@ T DefaultSgeBB(TNode node, TBitblaster<T>* bb){
  * @param bb the bitblaster in which the clauses are added
  */
 template <class T>
-void UndefinedTermBBStrategy(TNode node, std::vector<T>& bits, TBitblaster<T>* bb) {
+void UndefinedTermBBStrategy(TNode node,
+                             CVC5_UNUSED std::vector<T>& bits,
+                             CVC5_UNUSED TBitblaster<T>* bb)
+{
   Trace("bitvector") << "theory::bv:: Undefined bitblasting strategy for kind: "
                      << node.getKind() << "\n";
-  Unreachable(); 
+  Unreachable();
 }
 
 template <class T>
@@ -199,7 +205,10 @@ void DefaultVarBB (TNode node, std::vector<T>& bits, TBitblaster<T>* bb) {
 }
 
 template <class T>
-void DefaultConstBB (TNode node, std::vector<T>& bits, TBitblaster<T>* bb) {
+void DefaultConstBB(TNode node,
+                    std::vector<T>& bits,
+                    CVC5_UNUSED TBitblaster<T>* bb)
+{
   Trace("bitvector-bb") << "theory::bv::DefaultConstBB bitblasting " << node << "\n";
   Assert(node.getKind() == Kind::CONST_BITVECTOR);
   Assert(bits.size() == 0);
@@ -218,7 +227,6 @@ void DefaultConstBB (TNode node, std::vector<T>& bits, TBitblaster<T>* bb) {
     Trace("bitvector-bb") << "with  bits: " << toString(bits) << "\n"; 
   }
 }
-
 
 template <class T>
 void DefaultNotBB (TNode node, std::vector<T>& bits, TBitblaster<T>* bb) {
@@ -321,18 +329,23 @@ void DefaultXnorBB (TNode node, std::vector<T>& bits, TBitblaster<T>* bb) {
   }
 }
 
-
 template <class T>
-void DefaultNandBB (TNode node, std::vector<T>& bits, TBitblaster<T>* bb) {
+void DefaultNandBB(TNode node,
+                   CVC5_UNUSED std::vector<T>& bits,
+                   CVC5_UNUSED TBitblaster<T>* bb)
+{
   Trace("bitvector") << "theory::bv:: Unimplemented kind "
                      << node.getKind() << "\n";
-  Unimplemented(); 
+  Unimplemented();
 }
 template <class T>
-void DefaultNorBB (TNode node, std::vector<T>& bits, TBitblaster<T>* bb) {
+void DefaultNorBB(TNode node,
+                  CVC5_UNUSED std::vector<T>& bits,
+                  CVC5_UNUSED TBitblaster<T>* bb)
+{
   Trace("bitvector") << "theory::bv:: Unimplemented kind "
                      << node.getKind() << "\n";
-  Unimplemented(); 
+  Unimplemented();
 }
 template <class T>
 void DefaultCompBB (TNode node, std::vector<T>& bits, TBitblaster<T>* bb) {
@@ -847,23 +860,26 @@ void DefaultExtractBB (TNode node, std::vector<T>& bits, TBitblaster<T>* bb) {
   }
 }
 
-
 template <class T>
-void DefaultRepeatBB (TNode node, std::vector<T>& bits, TBitblaster<T>* bb) {
+void DefaultRepeatBB(TNode node,
+                     CVC5_UNUSED std::vector<T>& bits,
+                     CVC5_UNUSED TBitblaster<T>* bb)
+{
   Trace("bitvector") << "theory::bv:: Unimplemented kind "
                      << node.getKind() << "\n";
   // this should be rewritten 
-  Unimplemented(); 
+  Unimplemented();
 }
 
 template <class T>
-void DefaultZeroExtendBB (TNode node, std::vector<T>& res_bits, TBitblaster<T>* bb) {
-
+void DefaultZeroExtendBB(TNode node,
+                         CVC5_UNUSED std::vector<T>& res_bits,
+                         CVC5_UNUSED TBitblaster<T>* bb)
+{
   Trace("bitvector-bb") << "theory::bv::DefaultZeroExtendBB bitblasting " << node  << "\n";
  
   // this should be rewritten 
   Unimplemented();
-  
 }
 
 template <class T>
@@ -891,21 +907,25 @@ void DefaultSignExtendBB (TNode node, std::vector<T>& res_bits, TBitblaster<T>* 
 }
 
 template <class T>
-void DefaultRotateRightBB (TNode node, std::vector<T>& res, TBitblaster<T>* bb) {
+void DefaultRotateRightBB(TNode node,
+                          CVC5_UNUSED std::vector<T>& res,
+                          CVC5_UNUSED TBitblaster<T>* bb)
+{
   Trace("bitvector") << "theory::bv:: Unimplemented kind "
                      << node.getKind() << "\n";
 
-  Unimplemented(); 
+  Unimplemented();
 }
 
 template <class T>
-void DefaultRotateLeftBB (TNode node, std::vector<T>& bits, TBitblaster<T>* bb) {
+void DefaultRotateLeftBB(TNode node,
+                         CVC5_UNUSED std::vector<T>& bits,
+                         CVC5_UNUSED TBitblaster<T>* bb)
+{
   Trace("bitvector") << "theory::bv:: Unimplemented kind "
                      << node.getKind() << "\n";
-  Unimplemented(); 
+  Unimplemented();
 }
-
-
 }
 }
 }  // namespace cvc5::internal
