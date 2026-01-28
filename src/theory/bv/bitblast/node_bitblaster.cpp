@@ -108,7 +108,7 @@ Node NodeBitblaster::getStoredBBAtom(TNode node)
   return negated ? atom_bb.negate() : atom_bb;
 }
 
-Node NodeBitblaster::getModelFromSatSolver(TNode a, bool fullModel)
+Node NodeBitblaster::getModelFromSatSolver(TNode a, CVC5_UNUSED bool fullModel)
 {
   NodeManager* nm = a.getNodeManager();
   if (!hasBBTerm(a))

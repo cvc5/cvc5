@@ -34,12 +34,13 @@ class BitVectorEnumerator : public TypeEnumeratorBase<BitVectorEnumerator> {
   Integer d_bits;
 
 public:
-
-  BitVectorEnumerator(TypeNode type, TypeEnumeratorProperties * tep = NULL) :
-    TypeEnumeratorBase<BitVectorEnumerator>(type),
-    d_size(type.getBitVectorSize()),
-    d_bits(0) {
-  }
+ BitVectorEnumerator(TypeNode type,
+                     CVC5_UNUSED TypeEnumeratorProperties* tep = NULL)
+     : TypeEnumeratorBase<BitVectorEnumerator>(type),
+       d_size(type.getBitVectorSize()),
+       d_bits(0)
+ {
+ }
 
   Node operator*() override
   {
