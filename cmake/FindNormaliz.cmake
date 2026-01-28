@@ -78,6 +78,7 @@ if(NOT Normaliz_FOUND_SYSTEM)
   
   message ("CONFIGURE_ENV: ${CONFIGURE_ENV}")
   message ("CONFIGURE_CMD_WRAPPER: ${CONFIGURE_CMD_WRAPPER}")
+  get_target_property(GMP_LIBRARY GMP IMPORTED_LOCATION)
   ExternalProject_Add(
     Normaliz-EP
     ${COMMON_EP_CONFIG}
@@ -89,13 +90,13 @@ if(NOT Normaliz_FOUND_SYSTEM)
           ${CONFIGURE_CMD_WRAPPER} ${SHELL} <SOURCE_DIR>/configure
           ${LINK_OPTS}
           --prefix=<INSTALL_DIR>
-          --with-pic
-          --enable-cxx
+          --with-gmp=<INSTALL_DIR>
           ${CONFIGURE_OPTS}
     BUILD_BYPRODUCTS ${Normaliz_LIBRARIES}
   )
   ExternalProject_Get_Property(Normaliz-EP SOURCE_DIR)
   message(STATUS "Normaliz SOURCE_DIR = ${SOURCE_DIR}")
+  add_dependencies(Normaliz-EP GMP-EP)
 endif()
 
 set(Normaliz_FOUND TRUE)
