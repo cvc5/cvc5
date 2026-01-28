@@ -100,8 +100,10 @@ if(NOT Normaliz_FOUND_SYSTEM)
           ${CONFIGURE_OPTS}
     BUILD_BYPRODUCTS ${Normaliz_LIBRARIES}
   )
-  ExternalProject_Get_Property(Normaliz-EP SOURCE_DIR)  
-  add_dependencies(Normaliz-EP GMP-EP)
+  ExternalProject_Get_Property(Normaliz-EP SOURCE_DIR)
+  if(NOT GMP_FOUND_SYSTEM)
+    add_dependencies(Normaliz-EP GMP-EP)
+  endif()  
 endif()
 
 set(Normaliz_FOUND TRUE)
