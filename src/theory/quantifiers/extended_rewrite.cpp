@@ -617,7 +617,7 @@ Node ExtendedRewriter::extendedRewriteAndOr(Node n) const
     return new_ret;
   }
   // factoring
-  new_ret = extendedRewriteFactoring(Kind::AND, Kind::OR, Kind::NOT, n);
+  new_ret = extendedRewriteFactoring(Kind::AND, Kind::OR, n);
   if (!new_ret.isNull())
   {
     debugExtendedRewrite(n, new_ret, "Bool factoring");
@@ -965,7 +965,6 @@ Node ExtendedRewriter::extendedRewriteBcp(Kind andk,
 
 Node ExtendedRewriter::extendedRewriteFactoring(Kind andk,
                                                 Kind ork,
-                                                Kind notk,
                                                 Node n) const
 {
   Trace("ext-rew-factoring") << "Factoring: *** INPUT: " << n << std::endl;

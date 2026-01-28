@@ -44,7 +44,7 @@ SygusSampler::SygusSampler(Env& env)
 {
 }
 
-void SygusSampler::initialize(TypeNode tn,
+void SygusSampler::initialize(CVC5_UNUSED TypeNode tn,
                               const std::vector<Node>& vars,
                               unsigned nsamples,
                               bool unique_type_ids)

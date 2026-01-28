@@ -60,7 +60,7 @@ class UnifContextIo : public UnifContext
   * if pol=true, this method updates d_vals to d_vals & vals
   * if pol=false, this method updates d_vals to d_vals & ( ~vals )
   */
-  bool updateContext(SygusUnifIo* sui, std::vector<Node>& vals, bool pol);
+  bool updateContext(std::vector<Node>& vals, bool pol);
   //----------end for ITE strategy
 
   //----------for CONCAT strategies
@@ -83,9 +83,7 @@ class UnifContextIo : public UnifContext
   * This method updates d_str_pos to d_str_pos + pos, and updates the current
   * role to nrole.
   */
-  bool updateStringPosition(SygusUnifIo* sui,
-                            std::vector<size_t>& pos,
-                            NodeRole nrole);
+  bool updateStringPosition(std::vector<size_t>& pos, NodeRole nrole);
   /** get current strings
   *
   * This returns the prefix/suffix of the string constants stored in vals

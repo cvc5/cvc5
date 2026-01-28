@@ -1162,7 +1162,7 @@ Node SygusExtension::registerSearchValue(Node a,
       // generalize the explanation for why the analog of bad_val
       // is equivalent to bvr
       quantifiers::EquivSygusInvarianceTest eset(d_env.getRewriter());
-      eset.init(d_tds, tn, aconj, a, bvr);
+      eset.init(d_tds, aconj, a, bvr);
 
       Trace("sygus-sb-mexp-debug")
           << "Minimize explanation for eval[" << d_tds->sygusToBuiltin(bad_val)

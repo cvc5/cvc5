@@ -94,7 +94,7 @@ Node HoTermDb::getOperatorRepresentative(TNode op) const
   }
   return op;
 }
-bool HoTermDb::finishResetInternal(Theory::Effort effort)
+bool HoTermDb::finishResetInternal(CVC5_UNUSED Theory::Effort effort)
 {
   if (!options().quantifiers.hoMergeTermDb)
   {

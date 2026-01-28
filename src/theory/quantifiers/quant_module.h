@@ -92,7 +92,7 @@ class QuantifiersModule : protected EnvObj
    *
    * Called at the beginning of QuantifiersEngine::check(e).
    */
-  virtual void reset_round(Theory::Effort e) {}
+  virtual void reset_round(CVC5_UNUSED Theory::Effort e) {}
   /** Check.
    *
    *   Called during QuantifiersEngine::check(e) depending
@@ -110,7 +110,7 @@ class QuantifiersModule : protected EnvObj
    * If this method returns false, it should update incId to the reason for
    * why the module was incomplete.
    */
-  virtual bool checkComplete(IncompleteId& incId) { return true; }
+  virtual bool checkComplete(CVC5_UNUSED IncompleteId& incId) { return true; }
   /** Check was complete for quantified formula q
    *
    * If for each quantified formula q, some module returns true for
@@ -119,14 +119,14 @@ class QuantifiersModule : protected EnvObj
    * "sat", unless
    * we are incomplete for other reasons.
    */
-  virtual bool checkCompleteFor(Node q) { return false; }
+  virtual bool checkCompleteFor(CVC5_UNUSED Node q) { return false; }
   /** Check ownership
    *
    * Called once for new quantified formulas that are registered by the
    * quantifiers theory. The primary purpose of this function is to establish
    * if this module is the owner of quantified formula q.
    */
-  virtual void checkOwnership(Node q) {}
+  virtual void checkOwnership(CVC5_UNUSED Node q) {}
   /** Register quantifier
    *
    * Called once for new quantified formulas q that are pre-registered by the
@@ -134,21 +134,24 @@ class QuantifiersModule : protected EnvObj
    * finalized. This does context-independent initialization of this module
    * for quantified formula q.
    */
-  virtual void registerQuantifier(Node q) {}
+  virtual void registerQuantifier(CVC5_UNUSED Node q) {}
   /** Pre-register quantifier
    *
    * Called once for new quantified formulas that are
    * pre-registered by the quantifiers theory, after
    * internal ownership of quantified formulas is finalized.
    */
-  virtual void preRegisterQuantifier(Node q) {}
+  virtual void preRegisterQuantifier(CVC5_UNUSED Node q) {}
   /** Assert node.
    *
    * Called when a quantified formula q is asserted to the quantifiers theory
    */
-  virtual void assertNode(Node q) {}
+  virtual void assertNode(CVC5_UNUSED Node q) {}
   /** notify preprocessed assertion */
-  virtual void ppNotifyAssertions(const std::vector<Node>& assertions) {}
+  virtual void ppNotifyAssertions(
+      CVC5_UNUSED const std::vector<Node>& assertions)
+  {
+  }
   /**
    * Identify this module (for debugging, dynamic configuration, etc..).
    * This name is printed in -o inst-strategy.

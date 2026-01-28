@@ -204,12 +204,12 @@ bool SygusInst::needsCheck(Theory::Effort e)
   return e >= Theory::EFFORT_LAST_CALL;
 }
 
-QuantifiersModule::QEffort SygusInst::needsModel(Theory::Effort e)
+QuantifiersModule::QEffort SygusInst::needsModel(CVC5_UNUSED Theory::Effort e)
 {
   return QEFFORT_STANDARD;
 }
 
-void SygusInst::reset_round(Theory::Effort e)
+void SygusInst::reset_round(CVC5_UNUSED Theory::Effort e)
 {
   d_active_quant.clear();
   d_inactive_quant.clear();

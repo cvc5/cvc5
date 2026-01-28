@@ -112,7 +112,7 @@ Node BvInverter::getInversionNode(Node cond, TypeNode tn, BvInverterQuery* m)
 
 /*---------------------------------------------------------------------------*/
 
-static bool isInvertible(Kind k, unsigned index)
+static bool isInvertible(Kind k)
 {
   return k == Kind::NOT || k == Kind::EQUAL || k == Kind::BITVECTOR_ULT
          || k == Kind::BITVECTOR_SLT || k == Kind::BITVECTOR_COMP
@@ -146,7 +146,7 @@ Node BvInverter::getPathToPv(Node lit,
         size_t ii = (i + rmod) % lit.getNumChildren();
         // only recurse if the kind is invertible
         // this allows us to avoid paths that go through skolem functions
-        if (!isInvertible(lit.getKind(), ii))
+        if (!isInvertible(lit.getKind()))
         {
           continue;
         }

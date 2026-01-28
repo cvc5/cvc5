@@ -198,11 +198,11 @@ class FirstOrderModel : protected EnvObj
   /** get variable id */
   std::map<Node, std::map<Node, int> > d_quant_var_id;
   /** process initialize model for term */
-  virtual void processInitializeModelForTerm(Node n) {}
+  virtual void processInitializeModelForTerm(CVC5_UNUSED Node n) {}
   /** process initialize quantifier */
-  virtual void processInitializeQuantifier(Node q) {}
+  virtual void processInitializeQuantifier(CVC5_UNUSED Node q) {}
   /** process initialize */
-  virtual void processInitialize(bool ispre) {}
+  virtual void processInitialize(CVC5_UNUSED bool ispre) {}
 
  private:
   // list of inactive quantified formulas

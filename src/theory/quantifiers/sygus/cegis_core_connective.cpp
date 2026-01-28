@@ -220,9 +220,9 @@ bool CegisCoreConnective::processInitialize(Node conj,
 bool CegisCoreConnective::processConstructCandidates(
     const std::vector<Node>& enums,
     const std::vector<Node>& enum_values,
-    const std::vector<Node>& candidates,
+    CVC5_UNUSED const std::vector<Node>& candidates,
     std::vector<Node>& candidate_values,
-    bool satisfiedRl)
+    CVC5_UNUSED bool satisfiedRl)
 {
   Assert(isActive());
   bool ret = constructSolution(enums, enum_values, candidate_values);

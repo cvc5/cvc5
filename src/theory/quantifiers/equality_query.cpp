@@ -40,7 +40,7 @@ EqualityQuery::EqualityQuery(Env& env, QuantifiersState& qs, FirstOrderModel* m)
 
 EqualityQuery::~EqualityQuery() {}
 
-bool EqualityQuery::reset(Theory::Effort e)
+bool EqualityQuery::reset(CVC5_UNUSED Theory::Effort e)
 {
   d_int_rep.clear();
   d_reset_count++;
@@ -76,7 +76,7 @@ Node EqualityQuery::getInternalRepresentative(Node a, Node q, size_t index)
   TypeNode v_tn = q.isNull() ? a.getType() : q[0][index].getType();
   if (options().quantifiers.quantRepMode == options::QuantRepMode::EE)
   {
-    int32_t score = getRepScore(r, q, index, v_tn);
+    int32_t score = getRepScore(r, v_tn);
     if (score >= 0)
     {
       return r;
@@ -99,7 +99,7 @@ Node EqualityQuery::getInternalRepresentative(Node a, Node q, size_t index)
   int32_t r_best_score = -1;
   for (const Node& n : eqc)
   {
-    int32_t score = getRepScore(n, q, index, v_tn);
+    int32_t score = getRepScore(n, v_tn);
     if (score != -2)
     {
       if (r_best.isNull()
@@ -166,7 +166,7 @@ Node EqualityQuery::getInstance(Node n,
 }
 
 //-2 : invalid, -1 : undesired, otherwise : smaller the score, the better
-int32_t EqualityQuery::getRepScore(Node n, Node q, size_t index, TypeNode v_tn)
+int32_t EqualityQuery::getRepScore(Node n, TypeNode v_tn)
 {
   if (quantifiers::TermUtil::hasInstConstAttr(n))
   {  // reject

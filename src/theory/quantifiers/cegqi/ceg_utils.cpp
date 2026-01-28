@@ -151,7 +151,7 @@ void SolvedForm::push_back(Node pv, Node n, TermProperties& pv_prop)
   d_theta.push_back(new_theta);
 }
 // pop the substitution pv_prop.getModifiedTerm(pv) -> n
-void SolvedForm::pop_back(Node pv, Node n, TermProperties& pv_prop)
+void SolvedForm::pop_back(TermProperties& pv_prop)
 {
   d_vars.pop_back();
   d_subs.pop_back();

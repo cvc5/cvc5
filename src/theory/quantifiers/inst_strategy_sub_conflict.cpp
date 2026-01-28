@@ -58,9 +58,9 @@ InstStrategySubConflict::InstStrategySubConflict(
   }
 }
 
-void InstStrategySubConflict::reset_round(Theory::Effort e) {}
+void InstStrategySubConflict::reset_round(CVC5_UNUSED Theory::Effort e) {}
 
-bool InstStrategySubConflict::needsCheck(Theory::Effort e)
+bool InstStrategySubConflict::needsCheck(CVC5_UNUSED Theory::Effort e)
 {
   return !d_qstate.isInConflict();
 }

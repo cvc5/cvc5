@@ -157,8 +157,7 @@ class SygusRepairConst : protected EnvObj
    */
   Node getFoQuery(Node body,
                   const std::vector<Node>& candidates,
-                  const std::vector<Node>& candidate_skeletons,
-                  const std::vector<Node>& sk_vars);
+                  const std::vector<Node>& candidate_skeletons);
 };
 
 }  // namespace quantifiers

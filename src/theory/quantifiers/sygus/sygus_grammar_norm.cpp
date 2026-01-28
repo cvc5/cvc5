@@ -128,10 +128,11 @@ void SygusGrammarNorm::TypeObject::initializeDatatype(
   Trace("sygus-grammar-normalize") << "---------------------------------\n";
 }
 
-void SygusGrammarNorm::TransfDrop::buildType(SygusGrammarNorm* sygus_norm,
-                                             TypeObject& to,
-                                             const DType& dt,
-                                             std::vector<unsigned>& op_pos)
+void SygusGrammarNorm::TransfDrop::buildType(
+    CVC5_UNUSED SygusGrammarNorm* sygus_norm,
+    CVC5_UNUSED TypeObject& to,
+    CVC5_UNUSED const DType& dt,
+    std::vector<unsigned>& op_pos)
 {
   std::vector<unsigned> difference;
   std::set_difference(op_pos.begin(),

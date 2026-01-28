@@ -44,7 +44,7 @@ TermPools::TermPools(Env& env, QuantifiersState& qs)
 {
 }
 
-bool TermPools::reset(Theory::Effort e)
+bool TermPools::reset(CVC5_UNUSED Theory::Effort e)
 {
   for (std::pair<const Node, TermPoolDomain>& p : d_pools)
   {
@@ -122,9 +122,7 @@ void TermPools::getTermsForPool(Node p, std::vector<Node>& terms)
   terms.insert(terms.end(), dom.d_currTerms.begin(), dom.d_currTerms.end());
 }
 
-void TermPools::processInstantiation(Node q,
-                                     const std::vector<Node>& terms,
-                                     bool success)
+void TermPools::processInstantiation(Node q, const std::vector<Node>& terms)
 {
   // success is ignored, meaning that inst-add-to-pool annotates
   processInternal(q, terms, true);

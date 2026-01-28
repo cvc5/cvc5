@@ -77,7 +77,7 @@ Node ExampleMinEval::evaluate(const std::vector<Node>& subs)
 }
 
 Node EmeEvalTds::eval(TNode n,
-                      const std::vector<Node>& args,
+                      CVC5_UNUSED const std::vector<Node>& args,
                       const std::vector<Node>& vals)
 {
   return d_tds->evaluateBuiltin(d_tn, n, vals);

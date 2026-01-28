@@ -242,7 +242,7 @@ Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       QuantAttributes::computeQuantAttributes(n, qa);
       std::vector<Node> vars(n[0].begin(), n[0].end());
       Node body = n[1];
-      Node nret = computeSplit(vars, body, qa);
+      Node nret = computeSplit(vars, body);
       if (!nret.isNull())
       {
         // only do this rule if it is a proper split; otherwise it will be
@@ -1983,9 +1983,7 @@ Node QuantifiersRewriter::computePrenex(Node q,
   return body;
 }
 
-Node QuantifiersRewriter::computeSplit(std::vector<Node>& args,
-                                       Node body,
-                                       QAttributes& qa) const
+Node QuantifiersRewriter::computeSplit(std::vector<Node>& args, Node body) const
 {
   Assert(body.getKind() == Kind::OR);
   size_t eqc_count = 0;
@@ -2238,7 +2236,7 @@ Node QuantifiersRewriter::computeMiniscoping(Node q,
     if (miniscopeFv)
     {
       //splitting subsumes free variable miniscoping, apply it with higher priority
-      Node ret = computeSplit(args, body, qa);
+      Node ret = computeSplit(args, body);
       if (!ret.isNull())
       {
         return ret;

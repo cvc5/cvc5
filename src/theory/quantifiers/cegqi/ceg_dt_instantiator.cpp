@@ -28,17 +28,17 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-void DtInstantiator::reset(CegInstantiator* ci,
-                           SolvedForm& sf,
-                           Node pv,
-                           CegInstEffort effort)
+void DtInstantiator::reset(CVC5_UNUSED CegInstantiator* ci,
+                           CVC5_UNUSED SolvedForm& sf,
+                           CVC5_UNUSED Node pv,
+                           CVC5_UNUSED CegInstEffort effort)
 {
 }
 
-bool DtInstantiator::hasProcessEqualTerm(CegInstantiator* ci,
-                                         SolvedForm& sf,
-                                         Node pv,
-                                         CegInstEffort effort)
+bool DtInstantiator::hasProcessEqualTerm(CVC5_UNUSED CegInstantiator* ci,
+                                         CVC5_UNUSED SolvedForm& sf,
+                                         CVC5_UNUSED Node pv,
+                                         CVC5_UNUSED CegInstEffort effort)
 {
   return true;
 }
@@ -47,7 +47,7 @@ bool DtInstantiator::processEqualTerms(CegInstantiator* ci,
                                        SolvedForm& sf,
                                        Node pv,
                                        std::vector<Node>& eqc,
-                                       CegInstEffort effort)
+                                       CVC5_UNUSED CegInstEffort effort)
 {
   Trace("cegqi-dt-debug") << "try based on constructors in equivalence class."
                           << std::endl;
@@ -86,20 +86,21 @@ bool DtInstantiator::processEqualTerms(CegInstantiator* ci,
   return false;
 }
 
-bool DtInstantiator::hasProcessEquality(CegInstantiator* ci,
-                                        SolvedForm& sf,
-                                        Node pv,
-                                        CegInstEffort effort)
+bool DtInstantiator::hasProcessEquality(CVC5_UNUSED CegInstantiator* ci,
+                                        CVC5_UNUSED SolvedForm& sf,
+                                        CVC5_UNUSED Node pv,
+                                        CVC5_UNUSED CegInstEffort effort)
 {
   return true;
 }
 
-bool DtInstantiator::processEquality(CegInstantiator* ci,
-                                     SolvedForm& sf,
-                                     Node pv,
-                                     std::vector<TermProperties>& term_props,
-                                     std::vector<Node>& terms,
-                                     CegInstEffort effort)
+bool DtInstantiator::processEquality(
+    CegInstantiator* ci,
+    SolvedForm& sf,
+    Node pv,
+    CVC5_UNUSED std::vector<TermProperties>& term_props,
+    std::vector<Node>& terms,
+    CVC5_UNUSED CegInstEffort effort)
 {
   Node val = solve_dt(pv, terms[0], terms[1], terms[0], terms[1]);
   if (!val.isNull())

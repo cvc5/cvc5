@@ -993,8 +993,13 @@ Node getICBvUdiv(
   return ic;
 }
 
-Node getICBvAndOr(
-    bool pol, Kind litk, Kind k, unsigned idx, Node x, Node s, Node t)
+Node getICBvAndOr(bool pol,
+                  Kind litk,
+                  Kind k,
+                  CVC5_UNUSED unsigned idx,
+                  Node x,
+                  Node s,
+                  Node t)
 {
   Assert(k == Kind::BITVECTOR_AND || k == Kind::BITVECTOR_OR);
   Assert(litk == Kind::EQUAL || litk == Kind::BITVECTOR_ULT
