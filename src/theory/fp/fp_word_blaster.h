@@ -312,7 +312,7 @@ class FpWordBlaster
    * Gives the node representing the value of a word-blasted variable.
    * Returns a null node if it has not been word-blasted.
    */
-  Node getValue(Valuation&, TNode);
+  Node getValue(TNode);
 
   context::CDList<Node> d_additionalAssertions;
 
