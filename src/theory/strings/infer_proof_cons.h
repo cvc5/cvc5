@@ -55,9 +55,7 @@ class InferProofCons : protected EnvObj, public ProofGenerator
   typedef context::CDHashMap<Node, std::shared_ptr<InferInfo>> NodeInferInfoMap;
 
  public:
-  InferProofCons(Env& env,
-                 context::Context* c,
-                 SequencesStatistics& statistics);
+  InferProofCons(Env& env, context::Context* c);
   ~InferProofCons() {}
   /**
    * This is called to notify that ii is an inference that may need a proof
@@ -230,8 +228,6 @@ class InferProofCons : protected EnvObj, public ProofGenerator
                                            TheoryProofStepBuffer& psb);
   /** The lazy fact map */
   NodeInferInfoMap d_lazyFactMap;
-  /** Reference to the statistics for the theory of strings/sequences. */
-  SequencesStatistics& d_statistics;
 };
 
 }  // namespace strings
