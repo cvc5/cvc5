@@ -26,7 +26,7 @@ bool isMaybeBoolean(const TypeNode& tn)
   return tn.isBoolean() || tn.isFullyAbstract();
 }
 
-TypeNode BooleanTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode BooleanTypeRule::preComputeType(NodeManager* nm, CVC5_UNUSED TNode n)
 {
   return nm->booleanType();
 }
@@ -54,7 +54,8 @@ TypeNode BooleanTypeRule::computeType(NodeManager* nodeManager,
   return booleanType;
 }
 
-TypeNode IteTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode IteTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
+                                     CVC5_UNUSED TNode n)
 {
   return TypeNode::null();
 }

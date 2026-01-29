@@ -26,7 +26,8 @@ namespace cvc5::internal {
 namespace theory {
 namespace arrays {
 
-TypeNode ArraySelectTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode ArraySelectTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
+                                             CVC5_UNUSED TNode n)
 {
   return TypeNode::null();
 }
@@ -67,7 +68,8 @@ TypeNode ArraySelectTypeRule::computeType(NodeManager* nodeManager,
   return arrayType.getArrayConstituentType();
 }
 
-TypeNode ArrayStoreTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode ArrayStoreTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
+                                            CVC5_UNUSED TNode n)
 {
   return TypeNode::null();
 }
@@ -122,7 +124,8 @@ TypeNode ArrayStoreTypeRule::computeType(NodeManager* nodeManager,
   }
 }
 
-bool ArrayStoreTypeRule::computeIsConst(NodeManager* nodeManager, TNode n)
+bool ArrayStoreTypeRule::computeIsConst(CVC5_UNUSED NodeManager* nodeManager,
+                                        TNode n)
 {
   Assert(n.getKind() == Kind::STORE);
 
@@ -217,7 +220,8 @@ bool ArrayStoreTypeRule::computeIsConst(NodeManager* nodeManager, TNode n)
   return true;
 }
 
-TypeNode ArrayLambdaTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode ArrayLambdaTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
+                                             CVC5_UNUSED TNode n)
 {
   return TypeNode::null();
 }
@@ -287,7 +291,8 @@ Node ArraysProperties::mkGroundTerm(TypeNode type)
   return builtin::SortProperties::mkGroundTerm(type);
 }
 
-TypeNode ArrayEqRangeTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode ArrayEqRangeTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
+                                              CVC5_UNUSED TNode n)
 {
   return nm->booleanType();
 }

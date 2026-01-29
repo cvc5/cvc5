@@ -29,7 +29,8 @@ namespace cvc5::internal {
 namespace theory {
 namespace uf {
 
-TypeNode UfTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode UfTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
+                                    CVC5_UNUSED TNode n)
 {
   return TypeNode::null();
 }
@@ -101,8 +102,8 @@ TypeNode UfTypeRule::computeType(NodeManager* nodeManager,
   return ret;
 }
 
-TypeNode CardinalityConstraintOpTypeRule::preComputeType(NodeManager* nm,
-                                                         TNode n)
+TypeNode CardinalityConstraintOpTypeRule::preComputeType(
+    CVC5_UNUSED NodeManager* nm, CVC5_UNUSED TNode n)
 {
   return TypeNode::null();
 }
@@ -135,7 +136,7 @@ TypeNode CardinalityConstraintOpTypeRule::computeType(NodeManager* nodeManager,
 }
 
 TypeNode CombinedCardinalityConstraintOpTypeRule::preComputeType(
-    NodeManager* nm, TNode n)
+    CVC5_UNUSED NodeManager* nm, CVC5_UNUSED TNode n)
 {
   return TypeNode::null();
 }
@@ -158,7 +159,8 @@ TypeNode CombinedCardinalityConstraintOpTypeRule::computeType(
   return nodeManager->builtinOperatorType();
 }
 
-TypeNode HoApplyTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode HoApplyTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
+                                         CVC5_UNUSED TNode n)
 {
   return TypeNode::null();
 }
@@ -215,13 +217,14 @@ TypeNode HoApplyTypeRule::computeType(NodeManager* nodeManager,
   }
 }
 
-TypeNode LambdaTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode LambdaTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
+                                        CVC5_UNUSED TNode n)
 {
   return TypeNode::null();
 }
 TypeNode LambdaTypeRule::computeType(NodeManager* nodeManager,
                                      TNode n,
-                                     bool check,
+                                     CVC5_UNUSED bool check,
                                      std::ostream* errOut)
 {
   if (n[0].getTypeOrNull() != nodeManager->boundVarListType())
@@ -242,14 +245,16 @@ TypeNode LambdaTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->mkFunctionType(argTypes, rangeType);
 }
 
-TypeNode FunctionArrayConstTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode FunctionArrayConstTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
+                                                    CVC5_UNUSED TNode n)
 {
   return TypeNode::null();
 }
-TypeNode FunctionArrayConstTypeRule::computeType(NodeManager* nodeManager,
-                                                 TNode n,
-                                                 bool check,
-                                                 std::ostream* errOut)
+TypeNode FunctionArrayConstTypeRule::computeType(
+    CVC5_UNUSED NodeManager* nodeManager,
+    TNode n,
+    CVC5_UNUSED bool check,
+    CVC5_UNUSED std::ostream* errOut)
 {
   Assert(n.getKind() == Kind::FUNCTION_ARRAY_CONST);
   const FunctionArrayConst& fc = n.getConst<FunctionArrayConst>();
@@ -294,13 +299,14 @@ Node FunctionProperties::mkGroundTerm(TypeNode type)
   return NodeManager::mkNode(Kind::LAMBDA, bvl, ret);
 }
 
-TypeNode IntToBitVectorOpTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode IntToBitVectorOpTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
+                                                  CVC5_UNUSED TNode n)
 {
   return TypeNode::null();
 }
 TypeNode IntToBitVectorOpTypeRule::computeType(NodeManager* nodeManager,
                                                TNode n,
-                                               bool check,
+                                               CVC5_UNUSED bool check,
                                                std::ostream* errOut)
 {
   Assert(n.getKind() == Kind::INT_TO_BITVECTOR_OP);
@@ -357,7 +363,7 @@ TypeNode BitVectorConversionTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->integerType();
 }
 
-TypeNode DistinctTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode DistinctTypeRule::preComputeType(NodeManager* nm, CVC5_UNUSED TNode n)
 {
   return nm->booleanType();
 }
