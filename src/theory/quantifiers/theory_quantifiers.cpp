@@ -139,8 +139,8 @@ void TheoryQuantifiers::ppNotifyAssertions(
   }
 }
 
-bool TheoryQuantifiers::collectModelValues(TheoryModel* m,
-                                           const std::set<Node>& termSet)
+bool TheoryQuantifiers::collectModelValues(
+    TheoryModel* m, CVC5_UNUSED const std::set<Node>& termSet)
 {
   for(assertions_iterator i = facts_begin(); i != facts_end(); ++i) {
     if ((*i).d_assertion.getKind() == Kind::NOT)
@@ -171,8 +171,11 @@ void TheoryQuantifiers::postCheck(Effort level)
   getQuantifiersEngine()->check(level);
 }
 
-bool TheoryQuantifiers::preNotifyFact(
-    TNode atom, bool polarity, TNode fact, bool isPrereg, bool isInternal)
+bool TheoryQuantifiers::preNotifyFact(TNode atom,
+                                      bool polarity,
+                                      TNode fact,
+                                      CVC5_UNUSED bool isPrereg,
+                                      CVC5_UNUSED bool isInternal)
 {
   Kind k = atom.getKind();
   if (k == Kind::FORALL)

@@ -91,7 +91,10 @@ class SygusEnumeratorCallbackNoSym : public SygusEnumeratorCallback
    * Get the cache value for the given candidate, which returns bn itself,
    * without invoking the rewriter.
    */
-  Node getCacheValue(const Node& n, const Node& bn) override { return bn; }
+  Node getCacheValue(CVC5_UNUSED const Node& n, const Node& bn) override
+  {
+    return bn;
+  }
 };
 
 void SynthFinder::initializeInternal(modes::FindSynthTarget fst,

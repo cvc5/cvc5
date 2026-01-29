@@ -225,7 +225,7 @@ bool QuantDSplit::checkCompleteFor( Node q ) {
 }
 
 /* Call during quantifier engine's check */
-void QuantDSplit::check(Theory::Effort e, QEffort quant_e)
+void QuantDSplit::check(CVC5_UNUSED Theory::Effort e, QEffort quant_e)
 {
   //add lemmas ASAP (they are a reduction)
   if (quant_e != QEFFORT_CONFLICT)

@@ -92,9 +92,7 @@ class TermPools : public QuantifiersUtil
    * q with terms. This adds terms to pools based on INST_ADD_TO_POOL
    * annotations.
    */
-  void processInstantiation(Node q,
-                            const std::vector<Node>& terms,
-                            bool success);
+  void processInstantiation(Node q, const std::vector<Node>& terms);
   /** Same as above, for SKOLEM_ADD_TO_POOL. */
   void processSkolemization(Node q, const std::vector<Node>& skolems);
  private:

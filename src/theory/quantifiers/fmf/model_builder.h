@@ -54,7 +54,12 @@ class QModelBuilder : public TheoryEngineModelBuilder
   // 0 :  failed, but resorting to true exhaustive instantiation may work
   // >0 : success
   // <0 : failed
-  virtual int doExhaustiveInstantiation( FirstOrderModel * fm, Node f, int effort ) { return false; }
+  virtual int doExhaustiveInstantiation(CVC5_UNUSED FirstOrderModel* fm,
+                                        CVC5_UNUSED Node f,
+                                        CVC5_UNUSED int effort)
+  {
+    return false;
+  }
   //whether to construct model
   virtual bool optUseModel();
   //debug model

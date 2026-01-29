@@ -192,12 +192,10 @@ class SygusReconstruct : protected expr::NotifyMatch,
    *
    * @param sol the target term
    * @param stn the sygus datatype type encoding the syntax restrictions
-   * @param reconstructed the flag to update, set to 1 if we successfully return
-   *                      a node, otherwise it is set to -1
    * @param enumLimit a value to limit the effort spent by this class (roughly
    *                  equal to the number of intermediate terms to try)
    */
-  void main(Node sol, TypeNode stn, int8_t& reconstructed, uint64_t enumLimit);
+  void main(Node sol, TypeNode stn, uint64_t enumLimit);
 
   /**
    * Implements the match phase of the reconstruction procedure with the pool
@@ -205,10 +203,8 @@ class SygusReconstruct : protected expr::NotifyMatch,
    *
    * @param sol the target term
    * @param stn the sygus datatype type encoding the syntax restrictions
-   * @param reconstructed the flag to update, set to 1 if we successfully return
-   *                      a node, otherwise it is set to -1
    */
-  void fast(Node sol, TypeNode stn, int8_t& reconstructed);
+  void fast(Node sol, TypeNode stn);
 
   /** Match builtin term `t` with pattern `sz` and create new obligations.
    *
