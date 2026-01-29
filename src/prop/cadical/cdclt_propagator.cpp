@@ -176,7 +176,8 @@ void CadicalPropagator::notify_backtrack(size_t level)
   Trace("cadical::propagator") << "notif::backtrack end" << std::endl;
 }
 
-bool CadicalPropagator::cb_check_found_model(const std::vector<int>& model)
+bool CadicalPropagator::cb_check_found_model(
+    CVC5_UNUSED const std::vector<int>& model)
 {
   Trace("cadical::propagator") << "cb::check_found_model" << std::endl;
   bool recheck = false;

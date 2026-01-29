@@ -260,15 +260,15 @@ ClauseId CadicalSolver::addClause(SatClause& clause, bool removable)
   return ClauseIdError;
 }
 
-ClauseId CadicalSolver::addXorClause(SatClause& clause,
-                                     bool rhs,
-                                     bool removable)
+ClauseId CadicalSolver::addXorClause(CVC5_UNUSED SatClause& clause,
+                                     CVC5_UNUSED bool rhs,
+                                     CVC5_UNUSED bool removable)
 {
   Unreachable() << "CaDiCaL does not support adding XOR clauses.";
   return 0;
 }
 
-SatVariable CadicalSolver::newVar(bool isTheoryAtom, bool canErase)
+SatVariable CadicalSolver::newVar(bool isTheoryAtom, CVC5_UNUSED bool canErase)
 {
   ++d_statistics.d_numVariables;
   if (d_propagator)
@@ -343,7 +343,7 @@ CadicalSolver::Statistics::Statistics(StatisticsRegistry& registry,
 /* CDCLTSatSolver Interface ------------------------------------------------- */
 
 void CadicalSolver::initialize(prop::TheoryProxy* theoryProxy,
-                               PropPfManager* ppm)
+                               CVC5_UNUSED PropPfManager* ppm)
 {
   d_proxy = theoryProxy;
   d_propagator.reset(new CadicalPropagator(

@@ -273,14 +273,14 @@ class CDHashMap : public ContextObj
   Context* d_context;
 
   // Nothing to save; the elements take care of themselves
-  ContextObj* save(ContextMemoryManager* pCMM) override
+  ContextObj* save(CVC5_UNUSED ContextMemoryManager* pCMM) override
   {
     Unreachable();
     SuppressWrongNoReturnWarning;
   }
 
   // Similarly, nothing to restore
-  void restore(ContextObj* data) override { Unreachable(); }
+  void restore(CVC5_UNUSED ContextObj* data) override { Unreachable(); }
 
   // no copy or assignment
   CDHashMap(const CDHashMap&) = delete;

@@ -328,8 +328,11 @@ class Scope {
    * called.  Include both placement and standard delete for
    * completeness.
    */
-  static void operator delete(void* pMem, ContextMemoryManager* pCMM) {}
-  static void operator delete(void* pMem) {}
+  static void operator delete(CVC5_UNUSED void* pMem,
+                              CVC5_UNUSED ContextMemoryManager* pCMM)
+  {
+  }
+  static void operator delete(CVC5_UNUSED void* pMem) {}
 
   //FIXME:  //! Check for memory leaks
   //  void check();
@@ -562,7 +565,8 @@ class CVC5_EXPORT ContextObj
    * never be deleted.  Objects allocated with new(bool) should be deleted by
    * calling deleteSelf().
    */
-  static void operator delete(void* pMem) {
+  static void operator delete(CVC5_UNUSED void* pMem)
+  {
     AlwaysAssert(false) << "It is not allowed to delete a ContextObj this way!";
   }
 
@@ -585,7 +589,10 @@ class CVC5_EXPORT ContextObj
    * ContextObj constructor throws an exception after a successful
    * call to the above new operator.
    */
-  static void operator delete(void* pMem, ContextMemoryManager* pCMM) {}
+  static void operator delete(CVC5_UNUSED void* pMem,
+                              CVC5_UNUSED ContextMemoryManager* pCMM)
+  {
+  }
 
   /**
    * Create a new ContextObj.  The initial scope is set to the bottom

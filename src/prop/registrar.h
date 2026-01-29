@@ -41,7 +41,7 @@ public:
 
 class NullRegistrar : public Registrar {
 public:
- void notifySatLiteral(Node n) override {}
+ void notifySatLiteral(CVC5_UNUSED Node n) override {}
 
 };/* class NullRegistrar */
 
