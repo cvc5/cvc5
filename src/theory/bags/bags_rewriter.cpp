@@ -720,7 +720,7 @@ BagsRewriteResponse BagsRewriter::postRewriteAggregate(const TNode& n) const
   Assert(n.getKind() == Kind::TABLE_AGGREGATE);
   if (n[1].isConst() && n[2].isConst())
   {
-    Node ret = BagsUtils::evaluateTableAggregate(d_rewriter, n);
+    Node ret = BagsUtils::evaluateTableAggregate(n);
     if (ret != n)
     {
       return BagsRewriteResponse(ret, Rewrite::AGGREGATE_CONST);

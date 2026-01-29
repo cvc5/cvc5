@@ -41,7 +41,7 @@ TheoryBags::TheoryBags(Env& env, OutputChannel& out, Valuation valuation)
       d_notify(*this, d_im),
       d_statistics(statisticsRegistry()),
       d_rewriter(nodeManager(), env.getRewriter(), &d_statistics.d_rewrites),
-      d_termReg(env, d_state),
+      d_termReg(env),
       d_solver(env, d_state, d_im),
       d_cpacb(*this)
 {
@@ -351,10 +351,10 @@ bool TheoryBags::runInferStep(InferStep s, int effort)
   return false;
 }
 
-void TheoryBags::notifyFact(TNode atom,
-                            bool polarity,
-                            TNode fact,
-                            bool isInternal)
+void TheoryBags::notifyFact(CVC5_UNUSED TNode atom,
+                            CVC5_UNUSED bool polarity,
+                            CVC5_UNUSED TNode fact,
+                            CVC5_UNUSED bool isInternal)
 {
 }
 
@@ -430,7 +430,10 @@ bool TheoryBags::collectModelValues(TheoryModel* m,
 
 TrustNode TheoryBags::explain(TNode node) { return d_im.explainLit(node); }
 
-Node TheoryBags::getCandidateModelValue(TNode node) { return Node::null(); }
+Node TheoryBags::getCandidateModelValue(CVC5_UNUSED TNode node)
+{
+  return Node::null();
+}
 
 void TheoryBags::preRegisterTerm(TNode n)
 {
@@ -474,11 +477,15 @@ void TheoryBags::presolve()
 
 /**************************** eq::NotifyClass *****************************/
 
-void TheoryBags::eqNotifyNewClass(TNode n) {}
+void TheoryBags::eqNotifyNewClass(CVC5_UNUSED TNode n) {}
 
-void TheoryBags::eqNotifyMerge(TNode n1, TNode n2) {}
+void TheoryBags::eqNotifyMerge(CVC5_UNUSED TNode n1, CVC5_UNUSED TNode n2) {}
 
-void TheoryBags::eqNotifyDisequal(TNode n1, TNode n2, TNode reason) {}
+void TheoryBags::eqNotifyDisequal(CVC5_UNUSED TNode n1,
+                                  CVC5_UNUSED TNode n2,
+                                  CVC5_UNUSED TNode reason)
+{
+}
 
 void TheoryBags::NotifyClass::eqNotifyNewClass(TNode n)
 {
