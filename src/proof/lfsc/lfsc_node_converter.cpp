@@ -797,7 +797,7 @@ bool LfscNodeConverter::shouldTraverse(Node n)
   return true;
 }
 
-Node LfscNodeConverter::maybeMkSkolemFun(Node k, bool macroApply)
+Node LfscNodeConverter::maybeMkSkolemFun(Node k)
 {
   SkolemManager* sm = d_nm->getSkolemManager();
   SkolemId sfi = SkolemId::NONE;
@@ -1047,7 +1047,7 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
     }
     else if (k == Kind::APPLY_SELECTOR)
     {
-      ret = maybeMkSkolemFun(op, macroApply);
+      ret = maybeMkSkolemFun(op);
       if (ret.isNull())
       {
         unsigned index = DType::indexOf(op);

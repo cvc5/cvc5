@@ -201,22 +201,25 @@ void AlfPrintChannelPre::printNode(TNode n)
   }
 }
 
-void AlfPrintChannelPre::printTypeNode(TypeNode tn)
+void AlfPrintChannelPre::printTypeNode(CVC5_UNUSED TypeNode tn)
 {
   // current do nothing
 }
 
-void AlfPrintChannelPre::printAssume(TNode n, size_t i, bool isPush)
+void AlfPrintChannelPre::printAssume(TNode n,
+                                     CVC5_UNUSED size_t i,
+                                     CVC5_UNUSED bool isPush)
 {
   processInternal(n);
 }
 
-void AlfPrintChannelPre::printStep(const std::string& rname,
-                                   TNode n,
-                                   size_t i,
-                                   const std::vector<size_t>& premises,
-                                   const std::vector<Node>& args,
-                                   bool isPop)
+void AlfPrintChannelPre::printStep(
+    CVC5_UNUSED const std::string& rname,
+    TNode n,
+    CVC5_UNUSED size_t i,
+    CVC5_UNUSED const std::vector<size_t>& premises,
+    const std::vector<Node>& args,
+    CVC5_UNUSED bool isPop)
 {
   if (!n.isNull())
   {
@@ -228,12 +231,13 @@ void AlfPrintChannelPre::printStep(const std::string& rname,
   }
 }
 
-void AlfPrintChannelPre::printTrustStep(ProofRule r,
-                                        TNode n,
-                                        size_t i,
-                                        const std::vector<size_t>& premises,
-                                        const std::vector<Node>& args,
-                                        TNode nc)
+void AlfPrintChannelPre::printTrustStep(
+    CVC5_UNUSED ProofRule r,
+    CVC5_UNUSED TNode n,
+    CVC5_UNUSED size_t i,
+    CVC5_UNUSED const std::vector<size_t>& premises,
+    CVC5_UNUSED const std::vector<Node>& args,
+    TNode nc)
 {
   Assert(!nc.isNull());
   processInternal(nc);

@@ -93,8 +93,7 @@ class ValidWitnessProofGenerator : protected EnvObj, public ProofGenerator
    * @param args The arguments to the proof rule stored for attr.
    * @return true if the information r and args was successfully extracted.
    */
-  static bool getProofSpec(NodeManager* nm,
-                           const Node& attr,
+  static bool getProofSpec(const Node& attr,
                            ProofRule& r,
                            std::vector<Node>& args);
 };

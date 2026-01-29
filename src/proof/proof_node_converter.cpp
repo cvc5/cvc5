@@ -21,14 +21,15 @@ namespace cvc5::internal {
 
 ProofNodeConverterCallback::ProofNodeConverterCallback() {}
 ProofNodeConverterCallback::~ProofNodeConverterCallback() {}
-bool ProofNodeConverterCallback::shouldConvert(std::shared_ptr<ProofNode> pn)
+bool ProofNodeConverterCallback::shouldConvert(
+    CVC5_UNUSED std::shared_ptr<ProofNode> pn)
 {
   return false;
 }
 
 ProofNodeConverter::ProofNodeConverter(Env& env,
                                        ProofNodeConverterCallback& cb,
-                                       bool autoSym)
+                                       CVC5_UNUSED bool autoSym)
     : EnvObj(env), d_cb(cb)
 {
 }

@@ -64,8 +64,7 @@ Node mkProofSpec(NodeManager* nm, ProofRule r, const std::vector<Node>& args)
  * The inverse operation for mkProofSpec, if possible extracts the proof
  * rule and args from a given instantiation attribute attr.
  */
-bool ValidWitnessProofGenerator::getProofSpec(NodeManager* nm,
-                                              const Node& attr,
+bool ValidWitnessProofGenerator::getProofSpec(const Node& attr,
                                               ProofRule& r,
                                               std::vector<Node>& args)
 {
@@ -108,7 +107,7 @@ std::shared_ptr<ProofNode> ValidWitnessProofGenerator::getProofFor(Node fact)
     Node spec = fact.getAttribute(vwa);
     ProofRule r;
     std::vector<Node> args;
-    if (!spec.isNull() && getProofSpec(nodeManager(), spec, r, args))
+    if (!spec.isNull() && getProofSpec(spec, r, args))
     {
       success = true;
       cdp.addStep(fact, r, {}, args);
