@@ -75,6 +75,7 @@ class FindSynthSolver;
 struct SolverEngineStatistics;
 class PfManager;
 class UnsatCoreManager;
+class TimeoutCoreManager;
 
 }  // namespace smt
 
@@ -834,26 +835,6 @@ class CVC5_EXPORT SolverEngine
   void setTimeLimit(uint64_t millis);
 
   /**
-   * Get the current resource usage count for this SolverEngine.  This
-   * function can be used to ascertain reasonable values to pass as
-   * resource limits to setResourceLimit().
-   */
-  unsigned long getResourceUsage() const;
-
-  /** Get the current millisecond count for this SolverEngine.  */
-  unsigned long getTimeUsage() const;
-
-  /**
-   * Get the remaining resources that can be consumed by this SolverEngine
-   * according to the currently-set cumulative resource limit.  If there
-   * is not a cumulative resource limit set, this function throws a
-   * ModalException.
-   *
-   * @throw ModalException
-   */
-  unsigned long getResourceRemaining() const;
-
-  /**
    * Print statistics from the statistics registry in the env object owned by
    * this SolverEngine. Safe to use in a signal handler.
    */
@@ -875,19 +856,19 @@ class CVC5_EXPORT SolverEngine
   ResourceManager* getResourceManager() const;
 
   /**
-   * Get substituted assertions.
-   *
-   * Return the set of assertions, after applying top-level substitutions.
-   */
-  std::vector<Node> getSubstitutedAssertions();
-
-  /**
    * Get the enviornment from this solver engine.
    */
   Env& getEnv();
   /* .......................................................................  */
  private:
   /* .......................................................................  */
+
+  /**
+   * Get substituted assertions.
+   *
+   * Return the set of assertions, after applying top-level substitutions.
+   */
+  std::vector<Node> getSubstitutedAssertions();
 
   // disallow copy/assignment
   SolverEngine(const SolverEngine&) = delete;
@@ -1119,6 +1100,10 @@ class CVC5_EXPORT SolverEngine
    * The unsat core manager, which produces unsat cores and related information
    * from refutations. */
   std::unique_ptr<smt::UnsatCoreManager> d_ucManager;
+  /**
+   * The timeout core manager, for responding to get-timeout-core commands.
+   */
+  std::unique_ptr<smt::TimeoutCoreManager> d_tcm;
 
   /** The solver for sygus queries */
   std::unique_ptr<smt::SygusSolver> d_sygusSolver;
