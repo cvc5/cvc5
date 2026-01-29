@@ -39,7 +39,6 @@ static Rational intpow2(uint32_t b)
 
 Node pow2(NodeManager* nm, uint32_t k)
 {
-  Assert(k >= 0);
   return nm->mkConstInt(Rational(intpow2(k)));
 }
 

@@ -66,7 +66,7 @@ void NormalForm::splitConstant(unsigned index, Node c1, Node c2)
     {
       // See if this can be incremented: it can if this literal is not relevant
       // to the current index, and hence it is not relevant for both c1 and c2.
-      Assert(pep.second >= 0 && pep.second <= d_nf.size());
+      Assert(pep.second <= d_nf.size());
       bool increment = (pep.first == d_isRev)
                            ? pep.second > index
                            : (d_nf.size() - 1 - pep.second) < index;

@@ -64,23 +64,23 @@ class RegionAllocator
     // Deref, Load Effective Address (LEA), Inverse of LEA (AEL):
     T& operator[](Ref r)
     {
-      Assert(r >= 0 && r < sz);
+      Assert(r < sz);
       return memory[r];
     }
     const T& operator[](Ref r) const
     {
-      Assert(r >= 0 && r < sz);
+      Assert(r < sz);
       return memory[r];
     }
 
     T* lea(Ref r)
     {
-      Assert(r >= 0 && r < sz);
+      Assert(r < sz);
       return &memory[r];
     }
     const T* lea(Ref r) const
     {
-      Assert(r >= 0 && r < sz);
+      Assert(r < sz);
       return &memory[r];
     }
     Ref ael(const T* t)

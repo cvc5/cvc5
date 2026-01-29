@@ -2921,7 +2921,6 @@ Term Term::const_iterator::operator*() const
       Assert(idx > 0);
       --idx;
     }
-    Assert(idx >= 0);
     return Term(d_tm, (*d_origNode)[idx]);
   }
 }

@@ -325,7 +325,7 @@ void SatProofManager::processRedundantLit(
                        !negated);
     return;
   }
-  Assert(reasonRef >= 0 && reasonRef < d_solver->ca.size())
+  Assert(reasonRef < d_solver->ca.size())
       << "reasonRef " << reasonRef << " and d_satSolver->ca.size() "
       << d_solver->ca.size() << "\n";
   const Minisat::Clause& reason = d_solver->ca[reasonRef];
@@ -410,7 +410,7 @@ void SatProofManager::explainLit(SatLiteral lit,
     Trace("sat-proof") << "SatProofManager::explainLit: no SAT reason\n" << pop;
     return;
   }
-  Assert(reasonRef >= 0 && reasonRef < d_solver->ca.size())
+  Assert(reasonRef < d_solver->ca.size())
       << "reasonRef " << reasonRef << " and d_satSolver->ca.size() "
       << d_solver->ca.size() << "\n";
   const Minisat::Clause& reason = d_solver->ca[reasonRef];

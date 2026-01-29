@@ -985,12 +985,12 @@ void CoreSolver::getNormalForms(Node eqc,
           }
           // Now that we are finished with the loop, we convert forward indices
           // to reverse indices in the explanation dependency information
-          int total_size = nf_curr.d_nf.size();
+          size_t total_size = nf_curr.d_nf.size();
           for (std::pair<const Node, std::map<bool, unsigned> >& ed :
                nf_curr.d_expDep)
           {
+            Assert(total_size >= ed.second[true]);
             ed.second[true] = total_size - ed.second[true];
-            Assert(ed.second[true] >= 0);
           }
         }
         //if not equal to self
