@@ -185,47 +185,51 @@ void Printer::toStreamCmdUnsupported(std::ostream& out) const
 }
 
 void Printer::toStreamCmdFailure(std::ostream& out,
-                                 const std::string& message) const
+                                 CVC5_UNUSED const std::string& message) const
 {
   printUnknownCommandStatus(out, "failure");
 }
 
-void Printer::toStreamCmdRecoverableFailure(std::ostream& out,
-                                            const std::string& message) const
+void Printer::toStreamCmdRecoverableFailure(
+    std::ostream& out, CVC5_UNUSED const std::string& message) const
 {
   printUnknownCommandStatus(out, "recoverable-failure");
 }
 
-void Printer::toStreamCmdEmpty(std::ostream& out, const std::string& name) const
+void Printer::toStreamCmdEmpty(std::ostream& out,
+                               CVC5_UNUSED const std::string& name) const
 {
   printUnknownCommand(out, "empty");
 }
 
 void Printer::toStreamCmdEcho(std::ostream& out,
-                              const std::string& output) const
+                              CVC5_UNUSED const std::string& output) const
 {
   printUnknownCommand(out, "echo");
 }
 
-void Printer::toStreamCmdAssert(std::ostream& out, Node n) const
+void Printer::toStreamCmdAssert(std::ostream& out, CVC5_UNUSED Node n) const
 {
   printUnknownCommand(out, "assert");
 }
 
-void Printer::toStreamCmdPush(std::ostream& out, uint32_t nscopes) const
+void Printer::toStreamCmdPush(std::ostream& out,
+                              CVC5_UNUSED uint32_t nscopes) const
 {
   printUnknownCommand(out, "push");
 }
 
-void Printer::toStreamCmdPop(std::ostream& out, uint32_t nscopes) const
+void Printer::toStreamCmdPop(std::ostream& out,
+                             CVC5_UNUSED uint32_t nscopes) const
 {
   printUnknownCommand(out, "pop");
 }
 
-void Printer::toStreamCmdDeclareFunction(std::ostream& out,
-                                         const std::string& id,
-                                         const std::vector<TypeNode>& argTypes,
-                                         TypeNode type) const
+void Printer::toStreamCmdDeclareFunction(
+    std::ostream& out,
+    CVC5_UNUSED const std::string& id,
+    CVC5_UNUSED const std::vector<TypeNode>& argTypes,
+    CVC5_UNUSED TypeNode type) const
 {
   printUnknownCommand(out, "declare-fun");
 }
@@ -247,26 +251,28 @@ void Printer::toStreamCmdDeclareFunction(std::ostream& out, const Node& v) const
   toStreamCmdDeclareFunction(out, ss.str(), argTypes, vt);
 }
 
-void Printer::toStreamCmdDeclarePool(std::ostream& out,
-                                     const std::string& id,
-                                     TypeNode type,
-                                     const std::vector<Node>& initValue) const
+void Printer::toStreamCmdDeclarePool(
+    std::ostream& out,
+    CVC5_UNUSED const std::string& id,
+    CVC5_UNUSED TypeNode type,
+    CVC5_UNUSED const std::vector<Node>& initValue) const
 {
   printUnknownCommand(out, "declare-pool");
 }
 
-void Printer::toStreamCmdDeclareOracleFun(std::ostream& out,
-                                          const std::string& id,
-                                          const std::vector<TypeNode>& argTypes,
-                                          TypeNode type,
-                                          const std::string& binName) const
+void Printer::toStreamCmdDeclareOracleFun(
+    std::ostream& out,
+    CVC5_UNUSED const std::string& id,
+    CVC5_UNUSED const std::vector<TypeNode>& argTypes,
+    CVC5_UNUSED TypeNode type,
+    CVC5_UNUSED const std::string& binName) const
 {
   printUnknownCommand(out, "declare-oracle-fun");
 }
 
 void Printer::toStreamCmdDeclareType(std::ostream& out,
-                                     const std::string& id,
-                                     size_t arity) const
+                                     CVC5_UNUSED const std::string& id,
+                                     CVC5_UNUSED size_t arity) const
 {
   printUnknownCommand(out, "declare-sort");
 }
@@ -280,19 +286,21 @@ void Printer::toStreamCmdDeclareType(std::ostream& out, TypeNode type) const
   toStreamCmdDeclareType(out, type.getName(), arity);
 }
 
-void Printer::toStreamCmdDefineType(std::ostream& out,
-                                    const std::string& id,
-                                    const std::vector<TypeNode>& params,
-                                    TypeNode t) const
+void Printer::toStreamCmdDefineType(
+    std::ostream& out,
+    CVC5_UNUSED const std::string& id,
+    CVC5_UNUSED const std::vector<TypeNode>& params,
+    CVC5_UNUSED TypeNode t) const
 {
   printUnknownCommand(out, "define-sort");
 }
 
-void Printer::toStreamCmdDefineFunction(std::ostream& out,
-                                        const std::string& id,
-                                        const std::vector<Node>& formals,
-                                        TypeNode range,
-                                        Node formula) const
+void Printer::toStreamCmdDefineFunction(
+    std::ostream& out,
+    CVC5_UNUSED const std::string& id,
+    CVC5_UNUSED const std::vector<Node>& formals,
+    CVC5_UNUSED TypeNode range,
+    CVC5_UNUSED Node formula) const
 {
   printUnknownCommand(out, "define-fun");
 }
@@ -321,9 +329,9 @@ void Printer::toStreamCmdDefineFunction(std::ostream& out,
 
 void Printer::toStreamCmdDefineFunctionRec(
     std::ostream& out,
-    const std::vector<Node>& funcs,
-    const std::vector<std::vector<Node>>& formals,
-    const std::vector<Node>& formulas) const
+    CVC5_UNUSED const std::vector<Node>& funcs,
+    CVC5_UNUSED const std::vector<std::vector<Node>>& formals,
+    CVC5_UNUSED const std::vector<Node>& formulas) const
 {
   printUnknownCommand(out, "define-fun-rec");
 }
@@ -355,8 +363,8 @@ void Printer::toStreamCmdDefineFunctionRec(
 }
 
 void Printer::toStreamCmdSetUserAttribute(std::ostream& out,
-                                          const std::string& attr,
-                                          Node n) const
+                                          CVC5_UNUSED const std::string& attr,
+                                          CVC5_UNUSED Node n) const
 {
   printUnknownCommand(out, "set-user-attribute");
 }
@@ -366,45 +374,48 @@ void Printer::toStreamCmdCheckSat(std::ostream& out) const
   printUnknownCommand(out, "check-sat");
 }
 
-void Printer::toStreamCmdCheckSatAssuming(std::ostream& out,
-                                          const std::vector<Node>& nodes) const
+void Printer::toStreamCmdCheckSatAssuming(
+    std::ostream& out, CVC5_UNUSED const std::vector<Node>& nodes) const
 {
   printUnknownCommand(out, "check-sat-assuming");
 }
 
-void Printer::toStreamCmdQuery(std::ostream& out, Node n) const
+void Printer::toStreamCmdQuery(std::ostream& out, CVC5_UNUSED Node n) const
 {
   printUnknownCommand(out, "query");
 }
 
 void Printer::toStreamCmdDeclareVar(std::ostream& out,
-                                    const std::string& id,
-                                    TypeNode type) const
+                                    CVC5_UNUSED const std::string& id,
+                                    CVC5_UNUSED TypeNode type) const
 {
   printUnknownCommand(out, "declare-var");
 }
 
 void Printer::toStreamCmdSynthFun(std::ostream& out,
-                                  const std::string& id,
-                                  const std::vector<Node>& vars,
-                                  TypeNode rangeType,
-                                  TypeNode sygusType) const
+                                  CVC5_UNUSED const std::string& id,
+                                  CVC5_UNUSED const std::vector<Node>& vars,
+                                  CVC5_UNUSED TypeNode rangeType,
+                                  CVC5_UNUSED TypeNode sygusType) const
 {
   printUnknownCommand(out, "synth-fun");
 }
 
-void Printer::toStreamCmdConstraint(std::ostream& out, Node n) const
+void Printer::toStreamCmdConstraint(std::ostream& out, CVC5_UNUSED Node n) const
 {
   printUnknownCommand(out, "constraint");
 }
 
-void Printer::toStreamCmdAssume(std::ostream& out, Node n) const
+void Printer::toStreamCmdAssume(std::ostream& out, CVC5_UNUSED Node n) const
 {
   printUnknownCommand(out, "assume");
 }
 
-void Printer::toStreamCmdInvConstraint(
-    std::ostream& out, Node inv, Node pre, Node trans, Node post) const
+void Printer::toStreamCmdInvConstraint(std::ostream& out,
+                                       CVC5_UNUSED Node inv,
+                                       CVC5_UNUSED Node pre,
+                                       CVC5_UNUSED Node trans,
+                                       CVC5_UNUSED Node post) const
 {
   printUnknownCommand(out, "inv-constraint");
 }
@@ -419,8 +430,8 @@ void Printer::toStreamCmdCheckSynthNext(std::ostream& out) const
 }
 
 void Printer::toStreamCmdFindSynth(std::ostream& out,
-                                   modes::FindSynthTarget fst,
-                                   TypeNode sygusType) const
+                                   CVC5_UNUSED modes::FindSynthTarget fst,
+                                   CVC5_UNUSED TypeNode sygusType) const
 {
   printUnknownCommand(out, "find-synth");
 }
@@ -430,19 +441,19 @@ void Printer::toStreamCmdFindSynthNext(std::ostream& out) const
   printUnknownCommand(out, "find-synth-next");
 }
 
-void Printer::toStreamCmdSimplify(std::ostream& out, Node n) const
+void Printer::toStreamCmdSimplify(std::ostream& out, CVC5_UNUSED Node n) const
 {
   printUnknownCommand(out, "simplify");
 }
 
-void Printer::toStreamCmdGetValue(std::ostream& out,
-                                  const std::vector<Node>& nodes) const
+void Printer::toStreamCmdGetValue(
+    std::ostream& out, CVC5_UNUSED const std::vector<Node>& nodes) const
 {
   printUnknownCommand(out, "get-value");
 }
 
 void Printer::toStreamCmdGetModelDomainElements(std::ostream& out,
-                                                TypeNode type) const
+                                                CVC5_UNUSED TypeNode type) const
 {
   printUnknownCommand(out, "get-model-domain-elements");
 }
@@ -457,20 +468,20 @@ void Printer::toStreamCmdGetModel(std::ostream& out) const
   printUnknownCommand(out, "ge-model");
 }
 
-void Printer::toStreamCmdBlockModel(std::ostream& out,
-                                    modes::BlockModelsMode mode) const
+void Printer::toStreamCmdBlockModel(
+    std::ostream& out, CVC5_UNUSED modes::BlockModelsMode mode) const
 {
   printUnknownCommand(out, "block-model");
 }
 
-void Printer::toStreamCmdBlockModelValues(std::ostream& out,
-                                          const std::vector<Node>& nodes) const
+void Printer::toStreamCmdBlockModelValues(
+    std::ostream& out, CVC5_UNUSED const std::vector<Node>& nodes) const
 {
   printUnknownCommand(out, "block-model-values");
 }
 
 void Printer::toStreamCmdGetProof(std::ostream& out,
-                                  modes::ProofComponent c) const
+                                  CVC5_UNUSED modes::ProofComponent c) const
 {
   printUnknownCommand(out, "get-proof");
 }
@@ -481,9 +492,9 @@ void Printer::toStreamCmdGetInstantiations(std::ostream& out) const
 }
 
 void Printer::toStreamCmdGetInterpol(std::ostream& out,
-                                     const std::string& name,
-                                     Node conj,
-                                     TypeNode sygusType) const
+                                     CVC5_UNUSED const std::string& name,
+                                     CVC5_UNUSED Node conj,
+                                     CVC5_UNUSED TypeNode sygusType) const
 {
   printUnknownCommand(out, "get-interpolant");
 }
@@ -494,9 +505,9 @@ void Printer::toStreamCmdGetInterpolNext(std::ostream& out) const
 }
 
 void Printer::toStreamCmdGetAbduct(std::ostream& out,
-                                   const std::string& name,
-                                   Node conj,
-                                   TypeNode sygusType) const
+                                   CVC5_UNUSED const std::string& name,
+                                   CVC5_UNUSED Node conj,
+                                   CVC5_UNUSED TypeNode sygusType) const
 {
   printUnknownCommand(out, "get-abduct");
 }
@@ -507,8 +518,8 @@ void Printer::toStreamCmdGetAbductNext(std::ostream& out) const
 }
 
 void Printer::toStreamCmdGetQuantifierElimination(std::ostream& out,
-                                                  Node n,
-                                                  bool doFull) const
+                                                  CVC5_UNUSED Node n,
+                                                  CVC5_UNUSED bool doFull) const
 {
   printUnknownCommand(out, "get-quantifier-elimination");
 }
@@ -534,13 +545,13 @@ void Printer::toStreamCmdGetTimeoutCore(std::ostream& out) const
 }
 
 void Printer::toStreamCmdGetTimeoutCoreAssuming(
-    std::ostream& out, const std::vector<Node>& assumptions) const
+    std::ostream& out, CVC5_UNUSED const std::vector<Node>& assumptions) const
 {
   printUnknownCommand(out, "get-timeout-core-assuming");
 }
 
-void Printer::toStreamCmdGetLearnedLiterals(std::ostream& out,
-                                            modes::LearnedLitType t) const
+void Printer::toStreamCmdGetLearnedLiterals(
+    std::ostream& out, CVC5_UNUSED modes::LearnedLitType t) const
 {
   printUnknownCommand(out, "get-learned-literals");
 }
@@ -550,41 +561,42 @@ void Printer::toStreamCmdGetAssertions(std::ostream& out) const
   printUnknownCommand(out, "get-assertions");
 }
 
-void Printer::toStreamCmdSetBenchmarkLogic(std::ostream& out,
-                                           const std::string& logic) const
+void Printer::toStreamCmdSetBenchmarkLogic(
+    std::ostream& out, CVC5_UNUSED const std::string& logic) const
 {
   printUnknownCommand(out, "set-logic");
 }
 
 void Printer::toStreamCmdSetInfo(std::ostream& out,
-                                 const std::string& flag,
-                                 const std::string& value) const
+                                 CVC5_UNUSED const std::string& flag,
+                                 CVC5_UNUSED const std::string& value) const
 {
   printUnknownCommand(out, "set-info");
 }
 
 void Printer::toStreamCmdGetInfo(std::ostream& out,
-                                 const std::string& flag) const
+                                 CVC5_UNUSED const std::string& flag) const
 {
   printUnknownCommand(out, "get-info");
 }
 
 void Printer::toStreamCmdSetOption(std::ostream& out,
-                                   const std::string& flag,
-                                   const std::string& value) const
+                                   CVC5_UNUSED const std::string& flag,
+                                   CVC5_UNUSED const std::string& value) const
 {
   printUnknownCommand(out, "set-option");
 }
 
 void Printer::toStreamCmdGetOption(std::ostream& out,
-                                   const std::string& flag) const
+                                   CVC5_UNUSED const std::string& flag) const
 {
   printUnknownCommand(out, "get-option");
 }
 
-void Printer::toStreamCmdSetExpressionName(std::ostream& out,
-                                           Node n,
-                                           const std::string& name) const
+void Printer::toStreamCmdSetExpressionName(
+    std::ostream& out,
+    CVC5_UNUSED Node n,
+    CVC5_UNUSED const std::string& name) const
 {
   printUnknownCommand(out, "set-expression-name");
 }
@@ -612,8 +624,8 @@ void Printer::toStreamCmdQuit(std::ostream& out) const
 }
 
 void Printer::toStreamCmdDeclareHeap(std::ostream& out,
-                                     TypeNode locType,
-                                     TypeNode dataType) const
+                                     CVC5_UNUSED TypeNode locType,
+                                     CVC5_UNUSED TypeNode dataType) const
 {
   printUnknownCommand(out, "declare-heap");
 }
