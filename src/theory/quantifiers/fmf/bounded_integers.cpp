@@ -563,8 +563,7 @@ void BoundedIntegers::checkOwnership(Node f)
         if (expr::hasBoundVar(r))
         {
           // introduce a new bound
-          Node new_range =
-              NodeManager::mkDummySkolem("bir", r.getType(), "bound for term");
+          Node new_range = NodeManager::mkDummySkolem("bir", r.getType());
           d_nground_range[f][v] = r;
           d_range[f][v] = new_range;
           r = new_range;

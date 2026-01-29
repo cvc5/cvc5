@@ -617,10 +617,8 @@ Node SortInference::getNewSymbol(Node old, TypeNode tn)
     if( d_const_map[tn].find( old )==d_const_map[tn].end() ){
       std::stringstream ss;
       ss << "ic_" << tn << "_" << old;
-      d_const_map[tn][old] = NodeManager::mkDummySkolem(
-          ss.str(),
-          tn,
-          "constant created during sort inference");  // use mkConst???
+      d_const_map[tn][old] = NodeManager::mkDummySkolem(ss.str(),
+                                                        tn);  // use mkConst???
     }
     return d_const_map[tn][ old ];
   }
@@ -632,8 +630,7 @@ Node SortInference::getNewSymbol(Node old, TypeNode tn)
   }
   std::stringstream ss;
   ss << "i_" << old;
-  return NodeManager::mkDummySkolem(
-      ss.str(), tn, "created during sort inference");
+  return NodeManager::mkDummySkolem(ss.str(), tn);
 }
 
 Node SortInference::simplifyNode(
@@ -757,8 +754,7 @@ Node SortInference::simplifyNode(
           std::stringstream ss;
           ss << "io_" << op;
           TypeNode typ = nm->mkFunctionType(argTypes, retType);
-          d_symbol_map[op] = NodeManager::mkDummySkolem(
-              ss.str(), typ, "op created during sort inference");
+          d_symbol_map[op] = NodeManager::mkDummySkolem(ss.str(), typ);
           Trace("setp-model") << "Function " << op << " is replaced with " << d_symbol_map[op] << std::endl;
           model_replace_f[op] = d_symbol_map[op];
         }else{
@@ -815,8 +811,7 @@ Node SortInference::mkInjection( TypeNode tn1, TypeNode tn2 ) {
   std::vector< TypeNode > tns;
   tns.push_back( tn1 );
   TypeNode typ = nm->mkFunctionType(tns, tn2);
-  Node f = NodeManager::mkDummySkolem(
-      "inj", typ, "injection for monotonicity constraint");
+  Node f = NodeManager::mkDummySkolem("inj", typ);
   Trace("sort-inference") << "-> Make injection " << f << " from " << tn1 << " to " << tn2 << std::endl;
   Node v1 = NodeManager::mkBoundVar("?x", tn1);
   Node v2 = NodeManager::mkBoundVar("?y", tn1);

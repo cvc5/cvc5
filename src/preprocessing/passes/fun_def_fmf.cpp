@@ -138,8 +138,8 @@ void FunDefFmf::process(AssertionPipeline* assertionsToPreprocess)
           TypeNode typ = nm->mkFunctionType(iType, n[j].getType());
           std::stringstream ssf;
           ssf << f << "_arg_" << j;
-          d_input_arg_inj[f].push_back(NodeManager::mkDummySkolem(
-              ssf.str(), typ, "op created during fun def fmf"));
+          d_input_arg_inj[f].push_back(
+              NodeManager::mkDummySkolem(ssf.str(), typ));
         }
 
         // construct new quantifier forall S. F[f1(S)/x1....fn(S)/xn]

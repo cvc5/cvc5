@@ -33,7 +33,8 @@ bool AttributeManager::inGarbageCollection() const {
   return d_inGarbageCollection;
 }
 
-void AttributeManager::debugHook(int debugFlag) {
+void AttributeManager::debugHook(CVC5_UNUSED int debugFlag)
+{
   /* DO NOT CHECK IN ANY CODE INTO THE DEBUG HOOKS!
    * debugHook() is an empty function for the purpose of debugging
    * the AttributeManager without recompiling all of cvc5.

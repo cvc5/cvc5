@@ -267,15 +267,16 @@ void NodeConverter::addToTypeCache(TypeNode cur, TypeNode ret)
 Node NodeConverter::preConvert(Node n) { return n; }
 Node NodeConverter::postConvert(Node n) { return n; }
 
-Node NodeConverter::postConvertUntyped(Node orig,
-                                       const std::vector<Node>& terms,
-                                       bool termsChanged)
+Node NodeConverter::postConvertUntyped(
+    Node orig,
+    CVC5_UNUSED const std::vector<Node>& terms,
+    CVC5_UNUSED bool termsChanged)
 {
   return orig;
 }
 
 TypeNode NodeConverter::preConvertType(TypeNode tn) { return tn; }
 TypeNode NodeConverter::postConvertType(TypeNode tn) { return tn; }
-bool NodeConverter::shouldTraverse(Node n) { return true; }
+bool NodeConverter::shouldTraverse(CVC5_UNUSED Node n) { return true; }
 
 }  // namespace cvc5::internal

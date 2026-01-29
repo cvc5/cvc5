@@ -358,8 +358,9 @@ struct HasAttribute;
 template <class AttrKind>
 struct HasAttribute<true, AttrKind> {
   /** This implementation is simple; it's always true. */
-  static inline bool hasAttribute(const AttributeManager* am,
-                                  NodeValue* nv) {
+  static inline bool hasAttribute(CVC5_UNUSED const AttributeManager* am,
+                                  CVC5_UNUSED NodeValue* nv)
+  {
     return true;
   }
 

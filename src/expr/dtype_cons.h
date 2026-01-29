@@ -156,7 +156,7 @@ class DTypeConstructor
    * Return the cardinality of this constructor (the product of the
    * cardinalities of its arguments).
    */
-  Cardinality getCardinality(TypeNode t) const;
+  Cardinality getCardinality() const;
 
   /**
    * Return the cardinality class, which indicates if the type has cardinality

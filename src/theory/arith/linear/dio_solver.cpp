@@ -32,10 +32,7 @@ namespace arith::linear {
 
 inline Node makeIntegerVariable(NodeManager* nm)
 {
-  return NodeManager::mkDummySkolem(
-      "intvar",
-      nm->integerType(),
-      "is an integer variable created by the dio solver");
+  return NodeManager::mkDummySkolem("intvar", nm->integerType());
 }
 
 DioSolver::DioSolver(Env& env)

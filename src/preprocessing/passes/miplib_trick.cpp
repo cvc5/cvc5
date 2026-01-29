@@ -522,10 +522,8 @@ PreprocessingPassResult MipLibTrick::applyInternal(
             {
               stringstream ss;
               ss << "mipvar_" << *ii;
-              Node newVar = NodeManager::mkDummySkolem(
-                  ss.str(),
-                  nm->integerType(),
-                  "a variable introduced due to scrubbing a miplib encoding");
+              Node newVar =
+                  NodeManager::mkDummySkolem(ss.str(), nm->integerType());
               Node geq = rewrite(nm->mkNode(Kind::GEQ, newVar, zero));
               Node leq = rewrite(nm->mkNode(Kind::LEQ, newVar, one));
               TrustNode tgeq = TrustNode::mkTrustLemma(geq, nullptr);

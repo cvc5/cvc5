@@ -1361,8 +1361,7 @@ Node ITESimplifier::getSimpVar(TypeNode t)
   {
     return (*it).second;
   }
-  Node var = NodeManager::mkDummySkolem(
-      "iteSimp", t, "is a variable resulting from ITE simplification");
+  Node var = NodeManager::mkDummySkolem("iteSimp", t);
   d_simpVars[t] = var;
   return var;
 }

@@ -43,7 +43,7 @@ CoveringsSolver::CoveringsSolver(Env& env, InferenceManager& im, NlModel& model)
       d_eqsubs(env)
 {
   NodeManager* nm = nodeManager();
-  d_ranVariable = NodeManager::mkDummySkolem("__z", nm->realType(), "");
+  d_ranVariable = NodeManager::mkDummySkolem("__z", nm->realType());
 }
 
 CoveringsSolver::~CoveringsSolver() {}

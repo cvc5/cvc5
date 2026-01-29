@@ -1266,8 +1266,7 @@ Node ConjectureGenerator::getPredicateForType( TypeNode tn ) {
   if( it==d_typ_pred.end() ){
     NodeManager* nm = nodeManager();
     TypeNode op_tn = nm->mkFunctionType(tn, nm->booleanType());
-    Node op = NodeManager::mkDummySkolem(
-        "PE", op_tn, "was created by conjecture ground term enumerator.");
+    Node op = NodeManager::mkDummySkolem("PE", op_tn);
     d_typ_pred[tn] = op;
     return op;
   }else{

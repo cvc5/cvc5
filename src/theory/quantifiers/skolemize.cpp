@@ -227,8 +227,7 @@ Node Skolemize::mkSkolemizedBodyInduction(const Options& opts,
       else
       {
         TypeNode typ = nm->mkFunctionType(argTypes, f[0][i].getType());
-        Node op = NodeManager::mkDummySkolem(
-            "skop", typ, "op created during pre-skolemization");
+        Node op = NodeManager::mkDummySkolem("skop", typ);
         // DOTHIS: set attribute on op, marking that it should not be selected
         // as trigger
         if (f[0][i].getType().isFunction())

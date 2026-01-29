@@ -20,7 +20,7 @@
 
 namespace cvc5::internal {
 
-uint32_t TermContext::computeValueOp(TNode t, uint32_t tval) const
+uint32_t TermContext::computeValueOp(CVC5_UNUSED TNode t, uint32_t tval) const
 {
   // default is no change
   return tval;
@@ -34,7 +34,7 @@ uint32_t RtfTermContext::initialValue() const
 
 uint32_t RtfTermContext::computeValue(TNode t,
                                       uint32_t tval,
-                                      size_t child) const
+                                      CVC5_UNUSED size_t child) const
 {
   if (t.isClosure())
   {
@@ -77,17 +77,14 @@ uint32_t InQuantTermContext::initialValue() const { return 0; }
 
 uint32_t InQuantTermContext::computeValue(TNode t,
                                           uint32_t tval,
-                                          size_t index) const
+                                          CVC5_UNUSED size_t index) const
 {
   return t.isClosure() ? 1 : tval;
 }
 
 uint32_t InQuantTermContext::getValue(bool inQuant) { return inQuant ? 1 : 0; }
 
-bool InQuantTermContext::inQuant(uint32_t val, bool& inQuant)
-{
-  return val == 1;
-}
+bool InQuantTermContext::inQuant(uint32_t val) { return val == 1; }
 
 uint32_t PolarityTermContext::initialValue() const
 {
@@ -140,7 +137,7 @@ uint32_t TheoryLeafTermContext::initialValue() const { return 0; }
 
 uint32_t TheoryLeafTermContext::computeValue(TNode t,
                                              uint32_t tval,
-                                             size_t index) const
+                                             CVC5_UNUSED size_t index) const
 {
   return theory::Theory::isLeafOf(t, d_theoryId) ? 1 : tval;
 }
@@ -148,7 +145,7 @@ uint32_t BoolSkeletonTermContext::initialValue() const { return 0; }
 
 uint32_t BoolSkeletonTermContext::computeValue(TNode t,
                                                uint32_t tval,
-                                               size_t child) const
+                                               CVC5_UNUSED size_t child) const
 {
   if (tval == 0)
   {
@@ -165,7 +162,7 @@ uint32_t WithinKindTermContext::initialValue() const { return 0; }
 
 uint32_t WithinKindTermContext::computeValue(TNode t,
                                              uint32_t tval,
-                                             size_t index) const
+                                             CVC5_UNUSED size_t index) const
 {
   if (tval == 0)
   {
@@ -180,7 +177,7 @@ uint32_t WithinKindTermContext::computeValue(TNode t,
 
 uint32_t WithinPathTermContext::initialValue() const { return 1; }
 
-uint32_t WithinPathTermContext::computeValue(TNode t,
+uint32_t WithinPathTermContext::computeValue(CVC5_UNUSED TNode t,
                                              uint32_t tval,
                                              size_t index) const
 {

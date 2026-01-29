@@ -272,10 +272,7 @@ Node mkConst(NodeManager* nm, const BitVector& value)
 
 Node mkVar(NodeManager* nm, unsigned size)
 {
-  return NodeManager::mkDummySkolem(
-      "BVSKOLEM$$",
-      nm->mkBitVectorType(size),
-      "is a variable created by the theory of bitvectors");
+  return NodeManager::mkDummySkolem("BVSKOLEM$$", nm->mkBitVectorType(size));
 }
 
 /* ------------------------------------------------------------------------- */

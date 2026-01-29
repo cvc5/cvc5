@@ -234,7 +234,6 @@ InternalSkolemId SkolemManager::getInternalId(TNode k) const
 
 Node SkolemManager::mkDummySkolem(const std::string& prefix,
                                   const TypeNode& type,
-                                  const std::string& comment,
                                   SkolemFlags flags)
 {
   return mkSkolemNode(Kind::DUMMY_SKOLEM, prefix, type, flags);

@@ -109,7 +109,7 @@ class InQuantTermContext : public TermContext
   /** get hash value from the flags */
   static uint32_t getValue(bool inQuant);
   /** get flags from the hash value */
-  static bool inQuant(uint32_t val, bool& inQuant);
+  static bool inQuant(uint32_t val);
 };
 
 /**
