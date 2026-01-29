@@ -33,7 +33,7 @@ void ModelConsDefault::getStringRepresentativesFrom(
     const std::set<Node>& termSet,
     std::unordered_set<TypeNode>& repTypes,
     std::map<TypeNode, std::unordered_set<Node>>& repSet,
-    std::vector<Node>& auxEq)
+    CVC5_UNUSED std::vector<Node>& auxEq)
 {
   for (const Node& s : termSet)
   {
