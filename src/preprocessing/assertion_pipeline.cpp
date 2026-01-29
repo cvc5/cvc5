@@ -59,6 +59,26 @@ void AssertionPipeline::push_back(
     // case where "false" was already seen as an input assertion.
     return;
   }
+  // If proof enabled, notify the preprocess proof generator.
+  // Note that we notify the preprocess proof generator that we have a proof
+  // of the assertion here, even when we use AND elimination to add each
+  // conjunct of n, if it is a conjunction. The reason is that in rare cases we
+  // may reinfer n (say via rewriting another assumption) which may lead to
+  // a cyclic proof if that rewriting assumed n.
+  if (isProofEnabled())
+  {
+    if (!isInput)
+    {
+      // notice this is always called, regardless of whether pgen is nullptr
+      d_pppg->notifyNewAssert(n, pgen, trustId);
+    }
+    else
+    {
+      Assert(pgen == nullptr);
+      // n is an input assertion, whose proof should be ASSUME.
+      d_pppg->notifyInput(n);
+    }
+  }
   if (n == d_false)
   {
     markConflict();
@@ -135,20 +155,6 @@ void AssertionPipeline::push_back(
   }
   Trace("assert-pipeline") << "Assertions: ...new assertion " << n
                            << ", isInput=" << isInput << std::endl;
-  if (isProofEnabled())
-  {
-    if (!isInput)
-    {
-      // notice this is always called, regardless of whether pgen is nullptr
-      d_pppg->notifyNewAssert(n, pgen, trustId);
-    }
-    else
-    {
-      Assert(pgen == nullptr);
-      // n is an input assertion, whose proof should be ASSUME.
-      d_pppg->notifyInput(n);
-    }
-  }
 }
 
 void AssertionPipeline::pushBackTrusted(TrustNode trn,
