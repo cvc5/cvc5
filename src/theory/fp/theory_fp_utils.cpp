@@ -34,14 +34,14 @@ Integer getCardinality(const TypeNode& type)
    * 1                    NaN
    * 2*1                  Infinities
    * 2*1                  Zeros
-   * 2*2^(s-1)            Subnormal
+   * 2*(2^(s-1) -1)       Subnormal
    * 2*((2^e)-2)*2^(s-1)  Normal
    *
-   *  = 1 + 2*2 + 2*((2^e)-1)*2^(s-1)
-   *  =       5 + ((2^e)-1)*2^s
+   *  = 1 + 2*2 + 2^s - 2 + 2^s * (2^e - 2)
+   *  =       3 + 2^s * ((2^e)-1)
    */
 
-  return Integer(5)
+  return Integer(3)
          + Integer(2).pow(fps.significandWidth())
                * (Integer(2).pow(fps.exponentWidth()) - Integer(1));
 }

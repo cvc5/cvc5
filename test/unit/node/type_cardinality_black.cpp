@@ -339,9 +339,9 @@ TEST_F(TestNodeBlackTypeCardinality, lessThan)
   ASSERT_FALSE(d_nodeManager->mkBitVectorType(8).isCardinalityLessThan(256));
   ASSERT_TRUE(d_nodeManager->mkBitVectorType(8).isCardinalityLessThan(257));
   ASSERT_FALSE(
-      d_nodeManager->mkFloatingPointType(3, 5).isCardinalityLessThan(229));
+      d_nodeManager->mkFloatingPointType(3, 5).isCardinalityLessThan(227));
   ASSERT_TRUE(
-      d_nodeManager->mkFloatingPointType(3, 5).isCardinalityLessThan(230));
+      d_nodeManager->mkFloatingPointType(3, 5).isCardinalityLessThan(228));
   ASSERT_FALSE(d_nodeManager->roundingModeType().isCardinalityLessThan(5));
   ASSERT_TRUE(d_nodeManager->roundingModeType().isCardinalityLessThan(6));
   ASSERT_FALSE(
