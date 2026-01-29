@@ -49,6 +49,7 @@ void Smt2State::addArithmeticOperators()
   addOperator(Kind::LEQ, "<=");
   addOperator(Kind::GT, ">");
   addOperator(Kind::GEQ, ">=");
+  addClosureKind(Kind::STAR_CONTAINS, "int.star-contains");
 
   if (!strictModeEnabled())
   {
