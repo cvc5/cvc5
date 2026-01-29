@@ -63,9 +63,7 @@ public:
  std::string identify() const override;
 
 private:
- void process(TNode n,
-              std::vector<TrustNode>& learned,
-              const TNodeSet& defTrue);
+ void process(TNode n, std::vector<TrustNode>& learned);
 
  void iteMinMax(TNode n, std::vector<TrustNode>& learned);
  void iteConstant(TNode n, std::vector<TrustNode>& learned);

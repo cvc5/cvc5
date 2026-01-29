@@ -238,7 +238,7 @@ struct CollectMonomialData
  * Callback for lp_polynomial_traverse. Assumes data is actually a
  * CollectMonomialData object and puts the polynomial into it.
  */
-void collect_monomials(const lp_polynomial_context_t* ctx,
+void collect_monomials(CVC5_UNUSED const lp_polynomial_context_t* ctx,
                        lp_monomial_t* m,
                        void* data)
 {

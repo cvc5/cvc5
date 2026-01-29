@@ -428,7 +428,7 @@ Result::Status NonlinearExtension::modelBasedRefinement(
     if (!false_asserts.empty())
     {
       complete_status = 0;
-      runStrategy(Theory::Effort::EFFORT_FULL, assertions, false_asserts, xts);
+      runStrategy(assertions, false_asserts, xts);
       if (d_im.hasSentLemma() || d_im.hasPendingLemma())
       {
         d_im.clearWaitingLemmas();
@@ -497,8 +497,7 @@ Result::Status NonlinearExtension::modelBasedRefinement(
   return Result::SAT;
 }
 
-void NonlinearExtension::runStrategy(Theory::Effort effort,
-                                     const std::vector<Node>& assertions,
+void NonlinearExtension::runStrategy(const std::vector<Node>& assertions,
                                      const std::vector<Node>& false_asserts,
                                      const std::vector<Node>& xts)
 {
@@ -531,19 +530,13 @@ void NonlinearExtension::runStrategy(Theory::Effort effort,
       case InferStep::NL_FACTORING:
         d_factoringSlv.check(assertions, false_asserts);
         break;
-      case InferStep::IAND_INIT:
-        d_iandSlv.initLastCall(assertions, false_asserts, xts);
-        break;
+      case InferStep::IAND_INIT: d_iandSlv.initLastCall(xts); break;
       case InferStep::IAND_FULL: d_iandSlv.checkFullRefine(); break;
       case InferStep::IAND_INITIAL: d_iandSlv.checkInitialRefine(); break;
-      case InferStep::PIAND_INIT:
-        d_piandSlv.initLastCall(assertions, false_asserts, xts);
-        break;
+      case InferStep::PIAND_INIT: d_piandSlv.initLastCall(xts); break;
       case InferStep::PIAND_FULL: d_piandSlv.checkFullRefine(); break;
       case InferStep::PIAND_INITIAL: d_piandSlv.checkInitialRefine(); break;
-      case InferStep::POW2_INIT:
-        d_pow2Slv.initLastCall(assertions, false_asserts, xts);
-        break;
+      case InferStep::POW2_INIT: d_pow2Slv.initLastCall(xts); break;
       case InferStep::POW2_FULL: d_pow2Slv.checkFullRefine(); break;
       case InferStep::POW2_INITIAL: d_pow2Slv.checkInitialRefine(); break;
       case InferStep::ICP:

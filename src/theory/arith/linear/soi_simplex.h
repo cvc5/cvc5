@@ -123,11 +123,9 @@ private:
 
   void logPivot(WitnessImprovement w);
 
-  void updateAndSignal(const UpdateInfo& selected, WitnessImprovement w);
+  void updateAndSignal(const UpdateInfo& selected);
 
-  UpdateInfo selectUpdate(LinearEqualityModule::UpdatePreferenceFunction upf,
-                          LinearEqualityModule::VarPreferenceFunction bpf);
-
+  UpdateInfo selectUpdate(LinearEqualityModule::UpdatePreferenceFunction upf);
 
   // UpdateInfo selectUpdateForDualLike(ArithVar basic){
   //   TimerStat::CodeTimer codeTimer(d_statistics.d_selectUpdateForDualLike);
@@ -164,8 +162,7 @@ private:
   // WitnessImprovement adjustFocusShrank(const ArithVarVec& drop);
   // WitnessImprovement focusDownToJust(ArithVar v);
 
-
-  void adjustFocusAndError(const UpdateInfo& up, const AVIntPairVec& focusChanges);
+  void adjustFocusAndError(const AVIntPairVec& focusChanges);
 
   /**
    * This is the main simplex for DPLL(T) loop.

@@ -31,13 +31,12 @@ CoveringsProofRuleChecker::CoveringsProofRuleChecker(NodeManager* nm)
 {
 }
 
-void CoveringsProofRuleChecker::registerTo(ProofChecker* pc)
-{
-}
+void CoveringsProofRuleChecker::registerTo(CVC5_UNUSED ProofChecker* pc) {}
 
-Node CoveringsProofRuleChecker::checkInternal(ProofRule id,
-                                              const std::vector<Node>& children,
-                                              const std::vector<Node>& args)
+Node CoveringsProofRuleChecker::checkInternal(
+    CVC5_UNUSED ProofRule id,
+    CVC5_UNUSED const std::vector<Node>& children,
+    CVC5_UNUSED const std::vector<Node>& args)
 {
   return Node::null();
 }

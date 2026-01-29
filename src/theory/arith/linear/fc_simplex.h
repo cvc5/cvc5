@@ -170,21 +170,17 @@ private:
 
   void logPivot(WitnessImprovement w);
 
-  void updateAndSignal(const UpdateInfo& selected, WitnessImprovement w);
+  void updateAndSignal(const UpdateInfo& selected);
 
-  UpdateInfo selectPrimalUpdate(ArithVar error,
-                                LinearEqualityModule::UpdatePreferenceFunction upf,
-                                LinearEqualityModule::VarPreferenceFunction bpf);
-
+  UpdateInfo selectPrimalUpdate(
+      ArithVar error, LinearEqualityModule::UpdatePreferenceFunction upf);
 
   UpdateInfo selectUpdateForDualLike(ArithVar basic){
     TimerStat::CodeTimer codeTimer(d_statistics.d_selectUpdateForDualLike);
 
     LinearEqualityModule::UpdatePreferenceFunction upf =
       &LinearEqualityModule::preferWitness<true>;
-    LinearEqualityModule::VarPreferenceFunction bpf =
-      &LinearEqualityModule::minVarOrder;
-    return selectPrimalUpdate(basic, upf, bpf);
+    return selectPrimalUpdate(basic, upf);
   }
 
   UpdateInfo selectUpdateForPrimal(ArithVar basic, bool useBlands){
@@ -197,11 +193,7 @@ private:
       upf = &LinearEqualityModule::preferWitness<true>;
     }
 
-    LinearEqualityModule::VarPreferenceFunction bpf = useBlands ?
-      &LinearEqualityModule::minVarOrder :
-      &LinearEqualityModule::minRowLength;
-
-    return selectPrimalUpdate(basic, upf, bpf);
+    return selectPrimalUpdate(basic, upf);
   }
   WitnessImprovement selectFocusImproving() ;
 
@@ -210,8 +202,7 @@ private:
   WitnessImprovement adjustFocusShrank(const ArithVarVec& drop);
   WitnessImprovement focusDownToJust(ArithVar v);
 
-
-  void adjustFocusAndError(const UpdateInfo& up, const AVIntPairVec& focusChanges);
+  void adjustFocusAndError(const AVIntPairVec& focusChanges);
 
   /**
    * This is the main simplex for DPLL(T) loop.

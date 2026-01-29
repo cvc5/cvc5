@@ -20,9 +20,16 @@ namespace cvc5::internal {
 namespace theory {
 namespace arith::linear {
 
-void NoEffectCCCB::update(RowIndex ridx, ArithVar nb, int oldSgn, int currSgn) {}
-void NoEffectCCCB::multiplyRow(RowIndex ridx, int sgn){}
-bool NoEffectCCCB::canUseRow(RowIndex ridx) const { return false; }
+void NoEffectCCCB::update(CVC5_UNUSED RowIndex ridx,
+                          CVC5_UNUSED ArithVar nb,
+                          CVC5_UNUSED int oldSgn,
+                          CVC5_UNUSED int currSgn)
+{
+}
+void NoEffectCCCB::multiplyRow(CVC5_UNUSED RowIndex ridx, CVC5_UNUSED int sgn)
+{
+}
+bool NoEffectCCCB::canUseRow(CVC5_UNUSED RowIndex ridx) const { return false; }
 
 }  // namespace arith
 }  // namespace theory

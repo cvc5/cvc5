@@ -32,7 +32,8 @@ class RationalEnumerator : public TypeEnumeratorBase<RationalEnumerator> {
   Rational d_rat;
 
  public:
-  RationalEnumerator(TypeNode type, TypeEnumeratorProperties* tep = nullptr)
+  RationalEnumerator(TypeNode type,
+                     CVC5_UNUSED TypeEnumeratorProperties* tep = nullptr)
       : TypeEnumeratorBase<RationalEnumerator>(type), d_rat(0)
   {
     Assert(type.getKind() == Kind::TYPE_CONSTANT
@@ -76,7 +77,8 @@ class IntegerEnumerator : public TypeEnumeratorBase<IntegerEnumerator> {
   Integer d_int;
 
  public:
-  IntegerEnumerator(TypeNode type, TypeEnumeratorProperties* tep = nullptr)
+  IntegerEnumerator(TypeNode type,
+                    CVC5_UNUSED TypeEnumeratorProperties* tep = nullptr)
       : TypeEnumeratorBase<IntegerEnumerator>(type), d_int(0)
   {
     Assert(type.getKind() == Kind::TYPE_CONSTANT

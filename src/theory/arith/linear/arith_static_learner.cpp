@@ -96,14 +96,11 @@ void ArithStaticLearner::staticLearning(TNode n,
     }
     processed.insert(n);
 
-    process(n,learned, defTrue);
-
+    process(n, learned);
   }
 }
 
-void ArithStaticLearner::process(TNode n,
-                                 std::vector<TrustNode>& learned,
-                                 const TNodeSet& defTrue)
+void ArithStaticLearner::process(TNode n, std::vector<TrustNode>& learned)
 {
   Trace("arith::static") << "===================== looking at " << n << endl;
 

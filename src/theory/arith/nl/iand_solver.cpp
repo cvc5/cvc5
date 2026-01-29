@@ -50,9 +50,7 @@ IAndSolver::IAndSolver(Env& env, InferenceManager& im, NlModel& model)
 
 IAndSolver::~IAndSolver() {}
 
-void IAndSolver::initLastCall(const std::vector<Node>& assertions,
-                              const std::vector<Node>& false_asserts,
-                              const std::vector<Node>& xts)
+void IAndSolver::initLastCall(const std::vector<Node>& xts)
 {
   d_iands.clear();
 

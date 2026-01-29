@@ -35,7 +35,7 @@ void LinearSolver::finishInit(eq::EqualityEngine* ee)
   d_internal.finishInit(ee);
 }
 void LinearSolver::preRegisterTerm(TNode n) { d_internal.preRegisterTerm(n); }
-void LinearSolver::propagate(Theory::Effort e) { d_internal.propagate(e); }
+void LinearSolver::propagate() { d_internal.propagate(); }
 
 TrustNode LinearSolver::explain(TNode n) { return d_internal.explain(n); }
 
@@ -72,9 +72,9 @@ std::pair<bool, Node> LinearSolver::entailmentCheck(TNode lit)
 {
   return d_internal.entailmentCheck(lit);
 }
-bool LinearSolver::preCheck(Theory::Effort level, bool newFacts)
+bool LinearSolver::preCheck(bool newFacts)
 {
-  return d_internal.preCheck(level, newFacts);
+  return d_internal.preCheck(newFacts);
 }
 void LinearSolver::preNotifyFact(TNode fact) { d_internal.preNotifyFact(fact); }
 bool LinearSolver::postCheck(Theory::Effort level)

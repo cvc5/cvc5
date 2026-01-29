@@ -128,13 +128,12 @@ ProofGenerator* CoveringsProofGenerator::getProofGenerator() const
 }
 
 void CoveringsProofGenerator::addDirect(Node var,
-                                  VariableMapper& vm,
-                                  const poly::Polynomial& poly,
-                                  const poly::Assignment& a,
-                                  poly::SignCondition& sc,
-                                  const poly::Interval& interval,
-                                  Node constraint,
-                                  size_t intervalId)
+                                        VariableMapper& vm,
+                                        const poly::Polynomial& poly,
+                                        const poly::Assignment& a,
+                                        const poly::Interval& interval,
+                                        Node constraint,
+                                        size_t intervalId)
 {
   if (is_minus_infinity(get_lower(interval))
       && is_plus_infinity(get_upper(interval)))
