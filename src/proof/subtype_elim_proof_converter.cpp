@@ -251,23 +251,26 @@ Node SubtypeElimConverterCallback::convert(Node res,
     case ProofRule::ARITH_MULT_POS:
     case ProofRule::ARITH_MULT_NEG:
     {
+      // Note that we modify the arguments to the proof rule above
+      // to ensure that the initial rule attempt does not use mixed arithmetic.
       // This handles the case where we multiply an integer relation by
       // a rational, or multiply a real relation by an integer.
-      // We transform the proof for the latter as follows:
+      // We transform the proof for the former as follows:
       //
       //            ----- ASSUME
       //            t~s
       // --- ASSUME ----- prove, using method below
-      // c>0        t'~s'
+      // c>0.0      t'~s'
       // --------------- AND_INTRO ------------------------------ ARITH_MULT_X
-      // (and c>0 t'~s')           (=> (and c>0 t'~s') (c*t'~c*s'))
+      // (and c>0.0 t'~s')           (=> (and c>0 t'~s') (c*t'~c*s'))
       // ----------------------------------------------------- MODUS_PONENS
       // (c*t'~c*s')
-      // ----------------------- SCOPE {c>0, t~s}
-      // (=> (and c>0 t~s) (c*t'~c*s'))
+      // ------------------------------- SCOPE {c>0.0, t~s}
+      // (=> (and c>0.0 t~s) (c*t'~c*s'))
       //
-      // there t'~s' is a predicate over reals and t~s is a mixed integer
-      // predicate. The former is handled similarly.
+      // there t~s is the original predicate over the integers we had as input
+      // and t'~s' is an equivalent predicate over reals. The latter case
+      // (multiplying a real relation by an integer) is handled similarly.
       bool csuccess = true;
       for (size_t i = 0; i < 2; i++)
       {
