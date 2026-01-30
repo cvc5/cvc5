@@ -251,10 +251,10 @@ Node SubtypeElimConverterCallback::convert(Node res,
     case ProofRule::ARITH_MULT_POS:
     case ProofRule::ARITH_MULT_NEG:
     {
-      // Note that we modify the arguments to the proof rule above
-      // to ensure that the initial rule attempt does not use mixed arithmetic.
       // This handles the case where we multiply an integer relation by
       // a rational, or multiply a real relation by an integer.
+      // Note that we modify the arguments to the proof rule above
+      // to ensure that the initial rule attempt does not use mixed arithmetic.
       // We transform the proof for the former as follows:
       //
       //            ----- ASSUME
@@ -270,8 +270,9 @@ Node SubtypeElimConverterCallback::convert(Node res,
       //
       // there t~s is the original predicate over the integers we had as input
       // and t'~s' is an equivalent predicate over reals. The latter case
-      // (multiplying a real relation by an integer) is handled similarly.
+      // (multiplying a real relation by an integer) is handledsimilarly.
       bool csuccess = true;
+      // transform the inputs to AND_INTRO
       for (size_t i = 0; i < 2; i++)
       {
         Node relOld = resc[0][i];
@@ -284,6 +285,7 @@ Node SubtypeElimConverterCallback::convert(Node res,
           break;
         }
       }
+      // construct the rest of the proof
       if (csuccess)
       {
         cdp->addStep(newRes, id, {}, {cargs[0], newRes[0][1]});
