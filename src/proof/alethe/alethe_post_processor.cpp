@@ -152,7 +152,18 @@ bool AletheProofPostprocessCallback::updateTheoryRewriteProofRewriteRule(
                            *cdp);
     }
     // ======== QUANT_MERGE_PRENEX
-    // This rule is translated according to the clause pattern.
+    // qnt_join expresses quite well what QUANT_MERGE_PRENEX does but can only merge two quantifiers at a time
+    // and expects duplicates to be deleted.
+    //
+    // ------- QNT_JOIN  ------- QNT_JOIN 
+    //   VP0               VP1
+    // ---------------------------- TRANS
+    //
+    //
+    // VP0: (cl (= (Q X1. Q X2. ... Q Xn. F) (Q Y1. Q X3. ... Q Xn.  F)))
+    // VPi: (cl (= (Q Yi. Q X_i+2. ... Q Xn. F) (Q Y_i+1. Q X_i+3. ... Q Xn. F))), for i>0
+    // Where Yi = Y_i-1 u 
+    //
     case ProofRewriteRule::QUANT_MERGE_PRENEX:
     {
       return addAletheStep(AletheRule::QNT_JOIN,
