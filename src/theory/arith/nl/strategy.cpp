@@ -160,6 +160,19 @@ void Strategy::initializeStrategy(const Options& options)
       one << InferStep::NL_TANGENT_PLANES;
     }
     one << InferStep::BREAK;
+  }
+  one << InferStep::IAND_FULL << InferStep::BREAK;
+  one << InferStep::PIAND_FULL << InferStep::BREAK;
+  one << InferStep::POW2_FULL << InferStep::BREAK;
+  if (options.arith.nlCov)
+  {
+    one << InferStep::COVERINGS_INIT << InferStep::BREAK;
+    one << InferStep::COVERINGS_FULL << InferStep::BREAK;
+  }
+  else if (options.arith.nlExt == options::NlExtMode::FULL)
+  {
+    // if nl-cov is not enabled, then we use heuristic non-terminating
+    // techniques as a last resort
     one << InferStep::FLUSH_WAITING_LEMMAS << InferStep::BREAK;
     if (options.arith.nlExtFactor)
     {
@@ -179,14 +192,6 @@ void Strategy::initializeStrategy(const Options& options)
       one << InferStep::TRANS_TANGENT_PLANES;
     }
     one << InferStep::BREAK;
-  }
-  one << InferStep::IAND_FULL << InferStep::BREAK;
-  one << InferStep::PIAND_FULL << InferStep::BREAK;
-  one << InferStep::POW2_FULL << InferStep::BREAK;
-  if (options.arith.nlCov)
-  {
-    one << InferStep::COVERINGS_INIT << InferStep::BREAK;
-    one << InferStep::COVERINGS_FULL << InferStep::BREAK;
   }
 
   d_interleaving.add(one);
