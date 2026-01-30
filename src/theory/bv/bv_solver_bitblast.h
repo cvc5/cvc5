@@ -50,7 +50,7 @@ class BVSolverBitblast : public BVSolver
 
   bool needsEqualityEngine(EeSetupInfo& esi) override;
 
-  void preRegisterTerm(TNode n) override {}
+  void preRegisterTerm(CVC5_UNUSED TNode n) override {}
 
   void postCheck(Theory::Effort level) override;
 

@@ -296,6 +296,15 @@
   (str.replace_all t s r)
   t)
 
+(define-rule str-replace-all-id ((t ?Seq) (s ?Seq))
+  (str.replace_all t s s)
+  t)
+
+(define-cond-rule str-replace-all-self ((t ?Seq) (s ?Seq))
+  (not (= (str.len t) 0))
+  (str.replace_all t t s)
+  s)
+
 (define-rule str-replace-re-none ((t ?Seq) (r ?Seq))
   (str.replace_re t re.none r)
   t)

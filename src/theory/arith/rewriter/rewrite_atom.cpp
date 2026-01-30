@@ -318,15 +318,22 @@ Node buildRealEquality(NodeManager* nm, Sum&& sum)
   {
     s.second = s.second / lcoeff;
   }
-  // Must ensure real for both sides. This may change one but not both
-  // terms.
+  // Ensure real for both sides.
   Node lhs = lterm.first;
-  lhs = ensureReal(lhs);
   Node rhs = collectSum(nm, sum);
-  rhs = ensureReal(rhs);
-  Assert(lhs.getType().isReal() || lhs.getType().isFullyAbstract());
-  Assert(rhs.getType().isReal() || rhs.getType().isFullyAbstract());
-  return buildRelation(Kind::EQUAL, lhs, rhs);
+  Node lhsr = ensureReal(lhs);
+  Node rhsr = ensureReal(rhs);
+  if (lhsr!=lhs && rhsr!=rhs)
+  {
+    // if both were changed, then this implies we could make an integer equality
+    // instead.
+    Assert(lhs.getType().isInteger());
+    Assert(rhs.getType().isInteger());
+    return buildRelation(Kind::EQUAL, lhs, rhs);
+  }
+  Assert(lhsr.getType().isReal() || lhsr.getType().isFullyAbstract());
+  Assert(rhsr.getType().isReal() || rhsr.getType().isFullyAbstract());
+  return buildRelation(Kind::EQUAL, lhsr, rhsr);
 }
 
 Node buildIntegerInequality(NodeManager* nm, Sum&& sum, Kind k)

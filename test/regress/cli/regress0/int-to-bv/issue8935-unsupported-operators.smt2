@@ -1,4 +1,5 @@
-; EXPECT: (error "Cannot translate the operator str.to_int to a bit-vector operator. Remove option `--solve-int-as-bv`.")
+; SCRUBBER: grep -o "Cannot translate to BV"
+; EXPECT: Cannot translate to BV
 ; EXIT: 1
 (set-option :solve-int-as-bv 1)
 (set-logic ALL)

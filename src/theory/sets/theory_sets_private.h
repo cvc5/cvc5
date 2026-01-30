@@ -369,8 +369,6 @@ class TheorySetsPrivate : protected EnvObj
   SolverState& d_state;
   /** The inference manager of the sets solver */
   InferenceManager& d_im;
-  /** Reference to the skolem cache */
-  SkolemCache& d_skCache;
   /** The term registry */
   TermRegistry d_treg;
 

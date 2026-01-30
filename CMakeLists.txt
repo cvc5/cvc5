@@ -121,6 +121,9 @@ option(ENABLE_PROFILING        "Enable support for gprof profiling")
 
 option(TREAT_WARNING_AS_ERROR  "Treat warnings on building as errors")
 
+# Ensure cvc5 does not use LibPoly's global context by stripping all related code
+option(NO_GLOBAL_POLY_CTX      "Remove global context from LibPoly source code")
+
 # Optional dependencies
 #
 # >> 2-valued: ON OFF
@@ -238,12 +241,13 @@ include(Config${CMAKE_BUILD_TYPE})
 
 add_check_c_cxx_flag("-O${OPTIMIZATION_LEVEL}")
 add_check_c_cxx_flag("-Wall")
-add_check_c_cxx_supression_flag("-Wno-unused-private-field")
 add_check_c_cxx_supression_flag("-Wno-dangling-reference")
 add_check_c_flag("-fexceptions")
 add_check_cxx_flag("-Wsuggest-override")
 add_check_cxx_flag("-Wnon-virtual-dtor")
+add_check_c_cxx_flag("-Wignored-qualifiers")
 add_check_c_cxx_flag("-Wimplicit-fallthrough")
+add_check_c_cxx_flag("-Wmissing-field-initializers")
 add_check_c_cxx_flag("-Wshadow")
 add_check_c_cxx_flag("-fno-operator-names")
 
@@ -583,7 +587,7 @@ if(ENABLE_SAFE_MODE)
 endif()
 
 if(USE_POLY)
-  find_package(Poly 0.2.0 REQUIRED)
+  find_package(Poly 0.2.1 REQUIRED)
   add_definitions(-DCVC5_USE_POLY)
   set(CVC5_USE_POLY_IMP 1)
 else()

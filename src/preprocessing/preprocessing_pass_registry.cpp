@@ -59,6 +59,7 @@
 #include "preprocessing/passes/theory_preprocess.h"
 #include "preprocessing/passes/static_rewrite.h"
 #include "preprocessing/passes/unconstrained_simplifier.h"
+#include "preprocessing/passes/normalize.h"
 #include "preprocessing/preprocessing_pass.h"
 
 namespace cvc5::internal {
@@ -160,6 +161,7 @@ PreprocessingPassRegistry::PreprocessingPassRegistry()
   registerPassInfo("fun-def-fmf", callCtor<FunDefFmf>);
   registerPassInfo("static-rewrite", callCtor<StaticRewrite>);
   registerPassInfo("strings-eager-pp", callCtor<StringsEagerPp>);
+  registerPassInfo("normalize", callCtor<Normalize>);
 }
 
 }  // namespace preprocessing
