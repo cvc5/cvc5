@@ -34,7 +34,6 @@ runs:
           libcln-dev \
           libedit-dev \
           libgmp-dev \
-          libnormaliz-dev \
           libtinfo-dev \
           libfl-dev
         echo "SED=sed" >> $GITHUB_ENV
