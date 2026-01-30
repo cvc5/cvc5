@@ -169,10 +169,11 @@ void Strategy::initializeStrategy(const Options& options)
     one << InferStep::COVERINGS_INIT << InferStep::BREAK;
     one << InferStep::COVERINGS_FULL << InferStep::BREAK;
   }
-  else if (options.arith.nlExt == options::NlExtMode::FULL)
+  if (options.arith.nlExt == options::NlExtMode::FULL &&
+      (!options.arith.nlCov || options.arith.nlCovForce))
   {
-    // if nl-cov is not enabled, then we use heuristic non-terminating
-    // techniques as a last resort
+    // if nl-cov is not enabled or we forced it to be enabled, then we use
+    // heuristic non-terminating techniques as a last resort
     one << InferStep::FLUSH_WAITING_LEMMAS << InferStep::BREAK;
     if (options.arith.nlExtFactor)
     {
