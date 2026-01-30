@@ -65,7 +65,7 @@ void AssertionPipeline::push_back(
   // add n as an assertion. However, we also remember the proof for n itself.
   // The reason is that in rare cases we may relearn n (say via rewriting
   // another assumption) which may lead to a cyclic proof if that rewriting
-  // assumed n.
+  // depended on one of F1 ... Fn.
   if (isProofEnabled())
   {
     if (!isInput)
