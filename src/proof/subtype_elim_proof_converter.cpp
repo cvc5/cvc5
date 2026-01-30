@@ -253,7 +253,7 @@ Node SubtypeElimConverterCallback::convert(Node res,
     {
       // This handles the case where we multiply an integer relation by
       // a rational, or multiply a real relation by an integer.
-      // We tranform the proof for the latter as follows:
+      // We transform the proof for the latter as follows:
       //
       //            ----- ASSUME
       //            t~s
