@@ -60,11 +60,12 @@ void AssertionPipeline::push_back(
     return;
   }
   // If proof enabled, notify the preprocess proof generator.
-  // Note that we notify the preprocess proof generator that we have a proof
-  // of the assertion here, even when we use AND elimination as described below
-  // to add each conjunct of n, if it is a conjunction. The reason is that in
-  // rare cases we may relearn n (say via rewriting another assumption) which
-  // may lead to a cyclic proof if that rewriting assumed n.
+  // Note that if n is (and F1 ... Fn), below we instead add the assertions
+  // F1 .... Fn whose proofs are AND_ELIM steps given a proof of n. We do not
+  // add n as an assertion. However, we also remember the proof for n itself.
+  // The reason is that in rare cases we may relearn n (say via rewriting
+  // another assumption) which may lead to a cyclic proof if that rewriting
+  // assumed n.
   if (isProofEnabled())
   {
     if (!isInput)
