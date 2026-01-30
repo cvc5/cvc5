@@ -24,9 +24,9 @@ namespace cvc5::internal {
 
 namespace proof {
 
-// Closely follows the algorithm implemented in carcara
-// (https://github.com/ufmg-smite/carcara) Note that when removing duplicates we
-// keep the first occurence.
+// Closely follows the algorithm implemented in Carcara
+// (https://github.com/ufmg-smite/carcara). Note that when removing duplicates
+// we keep the first occurence.
 Node applyAcSimp(Env& env, std::map<Node, Node>& cache, Node term)
 {
   NodeManager* nm = env.getNodeManager();
