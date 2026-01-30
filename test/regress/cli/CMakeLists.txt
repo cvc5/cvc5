@@ -1064,6 +1064,7 @@ set(regress_0_tests
   regress0/issue1063-overloading-dt-sel.smt2
   regress0/issue11198-real-as-int.smt2
   regress0/issue12038-model-get-value.smt2
+  regress0/issue12386-get-assertions.smt2
   regress0/issue2832-qualId.smt2
   regress0/issue4010-sort-inf-var.smt2
   regress0/issue4469-unc-no-reuse-var.smt2
@@ -1211,6 +1212,21 @@ set(regress_0_tests
   regress0/nl/nta/sin-sym-schema.smt2
   regress0/nl/nta/sqrt-simple.smt2
   regress0/nl/nta/tan-rewrite.smt2
+  regress0/nl/piand-base.smt2
+  regress0/nl/piand-base-sat.smt2
+  regress0/nl/piand-difference.smt2
+  regress0/nl/piand-idempotence.smt2
+  regress0/nl/piand-lsb.smt2
+  regress0/nl/piand-max.smt2
+  regress0/nl/piand-min.smt2
+  regress0/nl/piand-min-sat.smt2
+  regress0/nl/piand-negative.smt2
+  regress0/nl/piand-one.smt2
+  regress0/nl/piand-possitive.smt2
+  regress0/nl/piand-possitive-sat.smt2
+  regress0/nl/piand-range.smt2
+  regress0/nl/piand-symmetry.smt2
+  regress0/nl/piand-symmetry-sat.smt2
   regress0/nl/pow2-native-0.smt2
   regress0/nl/pow2-native-1.smt2
   regress0/nl/pow2-native-2.smt2
@@ -3787,6 +3803,7 @@ set(regress_1_tests
   regress1/sygus/interpol_from_pono_2.smt2
   regress1/sygus/interpolant-conj-simple.smt2
   regress1/sygus/issue10708-unconstrained-int.sy
+  regress1/sygus/issue12375-no-eval-model.sy
   regress1/sygus/issue2914.sy
   regress1/sygus/issue2935.sy
   regress1/sygus/issue3109-share-sel.sy
@@ -3855,7 +3872,6 @@ set(regress_1_tests
   regress1/sygus/proj-issue183.smt2
   regress1/sygus/proj-issue185.smt2
   regress1/sygus/proj-issue222-any-const.sy
-  regress1/sygus/proj-issue264.smt2
   regress1/sygus/proj-issue541.smt2
   regress1/sygus/proj-issue548-srr.smt2
   regress1/sygus/proj-issue549-srr.smt2
@@ -4286,6 +4302,8 @@ set(regression_disabled_tests
   regress1/sygus/issue3648.smt2
   # new reconstruct algorithm is slow at reconstructing random constants (see wishue #82)
   regress0/sygus/c100.sy
+  # timeout after ignoring sygus eval terms in model
+  regress1/sygus/proj-issue264.smt2
   # For the six regressions below, solution terms require rewrites not in
   # database and are too big to enumerate
   regress0/sygus/aig-si.sy

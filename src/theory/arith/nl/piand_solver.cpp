@@ -182,6 +182,7 @@ void PIAndSolver::checkFullRefine()
       index++;
       Node valAndXY = d_model.computeAbstractModelValue(i);
       Node valAndXYC = d_model.computeConcreteModelValue(i);
+      valAndXYC = rewrite(valAndXYC);
 
       Node k = i[0];
       Node x = i[1];
@@ -322,9 +323,9 @@ void PIAndSolver::checkFullRefine()
       if (model_k > 0 && model_y == 1 && model_piand != model_x.modByPow2(1))
       {
         Node y_equal_one = nm->mkNode(Kind::EQUAL, y, d_one);
-        Node asuum_lsb = nm->mkNode(Kind::AND, k_gt_0, y_equal_one);
+        Node asum_lsb = nm->mkNode(Kind::AND, k_gt_0, y_equal_one);
         Node lsb = nm->mkNode(Kind::EQUAL, i, arg0Mod2);
-        Node y_one_lem = nm->mkNode(Kind::IMPLIES, asuum_lsb, lsb);
+        Node y_one_lem = nm->mkNode(Kind::IMPLIES, asum_lsb, lsb);
         d_im.addPendingLemma(
             y_one_lem, InferenceId::ARITH_NL_PIAND_ONE_REFINE, nullptr, true);
       }
@@ -333,9 +334,9 @@ void PIAndSolver::checkFullRefine()
       if (model_k > 0 && model_x == 1 && model_piand != model_y.modByPow2(1))
       {
         Node x_equal_one = nm->mkNode(Kind::EQUAL, x, d_one);
-        Node asuum_lsb2 = nm->mkNode(Kind::AND, k_gt_0, x_equal_one);
+        Node asum_lsb2 = nm->mkNode(Kind::AND, k_gt_0, x_equal_one);
         Node lsb2 = nm->mkNode(Kind::EQUAL, i, arg1Mod2);
-        Node x_one_lem = nm->mkNode(Kind::IMPLIES, asuum_lsb2, lsb2);
+        Node x_one_lem = nm->mkNode(Kind::IMPLIES, asum_lsb2, lsb2);
         d_im.addPendingLemma(
             x_one_lem, InferenceId::ARITH_NL_PIAND_ONE_REFINE, nullptr, true);
       }
