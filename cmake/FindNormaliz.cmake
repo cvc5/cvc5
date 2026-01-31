@@ -43,8 +43,8 @@ if(NOT Normaliz_FOUND_SYSTEM)
 
   set(Normaliz_INCLUDE_DIR "${DEPS_BASE}/include/")
 
-  set(Normaliz_CFLAGS "")
-  set(Normaliz_CXXFLAGS "")
+  set(Normaliz_CFLAGS "-fPIC")
+  set(Normaliz_CXXFLAGS "-fPIC")
 
   if(BUILD_SHARED_LIBS)
     set(LINK_OPTS --enable-shared --disable-static)
