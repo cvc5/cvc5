@@ -61,7 +61,7 @@ Node applyAcSimp(Env& env, std::map<Node, Node>& cache, Node term)
       if (k_ac_child == k)
       {
         // flatten
-        for (Node c : ac_child)
+        for (const Node& c : ac_child)
         {
           if (std::find(ac_children.begin(), ac_children.end(), c)
               == ac_children.end())
@@ -89,7 +89,7 @@ Node applyAcSimp(Env& env, std::map<Node, Node>& cache, Node term)
   }
   else
   {
-    for (Node child : term)
+    for (const Node& child : term)
     {
       ac_children.push_back(applyAcSimp(env, cache, child));
     }
