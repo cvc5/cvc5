@@ -1961,9 +1961,10 @@ bool AletheProofPostprocessCallback::update(Node res,
       return success;
     }
     // ======== Variable reordering
-    // Let X = ((x1 T1) ... (xn Tn)), Y = ((y1 U1) ... (yn Un)) and Z = ((x1 T1)
-    // ... (xn Tn) (y1 U1) ... (yn Un)) Then, res is (cl (= (forall ((x1 T1) ...
-    // (xn Tn)) F) (forall ((y1 U1) ... (yn Un)) F)))
+    // Let X = ((x1 T1) ... (xn Tn)), Y = ((y1 U1) ... (yn Un))
+    // and Z = ((x1 T1) ... (xn Tn) (y1 U1) ... (yn Un))
+    // Then, res is (cl (= (forall ((x1 T1) ... (xn Tn)) F) (forall ((y1 U1) ...
+    // (yn Un)) F)))
     //
     // ----- QNT_RM_UNUSED
     //  VP1
@@ -1982,8 +1983,7 @@ bool AletheProofPostprocessCallback::update(Node res,
       Node F = forall_X[1];
       Node X = forall_X[0];
       Node Y = forall_Y[0];
-      std::vector<Node> Z;
-      Z.insert(Z.end(), X.begin(), X.end());
+      std::vector<Node> Z(X.begin(), X.end());
       Z.insert(Z.end(), Y.begin(), Y.end());
       Node forall_Z =
           nm->mkNode(Kind::FORALL, nm->mkNode(Kind::BOUND_VAR_LIST, Z), F);
