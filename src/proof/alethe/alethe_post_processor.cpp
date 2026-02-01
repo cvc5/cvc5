@@ -1917,31 +1917,37 @@ bool AletheProofPostprocessCallback::update(Node res,
       Node forall_Y = res[1];
       Node F = forall_X[1];
       Node X = forall_X[0]; 
-      Node Y = forall_Y[1];
-      std::vector<Node> Z_clauses;
-      Z_clauses.insert(Z_clauses.end(),X.begin(),X.end());
-      Z_clauses.insert(Z_clauses.end(),Y.begin(),Y.end());
-      Node Z = nm->mkNode(Kind::FORALL,nm->mkNode(Kind::BOUND_VAR_LIST,Z_clauses),F);
-      Node VP1 = nm->mkNode(Kind::EQUAL,Z,X);
-      Node VP2 = nm->mkNode(Kind::EQUAL,X,Z);
-      Node VP3 = nm->mkNode(Kind::EQUAL,Z,Y);
+      Node Y = forall_Y[0];
+      std::vector<Node> Z;
+      Z.insert(Z.end(),X.begin(),X.end());
+      Z.insert(Z.end(),Y.begin(),Y.end());
+      Node forall_Z = nm->mkNode(Kind::FORALL,nm->mkNode(Kind::BOUND_VAR_LIST,Z),F);
+      Node vp1 = nm->mkNode(Kind::EQUAL,forall_Z,forall_X);
+      Node vp2 = nm->mkNode(Kind::EQUAL,forall_X,forall_Z);
+      Node vp3 = nm->mkNode(Kind::EQUAL,forall_Z,forall_Y);
 
       return addAletheStep(AletheRule::QNT_RM_UNUSED,
-                           VP1,
-                           nm->mkNode(Kind::SEXPR, d_cl, VP1),
+                           vp1,
+                           nm->mkNode(Kind::SEXPR, d_cl, vp1),
                            {},
+                           {},
+                           *cdp)
+	&& addAletheStep(AletheRule::SYMM,
+                           vp2,
+                           nm->mkNode(Kind::SEXPR, d_cl, vp2),
+                           {vp1},
                            {},
                            *cdp)
 	&& addAletheStep(AletheRule::QNT_RM_UNUSED,
-                           VP2,
-                           nm->mkNode(Kind::SEXPR, d_cl, VP2),
+                           vp3,
+                           nm->mkNode(Kind::SEXPR, d_cl, vp3),
                            {},
                            {},
-                           *cdp)
+                           *cdp)	
 	&& addAletheStep(AletheRule::TRANS,
                            res,
                            nm->mkNode(Kind::SEXPR, d_cl, res),
-                           {},
+                           {vp2,vp3},
                            {},
                            *cdp);
 
