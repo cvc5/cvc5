@@ -30,9 +30,10 @@ namespace proof {
 Node applyAcSimp(Env& env, std::map<Node, Node>& cache, Node term)
 {
   NodeManager* nm = env.getNodeManager();
-  if (cache.find(term) != cache.end())
+  auto it = cache.find(term);
+  if (it != cache.end())
   {
-    return cache[term];
+    return it->second;
   }
   if (term.getNumChildren() == 0)
   {
@@ -53,7 +54,7 @@ Node applyAcSimp(Env& env, std::map<Node, Node>& cache, Node term)
   std::vector<Node> ac_children;
   if (k == Kind::AND || k == Kind::OR)
   {
-    for (Node child : term)
+    for (const Node& child : term)
     {
       Node ac_child = applyAcSimp(env, cache, child);
       Kind k_ac_child = ac_child.getKind();
