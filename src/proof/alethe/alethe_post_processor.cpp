@@ -1961,12 +1961,8 @@ bool AletheProofPostprocessCallback::update(Node res,
       return success;
     }
     // ======== Variable reordering
-    // Let X = ((x1 T1) ... (xn Tn)) and Y = ((y1 U1) ... (yn Un)) and Z = ((x1 T1) ... (xn Tn) (y1 U1) ... (yn Un))
+    // Let X = ((x1 T1) ... (xn Tn)), Y = ((y1 U1) ... (yn Un)) and Z = ((x1 T1) ... (xn Tn) (y1 U1) ... (yn Un))
     // Then, res is (cl (= (forall ((x1 T1) ... (xn Tn)) F) (forall ((y1 U1) ... (yn Un)) F)))
-    //
-    // VP1: (cl (= (forall Z F) (forall X F)))
-    // VP2: (cl (= (forall X F) (forall Z F)))
-    // VP3: (cl (= (forall Z F) (forall Y F)))
     //
     // ----- QNT_RM_UNUSED
     //  VP1
@@ -1974,6 +1970,10 @@ bool AletheProofPostprocessCallback::update(Node res,
     //  VP2         VP3
     // ----------------- TRANS
     //        res
+    //
+    // VP1: (cl (= (forall Z F) (forall X F)))
+    // VP2: (cl (= (forall X F) (forall Z F)))
+    // VP3: (cl (= (forall Z F) (forall Y F)))
     case ProofRule::QUANT_VAR_REORDERING:
     {
       Node forall_X = res[0];
