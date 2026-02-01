@@ -71,14 +71,20 @@ class Cvc5ostream
   /** The endl manipulator (why do we need to keep this?) */
   std::ostream& (*const d_endl)(std::ostream&);
 
-  // do not allow use
-  Cvc5ostream& operator=(const Cvc5ostream&);
+  Cvc5ostream(const Cvc5ostream&) = delete;
+  Cvc5ostream& operator=(const Cvc5ostream&) = delete;
 
  public:
   Cvc5ostream() : d_os(NULL), d_firstColumn(false), d_endl(&std::endl) {}
   explicit Cvc5ostream(std::ostream* os)
       : d_os(os), d_firstColumn(true), d_endl(&std::endl)
   {
+  }
+
+  void reset(std::ostream* os)
+  {
+    d_os = os;
+    d_firstColumn = (os != nullptr);
   }
 
   void pushIndent() {
@@ -178,9 +184,12 @@ inline Cvc5ostream& pop(Cvc5ostream& stream)
  */
 class NullC
 {
+ mutable Cvc5ostream d_null;
+
  public:
+  NullC() : d_null(nullptr) {}
   operator bool() const { return false; }
-  operator Cvc5ostream() const { return Cvc5ostream(); }
+  operator Cvc5ostream&() const { return d_null; }
   operator std::ostream&() const { return null_os; }
 }; /* class NullC */
 
@@ -226,21 +235,24 @@ class TraceC
 {
   std::ostream* d_os;
   std::vector<std::string> d_tags;
+  mutable Cvc5ostream d_stream;
 
 public:
-  explicit TraceC(std::ostream* os) : d_os(os) {}
+  explicit TraceC(std::ostream* os) : d_os(os), d_stream(os) {}
 
-  Cvc5ostream operator()() const
+  Cvc5ostream& operator()() const
   {
-    return Cvc5ostream(d_os);
+    d_stream.reset(d_os);
+    return d_stream;
   }
-  Cvc5ostream operator()(const std::string& tag) const
+  Cvc5ostream& operator()(const std::string& tag) const
   {
     if (isOn(tag)) {
-      return Cvc5ostream(d_os);
+      d_stream.reset(d_os);
     } else {
-      return Cvc5ostream();
+      d_stream.reset(nullptr);
     }
+    return d_stream;
   }
 
   bool on(const std::string& tag)
@@ -339,9 +351,9 @@ class __cvc5_true
  */
 class IndentedScope
 {
-  Cvc5ostream d_out;
+  Cvc5ostream& d_out;
  public:
-  inline IndentedScope(Cvc5ostream out) : d_out(out) { d_out << push; }
+  inline IndentedScope(Cvc5ostream& out) : d_out(out) { d_out << push; }
   inline ~IndentedScope() { d_out << pop; }
 }; /* class IndentedScope */
 

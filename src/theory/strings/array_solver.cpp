@@ -44,7 +44,7 @@ ArraySolver::ArraySolver(Env& env,
       d_bsolver(bs),
       d_csolver(cs),
       d_esolver(es),
-      d_coreSolver(env, s, im, tr, cs, es, extt),
+      d_coreSolver(env, s, im, tr, es, extt),
       d_eqProc(context())
 {
   NodeManager* nm = nodeManager();

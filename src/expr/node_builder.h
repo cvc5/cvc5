@@ -381,7 +381,7 @@ class NodeBuilder {
    * never accessed directly, but rather through
    * d_inlineNv.d_children[i].
    */
-  expr::NodeValue* d_inlineNvChildSpace[default_nchild_thresh];
+  CVC5_UNUSED_FIELD expr::NodeValue* d_inlineNvChildSpace[default_nchild_thresh];
 
   /**
    * A pointer to the "current" NodeValue buffer; either &d_inlineNv

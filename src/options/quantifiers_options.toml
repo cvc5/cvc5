@@ -1774,6 +1774,7 @@ name   = "Quantifiers"
   long       = "macros-quant-mode=MODE"
   type       = "MacrosQuantMode"
   default    = "GROUND_UF"
+  no_support = ["proofs"]
   help       = "mode for quantifiers macro expansion"
   help_mode  = "Modes for quantifiers macro expansion."
 [[option.mode.ALL]]

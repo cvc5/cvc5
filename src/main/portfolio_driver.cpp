@@ -351,12 +351,21 @@ class PortfolioProcessPool
    */
   struct Job
   {
+    Job(PortfolioConfig config)
+        : d_config(config),
+          d_worker(-1),
+          d_timeout(-1),
+          d_errPipe(),
+          d_outPipe(),
+          d_state(JobState::PENDING)
+    {
+    }
     PortfolioConfig d_config;
-    pid_t d_worker = -1;
-    pid_t d_timeout = -1;
+    pid_t d_worker;
+    pid_t d_timeout;
     Pipe d_errPipe;
     Pipe d_outPipe;
-    JobState d_state = JobState::PENDING;
+    JobState d_state;
   };
 
  public:
