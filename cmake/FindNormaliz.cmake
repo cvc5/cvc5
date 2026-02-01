@@ -79,8 +79,8 @@ if(NOT Normaliz_FOUND_SYSTEM)
   endif()
   set(CONFIGURE_ENV ${CONFIGURE_ENV} env "CXXFLAGS=${Normaliz_CXXFLAGS}" env "CFLAGS=${Normaliz_CFLAGS}")
 
-  set(Normaliz_COMMIT "32fe03dc62b9dec795a593c180222b2380f7a3ab")                         
-  set(Normaliz_CHECKSUM "ab9901476607216e6662c882e735eb4675d0e6529c9aece10a9fd72bc3e18a57")
+  set(Normaliz_VERSION "3.11.0")                         
+  set(Normaliz_CHECKSUM "14441981afce3546c1c0f12b490714da3564af7a60d12ac0a494f9d2382d1a01")
   
   message ("CONFIGURE_ENV: ${CONFIGURE_ENV}")
   message ("CONFIGURE_CMD_WRAPPER: ${CONFIGURE_CMD_WRAPPER}")
@@ -88,9 +88,8 @@ if(NOT Normaliz_FOUND_SYSTEM)
   ExternalProject_Add(
     Normaliz-EP
     ${COMMON_EP_CONFIG}
-    URL https://github.com/Normaliz/Normaliz/archive/${Normaliz_COMMIT}.tar.gz
-    URL_HASH SHA256=${Normaliz_CHECKSUM}          
-    PATCH_COMMAND autoreconf -i <SOURCE_DIR>
+    URL https://github.com/Normaliz/Normaliz/releases/download/v${Normaliz_VERSION}/normaliz-${Normaliz_VERSION}.tar.gz
+    URL_HASH SHA256=${Normaliz_CHECKSUM}    
     CONFIGURE_COMMAND
       ${CONFIGURE_ENV}
           ${CONFIGURE_CMD_WRAPPER} ${SHELL} <SOURCE_DIR>/configure
