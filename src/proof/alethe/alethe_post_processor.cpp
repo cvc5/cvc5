@@ -1961,8 +1961,9 @@ bool AletheProofPostprocessCallback::update(Node res,
       return success;
     }
     // ======== Variable reordering
-    // Let X = ((x1 T1) ... (xn Tn)), Y = ((y1 U1) ... (yn Un)) and Z = ((x1 T1) ... (xn Tn) (y1 U1) ... (yn Un))
-    // Then, res is (cl (= (forall ((x1 T1) ... (xn Tn)) F) (forall ((y1 U1) ... (yn Un)) F)))
+    // Let X = ((x1 T1) ... (xn Tn)), Y = ((y1 U1) ... (yn Un)) and Z = ((x1 T1)
+    // ... (xn Tn) (y1 U1) ... (yn Un)) Then, res is (cl (= (forall ((x1 T1) ...
+    // (xn Tn)) F) (forall ((y1 U1) ... (yn Un)) F)))
     //
     // ----- QNT_RM_UNUSED
     //  VP1
