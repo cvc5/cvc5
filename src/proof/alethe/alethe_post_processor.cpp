@@ -19,6 +19,7 @@
 
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
+#include "proof/alethe/alethe_post_processor_algorithm.h"
 #include "proof/alethe/alethe_proof_rule.h"
 #include "proof/proof.h"
 #include "proof/proof_checker.h"
@@ -537,6 +538,68 @@ bool AletheProofPostprocessCallback::update(Node res,
       }
 
       return success;
+    }
+    // ======== Absorb
+    //
+    // ------- ac_simp   ------- <op>_simplify
+    //   VP1               VP2
+    // ------------------------- trans
+    //            res
+    //
+    // VP1: (cl (= t tf))
+    // VP2: (cl (= tf z))
+    //
+    // where tf = applyAcSimp(t) and <op> is the top-level operator of t. Note
+    // that ac_simp is over-eager in flattening the formula but since this step
+    // simplifies to a zero element this does not matter and only impacts
+    // performance marginally.
+    case ProofRule::ABSORB:
+    {
+      std::map<Node, Node> emptyMap;
+      Node t = res[0];
+      Node tf = applyAcSimp(d_env, emptyMap, t);
+      Kind k = res.getKind();
+      // if the simplification did not result in a term that would simplify to
+      // the expected constant, abort. For this the kind of tf must be the same
+      // as of t and one of its arguments must be res[1].
+      bool success = false;
+      for (const Node& ch : tf)
+      {
+        if (ch == res[1])
+        {
+          success = true;
+          break;
+        }
+      }
+      if (!success || k != tf.getKind())
+      {
+        return addAletheStep(AletheRule::HOLE,
+                             res,
+                             nm->mkNode(Kind::SEXPR, d_cl, res),
+                             {},
+                             {},
+                             *cdp);
+      }
+      Node vp1 = nm->mkNode(Kind::EQUAL, t, tf);
+      Node vp2 = nm->mkNode(Kind::EQUAL, tf, res[1]);
+      // if the kind was not one of these, the simplification above would have failed
+      Assert(k == Kind::OR || k == Kind::AND);
+      AletheRule rule =
+          k == Kind::OR ? AletheRule::OR_SIMPLIFY : AletheRule::AND_SIMPLIFY;
+      return addAletheStep(AletheRule::AC_SIMP,
+                           vp1,
+                           nm->mkNode(Kind::SEXPR, d_cl, vp1),
+                           {},
+                           {},
+                           *cdp)
+             && addAletheStep(
+                 rule, vp2, nm->mkNode(Kind::SEXPR, d_cl, vp2), {}, {}, *cdp)
+             && addAletheStep(AletheRule::TRANS,
+                              res,
+                              nm->mkNode(Kind::SEXPR, d_cl, res),
+                              {vp1, vp2},
+                              {},
+                              *cdp);
     }
     // ======== Encode equality introduction
     // This rule is translated according to the singleton pattern.
