@@ -549,10 +549,10 @@ bool AletheProofPostprocessCallback::update(Node res,
     // VP1: (cl (= t tf))
     // VP2: (cl (= tf z))
     //
-    // where tf=Alethe_Post_Processor_Algorithms.ac_simp(t) and <op> is the
-    // top-level operator of t. Note that ac_simp is over-eager in flattening
-    // the formula but since this step simplifies to a zero element this does
-    // not matter and only impacts performance marginally.
+    // where tf = applyAcSimp(t) and <op> is the top-level operator of t. Note
+    // that ac_simp is over-eager in flattening the formula but since this step
+    // simplifies to a zero element this does not matter and only impacts
+    // performance marginally.
     case ProofRule::ABSORB:
     {
       std::map<Node, Node> emptyMap;

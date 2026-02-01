@@ -85,17 +85,13 @@ Node applyAcSimp(Env& env, std::map<Node, Node>& cache, Node term)
       // duplicate removal let to binary term with only one child
       return ac_children[0];
     }
-    else
-    {
-      ac_term = nm->mkNode(k, ac_children);
-    }
+    ac_term = nm->mkNode(k, ac_children);
   }
   else
   {
     for (Node child : term)
     {
-      Node ac_child = applyAcSimp(env, cache, child);
-      ac_children.push_back(ac_child);
+      ac_children.push_back(applyAcSimp(env, cache, child));
     }
     if (k == Kind::APPLY_UF)
     {
@@ -103,7 +99,7 @@ Node applyAcSimp(Env& env, std::map<Node, Node>& cache, Node term)
     }
     ac_term = nm->mkNode(k, ac_children);
   }
-  cache.insert({term, ac_term});
+  cache[term] = ac_term;
   return ac_term;
 }
 
