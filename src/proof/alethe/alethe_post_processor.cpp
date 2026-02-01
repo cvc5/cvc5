@@ -1980,15 +1980,16 @@ bool AletheProofPostprocessCallback::update(Node res,
       Node forall_X = res[0];
       Node forall_Y = res[1];
       Node F = forall_X[1];
-      Node X = forall_X[0]; 
+      Node X = forall_X[0];
       Node Y = forall_Y[0];
       std::vector<Node> Z;
-      Z.insert(Z.end(),X.begin(),X.end());
-      Z.insert(Z.end(),Y.begin(),Y.end());
-      Node forall_Z = nm->mkNode(Kind::FORALL,nm->mkNode(Kind::BOUND_VAR_LIST,Z),F);
-      Node vp1 = nm->mkNode(Kind::EQUAL,forall_Z,forall_X);
-      Node vp2 = nm->mkNode(Kind::EQUAL,forall_X,forall_Z);
-      Node vp3 = nm->mkNode(Kind::EQUAL,forall_Z,forall_Y);
+      Z.insert(Z.end(), X.begin(), X.end());
+      Z.insert(Z.end(), Y.begin(), Y.end());
+      Node forall_Z =
+          nm->mkNode(Kind::FORALL, nm->mkNode(Kind::BOUND_VAR_LIST, Z), F);
+      Node vp1 = nm->mkNode(Kind::EQUAL, forall_Z, forall_X);
+      Node vp2 = nm->mkNode(Kind::EQUAL, forall_X, forall_Z);
+      Node vp3 = nm->mkNode(Kind::EQUAL, forall_Z, forall_Y);
 
       return addAletheStep(AletheRule::QNT_RM_UNUSED,
                            vp1,
@@ -1996,25 +1997,24 @@ bool AletheProofPostprocessCallback::update(Node res,
                            {},
                            {},
                            *cdp)
-	&& addAletheStep(AletheRule::SYMM,
-                           vp2,
-                           nm->mkNode(Kind::SEXPR, d_cl, vp2),
-                           {vp1},
-                           {},
-                           *cdp)
-	&& addAletheStep(AletheRule::QNT_RM_UNUSED,
-                           vp3,
-                           nm->mkNode(Kind::SEXPR, d_cl, vp3),
-                           {},
-                           {},
-                           *cdp)	
-	&& addAletheStep(AletheRule::TRANS,
-                           res,
-                           nm->mkNode(Kind::SEXPR, d_cl, res),
-                           {vp2,vp3},
-                           {},
-                           *cdp);
-
+             && addAletheStep(AletheRule::SYMM,
+                              vp2,
+                              nm->mkNode(Kind::SEXPR, d_cl, vp2),
+                              {vp1},
+                              {},
+                              *cdp)
+             && addAletheStep(AletheRule::QNT_RM_UNUSED,
+                              vp3,
+                              nm->mkNode(Kind::SEXPR, d_cl, vp3),
+                              {},
+                              {},
+                              *cdp)
+             && addAletheStep(AletheRule::TRANS,
+                              res,
+                              nm->mkNode(Kind::SEXPR, d_cl, res),
+                              {vp2, vp3},
+                              {},
+                              *cdp);
     }
     //================================================= Arithmetic rules
     // ======== Adding Scaled Inequalities
