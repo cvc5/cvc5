@@ -558,16 +558,34 @@ bool AletheProofPostprocessCallback::update(Node res,
       std::map<Node, Node> emptyMap;
       Node t = res[0];
       Node tf = applyAcSimp(d_env, emptyMap, t);
+      Kind k = res.getKind();
+      // if the simplification did not result in a term that would simplify to
+      // the expected constant, abort. For this the kind of tf must be the same
+      // as of t and one of its arguments must be res[1].
+      bool success = false;
+      for (const Node& ch : tf)
+      {
+        if (ch == res[1])
+        {
+          success = true;
+          break;
+        }
+      }
+      if (!success || k != tf.getKind())
+      {
+        return addAletheStep(AletheRule::HOLE,
+                             res,
+                             nm->mkNode(Kind::SEXPR, d_cl, res),
+                             {},
+                             {},
+                             *cdp);
+      }
       Node vp1 = nm->mkNode(Kind::EQUAL, t, tf);
       Node vp2 = nm->mkNode(Kind::EQUAL, tf, res[1]);
-      AletheRule rule;
-      switch (res.getKind())
-      {
-        case Kind::OR: rule = AletheRule::OR_SIMPLIFY; break;
-        case Kind::AND: rule = AletheRule::AND_SIMPLIFY; break;
-        default: rule = AletheRule::HOLE;
-      }
-
+      // if the kind was not one of these, the simplification above would have failed
+      Assert(k == Kind::OR || k == Kind::AND);
+      AletheRule rule =
+          k == Kind::OR ? AletheRule::OR_SIMPLIFY : AletheRule::AND_SIMPLIFY;
       return addAletheStep(AletheRule::AC_SIMP,
                            vp1,
                            nm->mkNode(Kind::SEXPR, d_cl, vp1),
