@@ -89,14 +89,11 @@ if(NOT Normaliz_FOUND_SYSTEM)
     Normaliz-EP
     ${COMMON_EP_CONFIG}
     URL https://github.com/Normaliz/Normaliz/releases/download/v${Normaliz_VERSION}/normaliz-${Normaliz_VERSION}.tar.gz
-    URL_HASH SHA256=${Normaliz_CHECKSUM}    
-    CONFIGURE_COMMAND
-      ${CONFIGURE_ENV}
-          ${CONFIGURE_CMD_WRAPPER} ${SHELL} <SOURCE_DIR>/configure
-          ${LINK_OPTS}
-          --prefix=<INSTALL_DIR>
-          ${Normaliz_WITH_GMP}
-          ${CONFIGURE_OPTS}
+    URL_HASH SHA256=${Normaliz_CHECKSUM}
+    BUILD_IN_SOURCE YES
+    CONFIGURE_COMMAND ${SHELL} ./configure --prefix=<INSTALL_DIR> ${Normaliz_WITH_GMP}
+        --with-cxx=${CMAKE_CXX_COMPILER} --with-cxxflags=${Normaliz_CXXFLAGS}  
+        ${LINK_OPTS}    
     BUILD_BYPRODUCTS ${Normaliz_LIBRARIES}
   )
   ExternalProject_Get_Property(Normaliz-EP SOURCE_DIR)
