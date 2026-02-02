@@ -103,6 +103,7 @@ set(regress_0_tests
   regress0/arith/non-normal.smt2
   regress0/arith/pow-issue-10676.smt2
   regress0/arith/projissue469-int-equality.smt2
+  regress0/arith/proj-issue780-arith-mult-pf.smt2
   regress0/arith-bv-conv-ineq-rewrites.smt2
   regress0/arr1.smt2
   regress0/arr1.smtv1.smt2
@@ -2849,6 +2850,7 @@ set(regress_1_tests
   regress1/issue10750-zll-repeat.smt2
   regress1/issue10788-refresh-a-interp.smt2
   regress1/issue11966-get-value-ss.smt2
+  regress1/issue12339-bv-as-int-subtype-pf.smt2
   regress1/issue3970-nl-ext-purify.smt2
   regress1/issue3990-sort-inference.smt2
   regress1/issue4273-ext-rew-cache.smt2

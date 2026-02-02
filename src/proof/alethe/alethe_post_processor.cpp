@@ -1960,6 +1960,62 @@ bool AletheProofPostprocessCallback::update(Node res,
       Assert(cdp->hasStep(res));
       return success;
     }
+    // ======== Variable reordering
+    // Let X = ((x1 T1) ... (xn Tn)), Y = ((y1 U1) ... (yn Un))
+    // and Z = ((x1 T1) ... (xn Tn) (y1 U1) ... (yn Un))
+    // Then, res is (cl (= (forall ((x1 T1) ... (xn Tn)) F) (forall ((y1 U1) ...
+    // (yn Un)) F)))
+    //
+    // ----- QNT_RM_UNUSED
+    //  VP1
+    // ----- SYMM  ----- QNT_RM_UNUSED
+    //  VP2         VP3
+    // ----------------- TRANS
+    //        res
+    //
+    // VP1: (cl (= (forall Z F) (forall X F)))
+    // VP2: (cl (= (forall X F) (forall Z F)))
+    // VP3: (cl (= (forall Z F) (forall Y F)))
+    case ProofRule::QUANT_VAR_REORDERING:
+    {
+      Node forall_X = res[0];
+      Node forall_Y = res[1];
+      Node F = forall_X[1];
+      Node X = forall_X[0];
+      Node Y = forall_Y[0];
+      std::vector<Node> Z(X.begin(), X.end());
+      Z.insert(Z.end(), Y.begin(), Y.end());
+      Node forall_Z =
+          nm->mkNode(Kind::FORALL, nm->mkNode(Kind::BOUND_VAR_LIST, Z), F);
+      Node vp1 = nm->mkNode(Kind::EQUAL, forall_Z, forall_X);
+      Node vp2 = nm->mkNode(Kind::EQUAL, forall_X, forall_Z);
+      Node vp3 = nm->mkNode(Kind::EQUAL, forall_Z, forall_Y);
+
+      return addAletheStep(AletheRule::QNT_RM_UNUSED,
+                           vp1,
+                           nm->mkNode(Kind::SEXPR, d_cl, vp1),
+                           {},
+                           {},
+                           *cdp)
+             && addAletheStep(AletheRule::SYMM,
+                              vp2,
+                              nm->mkNode(Kind::SEXPR, d_cl, vp2),
+                              {vp1},
+                              {},
+                              *cdp)
+             && addAletheStep(AletheRule::QNT_RM_UNUSED,
+                              vp3,
+                              nm->mkNode(Kind::SEXPR, d_cl, vp3),
+                              {},
+                              {},
+                              *cdp)
+             && addAletheStep(AletheRule::TRANS,
+                              res,
+                              nm->mkNode(Kind::SEXPR, d_cl, res),
+                              {vp2, vp3},
+                              {},
+                              *cdp);
+    }
     //================================================= Arithmetic rules
     // ======== Adding Scaled Inequalities
     //
