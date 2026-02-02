@@ -100,14 +100,17 @@ void BVSolverBitblastInternal::addBBLemma(TNode fact)
   }
 }
 
-bool BVSolverBitblastInternal::needsEqualityEngine(EeSetupInfo& esi)
+bool BVSolverBitblastInternal::needsEqualityEngine(CVC5_UNUSED EeSetupInfo& esi)
 {
   // Disable equality engine if --bitblast=eager is enabled.
   return options().bv.bitblastMode != options::BitblastMode::EAGER;
 }
 
-bool BVSolverBitblastInternal::preNotifyFact(
-    TNode atom, bool pol, TNode fact, bool isPrereg, bool isInternal)
+bool BVSolverBitblastInternal::preNotifyFact(CVC5_UNUSED TNode atom,
+                                             CVC5_UNUSED bool pol,
+                                             CVC5_UNUSED TNode fact,
+                                             CVC5_UNUSED bool isPrereg,
+                                             CVC5_UNUSED bool isInternal)
 {
   if (fact.getKind() == Kind::NOT)
   {

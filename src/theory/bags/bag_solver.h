@@ -37,7 +37,7 @@ class TermRegistry;
 class BagSolver : protected EnvObj
 {
  public:
-  BagSolver(Env& env, SolverState& s, InferenceManager& im, TermRegistry& tr);
+  BagSolver(Env& env, SolverState& s, InferenceManager& im);
   ~BagSolver();
 
   /**
@@ -117,8 +117,6 @@ class BagSolver : protected EnvObj
   InferenceGenerator d_ig;
   /** Reference to the inference manager for the theory of bags */
   InferenceManager& d_im;
-  /** Reference to the term registry of theory of bags */
-  TermRegistry& d_termReg;
 
   /**
    * a map where the keys are nodes of the form (bag.map f A)

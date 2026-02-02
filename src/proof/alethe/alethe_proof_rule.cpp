@@ -101,6 +101,7 @@ const char* aletheRuleToString(AletheRule id)
     case AletheRule::ITE_INTRO: return "ite_intro";
     case AletheRule::CONTRACTION: return "contraction";
     case AletheRule::CONNECTIVE_DEF: return "connective_def";
+    case AletheRule::AC_SIMP: return "ac_simp";
     case AletheRule::ITE_SIMPLIFY: return "ite_simplify";
     case AletheRule::EQ_SIMPLIFY: return "eq_simplify";
     case AletheRule::AND_SIMPLIFY: return "and_simplify";

@@ -438,15 +438,8 @@ std::shared_ptr<ProofNode> ProofCircuitPropagatorBackward::impliesNegY()
 }
 
 ProofCircuitPropagatorForward::ProofCircuitPropagatorForward(
-    NodeManager* nm,
-    ProofNodeManager* pnm,
-    Node child,
-    bool childAssignment,
-    Node parent)
-    : ProofCircuitPropagator{nm, pnm},
-      d_child(child),
-      d_childAssignment(childAssignment),
-      d_parent(parent)
+    NodeManager* nm, ProofNodeManager* pnm, Node child, Node parent)
+    : ProofCircuitPropagator{nm, pnm}, d_child(child), d_parent(parent)
 {
 }
 

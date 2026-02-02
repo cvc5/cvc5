@@ -1403,8 +1403,11 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
         else
         {
           Assert(status == RewriteProofStatus::THEORY_REWRITE);
-          // use the utility, possibly to do macro expansion
-          d_trrc.ensureProofForTheoryRewrite(cdp, pcur.d_dslId, cur);
+          // Use the utility, possibly to do macro expansion.
+          // We use a fresh CDProof to avoid duplicate substeps.
+          CDProof cdpt(d_env);
+          d_trrc.ensureProofForTheoryRewrite(&cdpt, pcur.d_dslId, cur);
+          cdp->addProof(cdpt.getProofFor(cur));
         }
       }
     }

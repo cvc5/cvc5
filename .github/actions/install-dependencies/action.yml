@@ -3,6 +3,12 @@ description: Install necessary dependencies on the target system
 inputs:
   with-documentation:
     default: false
+  use-clang:
+    default: false
+    type: boolean
+  use-libcxx:
+    default: false
+    type: boolean
   windows-build:
     default: false
     type: boolean
@@ -32,6 +38,22 @@ runs:
           libfl-dev
         echo "SED=sed" >> $GITHUB_ENV
         echo "::endgroup::"
+
+    - name: Set Clang as the compiler
+      if: inputs.use-clang == 'true'
+      shell: ${{ inputs.shell }}
+      run: |
+        echo "CC=clang" >> $GITHUB_ENV
+        echo "CXX=clang++" >> $GITHUB_ENV
+
+    - name: Install and set up libc++ as the standard C++ library
+      if: inputs.use-libcxx == 'true'
+      shell: ${{ inputs.shell }}
+      run: |
+        sudo apt-get install -y libc++-dev libc++abi-dev
+        CLANG_DIR="$(dirname $(realpath $(which clang++)))"
+        echo "-stdlib=libc++ -lc++abi" > clang++.cfg
+        sudo cp clang++.cfg $CLANG_DIR/
 
     - name: Install software for cross-compiling for arm64 Linux
       if: runner.os == 'Linux'
@@ -75,27 +97,29 @@ runs:
         echo "$(pwd)" >> $GITHUB_PATH
         echo "$(pwd)/upstream/emscripten" >> $GITHUB_PATH
 
+    # Pin MSYS2 installation to use Clang 19.1.4 (required by lean-cvc5)
     - name: Install Windows x86_64 software
       if: runner.os == 'Windows' && runner.arch == 'X64' && inputs.windows-build == 'true'
-      uses: msys2/setup-msys2@v2
+      uses: msys2/setup-msys2@d44ca8e88d8b43d56cf5670f91747359d5537f97
       with:
-        update: true
-        msystem: MINGW64
+        update: false
+        msystem: CLANG64
         path-type: inherit
         install: |
           make
-          mingw-w64-x86_64-autotools
-          mingw-w64-x86_64-ccache
-          mingw-w64-x86_64-cmake
-          mingw-w64-x86_64-gcc
-          mingw-w64-x86_64-gmp
+          mingw-w64-clang-x86_64-autotools
+          mingw-w64-clang-x86_64-ccache
+          mingw-w64-clang-x86_64-clang
+          mingw-w64-clang-x86_64-cmake
+          mingw-w64-clang-x86_64-gmp
           zip
 
+    # Pin MSYS2 installation to use Clang 19.1.4 (required by lean-cvc5)
     - name: Install Windows arm64 software
       if: runner.os == 'Windows' && runner.arch == 'ARM64' && inputs.windows-build == 'true'
-      uses: msys2/setup-msys2@v2
+      uses: msys2/setup-msys2@d44ca8e88d8b43d56cf5670f91747359d5537f97
       with:
-        update: true
+        update: false
         msystem: CLANGARM64
         path-type: inherit
         install: |
@@ -143,14 +167,6 @@ runs:
         echo "::group::Set up Python virtual environment"
         python3 -m venv ~/.venv
         echo "$HOME/.venv/bin" >> $GITHUB_PATH
-        echo "::endgroup::"
-    
-    # Required for the installation of Python bindings
-    - name: Upgrade Python pip
-      shell: ${{ inputs.shell }}
-      run: |
-        echo "::group::Upgrade Python pip"
-        python3 -m pip install --upgrade pip
         echo "::endgroup::"
 
     - name: Install software for documentation

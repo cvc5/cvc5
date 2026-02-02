@@ -364,6 +364,8 @@ void BasicRewriteRCons::ensureProofForTheoryRewrite(CDProof* cdp,
   if (handledMacro)
   {
     d_theoryRewriteMacroExpand << id;
+    Trace("brc-macro-debug")
+        << "Proof is " << *cdp->getProofFor(eq) << std::endl;
     return;
   }
   // default, just add the rewrite
@@ -2036,8 +2038,7 @@ bool BasicRewriteRCons::ensureProofMacroQuantPrenex(CDProof* cdp,
         if (eqc[1].getKind() == Kind::FORALL)
         {
           // just add subgoal, likely alpha equivalence
-          cdp->addTrustedStep(
-              eqc, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE, {}, {});
+          cdp->addTrustedStep(eqc, TrustId::MACRO_THEORY_REWRITE_RCONS, {}, {});
           continue;
         }
         // maybe the result of QUANT_UNUSED_VARS?

@@ -1,8 +1,6 @@
 name: Configure and build
 description: Run configure script and build
 inputs:
-  configure-env:
-    default: ""
   configure-config:
     default: ""
   macos-target:
@@ -40,7 +38,7 @@ runs:
       shell: ${{ inputs.shell }}
       run: |
         echo "::group::Shared build"
-        ${{ inputs.configure-env }} ./configure.sh ${{ inputs.configure-config }} \
+        ./configure.sh ${{ inputs.configure-config }} \
           --prefix=$(pwd)/build-shared/install --werror --name=build-shared \
           -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
         
@@ -60,7 +58,7 @@ runs:
       shell: ${{ inputs.shell }}
       run: |
         echo "::group::Static build"
-        ${{ inputs.configure-env }} ./configure.sh ${{ inputs.configure-config }} \
+        ./configure.sh ${{ inputs.configure-config }} \
           --prefix=$(pwd)/build-static/install --werror --static --name=build-static \
           -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
 

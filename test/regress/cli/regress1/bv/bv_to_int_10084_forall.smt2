@@ -1,5 +1,7 @@
 ; COMMAND-LINE: --solve-bv-as-int=iand
-; EXPECT: unsat
+; EXPECT:
+; SCRUBBER: grep -v "uninterpreted"
+; EXIT: 1
 
 ;; produced by cvc4_16.drv ;;
 (set-logic AUFBVFPDTNIRA)

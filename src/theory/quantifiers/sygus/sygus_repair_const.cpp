@@ -35,10 +35,8 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-SygusRepairConst::SygusRepairConst(Env& env,
-                                   QuantifiersInferenceManager& qim,
-                                   TermDbSygus* tds)
-    : EnvObj(env), d_qim(qim), d_tds(tds), d_allow_constant_grammar(false)
+SygusRepairConst::SygusRepairConst(Env& env, TermDbSygus* tds)
+    : EnvObj(env), d_tds(tds), d_allow_constant_grammar(false)
 {
 }
 
