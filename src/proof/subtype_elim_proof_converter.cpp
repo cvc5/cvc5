@@ -270,7 +270,7 @@ Node SubtypeElimConverterCallback::convert(Node res,
       //
       // there t~s is the original predicate over the integers we had as input
       // and t'~s' is an equivalent predicate over reals. The latter case
-      // (multiplying a real relation by an integer) is handledsimilarly.
+      // (multiplying a real relation by an integer) is handled similarly.
       bool csuccess = true;
       // transform the inputs to AND_INTRO
       for (size_t i = 0; i < 2; i++)
