@@ -41,10 +41,7 @@ class TermRegistry : protected EnvObj
   typedef context::CDHashMap<Node, Node> NodeMap;
 
  public:
-  TermRegistry(Env& env,
-               SolverState& state,
-               InferenceManager& im,
-               SkolemCache& skc);
+  TermRegistry(Env& env, InferenceManager& im, SkolemCache& skc);
   /** get the proxy variable for set n
    *
    * Proxy variables are used to communicate information that otherwise would

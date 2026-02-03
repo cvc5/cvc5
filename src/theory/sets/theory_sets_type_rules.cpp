@@ -92,7 +92,8 @@ bool checkFunctionTypeFor(const Node& n,
   return true;
 }
 
-TypeNode SetsBinaryOperatorTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode SetsBinaryOperatorTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
+                                                    CVC5_UNUSED TNode n)
 {
   return TypeNode::null();
 }
@@ -136,8 +137,8 @@ TypeNode SetsBinaryOperatorTypeRule::computeType(NodeManager* nodeManager,
   return retType;
 }
 
-bool SetsBinaryOperatorTypeRule::computeIsConst(NodeManager* nodeManager,
-                                                TNode n)
+bool SetsBinaryOperatorTypeRule::computeIsConst(
+    CVC5_UNUSED NodeManager* nodeManager, TNode n)
 {
   // only SET_UNION has a const rule in kinds.
   // SET_INTER and SET_MINUS are not used in the canonical representation
@@ -146,7 +147,7 @@ bool SetsBinaryOperatorTypeRule::computeIsConst(NodeManager* nodeManager,
   return NormalForm::checkNormalConstant(n);
 }
 
-TypeNode SubsetTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode SubsetTypeRule::preComputeType(NodeManager* nm, CVC5_UNUSED TNode n)
 {
   return nm->booleanType();
 }
@@ -181,7 +182,7 @@ TypeNode SubsetTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->booleanType();
 }
 
-TypeNode MemberTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode MemberTypeRule::preComputeType(NodeManager* nm, CVC5_UNUSED TNode n)
 {
   return nm->booleanType();
 }
@@ -218,41 +219,44 @@ TypeNode MemberTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->booleanType();
 }
 
-TypeNode SingletonTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode SingletonTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
+                                           CVC5_UNUSED TNode n)
 {
   return TypeNode::null();
 }
 TypeNode SingletonTypeRule::computeType(NodeManager* nodeManager,
                                         TNode n,
-                                        bool check,
-                                        std::ostream* errOut)
+                                        CVC5_UNUSED bool check,
+                                        CVC5_UNUSED std::ostream* errOut)
 {
   Assert(n.getKind() == Kind::SET_SINGLETON);
   TypeNode type1 = n[0].getTypeOrNull();
   return nodeManager->mkSetType(type1);
 }
 
-bool SingletonTypeRule::computeIsConst(NodeManager* nodeManager, TNode n)
+bool SingletonTypeRule::computeIsConst(CVC5_UNUSED NodeManager* nodeManager,
+                                       TNode n)
 {
   Assert(n.getKind() == Kind::SET_SINGLETON);
   return n[0].isConst();
 }
 
-TypeNode EmptySetTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode EmptySetTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
+                                          CVC5_UNUSED TNode n)
 {
   return TypeNode::null();
 }
-TypeNode EmptySetTypeRule::computeType(NodeManager* nodeManager,
+TypeNode EmptySetTypeRule::computeType(CVC5_UNUSED NodeManager* nodeManager,
                                        TNode n,
-                                       bool check,
-                                       std::ostream* errOut)
+                                       CVC5_UNUSED bool check,
+                                       CVC5_UNUSED std::ostream* errOut)
 {
   Assert(n.getKind() == Kind::SET_EMPTY);
   EmptySet emptySet = n.getConst<EmptySet>();
   return emptySet.getType();
 }
 
-TypeNode CardTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode CardTypeRule::preComputeType(NodeManager* nm, CVC5_UNUSED TNode n)
 {
   return nm->integerType();
 }
@@ -277,7 +281,8 @@ TypeNode CardTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->integerType();
 }
 
-TypeNode ComplementTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode ComplementTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
+                                            CVC5_UNUSED TNode n)
 {
   return TypeNode::null();
 }
@@ -307,11 +312,12 @@ TypeNode ComplementTypeRule::computeType(NodeManager* nodeManager,
   return setType;
 }
 
-TypeNode UniverseSetTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode UniverseSetTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
+                                             CVC5_UNUSED TNode n)
 {
   return TypeNode::null();
 }
-TypeNode UniverseSetTypeRule::computeType(NodeManager* nodeManager,
+TypeNode UniverseSetTypeRule::computeType(CVC5_UNUSED NodeManager* nodeManager,
                                           TNode n,
                                           bool check,
                                           std::ostream* errOut)
@@ -335,7 +341,8 @@ TypeNode UniverseSetTypeRule::computeType(NodeManager* nodeManager,
   return setType;
 }
 
-TypeNode ComprehensionTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode ComprehensionTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
+                                               CVC5_UNUSED TNode n)
 {
   return TypeNode::null();
 }
@@ -369,7 +376,8 @@ TypeNode ComprehensionTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->mkSetType(n[2].getTypeOrNull());
 }
 
-TypeNode ChooseTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode ChooseTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
+                                        CVC5_UNUSED TNode n)
 {
   return TypeNode::null();
 }
@@ -399,7 +407,7 @@ TypeNode ChooseTypeRule::computeType(NodeManager* nodeManager,
   return setType.getSetElementType();
 }
 
-TypeNode IsSetTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode IsSetTypeRule::preComputeType(NodeManager* nm, CVC5_UNUSED TNode n)
 {
   return nm->booleanType();
 }
@@ -426,7 +434,8 @@ TypeNode IsSetTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->booleanType();
 }
 
-TypeNode InsertTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode InsertTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
+                                        CVC5_UNUSED TNode n)
 {
   return TypeNode::null();
 }
@@ -477,7 +486,8 @@ TypeNode InsertTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->mkSetType(retElementType);
 }
 
-TypeNode SetMapTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode SetMapTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
+                                        CVC5_UNUSED TNode n)
 {
   return TypeNode::null();
 }
@@ -518,11 +528,12 @@ TypeNode SetMapTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->mkSetType(rangeType);
 }
 
-TypeNode SetFilterTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode SetFilterTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
+                                           CVC5_UNUSED TNode n)
 {
   return TypeNode::null();
 }
-TypeNode SetFilterTypeRule::computeType(NodeManager* nodeManager,
+TypeNode SetFilterTypeRule::computeType(CVC5_UNUSED NodeManager* nodeManager,
                                         TNode n,
                                         bool check,
                                         std::ostream* errOut)
@@ -561,7 +572,8 @@ TypeNode SetFilterTypeRule::computeType(NodeManager* nodeManager,
   return setType;
 }
 
-TypeNode SetAllSomeTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode SetAllSomeTypeRule::preComputeType(NodeManager* nm,
+                                            CVC5_UNUSED TNode n)
 {
   return nm->booleanType();
 }
@@ -608,7 +620,8 @@ TypeNode SetAllSomeTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->booleanType();
 }
 
-TypeNode SetFoldTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode SetFoldTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
+                                         CVC5_UNUSED TNode n)
 {
   return TypeNode::null();
 }
@@ -679,7 +692,8 @@ TypeNode SetFoldTypeRule::computeType(NodeManager* nodeManager,
   return functionType.getRangeType();
 }
 
-TypeNode RelBinaryOperatorTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode RelBinaryOperatorTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
+                                                   CVC5_UNUSED TNode n)
 {
   return TypeNode::null();
 }
@@ -767,7 +781,8 @@ TypeNode RelBinaryOperatorTypeRule::computeType(NodeManager* nodeManager,
   return resultType;
 }
 
-TypeNode RelationTableJoinTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode RelationTableJoinTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
+                                                   CVC5_UNUSED TNode n)
 {
   return TypeNode::null();
 }
@@ -858,7 +873,8 @@ TypeNode RelationTableJoinTypeRule::computeType(NodeManager* nm,
   return nm->mkSetType(retTupleType);
 }
 
-TypeNode RelTransposeTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode RelTransposeTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
+                                              CVC5_UNUSED TNode n)
 {
   return TypeNode::null();
 }
@@ -889,7 +905,8 @@ TypeNode RelTransposeTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->mkSetType(nodeManager->mkTupleType(tupleTypes));
 }
 
-TypeNode RelTransClosureTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode RelTransClosureTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
+                                                 CVC5_UNUSED TNode n)
 {
   return TypeNode::null();
 }
@@ -941,7 +958,8 @@ TypeNode RelTransClosureTypeRule::computeType(NodeManager* nodeManager,
   return setType;
 }
 
-TypeNode JoinImageTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode JoinImageTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
+                                           CVC5_UNUSED TNode n)
 {
   return TypeNode::null();
 }
@@ -1004,7 +1022,8 @@ TypeNode JoinImageTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->mkSetType(nodeManager->mkTupleType(newTupleTypes));
 }
 
-TypeNode RelIdenTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode RelIdenTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
+                                         CVC5_UNUSED TNode n)
 {
   return TypeNode::null();
 }
@@ -1048,7 +1067,8 @@ TypeNode RelIdenTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->mkSetType(nodeManager->mkTupleType(tupleTypes));
 }
 
-TypeNode RelationGroupTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode RelationGroupTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
+                                               CVC5_UNUSED TNode n)
 {
   return TypeNode::null();
 }
@@ -1098,7 +1118,8 @@ TypeNode RelationGroupTypeRule::computeType(NodeManager* nm,
   return nm->mkSetType(setType);
 }
 
-TypeNode RelationAggregateTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode RelationAggregateTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
+                                                   CVC5_UNUSED TNode n)
 {
   return TypeNode::null();
 }
@@ -1196,7 +1217,8 @@ TypeNode RelationAggregateTypeRule::computeType(NodeManager* nm,
   return nm->mkSetType(functionType.getRangeType());
 }
 
-TypeNode RelationProjectTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode RelationProjectTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
+                                                 CVC5_UNUSED TNode n)
 {
   return TypeNode::null();
 }
@@ -1254,15 +1276,16 @@ TypeNode RelationProjectTypeRule::computeType(NodeManager* nm,
   return nm->mkSetType(retTupleType);
 }
 
-TypeNode SetEmptyOfTypeTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode SetEmptyOfTypeTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
+                                                CVC5_UNUSED TNode n)
 {
   return TypeNode::null();
 }
 
 TypeNode SetEmptyOfTypeTypeRule::computeType(NodeManager* nm,
-                                             TNode n,
-                                             bool check,
-                                             std::ostream* errOut)
+                                             CVC5_UNUSED TNode n,
+                                             CVC5_UNUSED bool check,
+                                             CVC5_UNUSED std::ostream* errOut)
 {
   return nm->mkAbstractType(Kind::SET_TYPE);
 }
