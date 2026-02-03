@@ -32,12 +32,14 @@ class FloatingPointEnumerator
     : public TypeEnumeratorBase<FloatingPointEnumerator> {
  public:
   FloatingPointEnumerator(TypeNode type,
-                          TypeEnumeratorProperties* tep = nullptr)
+                          CVC5_UNUSED TypeEnumeratorProperties* tep = nullptr)
       : TypeEnumeratorBase<FloatingPointEnumerator>(type),
         d_e(type.getFloatingPointExponentSize()),
         d_s(type.getFloatingPointSignificandSize()),
         d_state(d_e + d_s, 0U),
-        d_enumerationComplete(false) {}
+        d_enumerationComplete(false)
+  {
+  }
 
   /** Throws NoMoreValuesException if the enumeration is complete. */
   Node operator*() override {
@@ -82,7 +84,8 @@ class FloatingPointEnumerator
 class RoundingModeEnumerator
     : public TypeEnumeratorBase<RoundingModeEnumerator> {
  public:
-  RoundingModeEnumerator(TypeNode type, TypeEnumeratorProperties* tep = nullptr)
+  RoundingModeEnumerator(TypeNode type,
+                         CVC5_UNUSED TypeEnumeratorProperties* tep = nullptr)
       : TypeEnumeratorBase<RoundingModeEnumerator>(type),
         d_rm(RoundingMode::ROUND_NEAREST_TIES_TO_EVEN),
         d_enumerationComplete(false)

@@ -315,7 +315,7 @@ bool CegisUnif::processConstructCandidates(const std::vector<Node>& enums,
         Assert(std::find(enums.begin(), enums.end(), hd) != enums.end());
         unsigned i = std::distance(enums.begin(),
                                    std::find(enums.begin(), enums.end(), hd));
-        Assert(i >= 0 && i < enum_values.size());
+        Assert(i < enum_values.size());
         TermDbSygus::toStreamSygus("cegis-unif", enum_values[i]);
         Trace("cegis-unif") << "\n";
       }

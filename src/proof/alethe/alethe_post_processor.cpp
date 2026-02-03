@@ -19,6 +19,7 @@
 
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
+#include "proof/alethe/alethe_post_processor_algorithm.h"
 #include "proof/alethe/alethe_proof_rule.h"
 #include "proof/proof.h"
 #include "proof/proof_checker.h"
@@ -71,16 +72,17 @@ const std::string& AletheProofPostprocessCallback::getError()
   return d_reasonForConversionFailure;
 }
 
-bool AletheProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
-                                                  const std::vector<Node>& fa,
-                                                  bool& continueUpdate)
+bool AletheProofPostprocessCallback::shouldUpdate(
+    std::shared_ptr<ProofNode> pn,
+    CVC5_UNUSED const std::vector<Node>& fa,
+    CVC5_UNUSED bool& continueUpdate)
 {
   return d_reasonForConversionFailure.empty()
          && pn->getRule() != ProofRule::ALETHE_RULE;
 }
 
 bool AletheProofPostprocessCallback::shouldUpdatePost(
-    std::shared_ptr<ProofNode> pn, const std::vector<Node>& fa)
+    std::shared_ptr<ProofNode> pn, CVC5_UNUSED const std::vector<Node>& fa)
 {
   if (!d_reasonForConversionFailure.empty() || pn->getArguments().empty())
   {
@@ -94,7 +96,7 @@ bool AletheProofPostprocessCallback::shouldUpdatePost(
 bool AletheProofPostprocessCallback::updateTheoryRewriteProofRewriteRule(
     Node res,
     const std::vector<Node>& children,
-    const std::vector<Node>& args,
+    CVC5_UNUSED const std::vector<Node>& args,
     CDProof* cdp,
     ProofRewriteRule di)
 {
@@ -230,12 +232,7 @@ bool AletheProofPostprocessCallback::updateTheoryRewriteProofRewriteRule(
     }
     default: break;
   }
-  return addAletheStep(AletheRule::HOLE,
-                       res,
-                       nm->mkNode(Kind::SEXPR, d_cl, res),
-                       children,
-                       new_args,
-                       *cdp);
+  return false;
 }
 
 bool AletheProofPostprocessCallback::update(Node res,
@@ -243,7 +240,7 @@ bool AletheProofPostprocessCallback::update(Node res,
                                             const std::vector<Node>& children,
                                             const std::vector<Node>& args,
                                             CDProof* cdp,
-                                            bool& continueUpdate)
+                                            CVC5_UNUSED bool& continueUpdate)
 {
   Trace("alethe-proof") << "...Alethe pre-update " << res << " " << id << " "
                         << children << " / " << args << std::endl;
@@ -543,6 +540,68 @@ bool AletheProofPostprocessCallback::update(Node res,
 
       return success;
     }
+    // ======== Absorb
+    //
+    // ------- ac_simp   ------- <op>_simplify
+    //   VP1               VP2
+    // ------------------------- trans
+    //            res
+    //
+    // VP1: (cl (= t tf))
+    // VP2: (cl (= tf z))
+    //
+    // where tf = applyAcSimp(t) and <op> is the top-level operator of t. Note
+    // that ac_simp is over-eager in flattening the formula but since this step
+    // simplifies to a zero element this does not matter and only impacts
+    // performance marginally.
+    case ProofRule::ABSORB:
+    {
+      std::map<Node, Node> emptyMap;
+      Node t = res[0];
+      Node tf = applyAcSimp(d_env, emptyMap, t);
+      Kind k = res.getKind();
+      // if the simplification did not result in a term that would simplify to
+      // the expected constant, abort. For this the kind of tf must be the same
+      // as of t and one of its arguments must be res[1].
+      bool success = false;
+      for (const Node& ch : tf)
+      {
+        if (ch == res[1])
+        {
+          success = true;
+          break;
+        }
+      }
+      if (!success || k != tf.getKind())
+      {
+        return addAletheStep(AletheRule::HOLE,
+                             res,
+                             nm->mkNode(Kind::SEXPR, d_cl, res),
+                             {},
+                             {},
+                             *cdp);
+      }
+      Node vp1 = nm->mkNode(Kind::EQUAL, t, tf);
+      Node vp2 = nm->mkNode(Kind::EQUAL, tf, res[1]);
+      // if the kind was not one of these, the simplification above would have failed
+      Assert(k == Kind::OR || k == Kind::AND);
+      AletheRule rule =
+          k == Kind::OR ? AletheRule::OR_SIMPLIFY : AletheRule::AND_SIMPLIFY;
+      return addAletheStep(AletheRule::AC_SIMP,
+                           vp1,
+                           nm->mkNode(Kind::SEXPR, d_cl, vp1),
+                           {},
+                           {},
+                           *cdp)
+             && addAletheStep(
+                 rule, vp2, nm->mkNode(Kind::SEXPR, d_cl, vp2), {}, {}, *cdp)
+             && addAletheStep(AletheRule::TRANS,
+                              res,
+                              nm->mkNode(Kind::SEXPR, d_cl, res),
+                              {vp1, vp2},
+                              {},
+                              *cdp);
+    }
     // ======== Encode equality introduction
     // This rule is translated according to the singleton pattern.
     case ProofRule::ENCODE_EQ_INTRO:
@@ -606,9 +665,23 @@ bool AletheProofPostprocessCallback::update(Node res,
     case ProofRule::THEORY_REWRITE:
     {
       ProofRewriteRule di;
-      rewriter::getRewriteRule(args[0], di);
-      return updateTheoryRewriteProofRewriteRule(
-          res, children, args, cdp, di);
+
+      if (rewriter::getRewriteRule(args[0], di))
+      {
+        if (updateTheoryRewriteProofRewriteRule(res, children, args, cdp, di))
+        {
+          return true;
+        }
+        std::stringstream ss;
+        ss << "\"" << di << "\"";
+        new_args.push_back(NodeManager::mkRawSymbol(ss.str(), nm->sExprType()));
+      }
+      return addAletheStep(AletheRule::HOLE,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           children,
+                           new_args,
+                           *cdp);
     }
     // Both ARITH_POLY_NORM and EVALUATE, which are used by the Rare
     // elaboration, are captured by the "rare_rewrite" rule.
@@ -1888,6 +1961,62 @@ bool AletheProofPostprocessCallback::update(Node res,
       Assert(cdp->hasStep(res));
       return success;
     }
+    // ======== Variable reordering
+    // Let X = ((x1 T1) ... (xn Tn)), Y = ((y1 U1) ... (yn Un))
+    // and Z = ((x1 T1) ... (xn Tn) (y1 U1) ... (yn Un))
+    // Then, res is (cl (= (forall ((x1 T1) ... (xn Tn)) F) (forall ((y1 U1) ...
+    // (yn Un)) F)))
+    //
+    // ----- QNT_RM_UNUSED
+    //  VP1
+    // ----- SYMM  ----- QNT_RM_UNUSED
+    //  VP2         VP3
+    // ----------------- TRANS
+    //        res
+    //
+    // VP1: (cl (= (forall Z F) (forall X F)))
+    // VP2: (cl (= (forall X F) (forall Z F)))
+    // VP3: (cl (= (forall Z F) (forall Y F)))
+    case ProofRule::QUANT_VAR_REORDERING:
+    {
+      Node forall_X = res[0];
+      Node forall_Y = res[1];
+      Node F = forall_X[1];
+      Node X = forall_X[0];
+      Node Y = forall_Y[0];
+      std::vector<Node> Z(X.begin(), X.end());
+      Z.insert(Z.end(), Y.begin(), Y.end());
+      Node forall_Z =
+          nm->mkNode(Kind::FORALL, nm->mkNode(Kind::BOUND_VAR_LIST, Z), F);
+      Node vp1 = nm->mkNode(Kind::EQUAL, forall_Z, forall_X);
+      Node vp2 = nm->mkNode(Kind::EQUAL, forall_X, forall_Z);
+      Node vp3 = nm->mkNode(Kind::EQUAL, forall_Z, forall_Y);
+
+      return addAletheStep(AletheRule::QNT_RM_UNUSED,
+                           vp1,
+                           nm->mkNode(Kind::SEXPR, d_cl, vp1),
+                           {},
+                           {},
+                           *cdp)
+             && addAletheStep(AletheRule::SYMM,
+                              vp2,
+                              nm->mkNode(Kind::SEXPR, d_cl, vp2),
+                              {vp1},
+                              {},
+                              *cdp)
+             && addAletheStep(AletheRule::QNT_RM_UNUSED,
+                              vp3,
+                              nm->mkNode(Kind::SEXPR, d_cl, vp3),
+                              {},
+                              {},
+                              *cdp)
+             && addAletheStep(AletheRule::TRANS,
+                              res,
+                              nm->mkNode(Kind::SEXPR, d_cl, res),
+                              {vp2, vp3},
+                              {},
+                              *cdp);
+    }
     //================================================= Arithmetic rules
     // ======== Adding Scaled Inequalities
     //
@@ -2596,7 +2725,7 @@ bool AletheProofPostprocessCallback::maybeReplacePremiseProof(Node premise,
 
 bool AletheProofPostprocessCallback::updatePost(
     Node res,
-    ProofRule id,
+    CVC5_UNUSED ProofRule id,
     const std::vector<Node>& children,
     const std::vector<Node>& args,
     CDProof* cdp)
@@ -2846,7 +2975,7 @@ bool AletheProofPostprocessCallback::updatePost(
 
 bool AletheProofPostprocessCallback::ensureFinalStep(
     Node res,
-    ProofRule id,
+    CVC5_UNUSED ProofRule id,
     std::vector<Node>& children,
     const std::vector<Node>& args,
     CDProof* cdp)

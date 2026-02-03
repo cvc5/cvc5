@@ -115,8 +115,6 @@ class CandidateRewriteDatabase : public ExprMiner
    * sygusRewSynthAccel()).
    */
   bool d_rewAccel;
-  /** if true, we silence the output of candidate rewrites */
-  bool d_silent;
   /** if true, we filter pairs of terms to check equivalence */
   bool d_filterPairs;
   /** whether we are using sygus */

@@ -258,7 +258,7 @@ void AstPrinter::toStreamCmdDeclareFunction(
 void AstPrinter::toStreamCmdDefineFunction(std::ostream& out,
                                            const std::string& id,
                                            const std::vector<Node>& formals,
-                                           TypeNode range,
+                                           CVC5_UNUSED TypeNode range,
                                            Node formula) const
 {
   out << "DefineFunction( \"" << id << "\", [";

@@ -50,9 +50,7 @@ PIAndSolver::PIAndSolver(Env& env, InferenceManager& im, NlModel& model)
 
 PIAndSolver::~PIAndSolver() {}
 
-void PIAndSolver::initLastCall(const std::vector<Node>& assertions,
-                               const std::vector<Node>& false_asserts,
-                               const std::vector<Node>& xts)
+void PIAndSolver::initLastCall(const std::vector<Node>& xts)
 {
   d_piands.clear();
 
@@ -170,11 +168,210 @@ void PIAndSolver::checkInitialRefine()
   }
 }
 
-void PIAndSolver::checkFullRefine() {}
+void PIAndSolver::checkFullRefine()
+{
+  NodeManager* nm = nodeManager();
+  Trace("piand-check") << "PIAndSolver::checkFullRefine";
+  for (const std::pair<const Node, std::vector<Node> >& is : d_piands)
+  {
+    int index = 0;
+    for (const Node& i : is.second)
+    {
+      index++;
+      Node valAndXY = d_model.computeAbstractModelValue(i);
+      Node valAndXYC = d_model.computeConcreteModelValue(i);
+      valAndXYC = rewrite(valAndXYC);
 
-Node PIAndSolver::valueBasedLemma(Node i) { return i; }
+      Node k = i[0];
+      Node x = i[1];
+      Node y = i[2];
+      Node valK = d_model.computeConcreteModelValue(k);
+      Node valX = d_model.computeConcreteModelValue(x);
+      Node valY = d_model.computeConcreteModelValue(y);
 
-Node PIAndSolver::sumBasedLemma(Node i, Kind kind) { return i; }
+      Integer model_piand = valAndXYC.getConst<Rational>().getNumerator();
+      Integer model_k = valK.getConst<Rational>().getNumerator();
+      Integer model_x = valX.getConst<Rational>().getNumerator();
+      Integer model_y = valY.getConst<Rational>().getNumerator();
+
+      if (TraceIsOn("piand-check"))
+      {
+        Trace("piand-check")
+            << "* " << i << ", value = " << valAndXY << std::endl;
+        Trace("piand-check") << "  actual (" << valX << ", " << valY
+                             << ") = " << valAndXYC << std::endl;
+      }
+      if (valAndXY == valAndXYC)
+      {
+        Trace("piand-check") << "...already correct" << std::endl;
+        continue;
+      }
+
+      Integer ione = 1;
+      Integer itwo = 2;
+      Integer ipow2 = itwo.pow(model_k.getLong());
+      Integer max_int = ipow2 - 1;
+      Node k_gt_0 = nm->mkNode(Kind::GT, k, d_zero);
+      Node twok = nm->mkNode(Kind::POW2, k);
+      Node arg0Mod = nm->mkNode(Kind::INTS_MODULUS, x, twok);
+      Node arg1Mod = nm->mkNode(Kind::INTS_MODULUS, y, twok);
+      Node arg0Mod2 = nm->mkNode(Kind::INTS_MODULUS, x, d_two);
+      Node arg1Mod2 = nm->mkNode(Kind::INTS_MODULUS, y, d_two);
+
+      // base case: piand(k,1,1) = 1
+      if (model_k > 0 && model_x == 1 && model_y == 1 && model_piand != 1)
+      {
+        Node x_equal_one = nm->mkNode(Kind::EQUAL, x, d_one);
+        Node y_equal_one = nm->mkNode(Kind::EQUAL, y, d_one);
+        Node assum = nm->mkNode(Kind::AND, k_gt_0, x_equal_one, y_equal_one);
+        Node piand_one = nm->mkNode(Kind::EQUAL, i, d_one);
+        Node xy_one_lem = nm->mkNode(Kind::IMPLIES, assum, piand_one);
+        d_im.addPendingLemma(xy_one_lem,
+                             InferenceId::ARITH_NL_PIAND_BASE_CASE_REFINE,
+                             nullptr,
+                             true);
+      }
+
+      Node x_geq_zero = nm->mkNode(Kind::GEQ, x, d_zero);
+      Node x_lt_pow2 = nm->mkNode(Kind::LT, x, twok);
+      Node x_range = nm->mkNode(Kind::AND, x_geq_zero, x_lt_pow2);
+      Node y_geq_zero = nm->mkNode(Kind::GEQ, y, d_zero);
+      Node y_lt_pow2 = nm->mkNode(Kind::LT, y, twok);
+      Node y_range = nm->mkNode(Kind::AND, y_geq_zero, y_lt_pow2);
+      int j = -1;
+      for (const Node& n : is.second)
+      {
+        j++;
+        if (j > index)
+        {
+          Node k2 = n[0];
+          Node x2 = n[1];
+          Node y2 = n[2];
+          Node valK2 = d_model.computeConcreteModelValue(k2);
+          Node valX2 = d_model.computeConcreteModelValue(x2);
+          Node valY2 = d_model.computeConcreteModelValue(y2);
+          Node valAndXYC2 = d_model.computeConcreteModelValue(n);
+          Integer model_piand2 = valAndXYC2.getConst<Rational>().getNumerator();
+          Integer model_k2 = valK2.getConst<Rational>().getNumerator();
+          Integer model_x2 = valX2.getConst<Rational>().getNumerator();
+          Integer model_y2 = valY2.getConst<Rational>().getNumerator();
+
+          Node arg20Mod = nm->mkNode(Kind::INTS_MODULUS, x2, twok);
+          Node arg21Mod = nm->mkNode(Kind::INTS_MODULUS, y2, twok);
+
+          Node x2_geq_zero = nm->mkNode(Kind::GEQ, x2, d_zero);
+          Node x2_lt_pow2 = nm->mkNode(Kind::LT, x2, twok);
+          Node x2_range = nm->mkNode(Kind::AND, x2_geq_zero, x2_lt_pow2);
+
+          // difference: x != x2 /\ y = y2 => piand(k,x,y) != x2 \/
+          // piand(k,x2,y2) != x
+          if (model_k > 0 && model_k == model_k2 && model_x != model_x2
+              && model_y == model_y2 && model_piand == model_x2
+              && model_piand2 == model_x)
+          {
+            Node noneqx = nm->mkNode(Kind::AND,
+                                     k.eqNode(k2),
+                                     (x.eqNode(x2)).notNode(),
+                                     y.eqNode(y2));
+            Node ranges_assum =
+                nm->mkNode(Kind::AND, x_range, x2_range, y_range);
+            Node assum_difference =
+                nm->mkNode(Kind::AND, k_gt_0, noneqx, ranges_assum);
+            Node difference = nm->mkNode(
+                Kind::OR, i.eqNode(x2).notNode(), n.eqNode(x).notNode());
+            Node diff_lemm =
+                nm->mkNode(Kind::IMPLIES, assum_difference, difference);
+            d_im.addPendingLemma(diff_lemm,
+                                 InferenceId::ARITH_NL_PIAND_DIFFERENCE_REFINE,
+                                 nullptr,
+                                 true);
+          }
+
+          // symmetry: piand(k,x,y) = piand(k,y,x)
+          if (model_k == model_k2 && model_x == model_y2 && model_x2 == model_y
+              && model_piand != model_piand2)
+          {
+            Node assum_sym = nm->mkNode(
+                Kind::AND, k.eqNode(k2), (x.eqNode(y2)), y.eqNode(x2));
+            Node sym_lemm = nm->mkNode(Kind::IMPLIES, assum_sym, i.eqNode(n));
+            d_im.addPendingLemma(sym_lemm,
+                                 InferenceId::ARITH_NL_PIAND_SYMETRY_REFINE,
+                                 nullptr,
+                                 true);
+          }
+        }
+      }
+
+      // contradition: x+y mod 2^k = 2^k-1 => piand(k,x,y) = 0
+      if (model_x + model_y == max_int && model_piand != 0)
+      {
+        Node x_plus_y = nm->mkNode(Kind::ADD, x, y);
+        Node x_plus_y_mod = nm->mkNode(Kind::INTS_MODULUS, x_plus_y, twok);
+        Node twok_minus_one = nm->mkNode(Kind::SUB, twok, d_one);
+        Node assum = nm->mkNode(Kind::EQUAL, x_plus_y_mod, twok_minus_one);
+        Node piand_zero = nm->mkNode(Kind::EQUAL, i, d_zero);
+        Node neg_lem = nm->mkNode(Kind::IMPLIES, assum, piand_zero);
+        d_im.addPendingLemma(neg_lem,
+                             InferenceId::ARITH_NL_PIAND_CONTRADITION_REFINE,
+                             nullptr,
+                             true);
+      }
+
+      // one: k > 0 && y = 1 -> piand(k,x,y) = x mod 2
+      if (model_k > 0 && model_y == 1 && model_piand != model_x.modByPow2(1))
+      {
+        Node y_equal_one = nm->mkNode(Kind::EQUAL, y, d_one);
+        Node asum_lsb = nm->mkNode(Kind::AND, k_gt_0, y_equal_one);
+        Node lsb = nm->mkNode(Kind::EQUAL, i, arg0Mod2);
+        Node y_one_lem = nm->mkNode(Kind::IMPLIES, asum_lsb, lsb);
+        d_im.addPendingLemma(
+            y_one_lem, InferenceId::ARITH_NL_PIAND_ONE_REFINE, nullptr, true);
+      }
+
+      // one: k > 0 && x = 1 -> piand(k,x,y) = y mod 2
+      if (model_k > 0 && model_x == 1 && model_piand != model_y.modByPow2(1))
+      {
+        Node x_equal_one = nm->mkNode(Kind::EQUAL, x, d_one);
+        Node asum_lsb2 = nm->mkNode(Kind::AND, k_gt_0, x_equal_one);
+        Node lsb2 = nm->mkNode(Kind::EQUAL, i, arg1Mod2);
+        Node x_one_lem = nm->mkNode(Kind::IMPLIES, asum_lsb2, lsb2);
+        d_im.addPendingLemma(
+            x_one_lem, InferenceId::ARITH_NL_PIAND_ONE_REFINE, nullptr, true);
+      }
+
+      Node lem_sum = sumBasedLemma(i, Kind::GEQ);
+      d_im.addPendingLemma(
+          lem_sum, InferenceId::ARITH_NL_PIAND_SUM_REFINE, nullptr, true);
+    }
+  }
+}
+
+Node PIAndSolver::sumBasedLemma(Node i, Kind kind)
+{
+  Assert(i.getKind() == Kind::PIAND);
+  Node k = d_model.computeConcreteModelValue(i[0]);
+  Node x = i[1];
+  Node y = i[2];
+  uint64_t granularity = options().smt.BVAndIntegerGranularity;
+  uint64_t int_k = k.getConst<Rational>().getNumerator().toUnsignedInt();
+  NodeManager* nm = nodeManager();
+  // (i[0] >= k /\  0 <= x < 2^k /\  0 <= y < 2^k) => i = sum
+  Node width = nm->mkNode(kind, i[0], k);
+  Node condition;
+  Node pow2_k = nm->mkConstInt(Integer(2).pow(int_k));
+  Node zero = nm->mkConstInt(Rational(0));
+  Node x_pos = nm->mkNode(Kind::GEQ, x, zero);
+  Node y_pos = nm->mkNode(Kind::GEQ, y, zero);
+  Node x_lt_pow2 = nm->mkNode(Kind::LT, x, pow2_k);
+  Node y_lt_pow2 = nm->mkNode(Kind::LT, y, pow2_k);
+  Node bound_x = nm->mkNode(Kind::AND, x_lt_pow2, x_pos);
+  Node bound_y = nm->mkNode(Kind::AND, y_lt_pow2, y_pos);
+  condition = nm->mkNode(Kind::AND, bound_x, bound_y, width);
+  Node then = nm->mkNode(
+      Kind::EQUAL, i, d_iandUtils.createSumNode(x, y, int_k, granularity));
+  Node lem = nm->mkNode(Kind::IMPLIES, condition, then);
+  return lem;
+}
 
 }  // namespace nl
 }  // namespace arith
