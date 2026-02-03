@@ -51,6 +51,22 @@ BaseSolver::BaseSolver(Env& env,
 
 BaseSolver::~BaseSolver() {}
 
+/**
+ * Implements union find, with path compression
+ */
+Node getRep(const Node& n, std::map<Node, Node>& rep)
+{
+  std::map<Node, Node>::iterator it = rep.find(n);
+  if (it==rep.end())
+  {
+    return n;
+  }
+  Assert (n!=it->second);
+  Node r = getRep(it->second, rep);
+  rep[n] = r;
+  return r;
+}
+
 void BaseSolver::checkInit()
 {
   // build term index
@@ -207,16 +223,13 @@ void BaseSolver::checkInit()
                   {
                     Node a = nc[count[0]];
                     Node b = n[count[1]];
-                    itra = expRep.find(a);
-                    itrb = expRep.find(b);
+                    Node ra = getRep(a, expRep);
+                    Node rb = getRep(b, expRep);
                     // if they do not already have an equal representative
-                    if (itra==expRep.end() || itrb==expRep.end() ||
-                        itra->second!=itrb->second)
+                    if (ra!=rb)
                     {
                       // update the representative
-                      Node ra = itra==expRep.end() ? a : itra->second;
-                      expRep[a] = ra;
-                      expRep[b] = ra;
+                      expRep[rb] = ra;
                       exp.push_back(a.eqNode(b));
                     }
                   }
