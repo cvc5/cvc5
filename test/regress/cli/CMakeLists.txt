@@ -1133,6 +1133,7 @@ set(regress_0_tests
   regress0/nl/issue10140-nl-tc.smt2
   regress0/nl/issue11901-pow-rewrite-type.smt2
   regress0/nl/issue12239-subtype-elim.smt2
+  regress0/nl/issue12408-nl-fm.smt2
   regress0/nl/issue3003.smt2
   regress0/nl/issue3407.smt2
   regress0/nl/issue3411.smt2
