@@ -2221,8 +2221,9 @@ void TheoryArithPrivate::replayAssert(ConstraintP c) {
   }
 }
 
-
-void TheoryArithPrivate::resolveOutPropagated(std::vector<ConstraintCPVec>& confs, const std::set<ConstraintCP>& propagated) const {
+void TheoryArithPrivate::resolveOutPropagated(
+    std::vector<ConstraintCPVec>& confs) const
+{
   Trace("arith::resolveOutPropagated")
     << "starting resolveOutPropagated() " << confs.size() << endl;
   for(size_t i =0, N = confs.size(); i < N; ++i){
@@ -2487,7 +2488,7 @@ std::vector<ConstraintCPVec> TheoryArithPrivate::replayLogRec(ApproximateSimplex
       Trace("approx::replayLogRec") << "failed on node " << nid << endl;
       Assert(res.empty());
     }
-    resolveOutPropagated(res, propagated);
+    resolveOutPropagated(res);
     Trace("approx::replayLogRec") << "replayLogRec() ending" << std::endl;
 
     if (options().arith.replayFailureLemma)
@@ -2599,7 +2600,8 @@ Node TheoryArithPrivate::branchToNode(ApproximateSimplex* approx,
   return Node::null();
 }
 
-Node TheoryArithPrivate::cutToLiteral(ApproximateSimplex* approx, const CutInfo& ci) const{
+Node TheoryArithPrivate::cutToLiteral(const CutInfo& ci) const
+{
   Assert(ci.reconstructed());
 
   const DenseMap<Rational>& lhs = ci.getReconstruction().lhs;
@@ -2636,7 +2638,7 @@ bool TheoryArithPrivate::replayLemmas(ApproximateSimplex* approx){
         continue;
       }
 
-      Node cutConstraint = cutToLiteral(approx, *cut);
+      Node cutConstraint = cutToLiteral(*cut);
       if(!cutConstraint.isNull()){
         const ConstraintCPVec& exp = cut->getExplanation();
         Node asLemma =
@@ -3077,7 +3079,7 @@ bool TheoryArithPrivate::hasFreshArithLiteral(Node n) const{
   }
 }
 
-bool TheoryArithPrivate::preCheck(Theory::Effort level, bool newFacts)
+bool TheoryArithPrivate::preCheck(bool newFacts)
 {
   Assert(d_currentPropagationList.empty());
   if(TraceIsOn("arith::consistency")){
@@ -3710,7 +3712,8 @@ TrustNode TheoryArithPrivate::explain(TNode n)
   return exp;
 }
 
-void TheoryArithPrivate::propagate(Theory::Effort e) {
+void TheoryArithPrivate::propagate()
+{
   // This uses model values for safety. Disable for now.
   if (d_qflraStatus == Result::SAT
       && (options().arith.arithPropagationMode

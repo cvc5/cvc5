@@ -458,7 +458,7 @@ public:
   * potentially using the internals of the SimplexDecisionProcedure.
   */
 
- ArithVar noPreference(ArithVar x, ArithVar y) const { return x; }
+ ArithVar noPreference(ArithVar x, CVC5_UNUSED ArithVar y) const { return x; }
 
  /**
   * minVarOrder is a PreferenceFunction for selecting the smaller of the 2

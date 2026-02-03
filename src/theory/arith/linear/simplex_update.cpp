@@ -108,7 +108,8 @@ void UpdateInfo::updatePureFocus(const DeltaRational& delta, ConstraintP c){
   Assert(debugSgnAgreement());
 }
 
-void UpdateInfo::updatePivot(const DeltaRational& delta, const Rational& r, ConstraintP c){
+void UpdateInfo::updatePivot(const DeltaRational& delta, ConstraintP c)
+{
   d_limiting = c;
   d_nonbasicDelta = delta;
   d_errorsChange.reset();

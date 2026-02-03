@@ -47,9 +47,7 @@ Pow2Solver::Pow2Solver(Env& env,
 
 Pow2Solver::~Pow2Solver() {}
 
-void Pow2Solver::initLastCall(const std::vector<Node>& assertions,
-                              const std::vector<Node>& false_asserts,
-                              const std::vector<Node>& xts)
+void Pow2Solver::initLastCall(const std::vector<Node>& xts)
 {
   d_pow2s.clear();
   Trace("pow2-mv") << "POW2 terms : " << std::endl;

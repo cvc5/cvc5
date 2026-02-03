@@ -73,7 +73,10 @@ public:
 
  Result::Status attempt(const ApproximateSimplex::Solution& sol);
 
- Result::Status findModel(bool exactResult) override { Unreachable(); }
+ Result::Status findModel(CVC5_UNUSED bool exactResult) override
+ {
+   Unreachable();
+ }
 
 private:
  bool matchesNewValue(const DenseMap<DeltaRational>& nv, ArithVar v) const;
