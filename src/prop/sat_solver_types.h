@@ -82,7 +82,8 @@ class SatLiteral {
    * Returns the variable of the literal.
    */
   constexpr SatVariable getSatVariable() const {
-    return d_value >> 1;
+    // sign extension shift to ensure that undefSatLiteral has undefSatVariable
+    return static_cast<int64_t>(d_value) >> 1;
   }
 
   /**
@@ -155,6 +156,9 @@ class SatLiteral {
  * A constant representing an undefined literal.
  */
 constexpr SatLiteral undefSatLiteral = SatLiteral(undefSatVariable);
+
+static_assert(undefSatLiteral.getSatVariable() == undefSatVariable);
+static_assert(undefSatLiteral.isNull());
 
 /**
  * Helper for hashing the literals.
