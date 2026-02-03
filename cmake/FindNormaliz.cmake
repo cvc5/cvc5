@@ -91,9 +91,26 @@ if(NOT Normaliz_FOUND_SYSTEM)
     URL https://github.com/Normaliz/Normaliz/releases/download/v${Normaliz_VERSION}/normaliz-${Normaliz_VERSION}.tar.gz
     URL_HASH SHA256=${Normaliz_CHECKSUM}
     BUILD_IN_SOURCE YES
-    CONFIGURE_COMMAND ${SHELL} ./configure --prefix=<INSTALL_DIR> ${Normaliz_WITH_GMP}
-        --with-cxx=${CMAKE_CXX_COMPILER} --with-cxxflags=${Normaliz_CXXFLAGS}  
-        ${LINK_OPTS}    
+
+    CONFIGURE_COMMAND
+     /bin/sh -c "
+       CXXFLAGS='-fPIC' \
+       CFLAGS='-fPIC' \
+       CPPFLAGS='-fPIC' \
+       ./configure \
+         --prefix=<INSTALL_DIR> \
+         ${Normaliz_WITH_GMP} \
+         --enable-static \
+         --enable-shared \
+         --without-cocoalib \
+         --without-flint \
+         --without-hashlibrary \
+         --without-nauty \
+         --without-e-antic
+     "
+
+  
+
     BUILD_BYPRODUCTS ${Normaliz_LIBRARIES}
   )
   ExternalProject_Get_Property(Normaliz-EP SOURCE_DIR)
