@@ -68,7 +68,7 @@ class SatLiteral {
   /**
    * Construct an undefined SAT literal.
    */
-  constexpr SatLiteral() : d_value(undefSatVariable) {}
+  constexpr SatLiteral() : SatLiteral(undefSatVariable) {}
 
   /**
    * Construct a literal given a possible negated variable.
@@ -103,21 +103,21 @@ class SatLiteral {
   /**
    * Compare two literals for equality.
    */
-  bool operator == (const SatLiteral& other) const {
+  constexpr bool operator == (const SatLiteral& other) const {
     return d_value == other.d_value;
   }
 
   /**
    * Compare two literals for dis-equality.
    */
-  bool operator != (const SatLiteral& other) const {
+  constexpr bool operator != (const SatLiteral& other) const {
     return !(*this == other);
   }
 
   /**
    * Compare two literals
    */
-  bool operator<(const SatLiteral& other) const
+  constexpr bool operator<(const SatLiteral& other) const
   {
     return getSatVariable() == other.getSatVariable()
                ? isNegated() < other.isNegated()
@@ -159,6 +159,7 @@ constexpr SatLiteral undefSatLiteral = SatLiteral(undefSatVariable);
 
 static_assert(undefSatLiteral.getSatVariable() == undefSatVariable);
 static_assert(undefSatLiteral.isNull());
+static_assert(SatLiteral() == undefSatLiteral);
 
 /**
  * Helper for hashing the literals.
