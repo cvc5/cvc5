@@ -1516,8 +1516,7 @@ void FullModelChecker::registerQuantifiedFormula(Node q)
     types.push_back(tn);
   }
   TypeNode typ = nm->mkFunctionType(types, nm->booleanType());
-  Node op =
-      NodeManager::mkDummySkolem("qfmc", typ, "op for full-model checking");
+  Node op = NodeManager::mkDummySkolem("qfmc", typ);
   d_quant_cond[q] = op;
 }
 

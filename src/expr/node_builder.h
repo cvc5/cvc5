@@ -365,7 +365,7 @@ class NodeBuilder {
   void maybeCheckType(const TNode n) const;
 #else  /* CVC5_DEBUG */
   // Do nothing if not in debug mode.
-  inline void maybeCheckType(const TNode n) const {}
+  inline void maybeCheckType(CVC5_UNUSED const TNode n) const {}
 #endif /* CVC5_DEBUG */
 
   // used by convenience node builders
