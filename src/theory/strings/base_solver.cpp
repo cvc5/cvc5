@@ -175,7 +175,8 @@ void BaseSolver::checkInit()
               // substitutions. To address this we track a representative of
               // the terms occurring in our explanation, such that after adding
               // (= s t), expRep[s] = expRep[t] = s, and hence (= t s) is
-              // redundant. This also can lead to shorter explanations.
+              // recognized as redundant. This also can lead to shorter
+              // explanations.
               std::map<Node, Node> expRep;
               std::map<Node, Node>::iterator itra, itrb;
               while (count[0] < nc.getNumChildren()
