@@ -57,11 +57,11 @@ BaseSolver::~BaseSolver() {}
 Node getRep(const Node& n, std::map<Node, Node>& rep)
 {
   std::map<Node, Node>::iterator it = rep.find(n);
-  if (it==rep.end())
+  if (it == rep.end())
   {
     return n;
   }
-  Assert (n!=it->second);
+  Assert(n != it->second);
   Node r = getRep(it->second, rep);
   rep[n] = r;
   return r;
@@ -226,7 +226,7 @@ void BaseSolver::checkInit()
                     Node ra = getRep(a, expRep);
                     Node rb = getRep(b, expRep);
                     // if they do not already have an equal representative
-                    if (ra!=rb)
+                    if (ra != rb)
                     {
                       // update the representative
                       expRep[rb] = ra;
