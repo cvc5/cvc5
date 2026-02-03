@@ -13,6 +13,8 @@
  * Utility functions for liastar extension.
  */
 
+#ifdef CVC5_USE_NORMALIZ
+
 #include "liastar_utils.h"
 
 #include "expr/algorithm/flatten.h"
@@ -393,3 +395,5 @@ std::vector<std::pair<Node, Node>> LiaStarUtils::integerDNF(Node n, Env* e)
 }  // namespace arith
 }  // namespace theory
 }  // namespace cvc5::internal
+
+#endif /* CVC5_USE_NORMALIZ */

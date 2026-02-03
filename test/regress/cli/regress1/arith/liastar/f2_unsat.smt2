@@ -1,3 +1,4 @@
+; REQUIRES: normaliz
 (set-logic ALL)
 (set-info :status unsat)
 (assert 

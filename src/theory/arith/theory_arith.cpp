@@ -48,7 +48,9 @@ TheoryArith::TheoryArith(Env& env, OutputChannel& out, Valuation valuation)
       d_eqSolver(nullptr),
       d_internal(env, d_astate, d_im, d_bab),
       d_nonlinearExtension(nullptr),
+#ifdef CVC5_USE_NORMALIZ
       d_liaStarExtension(nullptr),
+#endif /* CVC5_USE_NORMALIZ */
       d_opElim(d_env),
       d_arithPreproc(env, d_im, d_opElim),
       d_rewriter(nodeManager(), d_opElim, options().arith.arithExp),
@@ -96,8 +98,10 @@ void TheoryArith::finishInit()
   if (logic.isTheoryEnabled(THEORY_ARITH) && !logic.isLinear())
   {
     d_nonlinearExtension.reset(new nl::NonlinearExtension(d_env, *this));
-    d_liaStarExtension.reset(new liastar::LiaStarExtension(d_env, *this));
     d_valuation.setIrrelevantKind(Kind::STAR_CONTAINS);
+#ifdef CVC5_USE_NORMALIZ
+    d_liaStarExtension.reset(new liastar::LiaStarExtension(d_env, *this));
+#endif /* CVC5_USE_NORMALIZ */
   }
   d_eqSolver->finishInit();
   // finish initialize in the old linear solver
@@ -173,10 +177,12 @@ void TheoryArith::preRegisterTerm(TNode n)
   {
     d_nonlinearExtension->preRegisterTerm(n);
   }
+#ifdef CVC5_USE_NORMALIZ
   if (d_liaStarExtension != nullptr)
   {
     d_liaStarExtension->preRegisterTerm(n);
   }
+#endif /* CVC5_USE_NORMALIZ */
   else if (n.getKind()==Kind::NONLINEAR_MULT)
   {
     throw LogicException("A non-linear term was asserted to arithmetic in a linear logic.");
@@ -280,6 +286,7 @@ void TheoryArith::postCheck(Effort level)
     d_arithModelCacheSet = false;
     std::set<Node> termSet;
 
+#ifdef CVC5_USE_NORMALIZ
     if (d_liaStarExtension != nullptr)
     {
       updateModelCache(termSet);
@@ -292,6 +299,7 @@ void TheoryArith::postCheck(Effort level)
         return;
       }
     }
+#endif /* CVC5_USE_NORMALIZ */
 
     if (d_nonlinearExtension != nullptr)
     {

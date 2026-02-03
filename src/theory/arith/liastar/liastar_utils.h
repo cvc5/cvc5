@@ -16,6 +16,8 @@
 #ifndef CVC5__THEORY__LIASTAR__UTILS_H
 #define CVC5__THEORY__LIASTAR__UTILS_H
 
+#ifdef CVC5_USE_NORMALIZ
+
 #include "expr/node.h"
 #include "smt/env.h"
 namespace cvc5::internal {
@@ -48,3 +50,5 @@ class LiaStarUtils
 }  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__LIASTAR__UTILS_H */
+
+#endif /* CVC5_USE_NORMALIZ */

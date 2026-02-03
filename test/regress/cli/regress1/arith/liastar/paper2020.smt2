@@ -1,4 +1,5 @@
 
+; REQUIRES: normaliz
 (set-logic ALL)
 (set-info :source "Solving Using LIA* Approximations
 Maxwell Levatich, Nikolaj Bjorner, Ruzica Piskac, and Sharon Shoham

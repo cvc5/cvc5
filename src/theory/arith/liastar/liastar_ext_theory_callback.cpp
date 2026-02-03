@@ -13,6 +13,8 @@
  * The extended theory callback for liastar arithmetic.
  */
 
+#ifdef CVC5_USE_NORMALIZ
+
 #include "theory/arith/liastar/liastar_ext_theory_callback.h"
 
 #include "theory/arith/arith_utilities.h"
@@ -75,3 +77,5 @@ bool LiaStarExtTheoryCallback::isExtfReduced(
 }  // namespace arith
 }  // namespace theory
 }  // namespace cvc5::internal
+
+#endif /* CVC5_USE_NORMALIZ */

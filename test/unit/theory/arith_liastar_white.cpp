@@ -13,6 +13,8 @@
  * Unit tests for lia star extension.
  */
 
+#ifdef CVC5_USE_NORMALIZ
+
 #include <iostream>
 #include <memory>
 #include <vector>
@@ -137,3 +139,5 @@ TEST_F(TestLiaStarUtils, toDNF_2008PaperExample)
 
 }  // namespace test
 }  // namespace cvc5::internal
+
+#endif /* CVC5_USE_NORMALIZ */

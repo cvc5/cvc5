@@ -12,6 +12,8 @@
  * Extension to the theory of arithmetic handling lia star operator.
  */
 
+#ifdef CVC5_USE_NORMALIZ
+
 #include "liastar_extension.h"
 
 #include "liastar_utils.h"
@@ -660,3 +662,5 @@ std::string LiaStarExtension::getString(Node variables, linear::Polynomial& p)
 }  // namespace arith
 }  // namespace theory
 }  // namespace cvc5::internal
+
+#endif /* CVC5_USE_NORMALIZ */

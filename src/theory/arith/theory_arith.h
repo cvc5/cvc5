@@ -23,7 +23,11 @@
 #include "theory/arith/arith_subs.h"
 #include "theory/arith/branch_and_bound.h"
 #include "theory/arith/inference_manager.h"
+
+#ifdef CVC5_USE_NORMALIZ
 #include "theory/arith/liastar/liastar_extension.h"
+#endif /* CVC5_USE_NORMALIZ */
+
 #include "theory/arith/linear/linear_solver.h"
 #include "theory/arith/pp_rewrite_eq.h"
 #include "theory/arith/proof_checker.h"
@@ -172,10 +176,14 @@ class TheoryArith : public Theory {
    * arithmetic.
    */
   std::unique_ptr<nl::NonlinearExtension> d_nonlinearExtension;
+
+#ifdef CVC5_USE_NORMALIZ
   /** The lia star extension, responsible for all approaches for lia star
    * arithmetic.
    */
   std::unique_ptr<liastar::LiaStarExtension> d_liaStarExtension;
+#endif /* CVC5_USE_NORMALIZ */
+
   /** The operator elimination utility */
   OperatorElim d_opElim;
   /** The preprocess utility */

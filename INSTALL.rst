@@ -297,6 +297,16 @@ a package named `libedit-dev`, `libedit-devel`, or similar.  Configure cvc5 with
 to run tests related to interactive mode with this dependency, you will need
 the Python module `pexpect <https://pexpect.readthedocs.io/en/stable/>`_.
 
+Normaliz (Optional rational cones library)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+`Normaliz <https://www.normaliz.uni-osnabrueck.de/>`_ is required for int.star-contains
+operator and for bags reasoning. We recommend downloading it using the ``--auto-download`` 
+configuration flag. It is included in the build through the
+``--normaliz --gpl`` configuration flag.
+
+Normaliz is covered by the GPLv3 license. See below for the ramifications of this.
+
 
 Google Test Unit Testing Framework (Unit Tests)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

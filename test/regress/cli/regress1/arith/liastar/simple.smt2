@@ -1,3 +1,4 @@
+; REQUIRES: normaliz
 ; DISABLE-TESTER: lfsc
 (set-logic ALL)
 (set-option :incremental true)

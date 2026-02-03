@@ -1078,6 +1078,7 @@ RewriteResponse ArithRewriter::rewriteIntsDivModTotal(TNode t, bool pre)
 RewriteResponse ArithRewriter::rewriteStarContains(TNode t)
 {
   Assert(t.getKind() == Kind::STAR_CONTAINS);
+#ifdef CVC5_USE_NORMALIZ
   Node ys = t[2];
   // if ys is the zero vector, return true
   std::vector<Node> elements = datatypes::TupleUtils::getTupleElements(ys);
@@ -1108,6 +1109,7 @@ RewriteResponse ArithRewriter::rewriteStarContains(TNode t)
       return RewriteResponse(REWRITE_DONE, nm->mkConst(true));
     }
   }
+#endif /* CVC5_USE_NORMALIZ */
   return RewriteResponse(REWRITE_DONE, t);
 }
 

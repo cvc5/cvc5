@@ -1,3 +1,4 @@
+; REQUIRES: normaliz
 (set-logic ALL)
 (set-option :produce-models true)
 (set-option :quiet true)

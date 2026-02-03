@@ -1,4 +1,4 @@
-
+; REQUIRES: normaliz
 (set-logic ALL)
 (set-info :source "Decision Procedures for Multisets with Cardinality Constraints
 by Ruzica Piskac and Viktor Kuncak

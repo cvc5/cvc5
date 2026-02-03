@@ -16,6 +16,8 @@
 #ifndef CVC5__THEORY__ARITH__LIASTAR__EXT_THEORY_CALLBACK_H
 #define CVC5__THEORY__ARITH__LIASTAR__EXT_THEORY_CALLBACK_H
 
+#ifdef CVC5_USE_NORMALIZ
+
 #include "expr/node.h"
 #include "theory/ext_theory.h"
 
@@ -76,3 +78,4 @@ class LiaStarExtTheoryCallback : public ExtTheoryCallback
 }  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__ARITH__LIASTAR__EXT_THEORY_CALLBACK_H */
+#endif /* CVC5_USE_NORMALIZ */

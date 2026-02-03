@@ -16,6 +16,8 @@
 #ifndef CVC5__THEORY__ARITH__LIASTAR_EXTENSION_H
 #define CVC5__THEORY__ARITH__LIASTAR_EXTENSION_H
 
+#ifdef CVC5_USE_NORMALIZ
+
 #include <map>
 #include <vector>
 
@@ -167,3 +169,5 @@ class LiaStarExtension : EnvObj
 }  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__ARITH__LIASTAR_EXTENSION_H */
+
+#endif /* CVC5_USE_NORMALIZ */

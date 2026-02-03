@@ -1,3 +1,4 @@
+; REQUIRES: normaliz
 (set-logic ALL)
 (set-info :status sat)
 (set-option :quiet true)

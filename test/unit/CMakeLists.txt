@@ -51,7 +51,6 @@ macro(cvc5_add_unit_test is_white name output_dir)
     target_include_directories(${name} PRIVATE ${GTest_INCLUDE_DIR})
     target_link_libraries(${name} PUBLIC main-test gmpxx)
     target_link_libraries(${name} PUBLIC main-test GMP)
-    target_link_libraries(${name} PUBLIC main-test Normaliz)
     target_link_libraries(${name} PUBLIC GTest::Main)
     target_link_libraries(${name} PUBLIC GTest::GTest)
 

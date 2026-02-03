@@ -71,6 +71,7 @@ The following flags enable optional packages (disable with --no-<option name>).
   --poly                   use the LibPoly library [default=yes]
   --cocoa                  use the CoCoA library
   --editline               support the editline library
+  --normaliz               use the Normaliz library
 
 Optional Path to Optional Packages:
   --glpk-dir=PATH          path to top level of GLPK installation
@@ -141,6 +142,7 @@ gpl=default
 kissat=default
 poly=ON
 cocoa=default
+normaliz=default
 muzzle=default
 ninja=default
 profiling=default
@@ -279,6 +281,9 @@ do
 
     --cocoa) cocoa=ON;;
     --no-cocoa) cocoa=OFF;;
+
+    --normaliz) normaliz=ON;;
+    --no-normaliz) normaliz=OFF;;
 
     --muzzle) muzzle=ON;;
     --no-muzzle) muzzle=OFF;;
@@ -490,6 +495,8 @@ fi
   && cmake_opts="$cmake_opts -DUSE_POLY=$poly"
 [ $cocoa != default ] \
   && cmake_opts="$cmake_opts -DUSE_COCOA=$cocoa"
+[ $normaliz != default ] \
+  && cmake_opts="$cmake_opts -DUSE_NORMALIZ=$normaliz"
 [ "$glpk_dir" != default ] \
   && cmake_opts="$cmake_opts -DGLPK_DIR=$glpk_dir"
 [ "$dep_path" != default ] \

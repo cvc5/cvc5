@@ -1594,6 +1594,16 @@ if(USE_COCOA)
   target_link_libraries(cvc5 PRIVATE $<BUILD_INTERFACE:CoCoA> $<INSTALL_INTERFACE:cocoa>)
 endif()
 
+if(USE_NORMALIZ)
+  add_dependencies(cvc5-obj Normaliz)
+  target_include_directories(cvc5-obj PRIVATE ${Normaliz_INCLUDE_DIR})
+  if(BUILD_SHARED_LIBS)
+    target_link_libraries(cvc5 PRIVATE $<BUILD_INTERFACE:Normaliz> $<INSTALL_INTERFACE:Normaliz>)
+  else()
+    target_link_libraries(cvc5 PUBLIC $<BUILD_INTERFACE:Normaliz> $<INSTALL_INTERFACE:Normaliz>)
+  endif()
+endif()
+
 add_dependencies(cvc5-obj SymFPU)
 target_include_directories(cvc5-obj SYSTEM PRIVATE ${SymFPU_INCLUDE_DIR})
 
@@ -1605,14 +1615,6 @@ if(BUILD_SHARED_LIBS)
   target_link_libraries(cvc5 PRIVATE $<BUILD_INTERFACE:GMP> $<INSTALL_INTERFACE:gmp>)
 else()
   target_link_libraries(cvc5 PUBLIC $<BUILD_INTERFACE:GMP> $<INSTALL_INTERFACE:gmp>)
-endif()
-
-add_dependencies(cvc5-obj Normaliz)
-target_include_directories(cvc5-obj PRIVATE ${Normaliz_INCLUDE_DIR})
-if(BUILD_SHARED_LIBS)
-  target_link_libraries(cvc5 PRIVATE $<BUILD_INTERFACE:Normaliz> $<INSTALL_INTERFACE:Normaliz>)
-else()
-  target_link_libraries(cvc5 PUBLIC $<BUILD_INTERFACE:Normaliz> $<INSTALL_INTERFACE:Normaliz>)
 endif()
 
 #-----------------------------------------------------------------------------#
