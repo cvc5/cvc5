@@ -79,8 +79,8 @@ if(NOT Normaliz_FOUND_SYSTEM)
   endif()
   set(CONFIGURE_ENV ${CONFIGURE_ENV} env "CXXFLAGS=${Normaliz_CXXFLAGS}" env "CFLAGS=${Normaliz_CFLAGS}")
 
-  set(Normaliz_VERSION "3.11.0")                         
-  set(Normaliz_CHECKSUM "14441981afce3546c1c0f12b490714da3564af7a60d12ac0a494f9d2382d1a01")
+  set(Normaliz_VERSION "3.11.1")
+  set(Normaliz_CHECKSUM "9a00d590f0fdcad847e2189696d2842d97ed896ed36c22421874a364047f76e8")
   
   message ("CONFIGURE_ENV: ${CONFIGURE_ENV}")
   message ("CONFIGURE_CMD_WRAPPER: ${CONFIGURE_CMD_WRAPPER}")

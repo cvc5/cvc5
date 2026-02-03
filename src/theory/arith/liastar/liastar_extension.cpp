@@ -313,7 +313,7 @@ LiaStarExtension::getCones(
     std::map<libnormaliz::NumParam::Param, long> num_param_input;
     std::map<libnormaliz::BoolParam::Param, bool> bool_param_input;
 
-    libnormaliz::renf_class_shared number_field_ref;
+    libnormaliz::renf_class_ptr number_field_ref;
 
     std::stringstream ss;
     ss << "amb_space " << dimension << std::endl;
