@@ -194,7 +194,8 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator,
 
   bool is_fixed(SatVariable var) const
   {
-    return var < d_var_info.size() && d_var_info[var].is_fixed;
+    Assert(var < d_var_info.size());
+    return d_var_info[var].is_fixed;
   }
 
   /**

@@ -218,7 +218,7 @@ Solver::Solver(Env& env,
 
 void Solver::attachProofManager(prop::PropPfManager* ppm)
 {
-  Assert(d_pfManager.get() == nullptr);
+  Assert(d_pfManager == nullptr);
   d_pfManager.reset(
       new SatProofManager(d_env, this, d_proxy->getCnfStream(), ppm));
 }

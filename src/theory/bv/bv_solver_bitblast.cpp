@@ -275,7 +275,7 @@ bool BVSolverBitblast::preNotifyFact(
   {
     d_bbFacts.push_back(fact);
   }
-  
+
   // Return false to enable equality engine reasoning in Theory, which is
   // available if we are using the equality engine.
   return !logicInfo().isSharingEnabled() && !options().bv.bvEqEngine;
@@ -346,11 +346,12 @@ bool BVSolverBitblast::collectModelValues(TheoryModel* m,
 
 void BVSolverBitblast::initSatSolver()
 {
-  const auto factory = prop::SatSolverFactory::getFactory(options().bv.bvSatSolver);
+  const auto factory =
+      prop::SatSolverFactory::getFactory(options().bv.bvSatSolver);
   d_satSolver.reset(factory(d_env,
-                               statisticsRegistry(),
-                               d_env.getResourceManager(),
-                               "theory::bv::BVSolverBitblast::"));
+                            statisticsRegistry(),
+                            d_env.getResourceManager(),
+                            "theory::bv::BVSolverBitblast::"));
 
   d_cnfStream.reset(new prop::CnfStream(d_env,
                                         d_satSolver.get(),
