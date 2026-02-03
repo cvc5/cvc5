@@ -568,9 +568,9 @@ bool SygusSimpleSymBreak::considerConst(
   return ret;
 }
 
-int SygusSimpleSymBreak::solveForArgument(TypeNode tn,
-                                          unsigned cindex,
-                                          unsigned arg)
+int SygusSimpleSymBreak::solveForArgument(CVC5_UNUSED TypeNode tn,
+                                          CVC5_UNUSED unsigned cindex,
+                                          CVC5_UNUSED unsigned arg)
 {
   // we currently do not solve for arguments
   return -1;
