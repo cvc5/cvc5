@@ -58,7 +58,7 @@ CoCoA::RingElem CoCoAConverter::operator()(const poly::Polynomial& q,
         for (size_t i = 0; i < m->n; ++i)
         {
           // variable exponent pair
-          CoCoA::RingElem var = d->d_state.d_varPC.at(m->p[i].x);
+          CoCoA::RingElem var = d->d_state.d_varPC.at(poly::Variable(m->p[i].x));
           re *= CoCoA::power(var, m->p[i].d);
         }
         d->d_result += re;
@@ -73,17 +73,17 @@ poly::Polynomial CoCoAConverter::convertImpl(const CoCoA::RingElem& p,
                                              poly::Integer& denominator) const
 {
   denominator = poly::Integer(1);
-  poly::Polynomial res;
+  poly::Polynomial res(d_polyCtx);
   for (CoCoA::SparsePolyIter i = CoCoA::BeginIter(p); !CoCoA::IsEnded(i); ++i)
   {
-    poly::Polynomial coeff;
+    poly::Polynomial coeff(d_polyCtx);
     poly::Integer denom(1);
     CoCoA::BigRat numcoeff;
     if (CoCoA::IsRational(numcoeff, CoCoA::coeff(i)))
     {
       poly::Rational rat(mpq_class(CoCoA::mpqref(numcoeff)));
       denom = poly::denominator(rat);
-      coeff = poly::numerator(rat);
+      coeff = poly::Polynomial(d_polyCtx, poly::numerator(rat));
     }
     else
     {
@@ -98,7 +98,8 @@ poly::Polynomial CoCoAConverter::convertImpl(const CoCoA::RingElem& p,
         if (exponents[vid] == 0) continue;
         const auto& ring = CoCoA::owner(p);
         poly::Variable v = d_varCP.at(std::make_pair(CoCoA::RingID(ring), vid));
-        coeff *= poly::Polynomial(poly::Integer(1), v, exponents[vid]);
+        coeff *=
+            poly::Polynomial(d_polyCtx, poly::Integer(1), v, exponents[vid]);
       }
     }
     if (denom != denominator)

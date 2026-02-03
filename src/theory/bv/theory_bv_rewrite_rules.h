@@ -501,8 +501,9 @@ struct AllRewriteRules {
   RewriteRule<SsuboEliminate> rule153;
 };
 
-template<> inline
-bool RewriteRule<EmptyRule>::applies(TNode node) {
+template <>
+inline bool RewriteRule<EmptyRule>::applies(CVC5_UNUSED TNode node)
+{
   return false;
 }
 

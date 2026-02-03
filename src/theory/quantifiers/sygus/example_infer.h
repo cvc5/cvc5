@@ -40,7 +40,7 @@ namespace quantifiers {
 class ExampleInfer
 {
  public:
-  ExampleInfer(NodeManager* nm, TermDbSygus* tds);
+  ExampleInfer(NodeManager* nm);
   ~ExampleInfer();
   /** initialize
    *
@@ -112,8 +112,6 @@ class ExampleInfer
       bool pol);
   /** Pointer to the node manager */
   NodeManager* d_nm;
-  /** Pointer to the sygus term database */
-  TermDbSygus* d_tds;
   /** is this an examples conjecture for all functions-to-synthesize? */
   bool d_isExamples;
   /**

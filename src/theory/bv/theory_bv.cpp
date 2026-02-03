@@ -198,7 +198,8 @@ bool TheoryBV::ppAssert(TrustNode tin, TrustSubstitutionMap& outSubstitutions)
   return false;
 }
 
-TrustNode TheoryBV::ppRewrite(TNode t, std::vector<SkolemLemma>& lems)
+TrustNode TheoryBV::ppRewrite(TNode t,
+                              CVC5_UNUSED std::vector<SkolemLemma>& lems)
 {
   Trace("theory-bv-pp-rewrite") << "ppRewrite " << t << "\n";
   Node res = t;

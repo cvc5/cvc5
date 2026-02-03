@@ -39,7 +39,7 @@ namespace strings {
 class EagerSolver : protected EnvObj
 {
  public:
-  EagerSolver(Env& env, SolverState& state, TermRegistry& treg);
+  EagerSolver(Env& env, SolverState& state);
   ~EagerSolver();
   /** called when a new equivalence class is created */
   void eqNotifyNewClass(TNode t);
@@ -76,8 +76,6 @@ class EagerSolver : protected EnvObj
   Node getBoundForLength(Node t, bool isLower) const;
   /** Reference to the solver state */
   SolverState& d_state;
-  /** Reference to the term registry */
-  TermRegistry& d_treg;
   /** Arithmetic entailment */
   ArithEntail d_aent;
   /** Regular expression entailment */

@@ -33,7 +33,7 @@ typedef RewriteResponse (*RewriteFunction)(NodeManager* nm, TNode, bool);
 class TheoryFpRewriter : public TheoryRewriter
 {
  public:
-  TheoryFpRewriter(NodeManager* nm, context::UserContext* u, bool fpExp);
+  TheoryFpRewriter(NodeManager* nm, bool fpExp);
 
   RewriteResponse preRewrite(TNode node) override;
   RewriteResponse postRewrite(TNode node) override;

@@ -1867,7 +1867,7 @@ enum ENUM(ProofRule)
    *
    *   \inferrule{t \not \in \mathit{re}.\text{++}(R_1, \ldots, R_n)\mid -}{\forall L. L < 0 \vee \mathit{str.len}(t) < L \vee \mathit{pre}(t, L) \not \in R_1 \vee \mathit{suf}(t, L) \not \in \mathit{re}.\text{++}(R_2, \ldots, R_n)}
    *
-   * Note that in either case the varaible :math:`L` has type :math:`Int` and
+   * Note that in either case the variable :math:`L` has type :math:`Int` and
    * name `"@var.str_index"`.
    *
    * \endverbatim

@@ -120,12 +120,12 @@ void TangentPlaneCheck::check(bool asWaitingLemmas)
             Node a_v = pts[0][p];
             Node b_v = pts[1][p];
 
+            Node mult_bv_a = nm->mkNode(Kind::MULT, b_v, a);
+            Node mult_av_b = nm->mkNode(Kind::MULT, a_v, b);
+            Node add_mults = nm->mkNode(Kind::ADD, mult_bv_a, mult_av_b);
+            Node mult_av_bv = nm->mkNode(Kind::MULT, a_v, b_v);
             // tangent plane
-            Node tplane = nm->mkNode(Kind::SUB,
-                                     nm->mkNode(Kind::ADD,
-                                                nm->mkNode(Kind::MULT, b_v, a),
-                                                nm->mkNode(Kind::MULT, a_v, b)),
-                                     nm->mkNode(Kind::MULT, a_v, b_v));
+            Node tplane = nm->mkNode(Kind::SUB, add_mults, mult_av_bv);
             // construct the following lemmas:
             // t <= tplane  <=>  ((a <= a_v ^ b >= b_v) v (a >= a_v ^ b <= b_v))
             // t >= tplane  <=>  ((a <= a_v ^ b <= b_v) v (a >= a_v ^ b >= b_v))
@@ -135,14 +135,14 @@ void TangentPlaneCheck::check(bool asWaitingLemmas)
               Node b1 = nm->mkNode(d == 0 ? Kind::GEQ : Kind::LEQ, b, b_v);
               Node b2 = nm->mkNode(d == 0 ? Kind::LEQ : Kind::GEQ, b, b_v);
               Node t2 = nm->mkNode(Kind::NONLINEAR_MULT, a, b);
-              Node tlem = nm->mkNode(
-                  Kind::EQUAL,
-                  nm->mkNode(d == 0 ? Kind::LEQ : Kind::GEQ, t2, tplane),
-                  nm->mkNode(
-                      Kind::OR,
-                      nm->mkNode(Kind::AND, nm->mkNode(Kind::LEQ, a, a_v), b1),
-                      nm->mkNode(
-                          Kind::AND, nm->mkNode(Kind::GEQ, a, a_v), b2)));
+              Node eq_lhs =
+                  nm->mkNode(d == 0 ? Kind::LEQ : Kind::GEQ, t2, tplane);
+              Node or1 =
+                  nm->mkNode(Kind::AND, nm->mkNode(Kind::LEQ, a, a_v), b1);
+              Node or2 =
+                  nm->mkNode(Kind::AND, nm->mkNode(Kind::GEQ, a, a_v), b2);
+              Node eq_rhs = nm->mkNode(Kind::OR, or1, or2);
+              Node tlem = nm->mkNode(Kind::EQUAL, eq_lhs, eq_rhs);
               Trace("nl-ext-tplanes")
                   << "Tangent plane lemma : " << tlem << std::endl;
               CDProof* proof = nullptr;
