@@ -31,20 +31,23 @@ Cardinality FiniteFieldProperties::computeCardinality(TypeNode type)
   return cardinality;
 }
 
-TypeNode FiniteFieldConstantTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode FiniteFieldConstantTypeRule::preComputeType(
+    CVC5_UNUSED NodeManager* nm, CVC5_UNUSED TNode n)
 {
   return TypeNode::null();
 }
-TypeNode FiniteFieldConstantTypeRule::computeType(NodeManager* nodeManager,
-                                                  TNode n,
-                                                  bool check,
-                                                  std::ostream* errOut)
+TypeNode FiniteFieldConstantTypeRule::computeType(
+    NodeManager* nodeManager,
+    TNode n,
+    CVC5_UNUSED bool check,
+    CVC5_UNUSED std::ostream* errOut)
 {
   return nodeManager->mkFiniteFieldType(
       n.getConst<FiniteFieldValue>().getFieldSize());
 }
 
-TypeNode FiniteFieldFixedFieldTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode FiniteFieldFixedFieldTypeRule::preComputeType(
+    CVC5_UNUSED NodeManager* nm, CVC5_UNUSED TNode n)
 {
   return TypeNode::null();
 }

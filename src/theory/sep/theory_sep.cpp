@@ -287,8 +287,11 @@ void TheorySep::presolve() {
 // MAIN SOLVER
 /////////////////////////////////////////////////////////////////////////////
 
-bool TheorySep::preNotifyFact(
-    TNode atom, bool polarity, TNode fact, bool isPrereg, bool isInternal)
+bool TheorySep::preNotifyFact(TNode atom,
+                              bool polarity,
+                              TNode fact,
+                              CVC5_UNUSED bool isPrereg,
+                              CVC5_UNUSED bool isInternal)
 {
   TNode satom = atom.getKind() == Kind::SEP_LABEL ? atom[0] : atom;
   TNode slbl = atom.getKind() == Kind::SEP_LABEL ? atom[1] : TNode::null();
@@ -317,8 +320,8 @@ bool TheorySep::preNotifyFact(
 
 void TheorySep::notifyFact(TNode atom,
                            bool polarity,
-                           TNode fact,
-                           bool isInternal)
+                           CVC5_UNUSED TNode fact,
+                           CVC5_UNUSED bool isInternal)
 {
   TNode satom = atom.getKind() == Kind::SEP_LABEL ? atom[0] : atom;
   if (atom.getKind() == Kind::SEP_LABEL && atom[0].getKind() == Kind::SEP_PTO)

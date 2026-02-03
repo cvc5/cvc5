@@ -25,7 +25,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace builtin {
 
-TypeNode EqualityTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode EqualityTypeRule::preComputeType(NodeManager* nm, CVC5_UNUSED TNode n)
 {
   return nm->booleanType();
 }
@@ -53,32 +53,34 @@ TypeNode EqualityTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->booleanType();
 }
 
-TypeNode SExprTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode SExprTypeRule::preComputeType(NodeManager* nm, CVC5_UNUSED TNode n)
 {
   return nm->sExprType();
 }
 TypeNode SExprTypeRule::computeType(NodeManager* nodeManager,
-                                    TNode n,
-                                    bool check,
-                                    std::ostream* errOut)
+                                    CVC5_UNUSED TNode n,
+                                    CVC5_UNUSED bool check,
+                                    CVC5_UNUSED std::ostream* errOut)
 {
   return nodeManager->sExprType();
 }
 
-TypeNode UninterpretedSortValueTypeRule::preComputeType(NodeManager* nm,
-                                                        TNode n)
+TypeNode UninterpretedSortValueTypeRule::preComputeType(
+    CVC5_UNUSED NodeManager* nm, CVC5_UNUSED TNode n)
 {
   return TypeNode::null();
 }
-TypeNode UninterpretedSortValueTypeRule::computeType(NodeManager* nodeManager,
-                                                     TNode n,
-                                                     bool check,
-                                                     std::ostream* errOut)
+TypeNode UninterpretedSortValueTypeRule::computeType(
+    CVC5_UNUSED NodeManager* nodeManager,
+    TNode n,
+    CVC5_UNUSED bool check,
+    CVC5_UNUSED std::ostream* errOut)
 {
   return n.getConst<UninterpretedSortValue>().getType();
 }
 
-TypeNode WitnessTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode WitnessTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
+                                         CVC5_UNUSED TNode n)
 {
   return TypeNode::null();
 }
@@ -134,14 +136,16 @@ TypeNode WitnessTypeRule::computeType(NodeManager* nodeManager,
   return n[0][0].getType();
 }
 
-TypeNode ApplyIndexedSymbolicTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode ApplyIndexedSymbolicTypeRule::preComputeType(
+    CVC5_UNUSED NodeManager* nm, CVC5_UNUSED TNode n)
 {
   return TypeNode::null();
 }
-TypeNode ApplyIndexedSymbolicTypeRule::computeType(NodeManager* nodeManager,
-                                                   TNode n,
-                                                   bool check,
-                                                   std::ostream* errOut)
+TypeNode ApplyIndexedSymbolicTypeRule::computeType(
+    NodeManager* nodeManager,
+    TNode n,
+    CVC5_UNUSED bool check,
+    CVC5_UNUSED std::ostream* errOut)
 {
   // get the concrete application version of this, if possible
   Node cn = GenericOp::getConcreteApp(n);
@@ -154,15 +158,16 @@ TypeNode ApplyIndexedSymbolicTypeRule::computeType(NodeManager* nodeManager,
   return cn.getType();
 }
 
-TypeNode TypeOfTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode TypeOfTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
+                                        CVC5_UNUSED TNode n)
 {
   return TypeNode::null();
 }
 
 TypeNode TypeOfTypeRule::computeType(NodeManager* nodeManager,
-                                     TNode n,
-                                     bool check,
-                                     std::ostream* errOut)
+                                     CVC5_UNUSED TNode n,
+                                     CVC5_UNUSED bool check,
+                                     CVC5_UNUSED std::ostream* errOut)
 {
   return nodeManager->builtinOperatorType();
 }
