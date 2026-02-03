@@ -37,8 +37,12 @@ DecisionEngineEmpty::DecisionEngineEmpty(Env& env)
 {
 }
 bool DecisionEngineEmpty::isDone() { return false; }
-void DecisionEngineEmpty::addAssertions(const std::vector<TNode>& lems) {}
-prop::SatLiteral DecisionEngineEmpty::getNextInternal(bool& stopSearch)
+void DecisionEngineEmpty::addAssertions(
+    CVC5_UNUSED const std::vector<TNode>& lems)
+{
+}
+prop::SatLiteral DecisionEngineEmpty::getNextInternal(
+    CVC5_UNUSED bool& stopSearch)
 {
   return prop::undefSatLiteral;
 }

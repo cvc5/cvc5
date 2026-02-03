@@ -48,7 +48,8 @@ public:
     this->ContextObj::deleteSelf();
   }
 
-  static void operator delete(void* pMem) {
+  static void operator delete(CVC5_UNUSED void* pMem)
+  {
     AlwaysAssert(false) << "It is not allowed to delete a ContextObj this way!";
   }
 
