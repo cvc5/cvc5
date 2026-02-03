@@ -1,3 +1,4 @@
+; EXPECT: sat
 (set-logic ALL)
 (declare-const x4 Bool)
 (declare-const x Int)
