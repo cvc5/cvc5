@@ -50,6 +50,8 @@ namespace icp {
  */
 struct Candidate
 {
+  /** The libpoly context */
+  const poly::Context& polyCtx;
   /** The target variable */
   poly::Variable lhs;
   /** The relation symbol */

@@ -164,6 +164,21 @@ enum class InferenceId
   ARITH_NL_IAND_SUM_REFINE,
   // bitwise refinements (IAndSolver::checkFullRefine)
   ARITH_NL_IAND_BITWISE_REFINE,
+  //-------------------- nonlinear piand solver
+  // initial refinements (PIAndSolver::checkInitialRefine)
+  ARITH_NL_PIAND_INIT_REFINE,
+  // sum refinements (PIAndSolver::checkFullRefine)
+  ARITH_NL_PIAND_SUM_REFINE,
+  // base case refinements (PIAndSolver::checkFullRefine)
+  ARITH_NL_PIAND_BASE_CASE_REFINE,
+  // difference refinements (PIAndSolver::checkFullRefine)
+  ARITH_NL_PIAND_DIFFERENCE_REFINE,
+  // symetry refinements (PIAndSolver::checkFullRefine)
+  ARITH_NL_PIAND_SYMETRY_REFINE,
+  // contradition refinements (PIAndSolver::checkFullRefine)
+  ARITH_NL_PIAND_CONTRADITION_REFINE,
+  // one refinements (PIAndSolver::checkFullRefine)
+  ARITH_NL_PIAND_ONE_REFINE,
   //-------------------- nonlinear pow2 solver
   // initial refinements (Pow2Solver::checkInitialRefine)
   ARITH_NL_POW2_INIT_REFINE,
@@ -623,6 +638,9 @@ enum class InferenceId
   //    ( explain_constant(x, c1) ^ explain_constant(x, c2) ^ x = y) => false
   // where c1 != c2.
   STRINGS_I_CONST_CONFLICT,
+  // An initial cycle conflict, for instance
+  //   ( x = x ++ y ) ^ y = "B" => false
+  STRINGS_I_CYCLE_CONFLICT,
   // initial normalize
   // Given two concatenation terms, this is applied when we find that they are
   // equal after e.g. removing strings that are currently empty. For example:

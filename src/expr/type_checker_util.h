@@ -154,7 +154,7 @@ template <class R, class A0 = ANone, class A1 = ANone, class A2 = ANone>
 class SimpleTypeRule
 {
  public:
-  static TypeNode preComputeType(NodeManager* nm, TNode n)
+  static TypeNode preComputeType(NodeManager* nm, CVC5_UNUSED TNode n)
   {
     return R::mkType(nm);
   }
@@ -207,7 +207,7 @@ template <class R, class A>
 class SimpleTypeRuleVar
 {
  public:
-  static TypeNode preComputeType(NodeManager* nm, TNode n)
+  static TypeNode preComputeType(NodeManager* nm, CVC5_UNUSED TNode n)
   {
     return R::mkType(nm);
   }

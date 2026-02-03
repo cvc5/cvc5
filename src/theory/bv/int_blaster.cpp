@@ -127,7 +127,6 @@ Node IntBlaster::maxInt(uint32_t k)
 
 Node IntBlaster::pow2(uint32_t k)
 {
-  Assert(k >= 0);
   return d_nm->mkConstInt(intpow2(k));
 }
 
@@ -1064,19 +1063,8 @@ Node IntBlaster::translateQuantifiedFormula(Node quantifiedNode)
   // that involve quantified variables
   std::unordered_set<Node> applys;
   expr::getKindSubterms(quantifiedNode[1], Kind::APPLY_UF, true, applys);
-  for (const Node& apply : applys)
-  {
-    Trace("int-blaster-debug")
-        << "quantified uf application: " << apply << std::endl;
-    Node f = apply.getOperator();
-    Trace("int-blaster-debug") << "quantified uf symbol: " << f << std::endl;
-    TypeNode range = f.getType().getRangeType();
-    if (range.isBitVector())
-    {
-      unsigned bvsize = range.getBitVectorSize();
-      rangeConstraints.push_back(
-          mkRangeConstraint(d_intblastCache[apply], bvsize));
-    }
+  if (applys.size() > 0) {
+     throw LogicException("bv-to-int does not support the combination of quantifiers and uninterpreted functions");
   }
 
   // the body of the quantifier

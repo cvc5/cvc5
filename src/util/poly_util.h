@@ -109,6 +109,9 @@ std::size_t totalDegree(const poly::Polynomial& p);
  */
 struct VariableInformation
 {
+  /** The libpoly context */
+  const poly::Context* polyCtx;
+  /** The variable */
   poly::Variable var;
   /** Maximum degree of this variable. */
   std::size_t max_degree = 0;

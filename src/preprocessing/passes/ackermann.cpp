@@ -213,12 +213,8 @@ void collectUSortsToBV(NodeManager* nm,
   {
     TypeNode type = var.getType();
     size_t size = getBVSkolemSize(usortCardinality.at(type));
-    Node skolem = NodeManager::mkDummySkolem(
-        "ackermann.bv",
-        nm->mkBitVectorType(size),
-        "a variable created by the ackermannization "
-        "preprocessing pass, representing a variable with uninterpreted sort "
-            + type.toString() + ".");
+    Node skolem =
+        NodeManager::mkDummySkolem("ackermann.bv", nm->mkBitVectorType(size));
     usVarsToBVVars.addSubstitution(var, skolem);
   }
 }

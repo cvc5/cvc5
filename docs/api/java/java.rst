@@ -25,13 +25,55 @@ provides more details on the individual classes.
 Using the cvc5 Java API in a Maven project
 ------------------------------------------
 
-.. note::
+To use a release version of the library in your Maven project,
+add the following dependencies to your POM file:
 
-   As of version 1.3.1, a stable release has not yet been published to Maven Central.
-   Only snapshot builds are available in the Central Portal Snapshots repository.
+.. code-block:: xml
 
-To use the library in your Maven project, add the following
-repository and dependency settings:
+  <dependencies>
+    <!-- cvc5 Java bindings (pure Java API) -->
+    <dependency>
+      <groupId>io.github.cvc5</groupId>
+      <artifactId>cvc5</artifactId>
+      <version>${cvc5.version}</version>
+    </dependency>
+
+    <!-- cvc5 native JNI library for the target platform -->
+    <dependency>
+      <groupId>io.github.cvc5</groupId>
+      <artifactId>cvc5</artifactId>
+      <version>${cvc5.version}</version>
+      <classifier>${os.classifier}</classifier>
+    </dependency>
+  </dependencies>
+
+Here, ``${cvc5.version}`` refers to one of the versions published in
+`Maven Central <https://central.sonatype.com/artifact/io.github.cvc5/cvc5>`_
+(e.g., ``1.3.2-1``). The ``${os.classifier}`` variable specifies
+the operating system and CPU architecture
+(e.g., ``linux-x86_64`` or ``osx-aarch_64``).
+
+You can make Maven automatically retrieve the correct classifier using
+the `os-maven-plugin <https://github.com/trustin/os-maven-plugin>`_:
+
+.. code-block:: xml
+
+  <build>
+    <extensions>
+      <extension>
+        <groupId>kr.motd.maven</groupId>
+        <artifactId>os-maven-plugin</artifactId>
+        <version>1.7.0</version>
+      </extension>
+    </extensions>
+  </build>
+
+After adding this plugin, use the ``${os.detected.classifier}`` property
+as the classifier value.
+
+To use the latest development version of the library,
+as opposed to a release version, add also the following repository to
+your POM file:
 
 .. code-block:: xml
 
@@ -49,44 +91,10 @@ repository and dependency settings:
     </repository>
   </repositories>
 
-  <dependencies>
-    <!-- cvc5 Java bindings (pure Java API) -->
-    <dependency>
-      <groupId>io.github.cvc5</groupId>
-      <artifactId>cvc5</artifactId>
-      <version>${cvc5.version}-SNAPSHOT</version>
-    </dependency>
-
-    <!-- cvc5 native JNI library for the target platform -->
-    <dependency>
-      <groupId>io.github.cvc5</groupId>
-      <artifactId>cvc5</artifactId>
-      <version>${cvc5.version}-SNAPSHOT</version>
-      <classifier>${os.classifier}</classifier>
-    </dependency>
-  </dependencies>
-
-Here, ``${cvc5.version}`` refers to the version following the latest stable release
-(e.g., use ``1.3.2`` if the latest stable version is ``1.3.1``).
-The ``${os.classifier}`` variable specifies the operating system and CPU architecture
-(e.g., ``linux-x86_64`` or ``osx-aarch_64``).
-
-You can automatically retrieve the correct classifier using the
-`os-maven-plugin <https://github.com/trustin/os-maven-plugin>`_:
-
-.. code-block:: xml
-
-  <build>
-    <extensions>
-      <extension>
-        <groupId>kr.motd.maven</groupId>
-        <artifactId>os-maven-plugin</artifactId>
-        <version>1.7.0</version>
-      </extension>
-    </extensions>
-  </build>
-
-After adding the plugin, use ``${os.detected.classifier}`` as the classifier value.
+Then, use ``${next.cvc5.version}-SNAPSHOT`` as the version for the library
+dependencies, where ``${next.cvc5.version}`` must be the version following
+the latest release (e.g., use ``1.3.3`` if the latest release version is
+``1.3.2``).
 
 
 Using self-contained cvc5 Java API JAR
@@ -129,6 +137,27 @@ After compilation, execute the example with:
 Building cvc5 Java API
 ^^^^^^^^^^^^^^^^^^^^^^
 
+This section describes how to build the cvc5 Java bindings from source.
+If you want to create a single JNI native library file that includes
+all required library dependencies, pass the ``--static`` option to ``configure.sh``
+in the steps below. This option also generates a JAR file that bundles the JNI library,
+which can be installed into a Maven repository.
+When using ``--static``, you may need to recompile some external cvc5 dependencies from
+source rather than relying on the static versions
+provided by your operating system. This ensures that all dependencies are compiled as
+Position-Independent Code (PIC).
+For instance, to statically compile the GMP library with PIC enabled,
+pass the ``--static`` and ``--auto-download`` options, along with
+``-DBUILD_GMP=1``. This forces GMP to be built from source with the PIC option enabled.
+
+To additionally generate the ``sources`` and ``javadoc`` JAR files,
+pass the ``--docs`` option.
+
+The following example shows a typical build workflow for compiling and installing
+the cvc5 Java bindings with shared libraries. Adjust the configuration options as
+needed (e.g., add ``--static`` or ``--docs``) depending on your desired
+build artifacts.
+
 .. code-block:: bash
 
      $ git clone https://github.com/cvc5/cvc5
@@ -141,7 +170,7 @@ Building cvc5 Java API
      $ ls install/lib
        cmake             libcvc5parser.so.1  libpoly.so        libpolyxx.so
        libcvc5jni.so     libcvc5.so          libpoly.so.0      libpolyxx.so.0
-       libcvc5parser.so  libcvc5.so.1        libpoly.so.0.2.0  libpolyxx.so.0.2.0
+       libcvc5parser.so  libcvc5.so.1        libpoly.so.0.2.1  libpolyxx.so.0.2.1
      $ ls install/share/java/
        cvc5-1.3.2-SNAPSHOT.jar  cvc5.jar
 
@@ -163,6 +192,10 @@ Building cvc5 Java API
        (< 0 a)
        (< 0 b)
        (< (+ a b) 1)
+
+After building the project with ``make``, you can install
+the generated artifacts into your local Maven repository by running
+``mvn install`` from within the build directory.
 
 ----
 

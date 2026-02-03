@@ -26,11 +26,8 @@ namespace cvc5::internal {
 namespace theory {
 namespace bags {
 
-TermRegistry::TermRegistry(Env& env, SolverState& state, InferenceManager& im)
-    : EnvObj(env),
-      d_im(im),
-      d_proxy(userContext()),
-      d_proxy_to_term(userContext())
+TermRegistry::TermRegistry(Env& env, SolverState& state)
+    : EnvObj(env), d_proxy(userContext()), d_proxy_to_term(userContext())
 {
 }
 

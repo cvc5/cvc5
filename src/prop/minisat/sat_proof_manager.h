@@ -618,9 +618,6 @@ class SatProofManager : protected EnvObj
   /** Prints clause, as a sequence of literals, in the "sat-proof" trace. */
   void printClause(const Minisat::Clause& clause);
 
-  /** The user context */
-  context::UserContext* d_userContext;
-
   /** User-context dependent map from resolution conclusions to their assertion
       level. */
   context::CDHashMap<Node, int> d_optResLevels;

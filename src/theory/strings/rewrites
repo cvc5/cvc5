@@ -291,6 +291,20 @@
   (str.replace_all t s r)
   t)
 
+(define-cond-rule str-replace-all-empty ((t ?Seq) (s ?Seq) (r ?Seq))
+  (= (str.len s) 0)
+  (str.replace_all t s r)
+  t)
+
+(define-rule str-replace-all-id ((t ?Seq) (s ?Seq))
+  (str.replace_all t s s)
+  t)
+
+(define-cond-rule str-replace-all-self ((t ?Seq) (s ?Seq))
+  (not (= (str.len t) 0))
+  (str.replace_all t t s)
+  s)
+
 (define-rule str-replace-re-none ((t ?Seq) (r ?Seq))
   (str.replace_re t re.none r)
   t)
@@ -334,13 +348,13 @@
   (- 1))
 
 (define-cond-rule str-indexof-contains-pre ((t1 ?Seq) (t2 ?Seq :list) (s ?Seq) (n Int))
-  (str.contains (str.substr t1 n (str.len t1)) s)
+  (and (> (str.len s) 0) (str.contains (str.substr t1 n (str.len t1)) s))
   (str.indexof (str.++ t1 t2) s n)
   (str.indexof t1 s n))
 
 (define-rule str-indexof-contains-concat-pre ((t1 ?Seq :list) (t ?Seq) (t2 ?Seq :list) (s ?Seq))
-  (str.indexof (str.++ t1 t s t2) s 0)
-  (str.indexof (str.++ t1 t) s 0))
+  (str.indexof (str.++ t1 t s t2) t 0)
+  (str.indexof (str.++ t1 t) t 0))
 
 (define-cond-rule str-indexof-find-emp ((t ?Seq) (emp ?Seq) (n Int))
   (and (= (str.len emp) 0) (>= (str.len t) n) (>= n 0))
@@ -357,7 +371,7 @@
   (- 1))
 
 (define-cond-rule str-indexof-re-emp-re ((t String) (r RegLan) (n Int))
-  (and (str.in_re "" r) (>= (str.len t) n))
+  (and (str.in_re "" r) (>= (str.len t) n) (>= n (- 1)))
   (str.indexof_re t r n)
   n)
 
@@ -396,9 +410,13 @@
   (str.from_int n))
 
 (define-cond-rule str-to-int-concat-neg-one ((s1 String :list) (s2 String) (s3 String :list))
-  (= (str.to_int s2) (- 1))
+  (and (= (str.to_int s2) (- 1)) (not (= (str.len s2) 0)))
   (str.to_int (str.++ s1 s2 s3))
   (- 1))
+
+(define-rule str-is-digit-elim ((s String))
+  (str.is_digit s)
+  (and (<= 48 (str.to_code s)) (<= (str.to_code s) 57)))
 
 (define-rule str-leq-empty ((s String))
   (str.<= "" s)

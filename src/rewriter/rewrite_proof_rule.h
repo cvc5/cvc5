@@ -202,8 +202,6 @@ class RewriteProofRule
   Node d_context;
   /** The level */
   Level d_level;
-  /** Whether the rule is in flat form */
-  bool d_isFlatForm;
   /** the ordered list of free variables, provided by the user */
   std::vector<Node> d_userFvs;
   /** the ordered list of free variables */

@@ -91,7 +91,11 @@ Term ParserState::getExpressionForNameAndType(const std::string& name, Sort t)
   return expr;
 }
 
-bool ParserState::getTesterName(Term cons, std::string& name) { return false; }
+bool ParserState::getTesterName(CVC5_UNUSED Term cons,
+                                CVC5_UNUSED std::string& name)
+{
+  return false;
+}
 
 Kind ParserState::getKindForFunction(Term fun)
 {
@@ -744,9 +748,11 @@ std::string ParserState::stripQuotes(const std::string& s)
 
 Term ParserState::mkCharConstant(const std::string& s)
 {
-  Assert(s.find_first_not_of("0123456789abcdefABCDEF", 0) == std::string::npos
-         && s.size() <= 5 && s.size() > 0)
-      << "Unexpected string for hexadecimal character " << s;
+  if (!(s.find_first_not_of("0123456789abcdefABCDEF", 0) == std::string::npos
+        && s.size() <= 5 && s.size() > 0))
+  {
+    parseError("Unexpected string for hexadecimal character: `" + s + "'");
+  }
   char32_t val = static_cast<char32_t>(std::stoul(s, 0, 16));
   return d_tm.mkString(std::u32string(1, val));
 }

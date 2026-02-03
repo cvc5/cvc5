@@ -770,12 +770,38 @@ Node ExtfSolver::getCurrentSubstitutionFor(int effort,
       return n;
     }
     NormalForm& nfnr = d_csolver.getNormalForm(nr);
-    Node ns = d_csolver.getNormalString(nfnr.d_base, exp);
-    Trace("strings-subs") << "   normal eqc : " << ns << " " << nfnr.d_base
-                          << " " << nr << std::endl;
-    if (!nfnr.d_base.isNull())
+    Node ns;
+    if (n.getKind() == Kind::STRING_CONCAT && n != nfnr.d_base)
     {
-      d_im.addToExplanation(n, nfnr.d_base, exp);
+      // if the normal base is a term (str.++ t1 t2), and we are a term
+      // (str.++ s1 s2), then we explain the normal form concatentation of
+      // s1 and s2, instead of explaining (= (str.++ s1 s2) (str.++ t1 t2)) and
+      // concatentating the normal form explanation of t1 and t2. This
+      // ensures the explanation when taking as a substitution does not have
+      // concatentation terms on the LHS of equalities, which can lead to
+      // cyclic proof dependencies.
+      std::vector<Node> vec;
+      for (const Node& nc : n)
+      {
+        Node ncr = d_state.getRepresentative(nc);
+        Assert(d_csolver.hasNormalForm(ncr));
+        NormalForm& nfnrc = d_csolver.getNormalForm(ncr);
+        Node nsc = d_csolver.getNormalString(nfnrc.d_base, exp);
+        d_im.addToExplanation(nc, nfnrc.d_base, exp);
+        vec.push_back(nsc);
+      }
+      TypeNode stype = n.getType();
+      ns = d_termReg.mkNConcat(vec, stype);
+    }
+    else
+    {
+      ns = d_csolver.getNormalString(nfnr.d_base, exp);
+      Trace("strings-subs") << "   normal eqc : " << ns << " " << nfnr.d_base
+                            << " " << nr << std::endl;
+      if (!nfnr.d_base.isNull())
+      {
+        d_im.addToExplanation(n, nfnr.d_base, exp);
+      }
     }
     return ns;
   }

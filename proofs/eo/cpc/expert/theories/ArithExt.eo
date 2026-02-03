@@ -4,6 +4,10 @@
 ; disclaimer: This function is not in SMT-LIB.
 (declare-const iand (-> Int Int Int Int))
 
+; The "parametric integer-and" operator, see Berger et al SAT 2025.
+; disclaimer: This function is not in SMT-LIB.
+(declare-const piand (-> Int Int Int Int))
+
 ; Power function.
 ; disclaimer: This function is not a function in SMT-LIB. 
 (declare-parameterized-const ^ ((T Type :implicit))

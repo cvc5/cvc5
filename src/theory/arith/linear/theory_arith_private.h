@@ -452,7 +452,7 @@ private:
    */
   void preRegisterTerm(TNode n);
 
-  void propagate(Theory::Effort e);
+  void propagate();
   TrustNode explain(TNode n);
 
   Rational deltaValueForTotalOrder() const;
@@ -492,7 +492,7 @@ private:
 
   //--------------------------------- standard check
   /** Pre-check, called before the fact queue of the theory is processed. */
-  bool preCheck(Theory::Effort level, bool newFacts);
+  bool preCheck(bool newFacts);
   /** Pre-notify fact. */
   void preNotifyFact(TNode fact);
   /**
@@ -634,10 +634,10 @@ private:
   bool rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, ConstraintP bestImplied);
   //void enqueueConstraints(std::vector<ConstraintCP>& out, Node n) const;
   //ConstraintCPVec resolveOutPropagated(const ConstraintCPVec& v, const std::set<ConstraintCP>& propagated) const;
-  void resolveOutPropagated(std::vector<ConstraintCPVec>& confs, const std::set<ConstraintCP>& propagated) const;
+  void resolveOutPropagated(std::vector<ConstraintCPVec>& confs) const;
   void subsumption(std::vector<ConstraintCPVec>& confs) const;
 
-  Node cutToLiteral(ApproximateSimplex*  approx, const CutInfo& cut) const;
+  Node cutToLiteral(const CutInfo& cut) const;
   Node branchToNode(ApproximateSimplex* approx, const NodeLog& cut) const;
 
   void propagateCandidates();

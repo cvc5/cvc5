@@ -480,8 +480,6 @@ class Smt2State : public ParserState
   bool d_freshBinders;
   /** Has the logic been set (either by forcing it or a set-logic command)? */
   bool d_logicSet;
-  /** Have we seen a set-logic command yet? */
-  bool d_seenSetLogic;
   /** The current logic */
   internal::LogicInfo d_logic;
   /** Maps strings to the operator it is bound to */

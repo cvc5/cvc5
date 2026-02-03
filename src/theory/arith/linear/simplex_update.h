@@ -179,7 +179,7 @@ public:
    * This updates the nonBasicDelta to d and limiting to c.
    * This clears errorChange() and focusDir().
    */
-  void updatePivot(const DeltaRational& d, const Rational& r,  ConstraintP c);
+  void updatePivot(const DeltaRational& d, ConstraintP c);
 
   /**
    * This updates the nonBasicDelta to d, limiting to c, and errorChange to e.

@@ -56,8 +56,11 @@ void EqualitySolver::finishInit()
   d_ee->addFunctionKind(Kind::POW2);
 }
 
-bool EqualitySolver::preNotifyFact(
-    TNode atom, bool pol, TNode fact, bool isPrereg, bool isInternal)
+bool EqualitySolver::preNotifyFact(TNode atom,
+                                   CVC5_UNUSED bool pol,
+                                   TNode fact,
+                                   CVC5_UNUSED bool isPrereg,
+                                   CVC5_UNUSED bool isInternal)
 {
   if (atom.getKind() != Kind::EQUAL)
   {
@@ -143,7 +146,7 @@ bool EqualitySolver::EqualitySolverNotify::eqNotifyTriggerPredicate(
 }
 
 bool EqualitySolver::EqualitySolverNotify::eqNotifyTriggerTermEquality(
-    TheoryId tag, TNode t1, TNode t2, bool value)
+    CVC5_UNUSED TheoryId tag, TNode t1, TNode t2, bool value)
 {
   Trace("arith-eq-solver") << "...propagate (term eq) " << t1.eqNode(t2)
                            << " -> " << value << std::endl;
