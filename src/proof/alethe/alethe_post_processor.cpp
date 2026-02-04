@@ -157,14 +157,30 @@ bool AletheProofPostprocessCallback::updateTheoryRewriteProofRewriteRule(
     // qnt_join expresses quite well what QUANT_MERGE_PRENEX does but can only merge two quantifiers at a time
     // and expects duplicates to be deleted.
     //
-    // ------- QNT_JOIN  ------- QNT_JOIN 
-    //   VP0               VP1
-    // ---------------------------- TRANS
+    // First:
     //
+    // --------- QNT_JOIN  --------- QNT_JOIN 
+    //   VP_a1               VP_a2
+    // ----------------------------- TRANS
+    //             VP_b1
+    //
+    // Then, for i=1 to i=n-1 repeat:
+    //
+    //                    ------------ QNT_JOIN 
+    //   VP_b_i             VP_a_i+1
+    // ------------------------------- TRANS
+    //             VP_b_i+1
     //
     // VP0: (cl (= (Q X1. Q X2. ... Q Xn. F) (Q Y1. Q X3. ... Q Xn.  F)))
-    // VPi: (cl (= (Q Yi. Q X_i+2. ... Q Xn. F) (Q Y_i+1. Q X_i+3. ... Q Xn. F))), for i>0
-    // Where Yi = Y_i-1 u 
+    // VP_a_i: (cl (= (Q Yi. Q X_i+2. ... Q Xn. F) (Q Y_i+1. Q X_i+3. ... Q Xn. F))), for i>0
+    // VP_b_i: (cl (= (Q X1. Q X2. ... Q Xn. F) (Q Y_i+1. Q X_i+3. ... Q Xn. F))), for i>0
+    // Where Y_i = Y_i-1 u X_i and Y_0={} 
+    //
+    // Finally,
+    //
+    //   VP_b_n
+    // ---------- QNT_REMOVE_UNUSED
+    //   res
     //
     case ProofRewriteRule::QUANT_MERGE_PRENEX:
     {
