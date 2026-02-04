@@ -108,7 +108,6 @@ class CoveringsProofGenerator : protected EnvObj
                  VariableMapper& vm,
                  const poly::Polynomial& p,
                  const poly::Assignment& a,
-                 poly::SignCondition& sc,
                  const poly::Interval& interval,
                  Node constraint,
                  size_t intervalId);

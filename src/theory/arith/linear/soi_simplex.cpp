@@ -184,14 +184,17 @@ uint32_t SumOfInfeasibilitiesSPD::degeneratePivotsInARow() const {
   Unreachable();
 }
 
-void SumOfInfeasibilitiesSPD::adjustFocusAndError(const UpdateInfo& up, const AVIntPairVec& focusChanges){
+void SumOfInfeasibilitiesSPD::adjustFocusAndError(
+    const AVIntPairVec& focusChanges)
+{
   uint32_t newErrorSize = d_errorSet.errorSize();
   adjustInfeasFunc(d_statistics.d_soiFocusConstructionTimer, d_soiVar, focusChanges);
   d_errorSize = newErrorSize;
 }
 
-
-UpdateInfo SumOfInfeasibilitiesSPD::selectUpdate(LinearEqualityModule::UpdatePreferenceFunction upf, LinearEqualityModule::VarPreferenceFunction bpf) {
+UpdateInfo SumOfInfeasibilitiesSPD::selectUpdate(
+    LinearEqualityModule::UpdatePreferenceFunction upf)
+{
   UpdateInfo selected;
 
   Trace("soi::selectPrimalUpdate")
@@ -311,8 +314,8 @@ void SumOfInfeasibilitiesSPD::debugPrintSignal(ArithVar updated) const{
   Trace("updateAndSignal") << " debugBasicAtBoundCount " << d_linEq.debugBasicAtBoundCount(updated) << endl;
 }
 
-
-void SumOfInfeasibilitiesSPD::updateAndSignal(const UpdateInfo& selected, WitnessImprovement w){
+void SumOfInfeasibilitiesSPD::updateAndSignal(const UpdateInfo& selected)
+{
   ArithVar nonbasic = selected.nonbasic();
 
   Trace("updateAndSignal") << "updateAndSignal " << selected << endl;
@@ -363,7 +366,7 @@ void SumOfInfeasibilitiesSPD::updateAndSignal(const UpdateInfo& selected, Witnes
 
   //Assert(debugSelectedErrorDropped(selected, d_errorSize, d_errorSet.errorSize()));
 
-  adjustFocusAndError(selected, focusChanges);
+  adjustFocusAndError(focusChanges);
 }
 
 void SumOfInfeasibilitiesSPD::qeAddRange(uint32_t begin, uint32_t end){
@@ -832,12 +835,7 @@ WitnessImprovement SumOfInfeasibilitiesSPD::soiRound() {
     upf = &LinearEqualityModule::preferWitness<true>;
   }
 
-  LinearEqualityModule::VarPreferenceFunction bpf = useBlands ?
-    &LinearEqualityModule::minVarOrder :
-    &LinearEqualityModule::minRowLength;
-  bpf = &LinearEqualityModule::minVarOrder;
-
-  UpdateInfo selected = selectUpdate(upf, bpf);
+  UpdateInfo selected = selectUpdate(upf);
 
   if(selected.uninitialized()){
     Trace("selectFocusImproving") << "SOI is optimum, but we don't have sat/conflict yet" << endl;
@@ -847,7 +845,7 @@ WitnessImprovement SumOfInfeasibilitiesSPD::soiRound() {
     WitnessImprovement w = selected.getWitness(false);
     Assert(debugCheckWitness(selected, w, false));
 
-    updateAndSignal(selected, w);
+    updateAndSignal(selected);
     logPivot(w);
     return w;
   }

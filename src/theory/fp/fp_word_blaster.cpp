@@ -136,8 +136,8 @@ stickyRightShiftResult<traits> stickyRightShift(const traits::ubv& input,
 }
 
 template <>
-void probabilityAnnotation<traits, traits::prop>(const traits::prop& p,
-                                                 const probability& pr)
+void probabilityAnnotation<traits, traits::prop>(
+    CVC5_UNUSED const traits::prop& p, CVC5_UNUSED const probability& pr)
 {
   // For now, do nothing...
   return;
@@ -171,9 +171,9 @@ void traits::invariant(const bool b)
   return;
 }
 
-void traits::precondition(const prop& p) { return; }
-void traits::postcondition(const prop& p) { return; }
-void traits::invariant(const prop& p) { return; }
+void traits::precondition(CVC5_UNUSED const prop& p) { return; }
+void traits::postcondition(CVC5_UNUSED const prop& p) { return; }
+void traits::invariant(CVC5_UNUSED const prop& p) { return; }
 // This allows us to use the symfpu literal / symbolic assertions in the
 // symbolic back-end
 typedef traits t;
@@ -1284,7 +1284,7 @@ Node FpWordBlaster::wordBlast(TNode node)
   return node;
 }
 
-Node FpWordBlaster::getValue(Valuation& val, TNode var)
+Node FpWordBlaster::getValue(TNode var)
 {
   Assert(var.getKind() == Kind::FLOATINGPOINT_TO_FP_FROM_SBV
          || var.getKind() == Kind::FLOATINGPOINT_TO_FP_FROM_UBV

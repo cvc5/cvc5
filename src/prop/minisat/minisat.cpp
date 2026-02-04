@@ -120,7 +120,6 @@ void MinisatSatSolver::initialize(TheoryProxy* theoryProxy, PropPfManager* ppm)
       new Minisat::SimpSolver(d_env,
                               theoryProxy,
                               context(),
-                              userContext(),
                               ppm,
                               options().base.incrementalSolving
                                   || options().decision.decisionMode

@@ -209,7 +209,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "unsatAssumptions"
-  category   = "regular"
+  category   = "common"
   long       = "produce-unsat-assumptions"
   type       = "bool"
   default    = "false"

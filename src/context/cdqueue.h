@@ -87,8 +87,7 @@ public:
   /** Creates a new CDQueue associated with the current context. */
  CDQueue(Context* context,
          bool callCleanup = true,
-         const CleanUp& cleanup = CleanUp(),
-         const Allocator& alloc = Allocator())
+         const CleanUp& cleanup = CleanUp())
      : ParentType(context, callCleanup, cleanup), d_iter(0), d_lastsave(0)
  {
  }
