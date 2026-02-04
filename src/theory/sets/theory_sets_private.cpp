@@ -53,7 +53,7 @@ TheorySetsPrivate::TheorySetsPrivate(Env& env,
       d_external(external),
       d_state(state),
       d_im(im),
-      d_treg(d_env, state, im, skc),
+      d_treg(d_env, im, skc),
       d_rels(new TheorySetsRels(d_env, state, im, skc, d_treg)),
       d_cardSolver(new CardinalityExtension(d_env, state, im, d_treg)),
       d_hasEnabledRels(false),
@@ -163,7 +163,9 @@ void TheorySetsPrivate::eqNotifyMerge(TNode t1, TNode t2)
   }
 }
 
-void TheorySetsPrivate::eqNotifyDisequal(TNode t1, TNode t2, TNode reason)
+void TheorySetsPrivate::eqNotifyDisequal(TNode t1,
+                                         TNode t2,
+                                         CVC5_UNUSED TNode reason)
 {
   if (t1.getType().isSet())
   {
@@ -1389,7 +1391,9 @@ void TheorySetsPrivate::postCheck(Theory::Effort level)
   Trace("sets-check") << "Sets finish Check effort " << level << std::endl;
 }
 
-void TheorySetsPrivate::notifyFact(TNode atom, bool polarity, TNode fact)
+void TheorySetsPrivate::notifyFact(TNode atom,
+                                   bool polarity,
+                                   CVC5_UNUSED TNode fact)
 {
   if (d_state.isInConflict())
   {

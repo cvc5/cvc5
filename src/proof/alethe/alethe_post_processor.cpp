@@ -72,16 +72,17 @@ const std::string& AletheProofPostprocessCallback::getError()
   return d_reasonForConversionFailure;
 }
 
-bool AletheProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
-                                                  const std::vector<Node>& fa,
-                                                  bool& continueUpdate)
+bool AletheProofPostprocessCallback::shouldUpdate(
+    std::shared_ptr<ProofNode> pn,
+    CVC5_UNUSED const std::vector<Node>& fa,
+    CVC5_UNUSED bool& continueUpdate)
 {
   return d_reasonForConversionFailure.empty()
          && pn->getRule() != ProofRule::ALETHE_RULE;
 }
 
 bool AletheProofPostprocessCallback::shouldUpdatePost(
-    std::shared_ptr<ProofNode> pn, const std::vector<Node>& fa)
+    std::shared_ptr<ProofNode> pn, CVC5_UNUSED const std::vector<Node>& fa)
 {
   if (!d_reasonForConversionFailure.empty() || pn->getArguments().empty())
   {
@@ -95,7 +96,7 @@ bool AletheProofPostprocessCallback::shouldUpdatePost(
 bool AletheProofPostprocessCallback::updateTheoryRewriteProofRewriteRule(
     Node res,
     const std::vector<Node>& children,
-    const std::vector<Node>& args,
+    CVC5_UNUSED const std::vector<Node>& args,
     CDProof* cdp,
     ProofRewriteRule di)
 {
@@ -239,7 +240,7 @@ bool AletheProofPostprocessCallback::update(Node res,
                                             const std::vector<Node>& children,
                                             const std::vector<Node>& args,
                                             CDProof* cdp,
-                                            bool& continueUpdate)
+                                            CVC5_UNUSED bool& continueUpdate)
 {
   Trace("alethe-proof") << "...Alethe pre-update " << res << " " << id << " "
                         << children << " / " << args << std::endl;
@@ -2724,7 +2725,7 @@ bool AletheProofPostprocessCallback::maybeReplacePremiseProof(Node premise,
 
 bool AletheProofPostprocessCallback::updatePost(
     Node res,
-    ProofRule id,
+    CVC5_UNUSED ProofRule id,
     const std::vector<Node>& children,
     const std::vector<Node>& args,
     CDProof* cdp)
@@ -2974,7 +2975,7 @@ bool AletheProofPostprocessCallback::updatePost(
 
 bool AletheProofPostprocessCallback::ensureFinalStep(
     Node res,
-    ProofRule id,
+    CVC5_UNUSED ProofRule id,
     std::vector<Node>& children,
     const std::vector<Node>& args,
     CDProof* cdp)

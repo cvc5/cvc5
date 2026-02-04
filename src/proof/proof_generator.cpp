@@ -40,7 +40,7 @@ ProofGenerator::ProofGenerator() {}
 
 ProofGenerator::~ProofGenerator() {}
 
-std::shared_ptr<ProofNode> ProofGenerator::getProofFor(Node f)
+std::shared_ptr<ProofNode> ProofGenerator::getProofFor(CVC5_UNUSED Node f)
 {
   Unreachable() << "ProofGenerator::getProofFor: " << identify()
                 << " has no implementation" << std::endl;

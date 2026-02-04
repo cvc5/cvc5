@@ -29,9 +29,10 @@ ProofPostprocessCallback::ProofPostprocessCallback(
 
 void ProofPostprocessCallback::initializeUpdate() { d_assumpToProof.clear(); }
 
-bool ProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
-                                            const std::vector<Node>& fa,
-                                            bool& continueUpdate)
+bool ProofPostprocessCallback::shouldUpdate(
+    std::shared_ptr<ProofNode> pn,
+    CVC5_UNUSED const std::vector<Node>& fa,
+    bool& continueUpdate)
 {
   bool result =
       pn->getRule() == ProofRule::ASSUME && d_pg->hasProofFor(pn->getResult());

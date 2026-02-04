@@ -186,8 +186,7 @@ class NonlinearExtension : EnvObj
    *
    * This method adds lemmas to d_im directly.
    */
-  void runStrategy(Theory::Effort effort,
-                   const std::vector<Node>& assertions,
+  void runStrategy(const std::vector<Node>& assertions,
                    const std::vector<Node>& false_asserts,
                    const std::vector<Node>& xts);
 

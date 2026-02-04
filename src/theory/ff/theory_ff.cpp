@@ -94,7 +94,7 @@ void TheoryFiniteFields::finishInit()
   d_equalityEngine->addFunctionKind(Kind::FINITE_FIELD_ADD);
 }
 
-void TheoryFiniteFields::postCheck(Effort level)
+void TheoryFiniteFields::postCheck(CVC5_UNUSED Effort level)
 {
 #ifdef CVC5_USE_COCOA
   Trace("ff::check") << "ff::check : " << level << " @ level "
@@ -120,10 +120,10 @@ void TheoryFiniteFields::postCheck(Effort level)
 #endif /* CVC5_USE_COCOA */
 }
 
-void TheoryFiniteFields::notifyFact(TNode atom,
-                                    bool polarity,
-                                    TNode fact,
-                                    bool isInternal)
+void TheoryFiniteFields::notifyFact(CVC5_UNUSED TNode atom,
+                                    CVC5_UNUSED bool polarity,
+                                    CVC5_UNUSED TNode fact,
+                                    CVC5_UNUSED bool isInternal)
 {
 #ifdef CVC5_USE_COCOA
   Trace("ff::check") << "ff::notifyFact : " << fact << " @ level "
@@ -134,8 +134,8 @@ void TheoryFiniteFields::notifyFact(TNode atom,
 #endif /* CVC5_USE_COCOA */
 }
 
-bool TheoryFiniteFields::collectModelValues(TheoryModel* m,
-                                            const std::set<Node>& termSet)
+bool TheoryFiniteFields::collectModelValues(
+    CVC5_UNUSED TheoryModel* m, CVC5_UNUSED const std::set<Node>& termSet)
 {
 #ifdef CVC5_USE_COCOA
   Trace("ff::model") << "Term set: " << termSet << std::endl;

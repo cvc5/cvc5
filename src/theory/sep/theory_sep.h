@@ -166,7 +166,7 @@ class TheorySep : public Theory {
       }
       return d_sep.propagateLit(predicate.notNode());
     }
-    bool eqNotifyTriggerTermEquality(TheoryId tag,
+    bool eqNotifyTriggerTermEquality(CVC5_UNUSED TheoryId tag,
                                      TNode t1,
                                      TNode t2,
                                      bool value) override
@@ -189,12 +189,16 @@ class TheorySep : public Theory {
       d_sep.conflict(t1, t2);
     }
 
-    void eqNotifyNewClass(TNode t) override {}
+    void eqNotifyNewClass(CVC5_UNUSED TNode t) override {}
     void eqNotifyMerge(TNode t1, TNode t2) override
     {
       d_sep.eqNotifyMerge(t1, t2);
     }
-    void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override {}
+    void eqNotifyDisequal(CVC5_UNUSED TNode t1,
+                          CVC5_UNUSED TNode t2,
+                          CVC5_UNUSED TNode reason) override
+    {
+    }
   };
 
   /** The notify class for d_equalityEngine */

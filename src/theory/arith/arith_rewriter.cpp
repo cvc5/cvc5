@@ -463,7 +463,7 @@ RewriteResponse ArithRewriter::preRewriteTerm(TNode t){
       case Kind::MULT:
       case Kind::NONLINEAR_MULT: return preRewriteMult(t);
       case Kind::INTS_DIVISION:
-      case Kind::INTS_MODULUS: return rewriteIntsDivMod(t, true);
+      case Kind::INTS_MODULUS: return rewriteIntsDivMod(t);
       case Kind::INTS_DIVISION_TOTAL:
       case Kind::INTS_MODULUS_TOTAL: return rewriteIntsDivModTotal(t, true);
       case Kind::ABS: return rewriteAbs(t);
@@ -518,7 +518,7 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
       case Kind::INTS_ISPOW2: return postRewriteIntsIsPow2(t);
       case Kind::INTS_LOG2: return postRewriteIntsLog2(t);
       case Kind::INTS_DIVISION:
-      case Kind::INTS_MODULUS: return rewriteIntsDivMod(t, false);
+      case Kind::INTS_MODULUS: return rewriteIntsDivMod(t);
       case Kind::INTS_DIVISION_TOTAL:
       case Kind::INTS_MODULUS_TOTAL: return rewriteIntsDivModTotal(t, false);
       case Kind::ABS: return rewriteAbs(t);
@@ -940,7 +940,7 @@ RewriteResponse ArithRewriter::rewriteAbs(TNode t)
   return RewriteResponse(REWRITE_DONE, t);
 }
 
-RewriteResponse ArithRewriter::rewriteIntsDivMod(TNode t, bool pre)
+RewriteResponse ArithRewriter::rewriteIntsDivMod(TNode t)
 {
   NodeManager* nm = nodeManager();
   Kind k = t.getKind();

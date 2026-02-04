@@ -33,14 +33,15 @@ bool isMaybeInteger(const TypeNode& tn)
   return tn.isInteger() || tn.isFullyAbstract();
 }
 
-TypeNode ArithConstantTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode ArithConstantTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
+                                               CVC5_UNUSED TNode n)
 {
   return TypeNode::null();
 }
 TypeNode ArithConstantTypeRule::computeType(NodeManager* nodeManager,
                                             TNode n,
                                             bool check,
-                                            std::ostream* errOut)
+                                            CVC5_UNUSED std::ostream* errOut)
 {
   // we use different kinds for constant integers and reals
   if (n.getKind() == Kind::CONST_RATIONAL)
@@ -63,29 +64,34 @@ TypeNode ArithConstantTypeRule::computeType(NodeManager* nodeManager,
 }
 
 TypeNode ArithRealAlgebraicNumberOpTypeRule::preComputeType(NodeManager* nm,
-                                                            TNode n)
+                                                            CVC5_UNUSED TNode n)
 {
   return nm->realType();
 }
 TypeNode ArithRealAlgebraicNumberOpTypeRule::computeType(
-    NodeManager* nodeManager, TNode n, bool check, std::ostream* errOut)
+    NodeManager* nodeManager,
+    CVC5_UNUSED TNode n,
+    CVC5_UNUSED bool check,
+    CVC5_UNUSED std::ostream* errOut)
 {
   return nodeManager->realType();
 }
 TypeNode ArithRealAlgebraicNumberTypeRule::preComputeType(NodeManager* nm,
-                                                          TNode n)
+                                                          CVC5_UNUSED TNode n)
 {
   return nm->realType();
 }
-TypeNode ArithRealAlgebraicNumberTypeRule::computeType(NodeManager* nodeManager,
-                                                       TNode n,
-                                                       bool check,
-                                                       std::ostream* errOut)
+TypeNode ArithRealAlgebraicNumberTypeRule::computeType(
+    NodeManager* nodeManager,
+    CVC5_UNUSED TNode n,
+    CVC5_UNUSED bool check,
+    CVC5_UNUSED std::ostream* errOut)
 {
   return nodeManager->realType();
 }
 
-TypeNode ArithOperatorTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode ArithOperatorTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
+                                               CVC5_UNUSED TNode n)
 {
   return TypeNode::null();
 }
@@ -155,7 +161,8 @@ TypeNode ArithOperatorTypeRule::computeType(NodeManager* nodeManager,
   }
 }
 
-TypeNode ArithRelationTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode ArithRelationTypeRule::preComputeType(NodeManager* nm,
+                                               CVC5_UNUSED TNode n)
 {
   return nm->booleanType();
 }
@@ -180,7 +187,8 @@ TypeNode ArithRelationTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->booleanType();
 }
 
-TypeNode RealNullaryOperatorTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode RealNullaryOperatorTypeRule::preComputeType(
+    CVC5_UNUSED NodeManager* nm, CVC5_UNUSED TNode n)
 {
   return TypeNode::null();
 }
@@ -203,7 +211,7 @@ TypeNode RealNullaryOperatorTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->realType();
 }
 
-TypeNode IAndTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode IAndTypeRule::preComputeType(NodeManager* nm, CVC5_UNUSED TNode n)
 {
   return nm->integerType();
 }
@@ -241,15 +249,16 @@ TypeNode IAndTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->integerType();
 }
 
-TypeNode PowTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode PowTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
+                                     CVC5_UNUSED TNode n)
 {
   return TypeNode::null();
 }
 
-TypeNode PowTypeRule::computeType(NodeManager* nodeManager,
-                                   TNode n,
-                                   bool check,
-                                   std::ostream* errOut)
+TypeNode PowTypeRule::computeType(CVC5_UNUSED NodeManager* nodeManager,
+                                  TNode n,
+                                  CVC5_UNUSED bool check,
+                                  std::ostream* errOut)
 {
   Assert (n.getKind() == Kind::POW);
   TypeNode arg1 = n[0].getTypeOrNull();
@@ -266,7 +275,8 @@ TypeNode PowTypeRule::computeType(NodeManager* nodeManager,
   return t;
 }
 
-TypeNode IndexedRootPredicateTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode IndexedRootPredicateTypeRule::preComputeType(NodeManager* nm,
+                                                      CVC5_UNUSED TNode n)
 {
   return nm->booleanType();
 }

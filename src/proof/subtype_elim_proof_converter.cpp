@@ -302,11 +302,11 @@ Node SubtypeElimConverterCallback::convert(Node res,
       }
     }
     break;
+    case ProofRule::MACRO_REWRITE:
     case ProofRule::MACRO_SR_EQ_INTRO:
     {
       // Just use the more general rule MACRO_SR_PRED_INTRO, where the converted
-      // result can be used. This is used to handle the case where
-      // MACRO_SR_EQ_INTRO was used during solving.
+      // result can be used.
       cargs[0] = resc;
       success = tryWith(
           ProofRule::MACRO_SR_PRED_INTRO, children, cargs, resc, newRes, cdp);
@@ -329,6 +329,7 @@ Node SubtypeElimConverterCallback::convert(Node res,
                                true);
       for (const Node& mc : matchConds)
       {
+        Trace("pf-subtype-elim") << "- match condition " << mc << std::endl;
         tcpg.addRewriteStep(mc[0],
                             mc[1],
                             nullptr,

@@ -55,7 +55,7 @@ bool DatatypesInference::mustCommunicateFact(Node n, Node exp)
   return false;
 }
 
-TrustNode DatatypesInference::processLemma(LemmaProperty& p)
+TrustNode DatatypesInference::processLemma(CVC5_UNUSED LemmaProperty& p)
 {
   // we don't pass lemma property p currently, as it is always default
   return d_im->processDtLemma(d_conc, d_exp, getId());

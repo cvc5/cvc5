@@ -544,7 +544,6 @@ Node rename(const Node& n,
               Node substVar = nodeManager->getSkolemManager()->mkDummySkolem(
                   new_var_name,
                   current.getType(),
-                  "normalized " + current.toString() + " to " + new_var_name,
                   SkolemFlags::SKOLEM_EXACT_NAME);
 
               // Create normalized variable with normalized type for the final
@@ -552,7 +551,6 @@ Node rename(const Node& n,
               Node ret = nodeManager->getSkolemManager()->mkDummySkolem(
                   new_var_name,
                   sortNormalizer.convertType(current.getType()),
-                  "normalized " + current.toString() + " to " + new_var_name,
                   SkolemFlags::SKOLEM_EXACT_NAME);
 
               freeVar2node[current] = ret;
@@ -837,7 +835,6 @@ Node renameQid(const Node& n,
             Node ret = nodeManager->getSkolemManager()->mkDummySkolem(
                 new_var_name,
                 current.getType(),
-                "renamed qid " + current.toString() + " to " + new_var_name,
                 SkolemFlags::SKOLEM_EXACT_NAME);
             qidRenamed[current] = ret;
             normalized[current] = ret;

@@ -40,7 +40,7 @@ class TermRegistry : protected EnvObj
   typedef context::CDHashMap<Node, Node> NodeMap;
 
  public:
-  TermRegistry(Env& env, SolverState& state);
+  TermRegistry(Env& env);
 
   /**
    * Returns the existing empty bag for type tn

@@ -86,7 +86,7 @@ public:
   virtual SatValue solve(long unsigned int&) = 0;
 
   /** Check satisfiability under assumptions */
-  virtual SatValue solve(const std::vector<SatLiteral>& assumptions)
+  virtual SatValue solve(CVC5_UNUSED const std::vector<SatLiteral>& assumptions)
   {
     Unimplemented() << "Solving under assumptions not implemented";
     return SAT_VALUE_UNKNOWN;
@@ -122,7 +122,8 @@ public:
    * Can only be called if satisfiability check under assumptions was used and
    * if it returned SAT_VALUE_FALSE.
    */
-  virtual void getUnsatAssumptions(std::vector<SatLiteral>& unsat_assumptions)
+  virtual void getUnsatAssumptions(
+      CVC5_UNUSED std::vector<SatLiteral>& unsat_assumptions)
   {
     Unimplemented() << "getUnsatAssumptions not implemented";
   }
