@@ -134,7 +134,6 @@ class ScopedBool
 Solver::Solver(Env& env,
                cvc5::internal::prop::TheoryProxy* proxy,
                context::Context* context,
-               context::UserContext* userContext,
                PropPfManager* ppm,
                bool enableIncremental)
     : EnvObj(env),
@@ -236,7 +235,7 @@ Solver::~Solver()
 // Creates a new SAT variable in the solver. If 'decision_var' is cleared, variable will not be
 // used as a decision variable (NOTE! This has effects on the meaning of a SATISFIABLE result).
 //
-Var Solver::newVar(bool sign, bool dvar, bool isTheoryAtom, bool canErase)
+Var Solver::newVar(bool sign, bool dvar, bool isTheoryAtom)
 {
     int v = nVars();
 
@@ -1812,18 +1811,16 @@ void Solver::toDimacs(FILE* f, Clause& c, vec<Var>& map, Var& max)
     fprintf(f, "0\n");
 }
 
-
-void Solver::toDimacs(const char *file, const vec<Lit>& assumps)
+void Solver::toDimacs(const char* file)
 {
     FILE* f = fopen(file, "wr");
     if (f == NULL)
         fprintf(stderr, "could not open file %s\n", file), exit(1);
-    toDimacs(f, assumps);
+    toDimacs(f);
     fclose(f);
 }
 
-
-void Solver::toDimacs(FILE* f, const vec<Lit>& assumps)
+void Solver::toDimacs(FILE* f)
 {
     // Handle case when solver is in contradictory state:
     if (!ok){

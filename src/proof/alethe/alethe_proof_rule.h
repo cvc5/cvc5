@@ -378,6 +378,7 @@ enum class AletheRule : uint32_t
   // ======== Simplify rules
   // The following rules are simplifying rules introduced as tautologies that
   // can be verified by a number of simple transformations
+  AC_SIMP,
   ITE_SIMPLIFY,
   EQ_SIMPLIFY,
   AND_SIMPLIFY,

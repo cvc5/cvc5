@@ -34,7 +34,8 @@ class FiniteFieldEnumerator : public TypeEnumeratorBase<FiniteFieldEnumerator>
   Integer d_currentInt;
 
  public:
-  FiniteFieldEnumerator(TypeNode type, TypeEnumeratorProperties* tep = nullptr)
+  FiniteFieldEnumerator(TypeNode type,
+                        CVC5_UNUSED TypeEnumeratorProperties* tep = nullptr)
       : TypeEnumeratorBase<FiniteFieldEnumerator>(type),
         d_modulus(type.getFfSize()),
         d_currentInt(0)

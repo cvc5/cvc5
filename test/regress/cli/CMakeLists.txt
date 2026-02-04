@@ -103,6 +103,7 @@ set(regress_0_tests
   regress0/arith/non-normal.smt2
   regress0/arith/pow-issue-10676.smt2
   regress0/arith/projissue469-int-equality.smt2
+  regress0/arith/proj-issue780-arith-mult-pf.smt2
   regress0/arith-bv-conv-ineq-rewrites.smt2
   regress0/arr1.smt2
   regress0/arr1.smtv1.smt2
@@ -1064,6 +1065,7 @@ set(regress_0_tests
   regress0/issue1063-overloading-dt-sel.smt2
   regress0/issue11198-real-as-int.smt2
   regress0/issue12038-model-get-value.smt2
+  regress0/issue12320-difficulty-subtype-pf.smt2
   regress0/issue12386-get-assertions.smt2
   regress0/issue2832-qualId.smt2
   regress0/issue4010-sort-inf-var.smt2
@@ -1131,6 +1133,7 @@ set(regress_0_tests
   regress0/nl/issue10140-nl-tc.smt2
   regress0/nl/issue11901-pow-rewrite-type.smt2
   regress0/nl/issue12239-subtype-elim.smt2
+  regress0/nl/issue12408-nl-fm.smt2
   regress0/nl/issue3003.smt2
   regress0/nl/issue3407.smt2
   regress0/nl/issue3411.smt2
@@ -1549,6 +1552,8 @@ set(regress_0_tests
   regress0/proofs/proj-issue773-nnf-double-neg.smt2
   regress0/proofs/proj-issue775-mult-sign.smt2
   regress0/proofs/proj-issue778-subtype-div.smt2
+  regress0/proofs/proj-issue781-cyclic-pppg.smt2
+  regress0/proofs/proj-issue781-cyclic-pppg-2.smt2
   regress0/proofs/proof-components.smt2
   regress0/proofs/qgu-fuzz-1-bool-sat.smt2
   regress0/proofs/qgu-fuzz-2-bool-chainres-checking.smt2
@@ -2101,6 +2106,7 @@ set(regress_0_tests
   regress0/strings/issue11890-eec-model.smt2
   regress0/strings/issue12027-str-ae.smt2
   regress0/strings/issue12241-aci.smt2
+  regress0/strings/issue12322-pf-eager-len-re.smt2
   regress0/strings/issue1189.smt2
   regress0/strings/issue2958.smt2
   regress0/strings/issue3440.smt2
@@ -2841,6 +2847,7 @@ set(regress_1_tests
   regress1/issue10750-zll-repeat.smt2
   regress1/issue10788-refresh-a-interp.smt2
   regress1/issue11966-get-value-ss.smt2
+  regress1/issue12339-bv-as-int-subtype-pf.smt2
   regress1/issue3970-nl-ext-purify.smt2
   regress1/issue3990-sort-inference.smt2
   regress1/issue4273-ext-rew-cache.smt2
@@ -3148,6 +3155,8 @@ set(regress_1_tests
   regress1/quantifiers/isaplanner-goal20.smt2
   regress1/quantifiers/issue10346-ieval-index-conflict.smt2
   regress1/quantifiers/issue10373-cegqi-abs.smt2
+  regress1/quantifiers/issue12323-quant-rewrite-body.smt2
+  regress1/quantifiers/issue12323-quant-rewrite-body-min.smt2
   regress1/quantifiers/issue2970-string-var-elim.smt2
   regress1/quantifiers/issue3250-syg-inf-q.smt2
   regress1/quantifiers/issue3316.smt2

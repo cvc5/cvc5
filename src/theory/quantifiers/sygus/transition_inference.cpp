@@ -278,8 +278,7 @@ void TransitionInference::process(Node n)
       {
         for (unsigned j = 0, nchild = next.getNumChildren(); j < nchild; j++)
         {
-          Node v = NodeManager::mkDummySkolem(
-              "ir", next[j].getType(), "template inference rev argument");
+          Node v = NodeManager::mkDummySkolem("ir", next[j].getType());
           d_prime_vars.push_back(v);
         }
       }
@@ -429,8 +428,7 @@ bool TransitionInference::processDisjunct(
       Trace("cegqi-inv-debug") << "Use " << op << " with args ";
       for (const Node& l : lit)
       {
-        Node v = NodeManager::mkDummySkolem(
-            "i", l.getType(), "template inference argument");
+        Node v = NodeManager::mkDummySkolem("i", l.getType());
         d_vars.push_back(v);
         Trace("cegqi-inv-debug") << v << " ";
       }

@@ -29,9 +29,10 @@ CDCLTSatSolver* SatSolverFactory::createCDCLTMinisat(
   return new MinisatSatSolver(env, registry);
 }
 
-SatSolver* SatSolverFactory::createCryptoMinisat(StatisticsRegistry& registry,
-                                                 ResourceManager* resmgr,
-                                                 const std::string& name)
+SatSolver* SatSolverFactory::createCryptoMinisat(
+    CVC5_UNUSED StatisticsRegistry& registry,
+    CVC5_UNUSED ResourceManager* resmgr,
+    CVC5_UNUSED const std::string& name)
 {
 #ifdef CVC5_USE_CRYPTOMINISAT
   CryptoMinisatSolver* res = new CryptoMinisatSolver(registry, name);
@@ -69,8 +70,9 @@ CDCLTSatSolver* SatSolverFactory::createCadicalCDCLT(
   return res;
 }
 
-SatSolver* SatSolverFactory::createKissat(StatisticsRegistry& registry,
-                                          const std::string& name)
+SatSolver* SatSolverFactory::createKissat(
+    CVC5_UNUSED StatisticsRegistry& registry,
+    CVC5_UNUSED const std::string& name)
 {
 #ifdef CVC5_USE_KISSAT
   KissatSolver* res = new KissatSolver(registry, name);

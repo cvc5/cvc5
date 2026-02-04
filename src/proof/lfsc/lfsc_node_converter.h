@@ -146,7 +146,7 @@ class LfscNodeConverter : public NodeConverter
    * (in SkolemManager::mkSkolemFunction) that is supported in the LFSC
    * signature.
    */
-  Node maybeMkSkolemFun(Node k, bool macroApply = false);
+  Node maybeMkSkolemFun(Node k);
   /**
    * Type as node, returns a node that prints in the form that LFSC will
    * interpret as the type tni. This method is required since types can be

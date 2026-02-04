@@ -25,18 +25,16 @@ namespace cvc5::internal {
 namespace theory {
 namespace sets {
 
-TermRegistry::TermRegistry(Env& env,
-                           SolverState& state,
-                           InferenceManager& im,
-                           SkolemCache& skc)
+TermRegistry::TermRegistry(Env& env, InferenceManager& im, SkolemCache& skc)
     : EnvObj(env),
       d_im(im),
       d_skCache(skc),
       d_proxy(userContext()),
       d_proxy_to_term(userContext()),
-      d_epg(env.isTheoryProofProducing() ? new EagerProofGenerator(
-                env, nullptr, "sets::TermRegistry::epg")
-                                         : nullptr)
+      d_epg(
+          env.isTheoryProofProducing()
+              ? new EagerProofGenerator(env, nullptr, "sets::TermRegistry::epg")
+              : nullptr)
 {
 }
 

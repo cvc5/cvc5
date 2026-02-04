@@ -66,7 +66,7 @@ class ProofRuleChecker
   static Node mkKindNode(NodeManager* nm, Kind k);
 
   /** Register all rules owned by this rule checker into pc. */
-  virtual void registerTo(ProofChecker* pc) {}
+  virtual void registerTo(CVC5_UNUSED ProofChecker* pc) {}
 
  protected:
   /**
