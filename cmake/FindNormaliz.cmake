@@ -43,9 +43,6 @@ if(NOT Normaliz_FOUND_SYSTEM)
 
   set(Normaliz_INCLUDE_DIR "${DEPS_BASE}/include/")
 
-  set(Normaliz_CFLAGS "-fPIC")
-  set(Normaliz_CXXFLAGS "-fPIC")
-
   if(BUILD_SHARED_LIBS)
     set(LINK_OPTS --enable-shared --disable-static)
     if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
@@ -77,13 +74,9 @@ if(NOT Normaliz_FOUND_SYSTEM)
   else()
     set(CONFIGURE_OPTS --build=${BUILD_TRIPLET}) # Defined in Helpers
   endif()
-  set(CONFIGURE_ENV ${CONFIGURE_ENV} env "CXXFLAGS=${Normaliz_CXXFLAGS}" env "CFLAGS=${Normaliz_CFLAGS}")
 
   set(Normaliz_VERSION "3.11.1")
   set(Normaliz_CHECKSUM "9a00d590f0fdcad847e2189696d2842d97ed896ed36c22421874a364047f76e8")
-  
-  message ("CONFIGURE_ENV: ${CONFIGURE_ENV}")
-  message ("CONFIGURE_CMD_WRAPPER: ${CONFIGURE_CMD_WRAPPER}")
   
   ExternalProject_Add(
     Normaliz-EP
@@ -93,34 +86,16 @@ if(NOT Normaliz_FOUND_SYSTEM)
     BUILD_IN_SOURCE YES
 
     CONFIGURE_COMMAND
-     /bin/sh -c "
-       CXXFLAGS='-fPIC' \
-       CFLAGS='-fPIC' \
-       CPPFLAGS='-fPIC' \
-       ./configure \
-         --prefix=<INSTALL_DIR> \
-         ${Normaliz_WITH_GMP} \
-         --enable-static \
-         --enable-shared \
-         --without-cocoalib \
-         --without-flint \
-         --without-hashlibrary \
-         --without-nauty \
-         --without-e-antic
-     "
-
-  
-
+      ${CONFIGURE_ENV} <SOURCE_DIR>/configure
+        --prefix=<INSTALL_DIR> ${LINK_OPTS} --with-pic ${Normaliz_WITH_GMP}
+        ${CONFIGURE_OPTS} --without-cocoalib --without-flint --without-hashlibrary
+        --without-nauty --without-e-antic --disable-openmp
     BUILD_BYPRODUCTS ${Normaliz_LIBRARIES}
   )
-  ExternalProject_Get_Property(Normaliz-EP SOURCE_DIR)
-  if(NOT GMP_FOUND_SYSTEM)
-    add_dependencies(Normaliz-EP GMP-EP)
-  endif()  
+  add_dependencies(Normaliz-EP GMP)
 endif()
 
 set(Normaliz_FOUND TRUE)
-
 
 if(BUILD_SHARED_LIBS)
   add_library(Normaliz SHARED IMPORTED GLOBAL)
@@ -134,6 +109,7 @@ set_target_properties(Normaliz PROPERTIES
   IMPORTED_LOCATION "${Normaliz_LIBRARIES}"
   INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${Normaliz_INCLUDE_DIR}"
 )
+target_link_libraries(Normaliz INTERFACE GMPXX)
 
 mark_as_advanced(Normaliz_FOUND)
 mark_as_advanced(Normaliz_FOUND_SYSTEM)
