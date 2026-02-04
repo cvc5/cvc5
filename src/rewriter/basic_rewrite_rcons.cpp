@@ -2855,7 +2855,7 @@ bool BasicRewriteRCons::ensureProofMacroQuantRewriteBody(CDProof* cdp,
   WithinKindTermContext wktc(Kind::INST_PATTERN_LIST);
   TConvProofGenerator tcpg(d_env,
                            nullptr,
-                           TConvPolicy::FIXPOINT,
+                           TConvPolicy::ONCE,
                            TConvCachePolicy::NEVER,
                            "EnsureProofMacroQuantRewrite",
                            &wktc);

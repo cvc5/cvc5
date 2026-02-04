@@ -46,24 +46,24 @@ class TheoryPreregistrar : protected EnvObj
                      TheoryEngine* te,
                      CDCLTSatSolver* ss,
                      CnfStream* cs);
-  ~TheoryPreregistrar();
+  virtual ~TheoryPreregistrar();
   /** Do we need to be informed of activated skolem definitions? */
-  bool needsActiveSkolemDefs() const;
+  virtual bool needsActiveSkolemDefs() const;
   /** theory check */
-  void check();
+  virtual void check();
   /** Notify assertion */
-  void addAssertion(TNode n, TNode skolem, bool isLemma);
+  virtual void addAssertion(TNode n, TNode skolem, bool isLemma);
   /** Notify that skolem definitions have become active */
-  void notifyActiveSkolemDefs(std::vector<TNode>& defs);
+  virtual void notifyActiveSkolemDefs(std::vector<TNode>& defs);
   /**
    * Notify that a SAT literal for atom n has been allocated in the SAT solver.
    * @param n The node to preregister.
    */
-  void notifySatLiteral(TNode n);
+  virtual void notifySatLiteral(TNode n);
   /**
    * Callback to notify that the SAT solver backtracked.
    */
-  void notifyBacktrack();
+  virtual void notifyBacktrack();
   /**
    * Notify that n is asserted from SAT solver, return true if we should
    * assert n to the theory engine.
@@ -74,7 +74,7 @@ class TheoryPreregistrar : protected EnvObj
    * call this method for such terms when the TRACK_AND_NOTIFY(_VAR) policy
    * is used in the CNF stream.
    */
-  bool notifyAsserted(TNode n);
+  virtual bool notifyAsserted(TNode n);
 
  private:
   /** pre-register to theory */

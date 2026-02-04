@@ -51,7 +51,9 @@ class MinisatSatSolver : public CDCLTSatSolver, protected EnvObj
   void initialize(TheoryProxy* theoryProxy, PropPfManager* ppm) override;
 
   ClauseId addClause(SatClause& clause, bool removable) override;
-  ClauseId addXorClause(SatClause& clause, bool rhs, bool removable) override
+  ClauseId addXorClause(CVC5_UNUSED SatClause& clause,
+                        CVC5_UNUSED bool rhs,
+                        CVC5_UNUSED bool removable) override
   {
     Unreachable() << "Minisat does not support native XOR reasoning";
   }

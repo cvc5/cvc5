@@ -237,10 +237,8 @@ Node IntToBV::intToBV(TNode n, NodeMap& cache)
       {
         if (current.getType() == nm->integerType())
         {
-          result =
-              NodeManager::mkDummySkolem("__intToBV_var",
-                                         nm->mkBitVectorType(size),
-                                         "Variable introduced in intToBV pass");
+          result = NodeManager::mkDummySkolem("__intToBV_var",
+                                              nm->mkBitVectorType(size));
           /**
            * Correctly convert signed/unsigned BV values to Integers as follows
            * x < 0 ? -nat(-x) : nat(x)

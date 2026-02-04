@@ -50,10 +50,9 @@ static DoubleOption opt_simp_garbage_frac(_cat, "simp-gc-frac", "The fraction of
 SimpSolver::SimpSolver(Env& env,
                        prop::TheoryProxy* proxy,
                        context::Context* context,
-                       context::UserContext* userContext,
                        prop::PropPfManager* ppm,
                        bool enableIncremental)
-    : Solver(env, proxy, context, userContext, ppm, enableIncremental),
+    : Solver(env, proxy, context, ppm, enableIncremental),
       grow(opt_grow),
       clause_lim(opt_clause_lim),
       subsumption_lim(opt_subsumption_lim),
@@ -99,7 +98,7 @@ SimpSolver::~SimpSolver()
 
 Var SimpSolver::newVar(bool sign, bool dvar, bool isTheoryAtom, bool canErase)
 {
-  Var v = Solver::newVar(sign, dvar, isTheoryAtom, canErase);
+  Var v = Solver::newVar(sign, dvar, isTheoryAtom);
 
   if (use_simplification)
   {
