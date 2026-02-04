@@ -455,11 +455,8 @@ void CircuitPropagator::propagateForward(TNode child, bool childAssignment)
     Trace("circuit-prop") << "Parent: " << parent << endl;
     Assert(expr::hasSubterm(parent, child));
 
-    ProofCircuitPropagatorForward prover{d_env.getNodeManager(),
-                                         d_env.getProofNodeManager(),
-                                         child,
-                                         childAssignment,
-                                         parent};
+    ProofCircuitPropagatorForward prover{
+        d_env.getNodeManager(), d_env.getProofNodeManager(), child, parent};
 
     // Forward rules
     switch (parent.getKind())

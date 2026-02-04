@@ -94,8 +94,6 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback, protected EnvO
    * expanded in macro elimination by this class.
    */
   HistogramStat<ProofRule> d_macroExpand;
-  /** Whether we are collecting all trusted rules */
-  bool d_collectAllTrusted;
   /** Whether we post-process assumptions in scope. */
   bool d_updateScopedAssumptions;
   //---------------------------------reset at the begining of each update

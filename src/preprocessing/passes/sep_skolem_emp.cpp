@@ -54,10 +54,8 @@ Node preSkolemEmp(NodeManager* nm,
     {
       if (!pol)
       {
-        Node x = NodeManager::mkDummySkolem(
-            "ex", locType, "skolem location for negated emp");
-        Node y = NodeManager::mkDummySkolem(
-            "ey", dataType, "skolem data for negated emp");
+        Node x = NodeManager::mkDummySkolem("ex", locType);
+        Node y = NodeManager::mkDummySkolem("ey", dataType);
         return nm
             ->mkNode(Kind::SEP_STAR,
                      nm->mkNode(Kind::SEP_PTO, x, y),

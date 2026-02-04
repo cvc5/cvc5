@@ -636,12 +636,11 @@ private:
   void incrementCurrentSearchSize(TNode m);
   /**
    * Notify this class that we are currently searching for terms of size at
-   * most s as model values for measure term m. Literal exp corresponds to the
-   * explanation of why the measure term has size at most n. This calls
+   * most s as model values for measure term m. This calls
    * incrementSearchSize above, until the total number of times we have called
    * incrementSearchSize so far is at least s.
    */
-  void notifySearchSize(TNode m, uint64_t s, Node exp);
+  void notifySearchSize(TNode m, uint64_t s);
   /** Allocates a SygusSizeDecisionStrategy object in d_szinfo. */
   void registerMeasureTerm( Node m );
   /**

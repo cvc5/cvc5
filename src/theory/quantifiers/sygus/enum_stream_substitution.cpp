@@ -562,7 +562,7 @@ EnumStreamSubstitution::CombinationState::CombinationState(
   d_subclass_id = subclass_id;
 }
 
-const unsigned EnumStreamSubstitution::CombinationState::getSubclassId() const
+unsigned EnumStreamSubstitution::CombinationState::getSubclassId() const
 {
   return d_subclass_id;
 }

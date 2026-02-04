@@ -127,7 +127,6 @@ Node IntBlaster::maxInt(uint32_t k)
 
 Node IntBlaster::pow2(uint32_t k)
 {
-  Assert(k >= 0);
   return d_nm->mkConstInt(intpow2(k));
 }
 

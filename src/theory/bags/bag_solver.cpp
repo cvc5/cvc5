@@ -32,15 +32,11 @@ namespace cvc5::internal {
 namespace theory {
 namespace bags {
 
-BagSolver::BagSolver(Env& env,
-                     SolverState& s,
-                     InferenceManager& im,
-                     TermRegistry& tr)
+BagSolver::BagSolver(Env& env, SolverState& s, InferenceManager& im)
     : EnvObj(env),
       d_state(s),
       d_ig(env.getNodeManager(), &s, &im),
       d_im(im),
-      d_termReg(tr),
       d_mapCache(userContext())
 {
   d_zero = nodeManager()->mkConstInt(Rational(0));
