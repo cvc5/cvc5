@@ -682,11 +682,6 @@ public:
       d_child(-2) {
     }
 
-    kinded_iterator(const kinded_iterator& i) :
-      d_node(i.d_node),
-      d_child(i.d_child) {
-    }
-
     NodeTemplate<ref_count> operator*() {
       return d_child < 0 ? d_node : d_node[d_child];
     }

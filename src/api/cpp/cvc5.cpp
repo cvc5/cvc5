@@ -4356,17 +4356,6 @@ DatatypeConstructor::const_iterator::const_iterator()
 {
 }
 
-DatatypeConstructor::const_iterator&
-DatatypeConstructor::const_iterator::operator=(
-    const DatatypeConstructor::const_iterator& it)
-{
-  d_tm = it.d_tm;
-  d_int_stors = it.d_int_stors;
-  d_stors = it.d_stors;
-  d_idx = it.d_idx;
-  return *this;
-}
-
 const DatatypeSelector& DatatypeConstructor::const_iterator::operator*() const
 {
   return d_stors[d_idx];
@@ -4726,16 +4715,6 @@ Datatype::const_iterator::const_iterator(TermManager* tm,
 Datatype::const_iterator::const_iterator()
     : d_tm(nullptr), d_int_ctors(nullptr), d_idx(0)
 {
-}
-
-Datatype::const_iterator& Datatype::const_iterator::operator=(
-    const Datatype::const_iterator& it)
-{
-  d_tm = it.d_tm;
-  d_int_ctors = it.d_int_ctors;
-  d_ctors = it.d_ctors;
-  d_idx = it.d_idx;
-  return *this;
 }
 
 const DatatypeConstructor& Datatype::const_iterator::operator*() const

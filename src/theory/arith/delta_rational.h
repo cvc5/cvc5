@@ -199,12 +199,6 @@ public:
     return (cmpRes != 0) ? cmpRes : (k.cmp(other.k));
   }
 
-  DeltaRational& operator=(const DeltaRational& other){
-    c = other.c;
-    k = other.k;
-    return *(this);
-  }
-
   DeltaRational& operator*=(const cvc5::internal::Rational& a)
   {
     c *=  a;

@@ -112,7 +112,6 @@ class wrappedBitVector : public BitVector
   /** Constructors. */
   wrappedBitVector(const Cvc5BitWidth w, const uint32_t v) : BitVector(w, v) {}
   wrappedBitVector(const Cvc5Prop& p) : BitVector(1, p ? 1U : 0U) {}
-  wrappedBitVector(const wrappedBitVector<isSigned>& old) : BitVector(old) {}
   wrappedBitVector(const BitVector& old) : BitVector(old) {}
 
   /** Get the bit-width of this wrapped bit-vector. */
