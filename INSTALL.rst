@@ -298,7 +298,7 @@ to run tests related to interactive mode with this dependency, you will need
 the Python module `pexpect <https://pexpect.readthedocs.io/en/stable/>`_.
 
 Normaliz (Optional rational cones library)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 `Normaliz <https://www.normaliz.uni-osnabrueck.de/>`_ is required for int.star-contains
 operator and for bags reasoning. We recommend downloading it using the ``--auto-download`` 
