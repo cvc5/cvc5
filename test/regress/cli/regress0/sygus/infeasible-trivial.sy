@@ -1,0 +1,6 @@
+; COMMAND-LINE: --sygus-out=status 
+; EXPECT: infeasible
+(set-logic ALL)
+(synth-fun f ((x Int)) Int)
+(constraint false)
+(check-synth)

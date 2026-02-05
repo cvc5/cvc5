@@ -323,6 +323,10 @@ SynthResult SygusSolver::checkSynth(bool isNext)
       body = quantifiers::SygusUtils::mkSygusConjecture(
           nodeManager(), ntrivSynthFuns, body);
     }
+    else
+    {
+      body = body.negate();
+    }
     Trace("smt-debug") << "...constructed forall " << body << std::endl;
 
     Trace("smt") << "Check synthesis conjecture: " << body << std::endl;
@@ -392,7 +396,12 @@ SynthResult SygusSolver::checkSynth(bool isNext)
   // solved.
   SynthResult sr;
   std::map<Node, Node> sol_map;
-  if (getSynthSolutions(sol_map))
+  if (r.getStatus() == Result::UNSAT)
+  {
+    // unsat means no solution
+    sr = SynthResult(SynthResult::NO_SOLUTION);
+  }
+  else if (getSynthSolutions(sol_map))
   {
     // if we have solutions, we return "solution"
     sr = SynthResult(SynthResult::SOLUTION);
@@ -402,11 +411,6 @@ SynthResult SygusSolver::checkSynth(bool isNext)
       Assertions& as = d_smtSolver.getAssertions();
       checkSynthSolution(as, sol_map);
     }
-  }
-  else if (r.getStatus() == Result::UNSAT)
-  {
-    // unsat means no solution
-    sr = SynthResult(SynthResult::NO_SOLUTION);
   }
   else
   {
