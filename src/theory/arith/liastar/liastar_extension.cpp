@@ -265,7 +265,11 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
                        std::back_inserter(disjunctions),
                        [](auto& p) { return p.second; });
         Node liaFormula;
-        if (disjunctions.size() == 1)
+        if (disjunctions.size() == 0)
+        {
+          liaFormula = d_false;
+        }
+        else if (disjunctions.size() == 1)
         {
           liaFormula = disjunctions[0];
         }
