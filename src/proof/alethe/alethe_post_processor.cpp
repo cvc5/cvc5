@@ -154,27 +154,28 @@ bool AletheProofPostprocessCallback::updateTheoryRewriteProofRewriteRule(
                            *cdp);
     }
     // ======== QUANT_MERGE_PRENEX
-    // The Alethe rule qnt_join expresses quite well what QUANT_MERGE_PRENEX does but can only merge two quantifiers at a time
-    // and expects duplicates to be deleted.
+    // The Alethe rule qnt_join expresses quite well what QUANT_MERGE_PRENEX
+    // does but can only merge two quantifiers at a time and expects duplicates
+    // to be deleted.
     //
     // First:
     //
     // ---------- QNT_JOIN
     //   VP_b_1
     //
-    // VP_b_1: (cl (= (Q X_1. Q X_2. ... Q X_n. F) (Q Y_1. Q X_3. ... Q X_n. F)))
-    // where Y_1 = X_1 u X_2
+    // VP_b_1: (cl (= (Q X_1. Q X_2. ... Q X_n. F) (Q Y_1. Q X_3. ... Q X_n.
+    // F))) where Y_1 = X_1 u X_2
     //
     // Then, for i=1 to i=n-1 repeat:
     //
-    //                    ------------ QNT_JOIN 
+    //                    ------------ QNT_JOIN
     //   VP_b_i             VP_a_i+1
     // ------------------------------- TRANS
     //             VP_b_i+1
     //
-    // VP_b_i+1: (cl (= (Q X_1. Q X_2. ... Q X_n. F) (Q Y_i. Q X_i+2. ... Q X_n. F))), for i>0
-    // VP_a_i: (cl (= (Q Y_i. Q X_i+2. ... Q X_n. F) (Q Y_i+1. Q X_i+3. ... Q X_n. F))), for i>0
-    // where Y_i = Y_i-1 u X_i, Y_0 = X_1 
+    // VP_b_i+1: (cl (= (Q X_1. Q X_2. ... Q X_n. F) (Q Y_i. Q X_i+2. ... Q X_n.
+    // F))), for i>0 VP_a_i: (cl (= (Q Y_i. Q X_i+2. ... Q X_n. F) (Q Y_i+1. Q
+    // X_i+3. ... Q X_n. F))), for i>0 where Y_i = Y_i-1 u X_i, Y_0 = X_1
     //
     // Finally,
     //
@@ -191,19 +192,21 @@ bool AletheProofPostprocessCallback::updateTheoryRewriteProofRewriteRule(
       Node remaining = LHS;
       std::vector<Node> curr_Y{remaining[0].begin(), remaining[0].end()};  // Y0
       remaining = remaining[1];
-      std::vector<Node> curr_X = {remaining[0].begin(), remaining[0].end()}; // X2
+      std::vector<Node> curr_X = {remaining[0].begin(),
+                                  remaining[0].end()};  // X2
       remaining = remaining[1];
       std::vector<Node> next_Y = curr_Y;  // Y1
-      next_Y.insert(next_Y.end(),curr_X.begin(),curr_X.end()); 
+      next_Y.insert(next_Y.end(), curr_X.begin(), curr_X.end());
       Node curr_LHS = LHS;
-      Node curr_RHS = nm->mkNode(k,nm->mkNode(Kind::BOUND_VAR_LIST, next_Y), remaining);
+      Node curr_RHS =
+          nm->mkNode(k, nm->mkNode(Kind::BOUND_VAR_LIST, next_Y), remaining);
       Node curr_vp_b = nm->mkNode(Kind::EQUAL, curr_LHS, curr_RHS);  // VP_b_1
       success &= addAletheStep(AletheRule::QNT_JOIN,
-                                   curr_vp_b,
-                                   nm->mkNode(Kind::SEXPR, d_cl, curr_vp_b),
-				   {},
-				   {},
-                                   *cdp);
+                               curr_vp_b,
+                               nm->mkNode(Kind::SEXPR, d_cl, curr_vp_b),
+                               {},
+                               {},
+                               *cdp);
       Trace("alethe-proof")
           << "... merged first two quantifiers " << curr_vp_b << std::endl;
 
@@ -211,8 +214,8 @@ bool AletheProofPostprocessCallback::updateTheoryRewriteProofRewriteRule(
       Node curr_vp_a;
       while (remaining.getKind() == k)
       {
-        curr_Y = next_Y; // Yi
-        curr_X = {remaining[0].begin(), remaining[0].end()}; // X_i+2
+        curr_Y = next_Y;                                      // Yi
+        curr_X = {remaining[0].begin(), remaining[0].end()};  // X_i+2
         remaining = remaining[1];
         next_Y = curr_Y;  // Y_i+1
         next_Y.insert(next_Y.end(), curr_X.begin(), curr_X.end());
@@ -220,7 +223,7 @@ bool AletheProofPostprocessCallback::updateTheoryRewriteProofRewriteRule(
         curr_RHS =
             nm->mkNode(k, nm->mkNode(Kind::BOUND_VAR_LIST, next_Y), remaining);
         curr_vp_a = nm->mkNode(Kind::EQUAL, curr_LHS, curr_RHS);
-        next_vp_b = nm->mkNode(Kind::EQUAL,LHS,curr_RHS);
+        next_vp_b = nm->mkNode(Kind::EQUAL, LHS, curr_RHS);
         success &= addAletheStep(AletheRule::QNT_JOIN,
                                  curr_vp_a,
                                  nm->mkNode(d_cl, curr_vp_a),
@@ -238,12 +241,13 @@ bool AletheProofPostprocessCallback::updateTheoryRewriteProofRewriteRule(
         curr_vp_b = next_vp_b;
       }
 
-      return success && addAletheStep(AletheRule::QNT_RM_UNUSED,
-                           res,
-                           nm->mkNode(Kind::SEXPR, d_cl, res),
-                           {curr_vp_b},
-                           {},
-                           *cdp);
+      return success
+             && addAletheStep(AletheRule::QNT_RM_UNUSED,
+                              res,
+                              nm->mkNode(Kind::SEXPR, d_cl, res),
+                              {curr_vp_b},
+                              {},
+                              *cdp);
     }
     // ======== QUANT_MINISCOPE_AND
     // This rule is translated according to the clause pattern.
