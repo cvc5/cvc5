@@ -127,7 +127,7 @@ class ProofTracer : public CaDiCaL::Tracer
    *
    *              steps[A0],...,steps[An] | C,(polarities...),(pivots...)
    * CHAIN_M_RES --------------------------------------------------------
-   *                                      C
+   *                                   steps[cid]
    *
    * @param cid Clause id of derived clause to produce proof step for.
    * @param proxy Theory proxy to get node mapping.
