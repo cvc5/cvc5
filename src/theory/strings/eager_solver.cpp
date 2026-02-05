@@ -25,10 +25,9 @@ namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
-EagerSolver::EagerSolver(Env& env, SolverState& state, TermRegistry& treg)
+EagerSolver::EagerSolver(Env& env, SolverState& state)
     : EnvObj(env),
       d_state(state),
-      d_treg(treg),
       d_aent(env.getNodeManager(), env.getRewriter()),
       d_rent(env.getNodeManager(), env.getRewriter())
 {

@@ -39,7 +39,7 @@ InferBoundAlgorithm::InferBoundAlgorithm(Algorithms a)
 
 InferBoundAlgorithm::InferBoundAlgorithm(
     const std::optional<int>& simplexRounds)
-    : d_alg(Simplex)
+    : d_alg(Simplex), d_simplexRounds(simplexRounds)
 {}
 
 Algorithms InferBoundAlgorithm::getAlgorithm() const{

@@ -94,9 +94,13 @@ class EqualitySolver : protected EnvObj
                                      bool value) override;
 
     void eqNotifyConstantTermMerge(TNode t1, TNode t2) override;
-    void eqNotifyNewClass(TNode t) override {}
-    void eqNotifyMerge(TNode t1, TNode t2) override {}
-    void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override {}
+    void eqNotifyNewClass(CVC5_UNUSED TNode t) override {}
+    void eqNotifyMerge(CVC5_UNUSED TNode t1, CVC5_UNUSED TNode t2) override {}
+    void eqNotifyDisequal(CVC5_UNUSED TNode t1,
+                          CVC5_UNUSED TNode t2,
+                          CVC5_UNUSED TNode reason) override
+    {
+    }
 
    private:
     /** reference to parent */

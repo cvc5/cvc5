@@ -371,7 +371,7 @@
   (- 1))
 
 (define-cond-rule str-indexof-re-emp-re ((t String) (r RegLan) (n Int))
-  (and (str.in_re "" r) (>= (str.len t) n))
+  (and (str.in_re "" r) (>= (str.len t) n) (>= n (- 1)))
   (str.indexof_re t r n)
   n)
 
@@ -410,7 +410,7 @@
   (str.from_int n))
 
 (define-cond-rule str-to-int-concat-neg-one ((s1 String :list) (s2 String) (s3 String :list))
-  (= (str.to_int s2) (- 1))
+  (and (= (str.to_int s2) (- 1)) (not (= (str.len s2) 0)))
   (str.to_int (str.++ s1 s2 s3))
   (- 1))
 

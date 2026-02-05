@@ -135,7 +135,7 @@ BVSolverBitblast::BVSolverBitblast(Env& env,
   initSatSolver();
 }
 
-bool BVSolverBitblast::needsEqualityEngine(EeSetupInfo& esi)
+bool BVSolverBitblast::needsEqualityEngine(CVC5_UNUSED EeSetupInfo& esi)
 {
   // we always need the equality engine if sharing is enabled for processing
   // equality engine and shared terms
@@ -255,8 +255,11 @@ void BVSolverBitblast::postCheck(Theory::Effort level)
   }
 }
 
-bool BVSolverBitblast::preNotifyFact(
-    TNode atom, bool pol, TNode fact, bool isPrereg, bool isInternal)
+bool BVSolverBitblast::preNotifyFact(CVC5_UNUSED TNode atom,
+                                     CVC5_UNUSED bool pol,
+                                     TNode fact,
+                                     CVC5_UNUSED bool isPrereg,
+                                     CVC5_UNUSED bool isInternal)
 {
   Valuation& val = d_state.getValuation();
 

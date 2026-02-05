@@ -173,7 +173,10 @@ void TheoryUF::postCheck(Effort level)
   }
 }
 
-void TheoryUF::notifyFact(TNode atom, bool pol, TNode fact, bool isInternal)
+void TheoryUF::notifyFact(TNode atom,
+                          bool pol,
+                          TNode fact,
+                          CVC5_UNUSED bool isInternal)
 {
   if (d_state.isInConflict())
   {

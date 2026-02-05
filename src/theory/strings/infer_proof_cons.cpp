@@ -64,10 +64,8 @@ class StringCoreTermContext : public TermContext
   }
 };
 
-InferProofCons::InferProofCons(Env& env,
-                               context::Context* c,
-                               SequencesStatistics& statistics)
-    : EnvObj(env), d_lazyFactMap(c), d_statistics(statistics)
+InferProofCons::InferProofCons(Env& env, context::Context* c)
+    : EnvObj(env), d_lazyFactMap(c)
 {
 }
 

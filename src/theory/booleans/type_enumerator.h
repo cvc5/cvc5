@@ -30,7 +30,8 @@ class BooleanEnumerator : public TypeEnumeratorBase<BooleanEnumerator> {
   enum { FALSE, TRUE, DONE } d_value;
 
  public:
-  BooleanEnumerator(TypeNode type, TypeEnumeratorProperties* tep = nullptr)
+  BooleanEnumerator(TypeNode type,
+                    CVC5_UNUSED TypeEnumeratorProperties* tep = nullptr)
       : TypeEnumeratorBase<BooleanEnumerator>(type), d_value(FALSE)
   {
     Assert(type.getKind() == Kind::TYPE_CONSTANT

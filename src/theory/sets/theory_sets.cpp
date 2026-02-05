@@ -106,7 +106,7 @@ void TheorySets::postCheck(Effort level) { d_internal->postCheck(level); }
 void TheorySets::notifyFact(TNode atom,
                             bool polarity,
                             TNode fact,
-                            bool isInternal)
+                            CVC5_UNUSED bool isInternal)
 {
   d_internal->notifyFact(atom, polarity, fact);
 }
@@ -126,7 +126,10 @@ TrustNode TheorySets::explain(TNode node)
   return d_im.explainLit(node);
 }
 
-Node TheorySets::getCandidateModelValue(TNode node) { return Node::null(); }
+Node TheorySets::getCandidateModelValue(CVC5_UNUSED TNode node)
+{
+  return Node::null();
+}
 
 void TheorySets::preRegisterTerm(TNode node)
 {

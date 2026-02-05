@@ -133,7 +133,7 @@ void SygusExtension::assertFact(Node n, bool polarity)
     }
     if( polarity ){
       uint64_t s = n[1].getConst<Rational>().getNumerator().toUnsignedInt();
-      notifySearchSize(m, s, n);
+      notifySearchSize(m, s);
     }
   }
   else if (n.getKind() == Kind::DT_HEIGHT_BOUND
@@ -1428,7 +1428,7 @@ void SygusExtension::registerMeasureTerm( Node m ) {
   }
 }
 
-void SygusExtension::notifySearchSize(TNode m, uint64_t s, Node exp)
+void SygusExtension::notifySearchSize(TNode m, uint64_t s)
 {
   std::map<Node, std::unique_ptr<SygusSizeDecisionStrategy>>::iterator its =
       d_szinfo.find(m);
