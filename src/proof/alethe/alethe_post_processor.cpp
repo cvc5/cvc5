@@ -181,7 +181,8 @@ bool AletheProofPostprocessCallback::updateTheoryRewriteProofRewriteRule(
     // (cl (= (Q Y_i. Q X_i+2. ... Q X_n. F) (Q Y_i+1. Q X_i+3. ... Q X_n. F))),
     // for i>0 where Y_i = Y_i-1 u X_i, Y_0 = X_1
     //
-    // Finally,
+    // Finally, if there are duplicates we remove them otherwise, VP_b_n is
+    // already equal to res.
     //
     //   VP_b_n
     // ---------- QNT_REMOVE_UNUSED
@@ -245,13 +246,16 @@ bool AletheProofPostprocessCallback::updateTheoryRewriteProofRewriteRule(
         curr_vp_b = next_vp_b;
       }
 
-      return success
-             && addAletheStep(AletheRule::QNT_RM_UNUSED,
-                              res,
-                              nm->mkNode(Kind::SEXPR, d_cl, res),
-                              {curr_vp_b},
-                              {},
-                              *cdp);
+      if (curr_vp_b != res)
+      {
+        success &= addAletheStep(AletheRule::QNT_RM_UNUSED,
+                                 res,
+                                 nm->mkNode(Kind::SEXPR, d_cl, res),
+                                 {curr_vp_b},
+                                 {},
+                                 *cdp);
+      }
+      return success;
     }
     // ======== QUANT_MINISCOPE_AND
     // This rule is translated according to the clause pattern.
