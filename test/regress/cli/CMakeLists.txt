@@ -1425,6 +1425,7 @@ set(regress_0_tests
   regress0/printer/bv_consts_bin.smt2
   regress0/printer/bv_consts_dec.smt2
   regress0/printer/deep-restart-output.smt2
+  regress0/printer/divide-zero-model.smt2
   regress0/printer/empty_sort.smt2
   regress0/printer/empty_symbol_name.smt2
   regress0/printer/get-value-no-letify.smt2

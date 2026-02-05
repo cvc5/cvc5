@@ -171,6 +171,26 @@ Node TheoryModel::getValue(TNode n) const
   return nn;
 }
 
+std::unordered_set<Node> TheoryModel::getAllSymbols() const
+{
+  std::unordered_set<Node> syms;
+  std::unordered_set<TNode> visited;
+  eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(d_equalityEngine);
+  while (!eqcs_i.isFinished())
+  {
+    Node eqc = *eqcs_i;
+    ++eqcs_i;
+    eq::EqClassIterator eqc_i = eq::EqClassIterator(eqc, d_equalityEngine);
+    while (!eqc_i.isFinished())
+    {
+      Node n = *eqc_i;
+      ++eqc_i;
+      expr::getSymbols(n, syms, visited);
+    }
+  }
+  return syms;
+}
+
 Node TheoryModel::simplify(TNode n) const
 {
   std::unordered_set<Node> syms;

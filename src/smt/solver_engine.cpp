@@ -1392,6 +1392,25 @@ std::string SolverEngine::getModel(const std::vector<TypeNode>& declaredSorts,
     std::pair<Node, Node> sh = getSepHeapAndNilExpr();
     m.setHeapModel(sh.first, sh.second);
   }
+  // get all symbols
+  if (options().printer.modelPrintPartialFun)
+  {
+    Trace("smt-model-debug") << "getModel: get all symbols ..." << std::endl;
+    std::unordered_set<Node> syms = tm->getAllSymbols();
+    for (const Node& sym : syms)
+    {
+      SkolemId kid = sym.getSkolemId();
+      if (kid == SkolemId::NONE)
+      {
+        continue;
+      }
+      Trace("smt-model-debug") << "Skolem: " << sym << std::endl;
+      Node kv = tm->getValue(sym);
+      Trace("smt-model-debug") << "Model value: " << kv << std::endl;
+      m.addDeclarationTerm(sym, kv);
+    }
+    Trace("smt-model-debug") << "...finished." << std::endl;
+  }
   // print the model
   std::stringstream ssm;
   ssm << m;
