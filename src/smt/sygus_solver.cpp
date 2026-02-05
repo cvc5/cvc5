@@ -536,6 +536,10 @@ void SygusSolver::checkSynthSolution(Assertions& as,
     {
       conjBody = conjBody[1];
     }
+    else
+    {
+      conjBody = conj.negate();
+    }
     // we must apply substitutions here, since define-fun may contain the
     // function-to-synthesize, which needs to be substituted.
     conjBody = d_smtSolver.getPreprocessor()->applySubstitutions(conjBody);
