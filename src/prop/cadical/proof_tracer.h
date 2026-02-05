@@ -114,7 +114,29 @@ class ProofTracer : public CaDiCaL::Tracer
   bool mark_var(std::unordered_map<int32_t, uint8_t>& marked_vars, int32_t lit);
 
   /**
-   * Produce a chain resolution proof step for a derived clause.
+   * Helper to produce chain resolution proof step for a derived clause.
+   *
+   * Produces a chain resolution proof step for the given derived clause cid.
+   * From the extracted SAT proof core we get that a clause C was derived by
+   * resolving antecedents A0,...,An. For each resolution step we compute the
+   * pivot literal and its polarity, starting by resolving An and An-1
+   * (backwards resolution). The children of this chain resolution step are the
+   * proof steps of each antecedent, i.e., steps[A0],...,steps[An]. The
+   * arguments are the pivot literals and their polarities and the derived
+   * clause C as a node.
+   *
+   *              steps[A0],...,steps[An] | C,(polarities...),(pivots...)
+   * CHAIN_M_RES --------------------------------------------------------
+   *                                      C
+   *
+   * @param cid Clause id of derived clause to produce proof step for.
+   * @param proxy Theory proxy to get node mapping.
+   * @param pnm Proof node manager instance.
+   * @param nm Node manager instance.
+   * @param steps Maps derived clauses to chain resolution proof step that
+   *              derived that clause.
+   * @param activation_literals Set of current activation literals.
+   * @return A chain resolution step for producing clause cid.
    */
   std::shared_ptr<ProofNode> chain_resolution_step(
       uint64_t cid,
@@ -125,9 +147,9 @@ class ProofTracer : public CaDiCaL::Tracer
       const std::unordered_set<int64_t>& activation_literals);
 
   const CadicalPropagator& d_propagator;
-  // Maps clause ids to clause info.
+  /** Maps clause ids to clause info. */
   std::vector<ClauseInfo> d_clauses;
-  // Stores the final clause ids used to conclude unsat.
+  /** Stores the final clause ids used to conclude unsat. */
   std::vector<uint64_t> d_final_clauses;
 };
 
