@@ -22,6 +22,7 @@
 #include "proof/proof_node_algorithm.h"
 #include "proof/proof_node_manager.h"
 #include "smt/env.h"
+#include "theory/arith/arith_utilities.h"
 #include "util/rational.h"
 
 namespace cvc5::internal {
@@ -138,6 +139,27 @@ Node SubtypeElimConverterCallback::convert(Node res,
       }
     }
     break;
+    case ProofRule::ARITH_MULT_POS:
+    case ProofRule::ARITH_MULT_NEG:
+    {
+      if (cargs[0].getType().isInteger())
+      {
+        // real relation multiplied by integer, cast the multiplicand to real
+        Assert(cargs.size() == 2 && cargs[1].getNumChildren() == 2);
+        if (cargs[1][0].getType().isReal())
+        {
+          cargs[0] = theory::arith::castToReal(nm, cargs[0]);
+        }
+      }
+      else if (cargs[1][0].getType().isInteger())
+      {
+        // integer relation multiplied by real, cast to a real relation
+        cargs[1] = nm->mkNode(cargs[1].getKind(),
+                              theory::arith::castToReal(nm, cargs[1][0]),
+                              theory::arith::castToReal(nm, cargs[1][1]));
+      }
+    }
+    break;
     default: break;
   }
 
@@ -230,42 +252,61 @@ Node SubtypeElimConverterCallback::convert(Node res,
     case ProofRule::ARITH_MULT_NEG:
     {
       // This handles the case where we multiply an integer relation by
-      // a rational. We tranform the proof as follows:
+      // a rational, or multiply a real relation by an integer.
+      // Note that we modify the arguments to the proof rule above
+      // to ensure that the initial rule attempt does not use mixed arithmetic.
+      // We transform the proof for the former as follows:
       //
       //            ----- ASSUME
       //            t~s
       // --- ASSUME ----- prove, using method below
-      // c>0        t'~s'
+      // c>0.0      t'~s'
       // --------------- AND_INTRO ------------------------------ ARITH_MULT_X
-      // (and c>0 t'~s')           (=> (and c>0 t'~s') (c*t'~c*s'))
+      // (and c>0.0 t'~s')           (=> (and c>0 t'~s') (c*t'~c*s'))
       // ----------------------------------------------------- MODUS_PONENS
       // (c*t'~c*s')
-      // ----------------------- SCOPE {c>0, t~s}
-      // (=> (and c>0 t~s) (c*t'~c*s'))
+      // ------------------------------- SCOPE {c>0.0, t~s}
+      // (=> (and c>0.0 t~s) (c*t'~c*s'))
       //
-      // there t'~s' is a predicate over reals and t~s is a mixed integer
-      // predicate.
-      Node sc = resc[0][0];
-      Node relOld = resc[0][1];
-      Node relNew = nm->mkNode(relOld.getKind(), resc[1][0][1], resc[1][1][1]);
-      if (prove(relOld, relNew, cdp))
+      // there t~s is the original predicate over the integers we had as input
+      // and t'~s' is an equivalent predicate over reals. The latter case
+      // (multiplying a real relation by an integer) is handled similarly.
+      bool csuccess = true;
+      // transform the inputs to AND_INTRO
+      for (size_t i = 0; i < 2; i++)
       {
-        Node relNewMult = resc[1];
-        Node antec = nm->mkNode(Kind::AND, sc, relNew);
-        Node rimpl = nm->mkNode(Kind::IMPLIES, antec, relNewMult);
-        cdp->addStep(rimpl, id, {}, {args[0], relNew});
-        cdp->addStep(antec, ProofRule::AND_INTRO, {sc, relNew}, {});
-        cdp->addStep(relNewMult, ProofRule::MODUS_PONENS, {antec, rimpl}, {});
-        cdp->addStep(resc, ProofRule::SCOPE, {relNewMult}, {sc, relOld});
-        success = true;
+        Node relOld = resc[0][i];
+        Trace("pf-subtype-elim") << "Old relation: " << relOld << std::endl;
+        Node relNew = newRes[0][i];
+        Trace("pf-subtype-elim") << "New relation: " << relNew << std::endl;
+        if (!prove(relOld, relNew, cdp))
+        {
+          csuccess = false;
+          break;
+        }
+      }
+      // construct the rest of the proof
+      if (csuccess)
+      {
+        cdp->addStep(newRes, id, {}, {cargs[0], newRes[0][1]});
+        cdp->addStep(
+            newRes[0], ProofRule::AND_INTRO, {newRes[0][0], newRes[0][1]}, {});
+        cdp->addStep(
+            newRes[1], ProofRule::MODUS_PONENS, {newRes[0], newRes}, {});
+        if (prove(newRes[1], resc[1], cdp))
+        {
+          cdp->addStep(
+              resc, ProofRule::SCOPE, {resc[1]}, {resc[0][0], resc[0][1]});
+          success = true;
+        }
       }
     }
     break;
+    case ProofRule::MACRO_REWRITE:
     case ProofRule::MACRO_SR_EQ_INTRO:
     {
       // Just use the more general rule MACRO_SR_PRED_INTRO, where the converted
-      // result can be used. This is used to handle the case where
-      // MACRO_SR_EQ_INTRO was used during solving.
+      // result can be used.
       cargs[0] = resc;
       success = tryWith(
           ProofRule::MACRO_SR_PRED_INTRO, children, cargs, resc, newRes, cdp);
@@ -288,6 +329,7 @@ Node SubtypeElimConverterCallback::convert(Node res,
                                true);
       for (const Node& mc : matchConds)
       {
+        Trace("pf-subtype-elim") << "- match condition " << mc << std::endl;
         tcpg.addRewriteStep(mc[0],
                             mc[1],
                             nullptr,

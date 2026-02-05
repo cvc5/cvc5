@@ -1160,7 +1160,7 @@ std::vector<DatatypeDecl> Smt2TermParser::parseDatatypesDef(
       // if the arity is not yet fixed, declare it as an unresolved type
       d_state.mkUnresolvedType(dnames[i], params.size());
     }
-    else if (arities[i] >= 0 && params.size() != arities[i])
+    else if (params.size() != arities[i])
     {
       // if the arity was fixed by prelude and is not equal to the number of
       // parameters

@@ -36,8 +36,8 @@ LetUpdaterPfCallback::LetUpdaterPfCallback(AletheLetBinding& lbind)
 LetUpdaterPfCallback::~LetUpdaterPfCallback() {}
 
 bool LetUpdaterPfCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
-                                        const std::vector<Node>& fa,
-                                        bool& continueUpdate)
+                                        CVC5_UNUSED const std::vector<Node>& fa,
+                                        CVC5_UNUSED bool& continueUpdate)
 {
   ProofRule r = pn->getRule();
   if (r == ProofRule::ASSUME)

@@ -46,7 +46,6 @@ class SimpSolver : public Solver {
   SimpSolver(Env& env,
              prop::TheoryProxy* proxy,
              context::Context* context,
-             context::UserContext* userContext,
              prop::PropPfManager* ppm,
              bool enableIncremental = false);
   ~SimpSolver();

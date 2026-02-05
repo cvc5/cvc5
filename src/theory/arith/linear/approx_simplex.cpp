@@ -3143,7 +3143,9 @@ namespace theory {
 namespace arith::linear {
 
 ApproximateSimplex* ApproximateSimplex::mkApproximateSimplexSolver(
-    const ArithVariables& vars, TreeLog& l, ApproximateStatistics& s)
+    CVC5_UNUSED const ArithVariables& vars,
+    CVC5_UNUSED TreeLog& l,
+    CVC5_UNUSED ApproximateStatistics& s)
 {
 #ifdef CVC5_USE_GLPK
   return new ApproxGLPK(vars, l, s);
