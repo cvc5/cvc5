@@ -207,7 +207,8 @@ bool AletheProofPostprocessCallback::updateTheoryRewriteProofRewriteRule(
 				   {},
                                    *cdp);
 
-      while (remaining.getKind() != k){//i=1 to n-1
+      Trace("alethe-proof") << "... reached step " << curr_vp_b << std::endl;
+      while (remaining.getKind() == k){//i=1 to n-1
         curr_Y = next_Y; // Yi
         curr_X = {remaining[0].begin(), remaining[0].end()}; // X_i+2
         remaining = remaining[1]; // Q X_i+3. ... Q Fn. F
@@ -233,6 +234,7 @@ bool AletheProofPostprocessCallback::updateTheoryRewriteProofRewriteRule(
                                    *cdp);
 
 	curr_vp_b = next_vp_b;
+        Trace("alethe-proof") << "... reached step " << next_vp_b << std::endl;
       }
 
       return success && addAletheStep(AletheRule::QNT_RM_UNUSED,
