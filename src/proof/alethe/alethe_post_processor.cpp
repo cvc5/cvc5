@@ -173,9 +173,13 @@ bool AletheProofPostprocessCallback::updateTheoryRewriteProofRewriteRule(
     // ------------------------------- TRANS
     //             VP_b_i+1
     //
-    // VP_b_i+1: (cl (= (Q X_1. Q X_2. ... Q X_n. F) (Q Y_i. Q X_i+2. ... Q X_n.
-    // F))), for i>0 VP_a_i: (cl (= (Q Y_i. Q X_i+2. ... Q X_n. F) (Q Y_i+1. Q
-    // X_i+3. ... Q X_n. F))), for i>0 where Y_i = Y_i-1 u X_i, Y_0 = X_1
+    // VP_b_i+1:
+    // (cl (= (Q X_1. Q X_2. ... Q X_n. F) (Q Y_i. Q X_i+2. ... Q X_n.F))),
+    // for i>0
+    //
+    // VP_a_i:
+    // (cl (= (Q Y_i. Q X_i+2. ... Q X_n. F) (Q Y_i+1. Q X_i+3. ... Q X_n. F))),
+    // for i>0 where Y_i = Y_i-1 u X_i, Y_0 = X_1
     //
     // Finally,
     //
