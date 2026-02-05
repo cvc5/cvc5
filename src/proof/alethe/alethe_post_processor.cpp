@@ -215,24 +215,24 @@ bool AletheProofPostprocessCallback::updateTheoryRewriteProofRewriteRule(
         curr_X = {remaining[0].begin(), remaining[0].end()}; // X_i+2
         remaining = remaining[1];
         next_Y = curr_Y;  // Y_i+1
-        next_Y.insert(next_Y.end(),curr_X.begin(),curr_X.end());
+        next_Y.insert(next_Y.end(), curr_X.begin(), curr_X.end());
         curr_LHS = curr_RHS;
         curr_RHS =
             nm->mkNode(k, nm->mkNode(Kind::BOUND_VAR_LIST, next_Y), remaining);
         curr_vp_a = nm->mkNode(Kind::EQUAL, curr_LHS, curr_RHS);
         next_vp_b = nm->mkNode(Kind::EQUAL,LHS,curr_RHS);
-	success &= addAletheStep(AletheRule::QNT_JOIN,
-                                   curr_vp_a,
-                                   nm->mkNode(d_cl,curr_vp_a),
-                                   {},
-				   {},
-                                   *cdp)
-		&&  addAletheStep(AletheRule::TRANS,
-                                   next_vp_b,
-                                   nm->mkNode(d_cl,next_vp_b),
-                                   {curr_vp_a,curr_vp_b},
-				   {},
-                                   *cdp);
+        success &= addAletheStep(AletheRule::QNT_JOIN,
+                                 curr_vp_a,
+                                 nm->mkNode(d_cl, curr_vp_a),
+                                 {},
+                                 {},
+                                 *cdp)
+                   && addAletheStep(AletheRule::TRANS,
+                                    next_vp_b,
+                                    nm->mkNode(d_cl, next_vp_b),
+                                    {curr_vp_a, curr_vp_b},
+                                    {},
+                                    *cdp);
         Trace("alethe-proof") << "... reached step " << next_vp_b << std::endl;
 
         curr_vp_b = next_vp_b;
