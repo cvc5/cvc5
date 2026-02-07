@@ -683,8 +683,8 @@ bool AletheProofPostprocessCallback::update(Node res,
                            new_args,
                            *cdp);
     }
-    // Both ARITH_POLY_NORM and EVALUATE, which are used by the Rare
-    // elaboration, are captured by the "rare_rewrite" rule.
+    // ================================================= Arithmetic
+    // ======== Polynomial normalization
     case ProofRule::ARITH_POLY_NORM:
     {
       return addAletheStep(
@@ -694,6 +694,144 @@ bool AletheProofPostprocessCallback::update(Node res,
           children,
           {NodeManager::mkRawSymbol("\"arith-poly-norm\"", nm->sExprType())},
           *cdp);
+    }
+    // ======== Polynomial normalization for relations
+    //
+    // --------- rare_rewrite, r
+    //    VP1
+    // --------- equiv2          ---------- true
+    //    VP2                        VP3
+    // ------------------------------------ resolution
+    //                VP4
+    // ------------------------------------ implies
+    //                VP5                                   P
+    // --------------------------------------------------------- resolution
+    //                              res
+    //
+    // VP1: (cl (= (=> P res) true))
+    // VP2: (cl (=> P res) (not true))
+    // VP3: (cl true)
+    // VP4: (cl (=> P res))
+    // VP5: (cl (not P) res)
+    //
+    // op is the {leq,lt,geq,gt,eq} corresponding to which symbol diamond is
+    //
+    // If x1 and y1 are reals then:
+    //  r = "poly-simp-rel-op-both-to-real"
+    // Otherwise, if x1 is real
+    //  r = "poly-simp-rel-op-left-to-real"
+    // Otherwise, if y1 is real
+    //  r = "poly-simp-rel-op-right-to-real"
+    // Otherwise,
+    //  r = "poly-simp-rel-op"
+    //
+    //
+    // (define-rule-cond poly-simp-rel-op ((cx ?) (cy ?) (x1 ?) (x2 ?) (y1 ?)
+    // (y2 ?))
+    //   (and (not (= cx 0)) (not (= cy 0)) (= (> cx 0) (> cy 0)))
+    //   (=> (= (* cx (- x1 x2)) (* cy (- y1 y2))) (= (x1 diamond x2) (y1
+    //   diamond y2))) True)
+    //
+    // (define-rule-cond poly-simp-rel-op-left-to-real ((cx Real) (cy Real) (x1
+    // Int) (x2 Int) (y1 Real) (y2 Real))
+    //   (and (not (= cx 0)) (not (= cy 0)) (= (> cx 0) (> cy 0)))
+    //   (=> (= (* cx (to_real (- x1 x2))) (* cy (- y1 y2))) (= (x1 diamond x2)
+    //   (y1 diamond y2))) True)
+    //
+    // (define-rule-cond poly-simp-rel-op-right-to-real ((cx Real) (cy Real) (x1
+    // Real) (x2 Real) (y1 Int) (y2 Int))
+    //   (and (not (= cx 0)) (not (= cy 0)) (= (> cx 0) (> cy 0)))
+    //   (=> (= (* cx (- x1 x2)) (* cy (to_real (- y1 y2)))) (= (x1 diamond x2)
+    //   (y1 diamond y2))) True)
+    //
+    // (define-rule-cond poly-simp-rel-op-both-to-real ((cx Real) (cy Real) (x1
+    // Int) (x2 Int) (y1 Int) (y2 Int))
+    //   (and (not (= cx 0)) (not (= cy 0)) (= (> cx 0) (> cy 0)))
+    //   (=> (= (* cx (to_real (- x1 x2))) (* cy (to_real (- y1 y2)))) (= (x1
+    //   diamond x2) (y1 diamond y2))) True)
+    case ProofRule::ARITH_POLY_NORM_REL:
+    {
+      bool success = true;
+      Node trueN = nm->mkConst(true);
+      TypeNode real_type = nm->realType();
+      TypeNode int_type = nm->integerType();
+      Kind diamond = res[0].getKind();
+      std::string diamond_str = kindToString(diamond);
+      std::transform(
+          diamond_str.begin(), diamond_str.end(), diamond_str.begin(), tolower);
+
+      Node X = res[0];
+      Node x1 = X[0];
+      Node x2 = X[1];
+      Assert(x1.getType() == x2.getType());
+
+      Node Y = res[1];
+      Node y1 = Y[0];
+      Node y2 = Y[1];
+      Assert(y1.getType() == y2.getType());
+
+      Node child = children[0];
+      Node child_LHS = child[0];
+      Node child_RHS = child[1];
+
+      Node cx = child_LHS[0];
+      Node x1x2 = child_LHS[1];  // Could be (x1 - x2) or (to_real (x1 - x2))
+      Node cy = child_RHS[0];
+      Node y1y2 = child_RHS[1];  // Could be (y1 - y2) or (to_real (y1 - y2))
+
+      bool x_implicit_to_real =
+          (x1.getType() == int_type) && (cx.getType() == real_type);
+      bool y_implicit_to_real =
+          (y1.getType() == int_type) && (cy.getType() == real_type);
+      std::string add_to_real = x_implicit_to_real && y_implicit_to_real
+                                    ? "-both-to-real"
+                                : x_implicit_to_real ? "-left-to-real"
+                                : y_implicit_to_real ? "-right-to-real"
+                                                     : "";
+
+      new_args = {
+          nm->mkRawSymbol("\"poly-simp-rel-" + diamond_str + add_to_real + "\"",
+                          nm->sExprType()),
+          cx,
+          cy,
+          x1,
+          x2,
+          y1,
+          y2};
+      Node vp1 =
+          nm->mkNode(Kind::EQUAL, nm->mkNode(Kind::IMPLIES, child, res), trueN);
+      Node vp2 = nm->mkNode(
+          Kind::OR, nm->mkNode(Kind::IMPLIES, child, res), trueN.notNode());
+      Node vp3 = trueN;
+      Node vp4 = nm->mkNode(Kind::IMPLIES, child, res);
+      Node vp5 = nm->mkNode(Kind::OR, child.notNode(), res);
+      return success &=
+             addAletheStep(AletheRule::RARE_REWRITE,
+                           vp1,
+                           nm->mkNode(Kind::SEXPR, d_cl, vp1),
+                           {},
+                           new_args,
+                           *cdp)
+             && addAletheStepFromOr(AletheRule::EQUIV2, vp2, {vp1}, {}, *cdp)
+             && addAletheStep(AletheRule::TRUE,
+                              vp3,
+                              nm->mkNode(Kind::SEXPR, d_cl, vp3),
+                              {},
+                              {},
+                              *cdp)
+             && addAletheStep(AletheRule::RESOLUTION,
+                              vp4,
+                              nm->mkNode(Kind::SEXPR, d_cl, vp4),
+                              {vp3, vp2},
+                              {},
+                              *cdp)
+             && addAletheStepFromOr(AletheRule::IMPLIES, vp5, {vp4}, {}, *cdp)
+             && addAletheStep(AletheRule::RESOLUTION,
+                              res,
+                              nm->mkNode(Kind::SEXPR, d_cl, res),
+                              {child, vp5},
+                              {},
+                              *cdp);
     }
     case ProofRule::EVALUATE:
     {
