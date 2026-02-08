@@ -208,10 +208,9 @@ class ExtfSolver : public InferSideEffectProcess, protected EnvObj
  private:
   /**
    * Helper method for checkExtfReductions / maybeHasCandidateModel, returns
-   * true if a reduction lemma was sent if doSend = true, or would have been
-   * sent if doSend = false.
+   * true if a reduction lemma was sent
    */
-  bool checkExtfReductionsInternal(int effort, bool doSend);
+  bool checkExtfReductionsInternal(int effort);
   /**
    * Determines if n should be reduced based on the effort level.
    *
@@ -240,10 +239,9 @@ class ExtfSolver : public InferSideEffectProcess, protected EnvObj
    * to its reduction, but may help show a refutation.
    *
    * This function is called when the context-depdendent simplified form of
-   * n is nr. The argument "in" is the information object for n. The argument
-   * "effort" has the same meaning as the effort argument of checkExtfEval.
+   * n is nr. The argument "in" is the information object for n.
    */
-  void checkExtfInference(Node n, Node nr, ExtfInfoTmp& in, int effort);
+  void checkExtfInference(Node n, Node nr, ExtfInfoTmp& in);
   /** The solver state object */
   SolverState& d_state;
   /** The (custom) output channel of the theory of strings */

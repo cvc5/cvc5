@@ -159,8 +159,8 @@ bool EagerSolver::checkForMergeConflict(Node a,
 
 void EagerSolver::notifyFact(TNode atom,
                              bool polarity,
-                             TNode fact,
-                             bool isInternal)
+                             CVC5_UNUSED TNode fact,
+                             CVC5_UNUSED bool isInternal)
 {
   if (atom.getKind() == Kind::STRING_IN_REGEXP)
   {

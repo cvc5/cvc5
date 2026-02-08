@@ -243,17 +243,17 @@ void ExtfSolver::doReduction(Node n, int pol)
 void ExtfSolver::checkExtfReductionsEager()
 {
   // return value is ignored
-  checkExtfReductionsInternal(1, true);
+  checkExtfReductionsInternal(1);
 }
 
 void ExtfSolver::checkExtfReductions(Theory::Effort e)
 {
   int effort = e == Theory::EFFORT_LAST_CALL ? 3 : 2;
   // return value is ignored
-  checkExtfReductionsInternal(effort, true);
+  checkExtfReductionsInternal(effort);
 }
 
-bool ExtfSolver::checkExtfReductionsInternal(int effort, bool doSend)
+bool ExtfSolver::checkExtfReductionsInternal(int effort)
 {
   // Notice we don't make a standard call to ExtTheory::doReductions here,
   // since certain optimizations like context-dependent reductions and
@@ -504,7 +504,7 @@ void ExtfSolver::checkExtfEval(int effort)
       // not based on the model (effort<3).
       if (effort < 3)
       {
-        checkExtfInference(n, to_reduce, einfo, effort);
+        checkExtfInference(n, to_reduce, einfo);
       }
       if (TraceIsOn("strings-extf-list"))
       {
@@ -533,10 +533,7 @@ void ExtfSolver::checkExtfEval(int effort)
   d_hasExtf = has_nreduce;
 }
 
-void ExtfSolver::checkExtfInference(Node n,
-                                    Node nr,
-                                    ExtfInfoTmp& in,
-                                    int effort)
+void ExtfSolver::checkExtfInference(Node n, Node nr, ExtfInfoTmp& in)
 {
   // see if any previous term rewrote to nr, if so, we can conclude that
   // term is equal to n.

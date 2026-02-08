@@ -162,7 +162,9 @@ class TheoryStrings : public Theory {
                        << std::endl;
       d_str.eqNotifyMerge(t1, t2);
     }
-    void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override
+    void eqNotifyDisequal(CVC5_UNUSED TNode t1,
+                          CVC5_UNUSED TNode t2,
+                          CVC5_UNUSED TNode reason) override
     {
     }
 

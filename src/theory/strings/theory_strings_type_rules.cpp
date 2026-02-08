@@ -39,11 +39,12 @@ bool isMaybeInteger(const TypeNode& tn)
   return tn.isInteger() || tn.isFullyAbstract();
 }
 
-TypeNode StringConcatTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode StringConcatTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
+                                              CVC5_UNUSED TNode n)
 {
   return TypeNode::null();
 }
-TypeNode StringConcatTypeRule::computeType(NodeManager* nodeManager,
+TypeNode StringConcatTypeRule::computeType(CVC5_UNUSED NodeManager* nodeManager,
                                            TNode n,
                                            bool check,
                                            std::ostream* errOut)
@@ -83,11 +84,12 @@ TypeNode StringConcatTypeRule::computeType(NodeManager* nodeManager,
   return tret;
 }
 
-TypeNode StringSubstrTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode StringSubstrTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
+                                              CVC5_UNUSED TNode n)
 {
   return TypeNode::null();
 }
-TypeNode StringSubstrTypeRule::computeType(NodeManager* nodeManager,
+TypeNode StringSubstrTypeRule::computeType(CVC5_UNUSED NodeManager* nodeManager,
                                            TNode n,
                                            bool check,
                                            std::ostream* errOut)
@@ -126,11 +128,12 @@ TypeNode StringSubstrTypeRule::computeType(NodeManager* nodeManager,
   return t;
 }
 
-TypeNode StringUpdateTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode StringUpdateTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
+                                              CVC5_UNUSED TNode n)
 {
   return TypeNode::null();
 }
-TypeNode StringUpdateTypeRule::computeType(NodeManager* nodeManager,
+TypeNode StringUpdateTypeRule::computeType(CVC5_UNUSED NodeManager* nodeManager,
                                            TNode n,
                                            bool check,
                                            std::ostream* errOut)
@@ -170,11 +173,12 @@ TypeNode StringUpdateTypeRule::computeType(NodeManager* nodeManager,
   return tret;
 }
 
-TypeNode StringAtTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode StringAtTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
+                                          CVC5_UNUSED TNode n)
 {
   return TypeNode::null();
 }
-TypeNode StringAtTypeRule::computeType(NodeManager* nodeManager,
+TypeNode StringAtTypeRule::computeType(CVC5_UNUSED NodeManager* nodeManager,
                                        TNode n,
                                        bool check,
                                        std::ostream* errOut)
@@ -203,7 +207,8 @@ TypeNode StringAtTypeRule::computeType(NodeManager* nodeManager,
   return t;
 }
 
-TypeNode StringIndexOfTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode StringIndexOfTypeRule::preComputeType(NodeManager* nm,
+                                               CVC5_UNUSED TNode n)
 {
   return nm->integerType();
 }
@@ -246,14 +251,16 @@ TypeNode StringIndexOfTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->integerType();
 }
 
-TypeNode StringReplaceTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode StringReplaceTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
+                                               CVC5_UNUSED TNode n)
 {
   return TypeNode::null();
 }
-TypeNode StringReplaceTypeRule::computeType(NodeManager* nodeManager,
-                                            TNode n,
-                                            bool check,
-                                            std::ostream* errOut)
+TypeNode StringReplaceTypeRule::computeType(
+    CVC5_UNUSED NodeManager* nodeManager,
+    TNode n,
+    bool check,
+    std::ostream* errOut)
 {
   TypeNode t;
   for (const Node& nc : n)
@@ -289,7 +296,8 @@ TypeNode StringReplaceTypeRule::computeType(NodeManager* nodeManager,
   return t;
 }
 
-TypeNode StringStrToBoolTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode StringStrToBoolTypeRule::preComputeType(NodeManager* nm,
+                                                 CVC5_UNUSED TNode n)
 {
   return nm->booleanType();
 }
@@ -331,7 +339,8 @@ TypeNode StringStrToBoolTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->booleanType();
 }
 
-TypeNode StringStrToIntTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode StringStrToIntTypeRule::preComputeType(NodeManager* nm,
+                                                CVC5_UNUSED TNode n)
 {
   return nm->integerType();
 }
@@ -356,14 +365,16 @@ TypeNode StringStrToIntTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->integerType();
 }
 
-TypeNode StringStrToStrTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode StringStrToStrTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
+                                                CVC5_UNUSED TNode n)
 {
   return TypeNode::null();
 }
-TypeNode StringStrToStrTypeRule::computeType(NodeManager* nodeManager,
-                                             TNode n,
-                                             bool check,
-                                             std::ostream* errOut)
+TypeNode StringStrToStrTypeRule::computeType(
+    CVC5_UNUSED NodeManager* nodeManager,
+    TNode n,
+    bool check,
+    std::ostream* errOut)
 {
   TypeNode t = n[0].getTypeOrNull();
   if (check)
@@ -380,7 +391,8 @@ TypeNode StringStrToStrTypeRule::computeType(NodeManager* nodeManager,
   return t;
 }
 
-TypeNode StringRelationTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode StringRelationTypeRule::preComputeType(NodeManager* nm,
+                                                CVC5_UNUSED TNode n)
 {
   return nm->booleanType();
 }
@@ -414,7 +426,8 @@ TypeNode StringRelationTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->booleanType();
 }
 
-TypeNode RegExpRangeTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode RegExpRangeTypeRule::preComputeType(NodeManager* nm,
+                                             CVC5_UNUSED TNode n)
 {
   return nm->regExpType();
 }
@@ -443,7 +456,8 @@ TypeNode RegExpRangeTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->regExpType();
 }
 
-TypeNode StringToRegExpTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode StringToRegExpTypeRule::preComputeType(NodeManager* nm,
+                                                CVC5_UNUSED TNode n)
 {
   return nm->regExpType();
 }
@@ -467,40 +481,44 @@ TypeNode StringToRegExpTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->regExpType();
 }
 
-bool StringToRegExpTypeRule::computeIsConst(NodeManager* nodeManager, TNode n)
+bool StringToRegExpTypeRule::computeIsConst(
+    CVC5_UNUSED NodeManager* nodeManager, TNode n)
 {
   Assert(n.getKind() == Kind::STRING_TO_REGEXP);
   return n[0].isConst();
 }
 
-TypeNode ConstSequenceTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode ConstSequenceTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
+                                               CVC5_UNUSED TNode n)
 {
   return TypeNode::null();
 }
 TypeNode ConstSequenceTypeRule::computeType(NodeManager* nodeManager,
                                             TNode n,
-                                            bool check,
-                                            std::ostream* errOut)
+                                            CVC5_UNUSED bool check,
+                                            CVC5_UNUSED std::ostream* errOut)
 {
   Assert(n.getKind() == Kind::CONST_SEQUENCE);
   return nodeManager->mkSequenceType(n.getConst<Sequence>().getType());
 }
 
-TypeNode SeqUnitTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode SeqUnitTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
+                                         CVC5_UNUSED TNode n)
 {
   return TypeNode::null();
 }
 TypeNode SeqUnitTypeRule::computeType(NodeManager* nodeManager,
                                       TNode n,
-                                      bool check,
-                                      std::ostream* errOut)
+                                      CVC5_UNUSED bool check,
+                                      CVC5_UNUSED std::ostream* errOut)
 {
   Assert(n.getKind() == Kind::SEQ_UNIT);
   TypeNode argType = n[0].getTypeOrNull();
   return nodeManager->mkSequenceType(argType);
 }
 
-TypeNode SeqNthTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode SeqNthTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
+                                        CVC5_UNUSED TNode n)
 {
   return TypeNode::null();
 }
@@ -548,15 +566,16 @@ TypeNode SeqNthTypeRule::computeType(NodeManager* nodeManager,
   return t.getSequenceElementType();
 }
 
-TypeNode SeqEmptyOfTypeTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode SeqEmptyOfTypeTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
+                                                CVC5_UNUSED TNode n)
 {
   return TypeNode::null();
 }
 
 TypeNode SeqEmptyOfTypeTypeRule::computeType(NodeManager* nm,
-                                             TNode n,
-                                             bool check,
-                                             std::ostream* errOut)
+                                             CVC5_UNUSED TNode n,
+                                             CVC5_UNUSED bool check,
+                                             CVC5_UNUSED std::ostream* errOut)
 {
   return nm->mkAbstractType(Kind::SEQUENCE_TYPE);
 }
