@@ -77,30 +77,23 @@ public:
     typename super::const_iterator d_it;
 
   public:
+   const_iterator(const typename super::const_iterator& it) : d_it(it) {}
 
-    const_iterator(const typename super::const_iterator& it) : d_it(it) {}
-    const_iterator(const const_iterator& it) : d_it(it.d_it) {}
+   // Default constructor
+   const_iterator() {}
 
-    // Default constructor
-    const_iterator() {}
+   // (Dis)equality
+   bool operator==(const const_iterator& i) const { return d_it == i.d_it; }
+   bool operator!=(const const_iterator& i) const { return d_it != i.d_it; }
 
-    // (Dis)equality
-    bool operator==(const const_iterator& i) const {
-      return d_it == i.d_it;
-    }
-    bool operator!=(const const_iterator& i) const {
-      return d_it != i.d_it;
-    }
+   // Dereference operators.
+   V operator*() const { return (*d_it).first; }
 
-    // Dereference operators.
-    V operator*() const {
-      return (*d_it).first;
-    }
-
-    // Prefix increment
-    const_iterator& operator++() {
-      ++d_it;
-      return *this;
+   // Prefix increment
+   const_iterator& operator++()
+   {
+     ++d_it;
+     return *this;
     }
 
     // Postfix increment: requires a Proxy object to hold the

@@ -83,13 +83,6 @@ class String
   }
   explicit String(const std::vector<unsigned>& s);
 
-  String& operator=(const String& y) {
-    if (this != &y) {
-      d_str = y.d_str;
-    }
-    return *this;
-  }
-
   String concat(const String& other) const;
 
   bool operator==(const String& y) const { return cmp(y) == 0; }

@@ -196,12 +196,6 @@ symbolicProposition::symbolicProposition(bool v)
   Assert(checkNodeType(*this));
 }
 
-symbolicProposition::symbolicProposition(const symbolicProposition& old)
-    : nodeWrapper(old)
-{
-  Assert(checkNodeType(*this));
-}
-
 symbolicProposition symbolicProposition::operator!(void) const
 {
   return symbolicProposition(NodeManager::mkNode(Kind::BITVECTOR_NOT, *this));
@@ -250,12 +244,6 @@ symbolicRoundingMode::symbolicRoundingMode(const unsigned v)
         SymFpuNM::get()->mkConst(BitVector(SYMFPU_NUMBER_OF_ROUNDING_MODES, v)))
 {
   Assert((v & (v - 1)) == 0 && v != 0);  // Exactly one bit set
-  Assert(checkNodeType(*this));
-}
-
-symbolicRoundingMode::symbolicRoundingMode(const symbolicRoundingMode& old)
-    : nodeWrapper(old)
-{
   Assert(checkNodeType(*this));
 }
 
@@ -340,13 +328,6 @@ template <bool isSigned>
 symbolicBitVector<isSigned>::symbolicBitVector(const symbolicProposition& p)
     : nodeWrapper(fromProposition(p))
 {
-}
-template <bool isSigned>
-symbolicBitVector<isSigned>::symbolicBitVector(
-    const symbolicBitVector<isSigned>& old)
-    : nodeWrapper(old)
-{
-  Assert(checkNodeType(*this));
 }
 template <bool isSigned>
 symbolicBitVector<isSigned>::symbolicBitVector(const BitVector& old)

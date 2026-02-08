@@ -360,7 +360,6 @@ class CDHashMap : public ContextObj
     using reference = typename CDOhash_map<Key, Data, HashFcn>::value_type&;
 
     iterator(const Element* p) : d_it(p) {}
-    iterator(const iterator& i) : d_it(i.d_it) {}
 
     // Default constructor
     iterator() : d_it(nullptr) {}

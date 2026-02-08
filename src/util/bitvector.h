@@ -80,16 +80,6 @@ class BitVector
    */
   BitVector(const std::string& num, uint32_t base = 2);
 
-  ~BitVector() {}
-
-  BitVector& operator=(const BitVector& x)
-  {
-    if (this == &x) return *this;
-    d_size = x.d_size;
-    d_value = x.d_value;
-    return *this;
-  }
-
   /* Get size (bit-width). */
   unsigned getSize() const;
   /* Get value. */

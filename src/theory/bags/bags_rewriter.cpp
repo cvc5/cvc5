@@ -37,11 +37,6 @@ BagsRewriteResponse::BagsRewriteResponse(Node n, Rewrite rewrite)
 {
 }
 
-BagsRewriteResponse::BagsRewriteResponse(const BagsRewriteResponse& r)
-    : d_node(r.d_node), d_rewrite(r.d_rewrite)
-{
-}
-
 BagsRewriter::BagsRewriter(NodeManager* nm,
                            Rewriter* r,
                            HistogramStat<Rewrite>* statistics)
