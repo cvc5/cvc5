@@ -628,13 +628,20 @@ std::string LiaStarExtension::getString(Node variables, linear::Polynomial& p)
     Trace("liastar-ext-debug")
         << "monomial: " << monomial.getNode() << std::endl;
     linear::Constant c = monomial.getConstant();
+    Trace("liastar-ext-debug") << "c: " << c.getNode() << std::endl;
     Rational r = c.getValue().abs();
-    if (index > 0)
+
+    // print the sign
+    if (c.isNegative())
     {
-      // print the sign
-      ss << (c.isNegative() ? " - " : " + ");
+      ss << " - ";
+    }
+    else if (index > 0)
+    {
+      ss << " + ";
     }
     index++;
+
     if (monomial.isConstant())
     {
       ss << r;
