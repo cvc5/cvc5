@@ -46,7 +46,7 @@ bool InstStrategyPool::needsCheck(Theory::Effort e)
   return d_qstate.getInstWhenNeedsCheck(e);
 }
 
-void InstStrategyPool::reset_round(Theory::Effort e) {}
+void InstStrategyPool::reset_round(CVC5_UNUSED Theory::Effort e) {}
 
 void InstStrategyPool::registerQuantifier(Node q)
 {
@@ -149,7 +149,8 @@ bool InstStrategyPool::hasTupleSemantics(Node q, Node p)
   return true;
 }
 
-void InstStrategyPool::check(Theory::Effort e, QEffort quant_e)
+void InstStrategyPool::check(CVC5_UNUSED Theory::Effort e,
+                             CVC5_UNUSED QEffort quant_e)
 {
   if (d_userPools.empty())
   {

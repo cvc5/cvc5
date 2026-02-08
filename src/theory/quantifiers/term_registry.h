@@ -79,11 +79,8 @@ class TermRegistry : protected EnvObj
    *
    * @param q The quantified formula
    * @param terms The terms it was instantiated with
-   * @param success Whether the instantiation was successfully added
    */
-  void processInstantiation(Node q,
-                            const std::vector<Node>& terms,
-                            bool success);
+  void processInstantiation(Node q, const std::vector<Node>& terms);
   /**
    * Process skolemization, called when q is skolemized.
    *

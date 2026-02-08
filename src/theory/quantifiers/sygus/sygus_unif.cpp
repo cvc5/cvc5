@@ -38,7 +38,7 @@ void SygusUnif::initializeCandidate(
     TermDbSygus* tds,
     Node f,
     std::vector<Node>& enums,
-    std::map<Node, std::vector<Node>>& strategy_lemmas)
+    CVC5_UNUSED std::map<Node, std::vector<Node>>& strategy_lemmas)
 {
   d_tds = tds;
   d_candidates.push_back(f);
@@ -74,7 +74,8 @@ Node SygusUnif::getMinimalTerm(const std::vector<Node>& terms)
   return minTerm;
 }
 
-Node SygusUnif::constructBestSolvedTerm(Node e, const std::vector<Node>& solved)
+Node SygusUnif::constructBestSolvedTerm(CVC5_UNUSED Node e,
+                                        const std::vector<Node>& solved)
 {
   Assert(!solved.empty());
   if (d_enableMinimality)
@@ -84,7 +85,7 @@ Node SygusUnif::constructBestSolvedTerm(Node e, const std::vector<Node>& solved)
   return solved[0];
 }
 
-Node SygusUnif::constructBestConditional(Node ce,
+Node SygusUnif::constructBestConditional(CVC5_UNUSED Node ce,
                                          const std::vector<Node>& conds)
 {
   Assert(!conds.empty());
@@ -100,7 +101,7 @@ Node SygusUnif::constructBestConditional(Node ce,
 Node SygusUnif::constructBestStringToConcat(
     const std::vector<Node>& strs,
     const std::map<Node, size_t>& total_inc,
-    const std::map<Node, std::vector<size_t>>& incr)
+    CVC5_UNUSED const std::map<Node, std::vector<size_t>>& incr)
 {
   Assert(!strs.empty());
   std::vector<Node> strs_tmp = strs;

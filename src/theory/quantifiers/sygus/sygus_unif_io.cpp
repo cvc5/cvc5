@@ -42,9 +42,7 @@ UnifContextIo::UnifContextIo(NodeManager* nm)
 
 NodeRole UnifContextIo::getCurrentRole() { return d_curr_role; }
 
-bool UnifContextIo::updateContext(SygusUnifIo* sui,
-                                  std::vector<Node>& vals,
-                                  bool pol)
+bool UnifContextIo::updateContext(std::vector<Node>& vals, bool pol)
 {
   Assert(d_vals.size() == vals.size());
   bool changed = false;
@@ -74,8 +72,7 @@ bool UnifContextIo::updateContext(SygusUnifIo* sui,
   return changed;
 }
 
-bool UnifContextIo::updateStringPosition(SygusUnifIo* sui,
-                                         std::vector<size_t>& pos,
+bool UnifContextIo::updateStringPosition(std::vector<size_t>& pos,
                                          NodeRole nrole)
 {
   Assert(pos.size() == d_str_pos.size());
@@ -1273,7 +1270,7 @@ Node SygusUnifIo::constructSol(
             << "PBE: CONCAT strategy : choose " << (isPrefix ? "pre" : "suf")
             << "fix value " << d_tds->sygusToBuiltin(ret_dt) << std::endl;
         // update the context
-        bool ret = x.updateStringPosition(this, incr[ret_dt], nrole);
+        bool ret = x.updateStringPosition(incr[ret_dt], nrole);
         AlwaysAssert(ret == (total_inc[ret_dt] > 0));
       }
       else
@@ -1386,8 +1383,7 @@ Node SygusUnifIo::constructSol(
           Assert(set_split_cond_res_index);
           Assert(split_cond_res_index < ecache_cond.d_enum_vals_res.size());
           prev = x.d_vals;
-          x.updateContext(this,
-                          ecache_cond.d_enum_vals_res[split_cond_res_index],
+          x.updateContext(ecache_cond.d_enum_vals_res[split_cond_res_index],
                           sc == 1);
           // return value of above call may be false in corner cases where we
           // must choose a non-separating condition to traverse to another

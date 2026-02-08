@@ -60,7 +60,7 @@ void QuantifiersRegistry::registerQuantifier(Node q)
   d_quantAttr.computeAttributes(q);
 }
 
-bool QuantifiersRegistry::reset(Theory::Effort e) { return true; }
+bool QuantifiersRegistry::reset(CVC5_UNUSED Theory::Effort e) { return true; }
 
 std::string QuantifiersRegistry::identify() const
 {

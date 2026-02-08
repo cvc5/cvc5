@@ -59,12 +59,12 @@ bool SynthEngine::needsCheck(Theory::Effort e)
   return e >= Theory::EFFORT_LAST_CALL;
 }
 
-QuantifiersModule::QEffort SynthEngine::needsModel(Theory::Effort e)
+QuantifiersModule::QEffort SynthEngine::needsModel(CVC5_UNUSED Theory::Effort e)
 {
   return QEFFORT_MODEL;
 }
 
-void SynthEngine::check(Theory::Effort e, QEffort quant_e)
+void SynthEngine::check(CVC5_UNUSED Theory::Effort e, QEffort quant_e)
 {
   // are we at the proper effort level?
   if (quant_e != QEFFORT_MODEL)

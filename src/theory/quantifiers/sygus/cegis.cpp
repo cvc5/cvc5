@@ -121,7 +121,7 @@ bool Cegis::initialize(Node conj, Node n, const std::vector<Node>& candidates)
 }
 
 bool Cegis::processInitialize(Node conj,
-                              Node n,
+                              CVC5_UNUSED Node n,
                               const std::vector<Node>& candidates)
 {
   Trace("cegis") << "Initialize cegis..." << std::endl;
@@ -411,11 +411,12 @@ bool Cegis::constructCandidates(const std::vector<Node>& enums,
   return true;
 }
 
-bool Cegis::processConstructCandidates(const std::vector<Node>& enums,
-                                       const std::vector<Node>& enum_values,
-                                       const std::vector<Node>& candidates,
-                                       std::vector<Node>& candidate_values,
-                                       bool satisfiedRl)
+bool Cegis::processConstructCandidates(
+    CVC5_UNUSED const std::vector<Node>& enums,
+    const std::vector<Node>& enum_values,
+    CVC5_UNUSED const std::vector<Node>& candidates,
+    std::vector<Node>& candidate_values,
+    bool satisfiedRl)
 {
   if (satisfiedRl)
   {
@@ -555,7 +556,8 @@ void Cegis::addRefinementLemmaConjunct(unsigned wcounter,
   }
 }
 
-void Cegis::registerRefinementLemma(const std::vector<Node>& vars, Node lem)
+void Cegis::registerRefinementLemma(CVC5_UNUSED const std::vector<Node>& vars,
+                                    Node lem)
 {
   addRefinementLemma(lem);
   // must be closed enumerable
