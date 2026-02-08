@@ -113,6 +113,8 @@ public:
 
   static bool isBuiltWithCoCoA();
 
+  static bool isBuiltWithNormaliz();
+
   static bool isBuiltWithPortfolio();
 
   /* Return a sorted array of the trace tags name */

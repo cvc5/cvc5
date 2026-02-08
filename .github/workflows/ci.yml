@@ -179,7 +179,7 @@ jobs:
             os: ubuntu-24.04 # Use Doxygen version from this Ubuntu release
             config: >-
               production --auto-download --assertions --tracing --unit-testing --editline
-              --cocoa --gpl --all-bindings --docs --docs-ga -DBUILD_GMP=1
+              --cocoa --normaliz --gpl --all-bindings --docs --docs-ga -DBUILD_GMP=1
             cache-key: dbg
             python-bindings: true
             java-version: 21 # Use Javadoc from this Java version
@@ -200,7 +200,7 @@ jobs:
           # GPL versions
           - name: ubuntu:production-gpl
             os: ubuntu-22.04
-            config: production --auto-download --editline --gpl --cln --glpk --cocoa -DBUILD_GMP=1 -DBUILD_CLN=1
+            config: production --auto-download --editline --gpl --cln --glpk --cocoa --normaliz -DBUILD_GMP=1 -DBUILD_CLN=1
             cache-key: production-gpl
             strip-bin: strip
             package-name: cvc5-Linux-x86_64
@@ -208,7 +208,7 @@ jobs:
 
           - name: ubuntu:production-arm64-gpl
             os: ubuntu-22.04-arm
-            config: production --auto-download --editline --gpl --cln --glpk --cocoa -DBUILD_GMP=1 -DBUILD_CLN=1
+            config: production --auto-download --editline --gpl --cln --glpk --cocoa --normaliz -DBUILD_GMP=1 -DBUILD_CLN=1
             cache-key: production-arm64-gpl
             strip-bin: strip
             package-name: cvc5-Linux-arm64
@@ -216,7 +216,7 @@ jobs:
 
           - name: macos:production-gpl
             os: macos-15-intel
-            config: production --auto-download --editline --gpl --cln --glpk --cocoa -DBUILD_GMP=1 -DBUILD_CLN=1
+            config: production --auto-download --editline --gpl --cln --glpk --cocoa --normaliz -DBUILD_GMP=1 -DBUILD_CLN=1
             cache-key: production-gpl
             strip-bin: strip
             package-name: cvc5-macOS-x86_64
@@ -225,7 +225,7 @@ jobs:
 
           - name: macos:production-arm64-gpl
             os: macos-15
-            config: production --auto-download --editline --gpl --cln --glpk --cocoa -DBUILD_GMP=1 -DBUILD_CLN=1
+            config: production --auto-download --editline --gpl --cln --glpk --cocoa --normaliz -DBUILD_GMP=1 -DBUILD_CLN=1
             cache-key: production-arm64-gpl
             strip-bin: strip
             package-name: cvc5-macOS-arm64

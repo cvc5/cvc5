@@ -120,6 +120,12 @@ namespace cvc5::internal {
 #define IS_COCOA_BUILD false
 #endif /* CVC5_USE_COCOA */
 
+#if CVC5_USE_NORMALIZ
+#define IS_NORMALIZ_BUILD true
+#else /* CVC5_USE_NORMALIZ */
+#define IS_NORMALIZ_BUILD false
+#endif /* CVC5_USE_NORMALIZ */
+
 #if HAVE_LIBEDITLINE
 #define IS_EDITLINE_BUILD true
 #else /* HAVE_LIBEDITLINE */
