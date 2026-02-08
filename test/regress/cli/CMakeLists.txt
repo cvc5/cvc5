@@ -1113,6 +1113,7 @@ set(regress_0_tests
   regress0/logops.03.cvc.smt2
   regress0/logops.04.cvc.smt2
   regress0/logops.05.cvc.smt2
+  regress0/mb-tc-dd.xs.smt2
   regress0/model-core.smt2
   regress0/model-core-non-implied.smt2
   regress0/models-print-1.smt2
@@ -2407,6 +2408,7 @@ set(regress_0_tests
   regress0/uflra/bug293.cvc.smt2
   regress0/uflra/bug449.smtv1.smt2
   regress0/uflra/constants0.smtv1.smt2
+  regress0/uflra/dd.pb_real_10_0100_10_16.smtv1.smt2
   regress0/uflra/fuzz01.smtv1.smt2
   regress0/uflra/incorrect1.delta01.smtv1.smt2
   regress0/uflra/incorrect1.delta02.smtv1.smt2
@@ -2733,6 +2735,7 @@ set(regress_1_tests
   regress1/datatypes/non-simple-rec-param.smt2
   regress1/datatypes/proj-issue433-tester-merge-pf.smt2
   regress1/datatypes/tuple_projection.smt2
+  regress1/dd_cee-bug0909-tcm.smt2
   regress1/decision/bug374a.smtv1.smt2
   regress1/decision/error3.smtv1.smt2
   regress1/decision/issue5454-2.smt2

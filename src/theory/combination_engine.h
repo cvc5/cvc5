@@ -67,7 +67,7 @@ class CombinationEngine : protected EnvObj
    *
    * @return true if model building was successful.
    */
-  virtual bool buildModel() = 0;
+  bool buildModel();
   /**
    * Post process the model maintained by this class. This is called after
    * a successful call to buildModel. This does any theory-specific

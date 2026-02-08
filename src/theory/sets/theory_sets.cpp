@@ -98,7 +98,10 @@ void TheorySets::finishInit()
   d_internal->finishInit();
 
   // memberships are not relevant for model building
-  d_valuation.setIrrelevantKind(Kind::SET_MEMBER);
+  if (options().theory.tcMode != options::TcMode::MODEL_BASED)
+  {
+    d_valuation.setIrrelevantKind(Kind::SET_MEMBER);
+  }
 }
 
 void TheorySets::postCheck(Effort level) { d_internal->postCheck(level); }
