@@ -170,12 +170,16 @@ Node BvInstantiator::processAssertionInternal(CegInstantiator* ci, Node lit)
 
   Node sm = ci->getModelValue(s);
   Node tm = ci->getModelValue(t);
-  Assert(!sm.isNull() && sm.isConst());
-  Assert(!tm.isNull() && tm.isConst());
   Trace("cegqi-bv") << "Model value: " << std::endl;
   Trace("cegqi-bv") << "   " << s << " " << k << " " << t << " is "
                     << std::endl;
   Trace("cegqi-bv") << "   " << sm << " <> " << tm << std::endl;
+  // in very rare cases e.g. strings of excessive length, the model value for
+  // a term may not be constant, in which case we fail to solve.
+  if (sm.isNull() || !sm.isConst() || tm.isNull() || !tm.isConst())
+  {
+    return Node::null();
+  }
 
   Node ret;
   if (options().quantifiers.cegqiBvIneqMode
@@ -704,10 +708,7 @@ void BvInstantiatorPreprocess::registerCounterexampleLemma(
         Assert(boundaries[i - 1] > 0);
         Node ex = bv::utils::mkExtract(
             es.first, boundaries[i - 1] - 1, boundaries[i]);
-        Node var = NodeManager::mkDummySkolem(
-            "ek",
-            ex.getType(),
-            "variable to represent disjoint extract region");
+        Node var = NodeManager::mkDummySkolem("ek", ex.getType());
         children.push_back(var);
         vars.push_back(var);
       }

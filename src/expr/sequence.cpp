@@ -323,7 +323,6 @@ Sequence Sequence::replace(const Sequence& s, const Sequence& t) const
 
 Sequence Sequence::substr(size_t i) const
 {
-  Assert(i >= 0);
   Assert(i <= size());
   std::vector<Node> retVec(d_seq.begin() + i, d_seq.end());
   return Sequence(getType(), retVec);
@@ -331,8 +330,6 @@ Sequence Sequence::substr(size_t i) const
 
 Sequence Sequence::substr(size_t i, size_t j) const
 {
-  Assert(i >= 0);
-  Assert(j >= 0);
   Assert(i + j <= size());
   std::vector<Node>::const_iterator itr = d_seq.begin() + i;
   std::vector<Node> retVec(itr, itr + j);

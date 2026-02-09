@@ -345,17 +345,18 @@ Node BagsUtils::evaluateUnionDisjoint(TNode n)
 
   auto less = [](std::map<Node, Rational>& elements,
                  std::map<Node, Rational>::const_iterator& itA,
-                 std::map<Node, Rational>::const_iterator& itB) {
+                 CVC5_UNUSED std::map<Node, Rational>::const_iterator& itB) {
     // add the element to the result
     elements[itA->first] = itA->second;
   };
 
-  auto greaterOrEqual = [](std::map<Node, Rational>& elements,
-                           std::map<Node, Rational>::const_iterator& itA,
-                           std::map<Node, Rational>::const_iterator& itB) {
-    // add the element to the result
-    elements[itB->first] = itB->second;
-  };
+  auto greaterOrEqual =
+      [](std::map<Node, Rational>& elements,
+         CVC5_UNUSED std::map<Node, Rational>::const_iterator& itA,
+         std::map<Node, Rational>::const_iterator& itB) {
+        // add the element to the result
+        elements[itB->first] = itB->second;
+      };
 
   auto remainderOfA = [](std::map<Node, Rational>& elements,
                          std::map<Node, Rational>& elementsA,
@@ -405,17 +406,18 @@ Node BagsUtils::evaluateUnionMax(TNode n)
 
   auto less = [](std::map<Node, Rational>& elements,
                  std::map<Node, Rational>::const_iterator& itA,
-                 std::map<Node, Rational>::const_iterator& itB) {
+                 CVC5_UNUSED std::map<Node, Rational>::const_iterator& itB) {
     // add to the result
     elements[itA->first] = itA->second;
   };
 
-  auto greaterOrEqual = [](std::map<Node, Rational>& elements,
-                           std::map<Node, Rational>::const_iterator& itA,
-                           std::map<Node, Rational>::const_iterator& itB) {
-    // add to the result
-    elements[itB->first] = itB->second;
-  };
+  auto greaterOrEqual =
+      [](std::map<Node, Rational>& elements,
+         CVC5_UNUSED std::map<Node, Rational>::const_iterator& itA,
+         std::map<Node, Rational>::const_iterator& itB) {
+        // add to the result
+        elements[itB->first] = itB->second;
+      };
 
   auto remainderOfA = [](std::map<Node, Rational>& elements,
                          std::map<Node, Rational>& elementsA,
@@ -461,29 +463,32 @@ Node BagsUtils::evaluateIntersectionMin(TNode n)
     elements[itA->first] = std::min(itA->second, itB->second);
   };
 
-  auto less = [](std::map<Node, Rational>& elements,
-                 std::map<Node, Rational>::const_iterator& itA,
-                 std::map<Node, Rational>::const_iterator& itB) {
+  auto less = [](CVC5_UNUSED std::map<Node, Rational>& elements,
+                 CVC5_UNUSED std::map<Node, Rational>::const_iterator& itA,
+                 CVC5_UNUSED std::map<Node, Rational>::const_iterator& itB) {
     // do nothing
   };
 
-  auto greaterOrEqual = [](std::map<Node, Rational>& elements,
-                           std::map<Node, Rational>::const_iterator& itA,
-                           std::map<Node, Rational>::const_iterator& itB) {
-    // do nothing
-  };
+  auto greaterOrEqual =
+      [](CVC5_UNUSED std::map<Node, Rational>& elements,
+         CVC5_UNUSED std::map<Node, Rational>::const_iterator& itA,
+         CVC5_UNUSED std::map<Node, Rational>::const_iterator& itB) {
+        // do nothing
+      };
 
-  auto remainderOfA = [](std::map<Node, Rational>& elements,
-                         std::map<Node, Rational>& elementsA,
-                         std::map<Node, Rational>::const_iterator& itA) {
-    // do nothing
-  };
+  auto remainderOfA =
+      [](CVC5_UNUSED std::map<Node, Rational>& elements,
+         CVC5_UNUSED std::map<Node, Rational>& elementsA,
+         CVC5_UNUSED std::map<Node, Rational>::const_iterator& itA) {
+        // do nothing
+      };
 
-  auto remainderOfB = [](std::map<Node, Rational>& elements,
-                         std::map<Node, Rational>& elementsB,
-                         std::map<Node, Rational>::const_iterator& itB) {
-    // do nothing
-  };
+  auto remainderOfB =
+      [](CVC5_UNUSED std::map<Node, Rational>& elements,
+         CVC5_UNUSED std::map<Node, Rational>& elementsB,
+         CVC5_UNUSED std::map<Node, Rational>::const_iterator& itB) {
+        // do nothing
+      };
 
   return evaluateBinaryOperation(
       n, equal, less, greaterOrEqual, remainderOfA, remainderOfB);
@@ -509,16 +514,17 @@ Node BagsUtils::evaluateDifferenceSubtract(TNode n)
 
   auto less = [](std::map<Node, Rational>& elements,
                  std::map<Node, Rational>::const_iterator& itA,
-                 std::map<Node, Rational>::const_iterator& itB) {
+                 CVC5_UNUSED std::map<Node, Rational>::const_iterator& itB) {
     // itA->first is not in B, so we add it to the difference subtract
     elements[itA->first] = itA->second;
   };
 
-  auto greaterOrEqual = [](std::map<Node, Rational>& elements,
-                           std::map<Node, Rational>::const_iterator& itA,
-                           std::map<Node, Rational>::const_iterator& itB) {
-    // itB->first is not in A, so we just skip it
-  };
+  auto greaterOrEqual =
+      [](CVC5_UNUSED std::map<Node, Rational>& elements,
+         CVC5_UNUSED std::map<Node, Rational>::const_iterator& itA,
+         CVC5_UNUSED std::map<Node, Rational>::const_iterator& itB) {
+        // itB->first is not in A, so we just skip it
+      };
 
   auto remainderOfA = [](std::map<Node, Rational>& elements,
                          std::map<Node, Rational>& elementsA,
@@ -531,11 +537,12 @@ Node BagsUtils::evaluateDifferenceSubtract(TNode n)
     }
   };
 
-  auto remainderOfB = [](std::map<Node, Rational>& elements,
-                         std::map<Node, Rational>& elementsB,
-                         std::map<Node, Rational>::const_iterator& itB) {
-    // do nothing
-  };
+  auto remainderOfB =
+      [](CVC5_UNUSED std::map<Node, Rational>& elements,
+         CVC5_UNUSED std::map<Node, Rational>& elementsB,
+         CVC5_UNUSED std::map<Node, Rational>::const_iterator& itB) {
+        // do nothing
+      };
 
   return evaluateBinaryOperation(
       n, equal, less, greaterOrEqual, remainderOfA, remainderOfB);
@@ -552,24 +559,25 @@ Node BagsUtils::evaluateDifferenceRemove(TNode n)
   // output:
   //    (bag "z" 2)
 
-  auto equal = [](std::map<Node, Rational>& elements,
-                  std::map<Node, Rational>::const_iterator& itA,
-                  std::map<Node, Rational>::const_iterator& itB) {
+  auto equal = [](CVC5_UNUSED std::map<Node, Rational>& elements,
+                  CVC5_UNUSED std::map<Node, Rational>::const_iterator& itA,
+                  CVC5_UNUSED std::map<Node, Rational>::const_iterator& itB) {
     // skip the shared element by doing nothing
   };
 
   auto less = [](std::map<Node, Rational>& elements,
                  std::map<Node, Rational>::const_iterator& itA,
-                 std::map<Node, Rational>::const_iterator& itB) {
+                 CVC5_UNUSED std::map<Node, Rational>::const_iterator& itB) {
     // itA->first is not in B, so we add it to the difference remove
     elements[itA->first] = itA->second;
   };
 
-  auto greaterOrEqual = [](std::map<Node, Rational>& elements,
-                           std::map<Node, Rational>::const_iterator& itA,
-                           std::map<Node, Rational>::const_iterator& itB) {
-    // itB->first is not in A, so we just skip it
-  };
+  auto greaterOrEqual =
+      [](CVC5_UNUSED std::map<Node, Rational>& elements,
+         CVC5_UNUSED std::map<Node, Rational>::const_iterator& itA,
+         CVC5_UNUSED std::map<Node, Rational>::const_iterator& itB) {
+        // itB->first is not in A, so we just skip it
+      };
 
   auto remainderOfA = [](std::map<Node, Rational>& elements,
                          std::map<Node, Rational>& elementsA,
@@ -582,11 +590,12 @@ Node BagsUtils::evaluateDifferenceRemove(TNode n)
     }
   };
 
-  auto remainderOfB = [](std::map<Node, Rational>& elements,
-                         std::map<Node, Rational>& elementsB,
-                         std::map<Node, Rational>::const_iterator& itB) {
-    // do nothing
-  };
+  auto remainderOfB =
+      [](CVC5_UNUSED std::map<Node, Rational>& elements,
+         CVC5_UNUSED std::map<Node, Rational>& elementsB,
+         CVC5_UNUSED std::map<Node, Rational>::const_iterator& itB) {
+        // do nothing
+      };
 
   return evaluateBinaryOperation(
       n, equal, less, greaterOrEqual, remainderOfA, remainderOfB);
@@ -813,7 +822,7 @@ Node BagsUtils::evaluateBagPartition(Rewriter* rewriter, TNode n)
   return ret;
 }
 
-Node BagsUtils::evaluateTableAggregate(Rewriter* rewriter, TNode n)
+Node BagsUtils::evaluateTableAggregate(TNode n)
 {
   Assert(n.getKind() == Kind::TABLE_AGGREGATE);
   if (!(n[1].isConst() && n[2].isConst()))

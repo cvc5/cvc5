@@ -325,7 +325,7 @@ void SatProofManager::processRedundantLit(
                        !negated);
     return;
   }
-  Assert(reasonRef >= 0 && reasonRef < d_solver->ca.size())
+  Assert(reasonRef < d_solver->ca.size())
       << "reasonRef " << reasonRef << " and d_satSolver->ca.size() "
       << d_solver->ca.size() << "\n";
   const Minisat::Clause& reason = d_solver->ca[reasonRef];
@@ -410,7 +410,7 @@ void SatProofManager::explainLit(SatLiteral lit,
     Trace("sat-proof") << "SatProofManager::explainLit: no SAT reason\n" << pop;
     return;
   }
-  Assert(reasonRef >= 0 && reasonRef < d_solver->ca.size())
+  Assert(reasonRef < d_solver->ca.size())
       << "reasonRef " << reasonRef << " and d_satSolver->ca.size() "
       << d_solver->ca.size() << "\n";
   const Minisat::Clause& reason = d_solver->ca[reasonRef];
@@ -745,19 +745,19 @@ void SatProofManager::finalizeProof(Node inConflictNode,
 
 void SatProofManager::storeUnitConflict(Minisat::Lit inConflict)
 {
-  Assert(d_conflictLit == undefSatVariable);
+  Assert(d_conflictLit == undefSatLiteral);
   d_conflictLit = MinisatSatSolver::toSatLiteral(inConflict);
 }
 
 void SatProofManager::finalizeProof()
 {
-  Assert(d_conflictLit != undefSatVariable);
+  Assert(d_conflictLit != undefSatLiteral);
   Trace("sat-proof")
       << "SatProofManager::finalizeProof: conflicting (lazy) satLit: "
       << d_conflictLit << "\n";
   finalizeProof(d_cnfStream->getNode(d_conflictLit), {d_conflictLit});
   // reset since if in incremental mode this may be used again
-  d_conflictLit = undefSatVariable;
+  d_conflictLit = undefSatLiteral;
 }
 
 void SatProofManager::finalizeProof(Minisat::Lit inConflict, bool adding)

@@ -260,15 +260,15 @@ ClauseId CadicalSolver::addClause(SatClause& clause, bool removable)
   return ClauseIdError;
 }
 
-ClauseId CadicalSolver::addXorClause(SatClause& clause,
-                                     bool rhs,
-                                     bool removable)
+ClauseId CadicalSolver::addXorClause(CVC5_UNUSED SatClause& clause,
+                                     CVC5_UNUSED bool rhs,
+                                     CVC5_UNUSED bool removable)
 {
   Unreachable() << "CaDiCaL does not support adding XOR clauses.";
   return 0;
 }
 
-SatVariable CadicalSolver::newVar(bool isTheoryAtom, bool canErase)
+SatVariable CadicalSolver::newVar(bool isTheoryAtom, CVC5_UNUSED bool canErase)
 {
   ++d_statistics.d_numVariables;
   if (d_propagator)
@@ -319,7 +319,7 @@ SatValue CadicalSolver::value(SatLiteral l) { return d_propagator->value(l); }
 SatValue CadicalSolver::modelValue(SatLiteral l)
 {
   Assert(d_inSatMode);
-  auto val = d_solver->val(toCadicalLit(l.getSatVariable()));
+  auto val = d_solver->val(toCadicalVar(l.getSatVariable()));
   return toSatValueLit(l.isNegated() ? -val : val);
 }
 
@@ -343,7 +343,7 @@ CadicalSolver::Statistics::Statistics(StatisticsRegistry& registry,
 /* CDCLTSatSolver Interface ------------------------------------------------- */
 
 void CadicalSolver::initialize(prop::TheoryProxy* theoryProxy,
-                               PropPfManager* ppm)
+                               CVC5_UNUSED PropPfManager* ppm)
 {
   d_proxy = theoryProxy;
   d_propagator.reset(new CadicalPropagator(
@@ -414,7 +414,7 @@ std::vector<SatLiteral> CadicalSolver::getDecisions() const
   std::vector<SatLiteral> decisions;
   for (SatLiteral lit : d_propagator->get_decisions())
   {
-    if (lit != 0)
+    if (lit != undefSatLiteral)
     {
       decisions.push_back(lit);
     }

@@ -94,7 +94,7 @@ class TypeOfTypeRule
 class SortProperties
 {
  public:
-  static bool isWellFounded(TypeNode type) { return true; }
+  static bool isWellFounded(CVC5_UNUSED TypeNode type) { return true; }
   static Node mkGroundTerm(TypeNode type);
 };
 

@@ -183,7 +183,9 @@ uint32_t FCSimplexDecisionProcedure::degeneratePivotsInARow() const {
   Unreachable();
 }
 
-void FCSimplexDecisionProcedure::adjustFocusAndError(const UpdateInfo& up, const AVIntPairVec& focusChanges){
+void FCSimplexDecisionProcedure::adjustFocusAndError(
+    const AVIntPairVec& focusChanges)
+{
   uint32_t newErrorSize = d_errorSet.errorSize();
   uint32_t newFocusSize = d_errorSet.focusSize();
 
@@ -243,9 +245,9 @@ WitnessImprovement FCSimplexDecisionProcedure::focusDownToJust(ArithVar v){
   return FocusShrank;
 }
 
-
-
-UpdateInfo FCSimplexDecisionProcedure::selectPrimalUpdate(ArithVar basic, LinearEqualityModule::UpdatePreferenceFunction upf, LinearEqualityModule::VarPreferenceFunction bpf) {
+UpdateInfo FCSimplexDecisionProcedure::selectPrimalUpdate(
+    ArithVar basic, LinearEqualityModule::UpdatePreferenceFunction upf)
+{
   UpdateInfo selected;
 
   Trace("arith::selectPrimalUpdate")
@@ -399,7 +401,7 @@ WitnessImprovement FCSimplexDecisionProcedure::primalImproveError(ArithVar error
   WitnessImprovement w = selected.getWitness(useBlands);
   Assert(debugCheckWitness(selected, w, useBlands));
 
-  updateAndSignal(selected, w);
+  updateAndSignal(selected);
   logPivot(w);
   return w;
 }
@@ -469,7 +471,8 @@ bool debugUpdatedBasic(const UpdateInfo& selected, ArithVar updated){
   }
 }
 
-void FCSimplexDecisionProcedure::updateAndSignal(const UpdateInfo& selected, WitnessImprovement w){
+void FCSimplexDecisionProcedure::updateAndSignal(const UpdateInfo& selected)
+{
   ArithVar nonbasic = selected.nonbasic();
 
   Trace("updateAndSignal") << "updateAndSignal " << selected << endl;
@@ -523,7 +526,7 @@ void FCSimplexDecisionProcedure::updateAndSignal(const UpdateInfo& selected, Wit
   Assert(
       debugSelectedErrorDropped(selected, d_errorSize, d_errorSet.errorSize()));
 
-  adjustFocusAndError(selected, focusChanges);
+  adjustFocusAndError(focusChanges);
 }
 
 WitnessImprovement FCSimplexDecisionProcedure::dualLikeImproveError(ArithVar errorVar){
@@ -557,7 +560,7 @@ WitnessImprovement FCSimplexDecisionProcedure::dualLikeImproveError(ArithVar err
   }else{
     WitnessImprovement w = selected.getWitness(false);
     Assert(debugCheckWitness(selected, w, false));
-    updateAndSignal(selected, w);
+    updateAndSignal(selected);
     logPivot(w);
     return w;
   }
@@ -592,10 +595,7 @@ WitnessImprovement FCSimplexDecisionProcedure::selectFocusImproving() {
   LinearEqualityModule::UpdatePreferenceFunction upf =
     &LinearEqualityModule::preferWitness<true>;
 
-  LinearEqualityModule::VarPreferenceFunction bpf =
-    &LinearEqualityModule::minRowLength;
-
-  UpdateInfo selected = selectPrimalUpdate(d_focusErrorVar, upf, bpf);
+  UpdateInfo selected = selectPrimalUpdate(d_focusErrorVar, upf);
 
   if(selected.uninitialized()){
     Trace("selectFocusImproving") << "focus is optimum, but we don't have sat/conflict yet" << endl;
@@ -618,7 +618,7 @@ WitnessImprovement FCSimplexDecisionProcedure::selectFocusImproving() {
   }
   Trace("selectFocusImproving") << "selectFocusImproving did this " << selected << endl;
 
-  updateAndSignal(selected, w);
+  updateAndSignal(selected);
   logPivot(w);
   return w;
 }

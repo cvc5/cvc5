@@ -101,7 +101,7 @@ class BagsUtils
    * where initial and A are constants
    * @return the aggregation result.
    */
-  static Node evaluateTableAggregate(Rewriter* rewriter, TNode n);
+  static Node evaluateTableAggregate(TNode n);
 
   /**
    * @param n has the form (bag.filter p A) where A is a constant bag

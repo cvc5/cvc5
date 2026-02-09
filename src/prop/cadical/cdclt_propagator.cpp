@@ -176,7 +176,8 @@ void CadicalPropagator::notify_backtrack(size_t level)
   Trace("cadical::propagator") << "notif::backtrack end" << std::endl;
 }
 
-bool CadicalPropagator::cb_check_found_model(const std::vector<int>& model)
+bool CadicalPropagator::cb_check_found_model(
+    CVC5_UNUSED const std::vector<int>& model)
 {
   Trace("cadical::propagator") << "cb::check_found_model" << std::endl;
   bool recheck = false;
@@ -528,9 +529,9 @@ void CadicalPropagator::user_push()
       << " -> " << d_active_vars_control.size() << std::endl;
 }
 
-void CadicalPropagator::set_activation_lit(SatVariable& alit)
+void CadicalPropagator::set_activation_lit(SatVariable alit)
 {
-  d_activation_literals.push_back(alit);
+  d_activation_literals.push_back(SatLiteral(alit));
   Trace("cadical::propagator")
       << "enable activation lit: " << alit << std::endl;
 }
@@ -579,7 +580,7 @@ void CadicalPropagator::user_pop()
       // Fix value of inactive variables in order to avoid CaDiCaL from
       // deciding on them again. This make a huge difference in performance
       // for incremental problems with many check-sat calls.
-      d_solver.add(toCadicalLit(var));
+      d_solver.add(toCadicalVar(var));
       d_solver.add(0);
     }
   }

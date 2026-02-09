@@ -27,7 +27,7 @@ InferInfo::InferInfo(InferenceManagerBuffered* im, InferenceId id)
 {
 }
 
-TrustNode InferInfo::processLemma(LemmaProperty& p)
+TrustNode InferInfo::processLemma(CVC5_UNUSED LemmaProperty& p)
 {
   Node lemma = getLemma();
 

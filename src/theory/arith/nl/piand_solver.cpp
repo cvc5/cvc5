@@ -50,9 +50,7 @@ PIAndSolver::PIAndSolver(Env& env, InferenceManager& im, NlModel& model)
 
 PIAndSolver::~PIAndSolver() {}
 
-void PIAndSolver::initLastCall(const std::vector<Node>& assertions,
-                               const std::vector<Node>& false_asserts,
-                               const std::vector<Node>& xts)
+void PIAndSolver::initLastCall(const std::vector<Node>& xts)
 {
   d_piands.clear();
 

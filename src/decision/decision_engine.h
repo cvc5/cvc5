@@ -58,7 +58,7 @@ class DecisionEngine : protected EnvObj
    * this call.
    * @param lems The lemmas to add.
    */
-  virtual void addLocalAssertions(const std::vector<TNode>& lems) {}
+  virtual void addLocalAssertions(CVC5_UNUSED const std::vector<TNode>& lems) {}
 
  protected:
   /** Get next internal, the engine-specific implementation of getNext */
