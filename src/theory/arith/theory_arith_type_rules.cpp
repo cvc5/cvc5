@@ -260,7 +260,7 @@ TypeNode PowTypeRule::computeType(CVC5_UNUSED NodeManager* nodeManager,
                                   CVC5_UNUSED bool check,
                                   std::ostream* errOut)
 {
-  Assert (n.getKind() == Kind::POW);
+  Assert(n.getKind() == Kind::POW);
   TypeNode arg1 = n[0].getTypeOrNull();
   TypeNode arg2 = n[1].getTypeOrNull();
   TypeNode t = arg1.leastUpperBound(arg2);
@@ -332,30 +332,6 @@ TypeNode StarContainsTypeRule::computeType(NodeManager* nodeManager,
     }
     return TypeNode::null();
   }
-  if (!ys.isTuple())
-  {
-    if (errOut)
-    {
-      (*errOut) << "expecting a tuple for the third argument of STAR_CONTAINS "
-                   "operator";
-    }
-    return TypeNode::null();
-  }
-  std::vector<TypeNode> elements = ys.getTupleTypes();
-  // Check if any element is even
-  bool any = std::any_of(elements.begin(),
-                         elements.end(),
-                         [](TypeNode element) { return !element.isInteger(); });
-
-  if (any)
-  {
-    if (errOut)
-    {
-      (*errOut) << "expecting a tuple of integers for the third argument of "
-                   "STAR_CONTAINS operator";
-    }
-    return TypeNode::null();
-  }
 
   if (xs.getKind() != Kind::BOUND_VAR_LIST)
   {
@@ -403,6 +379,41 @@ TypeNode StarContainsTypeRule::computeType(NodeManager* nodeManager,
       return TypeNode::null();
     }
   }
+
+  if (!ys.isTuple())
+  {
+    if (errOut)
+    {
+      (*errOut) << "expecting a tuple for the third argument of STAR_CONTAINS "
+                   "operator";
+    }
+    return TypeNode::null();
+  }
+  std::vector<TypeNode> elements = ys.getTupleTypes();
+  if (elements.size() != boundVariables.size())
+  {
+    if (errOut)
+    {
+      (*errOut) << "expecting the tuple length to match the number of bound "
+                   "variables in STAR_CONTAINS term";
+    }
+    return TypeNode::null();
+  }
+  // Check if any element is even
+  bool any = std::any_of(elements.begin(),
+                         elements.end(),
+                         [](TypeNode element) { return !element.isInteger(); });
+
+  if (any)
+  {
+    if (errOut)
+    {
+      (*errOut) << "expecting a tuple of integers for the third argument of "
+                   "STAR_CONTAINS operator";
+    }
+    return TypeNode::null();
+  }
+
   return nodeManager->booleanType();
 }
 
