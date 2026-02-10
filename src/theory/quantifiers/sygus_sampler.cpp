@@ -262,7 +262,6 @@ bool SygusSampler::PtTrie::add(std::vector<Node>& pt)
     curr = &(curr->d_children[pt[i]]);
   }
   bool retVal = curr->d_children.empty();
-  curr = &(curr->d_children[Node::null()]);
   return retVal;
 }
 

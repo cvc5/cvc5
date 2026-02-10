@@ -792,10 +792,8 @@ Node MonomialCheck::mkLit(Node a, Node b, int status, bool isAbsolute) const
   }
   Assert(a.getType().isRealOrInt() && b.getType().isRealOrInt());
   Node ret;
-  Kind k;
   if (status == 0)
   {
-    k = Kind::EQUAL;
     Node a_eq_b = mkEquality(a, b);
     if (!isAbsolute)
     {
@@ -810,7 +808,7 @@ Node MonomialCheck::mkLit(Node a, Node b, int status, bool isAbsolute) const
   else
   {
     Assert(status == 1 || status == 2);
-    k = status == 1 ? Kind::GEQ : Kind::GT;
+    Kind k = status == 1 ? Kind::GEQ : Kind::GT;
     if (!isAbsolute)
     {
       ret = nm->mkNode(k, a, b);

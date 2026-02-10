@@ -1,0 +1,36 @@
+on:
+  schedule:
+    - cron: '0 4 * * *'
+  workflow_dispatch:
+
+name: Static Analysis
+
+jobs:
+  static-analysis:
+    name: ${{ matrix.name }}
+    if: (github.repository == 'cvc5/cvc5') || (github.event_name != 'schedule')
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - name: ubuntu:clang-tidy
+            os: ubuntu-latest
+            use-clang: true
+            config: production --auto-download --assertions --clang-tidy
+            strip-bin: strip
+
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Install dependencies
+      uses: ./.github/actions/install-dependencies
+      with:
+        use-clang: ${{ matrix.use-clang }}
+
+    - name: Configure and build
+      id: configure-and-build
+      uses: ./.github/actions/configure-and-build
+      with:
+        configure-config: ${{ matrix.config }}
+        build-static: false
+        strip-bin: ${{ matrix.strip-bin }}

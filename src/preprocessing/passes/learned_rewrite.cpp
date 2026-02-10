@@ -297,13 +297,13 @@ Node LearnedRewrite::rewriteLearned(Node nr,
     {
       Trace("learned-rewrite-rr-debug")
           << "...non-zero denominator" << std::endl;
-      Kind nk = k;
+      Kind nk;
       switch (k)
       {
         case Kind::INTS_DIVISION: nk = Kind::INTS_DIVISION_TOTAL; break;
         case Kind::INTS_MODULUS: nk = Kind::INTS_MODULUS_TOTAL; break;
         case Kind::DIVISION: nk = Kind::DIVISION_TOTAL; break;
-        default: Assert(false); break;
+        default: Unreachable();
       }
       std::vector<Node> children;
       children.insert(children.end(), nr.begin(), nr.end());

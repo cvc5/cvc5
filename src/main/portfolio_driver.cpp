@@ -493,17 +493,15 @@ class PortfolioProcessPool
       if (child != -1 && job.d_worker != child) continue;
 
       int wstatus = 0;
-      pid_t res = 0;
       if (child == -1)
       {
-        res = waitpid(job.d_worker, &wstatus, WNOHANG);
+        pid_t res = waitpid(job.d_worker, &wstatus, WNOHANG);
         // has not terminated yet
         if (res == 0) continue;
         if (res == -1) continue;
       }
       else
       {
-        res = child;
         wstatus = status;
       }
       // mark as analyzed
