@@ -645,6 +645,11 @@ else()
   endif()
 endif()
 
+# Re-apply EXPORTED_FUNCTIONS after configure checks complete
+if(NOT "${WASM_EXPORTED_FUNCTIONS_FLAG}" STREQUAL "")
+  string(APPEND CMAKE_EXE_LINKER_FLAGS " ${WASM_EXPORTED_FUNCTIONS_FLAG}")
+endif()
+
 #-----------------------------------------------------------------------------#
 # Add subdirectories
 
