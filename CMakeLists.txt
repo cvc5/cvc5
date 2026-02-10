@@ -187,7 +187,13 @@ else()
   set(TOOLCHAIN_PREFIX wasm64-unknown-emscripten)
   string(TOLOWER ".${WASM}" WASM_EXTENSION)
   set(CMAKE_EXECUTABLE_SUFFIX ${WASM_EXTENSION})
-  string(APPEND CMAKE_EXE_LINKER_FLAGS " ${WASM_FLAGS}")
+  set(WASM_FLAGS_CONFIGURE "${WASM_FLAGS}")
+  set(WASM_EXPORTED_FUNCTIONS_FLAG "")
+  if(WASM_FLAGS MATCHES "(-s *EXPORTED_FUNCTIONS=[^ ]+)")
+    set(WASM_EXPORTED_FUNCTIONS_FLAG "${CMAKE_MATCH_1}")
+    string(REPLACE "${CMAKE_MATCH_1}" "" WASM_FLAGS_CONFIGURE "${WASM_FLAGS}")
+  endif()
+  string(APPEND CMAKE_EXE_LINKER_FLAGS " ${WASM_FLAGS_CONFIGURE}")
 endif()
 
 #-----------------------------------------------------------------------------#
@@ -637,6 +643,11 @@ else()
   if(NOT CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     cvc5_set_option(STATIC_BINARY ON)
   endif()
+endif()
+
+# Re-apply EXPORTED_FUNCTIONS after configure checks complete
+if(NOT "${WASM_EXPORTED_FUNCTIONS_FLAG}" STREQUAL "")
+  string(APPEND CMAKE_EXE_LINKER_FLAGS " ${WASM_EXPORTED_FUNCTIONS_FLAG}")
 endif()
 
 #-----------------------------------------------------------------------------#
