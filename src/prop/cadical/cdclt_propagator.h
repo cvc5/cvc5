@@ -208,6 +208,11 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator,
    */
   const SatLiteral& current_activation_lit();
 
+  /**
+   * Return the activation literal for the given user level.
+   */
+  const SatLiteral& activation_lit(size_t user_level);
+
   /** Return the current user (assertion) level. */
   size_t current_user_level() const { return d_active_vars_control.size(); }
 
@@ -281,8 +286,8 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator,
    * Current activation literals.
    *
    * For each user level, we push a fresh activation literal to the vector (in
-   * user_pop()). Activation literals get removed and disabled in user_pop().
-   * The size of the vector corresponds to the current user level.
+   * set_activation_lit()). Activation literals get removed and disabled in
+   * user_pop(). The size of the vector corresponds to the current user level.
    *
    * The activation literals corresponding to the current user level gets
    * automatically added to each clause added in this user level. With

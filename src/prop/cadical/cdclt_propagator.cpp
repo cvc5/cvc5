@@ -421,6 +421,13 @@ SatValue CadicalPropagator::value(SatLiteral lit) const
 void CadicalPropagator::add_clause(const SatClause& clause)
 {
   std::vector<CadicalLit> lits;
+  // Note: Removable clauses can be added to lower user levels to avoid
+  //       deleting them too eagerly. For example, conflicts may be learned
+  //       at a user level N even though it only has literals of at most user
+  //       level N - 2. In this case we can add the clause at N - 2 instead
+  //       of deleting the clause when popping user level N, which would
+  //       require us to relearn the clause again.
+  uint32_t max_user_level = d_in_search ? 0 : current_user_level();
   for (const SatLiteral& lit : clause)
   {
     SatVariable var = lit.getSatVariable();
@@ -437,12 +444,13 @@ void CadicalPropagator::add_clause(const SatClause& clause)
         return;
       }
     }
+    max_user_level = std::max(max_user_level, info.level_intro);
     lits.push_back(toCadicalLit(lit));
   }
   if (!lits.empty())
   {
-    // Add activation literal to clause if we are in user level > 0
-    SatLiteral alit = current_activation_lit();
+    // Determine activation literal based on max user level of clause.
+    SatLiteral alit = activation_lit(max_user_level);
     if (alit != undefSatLiteral)
     {
       lits.insert(lits.begin(), toCadicalLit(alit));
@@ -633,6 +641,17 @@ const SatLiteral& CadicalPropagator::current_activation_lit()
     return undefSatLiteral;
   }
   return d_activation_literals.back();
+}
+
+const SatLiteral& CadicalPropagator::activation_lit(size_t user_level)
+{
+  // User level 0 has no activation literal.
+  if (user_level == 0)
+  {
+    return undefSatLiteral;
+  }
+  Assert(user_level <= d_activation_literals.size());
+  return d_activation_literals[user_level - 1];
 }
 
 void CadicalPropagator::renotify_fixed()
