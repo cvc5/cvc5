@@ -1,6 +1,7 @@
 Checks: >
   -*,
-  clang-analyzer-deadcode.*
+  clang-analyzer-deadcode.*,
+  clang-analyzer-optin.performance.*
 HeaderFilterRegex: '.*'
 # Use .clang-format for formatting changes
 FormatStyle: file
