@@ -870,8 +870,11 @@ void TheoryStrings::preRegisterTerm(TNode n)
   d_extTheory.registerTerm(n);
 }
 
-bool TheoryStrings::preNotifyFact(
-    TNode atom, bool pol, TNode fact, bool isPrereg, bool isInternal)
+bool TheoryStrings::preNotifyFact(TNode atom,
+                                  bool pol,
+                                  CVC5_UNUSED TNode fact,
+                                  CVC5_UNUSED bool isPrereg,
+                                  bool isInternal)
 {
   if (atom.getKind() == Kind::EQUAL)
   {

@@ -48,7 +48,9 @@ class StringCoreTermContext : public TermContext
   /** The initial value: not nested. */
   uint32_t initialValue() const override { return 0; }
   /** Compute the value of the index^th child of t whose hash is tval */
-  uint32_t computeValue(TNode t, uint32_t tval, size_t index) const override
+  uint32_t computeValue(TNode t,
+                        uint32_t tval,
+                        CVC5_UNUSED size_t index) const override
   {
     if (tval < 2)
     {
@@ -461,8 +463,8 @@ bool InferProofCons::convert(Env& env,
       Trace("strings-ipc-core")
           << "Main equality after subs+rewrite " << mainEqSRew << std::endl;
       // may need to splice constants
-      mainEqSRew = spliceConstants(
-          env, ProofRule::CONCAT_EQ, psb, mainEqSRew, conc, isRev);
+      mainEqSRew =
+          spliceConstants(ProofRule::CONCAT_EQ, psb, mainEqSRew, conc, isRev);
       // now, apply CONCAT_EQ to get the remainder
       std::vector<Node> childrenCeq;
       childrenCeq.push_back(mainEqSRew);
@@ -566,7 +568,7 @@ bool InferProofCons::convert(Env& env,
         {
           // first, splice if necessary
           mainEqCeq = spliceConstants(
-              env, ProofRule::CONCAT_UNIFY, psb, mainEqCeq, conc, isRev);
+              ProofRule::CONCAT_UNIFY, psb, mainEqCeq, conc, isRev);
           // the required premise for unify is always len(x) = len(y),
           // however the explanation may not be literally this. Thus, we
           // need to reconstruct a proof from the given explanation.
@@ -598,7 +600,7 @@ bool InferProofCons::convert(Env& env,
         {
           // first, splice if necessary
           mainEqCeq = spliceConstants(
-              env, ProofRule::CONCAT_CSPLIT, psb, mainEqCeq, conc, isRev);
+              ProofRule::CONCAT_CSPLIT, psb, mainEqCeq, conc, isRev);
           // it should be the case that lenConstraint => lenReq
           lenReq = nm->mkNode(Kind::STRING_LENGTH, t0)
                        .eqNode(nm->mkConstInt(Rational(0)))
@@ -643,7 +645,7 @@ bool InferProofCons::convert(Env& env,
         {
           // first, splice if necessary
           mainEqCeq = spliceConstants(
-              env, ProofRule::CONCAT_UNIFY, psb, mainEqCeq, conc, isRev);
+              ProofRule::CONCAT_UNIFY, psb, mainEqCeq, conc, isRev);
           // Should be a constant conflict. We use CONCAT_UNIFY to infer an
           // equality between string or sequence values, which will rewrite to
           // false below, justifed by EVALUATE or DISTINCT_VALUES after
@@ -1490,8 +1492,7 @@ Node InferProofCons::convertCoreSubs(Env& env,
   return src;
 }
 
-Node InferProofCons::spliceConstants(Env& env,
-                                     ProofRule rule,
+Node InferProofCons::spliceConstants(ProofRule rule,
                                      TheoryProofStepBuffer& psb,
                                      const Node& eq,
                                      const Node& conc,
