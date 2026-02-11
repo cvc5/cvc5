@@ -520,7 +520,7 @@ Node CoreSolver::checkCycles( Node eqc, std::vector< Node >& curr, std::vector< 
                   << " " << ncy << std::endl;
               // should find a non-empty component, otherwise would have been
               // singular congruent (I_Norm_S)
-              Assert(false);
+              DebugUnhandled();
             }
             else
             {
@@ -688,7 +688,7 @@ NormalForm& CoreSolver::getNormalForm(const Node& n)
     // Shouln't ask for normal forms of strings that weren't computed. This
     // likely means that n is not a representative or not a term in the current
     // context. We simply return a default normal form here in this case.
-    Assert(false);
+    DebugUnhandled();
     return d_normal_form[n];
   }
   return itn->second;

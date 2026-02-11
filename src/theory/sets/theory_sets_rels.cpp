@@ -1144,7 +1144,7 @@ void TheorySetsRels::check(Theory::Effort level)
         break;
       }
       default:
-        Assert(false) << "No implementation for up rules for kind " << k
+        DebugUnhandled() << "No implementation for up rules for kind " << k
                       << std::endl;
     }
   }

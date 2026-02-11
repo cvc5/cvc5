@@ -529,7 +529,7 @@ std::shared_ptr<ProofNode> OperatorElim::getProofFor(Node f)
   {
     if (f.getKind()!=Kind::EQUAL)
     {
-      Assert(false) << "arith::OperatorElim could not prove " << f;
+      DebugUnhandled() << "arith::OperatorElim could not prove " << f;
       return nullptr;
     }
     // target is the left hand side.

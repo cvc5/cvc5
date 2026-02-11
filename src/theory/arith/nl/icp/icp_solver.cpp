@@ -129,7 +129,7 @@ std::vector<Candidate> ICPSolver::constructCandidates(const Node& n)
         case Kind::DISTINCT: rel = poly::SignCondition::NE; break;
         case Kind::GT: rel = poly::SignCondition::GT; break;
         case Kind::GEQ: rel = poly::SignCondition::GE; break;
-        default: Assert(false) << "Unexpected kind: " << k;
+        default: DebugUnhandled() << "Unexpected kind: " << k;
       }
       poly::Rational rhsmult;
       poly::Polynomial rhs = as_poly_polynomial(val, d_mapper, rhsmult);
@@ -160,7 +160,7 @@ std::vector<Candidate> ICPSolver::constructCandidates(const Node& n)
         case Kind::DISTINCT: rel = poly::SignCondition::NE; break;
         case Kind::GT: rel = poly::SignCondition::LT; break;
         case Kind::GEQ: rel = poly::SignCondition::LE; break;
-        default: Assert(false) << "Unexpected kind: " << k;
+        default: DebugUnhandled() << "Unexpected kind: " << k;
       }
       poly::Rational rhsmult;
       poly::Polynomial rhs = as_poly_polynomial(val, d_mapper, rhsmult);

@@ -254,7 +254,7 @@ void InstStrategyMbqi::process(Node q)
                     << std::endl;
       // this should never happen but we explicitly guard for it, since
       // otherwise we would be model unsound below
-      Assert(false);
+      DebugUnhandled();
       continue;
     }
     std::vector<Node> disj;

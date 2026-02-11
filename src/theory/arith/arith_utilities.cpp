@@ -155,7 +155,7 @@ Node getApproximateConstant(Node c, bool isLower, unsigned prec)
 {
   if (!c.isConst())
   {
-    Assert(false) << "getApproximateConstant: non-constant input " << c;
+    DebugUnhandled() << "getApproximateConstant: non-constant input " << c;
     return Node::null();
   }
   Rational cr = c.getConst<Rational>();
@@ -231,7 +231,7 @@ void printRationalApprox(const char* c, Node cr, unsigned prec)
 {
   if (!cr.isConst())
   {
-    Assert(false) << "printRationalApprox: non-constant input " << cr;
+    DebugUnhandled() << "printRationalApprox: non-constant input " << cr;
     Trace(c) << cr;
     return;
   }

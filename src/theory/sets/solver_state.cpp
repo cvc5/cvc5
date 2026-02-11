@@ -96,7 +96,7 @@ void SolverState::registerTerm(Node r, TypeNode tnn, Node n)
       }
       else
       {
-        Assert(false);
+        DebugUnhandled();
       }
     }
   }

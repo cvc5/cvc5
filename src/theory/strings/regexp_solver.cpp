@@ -638,7 +638,7 @@ bool RegExpSolver::deriveRegExp(Node x,
     {
       if (x.isConst())
       {
-        Assert(false)
+        DebugUnhandled()
             << "Impossible: RegExpSolver::deriveRegExp: const string in const "
                "regular expression.";
         return false;

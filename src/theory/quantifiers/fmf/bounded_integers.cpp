@@ -533,7 +533,7 @@ void BoundedIntegers::checkOwnership(Node f)
           Trace("bound-int") << "  " << v << " has small finite type." << std::endl;
         }else{
           Trace("bound-int") << "  " << v << " has unknown bound." << std::endl;
-          Assert(false);
+          DebugUnhandled();
         }
       }else{
         Trace("bound-int") << "  " << "*** " << v << " is unbounded." << std::endl;

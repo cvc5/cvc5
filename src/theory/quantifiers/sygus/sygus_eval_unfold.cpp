@@ -59,7 +59,7 @@ void SygusEvalUnfold::registerEvalTerm(Node n)
   if (n[0].getKind() == Kind::APPLY_CONSTRUCTOR)
   {
     // constructors should be unfolded and reduced already
-    Assert(false);
+    DebugUnhandled();
     return;
   }
   // register this evaluation term with its head

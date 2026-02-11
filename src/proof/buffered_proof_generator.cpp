@@ -75,13 +75,13 @@ std::shared_ptr<ProofNode> BufferedProofGenerator::getProofFor(Node fact)
     if (symFact.isNull())
     {
       Trace("pfee-fact-gen") << "...cannot find step" << std::endl;
-      Assert(false);
+      DebugUnhandled();
       return nullptr;
     }
     it = d_facts.find(symFact);
     if (it == d_facts.end())
     {
-      Assert(false);
+      DebugUnhandled();
       Trace("pfee-fact-gen") << "...cannot find step (no sym)" << std::endl;
       return nullptr;
     }

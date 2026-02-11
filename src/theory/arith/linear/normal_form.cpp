@@ -730,7 +730,7 @@ std::tuple<Polynomial, Kind, Constant> Comparison::decompose(
       case Kind::GEQ: rel = Kind::LT; break;
       case Kind::GT: rel = Kind::LEQ; break;
       default:
-        Assert(false) << "Unsupported relation: " << getNode()[0].getKind();
+        DebugUnhandled() << "Unsupported relation: " << getNode()[0].getKind();
     }
   }
 
@@ -763,7 +763,7 @@ std::tuple<Polynomial, Kind, Constant> Comparison::decompose(
         case Kind::DISTINCT: break;
         case Kind::GEQ: rel = Kind::LEQ; break;
         case Kind::GT: rel = Kind::LT; break;
-        default: Assert(false) << "Unsupported relation: " << rel;
+        default: DebugUnhandled() << "Unsupported relation: " << rel;
       }
     }
     poly = poly * invlcoeff;

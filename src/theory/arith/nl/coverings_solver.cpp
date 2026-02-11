@@ -210,7 +210,7 @@ bool CoveringsSolver::constructModelIfAvailable(std::vector<Node>& assertions)
     Node value = value_to_node(d_CAC.getModel().get(v), variable);
     if (!addToModel(variable, value))
     {
-      Assert(false) << "Failed to add variable assignment to model";
+      DebugUnhandled() << "Failed to add variable assignment to model";
     }
   }
   for (const auto& sub : d_eqsubs.getSubstitutions())
@@ -219,7 +219,7 @@ bool CoveringsSolver::constructModelIfAvailable(std::vector<Node>& assertions)
                     << std::endl;
     if (!addToModel(sub.first, sub.second))
     {
-      Assert(false) << "Failed to add equality substitution to model";
+      DebugUnhandled() << "Failed to add equality substitution to model";
     }
   }
   if (foundNonVariable)

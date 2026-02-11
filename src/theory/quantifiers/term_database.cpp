@@ -168,7 +168,7 @@ Node TermDb::getGroundTerm(TNode f, size_t i) const
     Assert(i < it->second->d_list.size());
     return it->second->d_list[i];
   }
-  Assert(false);
+  DebugUnhandled();
   return Node::null();
 }
 
@@ -200,7 +200,7 @@ Node TermDb::getTypeGroundTerm(TypeNode tn, size_t i) const
     Assert(i < it->second->d_list.size());
     return it->second->d_list[i];
   }
-  Assert(false);
+  DebugUnhandled();
   return Node::null();
 }
 
@@ -581,7 +581,7 @@ bool TermDb::hasTermCurrent(const Node& n, bool useMode) const
   {
     return d_has_map.find( n )!=d_has_map.end();
   }
-  Assert(false) << "TermDb::hasTermCurrent: Unknown termDbMode : "
+  DebugUnhandled() << "TermDb::hasTermCurrent: Unknown termDbMode : "
                 << options().quantifiers.termDbMode;
   return false;
 }

@@ -1343,7 +1343,7 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
       }
       else
       {
-        Assert(false) << "Failed to resolve indexed operator " << p.d_name;
+        DebugUnhandled() << "Failed to resolve indexed operator " << p.d_name;
       }
     }
     else

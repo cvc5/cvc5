@@ -1693,7 +1693,7 @@ void TheorySep::computeLabelModel( Node lbl ) {
     else
     {
       throw Exception("Could not establish value of heap in model.");
-      Assert(false);
+      DebugUnhandled();
     }
   }
   for (const Node& s : d_label_model[lbl].d_heap_locs_model)

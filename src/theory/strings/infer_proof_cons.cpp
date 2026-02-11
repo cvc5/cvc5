@@ -696,7 +696,7 @@ bool InferProofCons::convert(Env& env,
         else
         {
           // should always have given a rule to try above
-          Assert(false) << "No reconstruction rule given for " << infer;
+          DebugUnhandled() << "No reconstruction rule given for " << infer;
         }
       }
     }
@@ -712,7 +712,7 @@ bool InferProofCons::convert(Env& env,
           || conc[1][0].getKind() != Kind::STRING_LENGTH)
       {
         Trace("strings-ipc-deq") << "malformed application" << std::endl;
-        Assert(false) << "unexpected conclusion " << conc << " for " << infer;
+        DebugUnhandled() << "unexpected conclusion " << conc << " for " << infer;
       }
       else
       {
@@ -753,7 +753,7 @@ bool InferProofCons::convert(Env& env,
         }
         else
         {
-          Assert(false)
+          DebugUnhandled()
               << "Failed to convert length " << lenReq << " " << ps.d_children;
           Trace("strings-ipc-deq") << "...fail length" << std::endl;
         }
@@ -775,7 +775,7 @@ bool InferProofCons::convert(Env& env,
       {
         // This should never happen. If it does, we resort to using
         // THEORY_INFERENCE_STRINGS below (in production mode).
-        Assert(false) << "Expected OR conclusion for " << infer;
+        DebugUnhandled() << "Expected OR conclusion for " << infer;
       }
       else
       {
@@ -807,7 +807,7 @@ bool InferProofCons::convert(Env& env,
       if (mem.isNull())
       {
         // failed to eliminate above
-        Assert(false) << "Failed to apply MACRO_SR_PRED_ELIM for RE unfold";
+        DebugUnhandled() << "Failed to apply MACRO_SR_PRED_ELIM for RE unfold";
         useBuffer = false;
       }
       else if (infer == InferenceId::STRINGS_RE_UNFOLD_POS)
@@ -901,7 +901,7 @@ bool InferProofCons::convert(Env& env,
       if (mainEq.isNull())
       {
         Trace("strings-ipc-red") << "Bad Reduction: " << conc << std::endl;
-        Assert(false) << "Unexpected reduction " << conc;
+        DebugUnhandled() << "Unexpected reduction " << conc;
         break;
       }
       std::vector<Node> argsRed;
@@ -1000,7 +1000,7 @@ bool InferProofCons::convert(Env& env,
                 << "--- and elim to " << eunfAE << std::endl;
             if (eunfAE.isNull() || eunfAE.getKind() != Kind::EQUAL)
             {
-              Assert(false)
+              DebugUnhandled()
                   << "Unexpected unfolded premise " << eunf << " for " << infer;
               continue;
             }
@@ -1017,7 +1017,7 @@ bool InferProofCons::convert(Env& env,
         else
         {
           // not sure how to use this assumption
-          Assert(false) << "Unexpected premise " << e << " for " << infer;
+          DebugUnhandled() << "Unexpected premise " << e << " for " << infer;
         }
       }
       if (eqs.empty())
@@ -1555,7 +1555,7 @@ Node InferProofCons::spliceConstants(Env& env,
         }
         if (!src.isConst() || !tgt.isConst())
         {
-          Assert(false) << "Non-constant for unify";
+          DebugUnhandled() << "Non-constant for unify";
           return eq;
         }
         size_t index = j == 0 ? ti : si;
@@ -1564,7 +1564,7 @@ Node InferProofCons::spliceConstants(Env& env,
         size_t len = Word::getLength(src);
         if (len <= lentgt)
         {
-          Assert(false) << "Smaller source for unify";
+          DebugUnhandled() << "Smaller source for unify";
           return eq;
         }
         if (isRev)
@@ -1583,7 +1583,7 @@ Node InferProofCons::spliceConstants(Env& env,
     {
       if (!currS.isConst())
       {
-        Assert(false) << "Non-constant for csplit";
+        DebugUnhandled() << "Non-constant for csplit";
         return eq;
       }
       // split the first character
@@ -1609,7 +1609,7 @@ Node InferProofCons::spliceConstants(Env& env,
     {
       if (!currT.isConst() || !currS.isConst())
       {
-        Assert(false) << "Non-constants for concat conflict";
+        DebugUnhandled() << "Non-constants for concat conflict";
         return eq;
       }
       // isolate a disequal prefix by taking maximal prefix/suffix
@@ -1633,7 +1633,7 @@ Node InferProofCons::spliceConstants(Env& env,
     }
     else
     {
-      Assert(false) << "Unknown rule to splice " << rule;
+      DebugUnhandled() << "Unknown rule to splice " << rule;
       return eq;
     }
     TypeNode stype = eq[0].getType();
@@ -1644,7 +1644,7 @@ Node InferProofCons::spliceConstants(Env& env,
     std::vector<Node> cexp;
     if (!psb.applyPredTransform(eq, eqr, cexp))
     {
-      Assert(false) << "Failed to show " << eqr << " spliced from " << eq;
+      DebugUnhandled() << "Failed to show " << eqr << " spliced from " << eq;
       return eq;
     }
     return eqr;

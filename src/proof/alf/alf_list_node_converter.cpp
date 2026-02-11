@@ -65,7 +65,7 @@ Node AlfListNodeConverter::preConvert(Node n)
         }
       }
     }
-    Assert(false) << "AlfListNodeConverter: unhandled term " << n;
+    DebugUnhandled() << "AlfListNodeConverter: unhandled term " << n;
   }
   else
   {

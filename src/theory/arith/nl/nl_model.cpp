@@ -321,7 +321,7 @@ bool NlModel::addSubstitution(TNode v, TNode s)
     {
       Trace("nl-ext-model")
           << "...ERROR: already has bound which is out of range." << std::endl;
-      Assert(false) << "Out of bounds exact bound given for a variable with an "
+      DebugUnhandled() << "Out of bounds exact bound given for a variable with an "
                        "approximate bound";
       return false;
     }
@@ -357,7 +357,7 @@ bool NlModel::addBound(TNode v, TNode l, TNode u)
     Trace("nl-ext-model")
         << "...ERROR: setting bound for variable that already has exact value."
         << std::endl;
-    Assert(false) << "Setting bound for variable that already has exact value.";
+    DebugUnhandled() << "Setting bound for variable that already has exact value.";
     return false;
   }
   Assert(l.isConst());
@@ -539,7 +539,7 @@ bool NlModel::solveEqualitySimple(Node eq,
   if (b == d_zero)
   {
     Trace("nl-ext-cms") << "...fail due to zero a/b." << std::endl;
-    Assert(false);
+    DebugUnhandled();
     return false;
   }
   Node val = nm->mkConstReal(-c.getConst<Rational>() / b.getConst<Rational>());
@@ -890,7 +890,7 @@ bool NlModel::simpleCheckModelMsum(const std::map<Node, Node>& msum, bool pol)
               << "  failed due to unknown bound for " << vc << std::endl;
           // should either assign a model bound or eliminate the variable
           // via substitution
-          Assert(false) << "A variable " << vc
+          DebugUnhandled() << "A variable " << vc
                         << " is missing a bound/value in the model";
           return false;
         }

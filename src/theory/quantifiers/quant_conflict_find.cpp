@@ -1848,7 +1848,6 @@ bool MatchGen::getNextMatch()
     bool success = false;
     if( d_child_counter<0 ){
       if( d_child_counter<-1 ){
-        success = true;
         d_child_counter = -1;
       }
     }else{

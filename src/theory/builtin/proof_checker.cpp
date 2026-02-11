@@ -115,7 +115,7 @@ bool BuiltinProofRuleChecker::getSubstitutionForLit(Node exp,
   }
   else
   {
-    Assert(false) << "BuiltinProofRuleChecker::applySubstitution: no "
+    DebugUnhandled() << "BuiltinProofRuleChecker::applySubstitution: no "
                      "substitution for "
                   << ids << std::endl;
     return false;

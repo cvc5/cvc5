@@ -115,6 +115,7 @@ cvc5_set_option(USE_PYTHON_VENV ON)
 
 # >> 2-valued: ON OFF
 #    > for options where we don't need to detect if set by user (default: OFF)
+option(ENABLE_CLANG_TIDY       "Enable clang-tidy static analysis during build")
 option(ENABLE_COVERAGE         "Enable support for gcov coverage testing")
 option(ENABLE_DEBUG_CONTEXT_MM "Enable the debug context memory manager")
 option(ENABLE_PROFILING        "Enable support for gprof profiling")
@@ -202,6 +203,17 @@ endif()
 set(OPTIMIZATION_LEVEL 3)
 set(GPL_LIBS "")
 
+if(ENABLE_CLANG_TIDY)
+  if(NOT ENABLE_ASSERTIONS)
+    message(FATAL_ERROR
+      "Use of clang-tidy requires building with assertions enabled.")
+  endif()
+  set(CMAKE_CXX_CLANG_TIDY "clang-tidy")
+  if(TREAT_WARNING_AS_ERROR)
+    set(CMAKE_CXX_CLANG_TIDY "${CMAKE_CXX_CLANG_TIDY};-warnings-as-errors=*")
+  endif()
+endif()
+
 #-----------------------------------------------------------------------------#
 # Determine number of threads available, used to configure (default) parallel
 # execution of custom test targets (can be overriden with ARGS=-jN).
@@ -261,7 +273,9 @@ add_check_c_cxx_flag("-fno-operator-names")
 # Assume no dynamic initialization of thread-local variables in non-defining
 # translation units. This option should result in better performance and works
 # around crashing issues with our Windows build.
-add_check_cxx_flag("-fno-extern-tls-init")
+if(NOT ENABLE_CLANG_TIDY)
+  add_check_cxx_flag("-fno-extern-tls-init")
+endif()
 
 # Disable -Wclass-memaccess to suppress 'no trivial copy-assignment' in MiniSat
 # code.
@@ -493,6 +507,10 @@ if(ENABLE_ASSERTIONS)
   add_definitions(-DCVC5_ASSERTIONS)
 else()
   add_definitions(-DNDEBUG)
+endif()
+
+if(ENABLE_CLANG_TIDY)
+  add_definitions(-DCVC5_STATIC_ANALYSIS)
 endif()
 
 if(ENABLE_COVERAGE)

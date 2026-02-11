@@ -362,7 +362,7 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
     else
     {
       // should be guaranteed based on not exploring equal parents
-      Assert(false);
+      DebugUnhandled();
     }
     return;
   }
@@ -1117,7 +1117,7 @@ void CardinalityExtension::mkModelValueElementsFor(
       }
       else
       {
-        Assert(false);
+        DebugUnhandled();
       }
     }
   }
