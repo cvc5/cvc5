@@ -233,7 +233,7 @@ std::shared_ptr<ProofNode> ArithNlCompareProofGenerator::getProofFor(Node fact)
           itd = deq.find(etgt);
           if (itd == deq.end())
           {
-            Assert(false) << "ArithNlCompareProofGenerator failed explain deq";
+            DebugUnhandled() << "ArithNlCompareProofGenerator failed explain deq";
             expSuccess = false;
             break;
           }

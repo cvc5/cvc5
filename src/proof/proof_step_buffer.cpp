@@ -73,7 +73,7 @@ Node ProofStepBuffer::tryStep(bool& added,
   if (d_checker == nullptr)
   {
     added = false;
-    Assert(false) << "ProofStepBuffer::ProofStepBuffer: no proof checker.";
+    DebugUnhandled() << "ProofStepBuffer::ProofStepBuffer: no proof checker.";
     return Node::null();
   }
   Node res =

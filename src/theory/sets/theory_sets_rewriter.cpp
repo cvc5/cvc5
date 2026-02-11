@@ -183,7 +183,7 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
 
     case Kind::SET_SUBSET:
     {
-      Assert(false)
+      DebugUnhandled()
           << "TheorySets::postRrewrite(): Subset is handled in preRewrite.";
 
       // but in off-chance we do end up here, let us do our best

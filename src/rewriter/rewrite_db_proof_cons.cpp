@@ -1228,7 +1228,7 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
               // get the conditions, store into premises of cur.
               if (!rpr.getObligations(vs, rsubs, ps))
               {
-                Assert(false) << "failed a side condition?";
+                DebugUnhandled() << "failed a side condition?";
                 return false;
               }
               pfac.insert(pfac.end(), rsubs.begin(), rsubs.end());

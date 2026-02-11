@@ -69,7 +69,7 @@ bool ProofGenerator::addProofTo(Node f,
   else
   {
     Trace("pfgen") << "...failed, no proof" << std::endl;
-    Assert(false) << "Failed to get proof from generator for fact " << f;
+    DebugUnhandled() << "Failed to get proof from generator for fact " << f;
   }
   return false;
 }

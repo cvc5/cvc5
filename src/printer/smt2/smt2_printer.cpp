@@ -1629,7 +1629,7 @@ void Smt2Printer::toStreamModelSort(std::ostream& out,
       }
       else
       {
-        Assert(false)
+        DebugUnhandled()
             << "model domain element is not an uninterpreted sort value: "
             << trn;
         out << trn;

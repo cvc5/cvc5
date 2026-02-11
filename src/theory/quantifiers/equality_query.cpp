@@ -67,7 +67,7 @@ Node EqualityQuery::getInternalRepresentative(Node a, Node q, size_t index)
           {
             Trace("internal-rep-warn") << "No representative for UF constant." << std::endl;
             //should never happen : UF constants should never escape model
-            Assert(false);
+            DebugUnhandled();
           }
         }
       }

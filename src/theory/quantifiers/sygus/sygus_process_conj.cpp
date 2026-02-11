@@ -606,7 +606,7 @@ bool SynthConjectureProcess::isArgRelevant(Node f, unsigned i)
   {
     return its->second.isArgRelevant(i);
   }
-  Assert(false);
+  DebugUnhandled();
   return true;
 }
 

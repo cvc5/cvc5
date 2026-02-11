@@ -111,7 +111,7 @@ bool BoundInference::add(const Node& n, bool onlyVariables)
       break;
     case Kind::GT: update_lower_bound(n, lhs, bound, true); break;
     case Kind::GEQ: update_lower_bound(n, lhs, bound, false); break;
-    default: Assert(false);
+    default: DebugUnhandled();
   }
   return true;
 }

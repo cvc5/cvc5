@@ -187,7 +187,7 @@ bool Instantiate::addInstantiationInternal(
       {
         Trace("inst") << "   " << terms[j] << std::endl;
       }
-      Assert(false);
+      DebugUnhandled();
     }
   }
 #endif

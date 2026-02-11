@@ -130,7 +130,7 @@ Node ExtProofRuleChecker::checkInternal(ProofRule id,
       case 1:
         return nm->mkNode(
             Kind::IMPLIES, nm->mkAnd(premise), nm->mkNode(Kind::GT, mon, zero));
-      default: Assert(false); return Node();
+      default: DebugUnhandled(); return Node();
     }
   }
   else if (id == ProofRule::ARITH_MULT_TANGENT)

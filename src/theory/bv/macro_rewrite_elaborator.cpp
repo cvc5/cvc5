@@ -223,7 +223,7 @@ bool MacroRewriteElaborator::ensureProofForConcatMerge(CDProof* cdp,
     cdp->addStep(eq, ProofRule::TRANS, {equiv1, equiv2}, {});
     return true;
   }
-  Assert(false) << "...mismatch " << equiv2[1] << " " << eq[1];
+  DebugUnhandled() << "...mismatch " << equiv2[1] << " " << eq[1];
   return false;
 }
 
@@ -423,7 +423,7 @@ bool MacroRewriteElaborator::ensureProofForAndOrXorConcatPullup(CDProof* cdp,
   }
   if (!addedRewrite)
   {
-    Assert(false) << "Failed to elaborate and-or-xor-concat-pullup";
+    DebugUnhandled() << "Failed to elaborate and-or-xor-concat-pullup";
     return false;
   }
   std::shared_ptr<ProofNode> pfn = tcpg.getProofForRewriting(eq[0]);

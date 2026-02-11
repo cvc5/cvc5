@@ -51,7 +51,7 @@ size_t FreeVarCache::getFreeVarId(const Node& n) const
   std::map<Node, size_t>::const_iterator it = d_fvId.find(n);
   if (it == d_fvId.end())
   {
-    Assert(false) << "FreeVarCache::isFreeVar: " << n
+    DebugUnhandled() << "FreeVarCache::isFreeVar: " << n
                   << " is not a cached free variable.";
     return 0;
   }

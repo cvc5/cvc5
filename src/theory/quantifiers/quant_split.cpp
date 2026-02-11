@@ -66,7 +66,7 @@ class QuantDSplitProofGenerator : protected EnvObj, public ProofGenerator
     context::CDHashMap<Node, size_t>::iterator it = d_index.find(fact);
     if (it == d_index.end())
     {
-      Assert(false) << "QuantDSplitProofGenerator failed to get proof";
+      DebugUnhandled() << "QuantDSplitProofGenerator failed to get proof";
       return nullptr;
     }
     Assert(fact.getKind() == Kind::EQUAL && fact[0].getKind() == Kind::FORALL);

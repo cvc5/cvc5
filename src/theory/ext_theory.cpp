@@ -450,7 +450,7 @@ std::shared_ptr<ProofNode> ExtTheory::getProofFor(Node fact)
       pc->checkDebug(ProofRule::MACRO_SR_PRED_INTRO, antec, {conc}, conc);
   if (res.isNull())
   {
-    Assert(false) << "ExtTheory failed to prove " << fact;
+    DebugUnhandled() << "ExtTheory failed to prove " << fact;
     return nullptr;
   }
   proof.addStep(conc, ProofRule::MACRO_SR_PRED_INTRO, antec, {conc});

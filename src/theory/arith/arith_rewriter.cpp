@@ -1396,7 +1396,7 @@ RewriteResponse ArithRewriter::postRewriteTranscendental(TNode t)
         }
         else
         {
-          Assert(false);
+          DebugUnhandled();
         }
 
         // if there is a factor of PI

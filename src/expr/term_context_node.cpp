@@ -61,14 +61,14 @@ Node TCtxNode::decomposeNodeHash(Node h, uint32_t& val)
 {
   if (h.getKind() != Kind::SEXPR || h.getNumChildren() != 2)
   {
-    Assert(false) << "TermContext::decomposeNodeHash: unexpected node " << h;
+    DebugUnhandled() << "TermContext::decomposeNodeHash: unexpected node " << h;
     return Node::null();
   }
   Node ival = h[1];
   if (!ival.isConst() || !ival.getType().isInteger()
       || !ival.getConst<Rational>().getNumerator().fitsUnsignedInt())
   {
-    Assert(false) << "TermContext::decomposeNodeHash: unexpected term context "
+    DebugUnhandled() << "TermContext::decomposeNodeHash: unexpected term context "
                      "integer in hash "
                   << h;
     return Node::null();

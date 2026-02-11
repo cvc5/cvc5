@@ -97,7 +97,7 @@ Rational toRationalAbove(const poly::Value& v)
   {
     return toRational(as_rational(v));
   }
-  Assert(false) << "Can not convert " << v << " to rational.";
+  DebugUnhandled() << "Can not convert " << v << " to rational.";
   return Rational();
 }
 Rational toRationalBelow(const poly::Value& v)
@@ -118,7 +118,7 @@ Rational toRationalBelow(const poly::Value& v)
   {
     return toRational(as_rational(v));
   }
-  Assert(false) << "Can not convert " << v << " to rational.";
+  DebugUnhandled() << "Can not convert " << v << " to rational.";
   return Rational();
 }
 

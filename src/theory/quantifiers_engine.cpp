@@ -219,7 +219,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
     // gotten a check at LAST_CALL effort, indicating that the lemma we reported
     // was not conflicting. This should never happen, but in production mode, we
     // proceed with the check.
-    Assert(false);
+    DebugUnhandled();
   }
   bool needsCheck = d_qim.hasPendingLemma();
   QuantifiersModule::QEffort needsModelE = QuantifiersModule::QEFFORT_NONE;
@@ -313,7 +313,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
           return;
         }else{
           //should only fail reset if added a lemma
-          Assert(false);
+          DebugUnhandled();
         }
       }
     }

@@ -123,7 +123,7 @@ void RewriteDb::addRule(ProofRewriteRule id,
   std::unordered_map<Node, Node> msubs;
   if (!expr::match(eq, eqC, msubs))
   {
-    Assert(false);
+    DebugUnhandled();
   }
   std::unordered_map<Node, Node>::iterator its;
   std::vector<Node> ofvs;

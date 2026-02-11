@@ -431,7 +431,7 @@ std::shared_ptr<ProofNode> ArithStaticLearner::getProofFor(Node fact)
     else
     {
       // this should always hold unless the rewriter for ITE changes
-      Assert(false) << "...failed rewrite " << eq2 << std::endl;
+      DebugUnhandled() << "...failed rewrite " << eq2 << std::endl;
       cdp.addTrustedStep(fact, TrustId::ARITH_STATIC_LEARN, {}, {});
       return cdp.getProofFor(fact);
     }

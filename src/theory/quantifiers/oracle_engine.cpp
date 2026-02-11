@@ -264,7 +264,7 @@ void OracleEngine::checkOwnership(Node q)
     Node assume, constraint, oracle;
     if (!getOracleInterface(q, inputs, outputs, assume, constraint, oracle))
     {
-      Assert(false) << "Not an oracle interface " << q;
+      DebugUnhandled() << "Not an oracle interface " << q;
     }
     else
     {

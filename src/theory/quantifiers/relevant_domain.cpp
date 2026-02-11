@@ -185,7 +185,7 @@ void RelevantDomain::compute(){
               }
               else
               {
-                Assert(false) << "Relevant domain: bad type " << t.getType()
+                DebugUnhandled() << "Relevant domain: bad type " << t.getType()
                               << ", expected " << expectedType;
               }
             }

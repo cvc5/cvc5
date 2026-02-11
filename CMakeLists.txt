@@ -204,6 +204,10 @@ set(OPTIMIZATION_LEVEL 3)
 set(GPL_LIBS "")
 
 if(ENABLE_CLANG_TIDY)
+  if(NOT ENABLE_ASSERTIONS)
+    message(FATAL_ERROR
+      "Use of clang-tidy requires building with assertions enabled.")
+  endif()
   set(CMAKE_CXX_CLANG_TIDY "clang-tidy")
   if(TREAT_WARNING_AS_ERROR)
     set(CMAKE_CXX_CLANG_TIDY "${CMAKE_CXX_CLANG_TIDY};-warnings-as-errors=*")
@@ -503,6 +507,10 @@ if(ENABLE_ASSERTIONS)
   add_definitions(-DCVC5_ASSERTIONS)
 else()
   add_definitions(-DNDEBUG)
+endif()
+
+if(ENABLE_CLANG_TIDY)
+  add_definitions(-DCVC5_STATIC_ANALYSIS)
 endif()
 
 if(ENABLE_COVERAGE)
