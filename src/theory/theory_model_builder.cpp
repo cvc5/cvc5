@@ -1317,12 +1317,12 @@ Node TheoryEngineModelBuilder::normalize(TheoryModel* m, TNode r, bool evalOnly)
   return retNode;
 }
 
-bool TheoryEngineModelBuilder::preProcessBuildModel(TheoryModel* m)
+bool TheoryEngineModelBuilder::preProcessBuildModel(CVC5_UNUSED TheoryModel* m)
 {
   return true;
 }
 
-bool TheoryEngineModelBuilder::processBuildModel(TheoryModel* m)
+bool TheoryEngineModelBuilder::processBuildModel(CVC5_UNUSED TheoryModel* m)
 {
   return true;
 }

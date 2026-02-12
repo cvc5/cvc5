@@ -99,7 +99,7 @@ void EqEngineManagerDistributed::initializeTheories()
   }
 }
 
-void EqEngineManagerDistributed::notifyModel(bool incomplete)
+void EqEngineManagerDistributed::notifyModel(CVC5_UNUSED bool incomplete)
 {
   // should have a consistent master equality engine
   if (d_masterEqualityEngine.get() != nullptr)

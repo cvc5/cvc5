@@ -443,16 +443,19 @@ class Theory : protected EnvObj
    * since model construction for parametric theories involves running final
    * model construction.
    */
-  virtual Node getCandidateModelValue(TNode var) { return Node::null(); }
+  virtual Node getCandidateModelValue(CVC5_UNUSED TNode var)
+  {
+    return Node::null();
+  }
 
   /** T-propagate new literal assignments in the current context. */
-  virtual void propagate(Effort level = EFFORT_FULL) {}
+  virtual void propagate(CVC5_UNUSED Effort level = EFFORT_FULL) {}
 
   /**
    * Return an explanation for the literal represented by parameter n
    * (which was previously propagated by this theory).
    */
-  virtual TrustNode explain(TNode n)
+  virtual TrustNode explain(CVC5_UNUSED TNode n)
   {
     Unimplemented() << "Theory " << identify()
                     << " propagated a node but doesn't implement the "
@@ -579,7 +582,7 @@ class Theory : protected EnvObj
                                   const std::set<Node>& termSet);
   /** if theories want to do something with model after building, do it here
    */
-  virtual void postProcessModel(TheoryModel* m) {}
+  virtual void postProcessModel(CVC5_UNUSED TheoryModel* m) {}
   //--------------------------------- end collect model info
 
   //--------------------------------- preprocessing
@@ -587,7 +590,10 @@ class Theory : protected EnvObj
    * Statically learn from assertion "in," which has been asserted
    * true at the top level.
    */
-  virtual void ppStaticLearn(TNode in, std::vector<TrustNode>& learned) {}
+  virtual void ppStaticLearn(CVC5_UNUSED TNode in,
+                             CVC5_UNUSED std::vector<TrustNode>& learned)
+  {
+  }
 
   /**
    * Given a literal and its proof generator (encapsulated by trust node tin),
@@ -631,7 +637,8 @@ class Theory : protected EnvObj
    * Note that ppRewrite should not return WITNESS terms, since the internal
    * calculus works in "original forms" and not "witness forms".
    */
-  virtual TrustNode ppRewrite(TNode n, std::vector<SkolemLemma>& lems)
+  virtual TrustNode ppRewrite(CVC5_UNUSED TNode n,
+                              CVC5_UNUSED std::vector<SkolemLemma>& lems)
   {
     return TrustNode::null();
   }
@@ -650,13 +657,19 @@ class Theory : protected EnvObj
    * Note that ppRewrite should not return WITNESS terms, since the internal
    * calculus works in "original forms" and not "witness forms".
    */
-  virtual TrustNode ppStaticRewrite(TNode n) { return TrustNode::null(); }
+  virtual TrustNode ppStaticRewrite(CVC5_UNUSED TNode n)
+  {
+    return TrustNode::null();
+  }
 
   /**
    * Notify preprocessed assertions. Called on new assertions after
    * preprocessing before they are asserted to theory engine.
    */
-  virtual void ppNotifyAssertions(const std::vector<Node>& assertions) {}
+  virtual void ppNotifyAssertions(
+      CVC5_UNUSED const std::vector<Node>& assertions)
+  {
+  }
   //--------------------------------- end preprocessing
 
   /**
