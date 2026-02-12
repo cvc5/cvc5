@@ -172,7 +172,8 @@ CandidateGeneratorQELitDeq::CandidateGeneratorQELitDeq(Env& env,
   d_match_pattern_type = d_match_pattern[0].getType();
 }
 
-void CandidateGeneratorQELitDeq::reset( Node eqc ){
+void CandidateGeneratorQELitDeq::reset(CVC5_UNUSED Node eqc)
+{
   eq::EqualityEngine* ee = d_qs.getEqualityEngine();
   Node falset = nodeManager()->mkConst(false);
   d_eqc_false = eq::EqClassIterator(falset, ee);
@@ -209,7 +210,8 @@ CandidateGeneratorQEAll::CandidateGeneratorQEAll(Env& env,
   d_firstTime = false;
 }
 
-void CandidateGeneratorQEAll::reset( Node eqc ) {
+void CandidateGeneratorQEAll::reset(CVC5_UNUSED Node eqc)
+{
   d_eq = eq::EqClassesIterator(d_qs.getEqualityEngine());
   d_firstTime = true;
 }

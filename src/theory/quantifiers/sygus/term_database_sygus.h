@@ -407,10 +407,7 @@ class TermDbSygus : protected EnvObj
    * above to infer a kind is constructable. If this flag is false, we only
    * check if the kind is literally a constructor of the grammar.
    */
-  bool canConstructKind(TypeNode tn,
-                        Kind k,
-                        std::vector<TypeNode>& argts,
-                        bool aggr = false);
+  bool canConstructKind(TypeNode tn, Kind k, std::vector<TypeNode>& argts);
 
   Node getSygusNormalized( Node n, std::map< TypeNode, int >& var_count, std::map< Node, Node >& subs );
   Node getNormalized(TypeNode t, Node prog);

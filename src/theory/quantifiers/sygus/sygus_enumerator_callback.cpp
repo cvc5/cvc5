@@ -65,7 +65,8 @@ bool SygusEnumeratorCallback::addTerm(const Node& n,
   return true;
 }
 
-Node SygusEnumeratorCallback::getCacheValue(const Node& n, const Node& bn)
+Node SygusEnumeratorCallback::getCacheValue(CVC5_UNUSED const Node& n,
+                                            const Node& bn)
 {
   // By default, we cache based on the rewritten form.
   // Further criteria for uniqueness (e.g. weights) may go here.

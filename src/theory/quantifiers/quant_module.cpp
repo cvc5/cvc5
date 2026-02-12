@@ -31,7 +31,8 @@ QuantifiersModule::QuantifiersModule(
 {
 }
 
-QuantifiersModule::QEffort QuantifiersModule::needsModel(Theory::Effort e)
+QuantifiersModule::QEffort QuantifiersModule::needsModel(
+    CVC5_UNUSED Theory::Effort e)
 {
   return QEFFORT_NONE;
 }

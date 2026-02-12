@@ -59,7 +59,7 @@ public:
  bool checkComplete(IncompleteId& incId) override;
  bool checkCompleteFor(Node q) override;
  void registerQuantifier(Node f) override;
- Node explain(TNode n) { return Node::null(); }
+ Node explain() { return Node::null(); }
  void debugPrint(const char* c);
  /** Identify this module */
  std::string identify() const override;

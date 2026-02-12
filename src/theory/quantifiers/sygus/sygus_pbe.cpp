@@ -44,7 +44,7 @@ SygusPbe::SygusPbe(Env& env,
 
 SygusPbe::~SygusPbe() {}
 
-bool SygusPbe::initialize(Node conj,
+bool SygusPbe::initialize(CVC5_UNUSED Node conj,
                           Node n,
                           const std::vector<Node>& candidates)
 {

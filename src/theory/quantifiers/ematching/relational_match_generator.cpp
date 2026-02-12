@@ -58,7 +58,7 @@ RelationalMatchGenerator::RelationalMatchGenerator(
       << "Failed to initialize RelationalMatchGenerator";
 }
 
-bool RelationalMatchGenerator::reset(Node eqc)
+bool RelationalMatchGenerator::reset(CVC5_UNUSED Node eqc)
 {
   d_counter = 0;
   return true;

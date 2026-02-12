@@ -201,13 +201,11 @@ MQuantInfo& MbqiEnum::getOrMkQuantInfo(const Node& q)
   return it->second;
 }
 
-bool MbqiEnum::constructInstantiation(
-    const Node& q,
-    const Node& query,
-    const std::vector<Node>& vars,
-    std::vector<Node>& mvs,
-    const std::map<Node, Node>& mvFreshVar,
-    std::vector<std::pair<Node, InferenceId>>& auxLemmas)
+bool MbqiEnum::constructInstantiation(const Node& q,
+                                      const Node& query,
+                                      const std::vector<Node>& vars,
+                                      std::vector<Node>& mvs,
+                                      const std::map<Node, Node>& mvFreshVar)
 {
   Assert(q[0].getNumChildren() == vars.size());
   Assert(vars.size() == mvs.size());

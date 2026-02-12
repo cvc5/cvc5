@@ -74,7 +74,7 @@ bool Instantiate::reset(Theory::Effort e)
   return true;
 }
 
-void Instantiate::registerQuantifier(Node q) {}
+void Instantiate::registerQuantifier(CVC5_UNUSED Node q) {}
 bool Instantiate::checkComplete(IncompleteId& incId)
 {
   if (!d_recordedInst.empty())
@@ -101,7 +101,7 @@ bool Instantiate::addInstantiation(Node q,
   // do the instantiation
   bool ret = addInstantiationInternal(q, terms, id, pfArg, doVts);
   // process the instantiation with callbacks via term registry
-  d_treg.processInstantiation(q, terms, ret);
+  d_treg.processInstantiation(q, terms);
   // return whether the instantiation was successful
   return ret;
 }

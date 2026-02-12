@@ -66,8 +66,8 @@ bool InstStrategyEnum::needsCheck(Theory::Effort e)
   return false;
 }
 
-void InstStrategyEnum::reset_round(Theory::Effort e) {}
-void InstStrategyEnum::check(Theory::Effort e, QEffort quant_e)
+void InstStrategyEnum::reset_round(CVC5_UNUSED Theory::Effort e) {}
+void InstStrategyEnum::check(CVC5_UNUSED Theory::Effort e, QEffort quant_e)
 {
   bool doCheck = false;
   bool fullEffort = false;

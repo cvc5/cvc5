@@ -65,9 +65,7 @@ TermDbSygus::TermDbSygus(Env& env, QuantifiersState& qs)
 
 void TermDbSygus::finishInit(QuantifiersInferenceManager* qim) { d_qim = qim; }
 
-bool TermDbSygus::reset( Theory::Effort e ) { 
-  return true;  
-}
+bool TermDbSygus::reset(CVC5_UNUSED Theory::Effort e) { return true; }
 
 TNode TermDbSygus::getFreeVar(const TypeNode& tn, size_t i)
 {
@@ -837,8 +835,7 @@ bool TermDbSygus::isSymbolicConsApp(Node n) const
 
 bool TermDbSygus::canConstructKind(TypeNode tn,
                                    Kind k,
-                                   std::vector<TypeNode>& argts,
-                                   bool aggr)
+                                   std::vector<TypeNode>& argts)
 {
   Assert(isRegistered(tn));
   SygusTypeInfo& ti = getTypeInfo(tn);
@@ -863,14 +860,13 @@ bool TermDbSygus::canConstructKind(TypeNode tn,
     {
       // ite( b1, b2, b3 ) <---- and( or( ~b1, b2 ), or( b1, b3 ) )
       std::vector<TypeNode> conj_types;
-      if (canConstructKind(tn, Kind::AND, conj_types, true)
-          && conj_types.size() == 2)
+      if (canConstructKind(tn, Kind::AND, conj_types) && conj_types.size() == 2)
       {
         bool success = true;
         std::vector<TypeNode> disj_types[2];
         for (unsigned cc = 0; cc < 2; cc++)
         {
-          if (!canConstructKind(conj_types[cc], Kind::OR, disj_types[cc], true)
+          if (!canConstructKind(conj_types[cc], Kind::OR, disj_types[cc])
               || disj_types[cc].size() != 2)
           {
             success = false;

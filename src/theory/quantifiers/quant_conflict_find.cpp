@@ -2263,7 +2263,8 @@ bool QuantConflictFind::needsCheck( Theory::Effort level ) {
   return !d_qstate.isConflictingInst() && (level == Theory::EFFORT_FULL);
 }
 
-void QuantConflictFind::reset_round( Theory::Effort level ) {
+void QuantConflictFind::reset_round(CVC5_UNUSED Theory::Effort level)
+{
   Trace("qcf-check") << "QuantConflictFind::reset_round" << std::endl;
   Trace("qcf-check") << "Compute relevant equivalence classes..." << std::endl;
   d_eqcs.clear();

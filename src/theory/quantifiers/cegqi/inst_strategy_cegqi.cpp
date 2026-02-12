@@ -41,9 +41,12 @@ InstRewriterCegqi::InstRewriterCegqi(InstStrategyCegqi* p)
 }
 
 TrustNode InstRewriterCegqi::rewriteInstantiation(
-    Node q, const std::vector<Node>& terms, Node inst, bool doVts)
+    CVC5_UNUSED Node q,
+    CVC5_UNUSED const std::vector<Node>& terms,
+    Node inst,
+    bool doVts)
 {
-  return d_parent->rewriteInstantiation(q, terms, inst, doVts);
+  return d_parent->rewriteInstantiation(inst, doVts);
 }
 
 InstStrategyCegqi::InstStrategyCegqi(Env& env,
@@ -81,7 +84,8 @@ bool InstStrategyCegqi::needsCheck(Theory::Effort e)
   return e>=Theory::EFFORT_LAST_CALL;
 }
 
-QuantifiersModule::QEffort InstStrategyCegqi::needsModel(Theory::Effort e)
+QuantifiersModule::QEffort InstStrategyCegqi::needsModel(
+    CVC5_UNUSED Theory::Effort e)
 {
   size_t nquant = d_treg.getModel()->getNumAssertedQuantifiers();
   for (size_t i = 0; i < nquant; i++)
@@ -189,7 +193,7 @@ bool InstStrategyCegqi::registerCbqiLemma(Node q)
   }
 }
 
-void InstStrategyCegqi::reset_round(Theory::Effort effort)
+void InstStrategyCegqi::reset_round(CVC5_UNUSED Theory::Effort effort)
 {
   d_cbqi_set_quant_inactive = false;
   d_incomplete_check = false;
@@ -259,7 +263,7 @@ void InstStrategyCegqi::reset_round(Theory::Effort effort)
   d_check_vts_lemma_lc = false;
 }
 
-void InstStrategyCegqi::check(Theory::Effort e, QEffort quant_e)
+void InstStrategyCegqi::check(CVC5_UNUSED Theory::Effort e, QEffort quant_e)
 {
   if (quant_e == QEFFORT_STANDARD)
   {
@@ -282,7 +286,7 @@ void InstStrategyCegqi::check(Theory::Effort e, QEffort quant_e)
           d_cbqi_set_quant_inactive = true;
           d_incomplete_check = true;
         }
-        process(q, e, ee);
+        process(q, ee);
         if (d_qstate.isInConflict())
         {
           break;
@@ -349,8 +353,7 @@ void InstStrategyCegqi::preRegisterQuantifier(Node q)
     }
   }
 }
-TrustNode InstStrategyCegqi::rewriteInstantiation(
-    Node q, const std::vector<Node>& terms, Node inst, bool doVts)
+TrustNode InstStrategyCegqi::rewriteInstantiation(Node inst, bool doVts)
 {
   Node prevInst = inst;
   if (doVts)
@@ -421,7 +424,8 @@ bool InstStrategyCegqi::doCbqi(Node q)
   return it->second != CEG_UNHANDLED;
 }
 
-void InstStrategyCegqi::process( Node q, Theory::Effort effort, int e ) {
+void InstStrategyCegqi::process(Node q, int e)
+{
   // If we are doing nested quantifier elimination, check if q was already
   // processed.
   if (processNestedQe(q, false))

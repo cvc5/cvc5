@@ -116,7 +116,7 @@ public:
   // push the substitution pv_prop.getModifiedTerm(pv) -> n
   void push_back(Node pv, Node n, TermProperties& pv_prop);
   // pop the substitution pv_prop.getModifiedTerm(pv) -> n
-  void pop_back(Node pv, Node n, TermProperties& pv_prop);
+  void pop_back(TermProperties& pv_prop);
   // is this solved form empty?
   bool empty() { return d_vars.empty(); }
 public:

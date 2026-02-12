@@ -101,14 +101,18 @@ const context::CDHashSet<Node>& InstStrategyMbqi::getGlobalSyms() const
   return d_globalSyms;
 }
 
-void InstStrategyMbqi::reset_round(Theory::Effort e) { d_quantChecked.clear(); }
+void InstStrategyMbqi::reset_round(CVC5_UNUSED Theory::Effort e)
+{
+  d_quantChecked.clear();
+}
 
 bool InstStrategyMbqi::needsCheck(Theory::Effort e)
 {
   return e >= Theory::EFFORT_LAST_CALL;
 }
 
-QuantifiersModule::QEffort InstStrategyMbqi::needsModel(Theory::Effort e)
+QuantifiersModule::QEffort InstStrategyMbqi::needsModel(
+    CVC5_UNUSED Theory::Effort e)
 {
   return QEFFORT_MODEL;
 }
@@ -333,17 +337,9 @@ void InstStrategyMbqi::process(Node q)
   if (options().quantifiers.mbqiEnum)
   {
     std::vector<Node> smvs(mvs);
-    std::vector<std::pair<Node, InferenceId>> auxLemmas;
-    if (d_msenum->constructInstantiation(
-            q, query, vars, smvs, mvToFreshVar, auxLemmas))
+    if (d_msenum->constructInstantiation(q, query, vars, smvs, mvToFreshVar))
     {
       Trace("mbqi-enum") << "Successfully added instantiation." << std::endl;
-      for (std::pair<Node, InferenceId>& al : auxLemmas)
-      {
-        Trace("mbqi-aux-lemma") << "Auxiliary lemma: " << al.second << " : "
-                                << al.first << std::endl;
-        d_qim.lemma(al.first, al.second);
-      }
       return;
     }
     Trace("mbqi-enum")

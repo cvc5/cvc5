@@ -36,7 +36,7 @@ QRepBoundExt::QRepBoundExt(Env& env,
 
 RsiEnumType QRepBoundExt::setBound(Node owner,
                                    size_t i,
-                                   std::vector<Node>& elements)
+                                   CVC5_UNUSED std::vector<Node>& elements)
 {
   // builtin: check if it is bound by bounded integer module
   if (owner.getKind() == Kind::FORALL)

@@ -916,7 +916,7 @@ bool CegInstantiator::constructInstantiationInc(Node pv,
       if (!success || revertOnSuccess)
       {
         Trace("cegqi-inst-debug2") << "Removing from vectors..." << std::endl;
-        sf.pop_back( pv, n, pv_prop );
+        sf.pop_back(pv_prop);
       }
     }
     if (success && !revertOnSuccess)

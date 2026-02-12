@@ -140,7 +140,8 @@ class SygusModule : protected EnvObj
    * quantifiers inference manager d_qim. For an example of such lemmas, see
    * Cegis::registerRefinementLemma.
    */
-  virtual void registerRefinementLemma(const std::vector<Node>& vars, Node lem)
+  virtual void registerRefinementLemma(
+      CVC5_UNUSED const std::vector<Node>& vars, CVC5_UNUSED Node lem)
   {
   }
   /**
