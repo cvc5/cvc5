@@ -314,7 +314,9 @@ std::string SubstitutionMap::toString() const
 
 }  // namespace theory
 
-std::ostream& operator<<(std::ostream& out, const theory::SubstitutionMap::iterator& i) {
+std::ostream& operator<<(std::ostream& out,
+                         CVC5_UNUSED const theory::SubstitutionMap::iterator& i)
+{
   return out << "[CDMap-iterator]";
 }
 

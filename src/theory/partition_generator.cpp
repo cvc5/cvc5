@@ -73,11 +73,12 @@ void PartitionGenerator::incrementOrInsertLemmaAtom(Node& node)
   }
 }
 
-void PartitionGenerator::notifyLemma(TNode n,
-                                     InferenceId id,
-                                     LemmaProperty p,
-                                     const std::vector<Node>& skAsserts,
-                                     const std::vector<Node>& sks)
+void PartitionGenerator::notifyLemma(
+    TNode n,
+    CVC5_UNUSED InferenceId id,
+    CVC5_UNUSED LemmaProperty p,
+    CVC5_UNUSED const std::vector<Node>& skAsserts,
+    CVC5_UNUSED const std::vector<Node>& sks)
 {
   if (options().parallel.partitionStrategy == options::PartitionMode::LEMMA_CUBE
       || options().parallel.partitionStrategy
@@ -239,7 +240,6 @@ Node PartitionGenerator::stopPartitioning()
 // timeout or total number of requested partitions.
 // Once we reach that point, we dump all the partitions.
 Node PartitionGenerator::makeScatterPartitions(LiteralListType litType,
-                                               bool emitZLL,
                                                bool timedOut,
                                                bool randomize)
 {
@@ -543,15 +543,15 @@ void PartitionGenerator::check(Theory::Effort e)
       break;
     case options::PartitionMode::HEAP_SCATTER:
       lem = makeScatterPartitions(
-          /*litType=*/HEAP, emitZLL, timeOutExceeded, randomize);
+          /*litType=*/HEAP, timeOutExceeded, randomize);
       break;
     case options::PartitionMode::DECISION_SCATTER:
       lem = makeScatterPartitions(
-          /*litType=*/DECISION, emitZLL, timeOutExceeded, randomize);
+          /*litType=*/DECISION, timeOutExceeded, randomize);
       break;
     case options::PartitionMode::LEMMA_SCATTER:
       lem = makeScatterPartitions(
-          /*litType=*/LEMMA, emitZLL, timeOutExceeded, randomize);
+          /*litType=*/LEMMA, timeOutExceeded, randomize);
       break;
     default: return;
   }

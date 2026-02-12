@@ -41,7 +41,7 @@ SharedSolver::SharedSolver(Env& env, TheoryEngine& te)
 {
 }
 
-bool SharedSolver::needsEqualityEngine(theory::EeSetupInfo& esi)
+bool SharedSolver::needsEqualityEngine(CVC5_UNUSED theory::EeSetupInfo& esi)
 {
   return false;
 }
@@ -106,7 +106,8 @@ void SharedSolver::preNotifySharedFact(TNode atom)
   }
 }
 
-EqualityStatus SharedSolver::getEqualityStatus(TNode a, TNode b)
+EqualityStatus SharedSolver::getEqualityStatus(CVC5_UNUSED TNode a,
+                                               CVC5_UNUSED TNode b)
 {
   return EQUALITY_UNKNOWN;
 }

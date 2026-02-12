@@ -28,7 +28,7 @@ PluginModule::PluginModule(Env& env, TheoryEngine* theoryEngine, Plugin* p)
 {
 }
 
-void PluginModule::check(Theory::Effort e)
+void PluginModule::check(CVC5_UNUSED Theory::Effort e)
 {
   // ignore the effort level?
   std::vector<Node> lems = d_plugin->check();
@@ -46,10 +46,10 @@ void PluginModule::check(Theory::Effort e)
 }
 
 void PluginModule::notifyLemma(TNode n,
-                               InferenceId id,
-                               LemmaProperty p,
+                               CVC5_UNUSED InferenceId id,
+                               CVC5_UNUSED LemmaProperty p,
                                const std::vector<Node>& skAsserts,
-                               const std::vector<Node>& sks)
+                               CVC5_UNUSED const std::vector<Node>& sks)
 {
   // must take original form as a way to remove internal symbols from the lemma
   notifyLemmaInternal(n);
