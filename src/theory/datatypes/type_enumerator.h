@@ -29,7 +29,7 @@ namespace theory {
 namespace datatypes {
 
 
-class DatatypesEnumerator : public TypeEnumeratorBase<DatatypesEnumerator> {
+class DatatypesEnumerator final : public TypeEnumeratorBase<DatatypesEnumerator> {
   /** type properties */
   TypeEnumeratorProperties * d_tep;
   /** The datatype we're enumerating */

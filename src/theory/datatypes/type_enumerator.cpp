@@ -272,7 +272,7 @@ Node DatatypesEnumerator::getTermEnum( TypeNode tn, unsigned i ){
      // (d_zeroTermActive) using the increment function, for uniformity.
      ++*this;
    }
-   AlwaysAssert(!isFinished());
+   AlwaysAssert(!DatatypesEnumerator::isFinished());
  }
 
  DatatypesEnumerator& DatatypesEnumerator::operator++()
