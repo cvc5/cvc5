@@ -1,5 +1,6 @@
 Checks: >
   -*,
+  clang-analyzer-cplusplus.Move,
   clang-analyzer-deadcode.*
 HeaderFilterRegex: '.*'
 # Use .clang-format for formatting changes

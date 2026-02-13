@@ -964,12 +964,15 @@ PreprocessingPassResult Normalize::applyInternal(
   // ----------------------------------------
   // Step 4: Sort equivalence classes based on encodings
   // ----------------------------------------
+  // Silence false positive: https://github.com/llvm/llvm-project/issues/78132
+  CVC5_ANALYZER_IGNORE_PUSH(clang-analyzer-cplusplus.Move)
   std::sort(
       eqClasses.begin(),
       eqClasses.end(),
       [](const std::vector<NodeInfo*>& a, const std::vector<NodeInfo*>& b) {
         return a[0]->encoding > b[0]->encoding;
       });
+  CVC5_ANALYZER_IGNORE_POP()
 
   // Assign IDs to equivalence classes for super-pattern computation
   size_t idCnt = 0;
