@@ -43,7 +43,8 @@ TermRegistry::TermRegistry(Env& env,
       d_sygusTdb(nullptr),
       d_vtsCache(new VtsTermCache(env)),
       d_ievalMan(new ieval::InstEvaluatorManager(env, qs, *d_termDb.get())),
-      d_qmodel(nullptr)
+      d_qmodel(nullptr),
+      d_funDefEval(new FunDefEvaluator(env))
 {
   if (options().quantifiers.oracles)
   {
@@ -57,7 +58,7 @@ TermRegistry::TermRegistry(Env& env,
   if (options().quantifiers.sygus || options().quantifiers.sygusInst)
   {
     // must be constructed here since it is required for datatypes finistInit
-    d_sygusTdb.reset(new TermDbSygus(env, qs));
+    d_sygusTdb.reset(new TermDbSygus(env, qs, d_funDefEval.get()));
   }
   Trace("quant-engine-debug") << "Initialize quantifiers engine." << std::endl;
 }
@@ -181,6 +182,11 @@ ieval::InstEvaluator* TermRegistry::getEvaluator(Node q,
 }
 
 FirstOrderModel* TermRegistry::getModel() const { return d_qmodel; }
+
+FunDefEvaluator* TermRegistry::getFunDefEvaluator() const
+{
+  return d_funDefEval.get();
+}
 
 }  // namespace quantifiers
 }  // namespace theory

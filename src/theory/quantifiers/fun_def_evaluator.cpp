@@ -26,7 +26,10 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-FunDefEvaluator::FunDefEvaluator(Env& env) : EnvObj(env) {}
+FunDefEvaluator::FunDefEvaluator(Env& env, context::Context* c)
+    : EnvObj(env), d_funDefMap(c == nullptr ? &d_context : c)
+{
+}
 
 bool FunDefEvaluator::assertDefinition(Node q)
 {
@@ -98,15 +101,17 @@ void FunDefEvaluator::addDefinition(const Node& head,
 {
   // h possibly with zero arguments?
   Node f = head.hasOperator() ? head.getOperator() : head;
-  Assert(d_funDefMap.find(f) == d_funDefMap.end())
-      << "FunDefEvaluator::assertDefinition: function already defined";
-  d_funDefs.push_back(q);
-  FunDefInfo& fdi = d_funDefMap[f];
-  fdi.d_quant = q;
-  fdi.d_body = body;
-  fdi.d_args.insert(fdi.d_args.end(), q[0].begin(), q[0].end());
-  Trace("fd-eval") << "FunDefEvaluator: function " << f << " is defined with "
-                   << fdi.d_args << " / " << fdi.d_body << std::endl;
+  // compute the information if necessary
+  if (d_funDefMap.find(f) == d_funDefMap.end())
+  {
+    std::shared_ptr<FunDefInfo> fdi = std::make_shared<FunDefInfo>();
+    fdi->d_quant = q;
+    fdi->d_body = body;
+    fdi->d_args.insert(fdi->d_args.end(), q[0].begin(), q[0].end());
+    Trace("fd-eval") << "FunDefEvaluator: function " << f << " is defined with "
+                     << fdi->d_args << " / " << fdi->d_body << std::endl;
+    d_funDefMap.insert(f, fdi);
+  }
 }
 
 Node FunDefEvaluator::evaluateDefinitions(Node n) const
@@ -121,7 +126,7 @@ Node FunDefEvaluator::evaluateDefinitions(Node n) const
   std::unordered_map<TNode, Node>::iterator it;
   // to ensure all nodes are ref counted
   std::unordered_set<Node> keep;
-  std::map<Node, FunDefInfo>::const_iterator itf;
+  FunDefMap::const_iterator itf;
   std::vector<TNode> visit;
   TNode cur;
   TNode curEval;
@@ -242,10 +247,10 @@ Node FunDefEvaluator::evaluateDefinitions(Node n) const
           }
           ++funDefCount[f];
           // get the function definition
-          Node sbody = itf->second.d_body;
+          Node sbody = itf->second->d_body;
           Trace("fd-eval-debug2")
               << "FunDefEvaluator: definition: " << sbody << "\n";
-          const std::vector<Node>& args = itf->second.d_args;
+          const std::vector<Node>& args = itf->second->d_args;
           if (!args.empty())
           {
             // invoke it on arguments using the evaluator
@@ -319,28 +324,36 @@ Node FunDefEvaluator::evaluateDefinitions(Node n) const
 
 bool FunDefEvaluator::hasDefinitions() const { return !d_funDefMap.empty(); }
 
-const std::vector<Node>& FunDefEvaluator::getDefinitions() const
+std::vector<Node> FunDefEvaluator::getDefinitions() const
 {
-  return d_funDefs;
+  std::vector<Node> defs;
+  for (FunDefMap::iterator it = d_funDefMap.begin(); it != d_funDefMap.end();
+       ++it)
+  {
+    defs.emplace_back(it->second->d_quant);
+  }
+  return defs;
 }
+
 Node FunDefEvaluator::getDefinitionFor(Node f) const
 {
-  std::map<Node, FunDefInfo>::const_iterator it = d_funDefMap.find(f);
+  FunDefMap::const_iterator it = d_funDefMap.find(f);
   if (it != d_funDefMap.end())
   {
-    return it->second.d_quant;
+    return it->second->d_quant;
   }
   return Node::null();
 }
+
 Node FunDefEvaluator::getLambdaFor(Node f) const
 {
-  std::map<Node, FunDefInfo>::const_iterator it = d_funDefMap.find(f);
+  FunDefMap::const_iterator it = d_funDefMap.find(f);
   if (it != d_funDefMap.end())
   {
     NodeManager* nm = nodeManager();
     return nm->mkNode(Kind::LAMBDA,
-                      nm->mkNode(Kind::BOUND_VAR_LIST, it->second.d_args),
-                      it->second.d_body);
+                      nm->mkNode(Kind::BOUND_VAR_LIST, it->second->d_args),
+                      it->second->d_body);
   }
   return Node::null();
 }

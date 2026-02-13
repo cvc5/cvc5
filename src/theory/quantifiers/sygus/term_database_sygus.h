@@ -58,7 +58,7 @@ std::ostream& operator<<(std::ostream& os, EnumeratorRole r);
 class TermDbSygus : protected EnvObj
 {
  public:
-  TermDbSygus(Env& env, QuantifiersState& qs);
+  TermDbSygus(Env& env, QuantifiersState& qs, FunDefEvaluator* fde);
   ~TermDbSygus() {}
   /** Finish init, which sets the inference manager */
   void finishInit(QuantifiersInferenceManager* qim);
@@ -82,7 +82,7 @@ class TermDbSygus : protected EnvObj
   /** get the explanation utility */
   SygusExplain* getExplain() { return d_syexp.get(); }
   /** (recursive) function evaluator utility */
-  FunDefEvaluator* getFunDefEvaluator() { return d_funDefEval.get(); }
+  FunDefEvaluator* getFunDefEvaluator() { return d_funDefEval; }
   /** evaluation unfolding utility */
   SygusEvalUnfold* getEvalUnfold() { return d_eval_unfold.get(); }
   /** get the oracle checker */
@@ -302,7 +302,7 @@ class TermDbSygus : protected EnvObj
   /** sygus explanation */
   std::unique_ptr<SygusExplain> d_syexp;
   /** (recursive) function evaluator utility */
-  std::unique_ptr<FunDefEvaluator> d_funDefEval;
+  FunDefEvaluator* d_funDefEval;
   /** evaluation function unfolding utility */
   std::unique_ptr<SygusEvalUnfold> d_eval_unfold;
   /** Pointer to the oracle checker */

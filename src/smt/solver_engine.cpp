@@ -1193,6 +1193,20 @@ Node SolverEngine::simplify(const Node& t, bool applySubs)
   }
   // now rewrite
   Node ret = d_env->getRewriter()->rewrite(tt);
+  // simplify modulo recursive functions
+  if (applySubs && options().smt.simplifyRecFun)
+  {
+    QuantifiersEngine* qe = d_smtSolver->getQuantifiersEngine();
+    if (qe != nullptr)
+    {
+      quantifiers::FunDefEvaluator* fdef = qe->getFunDefEvaluator();
+      Node rete = fdef->evaluateDefinitions(ret);
+      if (!rete.isNull())
+      {
+        ret = rete;
+      }
+    }
+  }
   // make so that the returned term does not involve arithmetic subtyping
   SubtypeElimNodeConverter senc(d_env->getNodeManager());
   ret = senc.convert(ret);

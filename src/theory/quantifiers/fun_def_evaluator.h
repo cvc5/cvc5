@@ -21,6 +21,7 @@
 #include <map>
 #include <vector>
 
+#include "context/cdhashmap.h"
 #include "expr/node.h"
 #include "smt/env_obj.h"
 
@@ -34,7 +35,7 @@ namespace quantifiers {
 class FunDefEvaluator : protected EnvObj
 {
  public:
-  FunDefEvaluator(Env& env);
+  FunDefEvaluator(Env& env, context::Context* c = nullptr);
   ~FunDefEvaluator() {}
   /**
    * Assert definition of a (recursive) function definition given by quantified
@@ -63,7 +64,7 @@ class FunDefEvaluator : protected EnvObj
   bool hasDefinitions() const;
 
   /** Get definitions */
-  const std::vector<Node>& getDefinitions() const;
+  std::vector<Node> getDefinitions() const;
   /** Get definition for function symbol f, if it is cached by this class */
   Node getDefinitionFor(Node f) const;
   /** Get lambda for function symbol f, if it is cached by this class */
@@ -89,10 +90,11 @@ class FunDefEvaluator : protected EnvObj
     /** the formal argument list */
     std::vector<Node> d_args;
   };
+  /** A dummy context used by this class if none is provided */
+  context::Context d_context;
+  using FunDefMap = context::CDHashMap<Node, std::shared_ptr<FunDefInfo>>;
   /** maps functions to the above information */
-  std::map<Node, FunDefInfo> d_funDefMap;
-  /** list of all definitions */
-  std::vector<Node> d_funDefs;
+  FunDefMap d_funDefMap;
 };
 
 }  // namespace quantifiers
