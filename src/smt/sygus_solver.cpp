@@ -68,7 +68,6 @@ void SygusSolver::declareSygusVar(Node var)
 
 void SygusSolver::declareSynthFun(Node fn,
                                   TypeNode sygusType,
-                                  bool isInv,
                                   const std::vector<Node>& vars)
 {
   Trace("smt") << "SygusSolver::declareSynthFun: " << fn << "\n";

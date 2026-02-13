@@ -67,10 +67,7 @@ namespace cvc5::internal {
 namespace printer {
 namespace smt2 {
 
-static void toStreamRational(std::ostream& out,
-                             const Rational& r,
-                             bool isReal,
-                             Variant v)
+static void toStreamRational(std::ostream& out, const Rational& r, bool isReal)
 {
   bool neg = r.sgn() < 0;
   bool arithTokens = options::ioutils::getPrintArithLitToken(out);
@@ -320,13 +317,13 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
     case Kind::CONST_RATIONAL:
     {
       const Rational& r = n.getConst<Rational>();
-      toStreamRational(out, r, true, d_variant);
+      toStreamRational(out, r, true);
       break;
     }
     case Kind::CONST_INTEGER:
     {
       const Rational& r = n.getConst<Rational>();
-      toStreamRational(out, r, false, d_variant);
+      toStreamRational(out, r, false);
       break;
     }
 

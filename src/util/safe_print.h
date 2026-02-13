@@ -73,7 +73,7 @@ void safe_print(int fd, const char (&msg)[N])
  * `toString()`.
  */
 template <typename T>
-const char* toStringImpl(const T& obj, long)
+const char* toStringImpl(const T&, long)
 {
   return "<unsupported>";
 }

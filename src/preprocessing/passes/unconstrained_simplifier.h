@@ -66,7 +66,7 @@ class UnconstrainedSimplifier : public PreprocessingPass
    * quantified formula).
    */
   void visitAll(TNode assertion);
-  Node newUnconstrainedVar(TypeNode t, TNode var);
+  Node newUnconstrainedVar(TypeNode t);
   void processUnconstrained();
 };
 

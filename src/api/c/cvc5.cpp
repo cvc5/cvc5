@@ -4989,7 +4989,7 @@ void cvc5_get_option_info(Cvc5* cvc5, const char* option, Cvc5OptionInfo* info)
               info->info_double.has_max = true;
             }
           },
-          [info](const cvc5::OptionInfo::ModeInfo& vi) {
+          [info](const cvc5::OptionInfo::ModeInfo&) {
             info->kind = CVC5_OPTION_INFO_MODES;
             info->info_mode.cur =
                 std::get<cvc5::OptionInfo::ModeInfo>(cpp_info.valueInfo)

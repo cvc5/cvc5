@@ -7084,14 +7084,12 @@ class CVC5_EXPORT Solver
    * @param symbol The name of the function.
    * @param boundVars The parameters to this function.
    * @param sort The sort of the return value of this function.
-   * @param isInv Determines whether this is `synth-fun` or `synth-inv`.
    * @param grammar The syntactic constraints.
    * @return The function.
    */
   Term synthFunHelper(const std::string& symbol,
                       const std::vector<Term>& boundVars,
                       const Sort& sort,
-                      bool isInv = false,
                       Grammar* grammar = nullptr) const;
 
   /** Helper for getting timeout cores */
