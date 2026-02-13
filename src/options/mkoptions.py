@@ -504,16 +504,38 @@ def generate_module_mode_decl(module):
 
 
 def generate_module_holder_decl(module):
-    res = []
+    # Buckets to group fields by size to minimize padding
+    size_8 = []  # double, int64_t, uint64_t
+    size_4 = []  # enum
+    size_1 = []  # bool and bool flags
+
     for option in module.options:
         if option.name is None:
             continue
+
+        # Determine the field declaration
         if option.fqdefault:
-            res.append('{} {} = {};'.format(option.type, option.name, option.fqdefault))
+            decl = '{} {} = {};'.format(option.type, option.name, option.fqdefault)
         else:
-            res.append('{} {};'.format(option.type, option.name))
-        res.append('bool {}WasSetByUser = false;'.format(option.name))
-    return '\n  '.join(res)
+            decl = '{} {};'.format(option.type, option.name)
+
+        flag_decl = 'bool {}WasSetByUser = false;'.format(option.name)
+
+        # Sort into buckets based on type
+        if option.type in ['double', 'int64_t', 'uint64_t']:
+            size_8.append(decl)
+            size_1.append(flag_decl)
+        elif option.type == 'bool':
+            size_1.append(decl)
+            size_1.append(flag_decl)
+        else:
+            # Assuming remaining types are user-defined enums (4 bytes)
+            size_4.append(decl)
+            size_1.append(flag_decl)
+
+    # Combine buckets from largest alignment to smallest
+    all_fields = size_8 + size_4 + size_1
+    return '\n  '.join(all_fields)
 
 def generate_module_long_name_decl(module):
     res = []
