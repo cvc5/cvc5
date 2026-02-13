@@ -56,4 +56,30 @@
 #define CVC5_NORETURN [[noreturn]]
 #define CVC5_WARN_UNUSED_RESULT [[nodiscard]]
 
+// CVC5_ANALYZER_IGNORE_PUSH(check)
+// [code]
+// CVC5_ANALYZER_IGNORE_POP()
+//
+// Temporarily suppress a Clang Static Analyzer warning
+// (e.g., clang-analyzer-cplusplus.Move) for a block of code
+// when the analyzer reports a false positive.
+//
+// These macros expand to clang diagnostic pragmas only when
+// running under the Clang Static Analyzer (__clang_analyzer__).
+// They expand to nothing during normal compilation (Clang or GCC).
+#if defined(__clang__) && defined(__clang_analyzer__)
+  // Only Clang Analyzer sees these
+  #define CVC5_PRAGMA_HELPER(x) _Pragma(#x)
+  #define CVC5_ANALYZER_IGNORE_PUSH(warning_name) \
+    _Pragma("clang diagnostic push") \
+    CVC5_PRAGMA_HELPER(clang diagnostic ignored "-W" #warning_name)
+
+  #define CVC5_ANALYZER_IGNORE_POP() \
+    _Pragma("clang diagnostic pop")
+#else
+  // GCC or standard Clang builds see nothing
+  #define CVC5_ANALYZER_IGNORE_PUSH(warning_name)
+  #define CVC5_ANALYZER_IGNORE_POP()
+#endif
+
 #endif /* CVC5_PUBLIC_H */

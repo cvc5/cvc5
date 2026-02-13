@@ -2252,8 +2252,10 @@ void TheoryArithPrivate::subsumption(
     ConstraintCPVec &conf = confs[i];
     std::sort(conf.begin(), conf.end());
   }
-
+  // Silence false positive: https://github.com/llvm/llvm-project/issues/78132
+  CVC5_ANALYZER_IGNORE_PUSH(clang-analyzer-cplusplus.Move)
   std::sort(confs.begin(), confs.end(), SizeOrd());
+  CVC5_ANALYZER_IGNORE_POP()
   for (size_t i = 0; i < confs.size(); i++) {
     // i is not subsumed
     for (size_t j = i + 1; j < confs.size();) {
