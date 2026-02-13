@@ -246,7 +246,7 @@ class CVC5_EXPORT DeclarationDefinitionCommand : public Cmd
    * Bind the symbol of this command to the given term. Return false if the
    * binding was invalid. In this case, set command status to CommandFailure.
    */
-  bool bindToTerm(parser::SymManager* sm, cvc5::Term t, bool doOverload);
+  bool bindToTerm(parser::SymManager* sm, cvc5::Term t);
 
  public:
   DeclarationDefinitionCommand(const std::string& id);

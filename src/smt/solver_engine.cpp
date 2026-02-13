@@ -533,9 +533,12 @@ void SolverEngine::debugCheckFunctionBody(Node formula,
   }
 }
 
-void SolverEngine::declareConst(const Node& c) { d_state->notifyDeclaration(); }
+void SolverEngine::declareConst(CVC5_UNUSED const Node& c)
+{
+  d_state->notifyDeclaration();
+}
 
-void SolverEngine::declareSort(const TypeNode& tn)
+void SolverEngine::declareSort(CVC5_UNUSED const TypeNode& tn)
 {
   d_state->notifyDeclaration();
 }
@@ -804,7 +807,7 @@ Result SolverEngine::checkSat(const std::vector<Node>& assumptions)
 
 Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions)
 {
-  ensureWellFormedTerms(assumptions, "checkSat");
+  ensureWellFormedTerms(assumptions);
 
   Trace("smt") << "SolverEngine::checkSat(" << assumptions << ")" << endl;
   // update the state to indicate we are about to run a check-sat
@@ -927,7 +930,7 @@ std::vector<Node> SolverEngine::getUnsatAssumptions(void)
 void SolverEngine::assertFormula(const Node& formula)
 {
   beginCall();
-  ensureWellFormedTerm(formula, "assertFormula");
+  ensureWellFormedTerm(formula);
   assertFormulaInternal(formula);
 }
 
@@ -971,20 +974,17 @@ void SolverEngine::declareSygusVar(Node var)
 
 void SolverEngine::declareSynthFun(Node func,
                                    TypeNode sygusType,
-                                   bool isInv,
                                    const std::vector<Node>& vars)
 {
   beginCall();
-  d_sygusSolver->declareSynthFun(func, sygusType, isInv, vars);
+  d_sygusSolver->declareSynthFun(func, sygusType, vars);
 }
-void SolverEngine::declareSynthFun(Node func,
-                                   bool isInv,
-                                   const std::vector<Node>& vars)
+void SolverEngine::declareSynthFun(Node func, const std::vector<Node>& vars)
 {
   beginCall();
   // use a null sygus type
   TypeNode sygusType;
-  d_sygusSolver->declareSynthFun(func, sygusType, isInv, vars);
+  d_sygusSolver->declareSynthFun(func, sygusType, vars);
 }
 
 void SolverEngine::assertSygusConstraint(Node n, bool isAssume)
@@ -1202,7 +1202,7 @@ Node SolverEngine::simplify(const Node& t, bool applySubs)
 
 Node SolverEngine::getValue(const Node& t, bool fromUser)
 {
-  ensureWellFormedTerm(t, "get value");
+  ensureWellFormedTerm(t);
   Trace("smt") << "SMT getValue(" << t << ")" << endl;
   TypeNode expectedType = t.getType();
 
@@ -1418,7 +1418,7 @@ void SolverEngine::blockModel(modes::BlockModelsMode mode)
 void SolverEngine::blockModelValues(const std::vector<Node>& exprs)
 {
   Trace("smt") << "SMT blockModelValues()" << endl;
-  ensureWellFormedTerms(exprs, "block model values");
+  ensureWellFormedTerms(exprs);
 
   TheoryModel* m = getAvailableModel("block model values");
 
@@ -1479,8 +1479,7 @@ bool SolverEngine::isWellFormedTerm(const Node& n) const
   return !expr::hasFreeVar(n);
 }
 
-void SolverEngine::ensureWellFormedTerm(const Node& n,
-                                        const std::string& src) const
+void SolverEngine::ensureWellFormedTerm(const Node& n) const
 {
   if (Configuration::isAssertionBuild())
   {
@@ -1499,14 +1498,13 @@ void SolverEngine::ensureWellFormedTerm(const Node& n,
   }
 }
 
-void SolverEngine::ensureWellFormedTerms(const std::vector<Node>& ns,
-                                         const std::string& src) const
+void SolverEngine::ensureWellFormedTerms(const std::vector<Node>& ns) const
 {
   if (Configuration::isAssertionBuild())
   {
     for (const Node& n : ns)
     {
-      ensureWellFormedTerm(n, src);
+      ensureWellFormedTerm(n);
     }
   }
 }

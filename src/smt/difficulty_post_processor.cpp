@@ -42,9 +42,10 @@ bool DifficultyPostprocessCallback::setCurrentDifficulty(Node d)
   return false;
 }
 
-bool DifficultyPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
-                                                 const std::vector<Node>& fa,
-                                                 bool& continueUpdate)
+bool DifficultyPostprocessCallback::shouldUpdate(
+    std::shared_ptr<ProofNode> pn,
+    CVC5_UNUSED const std::vector<Node>& fa,
+    bool& continueUpdate)
 {
   ProofRule r = pn->getRule();
   if (r == ProofRule::ASSUME)

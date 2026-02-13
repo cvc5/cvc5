@@ -390,19 +390,14 @@ class CVC5_EXPORT SolverEngine
    *
    * vars contains the arguments of the function-to-synthesize. These variables
    * are also stored to be used during solving.
-   *
-   * isInv determines whether the function-to-synthesize is actually an
-   * invariant. This information is necessary if we are dumping a command
-   * corresponding to this declaration, so that it can be properly printed.
    */
   void declareSynthFun(Node func,
                        TypeNode sygusType,
-                       bool isInv,
                        const std::vector<Node>& vars);
   /**
    * Same as above, without a sygus type.
    */
-  void declareSynthFun(Node func, bool isInv, const std::vector<Node>& vars);
+  void declareSynthFun(Node func, const std::vector<Node>& vars);
 
   /**
    * Add a regular sygus constraint or assumption.
@@ -1059,13 +1054,10 @@ class CVC5_EXPORT SolverEngine
    * argument to, e.g., assert, get-value, block-model-values, etc.
    *
    * @param n The node to check
-   * @param src The source of the check, which is printed in the exception if
-   * this check fails.
    */
-  void ensureWellFormedTerm(const Node& n, const std::string& src) const;
+  void ensureWellFormedTerm(const Node& nc) const;
   /** Vector version of above. */
-  void ensureWellFormedTerms(const std::vector<Node>& ns,
-                             const std::string& src) const;
+  void ensureWellFormedTerms(const std::vector<Node>& ns) const;
 
   /**
    * Prints a proof node using a proof format of choice.

@@ -67,7 +67,7 @@ void ProofPostprocessDsl::reconstruct(
 }
 
 bool ProofPostprocessDsl::shouldUpdate(std::shared_ptr<ProofNode> pn,
-                                       const std::vector<Node>& fa,
+                                       CVC5_UNUSED const std::vector<Node>& fa,
                                        bool& continueUpdate)
 {
   ProofRule id = pn->getRule();

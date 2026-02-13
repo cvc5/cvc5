@@ -88,15 +88,8 @@ class SygusSolver : protected EnvObj
    *
    * vars contains the arguments of the function-to-synthesize. These variables
    * are also stored to be used during solving.
-   *
-   * isInv determines whether the function-to-synthesize is actually an
-   * invariant. This information is necessary if we are dumping a command
-   * corresponding to this declaration, so that it can be properly printed.
    */
-  void declareSynthFun(Node func,
-                       TypeNode type,
-                       bool isInv,
-                       const std::vector<Node>& vars);
+  void declareSynthFun(Node func, TypeNode type, const std::vector<Node>& vars);
 
   /** Add a regular sygus constraint or assumption.*/
   void assertSygusConstraint(Node n, bool isAssume);

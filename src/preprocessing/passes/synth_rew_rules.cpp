@@ -45,7 +45,7 @@ SynthRewRulesPass::SynthRewRulesPass(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "synth-rr"){};
 
 PreprocessingPassResult SynthRewRulesPass::applyInternal(
-    AssertionPipeline* assertionsToPreprocess)
+    CVC5_UNUSED AssertionPipeline* assertionsToPreprocess)
 {
   return PreprocessingPassResult::NO_CONFLICT;
 }

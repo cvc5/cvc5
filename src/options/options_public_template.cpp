@@ -101,7 +101,7 @@ namespace cvc5::internal::options
 
   /** Handle a string option by returning it as is. */
   template <>
-  std::string handleOption<std::string>(const std::string& flag,
+  std::string handleOption<std::string>(CVC5_UNUSED const std::string& flag,
                                         const std::string& optionarg)
   {
     return optionarg;
@@ -160,7 +160,7 @@ namespace cvc5::internal::options
 
   /** Handle a ManagedIn option. */
   template <>
-  ManagedIn handleOption<ManagedIn>(const std::string& flag,
+  ManagedIn handleOption<ManagedIn>(CVC5_UNUSED const std::string& flag,
                                     const std::string& optionarg)
   {
     ManagedIn res;
@@ -170,7 +170,7 @@ namespace cvc5::internal::options
 
   /** Handle a ManagedErr option. */
   template <>
-  ManagedErr handleOption<ManagedErr>(const std::string& flag,
+  ManagedErr handleOption<ManagedErr>(CVC5_UNUSED const std::string& flag,
                                       const std::string& optionarg)
   {
     ManagedErr res;
@@ -180,7 +180,7 @@ namespace cvc5::internal::options
 
   /** Handle a ManagedOut option. */
   template <>
-  ManagedOut handleOption<ManagedOut>(const std::string& flag,
+  ManagedOut handleOption<ManagedOut>(CVC5_UNUSED const std::string& flag,
                                       const std::string& optionarg)
   {
     ManagedOut res;

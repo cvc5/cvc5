@@ -76,10 +76,13 @@ void* stackBase;
 #endif /* HAVE_SIGALTSTACK */
 
 /** Handler for SIGXCPU and SIGALRM, i.e., timeout. */
-void timeout_handler(int sig, siginfo_t* info, void*) { timeout_handler(); }
+void timeout_handler(CVC5_UNUSED int sig, CVC5_UNUSED siginfo_t* info, void*)
+{
+  timeout_handler();
+}
 
 /** Handler for SIGTERM. */
-void sigterm_handler(int sig, siginfo_t* info, void*)
+void sigterm_handler(int sig, CVC5_UNUSED siginfo_t* info, void*)
 {
   safe_print(STDERR_FILENO, "cvc5 interrupted by SIGTERM.\n");
   print_statistics();
@@ -88,7 +91,7 @@ void sigterm_handler(int sig, siginfo_t* info, void*)
 }
 
 /** Handler for SIGINT, i.e., when the user hits control C. */
-void sigint_handler(int sig, siginfo_t* info, void*)
+void sigint_handler(int sig, CVC5_UNUSED siginfo_t* info, void*)
 {
   safe_print(STDERR_FILENO, "cvc5 interrupted by user.\n");
   print_statistics();
@@ -98,7 +101,7 @@ void sigint_handler(int sig, siginfo_t* info, void*)
 
 #ifdef HAVE_SIGALTSTACK
 /** Handler for SIGSEGV (segfault). */
-void segv_handler(int sig, siginfo_t* info, void* c)
+void segv_handler(int sig, CVC5_UNUSED siginfo_t* info, void*)
 {
   uintptr_t extent = reinterpret_cast<uintptr_t>(stackBase) - stackSize;
   uintptr_t addr = reinterpret_cast<uintptr_t>(info->si_addr);
@@ -173,7 +176,7 @@ void segv_handler(int sig, siginfo_t* info, void* c)
 #endif /* HAVE_SIGALTSTACK */
 
 /** Handler for SIGILL (illegal instruction). */
-void ill_handler(int sig, siginfo_t* info, void*)
+void ill_handler(int sig, CVC5_UNUSED siginfo_t* info, void*)
 {
 #ifdef CVC5_DEBUG
   safe_print(STDERR_FILENO,

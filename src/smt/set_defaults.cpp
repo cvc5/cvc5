@@ -596,7 +596,7 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
   if (d_env.hasSepHeap())
   {
     std::stringstream reasonNoSepLogic;
-    if (incompatibleWithSeparationLogic(opts, reasonNoSepLogic))
+    if (incompatibleWithSeparationLogic(opts))
     {
       std::stringstream ss;
       ss << reasonNoSepLogic.str()
@@ -1416,8 +1416,7 @@ bool SetDefaults::incompatibleWithQuantifiers(const Options& opts,
   return false;
 }
 
-bool SetDefaults::incompatibleWithSeparationLogic(Options& opts,
-                                                  std::ostream& reason) const
+bool SetDefaults::incompatibleWithSeparationLogic(Options& opts) const
 {
   // Spatial formulas in separation logic have a semantics that depends on
   // their position in the AST (e.g. their nesting beneath separation

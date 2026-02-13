@@ -374,7 +374,7 @@ bool SygusInterpol::solveInterpolation(const std::string& name,
     d_subSolver->declareSygusVar(var);
   }
   std::vector<Node> vars_empty;
-  d_subSolver->declareSynthFun(d_itp, grammarType, false, vars_empty);
+  d_subSolver->declareSynthFun(d_itp, grammarType, vars_empty);
   Trace("sygus-interpol")
       << "SygusInterpol::solveInterpolation: made conjecture : " << d_sygusConj
       << std::endl;

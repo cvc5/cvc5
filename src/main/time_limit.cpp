@@ -63,7 +63,9 @@ namespace cvc5::main {
 #if HAVE_SETITIMER
 TimeLimit::~TimeLimit() {}
 
-void posix_timeout_handler(int sig, siginfo_t* info, void*)
+void posix_timeout_handler(CVC5_UNUSED int sig,
+                           CVC5_UNUSED siginfo_t* info,
+                           void*)
 {
   signal_handlers::timeout_handler();
 }

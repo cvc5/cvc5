@@ -698,7 +698,6 @@ Term Smt2State::setupDefineFunRecScope(
 
 void Smt2State::pushDefineFunRecScope(
     const std::vector<std::pair<std::string, Sort>>& sortedVarNames,
-    Term func,
     const std::vector<Term>& flattenVars,
     std::vector<Term>& bvs)
 {
