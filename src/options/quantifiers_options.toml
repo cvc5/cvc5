@@ -281,7 +281,7 @@ name   = "Quantifiers"
   category   = "regular"
   long       = "term-db-mode=MODE"
   type       = "TermDbMode"
-  default    = "RELEVANT"
+  default    = "RELEVANT_ALL_DELAY"
   help       = "which ground terms to consider for instantiation"
   help_mode  = "Modes for terms included in the quantifiers term database."
 [[option.mode.ALL]]
@@ -290,6 +290,9 @@ name   = "Quantifiers"
 [[option.mode.RELEVANT]]
   name = "relevant"
   help = "Quantifiers module considers only ground terms connected to current assertions."
+[[option.mode.RELEVANT_ALL_DELAY]]
+  name = "relevant-all-delay"
+  help = "Quantifiers module considers only ground terms connected to current assertions, then all ground terms as a last resort."
 
 [[option]]
   name       = "registerQuantBodyTerms"
