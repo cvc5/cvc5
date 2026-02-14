@@ -29,11 +29,13 @@
 #include "smt/logic_exception.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/arith_utilities.h"
+#include "theory/arith/liastar/liastar_utils.h"
 #include "theory/arith/operator_elim.h"
 #include "theory/arith/rewriter/addition.h"
 #include "theory/arith/rewriter/node_utils.h"
 #include "theory/arith/rewriter/ordering.h"
 #include "theory/arith/rewriter/rewrite_atom.h"
+#include "theory/datatypes/tuple_utils.h"
 #include "theory/evaluator.h"
 #include "theory/rewriter.h"
 #include "theory/strings/arith_entail.h"
@@ -49,17 +51,6 @@ namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
-/**
- * Flatten a node into a vector of its (direct or indirect) children, collecting
- * how many times each child occurs in the sum.
- * A sequence of kinds is given that indicate which kinds to traverse over.
- * This method is similar to expr::algorithm::flatten but does not use a tree
- * traversal. Instead it merges subterms, based on counting the number of
- * occurrences, as a Rational.
- * @param t The node to be flattened
- * @param children The resulting list of children
- * @param kinds A sequence of kinds to consider for flattening
- */
 template <typename... Kinds>
 bool flattenAndCollectSum(TNode t,
                           std::vector<std::pair<TNode, Rational>>& children,
@@ -398,6 +389,10 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
     return RewriteResponse(REWRITE_DONE, rewriter::mkConst(d_nm, *response));
   }
 
+  if (kind == Kind::STAR_CONTAINS)
+  {
+    return rewriteStarContains(atom);
+  }
   Assert(isRelationOperator(kind));
 
   if (auto response = rewriter::tryEvaluateRelation(kind, left, right);
@@ -472,6 +467,7 @@ RewriteResponse ArithRewriter::preRewriteTerm(TNode t){
       case Kind::INTS_DIVISION_TOTAL:
       case Kind::INTS_MODULUS_TOTAL: return rewriteIntsDivModTotal(t, true);
       case Kind::ABS: return rewriteAbs(t);
+      case Kind::STAR_CONTAINS: return rewriteStarContains(t);
       case Kind::IAND:
       case Kind::PIAND:
       case Kind::POW2:
@@ -1076,6 +1072,44 @@ RewriteResponse ArithRewriter::rewriteIntsDivModTotal(TNode t, bool pre)
       return returnRewrite(t, ret, Rewrite::DIV_OVER_MOD);
     }
   }
+  return RewriteResponse(REWRITE_DONE, t);
+}
+
+RewriteResponse ArithRewriter::rewriteStarContains(TNode t)
+{
+  Assert(t.getKind() == Kind::STAR_CONTAINS);
+#ifdef CVC5_USE_NORMALIZ
+  Node ys = t[2];
+  // if ys is the zero vector, return true
+  std::vector<Node> elements = datatypes::TupleUtils::getTupleElements(ys);
+  bool isZero = true;
+  for (const Node& e : elements)
+  {
+    if (!e.isConst() || !e.getConst<Rational>().isZero())
+    {
+      isZero = false;
+      break;
+    }
+  }
+  NodeManager* nm = nodeManager();
+  if (isZero)
+  {
+    return RewriteResponse(REWRITE_DONE, nm->mkConst(true));
+  }
+  // if the vector is a constant vector, we can evaluate the predicate
+  // and see if it holds.
+  if (ys.isConst())
+  {
+    auto [vectorPredicate, nonnegative] =
+        liastar::LiaStarUtils::getVectorPredicate(t, nm);
+    Evaluator eval(nullptr);
+    Node value = eval.eval(vectorPredicate.andNode(nonnegative), {}, {});
+    if (value == d_nm->mkConst(true))
+    {
+      return RewriteResponse(REWRITE_DONE, nm->mkConst(true));
+    }
+  }
+#endif /* CVC5_USE_NORMALIZ */
   return RewriteResponse(REWRITE_DONE, t);
 }
 

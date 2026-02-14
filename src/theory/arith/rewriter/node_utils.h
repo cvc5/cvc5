@@ -45,7 +45,8 @@ inline bool isAtom(TNode n)
     case Kind::GEQ:
     case Kind::GT:
     case Kind::IS_INTEGER:
-    case Kind::DIVISIBLE: return true;
+    case Kind::DIVISIBLE:
+    case Kind::STAR_CONTAINS: return true;
     case Kind::DISTINCT: Unreachable(); return false;
     default: return false;
   }

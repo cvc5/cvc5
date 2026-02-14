@@ -75,6 +75,7 @@ if(NOT GMP_FOUND_SYSTEM)
   set(GMP_VERSION "6.3.0")
 
   set(GMP_INCLUDE_DIR "${DEPS_BASE}/include/")
+  set(GMPXX_INCLUDE_DIR "${DEPS_BASE}/include/")
 
   # Newer versions of gcc use C23 as default C standard but GMP (as of 6.3.0)
   # only supports C17. To also support older compiler versions, we fix the
@@ -86,12 +87,15 @@ if(NOT GMP_FOUND_SYSTEM)
     set(LINK_OPTS --enable-shared --disable-static)
     if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
       set(GMP_LIBRARIES "${DEPS_BASE}/lib/libgmp.dll.a")
+      set(GMPXX_LIBRARIES "${DEPS_BASE}/lib/libgmpxx.dll.a")
     else()
       set(GMP_LIBRARIES "${DEPS_BASE}/lib/libgmp${CMAKE_SHARED_LIBRARY_SUFFIX}")
+      set(GMPXX_LIBRARIES "${DEPS_BASE}/lib/libgmpxx${CMAKE_SHARED_LIBRARY_SUFFIX}")
     endif()
   else()
     set(LINK_OPTS --disable-shared --enable-static)
     set(GMP_LIBRARIES "${DEPS_BASE}/lib/libgmp.a")
+    set(GMPXX_LIBRARIES "${DEPS_BASE}/lib/libgmpxx.a")
   endif()
 
   set(CONFIGURE_OPTS "")  
@@ -146,35 +150,49 @@ if(NOT GMP_FOUND_SYSTEM)
           --with-pic
           --enable-cxx
           ${CONFIGURE_OPTS}
-    BUILD_BYPRODUCTS ${GMP_LIBRARIES}
+    BUILD_BYPRODUCTS ${GMP_LIBRARIES} ${GMPXX_LIBRARIES}
   )
 endif()
 
 set(GMP_FOUND TRUE)
+set(GMPXX_FOUND TRUE)
 
 
 if(BUILD_SHARED_LIBS)
   add_library(GMP SHARED IMPORTED GLOBAL)
+  add_library(GMPXX SHARED IMPORTED GLOBAL)
   if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     set_target_properties(GMP PROPERTIES IMPORTED_IMPLIB "${GMP_LIBRARIES}")
+    set_target_properties(GMPXX PROPERTIES IMPORTED_IMPLIB "${GMPXX_LIBRARIES}")
   endif()
 else()
   add_library(GMP STATIC IMPORTED GLOBAL)
+  add_library(GMPXX STATIC IMPORTED GLOBAL)
 endif()
 set_target_properties(GMP PROPERTIES
   IMPORTED_LOCATION "${GMP_LIBRARIES}"
   INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${GMP_INCLUDE_DIR}"
+)
+set_target_properties(GMPXX PROPERTIES
+  IMPORTED_LOCATION "${GMPXX_LIBRARIES}"
+  INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${GMPXX_INCLUDE_DIR}"
+  INTERFACE_LINK_LIBRARIES GMP
 )
 
 mark_as_advanced(GMP_FOUND)
 mark_as_advanced(GMP_FOUND_SYSTEM)
 mark_as_advanced(GMP_INCLUDE_DIR)
 mark_as_advanced(GMP_LIBRARIES)
+mark_as_advanced(GMPXX_FOUND)
+mark_as_advanced(GMPXX_INCLUDE_DIR)
+mark_as_advanced(GMPXX_LIBRARIES)
 
 if(GMP_FOUND_SYSTEM)
   message(STATUS "Found GMP ${GMP_VERSION}: ${GMP_LIBRARIES}")
+  message(STATUS "Found GMPXX ${GMP_VERSION}: ${GMPXX_LIBRARIES}")
 else()
   message(STATUS "Building GMP ${GMP_VERSION}: ${GMP_LIBRARIES}")
+  message(STATUS "Building GMPXX ${GMP_VERSION}: ${GMPXX_LIBRARIES}")
   add_dependencies(GMP GMP-EP)
   # Static builds install the GMP static libraries.
   # These libraries are required to compile a program that

@@ -115,7 +115,7 @@ namespace arith::linear {
 
 /**
  * Section 2: Helper Classes
- * The langauges accepted by each of these defintions
+ * The languages accepted by each of these definitions
  * roughly corresponds to one of the following helper classes:
  *  Variable
  *  Constant
