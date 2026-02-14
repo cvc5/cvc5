@@ -71,19 +71,6 @@ class FiniteFieldValue
    */
   FiniteFieldValue(const FfSize& size) : d_size(size), d_value(0) {}
 
-  ~FiniteFieldValue() {}
-
-  FiniteFieldValue& operator=(const FiniteFieldValue& x)
-  {
-    if (this == &x)
-    {
-      return *this;
-    }
-    d_size = x.d_size;
-    d_value = x.d_value;
-    return *this;
-  }
-
   /* Get value. */
   const Integer& getValue() const;
 

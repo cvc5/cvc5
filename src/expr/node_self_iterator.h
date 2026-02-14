@@ -56,7 +56,6 @@ public:
   NodeSelfIterator();
   NodeSelfIterator(Node n);
   NodeSelfIterator(TNode n);
-  NodeSelfIterator(const NodeSelfIterator& i);
 
   NodeSelfIterator(Node::const_iterator i);
   NodeSelfIterator(TNode::const_iterator i);
@@ -95,11 +94,6 @@ inline NodeSelfIterator::NodeSelfIterator(TNode node) :
   d_node(node),
   d_child() {
   Assert(!node.isNull()) << "Self-iteration over null nodes not permitted.";
-}
-
-inline NodeSelfIterator::NodeSelfIterator(const NodeSelfIterator& i) :
-  d_node(i.d_node),
-  d_child(i.d_child) {
 }
 
 inline NodeSelfIterator::NodeSelfIterator(Node::const_iterator i) :

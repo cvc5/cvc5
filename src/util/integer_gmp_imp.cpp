@@ -44,13 +44,6 @@ Integer::Integer(int64_t z) : d_value(construct_mpz(z)) {}
 Integer::Integer(uint64_t z) : d_value(construct_mpz(z)) {}
 #endif /* CVC5_NEED_INT64_T_OVERLOADS */
 
-Integer& Integer::operator=(const Integer& x)
-{
-  if (this == &x) return *this;
-  d_value = x.d_value;
-  return *this;
-}
-
 bool Integer::operator==(const Integer& y) const
 {
   return d_value == y.d_value;

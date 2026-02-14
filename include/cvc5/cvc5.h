@@ -2619,13 +2619,6 @@ class CVC5_EXPORT DatatypeConstructor
     const_iterator();
 
     /**
-     * Assignment operator.
-     * @param it The iterator to assign to.
-     * @return The reference to the iterator after assignment.
-     */
-    const_iterator& operator=(const const_iterator& it);
-
-    /**
      * Equality operator.
      * @param it The iterator to compare to for equality.
      * @return True if the iterators are equal.
@@ -2909,13 +2902,6 @@ class CVC5_EXPORT Datatype
 
     /** Nullary constructor (required for Cython). */
     const_iterator();
-
-    /**
-     * Assignment operator.
-     * @param it The iterator to assign to.
-     * @return The reference to the iterator after assignment.
-     */
-    const_iterator& operator=(const const_iterator& it);
 
     /**
      * Equality operator.
