@@ -25,10 +25,31 @@
 
 namespace cvc5::internal::prop::cadical {
 
+namespace {
+
+Node toNode(NodeManager* nm, TheoryProxy* proxy, const SatClause& clause)
+{
+  if (clause.empty())
+  {
+    return nm->mkConst(false);
+  }
+  std::vector<Node> lits;
+  for (const auto& lit : clause)
+  {
+    lits.push_back(proxy->getNode(lit));
+  }
+  // Sat clause is sorted by literal id. Ensure that node-level clause is
+  // sorted by node ids.
+  std::sort(lits.begin(), lits.end());
+  return lits.size() == 1 ? lits[0] : nm->mkNode(Kind::OR, lits);
+}
+
+}  // namespace
+
 ProofTracer::ProofTracer(const CadicalPropagator& propagator)
     : d_propagator(propagator)
 {
-  d_antecedents.emplace_back();  // clauses start with id 1
+  d_clauses.emplace_back();
 }
 
 void ProofTracer::add_original_clause(uint64_t clause_id,
@@ -36,22 +57,10 @@ void ProofTracer::add_original_clause(uint64_t clause_id,
                                       const std::vector<int>& clause,
                                       CVC5_UNUSED bool restored)
 {
-  Assert(d_antecedents.size() == clause_id);
-  d_antecedents.emplace_back();  // no antecedents
   ClauseType ctype =
       d_propagator.in_search() ? ClauseType::THEORY : ClauseType::INPUT;
-  d_orig_clauses.try_emplace(clause_id, clause, ctype);
-
-  if (TraceIsOn("cadical::prooftracer"))
-  {
-    Trace("cadical::prooftracer")
-        << (ctype == ProofTracer::ClauseType::INPUT ? "i: " : "t: ");
-    for (const auto lit : clause)
-    {
-      Trace("cadical::prooftracer") << lit << " ";
-    }
-    Trace("cadical::prooftracer") << "0" << std::endl;
-  }
+  d_clauses.emplace_back(clause_id, ctype, clause);
+  Trace("cadical::prooftracer") << d_clauses[clause_id] << std::endl;
 }
 
 void ProofTracer::add_derived_clause(uint64_t clause_id,
@@ -59,12 +68,10 @@ void ProofTracer::add_derived_clause(uint64_t clause_id,
                                      const std::vector<int>& clause,
                                      const std::vector<uint64_t>& antecedents)
 {
-  Assert(d_antecedents.size() == clause_id);
   (void)clause;
   (void)redundant;
-  // Only store antecedents for a derived clause, no need to store the
-  // literals.
-  d_antecedents.emplace_back(antecedents);
+  d_clauses.emplace_back(clause_id, ClauseType::DERIVED, clause, antecedents);
+  Trace("cadical::prooftracer") << d_clauses[clause_id] << std::endl;
 }
 
 void ProofTracer::add_assumption_clause(
@@ -72,22 +79,11 @@ void ProofTracer::add_assumption_clause(
     const std::vector<int>& clause,
     const std::vector<uint64_t>& antecedents)
 {
-  Assert(d_antecedents.size() == clause_id);
   // Assumption clauses are the negation of the core of failed/unsat
   // assumptions.
-  d_antecedents.emplace_back(antecedents);
-  // Assumptions are original clauses.
-  d_orig_clauses.try_emplace(clause_id, clause, ClauseType::ASSUMPTION);
-
-  if (TraceIsOn("cadical::prooftracer"))
-  {
-    Trace("cadical::prooftracer") << "a: ~(";
-    for (const auto lit : clause)
-    {
-      Trace("cadical::prooftracer") << lit << " ";
-    }
-    Trace("cadical::prooftracer") << "0)" << std::endl;
-  }
+  d_clauses.emplace_back(
+      clause_id, ClauseType::ASSUMPTION, clause, antecedents);
+  Trace("cadical::prooftracer") << d_clauses[clause_id] << std::endl;
 }
 
 void ProofTracer::conclude_unsat(CVC5_UNUSED CaDiCaL::ConclusionType type,
@@ -97,12 +93,10 @@ void ProofTracer::conclude_unsat(CVC5_UNUSED CaDiCaL::ConclusionType type,
   d_final_clauses = clause_ids;
 }
 
-void ProofTracer::compute_unsat_core(std::vector<SatClause>& unsat_core,
-                                     bool include_theory_lemmas) const
+void ProofTracer::compute_proof_core(std::vector<uint64_t>& core) const
 {
-  std::vector<uint64_t> core;
   std::vector<uint64_t> visit{d_final_clauses};
-  std::vector<bool> visited(d_antecedents.size() + 1, false);
+  std::unordered_set<uint64_t> visited;
 
   // Trace back from final clause ids (empty clause) to original clauses.
   while (!visit.empty())
@@ -110,91 +104,154 @@ void ProofTracer::compute_unsat_core(std::vector<SatClause>& unsat_core,
     const uint64_t clause_id = visit.back();
     visit.pop_back();
 
-    if (!visited[clause_id])
+    if (visited.insert(clause_id).second)
     {
-      visited[clause_id] = true;
-      if (d_orig_clauses.find(clause_id) != d_orig_clauses.end())
-      {
-        core.push_back(clause_id);
-      }
-      Assert(clause_id < d_antecedents.size());
-      const auto& antecedents = d_antecedents[clause_id];
+      core.push_back(clause_id);
+      const auto& antecedents = d_clauses[clause_id].antecedents;
       visit.insert(visit.end(), antecedents.begin(), antecedents.end());
     }
   }
 
-  // Get activation literals, required for filtering below.
+  std::sort(core.begin(), core.end());
+
+  if (TraceIsOn("cadical::prooftracer"))
+  {
+    Trace("cadical::prooftracer") << "proof core:" << std::endl;
+    for (const auto& cid : core)
+    {
+      const auto& clause = d_clauses[cid];
+      Trace("cadical::prooftracer") << clause << std::endl;
+    }
+  }
+}
+
+std::shared_ptr<ProofNode> ProofTracer::get_chain_resolution_proof(
+    ProofNodeManager* pnm, NodeManager* nm, TheoryProxy* proxy)
+{
+  std::vector<uint64_t> core;
+  compute_proof_core(core);
+
   std::unordered_set<int64_t> alits;
   for (const auto& lit : d_propagator.activation_literals())
   {
-    Trace("cadical::prooftracer")
-        << "act. lit: " << lit.getSatVariable() << std::endl;
     alits.insert(lit.getSatVariable());
   }
 
-  Trace("cadical::prooftracer") << "unsat core:" << std::endl;
-
-  // Get the core in terms of SatClause/SatLiteral, filters out activation
-  // literals.
+  std::unordered_map<uint64_t, std::shared_ptr<ProofNode>> steps;
   for (const uint64_t cid : core)
   {
-    const auto& [clause, ctype] = d_orig_clauses.at(cid);
-
-    // Skip theory lemmas if not requested.
-    if (!include_theory_lemmas && ctype == ProofTracer::ClauseType::THEORY)
+    const auto& clause = d_clauses[cid];
+    if (clause.type == ClauseType::DERIVED)
     {
-      continue;
-    }
-
-    // Filter out activation literals
-    std::vector<int64_t> cl;
-    for (const auto& lit : clause)
-    {
-      if (alits.find(std::abs(lit)) == alits.end())
-      {
-        cl.push_back(lit);
-      }
-    }
-
-    if (cl.empty())
-    {
-      continue;
-    }
-
-    if (TraceIsOn("cadical::prooftracer"))
-    {
-      char ct = ' ';
-      switch (ctype)
-      {
-        case ProofTracer::ClauseType::ASSUMPTION: ct = 'a'; break;
-        case ProofTracer::ClauseType::INPUT: ct = 'i'; break;
-        case ProofTracer::ClauseType::THEORY: ct = 't'; break;
-      }
-      Trace("cadical::prooftracer") << ct << ": ";
-    }
-
-    // Assumption clauses are the negation of a core of failed/unsat
-    // assumptions. Add each assumption as a unit clause.
-    if (ctype == ProofTracer::ClauseType::ASSUMPTION)
-    {
-      for (const auto lit : cl)
-      {
-        auto& sat_clause = unsat_core.emplace_back();
-        sat_clause.emplace_back(toSatLiteral(-lit));
-        Trace("cadical::prooftracer") << -lit << " 0" << std::endl;
-      }
+      Assert(clause.antecedents.size() > 1);
+      steps.emplace(cid,
+                    chain_resolution_step(cid, proxy, pnm, nm, steps, alits));
     }
     else
     {
-      auto& sat_clause = unsat_core.emplace_back();
-      for (const auto& lit : cl)
+      SatClause sat_clause = toSatClause(alits, clause.literals);
+      if (clause.type == ClauseType::ASSUMPTION)
       {
-        Trace("cadical::prooftracer") << lit << " ";
-        sat_clause.emplace_back(toSatLiteral(lit));
+        Assert(cid == core.back());
+        Assert(sat_clause.empty());
+        // Only happens with constraint feature
+        Assert(!clause.antecedents.empty());
+        steps.emplace(cid, steps.at(core[core.size() - 2]));
       }
-      Trace("cadical::prooftracer") << "0" << std::endl;
+      else
+      {
+        Node assump = toNode(nm, proxy, sat_clause);
+        steps.emplace(cid, pnm->mkAssume(assump));
+      }
     }
   }
+  // Last clause id corresponds to empty clause.
+  auto pf = steps.at(core.back());
+  return pf;
+}
+
+bool ProofTracer::mark_var(std::unordered_map<int32_t, uint8_t>& marked_vars,
+                           int32_t lit)
+{
+  int32_t var = std::abs(lit);
+  uint8_t mask = (lit < 0) ? 2 : 1;
+  uint8_t marked = marked_vars[var];
+  if (!(marked & mask))
+  {
+    marked_vars[var] |= mask;
+  }
+  return marked & ~mask;
+}
+
+std::shared_ptr<ProofNode> ProofTracer::chain_resolution_step(
+    uint64_t cid,
+    TheoryProxy* proxy,
+    ProofNodeManager* pnm,
+    NodeManager* nm,
+    const std::unordered_map<uint64_t, std::shared_ptr<ProofNode>>& steps,
+    const std::unordered_set<int64_t>& activation_literals)
+{
+  const auto& cl = d_clauses[cid];
+  SatClause expected_cl = toSatClause(activation_literals, cl.literals);
+  Node conclusion = toNode(nm, proxy, expected_cl);
+  const auto& antecedents = cl.antecedents;
+  std::vector<std::shared_ptr<ProofNode>> children;
+  std::vector<Node> polarities, literals;
+  std::unordered_map<int32_t, uint8_t> marked_vars;
+  // Create chain resolution step for each derived clause
+  for (size_t i = 0, size = antecedents.size(); i < size; ++i)
+  {
+    // Antecedants are stored in the order they were resolved. Thus, we have
+    // to process them in reverse order, starting from the last id.
+    size_t idx = size - i - 1;
+    uint64_t aid = antecedents[idx];
+    const auto& clause = d_clauses[aid];
+    for (int32_t lit : clause.literals)
+    {
+      if (!mark_var(marked_vars, lit))
+      {
+        continue;
+      }
+      // Found pivot literal
+      literals.push_back(proxy->getNode(toSatLiteral(lit).getSatVariable()));
+      // Polarity of pivot literal in first clause
+      polarities.push_back(nm->mkConst(!(lit > 0)));
+    }
+
+    auto it = steps.find(aid);
+    Assert(it != steps.end());
+    children.push_back(it->second);
+  }
+  std::vector<Node> args{conclusion};
+  args.push_back(nm->mkNode(Kind::SEXPR, polarities));
+  args.push_back(nm->mkNode(Kind::SEXPR, literals));
+  return pnm->mkNode(ProofRule::CHAIN_M_RESOLUTION, children, args);
+}
+
+std::ostream& operator<<(std::ostream& os, const ProofTracer::ClauseInfo& ci)
+{
+  char ct = ' ';
+  switch (ci.type)
+  {
+    case ProofTracer::ClauseType::DERIVED: ct = 'd'; break;
+    case ProofTracer::ClauseType::INPUT: ct = 'i'; break;
+    case ProofTracer::ClauseType::THEORY: ct = 't'; break;
+    case ProofTracer::ClauseType::ASSUMPTION: ct = 'a'; break;
+  }
+
+  os << ci.clause_id << " " << ct << ": ( ";
+  for (const auto lit : ci.literals)
+  {
+    os << lit << " ";
+  }
+  os << ")";
+  os << " [ ";
+  for (const auto lit : ci.antecedents)
+  {
+    os << lit << " ";
+  }
+  os << "] ";
+  return os;
 }
 
 }  // namespace cvc5::internal::prop::cadical
