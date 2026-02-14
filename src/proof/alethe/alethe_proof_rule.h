@@ -70,6 +70,14 @@ enum class AletheRule : uint32_t
   // G > k. (= (forall (x) F1) F2)
   ANCHOR_SKO_FORALL,
   ANCHOR_SKO_EX,
+  // ======== onepoint
+  // G,xk1,...,xkm,xji->tj1,...,xjo->tjo > (= F1 F2)
+  // -----------------------------------------------
+  // G > (= (Q (x1,...,xn) F1) (Q (xk1,...,xkm) F2))
+  //
+  // where Q is forall or exists, n = m + o, k1,...,km and j1,...,jo are
+  // monotone mappings to 1,...,n, and no xki appears in xj1,...,xjo
+  ANCHOR_ONEPOINT,
   // ======== input
   // > i. F
   ASSUME,

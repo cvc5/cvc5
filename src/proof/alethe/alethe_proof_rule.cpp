@@ -32,6 +32,7 @@ const char* aletheRuleToString(AletheRule id)
     case AletheRule::ANCHOR_BIND: return "bind";
     case AletheRule::ANCHOR_SKO_FORALL: return "sko_forall";
     case AletheRule::ANCHOR_SKO_EX: return "sko_ex";
+    case AletheRule::ANCHOR_ONEPOINT: return "onepoint";
     case AletheRule::TRUE: return "true";
     case AletheRule::FALSE: return "false";
     case AletheRule::NOT_NOT: return "not_not";
