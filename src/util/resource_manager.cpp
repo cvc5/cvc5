@@ -21,8 +21,10 @@
 
 #include "base/check.h"
 #include "base/listener.h"
+#include "base/modal_exception.h"
 #include "base/output.h"
 #include "options/base_options.h"
+#include "options/main_options.h"
 #include "options/option_exception.h"
 #include "options/options.h"
 #include "util/statistics_registry.h"
@@ -215,13 +217,28 @@ void ResourceManager::spendResource(uint64_t amount)
                    << d_statistics->d_spendResourceCalls.get() << std::endl;
     if (outOfTime())
     {
-      Trace("limit") << "ResourceManager::spendResource: elapsed time"
+      Trace("limit") << "ResourceManager::spendResource: elapsed time "
                      << d_perCallTimer.elapsed() << std::endl;
     }
 
+    // Notify listeners
     for (Listener* l : d_listeners)
     {
       l->notify();
+    }
+    
+    if (d_options.driver.earlyExit) {
+      // Throw exception to stop execution
+      std::stringstream ss;
+      if (outOfTime())
+      {
+        ss << "Time limit exceeded (" << d_perCallTimer.elapsed() << "ms)";
+      }
+      else
+      {
+        ss << "Resource limit exceeded (" << d_cumulativeResourceUsed << " resources used)";
+      }
+      throw RecoverableModalException(ss.str());
     }
   }
 }
@@ -289,6 +306,7 @@ bool ResourceManager::outOfResources() const
 {
   if (!d_enabled)
   {
+    Trace("ResourceManager::outOfResources()? False !d_enabled");
     return false;
   }
   if (d_options.base.perCallResourceLimit > 0)
@@ -296,6 +314,7 @@ bool ResourceManager::outOfResources() const
     // Check if per-call resources are exhausted
     if (d_thisCallResourceUsed >= d_options.base.perCallResourceLimit)
     {
+      Trace("limit") << "ResourceManager::outOfResources()? True 00" << std::endl;
       return true;
     }
   }
@@ -304,9 +323,12 @@ bool ResourceManager::outOfResources() const
     // Check if cumulative resources are exhausted
     if (d_cumulativeResourceUsed >= d_options.base.cumulativeResourceLimit)
     {
+      Trace("limit") << "ResourceManager::outOfResources()? True 01" << std::endl;
       return true;
     }
   }
+
+  Trace("limit") << "ResourceManager::outOfResources()? False 01" << std::endl;
   return false;
 }
 
@@ -322,6 +344,7 @@ bool ResourceManager::outOfTime() const
 
 void ResourceManager::registerListener(Listener* listener)
 {
+  Trace("limit") << "Number of listeners: " << d_listeners.size() << std::endl;
   return d_listeners.push_back(listener);
 }
 
