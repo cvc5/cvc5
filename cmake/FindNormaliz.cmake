@@ -11,8 +11,11 @@
 # #############################################################################
 #
 # Find Normaliz
-# Normaliz_FOUND - should always be true
 # Normaliz - target for the Normaliz library
+# Normaliz_FOUND - Normaliz was found
+# Normaliz_FOUND_SYSTEM - system has Normaliz lib
+# Normaliz_INCLUDE_DIR - the Normaliz include directory
+# Normaliz_LIBRARIES - Libraries needed to use Normaliz
 ##
 
 include(deps-helper)
