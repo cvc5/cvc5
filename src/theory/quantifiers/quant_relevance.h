@@ -43,7 +43,7 @@ class QuantRelevance : public QuantifiersUtil
   QuantRelevance(Env& env);
   ~QuantRelevance() {}
   /** reset */
-  bool reset(Theory::Effort e) override { return true; }
+  bool reset(CVC5_UNUSED Theory::Effort e) override { return true; }
   /** register quantifier */
   void registerQuantifier(Node q) override;
   /** identify */

@@ -102,7 +102,7 @@ const StepSequence& Interleaving::get()
     }
     cnt -= branch.d_interleavingConstant;
   }
-  Assert(false) << "Something went wrong.";
+  DebugUnhandled() << "Something went wrong.";
   return d_branches[0].d_steps;
 }
 bool Interleaving::empty() const { return d_branches.empty(); }

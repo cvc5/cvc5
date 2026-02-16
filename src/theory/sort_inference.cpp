@@ -729,7 +729,7 @@ Node SortInference::simplifyNode(
       {
         Trace("sort-inference-warn") << "Sort inference created bad equality: " << children[0] << " = " << children[1] << std::endl;
         Trace("sort-inference-warn") << "  Types : " << children[0].getType() << " " << children[1].getType() << std::endl;
-        Assert(false);
+        DebugUnhandled();
       }
       ret = nm->mkNode(Kind::EQUAL, children);
     }
@@ -770,7 +770,7 @@ Node SortInference::simplifyNode(
         if (tn != tna)
         {
           Trace("sort-inference-warn") << "Sort inference created bad child: " << n << " " << n[i] << " " << tn << " " << tna << std::endl;
-          Assert(false);
+          DebugUnhandled();
         }
       }
       ret = nm->mkNode(Kind::APPLY_UF, children);

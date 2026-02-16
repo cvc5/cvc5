@@ -209,7 +209,7 @@ bool RelevanceManager::computeRelevanceFor(TNode input)
       serr << "RelevanceManager::computeRelevance: WARNING: failed to justify "
            << input;
       Trace("rel-manager") << serr.str() << std::endl;
-      Assert(false) << serr.str();
+      DebugUnhandled() << serr.str();
       d_fullEffortCheckFail = true;
       return false;
     }

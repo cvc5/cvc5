@@ -130,7 +130,7 @@ Node ProofNodeToSExpr::getOrMkKindVariable(TNode n)
   if (!ProofRuleChecker::getKind(n, k))
   {
     // just use self if we failed to get the node, throw a debug failure
-    Assert(false) << "Expected kind node, got " << n;
+    DebugUnhandled() << "Expected kind node, got " << n;
     return n;
   }
   std::map<Kind, Node>::iterator it = d_kindMap.find(k);
@@ -151,7 +151,7 @@ Node ProofNodeToSExpr::getOrMkTheoryIdVariable(TNode n)
   if (!theory::builtin::BuiltinProofRuleChecker::getTheoryId(n, tid))
   {
     // just use self if we failed to get the node, throw a debug failure
-    Assert(false) << "Expected theory id node, got " << n;
+    DebugUnhandled() << "Expected theory id node, got " << n;
     return n;
   }
   std::map<theory::TheoryId, Node>::iterator it = d_tidMap.find(tid);
@@ -172,7 +172,7 @@ Node ProofNodeToSExpr::getOrMkMethodIdVariable(TNode n)
   if (!getMethodId(n, mid))
   {
     // just use self if we failed to get the node, throw a debug failure
-    Assert(false) << "Expected method id node, got " << n;
+    DebugUnhandled() << "Expected method id node, got " << n;
     return n;
   }
   std::map<MethodId, Node>::iterator it = d_midMap.find(mid);
@@ -192,7 +192,7 @@ Node ProofNodeToSExpr::getOrMkTrustIdVariable(TNode n)
   if (!getTrustId(n, tid))
   {
     // just use self if we failed to get the node, throw a debug failure
-    Assert(false) << "Expected trust id node, got " << n;
+    DebugUnhandled() << "Expected trust id node, got " << n;
     return n;
   }
   std::map<TrustId, Node>::iterator it = d_tridMap.find(tid);
@@ -212,7 +212,7 @@ Node ProofNodeToSExpr::getOrMkInferenceIdVariable(TNode n)
   if (!theory::getInferenceId(n, iid))
   {
     // just use self if we failed to get the node, throw a debug failure
-    Assert(false) << "Expected inference id node, got " << n;
+    DebugUnhandled() << "Expected inference id node, got " << n;
     return n;
   }
   std::map<theory::InferenceId, Node>::iterator it = d_iidMap.find(iid);
@@ -233,7 +233,7 @@ Node ProofNodeToSExpr::getOrMkDslRewriteVariable(TNode n)
   if (!rewriter::getRewriteRule(n, rid))
   {
     // just use self if we failed to get the node, throw a debug failure
-    Assert(false) << "Expected inference id node, got " << n;
+    DebugUnhandled() << "Expected inference id node, got " << n;
     return n;
   }
   std::map<ProofRewriteRule, Node>::iterator it = d_dslrMap.find(rid);

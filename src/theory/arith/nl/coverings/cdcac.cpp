@@ -352,7 +352,7 @@ PolyVector CDCAC::requiredCoefficients(const poly::Polynomial& p)
                                                 d_constraints.varMapper(),
                                                 d_env.getRewriter());
     default:
-      Assert(false);
+      DebugUnhandled();
       return requiredCoefficientsOriginal(p, d_assignment);
   }
 }

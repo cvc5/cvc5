@@ -92,10 +92,9 @@ Node LemmaInprocess::processInternal(const Node& lem)
         }
         else
         {
-          bool currLit = prevLit;
           if (scur != cur)
           {
-            currLit = d_cs->hasLiteral(scur);
+            bool currLit = d_cs->hasLiteral(scur);
             scur = rewrite(scur);
             Trace("lemma-inprocess-debug")
                 << "Inprocess " << cur << " -> " << scur << std::endl;

@@ -342,7 +342,7 @@ unsigned SygusTypeInfo::getMinTypeDepth(TypeNode tn) const
   std::map<TypeNode, unsigned>::const_iterator it = d_min_type_depth.find(tn);
   if (it != d_min_type_depth.end())
   {
-    Assert(false);
+    DebugUnhandled();
     return 0;
   }
   return it->second;
@@ -357,7 +357,7 @@ unsigned SygusTypeInfo::getMinConsTermSize(unsigned cindex)
   {
     return it->second;
   }
-  Assert(false);
+  DebugUnhandled();
   return 0;
 }
 
@@ -460,7 +460,7 @@ unsigned SygusTypeInfo::getSubclassForVar(Node n) const
   std::map<Node, unsigned>::const_iterator itcc = d_var_subclass_id.find(n);
   if (itcc == d_var_subclass_id.end())
   {
-    Assert(false);
+    DebugUnhandled();
     return 0;
   }
   return itcc->second;
@@ -472,7 +472,7 @@ unsigned SygusTypeInfo::getNumSubclassVars(unsigned sc) const
       d_var_subclass_list.find(sc);
   if (itvv == d_var_subclass_list.end())
   {
-    Assert(false);
+    DebugUnhandled();
     return 0;
   }
   return itvv->second.size();
@@ -483,7 +483,7 @@ Node SygusTypeInfo::getVarSubclassIndex(unsigned sc, unsigned i) const
       d_var_subclass_list.find(sc);
   if (itvv == d_var_subclass_list.end() || i >= itvv->second.size())
   {
-    Assert(false);
+    DebugUnhandled();
     return Node::null();
   }
   return itvv->second[i];

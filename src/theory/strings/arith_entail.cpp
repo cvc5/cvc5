@@ -561,7 +561,7 @@ Node ArithEntail::findApproxInternal(Node ar, bool isSimple)
       msumAar.clear();
       if (!ArithMSum::getMonomialSum(aar, msumAar))
       {
-        Assert(false);
+        DebugUnhandled();
         Trace("strings-ent-approx")
             << "...failed to get monomial sum!" << std::endl;
         return Node::null();
@@ -576,7 +576,7 @@ Node ArithEntail::findApproxInternal(Node ar, bool isSimple)
     Trace("strings-ent-approx-debug")
         << "...approximation had no effect" << std::endl;
     // this should never happen, but we avoid the infinite loop for sanity here
-    Assert(false);
+    DebugUnhandled();
     return Node::null();
   }
   // Check entailment on the approximation of ar.

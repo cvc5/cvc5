@@ -235,7 +235,7 @@ const char* toString(Rewrite r)
     case Rewrite::SEQ_NTH_EVAL_SYM: return "SEQ_NTH_EVAL_SYM";
     case Rewrite::UNKNOWN: return "?";
     default:
-      Assert(false) << "No print for rewrite " << static_cast<size_t>(r);
+      DebugUnhandled() << "No print for rewrite " << static_cast<size_t>(r);
       return "?Unhandled";
   }
 }

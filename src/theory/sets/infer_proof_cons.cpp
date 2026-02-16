@@ -400,7 +400,7 @@ bool InferProofCons::convert(CDProof& cdp,
     if (!cdp.addSteps(psb))
     {
       // should not fail if success was computed correctly above
-      Assert(false);
+      DebugUnhandled();
       success = false;
     }
   }

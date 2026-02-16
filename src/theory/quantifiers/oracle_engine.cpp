@@ -107,19 +107,19 @@ bool OracleEngine::needsCheck(Theory::Effort e)
 }
 
 // the model is built at this effort level
-OracleEngine::QEffort OracleEngine::needsModel(Theory::Effort e)
+OracleEngine::QEffort OracleEngine::needsModel(CVC5_UNUSED Theory::Effort e)
 {
   return QEFFORT_MODEL;
 }
 
-void OracleEngine::reset_round(Theory::Effort e)
+void OracleEngine::reset_round(CVC5_UNUSED Theory::Effort e)
 {
   d_consistencyCheckPassed = false;
 }
 
-void OracleEngine::registerQuantifier(Node q) {}
+void OracleEngine::registerQuantifier(CVC5_UNUSED Node q) {}
 
-void OracleEngine::check(Theory::Effort e, QEffort quant_e)
+void OracleEngine::check(CVC5_UNUSED Theory::Effort e, QEffort quant_e)
 {
   if (quant_e != QEFFORT_MODEL)
   {
@@ -264,7 +264,7 @@ void OracleEngine::checkOwnership(Node q)
     Node assume, constraint, oracle;
     if (!getOracleInterface(q, inputs, outputs, assume, constraint, oracle))
     {
-      Assert(false) << "Not an oracle interface " << q;
+      DebugUnhandled() << "Not an oracle interface " << q;
     }
     else
     {

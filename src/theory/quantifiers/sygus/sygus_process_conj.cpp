@@ -606,7 +606,7 @@ bool SynthConjectureProcess::isArgRelevant(Node f, unsigned i)
   {
     return its->second.isArgRelevant(i);
   }
-  Assert(false);
+  DebugUnhandled();
   return true;
 }
 
@@ -780,12 +780,16 @@ void SynthConjectureProcess::getFreeVariables(
 }
 
 Node SynthConjectureProcess::getSymmetryBreakingPredicate(
-    Node x, Node e, TypeNode tn, unsigned tindex, unsigned depth)
+    CVC5_UNUSED Node x,
+    CVC5_UNUSED Node e,
+    CVC5_UNUSED TypeNode tn,
+    CVC5_UNUSED unsigned tindex,
+    CVC5_UNUSED unsigned depth)
 {
   return Node::null();
 }
 
-void SynthConjectureProcess::debugPrint(const char* c) {}
+void SynthConjectureProcess::debugPrint(CVC5_UNUSED const char* c) {}
 void SynthConjectureProcess::getComponentVector(Kind k,
                                                 Node n,
                                                 std::vector<Node>& args)

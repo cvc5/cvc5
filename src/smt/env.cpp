@@ -389,7 +389,7 @@ Node Env::getSharableFormula(const Node& n) const
         if (!skm->isSkolemFunction(s, id, cacheVal))
         {
           // kind SKOLEM should imply that it is a skolem function
-          Assert(false);
+          DebugUnhandled();
           return Node::null();
         }
         if (!cacheVal.isNull()

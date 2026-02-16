@@ -121,7 +121,7 @@ void CircuitPropagator::assignAndEnqueue(TNode n,
     if (proof == nullptr)
     {
       warning() << "CircuitPropagator: Proof is missing for " << n << std::endl;
-      Assert(false);
+      DebugUnhandled();
     }
     else
     {

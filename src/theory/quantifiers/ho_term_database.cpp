@@ -94,7 +94,7 @@ Node HoTermDb::getOperatorRepresentative(TNode op) const
   }
   return op;
 }
-bool HoTermDb::finishResetInternal(Theory::Effort effort)
+bool HoTermDb::finishResetInternal(CVC5_UNUSED Theory::Effort effort)
 {
   if (!options().quantifiers.hoMergeTermDb)
   {
@@ -168,7 +168,7 @@ bool HoTermDb::checkCongruentDisequal(TNode a, TNode b, std::vector<Node>& exp)
     }
     else
     {
-      Assert(false);
+      DebugUnhandled();
       return false;
     }
   }

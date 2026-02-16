@@ -109,7 +109,7 @@ std::shared_ptr<ProofNode> BvPpAssert::getProofFor(Node fact)
   context::CDHashMap<Node, TrustNode>::iterator it = d_ppsolves.find(fact);
   if (it == d_ppsolves.end())
   {
-    Assert(false) << "BvPpAssert::getProofFor: Failed to find source for "
+    DebugUnhandled() << "BvPpAssert::getProofFor: Failed to find source for "
                   << fact;
     return nullptr;
   }

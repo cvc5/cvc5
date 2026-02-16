@@ -46,7 +46,7 @@ bool RewriteVerifier::checkEquivalent(Node bv, Node bvr, std::ostream* out)
   }
   if (d_sampler == nullptr || d_sampler->getNumSamplePoints() == 0)
   {
-    Assert(false) << "Expected a sampler to test rewrites";
+    DebugUnhandled() << "Expected a sampler to test rewrites";
     return true;
   }
   // check if it has variables from d_vars, if not, we only test one point

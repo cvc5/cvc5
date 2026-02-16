@@ -128,6 +128,16 @@ class OstreamVoider
   CVC5_FATAL_IF(false, __PRETTY_FUNCTION__, __FILE__, __LINE__)
 #endif
 
+// DebugUnhandled() logs an error and aborts if CVC5_ASSERTIONS is set but
+// CVC5_STATIC_ANALYSIS is not. Otherwise, it does nothing.
+// Allows static analyzers to follow production control flow but
+// fail during debugging.
+#ifdef CVC5_STATIC_ANALYSIS
+#define DebugUnhandled() Assert(true)
+#else
+#define DebugUnhandled() Assert(false)
+#endif
+
 class AssertArgumentException : public Exception
 {
  protected:

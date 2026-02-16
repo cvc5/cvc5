@@ -2826,7 +2826,7 @@ void TheoryArithPrivate::solveInteger(Theory::Effort effortLevel){
         approx->setBranchingDepth(2);
         {
           TimerStat::CodeTimer codeTimer3(d_statistics.d_mipTimer);
-          mipRes = approx->solveMIP(true);
+          approx->solveMIP(true);
         }
         replayLemmas(approx);
         break;

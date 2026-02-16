@@ -234,7 +234,7 @@ void ExampleInfer::getExample(Node f, unsigned i, std::vector<Node>& ex) const
   }
   else
   {
-    Assert(false);
+    DebugUnhandled();
   }
 }
 
@@ -258,7 +258,7 @@ Node ExampleInfer::getExampleOut(Node f, unsigned i) const
     Assert(i < it->second.size());
     return it->second[i];
   }
-  Assert(false);
+  DebugUnhandled();
   return Node::null();
 }
 

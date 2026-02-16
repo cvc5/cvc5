@@ -185,7 +185,7 @@ TrustNode ProofEqEngine::assertConflict(Node lit)
     std::vector<Node> args;
     if (!d_proof.addStep(d_false, ProofRule::MACRO_SR_PRED_ELIM, exp, args))
     {
-      Assert(false) << "pfee::assertConflict: failed conflict step";
+      DebugUnhandled() << "pfee::assertConflict: failed conflict step";
       return TrustNode::null();
     }
   }
@@ -245,7 +245,7 @@ TrustNode ProofEqEngine::assertLemma(Node conc,
   if (!outer.addStep(conc, id, exp, args))
   {
     // a step went wrong, e.g. during checking
-    Assert(false) << "pfee::assertConflict: register proof step";
+    DebugUnhandled() << "pfee::assertConflict: register proof step";
     return TrustNode::null();
   }
   // Now get the proof for conc.
@@ -349,7 +349,7 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
         << std::endl
         << std::endl;
     // should have existed
-    Assert(false) << "pfee::assertConflict: failed to get proof for " << conc;
+    DebugUnhandled() << "pfee::assertConflict: failed to get proof for " << conc;
     return TrustNode::null();
   }
   // clone it so that we have a fresh copy

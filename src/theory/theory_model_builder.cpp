@@ -56,7 +56,7 @@ Node TheoryEngineModelBuilder::Assigner::getNextAssignment()
   // does we assert false and return null.
   if (te.isFinished())
   {
-    Assert(false);
+    DebugUnhandled();
     return Node::null();
   }
   // must increment until we find one that is not in the assignment
@@ -557,7 +557,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
               }
               else
               {
-                Assert(false) << "Distinct base model values in the same "
+                DebugUnhandled() << "Distinct base model values in the same "
                                  "equivalence class "
                               << constRep << " " << n << std::endl;
               }
@@ -1126,7 +1126,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
       Trace("model-builder") << "***Non-empty repSet, size = " << repSet.size()
                              << ", repSet = " << repSet << endl;
       Trace("model-builder-debug") << tm->getEqualityEngine()->debugPrintEqc();
-      Assert(false);
+      DebugUnhandled();
     }
   }
 #endif /* CVC5_ASSERTIONS */

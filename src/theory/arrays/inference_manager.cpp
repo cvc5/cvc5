@@ -124,7 +124,7 @@ void InferenceManager::convert(ProofRule& id,
     default:
       if (id != ProofRule::TRUST)
       {
-        Assert(false) << "Unknown rule " << id << "\n";
+        DebugUnhandled() << "Unknown rule " << id << "\n";
       }
       children.push_back(exp);
       args.push_back(mkTrustId(nodeManager(), TrustId::THEORY_INFERENCE_ARRAYS));

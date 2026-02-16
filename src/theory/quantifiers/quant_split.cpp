@@ -66,7 +66,7 @@ class QuantDSplitProofGenerator : protected EnvObj, public ProofGenerator
     context::CDHashMap<Node, size_t>::iterator it = d_index.find(fact);
     if (it == d_index.end())
     {
-      Assert(false) << "QuantDSplitProofGenerator failed to get proof";
+      DebugUnhandled() << "QuantDSplitProofGenerator failed to get proof";
       return nullptr;
     }
     Assert(fact.getKind() == Kind::EQUAL && fact[0].getKind() == Kind::FORALL);
@@ -225,7 +225,7 @@ bool QuantDSplit::checkCompleteFor( Node q ) {
 }
 
 /* Call during quantifier engine's check */
-void QuantDSplit::check(Theory::Effort e, QEffort quant_e)
+void QuantDSplit::check(CVC5_UNUSED Theory::Effort e, QEffort quant_e)
 {
   //add lemmas ASAP (they are a reduction)
   if (quant_e != QEFFORT_CONFLICT)

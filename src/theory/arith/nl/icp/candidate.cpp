@@ -52,7 +52,7 @@ PropagationResult Candidate::propagate(poly::IntervalAssignment& ia,
       res.set_lower(poly::Value::minus_infty(), true);
       break;
     case poly::SignCondition::EQ: break;
-    case poly::SignCondition::NE: Assert(false); break;
+    case poly::SignCondition::NE: DebugUnhandled(); break;
     case poly::SignCondition::GT:
       res.set_lower(get_lower(res), true);
       res.set_upper(poly::Value::plus_infty(), true);
@@ -99,7 +99,7 @@ PropagationResult Candidate::propagate(poly::IntervalAssignment& ia,
     }
     case PropagationResult::CONTRACTED_STRONGLY:
     case PropagationResult::CONTRACTED_STRONGLY_WITHOUT_CURRENT:
-      Assert(false) << "This method should not return strong flags.";
+      DebugUnhandled() << "This method should not return strong flags.";
       break;
     default: break;
   }

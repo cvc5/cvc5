@@ -1563,7 +1563,7 @@ void CardinalityExtension::check(Theory::Effort level)
     else
     {
       // unhandled uf ss mode
-      Assert(false);
+      DebugUnhandled();
     }
     Trace("uf-ss-solver") << "Done CardinalityExtension: check " << level
                           << std::endl;

@@ -44,7 +44,7 @@ SygusSampler::SygusSampler(Env& env)
 {
 }
 
-void SygusSampler::initialize(TypeNode tn,
+void SygusSampler::initialize(CVC5_UNUSED TypeNode tn,
                               const std::vector<Node>& vars,
                               unsigned nsamples,
                               bool unique_type_ids)
@@ -262,7 +262,6 @@ bool SygusSampler::PtTrie::add(std::vector<Node>& pt)
     curr = &(curr->d_children[pt[i]]);
   }
   bool retVal = curr->d_children.empty();
-  curr = &(curr->d_children[Node::null()]);
   return retVal;
 }
 

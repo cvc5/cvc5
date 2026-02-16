@@ -45,7 +45,7 @@ const char* toString(Rewrite r)
     case Rewrite::INEQ_BV_TO_NAT_ELIM: return "INEQ_BV_TO_NAT_ELIM";
     case Rewrite::UNKNOWN: return "?";
     default:
-      Assert(false) << "No print for rewrite " << static_cast<size_t>(r);
+      DebugUnhandled() << "No print for rewrite " << static_cast<size_t>(r);
       return "?unhandled";
   }
 }

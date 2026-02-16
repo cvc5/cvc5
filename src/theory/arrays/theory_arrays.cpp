@@ -909,7 +909,7 @@ void TheoryArrays::checkPair(TNode r1, TNode r2)
   switch (eqStatusDomain) {
     case EQUALITY_TRUE_AND_PROPAGATED:
       // Should have been propagated to us
-      Assert(false);
+      DebugUnhandled();
       break;
     case EQUALITY_TRUE:
       // Missed propagation - need to add the pair so that theory engine can force propagation
@@ -920,7 +920,7 @@ void TheoryArrays::checkPair(TNode r1, TNode r2)
                                   "called when false in model"
                                << std::endl;
       // Should have been propagated to us
-      Assert(false);
+      DebugUnhandled();
       break;
     case EQUALITY_FALSE: CVC5_FALLTHROUGH;
     case EQUALITY_FALSE_IN_MODEL:

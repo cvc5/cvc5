@@ -183,7 +183,6 @@ Node TheoryArraysRewriter::computeNormalizeOp(const Node& n,
       break;
     }
     // success if we can move past
-    success = false;
     if (iconst)
     {
       success = arr[1].isConst();

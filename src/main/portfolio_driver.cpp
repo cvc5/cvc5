@@ -48,16 +48,9 @@ bool ExecutionContext::solveContinuous(parser::InputParser* parser,
                                        bool stopAtCheckSat)
 {
   Command cmd;
-  bool interrupted = false;
   bool status = true;
   while (status)
   {
-    if (interrupted)
-    {
-      solver().getDriverOptions().out() << CommandInterrupted();
-      d_executor->reset();
-      break;
-    }
     cmd = parser->nextCommand();
     if (cmd.isNull())
     {
@@ -73,9 +66,10 @@ bool ExecutionContext::solveContinuous(parser::InputParser* parser,
       }
     }
     status = d_executor->doCommand(&cmd);
-    if (cc->interrupted() && status == 0)
+    if (!status && cc->interrupted())
     {
-      interrupted = true;
+      solver().getDriverOptions().out() << CommandInterrupted();
+      d_executor->reset();
       break;
     }
     if (dynamic_cast<QuitCommand*>(cc) != nullptr)
@@ -98,16 +92,9 @@ bool ExecutionContext::solveContinuous(parser::InputParser* parser,
 bool ExecutionContext::continueAfterSolving(parser::InputParser* parser)
 {
   Command cmd;
-  bool interrupted = false;
   bool status = true;
   while (status)
   {
-    if (interrupted)
-    {
-      solver().getDriverOptions().out() << CommandInterrupted();
-      d_executor->reset();
-      break;
-    }
     cmd = parser->nextCommand();
     if (cmd.isNull())
     {
@@ -154,9 +141,10 @@ bool ExecutionContext::continueAfterSolving(parser::InputParser* parser)
     {
       status = d_executor->doCommand(&cmd);
     }
-    if (cc->interrupted() && status == 0)
+    if (!status && cc->interrupted())
     {
-      interrupted = true;
+      solver().getDriverOptions().out() << CommandInterrupted();
+      d_executor->reset();
       break;
     }
     if (dynamic_cast<QuitCommand*>(cc) != nullptr)
@@ -211,22 +199,15 @@ std::vector<Command> ExecutionContext::parseCommands(
 
 bool ExecutionContext::solveCommands(std::vector<Command>& cmds)
 {
-  bool interrupted = false;
   bool status = true;
   for (Command& cmd : cmds)
   {
-    if (interrupted)
+    status = d_executor->doCommand(&cmd);
+    Cmd* cc = cmd.d_cmd.get();
+    if (!status && cc->interrupted())
     {
       solver().getDriverOptions().out() << CommandInterrupted();
       d_executor->reset();
-      break;
-    }
-
-    status = d_executor->doCommand(&cmd);
-    Cmd* cc = cmd.d_cmd.get();
-    if (cc->interrupted() && status == 0)
-    {
-      interrupted = true;
       break;
     }
 
@@ -512,17 +493,15 @@ class PortfolioProcessPool
       if (child != -1 && job.d_worker != child) continue;
 
       int wstatus = 0;
-      pid_t res = 0;
       if (child == -1)
       {
-        res = waitpid(job.d_worker, &wstatus, WNOHANG);
+        pid_t res = waitpid(job.d_worker, &wstatus, WNOHANG);
         // has not terminated yet
         if (res == 0) continue;
         if (res == -1) continue;
       }
       else
       {
-        res = child;
         wstatus = status;
       }
       // mark as analyzed

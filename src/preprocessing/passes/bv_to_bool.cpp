@@ -195,7 +195,6 @@ Node BVToBool::convertBvTerm(TNode node)
   // while BITVECTOR_XOR can be n-ary
   if (kind == Kind::BITVECTOR_XOR)
   {
-    new_kind = Kind::XOR;
     Node result = convertBvTerm(node[0]);
     for (unsigned i = 1; i < node.getNumChildren(); ++i)
     {

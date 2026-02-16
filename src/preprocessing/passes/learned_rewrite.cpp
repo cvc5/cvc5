@@ -303,7 +303,7 @@ Node LearnedRewrite::rewriteLearned(Node nr,
         case Kind::INTS_DIVISION: nk = Kind::INTS_DIVISION_TOTAL; break;
         case Kind::INTS_MODULUS: nk = Kind::INTS_MODULUS_TOTAL; break;
         case Kind::DIVISION: nk = Kind::DIVISION_TOTAL; break;
-        default: Assert(false); break;
+        default: DebugUnhandled(); break;
       }
       std::vector<Node> children;
       children.insert(children.end(), nr.begin(), nr.end());

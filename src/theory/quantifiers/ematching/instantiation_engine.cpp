@@ -173,7 +173,8 @@ void InstantiationEngine::check(Theory::Effort e, QEffort quant_e)
   endCallDebug();
 }
 
-bool InstantiationEngine::checkCompleteFor( Node q ) {
+bool InstantiationEngine::checkCompleteFor(CVC5_UNUSED Node q)
+{
   //TODO?
   return false;
 }

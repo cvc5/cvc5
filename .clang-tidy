@@ -1,0 +1,6 @@
+Checks: >
+  -*,
+  clang-analyzer-deadcode.*
+HeaderFilterRegex: '.*'
+# Use .clang-format for formatting changes
+FormatStyle: file

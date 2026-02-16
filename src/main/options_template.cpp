@@ -177,8 +177,7 @@ std::string suggestCommandLineOptions(const std::string& optionName)
 {
   DidYouMean didYouMean;
 
-  const char* opt;
-  for (size_t i = 0; (opt = cmdlineOptions[i].name) != nullptr; ++i)
+  for (size_t i = 0; cmdlineOptions[i].name != nullptr; ++i)
   {
     didYouMean.addWord(std::string("--") + cmdlineOptions[i].name);
   }

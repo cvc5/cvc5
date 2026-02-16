@@ -529,7 +529,7 @@ TraceIncStatus TransitionInference::incrementTrace(DetTrace& dt,
   if (!fwd)
   {
     // only implemented in forward direction
-    Assert(false);
+    DebugUnhandled();
     return TRACE_INC_INVALID;
   }
   Component& cm = d_trans;

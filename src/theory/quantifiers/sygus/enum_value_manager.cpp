@@ -195,7 +195,7 @@ Node EnumValueManager::getEnumeratedValue(bool& activeIncomplete)
     }
     else
     {
-      Assert(false);
+      DebugUnhandled();
     }
     Node lem = exp.size() == 1 ? exp[0] : nm->mkNode(Kind::OR, exp);
     Trace("cegqi-lemma") << "Cegqi::Lemma : actively-generated enumerator "

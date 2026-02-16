@@ -21,7 +21,8 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-TypeNode QuantifierTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode QuantifierTypeRule::preComputeType(NodeManager* nm,
+                                            CVC5_UNUSED TNode n)
 {
   return nm->booleanType();
 }
@@ -88,7 +89,7 @@ TypeNode QuantifierTypeRule::computeType(NodeManager* nodeManager,
 }
 
 TypeNode QuantifierBoundVarListTypeRule::preComputeType(NodeManager* nm,
-                                                        TNode n)
+                                                        CVC5_UNUSED TNode n)
 {
   return nm->boundVarListType();
 }
@@ -115,7 +116,8 @@ TypeNode QuantifierBoundVarListTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->boundVarListType();
 }
 
-TypeNode QuantifierInstPatternTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode QuantifierInstPatternTypeRule::preComputeType(NodeManager* nm,
+                                                       CVC5_UNUSED TNode n)
 {
   return nm->instPatternType();
 }
@@ -143,7 +145,8 @@ TypeNode QuantifierInstPatternTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->instPatternType();
 }
 
-TypeNode QuantifierAnnotationTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode QuantifierAnnotationTypeRule::preComputeType(NodeManager* nm,
+                                                      CVC5_UNUSED TNode n)
 {
   return nm->instPatternType();
 }
@@ -200,7 +203,7 @@ TypeNode QuantifierAnnotationTypeRule::computeType(NodeManager* nodeManager,
 }
 
 TypeNode QuantifierInstPatternListTypeRule::preComputeType(NodeManager* nm,
-                                                           TNode n)
+                                                           CVC5_UNUSED TNode n)
 {
   return nm->instPatternListType();
 }
@@ -230,7 +233,7 @@ TypeNode QuantifierInstPatternListTypeRule::computeType(
 }
 
 TypeNode QuantifierOracleFormulaGenTypeRule::preComputeType(NodeManager* nm,
-                                                            TNode n)
+                                                            CVC5_UNUSED TNode n)
 {
   return nm->booleanType();
 }

@@ -1848,7 +1848,6 @@ bool MatchGen::getNextMatch()
     bool success = false;
     if( d_child_counter<0 ){
       if( d_child_counter<-1 ){
-        success = true;
         d_child_counter = -1;
       }
     }else{
@@ -2264,7 +2263,8 @@ bool QuantConflictFind::needsCheck( Theory::Effort level ) {
   return !d_qstate.isConflictingInst() && (level == Theory::EFFORT_FULL);
 }
 
-void QuantConflictFind::reset_round( Theory::Effort level ) {
+void QuantConflictFind::reset_round(CVC5_UNUSED Theory::Effort level)
+{
   Trace("qcf-check") << "QuantConflictFind::reset_round" << std::endl;
   Trace("qcf-check") << "Compute relevant equivalence classes..." << std::endl;
   d_eqcs.clear();

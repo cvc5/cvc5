@@ -59,7 +59,7 @@ Node OracleChecker::evaluateApp(Node app)
   bool ranOracle = caller.callOracle(app, retv);
   if (retv.size() != 1)
   {
-    Assert(false) << "Failed to evaluate " << app
+    DebugUnhandled() << "Failed to evaluate " << app
                   << " to a single return value, got: " << retv << std::endl;
     return app;
   }

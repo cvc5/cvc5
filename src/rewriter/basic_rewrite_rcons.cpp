@@ -619,7 +619,7 @@ bool BasicRewriteRCons::ensureProofMacroDtConsEq(CDProof* cdp, const Node& eq)
   {
     Trace("brc-macro") << "Failed to show " << rhs << " == " << eq[1]
                        << std::endl;
-    Assert(false) << "Failed to show " << rhs << " == " << eq[1] << std::endl;
+    DebugUnhandled() << "Failed to show " << rhs << " == " << eq[1] << std::endl;
     return false;
   }
   // use ACI_NORM
@@ -695,7 +695,7 @@ bool BasicRewriteRCons::ensureProofMacroArithStringPredEntail(CDProof* cdp,
   if (approx.isNull())
   {
     Trace("brc-macro") << "...failed to find approximation" << std::endl;
-    Assert(false);
+    DebugUnhandled();
     return false;
   }
   Node truen = nodeManager()->mkConst(true);
@@ -723,7 +723,7 @@ bool BasicRewriteRCons::ensureProofMacroArithStringPredEntail(CDProof* cdp,
     if (!ensureProofArithPolyNormRel(cdp, areq))
     {
       Trace("brc-macro") << "...failed to show normalization" << std::endl;
-      Assert(false);
+      DebugUnhandled();
       return false;
     }
     transEq.push_back(areq);
@@ -783,7 +783,7 @@ bool BasicRewriteRCons::ensureProofMacroArithStringPredEntail(CDProof* cdp,
     if (sumBound.isNull())
     {
       Trace("brc-macro") << "...failed to show normalization" << std::endl;
-      Assert(false);
+      DebugUnhandled();
       return false;
     }
     Assert(sumBound.getNumChildren() == 2);
@@ -794,7 +794,7 @@ bool BasicRewriteRCons::ensureProofMacroArithStringPredEntail(CDProof* cdp,
     {
       Trace("brc-macro") << "...failed to prove constant after normalization"
                          << std::endl;
-      Assert(false);
+      DebugUnhandled();
       return false;
     }
     Node cpred = nodeManager()->mkNode(
@@ -803,7 +803,7 @@ bool BasicRewriteRCons::ensureProofMacroArithStringPredEntail(CDProof* cdp,
     if (!ensureProofArithPolyNormRel(cdp, peq))
     {
       Trace("brc-macro") << "...failed to show normalization" << std::endl;
-      Assert(false);
+      DebugUnhandled();
       return false;
     }
     Node cceq = cpred.eqNode(ret);
@@ -827,7 +827,7 @@ bool BasicRewriteRCons::ensureProofMacroArithStringPredEntail(CDProof* cdp,
     {
       Trace("brc-macro") << "...failed to show normalization (true case) "
                          << lhs << " and " << geq << std::endl;
-      Assert(false);
+      DebugUnhandled();
       return false;
     }
     cdp->addStep(eqii, ProofRule::TRANS, {peq, teq}, {});
@@ -871,7 +871,7 @@ bool BasicRewriteRCons::ensureProofMacroReInterUnionInclusion(CDProof* cdp,
   if (diff.size() != 2)
   {
     Trace("brc-macro") << "...fail diff " << diff << std::endl;
-    Assert(false);
+    DebugUnhandled();
     return false;
   }
   // reorient so complement is second
@@ -892,7 +892,7 @@ bool BasicRewriteRCons::ensureProofMacroReInterUnionInclusion(CDProof* cdp,
   if (ret.isNull() || (ret != eq[1] && ret != eq[1][0]))
   {
     Trace("brc-macro") << "...fail target " << ret << std::endl;
-    Assert(false);
+    DebugUnhandled();
     return false;
   }
   Node equiv = d.eqNode(ret);
@@ -912,7 +912,7 @@ bool BasicRewriteRCons::ensureProofMacroReInterUnionInclusion(CDProof* cdp,
     if (!cdp->addStep(eqa, ProofRule::ACI_NORM, {}, {eqa}))
     {
       Trace("brc-macro") << "...fail aci norm " << eqa << std::endl;
-      Assert(false);
+      DebugUnhandled();
       return false;
     }
     Trace("brc-macro") << "...aci norm " << eqa << std::endl;
@@ -1035,7 +1035,7 @@ bool BasicRewriteRCons::ensureProofMacroReInterUnionConstElim(CDProof* cdp,
     Node eqa = eq[0].eqNode(curr);
     if (!cdp->addStep(eqa, ProofRule::ACI_NORM, {}, {eqa}))
     {
-      Assert(false);
+      DebugUnhandled();
       return false;
     }
     transEq.push_back(eqa);
@@ -1491,7 +1491,7 @@ bool BasicRewriteRCons::ensureProofMacroOverlap(ProofRewriteRule id,
       Node eqc = concat.eqNode(cgroup);
       if (!cdp->addStep(eqc, ProofRule::ACI_NORM, {}, {eqc}))
       {
-        Assert(false);
+        DebugUnhandled();
         return false;
       }
       premises.push_back(eqc);
@@ -1509,7 +1509,7 @@ bool BasicRewriteRCons::ensureProofMacroOverlap(ProofRewriteRule id,
     Node res = srew.rewriteViaMacroStrStripEndpoints(eq[0], nb, nc1, ne);
     if (res != eq[1])
     {
-      Assert(false);
+      DebugUnhandled();
       return false;
     }
     std::vector<Node> nc2;
@@ -1539,7 +1539,7 @@ bool BasicRewriteRCons::ensureProofMacroOverlap(ProofRewriteRule id,
       {
         Trace("brc-macro") << "...fail due to multiple stripped components"
                            << std::endl;
-        Assert(false);
+        DebugUnhandled();
         return false;
       }
       newChildren[0].push_back(vec[0]);
@@ -1589,7 +1589,7 @@ bool BasicRewriteRCons::ensureProofMacroOverlap(ProofRewriteRule id,
       Node eqc = eq[0][1].eqNode(g2);
       if (!cdp->addStep(eqc, ProofRule::ACI_NORM, {}, {eqc}))
       {
-        Assert(false);
+        DebugUnhandled();
         Trace("brc-macro") << "...failed ACI_NORM" << std::endl;
         return false;
       }
@@ -1725,7 +1725,7 @@ bool BasicRewriteRCons::ensureProofMacroStrConstNCtnConcat(CDProof* cdp,
   if (eqi.isNull())
   {
     Trace("brc-macro") << "...failed cong" << std::endl;
-    Assert(false);
+    DebugUnhandled();
     return false;
   }
   Trace("brc-macro") << "...cong " << eqi << std::endl;
@@ -1754,7 +1754,7 @@ bool BasicRewriteRCons::ensureProofMacroStrConstNCtnConcat(CDProof* cdp,
     if (!cdp->addStep(eqa, ProofRule::ACI_NORM, {}, {eqa}))
     {
       Trace("brc-macro") << "...failed ACI" << std::endl;
-      Assert(false);
+      DebugUnhandled();
       return false;
     }
     eqsf = eqi[1][1][0].eqNode(cf);
@@ -1774,7 +1774,7 @@ bool BasicRewriteRCons::ensureProofMacroStrConstNCtnConcat(CDProof* cdp,
   if (res.isNull() || res != eq[1])
   {
     Trace("brc-macro") << "...failed str in eval" << std::endl;
-    Assert(false);
+    DebugUnhandled();
     return false;
   }
   Node eqf = memc[1].eqNode(res);
@@ -1817,7 +1817,7 @@ bool BasicRewriteRCons::ensureProofMacroStrInReInclusion(CDProof* cdp,
   Trace("brc-macro") << "...returned " << res << std::endl;
   if (res.isNull())
   {
-    Assert(false);
+    DebugUnhandled();
     return false;
   }
   // should have an RE inclusion
@@ -1882,7 +1882,7 @@ bool BasicRewriteRCons::ensureProofMacroQuantMergePrenex(CDProof* cdp,
   Node qmu = rr->rewriteViaRule(ProofRewriteRule::QUANT_UNUSED_VARS, qm);
   if (qmu.isNull())
   {
-    Assert(false);
+    DebugUnhandled();
     return false;
   }
   Node equiv2 = qm.eqNode(qmu);
@@ -1895,7 +1895,7 @@ bool BasicRewriteRCons::ensureProofMacroQuantMergePrenex(CDProof* cdp,
     Node qmu2 = rr->rewriteViaRule(ProofRewriteRule::QUANT_UNUSED_VARS, eq[1]);
     if (qmu2 != qmu)
     {
-      Assert(false);
+      DebugUnhandled();
       return false;
     }
     Node equiv3 = eq[1].eqNode(qmu2);
@@ -2095,7 +2095,7 @@ bool BasicRewriteRCons::ensureProofMacroQuantPartitionConnectedFv(
           else
           {
             // variable was repeated
-            Assert(false);
+            DebugUnhandled();
             return false;
           }
         }
@@ -2119,7 +2119,7 @@ bool BasicRewriteRCons::ensureProofMacroQuantPartitionConnectedFv(
     Node eqqu = q.eqNode(uq);
     if (!cdp->addTheoryRewriteStep(eqqu, ProofRewriteRule::QUANT_UNUSED_VARS))
     {
-      Assert(false);
+      DebugUnhandled();
       return false;
     }
     transEq.emplace_back(eqqu);
@@ -2132,7 +2132,7 @@ bool BasicRewriteRCons::ensureProofMacroQuantPartitionConnectedFv(
     Node eqqr = q.eqNode(rq);
     if (!cdp->addStep(eqqr, ProofRule::QUANT_VAR_REORDERING, {}, {eqqr}))
     {
-      Assert(false);
+      DebugUnhandled();
       return false;
     }
     transEq.emplace_back(eqqr);
@@ -2144,7 +2144,7 @@ bool BasicRewriteRCons::ensureProofMacroQuantPartitionConnectedFv(
   //   (forall X F) = (forall X F1 or ... or Fn)
   if (!cdp->addStep(eqb, ProofRule::ACI_NORM, {}, {eqb}))
   {
-    Assert(false);
+    DebugUnhandled();
     return false;
   }
   Node newQuant = nm->mkNode(Kind::FORALL, q[0], newBody);
@@ -2159,7 +2159,7 @@ bool BasicRewriteRCons::ensureProofMacroQuantPartitionConnectedFv(
   // via ProofRewriteRule::QUANT_MINISCOPE_OR.
   if (!cdp->addTheoryRewriteStep(eqq2, ProofRewriteRule::QUANT_MINISCOPE_OR))
   {
-    Assert(false);
+    DebugUnhandled();
     return false;
   }
   transEq.emplace_back(eqq2);
@@ -2187,7 +2187,7 @@ bool BasicRewriteRCons::ensureProofMacroQuantVarElimEq(CDProof* cdp,
   if (args.size() != q[0].getNumChildren() - 1)
   {
     // should have eliminated exactly one variable
-    Assert(false);
+    DebugUnhandled();
     return false;
   }
   Assert(vars.size() == 1);
@@ -2788,7 +2788,7 @@ bool BasicRewriteRCons::ensureProofMacroQuantMiniscope(CDProof* cdp,
   }
   if (mq.getNumChildren() != eq[1].getNumChildren())
   {
-    Assert(false) << "Unexpected input ensureProofMacroQuantMiniscope " << eq;
+    DebugUnhandled() << "Unexpected input ensureProofMacroQuantMiniscope " << eq;
     return false;
   }
   ProofChecker* pc = d_env.getProofNodeManager()->getChecker();
@@ -2831,7 +2831,7 @@ bool BasicRewriteRCons::ensureProofMacroQuantMiniscope(CDProof* cdp,
         continue;
       }
     }
-    Assert(false) << "Failed ensureProofMacroQuantMiniscope " << eq;
+    DebugUnhandled() << "Failed ensureProofMacroQuantMiniscope " << eq;
     return false;
   }
   // add the CONG step to conclude AND or ITE terms are equal
@@ -2864,7 +2864,7 @@ bool BasicRewriteRCons::ensureProofMacroQuantRewriteBody(CDProof* cdp,
   Node qr = qrew.computeRewriteBody(eq[0], &tcpg);
   if (qr != eq[1])
   {
-    Assert(false) << "Failed to rewrite " << eq[0] << " to " << qr
+    DebugUnhandled() << "Failed to rewrite " << eq[0] << " to " << qr
                   << " != " << eq[1];
     return false;
   }
@@ -2930,7 +2930,7 @@ bool BasicRewriteRCons::ensureProofMacroElimShadow(CDProof* cdp, const Node& eq)
     cdp->addProof(pfn);
     return true;
   } 
-  Assert(false);
+  DebugUnhandled();
   return false;
 }
 
@@ -2949,7 +2949,7 @@ bool BasicRewriteRCons::ensureProofMacroArraysNormalizeOp(CDProof* cdp,
     return true;
   }
   Trace("brc-macro") << "...failed, got " << pfn->getResult()[1] << std::endl;
-  Assert(false);
+  DebugUnhandled();
   return false;
 }
 

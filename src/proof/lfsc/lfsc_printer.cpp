@@ -869,7 +869,7 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
       ProofRewriteRule di = ProofRewriteRule::NONE;
       if (!rewriter::getRewriteRule(args[0], di))
       {
-        Assert(false);
+        DebugUnhandled();
       }
       Trace("lfsc-print-debug2") << "Printing dsl rule " << di << std::endl;
       const rewriter::RewriteProofRule& rpr = d_rdb->getRule(di);

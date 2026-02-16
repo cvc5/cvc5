@@ -33,7 +33,7 @@ Node makeStandardModelConstant(NodeManager* nm,
   {
     for (unsigned i = 0, vsize = vec.size(); i < vsize; i++)
     {
-      unsigned curr = vec[i];
+      unsigned curr;
       // convert
       Assert(vec[i] < cardinality);
       if (vec[i] <= 61)

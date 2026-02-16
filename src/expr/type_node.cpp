@@ -197,7 +197,7 @@ CardinalityClass TypeNode::getCardinalityClass()
     else
     {
       // all types we care about should be handled above
-      Assert(false) << *this;
+      DebugUnhandled() << *this;
     }
   }
   setAttribute(TypeCardinalityClassAttr(), static_cast<uint64_t>(ret));

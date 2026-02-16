@@ -436,7 +436,7 @@ int64_t Integer::getSigned64() const
     }
     catch (const std::exception& e)
     {
-      Assert(false) << "Overflow detected in Integer::getSigned64().";
+      DebugUnhandled() << "Overflow detected in Integer::getSigned64().";
     }
   }
   return 0;
@@ -460,7 +460,7 @@ uint64_t Integer::getUnsigned64() const
     }
     catch (const std::exception& e)
     {
-      Assert(false) << "Overflow detected in Integer::getUnsigned64().";
+      DebugUnhandled() << "Overflow detected in Integer::getUnsigned64().";
     }
   }
   return 0;
