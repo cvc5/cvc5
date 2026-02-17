@@ -83,7 +83,7 @@ Node TheoryBoolRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
     break;
     case ProofRewriteRule::MACRO_BOOL_EQ_CONST_EQ:
     {
-      if (n.getKind()==Kind::EQUAL)
+      if (n.getKind() == Kind::EQUAL)
       {
         return rewriteViaEqConstEq(n);
       }
@@ -703,7 +703,8 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
       Node ret = rewriteViaEqConstEq(n);
       if (!ret.isNull())
       {
-        return RewriteResponse(ret.isConst() ? REWRITE_DONE : REWRITE_AGAIN, ret);
+        return RewriteResponse(ret.isConst() ? REWRITE_DONE : REWRITE_AGAIN,
+                               ret);
       }
       // sort
       if (n[0].getId() > n[1].getId())
@@ -953,9 +954,8 @@ Node TheoryBoolRewriter::rewriteViaEqConstEq(const Node& n) const
       {
         // if there were 2 distinct constants, the cardinality should be at
         // least 2.
-        Assert (!t.getType().isCardinalityLessThan(2));
-        Node neitherEquality =
-            (n[0].notNode()).andNode(n[1].notNode());
+        Assert(!t.getType().isCardinalityLessThan(2));
+        Node neitherEquality = (n[0].notNode()).andNode(n[1].notNode());
         return neitherEquality;
       }
     }
