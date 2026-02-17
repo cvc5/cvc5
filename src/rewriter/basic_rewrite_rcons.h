@@ -133,6 +133,15 @@ class BasicRewriteRCons : protected EnvObj
   bool ensureProofMacroBoolNnfNorm(CDProof* cdp, const Node& eq);
   /**
    * Elaborate a rewrite eq that was proven by
+   * ProofRewriteRule::MACRO__BOOL_EQ_CONST_EQ.
+   *
+   * @param cdp The proof to add to.
+   * @param eq The rewrite proven by ProofRewriteRule::MACRO__BOOL_EQ_CONST_EQ.
+   * @return true if added a closed proof of eq to cdp.
+   */
+  bool ensureProofMacroBoolEqConstEq(CDProof* cdp, const Node& eq);
+  /**
+   * Elaborate a rewrite eq that was proven by
    * ProofRewriteRule::MACRO_BOOL_BV_INVERT_SOLVE.
    *
    * @param cdp The proof to add to.
