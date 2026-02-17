@@ -417,11 +417,10 @@ bool BasicRewriteRCons::ensureProofMacroBoolEqConstEq(CDProof* cdp,
   Assert(eq[0].getKind() == Kind::EQUAL);
   Assert(eq[0][0].getKind() == Kind::EQUAL
          && eq[0][1].getKind() == Kind::EQUAL);
-  if (eq[0][0]==eq[0][1])
+  if (eq[0][0] == eq[0][1])
   {
     // true case is handled by RARE rule eq-refl
-    cdp->addTrustedStep(
-        eq, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE, {}, {});
+    cdp->addTrustedStep(eq, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE, {}, {});
     return true;
   }
   // orient the equalities properly
@@ -448,8 +447,7 @@ bool BasicRewriteRCons::ensureProofMacroBoolEqConstEq(CDProof* cdp,
   if (equiv1[0] == equiv1[1])
   {
     // no flipping was necessary, should be RARE rule eq-cond-deq
-    cdp->addTrustedStep(
-        eq, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE, {}, {});
+    cdp->addTrustedStep(eq, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE, {}, {});
     return true;
   }
   Node equiv2 = equiv1[1].eqNode(eq[1]);
