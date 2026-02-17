@@ -163,7 +163,7 @@ bool allVarsAssigned(const CoCoA::ideal& ideal)
 
 std::unique_ptr<AssignmentEnumerator> applyRule(const CoCoA::ideal& ideal)
 {
-  CoCoA::ring polyRing = ideal->myRing();
+  CoCoA::PolyRing polyRing(ideal->myRing());
   Assert(!isUnsat(ideal));
   // first, we look for super-linear univariate polynomials.
   Assert(CoCoA::HasGBasis(ideal));

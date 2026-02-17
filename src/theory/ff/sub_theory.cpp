@@ -113,7 +113,8 @@ Result SubTheory::postCheck(Theory::Effort e)
                           enc.bitsumPolys().end());
         if (options().ff.ffFieldPolys)
         {
-          for (const auto& var : CoCoA::indets(enc.polyRing()))
+          CoCoA::PolyRing polyRing(enc.polyRing());
+          for (const auto& var : CoCoA::indets(polyRing))
           {
             CoCoA::BigInt characteristic = CoCoA::characteristic(coeffRing());
             const long power = CoCoA::LogCardinality(coeffRing());
