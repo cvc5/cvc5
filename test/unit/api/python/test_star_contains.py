@@ -51,12 +51,12 @@ def test_disjoint_union_unsat(tm, solver):
     z_nonnegative = tm.mkTerm(Kind.GEQ, z, zero)
 
     vars = tm.mkTerm(Kind.VARIABLE_LIST, x, y, z)
-    tuple = tm.mkTuple([a, b, c])
 
     plus_x_y = tm.mkTerm(Kind.ADD, x, y)
     equal = z.eqTerm(plus_x_y)
     body = tm.mkTerm(Kind.AND, x_nonnegative, y_nonnegative, z_nonnegative, equal)
-    star_contains = tm.mkTerm(Kind.STAR_CONTAINS, vars, body, tuple)
+    lam = tm.mkTerm(Kind.LAMBDA, vars, body)
+    star_contains = tm.mkTerm(Kind.STAR_CONTAINS, lam, a, b, c)
     solver.assertFormula(star_contains)
     r = solver.checkSat()
     assert r.isUnsat()
