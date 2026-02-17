@@ -88,7 +88,9 @@ InstStrategyAutoGenTriggers::InstStrategyAutoGenTriggers(
   }
 }
 
-void InstStrategyAutoGenTriggers::processResetInstantiationRound( Theory::Effort effort ){
+void InstStrategyAutoGenTriggers::processResetInstantiationRound(
+    CVC5_UNUSED Theory::Effort effort)
+{
   Trace("inst-alg-debug") << "reset auto-gen triggers" << std::endl;
   //reset triggers
   for( unsigned r=0; r<2; r++ ){
@@ -109,9 +111,8 @@ void InstStrategyAutoGenTriggers::processResetInstantiationRound( Theory::Effort
   Trace("inst-alg-debug") << "done reset auto-gen triggers" << std::endl;
 }
 
-InstStrategyStatus InstStrategyAutoGenTriggers::process(Node f,
-                                                        Theory::Effort effort,
-                                                        int e)
+InstStrategyStatus InstStrategyAutoGenTriggers::process(
+    Node f, CVC5_UNUSED Theory::Effort effort, int e)
 {
   options::UserPatMode upMode = getInstUserPatMode();
   // we don't auto-generate triggers if the mode is trust or strict

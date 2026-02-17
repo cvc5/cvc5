@@ -88,8 +88,10 @@ bool EvalSygusInvarianceTest::invariant(TermDbSygus* tds, Node nvn, Node x)
   return d_is_conjunctive;
 }
 
-void EquivSygusInvarianceTest::init(
-    TermDbSygus* tds, TypeNode tn, SynthConjecture* aconj, Node e, Node bvr)
+void EquivSygusInvarianceTest::init(TermDbSygus* tds,
+                                    SynthConjecture* aconj,
+                                    Node e,
+                                    Node bvr)
 {
   // compute the current examples
   d_bvr = bvr;

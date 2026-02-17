@@ -187,8 +187,7 @@ class EquivSygusInvarianceTest : public SygusInvarianceTest
    * bvr is the builtin version of the right hand side of the rewrite that we
    * are checking for invariance
    */
-  void init(
-      TermDbSygus* tds, TypeNode tn, SynthConjecture* aconj, Node e, Node bvr);
+  void init(TermDbSygus* tds, SynthConjecture* aconj, Node e, Node bvr);
 
  protected:
   /** checks whether the analog of nvn still rewrites to d_bvr */

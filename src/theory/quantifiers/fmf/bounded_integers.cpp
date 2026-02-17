@@ -348,7 +348,7 @@ bool BoundedIntegers::needsCheck( Theory::Effort e ) {
   return e==Theory::EFFORT_LAST_CALL;
 }
 
-void BoundedIntegers::check(Theory::Effort e, QEffort quant_e)
+void BoundedIntegers::check(CVC5_UNUSED Theory::Effort e, QEffort quant_e)
 {
   if (quant_e != QEFFORT_STANDARD)
   {

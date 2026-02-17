@@ -58,7 +58,7 @@ bool ModelEngine::needsCheck( Theory::Effort e ) {
   return e==Theory::EFFORT_LAST_CALL;
 }
 
-QuantifiersModule::QEffort ModelEngine::needsModel(Theory::Effort e)
+QuantifiersModule::QEffort ModelEngine::needsModel(CVC5_UNUSED Theory::Effort e)
 {
   if (options().quantifiers.mbqiInterleave)
   {
@@ -70,10 +70,11 @@ QuantifiersModule::QEffort ModelEngine::needsModel(Theory::Effort e)
   }
 }
 
-void ModelEngine::reset_round( Theory::Effort e ) {
+void ModelEngine::reset_round(CVC5_UNUSED Theory::Effort e)
+{
   d_incomplete_check = true;
 }
-void ModelEngine::check(Theory::Effort e, QEffort quant_e)
+void ModelEngine::check(CVC5_UNUSED Theory::Effort e, QEffort quant_e)
 {
   bool doCheck = false;
   if (options().quantifiers.mbqiInterleave)

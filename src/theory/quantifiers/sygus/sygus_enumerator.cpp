@@ -135,7 +135,7 @@ void SygusEnumerator::initialize(Node e)
   }
 }
 
-void SygusEnumerator::addValue(Node v)
+void SygusEnumerator::addValue(CVC5_UNUSED Node v)
 {
   // do nothing
 }

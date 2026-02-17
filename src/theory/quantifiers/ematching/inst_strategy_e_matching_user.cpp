@@ -44,7 +44,7 @@ std::string InstStrategyUserPatterns::identify() const
 }
 
 void InstStrategyUserPatterns::processResetInstantiationRound(
-    Theory::Effort effort)
+    CVC5_UNUSED Theory::Effort effort)
 {
   Trace("inst-alg-debug") << "reset user triggers" << std::endl;
   // reset triggers
@@ -59,9 +59,8 @@ void InstStrategyUserPatterns::processResetInstantiationRound(
   Trace("inst-alg-debug") << "done reset user triggers" << std::endl;
 }
 
-InstStrategyStatus InstStrategyUserPatterns::process(Node q,
-                                                     Theory::Effort effort,
-                                                     int e)
+InstStrategyStatus InstStrategyUserPatterns::process(
+    Node q, CVC5_UNUSED Theory::Effort effort, int e)
 {
   if (e == 0)
   {

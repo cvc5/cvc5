@@ -136,16 +136,13 @@ class MbqiEnum : protected EnvObj
    * @param mvs The model values of vars found in the subsolver for MBQI.
    * @param mvFreshVar Maps model values to variables, for the purposes
    * of representing term models for uninterpreted sorts.
-   * @param auxLemmas Other lemmas to add.
    * @return true if we successfully modified the instantiation.
    */
-  bool constructInstantiation(
-      const Node& q,
-      const Node& query,
-      const std::vector<Node>& vars,
-      std::vector<Node>& mvs,
-      const std::map<Node, Node>& mvFreshVar,
-      std::vector<std::pair<Node, InferenceId>>& auxLemmas);
+  bool constructInstantiation(const Node& q,
+                              const Node& query,
+                              const std::vector<Node>& vars,
+                              std::vector<Node>& mvs,
+                              const std::map<Node, Node>& mvFreshVar);
 
  private:
   /**

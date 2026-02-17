@@ -229,7 +229,7 @@ class QuantifiersRewriter : public TheoryRewriter
                      std::vector<Node>& nargs,
                      bool pol,
                      bool prenexAgg) const;
-  Node computeSplit(std::vector<Node>& args, Node body, QAttributes& qa) const;
+  Node computeSplit(std::vector<Node>& args, Node body) const;
 
   static bool isPrenexNormalForm(Node n);
   Node mkForAll(const std::vector<Node>& args,

@@ -111,10 +111,7 @@ class InstStrategyCegqi : public QuantifiersModule
    * Returns a TrustNode of kind REWRITE, corresponding to the rewrite and its
    * proof generator.
    */
-  TrustNode rewriteInstantiation(Node q,
-                                 const std::vector<Node>& terms,
-                                 Node inst,
-                                 bool doVts);
+  TrustNode rewriteInstantiation(Node inst, bool doVts);
   /** get the instantiation rewriter object */
   InstantiationRewriter* getInstRewriter() const;
 
@@ -193,7 +190,7 @@ class InstStrategyCegqi : public QuantifiersModule
    */
   bool processNestedQe(Node q, bool isPreregister);
   /** process functions */
-  void process(Node q, Theory::Effort effort, int e);
+  void process(Node q, int e);
   /**
    * Get counterexample literal. This is the fresh Boolean variable whose
    * semantics is "there exists a set of values for which the body of

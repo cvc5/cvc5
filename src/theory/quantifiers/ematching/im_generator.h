@@ -70,7 +70,7 @@ class IMGenerator : protected EnvObj
    * otherwise. An example of when it returns false is if it can be determined
    * that no appropriate matchable terms occur based on eqc.
    */
-  virtual bool reset(Node eqc) { return true; }
+  virtual bool reset(CVC5_UNUSED Node eqc) { return true; }
   /** Get the next match.
    *
    * Must call reset( eqc ) before this function. This constructs an
@@ -80,7 +80,7 @@ class IMGenerator : protected EnvObj
    * @param m the InstMatch object we are generating
    * @return a value >0 if an instantiation was successfully generated
    */
-  virtual int getNextMatch(InstMatch& m) { return 0; }
+  virtual int getNextMatch(CVC5_UNUSED InstMatch& m) { return 0; }
   /** add instantiations
    *
    * This adds all available instantiations for the quantified formula of m
@@ -90,7 +90,7 @@ class IMGenerator : protected EnvObj
    * It returns the number of instantiations added using calls to
    * Instantiate::addInstantiation(...).
    */
-  virtual uint64_t addInstantiations(InstMatch& m) { return 0; }
+  virtual uint64_t addInstantiations(CVC5_UNUSED InstMatch& m) { return 0; }
   /** get active score
    *
    * A heuristic value indicating how active this generator is.

@@ -32,7 +32,7 @@ bool Instantiator::processEqualTerm(CegInstantiator* ci,
                                     Node pv,
                                     TermProperties& pv_prop,
                                     Node n,
-                                    CegInstEffort effort)
+                                    CVC5_UNUSED CegInstEffort effort)
 {
   pv_prop.d_type = CEG_TT_EQUAL;
   return ci->constructInstantiationInc(pv, n, pv_prop, sf);

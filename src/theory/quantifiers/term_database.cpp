@@ -532,7 +532,9 @@ void TermDb::computeUfTerms( TNode f ) {
 
 Node TermDb::getOperatorRepresentative(TNode op) const { return op; }
 
-bool TermDb::checkCongruentDisequal(TNode a, TNode b, std::vector<Node>& exp)
+bool TermDb::checkCongruentDisequal(TNode a,
+                                    TNode b,
+                                    CVC5_UNUSED std::vector<Node>& exp)
 {
   if (d_qstate.areDisequal(a, b))
   {
@@ -645,13 +647,13 @@ Node TermDb::getEligibleTermInEqc( TNode r ) {
   }
 }
 
-bool TermDb::finishResetInternal(Theory::Effort e)
+bool TermDb::finishResetInternal(CVC5_UNUSED Theory::Effort e)
 {
   // do nothing
   return true;
 }
 
-void TermDb::addTermInternal(Node n)
+void TermDb::addTermInternal(CVC5_UNUSED Node n)
 {
   // do nothing
 }

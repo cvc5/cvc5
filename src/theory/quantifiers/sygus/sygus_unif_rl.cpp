@@ -73,7 +73,9 @@ void SygusUnifRl::initializeCandidate(
   d_useCondPoolIGain = mode == options::SygusUnifPiMode::CENUM_IGAIN;
 }
 
-void SygusUnifRl::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
+void SygusUnifRl::notifyEnumeration(CVC5_UNUSED Node e,
+                                    CVC5_UNUSED Node v,
+                                    CVC5_UNUSED std::vector<Node>& lemmas)
 {
   // we do not use notify enumeration
   DebugUnhandled();
@@ -298,7 +300,7 @@ Node SygusUnifRl::addRefLemma(Node lemma,
 }
 
 void SygusUnifRl::initializeConstructSol() {}
-void SygusUnifRl::initializeConstructSolFor(Node f) {}
+void SygusUnifRl::initializeConstructSolFor(CVC5_UNUSED Node f) {}
 bool SygusUnifRl::constructSolution(std::vector<Node>& sols,
                                     std::vector<Node>& lemmas)
 {
@@ -577,12 +579,11 @@ Node SygusUnifRl::DecisionTreeInfo::buildSol(Node cons,
   // reset the trie
   d_pt_sep.d_trie.clear();
   return d_unif->usingConditionPool()
-             ? buildSolAllCond(cons, lemmas, shuffleCond, condIndNoRepeatSol)
+             ? buildSolAllCond(cons, shuffleCond, condIndNoRepeatSol)
              : buildSolMinCond(cons, lemmas);
 }
 
 Node SygusUnifRl::DecisionTreeInfo::buildSolAllCond(Node cons,
-                                                    std::vector<Node>& lemmas,
                                                     bool shuffleCond,
                                                     bool condIndNoRepeatSol)
 {
@@ -1079,18 +1080,17 @@ void SygusUnifRl::DecisionTreeInfo::buildDtInfoGain(std::vector<Node>& hds,
   double maxgain = -1;
   unsigned picked_cond = 0;
   std::vector<std::pair<std::vector<Node>, std::vector<Node>>> splits;
-  double current_set_entropy = getEntropy(hds, hd_mv, ind);
+  double current_set_entropy = getEntropy(hds, hd_mv);
   for (unsigned j = 0, conds_size = conds.size(); j < conds_size; ++j)
   {
     std::pair<std::vector<Node>, std::vector<Node>> split =
         evaluateCond(hds, conds[j]);
     splits.push_back(split);
     Assert(hds.size() == split.first.size() + split.second.size());
-    double gain =
-        current_set_entropy
-        - (split.first.size() * getEntropy(split.first, hd_mv, ind)
-           + split.second.size() * getEntropy(split.second, hd_mv, ind))
-              / hds.size();
+    double gain = current_set_entropy
+                  - (split.first.size() * getEntropy(split.first, hd_mv)
+                     + split.second.size() * getEntropy(split.second, hd_mv))
+                        / hds.size();
     indent("sygus-unif-dt-debug", ind);
     Trace("sygus-unif-dt-debug")
         << "..gain of "
@@ -1135,8 +1135,7 @@ SygusUnifRl::DecisionTreeInfo::evaluateCond(std::vector<Node>& pts, Node cond)
 }
 
 double SygusUnifRl::DecisionTreeInfo::getEntropy(const std::vector<Node>& hds,
-                                                 std::map<Node, Node>& hd_mv,
-                                                 int ind)
+                                                 std::map<Node, Node>& hd_mv)
 {
   double p = 0, n = 0;
   TermDbSygus* tds = d_unif->d_tds;

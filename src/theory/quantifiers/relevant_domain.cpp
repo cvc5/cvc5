@@ -108,12 +108,13 @@ RelevantDomain::RDomain* RelevantDomain::getRDomain(Node n,
   return getParent ? d_rel_doms[n][i]->getParent() : d_rel_doms[n][i];
 }
 
-bool RelevantDomain::reset( Theory::Effort e ) {
+bool RelevantDomain::reset(CVC5_UNUSED Theory::Effort e)
+{
   d_is_computed = false;
   return true;
 }
 
-void RelevantDomain::registerQuantifier(Node q) {}
+void RelevantDomain::registerQuantifier(CVC5_UNUSED Node q) {}
 void RelevantDomain::compute(){
   if( !d_is_computed ){
     d_is_computed = true;
