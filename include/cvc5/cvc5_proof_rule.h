@@ -2621,10 +2621,9 @@ enum ENUM(ProofRewriteRule)
    *   ((t = c) = (t = d)) = s
    *
    * where :math:`c` and :math:`d` are values, and :math:`s` is
-   * one of :math:`\neg (t = c) \wedge \neg (t = d)`, :math:`\top`, or
-   * :math:`\bot`, depending on if :math:`c` and :math:`d` are distinct
-   * and the cardinality of their type. Also applies where one or both
-   * equalities are flipped.
+   * one of :math:`\neg (t = c) \wedge \neg (t = d)` or :math:`\top`
+   * depending on if :math:`c` and :math:`d` are distinct. Also applies where
+   * one or both equalities are flipped.
    *
    * \endverbatim
    */
