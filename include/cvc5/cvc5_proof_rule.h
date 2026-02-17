@@ -2614,6 +2614,23 @@ enum ENUM(ProofRewriteRule)
   EVALUE(MACRO_BOOL_NNF_NORM),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Booleans -- Macro equality to constant equality**
+   *
+   * .. math::
+   *
+   *   ((t = c) = (t = d)) = s
+   *
+   * where :math:`c` and :math:`d` are values, and :math:`s` is
+   * one of :math:`\neg (t = c) \wedge \neg (t = d)`, :math:`\top`, or
+   * :math:`\bot`, depending on if :math:`c` and :math:`d` are distinct
+   * and the cardinality of their type. Also applies where one or both
+   * equalities are flipped.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_BOOL_EQ_CONST_EQ),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Booleans -- Bitvector invert solve**
    *
    * .. math::
