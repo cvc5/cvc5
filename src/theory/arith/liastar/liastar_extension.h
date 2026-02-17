@@ -24,7 +24,6 @@
 #include "expr/node.h"
 #include "libnormaliz/libnormaliz.h"
 #include "smt/env_obj.h"
-#include "theory/arith/liastar/liastar_ext_theory_callback.h"
 #include "theory/arith/linear/normal_form.h"
 #include "theory/ext_theory.h"
 #include "theory/theory.h"
@@ -154,7 +153,7 @@ class LiaStarExtension : EnvObj
    * (modelBasedRefinement). This counter is used for interleaving strategies.
    */
   unsigned d_checkCounter;
-  LiaStarExtTheoryCallback d_extTheoryCb;
+  ExtTheoryCallback d_extTheoryCb;
   /** Extended theory, responsible for context-dependent simplification. */
   ExtTheory d_extTheory;
   /** Do we have any liaStar terms? */

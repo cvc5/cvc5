@@ -64,7 +64,7 @@ LiaStarExtension::LiaStarExtension(Env& env, TheoryArith& containing)
       d_astate(*containing.getTheoryState()),
       d_im(containing.getInferenceManager()),
       d_checkCounter(0),
-      d_extTheoryCb(d_astate.getEqualityEngine()),
+      d_extTheoryCb(),
       d_extTheory(env, d_extTheoryCb, d_im),
       d_hasLiaStarTerms(context(), false)
 {
