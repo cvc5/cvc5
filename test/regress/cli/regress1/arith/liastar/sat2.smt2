@@ -1,24 +1,20 @@
 ; REQUIRES: normaliz
-(set-logic ALL)
+(set-logic HO_ALL)
 (set-info :status sat)
-(define-fun predicate
-  (
-     (t1 (Tuple Int Int Int)) 
-     (t2 (Tuple Int Int Int)) 
-     (t3 (Tuple Int Int Int))) Bool
- (and 
-   (= ((_ tuple.select 0) t1) (+ ((_ tuple.select 0) t2) ((_ tuple.select 0) t3)))
-   (= ((_ tuple.select 1) t1) (+ ((_ tuple.select 1) t2) ((_ tuple.select 1) t3)))
-   (= ((_ tuple.select 2) t1) (+ ((_ tuple.select 2) t2) ((_ tuple.select 2) t3)))
- )
-)
-(declare-const v (Tuple Int Int Int))
-(declare-const v1 (Tuple Int Int Int))
-(declare-const v2 (Tuple Int Int Int))
-(assert (predicate v v1 v2))
-(assert (distinct v v1 v2))
-(assert (int.star-contains ((x Int) (y Int) (z Int)) (= x (+ y z)) v))
-(assert (int.star-contains ((x Int) (y Int) (z Int)) (= x (+ y z)) v1))
-(assert (int.star-contains ((x Int) (y Int) (z Int)) (= x (+ y z)) v2))
+
+(declare-const v1_x Int)
+(declare-const v1_y Int)
+(declare-const v1_z Int)
+(declare-const v2_x Int)
+(declare-const v2_y Int)
+(declare-const v2_z Int)
+(declare-const v3_x Int)
+(declare-const v3_y Int)
+(declare-const v3_z Int)
+
+(assert (distinct v1_x v1_y v1_z v2_x v2_y v2_z v3_x v3_y v3_z))
+(assert (int.star-contains (lambda ((x Int) (y Int) (z Int)) (= x (+ y z))) v1_x v1_y v1_z))
+(assert (int.star-contains (lambda ((x Int) (y Int) (z Int)) (= x (+ y z))) v2_x v2_y v2_z))
+(assert (int.star-contains (lambda ((x Int) (y Int) (z Int)) (= x (+ y z))) v3_x v3_y v3_z))
 
 (check-sat)

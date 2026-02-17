@@ -1079,26 +1079,26 @@ RewriteResponse ArithRewriter::rewriteStarContains(TNode t)
 {
   Assert(t.getKind() == Kind::STAR_CONTAINS);
 #ifdef CVC5_USE_NORMALIZ
-  Node ys = t[2];
-  // if ys is the zero vector, return true
-  std::vector<Node> elements = datatypes::TupleUtils::getTupleElements(ys);
-  bool isZero = true;
-  for (const Node& e : elements)
-  {
-    if (!e.isConst() || !e.getConst<Rational>().isZero())
-    {
-      isZero = false;
-      break;
-    }
-  }
+  // if the vector is zero, return true
+  std::vector<Node> elements(t.begin() + 1, t.end());
+  bool isZero =
+      std::all_of(elements.begin(), elements.end(), [](const Node& e) {
+        return e.isConst() && e.getConst<Rational>().isZero();
+      });
+
   NodeManager* nm = nodeManager();
   if (isZero)
   {
     return RewriteResponse(REWRITE_DONE, nm->mkConst(true));
   }
-  // if the vector is a constant vector, we can evaluate the predicate
+
+  bool allConst = std::all_of(elements.begin(),
+                              elements.end(),
+                              [](const Node& e) { return e.isConst(); });
+
+  // if the vector is constant, we can evaluate the predicate
   // and see if it holds.
-  if (ys.isConst())
+  if (allConst)
   {
     auto [vectorPredicate, nonnegative] =
         liastar::LiaStarUtils::getVectorPredicate(t, nm);

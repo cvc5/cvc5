@@ -32,22 +32,15 @@ namespace liastar {
 std::pair<Node, Node> LiaStarUtils::getVectorPredicate(Node n, NodeManager* nm)
 {
   Assert(n.getKind() == Kind::STAR_CONTAINS);
-  Node variables = n[0];
-  Node predicate = n[1];
-  Node vec = n[2];
+  Node lambda = n[0];
+  std::vector<Node> vars(lambda[0].begin(), lambda[0].end());
+  std::vector<Node> vecElements(n.begin() + 1, n.end());
 
-  std::unordered_set<Node> boundVariables;
-  for (const auto& v : variables)
-  {
-    boundVariables.insert(v);
-  }
-  std::vector<Node> vecElements = datatypes::TupleUtils::getTupleElements(vec);
-  Node substitute = predicate.substitute(variables.begin(),
-                                         variables.end(),
-                                         vecElements.begin(),
-                                         vecElements.end());
+  Node substitute = lambda[1].substitute(
+      vars.begin(), vars.end(), vecElements.begin(), vecElements.end());
+
   Trace("liastar-ext-debug") << "n: " << n << std::endl;
-  Trace("liastar-ext-debug") << "predicate: " << predicate << std::endl;
+  Trace("liastar-ext-debug") << "predicate : " << lambda[1] << std::endl;
   Node nonnegativeConstraints = nm->mkConst<bool>(true);
   for (const auto& v : vecElements)
   {

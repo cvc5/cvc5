@@ -321,99 +321,99 @@ TypeNode StarContainsTypeRule::computeType(NodeManager* nodeManager,
                                            std::ostream* errOut)
 {
   Assert(n.getKind() == Kind::STAR_CONTAINS);
-  Node xs = n[0];
-  Node p = n[1];
-  TypeNode ys = n[2].getTypeOrNull();
-  if (xs.isNull() || xs.isNull() || p.isNull())
+  if (check)
   {
-    if (errOut)
+    // the first argument should be a lambda
+    Node lambda = n[0];
+    // remaining arguments should be elements of integer type
+    std::vector<Node> arguments;
+    for (size_t i = 1; i < n.getNumChildren(); i++)
     {
-      (*errOut) << "expecting concrete types for STAR_CONTAINS operator";
+      arguments.push_back(n[i]);
     }
-    return TypeNode::null();
-  }
 
-  if (xs.getKind() != Kind::BOUND_VAR_LIST)
-  {
-    if (errOut)
-    {
-      (*errOut) << "expecting a list of bound variables for the first "
-                   "argument of STAR_CONTAINS operator";
-    }
-    return TypeNode::null();
-  }
-  std::unordered_set<Node> boundVariables;
-  for (const auto& x : xs)
-  {
-    if (!x.getType().isInteger())
+    bool anyIsNull = std::any_of(
+        arguments.begin(), arguments.end(), [](Node x) { return x.isNull(); });
+
+    if (lambda.isNull() || anyIsNull)
     {
       if (errOut)
       {
-        (*errOut) << "expecting a list of bound variables of integer type for "
-                     "the first argument of STAR_CONTAINS operator";
+        (*errOut) << "expecting concrete types for STAR_CONTAINS operator";
       }
       return TypeNode::null();
     }
-    boundVariables.insert(x);
-  }
-  if (!p.getType().isBoolean())
-  {
-    if (errOut)
-    {
-      (*errOut) << "expecting a predicate for the second argument of "
-                   "STAR_CONTAINS operator";
-    }
-    return TypeNode::null();
-  }
-  std::unordered_set<Node> freeVariables;
-  expr::getFreeVariables(p, freeVariables);
-  for (const auto& freeVariable : freeVariables)
-  {
-    if (boundVariables.count(freeVariable) == 0)
+
+    if (lambda.getKind() != Kind::LAMBDA)
     {
       if (errOut)
       {
-        (*errOut) << "expecting the predicate to contain only free variables "
-                     "of the first argument of STAR_CONTAINS operator";
+        (*errOut)
+            << "STAR_CONTAINS operator only allows lambdas as a first argument";
+      }
+      return TypeNode::null();
+    }
+
+    TypeNode functionType = lambda.getType();
+    if (!(functionType.isFunction()))
+    {
+      if (errOut)
+      {
+        (*errOut) << "Operator " << n.getKind()
+                  << " expects a function as a first argument. "
+                  << "Found a term of type '" << functionType << "'.";
+      }
+      return TypeNode::null();
+    }
+
+    std::vector<TypeNode> argTypes = functionType.getArgTypes();
+    bool allInt = std::all_of(argTypes.begin(), argTypes.end(), [](TypeNode x) {
+      return x.isInteger();
+    });
+
+    if (!(allInt && functionType.getRangeType() == nodeManager->booleanType()))
+    {
+      if (errOut)
+      {
+        (*errOut) << "Operator " << n.getKind()
+                  << " expects a function that accepts only integer arguments "
+                     "and returns a boolean."
+                  << "Found a function of type '" << functionType << "'.";
+      }
+      return TypeNode::null();
+    }
+
+    if (argTypes.size() != arguments.size())
+    {
+      if (errOut)
+      {
+        (*errOut) << "The number of arguments " << arguments.size()
+                  << "does not match the number of function arguments "
+                  << argTypes.size();
+      }
+      return TypeNode::null();
+    }
+
+    allInt = std::all_of(arguments.begin(), arguments.end(), [](Node x) {
+      return x.getType().isInteger();
+    });
+
+    if (!allInt)
+    {
+      if (errOut)
+      {
+        std::stringstream types;
+        for (const Node& node : arguments)
+        {
+          types << node.getType();
+        }
+
+        (*errOut) << "Operator " << n.getKind() << " expects integer arguments "
+                  << "Found arguments of types '" << types.str() << "'.";
       }
       return TypeNode::null();
     }
   }
-
-  if (!ys.isTuple())
-  {
-    if (errOut)
-    {
-      (*errOut) << "expecting a tuple for the third argument of STAR_CONTAINS "
-                   "operator";
-    }
-    return TypeNode::null();
-  }
-  std::vector<TypeNode> elements = ys.getTupleTypes();
-  if (elements.size() != boundVariables.size())
-  {
-    if (errOut)
-    {
-      (*errOut) << "expecting the tuple length to match the number of bound "
-                   "variables in STAR_CONTAINS term";
-    }
-    return TypeNode::null();
-  }
-  // Check if any element is even
-  bool any = std::any_of(elements.begin(),
-                         elements.end(),
-                         [](TypeNode element) { return !element.isInteger(); });
-
-  if (any)
-  {
-    if (errOut)
-    {
-      (*errOut) << "expecting a tuple of integers for the third argument of "
-                   "STAR_CONTAINS operator";
-    }
-    return TypeNode::null();
-  }
-
   return nodeManager->booleanType();
 }
 

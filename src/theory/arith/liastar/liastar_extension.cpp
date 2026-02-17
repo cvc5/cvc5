@@ -128,16 +128,15 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
   NodeManager* nm = nodeManager();
   for (const auto& literal : assertions)
   {
+    Node lambda = literal[0];
     Assert(literal.getKind() == Kind::STAR_CONTAINS);
-    Node vec = literal[2];
     auto [vectorPredicate, nonnegative] =
         LiaStarUtils::getVectorPredicate(literal, nm);
     // assert that vector elements are non negative
-    d_im.addPendingLemma(nonnegative, InferenceId::ARITH_LIA_STAR);
+    d_im.addPendingLemma(nonnegative, InferenceId::ARITH_LIA_STAR_NONNEGATIVE);
     // add a spliting lemma for vector predicate
-
     Node split = vectorPredicate.orNode(vectorPredicate.notNode());
-    d_im.addPendingLemma(split, InferenceId::ARITH_LIA_STAR);
+    d_im.addPendingLemma(split, InferenceId::ARITH_LIA_STAR_SPLIT);
     d_im.doPendingLemmas();
     if (d_im.hasSentLemma())
     {
@@ -157,137 +156,76 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
         keys.begin(), keys.end(), values.begin(), values.end());
     value = rewrite(value);
 
-    std::vector<Node> elements;
-    Node vectorValue;
-    if (literal[2].isConst())
-    {
-      vectorValue = literal[2];
-    }
-    else
-    {
-      Trace("liastar-ext-debug") << "value: " << value << std::endl;
-      Trace("liastar-ext-debug") << "vector value of: " << literal[2] << " is "
-                                 << vectorValue << std::endl;
-      for (size_t i = 0; i < literal[2].getType().getTupleLength(); i++)
-      {
-        Node eValue = datatypes::TupleUtils::nthElementOfTuple(literal[2], i);
-        Trace("liastar-ext-debug") << "eValue: " << eValue << std::endl;
-        if (eValue.isConst())
-        {
-          elements.push_back(eValue);
-        }
-        else
-        {
-          Node modelValue = arithModel[eValue];
-          Trace("liastar-ext-debug")
-              << "modelValue: " << modelValue << std::endl;
-          elements.push_back(modelValue);
-        }
-      }
-      vectorValue = datatypes::TupleUtils::constructTupleFromElements(
-          literal[2].getType(),
-          elements,
-          0,
-          literal[2].getType().getTupleLength() - 1);
-      vectorValue = rewrite(vectorValue);
-    }
     Trace("liastar-ext-debug") << "value: " << value << std::endl;
-    Trace("liastar-ext-debug") << "vector value of: " << literal[2] << " is "
-                               << vectorValue << std::endl;
+
     if (value == d_true)
     {
       Trace("liastar-ext-debug")
           << "----------------------------------------" << std::endl;
-      Trace("liastar-ext-debug") << literal << std::endl;
+      Trace("liastar-ext-debug")
+          << literal << " is satisfied in the current model" << std::endl;
       Trace("liastar-ext-debug")
           << "----------------------------------------" << std::endl;
       return;
     }
     else  //(value == d_false)
     {
-      // the candidate model does not satisfy the star predicate.
-      // This does not mean the vector is not a member of the star set,
-      // because it could be a linear combinations of other vectors in the set.
-      // But we don't know them at this point.
-      // So to make progress, we split on whether the vector before evaluation,
-      // which may contain variables, satisfies the predicate or not.
-      // So if we have
-      // (star-contains (x1 ... x_n) (p x1 ... x_n) (tuple y1 ... y_n)))
-      // we add the lemma
-      // (or (p y1 ... y_n) (not (p y1 ... y_n)) hoping that
-      // (p y1 ... y_n) holds to force LIA solver to find a model.
-      // If not, then we need to work harder with (not (p y1 ... y_n))
-      // to find a linear combination of vectors if it is satisfiable.
-
-      Node lemma =
-          nm->mkNode(Kind::OR, vectorPredicate, vectorPredicate.negate());
-      d_im.addPendingLemma(lemma, InferenceId::ARITH_LIA_STAR);
-      Trace("liastar-ext") << "lemma = " << lemma << std::endl;
-      if (d_im.hasPendingLemma())
+      if (std::find(
+              d_processedStarTerms.begin(), d_processedStarTerms.end(), literal)
+          != d_processedStarTerms.end())
       {
-        Trace("liastar-ext") << "has not sent the lemma before" << std::endl;
+        continue;
+      }
+      // more work need to be done
+      std::vector<std::pair<std::vector<std::string>, Node>> pairs =
+          convertQFLIAToMatrices(lambda);
+
+      auto [cones, starConstraints] = getCones(literal, pairs);
+      std::vector<std::pair<Node, Node>> lia = getLia(lambda, cones);
+
+      Trace("liastar-ext") << "lia constraint: " << std::endl;
+      for (size_t i = 0; i < lia.size(); i++)
+      {
+        Trace("liastar-ext") << "(push 1)" << std::endl;
+        Trace("liastar-ext") << "(echo \"" << i << "\")" << std::endl;
+        Trace("liastar-ext") << "(assert " << std::endl
+                             << "  (distinct" << std::endl
+                             << "    ";
+        Trace("liastar-ext") << lia[i].first << std::endl << "    ";
+        Trace("liastar-ext") << lia[i].second << std::endl
+                             << "  )" << std::endl
+                             << ")" << std::endl;
+        Trace("liastar-ext") << "(check-sat)" << std::endl;
+        Trace("liastar-ext") << "(pop 1)" << std::endl;
+      }
+      std::vector<Node> disjunctions;
+      std::transform(lia.begin(),
+                     lia.end(),
+                     std::back_inserter(disjunctions),
+                     [](auto& p) { return p.second; });
+      Node liaFormula;
+      if (disjunctions.size() == 0)
+      {
+        liaFormula = d_false;
+      }
+      else if (disjunctions.size() == 1)
+      {
+        liaFormula = disjunctions[0];
       }
       else
       {
-        Trace("liastar-ext") << "has already sent the lemma" << std::endl;
-        if (std::find(d_processedStarTerms.begin(),
-                      d_processedStarTerms.end(),
-                      literal)
-            != d_processedStarTerms.end())
-        {
-          continue;
-        }
-        // more work need to be done
-        std::vector<std::pair<std::vector<std::string>, Node>> pairs =
-            convertQFLIAToMatrices(literal);
-
-        auto [cones, starConstraints] = getCones(literal, pairs);
-        std::vector<std::pair<Node, Node>> lia = getLia(literal, cones);
-
-        Trace("liastar-ext") << "lia constraint: " << std::endl;
-        for (size_t i = 0; i < lia.size(); i++)
-        {
-          Trace("liastar-ext") << "(push 1)" << std::endl;
-          Trace("liastar-ext") << "(echo \"" << i << "\")" << std::endl;
-          Trace("liastar-ext") << "(assert " << std::endl
-                               << "  (distinct" << std::endl
-                               << "    ";
-          Trace("liastar-ext") << lia[i].first << std::endl << "    ";
-          Trace("liastar-ext") << lia[i].second << std::endl
-                               << "  )" << std::endl
-                               << ")" << std::endl;
-          Trace("liastar-ext") << "(check-sat)" << std::endl;
-          Trace("liastar-ext") << "(pop 1)" << std::endl;
-        }
-        std::vector<Node> disjunctions;
-        std::transform(lia.begin(),
-                       lia.end(),
-                       std::back_inserter(disjunctions),
-                       [](auto& p) { return p.second; });
-        Node liaFormula;
-        if (disjunctions.size() == 0)
-        {
-          liaFormula = d_false;
-        }
-        else if (disjunctions.size() == 1)
-        {
-          liaFormula = disjunctions[0];
-        }
-        else
-        {
-          liaFormula = d_nm->mkNode(Kind::OR, disjunctions);
-        }
-        Trace("liastar-ext") << "lia formula: " << liaFormula << std::endl;
-        Node star = d_nm->mkNode(Kind::AND, starConstraints);
-        Trace("liastar-ext") << "starConstraints: " << std::endl
-                             << toString(starConstraints) << std::endl;
-        star = rewrite(star);
-        lemma = literal.eqNode(star);
-        Trace("liastar-ext") << "star lemma: " << lemma << std::endl;
-        d_im.addPendingLemma(lemma, InferenceId::ARITH_LIA_STAR);
-        d_processedStarTerms.push_back(literal);
-        d_im.doPendingLemmas();
+        liaFormula = d_nm->mkNode(Kind::OR, disjunctions);
       }
+      Trace("liastar-ext") << "lia formula: " << liaFormula << std::endl;
+      Node star = d_nm->mkNode(Kind::AND, starConstraints);
+      Trace("liastar-ext") << "starConstraints: " << std::endl
+                           << toString(starConstraints) << std::endl;
+      star = rewrite(star);
+      Node lemma = literal.eqNode(star);
+      Trace("liastar-ext") << "star lemma: " << lemma << std::endl;
+      d_im.addPendingLemma(lemma, InferenceId::ARITH_LIA_STAR_EXISTS);
+      d_processedStarTerms.push_back(literal);
+      d_im.doPendingLemmas();
     }
   }
 }
@@ -298,8 +236,8 @@ LiaStarExtension::getCones(
     Node n, const std::vector<std::pair<std::vector<std::string>, Node>>& pairs)
 {
   std::vector<std::pair<Node, Cone<Integer>>> cones;
-  Node vec = n[2];
-  size_t dimension = vec.getNumChildren();
+  std::vector<Node> vec(n.begin() + 1, n.end());
+  size_t dimension = vec.size();
   std::vector<Integer> zeroVector(dimension, Integer(0));
   std::vector<std::pair<Vector, std::vector<Vector>>> lambdas;
   std::vector<Node> starConstraints;
@@ -535,7 +473,7 @@ Node LiaStarExtension::isNotZeroVector(Node v)
 const std::vector<std::pair<std::vector<std::string>, Node>>
 LiaStarExtension::convertQFLIAToMatrices(Node n)
 {
-  Assert(n.getKind() == Kind::STAR_CONTAINS);
+  Assert(n.getKind() == Kind::LAMBDA);
 
   Node variables = n[0];
   Node predicate = n[1];

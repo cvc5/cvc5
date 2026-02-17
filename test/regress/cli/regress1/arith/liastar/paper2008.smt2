@@ -1,5 +1,6 @@
 ; REQUIRES: normaliz
-(set-logic ALL)
+; DISABLE-TESTER: proof
+(set-logic HO_ALL)
 (set-info :source "Decision Procedures for Multisets with Cardinality Constraints
 by Ruzica Piskac and Viktor Kuncak
 https://link.springer.com/chapter/10.1007/978-3-540-78163-9_20
@@ -33,11 +34,14 @@ https://link.springer.com/chapter/10.1007/978-3-540-78163-9_20
 ;(k1, k2, 1, 0, 0) ∈ ∑ F(x1, L, x, z1, z2)
 (assert 
   (int.star-contains 
-    ((x1 Int) (L Int) (x Int) (z1 Int) (z2 Int)) 
-    (and 
-      (= z1 
-        (ite 
-          (= x1 
-            (ite (<= L x) 0 (- L x))) 0 1)) 
-      (= z2 (ite (<= x L) 0 1))) (tuple k1 k2 1 0 0))) 
+    (lambda ((x1 Int) (L Int) (x Int) (z1 Int) (z2 Int))
+      (and 
+        (= z1 
+          (ite 
+            (= x1 
+              (ite (<= L x) 0 (- L x))) 0 1)) 
+        (= z2 (ite (<= x L) 0 1)))
+    )
+    k1 k2 1 0 0))
+        
 (check-sat) 

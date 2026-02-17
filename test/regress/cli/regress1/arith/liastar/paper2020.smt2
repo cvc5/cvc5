@@ -1,6 +1,7 @@
 
 ; REQUIRES: normaliz
-(set-logic ALL)
+; DISABLE-TESTER: proof
+(set-logic HO_ALL)
 (set-info :source "Solving Using LIA* Approximations
 Maxwell Levatich, Nikolaj Bjorner, Ruzica Piskac, and Sharon Shoham
 https://link.springer.com/chapter/10.1007/978-3-030-39322-9_17
@@ -26,9 +27,10 @@ https://link.springer.com/chapter/10.1007/978-3-030-39322-9_17
 ; (x1, x2, x3) ∈ {(m, L, s) | m = L − s ∧ s ≤ m}*
 (assert 
   (int.star-contains 
-    ((m Int) (L Int) (s Int)) 
-    (and
-      (= m (- L s))
-      (<= s m))
-    (tuple x1 x2 x3)))
+    (lambda ((m Int) (L Int) (s Int)) 
+      (and
+        (= m (- L s))
+        (<= s m))
+    )
+    x1 x2 x3))
 (check-sat) 

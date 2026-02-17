@@ -29,9 +29,9 @@ class LiaStarUtils
 {
  public:
   /**
-   * @param n a node of the form (int.star-contains (x1 ... xn) (p x1 ... xn)
-   * (y1 ... yn))
-   * @return <(p y1 ... yn), (and (>= y1 0) ... (>= yn 0))
+   * @param n a node of the form
+   * (int.star-contains (lambda ((x_1 Int) ... (x_n Int)) p) (y_1 ... y_n))
+   * @return <(p y_1 ... y_n), (and (>= y_1 0) ... (>= y_n 0))>
    */
   static std::pair<Node, Node> getVectorPredicate(Node n, NodeManager* nm);
   /**

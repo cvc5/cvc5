@@ -1,6 +1,6 @@
 ; REQUIRES: normaliz
-; DISABLE-TESTER: lfsc
-(set-logic ALL)
+; DISABLE-TESTER: proof
+(set-logic HO_ALL)
 (set-option :incremental true)
 ;
 ; Points that satisfy y >= 5-x and y >= x - 5 are shown as dots below. 
@@ -28,12 +28,13 @@
 (push 1)
 (assert 
  (int.star-contains 
-  ((x Int) (y Int)) 
-  (and     
-    (>= (+ (+ x y) (- 5)) 0) ; y >= 5-x
-    (>= (+ (+ (* (- 1) x) y) 5) 0) ; y >= x - 5
+  (lambda ((x Int) (y Int))
+    (and     
+      (>= (+ (+ x y) (- 5)) 0) ; y >= 5-x
+      (>= (+ (+ (* (- 1) x) y) 5) 0) ; y >= x - 5
+    )
   )
-  (tuple 1 1)))
+  1 1))
 (check-sat)
 (pop 1)
 
@@ -41,11 +42,12 @@
 (push 1)
 (assert 
  (int.star-contains 
-  ((x Int) (y Int)) 
-  (and     
-    (>= (+ (+ x y) (- 5)) 0) ; y >= 5-x
-    (>= (+ (+ (* (- 1) x) y) 5) 0) ; y >= x - 5
+  (lambda ((x Int) (y Int)) 
+    (and     
+      (>= (+ (+ x y) (- 5)) 0) ; y >= 5-x
+      (>= (+ (+ (* (- 1) x) y) 5) 0) ; y >= x - 5
+    )
   )
-  (tuple 4 4)))
+  4 4))
 (check-sat)
 (pop 1)
