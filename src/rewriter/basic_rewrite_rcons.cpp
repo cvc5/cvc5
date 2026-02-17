@@ -417,6 +417,13 @@ bool BasicRewriteRCons::ensureProofMacroBoolEqConstEq(CDProof* cdp,
   Assert(eq[0].getKind() == Kind::EQUAL);
   Assert(eq[0][0].getKind() == Kind::EQUAL
          && eq[0][1].getKind() == Kind::EQUAL);
+  if (eq[0][0]==eq[0][1])
+  {
+    // true case is handled by RARE rule eq-refl
+    cdp->addTrustedStep(
+        eq, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE, {}, {});
+    return true;
+  }
   // orient the equalities properly
   std::vector<Node> premises;
   for (size_t i = 0; i < 2; i++)
@@ -440,11 +447,13 @@ bool BasicRewriteRCons::ensureProofMacroBoolEqConstEq(CDProof* cdp,
   Trace("brc-macro") << "...orient LHS via " << equiv1 << std::endl;
   if (equiv1[0] == equiv1[1])
   {
-    // no flipping was possible, fail
-    return false;
+    // no flipping was necessary, should be RARE rule eq-cond-deq
+    cdp->addTrustedStep(
+        eq, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE, {}, {});
+    return true;
   }
   Node equiv2 = equiv1[1].eqNode(eq[1]);
-  // should be proven by RARE rule eq-cond-deq or eq-refl
+  // should be proven by RARE rule eq-cond-deq
   cdp->addTrustedStep(
       equiv2, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE, {}, {});
   cdp->addStep(eq, ProofRule::TRANS, {equiv1, equiv2}, {});
