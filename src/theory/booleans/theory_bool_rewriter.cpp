@@ -951,16 +951,12 @@ Node TheoryBoolRewriter::rewriteViaEqConstEq(const Node& n) const
       }
       else
       {
-        if (t.getType().isCardinalityLessThan(2))
-        {
-          return d_false;
-        }
-        else
-        {
-          Node neitherEquality =
-              (makeNegation(n[0])).andNode(makeNegation(n[1]));
-          return neitherEquality;
-        }
+        // if there were 2 distinct constants, the cardinality should be at
+        // least 2.
+        Assert (!t.getType().isCardinalityLessThan(2));
+        Node neitherEquality =
+            (n[0].notNode()).andNode(n[1].notNode());
+        return neitherEquality;
       }
     }
   }
