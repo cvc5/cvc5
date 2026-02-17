@@ -409,16 +409,17 @@ bool BasicRewriteRCons::ensureProofMacroBoolNnfNorm(CDProof* cdp,
   return true;
 }
 
-
-bool BasicRewriteRCons::ensureProofMacroBoolEqConstEq(CDProof* cdp, const Node& eq)
+bool BasicRewriteRCons::ensureProofMacroBoolEqConstEq(CDProof* cdp,
+                                                      const Node& eq)
 {
   Trace("brc-macro") << "Expand Bool eq const eq " << eq[0] << " == " << eq[1]
                      << std::endl;
-  Assert (eq[0].getKind()==Kind::EQUAL);
-  Assert (eq[0][0].getKind()==Kind::EQUAL && eq[0][1].getKind()==Kind::EQUAL);
+  Assert(eq[0].getKind() == Kind::EQUAL);
+  Assert(eq[0][0].getKind() == Kind::EQUAL
+         && eq[0][1].getKind() == Kind::EQUAL);
   // orient the equalities properly
   std::vector<Node> premises;
-  for (size_t i=0; i<2; i++)
+  for (size_t i = 0; i < 2; i++)
   {
     // flip if constant is on the left side
     if (eq[0][i][0].isConst())
@@ -437,7 +438,7 @@ bool BasicRewriteRCons::ensureProofMacroBoolEqConstEq(CDProof* cdp, const Node& 
   }
   Node equiv1 = proveCong(cdp, eq[0], premises);
   Trace("brc-macro") << "...orient LHS via " << equiv1 << std::endl;
-  if (equiv1[0]==equiv1[1])
+  if (equiv1[0] == equiv1[1])
   {
     // no flipping was possible, fail
     return false;
