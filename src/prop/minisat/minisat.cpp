@@ -106,7 +106,7 @@ void MinisatSatSolver::toSatClause(const Minisat::Clause& clause,
   Assert((unsigned)clause.size() == sat_clause.size());
 }
 
-void MinisatSatSolver::initialize(TheoryProxy* theoryProxy, PropPfManager* ppm)
+void MinisatSatSolver::initialize(TheoryProxy* theoryProxy)
 {
   if (options().decision.decisionMode != options::DecisionMode::INTERNAL)
   {
@@ -120,12 +120,16 @@ void MinisatSatSolver::initialize(TheoryProxy* theoryProxy, PropPfManager* ppm)
       new Minisat::SimpSolver(d_env,
                               theoryProxy,
                               context(),
-                              ppm,
                               options().base.incrementalSolving
                                   || options().decision.decisionMode
                                          != options::DecisionMode::INTERNAL);
 
   d_statistics.init(d_minisat);
+}
+
+void MinisatSatSolver::attachProofManager(PropPfManager *ppm)
+{
+  d_minisat->attachProofManager(ppm);
 }
 
 // Like initialize() above, but called just before each search when in
