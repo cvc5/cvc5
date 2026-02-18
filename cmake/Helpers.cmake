@@ -70,21 +70,35 @@ macro(add_c_cxx_flag flag)
   add_cxx_flag(${flag})
 endmacro()
 
-# Check if C flag is supported and add to global list of C flags.
+# Check if C flag is supported and add to global list of C flags or to the specified files only.
+# Warning: `add_check_c_flag("-v" ${LIST})` will create a global flag if `${LIST}` is empty.
 macro(add_check_c_flag flag)
   string(REGEX REPLACE "[-=]" "_" flagname ${flag})
   check_c_compiler_flag("${flag}" HAVE_C_FLAG${flagname})
   if(HAVE_C_FLAG${flagname})
-    add_c_flag(${flag})
+    if(ARGN)
+      # add the flag only to the provided files
+      set_source_files_properties(${ARGN} PROPERTIES COMPILE_OPTIONS "${flag}")
+    else()
+      # add the flag to all files
+      add_c_flag(${flag})
+    endif()
   endif()
 endmacro()
 
-# Check if CXX flag is supported and add to global list of CXX flags.
+# Check if CXX flag is supported and add to global list of CXX flags or to the specified files only.
+# Warning: `add_check_cxx_flag("-v" ${LIST})` will create a global flag if `${LIST}` is empty.
 macro(add_check_cxx_flag flag)
   string(REGEX REPLACE "[-=]" "_" flagname ${flag})
   check_cxx_compiler_flag("${flag}" HAVE_CXX_FLAG${flagname})
   if(HAVE_CXX_FLAG${flagname})
-    add_cxx_flag(${flag})
+    if(ARGN)
+      # add the flag only to the provided files
+      set_source_files_properties(${ARGN} PROPERTIES COMPILE_OPTIONS "${flag}")
+    else()
+      # add the flag to all files
+      add_cxx_flag(${flag})
+    endif()
   endif()
 endmacro()
 
