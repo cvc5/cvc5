@@ -18,15 +18,9 @@
 #ifndef CVC5__PROP__SAT_SOLVER_H
 #define CVC5__PROP__SAT_SOLVER_H
 
-#include <string>
-
-#include "context/cdlist.h"
-#include "context/context.h"
-#include "expr/node.h"
 #include "proof/clause_id.h"
 #include "prop/prop_proof_manager.h"
 #include "prop/sat_solver_types.h"
-#include "util/statistics_stats.h"
 
 namespace cvc5::internal {
 
@@ -194,41 +188,6 @@ class CDCLTSatSolver : public SatSolver
   virtual void initialize(TheoryProxy* theoryProxy) = 0;
 
 }; /* class CDCLTSatSolver */
-
-inline std::ostream& operator <<(std::ostream& out, prop::SatLiteral lit) {
-  out << lit.toString();
-  return out;
-}
-
-inline std::ostream& operator <<(std::ostream& out, const prop::SatClause& clause) {
-  out << "clause:";
-  for(unsigned i = 0; i < clause.size(); ++i) {
-    out << " " << clause[i];
-  }
-  out << ";";
-  return out;
-}
-
-inline std::ostream& operator <<(std::ostream& out, prop::SatValue val) {
-  std::string str;
-  switch(val) {
-  case prop::SAT_VALUE_UNKNOWN:
-    str = "_";
-    break;
-  case prop::SAT_VALUE_TRUE:
-    str = "1";
-    break;
-  case prop::SAT_VALUE_FALSE:
-    str = "0";
-    break;
-  default:
-    str = "Error";
-    break;
-  }
-
-  out << str;
-  return out;
-}
 
 }  // namespace prop
 }  // namespace cvc5::internal

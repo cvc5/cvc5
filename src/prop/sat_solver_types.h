@@ -15,7 +15,7 @@
 
 #pragma once
 
-#include <sstream>
+#include <ostream>
 #include <string>
 #include <unordered_set>
 #include <vector>
@@ -37,13 +37,13 @@ enum SatValue : uint8_t {
 };
 
 /** Helper function for inverting a SatValue */
-inline SatValue invertValue(SatValue v)
+inline SatValue invertValue(const SatValue v)
 {
   if(v == SAT_VALUE_UNKNOWN) return SAT_VALUE_UNKNOWN;
   return v == SAT_VALUE_TRUE ? SAT_VALUE_FALSE : SAT_VALUE_TRUE;
 }
 
-inline SatValue operator~(SatValue v)
+inline SatValue operator~(const SatValue v)
 {
   return invertValue(v);
 }
@@ -56,7 +56,7 @@ typedef uint64_t SatVariable;
 /**
  * Undefined SAT solver variable.
  */
-constexpr SatVariable undefSatVariable = SatVariable(-1);
+constexpr SatVariable undefSatVariable = static_cast<SatVariable>(-1);
 
 /**
  * A SAT literal is a variable or a negated variable.
@@ -133,9 +133,7 @@ class SatLiteral {
    * Returns a string representation of the literal.
    */
   std::string toString() const {
-    std::ostringstream os;
-    os << (isNegated() ? "~" : "") << getSatVariable();
-    return os.str();
+    return std::string(isNegated() ? "~" : "") + std::to_string(getSatVariable());
   }
 
   /**
@@ -201,40 +199,40 @@ struct SatClauseLessThan
 };
 
 /**
- * Each object in the SAT solver, such as as variables and clauses, can be assigned a life span,
- * so that the SAT solver can (or should) remove them when the lifespan is over.
+ * Printing functions for Sat types.
  */
-enum SatSolverLifespan
-{
-  /**
-   * The object should stay forever and never be removed
-   */
-  SAT_LIFESPAN_PERMANENT,
-  /**
-   * The object can be removed at any point when it becomes unnecessary.
-   */
-  SAT_LIFESPAN_REMOVABLE,
-  /**
-   * The object must be removed as soon as the SAT solver exits the search context
-   * where the object got introduced.
-   */
-  SAT_LIFESPAN_SEARCH_CONTEXT_STRICT,
-  /**
-   * The object can be removed when SAT solver exits the search context where the object
-   * got introduced, but can be kept at the solver discretion.
-   */
-  SAT_LIFESPAN_SEARCH_CONTEXT_LENIENT,
-  /**
-   * The object must be removed as soon as the SAT solver exits the user-level context where
-   * the object got introduced.
-   */
-  SAT_LIFESPAN_USER_CONTEXT_STRICT,
-  /**
-   * The object can be removed when the SAT solver exits the user-level context where
-   * the object got introduced.
-   */
-  SAT_LIFESPAN_USER_CONTEXT_LENIENT
-};
+
+inline std::ostream& operator <<(std::ostream& out, SatLiteral lit) {
+  out << lit.toString();
+  return out;
+}
+
+inline std::ostream& operator <<(std::ostream& out, const SatClause& clause) {
+  out << "clause:";
+  for(unsigned i = 0; i < clause.size(); ++i) {
+    out << " " << clause[i];
+  }
+  out << ";";
+  return out;
+}
+
+inline std::ostream& operator <<(std::ostream& out, SatValue val) {
+  switch(val) {
+    case SAT_VALUE_UNKNOWN:
+      out << '_';
+      break;
+    case SAT_VALUE_TRUE:
+      out << '1';
+      break;
+    case SAT_VALUE_FALSE:
+      out << '0';
+      break;
+    default:
+      out << "Error";
+      break;
+  }
+  return out;
+}
 
 }
 }  // namespace cvc5::internal
