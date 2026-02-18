@@ -114,13 +114,14 @@ SatValue KissatSolver::solve()
   return res;
 }
 
-SatValue KissatSolver::solve(long unsigned int&)
+SatValue KissatSolver::solve(CVC5_UNUSED long unsigned int&)
 {
   Unimplemented() << "Setting limits for Kissat not supported yet";
   return SAT_VALUE_UNKNOWN;
 };
 
-SatValue KissatSolver::solve(const std::vector<SatLiteral>& assumptions)
+SatValue KissatSolver::solve(
+    CVC5_UNUSED const std::vector<SatLiteral>& assumptions)
 {
   Unimplemented() << "Incremental solving with Kissat not supported yet";
   return SAT_VALUE_UNKNOWN;

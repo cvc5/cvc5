@@ -23,6 +23,7 @@
 #ifdef CVC5_USE_KISSAT
 
 #include "prop/sat_solver.h"
+#include "util/statistics_registry.h"
 
 extern "C" {
 #include <kissat/kissat.h>
@@ -72,7 +73,8 @@ class KissatSolver : public SatSolver
    * Private to disallow creation outside of SatSolverFactory.
    * Function init() must be called after creation.
    */
-  explicit KissatSolver(StatisticsRegistry& registry, const std::string& name = "");
+  explicit KissatSolver(StatisticsRegistry& registry,
+                        const std::string& name = "");
 
   /**
    * Initialize SAT solver instance.

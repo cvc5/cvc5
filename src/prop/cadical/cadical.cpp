@@ -258,7 +258,7 @@ ClauseId CadicalSolver::addClause(const SatClause& clause, bool removable)
   return ClauseIdError;
 }
 
-SatVariable CadicalSolver::newVar(bool isTheoryAtom, bool canErase)
+SatVariable CadicalSolver::newVar(bool isTheoryAtom, CVC5_UNUSED bool canErase)
 {
   ++d_statistics.d_numVariables;
   if (d_propagator)

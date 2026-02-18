@@ -95,7 +95,7 @@ SimpSolver::SimpSolver(Env& env,
 
 void SimpSolver::attachProofManager(prop::PropPfManager* ppm)
 {
-  Assert(!use_simplification && !use_rcheck);
+  AlwaysAssert(!use_simplification && !use_rcheck);
   Solver::attachProofManager(ppm);
 }
 

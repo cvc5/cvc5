@@ -23,7 +23,6 @@
 #include "prop/sat_solver_types.h"
 
 namespace cvc5::internal {
-
 namespace prop {
 
 class SatSolverFactory;
@@ -56,7 +55,7 @@ class SatSolver
 
   /**
    * Create a new (or return an existing) boolean variable representing the
-   * constant true.
+   * constant `true`.
    * @return The variable representing true.
    */
   virtual SatVariable trueVar() = 0;
@@ -192,4 +191,4 @@ class CDCLTSatSolver : public SatSolver
 }  // namespace prop
 }  // namespace cvc5::internal
 
-#endif /* CVC5__PROP__SAT_MODULE_H */
+#endif /* CVC5__PROP__SAT_SOLVER_H */

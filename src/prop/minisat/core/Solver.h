@@ -121,7 +121,7 @@ public:
     // Constructor/Destructor:
     //
  Solver(Env& env,
-        cvc5::internal::prop::TheoryProxy* proxy,
+        prop::TheoryProxy* proxy,
         context::Context* context,
         bool enableIncremental = false);
 

@@ -37,13 +37,13 @@ enum SatValue : uint8_t {
 };
 
 /** Helper function for inverting a SatValue */
-inline SatValue invertValue(const SatValue v)
+constexpr SatValue invertValue(const SatValue v)
 {
   if(v == SAT_VALUE_UNKNOWN) return SAT_VALUE_UNKNOWN;
   return v == SAT_VALUE_TRUE ? SAT_VALUE_FALSE : SAT_VALUE_TRUE;
 }
 
-inline SatValue operator~(const SatValue v)
+constexpr SatValue operator~(const SatValue v)
 {
   return invertValue(v);
 }

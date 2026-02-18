@@ -22,7 +22,6 @@
 
 #include "options/bv_options.h"
 #include "options/prop_options.h"
-#include "util/statistics_stats.h"
 #include "util/resource_manager.h"
 
 #include "smt/env.h"

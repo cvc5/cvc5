@@ -97,7 +97,7 @@ void MinisatSatSolver::toMinisatClause(
   {
     minisat_clause.push(toMinisatLit(i));
   }
-  Assert(clause.size() == (unsigned)minisat_clause.size());
+  Assert(clause.size() == static_cast<unsigned>(minisat_clause.size()));
 }
 
 void MinisatSatSolver::toSatClause(const Minisat::Clause& clause,

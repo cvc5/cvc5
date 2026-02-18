@@ -24,7 +24,7 @@ namespace cvc5::internal {
 namespace prop {
 
 SatSolverFactory::Factory SatSolverFactory::getFactory(
-  options::BvSatSolverMode mode)
+    const options::BvSatSolverMode mode)
 {
   switch (mode)
   {
@@ -41,7 +41,7 @@ SatSolverFactory::Factory SatSolverFactory::getFactory(
 }
 
 SatSolverFactory::CDCLTFactory SatSolverFactory::getFactory(
-    options::SatSolverMode mode)
+    const options::SatSolverMode mode)
 {
   using options::SatSolverMode;
   switch (mode)
@@ -71,10 +71,10 @@ SatSolver* SatSolverFactory::createSatSolver<options::BvSatSolverMode::CADICAL>(
 
 template <>
 SatSolver* SatSolverFactory::createSatSolver<options::BvSatSolverMode::KISSAT>(
-    Env& env,
-    StatisticsRegistry& registry,
-    ResourceManager* resmgr,
-    const std::string& name)
+    CVC5_UNUSED Env& env,
+    CVC5_UNUSED StatisticsRegistry& registry,
+    CVC5_UNUSED ResourceManager* resmgr,
+    CVC5_UNUSED const std::string& name)
 {
 #ifdef CVC5_USE_KISSAT
   KissatSolver* res = new KissatSolver(registry, name);
@@ -88,10 +88,10 @@ SatSolver* SatSolverFactory::createSatSolver<options::BvSatSolverMode::KISSAT>(
 
 template <>
 SatSolver* SatSolverFactory::createSatSolver<options::BvSatSolverMode::CRYPTOMINISAT>(
-    Env& env,
-    StatisticsRegistry& registry,
-    ResourceManager* resmgr,
-    const std::string& name)
+    CVC5_UNUSED Env& env,
+    CVC5_UNUSED StatisticsRegistry& registry,
+    CVC5_UNUSED ResourceManager* resmgr,
+    CVC5_UNUSED const std::string& name)
 {
 #ifdef CVC5_USE_CRYPTOMINISAT
   CryptoMinisatSolver* res = new CryptoMinisatSolver(registry, name);
@@ -112,9 +112,9 @@ CDCLTSatSolver*
 SatSolverFactory::createCDCLTSatSolver<options::SatSolverMode::MINISAT>(
     Env& env,
     StatisticsRegistry& registry,
-    ResourceManager* resmgr,
+    CVC5_UNUSED ResourceManager* resmgr,
     TheoryProxy* theory_proxy,
-    const std::string& name)
+    CVC5_UNUSED const std::string& name)
 {
   MinisatSatSolver* res = new MinisatSatSolver(env, registry);
   res->initialize(theory_proxy);

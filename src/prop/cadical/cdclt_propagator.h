@@ -192,7 +192,7 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator,
    */
   void user_pop();
 
-  bool is_fixed(SatVariable var) const
+  bool is_fixed(const SatVariable var) const
   {
     Assert(var < d_var_info.size());
     return d_var_info[var].is_fixed;

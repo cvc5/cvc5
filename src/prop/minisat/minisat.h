@@ -46,9 +46,9 @@ class MinisatSatSolver : public CDCLTSatSolver, protected EnvObj
   static Minisat::lbool  toMinisatlbool(SatValue val);
   //(Commented because not in use) static bool            tobool(SatValue val);
 
-  static void  toMinisatClause(const SatClause& clause,
+  static void toMinisatClause(const SatClause& clause,
                               Minisat::vec<Minisat::Lit>& minisat_clause);
-  static void  toSatClause    (const Minisat::Clause& clause, SatClause& sat_clause);
+  static void toSatClause(const Minisat::Clause& clause, SatClause& sat_clause);
 
   void initialize() override;
   void initialize(TheoryProxy* theoryProxy) override;
