@@ -84,7 +84,8 @@ void KissatSolver::initialize()
 
 KissatSolver::~KissatSolver() { kissat_release(d_solver); }
 
-ClauseId KissatSolver::addClause(const SatClause& clause, bool removable)
+ClauseId KissatSolver::addClause(const SatClause& clause,
+                                 CVC5_UNUSED bool removable)
 {
   for (const SatLiteral& lit : clause)
   {
@@ -95,7 +96,8 @@ ClauseId KissatSolver::addClause(const SatClause& clause, bool removable)
   return ClauseIdError;
 }
 
-SatVariable KissatSolver::newVar(bool isTheoryAtom, bool canErase)
+SatVariable KissatSolver::newVar(CVC5_UNUSED bool isTheoryAtom,
+                                 CVC5_UNUSED bool canErase)
 {
   ++d_statistics.d_numVariables;
   return d_nextVarIdx++;
@@ -128,7 +130,7 @@ SatValue KissatSolver::solve(
 }
 
 void KissatSolver::getUnsatAssumptions(
-    std::vector<SatLiteral>& unsat_assumptions)
+    CVC5_UNUSED std::vector<SatLiteral>& unsat_assumptions)
 {
   Unreachable() << "Kissat does not support unsat assumptions.";
 }
