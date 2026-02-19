@@ -25,8 +25,8 @@
 
 // internal includes
 #include "smt/env.h"
-#include "theory/ff/util.h"
 #include "theory/ff/stats.h"
+#include "theory/ff/util.h"
 
 namespace cvc5::internal {
 namespace theory {

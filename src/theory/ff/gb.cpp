@@ -23,17 +23,17 @@
 
 // internal includes
 #include "options/ff_options.h"
-#include "theory/ff/multi_roots.h"
 #include "theory/ff/cocoa_encoder.h"
+#include "theory/ff/multi_roots.h"
 
 namespace cvc5::internal {
 namespace theory {
 namespace ff {
 
 FfResult gb(const std::vector<Node>& facts,
-                       const FfSize& size,
-                       const Env& env,
-                       FfStatistics* stats)
+            const FfSize& size,
+            const Env& env,
+            FfStatistics* stats)
 {
   // on some branches, we'll overwrite this result
   CocoaEncoder enc(env.getNodeManager(), size);
@@ -95,8 +95,7 @@ FfResult gb(const std::vector<Node>& facts,
         // omit (field polys, bitsum polys, ...) from core
         if (enc.polyHasFact(generators[i]))
         {
-          Trace("ff::core")
-              << "Core: " << i << " : " << facts[i] << std::endl;
+          Trace("ff::core") << "Core: " << i << " : " << facts[i] << std::endl;
           conflict.push_back(enc.polyFact(generators[i]));
         }
       }
@@ -140,8 +139,8 @@ FfResult gb(const std::vector<Node>& facts,
   }
 }
 
-}
-}
-}
+}  // namespace ff
+}  // namespace theory
+}  // namespace cvc5::internal
 
 #endif

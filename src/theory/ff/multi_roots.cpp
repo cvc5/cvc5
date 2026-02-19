@@ -27,7 +27,6 @@
 #include <memory>
 #include <sstream>
 
-#include "smt/assertions.h"
 #include "theory/ff/cocoa_util.h"
 #include "theory/ff/uni_roots.h"
 #include "theory/ff/util.h"
