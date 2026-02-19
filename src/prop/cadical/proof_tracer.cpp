@@ -213,7 +213,7 @@ std::shared_ptr<ProofNode> ProofTracer::chain_resolution_step(
         continue;
       }
       // Found pivot literal
-      literals.push_back(proxy->getNode(toSatLiteral(lit).getSatVariable()));
+      literals.push_back(proxy->getNode(toSatLiteral(std::abs(lit))));
       // Polarity of pivot literal in first clause
       polarities.push_back(nm->mkConst(!(lit > 0)));
     }
