@@ -34,8 +34,10 @@ namespace cvc5::internal {
 namespace theory {
 namespace ff {
 
-std::optional<std::unordered_map<Node, FiniteFieldValue>> split(
-    const std::vector<Node>& facts, const FfSize& size, const Env& env)
+FfResult split(const std::vector<Node>& facts,
+               const FfSize& size,
+               const Env& env,
+               FfStatistics* stats)
 {
   std::unordered_set<Node> bits{};
   CocoaEncoder enc(env.getNodeManager(), size);
@@ -67,14 +69,15 @@ std::optional<std::unordered_map<Node, FiniteFieldValue>> split(
         return b.isWholeRing();
       }))
   {
-    return {};
+    // return a trivial conflict
+    return facts;
   }
 
   std::optional<Point> root =
       splitFindZero(std::move(splitBasis), enc.polyRing(), bitProp, env);
   if (root.has_value())
   {
-    std::unordered_map<Node, FiniteFieldValue> model;
+    FfModel model;
     for (const auto& [indetIdx, varNode] : enc.nodeIndets())
     {
       FiniteFieldValue literal = enc.cocoaFfToFfVal(root.value()[indetIdx]);
@@ -84,7 +87,9 @@ std::optional<std::unordered_map<Node, FiniteFieldValue>> split(
     }
     return model;
   }
-  return {};
+
+  // return a trivial conflict
+  return facts;
 }
 
 SplitGb splitGb(const std::vector<Polys>& generatorSets,

@@ -64,12 +64,14 @@ using SplitGb = std::vector<Gb>;
  * @param facts Finite field equalities and disequalities.
  * @param size The size of the field they are in.
  * @param env used for resource management
+ * @param stats FfStatistics to track
  *
- * @return A model, or not if none exists.
+ * @return A model or a conflict core.
  * */
-std::optional<FfModel> split(const std::vector<Node>& facts,
-                             const FfSize& size,
-                             const Env& env);
+FfResult split(const std::vector<Node>& facts,
+               const FfSize& size,
+               const Env& env,
+               FfStatistics* stats);
 
 /** Compute a split Gb.
  *

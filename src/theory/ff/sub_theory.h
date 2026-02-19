@@ -95,11 +95,6 @@ class SubTheory : protected EnvObj, public FieldObj
 
  private:
   /**
-   * Set the conflict to be all facts.
-   */
-  void setTrivialConflict();
-
-  /**
    * Facts, in notification order.
    *
    * Contains only the facts in *this specific field*.

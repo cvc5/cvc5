@@ -30,6 +30,12 @@ namespace ff {
 
 /** A finite field model */
 using FfModel = std::unordered_map<Node, FiniteFieldValue>;
+/** A finite field conflict core */
+using FfCore = std::vector<Node>;
+/** Indicates an unknown result in FfResult. */
+using FfUnknown = std::monostate;
+/** The result of a subprocedure: either unknown, a model, or a conflict core */
+using FfResult = std::variant<FfUnknown, FfModel, FfCore>;
 
 /**
  * A class associated with a specific field (for inheritting).
