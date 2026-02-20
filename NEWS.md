@@ -6,6 +6,7 @@ cvc5 1.3.3 prerelease
 ## Changes
 
 - We now use a lazy approach for handling `distinct` constraints.
+- Fixes the SyGuS solver for corner cases of unconstrained queries.
 
 cvc5 1.3.2
 ==========

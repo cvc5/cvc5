@@ -2655,6 +2655,7 @@ void CoreSolver::checkLengthsEqc()
           << "No length term for eqc " << d_strings_eqc[i] << std::endl;
       continue;
     }
+    Assert(ei != nullptr); // Assert for static analysis (Clang Analyzer)
     // now, check if length normalization has occurred
     if (ei->d_normalizedLength.get().isNull())
     {
