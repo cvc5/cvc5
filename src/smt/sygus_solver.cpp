@@ -326,7 +326,9 @@ SynthResult SygusSolver::checkSynth(bool isNext)
     else
     {
       body = body.negate();
-    }
+    body = ntrivSynthFuns.empty() ? body.negate()
+                                  : quantifiers::SygusUtils::mkSygusConjecture(
+                                        nodeManager(), ntrivSynthFuns, body);
     Trace("smt-debug") << "...constructed forall " << body << std::endl;
 
     Trace("smt") << "Check synthesis conjecture: " << body << std::endl;
@@ -539,7 +541,7 @@ void SygusSolver::checkSynthSolution(Assertions& as,
     else
     {
       conjBody = conj.negate();
-    }
+conjBody = conj.getKind() == Kind::FORALL ? conjBody[1] : conj.negate();
     // we must apply substitutions here, since define-fun may contain the
     // function-to-synthesize, which needs to be substituted.
     conjBody = d_smtSolver.getPreprocessor()->applySubstitutions(conjBody);
