@@ -318,14 +318,6 @@ SynthResult SygusSolver::checkSynth(bool isNext)
     {
       ntrivSynthFuns = listToVector(d_sygusFunSymbols);
     }
-    if (!ntrivSynthFuns.empty())
-    {
-      body = quantifiers::SygusUtils::mkSygusConjecture(
-          nodeManager(), ntrivSynthFuns, body);
-    }
-    else
-    {
-      body = body.negate();
     body = ntrivSynthFuns.empty() ? body.negate()
                                   : quantifiers::SygusUtils::mkSygusConjecture(
                                         nodeManager(), ntrivSynthFuns, body);
@@ -534,14 +526,7 @@ void SygusSolver::checkSynthSolution(Assertions& as,
     solChecker->getOptions().write_smt().checkSynthSol = false;
     solChecker->getOptions().write_quantifiers().sygusRecFun = false;
     Node conjBody = conj;
-    if (conj.getKind() == Kind::FORALL)
-    {
-      conjBody = conjBody[1];
-    }
-    else
-    {
-      conjBody = conj.negate();
-conjBody = conj.getKind() == Kind::FORALL ? conjBody[1] : conj.negate();
+    conjBody = conj.getKind() == Kind::FORALL ? conjBody[1] : conj.negate();
     // we must apply substitutions here, since define-fun may contain the
     // function-to-synthesize, which needs to be substituted.
     conjBody = d_smtSolver.getPreprocessor()->applySubstitutions(conjBody);
