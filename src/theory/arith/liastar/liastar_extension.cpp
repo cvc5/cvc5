@@ -184,39 +184,52 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
       std::vector<std::pair<Node, Node>> lia = getLia(lambda, cones);
 
       Trace("liastar-ext") << "lia constraint: " << std::endl;
-      for (size_t i = 0; i < lia.size(); i++)
+      if (TraceIsOn("liastar-ext-smt"))
       {
-        Trace("liastar-ext") << "(push 1)" << std::endl;
-        Trace("liastar-ext") << "(echo \"" << i << "\")" << std::endl;
-        Trace("liastar-ext") << "(assert " << std::endl
-                             << "  (distinct" << std::endl
-                             << "    ";
-        Trace("liastar-ext") << lia[i].first << std::endl << "    ";
-        Trace("liastar-ext") << lia[i].second << std::endl
-                             << "  )" << std::endl
-                             << ")" << std::endl;
-        Trace("liastar-ext") << "(check-sat)" << std::endl;
-        Trace("liastar-ext") << "(pop 1)" << std::endl;
+        for (size_t i = 0; i < lia.size(); i++)
+        {
+          Trace("liastar-ext-smt") << "(push 1)" << std::endl;
+          Trace("liastar-ext-smt") << "(echo \"" << i << "\")" << std::endl;
+          Trace("liastar-ext-smt") << "(assert " << std::endl
+                                   << "  (distinct" << std::endl
+                                   << "    ";
+          Trace("liastar-ext-smt") << lia[i].first << std::endl << "    ";
+          Trace("liastar-ext-smt") << lia[i].second << std::endl
+                                   << "  )" << std::endl
+                                   << ")" << std::endl;
+          Trace("liastar-ext-smt") << "(check-sat)" << std::endl;
+          Trace("liastar-ext-smt") << "(pop 1)" << std::endl;
+        }
+        std::vector<Node> disjunctions;
+        std::transform(lia.begin(),
+                       lia.end(),
+                       std::back_inserter(disjunctions),
+                       [](auto& p) { return p.second; });
+        Node liaFormula;
+        if (disjunctions.size() == 0)
+        {
+          liaFormula = d_false;
+        }
+        else if (disjunctions.size() == 1)
+        {
+          liaFormula = disjunctions[0];
+        }
+        else
+        {
+          liaFormula = d_nm->mkNode(Kind::OR, disjunctions);
+        }
+        Trace("liastar-ext-smt") << "(push 1)" << std::endl;
+        Trace("liastar-ext-smt") << "(echo \"lia formula: \")" << std::endl;
+        Trace("liastar-ext-smt") << "(assert " << std::endl
+                                 << "  (distinct" << std::endl
+                                 << "    ";
+        Trace("liastar-ext-smt") << lambda[1] << std::endl << "    ";
+        Trace("liastar-ext-smt") << liaFormula << std::endl
+                                 << "  )" << std::endl
+                                 << ")" << std::endl;
+        Trace("liastar-ext-smt") << "(check-sat)" << std::endl;
+        Trace("liastar-ext-smt") << "(pop 1)" << std::endl;
       }
-      std::vector<Node> disjunctions;
-      std::transform(lia.begin(),
-                     lia.end(),
-                     std::back_inserter(disjunctions),
-                     [](auto& p) { return p.second; });
-      Node liaFormula;
-      if (disjunctions.size() == 0)
-      {
-        liaFormula = d_false;
-      }
-      else if (disjunctions.size() == 1)
-      {
-        liaFormula = disjunctions[0];
-      }
-      else
-      {
-        liaFormula = d_nm->mkNode(Kind::OR, disjunctions);
-      }
-      Trace("liastar-ext") << "lia formula: " << liaFormula << std::endl;
       Node star = d_nm->mkNode(Kind::AND, starConstraints);
       Trace("liastar-ext") << "starConstraints: " << std::endl
                            << toString(starConstraints) << std::endl;
@@ -484,7 +497,30 @@ LiaStarExtension::convertQFLIAToMatrices(Node n)
   Node dnf = LiaStarUtils::toDNF(predicate, &d_env);
   Trace("liastar-ext") << "predicate in dnf: " << dnf << std::endl;
 
-  // where the constraints in each disjunction construct a matrix in Normaliz
+  Trace("liastar-ext") << "lia constraint: " << std::endl;
+  if (TraceIsOn("liastar-ext-smt"))
+  {
+    Trace("liastar-ext-smt") << "(set-logic HO_ALL)" << std::endl;
+    Trace("liastar-ext-smt") << "(set-option :incremental true)" << std::endl;
+    Trace("liastar-ext-smt")
+        << "(set-option :produce-models true)" << std::endl;
+    for (Node var : variables)
+    {
+      Trace("liastar-ext-smt")
+          << "(declare-const " << var << " Int)" << std::endl;
+    }
+    Trace("liastar-ext-smt") << "(push 1)" << std::endl;
+    Trace("liastar-ext-smt") << "(echo \"dnf\")" << std::endl;
+    Trace("liastar-ext-smt") << "(assert " << std::endl
+                             << "  (distinct" << std::endl
+                             << "    ";
+    Trace("liastar-ext-smt") << predicate << std::endl << "    ";
+    Trace("liastar-ext-smt") << dnf << std::endl
+                             << "  )" << std::endl
+                             << ")" << std::endl;
+    Trace("liastar-ext-smt") << "(check-sat)" << std::endl;
+    Trace("liastar-ext-smt") << "(pop 1)" << std::endl;
+  }
 
   std::vector<std::pair<std::vector<std::string>, Node>> pairs =
       getMatrices(variables, dnf);
