@@ -609,6 +609,16 @@
 
 (define-rule re-star-star ((x RegLan)) (re.* (re.* x)) (re.* x))
 
+(define-cond-rule re-range-refl ((s String))
+  (= (str.len s) 1)
+  (re.range s s)
+  (str.to_re s))
+  
+(define-cond-rule re-range-emp ((s String) (t String))
+  (and (= (str.len s) 1) (= (str.len t) 1) (< (str.to_code t) (str.to_code s)))
+  (re.range s t)
+  re.none)
+
 (define-cond-rule re-range-non-singleton-1 ((s String) (t String))
   (not (= (str.len s) 1))
   (re.range s t)
@@ -618,6 +628,10 @@
   (not (= (str.len t) 1))
   (re.range s t)
   re.none)
+
+(define-rule re-star-union-char ((x RegLan :list) (y RegLan :list))
+  (re.* (re.union x re.allchar y))
+  (re.* re.allchar))
 
 (define-rule re-star-union-drop-emp ((x RegLan :list) (y RegLan :list))
   (re.* (re.union x (str.to_re "") y))
