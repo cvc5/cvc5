@@ -314,9 +314,11 @@
       (($run_evaluate (int_to_bv n m))     (eo::to_bin ($run_evaluate n) ($run_evaluate m)))
       (($run_evaluate (ubv_to_int xb))     (eo::to_z ($run_evaluate xb)))
       (($run_evaluate (sbv_to_int xb))     (eo::define ((ex ($run_evaluate xb)))
+                                           (eo::define ((w ($bv_bitwidth (eo::typeof ex))))
+                                             (eo::ite (eo::eq w 0) 0
                                              (eo::ite (eo::eq ($bv_sign_bit xb) #b0)
                                                (eo::to_z ex)
-                                               (eo::add (eo::to_z ex) (eo::neg ($arith_eval_int_pow_2 ($bv_bitwidth (eo::typeof xb))))))))
+                                               (eo::add (eo::to_z ex) (eo::neg ($arith_eval_int_pow_2 w))))))))
   
       (($run_evaluate z)                   z)
     )
