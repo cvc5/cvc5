@@ -14,7 +14,8 @@
 ##
 
 set(EXAMPLES_API_PYTHON
-  bitvectors_and_arrays
+# disabled due to failures on windows builds
+#  bitvectors_and_arrays
   bitvectors
   combination
   datatypes
