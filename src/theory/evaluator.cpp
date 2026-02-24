@@ -1269,11 +1269,9 @@ EvalResult Evaluator::evalInternal(
         {
           BitVector res = results[currNode[0]].d_bv;
           const uint32_t size = currNode[0].getType().getBitVectorSize();
-          if (size==0)
-          {
-            results[currNode] = EvalResult(Rational(0));
-          }
-          else if (res.isBitSet(size - 1))
+          // should not evaluate on empty bitvectors
+          Assert (size!=0);
+          if (res.isBitSet(size - 1))
           {
             Rational ttm = Rational(Integer(2).pow(size));
             results[currNode] = EvalResult(Rational(res.toInteger()) - ttm);
