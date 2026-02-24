@@ -35,7 +35,6 @@ FfResult gb(const std::vector<Node>& facts,
             const Env& env,
             FfStatistics* stats)
 {
-  // on some branches, we'll overwrite this result
   CocoaEncoder enc(env.getNodeManager(), size);
   // collect leaves
   for (const Node& node : facts)
