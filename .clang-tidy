@@ -2,7 +2,8 @@ Checks: >
   -*,
   clang-analyzer-core.CallAndMessage,
   clang-analyzer-core.uninitialized.UndefReturn,
-  clang-analyzer-deadcode.*
+  clang-analyzer-deadcode.*,
+  clang-analyzer-optin.cplusplus.VirtualCall
 HeaderFilterRegex: '.*'
 # Use .clang-format for formatting changes
 FormatStyle: file
