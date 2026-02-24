@@ -5,8 +5,13 @@ cvc5 1.3.3 prerelease
 
 ## Changes
 
+- Fixes a bug with `get-assertions` which cleared the previous solving state.
 - We now use a lazy approach for handling `distinct` constraints.
+- Minor improvement to the strategy used for non-linear arithmetic when both
+  incremental linearization and cylindrical algebraic coverings are used in
+  combination.
 - Fixes the SyGuS solver for corner cases of unconstrained queries.
+
 
 cvc5 1.3.2
 ==========
