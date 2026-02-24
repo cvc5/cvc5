@@ -30,23 +30,24 @@ TheoryEngineModule::TheoryEngineModule(Env& env,
 
 void TheoryEngineModule::presolve() {}
 
-void TheoryEngineModule::postsolve(prop::SatValue result) {}
+void TheoryEngineModule::postsolve(CVC5_UNUSED prop::SatValue result) {}
 
-void TheoryEngineModule::check(Theory::Effort effort) {}
+void TheoryEngineModule::check(CVC5_UNUSED Theory::Effort effort) {}
 
-void TheoryEngineModule::postCheck(Theory::Effort effort) {}
+void TheoryEngineModule::postCheck(CVC5_UNUSED Theory::Effort effort) {}
 
-void TheoryEngineModule::notifyLemma(TNode n,
-                                     InferenceId id,
-                                     LemmaProperty p,
-                                     const std::vector<Node>& skAsserts,
-                                     const std::vector<Node>& sks)
+void TheoryEngineModule::notifyLemma(
+    CVC5_UNUSED TNode n,
+    CVC5_UNUSED InferenceId id,
+    CVC5_UNUSED LemmaProperty p,
+    CVC5_UNUSED const std::vector<Node>& skAsserts,
+    CVC5_UNUSED const std::vector<Node>& sks)
 {
 }
 
 bool TheoryEngineModule::needsCandidateModel() { return false; }
 
-void TheoryEngineModule::notifyCandidateModel(TheoryModel* m) {}
+void TheoryEngineModule::notifyCandidateModel(CVC5_UNUSED TheoryModel* m) {}
 
 TheoryId TheoryEngineModule::getId() const { return d_out.getId(); }
 

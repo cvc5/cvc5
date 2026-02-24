@@ -95,13 +95,10 @@ class PartitionGenerator : public TheoryEngineModule
   /**
    * Make scatter partitions: C1, !C1 & C2, !C1 & !C2 & C3, !C1 & !C2 & !C3.
    * litType: indicates the atom source.
-   * emitZLL: if set to true, then zero-level learned literals will be appended
-   * to the cubes.
    * timedOut: indicates timeout has occurred, so partitions must be dumped.
    * randomize: determines whether atoms are randomly chosen.
    */
   Node makeScatterPartitions(LiteralListType litType,
-                             bool emitZLL,
                              bool timedOut,
                              bool randomize);
 

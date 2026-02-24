@@ -10,6 +10,8 @@ cvc5 1.3.3 prerelease
 - Minor improvement to the strategy used for non-linear arithmetic when both
   incremental linearization and cylindrical algebraic coverings are used in
   combination.
+- Fixes the SyGuS solver for corner cases of unconstrained queries.
+
 
 cvc5 1.3.2
 ==========

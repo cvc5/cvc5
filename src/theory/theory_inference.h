@@ -50,7 +50,10 @@ class TheoryInference
    * @return The trust node (of kind TrustNodeKind::LEMMA) corresponding to the
    * lemma and its proof generator.
    */
-  virtual TrustNode processLemma(LemmaProperty& p) { return TrustNode::null(); }
+  virtual TrustNode processLemma(CVC5_UNUSED LemmaProperty& p)
+  {
+    return TrustNode::null();
+  }
   /**
    * Process internal fact, return the conclusion to pass to
    * TheoryInferenceManager::assertInternalFact. In addition, the inference
@@ -61,7 +64,8 @@ class TheoryInference
    * engine.
    * @return The (possibly negated) conclusion.
    */
-  virtual Node processFact(std::vector<Node>& exp, ProofGenerator*& pg)
+  virtual Node processFact(CVC5_UNUSED std::vector<Node>& exp,
+                           CVC5_UNUSED ProofGenerator*& pg)
   {
     return Node::null();
   }

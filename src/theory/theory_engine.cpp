@@ -858,7 +858,7 @@ bool TheoryEngine::isLegalElimination(TNode x, TNode val)
   // there should be a model object
   TheoryModel* tm = getModel();
   Assert(tm != nullptr);
-  return tm->isLegalElimination(x, val);
+  return tm->isLegalElimination(val);
 }
 
 bool TheoryEngine::solve(TrustNode tliteral,
@@ -1380,7 +1380,8 @@ struct AtomsCollect {
  public:
   typedef void return_type;
 
-  bool alreadyVisited(TNode current, TNode parent) {
+  bool alreadyVisited(TNode current, CVC5_UNUSED TNode parent)
+  {
     // Check if already visited
     if (d_visited.find(current) != d_visited.end()) return true;
     // Don't visit non-boolean
@@ -1389,15 +1390,16 @@ struct AtomsCollect {
     return false;
   }
 
-  void visit(TNode current, TNode parent) {
+  void visit(TNode current, CVC5_UNUSED TNode parent)
+  {
     if (Theory::theoryOf(current) != theory::THEORY_BOOL) {
       d_atoms.push_back(current);
     }
     d_visited.insert(current);
   }
 
-  void start(TNode node) {}
-  void done(TNode node) {}
+  void start(CVC5_UNUSED TNode node) {}
+  void done(CVC5_UNUSED TNode node) {}
 
   std::vector<TNode> getAtoms() const {
     return d_atoms;

@@ -318,11 +318,9 @@ SynthResult SygusSolver::checkSynth(bool isNext)
     {
       ntrivSynthFuns = listToVector(d_sygusFunSymbols);
     }
-    if (!ntrivSynthFuns.empty())
-    {
-      body = quantifiers::SygusUtils::mkSygusConjecture(
-          nodeManager(), ntrivSynthFuns, body);
-    }
+    body = ntrivSynthFuns.empty() ? body.negate()
+                                  : quantifiers::SygusUtils::mkSygusConjecture(
+                                        nodeManager(), ntrivSynthFuns, body);
     Trace("smt-debug") << "...constructed forall " << body << std::endl;
 
     Trace("smt") << "Check synthesis conjecture: " << body << std::endl;
@@ -392,7 +390,12 @@ SynthResult SygusSolver::checkSynth(bool isNext)
   // solved.
   SynthResult sr;
   std::map<Node, Node> sol_map;
-  if (getSynthSolutions(sol_map))
+  if (r.getStatus() == Result::UNSAT)
+  {
+    // unsat means no solution
+    sr = SynthResult(SynthResult::NO_SOLUTION);
+  }
+  else if (getSynthSolutions(sol_map))
   {
     // if we have solutions, we return "solution"
     sr = SynthResult(SynthResult::SOLUTION);
@@ -402,11 +405,6 @@ SynthResult SygusSolver::checkSynth(bool isNext)
       Assertions& as = d_smtSolver.getAssertions();
       checkSynthSolution(as, sol_map);
     }
-  }
-  else if (r.getStatus() == Result::UNSAT)
-  {
-    // unsat means no solution
-    sr = SynthResult(SynthResult::NO_SOLUTION);
   }
   else
   {
@@ -528,10 +526,7 @@ void SygusSolver::checkSynthSolution(Assertions& as,
     solChecker->getOptions().write_smt().checkSynthSol = false;
     solChecker->getOptions().write_quantifiers().sygusRecFun = false;
     Node conjBody = conj;
-    if (conj.getKind() == Kind::FORALL)
-    {
-      conjBody = conjBody[1];
-    }
+    conjBody = conj.getKind() == Kind::FORALL ? conjBody[1] : conj.negate();
     // we must apply substitutions here, since define-fun may contain the
     // function-to-synthesize, which needs to be substituted.
     conjBody = d_smtSolver.getPreprocessor()->applySubstitutions(conjBody);

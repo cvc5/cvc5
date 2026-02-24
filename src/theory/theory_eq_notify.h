@@ -44,7 +44,7 @@ class TheoryEqNotifyClass : public eq::EqualityEngineNotify
     }
     return d_im.propagateLit(predicate.notNode());
   }
-  bool eqNotifyTriggerTermEquality(TheoryId tag,
+  bool eqNotifyTriggerTermEquality(CVC5_UNUSED TheoryId tag,
                                    TNode t1,
                                    TNode t2,
                                    bool value) override
@@ -59,15 +59,17 @@ class TheoryEqNotifyClass : public eq::EqualityEngineNotify
   {
     d_im.conflictEqConstantMerge(t1, t2);
   }
-  void eqNotifyNewClass(TNode t) override
+  void eqNotifyNewClass(CVC5_UNUSED TNode t) override
   {
     // do nothing
   }
-  void eqNotifyMerge(TNode t1, TNode t2) override
+  void eqNotifyMerge(CVC5_UNUSED TNode t1, CVC5_UNUSED TNode t2) override
   {
     // do nothing
   }
-  void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override
+  void eqNotifyDisequal(CVC5_UNUSED TNode t1,
+                        CVC5_UNUSED TNode t2,
+                        CVC5_UNUSED TNode reason) override
   {
     // do nothing
   }

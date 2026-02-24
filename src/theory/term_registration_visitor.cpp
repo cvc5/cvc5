@@ -202,7 +202,7 @@ void PreRegisterVisitor::preRegisterWithTheory(TheoryEngine* te,
   th->preRegisterTerm(current);
 }
 
-void PreRegisterVisitor::start(TNode node) {}
+void PreRegisterVisitor::start(CVC5_UNUSED TNode node) {}
 
 SharedTermsVisitor::SharedTermsVisitor(Env& env,
                                        TheoryEngine* te,
@@ -283,9 +283,7 @@ void SharedTermsVisitor::start(TNode node) {
   d_atom = node;
 }
 
-void SharedTermsVisitor::done(TNode node) {
-  clear();
-}
+void SharedTermsVisitor::done(CVC5_UNUSED TNode node) { clear(); }
 
 void SharedTermsVisitor::clear() {
   d_atom = TNode();

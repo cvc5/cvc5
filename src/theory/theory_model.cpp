@@ -669,7 +669,7 @@ const std::set<Kind>& TheoryModel::getIrrelevantKinds() const
   return d_irrKinds;
 }
 
-bool TheoryModel::isLegalElimination(TNode x, TNode val)
+bool TheoryModel::isLegalElimination(TNode val)
 {
   return !expr::hasSubtermKinds(d_unevaluated_kinds, val);
 }

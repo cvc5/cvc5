@@ -151,7 +151,7 @@ void RelevanceManager::check(Theory::Effort effort)
   }
 }
 
-void RelevanceManager::postCheck(Theory::Effort effort)
+void RelevanceManager::postCheck(CVC5_UNUSED Theory::Effort effort)
 {
   d_inFullEffortCheck = false;
 }
@@ -540,10 +540,10 @@ std::unordered_set<TNode> RelevanceManager::getRelevantAssertions(bool& success)
 }
 
 void RelevanceManager::notifyLemma(TNode n,
-                                   InferenceId id,
+                                   CVC5_UNUSED InferenceId id,
                                    LemmaProperty p,
                                    const std::vector<Node>& skAsserts,
-                                   const std::vector<Node>& sks)
+                                   CVC5_UNUSED const std::vector<Node>& sks)
 {
   // add to assertions
   if (options().theory.relevanceFilter && isLemmaPropertyNeedsJustify(p))

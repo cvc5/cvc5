@@ -109,7 +109,7 @@ class TheoryEngineModelBuilder : protected EnvObj
    * Check assertions and printing debug information for the model.
    * Calls after step (5) described above is complete.
    */
-  virtual void debugModel(TheoryModel* m) {}
+  virtual void debugModel(CVC5_UNUSED TheoryModel* m) {}
   //-----------------------------------end virtual functions
 
   /** Debug check model.

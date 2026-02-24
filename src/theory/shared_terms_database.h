@@ -106,9 +106,13 @@ class SharedTermsDatabase : protected EnvObj, public context::ContextNotifyObj
       d_sharedTerms.conflict(t1, t2, true);
     }
 
-    void eqNotifyNewClass(TNode t) override {}
-    void eqNotifyMerge(TNode t1, TNode t2) override {}
-    void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override {}
+    void eqNotifyNewClass(CVC5_UNUSED TNode t) override {}
+    void eqNotifyMerge(CVC5_UNUSED TNode t1, CVC5_UNUSED TNode t2) override {}
+    void eqNotifyDisequal(CVC5_UNUSED TNode t1,
+                          CVC5_UNUSED TNode t2,
+                          CVC5_UNUSED TNode reason) override
+    {
+    }
   };
 
   /** The notify class for d_equalityEngine */

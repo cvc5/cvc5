@@ -106,7 +106,12 @@ class TheoryBoolRewriter : public TheoryRewriter
    * @param n The node to negate
    * @return The negation of n.
    */
-  Node makeNegation(TNode n);
+  Node makeNegation(TNode n) const;
+  /**
+   * Rewrite based on ProofRewriteRule::MACRO_BOOL_EQ_CONST_EQ.
+   * Returns a non-null node iff the rewrite applies.
+   */
+  Node rewriteViaEqConstEq(const Node& n) const;
   /** Common constants */
   Node d_true;
   Node d_false;

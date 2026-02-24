@@ -115,7 +115,7 @@ class TheoryRewriter
    *
    * @param rewriter The rewriter to register the rewrites with.
    */
-  virtual void registerRewrites(Rewriter* rewriter) {}
+  virtual void registerRewrites(CVC5_UNUSED Rewriter* rewriter) {}
 
   /**
    * Performs a post-rewrite step.

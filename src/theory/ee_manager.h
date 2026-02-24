@@ -85,7 +85,7 @@ class EqEngineManager : protected EnvObj
    *
    * @param incomplete Whether we are answering "unknown" instead of "sat".
    */
-  virtual void notifyModel(bool incomplete) {}
+  virtual void notifyModel(CVC5_UNUSED bool incomplete) {}
 
  protected:
   /** Reference to the theory engine */

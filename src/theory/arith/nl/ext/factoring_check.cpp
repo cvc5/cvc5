@@ -204,7 +204,7 @@ Node FactoringCheck::getFactorSkolem(Node n, CDProof* proof)
   {
     k = itf->second;
   }
-  if (d_data->isProofEnabled())
+  if (proof != nullptr)
   {
     Node k_eq = k.eqNode(n);
     proof->addStep(k_eq, ProofRule::MACRO_SR_PRED_INTRO, {}, {k_eq});

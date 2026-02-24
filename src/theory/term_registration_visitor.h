@@ -81,7 +81,7 @@ class PreRegisterVisitor : protected EnvObj
   void start(TNode node);
 
   /** Called when the visitor is finished with a term, do nothing */
-  void done(TNode node) {}
+  void done(CVC5_UNUSED TNode node) {}
 
   /**
    * Preregister the term current occuring under term parent.  This calls

@@ -86,13 +86,14 @@ TrustNode TheoryRewriter::rewriteEqualityExtWithProof(Node node)
   return TrustNode::null();
 }
 
-Node TheoryRewriter::expandDefinition(Node node)
+Node TheoryRewriter::expandDefinition(CVC5_UNUSED Node node)
 {
   // no expansion
   return Node::null();
 }
 
-Node TheoryRewriter::rewriteViaRule(ProofRewriteRule pr, const Node& n)
+Node TheoryRewriter::rewriteViaRule(CVC5_UNUSED ProofRewriteRule pr,
+                                    const Node& n)
 {
   return n;
 }
