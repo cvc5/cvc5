@@ -2853,25 +2853,6 @@ Term::const_iterator::const_iterator(TermManager* tm,
 {
 }
 
-Term::const_iterator::const_iterator(const const_iterator& it)
-    : d_tm(nullptr), d_origNode(nullptr)
-{
-  if (it.d_origNode != nullptr)
-  {
-    d_tm = it.d_tm;
-    d_origNode = it.d_origNode;
-    d_pos = it.d_pos;
-  }
-}
-
-Term::const_iterator& Term::const_iterator::operator=(const const_iterator& it)
-{
-  d_tm = it.d_tm;
-  d_origNode = it.d_origNode;
-  d_pos = it.d_pos;
-  return *this;
-}
-
 bool Term::const_iterator::operator==(const const_iterator& it) const
 {
   if (d_origNode == nullptr || it.d_origNode == nullptr)
