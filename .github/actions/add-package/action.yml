@@ -74,6 +74,6 @@ runs:
       env:
         GH_TOKEN: ${{ github.token }}
       run: |
-        gh release upload $GITHUB_REF_NAME \
+        gh release upload cvc5-1.3.3 \
           ${{ inputs.package-name }}.zip \
           --repo $GITHUB_REPOSITORY
