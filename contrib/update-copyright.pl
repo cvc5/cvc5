@@ -168,7 +168,7 @@ while($#searchdirs >= 0) {
 
 sub reqHashPrefix {
   my ($file) = @_;
-  return ($file =~ /\.(cmake|py)(\.in)?$/ or $file =~ /CMakeLists\.txt/);
+  return ($file =~ /\.(cmake|py|pxd|pxi|pyx)(\.in)?$/ or $file =~ /CMakeLists\.txt/);
 }
 
 sub printHeader {
