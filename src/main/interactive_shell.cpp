@@ -384,7 +384,7 @@ restart:
   }
   catch (ParserException& pe)
   {
-    if (d_solver->getOption("output-language") == "LANG_SMTLIB_V2_6")
+    if (isLangSmt2(toLanguage(d_solver->getOption("output-language"))))
     {
       d_out << "(error \"" << pe << "\")" << endl;
     }

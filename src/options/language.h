@@ -34,6 +34,8 @@ enum class Language
 
   /** The SMTLIB v2.6 language, with support for the strings standard */
   LANG_SMTLIB_V2_6 = 0,
+  /** A custom SMTLIB v2.6-derived output format for TPTP output */
+  LANG_SMTLIB_V2_6_TPTP,
   /** The SyGuS language version 2.0 */
   LANG_SYGUS_V2,
 
@@ -51,7 +53,8 @@ namespace language {
 /** Is the language a variant of the smtlib version 2 language? */
 inline bool isLangSmt2(Language lang)
 {
-  return lang == Language::LANG_SMTLIB_V2_6;
+  return lang == Language::LANG_SMTLIB_V2_6
+         || lang == Language::LANG_SMTLIB_V2_6_TPTP;
 }
 
 /** Is the language a variant of the SyGuS input language? */

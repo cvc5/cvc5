@@ -199,6 +199,14 @@ bool CommandExecutor::doCommandSingleton(Cmd* cmd)
     }
 
     if (!getterCommands.empty()) {
+      const bool useTptProof =
+          d_solver->getOptionInfo("tptpmodels").boolValue();
+      std::string prevOutputLanguage;
+      if (useTptProof)
+      {
+        prevOutputLanguage = d_solver->getOption("output-language");
+        setOptionInternal("output-language", "smt2-tptp");
+      }
       // set no time limit during dumping if applicable
       if (d_solver->getOptionInfo("force-no-limit-cpu-while-dump").boolValue())
       {
@@ -210,6 +218,10 @@ bool CommandExecutor::doCommandSingleton(Cmd* cmd)
         {
           break;
         }
+      }
+      if (useTptProof)
+      {
+        setOptionInternal("output-language", prevOutputLanguage);
       }
     }
   }

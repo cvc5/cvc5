@@ -77,7 +77,7 @@ class OptionsHandler
 
   /** Convert option value to Language enum */
   Language stringToLanguage(const std::string& flag, const std::string& optarg);
-  /** Set the input language. Check that lang is not LANG_AST */
+  /** Set the input language. Check that lang is valid for parser input */
   void setInputLanguage(const std::string& flag, Language lang);
   /** Apply verbosity to the different output channels */
   void setVerbosity(const std::string& flag, int value);
