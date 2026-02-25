@@ -1465,6 +1465,7 @@ set(regress_0_tests
   regress0/proofs/bvrewrite-ite.smt2
   regress0/proofs/bvrewrite-shlbyconst.smt2
   regress0/proofs/com-galois-rewrite.smt2
+  regress0/proofs/dd.1004_attack_star_union_char.smt2
   regress0/proofs/dd.fastclose.smt2
   regress0/proofs/dd.fastclose2.smt2
   regress0/proofs/dd.fastclose3.smt2
@@ -1517,6 +1518,7 @@ set(regress_0_tests
   regress0/proofs/issue12240-cyclic-proof.smt2
   regress0/proofs/issue12355-cm-mixed-arith.smt2
   regress0/proofs/lfsc-test-1.smt2
+  regress0/proofs/macro-eq-const-eq.smt2
   regress0/proofs/macro-quant-prenex-simple.smt2
   regress0/proofs/nomerge-alethe-pf.smt2
   regress0/proofs/no-proof-uc.smt2
@@ -1560,6 +1562,8 @@ set(regress_0_tests
   regress0/proofs/qgu-fuzz-3-chainres-checking.smt2
   regress0/proofs/qgu-fuzz-4-bool-chainres-postprocessing-singleton.smt2
   regress0/proofs/qgu-fuzz-5-bool-open-sat.smt2
+  regress0/proofs/re-range-empty.smt2
+  regress0/proofs/re-range-refl.smt2
   regress0/proofs/RF-11-aci-norm-ndet.smt2
   regress0/proofs/scope.smt2
   regress0/proofs/shadow_quant.smt2
@@ -2902,6 +2906,7 @@ set(regress_1_tests
   regress1/nl/issue11386-1-nl-cov-cyclic.smt2
   regress1/nl/issue11386-2-nl-cov-cyclic.smt2
   regress1/nl/issue11386-3-nl-cov-cyclic.smt2
+  regress1/nl/issue12376-nl-comp-pf.smt2
   regress1/nl/issue3300-approx-sqrt-witness.smt2
   regress1/nl/issue3441.smt2
   regress1/nl/issue3617.smt2
@@ -3674,6 +3679,7 @@ set(regress_1_tests
   regress1/strings/proj-issue659.smt2
   regress1/strings/proj-issue779-2-extr.smt2
   regress1/strings/proj-issue779-2-icycle.smt2
+  regress1/strings/proj-issue783-inorm-cycle.smt2
   regress1/strings/prop-engine-order.smt2
   regress1/strings/query4674.smt2
   regress1/strings/query8485.smt2

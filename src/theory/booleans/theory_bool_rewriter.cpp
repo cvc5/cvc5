@@ -41,6 +41,8 @@ TheoryBoolRewriter::TheoryBoolRewriter(NodeManager* nm) : TheoryRewriter(nm)
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::MACRO_BOOL_BV_INVERT_SOLVE,
                            TheoryRewriteCtx::POST_DSL);
+  registerProofRewriteRule(ProofRewriteRule::MACRO_BOOL_EQ_CONST_EQ,
+                           TheoryRewriteCtx::PRE_DSL);
 }
 
 Node TheoryBoolRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
@@ -76,6 +78,14 @@ Node TheoryBoolRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       if (slv == n[1][1])
       {
         return nm->mkConst(true);
+      }
+    }
+    break;
+    case ProofRewriteRule::MACRO_BOOL_EQ_CONST_EQ:
+    {
+      if (n.getKind() == Kind::EQUAL)
+      {
+        return rewriteViaEqConstEq(n);
       }
     }
     break;
@@ -547,7 +557,7 @@ inline int equalityParity(TNode a, TNode b){
   }
 }
 
-Node TheoryBoolRewriter::makeNegation(TNode n)
+Node TheoryBoolRewriter::makeNegation(TNode n) const
 {
   bool even = false;
   while (n.getKind() == Kind::NOT)
@@ -689,71 +699,12 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
         // IFF x (NOT x)
         return RewriteResponse(REWRITE_DONE, d_false);
       }
-      else if (n[0].getKind() == Kind::EQUAL && n[1].getKind() == Kind::EQUAL)
+      // check if it is equality between equalities to constants
+      Node ret = rewriteViaEqConstEq(n);
+      if (!ret.isNull())
       {
-        // a : (= i x)
-        // i : (= j k)
-        // x : (= y z)
-
-        // assume wlog k, z are constants and j is the same symbol as y
-        // (= (= j k) (= j z))
-        // if k = z
-        //  then (= (= j k) (= j k)) => true
-        // else
-        //  (= (= j k) (= j z)) <=> b
-        //  b : (and (not (= j k)) (not (= j z)))
-        //  (= j k) (= j z) | a b
-        //  f       f       | t t
-        //  f       t       | f f
-        //  t       f       | f f
-        //  t       t       | * f
-        // * j cannot equal both k and z in a theory model
-        TNode t, c;
-        if (n[0][0].isConst())
-        {
-          c = n[0][0];
-          t = n[0][1];
-        }
-        else if (n[0][1].isConst())
-        {
-          c = n[0][1];
-          t = n[0][0];
-        }
-        bool matchesForm = false;
-        bool constantsEqual = false;
-        if (!c.isNull())
-        {
-          if (n[1][0] == t && n[1][1].isConst())
-          {
-            matchesForm = true;
-            constantsEqual = (n[1][1] == c);
-          }
-          else if (n[1][1] == t && n[1][0].isConst())
-          {
-            matchesForm = true;
-            constantsEqual = (n[1][0] == c);
-          }
-        }
-        if (matchesForm)
-        {
-          if (constantsEqual)
-          {
-            return RewriteResponse(REWRITE_DONE, d_true);
-          }
-          else
-          {
-            if (t.getType().isCardinalityLessThan(2))
-            {
-              return RewriteResponse(REWRITE_DONE, d_false);
-            }
-            else
-            {
-              Node neitherEquality =
-                  (makeNegation(n[0])).andNode(makeNegation(n[1]));
-              return RewriteResponse(REWRITE_AGAIN, neitherEquality);
-            }
-          }
-        }
+        return RewriteResponse(ret.isConst() ? REWRITE_DONE : REWRITE_AGAIN,
+                               ret);
       }
       // sort
       if (n[0].getId() > n[1].getId())
@@ -944,6 +895,72 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
     return RewriteResponse(REWRITE_DONE, n);
   }
   return RewriteResponse(REWRITE_DONE, n);
+}
+
+Node TheoryBoolRewriter::rewriteViaEqConstEq(const Node& n) const
+{
+  if (n[0].getKind() == Kind::EQUAL && n[1].getKind() == Kind::EQUAL)
+  {
+    // a : (= i x)
+    // i : (= j k)
+    // x : (= y z)
+
+    // assume wlog k, z are constants and j is the same symbol as y
+    // (= (= j k) (= j z))
+    // if k = z
+    //  then (= (= j k) (= j k)) => true
+    // else
+    //  (= (= j k) (= j z)) <=> b
+    //  b : (and (not (= j k)) (not (= j z)))
+    //  (= j k) (= j z) | a b
+    //  f       f       | t t
+    //  f       t       | f f
+    //  t       f       | f f
+    //  t       t       | * f
+    // * j cannot equal both k and z in a theory model
+    TNode t, c;
+    if (n[0][0].isConst())
+    {
+      c = n[0][0];
+      t = n[0][1];
+    }
+    else if (n[0][1].isConst())
+    {
+      c = n[0][1];
+      t = n[0][0];
+    }
+    bool matchesForm = false;
+    bool constantsEqual = false;
+    if (!c.isNull())
+    {
+      if (n[1][0] == t && n[1][1].isConst())
+      {
+        matchesForm = true;
+        constantsEqual = (n[1][1] == c);
+      }
+      else if (n[1][1] == t && n[1][0].isConst())
+      {
+        matchesForm = true;
+        constantsEqual = (n[1][0] == c);
+      }
+    }
+    if (matchesForm)
+    {
+      if (constantsEqual)
+      {
+        return d_true;
+      }
+      else
+      {
+        // if there were 2 distinct constants, the cardinality should be at
+        // least 2.
+        Assert(!t.getType().isCardinalityLessThan(2));
+        Node neitherEquality = (n[0].notNode()).andNode(n[1].notNode());
+        return neitherEquality;
+      }
+    }
+  }
+  return Node::null();
 }
 
 }  // namespace booleans

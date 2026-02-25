@@ -202,6 +202,12 @@ void BasicRewriteRCons::ensureProofForTheoryRewrite(CDProof* cdp,
         handledMacro = true;
       }
       break;
+    case ProofRewriteRule::MACRO_BOOL_EQ_CONST_EQ:
+      if (ensureProofMacroBoolEqConstEq(cdp, eq))
+      {
+        handledMacro = true;
+      }
+      break;
     case ProofRewriteRule::MACRO_BOOL_BV_INVERT_SOLVE:
       if (ensureProofMacroBoolBvInvertSolve(cdp, eq))
       {
@@ -400,6 +406,55 @@ bool BasicRewriteRCons::ensureProofMacroBoolNnfNorm(CDProof* cdp,
   std::shared_ptr<ProofNode> pfn = tcpg.getProofFor(eq);
   Trace("brc-macro") << "...proof is " << *pfn.get() << std::endl;
   cdp->addProof(pfn);
+  return true;
+}
+
+bool BasicRewriteRCons::ensureProofMacroBoolEqConstEq(CDProof* cdp,
+                                                      const Node& eq)
+{
+  Trace("brc-macro") << "Expand Bool eq const eq " << eq[0] << " == " << eq[1]
+                     << std::endl;
+  Assert(eq[0].getKind() == Kind::EQUAL);
+  Assert(eq[0][0].getKind() == Kind::EQUAL
+         && eq[0][1].getKind() == Kind::EQUAL);
+  if (eq[0][0] == eq[0][1])
+  {
+    // true case is handled by RARE rule eq-refl
+    cdp->addTrustedStep(eq, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE, {}, {});
+    return true;
+  }
+  // orient the equalities properly
+  std::vector<Node> premises;
+  for (size_t i = 0; i < 2; i++)
+  {
+    // flip if constant is on the left side
+    if (eq[0][i][0].isConst())
+    {
+      Node sym = eq[0][i][1].eqNode(eq[0][i][0]);
+      Node eqq = eq[0][i].eqNode(sym);
+      // will prove equality between equality and flipped form
+      cdp->addTrustedStep(
+          eqq, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE, {}, {});
+      premises.push_back(eqq);
+    }
+    else
+    {
+      premises.push_back(Node::null());
+    }
+  }
+  Node equiv1 = proveCong(cdp, eq[0], premises);
+  Trace("brc-macro") << "...orient LHS via " << equiv1 << std::endl;
+  if (equiv1[0] == equiv1[1])
+  {
+    // no flipping was necessary, should be RARE rule eq-cond-deq
+    cdp->addTrustedStep(eq, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE, {}, {});
+    return true;
+  }
+  Node equiv2 = equiv1[1].eqNode(eq[1]);
+  // should be proven by RARE rule eq-cond-deq
+  cdp->addTrustedStep(
+      equiv2, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE, {}, {});
+  cdp->addStep(eq, ProofRule::TRANS, {equiv1, equiv2}, {});
   return true;
 }
 

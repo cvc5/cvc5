@@ -2614,6 +2614,22 @@ enum ENUM(ProofRewriteRule)
   EVALUE(MACRO_BOOL_NNF_NORM),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Booleans -- Macro equality to constant equality**
+   *
+   * .. math::
+   *
+   *   ((t = c) = (t = d)) = s
+   *
+   * where :math:`c` and :math:`d` are values, and :math:`s` is
+   * one of :math:`\neg (t = c) \wedge \neg (t = d)` or :math:`\top`
+   * depending on if :math:`c` and :math:`d` are distinct. Also applies where
+   * one or both equalities are flipped.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_BOOL_EQ_CONST_EQ),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Booleans -- Bitvector invert solve**
    *
    * .. math::
@@ -4716,10 +4732,16 @@ enum ENUM(ProofRewriteRule)
   EVALUE(RE_STAR_EMP),
   /** Auto-generated from RARE rule re-star-star */
   EVALUE(RE_STAR_STAR),
+  /** Auto-generated from RARE rule re-range-refl */
+  EVALUE(RE_RANGE_REFL),
+  /** Auto-generated from RARE rule re-range-emp */
+  EVALUE(RE_RANGE_EMP),
   /** Auto-generated from RARE rule re-range-non-singleton-1 */
   EVALUE(RE_RANGE_NON_SINGLETON_1),
   /** Auto-generated from RARE rule re-range-non-singleton-2 */
   EVALUE(RE_RANGE_NON_SINGLETON_2),
+  /** Auto-generated from RARE rule re-star-union-char */
+  EVALUE(RE_STAR_UNION_CHAR),
   /** Auto-generated from RARE rule re-star-union-drop-emp */
   EVALUE(RE_STAR_UNION_DROP_EMP),
   /** Auto-generated from RARE rule re-loop-neg */

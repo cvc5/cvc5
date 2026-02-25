@@ -81,6 +81,11 @@ class DatatypesEnumerator : public TypeEnumeratorBase<DatatypesEnumerator> {
 
   Node getCurrentTerm( unsigned index );
 
+  bool isEnumerationComplete()
+  {
+    return d_ctor >= d_has_debruijn+d_datatype.getNumConstructors();
+  }
+
   void init();
 
  public:
@@ -157,7 +162,7 @@ class DatatypesEnumerator : public TypeEnumeratorBase<DatatypesEnumerator> {
 
   bool isFinished() override
   {
-    return d_ctor >= d_has_debruijn+d_datatype.getNumConstructors();
+    return isEnumerationComplete();
   }
 
 };/* DatatypesEnumerator */
