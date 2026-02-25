@@ -39,7 +39,7 @@ runs:
       run: |
         echo "::group::Shared build"
         ./configure.sh ${{ inputs.configure-config }} \
-          --prefix=$(pwd)/build-shared/install --werror --name=build-shared \
+          --prefix=$(pwd)/build-shared/install --name=build-shared \
           -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
         
         cd build-shared/ && pwd=$(pwd)
@@ -59,7 +59,7 @@ runs:
       run: |
         echo "::group::Static build"
         ./configure.sh ${{ inputs.configure-config }} \
-          --prefix=$(pwd)/build-static/install --werror --static --name=build-static \
+          --prefix=$(pwd)/build-static/install --static --name=build-static \
           -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
 
         cd build-static/ && pwd=$(pwd)

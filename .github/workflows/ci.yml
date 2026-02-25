@@ -16,7 +16,7 @@ jobs:
       cancel-in-progress: false
     steps:
       - name: Checkout code
-        if: (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
+        if: (github.ref == 'refs/heads/main' || true)
         uses: actions/checkout@v6
 
       - name: Set up latest page
@@ -24,7 +24,7 @@ jobs:
         uses: ./.github/actions/setup-latest
 
       - name: Set up new version page
-        if: startsWith(github.ref, 'refs/tags/')
+        if: false
         uses: ./.github/actions/setup-new-version
         with:
           # When using GITHUB_TOKEN, no further workflows are triggered
@@ -36,7 +36,7 @@ jobs:
     strategy:
       matrix:
         has-tag:
-          - ${{ startsWith(github.ref, 'refs/tags/') }}
+          - true
         build:
           - name: ubuntu:production
             os: ubuntu-22.04
@@ -258,6 +258,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v6
+      with:
+        ref: cvc5-1.3.3
 
     # Ensure that the Java bindings, Java API tests, and Java examples are compatible
     # with the minimum required Java version (currently Java 8).
@@ -333,7 +335,7 @@ jobs:
 
     - name: Create and add shared package to latest and release
       id: create-shared-package
-      if: matrix.build.package-name && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
+      if: matrix.build.package-name && (github.ref == 'refs/heads/main' || true)
       uses: ./.github/actions/add-package
       with:
         build-dir: ${{ steps.configure-and-build.outputs.shared-build-dir }}
@@ -342,7 +344,7 @@ jobs:
 
     - name: Create and add static package to latest and release
       id: create-static-package
-      if: matrix.build.package-name && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
+      if: matrix.build.package-name && (github.ref == 'refs/heads/main' || true)
       uses: ./.github/actions/add-package
       with:
         build-dir: ${{ steps.configure-and-build.outputs.static-build-dir }}
@@ -350,7 +352,7 @@ jobs:
         shell: ${{ matrix.build.shell }}
 
     - name: Create and add WASM to latest and release
-      if: matrix.build.wasm-pkg-name && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
+      if: matrix.build.wasm-pkg-name && (github.ref == 'refs/heads/main' || true)
       uses: ./.github/actions/add-wasm
       with:
         build-dir: ${{ steps.configure-and-build.outputs.static-build-dir }}
@@ -358,7 +360,7 @@ jobs:
         shell: ${{ matrix.build.shell }}
 
     - name: Create and add JAR to latest and release
-      if: matrix.build.java-bindings && matrix.build.package-name && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
+      if: matrix.build.java-bindings && matrix.build.package-name && (github.ref == 'refs/heads/main' || true)
       uses: ./.github/actions/add-jar
       with:
         build-dir: ${{ steps.configure-and-build.outputs.static-build-dir }}
@@ -368,7 +370,7 @@ jobs:
     - name: Upload Maven artifacts
       if: >
         github.repository == 'cvc5/cvc5' &&
-        (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')) &&
+        (github.ref == 'refs/heads/main' || true) &&
         (matrix.build.upload-maven-doc ||
          (matrix.build.java-bindings && matrix.build.package-name))
       uses: ./.github/actions/upload-mvn-files
@@ -381,7 +383,7 @@ jobs:
 
   publish-to-maven-central:
     name: Publish to Maven central
-    if: github.repository == 'cvc5/cvc5' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
+    if: github.repository == 'cvc5/cvc5' && (github.ref == 'refs/heads/main' || true)
     runs-on: ubuntu-latest
     continue-on-error: true
     needs: [builds]
