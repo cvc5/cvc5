@@ -28,7 +28,7 @@ runs:
 
     - name: Store WASM package to latest
       if: github.ref == 'refs/heads/main'
-      uses: ./.github/actions/store-to-latest@fix-release-1.3.3
+      uses: ./.github/actions/store-to-latest
       with:
         asset-filename: ${{ inputs.wasm-name }}.zip
         shell: ${{ inputs.shell }}
