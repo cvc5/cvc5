@@ -274,10 +274,6 @@ if(NOT ENABLE_CLANG_TIDY)
   add_check_cxx_flag("-fno-extern-tls-init")
 endif()
 
-# Disable -Wclass-memaccess to suppress 'no trivial copy-assignment' in MiniSat
-# code.
-add_check_cxx_supression_flag("-Wno-class-memaccess")
-
 if (WIN32)
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--stack,100000000")
 endif ()
