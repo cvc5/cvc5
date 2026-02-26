@@ -494,10 +494,7 @@ LiaStarExtension::convertQFLIAToMatrices(Node n)
   Trace("liastar-ext") << "variables: " << variables << std::endl;
 
   Trace("liastar-ext") << "predicate: " << predicate << std::endl;
-  Node dnf = LiaStarUtils::toDNF(predicate, &d_env);
-  Trace("liastar-ext") << "predicate in dnf: " << dnf << std::endl;
 
-  Trace("liastar-ext") << "lia constraint: " << std::endl;
   if (TraceIsOn("liastar-ext-smt"))
   {
     Trace("liastar-ext-smt") << "(set-logic HO_ALL)" << std::endl;
@@ -509,18 +506,12 @@ LiaStarExtension::convertQFLIAToMatrices(Node n)
       Trace("liastar-ext-smt")
           << "(declare-const " << var << " Int)" << std::endl;
     }
-    Trace("liastar-ext-smt") << "(push 1)" << std::endl;
-    Trace("liastar-ext-smt") << "(echo \"dnf\")" << std::endl;
-    Trace("liastar-ext-smt") << "(assert " << std::endl
-                             << "  (distinct" << std::endl
-                             << "    ";
-    Trace("liastar-ext-smt") << predicate << std::endl << "    ";
-    Trace("liastar-ext-smt") << dnf << std::endl
-                             << "  )" << std::endl
-                             << ")" << std::endl;
-    Trace("liastar-ext-smt") << "(check-sat)" << std::endl;
-    Trace("liastar-ext-smt") << "(pop 1)" << std::endl;
   }
+
+  Node dnf = LiaStarUtils::toDNF(predicate, &d_env);
+
+  Trace("liastar-ext") << "predicate in dnf: " << dnf << std::endl;
+  Trace("liastar-ext") << "lia constraint: " << std::endl;
 
   std::vector<std::pair<std::vector<std::string>, Node>> pairs =
       getMatrices(variables, dnf);

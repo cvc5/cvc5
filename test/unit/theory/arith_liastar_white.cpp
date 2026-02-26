@@ -38,8 +38,10 @@ namespace test {
 class TestLiaStarUtils : public TestSmt
 {
  protected:
-  TypeNode intType;
+  TypeNode intType, boolType;
+  Node trueConst, falseConst;
   Node negativeOne, zero, one, two, three, nine, twentyOne;
+  Node a, b, c, d, f, g, u, v, x, y, z;
   NodeManager* nm;
   Env* e;
   std::stringstream ss;
@@ -47,9 +49,13 @@ class TestLiaStarUtils : public TestSmt
   {
     TestSmt::SetUp();
     d_slvEngine->setOption("dag-thresh", "0", true);
+    d_slvEngine->setOption("trace", "liastar-ext-smt", true);
     nm = d_nodeManager.get();
     e = &d_slvEngine->getEnv();
     intType = nm->integerType();
+    boolType = nm->booleanType();
+    trueConst = nm->mkConst<bool>(true);
+    falseConst = nm->mkConst<bool>(false);
     negativeOne = nm->mkConstInt(Rational(-1));
     zero = nm->mkConstInt(Rational(0));
     one = nm->mkConstInt(Rational(1));
@@ -57,84 +63,117 @@ class TestLiaStarUtils : public TestSmt
     three = nm->mkConstInt(Rational(3));
     nine = nm->mkConstInt(Rational(9));
     twentyOne = nm->mkConstInt(Rational(21));
+    a = nm->mkBoundVar("a", boolType);
+    b = nm->mkBoundVar("b", boolType);
+    c = nm->mkBoundVar("c", boolType);
+    d = nm->mkBoundVar("d", boolType);
+    f = nm->mkBoundVar("f", boolType);
+    g = nm->mkBoundVar("g", boolType);
+    u = nm->mkBoundVar("u", boolType);
+    v = nm->mkBoundVar("v", boolType);
+    x = nm->mkBoundVar("x", boolType);
+    y = nm->mkBoundVar("y", boolType);
+    z = nm->mkBoundVar("z", boolType);
   }
 };
 
-TEST_F(TestLiaStarUtils, toDNF)
+TEST_F(TestLiaStarUtils, distribute1)
+{
+  // (and
+  //   (or
+  //     (and
+  //        (or f g)
+  //        (or x y))
+  //      z)
+  //     (or u v)
+  //   (and a b)
+  //  )
+
+  Node or_fg = nm->mkNode(Kind::OR, {f, g});
+  Node or_xy = nm->mkNode(Kind::OR, {x, y});
+  Node or_uv = nm->mkNode(Kind::OR, {u, v});
+  Node and_ab = nm->mkNode(Kind::AND, {a, b});
+  Node and_or_fg_or_xy = nm->mkNode(Kind::AND, {or_fg, or_xy});
+  Node and_z = nm->mkNode(Kind::AND, {and_or_fg_or_xy, z});
+  Node or_uv_z = nm->mkNode(Kind::OR, {or_uv, and_z});
+  Node and_outer = nm->mkNode(Kind::AND, {or_uv_z, and_ab});
+  Node dnf = LiaStarUtils::distribute(and_outer, e);
+  dnf = LiaStarUtils::recursiveFlatten(nm, dnf);
+  ASSERT_EQ(
+      "(or (and u a b) (and v a b) (and f x z a b) (and g x z a b) (and f y z "
+      "a b) (and g y z a b))",
+      dnf.toString());
+}
+
+TEST_F(TestLiaStarUtils, toDNF1)
 {
   // (not (>= (+ (* 3 x) (* (- 1) y)) 9)), i.e., not (3*x - y >= 9)
-  // expected (3*x - y < 9)
-  // (< (+ (* 3 x) (* (- 1) y)) 9)
+  x = nm->mkBoundVar("x", intType);
+  y = nm->mkBoundVar("y", intType);
 
-  Node x = nm->mkBoundVar("x", intType);
-  Node y = nm->mkBoundVar("y", intType);
   Node threeTimesX = nm->mkNode(Kind::MULT, three, x);
   Node minus = nm->mkNode(Kind::SUB, threeTimesX, y);
   Node geq = nm->mkNode(Kind::GEQ, minus, nine);
   Node notGEQ = geq.notNode();
   Node dnf = LiaStarUtils::toDNF(notGEQ, e);
-  Node minusY = nm->mkNode(Kind::MULT, negativeOne, y);
-  Node plus = nm->mkNode(Kind::ADD, threeTimesX, minusY);
-  Node expected = nm->mkNode(Kind::LT, plus, nine);
-  ASSERT_EQ(expected, dnf);
+  ASSERT_EQ("(< (- (* 3 x) y) 9)", dnf.toString());
 }
 
-TEST_F(TestLiaStarUtils, toDNF_2008PaperExample)
+TEST_F(TestLiaStarUtils, toDNF2)
 {
-  // F(x1, L, x, z1, z2)
-  // where F is
-  // (and
-  //  (= z1 (ite (= x1 (ite (<= L x) 0 (- L x))) 0 1))
-  //  (= z2 (ite (<= x L) 0 1)))
+  // (and (or a b) (or c d))
+  Node or_a_b = a.orNode(b);
+  Node or_c_d = c.orNode(d);
+  Node and = or_a_b.andNode(or_c_d);
+  Node dnf = LiaStarUtils::toDNF(and, e);
+  ASSERT_EQ("(or (and a c) (and b c) (and a d) (and b d))", dnf.toString());
+}
 
-  Node x1 = nm->mkBoundVar("x1", intType);
-  Node L = nm->mkBoundVar("L", intType);
-  Node x = nm->mkBoundVar("x", intType);
-  Node z1 = nm->mkBoundVar("z1", intType);
-  Node z2 = nm->mkBoundVar("z2", intType);
-  Node L_leq_x = nm->mkNode(Kind::LEQ, L, x);
-  Node L_minus_x = nm->mkNode(Kind::SUB, L, x);
-  Node x1_ite = nm->mkNode(Kind::ITE, L_leq_x, zero, L_minus_x);
-  Node x1_eq = x1.eqNode(x1_ite);
-  Node z1_ite = nm->mkNode(Kind::ITE, x1_eq, zero, one);
-  Node z1_eq = z1.eqNode(z1_ite);
-  Node x_leq_L = nm->mkNode(Kind::LEQ, x, L);
-  Node z2_ite = nm->mkNode(Kind::ITE, x_leq_L, zero, one);
-  Node z2_eq = z2.eqNode(z2_ite);
+TEST_F(TestLiaStarUtils, toDNF3)
+{
+  // (and (or (and a x) b) (or c d))
+  Node and_a_x = a.andNode(x);
+  Node or_a_b = and_a_x.orNode(b);
+  Node or_c_d = c.orNode(d);
+  Node and = or_a_b.andNode(or_c_d);
+  Node dnf = LiaStarUtils::toDNF(and, e);
+  ASSERT_EQ("(or (and a x c) (and b c) (and a x d) (and b d))", dnf.toString());
+}
 
-  Node F = z1_eq.andNode(z2_eq);
-  Node dnf = LiaStarUtils::toDNF(F, e);
-  std::string dnfString = dnf.toString();
+TEST_F(TestLiaStarUtils, toDNF4)
+{
+  // (and (or a (and b x)) (or c d))
+  Node and_b_x = b.andNode(x);
+  Node or_a_b = a.orNode(and_b_x);
+  Node or_c_d = c.orNode(d);
+  Node and = or_a_b.andNode(or_c_d);
+  Node dnf = LiaStarUtils::toDNF(and, e);
+  ASSERT_EQ("(or (and a c) (and b x c) (and a d) (and b x d))", dnf.toString());
+}
+
+TEST_F(TestLiaStarUtils, toDNF5)
+{
+  // (and (or a b x) (or c d))
+  Node or1 = nm->mkNode(Kind::OR, {a, b, x});
+  Node or2 = nm->mkNode(Kind::OR, {c, d});
+  Node and = or1.andNode(or2);
+  Node dnf = LiaStarUtils::toDNF(and, e);
+  ASSERT_EQ("(or (and a c) (and b c) (and x c) (and a d) (and b d) (and x d))",
+            dnf.toString());
+}
+
+TEST_F(TestLiaStarUtils, toDNF6)
+{
+  // (and (or a b) (or c d) (or x y))
+  Node or1 = nm->mkNode(Kind::OR, {a, b});
+  Node or2 = nm->mkNode(Kind::OR, {c, d});
+  Node or3 = nm->mkNode(Kind::OR, {x, y});
+  Node and = nm->mkNode(Kind::AND, {or1, or2, or3});
+  Node dnf = LiaStarUtils::toDNF(and, e);
   ASSERT_EQ(
-      "(or (and (= z1 0) (= x1 (+ L (* (- 1) x))) (>= (+ L (* (- 1) x)) 1) (= "
-      "z2 0) (>= (+ L (* (- 1) x)) 0)) (and (= z1 0) (= x1 (+ L (* (- 1) x))) "
-      "(>= (+ L (* (- 1) x)) 1) (= z2 1) (< (+ L (* (- 1) x)) 0)) (and (= z1 "
-      "0) (= x1 0) (< (+ L (* (- 1) x)) 1) (= z2 0) (>= (+ L (* (- 1) x)) 0)) "
-      "(and (= z1 0) (= x1 0) (< (+ L (* (- 1) x)) 1) (= z2 1) (< (+ L (* (- "
-      "1) x)) 0)) (and (= z1 1) (>= (+ x1 (* (- 1) L) x) 1) (>= x1 1) (= z2 0) "
-      "(>= (+ L (* (- 1) x)) 0)) (and (= z1 1) (>= (+ x1 (* (- 1) L) x) 1) (>= "
-      "x1 1) (= z2 1) (< (+ L (* (- 1) x)) 0)) (and (= z1 1) (>= (+ x1 (* (- "
-      "1) L) x) 1) (< x1 0) (= z2 0) (>= (+ L (* (- 1) x)) 0)) (and (= z1 1) "
-      "(>= (+ x1 (* (- 1) L) x) 1) (< x1 0) (= z2 1) (< (+ L (* (- 1) x)) 0)) "
-      "(and (= z1 1) (>= (+ x1 (* (- 1) L) x) 1) (>= (+ L (* (- 1) x)) 1) (= "
-      "z2 0) (>= (+ L (* (- 1) x)) 0)) (and (= z1 1) (>= (+ x1 (* (- 1) L) x) "
-      "1) (>= (+ L (* (- 1) x)) 1) (= z2 1) (< (+ L (* (- 1) x)) 0)) (and (= "
-      "z1 1) (< (+ x1 (* (- 1) L) x) 0) (>= x1 1) (= z2 0) (>= (+ L (* (- 1) "
-      "x)) 0)) (and (= z1 1) (< (+ x1 (* (- 1) L) x) 0) (>= x1 1) (= z2 1) (< "
-      "(+ L (* (- 1) x)) 0)) (and (= z1 1) (< (+ x1 (* (- 1) L) x) 0) (< x1 0) "
-      "(= z2 0) (>= (+ L (* (- 1) x)) 0)) (and (= z1 1) (< (+ x1 (* (- 1) L) "
-      "x) 0) (< x1 0) (= z2 1) (< (+ L (* (- 1) x)) 0)) (and (= z1 1) (< (+ x1 "
-      "(* (- 1) L) x) 0) (>= (+ L (* (- 1) x)) 1) (= z2 0) (>= (+ L (* (- 1) "
-      "x)) 0)) (and (= z1 1) (< (+ x1 (* (- 1) L) x) 0) (>= (+ L (* (- 1) x)) "
-      "1) (= z2 1) (< (+ L (* (- 1) x)) 0)) (and (= z1 1) (< (+ L (* (- 1) x)) "
-      "1) (>= x1 1) (= z2 0) (>= (+ L (* (- 1) x)) 0)) (and (= z1 1) (< (+ L "
-      "(* (- 1) x)) 1) (>= x1 1) (= z2 1) (< (+ L (* (- 1) x)) 0)) (and (= z1 "
-      "1) (< (+ L (* (- 1) x)) 1) (< x1 0) (= z2 0) (>= (+ L (* (- 1) x)) 0)) "
-      "(and (= z1 1) (< (+ L (* (- 1) x)) 1) (< x1 0) (= z2 1) (< (+ L (* (- "
-      "1) x)) 0)) (and (= z1 1) (< (+ L (* (- 1) x)) 1) (>= (+ L (* (- 1) x)) "
-      "1) (= z2 0) (>= (+ L (* (- 1) x)) 0)) (and (= z1 1) (< (+ L (* (- 1) "
-      "x)) 1) (>= (+ L (* (- 1) x)) 1) (= z2 1) (< (+ L (* (- 1) x)) 0)))",
-      dnfString);
+      "(or (and a c x) (and b c x) (and a d x) (and b d x) (and a c y) (and b "
+      "c y) (and a d y) (and b d y))",
+      dnf.toString());
 }
 
 }  // namespace test

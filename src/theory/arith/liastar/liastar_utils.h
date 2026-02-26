@@ -40,9 +40,19 @@ class LiaStarUtils
    */
   static Node toDNF(Node n, Env* e);
 
+  /**
+   * @param a node in LIA that only contains =, >=, ite in its tree
+   * @return an equivalent node that does not contain ite expressions
+   * without introducing new variables
+   */
+  static Node removeItes(Node n, Env* e);
+
+  static Node distribute(Node n, Env* e);
+
  private:
-  static std::pair<Node, bool> booleanDNF(Node n, Env* e);
-  static std::vector<std::pair<Node, Node>> integerDNF(Node n, Env* e);
+  static std::vector<std::pair<Node, Node>> removeIntegerItes(Node n, Env* e);
+  static Node removeNot(Node n, Env* e);
+  static Node recursiveFlatten(NodeManager* nm, Node n);
 };
 }  // namespace liastar
 }  // namespace arith
