@@ -60,10 +60,6 @@ Node LiaStarUtils::toDNF(Node n, Env* e)
   // eliminate negation
   Node nnf = removeNot(noItes, e);
   Trace("liastar-ext-debug") << "nnf: " << nnf << std::endl;
-  // distributes conjunctions over disjunctions
-  Node dnf = distribute(nnf, e);
-  Trace("liastar-ext-debug") << "dnf: " << dnf << std::endl;
-  dnf = recursiveFlatten(e->getNodeManager(), dnf);
   if (TraceIsOn("liastar-ext-smt"))
   {
     // noItes
@@ -90,7 +86,13 @@ Node LiaStarUtils::toDNF(Node n, Env* e)
                              << ")" << std::endl;
     Trace("liastar-ext-smt") << "(check-sat)" << std::endl;
     Trace("liastar-ext-smt") << "(pop 1)" << std::endl;
-
+  }
+  // distributes conjunctions over disjunctions  
+  Node dnf = distribute(nnf, e);
+  Trace("liastar-ext-debug") << "dnf: " << dnf << std::endl;
+  // dnf = recursiveFlatten(e->getNodeManager(), dnf);
+  if (TraceIsOn("liastar-ext-smt"))
+  {    
     Trace("liastar-ext-smt") << "(push 1)" << std::endl;
     Trace("liastar-ext-smt") << "(echo \"dnf\")" << std::endl;
     Trace("liastar-ext-smt") << "(assert " << std::endl
