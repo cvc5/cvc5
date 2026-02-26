@@ -26,12 +26,12 @@ jobs:
         sed -i'orig' -E 's/cmake_minimum_required\(VERSION [0-9.]+\)/cmake_minimum_required(VERSION ${{ matrix.cmake_version }})/' CMakeLists.txt
 
     - name: Install dependencies
-      uses: ./.github/actions/install-dependencies
+      uses: ./.github/actions/install-dependencies@fix-release-1.3.3
       with:
         with-documentation: true
   
     - name: Setup caches
-      uses: ./.github/actions/setup-cache
+      uses: ./.github/actions/setup-cache@fix-release-1.3.3
       with:
         cache-key: cmake
   

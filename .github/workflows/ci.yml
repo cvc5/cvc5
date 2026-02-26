@@ -21,11 +21,11 @@ jobs:
 
       - name: Set up latest page
         if: github.ref == 'refs/heads/main'
-        uses: ./.github/actions/setup-latest
+        uses: ./.github/actions/setup-latest@fix-release-1.3.3
 
       - name: Set up new version page
         if: false
-        uses: ./.github/actions/setup-new-version
+        uses: ./.github/actions/setup-new-version@fix-release-1.3.3
         with:
           # When using GITHUB_TOKEN, no further workflows are triggered
           # See https://github.com/cvc5/cvc5/pull/8512
@@ -269,14 +269,14 @@ jobs:
         java-version: ${{ matrix.build.java-version || '8' }}
 
     - name: Setup CMake
-      uses: ./.github/actions/setup-cmake
+      uses: ./.github/actions/setup-cmake@fix-release-1.3.3
       # Exclude Linux ARM64 runners, which are currently unsupported
       if: runner.os == 'Linux' && ! contains(runner.arch, 'ARM')
       with:
         shell: ${{ matrix.build.shell }}
 
     - name: Install dependencies
-      uses: ./.github/actions/install-dependencies
+      uses: ./.github/actions/install-dependencies@fix-release-1.3.3
       with:
         with-documentation: ${{ matrix.build.build-documentation }}
         use-clang: ${{ matrix.build.use-clang }}
@@ -286,7 +286,7 @@ jobs:
         shell: ${{ matrix.build.shell }}
 
     - name: Setup caches
-      uses: ./.github/actions/setup-cache
+      uses: ./.github/actions/setup-cache@fix-release-1.3.3
       with:
         cache-key: ${{ matrix.build.cache-key }}
         install-ethos: ${{ contains(matrix.build.run_regression_args, '--tester cpc') }}
@@ -295,7 +295,7 @@ jobs:
 
     - name: Configure and build
       id: configure-and-build
-      uses: ./.github/actions/configure-and-build
+      uses: ./.github/actions/configure-and-build@fix-release-1.3.3
       with:
         configure-config: ${{ matrix.build.config }}
         macos-target: ${{ matrix.build.macos-target }}
@@ -306,7 +306,7 @@ jobs:
 
     - name: Run tests
       if: matrix.build.run_regression_args
-      uses: ./.github/actions/run-tests
+      uses: ./.github/actions/run-tests@fix-release-1.3.3
       with:
         build-dir: ${{ steps.configure-and-build.outputs.shared-build-dir }}
         check-examples: ${{ matrix.build.check-examples }}
@@ -317,7 +317,7 @@ jobs:
 
     - name: Run tests
       if: matrix.build.run_regression_args
-      uses: ./.github/actions/run-tests
+      uses: ./.github/actions/run-tests@fix-release-1.3.3
       with:
         build-dir: ${{ steps.configure-and-build.outputs.static-build-dir }}
         check-examples: false
@@ -329,14 +329,14 @@ jobs:
 
     - name: Build documentation
       if: matrix.build.build-documentation
-      uses: ./.github/actions/build-documentation
+      uses: ./.github/actions/build-documentation@fix-release-1.3.3
       with:
         build-dir: ${{ steps.configure-and-build.outputs.shared-build-dir }}
 
     - name: Create and add shared package to latest and release
       id: create-shared-package
       if: matrix.build.package-name && (github.ref == 'refs/heads/main' || true)
-      uses: ./.github/actions/add-package
+      uses: ./.github/actions/add-package@fix-release-1.3.3
       with:
         build-dir: ${{ steps.configure-and-build.outputs.shared-build-dir }}
         package-name: ${{ matrix.build.package-name }}-shared${{ matrix.build.gpl-tag }}
@@ -345,7 +345,7 @@ jobs:
     - name: Create and add static package to latest and release
       id: create-static-package
       if: matrix.build.package-name && (github.ref == 'refs/heads/main' || true)
-      uses: ./.github/actions/add-package
+      uses: ./.github/actions/add-package@fix-release-1.3.3
       with:
         build-dir: ${{ steps.configure-and-build.outputs.static-build-dir }}
         package-name: ${{ matrix.build.package-name }}-static${{ matrix.build.gpl-tag }}
@@ -353,7 +353,7 @@ jobs:
 
     - name: Create and add WASM to latest and release
       if: matrix.build.wasm-pkg-name && (github.ref == 'refs/heads/main' || true)
-      uses: ./.github/actions/add-wasm
+      uses: ./.github/actions/add-wasm@fix-release-1.3.3
       with:
         build-dir: ${{ steps.configure-and-build.outputs.static-build-dir }}
         wasm-name: ${{ matrix.build.wasm-pkg-name }}${{ matrix.build.gpl-tag }}
@@ -361,7 +361,7 @@ jobs:
 
     - name: Create and add JAR to latest and release
       if: matrix.build.java-bindings && matrix.build.package-name && (github.ref == 'refs/heads/main' || true)
-      uses: ./.github/actions/add-jar
+      uses: ./.github/actions/add-jar@fix-release-1.3.3
       with:
         build-dir: ${{ steps.configure-and-build.outputs.static-build-dir }}
         jar-name: ${{ matrix.build.package-name }}${{ matrix.build.gpl-tag }}-java-api
@@ -373,7 +373,7 @@ jobs:
         (github.ref == 'refs/heads/main' || true) &&
         (matrix.build.upload-maven-doc ||
          (matrix.build.java-bindings && matrix.build.package-name))
-      uses: ./.github/actions/upload-mvn-files
+      uses: ./.github/actions/upload-mvn-files@fix-release-1.3.3
       continue-on-error: true
       with:
         build-dir: ${{ steps.configure-and-build.outputs.static-build-dir }}
