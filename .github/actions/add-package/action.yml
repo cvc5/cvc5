@@ -63,7 +63,7 @@ runs:
 
     - name: Store to latest
       if: github.ref == 'refs/heads/main'
-      uses: ./.github/actions/store-to-latest
+      uses: ./actions-repo/.github/actions/store-to-latest
       with:
         asset-filename: ${{ inputs.package-name }}.zip
         shell: ${{ inputs.shell }}
