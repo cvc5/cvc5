@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Haniel Barbosa, Daniel Larraz, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -84,7 +81,7 @@ Node AletheNodeConverter::postConvert(Node n)
     case Kind::BITVECTOR_BIT:
     {
       std::stringstream ss;
-      ss << "(_ @bitOf " << n.getOperator().getConst<BitVectorBit>().d_bitIndex
+      ss << "(_ @bit_of " << n.getOperator().getConst<BitVectorBit>().d_bitIndex
          << ")";
       TypeNode fType = d_nm->mkFunctionType(n[0].getType(), n.getType());
       Node op = mkInternalSymbol(ss.str(), fType, true);
@@ -101,7 +98,7 @@ Node AletheNodeConverter::postConvert(Node n)
         children.push_back(c);
       }
       TypeNode fType = d_nm->mkFunctionType(childrenTypes, n.getType());
-      Node op = mkInternalSymbol("@bbT", fType, true);
+      Node op = mkInternalSymbol("@bbterm", fType, true);
       children.insert(children.begin(), op);
       Node converted = d_nm->mkNode(Kind::APPLY_UF, children);
       return converted;

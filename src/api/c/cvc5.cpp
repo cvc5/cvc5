@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -4869,6 +4866,8 @@ const char** cvc5_get_option_names(Cvc5* cvc5, size_t* size)
   return res.data();
 }
 
+static thread_local std::vector<const char*> c_modes;
+
 template <class... Ts>
 struct overloaded : Ts...
 {
@@ -4998,7 +4997,6 @@ void cvc5_get_option_info(Cvc5* cvc5, const char* option, Cvc5OptionInfo* info)
             info->info_mode.num_modes =
                 std::get<cvc5::OptionInfo::ModeInfo>(cpp_info.valueInfo)
                     .modes.size();
-            static thread_local std::vector<const char*> c_modes;
             c_modes.clear();
             for (const auto& m :
                  std::get<cvc5::OptionInfo::ModeInfo>(cpp_info.valueInfo).modes)

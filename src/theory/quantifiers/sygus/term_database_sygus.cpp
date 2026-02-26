@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -65,9 +62,7 @@ TermDbSygus::TermDbSygus(Env& env, QuantifiersState& qs)
 
 void TermDbSygus::finishInit(QuantifiersInferenceManager* qim) { d_qim = qim; }
 
-bool TermDbSygus::reset( Theory::Effort e ) { 
-  return true;  
-}
+bool TermDbSygus::reset(CVC5_UNUSED Theory::Effort e) { return true; }
 
 TNode TermDbSygus::getFreeVar(const TypeNode& tn, size_t i)
 {
@@ -95,7 +90,7 @@ Node TermDbSygus::getProxyVariable(TypeNode tn, Node c)
     Node k;
     if (anyC == -1)
     {
-      k = NodeManager::mkDummySkolem("sy", tn, "sygus proxy");
+      k = NodeManager::mkDummySkolem("sy", tn);
       SygusPrintProxyAttribute spa;
       k.setAttribute(spa, c);
     }
@@ -837,8 +832,7 @@ bool TermDbSygus::isSymbolicConsApp(Node n) const
 
 bool TermDbSygus::canConstructKind(TypeNode tn,
                                    Kind k,
-                                   std::vector<TypeNode>& argts,
-                                   bool aggr)
+                                   std::vector<TypeNode>& argts)
 {
   Assert(isRegistered(tn));
   SygusTypeInfo& ti = getTypeInfo(tn);
@@ -863,14 +857,13 @@ bool TermDbSygus::canConstructKind(TypeNode tn,
     {
       // ite( b1, b2, b3 ) <---- and( or( ~b1, b2 ), or( b1, b3 ) )
       std::vector<TypeNode> conj_types;
-      if (canConstructKind(tn, Kind::AND, conj_types, true)
-          && conj_types.size() == 2)
+      if (canConstructKind(tn, Kind::AND, conj_types) && conj_types.size() == 2)
       {
         bool success = true;
         std::vector<TypeNode> disj_types[2];
         for (unsigned cc = 0; cc < 2; cc++)
         {
-          if (!canConstructKind(conj_types[cc], Kind::OR, disj_types[cc], true)
+          if (!canConstructKind(conj_types[cc], Kind::OR, disj_types[cc])
               || disj_types[cc].size() != 2)
           {
             success = false;

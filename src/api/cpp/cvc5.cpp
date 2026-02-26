@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Andrew Reynolds, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -148,7 +145,9 @@ const static std::unordered_map<Kind, std::pair<internal::Kind, std::string>>
         KIND_ENUM(Kind::ADD, internal::Kind::ADD),
         KIND_ENUM(Kind::MULT, internal::Kind::MULT),
         KIND_ENUM(Kind::IAND, internal::Kind::IAND),
+        KIND_ENUM(Kind::PIAND, internal::Kind::PIAND),
         KIND_ENUM(Kind::POW2, internal::Kind::POW2),
+        KIND_ENUM(Kind::LOG2, internal::Kind::INTS_LOG2),
         KIND_ENUM(Kind::SUB, internal::Kind::SUB),
         KIND_ENUM(Kind::NEG, internal::Kind::NEG),
         KIND_ENUM(Kind::DIVISION, internal::Kind::DIVISION),
@@ -547,7 +546,9 @@ const static std::unordered_map<internal::Kind,
         {internal::Kind::MULT, Kind::MULT},
         {internal::Kind::NONLINEAR_MULT, Kind::MULT},
         {internal::Kind::IAND, Kind::IAND},
+        {internal::Kind::PIAND, Kind::PIAND},
         {internal::Kind::POW2, Kind::POW2},
+        {internal::Kind::INTS_LOG2, Kind::LOG2},
         {internal::Kind::SUB, Kind::SUB},
         {internal::Kind::NEG, Kind::NEG},
         {internal::Kind::DIVISION, Kind::DIVISION},
@@ -2849,25 +2850,6 @@ Term::const_iterator::const_iterator(TermManager* tm,
 {
 }
 
-Term::const_iterator::const_iterator(const const_iterator& it)
-    : d_tm(nullptr), d_origNode(nullptr)
-{
-  if (it.d_origNode != nullptr)
-  {
-    d_tm = it.d_tm;
-    d_origNode = it.d_origNode;
-    d_pos = it.d_pos;
-  }
-}
-
-Term::const_iterator& Term::const_iterator::operator=(const const_iterator& it)
-{
-  d_tm = it.d_tm;
-  d_origNode = it.d_origNode;
-  d_pos = it.d_pos;
-  return *this;
-}
-
 bool Term::const_iterator::operator==(const const_iterator& it) const
 {
   if (d_origNode == nullptr || it.d_origNode == nullptr)
@@ -2917,7 +2899,6 @@ Term Term::const_iterator::operator*() const
       Assert(idx > 0);
       --idx;
     }
-    Assert(idx >= 0);
     return Term(d_tm, (*d_origNode)[idx]);
   }
 }
@@ -3376,9 +3357,7 @@ std::string Term::getUninterpretedSortValue() const
       << "Term to be an abstract value when calling "
          "getUninterpretedSortValue()";
   //////// all checks before this line
-  std::stringstream ss;
-  ss << d_node->getConst<internal::UninterpretedSortValue>();
-  return ss.str();
+  return d_node->getConst<internal::UninterpretedSortValue>().getSymbol();
   ////////
   CVC5_API_TRY_CATCH_END;
 }

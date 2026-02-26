@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Morgan Deters, Dejan Jovanovic, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -931,27 +928,6 @@ setAttribute(const AttrKind&, const typename AttrKind::value_type& value) {
 
 inline void TypeNode::printAst(std::ostream& out, int indent) const {
   d_nv->printAst(out, indent);
-}
-
-inline bool TypeNode::isBoolean() const {
-  return (getKind() == Kind::TYPE_CONSTANT
-          && getConst<TypeConstant>() == BOOLEAN_TYPE);
-}
-
-inline bool TypeNode::isString() const {
-  return getKind() == Kind::TYPE_CONSTANT
-         && getConst<TypeConstant>() == STRING_TYPE;
-}
-
-/** Is this a regexp type */
-inline bool TypeNode::isRegExp() const {
-  return getKind() == Kind::TYPE_CONSTANT
-         && getConst<TypeConstant>() == REGEXP_TYPE;
- }
-
-inline bool TypeNode::isRoundingMode() const {
-  return getKind() == Kind::TYPE_CONSTANT
-         && getConst<TypeConstant>() == ROUNDINGMODE_TYPE;
 }
 
 inline bool TypeNode::isArray() const { return getKind() == Kind::ARRAY_TYPE; }

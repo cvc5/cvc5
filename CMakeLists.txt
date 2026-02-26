@@ -1,10 +1,7 @@
 ###############################################################################
-# Top contributors (to current version):
-#   Aina Niemetz, Mathias Preiner, Gereon Kremer
-#
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -102,6 +99,7 @@ cvc5_option(ENABLE_ASSERTIONS     "Enable assertions")
 cvc5_option(ENABLE_DEBUG_SYMBOLS  "Enable debug symbols")
 cvc5_option(ENABLE_MUZZLE         "Suppress ALL non-result output")
 cvc5_option(ENABLE_SAFE_MODE      "Enable safe mode")
+cvc5_option(ENABLE_STABLE_MODE    "Enable stable mode")
 cvc5_option(ENABLE_STATISTICS     "Enable statistics")
 cvc5_option(ENABLE_TRACING        "Enable tracing")
 cvc5_option(ENABLE_UNIT_TESTING   "Enable unit testing")
@@ -114,11 +112,15 @@ cvc5_set_option(USE_PYTHON_VENV ON)
 
 # >> 2-valued: ON OFF
 #    > for options where we don't need to detect if set by user (default: OFF)
+option(ENABLE_CLANG_TIDY       "Enable clang-tidy static analysis during build")
 option(ENABLE_COVERAGE         "Enable support for gcov coverage testing")
 option(ENABLE_DEBUG_CONTEXT_MM "Enable the debug context memory manager")
 option(ENABLE_PROFILING        "Enable support for gprof profiling")
 
 option(TREAT_WARNING_AS_ERROR  "Treat warnings on building as errors")
+
+# Ensure cvc5 does not use LibPoly's global context by stripping all related code
+option(NO_GLOBAL_POLY_CTX      "Remove global context from LibPoly source code")
 
 # Optional dependencies
 #
@@ -183,7 +185,13 @@ else()
   set(TOOLCHAIN_PREFIX wasm64-unknown-emscripten)
   string(TOLOWER ".${WASM}" WASM_EXTENSION)
   set(CMAKE_EXECUTABLE_SUFFIX ${WASM_EXTENSION})
-  string(APPEND CMAKE_EXE_LINKER_FLAGS " ${WASM_FLAGS}")
+  set(WASM_FLAGS_CONFIGURE "${WASM_FLAGS}")
+  set(WASM_EXPORTED_FUNCTIONS_FLAG "")
+  if(WASM_FLAGS MATCHES "(-s *EXPORTED_FUNCTIONS=[^ ]+)")
+    set(WASM_EXPORTED_FUNCTIONS_FLAG "${CMAKE_MATCH_1}")
+    string(REPLACE "${CMAKE_MATCH_1}" "" WASM_FLAGS_CONFIGURE "${WASM_FLAGS}")
+  endif()
+  string(APPEND CMAKE_EXE_LINKER_FLAGS " ${WASM_FLAGS_CONFIGURE}")
 endif()
 
 #-----------------------------------------------------------------------------#
@@ -191,6 +199,17 @@ endif()
 
 set(OPTIMIZATION_LEVEL 3)
 set(GPL_LIBS "")
+
+if(ENABLE_CLANG_TIDY)
+  if(NOT ENABLE_ASSERTIONS)
+    message(FATAL_ERROR
+      "Use of clang-tidy requires building with assertions enabled.")
+  endif()
+  set(CMAKE_CXX_CLANG_TIDY "clang-tidy")
+  if(TREAT_WARNING_AS_ERROR)
+    set(CMAKE_CXX_CLANG_TIDY "${CMAKE_CXX_CLANG_TIDY};-warnings-as-errors=*")
+  endif()
+endif()
 
 #-----------------------------------------------------------------------------#
 # Determine number of threads available, used to configure (default) parallel
@@ -237,23 +256,23 @@ include(Config${CMAKE_BUILD_TYPE})
 
 add_check_c_cxx_flag("-O${OPTIMIZATION_LEVEL}")
 add_check_c_cxx_flag("-Wall")
-add_check_c_cxx_supression_flag("-Wno-unused-private-field")
 add_check_c_cxx_supression_flag("-Wno-dangling-reference")
 add_check_c_flag("-fexceptions")
 add_check_cxx_flag("-Wsuggest-override")
 add_check_cxx_flag("-Wnon-virtual-dtor")
+add_check_c_cxx_flag("-Wignored-qualifiers")
 add_check_c_cxx_flag("-Wimplicit-fallthrough")
+add_check_c_cxx_flag("-Wmissing-field-initializers")
 add_check_c_cxx_flag("-Wshadow")
+add_check_c_cxx_flag("-Wtype-limits")
 add_check_c_cxx_flag("-fno-operator-names")
 
 # Assume no dynamic initialization of thread-local variables in non-defining
 # translation units. This option should result in better performance and works
 # around crashing issues with our Windows build.
-add_check_cxx_flag("-fno-extern-tls-init")
-
-# Disable -Wclass-memaccess to suppress 'no trivial copy-assignment' in MiniSat
-# code.
-add_check_cxx_supression_flag("-Wno-class-memaccess")
+if(NOT ENABLE_CLANG_TIDY)
+  add_check_cxx_flag("-fno-extern-tls-init")
+endif()
 
 if (WIN32)
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--stack,100000000")
@@ -427,34 +446,29 @@ macro(create_venv)
   endif()
 endmacro()
 
-if(ENABLE_AUTO_DOWNLOAD AND USE_PYTHON_VENV)
-  # Set up Python venv if one doesn't exist already
-  set(VENV_PATH "${CMAKE_BINARY_DIR}/venv-${Python_VERSION}")
-  if(NOT EXISTS ${VENV_PATH})
-    find_package(Pip REQUIRED)
-    create_venv()
-  else()
-    if(NOT (EXISTS ${VENV_PATH}/bin/pip OR EXISTS ${VENV_PATH}/Scripts/pip.exe))
-      # This situation may be possible if cvc5 was built before 715f649
-      execute_process(COMMAND ${CMAKE_COMMAND} -E remove_directory ${VENV_PATH})
-      find_package(Pip REQUIRED)
+if(ENABLE_AUTO_DOWNLOAD)
+  if(USE_PYTHON_VENV)
+    # Set up Python venv if one doesn't exist already
+    set(VENV_PATH "${CMAKE_BINARY_DIR}/venv-${Python_VERSION}")
+    if(NOT EXISTS ${VENV_PATH})
       create_venv()
     endif()
-  endif()
 
-  # Set up variables to find Python within the virtual environment
-  set(ENV{VIRTUAL_ENV} "${VENV_PATH}")
-  unset(Python_EXECUTABLE CACHE)
-  if(EXISTS ${VENV_PATH}/bin/python3)
-    set(Python_EXECUTABLE ${VENV_PATH}/bin/python3)
-  elseif(EXISTS ${VENV_PATH}/Scripts/python.exe)
-    set(Python_EXECUTABLE ${VENV_PATH}/Scripts/python.exe)
-  else()
-    message(FATAL_ERROR "Could not find Python interpreter in venv")
-  endif()
+    # Set up variables to find Python within the virtual environment
+    set(ENV{VIRTUAL_ENV} "${VENV_PATH}")
+    unset(Python_EXECUTABLE CACHE)
+    if(EXISTS ${VENV_PATH}/bin/python3)
+      set(Python_EXECUTABLE ${VENV_PATH}/bin/python3)
+    elseif(EXISTS ${VENV_PATH}/Scripts/python.exe)
+      set(Python_EXECUTABLE ${VENV_PATH}/Scripts/python.exe)
+    else()
+      message(FATAL_ERROR "Could not find Python interpreter in venv")
+    endif()
 
-  # Find the Python interpreter within the virtual environment
-  find_package(Python COMPONENTS Interpreter REQUIRED)
+    # Find the Python interpreter within the virtual environment
+    find_package(Python COMPONENTS Interpreter REQUIRED)
+  endif()
+  find_package(Pip REQUIRED)
 endif()
 
 find_package(GMP 6.3 REQUIRED)
@@ -486,6 +500,10 @@ if(ENABLE_ASSERTIONS)
   add_definitions(-DCVC5_ASSERTIONS)
 else()
   add_definitions(-DNDEBUG)
+endif()
+
+if(ENABLE_CLANG_TIDY)
+  add_definitions(-DCVC5_STATIC_ANALYSIS)
 endif()
 
 if(ENABLE_COVERAGE)
@@ -526,6 +544,10 @@ endif()
 
 if(ENABLE_SAFE_MODE)
   add_definitions(-DCVC5_SAFE_MODE)
+endif()
+
+if(ENABLE_STABLE_MODE)
+  add_definitions(-DCVC5_STABLE_MODE)
 endif()
 
 if(ENABLE_STATISTICS)
@@ -583,7 +605,7 @@ if(ENABLE_SAFE_MODE)
 endif()
 
 if(USE_POLY)
-  find_package(Poly 0.2.0 REQUIRED)
+  find_package(Poly 0.2.1 REQUIRED)
   add_definitions(-DCVC5_USE_POLY)
   set(CVC5_USE_POLY_IMP 1)
 else()
@@ -632,6 +654,11 @@ else()
   if(NOT CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     cvc5_set_option(STATIC_BINARY ON)
   endif()
+endif()
+
+# Re-apply EXPORTED_FUNCTIONS after configure checks complete
+if(NOT "${WASM_EXPORTED_FUNCTIONS_FLAG}" STREQUAL "")
+  string(APPEND CMAKE_EXE_LINKER_FLAGS " ${WASM_EXPORTED_FUNCTIONS_FLAG}")
 endif()
 
 #-----------------------------------------------------------------------------#
@@ -768,6 +795,8 @@ print_info("cvc5 ${CVC5_VERSION}")
 message("")
 if (ENABLE_SAFE_MODE)
   print_config("Build profile             " "${CVC5_BUILD_PROFILE_STRING} (safe mode)")
+elseif (ENABLE_STABLE_MODE)
+  print_config("Build profile             " "${CVC5_BUILD_PROFILE_STRING} (stable mode)")
 else()
   print_config("Build profile             " "${CVC5_BUILD_PROFILE_STRING}")
 endif()

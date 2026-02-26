@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Morgan Deters, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -35,6 +32,11 @@ string Configuration::getName() { return CVC5_PACKAGE_NAME; }
 bool Configuration::isSafeBuild()
 {
   return IS_SAFE_BUILD;
+}
+
+bool Configuration::isStableBuild()
+{
+  return IS_STABLE_BUILD;
 }
 
 bool Configuration::isDebugBuild() {

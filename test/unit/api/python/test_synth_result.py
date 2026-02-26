@@ -1,10 +1,7 @@
 ###############################################################################
-# Top contributors (to current version):
-#   Andrew Reynolds, Aina Niemetz, Gereon Kremer
-#
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -29,7 +26,7 @@ def solver(tm):
 
 
 def test_is_null(solver):
-    res_null = SynthResult(solver)
+    res_null = SynthResult()
     assert res_null.isNull()
     assert not res_null.hasSolution()
     assert not res_null.hasNoSolution()
@@ -64,7 +61,7 @@ def test_has_solution(tm, solver):
 
 
 def test_has_no_solution(solver):
-    res_null = SynthResult(solver)
+    res_null = SynthResult()
     assert not res_null.hasNoSolution()
 
 

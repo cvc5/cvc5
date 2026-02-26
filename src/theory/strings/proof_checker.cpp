@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Hans-Joerg Schurr, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -357,7 +354,10 @@ Node StringProofRuleChecker::checkInternal(ProofRule id,
   }
   else if (id == ProofRule::RE_CONCAT)
   {
-    Assert(children.size() >= 2);
+    if (children.size() < 2)
+    {
+      return Node::null();
+    }
     Assert(args.empty());
     std::vector<Node> ts;
     std::vector<Node> rs;

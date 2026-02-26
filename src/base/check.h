@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mathias Preiner, Tim King, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -126,6 +123,16 @@ class OstreamVoider
 #else
 #define Assert(cond) \
   CVC5_FATAL_IF(false, __PRETTY_FUNCTION__, __FILE__, __LINE__)
+#endif
+
+// DebugUnhandled() logs an error and aborts if CVC5_ASSERTIONS is set but
+// CVC5_STATIC_ANALYSIS is not. Otherwise, it does nothing.
+// Allows static analyzers to follow production control flow but
+// fail during debugging.
+#ifdef CVC5_STATIC_ANALYSIS
+#define DebugUnhandled() Assert(true)
+#else
+#define DebugUnhandled() Assert(false)
 #endif
 
 class AssertArgumentException : public Exception

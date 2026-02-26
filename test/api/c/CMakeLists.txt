@@ -1,10 +1,7 @@
 ###############################################################################
-# Top contributors (to current version):
-#   Aina Niemetz, Andrew Reynolds
-#
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -18,7 +15,7 @@
 # > api tests
 
 add_custom_target(build-capitests)
-add_dependencies(build-tests build-capitests)
+add_dependencies(build-apitests build-capitests)
 
 # Disabled temporarily due to problems in the nightly builds
 # # See the comment about 'make test' in test/regress/cli/CMakeLists.txt
@@ -26,7 +23,7 @@ add_dependencies(build-tests build-capitests)
 # set_tests_properties(build_capitests_test PROPERTIES FIXTURES_SETUP build_capitests_fixture)
 
 add_custom_target(capitests
-  COMMAND ctest --output-on-failure -L "api" -j${CTEST_NTHREADS} $$ARGS
+  COMMAND ctest --output-on-failure -L "capi" -j${CTEST_NTHREADS} $$ARGS
   DEPENDS build-capitests)
 
 set(CVC5_API_TEST_FLAGS -D__BUILDING_CVC5_API_TEST -Dcvc5_obj_EXPORTS)
@@ -56,7 +53,7 @@ cvc5_add_capi_test(reset_assertions "")
 cvc5_add_capi_test(smt2_compliance "")
 cvc5_add_capi_test(two_solvers "")
 
-if (NOT ENABLE_SAFE_MODE)
+if (NOT ENABLE_SAFE_MODE AND NOT ENABLE_STABLE_MODE)
   cvc5_add_capi_test(sep_log_api "")
 endif()
 

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -219,7 +216,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
     // gotten a check at LAST_CALL effort, indicating that the lemma we reported
     // was not conflicting. This should never happen, but in production mode, we
     // proceed with the check.
-    Assert(false);
+    DebugUnhandled();
   }
   bool needsCheck = d_qim.hasPendingLemma();
   QuantifiersModule::QEffort needsModelE = QuantifiersModule::QEFFORT_NONE;
@@ -313,7 +310,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
           return;
         }else{
           //should only fail reset if added a lemma
-          Assert(false);
+          DebugUnhandled();
         }
       }
     }
@@ -399,6 +396,8 @@ void QuantifiersEngine::check( Theory::Effort e ){
       }else{
         if (quant_e == QuantifiersModule::QEFFORT_CONFLICT)
         {
+          // increment the instantiation round counter only if we did not find a
+          // conflict or lemma at QEFFORT_CONFLICT above.
           d_qstate.incrementInstRoundCounters(e);
         }
         else if (quant_e == QuantifiersModule::QEFFORT_MODEL)
@@ -492,6 +491,8 @@ void QuantifiersEngine::check( Theory::Effort e ){
     Trace("quant-engine-debug2") << "Finished quantifiers engine check." << std::endl;
   }else{
     Trace("quant-engine-debug2") << "Quantifiers Engine does not need check." << std::endl;
+    // increment counter
+    d_qstate.incrementInstRoundCounters(e);
   }
 
   //SAT case

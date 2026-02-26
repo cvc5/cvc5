@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mathias Preiner, Liana Hadarean, Dejan Jovanovic
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -51,7 +48,9 @@ class MinisatSatSolver : public CDCLTSatSolver, protected EnvObj
   void initialize(TheoryProxy* theoryProxy, PropPfManager* ppm) override;
 
   ClauseId addClause(SatClause& clause, bool removable) override;
-  ClauseId addXorClause(SatClause& clause, bool rhs, bool removable) override
+  ClauseId addXorClause(CVC5_UNUSED SatClause& clause,
+                        CVC5_UNUSED bool rhs,
+                        CVC5_UNUSED bool removable) override
   {
     Unreachable() << "Minisat does not support native XOR reasoning";
   }

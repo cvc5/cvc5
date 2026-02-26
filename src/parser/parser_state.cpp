@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Morgan Deters
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -91,7 +88,11 @@ Term ParserState::getExpressionForNameAndType(const std::string& name, Sort t)
   return expr;
 }
 
-bool ParserState::getTesterName(Term cons, std::string& name) { return false; }
+bool ParserState::getTesterName(CVC5_UNUSED Term cons,
+                                CVC5_UNUSED std::string& name)
+{
+  return false;
+}
 
 Kind ParserState::getKindForFunction(Term fun)
 {
@@ -609,7 +610,7 @@ bool ParserState::isDeclared(const std::string& name, SymbolType type)
     case SYM_SORT: return d_symtab->isBoundType(name);
     case SYM_VERBATIM: Unreachable();
   }
-  Assert(false);  // Unhandled(type);
+  DebugUnhandled();  // Unhandled(type);
   return false;
 }
 
@@ -645,7 +646,7 @@ void ParserState::checkDeclaration(const std::string& varName,
 
     case CHECK_NONE: break;
 
-    default: Assert(false);  // Unhandled(check);
+    default: DebugUnhandled();  // Unhandled(check);
   }
 }
 
@@ -719,7 +720,7 @@ void ParserState::pushGetValueScope()
       }
       else
       {
-        Assert(false)
+        DebugUnhandled()
             << "model domain element is not an uninterpreted sort value: " << e;
       }
     }
@@ -744,9 +745,11 @@ std::string ParserState::stripQuotes(const std::string& s)
 
 Term ParserState::mkCharConstant(const std::string& s)
 {
-  Assert(s.find_first_not_of("0123456789abcdefABCDEF", 0) == std::string::npos
-         && s.size() <= 5 && s.size() > 0)
-      << "Unexpected string for hexadecimal character " << s;
+  if (!(s.find_first_not_of("0123456789abcdefABCDEF", 0) == std::string::npos
+        && s.size() <= 5 && s.size() > 0))
+  {
+    parseError("Unexpected string for hexadecimal character: `" + s + "'");
+  }
   char32_t val = static_cast<char32_t>(std::stoul(s, 0, 16));
   return d_tm.mkString(std::u32string(1, val));
 }

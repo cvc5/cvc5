@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Tim King, Daniel Larraz, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -240,7 +237,9 @@ public:
      case Kind::INTS_MODULUS_TOTAL:
      case Kind::DIVISION_TOTAL: return isDivMember(n);
      case Kind::IAND:
+     case Kind::PIAND:
      case Kind::POW2:
+     case Kind::INTS_LOG2:
      case Kind::POW:
      case Kind::EXPONENTIAL:
      case Kind::SINE:
@@ -259,6 +258,7 @@ public:
      case Kind::PI:
      case Kind::ABS:
      case Kind::TO_INTEGER:
+     case Kind::NONLINEAR_MULT:
        // All of the above are treated as variables. We assume their arguments
        // are rewritten.
        return true;
@@ -459,13 +459,6 @@ inline Node makeNode(NodeManager* nm,
 class VarList : public NodeWrapper {
 private:
 
-  static Node multList(const std::vector<Variable>& list) {
-    Assert(list.size() >= 2);
-
-    NodeManager* nm = list[0].getNode().getNodeManager();
-    return makeNode(nm, Kind::NONLINEAR_MULT, list.begin(), list.end());
-  }
-
   VarList() : NodeWrapper(Node::null()) {}
 
   VarList(Node n);
@@ -555,11 +548,6 @@ public:
     Assert(isSorted(begin(), end()));
   }
 
-  VarList(const std::vector<Variable>& l) : NodeWrapper(multList(l)) {
-    Assert(l.size() >= 2);
-    Assert(isSorted(begin(), end()));
-  }
-
   static bool isMember(Node n);
 
   bool isNormalForm() const {
@@ -570,21 +558,9 @@ public:
     return VarList();
   }
 
-
-  /** There are no restrictions on the size of l */
-  static VarList mkVarList(const std::vector<Variable>& l) {
-    if(l.size() == 0) {
-      return mkEmptyVarList();
-    } else if(l.size() == 1) {
-      return VarList((*l.begin()).getNode());
-    } else {
-      return VarList(l);
-    }
-  }
-
   bool empty() const { return getNode().isNull(); }
   bool singleton() const {
-    return !empty() && getNode().getKind() != Kind::NONLINEAR_MULT;
+    return !empty();
   }
 
   int size() const {
@@ -595,8 +571,6 @@ public:
   }
 
   static VarList parseVarList(Node n);
-
-  VarList operator*(const VarList& vl) const;
 
   int cmp(const VarList& vl) const;
 
@@ -720,7 +694,6 @@ public:
 
   Monomial operator*(const Rational& q) const;
   Monomial operator*(const Constant& c) const;
-  Monomial operator*(const Monomial& mono) const;
 
   Monomial operator-() const{
     return (*this) * Rational(-1);
@@ -1072,9 +1045,6 @@ public:
 
   Polynomial operator*(const Rational& q) const;
   Polynomial operator*(const Constant& c) const;
-  Polynomial operator*(const Monomial& mono) const;
-
-  Polynomial operator*(const Polynomial& poly) const;
 
   /**
    * Viewing the integer polynomial as a list [(* coeff_i mono_i)]

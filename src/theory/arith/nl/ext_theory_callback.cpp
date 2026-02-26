@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Tim King, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -30,7 +27,7 @@ NlExtTheoryCallback::NlExtTheoryCallback(eq::EqualityEngine* ee) : d_ee(ee)
 }
 
 bool NlExtTheoryCallback::getCurrentSubstitution(
-    int effort,
+    CVC5_UNUSED int effort,
     const std::vector<Node>& vars,
     std::vector<Node>& subs,
     std::map<Node, std::vector<Node>>& exp)
@@ -64,8 +61,11 @@ bool NlExtTheoryCallback::getCurrentSubstitution(
   return retVal;
 }
 
-bool NlExtTheoryCallback::isExtfReduced(
-    int effort, Node n, Node on, std::vector<Node>& exp, ExtReducedId& id)
+bool NlExtTheoryCallback::isExtfReduced(CVC5_UNUSED int effort,
+                                        Node n,
+                                        Node on,
+                                        std::vector<Node>& exp,
+                                        ExtReducedId& id)
 {
   if (isTranscendentalKind(on.getKind()))
   {
@@ -76,7 +76,7 @@ bool NlExtTheoryCallback::isExtfReduced(
   {
     Kind k = n.getKind();
     if (k != Kind::NONLINEAR_MULT && !isTranscendentalKind(k) && k != Kind::IAND
-        && k != Kind::POW2)
+        && k != Kind::PIAND && k != Kind::POW2)
     {
       // we consider an extended function to be reduced if it simplifies to
       // something that is not a non-linear term. For example, if we know

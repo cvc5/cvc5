@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Morgan Deters
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -122,6 +119,8 @@ void TheoryDatatypes::finishInit()
   // testers are not relevant for model building
   d_valuation.setIrrelevantKind(Kind::APPLY_TESTER);
   d_valuation.setIrrelevantKind(Kind::DT_SYGUS_BOUND);
+  // evaluation functions are not relevant to model construction.
+  d_valuation.setIrrelevantKind(Kind::DT_SYGUS_EVAL);
   // selectors don't always evaluate
   d_valuation.setSemiEvaluatedKind(Kind::APPLY_SELECTOR);
 }
@@ -1667,12 +1666,14 @@ void TheoryDatatypes::checkSplit()
         consIndex = j;
       }
       Trace("datatypes-debug") << j << " compute finite..." << std::endl;
-      // Notice that we split here on all datatypes except the
-      // truly infinite ones. It is possible to also not split
-      // on those that are interpreted-finite when finite model
-      // finding is disabled, but as a heuristic we choose to split
-      // on those too.
-      bool ifin = dt[j].getCardinalityClass(tn) != CardinalityClass::INFINITE;
+      // Notice that whether there exists infinitely many datatype values
+      // for a given constructor depends on whether finite model finding is
+      // enabled (which interprets uninterpreted sorts as finite). Thus we
+      // require asking the Env class whether the cardinality class of the
+      // datatype constructor is finite or not. For example, a datatype
+      // constructor leaf : U -> Tree where U is an uninterpreted sort is
+      // finite iff finite model finding is enabled.
+      bool ifin = d_env.isFiniteCardinalityClass(dt[j].getCardinalityClass(tn));
       Trace("datatypes-debug") << "...returned " << ifin << std::endl;
       if (!ifin)
       {
@@ -1706,6 +1707,7 @@ void TheoryDatatypes::checkSplit()
     else
     {
       Assert(consIndex != -1 || dt.isSygus());
+      bool sentLemma = false;
       if (options().datatypes.dtBinarySplit && consIndex != -1)
       {
         Node test = utils::mkTester(n, consIndex, dt);
@@ -1715,8 +1717,11 @@ void TheoryDatatypes::checkSplit()
         NodeBuilder nb(nodeManager(), Kind::OR);
         nb << test << test.notNode();
         Node lemma = nb;
-        d_im.lemma(lemma, InferenceId::DATATYPES_BINARY_SPLIT);
-        d_im.preferPhase(test, true);
+        if (d_im.lemma(lemma, InferenceId::DATATYPES_BINARY_SPLIT))
+        {
+          sentLemma = true;
+          d_im.preferPhase(test, true);
+        }
       }
       else
       {
@@ -1724,10 +1729,10 @@ void TheoryDatatypes::checkSplit()
                           << endl;
         Node lemma = utils::mkSplit(n, dt);
         Trace("dt-split-debug") << "Split lemma is : " << lemma << std::endl;
-        d_im.sendDtLemma(
+        sentLemma = d_im.sendDtLemma(
             lemma, InferenceId::DATATYPES_SPLIT, LemmaProperty::SEND_ATOMS);
       }
-      if (!options().datatypes.dtBlastSplits)
+      if (sentLemma && !options().datatypes.dtBlastSplits)
       {
         return;
       }

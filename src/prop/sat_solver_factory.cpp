@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Mathias Preiner, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -15,7 +12,7 @@
 
 #include "prop/sat_solver_factory.h"
 
-#include "prop/cadical.h"
+#include "prop/cadical/cadical.h"
 #include "prop/cryptominisat.h"
 #include "prop/kissat.h"
 #include "prop/minisat/minisat.h"
@@ -29,9 +26,10 @@ CDCLTSatSolver* SatSolverFactory::createCDCLTMinisat(
   return new MinisatSatSolver(env, registry);
 }
 
-SatSolver* SatSolverFactory::createCryptoMinisat(StatisticsRegistry& registry,
-                                                 ResourceManager* resmgr,
-                                                 const std::string& name)
+SatSolver* SatSolverFactory::createCryptoMinisat(
+    CVC5_UNUSED StatisticsRegistry& registry,
+    CVC5_UNUSED ResourceManager* resmgr,
+    CVC5_UNUSED const std::string& name)
 {
 #ifdef CVC5_USE_CRYPTOMINISAT
   CryptoMinisatSolver* res = new CryptoMinisatSolver(registry, name);
@@ -69,8 +67,9 @@ CDCLTSatSolver* SatSolverFactory::createCadicalCDCLT(
   return res;
 }
 
-SatSolver* SatSolverFactory::createKissat(StatisticsRegistry& registry,
-                                          const std::string& name)
+SatSolver* SatSolverFactory::createKissat(
+    CVC5_UNUSED StatisticsRegistry& registry,
+    CVC5_UNUSED const std::string& name)
 {
 #ifdef CVC5_USE_KISSAT
   KissatSolver* res = new KissatSolver(registry, name);

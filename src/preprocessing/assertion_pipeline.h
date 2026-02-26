@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Morgan Deters
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -207,9 +204,6 @@ class AssertionPipeline : protected EnvObj
    */
   IteSkolemMap d_iteSkolemMap;
 
-  /** Size of d_nodes when preprocessing starts */
-  size_t d_realAssertionsEnd;
-
   /**
    * If true, we store the substitutions as assertions. This is necessary when
    * doing incremental solving because we cannot apply them to existing
@@ -224,10 +218,6 @@ class AssertionPipeline : protected EnvObj
    */
   std::unordered_set<size_t> d_substsIndices;
 
-  /** Index of the first assumption */
-  size_t d_assumptionsStart;
-  /** The number of assumptions */
-  size_t d_numAssumptions;
   /** The proof generator, if one is provided */
   smt::PreprocessProofGenerator* d_pppg;
   /** Are we in conflict? */

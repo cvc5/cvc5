@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -65,7 +62,7 @@ Node AlfListNodeConverter::preConvert(Node n)
         }
       }
     }
-    Assert(false) << "AlfListNodeConverter: unhandled term " << n;
+    DebugUnhandled() << "AlfListNodeConverter: unhandled term " << n;
   }
   else
   {
@@ -118,7 +115,12 @@ Node AlfListNodeConverter::postConvert(Node n)
   // if less than 2 non-list children, it might collapse to a single element
   if (nlistChildren < 2)
   {
-    return d_tproc.mkInternalApp("$singleton_elim", {n}, n.getType());
+    // prints as an operator parameterized by a variadic function, due to use of
+    // raw symbol in mkInternalApp.
+    std::stringstream ss;
+    ss << "eo::list_singleton_elim "
+       << printer::smt2::Smt2Printer::smtKindString(k);
+    return d_tproc.mkInternalApp(ss.str(), {n}, n.getType());
   }
   return n;
 }

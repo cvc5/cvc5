@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -303,7 +300,7 @@ Node LearnedRewrite::rewriteLearned(Node nr,
         case Kind::INTS_DIVISION: nk = Kind::INTS_DIVISION_TOTAL; break;
         case Kind::INTS_MODULUS: nk = Kind::INTS_MODULUS_TOTAL; break;
         case Kind::DIVISION: nk = Kind::DIVISION_TOTAL; break;
-        default: Assert(false); break;
+        default: DebugUnhandled(); break;
       }
       std::vector<Node> children;
       children.insert(children.end(), nr.begin(), nr.end());

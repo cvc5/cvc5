@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Makai Mann, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -50,9 +47,7 @@ IAndSolver::IAndSolver(Env& env, InferenceManager& im, NlModel& model)
 
 IAndSolver::~IAndSolver() {}
 
-void IAndSolver::initLastCall(const std::vector<Node>& assertions,
-                              const std::vector<Node>& false_asserts,
-                              const std::vector<Node>& xts)
+void IAndSolver::initLastCall(const std::vector<Node>& xts)
 {
   d_iands.clear();
 

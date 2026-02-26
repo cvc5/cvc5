@@ -40,7 +40,7 @@
   (
     (($set_union_to_list (set.union (set.singleton e) t)) (eo::cons @list e ($set_union_to_list t)))
     (($set_union_to_list (as set.empty (Set T)))          @list.nil)
-    (($set_union_to_list (set.singleton e))               (eo::cons @list e @list.nil))
+    (($set_union_to_list (set.singleton e))               (@list e))
   )
 )
 

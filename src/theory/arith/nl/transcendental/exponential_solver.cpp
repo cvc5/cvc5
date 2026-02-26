@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Gereon Kremer, Andrew Reynolds, Hans-Joerg Schurr
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -279,6 +276,7 @@ std::pair<Node, Node> ExponentialSolver::getSecantBounds(TNode e,
 {
   std::pair<Node, Node> bounds = d_data->getClosestSecantPoints(e, center, d);
 
+  int csign = center.getConst<Rational>().sgn();
   // Check if we already have neighboring secant points
   if (bounds.first.isNull())
   {
@@ -286,6 +284,11 @@ std::pair<Node, Node> ExponentialSolver::getSecantBounds(TNode e,
     Node one = nm->mkConstInt(Rational(1));
     // pick c-1
     bounds.first = rewrite(nm->mkNode(Kind::SUB, center, one));
+    // ensure we don't cross zero
+    if (bounds.first.getConst<Rational>().sgn() != csign)
+    {
+      bounds.first = nm->mkConstReal(Rational(0));
+    }
   }
   if (bounds.second.isNull())
   {
@@ -293,6 +296,11 @@ std::pair<Node, Node> ExponentialSolver::getSecantBounds(TNode e,
     Node one = nm->mkConstInt(Rational(1));
     // pick c+1
     bounds.second = rewrite(nm->mkNode(Kind::ADD, center, one));
+    // ensure we don't cross zero
+    if (bounds.second.getConst<Rational>().sgn() != csign)
+    {
+      bounds.second = nm->mkConstReal(Rational(0));
+    }
   }
   return bounds;
 }

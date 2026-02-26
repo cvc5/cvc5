@@ -2,6 +2,13 @@
 (include "../theories/Arith.eo")
 (include "../programs/Utils.eo")
 
+; define: $sgn
+; args:
+; - x T: The term to inspect. Assumed to be an arithmetic value.
+; return: The sign of x: -1 if x < 0, 1 if x > 0, and 0 otherwise.
+(define $sgn ((T Type :implicit) (x T))
+  (eo::ite (eo::is_neg x) -1 (eo::ite (eo::is_neg (eo::neg x)) 1 0)))
+
 ; define: $arith_mk_zero
 ; args:
 ; - u Type : The type of the zero, which should be Int or Real.
@@ -92,10 +99,9 @@
 ; args:
 ; - x Int: The term to compute the log (base 2) of.
 ; return: >
-;   the log base 2 of x. If x is not strictly positive, we return
-;   the term (int.log2 x).
+;   the log base 2 of x. If x is not strictly positive, we return 0.
 (define $arith_eval_int_log_2 ((x Int))
-  (eo::ite (eo::is_neg (eo::neg x)) ($arith_eval_int_log_2_rec x) (int.log2 x)))
+  (eo::ite (eo::is_neg (eo::neg x)) ($arith_eval_int_log_2_rec x) 0))
 
 ; program: $arith_eval_int_pow_2_rec
 ; args:
@@ -121,21 +127,6 @@
     (eo::ite (eo::is_neg x) 0 ($arith_eval_int_pow_2_rec x))
     (int.pow2 x)))
 
-; program: $arith_eval_int_is_pow_2_rec
-; args:
-; - x  Int: The term to compute whether it is a power of two, assumed to be a positive numeral value.
-; return: true iff x is a power of two.
-; note: Helper method for $arith_eval_is_pow_2 below.
-(program $arith_eval_int_is_pow_2_rec ((x Int))
-  :signature (Int) Bool
-  (
-  (($arith_eval_int_is_pow_2_rec 1) true)
-  (($arith_eval_int_is_pow_2_rec x) (eo::ite (eo::eq (eo::zmod x 2) 0)
-                                      ($arith_eval_int_is_pow_2_rec (eo::zdiv x 2))
-                                      false))
-  )
-)
-
 ; define: $arith_eval_is_pow_2
 ; args:
 ; - x Int: The term to compute whether it is a power of two.
@@ -144,5 +135,7 @@
 ;   the term (int.ispow2 x).
 (define $arith_eval_int_is_pow_2 ((x Int))
   (eo::ite (eo::is_z x) 
-    (eo::ite (eo::is_neg x) false ($arith_eval_int_is_pow_2_rec x))
+    (eo::ite (eo::is_neg x)
+      false
+      (eo::eq x ($arith_eval_int_pow_2 ($arith_eval_int_log_2 x))))
     (int.ispow2 x)))

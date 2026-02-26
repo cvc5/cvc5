@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Hanna Lachnitt, Haniel Barbosa
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -100,6 +97,7 @@ const char* aletheRuleToString(AletheRule id)
     case AletheRule::ITE_INTRO: return "ite_intro";
     case AletheRule::CONTRACTION: return "contraction";
     case AletheRule::CONNECTIVE_DEF: return "connective_def";
+    case AletheRule::AC_SIMP: return "ac_simp";
     case AletheRule::ITE_SIMPLIFY: return "ite_simplify";
     case AletheRule::EQ_SIMPLIFY: return "eq_simplify";
     case AletheRule::AND_SIMPLIFY: return "and_simplify";
@@ -146,6 +144,9 @@ const char* aletheRuleToString(AletheRule id)
     case AletheRule::BV_BITBLAST_STEP_CONST: return "bv_bitblast_step_const";
     case AletheRule::BV_BITBLAST_STEP_SIGN_EXTEND:
       return "bv_bitblast_step_sign_extend";
+    //================================================= Temporary
+    case AletheRule::BV_BITWISE_SLICING: return "bv_bitwise_slicing";
+    case AletheRule::BV_REPEAT_ELIM: return "bv_repeat_elim";
     //================================================= Hole
     case AletheRule::HOLE: return "hole";
     //================================================= Undefined rule

@@ -43,14 +43,22 @@ Compilation on Windows
 ^^^^^^^^^^^^^^^^^^^^^^
 
 Install `MSYS2 <https://www.msys2.org/>`_ and `Python <https://www.python.org/downloads/windows/>`_ on your system.
-Launch a `MINGW64 environment <https://www.msys2.org/docs/environments/>`_ and
-install the required packages for building cvc5:
+Then, launch the appropriate `MSYS2 environment <https://www.msys2.org/docs/environments/>`_ and
+install the required dependencies:
+
+- On x86_64 machines, open a `CLANG64` shell and run:
 
 .. code:: bash
 
-  pacman -S git make mingw-w64-x86_64-cmake mingw-w64-x86_64-gcc mingw-w64-x86_64-gmp zip
+  pacman -S git make mingw-w64-clang-x86_64-cmake mingw-w64-clang-x86_64-clang mingw-w64-clang-x86_64-gmp zip
 
-Clone the cvc5 repository and follow the general build steps above.
+- On ARM64 machines, open a `CLANGARM64` shell and run:
+
+.. code:: bash
+
+  pacman -S git make mingw-w64-clang-aarch64-cmake mingw-w64-clang-aarch64-clang mingw-w64-clang-aarch64-gmp zip
+
+After that, clone the cvc5 repository and follow the general build steps above.
 The built binary ``cvc5.exe`` and the DLL libraries are located in
 ``<build_dir>/bin``. The import libraries and the static libraries
 can be found in ``<build_dir>/lib``.
@@ -129,7 +137,7 @@ This option takes precedence over ``--wasm`` and ``--wasm-flags`` if used togeth
 Available configurations:
 
 - ``no-modular-static-page``: Optimized for static web pages with runtime methods,
-environment settings, and memory configuration pre-configured for web deployment.
+  environment settings, and memory configuration pre-configured for web deployment.
 
 For example, to generate a HTML page, use:
 
@@ -226,7 +234,7 @@ may improve performance. It can be downloaded and built automatically. Configure
 cvc5 with ``configure.sh --kissat`` to build with this dependency.
 
 
-LibPoly >= v0.2.0 (Optional polynomial library)
+LibPoly >= v0.2.1 (Optional polynomial library)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 `LibPoly <https://github.com/SRI-CSL/libpoly>`_ is required for CAD-based
@@ -322,7 +330,7 @@ Dependencies for Language Bindings
   - `Cython <https://cython.org/>`_ >= 3.0.0
   - `pip <https://pip.pypa.io/>`_ >= 23.0
   - `pytest <https://docs.pytest.org/en/6.2.x/>`_
-  - `repairwheel <https://github.com/jvolkman/repairwheel>`_ >= 0.3.1
+  - `repairwheel <https://github.com/jvolkman/repairwheel>`_ >= 0.3.2
   - `setuptools <https://setuptools.pypa.io/>`_ >= 66.1.0
   - The source for the `pythonic API <https://github.com/cvc5/cvc5_pythonic_api>`_
 
@@ -409,8 +417,9 @@ The API tests are not built by default.
 
 .. code::
 
-    make apitests                         # build and run all API C++ tests
+    make apitests                         # build and run all API tests
     make capitests                        # build and run all API C tests
+    make cppapitests                      # build and run all API C++ tests
     make <api_test>                       # build test/api/cpp/<api_test>.cpp
     make capi_<api_test>                  # build test/api/c/<api_test>.c
     ctest api/cpp/<api_test>              # run test/api/cpp/<api_test><.ext>

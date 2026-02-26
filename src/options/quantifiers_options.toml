@@ -81,10 +81,11 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "varEntEqElimQuant"
-  category   = "expert"
+  category   = "regular"
   long       = "var-ent-eq-elim-quant"
   type       = "bool"
-  default    = "false"
+  default    = "true"
+  no_support = ["proofs"]
   help       = "enable variable elimination for quantified formulas that infers entailed equalities corresponding to eliminations"
 
 [[option]]
@@ -224,6 +225,14 @@ name   = "Quantifiers"
   type       = "uint64_t"
   default    = "500"
   help       = "timeout (in milliseconds) for verifying subcalls for model-based instantiation (0 == no limit)"
+
+[[option]]
+  name       = "leibnizEqElim"
+  category   = "expert"
+  long       = "leibniz-elim"
+  type       = "bool"
+  default    = "false"
+  help       = "Leibniz equality elimination for quantified formulas"
 
 [[option]]
   name       = "mbqiEnum"
@@ -1765,6 +1774,7 @@ name   = "Quantifiers"
   long       = "macros-quant-mode=MODE"
   type       = "MacrosQuantMode"
   default    = "GROUND_UF"
+  no_support = ["proofs"]
   help       = "mode for quantifiers macro expansion"
   help_mode  = "Modes for quantifiers macro expansion."
 [[option.mode.ALL]]
@@ -1828,6 +1838,14 @@ name   = "Quantifiers"
   type       = "bool"
   default    = "true"
   help       = "use store axiom during ho-elim"
+
+[[option]]
+  name       = "instLocal"
+  category   = "regular"
+  long       = "inst-local"
+  type       = "bool"
+  default    = "false"
+  help       = "Instantiations are local to the SAT context"
 
 ### SyGuS instantiation options
 

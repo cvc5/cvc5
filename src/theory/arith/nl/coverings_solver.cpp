@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Gereon Kremer, Andrew Reynolds, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -43,7 +40,7 @@ CoveringsSolver::CoveringsSolver(Env& env, InferenceManager& im, NlModel& model)
       d_eqsubs(env)
 {
   NodeManager* nm = nodeManager();
-  d_ranVariable = NodeManager::mkDummySkolem("__z", nm->realType(), "");
+  d_ranVariable = NodeManager::mkDummySkolem("__z", nm->realType());
 }
 
 CoveringsSolver::~CoveringsSolver() {}
@@ -208,13 +205,19 @@ bool CoveringsSolver::constructModelIfAvailable(std::vector<Node>& assertions)
       foundNonVariable = true;
     }
     Node value = value_to_node(d_CAC.getModel().get(v), variable);
-    addToModel(variable, value);
+    if (!addToModel(variable, value))
+    {
+      DebugUnhandled() << "Failed to add variable assignment to model";
+    }
   }
   for (const auto& sub : d_eqsubs.getSubstitutions())
   {
     Trace("nl-cov") << "EqSubs: " << sub.first << " -> " << sub.second
                     << std::endl;
-    addToModel(sub.first, sub.second);
+    if (!addToModel(sub.first, sub.second))
+    {
+      DebugUnhandled() << "Failed to add equality substitution to model";
+    }
   }
   if (foundNonVariable)
   {
@@ -235,7 +238,7 @@ bool CoveringsSolver::constructModelIfAvailable(std::vector<Node>& assertions)
 #endif
 }
 
-void CoveringsSolver::addToModel(TNode var, TNode value) const
+bool CoveringsSolver::addToModel(TNode var, TNode value) const
 {
   Assert(value.getType().isRealOrInt());
   // we must take its substituted form here, since other solvers (e.g. the
@@ -256,7 +259,7 @@ void CoveringsSolver::addToModel(TNode var, TNode value) const
     }
   }
   Trace("nl-cov") << "-> " << var << " = " << svalue << std::endl;
-  d_model.addSubstitution(var, svalue);
+  return d_model.addSubstitution(var, svalue);
 }
 
 }  // namespace nl

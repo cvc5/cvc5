@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Gereon Kremer, Aina Niemetz, Tim King
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -355,6 +352,7 @@ void OptionsHandler::showConfiguration(const std::string& flag, bool value)
   std::cout << std::endl;
 
   print_config_cond("safe-mode", Configuration::isSafeBuild());
+  print_config_cond("stable-mode", Configuration::isStableBuild());
   print_config_cond("debug code", Configuration::isDebugBuild());
   print_config_cond("statistics", configuration::isStatisticsBuild());
   print_config_cond("tracing", Configuration::isTracingBuild());

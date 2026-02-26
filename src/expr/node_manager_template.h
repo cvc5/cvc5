@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Morgan Deters, Andrew Reynolds, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -14,6 +11,10 @@
  */
 
 #include "cvc5_private.h"
+
+#ifdef CVC5_POLY_IMP
+#include <poly/polyxx.h>
+#endif
 
 /* circular dependency; force node.h first */
 #include "expr/node.h"
@@ -116,6 +117,10 @@ class NodeManager
   SkolemManager* getSkolemManager() { return d_skManager.get(); }
   /** Get this node manager's bound variable manager */
   BoundVarManager* getBoundVarManager() { return d_bvManager.get(); }
+#ifdef CVC5_POLY_IMP
+  /** Get this node manager's libpoly context */
+  const poly::Context& getPolyContext() { return d_polyCtx; }
+#endif
 
   /**
    * Return the datatype at the given index owned by this class. Type nodes are
@@ -621,15 +626,11 @@ class NodeManager
    * debugging output.  Use SKOLEM_EXACT_NAME flag if you don't want
    * a unique ID appended and use prefix as the name.
    * @param type the type of the skolem variable to create
-   * @param comment a comment for dumping output; if declarations are
-   * being dumped, this is included in a comment before the declaration
-   * and can be quite useful for debugging
    * @param flags an optional mask of bits from SkolemFlags to control
    * skolem behavior
    */
   static Node mkDummySkolem(const std::string& prefix,
                             const TypeNode& type,
-                            const std::string& comment = "",
                             SkolemFlags flags = SkolemFlags::SKOLEM_DEFAULT);
   /**
    * Create an Node by applying an associative operator to the children.
@@ -1012,6 +1013,10 @@ class NodeManager
   std::unique_ptr<SkolemManager> d_skManager;
   /** The bound variable manager */
   std::unique_ptr<BoundVarManager> d_bvManager;
+#ifdef CVC5_POLY_IMP
+  /** The libpoly context */
+  poly::Context d_polyCtx;
+#endif
 
   NodeValuePool d_nodeValuePool;
 

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Morgan Deters, Clark Barrett, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -159,9 +156,9 @@ public:
 
   const Info* getInfo(const TNode a) const;
 
-  const bool isNonLinear(const TNode a) const;
+  bool isNonLinear(const TNode a) const;
 
-  const bool rIntro1Applied(const TNode a) const;
+  bool rIntro1Applied(const TNode a) const;
 
   const TNode getModelRep(const TNode a) const;
 

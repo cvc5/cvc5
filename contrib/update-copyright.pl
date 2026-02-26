@@ -52,10 +52,9 @@ $excluded_paths .= ')$';
 
 # Years of copyright for the template.  E.g., the string
 # "1985, 1987, 1992, 1997, 2008" or "2006-2009" or whatever.
-my $years = '2009-2025';
+my $years = '2009-2026';
 
 my $standard_template = <<EOF;
- *
  * This file is part of the cvc5 project.
  *
  * Copyright (c) $years by the authors listed in the file AUTHORS
@@ -169,7 +168,7 @@ while($#searchdirs >= 0) {
 
 sub reqHashPrefix {
   my ($file) = @_;
-  return ($file =~ /\.(cmake|py)(\.in)?$/ or $file =~ /CMakeLists\.txt/);
+  return ($file =~ /\.(cmake|py|pxd|pxi|pyx)(\.in)?$/ or $file =~ /CMakeLists\.txt/);
 }
 
 sub printHeader {
@@ -184,19 +183,9 @@ sub printHeader {
   }
 }
 
-sub printTopContrib {
-  my ($OUT, $file, $authors) = @_;
-  my $comment_style = " *";
-  if (reqHashPrefix($file)) {
-    $comment_style = "#";
-  }
-  print $OUT "$comment_style Top contributors (to current version):\n";
-  print $OUT "$comment_style   $authors\n";
-}
-
 sub handleFile {
   my ($srcdir, $file) = @_;
-  return if !($file =~ /\.(c|cc|cpp|h|hh|hpp|g|java)(\.in)?$/ or reqHashPrefix($file));
+  return if !($file =~ /\.(c|cc|cpp|h|hh|hpp|g|java|pxd|pxi|pyx)(\.in)?$/ or reqHashPrefix($file));
   return if ($srcdir.'/'.$file) =~ /$excluded_paths/;
   return if $modonly && `git status -s "$srcdir/$file" 2>/dev/null` !~ /^(M|.M)/;
   print "$srcdir/$file... ";
@@ -204,9 +193,6 @@ sub handleFile {
   my $outfile = $srcdir.'/#'.$file.'.tmp';
   open(my $IN, $infile) || die "error opening $infile for reading";
   open(my $OUT, '>', $outfile) || die "error opening $outfile for writing";
-  open(my $AUTHOR, "$dir/get-authors " . $infile . '|');
-  my $authors = <$AUTHOR>; chomp $authors;
-  close $AUTHOR;
 
   # Read file into array
   my @lines = <$IN>;
@@ -219,7 +205,6 @@ sub handleFile {
   }
 
   printHeader($OUT, $file);
-  printTopContrib($OUT, $file, $authors);
 
   my $adding = 0;
   # Copyright header already exists

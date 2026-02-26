@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Morgan Deters, Andres Noetzli, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -94,7 +91,7 @@ typedef cvc5::internal::kind::metakind::MetaKind_t MetaKind;
 /**
  * Get the metakind for a particular kind.
  */
-MetaKind metaKindOf(Kind k);
+CVC5_EXPORT MetaKind metaKindOf(Kind k);
 
 /**
  * Map a kind of the operator to the kind of the enclosing expression. For

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Tim King, Andres Noetzli, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -39,7 +36,7 @@ InferBoundAlgorithm::InferBoundAlgorithm(Algorithms a)
 
 InferBoundAlgorithm::InferBoundAlgorithm(
     const std::optional<int>& simplexRounds)
-    : d_alg(Simplex)
+    : d_alg(Simplex), d_simplexRounds(simplexRounds)
 {}
 
 Algorithms InferBoundAlgorithm::getAlgorithm() const{

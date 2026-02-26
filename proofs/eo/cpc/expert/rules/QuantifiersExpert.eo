@@ -1,0 +1,77 @@
+(include "../../programs/Quantifiers.eo")
+(include "../../theories/Quantifiers.eo")
+(include "../../theories/BitVectors.eo")
+
+; witness for invertibility condition
+(declare-parameterized-const @witness_inv_condition ((F Bool :opaque))
+  ($assoc_nil_nth_type @list ($get_var_list F) 0))
+
+;;;;; ProofRule::EXISTS_INV_CONDITION
+
+; program: $mk_inv_cond_op_disj
+; args:
+; - f (-> (BitVec n) (BitVec n)): The unary function to apply, e.g. (bvashr s).
+; - t (BitVec n): The right hand side of the equation.
+; - w Int: The upper bound of bit-vector constants to consider.
+; - n Int: The current constant we are considering.
+; return: >
+;    A disjunct used in the invertibility conditions for some shift operators.
+(program $mk_inv_cond_op_disj ((n Int) (f (-> (BitVec n) (BitVec n))) (w Int) (t (BitVec n)))
+  :signature ((-> (BitVec n) (BitVec n)) (BitVec n) Int Int) Bool
+  (
+  (($mk_inv_cond_op_disj f t w w)  (eo::cons or (= (f (eo::to_bin w w)) t) false))
+  (($mk_inv_cond_op_disj f t w n)  (eo::cons or (= (f (eo::to_bin w n)) t) ($mk_inv_cond_op_disj f t w (eo::add n 1))))
+  )
+)
+
+; program: $mk_invertibility_condition
+; args:
+; - x (BitVec n): A bitvector variable to solve for.
+; - R Bool: A relation involving x.
+; return: >
+;    The invertibility condition for x in R. This is a quantifier-free formula that is
+;    equivalent to (exists x. R).
+(program $mk_invertibility_condition ((n Int) (m Int) (x (BitVec n)) (s (BitVec n)) (ss (BitVec n) :list) (t (BitVec n))
+                                      (k Int) (tk (BitVec k)) (nil (BitVec n) :list))
+  :signature ((BitVec n) Bool) Bool
+  (
+  (($mk_invertibility_condition x (= (bvmul x s nil) t))    (eo::requires (eo::to_z nil) 1
+                                                              (= (bvand (bvor (bvneg s) s) t) t)))
+  (($mk_invertibility_condition x (= (bvudiv x s) t))       (= (bvudiv (bvmul s t) s) t))
+  (($mk_invertibility_condition x (= (bvudiv s x) t))       (= (bvudiv s (bvudiv s t)) t))
+  (($mk_invertibility_condition x (= (bvurem x s) t))       (bvuge (bvnot (bvneg s)) t))
+  (($mk_invertibility_condition x (= (bvurem s x) t))       (bvuge (bvand (bvsub (bvadd t t) s) s) t))
+  (($mk_invertibility_condition x (= (bvor x ss) t))        (= t (bvor t ss)))
+  (($mk_invertibility_condition x (= (bvand x ss) t))       (= t (bvand t ss)))
+  (($mk_invertibility_condition x (= (bvashr x s) t))       (eo::define ((w ($bv_bitwidth (eo::typeof x))))
+                                                            (eo::define ((k (eo::to_bin w w)))
+                                                            (eo::define ((u (bvult s k)))
+                                                              (and (=> u (= (bvashr (bvshl t s) s) t))
+                                                                   (=> (not u) (or (= t (eo::not (eo::to_bin w 0))) (= t (eo::to_bin w 0)))))))))
+  (($mk_invertibility_condition x (= (bvashr s x) t))       (eo::define ((w ($bv_bitwidth (eo::typeof x))))
+                                                              (eo::cons or (= s t) ($mk_inv_cond_op_disj (bvashr s) t w 1))))
+  (($mk_invertibility_condition x (= (bvshl x s) t))        (= (bvshl (bvlshr t s) s) t))
+  (($mk_invertibility_condition x (= (bvshl s x) t))        (eo::define ((w ($bv_bitwidth (eo::typeof x))))
+                                                              (eo::cons or (= s t) ($mk_inv_cond_op_disj (bvshl s) t w 1))))
+  (($mk_invertibility_condition x (= (bvlshr x s) t))       (= (bvlshr (bvshl t s) s) t))
+  (($mk_invertibility_condition x (= (bvlshr s x) t))       (eo::define ((w ($bv_bitwidth (eo::typeof x))))
+                                                              (eo::cons or (= s t) ($mk_inv_cond_op_disj (bvlshr s) t w 1))))
+  (($mk_invertibility_condition x (= (sign_extend m x) tk)) (eo::define ((hi (eo::add ($bv_bitwidth (eo::typeof tk)) -1)))
+                                                            (eo::define ((lo (eo::add hi (eo::neg m))))
+                                                            (eo::define ((ex (extract hi lo tk)))
+                                                            (eo::define ((zero (eo::to_bin (eo::add m 1) 0)))
+                                                              (or (= ex zero) (= ex (eo::not zero))))))))
+  )
+)
+
+; rule: exists_inv_condition
+; implements: ProofRule::EXISTS_INV_CONDITION
+; args:
+; - B Bool: An existential for which the invertibility condition is based on.
+; conclusion: >
+;   The invertibility condition implies that the body of the existential has a solution,
+;   as given by the @witness_inv_condition skolem.
+(declare-rule exists_inv_condition ((n Int) (x (BitVec n)) (R Bool))
+  :args ((exists (@list x) R))
+  :conclusion (=> ($mk_invertibility_condition x R) ($substitute x (@witness_inv_condition (exists (@list x) R)) R))
+)

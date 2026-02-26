@@ -144,9 +144,6 @@
 (declare-parameterized-const zero_extend ((m Int :implicit) (i Int))
   (-> (BitVec m) (BitVec (eo::add m i))))
 
-; disclaimer: >
-;   The type of this function currently permits evaluatable terms as
-;   indices to support RARE.
 (declare-parameterized-const sign_extend ((m Int :implicit) (i Int))
   (-> (BitVec m) (BitVec (eo::add m i))))
 
@@ -155,59 +152,39 @@
  
 (declare-parameterized-const rotate_right ((m Int :implicit))
   (-> Int (BitVec m) (BitVec m)))
- 
-(declare-parameterized-const reduce_and ((m Int :implicit))
-  (-> (BitVec m) (BitVec 1)))
-
-(declare-parameterized-const reduce_or ((m Int :implicit))
-  (-> (BitVec m) (BitVec 1)))
-
-(declare-parameterized-const reduce_xor ((m Int :implicit))
-  (-> (BitVec m) (BitVec 1)))
 
 ; NOTE: does not require branches to be bitvector
 ; disclaimer: This function is not a function in SMT-LIB.
 (declare-parameterized-const bvite ((T Type :implicit)) (-> (BitVec 1) T T T))
 
-; disclaimer: This function is not a function in SMT-LIB.
-(declare-parameterized-const bv1ult ((m Int :implicit))
-  (-> (BitVec m) (BitVec m) (BitVec 1)))
-
-; disclaimer: This function is not a function in SMT-LIB.
 (declare-parameterized-const bvuaddo ((m Int :implicit))
   (-> (BitVec m) (BitVec m) Bool))
 
-; disclaimer: This function is not a function in SMT-LIB.
 (declare-parameterized-const bvnego ((m Int :implicit)) (-> (BitVec m) Bool))
 
-; disclaimer: This function is not a function in SMT-LIB.
 (declare-parameterized-const bvsaddo ((m Int :implicit))
   (-> (BitVec m) (BitVec m) Bool))
 
-; disclaimer: This function is not a function in SMT-LIB.
 (declare-parameterized-const bvumulo ((m Int :implicit))
   (-> (BitVec m) (BitVec m) Bool))
 
-; disclaimer: This function is not a function in SMT-LIB.
 (declare-parameterized-const bvsmulo ((m Int :implicit))
   (-> (BitVec m) (BitVec m) Bool))
 
-; disclaimer: This function is not a function in SMT-LIB.
 (declare-parameterized-const bvusubo ((m Int :implicit))
   (-> (BitVec m) (BitVec m) Bool))
 
-; disclaimer: This function is not a function in SMT-LIB.
 (declare-parameterized-const bvssubo ((m Int :implicit))
   (-> (BitVec m) (BitVec m) Bool))
 
-; disclaimer: This function is not a function in SMT-LIB.
 (declare-parameterized-const bvsdivo ((m Int :implicit))
   (-> (BitVec m) (BitVec m) Bool))
 
-
+; disclaimer: This function is not a function in SMT-LIB.
 (declare-parameterized-const bvultbv ((m Int :implicit))
   (-> (BitVec m) (BitVec m) (BitVec 1)))
 
+; disclaimer: This function is not a function in SMT-LIB.
 (declare-parameterized-const bvsltbv ((m Int :implicit))
   (-> (BitVec m) (BitVec m) (BitVec 1)))
 

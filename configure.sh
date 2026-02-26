@@ -18,6 +18,8 @@ Build types:
     Maximally optimized, assertions and tracing disabled, muzzled
   safe-mode
     Like production except --safe-mode is set to safe
+  stable-mode
+    Like production except --safe-mode is set to stable
 
 
 General options;
@@ -47,6 +49,7 @@ The following flags enable optional features (disable with --no-<option name>).
   --assertions             turn on assertions
   --tracing                include tracing code
   --muzzle                 complete silence (no non-result output)
+  --clang-tidy             enable clang-tidy static analysis during build
   --coverage               support for gcov coverage testing
   --profiling              support for gprof profiling
   --unit-testing           support for unit testing
@@ -128,6 +131,7 @@ asan=default
 assertions=default
 auto_download=default
 cln=default
+clang_tidy=default
 coverage=default
 cryptominisat=default
 debug_context_mm=default
@@ -149,6 +153,7 @@ java_bindings=default
 editline=default
 build_shared=ON
 safe_mode=default
+stable_mode=default
 static_binary=default
 statistics=default
 tracing=default
@@ -235,6 +240,9 @@ do
 
     --cln) cln=ON;;
     --no-cln) cln=OFF;;
+
+    --clang-tidy) clang_tidy=ON;;
+    --no-clang-tidy) clang_tidy=OFF;;
 
     --coverage) coverage=ON;;
     --no-coverage) coverage=OFF;;
@@ -394,6 +402,7 @@ do
          testing)         buildtype=Testing;;
          competition)     buildtype=Competition;;
          safe-mode)       buildtype=Production; safe_mode=ON;;
+         stable-mode)     buildtype=Production; stable_mode=ON;;
          *)               die "invalid build type (try -h)";;
        esac
        ;;
@@ -428,6 +437,10 @@ fi
   && cmake_opts="$cmake_opts -DENABLE_ASSERTIONS=$assertions"
 [ $safe_mode != default ] \
   && cmake_opts="$cmake_opts -DENABLE_SAFE_MODE=$safe_mode"
+[ $stable_mode != default ] \
+  && cmake_opts="$cmake_opts -DENABLE_STABLE_MODE=$stable_mode"
+[ $clang_tidy != default ] \
+  && cmake_opts="$cmake_opts -DENABLE_CLANG_TIDY=$clang_tidy"
 [ $coverage != default ] \
   && cmake_opts="$cmake_opts -DENABLE_COVERAGE=$coverage"
 [ $debug_symbols != default ] \

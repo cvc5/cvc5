@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -64,10 +61,10 @@ BvInstantiator::BvInstantiator(Env& env, TypeNode tn, BvInverter* inv)
 }
 
 BvInstantiator::~BvInstantiator() {}
-void BvInstantiator::reset(CegInstantiator* ci,
-                           SolvedForm& sf,
-                           Node pv,
-                           CegInstEffort effort)
+void BvInstantiator::reset(CVC5_UNUSED CegInstantiator* ci,
+                           CVC5_UNUSED SolvedForm& sf,
+                           CVC5_UNUSED Node pv,
+                           CVC5_UNUSED CegInstEffort effort)
 {
   d_inst_id_counter = 0;
   d_var_to_inst_id.clear();
@@ -78,11 +75,11 @@ void BvInstantiator::reset(CegInstantiator* ci,
 }
 
 void BvInstantiator::processLiteral(CegInstantiator* ci,
-                                    SolvedForm& sf,
+                                    CVC5_UNUSED SolvedForm& sf,
                                     Node pv,
                                     Node lit,
                                     Node alit,
-                                    CegInstEffort effort)
+                                    CVC5_UNUSED CegInstEffort effort)
 {
   Assert(d_inverter != NULL);
   // find path to pv
@@ -122,17 +119,17 @@ void BvInstantiator::processLiteral(CegInstantiator* ci,
   }
 }
 
-bool BvInstantiator::hasProcessAssertion(CegInstantiator* ci,
-                                         SolvedForm& sf,
-                                         Node pv,
-                                         CegInstEffort effort)
+bool BvInstantiator::hasProcessAssertion(CVC5_UNUSED CegInstantiator* ci,
+                                         CVC5_UNUSED SolvedForm& sf,
+                                         CVC5_UNUSED Node pv,
+                                         CVC5_UNUSED CegInstEffort effort)
 {
   return true;
 }
 
 Node BvInstantiator::hasProcessAssertion(CegInstantiator* ci,
-                                         SolvedForm& sf,
-                                         Node pv,
+                                         CVC5_UNUSED SolvedForm& sf,
+                                         CVC5_UNUSED Node pv,
                                          Node lit,
                                          CegInstEffort effort)
 {
@@ -170,12 +167,16 @@ Node BvInstantiator::processAssertionInternal(CegInstantiator* ci, Node lit)
 
   Node sm = ci->getModelValue(s);
   Node tm = ci->getModelValue(t);
-  Assert(!sm.isNull() && sm.isConst());
-  Assert(!tm.isNull() && tm.isConst());
   Trace("cegqi-bv") << "Model value: " << std::endl;
   Trace("cegqi-bv") << "   " << s << " " << k << " " << t << " is "
                     << std::endl;
   Trace("cegqi-bv") << "   " << sm << " <> " << tm << std::endl;
+  // in very rare cases e.g. strings of excessive length, the model value for
+  // a term may not be constant, in which case we fail to solve.
+  if (sm.isNull() || !sm.isConst() || tm.isNull() || !tm.isConst())
+  {
+    return Node::null();
+  }
 
   Node ret;
   if (options().quantifiers.cegqiBvIneqMode
@@ -264,9 +265,9 @@ bool BvInstantiator::processAssertion(CegInstantiator* ci,
   return false;
 }
 
-bool BvInstantiator::useModelValue(CegInstantiator* ci,
-                                   SolvedForm& sf,
-                                   Node pv,
+bool BvInstantiator::useModelValue(CVC5_UNUSED CegInstantiator* ci,
+                                   CVC5_UNUSED SolvedForm& sf,
+                                   CVC5_UNUSED Node pv,
                                    CegInstEffort effort)
 {
   return effort < CEG_INST_EFFORT_FULL || options().quantifiers.cegqiFullEffort;
@@ -275,7 +276,7 @@ bool BvInstantiator::useModelValue(CegInstantiator* ci,
 bool BvInstantiator::processAssertions(CegInstantiator* ci,
                                        SolvedForm& sf,
                                        Node pv,
-                                       CegInstEffort effort)
+                                       CVC5_UNUSED CegInstEffort effort)
 {
   std::unordered_map<Node, std::vector<unsigned>>::iterator iti =
       d_var_to_inst_id.find(pv);
@@ -704,10 +705,7 @@ void BvInstantiatorPreprocess::registerCounterexampleLemma(
         Assert(boundaries[i - 1] > 0);
         Node ex = bv::utils::mkExtract(
             es.first, boundaries[i - 1] - 1, boundaries[i]);
-        Node var = NodeManager::mkDummySkolem(
-            "ek",
-            ex.getType(),
-            "variable to represent disjoint extract region");
+        Node var = NodeManager::mkDummySkolem("ek", ex.getType());
         children.push_back(var);
         vars.push_back(var);
       }

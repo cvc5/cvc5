@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Daniel Larraz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -227,8 +224,7 @@ Node Skolemize::mkSkolemizedBodyInduction(const Options& opts,
       else
       {
         TypeNode typ = nm->mkFunctionType(argTypes, f[0][i].getType());
-        Node op = NodeManager::mkDummySkolem(
-            "skop", typ, "op created during pre-skolemization");
+        Node op = NodeManager::mkDummySkolem("skop", typ);
         // DOTHIS: set attribute on op, marking that it should not be selected
         // as trigger
         if (f[0][i].getType().isFunction())
@@ -313,7 +309,7 @@ Node Skolemize::mkSkolemizedBodyInduction(const Options& opts,
     {
       Trace("sk-ind") << "Unknown induction for term : " << ind_vars[0]
                       << ", type = " << tn << std::endl;
-      Assert(false);
+      DebugUnhandled();
     }
     Trace("sk-ind") << "Strengthening is : " << n_str_ind << std::endl;
 

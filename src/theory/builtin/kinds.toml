@@ -362,13 +362,6 @@ comment  = "equality (two parameters only, sorts must match)"
 typerule = "::cvc5::internal::theory::builtin::EqualityTypeRule"
 
 [[kinds]]
-type     = "operator"
-name     = "DISTINCT"
-children = "2:" 
-comment  = "disequality (N-ary, sorts must match)"
-typerule = "::cvc5::internal::theory::builtin::DistinctTypeRule"
-
-[[kinds]]
 type    = "variable"
 name    = "VARIABLE"
 comment = "a variable (not permitted in bindings)"

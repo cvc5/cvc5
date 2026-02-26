@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -107,8 +104,7 @@ class ProofLoggerCpc : public ProofLogger
   ProofLoggerCpc(Env& env,
                  std::ostream& out,
                  smt::PfManager* pm,
-                 smt::Assertions& as,
-                 smt::ProofPostprocess* ppp);
+                 smt::Assertions& as);
   ~ProofLoggerCpc();
   /** Log preprocessing input */
   void logCnfPreprocessInputs(const std::vector<Node>& inputs) override;
@@ -131,8 +127,6 @@ class ProofLoggerCpc : public ProofLogger
   ProofNodeManager* d_pnm;
   /** Reference to the assertions of SMT solver */
   smt::Assertions& d_as;
-  /** Pointer to the proof post-processor */
-  smt::ProofPostprocess* d_ppp;
   /** The node converter, used for printing */
   proof::AlfNodeConverter d_atp;
   /** The proof printer */

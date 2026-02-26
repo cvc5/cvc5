@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Tim King
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,6 +19,7 @@
 #include <unordered_set>
 
 #include "expr/algorithm/flatten.h"
+#include "expr/attribute.h"
 #include "expr/node_value.h"
 #include "proof/conv_proof_generator.h"
 #include "proof/proof.h"
@@ -40,6 +38,8 @@ TheoryBoolRewriter::TheoryBoolRewriter(NodeManager* nm) : TheoryRewriter(nm)
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::MACRO_BOOL_BV_INVERT_SOLVE,
                            TheoryRewriteCtx::POST_DSL);
+  registerProofRewriteRule(ProofRewriteRule::MACRO_BOOL_EQ_CONST_EQ,
+                           TheoryRewriteCtx::PRE_DSL);
 }
 
 Node TheoryBoolRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
@@ -75,6 +75,14 @@ Node TheoryBoolRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       if (slv == n[1][1])
       {
         return nm->mkConst(true);
+      }
+    }
+    break;
+    case ProofRewriteRule::MACRO_BOOL_EQ_CONST_EQ:
+    {
+      if (n.getKind() == Kind::EQUAL)
+      {
+        return rewriteViaEqConstEq(n);
       }
     }
     break;
@@ -115,10 +123,16 @@ bool TheoryBoolRewriter::addNnfNormChild(std::vector<Node>& children,
   return true;
 }
 
+struct NnfAttributeId
+{
+};
+typedef expr::Attribute<NnfAttributeId, Node> NnfAttribute;
+
 Node TheoryBoolRewriter::computeNnfNorm(NodeManager* nm,
                                         const Node& n,
                                         TConvProofGenerator* pg)
 {
+  NnfAttribute nnfa;
   Trace("compute-nnf") << "Compute NNF norm " << n << std::endl;
   // at pre-order traversal, we store preKind and preChildren, which
   // determine the Kind and the children for the node to reconstruct.
@@ -136,6 +150,11 @@ Node TheoryBoolRewriter::computeNnfNorm(NodeManager* nm,
     it = visited.find(cur);
     if (it == visited.end())
     {
+      if (!pg && cur.hasAttribute(nnfa))
+      {
+        visited[cur] = cur.getAttribute(nnfa);
+        continue;
+      }
       Kind k = cur.getKind();
       bool negAllCh = false;
       bool negCh1 = false;
@@ -159,7 +178,6 @@ Node TheoryBoolRewriter::computeNnfNorm(NodeManager* nm,
         {
           // double negation cancels
           preCur = cur[0][0];
-          visited[cur] = preCur;
         }
         else if (cur[0].getKind() == Kind::OR
                  || cur[0].getKind() == Kind::IMPLIES)
@@ -200,12 +218,12 @@ Node TheoryBoolRewriter::computeNnfNorm(NodeManager* nm,
         visited[cur] = cur;
         continue;
       }
+      std::vector<Node>& pc = preChildren[cur];
       if (preCur.isNull())
       {
         preKind[cur] = k;
         visited[cur] = Node::null();
         visit.push_back(cur);
-        std::vector<Node>& pc = preChildren[cur];
         for (size_t i = 0, nchild = ncur.getNumChildren(); i < nchild; ++i)
         {
           Node c =
@@ -217,6 +235,17 @@ Node TheoryBoolRewriter::computeNnfNorm(NodeManager* nm,
         {
           preCur = nm->mkNode(k, pc);
         }
+      }
+      else
+      {
+        // double negation visits the child
+        // we set the preKind to UNDEFINED_KIND, which indicates a no-op when
+        // reconstructing the node at post-rewrite.
+        preKind[cur] = Kind::UNDEFINED_KIND;
+        visited[cur] = Node::null();
+        visit.push_back(cur);
+        visit.push_back(preCur);
+        pc.push_back(preCur);
       }
       // if proof producing, possibly add a pre-rewrite step
       if (pg != nullptr)
@@ -275,6 +304,13 @@ Node TheoryBoolRewriter::computeNnfNorm(NodeManager* nm,
         Assert(k == Kind::OR || k == Kind::AND);
         ret = nm->mkConst(k == Kind::OR);
       }
+      else if (k == Kind::UNDEFINED_KIND)
+      {
+        // handles the case of double negation, which takes the inner child
+        // itself
+        Assert(children.size() == 1);
+        ret = children[0];
+      }
       else if (childChanged || k != ok)
       {
         ret = (children.size() == 1 && k != Kind::NOT)
@@ -292,7 +328,16 @@ Node TheoryBoolRewriter::computeNnfNorm(NodeManager* nm,
           Assert(!it->second.isNull());
           pcc.push_back(it->second);
         }
-        Node pcpc = nm->mkNode(k, pcc);
+        Node pcpc;
+        if (k == Kind::UNDEFINED_KIND)
+        {
+          Assert(pcc.size() == 1);
+          pcpc = pcc[0];
+        }
+        else
+        {
+          pcpc = nm->mkNode(k, pcc);
+        }
         if (pcpc != ret)
         {
           pg->addRewriteStep(
@@ -300,6 +345,7 @@ Node TheoryBoolRewriter::computeNnfNorm(NodeManager* nm,
         }
       }
       visited[cur] = ret;
+      cur.setAttribute(nnfa, ret);
     }
   } while (!visit.empty());
   Assert(visited.find(n) != visited.end());
@@ -508,7 +554,7 @@ inline int equalityParity(TNode a, TNode b){
   }
 }
 
-Node TheoryBoolRewriter::makeNegation(TNode n)
+Node TheoryBoolRewriter::makeNegation(TNode n) const
 {
   bool even = false;
   while (n.getKind() == Kind::NOT)
@@ -650,71 +696,12 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
         // IFF x (NOT x)
         return RewriteResponse(REWRITE_DONE, d_false);
       }
-      else if (n[0].getKind() == Kind::EQUAL && n[1].getKind() == Kind::EQUAL)
+      // check if it is equality between equalities to constants
+      Node ret = rewriteViaEqConstEq(n);
+      if (!ret.isNull())
       {
-        // a : (= i x)
-        // i : (= j k)
-        // x : (= y z)
-
-        // assume wlog k, z are constants and j is the same symbol as y
-        // (= (= j k) (= j z))
-        // if k = z
-        //  then (= (= j k) (= j k)) => true
-        // else
-        //  (= (= j k) (= j z)) <=> b
-        //  b : (and (not (= j k)) (not (= j z)))
-        //  (= j k) (= j z) | a b
-        //  f       f       | t t
-        //  f       t       | f f
-        //  t       f       | f f
-        //  t       t       | * f
-        // * j cannot equal both k and z in a theory model
-        TNode t, c;
-        if (n[0][0].isConst())
-        {
-          c = n[0][0];
-          t = n[0][1];
-        }
-        else if (n[0][1].isConst())
-        {
-          c = n[0][1];
-          t = n[0][0];
-        }
-        bool matchesForm = false;
-        bool constantsEqual = false;
-        if (!c.isNull())
-        {
-          if (n[1][0] == t && n[1][1].isConst())
-          {
-            matchesForm = true;
-            constantsEqual = (n[1][1] == c);
-          }
-          else if (n[1][1] == t && n[1][0].isConst())
-          {
-            matchesForm = true;
-            constantsEqual = (n[1][0] == c);
-          }
-        }
-        if (matchesForm)
-        {
-          if (constantsEqual)
-          {
-            return RewriteResponse(REWRITE_DONE, d_true);
-          }
-          else
-          {
-            if (t.getType().isCardinalityLessThan(2))
-            {
-              return RewriteResponse(REWRITE_DONE, d_false);
-            }
-            else
-            {
-              Node neitherEquality =
-                  (makeNegation(n[0])).andNode(makeNegation(n[1]));
-              return RewriteResponse(REWRITE_AGAIN, neitherEquality);
-            }
-          }
-        }
+        return RewriteResponse(ret.isConst() ? REWRITE_DONE : REWRITE_AGAIN,
+                               ret);
       }
       // sort
       if (n[0].getId() > n[1].getId())
@@ -905,6 +892,72 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
     return RewriteResponse(REWRITE_DONE, n);
   }
   return RewriteResponse(REWRITE_DONE, n);
+}
+
+Node TheoryBoolRewriter::rewriteViaEqConstEq(const Node& n) const
+{
+  if (n[0].getKind() == Kind::EQUAL && n[1].getKind() == Kind::EQUAL)
+  {
+    // a : (= i x)
+    // i : (= j k)
+    // x : (= y z)
+
+    // assume wlog k, z are constants and j is the same symbol as y
+    // (= (= j k) (= j z))
+    // if k = z
+    //  then (= (= j k) (= j k)) => true
+    // else
+    //  (= (= j k) (= j z)) <=> b
+    //  b : (and (not (= j k)) (not (= j z)))
+    //  (= j k) (= j z) | a b
+    //  f       f       | t t
+    //  f       t       | f f
+    //  t       f       | f f
+    //  t       t       | * f
+    // * j cannot equal both k and z in a theory model
+    TNode t, c;
+    if (n[0][0].isConst())
+    {
+      c = n[0][0];
+      t = n[0][1];
+    }
+    else if (n[0][1].isConst())
+    {
+      c = n[0][1];
+      t = n[0][0];
+    }
+    bool matchesForm = false;
+    bool constantsEqual = false;
+    if (!c.isNull())
+    {
+      if (n[1][0] == t && n[1][1].isConst())
+      {
+        matchesForm = true;
+        constantsEqual = (n[1][1] == c);
+      }
+      else if (n[1][1] == t && n[1][0].isConst())
+      {
+        matchesForm = true;
+        constantsEqual = (n[1][0] == c);
+      }
+    }
+    if (matchesForm)
+    {
+      if (constantsEqual)
+      {
+        return d_true;
+      }
+      else
+      {
+        // if there were 2 distinct constants, the cardinality should be at
+        // least 2.
+        Assert(!t.getType().isCardinalityLessThan(2));
+        Node neitherEquality = (n[0].notNode()).andNode(n[1].notNode());
+        return neitherEquality;
+      }
+    }
+  }
+  return Node::null();
 }
 
 }  // namespace booleans

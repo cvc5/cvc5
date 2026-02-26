@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -84,6 +81,10 @@ class TheoryUfRewriter : public TheoryRewriter
    * @return the result of eliminating n, if possible, or null otherwise.
    */
   static Node canEliminateLambda(NodeManager* nm, const Node& n);
+  /**
+   * Blast distinct, which eliminates the distinct operator.
+   */
+  static Node blastDistinct(NodeManager* nm, TNode node);
 
  private:
   /** Entry point for rewriting lambdas */
@@ -92,6 +93,8 @@ class TheoryUfRewriter : public TheoryRewriter
   RewriteResponse rewriteBVToInt(TNode node);
   /** rewrite int_to_bv */
   RewriteResponse rewriteIntToBV(TNode node);
+  /** rewrite distinct */
+  RewriteResponse rewriteDistinct(TNode node);
 }; /* class TheoryUfRewriter */
 
 }  // namespace uf

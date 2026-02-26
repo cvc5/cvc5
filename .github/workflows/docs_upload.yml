@@ -10,8 +10,10 @@ jobs:
   upload-docs:
     name: upload-docs
     runs-on: ubuntu-latest
-    continue-on-error: true
-    if: github.repository == 'cvc5/cvc5' && github.event.workflow_run.conclusion == 'success'
+    if: >
+      github.repository == 'cvc5/cvc5' &&
+      github.event.workflow_run.conclusion == 'success' &&
+      !startsWith(github.event.workflow_run.head_branch, 'gh-readonly-queue')
     steps:
       - name: Setup git config
         run: |
@@ -19,7 +21,7 @@ jobs:
           git config --global user.name "DocBot"
 
       - name: Download artifact
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             var artifacts = await github.rest.actions.listWorkflowRunArtifacts({
@@ -83,7 +85,6 @@ jobs:
           echo "ISRELEASE=$ISRELEASE" >> $GITHUB_ENV
 
       - name: Update versions
-        continue-on-error: true
         run: |
           python3 -m pip install beautifulsoup4 lxml
 
@@ -105,7 +106,6 @@ jobs:
           cp -rf "${TARGET_DIR}" docs-new
 
       - name: Update docs
-        continue-on-error: true
         run: |
           if [ -n "$NAME" ]; then
             eval $(ssh-agent -s)
@@ -136,7 +136,6 @@ jobs:
           fi
 
       - name: Update docs for release
-        continue-on-error: true
         run: |
           if [ "$ISRELEASE" = true ]; then
             eval $(ssh-agent -s)

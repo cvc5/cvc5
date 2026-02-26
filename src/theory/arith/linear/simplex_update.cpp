@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Tim King, Andres Noetzli, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -108,7 +105,8 @@ void UpdateInfo::updatePureFocus(const DeltaRational& delta, ConstraintP c){
   Assert(debugSgnAgreement());
 }
 
-void UpdateInfo::updatePivot(const DeltaRational& delta, const Rational& r, ConstraintP c){
+void UpdateInfo::updatePivot(const DeltaRational& delta, ConstraintP c)
+{
   d_limiting = c;
   d_nonbasicDelta = delta;
   d_errorsChange.reset();

@@ -1,10 +1,7 @@
 ###############################################################################
-# Top contributors (to current version):
-#   Mathias Preiner, Andrew Reynolds, Aina Niemetz
-#
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -35,7 +32,7 @@ foreach(example ${CVC5_EXAMPLES_API_CPP})
   cvc5_add_example(${example} "" "api/cpp")
 endforeach()
 
-if(NOT CVC5_SAFE_BUILD)
+if((NOT CVC5_SAFE_BUILD) AND (NOT CVC5_STABLE_BUILD))
   cvc5_add_example(floating_point_arith "" "api/cpp")
   cvc5_add_example(bags "" "api/cpp")
   cvc5_add_example(relations "" "api/cpp")

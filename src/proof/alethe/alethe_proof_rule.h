@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Hanna Lachnitt, Haniel Barbosa
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -378,6 +375,7 @@ enum class AletheRule : uint32_t
   // ======== Simplify rules
   // The following rules are simplifying rules introduced as tautologies that
   // can be verified by a number of simple transformations
+  AC_SIMP,
   ITE_SIMPLIFY,
   EQ_SIMPLIFY,
   AND_SIMPLIFY,
@@ -422,6 +420,31 @@ enum class AletheRule : uint32_t
   // ...
   // > j. (not (= G F))
   NOT_SYMM,
+  // ======== miniscope_distribute
+  // > i. (= (forall (x1 ... xn) (and F1 ... Fm))
+  // (and (forall (x1 ... xn) F1) ... (forall (x1 ... xn) Fm)))
+  //
+  // or
+  //
+  // > i. (= (exists (x1 ... xn) (or F1 ... Fm))
+  // (or (exists (x1 ... xn) F1) ... (exists (x1 ... xn) Fm)))
+  MINISCOPE_DISTRIBUTE,
+  // ======== miniscope_split
+  // > i. (= (forall (x1 ... xn) (or F1 ... Fm))
+  // (or (forall (x1,1 ... x1,n1) F1) ... (forall (xm,1 ... xm,nm) Fm)))
+  //
+  // or
+  //
+  // > i. (= (exists (x1 ... xn) (and F1 ... Fm))
+  // (and (exists (x1,1 ... x1,n1) F1) ... (exists (xm,1 ... xm,nm) Fm)))
+  //
+  // where {x1,1,...,xm,nm} is a subset of {x1,...,xn} and the right side of the
+  // equality has no free variables in {x1,...,xn}
+  MINISCOPE_SPLIT,
+  // ======== miniscope_ite
+  // > i. (= (forall (x1 ... xn) (ite F1 F2 F3))
+  // (ite F1 (forall (x1 ... xn) F2) (forall (x1 ... xn) F3))
+  MINISCOPE_ITE,
   // ======== reorder
   // > i1. F1
   // ...
@@ -449,6 +472,11 @@ enum class AletheRule : uint32_t
   BV_BITBLAST_STEP_CONCAT,
   BV_BITBLAST_STEP_CONST,
   BV_BITBLAST_STEP_SIGN_EXTEND,
+  // ======== temporary
+  // These rules are not in the Alethe standard, they are defined by
+  // their respective CPC counterpart for now.
+  BV_BITWISE_SLICING,
+  BV_REPEAT_ELIM,
   // ======== hole
   // Used for unjustified steps
   HOLE,

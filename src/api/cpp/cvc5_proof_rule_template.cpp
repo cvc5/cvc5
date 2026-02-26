@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Hans-Joerg Schurr, Andrew Reynolds, Abdalrhman Mohamed
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -51,8 +48,6 @@ const char* toString(ProofRule rule)
     case ProofRule::CHAIN_RESOLUTION: return "CHAIN_RESOLUTION";
     case ProofRule::FACTORING: return "FACTORING";
     case ProofRule::REORDERING: return "REORDERING";
-    case ProofRule::MACRO_RESOLUTION: return "MACRO_RESOLUTION";
-    case ProofRule::MACRO_RESOLUTION_TRUST: return "MACRO_RESOLUTION_TRUST";
     case ProofRule::CHAIN_M_RESOLUTION: return "CHAIN_M_RESOLUTION";
     case ProofRule::SPLIT: return "SPLIT";
     case ProofRule::EQ_RESOLVE: return "EQ_RESOLVE";
@@ -106,6 +101,7 @@ const char* toString(ProofRule rule)
     case ProofRule::TRANS: return "TRANS";
     case ProofRule::CONG: return "CONG";
     case ProofRule::NARY_CONG: return "NARY_CONG";
+    case ProofRule::PAIRWISE_CONG: return "PAIRWISE_CONG";
     case ProofRule::TRUE_INTRO: return "TRUE_INTRO";
     case ProofRule::TRUE_ELIM: return "TRUE_ELIM";
     case ProofRule::FALSE_INTRO: return "FALSE_INTRO";
@@ -243,6 +239,8 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::UBV_TO_INT_ELIM: return "ubv-to-int-elim";
     case ProofRewriteRule::INT_TO_BV_ELIM: return "int-to-bv-elim";
     case ProofRewriteRule::MACRO_BOOL_NNF_NORM: return "macro-bool-nnf-norm";
+    case ProofRewriteRule::MACRO_BOOL_EQ_CONST_EQ:
+      return "macro-bool-eq-const-eq";
     case ProofRewriteRule::MACRO_BOOL_BV_INVERT_SOLVE: return "macro-bool-bv-invert-solve";
     case ProofRewriteRule::MACRO_ARITH_INT_EQ_CONFLICT:
       return "macro-arith-int-eq-conflict";
@@ -255,6 +253,8 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::MACRO_ARITH_STRING_PRED_ENTAIL:
       return "macro-arith-string-pred-entail";
     case ProofRewriteRule::ARITH_POW_ELIM: return "arith-pow-elim";
+    case ProofRewriteRule::DISTINCT_FALSE: return "distinct-false";
+    case ProofRewriteRule::DISTINCT_TRUE: return "distinct-true";
     case ProofRewriteRule::BETA_REDUCE: return "beta-reduce";
     case ProofRewriteRule::LAMBDA_ELIM: return "lambda-elim";
     case ProofRewriteRule::MACRO_LAMBDA_CAPTURE_AVOID:
@@ -267,6 +267,8 @@ const char* toString(cvc5::ProofRewriteRule rule)
       return "arrays-eq-range-expand";
     case ProofRewriteRule::EXISTS_ELIM: return "exists-elim";
     case ProofRewriteRule::QUANT_UNUSED_VARS: return "quant-unused-vars";
+    case ProofRewriteRule::MACRO_QUANT_ELIM_SHADOW:
+      return "macro-quant-elim-shadow";
     case ProofRewriteRule::MACRO_QUANT_MERGE_PRENEX:
       return "macro-quant-merge-prenex";
     case ProofRewriteRule::QUANT_MERGE_PRENEX: return "quant-merge-prenex";

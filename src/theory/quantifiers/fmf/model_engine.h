@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -59,7 +56,7 @@ public:
  bool checkComplete(IncompleteId& incId) override;
  bool checkCompleteFor(Node q) override;
  void registerQuantifier(Node f) override;
- Node explain(TNode n) { return Node::null(); }
+ Node explain() { return Node::null(); }
  void debugPrint(const char* c);
  /** Identify this module */
  std::string identify() const override;

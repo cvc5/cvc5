@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Martin Brain, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -45,7 +42,7 @@ TheoryFp::TheoryFp(Env& env, OutputChannel& out, Valuation valuation)
       d_wordBlaster(new FpWordBlaster(nodeManager(), userContext())),
       d_registeredTerms(userContext()),
       d_abstractionMap(userContext()),
-      d_rewriter(nodeManager(), userContext(), options().fp.fpExp),
+      d_rewriter(nodeManager(), options().fp.fpExp),
       d_state(env, valuation),
       d_im(env, *this, d_state, "theory::fp::", true),
       d_notify(d_im),
@@ -122,7 +119,8 @@ void TheoryFp::finishInit()
   d_equalityEngine->addFunctionKind(Kind::ROUNDINGMODE_BITBLAST);
 }
 
-TrustNode TheoryFp::ppRewrite(TNode node, std::vector<SkolemLemma>& lems)
+TrustNode TheoryFp::ppRewrite(TNode node,
+                              CVC5_UNUSED std::vector<SkolemLemma>& lems)
 {
   Trace("fp-ppRewrite") << "TheoryFp::ppRewrite(): " << node << std::endl;
 
@@ -668,8 +666,11 @@ void TheoryFp::postCheck(Effort level)
   /* Checking should be handled by the bit-vector engine */
 }
 
-bool TheoryFp::preNotifyFact(
-    TNode atom, bool pol, TNode fact, bool isPrereg, bool isInternal)
+bool TheoryFp::preNotifyFact(TNode atom,
+                             CVC5_UNUSED bool pol,
+                             CVC5_UNUSED TNode fact,
+                             CVC5_UNUSED bool isPrereg,
+                             CVC5_UNUSED bool isInternal)
 {
   /* Word-blast lazier if configured. */
   if (options().fp.fpLazyWb
@@ -761,7 +762,7 @@ Node TheoryFp::getCandidateModelValue(TNode node)
     {
       if (cur.getType().isFloatingPoint() || cur.getType().isRoundingMode())
       {
-        value = d_wordBlaster->getValue(d_valuation, cur);
+        value = d_wordBlaster->getValue(cur);
       }
       else
       {
@@ -892,7 +893,7 @@ bool TheoryFp::collectModelValues(TheoryModel* m,
     Trace("fp-collectModelValues")
         << "TheoryFp::collectModelValues(): " << node << std::endl;
 
-    Node wordBlasted = d_wordBlaster->getValue(d_valuation, node);
+    Node wordBlasted = d_wordBlaster->getValue(node);
     // We only assign the value if the FpWordBlaster actually has one, that is,
     // if FpWordBlaster::getValue() does not return a null node.
     if (!wordBlasted.isNull() && !m->assertEquality(node, wordBlasted, true))

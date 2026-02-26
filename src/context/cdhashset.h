@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Morgan Deters, Tim King, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -48,7 +45,8 @@ public:
     this->ContextObj::deleteSelf();
   }
 
-  static void operator delete(void* pMem) {
+  static void operator delete(CVC5_UNUSED void* pMem)
+  {
     AlwaysAssert(false) << "It is not allowed to delete a ContextObj this way!";
   }
 

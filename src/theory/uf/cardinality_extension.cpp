@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Tim King
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -1169,9 +1166,8 @@ bool SortModel::checkLastCall()
       while (d_fresh_aloc_reps.size() <= d_maxNegCard)
       {
         std::stringstream ss;
-        ss << "r_" << d_type << "_";
-        Node nn = NodeManager::mkDummySkolem(
-            ss.str(), d_type, "enumeration to meet negative card constraint");
+        ss << "r_" << d_type;
+        Node nn = NodeManager::mkDummySkolem(ss.str(), d_type);
         d_fresh_aloc_reps.push_back( nn );
       }
       if (d_maxNegCard == 0)
@@ -1564,7 +1560,7 @@ void CardinalityExtension::check(Theory::Effort level)
     else
     {
       // unhandled uf ss mode
-      Assert(false);
+      DebugUnhandled();
     }
     Trace("uf-ss-solver") << "Done CardinalityExtension: check " << level
                           << std::endl;

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Alex Ozdemir
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -163,7 +160,7 @@ bool allVarsAssigned(const CoCoA::ideal& ideal)
 
 std::unique_ptr<AssignmentEnumerator> applyRule(const CoCoA::ideal& ideal)
 {
-  CoCoA::ring polyRing = ideal->myRing();
+  CoCoA::PolyRing polyRing(ideal->myRing());
   Assert(!isUnsat(ideal));
   // first, we look for super-linear univariate polynomials.
   Assert(CoCoA::HasGBasis(ideal));

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -1269,6 +1266,8 @@ EvalResult Evaluator::evalInternal(
         {
           BitVector res = results[currNode[0]].d_bv;
           const uint32_t size = currNode[0].getType().getBitVectorSize();
+          // should not evaluate on empty bitvectors
+          Assert (size!=0);
           if (res.isBitSet(size - 1))
           {
             Rational ttm = Rational(Integer(2).pow(size));
@@ -1294,6 +1293,7 @@ EvalResult Evaluator::evalInternal(
           Integer w = results[currNode[1]].d_rat.getNumerator();
           if (w.fitsUnsignedInt())
           {
+            Assert(w.sgn() >= 0);
             Trace("evaluator") << currNode << " evalutes to "
                                << BitVector(w.toUnsignedInt(), i) << std::endl;
             results[currNode] = EvalResult(BitVector(w.toUnsignedInt(), i));

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Yoni Zohar, Andrew Reynolds, Daniel Larraz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -54,10 +51,8 @@ Node preSkolemEmp(NodeManager* nm,
     {
       if (!pol)
       {
-        Node x = NodeManager::mkDummySkolem(
-            "ex", locType, "skolem location for negated emp");
-        Node y = NodeManager::mkDummySkolem(
-            "ey", dataType, "skolem data for negated emp");
+        Node x = NodeManager::mkDummySkolem("ex", locType);
+        Node y = NodeManager::mkDummySkolem("ey", dataType);
         return nm
             ->mkNode(Kind::SEP_STAR,
                      nm->mkNode(Kind::SEP_PTO, x, y),

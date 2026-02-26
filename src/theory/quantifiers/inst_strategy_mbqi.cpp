@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Lydia Kondylidou, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,16 +15,17 @@
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "expr/subs.h"
+#include "options/arrays_options.h"
 #include "printer/smt2/smt2_printer.h"
-#include "theory/quantifiers/mbqi_enum.h"
+#include "smt/set_defaults.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/instantiate.h"
+#include "theory/quantifiers/mbqi_enum.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/skolemize.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/uf/function_const.h"
-#include "smt/set_defaults.h"
 
 using namespace std;
 using namespace cvc5::internal::kind;
@@ -44,7 +42,11 @@ InstStrategyMbqi::InstStrategyMbqi(Env& env,
     : QuantifiersModule(env, qs, qim, qr, tr), d_globalSyms(userContext())
 {
   // some kinds may appear in model values that cannot be asserted
-  d_nonClosedKinds.insert(Kind::STORE_ALL);
+  // if arraysExp is enabled, we allow STORE_ALL terms in assertions.
+  if (!options().arrays.arraysExp)
+  {
+    d_nonClosedKinds.insert(Kind::STORE_ALL);
+  }
   d_nonClosedKinds.insert(Kind::CODATATYPE_BOUND_VARIABLE);
   d_nonClosedKinds.insert(Kind::UNINTERPRETED_SORT_VALUE);
   // may appear in certain models e.g. strings of excessive length
@@ -96,14 +98,18 @@ const context::CDHashSet<Node>& InstStrategyMbqi::getGlobalSyms() const
   return d_globalSyms;
 }
 
-void InstStrategyMbqi::reset_round(Theory::Effort e) { d_quantChecked.clear(); }
+void InstStrategyMbqi::reset_round(CVC5_UNUSED Theory::Effort e)
+{
+  d_quantChecked.clear();
+}
 
 bool InstStrategyMbqi::needsCheck(Theory::Effort e)
 {
   return e >= Theory::EFFORT_LAST_CALL;
 }
 
-QuantifiersModule::QEffort InstStrategyMbqi::needsModel(Theory::Effort e)
+QuantifiersModule::QEffort InstStrategyMbqi::needsModel(
+    CVC5_UNUSED Theory::Effort e)
 {
   return QEFFORT_MODEL;
 }
@@ -249,7 +255,7 @@ void InstStrategyMbqi::process(Node q)
                     << std::endl;
       // this should never happen but we explicitly guard for it, since
       // otherwise we would be model unsound below
-      Assert(false);
+      DebugUnhandled();
       continue;
     }
     std::vector<Node> disj;
@@ -328,17 +334,9 @@ void InstStrategyMbqi::process(Node q)
   if (options().quantifiers.mbqiEnum)
   {
     std::vector<Node> smvs(mvs);
-    std::vector<std::pair<Node, InferenceId>> auxLemmas;
-    if (d_msenum->constructInstantiation(
-            q, query, vars, smvs, mvToFreshVar, auxLemmas))
+    if (d_msenum->constructInstantiation(q, query, vars, smvs, mvToFreshVar))
     {
       Trace("mbqi-enum") << "Successfully added instantiation." << std::endl;
-      for (std::pair<Node, InferenceId>& al : auxLemmas)
-      {
-        Trace("mbqi-aux-lemma") << "Auxiliary lemma: " << al.second << " : "
-                                << al.first << std::endl;
-        d_qim.lemma(al.first, al.second);
-      }
       return;
     }
     Trace("mbqi-enum")

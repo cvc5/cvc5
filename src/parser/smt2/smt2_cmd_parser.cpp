@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -58,6 +55,7 @@ Smt2CmdParser::Smt2CmdParser(Smt2Lexer& lex,
   d_table["get-unsat-core"] = Token::GET_UNSAT_CORE_TOK;
   d_table["get-unsat-core-lemmas"] = Token::GET_UNSAT_CORE_LEMMAS_TOK;
   d_table["get-value"] = Token::GET_VALUE_TOK;
+  d_table["get-model-domain-elements"] = Token::GET_MODEL_DOMAIN_ELEMENTS_TOK;
   d_table["pop"] = Token::POP_TOK;
   d_table["push"] = Token::PUSH_TOK;
   d_table["reset-assertions"] = Token::RESET_ASSERTIONS_TOK;
@@ -761,6 +759,14 @@ std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
       }
       cmd.reset(new GetValueCommand(terms));
       d_state.popScope();
+    }
+    break;
+    // (get-model-domain-elements <sort>)
+    case Token::GET_MODEL_DOMAIN_ELEMENTS_TOK:
+    {
+      d_state.checkThatLogicIsSet();
+      cvc5::Sort sort = d_tparser.parseSort();
+      cmd.reset(new GetModelDomainElementsCommand(sort));
     }
     break;
     // (inv-constraint <symbol> <symbol> <symbol> <symbol>)

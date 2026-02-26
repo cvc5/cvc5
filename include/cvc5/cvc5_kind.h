@@ -540,6 +540,54 @@ enum ENUM(Kind)
    */
   EVALUE(IAND),
   /**
+   * parametric Integer and.
+   *
+   * \rst
+   * Operator for parametric bit-wise ``AND`` over integers, parameterized by a
+   * bit-width :math:`k`.
+   * This is similar to the iand indexed operator but allows the bit-width be symbolic.
+   * If k > 0:
+   *
+   * .. code:: smtlib
+   *
+   *     (piand k i_1 i_2)
+   *
+   * is equivalent to
+   *
+   * .. code:: smtlib
+   *
+   *     ((_ ubv_to_int k) x)
+   *
+   * such that x is the bitwise and of bit-vectors b1 and b2, such that 
+   * b1 is the bit-vector of width k representing (mod i_1 2^k) and
+   * b2 is the bit-vector of width k representing (mod i_2 2^k),
+   * for all integers ``k``, ``i_1``, ``i_2``.
+   * 
+   * If k <= 0 then
+   * 
+   * .. code:: smtlib
+   *
+   *     (piand k i_1 i_2)
+   *
+   * is equivalent to
+   *
+   * .. code:: smtlib
+   *    
+   *       0
+   *
+   * - Arity: ``3``
+   *
+   *   - ``1..3:`` Terms of Sort Int
+   *
+   * \endrst
+   *
+   * - Create Term of this Kind with:
+   *
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&)
+   *
+   */
+  EVALUE(PIAND),
+  /**
    * Power of two.
    *
    * Operator for raising ``2`` to a non-negative integer power.
@@ -558,6 +606,22 @@ enum ENUM(Kind)
    *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&)
    */
   EVALUE(POW2),
+  /**
+   * Log of base two.
+   *
+   * Operator for the inverse of raising ``2`` to a non-negative integer power.
+   *
+   * - Arity: ``1``
+   *
+   *   - ``1:`` Term of Sort Int
+   *
+   * - Create Term of this Kind with:
+   *
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&)
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&)
+   *
+   */
+  EVALUE(LOG2),
   /**
    * Arithmetic subtraction, left associative.
    *

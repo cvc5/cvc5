@@ -1,10 +1,7 @@
 ###############################################################################
-# Top contributors (to current version):
-#   Daniel Larraz, Andres Noetzli, Andrew Reynolds
-#
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -14,7 +11,8 @@
 ##
 
 set(EXAMPLES_API_PYTHON
-  bitvectors_and_arrays
+# disabled due to failures on windows builds
+#  bitvectors_and_arrays
   bitvectors
   combination
   datatypes
@@ -39,7 +37,8 @@ set(EXAMPLES_API_PYTHON
 # even if it is only conditionally added (e.g.,
 # based on CVC5_USE_COCOA or NOT CVC5_SAFE_BUILD).
 set(EXAMPLES_API_PYTHON_PYTHONIC
-  bitvectors_and_arrays
+# disabled due to failures on windows builds
+#  bitvectors_and_arrays
   bitvectors
   combination
   datatypes
@@ -107,7 +106,7 @@ foreach(example ${EXAMPLES_API_PYTHON})
   create_python_example(${example})
 endforeach()
 
-if(NOT CVC5_SAFE_BUILD)
+if((NOT CVC5_SAFE_BUILD) AND (NOT CVC5_STABLE_BUILD))
   create_python_example("floating_point")
   create_python_example("bags")
   create_python_example("relations")

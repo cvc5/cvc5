@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Tianyi Liang, Andrew Reynolds, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -361,8 +358,7 @@ int RegExpOpr::derivativeS(Node r, cvc5::internal::String c, Node& retNode)
             }
           }
           if(ret == 0) {
-            Node sk = NodeManager::mkDummySkolem(
-                "rsp", nm->stringType(), "Split RegExp");
+            Node sk = NodeManager::mkDummySkolem("rsp", nm->stringType());
             retNode = nm->mkNode(Kind::STRING_TO_REGEXP, sk);
             if(!rest.isNull()) {
               retNode = rewrite(nm->mkNode(Kind::REGEXP_CONCAT, retNode, rest));

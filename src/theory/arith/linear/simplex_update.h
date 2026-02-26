@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Tim King, Andres Noetzli, Morgan Deters
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -179,7 +176,7 @@ public:
    * This updates the nonBasicDelta to d and limiting to c.
    * This clears errorChange() and focusDir().
    */
-  void updatePivot(const DeltaRational& d, const Rational& r,  ConstraintP c);
+  void updatePivot(const DeltaRational& d, ConstraintP c);
 
   /**
    * This updates the nonBasicDelta to d, limiting to c, and errorChange to e.

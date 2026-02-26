@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,12 +17,13 @@ namespace decision {
 
 JustifyStatistics::JustifyStatistics(StatisticsRegistry& sr)
     : d_numStatusNoDecision(
-        sr.registerInt("JustifyStrategy::StatusNoDecision")),
+          sr.registerInt("JustifyStrategy::StatusNoDecision")),
       d_numStatusDecision(sr.registerInt("JustifyStrategy::StatusDecision")),
       d_numStatusBacktrack(sr.registerInt("JustifyStrategy::StatusBacktrack")),
       d_maxStackSize(sr.registerInt("JustifyStrategy::MaxStackSize")),
       d_maxAssertionsSize(sr.registerInt("JustifyStrategy::MaxAssertionsSize")),
-      d_maxSkolemDefsSize(sr.registerInt("JustifyStrategy::MaxSkolemDefsSize"))
+      d_maxSkolemDefsSize(sr.registerInt("JustifyStrategy::MaxSkolemDefsSize")),
+      d_time(sr.registerTimer("JustifyStrategy::getNextTime"))
 {
 }
 

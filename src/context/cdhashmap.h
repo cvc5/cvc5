@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Morgan Deters, Mikolas Janota, Tim King
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -273,14 +270,14 @@ class CDHashMap : public ContextObj
   Context* d_context;
 
   // Nothing to save; the elements take care of themselves
-  ContextObj* save(ContextMemoryManager* pCMM) override
+  ContextObj* save(CVC5_UNUSED ContextMemoryManager* pCMM) override
   {
     Unreachable();
     SuppressWrongNoReturnWarning;
   }
 
   // Similarly, nothing to restore
-  void restore(ContextObj* data) override { Unreachable(); }
+  void restore(CVC5_UNUSED ContextObj* data) override { Unreachable(); }
 
   // no copy or assignment
   CDHashMap(const CDHashMap&) = delete;

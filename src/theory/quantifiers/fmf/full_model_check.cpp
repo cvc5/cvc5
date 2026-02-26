@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -304,7 +301,8 @@ FullModelChecker::FullModelChecker(Env& env,
                                    QuantifiersRegistry& qr,
                                    TermRegistry& tr)
     : QModelBuilder(env, qs, qim, qr, tr),
-      d_fm(new FirstOrderModelFmc(env, qs, qr, tr))
+      d_fm(new FirstOrderModelFmc(env, qs, qr, tr)),
+      d_initFuncs(false)
 {
   d_true = nodeManager()->mkConst(true);
   d_false = nodeManager()->mkConst(false);
@@ -361,20 +359,26 @@ bool FullModelChecker::preProcessBuildModel(TheoryModel* m) {
       preInitializeType(m, v.getType());
     }
   }
+  d_initFuncs = false;
   return true;
 }
 
-bool FullModelChecker::processBuildModel(TheoryModel* m){
+void FullModelChecker::initializeFunctions(TheoryModel* m)
+{
+  if (d_initFuncs)
+  {
+    return;
+  }
+  d_initFuncs = true;
   if (!m->areFunctionValuesEnabled())
   {
     // nothing to do if no functions
-    return true;
+    return;
   }
   // if higher-order, we must use the standard assignment method
   if (logicInfo().isHigherOrder())
   {
-    TheoryEngineModelBuilder::assignFunctions(m);
-    return true;
+    return;
   }
   FirstOrderModelFmc* fm = d_fm.get();
   Trace("fmc") << "---Full Model Check reset() " << std::endl;
@@ -581,7 +585,6 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
       m->assignFunctionDefinition(it->first, f_def);
     }
   }
-  return TheoryEngineModelBuilder::processBuildModel( m );
 }
 
 void FullModelChecker::preInitializeType(TheoryModel* m, TypeNode tn)
@@ -655,6 +658,8 @@ void FullModelChecker::debugPrint(const char * tr, Node n, bool dispStar) {
 
 
 int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, int effort ) {
+  // ensure that functions are assigned
+  initializeFunctions(fm->getTheoryModel());
   Trace("fmc") << "Full model check " << f << ", effort = " << effort << "..." << std::endl;
   // register the quantifier
   registerQuantifiedFormula(f);
@@ -1508,8 +1513,7 @@ void FullModelChecker::registerQuantifiedFormula(Node q)
     types.push_back(tn);
   }
   TypeNode typ = nm->mkFunctionType(types, nm->booleanType());
-  Node op =
-      NodeManager::mkDummySkolem("qfmc", typ, "op for full-model checking");
+  Node op = NodeManager::mkDummySkolem("qfmc", typ);
   d_quant_cond[q] = op;
 }
 

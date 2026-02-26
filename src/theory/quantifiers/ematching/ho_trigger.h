@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -171,7 +168,7 @@ class HigherOrderTrigger : public Trigger
   * matching ground terms to function applications with variable heads.
   * See examples (EX1)-(EX3) above.
   */
-  bool sendInstantiation(std::vector<Node>& m, InferenceId id) override;
+  bool sendInstantiation(std::vector<Node>& m) override;
 
  private:
   //-------------------- current information about the match

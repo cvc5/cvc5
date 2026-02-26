@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -638,7 +635,7 @@ bool RegExpSolver::deriveRegExp(Node x,
     {
       if (x.isConst())
       {
-        Assert(false)
+        DebugUnhandled()
             << "Impossible: RegExpSolver::deriveRegExp: const string in const "
                "regular expression.";
         return false;
@@ -784,7 +781,14 @@ void RegExpSolver::checkEvaluations()
             break;
           }
         }
+        // if we are still not a constant regex, do not compute partial
+        // derivative below.
+        if (!d_regexp_opr.checkConstRegExp(r))
+        {
+          continue;
+        }
       }
+      // check partial derivate if it became constant
       if (polarity)
       {
         checkPDerivative(x, r, atom, rnfexp);

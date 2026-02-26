@@ -123,8 +123,13 @@
 ; "integer-and", see Zohar et al VMCAI 2022.
 (declare f_iand (! x mpz term))
 (define iand (# x mpz (# y term (# z term (apply (apply (f_iand x) y) z)))))
+; "parametric-integer-and", see Berger et al SAT 2025.
+(declare f_piand term)
+(define piand (# x term (# y term (# z term (apply (apply (apply f_piand x) y) z)))))
 (declare f_int.pow2 term)
 (define int.pow2 (# x term (apply f_int.pow2 x)))
+(declare f_int.log2 term)
+(define int.log2 (# x term (apply f_int.log2 x)))
 
 ;; ---- Arrays
 (declare f_select term)

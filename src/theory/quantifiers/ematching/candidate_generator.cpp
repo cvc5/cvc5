@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -172,7 +169,8 @@ CandidateGeneratorQELitDeq::CandidateGeneratorQELitDeq(Env& env,
   d_match_pattern_type = d_match_pattern[0].getType();
 }
 
-void CandidateGeneratorQELitDeq::reset( Node eqc ){
+void CandidateGeneratorQELitDeq::reset(CVC5_UNUSED Node eqc)
+{
   eq::EqualityEngine* ee = d_qs.getEqualityEngine();
   Node falset = nodeManager()->mkConst(false);
   d_eqc_false = eq::EqClassIterator(falset, ee);
@@ -209,7 +207,8 @@ CandidateGeneratorQEAll::CandidateGeneratorQEAll(Env& env,
   d_firstTime = false;
 }
 
-void CandidateGeneratorQEAll::reset( Node eqc ) {
+void CandidateGeneratorQEAll::reset(CVC5_UNUSED Node eqc)
+{
   d_eq = eq::EqClassesIterator(d_qs.getEqualityEngine());
   d_firstTime = true;
 }

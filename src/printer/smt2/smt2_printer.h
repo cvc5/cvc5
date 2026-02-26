@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Abdalrhman Mohamed, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -182,6 +179,10 @@ class Smt2Printer : public cvc5::internal::Printer
   /** Print get-value command */
   void toStreamCmdGetValue(std::ostream& out,
                            const std::vector<Node>& n) const override;
+
+  /** Print get-model-domain-elements command */
+  void toStreamCmdGetModelDomainElements(std::ostream& out,
+                                         TypeNode type) const override;
 
   /** Print get-assignment command */
   void toStreamCmdGetAssignment(std::ostream& out) const override;

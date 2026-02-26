@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -40,6 +37,10 @@ class SubtypeElimConverterCallback : public ProofNodeConverterCallback,
  public:
   SubtypeElimConverterCallback(Env& env);
   virtual ~SubtypeElimConverterCallback() {}
+  /**
+   * Should we convert the given proof node? True if pn has mixed arithmetic.
+   */
+  bool shouldConvert(std::shared_ptr<ProofNode> pn) override;
   /**
    * This converts all proofs of formulas F to proofs of d_nconv.convert(F),
    * where d_nconv is the utility that eliminates mixed arithmetic from F.

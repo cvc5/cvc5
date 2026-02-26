@@ -1459,18 +1459,6 @@ class CVC5_EXPORT Term
                    uint32_t p);
 
     /**
-     * Copy constructor.
-     */
-    const_iterator(const const_iterator& it);
-
-    /**
-     * Assignment operator.
-     * @param it The iterator to assign to.
-     * @return The reference to the iterator after assignment.
-     */
-    const_iterator& operator=(const const_iterator& it);
-
-    /**
      * Equality operator.
      * @param it The iterator to compare to for equality.
      * @return True if the iterators are equal.

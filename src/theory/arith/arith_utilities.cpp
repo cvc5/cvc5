@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Alex Ozdemir
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -139,11 +136,23 @@ bool isTranscendentalKind(Kind k)
   return false;
 }
 
+bool isExtendedNonLinearKind(Kind k)
+{
+  switch (k)
+  {
+    case Kind::IAND:
+    case Kind::POW2:
+    case Kind::POW: return true;
+    default: break;
+  }
+  return false;
+}
+
 Node getApproximateConstant(Node c, bool isLower, unsigned prec)
 {
   if (!c.isConst())
   {
-    Assert(false) << "getApproximateConstant: non-constant input " << c;
+    DebugUnhandled() << "getApproximateConstant: non-constant input " << c;
     return Node::null();
   }
   Rational cr = c.getConst<Rational>();
@@ -219,7 +228,7 @@ void printRationalApprox(const char* c, Node cr, unsigned prec)
 {
   if (!cr.isConst())
   {
-    Assert(false) << "printRationalApprox: non-constant input " << cr;
+    DebugUnhandled() << "printRationalApprox: non-constant input " << cr;
     Trace(c) << cr;
     return;
   }

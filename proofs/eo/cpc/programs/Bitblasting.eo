@@ -192,7 +192,7 @@
 ; - y (BitVec n): The right hand side of the equality.
 ; return: the bitblasted term for (= x y).
 (define $bv_mk_bitblast_step_eq ((n Int :implicit) (a1 (BitVec n)) (a2 (BitVec n)))
-  ($singleton_elim ($bv_mk_bitblast_step_eq_rec a1 a2)))
+  (eo::list_singleton_elim and ($bv_mk_bitblast_step_eq_rec a1 a2)))
 
 ;;; inequality
 

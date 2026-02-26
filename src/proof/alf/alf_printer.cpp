@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Abdalrhman Mohamed
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -80,6 +77,7 @@ bool AlfPrinter::isHandled(const Options& opts, const ProofNode* pfn)
     case ProofRule::TRANS:
     case ProofRule::CONG:
     case ProofRule::NARY_CONG:
+    case ProofRule::PAIRWISE_CONG:
     case ProofRule::HO_CONG:
     case ProofRule::TRUE_INTRO:
     case ProofRule::TRUE_ELIM:
@@ -134,6 +132,7 @@ bool AlfPrinter::isHandled(const Options& opts, const ProofNode* pfn)
     case ProofRule::REORDERING:
     case ProofRule::RESOLUTION:
     case ProofRule::CHAIN_RESOLUTION:
+    case ProofRule::CHAIN_M_RESOLUTION:
     case ProofRule::ARRAYS_READ_OVER_WRITE:
     case ProofRule::ARRAYS_READ_OVER_WRITE_CONTRA:
     case ProofRule::ARRAYS_READ_OVER_WRITE_1:
@@ -213,7 +212,7 @@ bool AlfPrinter::isHandled(const Options& opts, const ProofNode* pfn)
              || k == Kind::DIVISION || k == Kind::DIVISION_TOTAL
              || k == Kind::INTS_DIVISION || k == Kind::INTS_DIVISION_TOTAL
              || k == Kind::INTS_MODULUS || k == Kind::INTS_MODULUS_TOTAL
-             || k == Kind::ABS;
+             || k == Kind::ABS || k == Kind::INTS_LOG2;
     }
     break;
     case ProofRule::STRING_REDUCTION:
@@ -294,6 +293,8 @@ bool AlfPrinter::isHandledTheoryRewrite(ProofRewriteRule id, const Node& n)
   {
     case ProofRewriteRule::DISTINCT_ELIM:
     case ProofRewriteRule::DISTINCT_CARD_CONFLICT:
+    case ProofRewriteRule::DISTINCT_TRUE:
+    case ProofRewriteRule::DISTINCT_FALSE:
     case ProofRewriteRule::BETA_REDUCE:
     case ProofRewriteRule::LAMBDA_ELIM:
     case ProofRewriteRule::UBV_TO_INT_ELIM:
@@ -1250,8 +1251,8 @@ void AlfPrinter::printStepPost(AlfPrintChannel* out, const ProofNode* pn)
       {
         // Manually increment proof id counter and premises. Note they will only be
         // used locally here to chain together the pops mentioned above.
-        tmpId = d_pfIdCounter;
         d_pfIdCounter++;
+        tmpId = d_pfIdCounter;
         out->printStep(rname, Node::null(), tmpId, premises, {}, true);
         // The current id is the premises of the next.
         premises.clear();

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Daniel Larraz, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -42,7 +39,7 @@ typedef std::unordered_set<Node> NodeSet;
 unsigned getSize(TNode node);
 
 /* Get bit at given index. */
-const bool getBit(TNode node, unsigned i);
+bool getBit(TNode node, unsigned i);
 
 /* Get the upper index of given extract node. */
 unsigned getExtractHigh(TNode node);

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Morgan Deters, Andres Noetzli, Dejan Jovanovic
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -365,7 +362,7 @@ class NodeBuilder {
   void maybeCheckType(const TNode n) const;
 #else  /* CVC5_DEBUG */
   // Do nothing if not in debug mode.
-  inline void maybeCheckType(const TNode n) const {}
+  inline void maybeCheckType(CVC5_UNUSED const TNode n) const {}
 #endif /* CVC5_DEBUG */
 
   // used by convenience node builders
@@ -381,7 +378,7 @@ class NodeBuilder {
    * never accessed directly, but rather through
    * d_inlineNv.d_children[i].
    */
-  expr::NodeValue* d_inlineNvChildSpace[default_nchild_thresh];
+  CVC5_UNUSED_FIELD expr::NodeValue* d_inlineNvChildSpace[default_nchild_thresh];
 
   /**
    * A pointer to the "current" NodeValue buffer; either &d_inlineNv

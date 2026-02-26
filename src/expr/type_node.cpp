@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Morgan Deters
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -197,11 +194,32 @@ CardinalityClass TypeNode::getCardinalityClass()
     else
     {
       // all types we care about should be handled above
-      Assert(false) << *this;
+      DebugUnhandled() << *this;
     }
   }
   setAttribute(TypeCardinalityClassAttr(), static_cast<uint64_t>(ret));
   return ret;
+}
+
+bool TypeNode::isBoolean() const {
+  return (getKind() == Kind::TYPE_CONSTANT
+          && getConst<TypeConstant>() == BOOLEAN_TYPE);
+}
+
+bool TypeNode::isString() const {
+  return getKind() == Kind::TYPE_CONSTANT
+         && getConst<TypeConstant>() == STRING_TYPE;
+}
+
+/** Is this a regexp type */
+bool TypeNode::isRegExp() const {
+  return getKind() == Kind::TYPE_CONSTANT
+         && getConst<TypeConstant>() == REGEXP_TYPE;
+ }
+
+bool TypeNode::isRoundingMode() const {
+  return getKind() == Kind::TYPE_CONSTANT
+         && getConst<TypeConstant>() == ROUNDINGMODE_TYPE;
 }
 
 bool TypeNode::isCardinalityLessThan(size_t n)

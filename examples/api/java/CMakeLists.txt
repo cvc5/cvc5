@@ -1,10 +1,7 @@
 ###############################################################################
-# Top contributors (to current version):
-#   Mudathir Mohamed, Aina Niemetz, Daniel Larraz
-#
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -61,7 +58,7 @@ foreach(example ${EXAMPLES_API_JAVA})
   add_java_example(${example})
 endforeach()
 
-if(NOT CVC5_SAFE_BUILD)
+if((NOT CVC5_SAFE_BUILD) AND (NOT CVC5_STABLE_BUILD))
   add_java_example(FloatingPointArith)
   add_java_example(Bags)
   add_java_example(Relations)

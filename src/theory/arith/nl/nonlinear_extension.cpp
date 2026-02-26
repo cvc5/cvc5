@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Tim King
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -53,11 +50,13 @@ NonlinearExtension::NonlinearExtension(Env& env, TheoryArith& containing)
       d_factoringSlv(d_env, &d_extState),
       d_monomialBoundsSlv(d_env, &d_extState),
       d_monomialSlv(d_env, &d_extState),
+      d_fmSlv(d_env, d_astate, d_im),
       d_splitZeroSlv(d_env, &d_extState),
       d_tangentPlaneSlv(d_env, &d_extState),
       d_covSlv(d_env, d_im, d_model),
       d_icpSlv(d_env, d_im),
       d_iandSlv(env, d_im, d_model),
+      d_piandSlv(env, d_im, d_model),
       d_pow2Slv(env, d_im, d_model)
 {
   d_extTheory.addFunctionKind(Kind::NONLINEAR_MULT);
@@ -65,6 +64,7 @@ NonlinearExtension::NonlinearExtension(Env& env, TheoryArith& containing)
   d_extTheory.addFunctionKind(Kind::SINE);
   d_extTheory.addFunctionKind(Kind::PI);
   d_extTheory.addFunctionKind(Kind::IAND);
+  d_extTheory.addFunctionKind(Kind::PIAND);
   d_extTheory.addFunctionKind(Kind::POW2);
   d_true = nodeManager()->mkConst(true);
 }
@@ -425,7 +425,7 @@ Result::Status NonlinearExtension::modelBasedRefinement(
     if (!false_asserts.empty())
     {
       complete_status = 0;
-      runStrategy(Theory::Effort::EFFORT_FULL, assertions, false_asserts, xts);
+      runStrategy(assertions, false_asserts, xts);
       if (d_im.hasSentLemma() || d_im.hasPendingLemma())
       {
         d_im.clearWaitingLemmas();
@@ -494,8 +494,7 @@ Result::Status NonlinearExtension::modelBasedRefinement(
   return Result::SAT;
 }
 
-void NonlinearExtension::runStrategy(Theory::Effort effort,
-                                     const std::vector<Node>& assertions,
+void NonlinearExtension::runStrategy(const std::vector<Node>& assertions,
                                      const std::vector<Node>& false_asserts,
                                      const std::vector<Node>& xts)
 {
@@ -528,14 +527,13 @@ void NonlinearExtension::runStrategy(Theory::Effort effort,
       case InferStep::NL_FACTORING:
         d_factoringSlv.check(assertions, false_asserts);
         break;
-      case InferStep::IAND_INIT:
-        d_iandSlv.initLastCall(assertions, false_asserts, xts);
-        break;
+      case InferStep::IAND_INIT: d_iandSlv.initLastCall(xts); break;
       case InferStep::IAND_FULL: d_iandSlv.checkFullRefine(); break;
       case InferStep::IAND_INITIAL: d_iandSlv.checkInitialRefine(); break;
-      case InferStep::POW2_INIT:
-        d_pow2Slv.initLastCall(assertions, false_asserts, xts);
-        break;
+      case InferStep::PIAND_INIT: d_piandSlv.initLastCall(xts); break;
+      case InferStep::PIAND_FULL: d_piandSlv.checkFullRefine(); break;
+      case InferStep::PIAND_INITIAL: d_piandSlv.checkInitialRefine(); break;
+      case InferStep::POW2_INIT: d_pow2Slv.initLastCall(xts); break;
       case InferStep::POW2_FULL: d_pow2Slv.checkFullRefine(); break;
       case InferStep::POW2_INITIAL: d_pow2Slv.checkInitialRefine(); break;
       case InferStep::ICP:
@@ -547,6 +545,12 @@ void NonlinearExtension::runStrategy(Theory::Effort effort,
         d_monomialBoundsSlv.init();
         d_monomialSlv.init(xts);
         break;
+      case InferStep::NL_FLATTEN_MON:
+      {
+        std::vector<Node>& mvec = d_extState.d_ms_vars;
+        d_fmSlv.check(mvec);
+      }
+      break;
       case InferStep::NL_MONOMIAL_INFER_BOUNDS:
         d_monomialBoundsSlv.checkBounds(assertions, false_asserts);
         break;

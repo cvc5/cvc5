@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Liana Hadarean, Clark Barrett, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -493,9 +490,9 @@ Node RewriteRule<EvalComp>::apply(TNode node) {
 template <>
 inline bool RewriteRule<EvalConstBvSym>::applies(TNode node)
 {
-  // second argument must be positive and fit unsigned int
+  // second argument must be non-negative and fit unsigned int
   return (node.getKind() == Kind::CONST_BITVECTOR_SYMBOLIC && node[0].isConst()
-          && node[1].isConst() && node[1].getConst<Rational>().sgn() == 1
+          && node[1].isConst() && node[1].getConst<Rational>().sgn() >= 0
           && node[1].getConst<Rational>().getNumerator().fitsUnsignedInt());
 }
 

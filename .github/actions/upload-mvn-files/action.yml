@@ -1,0 +1,67 @@
+name: Upload Maven artifacts
+description: |
+  Upload all Maven artifacts required to publish
+  the cvc5 Java bindings to Maven Central.
+inputs:
+  build-dir:
+    description: path to the build output directory that contains the Maven files
+    required: true
+  upload-main:
+    description: whether to include the primary artifact (JAR) and the POM file in the upload
+    default: false
+    type: boolean
+  artifact-suffix:
+    description: suffix to append to the Maven artifact name (use 'docs' for sources and javadoc bundle)
+    required: true
+  shell:
+    default: bash
+runs:
+  using: composite
+  steps:
+    - name: Copy main Maven JAR and POM file
+      if: ${{ inputs.upload-main }}
+      shell: ${{ inputs.shell }}
+      run: |
+        cp ${{ inputs.build-dir }}/pom.xml .
+        cp ${{ inputs.build-dir }}/src/api/java/cvc5.jar .
+
+    - name: Upload main Maven JAR and POM file
+      if: ${{ inputs.upload-main }}
+      uses: actions/upload-artifact@v5
+      with:
+        name: mvn-main
+        retention-days: 1
+        path: |
+          pom.xml
+          cvc5.jar
+
+    - name: Copy sources and javadoc Maven JARs
+      if: ${{ inputs.artifact-suffix == 'docs' }}
+      shell: ${{ inputs.shell }}
+      run: |
+        cp ${{ inputs.build-dir }}/src/api/java/cvc5-sources.jar .
+        cp ${{ inputs.build-dir }}/docs/api/java/cvc5-javadoc.jar .
+
+    - name: Upload sources and javadoc Maven JARs
+      if: ${{ inputs.artifact-suffix == 'docs' }}
+      uses: actions/upload-artifact@v5
+      with:
+        name: mvn-docs
+        retention-days: 1
+        path: |
+          cvc5-sources.jar
+          cvc5-javadoc.jar
+
+    - name: Copy architecture-specific Maven JARs
+      if: ${{ inputs.artifact-suffix != 'docs' }}
+      shell: ${{ inputs.shell }}
+      run: |
+        cp ${{ inputs.build-dir }}/src/api/java/*_64.jar .
+
+    - name: Upload architecture-specific Mave JARs
+      if: ${{ inputs.artifact-suffix != 'docs' }}
+      uses: actions/upload-artifact@v5
+      with:
+        name: mvn-${{ inputs.artifact-suffix }}
+        retention-days: 1
+        path: '*_64.jar'

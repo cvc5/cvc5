@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -206,8 +203,6 @@ class CegInstantiator : protected EnvObj
   QuantifiersRegistry& d_qreg;
   /** Reference to the term registry */
   TermRegistry& d_treg;
-  /** The parent of this instantiator */
-  InstStrategyCegqi* d_parent;
 
   //-------------------------------globally cached
   /** cache from nodes to the set of variables it contains

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -15,6 +12,7 @@
 
 #include "theory/strings/arith_entail.h"
 
+#include "expr/aci_norm.h"
 #include "expr/attribute.h"
 #include "expr/node_algorithm.h"
 #include "proof/conv_proof_generator.h"
@@ -177,13 +175,32 @@ Node ArithEntail::rewriteLengthIntro(const Node& n,
       {
         ret = nm->mkNode(k, children);
       }
-      if (k == Kind::STRING_LENGTH)
+      if (k == Kind::STRING_LENGTH
+          && (ret[0].getKind() == Kind::STRING_CONCAT || ret[0].isConst()))
       {
-        std::vector<Node> cc;
-        for (const Node& c : children)
+        Node arg = ret[0];
+        // First ensure ACI norm, which ensures that we fully flatten
+        // e.g. (len (str.++ (str.++ a b) c)) ---> (len (str.++ a b c)) --->
+        // (+ (len a) (len b) (len c)) below.
+        if (arg.getKind() == Kind::STRING_CONCAT)
         {
-          utils::getConcat(c, cc);
+          arg = expr::getACINormalForm(arg);
+          if (arg != ret[0])
+          {
+            Node ret2 = nm->mkNode(k, {arg});
+            if (pg != nullptr)
+            {
+              pg->addRewriteStep(ret,
+                                 ret2,
+                                 nullptr,
+                                 false,
+                                 TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE);
+            }
+            ret = ret2;
+          }
         }
+        std::vector<Node> cc;
+        utils::getConcat(arg, cc);
         std::vector<Node> sum;
         for (const Node& c : cc)
         {
@@ -541,7 +558,7 @@ Node ArithEntail::findApproxInternal(Node ar, bool isSimple)
       msumAar.clear();
       if (!ArithMSum::getMonomialSum(aar, msumAar))
       {
-        Assert(false);
+        DebugUnhandled();
         Trace("strings-ent-approx")
             << "...failed to get monomial sum!" << std::endl;
         return Node::null();
@@ -556,7 +573,7 @@ Node ArithEntail::findApproxInternal(Node ar, bool isSimple)
     Trace("strings-ent-approx-debug")
         << "...approximation had no effect" << std::endl;
     // this should never happen, but we avoid the infinite loop for sanity here
-    Assert(false);
+    DebugUnhandled();
     return Node::null();
   }
   // Check entailment on the approximation of ar.

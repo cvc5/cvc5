@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Dejan Jovanovic, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -86,7 +83,7 @@ public:
   virtual SatValue solve(long unsigned int&) = 0;
 
   /** Check satisfiability under assumptions */
-  virtual SatValue solve(const std::vector<SatLiteral>& assumptions)
+  virtual SatValue solve(CVC5_UNUSED const std::vector<SatLiteral>& assumptions)
   {
     Unimplemented() << "Solving under assumptions not implemented";
     return SAT_VALUE_UNKNOWN;
@@ -122,7 +119,8 @@ public:
    * Can only be called if satisfiability check under assumptions was used and
    * if it returned SAT_VALUE_FALSE.
    */
-  virtual void getUnsatAssumptions(std::vector<SatLiteral>& unsat_assumptions)
+  virtual void getUnsatAssumptions(
+      CVC5_UNUSED std::vector<SatLiteral>& unsat_assumptions)
   {
     Unimplemented() << "getUnsatAssumptions not implemented";
   }

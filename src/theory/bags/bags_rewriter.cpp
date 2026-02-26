@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mudathir Mohamed, Aina Niemetz, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -720,7 +717,7 @@ BagsRewriteResponse BagsRewriter::postRewriteAggregate(const TNode& n) const
   Assert(n.getKind() == Kind::TABLE_AGGREGATE);
   if (n[1].isConst() && n[2].isConst())
   {
-    Node ret = BagsUtils::evaluateTableAggregate(d_rewriter, n);
+    Node ret = BagsUtils::evaluateTableAggregate(n);
     if (ret != n)
     {
       return BagsRewriteResponse(ret, Rewrite::AGGREGATE_CONST);

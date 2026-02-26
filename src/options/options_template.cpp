@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Gereon Kremer, Tim King, Daniel Larraz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -36,6 +33,8 @@ ${holder_ref_inits}$
   {
 #ifdef CVC5_SAFE_MODE
     d_base->safeMode = options::SafeMode::SAFE;
+#elif CVC5_STABLE_MODE
+    d_base->safeMode = options::SafeMode::STABLE;
 #endif
   }
 

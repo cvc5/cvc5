@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Morgan Deters
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -1397,11 +1394,10 @@ Node NodeManager::mkGroundValue(const TypeNode& tn)
 
 Node NodeManager::mkDummySkolem(const std::string& prefix,
                                 const TypeNode& type,
-                                const std::string& comment,
                                 SkolemFlags flags)
 {
   NodeManager* nm = type.getNodeManager();
-  return nm->getSkolemManager()->mkDummySkolem(prefix, type, comment, flags);
+  return nm->getSkolemManager()->mkDummySkolem(prefix, type, flags);
 }
 
 bool NodeManager::safeToReclaimZombies() const

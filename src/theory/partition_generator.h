@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Amalee Wilson, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -95,13 +92,10 @@ class PartitionGenerator : public TheoryEngineModule
   /**
    * Make scatter partitions: C1, !C1 & C2, !C1 & !C2 & C3, !C1 & !C2 & !C3.
    * litType: indicates the atom source.
-   * emitZLL: if set to true, then zero-level learned literals will be appended
-   * to the cubes.
    * timedOut: indicates timeout has occurred, so partitions must be dumped.
    * randomize: determines whether atoms are randomly chosen.
    */
   Node makeScatterPartitions(LiteralListType litType,
-                             bool emitZLL,
                              bool timedOut,
                              bool randomize);
 

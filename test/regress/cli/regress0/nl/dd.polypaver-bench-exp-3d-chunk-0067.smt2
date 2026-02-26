@@ -1,5 +1,7 @@
 ; COMMAND-LINE: --no-nl-cov
 ; EXPECT: unsat
+; Input has mixed arithmetic
+; DISABLE-TESTER: alethe
 (set-logic ALL)
 (declare-fun s () Real)
 (declare-fun k () Real)

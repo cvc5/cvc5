@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -93,8 +90,7 @@ class ValidWitnessProofGenerator : protected EnvObj, public ProofGenerator
    * @param args The arguments to the proof rule stored for attr.
    * @return true if the information r and args was successfully extracted.
    */
-  static bool getProofSpec(NodeManager* nm,
-                           const Node& attr,
+  static bool getProofSpec(const Node& attr,
                            ProofRule& r,
                            std::vector<Node>& args);
 };

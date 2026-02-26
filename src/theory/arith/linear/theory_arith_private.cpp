@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Tim King, Gereon Kremer, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -1819,10 +1816,7 @@ void TheoryArithPrivate::outputPropagate(TNode lit) {
 void TheoryArithPrivate::outputRestart() {
   Trace("arith::channel") << "Arith restart!" << std::endl;
   NodeManager* nm = nodeManager();
-  Node restartVar = NodeManager::mkDummySkolem(
-      "restartVar",
-      nm->booleanType(),
-      "A boolean variable asserted to be true to force a restart");
+  Node restartVar = NodeManager::mkDummySkolem("restartVar", nm->booleanType());
   outputLemma(restartVar, InferenceId::ARITH_DEMAND_RESTART);
 }
 
@@ -2224,8 +2218,9 @@ void TheoryArithPrivate::replayAssert(ConstraintP c) {
   }
 }
 
-
-void TheoryArithPrivate::resolveOutPropagated(std::vector<ConstraintCPVec>& confs, const std::set<ConstraintCP>& propagated) const {
+void TheoryArithPrivate::resolveOutPropagated(
+    std::vector<ConstraintCPVec>& confs) const
+{
   Trace("arith::resolveOutPropagated")
     << "starting resolveOutPropagated() " << confs.size() << endl;
   for(size_t i =0, N = confs.size(); i < N; ++i){
@@ -2490,7 +2485,7 @@ std::vector<ConstraintCPVec> TheoryArithPrivate::replayLogRec(ApproximateSimplex
       Trace("approx::replayLogRec") << "failed on node " << nid << endl;
       Assert(res.empty());
     }
-    resolveOutPropagated(res, propagated);
+    resolveOutPropagated(res);
     Trace("approx::replayLogRec") << "replayLogRec() ending" << std::endl;
 
     if (options().arith.replayFailureLemma)
@@ -2602,7 +2597,8 @@ Node TheoryArithPrivate::branchToNode(ApproximateSimplex* approx,
   return Node::null();
 }
 
-Node TheoryArithPrivate::cutToLiteral(ApproximateSimplex* approx, const CutInfo& ci) const{
+Node TheoryArithPrivate::cutToLiteral(const CutInfo& ci) const
+{
   Assert(ci.reconstructed());
 
   const DenseMap<Rational>& lhs = ci.getReconstruction().lhs;
@@ -2639,7 +2635,7 @@ bool TheoryArithPrivate::replayLemmas(ApproximateSimplex* approx){
         continue;
       }
 
-      Node cutConstraint = cutToLiteral(approx, *cut);
+      Node cutConstraint = cutToLiteral(*cut);
       if(!cutConstraint.isNull()){
         const ConstraintCPVec& exp = cut->getExplanation();
         Node asLemma =
@@ -2827,7 +2823,7 @@ void TheoryArithPrivate::solveInteger(Theory::Effort effortLevel){
         approx->setBranchingDepth(2);
         {
           TimerStat::CodeTimer codeTimer3(d_statistics.d_mipTimer);
-          mipRes = approx->solveMIP(true);
+          approx->solveMIP(true);
         }
         replayLemmas(approx);
         break;
@@ -3080,7 +3076,7 @@ bool TheoryArithPrivate::hasFreshArithLiteral(Node n) const{
   }
 }
 
-bool TheoryArithPrivate::preCheck(Theory::Effort level, bool newFacts)
+bool TheoryArithPrivate::preCheck(bool newFacts)
 {
   Assert(d_currentPropagationList.empty());
   if(TraceIsOn("arith::consistency")){
@@ -3713,7 +3709,8 @@ TrustNode TheoryArithPrivate::explain(TNode n)
   return exp;
 }
 
-void TheoryArithPrivate::propagate(Theory::Effort e) {
+void TheoryArithPrivate::propagate()
+{
   // This uses model values for safety. Disable for now.
   if (d_qflraStatus == Result::SAT
       && (options().arith.arithPropagationMode
@@ -4591,6 +4588,7 @@ bool TheoryArithPrivate::rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, C
           NodeBuilder nb(nodeManager());
           conflictPfs.push_back(constraint->externalExplainByAssertions(nb));
         }
+        Assert(coeffs != nullptr);
         // Collect the farkas coefficients, as nodes.
         std::vector<Node> farkasCoefficients;
         farkasCoefficients.reserve(coeffs->size());

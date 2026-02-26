@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -88,7 +85,9 @@ InstStrategyAutoGenTriggers::InstStrategyAutoGenTriggers(
   }
 }
 
-void InstStrategyAutoGenTriggers::processResetInstantiationRound( Theory::Effort effort ){
+void InstStrategyAutoGenTriggers::processResetInstantiationRound(
+    CVC5_UNUSED Theory::Effort effort)
+{
   Trace("inst-alg-debug") << "reset auto-gen triggers" << std::endl;
   //reset triggers
   for( unsigned r=0; r<2; r++ ){
@@ -109,9 +108,8 @@ void InstStrategyAutoGenTriggers::processResetInstantiationRound( Theory::Effort
   Trace("inst-alg-debug") << "done reset auto-gen triggers" << std::endl;
 }
 
-InstStrategyStatus InstStrategyAutoGenTriggers::process(Node f,
-                                                        Theory::Effort effort,
-                                                        int e)
+InstStrategyStatus InstStrategyAutoGenTriggers::process(
+    Node f, CVC5_UNUSED Theory::Effort effort, int e)
 {
   options::UserPatMode upMode = getInstUserPatMode();
   // we don't auto-generate triggers if the mode is trust or strict
