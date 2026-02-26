@@ -43,11 +43,10 @@ namespace cvc5::internal {
 namespace theory {
 namespace ff {
 
-SubTheory::SubTheory(Env& env, FfStatistics* stats, Integer modulus)
+SubTheory::SubTheory(Env& env, Integer modulus)
     : EnvObj(env),
       FieldObj(nodeManager(), modulus),
-      d_facts(context()),
-      d_stats(stats)
+      d_facts(context())
 {
   AlwaysAssert(modulus.isProbablePrime()) << "non-prime fields are unsupported";
   // must be initialized before using CoCoA.

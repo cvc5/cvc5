@@ -188,7 +188,7 @@ void TheoryFiniteFields::preRegisterTerm(TNode node)
   }
   if (d_subTheories.count(fieldTy) == 0)
   {
-    d_subTheories.try_emplace(fieldTy, d_env, d_stats.get(), ty.getFfSize());
+    d_subTheories.try_emplace(fieldTy, d_env, ty.getFfSize());
   }
 #else  /* CVC5_USE_COCOA */
   noCoCoA();

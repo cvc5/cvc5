@@ -61,7 +61,7 @@ class SubTheory : protected EnvObj, public FieldObj
    * Parameters:
    * * modulus: the size of this field for this theory, a prime.
    */
-  SubTheory(Env& env, FfStatistics* stats, Integer modulus);
+  SubTheory(Env& env, Integer modulus);
 
   /**
    * Assert a fact to this theory.
@@ -118,11 +118,6 @@ class SubTheory : protected EnvObj, public FieldObj
    * values. Meaningless if d_conflict is non-empty.
    */
   std::unordered_map<Node, Node> d_model{};
-
-  /**
-   * Statistics shared among all finite-field sub-theories.
-   */
-  FfStatistics* d_stats;
 };
 
 }  // namespace ff
