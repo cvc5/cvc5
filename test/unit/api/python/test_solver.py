@@ -1308,12 +1308,12 @@ def test_get_logic(solver):
     assert solver.getLogic() == "QF_BV"
 
 def test_set_option(tm, solver):
-    solver.setOption("bv-sat-solver", "minisat")
+    solver.setOption("bv-sat-solver", "cadical")
     with pytest.raises(RuntimeError):
         solver.setOption("bv-sat-solver", "1")
     solver.assertFormula(tm.mkTrue())
     with pytest.raises(RuntimeError):
-        solver.setOption("bv-sat-solver", "minisat")
+        solver.setOption("bv-sat-solver", "cadical")
 
 
 def test_reset_assertions(tm, solver):

@@ -542,8 +542,8 @@ void CadicalPropagator::user_pop()
       << " -> " << d_active_vars_control.size() << std::endl;
 
   // Disable activation literal for popped user level. The activation literal
-  // is added as unit clause, which will satisfy all clauses added in this
-  // user level and get garbage collected in the SAT solver.
+  // will be set inactive below and is added as unit clause, which will satisfy
+  // all clauses added in this user level and get garbage collected in CaDiCal.
   SatLiteral alit = current_activation_lit();
   Trace("cadical::propagator")
       << "disable activation lit: " << alit << std::endl;

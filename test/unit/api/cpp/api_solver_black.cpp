@@ -1917,10 +1917,10 @@ TEST_F(TestApiBlackSolver, getLogic)
 
 TEST_F(TestApiBlackSolver, setOption)
 {
-  ASSERT_NO_THROW(d_solver->setOption("bv-sat-solver", "minisat"));
+  ASSERT_NO_THROW(d_solver->setOption("bv-sat-solver", "cadical"));
   ASSERT_THROW(d_solver->setOption("bv-sat-solver", "1"), CVC5ApiException);
   d_solver->assertFormula(d_tm.mkTrue());
-  ASSERT_THROW(d_solver->setOption("bv-sat-solver", "minisat"),
+  ASSERT_THROW(d_solver->setOption("bv-sat-solver", "cadical"),
                CVC5ApiException);
 }
 
