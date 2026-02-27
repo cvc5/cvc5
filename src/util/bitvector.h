@@ -57,7 +57,7 @@ class BitVector
   }
 
   BitVector(unsigned size, const BitVector& q)
-      : d_size(size), d_value(q.d_value)
+      : d_size(size), d_value(q.d_value.modByPow2(size))
   {
   }
 
@@ -206,7 +206,7 @@ class BitVector
  private:
   /**
    * Class invariants:
-   *  - no overflows: 2^d_size < d_value
+   *  - no overflows: d_value < 2^d_size
    *  - no negative numbers: d_value >= 0
    */
 

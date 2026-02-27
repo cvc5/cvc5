@@ -69,6 +69,14 @@ TEST_F(TestUtilBlackBitVector, string_constructor)
   ASSERT_EQ(3, BitVector("4", 10).getSize());
 }
 
+TEST_F(TestUtilBlackBitVector, other_constructors)
+{
+  BitVector b1(8, (uint32_t)255);
+  BitVector b2(4, b1);
+  BitVector b3(4, (uint32_t)255);
+  ASSERT_EQ(b2, b3);
+}
+
 TEST_F(TestUtilBlackBitVector, conversions)
 {
   ASSERT_EQ(d_two.toSignedInteger(), Integer(2));
