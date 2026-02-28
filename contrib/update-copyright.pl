@@ -6,7 +6,7 @@
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
-###############################################################################
+# #############################################################################
 #
 # usage: update-copyright [-m] [files/directories...]
 #        update-copyright [-h | --help]
@@ -173,7 +173,7 @@ while($#searchdirs >= 0) {
 
 sub reqHashPrefix {
   my ($file) = @_;
-  return ($file =~ /\.(cmake|py|pxd|pxi|pyx|pl)(\.in)?$/ or $file =~ /CMakeLists\.txt/ or $file =~ /FindDummy\.cmake\.template/);
+  return ($file =~ /\.(cmake|py|pxd|pxi|pyx|pl|sh)(\.in)?$/ or $file =~ /CMakeLists\.txt/ or $file =~ /FindDummy\.cmake\.template/);
 }
 
 sub printHeader {
