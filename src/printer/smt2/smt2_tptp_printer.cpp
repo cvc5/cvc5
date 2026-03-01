@@ -13,7 +13,9 @@ Interpretation from model values
 
 #include <algorithm>
 #include <cctype>
+#include <cstddef>
 #include <map>
+#include <set>
 #include <sstream>
 #include <string>
 #include <utility>
@@ -74,6 +76,15 @@ std::string sanitizeLower(const std::string& in)
     }
     out.push_back(next);
   }
+  // Remove leading/trailing underscores introduced by normalization.
+  while (!out.empty() && out.front() == '_')
+  {
+    out.erase(out.begin());
+  }
+  while (!out.empty() && out.back() == '_')
+  {
+    out.pop_back();
+  }
   // TPTP lower-word symbols must begin with a lowercase letter.
   if (out.empty()
       || !std::isalpha(static_cast<unsigned char>(out[0]))
@@ -93,7 +104,7 @@ std::string sanitizeUpper(const std::string& in)
 
 std::string join(const std::vector<std::string>& xs, const std::string& sep);
 
-std::string typeToTptp(TypeNode tn)
+std::string typeToTptp(TypeNode tn, bool useThfTuple = false)
 {
   if (tn.isBoolean())
   {
@@ -106,16 +117,27 @@ std::string typeToTptp(TypeNode tn)
     argStrs.reserve(args.size());
     for (const TypeNode& at : args)
     {
-      std::string atStr = typeToTptp(at);
+      std::string atStr = typeToTptp(at, useThfTuple);
       if (at.isFunction())
       {
-        atStr = "( " + atStr + " )";
+        atStr = "(" + atStr + ")";
       }
       argStrs.push_back(atStr);
     }
-    std::string r = typeToTptp(tn.getRangeType());
-    return args.size() == 1 ? argStrs[0] + " > " + r
-                            : "( " + join(argStrs, " * ") + " ) > " + r;
+    std::string r = typeToTptp(tn.getRangeType(), useThfTuple);
+    if (args.size() == 1)
+    {
+      return argStrs[0] + " > " + r;
+    }
+    if (useThfTuple)
+    {
+      // THF: prefer curried arrows for n-ary functions to avoid legacy
+      // product types and tuple-argument application mismatches.
+      std::vector<std::string> chain = argStrs;
+      chain.push_back(r);
+      return join(chain, " > ");
+    }
+    return "(" + join(argStrs, " * ") + ") > " + r;
   }
   return sanitizeLower(tn.toString());
 }
@@ -171,16 +193,210 @@ bool typeUsesSort(TypeNode type, TypeNode sort)
   return typeUsesSort(type.getRangeType(), sort);
 }
 
+bool isHigherOrderType(TypeNode tn)
+{
+  if (!tn.isFunction())
+  {
+    return false;
+  }
+  for (const TypeNode& at : tn.getArgTypes())
+  {
+    if (at.isFunction())
+    {
+      return true;
+    }
+  }
+  return tn.getRangeType().isFunction();
+}
+
+void collectFunctionTypes(Node n, std::set<TypeNode>& out)
+{
+  std::vector<Node> visit;
+  std::set<Node> seen;
+  visit.push_back(n);
+  while (!visit.empty())
+  {
+    Node cur = visit.back();
+    visit.pop_back();
+    if (seen.find(cur) != seen.end())
+    {
+      continue;
+    }
+    seen.insert(cur);
+    TypeNode tn = cur.getType();
+    if (tn.isFunction())
+    {
+      out.insert(tn);
+    }
+    for (const Node& c : cur)
+    {
+      visit.push_back(c);
+    }
+  }
+}
+
+size_t boundedPow(size_t base, size_t exp, size_t bound, bool& ok)
+{
+  ok = true;
+  size_t acc = 1;
+  for (size_t i = 0; i < exp; i++)
+  {
+    if (base != 0 && acc > bound / base)
+    {
+      ok = false;
+      return bound + 1;
+    }
+    acc *= base;
+    if (acc > bound)
+    {
+      ok = false;
+      return acc;
+    }
+  }
+  return acc;
+}
+
+Node mkTupleCondition(NodeManager* nm,
+                      const std::vector<Node>& vars,
+                      const std::vector<Node>& tup)
+{
+  Assert(vars.size() == tup.size());
+  if (vars.empty())
+  {
+    return nm->mkConst(true);
+  }
+  if (vars.size() == 1)
+  {
+    return nm->mkNode(Kind::EQUAL, vars[0], tup[0]);
+  }
+  std::vector<Node> conj;
+  conj.reserve(vars.size());
+  for (size_t i = 0, n = vars.size(); i < n; i++)
+  {
+    conj.push_back(nm->mkNode(Kind::EQUAL, vars[i], tup[i]));
+  }
+  return nm->mkNode(Kind::AND, conj);
+}
+
+bool getFiniteDomainValues(TypeNode tn,
+                           NodeManager* nm,
+                           const std::map<TypeNode, std::vector<Node>>& baseElems,
+                           std::map<TypeNode, std::vector<Node>>& cache,
+                           size_t maxFuncSpace)
+{
+  if (cache.find(tn) != cache.end())
+  {
+    return true;
+  }
+  std::vector<Node> vals;
+  if (tn.isBoolean())
+  {
+    vals.push_back(nm->mkConst(true));
+    vals.push_back(nm->mkConst(false));
+    cache[tn] = vals;
+    return true;
+  }
+  if (tn.isUninterpretedSort())
+  {
+    auto it = baseElems.find(tn);
+    if (it == baseElems.end())
+    {
+      return false;
+    }
+    cache[tn] = it->second;
+    return true;
+  }
+  if (!tn.isFunction())
+  {
+    return false;
+  }
+
+  std::vector<TypeNode> argTypes = tn.getArgTypes();
+  std::vector<std::vector<Node>> argDomains;
+  argDomains.reserve(argTypes.size());
+  for (const TypeNode& at : argTypes)
+  {
+    if (!getFiniteDomainValues(at, nm, baseElems, cache, maxFuncSpace))
+    {
+      return false;
+    }
+    const std::vector<Node>& ad = cache[at];
+    if (ad.empty())
+    {
+      return false;
+    }
+    argDomains.push_back(ad);
+  }
+  if (!getFiniteDomainValues(tn.getRangeType(), nm, baseElems, cache, maxFuncSpace))
+  {
+    return false;
+  }
+  const std::vector<Node>& rangeVals = cache[tn.getRangeType()];
+  if (rangeVals.empty())
+  {
+    return false;
+  }
+
+  size_t tupleCount = 1;
+  for (const std::vector<Node>& d : argDomains)
+  {
+    if (!d.empty() && tupleCount > maxFuncSpace / d.size())
+    {
+      return false;
+    }
+    tupleCount *= d.size();
+  }
+  bool okPow = false;
+  size_t funcCount = boundedPow(rangeVals.size(), tupleCount, maxFuncSpace, okPow);
+  if (!okPow || funcCount == 0)
+  {
+    return false;
+  }
+
+  std::vector<std::vector<Node>> tuples;
+  std::vector<Node> current(argTypes.size());
+  cartesianProduct(argDomains, 0, current, tuples);
+  Assert(tuples.size() == tupleCount);
+
+  std::vector<Node> bvs;
+  bvs.reserve(argTypes.size());
+  for (size_t i = 0, n = argTypes.size(); i < n; i++)
+  {
+    std::stringstream ss;
+    ss << "A" << i;
+    bvs.push_back(nm->mkBoundVar(ss.str(), argTypes[i]));
+  }
+  Node bvl = nm->mkNode(Kind::BOUND_VAR_LIST, bvs);
+
+  vals.reserve(funcCount);
+  for (size_t fid = 0; fid < funcCount; fid++)
+  {
+    size_t code = fid;
+    std::vector<Node> outs(tupleCount);
+    for (size_t i = 0; i < tupleCount; i++)
+    {
+      outs[i] = rangeVals[code % rangeVals.size()];
+      code /= rangeVals.size();
+    }
+    Node body = outs.back();
+    for (size_t i = tupleCount; i > 1; i--)
+    {
+      Node cond = mkTupleCondition(nm, bvs, tuples[i - 2]);
+      body = nm->mkNode(Kind::ITE, cond, outs[i - 2], body);
+    }
+    vals.push_back(nm->mkNode(Kind::LAMBDA, bvl, body));
+  }
+  cache[tn] = vals;
+  return true;
+}
+
 bool tryGetModelValue(const smt::Model& m,
                       const std::map<Node, bool>& isDeclared,
                       Node n,
                       Node& value)
 {
-  if (isDeclared.find(n) == isDeclared.end())
-  {
-    return false;
-  }
-  value = m.getValue(n);
+  (void)isDeclared;
+  value = m.getValueOrNull(n);
   return !value.isNull();
 }
 
@@ -235,33 +451,295 @@ Node evaluateAppValue(const smt::Model& m,
   return ev.eval(lam[1], vars, args);
 }
 
-bool getBoolValue(const smt::Model& m,
-                  const std::map<Node, bool>& isDeclared,
-                  Node n,
-                  bool& value)
+bool getTypeDomainValues(TypeNode tn,
+                         const std::map<TypeNode, std::vector<Node>>& finiteTypeElems,
+                         std::vector<Node>& vals)
 {
-  Node v = n;
-  if (isDeclared.find(v) != isDeclared.end())
+  vals.clear();
+  if (tn.isBoolean())
   {
-    v = resolveModelValue(m, isDeclared, v);
+    NodeManager* nm = tn.getNodeManager();
+    vals.push_back(nm->mkConst(true));
+    vals.push_back(nm->mkConst(false));
+    return true;
   }
-  if (v.isNull())
+  auto it = finiteTypeElems.find(tn);
+  if (it == finiteTypeElems.end() || it->second.empty())
   {
     return false;
   }
-  if (v.getKind() == Kind::CONST_BOOLEAN)
+  vals = it->second;
+  return true;
+}
+
+Node evalFiniteTerm(const Node& n,
+                    const smt::Model& m,
+                    const std::map<Node, bool>& isDeclared,
+                    const std::map<TypeNode, std::vector<Node>>& finiteTypeElems,
+                    const std::map<Node, Node>& subst);
+
+Node evalFiniteApply(const Node& app,
+                     const smt::Model& m,
+                     const std::map<Node, bool>& isDeclared,
+                     const std::map<TypeNode, std::vector<Node>>& finiteTypeElems,
+                     const std::map<Node, Node>& subst)
+{
+  if (app.getNumChildren() == 0)
   {
-    value = v.getConst<bool>();
-    return true;
+    return Node::null();
   }
-  return false;
+  Node op = evalFiniteTerm(app[0], m, isDeclared, finiteTypeElems, subst);
+  if (op.isNull())
+  {
+    return Node::null();
+  }
+  std::vector<Node> args;
+  args.reserve(app.getNumChildren() - 1);
+  for (size_t i = 1, n = app.getNumChildren(); i < n; i++)
+  {
+    Node av = evalFiniteTerm(app[i], m, isDeclared, finiteTypeElems, subst);
+    if (av.isNull())
+    {
+      return Node::null();
+    }
+    args.push_back(av);
+  }
+  // Prefer direct model query for instantiated applications.
+  Node qval = Node::null();
+  if (app.getKind() == Kind::APPLY_UF)
+  {
+    if (app[0].getType().isFunction())
+    {
+      std::vector<Node> qchildren;
+      qchildren.reserve(app.getNumChildren());
+      qchildren.push_back(app[0]);
+      for (const Node& a : args)
+      {
+        qchildren.push_back(a);
+      }
+      Node qapp = app.getNodeManager()->mkNode(Kind::APPLY_UF, qchildren);
+      qval = m.getValueOrNull(qapp);
+    }
+  }
+  else if (app.getKind() == Kind::HO_APPLY)
+  {
+    Node qop = app[0];
+    auto qit = subst.find(qop);
+    if (qit != subst.end())
+    {
+      qop = qit->second;
+    }
+    if (qop.getType().isFunction())
+    {
+      std::vector<Node> qchildren;
+      qchildren.reserve(app.getNumChildren());
+      qchildren.push_back(qop);
+      for (const Node& a : args)
+      {
+        qchildren.push_back(a);
+      }
+      Node qapp = app.getNodeManager()->mkNode(Kind::HO_APPLY, qchildren);
+      qval = m.getValueOrNull(qapp);
+    }
+  }
+  if (!qval.isNull())
+  {
+    return qval;
+  }
+  Node lam = theory::uf::FunctionConst::toLambda(op);
+  if (lam.isNull() || lam.getKind() != Kind::LAMBDA)
+  {
+    // Try declared-model lookup for function symbols.
+    Node lv = resolveModelValue(m, isDeclared, op);
+    lam = theory::uf::FunctionConst::toLambda(lv);
+    if (lam.isNull() || lam.getKind() != Kind::LAMBDA)
+    {
+      return Node::null();
+    }
+  }
+  Node bvl = lam[0];
+  if (bvl.getNumChildren() < args.size())
+  {
+    return Node::null();
+  }
+  std::vector<Node> svars;
+  svars.reserve(args.size());
+  for (size_t i = 0, n = args.size(); i < n; i++)
+  {
+    svars.push_back(bvl[i]);
+  }
+  Node bodySub = lam[1].substitute(svars.begin(), svars.end(), args.begin(), args.end());
+  if (bvl.getNumChildren() == args.size())
+  {
+    return evalFiniteTerm(bodySub, m, isDeclared, finiteTypeElems, subst);
+  }
+  std::vector<Node> rbvs;
+  for (size_t i = args.size(), n = bvl.getNumChildren(); i < n; i++)
+  {
+    rbvs.push_back(bvl[i]);
+  }
+  Node rbvl = app.getNodeManager()->mkNode(Kind::BOUND_VAR_LIST, rbvs);
+  return app.getNodeManager()->mkNode(Kind::LAMBDA, rbvl, bodySub);
+}
+
+Node evalFiniteQuant(const Node& q,
+                     bool isForall,
+                     const smt::Model& m,
+                     const std::map<Node, bool>& isDeclared,
+                     const std::map<TypeNode, std::vector<Node>>& finiteTypeElems,
+                     const std::map<Node, Node>& subst)
+{
+  Node bvl = q[0];
+  Node body = q[1];
+  std::vector<std::vector<Node>> domains;
+  domains.reserve(bvl.getNumChildren());
+  for (size_t i = 0, n = bvl.getNumChildren(); i < n; i++)
+  {
+    std::vector<Node> d;
+    if (!getTypeDomainValues(bvl[i].getType(), finiteTypeElems, d))
+    {
+      return Node::null();
+    }
+    domains.push_back(d);
+  }
+  std::vector<std::vector<Node>> tuples;
+  std::vector<Node> current(bvl.getNumChildren());
+  cartesianProduct(domains, 0, current, tuples);
+  NodeManager* nm = q.getNodeManager();
+  for (const std::vector<Node>& tup : tuples)
+  {
+    std::map<Node, Node> nsubst = subst;
+    for (size_t i = 0, n = tup.size(); i < n; i++)
+    {
+      nsubst[bvl[i]] = tup[i];
+    }
+    Node bv = evalFiniteTerm(body, m, isDeclared, finiteTypeElems, nsubst);
+    if (bv.isNull() || bv.getKind() != Kind::CONST_BOOLEAN)
+    {
+      return Node::null();
+    }
+    const bool b = bv.getConst<bool>();
+    if (isForall && !b)
+    {
+      return nm->mkConst(false);
+    }
+    if (!isForall && b)
+    {
+      return nm->mkConst(true);
+    }
+  }
+  return nm->mkConst(isForall);
+}
+
+Node evalFiniteTerm(const Node& n,
+                    const smt::Model& m,
+                    const std::map<Node, bool>& isDeclared,
+                    const std::map<TypeNode, std::vector<Node>>& finiteTypeElems,
+                    const std::map<Node, Node>& subst)
+{
+  auto sit = subst.find(n);
+  if (sit != subst.end())
+  {
+    return sit->second;
+  }
+  if (n.isConst())
+  {
+    return n;
+  }
+  if (n.getKind() == Kind::APPLY_UF || n.getKind() == Kind::HO_APPLY)
+  {
+    return evalFiniteApply(n, m, isDeclared, finiteTypeElems, subst);
+  }
+  if (n.getKind() == Kind::FORALL)
+  {
+    return evalFiniteQuant(n, true, m, isDeclared, finiteTypeElems, subst);
+  }
+  if (n.getKind() == Kind::EXISTS)
+  {
+    return evalFiniteQuant(n, false, m, isDeclared, finiteTypeElems, subst);
+  }
+  if (n.getKind() == Kind::NOT)
+  {
+    Node c = evalFiniteTerm(n[0], m, isDeclared, finiteTypeElems, subst);
+    if (c.isNull() || c.getKind() != Kind::CONST_BOOLEAN)
+    {
+      return Node::null();
+    }
+    return n.getNodeManager()->mkConst(!c.getConst<bool>());
+  }
+  if (n.getKind() == Kind::AND || n.getKind() == Kind::OR)
+  {
+    const bool isAnd = n.getKind() == Kind::AND;
+    bool acc = isAnd;
+    for (size_t i = 0, nc = n.getNumChildren(); i < nc; i++)
+    {
+      Node c = evalFiniteTerm(n[i], m, isDeclared, finiteTypeElems, subst);
+      if (c.isNull() || c.getKind() != Kind::CONST_BOOLEAN)
+      {
+        return Node::null();
+      }
+      bool b = c.getConst<bool>();
+      if (isAnd)
+      {
+        acc = acc && b;
+        if (!acc)
+        {
+          break;
+        }
+      }
+      else
+      {
+        acc = acc || b;
+        if (acc)
+        {
+          break;
+        }
+      }
+    }
+    return n.getNodeManager()->mkConst(acc);
+  }
+  if (n.getKind() == Kind::IMPLIES)
+  {
+    Node a = evalFiniteTerm(n[0], m, isDeclared, finiteTypeElems, subst);
+    Node b = evalFiniteTerm(n[1], m, isDeclared, finiteTypeElems, subst);
+    if (a.isNull() || b.isNull() || a.getKind() != Kind::CONST_BOOLEAN
+        || b.getKind() != Kind::CONST_BOOLEAN)
+    {
+      return Node::null();
+    }
+    return n.getNodeManager()->mkConst(!a.getConst<bool>() || b.getConst<bool>());
+  }
+  if (n.getKind() == Kind::ITE)
+  {
+    Node c = evalFiniteTerm(n[0], m, isDeclared, finiteTypeElems, subst);
+    if (c.isNull() || c.getKind() != Kind::CONST_BOOLEAN)
+    {
+      return Node::null();
+    }
+    return evalFiniteTerm(
+        c.getConst<bool>() ? n[1] : n[2], m, isDeclared, finiteTypeElems, subst);
+  }
+  if (n.getKind() == Kind::EQUAL)
+  {
+    Node a = evalFiniteTerm(n[0], m, isDeclared, finiteTypeElems, subst);
+    Node b = evalFiniteTerm(n[1], m, isDeclared, finiteTypeElems, subst);
+    if (a.isNull() || b.isNull())
+    {
+      return Node::null();
+    }
+    return n.getNodeManager()->mkConst(a == b);
+  }
+  // fall back to declared-model lookup for unresolved symbols/aliases
+  if (isDeclared.find(n) != isDeclared.end())
+  {
+    return resolveModelValue(m, isDeclared, n);
+  }
+  return Node::null();
 }
 
 std::string resolveElemName(const smt::Model& m,
                             const std::map<Node, bool>& isDeclared,
-                            TypeNode sort,
                             Node value,
-                            const std::map<TypeNode, std::vector<Node>>& elems,
                             const std::map<Node, std::string>& elemNames)
 {
   Node v = value;
@@ -279,6 +757,35 @@ std::string resolveElemName(const smt::Model& m,
     return it->second;
   }
   return "";
+}
+
+bool getBoolValueFinite(const smt::Model& m,
+                        const std::map<Node, bool>& isDeclared,
+                        const std::map<TypeNode, std::vector<Node>>& finiteTypeElems,
+                        Node n,
+                        bool& value)
+{
+  std::map<Node, Node> subst;
+  Node v = evalFiniteTerm(n, m, isDeclared, finiteTypeElems, subst);
+  if (v.isNull() || v.getKind() != Kind::CONST_BOOLEAN)
+  {
+    return false;
+  }
+  value = v.getConst<bool>();
+  return true;
+}
+
+bool resolveBoolValue(const smt::Model& m,
+                      const std::map<Node, bool>& isDeclared,
+                      const std::map<TypeNode, std::vector<Node>>& finiteTypeElems,
+                      Node n,
+                      bool& value)
+{
+  if (m.getBooleanValue(n, value))
+  {
+    return true;
+  }
+  return getBoolValueFinite(m, isDeclared, finiteTypeElems, n, value);
 }
 
 }  // namespace
@@ -315,6 +822,8 @@ void Smt2TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
   std::map<TypeNode, std::string> promoteNames;
   std::map<TypeNode, std::vector<Node>> elems;
   std::map<Node, std::string> elemNames;
+  std::map<TypeNode, std::vector<Node>> finiteTypeElems;
+  std::map<Node, std::string> hoElemNames;
 
   for (const TypeNode& s : sorts)
   {
@@ -326,6 +835,7 @@ void Smt2TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
     dSortNames[s] = "d_" + sortNames[s];
     promoteNames[s] = "d2" + sortNames[s];
     elems[s] = m.getDomainElements(s);
+    finiteTypeElems[s] = elems[s];
   }
 
   // Prefer stable domain element names from declared constants
@@ -400,11 +910,91 @@ void Smt2TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
     }
   }
 
+  // Build finite domains for function types that occur as arguments.
+  // Also seed from declared Boolean bodies, which may quantify over HO types.
+  const size_t kMaxHoFunctionDomain = 256;
+  std::set<TypeNode> hoSeedTypes;
+  for (const Node& t : terms)
+  {
+    TypeNode tt = t.getType();
+    if (!tt.isFunction())
+    {
+      Node tv = m.getValueOrNull(t);
+      if (!tv.isNull() && tt.isBoolean())
+      {
+        collectFunctionTypes(tv, hoSeedTypes);
+      }
+      continue;
+    }
+    for (const TypeNode& at : tt.getArgTypes())
+    {
+      if (!at.isFunction())
+      {
+        continue;
+      }
+      hoSeedTypes.insert(at);
+    }
+  }
+  for (const TypeNode& ht : hoSeedTypes)
+  {
+    (void)getFiniteDomainValues(
+        ht, ht.getNodeManager(), elems, finiteTypeElems, kMaxHoFunctionDomain);
+  }
+  // Name higher-order finite-domain elements for table rows.
+  for (const std::pair<const TypeNode, std::vector<Node>>& p : finiteTypeElems)
+  {
+    if (!p.first.isFunction())
+    {
+      continue;
+    }
+    std::string pref = "d_f_" + sanitizeLower(p.first.toString());
+    if (pref.empty() || pref.back() != '_')
+    {
+      pref.push_back('_');
+    }
+    for (size_t i = 0, n = p.second.size(); i < n; i++)
+    {
+      if (hoElemNames.find(p.second[i]) != hoElemNames.end())
+      {
+        continue;
+      }
+      std::stringstream ss;
+      ss << pref << i;
+      hoElemNames[p.second[i]] = sanitizeLower(ss.str());
+    }
+  }
+
+  bool useThf = false;
+  for (const Node& t : terms)
+  {
+    if (isHigherOrderType(t.getType()))
+    {
+      useThf = true;
+      break;
+    }
+  }
+  if (!useThf)
+  {
+    for (const std::pair<const TypeNode, std::vector<Node>>& p : finiteTypeElems)
+    {
+      if (isHigherOrderType(p.first))
+      {
+        useThf = true;
+        break;
+      }
+    }
+  }
+  if (!useThf && !hoElemNames.empty())
+  {
+    useThf = true;
+  }
+  const char* ff = useThf ? "thf" : "tff";
+
   out << "%--------------------------------------------------------\n";
   // 1) Top-level symbol declarations (original signature).
   for (const TypeNode& s : sorts)
   {
-    out << "tff(" << sortNames[s] << "_type,type,      " << sortNames[s]
+    out << ff << "(" << sortNames[s] << "_type,type,      " << sortNames[s]
         << ": $tType ).\n";
   }
   for (const Node& t : terms)
@@ -413,24 +1003,25 @@ void Smt2TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
     std::string tn = sanitizeLower(t.toString());
     if (!tt.isFunction())
     {
-      out << "tff(" << tn << "_decl,type,      " << tn << ": "
-          << typeToTptp(tt) << " ).\n";
+      out << ff << "(" << tn << "_decl,type,      " << tn << ": "
+          << typeToTptp(tt, useThf) << " ).\n";
       continue;
     }
-    out << "tff(" << tn << "_decl,type,      " << tn << ": " << typeToTptp(tt)
+    out << ff << "(" << tn << "_decl,type,      " << tn << ": "
+        << typeToTptp(tt, useThf)
         << " ).\n";
   }
   out << "\n%----Types of the domains\n";
   // 2) Finite-domain helper declarations used by the interpretation block.
   for (const TypeNode& s : sorts)
   {
-    out << "tff(" << dSortNames[s] << "_type,type,    " << dSortNames[s]
+    out << ff << "(" << dSortNames[s] << "_type,type,    " << dSortNames[s]
         << ": $tType ).\n";
   }
   out << "%----Types of the promotion functions\n";
   for (const TypeNode& s : sorts)
   {
-    out << "tff(" << promoteNames[s] << "_decl,type,    " << promoteNames[s]
+    out << ff << "(" << promoteNames[s] << "_decl,type,    " << promoteNames[s]
         << ": " << dSortNames[s] << " > " << sortNames[s] << " ).\n";
   }
   out << "%----Types of the domain elements\n";
@@ -438,8 +1029,24 @@ void Smt2TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
   {
     for (const Node& e : elems[s])
     {
-      out << "tff(" << elemNames[e] << "_decl,type,      " << elemNames[e]
+      out << ff << "(" << elemNames[e] << "_decl,type,      " << elemNames[e]
           << ": " << dSortNames[s] << " ).\n";
+    }
+  }
+  if (!hoElemNames.empty())
+  {
+    out << "%----Types of higher-order domain elements\n";
+    for (const std::pair<const TypeNode, std::vector<Node>>& p : finiteTypeElems)
+    {
+      if (!p.first.isFunction())
+      {
+        continue;
+      }
+      for (const Node& e : p.second)
+      {
+        out << ff << "(" << hoElemNames[e] << "_decl,type,      " << hoElemNames[e]
+            << ": " << typeToTptp(p.first, useThf) << " ).\n";
+      }
     }
   }
 
@@ -449,8 +1056,8 @@ void Smt2TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
   {
     modelName = "model";
   }
-  out << "\ntff(" << modelName << ",interpretation,\n";
-  out << "%----The domains\n    ( ";
+  out << "\n" << ff << "(" << modelName << ",interpretation,\n";
+  out << "    ( ";
   // 3) Domain axioms: surjectivity, finite enumeration, distinctness,
   //    and injectivity of each promotion function.
   bool firstDomain = true;
@@ -497,11 +1104,71 @@ void Smt2TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
         << "] : (" << pN << "(" << vDS << "1) = " << pN << "(" << vDS
         << "2) => " << vDS << "1 = " << vDS << "2)";
   }
+  // Finite-domain axioms for higher-order function types we materialize.
+  size_t hoTypeIndex = 0;
+  for (const std::pair<const TypeNode, std::vector<Node>>& p : finiteTypeElems)
+  {
+    if (!p.first.isFunction())
+    {
+      continue;
+    }
+    if (p.second.empty())
+    {
+      continue;
+    }
+    if (!firstDomain)
+    {
+      out << "\n      & ";
+    }
+    firstDomain = false;
+    std::stringstream fv;
+    fv << "F" << hoTypeIndex++;
+    out << "! [" << fv.str() << ": (" << typeToTptp(p.first, useThf)
+        << ")]: ( ";
+    for (size_t i = 0, n = p.second.size(); i < n; i++)
+    {
+      if (i > 0)
+      {
+        out << " | ";
+      }
+      auto hit = hoElemNames.find(p.second[i]);
+      if (hit == hoElemNames.end())
+      {
+        continue;
+      }
+      out << fv.str() << " = " << hit->second;
+    }
+    out << " )";
+    if (p.second.size() > 1)
+    {
+      out << "\n      & $distinct(";
+      bool first = true;
+      for (const Node& e : p.second)
+      {
+        auto hit = hoElemNames.find(e);
+        if (hit == hoElemNames.end())
+        {
+          continue;
+        }
+        if (!first)
+        {
+          out << ",";
+        }
+        first = false;
+        out << hit->second;
+      }
+      out << ")";
+    }
+  }
+  if (firstDomain)
+  {
+    out << "$true";
+  }
   out << " )\n";
 
   // 4) Interpret constants and total function/predicate tables by
   //    exhaustively evaluating all tuples of finite-domain elements.
-  out << "%----Interpret terms and atoms\n    & ( ";
+  out << "    & ( ";
   bool firstEq = true;
   for (const Node& t : terms)
   {
@@ -510,7 +1177,32 @@ void Smt2TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
     if (!tt.isFunction())
     {
       Node v = m.getValue(t);
-      std::string evn = resolveElemName(m, isDeclared, tt, v, elems, elemNames);
+      if (tt.isBoolean())
+      {
+        bool b = false;
+        const bool resolved =
+            resolveBoolValue(m, isDeclared, finiteTypeElems, t, b)
+            || resolveBoolValue(m, isDeclared, finiteTypeElems, v, b);
+        if (!firstEq)
+        {
+          out << "\n      & ";
+        }
+        firstEq = false;
+        if (!resolved)
+        {
+          // Fallback for unresolved propositional constants: keep the symbol in
+          // the interpretation while preserving satisfiability.
+          out << "( " << tn << " | ~ " << tn << " )";
+          continue;
+        }
+        if (!b)
+        {
+          out << "~ ";
+        }
+        out << tn;
+        continue;
+      }
+      std::string evn = resolveElemName(m, isDeclared, v, elemNames);
       if (evn.empty())
       {
         continue;
@@ -524,18 +1216,30 @@ void Smt2TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
       continue;
     }
     std::vector<TypeNode> argTypes = tt.getArgTypes();
-    bool ok = std::all_of(argTypes.begin(),
-                          argTypes.end(),
-                          [](TypeNode at) { return at.isUninterpretedSort(); });
-    if (!ok || (!tt.getRangeType().isUninterpretedSort() && !tt.getRangeType().isBoolean()))
-    {
-      // Focuses on uninterpretd sorts and Bool codomains.
-      continue;
-    }
+    bool ok = true;
     std::vector<std::vector<Node>> domains;
+    domains.reserve(argTypes.size());
     for (const TypeNode& at : argTypes)
     {
-      domains.push_back(elems[at]);
+      if (at.isUninterpretedSort())
+      {
+        domains.push_back(elems[at]);
+        continue;
+      }
+      auto it = finiteTypeElems.find(at);
+      if (it == finiteTypeElems.end() || it->second.empty())
+      {
+        ok = false;
+        break;
+      }
+      domains.push_back(it->second);
+    }
+    if (!ok
+        || (!tt.getRangeType().isUninterpretedSort()
+            && !tt.getRangeType().isBoolean()))
+    {
+      // Print rows only for finite argument domains and Bool/USort codomains.
+      continue;
     }
     std::vector<std::vector<Node>> tuples;
     std::vector<Node> current(argTypes.size());
@@ -552,7 +1256,12 @@ void Smt2TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
         val = evaluateAppValue(m, isDeclared, t, tup);
         if (val.isNull())
         {
-          continue;
+          std::map<Node, Node> emptySubst;
+          val = evalFiniteTerm(app, m, isDeclared, finiteTypeElems, emptySubst);
+          if (val.isNull())
+          {
+            continue;
+          }
         }
       }
       const bool isPred = tt.getRangeType().isBoolean();
@@ -560,7 +1269,8 @@ void Smt2TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
       if (isPred)
       {
         bool bval = false;
-        if (!getBoolValue(m, isDeclared, val, bval))
+        if (!resolveBoolValue(m, isDeclared, finiteTypeElems, app, bval)
+            && !resolveBoolValue(m, isDeclared, finiteTypeElems, val, bval))
         {
           // If model value cannot be resolved to true/false, skip this row
           // rather than emitting an unsound negation.
@@ -571,8 +1281,7 @@ void Smt2TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
       std::string vname;
       if (!isPred)
       {
-        vname = resolveElemName(
-            m, isDeclared, tt.getRangeType(), val, elems, elemNames);
+        vname = resolveElemName(m, isDeclared, val, elemNames);
         if (vname.empty())
         {
           // Skip rows whose codomain value cannot be mapped to a finite-domain
@@ -590,13 +1299,32 @@ void Smt2TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
         out << "~ ";
       }
       out << tn << "(";
+      bool tupleOk = true;
       for (size_t i = 0, n = tup.size(); i < n; i++)
       {
         if (i > 0)
         {
           out << ",";
         }
-        out << promoteNames[argTypes[i]] << "(" << elemNames[tup[i]] << ")";
+        TypeNode at = argTypes[i];
+        if (at.isUninterpretedSort())
+        {
+          out << promoteNames[at] << "(" << elemNames[tup[i]] << ")";
+        }
+        else
+        {
+          auto hit = hoElemNames.find(tup[i]);
+          if (hit == hoElemNames.end())
+          {
+            tupleOk = false;
+            break;
+          }
+          out << hit->second;
+        }
+      }
+      if (!tupleOk)
+      {
+        continue;
       }
       out << ")";
       if (!isPred)

@@ -18,6 +18,7 @@
 #ifndef CVC5__SMT__MODEL_H
 #define CVC5__SMT__MODEL_H
 
+#include <functional>
 #include <iosfwd>
 #include <vector>
 
@@ -53,6 +54,10 @@ class Model {
   const std::vector<Node>& getDomainElements(TypeNode tn) const;
   /** Get value */
   Node getValue(TNode n) const;
+  /** Get value, or null if unavailable */
+  Node getValueOrNull(TNode n) const;
+  /** Get Boolean value of a closed Boolean term, if available */
+  bool getBooleanValue(TNode n, bool& value) const;
   /** Get separation logic heap and nil, return true if they have been set */
   bool getHeapModel(Node& h, Node& nilEq) const;
   //----------------------- model declarations
@@ -84,6 +89,8 @@ class Model {
   const std::vector<TypeNode>& getDeclaredSorts() const;
   /** get declared terms */
   const std::vector<Node>& getDeclaredTerms() const;
+  /** set fallback evaluator for arbitrary closed terms */
+  void setEvaluator(const std::function<Node(TNode)>& eval);
   //----------------------- end model declarations
  protected:
   /** the input name (file name, etc.) this model is associated to */
@@ -107,6 +114,8 @@ class Model {
   std::vector<Node> d_declareTerms;
   /** Mapping terms to values */
   std::map<Node, Node> d_declareTermValues;
+  /** Optional fallback evaluator (e.g. TheoryModel::getValue) */
+  std::function<Node(TNode)> d_evaluator;
   /** Separation logic heap and nil */
   Node d_sepHeap;
   Node d_sepNilEq;

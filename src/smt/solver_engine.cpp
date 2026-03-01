@@ -1368,6 +1368,9 @@ std::string SolverEngine::getModel(const std::vector<TypeNode>& declaredSorts,
   const Options& opts = d_env->getOptions();
   bool isKnownSat = (d_state->getMode() == SmtMode::SAT);
   Model m(isKnownSat, opts.driver.filename);
+  // Allow printers to query values of closed terms beyond declared symbols.
+  m.setEvaluator(
+      [tm](TNode n) { return tm != nullptr ? tm->getValue(n) : Node::null(); });
   // set the model declarations, which determines what is printed in the model
   for (const TypeNode& tn : declaredSorts)
   {
