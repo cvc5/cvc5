@@ -1,6 +1,7 @@
 Checks: >
   -*,
   clang-analyzer-core.CallAndMessage,
+  clang-analyzer-core.uninitialized.Assign,
   clang-analyzer-core.uninitialized.UndefReturn,
   clang-analyzer-cplusplus.Move,
   clang-analyzer-deadcode.*,
