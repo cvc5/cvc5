@@ -20,7 +20,7 @@ namespace theory {
 namespace ff {
 
 FfStatistics::FfStatistics(StatisticsRegistry& reg, const std::string& prefix)
-    : d_numReductions(reg.registerInt(prefix + "num_reductions")),
+    : d_numGbRuns(reg.registerInt(prefix + "num_runs")),
       d_reductionTime(reg.registerTimer(prefix + "reduction_time")),
       d_numTrivialUnsat(reg.registerInt(prefix + "num_trivial_unsat")),
       d_modelConstructionTime(

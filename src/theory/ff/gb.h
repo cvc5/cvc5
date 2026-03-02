@@ -32,6 +32,15 @@ namespace cvc5::internal {
 namespace theory {
 namespace ff {
 
+/** Find a model for these facts using one GB call and model construction.
+ *
+ * @param facts Finite field equalities and disequalities.
+ * @param size The size of the field they are in.
+ * @param env used for resource management
+ * @param stats FfStatistics to track
+ *
+ * @return A model or a conflict core.
+ * */
 FfResult gb(const std::vector<Node>& facts,
             const FfSize& size,
             const Env& env,

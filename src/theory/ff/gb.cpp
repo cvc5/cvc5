@@ -65,7 +65,7 @@ FfResult gb(const std::vector<Node>& facts,
     }
   }
   Tracer tracer(generators);
-  ++stats->d_numReductions;
+  ++stats->d_numGbRuns;
   if (env.getOptions().ff.ffTraceGb) tracer.setFunctionPointers();
   const CoCoA::ideal ideal = CoCoA::ideal(generators);
   std::vector<Poly> basis;

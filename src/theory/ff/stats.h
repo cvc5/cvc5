@@ -26,15 +26,17 @@ namespace ff {
 struct FfStatistics
 {
   /**
-   * Number of groebner-basis reductions
+   * Number of runs of the GB engine for reasoning.
+   * Excludes calls to the GB engine for model construction.
    */
-  IntStat d_numReductions;
+  IntStat d_numGbRuns;
   /**
-   * Time spent in groebner-basis reductions
+   * Time spent in Groebner-basis reductions
    */
   TimerStat d_reductionTime;
   /**
-   * Number of reductions where 1 was in the ideal.
+   * Number of reductions where 1 was in the original ideal.
+   * I.e. the number of times that the ideal was trivially unsat.
    */
   IntStat d_numTrivialUnsat;
   /**
