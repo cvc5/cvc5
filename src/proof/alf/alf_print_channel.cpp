@@ -250,9 +250,19 @@ CpcLogosLeanChannelOut::CpcLogosLeanChannelOut(std::ostream& out,
                                                const LetBinding* lbind)
     : AlfPrintChannelOut(out, lbind, false)
 {
+  // TODO: automate?
   d_premiseList["arith_sum_ub"] = true;
   d_premiseList["arith_mult_abs_comparison"] = true;
-  /// FIXME: more
+  d_premiseList["chain_resolution"] = true;
+  d_premiseList["chain_m_resolution"] = true;
+  d_premiseList["and_intro"] = true;
+  d_premiseList["re_concat"] = true;
+  d_premiseList["trans"] = true;
+  d_premiseList["cong"] = true;
+  d_premiseList["nary_cong"] = true;
+  d_premiseList["pairwise_cong"] = true;
+  d_premiseList["ho_cong"] = true;
+  d_stackSize = 0;
 }
 
 void CpcLogosLeanChannelOut::printNode(TNode n)
@@ -276,6 +286,7 @@ void CpcLogosLeanChannelOut::printAssume(TNode n, size_t i, bool isPush)
     printNodeInternal(d_cmdList, n);
     d_cmdList << ")" << std::endl;
     d_cmdListEnd << ")";
+    d_stackPush.push_back(d_stackSize);
   }
   else
   {
@@ -284,6 +295,8 @@ void CpcLogosLeanChannelOut::printAssume(TNode n, size_t i, bool isPush)
     d_assumeList << ")" << std::endl;
     d_assumeListEnd << ")";
   }
+  d_stackId[i] = d_stackSize;
+  d_stackSize++;
 }
 
 void CpcLogosLeanChannelOut::printStep(const std::string& rname,
@@ -299,8 +312,24 @@ void CpcLogosLeanChannelOut::printStep(const std::string& rname,
     d_cmdList << " ";
     printNodeInternal(d_cmdList, a);
   }
-  // FIXME
-  std::vector<size_t> pindices = premises;
+  // get the premise indices in terms of depth on the stack
+  std::vector<size_t> pindices;
+  std::map<size_t, size_t>::iterator its;
+  for (size_t p : premises)
+  {
+    its = d_stackId.find(p);
+    if (its!=d_stackId.end())
+    {
+      Assert (d_stackSize>its->second);
+      pindices.push_back(d_stackSize-its->second-1);
+    }
+    else
+    {
+      std::stringstream ss;
+      ss << "Failed to find proof identifier " << p << " to " << rname;
+      InternalError() << ss.str();
+    }
+  }
   // determine if premise list, if so, package as list
   if (d_premiseList.find(rname) != d_premiseList.end())
   {
@@ -311,7 +340,7 @@ void CpcLogosLeanChannelOut::printStep(const std::string& rname,
       retNext << "(CIndexList.cons (Term.Numeral " << pindices[j] << ") " << ret << ")";
       ret = retNext.str();
     }
-    d_cmdList << ret;
+    d_cmdList << " " << ret;
   }
   else
   {
@@ -323,6 +352,23 @@ void CpcLogosLeanChannelOut::printStep(const std::string& rname,
   }
   d_cmdList << ")" << std::endl;
   d_cmdListEnd << ")";
+  // if step-pop, revert stack size
+  if (isPop)
+  {
+    Assert (!d_stackPush.empty());
+    d_stackSize = d_stackPush.back();
+    d_stackPush.pop_back();
+  }
+  d_stackId[i] = d_stackSize;
+  d_stackSize++;
+  // print a command to check proven if given
+  if (!n.isNull())
+  {
+    d_cmdList << "(CCmdList.cons (CCmd.check_proven ";
+    printNodeInternal(d_cmdList, n);
+    d_cmdList << ")" << std::endl;
+    d_cmdListEnd << ")";
+  }
 }
 
 void CpcLogosLeanChannelOut::printTrustStep(ProofRule r,

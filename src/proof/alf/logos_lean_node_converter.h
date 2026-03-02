@@ -37,10 +37,20 @@ class LogosLeanNodeConverter : public AlfNodeConverter
   Node postConvert(Node n) override;
   /** Should we traverse n? */
   bool shouldTraverse(Node n) override;
+  /**
+   * Type as node, returns a node that prints in the form that ALF will
+   * interpret as the type tni. This method is required since types can be
+   * passed as arguments to terms and proof rules.
+   */
+  Node typeAsNode(TypeNode tni) override;
  private:
    std::string cleanSmtId(const std::string& str);
    size_t d_constIdCount;
    std::map<Node, size_t> d_constId;
+  /** Cache for typeAsNode */
+  std::map<TypeNode, Node> d_ltypeAsNode;
+  /** */
+  size_t d_sortIdCount;
 };
 
 }  // namespace proof

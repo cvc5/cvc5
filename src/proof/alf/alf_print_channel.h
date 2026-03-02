@@ -193,6 +193,10 @@ class CpcLogosLeanChannelOut : public AlfPrintChannelOut
   std::stringstream d_cmdListEnd;
   /** premise list? */
   std::map<std::string, bool> d_premiseList;
+  /** mapping identifiers */
+  std::map<size_t, size_t> d_stackId;
+  size_t d_stackSize;
+  std::vector<size_t> d_stackPush;
 };
 
 }  // namespace proof

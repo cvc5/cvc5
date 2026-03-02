@@ -11,7 +11,9 @@
  */
 
 #include "proof/alf/logos_lean_node_converter.h"
+#include <cstdlib>
 
+#include "expr/aci_norm.h"
 #include "util/bitvector.h"
 #include "util/iand.h"
 #include "util/indexed_root_predicate.h"
@@ -28,6 +30,7 @@ LogosLeanNodeConverter::LogosLeanNodeConverter(NodeManager* nm)
     : AlfNodeConverter(nm)
 {
   d_constIdCount = 0;
+  d_sortIdCount = 0;
 }
 LogosLeanNodeConverter::~LogosLeanNodeConverter() {}
 
@@ -39,6 +42,7 @@ bool LogosLeanNodeConverter::shouldTraverse(Node n)
 Node LogosLeanNodeConverter::postConvert(Node n)
 {
   Kind k = n.getKind();
+  TypeNode tn = n.getType();
   if (k==Kind::CONST_INTEGER)
   {
     std::stringstream ss;
@@ -62,6 +66,12 @@ Node LogosLeanNodeConverter::postConvert(Node n)
     BitVector b = n.getConst<BitVector>();;
     std::stringstream ss;
     ss << "(Term.Binary " << b.getSize() << " " << b.getValue() << ")";
+    return mkInternalSymbol(ss.str(), n.getType());
+  }
+  else if (k==Kind::CONST_BOOLEAN)
+  {
+    std::stringstream ss;
+    ss << "(Term.Boolean " << (n.getConst<bool>() ? "true" : "false") << ")";
     return mkInternalSymbol(ss.str(), n.getType());
   }
   else if (k==Kind::APPLY_UF)
@@ -90,14 +100,40 @@ Node LogosLeanNodeConverter::postConvert(Node n)
   else if (k==Kind::APPLY_SELECTOR)
   {
   }
+  else if (k == Kind::SEXPR || k == Kind::BOUND_VAR_LIST)
+  {
+    Node ret = mkInternalSymbol("Term.__eo_List_nil", tn);
+    Node cons = mkInternalSymbol("Term.__eo_List_cons", tn);
+    // use generic list
+    for (size_t i=0, nchild=n.getNumChildren(); i<nchild; i++)
+    {
+      size_t ii = (nchild-i)-1;
+      Node cc = mkInternalApp("Term.Apply", {cons, n[ii]}, tn);
+      ret = mkInternalApp("Term.Apply", {cc, ret}, tn);
+    }
+    return ret;
+  }
   else if (n.getNumChildren()>0)
   {
-    // convert to curried apply
     std::stringstream ssOp;
     ssOp << printer::smt2::Smt2Printer::smtKindString(k);
     std::string id = "Term." + cleanSmtId(ssOp.str());
+    Node nil = expr::getNullTerminator(d_nm, k, tn);
+    if (!nil.isNull())
+    {
+      Node ret = convert(nil);
+      Node f = mkInternalSymbol(id, tn);
+      for (size_t i=0, nchild=n.getNumChildren(); i<nchild; i++)
+      {
+        size_t ii = (nchild-1)-i;
+        Node cc = mkInternalApp("Term.Apply", {f, convert(n[ii])}, tn);
+        ret = mkInternalApp("Term.Apply", {cc, ret}, tn);
+      }
+      return ret;
+    }
+    // will convert to curried apply
     std::vector<Node> args(n.begin(), n.end());
-    return convert(mkInternalApp(id, args, n.getType()));
+    return convert(mkInternalApp(id, args, tn));
   }
   else if (n.isVar() && d_symbols.find(n)==d_symbols.end())
   {
@@ -146,6 +182,65 @@ std::string LogosLeanNodeConverter::cleanSmtId(const std::string& id)
   idc = replace_all(idc, "$", "__");
   return idc;
 }
-  
+
+Node LogosLeanNodeConverter::typeAsNode(TypeNode tn)
+{
+  // should always exist in the cache, as we always run types through
+  // postConvertType before calling this method.
+  std::map<TypeNode, Node>::const_iterator it = d_ltypeAsNode.find(tn);
+  if (it != d_ltypeAsNode.end())
+  {
+    return it->second;
+  }
+  Node ret;
+  if (tn.isUninterpretedSort())
+  {
+    d_sortIdCount++;
+    std::stringstream ssi;
+    ssi << d_sortIdCount;
+    Node i = mkInternalSymbol(ssi.str(), d_nm->integerType());
+    ret = mkInternalApp("Term.USort", {i}, d_sortType);
+  }
+  else if (tn.getNumChildren()>0)
+  {
+    size_t nchild = tn.getNumChildren();
+    Node cons;
+    if (tn.isFunction())
+    {
+      cons = mkInternalSymbol("Term.FunType", d_sortType);
+    }
+    else if (tn.isArray())
+    {
+      cons = mkInternalSymbol("Term.Array", d_sortType);
+    }
+    else if (tn.isSet())
+    {
+      cons = mkInternalSymbol("Term.Set", d_sortType);
+    }
+    else if (tn.isSequence())
+    {
+      cons = mkInternalSymbol("Term.Seq", d_sortType);
+    }
+    ret = typeAsNode(tn[nchild-1]);
+    for (size_t i=1; i<nchild; i++)
+    {
+      size_t ii = (nchild-1)-i;
+      Node cc = mkInternalApp("Term.Apply", {cons, typeAsNode(tn[ii])}, d_sortType);
+      ret = mkInternalApp("Term.Apply", {cc, ret}, tn);
+    }
+  }
+  else
+  {
+    // dummy symbol whose name is the type printed
+    // this suffices since ALF faithfully represents all types.
+    // note we cannot letify types (same as in SMT-LIB)
+    std::stringstream ss;
+    ss << "Term." << tn;
+    ret = mkInternalSymbol(ss.str(), d_sortType);
+  }
+  d_ltypeAsNode[tn] = ret;
+  return ret;
+}
+
 }  // namespace proof
 }  // namespace cvc5::internal
