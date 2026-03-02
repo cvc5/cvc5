@@ -965,6 +965,8 @@ PreprocessingPassResult Normalize::applyInternal(
       eqClasses.begin(),
       eqClasses.end(),
       [](const std::vector<NodeInfo*>& a, const std::vector<NodeInfo*>& b) {
+        // Silence false positive: https://github.com/llvm/llvm-project/issues/78132
+        // NOLINTNEXTLINE(clang-analyzer-cplusplus.Move)
         return a[0]->encoding > b[0]->encoding;
       });
 
