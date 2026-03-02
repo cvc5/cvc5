@@ -82,7 +82,7 @@ size_t cindexOf(Node n);
 /**
  * Get the datatype of n.
  */
-const DType& datatypeOf(Node n);
+CVC5_NO_DANGLING const DType& datatypeOf(Node n);
 /** make tester is-C( n ), where C is the i^{th} constructor of dt */
 Node mkTester(Node n, int i, const DType& dt);
 /** make tester split
