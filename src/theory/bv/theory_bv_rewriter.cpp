@@ -420,7 +420,6 @@ RewriteResponse TheoryBVRewriter::RewriteConcat(TNode node,
 
 RewriteResponse TheoryBVRewriter::RewriteAnd(TNode node, bool prerewrite)
 {
-  TRY_REWRITE(FlattenAssocCommutNoDuplicates)
   TRY_REWRITE(AndSimplify)
   TRY_REWRITE(AndOrXorConcatPullUp)
   if (!prerewrite)
@@ -432,7 +431,6 @@ RewriteResponse TheoryBVRewriter::RewriteAnd(TNode node, bool prerewrite)
 
 RewriteResponse TheoryBVRewriter::RewriteOr(TNode node, bool prerewrite)
 {
-  TRY_REWRITE(FlattenAssocCommutNoDuplicates)
   TRY_REWRITE(OrSimplify)
   TRY_REWRITE(AndOrXorConcatPullUp)
   if (!prerewrite)
@@ -444,7 +442,6 @@ RewriteResponse TheoryBVRewriter::RewriteOr(TNode node, bool prerewrite)
 
 RewriteResponse TheoryBVRewriter::RewriteXor(TNode node, bool prerewrite)
 {
-  TRY_REWRITE(FlattenAssocCommut) // flatten the expression
   TRY_REWRITE(XorSimplify) // simplify duplicates and constants
   TRY_REWRITE(XorZero) // checks if the constant part is zero and eliminates it
   TRY_REWRITE(AndOrXorConcatPullUp)
