@@ -87,12 +87,12 @@ Node LiaStarUtils::toDNF(Node n, Env* e)
     Trace("liastar-ext-smt") << "(check-sat)" << std::endl;
     Trace("liastar-ext-smt") << "(pop 1)" << std::endl;
   }
-  // distributes conjunctions over disjunctions  
+  // distributes conjunctions over disjunctions
   Node dnf = distribute(nnf, e);
   Trace("liastar-ext-debug") << "dnf: " << dnf << std::endl;
-  // dnf = recursiveFlatten(e->getNodeManager(), dnf);
+  dnf = recursiveFlatten(e->getNodeManager(), dnf);
   if (TraceIsOn("liastar-ext-smt"))
-  {    
+  {
     Trace("liastar-ext-smt") << "(push 1)" << std::endl;
     Trace("liastar-ext-smt") << "(echo \"dnf\")" << std::endl;
     Trace("liastar-ext-smt") << "(assert " << std::endl
@@ -136,6 +136,7 @@ Node LiaStarUtils::distribute(Node n, Env* e)
   Kind k = n.getKind();
   switch (k)
   {
+    case Kind::VARIABLE:
     case Kind::BOUND_VARIABLE:
     case Kind::CONST_BOOLEAN:
     case Kind::LT:
@@ -245,6 +246,7 @@ Node LiaStarUtils::removeItes(Node n, Env* e)
   Kind k = n.getKind();
   switch (k)
   {
+    case Kind::VARIABLE:
     case Kind::BOUND_VARIABLE:
     case Kind::CONST_BOOLEAN: return n;
     case Kind::LT:
@@ -326,6 +328,7 @@ Node LiaStarUtils::removeNot(Node n, Env* e)
   Kind k = nnf.getKind();
   switch (k)
   {
+    case Kind::VARIABLE:
     case Kind::BOUND_VARIABLE:
     case Kind::CONST_BOOLEAN:
     case Kind::LT:
@@ -418,7 +421,9 @@ std::vector<std::pair<Node, Node>> LiaStarUtils::removeIntegerItes(Node n,
   Kind k = n.getKind();
   switch (k)
   {
+    case Kind::VARIABLE:
     case Kind::BOUND_VARIABLE:
+    case Kind::NEG:
     case Kind::CONST_INTEGER: return {{trueConst, n}};
     case Kind::ADD:
     case Kind::SUB:

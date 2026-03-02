@@ -60,7 +60,7 @@ enum class FormulaLitPolicy : uint32_t
 
 /**
  * Implements the following recursive algorithm
- * http://people.inf.ethz.ch/daniekro/classes/251-0247-00/f2007/readings/Tseitin70.pdf
+ * https://link.springer.com/chapter/10.1007/978-3-642-81955-1_28
  * in a single pass.
  *
  * The general idea is to introduce a new literal that will be equivalent to

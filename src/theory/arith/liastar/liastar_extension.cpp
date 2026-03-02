@@ -497,7 +497,7 @@ LiaStarExtension::convertQFLIAToMatrices(Node n)
 
   if (TraceIsOn("liastar-ext-smt"))
   {
-    Trace("liastar-ext-smt") << "(set-logic HO_ALL)" << std::endl;
+    Trace("liastar-ext-smt") << "(set-logic ALL)" << std::endl;
     Trace("liastar-ext-smt") << "(set-option :incremental true)" << std::endl;
     Trace("liastar-ext-smt")
         << "(set-option :produce-models true)" << std::endl;
