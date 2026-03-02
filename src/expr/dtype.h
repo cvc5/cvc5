@@ -119,7 +119,7 @@ class DType
   /**
    * Get the datatype of a constructor, selector, or tester operator.
    */
-  static const DType& datatypeOf(Node item);
+  CVC5_NO_DANGLING static const DType& datatypeOf(Node item);
 
   /**
    * Get the index of a constructor or tester in its datatype, or the
