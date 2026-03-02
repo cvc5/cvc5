@@ -524,14 +524,12 @@ def generate_module_holder_decl(module):
         # Sort into buckets based on type
         if option.type in ['double', 'int64_t', 'uint64_t']:
             size_8.append(decl)
-            size_1.append(flag_decl)
         elif option.type == 'bool':
             size_1.append(decl)
-            size_1.append(flag_decl)
         else:
             # Assuming remaining types are user-defined enums (4 bytes)
             size_4.append(decl)
-            size_1.append(flag_decl)
+        size_1.append(flag_decl)
 
     # Combine buckets from largest alignment to smallest
     all_fields = size_8 + size_4 + size_1
