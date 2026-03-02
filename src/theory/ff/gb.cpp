@@ -70,7 +70,7 @@ FfResult gb(const std::vector<Node>& facts,
   const CoCoA::ideal ideal = CoCoA::ideal(generators);
   std::vector<Poly> basis;
   {
-    CodeTimer timer(stats->d_reductionTime);
+    CodeTimer timer(stats->d_timeGbRuns);
     basis = GBasisTimeout(ideal, env.getResourceManager());
   }
   if (env.getOptions().ff.ffTraceGb) tracer.unsetFunctionPointers();

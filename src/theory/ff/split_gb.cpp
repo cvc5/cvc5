@@ -209,7 +209,10 @@ SplitGb splitGb(const std::vector<Polys>& generatorSets,
         std::copy(newPolys[i].begin(),
                   newPolys[i].end(),
                   std::back_inserter(newGens));
-        splitBasis[i] = Gb(newGens, env.getResourceManager());
+        {
+          CodeTimer timer(stats->d_timeGbRuns);
+          splitBasis[i] = Gb(newGens, env.getResourceManager());
+        }
         newPolys[i].clear();
       }
     }
@@ -371,9 +374,8 @@ void checkZero(const SplitGb& origBases, const Point& zero)
   }
 }
 
-Gb::Gb() : d_ideal(), d_basis(){};
-Gb::Gb(const std::vector<Poly>& generators, const ResourceManager* rm)
-    : d_ideal(), d_basis()
+Gb::Gb() : d_ideal(), d_basis(){}
+Gb::Gb(const std::vector<Poly>& generators, const ResourceManager* rm) : Gb()
 {
   if (generators.size())
   {

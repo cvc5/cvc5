@@ -33,7 +33,7 @@ struct FfStatistics
   /**
    * Time spent in Groebner-basis reductions
    */
-  TimerStat d_reductionTime;
+  TimerStat d_timeGbRuns;
   /**
    * Number of reductions where 1 was in the original ideal.
    * I.e. the number of times that the ideal was trivially unsat.

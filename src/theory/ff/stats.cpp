@@ -20,8 +20,8 @@ namespace theory {
 namespace ff {
 
 FfStatistics::FfStatistics(StatisticsRegistry& reg, const std::string& prefix)
-    : d_numGbRuns(reg.registerInt(prefix + "num_runs")),
-      d_reductionTime(reg.registerTimer(prefix + "reduction_time")),
+    : d_numGbRuns(reg.registerInt(prefix + "num_gb_runs")),
+      d_timeGbRuns(reg.registerTimer(prefix + "time_gb_runs")),
       d_numTrivialUnsat(reg.registerInt(prefix + "num_trivial_unsat")),
       d_modelConstructionTime(
           reg.registerTimer(prefix + "model_construction_time")),
