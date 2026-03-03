@@ -208,6 +208,9 @@ std::vector<Node> PartitionGenerator::collectLiterals(LiteralListType litType)
 
 void PartitionGenerator::emitPartition(Node toEmit)
 {
+  // For grabbing partitions via API
+  d_partitions.push_back(toEmit);
+
   *options().parallel.partitionsOut << toEmit << std::endl;
   ++d_numPartitionsSoFar;
   d_createdAnyPartitions = true;
