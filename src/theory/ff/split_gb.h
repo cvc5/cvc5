@@ -71,7 +71,7 @@ using SplitGb = std::vector<Gb>;
 FfResult split(const std::vector<Node>& facts,
                const FfSize& size,
                const Env& env,
-               FfStatistics* stats);
+               FfStatistics* stats = nullptr);
 
 /** Compute a split Gb.
  *
@@ -86,7 +86,7 @@ FfResult split(const std::vector<Node>& facts,
 std::vector<Gb> splitGb(const std::vector<std::vector<Poly>>& generatorSets,
                         BitProp& bitProp,
                         const Env& env,
-                        FfStatistics* stats);
+                        FfStatistics* stats = nullptr);
 
 /** Whether to admit p into ideal i. */
 bool admit(size_t i, const Poly& p);
@@ -107,7 +107,7 @@ std::optional<Point> splitFindZero(SplitGb&& splitBasis,
                                    CoCoA::ring polyRing,
                                    BitProp& bitProp,
                                    const Env& env,
-                                   FfStatistics* stats);
+                                   FfStatistics* stats = nullptr);
 
 /** Apply a branching rule.
  *

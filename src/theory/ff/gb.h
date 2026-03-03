@@ -44,7 +44,7 @@ namespace ff {
 FfResult gb(const std::vector<Node>& facts,
             const FfSize& size,
             const Env& env,
-            FfStatistics* stats);
+            FfStatistics* stats = nullptr);
 
 }
 }

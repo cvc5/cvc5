@@ -65,12 +65,12 @@ FfResult gb(const std::vector<Node>& facts,
     }
   }
   Tracer tracer(generators);
-  ++stats->d_numGbRuns;
+  if (stats) ++stats->d_numGbRuns;
   if (env.getOptions().ff.ffTraceGb) tracer.setFunctionPointers();
   const CoCoA::ideal ideal = CoCoA::ideal(generators);
   std::vector<Poly> basis;
   {
-    CodeTimer timer(stats->d_timeGbRuns);
+    CodeTimer timer(stats ? &stats->d_timeGbRuns : nullptr);
     basis = GBasisTimeout(ideal, env.getResourceManager());
   }
   if (env.getOptions().ff.ffTraceGb) tracer.unsetFunctionPointers();
@@ -80,7 +80,7 @@ FfResult gb(const std::vector<Node>& facts,
   if (is_trivial)
   {
     Trace("ff::gb") << "Trivial GB" << std::endl;
-    ++stats->d_numTrivialUnsat;
+    if (stats) ++stats->d_numTrivialUnsat;
     if (env.getOptions().ff.ffTraceGb)
     {
       std::vector<size_t> coreIndices = tracer.trace(basis.front());
@@ -114,7 +114,7 @@ FfResult gb(const std::vector<Node>& facts,
 
     std::vector<CoCoA::RingElem> root;
     {
-      CodeTimer timer(stats->d_modelConstructionTime);
+      CodeTimer timer(stats ? &stats->d_modelConstructionTime : nullptr);
       root = findZero(ideal, env, stats);
     }
 

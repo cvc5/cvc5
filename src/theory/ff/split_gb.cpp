@@ -191,7 +191,7 @@ SplitGb splitGb(const std::vector<Polys>& generatorSets,
                 const Env& env,
                 FfStatistics* stats)
 {
-  ++stats->d_numGbRuns;
+  if (stats) ++stats->d_numGbRuns;
   size_t k = generatorSets.size();
   std::vector<Polys> newPolys(generatorSets);
   SplitGb splitBasis(k);
@@ -210,7 +210,7 @@ SplitGb splitGb(const std::vector<Polys>& generatorSets,
                   newPolys[i].end(),
                   std::back_inserter(newGens));
         {
-          CodeTimer timer(stats->d_timeGbRuns);
+          CodeTimer timer(stats ? &stats->d_timeGbRuns : nullptr);
           splitBasis[i] = Gb(newGens, env.getResourceManager());
         }
         newPolys[i].clear();
