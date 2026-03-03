@@ -102,14 +102,14 @@ std::vector<std::string> selectTags(const std::vector<std::string>& validTags, s
 
 OptionsHandler::OptionsHandler(Options* options) : d_options(options) { }
 
-void OptionsHandler::setErrStream(const std::string& flag, const ManagedErr& me)
+void OptionsHandler::setErrStream(const std::string& flag, const ManagedErr& me) const
 {
   Warning.setStream(me);
   TraceChannel.setStream(me);
 }
 
 Language OptionsHandler::stringToLanguage(const std::string& flag,
-                                          const std::string& optarg)
+                                          const std::string& optarg) const
 {
   if (optarg == "help")
   {
@@ -142,7 +142,8 @@ Languages currently supported as arguments to the --output-lang option:
   Unreachable();
 }
 
-void OptionsHandler::setInputLanguage(const std::string& flag, Language lang)
+void OptionsHandler::setInputLanguage(const std::string& flag,
+                                      Language lang) const
 {
   if (lang == Language::LANG_AST)
   {
@@ -155,7 +156,7 @@ void OptionsHandler::setInputLanguage(const std::string& flag, Language lang)
   }
 }
 
-void OptionsHandler::setVerbosity(const std::string& flag, int value)
+void OptionsHandler::setVerbosity(const std::string& flag, int value) const
 {
   if(Configuration::isMuzzledBuild()) {
     TraceChannel.setStream(&cvc5::internal::null_os);
@@ -181,7 +182,7 @@ void OptionsHandler::increaseVerbosity(const std::string& flag, bool value)
   setVerbosity(flag, d_options->base.verbosity);
 }
 
-void OptionsHandler::setStats(const std::string& flag, bool value)
+void OptionsHandler::setStats(const std::string& flag, bool value) const
 {
 #ifndef CVC5_STATISTICS_ON
   if (value)
@@ -201,7 +202,7 @@ void OptionsHandler::setStats(const std::string& flag, bool value)
   }
 }
 
-void OptionsHandler::setStatsDetail(const std::string& flag, bool value)
+void OptionsHandler::setStatsDetail(const std::string& flag, bool value) const
 {
 #ifndef CVC5_STATISTICS_ON
   if (value)
@@ -220,7 +221,7 @@ void OptionsHandler::setStatsDetail(const std::string& flag, bool value)
 }
 
 void OptionsHandler::enableTraceTag(const std::string& flag,
-                                    const std::string& optarg)
+                                    const std::string& optarg) const
 {
   if(!Configuration::isTracingBuild())
   {
@@ -247,7 +248,7 @@ void OptionsHandler::enableTraceTag(const std::string& flag,
 }
 
 void OptionsHandler::enableOutputTag(const std::string& flag,
-                                     OutputTag optarg)
+                                     OutputTag optarg) const
 {
   size_t tagid = static_cast<size_t>(optarg);
   Assert(d_options->base.outputTagHolder.size() > tagid)
@@ -256,13 +257,13 @@ void OptionsHandler::enableOutputTag(const std::string& flag,
 }
 
 void OptionsHandler::setResourceWeight(const std::string& flag,
-                                       const std::string& optarg)
+                                       const std::string& optarg) const
 {
   d_options->write_base().resourceWeightHolder.emplace_back(optarg);
 }
 
 void OptionsHandler::checkBvSatSolver(const std::string& flag,
-                                      BvSatSolverMode m)
+                                      BvSatSolverMode m) const
 {
   if (m == BvSatSolverMode::CRYPTOMINISAT
       && !Configuration::isBuiltWithCryptominisat())
@@ -330,7 +331,8 @@ void print_config_cond(std::ostream& out, const char* str, bool cond = false)
 }
 }  // namespace
 
-void OptionsHandler::showConfiguration(const std::string& flag, bool value)
+void OptionsHandler::showConfiguration(const std::string& flag,
+                                       bool value) const
 {
   if (!value) return;
   auto& o = std::cout;
@@ -373,19 +375,19 @@ void OptionsHandler::showConfiguration(const std::string& flag, bool value)
   print_config_cond(o, "editline", Configuration::isBuiltWithEditline());
 }
 
-void OptionsHandler::showCopyright(const std::string& flag, bool value)
+void OptionsHandler::showCopyright(const std::string& flag, bool value) const
 {
   if (!value) return;
   std::cout << Configuration::copyright() << std::endl;
 }
 
-void OptionsHandler::showVersion(const std::string& flag, bool value)
+void OptionsHandler::showVersion(const std::string& flag, bool value) const
 {
   if (!value) return;
   d_options->base.out << Configuration::aboutAndCopyright() << std::endl;
 }
 
-void OptionsHandler::showTraceTags(const std::string& flag, bool value)
+void OptionsHandler::showTraceTags(const std::string& flag, bool value) const
 {
   if (!value) return;
   if (!Configuration::isTracingBuild())
@@ -395,7 +397,7 @@ void OptionsHandler::showTraceTags(const std::string& flag, bool value)
   printTags(Configuration::getTraceTags());
 }
 
-void OptionsHandler::strictParsing(const std::string& flag, bool value)
+void OptionsHandler::strictParsing(const std::string& flag, bool value) const
 {
   if (value)
   {
