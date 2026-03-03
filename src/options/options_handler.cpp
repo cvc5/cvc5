@@ -331,8 +331,7 @@ static void print_config_cond(const char* str, bool cond = false)
 void OptionsHandler::showConfiguration(const std::string& flag, bool value)
 {
   if (!value) return;
-  std::cout << Configuration::about() << std::endl;
-
+  print_config("package", Configuration::getPackageName());
   print_config("version", Configuration::getVersionString());
   if (Configuration::isGitBuild())
   {
@@ -344,13 +343,6 @@ void OptionsHandler::showConfiguration(const std::string& flag, bool value)
   }
 
   std::cout << std::endl;
-
-  std::stringstream ss;
-  ss << Configuration::getVersionString();
-  print_config("library", ss.str());
-
-  std::cout << std::endl;
-
   print_config_cond("safe-mode", Configuration::isSafeBuild());
   print_config_cond("stable-mode", Configuration::isStableBuild());
   print_config_cond("debug code", Configuration::isDebugBuild());
@@ -387,7 +379,7 @@ void OptionsHandler::showCopyright(const std::string& flag, bool value)
 void OptionsHandler::showVersion(const std::string& flag, bool value)
 {
   if (!value) return;
-  d_options->base.out << Configuration::about() << std::endl;
+  d_options->base.out << Configuration::aboutAndCopyright() << std::endl;
 }
 
 void OptionsHandler::showTraceTags(const std::string& flag, bool value)
