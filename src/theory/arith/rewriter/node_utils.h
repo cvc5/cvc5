@@ -54,7 +54,7 @@ inline bool isRAN(TNode n)
   return n.getKind() == Kind::REAL_ALGEBRAIC_NUMBER;
 }
 /** Retrieve the wrapped a real algebraic number. Asserts isRAN(n) */
-inline const RealAlgebraicNumber& getRAN(TNode n)
+CVC5_NO_DANGLING inline const RealAlgebraicNumber& getRAN(TNode n)
 {
   Assert(isRAN(n));
   return n.getOperator().getConst<RealAlgebraicNumber>();
