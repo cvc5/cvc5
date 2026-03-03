@@ -336,8 +336,9 @@ void CpcLogosLeanChannelOut::printStep(const std::string& rname,
     std::string ret = "CIndexList.nil";
     for (size_t j = 0, npremises = pindices.size(); j < npremises; j++)
     {
+      size_t jj = (npremises-1)-j;
       std::stringstream retNext;
-      retNext << "(CIndexList.cons (Term.Numeral " << pindices[j] << ") " << ret << ")";
+      retNext << "(CIndexList.cons (Term.Numeral " << pindices[jj] << ") " << ret << ")";
       ret = retNext.str();
     }
     d_cmdList << " " << ret;

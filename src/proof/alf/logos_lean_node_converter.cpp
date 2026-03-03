@@ -138,6 +138,7 @@ Node LogosLeanNodeConverter::postConvert(Node n)
   else if (n.isVar() && d_symbols.find(n)==d_symbols.end())
   {
     d_constIdCount++;
+    Trace("print-logos-debug") << "Introduce UConst " << d_constIdCount << " for " << n << std::endl;
     std::stringstream ss;
     ss << "Term.UConst " << d_constIdCount;
     Node tnn = typeAsNode(n.getType());
