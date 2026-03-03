@@ -315,59 +315,62 @@ void OptionsHandler::checkBvSatSolver(const std::string& flag,
   }
 }
 
-static void print_config(const char* str, std::string config)
+namespace {
+void print_config(std::ostream& out, const char* str, const std::string& config)
 {
   std::string s(str);
-  unsigned sz = 14;
+  constexpr unsigned sz = 14;
   if (s.size() < sz) s.resize(sz, ' ');
-  std::cout << s << ": " << config << std::endl;
+  out << s << ": " << config << std::endl;
 }
 
-static void print_config_cond(const char* str, bool cond = false)
+void print_config_cond(std::ostream& out, const char* str, bool cond = false)
 {
-  print_config(str, cond ? "yes" : "no");
+  print_config(out, str, cond ? "yes" : "no");
 }
+}  // namespace
 
 void OptionsHandler::showConfiguration(const std::string& flag, bool value)
 {
   if (!value) return;
-  print_config("package", Configuration::getPackageName());
-  print_config("version", Configuration::getVersionString());
+  auto& o = std::cout;
+  print_config(o, "package", Configuration::getPackageName());
+  print_config(o, "version", Configuration::getVersionString());
   if (Configuration::isGitBuild())
   {
-    print_config("scm", Configuration::getGitInfo());
+    print_config(o, "scm", Configuration::getGitInfo());
   }
   else
   {
-    print_config_cond("scm", false);
+    print_config_cond(o, "scm", false);
   }
 
   std::cout << std::endl;
-  print_config_cond("safe-mode", Configuration::isSafeBuild());
-  print_config_cond("stable-mode", Configuration::isStableBuild());
-  print_config_cond("debug code", Configuration::isDebugBuild());
-  print_config_cond("statistics", configuration::isStatisticsBuild());
-  print_config_cond("tracing", Configuration::isTracingBuild());
-  print_config_cond("muzzled", Configuration::isMuzzledBuild());
-  print_config_cond("assertions", Configuration::isAssertionBuild());
-  print_config_cond("coverage", Configuration::isCoverageBuild());
-  print_config_cond("profiling", Configuration::isProfilingBuild());
-  print_config_cond("asan", Configuration::isAsanBuild());
-  print_config_cond("ubsan", Configuration::isUbsanBuild());
-  print_config_cond("tsan", Configuration::isTsanBuild());
-  print_config_cond("competition", Configuration::isCompetitionBuild());
-  print_config_cond("portfolio", Configuration::isBuiltWithPortfolio());
+  print_config_cond(o, "safe-mode", Configuration::isSafeBuild());
+  print_config_cond(o, "stable-mode", Configuration::isStableBuild());
+  print_config_cond(o, "debug code", Configuration::isDebugBuild());
+  print_config_cond(o, "statistics", configuration::isStatisticsBuild());
+  print_config_cond(o, "tracing", Configuration::isTracingBuild());
+  print_config_cond(o, "muzzled", Configuration::isMuzzledBuild());
+  print_config_cond(o, "assertions", Configuration::isAssertionBuild());
+  print_config_cond(o, "coverage", Configuration::isCoverageBuild());
+  print_config_cond(o, "profiling", Configuration::isProfilingBuild());
+  print_config_cond(o, "asan", Configuration::isAsanBuild());
+  print_config_cond(o, "ubsan", Configuration::isUbsanBuild());
+  print_config_cond(o, "tsan", Configuration::isTsanBuild());
+  print_config_cond(o, "competition", Configuration::isCompetitionBuild());
+  print_config_cond(o, "portfolio", Configuration::isBuiltWithPortfolio());
 
   std::cout << std::endl;
 
-  print_config_cond("cln", Configuration::isBuiltWithCln());
-  print_config_cond("glpk", Configuration::isBuiltWithGlpk());
-  print_config_cond("cryptominisat", Configuration::isBuiltWithCryptominisat());
-  print_config_cond("gmp", Configuration::isBuiltWithGmp());
-  print_config_cond("kissat", Configuration::isBuiltWithKissat());
-  print_config_cond("poly", Configuration::isBuiltWithPoly());
-  print_config_cond("cocoa", Configuration::isBuiltWithCoCoA());
-  print_config_cond("editline", Configuration::isBuiltWithEditline());
+  print_config_cond(o, "cln", Configuration::isBuiltWithCln());
+  print_config_cond(o, "glpk", Configuration::isBuiltWithGlpk());
+  print_config_cond(o, "cryptominisat", Configuration::isBuiltWithCryptominisat());
+  print_config_cond(o, "gmp", Configuration::isBuiltWithGmp());
+  print_config_cond(o, "kissat", Configuration::isBuiltWithKissat());
+  print_config_cond(o, "poly", Configuration::isBuiltWithPoly());
+  print_config_cond(o, "cocoa", Configuration::isBuiltWithCoCoA());
+  print_config_cond(o, "editline", Configuration::isBuiltWithEditline());
 }
 
 void OptionsHandler::showCopyright(const std::string& flag, bool value)
