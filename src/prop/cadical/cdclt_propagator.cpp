@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mathias Preiner, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -545,8 +542,8 @@ void CadicalPropagator::user_pop()
       << " -> " << d_active_vars_control.size() << std::endl;
 
   // Disable activation literal for popped user level. The activation literal
-  // is added as unit clause, which will satisfy all clauses added in this
-  // user level and get garbage collected in the SAT solver.
+  // will be set inactive below and is added as unit clause, which will satisfy
+  // all clauses added in this user level and get garbage collected in CaDiCal.
   SatLiteral alit = current_activation_lit();
   Trace("cadical::propagator")
       << "disable activation lit: " << alit << std::endl;

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Morgan Deters, Dejan Jovanovic, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -724,7 +721,7 @@ class CVC5_EXPORT TypeNode
   bool isDatatypeUpdater() const;
 
   /** Get the internal Datatype specification from a datatype type. */
-  const DType& getDType() const;
+  CVC5_NO_DANGLING const DType& getDType() const;
 
   /** Get the exponent size of this floating-point type. */
   unsigned getFloatingPointExponentSize() const;

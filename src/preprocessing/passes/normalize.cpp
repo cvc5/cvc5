@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Daneshvar Amrollahi
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -968,6 +965,8 @@ PreprocessingPassResult Normalize::applyInternal(
       eqClasses.begin(),
       eqClasses.end(),
       [](const std::vector<NodeInfo*>& a, const std::vector<NodeInfo*>& b) {
+        // Silence false positive: https://github.com/llvm/llvm-project/issues/78132
+        // NOLINTNEXTLINE(clang-analyzer-cplusplus.Move)
         return a[0]->encoding > b[0]->encoding;
       });
 

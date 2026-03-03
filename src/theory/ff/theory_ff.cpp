@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Alex Ozdemir, Andrew Reynolds, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -191,7 +188,7 @@ void TheoryFiniteFields::preRegisterTerm(TNode node)
   }
   if (d_subTheories.count(fieldTy) == 0)
   {
-    d_subTheories.try_emplace(fieldTy, d_env, d_stats.get(), ty.getFfSize());
+    d_subTheories.try_emplace(fieldTy, d_env, ty.getFfSize());
   }
 #else  /* CVC5_USE_COCOA */
   noCoCoA();
