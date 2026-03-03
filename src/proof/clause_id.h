@@ -29,9 +29,9 @@ typedef unsigned ClauseId;
 /** Reserved clauseId values used in the resolution proof. The represent,
  * respectively, the empty clause, that adding the clause to the SAT solver was
  * a no-op, and that an error occurred when trying to add. */
-const ClauseId ClauseIdEmpty(-1);
-const ClauseId ClauseIdUndef(-2);
-const ClauseId ClauseIdError(-3);
+constexpr ClauseId ClauseIdEmpty(-1);
+constexpr ClauseId ClauseIdUndef(-2);
+constexpr ClauseId ClauseIdError(-3);
 
 }  // namespace cvc5::internal
 

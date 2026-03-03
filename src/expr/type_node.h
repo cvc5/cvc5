@@ -721,7 +721,7 @@ class CVC5_EXPORT TypeNode
   bool isDatatypeUpdater() const;
 
   /** Get the internal Datatype specification from a datatype type. */
-  const DType& getDType() const;
+  CVC5_NO_DANGLING const DType& getDType() const;
 
   /** Get the exponent size of this floating-point type. */
   unsigned getFloatingPointExponentSize() const;

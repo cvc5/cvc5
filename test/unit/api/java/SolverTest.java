@@ -1852,10 +1852,10 @@ class SolverTest
   @Test
   void setOption() throws CVC5ApiException
   {
-    assertDoesNotThrow(() -> d_solver.setOption("bv-sat-solver", "minisat"));
+    assertDoesNotThrow(() -> d_solver.setOption("bv-sat-solver", "cadical"));
     assertThrows(CVC5ApiException.class, () -> d_solver.setOption("bv-sat-solver", "1"));
     d_solver.assertFormula(d_solver.mkTrue());
-    assertThrows(CVC5ApiException.class, () -> d_solver.setOption("bv-sat-solver", "minisat"));
+    assertThrows(CVC5ApiException.class, () -> d_solver.setOption("bv-sat-solver", "cadical"));
   }
 
   @Test

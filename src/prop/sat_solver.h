@@ -15,56 +15,44 @@
 #ifndef CVC5__PROP__SAT_SOLVER_H
 #define CVC5__PROP__SAT_SOLVER_H
 
-#include <string>
-
-#include "context/cdlist.h"
-#include "context/context.h"
-#include "expr/node.h"
 #include "proof/clause_id.h"
 #include "prop/prop_proof_manager.h"
 #include "prop/sat_solver_types.h"
-#include "util/statistics_stats.h"
 
 namespace cvc5::internal {
-
 namespace prop {
 
+class SatSolverFactory;
 class SatProofManager;
 class TheoryProxy;
 
-class SatSolver {
+class SatSolver
+{
+  friend class SatSolverFactory;
 
-public:
+ public:
 
   /** Virtual destructor */
-  virtual ~SatSolver() { }
+  virtual ~SatSolver() = default;
 
   /**
    * Add clause to SAT solver.
    * @param clause    The clause to add.
    * @param removable True to indicate that this clause is not irredundant.
    */
-  virtual ClauseId addClause(SatClause& clause,
-                             bool removable) = 0;
-
-  /** Return true if the solver supports native xor resoning */
-  virtual bool nativeXor() { return false; }
-
-  /** Add a clause corresponding to rhs = l1 xor .. xor ln  */
-  virtual ClauseId addXorClause(SatClause& clause, bool rhs, bool removable) = 0;
+  virtual ClauseId addClause(const SatClause& clause, bool removable) = 0;
 
   /**
    * Create a new boolean variable in the solver.
    * @param isTheoryAtom is this a theory atom that needs to be asserted to
    * theory
    * @param canErase whether the sat solver can safely eliminate this variable
-   *
    */
   virtual SatVariable newVar(bool isTheoryAtom, bool canErase) = 0;
 
   /**
    * Create a new (or return an existing) boolean variable representing the
-   * constant true.
+   * constant `true`.
    * @return The variable representing true.
    */
   virtual SatVariable trueVar() = 0;
@@ -83,11 +71,7 @@ public:
   virtual SatValue solve(long unsigned int&) = 0;
 
   /** Check satisfiability under assumptions */
-  virtual SatValue solve(CVC5_UNUSED const std::vector<SatLiteral>& assumptions)
-  {
-    Unimplemented() << "Solving under assumptions not implemented";
-    return SAT_VALUE_UNKNOWN;
-  };
+  virtual SatValue solve(const std::vector<SatLiteral>& assumptions) = 0;
 
   /**
    * Tell SAT solver to only do propagation on next solve().
@@ -105,9 +89,6 @@ public:
   /** Call modelValue() when the search is done.*/
   virtual SatValue modelValue(SatLiteral l) = 0;
 
-  /** Get the current assertion level */
-  virtual uint32_t getAssertionLevel() const = 0;
-
   /** Check if the solver is in an inconsistent state */
   virtual bool ok() const = 0;
 
@@ -119,21 +100,26 @@ public:
    * Can only be called if satisfiability check under assumptions was used and
    * if it returned SAT_VALUE_FALSE.
    */
-  virtual void getUnsatAssumptions(
-      CVC5_UNUSED std::vector<SatLiteral>& unsat_assumptions)
-  {
-    Unimplemented() << "getUnsatAssumptions not implemented";
-  }
+  virtual void getUnsatAssumptions(std::vector<SatLiteral>& unsat_assumptions) = 0;
 
-};/* class SatSolver */
+ private:
+  /** Is called by the SatSolverFactory right after construction. */
+  virtual void initialize() = 0;
+
+};
 
 class CDCLTSatSolver : public SatSolver
 {
- public:
-  virtual ~CDCLTSatSolver(){};
+  friend class SatSolverFactory;
 
-  virtual void initialize(prop::TheoryProxy* theoryProxy,
-                          PropPfManager* ppm) = 0;
+ public:
+  /** Virtual destructor */
+  ~CDCLTSatSolver() override = default;
+
+  virtual void attachProofManager(PropPfManager* ppm) = 0;
+
+  /** Get the current assertion level */
+  virtual uint32_t getAssertionLevel() const = 0;
 
   virtual void push() = 0;
 
@@ -184,44 +170,22 @@ class CDCLTSatSolver : public SatSolver
    */
   virtual std::shared_ptr<ProofNode> getProof() = 0;
 
+ private:
+  /**
+   * Regular initialization to generate a solver that does not have
+   * CDCLT features. To be called by SatSolverFactory.
+   */
+  void initialize() override = 0;
+
+  /**
+   * Used instead of initialize() to initializes the solver to act as
+   * CDCLT solver. To be called by SatSolverFactory.
+   */
+  virtual void initialize(TheoryProxy* theoryProxy) = 0;
+
 }; /* class CDCLTSatSolver */
-
-inline std::ostream& operator <<(std::ostream& out, prop::SatLiteral lit) {
-  out << lit.toString();
-  return out;
-}
-
-inline std::ostream& operator <<(std::ostream& out, const prop::SatClause& clause) {
-  out << "clause:";
-  for(unsigned i = 0; i < clause.size(); ++i) {
-    out << " " << clause[i];
-  }
-  out << ";";
-  return out;
-}
-
-inline std::ostream& operator <<(std::ostream& out, prop::SatValue val) {
-  std::string str;
-  switch(val) {
-  case prop::SAT_VALUE_UNKNOWN:
-    str = "_";
-    break;
-  case prop::SAT_VALUE_TRUE:
-    str = "1";
-    break;
-  case prop::SAT_VALUE_FALSE:
-    str = "0";
-    break;
-  default:
-    str = "Error";
-    break;
-  }
-
-  out << str;
-  return out;
-}
 
 }  // namespace prop
 }  // namespace cvc5::internal
 
-#endif /* CVC5__PROP__SAT_MODULE_H */
+#endif /* CVC5__PROP__SAT_SOLVER_H */

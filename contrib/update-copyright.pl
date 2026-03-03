@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 #
 # update-copyright.pl
-# Copyright (c) 2009-2025  The cvc5 Project
+# Copyright (c) 2009-2026  The cvc5 Project
 #
 # usage: update-copyright [-m] [files/directories...]
 #        update-copyright [-h | --help]
@@ -38,10 +38,6 @@ my $excluded_paths = '^(';
 # note: first excluded path regexp must not start with a '|'
 # different license
 $excluded_paths .= 'cmake/CodeCoverage.cmake';
-$excluded_paths .= '|cmake/FindCython.cmake';
-$excluded_paths .= '|cmake/FindPythonExtensions.cmake';
-$excluded_paths .= '|cmake/UseCython.cmake';
-$excluded_paths .= '|cmake/targetLinkLibrariesWithDynamicLookup.cmake';
 $excluded_paths .= '|cmake/version-base.cmake';
 # minisat license
 $excluded_paths .= '|src/prop/(bv)?minisat/core/.*';
@@ -52,7 +48,8 @@ $excluded_paths .= ')$';
 
 # Years of copyright for the template.  E.g., the string
 # "1985, 1987, 1992, 1997, 2008" or "2006-2009" or whatever.
-my $years = '2009-2026';
+my $year = (localtime)[5] + 1900;
+my $years = "2009-$year";
 
 my $standard_template = <<EOF;
  * This file is part of the cvc5 project.
@@ -126,7 +123,6 @@ The directories in which to search for and change sources is:
   $pwd/include
   $pwd/examples
   $pwd/test
-  $pwd/doc
   $pwd/docs
 
 Continue? y or n:
@@ -140,6 +136,8 @@ EOF
   $searchdirs[2] = 'src';
   $searchdirs[3] = 'examples';
   $searchdirs[4] = 'test';
+  $searchdirs[5] = 'include';
+  $searchdirs[6] = 'docs';
 } else {
   @searchdirs = @ARGV;
 }
@@ -168,7 +166,7 @@ while($#searchdirs >= 0) {
 
 sub reqHashPrefix {
   my ($file) = @_;
-  return ($file =~ /\.(cmake|py|pxd|pxi|pyx)(\.in)?$/ or $file =~ /CMakeLists\.txt/);
+  return ($file =~ /\.(cmake|py|pxd|pxi|pyx)(\.in)?$/ or $file =~ /CMakeLists\.txt/ or $file =~ /FindDummy\.cmake\.template/);
 }
 
 sub printHeader {

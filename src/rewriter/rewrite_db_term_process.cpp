@@ -67,6 +67,14 @@ Node RewriteDbNodeConverter::postConvert(Node n)
     recordProofStep(n, ret, ProofRule::ENCODE_EQ_INTRO);
     return ret;
   }
+  else if (k == Kind::NONLINEAR_MULT)
+  {
+    // NONLINEAR_MULT and MULT are the same
+    std::vector<Node> children(n.begin(), n.end());
+    Node ret = d_nm->mkNode(Kind::MULT, children);
+    recordProofStep(n, ret, ProofRule::ENCODE_EQ_INTRO);
+    return ret;
+  }
   else if (k == Kind::CONST_BITVECTOR)
   {
     // (_ bv N M) is (bv N M)
