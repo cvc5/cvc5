@@ -1,7 +1,12 @@
 #!/usr/bin/perl -w
+###############################################################################
+# This file is part of the cvc5 project.
 #
-# update-copyright.pl
-# Copyright (c) 2009-2026  The cvc5 Project
+# Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
 #
 # usage: update-copyright [-m] [files/directories...]
 #        update-copyright [-h | --help]
@@ -46,8 +51,7 @@ $excluded_paths .= '|src/prop/(bv)?minisat/simp/.*';
 $excluded_paths .= '|src/prop/(bv)?minisat/utils/.*';
 $excluded_paths .= ')$';
 
-# Years of copyright for the template.  E.g., the string
-# "1985, 1987, 1992, 1997, 2008" or "2006-2009" or whatever.
+# Years of copyright for the template.
 my $year = (localtime)[5] + 1900;
 my $years = "2009-$year";
 
@@ -82,6 +86,7 @@ $doc_template_hash =~ s/\#\//\#\#/g;
 ## end config ##
 
 use strict;
+use warnings FATAL => 'all';
 use Fcntl ':mode';
 
 my $dir = $0;
@@ -138,6 +143,7 @@ EOF
   $searchdirs[4] = 'test';
   $searchdirs[5] = 'include';
   $searchdirs[6] = 'docs';
+  $searchdirs[7] = 'contrib';
 } else {
   @searchdirs = @ARGV;
 }
@@ -166,7 +172,7 @@ while($#searchdirs >= 0) {
 
 sub reqHashPrefix {
   my ($file) = @_;
-  return ($file =~ /\.(cmake|py|pxd|pxi|pyx)(\.in)?$/ or $file =~ /CMakeLists\.txt/ or $file =~ /FindDummy\.cmake\.template/);
+  return ($file =~ /\.(cmake|py|pxd|pxi|pyx|pl|sh)(\.in)?$/ or $file =~ /CMakeLists\.txt/ or $file =~ /FindDummy\.cmake\.template/);
 }
 
 sub printHeader {
