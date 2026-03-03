@@ -38,11 +38,21 @@
 
 (define-rule arith-to-int-elim-to-real ((x Int)) (to_int (to_real x)) x)
 
+(define-cond-rule arith-mod-over-mod-1 ((c Int) (r Int))
+  (not (= c 0))
+  (mod_total (mod_total r c) c)
+  (mod_total r c))
+
 (define-cond-rule arith-mod-over-mod ((c Int) (ts Int :list) (r Int) (ss Int :list))
   (not (= c 0))
   (mod_total (+ ts (mod_total r c) ss) c)
   (mod_total (+ ts r ss) c))
 
+(define-cond-rule arith-mod-over-mod-mult ((c Int) (ts Int :list) (r Int) (ss Int :list))
+  (not (= c 0))
+  (mod_total (* ts (mod_total r c) ss) c)
+  (mod_total (* ts r ss) c))
+  
 (define-cond-rule arith-int-eq-conflict ((t Int) (c Real))
   (not (= (to_real (to_int c)) c))
   (= (to_real t) c)
