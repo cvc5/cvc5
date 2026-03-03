@@ -47,7 +47,7 @@ class TestLiaStarUtils : public TestSmt
   Node a, b, c, d, f, g, u, v, x, y, z;
   NodeManager* nm;
   Env* e;
-  std::stringstream ss;
+
   void SetUp() override
   {
     TestSmt::SetUp();
