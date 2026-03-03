@@ -53,7 +53,6 @@ $excluded_paths .= ')$';
 
 # Years of copyright for the template.
 my $year = (localtime)[5] + 1900;
-my $year = (localtime)[5] + 1900;
 my $years = "2009-$year";
 
 my $standard_template = <<EOF;
