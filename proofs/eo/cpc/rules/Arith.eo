@@ -9,10 +9,10 @@
 
 ; program: $arith_rel_sum
 ; args:
-; - r1 T : The first arithmetic relation.
-; - r2 U : The second arithmetic relation.
-; - a V: The first term in the relation.
-; - b W: The second term in the relation.
+; - r1 (-> T T Bool) : The first arithmetic relation.
+; - r2 (-> T T Bool) : The second arithmetic relation.
+; - a T: The first term in the relation.
+; - b T: The second term in the relation.
 ; return: >
 ;   The relation that is implied when applications of the relations r1 and
 ;   r2 are added together for ProofRule::ARITH_SUM_UB and applied to a and b.
@@ -75,7 +75,7 @@
 
 ; program: $mk_arith_mult_pos
 ; args:
-; - m S: A real or integer term to multiply by.
+; - m T: A real or integer term to multiply by.
 ; - F Bool: The arithmetic atom to multiply.
 ; return: >
 ;   the result of multiply the atom by m. This is used to compute the
@@ -104,9 +104,9 @@
 
 ; program: $arith_rel_inv
 ; args:
-; - r T: An arithmetic relation.
-; - a U: The first term in the relation.
-; - b V: The second term in the relation.
+; - r (-> T T Bool): An arithmetic relation.
+; - a T: The first term in the relation.
+; - b T: The second term in the relation.
 ; return: >
 ;   The relation that is obtained by flipping its arguments, applied to a and b.
 ;   This is used for determining the relation obtained when both sides are
@@ -124,7 +124,7 @@
 
 ; program: $mk_arith_mult_neg
 ; args:
-; - m S: A real or integer term to multiply by.
+; - m T: A real or integer term to multiply by.
 ; - F Bool: The arithmetic atom to multiply.
 ; return: >
 ;   the result of multiply the atom by m and invert its relation.
@@ -153,10 +153,10 @@
 
 ; program: $arith_rel_trichotomy
 ; args:
-; - r1 T: The first arithmetic relation.
-; - r2 U: The second arithmetic relation.
-; - a V: The first term in the relation.
-; - b W: The second term in the relation.
+; - r1 (-> T T Bool): The first arithmetic relation.
+; - r2 (-> T T Bool): The second arithmetic relation.
+; - a T: The first term in the relation.
+; - b T: The second term in the relation.
 ; return: >
 ;   The relation that, along with r1 and r2, forms a trichotomy over
 ;   arithmetic values, applied to a and b.
@@ -174,9 +174,9 @@
 
 ; program: $arith_rel_trichotomy
 ; args:
-; - r T: The arithmetic relation.
-; - a V: The first term in the relation.
-; - b W: The second term in the relation.
+; - r (-> T T Bool): The arithmetic relation.
+; - a T: The first term in the relation.
+; - b T: The second term in the relation.
 ; return: >
 ;   The relation corresponding to the negation of r, applied to a and b.
 (program $arith_rel_neg ((T Type) (a T) (b T))
@@ -204,8 +204,8 @@
 
 ; program: $mk_arith_trichotomy
 ; premises:
-; - F1: The first arithmetic atom, which is an application of a binary arithmetic relation.
-; - F2: The first arithmetic atom, which is an application of a binary arithmetic relation over the same terms as F1.
+; - F1 Bool: The first arithmetic atom, which is an application of a binary arithmetic relation.
+; - F2 Bool: The first arithmetic atom, which is an application of a binary arithmetic relation over the same terms as F1.
 ; return: The relation that along with F1 and F2 forms a trichotomy.
 (program $mk_arith_trichotomy
   ((T Type) (r1 (-> T T Bool)) (r2 (-> T T Bool)) (a T) (b T))
@@ -218,8 +218,8 @@
 ; rule: arith_trichotomy
 ; implements: ProofRule::ARITH_TRICHOTOMY
 ; premises:
-; - F1: The first arithmetic atom, which is an application of a (possibly negated) binary arithmetic relation.
-; - F2: The first arithmetic atom, which is an application of a (possibly negated) binary arithmetic relation over the same terms as F1.
+; - F1 Bool: The first arithmetic atom, which is an application of a (possibly negated) binary arithmetic relation.
+; - F2 Bool: The first arithmetic atom, which is an application of a (possibly negated) binary arithmetic relation over the same terms as F1.
 ; conclusion: >
 ;   A third relation over the same terms that along with F1 and F2
 ;   forms a trichotomy.
@@ -303,7 +303,7 @@
 ; program: $strip_even_exponent
 ; args:
 ; - t T: The variable to strip.
-; - m U: The monomial to process.
+; - m T: The monomial to process.
 ; return: >
 ;   The result of stripping even exponent of t from the beginning of m.
 (program $strip_even_exponent ((T Type) (t T) (m T :list))
