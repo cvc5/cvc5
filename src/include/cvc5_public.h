@@ -53,4 +53,14 @@
 #define CVC5_NORETURN [[noreturn]]
 #define CVC5_WARN_UNUSED_RESULT [[nodiscard]]
 
+// CVC5_NO_DANGLING suppresses dangling-reference warnings for
+// member functions that take a temporary object but return
+// a reference to an object whose lifetime exceed that of
+// the temporary.
+#if defined(__GNUC__) && __GNUC__ >= 14
+#define CVC5_NO_DANGLING [[gnu::no_dangling]]
+#else
+#define CVC5_NO_DANGLING
+#endif
+
 #endif /* CVC5_PUBLIC_H */

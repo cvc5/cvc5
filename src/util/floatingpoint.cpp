@@ -322,6 +322,10 @@ FloatingPoint FloatingPoint::minTotal(const FloatingPoint& arg,
       new FloatingPointLiteral(d_fpl->minTotal(*arg.d_fpl, zeroCaseLeft)));
 }
 
+// Suppress clang-analyzer-core.uninitialized.Assign for the
+// following functions as a workaround for a false positive
+// in clang-tidy 18.
+// NOLINTBEGIN(clang-analyzer-core.uninitialized.Assign)
 FloatingPoint::PartialFloatingPoint FloatingPoint::max(
     const FloatingPoint& arg) const
 {
@@ -335,6 +339,7 @@ FloatingPoint::PartialFloatingPoint FloatingPoint::min(
   FloatingPoint tmp(minTotal(arg, true));
   return PartialFloatingPoint(tmp, tmp == minTotal(arg, false));
 }
+// NOLINTEND(clang-analyzer-core.uninitialized.Assign)
 
 bool FloatingPoint::operator==(const FloatingPoint& fp) const
 {
