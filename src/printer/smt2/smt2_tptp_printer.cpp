@@ -104,6 +104,25 @@ std::string sanitizeUpper(const std::string& in)
 
 std::string join(const std::vector<std::string>& xs, const std::string& sep);
 
+void printTypeDecl(std::ostream& out,
+                   const char* ff,
+                   const std::string& id,
+                   const std::string& symbol,
+                   const std::string& type)
+{
+  const size_t kDeclSymbolColumn = 26;
+  std::stringstream head;
+  head << ff << "(" << id << ",type,";
+  const std::string prefix = head.str();
+  out << prefix;
+  size_t pad = 1;
+  if (prefix.size() < kDeclSymbolColumn)
+  {
+    pad = kDeclSymbolColumn - prefix.size();
+  }
+  out << std::string(pad, ' ') << symbol << ": " << type << " ).\n";
+}
+
 std::string typeToTptp(TypeNode tn, bool useThfTuple = false)
 {
   if (tn.isBoolean())
@@ -137,7 +156,7 @@ std::string typeToTptp(TypeNode tn, bool useThfTuple = false)
       chain.push_back(r);
       return join(chain, " > ");
     }
-    return "(" + join(argStrs, " * ") + ") > " + r;
+    return "( " + join(argStrs, " * ") + " ) > " + r;
   }
   return sanitizeLower(tn.toString());
 }
@@ -994,43 +1013,36 @@ void Smt2TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
   // 1) Top-level symbol declarations (original signature).
   for (const TypeNode& s : sorts)
   {
-    out << ff << "(" << sortNames[s] << "_type,type,      " << sortNames[s]
-        << ": $tType ).\n";
+    printTypeDecl(out, ff, sortNames[s] + "_type", sortNames[s], "$tType");
   }
   for (const Node& t : terms)
   {
     TypeNode tt = t.getType();
     std::string tn = sanitizeLower(t.toString());
-    if (!tt.isFunction())
-    {
-      out << ff << "(" << tn << "_decl,type,      " << tn << ": "
-          << typeToTptp(tt, useThf) << " ).\n";
-      continue;
-    }
-    out << ff << "(" << tn << "_decl,type,      " << tn << ": "
-        << typeToTptp(tt, useThf)
-        << " ).\n";
+    printTypeDecl(out, ff, tn + "_decl", tn, typeToTptp(tt, useThf));
   }
   out << "\n%----Types of the domains\n";
   // 2) Finite-domain helper declarations used by the interpretation block.
   for (const TypeNode& s : sorts)
   {
-    out << ff << "(" << dSortNames[s] << "_type,type,    " << dSortNames[s]
-        << ": $tType ).\n";
+    printTypeDecl(out, ff, dSortNames[s] + "_type", dSortNames[s], "$tType");
   }
   out << "%----Types of the promotion functions\n";
   for (const TypeNode& s : sorts)
   {
-    out << ff << "(" << promoteNames[s] << "_decl,type,    " << promoteNames[s]
-        << ": " << dSortNames[s] << " > " << sortNames[s] << " ).\n";
+    printTypeDecl(out,
+                  ff,
+                  promoteNames[s] + "_decl",
+                  promoteNames[s],
+                  dSortNames[s] + " > " + sortNames[s]);
   }
   out << "%----Types of the domain elements\n";
   for (const TypeNode& s : sorts)
   {
     for (const Node& e : elems[s])
     {
-      out << ff << "(" << elemNames[e] << "_decl,type,      " << elemNames[e]
-          << ": " << dSortNames[s] << " ).\n";
+      printTypeDecl(
+          out, ff, elemNames[e] + "_decl", elemNames[e], dSortNames[s]);
     }
   }
   if (!hoElemNames.empty())
@@ -1044,8 +1056,11 @@ void Smt2TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
       }
       for (const Node& e : p.second)
       {
-        out << ff << "(" << hoElemNames[e] << "_decl,type,      " << hoElemNames[e]
-            << ": " << typeToTptp(p.first, useThf) << " ).\n";
+        printTypeDecl(out,
+                      ff,
+                      hoElemNames[e] + "_decl",
+                      hoElemNames[e],
+                      typeToTptp(p.first, useThf));
       }
     }
   }
@@ -1056,7 +1071,8 @@ void Smt2TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
   {
     modelName = "model";
   }
-  out << "\n" << ff << "(" << modelName << ",interpretation,\n";
+  const std::string domainName = modelName + "_domain";
+  out << "\n" << ff << "(" << domainName << ",interpretation,\n";
   out << "    ( ";
   // 3) Domain axioms: surjectivity, finite enumeration, distinctness,
   //    and injectivity of each promotion function.
@@ -1065,7 +1081,7 @@ void Smt2TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
   {
     if (!firstDomain)
     {
-      out << "\n      & ";
+      out << "\n    & ";
     }
     firstDomain = false;
     std::string sN = sortNames[s];
@@ -1076,8 +1092,15 @@ void Smt2TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
     out << "! [" << vS << ": " << sN << "] : ? [" << vDS << ": " << dsN << "] : "
         << vS << " = " << pN << "(" << vDS << ")";
 
-    out << "\n      & ! [" << vDS << ": " << dsN << "]: ( ";
     const std::vector<Node>& se = elems[s];
+    if (se.size() > 1)
+    {
+      out << "\n    & ! [" << vDS << ": " << dsN << "] :\n          ( ";
+    }
+    else
+    {
+      out << "\n    & ! [" << vDS << ": " << dsN << "] : ( ";
+    }
     for (size_t i = 0, n = se.size(); i < n; i++)
     {
       if (i > 0)
@@ -1089,7 +1112,7 @@ void Smt2TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
     out << " )";
     if (se.size() > 1)
     {
-      out << "\n      & $distinct(";
+      out << "\n    & $distinct(";
       for (size_t i = 0, n = se.size(); i < n; i++)
       {
         if (i > 0)
@@ -1100,9 +1123,9 @@ void Smt2TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
       }
       out << ")";
     }
-    out << "\n      & ! [" << vDS << "1: " << dsN << "," << vDS << "2: " << dsN
-        << "] : (" << pN << "(" << vDS << "1) = " << pN << "(" << vDS
-        << "2) => " << vDS << "1 = " << vDS << "2)";
+    out << "\n    & ! [" << vDS << "1: " << dsN << "," << vDS << "2: " << dsN
+        << "] :\n          ( " << pN << "(" << vDS << "1) = " << pN << "("
+        << vDS << "2) => " << vDS << "1 = " << vDS << "2 )";
   }
   // Finite-domain axioms for higher-order function types we materialize.
   size_t hoTypeIndex = 0;
@@ -1118,13 +1141,13 @@ void Smt2TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
     }
     if (!firstDomain)
     {
-      out << "\n      & ";
+      out << "\n    & ";
     }
     firstDomain = false;
     std::stringstream fv;
     fv << "F" << hoTypeIndex++;
     out << "! [" << fv.str() << ": (" << typeToTptp(p.first, useThf)
-        << ")]: ( ";
+        << ")] : ( ";
     for (size_t i = 0, n = p.second.size(); i < n; i++)
     {
       if (i > 0)
@@ -1141,7 +1164,7 @@ void Smt2TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
     out << " )";
     if (p.second.size() > 1)
     {
-      out << "\n      & $distinct(";
+      out << "\n    & $distinct(";
       bool first = true;
       for (const Node& e : p.second)
       {
@@ -1164,12 +1187,11 @@ void Smt2TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
   {
     out << "$true";
   }
-  out << " )\n";
 
   // 4) Interpret constants and total function/predicate tables by
   //    exhaustively evaluating all tuples of finite-domain elements.
-  out << "    & ( ";
-  bool firstEq = true;
+  std::vector<std::string> mappingConjs;
+  std::vector<std::string> atomConjs;
   for (const Node& t : terms)
   {
     TypeNode tt = t.getType();
@@ -1183,23 +1205,14 @@ void Smt2TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
         const bool resolved =
             resolveBoolValue(m, isDeclared, finiteTypeElems, t, b)
             || resolveBoolValue(m, isDeclared, finiteTypeElems, v, b);
-        if (!firstEq)
-        {
-          out << "\n      & ";
-        }
-        firstEq = false;
         if (!resolved)
         {
           // Fallback for unresolved propositional constants: keep the symbol in
           // the interpretation while preserving satisfiability.
-          out << "( " << tn << " | ~ " << tn << " )";
+          atomConjs.push_back("( " + tn + " | ~ " + tn + " )");
           continue;
         }
-        if (!b)
-        {
-          out << "~ ";
-        }
-        out << tn;
+        atomConjs.push_back((b ? "" : "~ ") + tn);
         continue;
       }
       std::string evn = resolveElemName(m, isDeclared, v, elemNames);
@@ -1207,12 +1220,9 @@ void Smt2TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
       {
         continue;
       }
-      if (!firstEq)
-      {
-        out << "\n      & ";
-      }
-      firstEq = false;
-      out << tn << " = " << promoteNames[tt] << "(" << evn << ")";
+      std::stringstream ss;
+      ss << tn << " = " << promoteNames[tt] << "(" << evn << ")";
+      mappingConjs.push_back(ss.str());
       continue;
     }
     std::vector<TypeNode> argTypes = tt.getArgTypes();
@@ -1289,27 +1299,23 @@ void Smt2TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
           continue;
         }
       }
-      if (!firstEq)
-      {
-        out << "\n      & ";
-      }
-      firstEq = false;
+      std::stringstream ss;
       if (emitNeg)
       {
-        out << "~ ";
+        ss << "~ ";
       }
-      out << tn << "(";
+      ss << tn << "(";
       bool tupleOk = true;
       for (size_t i = 0, n = tup.size(); i < n; i++)
       {
         if (i > 0)
         {
-          out << ",";
+          ss << ",";
         }
         TypeNode at = argTypes[i];
         if (at.isUninterpretedSort())
         {
-          out << promoteNames[at] << "(" << elemNames[tup[i]] << ")";
+          ss << promoteNames[at] << "(" << elemNames[tup[i]] << ")";
         }
         else
         {
@@ -1319,26 +1325,47 @@ void Smt2TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
             tupleOk = false;
             break;
           }
-          out << hit->second;
+          ss << hit->second;
         }
       }
       if (!tupleOk)
       {
         continue;
       }
-      out << ")";
+      ss << ")";
       if (!isPred)
       {
-        out << " = " << promoteNames[tt.getRangeType()] << "(" << vname << ")";
+        ss << " = " << promoteNames[tt.getRangeType()] << "(" << vname << ")";
+        mappingConjs.push_back(ss.str());
+      }
+      else
+      {
+        atomConjs.push_back(ss.str());
       }
     }
   }
-  if (firstEq)
+
+  bool hasConj = false;
+  for (const std::string& c : mappingConjs)
   {
-    out << "$true";
+    out << "\n    & " << c;
+    hasConj = true;
   }
-  out << " )\n";
-  out << "  ).\n";
+  if (!atomConjs.empty())
+  {
+    out << "\n    & ( " << atomConjs[0];
+    for (size_t i = 1, n = atomConjs.size(); i < n; i++)
+    {
+      out << "\n    & " << atomConjs[i];
+    }
+    out << " )";
+    hasConj = true;
+  }
+  if (!hasConj)
+  {
+    out << "\n    & $true";
+  }
+  out << " ) ).\n";
   out << "%--------------------------------------------------------\n";
 }
 
