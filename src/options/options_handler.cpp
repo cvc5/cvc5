@@ -329,20 +329,20 @@ void OptionsHandler::checkBvSatSolver(const std::string& flag,
   }
 }
 
-static void print_config(std::ostream& out, const char* str, std::string config)
+namespace {
+void print_config(std::ostream& out, const char* str, const std::string& config)
 {
   std::string s(str);
-  unsigned sz = 14;
+  constexpr unsigned sz = 14;
   if (s.size() < sz) s.resize(sz, ' ');
   out << s << ": " << config << std::endl;
 }
 
-static void print_config_cond(std::ostream& out,
-                              const char* str,
-                              bool cond = false)
+void print_config_cond(std::ostream& out, const char* str, bool cond = false)
 {
   print_config(out, str, cond ? "yes" : "no");
 }
+}  // namespace
 
 void OptionsHandler::showConfiguration(CVC5_UNUSED const std::string& flag,
                                        bool value)
