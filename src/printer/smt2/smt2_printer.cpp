@@ -1909,24 +1909,7 @@ void Smt2Printer::toStreamCmdDeclareType(std::ostream& out,
                                          const std::string& id,
                                          size_t arity) const
 {
-  if (d_variant == Variant::alf_variant)
-  {
-    out << "(declare-const " << cvc5::internal::quoteSymbol(id) << " ";
-    if (arity > 0)
-    {
-      out << "(->";
-      for (size_t i = 0; i < arity; i++)
-      {
-        out << " Type";
-      }
-      out << " Type))";
-    }
-    else
-    {
-      out << "Type)";
-    }
-    return;
-  }
+
   out << "(declare-sort " << cvc5::internal::quoteSymbol(id) << " " << arity
       << ")";
 }
