@@ -35,7 +35,7 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator,
    * Saves assignment for notified literal, enqueues corresponding theory
    * literal in theory proxy.
    *
-   * @param lit      The CaDiCaL literal that was assigned.
+   * @param lits      The CaDiCaL literal that was assigned.
    */
   void notify_assignment(const std::vector<int>& lits) override;
 
@@ -117,7 +117,7 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator,
 
   /**
    * Callback of the SAT solver to determine if we have a new clause to add.
-   * @param forgettable True if clause is not irredundant.
+   * @param is_forgettable True if the clause is not irredundant.
    * @return True to indicate that we have clauses to add.
    */
   bool cb_has_external_clause(bool& is_forgettable) override;
@@ -150,7 +150,7 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator,
   /**
    * Adds a new clause to the propagator.
    *
-   * The clause will not immediately added to the SAT solver, but instead
+   * The clause will not be immediately added to the SAT solver, but instead
    * will be added through the `cb_add_external_clause_lit` callback.
    *
    * Note: Filters out clauses satisfied by fixed literals.
@@ -162,9 +162,7 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator,
   /**
    * Add new CaDiCaL variable.
    * @param var            The variable to add.
-   * @param level          The current user assertion level.
    * @param is_theory_atom True if variable is a theory atom.
-   * @param in_search      True if SAT solver is currently in search().
    */
   void add_new_var(const SatVariable& var, bool is_theory_atom);
 
@@ -191,7 +189,11 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator,
    */
   void user_pop();
 
-  bool is_fixed(SatVariable var) const { return d_var_info[var].is_fixed; }
+  bool is_fixed(const SatVariable var) const
+  {
+    Assert(var < d_var_info.size());
+    return d_var_info[var].is_fixed;
+  }
 
   /**
    * Configure and record preferred phase of variable.
@@ -253,10 +255,10 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator,
   {
     uint32_t level_intro = 0;     // user level at which variable was created
     uint32_t level_fixed = 0;     // user level at which variable was fixed
+    int32_t assignment = 0;       // current variable assignment
     bool is_theory_atom = false;  // is variable a theory atom
     bool is_fixed = false;        // has variable fixed assignment
     bool is_active = true;        // is variable active
-    int32_t assignment = 0;       // current variable assignment
     int8_t phase = 0;             // preferred phase
   };
   /** Maps SatVariable to corresponding info struct. */
@@ -268,9 +270,9 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator,
    */
   std::vector<SatVariable> d_active_vars;
   /**
-   * Control stack to mananage d_active_vars on user pop.
+   * Control stack to manage d_active_vars on user pop.
    *
-   * Note: We do not use a User-context-dependent CDList here, since we neeed
+   * Note: We do not use a User-context-dependent CDList here, since we need
    *       to know which variables are popped and thus become inactive.
    */
   std::vector<size_t> d_active_vars_control;
@@ -282,8 +284,8 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator,
    * user_pop()). Activation literals get removed and disabled in user_pop().
    * The size of the vector corresponds to the current user level.
    *
-   * The activation literals corrsponding to the current user level gets
-   * automtically added to each clause added in this user level. With
+   * The activation literals corresponding to the current user level gets
+   * automatically added to each clause added in this user level. With
    * activation literals we can simulate push/pop of clauses in the SAT solver.
    */
   std::vector<SatLiteral> d_activation_literals;
@@ -300,7 +302,7 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator,
   /**
    * Control stack to manage d_assignments when backtracking on SAT level.
    *
-   * Note: We do not use a SAT-context-depenent CDList for d_assignments, since
+   * Note: We do not use a SAT-context-dependent CDList for d_assignments, since
    *       we need to know which non-fixed variables are unassigned on
    *       backtrack.
    */

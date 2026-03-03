@@ -2242,6 +2242,8 @@ void TheoryArithPrivate::resolveOutPropagated(
 
 struct SizeOrd {
   bool operator()(const ConstraintCPVec& a, const ConstraintCPVec& b) const{
+    // Silence false positive: https://github.com/llvm/llvm-project/issues/78132
+    // NOLINTNEXTLINE(clang-analyzer-cplusplus.Move)
     return a.size() < b.size();
   }
 };

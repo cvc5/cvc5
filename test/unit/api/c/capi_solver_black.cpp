@@ -2360,11 +2360,11 @@ TEST_F(TestCApiBlackSolver, get_logic)
 
 TEST_F(TestCApiBlackSolver, set_option)
 {
-  cvc5_set_option(d_solver, "bv-sat-solver", "minisat");
+  cvc5_set_option(d_solver, "bv-sat-solver", "cadical");
   ASSERT_DEATH(cvc5_set_option(d_solver, "bv-sat-solver", "1"),
                "unknown option");
   cvc5_assert_formula(d_solver, cvc5_mk_true(d_tm));
-  ASSERT_DEATH(cvc5_set_option(d_solver, "bv-sat-solver", "minisat"),
+  ASSERT_DEATH(cvc5_set_option(d_solver, "bv-sat-solver", "cadical"),
                "fully initialized");
 }
 
