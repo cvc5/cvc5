@@ -254,6 +254,10 @@ Node OperatorElim::eliminateOperators(NodeManager* nm,
       {
         num = nm->mkNode(Kind::TO_REAL, num);
       }
+      if (den.getType().isInteger())
+      {
+        den = nm->mkNode(Kind::TO_REAL, den);
+      }
       Node lem = nm->mkNode(
           Kind::IMPLIES,
           den.eqNode(mkZero(den.getType())).negate(),
