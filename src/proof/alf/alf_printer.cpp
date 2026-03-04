@@ -820,10 +820,10 @@ void AlfPrinter::printLetList(std::ostream& out, LetBinding& lbind)
     Node n = letList[i];
     if (d_isCpcLogos)
     {
-      out << "let " << d_termLetPrefix << lbind.getId(n);
-      out << " := ";
+      out << "def " << d_termLetPrefix << lbind.getId(n);
+      out << " : Term := ";
       Printer::getPrinter(out)->toStream(out, n, &lbind, false);
-      out << ";" << std::endl;
+      out << std::endl;
     }
     else
     {
@@ -869,7 +869,6 @@ void AlfPrinter::print(AlfPrintChannelOut& aout,
   {
     out << "import Cpc.Logos" << std::endl;
     out << "open Eo" << std::endl;
-    out << "#eval!" << std::endl;
   }
   Assert(d_pletMap.empty());
   d_pfIdCounter = 0;
