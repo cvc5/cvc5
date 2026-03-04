@@ -156,13 +156,12 @@ class MbqiEnum : protected EnvObj
    * @param auxLemmas Other lemmas to add.
    * @return true if we successfully modified the instantiation.
    */
-  bool constructInstantiation(
-      const Node& q,
-      const Node& query,
-      const std::vector<Node>& vars,
-      std::vector<Node>& mvs,
-      const std::map<Node, Node>& mvFreshVar,
-      std::vector<std::pair<Node, InferenceId>>& auxLemmas);
+  bool constructInstantiation(const Node& q,
+                              const Node& query,
+                              const std::vector<Node>& vars,
+                              std::vector<Node>& mvs,
+                              const std::map<Node, Node>& mvFreshVar,
+                              std::vector<std::pair<Node, InferenceId>>& auxLemmas);
 
  private:
   /**
