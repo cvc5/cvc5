@@ -1,4 +1,4 @@
-; COMMAND-LINE: --mbqi --no-mbqi-nested-check
+; COMMAND-LINE: --mbqi-enum --no-mbqi-nested-check
 ; EXPECT: unsat
 (set-logic HO_ALL)
 (declare-sort u 0)
