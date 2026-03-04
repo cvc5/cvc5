@@ -44,13 +44,16 @@ class LogosNodeConverter : public AlfNodeConverter
    */
   Node typeAsNode(TypeNode tni) override;
  private:
+   /** Returns the Lean identifier for an SMT-LIB identifier. */
    std::string cleanSmtId(const std::string& str);
+   /** The number of uninterpreted constants we have allocated */
    size_t d_constIdCount;
-   std::map<Node, size_t> d_constId;
   /** Cache for typeAsNode */
   std::map<TypeNode, Node> d_ltypeAsNode;
-  /** */
+  /** The number of uninterpreted sorts we have allocated */
   size_t d_sortIdCount;
+  /** type as node datatype */
+  Node typeAsNodeDatatype(const DType& dt, std::unordered_set<TypeNode>& scope);
 };
 
 }  // namespace proof

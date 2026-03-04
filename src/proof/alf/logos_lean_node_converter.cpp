@@ -22,6 +22,8 @@
 #include "util/string.h"
 #include "theory/uf/theory_uf_rewriter.h"
 #include "printer/smt2/smt2_printer.h"
+#include "expr/dtype.h"
+#include "expr/dtype_cons.h"
 
 namespace cvc5::internal {
 namespace proof {
@@ -202,6 +204,11 @@ Node LogosNodeConverter::typeAsNode(TypeNode tn)
     Node i = mkInternalSymbol(ssi.str(), d_nm->integerType());
     ret = mkInternalApp("Term.USort", {i}, d_sortType);
   }
+  else if (tn.isDatatype())
+  {
+    std::unordered_set<TypeNode> scope;
+    return typeAsNodeDatatype(tn.getDType(), scope);
+  }
   else if (tn.getNumChildren()>0)
   {
     size_t nchild = tn.getNumChildren();
@@ -240,6 +247,44 @@ Node LogosNodeConverter::typeAsNode(TypeNode tn)
     ret = mkInternalSymbol(ss.str(), d_sortType);
   }
   d_ltypeAsNode[tn] = ret;
+  return ret;
+}
+
+Node LogosLeanNodeConverter::typeAsNodeDatatype(const DType& dt, std::unordered_set<TypeNode>& scope)
+{
+  Node ret = mkInternalSymbol("Datatype.null", d_sortType);
+  Node consUnit = mkInternalSymbol("DatatypeCons.unit", d_sortType);
+  for (size_t j = 0, ncons = dt.getNumConstructors(); j < ncons; j++)
+  {
+    Node cons = consUnit;
+    // traverse the argument types
+    for (size_t k = 0, nargs = dt[j].getNumArgs(); k < nargs; k++)
+    {
+      Node an;
+      TypeNode argt = dt[j].getArgType((nargs-1)-k);
+      if (argt.isDatatype())
+      {
+        if (scope.insert(argt).second)
+        {
+          an = typeAsNodeDatatype(argt.getDType(), scope);
+          scope.erase(argt);
+        }
+        else
+        {
+          Node dtName = d_nm->mkConst(String(argt.getDType().getName()));
+          an = mkInternalApp("Term.DatatypeTypeRef", {dtName}, d_sortType);
+        }
+      }
+      else
+      {
+        an = typeAsNode(argt);
+      }
+      cons = mkInternalApp("DatatypeCons.cons", {an, cons}, d_sortType);
+    }
+    ret = mkInternalApp("Datatype.sum", {cons, ret}, d_sortType);
+  }
+  Node dtName = d_nm->mkConst(String(dt.getName()));
+  ret = mkInternalApp("Term.DatatypeType", {dtName, ret}, d_sortType);
   return ret;
 }
 
