@@ -74,7 +74,6 @@ class InstStrategyMbqi : public QuantifiersModule
   /** identify */
   std::string identify() const override { return "mbqi"; }
 
-  static Node mkNoMbqi(NodeManager* nm, Node bvl, Node body);
   static bool isNoMbqiAttribute(Node var);
 
  private:

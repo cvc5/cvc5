@@ -203,7 +203,6 @@ bool getVariables(TNode n,
  */
 void getSymbols(TNode n, std::unordered_set<Node>& syms);
 
-void getTerms(TNode n, std::unordered_set<Node>& terms);
 /**
  * For term n, this function collects the symbols that occur as a subterms
  * of n. A symbol is a variable that does not have kind BOUND_VARIABLE.

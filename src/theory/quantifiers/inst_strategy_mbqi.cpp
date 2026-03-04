@@ -709,18 +709,6 @@ struct NoMbqiAttributeId
 };
 typedef expr::Attribute<NoMbqiAttributeId, bool> NoMbqiAttribute;
 
-Node InstStrategyMbqi::mkNoMbqi(NodeManager* nm, Node bvl, Node body)
-{
-  Node qvar = NodeManager::mkDummySkolem("qinternal", nm->booleanType());
-  // this dummy variable marks that the quantified formula is internal
-  qvar.setAttribute(NoMbqiAttribute(), true);
-  // make the internal attribute, and put it in a singleton list
-  Node ip = nm->mkNode(Kind::INST_ATTRIBUTE, qvar);
-  Node ipl = nm->mkNode(Kind::INST_PATTERN_LIST, ip);
-  // make the overall formula
-  return nm->mkNode(Kind::FORALL, bvl, body, ipl);
-}
-
 bool InstStrategyMbqi::isNoMbqiAttribute(Node var)
 {
   return var.getAttribute(NoMbqiAttribute());

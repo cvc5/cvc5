@@ -318,8 +318,6 @@ Node MVarInfo::ChoiceElimNodeConverter::postConvert(Node n)
       lem = nm->mkNode(
           Kind::FORALL, nm->mkNode(Kind::BOUND_VAR_LIST, ubvl), lem, ipl);
     }
-    //  lem = InstStrategyMbqi::mkNoMbqi(nm, nm->mkNode(Kind::BOUND_VAR_LIST,
-    //  ubvl), lem);
     Trace("mbqi-enum-debug") << "TMP " << sym << " for " << n << std::endl;
     Trace("mbqi-enum-choice-grammar") << "-----> lemma " << lem << std::endl;
     d_lemmas[sym] = lem;
