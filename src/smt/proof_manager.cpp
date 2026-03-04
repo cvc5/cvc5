@@ -337,9 +337,9 @@ void PfManager::printProof(std::ostream& out,
     proof::AlfPrinter alfp(d_env, atp, d_rewriteDb.get());
     alfp.print(out, fp, scopeMode);
   }
-  else if (mode == options::ProofFormatMode::CPC_LOGOS_LEAN)
+  else if (mode == options::ProofFormatMode::CPC_LOGOS)
   {
-    proof::LogosLeanNodeConverter atp(nodeManager());
+    proof::LogosNodeConverter atp(nodeManager());
     proof::AlfPrinter alfp(d_env, atp, d_rewriteDb.get());
     alfp.print(out, fp, scopeMode);
   }

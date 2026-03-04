@@ -85,22 +85,46 @@ Node LogosNodeConverter::postConvert(Node n)
   {
     return mkInternalApp("Term.Apply", {n[0], n[1]}, n.getType());
   }
-  else if (k==Kind::BOUND_VAR_LIST)
+  else if (k==Kind::APPLY_CONSTRUCTOR || k==Kind::APPLY_TESTER || k==Kind::APPLY_SELECTOR || k==Kind::APPLY_UPDATER)
   {
-    // TODO
-  }
-  else if (k==Kind::FORALL || k==Kind::EXISTS || k==Kind::LAMBDA)
-  {
-    // TODO
-  }
-  else if (k==Kind::APPLY_CONSTRUCTOR)
-  {
-  }
-  else if (k==Kind::APPLY_TESTER)
-  {
-  }
-  else if (k==Kind::APPLY_SELECTOR)
-  {
+    Node op = n.getOperator();
+    unsigned index = DType::indexOf(op);
+    const DType& dt = DType::datatypeOf(op);
+    std::unordered_set<TypeNode> scope;
+    Node dtn = typeAsNodeDatatype(dt, scope);
+    Assert (dtn.getNumChildren()==2);
+    std::vector<Node> children;
+    children.push_back(dtn[0]);
+    children.push_back(dtn[1]);
+    Node ret;
+    if (k==Kind::APPLY_CONSTRUCTOR)
+    {
+      children.push_back(d_nm->mkConstInt(Rational(index)));
+      ret = mkInternalApp("Term.DtCons", children, tn);
+      if (k==Kind::APPLY_TESTER)
+      {
+        Node tester = mkInternalSymbol("Term.is", tn);
+        ret = mkInternalApp("Term.Apply", {tester, ret}, tn);
+      }
+      for (size_t i=0, nchild=n.getNumChildren(); i<nchild; i++)
+      {
+        ret = mkInternalApp("Term.Apply", {ret, n[i]}, tn);
+      }
+    }
+    else if (k==Kind::APPLY_SELECTOR || k==Kind::APPLY_UPDATER)
+    {
+      unsigned cindex = DType::cindexOf(op);
+      children.push_back(d_nm->mkConstInt(Rational(index)));
+      children.push_back(d_nm->mkConstInt(Rational(cindex)));
+      ret = mkInternalApp("Term.DtSel", children, tn);
+      if (k==Kind::APPLY_UPDATER)
+      {
+        Node update = mkInternalSymbol("Term.update", tn);
+        ret = mkInternalApp("Term.Apply", {update, ret}, tn);
+      }
+      ret = mkInternalApp("Term.Apply", {ret, n[0]}, tn);
+    }
+    return ret;
   }
   else if (k == Kind::SEXPR || k == Kind::BOUND_VAR_LIST)
   {
@@ -250,7 +274,7 @@ Node LogosNodeConverter::typeAsNode(TypeNode tn)
   return ret;
 }
 
-Node LogosLeanNodeConverter::typeAsNodeDatatype(const DType& dt, std::unordered_set<TypeNode>& scope)
+Node LogosNodeConverter::typeAsNodeDatatype(const DType& dt, std::unordered_set<TypeNode>& scope)
 {
   Node ret = mkInternalSymbol("Datatype.null", d_sortType);
   Node consUnit = mkInternalSymbol("DatatypeCons.unit", d_sortType);
