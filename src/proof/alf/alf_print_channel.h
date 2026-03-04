@@ -191,12 +191,15 @@ class CpcLogosChannelOut : public AlfPrintChannelOut
   /** The command list */
   std::stringstream d_cmdList;
   std::stringstream d_cmdListEnd;
+  /** Alternative: state */
+  std::stringstream d_stateDef;
   /** premise list? */
   std::map<std::string, bool> d_premiseList;
   /** mapping identifiers */
   std::map<size_t, size_t> d_stackId;
   size_t d_stackSize;
   std::vector<size_t> d_stackPush;
+  size_t d_stateId;
 };
 
 }  // namespace proof

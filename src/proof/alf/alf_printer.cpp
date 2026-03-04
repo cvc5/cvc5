@@ -867,6 +867,8 @@ void AlfPrinter::print(AlfPrintChannelOut& aout,
   std::ostream& out = aout.getOStream();
   if (d_isCpcLogos)
   {
+    out << "import Cpc.Logos" << std::endl;
+    out << "open Eo" << std::endl;
     out << "#eval!" << std::endl;
   }
   Assert(d_pletMap.empty());
