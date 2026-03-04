@@ -847,7 +847,7 @@ void AlfPrinter::print(std::ostream& out,
   // allocate a print channel
   if (d_isCpcLogos)
   {
-    CpcLogosLeanChannelOut cllout(out, d_lbindUse);
+    CpcLogosChannelOut cllout(out, d_lbindUse);
     print(cllout, pfn, psm, false);
     // dump the output
     cllout.finalize();

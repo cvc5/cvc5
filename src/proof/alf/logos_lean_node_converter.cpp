@@ -26,20 +26,20 @@
 namespace cvc5::internal {
 namespace proof {
 
-LogosLeanNodeConverter::LogosLeanNodeConverter(NodeManager* nm)
+LogosNodeConverter::LogosNodeConverter(NodeManager* nm)
     : AlfNodeConverter(nm)
 {
   d_constIdCount = 0;
   d_sortIdCount = 0;
 }
-LogosLeanNodeConverter::~LogosLeanNodeConverter() {}
+LogosNodeConverter::~LogosNodeConverter() {}
 
-bool LogosLeanNodeConverter::shouldTraverse(Node n)
+bool LogosNodeConverter::shouldTraverse(Node n)
 {
   return true;
 }
 
-Node LogosLeanNodeConverter::postConvert(Node n)
+Node LogosNodeConverter::postConvert(Node n)
 {
   Kind k = n.getKind();
   TypeNode tn = n.getType();
@@ -163,7 +163,7 @@ std::string replace_all(std::string str,
   return str;
 }
 
-std::string LogosLeanNodeConverter::cleanSmtId(const std::string& id)
+std::string LogosNodeConverter::cleanSmtId(const std::string& id)
 {
   std::string idc = id;
   idc = replace_all(idc, "++", "concat");
@@ -184,7 +184,7 @@ std::string LogosLeanNodeConverter::cleanSmtId(const std::string& id)
   return idc;
 }
 
-Node LogosLeanNodeConverter::typeAsNode(TypeNode tn)
+Node LogosNodeConverter::typeAsNode(TypeNode tn)
 {
   // should always exist in the cache, as we always run types through
   // postConvertType before calling this method.

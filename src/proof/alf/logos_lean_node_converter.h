@@ -11,8 +11,8 @@
  */
 #include "cvc5_private.h"
 
-#ifndef CVC5__PROOF__ALF__LOGOS_LEAN_NODE_CONVERTER_H
-#define CVC5__PROOF__ALF__LOGOS_LEAN_NODE_CONVERTER_H
+#ifndef CVC5__PROOF__ALF__LOGOS_NODE_CONVERTER_H
+#define CVC5__PROOF__ALF__LOGOS_NODE_CONVERTER_H
 
 #include <iostream>
 #include <map>
@@ -27,11 +27,11 @@ namespace proof {
  * This is a helper class for the ALF printer that converts nodes into
  * form that ALF expects. It should only be used by the ALF printer.
  */
-class LogosLeanNodeConverter : public AlfNodeConverter
+class LogosNodeConverter : public AlfNodeConverter
 {
  public:
-  LogosLeanNodeConverter(NodeManager* nm);
-  ~LogosLeanNodeConverter();
+  LogosNodeConverter(NodeManager* nm);
+  ~LogosNodeConverter();
 
   /** Convert at post-order traversal */
   Node postConvert(Node n) override;

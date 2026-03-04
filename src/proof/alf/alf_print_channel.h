@@ -159,10 +159,10 @@ class AlfPrintChannelPre : public AlfPrintChannel
 };
 
 /** Prints the proof to output stream d_out */
-class CpcLogosLeanChannelOut : public AlfPrintChannelOut
+class CpcLogosChannelOut : public AlfPrintChannelOut
 {
  public:
-  CpcLogosLeanChannelOut(std::ostream& out, const LetBinding* lbind);
+  CpcLogosChannelOut(std::ostream& out, const LetBinding* lbind);
   void printNode(TNode n) override;
   void printTypeNode(TypeNode tn) override;
   void printAssume(TNode n, size_t i, bool isPush) override;

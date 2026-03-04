@@ -246,7 +246,7 @@ void AlfPrintChannelPre::processInternal(const Node& n)
   d_keep.insert(n);  // probably not necessary
 }
 
-CpcLogosLeanChannelOut::CpcLogosLeanChannelOut(std::ostream& out,
+CpcLogosChannelOut::CpcLogosChannelOut(std::ostream& out,
                                                const LetBinding* lbind)
     : AlfPrintChannelOut(out, lbind, false)
 {
@@ -265,19 +265,19 @@ CpcLogosLeanChannelOut::CpcLogosLeanChannelOut(std::ostream& out,
   d_stackSize = 0;
 }
 
-void CpcLogosLeanChannelOut::printNode(TNode n)
+void CpcLogosChannelOut::printNode(TNode n)
 {
   d_out << " ";
   printNodeInternal(d_out, n);
 }
 
-void CpcLogosLeanChannelOut::printTypeNode(TypeNode tn)
+void CpcLogosChannelOut::printTypeNode(TypeNode tn)
 {
   d_out << " ";
   printTypeNodeInternal(d_out, tn);
 }
 
-void CpcLogosLeanChannelOut::printAssume(TNode n, size_t i, bool isPush)
+void CpcLogosChannelOut::printAssume(TNode n, size_t i, bool isPush)
 {
   Assert(!n.isNull());
   if (isPush)
@@ -299,7 +299,7 @@ void CpcLogosLeanChannelOut::printAssume(TNode n, size_t i, bool isPush)
   d_stackSize++;
 }
 
-void CpcLogosLeanChannelOut::printStep(const std::string& rname,
+void CpcLogosChannelOut::printStep(const std::string& rname,
                                        TNode n,
                                        size_t i,
                                        const std::vector<size_t>& premises,
@@ -372,7 +372,7 @@ void CpcLogosLeanChannelOut::printStep(const std::string& rname,
   }
 }
 
-void CpcLogosLeanChannelOut::printTrustStep(ProofRule r,
+void CpcLogosChannelOut::printTrustStep(ProofRule r,
                                             TNode n,
                                             size_t i,
                                             const std::vector<size_t>& premises,
@@ -384,7 +384,7 @@ void CpcLogosLeanChannelOut::printTrustStep(ProofRule r,
   InternalError() << ss.str();
 }
 
-void CpcLogosLeanChannelOut::finalize()
+void CpcLogosChannelOut::finalize()
 {
   d_out << "(__eo_checker_is_refutation" << std::endl;
   d_out << d_assumeList.str();
