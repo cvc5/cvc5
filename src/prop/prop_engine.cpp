@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -15,8 +12,6 @@
 
 #include "prop/prop_engine.h"
 
-#include <iomanip>
-#include <map>
 #include <utility>
 
 #include "base/check.h"
@@ -31,7 +26,6 @@
 #include "options/smt_options.h"
 #include "proof/proof_node_algorithm.h"
 #include "prop/cnf_stream.h"
-#include "prop/minisat/minisat.h"
 #include "prop/proof_cnf_stream.h"
 #include "prop/prop_proof_manager.h"
 #include "prop/sat_solver.h"
@@ -84,20 +78,15 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
   Trace("prop") << "Constructing the PropEngine" << std::endl;
   context::UserContext* userContext = d_env.getUserContext();
 
-  if (options().prop.satSolver == options::SatSolverMode::MINISAT)
-  {
-    d_satSolver =
-        SatSolverFactory::createCDCLTMinisat(d_env, statisticsRegistry());
-  }
-  else
-  {
-    d_satSolver = SatSolverFactory::createCadicalCDCLT(
-        d_env, statisticsRegistry(), env.getResourceManager(), "");
-  }
-
-  // CNF stream and theory proxy required pointers to each other, make the
-  // theory proxy first
+  // CNF stream, SAT solver and theory proxy required pointers to each other,
+  // make the theory proxy first
   d_theoryProxy = new TheoryProxy(d_env, this, d_theoryEngine, d_skdm.get());
+
+  const auto factory = SatSolverFactory::getFactory(options().prop.satSolver);
+  d_satSolver = factory(env, statisticsRegistry(), env.getResourceManager(),
+                        d_theoryProxy, "");
+
+  // create CnfStream with new SAT solver
   d_cnfStream = new CnfStream(env,
                               d_satSolver,
                               d_theoryProxy,
@@ -110,18 +99,32 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
   // if proof producing at all
   if (options().smt.produceProofs)
   {
-    d_ppm.reset(
-        new PropPfManager(env, d_satSolver, *d_cnfStream, d_assumptions));
+    PropPfManager* ppm =
+        new PropPfManager(env, d_satSolver, *d_cnfStream, d_assumptions);
+    d_ppm.reset(ppm);
+    d_satSolver->attachProofManager(ppm);
   }
-  // connect SAT solver
-  d_satSolver->initialize(d_theoryProxy, d_ppm.get());
 }
 
 void PropEngine::finishInit()
 {
-  NodeManager* nm = nodeManager();
-  d_cnfStream->convertAndAssert(nm->mkConst(true), false, false);
-  d_cnfStream->convertAndAssert(nm->mkConst(false).notNode(), false, false);
+  // Make sure that true/false are not free assumptions in the proof.
+  if (d_ppm)
+  {
+    NodeManager* nm = nodeManager();
+    d_ppm->convertAndAssert(theory::InferenceId::INPUT,
+                            nm->mkConst(true),
+                            false,
+                            false,
+                            true,
+                            nullptr);
+    d_ppm->convertAndAssert(theory::InferenceId::INPUT,
+                            nm->mkConst(false).notNode(),
+                            false,
+                            false,
+                            true,
+                            nullptr);
+  }
 }
 
 PropEngine::~PropEngine() {

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Tim King
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -231,11 +228,11 @@ void TheoryArith::ppStaticLearn(TNode n, std::vector<TrustNode>& learned)
   }
 }
 
-bool TheoryArith::preCheck(Effort level)
+bool TheoryArith::preCheck(CVC5_UNUSED Effort level)
 {
   Trace("arith-check") << "TheoryArith::preCheck " << level << std::endl;
   bool newFacts = !done();
-  return d_internal.preCheck(level, newFacts);
+  return d_internal.preCheck(newFacts);
 }
 
 void TheoryArith::postCheck(Effort level)
@@ -350,7 +347,7 @@ TrustNode TheoryArith::explain(TNode n)
   return d_internal.explain(n);
 }
 
-void TheoryArith::propagate(Effort e) { d_internal.propagate(e); }
+void TheoryArith::propagate(CVC5_UNUSED Effort e) { d_internal.propagate(); }
 
 bool TheoryArith::collectModelInfo(TheoryModel* m,
                                    const std::set<Node>& termSet)
@@ -412,7 +409,7 @@ bool TheoryArith::collectModelValues(TheoryModel* m,
       // lemmas during the call to needsCheckLastEffort.
       return false;
     }
-    Assert(false) << "A model equality could not be asserted: " << p.first
+    DebugUnhandled() << "A model equality could not be asserted: " << p.first
                   << " == " << p.second << std::endl;
     // If we failed to assert an equality, it is likely due to theory
     // combination, namely the repaired model for non-linear changed

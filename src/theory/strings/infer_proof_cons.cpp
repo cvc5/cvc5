@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -48,7 +45,9 @@ class StringCoreTermContext : public TermContext
   /** The initial value: not nested. */
   uint32_t initialValue() const override { return 0; }
   /** Compute the value of the index^th child of t whose hash is tval */
-  uint32_t computeValue(TNode t, uint32_t tval, size_t index) const override
+  uint32_t computeValue(TNode t,
+                        uint32_t tval,
+                        CVC5_UNUSED size_t index) const override
   {
     if (tval < 2)
     {
@@ -64,10 +63,8 @@ class StringCoreTermContext : public TermContext
   }
 };
 
-InferProofCons::InferProofCons(Env& env,
-                               context::Context* c,
-                               SequencesStatistics& statistics)
-    : EnvObj(env), d_lazyFactMap(c), d_statistics(statistics)
+InferProofCons::InferProofCons(Env& env, context::Context* c)
+    : EnvObj(env), d_lazyFactMap(c)
 {
 }
 
@@ -204,9 +201,10 @@ bool InferProofCons::convert(Env& env,
     case InferenceId::STRINGS_NORMAL_FORM:
     case InferenceId::STRINGS_CODE_PROXY:
     case InferenceId::STRINGS_EXTF_REW_SAME:
+    case InferenceId::STRINGS_I_CYCLE_CONFLICT:
     {
       size_t idMax = 0;
-      // These three inference assume the substitution is applied to the
+      // These inferences assume the substitution is applied to the
       // *arguments* of extended functions and the length function, so we
       // will allow the substitutions to fire in term context value one.
       if (infer == InferenceId::STRINGS_EXTF
@@ -224,8 +222,13 @@ bool InferProofCons::convert(Env& env,
       Trace("strings-ipc-core") << "Rewrote conclusion" << std::endl;
       Trace("strings-ipc-core") << "- " << conc << std::endl;
       Trace("strings-ipc-core") << "- to " << concr << std::endl;
-      if (psb.applyPredIntro(concr, {}))
+      if (psb.applyPredIntro(concr,
+                             {},
+                             MethodId::SB_DEFAULT,
+                             MethodId::SBA_SEQUENTIAL,
+                             MethodId::RW_EXT_REWRITE))
       {
+        // maybe extended rewrite
         useBuffer = true;
       }
     }
@@ -457,8 +460,8 @@ bool InferProofCons::convert(Env& env,
       Trace("strings-ipc-core")
           << "Main equality after subs+rewrite " << mainEqSRew << std::endl;
       // may need to splice constants
-      mainEqSRew = spliceConstants(
-          env, ProofRule::CONCAT_EQ, psb, mainEqSRew, conc, isRev);
+      mainEqSRew =
+          spliceConstants(ProofRule::CONCAT_EQ, psb, mainEqSRew, conc, isRev);
       // now, apply CONCAT_EQ to get the remainder
       std::vector<Node> childrenCeq;
       childrenCeq.push_back(mainEqSRew);
@@ -562,7 +565,7 @@ bool InferProofCons::convert(Env& env,
         {
           // first, splice if necessary
           mainEqCeq = spliceConstants(
-              env, ProofRule::CONCAT_UNIFY, psb, mainEqCeq, conc, isRev);
+              ProofRule::CONCAT_UNIFY, psb, mainEqCeq, conc, isRev);
           // the required premise for unify is always len(x) = len(y),
           // however the explanation may not be literally this. Thus, we
           // need to reconstruct a proof from the given explanation.
@@ -594,7 +597,7 @@ bool InferProofCons::convert(Env& env,
         {
           // first, splice if necessary
           mainEqCeq = spliceConstants(
-              env, ProofRule::CONCAT_CSPLIT, psb, mainEqCeq, conc, isRev);
+              ProofRule::CONCAT_CSPLIT, psb, mainEqCeq, conc, isRev);
           // it should be the case that lenConstraint => lenReq
           lenReq = nm->mkNode(Kind::STRING_LENGTH, t0)
                        .eqNode(nm->mkConstInt(Rational(0)))
@@ -639,7 +642,7 @@ bool InferProofCons::convert(Env& env,
         {
           // first, splice if necessary
           mainEqCeq = spliceConstants(
-              env, ProofRule::CONCAT_UNIFY, psb, mainEqCeq, conc, isRev);
+              ProofRule::CONCAT_UNIFY, psb, mainEqCeq, conc, isRev);
           // Should be a constant conflict. We use CONCAT_UNIFY to infer an
           // equality between string or sequence values, which will rewrite to
           // false below, justifed by EVALUATE or DISTINCT_VALUES after
@@ -692,7 +695,7 @@ bool InferProofCons::convert(Env& env,
         else
         {
           // should always have given a rule to try above
-          Assert(false) << "No reconstruction rule given for " << infer;
+          DebugUnhandled() << "No reconstruction rule given for " << infer;
         }
       }
     }
@@ -708,7 +711,7 @@ bool InferProofCons::convert(Env& env,
           || conc[1][0].getKind() != Kind::STRING_LENGTH)
       {
         Trace("strings-ipc-deq") << "malformed application" << std::endl;
-        Assert(false) << "unexpected conclusion " << conc << " for " << infer;
+        DebugUnhandled() << "unexpected conclusion " << conc << " for " << infer;
       }
       else
       {
@@ -749,7 +752,7 @@ bool InferProofCons::convert(Env& env,
         }
         else
         {
-          Assert(false)
+          DebugUnhandled()
               << "Failed to convert length " << lenReq << " " << ps.d_children;
           Trace("strings-ipc-deq") << "...fail length" << std::endl;
         }
@@ -771,7 +774,7 @@ bool InferProofCons::convert(Env& env,
       {
         // This should never happen. If it does, we resort to using
         // THEORY_INFERENCE_STRINGS below (in production mode).
-        Assert(false) << "Expected OR conclusion for " << infer;
+        DebugUnhandled() << "Expected OR conclusion for " << infer;
       }
       else
       {
@@ -803,7 +806,7 @@ bool InferProofCons::convert(Env& env,
       if (mem.isNull())
       {
         // failed to eliminate above
-        Assert(false) << "Failed to apply MACRO_SR_PRED_ELIM for RE unfold";
+        DebugUnhandled() << "Failed to apply MACRO_SR_PRED_ELIM for RE unfold";
         useBuffer = false;
       }
       else if (infer == InferenceId::STRINGS_RE_UNFOLD_POS)
@@ -897,7 +900,7 @@ bool InferProofCons::convert(Env& env,
       if (mainEq.isNull())
       {
         Trace("strings-ipc-red") << "Bad Reduction: " << conc << std::endl;
-        Assert(false) << "Unexpected reduction " << conc;
+        DebugUnhandled() << "Unexpected reduction " << conc;
         break;
       }
       std::vector<Node> argsRed;
@@ -996,7 +999,7 @@ bool InferProofCons::convert(Env& env,
                 << "--- and elim to " << eunfAE << std::endl;
             if (eunfAE.isNull() || eunfAE.getKind() != Kind::EQUAL)
             {
-              Assert(false)
+              DebugUnhandled()
                   << "Unexpected unfolded premise " << eunf << " for " << infer;
               continue;
             }
@@ -1013,7 +1016,7 @@ bool InferProofCons::convert(Env& env,
         else
         {
           // not sure how to use this assumption
-          Assert(false) << "Unexpected premise " << e << " for " << infer;
+          DebugUnhandled() << "Unexpected premise " << e << " for " << infer;
         }
       }
       if (eqs.empty())
@@ -1486,8 +1489,7 @@ Node InferProofCons::convertCoreSubs(Env& env,
   return src;
 }
 
-Node InferProofCons::spliceConstants(Env& env,
-                                     ProofRule rule,
+Node InferProofCons::spliceConstants(ProofRule rule,
                                      TheoryProofStepBuffer& psb,
                                      const Node& eq,
                                      const Node& conc,
@@ -1551,7 +1553,7 @@ Node InferProofCons::spliceConstants(Env& env,
         }
         if (!src.isConst() || !tgt.isConst())
         {
-          Assert(false) << "Non-constant for unify";
+          DebugUnhandled() << "Non-constant for unify";
           return eq;
         }
         size_t index = j == 0 ? ti : si;
@@ -1560,7 +1562,7 @@ Node InferProofCons::spliceConstants(Env& env,
         size_t len = Word::getLength(src);
         if (len <= lentgt)
         {
-          Assert(false) << "Smaller source for unify";
+          DebugUnhandled() << "Smaller source for unify";
           return eq;
         }
         if (isRev)
@@ -1579,7 +1581,7 @@ Node InferProofCons::spliceConstants(Env& env,
     {
       if (!currS.isConst())
       {
-        Assert(false) << "Non-constant for csplit";
+        DebugUnhandled() << "Non-constant for csplit";
         return eq;
       }
       // split the first character
@@ -1605,7 +1607,7 @@ Node InferProofCons::spliceConstants(Env& env,
     {
       if (!currT.isConst() || !currS.isConst())
       {
-        Assert(false) << "Non-constants for concat conflict";
+        DebugUnhandled() << "Non-constants for concat conflict";
         return eq;
       }
       // isolate a disequal prefix by taking maximal prefix/suffix
@@ -1629,7 +1631,7 @@ Node InferProofCons::spliceConstants(Env& env,
     }
     else
     {
-      Assert(false) << "Unknown rule to splice " << rule;
+      DebugUnhandled() << "Unknown rule to splice " << rule;
       return eq;
     }
     TypeNode stype = eq[0].getType();
@@ -1640,7 +1642,7 @@ Node InferProofCons::spliceConstants(Env& env,
     std::vector<Node> cexp;
     if (!psb.applyPredTransform(eq, eqr, cexp))
     {
-      Assert(false) << "Failed to show " << eqr << " spliced from " << eq;
+      DebugUnhandled() << "Failed to show " << eqr << " spliced from " << eq;
       return eq;
     }
     return eqr;

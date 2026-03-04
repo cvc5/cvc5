@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -15,6 +12,7 @@
 
 #include "theory/arith/nl/ext/flatten_monomial_check.h"
 
+#include "expr/node_algorithm.h"
 #include "proof/conv_proof_generator.h"
 #include "proof/proof.h"
 #include "proof/proof_node.h"
@@ -361,7 +359,9 @@ void FlattenMonomialCheck::addToFlattenMonMap(const Node& ns,
     for (const Node& e : exp)
     {
       ArithSubs asTmp;
-      asTmp.add(e[0], e[1]);
+      Node es = as.applyArith(e[1]);
+      asTmp.add(e[0], es);
+      Assert(!ArithSubs::hasArithSubterm(es, e[0]));
       for (size_t j = 0, nums = as.d_subs.size(); j < nums; j++)
       {
         as.d_subs[j] = asTmp.applyArith(as.d_subs[j]);

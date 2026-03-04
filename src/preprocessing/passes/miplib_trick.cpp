@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mathias Preiner, Andrew Reynolds, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -522,10 +519,8 @@ PreprocessingPassResult MipLibTrick::applyInternal(
             {
               stringstream ss;
               ss << "mipvar_" << *ii;
-              Node newVar = NodeManager::mkDummySkolem(
-                  ss.str(),
-                  nm->integerType(),
-                  "a variable introduced due to scrubbing a miplib encoding");
+              Node newVar =
+                  NodeManager::mkDummySkolem(ss.str(), nm->integerType());
               Node geq = rewrite(nm->mkNode(Kind::GEQ, newVar, zero));
               Node leq = rewrite(nm->mkNode(Kind::LEQ, newVar, one));
               TrustNode tgeq = TrustNode::mkTrustLemma(geq, nullptr);

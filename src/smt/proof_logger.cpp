@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -24,13 +21,11 @@ namespace cvc5::internal {
 ProofLoggerCpc::ProofLoggerCpc(Env& env,
                                std::ostream& out,
                                smt::PfManager* pm,
-                               smt::Assertions& as,
-                               smt::ProofPostprocess* ppp)
+                               smt::Assertions& as)
     : ProofLogger(env),
       d_pm(pm),
       d_pnm(pm->getProofNodeManager()),
       d_as(as),
-      d_ppp(ppp),
       d_atp(nodeManager()),
       // we use thresh 1 since terms may come incrementally and would benefit
       // from previous eager letification

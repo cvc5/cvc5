@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Gereon Kremer, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -45,11 +42,13 @@ enum class VariableOrderingStrategy
 class VariableOrdering
 {
  public:
-  VariableOrdering();
-  ~VariableOrdering();
+  VariableOrdering(const poly::Context& ctx) : d_polyCtx(ctx){};
   std::vector<poly::Variable> operator()(
       const Constraints::ConstraintVector& polys,
       VariableOrderingStrategy vos) const;
+
+ private:
+  const poly::Context& d_polyCtx;
 };
 
 /**
@@ -58,7 +57,9 @@ class VariableOrdering
  * computed by get_variable_information if no variable is specified.
  */
 std::vector<poly_utils::VariableInformation> collectInformation(
-    const Constraints::ConstraintVector& polys, bool with_totals = false);
+    const poly::Context& polyCtx,
+    const Constraints::ConstraintVector& polys,
+    bool with_totals = false);
 
 }  // namespace coverings
 }  // namespace nl

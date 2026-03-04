@@ -314,9 +314,11 @@
       (($run_evaluate (int_to_bv n m))     (eo::to_bin ($run_evaluate n) ($run_evaluate m)))
       (($run_evaluate (ubv_to_int xb))     (eo::to_z ($run_evaluate xb)))
       (($run_evaluate (sbv_to_int xb))     (eo::define ((ex ($run_evaluate xb)))
+                                           (eo::define ((w ($bv_bitwidth (eo::typeof ex))))
+                                             (eo::ite (eo::eq w 0) 0
                                              (eo::ite (eo::eq ($bv_sign_bit xb) #b0)
                                                (eo::to_z ex)
-                                               (eo::add (eo::to_z ex) (eo::neg ($arith_eval_int_pow_2 ($bv_bitwidth (eo::typeof xb))))))))
+                                               (eo::add (eo::to_z ex) (eo::neg ($arith_eval_int_pow_2 w))))))))
   
       (($run_evaluate z)                   z)
     )
@@ -506,13 +508,15 @@
 ;   D is a pairwise application of distinct over a list of elements whose
 ;   length is larger than the cardinality of the type of those elements.
 ; conclusion: The given equality.
-(declare-rule distinct-card-conflict ((D Bool) (elems @List))
-  :args ((= D false))
-  :requires (((eo::define ((elems ($extract_pairwise_args distinct and D)))
-              (eo::define ((T ($assoc_nil_nth_type @list elems 0)))
-                (eo::gt (eo::list_len @list elems) ($compute_card T))))
-              true))
-  :conclusion (= D false)
+; note: >
+;   If the argument list contains duplicates, then it is trivially false,
+;   hence there is no need to check for duplicates.
+(declare-rule distinct-card-conflict ((T Type) (U Type) (xs @List :list))
+  :args ((= (distinct xs) false))
+  :requires (((eo::gt
+                (eo::list_len @list xs)
+                ($compute_card ($assoc_nil_nth_type @list xs 0))) true))
+  :conclusion (= (distinct xs) false)
 )
 
 ;;;;; trusted

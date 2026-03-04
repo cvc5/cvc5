@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -229,7 +226,7 @@ class QuantifiersRewriter : public TheoryRewriter
                      std::vector<Node>& nargs,
                      bool pol,
                      bool prenexAgg) const;
-  Node computeSplit(std::vector<Node>& args, Node body, QAttributes& qa) const;
+  Node computeSplit(std::vector<Node>& args, Node body) const;
 
   static bool isPrenexNormalForm(Node n);
   Node mkForAll(const std::vector<Node>& args,
@@ -340,6 +337,18 @@ class QuantifiersRewriter : public TheoryRewriter
   Node computeVarElimination(Node body,
                              std::vector<Node>& args,
                              QAttributes& qa) const;
+  /**
+   * Checks if a given literal is an application of an uninterpreted function or
+   * its negation, e.g., P(t1,...,tn) or ¬P(t1,...,tn).
+   *
+   * This function is used in quantifier rewriting, e.g., for Leibniz equality
+   * elimination, to extract the operator, its arguments, and negation status
+   * from a literal node.
+  */
+  bool matchUfLiteral(Node lit,
+                    Node& op,
+                    std::vector<Node>& argsOut,
+                    bool& neg) const;
   //-------------------------------------end variable elimination
   //-------------------------------------conditional splitting
   /** compute conditional splitting

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,14 +18,15 @@ namespace cvc5::internal {
 
 ProofNodeConverterCallback::ProofNodeConverterCallback() {}
 ProofNodeConverterCallback::~ProofNodeConverterCallback() {}
-bool ProofNodeConverterCallback::shouldConvert(std::shared_ptr<ProofNode> pn)
+bool ProofNodeConverterCallback::shouldConvert(
+    CVC5_UNUSED std::shared_ptr<ProofNode> pn)
 {
   return false;
 }
 
 ProofNodeConverter::ProofNodeConverter(Env& env,
                                        ProofNodeConverterCallback& cb,
-                                       bool autoSym)
+                                       CVC5_UNUSED bool autoSym)
     : EnvObj(env), d_cb(cb)
 {
 }

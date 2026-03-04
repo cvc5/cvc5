@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Kartik Sabharwal, Andrew Reynolds, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -246,7 +243,7 @@ class TermGenerator
 
   void reset( TermGenEnv * s, TypeNode tn );
   bool getNextTerm( TermGenEnv * s, unsigned depth );
-  void resetMatching( TermGenEnv * s, TNode eqc, unsigned mode );
+  void resetMatching(unsigned mode);
   bool getNextMatch( TermGenEnv * s, TNode eqc, std::map< TypeNode, std::map< unsigned, TNode > >& subs, std::map< TNode, bool >& rev_subs );
 
   unsigned getDepth( TermGenEnv * s );
@@ -267,7 +264,7 @@ public:
   //get next term
   bool getNextTerm();
   //reset matching
-  void resetMatching( TNode eqc, unsigned mode );
+  void resetMatching(unsigned mode);
   //get next match
   bool getNextMatch( TNode eqc, std::map< TypeNode, std::map< unsigned, TNode > >& subs, std::map< TNode, bool >& rev_subs );
   //get term
@@ -383,24 +380,30 @@ class ConjectureGenerator : public QuantifiersModule
     ConjectureGenerator& d_sg;
   public:
     NotifyClass(ConjectureGenerator& sg): d_sg(sg) {}
-    bool eqNotifyTriggerPredicate(TNode predicate, bool value) override
+    bool eqNotifyTriggerPredicate(CVC5_UNUSED TNode predicate,
+                                  CVC5_UNUSED bool value) override
     {
       return true;
     }
-    bool eqNotifyTriggerTermEquality(TheoryId tag,
-                                     TNode t1,
-                                     TNode t2,
-                                     bool value) override
+    bool eqNotifyTriggerTermEquality(CVC5_UNUSED TheoryId tag,
+                                     CVC5_UNUSED TNode t1,
+                                     CVC5_UNUSED TNode t2,
+                                     CVC5_UNUSED bool value) override
     {
       return true;
     }
-    void eqNotifyConstantTermMerge(TNode t1, TNode t2) override {}
+    void eqNotifyConstantTermMerge(CVC5_UNUSED TNode t1,
+                                   CVC5_UNUSED TNode t2) override
+    {
+    }
     void eqNotifyNewClass(TNode t) override { d_sg.eqNotifyNewClass(t); }
     void eqNotifyMerge(TNode t1, TNode t2) override
     {
       d_sg.eqNotifyMerge(t1, t2);
     }
-    void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override
+    void eqNotifyDisequal(CVC5_UNUSED TNode t1,
+                          CVC5_UNUSED TNode t2,
+                          CVC5_UNUSED TNode reason) override
     {
     }
   };/* class ConjectureGenerator::NotifyClass */

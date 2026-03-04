@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -36,15 +33,11 @@ namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
-TermRegistry::TermRegistry(Env& env,
-                           Theory& t,
-                           SolverState& s,
-                           SequencesStatistics& statistics)
+TermRegistry::TermRegistry(Env& env, Theory& t, SolverState& s)
     : EnvObj(env),
       d_theory(t),
       d_state(s),
       d_im(nullptr),
-      d_statistics(statistics),
       d_hasStrCode(false),
       d_hasSeqUpdate(false),
       d_skCache(nodeManager(), env.getRewriter()),
@@ -57,10 +50,12 @@ TermRegistry::TermRegistry(Env& env,
       d_proxyVar(userContext()),
       d_proxyVarToLength(userContext()),
       d_lengthLemmaTermsCache(userContext()),
-      d_epg(
-          env.isTheoryProofProducing() ? new EagerProofGenerator(
-              env, userContext(), "strings::TermRegistry::EagerProofGenerator")
-                                       : nullptr),
+      d_epg(env.isTheoryProofProducing()
+                ? new EagerProofGenerator(
+                      env,
+                      userContext(),
+                      "strings::TermRegistry::EagerProofGenerator")
+                : nullptr),
       d_inFullEffortCheck(false)
 {
   NodeManager* nm = nodeManager();

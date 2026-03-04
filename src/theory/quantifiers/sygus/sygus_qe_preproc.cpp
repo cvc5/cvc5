@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -85,8 +82,7 @@ Node SygusQePreproc::preprocess(Node q)
   // skolemize non-qe variables
   for (unsigned i = 0, size = nqe_vars.size(); i < size; i++)
   {
-    Node k = NodeManager::mkDummySkolem(
-        "k", nqe_vars[i].getType(), "qe for non-ground single invocation");
+    Node k = NodeManager::mkDummySkolem("k", nqe_vars[i].getType());
     orig.push_back(nqe_vars[i]);
     subs.push_back(k);
     Trace("cegqi-qep") << "  subs : " << nqe_vars[i] << " -> " << k
@@ -101,8 +97,7 @@ Node SygusQePreproc::preprocess(Node q)
     Node fv = sip.getFirstOrderVariableForFunction(f);
     Assert(!fi.isNull());
     orig.push_back(fi);
-    Node k = NodeManager::mkDummySkolem(
-        "k", fv.getType(), "qe for function in non-ground single invocation");
+    Node k = NodeManager::mkDummySkolem("k", fv.getType());
     subs.push_back(k);
     Trace("cegqi-qep") << "  subs : " << fi << " -> " << k << std::endl;
   }

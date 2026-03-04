@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Tim King, Martin Brain, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -32,12 +29,14 @@ class FloatingPointEnumerator
     : public TypeEnumeratorBase<FloatingPointEnumerator> {
  public:
   FloatingPointEnumerator(TypeNode type,
-                          TypeEnumeratorProperties* tep = nullptr)
+                          CVC5_UNUSED TypeEnumeratorProperties* tep = nullptr)
       : TypeEnumeratorBase<FloatingPointEnumerator>(type),
         d_e(type.getFloatingPointExponentSize()),
         d_s(type.getFloatingPointSignificandSize()),
         d_state(d_e + d_s, 0U),
-        d_enumerationComplete(false) {}
+        d_enumerationComplete(false)
+  {
+  }
 
   /** Throws NoMoreValuesException if the enumeration is complete. */
   Node operator*() override {
@@ -82,7 +81,8 @@ class FloatingPointEnumerator
 class RoundingModeEnumerator
     : public TypeEnumeratorBase<RoundingModeEnumerator> {
  public:
-  RoundingModeEnumerator(TypeNode type, TypeEnumeratorProperties* tep = nullptr)
+  RoundingModeEnumerator(TypeNode type,
+                         CVC5_UNUSED TypeEnumeratorProperties* tep = nullptr)
       : TypeEnumeratorBase<RoundingModeEnumerator>(type),
         d_rm(RoundingMode::ROUND_NEAREST_TIES_TO_EVEN),
         d_enumerationComplete(false)

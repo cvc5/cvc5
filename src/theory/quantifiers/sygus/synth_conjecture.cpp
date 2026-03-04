@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -67,8 +64,8 @@ SynthConjecture::SynthConjecture(Env& env,
       d_templInfer(new SygusTemplateInfer(env)),
       d_ceg_proc(new SynthConjectureProcess(env)),
       d_embConv(new EmbeddingConverter(env, d_tds, this)),
-      d_sygus_rconst(new SygusRepairConst(env, qim, d_tds)),
-      d_exampleInfer(new ExampleInfer(nodeManager(), d_tds)),
+      d_sygus_rconst(new SygusRepairConst(env, d_tds)),
+      d_exampleInfer(new ExampleInfer(nodeManager())),
       d_ceg_pbe(new SygusPbe(env, qs, qim, d_tds, this)),
       d_ceg_cegis(new Cegis(env, qs, qim, d_tds, this)),
       d_ceg_cegisUnif(new CegisUnif(env, qs, qim, d_tds, this)),
@@ -620,7 +617,7 @@ bool SynthConjecture::doCheck()
     {
       d_verifyWarned = true;
       std::stringstream ss;
-      ss << "Warning: The SyGuS solver failed to verify a canidate solution, "
+      ss << "Warning: The SyGuS solver failed to verify a candidate solution, "
             "likely due to the base logic being undecidable.";
       if (!options().quantifiers.fullSygusVerify)
       {
@@ -788,8 +785,8 @@ EnumValueManager* SynthConjecture::getEnumValueManagerFor(Node e)
   Node f = d_tds->getSynthFunForEnumerator(e);
   bool hasExamples = (d_exampleInfer != nullptr && d_exampleInfer->hasExamples(f)
                       && d_exampleInfer->getNumExamples(f) != 0);
-  d_enumManager[e].reset(new EnumValueManager(
-      d_env, d_qstate, d_qim, d_treg, d_stats, e, hasExamples));
+  d_enumManager[e].reset(
+      new EnumValueManager(d_env, d_qim, d_treg, d_stats, e, hasExamples));
   EnumValueManager* eman = d_enumManager[e].get();
   // set up the examples
   if (hasExamples)

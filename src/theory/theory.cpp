@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Dejan Jovanovic, Tim King
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -86,7 +83,7 @@ Theory::Theory(TheoryId id,
 Theory::~Theory() {
 }
 
-bool Theory::needsEqualityEngine(EeSetupInfo& esi)
+bool Theory::needsEqualityEngine(CVC5_UNUSED EeSetupInfo& esi)
 {
   // by default, this theory does not use an (official) equality engine
   return false;
@@ -239,7 +236,7 @@ TheoryId Theory::theoryOf(TNode node,
   return tid;
 }
 
-void Theory::notifySharedTerm(TNode n)
+void Theory::notifySharedTerm(CVC5_UNUSED TNode n)
 {
   // do nothing
 }
@@ -315,7 +312,7 @@ bool Theory::collectModelInfo(TheoryModel* m, const std::set<Node>& termSet)
   return collectModelValues(m, termSet);
 }
 
-void Theory::computeRelevantTerms(std::set<Node>& termSet)
+void Theory::computeRelevantTerms(CVC5_UNUSED std::set<Node>& termSet)
 {
   // by default, there are no additional relevant terms
 }
@@ -385,7 +382,8 @@ void Theory::collectTerms(TNode n,
   } while (!visit.empty());
 }
 
-bool Theory::collectModelValues(TheoryModel* m, const std::set<Node>& termSet)
+bool Theory::collectModelValues(CVC5_UNUSED TheoryModel* m,
+                                CVC5_UNUSED const std::set<Node>& termSet)
 {
   return true;
 }
@@ -415,7 +413,7 @@ bool Theory::ppAssert(TrustNode tin, TrustSubstitutionMap& outSubstitutions)
   return false;
 }
 
-std::pair<bool, Node> Theory::entailmentCheck(TNode lit)
+std::pair<bool, Node> Theory::entailmentCheck(CVC5_UNUSED TNode lit)
 {
   return make_pair(false, Node::null());
 }
@@ -598,21 +596,27 @@ void Theory::check(Effort level)
   Trace("theory-check") << "Theory::finish check " << d_id << std::endl;
 }
 
-bool Theory::preCheck(Effort level) { return false; }
+bool Theory::preCheck(CVC5_UNUSED Effort level) { return false; }
 
-void Theory::postCheck(Effort level) {}
+void Theory::postCheck(CVC5_UNUSED Effort level) {}
 
-bool Theory::preNotifyFact(
-    TNode atom, bool polarity, TNode fact, bool isPrereg, bool isInternal)
+bool Theory::preNotifyFact(CVC5_UNUSED TNode atom,
+                           CVC5_UNUSED bool polarity,
+                           CVC5_UNUSED TNode fact,
+                           CVC5_UNUSED bool isPrereg,
+                           CVC5_UNUSED bool isInternal)
 {
   return false;
 }
 
-void Theory::notifyFact(TNode atom, bool polarity, TNode fact, bool isInternal)
+void Theory::notifyFact(CVC5_UNUSED TNode atom,
+                        CVC5_UNUSED bool polarity,
+                        CVC5_UNUSED TNode fact,
+                        CVC5_UNUSED bool isInternal)
 {
 }
 
-void Theory::preRegisterTerm(TNode node) {}
+void Theory::preRegisterTerm(CVC5_UNUSED TNode node) {}
 
 void Theory::addSharedTerm(TNode n)
 {

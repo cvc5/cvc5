@@ -404,6 +404,37 @@
                 <plugins>
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-enforcer-plugin</artifactId>
+                        <version>3.6.2</version>
+                        <executions>
+                            <execution>
+                                <id>enforce-all-artifacts-are-attached</id>
+                                <goals>
+                                    <goal>enforce</goal>
+                                </goals>
+                                <configuration>
+                                    <rules>
+                                        <requireActiveProfile>
+                                            <profiles>sources,javadoc</profiles>
+                                        </requireActiveProfile>
+                                         <requireActiveProfile>
+                                            <profiles>linux-x86_64,linux-aarch_64</profiles>
+                                        </requireActiveProfile>
+                                         <requireActiveProfile>
+                                            <profiles>osx-x86_64,osx-aarch_64</profiles>
+                                        </requireActiveProfile>
+                                         <requireActiveProfile>
+                                            <profiles>windows-x86_64,windows-aarch_64</profiles>
+                                        </requireActiveProfile>
+                                    </rules>
+                                    <fail>true</fail>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-gpg-plugin</artifactId>
                         <version>3.2.8</version>
                         <executions>

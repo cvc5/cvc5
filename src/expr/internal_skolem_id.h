@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -60,6 +57,8 @@ enum class InternalSkolemId
   QUANTIFIERS_ATTRIBUTE_INTERNAL,
   /** Skolem used for subsolver in get-value */
   GET_VALUE_PURIFY,
+  /** Input variables for normalizing inputs */
+  NORMALIZE_INPUT_VARIABLE
 };
 /** Converts an internal skolem function name to a string. */
 const char* toString(InternalSkolemId id);

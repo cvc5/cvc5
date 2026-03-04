@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Alex Ozdemir, Tim King, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -425,6 +422,26 @@ bool ArithCongruenceManager::propagate(TNode x){
         // neg is the (negation of) a relation involving t.
         Node peq = proven[1][0].isConst() ? proven[1][1].eqNode(proven[1][0])
                                           : proven[1];
+        Assert (peq.getKind()==Kind::EQUAL);
+        if (peq[0].getKind()==Kind::TO_REAL)
+        {
+          // if we have (= (to_real t) c) where c is a rational, we do:
+          //                     -------------------------- ARITH_POLY_NORM_REL
+          // (= (to_real t) c)   (= (= (to_real t) c) (= t c'))
+          // ------------------------------------------------- EQ_RESOLVE
+          // (= t c')
+          // where c' is integer equivalent of c.
+          Assert (peq[1].isConst() && peq[1].getConst<Rational>().isIntegral());
+          Node ic = nm->mkConstInt(peq[1].getConst<Rational>());
+          Node peqi = peq[0][0].eqNode(ic);
+          Node equiv = peq.eqNode(peqi);
+          Rational cx, cy;
+          Node premise = PolyNorm::getArithPolyNormRelPremise(peq, peqi, cx, cy);
+          cdp.addStep(premise, ProofRule::ARITH_POLY_NORM, {}, {premise});
+          cdp.addStep(equiv, ProofRule::ARITH_POLY_NORM_REL, {premise}, {equiv});
+          cdp.addStep(peqi, ProofRule::EQ_RESOLVE, {peq, equiv}, {});
+          peq = peqi;
+        }
         ProofChecker* pc = d_env.getProofNodeManager()->getChecker();
         // We substitute t -> c within the arithmetic context of neg.
         // In particular using an arithmetic context ensures that this rewrite

@@ -1,5 +1,6 @@
 (include "../theories/Builtin.eo")
 (include "../programs/Nary.eo")
+(include "../programs/DistinctValues.eo")
 
 ;;;;; ProofRule::REFL
 
@@ -141,6 +142,26 @@
     :conclusion (= t ($mk_nary_cong_rhs t E))
 )
 
+;;;;; ProofRule::PAIRWISE_CONG
+
+; rule: arg_list_cong
+; implements: ProofRule::PAIRWISE_CONG
+; premises:
+; - E [:list]: A conjunction of equalities to apply arg-list-congruence to.
+; args:
+; - t U: >
+;   The term to apply congruence to. This is assumed to be an application of
+;   a function that is marked :arg-list. It is required to be the left hand side
+;   of the equality we are proving.
+; conclusion: >
+;   An equality between applications of f whose argument lists are given
+;   by the equalities in E.
+(declare-rule pairwise_cong ((E Bool) (T Type) (U Type) (xs U) (f (-> U T)))
+    :premise-list E and
+    :args ((f xs))
+    :conclusion (= (f xs) (f ($mk_nary_cong_rhs xs E)))
+)
+
 ;;;;; ProofRule::TRUE_INTRO
 
 ; rule: true_intro
@@ -224,19 +245,31 @@
 
 ;;-------------------- Instances of THEORY_REWRITE
 
-; program: $mk_distinct-elim
+; program: $mk_distinct_elim_rec
 ; args:
-; - F Bool: The application of distinct to eliminate.
-; return: The result of converting the operator "distinct" in F to negated equalities.
-; note: >
-;   The distinct function is already treated as pairwise, thus we only need to convert from
-;   binary distinct to disequalities.
-(program $mk_distinct-elim ((T Type) (x T) (y T) (b Bool :list))
+; - t T: The current term we are processing.
+; - xs @List: The remaining terms to process.
+; - b Bool: The current accumulated elimination of distinct.
+; return: >
+;   The result of eliminating distinct after taking into account t.
+(program $mk_distinct_elim_rec ((T Type) (x T) (y T) (xs @List :list) (b Bool))
+  :signature (T @List Bool) Bool
+  (
+  (($mk_distinct_elim_rec x (@list y xs) b)  (eo::cons and (not (= x y)) ($mk_distinct_elim_rec x xs b)))
+  (($mk_distinct_elim_rec x @list.nil b)     b)
+  )
+)
+
+; program: $mk_distinct_elim
+; args:
+; - b Bool: The distinct term.
+; return: >
+;   The result of eliminating the distinct term as a conjunction of disequalities.
+(program $mk_distinct_elim ((T Type) (x T) (xs @List :list))
   :signature (Bool) Bool
   (
-  (($mk_distinct-elim (and (distinct x y) b))   (eo::cons and (not (= x y)) ($mk_distinct-elim b)))
-  (($mk_distinct-elim true)                     true)
-  (($mk_distinct-elim (distinct x y))           (not (= x y)))
+  (($mk_distinct_elim (distinct x xs))   ($mk_distinct_elim_rec x xs ($mk_distinct_elim (distinct xs))))
+  (($mk_distinct_elim (distinct xs))     true) ;; nil case (only match is when `xs` is nil)
   )
 )
 
@@ -248,8 +281,32 @@
 ; conclusion: The equality (= b1 b2).
 (declare-rule distinct-elim ((b1 Bool) (b2 Bool))
   :args ((= b1 b2))
-  :requires ((($mk_distinct-elim b1) b2))
+  :requires (((eo::list_singleton_elim and ($mk_distinct_elim b1)) b2))
   :conclusion (= b1 b2)
+)
+
+; rule: distinct-true
+; implements: ProofRewriteRule::DISTINCT_TRUE.
+; args:
+; - eq Bool: The equality between an application of distinct and true.
+; requires: Showing that all elements of the application are distinct.
+; conclusion: The given equality.
+(declare-rule distinct-true ((xs @List :list))
+  :args ((= (distinct xs) true))
+  :requires ((($are_distinct_terms_list xs ($assoc_nil_nth_type @list xs 0)) true))
+  :conclusion (= (distinct xs) true)
+)
+
+; rule: distinct-false
+; implements: ProofRewriteRule::DISTINCT_FALSE.
+; args:
+; - eq Bool: The equality between an application of distinct and false.
+; requires: Showing that there is a duplicate element in xs.
+; conclusion: The given equality.
+(declare-rule distinct-false ((xs @List :list))
+  :args ((= (distinct xs) false))
+  :requires (((eo::eq (eo::list_setof @list xs) xs) false))
+  :conclusion (= (distinct xs) false)
 )
 
 ; rule: lambda-elim

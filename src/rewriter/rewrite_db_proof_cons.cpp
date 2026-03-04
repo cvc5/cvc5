@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Abdalrhman Mohamed
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -1228,7 +1225,7 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
               // get the conditions, store into premises of cur.
               if (!rpr.getObligations(vs, rsubs, ps))
               {
-                Assert(false) << "failed a side condition?";
+                DebugUnhandled() << "failed a side condition?";
                 return false;
               }
               pfac.insert(pfac.end(), rsubs.begin(), rsubs.end());

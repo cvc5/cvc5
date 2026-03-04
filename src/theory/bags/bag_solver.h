@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mudathir Mohamed, Gereon Kremer, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -37,7 +34,7 @@ class TermRegistry;
 class BagSolver : protected EnvObj
 {
  public:
-  BagSolver(Env& env, SolverState& s, InferenceManager& im, TermRegistry& tr);
+  BagSolver(Env& env, SolverState& s, InferenceManager& im);
   ~BagSolver();
 
   /**
@@ -117,8 +114,6 @@ class BagSolver : protected EnvObj
   InferenceGenerator d_ig;
   /** Reference to the inference manager for the theory of bags */
   InferenceManager& d_im;
-  /** Reference to the term registry of theory of bags */
-  TermRegistry& d_termReg;
 
   /**
    * a map where the keys are nodes of the form (bag.map f A)

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Andrew Reynolds, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -50,8 +47,8 @@ class TheoryPreregistrarNotify : public context::ContextNotifyObj
 
 TheoryPreregistrar::TheoryPreregistrar(Env& env,
                                        TheoryEngine* te,
-                                       CDCLTSatSolver* ss,
-                                       CnfStream* cs)
+                                       CVC5_UNUSED CDCLTSatSolver* ss,
+                                       CVC5_UNUSED CnfStream* cs)
     : EnvObj(env),
       d_theoryEngine(te),
       d_notify(new TheoryPreregistrarNotify(env, *this))
@@ -64,9 +61,16 @@ bool TheoryPreregistrar::needsActiveSkolemDefs() const { return false; }
 
 void TheoryPreregistrar::check() {}
 
-void TheoryPreregistrar::addAssertion(TNode n, TNode skolem, bool isLemma) {}
+void TheoryPreregistrar::addAssertion(CVC5_UNUSED TNode n,
+                                      CVC5_UNUSED TNode skolem,
+                                      CVC5_UNUSED bool isLemma)
+{
+}
 
-void TheoryPreregistrar::notifyActiveSkolemDefs(std::vector<TNode>& defs) {}
+void TheoryPreregistrar::notifyActiveSkolemDefs(
+    CVC5_UNUSED std::vector<TNode>& defs)
+{
+}
 
 void TheoryPreregistrar::notifySatLiteral(TNode n)
 {

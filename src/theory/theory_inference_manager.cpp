@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Hans-Joerg Schurr
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -339,7 +336,8 @@ TrustNode TheoryInferenceManager::mkLemmaExp(Node conc,
   return TrustNode::mkTrustLemma(lem, nullptr);
 }
 
-bool TheoryInferenceManager::hasCachedLemma(TNode lem, LemmaProperty p)
+bool TheoryInferenceManager::hasCachedLemma(TNode lem,
+                                            CVC5_UNUSED LemmaProperty p)
 {
   Node rewritten = rewrite(lem);
   return d_lemmasSent.find(rewritten) != d_lemmasSent.end();
@@ -549,7 +547,7 @@ bool TheoryInferenceManager::hasSentFact() const
   return d_numCurrentFacts != 0;
 }
 
-bool TheoryInferenceManager::cacheLemma(TNode lem, LemmaProperty p)
+bool TheoryInferenceManager::cacheLemma(TNode lem, CVC5_UNUSED LemmaProperty p)
 {
   Node rewritten = rewrite(lem);
   if (d_lemmasSent.find(rewritten) != d_lemmasSent.end())

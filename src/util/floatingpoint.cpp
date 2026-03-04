@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Martin Brain, Haniel Barbosa
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -325,6 +322,10 @@ FloatingPoint FloatingPoint::minTotal(const FloatingPoint& arg,
       new FloatingPointLiteral(d_fpl->minTotal(*arg.d_fpl, zeroCaseLeft)));
 }
 
+// Suppress clang-analyzer-core.uninitialized.Assign for the
+// following functions as a workaround for a false positive
+// in clang-tidy 18.
+// NOLINTBEGIN(clang-analyzer-core.uninitialized.Assign)
 FloatingPoint::PartialFloatingPoint FloatingPoint::max(
     const FloatingPoint& arg) const
 {
@@ -338,6 +339,7 @@ FloatingPoint::PartialFloatingPoint FloatingPoint::min(
   FloatingPoint tmp(minTotal(arg, true));
   return PartialFloatingPoint(tmp, tmp == minTotal(arg, false));
 }
+// NOLINTEND(clang-analyzer-core.uninitialized.Assign)
 
 bool FloatingPoint::operator==(const FloatingPoint& fp) const
 {

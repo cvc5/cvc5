@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Morgan Deters, Andrew Reynolds, Clark Barrett
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -164,8 +161,8 @@ class TheoryArrays : public Theory {
   // PPNotifyClass: dummy template class for d_ppEqualityEngine - notifications not used
   class PPNotifyClass {
   public:
-    bool notify(TNode propagation) { return true; }
-    void notify(TNode t1, TNode t2) { }
+   bool notify(CVC5_UNUSED TNode propagation) { return true; }
+   void notify(CVC5_UNUSED TNode t1, CVC5_UNUSED TNode t2) {}
   };
 
   /** The notify class for d_ppEqualityEngine */
@@ -224,8 +221,8 @@ class TheoryArrays : public Theory {
  private:
   class MayEqualNotifyClass {
   public:
-    bool notify(TNode propagation) { return true; }
-    void notify(TNode t1, TNode t2) { }
+   bool notify(CVC5_UNUSED TNode propagation) { return true; }
+   void notify(CVC5_UNUSED TNode t1, CVC5_UNUSED TNode t2) {}
   };
 
   /** The notify class for d_mayEqualEqualityEngine */
@@ -307,7 +304,7 @@ class TheoryArrays : public Theory {
       return d_arrays.propagateLit(predicate.notNode());
     }
 
-    bool eqNotifyTriggerTermEquality(TheoryId tag,
+    bool eqNotifyTriggerTermEquality(CVC5_UNUSED TheoryId tag,
                                      TNode t1,
                                      TNode t2,
                                      bool value) override
@@ -341,7 +338,11 @@ class TheoryArrays : public Theory {
         d_arrays.mergeArrays(t1, t2);
       }
     }
-    void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override {}
+    void eqNotifyDisequal(CVC5_UNUSED TNode t1,
+                          CVC5_UNUSED TNode t2,
+                          CVC5_UNUSED TNode reason) override
+    {
+    }
   };
 
   /** The notify class for d_equalityEngine */

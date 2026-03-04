@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Gereon Kremer, Alex Ozdemir, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -121,6 +118,9 @@ std::ostream& operator<<(std::ostream& os, const LazardEvaluationState& state);
  */
 struct LazardEvaluationState
 {
+  /** The libpoly context */
+  const poly::Context& d_polyCtx;
+
   /**
    * Statistics about the lazard evaluation.
    * Although this class is short-lived, there is no need to make the statistics
@@ -299,8 +299,8 @@ struct LazardEvaluationState
     d_variables.emplace_back(var);
     if (TraceIsOn("nl-cov::lazard"))
     {
-      std::string vname = lp_variable_db_get_name(
-          poly::Context::get_context().get_variable_db(), var.get_internal());
+      std::string vname = lp_variable_db_get_name(d_polyCtx.get_variable_db(),
+                                                  var.get_internal());
       d_R.emplace_back(CoCoA::NewPolyRing(d_K.back(), {CoCoA::symbol(vname)}));
     }
     else
@@ -357,7 +357,8 @@ struct LazardEvaluationState
    */
   void addFreeVariable(const poly::Variable& var)
   {
-    Trace("nl-cov::lazard") << "Add free variable " << var << std::endl;
+    Trace("nl-cov::lazard")
+        << "Add free variable " << stream_variable(d_polyCtx, var) << std::endl;
     addR(var);
     std::vector<CoCoA::symbol> symbols;
     for (size_t i = 0; i < d_R.size(); ++i)
@@ -383,8 +384,9 @@ struct LazardEvaluationState
                              << d_J[i] << ": " << std::endl;
         if (d_direct[i - 1])
         {
-          Trace("nl-cov::lazard") << "Using " << d_variables[i - 1] << " for "
-                               << CoCoA::indet(d_J[i - 1], 0) << std::endl;
+          Trace("nl-cov::lazard")
+              << "Using " << stream_variable(d_polyCtx, d_variables[i - 1])
+              << " for " << CoCoA::indet(d_J[i - 1], 0) << std::endl;
           Assert(CoCoA::CoeffRing(d_J[i]) == CoCoA::owner(*d_direct[i - 1]));
           std::vector<CoCoA::RingElem> indets = {
               CoCoA::RingElem(d_J[i], *d_direct[i - 1])};
@@ -489,8 +491,9 @@ struct LazardEvaluationState
         if (d_direct[i])
         {
           Trace("nl-cov::lazard")
-              << "Substitute " << d_variables[i] << " = " << *d_direct[i]
-              << " into " << q << " from " << CoCoA::owner(q) << std::endl;
+              << "Substitute " << stream_variable(d_polyCtx, d_variables[i])
+              << " = " << *d_direct[i] << " into " << q << " from "
+              << CoCoA::owner(q) << std::endl;
           auto indets = CoCoA::indets(d_J[i]);
           auto var = indets[0];
           Assert(CoCoA::CoeffRing(d_J[i]) == CoCoA::owner(*d_direct[i]));
@@ -540,7 +543,10 @@ struct LazardEvaluationState
     return res;
   }
 
-  LazardEvaluationState(StatisticsRegistry& reg) : d_stats(reg) {}
+  LazardEvaluationState(StatisticsRegistry& reg, const poly::Context& ctx)
+      : d_polyCtx(ctx), d_stats(reg), d_converter(ctx), d_assignment(ctx)
+  {
+  }
 };
 
 std::ostream& operator<<(std::ostream& os, const LazardEvaluationState& state)
@@ -563,8 +569,9 @@ std::ostream& operator<<(std::ostream& os, const LazardEvaluationState& state)
   return os;
 }
 
-LazardEvaluation::LazardEvaluation(StatisticsRegistry& reg)
-    : d_state(std::make_unique<LazardEvaluationState>(reg))
+LazardEvaluation::LazardEvaluation(StatisticsRegistry& reg,
+                                   const poly::Context& ctx)
+    : d_state(std::make_unique<LazardEvaluationState>(reg, ctx))
 {
 }
 
@@ -582,7 +589,9 @@ LazardEvaluation::~LazardEvaluation() {}
  */
 void LazardEvaluation::add(const poly::Variable& var, const poly::Value& val)
 {
-  Trace("nl-cov::lazard") << "Adding " << var << " -> " << val << std::endl;
+  Trace("nl-cov::lazard") << "Adding "
+                          << stream_variable(d_state->d_polyCtx, var) << " -> "
+                          << val << std::endl;
   try
   {
     d_state->d_assignment.set(var, val);
@@ -646,8 +655,9 @@ void LazardEvaluation::add(const poly::Variable& var, const poly::Value& val)
         if (CoCoA::deg(f) == 1)
         {
           auto rat = -CoCoA::ConstantCoeff(f) / CoCoA::LC(f);
-          Trace("nl-cov::lazard") << "Using linear factor " << f << " -> " << var
-                               << " = " << rat << std::endl;
+          Trace("nl-cov::lazard") << "Using linear factor " << f << " -> "
+                                  << stream_variable(d_state->d_polyCtx, var)
+                                  << " = " << rat << std::endl;
           d_state->addKRational(var, rat);
           d_state->d_stats.d_directAssignments++;
         }
@@ -705,7 +715,7 @@ std::vector<poly::Polynomial> LazardEvaluation::reducePolynomial(
 std::vector<poly::Value> LazardEvaluation::isolateRealRoots(
     const poly::Polynomial& q) const
 {
-  poly::Assignment a;
+  poly::Assignment a(d_state->d_polyCtx);
   std::vector<poly::Value> roots;
   // reduce q to a set of reduced polynomials p
   for (const auto& p : reducePolynomial(q))
@@ -849,10 +859,11 @@ namespace cvc5::internal::theory::arith::nl::coverings {
  */
 struct LazardEvaluationState
 {
+  LazardEvaluationState(const poly::Context& ctx) : d_assignment(ctx) {}
   poly::Assignment d_assignment;
 };
-LazardEvaluation::LazardEvaluation(StatisticsRegistry&)
-    : d_state(std::make_unique<LazardEvaluationState>())
+LazardEvaluation::LazardEvaluation(StatisticsRegistry&, const poly::Context& ctx)
+    : d_state(std::make_unique<LazardEvaluationState>(ctx))
 {
 }
 LazardEvaluation::~LazardEvaluation() {}
@@ -862,7 +873,7 @@ void LazardEvaluation::add(const poly::Variable& var, const poly::Value& val)
   d_state->d_assignment.set(var, val);
 }
 
-void LazardEvaluation::addFreeVariable(const poly::Variable& var) {}
+void LazardEvaluation::addFreeVariable(CVC5_UNUSED const poly::Variable& var) {}
 
 std::vector<poly::Polynomial> LazardEvaluation::reducePolynomial(
     const poly::Polynomial& p) const

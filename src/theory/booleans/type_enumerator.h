@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Morgan Deters, Tim King, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -30,7 +27,8 @@ class BooleanEnumerator : public TypeEnumeratorBase<BooleanEnumerator> {
   enum { FALSE, TRUE, DONE } d_value;
 
  public:
-  BooleanEnumerator(TypeNode type, TypeEnumeratorProperties* tep = nullptr)
+  BooleanEnumerator(TypeNode type,
+                    CVC5_UNUSED TypeEnumeratorProperties* tep = nullptr)
       : TypeEnumeratorBase<BooleanEnumerator>(type), d_value(FALSE)
   {
     Assert(type.getKind() == Kind::TYPE_CONSTANT

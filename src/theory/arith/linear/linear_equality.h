@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Tim King, Gereon Kremer, Daniel Larraz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -458,7 +455,7 @@ public:
   * potentially using the internals of the SimplexDecisionProcedure.
   */
 
- ArithVar noPreference(ArithVar x, ArithVar y) const { return x; }
+ ArithVar noPreference(ArithVar x, CVC5_UNUSED ArithVar y) const { return x; }
 
  /**
   * minVarOrder is a PreferenceFunction for selecting the smaller of the 2

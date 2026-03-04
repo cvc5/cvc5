@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Gereon Kremer, Andrew Reynolds, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -40,6 +37,9 @@ namespace nl {
 /** Bijective mapping between cvc5 variables and poly variables. */
 struct VariableMapper
 {
+  VariableMapper(const poly::Context& ctx) : polyCtx(ctx) {}
+  /** The libpoly context */
+  const poly::Context& polyCtx;
   /** A mapping from cvc5 variables to poly variables. */
   std::map<cvc5::internal::Node, poly::Variable> mVarCVCpoly;
   /** A mapping from poly variables to cvc5 variables. */

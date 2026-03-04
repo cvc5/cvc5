@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Martin Brain, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -64,25 +61,31 @@ RewriteResponse then(NodeManager* nm, TNode node, bool isPreRewrite)
   }
 }
 
-RewriteResponse notFP(NodeManager* nm, TNode node, bool isPreRewrite)
+RewriteResponse notFP(CVC5_UNUSED NodeManager* nm,
+                      TNode node,
+                      CVC5_UNUSED bool isPreRewrite)
 {
   Unreachable() << "non floating-point kind (" << node.getKind()
                 << ") in floating point rewrite?";
 }
 
-RewriteResponse identity(NodeManager* nm, TNode node, bool isPreRewrite)
+RewriteResponse identity(CVC5_UNUSED NodeManager* nm,
+                         TNode node,
+                         CVC5_UNUSED bool isPreRewrite)
 {
   return RewriteResponse(REWRITE_DONE, node);
 }
 
-RewriteResponse type(NodeManager* nm, TNode node, bool isPreRewrite)
+RewriteResponse type(CVC5_UNUSED NodeManager* nm,
+                     TNode node,
+                     CVC5_UNUSED bool isPreRewrite)
 {
   Unreachable() << "sort kind (" << node.getKind() << ") found in expression?";
 }
 
-RewriteResponse removeDoubleNegation(NodeManager* nm,
+RewriteResponse removeDoubleNegation(CVC5_UNUSED NodeManager* nm,
                                      TNode node,
-                                     bool isPreRewrite)
+                                     CVC5_UNUSED bool isPreRewrite)
 {
   Assert(node.getKind() == Kind::FLOATINGPOINT_NEG);
   if (node[0].getKind() == Kind::FLOATINGPOINT_NEG)
@@ -93,7 +96,9 @@ RewriteResponse removeDoubleNegation(NodeManager* nm,
   return RewriteResponse(REWRITE_DONE, node);
 }
 
-RewriteResponse compactAbs(NodeManager* nm, TNode node, bool isPreRewrite)
+RewriteResponse compactAbs(NodeManager* nm,
+                           TNode node,
+                           CVC5_UNUSED bool isPreRewrite)
 {
   Assert(node.getKind() == Kind::FLOATINGPOINT_ABS);
   if (node[0].getKind() == Kind::FLOATINGPOINT_NEG
@@ -108,7 +113,7 @@ RewriteResponse compactAbs(NodeManager* nm, TNode node, bool isPreRewrite)
 
 RewriteResponse convertSubtractionToAddition(NodeManager* nm,
                                              TNode node,
-                                             bool isPreRewrite)
+                                             CVC5_UNUSED bool isPreRewrite)
 {
   Assert(node.getKind() == Kind::FLOATINGPOINT_SUB);
   Node negation = nm->mkNode(Kind::FLOATINGPOINT_NEG, node[2]);
@@ -149,7 +154,9 @@ RewriteResponse breakChain(NodeManager* nm, TNode node, bool isPreRewrite)
 /* Implies (fp.eq x x) --> (not (isNaN x))
  */
 
-RewriteResponse ieeeEqToEq(NodeManager* nm, TNode node, bool isPreRewrite)
+RewriteResponse ieeeEqToEq(NodeManager* nm,
+                           TNode node,
+                           CVC5_UNUSED bool isPreRewrite)
 {
   Assert(node.getKind() == Kind::FLOATINGPOINT_EQ);
   return RewriteResponse(
@@ -170,26 +177,34 @@ RewriteResponse ieeeEqToEq(NodeManager* nm, TNode node, bool isPreRewrite)
                          nm->mkNode(Kind::FLOATINGPOINT_IS_ZERO, node[1])))));
 }
 
-RewriteResponse geqToleq(NodeManager* nm, TNode node, bool isPreRewrite)
+RewriteResponse geqToleq(NodeManager* nm,
+                         TNode node,
+                         CVC5_UNUSED bool isPreRewrite)
 {
   Assert(node.getKind() == Kind::FLOATINGPOINT_GEQ);
   return RewriteResponse(REWRITE_DONE,
                          nm->mkNode(Kind::FLOATINGPOINT_LEQ, node[1], node[0]));
 }
 
-RewriteResponse gtTolt(NodeManager* nm, TNode node, bool isPreRewrite)
+RewriteResponse gtTolt(NodeManager* nm,
+                       TNode node,
+                       CVC5_UNUSED bool isPreRewrite)
 {
   Assert(node.getKind() == Kind::FLOATINGPOINT_GT);
   return RewriteResponse(REWRITE_DONE,
                          nm->mkNode(Kind::FLOATINGPOINT_LT, node[1], node[0]));
 }
 
-RewriteResponse removed(NodeManager* nm, TNode node, bool isPreRewrite)
+RewriteResponse removed(CVC5_UNUSED NodeManager* nm,
+                        TNode node,
+                        CVC5_UNUSED bool isPreRewrite)
 {
   Unreachable() << "kind (" << node.getKind() << ") should have been removed?";
 }
 
-RewriteResponse variable(NodeManager* nm, TNode node, bool isPreRewrite)
+RewriteResponse variable(CVC5_UNUSED NodeManager* nm,
+                         TNode node,
+                         CVC5_UNUSED bool isPreRewrite)
 {
   // We should only get floating point and rounding mode variables to rewrite.
   TypeNode tn = node.getType(true);
@@ -226,7 +241,9 @@ RewriteResponse equal(NodeManager* nm, TNode node, bool isPreRewrite)
 
 // Note these cannot be assumed to be symmetric for +0/-0, thus no symmetry
 // reorder
-RewriteResponse compactMinMax(NodeManager* nm, TNode node, bool isPreRewrite)
+RewriteResponse compactMinMax(CVC5_UNUSED NodeManager* nm,
+                              TNode node,
+                              CVC5_UNUSED bool isPreRewrite)
 {
 #ifdef CVC5_ASSERTIONS
   Kind k = node.getKind();
@@ -300,7 +317,7 @@ RewriteResponse reorderFMA(NodeManager* nm, TNode node, bool isPreRewrite)
 
 RewriteResponse removeSignOperations(NodeManager* nm,
                                      TNode node,
-                                     bool isPreRewrite)
+                                     CVC5_UNUSED bool isPreRewrite)
 {
   Assert(node.getKind() == Kind::FLOATINGPOINT_IS_NORMAL
          || node.getKind() == Kind::FLOATINGPOINT_IS_SUBNORMAL
@@ -370,7 +387,7 @@ RewriteResponse leqId(NodeManager* nm, TNode node, bool isPreRewrite)
   return RewriteResponse(REWRITE_DONE, node);
 }
 
-RewriteResponse ltId(NodeManager* nm, TNode node, bool isPreRewrite)
+RewriteResponse ltId(NodeManager* nm, TNode node, CVC5_UNUSED bool isPreRewrite)
 {
   Assert(node.getKind() == Kind::FLOATINGPOINT_LT);
 
@@ -406,7 +423,9 @@ RewriteResponse toFPSignedBV(NodeManager* nm, TNode node, bool isPreRewrite)
 
 namespace constantFold {
 
-RewriteResponse fpLiteral(NodeManager* nm, TNode node, bool isPreRewrite)
+RewriteResponse fpLiteral(NodeManager* nm,
+                          TNode node,
+                          CVC5_UNUSED bool isPreRewrite)
 {
   Assert(node.getKind() == Kind::FLOATINGPOINT_FP);
 
@@ -423,7 +442,7 @@ RewriteResponse fpLiteral(NodeManager* nm, TNode node, bool isPreRewrite)
   return RewriteResponse(REWRITE_DONE, lit);
 }
 
-RewriteResponse abs(NodeManager* nm, TNode node, bool isPreRewrite)
+RewriteResponse abs(NodeManager* nm, TNode node, CVC5_UNUSED bool isPreRewrite)
 {
   Assert(node.getKind() == Kind::FLOATINGPOINT_ABS);
   Assert(node.getNumChildren() == 1);
@@ -432,7 +451,7 @@ RewriteResponse abs(NodeManager* nm, TNode node, bool isPreRewrite)
       REWRITE_DONE, nm->mkConst(node[0].getConst<FloatingPoint>().absolute()));
 }
 
-RewriteResponse neg(NodeManager* nm, TNode node, bool isPreRewrite)
+RewriteResponse neg(NodeManager* nm, TNode node, CVC5_UNUSED bool isPreRewrite)
 {
   Assert(node.getKind() == Kind::FLOATINGPOINT_NEG);
   Assert(node.getNumChildren() == 1);
@@ -441,7 +460,7 @@ RewriteResponse neg(NodeManager* nm, TNode node, bool isPreRewrite)
       REWRITE_DONE, nm->mkConst(node[0].getConst<FloatingPoint>().negate()));
 }
 
-RewriteResponse add(NodeManager* nm, TNode node, bool isPreRewrite)
+RewriteResponse add(NodeManager* nm, TNode node, CVC5_UNUSED bool isPreRewrite)
 {
   Assert(node.getKind() == Kind::FLOATINGPOINT_ADD);
   Assert(node.getNumChildren() == 3);
@@ -455,7 +474,7 @@ RewriteResponse add(NodeManager* nm, TNode node, bool isPreRewrite)
   return RewriteResponse(REWRITE_DONE, nm->mkConst(arg1.add(rm, arg2)));
 }
 
-RewriteResponse mult(NodeManager* nm, TNode node, bool isPreRewrite)
+RewriteResponse mult(NodeManager* nm, TNode node, CVC5_UNUSED bool isPreRewrite)
 {
   Assert(node.getKind() == Kind::FLOATINGPOINT_MULT);
   Assert(node.getNumChildren() == 3);
@@ -469,7 +488,7 @@ RewriteResponse mult(NodeManager* nm, TNode node, bool isPreRewrite)
   return RewriteResponse(REWRITE_DONE, nm->mkConst(arg1.mult(rm, arg2)));
 }
 
-RewriteResponse fma(NodeManager* nm, TNode node, bool isPreRewrite)
+RewriteResponse fma(NodeManager* nm, TNode node, CVC5_UNUSED bool isPreRewrite)
 {
   Assert(node.getKind() == Kind::FLOATINGPOINT_FMA);
   Assert(node.getNumChildren() == 4);
@@ -485,7 +504,7 @@ RewriteResponse fma(NodeManager* nm, TNode node, bool isPreRewrite)
   return RewriteResponse(REWRITE_DONE, nm->mkConst(arg1.fma(rm, arg2, arg3)));
 }
 
-RewriteResponse div(NodeManager* nm, TNode node, bool isPreRewrite)
+RewriteResponse div(NodeManager* nm, TNode node, CVC5_UNUSED bool isPreRewrite)
 {
   Assert(node.getKind() == Kind::FLOATINGPOINT_DIV);
   Assert(node.getNumChildren() == 3);
@@ -499,7 +518,7 @@ RewriteResponse div(NodeManager* nm, TNode node, bool isPreRewrite)
   return RewriteResponse(REWRITE_DONE, nm->mkConst(arg1.div(rm, arg2)));
 }
 
-RewriteResponse sqrt(NodeManager* nm, TNode node, bool isPreRewrite)
+RewriteResponse sqrt(NodeManager* nm, TNode node, CVC5_UNUSED bool isPreRewrite)
 {
   Assert(node.getKind() == Kind::FLOATINGPOINT_SQRT);
   Assert(node.getNumChildren() == 2);
@@ -510,7 +529,7 @@ RewriteResponse sqrt(NodeManager* nm, TNode node, bool isPreRewrite)
   return RewriteResponse(REWRITE_DONE, nm->mkConst(arg.sqrt(rm)));
 }
 
-RewriteResponse rti(NodeManager* nm, TNode node, bool isPreRewrite)
+RewriteResponse rti(NodeManager* nm, TNode node, CVC5_UNUSED bool isPreRewrite)
 {
   Assert(node.getKind() == Kind::FLOATINGPOINT_RTI);
   Assert(node.getNumChildren() == 2);
@@ -521,7 +540,7 @@ RewriteResponse rti(NodeManager* nm, TNode node, bool isPreRewrite)
   return RewriteResponse(REWRITE_DONE, nm->mkConst(arg.rti(rm)));
 }
 
-RewriteResponse rem(NodeManager* nm, TNode node, bool isPreRewrite)
+RewriteResponse rem(NodeManager* nm, TNode node, CVC5_UNUSED bool isPreRewrite)
 {
   Assert(node.getKind() == Kind::FLOATINGPOINT_REM);
   Assert(node.getNumChildren() == 2);
@@ -534,7 +553,7 @@ RewriteResponse rem(NodeManager* nm, TNode node, bool isPreRewrite)
   return RewriteResponse(REWRITE_DONE, nm->mkConst(arg1.rem(arg2)));
 }
 
-RewriteResponse min(NodeManager* nm, TNode node, bool isPreRewrite)
+RewriteResponse min(NodeManager* nm, TNode node, CVC5_UNUSED bool isPreRewrite)
 {
   Assert(node.getKind() == Kind::FLOATINGPOINT_MIN);
   Assert(node.getNumChildren() == 2);
@@ -558,7 +577,7 @@ RewriteResponse min(NodeManager* nm, TNode node, bool isPreRewrite)
   }
 }
 
-RewriteResponse max(NodeManager* nm, TNode node, bool isPreRewrite)
+RewriteResponse max(NodeManager* nm, TNode node, CVC5_UNUSED bool isPreRewrite)
 {
   Assert(node.getKind() == Kind::FLOATINGPOINT_MAX);
   Assert(node.getNumChildren() == 2);
@@ -582,7 +601,9 @@ RewriteResponse max(NodeManager* nm, TNode node, bool isPreRewrite)
   }
 }
 
-RewriteResponse minTotal(NodeManager* nm, TNode node, bool isPreRewrite)
+RewriteResponse minTotal(NodeManager* nm,
+                         TNode node,
+                         CVC5_UNUSED bool isPreRewrite)
 {
   Assert(node.getKind() == Kind::FLOATINGPOINT_MIN_TOTAL);
   Assert(node.getNumChildren() == 3);
@@ -618,7 +639,9 @@ RewriteResponse minTotal(NodeManager* nm, TNode node, bool isPreRewrite)
   }
 }
 
-RewriteResponse maxTotal(NodeManager* nm, TNode node, bool isPreRewrite)
+RewriteResponse maxTotal(NodeManager* nm,
+                         TNode node,
+                         CVC5_UNUSED bool isPreRewrite)
 {
   Assert(node.getKind() == Kind::FLOATINGPOINT_MAX_TOTAL);
   Assert(node.getNumChildren() == 3);
@@ -654,7 +677,9 @@ RewriteResponse maxTotal(NodeManager* nm, TNode node, bool isPreRewrite)
   }
 }
 
-RewriteResponse equal(NodeManager* nm, TNode node, bool isPreRewrite)
+RewriteResponse equal(NodeManager* nm,
+                      TNode node,
+                      CVC5_UNUSED bool isPreRewrite)
 {
   Assert(node.getKind() == Kind::EQUAL);
 
@@ -680,7 +705,7 @@ RewriteResponse equal(NodeManager* nm, TNode node, bool isPreRewrite)
   Unreachable() << "Equality of unknown type";
 }
 
-RewriteResponse leq(NodeManager* nm, TNode node, bool isPreRewrite)
+RewriteResponse leq(NodeManager* nm, TNode node, CVC5_UNUSED bool isPreRewrite)
 {
   Assert(node.getKind() == Kind::FLOATINGPOINT_LEQ);
   Assert(node.getNumChildren() == 2);
@@ -693,7 +718,7 @@ RewriteResponse leq(NodeManager* nm, TNode node, bool isPreRewrite)
   return RewriteResponse(REWRITE_DONE, nm->mkConst(arg1 <= arg2));
 }
 
-RewriteResponse lt(NodeManager* nm, TNode node, bool isPreRewrite)
+RewriteResponse lt(NodeManager* nm, TNode node, CVC5_UNUSED bool isPreRewrite)
 {
   Assert(node.getKind() == Kind::FLOATINGPOINT_LT);
   Assert(node.getNumChildren() == 2);
@@ -706,7 +731,9 @@ RewriteResponse lt(NodeManager* nm, TNode node, bool isPreRewrite)
   return RewriteResponse(REWRITE_DONE, nm->mkConst(arg1 < arg2));
 }
 
-RewriteResponse isNormal(NodeManager* nm, TNode node, bool isPreRewrite)
+RewriteResponse isNormal(NodeManager* nm,
+                         TNode node,
+                         CVC5_UNUSED bool isPreRewrite)
 {
   Assert(node.getKind() == Kind::FLOATINGPOINT_IS_NORMAL);
   Assert(node.getNumChildren() == 1);
@@ -715,7 +742,9 @@ RewriteResponse isNormal(NodeManager* nm, TNode node, bool isPreRewrite)
       REWRITE_DONE, nm->mkConst(node[0].getConst<FloatingPoint>().isNormal()));
 }
 
-RewriteResponse isSubnormal(NodeManager* nm, TNode node, bool isPreRewrite)
+RewriteResponse isSubnormal(NodeManager* nm,
+                            TNode node,
+                            CVC5_UNUSED bool isPreRewrite)
 {
   Assert(node.getKind() == Kind::FLOATINGPOINT_IS_SUBNORMAL);
   Assert(node.getNumChildren() == 1);
@@ -725,7 +754,9 @@ RewriteResponse isSubnormal(NodeManager* nm, TNode node, bool isPreRewrite)
       nm->mkConst(node[0].getConst<FloatingPoint>().isSubnormal()));
 }
 
-RewriteResponse isZero(NodeManager* nm, TNode node, bool isPreRewrite)
+RewriteResponse isZero(NodeManager* nm,
+                       TNode node,
+                       CVC5_UNUSED bool isPreRewrite)
 {
   Assert(node.getKind() == Kind::FLOATINGPOINT_IS_ZERO);
   Assert(node.getNumChildren() == 1);
@@ -734,7 +765,9 @@ RewriteResponse isZero(NodeManager* nm, TNode node, bool isPreRewrite)
       REWRITE_DONE, nm->mkConst(node[0].getConst<FloatingPoint>().isZero()));
 }
 
-RewriteResponse isInfinite(NodeManager* nm, TNode node, bool isPreRewrite)
+RewriteResponse isInfinite(NodeManager* nm,
+                           TNode node,
+                           CVC5_UNUSED bool isPreRewrite)
 {
   Assert(node.getKind() == Kind::FLOATINGPOINT_IS_INF);
   Assert(node.getNumChildren() == 1);
@@ -744,7 +777,9 @@ RewriteResponse isInfinite(NodeManager* nm, TNode node, bool isPreRewrite)
       nm->mkConst(node[0].getConst<FloatingPoint>().isInfinite()));
 }
 
-RewriteResponse isNaN(NodeManager* nm, TNode node, bool isPreRewrite)
+RewriteResponse isNaN(NodeManager* nm,
+                      TNode node,
+                      CVC5_UNUSED bool isPreRewrite)
 {
   Assert(node.getKind() == Kind::FLOATINGPOINT_IS_NAN);
   Assert(node.getNumChildren() == 1);
@@ -753,7 +788,9 @@ RewriteResponse isNaN(NodeManager* nm, TNode node, bool isPreRewrite)
       REWRITE_DONE, nm->mkConst(node[0].getConst<FloatingPoint>().isNaN()));
 }
 
-RewriteResponse isNegative(NodeManager* nm, TNode node, bool isPreRewrite)
+RewriteResponse isNegative(NodeManager* nm,
+                           TNode node,
+                           CVC5_UNUSED bool isPreRewrite)
 {
   Assert(node.getKind() == Kind::FLOATINGPOINT_IS_NEG);
   Assert(node.getNumChildren() == 1);
@@ -763,7 +800,9 @@ RewriteResponse isNegative(NodeManager* nm, TNode node, bool isPreRewrite)
       nm->mkConst(node[0].getConst<FloatingPoint>().isNegative()));
 }
 
-RewriteResponse isPositive(NodeManager* nm, TNode node, bool isPreRewrite)
+RewriteResponse isPositive(NodeManager* nm,
+                           TNode node,
+                           CVC5_UNUSED bool isPreRewrite)
 {
   Assert(node.getKind() == Kind::FLOATINGPOINT_IS_POS);
   Assert(node.getNumChildren() == 1);
@@ -775,7 +814,7 @@ RewriteResponse isPositive(NodeManager* nm, TNode node, bool isPreRewrite)
 
 RewriteResponse convertFromIEEEBitVectorLiteral(NodeManager* nm,
                                                 TNode node,
-                                                bool isPreRewrite)
+                                                CVC5_UNUSED bool isPreRewrite)
 {
   Assert(node.getKind() == Kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV);
 
@@ -790,7 +829,9 @@ RewriteResponse convertFromIEEEBitVectorLiteral(NodeManager* nm,
   return RewriteResponse(REWRITE_DONE, lit);
 }
 
-RewriteResponse constantConvert(NodeManager* nm, TNode node, bool isPreRewrite)
+RewriteResponse constantConvert(NodeManager* nm,
+                                TNode node,
+                                CVC5_UNUSED bool isPreRewrite)
 {
   Assert(node.getKind() == Kind::FLOATINGPOINT_TO_FP_FROM_FP);
   Assert(node.getNumChildren() == 2);
@@ -806,7 +847,7 @@ RewriteResponse constantConvert(NodeManager* nm, TNode node, bool isPreRewrite)
 
 RewriteResponse convertFromRealLiteral(NodeManager* nm,
                                        TNode node,
-                                       bool isPreRewrite)
+                                       CVC5_UNUSED bool isPreRewrite)
 {
   Assert(node.getKind() == Kind::FLOATINGPOINT_TO_FP_FROM_REAL);
 
@@ -824,7 +865,9 @@ RewriteResponse convertFromRealLiteral(NodeManager* nm,
   return RewriteResponse(REWRITE_DONE, lit);
 }
 
-RewriteResponse convertFromSBV(NodeManager* nm, TNode node, bool isPreRewrite)
+RewriteResponse convertFromSBV(NodeManager* nm,
+                               TNode node,
+                               CVC5_UNUSED bool isPreRewrite)
 {
   Assert(node.getKind() == Kind::FLOATINGPOINT_TO_FP_FROM_SBV);
 
@@ -850,7 +893,9 @@ RewriteResponse convertFromSBV(NodeManager* nm, TNode node, bool isPreRewrite)
                          nm->mkConst(FloatingPoint(size, rm, sbv, true)));
 }
 
-RewriteResponse convertFromUBV(NodeManager* nm, TNode node, bool isPreRewrite)
+RewriteResponse convertFromUBV(NodeManager* nm,
+                               TNode node,
+                               CVC5_UNUSED bool isPreRewrite)
 {
   Assert(node.getKind() == Kind::FLOATINGPOINT_TO_FP_FROM_UBV);
 
@@ -868,7 +913,9 @@ RewriteResponse convertFromUBV(NodeManager* nm, TNode node, bool isPreRewrite)
   return RewriteResponse(REWRITE_DONE, lit);
 }
 
-RewriteResponse convertToUBV(NodeManager* nm, TNode node, bool isPreRewrite)
+RewriteResponse convertToUBV(NodeManager* nm,
+                             TNode node,
+                             CVC5_UNUSED bool isPreRewrite)
 {
   Assert(node.getKind() == Kind::FLOATINGPOINT_TO_UBV);
 
@@ -892,7 +939,9 @@ RewriteResponse convertToUBV(NodeManager* nm, TNode node, bool isPreRewrite)
   }
 }
 
-RewriteResponse convertToSBV(NodeManager* nm, TNode node, bool isPreRewrite)
+RewriteResponse convertToSBV(NodeManager* nm,
+                             TNode node,
+                             CVC5_UNUSED bool isPreRewrite)
 {
   Assert(node.getKind() == Kind::FLOATINGPOINT_TO_SBV);
 
@@ -916,7 +965,9 @@ RewriteResponse convertToSBV(NodeManager* nm, TNode node, bool isPreRewrite)
   }
 }
 
-RewriteResponse convertToReal(NodeManager* nm, TNode node, bool isPreRewrite)
+RewriteResponse convertToReal(NodeManager* nm,
+                              TNode node,
+                              CVC5_UNUSED bool isPreRewrite)
 {
   Assert(node.getKind() == Kind::FLOATINGPOINT_TO_REAL);
 
@@ -938,7 +989,7 @@ RewriteResponse convertToReal(NodeManager* nm, TNode node, bool isPreRewrite)
 
 RewriteResponse convertToUBVTotal(NodeManager* nm,
                                   TNode node,
-                                  bool isPreRewrite)
+                                  CVC5_UNUSED bool isPreRewrite)
 {
   Assert(node.getKind() == Kind::FLOATINGPOINT_TO_UBV_TOTAL);
 
@@ -976,7 +1027,7 @@ RewriteResponse convertToUBVTotal(NodeManager* nm,
 
 RewriteResponse convertToSBVTotal(NodeManager* nm,
                                   TNode node,
-                                  bool isPreRewrite)
+                                  CVC5_UNUSED bool isPreRewrite)
 {
   Assert(node.getKind() == Kind::FLOATINGPOINT_TO_SBV_TOTAL);
 
@@ -1014,7 +1065,7 @@ RewriteResponse convertToSBVTotal(NodeManager* nm,
 
 RewriteResponse convertToRealTotal(NodeManager* nm,
                                    TNode node,
-                                   bool isPreRewrite)
+                                   CVC5_UNUSED bool isPreRewrite)
 {
   Assert(node.getKind() == Kind::FLOATINGPOINT_TO_REAL_TOTAL);
 
@@ -1046,7 +1097,9 @@ RewriteResponse convertToRealTotal(NodeManager* nm,
   }
 }
 
-RewriteResponse componentFlag(NodeManager* nm, TNode node, bool isPreRewrite)
+RewriteResponse componentFlag(NodeManager* nm,
+                              TNode node,
+                              CVC5_UNUSED bool isPreRewrite)
 {
   Kind k = node.getKind();
 
@@ -1074,7 +1127,7 @@ RewriteResponse componentFlag(NodeManager* nm, TNode node, bool isPreRewrite)
 
 RewriteResponse componentExponent(NodeManager* nm,
                                   TNode node,
-                                  bool isPreRewrite)
+                                  CVC5_UNUSED bool isPreRewrite)
 {
   Assert(node.getKind() == Kind::FLOATINGPOINT_COMPONENT_EXPONENT);
 
@@ -1087,7 +1140,7 @@ RewriteResponse componentExponent(NodeManager* nm,
 
 RewriteResponse componentSignificand(NodeManager* nm,
                                      TNode node,
-                                     bool isPreRewrite)
+                                     CVC5_UNUSED bool isPreRewrite)
 {
   Assert(node.getKind() == Kind::FLOATINGPOINT_COMPONENT_SIGNIFICAND);
 
@@ -1099,7 +1152,7 @@ RewriteResponse componentSignificand(NodeManager* nm,
 
 RewriteResponse roundingModeBitBlast(NodeManager* nm,
                                      TNode node,
-                                     bool isPreRewrite)
+                                     CVC5_UNUSED bool isPreRewrite)
 {
   Assert(node.getKind() == Kind::ROUNDINGMODE_BITBLAST);
 
@@ -1143,9 +1196,7 @@ RewriteResponse roundingModeBitBlast(NodeManager* nm,
 /**
  * Initialize the rewriter.
  */
-TheoryFpRewriter::TheoryFpRewriter(NodeManager* nm,
-                                   context::UserContext* u,
-                                   bool fpExp)
+TheoryFpRewriter::TheoryFpRewriter(NodeManager* nm, bool fpExp)
     : TheoryRewriter(nm), d_fpExpDef(nm), d_fpExpEnabled(fpExp)
 {
   /* Set up the pre-rewrite dispatch table */

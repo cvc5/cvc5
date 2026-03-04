@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Christopher L. Conway
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -30,7 +27,7 @@ Parser::Parser(Solver* solver, SymManager* sm)
 {
 }
 
-void Parser::setLogic(const std::string& name) {}
+void Parser::setLogic(CVC5_UNUSED const std::string& name) {}
 
 void Parser::setFileInput(const std::string& filename)
 {

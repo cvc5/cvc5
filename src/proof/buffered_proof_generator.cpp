@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Haniel Barbosa, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -75,13 +72,13 @@ std::shared_ptr<ProofNode> BufferedProofGenerator::getProofFor(Node fact)
     if (symFact.isNull())
     {
       Trace("pfee-fact-gen") << "...cannot find step" << std::endl;
-      Assert(false);
+      DebugUnhandled();
       return nullptr;
     }
     it = d_facts.find(symFact);
     if (it == d_facts.end())
     {
-      Assert(false);
+      DebugUnhandled();
       Trace("pfee-fact-gen") << "...cannot find step (no sym)" << std::endl;
       return nullptr;
     }

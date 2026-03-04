@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -50,6 +47,22 @@ BaseSolver::BaseSolver(Env& env,
 }
 
 BaseSolver::~BaseSolver() {}
+
+/**
+ * Implements union find, with path compression
+ */
+Node getRep(const Node& n, std::map<Node, Node>& rep)
+{
+  std::map<Node, Node>::iterator it = rep.find(n);
+  if (it == rep.end())
+  {
+    return n;
+  }
+  Assert(n != it->second);
+  Node r = getRep(it->second, rep);
+  rep[n] = r;
+  return r;
+}
 
 void BaseSolver::checkInit()
 {
@@ -167,6 +180,18 @@ void BaseSolver::checkInit()
               std::vector<Node> exp;
               // the number of empty components of n, nc
               size_t count[2] = {0, 0};
+              // We are explaining equal components, which may end up producing
+              // cycles in the explanation, e.g. explaining
+              //   (= (str.++ s t) (str.++ t s)) when s is equal to t,
+              // we would add (= s t) and (= t s) to the explanation. This leads
+              // to issues in proofs since we are treating explanations as
+              // substitutions. To address this we track a representative of
+              // the terms occurring in our explanation, such that after adding
+              // (= s t), expRep[s] = expRep[t] = s, and hence (= t s) is
+              // recognized as redundant. This also can lead to shorter
+              // explanations.
+              std::map<Node, Node> expRep;
+              std::map<Node, Node>::iterator itra, itrb;
               while (count[0] < nc.getNumChildren()
                      || count[1] < n.getNumChildren())
               {
@@ -193,7 +218,17 @@ void BaseSolver::checkInit()
                   Assert(count[1] < n.getNumChildren());
                   if (nc[count[0]] != n[count[1]])
                   {
-                    exp.push_back(nc[count[0]].eqNode(n[count[1]]));
+                    Node a = nc[count[0]];
+                    Node b = n[count[1]];
+                    Node ra = getRep(a, expRep);
+                    Node rb = getRep(b, expRep);
+                    // if they do not already have an equal representative
+                    if (ra != rb)
+                    {
+                      // update the representative
+                      expRep[rb] = ra;
+                      exp.push_back(a.eqNode(b));
+                    }
                   }
                   count[0]++;
                   count[1]++;
@@ -540,6 +575,17 @@ void BaseSolver::checkConstantEquivalenceClasses(TermIndex* ti,
             Trace("strings-debug")
                 << "Set eqc best content " << n << " to " << nct
                 << ", explanation = " << bei.d_exp << std::endl;
+            // we have e.g. (= x (str.++ "A" x)), which is a conflict.
+            for (const Node& nctc : nct)
+            {
+              if (d_state.areEqual(nctc, nr))
+              {
+                d_im.sendInference(exp,
+                                   nctc.eqNode(n).notNode(),
+                                   InferenceId::STRINGS_I_CYCLE_CONFLICT);
+                return;
+              }
+            }
           }
         }
       }

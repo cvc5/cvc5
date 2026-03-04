@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -25,10 +22,9 @@ namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
-EagerSolver::EagerSolver(Env& env, SolverState& state, TermRegistry& treg)
+EagerSolver::EagerSolver(Env& env, SolverState& state)
     : EnvObj(env),
       d_state(state),
-      d_treg(treg),
       d_aent(env.getNodeManager(), env.getRewriter()),
       d_rent(env.getNodeManager(), env.getRewriter())
 {
@@ -160,8 +156,8 @@ bool EagerSolver::checkForMergeConflict(Node a,
 
 void EagerSolver::notifyFact(TNode atom,
                              bool polarity,
-                             TNode fact,
-                             bool isInternal)
+                             CVC5_UNUSED TNode fact,
+                             CVC5_UNUSED bool isInternal)
 {
   if (atom.getKind() == Kind::STRING_IN_REGEXP)
   {

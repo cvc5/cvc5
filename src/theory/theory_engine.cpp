@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Dejan Jovanovic, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -576,7 +573,7 @@ void TheoryEngine::check(Theory::Effort effort) {
             {
               setModelUnsound(theoryId,
                               IncompleteId::UNPROCESSED_THEORY_CONFLICT);
-              Assert(false) << "Unprocessed theory conflict from " << theoryId;
+              DebugUnhandled() << "Unprocessed theory conflict from " << theoryId;
               break;
             }
           }
@@ -858,7 +855,7 @@ bool TheoryEngine::isLegalElimination(TNode x, TNode val)
   // there should be a model object
   TheoryModel* tm = getModel();
   Assert(tm != nullptr);
-  return tm->isLegalElimination(x, val);
+  return tm->isLegalElimination(val);
 }
 
 bool TheoryEngine::solve(TrustNode tliteral,
@@ -876,13 +873,10 @@ bool TheoryEngine::solve(TrustNode tliteral,
   // Note that ppAssert is called before ppRewrite.
   if (!isTheoryEnabled(tid) && tid != THEORY_SAT_SOLVER)
   {
-    stringstream ss;
-    ss << "The logic was specified as " << logicInfo().getLogicString()
-       << ", which doesn't include " << tid
-       << ", but got a theory atom for that theory." << std::endl
-       << "The atom:" << std::endl
-       << atom;
-    throw LogicException(ss.str());
+    // don't throw an exception yet
+    // Instead ppStaticRewrite will be called on atom, which may throw an
+    // exception if the term is not rewritten.
+    return false;
   }
 
   bool solveStatus = d_theoryTable[tid]->ppAssert(tliteral, substitutionOut);
@@ -943,6 +937,13 @@ TrustNode TheoryEngine::ppStaticRewrite(TNode term)
   TheoryId tid = d_env.theoryOf(term);
   if (!isTheoryEnabled(tid) && tid != THEORY_SAT_SOLVER)
   {
+    // If the theory is not enabled, then we require eliminating the term
+    // here.
+    TrustNode tret = d_theoryTable[THEORY_BUILTIN]->ppStaticRewrite(term);
+    if (!tret.isNull())
+    {
+      return tret;
+    }
     stringstream ss;
     ss << "The logic was specified as " << logicInfo().getLogicString()
        << ", which doesn't include " << tid
@@ -1376,7 +1377,8 @@ struct AtomsCollect {
  public:
   typedef void return_type;
 
-  bool alreadyVisited(TNode current, TNode parent) {
+  bool alreadyVisited(TNode current, CVC5_UNUSED TNode parent)
+  {
     // Check if already visited
     if (d_visited.find(current) != d_visited.end()) return true;
     // Don't visit non-boolean
@@ -1385,15 +1387,16 @@ struct AtomsCollect {
     return false;
   }
 
-  void visit(TNode current, TNode parent) {
+  void visit(TNode current, CVC5_UNUSED TNode parent)
+  {
     if (Theory::theoryOf(current) != theory::THEORY_BOOL) {
       d_atoms.push_back(current);
     }
     d_visited.insert(current);
   }
 
-  void start(TNode node) {}
-  void done(TNode node) {}
+  void start(CVC5_UNUSED TNode node) {}
+  void done(CVC5_UNUSED TNode node) {}
 
   std::vector<TNode> getAtoms() const {
     return d_atoms;
@@ -2041,7 +2044,7 @@ TrustNode TheoryEngine::getExplanation(
       }
       else
       {
-        Assert(false)
+        DebugUnhandled()
             << "TheoryEngine::getExplanation: no step found for conclusion "
             << conclusion;
       }

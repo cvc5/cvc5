@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Lydia Kondylidou, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -101,14 +98,18 @@ const context::CDHashSet<Node>& InstStrategyMbqi::getGlobalSyms() const
   return d_globalSyms;
 }
 
-void InstStrategyMbqi::reset_round(Theory::Effort e) { d_quantChecked.clear(); }
+void InstStrategyMbqi::reset_round(CVC5_UNUSED Theory::Effort e)
+{
+  d_quantChecked.clear();
+}
 
 bool InstStrategyMbqi::needsCheck(Theory::Effort e)
 {
   return e >= Theory::EFFORT_LAST_CALL;
 }
 
-QuantifiersModule::QEffort InstStrategyMbqi::needsModel(Theory::Effort e)
+QuantifiersModule::QEffort InstStrategyMbqi::needsModel(
+    CVC5_UNUSED Theory::Effort e)
 {
   return QEFFORT_MODEL;
 }
@@ -166,7 +167,7 @@ void InstStrategyMbqi::process(Node q)
   // the subsolver. This is local to this call.
   std::unordered_map<Node, Node> tmpConvertMap;
   // list of fresh variables per type
-  std::map<TypeNode, std::unordered_set<Node> > freshVarType;
+  std::map<TypeNode, std::unordered_set<Node>> freshVarType;
   // model values to the fresh variables
   std::map<Node, Node> mvToFreshVar;
 
@@ -244,7 +245,7 @@ void InstStrategyMbqi::process(Node q)
   }
   // constraint: the skolems of the given type are equal to one of the variables
   // introduced for uninterpreted sorts
-  std::map<TypeNode, std::unordered_set<Node> >::iterator itk;
+  std::map<TypeNode, std::unordered_set<Node>>::iterator itk;
   for (const Node& k : skolems.d_subs)
   {
     TypeNode tn = k.getType();
@@ -260,7 +261,7 @@ void InstStrategyMbqi::process(Node q)
                     << std::endl;
       // this should never happen but we explicitly guard for it, since
       // otherwise we would be model unsound below
-      Assert(false);
+      DebugUnhandled();
       continue;
     }
     std::vector<Node> disj;
@@ -275,7 +276,7 @@ void InstStrategyMbqi::process(Node q)
   // constraint: distinctness of variables introduced for uninterpreted
   // constants
   std::vector<Node> allVars;
-  for (const std::pair<const TypeNode, std::unordered_set<Node> >& fv :
+  for (const std::pair<const TypeNode, std::unordered_set<Node>>& fv :
        freshVarType)
   {
     Assert(!fv.second.empty());
@@ -304,8 +305,7 @@ void InstStrategyMbqi::process(Node q)
   Trace("mbqi") << "*** Check sat..." << std::endl;
   Trace("mbqi") << "  query-o is : " << SkolemManager::getOriginalForm(query)
                 << std::endl;
-  Trace("mbqi") << "  query is : " << query
-                << std::endl;
+  Trace("mbqi") << "  query is : " << query << std::endl;
   Result r = mbqiChecker->checkSat();
   Trace("mbqi") << "  ...got : " << r << std::endl;
   if (r.getStatus() == Result::UNSAT)
@@ -375,7 +375,8 @@ bool InstStrategyMbqi::tryInstantiation(
     Node vc = convertFromModel(v, tmpConvertMap, mvToFreshVar);
     if (vc.isNull())
     {
-      Trace("mbqi") << "...failed to convert " << v << " from model" << std::endl;
+      Trace("mbqi") << "...failed to convert " << v << " from model"
+                    << std::endl;
       return false;
     }
     if (expr::hasSubtermKinds(d_nonClosedKinds, vc))
@@ -432,7 +433,7 @@ bool InstStrategyMbqi::tryInstantiation(
 Node InstStrategyMbqi::convertToQuery(
     Node t,
     std::unordered_map<Node, Node>& cmap,
-    std::map<TypeNode, std::unordered_set<Node> >& freshVarType)
+    std::map<TypeNode, std::unordered_set<Node>>& freshVarType)
 {
   NodeManager* nm = nodeManager();
   SkolemManager* sm = nm->getSkolemManager();

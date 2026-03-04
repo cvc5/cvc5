@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Mudathir Mohamed
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -103,6 +100,18 @@ const char* toString(InferenceId i)
       return "ARITH_NL_IAND_BITWISE_REFINE";
     case InferenceId::ARITH_NL_PIAND_INIT_REFINE:
       return "ARITH_NL_PIAND_INIT_REFINE";
+    case InferenceId::ARITH_NL_PIAND_SUM_REFINE:
+      return "ARITH_NL_PIAND_SUM_REFINE";
+    case InferenceId::ARITH_NL_PIAND_BASE_CASE_REFINE:
+      return "ARITH_NL_PIAND_BASE_CASE_REFINE";
+    case InferenceId::ARITH_NL_PIAND_DIFFERENCE_REFINE:
+      return "ARITH_NL_PIAND_DIFFERENCE_REFINE";
+    case InferenceId::ARITH_NL_PIAND_SYMETRY_REFINE:
+      return "ARITH_NL_PIAND_SYMETRY_REFINE";
+    case InferenceId::ARITH_NL_PIAND_CONTRADITION_REFINE:
+      return "ARITH_NL_PIAND_CONTRADITION_REFINE";
+    case InferenceId::ARITH_NL_PIAND_ONE_REFINE:
+      return "ARITH_NL_PIAND_ONE_REFINE";
     case InferenceId::ARITH_NL_POW2_INIT_REFINE:
       return "ARITH_NL_POW2_INIT_REFINE";
     case InferenceId::ARITH_NL_POW2_VALUE_REFINE:
@@ -452,6 +461,8 @@ const char* toString(InferenceId i)
     case InferenceId::STRINGS_I_CONST_MERGE: return "STRINGS_I_CONST_MERGE";
     case InferenceId::STRINGS_I_CONST_CONFLICT:
       return "STRINGS_I_CONST_CONFLICT";
+    case InferenceId::STRINGS_I_CYCLE_CONFLICT:
+      return "STRINGS_I_CYCLE_CONFLICT";
     case InferenceId::STRINGS_I_NORM: return "STRINGS_I_NORM";
     case InferenceId::STRINGS_UNIT_SPLIT: return "STRINGS_UNIT_SPLIT";
     case InferenceId::STRINGS_UNIT_INJ_OOB: return "STRINGS_UNIT_INJ_OOB";
@@ -590,7 +601,7 @@ const char* toString(InferenceId i)
     case InferenceId::UNKNOWN: return "?";
 
     default:
-      Assert(false) << "No print for inference id " << static_cast<size_t>(i);
+      DebugUnhandled() << "No print for inference id " << static_cast<size_t>(i);
       return "?Unhandled";
   }
 }

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -256,6 +253,10 @@ Node OperatorElim::eliminateOperators(NodeManager* nm,
       if (num.getType().isInteger())
       {
         num = nm->mkNode(Kind::TO_REAL, num);
+      }
+      if (den.getType().isInteger())
+      {
+        den = nm->mkNode(Kind::TO_REAL, den);
       }
       Node lem = nm->mkNode(
           Kind::IMPLIES,
@@ -529,7 +530,7 @@ std::shared_ptr<ProofNode> OperatorElim::getProofFor(Node f)
   {
     if (f.getKind()!=Kind::EQUAL)
     {
-      Assert(false) << "arith::OperatorElim could not prove " << f;
+      DebugUnhandled() << "arith::OperatorElim could not prove " << f;
       return nullptr;
     }
     // target is the left hand side.

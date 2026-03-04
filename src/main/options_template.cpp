@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Gereon Kremer, Morgan Deters, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -177,8 +174,7 @@ std::string suggestCommandLineOptions(const std::string& optionName)
 {
   DidYouMean didYouMean;
 
-  const char* opt;
-  for (size_t i = 0; (opt = cmdlineOptions[i].name) != nullptr; ++i)
+  for (size_t i = 0; cmdlineOptions[i].name != nullptr; ++i)
   {
     didYouMean.addWord(std::string("--") + cmdlineOptions[i].name);
   }

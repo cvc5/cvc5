@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Daniel Larraz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -287,8 +284,11 @@ void TheorySep::presolve() {
 // MAIN SOLVER
 /////////////////////////////////////////////////////////////////////////////
 
-bool TheorySep::preNotifyFact(
-    TNode atom, bool polarity, TNode fact, bool isPrereg, bool isInternal)
+bool TheorySep::preNotifyFact(TNode atom,
+                              bool polarity,
+                              TNode fact,
+                              CVC5_UNUSED bool isPrereg,
+                              CVC5_UNUSED bool isInternal)
 {
   TNode satom = atom.getKind() == Kind::SEP_LABEL ? atom[0] : atom;
   TNode slbl = atom.getKind() == Kind::SEP_LABEL ? atom[1] : TNode::null();
@@ -317,8 +317,8 @@ bool TheorySep::preNotifyFact(
 
 void TheorySep::notifyFact(TNode atom,
                            bool polarity,
-                           TNode fact,
-                           bool isInternal)
+                           CVC5_UNUSED TNode fact,
+                           CVC5_UNUSED bool isInternal)
 {
   TNode satom = atom.getKind() == Kind::SEP_LABEL ? atom[0] : atom;
   if (atom.getKind() == Kind::SEP_LABEL && atom[0].getKind() == Kind::SEP_PTO)
@@ -841,8 +841,7 @@ void TheorySep::postCheck(Effort level)
       {
         Trace("sep-process") << "Must witness label : " << ll
                              << ", data type is " << d_type_data << std::endl;
-        Node dsk = NodeManager::mkDummySkolem(
-            "dsk", d_type_data, "pto-data for implicit location");
+        Node dsk = NodeManager::mkDummySkolem("dsk", d_type_data);
         // if location is in the heap, then something must point to it
         Node lem = nm->mkNode(
             Kind::IMPLIES,
@@ -1150,8 +1149,7 @@ void TheorySep::initializeBounds() {
                      << std::endl;
   for (size_t r = 0; r < n_emp; r++)
   {
-    Node e = NodeManager::mkDummySkolem(
-        "e", d_type_ref, "cardinality bound element for seplog");
+    Node e = NodeManager::mkDummySkolem("e", d_type_ref);
     d_type_references_card.push_back(e);
     d_type_ref_card_id[e] = r;
   }
@@ -1169,13 +1167,13 @@ Node TheorySep::getBaseLabel()
   std::stringstream ss;
   ss << "__Lb";
   TypeNode ltn = nm->mkSetType(d_type_ref);
-  Node n_lbl = NodeManager::mkDummySkolem(ss.str(), ltn, "base label");
+  Node n_lbl = NodeManager::mkDummySkolem(ss.str(), ltn);
   d_base_label = n_lbl;
   // make reference bound
   Trace("sep") << "Make reference bound label for " << d_type_ref << std::endl;
   std::stringstream ss2;
   ss2 << "__Lu";
-  d_reference_bound = NodeManager::mkDummySkolem(ss2.str(), ltn, "");
+  d_reference_bound = NodeManager::mkDummySkolem(ss2.str(), ltn);
 
   // check whether monotonic (elements can be added to tn without effecting
   // satisfiability)
@@ -1291,7 +1289,7 @@ Node TheorySep::getLabel( Node atom, int child, Node lbl ) {
     std::stringstream ss;
     ss << "__Lc" << child;
     TypeNode ltn = nodeManager()->mkSetType(d_type_ref);
-    Node n_lbl = NodeManager::mkDummySkolem(ss.str(), ltn, "sep label");
+    Node n_lbl = NodeManager::mkDummySkolem(ss.str(), ltn);
     d_label_map[atom][lbl][child] = n_lbl;
     return n_lbl;
   }
@@ -1692,7 +1690,7 @@ void TheorySep::computeLabelModel( Node lbl ) {
     else
     {
       throw Exception("Could not establish value of heap in model.");
-      Assert(false);
+      DebugUnhandled();
     }
   }
   for (const Node& s : d_label_model[lbl].d_heap_locs_model)

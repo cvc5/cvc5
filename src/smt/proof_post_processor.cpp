@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Hans-Joerg Schurr
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -469,7 +466,7 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
     Node eq = addProofForTrans(tchildren, cdp);
     if (eq.isNull() || eq[1] != args[0])
     {
-      Assert(false) << "Failed proof for MACRO_SR_PRED_TRANSFORM";
+      DebugUnhandled() << "Failed proof for MACRO_SR_PRED_TRANSFORM";
       Trace("smt-proof-pp-debug")
           << "Failed transitivity from " << tchildren << std::endl;
       return Node::null();
@@ -1027,7 +1024,7 @@ Node ProofPostprocessCallback::addProofForWitnessForm(Node t, CDProof* cdp)
   }
   else
   {
-    Assert(false) << "ProofPostprocessCallback::addProofForWitnessForm: failed "
+    DebugUnhandled() << "ProofPostprocessCallback::addProofForWitnessForm: failed "
                      "to add proof for witness form of "
                   << t;
   }

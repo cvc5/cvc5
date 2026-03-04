@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Paul Meng, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -617,10 +614,8 @@ Node SortInference::getNewSymbol(Node old, TypeNode tn)
     if( d_const_map[tn].find( old )==d_const_map[tn].end() ){
       std::stringstream ss;
       ss << "ic_" << tn << "_" << old;
-      d_const_map[tn][old] = NodeManager::mkDummySkolem(
-          ss.str(),
-          tn,
-          "constant created during sort inference");  // use mkConst???
+      d_const_map[tn][old] = NodeManager::mkDummySkolem(ss.str(),
+                                                        tn);  // use mkConst???
     }
     return d_const_map[tn][ old ];
   }
@@ -632,8 +627,7 @@ Node SortInference::getNewSymbol(Node old, TypeNode tn)
   }
   std::stringstream ss;
   ss << "i_" << old;
-  return NodeManager::mkDummySkolem(
-      ss.str(), tn, "created during sort inference");
+  return NodeManager::mkDummySkolem(ss.str(), tn);
 }
 
 Node SortInference::simplifyNode(
@@ -732,7 +726,7 @@ Node SortInference::simplifyNode(
       {
         Trace("sort-inference-warn") << "Sort inference created bad equality: " << children[0] << " = " << children[1] << std::endl;
         Trace("sort-inference-warn") << "  Types : " << children[0].getType() << " " << children[1].getType() << std::endl;
-        Assert(false);
+        DebugUnhandled();
       }
       ret = nm->mkNode(Kind::EQUAL, children);
     }
@@ -757,8 +751,7 @@ Node SortInference::simplifyNode(
           std::stringstream ss;
           ss << "io_" << op;
           TypeNode typ = nm->mkFunctionType(argTypes, retType);
-          d_symbol_map[op] = NodeManager::mkDummySkolem(
-              ss.str(), typ, "op created during sort inference");
+          d_symbol_map[op] = NodeManager::mkDummySkolem(ss.str(), typ);
           Trace("setp-model") << "Function " << op << " is replaced with " << d_symbol_map[op] << std::endl;
           model_replace_f[op] = d_symbol_map[op];
         }else{
@@ -774,7 +767,7 @@ Node SortInference::simplifyNode(
         if (tn != tna)
         {
           Trace("sort-inference-warn") << "Sort inference created bad child: " << n << " " << n[i] << " " << tn << " " << tna << std::endl;
-          Assert(false);
+          DebugUnhandled();
         }
       }
       ret = nm->mkNode(Kind::APPLY_UF, children);
@@ -815,8 +808,7 @@ Node SortInference::mkInjection( TypeNode tn1, TypeNode tn2 ) {
   std::vector< TypeNode > tns;
   tns.push_back( tn1 );
   TypeNode typ = nm->mkFunctionType(tns, tn2);
-  Node f = NodeManager::mkDummySkolem(
-      "inj", typ, "injection for monotonicity constraint");
+  Node f = NodeManager::mkDummySkolem("inj", typ);
   Trace("sort-inference") << "-> Make injection " << f << " from " << tn1 << " to " << tn2 << std::endl;
   Node v1 = NodeManager::mkBoundVar("?x", tn1);
   Node v2 = NodeManager::mkBoundVar("?y", tn1);

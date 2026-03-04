@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Alex Ozdemir, Daniel Larraz, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -46,11 +43,10 @@ namespace cvc5::internal {
 namespace theory {
 namespace ff {
 
-SubTheory::SubTheory(Env& env, FfStatistics* stats, Integer modulus)
+SubTheory::SubTheory(Env& env, Integer modulus)
     : EnvObj(env),
       FieldObj(nodeManager(), modulus),
-      d_facts(context()),
-      d_stats(stats)
+      d_facts(context())
 {
   AlwaysAssert(modulus.isProbablePrime()) << "non-prime fields are unsupported";
   // must be initialized before using CoCoA.
@@ -113,7 +109,8 @@ Result SubTheory::postCheck(Theory::Effort e)
                           enc.bitsumPolys().end());
         if (options().ff.ffFieldPolys)
         {
-          for (const auto& var : CoCoA::indets(enc.polyRing()))
+          CoCoA::PolyRing polyRing(enc.polyRing());
+          for (const auto& var : CoCoA::indets(polyRing))
           {
             CoCoA::BigInt characteristic = CoCoA::characteristic(coeffRing());
             const long power = CoCoA::LogCardinality(coeffRing());

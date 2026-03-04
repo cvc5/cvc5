@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Abdalrhman Mohamed, Haniel Barbosa
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -133,9 +130,11 @@ PfManager::PfManager(Env& env)
     d_pfpp->setEliminateRule(ProofRule::MACRO_SR_PRED_INTRO);
     d_pfpp->setEliminateRule(ProofRule::MACRO_SR_PRED_ELIM);
     d_pfpp->setEliminateRule(ProofRule::MACRO_SR_PRED_TRANSFORM);
-    // Alethe does not require chain multiset resolution to be expanded
-    if (options().proof.proofFormatMode != options::ProofFormatMode::ALETHE
-        && !options().proof.proofChainMRes)
+    // Alethe does not require chain multiset resolution to be expanded,
+    // LFSC requires it to be expanded.
+    if ((options().proof.proofFormatMode != options::ProofFormatMode::ALETHE
+        && !options().proof.proofChainMRes) ||
+        options().proof.proofFormatMode == options::ProofFormatMode::LFSC)
     {
       d_pfpp->setEliminateRule(ProofRule::CHAIN_M_RESOLUTION);
     }
@@ -182,7 +181,7 @@ constexpr typename std::vector<T, Alloc>::size_type erase_if(
 void PfManager::startProofLogging(std::ostream& out, Assertions& as)
 {
   // by default, CPC proof logger
-  d_plog.reset(new ProofLoggerCpc(d_env, out, this, as, d_pfpp.get()));
+  d_plog.reset(new ProofLoggerCpc(d_env, out, this, as));
 }
 
 std::shared_ptr<ProofNode> PfManager::connectProofToAssertions(

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Alex Ozdemir
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -1160,7 +1157,7 @@ std::vector<DatatypeDecl> Smt2TermParser::parseDatatypesDef(
       // if the arity is not yet fixed, declare it as an unresolved type
       d_state.mkUnresolvedType(dnames[i], params.size());
     }
-    else if (arities[i] >= 0 && params.size() != arities[i])
+    else if (params.size() != arities[i])
     {
       // if the arity was fixed by prelude and is not equal to the number of
       // parameters

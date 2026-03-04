@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Haniel Barbosa
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -172,11 +169,10 @@ void SetDefaults::setDefaultsPre(Options& opts)
       SET_AND_NOTIFY(quantifiers, varEntEqElimQuant, false, "safe options");
       // if we check proofs, we require that they are checked for completeness,
       // unless the granularity is intentionally set to lower.
-      if (opts.smt.checkProofs
-          && !opts.proof.checkProofsCompleteWasSetByUser
+      if (opts.smt.checkProofs && !opts.proof.checkProofsCompleteWasSetByUser
           && (!opts.proof.proofGranularityModeWasSetByUser
               || opts.proof.proofGranularityMode
-                    >= options::ProofGranularityMode::DSL_REWRITE))
+                     >= options::ProofGranularityMode::DSL_REWRITE))
       {
         SET_AND_NOTIFY(
             proof, checkProofsComplete, true, "safe options with check-proofs")
@@ -862,7 +858,8 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
   }
   // DIO solver typically makes things worse for quantifier-free logics with
   // non-linear arithmetic.
-  if (!logic.isQuantified() && logic.isTheoryEnabled(THEORY_ARITH) && !logic.isLinear())
+  if (!logic.isQuantified() && logic.isTheoryEnabled(THEORY_ARITH)
+      && !logic.isLinear())
   {
     SET_AND_NOTIFY(
         arith, arithDioSolver, false, "quantifier-free non-linear logic");
@@ -905,8 +902,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
   // We only enable them if SyGuS is enabled.
   if (isSygus(opts))
   {
-    SET_AND_NOTIFY_IF_NOT_USER(
-        datatypes, dtSharedSelectors, true, "SyGuS");
+    SET_AND_NOTIFY_IF_NOT_USER(datatypes, dtSharedSelectors, true, "SyGuS");
   }
 
   if (opts.prop.minisatSimpMode == options::MinisatSimpMode::ALL)
@@ -1033,10 +1029,15 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
         arith, nlExt, options::NlExtMode::FULL, "no support for libpoly");
 #endif
   }
-  if (logic.isTheoryEnabled(theory::THEORY_ARITH) && logic.areTranscendentalsUsed())
+  if (logic.isTheoryEnabled(theory::THEORY_ARITH)
+      && logic.areTranscendentalsUsed())
   {
     SET_AND_NOTIFY_IF_NOT_USER_VAL_SYM(
         arith, nlExt, options::NlExtMode::FULL, "logic with transcendentals");
+  }
+  if (isOutputOn(OutputTag::NORMALIZE))
+  {
+    SET_AND_NOTIFY(base, preprocessOnly, true, "normalize output");
   }
 }
 
@@ -1876,16 +1877,16 @@ void SetDefaults::setDefaultDecisionMode(const LogicInfo& logic,
       logic.hasEverything() || logic.isTheoryEnabled(THEORY_STRINGS)
           ? false
           : (  // QF_AUFLIA
-              (!logic.isQuantified() && logic.isTheoryEnabled(THEORY_ARRAYS)
-               && logic.isTheoryEnabled(THEORY_UF)
-               && logic.isTheoryEnabled(THEORY_ARITH))
-                      ||
-                      // QF_LRA
-                      (!logic.isQuantified() && logic.isPure(THEORY_ARITH)
-                       && logic.isLinear() && !logic.isDifferenceLogic()
-                       && !logic.areIntegersUsed())
-                  ? true
-                  : false);
+                (!logic.isQuantified() && logic.isTheoryEnabled(THEORY_ARRAYS)
+                 && logic.isTheoryEnabled(THEORY_UF)
+                 && logic.isTheoryEnabled(THEORY_ARITH))
+                        ||
+                        // QF_LRA
+                        (!logic.isQuantified() && logic.isPure(THEORY_ARITH)
+                         && logic.isLinear() && !logic.isDifferenceLogic()
+                         && !logic.areIntegersUsed())
+                    ? true
+                    : false);
 
   if (stoponly)
   {

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -54,7 +51,12 @@ class QModelBuilder : public TheoryEngineModelBuilder
   // 0 :  failed, but resorting to true exhaustive instantiation may work
   // >0 : success
   // <0 : failed
-  virtual int doExhaustiveInstantiation( FirstOrderModel * fm, Node f, int effort ) { return false; }
+  virtual int doExhaustiveInstantiation(CVC5_UNUSED FirstOrderModel* fm,
+                                        CVC5_UNUSED Node f,
+                                        CVC5_UNUSED int effort)
+  {
+    return false;
+  }
   //whether to construct model
   virtual bool optUseModel();
   //debug model

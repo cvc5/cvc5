@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Daniel Larraz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -112,7 +109,7 @@ Node SkolemCache::mkTypedSkolemCached(
     {
       Trace("skolem-cache")
           << "Don't know how to handle Skolem ID " << id << std::endl;
-      sk = NodeManager::mkDummySkolem(c, tn, "string skolem");
+      sk = NodeManager::mkDummySkolem(c, tn);
     }
     break;
   }
@@ -132,7 +129,7 @@ Node SkolemCache::mkTypedSkolemCached(TypeNode tn,
 Node SkolemCache::mkSkolem(const char* c)
 {
   // TODO: eliminate this
-  Node n = NodeManager::mkDummySkolem(c, d_strType, "string skolem");
+  Node n = NodeManager::mkDummySkolem(c, d_strType);
   d_allSkolems.insert(n);
   return n;
 }

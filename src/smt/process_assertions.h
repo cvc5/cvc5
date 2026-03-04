@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -116,7 +113,8 @@ class ProcessAssertions : protected EnvObj
    * Dump assertions to stream os using the print benchmark utility.
    */
   void dumpAssertionsToStream(std::ostream& os,
-                              const preprocessing::AssertionPipeline& ap);
+                              const preprocessing::AssertionPipeline& ap,
+                              bool printDefs = true);
   /** apply pass */
   preprocessing::PreprocessingPassResult applyPass(
       const std::string& pass, preprocessing::AssertionPipeline& ap);

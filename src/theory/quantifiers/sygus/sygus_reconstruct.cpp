@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Abdalrhman Mohamed, Andrew Reynolds, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -61,11 +58,11 @@ Node SygusReconstruct::reconstructSolution(Node sol,
   if (options().quantifiers.cegqiSingleInvReconstruct
       == cvc5::internal::options::CegqiSingleInvRconsMode::TRY)
   {
-    fast(sol, stn, reconstructed);
+    fast(sol, stn);
   }
   else
   {
-    main(sol, stn, reconstructed, enumLimit);
+    main(sol, stn, enumLimit);
   }
 
   if (Trace("sygus-rcons").isConnected())
@@ -92,10 +89,7 @@ Node SygusReconstruct::reconstructSolution(Node sol,
   return Node::null();
 }
 
-void SygusReconstruct::main(Node sol,
-                            TypeNode stn,
-                            int8_t& reconstructed,
-                            uint64_t enumLimit)
+void SygusReconstruct::main(Node sol, TypeNode stn, uint64_t enumLimit)
 {
   bool noLimit = options().quantifiers.cegqiSingleInvReconstruct
                  == cvc5::internal::options::CegqiSingleInvRconsMode::ALL;
@@ -215,7 +209,7 @@ void SygusReconstruct::main(Node sol,
   }
 }
 
-void SygusReconstruct::fast(Node sol, TypeNode stn, int8_t& reconstructed)
+void SygusReconstruct::fast(Node sol, TypeNode stn)
 {
   NodeManager* nm = nodeManager();
 
@@ -568,10 +562,10 @@ Node SygusReconstruct::mkGround(Node n) const
   return n.substitute(subs);
 }
 
-bool SygusReconstruct::notify(Node s,
-                              Node n,
-                              std::vector<Node>& vars,
-                              std::vector<Node>& subs)
+bool SygusReconstruct::notify(CVC5_UNUSED Node s,
+                              CVC5_UNUSED Node n,
+                              CVC5_UNUSED std::vector<Node>& vars,
+                              CVC5_UNUSED std::vector<Node>& subs)
 {
   // If we are too aggressive in filtering enumerated shapes, we may miss some
   // that speedup reconstruction time. So, for now, we disable filtering.

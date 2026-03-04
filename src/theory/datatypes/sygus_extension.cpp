@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -133,7 +130,7 @@ void SygusExtension::assertFact(Node n, bool polarity)
     }
     if( polarity ){
       uint64_t s = n[1].getConst<Rational>().getNumerator().toUnsignedInt();
-      notifySearchSize(m, s, n);
+      notifySearchSize(m, s);
     }
   }
   else if (n.getKind() == Kind::DT_HEIGHT_BOUND
@@ -1162,7 +1159,7 @@ Node SygusExtension::registerSearchValue(Node a,
       // generalize the explanation for why the analog of bad_val
       // is equivalent to bvr
       quantifiers::EquivSygusInvarianceTest eset(d_env.getRewriter());
-      eset.init(d_tds, tn, aconj, a, bvr);
+      eset.init(d_tds, aconj, a, bvr);
 
       Trace("sygus-sb-mexp-debug")
           << "Minimize explanation for eval[" << d_tds->sygusToBuiltin(bad_val)
@@ -1428,7 +1425,7 @@ void SygusExtension::registerMeasureTerm( Node m ) {
   }
 }
 
-void SygusExtension::notifySearchSize(TNode m, uint64_t s, Node exp)
+void SygusExtension::notifySearchSize(TNode m, uint64_t s)
 {
   std::map<Node, std::unique_ptr<SygusSizeDecisionStrategy>>::iterator its =
       d_szinfo.find(m);

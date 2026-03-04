@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -32,9 +29,9 @@ ProofTracer::ProofTracer(const CadicalPropagator& propagator)
 }
 
 void ProofTracer::add_original_clause(uint64_t clause_id,
-                                      bool redundant,
+                                      CVC5_UNUSED bool redundant,
                                       const std::vector<int>& clause,
-                                      bool restored)
+                                      CVC5_UNUSED bool restored)
 {
   Assert(d_antecedents.size() == clause_id);
   d_antecedents.emplace_back();  // no antecedents
@@ -90,7 +87,7 @@ void ProofTracer::add_assumption_clause(
   }
 }
 
-void ProofTracer::conclude_unsat(CaDiCaL::ConclusionType type,
+void ProofTracer::conclude_unsat(CVC5_UNUSED CaDiCaL::ConclusionType type,
                                  const std::vector<uint64_t>& clause_ids)
 {
   // Store final clause ids that concluded unsat.

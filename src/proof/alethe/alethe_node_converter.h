@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Haniel Barbosa, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -75,14 +72,14 @@ class AletheNodeConverter : public BaseAlfNodeConverter
                         TypeNode tn,
                         bool useRawSym = true) override;
 
-  Node getOperatorOfTerm(Node n) override { return Node::null(); };
+  Node getOperatorOfTerm(CVC5_UNUSED Node n) override { return Node::null(); };
 
-  Node typeAsNode(TypeNode tni) override { return Node::null(); };
+  Node typeAsNode(CVC5_UNUSED TypeNode tni) override { return Node::null(); };
 
-  Node mkInternalApp(const std::string& name,
-                     const std::vector<Node>& args,
-                     TypeNode ret,
-                     bool useRawSym = true) override
+  Node mkInternalApp(CVC5_UNUSED const std::string& name,
+                     CVC5_UNUSED const std::vector<Node>& args,
+                     CVC5_UNUSED TypeNode ret,
+                     CVC5_UNUSED bool useRawSym = true) override
   {
     return Node::null();
   };

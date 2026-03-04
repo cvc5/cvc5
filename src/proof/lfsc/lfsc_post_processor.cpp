@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Abdalrhman Mohamed, Hans-Joerg Schurr
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -42,9 +39,10 @@ LfscProofPostprocessCallback::LfscProofPostprocessCallback(
 
 void LfscProofPostprocessCallback::initializeUpdate() { d_numIgnoredScopes = 0; }
 
-bool LfscProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
-                                                const std::vector<Node>& fa,
-                                                bool& continueUpdate)
+bool LfscProofPostprocessCallback::shouldUpdate(
+    std::shared_ptr<ProofNode> pn,
+    CVC5_UNUSED const std::vector<Node>& fa,
+    CVC5_UNUSED bool& continueUpdate)
 {
   return pn->getRule() != ProofRule::LFSC_RULE;
 }
@@ -54,7 +52,7 @@ bool LfscProofPostprocessCallback::update(Node res,
                                           const std::vector<Node>& children,
                                           const std::vector<Node>& args,
                                           CDProof* cdp,
-                                          bool& continueUpdate)
+                                          CVC5_UNUSED bool& continueUpdate)
 {
   Trace("lfsc-pp") << "LfscProofPostprocessCallback::update: " << id
                    << std::endl;

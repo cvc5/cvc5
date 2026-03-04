@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -44,7 +41,7 @@ ArraySolver::ArraySolver(Env& env,
       d_bsolver(bs),
       d_csolver(cs),
       d_esolver(es),
-      d_coreSolver(env, s, im, tr, cs, es, extt),
+      d_coreSolver(env, s, im, tr, es, extt),
       d_eqProc(context())
 {
   NodeManager* nm = nodeManager();

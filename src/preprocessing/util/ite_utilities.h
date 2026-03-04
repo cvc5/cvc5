@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Tim King, Aina Niemetz, Clark Barrett
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -196,7 +193,7 @@ class ITECompressor : protected EnvObj
   Node d_true;  /* Copy of true. */
   Node d_false; /* Copy of false. */
 
-  ContainsTermITEVisitor* d_contains;
+  CVC5_UNUSED_FIELD ContainsTermITEVisitor* d_contains; // Only used in DEBUG
   AssertionPipeline* d_assertions;
   IncomingArcCounter d_incoming;
 

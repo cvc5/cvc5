@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Morgan Deters, Tim King, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -32,7 +29,8 @@ class RationalEnumerator : public TypeEnumeratorBase<RationalEnumerator> {
   Rational d_rat;
 
  public:
-  RationalEnumerator(TypeNode type, TypeEnumeratorProperties* tep = nullptr)
+  RationalEnumerator(TypeNode type,
+                     CVC5_UNUSED TypeEnumeratorProperties* tep = nullptr)
       : TypeEnumeratorBase<RationalEnumerator>(type), d_rat(0)
   {
     Assert(type.getKind() == Kind::TYPE_CONSTANT
@@ -76,7 +74,8 @@ class IntegerEnumerator : public TypeEnumeratorBase<IntegerEnumerator> {
   Integer d_int;
 
  public:
-  IntegerEnumerator(TypeNode type, TypeEnumeratorProperties* tep = nullptr)
+  IntegerEnumerator(TypeNode type,
+                    CVC5_UNUSED TypeEnumeratorProperties* tep = nullptr)
       : TypeEnumeratorBase<IntegerEnumerator>(type), d_int(0)
   {
     Assert(type.getKind() == Kind::TYPE_CONSTANT

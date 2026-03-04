@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -56,10 +53,7 @@ class TermRegistry : protected EnvObj
   typedef context::CDHashMap<Node, Node> NodeNodeMap;
 
  public:
-  TermRegistry(Env& env,
-               Theory& t,
-               SolverState& s,
-               SequencesStatistics& statistics);
+  TermRegistry(Env& env, Theory& t, SolverState& s);
   ~TermRegistry();
   /** get the cardinality of the alphabet used, based on the options */
   uint32_t getAlphabetCardinality() const;
@@ -270,8 +264,6 @@ class TermRegistry : protected EnvObj
   SolverState& d_state;
   /** Pointer to the inference manager of the theory of strings. */
   InferenceManager* d_im;
-  /** Reference to the statistics for the theory of strings/sequences. */
-  SequencesStatistics& d_statistics;
   /** have we asserted any str.code terms? */
   bool d_hasStrCode;
   /** have we asserted any seq.update/seq.nth terms? */

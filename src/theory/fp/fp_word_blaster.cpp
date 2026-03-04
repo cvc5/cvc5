@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Martin Brain, Aina Niemetz, Daniel Larraz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -136,8 +133,8 @@ stickyRightShiftResult<traits> stickyRightShift(const traits::ubv& input,
 }
 
 template <>
-void probabilityAnnotation<traits, traits::prop>(const traits::prop& p,
-                                                 const probability& pr)
+void probabilityAnnotation<traits, traits::prop>(
+    CVC5_UNUSED const traits::prop& p, CVC5_UNUSED const probability& pr)
 {
   // For now, do nothing...
   return;
@@ -171,9 +168,9 @@ void traits::invariant(const bool b)
   return;
 }
 
-void traits::precondition(const prop& p) { return; }
-void traits::postcondition(const prop& p) { return; }
-void traits::invariant(const prop& p) { return; }
+void traits::precondition(CVC5_UNUSED const prop& p) { return; }
+void traits::postcondition(CVC5_UNUSED const prop& p) { return; }
+void traits::invariant(CVC5_UNUSED const prop& p) { return; }
 // This allows us to use the symfpu literal / symbolic assertions in the
 // symbolic back-end
 typedef traits t;
@@ -1284,7 +1281,7 @@ Node FpWordBlaster::wordBlast(TNode node)
   return node;
 }
 
-Node FpWordBlaster::getValue(Valuation& val, TNode var)
+Node FpWordBlaster::getValue(TNode var)
 {
   Assert(var.getKind() == Kind::FLOATINGPOINT_TO_FP_FROM_SBV
          || var.getKind() == Kind::FLOATINGPOINT_TO_FP_FROM_UBV

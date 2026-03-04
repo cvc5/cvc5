@@ -1,0 +1,24 @@
+; COMMAND-LINE: --sygus-out=status -q
+; EXPECT: feasible
+(set-logic ALL)
+(declare-datatypes ((Term 0)) (
+  ((a) (b) (rx_concat (rx_concat-arg0 Term) (rx_concat-arg1 Term)) (rx_inter (rx_inter-arg0 Term) (rx_inter-arg1 Term)) (rx_neg (rx_neg-arg0 Term)) (rx_star (rx_star-arg0 Term)) (rx_union (rx_union-arg0 Term) (rx_union-arg1 Term)))
+))
+(define-fun N () Int 3)
+(define-fun charAt ((i Int)) Int
+  (ite (= i 0) 0 (ite (= i 1) 1 (ite (= i 2) 0   -1)))
+)
+(synth-fun regex () Term)
+(define-fun-rec reMatch ((l Int) (r Int) (t Term)) Bool
+  (match t (
+    ((a) (and (= r (+ l 1)) (= (charAt l) 0)))
+    ((b) (and (= r (+ l 1)) (= (charAt l) 1)))
+    ((rx_neg x) (not (reMatch l r x)))
+    ((rx_inter x y) (and (reMatch l r x) (reMatch l r y)))
+    ((rx_union x y) (or (reMatch l r x) (reMatch l r y)))
+    ((rx_concat x y) (or (and (<= l 0) (<= 0 r) (reMatch l 0 x) (reMatch 0 r y)) (and (<= l 1) (<= 1 r) (reMatch l 1 x) (reMatch 1 r y)) (and (<= l 2) (<= 2 r) (reMatch l 2 x) (reMatch 2 r y)) (and (<= l 3) (<= 3 r) (reMatch l 3 x) (reMatch 3 r y))))
+    ((rx_star x) (or (= l r) (and (< l 0) (<= 0 r) (reMatch l 0 x) (reMatch 0 r (rx_star x))) (and (< l 1) (<= 1 r) (reMatch l 1 x) (reMatch 1 r (rx_star x))) (and (< l 2) (<= 2 r) (reMatch l 2 x) (reMatch 2 r (rx_star x))) (and (< l 3) (<= 3 r) (reMatch l 3 x) (reMatch 3 r (rx_star x)))))
+  ))
+)
+(constraint (reMatch 0 N regex))
+(check-synth)

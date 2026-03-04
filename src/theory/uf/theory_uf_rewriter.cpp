@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Liana Hadarean
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -649,8 +646,27 @@ RewriteResponse TheoryUfRewriter::rewriteDistinct(TNode node)
     // children of this node.
     return RewriteResponse(REWRITE_DONE, nodeManager()->mkConst<bool>(false));
   }
-  // otherwise, eagerly expand
-  return RewriteResponse(REWRITE_DONE, blastDistinct(nodeManager(), node));
+  // if all constant, rewrites to true/false
+  bool allConst = true;
+  std::unordered_set<Node> children;
+  for (const Node& c : node)
+  {
+    allConst = allConst && c.isConst();
+    if (!children.insert(c).second)
+    {
+      // distinct with duplicate child
+      return RewriteResponse(REWRITE_DONE, nodeManager()->mkConst<bool>(false));
+    }
+  }
+  if (allConst)
+  {
+    return RewriteResponse(REWRITE_DONE, nodeManager()->mkConst<bool>(true));
+  }
+  if (node.getNumChildren() <= 5)
+  {
+    return RewriteResponse(REWRITE_DONE, blastDistinct(nodeManager(), node));
+  }
+  return RewriteResponse(REWRITE_DONE, node);
 }
 
 Node TheoryUfRewriter::blastDistinct(NodeManager* nm, TNode in)

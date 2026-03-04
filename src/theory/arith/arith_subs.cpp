@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -119,6 +116,29 @@ bool ArithSubs::shouldTraverse(const Node& n, bool traverseNlMult)
     return false;
   }
   return true;
+}
+
+bool ArithSubs::hasArithSubterm(TNode n, TNode t, bool traverseNlMult)
+{
+  std::unordered_set<TNode> visited;
+  std::vector<TNode> toProcess;
+  toProcess.push_back(n);
+  TNode cur;
+  do
+  {
+    cur = toProcess.back();
+    toProcess.pop_back();
+    if (cur == t)
+    {
+      return true;
+    }
+    if (!visited.insert(cur).second || !shouldTraverse(cur, traverseNlMult))
+    {
+      continue;
+    }
+    toProcess.insert(toProcess.end(), cur.begin(), cur.end());
+  } while (!toProcess.empty());
+  return false;
 }
 
 }  // namespace arith

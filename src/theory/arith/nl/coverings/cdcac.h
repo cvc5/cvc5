@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Gereon Kremer, Andrew Reynolds, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -162,6 +159,13 @@ class CDCAC : protected EnvObj
   CoveringsProofGenerator* getProof() { return d_proof.get(); }
 
  private:
+  /** Return the variable_printer for a given libpoly variable. */
+  poly::detail::variable_printer get_stream_variable(const poly::Variable& v);
+
+  /** Map a vector of libpoly variables to a vector of variable_printers. */
+  std::vector<poly::detail::variable_printer> get_stream_variables(
+      const std::vector<poly::Variable>& vars);
+
   /** Check whether proofs are enabled */
   bool isProofEnabled() const { return d_proof != nullptr; }
 

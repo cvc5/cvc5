@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Tim King, Dejan Jovanovic, Morgan Deters
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -33,7 +30,8 @@ bool AttributeManager::inGarbageCollection() const {
   return d_inGarbageCollection;
 }
 
-void AttributeManager::debugHook(int debugFlag) {
+void AttributeManager::debugHook(CVC5_UNUSED int debugFlag)
+{
   /* DO NOT CHECK IN ANY CODE INTO THE DEBUG HOOKS!
    * debugHook() is an empty function for the purpose of debugging
    * the AttributeManager without recompiling all of cvc5.

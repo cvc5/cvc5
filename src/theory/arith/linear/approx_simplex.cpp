@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Tim King, Andrew V. Teylu, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -3143,7 +3140,9 @@ namespace theory {
 namespace arith::linear {
 
 ApproximateSimplex* ApproximateSimplex::mkApproximateSimplexSolver(
-    const ArithVariables& vars, TreeLog& l, ApproximateStatistics& s)
+    CVC5_UNUSED const ArithVariables& vars,
+    CVC5_UNUSED TreeLog& l,
+    CVC5_UNUSED ApproximateStatistics& s)
 {
 #ifdef CVC5_USE_GLPK
   return new ApproxGLPK(vars, l, s);

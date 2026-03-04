@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -31,8 +28,7 @@ Smt2State::Smt2State(ParserStateCallback* psc,
                      bool isSygus)
     : ParserState(psc, solver, sm, parsingMode),
       d_isSygus(isSygus),
-      d_logicSet(false),
-      d_seenSetLogic(false)
+      d_logicSet(false)
 {
   d_freshBinders = (d_solver->getOption("fresh-binders") == "true");
 }
@@ -1344,7 +1340,7 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
       }
       else
       {
-        Assert(false) << "Failed to resolve indexed operator " << p.d_name;
+        DebugUnhandled() << "Failed to resolve indexed operator " << p.d_name;
       }
     }
     else

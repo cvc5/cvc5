@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Tim King
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -287,7 +284,7 @@ Node RepSetIterator::getCurrentTerm(size_t i, bool valTerm) const
                      << ", index order = " << d_index_order[i] << std::endl;
   Trace("rsi-debug") << "rsi : curr = " << curr << " / "
                      << d_domain_elements[i].size() << std::endl;
-  Assert(0 <= curr && curr < d_domain_elements[i].size());
+  Assert(curr < d_domain_elements[i].size());
   Node t = d_domain_elements[i][curr];
   Trace("rsi-debug") << "rsi : term = " << t << std::endl;
   if (valTerm)

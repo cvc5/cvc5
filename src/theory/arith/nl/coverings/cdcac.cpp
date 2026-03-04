@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Gereon Kremer, Daniel Larraz, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -45,7 +42,11 @@ namespace nl {
 namespace coverings {
 
 CDCAC::CDCAC(Env& env, const std::vector<poly::Variable>& ordering)
-    : EnvObj(env), d_variableOrdering(ordering)
+    : EnvObj(env),
+      d_assignment(nodeManager()->getPolyContext()),
+      d_constraints(nodeManager()->getPolyContext()),
+      d_variableOrdering(ordering),
+      d_varOrder(nodeManager()->getPolyContext())
 {
   if (d_env.isTheoryProofProducing())
   {
@@ -60,16 +61,40 @@ void CDCAC::reset()
   d_nextIntervalId = 1;
 }
 
+poly::detail::variable_printer CDCAC::get_stream_variable(
+    const poly::Variable& v)
+{
+  const poly::Context& ctx = nodeManager()->getPolyContext();
+  return stream_variable(ctx, v);
+}
+
+std::vector<poly::detail::variable_printer> CDCAC::get_stream_variables(
+    const std::vector<poly::Variable>& vars)
+{
+  std::vector<poly::detail::variable_printer> result;
+  result.reserve(vars.size());
+
+  const poly::Context& ctx = nodeManager()->getPolyContext();
+
+  for (const poly::Variable& v : vars)
+  {
+    result.emplace_back(stream_variable(ctx, v));
+  }
+
+  return result;
+}
+
 void CDCAC::computeVariableOrdering()
 {
   // Actually compute the variable ordering
   d_variableOrdering = d_varOrder(d_constraints.getConstraints(),
                                   VariableOrderingStrategy::BROWN);
-  Trace("cdcac") << "Variable ordering is now " << d_variableOrdering
-                 << std::endl;
+  Trace("cdcac") << "Variable ordering is now "
+                 << get_stream_variables(d_variableOrdering) << std::endl;
 
   // Write variable ordering back to libpoly.
-  lp_variable_order_t* vo = poly::Context::get_context().get_variable_order();
+  lp_variable_order_t* vo =
+      nodeManager()->getPolyContext().get_variable_order();
   lp_variable_order_clear(vo);
   for (const auto& v : d_variableOrdering)
   {
@@ -87,7 +112,8 @@ void CDCAC::retrieveInitialAssignment(NlModel& model, const Node& ran_variable)
     Node v = getConstraints().varMapper()(var);
     Node val = model.computeConcreteModelValue(v);
     poly::Value value = node_to_value(val, ran_variable);
-    Trace("cdcac") << "\t" << var << " = " << value << std::endl;
+    Trace("cdcac") << "\t" << get_stream_variable(var) << " = " << value
+                   << std::endl;
     d_initialAssignment.emplace_back(value);
   }
 }
@@ -104,7 +130,7 @@ const std::vector<poly::Variable>& CDCAC::getVariableOrdering() const
 std::vector<CACInterval> CDCAC::getUnsatIntervals(std::size_t cur_variable)
 {
   std::vector<CACInterval> res;
-  LazardEvaluation le(statisticsRegistry());
+  LazardEvaluation le(statisticsRegistry(), nodeManager()->getPolyContext());
   prepareRootIsolation(le, cur_variable);
   for (const auto& c : d_constraints.getConstraints())
   {
@@ -152,7 +178,6 @@ std::vector<CACInterval> CDCAC::getUnsatIntervals(std::size_t cur_variable)
             d_constraints.varMapper(),
             p,
             d_assignment,
-            sc,
             i,
             n,
             res.back().d_id);
@@ -324,7 +349,7 @@ PolyVector CDCAC::requiredCoefficients(const poly::Polynomial& p)
                                                 d_constraints.varMapper(),
                                                 d_env.getRewriter());
     default:
-      Assert(false);
+      DebugUnhandled();
       return requiredCoefficientsOriginal(p, d_assignment);
   }
 }
@@ -435,7 +460,7 @@ CACInterval CDCAC::intervalFromCharacterization(
 
   // Collect -oo, all roots, oo
 
-  LazardEvaluation le(statisticsRegistry());
+  LazardEvaluation le(statisticsRegistry(), nodeManager()->getPolyContext());
   prepareRootIsolation(le, cur_variable);
   std::vector<poly::Value> roots;
   roots.emplace_back(poly::Value::minus_infty());
@@ -531,12 +556,14 @@ std::vector<CACInterval> CDCAC::getUnsatCoverImpl(std::size_t curVariable,
 {
   d_env.getResourceManager()->spendResource(Resource::ArithNlCoveringStep);
   Trace("cdcac") << "Looking for unsat cover for "
-                 << d_variableOrdering[curVariable] << std::endl;
+                 << get_stream_variable(d_variableOrdering[curVariable])
+                 << std::endl;
   std::vector<CACInterval> intervals = getUnsatIntervals(curVariable);
 
   if (TraceIsOn("cdcac"))
   {
-    Trace("cdcac") << "Unsat intervals for " << d_variableOrdering[curVariable]
+    Trace("cdcac") << "Unsat intervals for "
+                   << get_stream_variable(d_variableOrdering[curVariable])
                    << ":" << std::endl;
     for (const auto& i : intervals)
     {
@@ -552,7 +579,8 @@ std::vector<CACInterval> CDCAC::getUnsatCoverImpl(std::size_t curVariable,
     {
       // the variable is integral, but the sample is not.
       Trace("cdcac") << "Used " << sample << " for integer variable "
-                     << d_variableOrdering[curVariable] << std::endl;
+                     << get_stream_variable(d_variableOrdering[curVariable])
+                     << std::endl;
       auto newInterval = buildIntegralityInterval(curVariable, sample);
       Trace("cdcac") << "Adding integrality interval " << newInterval.d_interval
                      << std::endl;
@@ -628,7 +656,8 @@ std::vector<CACInterval> CDCAC::getUnsatCoverImpl(std::size_t curVariable,
   if (TraceIsOn("cdcac"))
   {
     Trace("cdcac") << "Returning intervals for "
-                   << d_variableOrdering[curVariable] << ":" << std::endl;
+                   << get_stream_variable(d_variableOrdering[curVariable])
+                   << ":" << std::endl;
     for (const auto& i : intervals)
     {
       Trace("cdcac") << "-> " << i.d_interval << std::endl;
@@ -686,12 +715,16 @@ CACInterval CDCAC::buildIntegralityInterval(std::size_t cur_variable,
   poly::Variable var = d_variableOrdering[cur_variable];
   poly::Integer below = poly::floor(value);
   poly::Integer above = poly::ceil(value);
+  const poly::Context& ctx = nodeManager()->getPolyContext();
+  poly::Polynomial pvar = poly::Polynomial(ctx, var);
+  poly::Polynomial pbelow = poly::Polynomial(ctx, below);
+  poly::Polynomial pabove = poly::Polynomial(ctx, above);
   // construct var \in (below, above)
   return CACInterval{d_nextIntervalId++,
                      poly::Interval(below, above),
-                     {var - below},
-                     {var - above},
-                     {var - below, var - above},
+                     {pvar - pbelow},
+                     {pvar - pabove},
+                     {pvar - pbelow, pvar - pabove},
                      {},
                      {}};
 }

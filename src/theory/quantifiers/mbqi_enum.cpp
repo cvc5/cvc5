@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Lydia Kondylidou, Daniel Larraz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -186,7 +183,8 @@ void MVarInfo::initialize(Env& env,
       {
         if (snt.getType().isBoolean())
         {
-          Trace("mbqi-enum-choice-grammar") << "...found " << ntBool << std::endl;
+          Trace("mbqi-enum-choice-grammar")
+              << "...found " << ntBool << std::endl;
           ntBool = snt;
           break;
         }
@@ -199,7 +197,8 @@ void MVarInfo::initialize(Env& env,
     }
     if (!typeToPredGrammar.empty())
     {
-      Trace("mbqi-enum-choice-grammar") << "Make combined " << ntAll << std::endl;
+      Trace("mbqi-enum-choice-grammar")
+          << "Make combined " << ntAll << std::endl;
       SygusGrammar sgcom({}, ntAll);
       // get the non-terminal for Bool of the predicate grammar
       Trace("mbqi-enum-choice-grammar")
@@ -219,7 +218,8 @@ void MVarInfo::initialize(Env& env,
       // fill in the main grammar
       for (const Node& nt : nts)
       {
-        Trace("mbqi-enum-choice-grammar") << "- non-terminal in sgg: " << nt << std::endl;
+        Trace("mbqi-enum-choice-grammar")
+            << "- non-terminal in sgg: " << nt << std::endl;
         std::vector<Node> rules = sgg.getRulesFor(nt);
         TypeNode ntt = nt.getType();
         if (introduceChoice(opts, ntt, retType))
@@ -271,7 +271,8 @@ Node MVarInfo::ChoiceElimNodeConverter::postConvert(Node n)
     SkolemManager* skm = nm->getSkolemManager();
     Node sym = skm->mkInternalSkolemFunction(
         InternalSkolemId::MBQI_CHOICE_FUN, retType, {n});
-    Trace("mbqi-enum-choice-fun") << "Choice: " << sym << " for " << n << std::endl;
+    Trace("mbqi-enum-choice-fun")
+        << "Choice: " << sym << " for " << n << std::endl;
     Node h = sym;
     if (!ubvl.empty())
     {
@@ -464,8 +465,7 @@ bool MbqiEnum::constructInstantiation(
     Trace("mbqi-enum") << "Instantiate " << q << std::endl;
     for (size_t i = 0, nvars = vars.size(); i < nvars; i++)
     {
-      Trace("mbqi-enum")
-          << "  " << q[0][i] << " -> " << mvs[i] << std::endl;
+      Trace("mbqi-enum") << "  " << q[0][i] << " -> " << mvs[i] << std::endl;
     }
   }
   SubsolverSetupInfo ssi(d_env, d_subOptions);
@@ -493,8 +493,7 @@ bool MbqiEnum::constructInstantiation(
   Node queryCurr = query;
   Trace("mbqi-enum-model") << "...query is " << queryCurr << std::endl;
   queryCurr = rewrite(inst.apply(queryCurr));
-  Trace("mbqi-enum-model")
-      << "...processed is " << queryCurr << std::endl;
+  Trace("mbqi-enum-model") << "...processed is " << queryCurr << std::endl;
   // consider variables in random order, for diversity of instantiations
   std::shuffle(indices.begin(), indices.end(), Random::getRandom());
   bool addedInst = false;
@@ -514,8 +513,9 @@ bool MbqiEnum::constructInstantiation(
       Node retc;
       if (!ret.isNull())
       {
-        Trace("mbqi-enum-debug") << "TMP - Try candidate: " << q.getId() << " " << v
-                          << " " << cindex << " " << ret << std::endl;
+        Trace("mbqi-enum-debug")
+            << "TMP - Try candidate: " << q.getId() << " " << v << " " << cindex
+            << " " << ret << std::endl;
         Trace("mbqi-enum") << "- Try candidate: " << ret << std::endl;
         // apply current substitution (to account for cases where ret has
         // other variables in its grammar).
@@ -524,7 +524,7 @@ bool MbqiEnum::constructInstantiation(
         successEnum = true;
         // now convert the value
         std::unordered_map<Node, Node> tmpConvertMap;
-        std::map<TypeNode, std::unordered_set<Node> > freshVarType;
+        std::map<TypeNode, std::unordered_set<Node>> freshVarType;
         retc = d_parent.convertToQuery(retc, tmpConvertMap, freshVarType);
       }
       else
@@ -535,7 +535,8 @@ bool MbqiEnum::constructInstantiation(
         Node mc = d_parent.convertFromModel(mvs[ii], tmpCMap, mvFreshVar);
         if (mc.isNull())
         {
-          Trace("mbqi-enum-debug") << "Failed to convert " << mvs[ii] << std::endl;
+          Trace("mbqi-enum-debug")
+              << "Failed to convert " << mvs[ii] << std::endl;
           // if failed to convert, we fail
           return false;
         }
@@ -549,8 +550,7 @@ bool MbqiEnum::constructInstantiation(
       // see if it is still satisfiable, if still SAT, we replace
       queryCheck = queryCurr.substitute(v, TNode(retc));
       queryCheck = rewrite(queryCheck);
-      Trace("mbqi-enum-model")
-          << "...check " << queryCheck << std::endl;
+      Trace("mbqi-enum-model") << "...check " << queryCheck << std::endl;
       Result r = d_parent.checkWithSubsolverSimple(queryCheck, ssi);
       success = (r != Result::UNSAT);
       if (success)
@@ -558,8 +558,8 @@ bool MbqiEnum::constructInstantiation(
         // remember the updated query
         queryCurr = queryCheck;
         Trace("mbqi-enum-model") << "...success" << std::endl;
-        Trace("mbqi-enum")
-            << "* Enumerated " << q[0][ii] << " -> " << ret << std::endl;
+        Trace("mbqi-enum") << "* Enumerated " << q[0][ii] << " -> " << ret
+                           << std::endl;
         mvs[ii] = ret;
         vinst.add(q[0][ii], ret);
       }
@@ -592,7 +592,8 @@ bool MbqiEnum::constructInstantiation(
     MVarInfo& vi = qi.getVarInfo(ii);
     std::vector<std::pair<Node, InferenceId>> alv =
         vi.getEnumeratedLemmas(mvs[ii]);
-    Trace("mbqi-enum-debug") << "..." << alv.size() << " aux lemmas" << std::endl;
+    Trace("mbqi-enum-debug")
+        << "..." << alv.size() << " aux lemmas" << std::endl;
     auxLemmas.insert(auxLemmas.end(), alv.begin(), alv.end());
   }
   return addedInst;

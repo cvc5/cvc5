@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Tim King, Gereon Kremer, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -73,7 +70,10 @@ public:
 
  Result::Status attempt(const ApproximateSimplex::Solution& sol);
 
- Result::Status findModel(bool exactResult) override { Unreachable(); }
+ Result::Status findModel(CVC5_UNUSED bool exactResult) override
+ {
+   Unreachable();
+ }
 
 private:
  bool matchesNewValue(const DenseMap<DeltaRational>& nv, ArithVar v) const;

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Abdalrhman Mohamed, Haniel Barbosa
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -175,7 +172,7 @@ class SynthConjecture : protected EnvObj
   /** Reference to the quantifiers inference manager */
   QuantifiersInferenceManager& d_qim;
   /** The quantifiers registry */
-  QuantifiersRegistry& d_qreg;
+  CVC5_UNUSED_FIELD QuantifiersRegistry& d_qreg; // Only used in DEBUG
   /** Reference to the term registry */
   TermRegistry& d_treg;
   /** reference to the statistics of parent */

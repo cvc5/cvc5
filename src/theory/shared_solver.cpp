@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -41,7 +38,7 @@ SharedSolver::SharedSolver(Env& env, TheoryEngine& te)
 {
 }
 
-bool SharedSolver::needsEqualityEngine(theory::EeSetupInfo& esi)
+bool SharedSolver::needsEqualityEngine(CVC5_UNUSED theory::EeSetupInfo& esi)
 {
   return false;
 }
@@ -106,7 +103,8 @@ void SharedSolver::preNotifySharedFact(TNode atom)
   }
 }
 
-EqualityStatus SharedSolver::getEqualityStatus(TNode a, TNode b)
+EqualityStatus SharedSolver::getEqualityStatus(CVC5_UNUSED TNode a,
+                                               CVC5_UNUSED TNode b)
 {
   return EQUALITY_UNKNOWN;
 }

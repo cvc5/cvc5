@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Tianyi Liang
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -46,7 +43,7 @@ TheoryStrings::TheoryStrings(Env& env, OutputChannel& out, Valuation valuation)
       d_notify(*this),
       d_statistics(statisticsRegistry()),
       d_state(env, d_valuation),
-      d_termReg(env, *this, d_state, d_statistics),
+      d_termReg(env, *this, d_state),
       d_arithEntail(
           env.getNodeManager(),
           options().strings.stringRecArithApprox ? env.getRewriter() : nullptr,
@@ -58,7 +55,7 @@ TheoryStrings::TheoryStrings(Env& env, OutputChannel& out, Valuation valuation)
                  &d_statistics.d_rewrites,
                  d_termReg.getAlphabetCardinality()),
       d_eagerSolver(options().strings.stringEagerSolver
-                        ? new EagerSolver(env, d_state, d_termReg)
+                        ? new EagerSolver(env, d_state)
                         : nullptr),
       d_extTheoryCb(),
       d_im(env, *this, d_state, d_termReg, d_extTheory, d_statistics),
@@ -870,8 +867,11 @@ void TheoryStrings::preRegisterTerm(TNode n)
   d_extTheory.registerTerm(n);
 }
 
-bool TheoryStrings::preNotifyFact(
-    TNode atom, bool pol, TNode fact, bool isPrereg, bool isInternal)
+bool TheoryStrings::preNotifyFact(TNode atom,
+                                  bool pol,
+                                  CVC5_UNUSED TNode fact,
+                                  CVC5_UNUSED bool isPrereg,
+                                  bool isInternal)
 {
   if (atom.getKind() == Kind::EQUAL)
   {

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Daniel Larraz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -797,7 +794,7 @@ bool LfscNodeConverter::shouldTraverse(Node n)
   return true;
 }
 
-Node LfscNodeConverter::maybeMkSkolemFun(Node k, bool macroApply)
+Node LfscNodeConverter::maybeMkSkolemFun(Node k)
 {
   SkolemManager* sm = d_nm->getSkolemManager();
   SkolemId sfi = SkolemId::NONE;
@@ -1047,7 +1044,7 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
     }
     else if (k == Kind::APPLY_SELECTOR)
     {
-      ret = maybeMkSkolemFun(op, macroApply);
+      ret = maybeMkSkolemFun(op);
       if (ret.isNull())
       {
         unsigned index = DType::indexOf(op);

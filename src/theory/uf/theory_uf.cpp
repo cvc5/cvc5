@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Dejan Jovanovic
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -57,6 +54,7 @@ TheoryUF::TheoryUF(Env& env,
       d_checker(nodeManager()),
       d_state(env, valuation),
       d_im(env, *this, d_state, "theory::uf::" + instanceName, false),
+      d_distinct(env, d_state, d_im),
       d_notify(d_im, *this),
       d_cpacb(*this)
 {
@@ -92,6 +90,8 @@ void TheoryUF::finishInit() {
   Assert(d_equalityEngine != nullptr);
   // combined cardinality constraints are not evaluated in getModelValue
   d_valuation.setUnevaluatedKind(Kind::COMBINED_CARDINALITY_CONSTRAINT);
+  // distinct should not be sent to the model
+  d_valuation.setIrrelevantKind(Kind::DISTINCT);
   if (logicInfo().hasCardinalityConstraints())
   {
     if (!options().uf.ufCardExp)
@@ -136,7 +136,8 @@ bool TheoryUF::needsCheckLastEffort()
 {
   // last call effort needed if using finite model finding,
   // arithmetic/bit-vector conversions, or higher-order extension
-  return d_thss != nullptr || d_csolver != nullptr || d_ho!=nullptr;
+  return d_thss != nullptr || d_csolver != nullptr || d_ho != nullptr
+         || d_distinct.needsCheckLastEffort();
 }
 
 void TheoryUF::postCheck(Effort level)
@@ -152,11 +153,15 @@ void TheoryUF::postCheck(Effort level)
   }
   if (!d_state.isInConflict())
   {
-    // check with conversions solver at last call effort
-    if (d_csolver != nullptr && level == Effort::EFFORT_LAST_CALL)
+    if (level == Effort::EFFORT_LAST_CALL)
     {
-      d_csolver->check();
+      // check with conversions solver at last call effort
+      if (d_csolver != nullptr)
+      {
+        d_csolver->check();
+      }
     }
+    d_distinct.check(level);
     // check with the higher-order extension at full effort
     if (fullEffort(level) && logicInfo().isHigherOrder())
     {
@@ -165,7 +170,10 @@ void TheoryUF::postCheck(Effort level)
   }
 }
 
-void TheoryUF::notifyFact(TNode atom, bool pol, TNode fact, bool isInternal)
+void TheoryUF::notifyFact(TNode atom,
+                          bool pol,
+                          TNode fact,
+                          CVC5_UNUSED bool isInternal)
 {
   if (d_state.isInConflict())
   {
@@ -190,6 +198,12 @@ void TheoryUF::notifyFact(TNode atom, bool pol, TNode fact, bool isInternal)
           d_ho->applyExtensionality(fact);
         }
       }
+    }
+    break;
+    case Kind::DISTINCT:
+    {
+      // call the distinct extension
+      d_distinct.assertDistinct(atom, pol, fact);
     }
     break;
     case Kind::CARDINALITY_CONSTRAINT:
@@ -565,7 +579,10 @@ void TheoryUF::computeRelevantTerms(std::set<Node>& termSet)
 }
 
 void TheoryUF::computeCareGraph() {
-  if (d_state.getSharedTerms().empty())
+  bool isHigherOrder = logicInfo().isHigherOrder();
+  // note that if we are higher-order, we may still generate splits for
+  // function arguments
+  if (d_state.getSharedTerms().empty() && !isHigherOrder)
   {
     return;
   }
@@ -575,7 +592,6 @@ void TheoryUF::computeCareGraph() {
   // function type for the latter.
   Trace("uf::sharing") << "TheoryUf::computeCareGraph(): Build term indices..."
                        << std::endl;
-  bool isHigherOrder = logicInfo().isHigherOrder();
   // temporary keep set for higher-order indexing below
   std::vector<Node> keep;
   std::map<Node, TNodeTrie> index;
@@ -673,9 +689,12 @@ void TheoryUF::eqNotifyNewClass(TNode t) {
 
 void TheoryUF::eqNotifyMerge(TNode t1, TNode t2)
 {
-  if (d_thss != NULL) {
+  if (d_thss != NULL)
+  {
     d_thss->merge(t1, t2);
   }
+  // check if we have a conflict due to distinct
+  d_distinct.eqNotifyMerge(t1, t2);
 }
 
 void TheoryUF::eqNotifyDisequal(TNode t1, TNode t2, TNode reason) {

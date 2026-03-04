@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Daniel Larraz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -568,9 +565,9 @@ bool SygusSimpleSymBreak::considerConst(
   return ret;
 }
 
-int SygusSimpleSymBreak::solveForArgument(TypeNode tn,
-                                          unsigned cindex,
-                                          unsigned arg)
+int SygusSimpleSymBreak::solveForArgument(CVC5_UNUSED TypeNode tn,
+                                          CVC5_UNUSED unsigned cindex,
+                                          CVC5_UNUSED unsigned arg)
 {
   // we currently do not solve for arguments
   return -1;

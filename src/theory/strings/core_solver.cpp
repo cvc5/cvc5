@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -520,7 +517,7 @@ Node CoreSolver::checkCycles( Node eqc, std::vector< Node >& curr, std::vector< 
                   << " " << ncy << std::endl;
               // should find a non-empty component, otherwise would have been
               // singular congruent (I_Norm_S)
-              Assert(false);
+              DebugUnhandled();
             }
             else
             {
@@ -688,7 +685,7 @@ NormalForm& CoreSolver::getNormalForm(const Node& n)
     // Shouln't ask for normal forms of strings that weren't computed. This
     // likely means that n is not a representative or not a term in the current
     // context. We simply return a default normal form here in this case.
-    Assert(false);
+    DebugUnhandled();
     return d_normal_form[n];
   }
   return itn->second;
@@ -985,12 +982,12 @@ void CoreSolver::getNormalForms(Node eqc,
           }
           // Now that we are finished with the loop, we convert forward indices
           // to reverse indices in the explanation dependency information
-          int total_size = nf_curr.d_nf.size();
+          size_t total_size = nf_curr.d_nf.size();
           for (std::pair<const Node, std::map<bool, unsigned> >& ed :
                nf_curr.d_expDep)
           {
+            Assert(total_size >= ed.second[true]);
             ed.second[true] = total_size - ed.second[true];
-            Assert(ed.second[true] >= 0);
           }
         }
         //if not equal to self
@@ -2655,6 +2652,7 @@ void CoreSolver::checkLengthsEqc()
           << "No length term for eqc " << d_strings_eqc[i] << std::endl;
       continue;
     }
+    Assert(ei != nullptr); // Assert for static analysis (Clang Analyzer)
     // now, check if length normalization has occurred
     if (ei->d_normalizedLength.get().isNull())
     {

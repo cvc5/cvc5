@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Tim King, Aina Niemetz, Daniel Larraz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -730,7 +727,7 @@ std::tuple<Polynomial, Kind, Constant> Comparison::decompose(
       case Kind::GEQ: rel = Kind::LT; break;
       case Kind::GT: rel = Kind::LEQ; break;
       default:
-        Assert(false) << "Unsupported relation: " << getNode()[0].getKind();
+        DebugUnhandled() << "Unsupported relation: " << getNode()[0].getKind();
     }
   }
 
@@ -763,7 +760,7 @@ std::tuple<Polynomial, Kind, Constant> Comparison::decompose(
         case Kind::DISTINCT: break;
         case Kind::GEQ: rel = Kind::LEQ; break;
         case Kind::GT: rel = Kind::LT; break;
-        default: Assert(false) << "Unsupported relation: " << rel;
+        default: DebugUnhandled() << "Unsupported relation: " << rel;
       }
     }
     poly = poly * invlcoeff;
