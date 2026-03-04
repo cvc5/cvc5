@@ -161,7 +161,7 @@ struct QAttributes
   bool d_quant_elim_partial;
   /** Is this formula internally generated and belonging to bounded integers? */
   bool d_isQuantBounded;
-  /** */
+  /** Is this formula marked to skip MBQI instantiation? */
   bool d_isNoMbqi;
   /** the instantiation pattern list for this quantified formula (its 3rd child)
    */

@@ -38,8 +38,7 @@ class MbqiEnumTermEnumeratorCallback : protected EnvObj,
  public:
   MbqiEnumTermEnumeratorCallback(Env& env) : EnvObj(env) {}
   virtual ~MbqiEnumTermEnumeratorCallback() {}
-  /**
-   */
+  /** Filter duplicate/invalid built-in terms during SyGuS enumeration. */
   bool addTerm(const Node& n, std::unordered_set<Node>& bterms) override
   {
     Node bn = datatypes::utils::sygusToBuiltin(n);

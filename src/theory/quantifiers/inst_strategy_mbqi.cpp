@@ -702,8 +702,7 @@ Result InstStrategyMbqi::checkWithSubsolverSimple(
                             options().quantifiers.mbqiCheckTimeout);
 }
 
-/**
- */
+/** Attribute identifier for marking quantifiers as no-MBQI. */
 struct NoMbqiAttributeId
 {
 };

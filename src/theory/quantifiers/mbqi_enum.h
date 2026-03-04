@@ -75,14 +75,14 @@ class MVarInfo
     Node postConvert(Node n) override;
     std::vector<std::pair<Node, InferenceId>> getEnumeratedLemmas(
         const Node& t);
-    /** lemmas */
+    /** Maps introduced choice symbols to their justification lemmas. */
     std::map<Node, Node> d_lemmas;
-    /** */
+    /** Visited cache used while collecting symbols from terms. */
     std::unordered_set<TNode> d_visited;
   };
-  /** */
+  /** Converter used for witness/choice elimination. */
   std::unique_ptr<ChoiceElimNodeConverter> d_cenc;
-  /** */
+  /** Callback used to post-process and filter enumerated terms. */
   std::unique_ptr<SygusTermEnumeratorCallback> d_senumCb;
   /** A cache of all enumerated terms so far */
   std::vector<Node> d_enum;
