@@ -732,7 +732,6 @@ unsigned HoExtension::checkLazyLambda()
         {
           d_im.lemma(lem, InferenceId::UF_HO_LAMBDA_UNIV_EQ);
           numLemmas++;
-          // AlwaysAssert(false) << "stop";
         }
       }
     }

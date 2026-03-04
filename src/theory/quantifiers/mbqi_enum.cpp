@@ -52,11 +52,6 @@ class MbqiEnumTermEnumeratorCallback : protected EnvObj,
     {
       if (!expr::hasSubterm(bn[1], bn[0][0]))
       {
-        // always allow witness x. true ?
-        // if (!bn[1].isConst() || !bn[1].getConst<bool>())
-        //{
-        //  return false;
-        //}
         return false;
       }
     }
@@ -85,7 +80,6 @@ bool shouldEnumerate(const Options& opts, const TypeNode& tn)
 {
   // It may make sense to enumerate choice for FO uninterpreted sorts, but
   // seems to not work well in practice.
-  //if (tn.isUninterpretedSort() && !opts.quantifiers.mbqiEnumChoiceGrammar)
   if (tn.isUninterpretedSort())
   {
     return false;
@@ -248,23 +242,6 @@ void MVarInfo::initialize(Env& env,
     }
   }
   d_senum.reset(new SygusTermEnumerator(env, tuse, d_senumCb.get()));
-  /*
-    for (size_t i = 0; i < 5000; i++)
-    {
-      Node et;
-      do
-      {
-        et = getEnumeratedTerm(nm, i);
-      } while (et.isNull());
-      Trace("mbqi-enum-debug") << "TMP Enum term: #" << i << " is " << et << std::endl;
-      std::vector<std::pair<Node, InferenceId>> lemmas =
-    getEnumeratedLemmas(et); for (std::pair<Node, InferenceId>& al : lemmas)
-      {
-        Trace("mbqi-enum") << "...new lemma: " << al.first << std::endl;
-      }
-    }
-    exit(1);
-    */
 }
 
 MVarInfo::ChoiceElimNodeConverter::ChoiceElimNodeConverter(NodeManager* nm)
@@ -575,7 +552,6 @@ bool MbqiEnum::constructInstantiation(
       queryCheck = rewrite(queryCheck);
       Trace("mbqi-enum-model")
           << "...check " << queryCheck << std::endl;
-      // Result r = checkWithSubsolver(queryCheck, ssi);
       Result r = d_parent.checkWithSubsolverSimple(queryCheck, ssi);
       success = (r != Result::UNSAT);
       if (success)
