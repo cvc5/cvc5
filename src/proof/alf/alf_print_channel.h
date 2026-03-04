@@ -200,9 +200,9 @@ class CpcLogosChannelOut : public AlfPrintChannelOut
   size_t d_stackSize;
   std::vector<size_t> d_stackPush;
   size_t d_stateId;
-std::string replace_all(std::string str,
-                                   const std::string& from,
-                                   const std::string& to);
+  std::string replace_all(std::string str,
+                          const std::string& from,
+                          const std::string& to);
 };
 
 }  // namespace proof

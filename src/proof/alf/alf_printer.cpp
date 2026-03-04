@@ -49,7 +49,7 @@ AlfPrinter::AlfPrinter(Env& env,
       d_alreadyPrinted(&d_passumeCtx),
       d_passumeMap(&d_passumeCtx),
       d_isCpcLogos(options().proof.proofFormatMode
-      == options::ProofFormatMode::CPC_LOGOS),
+                   == options::ProofFormatMode::CPC_LOGOS),
       d_termLetPrefix(d_isCpcLogos ? "t" : "@t"),
       d_rdb(rdb),
       // Use a let binding if proofDagGlobal is true. We can traverse binders

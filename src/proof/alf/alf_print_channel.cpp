@@ -247,7 +247,7 @@ void AlfPrintChannelPre::processInternal(const Node& n)
 }
 
 CpcLogosChannelOut::CpcLogosChannelOut(std::ostream& out,
-                                               const LetBinding* lbind)
+                                       const LetBinding* lbind)
     : AlfPrintChannelOut(out, lbind, false)
 {
   // TODO: automate?
@@ -293,7 +293,7 @@ void CpcLogosChannelOut::printAssume(TNode n, size_t i, bool isPush)
     d_cmdListEnd << ")";
     d_stackPush.push_back(d_stackSize);
     d_stateDef << "def s" << d_stateId << " : CState := (__eo_invoke_cmd s";
-    d_stateDef << (d_stateId-1) << " " << scmd.str() << ")" << std::endl;
+    d_stateDef << (d_stateId - 1) << " " << scmd.str() << ")" << std::endl;
   }
   else
   {
@@ -301,17 +301,18 @@ void CpcLogosChannelOut::printAssume(TNode n, size_t i, bool isPush)
     printNodeInternal(d_assumeList, n);
     d_assumeList << ")" << std::endl;
     d_assumeListEnd << ")";
-    d_stateDef << "def s" << d_stateId << " : CState := (CState.cons (CStateObj.assume ";
+    d_stateDef << "def s" << d_stateId
+               << " : CState := (CState.cons (CStateObj.assume ";
     printNodeInternal(d_stateDef, n);
-    d_stateDef << ") s" << (d_stateId-1) << ")" << std::endl;
+    d_stateDef << ") s" << (d_stateId - 1) << ")" << std::endl;
   }
   d_stackId[i] = d_stackSize;
   d_stackSize++;
 }
 
 std::string CpcLogosChannelOut::replace_all(std::string str,
-                                   const std::string& from,
-                                   const std::string& to)
+                                            const std::string& from,
+                                            const std::string& to)
 {
   if (from.empty()) return str;  // avoid infinite loop
 
@@ -325,16 +326,17 @@ std::string CpcLogosChannelOut::replace_all(std::string str,
 }
 
 void CpcLogosChannelOut::printStep(const std::string& rname,
-                                       TNode n,
-                                       size_t i,
-                                       const std::vector<size_t>& premises,
-                                       const std::vector<Node>& args,
-                                       bool isPop)
+                                   TNode n,
+                                   size_t i,
+                                   const std::vector<size_t>& premises,
+                                   const std::vector<Node>& args,
+                                   bool isPop)
 {
   std::string rnameUse = replace_all(rname, "-", "_");
   d_stateId++;
   d_cmdList << "(CCmdList.cons (CCmd." << rnameUse;
-  d_stateDef << "def s" << d_stateId << " : CState := (__eo_invoke_cmd s" << (d_stateId-1);
+  d_stateDef << "def s" << d_stateId << " : CState := (__eo_invoke_cmd s"
+             << (d_stateId - 1);
   d_stateDef << " (CCmd.step CRule." << rnameUse;
   // get the premise indices in terms of depth on the stack
   std::vector<size_t> pindices;
@@ -342,10 +344,10 @@ void CpcLogosChannelOut::printStep(const std::string& rname,
   for (size_t p : premises)
   {
     its = d_stackId.find(p);
-    if (its!=d_stackId.end())
+    if (its != d_stackId.end())
     {
-      Assert (d_stackSize>its->second);
-      pindices.push_back(d_stackSize-its->second-1);
+      Assert(d_stackSize > its->second);
+      pindices.push_back(d_stackSize - its->second - 1);
     }
     else
     {
@@ -360,7 +362,7 @@ void CpcLogosChannelOut::printStep(const std::string& rname,
   std::string ret = "CIndexList.nil";
   for (size_t j = 0, npremises = pindices.size(); j < npremises; j++)
   {
-    size_t jj = (npremises-1)-j;
+    size_t jj = (npremises - 1) - j;
     std::stringstream retNext;
     retNext << "(CIndexList.cons " << pindices[jj] << " " << ret << ")";
     ret = retNext.str();
@@ -369,7 +371,7 @@ void CpcLogosChannelOut::printStep(const std::string& rname,
   std::string aret = "CArgList.nil";
   for (size_t j = 0, nargs = args.size(); j < nargs; j++)
   {
-    size_t jj = (nargs-1)-j;
+    size_t jj = (nargs - 1) - j;
     Node a = args[jj];
     d_cmdList << " ";
     printNodeInternal(d_cmdList, a);
@@ -401,7 +403,7 @@ void CpcLogosChannelOut::printStep(const std::string& rname,
   // if step-pop, revert stack size
   if (isPop)
   {
-    Assert (!d_stackPush.empty());
+    Assert(!d_stackPush.empty());
     d_stackSize = d_stackPush.back();
     d_stackPush.pop_back();
   }
@@ -415,7 +417,8 @@ void CpcLogosChannelOut::printStep(const std::string& rname,
     d_cmdList << ")" << std::endl;
     d_cmdListEnd << ")";
     d_stateId++;
-    d_stateDef << "def s" << d_stateId << ": CState := (__eo_invoke_cmd s" << (d_stateId-1);
+    d_stateDef << "def s" << d_stateId << ": CState := (__eo_invoke_cmd s"
+               << (d_stateId - 1);
     d_stateDef << " (CCmd.check_proven ";
     printNodeInternal(d_stateDef, n);
     d_stateDef << "))" << std::endl;
@@ -423,11 +426,11 @@ void CpcLogosChannelOut::printStep(const std::string& rname,
 }
 
 void CpcLogosChannelOut::printTrustStep(ProofRule r,
-                                            TNode n,
-                                            size_t i,
-                                            const std::vector<size_t>& premises,
-                                            const std::vector<Node>& args,
-                                            TNode nc)
+                                        TNode n,
+                                        size_t i,
+                                        const std::vector<size_t>& premises,
+                                        const std::vector<Node>& args,
+                                        TNode nc)
 {
   std::stringstream ss;
   ss << "The proof was incomplete, due to rule " << r;
