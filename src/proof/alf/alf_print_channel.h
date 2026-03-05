@@ -185,12 +185,6 @@ class CpcLogosChannelOut : public AlfPrintChannelOut
   void finalize();
 
  private:
-  /** The assumption list */
-  std::stringstream d_assumeList;
-  std::stringstream d_assumeListEnd;
-  /** The command list */
-  std::stringstream d_cmdList;
-  std::stringstream d_cmdListEnd;
   /** Alternative: state */
   std::stringstream d_stateDef;
   /** premise list? */

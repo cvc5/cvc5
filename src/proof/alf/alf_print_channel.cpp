@@ -285,22 +285,14 @@ void CpcLogosChannelOut::printAssume(TNode n, size_t i, bool isPush)
   d_stateId++;
   if (isPush)
   {
-    std::stringstream scmd;
-    scmd << "(CCmd.assume_push ";
-    printNodeInternal(scmd, n);
-    scmd << ")";
-    d_cmdList << "(CCmdList.cons " << scmd.str() << std::endl;
-    d_cmdListEnd << ")";
     d_stackPush.push_back(d_stackSize);
     d_stateDef << "def s" << d_stateId << " : CState := (__eo_invoke_cmd s";
-    d_stateDef << (d_stateId - 1) << " " << scmd.str() << ")" << std::endl;
+    d_stateDef << (d_stateId - 1) << " ";
+    printNodeInternal(d_stateDef, n);
+    d_stateDef <<  ")" << std::endl;
   }
   else
   {
-    d_assumeList << "(Term.Apply (Term.Apply Term.and ";
-    printNodeInternal(d_assumeList, n);
-    d_assumeList << ")" << std::endl;
-    d_assumeListEnd << ")";
     d_stateDef << "def s" << d_stateId
                << " : CState := (CState.cons (CStateObj.assume ";
     printNodeInternal(d_stateDef, n);
@@ -334,10 +326,9 @@ void CpcLogosChannelOut::printStep(const std::string& rname,
 {
   std::string rnameUse = replace_all(rname, "-", "_");
   d_stateId++;
-  d_cmdList << "(CCmdList.cons (CCmd." << rnameUse;
   d_stateDef << "def s" << d_stateId << " : CState := (__eo_invoke_cmd s"
              << (d_stateId - 1);
-  d_stateDef << " (CCmd.step CRule." << rnameUse;
+  d_stateDef << " (CCmd.step" << (isPop ? "_pop" : "") <<  " CRule." << rnameUse;
   // get the premise indices in terms of depth on the stack
   std::vector<size_t> pindices;
   std::map<size_t, size_t>::iterator its;
@@ -358,7 +349,6 @@ void CpcLogosChannelOut::printStep(const std::string& rname,
   }
   // always package as list
   // determine if premise list, if so, package as list
-#if 1
   std::string ret = "CIndexList.nil";
   for (size_t j = 0, npremises = pindices.size(); j < npremises; j++)
   {
@@ -367,39 +357,19 @@ void CpcLogosChannelOut::printStep(const std::string& rname,
     retNext << "(CIndexList.cons " << pindices[jj] << " " << ret << ")";
     ret = retNext.str();
   }
-  d_cmdList << " " << ret;
   std::string aret = "CArgList.nil";
   for (size_t j = 0, nargs = args.size(); j < nargs; j++)
   {
     size_t jj = (nargs - 1) - j;
     Node a = args[jj];
-    d_cmdList << " ";
-    printNodeInternal(d_cmdList, a);
     std::stringstream anext;
     anext << "(CArgList.cons ";
     printNodeInternal(anext, a);
     anext << " " << aret << ")";
     aret = anext.str();
   }
-  d_stateDef << " " << ret << " " << aret;
-#else
-  for (const Node& a : args)
-  {
-    d_cmdList << " ";
-    printNodeInternal(d_cmdList, a);
-    d_stateDef << " ";
-    printNodeInternal(d_stateDef, a);
-  }
-  // otherwise, premises are arguments
-  for (size_t j = 0, npremises = pindices.size(); j < npremises; j++)
-  {
-    d_cmdList << " " << pindices[j];
-    d_stateDef << " " << pindices[j];
-  }
-#endif
-  d_cmdList << ")" << std::endl;
+  d_stateDef << " " << aret << " " << ret;
   d_stateDef << "))" << std::endl;
-  d_cmdListEnd << ")";
   // if step-pop, revert stack size
   if (isPop)
   {
@@ -412,10 +382,6 @@ void CpcLogosChannelOut::printStep(const std::string& rname,
   // print a command to check proven if given
   if (!n.isNull())
   {
-    d_cmdList << "(CCmdList.cons (CCmd.check_proven ";
-    printNodeInternal(d_cmdList, n);
-    d_cmdList << ")" << std::endl;
-    d_cmdListEnd << ")";
     d_stateId++;
     d_stateDef << "def s" << d_stateId << ": CState := (__eo_invoke_cmd s"
                << (d_stateId - 1);
@@ -439,18 +405,9 @@ void CpcLogosChannelOut::printTrustStep(ProofRule r,
 
 void CpcLogosChannelOut::finalize()
 {
-#if 0
-  d_out << "(__eo_checker_is_refutation" << std::endl;
-  d_out << d_assumeList.str();
-  d_out << "(Term.Boolean true)" << d_assumeListEnd.str() << std::endl;
-  d_out << d_cmdList.str();
-  d_out << "CCmdList.nil" << d_cmdListEnd.str() << std::endl;
-  d_out << ")" << std::endl;
-#else
   d_out << d_stateDef.str();
   d_out << "#eval!" << std::endl;
   d_out << "(__eo_state_is_refutation s" << d_stateId << ")" << std::endl;
-#endif
 }
 
 }  // namespace proof
