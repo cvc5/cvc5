@@ -55,6 +55,8 @@ class LogosNodeConverter : public AlfNodeConverter
   size_t d_sortIdCount;
   /** type as node datatype */
   Node typeAsNodeDatatype(const DType& dt, std::unordered_set<TypeNode>& scope);
+  /** make list */
+  Node mkLogosList(const std::vector<Node>& args, const TypeNode& tn);
 };
 
 }  // namespace proof

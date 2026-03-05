@@ -10,7 +10,7 @@
  * Implementation of ALF node conversion
  */
 
-#include "proof/alf/logos_lean_node_converter.h"
+#include "proof/alf/logos_node_converter.h"
 
 #include <cstdlib>
 
@@ -83,6 +83,14 @@ Node LogosNodeConverter::postConvert(Node n)
   {
     return mkInternalApp("Term.Apply", {n[0], n[1]}, n.getType());
   }
+  else if (k == Kind::DISTINCT)
+  {
+    std::vector<Node> args(n.begin(), n.end());
+    Node distinct = mkInternalSymbol("Term.distinct", tn);
+    // it is :arg-list, so it must be a list of terms
+    Node an = mkLogosList(args, tn);
+    return mkInternalApp("Term.Apply", {distinct, an}, tn);
+  }
   else if (k == Kind::APPLY_CONSTRUCTOR || k == Kind::APPLY_TESTER
            || k == Kind::APPLY_SELECTOR || k == Kind::APPLY_UPDATER)
   {
@@ -127,16 +135,8 @@ Node LogosNodeConverter::postConvert(Node n)
   }
   else if (k == Kind::SEXPR || k == Kind::BOUND_VAR_LIST)
   {
-    Node ret = mkInternalSymbol("Term.__eo_List_nil", tn);
-    Node cons = mkInternalSymbol("Term.__eo_List_cons", tn);
-    // use generic list
-    for (size_t i = 0, nchild = n.getNumChildren(); i < nchild; i++)
-    {
-      size_t ii = (nchild - i) - 1;
-      Node cc = mkInternalApp("Term.Apply", {cons, n[ii]}, tn);
-      ret = mkInternalApp("Term.Apply", {cc, ret}, tn);
-    }
-    return ret;
+    std::vector<Node> args(n.begin(), n.end());
+    return mkLogosList(args, tn);
   }
   else if (n.getNumChildren() > 0)
   {
@@ -311,6 +311,20 @@ Node LogosNodeConverter::typeAsNodeDatatype(const DType& dt,
   }
   Node dtName = d_nm->mkConst(String(dt.getName()));
   ret = mkInternalApp("Term.DatatypeType", {dtName, ret}, d_sortType);
+  return ret;
+}
+
+Node LogosNodeConverter::mkLogosList(const std::vector<Node>& args, const TypeNode& tn)
+{
+  Node ret = mkInternalSymbol("Term.__eo_List_nil", tn);
+  Node cons = mkInternalSymbol("Term.__eo_List_cons", tn);
+  // use generic list
+  for (size_t i = 0, nchild = args.size(); i < nchild; i++)
+  {
+    size_t ii = (nchild - i) - 1;
+    Node cc = mkInternalApp("Term.Apply", {cons, args[ii]}, tn);
+    ret = mkInternalApp("Term.Apply", {cc, ret}, tn);
+  }
   return ret;
 }
 
