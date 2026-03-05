@@ -72,8 +72,6 @@ class InstStrategyMbqi : public QuantifiersModule
   /** identify */
   std::string identify() const override { return "mbqi"; }
 
-  static bool isNoMbqiAttribute(Node var);
-
  private:
   /**
    * Process quantified formula q, which may add q to d_quantChecked, add an

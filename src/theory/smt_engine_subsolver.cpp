@@ -140,7 +140,6 @@ Result checkWithSubsolver(Node query,
       // default model
       for (const Node& v : vars)
       {
-        // TODO: mkGroundValue?
         modelVals.push_back(NodeManager::mkGroundTerm(v.getType()));
       }
     }

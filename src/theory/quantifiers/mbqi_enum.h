@@ -65,6 +65,11 @@ class MVarInfo
  private:
   /** The underlying sygus enumerator utility */
   std::unique_ptr<SygusTermEnumerator> d_senum;
+  /**
+   * Converts enumerated terms by eliminating witness terms, replacing each
+   * with an internal choice function symbol and recording the corresponding
+   * justification lemma.
+   */
   class ChoiceElimNodeConverter : public NodeConverter
   {
    public:

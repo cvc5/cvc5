@@ -191,8 +191,7 @@ void TheoryUF::notifyFact(TNode atom,
     {
       if (logicInfo().isHigherOrder() && options().uf.ufHoExt)
       {
-        TypeNode tn = atom[0].getType();
-        if (!pol && !d_state.isInConflict() && tn.isFunction())
+        if (!pol && !d_state.isInConflict() && atom[0].getType().isFunction())
         {
           // apply extensionality eagerly using the ho extension
           d_ho->applyExtensionality(fact);

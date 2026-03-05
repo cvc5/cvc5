@@ -17,7 +17,6 @@
 #include "smt/print_benchmark.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/quantifiers/fmf/bounded_integers.h"
-#include "theory/quantifiers/inst_strategy_mbqi.h"
 #include "theory/quantifiers/sygus/synth_engine.h"
 #include "theory/quantifiers/term_util.h"
 #include "util/rational.h"
@@ -322,11 +321,6 @@ void QuantAttributes::computeQuantAttributes( Node q, QAttributes& qa ){
               << "Attribute : bounded quantifiers : " << q << std::endl;
           qa.d_isQuantBounded = true;
         }
-        if (InstStrategyMbqi::isNoMbqiAttribute(avar))
-        {
-          Trace("quant-attr") << "Attribute : is no mbqi : " << q << std::endl;
-          qa.d_isNoMbqi = true;
-        }
         if( avar.hasAttribute(QuantIdNumAttribute()) ){
           qa.d_qid_num = avar;
           Trace("quant-attr") << "Attribute : id number " << qa.d_qid_num.getAttribute(QuantIdNumAttribute()) << " : " << q << std::endl;
@@ -399,16 +393,6 @@ bool QuantAttributes::isQuantBounded(Node q) const
   }
   return false;
 }
-bool QuantAttributes::isNoMbqi(Node q) const
-{
-  std::map<Node, QAttributes>::const_iterator it = d_qattr.find(q);
-  if (it != d_qattr.end())
-  {
-    return it->second.d_isNoMbqi;
-  }
-  return false;
-}
-
 Node QuantAttributes::getQuantName(Node q) const
 {
   std::map<Node, QAttributes>::const_iterator it = d_qattr.find(q);

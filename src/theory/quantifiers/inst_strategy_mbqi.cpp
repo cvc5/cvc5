@@ -155,12 +155,6 @@ bool InstStrategyMbqi::checkCompleteFor(Node q)
 void InstStrategyMbqi::process(Node q)
 {
   Assert(q.getKind() == Kind::FORALL);
-  QuantAttributes& qattr = d_qreg.getQuantAttributes();
-  if (qattr.isNoMbqi(q))
-  {
-    Trace("mbqi-debug") << "No-mbqi quantified formula: " << q << std::endl;
-    return;
-  }
   Trace("mbqi-model-exp") << "* Process quantified formula: " << q << std::endl;
   Trace("mbqi") << "Process quantified formula: " << q << std::endl;
   // Cache mapping terms in the skolemized body of q to the form passed to
@@ -701,17 +695,6 @@ Result InstStrategyMbqi::checkWithSubsolverSimple(
                             info,
                             options().quantifiers.mbqiCheckTimeout != 0,
                             options().quantifiers.mbqiCheckTimeout);
-}
-
-/** Attribute identifier for marking quantifiers as no-MBQI. */
-struct NoMbqiAttributeId
-{
-};
-typedef expr::Attribute<NoMbqiAttributeId, bool> NoMbqiAttribute;
-
-bool InstStrategyMbqi::isNoMbqiAttribute(Node var)
-{
-  return var.getAttribute(NoMbqiAttribute());
 }
 
 }  // namespace quantifiers
