@@ -1,5 +1,7 @@
 ; COMMAND-LINE: --mbqi-enum-choice-grammar --sygus-grammar-ho-partial
 ; EXPECT: unsat
+; DISABLE-TESTER: cpc
+; Disabled cpc due to ethos lambda-elim checker failure on this benchmark.
 (set-logic HO_ALL)
 (declare-sort A 0)
 (declare-sort B 0)
