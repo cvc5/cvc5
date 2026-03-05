@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Abdalrhman Mohamed
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -1629,7 +1626,7 @@ void Smt2Printer::toStreamModelSort(std::ostream& out,
       }
       else
       {
-        Assert(false)
+        DebugUnhandled()
             << "model domain element is not an uninterpreted sort value: "
             << trn;
         out << trn;
@@ -1912,24 +1909,7 @@ void Smt2Printer::toStreamCmdDeclareType(std::ostream& out,
                                          const std::string& id,
                                          size_t arity) const
 {
-  if (d_variant == Variant::alf_variant)
-  {
-    out << "(declare-const " << cvc5::internal::quoteSymbol(id) << " ";
-    if (arity > 0)
-    {
-      out << "(->";
-      for (size_t i = 0; i < arity; i++)
-      {
-        out << " Type";
-      }
-      out << " Type))";
-    }
-    else
-    {
-      out << "Type)";
-    }
-    return;
-  }
+
   out << "(declare-sort " << cvc5::internal::quoteSymbol(id) << " " << arity
       << ")";
 }

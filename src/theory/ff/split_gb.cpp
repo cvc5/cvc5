@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Alex Ozdemir, Daniel Larraz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -409,21 +406,23 @@ Polys BitProp::getBitEqualities(const SplitGb& splitBasis)
       Poly normal = b.reduce(d_enc->getTermEncoding(bitsum));
       if (CoCoA::IsConstant(normal))
       {
-        // this basis b knows that bitsum is a constant
-        Integer val =
-            d_enc->cocoaFfToFfVal(CoCoA::ConstantCoeff(normal)).getValue();
-        if (val >= Integer(2).pow(bitsum.getNumChildren()))
-        {
-          output.clear();
-          output.push_back(CoCoA::one(d_enc->polyRing()));
-          return output;
-        }
-
+      
         // check that all inputs are bit-constrained
         if (std::all_of(bitsum.begin(), bitsum.end(), [&](const Node& bit) {
               return isBit(bit, splitBasis);
             }))
         {
+          // this basis b knows that bitsum is a constant
+          Integer val =
+              d_enc->cocoaFfToFfVal(CoCoA::ConstantCoeff(normal)).getValue();
+
+          if (val >= Integer(2).pow(bitsum.getNumChildren()))
+          {
+            output.clear();
+            output.push_back(CoCoA::one(d_enc->polyRing()));
+            return output;
+          }
+
           // propagate `bits(bitsum) = bits(k)`
           for (size_t i = 0, n = bitsum.getNumChildren(); i < n; ++i)
           {

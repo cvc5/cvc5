@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Morgan Deters, Tim King, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -142,7 +139,7 @@ class TypeEnumerator {
     if(d_te->isFinished()) {
       try {
         **d_te;
-        Assert(false) << "expected an NoMoreValuesException to be thrown";
+        DebugUnhandled() << "expected an NoMoreValuesException to be thrown";
       } catch(NoMoreValuesException&) {
         // ignore the exception, we're just asserting that it would be thrown
         //
@@ -155,7 +152,7 @@ class TypeEnumerator {
       try {
         **d_te;
       } catch(NoMoreValuesException&) {
-        Assert(false) << "didn't expect a NoMoreValuesException to be thrown";
+        DebugUnhandled() << "didn't expect a NoMoreValuesException to be thrown";
       }
     }
 #endif /* CVC5_ASSERTIONS && !(APPLE || clang) */

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -47,9 +44,9 @@ class QuantifiersUtil : protected EnvObj
    * Returns false if the reset failed. When reset fails, the utility should
    * have added a lemma via a call to d_qim.addPendingLemma.
    */
-  virtual bool reset(Theory::Effort e) { return true; }
+  virtual bool reset(CVC5_UNUSED Theory::Effort e) { return true; }
   /* Called for new quantifiers */
-  virtual void registerQuantifier(Node q) {}
+  virtual void registerQuantifier(CVC5_UNUSED Node q) {}
   /** Identify this module (for debugging, dynamic configuration, etc..) */
   virtual std::string identify() const = 0;
   /** Check complete?
@@ -58,7 +55,7 @@ class QuantifiersUtil : protected EnvObj
    * (e.g. "sat" must be replaced with "incomplete"). If this method returns
    * false, it should update incId to the reason for incompleteness.
    */
-  virtual bool checkComplete(IncompleteId& incId) { return true; }
+  virtual bool checkComplete(CVC5_UNUSED IncompleteId& incId) { return true; }
 };
 
 class QuantPhaseReq

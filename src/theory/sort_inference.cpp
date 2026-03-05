@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Paul Meng, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -729,7 +726,7 @@ Node SortInference::simplifyNode(
       {
         Trace("sort-inference-warn") << "Sort inference created bad equality: " << children[0] << " = " << children[1] << std::endl;
         Trace("sort-inference-warn") << "  Types : " << children[0].getType() << " " << children[1].getType() << std::endl;
-        Assert(false);
+        DebugUnhandled();
       }
       ret = nm->mkNode(Kind::EQUAL, children);
     }
@@ -770,7 +767,7 @@ Node SortInference::simplifyNode(
         if (tn != tna)
         {
           Trace("sort-inference-warn") << "Sort inference created bad child: " << n << " " << n[i] << " " << tn << " " << tna << std::endl;
-          Assert(false);
+          DebugUnhandled();
         }
       }
       ret = nm->mkNode(Kind::APPLY_UF, children);

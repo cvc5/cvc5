@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Gereon Kremer, Andrew Reynolds, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -210,7 +207,7 @@ bool CoveringsSolver::constructModelIfAvailable(std::vector<Node>& assertions)
     Node value = value_to_node(d_CAC.getModel().get(v), variable);
     if (!addToModel(variable, value))
     {
-      Assert(false) << "Failed to add variable assignment to model";
+      DebugUnhandled() << "Failed to add variable assignment to model";
     }
   }
   for (const auto& sub : d_eqsubs.getSubstitutions())
@@ -219,7 +216,7 @@ bool CoveringsSolver::constructModelIfAvailable(std::vector<Node>& assertions)
                     << std::endl;
     if (!addToModel(sub.first, sub.second))
     {
-      Assert(false) << "Failed to add equality substitution to model";
+      DebugUnhandled() << "Failed to add equality substitution to model";
     }
   }
   if (foundNonVariable)

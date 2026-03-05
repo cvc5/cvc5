@@ -121,11 +121,11 @@ public:
     // Constructor/Destructor:
     //
  Solver(Env& env,
-        cvc5::internal::prop::TheoryProxy* proxy,
+        prop::TheoryProxy* proxy,
         context::Context* context,
-        prop::PropPfManager* ppm,
         bool enableIncremental = false);
- virtual ~Solver();
+
+ virtual ~Solver() = default;
 
  // Problem specification:
  //
@@ -136,10 +136,16 @@ public:
  Var trueVar() const { return varTrue; }
  Var falseVar() const { return varFalse; }
 
- /** Retrive the SAT proof manager */
+ /**
+  * Initializes the SAT proof manager.
+  * Can only be called once right after initialization.
+  */
+ virtual void attachProofManager(prop::PropPfManager* ppm);
+
+ /** Retrieve the SAT proof manager */
  cvc5::internal::prop::SatProofManager* getProofManager();
 
- /** Retrive the refutation proof */
+ /** Retrieve the refutation proof */
  std::shared_ptr<ProofNode> getProof();
 
  /** Is proof enabled? */

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Gereon Kremer, Andrew Reynolds, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -140,7 +137,7 @@ poly::UPolynomial as_poly_upolynomial_impl(cvc5::internal::Node n,
       return res;
     }
     default:
-      Assert(false) << "Unhandled node " << n << " with kind " << n.getKind()
+      DebugUnhandled() << "Unhandled node " << n << " with kind " << n.getKind()
                 << std::endl;
   }
   return poly::UPolynomial();
@@ -331,7 +328,7 @@ poly::SignCondition normalize_kind(cvc5::internal::Kind kind,
       return poly::SignCondition::LE;
     }
     default:
-      Assert(false) << "This function only deals with arithmetic relations.";
+      DebugUnhandled() << "This function only deals with arithmetic relations.";
       return poly::SignCondition::EQ;
   }
 }
@@ -423,7 +420,7 @@ Node value_to_node(const poly::Value& v, const Node& ran_variable)
   {
     return nm->mkConstReal(poly_utils::toRational(as_rational(v)));
   }
-  Assert(false) << "All cases should be covered.";
+  DebugUnhandled() << "All cases should be covered.";
   return nm->mkConstReal(Rational(0));
 }
 
@@ -666,7 +663,7 @@ std::tuple<Node, Rational, Rational> detect_ran_encoding(const Node& w)
   else if (n[2].getKind() == Kind::EQUAL)
     poly_eq = n[2];
   else
-    Assert(false) << "Could not identify polynomial equation.";
+    DebugUnhandled() << "Could not identify polynomial equation.";
 
   Node poly;
   Assert(poly_eq.getNumChildren() == 2) << "Invalid polynomial equation.";
@@ -684,7 +681,7 @@ std::tuple<Node, Rational, Rational> detect_ran_encoding(const Node& w)
   }
   else
   {
-    Assert(false) << "Invalid polynomial equation.";
+    DebugUnhandled() << "Invalid polynomial equation.";
   }
 
   std::optional<Rational> lower = get_lower_bound(n[0]);
@@ -785,7 +782,7 @@ std::size_t bitsize(const poly::Value& v)
   {
     return bitsize(as_rational(v));
   }
-  Assert(false);
+  DebugUnhandled();
   return 0;
 }
 
