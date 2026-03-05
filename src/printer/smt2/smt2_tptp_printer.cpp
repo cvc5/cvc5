@@ -110,17 +110,19 @@ void printTypeDecl(std::ostream& out,
                    const std::string& symbol,
                    const std::string& type)
 {
-  const size_t kDeclSymbolColumn = 26;
-  std::stringstream head;
-  head << ff << "(" << id << ",type,";
-  const std::string prefix = head.str();
-  out << prefix;
-  size_t pad = 1;
-  if (prefix.size() < kDeclSymbolColumn)
+  out << ff << "(" << id << ",type,\n";
+  out << "    " << symbol << ": " << type << " ).\n\n";
+}
+
+bool isBuiltinIndividualSort(TypeNode tn)
+{
+  if (!tn.isUninterpretedSort())
   {
-    pad = kDeclSymbolColumn - prefix.size();
+    return false;
   }
-  out << std::string(pad, ' ') << symbol << ": " << type << " ).\n";
+  // TPTP's builtin individual type $i is represented internally as
+  // the default unsorted uninterpreted sort.
+  return sanitizeLower(tn.toString()) == "unsorted";
 }
 
 std::string typeToTptp(TypeNode tn, bool useThfTuple = false)
@@ -128,6 +130,18 @@ std::string typeToTptp(TypeNode tn, bool useThfTuple = false)
   if (tn.isBoolean())
   {
     return "$o";
+  }
+  if (tn.isInteger())
+  {
+    return "$int";
+  }
+  if (tn.isReal())
+  {
+    return "$real";
+  }
+  if (isBuiltinIndividualSort(tn))
+  {
+    return "$i";
   }
   if (tn.isFunction())
   {
@@ -837,6 +851,7 @@ void Smt2TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
   }
 
   std::map<TypeNode, std::string> sortNames;
+  std::map<TypeNode, std::string> sortTypeNames;
   std::map<TypeNode, std::string> dSortNames;
   std::map<TypeNode, std::string> promoteNames;
   std::map<TypeNode, std::vector<Node>> elems;
@@ -851,6 +866,7 @@ void Smt2TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
     // - a finite domain carrier type "d_s"
     // - a promotion function "d2s : d_s > s"
     sortNames[s] = sanitizeLower(s.toString());
+    sortTypeNames[s] = typeToTptp(s);
     dSortNames[s] = "d_" + sortNames[s];
     promoteNames[s] = "d2" + sortNames[s];
     elems[s] = m.getDomainElements(s);
@@ -1021,7 +1037,7 @@ void Smt2TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
     std::string tn = sanitizeLower(t.toString());
     printTypeDecl(out, ff, tn + "_decl", tn, typeToTptp(tt, useThf));
   }
-  out << "\n%----Types of the domains\n";
+  out << "%----Types of the domains\n";
   // 2) Finite-domain helper declarations used by the interpretation block.
   for (const TypeNode& s : sorts)
   {
@@ -1034,7 +1050,7 @@ void Smt2TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
                   ff,
                   promoteNames[s] + "_decl",
                   promoteNames[s],
-                  dSortNames[s] + " > " + sortNames[s]);
+                  dSortNames[s] + " > " + sortTypeNames[s]);
   }
   out << "%----Types of the domain elements\n";
   for (const TypeNode& s : sorts)
@@ -1071,8 +1087,8 @@ void Smt2TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
   {
     modelName = "model";
   }
-  const std::string domainName = modelName + "_domain";
-  out << "\n" << ff << "(" << domainName << ",interpretation,\n";
+  const std::string domainName = modelName;
+  out << ff << "(" << domainName << ",interpretation,\n";
   out << "    ( ";
   // 3) Domain axioms: surjectivity, finite enumeration, distinctness,
   //    and injectivity of each promotion function.
@@ -1085,15 +1101,23 @@ void Smt2TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
     }
     firstDomain = false;
     std::string sN = sortNames[s];
+    std::string stN = sortTypeNames[s];
     std::string dsN = dSortNames[s];
     std::string pN = promoteNames[s];
     std::string vS = sanitizeUpper(sN.substr(0, 1)); // variable of the original sort
     std::string vDS = "D" + vS; // variable of the domain sort
-    out << "! [" << vS << ": " << sN << "] : ? [" << vDS << ": " << dsN << "] : "
-        << vS << " = " << pN << "(" << vDS << ")";
+    out << "! [" << vS << ": " << stN << "] :\n";
+    out << "      ? [" << vDS << ": " << dsN << "] : ( " << vS << " = " << pN
+        << "(" << vDS << ") )";
 
     const std::vector<Node>& se = elems[s];
-    if (se.size() > 1)
+    if (se.size() == 2)
+    {
+      out << "\n    & ! [" << vDS << ": " << dsN << "] :\n";
+      out << "        ( ( " << vDS << " = " << elemNames[se[0]] << " )\n";
+      out << "        | ( " << vDS << " = " << elemNames[se[1]] << " ) )";
+    }
+    else if (se.size() > 1)
     {
       out << "\n    & ! [" << vDS << ": " << dsN << "] :\n          ( ";
     }
@@ -1101,16 +1125,23 @@ void Smt2TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
     {
       out << "\n    & ! [" << vDS << ": " << dsN << "] : ( ";
     }
-    for (size_t i = 0, n = se.size(); i < n; i++)
+    if (se.size() != 2)
     {
-      if (i > 0)
+      for (size_t i = 0, n = se.size(); i < n; i++)
       {
-        out << " | ";
+        if (i > 0)
+        {
+          out << " | ";
+        }
+        out << vDS << " = " << elemNames[se[i]];
       }
-      out << vDS << " = " << elemNames[se[i]];
+      out << " )";
     }
-    out << " )";
-    if (se.size() > 1)
+    if (se.size() == 2)
+    {
+      out << "\n    & " << elemNames[se[0]] << " != " << elemNames[se[1]];
+    }
+    else if (se.size() > 2)
     {
       out << "\n    & $distinct(";
       for (size_t i = 0, n = se.size(); i < n; i++)
@@ -1124,8 +1155,10 @@ void Smt2TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
       out << ")";
     }
     out << "\n    & ! [" << vDS << "1: " << dsN << "," << vDS << "2: " << dsN
-        << "] :\n          ( " << pN << "(" << vDS << "1) = " << pN << "("
-        << vDS << "2) => " << vDS << "1 = " << vDS << "2 )";
+        << "] :\n";
+    out << "        ( ( " << pN << "(" << vDS << "1) = " << pN << "(" << vDS
+        << "2) )\n";
+    out << "       => ( " << vDS << "1 = " << vDS << "2 ) )";
   }
   // Finite-domain axioms for higher-order function types we materialize.
   size_t hoTypeIndex = 0;
@@ -1162,7 +1195,16 @@ void Smt2TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
       out << fv.str() << " = " << hit->second;
     }
     out << " )";
-    if (p.second.size() > 1)
+    if (p.second.size() == 2)
+    {
+      auto h0 = hoElemNames.find(p.second[0]);
+      auto h1 = hoElemNames.find(p.second[1]);
+      if (h0 != hoElemNames.end() && h1 != hoElemNames.end())
+      {
+        out << "\n    & " << h0->second << " != " << h1->second;
+      }
+    }
+    else if (p.second.size() > 2)
     {
       out << "\n    & $distinct(";
       bool first = true;
@@ -1221,7 +1263,7 @@ void Smt2TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
         continue;
       }
       std::stringstream ss;
-      ss << tn << " = " << promoteNames[tt] << "(" << evn << ")";
+      ss << "( " << tn << " = " << promoteNames[tt] << "(" << evn << ") )";
       mappingConjs.push_back(ss.str());
       continue;
     }
@@ -1336,7 +1378,8 @@ void Smt2TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
       if (!isPred)
       {
         ss << " = " << promoteNames[tt.getRangeType()] << "(" << vname << ")";
-        mappingConjs.push_back(ss.str());
+        ss << " )";
+        mappingConjs.push_back("( " + ss.str());
       }
       else
       {

@@ -1446,6 +1446,7 @@ set(regress_0_tests
   regress0/printer/print_unsat_core.smt2
   regress0/printer/print_unsat_core_lemmas.smt2
   regress0/printer/symbol_starting_w_digit.smt2
+  regress0/printer/tptpmodels_unsorted_i.smt2
   regress0/printer/tuples_and_records.cvc.smt2
   regress0/printer/unsat-core-dagify.smt2
   regress0/proj-issue307-get-value-re.smt2
