@@ -187,12 +187,16 @@ class CpcLogosChannelOut : public AlfPrintChannelOut
  private:
   /** Alternative: state */
   std::stringstream d_stateDef;
-  /** premise list? */
-  std::map<std::string, bool> d_premiseList;
-  /** mapping identifiers */
+  /** 
+   * mapping premise ids to their distance from the top of the stack of formulas
+   * we have proven, used to lookup premises in logos
+   */
   std::map<size_t, size_t> d_stackId;
+  /** the size of the stack of formulas we have proven */
   size_t d_stackSize;
+  /** the size of the stack at the time of assume-push commands */
   std::vector<size_t> d_stackPush;
+  /** an identifier for naming states */
   size_t d_stateId;
   std::string replace_all(std::string str,
                           const std::string& from,

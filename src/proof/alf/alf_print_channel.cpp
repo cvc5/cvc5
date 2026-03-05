@@ -250,18 +250,6 @@ CpcLogosChannelOut::CpcLogosChannelOut(std::ostream& out,
                                        const LetBinding* lbind)
     : AlfPrintChannelOut(out, lbind, false)
 {
-  // TODO: automate?
-  d_premiseList["arith_sum_ub"] = true;
-  d_premiseList["arith_mult_abs_comparison"] = true;
-  d_premiseList["chain_resolution"] = true;
-  d_premiseList["chain_m_resolution"] = true;
-  d_premiseList["and_intro"] = true;
-  d_premiseList["re_concat"] = true;
-  d_premiseList["trans"] = true;
-  d_premiseList["cong"] = true;
-  d_premiseList["nary_cong"] = true;
-  d_premiseList["pairwise_cong"] = true;
-  d_premiseList["ho_cong"] = true;
   d_stackSize = 0;
   d_stateId = 0;
   d_stateDef << "def s0 : CState := CState.nil" << std::endl;
