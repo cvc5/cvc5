@@ -275,9 +275,9 @@ void CpcLogosChannelOut::printAssume(TNode n, size_t i, bool isPush)
   {
     d_stackPush.push_back(d_stackSize);
     d_stateDef << "def s" << d_stateId << " : CState := (__eo_invoke_cmd s";
-    d_stateDef << (d_stateId - 1) << " ";
+    d_stateDef << (d_stateId - 1) << " (CCmd.assume_push ";
     printNodeInternal(d_stateDef, n);
-    d_stateDef <<  ")" << std::endl;
+    d_stateDef <<  "))" << std::endl;
   }
   else
   {
