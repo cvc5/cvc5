@@ -1,4 +1,4 @@
-; COMMAND-LINE: --produce-proofs --check-proofs
+; COMMAND-LINE: --produce-proofs --produce-unsat-assumptions --check-proofs
 ; SCRUBBER: grep -E 'unsat'
 ; EXPECT: unsat
 ; DISABLE-TESTER: lfsc
