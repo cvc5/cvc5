@@ -24,21 +24,23 @@
 #include <CoCoA/ring.H>
 
 #include <memory>
-#include <set>
-#include <unordered_map>
+#include <optional>
 #include <vector>
 
 #include "expr/node.h"
 #include "smt/env.h"
+#include "theory/ff/stats.h"
 
 namespace cvc5::internal {
 namespace theory {
 namespace ff {
 
 /**
- * Find a common zero for all poynomials in this ideal. Figure 5 from [OKTB23].
+ * Find a common zero for all polynomials in this ideal. Figure 5 from [OKTB23].
  */
-std::vector<CoCoA::RingElem> findZero(const CoCoA::ideal& ideal, const Env& env);
+std::vector<CoCoA::RingElem> findZero(const CoCoA::ideal& ideal,
+                                      const Env& env,
+                                      FfStatistics* stats = nullptr);
 
 /**
  * Enumerates **assignment**s: monic, degree-one, univariate polynomials.
@@ -63,7 +65,7 @@ class AssignmentEnumerator
 class ListEnumerator : public AssignmentEnumerator
 {
  public:
-  ListEnumerator(const std::vector<CoCoA::RingElem>&& options);
+  ListEnumerator(std::vector<CoCoA::RingElem>&& options);
   ~ListEnumerator() override;
   std::optional<CoCoA::RingElem> next() override;
   std::string name() override;
@@ -80,7 +82,7 @@ std::unique_ptr<ListEnumerator> factorEnumerator(
     CoCoA::RingElem univariatePoly);
 
 /**
- * Guess all values for all variables, in a round robin. Only works for a prime
+ * Guess all values for all variables, in a round-robin. Only works for a prime
  * field (order p):
  *
  * * v0: 0

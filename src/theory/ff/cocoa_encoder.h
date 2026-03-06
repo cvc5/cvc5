@@ -88,6 +88,11 @@ class CocoaEncoder : public FieldObj
    */
   std::vector<Node> bitsums() const;
   /**
+   * The coefficient ring of the poly ring we're encoding into.
+   * Available in Stage::Encode.
+   */
+  const CoCoA::ring& coeffRing() const { return d_coeffRing.value(); }
+  /**
    * The poly ring we've encoded into.
    * Available in Stage::Encode.
    */
@@ -100,7 +105,7 @@ class CocoaEncoder : public FieldObj
   /**
    * Convert a (coefficient) Scalar to a FiniteFieldValue.
    */
-  FiniteFieldValue cocoaFfToFfVal(const Scalar& elem);
+  FiniteFieldValue cocoaFfToFfVal(const Scalar& elem) const;
   /**
    * Does some fact that imply this poly?
    */
@@ -163,6 +168,8 @@ class CocoaEncoder : public FieldObj
 
   // populated at the end of Stage::Scan
 
+  /** the coefficient ring */
+  std::optional<CoCoA::ring> d_coeffRing{};
   /** the polynomial ring */
   std::optional<CoCoA::ring> d_polyRing{};
 

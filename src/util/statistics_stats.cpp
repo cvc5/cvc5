@@ -113,13 +113,21 @@ bool TimerStat::running() const
 }
 
 CodeTimer::CodeTimer(TimerStat& timer, bool allow_reentrant)
+    : CodeTimer(&timer, allow_reentrant)
+{
+}
+
+CodeTimer::CodeTimer(TimerStat* timer, bool allow_reentrant)
     : d_timer(timer), d_reentrant(false)
 {
   if constexpr (configuration::isStatisticsBuild())
   {
-    if (!allow_reentrant || !(d_reentrant = d_timer.running()))
+    if (d_timer)
     {
-      d_timer.start();
+      if (!allow_reentrant || !(d_reentrant = d_timer->running()))
+      {
+        d_timer->start();
+      }
     }
   }
 }
@@ -127,9 +135,12 @@ CodeTimer::~CodeTimer()
 {
   if constexpr (configuration::isStatisticsBuild())
   {
-    if (!d_reentrant)
+    if (d_timer)
     {
-      d_timer.stop();
+      if (!d_reentrant)
+      {
+        d_timer->stop();
+      }
     }
   }
 }
