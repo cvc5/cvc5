@@ -186,6 +186,7 @@ Node SubtypeElimConverterCallback::convert(Node res,
                    && p[1][0].getKind() == Kind::EQUAL);
             if (p[0][0].getType().isInteger())
             {
+              Assert (p[0][1].getType().isInteger());
               // if the former case, we decompose using AND_ELIM and recombine using AND_INTRO below.
               toConvert.push_back(p[0]);
               toConvert.push_back(p[1]);
