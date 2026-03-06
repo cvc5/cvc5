@@ -160,16 +160,15 @@ Node SubtypeElimConverterCallback::convert(Node res,
     break;
     case ProofRule::ARITH_MULT_ABS_COMPARISON:
     {
-      // if the conclusion is a predicate over reals, we ensure that all premises are reals.
+      // if the conclusion is a predicate over reals, we ensure that all
+      // premises are reals.
       if (resc[0].getType().isReal())
       {
         for (size_t i = 0, nchildren = children.size(); i < nchildren; i++)
         {
           // the following proves either
-          // (and (= (abs (to_real a)) (abs (to_real b))) (not (= (abs (to_real a)) 0.0)))
-          // from
-          // (and (= (abs a) (abs b)) (not (= (abs a) 0)))
-          // or
+          // (and (= (abs (to_real a)) (abs (to_real b))) (not (= (abs (to_real
+          // a)) 0.0))) from (and (= (abs a) (abs b)) (not (= (abs a) 0))) or
           // (<> (abs (to_real a)) (abs (to_real b)))
           // from
           // (<> (abs a) (abs b))
@@ -186,7 +185,9 @@ Node SubtypeElimConverterCallback::convert(Node res,
                    && p[1][0].getKind() == Kind::EQUAL);
             if (p[0][0].getType().isInteger())
             {
-              // if the former case, we decompose using AND_ELIM and recombine using AND_INTRO below.
+              Assert(p[0][1].getType().isInteger());
+              // if the former case, we decompose using AND_ELIM and recombine
+              // using AND_INTRO below.
               toConvert.push_back(p[0]);
               toConvert.push_back(p[1]);
               cdp->addStep(p[0],
@@ -201,7 +202,7 @@ Node SubtypeElimConverterCallback::convert(Node res,
           }
           else
           {
-            Assert(p.getNumChildren()==2);
+            Assert(p.getNumChildren() == 2);
             if (p[0].getType().isInteger())
             {
               toConvert.push_back(p);
@@ -230,16 +231,17 @@ Node SubtypeElimConverterCallback::convert(Node res,
                 }
               }
               Node cn = nm->mkNode(catom.getKind(), cc);
-              if (cc[0]==cc[1])
+              if (cc[0] == cc[1])
               {
                 // optimization: use REFL
-                Assert (c.getKind()!=Kind::NOT);
+                Assert(c.getKind() != Kind::NOT);
                 cdp->addStep(cn, ProofRule::REFL, {}, {cc[0]});
                 converted.push_back(cn);
                 continue;
               }
               Node equiv = catom.eqNode(cn);
-              // assume we can prove (<> (abs a) (abs b)) == (<> (abs (to_real a)) (abs (to_real b)))
+              // assume we can prove (<> (abs a) (abs b)) == (<> (abs (to_real
+              // a)) (abs (to_real b)))
               cdp->addTrustedStep(equiv, TrustId::SUBTYPE_ELIMINATION, {}, {});
               if (c.getKind() == Kind::NOT)
               {
