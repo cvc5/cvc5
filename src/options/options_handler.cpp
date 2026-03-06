@@ -12,7 +12,6 @@
 
 #include "options/options_handler.h"
 
-#include <cerrno>
 #include <iostream>
 #include <ostream>
 #include <regex>
@@ -55,7 +54,7 @@ void printTags(const std::vector<std::string>& tags)
 }
 
 std::string suggestTags(const std::vector<std::string>& validTags,
-                        std::string inputTag,
+                        const std::string& inputTag,
                         const std::vector<std::string>& additionalTags)
 {
   DidYouMean didYouMean;
@@ -70,7 +69,8 @@ std::string suggestTags(const std::vector<std::string>& validTags,
  * `.*` and matched using std::regex. If no wildcards are present, regular
  * string comparisons are used.
  */
-std::vector<std::string> selectTags(const std::vector<std::string>& validTags, std::string pattern)
+std::vector<std::string> selectTags(const std::vector<std::string>& validTags,
+                                    std::string pattern)
 {
   bool isRegex = false;
   size_t pos = 0;
@@ -102,7 +102,8 @@ std::vector<std::string> selectTags(const std::vector<std::string>& validTags, s
 
 OptionsHandler::OptionsHandler(Options* options) : d_options(options) { }
 
-void OptionsHandler::setErrStream(const std::string& flag, const ManagedErr& me) const
+void OptionsHandler::setErrStream(CVC5_UNUSED const std::string& flag,
+                                  const ManagedErr& me) const
 {
   Warning.setStream(me);
   TraceChannel.setStream(me);
@@ -143,7 +144,7 @@ Languages currently supported as arguments to the --output-lang option:
 }
 
 void OptionsHandler::setInputLanguage(const std::string& flag,
-                                      Language lang) const
+                                      const Language lang) const
 {
   if (lang == Language::LANG_AST)
   {
@@ -156,7 +157,8 @@ void OptionsHandler::setInputLanguage(const std::string& flag,
   }
 }
 
-void OptionsHandler::setVerbosity(const std::string& flag, int value) const
+void OptionsHandler::setVerbosity(CVC5_UNUSED const std::string& flag,
+                                  const int value) const
 {
   if(Configuration::isMuzzledBuild()) {
     TraceChannel.setStream(&cvc5::internal::null_os);
@@ -170,19 +172,22 @@ void OptionsHandler::setVerbosity(const std::string& flag, int value) const
   }
 }
 
-void OptionsHandler::decreaseVerbosity(const std::string& flag, bool value)
+void OptionsHandler::decreaseVerbosity(const std::string& flag,
+                                       CVC5_UNUSED bool value)
 {
   d_options->write_base().verbosity -= 1;
   setVerbosity(flag, d_options->base.verbosity);
 }
 
-void OptionsHandler::increaseVerbosity(const std::string& flag, bool value)
+void OptionsHandler::increaseVerbosity(const std::string& flag,
+                                       CVC5_UNUSED bool value)
 {
   d_options->write_base().verbosity += 1;
   setVerbosity(flag, d_options->base.verbosity);
 }
 
-void OptionsHandler::setStats(const std::string& flag, bool value) const
+void OptionsHandler::setStats(CVC5_UNUSED const std::string& flag,
+                              const bool value) const
 {
 #ifndef CVC5_STATISTICS_ON
   if (value)
@@ -202,7 +207,8 @@ void OptionsHandler::setStats(const std::string& flag, bool value) const
   }
 }
 
-void OptionsHandler::setStatsDetail(const std::string& flag, bool value) const
+void OptionsHandler::setStatsDetail(CVC5_UNUSED const std::string& flag,
+                                    const bool value) const
 {
 #ifndef CVC5_STATISTICS_ON
   if (value)
@@ -220,14 +226,14 @@ void OptionsHandler::setStatsDetail(const std::string& flag, bool value) const
   }
 }
 
-void OptionsHandler::enableTraceTag(const std::string& flag,
+void OptionsHandler::enableTraceTag(CVC5_UNUSED const std::string& flag,
                                     const std::string& optarg) const
 {
   if(!Configuration::isTracingBuild())
   {
     throw OptionException("trace tags not available in non-tracing builds");
   }
-  auto tags = selectTags(Configuration::getTraceTags(), optarg);
+  const auto tags = selectTags(Configuration::getTraceTags(), optarg);
   if (tags.empty())
   {
     if (optarg == "help")
@@ -247,23 +253,23 @@ void OptionsHandler::enableTraceTag(const std::string& flag,
   }
 }
 
-void OptionsHandler::enableOutputTag(const std::string& flag,
-                                     OutputTag optarg) const
+void OptionsHandler::enableOutputTag(CVC5_UNUSED const std::string& flag,
+                                     const OutputTag optarg) const
 {
-  size_t tagid = static_cast<size_t>(optarg);
+  const size_t tagid = static_cast<size_t>(optarg);
   Assert(d_options->base.outputTagHolder.size() > tagid)
       << "Output tag is larger than the bitset that holds it.";
   d_options->write_base().outputTagHolder.set(tagid);
 }
 
-void OptionsHandler::setResourceWeight(const std::string& flag,
+void OptionsHandler::setResourceWeight(CVC5_UNUSED const std::string& flag,
                                        const std::string& optarg) const
 {
   d_options->write_base().resourceWeightHolder.emplace_back(optarg);
 }
 
 void OptionsHandler::checkBvSatSolver(const std::string& flag,
-                                      BvSatSolverMode m) const
+                                      const BvSatSolverMode m) const
 {
   if (m == BvSatSolverMode::CRYPTOMINISAT
       && !Configuration::isBuiltWithCryptominisat())
@@ -291,23 +297,10 @@ void OptionsHandler::checkBvSatSolver(const std::string& flag,
     if (d_options->bv.bitblastMode == options::BitblastMode::LAZY
         && d_options->bv.bitblastModeWasSetByUser)
     {
-      std::string sat_solver;
-      if (m == options::BvSatSolverMode::CADICAL)
-      {
-        sat_solver = "CaDiCaL";
-      }
-      else if (m == options::BvSatSolverMode::KISSAT)
-      {
-        sat_solver = "Kissat";
-      }
-      else
-      {
-        Assert(m == options::BvSatSolverMode::CRYPTOMINISAT);
-        sat_solver = "CryptoMiniSat";
-      }
-      throw OptionException(sat_solver
-                            + " does not support lazy bit-blasting.\n"
-                            + "Try --bv-sat-solver=minisat");
+      std::stringstream ss;
+      ss << m << " does not support lazy bit-blasting." << std::endl
+         << "Try --bv-sat-solver=minisat";
+      throw OptionException(ss.str());
     }
     if (!d_options->bv.bitvectorToBoolWasSetByUser)
     {
@@ -331,8 +324,8 @@ void print_config_cond(std::ostream& out, const char* str, bool cond = false)
 }
 }  // namespace
 
-void OptionsHandler::showConfiguration(const std::string& flag,
-                                       bool value) const
+void OptionsHandler::showConfiguration(CVC5_UNUSED const std::string& flag,
+                                       const bool value) const
 {
   if (!value) return;
   auto& o = std::cout;
@@ -375,19 +368,22 @@ void OptionsHandler::showConfiguration(const std::string& flag,
   print_config_cond(o, "editline", Configuration::isBuiltWithEditline());
 }
 
-void OptionsHandler::showCopyright(const std::string& flag, bool value) const
+void OptionsHandler::showCopyright(CVC5_UNUSED const std::string& flag,
+                                   const bool value) const
 {
   if (!value) return;
   std::cout << Configuration::copyright() << std::endl;
 }
 
-void OptionsHandler::showVersion(const std::string& flag, bool value) const
+void OptionsHandler::showVersion(CVC5_UNUSED const std::string& flag,
+                                 const bool value) const
 {
   if (!value) return;
   d_options->base.out << Configuration::aboutAndCopyright() << std::endl;
 }
 
-void OptionsHandler::showTraceTags(const std::string& flag, bool value) const
+void OptionsHandler::showTraceTags(CVC5_UNUSED const std::string& flag,
+                                   const bool value) const
 {
   if (!value) return;
   if (!Configuration::isTracingBuild())
@@ -397,7 +393,8 @@ void OptionsHandler::showTraceTags(const std::string& flag, bool value) const
   printTags(Configuration::getTraceTags());
 }
 
-void OptionsHandler::strictParsing(const std::string& flag, bool value) const
+void OptionsHandler::strictParsing(CVC5_UNUSED const std::string& flag,
+                                   const bool value) const
 {
   if (value)
   {
