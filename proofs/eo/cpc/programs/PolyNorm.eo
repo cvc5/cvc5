@@ -3,23 +3,12 @@
 (include "../theories/BitVectors.eo")
 (include "../programs/Utils.eo")
 
-; define: $typeunion
-; args:
-; - T Type: A type.
-; - U Type: A type.
-; return: >
-;   The "type union" of T and U. This method is used for the type rules
-;   for operators that allow mixed arithmetic. It also permits that the union
-;   of two equal types is itself.
-(define $typeunion ((T Type) (U Type))
-  (eo::ite (eo::eq T U) T ($arith_typeunion T U)))
-
 ; Definitions of monomials and polynomials.
 ; A monomial is a list of terms that are ordered by `$compare_var` and a rational coefficient.
 ; A polynomial is a list of monomials whose monomials are ordered by `$compare_var`.
 (declare-const @@Monomial Type)
 (define @Monomial () @@Monomial)
-(declare-parameterized-const @@mon ((T Type :implicit)) (-> T Real @Monomial))
+(declare-const @@mon (-> eo::List Real @Monomial))
 (define @mon () @@mon)
 
 (declare-const @@Polynomial Type)
@@ -33,7 +22,7 @@
 ; args:
 ; - p @Polynomial: The polynomial to negate.
 ; return: the negation of the given polynomial.
-(program $poly_neg ((T Type) (c Real) (a T) (p @Polynomial :list))
+(program $poly_neg ((c Real) (a eo::List) (p @Polynomial :list))
   :signature (@Polynomial) @Polynomial
   (
     (($poly_neg @poly.zero)           @poly.zero)
@@ -45,7 +34,7 @@
 ; - p @Polynomial: The polynomial to modify.
 ; - w Int: The modulus to consider
 ; return: the given polynomial where all coefficient are taken mod w.
-(program $poly_mod_coeffs ((T Type) (c Real) (a T) (p @Polynomial :list) (w Int))
+(program $poly_mod_coeffs ((c Real) (a eo::List) (p @Polynomial :list) (w Int))
   :signature (@Polynomial Int) @Polynomial
   (
     (($poly_mod_coeffs @poly.zero w)           @poly.zero)
@@ -62,7 +51,7 @@
 ; - p1 @Polynomial: The first polynomial to add.
 ; - p2 @Polynomial: The second polynomial to add.
 ; return: the addition of the given polynomials.
-(program $poly_add ((T Type) (U Type) (c1 Real) (a1 T) (c2 Real) (a2 U) (p @Polynomial) (p1 @Polynomial :list) (p2 @Polynomial :list))
+(program $poly_add ((c1 Real) (a1 eo::List) (c2 Real) (a2 eo::List) (p @Polynomial) (p1 @Polynomial :list) (p2 @Polynomial :list))
   :signature (@Polynomial @Polynomial) @Polynomial
   (
     (($poly_add (@poly (@mon a1 c1) p1) (@poly (@mon a2 c2) p2)) (eo::ite (eo::eq a1 a2)
@@ -82,23 +71,16 @@
 ; - a X: The first monomial variable to multiply.
 ; - c Y: The second monomial variable to multiply.
 ; return: the multiplication of the given monomial variables.
-(program $mvar_mul_mvar ((T Type) (U Type) (V Type) (W Type) (X Type) (Y Type) (Z Type)
-                         (a1 T) (a2 U :list) (c1 V) (c2 W :list)
-                         (m Int)  (ba1 (BitVec m)) (ba2 (BitVec m) :list) (bc1 (BitVec m)) (bc2 (BitVec m) :list))
-  :signature (X Y) ($typeunion X Y)
+(program $mvar_mul_mvar ((T Type) (U Type) (a1 T) (a2 eo::List :list) (c1 U) (c2 eo::List :list))
+  :signature (eo::List eo::List) eo::List
   (
-    (($mvar_mul_mvar (* a1 a2) (* c1 c2))  (eo::ite ($compare_var a1 c1)
-                                             (eo::cons * a1 ($mvar_mul_mvar a2 (* c1 c2)))
-                                             (eo::cons * c1 ($mvar_mul_mvar (* a1 a2) c2))))
-    (($mvar_mul_mvar (* a1 a2) 1)          (* a1 a2))
-    (($mvar_mul_mvar 1 (* c1 c2))          (* c1 c2))
-    (($mvar_mul_mvar (bvmul ba1 ba2) (bvmul bc1 bc2))  (eo::ite ($compare_var ba1 bc1)
-                                                         (eo::cons bvmul ba1 ($mvar_mul_mvar ba2 (bvmul bc1 bc2)))
-                                                         (eo::cons bvmul bc1 ($mvar_mul_mvar (bvmul ba1 ba2) bc2))))
-    (($mvar_mul_mvar (bvmul ba1 ba2) bc1)              (eo::requires (eo::to_z bc1) 1 (bvmul ba1 ba2)))
-    (($mvar_mul_mvar ba1 (bvmul bc1 bc2))              (eo::requires (eo::to_z ba1) 1 (bvmul bc1 bc2)))
-    (($mvar_mul_mvar ba1 bc1)                          (eo::requires (eo::to_z ba1) 1
-                                                       (eo::requires (eo::to_z bc1) 1 ba1)))
+    (($mvar_mul_mvar (eo::List::cons a1 a2) (eo::List::cons c1 c2))
+      (eo::ite ($compare_var a1 c1)
+        (eo::cons eo::List::cons a1 ($mvar_mul_mvar a2 (eo::List::cons c1 c2)))
+        (eo::cons eo::List::cons c1 ($mvar_mul_mvar (eo::List::cons a1 a2) c2))))
+    (($mvar_mul_mvar (eo::List::cons a1 a2) eo::List::nil)          (eo::List::cons a1 a2))
+    (($mvar_mul_mvar eo::List::nil (eo::List::cons c1 c2))          (eo::List::cons c1 c2))
+    (($mvar_mul_mvar eo::List::nil eo::List::nil)                   eo::List::nil)
   )
 )
 
@@ -107,7 +89,7 @@
 ; - a @Monomial: The first monomial to multiply.
 ; - b @Monomial: The second monomial to multiply.
 ; return: the multiplication of the given monomials.
-(program $mon_mul_mon ((T Type) (U Type) (a1 T) (a2 U) (c1 Real) (c2 Real))
+(program $mon_mul_mon ((a1 eo::List) (a2 eo::List) (c1 Real) (c2 Real))
   :signature (@Monomial @Monomial) @Monomial
   (
     (($mon_mul_mon (@mon a1 c1) (@mon a2 c2))  (@mon ($mvar_mul_mvar a1 a2) (eo::mul c1 c2)))
@@ -152,9 +134,9 @@
   (eo::define ((a2q (eo::to_q a2)))
   (eo::ite (eo::ite (eo::is_q a2q) (eo::not (eo::eq a2q 0/1)) false)
     ; if division by non-zero constant, we normalize
-    ($poly_mul_mon (@mon 1 (eo::qdiv 1/1 a2q)) a1p)
+    ($poly_mul_mon (@mon eo::List::nil (eo::qdiv 1/1 a2q)) a1p)
     ; otherwise it is treated as a variable
-    (@poly (@mon (* (/ a1 a2)) 1/1)))))
+    (@poly (@mon (eo::List::cons (/ a1 a2)) 1/1)))))
 
 ; program: $get_arith_poly_norm
 ; args:
@@ -176,8 +158,8 @@
                                               ; if it is zero, it cancels, otherwise it is 1 with itself as coefficient
                                               (eo::ite (eo::is_eq aq 0/1)
                                                 @poly.zero
-                                                (@poly (@mon 1 aq)))
-                                            (@poly (@mon (* a) 1/1)))))    ; introduces list
+                                                (@poly (@mon eo::List::nil aq)))
+                                            (@poly (@mon (eo::List::cons a) 1/1)))))    ; introduces list
   )
 )
 
@@ -193,14 +175,13 @@
     (($get_bv_poly_norm_rec (bvsub b1 b2)) ($poly_add ($get_bv_poly_norm_rec b1) ($poly_neg ($get_bv_poly_norm_rec b2))))
     (($get_bv_poly_norm_rec (bvmul b1 b2)) ($poly_mul ($get_bv_poly_norm_rec b1) ($get_bv_poly_norm_rec b2)))
     (($get_bv_poly_norm_rec b)             (eo::define ((bt (eo::typeof b)))
-                                           (eo::define ((one (eo::to_bin ($bv_bitwidth bt) 1)))
                                            (eo::ite (eo::is_bin b)
                                              (eo::define ((bz (eo::to_z b)))
                                              ; if it is zero, it cancels, otherwise it is 1 with itself as coefficient
                                              (eo::ite (eo::is_eq bz 0)
                                                @poly.zero
-                                               (@poly (@mon one (eo::to_q bz)))))
-                                           (@poly (@mon (bvmul b) 1/1))))))    ; introduces list
+                                               (@poly (@mon eo::List::nil (eo::to_q bz)))))
+                                           (@poly (@mon (eo::List::cons b) 1/1)))))    ; introduces list
   )
 )
 
@@ -211,27 +192,3 @@
 ; return: the polynomial corresponding to the (normalized) form of b.
 (define $get_bv_poly_norm ((m Int :implicit) (w Int) (b (BitVec m)))
   ($poly_mod_coeffs ($get_bv_poly_norm_rec b) w))
-
-; program: $arith_poly_to_term_rec
-; args:
-; - p @Polynomial: The polynomial to convert to a term.
-; return: The term corresponding to the polynomial p.
-; note: This method always returns a term of type Real and is not in n-ary
-;       form, as 0/1 instead of 0 is used as the last element.
-; note: This is a helper for $arith_poly_to_term below.
-(program $arith_poly_to_term_rec ((T Type) (p @Polynomial :list) (a T) (c Real))
-  :signature (@Polynomial) Real
-  (
-    (($arith_poly_to_term_rec @poly.zero) 0/1)
-    (($arith_poly_to_term_rec (@poly (@mon a c) p)) (+ (* c a) ($arith_poly_to_term_rec p)))
-  )
-)
-
-; define: $arith_poly_to_term
-; args:
-; - t T: The term to normalize. This is expected to be a term whose type is Int or Real.
-; return: >
-;   a term corresponding to the polynomial obtained by converting t to a polynomial.
-;   This can be used for normalizing terms according to arithmetic.
-(define $arith_poly_to_term ((T Type :implicit) (t T))
-  ($arith_poly_to_term_rec ($get_arith_poly_norm t)))
