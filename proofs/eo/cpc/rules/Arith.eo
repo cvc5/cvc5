@@ -204,8 +204,8 @@
 
 ; program: $mk_arith_trichotomy
 ; premises:
-; - F1 Bool: The first arithmetic atom, which is an application of a binary arithmetic relation.
-; - F2 Bool: The first arithmetic atom, which is an application of a binary arithmetic relation over the same terms as F1.
+; - F1: The first arithmetic atom, which is an application of a binary arithmetic relation.
+; - F2: The first arithmetic atom, which is an application of a binary arithmetic relation over the same terms as F1.
 ; return: The relation that along with F1 and F2 forms a trichotomy.
 (program $mk_arith_trichotomy
   ((T Type) (r1 (-> T T Bool)) (r2 (-> T T Bool)) (a T) (b T))
@@ -218,8 +218,8 @@
 ; rule: arith_trichotomy
 ; implements: ProofRule::ARITH_TRICHOTOMY
 ; premises:
-; - F1 Bool: The first arithmetic atom, which is an application of a (possibly negated) binary arithmetic relation.
-; - F2 Bool: The first arithmetic atom, which is an application of a (possibly negated) binary arithmetic relation over the same terms as F1.
+; - F1: The first arithmetic atom, which is an application of a (possibly negated) binary arithmetic relation.
+; - F2: The first arithmetic atom, which is an application of a (possibly negated) binary arithmetic relation over the same terms as F1.
 ; conclusion: >
 ;   A third relation over the same terms that along with F1 and F2
 ;   forms a trichotomy.
