@@ -92,6 +92,8 @@ public:
 
   static std::string about();
 
+  static std::string aboutAndCopyright();
+
   static bool licenseIsGpl();
 
   static bool isBuiltWithGmp();
