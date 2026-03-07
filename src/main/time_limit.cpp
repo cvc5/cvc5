@@ -86,7 +86,7 @@ TimeLimit install_time_limit(uint64_t ms)
   sact.sa_sigaction = posix_timeout_handler;
   sact.sa_flags = SA_SIGINFO;
   sigemptyset(&sact.sa_mask);
-  if (sigaction(SIGALRM, &sact, NULL))
+  if (sigaction(SIGALRM, &sact, nullptr))
   {
     throw internal::Exception(std::string("sigaction(SIGALRM) failure: ")
                               + strerror(errno));

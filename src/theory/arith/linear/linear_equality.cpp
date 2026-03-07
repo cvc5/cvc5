@@ -449,7 +449,7 @@ const Tableau::Entry* LinearEqualityModule::rowLacksBound(RowIndex ridx, bool ro
       return &entry;
     }
   }
-  return NULL;
+  return nullptr;
 }
 
 void LinearEqualityModule::propagateBasicFromRow(NodeManager* nm,
@@ -814,7 +814,7 @@ const Tableau::Entry* LinearEqualityModule::selectSlackEntry(ArithVar x_i, bool 
     }
   }
 
-  return NULL;
+  return nullptr;
 }
 
 void LinearEqualityModule::startTrackingBoundCounts(){
@@ -1120,14 +1120,14 @@ UpdateInfo LinearEqualityModule::speculativeUpdate(ArithVar nb, const Rational& 
   if(d_variables.hasUpperBound(nb)){
     ConstraintP ub = d_variables.getUpperBoundConstraint(nb);
     d_upperBoundDifference = ub->getValue() - d_variables.getAssignment(nb);
-    Border border(ub, *d_upperBoundDifference, false, NULL, true);
+    Border border(ub, *d_upperBoundDifference, false, nullptr, true);
     Trace("handleBorders") << "push back increasing " << border << endl;
     d_increasing.push_back(border);
   }
   if(d_variables.hasLowerBound(nb)){
     ConstraintP lb = d_variables.getLowerBoundConstraint(nb);
     d_lowerBoundDifference = lb->getValue() - d_variables.getAssignment(nb);
-    Border border(lb, *d_lowerBoundDifference, false, NULL, false);
+    Border border(lb, *d_lowerBoundDifference, false, nullptr, false);
     Trace("handleBorders") << "push back decreasing " << border << endl;
     d_decreasing.push_back(border);
   }

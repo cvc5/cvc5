@@ -375,18 +375,18 @@ class ITECareSimplifier
     CareSetPtr(CareSetPtrVal* val) : d_val(val) {}
 
    public:
-    CareSetPtr() : d_val(NULL) {}
+    CareSetPtr() : d_val(nullptr) {}
     CareSetPtr(const CareSetPtr& cs)
     {
       d_val = cs.d_val;
-      if (d_val != NULL)
+      if (d_val != nullptr)
       {
         ++(d_val->d_refCount);
       }
     }
     ~CareSetPtr()
     {
-      if (d_val != NULL && (--(d_val->d_refCount) == 0))
+      if (d_val != nullptr && (--(d_val->d_refCount) == 0))
       {
         d_val->d_iteSimplifier.careSetPtrGC(d_val);
       }
@@ -395,12 +395,12 @@ class ITECareSimplifier
     {
       if (d_val != cs.d_val)
       {
-        if (d_val != NULL && (--(d_val->d_refCount) == 0))
+        if (d_val != nullptr && (--(d_val->d_refCount) == 0))
         {
           d_val->d_iteSimplifier.careSetPtrGC(d_val);
         }
         d_val = cs.d_val;
-        if (d_val != NULL)
+        if (d_val != nullptr)
         {
           ++(d_val->d_refCount);
         }
@@ -412,7 +412,7 @@ class ITECareSimplifier
     static CareSetPtr mkNew(ITECareSimplifier& simp);
     static CareSetPtr recycle(CareSetPtrVal* val)
     {
-      Assert(val != NULL && val->d_refCount == 0);
+      Assert(val != nullptr && val->d_refCount == 0);
       val->d_refCount = 1;
       return CareSetPtr(val);
     }

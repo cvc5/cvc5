@@ -2887,7 +2887,7 @@ Cvc5Sort cvc5_mk_record_sort(Cvc5TermManager* tm,
   Cvc5Sort res = nullptr;
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_NOT_NULL(tm);
-  if (names != NULL)
+  if (names != nullptr)
   {
     CVC5_CAPI_CHECK_NOT_NULL(sorts);
     std::vector<std::pair<std::string, cvc5::Sort>> cfields;

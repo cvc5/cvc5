@@ -110,7 +110,7 @@ class TheoryModel : protected EnvObj
    * is consistent after asserting the equality engine to this model.
    */
   bool assertEqualityEngine(const eq::EqualityEngine* ee,
-                            const std::set<Node>* termSet = NULL);
+                            const std::set<Node>* termSet = nullptr);
   /** assert skeleton
    *
    * This method gives a "skeleton" for the model value of the equivalence

@@ -145,7 +145,7 @@ class DoubleOption : public Option
       char* end;
       double tmp = strtod(span, &end);
 
-      if (end == NULL)
+      if (end == nullptr)
         return false;
       else if (tmp >= range.end && (!range.end_inclusive || tmp != range.end))
       {
@@ -219,7 +219,7 @@ class IntOption : public Option
       char* end;
       int32_t tmp = strtol(span, &end, 10);
 
-      if (end == NULL)
+      if (end == nullptr)
         return false;
       else if (tmp > range.end)
       {
@@ -294,7 +294,7 @@ class Int64Option : public Option
       char* end;
       int64_t tmp = strtoll(span, &end, 10);
 
-      if (end == NULL)
+      if (end == nullptr)
         return false;
       else if (tmp > range.end)
       {
@@ -350,8 +350,13 @@ class StringOption : public Option
 {
     const char* value;
  public:
-    StringOption(const char* c, const char* n, const char* d, const char* def = NULL) 
-        : Option(n, d, c, "<string>"), value(def) {}
+  StringOption(const char* c,
+               const char* n,
+               const char* d,
+               const char* def = nullptr)
+      : Option(n, d, c, "<string>"), value(def)
+  {
+  }
 
     operator      const char*  (void) const     { return value; }
     operator      const char*& (void)           { return value; }

@@ -265,7 +265,7 @@ void install()
   act1.sa_sigaction = sigint_handler;
   act1.sa_flags = SA_SIGINFO;
   sigemptyset(&act1.sa_mask);
-  if (sigaction(SIGINT, &act1, NULL))
+  if (sigaction(SIGINT, &act1, nullptr))
   {
     throw Exception(string("sigaction(SIGINT) failure: ") + strerror(errno));
   }
@@ -274,7 +274,7 @@ void install()
   act2.sa_sigaction = timeout_handler;
   act2.sa_flags = SA_SIGINFO;
   sigemptyset(&act2.sa_mask);
-  if (sigaction(SIGXCPU, &act2, NULL))
+  if (sigaction(SIGXCPU, &act2, nullptr))
   {
     throw Exception(string("sigaction(SIGXCPU) failure: ") + strerror(errno));
   }
@@ -283,7 +283,7 @@ void install()
   act3.sa_sigaction = ill_handler;
   act3.sa_flags = SA_SIGINFO;
   sigemptyset(&act3.sa_mask);
-  if (sigaction(SIGILL, &act3, NULL))
+  if (sigaction(SIGILL, &act3, nullptr))
   {
     throw Exception(string("sigaction(SIGILL) failure: ") + strerror(errno));
   }
@@ -291,7 +291,7 @@ void install()
 #ifdef HAVE_SIGALTSTACK
   stack_t ss;
   ss.ss_sp = (char*)malloc(SIGSTKSZ);
-  if (ss.ss_sp == NULL)
+  if (ss.ss_sp == nullptr)
   {
     throw Exception("Can't malloc() space for a signal stack");
   }
@@ -309,7 +309,7 @@ void install()
   act4.sa_sigaction = segv_handler;
   act4.sa_flags = SA_SIGINFO | SA_ONSTACK;
   sigemptyset(&act4.sa_mask);
-  if (sigaction(SIGSEGV, &act4, NULL))
+  if (sigaction(SIGSEGV, &act4, nullptr))
   {
     throw Exception(string("sigaction(SIGSEGV) failure: ") + strerror(errno));
   }
@@ -319,7 +319,7 @@ void install()
   act5.sa_sigaction = sigterm_handler;
   act5.sa_flags = SA_SIGINFO;
   sigemptyset(&act5.sa_mask);
-  if (sigaction(SIGTERM, &act5, NULL))
+  if (sigaction(SIGTERM, &act5, nullptr))
   {
     throw Exception(string("sigaction(SIGTERM) failure: ") + strerror(errno));
   }

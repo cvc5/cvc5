@@ -7,7 +7,8 @@ Checks: >
   clang-analyzer-deadcode.*,
   clang-analyzer-optin.cplusplus.UninitializedObject,
   clang-analyzer-optin.cplusplus.VirtualCall,
-  clang-analyzer-optin.performance.*
+  clang-analyzer-optin.performance.*,
+  modernize-use-nullptr
 HeaderFilterRegex: '.*'
 # Use .clang-format for formatting changes
 FormatStyle: file
