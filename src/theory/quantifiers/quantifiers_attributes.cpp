@@ -393,7 +393,6 @@ bool QuantAttributes::isQuantBounded(Node q) const
   }
   return false;
 }
-
 Node QuantAttributes::getQuantName(Node q) const
 {
   std::map<Node, QAttributes>::const_iterator it = d_qattr.find(q);

@@ -161,7 +161,7 @@ void InstStrategyMbqi::process(Node q)
   // the subsolver. This is local to this call.
   std::unordered_map<Node, Node> tmpConvertMap;
   // list of fresh variables per type
-  std::map<TypeNode, std::unordered_set<Node> > freshVarType;
+  std::map<TypeNode, std::unordered_set<Node>> freshVarType;
   // model values to the fresh variables
   std::map<Node, Node> mvToFreshVar;
 
@@ -239,7 +239,7 @@ void InstStrategyMbqi::process(Node q)
   }
   // constraint: the skolems of the given type are equal to one of the variables
   // introduced for uninterpreted sorts
-  std::map<TypeNode, std::unordered_set<Node> >::iterator itk;
+  std::map<TypeNode, std::unordered_set<Node>>::iterator itk;
   for (const Node& k : skolems.d_subs)
   {
     TypeNode tn = k.getType();
@@ -270,7 +270,7 @@ void InstStrategyMbqi::process(Node q)
   // constraint: distinctness of variables introduced for uninterpreted
   // constants
   std::vector<Node> allVars;
-  for (const std::pair<const TypeNode, std::unordered_set<Node> >& fv :
+  for (const std::pair<const TypeNode, std::unordered_set<Node>>& fv :
        freshVarType)
   {
     Assert(!fv.second.empty());
@@ -297,8 +297,9 @@ void InstStrategyMbqi::process(Node q)
   }
   mbqiChecker->assertFormula(query);
   Trace("mbqi") << "*** Check sat..." << std::endl;
-  Trace("mbqi") << "  query is : " << SkolemManager::getOriginalForm(query)
+  Trace("mbqi") << "  query-o is : " << SkolemManager::getOriginalForm(query)
                 << std::endl;
+  Trace("mbqi") << "  query is : " << query << std::endl;
   Result r = mbqiChecker->checkSat();
   Trace("mbqi") << "  ...got : " << r << std::endl;
   if (r.getStatus() == Result::UNSAT)
@@ -334,9 +335,17 @@ void InstStrategyMbqi::process(Node q)
   if (options().quantifiers.mbqiEnum)
   {
     std::vector<Node> smvs(mvs);
-    if (d_msenum->constructInstantiation(q, query, vars, smvs, mvToFreshVar))
+    std::vector<std::pair<Node, InferenceId>> auxLemmas;
+    if (d_msenum->constructInstantiation(
+            q, query, vars, smvs, mvToFreshVar, auxLemmas))
     {
       Trace("mbqi-enum") << "Successfully added instantiation." << std::endl;
+      for (std::pair<Node, InferenceId>& al : auxLemmas)
+      {
+        Trace("mbqi-aux-lemma") << "Auxiliary lemma: " << al.second << " : "
+                                << al.first << std::endl;
+        d_qim.lemma(al.first, al.second);
+      }
       return;
     }
     Trace("mbqi-enum")
@@ -360,7 +369,8 @@ bool InstStrategyMbqi::tryInstantiation(
     Node vc = convertFromModel(v, tmpConvertMap, mvToFreshVar);
     if (vc.isNull())
     {
-      Trace("mbqi") << "...failed to convert " << v << " from model" << std::endl;
+      Trace("mbqi") << "...failed to convert " << v << " from model"
+                    << std::endl;
       return false;
     }
     if (expr::hasSubtermKinds(d_nonClosedKinds, vc))
@@ -417,7 +427,7 @@ bool InstStrategyMbqi::tryInstantiation(
 Node InstStrategyMbqi::convertToQuery(
     Node t,
     std::unordered_map<Node, Node>& cmap,
-    std::map<TypeNode, std::unordered_set<Node> >& freshVarType)
+    std::map<TypeNode, std::unordered_set<Node>>& freshVarType)
 {
   NodeManager* nm = nodeManager();
   SkolemManager* sm = nm->getSkolemManager();
