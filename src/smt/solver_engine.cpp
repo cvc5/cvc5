@@ -807,7 +807,7 @@ Result SolverEngine::checkSat(const std::vector<Node>& assumptions)
 
 Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions)
 {
-  ensureWellFormedTerms(assumptions);
+  ensureWellFormedTerms(assumptions, "checkSat");
 
   Trace("smt") << "SolverEngine::checkSat(" << assumptions << ")" << endl;
   // update the state to indicate we are about to run a check-sat
@@ -930,7 +930,7 @@ std::vector<Node> SolverEngine::getUnsatAssumptions(void)
 void SolverEngine::assertFormula(const Node& formula)
 {
   beginCall();
-  ensureWellFormedTerm(formula);
+  ensureWellFormedTerm(formula, "assertFormula");
   assertFormulaInternal(formula);
 }
 
@@ -1202,7 +1202,7 @@ Node SolverEngine::simplify(const Node& t, bool applySubs)
 
 Node SolverEngine::getValue(const Node& t, bool fromUser)
 {
-  ensureWellFormedTerm(t);
+  ensureWellFormedTerm(t, "get value");
   Trace("smt") << "SMT getValue(" << t << ")" << endl;
   TypeNode expectedType = t.getType();
 
@@ -1418,7 +1418,7 @@ void SolverEngine::blockModel(modes::BlockModelsMode mode)
 void SolverEngine::blockModelValues(const std::vector<Node>& exprs)
 {
   Trace("smt") << "SMT blockModelValues()" << endl;
-  ensureWellFormedTerms(exprs);
+  ensureWellFormedTerms(exprs, "block model values");
 
   TheoryModel* m = getAvailableModel("block model values");
 
@@ -1479,7 +1479,8 @@ bool SolverEngine::isWellFormedTerm(const Node& n) const
   return !expr::hasFreeVar(n);
 }
 
-void SolverEngine::ensureWellFormedTerm(const Node& n) const
+void SolverEngine::ensureWellFormedTerm(const Node& n,
+                                        const std::string& src) const
 {
   if (Configuration::isAssertionBuild())
   {
@@ -1492,19 +1493,21 @@ void SolverEngine::ensureWellFormedTerm(const Node& n) const
     {
       std::stringstream se;
       se << "Cannot process term " << n << " with ";
-      se << "free variables: " << fvs << std::endl;
+      se << "free variables: " << fvs;
+      se << " in context " << src << std::endl;
       throw ModalException(se.str().c_str());
     }
   }
 }
 
-void SolverEngine::ensureWellFormedTerms(const std::vector<Node>& ns) const
+void SolverEngine::ensureWellFormedTerms(const std::vector<Node>& ns,
+                                         const std::string& src) const
 {
   if (Configuration::isAssertionBuild())
   {
     for (const Node& n : ns)
     {
-      ensureWellFormedTerm(n);
+      ensureWellFormedTerm(n, src);
     }
   }
 }

@@ -1054,10 +1054,13 @@ class CVC5_EXPORT SolverEngine
    * argument to, e.g., assert, get-value, block-model-values, etc.
    *
    * @param n The node to check
+   * @param src The source of the check, which is printed in the exception if
+   * this check fails.
    */
-  void ensureWellFormedTerm(const Node& nc) const;
+  void ensureWellFormedTerm(const Node& n, const std::string& src) const;
   /** Vector version of above. */
-  void ensureWellFormedTerms(const std::vector<Node>& ns) const;
+  void ensureWellFormedTerms(const std::vector<Node>& ns,
+                             const std::string& src) const;
 
   /**
    * Prints a proof node using a proof format of choice.
