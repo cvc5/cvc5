@@ -97,14 +97,13 @@ Node LogosNodeConverter::postConvert(Node n)
     Node op = n.getOperator();
     unsigned index = DType::indexOf(op);
     const DType& dt = DType::datatypeOf(op);
-    std::unordered_set<TypeNode> scope;
-    Node dtn = typeAsNodeDatatype(dt, scope);
+    Node dtn = typeAsNode(dt.getTypeNode());
     Assert(dtn.getNumChildren() == 2);
     std::vector<Node> children;
     children.push_back(dtn[0]);
     children.push_back(dtn[1]);
     Node ret;
-    if (k == Kind::APPLY_CONSTRUCTOR)
+    if (k == Kind::APPLY_CONSTRUCTOR || k == Kind::APPLY_TESTER)
     {
       children.push_back(d_nm->mkConstInt(Rational(index)));
       ret = mkInternalApp("Term.DtCons", children, tn);
@@ -162,6 +161,12 @@ Node LogosNodeConverter::postConvert(Node n)
   }
   else if (n.isVar() && d_symbols.find(n) == d_symbols.end())
   {
+    // don't change builtin datatype operators
+    if (tn.isDatatypeConstructor() || tn.isDatatypeSelector()
+        || tn.isDatatypeTester() || tn.isDatatypeUpdater())
+    {
+      return n;
+    }
     d_constIdCount++;
     Trace("print-logos-debug")
         << "Introduce UConst " << d_constIdCount << " for " << n << std::endl;
@@ -282,12 +287,13 @@ Node LogosNodeConverter::typeAsNodeDatatype(const DType& dt,
   Node consUnit = mkInternalSymbol("DatatypeCons.unit", d_sortType);
   for (size_t j = 0, ncons = dt.getNumConstructors(); j < ncons; j++)
   {
+    size_t jj = (ncons-1)-j;
     Node cons = consUnit;
     // traverse the argument types
-    for (size_t k = 0, nargs = dt[j].getNumArgs(); k < nargs; k++)
+    for (size_t k = 0, nargs = dt[jj].getNumArgs(); k < nargs; k++)
     {
       Node an;
-      TypeNode argt = dt[j].getArgType((nargs - 1) - k);
+      TypeNode argt = dt[jj].getArgType((nargs - 1) - k);
       if (argt.isDatatype())
       {
         if (scope.insert(argt).second)

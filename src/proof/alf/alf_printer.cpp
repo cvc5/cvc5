@@ -821,7 +821,7 @@ void AlfPrinter::printLetList(std::ostream& out, LetBinding& lbind)
     if (d_isCpcLogos)
     {
       out << "def " << d_termLetPrefix << lbind.getId(n);
-      out << " : Term := ";
+      out << " := ";
       Printer::getPrinter(out)->toStream(out, n, &lbind, false);
       out << std::endl;
     }
