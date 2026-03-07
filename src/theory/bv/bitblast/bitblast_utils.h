@@ -52,10 +52,10 @@ T mkFalse(NodeManager* nm);
 template <class T> T mkNot(T a);
 template <class T> T mkOr(T a, T b);
 template <class T>
-T mkOr(NodeManager* nm, const std::vector<T>& a);
+T mkOr(NodeManager* nm, const std::vector<T>& children);
 template <class T> T mkAnd(T a, T b);
 template <class T>
-T mkAnd(NodeManager* nm, const std::vector<T>& a);
+T mkAnd(NodeManager* nm, const std::vector<T>& children);
 template <class T> T mkXor(T a, T b);
 template <class T> T mkIff(T a, T b);
 template <class T> T mkIte(T cond, T a, T b);
@@ -82,10 +82,10 @@ Node mkOr<Node>(Node a, Node b) {
   return NodeManager::mkNode(Kind::OR, a, b);
 }
 
-template <>
-inline Node mkOr<Node>(NodeManager* nm, const std::vector<Node>& children)
+template <> inline
+Node mkOr<Node>(NodeManager* nm, const std::vector<Node>& children)
 {
-  Assert(children.size());
+  Assert(!children.empty());
   if (children.size() == 1) return children[0];
   return nm->mkNode(Kind::OR, children);
 }
@@ -95,10 +95,10 @@ Node mkAnd<Node>(Node a, Node b) {
   return NodeManager::mkNode(Kind::AND, a, b);
 }
 
-template <>
-inline Node mkAnd<Node>(NodeManager* nm, const std::vector<Node>& children)
+template <> inline
+Node mkAnd<Node>(NodeManager* nm, const std::vector<Node>& children)
 {
-  Assert(children.size());
+  Assert(!children.empty());
   if (children.size() == 1) return children[0];
   return nm->mkNode(Kind::AND, children);
 }
