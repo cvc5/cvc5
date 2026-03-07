@@ -530,9 +530,12 @@ void SolverEngine::debugCheckFunctionBody(Node formula,
   }
 }
 
-void SolverEngine::declareConst(const Node& c) { d_state->notifyDeclaration(); }
+void SolverEngine::declareConst(CVC5_UNUSED const Node& c)
+{
+  d_state->notifyDeclaration();
+}
 
-void SolverEngine::declareSort(const TypeNode& tn)
+void SolverEngine::declareSort(CVC5_UNUSED const TypeNode& tn)
 {
   d_state->notifyDeclaration();
 }
@@ -968,20 +971,17 @@ void SolverEngine::declareSygusVar(Node var)
 
 void SolverEngine::declareSynthFun(Node func,
                                    TypeNode sygusType,
-                                   bool isInv,
                                    const std::vector<Node>& vars)
 {
   beginCall();
-  d_sygusSolver->declareSynthFun(func, sygusType, isInv, vars);
+  d_sygusSolver->declareSynthFun(func, sygusType, vars);
 }
-void SolverEngine::declareSynthFun(Node func,
-                                   bool isInv,
-                                   const std::vector<Node>& vars)
+void SolverEngine::declareSynthFun(Node func, const std::vector<Node>& vars)
 {
   beginCall();
   // use a null sygus type
   TypeNode sygusType;
-  d_sygusSolver->declareSynthFun(func, sygusType, isInv, vars);
+  d_sygusSolver->declareSynthFun(func, sygusType, vars);
 }
 
 void SolverEngine::assertSygusConstraint(Node n, bool isAssume)
@@ -1490,7 +1490,8 @@ void SolverEngine::ensureWellFormedTerm(const Node& n,
     {
       std::stringstream se;
       se << "Cannot process term " << n << " with ";
-      se << "free variables: " << fvs << std::endl;
+      se << "free variables: " << fvs;
+      se << " in context " << src << std::endl;
       throw ModalException(se.str().c_str());
     }
   }
