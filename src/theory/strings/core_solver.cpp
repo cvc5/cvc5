@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -2655,6 +2652,7 @@ void CoreSolver::checkLengthsEqc()
           << "No length term for eqc " << d_strings_eqc[i] << std::endl;
       continue;
     }
+    Assert(ei != nullptr); // Assert for static analysis (Clang Analyzer)
     // now, check if length normalization has occurred
     if (ei->d_normalizedLength.get().isNull())
     {

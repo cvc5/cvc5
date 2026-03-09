@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -109,7 +106,7 @@ class TheoryEngineModelBuilder : protected EnvObj
    * Check assertions and printing debug information for the model.
    * Calls after step (5) described above is complete.
    */
-  virtual void debugModel(TheoryModel* m) {}
+  virtual void debugModel(CVC5_UNUSED TheoryModel* m) {}
   //-----------------------------------end virtual functions
 
   /** Debug check model.

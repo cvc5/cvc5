@@ -13,6 +13,7 @@ jobs:
     if: >
       github.repository == 'cvc5/cvc5' &&
       github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event != 'schedule' &&
       !startsWith(github.event.workflow_run.head_branch, 'gh-readonly-queue')
     steps:
       - name: Setup git config

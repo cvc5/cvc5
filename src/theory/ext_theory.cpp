@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Tim King, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -67,23 +64,26 @@ std::ostream& operator<<(std::ostream& out, ExtReducedId id)
 }
 
 bool ExtTheoryCallback::getCurrentSubstitution(
-    int effort,
-    const std::vector<Node>& vars,
-    std::vector<Node>& subs,
-    std::map<Node, std::vector<Node> >& exp)
+    CVC5_UNUSED int effort,
+    CVC5_UNUSED const std::vector<Node>& vars,
+    CVC5_UNUSED std::vector<Node>& subs,
+    CVC5_UNUSED std::map<Node, std::vector<Node> >& exp)
 {
   return false;
 }
-bool ExtTheoryCallback::isExtfReduced(
-    int effort, Node n, Node on, std::vector<Node>& exp, ExtReducedId& id)
+bool ExtTheoryCallback::isExtfReduced(CVC5_UNUSED int effort,
+                                      Node n,
+                                      CVC5_UNUSED Node on,
+                                      CVC5_UNUSED std::vector<Node>& exp,
+                                      ExtReducedId& id)
 {
   id = ExtReducedId::SR_CONST;
   return n.isConst();
 }
-bool ExtTheoryCallback::getReduction(int effort,
-                                    Node n,
-                                    Node& nr,
-                                    bool& isSatDep)
+bool ExtTheoryCallback::getReduction(CVC5_UNUSED int effort,
+                                     CVC5_UNUSED Node n,
+                                     CVC5_UNUSED Node& nr,
+                                     CVC5_UNUSED bool& isSatDep)
 {
   return false;
 }

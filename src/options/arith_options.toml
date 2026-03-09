@@ -346,7 +346,7 @@ name   = "Arithmetic Theory"
 
 [[option]]
   name       = "nlExt"
-  category   = "regular"
+  category   = "common"
   long       = "nl-ext=MODE"
   type       = "NlExtMode"
   default    = "FULL"

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Clark Barrett
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -243,11 +240,11 @@ class TheoryModel : protected EnvObj
   const std::set<Kind>& getIrrelevantKinds() const;
   /** is legal elimination
    *
-   * Returns true if x -> val is a legal elimination of variable x.
+   * Returns true if x -> val is a legal elimination for a variable x.
    * In particular, this ensures that val does not have any subterms that
    * are of unevaluated kinds.
    */
-  bool isLegalElimination(TNode x, TNode val);
+  bool isLegalElimination(TNode val);
   //---------------------------- end building the model
 
   // ------------------- general equality queries

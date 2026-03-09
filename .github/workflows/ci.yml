@@ -1,4 +1,8 @@
-on: [push, pull_request]
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '0 5 * * *'
 
 name: CI
 
@@ -35,8 +39,8 @@ jobs:
     needs: [setup-release-pages]
     strategy:
       matrix:
-        has-tag:
-          - ${{ startsWith(github.ref, 'refs/tags/') }}
+        gpl-build:
+          - ${{ startsWith(github.ref, 'refs/tags/') || (github.event_name == 'schedule') }}
         build:
           - name: ubuntu:production
             os: ubuntu-22.04
@@ -234,16 +238,16 @@ jobs:
             gpl-tag: -gpl
 
         exclude:
-          - has-tag: false
+          - gpl-build: false
             build:
               name: ubuntu:production-gpl
-          - has-tag: false
+          - gpl-build: false
             build:
               name: ubuntu:production-arm64-gpl
-          - has-tag: false
+          - gpl-build: false
             build:
               name: macos:production-gpl
-          - has-tag: false
+          - gpl-build: false
             build:
               name: macos:production-arm64-gpl
 
@@ -326,7 +330,7 @@ jobs:
         shell: ${{ matrix.build.shell }}
 
     - name: Build documentation
-      if: matrix.build.build-documentation
+      if: matrix.build.build-documentation && (github.event_name != 'schedule')
       uses: ./.github/actions/build-documentation
       with:
         build-dir: ${{ steps.configure-and-build.outputs.shared-build-dir }}
@@ -339,6 +343,7 @@ jobs:
         build-dir: ${{ steps.configure-and-build.outputs.shared-build-dir }}
         package-name: ${{ matrix.build.package-name }}-shared${{ matrix.build.gpl-tag }}
         shell: ${{ matrix.build.shell }}
+        dry-run: ${{ github.event_name == 'schedule' }}
 
     - name: Create and add static package to latest and release
       id: create-static-package
@@ -348,6 +353,7 @@ jobs:
         build-dir: ${{ steps.configure-and-build.outputs.static-build-dir }}
         package-name: ${{ matrix.build.package-name }}-static${{ matrix.build.gpl-tag }}
         shell: ${{ matrix.build.shell }}
+        dry-run: ${{ github.event_name == 'schedule' }}
 
     - name: Create and add WASM to latest and release
       if: matrix.build.wasm-pkg-name && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
@@ -356,6 +362,7 @@ jobs:
         build-dir: ${{ steps.configure-and-build.outputs.static-build-dir }}
         wasm-name: ${{ matrix.build.wasm-pkg-name }}${{ matrix.build.gpl-tag }}
         shell: ${{ matrix.build.shell }}
+        dry-run: ${{ github.event_name == 'schedule' }}
 
     - name: Create and add JAR to latest and release
       if: matrix.build.java-bindings && matrix.build.package-name && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
@@ -364,10 +371,11 @@ jobs:
         build-dir: ${{ steps.configure-and-build.outputs.static-build-dir }}
         jar-name: ${{ matrix.build.package-name }}${{ matrix.build.gpl-tag }}-java-api
         shell: ${{ matrix.build.shell }}
+        dry-run: ${{ github.event_name == 'schedule' }}
 
     - name: Upload Maven artifacts
       if: >
-        github.repository == 'cvc5/cvc5' &&
+        github.repository == 'cvc5/cvc5' && github.event_name != 'schedule' &&
         (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')) &&
         (matrix.build.upload-maven-doc ||
          (matrix.build.java-bindings && matrix.build.package-name))
@@ -381,7 +389,7 @@ jobs:
 
   publish-to-maven-central:
     name: Publish to Maven central
-    if: github.repository == 'cvc5/cvc5' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
+    if: github.repository == 'cvc5/cvc5' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')) && github.event_name != 'schedule'
     runs-on: ubuntu-latest
     continue-on-error: true
     needs: [builds]
@@ -431,7 +439,7 @@ jobs:
 
   cleanup-artifacts:
     name: Clean up artifacts from latest
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && github.event_name != 'schedule'
     runs-on: ubuntu-latest
     needs: [builds]
     concurrency:

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Alex Ozdemir, Daniel Larraz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -119,7 +116,8 @@ void CocoaEncoder::endScan()
 {
   Assert(d_stage == Stage::Scan);
   d_stage = Stage::Encode;
-  d_polyRing = CoCoA::NewPolyRing(coeffRing(), d_syms);
+  d_coeffRing = CoCoA::NewZZmod(intToCocoa(size()));
+  d_polyRing = CoCoA::NewPolyRing(*d_coeffRing, d_syms);
   for (size_t i = 0, n = d_syms.size(); i < n; ++i)
   {
     d_symPolys.insert({extractStr(d_syms[i]), CoCoA::indet(*d_polyRing, i)});
@@ -211,9 +209,10 @@ std::vector<std::pair<size_t, Node>> CocoaEncoder::nodeIndets() const
   return out;
 }
 
-FiniteFieldValue CocoaEncoder::cocoaFfToFfVal(const Scalar& elem)
+FiniteFieldValue CocoaEncoder::cocoaFfToFfVal(const Scalar& elem) const
 {
-  Assert(CoCoA::owner(elem) == coeffRing());
+  Assert(d_coeffRing.has_value());
+  Assert(CoCoA::owner(elem) == d_coeffRing);
   return ff::cocoaFfToFfVal(elem, size());
 }
 

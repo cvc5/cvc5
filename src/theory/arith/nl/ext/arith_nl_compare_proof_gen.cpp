@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -233,9 +230,19 @@ std::shared_ptr<ProofNode> ArithNlCompareProofGenerator::getProofFor(Node fact)
           itd = deq.find(etgt);
           if (itd == deq.end())
           {
-            DebugUnhandled() << "ArithNlCompareProofGenerator failed explain deq";
-            expSuccess = false;
-            break;
+            // maybe it was v != 0 when we are looking for to_real(v) != 0.0
+            if (etgt.getKind() == Kind::TO_REAL)
+            {
+              // look for v, will fix below
+              itd = deq.find(etgt[0]);
+            }
+            if (itd == deq.end())
+            {
+              DebugUnhandled()
+                  << "ArithNlCompareProofGenerator failed explain deq";
+              expSuccess = false;
+              break;
+            }
           }
           deqAssump = itd->second;
           Node vv = isDisequalZero(deqAssump);
@@ -386,7 +393,7 @@ Node ArithNlCompareProofGenerator::isDisequalZero(const Node& g)
   if (g.getKind() == Kind::NOT && g[0].getKind() == Kind::EQUAL
       && g[0][1].isConst() && g[0][1].getConst<Rational>().isZero())
   {
-    return g[0][0].getKind() == Kind::TO_REAL ? g[0][0][0] : g[0][0];
+    return g[0][0];
   }
   return Node::null();
 }
