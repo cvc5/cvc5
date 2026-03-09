@@ -20,6 +20,7 @@
 
 #include "expr/node.h"
 #include "smt/env.h"
+#include "util/result.h"
 namespace cvc5::internal {
 namespace theory {
 namespace arith {
@@ -48,6 +49,8 @@ class LiaStarUtils
   static Node removeItes(Node n, Env* e);
 
   static Node distribute(Node n, Env* e);
+
+  static Result areAssertionsUnsat(const std::vector<Node>& assertions, Env* e);
 
  private:
   static std::vector<std::pair<Node, Node>> removeIntegerItes(Node n, Env* e);

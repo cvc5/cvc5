@@ -18,9 +18,11 @@
 #include "liastar_utils.h"
 
 #include "expr/algorithm/flatten.h"
+#include "expr/node_algorithm.h"
 #include "theory/booleans/theory_bool_rewriter.h"
 #include "theory/datatypes/tuple_utils.h"
 #include "theory/rewriter.h"
+#include "theory/smt_engine_subsolver.h"
 #include "util/rational.h"
 
 using namespace cvc5::internal::kind;
@@ -184,7 +186,16 @@ Node LiaStarUtils::distribute(Node n, Env* e)
             for (std::vector<Node>& v : copy)
             {
               v.push_back(disjunct);
-              tmp.push_back(v);
+              Result r = areAssertionsUnsat(v, e);
+              if (r.getStatus() == Result::Status::UNSAT)
+              {
+                // we can discard unsat conjunctions
+                continue;
+              }
+              else
+              {
+                tmp.push_back(v);
+              }
             }
           }
           disjunctions = std::move(tmp);
@@ -490,6 +501,42 @@ std::vector<std::pair<Node, Node>> LiaStarUtils::removeIntegerItes(Node n,
   }
   InternalError() << "Unexpected kind. Node " << n
                   << " has kind: " << n.getKind() << std::endl;
+}
+
+Result LiaStarUtils::areAssertionsUnsat(const std::vector<Node>& assertions,
+                                        Env* e)
+{
+  Options subOptions;
+  SubsolverSetupInfo ssi(*e, subOptions);
+  NodeManager* nm = e->getNodeManager();
+  Node assertion;
+  if (assertions.size() == 1)
+  {
+    assertion = assertions[0];
+  }
+  else
+  {
+    assertion = nm->mkNode(Kind::AND, assertions);
+  }
+  std::unordered_set<Node> fvs;
+  expr::getFreeVariables(assertion, fvs);
+  Result result;
+  if (fvs.size() == 0)
+  {
+    result = checkWithSubsolver(assertion, ssi);
+    Trace("liastar-ext-subsolver")
+        << "Conjunction: " << assertion << " is " << result << std::endl;
+  }
+  else
+  {
+    std::vector<Node> freeVariables(fvs.begin(), fvs.end());
+    Node boundVariables = nm->mkNode(Kind::BOUND_VAR_LIST, freeVariables);
+    Node exists = nm->mkNode(Kind::EXISTS, boundVariables, assertion);
+    result = checkWithSubsolver(exists, ssi);
+    Trace("liastar-ext-subsolver")
+        << "Conjunction: " << exists << " is " << result << std::endl;
+  }
+  return result;
 }
 
 }  // namespace liastar
