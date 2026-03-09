@@ -50,6 +50,7 @@ macro(cvc5_add_unit_test is_white name output_dir)
     target_link_libraries(${name} PUBLIC main-test GMP)
     target_link_libraries(${name} PUBLIC GTest::Main)
     target_link_libraries(${name} PUBLIC GTest::GTest)
+    target_link_directories(${name} PRIVATE ${DEPS_BASE}/lib)
 
     if(USE_POLY)
       # Make libpoly headers available for tests

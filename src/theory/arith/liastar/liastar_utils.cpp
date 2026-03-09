@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,6 +19,7 @@
 
 #include "expr/algorithm/flatten.h"
 #include "expr/node_algorithm.h"
+#include "options/arith_options.h"
 #include "theory/booleans/theory_bool_rewriter.h"
 #include "theory/datatypes/tuple_utils.h"
 #include "theory/rewriter.h"
@@ -512,6 +513,10 @@ std::vector<std::pair<Node, Node>> LiaStarUtils::removeIntegerItes(Node n,
 Result LiaStarUtils::areAssertionsUnsat(const std::vector<Node>& assertions,
                                         Env* e)
 {
+  if (!e->getOptions().arith.arithLiaStarSubSolver)
+  {
+    return Result();
+  }
   Options subOptions;
   SubsolverSetupInfo ssi(*e, subOptions);
   NodeManager* nm = e->getNodeManager();

@@ -53,6 +53,7 @@ class TestLiaStarUtils : public TestSmt
     TestSmt::SetUp();
     d_slvEngine->setOption("dag-thresh", "0", true);
     d_slvEngine->setOption("trace", "liastar-ext-smt", true);
+    d_slvEngine->setOption("arith-liastar-subsolver", "false", true);
     nm = d_nodeManager.get();
     e = &d_slvEngine->getEnv();
     intType = nm->integerType();
