@@ -1,13 +1,8 @@
 Checks: >
-  -*,
-  clang-analyzer-core.CallAndMessage,
-  clang-analyzer-core.uninitialized.Assign,
-  clang-analyzer-core.uninitialized.UndefReturn,
-  clang-analyzer-cplusplus.Move,
-  clang-analyzer-deadcode.*,
-  clang-analyzer-optin.cplusplus.UninitializedObject,
-  clang-analyzer-optin.cplusplus.VirtualCall,
-  clang-analyzer-optin.performance.*,
+  # Default checks enabled by clang-tidy (explicitly listed):
+  clang-diagnostic-*,
+  clang-analyzer-*,
+  # Additional checks:
   modernize-use-nullptr
 HeaderFilterRegex: '.*'
 # Use .clang-format for formatting changes
