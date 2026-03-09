@@ -15,7 +15,6 @@
 #include "expr/aci_norm.h"
 #include "expr/algorithm/flatten.h"
 #include "expr/node_algorithm.h"
-#include "expr/subtype_elim_node_converter.h"
 #include "options/proof_options.h"
 #include "proof/proof_node_algorithm.h"
 #include "rewriter/rewrite_db_term_process.h"
@@ -388,10 +387,6 @@ RewriteProofStatus RewriteDbProofCons::proveInternal(const Node& eqi)
 
 RewriteProofStatus RewriteDbProofCons::proveInternalViaStrategy(const Node& eqi)
 {
-  // Note that we could check that eqi has no mixed arithmetic here.
-  // this could potentially be the case if a subgoal of a RARE rule introduced
-  // mixed arithmetic. However the check that the SubtypeElimConverter does not
-  // change eqi is too strong.
   Assert(eqi.getKind() == Kind::EQUAL);
   if (proveWithRule(RewriteProofStatus::CONG, eqi, {}, {}, false, false, true))
   {
