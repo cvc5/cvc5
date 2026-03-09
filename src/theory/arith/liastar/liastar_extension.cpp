@@ -256,10 +256,11 @@ LiaStarExtension::getCones(
   std::vector<std::pair<Vector, std::vector<Vector>>> lambdas;
   std::vector<Node> starConstraints;
 
-  for (const std::pair<std::vector<std::string>, Node>& pair : pairs)
+  for (size_t i = 0; i < pairs.size(); i++)
   {
+    const std::pair<std::vector<std::string>, Node>& pair = pairs[i];
     Trace("liastar-ext") << "---------------------------" << std::endl;
-    Trace("liastar-ext") << "Cone for node " << std::endl
+    Trace("liastar-ext") << "Cone for node " << i << std::endl
                          << pair.second << std::endl;
 
     libnormaliz::OptionsHandler options;
@@ -506,6 +507,10 @@ LiaStarExtension::convertQFLIAToMatrices(Node n)
     {
       Trace("liastar-ext-smt")
           << "(declare-const " << var << " Int)" << std::endl;
+    }
+    for (Node var : variables)
+    {
+      Trace("liastar-ext-smt") << "(assert (>= " << var << " 0))" << std::endl;
     }
   }
 

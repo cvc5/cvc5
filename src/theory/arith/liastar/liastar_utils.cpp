@@ -211,6 +211,12 @@ Node LiaStarUtils::distribute(Node n, Env* e)
       std::vector<Node> final_disjuncts;
       for (std::vector<Node>& v : disjunctions)
       {
+        Result r = areAssertionsUnsat(v, e);
+        if (r.getStatus() == Result::Status::UNSAT)
+        {
+          // we can discard unsat conjunctions
+          continue;
+        }
         if (v.size() == 1)
         {
           final_disjuncts.push_back(v[0]);
@@ -530,6 +536,12 @@ Result LiaStarUtils::areAssertionsUnsat(const std::vector<Node>& assertions,
   else
   {
     std::vector<Node> freeVariables(fvs.begin(), fvs.end());
+    Node zero = nm->mkConstInt(Rational(0));
+    // all variables are nonnegative.
+    for (Node var : freeVariables)
+    {
+      assertion = assertion.andNode(nm->mkNode(Kind::GEQ, var, zero));
+    }
     Node boundVariables = nm->mkNode(Kind::BOUND_VAR_LIST, freeVariables);
     Node exists = nm->mkNode(Kind::EXISTS, boundVariables, assertion);
     result = checkWithSubsolver(exists, ssi);
