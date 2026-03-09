@@ -607,3 +607,12 @@ name   = "Arithmetic Theory"
   type       = "bool"
   default    = "true"
   help       = "do arithmetic static learning for ite terms based on bounds when static learning is enabled"
+
+
+[[option]]
+  name       = "arithLiaStarModelValue"
+  category   = "regular"
+  long       = "arith-liastar-model-value"
+  type       = "bool"
+  default    = "true"
+  help       = "check whether the current model satisfies int.star-contains before solving"
