@@ -12,9 +12,6 @@
  */
 #include "base/configuration.h"
 
-#include <stdlib.h>
-#include <string.h>
-
 #include <algorithm>
 #include <sstream>
 #include <string>
@@ -191,13 +188,23 @@ std::string Configuration::copyright() {
 
 std::string Configuration::about() {
   std::stringstream ss;
-  ss << "This is cvc5 version " << getVersionString();
-  if (Configuration::isGitBuild()) {
-    ss << " [" << Configuration::getGitInfo() << "]";
+  ss << getPackageName() << " " << getVersionString();
+  if (isGitBuild())
+  {
+    ss << " [" << getGitInfo() << "]";
   }
-  ss << "\ncompiled with " << Configuration::getCompiler()
-     << "\non " << Configuration::getCompiledDateTime() << "\n\n";
-  ss << Configuration::copyright ();
+  ss << (isDebugBuild() ? " DEBUG" : "");
+  ss << (isAssertionBuild() ? " ASSERTIONS" : "");
+  ss << std::endl;
+  ss << "compiled with " << getCompiler() << " on " << getCompiledDateTime();
+  return ss.str();
+}
+
+std::string Configuration::aboutAndCopyright() {
+  std::stringstream ss;
+  ss << about();
+  ss << std::endl << std::endl;
+  ss << copyright();
   return ss.str();
 }
 
