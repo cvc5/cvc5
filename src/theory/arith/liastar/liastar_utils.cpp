@@ -227,6 +227,10 @@ Node LiaStarUtils::distribute(Node n, Env* e)
           final_disjuncts.push_back(nm->mkNode(Kind::AND, v));
         }
       }
+      if (final_disjuncts.size() == 0)
+      {
+        return nm->mkConst<bool>(false);
+      }
       if (final_disjuncts.size() == 1)
       {
         return final_disjuncts[0];
