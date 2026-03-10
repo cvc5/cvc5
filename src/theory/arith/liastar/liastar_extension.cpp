@@ -24,7 +24,6 @@
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/bound_inference.h"
 #include "theory/arith/inference_manager.h"
-#include "theory/arith/linear/normal_form.h"
 #include "theory/arith/nl/nl_lemma_utils.h"
 #include "theory/arith/theory_arith.h"
 #include "theory/datatypes/tuple_utils.h"
@@ -520,124 +519,8 @@ LiaStarExtension::convertQFLIAToMatrices(Node n)
   Trace("liastar-ext") << "lia constraint: " << std::endl;
 
   std::vector<std::pair<std::vector<std::string>, Node>> pairs =
-      getMatrices(variables, dnf);
+      LiaStarUtils::getMatrices(variables, dnf);
   return pairs;
-}
-
-std::vector<std::pair<std::vector<std::string>, Node>>
-LiaStarExtension::getMatrices(Node variables, Node n)
-{
-  Assert(n.getType().isBoolean()) << "n: " << n << std::endl;
-  std::vector<std::pair<std::vector<std::string>, Node>> pairs;
-  Kind k = n.getKind();
-  switch (k)
-  {
-    case Kind::LT:
-    case Kind::GT:
-    case Kind::LEQ:
-    case Kind::GEQ:
-    case Kind::EQUAL:
-    {
-      //
-      linear::Polynomial l = linear::Polynomial::parsePolynomial(n[0]);
-      linear::Polynomial r = linear::Polynomial::parsePolynomial(n[1]);
-      std::string lTerm = getString(variables, l);
-      std::string rTerm = getString(variables, r);
-      std::string kString = k == Kind::LT    ? " < "
-                            : k == Kind::GT  ? " > "
-                            : k == Kind::LEQ ? " <= "
-                            : k == Kind::GEQ ? " >= "
-                                             : " = ";
-      std::string constraint = lTerm + kString + rTerm + ";";
-      std::vector<std::string> constraints;
-      constraints.push_back(constraint);
-      pairs.push_back({constraints, n});
-      return pairs;
-    }
-    case Kind::AND:
-    {
-      std::vector<std::string> constraints;
-      for (size_t i = 0; i < n.getNumChildren(); i++)
-      {
-        std::vector<std::pair<std::vector<std::string>, Node>> m =
-            getMatrices(variables, n[i]);
-        constraints.push_back(m[0].first[0]);
-      }
-      pairs.push_back({constraints, n});
-      return pairs;
-    }
-    case Kind::OR:
-    {
-      for (size_t i = 0; i < n.getNumChildren(); i++)
-      {
-        std::vector<std::pair<std::vector<std::string>, Node>> m =
-            getMatrices(variables, n[i]);
-        pairs.push_back(m[0]);
-        Trace("liastar-ext")
-            << "Disjunction " << i << ": " << n[i] << std::endl;
-      }
-      return pairs;
-    }
-
-    default: break;
-  }
-  return pairs;
-}
-
-std::string LiaStarExtension::getString(Node variables, linear::Polynomial& p)
-{
-  Assert(variables.getKind() == Kind::BOUND_VAR_LIST)
-      << "variables: " << variables << std::endl;
-
-  size_t size = variables.getNumChildren();
-  Assert(p.isIntegral()) << p.getNode() << " is expected to be linear"
-                         << std::endl;
-  std::stringstream ss;
-  int index = 0;
-  for (const linear::Monomial& monomial : p)
-  {
-    Trace("liastar-ext-debug")
-        << "monomial: " << monomial.getNode() << std::endl;
-    linear::Constant c = monomial.getConstant();
-    Trace("liastar-ext-debug") << "c: " << c.getNode() << std::endl;
-    Rational r = c.getValue().abs();
-
-    // print the sign
-    if (c.isNegative())
-    {
-      ss << " - ";
-    }
-    else if (index > 0)
-    {
-      ss << " + ";
-    }
-    index++;
-
-    if (monomial.isConstant())
-    {
-      ss << r;
-      continue;
-    }
-    if (r != Rational(1))
-    {
-      ss << r;
-    }
-    // find the variable
-    for (size_t i = 0; i < size; i++)
-    {
-      linear::VarList varList = monomial.getVarList();
-      for (const auto& var : varList)
-      {
-        if (var.getNode() == variables[i])
-        {
-          ss << "x[" << i + 1 << "]";
-        }
-      }
-    }
-  }
-  Trace("liastar-ext-debug") << "polynomial  : " << p.getNode() << std::endl;
-  Trace("liastar-ext-debug") << "string : " << ss.str() << std::endl;
-  return ss.str();
 }
 
 }  // namespace liastar

@@ -20,11 +20,14 @@
 
 #include "expr/node.h"
 #include "smt/env.h"
+#include "theory/arith/linear/normal_form.h"
 #include "util/result.h"
 namespace cvc5::internal {
 namespace theory {
 namespace arith {
 namespace liastar {
+
+typedef mpz_class Integer;
 
 class LiaStarUtils
 {
@@ -52,10 +55,28 @@ class LiaStarUtils
 
   static Result areAssertionsUnsat(const std::vector<Node>& assertions, Env* e);
 
+  static Result cvc5CheckSat(const std::vector<Node>& freeVariables,
+                             Node assertion,
+                             Env* e);
+  static Result normalizCheckSat(Node variables,
+                                 Node assertion,
+                                 size_t constraintsSize);
+
+  /**
+   * This function returns a list of matrices representing cones (disjunctions)
+   * where the rows of each matrix are constraints of the form a1 x_1 + ... +
+   * an_xn + b >= 0
+   * @param variables is a node of Kind BOUND_VAR_LIST
+   * @param predicate is a LIA predicate in DNF format
+   */
+  static std::vector<std::pair<std::vector<std::string>, Node>> getMatrices(
+      Node variables, Node n);
+
  private:
   static std::vector<std::pair<Node, Node>> removeIntegerItes(Node n, Env* e);
   static Node removeNot(Node n, Env* e);
   static Node recursiveFlatten(NodeManager* nm, Node n);
+  static std::string getString(Node variables, linear::Polynomial& p);
 };
 }  // namespace liastar
 }  // namespace arith

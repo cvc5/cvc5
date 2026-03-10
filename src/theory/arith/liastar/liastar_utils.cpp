@@ -19,7 +19,10 @@
 
 #include "expr/algorithm/flatten.h"
 #include "expr/node_algorithm.h"
+#include "libnormaliz/input.h"
+#include "libnormaliz/libnormaliz.h"
 #include "options/arith_options.h"
+#include "theory/arith/linear/normal_form.h"
 #include "theory/booleans/theory_bool_rewriter.h"
 #include "theory/datatypes/tuple_utils.h"
 #include "theory/rewriter.h"
@@ -32,6 +35,10 @@ namespace cvc5::internal {
 namespace theory {
 namespace arith {
 namespace liastar {
+
+using namespace libnormaliz;
+
+using libnormaliz::operator<<;
 
 std::pair<Node, Node> LiaStarUtils::getVectorPredicate(Node n, NodeManager* nm)
 {
@@ -521,8 +528,6 @@ Result LiaStarUtils::areAssertionsUnsat(const std::vector<Node>& assertions,
   {
     return Result();
   }
-  Options subOptions;
-  SubsolverSetupInfo ssi(*e, subOptions);
   NodeManager* nm = e->getNodeManager();
   Node assertion;
   if (assertions.size() == 1)
@@ -535,16 +540,34 @@ Result LiaStarUtils::areAssertionsUnsat(const std::vector<Node>& assertions,
   }
   std::unordered_set<Node> fvs;
   expr::getFreeVariables(assertion, fvs);
-  Result result;
-  if (fvs.size() == 0)
+  std::vector<Node> freeVariables(fvs.begin(), fvs.end());
+  if (e->getOptions().arith.arithLiaStarNormalizAsSubSolver)
   {
-    result = checkWithSubsolver(assertion, ssi);
-    Trace("liastar-ext-subsolver")
-        << "Conjunction: " << assertion << " is " << result << std::endl;
+    Node variables = nm->mkNode(Kind::BOUND_VAR_LIST, freeVariables);
+    assertion = expr::algorithm::flatten(nm, assertion);
+    return normalizCheckSat(variables, assertion, assertions.size());
   }
   else
   {
-    std::vector<Node> freeVariables(fvs.begin(), fvs.end());
+    return cvc5CheckSat(freeVariables, assertion, e);
+  }
+}
+
+Result LiaStarUtils::cvc5CheckSat(const std::vector<Node>& freeVariables,
+                                  Node assertion,
+                                  Env* e)
+{
+  Options subOptions;
+  SubsolverSetupInfo ssi(*e, subOptions);
+
+  Result result;
+  if (freeVariables.size() == 0)
+  {
+    result = checkWithSubsolver(assertion, ssi);
+  }
+  else
+  {
+    NodeManager* nm = e->getNodeManager();
     Node zero = nm->mkConstInt(Rational(0));
     // all variables are nonnegative.
     for (Node var : freeVariables)
@@ -554,10 +577,194 @@ Result LiaStarUtils::areAssertionsUnsat(const std::vector<Node>& assertions,
     Node boundVariables = nm->mkNode(Kind::BOUND_VAR_LIST, freeVariables);
     Node exists = nm->mkNode(Kind::EXISTS, boundVariables, assertion);
     result = checkWithSubsolver(exists, ssi);
-    Trace("liastar-ext-subsolver")
-        << "Conjunction: " << exists << " is " << result << std::endl;
   }
+  Trace("liastar-ext-cvc5CheckSat")
+      << "Conjunction: " << assertion << " is " << result << std::endl;
   return result;
+}
+
+Result LiaStarUtils::normalizCheckSat(Node variables,
+                                      Node assertion,
+                                      size_t constraintsSize)
+{
+  Trace("liastar-normalizCheckSat")
+      << "---------------------------" << std::endl;
+  Trace("liastar-normalizCheckSat")
+      << "Cone for node: " << assertion << std::endl;
+
+  libnormaliz::OptionsHandler options;
+
+  std::map<libnormaliz::PolyParam::Param, std::vector<std::string>>
+      poly_param_input;
+  std::map<libnormaliz::NumParam::Param, long> num_param_input;
+  std::map<libnormaliz::BoolParam::Param, bool> bool_param_input;
+
+  libnormaliz::renf_class_ptr number_field_ref;
+
+  std::stringstream ss;
+  ss << "amb_space " << variables.getNumChildren() << std::endl;
+  ss << "constraints "
+     << (assertion.getKind() == Kind::AND ? assertion.getNumChildren() : 1)
+     << " symbolic" << std::endl;
+  const std::vector<std::pair<std::vector<std::string>, Node>>& matrices =
+      getMatrices(variables, assertion);
+
+  ss << matrices[0].first << std::endl;
+
+  ss << "nonnegative" << std::endl;
+  ss << "HilbertBasis" << std::endl;
+  ss << "ModuleGenerators" << std::endl;
+  Trace("liastar-normalizCheckSat") << "normaliz input:" << std::endl;
+  Trace("liastar-normalizCheckSat") << ss.str() << std::endl;
+
+  // here we use mpq_class instead of Integer (or mpz_class)
+  // because libnormaliz.so only has implementation for
+  // readNormalizInput<mpq_class>
+  std::map<Type::InputType, libnormaliz::Matrix<mpq_class>> input;
+  input = libnormaliz::readNormalizInput<mpq_class>(ss,
+                                                    options,
+                                                    num_param_input,
+                                                    bool_param_input,
+                                                    poly_param_input,
+                                                    number_field_ref);
+  Cone<Integer> cone(input);
+  cone.setNonnegative(true);
+  // always use infinite precision for integers
+  cone.deactivateChangeOfPrecision();
+  cone.compute(ConeProperty::HilbertBasis);
+  cone.compute(ConeProperty::ModuleGenerators);
+
+  Result result;
+  if (cone.isInhomogeneous())
+  {
+    // AffineDim is only computed for inhomogeneous cones
+    if (cone.getAffineDim() == -1)
+    {
+      // the cone is empty skip.
+      Trace("liastar-ext") << "empty cone" << std::endl;
+
+      result = Result(Result::Status::UNSAT);
+    }
+  }
+  Trace("liastar-ext-normalizCheckSat")
+      << "Constraints are " << result << std::endl;
+  return result;
+}
+
+std::vector<std::pair<std::vector<std::string>, Node>>
+LiaStarUtils::getMatrices(Node variables, Node n)
+{
+  Assert(n.getType().isBoolean()) << "n: " << n << std::endl;
+  std::vector<std::pair<std::vector<std::string>, Node>> pairs;
+  Kind k = n.getKind();
+  switch (k)
+  {
+    case Kind::LT:
+    case Kind::GT:
+    case Kind::LEQ:
+    case Kind::GEQ:
+    case Kind::EQUAL:
+    {
+      //
+      linear::Polynomial l = linear::Polynomial::parsePolynomial(n[0]);
+      linear::Polynomial r = linear::Polynomial::parsePolynomial(n[1]);
+      std::string lTerm = getString(variables, l);
+      std::string rTerm = getString(variables, r);
+      std::string kString = k == Kind::LT    ? " < "
+                            : k == Kind::GT  ? " > "
+                            : k == Kind::LEQ ? " <= "
+                            : k == Kind::GEQ ? " >= "
+                                             : " = ";
+      std::string constraint = lTerm + kString + rTerm + ";";
+      std::vector<std::string> constraints;
+      constraints.push_back(constraint);
+      pairs.push_back({constraints, n});
+      return pairs;
+    }
+    case Kind::AND:
+    {
+      std::vector<std::string> constraints;
+      for (size_t i = 0; i < n.getNumChildren(); i++)
+      {
+        std::vector<std::pair<std::vector<std::string>, Node>> m =
+            getMatrices(variables, n[i]);
+        constraints.push_back(m[0].first[0]);
+      }
+      pairs.push_back({constraints, n});
+      return pairs;
+    }
+    case Kind::OR:
+    {
+      for (size_t i = 0; i < n.getNumChildren(); i++)
+      {
+        std::vector<std::pair<std::vector<std::string>, Node>> m =
+            getMatrices(variables, n[i]);
+        pairs.push_back(m[0]);
+        Trace("liastar-ext")
+            << "Disjunction " << i << ": " << n[i] << std::endl;
+      }
+      return pairs;
+    }
+
+    default: break;
+  }
+  return pairs;
+}
+
+std::string LiaStarUtils::getString(Node variables, linear::Polynomial& p)
+{
+  Assert(variables.getKind() == Kind::BOUND_VAR_LIST)
+      << "variables: " << variables << std::endl;
+
+  size_t size = variables.getNumChildren();
+  Assert(p.isIntegral()) << p.getNode() << " is expected to be linear"
+                         << std::endl;
+  std::stringstream ss;
+  int index = 0;
+  for (const linear::Monomial& monomial : p)
+  {
+    Trace("liastar-ext-debug")
+        << "monomial: " << monomial.getNode() << std::endl;
+    linear::Constant c = monomial.getConstant();
+    Trace("liastar-ext-debug") << "c: " << c.getNode() << std::endl;
+    Rational r = c.getValue().abs();
+
+    // print the sign
+    if (c.isNegative())
+    {
+      ss << " - ";
+    }
+    else if (index > 0)
+    {
+      ss << " + ";
+    }
+    index++;
+
+    if (monomial.isConstant())
+    {
+      ss << r;
+      continue;
+    }
+    if (r != Rational(1))
+    {
+      ss << r;
+    }
+    // find the variable
+    for (size_t i = 0; i < size; i++)
+    {
+      linear::VarList varList = monomial.getVarList();
+      for (const auto& var : varList)
+      {
+        if (var.getNode() == variables[i])
+        {
+          ss << "x[" << i + 1 << "]";
+        }
+      }
+    }
+  }
+  Trace("liastar-ext-debug") << "polynomial  : " << p.getNode() << std::endl;
+  Trace("liastar-ext-debug") << "string : " << ss.str() << std::endl;
+  return ss.str();
 }
 
 }  // namespace liastar

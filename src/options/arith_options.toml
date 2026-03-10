@@ -623,3 +623,11 @@ name   = "Arithmetic Theory"
   type       = "bool"
   default    = "true"
   help       = "remove unsat conjunctions from DNF representation"
+
+[[option]]
+  name       = "arithLiaStarNormalizAsSubSolver"
+  category   = "regular"
+  long       = "arith-liastar-subsolver-normaliz-as-subsolver"
+  type       = "bool"
+  default    = "true"
+  help       = "whether to use Normaliz or cvc5 as a subsolver when arithLiaStarSubSolver is enabled"
