@@ -132,10 +132,10 @@ name   = "Driver"
 [[option]]
   name       = "tptpModels"
   category   = "regular"
-  long       = "tptpmodels"
+  long       = "tptp-models"
   type       = "bool"
   default    = "false"
-  help       = "print dump output in TPTP SMT2 format"
+  help       = "print finite models in TPTP format"
 
 [[option]]
   name       = "dumpInstantiations"

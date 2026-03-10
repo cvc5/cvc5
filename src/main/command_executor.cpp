@@ -197,7 +197,7 @@ bool CommandExecutor::doCommandSingleton(Cmd* cmd)
 
     if (!getterCommands.empty()) {
       const bool useTptProof =
-          d_solver->getOptionInfo("tptpmodels").boolValue();
+          d_solver->getOptionInfo("tptp-models").boolValue();
       std::string prevOutputLanguage;
       if (useTptProof)
       {
@@ -247,7 +247,22 @@ bool CommandExecutor::solverInvoke(cvc5::Solver* solver,
     return true;
   }
 
+  // When tptpmodels is enabled, print all get-model responses in the custom
+  // smt2-tptp format (not only auto-dumped ones).
+  const bool useTptpModelOutput =
+      d_solver->getOptionInfo("tptp-models").boolValue()
+      && dynamic_cast<GetModelCommand*>(cmd) != nullptr;
+  std::string prevOutputLanguage;
+  if (useTptpModelOutput)
+  {
+    prevOutputLanguage = d_solver->getOption("output-language");
+    setOptionInternal("output-language", "smt2-tptp");
+  }
   cmd->invokeAndPrintResult(solver, sm);
+  if (useTptpModelOutput)
+  {
+    setOptionInternal("output-language", prevOutputLanguage);
+  }
   return !cmd->fail();
 }
 

@@ -48,6 +48,16 @@ std::string stripLeadingTptpPrefix(const std::string& in)
   return in;
 }
 
+std::string stripPath(const std::string& in)
+{
+  size_t p = in.find_last_of("/\\");
+  if (p == std::string::npos)
+  {
+    return in;
+  }
+  return in.substr(p + 1);
+}
+
 // Convert solver symbols to TPTP lowercase identifiers.
 std::string sanitizeLower(const std::string& in)
 {
@@ -1082,7 +1092,7 @@ void Smt2TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
   }
 
   const std::string inputName = m.getInputName();
-  std::string modelName = sanitizeLower(inputName);
+  std::string modelName = sanitizeLower(stripPath(inputName));
   if (inputName == "_stdin_")
   {
     modelName = "model";
