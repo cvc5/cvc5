@@ -121,7 +121,7 @@ void UnconstrainedSimplifier::visitAll(TNode assertion)
   }
 }
 
-Node UnconstrainedSimplifier::newUnconstrainedVar(TypeNode t, TNode var)
+Node UnconstrainedSimplifier::newUnconstrainedVar(TypeNode t)
 {
   Node n = NodeManager::mkDummySkolem("unconstrained", t);
   return n;
@@ -232,7 +232,7 @@ void UnconstrainedSimplifier::processUnconstrained()
                 {
                   currentSub = current;
                 }
-                currentSub = newUnconstrainedVar(parent.getType(), currentSub);
+                currentSub = newUnconstrainedVar(parent.getType());
                 current = parent;
               }
             }
@@ -285,7 +285,7 @@ void UnconstrainedSimplifier::processUnconstrained()
             {
               currentSub = current;
             }
-            currentSub = newUnconstrainedVar(parent.getType(), currentSub);
+            currentSub = newUnconstrainedVar(parent.getType());
             current = parent;
           }
           else
@@ -318,7 +318,7 @@ void UnconstrainedSimplifier::processUnconstrained()
           {
             currentSub = current;
           }
-          currentSub = newUnconstrainedVar(parent.getType(), currentSub);
+          currentSub = newUnconstrainedVar(parent.getType());
           current = parent;
           break;
 
@@ -423,7 +423,7 @@ void UnconstrainedSimplifier::processUnconstrained()
               {
                 currentSub = current;
               }
-              currentSub = newUnconstrainedVar(parent.getType(), currentSub);
+              currentSub = newUnconstrainedVar(parent.getType());
               current = parent;
             }
             else
@@ -597,7 +597,7 @@ void UnconstrainedSimplifier::processUnconstrained()
             }
             // always introduce a new variable; it is unsound to try to reuse
             // currentSub as the variable, see issue #4469.
-            currentSub = newUnconstrainedVar(parent.getType(), currentSub);
+            currentSub = newUnconstrainedVar(parent.getType());
             current = parent;
           }
           else
@@ -617,7 +617,7 @@ void UnconstrainedSimplifier::processUnconstrained()
               currentSub = current;
             }
             currentSub = newUnconstrainedVar(
-                current.getType().getArrayConstituentType(), currentSub);
+                current.getType().getArrayConstituentType());
             current = parent;
           }
           break;
@@ -720,7 +720,7 @@ void UnconstrainedSimplifier::processUnconstrained()
               {
                 currentSub = current;
               }
-              currentSub = newUnconstrainedVar(parent.getType(), currentSub);
+              currentSub = newUnconstrainedVar(parent.getType());
               current = parent;
             }
             else
@@ -742,7 +742,7 @@ void UnconstrainedSimplifier::processUnconstrained()
             {
               currentSub = current;
             }
-            currentSub = newUnconstrainedVar(parent.getType(), currentSub);
+            currentSub = newUnconstrainedVar(parent.getType());
             current = parent;
             Node test = rewrite(other.eqNode(nm->mkConst<BitVector>(bv)));
             if (test == nm->mkConst<bool>(false))
