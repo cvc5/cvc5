@@ -41,7 +41,7 @@ static Cvc5ostream& operator<<(Cvc5ostream& out, const std::vector<T>& v)
 }
 
 /** Tracing purposes, printing a masked vector of indices. */
-static void traceMaskedVector(const char* trace,
+static void traceMaskedVector(CVC5_UNUSED const char* trace,
                               const char* name,
                               const std::vector<bool>& mask,
                               const std::vector<size_t>& values)

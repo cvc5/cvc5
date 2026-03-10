@@ -1005,7 +1005,7 @@ void SygusUnifIo::initializeConstructSol()
   d_sol_cons_nondet = false;
 }
 
-void SygusUnifIo::initializeConstructSolFor(Node f)
+void SygusUnifIo::initializeConstructSolFor(CVC5_UNUSED Node f)
 {
   Assert(d_candidate == f);
 }

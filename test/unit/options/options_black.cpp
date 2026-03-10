@@ -45,14 +45,14 @@ class TestBlackOptions : public TestApi
     {
       std::visit(
           overloaded{
-              [this, &name](const OptionInfo::VoidInfo& v) {
+              [this, &name](const OptionInfo::VoidInfo&) {
                 d_solver->setOption(name, "");
               },
-              [this, &name](const OptionInfo::ValueInfo<bool>& v) {
+              [this, &name](const OptionInfo::ValueInfo<bool>&) {
                 d_solver->setOption(name, "false");
                 d_solver->setOption(name, "true");
               },
-              [this, &name](const OptionInfo::ValueInfo<std::string>& v) {
+              [this, &name](const OptionInfo::ValueInfo<std::string>&) {
                 d_solver->setOption(name, "foo");
               },
               [this, &name](const OptionInfo::NumberInfo<int64_t>& v) {
@@ -164,30 +164,30 @@ class TestBlackOptions : public TestApi
     {
       std::visit(
           overloaded{
-              [this, &name](const OptionInfo::VoidInfo& v) {
+              [this, &name](const OptionInfo::VoidInfo&) {
                 d_solver->setOption(name, "");
               },
-              [this, &name](const OptionInfo::ValueInfo<bool>& v) {
+              [this, &name](const OptionInfo::ValueInfo<bool>&) {
                 d_solver->setOption(name, "false");
               },
-              [this, &name](const OptionInfo::ValueInfo<std::string>& v) {
+              [this, &name](const OptionInfo::ValueInfo<std::string>&) {
                 d_solver->setOption(name, "foo");
               },
-              [this, &name](const OptionInfo::NumberInfo<int64_t>& v) {
+              [this, &name](const OptionInfo::NumberInfo<int64_t>&) {
                 std::pair<int64_t, int64_t> range{
                     std::numeric_limits<int64_t>::min(),
                     std::numeric_limits<int64_t>::max()};
                 d_solver->setOption(
                     name, std::to_string((range.first + range.second) / 2));
               },
-              [this, &name](const OptionInfo::NumberInfo<uint64_t>& v) {
+              [this, &name](const OptionInfo::NumberInfo<uint64_t>&) {
                 std::pair<uint64_t, uint64_t> range{
                     std::numeric_limits<uint64_t>::min(),
                     std::numeric_limits<uint64_t>::max()};
                 d_solver->setOption(
                     name, std::to_string((range.first + range.second) / 2));
               },
-              [this, &name](const OptionInfo::NumberInfo<double>& v) {
+              [this, &name](const OptionInfo::NumberInfo<double>&) {
                 std::pair<double, double> range{
                     std::numeric_limits<double>::min(),
                     std::numeric_limits<double>::max()};

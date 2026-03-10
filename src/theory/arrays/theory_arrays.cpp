@@ -596,7 +596,7 @@ void TheoryArrays::weakEquivAddSecondary(TNode index, TNode arrayFrom, TNode arr
   }
 }
 
-void TheoryArrays::checkWeakEquiv(bool arraysMerged) {
+void TheoryArrays::checkWeakEquiv(CVC5_UNUSED bool arraysMerged) {
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(&d_mayEqualEqualityEngine);
   for (; !eqcs_i.isFinished(); ++eqcs_i) {
     Node eqc = (*eqcs_i);

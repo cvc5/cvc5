@@ -337,7 +337,7 @@ bool ArithMSum::decompose(Node n, Node v, Node& coeff, Node& rem)
   return false;
 }
 
-void ArithMSum::debugPrintMonomialSum(std::map<Node, Node>& msum, const char* c)
+void ArithMSum::debugPrintMonomialSum(std::map<Node, Node>& msum, CVC5_UNUSED const char* c)
 {
   for (std::map<Node, Node>::iterator it = msum.begin(); it != msum.end(); ++it)
   {

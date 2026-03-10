@@ -90,7 +90,7 @@ namespace cvc5::internal::options
 
   /** Default handler that triggers a compiler error */
   template <typename T>
-  T handleOption(const std::string& flag, const std::string& optionarg)
+  T handleOption(CVC5_UNUSED const std::string& flag, CVC5_UNUSED const std::string& optionarg)
   {
     T::unsupported_handleOption_specialization;
     return *static_cast<T*>(nullptr);

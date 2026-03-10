@@ -236,7 +236,7 @@ public:
   T* allocate(size_t n, const void* = 0) const {
     return static_cast<T*>(d_mm->newData(n * sizeof(T)));
   }
-  void deallocate(T* p, size_t n) const {
+  void deallocate(CVC5_UNUSED T* p, CVC5_UNUSED size_t n) const {
     /* no explicit delete */
   }
   void construct(T* p, T const& v) const {
