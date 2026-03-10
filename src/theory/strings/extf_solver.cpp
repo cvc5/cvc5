@@ -801,7 +801,7 @@ Node ExtfSolver::getCurrentSubstitutionFor(int effort,
   }
   // otherwise, we use the best content heuristic
   Node c = d_bsolver.explainBestContentEqc(n, nr, exp);
-  if (!c.isNull() && n.getKind()==Kind::STRING_CONCAT)
+  if (!c.isNull() && n.getKind() == Kind::STRING_CONCAT)
   {
     // Similar to above, if we are a string concatentation, we ask for the
     // best content of each of our children and concatenate them together.
@@ -830,7 +830,7 @@ Node ExtfSolver::getCurrentSubstitutionFor(int effort,
     {
       TypeNode stype = n.getType();
       c = d_termReg.mkNConcat(vec, stype);
-      c = c==n ? Node::null() : c;
+      c = c == n ? Node::null() : c;
     }
   }
   if (!c.isNull())
