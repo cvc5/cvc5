@@ -830,7 +830,6 @@ Node ExtfSolver::getCurrentSubstitutionFor(int effort,
     {
       TypeNode stype = n.getType();
       c = d_termReg.mkNConcat(vec, stype);
-      c = c == n ? Node::null() : c;
     }
   }
   if (!c.isNull())
