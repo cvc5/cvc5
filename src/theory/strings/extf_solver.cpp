@@ -807,8 +807,8 @@ Node ExtfSolver::getCurrentSubstitutionFor(int effort,
     // best content of each of our children and concatenate them together.
     // We consider the substitution only if at least one child had a best
     // content. This prevents substitutions with concatenation terms on the
-    // left hand side, which can lead to cycles in explanations in very rare
-    // cases.
+    // left hand side, which can lead to cycles in the algorithm that elaborates
+    // proofs in very rare cases.
     bool hasBestContent = false;
     std::vector<Node> vec;
     for (const Node& nc : n)
