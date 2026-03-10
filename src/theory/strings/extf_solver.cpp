@@ -800,7 +800,42 @@ Node ExtfSolver::getCurrentSubstitutionFor(int effort,
     return ns;
   }
   // otherwise, we use the best content heuristic
-  Node c = d_bsolver.explainBestContentEqc(n, nr, exp);
+  Node c;
+  if (n.getKind()==Kind::STRING_CONCAT)
+  {
+    // Similar to above, if we are a string concatentation, we ask for the
+    // best content of each of our children and concatenate them together.
+    // We consider the substitution only if at least one child had a best
+    // content. This prevents substitutions with concatenation terms on the
+    // left hand side, which can lead to cycles in explanations in very rare
+    // cases.
+    bool hasBestContent = false;
+    std::vector<Node> vec;
+    for (const Node& nc : n)
+    {
+      Node ncr = d_state.getRepresentative(nc);
+      Node cc = d_bsolver.explainBestContentEqc(nc, ncr, exp);
+      if (!cc.isNull())
+      {
+        vec.push_back(cc);
+        hasBestContent = true;
+      }
+      else
+      {
+        // otherwise keep the same
+        vec.push_back(ncr);
+      }
+    }
+    if (hasBestContent)
+    {
+      TypeNode stype = n.getType();
+      c = d_termReg.mkNConcat(vec, stype);
+    }
+  }
+  else
+  {
+    c = d_bsolver.explainBestContentEqc(n, nr, exp);
+  }
   if (!c.isNull())
   {
     return c;
