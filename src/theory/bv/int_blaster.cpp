@@ -1060,8 +1060,13 @@ Node IntBlaster::translateQuantifiedFormula(Node quantifiedNode)
   // that involve quantified variables
   std::unordered_set<Node> applys;
   expr::getKindSubterms(quantifiedNode[1], Kind::APPLY_UF, true, applys);
-  if (applys.size() > 0) {
-     throw LogicException("bv-to-int does not support the combination of quantifiers and uninterpreted functions");
+  for (const Node& apply : applys) {
+    Node f = apply.getOperator();
+    TypeNode range = f.getType().getRangeType();
+    if (range.isBitVector())
+    {
+      throw LogicException("bv-to-int does not support the combination of quantifiers and uninterpreted functions that return bit-vectors");
+    }
   }
 
   // the body of the quantifier
