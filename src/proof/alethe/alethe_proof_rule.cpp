@@ -122,6 +122,9 @@ const char* aletheRuleToString(AletheRule id)
     case AletheRule::RARE_REWRITE: return "rare_rewrite";
     case AletheRule::SYMM: return "symm";
     case AletheRule::NOT_SYMM: return "not_symm";
+    case AletheRule::MINISCOPE_DISTRIBUTE: return "miniscope_distribute";
+    case AletheRule::MINISCOPE_SPLIT: return "miniscope_split";
+    case AletheRule::MINISCOPE_ITE: return "miniscope_ite";
     case AletheRule::REORDERING: return "reordering";
     case AletheRule::BV_BITBLAST_STEP_VAR: return "bv_bitblast_step_var";
     case AletheRule::BV_BITBLAST_STEP_BVAND: return "bv_bitblast_step_bvand";
