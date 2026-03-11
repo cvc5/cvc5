@@ -205,6 +205,110 @@ bool AletheProofPostprocessCallback::updateTheoryRewriteProofRewriteRule(
                            {},
                            *cdp);
     }
+    case ProofRewriteRule::QUANT_VAR_ELIM_EQ:
+    {
+      // The conclusion of this rule has the following form:
+      //   (forall ((x T)) (or (not (= x t)) F1 ... Fn)) = (or F1 ... Fn){x->t}
+      // where in particular n can be 0, so the "F1 ... Fn" is just "false".
+      //
+      // The translation is:
+      //
+      // P0:
+      //    ------------------------------------------------------------- refl
+      //    (or (not (= x t)) F1 ... Fn) = (or (not (= t t)) (F1 ... Fn){x->t})
+      //
+      // P1:
+      //    ---------------------------------------------------------- rare_rw R
+      //    (or (not (= t t)) (F1 ... Fn){x->t}) = (or (F1 ... Fn){x->t})
+      //
+      //
+      //    P0                          P1
+      // ------------------------------------------------------- trans
+      //   (or (not (= x t)) F1 ... Fn) = (or (F1 ... Fn){x->t})
+      // ----------------------------------------- anchor_onepoint, (:= (x T) t)
+      // (forall ((x T)) (or (not (= x t)) F1 ... Fn) = (or (F1 ... Fn){x->t})
+      //
+      // where when the used RARE rule is `or-not-refl` when n > 0 and otherwise
+      // `bool-not-false`:
+      //
+      // (define-rule or-not-refl ((t ?) (x Bool) (xs Bool :list)
+      //    (or (not (= t t)) xs) (or xs)))
+      //
+      // (define-rule bool-not-false ((t Bool)) (not (= t t)) false)
+      bool isRhsOr = res[0][1].getKind() == Kind::OR;
+      Node subEq = isRhsOr ? res[0][1][0][0] : res[1][0];
+      Node x = subEq[0];
+      Node t = subEq[1];
+      // build the REFL step
+      Node reflRhs;
+      Node rareRuleId;
+      std::vector<Node> rwArgs;
+      if (isRhsOr)
+      {
+        rwArgs.push_back(nm->mkRawSymbol("\"or-not-refl\"", nm->sExprType()));
+        rwArgs.push_back(t);
+        std::vector<Node> listArgs{
+            nm->mkRawSymbol("rare-list", nm->sExprType())};
+        std::vector<Node> disjuncts{t.eqNode(t).notNode()};
+        // if n > 1, res[1] will be an OR and we get the disjuncts, otherwise
+        // res[1] is the disjunct
+        if (res[0][1].getNumChildren() > 2)
+        {
+          disjuncts.insert(disjuncts.end(), res[1].begin(), res[1].end());
+          listArgs.insert(listArgs.end(), res[1].begin(), res[1].end());
+        }
+        else
+        {
+          disjuncts.push_back(res[1]);
+          listArgs.insert(listArgs.end(), res[1]);
+        }
+        reflRhs = nm->mkNode(Kind::OR, disjuncts);
+        rwArgs.push_back(nm->mkNode(Kind::SEXPR, listArgs));
+      }
+      else
+      {
+        reflRhs = t.eqNode(t).notNode();
+        rwArgs.push_back(
+            nm->mkRawSymbol("\"bool-not-false\"", nm->sExprType()));
+        rwArgs.push_back(t);
+      }
+      Node reflConc = res[0][1].eqNode(reflRhs);
+      addAletheStep(AletheRule::REFL,
+                    reflConc,
+                    nm->mkNode(Kind::SEXPR, d_cl, reflConc),
+                    {},
+                    {},
+                    *cdp);
+      // build rw step
+      Node rwConc = reflRhs.eqNode(res[1]);
+      addAletheStep(AletheRule::REFL,
+                    reflConc,
+                    nm->mkNode(Kind::SEXPR, d_cl, reflConc),
+                    {},
+                    {},
+                    *cdp);
+      addAletheStep(AletheRule::RARE_REWRITE,
+                    rwConc,
+                    nm->mkNode(Kind::SEXPR, d_cl, rwConc),
+                    {},
+                    rwArgs,
+                    *cdp);
+      // build trans step
+      Node transConc = res[0][1].eqNode(res[1]);
+      addAletheStep(AletheRule::TRANS,
+                    transConc,
+                    nm->mkNode(Kind::SEXPR, d_cl, transConc),
+                    {reflConc, rwConc},
+                    rwArgs,
+                    *cdp);
+      // build onepoint step
+      return addAletheStep(AletheRule::ANCHOR_ONEPOINT,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           {transConc},
+                           {x.eqNode(t)},
+                           *cdp);
+    }
     // ======== BV_BITWISE_SLICING
     // This rule is translated according to the clause pattern.
     case ProofRewriteRule::BV_BITWISE_SLICING:
