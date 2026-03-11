@@ -527,16 +527,23 @@ class NodeManager
   template <bool ref_count>
   Node mkNode(Kind kind, const std::vector<NodeTemplate<ref_count> >& children);
 
-  /** Create a node using an initializer list.
+  /**
+   * Creates a node with two or more children using a fixed-size array.
    *
-   * This function serves two purposes:
-   * - We can avoid creating a temporary vector in some cases, e.g., when we
-   *   want to create a node with a fixed, large number of children
-   * - It makes sure that calls to `mkNode` that braced-init-lists work as
-   *   expected, e.g., mkNode(REGEXP_NONE, {}) will call this overload instead
-   *   of creating a node with a null node as a child.
+   * Designed to be used with a braced-init-list to ensure children are
+   * evaluated in a fixed left-to-right order, guaranteeing deterministic
+   * ID assignment. For the case of a single child, the specialized method
+   * mkNode(Kind kind, TNode child1) should be used instead. Note that due to
+   * C++ overload resolution rules, a call like mkNode(k, {n}) is automatically
+   * handled by the single-child overload.
+   *
+   * A raw array is used instead of std::initializer_list to enforce at
+   * compile-time that the collection is non-empty. This allows the
+   * NodeManager to be retrieved safely from the first child within this
+   * static method.
    */
-  Node mkNode(Kind kind, std::initializer_list<TNode> children);
+  template <std::size_t N>
+  static Node mkNode(Kind kind, const TNode (&children)[N]);
 
   /**
    * Create an AND node with arbitrary number of children. This returns the
@@ -578,11 +585,17 @@ class NodeManager
                      const std::vector<NodeTemplate<ref_count>>& children);
 
   /**
-   * Create a node by applying an operator to an arbitrary number of children.
+   * Creates a node by applying an operator to a list of children.
    *
-   * Analoguous to `mkNode(Kind, std::initializer_list<TNode>)`.
+   * Using std::initializer_list ensures that child expressions are evaluated
+   * in a fixed left-to-right order, guaranteeing deterministic ID assignment.
+   *
+   * This method is preferred over the std::vector overload when the number
+   * of children is known at the call site, as it avoids unnecessary heap
+   * allocations. For a single child, the specialized mkNode(TNode opNode,
+   * TNode child1) should be used instead.
    */
-  Node mkNode(TNode opNode, std::initializer_list<TNode> children);
+  static Node mkNode(TNode opNode, std::initializer_list<TNode> children);
 
   /**
    * @param name The name.
@@ -1143,6 +1156,18 @@ inline Node NodeManager::mkNode(Kind kind, TNode child1) {
   return nb.constructNode();
 }
 
+template <std::size_t N>
+inline Node NodeManager::mkNode(Kind kind, const TNode (&children)[N])
+{
+  // The case with one child is handled by mkNode(Kind kind, TNode child1).
+  static_assert(N >= 2, "mkNode requires at least 2 children!");
+  // Since N >= 2, we can obtain the node manager from the first child,
+  // which is required for the static version of this method.
+  NodeBuilder nb(children[0].getNodeManager(), kind);
+  nb.append(std::begin(children), std::end(children));
+  return nb.constructNode();
+}
+
 inline Node NodeManager::mkNode(Kind kind, TNode child1, TNode child2) {
   NodeBuilder nb(child1.getNodeManager(), kind);
   nb << child1 << child2;
@@ -1232,6 +1257,18 @@ inline Node NodeManager::mkNode(TNode opNode, TNode child1, TNode child2,
     nb << opNode;
   }
   nb << child1 << child2 << child3;
+  return nb.constructNode();
+}
+
+inline Node NodeManager::mkNode(TNode opNode,
+                                std::initializer_list<TNode> children)
+{
+  NodeBuilder nb(opNode.getNodeManager(), operatorToKind(opNode));
+  if (opNode.getKind() != Kind::BUILTIN)
+  {
+    nb << opNode;
+  }
+  nb.append(children.begin(), children.end());
   return nb.constructNode();
 }
 

@@ -1377,9 +1377,9 @@ Node EqProof::addToProof(CDProof* p,
       newChildren2.insert(newChildren2.end(),
                           d_node[1].begin() + arityPrefix2,
                           d_node[1].end());
-      conclusion = nm->mkNode(Kind::EQUAL,
-                              nm->mkNode(k, newChildren1),
-                              nm->mkNode(k, newChildren2));
+      conclusion = nm->mkNode(
+          Kind::EQUAL,
+          {nm->mkNode(k, newChildren1), nm->mkNode(k, newChildren2)});
       // update arity
       Assert((arity - emptyRows) == conclusion[0].getNumChildren());
       arity = arity - emptyRows;

@@ -81,10 +81,9 @@ Node mkIRP(NodeManager* nm,
            VariableMapper& vm)
 {
   auto op = nm->mkConst<IndexedRootPredicate>(IndexedRootPredicate(k));
-  return nm->mkNode(Kind::INDEXED_ROOT_PREDICATE,
-                    op,
-                    nm->mkNode(rel, var, zero),
-                    as_cvc_polynomial(nm, poly, vm));
+  return nm->mkNode(
+      Kind::INDEXED_ROOT_PREDICATE,
+      {op, nm->mkNode(rel, var, zero), as_cvc_polynomial(nm, poly, vm)});
 }
 
 }  // namespace

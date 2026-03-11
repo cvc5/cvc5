@@ -50,8 +50,8 @@ Node intExtract(Node x, uint32_t i, uint32_t size)
   // (mod (div a (two_to_the j)) (two_to_the (+ (- i j) 1))))
   Node extract = NodeManager::mkNode(
       Kind::INTS_MODULUS_TOTAL,
-      NodeManager::mkNode(Kind::INTS_DIVISION_TOTAL, x, pow2(nm, i * size)),
-      pow2(nm, size));
+      {NodeManager::mkNode(Kind::INTS_DIVISION_TOTAL, x, pow2(nm, i * size)),
+       pow2(nm, size)});
   return extract;
 }
 
@@ -89,14 +89,14 @@ Node IAndUtils::createITEFromTable(
       // append the current value to the ite.
       ite = NodeManager::mkNode(
           Kind::ITE,
-          NodeManager::mkNode(
-              Kind::AND,
-              NodeManager::mkNode(
-                  Kind::EQUAL, x, d_nm->mkConstInt(Rational(i))),
-              NodeManager::mkNode(
-                  Kind::EQUAL, y, d_nm->mkConstInt(Rational(j)))),
-          d_nm->mkConstInt(Rational(table.at(std::make_pair(i, j)))),
-          ite);
+          {NodeManager::mkNode(
+               Kind::AND,
+               {NodeManager::mkNode(
+                    Kind::EQUAL, x, d_nm->mkConstInt(Rational(i))),
+                NodeManager::mkNode(
+                    Kind::EQUAL, y, d_nm->mkConstInt(Rational(j)))}),
+           d_nm->mkConstInt(Rational(table.at(std::make_pair(i, j)))),
+           ite});
     }
   }
   return ite;

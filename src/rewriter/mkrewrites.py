@@ -104,7 +104,10 @@ def gen_mk_node(defns, expr):
           return f'nm->mkNode(Kind::APPLY_INDEXED_SYMBOLIC, {{ {args} }})'
         elif expr.op in {Op.REAL_PI}:
           return f'nm->mkNullaryOperator(nm->realType(), Kind::PI)'
-        return f'nm->mkNode(Kind::{gen_kind(expr.op)}, {{ {args} }})'
+        if args:
+          return f'nm->mkNode(Kind::{gen_kind(expr.op)}, {{ {args} }})'
+        else:
+          return f'nm->mkNode(Kind::{gen_kind(expr.op)})'
     else:
         die(f'Cannot generate code for {expr}')
 

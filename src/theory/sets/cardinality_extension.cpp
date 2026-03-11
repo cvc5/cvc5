@@ -292,9 +292,9 @@ void CardinalityExtension::registerCardinalityTerm(Node n)
         pos_lem, InferenceId::SETS_CARD_POSITIVE, d_emp_exp, 1);
     if (nn != nk)
     {
-      Node lem = nm->mkNode(Kind::EQUAL,
-                            nm->mkNode(Kind::SET_CARD, nk),
-                            nm->mkNode(Kind::SET_CARD, nn));
+      Node lem = nm->mkNode(
+          Kind::EQUAL,
+          {nm->mkNode(Kind::SET_CARD, nk), nm->mkNode(Kind::SET_CARD, nn)});
       lem = rewrite(lem);
       Trace("sets-card") << "  " << k << " : " << lem << std::endl;
       d_im.assertInference(lem, InferenceId::SETS_CARD_EQUAL, d_emp_exp, 1);

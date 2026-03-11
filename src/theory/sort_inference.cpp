@@ -814,12 +814,12 @@ Node SortInference::mkInjection( TypeNode tn1, TypeNode tn2 ) {
   Node v2 = NodeManager::mkBoundVar("?y", tn1);
   Node ret =
       nm->mkNode(Kind::FORALL,
-                 nm->mkNode(Kind::BOUND_VAR_LIST, v1, v2),
-                 nm->mkNode(Kind::OR,
-                            nm->mkNode(Kind::APPLY_UF, f, v1)
-                                .eqNode(nm->mkNode(Kind::APPLY_UF, f, v2))
-                                .negate(),
-                            v1.eqNode(v2)));
+                 {nm->mkNode(Kind::BOUND_VAR_LIST, v1, v2),
+                  nm->mkNode(Kind::OR,
+                             {nm->mkNode(Kind::APPLY_UF, f, v1)
+                                  .eqNode(nm->mkNode(Kind::APPLY_UF, f, v2))
+                                  .negate(),
+                              v1.eqNode(v2)})});
   ret = rewrite(ret);
   return ret;
 }
