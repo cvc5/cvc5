@@ -1402,6 +1402,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     //   (cl (= (<kind> f? t1 ... tn) (<kind> f? s1 ... sn)))
     case ProofRule::CONG:
     case ProofRule::NARY_CONG:
+    case ProofRule::PAIRWISE_CONG:
     {
       if (res[0].isClosure())
       {
@@ -1422,10 +1423,23 @@ bool AletheProofPostprocessCallback::update(Node res,
                              new_args,
                              *cdp);
       }
+      // ignore prefix that is refl
+      std::vector<Node> newChildren;
+      bool allRefl = true;
+      for (const Node& c : children)
+      {
+        Assert(c.getKind() == Kind::EQUAL);
+        if (allRefl && c[0] == c[1])
+        {
+          continue;
+        }
+        allRefl = false;
+        newChildren.push_back(c);
+      }
       return addAletheStep(AletheRule::CONG,
                            res,
                            nm->mkNode(Kind::SEXPR, d_cl, res),
-                           children,
+                           newChildren,
                            {},
                            *cdp);
     }
