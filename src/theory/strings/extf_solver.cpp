@@ -800,25 +800,25 @@ Node ExtfSolver::getCurrentSubstitutionFor(int effort,
     return ns;
   }
   // otherwise, we use the best content heuristic
-  Node c = d_bsolver.explainBestContentEqc(n, nr, exp);
+  std::vector<Node> cexp;
+  Node c = d_bsolver.explainBestContentEqc(n, nr, cexp);
   if (!c.isNull() && n.getKind() == Kind::STRING_CONCAT)
   {
+    cexp.clear();
     // Similar to above, if we are a string concatentation, we ask for the
     // best content of each of our children and concatenate them together.
     // We consider the substitution only if at least one child had a best
     // content. This prevents substitutions with concatenation terms on the
     // left hand side, which can lead to cycles in the algorithm that elaborates
     // proofs in very rare cases.
-    bool hasBestContent = false;
     std::vector<Node> vec;
     for (const Node& nc : n)
     {
       Node ncr = d_state.getRepresentative(nc);
-      Node cc = d_bsolver.explainBestContentEqc(nc, ncr, exp);
+      Node cc = d_bsolver.explainBestContentEqc(nc, ncr, cexp);
       if (!cc.isNull())
       {
         vec.push_back(cc);
-        hasBestContent = true;
       }
       else
       {
@@ -826,14 +826,12 @@ Node ExtfSolver::getCurrentSubstitutionFor(int effort,
         vec.push_back(ncr);
       }
     }
-    if (hasBestContent)
-    {
-      TypeNode stype = n.getType();
-      c = d_termReg.mkNConcat(vec, stype);
-    }
+    TypeNode stype = n.getType();
+    c = d_termReg.mkNConcat(vec, stype);
   }
   if (!c.isNull())
   {
+    exp.insert(exp.end(), cexp.begin(), cexp.end());
     return c;
   }
   return n;
