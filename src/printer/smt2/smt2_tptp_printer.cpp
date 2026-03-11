@@ -252,6 +252,22 @@ bool isHigherOrderType(TypeNode tn)
   return tn.getRangeType().isFunction();
 }
 
+bool hasFunctionArgType(TypeNode tn)
+{
+  if (!tn.isFunction())
+  {
+    return false;
+  }
+  for (const TypeNode& at : tn.getArgTypes())
+  {
+    if (at.isFunction())
+    {
+      return true;
+    }
+  }
+  return false;
+}
+
 void collectFunctionTypes(Node n, std::set<TypeNode>& out)
 {
   std::vector<Node> visit;
@@ -831,6 +847,301 @@ bool resolveBoolValue(const smt::Model& m,
   return getBoolValueFinite(m, isDeclared, finiteTypeElems, n, value);
 }
 
+bool modelNodeToTptp(const Node& n,
+                     const std::map<Node, bool>& isDeclared,
+                     const std::map<Node, std::string>& elemNames,
+                     const std::map<TypeNode, std::string>& promoteNames,
+                     bool useThfTuple,
+                     std::map<Node, std::string>& bvarNames,
+                     std::string& out)
+{
+  Node nconv = theory::uf::FunctionConst::toLambda(n);
+  if (!nconv.isNull() && nconv != n)
+  {
+    return modelNodeToTptp(nconv,
+                           isDeclared,
+                           elemNames,
+                           promoteNames,
+                           useThfTuple,
+                           bvarNames,
+                           out);
+  }
+  auto bvit = bvarNames.find(n);
+  if (bvit != bvarNames.end())
+  {
+    out = bvit->second;
+    return true;
+  }
+  if (n.getKind() == Kind::CONST_BOOLEAN)
+  {
+    out = n.getConst<bool>() ? "$true" : "$false";
+    return true;
+  }
+  auto eit = elemNames.find(n);
+  if (eit != elemNames.end() && n.getType().isUninterpretedSort())
+  {
+    auto pit = promoteNames.find(n.getType());
+    if (pit == promoteNames.end())
+    {
+      return false;
+    }
+    out = pit->second + "(" + eit->second + ")";
+    return true;
+  }
+  if (isDeclared.find(n) != isDeclared.end())
+  {
+    out = sanitizeLower(n.toString());
+    return true;
+  }
+  if (n.getKind() == Kind::BOUND_VARIABLE || n.getKind() == Kind::VARIABLE)
+  {
+    out = sanitizeUpper(n.toString());
+    return true;
+  }
+  if (n.getKind() == Kind::LAMBDA)
+  {
+    Node bvl = n[0];
+    std::vector<std::pair<Node, bool>> oldSet;
+    std::vector<std::string> binds;
+    binds.reserve(bvl.getNumChildren());
+    for (const Node& bv : bvl)
+    {
+      bool had = bvarNames.find(bv) != bvarNames.end();
+      oldSet.emplace_back(bv, had);
+      std::string bvn = sanitizeUpper(bv.toString());
+      bvarNames[bv] = bvn;
+      binds.push_back(bvn + ": " + typeToTptp(bv.getType(), useThfTuple));
+    }
+    std::string body;
+    bool ok = modelNodeToTptp(n[1],
+                              isDeclared,
+                              elemNames,
+                              promoteNames,
+                              useThfTuple,
+                              bvarNames,
+                              body);
+    for (const std::pair<Node, bool>& p : oldSet)
+    {
+      if (!p.second)
+      {
+        bvarNames.erase(p.first);
+      }
+    }
+    if (!ok)
+    {
+      return false;
+    }
+    out = "( ^ [" + join(binds, ",") + "] : " + body + " )";
+    return true;
+  }
+  if (n.getKind() == Kind::APPLY_UF || n.getKind() == Kind::HO_APPLY)
+  {
+    if (n.getNumChildren() == 0)
+    {
+      return false;
+    }
+    std::string head;
+    if (!modelNodeToTptp(n[0],
+                         isDeclared,
+                         elemNames,
+                         promoteNames,
+                         useThfTuple,
+                         bvarNames,
+                         head))
+    {
+      return false;
+    }
+    std::vector<std::string> args;
+    args.reserve(n.getNumChildren() - 1);
+    for (size_t i = 1, nc = n.getNumChildren(); i < nc; i++)
+    {
+      std::string a;
+      if (!modelNodeToTptp(n[i],
+                           isDeclared,
+                           elemNames,
+                           promoteNames,
+                           useThfTuple,
+                           bvarNames,
+                           a))
+      {
+        return false;
+      }
+      args.push_back(a);
+    }
+    out = head + "(" + join(args, ",") + ")";
+    return true;
+  }
+  if (n.getKind() == Kind::EQUAL)
+  {
+    std::string a;
+    std::string b;
+    if (!modelNodeToTptp(n[0],
+                         isDeclared,
+                         elemNames,
+                         promoteNames,
+                         useThfTuple,
+                         bvarNames,
+                         a)
+        || !modelNodeToTptp(n[1],
+                            isDeclared,
+                            elemNames,
+                            promoteNames,
+                            useThfTuple,
+                            bvarNames,
+                            b))
+    {
+      return false;
+    }
+    out = "( " + a + " = " + b + " )";
+    return true;
+  }
+  if (n.getKind() == Kind::NOT)
+  {
+    std::string c;
+    if (!modelNodeToTptp(n[0],
+                         isDeclared,
+                         elemNames,
+                         promoteNames,
+                         useThfTuple,
+                         bvarNames,
+                         c))
+    {
+      return false;
+    }
+    out = "~ ( " + c + " )";
+    return true;
+  }
+  if (n.getKind() == Kind::AND || n.getKind() == Kind::OR)
+  {
+    if (n.getNumChildren() == 0)
+    {
+      out = n.getKind() == Kind::AND ? "$true" : "$false";
+      return true;
+    }
+    const std::string op = n.getKind() == Kind::AND ? " & " : " | ";
+    std::vector<std::string> cs;
+    cs.reserve(n.getNumChildren());
+    for (const Node& c : n)
+    {
+      std::string s;
+      if (!modelNodeToTptp(c,
+                           isDeclared,
+                           elemNames,
+                           promoteNames,
+                           useThfTuple,
+                           bvarNames,
+                           s))
+      {
+        return false;
+      }
+      cs.push_back(s);
+    }
+    out = "( " + join(cs, op) + " )";
+    return true;
+  }
+  if (n.getKind() == Kind::IMPLIES)
+  {
+    std::string a;
+    std::string b;
+    if (!modelNodeToTptp(n[0],
+                         isDeclared,
+                         elemNames,
+                         promoteNames,
+                         useThfTuple,
+                         bvarNames,
+                         a)
+        || !modelNodeToTptp(n[1],
+                            isDeclared,
+                            elemNames,
+                            promoteNames,
+                            useThfTuple,
+                            bvarNames,
+                            b))
+    {
+      return false;
+    }
+    out = "( ( " + a + " ) => ( " + b + " ) )";
+    return true;
+  }
+  if (n.getKind() == Kind::ITE)
+  {
+    // Keep output in formula-only connectives for compatibility with current
+    // THF/TFF printer style.
+    if (!n.getType().isBoolean())
+    {
+      return false;
+    }
+    std::string c;
+    std::string t;
+    std::string e;
+    if (!modelNodeToTptp(n[0],
+                         isDeclared,
+                         elemNames,
+                         promoteNames,
+                         useThfTuple,
+                         bvarNames,
+                         c)
+        || !modelNodeToTptp(n[1],
+                            isDeclared,
+                            elemNames,
+                            promoteNames,
+                            useThfTuple,
+                            bvarNames,
+                            t)
+        || !modelNodeToTptp(n[2],
+                            isDeclared,
+                            elemNames,
+                            promoteNames,
+                            useThfTuple,
+                            bvarNames,
+                            e))
+    {
+      return false;
+    }
+    out = "( ( ( " + c + " ) & ( " + t + " ) ) | ( ~ ( " + c + " ) & ( " + e
+          + " ) ) )";
+    return true;
+  }
+  if (n.getKind() == Kind::FORALL || n.getKind() == Kind::EXISTS)
+  {
+    Node bvl = n[0];
+    std::vector<std::pair<Node, bool>> oldSet;
+    std::vector<std::string> binds;
+    binds.reserve(bvl.getNumChildren());
+    for (const Node& bv : bvl)
+    {
+      bool had = bvarNames.find(bv) != bvarNames.end();
+      oldSet.emplace_back(bv, had);
+      std::string bvn = sanitizeUpper(bv.toString());
+      bvarNames[bv] = bvn;
+      binds.push_back(bvn + ": " + typeToTptp(bv.getType(), useThfTuple));
+    }
+    std::string body;
+    bool ok = modelNodeToTptp(n[1],
+                              isDeclared,
+                              elemNames,
+                              promoteNames,
+                              useThfTuple,
+                              bvarNames,
+                              body);
+    for (const std::pair<Node, bool>& p : oldSet)
+    {
+      if (!p.second)
+      {
+        bvarNames.erase(p.first);
+      }
+    }
+    if (!ok)
+    {
+      return false;
+    }
+    out = std::string(n.getKind() == Kind::FORALL ? "! " : "? ") + "["
+          + join(binds, ",") + "] : ( " + body + " )";
+    return true;
+  }
+  return false;
+}
+
 }  // namespace
 
 void Smt2TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
@@ -985,29 +1296,6 @@ void Smt2TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
     (void)getFiniteDomainValues(
         ht, ht.getNodeManager(), elems, finiteTypeElems, kMaxHoFunctionDomain);
   }
-  // Name higher-order finite-domain elements for table rows.
-  for (const std::pair<const TypeNode, std::vector<Node>>& p : finiteTypeElems)
-  {
-    if (!p.first.isFunction())
-    {
-      continue;
-    }
-    std::string pref = "d_f_" + sanitizeLower(p.first.toString());
-    if (pref.empty() || pref.back() != '_')
-    {
-      pref.push_back('_');
-    }
-    for (size_t i = 0, n = p.second.size(); i < n; i++)
-    {
-      if (hoElemNames.find(p.second[i]) != hoElemNames.end())
-      {
-        continue;
-      }
-      std::stringstream ss;
-      ss << pref << i;
-      hoElemNames[p.second[i]] = sanitizeLower(ss.str());
-    }
-  }
 
   bool useThf = false;
   for (const Node& t : terms)
@@ -1029,7 +1317,65 @@ void Smt2TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
       }
     }
   }
-  if (!useThf && !hoElemNames.empty())
+  std::map<Node, std::string> hoDirectInterp;
+  bool needHoFiniteDomain = false;
+  for (const Node& t : terms)
+  {
+    TypeNode tt = t.getType();
+    if (!tt.isFunction() || !hasFunctionArgType(tt))
+    {
+      continue;
+    }
+    Node tv = resolveModelValue(m, isDeclared, t);
+    if (tv.isNull())
+    {
+      needHoFiniteDomain = true;
+      continue;
+    }
+    std::map<Node, std::string> bvarNames;
+    std::string rhs;
+    if (!modelNodeToTptp(tv,
+                         isDeclared,
+                         elemNames,
+                         promoteNames,
+                         useThf,
+                         bvarNames,
+                         rhs))
+    {
+      needHoFiniteDomain = true;
+      continue;
+    }
+    hoDirectInterp[t] =
+        "( " + sanitizeLower(t.toString()) + " = " + rhs + " )";
+  }
+  if (needHoFiniteDomain)
+  {
+    // Name higher-order finite-domain elements only as a fallback when
+    // direct HO interpretations cannot be printed.
+    for (const std::pair<const TypeNode, std::vector<Node>>& p : finiteTypeElems)
+    {
+      if (!p.first.isFunction())
+      {
+        continue;
+      }
+      std::string pref = "d_f_" + sanitizeLower(p.first.toString());
+      if (pref.empty() || pref.back() != '_')
+      {
+        pref.push_back('_');
+      }
+      for (size_t i = 0, n = p.second.size(); i < n; i++)
+      {
+        if (hoElemNames.find(p.second[i]) != hoElemNames.end())
+        {
+          continue;
+        }
+        std::stringstream ss;
+        ss << pref << i;
+        hoElemNames[p.second[i]] = sanitizeLower(ss.str());
+      }
+    }
+  }
+  if (!useThf && (!hoElemNames.empty() || !hoDirectInterp.empty()))
   {
     useThf = true;
   }
@@ -1170,69 +1516,72 @@ void Smt2TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
         << "2) )\n";
     out << "       => ( " << vDS << "1 = " << vDS << "2 ) )";
   }
-  // Finite-domain axioms for higher-order function types we materialize.
-  size_t hoTypeIndex = 0;
-  for (const std::pair<const TypeNode, std::vector<Node>>& p : finiteTypeElems)
+  if (!hoElemNames.empty())
   {
-    if (!p.first.isFunction())
+    // Finite-domain axioms for higher-order function types we materialize.
+    size_t hoTypeIndex = 0;
+    for (const std::pair<const TypeNode, std::vector<Node>>& p : finiteTypeElems)
     {
-      continue;
-    }
-    if (p.second.empty())
-    {
-      continue;
-    }
-    if (!firstDomain)
-    {
-      out << "\n    & ";
-    }
-    firstDomain = false;
-    std::stringstream fv;
-    fv << "F" << hoTypeIndex++;
-    out << "! [" << fv.str() << ": (" << typeToTptp(p.first, useThf)
-        << ")] : ( ";
-    for (size_t i = 0, n = p.second.size(); i < n; i++)
-    {
-      if (i > 0)
-      {
-        out << " | ";
-      }
-      auto hit = hoElemNames.find(p.second[i]);
-      if (hit == hoElemNames.end())
+      if (!p.first.isFunction())
       {
         continue;
       }
-      out << fv.str() << " = " << hit->second;
-    }
-    out << " )";
-    if (p.second.size() == 2)
-    {
-      auto h0 = hoElemNames.find(p.second[0]);
-      auto h1 = hoElemNames.find(p.second[1]);
-      if (h0 != hoElemNames.end() && h1 != hoElemNames.end())
+      if (p.second.empty())
       {
-        out << "\n    & " << h0->second << " != " << h1->second;
+        continue;
       }
-    }
-    else if (p.second.size() > 2)
-    {
-      out << "\n    & $distinct(";
-      bool first = true;
-      for (const Node& e : p.second)
+      if (!firstDomain)
       {
-        auto hit = hoElemNames.find(e);
+        out << "\n    & ";
+      }
+      firstDomain = false;
+      std::stringstream fv;
+      fv << "F" << hoTypeIndex++;
+      out << "! [" << fv.str() << ": (" << typeToTptp(p.first, useThf)
+          << ")] : ( ";
+      for (size_t i = 0, n = p.second.size(); i < n; i++)
+      {
+        if (i > 0)
+        {
+          out << " | ";
+        }
+        auto hit = hoElemNames.find(p.second[i]);
         if (hit == hoElemNames.end())
         {
           continue;
         }
-        if (!first)
-        {
-          out << ",";
-        }
-        first = false;
-        out << hit->second;
+        out << fv.str() << " = " << hit->second;
       }
-      out << ")";
+      out << " )";
+      if (p.second.size() == 2)
+      {
+        auto h0 = hoElemNames.find(p.second[0]);
+        auto h1 = hoElemNames.find(p.second[1]);
+        if (h0 != hoElemNames.end() && h1 != hoElemNames.end())
+        {
+          out << "\n    & " << h0->second << " != " << h1->second;
+        }
+      }
+      else if (p.second.size() > 2)
+      {
+        out << "\n    & $distinct(";
+        bool first = true;
+        for (const Node& e : p.second)
+        {
+          auto hit = hoElemNames.find(e);
+          if (hit == hoElemNames.end())
+          {
+            continue;
+          }
+          if (!first)
+          {
+            out << ",";
+          }
+          first = false;
+          out << hit->second;
+        }
+        out << ")";
+      }
     }
   }
   if (firstDomain)
@@ -1248,6 +1597,12 @@ void Smt2TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
   {
     TypeNode tt = t.getType();
     std::string tn = sanitizeLower(t.toString());
+    auto hdi = hoDirectInterp.find(t);
+    if (hdi != hoDirectInterp.end())
+    {
+      mappingConjs.push_back(hdi->second);
+      continue;
+    }
     if (!tt.isFunction())
     {
       Node v = m.getValue(t);
