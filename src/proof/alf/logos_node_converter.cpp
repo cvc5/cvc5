@@ -7,7 +7,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Implementation of ALF node conversion
+ * Implementation of Logos node conversion
  */
 
 #include "proof/alf/logos_node_converter.h"

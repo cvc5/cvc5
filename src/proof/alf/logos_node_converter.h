@@ -7,7 +7,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Implementation of ALF node conversion
+ * Implementation of Logos node conversion
  */
 #include "cvc5_private.h"
 
