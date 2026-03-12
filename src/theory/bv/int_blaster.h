@@ -169,10 +169,11 @@ class IntBlaster : protected EnvObj, public ProofGenerator
                           uint32_t size,
                           std::vector<TrustNode>& lemmas);
 
-  /** Adds the constraint forall x1,...,xn. 0 <= f(x1,...,xn) < 2^size to lemmas */
+  /** Adds the constraint forall x1,...,xn. 0 <= f(x1,...,xn) < 2^size to lemmas
+   */
   void addQuantifiedRangeConstraint(Node f,
-                          uint32_t size,
-                          std::vector<TrustNode>& lemmas);
+                                    uint32_t size,
+                                    std::vector<TrustNode>& lemmas);
 
   /** Adds a constraint that encodes bitwise and */
   void addBitwiseConstraint(Node bitwiseConstraint,
@@ -265,7 +266,8 @@ class IntBlaster : protected EnvObj, public ProofGenerator
    * bit-width. These range constraints are added with "AND" in case of exists
    * and with "IMPLIES" in case of forall.
    */
-  Node translateQuantifiedFormula(Node quantifiedNode, std::vector<TrustNode>& lemmas);
+  Node translateQuantifiedFormula(Node quantifiedNode,
+                                  std::vector<TrustNode>& lemmas);
 
   /**
    * Reconstructs a node whose main operator cannot be
