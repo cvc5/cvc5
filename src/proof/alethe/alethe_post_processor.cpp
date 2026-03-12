@@ -788,27 +788,32 @@ bool AletheProofPostprocessCallback::update(Node res,
                            new_args,
                            *cdp);
     }
-    // Both ARITH_POLY_NORM and EVALUATE, which are used by the Rare
-    // elaboration, are captured by the "rare_rewrite" rule.
     case ProofRule::ARITH_POLY_NORM:
     {
-      return addAletheStep(
-          AletheRule::RARE_REWRITE,
-          res,
-          nm->mkNode(Kind::SEXPR, d_cl, res),
-          children,
-          {NodeManager::mkRawSymbol("\"arith-poly-norm\"", nm->sExprType())},
-          *cdp);
+      return addAletheStep(AletheRule::POLY_SIMP,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           {},
+                           {},
+                           *cdp);
+    }
+    case ProofRule::ARITH_POLY_NORM_REL:
+    {
+      return addAletheStep(AletheRule::POLY_SIMP_REL,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           children,
+                           {},
+                           *cdp);
     }
     case ProofRule::EVALUATE:
     {
-      return addAletheStep(
-          AletheRule::RARE_REWRITE,
-          res,
-          nm->mkNode(Kind::SEXPR, d_cl, res),
-          children,
-          {NodeManager::mkRawSymbol("\"evaluate\"", nm->sExprType())},
-          *cdp);
+      return addAletheStep(AletheRule::EVALUATE,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           {},
+                           {},
+                           *cdp);
     }
     // If the trusted rule is a theory lemma from arithmetic, we try to phrase
     // it with "lia_generic".
