@@ -209,7 +209,8 @@ bool AletheProofPostprocessCallback::updateTheoryRewriteProofRewriteRule(
     {
       // The conclusion of this rule has the following form:
       //   (forall ((x T)) (or (not (= x t)) F1 ... Fn)) = (or F1 ... Fn){x->t}
-      // where in particular n can be 0, so the "F1 ... Fn" is just "false".
+      // where in particular n can be 0, so "(or (not (= x t)) F1 ... Fn)" is
+      // just "(not (= x t))" in the LHS and "(or F1 ... Fn)" is "false".
       //
       // The translation is:
       //
