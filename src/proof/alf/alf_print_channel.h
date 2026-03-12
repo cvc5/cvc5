@@ -158,34 +158,53 @@ class AlfPrintChannelPre : public AlfPrintChannel
   void processInternal(const Node& n);
 };
 
-/** Prints the proof to output stream d_out */
+/** 
+ * Prints the proof to output stream d_out in the form expected by Logos.
+ * 
+ * Eunoia proof commands step, step-pop, assume, assume-pop correspond
+ * one-to-one with the output of this proof channel. An example of the proof
+ * output from this checker is the following:
+ *
+ * ...
+ * def s0 : CState := logos_init_state
+ * def s1 : CState := (logos_invoke_assume s0 t4)
+ * def s2 : CState := (logos_invoke_assume s1 t7)
+ * def s3 : CState := (logos_invoke_cmd s2 (CCmd.step CRule.symm CArgList.nil
+ *                    (CIndexList.cons 0 CIndexList.nil)))
+ * def s4 : CState := (logos_invoke_cmd s3 (CCmd.step CRule.contra CArgList.nil
+ *                    (CIndexList.cons 2 (CIndexList.cons 0 CIndexList.nil))))
+ * #eval! (logos_state_is_refutation s4)
+ * 
+ * Note that premise ids refer to the relative distance of the premise from the
+ * top of the stack, where 0 refers to the last formula proven, and so on.
+ */
 class CpcLogosChannelOut : public AlfPrintChannelOut
 {
  public:
   CpcLogosChannelOut(std::ostream& out, const LetBinding* lbind);
-  void printNode(TNode n) override;
-  void printTypeNode(TypeNode tn) override;
+  /** print assume */
   void printAssume(TNode n, size_t i, bool isPush) override;
+  /** print step */
   void printStep(const std::string& rname,
                  TNode n,
                  size_t i,
                  const std::vector<size_t>& premises,
                  const std::vector<Node>& args,
                  bool isPop = false) override;
+  /** print trust step, gives an error */
   void printTrustStep(ProofRule r,
                       TNode n,
                       size_t i,
                       const std::vector<size_t>& premises,
                       const std::vector<Node>& args,
                       TNode conc) override;
-  std::ostream& getOStream() { return d_out; }
   /**
    * Dump the accumulated output to d_out.
    */
   void finalize();
 
  private:
-  /** Alternative: state */
+  /** The output state definition */
   std::stringstream d_stateDef;
   /** 
    * mapping premise ids to their distance from the top of the stack of formulas
@@ -198,9 +217,6 @@ class CpcLogosChannelOut : public AlfPrintChannelOut
   std::vector<size_t> d_stackPush;
   /** an identifier for naming states */
   size_t d_stateId;
-  std::string replace_all(std::string str,
-                          const std::string& from,
-                          const std::string& to);
 };
 
 }  // namespace proof

@@ -179,7 +179,7 @@ Node LogosNodeConverter::postConvert(Node n)
   return n;
 }
 
-std::string replace_all(std::string str,
+std::string LogosNodeConverter::replace_all(std::string str,
                         const std::string& from,
                         const std::string& to)
 {
@@ -196,6 +196,7 @@ std::string replace_all(std::string str,
 
 std::string LogosNodeConverter::cleanSmtId(const std::string& id)
 {
+  // A generic method for turning an SMT-LIB identifier into a Lean identifier.
   std::string idc = id;
   idc = replace_all(idc, "++", "concat");
   idc = replace_all(idc, "+", "plus");

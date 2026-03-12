@@ -24,8 +24,31 @@ namespace cvc5::internal {
 namespace proof {
 
 /**
- * This is a helper class for the ALF printer that converts nodes into
- * form that ALF expects. It should only be used by the ALF printer.
+ * This is a helper class for the Eunoia printer that prints a proof in the
+ * format expected by the Logos checker.
+ * 
+ * An example of such a proof is:
+ * 
+ * import Cpc.Logos
+ * open Eo
+ * def t1 : Term := (Term.UConst 1 Term.Int)
+ * def t2 : Term := (Term.UConst 2 Term.Int)
+ * def t3 : Term := (Term.Apply Term.eq t2)
+ * def t4 : Term := (Term.Apply t3 t1)
+ * def t5 : Term := (Term.Apply Term.eq t1)
+ * def t6 : Term := (Term.Apply t5 t2)
+ * def t7 : Term := (Term.Apply Term.not t6)
+ * def s0 : CState := logos_init_state
+ * def s1 : CState := (logos_invoke_assume s0 t4)
+ * def s2 : CState := (logos_invoke_assume s1 t7)
+ * def s3 : CState := (logos_invoke_cmd s2 (CCmd.step CRule.symm CArgList.nil
+ *                    (CIndexList.cons 0 CIndexList.nil)))
+ * def s4 : CState := (logos_invoke_cmd s3 (CCmd.step CRule.contra CArgList.nil
+ *                    (CIndexList.cons 2 (CIndexList.cons 0 CIndexList.nil))))
+ * #eval! (logos_state_is_refutation s4)
+ * 
+ * This node converter involves rewriting cvc5 terms to their corresponding
+ * deep embedding syntax in the Lean signature.
  */
 class LogosNodeConverter : public AlfNodeConverter
 {
@@ -43,7 +66,10 @@ class LogosNodeConverter : public AlfNodeConverter
    * passed as arguments to terms and proof rules.
    */
   Node typeAsNode(TypeNode tni) override;
-
+  /** Replace all string utility, replaces all occurrences of from by to in str. */
+static std::string replace_all(std::string str,
+                        const std::string& from,
+                        const std::string& to);
  private:
   /** Returns the Lean identifier for an SMT-LIB identifier. */
   std::string cleanSmtId(const std::string& str);

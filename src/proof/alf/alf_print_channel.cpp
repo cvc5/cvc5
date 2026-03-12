@@ -19,6 +19,7 @@
 #include "printer/printer.h"
 #include "proof/trust_id.h"
 #include "rewriter/rewrite_db.h"
+#include "proof/alf/logos_node_converter.h"
 
 namespace cvc5::internal {
 namespace proof {
@@ -255,18 +256,6 @@ CpcLogosChannelOut::CpcLogosChannelOut(std::ostream& out,
   d_stateDef << "def s0 : CState := logos_init_state" << std::endl;
 }
 
-void CpcLogosChannelOut::printNode(TNode n)
-{
-  d_out << " ";
-  printNodeInternal(d_out, n);
-}
-
-void CpcLogosChannelOut::printTypeNode(TypeNode tn)
-{
-  d_out << " ";
-  printTypeNodeInternal(d_out, tn);
-}
-
 void CpcLogosChannelOut::printAssume(TNode n, size_t i, bool isPush)
 {
   Assert(!n.isNull());
@@ -290,21 +279,6 @@ void CpcLogosChannelOut::printAssume(TNode n, size_t i, bool isPush)
   d_stackSize++;
 }
 
-std::string CpcLogosChannelOut::replace_all(std::string str,
-                                            const std::string& from,
-                                            const std::string& to)
-{
-  if (from.empty()) return str;  // avoid infinite loop
-
-  std::size_t pos = 0;
-  while ((pos = str.find(from, pos)) != std::string::npos)
-  {
-    str.replace(pos, from.length(), to);
-    pos += to.length();  // move past the replacement
-  }
-  return str;
-}
-
 void CpcLogosChannelOut::printStep(const std::string& rname,
                                    TNode n,
                                    size_t i,
@@ -312,7 +286,8 @@ void CpcLogosChannelOut::printStep(const std::string& rname,
                                    const std::vector<Node>& args,
                                    bool isPop)
 {
-  std::string rnameUse = replace_all(rname, "-", "_");
+  // must convert - to _ from RARE rule names.
+  std::string rnameUse = LogosNodeConverter::replace_all(rname, "-", "_");
   d_stateId++;
   d_stateDef << "def s" << d_stateId << " : CState := (logos_invoke_cmd s"
              << (d_stateId - 1);
