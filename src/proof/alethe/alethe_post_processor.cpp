@@ -1510,6 +1510,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     //   (cl (= (<kind> f? t1 ... tn) (<kind> f? s1 ... sn)))
     case ProofRule::CONG:
     case ProofRule::NARY_CONG:
+    case ProofRule::PAIRWISE_CONG:
     {
       if (res[0].isClosure())
       {
@@ -1530,10 +1531,16 @@ bool AletheProofPostprocessCallback::update(Node res,
                              new_args,
                              *cdp);
       }
+      // ignore prefix that is refl
+      auto firstNonRefl =
+          std::find_if(children.begin(), children.end(), [](const Node& c) {
+            Assert(c.getKind() == Kind::EQUAL);
+            return c[0] != c[1];
+          });
       return addAletheStep(AletheRule::CONG,
                            res,
                            nm->mkNode(Kind::SEXPR, d_cl, res),
-                           children,
+                           {firstNonRefl, children.end()},
                            {},
                            *cdp);
     }
