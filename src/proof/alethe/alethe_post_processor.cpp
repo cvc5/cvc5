@@ -1424,22 +1424,15 @@ bool AletheProofPostprocessCallback::update(Node res,
                              *cdp);
       }
       // ignore prefix that is refl
-      std::vector<Node> newChildren;
-      bool allRefl = true;
-      for (const Node& c : children)
-      {
-        Assert(c.getKind() == Kind::EQUAL);
-        if (allRefl && c[0] == c[1])
-        {
-          continue;
-        }
-        allRefl = false;
-        newChildren.push_back(c);
-      }
+      auto firstNonRefl =
+          std::find_if(children.begin(), children.end(), [](const Node& c) {
+            Assert(c.getKind() == Kind::EQUAL);
+            return c[0] != c[1];
+          });
       return addAletheStep(AletheRule::CONG,
                            res,
                            nm->mkNode(Kind::SEXPR, d_cl, res),
-                           newChildren,
+                           {firstNonRefl, children.end()},
                            {},
                            *cdp);
     }
