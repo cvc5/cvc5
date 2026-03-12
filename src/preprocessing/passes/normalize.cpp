@@ -451,7 +451,6 @@ size_t numDigits(size_t n)
  * @param freeVar2node Map for free variable substitutions.
  * @param boundVar2node Map for bound variable substitutions.
  * @param normalizedName Map for storing normalized variable names.
- * @param normalizedSorts Map for normalized sorts.
  * @param nodeManager The node manager for creating new nodes.
  * @param d_preprocContext The preprocessing pass context.
  * @param sortNormalizer The sort normalizer for type conversion.
@@ -462,7 +461,6 @@ Node rename(const Node& n,
             std::unordered_map<Node, Node>& freeVar2node,
             std::unordered_map<Node, Node>& boundVar2node,
             std::unordered_map<std::string, std::string>& normalizedName,
-            std::unordered_map<TypeNode, TypeNode> normalizedSorts,
             NodeManager* nodeManager,
             PreprocessingPassContext* d_preprocContext,
             NormalizeSortNodeConverter& sortNormalizer,
@@ -1040,7 +1038,6 @@ PreprocessingPassResult Normalize::applyInternal(
                             freeVar2node,
                             boundVar2node,
                             normalizedName,
-                            normalizedSorts,
                             nodeManager(),
                             d_preprocContext,
                             sortNormalizer,
