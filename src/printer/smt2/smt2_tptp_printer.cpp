@@ -163,7 +163,7 @@ std::string typeToTptp(TypeNode tn, bool useThfTuple = false)
       std::string atStr = typeToTptp(at, useThfTuple);
       if (at.isFunction())
       {
-        atStr = "(" + atStr + ")";
+        atStr = "( " + atStr + " )";
       }
       argStrs.push_back(atStr);
     }
@@ -197,6 +197,26 @@ std::string join(const std::vector<std::string>& xs, const std::string& sep)
     ss << xs[i];
   }
   return ss.str();
+}
+
+std::string mkApplyString(const std::string& op,
+                          const std::vector<std::string>& args,
+                          bool useThf)
+{
+  if (args.empty())
+  {
+    return op;
+  }
+  if (useThf)
+  {
+    std::string cur = op;
+    for (const std::string& a : args)
+    {
+      cur = "(" + cur + " @ " + a + ")";
+    }
+    return cur;
+  }
+  return op + "(" + join(args, ",") + ")";
 }
 
 void cartesianProduct(const std::vector<std::vector<Node>>& doms,
@@ -885,7 +905,7 @@ bool modelNodeToTptp(const Node& n,
     {
       return false;
     }
-    out = pit->second + "(" + eit->second + ")";
+    out = mkApplyString(pit->second, std::vector<std::string>{eit->second}, useThfTuple);
     return true;
   }
   if (isDeclared.find(n) != isDeclared.end())
@@ -968,7 +988,7 @@ bool modelNodeToTptp(const Node& n,
       }
       args.push_back(a);
     }
-    out = head + "(" + join(args, ",") + ")";
+    out = mkApplyString(head, args, useThfTuple);
     return true;
   }
   if (n.getKind() == Kind::EQUAL)
@@ -1345,8 +1365,15 @@ void Smt2TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
       needHoFiniteDomain = true;
       continue;
     }
-    hoDirectInterp[t] =
-        "( " + sanitizeLower(t.toString()) + " = " + rhs + " )";
+    const std::string lhs = sanitizeLower(t.toString());
+    if (rhs.rfind("( ^ [", 0) == 0)
+    {
+      hoDirectInterp[t] = "( " + lhs + "\n      = " + rhs + " )";
+    }
+    else
+    {
+      hoDirectInterp[t] = "( " + lhs + " = " + rhs + " )";
+    }
   }
   if (needHoFiniteDomain)
   {
@@ -1463,8 +1490,8 @@ void Smt2TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
     std::string vS = sanitizeUpper(sN.substr(0, 1)); // variable of the original sort
     std::string vDS = "D" + vS; // variable of the domain sort
     out << "! [" << vS << ": " << stN << "] :\n";
-    out << "      ? [" << vDS << ": " << dsN << "] : ( " << vS << " = " << pN
-        << "(" << vDS << ") )";
+    out << "      ? [" << vDS << ": " << dsN << "] : ( " << vS << " = "
+        << mkApplyString(pN, std::vector<std::string>{vDS}, useThf) << " )";
 
     const std::vector<Node>& se = elems[s];
     if (se.size() == 2)
@@ -1512,8 +1539,11 @@ void Smt2TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
     }
     out << "\n    & ! [" << vDS << "1: " << dsN << "," << vDS << "2: " << dsN
         << "] :\n";
-    out << "        ( ( " << pN << "(" << vDS << "1) = " << pN << "(" << vDS
-        << "2) )\n";
+    out << "        ( ( "
+        << mkApplyString(pN, std::vector<std::string>{vDS + "1"}, useThf)
+        << " = "
+        << mkApplyString(pN, std::vector<std::string>{vDS + "2"}, useThf)
+        << " )\n";
     out << "       => ( " << vDS << "1 = " << vDS << "2 ) )";
   }
   if (!hoElemNames.empty())
@@ -1628,7 +1658,9 @@ void Smt2TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
         continue;
       }
       std::stringstream ss;
-      ss << "( " << tn << " = " << promoteNames[tt] << "(" << evn << ") )";
+      ss << "( " << tn << " = "
+         << mkApplyString(promoteNames[tt], std::vector<std::string>{evn}, useThf)
+         << " )";
       mappingConjs.push_back(ss.str());
       continue;
     }
@@ -1711,18 +1743,18 @@ void Smt2TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
       {
         ss << "~ ";
       }
-      ss << tn << "(";
+      std::vector<std::string> argVals;
+      argVals.reserve(tup.size());
       bool tupleOk = true;
       for (size_t i = 0, n = tup.size(); i < n; i++)
       {
-        if (i > 0)
-        {
-          ss << ",";
-        }
         TypeNode at = argTypes[i];
         if (at.isUninterpretedSort())
         {
-          ss << promoteNames[at] << "(" << elemNames[tup[i]] << ")";
+          argVals.push_back(
+              mkApplyString(promoteNames[at],
+                            std::vector<std::string>{elemNames[tup[i]]},
+                            useThf));
         }
         else
         {
@@ -1732,19 +1764,21 @@ void Smt2TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
             tupleOk = false;
             break;
           }
-          ss << hit->second;
+          argVals.push_back(hit->second);
         }
       }
       if (!tupleOk)
       {
         continue;
       }
-      ss << ")";
+      ss << mkApplyString(tn, argVals, useThf);
       if (!isPred)
       {
-        ss << " = " << promoteNames[tt.getRangeType()] << "(" << vname << ")";
-        ss << " )";
-        mappingConjs.push_back("( " + ss.str());
+        ss << " = "
+           << mkApplyString(promoteNames[tt.getRangeType()],
+                            std::vector<std::string>{vname},
+                            useThf);
+        mappingConjs.push_back("( " + ss.str() + " )");
       }
       else
       {

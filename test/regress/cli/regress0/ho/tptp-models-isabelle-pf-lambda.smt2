@@ -6,7 +6,7 @@
 ; EXPECT:     a: $tType ).
 ; EXPECT:
 ; EXPECT: thf(p_decl,type,
-; EXPECT:     p: (a > a) > $o ).
+; EXPECT:     p: ( a > a ) > $o ).
 ; EXPECT:
 ; EXPECT: thf(f_decl,type,
 ; EXPECT:     f: a > a ).
@@ -25,13 +25,14 @@
 ; EXPECT:
 ; EXPECT: thf(tptp_models_isabelle_pf_lambda_smt2,interpretation,
 ; EXPECT:     ( ! [A: a] :
-; EXPECT:       ? [DA: d_a] : ( A = d2a(DA) )
+; EXPECT:       ? [DA: d_a] : ( A = (d2a @ DA) )
 ; EXPECT:     & ! [DA: d_a] : ( DA = d_a_0 )
 ; EXPECT:     & ! [DA1: d_a,DA2: d_a] :
-; EXPECT:         ( ( d2a(DA1) = d2a(DA2) )
+; EXPECT:         ( ( (d2a @ DA1) = (d2a @ DA2) )
 ; EXPECT:        => ( DA1 = DA2 ) )
-; EXPECT:     & ( p = ( ^ [Bound_variable: a > a] : $false ) )
-; EXPECT:     & ( f(d2a(d_a_0)) = d2a(d_a_0) ) ) ).
+; EXPECT:     & ( p
+; EXPECT:       = ( ^ [Bound_variable: a > a] : $false ) )
+; EXPECT:     & ( (f @ (d2a @ d_a_0)) = (d2a @ d_a_0) ) ) ).
 ; EXPECT: %--------------------------------------------------------
 (set-logic HO_ALL)
 (set-option :produce-models true)
