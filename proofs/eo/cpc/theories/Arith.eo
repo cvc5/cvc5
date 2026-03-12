@@ -6,35 +6,28 @@
 (declare-consts <numeral> Int)
 (declare-consts <rational> Real)
 
-; define: $arith_mk_zero
+; program: $arith_mk_zero
 ; args:
-; - u Type : The type of the zero, which should be Int or Real.
+; - T Type : The type of the zero, which should be Int or Real.
 ; return: the zero for the given type.
-(define $arith_mk_zero ((T Type))
-  (eo::ite (eo::is_eq T Int) 0 (eo::requires T Real 0/1)))
+(program $arith_mk_zero ((T Type))
+  :signature ((eo::quote T)) T
+  (
+  (($arith_mk_zero Int)   0)
+  (($arith_mk_zero Real) 0/1)
+  )
+)
 
-; define: $arith_mk_one
+; program: $arith_mk_one
 ; args:
-; - u Type : The type of the zero, which should be Int or Real.
-; return: the zero for the given type.
-(define $arith_mk_one ((T Type))
-  (eo::ite (eo::is_eq T Int) 1 (eo::requires T Real 1/1)))
-
-; program: $arith_typeunion
-; args:
-; - T Type: An arithmetic type.
-; - U Type: An arithmetic type.
-; return: >
-;   The "type union" of T and U. This method is used for the type rules
-;   for operators that allow mixed arithmetic.
-(program $arith_typeunion ()
-    :signature (Type Type) Type
-    (
-      (($arith_typeunion Int Int) Int)
-      (($arith_typeunion Real Real) Real)
-      (($arith_typeunion Real Int) Real)
-      (($arith_typeunion Int Real) Real)
-    )
+; - T Type : The type of the one, which should be Int or Real.
+; return: the one for the given type.
+(program $arith_mk_one ((T Type))
+  :signature ((eo::quote T)) T
+  (
+  (($arith_mk_one Int)  1)
+  (($arith_mk_one Real) 1/1)
+  )
 )
 
 ; program: $is_arith_type
@@ -56,13 +49,12 @@
 ;   it with right-assoc-nil to model cvc5's treatment of variadic functions.
 (declare-parameterized-const + ((T Type :implicit))
   (-> T T (eo::requires ($is_arith_type T) true T)) :right-assoc-nil ($arith_mk_zero T))
-; disclaimer: This function is overloaded in SMT-LIB and does not permit mixed arithmetic.
-(declare-parameterized-const - ((T Type :implicit) (U Type :implicit))
+(declare-parameterized-const - ((T Type :implicit))
   (-> T T (eo::requires ($is_arith_type T) true T)) :left-assoc)
 ; disclaimer: >
 ;   This function is declared to be :left-assoc in SMT-LIB. We declare
 ;   it with right-assoc-nil to model cvc5's treatment of variadic functions.
-(declare-parameterized-const * ((T Type :implicit) (U Type :implicit))
+(declare-parameterized-const * ((T Type :implicit))
   (-> T T (eo::requires ($is_arith_type T) true T)) :right-assoc-nil ($arith_mk_one T))
 
 (declare-parameterized-const < ((T Type :implicit))
