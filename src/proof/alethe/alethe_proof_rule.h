@@ -396,6 +396,9 @@ enum class AletheRule : uint32_t
   ALL_SIMPLIFY,
   // Simplifications based on AC, identity, duplicates
   ACI_SIMP,
+  EVALUATE,
+  POLY_SIMP,
+  POLY_SIMP_REL,
   RARE_REWRITE,
   // ======== let
   // G,x1->F1,...,xn->Fn > j. (= G G')
