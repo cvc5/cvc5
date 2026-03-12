@@ -82,6 +82,13 @@ enum class AletheRule : uint32_t
   // ======== not_not
   // > i.  (cl (not(not(not F)))  F)
   NOT_NOT,
+  // ======== and_intro
+  // G > i1. F1
+  // ...
+  // G > in. Fn
+  // ...
+  // G > k. (and F1 ... Fn)
+  AND_INTRO,
   // ======== and_pos
   // > i.  (cl (not(and F1 ... Fn))  Fi)
   // , with 1 <= i <= n
