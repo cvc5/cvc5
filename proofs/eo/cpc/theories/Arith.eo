@@ -57,12 +57,12 @@
 (declare-parameterized-const + ((T Type :implicit))
   (-> T T (eo::requires ($is_arith_type T) true T)) :right-assoc-nil ($arith_mk_zero T))
 ; disclaimer: This function is overloaded in SMT-LIB and does not permit mixed arithmetic.
-(declare-parameterized-const - ((T Type :implicit) (U Type :implicit))
+(declare-parameterized-const - ((T Type :implicit))
   (-> T T (eo::requires ($is_arith_type T) true T)) :left-assoc)
 ; disclaimer: >
 ;   This function is declared to be :left-assoc in SMT-LIB. We declare
 ;   it with right-assoc-nil to model cvc5's treatment of variadic functions.
-(declare-parameterized-const * ((T Type :implicit) (U Type :implicit))
+(declare-parameterized-const * ((T Type :implicit))
   (-> T T (eo::requires ($is_arith_type T) true T)) :right-assoc-nil ($arith_mk_one T))
 
 (declare-parameterized-const < ((T Type :implicit))
