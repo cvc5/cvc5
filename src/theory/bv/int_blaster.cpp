@@ -51,7 +51,7 @@ IntBlaster::IntBlaster(Env& env,
     : EnvObj(env),
       d_binarizeCache(userContext()),
       d_intblastCache(userContext()),
-      d_rangeAssertions(userContext()),
+      d_rangeNodes(userContext()),
       d_bitwiseAssertions(userContext()),
       d_iandUtils(nodeManager()),
       d_mode(mode),
@@ -83,11 +83,39 @@ void IntBlaster::addRangeConstraint(Node node,
   Node rangeConstraint = mkRangeConstraint(node, size);
   Trace("int-blaster-debug")
       << "range constraint computed: " << rangeConstraint << std::endl;
-  if (d_rangeAssertions.find(rangeConstraint) == d_rangeAssertions.end())
+  if (d_rangeNodes.find(node) == d_rangeNodes.end())
   {
     Trace("int-blaster-debug")
-        << "range constraint added to cache and lemmas " << std::endl;
-    d_rangeAssertions.insert(rangeConstraint);
+        << "node added to cache and constraints added to lemmas " << std::endl;
+    d_rangeNodes.insert(node);
+    TrustNode trn = TrustNode::mkTrustLemma(rangeConstraint, this);
+    lemmas.push_back(trn);
+  }
+}
+
+void IntBlaster::addQuantifiedRangeConstraint(Node f,
+                                    uint32_t size,
+                                    std::vector<TrustNode>& lemmas)
+{
+  std::vector<TypeNode> argTypes = f.getType().getArgTypes();
+  std::vector<Node> boundVars;
+  for (const TypeNode& tn : argTypes) {
+    Node newBoundVar = NodeManager::mkBoundVar(tn);
+    boundVars.push_back(newBoundVar);
+  }
+  std::vector<Node> inputs = boundVars;
+  inputs.insert(inputs.begin(), f);
+  Node apply = d_nm->mkNode(Kind::APPLY_UF, inputs);
+  Node rangeConstraint = mkRangeConstraint(apply, size);   
+  Node boundVarList = d_nm->mkNode(Kind::BOUND_VAR_LIST, boundVars);
+  rangeConstraint = d_nm->mkNode(Kind::FORALL, boundVarList, rangeConstraint);
+  Trace("int-blaster-debug")
+      << "quantified range constraint computed: " << rangeConstraint << std::endl;
+  if (d_rangeNodes.find(f) == d_rangeNodes.end())
+  {
+    Trace("int-blaster-debug")
+        << "function added to cache, and quantified range constraint added to cache and lemmas " << std::endl;
+    d_rangeNodes.insert(f);
     TrustNode trn = TrustNode::mkTrustLemma(rangeConstraint, this);
     lemmas.push_back(trn);
   }
@@ -669,7 +697,7 @@ Node IntBlaster::translateWithChildren(
     }
     case Kind::FORALL:
     {
-      returnNode = translateQuantifiedFormula(original);
+      returnNode = translateQuantifiedFormula(original, lemmas);
       break;
     }
     default:
@@ -1021,7 +1049,7 @@ Node IntBlaster::createShiftNode(std::vector<Node> children,
   return ite;
 }
 
-Node IntBlaster::translateQuantifiedFormula(Node quantifiedNode)
+Node IntBlaster::translateQuantifiedFormula(Node quantifiedNode, std::vector<TrustNode>& lemmas)
 {
   Kind k = quantifiedNode.getKind();
   Node boundVarList = quantifiedNode[0];
@@ -1060,8 +1088,17 @@ Node IntBlaster::translateQuantifiedFormula(Node quantifiedNode)
   // that involve quantified variables
   std::unordered_set<Node> applys;
   expr::getKindSubterms(quantifiedNode[1], Kind::APPLY_UF, true, applys);
-  if (applys.size() > 0) {
-     throw LogicException("bv-to-int does not support the combination of quantifiers and uninterpreted functions");
+  for (const Node& apply : applys) {
+    Node f = apply.getOperator();
+    
+    TypeNode range = f.getType().getRangeType();
+    if (range.isBitVector())
+    {
+      Assert(d_intblastCache.find(f) != d_intblastCache.end());
+      Assert(!d_intblastCache[f].get().isNull());
+      Node translated_f = d_intblastCache[f];
+      addQuantifiedRangeConstraint(translated_f, range.getBitVectorSize(), lemmas);
+    }
   }
 
   // the body of the quantifier
