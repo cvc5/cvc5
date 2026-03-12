@@ -1408,22 +1408,31 @@
 
   )
 )
+; program: $str_arith_entail_simple_rec
+; args:
+; - p @Polynomial: A polynomial term to process.
+; return: >
+;   true if we can show p is greater than or equal to 0 using the fact that length
+;   is non-negative and basic properties of arithmetic.
+(program $str_arith_entail_simple_rec ((s String) (q Real) (p @Polynomial :list) (t eo::List :list))
+  :signature (@Polynomial) Bool
+  (
+  (($str_arith_entail_simple_rec @poly.zero) true)
+  (($str_arith_entail_simple_rec (@poly (@mon (eo::List::cons (str.len s) t) q) p))
+    ($str_arith_entail_simple_rec (@poly (@mon t q) p)))
+  (($str_arith_entail_simple_rec (@poly (@mon eo::List::nil q) p))
+    (eo::ite (eo::is_neg q) false ($str_arith_entail_simple_rec p)))
+  )
+)
 
 ; program: $str_arith_entail_simple
 ; args:
-; - n T: An arithmetic term to process.
+; - t Int: An arithmetic term to process.
 ; return: >
-;   true if we can show n is greater than or equal 0 using the fact that length
+;   true if we can show t is greater than or equal to 0 using the fact that length
 ;   is non-negative and basic properties of arithmetic.
-(program $str_arith_entail_simple ((T Type) (s String) (n1 T) (n2 T :list))
-  :signature (T) Bool
-  (
-    (($str_arith_entail_simple (str.len s)) true)
-    (($str_arith_entail_simple (+ n1 n2))   (eo::ite ($str_arith_entail_simple n1) ($str_arith_entail_simple n2) false))
-    (($str_arith_entail_simple (* n1 n2))   (eo::ite ($str_arith_entail_simple n1) ($str_arith_entail_simple n2) false))
-    (($str_arith_entail_simple n1)          (eo::not (eo::is_neg n1)))
-  )
-)
+(define $str_arith_entail_simple ((t Int))
+  ($str_arith_entail_simple_rec ($get_arith_poly_norm t)))
 
 ; program: $str_arith_entail_simple_pred
 ; args:
@@ -1436,8 +1445,8 @@
 (program $str_arith_entail_simple_pred ((n Int) (m Int))
   :signature (Bool) Bool
   (
-    (($str_arith_entail_simple_pred (>= n m))  ($str_arith_entail_simple ($arith_poly_to_term (- n m))))
-    (($str_arith_entail_simple_pred (> n m))   ($str_arith_entail_simple ($arith_poly_to_term (- n (+ m 1)))))
+  (($str_arith_entail_simple_pred (>= n m))  ($str_arith_entail_simple (- n m)))
+  (($str_arith_entail_simple_pred (> n m))   ($str_arith_entail_simple (- n (+ m 1))))
   )
 )
 
