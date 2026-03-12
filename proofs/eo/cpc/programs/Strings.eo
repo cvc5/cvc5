@@ -1412,7 +1412,7 @@
 ; args:
 ; - p @Polynomial: A polynomial term to process.
 ; return: >
-;   true if we can show p is greater than or equal 0 using the fact that length
+;   true if we can show p is greater than or equal to 0 using the fact that length
 ;   is non-negative and basic properties of arithmetic.
 (program $str_arith_entail_simple_rec ((s String) (q Real) (p @Polynomial :list) (t eo::List :list))
   :signature (@Polynomial) Bool
@@ -1427,9 +1427,9 @@
 
 ; program: $str_arith_entail_simple
 ; args:
-; - n T: An arithmetic term to process.
+; - t Int: An arithmetic term to process.
 ; return: >
-;   true if we can show n is greater than or equal 0 using the fact that length
+;   true if we can show t is greater than or equal to 0 using the fact that length
 ;   is non-negative and basic properties of arithmetic.
 (define $str_arith_entail_simple ((t Int))
   ($str_arith_entail_simple_rec ($get_arith_poly_norm t)))

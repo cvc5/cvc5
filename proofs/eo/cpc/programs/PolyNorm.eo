@@ -68,8 +68,8 @@
 
 ; program: $mvar_mul_mvar
 ; args:
-; - a X: The first monomial variable to multiply.
-; - c Y: The second monomial variable to multiply.
+; - a eo::List: The first monomial variable to multiply.
+; - c eo::List: The second monomial variable to multiply.
 ; return: the multiplication of the given monomial variables.
 (program $mvar_mul_mvar ((T Type) (U Type) (a1 T) (a2 eo::List :list) (c1 U) (c2 eo::List :list))
   :signature (eo::List eo::List) eo::List
