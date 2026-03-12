@@ -662,10 +662,11 @@ bool AletheProofPostprocessCallback::update(Node res,
       std::map<Node, Node> emptyMap;
       Node t = res[0];
       Node tf = applyAcSimp(d_env, emptyMap, t);
-      Kind k = res.getKind();
+      Kind k = t.getKind();
       // if the simplification did not result in a term that would simplify to
       // the expected constant, abort. For this the kind of tf must be the same
-      // as of t and one of its arguments must be res[1].
+      // as of t and one of its arguments must be res[1] (the absorbing
+      // constant).
       bool success = false;
       for (const Node& ch : tf)
       {
@@ -675,19 +676,20 @@ bool AletheProofPostprocessCallback::update(Node res,
           break;
         }
       }
-      if (!success || k != tf.getKind())
+      if (!success || k != tf.getKind() || (k != Kind::OR && k != Kind::AND))
       {
-        return addAletheStep(AletheRule::HOLE,
-                             res,
-                             nm->mkNode(Kind::SEXPR, d_cl, res),
-                             {},
-                             {},
-                             *cdp);
+        return addAletheStep(
+            AletheRule::HOLE,
+            res,
+            nm->mkNode(Kind::SEXPR, d_cl, res),
+            {},
+            {nm->mkRawSymbol("\"failed absorb\"", nm->sExprType())},
+            *cdp);
       }
       Node vp1 = nm->mkNode(Kind::EQUAL, t, tf);
       Node vp2 = nm->mkNode(Kind::EQUAL, tf, res[1]);
       // if the kind was not one of these, the simplification above would have failed
-      Assert(k == Kind::OR || k == Kind::AND);
+      Assert(k == Kind::OR || k == Kind::AND) << "Kind is " << k;
       AletheRule rule =
           k == Kind::OR ? AletheRule::OR_SIMPLIFY : AletheRule::AND_SIMPLIFY;
       return addAletheStep(AletheRule::AC_SIMP,
