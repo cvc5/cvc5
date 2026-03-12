@@ -2559,6 +2559,15 @@ bool AletheProofPostprocessCallback::update(Node res,
       }
       return success;
     }
+    case ProofRule::ACI_NORM:
+    {
+      return addAletheStep(AletheRule::ACI_SIMP,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           {},
+                           {},
+                           *cdp);
+    }
     default:
     {
       Trace("alethe-proof")
