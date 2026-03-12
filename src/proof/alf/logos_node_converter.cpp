@@ -271,8 +271,6 @@ Node LogosNodeConverter::typeAsNode(TypeNode tn)
   else
   {
     // dummy symbol whose name is the type printed
-    // this suffices since ALF faithfully represents all types.
-    // note we cannot letify types (same as in SMT-LIB)
     std::stringstream ss;
     ss << "Term." << tn;
     ret = mkInternalSymbol(ss.str(), d_sortType);
