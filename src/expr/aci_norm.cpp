@@ -36,8 +36,6 @@ Node getNullTerminator(NodeManager* nm, Kind k, TypeNode tn)
     case Kind::AND:
     case Kind::SEP_STAR: nullTerm = nm->mkConst(true); break;
     case Kind::ADD:
-      // Note that we ignore the type. This is safe since ADD is permissive
-      // for subtypes.
       nullTerm = tn.isInteger() ? nm->mkConstInt(Rational(0))
                                 : nm->mkConstReal(Rational(0));
       break;
