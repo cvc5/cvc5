@@ -1001,7 +1001,7 @@ bool TheoryArithPrivate::ppAssert(TrustNode tin,
         // substitution is integral
         Trace("simplify") << "TheoryArithPrivate::solve(): substitution "
                           << minVar << " |-> " << elim << endl;
-        Assert(elim.getType() == minVar.getType());
+        AssertEqual(elim.getType(), minVar.getType());
         outSubstitutions.addSubstitutionSolved(minVar, elim, tin);
         return true;
       }

@@ -1418,7 +1418,7 @@ void TheorySetsRels::check(Theory::Effort level)
 
   bool TheorySetsRels::hasTerm(Node a) { return d_state.hasTerm(a); }
   bool TheorySetsRels::areEqual( Node a, Node b ){
-    Assert(a.getType() == b.getType());
+    AssertEqual(a.getType(), b.getType());
     Trace("rels-eq") << "[sets-rels]**** checking equality between " << a << " and " << b << std::endl;
     if(a == b) {
       return true;

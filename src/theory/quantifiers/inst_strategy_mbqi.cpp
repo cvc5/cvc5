@@ -392,7 +392,7 @@ bool InstStrategyMbqi::tryInstantiation(
                     << ", use arbitrary term in query" << std::endl;
       mvt = NodeManager::mkGroundTerm(ov.getType());
     }
-    Assert(v.getType() == mvt.getType());
+    AssertEqual(v.getType(), mvt.getType());
     fvToInst.add(v, mvt);
   }
 
