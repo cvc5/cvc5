@@ -38,6 +38,7 @@ void QuantifiersProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(ProofRule::ALPHA_EQUIV, this);
   pc->registerChecker(ProofRule::QUANT_VAR_REORDERING, this);
   pc->registerChecker(ProofRule::EXISTS_STRING_LENGTH, this);
+  pc->registerChecker(ProofRule::EXISTS_INV_CONDITION, this);
 }
 
 Node QuantifiersProofRuleChecker::checkInternal(
@@ -152,7 +153,8 @@ Node QuantifiersProofRuleChecker::checkInternal(
     }
     return eq;
   }
-  else if (id == ProofRule::EXISTS_STRING_LENGTH)
+  else if (id == ProofRule::EXISTS_STRING_LENGTH
+           || id == ProofRule::EXISTS_INV_CONDITION)
   {
     Node k = ValidWitnessProofGenerator::mkSkolem(nodeManager(), id, args);
     Node exists =
