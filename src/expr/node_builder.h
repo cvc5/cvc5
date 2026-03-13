@@ -254,9 +254,6 @@ class NodeBuilder {
   /** Construct the Node out of the node builder */
   Node constructNode();
 
-  /** Construct a Node on the heap out of the node builder */
-  Node* constructNodePtr();
-
   /** Construction of the TypeNode out of the node builder */
   TypeNode constructTypeNode();
 

@@ -116,7 +116,8 @@ void CocoaEncoder::endScan()
 {
   Assert(d_stage == Stage::Scan);
   d_stage = Stage::Encode;
-  d_polyRing = CoCoA::NewPolyRing(coeffRing(), d_syms);
+  d_coeffRing = CoCoA::NewZZmod(intToCocoa(size()));
+  d_polyRing = CoCoA::NewPolyRing(*d_coeffRing, d_syms);
   for (size_t i = 0, n = d_syms.size(); i < n; ++i)
   {
     d_symPolys.insert({extractStr(d_syms[i]), CoCoA::indet(*d_polyRing, i)});
@@ -208,9 +209,10 @@ std::vector<std::pair<size_t, Node>> CocoaEncoder::nodeIndets() const
   return out;
 }
 
-FiniteFieldValue CocoaEncoder::cocoaFfToFfVal(const Scalar& elem)
+FiniteFieldValue CocoaEncoder::cocoaFfToFfVal(const Scalar& elem) const
 {
-  Assert(CoCoA::owner(elem) == coeffRing());
+  Assert(d_coeffRing.has_value());
+  Assert(CoCoA::owner(elem) == d_coeffRing);
   return ff::cocoaFfToFfVal(elem, size());
 }
 
