@@ -1,10 +1,7 @@
 ###############################################################################
-# Top contributors (to current version):
-#   Andrew Reynolds, Aina Niemetz, Mathias Preiner
-#
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -861,6 +858,7 @@ set(regress_0_tests
   regress0/ff/bigff_is_zero_sound.smt2
   regress0/ff/bigff_is_zero_unsound.smt2
   regress0/ff/bitsum_eval.smt2
+  regress0/ff/bitsum_overflow.smt2
   regress0/ff/bool_nary_or_sound.smt2
   regress0/ff/bool_nary_or_unsound.smt2
   regress0/ff/combination.smt2
@@ -1465,9 +1463,12 @@ set(regress_0_tests
   regress0/proofs/bvrewrite-ite.smt2
   regress0/proofs/bvrewrite-shlbyconst.smt2
   regress0/proofs/com-galois-rewrite.smt2
+  regress0/proofs/dd.1004_attack_star_union_char.smt2
+  regress0/proofs/dd.63058_aa742630eef64f949de269382c1f9035_25_UFDTNIA.smt2
   regress0/proofs/dd.fastclose.smt2
   regress0/proofs/dd.fastclose2.smt2
   regress0/proofs/dd.fastclose3.smt2
+  regress0/proofs/dd.S715-026__dic_loop__ordering_buffers.adb_11_83_range_check___00.smt2
   regress0/proofs/dd_ada_open.smt2
   regress0/proofs/dd_alpha_eq_qpattern.smt2
   regress0/proofs/dd_bug787_beta_reduce.smt2
@@ -1517,7 +1518,10 @@ set(regress_0_tests
   regress0/proofs/issue12240-cyclic-proof.smt2
   regress0/proofs/issue12355-cm-mixed-arith.smt2
   regress0/proofs/lfsc-test-1.smt2
+  regress0/proofs/macro-eq-const-eq.smt2
   regress0/proofs/macro-quant-prenex-simple.smt2
+  regress0/proofs/mod-total-256.smt2
+  regress0/proofs/mod-total-mult.smt2
   regress0/proofs/nomerge-alethe-pf.smt2
   regress0/proofs/no-proof-uc.smt2
   regress0/proofs/pfcheck_rw_441.smt2
@@ -1560,6 +1564,8 @@ set(regress_0_tests
   regress0/proofs/qgu-fuzz-3-chainres-checking.smt2
   regress0/proofs/qgu-fuzz-4-bool-chainres-postprocessing-singleton.smt2
   regress0/proofs/qgu-fuzz-5-bool-open-sat.smt2
+  regress0/proofs/re-range-empty.smt2
+  regress0/proofs/re-range-refl.smt2
   regress0/proofs/RF-11-aci-norm-ndet.smt2
   regress0/proofs/scope.smt2
   regress0/proofs/shadow_quant.smt2
@@ -2902,6 +2908,7 @@ set(regress_1_tests
   regress1/nl/issue11386-1-nl-cov-cyclic.smt2
   regress1/nl/issue11386-2-nl-cov-cyclic.smt2
   regress1/nl/issue11386-3-nl-cov-cyclic.smt2
+  regress1/nl/issue12376-nl-comp-pf.smt2
   regress1/nl/issue3300-approx-sqrt-witness.smt2
   regress1/nl/issue3441.smt2
   regress1/nl/issue3617.smt2
@@ -3674,6 +3681,7 @@ set(regress_1_tests
   regress1/strings/proj-issue659.smt2
   regress1/strings/proj-issue779-2-extr.smt2
   regress1/strings/proj-issue779-2-icycle.smt2
+  regress1/strings/proj-issue783-inorm-cycle.smt2
   regress1/strings/prop-engine-order.smt2
   regress1/strings/query4674.smt2
   regress1/strings/query8485.smt2

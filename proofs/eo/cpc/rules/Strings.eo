@@ -87,11 +87,12 @@
   :conclusion
     (eo::define ((t1 ($str_head ($str_to_nary_form t rev))))
     (eo::define ((s1 ($str_head ($str_to_nary_form s rev))))
+      (eo::requires t1 u
       (eo::requires ($str_check_length_one s1) true    ; checks if char
         (= u
           (eo::ite rev
             (str.++ (@purify ($str_prefix u (- (str.len u) 1))) s1)
-            (str.++ s1 (@purify ($str_suffix_rem u 1))))))))
+            (str.++ s1 (@purify ($str_suffix_rem u 1)))))))))
 )
 
 ; rule: concat_split

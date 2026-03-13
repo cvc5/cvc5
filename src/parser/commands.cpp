@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Tim King
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -917,7 +914,7 @@ bool tryBindToTerm(SymManager* sm,
                    bool doOverload,
                    std::ostream* out = nullptr)
 {
-  if (!sm->bind(sym, t, true))
+  if (!sm->bind(sym, t, doOverload))
   {
     if (out)
     {

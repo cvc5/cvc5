@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Hanna Lachnitt, Haniel Barbosa
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -122,9 +119,16 @@ const char* aletheRuleToString(AletheRule id)
     case AletheRule::SKO_EX: return "sko_ex";
     case AletheRule::SKO_FORALL: return "sko_forall";
     case AletheRule::ALL_SIMPLIFY: return "all_simplify";
+    case AletheRule::ACI_SIMP: return "aci_simp";
+    case AletheRule::POLY_SIMP: return "poly_simp";
+    case AletheRule::POLY_SIMP_REL: return "poly_simp_rel";
+    case AletheRule::EVALUATE: return "evaluate";
     case AletheRule::RARE_REWRITE: return "rare_rewrite";
     case AletheRule::SYMM: return "symm";
     case AletheRule::NOT_SYMM: return "not_symm";
+    case AletheRule::MINISCOPE_DISTRIBUTE: return "miniscope_distribute";
+    case AletheRule::MINISCOPE_SPLIT: return "miniscope_split";
+    case AletheRule::MINISCOPE_ITE: return "miniscope_ite";
     case AletheRule::REORDERING: return "reordering";
     case AletheRule::BV_BITBLAST_STEP_VAR: return "bv_bitblast_step_var";
     case AletheRule::BV_BITBLAST_STEP_BVAND: return "bv_bitblast_step_bvand";

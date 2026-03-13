@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Gereon Kremer, Aina Niemetz, Tim King
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -105,7 +102,8 @@ std::vector<std::string> selectTags(const std::vector<std::string>& validTags, s
 
 OptionsHandler::OptionsHandler(Options* options) : d_options(options) { }
 
-void OptionsHandler::setErrStream(const std::string& flag, const ManagedErr& me)
+void OptionsHandler::setErrStream(CVC5_UNUSED const std::string& flag,
+                                  const ManagedErr& me)
 {
   Warning.setStream(me);
   TraceChannel.setStream(me);
@@ -158,7 +156,8 @@ void OptionsHandler::setInputLanguage(const std::string& flag, Language lang)
   }
 }
 
-void OptionsHandler::setVerbosity(const std::string& flag, int value)
+void OptionsHandler::setVerbosity(CVC5_UNUSED const std::string& flag,
+                                  int value)
 {
   if(Configuration::isMuzzledBuild()) {
     TraceChannel.setStream(&cvc5::internal::null_os);
@@ -172,19 +171,21 @@ void OptionsHandler::setVerbosity(const std::string& flag, int value)
   }
 }
 
-void OptionsHandler::decreaseVerbosity(const std::string& flag, bool value)
+void OptionsHandler::decreaseVerbosity(CVC5_UNUSED const std::string& flag,
+                                       CVC5_UNUSED bool value)
 {
   d_options->write_base().verbosity -= 1;
   setVerbosity(flag, d_options->base.verbosity);
 }
 
-void OptionsHandler::increaseVerbosity(const std::string& flag, bool value)
+void OptionsHandler::increaseVerbosity(CVC5_UNUSED const std::string& flag,
+                                       CVC5_UNUSED bool value)
 {
   d_options->write_base().verbosity += 1;
   setVerbosity(flag, d_options->base.verbosity);
 }
 
-void OptionsHandler::setStats(const std::string& flag, bool value)
+void OptionsHandler::setStats(CVC5_UNUSED const std::string& flag, bool value)
 {
 #ifndef CVC5_STATISTICS_ON
   if (value)
@@ -204,7 +205,8 @@ void OptionsHandler::setStats(const std::string& flag, bool value)
   }
 }
 
-void OptionsHandler::setStatsDetail(const std::string& flag, bool value)
+void OptionsHandler::setStatsDetail(CVC5_UNUSED const std::string& flag,
+                                    bool value)
 {
 #ifndef CVC5_STATISTICS_ON
   if (value)
@@ -222,7 +224,7 @@ void OptionsHandler::setStatsDetail(const std::string& flag, bool value)
   }
 }
 
-void OptionsHandler::enableTraceTag(const std::string& flag,
+void OptionsHandler::enableTraceTag(CVC5_UNUSED const std::string& flag,
                                     const std::string& optarg)
 {
   if(!Configuration::isTracingBuild())
@@ -249,7 +251,7 @@ void OptionsHandler::enableTraceTag(const std::string& flag,
   }
 }
 
-void OptionsHandler::enableOutputTag(const std::string& flag,
+void OptionsHandler::enableOutputTag(CVC5_UNUSED const std::string& flag,
                                      OutputTag optarg)
 {
   size_t tagid = static_cast<size_t>(optarg);
@@ -258,7 +260,7 @@ void OptionsHandler::enableOutputTag(const std::string& flag,
   d_options->write_base().outputTagHolder.set(tagid);
 }
 
-void OptionsHandler::setResourceWeight(const std::string& flag,
+void OptionsHandler::setResourceWeight(CVC5_UNUSED const std::string& flag,
                                        const std::string& optarg)
 {
   d_options->write_base().resourceWeightHolder.emplace_back(optarg);
@@ -331,7 +333,8 @@ static void print_config_cond(const char* str, bool cond = false)
   print_config(str, cond ? "yes" : "no");
 }
 
-void OptionsHandler::showConfiguration(const std::string& flag, bool value)
+void OptionsHandler::showConfiguration(CVC5_UNUSED const std::string& flag,
+                                       bool value)
 {
   if (!value) return;
   std::cout << Configuration::about() << std::endl;
@@ -381,19 +384,22 @@ void OptionsHandler::showConfiguration(const std::string& flag, bool value)
   print_config_cond("editline", Configuration::isBuiltWithEditline());
 }
 
-void OptionsHandler::showCopyright(const std::string& flag, bool value)
+void OptionsHandler::showCopyright(CVC5_UNUSED const std::string& flag,
+                                   bool value)
 {
   if (!value) return;
   std::cout << Configuration::copyright() << std::endl;
 }
 
-void OptionsHandler::showVersion(const std::string& flag, bool value)
+void OptionsHandler::showVersion(CVC5_UNUSED const std::string& flag,
+                                 bool value)
 {
   if (!value) return;
   d_options->base.out << Configuration::about() << std::endl;
 }
 
-void OptionsHandler::showTraceTags(const std::string& flag, bool value)
+void OptionsHandler::showTraceTags(CVC5_UNUSED const std::string& flag,
+                                   bool value)
 {
   if (!value) return;
   if (!Configuration::isTracingBuild())
@@ -403,7 +409,8 @@ void OptionsHandler::showTraceTags(const std::string& flag, bool value)
   printTags(Configuration::getTraceTags());
 }
 
-void OptionsHandler::strictParsing(const std::string& flag, bool value)
+void OptionsHandler::strictParsing(CVC5_UNUSED const std::string& flag,
+                                   bool value)
 {
   if (value)
   {

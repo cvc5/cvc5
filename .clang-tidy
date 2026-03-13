@@ -1,8 +1,7 @@
 Checks: >
-  -*,
-  clang-analyzer-core.CallAndMessage,
-  clang-analyzer-core.uninitialized.UndefReturn,
-  clang-analyzer-deadcode.*
+  # Default checks enabled by clang-tidy (explicitly listed):
+  clang-diagnostic-*,
+  clang-analyzer-*
 HeaderFilterRegex: '.*'
 # Use .clang-format for formatting changes
 FormatStyle: file

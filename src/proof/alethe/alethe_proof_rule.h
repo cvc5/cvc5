@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Hanna Lachnitt, Haniel Barbosa
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -397,6 +394,11 @@ enum class AletheRule : uint32_t
   NARY_ELIM,
   QNT_SIMPLIFY,
   ALL_SIMPLIFY,
+  // Simplifications based on AC, identity, duplicates
+  ACI_SIMP,
+  EVALUATE,
+  POLY_SIMP,
+  POLY_SIMP_REL,
   RARE_REWRITE,
   // ======== let
   // G,x1->F1,...,xn->Fn > j. (= G G')

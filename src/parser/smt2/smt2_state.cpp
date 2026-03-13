@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -698,7 +695,6 @@ Term Smt2State::setupDefineFunRecScope(
 
 void Smt2State::pushDefineFunRecScope(
     const std::vector<std::pair<std::string, Sort>>& sortedVarNames,
-    Term func,
     const std::vector<Term>& flattenVars,
     std::vector<Term>& bvs)
 {

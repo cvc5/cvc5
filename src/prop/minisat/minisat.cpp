@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Gereon Kremer, Liana Hadarean, Dejan Jovanovic
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -90,12 +87,14 @@ Minisat::lbool MinisatSatSolver::toMinisatlbool(SatValue val)
   return false;
   }*/
 
-void MinisatSatSolver::toMinisatClause(SatClause& clause,
-                                           Minisat::vec<Minisat::Lit>& minisat_clause) {
-  for (unsigned i = 0; i < clause.size(); ++i) {
-    minisat_clause.push(toMinisatLit(clause[i]));
+void MinisatSatSolver::toMinisatClause(
+    const SatClause& clause, Minisat::vec<Minisat::Lit>& minisat_clause)
+{
+  for (const SatLiteral i : clause)
+  {
+    minisat_clause.push(toMinisatLit(i));
   }
-  Assert(clause.size() == (unsigned)minisat_clause.size());
+  Assert(clause.size() == static_cast<unsigned>(minisat_clause.size()));
 }
 
 void MinisatSatSolver::toSatClause(const Minisat::Clause& clause,
@@ -106,7 +105,7 @@ void MinisatSatSolver::toSatClause(const Minisat::Clause& clause,
   Assert((unsigned)clause.size() == sat_clause.size());
 }
 
-void MinisatSatSolver::initialize(TheoryProxy* theoryProxy, PropPfManager* ppm)
+void MinisatSatSolver::initialize(TheoryProxy* theoryProxy)
 {
   if (options().decision.decisionMode != options::DecisionMode::INTERNAL)
   {
@@ -120,12 +119,19 @@ void MinisatSatSolver::initialize(TheoryProxy* theoryProxy, PropPfManager* ppm)
       new Minisat::SimpSolver(d_env,
                               theoryProxy,
                               context(),
-                              ppm,
                               options().base.incrementalSolving
                                   || options().decision.decisionMode
                                          != options::DecisionMode::INTERNAL);
 
   d_statistics.init(d_minisat);
+  initialize();
+}
+
+void MinisatSatSolver::initialize() {}
+
+void MinisatSatSolver::attachProofManager(PropPfManager* ppm)
+{
+  d_minisat->attachProofManager(ppm);
 }
 
 // Like initialize() above, but called just before each search when in
@@ -151,7 +157,7 @@ void MinisatSatSolver::setupOptions() {
   d_minisat->restart_inc = options().prop.satRestartInc;
 }
 
-ClauseId MinisatSatSolver::addClause(SatClause& clause, bool removable)
+ClauseId MinisatSatSolver::addClause(const SatClause& clause, bool removable)
 {
   Minisat::vec<Minisat::Lit> minisat_clause;
   toMinisatClause(clause, minisat_clause);

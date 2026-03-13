@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Daneshvar Amrollahi
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -454,7 +451,6 @@ size_t numDigits(size_t n)
  * @param freeVar2node Map for free variable substitutions.
  * @param boundVar2node Map for bound variable substitutions.
  * @param normalizedName Map for storing normalized variable names.
- * @param normalizedSorts Map for normalized sorts.
  * @param nodeManager The node manager for creating new nodes.
  * @param d_preprocContext The preprocessing pass context.
  * @param sortNormalizer The sort normalizer for type conversion.
@@ -465,7 +461,6 @@ Node rename(const Node& n,
             std::unordered_map<Node, Node>& freeVar2node,
             std::unordered_map<Node, Node>& boundVar2node,
             std::unordered_map<std::string, std::string>& normalizedName,
-            std::unordered_map<TypeNode, TypeNode> normalizedSorts,
             NodeManager* nodeManager,
             PreprocessingPassContext* d_preprocContext,
             NormalizeSortNodeConverter& sortNormalizer,
@@ -968,6 +963,8 @@ PreprocessingPassResult Normalize::applyInternal(
       eqClasses.begin(),
       eqClasses.end(),
       [](const std::vector<NodeInfo*>& a, const std::vector<NodeInfo*>& b) {
+        // Silence false positive: https://github.com/llvm/llvm-project/issues/78132
+        // NOLINTNEXTLINE(clang-analyzer-cplusplus.Move)
         return a[0]->encoding > b[0]->encoding;
       });
 
@@ -1041,7 +1038,6 @@ PreprocessingPassResult Normalize::applyInternal(
                             freeVar2node,
                             boundVar2node,
                             normalizedName,
-                            normalizedSorts,
                             nodeManager(),
                             d_preprocContext,
                             sortNormalizer,

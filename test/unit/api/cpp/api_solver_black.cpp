@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Andrew Reynolds, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -1920,10 +1917,10 @@ TEST_F(TestApiBlackSolver, getLogic)
 
 TEST_F(TestApiBlackSolver, setOption)
 {
-  ASSERT_NO_THROW(d_solver->setOption("bv-sat-solver", "minisat"));
+  ASSERT_NO_THROW(d_solver->setOption("bv-sat-solver", "cadical"));
   ASSERT_THROW(d_solver->setOption("bv-sat-solver", "1"), CVC5ApiException);
   d_solver->assertFormula(d_tm.mkTrue());
-  ASSERT_THROW(d_solver->setOption("bv-sat-solver", "minisat"),
+  ASSERT_THROW(d_solver->setOption("bv-sat-solver", "cadical"),
                CVC5ApiException);
 }
 
