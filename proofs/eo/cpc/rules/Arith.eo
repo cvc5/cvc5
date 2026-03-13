@@ -562,10 +562,10 @@
 ;   eo::requires and hence is not Bool.
 (declare-rule arith_poly_norm_rel
   ((U Type) (V Type) (W Type) (R Type) (r (-> R R Bool))
-   (x U) (y U) (cx U) (cy U) (x1 V) (x2 V) (y1 W) (y2 W) (zero U :list))
-  :premises ((= (* cx x zero) (* cy y zero)))
+   (x U) (y U) (cx U) (cy U) (x1 V) (x2 V) (y1 W) (y2 W) (one U :list))
+  :premises ((= (* cx x one) (* cy y one)))
   :args ((= (r x1 x2) (r y1 y2)))
-  :requires (((eo::to_q zero) 1/1)
+  :requires (((eo::to_q one) 1/1)
              (($is_poly_norm_rel_consts (r cx cy)) true)
              (($is_eq_maybe_to_real x (- x1 x2)) true)
              (($is_eq_maybe_to_real y (- y1 y2)) true))
