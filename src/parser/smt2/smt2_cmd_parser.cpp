@@ -880,7 +880,7 @@ std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
       // If the value is a quoted string, strip the quotes. 
       if (ss.size() >= 2 && ss[0] == '"' && ss[ss.size() - 1] == '"')
       {
-        ss = d_state.stripQuotes(ss);
+        ss = ss.substr(1, ss.size() - 2);
       }
       if (key=="use-portfolio")
       {
