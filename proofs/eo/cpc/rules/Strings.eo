@@ -943,7 +943,7 @@
 ; - u Int: The end index, inclusive, of elements of t to extract.
 ; - t (Seq T): The term to process, which is expected to be a seq.++ list.
 ; return: >
-;   The subsequent of t between indices l up to (and not including) u.
+;   The subsequent of t between indices l up to (and not including) u, assumes u is non-negative.
 (program $seq_subsequence_rec ((T Type) (t (Seq T)) (e T) (ts (Seq T) :list) (u Int) (l Int))
   :signature (Int Int (Seq T)) (Seq T)
   (
