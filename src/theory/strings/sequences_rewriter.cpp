@@ -238,7 +238,7 @@ Node SequencesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
         }
         RewriteResponse response = postRewrite(n);
         Node ret = response.d_node;
-        if (ret.isConst())
+        if (ret!=n)
         {
           return ret;
         }
