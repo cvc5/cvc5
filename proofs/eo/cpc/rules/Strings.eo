@@ -931,7 +931,7 @@
   (
   (($seq_find t t n)                        n)
   (($seq_find (as seq.empty (Seq T)) s n)   -1)
-  (($seq_find (seq.++ t ts) s n)            (eo::ite ($seq_is_prefix (seq.++ t ts) s)
+  (($seq_find (seq.++ t ts) s n)            (eo::ite ($seq_is_prefix s (seq.++ t ts))
                                               n
                                               ($seq_find ts s (eo::add n 1))))
   )
