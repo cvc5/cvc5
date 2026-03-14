@@ -2696,6 +2696,7 @@ set(regress_1_tests
   regress1/bv/bv_to_int_quant_uf_bv_dis.smt2
   regress1/bv/bv_to_int_quant_uf_nobv.smt2
   regress1/bv/bv_to_int_quant_uf_nobv_dis_S.smt2
+
   regress1/bv/bv-int-collapse2-sat.smt2
   regress1/bv/bv-proof00.smtv1.smt2
   regress1/bv/bv2nat-ground.smt2
@@ -4026,6 +4027,7 @@ set(regress_2_tests
   regress2/bv_to_int_mask_array_3.smt2
   regress2/bv_to_int_shifts.smt2
   regress2/bv_to_int_quantifiers_bvand.smt2
+  regress2/bv_to_int_quant_ufuf.smt2
   regress2/error1.smtv1.smt2
   regress2/fp/issue7056.smt2
   regress2/fuzz_2.smtv1.smt2
