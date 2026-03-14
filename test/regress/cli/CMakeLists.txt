@@ -2696,7 +2696,6 @@ set(regress_1_tests
   regress1/bv/bv_to_int_quant_uf_bv_dis.smt2
   regress1/bv/bv_to_int_quant_uf_nobv.smt2
   regress1/bv/bv_to_int_quant_uf_nobv_dis_S.smt2
-
   regress1/bv/bv-int-collapse2-sat.smt2
   regress1/bv/bv-proof00.smtv1.smt2
   regress1/bv/bv2nat-ground.smt2
