@@ -1085,12 +1085,6 @@ bool modelNodeToTptp(const Node& n,
   }
   if (n.getKind() == Kind::ITE)
   {
-    // Keep output in formula-only connectives for compatibility with current
-    // THF/TFF printer style.
-    if (!n.getType().isBoolean())
-    {
-      return false;
-    }
     std::string c;
     std::string t;
     std::string e;
@@ -1118,8 +1112,13 @@ bool modelNodeToTptp(const Node& n,
     {
       return false;
     }
-    out = "( ( ( " + c + " ) & ( " + t + " ) ) | ( ~ ( " + c + " ) & ( " + e
-          + " ) ) )";
+    if (n.getType().isBoolean())
+    {
+      out = "( ( ( " + c + " ) & ( " + t + " ) ) | ( ~ ( " + c + " ) & ( "
+            + e + " ) ) )";
+      return true;
+    }
+    out = "$ite_t(" + c + "," + t + "," + e + ")";
     return true;
   }
   if (n.getKind() == Kind::FORALL || n.getKind() == Kind::EXISTS)
