@@ -18,24 +18,20 @@
 #endif /* CVC5_USE_COCOA */
 
 // std includes
+#include <utility>
 
 // internal includes
-#include "theory/ff/cocoa_util.h"
 #include "theory/theory.h"
 
 namespace cvc5::internal {
 namespace theory {
 namespace ff {
 
-FieldObj::FieldObj(NodeManager* nm, const FfSize& size)
-    : d_size(size),
+FieldObj::FieldObj(NodeManager* nm, FfSize size)
+    : d_size(std::move(size)),
       d_nm(nm),
       d_zero(d_nm->mkConst(FiniteFieldValue(0, d_size))),
       d_one(d_nm->mkConst(FiniteFieldValue(1, d_size)))
-#ifdef CVC5_USE_COCOA
-      ,
-      d_coeffRing(CoCoA::NewZZmod(intToCocoa(d_size)))
-#endif /* CVC5_USE_COCOA */
 {
 }
 

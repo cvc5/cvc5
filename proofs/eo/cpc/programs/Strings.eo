@@ -244,10 +244,10 @@
     (($derivative c (re.inter r rr))   ($re_ac_merge re.inter ($derivative c r) ($derivative c rr) ))
     (($derivative c (re.comp r))       (re.comp ($derivative c r)))
     (($derivative c (re.* r))          ($re_concat_merge ($derivative c r) (re.* r)))
+    (($derivative c @re.empty)         re.none)
     (($derivative c (str.to_re s1))    (eo::ite (eo::is_eq (eo::extract s1 0 0) c) (str.to_re (eo::extract s1 1 (eo::add -1 (eo::len s1)))) re.none))
     (($derivative c (re.range s1 s2))  (eo::ite (eo::and ($compare_geq (eo::to_z c) (eo::to_z s1)) ($compare_geq (eo::to_z s2) (eo::to_z c))) @re.empty re.none))
     (($derivative c re.none)           re.none)
-    (($derivative c @re.empty)         re.none)
     (($derivative c re.all)            re.all)
     (($derivative c re.allchar)        @re.empty)
   )
@@ -1412,7 +1412,7 @@
 ; args:
 ; - p @Polynomial: A polynomial term to process.
 ; return: >
-;   true if we can show p is greater than or equal 0 using the fact that length
+;   true if we can show p is greater than or equal to 0 using the fact that length
 ;   is non-negative and basic properties of arithmetic.
 (program $str_arith_entail_simple_rec ((s String) (q Real) (p @Polynomial :list) (t eo::List :list))
   :signature (@Polynomial) Bool
@@ -1427,9 +1427,9 @@
 
 ; program: $str_arith_entail_simple
 ; args:
-; - n T: An arithmetic term to process.
+; - t Int: An arithmetic term to process.
 ; return: >
-;   true if we can show n is greater than or equal 0 using the fact that length
+;   true if we can show t is greater than or equal to 0 using the fact that length
 ;   is non-negative and basic properties of arithmetic.
 (define $str_arith_entail_simple ((t Int))
   ($str_arith_entail_simple_rec ($get_arith_poly_norm t)))
