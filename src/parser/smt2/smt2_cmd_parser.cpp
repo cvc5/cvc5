@@ -877,16 +877,13 @@ std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
       std::string key = d_tparser.parseKeyword();
       Term sexpr = d_tparser.parseSymbolicExpr();
       std::string ss = sexprToString(sexpr);
-      // special case: for channel settings, we are expected to parse e.g.
-      // `"stdin"` which should be treated as `stdin`
-      // Note we could consider a more general solution where knowing whether
-      // this special case holds can be queried via OptionInfo.
-      if (key == "diagnostic-output-channel" || key == "regular-output-channel"
-          || key == "in" || key == "out")
+      // If the value is a quoted string, strip the quotes. This allows e.g.
+      // `(set-option :solve-bv-as-int "sum")` to be treated as `sum`.
+      if (ss.size() >= 2 && ss[0] == '"' && ss[ss.size() - 1] == '"')
       {
         ss = d_state.stripQuotes(ss);
       }
-      else if (key=="use-portfolio")
+      if (key=="use-portfolio")
       {
         // we don't allow setting portfolio via the command line
         d_lex.parseError("Can only enable use-portfolio via the command line");
