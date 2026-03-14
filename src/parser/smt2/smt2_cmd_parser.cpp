@@ -877,7 +877,7 @@ std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
       std::string key = d_tparser.parseKeyword();
       Term sexpr = d_tparser.parseSymbolicExpr();
       std::string ss = sexprToString(sexpr);
-      // If the value is a quoted string, strip the quotes. 
+      // If the value is a quoted string, strip the quotes.
       if (ss.size() >= 2 && ss[0] == '"' && ss[ss.size() - 1] == '"')
       {
         ss = d_state.stripQuotes(ss);
