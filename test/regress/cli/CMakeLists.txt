@@ -1901,7 +1901,7 @@ set(regress_0_tests
   regress0/seq/query2-subtype.smt2
   regress0/seq/rev.smt2
   regress0/seq/seq-eval-bug.smt2
-  regress0/seq/seq-eval-replace_all.smt2
+  regress0/seq/seq-eval-replace-all.smt2
   regress0/seq/seq-eval-contains.smt2
   regress0/seq/seqa-model-unsound-dd.smt2
   regress0/seq/array/array1.smt2
