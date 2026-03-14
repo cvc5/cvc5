@@ -4031,6 +4031,7 @@ set(regress_2_tests
   regress2/bv_to_int_mask_array_3.smt2
   regress2/bv_to_int_shifts.smt2
   regress2/bv_to_int_quantifiers_bvand.smt2
+  regress2/bv_to_int_quant_ufuf.smt2
   regress2/error1.smtv1.smt2
   regress2/fp/issue7056.smt2
   regress2/fuzz_2.smtv1.smt2
