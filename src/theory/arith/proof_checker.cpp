@@ -451,6 +451,10 @@ Node ArithProofRuleChecker::checkInternal(ProofRule id,
       {
         Rational c1 = cx.getConst<Rational>();
         Rational c2 = cy.getConst<Rational>();
+        if (c1.sgn()==0 || c2.sgn()==0)
+        {
+          return Node::null();
+        }
         if (k != Kind::EQUAL && c1.sgn() != c2.sgn())
         {
           return Node::null();
