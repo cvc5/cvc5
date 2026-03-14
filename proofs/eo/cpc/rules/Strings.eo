@@ -1009,7 +1009,7 @@
                                           (eo::define ((rn ($str_nary_intro r)))
                                           (eo::ite (eo::eq ($str_value_len s) 0)
                                             t
-                                            ($str_nary_elim ($seq_eval_replace_all_rec tn sn rn ($seq_find tn sn 0) ($str_value_len tn))))))))
+                                            ($str_nary_elim ($seq_eval_replace_all_rec tn sn rn ($seq_find sn tn 0) ($str_value_len sn))))))))
     (($seq_eval (seq.indexof t s n))      (eo::define ((tn ($str_nary_intro t)))
                                           (eo::define ((sn ($str_nary_intro s)))
                                           (eo::define ((tl ($str_value_len tn)))
