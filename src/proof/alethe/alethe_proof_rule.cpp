@@ -120,6 +120,9 @@ const char* aletheRuleToString(AletheRule id)
     case AletheRule::SKO_FORALL: return "sko_forall";
     case AletheRule::ALL_SIMPLIFY: return "all_simplify";
     case AletheRule::ACI_SIMP: return "aci_simp";
+    case AletheRule::POLY_SIMP: return "poly_simp";
+    case AletheRule::POLY_SIMP_REL: return "poly_simp_rel";
+    case AletheRule::EVALUATE: return "evaluate";
     case AletheRule::RARE_REWRITE: return "rare_rewrite";
     case AletheRule::SYMM: return "symm";
     case AletheRule::NOT_SYMM: return "not_symm";
