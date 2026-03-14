@@ -6,6 +6,9 @@ cvc5 1.3.4 prerelease
 ## Changes
 
 - Fixes a soundness bug in the `--learned-rewrite` preprocessing pass.
+- We now allow using option `--solve-bv-as-int` with quantifiers, even if the
+  quantified variables occur under UFs.
+
 
 cvc5 1.3.3
 ==========
