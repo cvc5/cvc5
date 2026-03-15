@@ -493,7 +493,7 @@
 
 ;;;;; ProofRule::ARITH_POLY_NORM_REL
 
-; program: $is_poly_norm_rel_consts
+; program: $is_poly_norm_rel_consts_rel
 ; args:
 ; - b Bool: >
 ;   a formula of the form (r cx cy) where r is a binary relation and cx and
@@ -503,15 +503,35 @@
 ;   formula of the form (= (r x1 x2) (r y1 y2)), where it is already known that
 ;   (= (* cx (- x1 x2)) (* cy (- y1 y2))). If r is any of <, <=, >=, or >, the
 ;   scaling factors must have the same sign. Returns false for any other relation.
-(program $is_poly_norm_rel_consts ((T Type) (U Type) (cx T) (cy U) (b Bool))
+(program $is_poly_norm_rel_consts_rel ((T Type) (U Type) (cx T) (cy U) (b Bool))
   :signature (Bool) Bool
   (
-    (($is_poly_norm_rel_consts (< cx cy))  (eo::eq ($sgn cx) ($sgn cy)))
-    (($is_poly_norm_rel_consts (<= cx cy)) (eo::eq ($sgn cx) ($sgn cy)))
-    (($is_poly_norm_rel_consts (= cx cy))  true)
-    (($is_poly_norm_rel_consts (>= cx cy)) (eo::eq ($sgn cx) ($sgn cy)))
-    (($is_poly_norm_rel_consts (> cx cy))  (eo::eq ($sgn cx) ($sgn cy)))
-    (($is_poly_norm_rel_consts b)          false)
+    (($is_poly_norm_rel_consts_rel (< cx cy))  (eo::eq ($sgn cx) ($sgn cy)))
+    (($is_poly_norm_rel_consts_rel (<= cx cy)) (eo::eq ($sgn cx) ($sgn cy)))
+    (($is_poly_norm_rel_consts_rel (= cx cy))  true)
+    (($is_poly_norm_rel_consts_rel (>= cx cy)) (eo::eq ($sgn cx) ($sgn cy)))
+    (($is_poly_norm_rel_consts_rel (> cx cy))  (eo::eq ($sgn cx) ($sgn cy)))
+    (($is_poly_norm_rel_consts_rel b)          false)
+  )
+)
+
+; define: $is_poly_norm_rel_consts
+; args:
+; - b Bool: >
+;   a formula of the form (r cx cy) where r is a binary relation and cx and
+;   cy are scaling factors.
+; return: >
+;   The result of checking if r is a polynomial normalization relation for a
+;   formula of the form (= (r x1 x2) (r y1 y2)), where it is already known that
+;   (= (* cx (- x1 x2)) (* cy (- y1 y2))). If r is any of <, <=, >=, or >, the
+;   scaling factors must have the same sign and cx and cy must be non-zero.
+;   Returns false for any other relation.
+(program $is_poly_norm_rel_consts ((T Type) (U Type) (r (-> T U Bool)) (cx T) (cy U))
+  :signature (Bool) Bool
+  (
+  (($is_poly_norm_rel_consts (r cx cy))
+    (eo::and ($is_poly_norm_rel_consts_rel (r cx cy))
+       (eo::not (eo::or (eo::eq (eo::to_q cx) 0/1) (eo::eq (eo::to_q cy) 0/1)))))
   )
 )
 
