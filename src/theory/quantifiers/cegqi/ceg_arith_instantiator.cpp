@@ -418,9 +418,9 @@ bool ArithInstantiator::processAssertions(CegInstantiator* ci,
             Assert(d_mbp_coeff[rr][j].isConst());
             value[t] = nm->mkNode(
                 Kind::MULT,
-                nm->mkConstReal(Rational(1)
-                                / d_mbp_coeff[rr][j].getConst<Rational>()),
-                nm->mkNode(Kind::TO_REAL, value[t]));
+                {nm->mkConstReal(Rational(1)
+                                 / d_mbp_coeff[rr][j].getConst<Rational>()),
+                 nm->mkNode(Kind::TO_REAL, value[t])});
             value[t] = rewrite(value[t]);
           }
           // check if new best, if we have not already set it.
@@ -579,8 +579,8 @@ bool ArithInstantiator::processAssertions(CegInstantiator* ci,
       else
       {
         val = nm->mkNode(Kind::MULT,
-                         nm->mkNode(Kind::ADD, vals[0], vals[1]),
-                         nm->mkConstReal(Rational(1) / Rational(2)));
+                         {nm->mkNode(Kind::ADD, vals[0], vals[1]),
+                          nm->mkConstReal(Rational(1) / Rational(2))});
         val = rewrite(val);
       }
     }
@@ -916,8 +916,9 @@ CegTermType ArithInstantiator::solve_arith(CegInstantiator* ci,
           Kind::TO_INTEGER,
           nm->mkNode(
               ires_use == -1 ? Kind::ADD : Kind::SUB,
-              nm->mkNode(ires_use == -1 ? Kind::SUB : Kind::ADD, val, realPart),
-              nm->mkNode(Kind::TO_INTEGER, realPart)));
+              {nm->mkNode(
+                   ires_use == -1 ? Kind::SUB : Kind::ADD, val, realPart),
+               nm->mkNode(Kind::TO_INTEGER, realPart)}));
       Trace("cegqi-arith-debug")
           << "result (pre-rewrite) : " << val << std::endl;
       val = rewrite(val);

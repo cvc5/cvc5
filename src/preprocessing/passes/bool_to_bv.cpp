@@ -259,11 +259,11 @@ void BoolToBV::visit(const TNode& n, bool allowIteIntroduction)
       rebuildNode(n, k);
     }
 
-    updateCache(n,
-                nm->mkNode(Kind::ITE,
-                           fromCache(n),
-                           bv::utils::mkOne(nm, 1),
-                           bv::utils::mkZero(nm, 1)));
+    updateCache(
+        n,
+        nm->mkNode(
+            Kind::ITE,
+            {fromCache(n), bv::utils::mkOne(nm, 1), bv::utils::mkZero(nm, 1)}));
     Trace("bool-to-bv") << "BoolToBV::visit forcing " << n
                         << " =>\n"
                         << fromCache(n) << std::endl;
@@ -287,8 +287,8 @@ void BoolToBV::visit(const TNode& n, bool allowIteIntroduction)
     // with ITE introductions
     updateCache(
         n,
-        nm->mkNode(
-            Kind::ITE, n, bv::utils::mkOne(nm, 1), bv::utils::mkZero(nm, 1)));
+        nm->mkNode(Kind::ITE,
+                   {n, bv::utils::mkOne(nm, 1), bv::utils::mkZero(nm, 1)}));
     Trace("bool-to-bv") << "BoolToBV::visit forcing " << n
                         << " =>\n"
                         << fromCache(n) << std::endl;

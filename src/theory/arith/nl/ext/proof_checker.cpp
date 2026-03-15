@@ -123,10 +123,12 @@ Node ExtProofRuleChecker::checkInternal(ProofRule id,
     {
       case -1:
         return nm->mkNode(
-            Kind::IMPLIES, nm->mkAnd(premise), nm->mkNode(Kind::LT, mon, zero));
+            Kind::IMPLIES,
+            {nm->mkAnd(premise), nm->mkNode(Kind::LT, mon, zero)});
       case 1:
         return nm->mkNode(
-            Kind::IMPLIES, nm->mkAnd(premise), nm->mkNode(Kind::GT, mon, zero));
+            Kind::IMPLIES,
+            {nm->mkAnd(premise), nm->mkNode(Kind::GT, mon, zero)});
       default: DebugUnhandled(); return Node();
     }
   }
@@ -146,21 +148,22 @@ Node ExtProofRuleChecker::checkInternal(ProofRule id,
     Node b = args[3];
     int sgn = args[4].getConst<bool>() ? 1 : -1;
     Node tplane = nm->mkNode(Kind::SUB,
-                             nm->mkNode(Kind::ADD,
-                                        nm->mkNode(Kind::MULT, b, x),
-                                        nm->mkNode(Kind::MULT, a, y)),
-                             nm->mkNode(Kind::MULT, a, b));
+                             {nm->mkNode(Kind::ADD,
+                                         {nm->mkNode(Kind::MULT, b, x),
+                                          nm->mkNode(Kind::MULT, a, y)}),
+                              nm->mkNode(Kind::MULT, a, b)});
     return nm->mkNode(
         Kind::EQUAL,
-        nm->mkNode(sgn == -1 ? Kind::LEQ : Kind::GEQ, t, tplane),
-        nm->mkNode(
-            Kind::OR,
-            nm->mkNode(Kind::AND,
-                       nm->mkNode(Kind::LEQ, x, a),
-                       nm->mkNode(sgn == -1 ? Kind::GEQ : Kind::LEQ, y, b)),
-            nm->mkNode(Kind::AND,
-                       nm->mkNode(Kind::GEQ, x, a),
-                       nm->mkNode(sgn == -1 ? Kind::LEQ : Kind::GEQ, y, b))));
+        {nm->mkNode(sgn == -1 ? Kind::LEQ : Kind::GEQ, t, tplane),
+         nm->mkNode(
+             Kind::OR,
+             {nm->mkNode(Kind::AND,
+                         {nm->mkNode(Kind::LEQ, x, a),
+                          nm->mkNode(sgn == -1 ? Kind::GEQ : Kind::LEQ, y, b)}),
+              nm->mkNode(
+                  Kind::AND,
+                  {nm->mkNode(Kind::GEQ, x, a),
+                   nm->mkNode(sgn == -1 ? Kind::LEQ : Kind::GEQ, y, b)})})});
   }
   else if (id == ProofRule::ARITH_MULT_ABS_COMPARISON)
   {

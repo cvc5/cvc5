@@ -1147,9 +1147,9 @@ Node RegExpOpr::reduceRegExpPos(NodeManager* nm,
                       se,
                       sinr,
                       nm->mkNode(Kind::AND,
-                                 sinRExp,
-                                 newSkolemsC[0].eqNode(emp).negate(),
-                                 newSkolemsC[2].eqNode(emp).negate()));
+                                 {sinRExp,
+                                  newSkolemsC[0].eqNode(emp).negate(),
+                                  newSkolemsC[2].eqNode(emp).negate()}));
   }
   else
   {

@@ -145,7 +145,8 @@ Node SygusExtension::getTermOrderPredicate( Node n1, Node n2 ) {
   std::vector< Node > comm_disj;
   // size of left is greater than or equal to the size of right
   Node szGeq = nm->mkNode(
-      Kind::GEQ, nm->mkNode(Kind::DT_SIZE, n1), nm->mkNode(Kind::DT_SIZE, n2));
+      Kind::GEQ,
+      {nm->mkNode(Kind::DT_SIZE, n1), nm->mkNode(Kind::DT_SIZE, n2)});
   return szGeq;
 }
 
@@ -938,8 +939,8 @@ Node SygusExtension::getSimpleSymBreakPred(Node e,
         Assert(child11.getType() == children[1].getType());
         Node order_pred_trans =
             nm->mkNode(Kind::OR,
-                       utils::mkTester(children[0], tindex, dt).negate(),
-                       getTermOrderPredicate(child11, children[1]));
+                       {utils::mkTester(children[0], tindex, dt).negate(),
+                        getTermOrderPredicate(child11, children[1])});
         sbp_conj.push_back(order_pred_trans);
       }
     }

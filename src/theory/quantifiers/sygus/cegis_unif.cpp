@@ -211,8 +211,8 @@ bool CegisUnif::getEnumValues(const std::vector<Node>& enums,
               if (curr_size == prev_size)
               {
                 Node slem = nm->mkNode(Kind::AND,
-                                       es[j - 1].eqNode(vs[j - 1]),
-                                       es[j].eqNode(vs[j]))
+                                       {es[j - 1].eqNode(vs[j - 1]),
+                                        es[j].eqNode(vs[j])})
                                 .negate();
                 Trace("cegis-unif")
                     << "CegisUnif::lemma, inter-unif-enumerator "

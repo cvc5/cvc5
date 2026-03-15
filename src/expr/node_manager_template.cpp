@@ -1437,24 +1437,6 @@ Kind NodeManager::getKindForFunction(TNode fun)
   return Kind::UNDEFINED_KIND;
 }
 
-Node NodeManager::mkNode(Kind kind, std::initializer_list<TNode> children)
-{
-  NodeBuilder nb(this, kind);
-  nb.append(children.begin(), children.end());
-  return nb.constructNode();
-}
-
-Node NodeManager::mkNode(TNode opNode, std::initializer_list<TNode> children)
-{
-  NodeBuilder nb(this, operatorToKind(opNode));
-  if (opNode.getKind() != Kind::BUILTIN)
-  {
-    nb << opNode;
-  }
-  nb.append(children.begin(), children.end());
-  return nb.constructNode();
-}
-
 Node NodeManager::mkConstReal(const Rational& r)
 {
   // works with (r.isIntegral() ? Kind::CONST_INTEGER : Kind::CONST_RATIONAL)

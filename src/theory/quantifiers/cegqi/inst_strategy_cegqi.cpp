@@ -109,7 +109,7 @@ bool InstStrategyCegqi::registerCbqiLemma(Node q)
     if( !ceBody.isNull() ){
       //add counterexample lemma
       Node lem =
-          nodeManager()->mkNode(Kind::OR, ceLit.negate(), ceBody.negate());
+          nodeManager()->mkNode(Kind::OR, {ceLit.negate(), ceBody.negate()});
       //require any decision on cel to be phase=true
       d_qim.addPendingPhaseRequirement(ceLit, true);
       Trace("cegqi-debug") << "Require phase " << ceLit << " = true." << std::endl;

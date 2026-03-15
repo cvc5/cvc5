@@ -266,16 +266,15 @@ void PIAndSolver::checkFullRefine()
               && model_y == model_y2 && model_piand == model_x2
               && model_piand2 == model_x)
           {
-            Node noneqx = nm->mkNode(Kind::AND,
-                                     k.eqNode(k2),
-                                     (x.eqNode(x2)).notNode(),
-                                     y.eqNode(y2));
+            Node noneqx = nm->mkNode(
+                Kind::AND,
+                {k.eqNode(k2), (x.eqNode(x2)).notNode(), y.eqNode(y2)});
             Node ranges_assum =
                 nm->mkNode(Kind::AND, x_range, x2_range, y_range);
             Node assum_difference =
                 nm->mkNode(Kind::AND, k_gt_0, noneqx, ranges_assum);
             Node difference = nm->mkNode(
-                Kind::OR, i.eqNode(x2).notNode(), n.eqNode(x).notNode());
+                Kind::OR, {i.eqNode(x2).notNode(), n.eqNode(x).notNode()});
             Node diff_lemm =
                 nm->mkNode(Kind::IMPLIES, assum_difference, difference);
             d_im.addPendingLemma(diff_lemm,
@@ -289,7 +288,7 @@ void PIAndSolver::checkFullRefine()
               && model_piand != model_piand2)
           {
             Node assum_sym = nm->mkNode(
-                Kind::AND, k.eqNode(k2), (x.eqNode(y2)), y.eqNode(x2));
+                Kind::AND, {k.eqNode(k2), (x.eqNode(y2)), y.eqNode(x2)});
             Node sym_lemm = nm->mkNode(Kind::IMPLIES, assum_sym, i.eqNode(n));
             d_im.addPendingLemma(sym_lemm,
                                  InferenceId::ARITH_NL_PIAND_SYMETRY_REFINE,

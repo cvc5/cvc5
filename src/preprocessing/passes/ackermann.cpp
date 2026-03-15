@@ -80,8 +80,8 @@ void addLemmaForPair(TNode args1,
     Assert(args1.getNumChildren() == 2);
     Assert(args2.getNumChildren() == 2);
     args_eq = nm->mkNode(Kind::AND,
-                         nm->mkNode(Kind::EQUAL, args1[0], args2[0]),
-                         nm->mkNode(Kind::EQUAL, args1[1], args2[1]));
+                         {nm->mkNode(Kind::EQUAL, args1[0], args2[0]),
+                          nm->mkNode(Kind::EQUAL, args1[1], args2[1])});
   }
   Node func_eq = nm->mkNode(Kind::EQUAL, args1, args2);
   Node lemma = nm->mkNode(Kind::IMPLIES, args_eq, func_eq);
