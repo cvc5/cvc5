@@ -72,6 +72,15 @@ name   = "Base"
   help       = "decrease verbosity (may be repeated)"
 
 [[option]]
+  name       = "quiteSafe"
+  category   = "common"
+  short      = "qsafe"
+  long       = "quiet-safe"
+  type       = "bool"
+  default    = "false"
+  help       = "do not give warnings related to safe modes"
+
+[[option]]
   name       = "incrementalSolving"
   category   = "common"
   short      = "i"
