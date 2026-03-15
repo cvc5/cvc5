@@ -107,12 +107,10 @@ Node ExpandDefs::expandDefinitions(TNode n,
       Trace("expand") << "cons : " << node << std::endl;
       if (node.getNumChildren() > 0)
       {
-        // cout << "cons : " << node << std::endl;
         NodeBuilder nb(nodeManager(), node.getKind());
         if (node.getMetaKind() == metakind::PARAMETERIZED)
         {
           Trace("expand") << "op   : " << node.getOperator() << std::endl;
-          // cout << "op   : " << node.getOperator() << std::endl;
           nb << node.getOperator();
         }
         for (size_t i = 0, nchild = node.getNumChildren(); i < nchild; ++i)
@@ -120,7 +118,6 @@ Node ExpandDefs::expandDefinitions(TNode n,
           Assert(!result.empty());
           Node expanded = result.top();
           result.pop();
-          // cout << "exchld : " << expanded << std::endl;
           Trace("expand") << "exchld : " << expanded << std::endl;
           nb << expanded;
         }

@@ -523,7 +523,6 @@ void SumOfInfeasibilitiesSPD::quickExplain(){
   d_qeConflict.clear();
   d_errorSet.pushFocusInto(d_qeConflict);
 
-  //cout <<  d_qeConflict.size() << " ";
   uint32_t size = d_qeConflict.size();
 
   if(size > 2){
@@ -542,8 +541,6 @@ void SumOfInfeasibilitiesSPD::quickExplain(){
     d_qeInSoi.purge();
     d_qeSgns.clear();
   }
-
-  //cout << d_qeConflict.size() << endl;
 
   Assert(d_qeInSoi.empty());
   Assert(d_qeInUAndNotInSoi.empty());
@@ -691,15 +688,6 @@ std::vector< ArithVarVec > SumOfInfeasibilitiesSPD::greedyConflictSubsets(){
     }
     tearDownInfeasiblityFunction(d_statistics.d_soiConflictMinimization, d_soiVar);
     d_soiVar = ARITHVAR_SENTINEL;
-    // if(false && spoiler == NULL){
-    //   ArithVarVec tmp;
-    //   int smallest = tryAllSubsets(underConstruction, 0, tmp);
-    //   cout << underConstruction.size() << " " << smallest << endl;
-    //   Assert(smallest >= underConstruction.size());
-    //   if(smallest < underConstruction.size()){
-    //     exit(-1);
-    //   }
-    // }
   }
 
   Assert(d_soiVar == ARITHVAR_SENTINEL);
@@ -780,9 +768,9 @@ WitnessImprovement SumOfInfeasibilitiesSPD::SOIConflict(){
   Trace("arith::SOIConflict") << "SumOfInfeasibilitiesSPD::SOIConflict() start "
                               << ": |E| = " << d_errorSize << endl;
   if(TraceIsOn("arith::SOIConflict")){
-    d_errorSet.debugPrint(cout);
+    d_errorSet.debugPrint(Trace("arith::SOIConflict"));
+    Trace("arith::SOIConflict") << endl;
   }
-  Trace("arith::SOIConflict") << endl;
 
   tearDownInfeasiblityFunction(d_statistics.d_soiConflictMinimization, d_soiVar);
   d_soiVar = ARITHVAR_SENTINEL;
@@ -802,9 +790,6 @@ WitnessImprovement SumOfInfeasibilitiesSPD::SOIConflict(){
       const ArithVarVec& subset = *i;
       Assert(debugIsASet(subset));
       anySuccess = generateSOIConflict(subset) || anySuccess;
-      //Node conflict = generateSOIConflict(subset);
-      //cout << conflict << endl;
-
       //reportConflict(conf); do not do this. We need a custom explanations!
       //d_conflictChannel(conflict);
     }

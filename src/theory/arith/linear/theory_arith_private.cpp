@@ -7,10 +7,6 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * [[ Add one-line brief description here ]]
- *
- * [[ Add lengthier description here ]]
- * \todo document this file
  */
 
 #include "theory/arith/linear/theory_arith_private.h"
@@ -1722,8 +1718,8 @@ void TheoryArithPrivate::outputConflicts(){
       const ConstraintRule& pf = confConstraint->getConstraintRule();
       if (TraceIsOn("arith::conflict"))
       {
-        pf.print(std::cout, options().smt.produceProofs);
-        std::cout << std::endl;
+        pf.print(Trace("arith::conflict"), options().smt.produceProofs);
+        Trace("arith::conflict") << std::endl;
       }
       if (TraceIsOn("arith::pf::tree"))
       {
@@ -2299,7 +2295,6 @@ std::vector<ConstraintCPVec> TheoryArithPrivate::replayLogRec(ApproximateSimplex
     for(; conflictQueueEmpty() && iter != end; ++iter){
       CutInfo* ci = *iter;
       bool reject = false;
-      //cout << "  trying " << *ci << endl;
       if(ci->getKlass() == RowsDeletedKlass){
         RowsDeleted* rd = dynamic_cast<RowsDeleted*>(ci);
 
@@ -3142,10 +3137,8 @@ bool TheoryArithPrivate::postCheck(Theory::Effort effortLevel)
       revertOutOfConflict();
     }
     outputConflicts();
-    //cout << "unate conflict 1 " << effortLevel << std::endl;
     return true;
   }
-
 
   if(TraceIsOn("arith::print_assertions")) {
     debugPrintAssertions(Trace("arith::print_assertions"));
@@ -3348,7 +3341,6 @@ bool TheoryArithPrivate::postCheck(Theory::Effort effortLevel)
       d_qflraStatus = Result::UNSAT;
       outputConflicts();
       emmittedConflictOrSplit = true;
-      //cout << "unate conflict " << endl;
       Trace("arith::bt") << "committing on unate conflict"
                          << " " << d_newFacts << " " << d_previousStatus << " "
                          << d_qflraStatus << endl;

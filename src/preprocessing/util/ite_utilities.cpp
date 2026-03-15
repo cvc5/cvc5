@@ -1519,7 +1519,6 @@ Node ITESimplifier::simpITE(TNode assertion)
 
   while (!toVisit.empty())
   {
-    // cout << "call  " << call << " : " << iteration << endl;
     // The current node we are processing
     preprocess_stack_element& stackHead = toVisit.back();
     TNode current = stackHead.d_node;
@@ -1568,11 +1567,6 @@ Node ITESimplifier::simpITE(TNode assertion)
       {
         result = simpITEAtom(result);
       }
-
-      // if(current != result && result.isConst()){
-      //   static int instance = 0;
-      //   //cout << instance << " " << result << current << endl;
-      // }
 
       result = rewrite(result);
       d_simpITECache[current] = result;
