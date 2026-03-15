@@ -151,15 +151,127 @@ bool AletheProofPostprocessCallback::updateTheoryRewriteProofRewriteRule(
                            *cdp);
     }
     // ======== QUANT_MERGE_PRENEX
-    // This rule is translated according to the clause pattern.
+    // The Alethe rule qnt_join expresses quite well what QUANT_MERGE_PRENEX
+    // does but can only merge two quantifiers at a time and expects duplicates
+    // to be deleted.
+    //
+    // First:
+    //
+    // ---------- QNT_JOIN
+    //   VP_b_1
+    //
+    // VP_b_1: (cl (= (Q X_1. Q X_2. ... Q X_n. F) (Q Y_1. Q X_3. ... Q X_n.
+    // F))) where Y_1 = X_1 u X_2
+    //
+    // Then, for i=1 to i=n-1 repeat:
+    //
+    //                    ------------ QNT_JOIN
+    //   VP_b_i             VP_a_i+1
+    // ------------------------------- TRANS
+    //             VP_b_i+1
+    //
+    // VP_b_i+1:
+    // (cl (= (Q X_1. Q X_2. ... Q X_n. F) (Q Y_i. Q X_i+2. ... Q X_n.F))),
+    // for i>0
+    //
+    // VP_a_i:
+    // (cl (= (Q Y_i. Q X_i+2. ... Q X_n. F) (Q Y_i+1. Q X_i+3. ... Q X_n. F))),
+    // for i>0 where Y_i = Y_i-1 u X_i, Y_0 = X_1
+    //
+    // Finally, if there are duplicates we remove them otherwise, VP_b_n is
+    // already equal to res.
+    //
+    //   VP_b_n
+    // ---------- QNT_REMOVE_UNUSED
+    //   res
+    case ProofRewriteRule::MACRO_QUANT_MERGE_PRENEX:
     case ProofRewriteRule::QUANT_MERGE_PRENEX:
     {
-      return addAletheStep(AletheRule::QNT_JOIN,
-                           res,
-                           nm->mkNode(Kind::SEXPR, d_cl, res),
-                           {},
-                           {},
-                           *cdp);
+      bool success = true;
+      Kind k = res[0].getKind();
+      Node curr = res[0];
+      // initial vars, deduped
+      std::vector<Node> vars;
+      for (const Node& v : curr[0])
+      {
+        if (std::find(vars.begin(), vars.end(), v) == vars.end())
+        {
+          vars.push_back(v);
+        }
+      }
+      // accumulator for transitivity step
+      std::vector<Node> transEqs;
+      while (curr[1].getKind() == k)
+      {
+        Trace("alethe-proof-debug") << "\t... curr " << curr << std::endl;
+        // add vars of child
+        for (const Node& v : curr[1][0])
+        {
+          if (std::find(vars.begin(), vars.end(), v) == vars.end())
+          {
+            vars.push_back(v);
+          }
+        }
+        // build new quantifier with joined vars and the body of child
+        Node q =
+            nm->mkNode(k, nm->mkNode(Kind::BOUND_VAR_LIST, vars), curr[1][1]);
+        Node eq = curr.eqNode(q);
+        success &= addAletheStep(AletheRule::QNT_JOIN,
+                                 eq,
+                                 nm->mkNode(Kind::SEXPR, d_cl, eq),
+                                 {},
+                                 {},
+                                 *cdp);
+        transEqs.push_back(eq);
+        curr = q;
+      }
+      // no joining happened, so this is just an application of QNT_RM_UNUSED
+      if (transEqs.empty())
+      {
+        return addAletheStep(AletheRule::QNT_RM_UNUSED,
+                             res,
+                             nm->mkNode(Kind::SEXPR, d_cl, res),
+                             {},
+                             {},
+                             *cdp);
+      }
+      Node currRes = transEqs.back();
+      if (transEqs.size() > 1)
+      {
+        currRes = res[0].eqNode(transEqs.back()[1]);
+        success &= addAletheStep(AletheRule::TRANS,
+                                 currRes,
+                                 nm->mkNode(Kind::SEXPR, d_cl, currRes),
+                                 transEqs,
+                                 {},
+                                 *cdp);
+      }
+      // if there were duplicates, add a QNT_RM_UNUSED
+      if (currRes != res)
+      {
+        Assert(res[0] == currRes[0]);
+        Node eqRmUnused = res[1].eqNode(currRes[1]);
+        Node eqRmUnusedSymm = currRes[1].eqNode(res[1]);
+        return addAletheStep(AletheRule::QNT_RM_UNUSED,
+                             eqRmUnused,
+                             nm->mkNode(Kind::SEXPR, d_cl, eqRmUnused),
+                             {},
+                             {},
+                             *cdp)
+               && addAletheStep(AletheRule::SYMM,
+                                eqRmUnusedSymm,
+                                nm->mkNode(Kind::SEXPR, d_cl, eqRmUnusedSymm),
+                                {eqRmUnused},
+                                {},
+                                *cdp)
+               && addAletheStep(AletheRule::TRANS,
+                                res,
+                                nm->mkNode(Kind::SEXPR, d_cl, res),
+                                {currRes, eqRmUnusedSymm},
+                                {},
+                                *cdp);
+      }
+      return success;
     }
     // ======== QUANT_MINISCOPE_AND
     // This rule is translated according to the clause pattern.
