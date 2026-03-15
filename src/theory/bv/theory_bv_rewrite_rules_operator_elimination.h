@@ -24,8 +24,8 @@
 namespace cvc5::internal {
 namespace theory {
 namespace bv {
-template <>
 
+template <>
 inline bool RewriteRule<SizeEliminate>::applies(TNode node)
 {
   // ensures argument has concrete bitvector type
