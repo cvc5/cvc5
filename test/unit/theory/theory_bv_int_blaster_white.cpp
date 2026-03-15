@@ -260,8 +260,6 @@ TEST_F(TestTheoryWhiteBvIntblaster, intblaster_with_children)
   ASSERT_TRUE(result.getType().isInteger());
 
   // FORALL with patterns
-  // Go through intBlast (full traversal),
-  // which populates d_intblastCache as required by translateQuantifiedFormula.
   Node z = d_nodeManager->mkBoundVar("z", bvType);
   Node bvl = d_nodeManager->mkNode(Kind::BOUND_VAR_LIST, z);
   Node body = d_nodeManager->mkNode(Kind::BITVECTOR_ULT, z, v2);
@@ -271,17 +269,11 @@ TEST_F(TestTheoryWhiteBvIntblaster, intblaster_with_children)
   original = d_nodeManager->mkNode(Kind::FORALL, bvl, body, list);
   std::vector<Node> dummylemmas;
   result = intBlaster.intBlast(original, dummylemmas, skolems);
-  // result should be boolean
   ASSERT_TRUE(result.getType().isBoolean());
-  // body (matrix) should be boolean
   ASSERT_TRUE(result[1].getType().isBoolean());
-  // should have 3 children (bound var list, body, pattern list)
   ASSERT_TRUE(result.getNumChildren() == 3);
-  // third child should be INST_PATTERN_LIST
   ASSERT_TRUE(result[2].getKind() == Kind::INST_PATTERN_LIST);
-  // with one pattern
   ASSERT_TRUE(result[2].getNumChildren() == 1);
-  // which is an INST_PATTERN
   ASSERT_TRUE(result[2][0].getKind() == Kind::INST_PATTERN);
 }
 
