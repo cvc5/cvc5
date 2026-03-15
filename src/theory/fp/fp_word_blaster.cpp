@@ -152,17 +152,17 @@ symbolicRoundingMode traits::RTP(void) { return symbolicRoundingMode(0x04); };
 symbolicRoundingMode traits::RTN(void) { return symbolicRoundingMode(0x08); };
 symbolicRoundingMode traits::RTZ(void) { return symbolicRoundingMode(0x10); };
 
-void traits::precondition(const bool b)
+void traits::precondition(CVC5_UNUSED const bool b)
 {
   Assert(b);
   return;
 }
-void traits::postcondition(const bool b)
+void traits::postcondition(CVC5_UNUSED const bool b)
 {
   Assert(b);
   return;
 }
-void traits::invariant(const bool b)
+void traits::invariant(CVC5_UNUSED const bool b)
 {
   Assert(b);
   return;

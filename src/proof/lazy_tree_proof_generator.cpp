@@ -86,7 +86,7 @@ std::shared_ptr<ProofNode> LazyTreeProofGenerator::getProof() const
   return d_cached;
 }
 
-std::shared_ptr<ProofNode> LazyTreeProofGenerator::getProofFor(Node f)
+std::shared_ptr<ProofNode> LazyTreeProofGenerator::getProofFor(CVC5_UNUSED Node f)
 {
   Assert(hasProofFor(f));
   return getProof();

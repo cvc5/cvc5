@@ -246,7 +246,7 @@ unsigned SynthConjectureProcessFun::assignRelevantDef(
 
 void SynthConjectureProcessFun::processTerms(
     std::vector<Node>& ns,
-    std::vector<Node>& ks,
+    CVC5_UNUSED std::vector<Node>& ks,
     Node nf,
     std::unordered_set<Node>& synth_fv,
     std::unordered_map<Node, std::unordered_set<Node>>& free_vars)

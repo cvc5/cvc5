@@ -59,7 +59,7 @@ CoreSolver::~CoreSolver() {
 
 }
 
-void CoreSolver::debugPrintFlatForms( const char * tc ){
+void CoreSolver::debugPrintFlatForms(CVC5_UNUSED const char * tc ){
   for( unsigned k=0; k<d_strings_eqc.size(); k++ ){
     Node eqc = d_strings_eqc[k];
     if( d_eqc[eqc].size()>1 ){
