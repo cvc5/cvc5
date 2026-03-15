@@ -556,10 +556,11 @@ bool AletheProofPostprocessCallback::update(Node res,
       std::map<Node, Node> emptyMap;
       Node t = res[0];
       Node tf = applyAcSimp(d_env, emptyMap, t);
-      Kind k = res.getKind();
+      Kind k = t.getKind();
       // if the simplification did not result in a term that would simplify to
       // the expected constant, abort. For this the kind of tf must be the same
-      // as of t and one of its arguments must be res[1].
+      // as of t and one of its arguments must be res[1] (the absorbing
+      // constant).
       bool success = false;
       for (const Node& ch : tf)
       {
@@ -569,19 +570,20 @@ bool AletheProofPostprocessCallback::update(Node res,
           break;
         }
       }
-      if (!success || k != tf.getKind())
+      if (!success || k != tf.getKind() || (k != Kind::OR && k != Kind::AND))
       {
-        return addAletheStep(AletheRule::HOLE,
-                             res,
-                             nm->mkNode(Kind::SEXPR, d_cl, res),
-                             {},
-                             {},
-                             *cdp);
+        return addAletheStep(
+            AletheRule::HOLE,
+            res,
+            nm->mkNode(Kind::SEXPR, d_cl, res),
+            {},
+            {nm->mkRawSymbol("\"failed absorb\"", nm->sExprType())},
+            *cdp);
       }
       Node vp1 = nm->mkNode(Kind::EQUAL, t, tf);
       Node vp2 = nm->mkNode(Kind::EQUAL, tf, res[1]);
       // if the kind was not one of these, the simplification above would have failed
-      Assert(k == Kind::OR || k == Kind::AND);
+      Assert(k == Kind::OR || k == Kind::AND) << "Kind is " << k;
       AletheRule rule =
           k == Kind::OR ? AletheRule::OR_SIMPLIFY : AletheRule::AND_SIMPLIFY;
       return addAletheStep(AletheRule::AC_SIMP,
@@ -680,27 +682,32 @@ bool AletheProofPostprocessCallback::update(Node res,
                            new_args,
                            *cdp);
     }
-    // Both ARITH_POLY_NORM and EVALUATE, which are used by the Rare
-    // elaboration, are captured by the "rare_rewrite" rule.
     case ProofRule::ARITH_POLY_NORM:
     {
-      return addAletheStep(
-          AletheRule::RARE_REWRITE,
-          res,
-          nm->mkNode(Kind::SEXPR, d_cl, res),
-          children,
-          {NodeManager::mkRawSymbol("\"arith-poly-norm\"", nm->sExprType())},
-          *cdp);
+      return addAletheStep(AletheRule::POLY_SIMP,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           {},
+                           {},
+                           *cdp);
+    }
+    case ProofRule::ARITH_POLY_NORM_REL:
+    {
+      return addAletheStep(AletheRule::POLY_SIMP_REL,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           children,
+                           {},
+                           *cdp);
     }
     case ProofRule::EVALUATE:
     {
-      return addAletheStep(
-          AletheRule::RARE_REWRITE,
-          res,
-          nm->mkNode(Kind::SEXPR, d_cl, res),
-          children,
-          {NodeManager::mkRawSymbol("\"evaluate\"", nm->sExprType())},
-          *cdp);
+      return addAletheStep(AletheRule::EVALUATE,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           {},
+                           {},
+                           *cdp);
     }
     // If the trusted rule is a theory lemma from arithmetic, we try to phrase
     // it with "lia_generic".
@@ -1402,6 +1409,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     //   (cl (= (<kind> f? t1 ... tn) (<kind> f? s1 ... sn)))
     case ProofRule::CONG:
     case ProofRule::NARY_CONG:
+    case ProofRule::PAIRWISE_CONG:
     {
       if (res[0].isClosure())
       {
@@ -1422,10 +1430,16 @@ bool AletheProofPostprocessCallback::update(Node res,
                              new_args,
                              *cdp);
       }
+      // ignore prefix that is refl
+      auto firstNonRefl =
+          std::find_if(children.begin(), children.end(), [](const Node& c) {
+            Assert(c.getKind() == Kind::EQUAL);
+            return c[0] != c[1];
+          });
       return addAletheStep(AletheRule::CONG,
                            res,
                            nm->mkNode(Kind::SEXPR, d_cl, res),
-                           children,
+                           {firstNonRefl, children.end()},
                            {},
                            *cdp);
     }
@@ -2556,6 +2570,15 @@ bool AletheProofPostprocessCallback::update(Node res,
         }
       }
       return success;
+    }
+    case ProofRule::ACI_NORM:
+    {
+      return addAletheStep(AletheRule::ACI_SIMP,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           {},
+                           {},
+                           *cdp);
     }
     default:
     {

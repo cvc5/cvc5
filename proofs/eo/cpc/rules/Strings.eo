@@ -931,9 +931,27 @@
   (
   (($seq_find t t n)                        n)
   (($seq_find (as seq.empty (Seq T)) s n)   -1)
-  (($seq_find (seq.++ t ts) s n)            (eo::ite ($seq_is_prefix (seq.++ t ts) s)
+  (($seq_find (seq.++ t ts) s n)            (eo::ite ($seq_is_prefix s (seq.++ t ts))
                                               n
                                               ($seq_find ts s (eo::add n 1))))
+  )
+)
+
+; program: $seq_subsequence_rec
+; args:
+; - l Int: The starting index, inclusive, of elements of t to extract.
+; - u Int: The end index, inclusive, of elements of t to extract.
+; - t (Seq T): The term to process, which is expected to be a seq.++ list.
+; return: >
+;   The subsequent of t between indices l up to (and not including) u, assumes u is non-negative.
+(program $seq_subsequence_rec ((T Type) (t (Seq T)) (e T) (ts (Seq T) :list) (u Int) (l Int))
+  :signature (Int Int (Seq T)) (Seq T)
+  (
+    (($seq_subsequence_rec l u (as seq.empty (Seq T)))      (as seq.empty (Seq T)))
+    (($seq_subsequence_rec l 0 t)                           (as seq.empty (eo::typeof t)))
+    (($seq_subsequence_rec 0 u (seq.++ (seq.unit e) ts))    (eo::cons seq.++ (seq.unit e) ($seq_subsequence_rec 0 (eo::add u -1) ts)))
+    (($seq_subsequence_rec l u (seq.++ (seq.unit e) ts))
+      ($seq_subsequence_rec (eo::add l -1) (eo::add u -1) ts))
   )
 )
 
@@ -944,16 +962,8 @@
 ; - t (Seq T): The term to process, which is expected to be a seq.++ list.
 ; return: >
 ;   The subsequent of t between indices l up to (and not including) u.
-(program $seq_subsequence ((T Type) (t (Seq T)) (e T) (ts (Seq T) :list) (u Int) (l Int))
-  :signature (Int Int (Seq T)) (Seq T)
-  (
-    (($seq_subsequence l u (as seq.empty (Seq T)))      (as seq.empty (Seq T)))
-    (($seq_subsequence l 0 t)                           (as seq.empty (eo::typeof t)))
-    (($seq_subsequence 0 u (seq.++ (seq.unit e) ts))    (eo::cons seq.++ (seq.unit e) ($seq_subsequence 0 (eo::add u -1) ts)))
-    (($seq_subsequence l u (seq.++ (seq.unit e) ts))
-      ($seq_subsequence (eo::add l -1) (eo::add u -1) ts))
-  )
-)
+(define $seq_subsequence ((T Type :implicit) (l Int) (u Int) (t (Seq T)))
+  (eo::ite (eo::is_neg u) (as seq.empty (eo::typeof t)) ($seq_subsequence_rec l u t)))
 
 ; program: $seq_eval_replace_all_rec
 ; args:
@@ -1009,7 +1019,7 @@
                                           (eo::define ((rn ($str_nary_intro r)))
                                           (eo::ite (eo::eq ($str_value_len s) 0)
                                             t
-                                            ($str_nary_elim ($seq_eval_replace_all_rec tn sn rn ($seq_find sn tn 0) ($str_value_len tn))))))))
+                                            ($str_nary_elim ($seq_eval_replace_all_rec tn sn rn ($seq_find tn sn 0) ($str_value_len sn))))))))
     (($seq_eval (seq.indexof t s n))      (eo::define ((tn ($str_nary_intro t)))
                                           (eo::define ((sn ($str_nary_intro s)))
                                           (eo::define ((tl ($str_value_len tn)))

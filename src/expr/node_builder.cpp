@@ -337,20 +337,18 @@ void NodeBuilder::decrRefCounts()
   d_inlineNv.d_nchildren = 0;
 }
 
-TypeNode NodeBuilder::constructTypeNode() { return TypeNode(constructNV()); }
+TypeNode NodeBuilder::constructTypeNode()
+{
+  // NOLINTNEXTLINE(clang-analyzer-unix.Malloc)
+  return TypeNode(constructNV());
+}
 
 Node NodeBuilder::constructNode()
 {
+  // NOLINTNEXTLINE(clang-analyzer-unix.Malloc)
   Node n(constructNV());
   maybeCheckType(n);
   return n;
-}
-
-Node* NodeBuilder::constructNodePtr()
-{
-  std::unique_ptr<Node> np(new Node(constructNV()));
-  maybeCheckType(*np.get());
-  return np.release();
 }
 
 NodeBuilder::operator Node() { return constructNode(); }

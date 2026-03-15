@@ -802,7 +802,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "conflictBasedInst"
-  category   = "regular"
+  category   = "common"
   long       = "cbqi"
   type       = "bool"
   default    = "true"
