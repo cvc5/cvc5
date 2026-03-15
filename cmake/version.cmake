@@ -58,6 +58,9 @@ if(CVC5_IS_RELEASE STREQUAL "false")
   endwhile()
 
   set(CVC5_VERSION "${NEXT_CVC5_VERSION}.dev")
+  set(CVC5_VERSION_NUMBER "${NEXT_CVC5_VERSION}")
+  # Set SOVERSION to cvc5 major version number
+  string(REGEX MATCH "^[0-9]+" CVC5_SOVERSION "${NEXT_CVC5_VERSION}")
   set(CVC5_FULL_VERSION "${NEXT_CVC5_VERSION}.dev")
   # Python: Development segment MUST follow the format devN, where N is a sequence of digits.
   set(CVC5_WHEEL_VERSION "${NEXT_CVC5_VERSION}.dev0")
