@@ -1107,7 +1107,7 @@ Node IntBlaster::translateQuantifiedFormula(
   // collect range constraints for UF applications
   // that involve quantified variables
   std::unordered_set<Node> applys;
-  expr::getKindSubterms(quantifiedNode[1], Kind::APPLY_UF, true, applys);
+  expr::getKindSubterms(quantifiedNode[1], Kind::APPLY_UF, false, applys);
   for (const Node& apply : applys)
   {
     Node f = apply.getOperator();
