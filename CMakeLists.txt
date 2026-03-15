@@ -501,10 +501,6 @@ else()
   add_definitions(-DNDEBUG)
 endif()
 
-if(ENABLE_CLANG_TIDY)
-  add_definitions(-DCVC5_STATIC_ANALYSIS)
-endif()
-
 if(ENABLE_COVERAGE)
   include(CodeCoverage)
   append_coverage_compiler_flags()
