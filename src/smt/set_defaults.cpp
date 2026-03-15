@@ -134,7 +134,7 @@ void SetDefaults::setDefaultsPre(Options& opts)
   // safe options
   if (options().base.safeMode == options::SafeMode::UNRESTRICTED)
   {
-    if (!options().base.quietSafe)
+    if (!d_isInternalSubsolver && !options().base.quietSafe)
     {
       Warning() << "This is an unrestricted build of cvc5, use at your own risk." << std::endl;
       Warning() << "To avoid this warning, cvc5 can be built in safe or stable modes" << std::endl;

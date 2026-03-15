@@ -85,6 +85,10 @@ class Tester:
 
         print()
         print_info(self.name)
+        # Always disable warnings involving safe mode in all regression testers.
+        benchmark_info = benchmark_info._replace(
+            command_line_args=benchmark_info.command_line_args + ["--quiet-safe"]
+        )
         print("  Flags: {}".format(benchmark_info.command_line_args))
         return self.run_internal(benchmark_info)
 
