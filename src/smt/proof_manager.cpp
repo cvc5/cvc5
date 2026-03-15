@@ -20,6 +20,7 @@
 #include "proof/alethe/alethe_post_processor.h"
 #include "proof/alethe/alethe_printer.h"
 #include "proof/alf/alf_printer.h"
+#include "proof/alf/logos_node_converter.h"
 #include "proof/dot/dot_printer.h"
 #include "proof/lfsc/lfsc_post_processor.h"
 #include "proof/lfsc/lfsc_printer.h"
@@ -334,6 +335,12 @@ void PfManager::printProof(std::ostream& out,
   {
     proof::AlfNodeConverter atp(nodeManager());
     proof::AlfPrinter alfp(d_env, atp, d_rewriteDb.get());
+    alfp.print(out, fp, scopeMode);
+  }
+  else if (mode == options::ProofFormatMode::CPC_LOGOS)
+  {
+    proof::LogosNodeConverter atp(nodeManager());
+    proof::AlfPrinter alfp(d_env, atp, d_rewriteDb.get(), 1);
     alfp.print(out, fp, scopeMode);
   }
   else if (mode == options::ProofFormatMode::ALETHE)

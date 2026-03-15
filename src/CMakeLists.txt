@@ -157,6 +157,8 @@ libcvc5_add_sources(
   proof/alf/alf_print_channel.h
   proof/alf/alf_printer.cpp
   proof/alf/alf_printer.h
+  proof/alf/logos_node_converter.cpp
+  proof/alf/logos_node_converter.h
   proof/assumption_proof_generator.cpp
   proof/assumption_proof_generator.h
   proof/buffered_proof_generator.cpp

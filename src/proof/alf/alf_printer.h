@@ -62,7 +62,8 @@ class AlfPrinter : protected EnvObj
    */
   void print(AlfPrintChannelOut& out,
              std::shared_ptr<ProofNode> pfn,
-             ProofScopeMode psm = ProofScopeMode::DEFINITIONS_AND_ASSERTIONS);
+             ProofScopeMode psm = ProofScopeMode::DEFINITIONS_AND_ASSERTIONS,
+             bool printDeclPreamble = true);
   /**
    * Print the proof, assuming that previous proofs have been printed on this
    * printer that have (partially) given the definition of subterms and
@@ -184,6 +185,8 @@ class AlfPrinter : protected EnvObj
   context::CDHashSet<const ProofNode*> d_alreadyPrinted;
   /** Mapping assumed formulas to identifiers */
   context::CDHashMap<Node, size_t> d_passumeMap;
+  /** */
+  bool d_isCpcLogos;
   /** The (dummy) type used for proof terms */
   TypeNode d_pfType;
   /** term prefix */

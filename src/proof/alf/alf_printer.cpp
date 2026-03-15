@@ -48,7 +48,9 @@ AlfPrinter::AlfPrinter(Env& env,
       d_pfIdCounter(0),
       d_alreadyPrinted(&d_passumeCtx),
       d_passumeMap(&d_passumeCtx),
-      d_termLetPrefix("@t"),
+      d_isCpcLogos(options().proof.proofFormatMode
+                   == options::ProofFormatMode::CPC_LOGOS),
+      d_termLetPrefix(d_isCpcLogos ? "t" : "@t"),
       d_rdb(rdb),
       // Use a let binding if proofDagGlobal is true. We can traverse binders
       // due to the way we print global declare-var, since terms beneath
@@ -816,11 +818,21 @@ void AlfPrinter::printLetList(std::ostream& out, LetBinding& lbind)
   for (size_t i = 0, nlets = letList.size(); i < nlets; i++)
   {
     Node n = letList[i];
-    // use define command which does not invoke type checking
-    out << "(define " << d_termLetPrefix << lbind.getId(n);
-    out << " () ";
-    Printer::getPrinter(out)->toStream(out, n, &lbind, false);
-    out << ")" << std::endl;
+    if (d_isCpcLogos)
+    {
+      out << "def " << d_termLetPrefix << lbind.getId(n);
+      out << " := ";
+      Printer::getPrinter(out)->toStream(out, n, &lbind, false);
+      out << std::endl;
+    }
+    else
+    {
+      // use define command which does not invoke type checking
+      out << "(define " << d_termLetPrefix << lbind.getId(n);
+      out << " () ";
+      Printer::getPrinter(out)->toStream(out, n, &lbind, false);
+      out << ")" << std::endl;
+    }
   }
 }
 
@@ -833,15 +845,31 @@ void AlfPrinter::print(std::ostream& out,
   options::ioutils::applyPrintArithLitToken(out, true);
   options::ioutils::applyPrintSkolemDefinitions(out, true);
   // allocate a print channel
-  AlfPrintChannelOut aprint(out, d_lbindUse, d_termLetPrefix, true);
-  print(aprint, pfn, psm);
+  if (d_isCpcLogos)
+  {
+    CpcLogosChannelOut cllout(out, d_lbindUse);
+    print(cllout, pfn, psm, false);
+    // dump the output
+    cllout.finalize();
+  }
+  else
+  {
+    AlfPrintChannelOut aprint(out, d_lbindUse, true);
+    print(aprint, pfn, psm, !options().proof.proofPrintReference);
+  }
 }
 
 void AlfPrinter::print(AlfPrintChannelOut& aout,
                        std::shared_ptr<ProofNode> pfn,
-                       ProofScopeMode psm)
+                       ProofScopeMode psm,
+                       bool printDeclPreamble)
 {
   std::ostream& out = aout.getOStream();
+  if (d_isCpcLogos)
+  {
+    out << "import Cpc.Logos" << std::endl;
+    out << "open Eo" << std::endl;
+  }
   Assert(d_pletMap.empty());
   d_pfIdCounter = 0;
 
@@ -888,7 +916,7 @@ void AlfPrinter::print(AlfPrintChannelOut& aout,
     if (i == 1)
     {
       // do not need to print DSL rules
-      if (!options().proof.proofPrintReference)
+      if (printDeclPreamble)
       {
         // [1] print the declarations
         printer::smt2::Smt2Printer alfp(printer::smt2::Variant::alf_variant);

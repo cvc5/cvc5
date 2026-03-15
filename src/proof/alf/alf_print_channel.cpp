@@ -19,6 +19,7 @@
 #include "printer/printer.h"
 #include "proof/trust_id.h"
 #include "rewriter/rewrite_db.h"
+#include "proof/alf/logos_node_converter.h"
 
 namespace cvc5::internal {
 namespace proof {
@@ -29,11 +30,9 @@ AlfPrintChannel::~AlfPrintChannel() {}
 
 AlfPrintChannelOut::AlfPrintChannelOut(std::ostream& out,
                                        const LetBinding* lbind,
-                                       const std::string& tprefix,
                                        bool trackWarn)
     : d_out(out),
       d_lbind(lbind),
-      d_termLetPrefix(tprefix),
       d_trackWarn(trackWarn)
 {
 }
@@ -67,7 +66,6 @@ void AlfPrintChannelOut::printStep(const std::string& rname,
 {
   printStepInternal(rname, n, i, premises, args, isPop, false);
 }
-
 void AlfPrintChannelOut::printStepInternal(const std::string& rname,
                                            TNode n,
                                            size_t i,
@@ -247,6 +245,132 @@ void AlfPrintChannelPre::processInternal(const Node& n)
     d_lbind->process(n);
   }
   d_keep.insert(n);  // probably not necessary
+}
+
+CpcLogosChannelOut::CpcLogosChannelOut(std::ostream& out,
+                                       const LetBinding* lbind)
+    : AlfPrintChannelOut(out, lbind, false)
+{
+  d_stackSize = 0;
+  d_stateId = 0;
+  d_stateDef << "def s0 : CState := logos_init_state" << std::endl;
+}
+
+void CpcLogosChannelOut::printAssume(TNode n, size_t i, bool isPush)
+{
+  Assert(!n.isNull());
+  d_stateId++;
+  if (isPush)
+  {
+    d_stackPush.push_back(d_stackSize);
+    d_stateDef << "def s" << d_stateId << " : CState := (logos_invoke_cmd s";
+    d_stateDef << (d_stateId - 1) << " (CCmd.assume_push ";
+    printNodeInternal(d_stateDef, n);
+    d_stateDef <<  "))" << std::endl;
+  }
+  else
+  {
+    d_stateDef << "def s" << d_stateId
+               << " : CState := (logos_invoke_assume s" << (d_stateId - 1) << " ";
+    printNodeInternal(d_stateDef, n);
+    d_stateDef << ")" << std::endl;
+  }
+  d_stackId[i] = d_stackSize;
+  d_stackSize++;
+}
+
+void CpcLogosChannelOut::printStep(const std::string& rname,
+                                   TNode n,
+                                   size_t i,
+                                   const std::vector<size_t>& premises,
+                                   const std::vector<Node>& args,
+                                   bool isPop)
+{
+  // must convert - to _ from RARE rule names.
+  std::string rnameUse = LogosNodeConverter::replace_all(rname, "-", "_");
+  d_stateId++;
+  d_stateDef << "def s" << d_stateId << " : CState := (logos_invoke_cmd s"
+             << (d_stateId - 1);
+  d_stateDef << " (CCmd.step" << (isPop ? "_pop" : "") <<  " CRule." << rnameUse;
+  // get the premise indices in terms of depth on the stack
+  std::vector<size_t> pindices;
+  std::map<size_t, size_t>::iterator its;
+  for (size_t p : premises)
+  {
+    its = d_stackId.find(p);
+    if (its != d_stackId.end())
+    {
+      Assert(d_stackSize > its->second);
+      pindices.push_back(d_stackSize - its->second - 1);
+    }
+    else
+    {
+      std::stringstream ss;
+      ss << "Failed to find proof identifier " << p << " to " << rname;
+      InternalError() << ss.str();
+    }
+  }
+  // always package as list
+  // determine if premise list, if so, package as list
+  std::string ret = "CIndexList.nil";
+  for (size_t j = 0, npremises = pindices.size(); j < npremises; j++)
+  {
+    size_t jj = (npremises - 1) - j;
+    std::stringstream retNext;
+    retNext << "(CIndexList.cons " << pindices[jj] << " " << ret << ")";
+    ret = retNext.str();
+  }
+  std::string aret = "CArgList.nil";
+  for (size_t j = 0, nargs = args.size(); j < nargs; j++)
+  {
+    size_t jj = (nargs - 1) - j;
+    Node a = args[jj];
+    std::stringstream anext;
+    anext << "(CArgList.cons ";
+    printNodeInternal(anext, a);
+    anext << " " << aret << ")";
+    aret = anext.str();
+  }
+  d_stateDef << " " << aret << " " << ret;
+  d_stateDef << "))" << std::endl;
+  // if step-pop, revert stack size
+  if (isPop)
+  {
+    Assert(!d_stackPush.empty());
+    d_stackSize = d_stackPush.back();
+    d_stackPush.pop_back();
+  }
+  d_stackId[i] = d_stackSize;
+  d_stackSize++;
+  // print a command to check proven if given
+  if (!n.isNull())
+  {
+    d_stateId++;
+    d_stateDef << "def s" << d_stateId << ": CState := (logos_invoke_cmd s"
+               << (d_stateId - 1);
+    d_stateDef << " (CCmd.check_proven ";
+    printNodeInternal(d_stateDef, n);
+    d_stateDef << "))" << std::endl;
+  }
+}
+
+void CpcLogosChannelOut::printTrustStep(ProofRule r,
+                                        TNode n,
+                                        size_t i,
+                                        const std::vector<size_t>& premises,
+                                        const std::vector<Node>& args,
+                                        TNode nc)
+{
+  std::stringstream ss;
+  ss << "The proof was incomplete, due to rule " << r;
+  InternalError() << ss.str();
+}
+
+void CpcLogosChannelOut::finalize()
+{
+  d_out << d_stateDef.str();
+  d_out << "#eval!" << std::endl;
+  d_out << "(logos_state_is_refutation s" << d_stateId << ")" << std::endl;
 }
 
 }  // namespace proof
