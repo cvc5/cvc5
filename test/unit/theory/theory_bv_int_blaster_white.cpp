@@ -266,21 +266,15 @@ TEST_F(TestTheoryWhiteBvIntblaster, intblaster_with_children)
   Node bvnot = d_nodeManager->mkNode(Kind::BITVECTOR_NOT, v1);
   Node pattern = d_nodeManager->mkNode(Kind::INST_PATTERN, bvnot);
   Node list = d_nodeManager->mkNode(Kind::INST_PATTERN_LIST, pattern);
-  original = d_nodeManager->mkNode(
-      Kind::FORALL,
-      bvl,
-      body,
-      list);
+  original = d_nodeManager->mkNode(Kind::FORALL, bvl, body, list);
   // translation
   Node ibvl = intBlaster.translateNoChildren(bvl, lemmas, skolems);
   Node ibody = intBlaster.translateWithChildren(body, {i1, i2}, lemmas);
   Node ibvnot = intBlaster.translateWithChildren(bvnot, {i1}, lemmas);
   Node ipattern = intBlaster.translateWithChildren(pattern, {ibvnot}, lemmas);
   Node ilist = intBlaster.translateWithChildren(list, {ipattern}, lemmas);
-  result = intBlaster.translateWithChildren(
-      original,
-      {ibvl, ibody, ilist},
-      lemmas);
+  result =
+      intBlaster.translateWithChildren(original, {ibvl, ibody, ilist}, lemmas);
   ASSERT_TRUE(result.getType().isBoolean());
   ASSERT_TRUE(result[1].getType().isBoolean());
   ASSERT_TRUE(result.getNumChildren() == 3);
@@ -325,7 +319,6 @@ TEST_F(TestTheoryWhiteBvIntblaster, intblaster_bitwise)
   // check that a lemma was added
   ASSERT_TRUE(lemmas.size() > orig_num_lemmas);
 }
-
 
 }  // namespace test
 }  // namespace cvc5::internal

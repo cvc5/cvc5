@@ -702,14 +702,17 @@ Node IntBlaster::translateWithChildren(
     case Kind::INST_PATTERN_LIST:
     {
       returnNode = d_nm->mkNode(oldKind, translated_children);
-       Trace("int-blaster-debug") << "pattern or list: " << oldKind << std::endl;
-       Trace("int-blaster-debug") << "original pattern/list node: " << original << std::endl;
-       Trace("int-blaster-debug") << "result pattern/list node: " << returnNode << std::endl;
+      Trace("int-blaster-debug") << "pattern or list: " << oldKind << std::endl;
+      Trace("int-blaster-debug")
+          << "original pattern/list node: " << original << std::endl;
+      Trace("int-blaster-debug")
+          << "result pattern/list node: " << returnNode << std::endl;
       break;
     }
     case Kind::FORALL:
     {
-      returnNode = translateQuantifiedFormula(original, translated_children, lemmas);
+      returnNode =
+          translateQuantifiedFormula(original, translated_children, lemmas);
       break;
     }
     default:
@@ -1136,7 +1139,8 @@ Node IntBlaster::translateQuantifiedFormula(
   // if there was an instantiation pattern, include its translation.
   if (quantifiedNode.getNumChildren() == 3)
   {
-    result = d_nm->mkNode(Kind::FORALL, newBoundVarsList, matrix, translated_children[2]);
+    result = d_nm->mkNode(
+        Kind::FORALL, newBoundVarsList, matrix, translated_children[2]);
   }
   else
   {
