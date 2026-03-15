@@ -119,9 +119,14 @@ def gen_rewrite_db_rule(defns, rule, flag_expert):
         assert not rule.is_fixed_point
         fixed_point_arg = 'Node::null()'
     level = "Level::" + ("EXPERT" if flag_expert else "NORMAL")
-    return f'db.addRule(ProofRewriteRule::{rule.get_enum()}, {{ {fvs_list} }}, ' \
-           f'{gen_mk_node(defns, rule.lhs)}, {gen_mk_node(defns, rule.rhs)}, '\
-           f'{gen_mk_node(defns, rule.cond)}, {fixed_point_arg}, {level});'
+    return f'{{' \
+           f'Node lhs = {gen_mk_node(defns, rule.lhs)};' \
+           f'Node rhs = {gen_mk_node(defns, rule.rhs)};' \
+           f'Node cond = {gen_mk_node(defns, rule.cond)};' \
+           f'Node fix_point = {fixed_point_arg};' \
+           f'db.addRule(ProofRewriteRule::{rule.get_enum()}, {{ {fvs_list} }}, ' \
+           f'lhs, rhs, cond, fix_point, {level});' \
+           f'}}'
 
 
 class Rewrites:
