@@ -266,7 +266,8 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
       else if (node[0].isConst() && node[1].isConst())
       {
         Node newNode = rewriteViaRule(ProofRewriteRule::SETS_EVAL_OP, node);
-        Assert(newNode.isConst() && newNode.getType() == node.getType());
+        Assert(newNode.isConst()
+               && CVC5_EQUAL(newNode.getType(), node.getType()));
         Trace("sets-postrewrite")
             << "Sets::postRewrite returning " << newNode << std::endl;
         return RewriteResponse(REWRITE_DONE, newNode);

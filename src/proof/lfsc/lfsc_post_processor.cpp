@@ -402,7 +402,7 @@ bool LfscProofPostprocessCallback::update(Node res,
           Assert(i + 1 < qvars.size());
           std::vector<Node> qvarsNew(qvars.begin() + i + 1, qvars.end());
           Assert(!qvarsNew.empty());
-          Assert(qvars[i].getType() == args[0][i].getType());
+          AssertEqual(qvars[i].getType(), args[0][i].getType());
           std::vector<Node> qchildren;
           TNode v = qvars[i];
           TNode subs = args[0][i];

@@ -936,7 +936,7 @@ CegTermType ArithInstantiator::solve_arith(CegInstantiator* ci,
   {
     val = nm->mkNode(Kind::TO_REAL, val);
   }
-  Assert(pv.getType() == val.getType());
+  AssertEqual(pv.getType(), val.getType());
   Trace("cegqi-arith-debug")
       << "Return " << veq_c << " * " << pv << " " << atom.getKind() << " "
       << val << ", vts = (" << vts_coeff_inf << ", " << vts_coeff_delta << ")"
