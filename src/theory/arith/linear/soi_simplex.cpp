@@ -418,9 +418,11 @@ uint32_t SumOfInfeasibilitiesSPD::quickExplainRec(uint32_t cEnd, uint32_t uEnd){
   Assert(d_qeInUAndNotInSoi.empty());
   Assert(d_qeGreedyOrder.empty());
 
-  const Tableau::Entry* spoiler = NULL;
+  const Tableau::Entry* spoiler = nullptr;
 
-  if(d_soiVar != ARITHVAR_SENTINEL && d_linEq.selectSlackEntry(d_soiVar, false) == NULL){
+  if (d_soiVar != ARITHVAR_SENTINEL
+      && d_linEq.selectSlackEntry(d_soiVar, false) == nullptr)
+  {
     // already in conflict
     return cEnd;
   }
@@ -439,7 +441,8 @@ uint32_t SumOfInfeasibilitiesSPD::quickExplainRec(uint32_t cEnd, uint32_t uEnd){
     d_qeInUAndNotInSoi.remove(first);
     d_qeGreedyOrder.push_back(first);
   }
-  while((spoiler = d_linEq.selectSlackEntry(d_soiVar, false)) != NULL){
+  while ((spoiler = d_linEq.selectSlackEntry(d_soiVar, false)) != nullptr)
+  {
     Assert(!d_qeInUAndNotInSoi.empty());
 
     ArithVar nb = spoiler->getColVar();
@@ -454,7 +457,7 @@ uint32_t SumOfInfeasibilitiesSPD::quickExplainRec(uint32_t cEnd, uint32_t uEnd){
     d_qeInUAndNotInSoi.remove(basicWithOp);
     d_qeGreedyOrder.push_back(basicWithOp);
   }
-  Assert(spoiler == NULL);
+  Assert(spoiler == nullptr);
 
   // Compact the set u
   uint32_t newEnd = cEnd + d_qeGreedyOrder.size();
@@ -557,7 +560,7 @@ unsigned SumOfInfeasibilitiesSPD::trySet(const ArithVarVec& set){
   bool success = false;
   if(set.size() >= 2){
     d_soiVar = constructInfeasiblityFunction(d_statistics.d_soiConflictMinimization, set);
-    success = d_linEq.selectSlackEntry(d_soiVar, false) == NULL;
+    success = d_linEq.selectSlackEntry(d_soiVar, false) == nullptr;
 
     tearDownInfeasiblityFunction(d_statistics.d_soiConflictMinimization, d_soiVar);
     d_soiVar = ARITHVAR_SENTINEL;
@@ -607,7 +610,7 @@ std::vector< ArithVarVec > SumOfInfeasibilitiesSPD::greedyConflictSubsets(){
     int errSgn = d_errorSet.getSgn(e);
     bool decreasing = errSgn < 0;
     const Tableau::Entry* spoiler = d_linEq.selectSlackEntry(e, decreasing);
-    Assert(spoiler != NULL);
+    Assert(spoiler != nullptr);
     ArithVar nb = spoiler->getColVar();
     int oppositeSgn = -(errSgn * (spoiler->getCoefficient().sgn()));
 
@@ -653,8 +656,9 @@ std::vector< ArithVarVec > SumOfInfeasibilitiesSPD::greedyConflictSubsets(){
 
     Trace("arith::greedyConflictSubsets") << "trying " << v << endl;
 
-    const Tableau::Entry* spoiler = NULL;
-    while( (spoiler = d_linEq.selectSlackEntry(d_soiVar, false)) != NULL){
+    const Tableau::Entry* spoiler = nullptr;
+    while ((spoiler = d_linEq.selectSlackEntry(d_soiVar, false)) != nullptr)
+    {
       ArithVar nb = spoiler->getColVar();
       int oppositeSgn = -(spoiler->getCoefficient().sgn());
       Assert(oppositeSgn != 0);
@@ -675,7 +679,8 @@ std::vector< ArithVarVec > SumOfInfeasibilitiesSPD::greedyConflictSubsets(){
         underConstruction.push_back(basicWithOp);
       }
     }
-    if(spoiler == NULL){
+    if (spoiler == nullptr)
+    {
       Trace("arith::greedyConflictSubsets") << "success" << endl;
       //then underConstruction contains a conflicting subset
       Assert(debugIsASet(underConstruction));
@@ -686,7 +691,9 @@ std::vector< ArithVarVec > SumOfInfeasibilitiesSPD::greedyConflictSubsets(){
       }else{
         ++d_statistics.d_maybeNotMinimal;
       }
-    }else{
+    }
+    else
+    {
       Trace("arith::greedyConflictSubsets") << "failure" << endl;
     }
     tearDownInfeasiblityFunction(d_statistics.d_soiConflictMinimization, d_soiVar);

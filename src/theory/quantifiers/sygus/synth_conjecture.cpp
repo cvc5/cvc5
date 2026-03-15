@@ -1062,7 +1062,7 @@ bool SynthConjecture::getSynthSolutionsInternal(std::vector<Node>& sols,
     int8_t status = -1;
     if (isSingleInvocation())
     {
-      Assert(d_ceg_si != NULL);
+      Assert(d_ceg_si != nullptr);
       sol = d_ceg_si->getSolution(i, tn, status, true);
       if (sol.isNull())
       {

@@ -1547,7 +1547,7 @@ void MatchGen::reset(bool tgt)
       d_child_counter = 0;
     }
     if( d_child_counter==0 ){
-      d_qn.push_back( NULL );
+      d_qn.push_back(nullptr);
     }
   }
   else if (d_type == typ_var)
@@ -1580,7 +1580,7 @@ void MatchGen::reset(bool tgt)
         d_qni_bound[qvn.first] = repVar;
       }
     }
-    d_qn.push_back( NULL );
+    d_qn.push_back(nullptr);
   }
   else if (d_type == typ_pred || d_type == typ_eq)
   {
@@ -1656,14 +1656,14 @@ void MatchGen::reset(bool tgt)
     }
     //if successful, we will bind values to variables
     if( success ){
-      d_qn.push_back( NULL );
+      d_qn.push_back(nullptr);
     }
   }
   else
   {
     if( d_children.empty() ){
       //add dummy
-      d_qn.push_back( NULL );
+      d_qn.push_back(nullptr);
     }else{
       if (d_tgt && d_n.getKind() == Kind::FORALL)
       {
@@ -1982,7 +1982,7 @@ bool MatchGen::doMatching()
   {
     return false;
   }
-  if (d_qn[0] == NULL)
+  if (d_qn[0] == nullptr)
   {
     d_qn.clear();
     return true;

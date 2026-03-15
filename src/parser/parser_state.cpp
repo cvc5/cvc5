@@ -750,7 +750,7 @@ Term ParserState::mkCharConstant(const std::string& s)
   {
     parseError("Unexpected string for hexadecimal character: `" + s + "'");
   }
-  char32_t val = static_cast<char32_t>(std::stoul(s, 0, 16));
+  char32_t val = static_cast<char32_t>(std::stoul(s, nullptr, 16));
   return d_tm.mkString(std::u32string(1, val));
 }
 

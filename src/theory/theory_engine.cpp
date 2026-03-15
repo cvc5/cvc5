@@ -246,8 +246,8 @@ TheoryEngine::TheoryEngine(Env& env)
   for(TheoryId theoryId = theory::THEORY_FIRST; theoryId != theory::THEORY_LAST;
       ++ theoryId)
   {
-    d_theoryTable[theoryId] = NULL;
-    d_theoryOut[theoryId] = NULL;
+    d_theoryTable[theoryId] = nullptr;
+    d_theoryOut[theoryId] = nullptr;
   }
 
   if (options().smt.sortInference)
@@ -269,7 +269,8 @@ TheoryEngine::TheoryEngine(Env& env)
 TheoryEngine::~TheoryEngine() {
 
   for(TheoryId theoryId = theory::THEORY_FIRST; theoryId != theory::THEORY_LAST; ++ theoryId) {
-    if(d_theoryTable[theoryId] != NULL) {
+    if (d_theoryTable[theoryId] != nullptr)
+    {
       delete d_theoryTable[theoryId];
       delete d_theoryOut[theoryId];
     }
@@ -2208,7 +2209,7 @@ std::pair<bool, Node> TheoryEngine::entailmentCheck(options::TheoryOfMode mode,
     theory::TheoryId tid = Theory::theoryOf(atom, mode);
     theory::Theory* th = theoryOf(tid);
 
-    Assert(th != NULL);
+    Assert(th != nullptr);
     Trace("theory-engine-entc") << "Entailment check : " << lit << std::endl;
 
     std::pair<bool, Node> chres = th->entailmentCheck(lit);

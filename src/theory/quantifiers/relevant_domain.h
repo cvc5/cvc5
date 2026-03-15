@@ -68,14 +68,14 @@ class RelevantDomain : public QuantifiersUtil
   class RDomain
   {
   public:
-    RDomain() : d_parent( NULL ) {}
-    /** the set of terms in this relevant domain */
-    std::vector< Node > d_terms;
-    /** reset this object */
-    void reset()
-    {
-      d_parent = NULL;
-      d_terms.clear();
+   RDomain() : d_parent(nullptr) {}
+   /** the set of terms in this relevant domain */
+   std::vector<Node> d_terms;
+   /** reset this object */
+   void reset()
+   {
+     d_parent = nullptr;
+     d_terms.clear();
     }
     /** merge this with r
      * This sets d_parent of this to r and
@@ -126,8 +126,8 @@ class RelevantDomain : public QuantifiersUtil
   class RDomainLit {
   public:
     RDomainLit() : d_merge(false){
-      d_rd[0] = NULL;
-      d_rd[1] = NULL;
+      d_rd[0] = nullptr;
+      d_rd[1] = nullptr;
     }
     ~RDomainLit(){}
     /** whether this literal forces the merge of two relevant domains */

@@ -148,8 +148,8 @@ TheoryArithPrivate::TheoryArithPrivate(Env& env,
           env, d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
       d_attemptSolSimplex(
           env, d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
-      d_pass1SDP(NULL),
-      d_otherSDP(NULL),
+      d_pass1SDP(nullptr),
+      d_otherSDP(nullptr),
       d_lastContextIntegerAttempted(context(), -1),
 
       d_DELTA_ZERO(0),
@@ -160,11 +160,11 @@ TheoryArithPrivate::TheoryArithPrivate(Env& env,
       d_likelyIntegerInfeasible(context(), false),
       d_guessedCoeffSet(context(), false),
       d_guessedCoeffs(),
-      d_treeLog(NULL),
+      d_treeLog(nullptr),
       d_replayVariables(),
       d_replayConstraints(),
       d_lhsTmp(),
-      d_approxStats(NULL),
+      d_approxStats(nullptr),
       d_attemptSolveIntTurnedOff(userContext(), 0),
       d_dioSolveResources(0),
       d_solveIntMaybeHelp(0u),
@@ -176,8 +176,14 @@ TheoryArithPrivate::TheoryArithPrivate(Env& env,
 }
 
 TheoryArithPrivate::~TheoryArithPrivate(){
-  if(d_treeLog != NULL){ delete d_treeLog; }
-  if(d_approxStats != NULL) { delete d_approxStats; }
+  if (d_treeLog != nullptr)
+  {
+    delete d_treeLog;
+  }
+  if (d_approxStats != nullptr)
+  {
+    delete d_approxStats;
+  }
 }
 
 void TheoryArithPrivate::finishInit(eq::EqualityEngine* ee)
@@ -2309,7 +2315,7 @@ std::vector<ConstraintCPVec> TheoryArithPrivate::replayLogRec(ApproximateSimplex
         ++d_statistics.d_applyRowsDeleted;
       }else if(ci->getKlass() == BranchCutKlass){
         BranchCutInfo* bci = dynamic_cast<BranchCutInfo*>(ci);
-        Assert(bci != NULL);
+        Assert(bci != nullptr);
         tryBranchCut(approx, nid, *bci);
 
         ++d_statistics.d_branchCutsAttempted;
@@ -2561,14 +2567,16 @@ std::vector<ConstraintCPVec> TheoryArithPrivate::replayLogRec(ApproximateSimplex
 }
 
 TreeLog& TheoryArithPrivate::getTreeLog(){
-  if(d_treeLog == NULL){
+  if (d_treeLog == nullptr)
+  {
     d_treeLog = new TreeLog();
   }
   return *d_treeLog;
 }
 
 ApproximateStatistics& TheoryArithPrivate::getApproxStats(){
-  if(d_approxStats == NULL){
+  if (d_approxStats == nullptr)
+  {
     d_approxStats = new ApproximateStatistics(statisticsRegistry());
   }
   return *d_approxStats;
@@ -2846,7 +2854,8 @@ void TheoryArithPrivate::solveInteger(Theory::Effort effortLevel){
 
 SimplexDecisionProcedure& TheoryArithPrivate::selectSimplex(bool pass1){
   if(pass1){
-    if(d_pass1SDP == NULL){
+    if (d_pass1SDP == nullptr)
+    {
       if (options().arith.useFC)
       {
         d_pass1SDP = (SimplexDecisionProcedure*)(&d_fcSimplex);
@@ -2860,24 +2869,25 @@ SimplexDecisionProcedure& TheoryArithPrivate::selectSimplex(bool pass1){
         d_pass1SDP = (SimplexDecisionProcedure*)(&d_dualSimplex);
       }
     }
-    Assert(d_pass1SDP != NULL);
+    Assert(d_pass1SDP != nullptr);
     return *d_pass1SDP;
   }else{
-     if(d_otherSDP == NULL){
-       if (options().arith.useFC)
-       {
-         d_otherSDP = (SimplexDecisionProcedure*)(&d_fcSimplex);
-       }
-       else if (options().arith.useSOI)
-       {
-         d_otherSDP = (SimplexDecisionProcedure*)(&d_soiSimplex);
-       }
-       else
-       {
-         d_otherSDP = (SimplexDecisionProcedure*)(&d_soiSimplex);
-       }
+    if (d_otherSDP == nullptr)
+    {
+      if (options().arith.useFC)
+      {
+        d_otherSDP = (SimplexDecisionProcedure*)(&d_fcSimplex);
+      }
+      else if (options().arith.useSOI)
+      {
+        d_otherSDP = (SimplexDecisionProcedure*)(&d_soiSimplex);
+      }
+      else
+      {
+        d_otherSDP = (SimplexDecisionProcedure*)(&d_soiSimplex);
+      }
     }
-    Assert(d_otherSDP != NULL);
+    Assert(d_otherSDP != nullptr);
     return *d_otherSDP;
   }
 }
@@ -4268,13 +4278,11 @@ void TheoryArithPrivate::propagateCandidate(ArithVar basic){
   bool success = false;
   RowIndex ridx = d_tableau.basicToRowIndex(basic);
 
-  bool tryLowerBound =
-    d_partialModel.strictlyAboveLowerBound(basic) &&
-    d_linEq.rowLacksBound(ridx, false, basic) == NULL;
+  bool tryLowerBound = d_partialModel.strictlyAboveLowerBound(basic)
+                       && d_linEq.rowLacksBound(ridx, false, basic) == nullptr;
 
-  bool tryUpperBound =
-    d_partialModel.strictlyBelowUpperBound(basic) &&
-    d_linEq.rowLacksBound(ridx, true, basic) == NULL;
+  bool tryUpperBound = d_partialModel.strictlyBelowUpperBound(basic)
+                       && d_linEq.rowLacksBound(ridx, true, basic) == nullptr;
 
   if(tryLowerBound){
     success |= propagateCandidateLowerBound(basic);
@@ -4402,7 +4410,7 @@ bool TheoryArithPrivate::attemptSingleton(RowIndex ridx, bool rowUp){
 
   const Tableau::Entry* ep;
   ep = d_linEq.rowLacksBound(ridx, rowUp, ARITHVAR_SENTINEL);
-  Assert(ep != NULL);
+  Assert(ep != nullptr);
 
   ArithVar v = ep->getColVar();
   const Rational& coeff = ep->getCoefficient();

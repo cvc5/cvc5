@@ -902,7 +902,7 @@ TheorySep::HeapAssertInfo * TheorySep::getOrMakeEqcInfo( Node n, bool doMake ) {
       d_eqc_info[n] = ei;
       return ei;
     }else{
-      return NULL;
+      return nullptr;
     }
   }else{
     return (*e_i).second;

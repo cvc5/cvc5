@@ -56,26 +56,19 @@ void TreeLog::makeInactive(){  d_active = false; }
 void TreeLog::makeActive(){  d_active = true; }
 bool TreeLog::isActivelyLogging() const { return d_active; }
 
-
-PrimitiveVec::PrimitiveVec()
-  : len(0)
-  , inds(NULL)
-  , coeffs(NULL)
-{}
+PrimitiveVec::PrimitiveVec() : len(0), inds(nullptr), coeffs(nullptr) {}
 
 PrimitiveVec::~PrimitiveVec(){
   clear();
 }
-bool PrimitiveVec::initialized() const {
-  return inds != NULL;
-}
+bool PrimitiveVec::initialized() const { return inds != nullptr; }
 void PrimitiveVec::clear() {
   if(initialized()){
     delete[] inds;
     delete[] coeffs;
     len = 0;
-    inds = NULL;
-    coeffs = NULL;
+    inds = nullptr;
+    coeffs = nullptr;
   }
 }
 void PrimitiveVec::setup(int l){
@@ -272,31 +265,31 @@ bool NodeLog::isBranch() const{
 }
 
 NodeLog::NodeLog()
-  : d_nid(-1)
-  , d_parent(NULL)
-  , d_tl(NULL)
-  , d_cuts()
-  , d_rowIdsSelected()
-  , d_stat(Open)
-  , d_brVar(-1)
-  , d_brVal(0.0)
-  , d_downId(-1)
-  , d_upId(-1)
-  , d_rowId2ArithVar()
+    : d_nid(-1),
+      d_parent(nullptr),
+      d_tl(nullptr),
+      d_cuts(),
+      d_rowIdsSelected(),
+      d_stat(Open),
+      d_brVar(-1),
+      d_brVal(0.0),
+      d_downId(-1),
+      d_upId(-1),
+      d_rowId2ArithVar()
 {}
 
 NodeLog::NodeLog(TreeLog* tl, int node, const RowIdMap& m)
-  : d_nid(node)
-  , d_parent(NULL)
-  , d_tl(tl)
-  , d_cuts()
-  , d_rowIdsSelected()
-  , d_stat(Open)
-  , d_brVar(-1)
-  , d_brVal(0.0)
-  , d_downId(-1)
-  , d_upId(-1)
-  , d_rowId2ArithVar(m)
+    : d_nid(node),
+      d_parent(nullptr),
+      d_tl(tl),
+      d_cuts(),
+      d_rowIdsSelected(),
+      d_stat(Open),
+      d_brVar(-1),
+      d_brVal(0.0),
+      d_downId(-1),
+      d_upId(-1),
+      d_rowId2ArithVar(m)
 {}
 
 NodeLog::NodeLog(TreeLog* tl, NodeLog* parent, int node)
@@ -329,7 +322,7 @@ std::ostream& operator<<(std::ostream& os, const NodeLog& nl){
 }
 
 void NodeLog::copyParentRowIds() {
-  Assert(d_parent != NULL);
+  Assert(d_parent != nullptr);
   d_rowId2ArithVar = d_parent->d_rowId2ArithVar;
 }
 
@@ -419,7 +412,7 @@ void NodeLog::applyRowsDeleted(const RowsDeleted& rd) {
     int key = (*i).first;
     if(key >= min){
       if(currInOrd.find(key) == currInOrd.end()){
-        CutInfo* null = NULL;
+        CutInfo* null = nullptr;
         currInOrd.insert(make_pair(key, null));
       }
     }
@@ -443,12 +436,14 @@ void NodeLog::applyRowsDeleted(const RowsDeleted& rd) {
 
     CutInfo* ci = (*j).second;
     if(headRemovedOrd == origOrd){
-
-      if(ci == NULL){
+      if (ci == nullptr)
+      {
         Trace("approx::nodelog") << "deleting from above because of " << rd << endl;
         Trace("approx::nodelog") << "had " << origOrd << " <-> " << v << endl;
         d_rowId2ArithVar.erase(origOrd);
-      }else{
+      }
+      else
+      {
         Trace("approx::nodelog") << "deleting " << ci << " because of " << rd << endl;
         Trace("approx::nodelog") << "had " << origOrd << " <-> " << v << endl;
         d_rowId2ArithVar.erase(origOrd);
@@ -459,13 +454,16 @@ void NodeLog::applyRowsDeleted(const RowsDeleted& rd) {
       // headRemoveOrd > origOrd
       int newOrd = origOrd - posInSorted;
       Assert(newOrd > 0);
-      if(ci == NULL){
+      if (ci == nullptr)
+      {
         Trace("approx::nodelog") << "shifting above down due to " << rd << endl;
         Trace("approx::nodelog") << "had " << origOrd << " <-> " << v << endl;
         Trace("approx::nodelog") << "now have " << newOrd << " <-> " << v << endl;
         d_rowId2ArithVar.erase(origOrd);
         mapRowId(newOrd, v);
-      }else{
+      }
+      else
+      {
         Trace("approx::nodelog") << "shifting " << ci << " down due to " << rd << endl;
         Trace("approx::nodelog") << "had " << origOrd << " <-> " << v << endl;
         Trace("approx::nodelog") << "now have " << newOrd << " <-> " << v << endl;
@@ -533,7 +531,7 @@ void NodeLog::mapRowId(int rowId, ArithVar v){
 
 
 void NodeLog::addCut(CutInfo* ci){
-  Assert(ci != NULL);
+  Assert(ci != nullptr);
   d_cuts.insert(ci);
 }
 

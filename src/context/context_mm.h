@@ -233,7 +233,8 @@ public:
   {
     return ContextMemoryManager::getMaxAllocationSize() / sizeof(T);
   }
-  T* allocate(size_t n, const void* = 0) const {
+  T* allocate(size_t n, const void* = nullptr) const
+  {
     return static_cast<T*>(d_mm->newData(n * sizeof(T)));
   }
   void deallocate(T* p, size_t n) const {

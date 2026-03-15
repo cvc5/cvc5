@@ -89,7 +89,7 @@ RelevantDomain::~RelevantDomain() {
     for (auto& rr : r.second)
     {
       RDomain* current = rr.second;
-      Assert(current != NULL);
+      Assert(current != nullptr);
       delete current;
     }
   }
