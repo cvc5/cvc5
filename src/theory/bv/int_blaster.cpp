@@ -1071,9 +1071,6 @@ Node IntBlaster::translateQuantifiedFormula(
 {
   Node boundVarList = quantifiedNode[0];
   Assert(boundVarList.getKind() == Kind::BOUND_VAR_LIST);
-  // translated_children[0] is the translated BOUND_VAR_LIST,
-  // translated_children[1] is the translated body,
-  // translated_children[2] (if present) is the translated INST_PATTERN_LIST.
   Assert(translated_children.size() == quantifiedNode.getNumChildren());
 
   // Since bit-vector variables are being translated to
