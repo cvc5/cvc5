@@ -56,6 +56,9 @@ class MbqiEnumTermEnumeratorCallback : protected EnvObj,
   }
 };
 
+/**
+ * Decide whether to inject witness/choice terms for grammar non-terminal `tn`. 
+ **/
 bool introduceChoice(const Options& opts,
                      const TypeNode& tn,
                      const TypeNode& retType)
@@ -72,6 +75,9 @@ bool introduceChoice(const Options& opts,
   return tn == retType;
 }
 
+/**
+ * Decide whether MBQI term enumeration should be used for type `tn`.
+ */
 bool shouldEnumerate(const Options& opts, const TypeNode& tn)
 {
   // It may make sense to enumerate choice for FO uninterpreted sorts, but
@@ -295,7 +301,7 @@ Node MVarInfo::ChoiceElimNodeConverter::postConvert(Node n)
       lem = nm->mkNode(
           Kind::FORALL, nm->mkNode(Kind::BOUND_VAR_LIST, ubvl), lem, ipl);
     }
-    Trace("mbqi-enum-debug") << "TMP " << sym << " for " << n << std::endl;
+    Trace("mbqi-enum-debug") << sym << " for " << n << std::endl;
     Trace("mbqi-enum-choice-grammar") << "-----> lemma " << lem << std::endl;
     d_lemmas[sym] = lem;
     return h;
@@ -513,7 +519,7 @@ bool MbqiEnum::constructInstantiation(const Node& q,
       if (!ret.isNull())
       {
         Trace("mbqi-enum-debug")
-            << "TMP - Try candidate: " << q.getId() << " " << v << " " << cindex
+            << "- Try candidate: " << q.getId() << " " << v << " " << cindex
             << " " << ret << std::endl;
         Trace("mbqi-enum") << "- Try candidate: " << ret << std::endl;
         // apply current substitution (to account for cases where ret has
