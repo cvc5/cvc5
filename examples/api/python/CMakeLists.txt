@@ -11,8 +11,7 @@
 ##
 
 set(EXAMPLES_API_PYTHON
-# disabled due to failures on windows builds
-#  bitvectors_and_arrays
+  bitvectors_and_arrays
   bitvectors
   combination
   datatypes
@@ -37,8 +36,7 @@ set(EXAMPLES_API_PYTHON
 # even if it is only conditionally added (e.g.,
 # based on CVC5_USE_COCOA or NOT CVC5_SAFE_BUILD).
 set(EXAMPLES_API_PYTHON_PYTHONIC
-# disabled due to failures on windows builds
-#  bitvectors_and_arrays
+  bitvectors_and_arrays
   bitvectors
   combination
   datatypes
