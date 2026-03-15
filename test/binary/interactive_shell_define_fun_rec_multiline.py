@@ -37,6 +37,8 @@ def check_iteractive_shell_define_fun_rec_multiline():
     child = pexpect.spawn("bin/cvc5", timeout=1)
     # We expect to see the cvc5 prompt
     child.expect("cvc5> ")
+    sendline(child, "(set-option :quiet-safe true)")
+    expect_exact(child, "cvc5> ")
     sendline(child, "(set-logic ALL)")
     expect_exact(child, "cvc5> ")
     sendline(child, "(define-fun-rec")

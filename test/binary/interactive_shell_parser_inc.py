@@ -38,6 +38,8 @@ def check_iteractive_shell_parser_inc():
 
     # We expect to see the cvc5 prompt
     child.expect("cvc5> ")
+    sendline(child, "(set-option :quiet-safe true)")
+    expect_exact(child, "cvc5> ")
     sendline(child, "(set-logic ALL)")
     expect_exact(child, "cvc5> ")
     sendline(child,"(set-option :incremental true)")
