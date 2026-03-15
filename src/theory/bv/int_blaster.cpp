@@ -1099,6 +1099,7 @@ Node IntBlaster::translateQuantifiedFormula(
     }
     else
     {
+      // variables that are not bit-vectors are not changed
       newBoundVars.push_back(bv);
     }
   }
