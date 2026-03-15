@@ -267,6 +267,7 @@ class IntBlaster : protected EnvObj, public ProofGenerator
    * and with "IMPLIES" in case of forall.
    */
   Node translateQuantifiedFormula(Node quantifiedNode,
+                                  const std::vector<Node>& translated_children,
                                   std::vector<TrustNode>& lemmas);
 
   /**
