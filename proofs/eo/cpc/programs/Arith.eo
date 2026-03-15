@@ -9,69 +9,6 @@
 (define $sgn ((T Type :implicit) (x T))
   (eo::ite (eo::is_neg x) -1 (eo::ite (eo::is_neg (eo::neg x)) 1 0)))
 
-; define: $arith_mk_zero
-; args:
-; - u Type : The type of the zero, which should be Int or Real.
-; return: the zero for the given type.
-(define $arith_mk_zero ((T Type))
-  (eo::ite (eo::is_eq T Int) 0 (eo::requires T Real 0/1)))
-
-; define: $arith_eval_add
-; args:
-; - x T: The first arithmetic term to add.
-; - y U: The second arithmetic term to add.
-; return: >
-;   The addition of x and y, for mixed arithmetic. Note that x and y
-;   can each be integer or real. This method returns an integer value if x and y
-;   are both integer, or a rational value otherwise.
-(define $arith_eval_add ((T Type :implicit) (U Type :implicit) (x T) (y U))
-  (eo::define ((xq (eo::to_q x)))
-  (eo::define ((yq (eo::to_q y)))
-    (eo::ite (eo::eq x xq)
-      (eo::add xq yq)
-      (eo::ite (eo::eq y yq)
-        (eo::add xq yq)
-        (eo::add x y)))))
-)
-
-; define: $arith_eval_sub
-; args:
-; - x T: The first arithmetic term to subtract.
-; - y U: The second arithmetic term to subtract.
-; return: >
-;   The subtraction of x and y, for mixed arithmetic. Note that x and y
-;   can each be integer or real. This method returns an integer value if x and y
-;   are both integer, or a rational value otherwise.
-(define $arith_eval_sub ((U Type :implicit) (T Type :implicit) (x U) (y T))
-  ($arith_eval_add x (eo::neg y)))
-
-; define: $arith_eval_mul
-; args:
-; - x T: The first arithmetic term to multiply.
-; - y U: The second arithmetic term to multiply.
-; return: >
-;   The multiplication of x and y, for mixed arithmetic. Note that x and y
-;   can each be integer or real. This method returns an integer value if x and y
-;   are both integer, or a rational value otherwise.
-(define $arith_eval_mul ((T Type :implicit) (U Type :implicit) (x T) (y U))
-  (eo::define ((xq (eo::to_q x)))
-  (eo::define ((yq (eo::to_q y)))
-    (eo::ite (eo::eq x xq)
-      (eo::mul xq yq)
-      (eo::ite (eo::eq y yq)
-        (eo::mul xq yq)
-        (eo::mul x y)))))
-)
-
-; define: $arith_eval_qsub
-; args:
-; - x T: The first arithmetic term to subtract.
-; - y U: The second arithmetic term to subtract.
-; return: The subtraction of x and y as a rational.
-; note: This returns a rational value even if x and y are numeral values.
-(define $arith_eval_qsub ((U Type :implicit) (T Type :implicit) (x U) (y T))
-  (eo::add (eo::to_q x) (eo::neg (eo::to_q y)))
-)
 ; define: $arith_mk_binary_minus
 ; args:
 ; - x T: the first term
