@@ -1083,19 +1083,23 @@ Node IntBlaster::translateQuantifiedFormula(
   std::vector<Node> rangeConstraints;
 
   // collect range constraints for quantified variables
-  size_t idx = 0;
   for (Node bv : quantifiedNode[0])
   {
     oldBoundVars.push_back(bv);
-    Node newBoundVar = translated_children[0][idx++];
-    newBoundVars.push_back(newBoundVar);
     if (bv.getType().isBitVector())
     {
       // bit-vector variables are replaced by integer ones.
       // the new variables induce range constraints based on the
       // original bit-width.
+      Assert(d_intblastCache.find(bv) != d_intblastCache.end());
+      Node newBoundVar = d_intblastCache[bv];
+      newBoundVars.push_back(newBoundVar);
       rangeConstraints.push_back(
           mkRangeConstraint(newBoundVar, bv.getType().getBitVectorSize()));
+    }
+    else
+    {
+      newBoundVars.push_back(bv);
     }
   }
 
