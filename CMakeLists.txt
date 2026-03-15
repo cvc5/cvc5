@@ -133,6 +133,7 @@ option(USE_EDITLINE      "Use Editline for better interactive support")
 option(USE_GLPK          "Use GLPK simplex solver")
 option(USE_KISSAT        "Use Kissat SAT solver")
 option(USE_POLY          "Use LibPoly for polynomial arithmetic")
+option(USE_NORMALIZ      "Use Normaliz int.star-contains operator")
 
 # Custom install directories for dependencies
 # If no directory is provided by the user, we first check if the dependency was
@@ -601,6 +602,11 @@ if(ENABLE_SAFE_MODE)
     message(WARNING
       "Cocoa disabled due to safe mode")
   endif()
+  if(USE_NORMALIZ)
+    set(USE_NORMALIZ OFF)
+    message(WARNING
+      "Normaliz disabled due to safe mode")
+  endif()
 endif()
 
 if(USE_POLY)
@@ -615,6 +621,11 @@ if(USE_COCOA)
   set(GPL_LIBS "${GPL_LIBS} cocoa")
   find_package(CoCoA REQUIRED 0.99711)
   add_definitions(-DCVC5_USE_COCOA)
+endif()
+
+if(USE_NORMALIZ)
+  find_package(Normaliz REQUIRED)
+  add_definitions(-DCVC5_USE_NORMALIZ)
 endif()
 
 if(USE_EDITLINE)
@@ -826,6 +837,7 @@ print_config("GLPK                      " ${USE_GLPK})
 print_config("Kissat                    " ${USE_KISSAT} FOUND_SYSTEM ${Kissat_FOUND_SYSTEM})
 print_config("LibPoly                   " ${USE_POLY} FOUND_SYSTEM ${Poly_FOUND_SYSTEM})
 print_config("CoCoALib                  " ${USE_COCOA} FOUND_SYSTEM ${CoCoA_FOUND_SYSTEM})
+print_config("Normaliz                  " ${USE_NORMALIZ} FOUND_SYSTEM ${NORMALIZ_FOUND_SYSTEM})
 
 if(CVC5_USE_CLN_IMP)
   print_config("MP library                " "cln" FOUND_SYSTEM ${CLN_FOUND_SYSTEM})
