@@ -72,9 +72,8 @@ name   = "Base"
   help       = "decrease verbosity (may be repeated)"
 
 [[option]]
-  name       = "quiteSafe"
+  name       = "quietSafe"
   category   = "common"
-  short      = "qsafe"
   long       = "quiet-safe"
   type       = "bool"
   default    = "false"

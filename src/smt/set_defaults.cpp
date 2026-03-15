@@ -137,8 +137,9 @@ void SetDefaults::setDefaultsPre(Options& opts)
     if (!options().base.quietSafe)
     {
       Warning() << "This is an unrestricted build of cvc5, use at your own risk." << std::endl;
-      Warning() << "To avoid this warning, cvc5 can be built in safe or stable modes (see ./configure.sh --help)." << std::endl;
-      Warning() << "Use -q or -qsafe to silence this warning." << std::endl;
+      Warning() << "To avoid this warning, cvc5 can be built in safe or stable modes" << std::endl;
+      Warning() << "(see ./configure.sh --help), which restricts the set of available" << std::endl;
+      Warning() << "features. Use -q or --quiet-safe to silence this warning." << std::endl;
     }
   }
   else
