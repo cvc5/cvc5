@@ -37,22 +37,32 @@
 ; EXPECT:
 ; EXPECT: thf(tptp_models_ho_q_funarg_smt2,interpretation,
 ; EXPECT:     ( ! [U: u] :
-; EXPECT:       ? [DU: d_u] : ( U = (d2u @ DU) )
+; EXPECT:       ? [DU: d_u] :
+; EXPECT:         ( U = ( d2u @ DU ) )
 ; EXPECT:     & ! [DU: d_u] :
 ; EXPECT:         ( ( DU = d_a )
 ; EXPECT:         | ( DU = d_b ) )
-; EXPECT:     & d_a != d_b
+; EXPECT:     & ( d_a != d_b )
 ; EXPECT:     & ! [DU1: d_u,DU2: d_u] :
-; EXPECT:         ( ( (d2u @ DU1) = (d2u @ DU2) )
+; EXPECT:         ( ( ( d2u @ DU1 ) = ( d2u @ DU2 ) )
 ; EXPECT:        => ( DU1 = DU2 ) )
-; EXPECT:     & ( a = (d2u @ d_a) )
-; EXPECT:     & ( b = (d2u @ d_b) )
-; EXPECT:     & ( (g @ (d2u @ d_a)) = (d2u @ d_a) )
-; EXPECT:     & ( (g @ (d2u @ d_b)) = (d2u @ d_b) )
-; EXPECT:     & ( (h @ (d2u @ d_a)) = (d2u @ d_a) )
-; EXPECT:     & ( (h @ (d2u @ d_b)) = (d2u @ d_b) )
+; EXPECT:     & ( a = ( d2u @ d_a ) )
+; EXPECT:     & ( b = ( d2u @ d_b ) )
+; EXPECT:     & ( ( g @ ( d2u @ d_a ) ) = ( d2u @ d_a ) )
+; EXPECT:     & ( ( g @ ( d2u @ d_b ) ) = ( d2u @ d_b ) )
+; EXPECT:     & ( ( h @ ( d2u @ d_a ) ) = ( d2u @ d_a ) )
+; EXPECT:     & ( ( h @ ( d2u @ d_b ) ) = ( d2u @ d_b ) )
 ; EXPECT:     & ( q
-; EXPECT:       = ( ^ [Bound_variable: u > u] : $ite_t(( ( ^ [Bound_variable: u] : $ite_t(( Bound_variable = (d2u @ d_a) ),(d2u @ d_a),(d2u @ d_b)) ) = Bound_variable ),(d2u @ d_a),(d2u @ d_b)) ) ) ) ).
+; EXPECT:       = ( ^ [Bound_variable: u > u] :
+; EXPECT:             $ite(
+; EXPECT:               ( ( ^ [Bound_variable: u] :
+; EXPECT:                           $ite(
+; EXPECT:                             ( Bound_variable = ( d2u @ d_a ) ),
+; EXPECT:                             d2u @ d_a,
+; EXPECT:                             d2u @ d_b) )
+; EXPECT:                           = Bound_variable ),
+; EXPECT:               d2u @ d_a,
+; EXPECT:               d2u @ d_b) ) ) ) ).
 ; EXPECT: %--------------------------------------------------------
 (set-logic HO_ALL)
 (set-option :produce-models true)

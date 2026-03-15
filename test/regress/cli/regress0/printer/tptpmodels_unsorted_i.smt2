@@ -27,11 +27,12 @@
 ; EXPECT:
 ; EXPECT: tff(tptpmodels_unsorted_i_smt2,interpretation,
 ; EXPECT:     ( ! [U: $i] :
-; EXPECT:       ? [DU: d_unsorted] : ( U = d2unsorted(DU) )
+; EXPECT:       ? [DU: d_unsorted] :
+; EXPECT:         ( U = d2unsorted(DU) )
 ; EXPECT:     & ! [DU: d_unsorted] :
 ; EXPECT:         ( ( DU = d_a )
 ; EXPECT:         | ( DU = d_b ) )
-; EXPECT:     & d_a != d_b
+; EXPECT:     & ( d_a != d_b )
 ; EXPECT:     & ! [DU1: d_unsorted,DU2: d_unsorted] :
 ; EXPECT:         ( ( d2unsorted(DU1) = d2unsorted(DU2) )
 ; EXPECT:        => ( DU1 = DU2 ) )

@@ -54,13 +54,15 @@
 ; EXPECT:
 ; EXPECT: tff(garfield,interpretation,
 ; EXPECT:     ( ! [H: human] :
-; EXPECT:       ? [DH: d_human] : ( H = d2human(DH) )
+; EXPECT:       ? [DH: d_human] :
+; EXPECT:         ( H = d2human(DH) )
 ; EXPECT:     & ! [DH: d_human] : ( DH = d_jon )
 ; EXPECT:     & ! [DH1: d_human,DH2: d_human] :
 ; EXPECT:         ( ( d2human(DH1) = d2human(DH2) )
 ; EXPECT:        => ( DH1 = DH2 ) )
 ; EXPECT:     & ! [C: cat] :
-; EXPECT:       ? [DC: d_cat] : ( C = d2cat(DC) )
+; EXPECT:       ? [DC: d_cat] :
+; EXPECT:         ( C = d2cat(DC) )
 ; EXPECT:     & ! [DC: d_cat] :
 ; EXPECT:           ( DC = d_garfield | DC = d_arlene | DC = d_nermal )
 ; EXPECT:     & $distinct(d_garfield,d_arlene,d_nermal)

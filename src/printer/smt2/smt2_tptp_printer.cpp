@@ -212,11 +212,46 @@ std::string mkApplyString(const std::string& op,
     std::string cur = op;
     for (const std::string& a : args)
     {
-      cur = "(" + cur + " @ " + a + ")";
+      cur = "( " + cur + " @ " + a + " )";
     }
     return cur;
   }
   return op + "(" + join(args, ",") + ")";
+}
+
+std::string indentLines(const std::string& input, const std::string& indent)
+{
+  std::stringstream ss;
+  size_t start = 0;
+  bool first = true;
+  while (true)
+  {
+    size_t end = input.find('\n', start);
+    if (!first)
+    {
+      ss << "\n";
+    }
+    first = false;
+    ss << indent;
+    if (end == std::string::npos)
+    {
+      ss << input.substr(start);
+      break;
+    }
+    ss << input.substr(start, end - start);
+    start = end + 1;
+  }
+  return ss.str();
+}
+
+std::string stripOuterParens(const std::string& input)
+{
+  if (input.size() >= 4 && input.rfind("( ", 0) == 0
+      && input.substr(input.size() - 2) == " )")
+  {
+    return input.substr(2, input.size() - 4);
+  }
+  return input;
 }
 
 void cartesianProduct(const std::vector<std::vector<Node>>& doms,
@@ -951,7 +986,15 @@ bool modelNodeToTptp(const Node& n,
     {
       return false;
     }
-    out = "( ^ [" + join(binds, ",") + "] : " + body + " )";
+    if (body.find('\n') != std::string::npos)
+    {
+      out = "( ^ [" + join(binds, ",") + "] :\n"
+            + indentLines(body, "            ") + " )";
+    }
+    else
+    {
+      out = "( ^ [" + join(binds, ",") + "] : " + body + " )";
+    }
     return true;
   }
   if (n.getKind() == Kind::APPLY_UF || n.getKind() == Kind::HO_APPLY)
@@ -1012,7 +1055,14 @@ bool modelNodeToTptp(const Node& n,
     {
       return false;
     }
-    out = "( " + a + " = " + b + " )";
+    if (a.find('\n') != std::string::npos || b.find('\n') != std::string::npos)
+    {
+      out = "( " + a + "\n            = " + b + " )";
+    }
+    else
+    {
+      out = "( " + a + " = " + b + " )";
+    }
     return true;
   }
   if (n.getKind() == Kind::NOT)
@@ -1118,7 +1168,12 @@ bool modelNodeToTptp(const Node& n,
             + e + " ) ) )";
       return true;
     }
-    out = "$ite_t(" + c + "," + t + "," + e + ")";
+    t = stripOuterParens(t);
+    e = stripOuterParens(e);
+    out = "$ite(\n"
+          + indentLines(c + ",", "  ") + "\n"
+          + indentLines(t + ",", "  ") + "\n"
+          + indentLines(e + ")", "  ");
     return true;
   }
   if (n.getKind() == Kind::FORALL || n.getKind() == Kind::EXISTS)
@@ -1489,7 +1544,8 @@ void Smt2TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
     std::string vS = sanitizeUpper(sN.substr(0, 1)); // variable of the original sort
     std::string vDS = "D" + vS; // variable of the domain sort
     out << "! [" << vS << ": " << stN << "] :\n";
-    out << "      ? [" << vDS << ": " << dsN << "] : ( " << vS << " = "
+    out << "      ? [" << vDS << ": " << dsN << "] :\n";
+    out << "        ( " << vS << " = "
         << mkApplyString(pN, std::vector<std::string>{vDS}, useThf) << " )";
 
     const std::vector<Node>& se = elems[s];
@@ -1521,7 +1577,8 @@ void Smt2TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
     }
     if (se.size() == 2)
     {
-      out << "\n    & " << elemNames[se[0]] << " != " << elemNames[se[1]];
+      out << "\n    & ( " << elemNames[se[0]] << " != " << elemNames[se[1]]
+          << " )";
     }
     else if (se.size() > 2)
     {
