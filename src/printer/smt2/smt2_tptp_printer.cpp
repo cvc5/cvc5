@@ -1,13 +1,14 @@
-/*
-Read model content
-Build finite domain view of each uninterpreted sort
-For each uninterpreted sort S, create:
-- a TPTP type symbol "s"
-- a finite domain carrier type "d_s"
-- a promotion function "d2s : d_s > s"
-Domain axioms per sort: surjectivity onto original sort, finite enumeration, distinctness of domain elements, injectivity of promotion function.
-Interpretation from model values
-*/
+/******************************************************************************
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The pretty-printer interface for SMT2-derived TPTP output.
+ */
 
 #include "printer/smt2/smt2_tptp_printer.h"
 
@@ -1286,7 +1287,6 @@ void Smt2TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
   }
 
   // Prefer stable domain element names from declared constants
-  // (e.g. d_jon) before falling back to d_<sort>_<index>.
   for (const Node& t : terms)
   {
     TypeNode tt = t.getType();
