@@ -2219,6 +2219,7 @@ set(regress_0_tests
   regress0/strings/regexp_inclusion.smt2
   regress0/strings/regexp-native-simple.cvc.smt2
   regress0/strings/regexp-repeat.smt2
+  regress0/strings/repl-all-non-const-range.smt2
   regress0/strings/repl-rewrites2.smt2
   regress0/strings/replace-all-rew-more.smt2
   regress0/strings/replace-const.smt2
