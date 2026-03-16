@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -44,7 +41,7 @@ SygusSampler::SygusSampler(Env& env)
 {
 }
 
-void SygusSampler::initialize(TypeNode tn,
+void SygusSampler::initialize(CVC5_UNUSED TypeNode tn,
                               const std::vector<Node>& vars,
                               unsigned nsamples,
                               bool unique_type_ids)
@@ -262,7 +259,6 @@ bool SygusSampler::PtTrie::add(std::vector<Node>& pt)
     curr = &(curr->d_children[pt[i]]);
   }
   bool retVal = curr->d_children.empty();
-  curr = &(curr->d_children[Node::null()]);
   return retVal;
 }
 

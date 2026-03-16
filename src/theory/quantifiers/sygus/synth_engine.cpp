@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -59,12 +56,12 @@ bool SynthEngine::needsCheck(Theory::Effort e)
   return e >= Theory::EFFORT_LAST_CALL;
 }
 
-QuantifiersModule::QEffort SynthEngine::needsModel(Theory::Effort e)
+QuantifiersModule::QEffort SynthEngine::needsModel(CVC5_UNUSED Theory::Effort e)
 {
   return QEFFORT_MODEL;
 }
 
-void SynthEngine::check(Theory::Effort e, QEffort quant_e)
+void SynthEngine::check(CVC5_UNUSED Theory::Effort e, QEffort quant_e)
 {
   // are we at the proper effort level?
   if (quant_e != QEFFORT_MODEL)

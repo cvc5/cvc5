@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Andres Noetzli, Dejan Jovanovic
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -60,7 +57,7 @@ class BitVector
   }
 
   BitVector(unsigned size, const BitVector& q)
-      : d_size(size), d_value(q.d_value)
+      : d_size(size), d_value(q.d_value.modByPow2(size))
   {
   }
 
@@ -199,7 +196,7 @@ class BitVector
  private:
   /**
    * Class invariants:
-   *  - no overflows: 2^d_size < d_value
+   *  - no overflows: d_value < 2^d_size
    *  - no negative numbers: d_value >= 0
    */
 

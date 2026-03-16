@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Tim King, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -1848,7 +1845,6 @@ bool MatchGen::getNextMatch()
     bool success = false;
     if( d_child_counter<0 ){
       if( d_child_counter<-1 ){
-        success = true;
         d_child_counter = -1;
       }
     }else{
@@ -2264,7 +2260,8 @@ bool QuantConflictFind::needsCheck( Theory::Effort level ) {
   return !d_qstate.isConflictingInst() && (level == Theory::EFFORT_FULL);
 }
 
-void QuantConflictFind::reset_round( Theory::Effort level ) {
+void QuantConflictFind::reset_round(CVC5_UNUSED Theory::Effort level)
+{
   Trace("qcf-check") << "QuantConflictFind::reset_round" << std::endl;
   Trace("qcf-check") << "Compute relevant equivalence classes..." << std::endl;
   d_eqcs.clear();

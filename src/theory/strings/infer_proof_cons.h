@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -194,7 +191,6 @@ class InferProofCons : protected EnvObj, public ProofGenerator
    * the requirements of the given proof rule (possibly in its reverse form).
    * If necessary, we rewrite eq to a new equality eqr and add a proof of eqr
    * from eq as a step to psb and return eqr. Otherwise, eq is returned.
-   * @param env Reference to the environment
    * @param psb Reference to proof step buffer.
    * @param rule The rule whose premise is eq.
    * @param eq The equality to ensure constants are spliced in.
@@ -203,8 +199,7 @@ class InferProofCons : protected EnvObj, public ProofGenerator
    * @param isRev Whether rule is being applied in the reverse direction.
    * @return The result of splicing the appropriate constants (if any) in eq.
    */
-  static Node spliceConstants(Env& env,
-                              ProofRule rule,
+  static Node spliceConstants(ProofRule rule,
                               TheoryProofStepBuffer& psb,
                               const Node& eq,
                               const Node& conc,

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -43,8 +40,8 @@ CegisUnif::CegisUnif(Env& env,
 }
 
 CegisUnif::~CegisUnif() {}
-bool CegisUnif::processInitialize(Node conj,
-                                  Node n,
+bool CegisUnif::processInitialize(CVC5_UNUSED Node conj,
+                                  CVC5_UNUSED Node n,
                                   const std::vector<Node>& candidates)
 {
   // list of strategy points for unification candidates
@@ -94,7 +91,7 @@ bool CegisUnif::processInitialize(Node conj,
   return true;
 }
 
-void CegisUnif::getTermList(const std::vector<Node>& candidates,
+void CegisUnif::getTermList(CVC5_UNUSED const std::vector<Node>& candidates,
                             std::vector<Node>& enums)
 {
   // Non-unif candidate are themselves the enumerators
@@ -376,7 +373,8 @@ bool CegisUnif::processConstructCandidates(const std::vector<Node>& enums,
   return false;
 }
 
-void CegisUnif::registerRefinementLemma(const std::vector<Node>& vars, Node lem)
+void CegisUnif::registerRefinementLemma(
+    CVC5_UNUSED const std::vector<Node>& vars, Node lem)
 {
   // Notify lemma to unification utility and get its purified form
   std::map<Node, std::vector<Node>> eval_pts;

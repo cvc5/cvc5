@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Hans-Joerg Schurr
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -131,6 +128,15 @@ class BasicRewriteRCons : protected EnvObj
    * @return true if added a closed proof of eq to cdp.
    */
   bool ensureProofMacroBoolNnfNorm(CDProof* cdp, const Node& eq);
+  /**
+   * Elaborate a rewrite eq that was proven by
+   * ProofRewriteRule::MACRO__BOOL_EQ_CONST_EQ.
+   *
+   * @param cdp The proof to add to.
+   * @param eq The rewrite proven by ProofRewriteRule::MACRO__BOOL_EQ_CONST_EQ.
+   * @return true if added a closed proof of eq to cdp.
+   */
+  bool ensureProofMacroBoolEqConstEq(CDProof* cdp, const Node& eq);
   /**
    * Elaborate a rewrite eq that was proven by
    * ProofRewriteRule::MACRO_BOOL_BV_INVERT_SOLVE.

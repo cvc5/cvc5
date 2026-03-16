@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -79,11 +76,8 @@ class TermRegistry : protected EnvObj
    *
    * @param q The quantified formula
    * @param terms The terms it was instantiated with
-   * @param success Whether the instantiation was successfully added
    */
-  void processInstantiation(Node q,
-                            const std::vector<Node>& terms,
-                            bool success);
+  void processInstantiation(Node q, const std::vector<Node>& terms);
   /**
    * Process skolemization, called when q is skolemized.
    *

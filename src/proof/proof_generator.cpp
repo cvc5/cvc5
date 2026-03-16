@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -69,7 +66,7 @@ bool ProofGenerator::addProofTo(Node f,
   else
   {
     Trace("pfgen") << "...failed, no proof" << std::endl;
-    Assert(false) << "Failed to get proof from generator for fact " << f;
+    DebugUnhandled() << "Failed to get proof from generator for fact " << f;
   }
   return false;
 }

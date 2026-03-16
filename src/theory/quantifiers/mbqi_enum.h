@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Lydia Kondylidou, Daniel Larraz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -136,16 +133,13 @@ class MbqiEnum : protected EnvObj
    * @param mvs The model values of vars found in the subsolver for MBQI.
    * @param mvFreshVar Maps model values to variables, for the purposes
    * of representing term models for uninterpreted sorts.
-   * @param auxLemmas Other lemmas to add.
    * @return true if we successfully modified the instantiation.
    */
-  bool constructInstantiation(
-      const Node& q,
-      const Node& query,
-      const std::vector<Node>& vars,
-      std::vector<Node>& mvs,
-      const std::map<Node, Node>& mvFreshVar,
-      std::vector<std::pair<Node, InferenceId>>& auxLemmas);
+  bool constructInstantiation(const Node& q,
+                              const Node& query,
+                              const std::vector<Node>& vars,
+                              std::vector<Node>& mvs,
+                              const std::map<Node, Node>& mvFreshVar);
 
  private:
   /**

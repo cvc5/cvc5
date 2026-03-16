@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Tim King, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -431,7 +428,7 @@ std::shared_ptr<ProofNode> ArithStaticLearner::getProofFor(Node fact)
     else
     {
       // this should always hold unless the rewriter for ITE changes
-      Assert(false) << "...failed rewrite " << eq2 << std::endl;
+      DebugUnhandled() << "...failed rewrite " << eq2 << std::endl;
       cdp.addTrustedStep(fact, TrustId::ARITH_STATIC_LEARN, {}, {});
       return cdp.getProofFor(fact);
     }

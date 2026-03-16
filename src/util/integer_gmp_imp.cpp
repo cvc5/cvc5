@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Gereon Kremer, Tim King
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -429,7 +426,7 @@ int64_t Integer::getSigned64() const
     }
     catch (const std::exception& e)
     {
-      Assert(false) << "Overflow detected in Integer::getSigned64().";
+      DebugUnhandled() << "Overflow detected in Integer::getSigned64().";
     }
   }
   return 0;
@@ -453,7 +450,7 @@ uint64_t Integer::getUnsigned64() const
     }
     catch (const std::exception& e)
     {
-      Assert(false) << "Overflow detected in Integer::getUnsigned64().";
+      DebugUnhandled() << "Overflow detected in Integer::getUnsigned64().";
     }
   }
   return 0;

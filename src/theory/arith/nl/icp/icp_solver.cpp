@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Gereon Kremer, Andrew Reynolds, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -129,7 +126,7 @@ std::vector<Candidate> ICPSolver::constructCandidates(const Node& n)
         case Kind::DISTINCT: rel = poly::SignCondition::NE; break;
         case Kind::GT: rel = poly::SignCondition::GT; break;
         case Kind::GEQ: rel = poly::SignCondition::GE; break;
-        default: Assert(false) << "Unexpected kind: " << k;
+        default: DebugUnhandled() << "Unexpected kind: " << k;
       }
       poly::Rational rhsmult;
       poly::Polynomial rhs = as_poly_polynomial(val, d_mapper, rhsmult);
@@ -160,7 +157,7 @@ std::vector<Candidate> ICPSolver::constructCandidates(const Node& n)
         case Kind::DISTINCT: rel = poly::SignCondition::NE; break;
         case Kind::GT: rel = poly::SignCondition::LT; break;
         case Kind::GEQ: rel = poly::SignCondition::LE; break;
-        default: Assert(false) << "Unexpected kind: " << k;
+        default: DebugUnhandled() << "Unexpected kind: " << k;
       }
       poly::Rational rhsmult;
       poly::Polynomial rhs = as_poly_polynomial(val, d_mapper, rhsmult);

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Morgan Deters, Dejan Jovanovic, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -564,7 +561,7 @@ public:
    * If this is a CONST_* Node, extract the constant from it.
    */
   template <class T>
-  inline const T& getConst() const;
+  CVC5_NO_DANGLING inline const T& getConst() const;
 
   /**
    * @return true if this is a skolem function.

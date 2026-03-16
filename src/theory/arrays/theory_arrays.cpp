@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Clark Barrett, Andrew Reynolds, Morgan Deters
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -909,7 +906,7 @@ void TheoryArrays::checkPair(TNode r1, TNode r2)
   switch (eqStatusDomain) {
     case EQUALITY_TRUE_AND_PROPAGATED:
       // Should have been propagated to us
-      Assert(false);
+      DebugUnhandled();
       break;
     case EQUALITY_TRUE:
       // Missed propagation - need to add the pair so that theory engine can force propagation
@@ -920,7 +917,7 @@ void TheoryArrays::checkPair(TNode r1, TNode r2)
                                   "called when false in model"
                                << std::endl;
       // Should have been propagated to us
-      Assert(false);
+      DebugUnhandled();
       break;
     case EQUALITY_FALSE: CVC5_FALLTHROUGH;
     case EQUALITY_FALSE_IN_MODEL:

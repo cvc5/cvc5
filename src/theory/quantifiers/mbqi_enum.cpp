@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Lydia Kondylidou, Daniel Larraz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -201,13 +198,11 @@ MQuantInfo& MbqiEnum::getOrMkQuantInfo(const Node& q)
   return it->second;
 }
 
-bool MbqiEnum::constructInstantiation(
-    const Node& q,
-    const Node& query,
-    const std::vector<Node>& vars,
-    std::vector<Node>& mvs,
-    const std::map<Node, Node>& mvFreshVar,
-    std::vector<std::pair<Node, InferenceId>>& auxLemmas)
+bool MbqiEnum::constructInstantiation(const Node& q,
+                                      const Node& query,
+                                      const std::vector<Node>& vars,
+                                      std::vector<Node>& mvs,
+                                      const std::map<Node, Node>& mvFreshVar)
 {
   Assert(q[0].getNumChildren() == vars.size());
   Assert(vars.size() == mvs.size());

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -86,14 +83,12 @@ class Smt2TermParser
    * where <GTerm> is a term that additionally allows the SyGuS-specific
    * grammar rules for Constant and Variable.
    */
-  Grammar* parseGrammar(const std::vector<Term>& sygusVars,
-                        const std::string& fun);
+  Grammar* parseGrammar(const std::vector<Term>& sygusVars);
   /**
    * Parse optional grammar <GrammarDef>?, return null if a grammar was not
    * parsed.
    */
-  Grammar* parseGrammarOrNull(const std::vector<Term>& sygusVars,
-                              const std::string& fun);
+  Grammar* parseGrammarOrNull(const std::vector<Term>& sygusVars);
   /** Parse integer numeral */
   uint32_t parseIntegerNumeral();
   /**

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Daniel Larraz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -58,9 +55,9 @@ InstStrategySubConflict::InstStrategySubConflict(
   }
 }
 
-void InstStrategySubConflict::reset_round(Theory::Effort e) {}
+void InstStrategySubConflict::reset_round(CVC5_UNUSED Theory::Effort e) {}
 
-bool InstStrategySubConflict::needsCheck(Theory::Effort e)
+bool InstStrategySubConflict::needsCheck(CVC5_UNUSED Theory::Effort e)
 {
   return !d_qstate.isInConflict();
 }

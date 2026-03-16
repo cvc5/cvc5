@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Yoni Zohar, Aina Niemetz, Makai Mann
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -261,6 +258,23 @@ TEST_F(TestTheoryWhiteBvIntblaster, intblaster_with_children)
   original = d_nodeManager->mkNode(Kind::BITVECTOR_ULTBV, v1, v2);
   result = intBlaster.translateWithChildren(original, {i1, i2}, lemmas);
   ASSERT_TRUE(result.getType().isInteger());
+
+  // FORALL with patterns
+  Node z = d_nodeManager->mkBoundVar("z", bvType);
+  Node bvl = d_nodeManager->mkNode(Kind::BOUND_VAR_LIST, z);
+  Node body = d_nodeManager->mkNode(Kind::BITVECTOR_ULT, z, v2);
+  Node bvnot = d_nodeManager->mkNode(Kind::BITVECTOR_NOT, z);
+  Node pattern = d_nodeManager->mkNode(Kind::INST_PATTERN, bvnot);
+  Node list = d_nodeManager->mkNode(Kind::INST_PATTERN_LIST, pattern);
+  original = d_nodeManager->mkNode(Kind::FORALL, bvl, body, list);
+  std::vector<Node> dummylemmas;
+  result = intBlaster.intBlast(original, dummylemmas, skolems);
+  ASSERT_TRUE(result.getType().isBoolean());
+  ASSERT_TRUE(result[1].getType().isBoolean());
+  ASSERT_TRUE(result.getNumChildren() == 3);
+  ASSERT_TRUE(result[2].getKind() == Kind::INST_PATTERN_LIST);
+  ASSERT_TRUE(result[2].getNumChildren() == 1);
+  ASSERT_TRUE(result[2][0].getKind() == Kind::INST_PATTERN);
 }
 
 /** Check AND translation for bitwise option.

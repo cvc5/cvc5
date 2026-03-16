@@ -1,10 +1,7 @@
 ###############################################################################
-# Top contributors (to current version):
-#   Andrew Reynolds, Aina Niemetz, Mathias Preiner
-#
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -861,6 +858,7 @@ set(regress_0_tests
   regress0/ff/bigff_is_zero_sound.smt2
   regress0/ff/bigff_is_zero_unsound.smt2
   regress0/ff/bitsum_eval.smt2
+  regress0/ff/bitsum_overflow.smt2
   regress0/ff/bool_nary_or_sound.smt2
   regress0/ff/bool_nary_or_unsound.smt2
   regress0/ff/combination.smt2
@@ -1173,6 +1171,7 @@ set(regress_0_tests
   regress0/nl/issue8755-nl-logic-exception.smt2
   regress0/nl/issue8835-int-second.smt2
   regress0/nl/issue8934-lr-int-mod-range.smt2
+  regress0/nl/issue12499-learned-rewrite-mod-range.smt2
   regress0/nl/issue9661.smt2
   regress0/nl/issue12296.smt2
   regress0/nl/lazard-spurious-root.smt2
@@ -1465,9 +1464,12 @@ set(regress_0_tests
   regress0/proofs/bvrewrite-ite.smt2
   regress0/proofs/bvrewrite-shlbyconst.smt2
   regress0/proofs/com-galois-rewrite.smt2
+  regress0/proofs/dd.1004_attack_star_union_char.smt2
+  regress0/proofs/dd.63058_aa742630eef64f949de269382c1f9035_25_UFDTNIA.smt2
   regress0/proofs/dd.fastclose.smt2
   regress0/proofs/dd.fastclose2.smt2
   regress0/proofs/dd.fastclose3.smt2
+  regress0/proofs/dd.S715-026__dic_loop__ordering_buffers.adb_11_83_range_check___00.smt2
   regress0/proofs/dd_ada_open.smt2
   regress0/proofs/dd_alpha_eq_qpattern.smt2
   regress0/proofs/dd_bug787_beta_reduce.smt2
@@ -1517,7 +1519,10 @@ set(regress_0_tests
   regress0/proofs/issue12240-cyclic-proof.smt2
   regress0/proofs/issue12355-cm-mixed-arith.smt2
   regress0/proofs/lfsc-test-1.smt2
+  regress0/proofs/macro-eq-const-eq.smt2
   regress0/proofs/macro-quant-prenex-simple.smt2
+  regress0/proofs/mod-total-256.smt2
+  regress0/proofs/mod-total-mult.smt2
   regress0/proofs/nomerge-alethe-pf.smt2
   regress0/proofs/no-proof-uc.smt2
   regress0/proofs/pfcheck_rw_441.smt2
@@ -1560,6 +1565,8 @@ set(regress_0_tests
   regress0/proofs/qgu-fuzz-3-chainres-checking.smt2
   regress0/proofs/qgu-fuzz-4-bool-chainres-postprocessing-singleton.smt2
   regress0/proofs/qgu-fuzz-5-bool-open-sat.smt2
+  regress0/proofs/re-range-empty.smt2
+  regress0/proofs/re-range-refl.smt2
   regress0/proofs/RF-11-aci-norm-ndet.smt2
   regress0/proofs/scope.smt2
   regress0/proofs/shadow_quant.smt2
@@ -1895,6 +1902,9 @@ set(regress_0_tests
   regress0/seq/query2-subtype.smt2
   regress0/seq/rev.smt2
   regress0/seq/seq-eval-bug.smt2
+  regress0/seq/seq-eval-contains.smt2
+  regress0/seq/seq-eval-extract.smt2
+  regress0/seq/seq-eval-replace-all.smt2
   regress0/seq/seqa-model-unsound-dd.smt2
   regress0/seq/array/array1.smt2
   regress0/seq/array/array2.smt2
@@ -2204,6 +2214,7 @@ set(regress_0_tests
   regress0/strings/regexp_inclusion.smt2
   regress0/strings/regexp-native-simple.cvc.smt2
   regress0/strings/regexp-repeat.smt2
+  regress0/strings/repl-all-non-const-range.smt2
   regress0/strings/repl-rewrites2.smt2
   regress0/strings/replace-all-rew-more.smt2
   regress0/strings/replace-const.smt2
@@ -2261,12 +2272,14 @@ set(regress_0_tests
   regress0/sygus/declare-var-grammar-err.sy
   regress0/sygus/dt-no-syntax.sy
   regress0/sygus/dt-sel-parse1.sy
+  regress0/sygus/feasible-trivial.sy
   regress0/sygus/find-synth-next.smt2
   regress0/sygus/General_plus10.sy
   regress0/sygus/hd-05-d1-prog-nogrammar.sy
   regress0/sygus/ho-occ-synth-fun.sy
   regress0/sygus/incremental-modify-ex.sy
   regress0/sygus/infeasible-constraint.sy
+  regress0/sygus/infeasible-trivial.sy
   regress0/sygus/interpolant-gn.smt2
   regress0/sygus/inv-different-var-order.sy
   regress0/sygus/issue3356-syg-inf-usort.smt2
@@ -2680,6 +2693,12 @@ set(regress_1_tests
   regress1/bv/bug_extract_mult_leading_bit.smt2
   regress1/bv/bv_to_int_10084.smt2
   regress1/bv/bv_to_int_10084_forall.smt2
+  regress1/bv/bv_to_int_quant_pattern.smt2
+  regress1/bv/bv_to_int_quant_pattern_list.smt2
+  regress1/bv/bv_to_int_quant_uf_bv.smt2
+  regress1/bv/bv_to_int_quant_uf_bv_dis.smt2
+  regress1/bv/bv_to_int_quant_uf_nobv.smt2
+  regress1/bv/bv_to_int_quant_uf_nobv_dis_S.smt2
   regress1/bv/bv-int-collapse2-sat.smt2
   regress1/bv/bv-proof00.smtv1.smt2
   regress1/bv/bv2nat-ground.smt2
@@ -2900,6 +2919,7 @@ set(regress_1_tests
   regress1/nl/issue11386-1-nl-cov-cyclic.smt2
   regress1/nl/issue11386-2-nl-cov-cyclic.smt2
   regress1/nl/issue11386-3-nl-cov-cyclic.smt2
+  regress1/nl/issue12376-nl-comp-pf.smt2
   regress1/nl/issue3300-approx-sqrt-witness.smt2
   regress1/nl/issue3441.smt2
   regress1/nl/issue3617.smt2
@@ -3147,6 +3167,7 @@ set(regress_1_tests
   regress1/quantifiers/ho-seu-sygus-inst.smt2
   regress1/quantifiers/horn-simple.smt2
   regress1/quantifiers/inst-ground-term.smt2
+  regress1/quantifiers/mbqi-enum-dtype-ops.smt2
   regress1/quantifiers/inst-max-level-segf.smt2
   regress1/quantifiers/inst-prop-simp.smt2
   regress1/quantifiers/intersection-example-onelane.proof-node22337.smt2
@@ -3672,6 +3693,7 @@ set(regress_1_tests
   regress1/strings/proj-issue659.smt2
   regress1/strings/proj-issue779-2-extr.smt2
   regress1/strings/proj-issue779-2-icycle.smt2
+  regress1/strings/proj-issue783-inorm-cycle.smt2
   regress1/strings/prop-engine-order.smt2
   regress1/strings/query4674.smt2
   regress1/strings/query8485.smt2
@@ -4008,6 +4030,7 @@ set(regress_2_tests
   regress2/bv_to_int_mask_array_3.smt2
   regress2/bv_to_int_shifts.smt2
   regress2/bv_to_int_quantifiers_bvand.smt2
+  regress2/bv_to_int_quant_ufuf.smt2
   regress2/error1.smtv1.smt2
   regress2/fp/issue7056.smt2
   regress2/fuzz_2.smtv1.smt2

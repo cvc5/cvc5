@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -348,7 +345,7 @@ bool BoundedIntegers::needsCheck( Theory::Effort e ) {
   return e==Theory::EFFORT_LAST_CALL;
 }
 
-void BoundedIntegers::check(Theory::Effort e, QEffort quant_e)
+void BoundedIntegers::check(CVC5_UNUSED Theory::Effort e, QEffort quant_e)
 {
   if (quant_e != QEFFORT_STANDARD)
   {
@@ -533,7 +530,7 @@ void BoundedIntegers::checkOwnership(Node f)
           Trace("bound-int") << "  " << v << " has small finite type." << std::endl;
         }else{
           Trace("bound-int") << "  " << v << " has unknown bound." << std::endl;
-          Assert(false);
+          DebugUnhandled();
         }
       }else{
         Trace("bound-int") << "  " << "*** " << v << " is unbounded." << std::endl;

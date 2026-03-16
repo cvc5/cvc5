@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Tim King, Gereon Kremer, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -2239,6 +2236,8 @@ void TheoryArithPrivate::resolveOutPropagated(
 
 struct SizeOrd {
   bool operator()(const ConstraintCPVec& a, const ConstraintCPVec& b) const{
+    // Silence false positive: https://github.com/llvm/llvm-project/issues/78132
+    // NOLINTNEXTLINE(clang-analyzer-cplusplus.Move)
     return a.size() < b.size();
   }
 };
@@ -2826,7 +2825,7 @@ void TheoryArithPrivate::solveInteger(Theory::Effort effortLevel){
         approx->setBranchingDepth(2);
         {
           TimerStat::CodeTimer codeTimer3(d_statistics.d_mipTimer);
-          mipRes = approx->solveMIP(true);
+          approx->solveMIP(true);
         }
         replayLemmas(approx);
         break;
@@ -4591,6 +4590,7 @@ bool TheoryArithPrivate::rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, C
           NodeBuilder nb(nodeManager());
           conflictPfs.push_back(constraint->externalExplainByAssertions(nb));
         }
+        Assert(coeffs != nullptr);
         // Collect the farkas coefficients, as nodes.
         std::vector<Node> farkasCoefficients;
         farkasCoefficients.reserve(coeffs->size());

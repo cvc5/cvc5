@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Clark Barrett, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -56,7 +53,7 @@ Node TheoryEngineModelBuilder::Assigner::getNextAssignment()
   // does we assert false and return null.
   if (te.isFinished())
   {
-    Assert(false);
+    DebugUnhandled();
     return Node::null();
   }
   // must increment until we find one that is not in the assignment
@@ -557,7 +554,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
               }
               else
               {
-                Assert(false) << "Distinct base model values in the same "
+                DebugUnhandled() << "Distinct base model values in the same "
                                  "equivalence class "
                               << constRep << " " << n << std::endl;
               }
@@ -1126,7 +1123,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
       Trace("model-builder") << "***Non-empty repSet, size = " << repSet.size()
                              << ", repSet = " << repSet << endl;
       Trace("model-builder-debug") << tm->getEqualityEngine()->debugPrintEqc();
-      Assert(false);
+      DebugUnhandled();
     }
   }
 #endif /* CVC5_ASSERTIONS */
@@ -1317,12 +1314,12 @@ Node TheoryEngineModelBuilder::normalize(TheoryModel* m, TNode r, bool evalOnly)
   return retNode;
 }
 
-bool TheoryEngineModelBuilder::preProcessBuildModel(TheoryModel* m)
+bool TheoryEngineModelBuilder::preProcessBuildModel(CVC5_UNUSED TheoryModel* m)
 {
   return true;
 }
 
-bool TheoryEngineModelBuilder::processBuildModel(TheoryModel* m)
+bool TheoryEngineModelBuilder::processBuildModel(CVC5_UNUSED TheoryModel* m)
 {
   return true;
 }

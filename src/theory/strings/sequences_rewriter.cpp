@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -3817,8 +3814,17 @@ Node SequencesRewriter::rewriteReplaceAll(Node node)
         children.push_back(Word::substr(s, index, sizeS - index));
       }
     } while (curr != std::string::npos && curr < sizeS);
-    // constant evaluation
-    Node res = utils::mkConcat(children, stype);
+    Assert (!children.empty());
+    // constant evaluation, construct the concatenation and flatten it.
+    Node res;
+    if (node[2].isConst())
+    {
+      res = Word::mkWordFlatten(children);
+    }
+    else
+    {
+      res = utils::mkConcat(children, stype);
+    }
     return returnRewrite(node, res, Rewrite::REPLALL_CONST);
   }
 

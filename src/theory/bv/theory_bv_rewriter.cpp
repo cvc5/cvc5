@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Leni Aniva, Liana Hadarean, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -423,7 +420,6 @@ RewriteResponse TheoryBVRewriter::RewriteConcat(TNode node,
 
 RewriteResponse TheoryBVRewriter::RewriteAnd(TNode node, bool prerewrite)
 {
-  TRY_REWRITE(FlattenAssocCommutNoDuplicates)
   TRY_REWRITE(AndSimplify)
   TRY_REWRITE(AndOrXorConcatPullUp)
   if (!prerewrite)
@@ -435,7 +431,6 @@ RewriteResponse TheoryBVRewriter::RewriteAnd(TNode node, bool prerewrite)
 
 RewriteResponse TheoryBVRewriter::RewriteOr(TNode node, bool prerewrite)
 {
-  TRY_REWRITE(FlattenAssocCommutNoDuplicates)
   TRY_REWRITE(OrSimplify)
   TRY_REWRITE(AndOrXorConcatPullUp)
   if (!prerewrite)
@@ -447,7 +442,6 @@ RewriteResponse TheoryBVRewriter::RewriteOr(TNode node, bool prerewrite)
 
 RewriteResponse TheoryBVRewriter::RewriteXor(TNode node, bool prerewrite)
 {
-  TRY_REWRITE(FlattenAssocCommut) // flatten the expression
   TRY_REWRITE(XorSimplify) // simplify duplicates and constants
   TRY_REWRITE(XorZero) // checks if the constant part is zero and eliminates it
   TRY_REWRITE(AndOrXorConcatPullUp)
