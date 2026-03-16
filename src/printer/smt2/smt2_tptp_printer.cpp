@@ -244,6 +244,17 @@ std::string indentLines(const std::string& input, const std::string& indent)
   return ss.str();
 }
 
+std::string indentAfterFirstLine(const std::string& input,
+                                 const std::string& indent)
+{
+  size_t end = input.find('\n');
+  if (end == std::string::npos)
+  {
+    return input;
+  }
+  return input.substr(0, end + 1) + indentLines(input.substr(end + 1), indent);
+}
+
 std::string stripOuterParens(const std::string& input)
 {
   if (input.size() >= 4 && input.rfind("( ", 0) == 0
@@ -989,7 +1000,7 @@ bool modelNodeToTptp(const Node& n,
     if (body.find('\n') != std::string::npos)
     {
       out = "( ^ [" + join(binds, ",") + "] :\n"
-            + indentLines(body, "            ") + " )";
+            + indentLines(body, "      ") + " )";
     }
     else
     {
@@ -1057,7 +1068,7 @@ bool modelNodeToTptp(const Node& n,
     }
     if (a.find('\n') != std::string::npos || b.find('\n') != std::string::npos)
     {
-      out = "( " + a + "\n            = " + b + " )";
+      out = "( " + a + "\n      = " + b + " )";
     }
     else
     {
@@ -1422,7 +1433,9 @@ void Smt2TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
     const std::string lhs = sanitizeLower(t.toString());
     if (rhs.rfind("( ^ [", 0) == 0)
     {
-      hoDirectInterp[t] = "( " + lhs + "\n      = " + rhs + " )";
+      hoDirectInterp[t] =
+          "( " + lhs + "\n      = "
+          + indentAfterFirstLine(rhs, "      ") + " )";
     }
     else
     {
