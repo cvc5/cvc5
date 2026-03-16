@@ -583,7 +583,11 @@ Term Smt2State::mkIndexedConstant(const std::string& name,
       }
       Sort t = getSort(symbols[0]);
       // convert second symbol back to a numeral
-      uint32_t ubound = stringToUnsigned(symbols[1]);
+      uint32_t ubound;
+      if (!stringToUnsigned(symbols[1], ubound))
+      {
+        parseError("Numerals must fit into 32-bit unsigned integers");
+      }
       return d_tm.mkCardinalityConstraint(t, ubound);
     }
   }
@@ -1830,7 +1834,11 @@ Sort Smt2State::getIndexedSort(const std::string& name,
     {
       parseError("Illegal bitvector type.");
     }
-    uint32_t n0 = stringToUnsigned(numerals[0]);
+    uint32_t n0;
+    if (!stringToUnsigned(numerals[0], n0))
+    {
+      parseError("Numerals must fit into 32-bit unsigned integers");
+    }
     if (n0 == 0)
     {
       parseError("Illegal bitvector size: 0");
@@ -1851,8 +1859,16 @@ Sort Smt2State::getIndexedSort(const std::string& name,
     {
       parseError("Illegal floating-point type.");
     }
-    uint32_t n0 = stringToUnsigned(numerals[0]);
-    uint32_t n1 = stringToUnsigned(numerals[1]);
+    uint32_t n0;
+    uint32_t n1;
+    if (!stringToUnsigned(numerals[0], n0))
+    {
+      parseError("Numerals must fit into 32-bit unsigned integers");
+    }
+    if (!stringToUnsigned(numerals[1], n1))
+    {
+      parseError("Numerals must fit into 32-bit unsigned integers");
+    }
     if (!internal::validExponentSize(n0))
     {
       parseError("Illegal floating-point exponent size");

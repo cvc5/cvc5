@@ -1044,9 +1044,10 @@ uint32_t Smt2TermParser::tokenStrToUnsigned()
     d_lex.parseError("Negative numerals are forbidden in indices");
   }
   uint32_t result;
-  std::stringstream ss;
-  ss << token;
-  ss >> result;
+  if (!stringToUnsigned(token, result))
+  {
+    d_lex.parseError("Numerals must fit into 32-bit unsigned integers");
+  }
   return result;
 }
 
@@ -1078,7 +1079,16 @@ std::vector<std::string> Smt2TermParser::parseNumeralList()
   Token tok = d_lex.nextToken();
   while (tok == Token::INTEGER_LITERAL)
   {
-    numerals.emplace_back(d_lex.tokenStr());
+    std::string token = d_lex.tokenStr();
+    if (d_lex.isStrict() && token.size() > 1 && token[0] == '0')
+    {
+      d_lex.parseError("Numerals with leading zeroes are forbidden");
+    }
+    if (token.size() > 1 && token[0] == '-')
+    {
+      d_lex.parseError("Negative numerals are forbidden in indices");
+    }
+    numerals.emplace_back(std::move(token));
     tok = d_lex.nextToken();
   }
   d_lex.reinsertToken(tok);

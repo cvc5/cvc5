@@ -602,8 +602,8 @@ class CVC5_EXPORT ParserState
   std::map<std::pair<std::string, Sort>, Term> d_varCache;
 }; /* class Parser */
 
-/** Compute the unsigned integer for a token. */
-uint32_t stringToUnsigned(const std::string& str);
+/** Parse a non-negative numeral that must fit in uint32_t. */
+bool stringToUnsigned(const std::string& str, uint32_t& result);
 
 }  // namespace parser
 }  // namespace cvc5

@@ -18,6 +18,7 @@
 #include <fstream>
 #include <iostream>
 #include <iterator>
+#include <limits>
 #include <sstream>
 #include <unordered_set>
 
@@ -754,13 +755,29 @@ Term ParserState::mkCharConstant(const std::string& s)
   return d_tm.mkString(std::u32string(1, val));
 }
 
-uint32_t stringToUnsigned(const std::string& str)
+bool stringToUnsigned(const std::string& str, uint32_t& result)
 {
-  uint32_t result;
-  std::stringstream ss;
-  ss << str;
-  ss >> result;
-  return result;
+  if (str.empty()
+      || str.find_first_not_of("0123456789") != std::string::npos)
+  {
+    return false;
+  }
+  size_t pos = 0;
+  unsigned long long parsed = 0;
+  try
+  {
+    parsed = std::stoull(str, &pos);
+  }
+  catch (const std::exception&)
+  {
+    return false;
+  }
+  if (pos != str.size() || parsed > std::numeric_limits<uint32_t>::max())
+  {
+    return false;
+  }
+  result = static_cast<uint32_t>(parsed);
+  return true;
 }
 
 }  // namespace parser
