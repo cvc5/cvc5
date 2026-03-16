@@ -330,9 +330,10 @@ Node LearnedRewrite::rewriteLearned(Node nr,
         {
           Rational bnuml = nb.lower_value.getConst<Rational>();
           Rational bnumu = nb.upper_value.getConst<Rational>();
-          Rational bnum = bnumu.abs() > bnuml.abs() ? bnuml.abs() : bnumu.abs();
-          if (bnuml.sgn() == bnumu.sgn() && bdenl.abs() < bnum
-              && bdenu.abs() < bnum)
+          Rational bnumMaxAbs =
+              bnumu.abs() > bnuml.abs() ? bnumu.abs() : bnuml.abs();
+          if (bnuml.sgn() == bnumu.sgn() && bnumMaxAbs < bdenl.abs()
+              && bnumMaxAbs < bdenu.abs())
           {
             // if the numerator is negative, then (mod x y) ---> (+ x (abs y))
             // otherwise, (mod x y) ---> x
