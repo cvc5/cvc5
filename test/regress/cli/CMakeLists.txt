@@ -2693,6 +2693,8 @@ set(regress_1_tests
   regress1/bv/bug_extract_mult_leading_bit.smt2
   regress1/bv/bv_to_int_10084.smt2
   regress1/bv/bv_to_int_10084_forall.smt2
+  regress1/bv/bv_to_int_quant_pattern.smt2
+  regress1/bv/bv_to_int_quant_pattern_list.smt2
   regress1/bv/bv_to_int_quant_uf_bv.smt2
   regress1/bv/bv_to_int_quant_uf_bv_dis.smt2
   regress1/bv/bv_to_int_quant_uf_nobv.smt2
@@ -3168,6 +3170,7 @@ set(regress_1_tests
   regress1/quantifiers/ho-seu-sygus-inst.smt2
   regress1/quantifiers/horn-simple.smt2
   regress1/quantifiers/inst-ground-term.smt2
+  regress1/quantifiers/mbqi-enum-dtype-ops.smt2
   regress1/quantifiers/inst-max-level-segf.smt2
   regress1/quantifiers/inst-prop-simp.smt2
   regress1/quantifiers/intersection-example-onelane.proof-node22337.smt2
