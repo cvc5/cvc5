@@ -606,7 +606,9 @@ class CVC5_EXPORT ParserState
 }; /* class Parser */
 
 /** Parse a non-negative numeral that must fit in uint32_t. */
-bool stringToUnsigned(const std::string& str, uint32_t& result, std::ostream* os = nullptr);
+bool stringToUnsigned(const std::string& str,
+                      uint32_t& result,
+                      std::ostream* os = nullptr);
 
 }  // namespace parser
 }  // namespace cvc5

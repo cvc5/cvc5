@@ -755,12 +755,13 @@ Term ParserState::mkCharConstant(const std::string& s)
   return d_tm.mkString(std::u32string(1, val));
 }
 
-bool stringToUnsigned(const std::string& str, uint32_t& result, std::ostream* os)
+bool stringToUnsigned(const std::string& str,
+                      uint32_t& result,
+                      std::ostream* os)
 {
-  if (str.empty()
-      || str.find_first_not_of("0123456789") != std::string::npos)
+  if (str.empty() || str.find_first_not_of("0123456789") != std::string::npos)
   {
-    if (os!=nullptr)
+    if (os != nullptr)
     {
       (*os) << " String is not a numeral.";
     }
@@ -774,7 +775,7 @@ bool stringToUnsigned(const std::string& str, uint32_t& result, std::ostream* os
   }
   catch (const std::exception&)
   {
-    if (os!=nullptr)
+    if (os != nullptr)
     {
       (*os) << " Exception encountered in std::stoull.";
     }
@@ -782,7 +783,7 @@ bool stringToUnsigned(const std::string& str, uint32_t& result, std::ostream* os
   }
   if (pos != str.size() || parsed > std::numeric_limits<uint32_t>::max())
   {
-    if (os!=nullptr)
+    if (os != nullptr)
     {
       (*os) << " Numerals must fit into 32-bit unsigned integers.";
     }

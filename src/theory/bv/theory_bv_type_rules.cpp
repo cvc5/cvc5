@@ -33,7 +33,8 @@ bool checkBvResultSize(uint64_t size, std::ostream* errOut)
   {
     if (errOut)
     {
-      (*errOut) << "resulting bit-vector size is too large; must fit a 32-bit unsigned integer";
+      (*errOut) << "resulting bit-vector size is too large; must fit a 32-bit "
+                   "unsigned integer";
     }
     return false;
   }
@@ -431,8 +432,8 @@ TypeNode BitVectorExtractTypeRule::preComputeType(NodeManager* nm, TNode n)
   {
     return TypeNode::null();
   }
-  uint64_t size = static_cast<uint64_t>(extractInfo.d_high) - extractInfo.d_low
-                  + 1;
+  uint64_t size =
+      static_cast<uint64_t>(extractInfo.d_high) - extractInfo.d_low + 1;
   if (!checkBvResultSize(size, nullptr))
   {
     return TypeNode::null();
@@ -478,8 +479,8 @@ TypeNode BitVectorExtractTypeRule::computeType(NodeManager* nodeManager,
   }
   // note that its type is always concrete, even if the argument has abstract
   // type
-  uint64_t size = static_cast<uint64_t>(extractInfo.d_high) - extractInfo.d_low
-                  + 1;
+  uint64_t size =
+      static_cast<uint64_t>(extractInfo.d_high) - extractInfo.d_low + 1;
   if (!checkBvResultSize(size, errOut))
   {
     return TypeNode::null();
