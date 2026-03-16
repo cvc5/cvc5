@@ -119,6 +119,10 @@ SygusGrammar SygusGrammarCons::mkDefaultGrammar(const Env& env,
   for (const Node& r : trulesAll)
   {
     TypeNode rt = r.getType();
+    if (!rt.isFirstClass())
+    {
+      continue;
+    }
     it = typeToNtSym.find(rt);
     if (it != typeToNtSym.end())
     {
@@ -185,10 +189,14 @@ SygusGrammar SygusGrammarCons::mkEmptyGrammar(const Env& env,
   std::unordered_set<TypeNode> types;
   for (const Node& r : trules)
   {
-    // constants don't contribute anything by themselves
-    if (!r.isConst())
+    TypeNode rt = r.getType();
+    // constants don't contribute anything by themselves. Non-first-class
+    // operators like datatype constructors/selectors/testers are added by the
+    // default grammar rules directly and should not induce their own
+    // non-terminals.
+    if (!r.isConst() && rt.isFirstClass())
     {
-      collectTypes(nm, r.getType(), types);
+      collectTypes(nm, rt, types);
     }
   }
   collectTypes(nm, range, types);
