@@ -555,7 +555,12 @@ class CVC5_EXPORT ParserState
    */
   std::string stripQuotes(const std::string& s);
 
-  /** Parse a non-negative numeral that must fit in uint32_t. */
+  /**
+   * Parse a non-negative numeral that must fit in uint32_t.
+   * Otherwise an exception is thrown.
+   * @param str The string to parse.
+   * @return the corresponding uint32_t if successful.
+   */
   uint32_t parseStringToUnsigned(const std::string& str);
 
  protected:
@@ -605,7 +610,13 @@ class CVC5_EXPORT ParserState
   std::map<std::pair<std::string, Sort>, Term> d_varCache;
 }; /* class Parser */
 
-/** Parse a non-negative numeral that must fit in uint32_t. */
+/**
+ * Parse a non-negative numeral that must fit in uint32_t.
+ * @param str The string to parse.
+ * @param result The result of parsing str to a uint32_t if successful.
+ * @param os If provided, errors are written on this stream.
+ * @return true if the parsing was successful.
+ */
 bool stringToUnsigned(const std::string& str,
                       uint32_t& result,
                       std::ostream* os = nullptr);
