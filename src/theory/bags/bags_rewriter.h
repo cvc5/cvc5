@@ -28,7 +28,6 @@ struct BagsRewriteResponse
 {
   BagsRewriteResponse();
   BagsRewriteResponse(Node n, Rewrite rewrite);
-  BagsRewriteResponse(const BagsRewriteResponse& r);
   /** the rewritten node */
   Node d_node;
   /** type of rewrite used by bags */

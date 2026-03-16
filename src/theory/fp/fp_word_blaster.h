@@ -128,7 +128,6 @@ class symbolicProposition : public nodeWrapper
  public:
   symbolicProposition(const Node n);
   symbolicProposition(bool v);
-  symbolicProposition(const symbolicProposition& old);
 
   symbolicProposition operator!(void) const;
   symbolicProposition operator&&(const symbolicProposition& op) const;
@@ -147,7 +146,6 @@ class symbolicRoundingMode : public nodeWrapper
  public:
   symbolicRoundingMode(const Node n);
   symbolicRoundingMode(const unsigned v);
-  symbolicRoundingMode(const symbolicRoundingMode& old);
 
   symbolicProposition valid(void) const;
   symbolicProposition operator==(const symbolicRoundingMode& op) const;
@@ -189,7 +187,6 @@ class symbolicBitVector : public nodeWrapper
   symbolicBitVector(const Node n);
   symbolicBitVector(const bwt w, const unsigned v);
   symbolicBitVector(const symbolicProposition& p);
-  symbolicBitVector(const symbolicBitVector<isSigned>& old);
   symbolicBitVector(const BitVector& old);
 
   bwt getWidth(void) const;
