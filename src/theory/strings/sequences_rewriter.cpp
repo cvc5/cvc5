@@ -3816,7 +3816,15 @@ Node SequencesRewriter::rewriteReplaceAll(Node node)
     } while (curr != std::string::npos && curr < sizeS);
     Assert (!children.empty());
     // constant evaluation, construct the concatenation and flatten it.
-    Node res = Word::mkWordFlatten(children);
+    Node res;
+    if (node[2].isConst())
+    {
+      res = Word::mkWordFlatten(children);
+    }
+    else
+    {
+      res = utils::mkConcat(children, stype);
+    }
     return returnRewrite(node, res, Rewrite::REPLALL_CONST);
   }
 
