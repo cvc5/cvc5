@@ -33,7 +33,7 @@ bool checkBvResultSize(uint64_t size, std::ostream* errOut)
   {
     if (errOut)
     {
-      (*errOut) << "resulting bit-vector size is too large";
+      (*errOut) << "resulting bit-vector size is too large; must fit a 32-bit unsigned integer";
     }
     return false;
   }

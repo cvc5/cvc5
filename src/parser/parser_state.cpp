@@ -755,11 +755,15 @@ Term ParserState::mkCharConstant(const std::string& s)
   return d_tm.mkString(std::u32string(1, val));
 }
 
-bool stringToUnsigned(const std::string& str, uint32_t& result)
+bool stringToUnsigned(const std::string& str, uint32_t& result, std::ostream* os)
 {
   if (str.empty()
       || str.find_first_not_of("0123456789") != std::string::npos)
   {
+    if (os!=nullptr)
+    {
+      (*os) << " String is not a numeral.";
+    }
     return false;
   }
   size_t pos = 0;
@@ -770,14 +774,35 @@ bool stringToUnsigned(const std::string& str, uint32_t& result)
   }
   catch (const std::exception&)
   {
+    if (os!=nullptr)
+    {
+      (*os) << " Exception encountered in std::stoull.";
+    }
     return false;
   }
   if (pos != str.size() || parsed > std::numeric_limits<uint32_t>::max())
   {
+    if (os!=nullptr)
+    {
+      (*os) << " Numerals must fit into 32-bit unsigned integers.";
+    }
     return false;
   }
   result = static_cast<uint32_t>(parsed);
   return true;
+}
+
+uint32_t ParserState::parseStringToUnsigned(const std::string& str)
+{
+  uint32_t result = 0;
+  if (!stringToUnsigned(str, result))
+  {
+    std::stringstream ss;
+    ss << "Failed to parse numeral.";
+    stringToUnsigned(str, result, &ss);
+    parseError(ss.str());
+  }
+  return result;
 }
 
 }  // namespace parser
