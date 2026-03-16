@@ -237,7 +237,8 @@ bool AletheProofPostprocessCallback::updateTheoryRewriteProofRewriteRule(
       //
       // (define-rule bool-not-false ((t Bool)) (not (= t t)) false)
       bool isRhsOr = res[0][1].getKind() == Kind::OR;
-      Node subEq = isRhsOr ? res[0][1][0][0] : res[1][0];
+      Assert(isRhsOr || res[1].getKind() == Kind::CONST_BOOLEAN);
+      Node subEq = isRhsOr ? res[0][1][0][0] : res[0][0];
       Node x = subEq[0];
       Node t = subEq[1];
       // build the REFL step
