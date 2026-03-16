@@ -613,14 +613,16 @@ Node evalFiniteApply(const Node& app,
   {
     return Node::null();
   }
-  Node op = evalFiniteTerm(app[0], m, isDeclared, finiteTypeElems, subst);
+  Node opn = app.getKind() == Kind::APPLY_UF ? app.getOperator() : app[0];
+  Node op = evalFiniteTerm(opn, m, isDeclared, finiteTypeElems, subst);
   if (op.isNull())
   {
     return Node::null();
   }
   std::vector<Node> args;
-  args.reserve(app.getNumChildren() - 1);
-  for (size_t i = 1, n = app.getNumChildren(); i < n; i++)
+  const size_t argStart = app.getKind() == Kind::APPLY_UF ? 0 : 1;
+  args.reserve(app.getNumChildren() - argStart);
+  for (size_t i = argStart, n = app.getNumChildren(); i < n; i++)
   {
     Node av = evalFiniteTerm(app[i], m, isDeclared, finiteTypeElems, subst);
     if (av.isNull())
@@ -633,11 +635,12 @@ Node evalFiniteApply(const Node& app,
   Node qval = Node::null();
   if (app.getKind() == Kind::APPLY_UF)
   {
-    if (app[0].getType().isFunction())
+    Node qop = app.getOperator();
+    if (qop.getType().isFunction())
     {
       std::vector<Node> qchildren;
-      qchildren.reserve(app.getNumChildren());
-      qchildren.push_back(app[0]);
+      qchildren.reserve(app.getNumChildren() + 1);
+      qchildren.push_back(qop);
       for (const Node& a : args)
       {
         qchildren.push_back(a);
@@ -1014,8 +1017,10 @@ bool modelNodeToTptp(const Node& n,
     {
       return false;
     }
+    const bool isApplyUf = n.getKind() == Kind::APPLY_UF;
+    Node opn = isApplyUf ? n.getOperator() : n[0];
     std::string head;
-    if (!modelNodeToTptp(n[0],
+    if (!modelNodeToTptp(opn,
                          isDeclared,
                          elemNames,
                          promoteNames,
@@ -1026,8 +1031,9 @@ bool modelNodeToTptp(const Node& n,
       return false;
     }
     std::vector<std::string> args;
-    args.reserve(n.getNumChildren() - 1);
-    for (size_t i = 1, nc = n.getNumChildren(); i < nc; i++)
+    const size_t argStart = isApplyUf ? 0 : 1;
+    args.reserve(n.getNumChildren() - argStart);
+    for (size_t i = argStart, nc = n.getNumChildren(); i < nc; i++)
     {
       std::string a;
       if (!modelNodeToTptp(n[i],
