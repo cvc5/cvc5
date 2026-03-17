@@ -464,6 +464,11 @@ enum class AletheRule : uint32_t
   // where set representation of F1 and F2 are the same and the number of
   // literals in C2 is the same of that of C1.
   REORDERING,
+  // ======== HO
+  // > i. (= ((lambda (x_1   ... x_n) t) t_1 ... t_k)
+  //         (lambda (x_k+1 ... x_n) t){x_1 -> t1, ..., x_k -> t_k})
+  // where if k = n then the rhs has no lambda binding t.
+  BETA_EQUIVALENCE,
   // ======== bitvector
   //  > i. (cl (= t bbt(t)))
   BV_BITBLAST_STEP_VAR,
