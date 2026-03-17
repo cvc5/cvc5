@@ -2551,6 +2551,80 @@ bool AletheProofPostprocessCallback::update(Node res,
                            {},
                            *cdp);
     }
+    case ProofRule::ARITH_REDUCTION:
+    {
+      switch (args[0].getKind())
+      {
+        case Kind::DIVISION:
+        case Kind::DIVISION_TOTAL:
+        case Kind::INTS_DIVISION:
+        case Kind::INTS_DIVISION_TOTAL:
+        {
+          return addAletheStep(AletheRule::DIV_INTRO,
+                               res,
+                               nm->mkNode(Kind::SEXPR, d_cl, res),
+                               {},
+                               {},
+                               *cdp);
+        }
+        case Kind::INTS_MODULUS:
+        case Kind::INTS_MODULUS_TOTAL:
+        {
+          return addAletheStep(AletheRule::MOD_INTRO,
+                               res,
+                               nm->mkNode(Kind::SEXPR, d_cl, res),
+                               {},
+                               {},
+                               *cdp);
+        }
+        case Kind::TO_INTEGER:
+        {
+          return addAletheStep(AletheRule::TO_INT_INTRO,
+                               res,
+                               nm->mkNode(Kind::SEXPR, d_cl, res),
+                               {},
+                               {},
+                               *cdp);
+        }
+        case Kind::IS_INTEGER:
+        {
+          return addAletheStep(AletheRule::IS_INT_INTRO,
+                               res,
+                               nm->mkNode(Kind::SEXPR, d_cl, res),
+                               {},
+                               {},
+                               *cdp);
+        }
+        case Kind::INTS_LOG2:
+        {
+          return addAletheStep(AletheRule::LOG2_INTRO,
+                               res,
+                               nm->mkNode(Kind::SEXPR, d_cl, res),
+                               {},
+                               {},
+                               *cdp);
+        }
+        case Kind::ABS:
+        {
+          Node absArg = args[0][0];
+          Node ruleStr = nm->mkRawSymbol(absArg.getType().isInteger()
+                                             ? "\"abs-elim-int\""
+                                             : "\"abs-elim-real\"",
+                                         nm->sExprType());
+          return addAletheStep(AletheRule::RARE_REWRITE,
+                               res,
+                               nm->mkNode(Kind::SEXPR, d_cl, res),
+                               {},
+                               {ruleStr, absArg},
+                               *cdp);
+        }
+        default:
+        {
+          Unreachable();
+        }
+      }
+    }
+
     default:
     {
       Trace("alethe-proof")
