@@ -1713,37 +1713,37 @@ void Smt2TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
       Node v = m.getValue(t);
       if (tt.isBoolean())
       {
+        std::string body;
+        std::map<Node, std::string> emptyBvarNames;
+        const bool hasFormulaValue =
+            !v.isNull() && v != t && v.getKind() != Kind::CONST_BOOLEAN
+            && modelNodeToTptp(v,
+                               isDeclared,
+                               elemNames,
+                               promoteNames,
+                               useThf,
+                               emptyBvarNames,
+                               body);
+        if (hasFormulaValue)
+        {
+          std::string conj = "( " + tn + " <=> " + body + " )";
+          if (body.find('\n') != std::string::npos)
+          {
+            conj = "( " + tn + " <=>\n"
+                   + indentLines(body, "      ") + " )";
+          }
+          atomConjs.push_back(conj);
+          continue;
+        }
         bool b = false;
         const bool resolved =
             resolveBoolValue(m, isDeclared, finiteTypeElems, t, b)
             || resolveBoolValue(m, isDeclared, finiteTypeElems, v, b);
         if (!resolved)
         {
-          std::string body;
-          std::map<Node, std::string> emptyBvarNames;
-          if (!v.isNull() && v != t
-              && modelNodeToTptp(v,
-                                 isDeclared,
-                                 elemNames,
-                                 promoteNames,
-                                 useThf,
-                                 emptyBvarNames,
-                                 body))
-          {
-            std::string conj = "( " + tn + " <=> " + body + " )";
-            if (body.find('\n') != std::string::npos)
-            {
-              conj = "( " + tn + " <=>\n"
-                     + indentLines(body, "      ") + " )";
-            }
-            atomConjs.push_back(conj);
-          }
-          else
-          {
-            // Fallback for unresolved propositional constants: keep the symbol
-            // in the interpretation while preserving satisfiability.
-            atomConjs.push_back("( " + tn + " | ~ " + tn + " )");
-          }
+          // Fallback for unresolved propositional constants: keep the symbol
+          // in the interpretation while preserving satisfiability.
+          atomConjs.push_back("( " + tn + " | ~ " + tn + " )");
           continue;
         }
         atomConjs.push_back((b ? "" : "~ ") + tn);
