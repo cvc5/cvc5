@@ -60,6 +60,7 @@ AletheProofPostprocessCallback::AletheProofPostprocessCallback(
 {
   NodeManager* nm = nodeManager();
   d_cl = NodeManager::mkBoundVar("cl", nm->sExprType());
+  d_rareList = nm->mkRawSymbol("rare-list", nm->sExprType());
   d_true = nm->mkConst(true);
   d_false = nm->mkConst(false);
 }
