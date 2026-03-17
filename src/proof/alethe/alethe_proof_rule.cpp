@@ -156,6 +156,7 @@ const char* aletheRuleToString(AletheRule id)
     case AletheRule::BV_REPEAT_ELIM: return "bv_repeat_elim";
     //================================================= Hole
     case AletheRule::HOLE: return "hole";
+    case AletheRule::AND_INTRO: return "and_intro";
     //================================================= Undefined rule
     case AletheRule::UNDEFINED: return "undefined";
     default: return "?";

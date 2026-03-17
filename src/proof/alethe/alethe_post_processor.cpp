@@ -1051,43 +1051,14 @@ bool AletheProofPostprocessCallback::update(Node res,
                            *cdp);
     }
     // ======== And introduction
-    //
-    //
-    // ----- and_neg
-    //  VP1            P1 ... Pn
-    // -------------------------- resolution
-    //   (cl (and F1 ... Fn))*
-    //
-    // VP1:(cl (and F1 ... Fn) (not F1) ... (not Fn))
-    //
-    // * the corresponding proof node is (and F1 ... Fn)
     case ProofRule::AND_INTRO:
     {
-      std::vector<Node> neg_Nodes = {d_cl, res};
-      for (size_t i = 0, size = children.size(); i < size; i++)
-      {
-        neg_Nodes.push_back(children[i].notNode());
-      }
-      Node vp1 = nm->mkNode(Kind::SEXPR, neg_Nodes);
-
-      std::vector<Node> new_children = {vp1};
-      new_children.insert(new_children.end(), children.begin(), children.end());
-      std::vector<Node> newArgs;
-      if (d_resPivots)
-      {
-        for (const Node& child : children)
-        {
-          newArgs.push_back(child);
-          newArgs.push_back(d_false);
-        }
-      }
-      return addAletheStep(AletheRule::AND_NEG, vp1, vp1, {}, {}, *cdp)
-             && addAletheStep(AletheRule::RESOLUTION,
-                              res,
-                              nm->mkNode(Kind::SEXPR, d_cl, res),
-                              new_children,
-                              newArgs,
-                              *cdp);
+      return addAletheStep(AletheRule::AND_INTRO,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           children,
+                           args,
+                           *cdp);
     }
     // ======== Not Or elimination
     // This rule is translated according to the singleton pattern.
