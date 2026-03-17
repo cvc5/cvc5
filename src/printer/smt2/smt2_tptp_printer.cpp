@@ -1719,9 +1719,31 @@ void Smt2TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
             || resolveBoolValue(m, isDeclared, finiteTypeElems, v, b);
         if (!resolved)
         {
-          // Fallback for unresolved propositional constants: keep the symbol in
-          // the interpretation while preserving satisfiability.
-          atomConjs.push_back("( " + tn + " | ~ " + tn + " )");
+          std::string body;
+          std::map<Node, std::string> emptyBvarNames;
+          if (!v.isNull() && v != t
+              && modelNodeToTptp(v,
+                                 isDeclared,
+                                 elemNames,
+                                 promoteNames,
+                                 useThf,
+                                 emptyBvarNames,
+                                 body))
+          {
+            std::string conj = "( " + tn + " <=> " + body + " )";
+            if (body.find('\n') != std::string::npos)
+            {
+              conj = "( " + tn + " <=>\n"
+                     + indentLines(body, "      ") + " )";
+            }
+            atomConjs.push_back(conj);
+          }
+          else
+          {
+            // Fallback for unresolved propositional constants: keep the symbol
+            // in the interpretation while preserving satisfiability.
+            atomConjs.push_back("( " + tn + " | ~ " + tn + " )");
+          }
           continue;
         }
         atomConjs.push_back((b ? "" : "~ ") + tn);

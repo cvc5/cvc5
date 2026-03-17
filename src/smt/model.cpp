@@ -104,7 +104,7 @@ bool Model::getBooleanValue(TNode n, bool& value) const
     {
       nxt = d_evaluator(cur);
     }
-    if (nxt.isNull())
+    if (nxt.isNull() || nxt == cur)
     {
       std::map<Node, Node>::const_iterator it = d_declareTermValues.find(cur);
       if (it != d_declareTermValues.end())
