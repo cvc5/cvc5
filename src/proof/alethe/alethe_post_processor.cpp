@@ -151,39 +151,34 @@ bool AletheProofPostprocessCallback::updateTheoryRewriteProofRewriteRule(
                            *cdp);
     }
     // ======== QUANT_MERGE_PRENEX
-    // The Alethe rule qnt_join expresses quite well what QUANT_MERGE_PRENEX
-    // does but can only merge two quantifiers at a time and expects duplicates
-    // to be deleted.
     //
-    // First:
+    // The Alethe rule qnt_join differs from QUANT_MERGE_PRENEX in that it only
+    // merges two quantifiers at a time and it expects duplicates to be
+    // deleted. The translation then makes the translation stepwise and
+    // explicitly builds the intermediate equalities by joining the nested
+    // quantifiers and removing duplicates.
     //
-    // ---------- QNT_JOIN
-    //   VP_b_1
+    // Starting with the quantifier (Q X_1. Q X_2. ... Q X_n. F) in the lhs of
+    // the conclusion, we create steps
     //
-    // VP_b_1: (cl (= (Q X_1. Q X_2. ... Q X_n. F) (Q Y_1. Q X_3. ... Q X_n.
-    // F))) where Y_1 = X_1 u X_2
+    // ------------------------------------------------------------- qnt_join
+    // (= (Q X_i Q X_i+1. ... Q X_n. F) (Q Y_i. Q X_i+2. ... Q X_n. F))
     //
-    // Then, for i=1 to i=n-1 repeat:
+    // where Y_i = X_i U X_i+1, each equality being accumulated. The conclusion
+    // of the last qnt_join added being (= (Q X_n-1 Q X_n. F) (Q Y_n-1 F)) where
+    // Y_n-1 has no duplicates.
     //
-    //                    ------------ QNT_JOIN
-    //   VP_b_i             VP_a_i+1
-    // ------------------------------- TRANS
-    //             VP_b_i+1
+    // A transitivity step from the accumulated equalities concludes the
+    // equality (= (Q X_1. Q X_2. ... Q X_n. F) (Q Y_n-1 F)), where may differ
+    // from the rhs of the original conclusion because it had duplicates
+    // removed. In this case we add the steps so that we can recover it:
     //
-    // VP_b_i+1:
-    // (cl (= (Q X_1. Q X_2. ... Q X_n. F) (Q Y_i. Q X_i+2. ... Q X_n.F))),
-    // for i>0
-    //
-    // VP_a_i:
-    // (cl (= (Q Y_i. Q X_i+2. ... Q X_n. F) (Q Y_i+1. Q X_i+3. ... Q X_n. F))),
-    // for i>0 where Y_i = Y_i-1 u X_i, Y_0 = X_1
-    //
-    // Finally, if there are duplicates we remove them otherwise, VP_b_n is
-    // already equal to res.
-    //
-    //   VP_b_n
-    // ---------- QNT_REMOVE_UNUSED
-    //   res
+    //                  ------------------------------------------ qnt_rm_unused
+    //                  (= (Q X_i X_i+1. ... X_n. F) (Q Y_n-1 F))
+    // ----- trans      ------------------------------------------ symm
+    //  ...             (= (Q Y_n-1 F) (Q X_i X_i+1. ... X_n. F))
+    // ----------------------------------------------------------- trans
+    // (= (Q X_1. Q X_2. ... Q X_n. F) (Q X_i X_i+1. ... X_n. F))
     case ProofRewriteRule::MACRO_QUANT_MERGE_PRENEX:
     case ProofRewriteRule::QUANT_MERGE_PRENEX:
     {
