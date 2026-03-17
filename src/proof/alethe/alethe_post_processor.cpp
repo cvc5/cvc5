@@ -208,26 +208,26 @@ bool AletheProofPostprocessCallback::updateTheoryRewriteProofRewriteRule(
     case ProofRewriteRule::QUANT_VAR_ELIM_EQ:
     {
       // The conclusion of this rule has the following form:
-      //   (forall ((x T)) (or (not (= x t)) F1 ... Fn)) = (or F1 ... Fn){x->t}
+      //  (= (forall ((x T)) (or (not (= x t)) F1 ... Fn)) (or F1 ... Fn){x->t})
       // where in particular n can be 0, so "(or (not (= x t)) F1 ... Fn)" is
       // just "(not (= x t))" in the LHS and "(or F1 ... Fn)" is "false".
       //
       // The translation is:
       //
       // P0:
-      //    ------------------------------------------------------------- refl
-      //    (or (not (= x t)) F1 ... Fn) = (or (not (= t t)) (F1 ... Fn){x->t})
+      //   -------------------------------------------------------------- refl
+      //   (= (or (not (= x t)) F1 ... Fn) (or (not (= t t)) (F1 ... Fn){x->t}))
       //
       // P1:
-      //    ---------------------------------------------------------- rare_rw R
-      //    (or (not (= t t)) (F1 ... Fn){x->t}) = (or (F1 ... Fn){x->t})
+      //   ----------------------------------------------------------- rare_rw R
+      //   (= (or (not (= t t)) (F1 ... Fn){x->t}) (or (F1 ... Fn){x->t}))
       //
       //
       //    P0                          P1
       // ------------------------------------------------------- trans
-      //   (or (not (= x t)) F1 ... Fn) = (or (F1 ... Fn){x->t})
+      //  (= (or (not (= x t)) F1 ... Fn) (or (F1 ... Fn){x->t}))
       // ----------------------------------------- anchor_onepoint, (:= (x T) t)
-      // (forall ((x T)) (or (not (= x t)) F1 ... Fn) = (or (F1 ... Fn){x->t})
+      // (= (forall (x T) (or (not (= x t)) F1 ... Fn)) (or (F1 ... Fn){x->t}))
       //
       // where when the used RARE rule is `or-not-refl` when n > 0 and otherwise
       // `bool-not-false`:
