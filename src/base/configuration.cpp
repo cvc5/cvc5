@@ -195,8 +195,11 @@ std::string Configuration::about() {
   if (Configuration::isGitBuild()) {
     ss << " [" << Configuration::getGitInfo() << "]";
   }
-  ss << "\ncompiled with " << Configuration::getCompiler()
-     << "\non " << Configuration::getCompiledDateTime() << "\n\n";
+  ss << std::endl;
+  ss << "compiled as a " << Configuration::getBuildType() << " build "
+     << "with " << Configuration::getCompiler() << " on "
+     << Configuration::getCompiledDateTime();
+  ss << std::endl << std::endl;
   ss << Configuration::copyright ();
   return ss.str();
 }
@@ -269,6 +272,20 @@ std::string Configuration::getCompiler() {
 
 std::string Configuration::getCompiledDateTime() {
   return __DATE__ " " __TIME__;
+}
+
+std::string Configuration::getBuildType()
+{
+  stringstream ss;
+  if (Configuration::isStableBuild())
+    ss << "stable";
+  else if (Configuration::isSafeBuild())
+    ss << "safe";
+  else
+    ss << "unrestricted";
+  if (Configuration::isDebugBuild())
+    ss << " debug";
+  return ss.str();
 }
 
 }  // namespace cvc5::internal

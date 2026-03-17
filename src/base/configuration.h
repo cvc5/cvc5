@@ -123,6 +123,8 @@ public:
   static std::string getCompiler();
   static std::string getCompiledDateTime();
 
+  static std::string getBuildType();
+
 }; /* class Configuration */
 
 }  // namespace cvc5::internal
