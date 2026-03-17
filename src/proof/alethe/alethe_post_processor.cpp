@@ -111,7 +111,7 @@ bool AletheProofPostprocessCallback::updateTheoryRewriteProofRewriteRule(
     // Instead, we output a RARE_REWRITE step using the distinct_two_bool_elim
     // rule.
     //
-    // (define-rule distinct_bin_bool_elim ((t1 Bool) (t2 Bool))
+    // (define-rule distinct-binary-elim ((t1 Bool) (t2 Bool))
     // (distinct t1 t2)
     // (not (= t1 t2)))
     case ProofRewriteRule::DISTINCT_ELIM:
@@ -127,7 +127,7 @@ bool AletheProofPostprocessCallback::updateTheoryRewriteProofRewriteRule(
             res,
             nm->mkNode(Kind::SEXPR, d_cl, res),
             {},
-            {nm->mkRawSymbol("\"distinct_bin_bool_elim\"", nm->sExprType()),
+            {nm->mkRawSymbol("\"distinct-binary-elim\"", nm->sExprType()),
              t1,
              eq[1]},
             *cdp);
@@ -137,6 +137,84 @@ bool AletheProofPostprocessCallback::updateTheoryRewriteProofRewriteRule(
                            nm->mkNode(Kind::SEXPR, d_cl, res),
                            children,
                            new_args,
+                           *cdp);
+    }
+    case ProofRewriteRule::DISTINCT_TRUE:
+    {
+      return addAletheStep(AletheRule::EVALUATE,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           {},
+                           {},
+                           *cdp);
+    }
+    // ======== DISTINCT_FALSE
+    //
+    // Translated via the RARE rewrite
+    //
+    // (define-rule distinct-false ((t ?) (xs ? :list) (ys ? :list)
+    //                              (zs ? :list))
+    //  (distinct xs t ys t zs) false)
+    //
+    // The translation traverses the arguments in (distinct t1 ... tn) and
+    // collects:
+    // - the first repeated term, which becomes the argument "t"
+    // - the list of arguments until the first repeated occurrence of t is split
+    //   into "xs" and "ys". The splitting point is the first occurrence of "t".
+    // - the remaining arguments, after the first repeated occurrence of t, is
+    //   collected for "zs".
+    case ProofRewriteRule::DISTINCT_FALSE:
+    {
+      // find repeated term. Generate lists
+      std::unordered_set<Node> visited;
+      Assert(res[0].getKind() == Kind::DISTINCT);
+      Node repeated;
+      std::vector<Node> worklist;
+      std::vector<Node> argLists[3];
+      // we collect elements into worklist until we find a repetition. Then we
+      // split what is in there into argLists[0] and argLists[1] by finding the
+      // repeated element in worklist and creating a prefix and suffix according
+      // to the iterator
+      for (const Node& n : res[0])
+      {
+        // we only consider two repetitions
+        if (visited.count(n) && repeated.isNull())
+        {
+          repeated = n;
+          // split worklist into argLists[0] and argLists[1]
+          auto it = std::find(worklist.begin(), worklist.end(), repeated);
+          Assert(it != worklist.end());
+          argLists[0].insert(argLists[0].end(), worklist.begin(), it);
+          argLists[1].insert(argLists[1].end(), it + 1, worklist.end());
+          // clear for this to later become argLists[2]
+          worklist.clear();
+          continue;
+        }
+        visited.insert(n);
+        worklist.push_back(n);
+      }
+      Assert(!repeated.isNull());
+      argLists[2].insert(argLists[2].end(), worklist.begin(), worklist.end());
+      std::vector<Node> ruleArgs{
+          nm->mkRawSymbol("\"distinct-false\"", nm->sExprType()), repeated};
+      // build lists, in order
+      for (size_t i = 0; i < 3; ++i)
+      {
+        if (argLists[i].empty())
+        {
+          ruleArgs.push_back(d_rareList);
+          continue;
+        }
+        std::vector<Node> listElems{d_rareList};
+        listElems.insert(
+            listElems.end(), argLists[i].begin(), argLists[i].end());
+        ruleArgs.push_back(nm->mkNode(Kind::SEXPR, listElems));
+      }
+      return addAletheStep(AletheRule::RARE_REWRITE,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           {},
+                           ruleArgs,
                            *cdp);
     }
     // ======== EXISTS_ELIM
