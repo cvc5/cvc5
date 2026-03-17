@@ -789,12 +789,13 @@ string(REPLACE ";" " " CVC5_DEFINITIONS "${CVC5_DEFINITIONS}")
 message("")
 print_info("cvc5 ${CVC5_VERSION}")
 message("")
+print_config("Build profile             " "${CVC5_BUILD_PROFILE_STRING}")
 if (ENABLE_SAFE_MODE)
-  print_config("Build profile             " "${CVC5_BUILD_PROFILE_STRING} (safe mode)")
+  print_config("Feature profile           " "safe")
 elseif (ENABLE_STABLE_MODE)
-  print_config("Build profile             " "${CVC5_BUILD_PROFILE_STRING} (stable mode)")
+  print_config("Feature profile           " "stable")
 else()
-  print_config("Build profile             " "${CVC5_BUILD_PROFILE_STRING}")
+  print_config("Feature profile           " "unrestricted")
 endif()
 message("")
 print_config("Assertions                " ${ENABLE_ASSERTIONS})
@@ -878,6 +879,17 @@ else()
   "libraries which can improve cvc5's performance on arithmetic and bit-vector"
   "\n"
   "logics, use the 'configure.sh' script to re-configure with '--best --gpl'."
+  )
+endif()
+
+if(NOT ENABLE_SAFE_MODE AND NOT ENABLE_STABLE_MODE)
+  message(
+  "\n"
+  "Note that this configuration is built with an unrestricted feature profile. "
+  "\n"
+  "For industry applications you might want to consider building in safe or stable"
+  "\n"
+  "mode instead by re-configuring with 'safe-mode' or 'stable-mode', respectively."
   )
 endif()
 
