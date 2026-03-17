@@ -227,6 +227,15 @@ bool AletheProofPostprocessCallback::updateTheoryRewriteProofRewriteRule(
                            {},
                            *cdp);
     }
+    case ProofRewriteRule::BETA_REDUCE:
+    {
+      return addAletheStep(AletheRule::BETA_EQUIVALENCE,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           children,
+                           {},
+                           *cdp);
+    }
     default: break;
   }
   return false;
