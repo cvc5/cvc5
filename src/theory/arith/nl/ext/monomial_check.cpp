@@ -352,17 +352,33 @@ int MonomialCheck::compareSign(
   {
     if (mvaoa.getConst<Rational>().sgn() != 0)
     {
-      Node prem = av.eqNode(zero);
       Node conc = oa.eqNode(mkZero(oa.getType()));
-      Node lemma = prem.impNode(conc);
-      CDProof* proof = nullptr;
-      if (d_data->isProofEnabled())
+      // Generate sign lemmas for ALL zero-valued variables in this monomial,
+      // not just the first one encountered. This ensures that the set of
+      // deductions is independent of variable ordering (which depends on
+      // Node IDs and thus on declaration order), improving solver stability
+      // across semantically equivalent but syntactically scrambled inputs.
+      for (unsigned j = a_index; j < vla.size(); j++)
       {
-        proof = d_data->getProof();
-        proof->addStep(conc, ProofRule::MACRO_SR_PRED_INTRO, {prem}, {conc});
-        proof->addStep(lemma, ProofRule::SCOPE, {conc}, {prem});
+        Node avj = vla[j];
+        Node mvaavj = d_data->d_model.computeAbstractModelValue(avj);
+        if (mvaavj.getConst<Rational>().sgn() == 0)
+        {
+          Node zeroj = mkZero(avj.getType());
+          Node prem = avj.eqNode(zeroj);
+          Node lemma = prem.impNode(conc);
+          CDProof* proof = nullptr;
+          if (d_data->isProofEnabled())
+          {
+            proof = d_data->getProof();
+            proof->addStep(
+                conc, ProofRule::MACRO_SR_PRED_INTRO, {prem}, {conc});
+            proof->addStep(lemma, ProofRule::SCOPE, {conc}, {prem});
+          }
+          d_data->d_im.addPendingLemma(
+              lemma, InferenceId::ARITH_NL_SIGN, proof);
+        }
       }
-      d_data->d_im.addPendingLemma(lemma, InferenceId::ARITH_NL_SIGN, proof);
     }
     return 0;
   }
