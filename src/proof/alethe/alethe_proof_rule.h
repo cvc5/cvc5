@@ -367,39 +367,22 @@ enum class AletheRule : uint32_t
   ITE_INTRO,
   // ======== intro rules for arithmetic operators
   // The rules below behave similarly to ite_intro, in that they introduce
-  // formulas defining the semantics of the respective operators. But they are
-  // more fine grained since they introduce these for a single application of
-  // the operator.
-  // ======== mod_intro
-  // > i. (and (= (mod a b) (- a (* b (div a b))))
-  //           (and (<= (* b (div a b)) a)
-  //                (< a (* b (+ (div a b) c)))
-  // where b is a constant and c is 1 if b > 0, -1 otherwise.
-  MOD_INTRO,
+  // formulas defining the semantics of the respective operators.
   // ======== div_intro
-  // > i. (and (= (div a b) (div a b))
-  //           (and (<= (* b (div a b)) a)
-  //                (< a (* b (+ (div a b) c)))))
+  // > i. (and (<= (* b (div a b)) a) (< a (* b (+ (div a b) c))))
   // where b is a constant and c is 1 if b > 0, -1 otherwise.
   DIV_INTRO,
   // ======== log2_intro
-  // > i. (and (= (int.log2 x) (int.log2 x))
-  //        (and
-  //          (=> (< 0 x)
-  //              (and (<= (int.pow2 (int.log2 x)) x)
-  //                   (< x (int.pow2 (+ (int.log2 x) 1)))))
-  //           (=> (not (< 0 x)) (= (int.log2 x) 0))))
+  // > i. (and
+  //        (=> (< 0 x)
+  //            (and (<= (int.pow2 (int.log2 x)) x)
+  //                 (< x (int.pow2 (+ (int.log2 x) 1)))))
+  //         (=> (not (< 0 x)) (= (int.log2 x) 0)))
   LOG2_INTRO,
   // ======== to_int_intro
-  // > i. (and (= (to_int x) (to_int x))
-  //           (and (<= 0 (- x (to_real (to_int x))))
-  //                (< (- x (to_real (to_int x))) 1))
+  // > i. (and (<= 0 (- x (to_real (to_int x))))
+  //           (< (- x (to_real (to_int x))) 1))
   TO_INT_INTRO,
-  // ======== is_int_intro
-  // > i. (and (= (is_int x) (= x (to_real (to_int x))))
-  //           (and (<= 0 (- x (to_real (to_int x))))
-  //                (< (- x (to_real (to_int x))) 1))
-  IS_INT_INTRO,
   // ======== contraction
   // > i. (cl F1 ... Fn)
   // ...
