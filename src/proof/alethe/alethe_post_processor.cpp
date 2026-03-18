@@ -2555,9 +2555,9 @@ bool AletheProofPostprocessCallback::update(Node res,
     // terms of other operators
     //
     // The general shape of the ARITH_REDUCTION rule is to conclude a
-    // conjunction of an equality between (<op> t1 ... tn) and another
-    // (not-necessarity different) term, and a conjunction of axiom
-    // instantaitions that define the meaning of <op>.
+    // conjunction of an equality between (<op> t1 ... tn) and another (not
+    // necessarily different) term, and a conjunction of axiom instantaitions
+    // that define the meaning of <op>.
     //
     // We translate such rules into
     //
