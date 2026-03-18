@@ -2604,6 +2604,14 @@ bool AletheProofPostprocessCallback::update(Node res,
                                {},
                                *cdp);
         }
+        // Since no axiom instantion is introduced when eliminating `abs`, we
+        // directly use RARE rewrites:
+        //
+        // (define-rule abs-elim-int ((t Int))
+        //    (abs t) (ite (< t 0) (- t) t))
+        //
+        // (define-rule abs-elim-real ((t Real))
+        //    (abs t) (ite (< t 0/1) (- t) t))
         case Kind::ABS:
         {
           Node absArg = args[0][0];
@@ -2620,11 +2628,17 @@ bool AletheProofPostprocessCallback::update(Node res,
         }
         default:
         {
-          Unreachable();
+          return addAletheStep(
+              AletheRule::HOLE,
+              res,
+              nm->mkNode(Kind::SEXPR, d_cl, res),
+              {},
+              {nm->mkRawSymbol("\"unsupported operator in ARITH_REDUCTION\"",
+                               nm->sExprType())},
+              *cdp);
         }
       }
     }
-
     default:
     {
       Trace("alethe-proof")
