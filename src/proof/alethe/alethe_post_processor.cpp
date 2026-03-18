@@ -2556,7 +2556,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     //
     // The general shape of the ARITH_REDUCTION rule is to conclude a
     // conjunction of an equality between (<op> t1 ... tn) and another (not
-    // necessarily different) term, and a conjunction of axiom instantaitions
+    // necessarily different) term, and a conjunction of axiom instantiations
     // that define the meaning of <op>.
     //
     // We translate such rules into
@@ -2582,7 +2582,7 @@ bool AletheProofPostprocessCallback::update(Node res,
         case Kind::INTS_DIVISION:
         case Kind::INTS_DIVISION_TOTAL:
         {
-          // div is equated itself
+          // div is equated to itself
           addAletheStep(AletheRule::REFL,
                         opEq,
                         nm->mkNode(Kind::SEXPR, d_cl, opEq),
@@ -2622,7 +2622,7 @@ bool AletheProofPostprocessCallback::update(Node res,
         }
         case Kind::TO_INTEGER:
         {
-          // to_int is equated itself
+          // to_int is equated to itself
           addAletheStep(AletheRule::REFL,
                         opEq,
                         nm->mkNode(Kind::SEXPR, d_cl, opEq),
@@ -2660,7 +2660,7 @@ bool AletheProofPostprocessCallback::update(Node res,
         }
         case Kind::INTS_LOG2:
         {
-          // int.log2 is equated itself
+          // int.log2 is equated to itself
           addAletheStep(AletheRule::REFL,
                         opEq,
                         nm->mkNode(Kind::SEXPR, d_cl, opEq),
@@ -2675,7 +2675,7 @@ bool AletheProofPostprocessCallback::update(Node res,
                         *cdp);
           break;
         }
-        // Since no axiom instantion is introduced when eliminating `abs`, we
+        // Since no axiom instantiation is introduced when eliminating `abs`, we
         // directly use RARE rewrites:
         //
         // (define-rule abs-elim-int ((t Int))
