@@ -141,8 +141,8 @@ bool isExtendedNonLinearKind(Kind k)
   switch (k)
   {
     case Kind::IAND:
-    case Kind::POW2:
-    case Kind::POW: return true;
+    case Kind::PIAND:
+    case Kind::POW2: return true;
     default: break;
   }
   return false;
