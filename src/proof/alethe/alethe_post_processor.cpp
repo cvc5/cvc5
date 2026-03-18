@@ -232,8 +232,8 @@ bool AletheProofPostprocessCallback::updateTheoryRewriteProofRewriteRule(
       // where when the used RARE rule is `or-not-refl` when n > 0 and otherwise
       // `bool-not-false`:
       //
-      // (define-rule or-not-refl ((t ?) (x Bool) (xs Bool :list)
-      //    (or (not (= t t)) xs) (or xs)))
+      // (define-rule or-not-refl ((t ?) (xs Bool :list))
+      //    (or (not (= t t)) xs) (or xs))
       //
       // (define-rule bool-not-false ((t Bool)) (not (= t t)) false)
       bool isRhsOr = res[0][1].getKind() == Kind::OR;
