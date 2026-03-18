@@ -698,9 +698,21 @@ Node IntBlaster::translateWithChildren(
       }
       break;
     }
+    case Kind::INST_PATTERN:
+    case Kind::INST_PATTERN_LIST:
+    {
+      returnNode = d_nm->mkNode(oldKind, translated_children);
+      Trace("int-blaster-debug") << "pattern or list: " << oldKind << std::endl;
+      Trace("int-blaster-debug")
+          << "original pattern/list node: " << original << std::endl;
+      Trace("int-blaster-debug")
+          << "result pattern/list node: " << returnNode << std::endl;
+      break;
+    }
     case Kind::FORALL:
     {
-      returnNode = translateQuantifiedFormula(original, lemmas);
+      returnNode =
+          translateQuantifiedFormula(original, translated_children, lemmas);
       break;
     }
     default:
@@ -1052,12 +1064,15 @@ Node IntBlaster::createShiftNode(std::vector<Node> children,
   return ite;
 }
 
-Node IntBlaster::translateQuantifiedFormula(Node quantifiedNode,
-                                            std::vector<TrustNode>& lemmas)
+Node IntBlaster::translateQuantifiedFormula(
+    Node quantifiedNode,
+    const std::vector<Node>& translated_children,
+    std::vector<TrustNode>& lemmas)
 {
-  Kind k = quantifiedNode.getKind();
   Node boundVarList = quantifiedNode[0];
   Assert(boundVarList.getKind() == Kind::BOUND_VAR_LIST);
+  Assert(translated_children.size() == quantifiedNode.getNumChildren());
+
   // Since bit-vector variables are being translated to
   // integer variables, we need to substitute the new ones
   // for the old ones.
@@ -1076,6 +1091,7 @@ Node IntBlaster::translateQuantifiedFormula(Node quantifiedNode,
       // bit-vector variables are replaced by integer ones.
       // the new variables induce range constraints based on the
       // original bit-width.
+      Assert(d_intblastCache.find(bv) != d_intblastCache.end());
       Node newBoundVar = d_intblastCache[bv];
       newBoundVars.push_back(newBoundVar);
       rangeConstraints.push_back(
@@ -1088,10 +1104,10 @@ Node IntBlaster::translateQuantifiedFormula(Node quantifiedNode,
     }
   }
 
-  // collect range constraints for UF applciations
+  // collect range constraints for UF applications
   // that involve quantified variables
   std::unordered_set<Node> applys;
-  expr::getKindSubterms(quantifiedNode[1], Kind::APPLY_UF, true, applys);
+  expr::getKindSubterms(quantifiedNode[1], Kind::APPLY_UF, false, applys);
   for (const Node& apply : applys)
   {
     Node f = apply.getOperator();
@@ -1108,7 +1124,7 @@ Node IntBlaster::translateQuantifiedFormula(Node quantifiedNode,
   }
 
   // the body of the quantifier
-  Node matrix = d_intblastCache[quantifiedNode[1]];
+  Node matrix = translated_children[1];
   // make the substitution
   matrix = matrix.substitute(oldBoundVars.begin(),
                              oldBoundVars.end(),
@@ -1116,14 +1132,22 @@ Node IntBlaster::translateQuantifiedFormula(Node quantifiedNode,
                              newBoundVars.end());
   // A node to represent all the range constraints.
   Node ranges = d_nm->mkAnd(rangeConstraints);
-  // Add the range constraints to the body of the quantifier.
-  // For "exists", this is added conjunctively
-  // For "forall", this is added to the left side of an implication.
-  matrix = d_nm->mkNode(
-      k == Kind::FORALL ? Kind::IMPLIES : Kind::AND, ranges, matrix);
+  // Add the range constraints to the left side of an implication.
+  Assert(quantifiedNode.getKind() == Kind::FORALL);
+  matrix = d_nm->mkNode(Kind::IMPLIES, ranges, matrix);
   // create the new quantified formula and return it.
   Node newBoundVarsList = d_nm->mkNode(Kind::BOUND_VAR_LIST, newBoundVars);
-  Node result = d_nm->mkNode(Kind::FORALL, newBoundVarsList, matrix);
+  Node result;
+  // if there was an instantiation pattern, include its translation.
+  if (quantifiedNode.getNumChildren() == 3)
+  {
+    result = d_nm->mkNode(
+        Kind::FORALL, newBoundVarsList, matrix, translated_children[2]);
+  }
+  else
+  {
+    result = d_nm->mkNode(Kind::FORALL, newBoundVarsList, matrix);
+  }
   return result;
 }
 

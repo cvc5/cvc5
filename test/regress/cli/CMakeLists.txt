@@ -2217,6 +2217,7 @@ set(regress_0_tests
   regress0/strings/regexp_inclusion.smt2
   regress0/strings/regexp-native-simple.cvc.smt2
   regress0/strings/regexp-repeat.smt2
+  regress0/strings/repl-all-non-const-range.smt2
   regress0/strings/repl-rewrites2.smt2
   regress0/strings/replace-all-rew-more.smt2
   regress0/strings/replace-const.smt2
@@ -2695,6 +2696,8 @@ set(regress_1_tests
   regress1/bv/bug_extract_mult_leading_bit.smt2
   regress1/bv/bv_to_int_10084.smt2
   regress1/bv/bv_to_int_10084_forall.smt2
+  regress1/bv/bv_to_int_quant_pattern.smt2
+  regress1/bv/bv_to_int_quant_pattern_list.smt2
   regress1/bv/bv_to_int_quant_uf_bv.smt2
   regress1/bv/bv_to_int_quant_uf_bv_dis.smt2
   regress1/bv/bv_to_int_quant_uf_nobv.smt2
@@ -3167,6 +3170,7 @@ set(regress_1_tests
   regress1/quantifiers/ho-seu-sygus-inst.smt2
   regress1/quantifiers/horn-simple.smt2
   regress1/quantifiers/inst-ground-term.smt2
+  regress1/quantifiers/mbqi-enum-dtype-ops.smt2
   regress1/quantifiers/inst-max-level-segf.smt2
   regress1/quantifiers/inst-prop-simp.smt2
   regress1/quantifiers/intersection-example-onelane.proof-node22337.smt2
@@ -4029,6 +4033,7 @@ set(regress_2_tests
   regress2/bv_to_int_mask_array_3.smt2
   regress2/bv_to_int_shifts.smt2
   regress2/bv_to_int_quantifiers_bvand.smt2
+  regress2/bv_to_int_quant_ufuf.smt2
   regress2/error1.smtv1.smt2
   regress2/fp/issue7056.smt2
   regress2/fuzz_2.smtv1.smt2
