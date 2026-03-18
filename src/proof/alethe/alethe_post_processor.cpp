@@ -2604,13 +2604,14 @@ bool AletheProofPostprocessCallback::update(Node res,
           //
           // (define-rule mod-elim ((a Int) (b Int))
           //  (mod a b) (- a (* b (div a b))))
-          addAletheStep(
-              AletheRule::RARE_REWRITE,
-              opEq,
-              nm->mkNode(Kind::SEXPR, d_cl, opEq),
-              {},
-              {nm->mkRawSymbol("\"mod-elim\"", nm->sExprType()), opEq[0][0], opEq[0][1]},
-              *cdp);
+          addAletheStep(AletheRule::RARE_REWRITE,
+                        opEq,
+                        nm->mkNode(Kind::SEXPR, d_cl, opEq),
+                        {},
+                        {nm->mkRawSymbol("\"mod-elim\"", nm->sExprType()),
+                         opEq[0][0],
+                         opEq[0][1]},
+                        *cdp);
           addAletheStep(AletheRule::DIV_INTRO,
                         opIntro,
                         nm->mkNode(Kind::SEXPR, d_cl, opIntro),
@@ -2719,12 +2720,12 @@ bool AletheProofPostprocessCallback::update(Node res,
               *cdp);
         }
       }
-      return addAletheStep(
-              AletheRule::AND_INTRO,
-              res,
-              nm->mkNode(Kind::SEXPR, d_cl, res),
-              {opEq, opIntro}, {},
-              *cdp);
+      return addAletheStep(AletheRule::AND_INTRO,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           {opEq, opIntro},
+                           {},
+                           *cdp);
     }
     default:
     {
