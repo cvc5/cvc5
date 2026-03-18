@@ -140,6 +140,7 @@ bool AletheProofPostprocessCallback::updateTheoryRewriteProofRewriteRule(
                            new_args,
                            *cdp);
     }
+    // ======== DISTINCT_TRUE
     case ProofRewriteRule::DISTINCT_TRUE:
     {
       return addAletheStep(AletheRule::EVALUATE,
