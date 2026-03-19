@@ -1035,7 +1035,7 @@ RewriteResponse TheorySetsRewriter::postRewriteFold(TNode n)
     }
     case Kind::SET_UNION:
     {
-      // (set.fold f t (set.union B C)) =
+      // (set.fold f t (set.union A B)) =
       // (set.fold f (set.fold f t A) (set.minus A B)))
       Node A = n[2][0];
       Node B = n[2][1];
