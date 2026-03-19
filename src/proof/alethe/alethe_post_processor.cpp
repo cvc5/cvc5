@@ -177,26 +177,25 @@ bool AletheProofPostprocessCallback::updateTheoryRewriteProofRewriteRule(
       // split what is in there into argLists[0] and argLists[1] by finding the
       // repeated element in worklist and creating a prefix and suffix according
       // to the iterator
-      for (const Node& n : res[0])
+      for (auto n = res[0].begin(); n != res[0].end(); ++n)
       {
         // we only consider two repetitions
-        if (visited.count(n) && repeated.isNull())
+        if (visited.count(*n))
         {
-          repeated = n;
+          repeated = *n;
           // split worklist into argLists[0] and argLists[1]
           auto it = std::find(worklist.begin(), worklist.end(), repeated);
           Assert(it != worklist.end());
           argLists[0].insert(argLists[0].end(), worklist.begin(), it);
           argLists[1].insert(argLists[1].end(), it + 1, worklist.end());
+          argLists[2].insert(argLists[2].end(), n + 1, res[0].end());
           // clear for this to later become argLists[2]
-          worklist.clear();
-          continue;
+          break;
         }
-        visited.insert(n);
-        worklist.push_back(n);
+        visited.insert(*n);
+        worklist.push_back(*n);
       }
       Assert(!repeated.isNull());
-      argLists[2].insert(argLists[2].end(), worklist.begin(), worklist.end());
       std::vector<Node> ruleArgs{
           nm->mkRawSymbol("\"distinct-false\"", nm->sExprType()), repeated};
       // build lists, in order
