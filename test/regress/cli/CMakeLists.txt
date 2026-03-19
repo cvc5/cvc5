@@ -1946,6 +1946,7 @@ set(regress_0_tests
   regress0/sets/abt-min.smt2
   regress0/sets/abt-te-exh.smt2
   regress0/sets/abt-te-exh2.smt2
+  regress0/sets/bug_setfold_union.smt2
   regress0/sets/card-2.smt2
   regress0/sets/card-3sets.cvc.smt2
   regress0/sets/card.smt2
