@@ -2619,6 +2619,7 @@ set(regress_1_tests
   regress1/bags/bag_member.smt2
   regress1/bags/bag_partition1.smt2
   regress1/bags/bags-of-bags-subtypes.smt2
+  regress1/bags/bug_bagsome_geq.smt2
   regress1/bags/card1.smt2
   regress1/bags/card2.smt2
   regress1/bags/choose1.smt2

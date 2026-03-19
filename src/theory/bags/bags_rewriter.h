@@ -229,7 +229,7 @@ class BagsRewriter : public TheoryRewriter
   /**
    *  rewrites for n include:
    *  - (bag.some p (as bag.empty (Bag T)) is rewritten as false
-   *  - (bag.some p (bag x n)) is rewritten as  (and (> 0) (p x))
+   *  - (bag.some p (bag x n)) is rewritten as (and (> n 0) (p x))
    *  - (bag.some p (bag.union A B)) is rewritten as
    *       (or (bag.some p A) (bag.some p B))
    *  - otherwise (bag.some p A) is rewritten as

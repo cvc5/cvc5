@@ -629,7 +629,7 @@ BagsRewriteResponse BagsRewriter::postRewriteSome(TNode n)
     {
       // (bag.some p (bag x n)) = (and (> n 0) (p x))
       Node px = nm->mkNode(Kind::APPLY_UF, n[0], n[1][0]);
-      Node leq = nm->mkNode(Kind::GEQ, n[1][1], d_zero);
+      Node leq = nm->mkNode(Kind::GT, n[1][1], d_zero);
       Node ret = px.andNode(leq);
       return BagsRewriteResponse(ret, Rewrite::SOME_BAG_MAKE);
     }
