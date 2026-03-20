@@ -235,7 +235,7 @@ bool AletheProofPostprocessCallback::updateTheoryRewriteProofRewriteRule(
       // (define-rule or-not-refl ((t ?) (xs Bool :list))
       //    (or (not (= t t)) xs) (or xs))
       //
-      // (define-rule bool-not-false ((t Bool)) (not (= t t)) false)
+      // (define-rule bool-not-eq-false ((t Bool)) (not (= t t)) false)
       bool isRhsOr = res[0][1].getKind() == Kind::OR;
       Assert(isRhsOr || res[1].getKind() == Kind::CONST_BOOLEAN);
       Node subEq = isRhsOr ? res[0][1][0][0] : res[0][0];
@@ -271,7 +271,7 @@ bool AletheProofPostprocessCallback::updateTheoryRewriteProofRewriteRule(
       {
         reflRhs = t.eqNode(t).notNode();
         rwArgs.push_back(
-            nm->mkRawSymbol("\"bool-not-false\"", nm->sExprType()));
+            nm->mkRawSymbol("\"bool-not-eq-false\"", nm->sExprType()));
         rwArgs.push_back(t);
       }
       Node reflConc = res[0][1].eqNode(reflRhs);
