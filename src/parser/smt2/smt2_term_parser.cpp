@@ -1043,10 +1043,7 @@ uint32_t Smt2TermParser::tokenStrToUnsigned()
   {
     d_lex.parseError("Negative numerals are forbidden in indices");
   }
-  uint32_t result;
-  std::stringstream ss;
-  ss << token;
-  ss >> result;
+  uint32_t result = d_state.parseStringToUnsigned(token);
   return result;
 }
 

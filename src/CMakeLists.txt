@@ -1525,7 +1525,8 @@ if(NOT SKIP_SET_RPATH AND BUILD_SHARED_LIBS AND APPLE)
 endif()
 
 if(BUILD_SHARED_LIBS)
-  set_target_properties(cvc5 PROPERTIES SOVERSION ${CVC5_SOVERSION})
+  set_target_properties(cvc5 PROPERTIES
+    VERSION ${CVC5_VERSION_NUMBER} SOVERSION ${CVC5_SOVERSION})
 endif()
 
 include(GenerateExportHeader)
