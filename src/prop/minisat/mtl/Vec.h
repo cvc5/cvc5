@@ -56,12 +56,9 @@ class vec {
 
 public:
     // Constructors:
- vec() : data(nullptr), sz(0), cap(0) {}
- explicit vec(int size) : data(nullptr), sz(0), cap(0) { growTo(size); }
- vec(int size, const T& pad) : data(nullptr), sz(0), cap(0)
- {
-   growTo(size, pad);
- }
+    vec()                       : data(nullptr) , sz(0)   , cap(0)    { }
+    explicit vec(int size)      : data(nullptr) , sz(0)   , cap(0)    { growTo(size); }
+    vec(int size, const T& pad) : data(nullptr) , sz(0)   , cap(0)    { growTo(size, pad); }
    ~vec()                                                          { clear(true); }
 
     // Pointer to first element:
@@ -131,11 +128,8 @@ void vec<T>::capacity(int min_cap) {
     int add = imax((min_cap - cap + 1) & ~1, ((cap >> 1) + 2) & ~1);   // NOTE: grow by approximately 3/2
     // Casting data to void* silences the -Wclass-memaccess warning. This is safe as long as T is relocatable,
     // which is true for the current instantiations of T.
-    if (add > INT_MAX - cap
-        || (((data = (T*)::realloc((void*)data, (cap += add) * sizeof(T)))
-             == nullptr)
-            && errno == ENOMEM))
-      throw OutOfMemoryException();
+    if (add > INT_MAX - cap || (((data = (T*)::realloc((void*)data, (cap += add) * sizeof(T))) == nullptr) && errno == ENOMEM))
+        throw OutOfMemoryException();
  }
 
 

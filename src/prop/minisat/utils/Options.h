@@ -350,13 +350,8 @@ class StringOption : public Option
 {
     const char* value;
  public:
-  StringOption(const char* c,
-               const char* n,
-               const char* d,
-               const char* def = nullptr)
-      : Option(n, d, c, "<string>"), value(def)
-  {
-  }
+    StringOption(const char* c, const char* n, const char* d, const char* def = nullptr) 
+        : Option(n, d, c, "<string>"), value(def) {}
 
     operator      const char*  (void) const     { return value; }
     operator      const char*& (void)           { return value; }

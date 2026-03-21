@@ -76,11 +76,10 @@ public:
     handle(HElement* p) : d_pointer(p){}
     friend class BinaryHeap;
   public:
-   handle() : d_pointer(nullptr) {}
-   const T& operator*() const
-   {
-     Assert(d_pointer != NULL);
-     return d_pointer->d_elem;
+    handle() : d_pointer(nullptr) {}
+    const T& operator*() const {
+      Assert(d_pointer != nullptr);
+      return d_pointer->d_elem;
     }
 
     bool operator==(const handle& h) const {
