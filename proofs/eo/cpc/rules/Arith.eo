@@ -502,7 +502,7 @@
 ;   The result of checking if r is a polynomial normalization relation for a
 ;   formula of the form (= (r x1 x2) (r y1 y2)), where it is already known that
 ;   (= (* cx (- x1 x2)) (* cy (- y1 y2))). If r is any of <, <=, >=, or >, the
-;   scaling factors must have the same sign. Returns false for any other relation.
+;   scaling factors must have the same sign. Returns false for any relation except the previously mentioned ones and =.
 (program $is_poly_norm_rel_consts_rel ((T Type) (U Type) (cx T) (cy U) (b Bool))
   :signature (Bool) Bool
   (
@@ -524,7 +524,7 @@
 ;   The result of checking if r is a polynomial normalization relation for a
 ;   formula of the form (= (r x1 x2) (r y1 y2)), where it is already known that
 ;   (= (* cx (- x1 x2)) (* cy (- y1 y2))). If r is any of <, <=, >=, or >, the
-;   scaling factors must have the same sign and cx and cy must be non-zero.
+;   scaling factors must have the same sign.  cx and cy must be non-zero for any relation previously mentioned and =.
 ;   Returns false for any other relation.
 (program $is_poly_norm_rel_consts ((T Type) (U Type) (r (-> T U Bool)) (cx T) (cy U))
   :signature (Bool) Bool
