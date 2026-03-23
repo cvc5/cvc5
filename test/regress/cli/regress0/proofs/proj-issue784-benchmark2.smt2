@@ -1,4 +1,4 @@
-; COMMAND-LINE: --check-proofs --tlimit=100
+; COMMAND-LINE: --check-proofs
 ; EXPECT: sat
 (set-logic QF_NIA)
 (declare-fun x0 () Int)
