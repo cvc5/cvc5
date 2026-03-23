@@ -23,6 +23,7 @@
 #include "expr/sequence.h"
 #include "expr/subs.h"
 #include "options/main_options.h"
+#include "options/base_options.h"
 #include "options/strings_options.h"
 #include "printer/printer.h"
 #include "printer/smt2/smt2_printer.h"
@@ -144,21 +145,11 @@ bool AlfPrinter::isHandled(const Options& opts, const ProofNode* pfn)
     case ProofRule::ARITH_MULT_SIGN:
     case ProofRule::ARITH_MULT_ABS_COMPARISON:
     case ProofRule::ARITH_TRICHOTOMY:
-    case ProofRule::ARITH_TRANS_EXP_NEG:
-    case ProofRule::ARITH_TRANS_EXP_POSITIVITY:
-    case ProofRule::ARITH_TRANS_EXP_SUPER_LIN:
-    case ProofRule::ARITH_TRANS_EXP_ZERO:
-    case ProofRule::ARITH_TRANS_SINE_BOUNDS:
-    case ProofRule::ARITH_TRANS_SINE_SYMMETRY:
-    case ProofRule::ARITH_TRANS_SINE_TANGENT_ZERO:
-    case ProofRule::ARITH_TRANS_SINE_TANGENT_PI:
     case ProofRule::INT_TIGHT_LB:
     case ProofRule::INT_TIGHT_UB:
     case ProofRule::SKOLEM_INTRO:
     case ProofRule::SETS_SINGLETON_INJ:
     case ProofRule::SETS_EXT:
-    case ProofRule::SETS_FILTER_UP:
-    case ProofRule::SETS_FILTER_DOWN:
     case ProofRule::CONCAT_EQ:
     case ProofRule::CONCAT_UNIFY:
     case ProofRule::CONCAT_CSPLIT:
@@ -202,7 +193,7 @@ bool AlfPrinter::isHandled(const Options& opts, const ProofNode* pfn)
     {
       ProofRewriteRule id;
       rewriter::getRewriteRule(pfn->getArguments()[0], id);
-      return isHandledTheoryRewrite(id, pfn->getArguments()[1]);
+      return isHandledTheoryRewrite(opts, id, pfn->getArguments()[1]);
     }
     break;
     case ProofRule::ARITH_REDUCTION:
@@ -281,13 +272,31 @@ bool AlfPrinter::isHandled(const Options& opts, const ProofNode* pfn)
       }
     }
     break;
+    case ProofRule::ARITH_TRANS_EXP_NEG:
+    case ProofRule::ARITH_TRANS_EXP_POSITIVITY:
+    case ProofRule::ARITH_TRANS_EXP_SUPER_LIN:
+    case ProofRule::ARITH_TRANS_EXP_ZERO:
+    case ProofRule::ARITH_TRANS_SINE_BOUNDS:
+    case ProofRule::ARITH_TRANS_SINE_SYMMETRY:
+    case ProofRule::ARITH_TRANS_SINE_TANGENT_ZERO:
+    case ProofRule::ARITH_TRANS_SINE_TANGENT_PI:
+    case ProofRule::SETS_FILTER_UP:
+    case ProofRule::SETS_FILTER_DOWN:
+    {
+      // only supported in unrestricted builds
+      if (opts.base.safeMode == options::SafeMode::UNRESTRICTED)
+      {
+        return true;
+      }
+    }
+    break;
     // otherwise not handled
     default: break;
   }
   return false;
 }
 
-bool AlfPrinter::isHandledTheoryRewrite(ProofRewriteRule id, const Node& n)
+bool AlfPrinter::isHandledTheoryRewrite(const Options& opts, ProofRewriteRule id, const Node& n)
 {
   switch (id)
   {
@@ -296,15 +305,12 @@ bool AlfPrinter::isHandledTheoryRewrite(ProofRewriteRule id, const Node& n)
     case ProofRewriteRule::DISTINCT_TRUE:
     case ProofRewriteRule::DISTINCT_FALSE:
     case ProofRewriteRule::BETA_REDUCE:
-    case ProofRewriteRule::LAMBDA_ELIM:
     case ProofRewriteRule::UBV_TO_INT_ELIM:
     case ProofRewriteRule::INT_TO_BV_ELIM:
-    case ProofRewriteRule::ARITH_POW_ELIM:
     case ProofRewriteRule::ARITH_STRING_PRED_ENTAIL:
     case ProofRewriteRule::ARITH_STRING_PRED_SAFE_APPROX:
     case ProofRewriteRule::EXISTS_ELIM:
     case ProofRewriteRule::QUANT_UNUSED_VARS:
-    case ProofRewriteRule::ARRAYS_SELECT_CONST:
     case ProofRewriteRule::DT_INST:
     case ProofRewriteRule::DT_COLLAPSE_SELECTOR:
     case ProofRewriteRule::DT_COLLAPSE_TESTER:
@@ -346,6 +352,15 @@ bool AlfPrinter::isHandledTheoryRewrite(ProofRewriteRule id, const Node& n)
     case ProofRewriteRule::STR_IN_RE_EVAL:
       Assert(n[0].getKind() == Kind::STRING_IN_REGEXP && n[0][0].isConst());
       return canEvaluateRegExp(n[0][1]);
+    case ProofRewriteRule::ARITH_POW_ELIM:
+    case ProofRewriteRule::ARRAYS_SELECT_CONST:
+    case ProofRewriteRule::LAMBDA_ELIM:
+      // only supported in unrestricted builds
+      if (opts.base.safeMode == options::SafeMode::UNRESTRICTED)
+      {
+        return true;
+      }
+      break;
     default: break;
   }
   return false;
