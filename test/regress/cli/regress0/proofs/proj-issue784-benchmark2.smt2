@@ -1,5 +1,6 @@
 ; COMMAND-LINE: --check-proofs --tlimit-per=100
 ; EXPECT: unknown
+(set-logic ALL)
 (declare-fun x0 () Int)
 (declare-fun x1 () Int)
 (declare-fun x2 () Int)
