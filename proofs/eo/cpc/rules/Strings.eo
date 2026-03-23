@@ -495,7 +495,7 @@
   :conclusion (= (>= n 0) true)
 )
 
-; rule: arith-string-pred-entail
+; rule: arith-string-pred-safe-approx
 ; implements: ProofRewriteRule::ARITH_STRING_SAFE_APPROX
 ; args:
 ; - eq Bool: The equality to prove between integer inequalities.
@@ -822,7 +822,7 @@
 
 ;;;;; ProofRewriteRule::STR_REPLACE_RE_EVAL
 
-; program: $str_eval_indexof_re
+; program: $str_eval_replace_re
 ; args:
 ; - s String: A string.
 ; - r RegLan: A regular expression.
@@ -907,14 +907,14 @@
 ; args:
 ; - t (Seq T): The term to process, which is expected to be a seq.++ list.
 ; - s (Seq T): The term to process, which is expected to be a seq.++ list.
-; reutrn: true if s is a prefix of t.
+; return: true if s is a prefix of t.
 (program $seq_is_prefix ((T Type) (t (Seq T)) (et T) (es T) (ts (Seq T) :list) (ss (Seq T) :list))
   :signature ((Seq T) (Seq T)) Bool
   (
   (($seq_is_prefix t t)                                               true)
   (($seq_is_prefix (seq.++ t ts) (seq.++ t ss))                       ($seq_is_prefix ts ss))
   (($seq_is_prefix (seq.++ (seq.unit et) ts) (seq.++ (seq.unit es) ss))
-    (eo::requires ($are_distinct_terms et es) true false))  ; we require showing the chracters are truly disequal to return false
+    (eo::requires ($are_distinct_terms et es) true false))  ; we require showing the characters are truly disequal to return false
   (($seq_is_prefix (as seq.empty (Seq T)) t)                          true)
   (($seq_is_prefix (seq.++ (seq.unit et) ts) (as seq.empty (Seq T)))  false)
   )
@@ -925,7 +925,7 @@
 ; - t (Seq T): The term to process, which is expected to be a seq.++ list.
 ; - s (Seq T): The term to process, which is expected to be a seq.++ list.
 ; - n Int: The current index.
-; reutrn: the index of the first occurrence of s in t.
+; return: the index of the first occurrence of s in t.
 (program $seq_find ((T Type) (t (Seq T)) (s (Seq T)) (n Int) (ts (Seq T) :list))
   :signature ((Seq T) (Seq T) Int) Int
   (
@@ -943,7 +943,7 @@
 ; - u Int: The end index, inclusive, of elements of t to extract.
 ; - t (Seq T): The term to process, which is expected to be a seq.++ list.
 ; return: >
-;   The subsequent of t between indices l up to (and not including) u, assumes u is non-negative.
+;   The subsequence of t between indices l up to (and not including) u, assuming u is non-negative.
 (program $seq_subsequence_rec ((T Type) (t (Seq T)) (e T) (ts (Seq T) :list) (u Int) (l Int))
   :signature (Int Int (Seq T)) (Seq T)
   (
@@ -955,13 +955,13 @@
   )
 )
 
-; program: $seq_subsequence
+; define: $seq_subsequence
 ; args:
 ; - l Int: The starting index, inclusive, of elements of t to extract.
 ; - u Int: The end index, inclusive, of elements of t to extract.
 ; - t (Seq T): The term to process, which is expected to be a seq.++ list.
 ; return: >
-;   The subsequent of t between indices l up to (and not including) u.
+;   The subsequence of t between indices l up to (and not including) u.
 (define $seq_subsequence ((T Type :implicit) (l Int) (u Int) (t (Seq T)))
   (eo::ite (eo::is_neg u) (as seq.empty (eo::typeof t)) ($seq_subsequence_rec l u t)))
 

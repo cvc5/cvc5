@@ -30,7 +30,7 @@
       (eo::add (eo::neg ($arith_eval_int_pow_2 wm1)) z)
       z))))))
 
-; define: $bv_unfold_repeat_rec
+; program: $bv_unfold_repeat_rec
 ; args:
 ; - n Int: The number of times to repeat, expected to be a non-negative numeral.
 ; - b (BitVec m): The bitvector term.

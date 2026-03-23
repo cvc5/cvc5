@@ -20,7 +20,7 @@
 
 ;;;;; ProofRewriteRule::BV_SMULO_ELIM
 
-; define: $bv_smulo_elim
+; program: $bv_smulo_elim_rec
 ; args:
 ; - xa (BitVec n): An xor term involving the first argument to bvsmulo
 ; - xb (BitVec n): An xor term involving the second argument to bvsmulo
@@ -80,7 +80,7 @@
 
 ;;;;; ProofRewriteRule::BV_UMULO_ELIM
 
-; define: $bv_umulo_elim_rec
+; program: $bv_umulo_elim_rec
 ; args:
 ; - xa (BitVec n): An xor term involving the first argument to bvumulo
 ; - xb (BitVec n): An xor term involving the second argument to bvumulo

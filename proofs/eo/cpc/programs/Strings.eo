@@ -35,12 +35,12 @@
   )
 )
 
-; define: $str_value_len
+; program: $str_value_len
 ; args:
 ; - s (Seq T): The sequence term.
 ; return: >
 ;   The length of s, if it denotes a "value-like" sequence, that
-;   is, either a string literal or a concatentation of sequence units.
+;   is, either a string literal or a concatenation of sequence units.
 (program $str_value_len ((T Type) (s (Seq T)) (e T) (ss (Seq T) :list))
   :signature ((Seq T)) Int
   (
@@ -72,7 +72,7 @@
 
 ; define: $str_head
 ; args:
-; - x (Seq T): The string, expected to be a non-empty concatentation.
+; - x (Seq T): The string, expected to be a non-empty concatenation.
 ; return: the head (first child) of x.
 (define $str_head ((T Type :implicit) (x (Seq T))) (eo::list_nth str.++ x 0))
 
@@ -271,7 +271,7 @@
 
 ;;;;; first match utilities
 
-; define: $str_first_match_rec_smallest
+; program: $str_first_match_rec_smallest
 ; args:
 ; - s String: The string to inspect.
 ; - r RegLan: The regular expression to inspect, assumed to contain s.
@@ -290,7 +290,7 @@
   )
 )
 
-; define: $str_first_match_rec
+; program: $str_first_match_rec
 ; args:
 ; - s String: The string to inspect.
 ; - r RegLan: The regular expression to inspect.
@@ -421,7 +421,7 @@
 (define $re_first_match_pre ((s String) (r RegLan))
   ($str_prefix s (str.indexof_re s r 0)))
 
-; define: $re_first_match_pre
+; define: $re_first_match
 ; args:
 ; - s String: The string term.
 ; - r RegLan: The regular expression.
@@ -430,7 +430,7 @@
   (eo::define ((n (str.indexof_re s r 0)))
     (str.substr s n (- (@strings_occur_index_re s r 1) n))))
 
-; define: $re_first_match_pre
+; define: $re_first_match_post
 ; args:
 ; - s String: The string term.
 ; - r RegLan: The regular expression.
@@ -1426,7 +1426,7 @@
   )
 )
 
-; program: $str_arith_entail_simple
+; define: $str_arith_entail_simple
 ; args:
 ; - t Int: An arithmetic term to process.
 ; return: >
@@ -1684,7 +1684,7 @@
       (eo::define ((r2 ($str_membership_re resfwd)))
         (str.in_re ($str_from_flat_form s2 false) ($re_from_flat_form r2 false)))))))))))))))
 
-; define: $str_re_consume
+; program: $str_re_consume
 ; args:
 ; - s String: The string argument of the membership to rewrite.
 ; - r RegLan: The regular expression argument of the membership to rewrite.
@@ -1764,7 +1764,7 @@
   ($str_overlap_rec ($str_to_flat_form s rev) ($str_to_flat_form t rev)))
 
 
-; program: $str_has_overlap
+; define: $str_has_overlap
 ; args:
 ; - s (Seq U): The first string, expected to be a string or sequence value.
 ; - t (Seq U): The second string, expected to be a string or sequence value.
@@ -1949,7 +1949,7 @@
   )
 )
 
-; program: $str_eval_replace_all
+; define: $str_eval_replace_all
 ; args:
 ; - s String: A string.
 ; - t String: A string to find.
