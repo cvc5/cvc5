@@ -1,4 +1,4 @@
-; COMMAND-LINE: --solve-bv-as-int=sum --mbqi
+; COMMAND-LINE: --solve-bv-as-int=sum --sygus-inst
 ; EXPECT: unsat
 (set-logic UFBV)
 (declare-fun f ((_ BitVec 1)) (_ BitVec 2))
