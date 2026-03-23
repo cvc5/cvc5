@@ -1693,7 +1693,7 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
       {
         std::stringstream ss;
         ss << "Not enough indices for skolem operator " << skolemId
-           << ". Expects " << numSkolemIndices << ", recieved " << args.size()
+           << ". Expects " << numSkolemIndices << ", received " << args.size()
            << ".";
         parseError(ss.str());
       }
