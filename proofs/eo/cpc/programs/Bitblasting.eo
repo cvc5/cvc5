@@ -588,7 +588,7 @@
 ; - s Int: The index of bits we are considering.
 ; - lsz Int: The bitwidth of a1.
 ; - sbit Bool: The sign bit we are processing (the sign of first argument for bvashr, false otherwise).
-; return: the bitblasted term for processing the left shift of a1 and a2.
+; return: the bitblasted term for processing the right shift of a1 and a2.
 (program $bv_mk_bitblast_step_shr_rec ((s Int) (lsz Int) (n Int) (m Int) (a1 (BitVec n)) (b2 Bool) (a2 (BitVec m) :list) (sbit Bool))
   :signature ((BitVec n) (BitVec m) Int Int Bool) (BitVec n)
   (

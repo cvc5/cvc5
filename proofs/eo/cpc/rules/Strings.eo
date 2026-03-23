@@ -487,7 +487,7 @@
 ; implements: ProofRewriteRule::ARITH_STRING_PRED_ENTAIL
 ; args:
 ; - eq Bool: The equality to prove between an integer inequality and true.
-; requires: showing that n is entailed to be greater than 0 using $str_arith_entail_simple.
+; requires: showing that n is entailed to be non-negative using $str_arith_entail_simple.
 ; conclusion: The given equality.
 (declare-rule arith-string-pred-entail ((n Int))
   :args ((= (>= n 0) true))
@@ -905,9 +905,9 @@
 
 ; program: $seq_is_prefix
 ; args:
-; - t (Seq T): The term to process, which is expected to be a seq.++ list.
-; - s (Seq T): The term to process, which is expected to be a seq.++ list.
-; return: true if s is a prefix of t.
+; - t (Seq T): The candidate prefix, expected to be a seq.++ list.
+; - s (Seq T): The sequence to compare against, expected to be a seq.++ list.
+; return: true if t is a prefix of s.
 (program $seq_is_prefix ((T Type) (t (Seq T)) (et T) (es T) (ts (Seq T) :list) (ss (Seq T) :list))
   :signature ((Seq T) (Seq T)) Bool
   (
@@ -922,8 +922,8 @@
 
 ; program: $seq_find
 ; args:
-; - t (Seq T): The term to process, which is expected to be a seq.++ list.
-; - s (Seq T): The term to process, which is expected to be a seq.++ list.
+; - t (Seq T): The sequence to search in, expected to be a seq.++ list.
+; - s (Seq T): The sequence to search for, expected to be a seq.++ list.
 ; - n Int: The current index.
 ; return: the index of the first occurrence of s in t.
 (program $seq_find ((T Type) (t (Seq T)) (s (Seq T)) (n Int) (ts (Seq T) :list))
@@ -940,7 +940,7 @@
 ; program: $seq_subsequence_rec
 ; args:
 ; - l Int: The starting index, inclusive, of elements of t to extract.
-; - u Int: The end index, inclusive, of elements of t to extract.
+; - u Int: The end index, exclusive, of elements of t to extract.
 ; - t (Seq T): The term to process, which is expected to be a seq.++ list.
 ; return: >
 ;   The subsequence of t between indices l up to (and not including) u, assuming u is non-negative.
@@ -958,7 +958,7 @@
 ; define: $seq_subsequence
 ; args:
 ; - l Int: The starting index, inclusive, of elements of t to extract.
-; - u Int: The end index, inclusive, of elements of t to extract.
+; - u Int: The end index, exclusive, of elements of t to extract.
 ; - t (Seq T): The term to process, which is expected to be a seq.++ list.
 ; return: >
 ;   The subsequence of t between indices l up to (and not including) u.
