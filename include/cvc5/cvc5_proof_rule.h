@@ -2095,7 +2095,7 @@ enum ENUM(ProofRule)
    *            {(x_1 \diamond x_2) = (y_1 \diamond y_2)}
    *
    * where :math:`\diamond \in \{<, \leq, =, \geq, >\}`. :math:`c_x` and
-   * :math:`c_y` are scaling factors. For :math:`<, \leq, \geq, >`, the scaling
+   * :math:`c_y` are non-zero scaling factors. For :math:`<, \leq, \geq, >`, the scaling
    * factors have the same sign.
    *
    * If :math:`c_x` has type :math:`Real` and :math:`x_1, x_2` are of type
