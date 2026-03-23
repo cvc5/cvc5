@@ -90,7 +90,9 @@ class AlfPrinter : protected EnvObj
 
  private:
   /** Return true if id is handled as a theory rewrite for term n */
-  static bool isHandledTheoryRewrite(const Options& opts, ProofRewriteRule id, const Node& n);
+  static bool isHandledTheoryRewrite(const Options& opts,
+                                     ProofRewriteRule id,
+                                     const Node& n);
   /** Return if the equality is handled as a bitblast step */
   static bool isHandledBitblastStep(const Node& eq);
   /**

@@ -22,8 +22,8 @@
 #include "expr/node_algorithm.h"
 #include "expr/sequence.h"
 #include "expr/subs.h"
-#include "options/main_options.h"
 #include "options/base_options.h"
+#include "options/main_options.h"
 #include "options/strings_options.h"
 #include "printer/printer.h"
 #include "printer/smt2/smt2_printer.h"
@@ -31,10 +31,10 @@
 #include "proof/proof_node_to_sexpr.h"
 #include "rewriter/rewrite_db.h"
 #include "smt/print_benchmark.h"
+#include "theory/builtin/generic_op.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/theory.h"
 #include "util/string.h"
-#include "theory/builtin/generic_op.h"
 
 namespace cvc5::internal {
 
@@ -296,7 +296,9 @@ bool AlfPrinter::isHandled(const Options& opts, const ProofNode* pfn)
   return false;
 }
 
-bool AlfPrinter::isHandledTheoryRewrite(const Options& opts, ProofRewriteRule id, const Node& n)
+bool AlfPrinter::isHandledTheoryRewrite(const Options& opts,
+                                        ProofRewriteRule id,
+                                        const Node& n)
 {
   switch (id)
   {
