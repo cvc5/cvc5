@@ -2,7 +2,7 @@
 
 ; Integer specific operators of arithmetic.
 
-; Integer division and modulus.
+; Integer division, modulus, and exponentiation.
 (declare-const div (-> Int Int Int) :left-assoc)
 (declare-const mod (-> Int Int Int))
 (declare-const ** (-> Int Int Int))
