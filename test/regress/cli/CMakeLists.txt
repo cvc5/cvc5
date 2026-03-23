@@ -43,6 +43,7 @@ set(regress_0_tests
   regress0/arith/div.07.smt2
   regress0/arith/divisible-unsat.smt2
   regress0/arith/exp-in-model.smt2
+  regress0/arith/flatten_mon_iand.smt2
   regress0/arith/fuzz_3-eq.smtv1.smt2
   regress0/arith/incorrect1.smtv1.smt2
   regress0/arith/int-eq-conflict-simple.smt2
@@ -345,6 +346,7 @@ set(regress_0_tests
   regress0/bv/bv_to_int_int1.smt2
   regress0/bv/bv_to_int_proj_417.smt2
   regress0/bv/bv_to_int_zext.smt2
+  regress0/bv/bv_to_bool_conflict.smt2
   regress0/bv/bvcomp.cvc.smt2
   regress0/bv/bvmul-pow2-only.smt2
   regress0/bv/bvproof1.smt2
@@ -1301,6 +1303,8 @@ set(regress_0_tests
   regress0/parser/issue10889-sexpr-eof.smt2
   regress0/parser/issue11935-err-code-point.smt2
   regress0/parser/issue11991-nwf.smt2
+  regress0/parser/issue12514-bitvec-width-overflow.smt2
+  regress0/parser/issue12514-sign-extend-overflow.smt2
   regress0/parser/issue12062-overflow.smt2
   regress0/parser/issue5163.smt2
   regress0/parser/issue6908-get-value-uc.smt2
@@ -1945,6 +1949,7 @@ set(regress_0_tests
   regress0/sets/abt-min.smt2
   regress0/sets/abt-te-exh.smt2
   regress0/sets/abt-te-exh2.smt2
+  regress0/sets/bug_setfold_union.smt2
   regress0/sets/card-2.smt2
   regress0/sets/card-3sets.cvc.smt2
   regress0/sets/card.smt2
@@ -2215,6 +2220,7 @@ set(regress_0_tests
   regress0/strings/regexp_inclusion.smt2
   regress0/strings/regexp-native-simple.cvc.smt2
   regress0/strings/regexp-repeat.smt2
+  regress0/strings/repl-all-non-const-range.smt2
   regress0/strings/repl-rewrites2.smt2
   regress0/strings/replace-all-rew-more.smt2
   regress0/strings/replace-const.smt2
@@ -2617,6 +2623,7 @@ set(regress_1_tests
   regress1/bags/bag_member.smt2
   regress1/bags/bag_partition1.smt2
   regress1/bags/bags-of-bags-subtypes.smt2
+  regress1/bags/bug_bagsome_geq.smt2
   regress1/bags/card1.smt2
   regress1/bags/card2.smt2
   regress1/bags/choose1.smt2

@@ -5,6 +5,9 @@ cvc5 1.3.4 prerelease
 
 ## Changes
 
+- Fixes parsing issues related to unchecked overflowing of indexed
+  bit-vector operators. This impacts bit-vector operators having width
+  that is greater than or equal to `2^32`.
 - Fixes a soundness bug in the `--learned-rewrite` preprocessing pass.
 - We now allow using option `--solve-bv-as-int` with quantifiers, even if the
   quantified variables occur under UFs.

@@ -51,11 +51,11 @@ PreprocessingPassResult BVToBool::applyInternal(
   {
     assertionsToPreprocess->replace(
         i, new_assertions[i], nullptr, TrustId::PREPROCESS_BV_TO_BOOL);
-    assertionsToPreprocess->ensureRewritten(i);
     if (assertionsToPreprocess->isInConflict())
     {
       return PreprocessingPassResult::CONFLICT;
     }
+    assertionsToPreprocess->ensureRewritten(i);
   }
   return PreprocessingPassResult::NO_CONFLICT;
 }
