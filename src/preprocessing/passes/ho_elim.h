@@ -110,6 +110,8 @@ class HoElim : public PreprocessingPass
    * step [2] mentioned at the header of this class.
    */
   Node eliminateHo(Node n);
+  /** Reconstruct the original function-typed term from its HO encoding. */
+  Node reconstructHoFunction(Node n, TypeNode tn);
   /**
    * Stores the set of nodes we have current visited and their results
    * in steps [1] and [2] of this pass.
@@ -122,6 +124,8 @@ class HoElim : public PreprocessingPass
   std::unordered_map<TNode, Node> d_visited_op;
   /** The set of all function types encountered in assertions. */
   std::unordered_set<TypeNode> d_funTypes;
+  /** Free function symbols from the original input assertions. */
+  std::unordered_set<Node> d_inputFunSymbols;
 
   /**
    * Get ho apply uf, this returns App_{@_{T1 x T2 ... x Tn -> T}}

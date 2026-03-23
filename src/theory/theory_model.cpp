@@ -228,6 +228,14 @@ Node TheoryModel::getModelValue(TNode n) const
     return n;
   }
 
+  Node recon = d_env.getModelReconstruction(n);
+  if (!recon.isNull())
+  {
+    Node rv = getValue(recon);
+    d_modelCache[n] = rv;
+    return rv;
+  }
+
   Node ret = n;
   NodeManager* nm = nodeManager();
 

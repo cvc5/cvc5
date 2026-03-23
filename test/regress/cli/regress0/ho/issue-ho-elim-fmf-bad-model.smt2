@@ -1,5 +1,6 @@
-; COMMAND-LINE: --force-logic=HO_ALL --ho-elim --finite-model-find --uf-ss=no-minimal
-; EXPECT: (error "Fatal error in option parsing: Cannot use --ho-elim with --finite-model-find for higher-order logic.")
+; COMMAND-LINE: --force-logic=HO_ALL --ho-elim --finite-model-find --uf-ss=no-minimal --debug-check-models
+; EXPECT: sat
+; EXIT: 0
 (set-logic HO_ALL)
 (declare-sort beverage 0)
 (declare-sort syrup 0)

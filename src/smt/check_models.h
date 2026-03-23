@@ -45,7 +45,7 @@ class CheckModels : protected EnvObj
    * @param hardFailure True have a failed model check should result in an
    *                    InternalError rather than only issue a warning.
    */
-  void checkModel(theory::TheoryModel* m,
+  void checkModel(const theory::TheoryModel* m,
                   const context::CDList<Node>& al,
                   bool hardFailure);
 };

@@ -142,6 +142,17 @@ theory::TrustSubstitutionMap& Env::getTopLevelSubstitutions()
   return *d_topLevelSubs.get();
 }
 
+void Env::setModelReconstruction(TNode sym, TNode recon)
+{
+  d_modelReconstructions[sym] = recon;
+}
+
+Node Env::getModelReconstruction(TNode sym) const
+{
+  auto it = d_modelReconstructions.find(sym);
+  return it == d_modelReconstructions.end() ? Node::null() : it->second;
+}
+
 const LogicInfo& Env::getLogicInfo() const { return d_logic; }
 
 StatisticsRegistry& Env::getStatisticsRegistry()

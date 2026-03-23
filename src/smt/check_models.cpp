@@ -16,6 +16,7 @@
 #include "expr/non_closed_node_converter.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
+#include "options/strings_options.h"
 #include "smt/env.h"
 #include "smt/expand_definitions.h"
 #include "smt/preprocessor.h"
@@ -23,13 +24,15 @@
 #include "smt/smt_solver.h"
 #include "theory/rewriter.h"
 #include "theory/smt_engine_subsolver.h"
+#include "theory/type_enumerator.h"
 #include "theory/theory_model.h"
-#include "theory/trust_substitutions.h"
 
 using namespace cvc5::internal::theory;
 
 namespace cvc5::internal {
 namespace smt {
+
+namespace {
 
 void getTheoriesOf(Env& env, const Node& n, std::vector<TheoryId>& theories)
 {
@@ -63,9 +66,140 @@ void getTheoriesOf(Env& env, const Node& n, std::vector<TheoryId>& theories)
   } while (!visit.empty());
 }
 
+bool collectFiniteTypeInfo(Env& env,
+                           const TheoryModel* m,
+                           TypeNode tn,
+                           TypeEnumeratorProperties& tep,
+                           std::unordered_set<TypeNode>& visited)
+{
+  if (visited.find(tn) != visited.end())
+  {
+    return true;
+  }
+  visited.insert(tn);
+  if (tn.isUninterpretedSort())
+  {
+    tep.d_fixed_card[tn] = Integer(m->getDomainElements(tn).size());
+    return true;
+  }
+  for (const TypeNode& ctn : tn)
+  {
+    if (!collectFiniteTypeInfo(env, m, ctn, tep, visited))
+    {
+      return false;
+    }
+  }
+  return env.isFiniteType(tn);
+}
+
+Node evaluateFiniteFormula(Env& env,
+                           const TheoryModel* m,
+                           Node n,
+                           TypeEnumeratorProperties& tep,
+                           int64_t& budget);
+
+Node evaluateFiniteQuantifier(Env& env,
+                              const TheoryModel* m,
+                              Node q,
+                              TypeEnumeratorProperties& tep,
+                              int64_t& budget,
+                              size_t index,
+                              const std::vector<Node>& vars,
+                              const std::vector<TypeNode>& types,
+                              std::vector<Node>& vals,
+                              bool isForall)
+{
+  if (budget <= 0)
+  {
+    return Node::null();
+  }
+  if (index == vars.size())
+  {
+    Node inst = env.evaluate(q[1], vars, vals, true);
+    return evaluateFiniteFormula(env, m, inst, tep, budget);
+  }
+  NodeManager* nm = env.getNodeManager();
+  bool sawUnknown = false;
+  TypeEnumerator te(types[index], &tep);
+  for (; !te.isFinished(); ++te)
+  {
+    if (--budget < 0)
+    {
+      return Node::null();
+    }
+    vals.push_back(*te);
+    Node rv = evaluateFiniteQuantifier(
+        env, m, q, tep, budget, index + 1, vars, types, vals, isForall);
+    vals.pop_back();
+    if (rv.isNull())
+    {
+      sawUnknown = true;
+      continue;
+    }
+    Assert(rv.isConst() && rv.getType().isBoolean());
+    bool b = rv.getConst<bool>();
+    if (isForall && !b)
+    {
+      return nm->mkConst(false);
+    }
+    if (!isForall && b)
+    {
+      return nm->mkConst(true);
+    }
+  }
+  if (sawUnknown)
+  {
+    return Node::null();
+  }
+  return nm->mkConst(isForall);
+}
+
+Node evaluateFiniteFormula(Env& env,
+                           const TheoryModel* m,
+                           Node n,
+                           TypeEnumeratorProperties& tep,
+                           int64_t& budget)
+{
+  if (budget <= 0)
+  {
+    return Node::null();
+  }
+  n = env.getRewriter()->rewrite(n);
+  if (n.getKind() == Kind::FORALL || n.getKind() == Kind::EXISTS)
+  {
+    std::unordered_set<TypeNode> visited;
+    std::vector<Node> vars;
+    std::vector<TypeNode> types;
+    for (const Node& v : n[0])
+    {
+      if (!collectFiniteTypeInfo(env, m, v.getType(), tep, visited))
+      {
+        return Node::null();
+      }
+      vars.push_back(v);
+      types.push_back(v.getType());
+    }
+    std::vector<Node> vals;
+    return evaluateFiniteQuantifier(env,
+                                    m,
+                                    n,
+                                    tep,
+                                    budget,
+                                    0,
+                                    vars,
+                                    types,
+                                    vals,
+                                    n.getKind() == Kind::FORALL);
+  }
+  Node v = m->getValue(n);
+  return v.isConst() ? v : Node::null();
+}
+
+}  // namespace
+
 CheckModels::CheckModels(Env& e) : EnvObj(e) {}
 
-void CheckModels::checkModel(TheoryModel* m,
+void CheckModels::checkModel(const TheoryModel* m,
                              const context::CDList<Node>& al,
                              bool hardFailure)
 {
@@ -92,7 +226,6 @@ void CheckModels::checkModel(TheoryModel* m,
   std::unordered_map<Node, Node> ecache;
   ExpandDefs expDef(d_env);
 
-  theory::SubstitutionMap& sm = d_env.getTopLevelSubstitutions().get();
   Trace("check-model") << "checkModel: Check assertions..." << std::endl;
   std::unordered_map<Node, Node> cache;
   // the list of assertions that did not rewrite to true
@@ -103,12 +236,10 @@ void CheckModels::checkModel(TheoryModel* m,
     verbose(1) << "SolverEngine::checkModel(): checking assertion " << assertion
                << std::endl;
 
-    // Apply any define-funs from the problem. We do not expand theory symbols
-    // like integer division here. Hence, the code below is not able to properly
-    // evaluate e.g. divide-by-zero. This is intentional since the evaluation
-    // is not trustworthy, since the UF introduced by expanding definitions may
-    // not be properly constrained.
-    Node n = sm.apply(assertion);
+    // Evaluate the original assertion directly. Top-level substitutions are
+    // applied by TheoryModel::getValue(), which is also where higher-order
+    // symbol reconstruction now lives.
+    Node n = assertion;
     verbose(1) << "SolverEngine::checkModel(): -- substitutes to " << n
                << std::endl;
 
@@ -125,7 +256,7 @@ void CheckModels::checkModel(TheoryModel* m,
       verbose(1) << "SolverEngine::checkModel(): -- expands to " << n
                  << std::endl;
 
-      n = rewrite(n);
+      n = d_env.getRewriter()->rewrite(n);
       verbose(1) << "SolverEngine::checkModel(): -- rewrites to " << n
                  << std::endl;
 
@@ -156,6 +287,26 @@ void CheckModels::checkModel(TheoryModel* m,
       // rewrite quantified formulas (see cvc4-wishues#43).
       if (!nval.isConst())
       {
+        if (logicInfo().isHigherOrder() && NonClosedNodeConverter::isClosed(d_env, n))
+        {
+          TypeEnumeratorProperties tep(options().quantifiers.finiteModelFind,
+                                       options().strings.stringsAlphaCard);
+          tep.d_fixed_usort_card = options().quantifiers.finiteModelFind;
+          // Keep this bounded. The path is only intended as a last-mile
+          // checker for small closed higher-order formulas under finite-model
+          // finding.
+          int64_t budget = 4096;
+          Node fnval = evaluateFiniteFormula(d_env, m, n, tep, budget);
+          if (!fnval.isNull())
+          {
+            nval = fnval;
+            if (nval.isConst() && nval.getConst<bool>())
+            {
+              processed = true;
+              break;
+            }
+          }
+        }
         n = expDef.expandDefinitions(nval, cache);
         if (n != nval)
         {
@@ -168,7 +319,12 @@ void CheckModels::checkModel(TheoryModel* m,
         {
           // Note that we must be a "closed" term, i.e. one that can be
           // given in an assertion.
+          // Avoid the subsolver fallback for higher-order formulas. After
+          // ho-elim model reconstruction, the fallback may spend substantial
+          // time on closed higher-order formulas that we still cannot fully
+          // evaluate here.
           if (options().smt.checkModelSubsolver
+              && !logicInfo().isHigherOrder()
               && NonClosedNodeConverter::isClosed(d_env, nval))
           {
             Trace("check-model-subsolver") << "Query is " << nval << std::endl;
