@@ -25,6 +25,9 @@ namespace arith {
 
 namespace {
 
+/**
+ * Returns true if lit iff (>= lhs rhs) for constant rhs.
+ */
 bool getGeqBound(const Node& lit, Node& lhs, Rational& rhs)
 {
   if (lit.getKind() != Kind::GEQ || lit[1].getKind() != Kind::CONST_INTEGER)
