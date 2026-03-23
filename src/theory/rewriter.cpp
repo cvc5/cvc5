@@ -232,6 +232,8 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
   }
 
   // Put the node on the stack in order to start the "recursive" rewrite
+  // Use deque since RewriteStackElement contains a live NodeBuilder; unlike a
+  // vector, pushing deep stacks will not relocate existing frames.
   deque<RewriteStackElement> rewriteStack;
   rewriteStack.push_back(RewriteStackElement(node, theoryId));
 
