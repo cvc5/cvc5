@@ -43,6 +43,7 @@ set(regress_0_tests
   regress0/arith/div.07.smt2
   regress0/arith/divisible-unsat.smt2
   regress0/arith/exp-in-model.smt2
+  regress0/arith/flatten_mon_iand.smt2
   regress0/arith/fuzz_3-eq.smtv1.smt2
   regress0/arith/incorrect1.smtv1.smt2
   regress0/arith/int-eq-conflict-simple.smt2
@@ -345,6 +346,7 @@ set(regress_0_tests
   regress0/bv/bv_to_int_int1.smt2
   regress0/bv/bv_to_int_proj_417.smt2
   regress0/bv/bv_to_int_zext.smt2
+  regress0/bv/bv_to_bool_conflict.smt2
   regress0/bv/bvcomp.cvc.smt2
   regress0/bv/bvmul-pow2-only.smt2
   regress0/bv/bvproof1.smt2
@@ -1341,6 +1343,7 @@ set(regress_0_tests
   regress0/parser/non_well_founded_dt.smt2
   regress0/parser/non_well_founded_dts.smt2
   regress0/parser/parser-line-error.smt2
+  regress0/parser/parse-skolem-oob.smt2
   regress0/parser/print-success.smt2
   regress0/parser/proj-issue370-push-pop-global.smt2
   regress0/parser/quoted-define-fun.smt2
@@ -1559,6 +1562,7 @@ set(regress_0_tests
   regress0/proofs/proj-issue773-nnf-double-neg.smt2
   regress0/proofs/proj-issue775-mult-sign.smt2
   regress0/proofs/proj-issue778-subtype-div.smt2
+  regress0/proofs/proj-issue784-benchmark2.smt2
   regress0/proofs/proj-issue781-cyclic-pppg.smt2
   regress0/proofs/proj-issue781-cyclic-pppg-2.smt2
   regress0/proofs/proof-components.smt2

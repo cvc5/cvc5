@@ -152,7 +152,7 @@
 
 ;;;;; ProofRewriteRule::DT_CONS_EQ
 
-; define: $mk_dt_cons_eq
+; program: $mk_dt_cons_eq
 ; args:
 ; - t T: The left hand side of the equality.
 ; - s T: The right hand side of the equality.
@@ -220,7 +220,7 @@
 (program $dt_find_cycle_list () :signature (@List @List) Bool)
 
 
-; define: $dt_find_cycle_rec
+; program: $dt_find_cycle_rec
 ; args:
 ; - t T: The term.
 ; - s @List: A list containing the term to find.
@@ -284,7 +284,7 @@
 
 ;;;;; ProofRewriteRule::DT_COLLAPSE_UPDATER
 
-; program: $mk_dt_collapse_updater_rhs
+; program: $dt_collapse_updater_rhs
 ; args:
 ; - c U: The remaining term to process.
 ; - a T: The value to replace as an argument of t.
