@@ -159,7 +159,7 @@
   )
 )
 
-; program: $arith_rel_trichotomy
+; program: $arith_rel_neg
 ; args:
 ; - r T: The arithmetic relation.
 ; - a V: The first term in the relation.
@@ -515,7 +515,7 @@
   )
 )
 
-; define: $is_poly_norm_rel_consts
+; program: $is_poly_norm_rel_consts
 ; args:
 ; - b Bool: >
 ;   a formula of the form (r cx cy) where r is a binary relation and cx and

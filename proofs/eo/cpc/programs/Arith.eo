@@ -127,7 +127,7 @@
     (eo::ite (eo::is_neg x) 0 ($arith_eval_int_pow_2_rec x))
     (int.pow2 x)))
 
-; define: $arith_eval_is_pow_2
+; define: $arith_eval_int_is_pow_2
 ; args:
 ; - x Int: The term to compute whether it is a power of two.
 ; return: >
