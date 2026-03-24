@@ -144,7 +144,7 @@
 
 ;;;;; ProofRule::PAIRWISE_CONG
 
-; rule: arg_list_cong
+; rule: pairwise_cong
 ; implements: ProofRule::PAIRWISE_CONG
 ; premises:
 ; - E [:list]: A conjunction of equalities to apply arg-list-congruence to.
