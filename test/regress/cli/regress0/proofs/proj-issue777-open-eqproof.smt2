@@ -1,3 +1,5 @@
+; COMMAND-LINE: --check-proofs
+; EXPECT: unsat
 (set-logic QF_SLIA)
 (declare-fun a () String)
 (declare-fun b () String)
