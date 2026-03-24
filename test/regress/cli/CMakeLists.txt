@@ -1561,6 +1561,7 @@ set(regress_0_tests
   regress0/proofs/proj-issue774-mult-sign.smt2
   regress0/proofs/proj-issue773-nnf-double-neg.smt2
   regress0/proofs/proj-issue775-mult-sign.smt2
+  regress0/proofs/proj-issue777-open-eqproof.smt2
   regress0/proofs/proj-issue778-subtype-div.smt2
   regress0/proofs/proj-issue784-benchmark2.smt2
   regress0/proofs/proj-issue781-cyclic-pppg.smt2
@@ -1668,7 +1669,7 @@ set(regress_0_tests
   regress0/quantifiers/dd_psyco_186-ineq-elim.smt2
   regress0/quantifiers/dd_quick_sort-q-rew.smt2
   regress0/quantifiers/dd_RND_4_16-ve-subtype.smt2
-  regress0/quantifiers/dd_RND_6_12_ste.smt2 
+  regress0/quantifiers/dd_RND_6_12_ste.smt2
   regress0/quantifiers/dd_rts-quant-elim-eq-tester.smt2
   regress0/quantifiers/dd_small_pipeline_3.smt2
   regress0/quantifiers/dd_spark2014-pat.smt2
