@@ -12,7 +12,6 @@
 
 #include "options/options_handler.h"
 
-#include <cerrno>
 #include <iostream>
 #include <ostream>
 #include <regex>
@@ -44,14 +43,14 @@ namespace options {
 // helper functions
 namespace {
 
-void printTags(const std::vector<std::string>& tags)
+void printTags(std::ostream& out, const std::vector<std::string>& tags)
 {
-  std::cout << "available tags:" << std::endl;
+  out << "available tags:" << std::endl;
   for (const auto& t : tags)
   {
-    std::cout << "  " << t << std::endl;
+    out << "  " << t << std::endl;
   }
-  std::cout << std::endl;
+  out << std::endl;
 }
 
 std::string suggestTags(const std::vector<std::string>& validTags,
@@ -320,75 +319,78 @@ void OptionsHandler::checkBvSatSolver(const std::string& flag,
   }
 }
 
-static void print_config(const char* str, std::string config)
+static void print_config(std::ostream& out, const char* str, std::string config)
 {
   std::string s(str);
   unsigned sz = 14;
   if (s.size() < sz) s.resize(sz, ' ');
-  std::cout << s << ": " << config << std::endl;
+  out << s << ": " << config << std::endl;
 }
 
-static void print_config_cond(const char* str, bool cond = false)
+static void print_config_cond(std::ostream& out,
+                              const char* str,
+                              bool cond = false)
 {
-  print_config(str, cond ? "yes" : "no");
+  print_config(out, str, cond ? "yes" : "no");
 }
 
 void OptionsHandler::showConfiguration(CVC5_UNUSED const std::string& flag,
                                        bool value)
 {
   if (!value) return;
-  std::cout << Configuration::about() << std::endl;
+  std::ostream& o = d_options->base.out;
+  o << Configuration::about() << std::endl;
 
-  print_config("version", Configuration::getVersionString());
+  print_config(o, "version", Configuration::getVersionString());
   if (Configuration::isGitBuild())
   {
-    print_config("scm", Configuration::getGitInfo());
+    print_config(o, "scm", Configuration::getGitInfo());
   }
   else
   {
-    print_config_cond("scm", false);
+    print_config_cond(o, "scm", false);
   }
 
-  std::cout << std::endl;
+  o << std::endl;
 
   std::stringstream ss;
   ss << Configuration::getVersionString();
-  print_config("library", ss.str());
+  print_config(o, "library", ss.str());
 
-  std::cout << std::endl;
+  o << std::endl;
 
-  print_config_cond("safe-mode", Configuration::isSafeBuild());
-  print_config_cond("stable-mode", Configuration::isStableBuild());
-  print_config_cond("debug code", Configuration::isDebugBuild());
-  print_config_cond("statistics", configuration::isStatisticsBuild());
-  print_config_cond("tracing", Configuration::isTracingBuild());
-  print_config_cond("muzzled", Configuration::isMuzzledBuild());
-  print_config_cond("assertions", Configuration::isAssertionBuild());
-  print_config_cond("coverage", Configuration::isCoverageBuild());
-  print_config_cond("profiling", Configuration::isProfilingBuild());
-  print_config_cond("asan", Configuration::isAsanBuild());
-  print_config_cond("ubsan", Configuration::isUbsanBuild());
-  print_config_cond("tsan", Configuration::isTsanBuild());
-  print_config_cond("competition", Configuration::isCompetitionBuild());
-  print_config_cond("portfolio", Configuration::isBuiltWithPortfolio());
+  print_config_cond(o, "safe-mode", Configuration::isSafeBuild());
+  print_config_cond(o, "stable-mode", Configuration::isStableBuild());
+  print_config_cond(o, "debug code", Configuration::isDebugBuild());
+  print_config_cond(o, "statistics", configuration::isStatisticsBuild());
+  print_config_cond(o, "tracing", Configuration::isTracingBuild());
+  print_config_cond(o, "muzzled", Configuration::isMuzzledBuild());
+  print_config_cond(o, "assertions", Configuration::isAssertionBuild());
+  print_config_cond(o, "coverage", Configuration::isCoverageBuild());
+  print_config_cond(o, "profiling", Configuration::isProfilingBuild());
+  print_config_cond(o, "asan", Configuration::isAsanBuild());
+  print_config_cond(o, "ubsan", Configuration::isUbsanBuild());
+  print_config_cond(o, "tsan", Configuration::isTsanBuild());
+  print_config_cond(o, "competition", Configuration::isCompetitionBuild());
+  print_config_cond(o, "portfolio", Configuration::isBuiltWithPortfolio());
 
-  std::cout << std::endl;
+  o << std::endl;
 
-  print_config_cond("cln", Configuration::isBuiltWithCln());
-  print_config_cond("glpk", Configuration::isBuiltWithGlpk());
-  print_config_cond("cryptominisat", Configuration::isBuiltWithCryptominisat());
-  print_config_cond("gmp", Configuration::isBuiltWithGmp());
-  print_config_cond("kissat", Configuration::isBuiltWithKissat());
-  print_config_cond("poly", Configuration::isBuiltWithPoly());
-  print_config_cond("cocoa", Configuration::isBuiltWithCoCoA());
-  print_config_cond("editline", Configuration::isBuiltWithEditline());
+  print_config_cond(o, "cln", Configuration::isBuiltWithCln());
+  print_config_cond(o, "glpk", Configuration::isBuiltWithGlpk());
+  print_config_cond(o, "cryptominisat", Configuration::isBuiltWithCryptominisat());
+  print_config_cond(o, "gmp", Configuration::isBuiltWithGmp());
+  print_config_cond(o, "kissat", Configuration::isBuiltWithKissat());
+  print_config_cond(o, "poly", Configuration::isBuiltWithPoly());
+  print_config_cond(o, "cocoa", Configuration::isBuiltWithCoCoA());
+  print_config_cond(o, "editline", Configuration::isBuiltWithEditline());
 }
 
 void OptionsHandler::showCopyright(CVC5_UNUSED const std::string& flag,
                                    bool value)
 {
   if (!value) return;
-  std::cout << Configuration::copyright() << std::endl;
+  d_options->base.out << Configuration::copyright() << std::endl;
 }
 
 void OptionsHandler::showVersion(CVC5_UNUSED const std::string& flag,
@@ -406,7 +408,7 @@ void OptionsHandler::showTraceTags(CVC5_UNUSED const std::string& flag,
   {
     throw OptionException("trace tags not available in non-tracing build");
   }
-  printTags(Configuration::getTraceTags());
+  printTags(d_options->base.out, Configuration::getTraceTags());
 }
 
 void OptionsHandler::strictParsing(CVC5_UNUSED const std::string& flag,

@@ -147,7 +147,7 @@ void LazyTreeProofGenerator::print(std::ostream& os,
   {
     os << prefix << ":args ";
     container_to_stream(os, pn.d_args);
-    std::cout << std::endl;
+    os << std::endl;
   }
   for (const auto& c : pn.d_children)
   {
