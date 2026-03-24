@@ -35,12 +35,12 @@
   )
 )
 
-; define: $str_value_len
+; program: $str_value_len
 ; args:
 ; - s (Seq T): The sequence term.
 ; return: >
 ;   The length of s, if it denotes a "value-like" sequence, that
-;   is, either a string literal or a concatentation of sequence units.
+;   is, either a string literal or a concatenation of sequence units.
 (program $str_value_len ((T Type) (s (Seq T)) (e T) (ss (Seq T) :list))
   :signature ((Seq T)) Int
   (
@@ -72,7 +72,7 @@
 
 ; define: $str_head
 ; args:
-; - x (Seq T): The string, expected to be a non-empty concatentation.
+; - x (Seq T): The string, expected to be a non-empty concatenation.
 ; return: the head (first child) of x.
 (define $str_head ((T Type :implicit) (x (Seq T))) (eo::list_nth str.++ x 0))
 
@@ -271,7 +271,7 @@
 
 ;;;;; first match utilities
 
-; define: $str_first_match_rec_smallest
+; program: $str_first_match_rec_smallest
 ; args:
 ; - s String: The string to inspect.
 ; - r RegLan: The regular expression to inspect, assumed to contain s.
@@ -290,7 +290,7 @@
   )
 )
 
-; define: $str_first_match_rec
+; program: $str_first_match_rec
 ; args:
 ; - s String: The string to inspect.
 ; - r RegLan: The regular expression to inspect.
@@ -421,7 +421,7 @@
 (define $re_first_match_pre ((s String) (r RegLan))
   ($str_prefix s (str.indexof_re s r 0)))
 
-; define: $re_first_match_pre
+; define: $re_first_match
 ; args:
 ; - s String: The string term.
 ; - r RegLan: The regular expression.
@@ -430,7 +430,7 @@
   (eo::define ((n (str.indexof_re s r 0)))
     (str.substr s n (- (@strings_occur_index_re s r 1) n))))
 
-; define: $re_first_match_pre
+; define: $re_first_match_post
 ; args:
 ; - s String: The string term.
 ; - r RegLan: The regular expression.
@@ -1426,7 +1426,7 @@
   )
 )
 
-; program: $str_arith_entail_simple
+; define: $str_arith_entail_simple
 ; args:
 ; - t Int: An arithmetic term to process.
 ; return: >
@@ -1442,7 +1442,7 @@
 ;   true if we can show that F holds using the fact that length
 ;   is non-negative and basic properties of arithmetic. We first
 ;   normalize the polynomial corresponding to F and check this
-;   using the $str_arith_entail_simple program above.
+;   using the $str_arith_entail_simple definition above.
 (program $str_arith_entail_simple_pred ((n Int) (m Int))
   :signature (Bool) Bool
   (
@@ -1454,10 +1454,10 @@
 ; program: $str_arith_entail_is_approx_len
 ; args:
 ; - s String: The string whose length we are considering.
-; - n Int: An integer that may under (resp. over) approximate the length of s when b is true (resp. false).
-; - b Bool: Whether we are checking that n is an under (resp. over) approximation.
+; - n Int: An integer that may under-approximate (resp. over-approximate) the length of s when isUnder is true (resp. false).
+; - isUnder Bool: Whether we are checking that n is an under-approximation (resp. over-approximation).
 ; return: >
-;   true if we can show that (>= (str.len s) n) (or <= if b is false) holds using approximation
+;   true if we can show that (>= (str.len s) n) (or <= if isUnder is false) holds using approximation
 ;   cases as defined by Figure 2 of "High-Level Abstractions for Simplifying Extended String Constraints
 ;   in SMT", CAV 2019. When applicable, we also rely on calls that reason that string
 ;   length is non-negative and basic properties of arithmetic.
@@ -1507,10 +1507,10 @@
 ; - s String: The first string argument to str.indexof.
 ; - t String: The second string argument to str.indexof.
 ; - n Int: The third argument of str.indexof.
-; - m Int: An integer that may under (resp. over) approximate the given indexof term when b is true (resp. false).
-; - b Bool: Whether we are checking that m is an under (resp. over) approximation.
+; - m Int: An integer that may under-approximate (resp. over-approximate) the given indexof term when isUnder is true (resp. false).
+; - isUnder Bool: Whether we are checking that m is an under-approximation (resp. over-approximation).
 ; return: >
-;   true if we can show that (>= (str.indexof s t n) m) (or <= if b is false) holds using
+;   true if we can show that (>= (str.indexof s t n) m) (or <= if isUnder is false) holds using
 ;   approximation cases as defined by Figure 2 of "High-Level Abstractions for Simplifying
 ;   Extended String Constraints in SMT", CAV 2019. When applicable, we also rely on calls
 ;   that reason that string length is non-negative and basic properties of arithmetic.
@@ -1528,10 +1528,10 @@
 ; define: $str_arith_entail_is_approx_to_int
 ; args:
 ; - s String: The first string argument to str.to_int.
-; - n Int: An integer that may under (resp. over) approximate the given indexof term when b is true (resp. false).
-; - b Bool: Whether we are checking that n is an under (resp. over) approximation.
+; - n Int: An integer that may under-approximate (resp. over-approximate) the given str.to_int term when isUnder is true (resp. false).
+; - isUnder Bool: Whether we are checking that n is an under-approximation (resp. over-approximation).
 ; return: >
-;   true if we can show that (>= (str.to_int s) n) (or <= if b is false) holds using approximation cases
+;   true if we can show that (>= (str.to_int s) n) (or <= if isUnder is false) holds using approximation cases
 ;   as defined by Figure 2 of "High-Level Abstractions for Simplifying Extended String Constraints
 ;   in SMT", CAV 2019.
 (define $str_arith_entail_is_approx_to_int ((s String) (n Int) (isUnder Bool))
@@ -1542,9 +1542,9 @@
 ; args:
 ; - n Int: The first integer term.
 ; - m Int: The second integer term.
-; - b Bool: Whether we are checking that n is an under (resp. over) approximation of m.
+; - isUnder Bool: Whether we are checking that n is an under-approximation (resp. over-approximation) of m.
 ; return: >
-;   true if we can show that (>= n m) (resp (<= n m) when b is false) holds using approximation cases
+;   true if we can show that (>= n m) (resp. (<= n m) when isUnder is false) holds using approximation cases
 ;   as defined by Figure 2 of "High-Level Abstractions for Simplifying Extended String Constraints
 ;   in SMT", CAV 2019.
 (program $str_arith_entail_is_approx ((s String) (t String) (n1 Int) (n2 Int :list) (n3 Int) (n4 Int :list) (n5 Int) (isUnder Bool))
@@ -1684,7 +1684,7 @@
       (eo::define ((r2 ($str_membership_re resfwd)))
         (str.in_re ($str_from_flat_form s2 false) ($re_from_flat_form r2 false)))))))))))))))
 
-; define: $str_re_consume
+; program: $str_re_consume
 ; args:
 ; - s String: The string argument of the membership to rewrite.
 ; - r RegLan: The regular expression argument of the membership to rewrite.
@@ -1693,7 +1693,7 @@
 ;   otherwise `(str.in_re sr rr)` where sr and rr are the result of "consuming"
 ;   prefixes/suffixes from s and r. In addition to the above method
 ;   $str_re_consume_process, we additionally handle the case where we reason
-;   about the body of re.*, succeeding if a conflict is found or we full
+;   about the body of re.*, succeeding if a conflict is found or we fully
 ;   consume one copy.
 (program $str_re_consume ((s String) (r RegLan))
   :signature (String RegLan) Bool
@@ -1764,7 +1764,7 @@
   ($str_overlap_rec ($str_to_flat_form s rev) ($str_to_flat_form t rev)))
 
 
-; program: $str_has_overlap
+; define: $str_has_overlap
 ; args:
 ; - s (Seq U): The first string, expected to be a string or sequence value.
 ; - t (Seq U): The second string, expected to be a string or sequence value.
@@ -1949,7 +1949,7 @@
   )
 )
 
-; program: $str_eval_replace_all
+; define: $str_eval_replace_all
 ; args:
 ; - s String: A string.
 ; - t String: A string to find.

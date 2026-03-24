@@ -122,7 +122,7 @@
   )
 )
 
-; program: $get_arith_poly_norm_div
+; define: $get_arith_poly_norm_div
 ; args:
 ; - a1 T: The numerator to process of type Int or Real.
 ; - a1p @Polynomial: The normalization of a1.
@@ -184,7 +184,7 @@
   )
 )
 
-; program: $get_bv_poly_norm
+; define: $get_bv_poly_norm
 ; args:
 ; - w Int: two raised to the bitwidth of the second argument.
 ; - b (BitVec m): The bitvector term to process.

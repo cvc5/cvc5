@@ -65,7 +65,7 @@
 
 ;;;;; Theory of sequences
 
-; define: $seq_distinct_terms
+; program: $seq_distinct_terms
 ; args:
 ; - t (Seq T): The first term.
 ; - s (Seq T): The second term.
@@ -127,7 +127,7 @@
 
 ;;;;; Definitions
 
-; define: $are_distinct_terms_type
+; program: $are_distinct_terms_type
 ; args:
 ; - t T: The first term.
 ; - s T: The second term.
@@ -150,7 +150,7 @@
   )
 )
 
-; define: $are_distinct_terms_list_rec
+; program: $are_distinct_terms_list_rec
 ; args:
 ; - t T: The term.
 ; - xs @List: A list of terms, each expected to be of type T.
@@ -167,7 +167,7 @@
   )
 )
 
-; define: $are_distinct_terms_list
+; program: $are_distinct_terms_list
 ; args:
 ; - xs @List: A list of terms, each expected to be of type T.
 ; - T Type: The type of the terms in the list.
