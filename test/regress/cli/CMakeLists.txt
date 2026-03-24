@@ -917,6 +917,7 @@ set(regress_0_tests
   regress0/fmf/get-model-domain-elements.smt2
   regress0/fmf/get-model.smt2
   regress0/fmf/issue3661-ccard-dec.smt2
+  regress0/fmf/issue12528-fmf-mbqi-trust-unknown.smt2
   regress0/fmf/issue4850-force-card.smt2
   regress0/fmf/issue4872-qf_ufc.smt2
   regress0/fmf/issue5239-uf-ss-tot.smt2
