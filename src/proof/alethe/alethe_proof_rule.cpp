@@ -29,6 +29,7 @@ const char* aletheRuleToString(AletheRule id)
     case AletheRule::ANCHOR_BIND: return "bind";
     case AletheRule::ANCHOR_SKO_FORALL: return "sko_forall";
     case AletheRule::ANCHOR_SKO_EX: return "sko_ex";
+    case AletheRule::ANCHOR_ONEPOINT: return "onepoint";
     case AletheRule::TRUE: return "true";
     case AletheRule::FALSE: return "false";
     case AletheRule::NOT_NOT: return "not_not";
@@ -130,6 +131,7 @@ const char* aletheRuleToString(AletheRule id)
     case AletheRule::MINISCOPE_SPLIT: return "miniscope_split";
     case AletheRule::MINISCOPE_ITE: return "miniscope_ite";
     case AletheRule::REORDERING: return "reordering";
+    case AletheRule::BETA_EQUIVALENCE: return "beta_equiv";
     case AletheRule::BV_BITBLAST_STEP_VAR: return "bv_bitblast_step_var";
     case AletheRule::BV_BITBLAST_STEP_BVAND: return "bv_bitblast_step_bvand";
     case AletheRule::BV_BITBLAST_STEP_BVOR: return "bv_bitblast_step_bvor";
@@ -156,6 +158,7 @@ const char* aletheRuleToString(AletheRule id)
     case AletheRule::BV_REPEAT_ELIM: return "bv_repeat_elim";
     //================================================= Hole
     case AletheRule::HOLE: return "hole";
+    case AletheRule::AND_INTRO: return "and_intro";
     //================================================= Undefined rule
     case AletheRule::UNDEFINED: return "undefined";
     default: return "?";

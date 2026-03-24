@@ -1102,7 +1102,8 @@
 (program $str_mk_str_in_re_sigma_star_rec ((s String) (r RegLan :list) (n Int))
   :signature (String RegLan Int) Bool
   (
-    (($str_mk_str_in_re_sigma_star_rec s @re.empty n)                    (= (mod (str.len s) n) 0))
+    (($str_mk_str_in_re_sigma_star_rec s @re.empty n)
+      (eo::requires (eo::eq n 0) false (= (mod (str.len s) n) 0)))
     (($str_mk_str_in_re_sigma_star_rec s (re.++ re.allchar r) n)         ($str_mk_str_in_re_sigma_star_rec s r (eo::add n 1)))
   )
 )

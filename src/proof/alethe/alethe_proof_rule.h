@@ -67,6 +67,14 @@ enum class AletheRule : uint32_t
   // G > k. (= (forall (x) F1) F2)
   ANCHOR_SKO_FORALL,
   ANCHOR_SKO_EX,
+  // ======== onepoint
+  // G,xk1,...,xkm,xji->tj1,...,xjo->tjo > (= F1 F2)
+  // -----------------------------------------------
+  // G > (= (Q (x1,...,xn) F1) (Q (xk1,...,xkm) F2))
+  //
+  // where Q is forall or exists, n = m + o, k1,...,km and j1,...,jo are
+  // monotone mappings to 1,...,n, and no xki appears in xj1,...,xjo
+  ANCHOR_ONEPOINT,
   // ======== input
   // > i. F
   ASSUME,
@@ -82,6 +90,13 @@ enum class AletheRule : uint32_t
   // ======== not_not
   // > i.  (cl (not(not(not F)))  F)
   NOT_NOT,
+  // ======== and_intro
+  // G > i1. F1
+  // ...
+  // G > in. Fn
+  // ...
+  // G > k. (and F1 ... Fn)
+  AND_INTRO,
   // ======== and_pos
   // > i.  (cl (not(and F1 ... Fn))  Fi)
   // , with 1 <= i <= n
@@ -457,6 +472,11 @@ enum class AletheRule : uint32_t
   // where set representation of F1 and F2 are the same and the number of
   // literals in C2 is the same of that of C1.
   REORDERING,
+  // ======== HO
+  // > i. (= ((lambda (x_1   ... x_n) t) t_1 ... t_k)
+  //         (lambda (x_k+1 ... x_n) t){x_1 -> t1, ..., x_k -> t_k})
+  // where if k = n then the rhs has no lambda binding t.
+  BETA_EQUIVALENCE,
   // ======== bitvector
   //  > i. (cl (= t bbt(t)))
   BV_BITBLAST_STEP_VAR,
