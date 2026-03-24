@@ -748,6 +748,8 @@ libcvc5_add_sources(
   theory/ff/cocoa_util.h
   theory/ff/core.cpp
   theory/ff/core.h
+  theory/ff/gb.cpp
+  theory/ff/gb.h
   theory/ff/multi_roots.cpp
   theory/ff/multi_roots.h
   theory/ff/parse.cpp
@@ -1523,7 +1525,8 @@ if(NOT SKIP_SET_RPATH AND BUILD_SHARED_LIBS AND APPLE)
 endif()
 
 if(BUILD_SHARED_LIBS)
-  set_target_properties(cvc5 PROPERTIES SOVERSION ${CVC5_SOVERSION})
+  set_target_properties(cvc5 PROPERTIES
+    VERSION ${CVC5_VERSION_NUMBER} SOVERSION ${CVC5_SOVERSION})
 endif()
 
 include(GenerateExportHeader)

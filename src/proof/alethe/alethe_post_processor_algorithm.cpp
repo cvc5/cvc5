@@ -36,16 +36,6 @@ Node applyAcSimp(Env& env, std::map<Node, Node>& cache, Node term)
   {
     return term;
   }
-  if (term.getMetaKind() == metakind::PARAMETERIZED)
-  {
-    // not supported
-    Trace("alethe-proof") << "... reached a parameterized operator during "
-                             "flattening the term which is not supported. Will "
-                             "not flatten any subterm of the current term "
-                          << term << "\n";
-    return term;
-  }
-
   Kind k = term.getKind();
   Node ac_term;
   std::vector<Node> ac_children;
@@ -86,13 +76,13 @@ Node applyAcSimp(Env& env, std::map<Node, Node>& cache, Node term)
   }
   else
   {
+    if (term.getMetaKind() == metakind::PARAMETERIZED)
+    {
+      ac_children.push_back(applyAcSimp(env, cache, term.getOperator()));
+    }
     for (const Node& child : term)
     {
       ac_children.push_back(applyAcSimp(env, cache, child));
-    }
-    if (k == Kind::APPLY_UF)
-    {
-      ac_children.insert(ac_children.begin(), term.getOperator());
     }
     ac_term = nm->mkNode(k, ac_children);
   }

@@ -43,6 +43,7 @@ set(regress_0_tests
   regress0/arith/div.07.smt2
   regress0/arith/divisible-unsat.smt2
   regress0/arith/exp-in-model.smt2
+  regress0/arith/flatten_mon_iand.smt2
   regress0/arith/fuzz_3-eq.smtv1.smt2
   regress0/arith/incorrect1.smtv1.smt2
   regress0/arith/int-eq-conflict-simple.smt2
@@ -345,6 +346,7 @@ set(regress_0_tests
   regress0/bv/bv_to_int_int1.smt2
   regress0/bv/bv_to_int_proj_417.smt2
   regress0/bv/bv_to_int_zext.smt2
+  regress0/bv/bv_to_bool_conflict.smt2
   regress0/bv/bvcomp.cvc.smt2
   regress0/bv/bvmul-pow2-only.smt2
   regress0/bv/bvproof1.smt2
@@ -915,6 +917,7 @@ set(regress_0_tests
   regress0/fmf/get-model-domain-elements.smt2
   regress0/fmf/get-model.smt2
   regress0/fmf/issue3661-ccard-dec.smt2
+  regress0/fmf/issue12528-fmf-mbqi-trust-unknown.smt2
   regress0/fmf/issue4850-force-card.smt2
   regress0/fmf/issue4872-qf_ufc.smt2
   regress0/fmf/issue5239-uf-ss-tot.smt2
@@ -1171,6 +1174,7 @@ set(regress_0_tests
   regress0/nl/issue8755-nl-logic-exception.smt2
   regress0/nl/issue8835-int-second.smt2
   regress0/nl/issue8934-lr-int-mod-range.smt2
+  regress0/nl/issue12499-learned-rewrite-mod-range.smt2
   regress0/nl/issue9661.smt2
   regress0/nl/issue12296.smt2
   regress0/nl/lazard-spurious-root.smt2
@@ -1300,6 +1304,8 @@ set(regress_0_tests
   regress0/parser/issue10889-sexpr-eof.smt2
   regress0/parser/issue11935-err-code-point.smt2
   regress0/parser/issue11991-nwf.smt2
+  regress0/parser/issue12514-bitvec-width-overflow.smt2
+  regress0/parser/issue12514-sign-extend-overflow.smt2
   regress0/parser/issue12062-overflow.smt2
   regress0/parser/issue5163.smt2
   regress0/parser/issue6908-get-value-uc.smt2
@@ -1338,6 +1344,7 @@ set(regress_0_tests
   regress0/parser/non_well_founded_dt.smt2
   regress0/parser/non_well_founded_dts.smt2
   regress0/parser/parser-line-error.smt2
+  regress0/parser/parse-skolem-oob.smt2
   regress0/parser/print-success.smt2
   regress0/parser/proj-issue370-push-pop-global.smt2
   regress0/parser/quoted-define-fun.smt2
@@ -1556,6 +1563,7 @@ set(regress_0_tests
   regress0/proofs/proj-issue773-nnf-double-neg.smt2
   regress0/proofs/proj-issue775-mult-sign.smt2
   regress0/proofs/proj-issue778-subtype-div.smt2
+  regress0/proofs/proj-issue784-benchmark2.smt2
   regress0/proofs/proj-issue781-cyclic-pppg.smt2
   regress0/proofs/proj-issue781-cyclic-pppg-2.smt2
   regress0/proofs/proof-components.smt2
@@ -1901,6 +1909,9 @@ set(regress_0_tests
   regress0/seq/query2-subtype.smt2
   regress0/seq/rev.smt2
   regress0/seq/seq-eval-bug.smt2
+  regress0/seq/seq-eval-contains.smt2
+  regress0/seq/seq-eval-extract.smt2
+  regress0/seq/seq-eval-replace-all.smt2
   regress0/seq/seqa-model-unsound-dd.smt2
   regress0/seq/array/array1.smt2
   regress0/seq/array/array2.smt2
@@ -1940,6 +1951,7 @@ set(regress_0_tests
   regress0/sets/abt-min.smt2
   regress0/sets/abt-te-exh.smt2
   regress0/sets/abt-te-exh2.smt2
+  regress0/sets/bug_setfold_union.smt2
   regress0/sets/card-2.smt2
   regress0/sets/card-3sets.cvc.smt2
   regress0/sets/card.smt2
@@ -2210,6 +2222,7 @@ set(regress_0_tests
   regress0/strings/regexp_inclusion.smt2
   regress0/strings/regexp-native-simple.cvc.smt2
   regress0/strings/regexp-repeat.smt2
+  regress0/strings/repl-all-non-const-range.smt2
   regress0/strings/repl-rewrites2.smt2
   regress0/strings/replace-all-rew-more.smt2
   regress0/strings/replace-const.smt2
@@ -2612,6 +2625,7 @@ set(regress_1_tests
   regress1/bags/bag_member.smt2
   regress1/bags/bag_partition1.smt2
   regress1/bags/bags-of-bags-subtypes.smt2
+  regress1/bags/bug_bagsome_geq.smt2
   regress1/bags/card1.smt2
   regress1/bags/card2.smt2
   regress1/bags/choose1.smt2
@@ -2688,6 +2702,12 @@ set(regress_1_tests
   regress1/bv/bug_extract_mult_leading_bit.smt2
   regress1/bv/bv_to_int_10084.smt2
   regress1/bv/bv_to_int_10084_forall.smt2
+  regress1/bv/bv_to_int_quant_pattern.smt2
+  regress1/bv/bv_to_int_quant_pattern_list.smt2
+  regress1/bv/bv_to_int_quant_uf_bv.smt2
+  regress1/bv/bv_to_int_quant_uf_bv_dis.smt2
+  regress1/bv/bv_to_int_quant_uf_nobv.smt2
+  regress1/bv/bv_to_int_quant_uf_nobv_dis_S.smt2
   regress1/bv/bv-int-collapse2-sat.smt2
   regress1/bv/bv-proof00.smtv1.smt2
   regress1/bv/bv2nat-ground.smt2
@@ -3156,6 +3176,7 @@ set(regress_1_tests
   regress1/quantifiers/ho-seu-sygus-inst.smt2
   regress1/quantifiers/horn-simple.smt2
   regress1/quantifiers/inst-ground-term.smt2
+  regress1/quantifiers/mbqi-enum-dtype-ops.smt2
   regress1/quantifiers/inst-max-level-segf.smt2
   regress1/quantifiers/inst-prop-simp.smt2
   regress1/quantifiers/intersection-example-onelane.proof-node22337.smt2
@@ -4018,6 +4039,7 @@ set(regress_2_tests
   regress2/bv_to_int_mask_array_3.smt2
   regress2/bv_to_int_shifts.smt2
   regress2/bv_to_int_quantifiers_bvand.smt2
+  regress2/bv_to_int_quant_ufuf.smt2
   regress2/error1.smtv1.smt2
   regress2/fp/issue7056.smt2
   regress2/fuzz_2.smtv1.smt2

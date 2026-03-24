@@ -2095,7 +2095,7 @@ enum ENUM(ProofRule)
    *            {(x_1 \diamond x_2) = (y_1 \diamond y_2)}
    *
    * where :math:`\diamond \in \{<, \leq, =, \geq, >\}`. :math:`c_x` and
-   * :math:`c_y` are scaling factors. For :math:`<, \leq, \geq, >`, the scaling
+   * :math:`c_y` are non-zero scaling factors. For :math:`<, \leq, \geq, >`, the scaling
    * factors have the same sign.
    *
    * If :math:`c_x` has type :math:`Real` and :math:`x_1, x_2` are of type
@@ -4175,14 +4175,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(ARITH_EQ_ELIM_REAL),
   /** Auto-generated from RARE rule arith-eq-elim-int */
   EVALUE(ARITH_EQ_ELIM_INT),
-  /** Auto-generated from RARE rule arith-to-int-elim */
-  EVALUE(ARITH_TO_INT_ELIM),
   /** Auto-generated from RARE rule arith-to-int-elim-to-real */
   EVALUE(ARITH_TO_INT_ELIM_TO_REAL),
-  /** Auto-generated from RARE rule arith-div-elim-to-real1 */
-  EVALUE(ARITH_DIV_ELIM_TO_REAL1),
-  /** Auto-generated from RARE rule arith-div-elim-to-real2 */
-  EVALUE(ARITH_DIV_ELIM_TO_REAL2),
   /** Auto-generated from RARE rule arith-mod-over-mod-1 */
   EVALUE(ARITH_MOD_OVER_MOD_1),
   /** Auto-generated from RARE rule arith-mod-over-mod */

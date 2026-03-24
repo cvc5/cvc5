@@ -231,7 +231,7 @@ Node LearnedRewrite::rewriteLearnedRec(Node n,
       }
       // rewrite here
       ret = rewrite(ret);
-      ret = rewriteLearned(ret, binfer, learnedLits, lems);
+      ret = rewriteLearned(ret, binfer, learnedLits);
       visited[cur] = ret;
     }
   } while (!visit.empty());
@@ -242,8 +242,7 @@ Node LearnedRewrite::rewriteLearnedRec(Node n,
 
 Node LearnedRewrite::rewriteLearned(Node nr,
                                     arith::BoundInference& binfer,
-                                    const std::vector<Node>& learnedLits,
-                                    std::unordered_set<Node>& lems)
+                                    const std::vector<Node>& learnedLits)
 {
   NodeManager* nm = nodeManager();
   Trace("learned-rewrite-rr-debug") << "Rewrite " << nr << std::endl;
@@ -331,9 +330,10 @@ Node LearnedRewrite::rewriteLearned(Node nr,
         {
           Rational bnuml = nb.lower_value.getConst<Rational>();
           Rational bnumu = nb.upper_value.getConst<Rational>();
-          Rational bnum = bnumu.abs() > bnuml.abs() ? bnuml.abs() : bnumu.abs();
-          if (bnuml.sgn() == bnumu.sgn() && bdenl.abs() < bnum
-              && bdenu.abs() < bnum)
+          Rational bnumMaxAbs =
+              bnumu.abs() > bnuml.abs() ? bnumu.abs() : bnuml.abs();
+          if (bnuml.sgn() == bnumu.sgn() && bnumMaxAbs < bdenl.abs()
+              && bnumMaxAbs < bdenu.abs())
           {
             // if the numerator is negative, then (mod x y) ---> (+ x (abs y))
             // otherwise, (mod x y) ---> x

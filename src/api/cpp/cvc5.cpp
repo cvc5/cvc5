@@ -4334,17 +4334,6 @@ DatatypeConstructor::const_iterator::const_iterator()
 {
 }
 
-DatatypeConstructor::const_iterator&
-DatatypeConstructor::const_iterator::operator=(
-    const DatatypeConstructor::const_iterator& it)
-{
-  d_tm = it.d_tm;
-  d_int_stors = it.d_int_stors;
-  d_stors = it.d_stors;
-  d_idx = it.d_idx;
-  return *this;
-}
-
 const DatatypeSelector& DatatypeConstructor::const_iterator::operator*() const
 {
   return d_stors[d_idx];
@@ -4704,16 +4693,6 @@ Datatype::const_iterator::const_iterator(TermManager* tm,
 Datatype::const_iterator::const_iterator()
     : d_tm(nullptr), d_int_ctors(nullptr), d_idx(0)
 {
-}
-
-Datatype::const_iterator& Datatype::const_iterator::operator=(
-    const Datatype::const_iterator& it)
-{
-  d_tm = it.d_tm;
-  d_int_ctors = it.d_int_ctors;
-  d_ctors = it.d_ctors;
-  d_idx = it.d_idx;
-  return *this;
 }
 
 const DatatypeConstructor& Datatype::const_iterator::operator*() const
@@ -5279,8 +5258,8 @@ Plugin::Plugin(TermManager& tm)
 }
 
 std::vector<Term> Plugin::check() { return {}; }
-void Plugin::notifySatClause(const Term& clause) {}
-void Plugin::notifyTheoryLemma(const Term& lemma) {}
+void Plugin::notifySatClause(CVC5_UNUSED const Term& clause) {}
+void Plugin::notifyTheoryLemma(CVC5_UNUSED const Term& lemma) {}
 
 /* -------------------------------------------------------------------------- */
 /* TermManager                                                                */
@@ -6846,7 +6825,6 @@ Solver::~Solver() {}
 Term Solver::synthFunHelper(const std::string& symbol,
                             const std::vector<Term>& boundVars,
                             const Sort& sort,
-                            bool isInv,
                             Grammar* grammar) const
 {
   // Note: boundVars, sort and grammar are checked in the caller to avoid
@@ -6884,10 +6862,7 @@ Term Solver::synthFunHelper(const std::string& symbol,
   std::vector<internal::Node> bvns = Term::termVectorToNodes(boundVars);
 
   d_slv->declareSynthFun(
-      fun,
-      grammar == nullptr ? funType : *grammar->resolve().d_type,
-      isInv,
-      bvns);
+      fun, grammar == nullptr ? funType : *grammar->resolve().d_type, bvns);
 
   return Term(&d_tm, fun);
 }
@@ -7739,7 +7714,7 @@ std::string OptionInfo::toString() const
     }
   };
   std::visit(overloaded{
-                 [&os](const OptionInfo::VoidInfo& vi) { os << " | void"; },
+                 [&os](const OptionInfo::VoidInfo&) { os << " | void"; },
                  [&os](const OptionInfo::ValueInfo<bool>& vi) {
                    os << std::boolalpha << " | bool | " << vi.currentValue
                       << " | default " << vi.defaultValue << std::noboolalpha;
@@ -7811,7 +7786,7 @@ OptionInfo Solver::getOptionInfo(const std::string& option) const
       << "Querying invalid or unknown option " << option;
   return std::visit(
       overloaded{
-          [&info](const internal::options::OptionInfo::VoidInfo& vi) {
+          [&info](const internal::options::OptionInfo::VoidInfo&) {
             auto cat = convertOptionCategory(info.category);
             return OptionInfo{info.name,
                               info.aliases,
@@ -8745,7 +8720,7 @@ Term Solver::synthFun(const std::string& symbol,
       << "cannot call synthFun unless sygus is enabled (use --"
       << internal::options::quantifiers::longName::sygus << ")";
   //////// all checks before this line
-  return synthFunHelper(symbol, boundVars, sort, false, &grammar);
+  return synthFunHelper(symbol, boundVars, sort, &grammar);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
