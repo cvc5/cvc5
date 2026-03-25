@@ -2052,7 +2052,7 @@ void CoreSolver::processDeq(Node ni, Node nj)
                || v.getKind() == Kind::STRING_UNIT);
         vc = v[0];
       }
-      Assert(u[0].getType() == vc.getType());
+      AssertEqual(u[0].getType(), vc.getType());
       // if already disequal, we are done
       if (d_state.areDisequal(u[0], vc))
       {
@@ -2065,7 +2065,7 @@ void CoreSolver::processDeq(Node ni, Node nj)
       Node deq = u.eqNode(v).notNode();
       std::vector<Node> premises;
       premises.push_back(deq);
-      Assert(u[0].getType()==vc.getType());
+      AssertEqual(u[0].getType(), vc.getType());
       Node conc = u[0].eqNode(vc).notNode();
       d_im.sendInference(premises, conc, InferenceId::STRINGS_UNIT_INJ_DEQ, false, true);
       return;

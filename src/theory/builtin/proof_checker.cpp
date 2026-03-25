@@ -291,7 +291,7 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
   {
     Assert(children.empty());
     Assert(args.size() == 2);
-    Assert(args[0].getType() == args[1].getType());
+    AssertEqual(args[0].getType(), args[1].getType());
     if (!args[0].isConst() || !args[1].isConst() || args[0] == args[1])
     {
       return Node::null();

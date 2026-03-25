@@ -374,7 +374,7 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
       Node ret = sygusToBuiltinEval(ev, args);
       Trace("dt-sygus-util") << "...got " << ret << "\n";
       Trace("dt-sygus-util") << "Type is " << ret.getType() << std::endl;
-      Assert(in.getType() == ret.getType());
+      AssertEqual(in.getType(), ret.getType());
       return RewriteResponse(REWRITE_AGAIN_FULL, ret);
     }
   }

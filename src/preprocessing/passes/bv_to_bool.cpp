@@ -64,7 +64,7 @@ void BVToBool::addToLiftCache(TNode term, Node new_term)
 {
   Assert(new_term != Node());
   Assert(!hasLiftCache(term));
-  Assert(term.getType() == new_term.getType());
+  AssertEqual(term.getType(), new_term.getType());
   d_liftCache[term] = new_term;
 }
 
@@ -263,7 +263,7 @@ Node BVToBool::liftNode(TNode current)
       {
         // Recursively lift children
         Node converted = liftNode(current[i]);
-        Assert(converted.getType() == current[i].getType());
+        AssertEqual(converted.getType(), current[i].getType());
         builder << converted;
       }
       result = builder;
@@ -271,7 +271,7 @@ Node BVToBool::liftNode(TNode current)
     }
   }
   Assert(result != Node());
-  Assert(result.getType() == current.getType());
+  AssertEqual(result.getType(), current.getType());
   Trace("bv-to-bool") << "BVToBool::liftNode " << current << " => \n"
                       << result << "\n";
   return result;
