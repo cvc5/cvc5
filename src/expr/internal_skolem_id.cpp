@@ -29,6 +29,7 @@ const char* toString(InternalSkolemId id)
       return "QUANTIFIERS_SYNTH_FUN_EMBED";
     case InternalSkolemId::HO_TYPE_MATCH_PRED: return "HO_TYPE_MATCH_PRED";
     case InternalSkolemId::MBQI_INPUT: return "MBQI_INPUT";
+    case InternalSkolemId::MBQI_CHOICE_FUN: return "MBQI_CHOICE_FUN";
     case InternalSkolemId::ABSTRACT_VALUE: return "ABSTRACT_VALUE";
     case InternalSkolemId::QE_CLOSED_INPUT: return "QE_CLOSED_INPUT";
     case InternalSkolemId::QUANTIFIERS_ATTRIBUTE_INTERNAL:
