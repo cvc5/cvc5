@@ -7,12 +7,12 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Implementation of ALF node conversion
+ * Implementation of Eunoia node conversion
  */
 #include "cvc5_private.h"
 
-#ifndef CVC5__PROOF__ALF__ALF_NODE_CONVERTER_H
-#define CVC5__PROOF__ALF__ALF_NODE_CONVERTER_H
+#ifndef CVC5__PROOF__EO__EO_NODE_CONVERTER_H
+#define CVC5__PROOF__EO__EO_NODE_CONVERTER_H
 
 #include <iostream>
 #include <map>
@@ -26,13 +26,13 @@ namespace cvc5::internal {
 namespace proof {
 
 /**
- * Base class for node converters used in the ALF printer. Extends node
+ * Base class for node converters used in the Eunoia printer. Extends node
  * conversion with a typeAsNode routine.
  */
-class BaseAlfNodeConverter : public NodeConverter
+class BaseEoNodeConverter : public NodeConverter
 {
  public:
-  BaseAlfNodeConverter(NodeManager* nm);
+  BaseEoNodeConverter(NodeManager* nm);
   /**
    * Returns the operator of node n.
    * @param n The term whose operator we wish to retrieve.
@@ -40,7 +40,7 @@ class BaseAlfNodeConverter : public NodeConverter
    */
   virtual Node getOperatorOfTerm(Node n) = 0;
   /**
-   * Type as node, returns a node that prints in the form that ALF will
+   * Type as node, returns a node that prints in the form that Eunoia will
    * interpret as the type tni. This method is required since types can be
    * passed as arguments to terms and proof rules.
    */
@@ -65,14 +65,14 @@ class BaseAlfNodeConverter : public NodeConverter
 };
 
 /**
- * This is a helper class for the ALF printer that converts nodes into
- * form that ALF expects. It should only be used by the ALF printer.
+ * This is a helper class for the Eunoia printer that converts nodes into
+ * form that Eunoia expects. It should only be used by the Eunoia printer.
  */
-class AlfNodeConverter : public BaseAlfNodeConverter
+class EoNodeConverter : public BaseEoNodeConverter
 {
  public:
-  AlfNodeConverter(NodeManager* nm);
-  ~AlfNodeConverter();
+  EoNodeConverter(NodeManager* nm);
+  ~EoNodeConverter();
   /** Convert at pre-order traversal */
   Node preConvert(Node n) override;
   /** Convert at post-order traversal */
@@ -104,7 +104,7 @@ class AlfNodeConverter : public BaseAlfNodeConverter
                      TypeNode ret,
                      bool useRawSym = true) override;
   /**
-   * Type as node, returns a node that prints in the form that ALF will
+   * Type as node, returns a node that prints in the form that Eunoia will
    * interpret as the type tni. This method is required since types can be
    * passed as arguments to terms and proof rules.
    */
@@ -127,7 +127,7 @@ class AlfNodeConverter : public BaseAlfNodeConverter
   bool shouldTraverse(Node n) override;
   /**
    * Make skolem function, if k was constructed by a skolem function identifier
-   * (in SkolemManager::mkSkolemFunction) that is supported in the ALF
+   * (in SkolemManager::mkSkolemFunction) that is supported in the Eunoia
    * signature.
    */
   Node maybeMkSkolemFun(Node k);
@@ -135,11 +135,11 @@ class AlfNodeConverter : public BaseAlfNodeConverter
   bool isAmbiguousDtConstructor(const Node& op);
   /** Do we handle the given skolem id? */
   static bool isHandledSkolemId(SkolemId id);
-  /** Get indices for printing the operator of n in the ALF format */
+  /** Get indices for printing the operator of n in the Eunoia format */
   static std::vector<Node> getOperatorIndices(Kind k, Node n);
   /** The set of all internally generated symbols */
   std::unordered_set<Node> d_symbols;
-  /** The type of ALF sorts, which can appear in terms */
+  /** The type of Eunoia sorts, which can appear in terms */
   TypeNode d_sortType;
   /** Used for getting unique index for uncategorized skolems */
   std::map<Node, size_t> d_constIndex;

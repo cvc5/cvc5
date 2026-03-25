@@ -30,8 +30,9 @@ namespace smt2 {
 enum class Variant
 {
   no_variant,
-  // A variant used for printing commands in the preamble of ALF proofs. This is used by the ALF printer.
-  alf_variant
+  // A variant used for printing commands in the preamble of Eunoia proofs.
+  // This is used by the Eunoia printer.
+  eo_variant
 };
 
 class Smt2Printer : public cvc5::internal::Printer
