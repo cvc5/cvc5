@@ -11,8 +11,8 @@
  */
 #include "cvc5_private.h"
 
-#ifndef CVC4__PROOF__EO__EO_LIST_NODE_CONVERTER_H
-#define CVC4__PROOF__EO__EO_LIST_NODE_CONVERTER_H
+#ifndef CVC5__PROOF__EO__EO_LIST_NODE_CONVERTER_H
+#define CVC5__PROOF__EO__EO_LIST_NODE_CONVERTER_H
 
 #include "expr/node_converter.h"
 #include "proof/eo/eo_node_converter.h"
