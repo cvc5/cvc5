@@ -7,24 +7,24 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * The printer for the AletheLF format.
+ * The printer for the Eunoia format.
  */
 #include <cstddef>
 #include <memory>
 
 #include "cvc5_private.h"
 
-#ifndef CVC5__PROOF__ALF_PROOF_PRINTER_H
-#define CVC5__PROOF__ALF_PROOF_PRINTER_H
+#ifndef CVC5__PROOF__EO_PROOF_PRINTER_H
+#define CVC5__PROOF__EO_PROOF_PRINTER_H
 
 #include <iostream>
 
 #include "context/cdhashmap.h"
 #include "context/cdhashset.h"
 #include "expr/node_algorithm.h"
-#include "proof/alf/alf_list_node_converter.h"
-#include "proof/alf/alf_node_converter.h"
-#include "proof/alf/alf_print_channel.h"
+#include "proof/eo/eo_list_node_converter.h"
+#include "proof/eo/eo_node_converter.h"
+#include "proof/eo/eo_print_channel.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_node.h"
 #include "rewriter/rewrite_proof_rule.h"
@@ -35,14 +35,14 @@ namespace cvc5::internal {
 
 namespace proof {
 
-class AlfPrinter : protected EnvObj
+class EoPrinter : protected EnvObj
 {
  public:
-  AlfPrinter(Env& env,
-             BaseAlfNodeConverter& atp,
-             rewriter::RewriteDb* rdb,
-             uint32_t letThresh = 2);
-  ~AlfPrinter() {}
+  EoPrinter(Env& env,
+            BaseEoNodeConverter& atp,
+            rewriter::RewriteDb* rdb,
+            uint32_t letThresh = 2);
+  ~EoPrinter() {}
 
   /**
    * Print the full proof pfn.
@@ -55,12 +55,12 @@ class AlfPrinter : protected EnvObj
              std::shared_ptr<ProofNode> pfn,
              ProofScopeMode psm = ProofScopeMode::DEFINITIONS_AND_ASSERTIONS);
   /**
-   * Same as above, but with an alf print output channel.
+   * Same as above, but with a Eunoia print channel.
    * @param out The output stream.
    * @param pfn The proof node.
    * @param psm The scope mode.
    */
-  void print(AlfPrintChannelOut& out,
+  void print(EoPrintChannelOut& out,
              std::shared_ptr<ProofNode> pfn,
              ProofScopeMode psm = ProofScopeMode::DEFINITIONS_AND_ASSERTIONS);
   /**
@@ -70,7 +70,7 @@ class AlfPrinter : protected EnvObj
    * @param out The output stream.
    * @param pfn The proof node.
    */
-  void printNext(AlfPrintChannelOut& out, std::shared_ptr<ProofNode> pfn);
+  void printNext(EoPrintChannelOut& out, std::shared_ptr<ProofNode> pfn);
 
   /**
    * Print proof rewrite rule name r to output stream out
@@ -125,7 +125,7 @@ class AlfPrinter : protected EnvObj
   /**
    * Add the arguments of proof node pn to args in the order in which they
    * should be printed. This also ensures the nodes have been converted via the
-   * ALF node converter.
+   * Eunoia node converter.
    */
   void getArgsFromProofRule(const ProofNode* pn, std::vector<Node>& args);
   /**
@@ -137,19 +137,19 @@ class AlfPrinter : protected EnvObj
    * @param addToCache If true, we add (subproofs) of pn to the cache and do
    * not print them with this method if they are encounted again.
    */
-  void printProofInternal(AlfPrintChannel* out,
+  void printProofInternal(EoPrintChannel* out,
                           const ProofNode* pn,
                           bool addToCache);
   /**
    * Called at preorder traversal of proof node pn. Prints (if necessary) to
    * out.
    */
-  void printStepPre(AlfPrintChannel* out, const ProofNode* pn);
+  void printStepPre(EoPrintChannel* out, const ProofNode* pn);
   /**
    * Called at postorder traversal of proof node pn. Prints (if necessary) to
    * out.
    */
-  void printStepPost(AlfPrintChannel* out, const ProofNode* pn);
+  void printStepPost(EoPrintChannel* out, const ProofNode* pn);
   /**
    * Allocate (if necessary) the identifier for an assume-push step for pn and
    * return the identifier. pn should be an application of ProofRule::SCOPE.
@@ -169,7 +169,7 @@ class AlfPrinter : protected EnvObj
   /** Print let list to output stream out */
   void printLetList(std::ostream& out, LetBinding& lbind);
   /** Reference to the term processor */
-  BaseAlfNodeConverter& d_tproc;
+  BaseEoNodeConverter& d_tproc;
   /** Assume id counter */
   size_t d_pfIdCounter;
   /** Mapping proofs to identifiers */
@@ -203,7 +203,7 @@ class AlfPrinter : protected EnvObj
   /** The let binding we are using (possibly null) */
   LetBinding* d_lbindUse;
   /** The letification channel. */
-  AlfPrintChannelPre d_aletify;
+  EoPrintChannelPre d_eletify;
   /** A cache for explicit type-of variables, for printing DSL_REWRITE steps */
   std::map<ProofRewriteRule, std::vector<Node>> d_explicitTypeOf;
 };
@@ -211,4 +211,4 @@ class AlfPrinter : protected EnvObj
 }  // namespace proof
 }  // namespace cvc5::internal
 
-#endif /* CVC5__PROOF__ALF_PROOF_PRINTER_H */
+#endif /* CVC5__PROOF__EO_PROOF_PRINTER_H */
