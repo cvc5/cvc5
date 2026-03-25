@@ -7,10 +7,6 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * [[ Add one-line brief description here ]]
- *
- * [[ Add lengthier description here ]]
- * \todo document this file
  */
 
 #include "theory/arith/linear/cut_log.h"
@@ -477,41 +473,6 @@ void NodeLog::applyRowsDeleted(const RowsDeleted& rd) {
   }
 
 }
-
-// void NodeLog::adjustRowId(CutInfo& ci, const RowsDeleted& rd) {
-//   int origRowId = ci.getRowId();
-//   int newRowId = ci.getRowId();
-//   ArithVar v = d_rowId2ArithVar[origRowId];
-
-//   const PrimitiveVec& cv = rd.getCutVector();
-
-//   for(int j = 1, N = cv.len; j <= N; j++){
-//     int ind = cv.inds[j];
-//     if(ind == origRowId){
-//       newRowId = -1;
-//       break;
-//     }else if(ind < origRowId){
-//       newRowId--;
-//     }
-//   }
-
-//   if(newRowId < 0){
-//     cout << "deleting " << ci << " because of " << rd << endl;
-//     cout << "had " << origRowId << " <-> " << v << endl;
-//     d_rowId2ArithVar.erase(origRowId);
-//     ci.setRowId(-1);
-//   }else if(newRowId != origRowId){
-//     cout << "adjusting " << ci << " because of " << rd << endl;
-//     cout << "had " << origRowId << " <-> " << v << endl;
-//     cout << "now have " << newRowId << " <-> " << v << endl;
-//     d_rowId2ArithVar.erase(origRowId);
-//     ci.setRowId(newRowId);
-//     mapRowId(newRowId, v);
-//   }else{
-//     cout << "row id unchanged " << ci << " because of " << rd << endl;
-//   }
-// }
-
 
 ArithVar NodeLog::lookupRowId(int rowId) const{
   RowIdMap::const_iterator i = d_rowId2ArithVar.find(rowId);
