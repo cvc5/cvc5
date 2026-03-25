@@ -238,7 +238,8 @@ Node PartitionGenerator::stopPartitioning()
 // Once we reach that point, we dump all the partitions.
 Node PartitionGenerator::makeScatterPartitions(LiteralListType litType,
                                                bool timedOut,
-                                               bool randomize)
+                                               bool randomize,
+                                               bool ffd = false)
 {
   // If we're not at the last cube
   if (d_numPartitionsSoFar < d_numPartitions - 1)
@@ -321,7 +322,8 @@ Node PartitionGenerator::makeScatterPartitions(LiteralListType litType,
 
 Node PartitionGenerator::makeCubePartitions(LiteralListType litType,
                                             bool emitZLL,
-                                            bool randomize)
+                                            bool randomize,
+                                            bool ffd = false)
 {
   std::vector<Node> literals = collectLiterals(litType);
   uint64_t numVar = static_cast<uint64_t>(log2(d_numPartitions));
@@ -388,24 +390,67 @@ Node PartitionGenerator::makeCubePartitions(LiteralListType litType,
 
       numConsecutiveTF = numConsecutiveTF / 2;
     }
-    for (const std::vector<Node>& row : resultNodeLists)
+
+    if (ffd)
     {
-      Node conj = nodeManager()->mkAnd(row);
-      if (emitZLL)
+      for (const std::vector<Node>& row : resultNodeLists)
       {
-        std::vector<Node> zllLiterals = collectLiterals(ZLL);
-        zllLiterals.push_back(conj);
-        Node zllConj = nodeManager()->mkAnd(zllLiterals);
-        emitPartition(zllConj);
+        *options().parallel.partitionsOut << "( ";
+        for (auto r : row)
+        {
+          *options().parallel.partitionsOut << r << " ";
+        }
+        *options().parallel.partitionsOut << ")" << std::endl;
       }
-      else
+    }
+    else
+    {
+      for (const std::vector<Node>& row : resultNodeLists)
       {
-        emitPartition(conj);
+        Node conj = nodeManager()->mkAnd(row);
+        if (emitZLL)
+        {
+          std::vector<Node> zllLiterals = collectLiterals(ZLL);
+          zllLiterals.push_back(conj);
+          Node zllConj = nodeManager()->mkAnd(zllLiterals);
+          emitPartition(zllConj);
+        }
+        else
+        {
+          emitPartition(conj);
+        }
       }
     }
     return stopPartitioning();
   }
   return Node::null();
+}
+
+Node PartitionGenerator::makeFFDList(bool randomize)
+{
+  std::vector<Node> literals = collectLiterals(LiteralListType::DECISION);
+
+  if (literals.size() < d_numPartitions)
+  {
+    return Node::null();
+  }
+  if (literals.size() >= d_numPartitions)
+  {
+    if (randomize)
+    {
+      std::shuffle(literals.begin(),
+                   literals.end(),
+                   std::mt19937(std::random_device()()));
+    }
+    literals.resize(d_numPartitions);
+  }
+
+  for (auto l : literals)
+  {
+    *options().parallel.partitionsOut << l << std::endl;
+  }
+
+  return stopPartitioning();
 }
 
 void PartitionGenerator::emitRemainingPartitions(bool solved)
@@ -549,6 +594,18 @@ void PartitionGenerator::check(Theory::Effort e)
     case options::PartitionMode::LEMMA_SCATTER:
       lem = makeScatterPartitions(
           /*litType=*/LEMMA, timeOutExceeded, randomize);
+      break;
+    case options::PartitionMode::FFD_LIST: lem = makeFFDList(randomize); break;
+    case options::PartitionMode::FFD_CUBE:
+      lem = makeCubePartitions(
+          /*litType=*/DECISION, emitZLL, randomize, /*ffd=*/true);
+      break;
+    case options::PartitionMode::FFD_SCATTER:
+      lem = makeScatterPartitions(
+          /*litType=*/DECISION,
+          timeOutExceeded,
+          randomize,
+          /*ffd=*/true);
       break;
     default: return;
   }

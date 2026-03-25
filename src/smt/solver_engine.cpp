@@ -31,6 +31,7 @@
 #include "options/main_options.h"
 #include "options/option_exception.h"
 #include "options/options_public.h"
+#include "options/parallel_options.h"
 #include "options/parser_options.h"
 #include "options/printer_options.h"
 #include "options/proof_options.h"
@@ -67,6 +68,8 @@
 #include "smt/timeout_core_manager.h"
 #include "smt/unsat_core_manager.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
+#include "theory/decision_manager.h"
+#include "theory/decision_strategy.h"
 #include "theory/quantifiers/candidate_rewrite_database.h"
 #include "theory/quantifiers/instantiation_list.h"
 #include "theory/quantifiers/oracle_engine.h"
@@ -113,6 +116,7 @@ SolverEngine::SolverEngine(NodeManager* nm, const Options* optr)
       d_abductSolver(nullptr),
       d_interpolSolver(nullptr),
       d_quantElimSolver(nullptr),
+      d_ffdDecisionStrat(nullptr),
       d_userLogicSet(false),
       d_safeOptsSetRegularOption(false),
       d_safeOptsSetRegularOptionToDefault(false),
@@ -798,6 +802,37 @@ Result SolverEngine::checkSat(const std::vector<Node>& assumptions)
 {
   beginCall(true);
   Result res = checkSatInternal(assumptions);
+  endCall();
+  return res;
+}
+
+Result SolverEngine::checkSatFFD(const std::vector<Node>& ffds)
+{
+  beginCall(true);
+  TheoryEngine* te = d_smtSolver->getTheoryEngine();
+
+  d_ffdDecisionStrat.reset(
+      new theory::DecisionStrategyFFD(*d_env.get(), theory::Valuation(te)));
+
+  d_ffdDecisionStrat->setOutputChannel(te);
+
+  if (options().parallel.ffdFastPartitionMode)
+  {
+    NodeManager* nm = d_env->getNodeManager();
+    auto bigLit = nm->mkAnd(ffds);
+    d_ffdDecisionStrat->addLiteral(bigLit);
+  }
+  else
+  {
+    for (auto n : ffds)
+    {
+      d_ffdDecisionStrat->addLiteral(n);
+    }
+  }
+
+  te->getDecisionManager()->registerStrategy(theory::DecisionManager::STRAT_FFD,
+                                             d_ffdDecisionStrat.get());
+  Result res = checkSatInternal({});
   endCall();
   return res;
 }

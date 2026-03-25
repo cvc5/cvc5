@@ -3714,6 +3714,13 @@ struct Cvc5Plugin
    */
   const char* (*get_name)();
 
+  /**
+   * For communicating to a plugin that a partition was solved.
+   * This is used when a partition, phi and p, is found to be unsat but solving
+   * continues on the remainder of the formula.
+   */
+  void (*handle_partition_solved)();
+
   /** The state to pass into `check`. */
   void* d_check_state;
   /** The state to pass into `notify_sat_clause`. */

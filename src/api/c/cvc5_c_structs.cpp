@@ -476,3 +476,12 @@ std::string Cvc5::PluginCpp::getName()
   Assert(d_plugin->get_name);
   return d_plugin->get_name();
 }
+
+void Cvc5::PluginCpp::handlePartitionSolved()
+{
+  Assert(d_plugin);
+  if (d_plugin->handle_partition_solved)
+  {
+    return d_plugin->handle_partition_solved();
+  }
+}

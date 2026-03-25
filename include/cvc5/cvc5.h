@@ -3646,6 +3646,13 @@ class CVC5_EXPORT Plugin
    */
   virtual std::string getName() = 0;
 
+  /**
+   * For communicating to a plugin that a partition was solved.
+   * This is used when a partition, phi and p, is found to be unsat but solving
+   * continues on the remainder of the formula.
+   */
+  virtual void handlePartitionSolved() = 0;
+
  private:
   /** Converter to external */
   std::shared_ptr<cvc5::PluginInternal> d_pExtToInt;
@@ -5703,6 +5710,22 @@ class CVC5_EXPORT Solver
    * @return The result of the satisfiability check.
    */
   Result checkSatAssuming(const std::vector<Term>& assumptions) const;
+
+  /**
+   * Check satisfiability forcing a decision on the given formulas.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (check-sat-ffd ( <prop_literal>+ ))
+   * \endverbatim
+   *
+   * @param ffds The decisions to force.
+   * @return The result of the satisfiability check.
+   */
+  Result checkSatFFD(const std::vector<Term>& ffds) const;
 
   /**
    * Create datatype sort.
