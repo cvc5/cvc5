@@ -370,7 +370,7 @@ enum class AletheRule : uint32_t
   // formulas defining the semantics of the respective operators.
   // ======== div_intro
   // > i. (and (<= (* b (div a b)) a) (< a (* b (+ (div a b) c))))
-  // where b is a constant and c is 1 if b > 0, -1 otherwise.
+  // where b is a constant different from 0 and c is 1 if b > 0, -1 otherwise.
   DIV_INTRO,
   // ======== log2_intro
   // > i. (and

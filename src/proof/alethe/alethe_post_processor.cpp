@@ -2568,8 +2568,8 @@ bool AletheProofPostprocessCallback::update(Node res,
     //
     // when t' is different from (<op> t1 ... tn), otherwise the equality is
     // justified via refl. The RARE rewrite rule depends on <op>. They are
-    // listed below for each operator. The axiom rule also depends on the
-    // operator.
+    // listed below for each operator. The rules used to justify the axiom
+    // instantiation also depends on the operator.
     case ProofRule::ARITH_REDUCTION:
     {
       // Placeholders to be justified below according to the operator
@@ -2577,6 +2577,8 @@ bool AletheProofPostprocessCallback::update(Node res,
       Node opIntro = res[1];
       switch (args[0].getKind())
       {
+        // Since for now only the linear case is considered, these operators can
+        // be treated in the same way
         case Kind::DIVISION:
         case Kind::DIVISION_TOTAL:
         case Kind::INTS_DIVISION:
@@ -2597,6 +2599,8 @@ bool AletheProofPostprocessCallback::update(Node res,
                         *cdp);
           break;
         }
+        // Since for now only the linear case is considered, these operators can
+        // be treated in the same way
         case Kind::INTS_MODULUS:
         case Kind::INTS_MODULUS_TOTAL:
         {
