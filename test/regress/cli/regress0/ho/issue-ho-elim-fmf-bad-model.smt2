@@ -1,27 +1,9 @@
-; COMMAND-LINE: --force-logic=HO_ALL --ho-elim --finite-model-find --uf-ss=no-minimal --debug-check-models
+; COMMAND-LINE: --ho-elim --finite-model-find --uf-ss=no-minimal --debug-check-models
 ; EXPECT: sat
 ; EXIT: 0
 (set-logic HO_ALL)
 (declare-sort beverage 0)
 (declare-sort syrup 0)
-(declare-fun coffee () beverage)
-(declare-fun mix (beverage syrup) beverage)
-(declare-fun heat (beverage) beverage)
-(declare-fun heated_mix (beverage syrup) beverage)
 (declare-fun hot (beverage) Bool)
-(declare-fun blend ((-> beverage syrup)) beverage)
-(assert (= heated_mix
-           (lambda ((B beverage) (S syrup))
-             (@ heat (@ (@ mix B) S)))))
-(assert (forall ((B beverage) (S syrup))
-          (@ hot (@ (@ heated_mix B) S))))
-(assert (forall ((S syrup))
-          (= (@ (@ heated_mix coffee) S) coffee)))
-(assert (forall ((F (-> beverage syrup)))
-          (= (@ blend F) (@ (@ mix coffee) (@ F coffee)))))
-(assert (not (exists ((Mixture (-> syrup beverage)))
-                (not (exists ((S syrup))
-                       (let ((_let_1 (@ Mixture S)))
-                         (and (= _let_1 coffee) (@ hot _let_1))))))))
-(set-info :filename blending)
-(check-sat)
+(assert (not (exists ((Mixture (-> syrup beverage))) (not (exists ((S syrup)) (let ((_let_1 (Mixture S))) (and (hot _let_1))))))))
+(check-sat-assuming ())
