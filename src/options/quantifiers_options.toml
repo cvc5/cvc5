@@ -263,9 +263,25 @@ name   = "Quantifiers"
   category   = "expert"
   long       = "mbqi-enum-global-syms-grammar"
   type       = "bool"
-  default    = "false"
+  default    = "true"
   help       = "include global symbols from all available assertions in grammars for fast enumerative mbqi"
 
+[[option]]
+  name       = "mbqiEnumChoiceGrammar"
+  category   = "expert"
+  long       = "mbqi-enum-choice-grammar"
+  type       = "bool"
+  default    = "false"
+  help       = "use choice in fast enumeration to augment instantiations from MBQI"
+
+[[option]]
+  name       = "mbqiEnumChoiceGrammarAll"
+  category   = "expert"
+  long       = "mbqi-enum-choice-grammar-all"
+  type       = "bool"
+  default    = "false"
+  help       = "use choice in fast enumeration to augment instantiations from MBQI, all non-terminals"
+  
 #### E-matching options
 
 [[option]]
@@ -786,7 +802,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "conflictBasedInst"
-  category   = "regular"
+  category   = "common"
   long       = "cbqi"
   type       = "bool"
   default    = "true"

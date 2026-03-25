@@ -2847,7 +2847,7 @@ Node SequencesRewriter::rewriteContains(Node node)
         nb << emp.eqNode(t);
         for (const Node& c : vec)
         {
-          Assert(c.getType() == t.getType());
+          AssertEqual(c.getType(), t.getType());
           nb << c.eqNode(t);
         }
 
@@ -3818,8 +3818,17 @@ Node SequencesRewriter::rewriteReplaceAll(Node node)
         children.push_back(Word::substr(s, index, sizeS - index));
       }
     } while (curr != std::string::npos && curr < sizeS);
-    // constant evaluation
-    Node res = utils::mkConcat(children, stype);
+    Assert (!children.empty());
+    // constant evaluation, construct the concatenation and flatten it.
+    Node res;
+    if (node[2].isConst())
+    {
+      res = Word::mkWordFlatten(children);
+    }
+    else
+    {
+      res = utils::mkConcat(children, stype);
+    }
     return returnRewrite(node, res, Rewrite::REPLALL_CONST);
   }
 

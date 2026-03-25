@@ -381,7 +381,7 @@ bool BaseSolver::processConstantLike(Node a, Node b)
                         << " from " << a << ", " << b << std::endl;
   if (!d_state.areEqual(s, t))
   {
-    Assert(s.getType() == t.getType());
+    AssertEqual(s.getType(), t.getType());
     Node eq = s.eqNode(t);
     if (a.getType().isString())
     {

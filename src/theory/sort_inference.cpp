@@ -433,7 +433,7 @@ int SortInference::process( Node n, std::map< Node, Node >& var_bound, std::map<
                                      false))
     {
       Trace("sort-inference-debug") << "For equality " << n << ", set equal types from : " << n[0].getType() << " " << n[1].getType() << std::endl;
-      Assert(n[0].getType() == n[1].getType());
+      AssertEqual(n[0].getType(), n[1].getType());
       // we only require that the left and right hand side must be equal
       setEqual(child_types[0], child_types[1]);
       d_equality_types[n] = child_types[0];

@@ -125,7 +125,6 @@ void LinearEqualityModule::applySolution(const DenseSet& newBasis, const DenseMa
 
 void LinearEqualityModule::forceNewBasis(const DenseSet& newBasis){
   TimerStat::CodeTimer codeTimer(d_statistics.d_forceTime);
-  cout << "force begin" << endl;
   DenseSet needsToBeAdded;
   for(DenseSet::const_iterator i = newBasis.begin(), i_end = newBasis.end(); i != i_end; ++i){
     ArithVar b = *i;

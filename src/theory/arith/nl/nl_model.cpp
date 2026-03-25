@@ -122,7 +122,7 @@ Node NlModel::computeModelValue(TNode n, bool isConcrete)
   }
   Trace("nl-ext-mv-debug") << "computed " << (isConcrete ? "M" : "M_A") << "["
                            << n << "] = " << ret << std::endl;
-  Assert(n.getType() == ret.getType());
+  AssertEqual(n.getType(), ret.getType());
   cache[n] = ret;
   return ret;
 }
@@ -339,8 +339,8 @@ bool NlModel::addSubstitution(TNode v, TNode s)
 
 bool NlModel::addBound(TNode v, TNode l, TNode u)
 {
-  Assert(l.getType() == v.getType());
-  Assert(u.getType() == v.getType());
+  AssertEqual(l.getType(), v.getType());
+  AssertEqual(u.getType(), v.getType());
   Trace("nl-ext-model") << "* check model bound : " << v << " -> [" << l << " "
                         << u << "]" << std::endl;
   if (l == u)

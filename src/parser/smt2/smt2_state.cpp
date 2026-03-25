@@ -583,7 +583,7 @@ Term Smt2State::mkIndexedConstant(const std::string& name,
       }
       Sort t = getSort(symbols[0]);
       // convert second symbol back to a numeral
-      uint32_t ubound = stringToUnsigned(symbols[1]);
+      uint32_t ubound = parseStringToUnsigned(symbols[1]);
       return d_tm.mkCardinalityConstraint(t, ubound);
     }
   }
@@ -1679,7 +1679,7 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
       {
         ret = d_tm.mkSkolem(skolemId, args);
       }
-      else
+      else if (numSkolemIndices < args.size())
       {
         std::vector<Term> skolemArgs(args.begin(),
                                      args.begin() + numSkolemIndices);
@@ -1688,6 +1688,14 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
         finalArgs.insert(
             finalArgs.end(), args.begin() + numSkolemIndices, args.end());
         ret = d_tm.mkTerm(Kind::APPLY_UF, finalArgs);
+      }
+      else
+      {
+        std::stringstream ss;
+        ss << "Not enough indices for skolem operator " << skolemId
+           << ". Expects " << numSkolemIndices << ", received " << args.size()
+           << ".";
+        parseError(ss.str());
       }
       Trace("parser") << "applyParseOp: return skolem " << ret << std::endl;
       return ret;
@@ -1830,7 +1838,7 @@ Sort Smt2State::getIndexedSort(const std::string& name,
     {
       parseError("Illegal bitvector type.");
     }
-    uint32_t n0 = stringToUnsigned(numerals[0]);
+    uint32_t n0 = parseStringToUnsigned(numerals[0]);
     if (n0 == 0)
     {
       parseError("Illegal bitvector size: 0");
@@ -1851,8 +1859,8 @@ Sort Smt2State::getIndexedSort(const std::string& name,
     {
       parseError("Illegal floating-point type.");
     }
-    uint32_t n0 = stringToUnsigned(numerals[0]);
-    uint32_t n1 = stringToUnsigned(numerals[1]);
+    uint32_t n0 = parseStringToUnsigned(numerals[0]);
+    uint32_t n1 = parseStringToUnsigned(numerals[1]);
     if (!internal::validExponentSize(n0))
     {
       parseError("Illegal floating-point exponent size");

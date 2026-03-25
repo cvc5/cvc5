@@ -643,7 +643,7 @@ void CegisUnifEnumDecisionStrategy::registerEvalPts(
   // register at all already allocated sizes
   for (const Node& ei : eis)
   {
-    Assert(ei.getType() == e.getType());
+    AssertEqual(ei.getType(), e.getType());
     for (unsigned j = 0, size = d_literals.size(); j < size; j++)
     {
       Trace("cegis-unif-enum") << "...for cand " << e << " adding hd " << ei

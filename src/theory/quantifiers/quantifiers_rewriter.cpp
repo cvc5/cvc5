@@ -1465,7 +1465,7 @@ bool QuantifiersRewriter::getVarElimLit(Node body,
           << "Variable eliminate based on theory-specific solving : " << var
           << " -> " << slv << std::endl;
       Assert(!expr::hasSubterm(slv, var));
-      Assert(slv.getType() == var.getType());
+      AssertEqual(slv.getType(), var.getType());
       vars.push_back(var);
       subs.push_back(slv);
       args.erase(ita);

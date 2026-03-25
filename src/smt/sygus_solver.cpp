@@ -434,7 +434,7 @@ bool SygusSolver::getSynthSolutions(std::map<Node, Node>& solMap)
       Node sf = quantifiers::SygusUtils::mkSygusTermFor(f);
       Trace("smt-debug") << "Got " << sf << " for trivial function " << f
                         << std::endl;
-      Assert(f.getType() == sf.getType());
+      AssertEqual(f.getType(), sf.getType());
       solMap[f] = sf;
     }
   }

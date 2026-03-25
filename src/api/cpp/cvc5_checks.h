@@ -456,7 +456,7 @@ class CVC5ApiUnsupportedExceptionStream
           << "a term associated with the term manager this object is "     \
              "associated "                                                 \
              "with";                                                       \
-      CVC5_API_CHECK(t1.getSort() == t2.getSort())                         \
+      CVC5_API_CHECK(CVC5_EQUAL(t1.getSort(), t2.getSort()))               \
           << "expecting terms of the same sort at index " << i;            \
       i += 1;                                                              \
     }                                                                      \
@@ -815,7 +815,7 @@ class CVC5ApiUnsupportedExceptionStream
   do                                                     \
   {                                                      \
     CVC5_API_SOLVER_CHECK_TERM(term);                    \
-    CVC5_API_CHECK(term.getSort() == sort)               \
+    CVC5_API_CHECK(CVC5_EQUAL(term.getSort(), sort))     \
         << "Expected term with sort " << sort;           \
   } while (0)
 
