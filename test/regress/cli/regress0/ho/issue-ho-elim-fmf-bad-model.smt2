@@ -1,4 +1,4 @@
-; COMMAND-LINE: --ho-elim --finite-model-find --uf-ss=no-minimal --debug-check-models
+; COMMAND-LINE: --ho-elim --finite-model-find --uf-ss=no-minimal
 ; EXPECT: sat
 ; EXIT: 0
 (set-logic HO_ALL)
