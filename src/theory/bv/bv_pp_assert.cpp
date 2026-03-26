@@ -85,7 +85,7 @@ bool BvPpAssert::ppAssert(TrustNode tin, TrustSubstitutionMap& outSubstitutions)
       }
 
       Node concat = utils::mkConcat(children);
-      Assert(utils::getSize(concat) == utils::getSize(extract[0]));
+      AssertEqual(utils::getSize(concat), utils::getSize(extract[0]));
       if (d_valuation.isLegalElimination(extract[0], concat))
       {
         if (d_env.isProofProducing())

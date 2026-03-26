@@ -1753,7 +1753,7 @@ void Smt2Printer::toStreamCmdDeclareFunction(
     const std::vector<TypeNode>& argTypes,
     TypeNode type) const
 {
-  if (d_variant == Variant::alf_variant)
+  if (d_variant == Variant::eo_variant)
   {
     out << "(declare-const " << cvc5::internal::quoteSymbol(id);
     if (!argTypes.empty())
@@ -1812,7 +1812,7 @@ void Smt2Printer::toStreamCmdDefineFunction(std::ostream& out,
                                             TypeNode range,
                                             Node formula) const
 {
-  if (d_variant == Variant::alf_variant)
+  if (d_variant == Variant::eo_variant)
   {
     out << "(define " << cvc5::internal::quoteSymbol(id) << " ";
     toStreamSortedVarList(out, formals);
@@ -2127,7 +2127,7 @@ void Smt2Printer::toStreamCmdDatatypeDeclaration(
   out << "(declare-";
   // Ethos does not support codatatypes, we just print as an ordinary
   // datatype for now
-  if (d0.isCodatatype() && d_variant != Variant::alf_variant)
+  if (d0.isCodatatype() && d_variant != Variant::eo_variant)
   {
     out << "co";
   }

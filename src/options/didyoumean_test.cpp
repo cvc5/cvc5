@@ -7,15 +7,10 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * [[ Add one-line brief description here ]]
- *
- * [[ Add lengthier description here ]]
- * \todo document this file
+ * This is not built as a part of cvc5 and is not built by Makefile.am.
+ * Compile: g++ didyoumean_test.cpp didyoumean.cpp
+ * For debug compile with -DDIDYOUMEAN_DEBUG or -DDIDYOUMEAN_DEBUG1 or both
  */
-
-// This is not built as a part of cvc5 and is not built by Makefile.am.
-// Compile: g++ didyoumean_test.cpp didyoumean.cpp
-// For debug compile with -DDIDYOUMEAN_DEBUG or -DDIDYOUMEAN_DEBUG1 or both
 
 #include "didyoumean.h"
 #include <iostream>

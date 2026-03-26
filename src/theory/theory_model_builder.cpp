@@ -1215,7 +1215,7 @@ void TheoryEngineModelBuilder::debugCheckModel(TheoryModel* tm)
     for (; !eqc_i.isFinished(); ++eqc_i)
     {
       Node n = *eqc_i;
-      AlwaysAssert(rep.getType() == n.getType())
+      AlwaysAssert(CVC5_EQUAL(rep.getType(), n.getType()))
           << "Representative " << rep << " of " << n
           << " violates type constraints (" << rep.getType() << " and "
           << n.getType() << ")";

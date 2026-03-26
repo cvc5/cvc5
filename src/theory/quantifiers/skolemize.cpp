@@ -247,7 +247,7 @@ Node Skolemize::mkSkolemizedBodyInduction(const Options& opts,
     }
     else
     {
-      Assert(sk[i].getType() == f[0][i].getType());
+      AssertEqual(sk[i].getType(), f[0][i].getType());
     }
   }
   Node ret;

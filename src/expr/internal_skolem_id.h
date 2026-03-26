@@ -47,6 +47,8 @@ enum class InternalSkolemId
   HO_TYPE_MATCH_PRED,
   /** Input variables for MBQI */
   MBQI_INPUT,
+  /** Choice functions for mbqi-enum */
+  MBQI_CHOICE_FUN,
   /** abstract value for a term t */
   ABSTRACT_VALUE,
   /** Input variables for quantifier elimination of closed formulas */

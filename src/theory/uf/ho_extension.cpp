@@ -247,7 +247,7 @@ Node HoExtension::getApplyUfForHoApply(Node node)
         {
           new_f = nm->mkNode(Kind::HO_APPLY, new_f, v);
         }
-        Assert(new_f.getType() == f.getType());
+        AssertEqual(new_f.getType(), f.getType());
         Node eq = new_f.eqNode(f);
         Node seq = eq.substitute(vs.begin(), vs.end(), nvs.begin(), nvs.end());
         lem = nm->mkNode(
@@ -280,7 +280,7 @@ Node HoExtension::getApplyUfForHoApply(Node node)
   Assert(TheoryUfRewriter::canUseAsApplyUfOperator(new_f));
   args[0] = new_f;
   Node ret = nm->mkNode(Kind::APPLY_UF, args);
-  Assert(ret.getType() == node.getType());
+  AssertEqual(ret.getType(), node.getType());
   return ret;
 }
 

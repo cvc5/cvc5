@@ -666,8 +666,9 @@ template <bool isSigned>
 symbolicBitVector<isSigned> symbolicBitVector<isSigned>::matchWidth(
     const symbolicBitVector<isSigned>& op) const
 {
-  Assert(this->getWidth() <= op.getWidth());
-  return this->extend(op.getWidth() - this->getWidth());
+  auto width = this->getWidth();  // Ensure deterministic node id assignment
+  Assert(width <= op.getWidth());
+  return this->extend(op.getWidth() - width);
 }
 
 template <bool isSigned>

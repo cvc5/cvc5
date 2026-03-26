@@ -645,14 +645,14 @@ void SolverState::registerMapSkolemElement(const Node& n, const Node& element)
 {
   Assert(n.getKind() == Kind::SET_MAP);
   Assert(element.getKind() == Kind::SKOLEM
-         && element.getType() == n[1].getType().getSetElementType());
+         && CVC5_EQUAL(element.getType(), n[1].getType().getSetElementType()));
   d_mapSkolemElements[n].get()->insert(element);
 }
 
 void SolverState::registerPartElementSkolem(Node group, Node skolemElement)
 {
   Assert(group.getKind() == Kind::RELATION_GROUP);
-  Assert(skolemElement.getType() == group[0].getType().getSetElementType());
+  AssertEqual(skolemElement.getType(), group[0].getType().getSetElementType());
   d_partElementSkolems[group].get()->insert(skolemElement);
 }
 

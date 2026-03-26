@@ -711,7 +711,7 @@ void BvInstantiatorPreprocess::registerCounterexampleLemma(
       }
 
       Node conc = nm->mkNode(Kind::BITVECTOR_CONCAT, children);
-      Assert(conc.getType() == es.first.getType());
+      AssertEqual(conc.getType(), es.first.getType());
       Node eq_lem = conc.eqNode(es.first);
       Trace("cegqi-bv-pp") << "Introduced : " << eq_lem << std::endl;
       new_lems.push_back(eq_lem);

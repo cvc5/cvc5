@@ -218,7 +218,7 @@ Node TermDbSygus::canonizeBuiltin(Node n, std::map<TypeNode, size_t>& var_count)
   }
   Trace("sygus-db-canon") << "  ...normalized " << n << " --> " << ret
                           << std::endl;
-  Assert(ret.getType() == n.getType());
+  AssertEqual(ret.getType(), n.getType());
   return ret;
 }
 
