@@ -246,7 +246,7 @@ void UnconstrainedSimplifier::processUnconstrained()
         case Kind::EQUAL:
         {
           // equality uses strict type rule
-          Assert(parent[0].getType() == parent[1].getType());
+          AssertEqual(parent[0].getType(), parent[1].getType());
           CardinalityClass c = parent[0].getType().getCardinalityClass();
           if (c == CardinalityClass::ONE)
           {

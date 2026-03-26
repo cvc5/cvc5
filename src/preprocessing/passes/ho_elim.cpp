@@ -100,7 +100,7 @@ Node HoElim::eliminateLambdaComplete(Node n, std::map<Node, Node>& newLambda)
         Trace("ho-elim-ll")
             << "...introduce: " << nf << " of type " << nft << std::endl;
         newLambda[nf] = nlambda;
-        Assert(nf.getType() == nlambda.getType());
+        AssertEqual(nf.getType(), nlambda.getType());
         if (!vars.empty())
         {
           for (const Node& v : vars)
@@ -112,7 +112,7 @@ Node HoElim::eliminateLambdaComplete(Node n, std::map<Node, Node>& newLambda)
         d_visited[cur] = nf;
         Trace("ho-elim-ll") << "...return types : " << nf.getType() << " "
                             << cur.getType() << std::endl;
-        Assert(nf.getType() == cur.getType());
+        AssertEqual(nf.getType(), cur.getType());
       }
       else
       {

@@ -300,7 +300,7 @@ void RelevantDomain::computeRelevantDomainOpCh( RDomain * rf, Node n ) {
     Node q = TermUtil::getInstConstAttr(n);
     //merge the RDomains
     size_t id = n.getAttribute(InstVarNumAttribute());
-    Assert(q[0][id].getType() == n.getType());
+    AssertEqual(q[0][id].getType(), n.getType());
     Trace("rel-dom-debug") << n << " is variable # " << id << " for " << q;
     Trace("rel-dom-debug") << " with body : " << d_qreg.getInstConstantBody(q)
                            << std::endl;

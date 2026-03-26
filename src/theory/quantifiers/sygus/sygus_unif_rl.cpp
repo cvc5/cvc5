@@ -771,7 +771,7 @@ Node SygusUnifRl::DecisionTreeInfo::buildSolMinCond(Node cons,
     Assert(c_counter < d_conds.size());
     Node ce = d_enums[c_counter];
     Node cv = d_conds[c_counter];
-    Assert(ce.getType() == cv.getType());
+    AssertEqual(ce.getType(), cv.getType());
     if (TraceIsOn("sygus-unif-sol"))
     {
       std::stringstream ss;

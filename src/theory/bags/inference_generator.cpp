@@ -69,7 +69,7 @@ void InferenceGenerator::registerCardinalityTerm(Node n)
 InferInfo InferenceGenerator::nonNegativeCount(Node n, Node e)
 {
   Assert(n.getType().isBag());
-  Assert(e.getType() == n.getType().getBagElementType());
+  AssertEqual(e.getType(), n.getType().getBagElementType());
 
   InferInfo inferInfo(d_im, InferenceId::BAGS_NON_NEGATIVE_COUNT);
   Node count = d_nm->mkNode(Kind::BAG_COUNT, e, n);
@@ -110,7 +110,7 @@ InferInfo InferenceGenerator::bagMake(Node n)
 InferInfo InferenceGenerator::bagMake(Node n, Node e)
 {
   Assert(n.getKind() == Kind::BAG_MAKE);
-  Assert(e.getType() == n.getType().getBagElementType());
+  AssertEqual(e.getType(), n.getType().getBagElementType());
 
   /*
    * (ite (and (= e x) (>= c 1))
@@ -163,7 +163,7 @@ Node InferenceGenerator::registerAndAssertSkolemLemma(Node& n)
 InferInfo InferenceGenerator::empty(Node n, Node e)
 {
   Assert(n.getKind() == Kind::BAG_EMPTY);
-  Assert(e.getType() == n.getType().getBagElementType());
+  AssertEqual(e.getType(), n.getType().getBagElementType());
 
   InferInfo inferInfo(d_im, InferenceId::BAGS_EMPTY);
   Node skolem = registerAndAssertSkolemLemma(n);
@@ -177,7 +177,7 @@ InferInfo InferenceGenerator::empty(Node n, Node e)
 InferInfo InferenceGenerator::unionDisjoint(Node n, Node e)
 {
   Assert(n.getKind() == Kind::BAG_UNION_DISJOINT && n[0].getType().isBag());
-  Assert(e.getType() == n[0].getType().getBagElementType());
+  AssertEqual(e.getType(), n[0].getType().getBagElementType());
 
   Node A = n[0];
   Node B = n[1];
@@ -199,7 +199,7 @@ InferInfo InferenceGenerator::unionDisjoint(Node n, Node e)
 InferInfo InferenceGenerator::unionMax(Node n, Node e)
 {
   Assert(n.getKind() == Kind::BAG_UNION_MAX && n[0].getType().isBag());
-  Assert(e.getType() == n[0].getType().getBagElementType());
+  AssertEqual(e.getType(), n[0].getType().getBagElementType());
 
   Node A = n[0];
   Node B = n[1];
@@ -222,7 +222,7 @@ InferInfo InferenceGenerator::unionMax(Node n, Node e)
 InferInfo InferenceGenerator::intersection(Node n, Node e)
 {
   Assert(n.getKind() == Kind::BAG_INTER_MIN && n[0].getType().isBag());
-  Assert(e.getType() == n[0].getType().getBagElementType());
+  AssertEqual(e.getType(), n[0].getType().getBagElementType());
 
   Node A = n[0];
   Node B = n[1];
@@ -244,7 +244,7 @@ InferInfo InferenceGenerator::differenceSubtract(Node n, Node e)
 {
   Assert(n.getKind() == Kind::BAG_DIFFERENCE_SUBTRACT
          && n[0].getType().isBag());
-  Assert(e.getType() == n[0].getType().getBagElementType());
+  AssertEqual(e.getType(), n[0].getType().getBagElementType());
 
   Node A = n[0];
   Node B = n[1];
@@ -266,7 +266,7 @@ InferInfo InferenceGenerator::differenceSubtract(Node n, Node e)
 InferInfo InferenceGenerator::differenceRemove(Node n, Node e)
 {
   Assert(n.getKind() == Kind::BAG_DIFFERENCE_REMOVE && n[0].getType().isBag());
-  Assert(e.getType() == n[0].getType().getBagElementType());
+  AssertEqual(e.getType(), n[0].getType().getBagElementType());
 
   Node A = n[0];
   Node B = n[1];
@@ -288,7 +288,7 @@ InferInfo InferenceGenerator::differenceRemove(Node n, Node e)
 InferInfo InferenceGenerator::setof(Node n, Node e)
 {
   Assert(n.getKind() == Kind::BAG_SETOF && n[0].getType().isBag());
-  Assert(e.getType() == n[0].getType().getBagElementType());
+  AssertEqual(e.getType(), n[0].getType().getBagElementType());
 
   Node A = n[0];
   InferInfo inferInfo(d_im, InferenceId::BAGS_SETOF);
@@ -309,7 +309,7 @@ InferInfo InferenceGenerator::cardEmpty(const std::pair<Node, Node>& pair,
 {
   Assert(pair.first.getKind() == Kind::BAG_CARD);
   Assert(n.getKind() == Kind::BAG_EMPTY
-         && n.getType() == pair.first[0].getType());
+         && CVC5_EQUAL(n.getType(), pair.first[0].getType()));
   InferInfo inferInfo(d_im, InferenceId::BAGS_CARD_EMPTY);
   Node premise = pair.first[0].eqNode(n);
   Node conclusion = pair.second.eqNode(d_zero);
@@ -322,7 +322,7 @@ InferInfo InferenceGenerator::cardBagMake(const std::pair<Node, Node>& pair,
 {
   Assert(pair.first.getKind() == Kind::BAG_CARD);
   Assert(n.getKind() == Kind::BAG_MAKE
-         && n.getType() == pair.first[0].getType());
+         && CVC5_EQUAL(n.getType(), pair.first[0].getType()));
   //(=>
   //  (and (= A (bag x c)) (>= 0 c))
   //  (= (bag.card A) c))
@@ -384,7 +384,7 @@ std::tuple<InferInfo, Node, Node> InferenceGenerator::mapDown(Node n, Node e)
   Assert(n.getKind() == Kind::BAG_MAP && n[1].getType().isBag());
   Assert(n[0].getType().isFunction()
          && n[0].getType().getArgTypes().size() == 1);
-  Assert(e.getType() == n[0].getType().getRangeType());
+  AssertEqual(e.getType(), n[0].getType().getRangeType());
 
   InferInfo inferInfo(d_im, InferenceId::BAGS_MAP_DOWN);
 
@@ -471,7 +471,7 @@ InferInfo InferenceGenerator::mapDownInjective(Node n, Node y)
   Assert(n.getKind() == Kind::BAG_MAP && n[1].getType().isBag());
   Assert(n[0].getType().isFunction()
          && n[0].getType().getArgTypes().size() == 1);
-  Assert(y.getType() == n[0].getType().getRangeType());
+  AssertEqual(y.getType(), n[0].getType().getRangeType());
 
   InferInfo inferInfo(d_im, InferenceId::BAGS_MAP_DOWN_INJECTIVE);
 
@@ -552,7 +552,7 @@ InferInfo InferenceGenerator::mapUp2(Node n, Node uf, Node size, Node y, Node x)
 InferInfo InferenceGenerator::filterDown(Node n, Node e)
 {
   Assert(n.getKind() == Kind::BAG_FILTER && n[1].getType().isBag());
-  Assert(e.getType() == n[1].getType().getBagElementType());
+  AssertEqual(e.getType(), n[1].getType().getBagElementType());
 
   Node P = n[0];
   Node A = n[1];
@@ -574,7 +574,7 @@ InferInfo InferenceGenerator::filterDown(Node n, Node e)
 InferInfo InferenceGenerator::filterUp(Node n, Node e)
 {
   Assert(n.getKind() == Kind::BAG_FILTER && n[1].getType().isBag());
-  Assert(e.getType() == n[1].getType().getBagElementType());
+  AssertEqual(e.getType(), n[1].getType().getBagElementType());
 
   Node P = n[0];
   Node A = n[1];
@@ -622,7 +622,7 @@ InferInfo InferenceGenerator::productUp(Node n, Node e1, Node e2)
 InferInfo InferenceGenerator::productDown(Node n, Node e)
 {
   Assert(n.getKind() == Kind::TABLE_PRODUCT);
-  Assert(e.getType() == n.getType().getBagElementType());
+  AssertEqual(e.getType(), n.getType().getBagElementType());
 
   Node A = n[0];
   Node B = n[1];
@@ -692,7 +692,7 @@ InferInfo InferenceGenerator::joinUp(Node n, Node e1, Node e2)
 InferInfo InferenceGenerator::joinDown(Node n, Node e)
 {
   Assert(n.getKind() == Kind::TABLE_JOIN);
-  Assert(e.getType() == n.getType().getBagElementType());
+  AssertEqual(e.getType(), n.getType().getBagElementType());
 
   Node A = n[0];
   Node B = n[1];
@@ -755,7 +755,7 @@ InferInfo InferenceGenerator::groupNotEmpty(Node n)
 InferInfo InferenceGenerator::groupUp1(Node n, Node x, Node part)
 {
   Assert(n.getKind() == Kind::TABLE_GROUP);
-  Assert(x.getType() == n[0].getType().getBagElementType());
+  AssertEqual(x.getType(), n[0].getType().getBagElementType());
 
   Node A = n[0];
   TypeNode bagType = A.getType();
@@ -787,7 +787,7 @@ InferInfo InferenceGenerator::groupUp1(Node n, Node x, Node part)
 InferInfo InferenceGenerator::groupUp2(Node n, Node x, Node part)
 {
   Assert(n.getKind() == Kind::TABLE_GROUP);
-  Assert(x.getType() == n[0].getType().getBagElementType());
+  AssertEqual(x.getType(), n[0].getType().getBagElementType());
 
   Node A = n[0];
   TypeNode bagType = A.getType();
@@ -807,8 +807,8 @@ InferInfo InferenceGenerator::groupUp2(Node n, Node x, Node part)
 InferInfo InferenceGenerator::groupDown(Node n, Node B, Node x, Node part)
 {
   Assert(n.getKind() == Kind::TABLE_GROUP);
-  Assert(B.getType() == n.getType().getBagElementType());
-  Assert(x.getType() == n[0].getType().getBagElementType());
+  AssertEqual(B.getType(), n.getType().getBagElementType());
+  AssertEqual(x.getType(), n[0].getType().getBagElementType());
 
   Node A = n[0];
   TypeNode bagType = A.getType();
@@ -833,7 +833,7 @@ InferInfo InferenceGenerator::groupDown(Node n, Node B, Node x, Node part)
 InferInfo InferenceGenerator::groupPartCount(Node n, Node B, Node part)
 {
   Assert(n.getKind() == Kind::TABLE_GROUP);
-  Assert(B.getType() == n.getType().getBagElementType());
+  AssertEqual(B.getType(), n.getType().getBagElementType());
 
   Node A = n[0];
   TypeNode bagType = A.getType();
@@ -871,9 +871,9 @@ InferInfo InferenceGenerator::groupSameProjection(
     Node n, Node B, Node x, Node y, Node part)
 {
   Assert(n.getKind() == Kind::TABLE_GROUP);
-  Assert(B.getType() == n.getType().getBagElementType());
-  Assert(x.getType() == n[0].getType().getBagElementType());
-  Assert(y.getType() == n[0].getType().getBagElementType());
+  AssertEqual(B.getType(), n.getType().getBagElementType());
+  AssertEqual(x.getType(), n[0].getType().getBagElementType());
+  AssertEqual(y.getType(), n[0].getType().getBagElementType());
 
   Node A = n[0];
   TypeNode bagType = A.getType();
@@ -912,9 +912,9 @@ InferInfo InferenceGenerator::groupSamePart(
     Node n, Node B, Node x, Node y, Node part)
 {
   Assert(n.getKind() == Kind::TABLE_GROUP);
-  Assert(B.getType() == n.getType().getBagElementType());
-  Assert(x.getType() == n[0].getType().getBagElementType());
-  Assert(y.getType() == n[0].getType().getBagElementType());
+  AssertEqual(B.getType(), n.getType().getBagElementType());
+  AssertEqual(x.getType(), n[0].getType().getBagElementType());
+  AssertEqual(y.getType(), n[0].getType().getBagElementType());
 
   Node A = n[0];
   TypeNode bagType = A.getType();
