@@ -19,8 +19,8 @@
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
-#include "smt/env.h"
 #include "preprocessing/assertion_pipeline.h"
+#include "preprocessing/preprocessing_pass_context.h"
 #include "theory/rewriter.h"
 #include "theory/uf/function_const.h"
 #include "theory/uf/theory_uf_rewriter.h"
@@ -462,8 +462,8 @@ PreprocessingPassResult HoElim::applyInternal(
     }
   }
   // step [2b]: record model reconstruction substitutions for original
-  // function-typed symbols, so model queries and check-model can evaluate the
-  // original higher-order assertions after ho-elim.
+  // function-typed symbols. These are used to reconstruct values for the
+  // original input symbols from the HO encoding introduced by this pass.
   if (options().quantifiers.hoElim)
   {
     for (const Node& orig : d_inputFunSymbols)
@@ -475,11 +475,9 @@ PreprocessingPassResult HoElim::applyInternal(
         continue;
       }
       Node recon = reconstructHoFunction(itv->second, orig.getType());
-      d_env.setModelReconstruction(orig, recon);
+      d_preprocContext->addSubstitution(orig, recon);
     }
   }
-
-
 
   // extensionality: process all function types
   for (const TypeNode& ftn : d_funTypes)

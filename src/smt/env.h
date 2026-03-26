@@ -17,7 +17,6 @@
 #define CVC5__SMT__ENV_H
 
 #include <memory>
-#include <unordered_map>
 
 #include "context/cdhashset.h"
 #include "options/options.h"
@@ -139,10 +138,6 @@ class Env
 
   /** Get a reference to the top-level substitution map */
   theory::TrustSubstitutionMap& getTopLevelSubstitutions();
-  /** Record the reconstructed original higher-order symbol. */
-  void setModelReconstruction(TNode sym, TNode recon);
-  /** Get the reconstructed original higher-order symbol, if one exists. */
-  Node getModelReconstruction(TNode sym) const;
 
   /** Get the options object (const version only) owned by this Env. */
   const Options& getOptions() const;
@@ -384,8 +379,6 @@ class Env
   std::unique_ptr<theory::Evaluator> d_eval;
   /** The top level substitutions */
   std::unique_ptr<theory::TrustSubstitutionMap> d_topLevelSubs;
-  /** Reconstruction terms for original higher-order symbols after ho-elim. */
-  std::unordered_map<Node, Node> d_modelReconstructions;
   /**
    * The logic we're in. This logic may be an extension of the logic set by the
    * user, which may be different from the user-provided logic due to the
