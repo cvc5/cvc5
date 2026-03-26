@@ -12,7 +12,8 @@ cvc5 1.3.4 prerelease
 - Fixes a soundness bug in the `--learned-rewrite` preprocessing pass.
 - We now allow using option `--solve-bv-as-int` with quantifiers, even if the
   quantified variables occur under UFs.
-
+- Fixes an issue where the parser would abort prematurely when `get-value` was
+  called after an unsat response when uninterpreted sorts are present.
 
 cvc5 1.3.3
 ==========
