@@ -8,7 +8,7 @@ cvc5 1.3.4 prerelease
 - Fixes parsing issues related to unchecked overflowing of indexed
   bit-vector operators. This impacts bit-vector operators having width
   that is greater than or equal to `2^32`.
-- Fixes a bug where the charecter code point `\u{30000}` was incorrectly
+- Fixes a bug where the character code point `\u{30000}` was incorrectly
   treated as a valid code point.
 - Fixes a parsing bug with option `--parse-skolem-definitions`.
 - Fixes a soundness bug in the `--learned-rewrite` preprocessing pass.
