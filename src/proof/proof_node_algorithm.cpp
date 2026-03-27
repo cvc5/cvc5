@@ -18,6 +18,7 @@
 #include "proof/proof_node.h"
 #include "proof/proof_node_manager.h"
 #include "proof/proof_rule_checker.h"
+#include "theory/arith/arith_poly_norm.h"
 #include "theory/builtin/generic_op.h"
 
 namespace cvc5::internal {
@@ -323,6 +324,15 @@ bool proveEqualityWithRewriteSteps(Env& env,
   {
     cdp.addStep(eq, ProofRule::ACI_NORM, {}, {eq});
     return true;
+  }
+  if (a.getType() == b.getType())
+  {
+    TypeNode tn = a.getType();
+    if (tn.isBitVector() && theory::arith::PolyNorm::isArithPolyNorm(a, b))
+    {
+      cdp.addStep(eq, ProofRule::BV_POLY_NORM, {}, {eq});
+      return true;
+    }
   }
   Node eqr = env.rewriteViaMethod(eq);
   if (eqr.isConst() && eqr.getConst<bool>())

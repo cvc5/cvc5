@@ -129,7 +129,7 @@ bool isAssocCommIdem(Kind k)
 
 bool isAssocComm(Kind k)
 {
-  return k == Kind::BITVECTOR_XOR || k == Kind::BITVECTOR_ADD;
+  return (k==Kind::BITVECTOR_XOR);
 }
 
 bool isAssoc(Kind k)
