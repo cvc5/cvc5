@@ -12,6 +12,7 @@
 
 #include "proof/proof_node_algorithm.h"
 
+#include "expr/aci_norm.h"
 #include "proof/proof.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_node.h"
@@ -305,6 +306,118 @@ Node proveCong(Env& env,
     cdp->addStep(eq, cr, cpremises, cargs);
   }
   return eq;
+}
+
+bool proveEqualityWithRewriteSteps(Env& env,
+                                   CDProof& cdp,
+                                   const Node& a,
+                                   const Node& b)
+{
+  Node eq = a.eqNode(b);
+  if (a == b)
+  {
+    cdp.addStep(eq, ProofRule::REFL, {}, {a});
+    return true;
+  }
+  if (expr::isACINorm(a, b))
+  {
+    cdp.addStep(eq, ProofRule::ACI_NORM, {}, {eq});
+    return true;
+  }
+  Node eqr = env.rewriteViaMethod(eq);
+  if (eqr.isConst() && eqr.getConst<bool>())
+  {
+    cdp.addStep(eq, ProofRule::MACRO_SR_PRED_INTRO, {}, {eq});
+    return true;
+  }
+  Node an = expr::getACINormalForm(a);
+  Node bn = expr::getACINormalForm(b);
+  if (an != a || bn != b)
+  {
+    std::vector<Node> transEq;
+    if (a != an)
+    {
+      Node aeq = a.eqNode(an);
+      cdp.addStep(aeq, ProofRule::ACI_NORM, {}, {aeq});
+      transEq.push_back(aeq);
+    }
+    if (!proveEqualityWithRewriteSteps(env, cdp, an, bn))
+    {
+      return false;
+    }
+    if (an != bn)
+    {
+      transEq.push_back(an.eqNode(bn));
+    }
+    if (b != bn)
+    {
+      Node beq = b.eqNode(bn);
+      cdp.addStep(beq, ProofRule::ACI_NORM, {}, {beq});
+      Node beqs = bn.eqNode(b);
+      cdp.addStep(beqs, ProofRule::SYMM, {beq}, {});
+      transEq.push_back(beqs);
+    }
+    if (transEq.empty())
+    {
+      return true;
+    }
+    if (transEq.size() == 1)
+    {
+      return transEq[0] == eq;
+    }
+    cdp.addStep(eq, ProofRule::TRANS, transEq, {});
+    return true;
+  }
+  if (a.getKind() != b.getKind() || a.getNumChildren() != b.getNumChildren())
+  {
+    return false;
+  }
+  if (a.isClosure())
+  {
+    if (a[0] != b[0])
+    {
+      return false;
+    }
+    std::vector<Node> cpremises;
+    for (size_t i = 1, nchildren = a.getNumChildren(); i < nchildren; i++)
+    {
+      Node eqi = a[i].eqNode(b[i]);
+      if (a[i] == b[i])
+      {
+        cdp.addStep(eqi, ProofRule::REFL, {}, {a[i]});
+      }
+      else if (!proveEqualityWithRewriteSteps(env, cdp, a[i], b[i]))
+      {
+        return false;
+      }
+      cpremises.push_back(eqi);
+    }
+    std::vector<Node> cargs;
+    ProofRule cr = getCongRule(a, cargs);
+    return cdp.addStep(eq, cr, cpremises, cargs);
+  }
+  std::vector<Node> premises(a.getNumChildren(), Node::null());
+  bool changed = false;
+  for (size_t i = 0, nchildren = a.getNumChildren(); i < nchildren; i++)
+  {
+    if (a[i] == b[i])
+    {
+      continue;
+    }
+    if (!proveEqualityWithRewriteSteps(env, cdp, a[i], b[i]))
+    {
+      return false;
+    }
+    premises[i] = a[i].eqNode(b[i]);
+    changed = true;
+  }
+  if (!changed)
+  {
+    cdp.addStep(eq, ProofRule::REFL, {}, {a});
+    return true;
+  }
+  Node eqc = proveCong(env, &cdp, a, premises);
+  return eqc == eq;
 }
 
 }  // namespace expr

@@ -148,6 +148,34 @@ Node proveCong(Env& env,
                const Node& n,
                const std::vector<Node>& premises);
 
+/**
+ * Try to prove (= a b) using rewrite-oriented proof steps and add the proof to
+ * cdp.
+ *
+ * This utility is intended for equalities that can be justified by a
+ * combination of:
+ * - reflexivity,
+ * - ACI normalization,
+ * - rewriting the equality directly to true, and
+ * - recursively proving equalities between corresponding children and lifting
+ *   them with congruence.
+ *
+ * For closure terms, this method only applies congruence when their binder
+ * lists are syntactically equal; it then proves equality of the remaining
+ * children (e.g. body and annotation list) and lifts those equalities via a
+ * closure-aware congruence step.
+ *
+ * @param env The proof environment used for rewriting and congruence checks.
+ * @param cdp The proof to extend with the derived steps.
+ * @param a The left-hand side of the equality to prove.
+ * @param b The right-hand side of the equality to prove.
+ * @return true if a proof of (= a b) was added to cdp.
+ */
+bool proveEqualityWithRewriteSteps(Env& env,
+                                   CDProof& cdp,
+                                   const Node& a,
+                                   const Node& b);
+
 }  // namespace expr
 }  // namespace cvc5::internal
 
