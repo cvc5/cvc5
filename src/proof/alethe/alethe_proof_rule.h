@@ -495,6 +495,11 @@ enum class AletheRule : uint32_t
   //         (lambda (x_k+1 ... x_n) t){x_1 -> t1, ..., x_k -> t_k})
   // where if k = n then the rhs has no lambda binding t.
   BETA_EQUIVALENCE,
+  // ======== arrays
+  ARRAYS_IDX,
+  ARRAYS_ROW,
+  ARRAYS_ROW_CONTRA,
+  ARRAYS_EXT,
   // ======== bitvector
   //  > i. (cl (= t bbt(t)))
   BV_BITBLAST_STEP_VAR,

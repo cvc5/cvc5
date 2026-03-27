@@ -2843,6 +2843,46 @@ bool AletheProofPostprocessCallback::update(Node res,
       }
       return success;
     }
+    // arrays_idx
+    case ProofRule::ARRAYS_READ_OVER_WRITE_1:
+    {
+      return addAletheStep(AletheRule::ARRAYS_IDX,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           {},
+                           {},
+                           *cdp);
+    }
+    // arrays_row
+    case ProofRule::ARRAYS_READ_OVER_WRITE:
+    {
+      return addAletheStep(AletheRule::ARRAYS_ROW,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           children,
+                           {},
+                           *cdp);
+    }
+    // arrays_row_contra
+    case ProofRule::ARRAYS_READ_OVER_WRITE_CONTRA:
+    {
+      return addAletheStep(AletheRule::ARRAYS_ROW_CONTRA,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           children,
+                           {},
+                           *cdp);
+    }
+    // arrays_ext
+    case ProofRule::ARRAYS_EXT:
+    {
+      return addAletheStep(AletheRule::ARRAYS_EXT,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           children,
+                           {},
+                           *cdp);
+    }
     case ProofRule::ACI_NORM:
     {
       return addAletheStep(AletheRule::ACI_SIMP,
