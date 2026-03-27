@@ -12,9 +12,11 @@
 
 #include "theory/quantifiers/alpha_equivalence.h"
 
+#include "expr/aci_norm.h"
 #include "expr/node_algorithm.h"
 #include "proof/method_id.h"
 #include "proof/proof.h"
+#include "proof/proof_node_algorithm.h"
 #include "proof/proof_node.h"
 #include "theory/builtin/proof_checker.h"
 
@@ -30,6 +32,98 @@ struct sortTypeOrder {
     return d_tu->getIdForType( i )<d_tu->getIdForType( j );
   }
 };
+
+namespace {
+
+bool proveEqualityWithRewriteSteps(Env& env,
+                                   CDProof& cdp,
+                                   const Node& a,
+                                   const Node& b)
+{
+  Node eq = a.eqNode(b);
+  if (a == b)
+  {
+    cdp.addStep(eq, ProofRule::REFL, {}, {a});
+    return true;
+  }
+  if (expr::isACINorm(a, b))
+  {
+    cdp.addStep(eq, ProofRule::ACI_NORM, {}, {eq});
+    return true;
+  }
+  Node eqr = env.rewriteViaMethod(eq);
+  if (eqr.isConst() && eqr.getConst<bool>())
+  {
+    cdp.addStep(eq, ProofRule::MACRO_SR_PRED_INTRO, {}, {eq});
+    return true;
+  }
+  Node an = expr::getACINormalForm(a);
+  Node bn = expr::getACINormalForm(b);
+  if (an != a || bn != b)
+  {
+    std::vector<Node> transEq;
+    if (a != an)
+    {
+      Node aeq = a.eqNode(an);
+      cdp.addStep(aeq, ProofRule::ACI_NORM, {}, {aeq});
+      transEq.push_back(aeq);
+    }
+    if (!proveEqualityWithRewriteSteps(env, cdp, an, bn))
+    {
+      return false;
+    }
+    if (an != bn)
+    {
+      transEq.push_back(an.eqNode(bn));
+    }
+    if (b != bn)
+    {
+      Node beq = b.eqNode(bn);
+      cdp.addStep(beq, ProofRule::ACI_NORM, {}, {beq});
+      Node beqs = bn.eqNode(b);
+      cdp.addStep(beqs, ProofRule::SYMM, {beq}, {});
+      transEq.push_back(beqs);
+    }
+    if (transEq.empty())
+    {
+      return true;
+    }
+    if (transEq.size() == 1)
+    {
+      return transEq[0] == eq;
+    }
+    cdp.addStep(eq, ProofRule::TRANS, transEq, {});
+    return true;
+  }
+  if (a.getKind() != b.getKind() || a.getNumChildren() != b.getNumChildren())
+  {
+    return false;
+  }
+  std::vector<Node> premises(a.getNumChildren(), Node::null());
+  bool changed = false;
+  for (size_t i = 0, nchildren = a.getNumChildren(); i < nchildren; i++)
+  {
+    if (a[i] == b[i])
+    {
+      continue;
+    }
+    if (!proveEqualityWithRewriteSteps(env, cdp, a[i], b[i]))
+    {
+      return false;
+    }
+    premises[i] = a[i].eqNode(b[i]);
+    changed = true;
+  }
+  if (!changed)
+  {
+    cdp.addStep(eq, ProofRule::REFL, {}, {a});
+    return true;
+  }
+  Node eqc = expr::proveCong(env, &cdp, a, premises);
+  return eqc == eq;
+}
+
+}  // namespace
 
 AlphaEquivalenceTypeNode::AlphaEquivalenceTypeNode(context::Context* c)
     : d_quant(c)
@@ -299,21 +393,63 @@ TrustNode AlphaEquivalence::reduceQuantifier(Node q)
     else
     {
       Node eq2 = sret.eqNode(q);
-      transEq.push_back(eq2);
-      Node eq2r = extendedRewrite(eq2);
-      if (eq2r.isConst() && eq2r.getConst<bool>())
+      // Prefer a structural proof when the quantifier prefixes already match.
+      // This avoids relying on an extended rewrite of the full quantified
+      // equality, which may otherwise leave a proof hole.
+      if (sret[0] == q[0] && sret.getNumChildren() == q.getNumChildren())
       {
-        // ---------- MACRO_SR_PRED_INTRO
-        // sret = q
-        std::vector<Node> pfArgs2;
-        pfArgs2.push_back(eq2);
-        addMethodIds(nodeManager(),
-                     pfArgs2,
-                     MethodId::SB_DEFAULT,
-                     MethodId::SBA_SEQUENTIAL,
-                     MethodId::RW_EXT_REWRITE);
-        cdp.addStep(eq2, ProofRule::MACRO_SR_PRED_INTRO, {}, pfArgs2);
-        success = true;
+        bool canLiftBodyEq = true;
+        for (size_t i = 2, nchildren = sret.getNumChildren(); i < nchildren;
+             i++)
+        {
+          if (sret[i] != q[i])
+          {
+            canLiftBodyEq = false;
+            break;
+          }
+        }
+        if (canLiftBodyEq)
+        {
+          Node bodyEq = sret[1].eqNode(q[1]);
+          if (proveEqualityWithRewriteSteps(d_env, cdp, sret[1], q[1]))
+          {
+            std::vector<Node> cpremises;
+            cpremises.push_back(bodyEq);
+            for (size_t i = 2, nchildren = sret.getNumChildren(); i < nchildren;
+                 i++)
+            {
+              Node eqi = sret[i].eqNode(q[i]);
+              cdp.addStep(eqi, ProofRule::REFL, {}, {sret[i]});
+              cpremises.push_back(eqi);
+            }
+            std::vector<Node> cargs;
+            ProofRule cr = expr::getCongRule(sret, cargs);
+            if (cdp.addStep(eq2, cr, cpremises, cargs))
+            {
+              transEq.push_back(eq2);
+              success = true;
+            }
+          }
+        }
+      }
+      if (!success)
+      {
+        transEq.push_back(eq2);
+        Node eq2r = extendedRewrite(eq2);
+        if (eq2r.isConst() && eq2r.getConst<bool>())
+        {
+          // ---------- MACRO_SR_PRED_INTRO
+          // sret = q
+          std::vector<Node> pfArgs2;
+          pfArgs2.push_back(eq2);
+          addMethodIds(nodeManager(),
+                       pfArgs2,
+                       MethodId::SB_DEFAULT,
+                       MethodId::SBA_SEQUENTIAL,
+                       MethodId::RW_EXT_REWRITE);
+          cdp.addStep(eq2, ProofRule::MACRO_SR_PRED_INTRO, {}, pfArgs2);
+          success = true;
+        }
       }
     }
     // if successful, store the proof and remember the proof generator
