@@ -371,6 +371,10 @@ void SolverEngine::setInfo(const std::string& key, const std::string& value)
   {
     d_state->notifyExpectedStatus(value);
   }
+  else if (key == "tptp-dialect")
+  {
+    d_tptpDialect = value;
+  }
 }
 
 bool SolverEngine::isValidGetInfoFlag(const std::string& key) const
@@ -1364,7 +1368,10 @@ std::string SolverEngine::getModel(const std::vector<TypeNode>& declaredSorts,
   // use the smt::Model model utility for printing
   const Options& opts = d_env->getOptions();
   bool isKnownSat = (d_state->getMode() == SmtMode::SAT);
-  Model m(isKnownSat, opts.driver.filename);
+  Model m(isKnownSat,
+          opts.driver.filename,
+          opts.driver.tptpModelVerification,
+          smt::tptpDialectFromString(d_tptpDialect));
   // Allow printers to query values of closed terms beyond declared symbols.
   m.setEvaluator(
       [tm](TNode n) { return tm != nullptr ? tm->getValue(n) : Node::null(); });

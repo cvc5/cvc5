@@ -19,8 +19,35 @@
 namespace cvc5::internal {
 namespace smt {
 
-Model::Model(bool isKnownSat, const std::string& inputName)
-    : d_inputName(inputName), d_isKnownSat(isKnownSat)
+TptpDialect tptpDialectFromString(const std::string& input)
+{
+  if (input == "cnf")
+  {
+    return TptpDialect::CNF;
+  }
+  if (input == "fof")
+  {
+    return TptpDialect::FOF;
+  }
+  if (input == "tff")
+  {
+    return TptpDialect::TFF;
+  }
+  if (input == "thf")
+  {
+    return TptpDialect::THF;
+  }
+  return TptpDialect::AUTO;
+}
+
+Model::Model(bool isKnownSat,
+             const std::string& inputName,
+             bool tptpModelVerification,
+             TptpDialect tptpInputDialect)
+    : d_inputName(inputName),
+      d_tptpModelVerification(tptpModelVerification),
+      d_tptpInputDialect(tptpInputDialect),
+      d_isKnownSat(isKnownSat)
 {
 }
 

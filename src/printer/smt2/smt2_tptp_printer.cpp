@@ -1388,7 +1388,9 @@ void Smt2TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
         ht, ht.getNodeManager(), elems, finiteTypeElems, kMaxHoFunctionDomain);
   }
 
-  bool useThf = false;
+  bool useThf =
+      m.useTptpModelVerification()
+      && m.getTptpInputDialect() == smt::TptpDialect::THF;
   for (const Node& t : terms)
   {
     if (isHigherOrderType(t.getType()))

@@ -8571,11 +8571,11 @@ void Solver::setInfo(const std::string& keyword, const std::string& value) const
       keyword == "source" || keyword == "category" || keyword == "difficulty"
       || keyword == "filename" || keyword == "license" || keyword == "name"
       || keyword == "notes" || keyword == "smt-lib-version"
-      || keyword == "status")
+      || keyword == "status" || keyword == "tptp-dialect")
       << "unrecognized keyword: " << keyword
       << ", expected 'source', 'category', 'difficulty', "
          "'filename', 'license', 'name', "
-         "'notes', 'smt-lib-version' or 'status'";
+         "'notes', 'smt-lib-version', 'status' or 'tptp-dialect'";
   CVC5_API_RECOVERABLE_ARG_CHECK_EXPECTED(
       keyword != "smt-lib-version" || value == "2" || value == "2.0"
           || value == "2.5" || value == "2.6" || value == "2.7",
@@ -8585,6 +8585,11 @@ void Solver::setInfo(const std::string& keyword, const std::string& value) const
                                   || value == "unsat" || value == "unknown",
                               value)
       << "'sat', 'unsat' or 'unknown'";
+  CVC5_API_ARG_CHECK_EXPECTED(keyword != "tptp-dialect" || value == "cnf"
+                                  || value == "fof" || value == "tff"
+                                  || value == "thf",
+                              value)
+      << "'cnf', 'fof', 'tff' or 'thf'";
   //////// all checks before this line
   if (keyword == "filename")
   {

@@ -24,6 +24,17 @@
 namespace cvc5::internal {
 namespace smt {
 
+enum class TptpDialect
+{
+  AUTO,
+  CNF,
+  FOF,
+  TFF,
+  THF,
+};
+
+TptpDialect tptpDialectFromString(const std::string& input);
+
 class Model;
 
 std::ostream& operator<<(std::ostream&, const Model&);
@@ -37,9 +48,16 @@ class Model {
    * @param isKnownSat True if this model is associated with a "sat" response,
    * or false if it is associated with an "unknown" response.
    */
-  Model(bool isKnownSat, const std::string& inputName);
+  Model(bool isKnownSat,
+        const std::string& inputName,
+        bool tptpModelVerification = false,
+        TptpDialect tptpInputDialect = TptpDialect::AUTO);
   /** get the input name (file name, etc.) this model is associated to */
   std::string getInputName() const { return d_inputName; }
+  /** whether TPTP model output should preserve explicit input metadata */
+  bool useTptpModelVerification() const { return d_tptpModelVerification; }
+  /** input TPTP dialect supplied by the caller, when known */
+  TptpDialect getTptpInputDialect() const { return d_tptpInputDialect; }
   /**
    * Returns true if this model is guaranteed to be a model of the input
    * formula. Notice that when cvc5 answers "unknown", it may have a model
@@ -92,6 +110,10 @@ class Model {
  protected:
   /** the input name (file name, etc.) this model is associated to */
   std::string d_inputName;
+  /** whether model printing should preserve explicit input metadata */
+  bool d_tptpModelVerification;
+  /** input TPTP dialect supplied by the caller, when known */
+  TptpDialect d_tptpInputDialect;
   /**
    * Flag set to false if the model is associated with an "unknown" response
    * from the solver.

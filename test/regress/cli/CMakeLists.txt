@@ -1028,6 +1028,7 @@ set(regress_0_tests
   regress0/ho/tptp-models-ho-q-funarg.smt2
   regress0/ho/tptp-models-isabelle-pf-lambda.smt2
   regress0/ho/tptp-models-garfield.smt2
+  regress0/ho/tptp-models-garfield-verification.smt2
   regress0/ho/ite-apply-eq.smt2
   regress0/ho/lambda-cycle.smt2
   regress0/ho/lambda-elim-sat.smt2
