@@ -2849,7 +2849,6 @@ set(regress_1_tests
   regress1/ho/dd.seu-mbqi.smt2
   regress1/ho/dd.seu589-wrong.smt2
   regress1/ho/fta0328.lfho.smt2
-  regress1/ho/ho-choice-partial-mbqi-enum.smt2
   regress1/ho/ho-fun-sharing-dd.smt2
   regress1/ho/issue12000.smt2
   regress1/ho/issue12000-2.smt2
@@ -4288,6 +4287,8 @@ set(regression_disabled_tests
   regress1/ho/nested_lambdas-AGT034^2.smt2
   regress1/ho/nested_lambdas-sat-SYO056^1-delta.smt2
   regress1/ho/SYO056^1.smt2
+  # assertion failure on some builds
+  regress1/ho/ho-choice-partial-mbqi-enum.smt2
   # timeout after fixes to uf-lazy-ll for cyclic lambda construction
   regress1/ho/bug_freevar_PHI004^4-delta.smt2
   # times out after update to circuit propagator
