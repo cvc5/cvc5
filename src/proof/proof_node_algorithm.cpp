@@ -314,125 +314,252 @@ bool proveEqualityWithRewriteSteps(Env& env,
                                    const Node& a,
                                    const Node& b)
 {
-  Node eq = a.eqNode(b);
-  if (a == b)
+  enum class EqProofState
   {
-    cdp.addStep(eq, ProofRule::REFL, {}, {a});
-    return true;
-  }
-  if (expr::isACINorm(a, b))
+    ENTER,
+    FINISH_ACI_NORM,
+    FINISH_CLOSURE,
+    FINISH_CONG,
+  };
+  enum class EqProofStatus
   {
-    cdp.addStep(eq, ProofRule::ACI_NORM, {}, {eq});
-    return true;
-  }
-  if (a.getType() == b.getType())
+    ACTIVE,
+    PROVED,
+    FAILED,
+  };
+  struct EqProofFrame
   {
-    TypeNode tn = a.getType();
-    if (tn.isBitVector() && theory::arith::PolyNorm::isArithPolyNorm(a, b))
+    Node d_a;
+    Node d_b;
+    EqProofState d_state;
+  };
+
+  std::unordered_map<Node, EqProofStatus> status;
+  std::vector<EqProofFrame> visit;
+  auto schedule = [&](const Node& lhs, const Node& rhs) {
+    Node eq = lhs.eqNode(rhs);
+    if (status.find(eq) == status.end())
     {
-      cdp.addStep(eq, ProofRule::BV_POLY_NORM, {}, {eq});
-      return true;
+      status.emplace(eq, EqProofStatus::ACTIVE);
+      visit.push_back({lhs, rhs, EqProofState::ENTER});
     }
-    if (tn.isRealOrInt() && theory::arith::PolyNorm::isArithPolyNorm(a, b))
-    {
-      cdp.addStep(eq, ProofRule::ARITH_POLY_NORM, {}, {eq});
-      return true;
-    }
-  }
-  Node eqr = env.rewriteViaMethod(eq);
-  if (eqr.isConst() && eqr.getConst<bool>())
+  };
+
+  schedule(a, b);
+  while (!visit.empty())
   {
-    cdp.addStep(eq, ProofRule::MACRO_SR_PRED_INTRO, {}, {eq});
-    return true;
-  }
-  Node an = expr::getACINormalForm(a);
-  Node bn = expr::getACINormalForm(b);
-  if (an != a || bn != b)
-  {
-    std::vector<Node> transEq;
-    if (a != an)
+    EqProofFrame cur = visit.back();
+    visit.pop_back();
+    const Node& lhs = cur.d_a;
+    const Node& rhs = cur.d_b;
+    Node eq = lhs.eqNode(rhs);
+    auto sit = status.find(eq);
+    Assert(sit != status.end());
+    if (cur.d_state == EqProofState::ENTER)
     {
-      Node aeq = a.eqNode(an);
-      cdp.addStep(aeq, ProofRule::ACI_NORM, {}, {aeq});
-      transEq.push_back(aeq);
-    }
-    if (!proveEqualityWithRewriteSteps(env, cdp, an, bn))
-    {
-      return false;
-    }
-    if (an != bn)
-    {
-      transEq.push_back(an.eqNode(bn));
-    }
-    if (b != bn)
-    {
-      Node beq = b.eqNode(bn);
-      cdp.addStep(beq, ProofRule::ACI_NORM, {}, {beq});
-      Node beqs = bn.eqNode(b);
-      cdp.addStep(beqs, ProofRule::SYMM, {beq}, {});
-      transEq.push_back(beqs);
-    }
-    if (transEq.empty())
-    {
-      return true;
-    }
-    if (transEq.size() == 1)
-    {
-      return transEq[0] == eq;
-    }
-    cdp.addStep(eq, ProofRule::TRANS, transEq, {});
-    return true;
-  }
-  if (a.getKind() != b.getKind() || a.getNumChildren() != b.getNumChildren())
-  {
-    return false;
-  }
-  if (a.isClosure())
-  {
-    if (a[0] != b[0])
-    {
-      return false;
-    }
-    std::vector<Node> cpremises;
-    for (size_t i = 1, nchildren = a.getNumChildren(); i < nchildren; i++)
-    {
-      Node eqi = a[i].eqNode(b[i]);
-      if (a[i] == b[i])
+      if (lhs == rhs)
       {
-        cdp.addStep(eqi, ProofRule::REFL, {}, {a[i]});
+        cdp.addStep(eq, ProofRule::REFL, {}, {lhs});
+        sit->second = EqProofStatus::PROVED;
+        continue;
       }
-      else if (!proveEqualityWithRewriteSteps(env, cdp, a[i], b[i]))
+      if (expr::isACINorm(lhs, rhs))
       {
-        return false;
+        cdp.addStep(eq, ProofRule::ACI_NORM, {}, {eq});
+        sit->second = EqProofStatus::PROVED;
+        continue;
       }
-      cpremises.push_back(eqi);
-    }
-    std::vector<Node> cargs;
-    ProofRule cr = getCongRule(a, cargs);
-    return cdp.addStep(eq, cr, cpremises, cargs);
-  }
-  std::vector<Node> premises(a.getNumChildren(), Node::null());
-  bool changed = false;
-  for (size_t i = 0, nchildren = a.getNumChildren(); i < nchildren; i++)
-  {
-    if (a[i] == b[i])
-    {
+      if (lhs.getType() == rhs.getType())
+      {
+        TypeNode tn = lhs.getType();
+        if (tn.isBitVector() && theory::arith::PolyNorm::isArithPolyNorm(lhs, rhs))
+        {
+          cdp.addStep(eq, ProofRule::BV_POLY_NORM, {}, {eq});
+          sit->second = EqProofStatus::PROVED;
+          continue;
+        }
+        if (tn.isRealOrInt()
+            && theory::arith::PolyNorm::isArithPolyNorm(lhs, rhs))
+        {
+          cdp.addStep(eq, ProofRule::ARITH_POLY_NORM, {}, {eq});
+          sit->second = EqProofStatus::PROVED;
+          continue;
+        }
+      }
+      Node eqr = env.rewriteViaMethod(eq);
+      if (eqr.isConst() && eqr.getConst<bool>())
+      {
+        cdp.addStep(eq, ProofRule::MACRO_SR_PRED_INTRO, {}, {eq});
+        sit->second = EqProofStatus::PROVED;
+        continue;
+      }
+      Node an = expr::getACINormalForm(lhs);
+      Node bn = expr::getACINormalForm(rhs);
+      if (an != lhs || bn != rhs)
+      {
+        if (lhs != an)
+        {
+          Node aeq = lhs.eqNode(an);
+          cdp.addStep(aeq, ProofRule::ACI_NORM, {}, {aeq});
+        }
+        visit.push_back({lhs, rhs, EqProofState::FINISH_ACI_NORM});
+        if (an != bn)
+        {
+          schedule(an, bn);
+        }
+        continue;
+      }
+      if (lhs.getKind() != rhs.getKind()
+          || lhs.getNumChildren() != rhs.getNumChildren())
+      {
+        sit->second = EqProofStatus::FAILED;
+        continue;
+      }
+      if (lhs.isClosure())
+      {
+        if (lhs[0] != rhs[0])
+        {
+          sit->second = EqProofStatus::FAILED;
+          continue;
+        }
+        visit.push_back({lhs, rhs, EqProofState::FINISH_CLOSURE});
+        for (size_t i = lhs.getNumChildren(); i > 1; --i)
+        {
+          size_t index = i - 1;
+          if (lhs[index] != rhs[index])
+          {
+            schedule(lhs[index], rhs[index]);
+          }
+        }
+        continue;
+      }
+      visit.push_back({lhs, rhs, EqProofState::FINISH_CONG});
+      for (size_t i = lhs.getNumChildren(); i > 0; --i)
+      {
+        size_t index = i - 1;
+        if (lhs[index] != rhs[index])
+        {
+          schedule(lhs[index], rhs[index]);
+        }
+      }
       continue;
     }
-    if (!proveEqualityWithRewriteSteps(env, cdp, a[i], b[i]))
+    if (cur.d_state == EqProofState::FINISH_ACI_NORM)
     {
-      return false;
+      Node an = expr::getACINormalForm(lhs);
+      Node bn = expr::getACINormalForm(rhs);
+      if (an != bn)
+      {
+        auto nit = status.find(an.eqNode(bn));
+        if (nit == status.end() || nit->second != EqProofStatus::PROVED)
+        {
+          sit->second = EqProofStatus::FAILED;
+          continue;
+        }
+      }
+      std::vector<Node> transEq;
+      if (lhs != an)
+      {
+        transEq.push_back(lhs.eqNode(an));
+      }
+      if (an != bn)
+      {
+        transEq.push_back(an.eqNode(bn));
+      }
+      if (rhs != bn)
+      {
+        Node beq = rhs.eqNode(bn);
+        cdp.addStep(beq, ProofRule::ACI_NORM, {}, {beq});
+        Node beqs = bn.eqNode(rhs);
+        cdp.addStep(beqs, ProofRule::SYMM, {beq}, {});
+        transEq.push_back(beqs);
+      }
+      if (transEq.empty())
+      {
+        sit->second = EqProofStatus::PROVED;
+      }
+      else if (transEq.size() == 1)
+      {
+        sit->second =
+            transEq[0] == eq ? EqProofStatus::PROVED : EqProofStatus::FAILED;
+      }
+      else
+      {
+        sit->second = cdp.addStep(eq, ProofRule::TRANS, transEq, {})
+                          ? EqProofStatus::PROVED
+                          : EqProofStatus::FAILED;
+      }
+      continue;
     }
-    premises[i] = a[i].eqNode(b[i]);
-    changed = true;
+    if (cur.d_state == EqProofState::FINISH_CLOSURE)
+    {
+      std::vector<Node> cpremises;
+      bool failed = false;
+      for (size_t i = 1, nchildren = lhs.getNumChildren(); i < nchildren; i++)
+      {
+        Node eqi = lhs[i].eqNode(rhs[i]);
+        if (lhs[i] == rhs[i])
+        {
+          cdp.addStep(eqi, ProofRule::REFL, {}, {lhs[i]});
+        }
+        else
+        {
+          auto cit = status.find(eqi);
+          if (cit == status.end() || cit->second != EqProofStatus::PROVED)
+          {
+            failed = true;
+            break;
+          }
+        }
+        cpremises.push_back(eqi);
+      }
+      if (failed)
+      {
+        sit->second = EqProofStatus::FAILED;
+        continue;
+      }
+      std::vector<Node> cargs;
+      ProofRule cr = getCongRule(lhs, cargs);
+      sit->second = cdp.addStep(eq, cr, cpremises, cargs)
+                        ? EqProofStatus::PROVED
+                        : EqProofStatus::FAILED;
+      continue;
+    }
+    Assert(cur.d_state == EqProofState::FINISH_CONG);
+    std::vector<Node> premises(lhs.getNumChildren(), Node::null());
+    bool changed = false;
+    bool failed = false;
+    for (size_t i = 0, nchildren = lhs.getNumChildren(); i < nchildren; i++)
+    {
+      if (lhs[i] == rhs[i])
+      {
+        continue;
+      }
+      Node eqi = lhs[i].eqNode(rhs[i]);
+      auto cit = status.find(eqi);
+      if (cit == status.end() || cit->second != EqProofStatus::PROVED)
+      {
+        failed = true;
+        break;
+      }
+      premises[i] = eqi;
+      changed = true;
+    }
+    if (failed)
+    {
+      sit->second = EqProofStatus::FAILED;
+      continue;
+    }
+    if (!changed)
+    {
+      cdp.addStep(eq, ProofRule::REFL, {}, {lhs});
+      sit->second = EqProofStatus::PROVED;
+      continue;
+    }
+    Node eqc = proveCong(env, &cdp, lhs, premises);
+    sit->second = eqc == eq ? EqProofStatus::PROVED : EqProofStatus::FAILED;
   }
-  if (!changed)
-  {
-    cdp.addStep(eq, ProofRule::REFL, {}, {a});
-    return true;
-  }
-  Node eqc = proveCong(env, &cdp, a, premises);
-  return eqc == eq;
+  return status[a.eqNode(b)] == EqProofStatus::PROVED;
 }
 
 }  // namespace expr
