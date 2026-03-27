@@ -156,7 +156,7 @@ Node proveCong(Env& env,
  * combination of:
  * - reflexivity,
  * - ACI normalization,
- * - bit-vector polynomial normalization,
+ * - arithmetic / bit-vector polynomial normalization,
  * - rewriting the equality directly to true, and
  * - recursively proving equalities between corresponding children and lifting
  *   them with congruence.

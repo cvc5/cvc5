@@ -333,6 +333,11 @@ bool proveEqualityWithRewriteSteps(Env& env,
       cdp.addStep(eq, ProofRule::BV_POLY_NORM, {}, {eq});
       return true;
     }
+    if (tn.isRealOrInt() && theory::arith::PolyNorm::isArithPolyNorm(a, b))
+    {
+      cdp.addStep(eq, ProofRule::ARITH_POLY_NORM, {}, {eq});
+      return true;
+    }
   }
   Node eqr = env.rewriteViaMethod(eq);
   if (eqr.isConst() && eqr.getConst<bool>())
