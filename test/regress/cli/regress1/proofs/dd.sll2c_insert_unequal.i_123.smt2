@@ -1,3 +1,5 @@
+; EXPECT: unsat
+(set-logic ALL)
 (declare-const U (_ BitVec 1))
 (declare-const _c_ (_ BitVec 1))
 (declare-const _U (_ BitVec 1))
