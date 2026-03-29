@@ -487,7 +487,7 @@ bool AletheProofPostprocessCallback::updateTheoryRewriteProofRewriteRule(
                     transConc,
                     nm->mkNode(Kind::SEXPR, d_cl, transConc),
                     {reflConc, rwConc},
-                    rwArgs,
+                    {},
                     *cdp);
       // build onepoint step
       return addAletheStep(AletheRule::ANCHOR_ONEPOINT,
