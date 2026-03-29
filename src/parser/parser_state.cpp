@@ -708,23 +708,34 @@ void ParserState::pushGetValueScope()
   std::vector<Sort> declareSorts = d_symman->getDeclaredSorts();
   Trace("parser") << "Push get value scope, with " << declareSorts.size()
                   << " declared sorts" << std::endl;
-  for (const Sort& s : declareSorts)
+  try
   {
-    std::vector<Term> elements = d_solver->getModelDomainElements(s);
-    Trace("parser") << "elements for " << s << ":" << std::endl;
-    for (const Term& e : elements)
+    for (const Sort& s : declareSorts)
     {
-      Trace("parser") << "  " << e.getKind() << " " << e << std::endl;
-      if (e.getKind() == Kind::UNINTERPRETED_SORT_VALUE)
+      std::vector<Term> elements = d_solver->getModelDomainElements(s);
+      Trace("parser") << "elements for " << s << ":" << std::endl;
+      for (const Term& e : elements)
       {
-        defineVar(e.getUninterpretedSortValue(), e);
-      }
-      else
-      {
-        DebugUnhandled()
-            << "model domain element is not an uninterpreted sort value: " << e;
+        Trace("parser") << "  " << e.getKind() << " " << e << std::endl;
+        if (e.getKind() == Kind::UNINTERPRETED_SORT_VALUE)
+        {
+          defineVar(e.getUninterpretedSortValue(), e);
+        }
+        else
+        {
+          DebugUnhandled()
+              << "model domain element is not an uninterpreted sort value: "
+              << e;
+        }
       }
     }
+  }
+  catch (const CVC5ApiRecoverableException& e)
+  {
+    // Let the get-value command report recoverable model-state errors itself
+    // instead of turning them into fatal parse errors while binding @U_i names.
+    Trace("parser") << "Skipping get-value model bindings: " << e.what()
+                    << std::endl;
   }
 }
 

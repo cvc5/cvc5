@@ -2853,6 +2853,186 @@ bool AletheProofPostprocessCallback::update(Node res,
                            {},
                            *cdp);
     }
+    // ======== Reasoning on arithmetic operators via defining their meanings in
+    // terms of other operators
+    //
+    // The general shape of the ARITH_REDUCTION rule is to conclude a
+    // conjunction of an equality between (<op> t1 ... tn) and another (not
+    // necessarily different) term, and a conjunction of axiom instantiations
+    // that define the meaning of <op>.
+    //
+    // We translate such rules into
+    //
+    // ----------------------- rare_rw R   ------ op_intro
+    // (= (<op> t1 ... tn) t')               A
+    // --------------------------------------------- and_intro
+    // (and (= (<op> t1 ... tn) t') A)
+    //
+    // when t' is different from (<op> t1 ... tn), otherwise the equality is
+    // justified via refl. The RARE rewrite rule depends on <op>. They are
+    // listed below for each operator. The rules used to justify the axiom
+    // instantiation also depends on the operator.
+    case ProofRule::ARITH_REDUCTION:
+    {
+      // Placeholders to be justified below according to the operator
+      Node opEq = res[0];
+      Node opIntro = res[1];
+      switch (args[0].getKind())
+      {
+        // Since for now only the linear case is considered, these operators can
+        // be treated in the same way
+        case Kind::DIVISION:
+        case Kind::DIVISION_TOTAL:
+        case Kind::INTS_DIVISION:
+        case Kind::INTS_DIVISION_TOTAL:
+        {
+          // div is equated to itself
+          addAletheStep(AletheRule::REFL,
+                        opEq,
+                        nm->mkNode(Kind::SEXPR, d_cl, opEq),
+                        {},
+                        {},
+                        *cdp);
+          addAletheStep(AletheRule::DIV_INTRO,
+                        opIntro,
+                        nm->mkNode(Kind::SEXPR, d_cl, opIntro),
+                        {},
+                        {},
+                        *cdp);
+          break;
+        }
+        // Since for now only the linear case is considered, these operators can
+        // be treated in the same way
+        case Kind::INTS_MODULUS:
+        case Kind::INTS_MODULUS_TOTAL:
+        {
+          // mod is equated to its definition using subtraction and division
+          //
+          // (define-rule mod-elim ((a Int) (b Int))
+          //  (mod a b) (- a (* b (div a b))))
+          addAletheStep(AletheRule::RARE_REWRITE,
+                        opEq,
+                        nm->mkNode(Kind::SEXPR, d_cl, opEq),
+                        {},
+                        {nm->mkRawSymbol("\"mod-elim\"", nm->sExprType()),
+                         opEq[0][0],
+                         opEq[0][1]},
+                        *cdp);
+          addAletheStep(AletheRule::DIV_INTRO,
+                        opIntro,
+                        nm->mkNode(Kind::SEXPR, d_cl, opIntro),
+                        {},
+                        {},
+                        *cdp);
+          break;
+        }
+        case Kind::TO_INTEGER:
+        {
+          // to_int is equated to itself
+          addAletheStep(AletheRule::REFL,
+                        opEq,
+                        nm->mkNode(Kind::SEXPR, d_cl, opEq),
+                        {},
+                        {},
+                        *cdp);
+          addAletheStep(AletheRule::TO_INT_INTRO,
+                        opIntro,
+                        nm->mkNode(Kind::SEXPR, d_cl, opIntro),
+                        {},
+                        {},
+                        *cdp);
+          break;
+        }
+        case Kind::IS_INTEGER:
+        {
+          // is_int is equated to its definition using to_int
+          //
+          // (define-rule is_int-elim ((x Real))
+          //   (is_int x) (= x (to_real (to_int x))))
+          addAletheStep(
+              AletheRule::RARE_REWRITE,
+              opEq,
+              nm->mkNode(Kind::SEXPR, d_cl, opEq),
+              {},
+              {nm->mkRawSymbol("\"is_int-elim\"", nm->sExprType()), opEq[0][0]},
+              *cdp);
+          addAletheStep(AletheRule::TO_INT_INTRO,
+                        opIntro,
+                        nm->mkNode(Kind::SEXPR, d_cl, opIntro),
+                        {},
+                        {},
+                        *cdp);
+          break;
+        }
+        case Kind::INTS_LOG2:
+        {
+          // int.log2 is equated to itself
+          addAletheStep(AletheRule::REFL,
+                        opEq,
+                        nm->mkNode(Kind::SEXPR, d_cl, opEq),
+                        {},
+                        {},
+                        *cdp);
+          addAletheStep(AletheRule::LOG2_INTRO,
+                        opIntro,
+                        nm->mkNode(Kind::SEXPR, d_cl, opIntro),
+                        {},
+                        {},
+                        *cdp);
+          break;
+        }
+        // Since no axiom instantiation is introduced when eliminating `abs`, we
+        // directly use RARE rewrites:
+        //
+        // (define-rule abs-elim-int ((t Int))
+        //    (abs t) (ite (< t 0) (- t) t))
+        //
+        // (define-rule abs-elim-real ((t Real))
+        //    (abs t) (ite (< t 0/1) (- t) t))
+        case Kind::ABS:
+        {
+          // abs is equated to its definition using ite and arithmetic operators
+          // that do not require axiom introductions.
+          //
+          // Because the RARE rewrite uses 0 or 0.0 depending on the type, we
+          // use two rules:
+          //
+          // (define-rule abs-elim-int ((t Int))
+          //    (abs t) (ite (< t 0) (- t) t))
+          //
+          // (define-rule abs-elim-real ((t Real))
+          //    (abs t) (ite (< t 0/1) (- t) t))
+          Node absArg = args[0][0];
+          Node ruleStr = nm->mkRawSymbol(absArg.getType().isInteger()
+                                             ? "\"abs-elim-int\""
+                                             : "\"abs-elim-real\"",
+                                         nm->sExprType());
+          return addAletheStep(AletheRule::RARE_REWRITE,
+                               res,
+                               nm->mkNode(Kind::SEXPR, d_cl, res),
+                               {},
+                               {ruleStr, absArg},
+                               *cdp);
+        }
+        default:
+        {
+          return addAletheStep(
+              AletheRule::HOLE,
+              res,
+              nm->mkNode(Kind::SEXPR, d_cl, res),
+              {},
+              {nm->mkRawSymbol("\"unsupported operator in ARITH_REDUCTION\"",
+                               nm->sExprType())},
+              *cdp);
+        }
+      }
+      return addAletheStep(AletheRule::AND_INTRO,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           {opEq, opIntro},
+                           {},
+                           *cdp);
+    }
     default:
     {
       Trace("alethe-proof")
