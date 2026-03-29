@@ -832,7 +832,8 @@ void DefaultIteBB (TNode node, std::vector<T>& res, TBitblaster<T>* bb) {
 
   for (unsigned i = 0; i < thenpart.size(); ++i) {
     // (~cond OR thenpart) AND (cond OR elsepart)
-    res.push_back(mkAnd(mkOr(mkNot(cond[0]),thenpart[i]),mkOr(cond[0],elsepart[i])));
+    res.push_back(
+        mkAnd({mkOr(mkNot(cond[0]), thenpart[i]), mkOr(cond[0], elsepart[i])}));
   }
 }
 

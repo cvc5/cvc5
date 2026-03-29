@@ -415,9 +415,9 @@ inline Node RewriteRule<SmodEliminate>::apply(TNode node)
       cond1.iteNode(
           u,
           cond2.iteNode(
-              NodeManager::mkNode(Kind::BITVECTOR_ADD, neg_u, t),
-              cond3.iteNode(NodeManager::mkNode(Kind::BITVECTOR_ADD, u, t),
-                            neg_u))));
+              {NodeManager::mkNode(Kind::BITVECTOR_ADD, neg_u, t),
+               cond3.iteNode(NodeManager::mkNode(Kind::BITVECTOR_ADD, u, t),
+                             neg_u)})));
 
   return result;
 }
