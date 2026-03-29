@@ -172,8 +172,10 @@ void CircuitPropagator::makeConflict(Node n)
     }
     else
     {
+      // Use nPf to ensure deterministic node ID assignments
+      Pf nPf = pcp.assume(n);
       d_epg->setProofFor(bfalse,
-                         pcp.conflict(pcp.assume(n), pcp.assume(n.negate())));
+                         pcp.conflict(nPf, pcp.assume(n.negate())));
     }
     g = d_proofInternal.get();
     Trace("circuit-prop") << "Added conflict " << *d_epg->getProofFor(bfalse)

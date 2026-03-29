@@ -481,7 +481,7 @@ bool NlModel::solveEqualitySimple(Node eq,
           // We also ensure types are correct here, which avoids substituting
           // a term of non-integer type for a variable of integer type.
           if (veqc.isNull() && !expr::hasSubterm(slv, uv)
-              && slv.getType() == uv.getType())
+              && CVC5_EQUAL(slv.getType(), uv.getType()))
           {
             Trace("nl-ext-cm")
                 << "check-model-subs : " << uv << " -> " << slv << std::endl;

@@ -491,8 +491,10 @@ void uDivModRec(NodeManager* nm,
   lshift(nm, q1, 1);
   lshift(nm, r1, 1);
 
-  T is_odd = mkIff(a[0], mkTrue<T>(nm));
-  T one_if_odd = mkIte(is_odd, mkTrue<T>(nm), mkFalse<T>(nm));
+  // Use t_true to ensure deterministic node ID assignments
+  T t_true = mkTrue<T>(nm);
+  T is_odd = mkIff(a[0], t_true);
+  T one_if_odd = mkIte(is_odd, t_true, mkFalse<T>(nm));
 
   std::vector<T> zero;
   makeZero(nm, zero, b.size());

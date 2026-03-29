@@ -157,8 +157,9 @@ uint32_t BVGauss::getMinBwExpr(Node expr)
            * min bw of current concat is determined as
            *   min bw of first non-zero term
            *   plus actual bw of all subsequent terms */
-          visited[n] = bv::utils::getSize(n) + visited[n[i]]
-                       - bv::utils::getSize(n[i]) - wnz;
+          // Use nSize to ensure deterministic node ID assignments
+          unsigned nSize = bv::utils::getSize(n);
+          visited[n] = nSize + visited[n[i]] - bv::utils::getSize(n[i]) - wnz;
           break;
         }
 

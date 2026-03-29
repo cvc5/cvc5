@@ -173,8 +173,9 @@ Node LfscNodeConverter::postConvert(Node n)
         n.getOperator().getConst<CardinalityConstraint>();
     Node tnn = typeAsNode(convertType(cc.getType()));
     Node ub = d_nm->mkConstInt(Rational(cc.getUpperBound()));
-    TypeNode tnc = d_nm->mkFunctionType({tnn.getType(), ub.getType()},
-                                        d_nm->booleanType());
+    // Use boolType to ensure deterministic node ID assignments
+    TypeNode boolType = d_nm->booleanType();
+    TypeNode tnc = d_nm->mkFunctionType({tnn.getType(), ub.getType()}, boolType);
     Node fcard = getSymbolInternal(k, tnc, "fmf.card");
     return mkApplyUf(fcard, {tnn, ub});
   }
@@ -877,7 +878,9 @@ void LfscNodeConverter::getCharVectorInternal(Node c, std::vector<Node>& chars)
     chars.push_back(ec);
     return;
   }
-  TypeNode tnc = d_nm->mkFunctionType(d_nm->integerType(), c.getType());
+  // Use intType to ensure deterministic node ID assignments
+  TypeNode intType = d_nm->integerType();
+  TypeNode tnc = d_nm->mkFunctionType(intType, c.getType());
   Node aconstf = getSymbolInternal(Kind::CONST_STRING, tnc, "char");
   for (unsigned i = 0, size = vec.size(); i < size; i++)
   {

@@ -461,8 +461,10 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
       {
         Trace("sets-debug") << "  it is empty..." << std::endl;
         Assert(!d_state.areEqual(n, emp_set));
+        // Use conc to ensure deterministic node ID assignments
+        Node conc = n.eqNode(emp_set);
         d_im.assertInference(
-            n.eqNode(emp_set), InferenceId::SETS_CARD_GRAPH_EMP_PARENT, p.eqNode(emp_set));
+            conc, InferenceId::SETS_CARD_GRAPH_EMP_PARENT, p.eqNode(emp_set));
         d_im.doPendingLemmas();
         if (d_im.hasSent())
         {

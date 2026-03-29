@@ -145,7 +145,7 @@ bool Instantiate::addInstantiationInternal(
                     << terms[i] << std::endl;
       bad_inst = true;
     }
-    else if (terms[i].getType() != q[0][i].getType())
+    else if (!CVC5_EQUAL(terms[i].getType(), q[0][i].getType()))
     {
       Trace("inst") << "***& inst bad type : " << terms[i] << " "
                     << terms[i].getType() << "/" << q[0][i].getType()

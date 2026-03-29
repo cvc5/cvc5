@@ -85,7 +85,7 @@ std::vector<Node> EqualitySubstitution::eliminateEqualities(
         // lhs can't be constant
         if (l.isConst()) continue;
         // types must match (otherwise we might have int/real issues)
-        if (r.getType() != l.getType()) continue;
+        if (!CVC5_EQUAL(r.getType(), l.getType())) continue;
         // can't substitute stuff from other theories
         if (!Theory::isLeafOf(l, TheoryId::THEORY_ARITH)) continue;
         // can't substitute the same thing twice

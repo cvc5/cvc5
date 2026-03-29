@@ -83,7 +83,9 @@ Node AletheNodeConverter::postConvert(Node n)
       std::stringstream ss;
       ss << "(_ @bit_of " << n.getOperator().getConst<BitVectorBit>().d_bitIndex
          << ")";
-      TypeNode fType = d_nm->mkFunctionType(n[0].getType(), n.getType());
+      // Use n0Type to ensure deterministic node ID assignments
+      TypeNode n0Type = n[0].getType();
+      TypeNode fType = d_nm->mkFunctionType(n0Type, n.getType());
       Node op = mkInternalSymbol(ss.str(), fType, true);
       Node converted = d_nm->mkNode(Kind::APPLY_UF, op, n[0]);
       return converted;

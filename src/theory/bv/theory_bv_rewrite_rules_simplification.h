@@ -1363,9 +1363,12 @@ inline Node RewriteRule<ZeroExtendEqConst>::apply(TNode node) {
     t = node[1][0];
     c = node[0];
   }
+  // Use cSize and tSize to ensure deterministic node ID assignments
+  unsigned cSize = utils::getSize(c);
+  unsigned tSize = utils::getSize(t);
   BitVector c_hi =
-      c.getConst<BitVector>().extract(utils::getSize(c) - 1, utils::getSize(t));
-  BitVector c_lo = c.getConst<BitVector>().extract(utils::getSize(t) - 1, 0);
+      c.getConst<BitVector>().extract(cSize - 1, tSize);
+  BitVector c_lo = c.getConst<BitVector>().extract(tSize - 1, 0);
   BitVector zero = BitVector(c_hi.getSize(), Integer(0));
 
   if (c_hi == zero) {
@@ -1450,15 +1453,16 @@ inline bool RewriteRule<ZeroExtendUltConst>::applies(TNode node) {
       t = node[1][0];
       c = node[0];
     }
-
-    if (utils::getSize(t) == utils::getSize(c))
+    // Use cSize and tSize to ensure deterministic node ID assignments
+    unsigned tSize = utils::getSize(t);
+    unsigned cSize = utils::getSize(c);
+    if (tSize == cSize)
     {
       return false;
     }
 
     BitVector bv_c = c.getConst<BitVector>();
-    BitVector c_hi = c.getConst<BitVector>().extract(utils::getSize(c) - 1,
-                                                     utils::getSize(t));
+    BitVector c_hi = c.getConst<BitVector>().extract(cSize - 1, tSize);
     BitVector zero = BitVector(c_hi.getSize(), Integer(0));
 
     return c_hi == zero;
@@ -1796,17 +1800,21 @@ std::tuple<Node, Node, bool> extract_ext_tuple(TNode node)
   for (unsigned i = 0; i < 2; ++i)
   {
     if (a.getKind() == Kind::BITVECTOR_CONCAT
-        && b.getKind() == Kind::BITVECTOR_SIGN_EXTEND
-        && a[0] == utils::mkZero(nm, utils::getSize(a[0]))
-        && utils::getSize(a[1]) <= utils::getSize(a[0])
-        && utils::getSize(b[0]) <= utils::getSignExtendAmount(b))
+        && b.getKind() == Kind::BITVECTOR_SIGN_EXTEND)
     {
-      return std::make_tuple(a[1], b[0], false);
+      // Use a0Size to ensure deterministic node ID assignments
+      unsigned a0Size = utils::getSize(a[0]);
+      if (a[0] == utils::mkZero(nm, a0Size)
+          && utils::getSize(a[1]) <= a0Size
+          && utils::getSize(b[0]) <= utils::getSignExtendAmount(b))
+      {
+        return std::make_tuple(a[1], b[0], false);
+      }
     }
-    else if (i == 0 && a.getKind() == Kind::BITVECTOR_SIGN_EXTEND
-             && b.getKind() == Kind::BITVECTOR_SIGN_EXTEND
-             && utils::getSize(a[0]) <= utils::getSignExtendAmount(a)
-             && utils::getSize(b[0]) <= utils::getSignExtendAmount(b))
+    if (i == 0 && a.getKind() == Kind::BITVECTOR_SIGN_EXTEND
+        && b.getKind() == Kind::BITVECTOR_SIGN_EXTEND
+        && utils::getSize(a[0]) <= utils::getSignExtendAmount(a)
+        && utils::getSize(b[0]) <= utils::getSignExtendAmount(b))
     {
       return std::make_tuple(a[0], b[0], true);
     }

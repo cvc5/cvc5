@@ -249,7 +249,7 @@ Node RewriteDbProofCons::preprocessClosureEq(CDProof* cdp,
       }
       if (ai[0][i] != bi[0][i])
       {
-        if (ai[0][i].getType() != bi[0][i].getType())
+        if (!CVC5_EQUAL(ai[0][i].getType(), bi[0][i].getType()))
         {
           return Node::null();
         }

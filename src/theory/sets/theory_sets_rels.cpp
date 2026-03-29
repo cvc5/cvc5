@@ -662,8 +662,11 @@ void TheorySetsRels::check(Theory::Effort level)
     if( tc_it != d_rRep_tcGraph.end() ) {
       bool isReachable = false;
       std::unordered_set<Node> seen;
-      isTCReachable( getRepresentative(TupleUtils::nthElementOfTuple(mem_rep, 0) ),
-                     getRepresentative(TupleUtils::nthElementOfTuple(mem_rep, 1) ), seen, tc_it->second, isReachable );
+      // Use mem_rep_0 and mem_rep_1 to ensure deterministic node ID assignments
+      Node mem_rep_0 = getRepresentative(TupleUtils::nthElementOfTuple(mem_rep, 0) );
+      Node mem_rep_1 = getRepresentative(TupleUtils::nthElementOfTuple(mem_rep, 1) );
+      isTCReachable( getRepresentative(mem_rep_0),
+                     getRepresentative(mem_rep_1), seen, tc_it->second, isReachable );
       return isReachable;
     }
     return false;
@@ -774,9 +777,10 @@ void TheorySetsRels::check(Theory::Effort level)
       std::unordered_set<Node>& seen)
   {
     NodeManager* nm = nodeManager();
-    Node tc_mem = RelsUtils::constructPair( tc_rel,
-        TupleUtils::nthElementOfTuple((reasons.front())[0], 0),
-        TupleUtils::nthElementOfTuple((reasons.back())[0], 1) );
+    // Use reasons_front_0 and reasons_back_1 to ensure deterministic node ID assignments
+    Node reasons_front_0 = TupleUtils::nthElementOfTuple((reasons.front())[0], 0);
+    Node reasons_back_1 = TupleUtils::nthElementOfTuple((reasons.back())[0], 1);
+    Node tc_mem = RelsUtils::constructPair( tc_rel, reasons_front_0, reasons_back_1);
     std::vector< Node > all_reasons( reasons );
 
     for( unsigned int i = 0 ; i < reasons.size()-1; i++ ) {
@@ -797,9 +801,11 @@ void TheorySetsRels::check(Theory::Effort level)
           nodeManager()->mkNode(Kind::EQUAL, tc_rel[0], reasons.back()[1]));
     }
     if( all_reasons.size() > 1) {
+      // Use andReasons to ensure deterministic node ID assignments
+      Node andReasons = nm->mkNode(Kind::AND, all_reasons);
       sendInfer(nm->mkNode(Kind::SET_MEMBER, tc_mem, tc_rel),
                 InferenceId::SETS_RELS_TCLOSURE_FWD,
-                nm->mkNode(Kind::AND, all_reasons));
+                andReasons);
     } else {
       sendInfer(nm->mkNode(Kind::SET_MEMBER, tc_mem, tc_rel),
                 InferenceId::SETS_RELS_TCLOSURE_FWD,
@@ -1040,7 +1046,9 @@ void TheorySetsRels::check(Theory::Effort level)
           << "\n[Theory::Rels] *********** Applying RELATION_TRANSPOSE-Equal "
              "rule on transposed term = "
           << tp_terms[0] << " and " << tp_terms[i] << std::endl;
-      sendInfer(nm->mkNode(Kind::EQUAL, tp_terms[0][0], tp_terms[i][0]),
+      // Use fact to ensure deterministic node ID assignments
+      Node fact = nm->mkNode(Kind::EQUAL, tp_terms[0][0], tp_terms[i][0]);
+      sendInfer(fact,
                 InferenceId::SETS_RELS_TRANSPOSE_EQ,
                 nm->mkNode(Kind::EQUAL, tp_terms[0], tp_terms[i]));
     }
@@ -1431,8 +1439,10 @@ void TheorySetsRels::check(Theory::Effort level)
       size_t tlen = atn.getTupleLength();
       for (size_t i = 0; i < tlen; i++)
       {
-        if (!areEqual(TupleUtils::nthElementOfTuple(a, i),
-                      TupleUtils::nthElementOfTuple(b, i)))
+        // Use a_i and b_i to ensure deterministic node ID assignments
+        Node a_i = TupleUtils::nthElementOfTuple(a, i);
+        Node b_i = TupleUtils::nthElementOfTuple(b, i);
+        if (!areEqual(a_i, b_i))
         {
           return false;
         }

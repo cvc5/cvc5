@@ -352,7 +352,7 @@ void RelevantDomain::computeRelevantDomainLit( Node q, bool hasPol, bool pol, No
   if (varCount == 2)
   {
     // don't merge Int and Real
-    rdl.d_merge = (n[0].getType() == n[1].getType());
+    rdl.d_merge = (CVC5_EQUAL(n[0].getType(), n[1].getType()));
   }
   else if (varCount == 1)
   {
@@ -418,7 +418,7 @@ void RelevantDomain::computeRelevantDomainLit( Node q, bool hasPol, bool pol, No
             }
           }
         }
-        else if (!hasNonVar && var.getType()==var2.getType())
+        else if (!hasNonVar && CVC5_EQUAL(var.getType(), var2.getType()))
         {
           Assert(var2.hasAttribute(InstVarNumAttribute()));
           // merge the domains

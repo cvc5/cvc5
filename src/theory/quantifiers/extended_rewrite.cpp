@@ -1074,7 +1074,7 @@ Node ExtendedRewriter::extendedRewriteEqRes(Kind andk,
       if (gpol == isXor)
       {
         // can only turn disequality into equality if types are the same
-        if (lit[1].getType() == lit.getType())
+        if (CVC5_EQUAL(lit[1].getType(), lit.getType()))
         {
           // t != s ---> ~t = s
           if (lit[1].getKind() == notk && lit[0].getKind() != notk)

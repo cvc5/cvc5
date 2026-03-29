@@ -1231,7 +1231,7 @@ void TheoryEngineModelBuilder::debugCheckModel(TheoryModel* tm)
         {
           AlwaysAssert(val == rep) << err.str();
         }
-        else if (rewrite(val) != rewrite(rep))
+        else if (!CVC5_EQUAL(rewrite(val), rewrite(rep)))
         {
           // if it does not evaluate, it is just a warning, which may be the
           // case for non-constant values, e.g. lambdas. Furthermore we only

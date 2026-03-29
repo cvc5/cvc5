@@ -113,7 +113,7 @@ Node DatatypesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
         return Node::null();
       }
       bool result =
-          utils::indexOf(n.getOperator()) == utils::indexOf(n[0].getOperator());
+        CVC5_EQUAL(utils::indexOf(n.getOperator()), utils::indexOf(n[0].getOperator()));
       NodeManager* nm = nodeManager();
       return nm->mkConst(result);
     }
@@ -555,8 +555,10 @@ RewriteResponse DatatypesRewriter::preRewrite(TNode in)
             << "Ascribing type to parametric datatype constructor " << in
             << std::endl;
         Node op = in.getOperator();
+        // Use opIndex to ensure deterministic node ID assignments
+        size_t opIndex = utils::indexOf(op);
         // get the constructor object
-        const DTypeConstructor& dtc = utils::datatypeOf(op)[utils::indexOf(op)];
+        const DTypeConstructor& dtc = utils::datatypeOf(op)[opIndex];
         // create ascribed constructor type
         Node op_new = dtc.getInstantiatedConstructor(tn);
         // make new node

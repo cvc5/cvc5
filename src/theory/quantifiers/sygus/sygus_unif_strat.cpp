@@ -811,7 +811,7 @@ void SygusUnifStrategy::staticLearnRedundantOps(
       if (op.getKind() == Kind::BUILTIN
           && NodeManager::operatorToKind(op) == Kind::ITE
           && sygus_tn.isBoolean()
-          && (dt[cindex].getArgType(1) == dt[cindex].getArgType(2)))
+          && (CVC5_EQUAL(dt[cindex].getArgType(1), dt[cindex].getArgType(2))))
       {
         unsigned ncons = dt.getNumConstructors(), indexT = ncons,
                  indexF = ncons;
