@@ -559,7 +559,12 @@ bool proveEqualityWithRewriteSteps(Env& env,
       sit->second = EqProofStatus::FAILED;
       continue;
     }
-    Assert (changed);
+    if (!changed)
+    {
+      cdp.addStep(eq, ProofRule::REFL, {}, {lhs});
+      sit->second = EqProofStatus::PROVED;
+      continue;
+    }
     Node eqc = proveCong(env, &cdp, lhs, premises);
     sit->second = eqc == eq ? EqProofStatus::PROVED : EqProofStatus::FAILED;
   }
