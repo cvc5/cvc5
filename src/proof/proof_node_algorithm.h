@@ -170,12 +170,15 @@ Node proveCong(Env& env,
  * @param cdp The proof to extend with the derived steps.
  * @param a The left-hand side of the equality to prove.
  * @param b The right-hand side of the equality to prove.
+ * @param allowPredIntro Whether this method may use MACRO_SR_PRED_INTRO when
+ * the equality rewrites directly to true.
  * @return true if a proof of (= a b) was added to cdp.
  */
 bool proveEqualityWithRewriteSteps(Env& env,
                                    CDProof& cdp,
                                    const Node& a,
-                                   const Node& b);
+                                   const Node& b,
+                                   bool allowPredIntro = true);
 
 }  // namespace expr
 }  // namespace cvc5::internal

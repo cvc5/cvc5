@@ -312,7 +312,8 @@ Node proveCong(Env& env,
 bool proveEqualityWithRewriteSteps(Env& env,
                                    CDProof& cdp,
                                    const Node& a,
-                                   const Node& b)
+                                   const Node& b,
+                                   bool allowPredIntro)
 {
   enum class EqProofState
   {
@@ -387,7 +388,7 @@ bool proveEqualityWithRewriteSteps(Env& env,
         }
       }
       Node eqr = env.rewriteViaMethod(eq);
-      if (eqr.isConst() && eqr.getConst<bool>())
+      if (allowPredIntro && eqr.isConst() && eqr.getConst<bool>())
       {
         cdp.addStep(eq, ProofRule::MACRO_SR_PRED_INTRO, {}, {eq});
         sit->second = EqProofStatus::PROVED;

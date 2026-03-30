@@ -15,7 +15,6 @@
 #include "expr/node_algorithm.h"
 #include "proof/method_id.h"
 #include "proof/proof.h"
-#include "proof/proof_node_algorithm.h"
 #include "proof/proof_node.h"
 #include "theory/builtin/proof_checker.h"
 
@@ -300,63 +299,21 @@ TrustNode AlphaEquivalence::reduceQuantifier(Node q)
     else
     {
       Node eq2 = sret.eqNode(q);
-      // Prefer a structural proof when the quantifier prefixes already match.
-      // This avoids relying on an extended rewrite of the full quantified
-      // equality, which may otherwise leave a proof hole.
-      if (sret[0] == q[0] && sret.getNumChildren() == q.getNumChildren())
+      transEq.push_back(eq2);
+      Node eq2r = extendedRewrite(eq2);
+      if (eq2r.isConst() && eq2r.getConst<bool>())
       {
-        bool canLiftBodyEq = true;
-        for (size_t i = 2, nchildren = sret.getNumChildren(); i < nchildren;
-             i++)
-        {
-          if (sret[i] != q[i])
-          {
-            canLiftBodyEq = false;
-            break;
-          }
-        }
-        if (canLiftBodyEq)
-        {
-          Node bodyEq = sret[1].eqNode(q[1]);
-          if (expr::proveEqualityWithRewriteSteps(d_env, cdp, sret[1], q[1]))
-          {
-            std::vector<Node> cpremises;
-            cpremises.push_back(bodyEq);
-            for (size_t i = 2, nchildren = sret.getNumChildren(); i < nchildren;
-                 i++)
-            {
-              Node eqi = sret[i].eqNode(q[i]);
-              cdp.addStep(eqi, ProofRule::REFL, {}, {sret[i]});
-              cpremises.push_back(eqi);
-            }
-            std::vector<Node> cargs;
-            ProofRule cr = expr::getCongRule(sret, cargs);
-            if (cdp.addStep(eq2, cr, cpremises, cargs))
-            {
-              transEq.push_back(eq2);
-              success = true;
-            }
-          }
-        }
-      }
-      if (!success)
-      {
-        transEq.push_back(eq2);
-        Node eq2r = extendedRewrite(eq2);
-        if (eq2r.isConst() && eq2r.getConst<bool>())
-        {
-          // ---------- MACRO_SR_PRED_INTRO
-          // sret = q
-          std::vector<Node> pfArgs2;
-          pfArgs2.push_back(eq2);
-          addMethodIds(nodeManager(),
-                       pfArgs2,
-                       MethodId::SB_DEFAULT,
-                       MethodId::SBA_SEQUENTIAL,
-                       MethodId::RW_EXT_REWRITE);
-          cdp.addStep(eq2, ProofRule::MACRO_SR_PRED_INTRO, {}, pfArgs2);
-          success = true;
-        }
+        // ---------- MACRO_SR_PRED_INTRO
+        // sret = q
+        std::vector<Node> pfArgs2;
+        pfArgs2.push_back(eq2);
+        addMethodIds(nodeManager(),
+                     pfArgs2,
+                     MethodId::SB_DEFAULT,
+                     MethodId::SBA_SEQUENTIAL,
+                     MethodId::RW_EXT_REWRITE);
+        cdp.addStep(eq2, ProofRule::MACRO_SR_PRED_INTRO, {}, pfArgs2);
+        success = true;
       }
     }
     // if successful, store the proof and remember the proof generator
