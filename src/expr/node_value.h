@@ -344,11 +344,19 @@ class CVC5_EXPORT NodeValue
     }
   }
 
+
+#if CVC5_ATOMIC_REFCOUNT
+  /** The expression's reference count. */
+  std::atomic_uint32_t d_rc;
+#endif
+
   /** The ID (0 is reserved for the null value) */
   uint64_t d_id : NBITS_ID;
 
+#if !(CVC5_ATOMIC_REFCOUNT)
   /** The expression's reference count. */
   uint32_t d_rc : NBITS_REFCOUNT;
+#endif
 
   /** Kind of the expression */
   uint32_t d_kind : NBITS_KIND;

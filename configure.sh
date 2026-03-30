@@ -150,6 +150,7 @@ python_bindings=default
 python_only_src=default
 pyvenv=default
 java_bindings=default
+atomic_refcount=default
 editline=default
 build_shared=ON
 safe_mode=default
@@ -321,6 +322,8 @@ do
       python_bindings=ON
       java_bindings=ON;;
 
+    --atomic-refcount) atomic_refcount=ON;;
+
     --valgrind) valgrind=ON;;
     --no-valgrind) valgrind=OFF;;
 
@@ -479,6 +482,8 @@ fi
   && cmake_opts="$cmake_opts -DONLY_PYTHON_EXT_SRC=$python_only_src"
 [ $java_bindings != default ] \
   && cmake_opts="$cmake_opts -DBUILD_BINDINGS_JAVA=$java_bindings"
+[ $atomic_refcount != default ] \
+  && cmake_opts="$cmake_opts -DATOMIC_REFCOUNT=$atomic_refcount"
 [ $valgrind != default ] \
   && cmake_opts="$cmake_opts -DENABLE_VALGRIND=$valgrind"
 [ $profiling != default ] \
