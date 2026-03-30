@@ -530,33 +530,36 @@ bool proveEqualityWithRewriteSteps(Env& env,
     std::vector<Node> premises(lhs.getNumChildren(), Node::null());
     bool changed = false;
     bool failed = false;
-    for (size_t i = 0, nchildren = lhs.getNumChildren(); i < nchildren; i++)
+    size_t nchildren = lhs.getNumChildren();
+    if (nchildren>0)
     {
-      if (lhs[i] == rhs[i])
+      for (size_t i = 0; i < nchildren; i++)
       {
-        continue;
+        if (lhs[i] == rhs[i])
+        {
+          continue;
+        }
+        Node eqi = lhs[i].eqNode(rhs[i]);
+        auto cit = status.find(eqi);
+        if (cit == status.end() || cit->second != EqProofStatus::PROVED)
+        {
+          failed = true;
+          break;
+        }
+        premises[i] = eqi;
+        changed = true;
       }
-      Node eqi = lhs[i].eqNode(rhs[i]);
-      auto cit = status.find(eqi);
-      if (cit == status.end() || cit->second != EqProofStatus::PROVED)
-      {
-        failed = true;
-        break;
-      }
-      premises[i] = eqi;
-      changed = true;
+    }
+    else
+    {
+      failed = true;
     }
     if (failed)
     {
       sit->second = EqProofStatus::FAILED;
       continue;
     }
-    if (!changed)
-    {
-      cdp.addStep(eq, ProofRule::REFL, {}, {lhs});
-      sit->second = EqProofStatus::PROVED;
-      continue;
-    }
+    Assert (changed);
     Node eqc = proveCong(env, &cdp, lhs, premises);
     sit->second = eqc == eq ? EqProofStatus::PROVED : EqProofStatus::FAILED;
   }
