@@ -156,6 +156,8 @@ const char* aletheRuleToString(AletheRule id)
     case AletheRule::BV_BITBLAST_STEP_CONST: return "bv_bitblast_step_const";
     case AletheRule::BV_BITBLAST_STEP_SIGN_EXTEND:
       return "bv_bitblast_step_sign_extend";
+    case AletheRule::BV_POLY_SIMP: return "bv_poly_simp";
+    case AletheRule::BV_POLY_SIMP_EQ: return "bv_poly_simp_eq";
     //================================================= Temporary
     case AletheRule::BV_BITWISE_SLICING: return "bv_bitwise_slicing";
     case AletheRule::BV_REPEAT_ELIM: return "bv_repeat_elim";
