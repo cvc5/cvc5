@@ -541,7 +541,7 @@ Result LiaStarUtils::areAssertionsUnsat(const std::vector<Node>& assertions,
   std::unordered_set<Node> fvs;
   expr::getFreeVariables(assertion, fvs);
   std::vector<Node> freeVariables(fvs.begin(), fvs.end());
-  if (e->getOptions().arith.arithLiaStarNormalizAsSubSolver)
+  if (fvs.size() > 0 && e->getOptions().arith.arithLiaStarNormalizAsSubSolver)
   {
     Node variables = nm->mkNode(Kind::BOUND_VAR_LIST, freeVariables);
     assertion = expr::algorithm::flatten(nm, assertion);
@@ -659,6 +659,23 @@ LiaStarUtils::getMatrices(Node variables, Node n)
   Kind k = n.getKind();
   switch (k)
   {
+    case Kind::CONST_BOOLEAN:
+    {
+      bool value = n.getConst<bool>();
+      std::string constraint;
+      if (value)
+      {
+        constraint = "x[1] = x[1];";
+      }
+      else
+      {
+        constraint = "1 = 0;";
+      }
+      std::vector<std::string> constraints;
+      constraints.push_back(constraint);
+      pairs.push_back({constraints, n});
+      return pairs;
+    }
     case Kind::LT:
     case Kind::GT:
     case Kind::LEQ:
