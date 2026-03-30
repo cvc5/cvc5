@@ -289,18 +289,21 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
   }
   else if (id == ProofRule::MACRO_SR_PRED_INTRO)
   {
-    if (args[0].getKind() == Kind::EQUAL
-        && expr::proveEqualityWithRewriteSteps(
-            d_env, *cdp, args[0][0], args[0][1], false))
-    {
-      return args[0];
-    }
     std::vector<Node> tchildren;
     std::vector<Node> sargs = args;
     MethodId idr = MethodId::RW_REWRITE;
     if (args.size() >= 4)
     {
       getMethodId(args[3], idr);
+    }
+    if (children.empty() && idr==MethodId::RW_EXT_REWRITE)
+    {
+      if (args[0].getKind() == Kind::EQUAL
+          && expr::proveEqualityWithRewriteSteps(
+              d_env, *cdp, args[0][0], args[0][1], false))
+      {
+        return args[0];
+      }
     }
     // take into account witness form, if necessary
     WitnessReq reqw = d_wfpm.requiresWitnessFormIntro(args[0], idr);
