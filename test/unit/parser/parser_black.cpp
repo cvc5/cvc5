@@ -249,6 +249,20 @@ TEST_F(TestParserBlackSmt2InputParser, bad_inputs)
 #endif
 }
 
+TEST_F(TestParserBlackSmt2InputParser, ff_byte_not_eof)
+{
+  std::string ffByte(1, static_cast<char>(0xFF));
+  std::string input = "(set-logic QF_UF)\n";
+  input += "(set-info :notes |ff";
+  input += ffByte;
+  input += "name|)\n";
+  input += "; comment with ";
+  input += ffByte;
+  input += " byte here\n";
+  input += "(check-sat)\n";
+  tryGoodInput(input);
+}
+
 TEST_F(TestParserBlackSmt2InputParser, good_exprs)
 {
   tryGoodExpr("(and a b)");
