@@ -290,6 +290,11 @@ Node proveCong(Env& env,
   std::vector<Node> cargs;
   ProofRule cr = getCongRule(n, cargs);
   cpremises.resize(n.getNumChildren());
+  // congruence on closures omit the first argument
+  if (n.isClosure())
+  {
+    cpremises.erase(cpremises.begin(), cpremises.begin()+1);
+  }
   // add REFL if a premise is not provided
   for (size_t i = 0, npremises = cpremises.size(); i < npremises; i++)
   {
@@ -319,7 +324,6 @@ bool proveEqualityWithRewriteSteps(Env& env,
   {
     ENTER,
     FINISH_ACI_NORM,
-    FINISH_CLOSURE,
     FINISH_CONG,
   };
   enum class EqProofStatus
@@ -416,6 +420,7 @@ bool proveEqualityWithRewriteSteps(Env& env,
         sit->second = EqProofStatus::FAILED;
         continue;
       }
+      size_t startChild = 0;
       if (lhs.isClosure())
       {
         if (lhs[0] != rhs[0])
@@ -423,19 +428,10 @@ bool proveEqualityWithRewriteSteps(Env& env,
           sit->second = EqProofStatus::FAILED;
           continue;
         }
-        visit.push_back({lhs, rhs, EqProofState::FINISH_CLOSURE});
-        for (size_t i = lhs.getNumChildren(); i > 1; --i)
-        {
-          size_t index = i - 1;
-          if (lhs[index] != rhs[index])
-          {
-            schedule(lhs[index], rhs[index]);
-          }
-        }
-        continue;
+        startChild = 1;
       }
       visit.push_back({lhs, rhs, EqProofState::FINISH_CONG});
-      for (size_t i = lhs.getNumChildren(); i > 0; --i)
+      for (size_t i = lhs.getNumChildren(); i > startChild; --i)
       {
         size_t index = i - 1;
         if (lhs[index] != rhs[index])
@@ -490,40 +486,6 @@ bool proveEqualityWithRewriteSteps(Env& env,
                           ? EqProofStatus::PROVED
                           : EqProofStatus::FAILED;
       }
-      continue;
-    }
-    if (cur.d_state == EqProofState::FINISH_CLOSURE)
-    {
-      std::vector<Node> cpremises;
-      bool failed = false;
-      for (size_t i = 1, nchildren = lhs.getNumChildren(); i < nchildren; i++)
-      {
-        Node eqi = lhs[i].eqNode(rhs[i]);
-        if (lhs[i] == rhs[i])
-        {
-          cdp.addStep(eqi, ProofRule::REFL, {}, {lhs[i]});
-        }
-        else
-        {
-          auto cit = status.find(eqi);
-          if (cit == status.end() || cit->second != EqProofStatus::PROVED)
-          {
-            failed = true;
-            break;
-          }
-        }
-        cpremises.push_back(eqi);
-      }
-      if (failed)
-      {
-        sit->second = EqProofStatus::FAILED;
-        continue;
-      }
-      std::vector<Node> cargs;
-      ProofRule cr = getCongRule(lhs, cargs);
-      sit->second = cdp.addStep(eq, cr, cpremises, cargs)
-                        ? EqProofStatus::PROVED
-                        : EqProofStatus::FAILED;
       continue;
     }
     Assert(cur.d_state == EqProofState::FINISH_CONG);
