@@ -395,18 +395,13 @@ bool proveEqualityWithRewriteSteps(
       {
         return false;
       }
-      size_t startChild = 0;
-      if (lhs.isClosure())
+      if (lhs.isClosure() && lhs[0] != rhs[0])
       {
         // closures do not work if their variable lists are different.
-        if (lhs[0] != rhs[0])
-        {
-          return false;
-        }
-        startChild = 1;
+        return false;
       }
       visit.push_back(eq);
-      for (size_t i = lhs.getNumChildren(); i > startChild; --i)
+      for (size_t i = lhs.getNumChildren(); i > 0; --i)
       {
         size_t index = i - 1;
         if (lhs[index] != rhs[index])
@@ -458,7 +453,6 @@ bool proveEqualityWithRewriteSteps(
       }
       continue;
     }
-    Assert(cur.d_state == EqProofState::FINISH_CONG);
     // otherwise, we are reconstructing a proof of congruence from proven
     // equalities of children.
     std::vector<Node> premises(lhs.getNumChildren(), Node::null());
