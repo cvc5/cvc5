@@ -406,7 +406,7 @@ jobs:
         gpg-passphrase: MAVEN_GPG_PASSPHRASE
 
     - name: Download Maven JAR artifacts
-      uses: actions/download-artifact@v5
+      uses: actions/download-artifact@v7
       with:
         path: ./maven
         pattern: mvn-*
