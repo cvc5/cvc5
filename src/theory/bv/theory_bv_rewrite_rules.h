@@ -331,7 +331,7 @@ template <RewriteRuleId rule>
 class RewriteRule {
 
   /** Actually apply the rewrite rule */
-  static inline Node apply(TNode node) {
+  static inline Node apply(CVC5_UNUSED TNode node) {
     Unreachable();
     SuppressWrongNoReturnWarning;
   }
@@ -346,7 +346,7 @@ public:
     
   }
 
-  static inline bool applies(TNode node)
+  static inline bool applies(CVC5_UNUSED TNode node)
   {
     Unreachable();
     SuppressWrongNoReturnWarning;

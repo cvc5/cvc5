@@ -592,19 +592,19 @@ void DefaultUremBB(TNode node, std::vector<T>& rem, TBitblaster<T>* bb)
 }
 
 template <class T>
-void DefaultSdivBB (TNode node, std::vector<T>& bits, TBitblaster<T>* bb) {
+void DefaultSdivBB (TNode node, CVC5_UNUSED std::vector<T>& bits, CVC5_UNUSED TBitblaster<T>* bb) {
   Trace("bitvector") << "theory::bv:: Unimplemented kind "
                      << node.getKind() << "\n";
   Unimplemented(); 
 }
 template <class T>
-void DefaultSremBB (TNode node, std::vector<T>& bits, TBitblaster<T>* bb) {
+void DefaultSremBB (TNode node, CVC5_UNUSED std::vector<T>& bits, CVC5_UNUSED TBitblaster<T>* bb) {
   Trace("bitvector") << "theory::bv:: Unimplemented kind "
                      << node.getKind() << "\n";
   Unimplemented(); 
 }
 template <class T>
-void DefaultSmodBB (TNode node, std::vector<T>& bits, TBitblaster<T>* bb) {
+void DefaultSmodBB (TNode node, CVC5_UNUSED std::vector<T>& bits, CVC5_UNUSED TBitblaster<T>* bb) {
   Trace("bitvector") << "theory::bv:: Unimplemented kind "
                      << node.getKind() << "\n";
   Unimplemented(); 

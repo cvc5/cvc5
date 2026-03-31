@@ -88,7 +88,7 @@ void HigherOrderTrigger::collectHoVarApplyTerms(
 }
 
 void HigherOrderTrigger::collectHoVarApplyTerms(
-    Node q, std::vector<Node>& ns, std::map<Node, std::vector<Node> >& apps)
+    CVC5_UNUSED Node q, std::vector<Node>& ns, std::map<Node, std::vector<Node> >& apps)
 {
   std::unordered_map<TNode, Node> visited;
   std::unordered_map<TNode, Node>::iterator it;

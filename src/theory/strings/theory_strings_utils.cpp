@@ -404,7 +404,7 @@ void printConcat(std::ostream& out, std::vector<Node>& n)
   }
 }
 
-void printConcatTrace(std::vector<Node>& n, const char* c)
+void printConcatTrace(std::vector<Node>& n, CVC5_UNUSED const char* c)
 {
   std::stringstream ss;
   printConcat(ss, n);

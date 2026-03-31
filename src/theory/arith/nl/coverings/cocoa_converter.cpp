@@ -22,7 +22,7 @@ namespace arith {
 namespace nl {
 namespace coverings {
 CoCoA::RingElem CoCoAConverter::operator()(const poly::UPolynomial& p,
-                                           const poly::Variable& var,
+                                           CVC5_UNUSED const poly::Variable& var,
                                            const CoCoA::ring& ring) const
 {
   std::vector<poly::Integer> coeffs = poly::coefficients(p);
@@ -48,7 +48,7 @@ CoCoA::RingElem CoCoAConverter::operator()(const poly::Polynomial& q,
   // Do the actual conversion
   cmd.d_result = CoCoA::RingElem(ring);
   lp_polynomial_traverse_f f =
-      [](const lp_polynomial_context_t* ctx, lp_monomial_t* m, void* data) {
+      [](const lp_polynomial_context_t*, lp_monomial_t* m, void* data) {
         CoCoAPolyConstructor* d = static_cast<CoCoAPolyConstructor*>(data);
         CoCoA::BigInt coeff = (d->d_state)(*poly::detail::cast_from(&m->a));
         CoCoA::RingElem re(d->d_ring, coeff);

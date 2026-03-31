@@ -100,7 +100,7 @@ void ProofPostprocessDsl::finalize(std::shared_ptr<ProofNode> pn)
 
 bool ProofPostprocessDsl::update(Node res,
                                  ProofRule id,
-                                 const std::vector<Node>& children,
+                                 CVC5_UNUSED const std::vector<Node>& children,
                                  const std::vector<Node>& args,
                                  CDProof* cdp,
                                  bool& continueUpdate)

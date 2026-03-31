@@ -244,12 +244,12 @@ class ApproxGLPK : public ApproximateSimplex
 
   // MIR CUTS
   bool attemptMir(int nid, const MirInfo& mir);
-  bool applyCMIRRule(int nid, const MirInfo& mir);
+  bool applyCMIRRule(const MirInfo& mir);
   bool makeRangeForComplemented(int nid, const MirInfo& mir);
   bool loadSlacksIntoPad(int nid, const MirInfo& mir);
   bool loadVirtualBoundsIntoPad(int nid, const MirInfo& mir);
   bool loadRowSumIntoAgg(int nid, int M, const PrimitiveVec& mir);
-  bool buildModifiedRow(int nid, const MirInfo& mir);
+  bool buildModifiedRow();
   bool constructMixedKnapsack();
   bool replaceSlacksOnCuts();
   bool loadVB(int nid, int M, int j, int ri, bool wantUb, VirtualBound& tmp);
@@ -1406,7 +1406,7 @@ static GmiInfo* gmiCut(glp_tree *tree, int exec_ord, int cut_ord){
   return gmi;
 }
 
-static BranchCutInfo* branchCut(glp_tree *tree, int exec_ord, int br_var, double br_val, bool down_bad){
+static BranchCutInfo* branchCut(int exec_ord, int br_var, double br_val, bool down_bad){
   //(tree, br_var, br_val, dn < 0);
   double rhs;
   Kind k;
@@ -1529,13 +1529,13 @@ static void glpkCallback(glp_tree *tree, void *info){
       if(dn < 0 && up < 0){
         Trace("approx::") << "branch close " << exec << std::endl;
         NodeLog& node = tl.getNode(p_ord);
-        BranchCutInfo* cut_br = branchCut(tree, exec, br_var, br_val, dn < 0);
+        BranchCutInfo* cut_br = branchCut(exec, br_var, br_val, dn < 0);
         node.addCut(cut_br);
         tl.close(p_ord);
       }else if(dn < 0 || up < 0){
         Trace("approx::") << "branch cut" << exec << std::endl;
         NodeLog& node = tl.getNode(p_ord);
-        BranchCutInfo* cut_br = branchCut(tree, exec, br_var, br_val, dn < 0);
+        BranchCutInfo* cut_br = branchCut(exec, br_var, br_val, dn < 0);
         node.addCut(cut_br);
       }else{
         Trace("approx::") << "normal branch" << std::endl;
@@ -2023,7 +2023,7 @@ bool ApproxGLPK::attemptGmi(int nid, const GmiInfo& gmi){
   return false;
 }
 
-bool ApproxGLPK::applyCMIRRule(int nid, const MirInfo& mir){
+bool ApproxGLPK::applyCMIRRule(const MirInfo& mir){
 
   const DenseMap<Rational>& compRanges = d_pad.d_compRanges;
 
@@ -2120,7 +2120,7 @@ bool ApproxGLPK::attemptMir(int nid, const MirInfo& mir){
 
   removeFixed(d_vars, d_pad.d_agg, d_pad.d_explanation);
 
-  d_pad.d_failure = buildModifiedRow(nid, mir);
+  d_pad.d_failure = buildModifiedRow();
   if(d_pad.d_failure){ return true; }
 
   d_pad.d_failure =  constructMixedKnapsack();
@@ -2129,7 +2129,7 @@ bool ApproxGLPK::attemptMir(int nid, const MirInfo& mir){
   d_pad.d_failure = makeRangeForComplemented(nid, mir);
   if(d_pad.d_failure){ return true; }
 
-  d_pad.d_failure = applyCMIRRule(nid, mir);
+  d_pad.d_failure = applyCMIRRule(mir);
   if(d_pad.d_failure){ return true; }
 
   d_pad.d_failure = replaceSlacksOnCuts();
@@ -2522,7 +2522,7 @@ bool ApproxGLPK::loadRowSumIntoAgg(int nid, int M, const PrimitiveVec& row_sum){
   return false;
 }
 
-bool ApproxGLPK::buildModifiedRow(int nid, const MirInfo& mir){
+bool ApproxGLPK::buildModifiedRow(){
   const DenseMap<Rational>& agg = d_pad.d_agg.lhs;
   const Rational& aggRhs = d_pad.d_agg.rhs;
   DenseMap<Rational>& mod = d_pad.d_mod.lhs;

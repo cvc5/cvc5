@@ -23,7 +23,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace eq {
 
-void EqProof::debug_print(const char* c, unsigned tb) const
+void EqProof::debug_print(CVC5_UNUSED const char* c, unsigned tb) const
 {
   std::stringstream ss;
   debug_print(ss, tb);
