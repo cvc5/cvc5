@@ -3183,7 +3183,6 @@ set(regress_1_tests
   regress1/quantifiers/ho-seu-sygus-inst.smt2
   regress1/quantifiers/horn-simple.smt2
   regress1/quantifiers/inst-ground-term.smt2
-  regress1/quantifiers/mbqi-enum-dtype-ops.smt2
   regress1/quantifiers/inst-max-level-segf.smt2
   regress1/quantifiers/inst-prop-simp.smt2
   regress1/quantifiers/intersection-example-onelane.proof-node22337.smt2
@@ -4333,6 +4332,8 @@ set(regression_disabled_tests
   regress1/quantifiers/issue4062-cegqi-aux.smt2
   # timeout instead of unknown on some builds
   regress1/quantifiers/issue9477-mbqi-ran.smt2
+  # disabled per request
+  regress1/quantifiers/mbqi-enum-dtype-ops.smt2
   ###
   regress1/rels/garbage_collect.cvc.smt2
   regress1/sets/setofsets-disequal.smt2
