@@ -1108,7 +1108,7 @@ inline TypeNode NodeManager::mkSetType(TypeNode elementType)
 inline expr::NodeValue* NodeManager::poolLookup(expr::NodeValue* nv) const {
   NodeValuePool::const_iterator find = d_nodeValuePool.find(nv);
   if(find == d_nodeValuePool.end()) {
-    return NULL;
+    return nullptr;
   } else {
     return *find;
   }

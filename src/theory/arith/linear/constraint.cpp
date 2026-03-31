@@ -107,7 +107,7 @@ Constraint::Constraint(ArithVar x,
     : d_variable(x),
       d_type(t),
       d_value(v),
-      d_database(NULL),
+      d_database(nullptr),
       d_literal(Node::null()),
       d_negation(NullConstraint),
       d_canBePropagated(false),
@@ -409,9 +409,7 @@ ConstraintP ValueCollection::nonNull() const{
   }
 }
 
-bool Constraint::initialized() const {
-  return d_database != NULL;
-}
+bool Constraint::initialized() const { return d_database != nullptr; }
 
 const ConstraintDatabase& Constraint::getDatabase() const{
   Assert(initialized());

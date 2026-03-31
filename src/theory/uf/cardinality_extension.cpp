@@ -1657,7 +1657,7 @@ SortModel* CardinalityExtension::getSortModel(Node n)
   if( it!=d_rep_model.end() ){
     return it->second;
   }else{
-    return NULL;
+    return nullptr;
   }
 }
 

@@ -442,9 +442,12 @@ void QuantifiersEngine::check( Theory::Effort e ){
                   bool hasCompleteM = false;
                   Node q = d_model->getAssertedQuantifier( i );
                   QuantifiersModule* qmd = d_qreg.getOwner(q);
-                  if( qmd!=NULL ){
+                  if (qmd != nullptr)
+                  {
                     hasCompleteM = qmd->checkCompleteFor( q );
-                  }else{
+                  }
+                  else
+                  {
                     for( unsigned j=0; j<d_modules.size(); j++ ){
                       if( d_modules[j]->checkCompleteFor( q ) ){
                         qmd = d_modules[j];
@@ -458,7 +461,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
                     setModelUnsound = true;
                     break;
                   }else{
-                    Assert(qmd != NULL);
+                    Assert(qmd != nullptr);
                     Trace("quant-engine-debug2") << "Complete for " << q << " due to " << qmd->identify().c_str() << std::endl;
                   }
                 }

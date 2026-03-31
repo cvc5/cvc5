@@ -1240,7 +1240,7 @@ void TheoryArrays::postCheck(Effort level)
 
     d_readTableContext->push();
     TNode mayRep, iRep;
-    CTNodeList* bucketList = NULL;
+    CTNodeList* bucketList = nullptr;
     CTNodeList::const_iterator i = d_reads.begin(), readsEnd = d_reads.end();
     for (; i != readsEnd; ++i) {
       const TNode& r = *i;

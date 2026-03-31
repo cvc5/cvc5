@@ -718,7 +718,8 @@ inline void ContextObj::makeSaveRestorePoint() { update(); }
 
 inline void Scope::addToChain(ContextObj* pContextObj)
 {
-  if(d_pContextObjList != NULL) {
+  if (d_pContextObjList != nullptr)
+  {
     d_pContextObjList->prev() = &pContextObj->next();
   }
 

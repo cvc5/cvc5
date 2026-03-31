@@ -76,9 +76,9 @@ public:
     handle(HElement* p) : d_pointer(p){}
     friend class BinaryHeap;
   public:
-    handle() : d_pointer(NULL) {}
+    handle() : d_pointer(nullptr) {}
     const T& operator*() const {
-      Assert(d_pointer != NULL);
+      Assert(d_pointer != nullptr);
       return d_pointer->d_elem;
     }
 
@@ -366,11 +366,16 @@ private:
 
   bool debugHandle(handle h) const{
     HElement* he = h.d_pointer;
-    if( he == NULL ){
+    if (he == nullptr)
+    {
       return true;
-    }else if(he->d_pos >= size()){
+    }
+    else if (he->d_pos >= size())
+    {
       return false;
-    }else{
+    }
+    else
+    {
       return he == d_heap[he->d_pos];
     }
   }

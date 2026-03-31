@@ -584,11 +584,7 @@ class AttrHash<bool> :
     uint64_t d_bit;
 
    public:
-
-    BitIterator() :
-      d_entry(NULL),
-      d_bit(0) {
-    }
+    BitIterator() : d_entry(nullptr), d_bit(0) {}
 
     BitIterator(std::pair<NodeValue* const, uint64_t>& entry, uint64_t bit)
         : d_entry(&entry), d_bit(bit)
@@ -618,11 +614,7 @@ class AttrHash<bool> :
     uint64_t d_bit;
 
    public:
-
-    ConstBitIterator() :
-      d_entry(NULL),
-      d_bit(0) {
-    }
+    ConstBitIterator() : d_entry(nullptr), d_bit(0) {}
 
     ConstBitIterator(const std::pair<NodeValue* const, uint64_t>& entry,
                      uint64_t bit)

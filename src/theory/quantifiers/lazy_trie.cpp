@@ -23,7 +23,7 @@ Node LazyTrie::add(Node n,
                    bool forceKeep)
 {
   LazyTrie* lt = this;
-  while (lt != NULL)
+  while (lt != nullptr)
   {
     if (index == ntotal)
     {

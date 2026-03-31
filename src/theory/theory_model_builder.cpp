@@ -785,7 +785,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
         set<Node>* noRepSet = typeNoRepSet.getSet(t);
 
         // 1. Try to evaluate the EC's in this type
-        if (noRepSet != NULL && !noRepSet->empty())
+        if (noRepSet != nullptr && !noRepSet->empty())
         {
           Trace("model-builder") << "  Eval phase, working on type: " << t
                                  << endl;
@@ -832,7 +832,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
 
         // 2. Normalize any non-const representative terms for this type
         set<Node>* repSet = typeRepSet.getSet(t);
-        if (repSet != NULL && !repSet->empty())
+        if (repSet != nullptr && !repSet->empty())
         {
           Trace("model-builder")
               << "  Normalization phase, working on type: " << t << endl;
@@ -904,7 +904,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
       // continue if there are no more equivalence classes of this type to
       // assign
       std::set<Node>* noRepSetPtr = typeNoRepSet.getSet(t);
-      if (noRepSetPtr == NULL)
+      if (noRepSetPtr == nullptr)
       {
         continue;
       }
@@ -935,7 +935,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
       if (!assignOne)
       {
         set<Node>* repSet = typeRepSet.getSet(tb);
-        if (repSet != NULL && !repSet->empty())
+        if (repSet != nullptr && !repSet->empty())
         {
           continue;
         }
@@ -1041,7 +1041,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
 #endif
               if (success && isCorecursive)
               {
-                if (repSet != NULL && !repSet->empty())
+                if (repSet != nullptr && !repSet->empty())
                 {
                   // in the case of codatatypes, check if it is in the set of
                   // values that we cannot assign
