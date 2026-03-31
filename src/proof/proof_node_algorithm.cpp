@@ -317,39 +317,31 @@ Node proveCong(Env& env,
 bool proveEqualityWithRewriteSteps(
     Env& env, CDProof& cdp, const Node& a, const Node& b, bool allowPredIntro)
 {
-  // marks the state of proving a == b
+  // tracks whether we recursed when proving an equality based on ACI norm
   enum class EqProofState
   {
-    ENTER,
-    FINISH_ACI_NORM,
-    FINISH_CONG,
+    PENDING_ACI_NORM,
+    PENDING,
   };
-  struct EqProofFrame
-  {
-    Node d_a;
-    Node d_b;
-    EqProofState d_state;
-  };
-
-  std::unordered_set<Node> visited;
-  std::vector<EqProofFrame> visit;
-  auto schedule = [&](const Node& lhs, const Node& rhs) {
-    Node eq = lhs.eqNode(rhs);
-    if (visited.insert(eq).second)
-    {
-      visit.push_back({lhs, rhs, EqProofState::ENTER});
-    }
-  };
-
-  schedule(a, b);
+  std::unordered_map<Node, EqProofState>::iterator itv;
+  // maps equalities to whether we used ACI_NORM at pre-rewrite to recurse
+  std::unordered_map<Node, EqProofState> visited;
+  // the list of equalities to visit
+  std::vector<Node> visit;
+  visit.push_back(a.eqNode(b));
   while (!visit.empty())
   {
-    EqProofFrame cur = visit.back();
+    Node eq = visit.back();
     visit.pop_back();
-    const Node& lhs = cur.d_a;
-    const Node& rhs = cur.d_b;
-    Node eq = lhs.eqNode(rhs);
-    if (cur.d_state == EqProofState::ENTER)
+    if (cdp.hasStep(eq))
+    {
+      // already proven, skip
+      continue;
+    }
+    const Node& lhs = eq[0];
+    const Node& rhs = eq[1];
+    itv = visited.find(eq);
+    if (itv==visited.end())
     {
       // We first check if lhs == rhs is directly provable by refl, aci norm,
       // or arith/bv poly norm.
@@ -379,7 +371,7 @@ bool proveEqualityWithRewriteSteps(
           continue;
         }
       }
-      // if not, but it the equality is still rewrites to true, and we are
+      // if not, but if the equality still rewrites to true, and we are
       // permitting sr_pred_intro subgoals, then we conclude.
       Node eqr = env.rewriteViaMethod(eq);
       if (allowPredIntro && eqr.isConst() && eqr.getConst<bool>())
@@ -393,10 +385,11 @@ bool proveEqualityWithRewriteSteps(
       Node bn = expr::getACINormalForm(rhs);
       if (an != lhs || bn != rhs)
       {
-        visit.push_back({lhs, rhs, EqProofState::FINISH_ACI_NORM});
-        if (an != bn)
+        visited[eq] = EqProofState::PENDING_ACI_NORM;
+        visit.push_back(eq);
+        if (an!=bn)
         {
-          schedule(an, bn);
+          visit.push_back(an.eqNode(bn));
         }
         continue;
       }
@@ -418,18 +411,19 @@ bool proveEqualityWithRewriteSteps(
         }
         startChild = 1;
       }
-      visit.push_back({lhs, rhs, EqProofState::FINISH_CONG});
+      visited[eq] = EqProofState::PENDING;
+      visit.push_back(eq);
       for (size_t i = lhs.getNumChildren(); i > startChild; --i)
       {
         size_t index = i - 1;
         if (lhs[index] != rhs[index])
         {
-          schedule(lhs[index], rhs[index]);
+          visit.push_back(lhs[index].eqNode(rhs[index]));
         }
       }
       continue;
     }
-    if (cur.d_state == EqProofState::FINISH_ACI_NORM)
+    if (itv->second==EqProofState::PENDING_ACI_NORM)
     {
       Node an = expr::getACINormalForm(lhs);
       Node bn = expr::getACINormalForm(rhs);
