@@ -2056,7 +2056,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     }
     case ProofRule::BV_POLY_NORM:
     {
-      return addAletheStep(AletheRule::BV_POLY_SIMP,
+      return addAletheStep(AletheRule::POLY_SIMP,
                            res,
                            nm->mkNode(Kind::SEXPR, d_cl, res),
                            {},
@@ -2065,7 +2065,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     }
     case ProofRule::BV_POLY_NORM_EQ:
     {
-      return addAletheStep(AletheRule::BV_POLY_SIMP_EQ,
+      return addAletheStep(AletheRule::POLY_SIMP_REL,
                            res,
                            nm->mkNode(Kind::SEXPR, d_cl, res),
                            children,

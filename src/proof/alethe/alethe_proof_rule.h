@@ -495,7 +495,7 @@ enum class AletheRule : uint32_t
   //         (lambda (x_k+1 ... x_n) t){x_1 -> t1, ..., x_k -> t_k})
   // where if k = n then the rhs has no lambda binding t.
   BETA_EQUIVALENCE,
-  // ======== bitblasting
+  // ======== bitvector
   //  > i. (cl (= t bbt(t)))
   BV_BITBLAST_STEP_VAR,
   BV_BITBLAST_STEP_BVAND,
@@ -515,12 +515,6 @@ enum class AletheRule : uint32_t
   BV_BITBLAST_STEP_CONCAT,
   BV_BITBLAST_STEP_CONST,
   BV_BITBLAST_STEP_SIGN_EXTEND,
-  // ======== bitvector polynomial normalization
-  BV_POLY_SIMP,
-  // > i. (= (* 1 (- x1 x2))  (* 1 ((- y1 y2))))
-  // ...
-  // > j. (cl (= (= x1 x2) (= y1 y2)))
-  BV_POLY_SIMP_EQ,
   // ======== temporary
   // These rules are not in the Alethe standard, they are defined by
   // their respective CPC counterpart for now.
