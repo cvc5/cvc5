@@ -296,7 +296,7 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
     {
       getMethodId(args[3], idr);
     }
-    if (children.empty() && idr==MethodId::RW_EXT_REWRITE)
+    if (children.empty() && idr == MethodId::RW_EXT_REWRITE)
     {
       // If we are using extended rewrite, we should first see if it we can
       // devise a proof of the equality based on simple reconstruction methods,

@@ -293,7 +293,7 @@ Node proveCong(Env& env,
   // congruence on closures omit the first argument
   if (n.isClosure())
   {
-    cpremises.erase(cpremises.begin(), cpremises.begin()+1);
+    cpremises.erase(cpremises.begin(), cpremises.begin() + 1);
   }
   // add REFL if a premise is not provided
   for (size_t i = 0, npremises = cpremises.size(); i < npremises; i++)
@@ -314,11 +314,8 @@ Node proveCong(Env& env,
   return eq;
 }
 
-bool proveEqualityWithRewriteSteps(Env& env,
-                                   CDProof& cdp,
-                                   const Node& a,
-                                   const Node& b,
-                                   bool allowPredIntro)
+bool proveEqualityWithRewriteSteps(
+    Env& env, CDProof& cdp, const Node& a, const Node& b, bool allowPredIntro)
 {
   // marks the state of proving a == b
   enum class EqProofState
@@ -380,7 +377,8 @@ bool proveEqualityWithRewriteSteps(Env& env,
       if (lhs.getType() == rhs.getType())
       {
         TypeNode tn = lhs.getType();
-        if (tn.isBitVector() && theory::arith::PolyNorm::isArithPolyNorm(lhs, rhs))
+        if (tn.isBitVector()
+            && theory::arith::PolyNorm::isArithPolyNorm(lhs, rhs))
         {
           cdp.addStep(eq, ProofRule::BV_POLY_NORM, {}, {eq});
           sit->second = EqProofStatus::PROVED;
@@ -504,7 +502,7 @@ bool proveEqualityWithRewriteSteps(Env& env,
     bool changed = false;
     bool failed = false;
     size_t nchildren = lhs.getNumChildren();
-    if (nchildren>0)
+    if (nchildren > 0)
     {
       for (size_t i = 0; i < nchildren; i++)
       {
