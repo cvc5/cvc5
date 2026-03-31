@@ -317,15 +317,10 @@ Node proveCong(Env& env,
 bool proveEqualityWithRewriteSteps(
     Env& env, CDProof& cdp, const Node& a, const Node& b, bool allowPredIntro)
 {
-  // tracks whether we recursed when proving an equality based on ACI norm
-  enum class EqProofState
-  {
-    PENDING_ACI_NORM,
-    PENDING,
-  };
-  std::unordered_map<Node, EqProofState>::iterator itv;
-  // maps equalities to whether we used ACI_NORM at pre-rewrite to recurse
-  std::unordered_map<Node, EqProofState> visited;
+  // the set of equalities we have visited
+  std::unordered_set<Node> visited;
+  // equalities that we have use ACI_NORM on at pre-rewrite
+  std::unordered_set<Node> visitedAciNorm;
   // the list of equalities to visit
   std::vector<Node> visit;
   visit.push_back(a.eqNode(b));
@@ -340,8 +335,7 @@ bool proveEqualityWithRewriteSteps(
     }
     const Node& lhs = eq[0];
     const Node& rhs = eq[1];
-    itv = visited.find(eq);
-    if (itv==visited.end())
+    if (visited.insert(eq).second)
     {
       // We first check if lhs == rhs is directly provable by refl, aci norm,
       // or arith/bv poly norm.
@@ -385,7 +379,7 @@ bool proveEqualityWithRewriteSteps(
       Node bn = expr::getACINormalForm(rhs);
       if (an != lhs || bn != rhs)
       {
-        visited[eq] = EqProofState::PENDING_ACI_NORM;
+        visitedAciNorm.insert(eq);
         visit.push_back(eq);
         if (an!=bn)
         {
@@ -411,7 +405,6 @@ bool proveEqualityWithRewriteSteps(
         }
         startChild = 1;
       }
-      visited[eq] = EqProofState::PENDING;
       visit.push_back(eq);
       for (size_t i = lhs.getNumChildren(); i > startChild; --i)
       {
@@ -423,7 +416,7 @@ bool proveEqualityWithRewriteSteps(
       }
       continue;
     }
-    if (itv->second==EqProofState::PENDING_ACI_NORM)
+    if (visitedAciNorm.find(eq)!=visitedAciNorm.end())
     {
       Node an = expr::getACINormalForm(lhs);
       Node bn = expr::getACINormalForm(rhs);
