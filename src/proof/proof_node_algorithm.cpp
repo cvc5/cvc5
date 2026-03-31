@@ -320,6 +320,7 @@ bool proveEqualityWithRewriteSteps(Env& env,
                                    const Node& b,
                                    bool allowPredIntro)
 {
+  // marks the state of proving a == b
   enum class EqProofState
   {
     ENTER,
@@ -362,6 +363,8 @@ bool proveEqualityWithRewriteSteps(Env& env,
     Assert(sit != status.end());
     if (cur.d_state == EqProofState::ENTER)
     {
+      // We first check if lhs == rhs is directly provable by refl, aci norm,
+      // or arith/bv poly norm.
       if (lhs == rhs)
       {
         cdp.addStep(eq, ProofRule::REFL, {}, {lhs});
@@ -391,6 +394,8 @@ bool proveEqualityWithRewriteSteps(Env& env,
           continue;
         }
       }
+      // if not, but it the equality is still rewrites to true, and we are
+      // permitting sr_pred_intro subgoals, then we conclude.
       Node eqr = env.rewriteViaMethod(eq);
       if (allowPredIntro && eqr.isConst() && eqr.getConst<bool>())
       {
@@ -398,15 +403,12 @@ bool proveEqualityWithRewriteSteps(Env& env,
         sit->second = EqProofStatus::PROVED;
         continue;
       }
+      // otherwise, we normalize based on AC reasoning if possible, which may
+      // allow us to align children when recursing.
       Node an = expr::getACINormalForm(lhs);
       Node bn = expr::getACINormalForm(rhs);
       if (an != lhs || bn != rhs)
       {
-        if (lhs != an)
-        {
-          Node aeq = lhs.eqNode(an);
-          cdp.addStep(aeq, ProofRule::ACI_NORM, {}, {aeq});
-        }
         visit.push_back({lhs, rhs, EqProofState::FINISH_ACI_NORM});
         if (an != bn)
         {
@@ -414,6 +416,8 @@ bool proveEqualityWithRewriteSteps(Env& env,
         }
         continue;
       }
+      // if AC reasoning is not available, we attempt to recurse on children
+      // and reconstruct via congruence.
       if (lhs.getKind() != rhs.getKind()
           || lhs.getNumChildren() != rhs.getNumChildren())
       {
@@ -423,6 +427,7 @@ bool proveEqualityWithRewriteSteps(Env& env,
       size_t startChild = 0;
       if (lhs.isClosure())
       {
+        // closures do not work if their variable lists are different.
         if (lhs[0] != rhs[0])
         {
           sit->second = EqProofStatus::FAILED;
@@ -445,6 +450,7 @@ bool proveEqualityWithRewriteSteps(Env& env,
     {
       Node an = expr::getACINormalForm(lhs);
       Node bn = expr::getACINormalForm(rhs);
+      // first see if we successfully proved an == bn
       if (an != bn)
       {
         auto nit = status.find(an.eqNode(bn));
@@ -454,10 +460,13 @@ bool proveEqualityWithRewriteSteps(Env& env,
           continue;
         }
       }
+      // if so, we put together a proof of transitivity
       std::vector<Node> transEq;
       if (lhs != an)
       {
-        transEq.push_back(lhs.eqNode(an));
+        Node aeq = lhs.eqNode(an);
+        cdp.addStep(aeq, ProofRule::ACI_NORM, {}, {aeq});
+        transEq.push_back(aeq);
       }
       if (an != bn)
       {
@@ -489,6 +498,8 @@ bool proveEqualityWithRewriteSteps(Env& env,
       continue;
     }
     Assert(cur.d_state == EqProofState::FINISH_CONG);
+    // otherwise, we are reconstructing a proof of congruence from proven
+    // equalities of children.
     std::vector<Node> premises(lhs.getNumChildren(), Node::null());
     bool changed = false;
     bool failed = false;
@@ -505,6 +516,7 @@ bool proveEqualityWithRewriteSteps(Env& env,
         auto cit = status.find(eqi);
         if (cit == status.end() || cit->second != EqProofStatus::PROVED)
         {
+          // if any failed, we fail.
           failed = true;
           break;
         }
@@ -514,6 +526,7 @@ bool proveEqualityWithRewriteSteps(Env& env,
     }
     else
     {
+      // no children, we cannot make them equal by congruence
       failed = true;
     }
     if (failed)

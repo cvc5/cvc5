@@ -299,9 +299,9 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
     if (children.empty() && idr==MethodId::RW_EXT_REWRITE)
     {
       // If we are using extended rewrite, we should first see if it we can
-      // devise a structural proof of the equality based on simple
-      // reconstruction methods. This is necessary, e.g. for reconstruction
-      // some alpha equivalence steps.
+      // devise a proof of the equality based on simple reconstruction methods,
+      // which is more robust than relying on the extended rewriter. This is
+      // necessary, e.g. for reconstruction of some alpha equivalence steps.
       if (args[0].getKind() == Kind::EQUAL
           && expr::proveEqualityWithRewriteSteps(
               d_env, *cdp, args[0][0], args[0][1], false))
