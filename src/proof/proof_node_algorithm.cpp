@@ -434,6 +434,10 @@ bool proveEqualityWithRewriteSteps(
       Node an = expr::getACINormalForm(lhs);
       Node bn = expr::getACINormalForm(rhs);
       // if so, we put together a proof of transitivity
+      // -------- ACI_NORM  --------------- ... ----------- ACI_NORM, SYMM
+      // lhs = aci(lhs)     aci(lhs)=aci(rhs)   aci(rhs) = rhs
+      // ----------------------------------------------------- TRANS
+      // lhs = rhs
       std::vector<Node> transEq;
       if (lhs != an)
       {
