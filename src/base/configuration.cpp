@@ -185,7 +185,8 @@ std::string Configuration::about()
   return ss.str();
 }
 
-std::string Configuration::aboutAndCopyright() {
+std::string Configuration::aboutAndCopyright()
+{
   std::stringstream ss;
   ss << about();
   ss << std::endl << std::endl;
@@ -211,6 +212,7 @@ bool Configuration::isBuiltWithKissat() { return IS_KISSAT_BUILD; }
 bool Configuration::isBuiltWithEditline() { return IS_EDITLINE_BUILD; }
 
 bool Configuration::isBuiltWithPoly() { return IS_POLY_BUILD; }
+
 bool Configuration::isBuiltWithCoCoA() { return IS_COCOA_BUILD; }
 
 bool Configuration::isBuiltWithPortfolio() { return IS_PORTFOLIO_BUILD; }

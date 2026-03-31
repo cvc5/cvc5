@@ -73,7 +73,8 @@ class OptionsHandler
   void setErrStream(const std::string& flag, const ManagedErr& me) const;
 
   /** Convert option value to Language enum */
-  Language stringToLanguage(const std::string& flag, const std::string& optarg) const;
+  Language stringToLanguage(const std::string& flag,
+                            const std::string& optarg) const;
   /** Set the input language. Check that lang is not LANG_AST */
   void setInputLanguage(const std::string& flag, Language lang) const;
   /** Apply verbosity to the different output channels */
@@ -91,7 +92,8 @@ class OptionsHandler
   /** Enable a particular output tag */
   void enableOutputTag(const std::string& flag, OutputTag optarg) const;
   /** Pass the resource weight specification to the resource manager */
-  void setResourceWeight(const std::string& flag, const std::string& optarg) const;
+  void setResourceWeight(const std::string& flag,
+                         const std::string& optarg) const;
 
   /******************************* bv options *******************************/
 
