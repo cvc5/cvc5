@@ -404,7 +404,7 @@ bool proveEqualityWithRewriteSteps(
       // and reconstruct via congruence.
       if (lhs.getKind() != rhs.getKind()
           || lhs.getNumChildren() != rhs.getNumChildren()
-          || lhs.getNumChildren()==0)
+          || lhs.getNumChildren() == 0)
       {
         return false;
       }
@@ -457,10 +457,10 @@ bool proveEqualityWithRewriteSteps(
         cdp.addStep(beqs, ProofRule::SYMM, {beq}, {});
         transEq.push_back(beqs);
       }
-      Assert (!transEq.empty());
+      Assert(!transEq.empty());
       if (transEq.size() == 1)
       {
-        if (transEq[0]!=eq)
+        if (transEq[0] != eq)
         {
           return false;
         }
@@ -475,7 +475,7 @@ bool proveEqualityWithRewriteSteps(
     // otherwise, we are reconstructing a proof of congruence from proven
     // equalities of children.
     std::vector<Node> premises(lhs.getNumChildren(), Node::null());
-    Assert(lhs.getNumChildren()>0);
+    Assert(lhs.getNumChildren() > 0);
     for (size_t i = 0, nchildren = lhs.getNumChildren(); i < nchildren; i++)
     {
       if (lhs[i] == rhs[i])
@@ -486,7 +486,7 @@ bool proveEqualityWithRewriteSteps(
       premises[i] = eqi;
     }
     Node eqc = proveCong(env, &cdp, lhs, premises);
-    if (eqc!=eq)
+    if (eqc != eq)
     {
       return false;
     }
