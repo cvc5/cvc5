@@ -1247,7 +1247,7 @@ ConstraintP ConstraintDatabase::lookup(TNode literal) const{
   }
 }
 
-void Constraint::setAssumption(bool nowInConflict){
+void Constraint::setAssumption(CVC5_UNUSED bool nowInConflict){
   Trace("constraints::pf") << "setAssumption(" << this << ")" << std::endl;
   Assert(!hasProof());
   Assert(negationHasProof() == nowInConflict);
@@ -1292,7 +1292,7 @@ void Constraint::propagate(){
  */
 void Constraint::impliedByUnate(NodeManager* nm,
                                 ConstraintCP imp,
-                                bool nowInConflict)
+                                CVC5_UNUSED bool nowInConflict)
 {
   Trace("constraints::pf") << "impliedByUnate(" << this << ", " << *imp << ")" << std::endl;
   Assert(!hasProof());
@@ -1335,7 +1335,7 @@ void Constraint::impliedByUnate(NodeManager* nm,
   Assert(wellFormedFarkasProof(nm));
 }
 
-void Constraint::impliedByTrichotomy(ConstraintCP a, ConstraintCP b, bool nowInConflict){
+void Constraint::impliedByTrichotomy(ConstraintCP a, ConstraintCP b, CVC5_UNUSED bool nowInConflict){
   Trace("constraints::pf") << "impliedByTrichotomy(" << this << ", " << *a << ", ";
   Trace("constraints::pf") << *b << ")" << std::endl;
   Assert(!hasProof());
@@ -1365,7 +1365,7 @@ bool Constraint::allHaveProof(const ConstraintCPVec& b){
   return true;
 }
 
-void Constraint::impliedByIntTighten(ConstraintCP a, bool nowInConflict){
+void Constraint::impliedByIntTighten(ConstraintCP a, CVC5_UNUSED bool nowInConflict){
   Trace("constraints::pf") << "impliedByIntTighten(" << this << ", " << *a << ")" << std::endl;
   Assert(!hasProof());
   Assert(negationHasProof() == nowInConflict);
@@ -1384,7 +1384,7 @@ void Constraint::impliedByIntTighten(ConstraintCP a, bool nowInConflict){
   }
 }
 
-void Constraint::impliedByIntHole(ConstraintCP a, bool nowInConflict){
+void Constraint::impliedByIntHole(ConstraintCP a, CVC5_UNUSED bool nowInConflict){
   Trace("constraints::pf") << "impliedByIntHole(" << this << ", " << *a << ")" << std::endl;
   Assert(!hasProof());
   Assert(negationHasProof() == nowInConflict);
@@ -1403,7 +1403,7 @@ void Constraint::impliedByIntHole(ConstraintCP a, bool nowInConflict){
   }
 }
 
-void Constraint::impliedByIntHole(const ConstraintCPVec& b, bool nowInConflict){
+void Constraint::impliedByIntHole(const ConstraintCPVec& b, CVC5_UNUSED bool nowInConflict){
   Trace("constraints::pf") << "impliedByIntHole(" << this;
   if (TraceIsOn("constraints::pf")) {
     for (const ConstraintCP& p : b)
@@ -1443,7 +1443,7 @@ void Constraint::impliedByIntHole(const ConstraintCPVec& b, bool nowInConflict){
 void Constraint::impliedByFarkas(NodeManager* nm,
                                  const ConstraintCPVec& a,
                                  RationalVectorCP coeffs,
-                                 bool nowInConflict)
+                                 CVC5_UNUSED bool nowInConflict)
 {
   Trace("constraints::pf") << "impliedByFarkas(" << this;
   if (TraceIsOn("constraints::pf")) {
@@ -1494,7 +1494,7 @@ void Constraint::impliedByFarkas(NodeManager* nm,
   Assert(wellFormedFarkasProof(nm));
 }
 
-void Constraint::setInternalAssumption(bool nowInConflict){
+void Constraint::setInternalAssumption(CVC5_UNUSED bool nowInConflict){
   Trace("constraints::pf") << "setInternalAssumption(" << this;
   Trace("constraints::pf") << ")" << std::endl;
   Assert(!hasProof());

@@ -65,7 +65,7 @@ struct RString
 /** Argument does not exist */
 struct ANone
 {
-  static bool checkArg(TNode n, size_t arg)
+  static bool checkArg(CVC5_UNUSED TNode n, CVC5_UNUSED size_t arg)
   {
     Assert(arg >= n.getNumChildren());
     return true;

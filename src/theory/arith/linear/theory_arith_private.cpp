@@ -1240,7 +1240,7 @@ void TheoryArithPrivate::releaseArithVar(ArithVar v){
   d_partialModel.releaseArithVar(v);
 }
 
-ArithVar TheoryArithPrivate::requestArithVar(TNode x, bool aux, bool internal){
+ArithVar TheoryArithPrivate::requestArithVar(TNode x, bool aux, CVC5_UNUSED bool internal){
   //TODO : The VarList trick is good enough?
   Kind xk = x.getKind();
   Assert(isLeaf(x) || VarList::isMember(x) || xk == Kind::ADD || internal);
@@ -1942,7 +1942,7 @@ bool TheoryArithPrivate::replayLog(ApproximateSimplex* approx){
   return !conflictQueueEmpty();
 }
 
-std::pair<ConstraintP, ArithVar> TheoryArithPrivate::replayGetConstraint(const DenseMap<Rational>& lhs, Kind k, const Rational& rhs, bool branch)
+std::pair<ConstraintP, ArithVar> TheoryArithPrivate::replayGetConstraint(const DenseMap<Rational>& lhs, Kind k, const Rational& rhs, CVC5_UNUSED bool branch)
 {
   ArithVar added = ARITHVAR_SENTINEL;
   Node sum = toSumNode(nodeManager(), d_partialModel, lhs);

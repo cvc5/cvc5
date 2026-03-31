@@ -397,17 +397,17 @@ traits::rm traits::RTZ(void) { return RoundingMode::ROUND_TOWARD_ZERO; };
 // This is a literal back-end so props are actually bools
 // so these can be handled in the same way as the internal assertions above
 
-void traits::precondition(const traits::prop& p)
+void traits::precondition(CVC5_UNUSED const traits::prop& p)
 {
   Assert(p);
   return;
 }
-void traits::postcondition(const traits::prop& p)
+void traits::postcondition(CVC5_UNUSED const traits::prop& p)
 {
   Assert(p);
   return;
 }
-void traits::invariant(const traits::prop& p)
+void traits::invariant(CVC5_UNUSED const traits::prop& p)
 {
   Assert(p);
   return;
