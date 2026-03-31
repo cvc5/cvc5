@@ -324,12 +324,6 @@ bool proveEqualityWithRewriteSteps(
     FINISH_ACI_NORM,
     FINISH_CONG,
   };
-  enum class EqProofStatus
-  {
-    ACTIVE,
-    PROVED,
-    FAILED,
-  };
   struct EqProofFrame
   {
     Node d_a;
@@ -337,13 +331,12 @@ bool proveEqualityWithRewriteSteps(
     EqProofState d_state;
   };
 
-  std::unordered_map<Node, EqProofStatus> status;
+  std::unordered_set<Node> visited;
   std::vector<EqProofFrame> visit;
   auto schedule = [&](const Node& lhs, const Node& rhs) {
     Node eq = lhs.eqNode(rhs);
-    if (status.find(eq) == status.end())
+    if (visited.insert(eq).second)
     {
-      status.emplace(eq, EqProofStatus::ACTIVE);
       visit.push_back({lhs, rhs, EqProofState::ENTER});
     }
   };
@@ -356,8 +349,6 @@ bool proveEqualityWithRewriteSteps(
     const Node& lhs = cur.d_a;
     const Node& rhs = cur.d_b;
     Node eq = lhs.eqNode(rhs);
-    auto sit = status.find(eq);
-    Assert(sit != status.end());
     if (cur.d_state == EqProofState::ENTER)
     {
       // We first check if lhs == rhs is directly provable by refl, aci norm,
@@ -365,13 +356,11 @@ bool proveEqualityWithRewriteSteps(
       if (lhs == rhs)
       {
         cdp.addStep(eq, ProofRule::REFL, {}, {lhs});
-        sit->second = EqProofStatus::PROVED;
         continue;
       }
       if (expr::isACINorm(lhs, rhs))
       {
         cdp.addStep(eq, ProofRule::ACI_NORM, {}, {eq});
-        sit->second = EqProofStatus::PROVED;
         continue;
       }
       if (lhs.getType() == rhs.getType())
@@ -381,14 +370,12 @@ bool proveEqualityWithRewriteSteps(
             && theory::arith::PolyNorm::isArithPolyNorm(lhs, rhs))
         {
           cdp.addStep(eq, ProofRule::BV_POLY_NORM, {}, {eq});
-          sit->second = EqProofStatus::PROVED;
           continue;
         }
         if (tn.isRealOrInt()
             && theory::arith::PolyNorm::isArithPolyNorm(lhs, rhs))
         {
           cdp.addStep(eq, ProofRule::ARITH_POLY_NORM, {}, {eq});
-          sit->second = EqProofStatus::PROVED;
           continue;
         }
       }
@@ -398,7 +385,6 @@ bool proveEqualityWithRewriteSteps(
       if (allowPredIntro && eqr.isConst() && eqr.getConst<bool>())
       {
         cdp.addStep(eq, ProofRule::MACRO_SR_PRED_INTRO, {}, {eq});
-        sit->second = EqProofStatus::PROVED;
         continue;
       }
       // otherwise, we normalize based on AC reasoning if possible, which may
@@ -417,10 +403,10 @@ bool proveEqualityWithRewriteSteps(
       // if AC reasoning is not available, we attempt to recurse on children
       // and reconstruct via congruence.
       if (lhs.getKind() != rhs.getKind()
-          || lhs.getNumChildren() != rhs.getNumChildren())
+          || lhs.getNumChildren() != rhs.getNumChildren()
+          || lhs.getNumChildren()==0)
       {
-        sit->second = EqProofStatus::FAILED;
-        continue;
+        return false;
       }
       size_t startChild = 0;
       if (lhs.isClosure())
@@ -428,8 +414,7 @@ bool proveEqualityWithRewriteSteps(
         // closures do not work if their variable lists are different.
         if (lhs[0] != rhs[0])
         {
-          sit->second = EqProofStatus::FAILED;
-          continue;
+          return false;
         }
         startChild = 1;
       }
@@ -448,16 +433,6 @@ bool proveEqualityWithRewriteSteps(
     {
       Node an = expr::getACINormalForm(lhs);
       Node bn = expr::getACINormalForm(rhs);
-      // first see if we successfully proved an == bn
-      if (an != bn)
-      {
-        auto nit = status.find(an.eqNode(bn));
-        if (nit == status.end() || nit->second != EqProofStatus::PROVED)
-        {
-          sit->second = EqProofStatus::FAILED;
-          continue;
-        }
-      }
       // if so, we put together a proof of transitivity
       std::vector<Node> transEq;
       if (lhs != an)
@@ -478,20 +453,17 @@ bool proveEqualityWithRewriteSteps(
         cdp.addStep(beqs, ProofRule::SYMM, {beq}, {});
         transEq.push_back(beqs);
       }
-      if (transEq.empty())
+      Assert (!transEq.empty());
+      if (transEq.size() == 1)
       {
-        sit->second = EqProofStatus::PROVED;
+        if (transEq[0]!=eq)
+        {
+          return false;
+        }
       }
-      else if (transEq.size() == 1)
+      else if (!cdp.addStep(eq, ProofRule::TRANS, transEq, {}))
       {
-        sit->second =
-            transEq[0] == eq ? EqProofStatus::PROVED : EqProofStatus::FAILED;
-      }
-      else
-      {
-        sit->second = cdp.addStep(eq, ProofRule::TRANS, transEq, {})
-                          ? EqProofStatus::PROVED
-                          : EqProofStatus::FAILED;
+        return false;
       }
       continue;
     }
@@ -499,49 +471,23 @@ bool proveEqualityWithRewriteSteps(
     // otherwise, we are reconstructing a proof of congruence from proven
     // equalities of children.
     std::vector<Node> premises(lhs.getNumChildren(), Node::null());
-    bool changed = false;
-    bool failed = false;
-    size_t nchildren = lhs.getNumChildren();
-    if (nchildren > 0)
+    Assert(lhs.getNumChildren()>0);
+    for (size_t i = 0, nchildren = lhs.getNumChildren(); i < nchildren; i++)
     {
-      for (size_t i = 0; i < nchildren; i++)
+      if (lhs[i] == rhs[i])
       {
-        if (lhs[i] == rhs[i])
-        {
-          continue;
-        }
-        Node eqi = lhs[i].eqNode(rhs[i]);
-        auto cit = status.find(eqi);
-        if (cit == status.end() || cit->second != EqProofStatus::PROVED)
-        {
-          // if any failed, we fail.
-          failed = true;
-          break;
-        }
-        premises[i] = eqi;
-        changed = true;
+        continue;
       }
-    }
-    else
-    {
-      // no children, we cannot make them equal by congruence
-      failed = true;
-    }
-    if (failed)
-    {
-      sit->second = EqProofStatus::FAILED;
-      continue;
-    }
-    if (!changed)
-    {
-      cdp.addStep(eq, ProofRule::REFL, {}, {lhs});
-      sit->second = EqProofStatus::PROVED;
-      continue;
+      Node eqi = lhs[i].eqNode(rhs[i]);
+      premises[i] = eqi;
     }
     Node eqc = proveCong(env, &cdp, lhs, premises);
-    sit->second = eqc == eq ? EqProofStatus::PROVED : EqProofStatus::FAILED;
+    if (eqc!=eq)
+    {
+      return false;
+    }
   }
-  return status[a.eqNode(b)] == EqProofStatus::PROVED;
+  return true;
 }
 
 }  // namespace expr
