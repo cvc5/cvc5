@@ -1411,7 +1411,7 @@ void FullModelChecker::mkCondDefaultVec( FirstOrderModelFmc * fm, Node f, std::v
   cond.push_back(d_quant_cond[f]);
   for (unsigned i=0; i<f[0].getNumChildren(); i++) {
     Node ts = fm->getStar(f[0][i].getType());
-    Assert(ts.getType() == f[0][i].getType());
+    AssertEqual(ts.getType(), f[0][i].getType());
     cond.push_back(ts);
   }
 }

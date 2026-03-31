@@ -1253,7 +1253,7 @@ bool TheoryEngine::propagate(TNode literal, theory::TheoryId theory) {
 
 theory::EqualityStatus TheoryEngine::getEqualityStatus(TNode a, TNode b)
 {
-  Assert(a.getType() == b.getType());
+  AssertEqual(a.getType(), b.getType());
   return d_sharedSolver->getEqualityStatus(a, b);
 }
 
@@ -1994,7 +1994,7 @@ TrustNode TheoryEngine::getExplanation(
           continue;
         }
         // otherwise should hold by rewriting
-        Assert(rewrite(tConc) == rewrite(tExp));
+        AssertEqual(rewrite(tConc), rewrite(tExp));
         // tExp
         // ---- MACRO_SR_PRED_TRANSFORM
         // tConc

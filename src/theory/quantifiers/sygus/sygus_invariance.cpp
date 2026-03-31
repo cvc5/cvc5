@@ -132,7 +132,7 @@ bool EquivSygusInvarianceTest::invariant(TermDbSygus* tds, Node nvn, Node x)
       if (xtn == tn)
       {
         Node bx = tds->sygusToBuiltin(x, xtn);
-        Assert(bx.getType() == nbvr.getType());
+        AssertEqual(bx.getType(), nbvr.getType());
         if (nbvr == bx)
         {
           Trace("sygus-sb-mexp") << "sb-min-exp : " << tds->sygusToBuiltin(nvn)

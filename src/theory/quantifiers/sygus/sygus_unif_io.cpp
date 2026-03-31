@@ -1288,7 +1288,7 @@ Node SygusUnifIo::constructSol(
   }
   if (!ret_dt.isNull() || einfo.isTemplated())
   {
-    Assert(ret_dt.isNull() || ret_dt.getType() == e.getType());
+    Assert(ret_dt.isNull() || CVC5_EQUAL(ret_dt.getType(), e.getType()));
     indent("sygus-sui-dt", ind);
     Trace("sygus-sui-dt") << "ConstructPBE: returned (pre-strategy) " << ret_dt
                           << std::endl;
@@ -1522,7 +1522,7 @@ Node SygusUnifIo::constructSol(
     }
     else if (d_enableMinimality)
     {
-      Assert(ret_dt.getType() == cached_ret_dt.getType());
+      AssertEqual(ret_dt.getType(), cached_ret_dt.getType());
       // take the cached one if it is smaller
       std::vector<Node> retDts;
       retDts.push_back(cached_ret_dt);
@@ -1530,7 +1530,7 @@ Node SygusUnifIo::constructSol(
       ret_dt = getMinimalTerm(retDts);
     }
   }
-  Assert(ret_dt.isNull() || ret_dt.getType() == e.getType());
+  Assert(ret_dt.isNull() || CVC5_EQUAL(ret_dt.getType(), e.getType()));
   if (TraceIsOn("sygus-sui-dt"))
   {
     indent("sygus-sui-dt", ind);

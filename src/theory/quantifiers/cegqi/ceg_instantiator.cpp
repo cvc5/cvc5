@@ -815,7 +815,7 @@ bool CegInstantiator::constructInstantiationInc(Node pv,
                                                 SolvedForm& sf,
                                                 bool revertOnSuccess)
 {
-  Assert(n.getType() == pv.getType());
+  AssertEqual(n.getType(), pv.getType());
   Node cnode = pv_prop.getCacheNode();
   if( d_curr_subs_proc[pv][n].find( cnode )==d_curr_subs_proc[pv][n].end() ){
     d_curr_subs_proc[pv][n][cnode] = true;
@@ -827,7 +827,7 @@ bool CegInstantiator::constructInstantiationInc(Node pv,
                          << ") ";
       Node mod_pv = pv_prop.getModifiedTerm( pv );
       Trace("cegqi-inst-debug") << mod_pv << " -> " << n << std::endl;
-      Assert(n.getType() == pv.getType());
+      AssertEqual(n.getType(), pv.getType());
     }
     //must ensure variables have been computed for n
     computeProgVars( n );
@@ -991,7 +991,7 @@ bool CegInstantiator::doAddInstantiation(std::vector<Node>& vars,
       Node n = it->second;
       Trace("cegqi-inst-debug") << "  " << d_input_vars[i] << " -> " << n
                                << std::endl;
-      Assert(n.getType() == d_input_vars[i].getType());
+      AssertEqual(n.getType(), d_input_vars[i].getType());
       subs.push_back( n );
     }
   }
@@ -1003,7 +1003,7 @@ bool CegInstantiator::doAddInstantiation(std::vector<Node>& vars,
       Node v = d_input_vars[i];
       Trace("cegqi-inst") << i << " (" << d_curr_iphase[v] << ") : " 
                          << v << " -> " << subs[i] << std::endl;
-      Assert(subs[i].getType() == v.getType());
+      AssertEqual(subs[i].getType(), v.getType());
     }
   }
   Trace("cegqi-inst-debug") << "Do the instantiation...." << std::endl;
@@ -1109,7 +1109,7 @@ Node CegInstantiator::applySubstitution( TypeNode tn, Node n, std::vector< Node 
     Trace("sygus-si-apply-subs-debug") << "is_basic = " << is_basic << "  " << tn << std::endl;
     for( unsigned i=0; i<subs.size(); i++ ){
       Trace("sygus-si-apply-subs-debug") << "  " << vars[i] << " -> " << subs[i] << "   types : " << vars[i].getType() << " -> " << subs[i].getType() << std::endl;
-      Assert(subs[i].getType() == vars[i].getType());
+      AssertEqual(subs[i].getType(), vars[i].getType());
     }
   }
   Node nret;

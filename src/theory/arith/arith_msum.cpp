@@ -275,7 +275,7 @@ int ArithMSum::isolate(
       {
         val = nm->mkNode(Kind::TO_INTEGER, val);
       }
-      Assert(val.getType() == vc.getType())
+      AssertEqual(val.getType(), vc.getType())
           << val << " " << vc << " " << val.getType() << " " << vc.getType();
     }
     veq = nm->mkNode(k, inOrder ? vc : val, inOrder ? val : vc);

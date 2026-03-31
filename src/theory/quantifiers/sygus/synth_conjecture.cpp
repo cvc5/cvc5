@@ -557,7 +557,7 @@ bool SynthConjecture::doCheck()
         // since we don't have function subtyping, this assertion should only
         // check the return type
         Assert(fvar.getType().isFunction());
-        Assert(fvar.getType().getRangeType() == bsol.getType());
+        AssertEqual(fvar.getType().getRangeType(), bsol.getType());
         bsol = nm->mkNode(Kind::LAMBDA, bvl, bsol);
       }
       Trace("sygus-engine-debug")
@@ -1010,12 +1010,12 @@ bool SynthConjecture::getSynthSolutions(
       // since we don't have function subtyping, this assertion should only
       // check the return type
       Assert(fvar.getType().isFunction());
-      Assert(fvar.getType().getRangeType() == bsol.getType());
+      AssertEqual(fvar.getType().getRangeType(), bsol.getType());
       bsol = nm->mkNode(Kind::LAMBDA, bvl, bsol);
     }
     else
     {
-      Assert(fvar.getType() == bsol.getType());
+      AssertEqual(fvar.getType(), bsol.getType());
     }
     // store in map
     smc[fvar] = bsol;

@@ -121,7 +121,7 @@ void FunDefFmf::process(AssertionPipeline* assertionsToPreprocess)
         // We then make the sort constructor applied to that type. For example,
         // this is (@fmf-fun-sort f), where here f is an uninterpreted sort.
         // This is done to have a clear name for this sort, and to support
-        // proof printing in ALF where @fmf-fun-sort is a type constructor
+        // proof printing in Eunoia where @fmf-fun-sort is a type constructor
         // parameterized by a function.
         iType = nm->mkSort(d_fmfFunSc, {iType});
         AbsTypeFunDefAttribute atfda;
