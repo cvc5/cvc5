@@ -381,7 +381,7 @@ bool proveEqualityWithRewriteSteps(
       {
         visitedAciNorm.insert(eq);
         visit.push_back(eq);
-        if (an!=bn)
+        if (an != bn)
         {
           visit.push_back(an.eqNode(bn));
         }
@@ -416,7 +416,7 @@ bool proveEqualityWithRewriteSteps(
       }
       continue;
     }
-    if (visitedAciNorm.find(eq)!=visitedAciNorm.end())
+    if (visitedAciNorm.find(eq) != visitedAciNorm.end())
     {
       Node an = expr::getACINormalForm(lhs);
       Node bn = expr::getACINormalForm(rhs);
