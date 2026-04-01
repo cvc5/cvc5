@@ -41,14 +41,6 @@ class vec {
     int sz;
     int cap;
 
-    // Don't allow copying (error prone):
-    vec<T>& operator=(vec<T>& other)
-    {
-      Assert(0);
-      return *this;
-    }
-    vec(vec<T>& other) { Assert(0); }
-
     // Helpers for calculating next capacity:
     static inline int  imax   (int x, int y) { int mask = (y-x) >> (sizeof(int)*8-1); return (x&mask) + (y&(~mask)); }
     //static inline void nextCap(int& cap){ cap += ((cap >> 1) + 2) & ~1; }
@@ -56,10 +48,14 @@ class vec {
 
 public:
     // Constructors:
-    vec()                       : data(NULL) , sz(0)   , cap(0)    { }
-    explicit vec(int size)      : data(NULL) , sz(0)   , cap(0)    { growTo(size); }
-    vec(int size, const T& pad) : data(NULL) , sz(0)   , cap(0)    { growTo(size, pad); }
+    vec()                       : data(nullptr) , sz(0)   , cap(0)    { }
+    explicit vec(int size)      : data(nullptr) , sz(0)   , cap(0)    { growTo(size); }
+    vec(int size, const T& pad) : data(nullptr) , sz(0)   , cap(0)    { growTo(size, pad); }
    ~vec()                                                          { clear(true); }
+
+    // Don't allow copying (error prone):
+    vec(const vec<T>&) = delete;
+    vec<T>& operator=(const vec<T>&) = delete;
 
     // Pointer to first element:
     operator T*       (void)           { return data; }
@@ -109,7 +105,16 @@ public:
 
     // Duplication (preferred instead):
     void copyTo(vec<T>& copy) const { copy.clear(); copy.growTo(sz); for (int i = 0; i < sz; i++) copy[i] = data[i]; }
-    void moveTo(vec<T>& dest) { dest.clear(true); dest.data = data; dest.sz = sz; dest.cap = cap; data = NULL; sz = 0; cap = 0; }
+    void moveTo(vec<T>& dest)
+    {
+      dest.clear(true);
+      dest.data = data;
+      dest.sz = sz;
+      dest.cap = cap;
+      data = nullptr;
+      sz = 0;
+      cap = 0;
+    }
 };
 
 
@@ -119,7 +124,7 @@ void vec<T>::capacity(int min_cap) {
     int add = imax((min_cap - cap + 1) & ~1, ((cap >> 1) + 2) & ~1);   // NOTE: grow by approximately 3/2
     // Casting data to void* silences the -Wclass-memaccess warning. This is safe as long as T is relocatable,
     // which is true for the current instantiations of T.
-    if (add > INT_MAX - cap || (((data = (T*)::realloc((void*)data, (cap += add) * sizeof(T))) == NULL) && errno == ENOMEM))
+    if (add > INT_MAX - cap || (((data = (T*)::realloc((void*)data, (cap += add) * sizeof(T))) == nullptr) && errno == ENOMEM))
         throw OutOfMemoryException();
  }
 
@@ -142,10 +147,13 @@ void vec<T>::growTo(int size) {
 
 template<class T>
 void vec<T>::clear(bool dealloc) {
-    if (data != NULL){
-        for (int i = 0; i < sz; i++) data[i].~T();
-        sz = 0;
-        if (dealloc) free(data), data = NULL, cap = 0; } }
+  if (data != nullptr)
+  {
+    for (int i = 0; i < sz; i++) data[i].~T();
+    sz = 0;
+    if (dealloc) free(data), data = nullptr, cap = 0;
+  }
+}
 
 //=================================================================================================
 }

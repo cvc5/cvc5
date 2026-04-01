@@ -491,7 +491,7 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf, unsigned i)
     //get the instantiator object
     Assert(d_instantiator.find(pv) != d_instantiator.end());
     Instantiator* vinst = d_instantiator[pv];
-    Assert(vinst != NULL);
+    Assert(vinst != nullptr);
     d_active_instantiators[pv] = vinst;
     vinst->reset(this, sf, pv, d_effort);
     // if d_effort is full, we must choose at least one model value

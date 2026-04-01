@@ -78,7 +78,7 @@ FloatingPointLiteral::FloatingPointLiteral(uint32_t exp_size,
 }
 
 FloatingPointLiteral::FloatingPointLiteral(
-    const FloatingPointSize& size, FloatingPointLiteral::SpecialConstKind kind)
+    const FloatingPointSize& size, CVC5_UNUSED FloatingPointLiteral::SpecialConstKind kind)
     : d_fp_size(size)
       ,
       d_symuf(SymFPUUnpackedFloatLiteral::makeNaN(size))

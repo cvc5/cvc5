@@ -190,7 +190,7 @@ TypeNode RealNullaryOperatorTypeRule::preComputeType(
 }
 TypeNode RealNullaryOperatorTypeRule::computeType(NodeManager* nodeManager,
                                                   TNode n,
-                                                  bool check,
+                                                  CVC5_UNUSED bool check,
                                                   std::ostream* errOut)
 {
   // for nullary operators, we only computeType for check=true, since they are

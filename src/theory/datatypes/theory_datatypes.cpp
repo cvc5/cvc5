@@ -76,7 +76,7 @@ TheoryDatatypes::~TheoryDatatypes() {
   for(std::map< Node, EqcInfo* >::iterator i = d_eqc_info.begin(), iend = d_eqc_info.end();
       i != iend; ++i){
     EqcInfo* current = (*i).second;
-    Assert(current != NULL);
+    Assert(current != nullptr);
     delete current;
   }
 }
@@ -149,7 +149,7 @@ TheoryDatatypes::EqcInfo* TheoryDatatypes::getOrMakeEqcInfo( TNode n, bool doMak
 
       return ei;
     }else{
-      return NULL;
+      return nullptr;
     }
   }else{
     std::map< Node, EqcInfo* >::iterator eqc_i = d_eqc_info.find( n );

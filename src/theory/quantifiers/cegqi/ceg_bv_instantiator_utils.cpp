@@ -137,7 +137,7 @@ Node BvInstantiatorUtil::normalizePvMult(
 }
 
 bool BvInstantiatorUtil::isLinearPlus(
-    TNode n, TNode pv, std::unordered_map<Node, bool>& contains_pv) const
+    TNode n, TNode pv, CVC5_UNUSED std::unordered_map<Node, bool>& contains_pv) const
 {
   Node coeff;
   Assert(n.getAttribute(BvLinearAttribute()));

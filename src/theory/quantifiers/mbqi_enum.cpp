@@ -78,7 +78,7 @@ bool introduceChoice(const Options& opts,
 /**
  * Decide whether MBQI term enumeration should be used for type `tn`.
  */
-bool shouldEnumerate(const Options& opts, const TypeNode& tn)
+bool shouldEnumerate(CVC5_UNUSED const Options& opts, const TypeNode& tn)
 {
   // It may make sense to enumerate choice for FO uninterpreted sorts, but
   // seems to not work well in practice.

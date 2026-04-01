@@ -45,7 +45,7 @@ namespace {
 
 void addLemmaForPair(TNode args1,
                      TNode args2,
-                     const TNode func,
+                     CVC5_UNUSED const TNode func,
                      AssertionPipeline* assertionsToPreprocess,
                      NodeManager* nm)
 {

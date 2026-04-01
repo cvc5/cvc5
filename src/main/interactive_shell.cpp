@@ -165,7 +165,7 @@ InteractiveShell::~InteractiveShell() {
 
 bool InteractiveShell::readAndExecCommands()
 {
-  char* lineBuf = NULL;
+  char* lineBuf = nullptr;
   string line = "";
 restart:
 
@@ -240,7 +240,7 @@ restart:
 
     /* If we hit EOF, we're done. */
     if ((!d_usingEditline && d_in.eof())
-        || (d_usingEditline && lineBuf == NULL))
+        || (d_usingEditline && lineBuf == nullptr))
     {
       input += line;
 
@@ -336,7 +336,7 @@ restart:
         return false;
       }
       cmdSeq.emplace_back(std::move(cmdp));
-      if (dynamic_cast<QuitCommand*>(cmd) != NULL)
+      if (dynamic_cast<QuitCommand*>(cmd) != nullptr)
       {
         d_quit = true;
         break;

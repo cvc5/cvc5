@@ -85,24 +85,24 @@ struct CTIVStackElement
 ITEUtilities::ITEUtilities(Env& env)
     : EnvObj(env),
       d_containsVisitor(new ContainsTermITEVisitor()),
-      d_compressor(NULL),
-      d_simplifier(NULL),
-      d_careSimp(NULL)
+      d_compressor(nullptr),
+      d_simplifier(nullptr),
+      d_careSimp(nullptr)
 {
-  Assert(d_containsVisitor != NULL);
+  Assert(d_containsVisitor != nullptr);
 }
 
 ITEUtilities::~ITEUtilities()
 {
-  if (d_simplifier != NULL)
+  if (d_simplifier != nullptr)
   {
     delete d_simplifier;
   }
-  if (d_compressor != NULL)
+  if (d_compressor != nullptr)
   {
     delete d_compressor;
   }
-  if (d_careSimp != NULL)
+  if (d_careSimp != nullptr)
   {
     delete d_careSimp;
   }
@@ -110,7 +110,7 @@ ITEUtilities::~ITEUtilities()
 
 Node ITEUtilities::simpITE(TNode assertion)
 {
-  if (d_simplifier == NULL)
+  if (d_simplifier == nullptr)
   {
     d_simplifier = new ITESimplifier(d_env, d_containsVisitor.get());
   }
@@ -119,7 +119,7 @@ Node ITEUtilities::simpITE(TNode assertion)
 
 bool ITEUtilities::simpIteDidALotOfWorkHeuristic() const
 {
-  if (d_simplifier == NULL)
+  if (d_simplifier == nullptr)
   {
     return false;
   }
@@ -132,7 +132,7 @@ bool ITEUtilities::simpIteDidALotOfWorkHeuristic() const
 /* returns false if an assertion is discovered to be equal to false. */
 bool ITEUtilities::compress(AssertionPipeline* assertionsToPreprocess)
 {
-  if (d_compressor == NULL)
+  if (d_compressor == nullptr)
   {
     d_compressor = new ITECompressor(d_env, d_containsVisitor.get());
   }
@@ -141,7 +141,7 @@ bool ITEUtilities::compress(AssertionPipeline* assertionsToPreprocess)
 
 Node ITEUtilities::simplifyWithCare(TNode e)
 {
-  if (d_careSimp == NULL)
+  if (d_careSimp == nullptr)
   {
     d_careSimp = new ITECareSimplifier(nodeManager());
   }
@@ -150,15 +150,15 @@ Node ITEUtilities::simplifyWithCare(TNode e)
 
 void ITEUtilities::clear()
 {
-  if (d_simplifier != NULL)
+  if (d_simplifier != nullptr)
   {
     d_simplifier->clearSimpITECaches();
   }
-  if (d_compressor != NULL)
+  if (d_compressor != nullptr)
   {
     d_compressor->garbageCollect();
   }
-  if (d_careSimp != NULL)
+  if (d_careSimp != nullptr)
   {
     d_careSimp->clear();
   }
@@ -287,11 +287,11 @@ void IncomingArcCounter::clear() { d_reachCount.clear(); }
 ITECompressor::ITECompressor(Env& env, ContainsTermITEVisitor* contains)
     : EnvObj(env),
       d_contains(contains),
-      d_assertions(NULL),
+      d_assertions(nullptr),
       d_incoming(true, true),
       d_statistics(env.getStatisticsRegistry())
 {
-  Assert(d_contains != NULL);
+  Assert(d_contains != nullptr);
 
   d_true = nodeManager()->mkConst<bool>(true);
   d_false = nodeManager()->mkConst<bool>(false);
@@ -542,7 +542,7 @@ bool ITECompressor::compress(AssertionPipeline* assertionsToPreprocess)
     nofalses = (rewritten != d_false);
   }
 
-  d_assertions = NULL;
+  d_assertions = nullptr;
 
   return nofalses;
 }
@@ -649,7 +649,7 @@ ITESimplifier::ITESimplifier(Env& env, ContainsTermITEVisitor* contains)
       d_simpITECache(),
       d_statistics(env.getStatisticsRegistry())
 {
-  Assert(d_containsVisitor != NULL);
+  Assert(d_containsVisitor != nullptr);
   d_true = nodeManager()->mkConst<bool>(true);
   d_false = nodeManager()->mkConst<bool>(false);
 }
@@ -722,7 +722,7 @@ bool ITESimplifier::isConstantIte(TNode e)
   else if (ite::isTermITE(e))
   {
     NodeVec* constants = computeConstantLeaves(e);
-    return constants != NULL;
+    return constants != nullptr;
   }
   else
   {
@@ -758,8 +758,8 @@ ITESimplifier::NodeVec* ITESimplifier::computeConstantLeaves(TNode ite)
       || !(elseB.isConst() || elseB.getKind() == Kind::ITE))
   {
     // Cannot be a termITE tree
-    d_constantLeaves[ite] = NULL;
-    return NULL;
+    d_constantLeaves[ite] = nullptr;
+    return nullptr;
   }
 
   // At least 1 is not a constant
@@ -767,14 +767,14 @@ ITESimplifier::NodeVec* ITESimplifier::computeConstantLeaves(TNode ite)
   TNode maybeITE = thenB.isConst() ? thenB : elseB;
 
   NodeVec* defChildren = computeConstantLeaves(definitelyITE);
-  if (defChildren == NULL)
+  if (defChildren == nullptr)
   {
-    d_constantLeaves[ite] = NULL;
-    return NULL;
+    d_constantLeaves[ite] = nullptr;
+    return nullptr;
   }
 
   NodeVec scratch;
-  NodeVec* maybeChildren = NULL;
+  NodeVec* maybeChildren = nullptr;
   if (maybeITE.getKind() == Kind::ITE)
   {
     maybeChildren = computeConstantLeaves(maybeITE);
@@ -784,10 +784,10 @@ ITESimplifier::NodeVec* ITESimplifier::computeConstantLeaves(TNode ite)
     scratch.push_back(maybeITE);
     maybeChildren = &scratch;
   }
-  if (maybeChildren == NULL)
+  if (maybeChildren == nullptr)
   {
-    d_constantLeaves[ite] = NULL;
-    return NULL;
+    d_constantLeaves[ite] = nullptr;
+    return nullptr;
   }
 
   NodeVec* both = new NodeVec(defChildren->size() + maybeChildren->size());
@@ -1092,7 +1092,7 @@ Node ITESimplifier::constantIteEqualsConstant(TNode cite, TNode constant)
   ++d_citeEqConstApplications;
 
   NodeVec* leaves = computeConstantLeaves(cite);
-  Assert(leaves != NULL);
+  Assert(leaves != nullptr);
   if (std::binary_search(leaves->begin(), leaves->end(), constant))
   {
     if (leaves->size() == 1)
@@ -1225,7 +1225,7 @@ Node ITESimplifier::attemptEagerRemoval(TNode atom)
       }
 
       NodeVec* leaves = computeConstantLeaves(cite);
-      Assert(leaves != NULL);
+      Assert(leaves != nullptr);
       if (!std::binary_search(leaves->begin(), leaves->end(), constant))
       {
         d_constantIteEqualsConstantCache[pair] = d_false;

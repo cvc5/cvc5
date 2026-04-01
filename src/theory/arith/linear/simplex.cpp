@@ -44,7 +44,7 @@ SimplexDecisionProcedure::SimplexDecisionProcedure(
       d_errorSet(errors),
       d_numVariables(0),
       d_conflictChannel(conflictChannel),
-      d_conflictBuilder(NULL),
+      d_conflictBuilder(nullptr),
       d_arithVarMalloc(tvmalloc),
       d_errorSize(0),
       d_zero(0),

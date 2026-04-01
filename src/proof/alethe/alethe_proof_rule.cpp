@@ -135,6 +135,10 @@ const char* aletheRuleToString(AletheRule id)
     case AletheRule::MINISCOPE_ITE: return "miniscope_ite";
     case AletheRule::REORDERING: return "reordering";
     case AletheRule::BETA_EQUIVALENCE: return "beta_equiv";
+    case AletheRule::ARRAYS_IDX: return "arrays_idx";
+    case AletheRule::ARRAYS_ROW: return "arrays_row";
+    case AletheRule::ARRAYS_ROW_CONTRA: return "arrays_row_contra";
+    case AletheRule::ARRAYS_EXT: return "arrays_ext";
     case AletheRule::BV_BITBLAST_STEP_VAR: return "bv_bitblast_step_var";
     case AletheRule::BV_BITBLAST_STEP_BVAND: return "bv_bitblast_step_bvand";
     case AletheRule::BV_BITBLAST_STEP_BVOR: return "bv_bitblast_step_bvor";
