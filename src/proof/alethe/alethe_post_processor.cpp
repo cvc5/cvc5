@@ -2054,6 +2054,25 @@ bool AletheProofPostprocessCallback::update(Node res,
                            {},
                            *cdp);
     }
+    case ProofRule::BV_POLY_NORM:
+    {
+      return addAletheStep(AletheRule::POLY_SIMP,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           {},
+                           {},
+                           *cdp);
+    }
+    case ProofRule::BV_POLY_NORM_EQ:
+    {
+      return addAletheStep(AletheRule::POLY_SIMP_REL,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           children,
+                           {},
+                           *cdp);
+    }
+
     //================================================= Quantifiers rules
     // ======== Instantiate
     //
