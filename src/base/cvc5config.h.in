@@ -41,9 +41,6 @@
 /* Define to 1 to use libedit. */
 #cmakedefine01 HAVE_LIBEDITLINE
 
-/* Define to 1 if `rl_completion_entry_function' returns (char *). */
-#cmakedefine01 EDITLINE_COMPENTRY_FUNC_RETURNS_CHARP
-
 /* Define if `sigaltstack' is supported by the platform. */
 #cmakedefine HAVE_SIGALTSTACK
 
