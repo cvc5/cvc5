@@ -6208,7 +6208,7 @@ Term TermManager::mkInteger(int64_t val)
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  Term res = TermManager::mkRationalValHelper(internal::Rational(val), true);
+  Term res = TermManager::mkRationalValHelper(d_nm, internal::Rational(val), true);
   AssertEqual(res.getSort(), getIntegerSort());
   return res;
   ////////
