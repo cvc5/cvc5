@@ -274,7 +274,7 @@
 (program $mk_re_concat ((Es Bool :list) (s String) (r RegLan) (s1 String) (r1 RegLan))
   :signature (Bool Bool) Bool
   (
-  (($mk_re_concat (and (str.in_re s r) Es) (str.in_re s1 r1)) ($mk_re_concat Es (str.in_re (eo::cons str.++ s s1) (eo::cons re.++ r r1))))
+  (($mk_re_concat (and (str.in_re s r) Es) (str.in_re s1 r1)) ($mk_re_concat Es (str.in_re (_ str.++ s s1) (_ re.++ r r1))))
   (($mk_re_concat true (str.in_re s1 r1))                     (str.in_re s1 r1))
   )
 )
@@ -328,7 +328,7 @@
         (eo::define ((res ($re_unfold_pos_concat t (re.++ r1 r2))))
         (eo::define ((teq (= t ($pair_first res))))
         (eo::define ((M ($pair_second res)))
-          (eo::ite (eo::eq M true) teq (eo::cons and teq M))))))
+          (eo::ite (eo::eq M true) teq (_ and teq M))))))
   )
 )
 
@@ -869,10 +869,10 @@
   :signature (String RegLan String (@Pair Int Int)) String
   (
   (($str_eval_replace_re_all_rec "" r t (@pair -1 -1))  "")
-  (($str_eval_replace_re_all_rec s r t (@pair -1 -1))   (eo::cons str.++ s ""))
+  (($str_eval_replace_re_all_rec s r t (@pair -1 -1))   (_ str.++ s ""))
   (($str_eval_replace_re_all_rec s r t (@pair sp ep))   (eo::define ((snext (eo::extract s ep (eo::len s))))
-                                                        (eo::cons str.++ (eo::extract s 0 (eo::add sp -1))
-                                                        (eo::cons str.++ t
+                                                        (_ str.++ (eo::extract s 0 (eo::add sp -1))
+                                                        (_ str.++ t
                                                           ($str_eval_replace_re_all_rec snext r t ($str_first_match snext r))))))
   )
 )
@@ -949,7 +949,7 @@
   (
     (($seq_subsequence_rec l u (as seq.empty (Seq T)))      (as seq.empty (Seq T)))
     (($seq_subsequence_rec l 0 t)                           (as seq.empty (eo::typeof t)))
-    (($seq_subsequence_rec 0 u (seq.++ (seq.unit e) ts))    (eo::cons seq.++ (seq.unit e) ($seq_subsequence_rec 0 (eo::add u -1) ts)))
+    (($seq_subsequence_rec 0 u (seq.++ (seq.unit e) ts))    (_ seq.++ (seq.unit e) ($seq_subsequence_rec 0 (eo::add u -1) ts)))
     (($seq_subsequence_rec l u (seq.++ (seq.unit e) ts))
       ($seq_subsequence_rec (eo::add l -1) (eo::add u -1) ts))
   )

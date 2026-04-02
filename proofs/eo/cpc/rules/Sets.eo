@@ -38,7 +38,7 @@
 (program $set_union_to_list ((T Type) (t (Set T)) (e T))
   :signature ((Set T)) @List
   (
-    (($set_union_to_list (set.union (set.singleton e) t)) (eo::cons @list e ($set_union_to_list t)))
+    (($set_union_to_list (set.union (set.singleton e) t)) (_ @list e ($set_union_to_list t)))
     (($set_union_to_list (as set.empty (Set T)))          @list.nil)
     (($set_union_to_list (set.singleton e))               (@list e))
   )
@@ -56,7 +56,7 @@
     (($eval_sets_inter (@list a as) bs)  (eo::define ((r ($eval_sets_inter as bs)))
                                          (eo::ite (eo::is_neg (eo::list_find @list bs a))
                                            (eo::requires ($are_distinct_terms_list_rec a bs (eo::typeof a)) true r)
-                                           (eo::cons @list a r))))
+                                           (_ @list a r))))
     (($eval_sets_inter @list.nil bs)     @list.nil)
   )
 )
@@ -73,7 +73,7 @@
     (($eval_sets_minus (@list a as) bs)  (eo::define ((r ($eval_sets_minus as bs)))
                                          (eo::ite (eo::is_neg (eo::list_find @list bs a))
                                            (eo::requires ($are_distinct_terms_list_rec a bs (eo::typeof a)) true
-                                             (eo::cons @list a r))
+                                             (_ @list a r))
                                             r)))
     (($eval_sets_minus @list.nil bs)     @list.nil)
   )
