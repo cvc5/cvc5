@@ -49,7 +49,7 @@ TermRegistry::TermRegistry(Env& env,
   if (options().quantifiers.cegqiBv)
   {
     // if doing instantiation for BV, need the inverter class
-    d_bvInvert.reset(new BvInverter(env.getRewriter()));
+    d_bvInvert.reset(new BvInverter(nodeManager(), env.getRewriter()));
   }
   if (options().quantifiers.sygus || options().quantifiers.sygusInst)
   {
