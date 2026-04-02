@@ -35,6 +35,7 @@ namespace quantifiers {
 
 class FirstOrderModel;
 class OracleChecker;
+class FunDefEvaluator;
 
 /**
  * Term Registry, which manages notifying modules within quantifiers about
@@ -118,6 +119,8 @@ class TermRegistry : protected EnvObj
   ieval::InstEvaluator* getEvaluator(Node q, ieval::TermEvaluatorMode tev);
   /** get the model utility */
   FirstOrderModel* getModel() const;
+  /** Get the function definition evaluator utility */
+  FunDefEvaluator* getFunDefEvaluator() const;
 
  private:
   /**
@@ -148,6 +151,8 @@ class TermRegistry : protected EnvObj
   std::unique_ptr<BvInverter> d_bvInvert;
   /** extended model object */
   FirstOrderModel* d_qmodel;
+  /** The function definition evaluator */
+  std::unique_ptr<FunDefEvaluator> d_funDefEval;
 };
 
 }  // namespace quantifiers
