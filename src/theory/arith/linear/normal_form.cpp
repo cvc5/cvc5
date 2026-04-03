@@ -1182,7 +1182,8 @@ Node Comparison::mkIntEquality(NodeManager* nm, const Polynomial& p)
     Monomial m = varPartMult.selectAbsMinimum();
     bool mIsPositive =  m.getConstant().isPositive();
 
-    // Use negM, sumVar, and constPoly to ensure deterministic node ID assignments
+    // Use negM, sumVar, and constPoly to ensure deterministic node ID
+    // assignments
     Polynomial negM = -m;
     Polynomial sumVar = varPartMult + negM;
     Polynomial constPoly = Polynomial::mkPolynomial(constMult);

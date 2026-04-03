@@ -174,7 +174,8 @@ Node HoElim::reconstructHoFunction(Node n, TypeNode tn)
       remArgTypes.insert(remArgTypes.end(), argTypes.begin() + 1, argTypes.end());
       nextType = nm->mkFunctionType(remArgTypes, nextType);
     }
-    // Use ctnSort, argTypeSort, and nextTypeSort to ensure deterministic node ID assignments
+    // Use ctnSort, argTypeSort, and nextTypeSort to ensure deterministic node
+    // ID assignments
     TypeNode ctnSort = getUSort(ctn);
     TypeNode argTypeSort = getUSort(argType);
     TypeNode nextTypeSort = getUSort(nextType);
@@ -315,7 +316,8 @@ Node HoElim::eliminateHo(Node n)
         {
           TypeNode tnr = ret.getType();
           tnr = getUSort(tnr);
-          // Use child0Type and child1Type to ensure deterministic node ID assignments
+          // Use child0Type and child1Type to ensure deterministic node ID
+          // assignments
           TypeNode child0Type = children[0].getType();
           TypeNode child1Type = children[1].getType();
           Node hoa = getHoApplyUf(child0Type, child1Type, tnr);

@@ -344,7 +344,8 @@ void MonomialBoundsCheck::checkBounds(const std::vector<Node>& asserts,
                                            : ProofRule::ARITH_MULT_NEG,
                              {},
                              {mult, simpleeq});
-              if (type == Kind::EQUAL && (!CVC5_EQUAL(rewrite(simpleeq), rewrite(exp[1]))))
+              if (type == Kind::EQUAL
+                  && (!CVC5_EQUAL(rewrite(simpleeq), rewrite(exp[1]))))
               {
                 // it is not identical under rewriting and we need to do some work here
                 // The proof looks like this:

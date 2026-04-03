@@ -663,10 +663,15 @@ void TheorySetsRels::check(Theory::Effort level)
       bool isReachable = false;
       std::unordered_set<Node> seen;
       // Use mem_rep_0 and mem_rep_1 to ensure deterministic node ID assignments
-      Node mem_rep_0 = getRepresentative(TupleUtils::nthElementOfTuple(mem_rep, 0) );
-      Node mem_rep_1 = getRepresentative(TupleUtils::nthElementOfTuple(mem_rep, 1) );
-      isTCReachable( getRepresentative(mem_rep_0),
-                     getRepresentative(mem_rep_1), seen, tc_it->second, isReachable );
+      Node mem_rep_0 =
+          getRepresentative(TupleUtils::nthElementOfTuple(mem_rep, 0));
+      Node mem_rep_1 =
+          getRepresentative(TupleUtils::nthElementOfTuple(mem_rep, 1));
+      isTCReachable(getRepresentative(mem_rep_0),
+                    getRepresentative(mem_rep_1),
+                    seen,
+                    tc_it->second,
+                    isReachable);
       return isReachable;
     }
     return false;
@@ -777,10 +782,13 @@ void TheorySetsRels::check(Theory::Effort level)
       std::unordered_set<Node>& seen)
   {
     NodeManager* nm = nodeManager();
-    // Use reasons_front_0 and reasons_back_1 to ensure deterministic node ID assignments
-    Node reasons_front_0 = TupleUtils::nthElementOfTuple((reasons.front())[0], 0);
+    // Use reasons_front_0 and reasons_back_1 to ensure deterministic node ID
+    // assignments
+    Node reasons_front_0 =
+        TupleUtils::nthElementOfTuple((reasons.front())[0], 0);
     Node reasons_back_1 = TupleUtils::nthElementOfTuple((reasons.back())[0], 1);
-    Node tc_mem = RelsUtils::constructPair( tc_rel, reasons_front_0, reasons_back_1);
+    Node tc_mem =
+        RelsUtils::constructPair(tc_rel, reasons_front_0, reasons_back_1);
     std::vector< Node > all_reasons( reasons );
 
     for( unsigned int i = 0 ; i < reasons.size()-1; i++ ) {

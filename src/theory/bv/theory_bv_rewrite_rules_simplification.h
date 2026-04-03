@@ -1366,8 +1366,7 @@ inline Node RewriteRule<ZeroExtendEqConst>::apply(TNode node) {
   // Use cSize and tSize to ensure deterministic node ID assignments
   unsigned cSize = utils::getSize(c);
   unsigned tSize = utils::getSize(t);
-  BitVector c_hi =
-      c.getConst<BitVector>().extract(cSize - 1, tSize);
+  BitVector c_hi = c.getConst<BitVector>().extract(cSize - 1, tSize);
   BitVector c_lo = c.getConst<BitVector>().extract(tSize - 1, 0);
   BitVector zero = BitVector(c_hi.getSize(), Integer(0));
 
@@ -1804,8 +1803,7 @@ std::tuple<Node, Node, bool> extract_ext_tuple(TNode node)
     {
       // Use a0Size to ensure deterministic node ID assignments
       unsigned a0Size = utils::getSize(a[0]);
-      if (a[0] == utils::mkZero(nm, a0Size)
-          && utils::getSize(a[1]) <= a0Size
+      if (a[0] == utils::mkZero(nm, a0Size) && utils::getSize(a[1]) <= a0Size
           && utils::getSize(b[0]) <= utils::getSignExtendAmount(b))
       {
         return std::make_tuple(a[1], b[0], false);

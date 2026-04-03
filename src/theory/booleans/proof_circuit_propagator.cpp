@@ -320,17 +320,13 @@ std::shared_ptr<ProofNode> ProofCircuitPropagator::mkResolution(
   {
     if (lit.getKind() == Kind::NOT)
     {
-      return mkProof(ProofRule::RESOLUTION,
-                     {clause, assume(lit[0])},
-                     {t_false, lit[0]});
+      return mkProof(
+          ProofRule::RESOLUTION, {clause, assume(lit[0])}, {t_false, lit[0]});
     }
-    return mkProof(ProofRule::RESOLUTION,
-                   {clause, assume(lit.notNode())},
-                   {t_true, lit});
+    return mkProof(
+        ProofRule::RESOLUTION, {clause, assume(lit.notNode())}, {t_true, lit});
   }
-  return mkProof(ProofRule::RESOLUTION,
-                 {clause, assume(lit)},
-                 {t_false, lit});
+  return mkProof(ProofRule::RESOLUTION, {clause, assume(lit)}, {t_false, lit});
 }
 
 std::shared_ptr<ProofNode> ProofCircuitPropagator::mkNot(

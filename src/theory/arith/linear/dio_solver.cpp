@@ -515,7 +515,8 @@ SumPair DioSolver::purifyIndex(TrailIndex i){
       if(!a.isZero()){
         const SumPair& sj = d_trail[d_subs[i2].d_constraint].d_eq;
         Assert(sj.getPolynomial().getCoefficient(VarList(var)).isOne());
-        // Use currTimesNegOne and sjTimesA to ensure deterministic node ID assignments
+        // Use currTimesNegOne and sjTimesA to ensure deterministic node ID
+        // assignments
         SumPair currTimesNegOne = curr * negOne;
         SumPair sjTimesA = sj * a;
         SumPair newSi = currTimesNegOne + sjTimesA;
@@ -538,12 +539,10 @@ DioSolver::TrailIndex DioSolver::combineEqAtIndexes(DioSolver::TrailIndex i, con
   Trace("arith::dio") << "d_facts[i] = " << si.getNode() << endl
                       << "d_facts[j] = " << sj.getNode() << endl;
 
-
   // Use siTimesCq and sjTimesCr to ensure deterministic node ID assignments
   SumPair siTimesCq = si * cq;
   SumPair sjTimesCr = sj * cr;
   SumPair newSi = siTimesCq + sjTimesCr;
-
 
   const Polynomial& pi = d_trail[i].d_proof;
   const Polynomial& pj = d_trail[j].d_proof;

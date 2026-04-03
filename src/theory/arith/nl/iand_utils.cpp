@@ -174,8 +174,7 @@ Node IAndUtils::createBitwiseIAndNode(Node x,
   // Use iextractX and iextractY to ensure deterministic node ID assignments
   Node iextractX = iextract(high, low, x);
   Node iextractY = iextract(high, low, y);
-  return createITEFromTable(
-      iextractX, iextractY, granularity, table);
+  return createITEFromTable(iextractX, iextractY, granularity, table);
 }
 
 Node IAndUtils::iextract(uint32_t i, uint32_t j, Node n) const

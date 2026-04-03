@@ -941,7 +941,8 @@ void TheoryArrays::computeCareGraph()
     CDNodeSet::key_iterator it1 = d_sharedArrays.key_begin(), it2, iend = d_sharedArrays.key_end();
     for (; it1 != iend; ++it1) {
       for (it2 = it1, ++it2; it2 != iend; ++it2) {
-        if (!CVC5_EQUAL((*it1).getType(), (*it2).getType())) {
+        if (!CVC5_EQUAL((*it1).getType(), (*it2).getType()))
+        {
           continue;
         }
         EqualityStatus eqStatusArr = getEqualityStatus((*it1), (*it2));

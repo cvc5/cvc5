@@ -1440,10 +1440,14 @@ void TheoryEngine::ensureLemmaAtoms(const std::vector<TNode>& atoms, theory::The
       if (eqNormalized.getConst<bool>()) {
         assertToTheory(eq, eqNormalized, /** to */ atomsTo, /** Sat solver */ theory::THEORY_SAT_SOLVER);
       } else {
-        // Use notEq and notEqNormalized to ensure deterministic node ID assignments
+        // Use notEq and notEqNormalized to ensure deterministic node ID
+        // assignments
         Node notEq = eq.notNode();
         Node notEqNormalized = eqNormalized.notNode();
-        assertToTheory(notEq, notEqNormalized, /** to */ atomsTo, /** Sat solver */ theory::THEORY_SAT_SOLVER);
+        assertToTheory(notEq,
+                       notEqNormalized,
+                       /** to */ atomsTo,
+                       /** Sat solver */ theory::THEORY_SAT_SOLVER);
       }
       continue;
     }
@@ -1470,10 +1474,12 @@ void TheoryEngine::ensureLemmaAtoms(const std::vector<TNode>& atoms, theory::The
           assertToTheory(eq, eqNormalized, atomsTo, theory::THEORY_SAT_SOLVER);
           continue;
         } else {
-          // Use notEq and notEqNormalized to ensure deterministic node ID assignments
+          // Use notEq and notEqNormalized to ensure deterministic node ID
+          // assignments
           Node notEq = eq.notNode();
           Node notEqNormalized = eqNormalized.notNode();
-          assertToTheory(notEq, notEqNormalized, atomsTo, theory::THEORY_SAT_SOLVER);
+          assertToTheory(
+              notEq, notEqNormalized, atomsTo, theory::THEORY_SAT_SOLVER);
           continue;
         }
       }

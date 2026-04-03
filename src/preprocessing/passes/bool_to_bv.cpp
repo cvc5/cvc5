@@ -232,7 +232,8 @@ void BoolToBV::visit(const TNode& n, bool allowIteIntroduction)
   for (const Node& nn : n)
   {
     safe_to_lower = safe_to_lower && fromCache(nn).getType().isBitVector();
-    safe_to_rebuild = safe_to_rebuild && (CVC5_EQUAL(fromCache(nn).getType(), nn.getType()));
+    safe_to_rebuild =
+        safe_to_rebuild && (CVC5_EQUAL(fromCache(nn).getType(), nn.getType()));
 
     // if it's already not safe to do either, stop checking
     if (!safe_to_lower && !safe_to_rebuild)

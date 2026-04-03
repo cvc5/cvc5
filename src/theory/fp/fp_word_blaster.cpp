@@ -566,7 +566,8 @@ symbolicProposition symbolicBitVector<isSigned>::operator<=(
     const symbolicBitVector<isSigned>& op) const
 {
   // Consider adding Kind::BITVECTOR_SLEBV and BITVECTOR_ULEBV
-  // Explicitly sequence the calls to < and == to ensure deterministic node id assignment
+  // Explicitly sequence the calls to < and == to ensure deterministic node id
+  // assignment
   symbolicProposition isLess = (*this < op);
   return isLess || (*this == op);
 }
@@ -575,7 +576,8 @@ template <bool isSigned>
 symbolicProposition symbolicBitVector<isSigned>::operator>=(
     const symbolicBitVector<isSigned>& op) const
 {
-  // Explicitly sequence the calls to > and == to ensure deterministic node id assignment
+  // Explicitly sequence the calls to > and == to ensure deterministic node id
+  // assignment
   symbolicProposition isGreater = (*this > op);
   return isGreater || (*this == op);
 }
@@ -790,13 +792,16 @@ FpWordBlaster::uf FpWordBlaster::buildComponents(TNode current)
   Assert(Theory::isLeafOf(current, THEORY_FP)
          || current.getKind() == Kind::FLOATINGPOINT_TO_FP_FROM_REAL);
 
-  // Use nan, inf, zero, sign, exp, and sig to ensure deterministic node ID assignments
+  // Use nan, inf, zero, sign, exp, and sig to ensure deterministic node ID
+  // assignments
   Node nan = NodeManager::mkNode(Kind::FLOATINGPOINT_COMPONENT_NAN, current);
   Node inf = NodeManager::mkNode(Kind::FLOATINGPOINT_COMPONENT_INF, current);
   Node zero = NodeManager::mkNode(Kind::FLOATINGPOINT_COMPONENT_ZERO, current);
   Node sign = NodeManager::mkNode(Kind::FLOATINGPOINT_COMPONENT_SIGN, current);
-  Node exp = NodeManager::mkNode(Kind::FLOATINGPOINT_COMPONENT_EXPONENT, current);
-  Node sig = NodeManager::mkNode(Kind::FLOATINGPOINT_COMPONENT_SIGNIFICAND, current);
+  Node exp =
+      NodeManager::mkNode(Kind::FLOATINGPOINT_COMPONENT_EXPONENT, current);
+  Node sig =
+      NodeManager::mkNode(Kind::FLOATINGPOINT_COMPONENT_SIGNIFICAND, current);
   uf tmp(nan, inf, zero, sign, exp, sig);
 
   d_additionalAssertions.push_back(tmp.valid(fpt(current.getType())));

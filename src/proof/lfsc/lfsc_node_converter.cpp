@@ -175,7 +175,8 @@ Node LfscNodeConverter::postConvert(Node n)
     Node ub = d_nm->mkConstInt(Rational(cc.getUpperBound()));
     // Use boolType to ensure deterministic node ID assignments
     TypeNode boolType = d_nm->booleanType();
-    TypeNode tnc = d_nm->mkFunctionType({tnn.getType(), ub.getType()}, boolType);
+    TypeNode tnc =
+        d_nm->mkFunctionType({tnn.getType(), ub.getType()}, boolType);
     Node fcard = getSymbolInternal(k, tnc, "fmf.card");
     return mkApplyUf(fcard, {tnn, ub});
   }

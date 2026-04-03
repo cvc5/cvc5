@@ -1084,7 +1084,8 @@ void SygusUnifRl::DecisionTreeInfo::buildDtInfoGain(std::vector<Node>& hds,
         evaluateCond(hds, conds[j]);
     splits.push_back(split);
     Assert(hds.size() == split.first.size() + split.second.size());
-    // Use split_fst_entropy and split_snd_entropy to ensure deterministic node ID assignments
+    // Use split_fst_entropy and split_snd_entropy to ensure deterministic node
+    // ID assignments
     double split_fst_entropy = getEntropy(split.first, hd_mv);
     double split_snd_entropy = getEntropy(split.second, hd_mv);
     double gain = current_set_entropy

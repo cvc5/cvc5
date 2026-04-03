@@ -112,8 +112,8 @@ Node DatatypesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       {
         return Node::null();
       }
-      bool result =
-        CVC5_EQUAL(utils::indexOf(n.getOperator()), utils::indexOf(n[0].getOperator()));
+      bool result = CVC5_EQUAL(utils::indexOf(n.getOperator()),
+                               utils::indexOf(n[0].getOperator()));
       NodeManager* nm = nodeManager();
       return nm->mkConst(result);
     }

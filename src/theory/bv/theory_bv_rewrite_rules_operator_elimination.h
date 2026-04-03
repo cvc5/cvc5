@@ -206,8 +206,8 @@ inline Node RewriteRule<RotateLeftEliminate>::apply(TNode node)
 
   // Use aSize to ensure deterministic node ID assignments
   unsigned aSize = utils::getSize(a);
-  Node left   = utils::mkExtract(a, aSize - 1 - amount, 0);
-  Node right  = utils::mkExtract(a, aSize - 1, aSize - amount);
+  Node left = utils::mkExtract(a, aSize - 1 - amount, 0);
+  Node right = utils::mkExtract(a, aSize - 1, aSize - amount);
   Node result = utils::mkConcat(left, right);
 
   return result;

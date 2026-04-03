@@ -135,12 +135,8 @@ bool AletheProofPostprocessCallback::updateTheoryRewriteProofRewriteRule(
              eq[1]},
             *cdp);
       }
-      return addAletheStep(AletheRule::DISTINCT_ELIM,
-                           res,
-                           sexp,
-                           children,
-                           new_args,
-                           *cdp);
+      return addAletheStep(
+          AletheRule::DISTINCT_ELIM, res, sexp, children, new_args, *cdp);
     }
     // ======== DISTINCT_TRUE
     case ProofRewriteRule::DISTINCT_TRUE:
@@ -3020,10 +3016,9 @@ bool AletheProofPostprocessCallback::update(Node res,
           Node absArg = args[0][0];
           // Use absArgType to ensure deterministic node ID assignments
           TypeNode absArgType = absArg.getType();
-          Node ruleStr = nm->mkRawSymbol(absArgType.isInteger()
-                                             ? "\"abs-elim-int\""
-                                             : "\"abs-elim-real\"",
-                                         nm->sExprType());
+          Node ruleStr = nm->mkRawSymbol(
+              absArgType.isInteger() ? "\"abs-elim-int\"" : "\"abs-elim-real\"",
+              nm->sExprType());
           return addAletheStep(AletheRule::RARE_REWRITE,
                                res,
                                nm->mkNode(Kind::SEXPR, d_cl, res),
@@ -3315,10 +3310,12 @@ bool AletheProofPostprocessCallback::updatePost(
         pivIdx = 2 * (i - 1) + 3;
         if (children[i].getKind() == Kind::OR
             && (args[polIdx] != d_false
-                || !CVC5_EQUAL(d_anc.convert(args[pivIdx]), d_anc.convert(children[i]))))
+                || !CVC5_EQUAL(d_anc.convert(args[pivIdx]),
+                               d_anc.convert(children[i]))))
         {
           if (args[polIdx] == d_false
-              && CVC5_EQUAL(d_anc.convert(args[pivIdx]), d_anc.convert(children[i])))
+              && CVC5_EQUAL(d_anc.convert(args[pivIdx]),
+                            d_anc.convert(children[i])))
           {
             continue;
           }
@@ -3362,7 +3359,8 @@ bool AletheProofPostprocessCallback::updatePost(
         else if (children[i].getKind() == Kind::OR)
         {
           Assert(args[polIdx] == d_false
-                 && CVC5_EQUAL(d_anc.convert(args[pivIdx]), d_anc.convert(children[i])));
+                 && CVC5_EQUAL(d_anc.convert(args[pivIdx]),
+                               d_anc.convert(children[i])));
           if (maybeReplacePremiseProof(children[i], cdp))
           {
             hasUpdated = true;
