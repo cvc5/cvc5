@@ -429,7 +429,7 @@ TypeNode BagFilterTypeRule::computeType(NodeManager* nodeManager,
     }
     std::vector<TypeNode> argTypes = functionType.getArgTypes();
     if (!(argTypes.size() == 1 && argTypes[0] == elementType
-          && CVC5_EQUAL(functionType.getRangeType(), nodeManager->booleanType())))
+          && functionType.getRangeType().isBoolean()))
     {
       if (errOut)
       {
