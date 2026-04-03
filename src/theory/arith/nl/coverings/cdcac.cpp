@@ -701,7 +701,7 @@ ProofGenerator* CDCAC::closeProof(const std::vector<Node>& assertions)
 bool CDCAC::checkIntegrality(std::size_t cur_variable, const poly::Value& value)
 {
   Node var = d_constraints.varMapper()(d_variableOrdering[cur_variable]);
-  if (!CVC5_EQUAL(var.getType(), d_env.getNodeManager()->integerType()))
+  if (!var.getType().isInteger())
   {
     // variable is not integral
     return true;
