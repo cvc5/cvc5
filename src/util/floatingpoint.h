@@ -30,7 +30,7 @@ namespace cvc5::internal {
 
 /* -------------------------------------------------------------------------- */
 
-class FloatingPointLiteralSymFPU;
+class FloatingPointLiteral;
 
 class FloatingPoint
 {
@@ -133,10 +133,7 @@ class FloatingPoint
   const FloatingPointSize& getSize() const;
 
   /** Get the wrapped floating-point value. */
-  const FloatingPointLiteralSymFPU* getLiteral(void) const
-  {
-    return d_fpl.get();
-  }
+  const FloatingPointLiteral* getLiteral(void) const { return d_fpl.get(); }
 
   /**
    * Return a string representation of this floating-point.
@@ -286,10 +283,10 @@ class FloatingPoint
    * Note: This constructor takes ownership of 'fpl' and is not intended for
    *       public use.
    */
-  FloatingPoint(FloatingPointLiteralSymFPU* fpl);
+  FloatingPoint(std::unique_ptr<FloatingPointLiteral>&& fpl);
 
   /** The floating-point literal of this floating-point value. */
-  std::unique_ptr<FloatingPointLiteralSymFPU> d_fpl;
+  std::unique_ptr<FloatingPointLiteral> d_fpl;
 
 }; /* class FloatingPoint */
 
