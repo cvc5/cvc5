@@ -364,11 +364,12 @@
 (program $is_quant_dt_split ((T Type) (x T) (C Type) (c C) (cs eo::List :list) (ys @List) (F Bool) (g Bool) (G Bool :list))
   :signature (T eo::List @List Bool Bool) Bool
   (
-    (($is_quant_dt_split x (eo::List::cons c cs) ys F (and g G)) (eo::requires
-                                                                    ($is_quant_dt_split_conj x c ys F g) true
-                                                                    ($is_quant_dt_split x cs ys F G)))
+    (($is_quant_dt_split x (eo::List::cons c cs) ys F (and g G))
+      (eo::requires ($is_quant_dt_split_conj x c ys F g) true
+         ($is_quant_dt_split x cs ys F G)))
     (($is_quant_dt_split x eo::List::nil ys F true)              true)
-    (($is_quant_dt_split x cs ys F g)                            ($is_quant_dt_split x cs ys F (and g)))  ; singleton case
+    (($is_quant_dt_split x (eo::List::cons c eo::List::nil) ys F g)
+      ($is_quant_dt_split_conj x c ys F g))  ; singleton case
   )
 )
 
