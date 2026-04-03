@@ -368,8 +368,8 @@
       (eo::requires ($is_quant_dt_split_conj x c ys F g) true
          ($is_quant_dt_split x cs ys F G)))
     (($is_quant_dt_split x eo::List::nil ys F true)              true)
-    (($is_quant_dt_split x (eo::List::cons c eo::List::nil) ys F g)
-      ($is_quant_dt_split_conj x c ys F g))  ; singleton case
+    (($is_quant_dt_split x (eo::List::cons c cs) ys F g)
+      (eo::requires cs eo::List::nil ($is_quant_dt_split_conj x c ys F g)))  ; singleton case
   )
 )
 
