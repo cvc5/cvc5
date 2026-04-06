@@ -242,7 +242,7 @@ Node SygusEvalUnfold::unfold(Node en,
     {
       ev = itv->second;
     }
-    Assert(en[0].getType() == ev.getType());
+    AssertEqual(en[0].getType(), ev.getType());
     Assert(ev.isConst());
   }
   Trace("sygus-eval-unfold-debug")

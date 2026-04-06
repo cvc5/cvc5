@@ -275,7 +275,7 @@ int ArithMSum::isolate(
       {
         val = nm->mkNode(Kind::TO_INTEGER, val);
       }
-      Assert(val.getType() == vc.getType())
+      AssertEqual(val.getType(), vc.getType())
           << val << " " << vc << " " << val.getType() << " " << vc.getType();
     }
     veq = nm->mkNode(k, inOrder ? vc : val, inOrder ? val : vc);
@@ -337,7 +337,7 @@ bool ArithMSum::decompose(Node n, Node v, Node& coeff, Node& rem)
   return false;
 }
 
-void ArithMSum::debugPrintMonomialSum(std::map<Node, Node>& msum, const char* c)
+void ArithMSum::debugPrintMonomialSum(std::map<Node, Node>& msum, CVC5_UNUSED const char* c)
 {
   for (std::map<Node, Node>::iterator it = msum.begin(); it != msum.end(); ++it)
   {

@@ -152,17 +152,17 @@ symbolicRoundingMode traits::RTP(void) { return symbolicRoundingMode(0x04); };
 symbolicRoundingMode traits::RTN(void) { return symbolicRoundingMode(0x08); };
 symbolicRoundingMode traits::RTZ(void) { return symbolicRoundingMode(0x10); };
 
-void traits::precondition(const bool b)
+void traits::precondition(CVC5_UNUSED const bool b)
 {
   Assert(b);
   return;
 }
-void traits::postcondition(const bool b)
+void traits::postcondition(CVC5_UNUSED const bool b)
 {
   Assert(b);
   return;
 }
-void traits::invariant(const bool b)
+void traits::invariant(CVC5_UNUSED const bool b)
 {
   Assert(b);
   return;
@@ -189,12 +189,6 @@ symbolicProposition::symbolicProposition(const Node n) : nodeWrapper(n)
 }  // Only used within this header so could be friend'd
 symbolicProposition::symbolicProposition(bool v)
     : nodeWrapper(SymFpuNM::get()->mkConst(BitVector(1U, (v ? 1U : 0U))))
-{
-  Assert(checkNodeType(*this));
-}
-
-symbolicProposition::symbolicProposition(const symbolicProposition& old)
-    : nodeWrapper(old)
 {
   Assert(checkNodeType(*this));
 }
@@ -247,12 +241,6 @@ symbolicRoundingMode::symbolicRoundingMode(const unsigned v)
         SymFpuNM::get()->mkConst(BitVector(SYMFPU_NUMBER_OF_ROUNDING_MODES, v)))
 {
   Assert((v & (v - 1)) == 0 && v != 0);  // Exactly one bit set
-  Assert(checkNodeType(*this));
-}
-
-symbolicRoundingMode::symbolicRoundingMode(const symbolicRoundingMode& old)
-    : nodeWrapper(old)
-{
   Assert(checkNodeType(*this));
 }
 
@@ -337,13 +325,6 @@ template <bool isSigned>
 symbolicBitVector<isSigned>::symbolicBitVector(const symbolicProposition& p)
     : nodeWrapper(fromProposition(p))
 {
-}
-template <bool isSigned>
-symbolicBitVector<isSigned>::symbolicBitVector(
-    const symbolicBitVector<isSigned>& old)
-    : nodeWrapper(old)
-{
-  Assert(checkNodeType(*this));
 }
 template <bool isSigned>
 symbolicBitVector<isSigned>::symbolicBitVector(const BitVector& old)
@@ -685,8 +666,9 @@ template <bool isSigned>
 symbolicBitVector<isSigned> symbolicBitVector<isSigned>::matchWidth(
     const symbolicBitVector<isSigned>& op) const
 {
-  Assert(this->getWidth() <= op.getWidth());
-  return this->extend(op.getWidth() - this->getWidth());
+  auto width = this->getWidth();  // Ensure deterministic node id assignment
+  Assert(width <= op.getWidth());
+  return this->extend(op.getWidth() - width);
 }
 
 template <bool isSigned>

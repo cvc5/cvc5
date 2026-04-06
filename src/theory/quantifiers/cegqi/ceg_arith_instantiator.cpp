@@ -40,7 +40,7 @@ ArithInstantiator::ArithInstantiator(Env& env, TypeNode tn, VtsTermCache* vtc)
 
 void ArithInstantiator::reset(CVC5_UNUSED CegInstantiator* ci,
                               CVC5_UNUSED SolvedForm& sf,
-                              Node pv,
+                              CVC5_UNUSED Node pv,
                               CVC5_UNUSED CegInstEffort effort)
 {
   Assert(pv.getType() == d_type);
@@ -746,7 +746,7 @@ bool ArithInstantiator::postProcessInstantiationForVariable(
   return true;
 }
 
-CegTermType ArithInstantiator::solve_arith(CegInstantiator* ci,
+CegTermType ArithInstantiator::solve_arith(CVC5_UNUSED CegInstantiator* ci,
                                            Node pv,
                                            Node atom,
                                            Node& veq_c,
@@ -936,7 +936,7 @@ CegTermType ArithInstantiator::solve_arith(CegInstantiator* ci,
   {
     val = nm->mkNode(Kind::TO_REAL, val);
   }
-  Assert(pv.getType() == val.getType());
+  AssertEqual(pv.getType(), val.getType());
   Trace("cegqi-arith-debug")
       << "Return " << veq_c << " * " << pv << " " << atom.getKind() << " "
       << val << ", vts = (" << vts_coeff_inf << ", " << vts_coeff_delta << ")"

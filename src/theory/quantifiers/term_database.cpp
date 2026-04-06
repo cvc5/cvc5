@@ -727,7 +727,7 @@ TNodeTrie* TermDb::getTermArgTrie(Node f)
   if( itut!=d_func_map_trie.end() ){
     return &itut->second;
   }else{
-    return NULL;
+    return nullptr;
   }
 }
 
@@ -737,7 +737,7 @@ TNodeTrie* TermDb::getTermArgTrie(Node eqc, Node f)
   computeUfEqcTerms( f );
   std::map<Node, TNodeTrie>::iterator itut = d_func_map_eqc_trie.find(f);
   if( itut==d_func_map_eqc_trie.end() ){
-    return NULL;
+    return nullptr;
   }else{
     if( eqc.isNull() ){
       return &itut->second;
@@ -747,7 +747,7 @@ TNodeTrie* TermDb::getTermArgTrie(Node eqc, Node f)
       if( itute!=itut->second.d_data.end() ){
         return &itute->second;
       }else{
-        return NULL;
+        return nullptr;
       }
     }
   }

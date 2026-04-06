@@ -54,7 +54,7 @@ Node ExampleEvalCache::addSearchVal(TypeNode tn, Node bv)
   {
     clearEvaluationCache(bv);
   }
-  Assert(ret.getType() == bv.getType());
+  AssertEqual(ret.getType(), bv.getType());
   return ret;
 }
 

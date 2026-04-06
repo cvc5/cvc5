@@ -320,7 +320,7 @@ Node ArithNlCompareProofGenerator::mkLit(NodeManager* nm,
                                          const Node& a,
                                          const Node& b)
 {
-  Assert(a.getType() == b.getType());
+  AssertEqual(a.getType(), b.getType());
   // add absolute value
   Node au = nm->mkNode(Kind::ABS, a);
   Node bu = nm->mkNode(Kind::ABS, b);

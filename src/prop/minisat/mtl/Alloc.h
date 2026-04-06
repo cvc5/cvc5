@@ -47,11 +47,14 @@ class RegionAllocator
     enum { Ref_Undef = UINT32_MAX };
     enum { Unit_Size = sizeof(uint32_t) };
 
-    explicit RegionAllocator(uint32_t start_cap = 1024*1024) : memory(NULL), sz(0), cap(0), wasted_(0){ capacity(start_cap); }
+    explicit RegionAllocator(uint32_t start_cap = 1024 * 1024)
+        : memory(nullptr), sz(0), cap(0), wasted_(0)
+    {
+      capacity(start_cap);
+    }
     ~RegionAllocator()
     {
-        if (memory != NULL)
-            ::free(memory);
+      if (memory != nullptr) ::free(memory);
     }
 
 
@@ -91,14 +94,14 @@ class RegionAllocator
     }
 
     void     moveTo(RegionAllocator& to) {
-        if (to.memory != NULL) ::free(to.memory);
-        to.memory = memory;
-        to.sz = sz;
-        to.cap = cap;
-        to.wasted_ = wasted_;
+      if (to.memory != nullptr) ::free(to.memory);
+      to.memory = memory;
+      to.sz = sz;
+      to.cap = cap;
+      to.wasted_ = wasted_;
 
-        memory = NULL;
-        sz = cap = wasted_ = 0;
+      memory = nullptr;
+      sz = cap = wasted_ = 0;
     }
 
 

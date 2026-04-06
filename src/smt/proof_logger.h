@@ -15,8 +15,8 @@
 #ifndef CVC5__SMT__PROOF_LOGGER_H
 #define CVC5__SMT__PROOF_LOGGER_H
 
-#include "proof/alf/alf_node_converter.h"
-#include "proof/alf/alf_printer.h"
+#include "proof/eo/eo_node_converter.h"
+#include "proof/eo/eo_printer.h"
 #include "proof/proof_node.h"
 #include "smt/env_obj.h"
 
@@ -138,11 +138,11 @@ class ProofLoggerCpc : public ProofLogger
   /** Reference to the assertions of SMT solver */
   smt::Assertions& d_as;
   /** The node converter, used for printing */
-  proof::AlfNodeConverter d_atp;
+  proof::EoNodeConverter d_atp;
   /** The proof printer */
-  proof::AlfPrinter d_alfp;
+  proof::EoPrinter d_eop;
   /** The output channel we are using */
-  proof::AlfPrintChannelOut d_aout;
+  proof::EoPrintChannelOut d_eout;
   /** The preprocessing proof we were notified of, which we may have created */
   std::shared_ptr<ProofNode> d_ppProof;
   /**

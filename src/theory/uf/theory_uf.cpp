@@ -681,14 +681,15 @@ void TheoryUF::computeCareGraph() {
 }/* TheoryUF::computeCareGraph() */
 
 void TheoryUF::eqNotifyNewClass(TNode t) {
-  if (d_thss != NULL) {
+  if (d_thss != nullptr)
+  {
     d_thss->newEqClass(t);
   }
 }
 
 void TheoryUF::eqNotifyMerge(TNode t1, TNode t2)
 {
-  if (d_thss != NULL)
+  if (d_thss != nullptr)
   {
     d_thss->merge(t1, t2);
   }
@@ -697,7 +698,8 @@ void TheoryUF::eqNotifyMerge(TNode t1, TNode t2)
 }
 
 void TheoryUF::eqNotifyDisequal(TNode t1, TNode t2, TNode reason) {
-  if (d_thss != NULL) {
+  if (d_thss != nullptr)
+  {
     d_thss->assertDisequal(t1, t2, reason);
   }
 }

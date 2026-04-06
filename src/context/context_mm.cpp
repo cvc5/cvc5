@@ -39,7 +39,8 @@ void ContextMemoryManager::newChunk() {
   // Create new chunk if no free chunk available
   if(d_freeChunks.empty()) {
     d_chunkList.push_back((char*)malloc(chunkSizeBytes));
-    if(d_chunkList.back() == NULL) {
+    if (d_chunkList.back() == nullptr)
+    {
       throw std::bad_alloc();
     }
 
@@ -62,7 +63,8 @@ ContextMemoryManager::ContextMemoryManager() : d_indexChunkList(0) {
   // Create initial chunk
   d_chunkList.push_back((char*)malloc(chunkSizeBytes));
   d_nextFree = d_chunkList.back();
-  if(d_nextFree == NULL) {
+  if (d_nextFree == nullptr)
+  {
     throw std::bad_alloc();
   }
   d_endChunk = d_nextFree + chunkSizeBytes;

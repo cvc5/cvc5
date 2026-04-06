@@ -7,10 +7,10 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Implementation of ALF node conversion for list variables in DSL rules
+ * Implementation of Eunoia node conversion for list variables in DSL rules
  */
 
-#include "proof/alf/alf_list_node_converter.h"
+#include "proof/eo/eo_list_node_converter.h"
 
 #include "expr/emptyset.h"
 #include "expr/nary_term_util.h"
@@ -22,10 +22,10 @@
 namespace cvc5::internal {
 namespace proof {
 
-AlfListNodeConverter::AlfListNodeConverter(NodeManager* nm,
-                                           BaseAlfNodeConverter& tproc,
-                                           const std::map<Node, Node>& adtcMap,
-                                           bool useSingletonElim)
+EoListNodeConverter::EoListNodeConverter(NodeManager* nm,
+                                         BaseEoNodeConverter& tproc,
+                                         const std::map<Node, Node>& adtcMap,
+                                         bool useSingletonElim)
     : NodeConverter(nm),
       d_tproc(tproc),
       d_useSingletonElim(useSingletonElim),
@@ -33,7 +33,7 @@ AlfListNodeConverter::AlfListNodeConverter(NodeManager* nm,
 {
 }
 
-Node AlfListNodeConverter::preConvert(Node n)
+Node EoListNodeConverter::preConvert(Node n)
 {
   Kind k = n.getKind();
   if (k == Kind::SET_EMPTY_OF_TYPE || k == Kind::SEQ_EMPTY_OF_TYPE)
@@ -62,16 +62,16 @@ Node AlfListNodeConverter::preConvert(Node n)
         }
       }
     }
-    DebugUnhandled() << "AlfListNodeConverter: unhandled term " << n;
+    DebugUnhandled() << "EoListNodeConverter: unhandled term " << n;
   }
   else
   {
-    Assert(k != Kind::TYPE_OF) << "AlfListNodeConverter: unhandled term " << n;
+    Assert(k != Kind::TYPE_OF) << "EoListNodeConverter: unhandled term " << n;
   }
   return n;
 }
 
-Node AlfListNodeConverter::postConvert(Node n)
+Node EoListNodeConverter::postConvert(Node n)
 {
   if (!d_useSingletonElim)
   {

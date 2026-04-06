@@ -871,18 +871,18 @@ inline const T& TypeNode::getConst() const {
 
 inline TypeNode::TypeNode(const expr::NodeValue* ev) :
   d_nv(const_cast<expr::NodeValue*> (ev)) {
-  Assert(d_nv != NULL) << "Expecting a non-NULL expression value!";
+  Assert(d_nv != nullptr) << "Expecting a non-NULL expression value!";
   d_nv->inc();
 }
 
 inline TypeNode::TypeNode(const TypeNode& typeNode) {
-  Assert(typeNode.d_nv != NULL) << "Expecting a non-NULL expression value!";
+  Assert(typeNode.d_nv != nullptr) << "Expecting a non-NULL expression value!";
   d_nv = typeNode.d_nv;
   d_nv->inc();
 }
 
 inline TypeNode::~TypeNode() {
-  Assert(d_nv != NULL) << "Expecting a non-NULL expression value!";
+  Assert(d_nv != nullptr) << "Expecting a non-NULL expression value!";
   d_nv->dec();
 }
 
@@ -892,8 +892,8 @@ inline void TypeNode::assignNodeValue(expr::NodeValue* ev) {
 }
 
 inline TypeNode& TypeNode::operator=(const TypeNode& typeNode) {
-  Assert(d_nv != NULL) << "Expecting a non-NULL expression value!";
-  Assert(typeNode.d_nv != NULL)
+  Assert(d_nv != nullptr) << "Expecting a non-NULL expression value!";
+  Assert(typeNode.d_nv != nullptr)
       << "Expecting a non-NULL expression value on RHS!";
   if(__builtin_expect( ( d_nv != typeNode.d_nv ), true )) {
     d_nv->dec();

@@ -65,10 +65,7 @@ Node ArithVariables::asNode(ArithVar a) const{
   return d_vars[a].d_node;
 }
 
-ArithVariables::var_iterator::var_iterator()
-  : d_vars(NULL)
-  , d_wrapped()
-{}
+ArithVariables::var_iterator::var_iterator() : d_vars(nullptr), d_wrapped() {}
 
 ArithVariables::var_iterator::var_iterator(const VarInfoVec* vars, VarInfoVec::const_iterator ci)
   : d_vars(vars), d_wrapped(ci)

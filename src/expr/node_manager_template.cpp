@@ -297,7 +297,7 @@ NodeManager::~NodeManager()
 
   // defensive coding, in case destruction-order issues pop up (they often do)
   delete d_attrManager;
-  d_attrManager = NULL;
+  d_attrManager = nullptr;
 }
 
 const DType& NodeManager::getDTypeFor(TypeNode tn) const
@@ -375,7 +375,7 @@ void NodeManager::reclaimZombies()
   d_zombies.clear();
 
 #ifdef _LIBCPP_VERSION
-  NodeValue* last = NULL;
+  NodeValue* last = nullptr;
 #endif
   for (vector<NodeValue*>::iterator i = zombies.begin(); i != zombies.end();
        ++i)
@@ -1351,13 +1351,13 @@ NodeClass NodeManager::mkConstInternal(Kind k, const T& val)
 #pragma GCC diagnostic pop
 #endif
 
-  if (nv != NULL)
+  if (nv != nullptr)
   {
     return NodeClass(nv);
   }
 
   nv = (expr::NodeValue*)std::malloc(sizeof(expr::NodeValue) + sizeof(T));
-  if (nv == NULL)
+  if (nv == nullptr)
   {
     throw std::bad_alloc();
   }
