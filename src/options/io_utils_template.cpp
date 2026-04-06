@@ -44,11 +44,11 @@ T getData(std::ios_base& ios, int iosIndex, T defaultValue)
 
 // clang-format off
 ${ioimpls}$
-// clang-format on
+    // clang-format on
 
-Scope::Scope(std::ios_base& ios)
+    Scope::Scope(std::ios_base& ios)
     : d_ios(ios),
-// clang-format off
+      // clang-format off
 ${ioscope_memberinit}$
 // clang-format on
 {
@@ -56,9 +56,9 @@ ${ioscope_memberinit}$
 
 Scope::~Scope()
 {
-// clang-format off
+  // clang-format off
 ${ioscope_restore}$
-// clang-format on
+  // clang-format on
 }
 
 }  // namespace cvc5::internal::options::ioutils
