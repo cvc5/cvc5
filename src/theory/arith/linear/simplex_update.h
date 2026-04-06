@@ -274,7 +274,7 @@ public:
   const DeltaRational& nonbasicDelta() const { return d_nonbasicDelta.value(); }
   const Rational& getCoefficient() const {
     Assert(describesPivot());
-    Assert(d_tableauCoefficient.value() != NULL);
+    Assert(d_tableauCoefficient.value() != nullptr);
     return *(d_tableauCoefficient.value());
   }
   int basicDirection() const {
