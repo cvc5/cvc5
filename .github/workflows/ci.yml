@@ -30,6 +30,16 @@ jobs:
           # See https://github.com/cvc5/cvc5/pull/8512
           github-token-release: ${{ secrets.ACTION_USER_TOKEN }}
 
+  check-format:
+    name: Check code formatting
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install clang-format and run format check
+        run: |
+          python3 -m pip install clang-format==22.1.2
+          ./contrib/format-code.sh check
+
   builds:
     needs: [setup-release-pages]
     strategy:

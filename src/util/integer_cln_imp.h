@@ -23,9 +23,8 @@
 
 #include "base/exception.h"
 
-namespace cln
-{
-  struct cl_read_flags;
+namespace cln {
+struct cl_read_flags;
 }
 
 namespace cvc5::internal {

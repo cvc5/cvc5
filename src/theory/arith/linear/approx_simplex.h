@@ -20,8 +20,8 @@
 #include <optional>
 #include <vector>
 
-#include "theory/arith/linear/arithvar.h"
 #include "theory/arith/delta_rational.h"
+#include "theory/arith/linear/arithvar.h"
 #include "util/dense_map.h"
 #include "util/rational.h"
 #include "util/statistics_stats.h"
@@ -30,24 +30,27 @@ namespace cvc5::internal {
 namespace theory {
 namespace arith::linear {
 
-enum LinResult {
-  LinUnknown,  /* Unknown error */
-  LinFeasible, /* Relaxation is feasible */
-  LinInfeasible,   /* Relaxation is infeasible/all integer branches closed */
+enum LinResult
+{
+  LinUnknown,    /* Unknown error */
+  LinFeasible,   /* Relaxation is feasible */
+  LinInfeasible, /* Relaxation is infeasible/all integer branches closed */
   LinExhausted
 };
 
-enum MipResult {
-  MipUnknown,  /* Unknown error */
-  MipBingo,    /* Integer feasible */
-  MipClosed,   /* All integer branches closed */
+enum MipResult
+{
+  MipUnknown,        /* Unknown error */
+  MipBingo,          /* Integer feasible */
+  MipClosed,         /* All integer branches closed */
   BranchesExhausted, /* Exhausted number of branches */
   PivotsExhauasted,  /* Exhausted number of pivots */
   ExecExhausted      /* Exhausted total operations */
 };
 std::ostream& operator<<(std::ostream& out, MipResult res);
 
-class ApproximateStatistics {
+class ApproximateStatistics
+{
  public:
   ApproximateStatistics(StatisticsRegistry& sr);
 
@@ -59,13 +62,13 @@ class ApproximateStatistics {
   AverageStat d_averageGuesses;
 };
 
-
 class NodeLog;
 class TreeLog;
 class ArithVariables;
 class CutInfo;
 
-class ApproximateSimplex{
+class ApproximateSimplex
+{
  public:
   /** Is GLPK enabled? */
   static bool enabled();
@@ -80,10 +83,11 @@ class ApproximateSimplex{
   virtual ~ApproximateSimplex() {}
 
   /** A result is either sat, unsat or unknown.*/
-  struct Solution {
+  struct Solution
+  {
     DenseSet newBasis;
     DenseMap<DeltaRational> newValues;
-    Solution() : newBasis(), newValues(){}
+    Solution() : newBasis(), newValues() {}
   };
 
   /* maximum branches allowed on a variable */
@@ -123,8 +127,8 @@ class ApproximateSimplex{
   virtual Solution extractMIP() const = 0;
 
   virtual Solution extractRelaxation() const = 0;
-};/* class ApproximateSimplex */
+}; /* class ApproximateSimplex */
 
-}  // namespace arith
+}  // namespace arith::linear
 }  // namespace theory
 }  // namespace cvc5::internal

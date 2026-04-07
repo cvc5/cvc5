@@ -58,7 +58,8 @@ OracleEngine::OracleEngine(Env& env,
   Assert(d_ochecker != nullptr);
 }
 
-void OracleEngine::presolve() {
+void OracleEngine::presolve()
+{
   // Ensure all oracle functions in top-level substitutions occur in
   // lemmas. Otherwise the oracles will not be invoked for those values
   // and the model will be inaccurate.

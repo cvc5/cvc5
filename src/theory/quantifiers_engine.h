@@ -47,7 +47,7 @@ class TermDb;
 class TermDbSygus;
 class TermEnumeration;
 class TermRegistry;
-}
+}  // namespace quantifiers
 
 /**
  * The main class that manages techniques for quantified formulas.
@@ -79,7 +79,7 @@ class QuantifiersEngine : protected EnvObj
   /** notify preprocessed assertion */
   void ppNotifyAssertions(const std::vector<Node>& assertions);
   /** check at level */
-  void check( Theory::Effort e );
+  void check(Theory::Effort e);
   /** notify that theories were combined */
   void notifyCombineTheories();
   /** preRegister quantifier
@@ -89,7 +89,7 @@ class QuantifiersEngine : protected EnvObj
    */
   void preRegisterQuantifier(Node q);
   /** assert universal quantifier */
-  void assertQuantifier( Node q, bool pol );
+  void assertQuantifier(Node q, bool pol);
   /** notification when master equality engine is updated */
   void eqNotifyNewClass(TNode t);
   /** notification when master equality engine merges two classes*/

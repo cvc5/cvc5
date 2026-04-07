@@ -34,7 +34,7 @@ std::shared_ptr<ProofNode> RewriteProofGenerator::getProofFor(Node fact)
   if (fact.getKind() != Kind::EQUAL)
   {
     DebugUnhandled() << "Expected an equality in RewriteProofGenerator, got "
-                  << fact;
+                     << fact;
     return nullptr;
   }
   ProofNodeManager* pnm = d_env.getProofNodeManager();
@@ -42,7 +42,8 @@ std::shared_ptr<ProofNode> RewriteProofGenerator::getProofFor(Node fact)
   Node tp = d_env.rewriteViaMethod(t, d_id);
   if (tp != fact[1])
   {
-    DebugUnhandled() << "Could not prove " << fact << " via RewriteProofGenerator";
+    DebugUnhandled() << "Could not prove " << fact
+                     << " via RewriteProofGenerator";
     return nullptr;
   }
   std::vector<Node> pargs{t};

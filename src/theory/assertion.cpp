@@ -15,7 +15,8 @@
 namespace cvc5::internal {
 namespace theory {
 
-std::ostream& operator<<(std::ostream& out, const Assertion& a) {
+std::ostream& operator<<(std::ostream& out, const Assertion& a)
+{
   return out << a.d_assertion;
 }
 

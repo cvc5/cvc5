@@ -19,8 +19,8 @@
 #include "expr/node_algorithm.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/inference_manager.h"
-#include "theory/arith/nl/poly_conversion.h"
 #include "theory/arith/linear/normal_form.h"
+#include "theory/arith/nl/poly_conversion.h"
 #include "theory/rewriter.h"
 #include "util/poly_util.h"
 

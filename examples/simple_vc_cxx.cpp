@@ -43,8 +43,8 @@ int main()
   Term three = tm.mkInteger(3);
   Term twox_plus_y_geq_3 = tm.mkTerm(Kind::GEQ, {twox_plus_y, three});
 
-  Term formula = tm.mkTerm(Kind::AND, {x_positive, y_positive})
-                     .impTerm(twox_plus_y_geq_3);
+  Term formula =
+      tm.mkTerm(Kind::AND, {x_positive, y_positive}).impTerm(twox_plus_y_geq_3);
 
   std::cout << "Checking entailment of formula " << formula << " with cvc5."
             << std::endl;

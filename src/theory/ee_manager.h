@@ -52,11 +52,11 @@ struct EeTheoryInfo
 class EqEngineManager : protected EnvObj
 {
  public:
-   /**
+  /**
    * @param te Reference to the theory engine
    * @param sharedSolver The shared solver that is being used in combination
    * with this equality engine manager
-    */
+   */
   EqEngineManager(Env& env, TheoryEngine& te, SharedSolver& shs);
   virtual ~EqEngineManager() {}
   /**

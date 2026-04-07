@@ -23,7 +23,7 @@ ${headers_module}$
     namespace cvc5::internal
 {
   Options::Options()
-      :     // clang-format off
+      :  // clang-format off
 ${holder_mem_inits}$
 ${holder_ref_inits}$
             // clang-format on

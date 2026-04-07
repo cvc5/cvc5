@@ -105,8 +105,8 @@ TEST_F(TestCApiBlackSolver, pow2_large2)
   // Based on https://github.com/cvc5/cvc5-projects/issues/333
   Cvc5Term t1 = cvc5_mk_bv_uint64(d_tm, 63, ~(((uint64_t)1) << 62));
   std::vector<Cvc5Term> args = {t1};
-  Cvc5Term t2 =
-      cvc5_mk_term(d_tm, CVC5_KIND_BITVECTOR_UBV_TO_INT, args.size(), args.data());
+  Cvc5Term t2 = cvc5_mk_term(
+      d_tm, CVC5_KIND_BITVECTOR_UBV_TO_INT, args.size(), args.data());
   args = {t2};
   Cvc5Term t3 = cvc5_mk_term(d_tm, CVC5_KIND_POW2, args.size(), args.data());
   args = {t3, t2};
@@ -2868,19 +2868,19 @@ TEST_F(TestCApiBlackSolver, declare_oracle_fun_error2)
 {
   std::vector<Cvc5Sort> sorts = {d_int};
   // cannot declare without option
-  ASSERT_DEATH(cvc5_declare_oracle_fun(
-                   d_solver,
-                   "f",
-                   sorts.size(),
-                   sorts.data(),
-                   d_int,
-                   d_tm,
-                   [](size_t size, const Cvc5Term*, void* state) {
-                     Assert(size == 2);
-                     return cvc5_mk_integer_int64(
-                         static_cast<Cvc5TermManager*>(state), 0);
-                   }),
-               "unless oracles is enabled");
+  ASSERT_DEATH(
+      cvc5_declare_oracle_fun(d_solver,
+                              "f",
+                              sorts.size(),
+                              sorts.data(),
+                              d_int,
+                              d_tm,
+                              [](size_t size, const Cvc5Term*, void* state) {
+                                Assert(size == 2);
+                                return cvc5_mk_integer_int64(
+                                    static_cast<Cvc5TermManager*>(state), 0);
+                              }),
+      "unless oracles is enabled");
 }
 
 TEST_F(TestCApiBlackSolver, get_interpolant)
