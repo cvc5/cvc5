@@ -611,8 +611,8 @@ bool InferProofCons::convert(Env& env,
           for (unsigned r = 0; r < 2; r++)
           {
             lenReq = nm->mkNode(Kind::GT,
-                                nm->mkNode(Kind::STRING_LENGTH, t0),
-                                nm->mkNode(Kind::STRING_LENGTH, s0));
+                                {nm->mkNode(Kind::STRING_LENGTH, t0),
+                                 nm->mkNode(Kind::STRING_LENGTH, s0)});
             if (convertLengthPf(lenReq, lenConstraint, psb))
             {
               lenSuccess = true;

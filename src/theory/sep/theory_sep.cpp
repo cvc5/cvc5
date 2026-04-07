@@ -447,7 +447,7 @@ void TheorySep::reduceFact(TNode atom, bool polarity, TNode fact)
       Node emp_s = nm->mkConst(EmptySet(slbl.getType()));
       if (polarity)
       {
-        lem = nm->mkNode(Kind::OR, fact.negate(), slbl.eqNode(emp_s));
+        lem = nm->mkNode(Kind::OR, {fact.negate(), slbl.eqNode(emp_s)});
       }
       else
       {
@@ -845,9 +845,9 @@ void TheorySep::postCheck(Effort level)
         // if location is in the heap, then something must point to it
         Node lem = nm->mkNode(
             Kind::IMPLIES,
-            nm->mkNode(Kind::SET_MEMBER, ll, d_base_label),
-            nm->mkNode(
-                Kind::SEP_STAR, nm->mkNode(Kind::SEP_PTO, ll, dsk), d_true));
+            {nm->mkNode(Kind::SET_MEMBER, ll, d_base_label),
+             nm->mkNode(
+                 Kind::SEP_STAR, nm->mkNode(Kind::SEP_PTO, ll, dsk), d_true)});
         Trace("sep-lemma") << "Sep::Lemma : witness finite data-pto : " << lem
                            << std::endl;
         d_im.lemma(lem, InferenceId::SEP_WITNESS_FINITE_DATA);

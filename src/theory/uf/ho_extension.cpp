@@ -465,7 +465,7 @@ unsigned HoExtension::checkExtensionality(TheoryModel* m)
             if (!success)
             {
               Node eq = edeq[0][0].eqNode(edeq[0][1]);
-              Node lem = nm->mkNode(Kind::OR, deq.negate(), eq.negate());
+              Node lem = nm->mkNode(Kind::OR, {deq.negate(), eq.negate()});
               Trace("uf-ho") << "HoExtension: cmi extensionality lemma " << lem
                              << std::endl;
               d_im.lemma(lem, InferenceId::UF_HO_MODEL_EXTENSIONALITY);

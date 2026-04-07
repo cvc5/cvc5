@@ -822,8 +822,8 @@ bool AletheProofPostprocessCallback::update(Node res,
         success &=
             addAletheStep(AletheRule::IMPLIES_SIMPLIFY, vp9, vp9, {}, {}, *cdp);
 
-        Node vp10 =
-            nm->mkNode(Kind::SEXPR, d_cl, vp8[1].notNode(), andNode.notNode());
+        Node vp10 = nm->mkNode(Kind::SEXPR,
+                               {d_cl, vp8[1].notNode(), andNode.notNode()});
         success &=
             addAletheStep(AletheRule::EQUIV1, vp10, vp10, {vp9}, {}, *cdp);
 
@@ -1232,9 +1232,9 @@ bool AletheProofPostprocessCallback::update(Node res,
       Node vp1 = nm->mkNode(
           Kind::SEXPR, d_cl, args[0].notNode().notNode().notNode(), args[0]);
       Node vp2 = nm->mkNode(Kind::SEXPR,
-                            d_cl,
-                            args[0].notNode().notNode().notNode().notNode(),
-                            args[0].notNode());
+                            {d_cl,
+                             args[0].notNode().notNode().notNode().notNode(),
+                             args[0].notNode()});
       return addAletheStep(AletheRule::NOT_NOT, vp2, vp2, {}, {}, *cdp)
              && addAletheStep(AletheRule::NOT_NOT, vp1, vp1, {}, {}, *cdp)
              && addAletheStepFromOr(
@@ -2498,7 +2498,8 @@ bool AletheProofPostprocessCallback::update(Node res,
           Node laDiseqOr = nm->mkNode(
               Kind::SEXPR,
               d_cl,
-              nm->mkNode(Kind::OR, res, leq.notNode(), leqInverted.notNode()));
+              nm->mkNode(Kind::OR,
+                         {res, leq.notNode(), leqInverted.notNode()}));
           Node laDiseqCl = nm->mkNode(
               Kind::SEXPR, {d_cl, res, leq.notNode(), leqInverted.notNode()});
           success &=
@@ -2692,8 +2693,8 @@ bool AletheProofPostprocessCallback::update(Node res,
           Node laDiseqOr = nm->mkNode(
               Kind::SEXPR,
               d_cl,
-              nm->mkNode(
-                  Kind::OR, notEq[0], leq.notNode(), leqInverted.notNode()));
+              nm->mkNode(Kind::OR,
+                         {notEq[0], leq.notNode(), leqInverted.notNode()}));
           Node laDiseqCl = nm->mkNode(
               Kind::SEXPR,
               {d_cl, notEq[0], leq.notNode(), leqInverted.notNode()});
@@ -2812,8 +2813,8 @@ bool AletheProofPostprocessCallback::update(Node res,
           Node laDiseqOr = nm->mkNode(
               Kind::SEXPR,
               d_cl,
-              nm->mkNode(
-                  Kind::OR, notEq[0], leq.notNode(), leqInverted.notNode()));
+              nm->mkNode(Kind::OR,
+                         {notEq[0], leq.notNode(), leqInverted.notNode()}));
           Node laDiseqCl = nm->mkNode(
               Kind::SEXPR,
               {d_cl, notEq[0], leq.notNode(), leqInverted.notNode()});

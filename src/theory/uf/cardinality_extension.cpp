@@ -1089,10 +1089,10 @@ void SortModel::addCliqueLemma(std::vector<Node>& clique)
 
 void SortModel::simpleCheckCardinality() {
   if( d_maxNegCard.get()!=0 && d_hasCard.get() && d_cardinality.get()<d_maxNegCard.get() ){
-    Node lem =
-        NodeManager::mkNode(Kind::AND,
-                            getCardinalityLiteral(d_cardinality.get()),
-                            getCardinalityLiteral(d_maxNegCard.get()).negate());
+    Node lem = NodeManager::mkNode(
+        Kind::AND,
+        {getCardinalityLiteral(d_cardinality.get()),
+         getCardinalityLiteral(d_maxNegCard.get()).negate()});
     Trace("uf-ss-lemma") << "*** Simple cardinality conflict : " << lem << std::endl;
     d_im.conflict(lem, InferenceId::UF_CARD_SIMPLE_CONFLICT);
   }

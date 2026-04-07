@@ -947,7 +947,7 @@ Node ITESimplifier::attemptLiftEquality(TNode atom)
       if (notIte.isConst() && (ite[1].isConst() || ite[2].isConst()))
       {
         ++(d_statistics.d_exactMatchFold);
-        return ite[0].iteNode(notIte.eqNode(ite[1]), notIte.eqNode(ite[2]));
+        return ite[0].iteNode({notIte.eqNode(ite[1]), notIte.eqNode(ite[2])});
       }
     }
   }

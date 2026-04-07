@@ -163,18 +163,19 @@ RewriteResponse ieeeEqToEq(NodeManager* nm,
       REWRITE_DONE,
       nm->mkNode(
           Kind::AND,
-          nm->mkNode(
-              Kind::AND,
-              nm->mkNode(Kind::NOT,
-                         nm->mkNode(Kind::FLOATINGPOINT_IS_NAN, node[0])),
-              nm->mkNode(Kind::NOT,
-                         nm->mkNode(Kind::FLOATINGPOINT_IS_NAN, node[1]))),
-          nm->mkNode(
-              Kind::OR,
-              nm->mkNode(Kind::EQUAL, node[0], node[1]),
-              nm->mkNode(Kind::AND,
-                         nm->mkNode(Kind::FLOATINGPOINT_IS_ZERO, node[0]),
-                         nm->mkNode(Kind::FLOATINGPOINT_IS_ZERO, node[1])))));
+          {nm->mkNode(
+               Kind::AND,
+               {nm->mkNode(Kind::NOT,
+                           nm->mkNode(Kind::FLOATINGPOINT_IS_NAN, node[0])),
+                nm->mkNode(Kind::NOT,
+                           nm->mkNode(Kind::FLOATINGPOINT_IS_NAN, node[1]))}),
+           nm->mkNode(
+               Kind::OR,
+               {nm->mkNode(Kind::EQUAL, node[0], node[1]),
+                nm->mkNode(
+                    Kind::AND,
+                    {nm->mkNode(Kind::FLOATINGPOINT_IS_ZERO, node[0]),
+                     nm->mkNode(Kind::FLOATINGPOINT_IS_ZERO, node[1])})})}));
 }
 
 RewriteResponse geqToleq(NodeManager* nm,
@@ -412,9 +413,9 @@ RewriteResponse toFPSignedBV(NodeManager* nm, TNode node, CVC5_UNUSED bool isPre
     return RewriteResponse(
         REWRITE_AGAIN_FULL,
         nm->mkNode(Kind::ITE,
-                   node[1].eqNode(bv::utils::mkOne(nm, 1)),
-                   nm->mkNode(Kind::FLOATINGPOINT_NEG, fromubv),
-                   fromubv));
+                   {node[1].eqNode(bv::utils::mkOne(nm, 1)),
+                    nm->mkNode(Kind::FLOATINGPOINT_NEG, fromubv),
+                    fromubv}));
   }
   return RewriteResponse(REWRITE_DONE, node);
 }
@@ -1715,19 +1716,20 @@ RewriteResponse TheoryFpRewriter::postRewrite(TNode node)
           rs = REWRITE_AGAIN_FULL;
           rn = d_nm->mkNode(
               Kind::ITE,
-              d_nm->mkNode(Kind::EQUAL, rm, rne),
-              w_rne,
-              d_nm->mkNode(
-                  Kind::ITE,
-                  d_nm->mkNode(Kind::EQUAL, rm, rna),
-                  w_rna,
-                  d_nm->mkNode(Kind::ITE,
-                               d_nm->mkNode(Kind::EQUAL, rm, rtz),
-                               w_rtz,
-                               d_nm->mkNode(Kind::ITE,
-                                            d_nm->mkNode(Kind::EQUAL, rm, rtn),
-                                            w_rtn,
-                                            w_rtp))));
+              {d_nm->mkNode(Kind::EQUAL, rm, rne),
+               w_rne,
+               d_nm->mkNode(
+                   Kind::ITE,
+                   {d_nm->mkNode(Kind::EQUAL, rm, rna),
+                    w_rna,
+                    d_nm->mkNode(
+                        Kind::ITE,
+                        {d_nm->mkNode(Kind::EQUAL, rm, rtz),
+                         w_rtz,
+                         d_nm->mkNode(Kind::ITE,
+                                      d_nm->mkNode(Kind::EQUAL, rm, rtn),
+                                      w_rtn,
+                                      w_rtp)})})});
         }
       }
       else

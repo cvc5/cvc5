@@ -475,7 +475,7 @@ void TermDb::computeUfTerms( TNode f ) {
             Assert(d_qstate.areEqual(at[k], n[k]));
           }
         }
-        Node lem = nm->mkNode(Kind::IMPLIES, nm->mkAnd(antec), at.eqNode(n));
+        Node lem = nm->mkNode(Kind::IMPLIES, {nm->mkAnd(antec), at.eqNode(n)});
         if (TraceIsOn("term-db-lemma"))
         {
           Trace("term-db-lemma") << "Disequal congruent terms : " << at << " "

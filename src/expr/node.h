@@ -882,6 +882,7 @@ public:
   template <bool ref_count2, bool ref_count3>
   NodeTemplate<true> iteNode(const NodeTemplate<ref_count2>& thenpart,
                              const NodeTemplate<ref_count3>& elsepart) const;
+  NodeTemplate<true> iteNode(const TNode (&args)[2]) const;
   template <bool ref_count2>
   NodeTemplate<true> impNode(const NodeTemplate<ref_count2>& right) const;
   template <bool ref_count2>
@@ -1198,6 +1199,14 @@ NodeTemplate<ref_count>::iteNode(const NodeTemplate<ref_count2>& thenpart,
                                  const NodeTemplate<ref_count3>& elsepart) const {
   assertTNodeNotExpired();
   return d_nv->getNodeManager()->mkNode(Kind::ITE, *this, thenpart, elsepart);
+}
+
+template <bool ref_count>
+NodeTemplate<true> NodeTemplate<ref_count>::iteNode(
+    const TNode (&args)[2]) const
+{
+  assertTNodeNotExpired();
+  return d_nv->getNodeManager()->mkNode(Kind::ITE, *this, args[0], args[1]);
 }
 
 template <bool ref_count>

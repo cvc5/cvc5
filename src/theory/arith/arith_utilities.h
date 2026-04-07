@@ -267,7 +267,7 @@ inline Node mkInRange(Node term, Node start, Node end) {
 //   (ite (= n 0) (= q if_zero) (= q not_zero))
 inline Node mkOnZeroIte(Node n, Node q, Node if_zero, Node not_zero) {
   Node zero = mkZero(n.getType());
-  return n.eqNode(zero).iteNode(q.eqNode(if_zero), q.eqNode(not_zero));
+  return n.eqNode(zero).iteNode({q.eqNode(if_zero), q.eqNode(not_zero)});
 }
 
 inline Node mkPi(NodeManager* nm)

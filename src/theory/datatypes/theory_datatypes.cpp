@@ -1142,8 +1142,7 @@ Node TheoryDatatypes::getSingletonLemma( TypeNode tn, bool pol ) {
       Node v1 = NodeManager::mkBoundVar(tn);
       Node v2 = NodeManager::mkBoundVar(tn);
       a = nm->mkNode(Kind::FORALL,
-                     nm->mkNode(Kind::BOUND_VAR_LIST, v1, v2),
-                     v1.eqNode(v2));
+                     {nm->mkNode(Kind::BOUND_VAR_LIST, v1, v2), v1.eqNode(v2)});
     }else{
       Node v1 = NodeManager::mkDummySkolem("k1", tn);
       Node v2 = NodeManager::mkDummySkolem("k2", tn);
