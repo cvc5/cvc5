@@ -1268,6 +1268,7 @@ set(regress_0_tests
   regress0/nl/very-easy-sat.smt2
   regress0/nl/very-simple-unsat.smt2
   regress0/opt-abd-no-use.smt2
+  regress0/options_quotes.smt2
   regress0/options/ast-and-sexpr.smt2
   regress0/options/didyoumean.smt2
   regress0/options/help.smt2
