@@ -104,7 +104,8 @@ void CDCAC::computeVariableOrdering()
 
 void CDCAC::retrieveInitialAssignment(NlModel& model, const Node& ran_variable)
 {
-  if (options().arith.nlCovLinearModel == options::nlCovLinearModelMode::NONE) return;
+  if (options().arith.nlCovLinearModel == options::nlCovLinearModelMode::NONE)
+    return;
   d_initialAssignment.clear();
   Trace("cdcac") << "Retrieving initial assignment:" << std::endl;
   for (const auto& var : d_variableOrdering)
@@ -147,8 +148,7 @@ std::vector<CACInterval> CDCAC::getUnsatIntervals(std::size_t cur_variable)
     Trace("cdcac") << "Infeasible intervals for " << p << " " << sc
                    << " 0 over " << d_assignment << std::endl;
     std::vector<poly::Interval> intervals;
-    if (options().arith.nlCovLifting
-        == options::nlCovLiftingMode::LAZARD)
+    if (options().arith.nlCovLifting == options::nlCovLiftingMode::LAZARD)
     {
       intervals = le.infeasibleRegions(p, sc);
       if (TraceIsOn("cdcac"))
@@ -200,7 +200,8 @@ bool CDCAC::sampleOutsideWithInitial(const std::vector<CACInterval>& infeasible,
     {
       if (poly::contains(i.d_interval, suggested))
       {
-        if (options().arith.nlCovLinearModel == options::nlCovLinearModelMode::INITIAL)
+        if (options().arith.nlCovLinearModel
+            == options::nlCovLinearModelMode::INITIAL)
         {
           d_initialAssignment.clear();
         }

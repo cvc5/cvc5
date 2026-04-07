@@ -166,7 +166,7 @@ void RelevanceManager::computeRelevance()
     d_success = false;
     return;
   }
-  for (const Node& node: d_input)
+  for (const Node& node : d_input)
   {
     if (!computeRelevanceFor(node))
     {
@@ -214,8 +214,8 @@ bool RelevanceManager::computeRelevanceFor(TNode input)
   return true;
 }
 
-bool RelevanceManager::updateJustifyLastChild(const RlvPair& cur,
-                                              std::vector<int32_t>& childrenJustify)
+bool RelevanceManager::updateJustifyLastChild(
+    const RlvPair& cur, std::vector<int32_t>& childrenJustify)
 {
   // This method is run when we are informed that child index of cur
   // has justify status lastChildJustify. We return true if we would like to
@@ -332,8 +332,8 @@ int32_t RelevanceManager::justify(TNode n)
   std::unordered_map<RlvPair, std::vector<int32_t>, RlvPairHashFunction>
       childJustify;
   RlvPairIntMap::iterator it;
-  std::unordered_map<RlvPair, std::vector<int32_t>, RlvPairHashFunction>::iterator
-      itc;
+  std::unordered_map<RlvPair, std::vector<int32_t>, RlvPairHashFunction>::
+      iterator itc;
   RlvPair cur;
   TCtxStack visit(&d_ptctx);
   visit.pushInitial(n);

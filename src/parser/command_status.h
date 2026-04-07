@@ -15,12 +15,12 @@
 #ifndef CVC5__PARSER__COMMAND_STATUS_H
 #define CVC5__PARSER__COMMAND_STATUS_H
 
+#include <cvc5/cvc5_export.h>
+
 #include <iosfwd>
 #include <sstream>
 #include <string>
 #include <vector>
-
-#include <cvc5/cvc5_export.h>
 
 namespace cvc5 {
 namespace parser {

@@ -51,7 +51,6 @@ Node TranscendentalProofRuleChecker::mkSecant(
                                 nm->mkNode(Kind::SUB, t, l)}));
 }
 
-
 void TranscendentalProofRuleChecker::registerTo(ProofChecker* pc)
 {
   pc->registerChecker(ProofRule::ARITH_TRANS_PI, this);
@@ -212,9 +211,10 @@ Node TranscendentalProofRuleChecker::checkInternal(
     Node t = args[2];
     TaylorGenerator tg(nm);
     TaylorGenerator::ApproximationBounds bounds;
-    size_t ds = tg.getPolynomialApproximationBoundForArg(Kind::EXPONENTIAL, c, d, bounds);
+    size_t ds = tg.getPolynomialApproximationBoundForArg(
+        Kind::EXPONENTIAL, c, d, bounds);
     // needed to provide a larger d
-    if (ds>d)
+    if (ds > d)
     {
       return Node::null();
     }

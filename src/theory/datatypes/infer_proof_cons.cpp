@@ -48,7 +48,10 @@ void InferProofCons::notifyFact(const std::shared_ptr<DatatypesInference>& di)
   d_lazyFactMap.insert(fact, di);
 }
 
-void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* cdp)
+void InferProofCons::convert(InferenceId infer,
+                             TNode conc,
+                             TNode exp,
+                             CDProof* cdp)
 {
   Trace("dt-ipc") << "convert: " << infer << ": " << conc << " by " << exp
                   << std::endl;
@@ -248,14 +251,12 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
         //            is-C2(y)  y = x
         //            ----------------- MACRO_SR_PRED_TRANSFORM
         // is-C1(x)   is-C2(x)
-        // ------------------- 
+        // -------------------
         // false
         // in the latter, case we prove this by DT_INST + rewriting below.
         if (!pol)
         {
-          cdp->addStep(fn, ProofRule::CONTRA,
-                      {tester1, tester1c},
-                      {});
+          cdp->addStep(fn, ProofRule::CONTRA, {tester1, tester1c}, {});
         }
         else
         {
@@ -268,18 +269,18 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
           // C1(...) = C2(...)
           // ----------------- MACRO_DT_CONS_EQ + EQ_RESOLVE
           /// false
-          Rewriter * rr = d_env.getRewriter();
+          Rewriter* rr = d_env.getRewriter();
           std::vector<Node> insts;
-          for (size_t i=0; i<2; i++)
+          for (size_t i = 0; i < 2; i++)
           {
-            Node t = i==0 ? tester1 : tester1c;
+            Node t = i == 0 ? tester1 : tester1c;
             Node inst = rr->rewriteViaRule(ProofRewriteRule::DT_INST, tester1);
-            Assert (!inst.isNull());
-            Assert (inst.getKind()==Kind::EQUAL);
+            Assert(!inst.isNull());
+            Assert(inst.getKind() == Kind::EQUAL);
             Node eq = t.eqNode(inst);
             cdp->addTheoryRewriteStep(eq, ProofRewriteRule::DT_INST);
             cdp->addStep(inst, ProofRule::EQ_RESOLVE, {t, eq}, {});
-            if (i==0)
+            if (i == 0)
             {
               Node instsym = inst[1].eqNode(inst[0]);
               cdp->addStep(instsym, ProofRule::SYMM, {inst}, {});

@@ -41,7 +41,7 @@ class JustifyStatistics
   TimerStat d_time;
 };
 
-}
+}  // namespace decision
 }  // namespace cvc5::internal
 
 #endif /* CVC5__DECISION__JUSTIFY_STATS_H */

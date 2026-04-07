@@ -595,7 +595,9 @@ bool StringsEntail::stripConstantEndpoints(std::vector<Node>& n1,
         {
           // inconclusive
         }
-        Trace("strings-rewrite-debug2") << "rem = " << removeComponent << ", overlap = " << overlap << std::endl;
+        Trace("strings-rewrite-debug2")
+            << "rem = " << removeComponent << ", overlap = " << overlap
+            << std::endl;
         // process the overlap
         if (overlap < slen)
         {

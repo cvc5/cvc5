@@ -14,6 +14,7 @@
  */
 
 #include "theory/arith/linear/arithvar.h"
+
 #include <limits>
 #include <set>
 
@@ -23,11 +24,12 @@ namespace arith::linear {
 
 const ArithVar ARITHVAR_SENTINEL = std::numeric_limits<ArithVar>::max();
 
-bool debugIsASet(const std::vector<ArithVar>& variables){
+bool debugIsASet(const std::vector<ArithVar>& variables)
+{
   std::set<ArithVar> asSet(variables.begin(), variables.end());
   return asSet.size() == variables.size();
 }
 
-}  // namespace arith
+}  // namespace arith::linear
 }  // namespace theory
 }  // namespace cvc5::internal

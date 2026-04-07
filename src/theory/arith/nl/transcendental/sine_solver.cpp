@@ -224,7 +224,7 @@ void SineSolver::checkInitialRefine()
       // initial refinements
       if (d_tf_initial_refine.find(t) == d_tf_initial_refine.end())
       {
-        NodeManager * nm = nodeManager();
+        NodeManager* nm = nodeManager();
         Node zero = nm->mkConstReal(Rational(0));
         Node one = nm->mkConstReal(Rational(1));
         Node mone = nm->mkConstReal(Rational(-1));
@@ -327,7 +327,6 @@ void SineSolver::checkInitialRefine()
 
 void SineSolver::checkMonotonic()
 {
-
   auto it = d_data->d_funcMap.find(Kind::SINE);
   if (it == d_data->d_funcMap.end())
   {

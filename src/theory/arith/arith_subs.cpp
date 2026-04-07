@@ -106,7 +106,7 @@ bool ArithSubs::shouldTraverse(const Node& n, bool traverseNlMult)
 {
   Kind k = n.getKind();
   TheoryId ctid = theory::kindToTheoryId(k);
-  // We always treat transcendental kinds and extended nonlinear kinds 
+  // We always treat transcendental kinds and extended nonlinear kinds
   // as black boxes.
   if ((ctid != THEORY_ARITH && ctid != THEORY_BOOL && ctid != THEORY_BUILTIN)
       || isTranscendentalKind(k) || isExtendedNonLinearKind(k)

@@ -135,7 +135,7 @@ bool AbductionSolver::getAbductInternal(Node& abd)
       // get the grammar type for the abduct
       Node agdtbv =
           theory::quantifiers::SygusUtils::getOrMkSygusArgumentList(d_sssf);
-      if(!agdtbv.isNull())
+      if (!agdtbv.isNull())
       {
         Assert(agdtbv.getKind() == Kind::BOUND_VAR_LIST);
         // convert back to original
@@ -149,7 +149,8 @@ bool AbductionSolver::getAbductInternal(Node& abd)
           vars.push_back(bv);
           syms.push_back(bv.hasAttribute(sta) ? bv.getAttribute(sta) : bv);
         }
-        abd = abd.substitute(vars.begin(), vars.end(), syms.begin(), syms.end());
+        abd =
+            abd.substitute(vars.begin(), vars.end(), syms.begin(), syms.end());
       }
 
       // if check abducts option is set, we check the correctness

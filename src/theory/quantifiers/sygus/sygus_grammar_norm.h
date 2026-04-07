@@ -287,7 +287,7 @@ class SygusGrammarNorm : protected EnvObj
   {
    public:
     TransfChain(unsigned chain_op_pos, const std::vector<unsigned>& elem_pos)
-        : d_chain_op_pos(chain_op_pos), d_elem_pos(elem_pos){};
+        : d_chain_op_pos(chain_op_pos), d_elem_pos(elem_pos) {};
 
     /** builds types encoding a chain in which each link contains a repetition
      * of the application of the chain operator over a non-identity element

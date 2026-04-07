@@ -63,7 +63,7 @@ Node NonClosedNodeConverter::postConvert(Node n)
     {
       nc = theory::uf::FunctionConst::toLambda(n);
     }
-    if (!nc.isNull() && nc!=n)
+    if (!nc.isNull() && nc != n)
     {
       Node nnc = convert(nc);
       if (nnc != nc)

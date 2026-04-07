@@ -85,10 +85,10 @@
 #include "expr/node.h"
 #include "proof/trust_node.h"
 #include "smt/env_obj.h"
+#include "theory/arith/delta_rational.h"
 #include "theory/arith/linear/arithvar.h"
 #include "theory/arith/linear/callbacks.h"
 #include "theory/arith/linear/constraint_forward.h"
-#include "theory/arith/delta_rational.h"
 #include "util/statistics_stats.h"
 
 namespace cvc5::context {
@@ -113,8 +113,8 @@ class ArithVariables;
  * - NoAP             : This constraint is not known to be true.
  * - AssumeAP         : This is an input assertion. There is no proof.
  *                    : Something can be both asserted and have a proof.
- * - InternalAssumeAP : An internal assumption. This has no guarantee of having an external proof.
- *                    : This must be removed by regression.
+ * - InternalAssumeAP : An internal assumption. This has no guarantee of having
+ * an external proof. : This must be removed by regression.
  * - FarkasAP         : A proof with Farka's coefficients, i.e.
  *                    :  \sum lambda_i ( asNode(x_i) <= c_i  ) |= 0 < 0
  *                    : If proofs are on, coefficients will be logged.
@@ -128,26 +128,35 @@ class ArithVariables;
  *                    :   !(x > a) and !(x < a) => x = a
  * - EqualityEngineAP : This is propagated by the equality engine.
  *                    : Consult this for the proof.
- * - IntTightenAP     : This is indicates that a bound involving integers was tightened.
- *                    : e.g. i < 5.5 became i <= 5, when i is an integer.
- * - IntHoleAP        : This is currently a catch-all for all integer specific reason.
+ * - IntTightenAP     : This is indicates that a bound involving integers was
+ * tightened. : e.g. i < 5.5 became i <= 5, when i is an integer.
+ * - IntHoleAP        : This is currently a catch-all for all integer specific
+ * reason.
  */
 enum ArithProofType
-  { NoAP,
-    AssumeAP,
-    InternalAssumeAP,
-    FarkasAP,
-    TrichotomyAP,
-    EqualityEngineAP,
-    IntTightenAP,
-    IntHoleAP};
+{
+  NoAP,
+  AssumeAP,
+  InternalAssumeAP,
+  FarkasAP,
+  TrichotomyAP,
+  EqualityEngineAP,
+  IntTightenAP,
+  IntHoleAP
+};
 
 /**
  * The types of constraints.
  * The convex constraints are the constraints are LowerBound, Equality,
  * and UpperBound.
  */
-enum ConstraintType {LowerBound, Equality, UpperBound, Disequality};
+enum ConstraintType
+{
+  LowerBound,
+  Equality,
+  UpperBound,
+  Disequality
+};
 
 typedef context::CDList<ConstraintCP> CDConstraintList;
 
@@ -169,15 +178,15 @@ static constexpr AssertionOrder AssertionOrderSentinel =
  * A ValueCollection binds together convex constraints that have the same
  * DeltaRational value.
  */
-class ValueCollection {
-private:
-
+class ValueCollection
+{
+ private:
   ConstraintP d_lowerBound;
   ConstraintP d_upperBound;
   ConstraintP d_equality;
   ConstraintP d_disequality;
 
-public:
+ public:
   ValueCollection();
 
   static ValueCollection mkFromConstraint(ConstraintP c);
@@ -237,7 +246,8 @@ typedef SortedConstraintMap::iterator SortedConstraintMapIterator;
 typedef SortedConstraintMap::const_iterator SortedConstraintMapConstIterator;
 
 /** A Pair associating a variables and a Sorted ConstraintSet. */
-struct PerVariableDatabase{
+struct PerVariableDatabase
+{
   ArithVar d_var;
   SortedConstraintMap d_constraints;
 
@@ -247,13 +257,9 @@ struct PerVariableDatabase{
 
   PerVariableDatabase(ArithVar v) : d_var(v), d_constraints() {}
 
-  bool empty() const {
-    return d_constraints.empty();
-  }
+  bool empty() const { return d_constraints.empty(); }
 
-  static bool IsEmpty(const PerVariableDatabase& p){
-    return p.empty();
-  }
+  static bool IsEmpty(const PerVariableDatabase& p) { return p.empty(); }
 };
 
 /**
@@ -262,7 +268,8 @@ struct PerVariableDatabase{
  * cleanup.
  *
  */
-struct ConstraintRule {
+struct ConstraintRule
+{
   ConstraintP d_constraint;
   ArithProofType d_proofType;
   AntecedentId d_antecedentEnd;
@@ -321,8 +328,8 @@ struct ConstraintRule {
   void print(std::ostream& out, bool produceProofs) const;
 }; /* class ConstraintRule */
 
-class Constraint {
-
+class Constraint
+{
   friend class ConstraintDatabase;
 
  public:
@@ -347,79 +354,65 @@ class Constraint {
 
   static ConstraintType constraintTypeOfComparison(const Comparison& cmp);
 
-  inline ConstraintType getType() const {
-    return d_type;
-  }
+  inline ConstraintType getType() const { return d_type; }
 
-  inline ArithVar getVariable() const {
-    return d_variable;
-  }
+  inline ArithVar getVariable() const { return d_variable; }
 
-  const DeltaRational& getValue() const {
-    return d_value;
-  }
+  const DeltaRational& getValue() const { return d_value; }
 
-  inline ConstraintP getNegation() const {
-    return d_negation;
-  }
+  inline ConstraintP getNegation() const { return d_negation; }
 
-  bool isEquality() const{
-    return d_type == Equality;
-  }
-  bool isDisequality() const{
-    return d_type == Disequality;
-  }
-  bool isLowerBound() const{
-    return d_type == LowerBound;
-  }
-  bool isUpperBound() const{
-    return d_type == UpperBound;
-  }
-  bool isStrictUpperBound() const{
+  bool isEquality() const { return d_type == Equality; }
+  bool isDisequality() const { return d_type == Disequality; }
+  bool isLowerBound() const { return d_type == LowerBound; }
+  bool isUpperBound() const { return d_type == UpperBound; }
+  bool isStrictUpperBound() const
+  {
     Assert(isUpperBound());
     return getValue().infinitesimalSgn() < 0;
   }
 
-  bool isStrictLowerBound() const{
+  bool isStrictLowerBound() const
+  {
     Assert(isLowerBound());
     return getValue().infinitesimalSgn() > 0;
   }
 
-  bool isSplit() const {
-    return d_split;
-  }
+  bool isSplit() const { return d_split; }
 
   /**
    * Splits the node in the user context.
-   * Returns a lemma that is assumed to be true for the rest of the user context.
-   * Constraint must be an equality or disequality.
+   * Returns a lemma that is assumed to be true for the rest of the user
+   * context. Constraint must be an equality or disequality.
    */
   TrustNode split();
 
-  bool canBePropagated() const {
-    return d_canBePropagated;
-  }
+  bool canBePropagated() const { return d_canBePropagated; }
   void setCanBePropagated();
 
   /**
    * Light wrapper for calling setCanBePropagated(),
    * on this and this->d_negation.
    */
-  void setPreregistered(){
+  void setPreregistered()
+  {
     setCanBePropagated();
     d_negation->setCanBePropagated();
   }
 
-  bool assertedToTheTheory() const {
+  bool assertedToTheTheory() const
+  {
     Assert((d_assertionOrder < AssertionOrderSentinel) != d_witness.isNull());
     return d_assertionOrder < AssertionOrderSentinel;
   }
-  TNode getWitness() const {
+  TNode getWitness() const
+  {
     Assert(assertedToTheTheory());
     return d_witness;
   }
 
-  bool assertedBefore(AssertionOrder time) const {
+  bool assertedBefore(AssertionOrder time) const
+  {
     return d_assertionOrder < time;
   }
 
@@ -436,13 +429,12 @@ class Constraint {
    */
   void setAssertedToTheTheory(TNode witness, bool inConflict);
 
-  bool hasLiteral() const {
-    return !d_literal.isNull();
-  }
+  bool hasLiteral() const { return !d_literal.isNull(); }
 
   void setLiteral(Node n);
 
-  Node getLiteral() const {
+  Node getLiteral() const
+  {
     Assert(hasLiteral());
     return d_literal;
   }
@@ -515,7 +507,7 @@ class Constraint {
   /** Returns true if the node has a trichotomy proof. */
   bool hasTrichotomyProof() const;
 
-  void printProofTree(std::ostream & out, size_t depth = 0) const;
+  void printProofTree(std::ostream& out, size_t depth = 0) const;
 
   /**
    * A sets the constraint to be an internal assumption.
@@ -557,7 +549,8 @@ class Constraint {
     return externalExplain(nb, AssertionOrderSentinel);
   }
 
-  /* Equivalent to calling externalExplainByAssertions on all constraints in b */
+  /* Equivalent to calling externalExplainByAssertions on all constraints in b
+   */
   static Node externalExplainByAssertions(NodeManager* nm,
                                           const ConstraintCPVec& b);
   static Node externalExplainByAssertions(NodeManager* nm,
@@ -578,8 +571,10 @@ class Constraint {
   static void assertionFringe(ConstraintCPVec& out, const ConstraintCPVec& in);
 
   /** The fringe of a farkas' proof. */
-  bool onFringe() const {
-    return assertedToTheTheory() || isInternalAssumption() || hasEqualityEngineProof();
+  bool onFringe() const
+  {
+    return assertedToTheTheory() || isInternalAssumption()
+           || hasEqualityEngineProof();
   }
 
   /**
@@ -611,29 +606,19 @@ class Constraint {
   TrustNode externalExplainConflict() const;
 
   /** The constraint is known to be true. */
-  inline bool hasProof() const {
-    return d_crid != ConstraintRuleIdSentinel;
-  }
+  inline bool hasProof() const { return d_crid != ConstraintRuleIdSentinel; }
 
   /** The negation of the constraint is known to hold. */
-  inline bool negationHasProof() const {
-    return d_negation->hasProof();
-  }
+  inline bool negationHasProof() const { return d_negation->hasProof(); }
 
   /** Neither the contraint has a proof nor the negation has a proof.*/
-  bool truthIsUnknown() const {
-    return !hasProof() && !negationHasProof();
-  }
+  bool truthIsUnknown() const { return !hasProof() && !negationHasProof(); }
 
   /** This is a synonym for hasProof(). */
-  inline bool isTrue() const {
-    return hasProof();
-  }
+  inline bool isTrue() const { return hasProof(); }
 
   /** Both the constraint and its negation are true. */
-  inline bool inConflict() const {
-    return hasProof() && negationHasProof();
-  }
+  inline bool inConflict() const { return hasProof() && negationHasProof(); }
 
   /**
    * Returns the constraint that corresponds to taking
@@ -656,9 +641,10 @@ class Constraint {
 
   const ValueCollection& getValueCollection() const;
 
-
-  ConstraintP getStrictlyWeakerUpperBound(bool hasLiteral, bool mustBeAsserted) const;
-  ConstraintP getStrictlyWeakerLowerBound(bool hasLiteral, bool mustBeAsserted) const;
+  ConstraintP getStrictlyWeakerUpperBound(bool hasLiteral,
+                                          bool mustBeAsserted) const;
+  ConstraintP getStrictlyWeakerLowerBound(bool hasLiteral,
+                                          bool mustBeAsserted) const;
 
   /**
    * Marks a the constraint c as being entailed by a.
@@ -673,8 +659,8 @@ class Constraint {
    * Marks a the constraint c as being entailed by a.
    * The reason has to do with integer bound tightening.
    *
-   * After calling impliedByIntTighten(), the caller should either raise a conflict
-   * or try call tryToPropagate().
+   * After calling impliedByIntTighten(), the caller should either raise a
+   * conflict or try call tryToPropagate().
    */
   void impliedByIntTighten(ConstraintCP a, bool inConflict);
 
@@ -705,8 +691,8 @@ class Constraint {
    * Preconditions:
    * - negationHasProof() == inConflict.
    *
-   * After calling impliedByTrichotomy(), the caller should either raise a conflict
-   * or try call tryToPropagate().
+   * After calling impliedByTrichotomy(), the caller should either raise a
+   * conflict or try call tryToPropagate().
    */
   void impliedByTrichotomy(ConstraintCP a, ConstraintCP b, bool inConflict);
 
@@ -872,11 +858,13 @@ class Constraint {
                               const ConstraintCPVec& b,
                               AssertionOrder order);
 
-  inline ArithProofType getProofType() const {
+  inline ArithProofType getProofType() const
+  {
     return getConstraintRule().d_proofType;
   }
 
-  inline AntecedentId getEndAntecedent() const {
+  inline AntecedentId getEndAntecedent() const
+  {
     return getConstraintRule().d_antecedentEnd;
   }
 
@@ -1033,7 +1021,8 @@ class ConstraintDatabase : protected EnvObj
    *  (implies (and x_i) c)
    * where (and x_i) is the proof at c.d_crid d_antecedentEnd.
    *
-   * Constraints are pointers so this list is designed not to require any destruction.
+   * Constraints are pointers so this list is designed not to require any
+   * destruction.
    */
   CDConstraintList d_antecedents;
 
@@ -1049,8 +1038,8 @@ class ConstraintDatabase : protected EnvObj
    * The watch lists are collected together as they need to be garbage collected
    * carefully.
    */
-  struct Watches{
-
+  struct Watches
+  {
     /**
      * Contains the exact list of constraints that have a proof.
      * Upon pop, this unsets d_crid to NoAP.
@@ -1065,10 +1054,10 @@ class ConstraintDatabase : protected EnvObj
     CBPList d_canBePropagatedWatches;
 
     /**
-     * Contains the exact list of constraints that have been asserted to the theory.
+     * Contains the exact list of constraints that have been asserted to the
+     * theory.
      */
     AOList d_assertionOrderWatches;
-
 
     /**
      * Contains the exact list of atoms that have been preregistered.
@@ -1093,9 +1082,7 @@ class ConstraintDatabase : protected EnvObj
   /** Map from nodes to arithvars. */
   const ArithVariables& d_avariables;
 
-  const ArithVariables& getArithVariables() const{
-    return d_avariables;
-  }
+  const ArithVariables& getArithVariables() const { return d_avariables; }
 
   ArithCongruenceManager& d_congruenceManager;
 
@@ -1105,7 +1092,6 @@ class ConstraintDatabase : protected EnvObj
   ProofNodeManager* d_pnm;
 
   RaiseConflict d_raiseConflict;
-
 
   const Rational d_one;
   const Rational d_negOne;
@@ -1133,15 +1119,15 @@ class ConstraintDatabase : protected EnvObj
   /**
    * Returns true if the literal has been added to the database.
    * This is a hash table lookup.
-   * It does not look in the database for an equivalent corresponding constraint.
+   * It does not look in the database for an equivalent corresponding
+   * constraint.
    */
   bool hasLiteral(TNode literal) const;
 
-  bool hasMorePropagations() const{
-    return !d_toPropagate.empty();
-  }
+  bool hasMorePropagations() const { return !d_toPropagate.empty(); }
 
-  ConstraintCP nextPropagation(){
+  ConstraintCP nextPropagation()
+  {
     Assert(hasMorePropagations());
 
     ConstraintCP p = d_toPropagate.front();
@@ -1155,9 +1141,9 @@ class ConstraintDatabase : protected EnvObj
   void removeVariable(ArithVar v);
 
   /**
-   * Returns a constraint with the variable v, the constraint type t, and a value
-   * dominated by r (explained below) if such a constraint exists in the database.
-   * If no such constraint exists, NullConstraint is returned.
+   * Returns a constraint with the variable v, the constraint type t, and a
+   * value dominated by r (explained below) if such a constraint exists in the
+   * database. If no such constraint exists, NullConstraint is returned.
    *
    * t must be either UpperBound or LowerBound.
    * The returned value v is dominated:
@@ -1166,18 +1152,25 @@ class ConstraintDatabase : protected EnvObj
    *
    * variableDatabaseIsSetup(v) must be true.
    */
-  ConstraintP getBestImpliedBound(ArithVar v, ConstraintType t, const DeltaRational& r) const;
+  ConstraintP getBestImpliedBound(ArithVar v,
+                                  ConstraintType t,
+                                  const DeltaRational& r) const;
 
   /** Returns the constraint, if it exists */
-  ConstraintP lookupConstraint(ArithVar v, ConstraintType t, const DeltaRational& r) const;
+  ConstraintP lookupConstraint(ArithVar v,
+                               ConstraintType t,
+                               const DeltaRational& r) const;
 
   /**
-   * Returns a constraint with the variable v, the constraint type t and the value r.
-   * If there is such a constraint in the database already, it is returned.
-   * If there is no such constraint, this constraint is added to the database.
+   * Returns a constraint with the variable v, the constraint type t and the
+   * value r. If there is such a constraint in the database already, it is
+   * returned. If there is no such constraint, this constraint is added to the
+   * database.
    *
    */
-  ConstraintP getConstraint(ArithVar v, ConstraintType t, const DeltaRational& r);
+  ConstraintP getConstraint(ArithVar v,
+                            ConstraintType t,
+                            const DeltaRational& r);
 
   /**
    * Returns a constraint of the given type for the value and variable
@@ -1185,7 +1178,6 @@ class ConstraintDatabase : protected EnvObj
    * This is made if there is no such constraint.
    */
   ConstraintP ensureConstraint(ValueCollection& vc, ConstraintType t);
-
 
   void deleteConstraintAndNegation(ConstraintP c);
 
@@ -1214,8 +1206,8 @@ class ConstraintDatabase : protected EnvObj
                          ConstraintP b) const;
 
   /**
-   * Outputs a minimal set of unate implications onto the vector for the variable.
-   * This outputs lemmas of the general forms
+   * Outputs a minimal set of unate implications onto the vector for the
+   * variable. This outputs lemmas of the general forms
    *     (= p c) implies (<= p d) for c < d, or
    *     (= p c) implies (not (= p d)) for c != d.
    */
@@ -1224,7 +1216,8 @@ class ConstraintDatabase : protected EnvObj
                                  ArithVar v) const;
 
   /**
-   * Outputs a minimal set of unate implications onto the vector for the variable.
+   * Outputs a minimal set of unate implications onto the vector for the
+   * variable.
    *
    * If ineqs is true, this outputs lemmas of the general form
    *     (<= p c) implies (<= p d) for c < d.
@@ -1235,7 +1228,9 @@ class ConstraintDatabase : protected EnvObj
 
   void unatePropLowerBound(ConstraintP curr, ConstraintP prev);
   void unatePropUpperBound(ConstraintP curr, ConstraintP prev);
-  void unatePropEquality(ConstraintP curr, ConstraintP prevLB, ConstraintP prevUB);
+  void unatePropEquality(ConstraintP curr,
+                         ConstraintP prevLB,
+                         ConstraintP prevUB);
 
   /** AntecendentID must be in range. */
   ConstraintCP getAntecedent(AntecedentId p) const;
@@ -1248,8 +1243,9 @@ class ConstraintDatabase : protected EnvObj
 
   DenseSet d_reclaimable;
 
-  class Statistics {
-  public:
+  class Statistics
+  {
+   public:
     IntStat d_unatePropagateCalls;
     IntStat d_unatePropagateImplications;
 
@@ -1258,7 +1254,7 @@ class ConstraintDatabase : protected EnvObj
 
 }; /* ConstraintDatabase */
 
-}  // namespace arith
+}  // namespace arith::linear
 }  // namespace theory
 }  // namespace cvc5::internal
 

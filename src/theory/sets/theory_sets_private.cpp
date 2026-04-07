@@ -285,7 +285,7 @@ void TheorySetsPrivate::fullEffortCheck()
         Node n = (*eqc_i);
         ++eqc_i;
         // if it is not relevant, don't register it
-        if (rlvTerms.find(n)==rlvTerms.end())
+        if (rlvTerms.find(n) == rlvTerms.end())
         {
           continue;
         }
@@ -331,7 +331,7 @@ void TheorySetsPrivate::fullEffortCheck()
         {
           ensureRelationsEnabled();
         }
-        else if(isHigherOrderKind(nk))
+        else if (isHigherOrderKind(nk))
         {
           d_higher_order_kinds_enabled = true;
         }
@@ -544,7 +544,6 @@ void TheorySetsPrivate::checkDownwardsClosure()
             }
           }
         }
-        
       }
     }
   }
@@ -554,15 +553,15 @@ void TheorySetsPrivate::checkUpwardsClosure()
 {
   // upwards closure
   NodeManager* nm = nodeManager();
-  const std::map<Kind, std::map<Node, std::map<Node, Node> > >& boi =
+  const std::map<Kind, std::map<Node, std::map<Node, Node>>>& boi =
       d_state.getBinaryOpIndex();
-  for (const std::pair<const Kind, std::map<Node, std::map<Node, Node> > >&
-           itb : boi)
+  for (const std::pair<const Kind, std::map<Node, std::map<Node, Node>>>& itb :
+       boi)
   {
     Kind k = itb.first;
     Trace("sets") << "TheorySetsPrivate: check upwards closure " << k << "..."
                   << std::endl;
-    for (const std::pair<const Node, std::map<Node, Node> >& it : itb.second)
+    for (const std::pair<const Node, std::map<Node, Node>>& it : itb.second)
     {
       Node r1 = d_state.getRepresentative(it.first);
       // see if there are members in first argument r1
@@ -672,7 +671,8 @@ void TheorySetsPrivate::checkUpwardsClosure()
                     d_state.addEqualityToExp(term[1], itm2m.second[1], exp);
                     Node r = d_treg.getProxy(term);
                     Node fact = nm->mkNode(Kind::SET_MEMBER, x, r);
-                    d_im.assertInference(fact, InferenceId::SETS_UP_CLOSURE_2, exp);
+                    d_im.assertInference(
+                        fact, InferenceId::SETS_UP_CLOSURE_2, exp);
                     if (d_state.isInConflict())
                     {
                       return;
@@ -1433,8 +1433,8 @@ void TheorySetsPrivate::notifyFact(TNode atom,
 
 void TheorySetsPrivate::computeCareGraph()
 {
-  const std::map<Kind, std::vector<Node> >& ol = d_state.getOperatorList();
-  for (const std::pair<const Kind, std::vector<Node> >& it : ol)
+  const std::map<Kind, std::vector<Node>>& ol = d_state.getOperatorList();
+  for (const std::pair<const Kind, std::vector<Node>>& it : ol)
   {
     Kind k = it.first;
     if (k == Kind::SET_SINGLETON || k == Kind::SET_MEMBER)
@@ -1520,9 +1520,9 @@ bool TheorySetsPrivate::collectModelValues(TheoryModel* m,
 {
   Trace("sets-model") << "Set collect model values" << std::endl;
   Trace("sets-model") << "termSet: " << termSet << std::endl;
-  if(TraceIsOn("sets-model"))
+  if (TraceIsOn("sets-model"))
   {
-    Trace("sets-model") <<m->debugPrintModelEqc();
+    Trace("sets-model") << m->debugPrintModelEqc();
   }
   NodeManager* nm = nodeManager();
   std::map<Node, Node> mvals;
@@ -1604,7 +1604,7 @@ bool TheorySetsPrivate::collectModelValues(TheoryModel* m,
   // handle slack elements constraints for finite types
   if (d_card_enabled)
   {
-    const std::map<TypeNode, std::vector<TNode> >& slackElements =
+    const std::map<TypeNode, std::vector<TNode>>& slackElements =
         d_cardSolver->getFiniteTypeSlackElements();
     for (const auto& pair : slackElements)
     {

@@ -78,25 +78,27 @@ class FirstOrderModel : protected EnvObj
   Node getInternalRepresentative(Node a, Node q, size_t index);
 
   /** assert quantifier */
-  void assertQuantifier( Node n );
+  void assertQuantifier(Node n);
   /** get number of asserted quantifiers */
   size_t getNumAssertedQuantifiers() const;
   /** get asserted quantifier */
-  Node getAssertedQuantifier( unsigned i, bool ordered = false );
+  Node getAssertedQuantifier(unsigned i, bool ordered = false);
   /** initialize model for term */
-  void initializeModelForTerm( Node n, std::map< Node, bool >& visited );
+  void initializeModelForTerm(Node n, std::map<Node, bool>& visited);
   // initialize the model
   void initialize();
   /** get variable id */
-  int getVariableId(TNode q, TNode n) {
-    return d_quant_var_id.find( q )!=d_quant_var_id.end() ? d_quant_var_id[q][n] : -1;
+  int getVariableId(TNode q, TNode n)
+  {
+    return d_quant_var_id.find(q) != d_quant_var_id.end() ? d_quant_var_id[q][n]
+                                                          : -1;
   }
   /** do we need to do any work? */
   bool checkNeeded();
   /** reset round */
   void reset_round();
   /** mark quantified formula relevant */
-  void markRelevant( Node q );
+  void markRelevant(Node q);
   /** set quantified formula active/inactive
    *
    * This indicates that quantified formula is "inactive", that is, it need
@@ -110,7 +112,7 @@ class FirstOrderModel : protected EnvObj
    * and before calls to QuantifiersModule check calls. A common place to call
    * this method is during QuantifiersModule reset_round calls.
    */
-  void setQuantifierActive( TNode q, bool active );
+  void setQuantifierActive(TNode q, bool active);
   /** is quantified formula active?
    *
    * Returns false if there has been a call to setQuantifierActive( q, false )
@@ -167,7 +169,7 @@ class FirstOrderModel : protected EnvObj
   EqualityQuery d_eq_query;
   /** list of quantifiers asserted in the current context */
   context::CDList<Node> d_forall_asserts;
-  /** 
+  /**
    * The (ordered) list of quantified formulas marked as relevant using
    * markRelevant, where the quantified formula q in the most recent
    * call to markRelevant comes last in the list.
@@ -175,19 +177,19 @@ class FirstOrderModel : protected EnvObj
   std::vector<Node> d_forall_rlv_vec;
   /** The last quantified formula marked as relevant, if one exists. */
   Node d_last_forall_rlv;
-  /** 
+  /**
    * The list of asserted quantified formulas, ordered by relevance.
    * Relevance is a dynamic partial ordering where q1 < q2 if there has been
    * a call to markRelevant( q1 ) after the last call to markRelevant( q2 )
-   * (or no call to markRelevant( q2 ) has been made). 
-   * 
+   * (or no call to markRelevant( q2 ) has been made).
+   *
    * This list is used primarily as an optimization for conflict-based
    * instantiation so that quantifed formulas that have been instantiated
    * most recently are processed first, since these are (statistically) more
    * likely to have conflicting instantiations.
    */
   std::vector<Node> d_forall_rlv_assert;
-  /** 
+  /**
    * Whether the above list has been computed. This flag is updated during
    * reset_round and is valid within a full effort check.
    */
@@ -214,7 +216,7 @@ class FirstOrderModel : protected EnvObj
   std::map<Node, std::vector<Node> > d_model_basis_terms;
   /** compute model basis arg */
   void computeModelBasisArgAttribute(Node n);
-};/* class FirstOrderModel */
+}; /* class FirstOrderModel */
 
 }  // namespace quantifiers
 }  // namespace theory

@@ -77,9 +77,9 @@ bool EvalSygusInvarianceTest::invariant(TermDbSygus* tds, Node nvn, Node x)
       // ti --> true  implies or( t1, ..., tn ) --> true
       return true;
     }
-    Trace("sygus-cref-eval2") << "Evaluation min explain : " << conj_subs
-                              << " still evaluates to " << d_result
-                              << " regardless of ";
+    Trace("sygus-cref-eval2")
+        << "Evaluation min explain : " << conj_subs << " still evaluates to "
+        << d_result << " regardless of ";
     Trace("sygus-cref-eval2") << x << std::endl;
   }
   return d_is_conjunctive;
@@ -111,8 +111,8 @@ bool EquivSygusInvarianceTest::invariant(TermDbSygus* tds, Node nvn, Node x)
   TypeNode tn = nvn.getType();
   Node nbv = tds->sygusToBuiltin(nvn, tn);
   Node nbvr = d_rewriter->extendedRewrite(nbv);
-  Trace("sygus-sb-mexp-debug") << "  min-exp check : " << nbv << " -> " << nbvr
-                               << std::endl;
+  Trace("sygus-sb-mexp-debug")
+      << "  min-exp check : " << nbv << " -> " << nbvr << std::endl;
   bool exc_arg = false;
   // equivalent / singular up to normalization
   if (nbvr == d_bvr)
@@ -135,9 +135,9 @@ bool EquivSygusInvarianceTest::invariant(TermDbSygus* tds, Node nvn, Node x)
         AssertEqual(bx.getType(), nbvr.getType());
         if (nbvr == bx)
         {
-          Trace("sygus-sb-mexp") << "sb-min-exp : " << tds->sygusToBuiltin(nvn)
-                                 << " always rewrites to argument " << nbvr
-                                 << std::endl;
+          Trace("sygus-sb-mexp")
+              << "sb-min-exp : " << tds->sygusToBuiltin(nvn)
+              << " always rewrites to argument " << nbvr << std::endl;
           // rewrites to the variable : then the explanation of this is
           // irrelevant as well
           exc_arg = true;

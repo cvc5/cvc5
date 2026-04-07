@@ -30,7 +30,8 @@ std::ostream& operator<<(std::ostream&, const Model&);
 /**
  * A utility for representing a model for pretty printing.
  */
-class Model {
+class Model
+{
  public:
   /** Constructor
    * @param isKnownSat True if this model is associated with a "sat" response,

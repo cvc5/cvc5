@@ -147,7 +147,7 @@ TrustNode TheoryFp::ppRewrite(TNode node,
   return TrustNode::null();
 }
 
-bool TheoryFp::refineAbstraction(TheoryModel *m, TNode abstract, TNode concrete)
+bool TheoryFp::refineAbstraction(TheoryModel* m, TNode abstract, TNode concrete)
 {
   Trace("fp-refineAbstraction") << "TheoryFp::refineAbstraction(): " << abstract
                                 << " vs. " << concrete << std::endl;
@@ -868,20 +868,17 @@ bool TheoryFp::collectModelInfo(TheoryModel* m,
   return collectModelValues(m, relevantTerms);
 }
 
-bool TheoryFp::collectModelValues(TheoryModel* m,
-                                  const std::set<Node>& termSet)
+bool TheoryFp::collectModelValues(TheoryModel* m, const std::set<Node>& termSet)
 {
   Trace("fp-collectModelValues")
       << "TheoryFp::collectModelValues(): begin" << std::endl;
   if (TraceIsOn("fp-collectModelValues"))
   {
-    for (std::set<Node>::const_iterator i(termSet.begin());
-         i != termSet.end();
+    for (std::set<Node>::const_iterator i(termSet.begin()); i != termSet.end();
          ++i)
     {
       Trace("fp-collectModelValues")
-          << "TheoryFp::collectModelValues(): termSet " << *i
-          << std::endl;
+          << "TheoryFp::collectModelValues(): termSet " << *i << std::endl;
     }
   }
   NodeManager* nm = nodeManager();

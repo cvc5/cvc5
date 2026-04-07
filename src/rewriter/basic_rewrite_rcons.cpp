@@ -67,7 +67,6 @@ BasicRewriteRCons::BasicRewriteRCons(Env& env)
               "BasicRewriteRCons::macroExpandCount")),
       d_bvRewElab(env)
 {
-
 }
 
 bool BasicRewriteRCons::prove(CDProof* cdp,
@@ -116,11 +115,10 @@ bool BasicRewriteRCons::prove(CDProof* cdp,
   return false;
 }
 
-bool BasicRewriteRCons::postProve(
-    CDProof* cdp,
-    Node a,
-    Node b,
-    TheoryRewriteMode tmode)
+bool BasicRewriteRCons::postProve(CDProof* cdp,
+                                  Node a,
+                                  Node b,
+                                  TheoryRewriteMode tmode)
 {
   Node eq = a.eqNode(b);
   // try theory rewrite (post-rare), which may try both pre and post if
@@ -503,7 +501,8 @@ bool BasicRewriteRCons::ensureProofMacroArithIntRelation(CDProof* cdp,
   Node iterm = p.first;
   if (p.first.getType().isReal())
   {
-    Trace("brc-macro") << "Real term convert to integer: " << p.first << std::endl;
+    Trace("brc-macro") << "Real term convert to integer: " << p.first
+                       << std::endl;
     theory::arith::rewriter::Sum sum;
     theory::arith::rewriter::addToSumNoMixed(sum, p.first, false);
     iterm = collectSum(nodeManager(), sum);
@@ -671,7 +670,8 @@ bool BasicRewriteRCons::ensureProofMacroDtConsEq(CDProof* cdp, const Node& eq)
   {
     Trace("brc-macro") << "Failed to show " << rhs << " == " << eq[1]
                        << std::endl;
-    DebugUnhandled() << "Failed to show " << rhs << " == " << eq[1] << std::endl;
+    DebugUnhandled() << "Failed to show " << rhs << " == " << eq[1]
+                     << std::endl;
     return false;
   }
   // use ACI_NORM
@@ -1185,7 +1185,6 @@ bool BasicRewriteRCons::ensureProofMacroSubstrStripSymLength(CDProof* cdp,
   cdp->addStep(eq, ProofRule::TRANS, {eqLhs, eqm}, {});
   return true;
 }
-
 
 bool BasicRewriteRCons::ensureProofMacroStrEqLenUnifyPrefix(CDProof* cdp,
                                                             const Node& eq)
@@ -1795,7 +1794,7 @@ bool BasicRewriteRCons::ensureProofMacroStrConstNCtnConcat(CDProof* cdp,
                && concat.getNumChildren() == 3);
   Node cf = concat;
   Node eqsf = eqi[1][1];
-  if (concat[1].getKind()==Kind::STRING_CONCAT)
+  if (concat[1].getKind() == Kind::STRING_CONCAT)
   {
     std::vector<Node> cc;
     cc.push_back(concat[0]);
@@ -2673,7 +2672,7 @@ bool BasicRewriteRCons::ensureProofMacroQuantVarElimIneq(CDProof* cdp,
     Kind k = atom.getKind();
     Node itc = atom[1];
     // ensure types are correct, meaning we require inserting a cast to real
-    if (qvarType!=itc.getType())
+    if (qvarType != itc.getType())
     {
       if (qvarType.isReal() && itc.getType().isInteger())
       {
@@ -2681,7 +2680,7 @@ bool BasicRewriteRCons::ensureProofMacroQuantVarElimIneq(CDProof* cdp,
       }
       else
       {
-        Assert (false) << "Can't cast " << itc << " to " << qvarType;
+        Assert(false) << "Can't cast " << itc << " to " << qvarType;
       }
     }
     if (k != Kind::GEQ && k != Kind::LEQ)
@@ -2840,7 +2839,8 @@ bool BasicRewriteRCons::ensureProofMacroQuantMiniscope(CDProof* cdp,
   }
   if (mq.getNumChildren() != eq[1].getNumChildren())
   {
-    DebugUnhandled() << "Unexpected input ensureProofMacroQuantMiniscope " << eq;
+    DebugUnhandled() << "Unexpected input ensureProofMacroQuantMiniscope "
+                     << eq;
     return false;
   }
   ProofChecker* pc = d_env.getProofNodeManager()->getChecker();
@@ -2917,7 +2917,7 @@ bool BasicRewriteRCons::ensureProofMacroQuantRewriteBody(CDProof* cdp,
   if (qr != eq[1])
   {
     DebugUnhandled() << "Failed to rewrite " << eq[0] << " to " << qr
-                  << " != " << eq[1];
+                     << " != " << eq[1];
     return false;
   }
   std::shared_ptr<ProofNode> pfn = tcpg.getProofFor(eq);
@@ -2931,7 +2931,8 @@ bool BasicRewriteRCons::ensureProofMacroBvEqSolve(CDProof* cdp, const Node& eq)
                      << std::endl;
   Node ns = nodeManager()->mkNode(Kind::BITVECTOR_SUB, eq[0][0], eq[0][1]);
   Node nsn = theory::arith::PolyNorm::getPolyNorm(ns);
-  Node zero = theory::bv::utils::mkZero(nodeManager(), nsn.getType().getBitVectorSize());
+  Node zero = theory::bv::utils::mkZero(nodeManager(),
+                                        nsn.getType().getBitVectorSize());
   Node eqn = nsn.eqNode(zero);
   Node equiv = eq[0].eqNode(eqn);
   if (!ensureProofArithPolyNormRel(cdp, equiv))
@@ -2981,7 +2982,7 @@ bool BasicRewriteRCons::ensureProofMacroElimShadow(CDProof* cdp, const Node& eq)
   {
     cdp->addProof(pfn);
     return true;
-  } 
+  }
   DebugUnhandled();
   return false;
 }
@@ -3181,7 +3182,8 @@ Node BasicRewriteRCons::proveGeneralReMembership(CDProof* cdp, const Node& n)
   }
   ProofChecker* pc = d_env.getProofNodeManager()->getChecker();
   Node memc = pc->checkDebug(ProofRule::RE_CONCAT, premises, {});
-  Trace("brc-macro") << "...returns " << memc << " from " << premises << std::endl;
+  Trace("brc-macro") << "...returns " << memc << " from " << premises
+                     << std::endl;
   cdp->addStep(memc, ProofRule::RE_CONCAT, premises, {});
   return memc;
 }
