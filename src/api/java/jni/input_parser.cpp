@@ -57,7 +57,7 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_InputParser_newInputParser__J(
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_io_github_cvc5_InputParser_deletePointer(
-    JNIEnv* env, jobject, jlong pointer)
+    JNIEnv*, jobject, jlong pointer)
 {
   delete reinterpret_cast<InputParser*>(pointer);
 }

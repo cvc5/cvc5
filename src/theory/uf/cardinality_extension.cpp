@@ -397,7 +397,7 @@ void Region::getNumExternalDisequalities(
   }
 }
 
-void Region::debugPrint( const char* c, bool incClique ) {
+void Region::debugPrint(CVC5_UNUSED const char* c, bool incClique ) {
   Trace( c ) << "Num reps: " << d_reps_size << std::endl;
   for( Region::iterator it = begin(); it != end(); ++it ){
     RegionNodeInfo* rni = it->second;
@@ -1657,7 +1657,7 @@ SortModel* CardinalityExtension::getSortModel(Node n)
   if( it!=d_rep_model.end() ){
     return it->second;
   }else{
-    return NULL;
+    return nullptr;
   }
 }
 

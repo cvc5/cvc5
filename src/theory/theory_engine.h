@@ -130,7 +130,8 @@ class TheoryEngine : protected EnvObj
   template <class TheoryClass>
   void addTheory(theory::TheoryId theoryId)
   {
-    Assert(d_theoryTable[theoryId] == NULL && d_theoryOut[theoryId] == NULL);
+    Assert(d_theoryTable[theoryId] == nullptr
+           && d_theoryOut[theoryId] == nullptr);
     d_theoryOut[theoryId] =
         new theory::OutputChannel(statisticsRegistry(), this, theoryId);
     d_theoryTable[theoryId] =

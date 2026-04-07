@@ -54,7 +54,7 @@ class MyContextObj : public ContextObj
     return new (pcmm) MyContextObj(*this);
   }
 
-  void restore(ContextObj* contextObj) override
+  void restore(ContextObj*) override
   {
     d_ncalls = d_notify.d_ncalls;
   }

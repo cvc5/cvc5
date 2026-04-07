@@ -252,7 +252,7 @@ Node Trigger::ensureGroundTermPreprocessed(Valuation& val,
   return visited[n];
 }
 
-void Trigger::debugPrint(const char* c) const
+void Trigger::debugPrint(CVC5_UNUSED const char* c) const
 {
   Trace(c) << "TRIGGER( " << d_nodes << " )" << std::endl;
 }

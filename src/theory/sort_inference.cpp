@@ -37,7 +37,7 @@ using namespace std;
 namespace cvc5::internal {
 namespace theory {
 
-void SortInference::UnionFind::print(const char * c){
+void SortInference::UnionFind::print(CVC5_UNUSED const char * c){
   for( std::map< int, int >::iterator it = d_eqc.begin(); it != d_eqc.end(); ++it ){
     Trace(c) << "s_" << it->first << " = s_" << it->second << ", ";
   }
@@ -92,7 +92,7 @@ void SortInference::recordSubsort( TypeNode tn, int s ){
   }
 }
 
-void SortInference::printSort( const char* c, int t ){
+void SortInference::printSort(CVC5_UNUSED  const char* c, int t ){
   int rt = d_type_union_find.getRepresentative( t );
   if( d_type_types.find( rt )!=d_type_types.end() ){
     Trace(c) << d_type_types[rt];

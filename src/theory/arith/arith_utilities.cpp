@@ -224,7 +224,7 @@ Node getApproximateConstant(Node c, bool isLower, unsigned prec)
   return cret;
 }
 
-void printRationalApprox(const char* c, Node cr, unsigned prec)
+void printRationalApprox(CVC5_UNUSED const char* c, Node cr, unsigned prec)
 {
   if (!cr.isConst())
   {

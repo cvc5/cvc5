@@ -182,7 +182,7 @@ TheorySetsPrivate::EqcInfo* TheorySetsPrivate::getOrMakeEqcInfo(TNode n,
   std::map<Node, EqcInfo*>::iterator eqc_i = d_eqc_info.find(n);
   if (eqc_i == d_eqc_info.end())
   {
-    EqcInfo* ei = NULL;
+    EqcInfo* ei = nullptr;
     if (doMake)
     {
       ei = new EqcInfo(context());

@@ -385,7 +385,7 @@ void ICPSolver::check()
 
 #else /* CVC5_POLY_IMP */
 
-void ICPSolver::reset(const std::vector<Node>& assertions)
+void ICPSolver::reset(CVC5_UNUSED const std::vector<Node>& assertions)
 {
   Unimplemented() << "ICPSolver requires cvc5 to be configured with LibPoly";
 }

@@ -82,7 +82,7 @@ Node ExpandDefs::expandDefinitions(TNode n,
       theory::TheoryId tid = d_env.theoryOf(nr);
       theory::TheoryRewriter* tr = rr->getTheoryRewriter(tid);
 
-      Assert(tr != NULL);
+      Assert(tr != nullptr);
       Trace("expand") << "Expand definition on " << nr << " (from " << n << ")"
                       << std::endl;
       Node nre = tr->expandDefinition(nr);

@@ -32,7 +32,7 @@ class BitVectorEnumerator : public TypeEnumeratorBase<BitVectorEnumerator> {
 
 public:
  BitVectorEnumerator(TypeNode type,
-                     CVC5_UNUSED TypeEnumeratorProperties* tep = NULL)
+                     CVC5_UNUSED TypeEnumeratorProperties* tep = nullptr)
      : TypeEnumeratorBase<BitVectorEnumerator>(type),
        d_size(type.getBitVectorSize()),
        d_bits(0)

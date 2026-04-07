@@ -122,7 +122,7 @@ RewriteResponse convertSubtractionToAddition(NodeManager* nm,
   return RewriteResponse(REWRITE_DONE, addition);
 }
 
-RewriteResponse breakChain(NodeManager* nm, TNode node, bool isPreRewrite)
+RewriteResponse breakChain(NodeManager* nm, TNode node, CVC5_UNUSED bool isPreRewrite)
 {
   Assert(isPreRewrite);  // Should be run first
 
@@ -264,7 +264,7 @@ RewriteResponse compactMinMax(CVC5_UNUSED NodeManager* nm,
 
 RewriteResponse reorderFPEquality(NodeManager* nm,
                                   TNode node,
-                                  bool isPreRewrite)
+                                  CVC5_UNUSED bool isPreRewrite)
 {
   Assert(node.getKind() == Kind::FLOATINGPOINT_EQ);
   Assert(!isPreRewrite);  // Likely redundant in pre-rewrite
@@ -282,7 +282,7 @@ RewriteResponse reorderFPEquality(NodeManager* nm,
 
 RewriteResponse reorderBinaryOperation(NodeManager* nm,
                                        TNode node,
-                                       bool isPreRewrite)
+                                       CVC5_UNUSED bool isPreRewrite)
 {
   Kind k = node.getKind();
   Assert((k == Kind::FLOATINGPOINT_ADD) || (k == Kind::FLOATINGPOINT_MULT));
@@ -299,7 +299,7 @@ RewriteResponse reorderBinaryOperation(NodeManager* nm,
   }
 }
 
-RewriteResponse reorderFMA(NodeManager* nm, TNode node, bool isPreRewrite)
+RewriteResponse reorderFMA(NodeManager* nm, TNode node, CVC5_UNUSED bool isPreRewrite)
 {
   Assert(node.getKind() == Kind::FLOATINGPOINT_FMA);
   Assert(!isPreRewrite);  // Likely redundant in pre-rewrite
@@ -341,7 +341,7 @@ RewriteResponse removeSignOperations(NodeManager* nm,
   }
 }
 
-RewriteResponse compactRemainder(NodeManager* nm, TNode node, bool isPreRewrite)
+RewriteResponse compactRemainder(NodeManager* nm, TNode node, CVC5_UNUSED bool isPreRewrite)
 {
   Assert(node.getKind() == Kind::FLOATINGPOINT_REM);
   Assert(!isPreRewrite);  // status assumes parts have been rewritten
@@ -399,7 +399,7 @@ RewriteResponse ltId(NodeManager* nm, TNode node, CVC5_UNUSED bool isPreRewrite)
   return RewriteResponse(REWRITE_DONE, node);
 }
 
-RewriteResponse toFPSignedBV(NodeManager* nm, TNode node, bool isPreRewrite)
+RewriteResponse toFPSignedBV(NodeManager* nm, TNode node, CVC5_UNUSED bool isPreRewrite)
 {
   Assert(!isPreRewrite);
   Assert(node.getKind() == Kind::FLOATINGPOINT_TO_FP_FROM_SBV);

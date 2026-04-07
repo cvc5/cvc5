@@ -41,7 +41,7 @@ class FakeSatSolver : public SatSolver
 
   void initialize() override {}
 
-  SatVariable newVar(bool theoryAtom, bool canErase) override
+  SatVariable newVar(CVC5_UNUSED bool theoryAtom, CVC5_UNUSED bool canErase) override
   {
     return d_nextVar++;
   }
@@ -50,7 +50,7 @@ class FakeSatSolver : public SatSolver
 
   SatVariable falseVar() override { return d_nextVar++; }
 
-  ClauseId addClause(const SatClause& c, bool lemma) override
+  ClauseId addClause(CVC5_UNUSED const SatClause& c, CVC5_UNUSED bool lemma) override
   {
     d_addClauseCalled = true;
     return ClauseIdUndef;
@@ -62,9 +62,9 @@ class FakeSatSolver : public SatSolver
 
   bool isDecision(Node) const { return false; }
 
-  void unregisterVar(SatLiteral lit) {}
+  void unregisterVar(CVC5_UNUSED SatLiteral lit) {}
 
-  void renewVar(SatLiteral lit, int level = -1) {}
+  void renewVar(CVC5_UNUSED SatLiteral lit, CVC5_UNUSED int level = -1) {}
 
   bool spendResource() { return false; }
 
@@ -72,25 +72,25 @@ class FakeSatSolver : public SatSolver
 
   SatValue solve() override { return SAT_VALUE_UNKNOWN; }
 
-  SatValue solve(long unsigned int& resource) override
+  SatValue solve(CVC5_UNUSED long unsigned int& resource) override
   {
     return SAT_VALUE_UNKNOWN;
   }
 
-  SatValue solve(const std::vector<SatLiteral>& assumptions) override
+  SatValue solve(CVC5_UNUSED const std::vector<SatLiteral>& assumptions) override
   {
     return SAT_VALUE_UNKNOWN;
   }
 
-  void getUnsatAssumptions(std::vector<SatLiteral>& unsat_assumptions) override
+  void getUnsatAssumptions(CVC5_UNUSED std::vector<SatLiteral>& unsat_assumptions) override
   {
   }
 
-  SatValue value(SatLiteral l) override { return SAT_VALUE_UNKNOWN; }
+  SatValue value(CVC5_UNUSED SatLiteral l) override { return SAT_VALUE_UNKNOWN; }
 
-  SatValue modelValue(SatLiteral l) override { return SAT_VALUE_UNKNOWN; }
+  SatValue modelValue(CVC5_UNUSED SatLiteral l) override { return SAT_VALUE_UNKNOWN; }
 
-  bool properExplanation(SatLiteral lit, SatLiteral expl) const { return true; }
+  bool properExplanation(CVC5_UNUSED SatLiteral lit, CVC5_UNUSED SatLiteral expl) const { return true; }
 
   bool ok() const override { return true; }
 

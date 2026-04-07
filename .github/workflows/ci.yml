@@ -6,11 +6,6 @@ on:
 
 name: CI
 
-# Prevents github from relying on clones of homebrew-core or homebrew-cask.
-# https://github.com/orgs/Homebrew/discussions/4612
-env:
-    HOMEBREW_NO_INSTALL_FROM_API: ""
-
 jobs:
   setup-release-pages:
     name: Set up release pages
@@ -406,7 +401,7 @@ jobs:
         gpg-passphrase: MAVEN_GPG_PASSPHRASE
 
     - name: Download Maven JAR artifacts
-      uses: actions/download-artifact@v5
+      uses: actions/download-artifact@v7
       with:
         path: ./maven
         pattern: mvn-*
