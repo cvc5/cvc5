@@ -39,7 +39,7 @@ class TheoryBV : public Theory
            Valuation valuation,
            std::string name = "");
 
-  ~TheoryBV();
+  ~TheoryBV() override = default;
 
   /** get the official theory rewriter of this theory */
   TheoryRewriter* getTheoryRewriter() override;

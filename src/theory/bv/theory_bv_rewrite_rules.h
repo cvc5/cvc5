@@ -15,7 +15,7 @@
 #ifndef CVC5__THEORY__BV__THEORY_BV_REWRITE_RULES_H
 #define CVC5__THEORY__BV__THEORY_BV_REWRITE_RULES_H
 
-#include <sstream>
+#include <ostream>
 
 #include "context/context.h"
 #include "printer/printer.h"
@@ -184,151 +184,152 @@ enum RewriteRuleId
   BitConst,
 };
 
-inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
-  switch (ruleId) {
-  case EmptyRule:           out << "EmptyRule";           return out;
-  case ConcatFlatten:       out << "ConcatFlatten";       return out;
-  case ConcatExtractMerge:  out << "ConcatExtractMerge";  return out;
-  case ConcatConstantMerge: out << "ConcatConstantMerge"; return out;
-  case AndOrXorConcatPullUp:out << "AndOrXorConcatPullUp";return out;
-  case NegEliminate: out << "NegEliminate"; return out;
-  case OrEliminate: out << "OrEliminate"; return out;
-  case XorEliminate: out << "XorEliminate"; return out;
-  case ExtractExtract:      out << "ExtractExtract";      return out;
-  case ExtractWhole:        out << "ExtractWhole";        return out;
-  case ExtractConcat:       out << "ExtractConcat";       return out;
-  case ExtractConstant:     out << "ExtractConstant";     return out;
-  case FailEq:              out << "FailEq";              return out;
-  case SimplifyEq:          out << "SimplifyEq";          return out;
-  case ReflexivityEq:       out << "ReflexivityEq";       return out;
-  case UgtEliminate:        out << "UgtEliminate";        return out;
-  case SgtEliminate:        out << "SgtEliminate";        return out;
-  case UgeEliminate:        out << "UgeEliminate";        return out;
-  case SgeEliminate:        out << "SgeEliminate";        return out;
-  case RedorEliminate:      out << "RedorEliminate";      return out;
-  case RedandEliminate:     out << "RedandEliminate";     return out;
-  case RepeatEliminate:     out << "RepeatEliminate";     return out;
-  case RotateLeftEliminate: out << "RotateLeftEliminate"; return out;
-  case RotateRightEliminate:out << "RotateRightEliminate";return out;
-  case SizeEliminate: out << "SizeEliminate"; return out;
-  case NandEliminate:       out << "NandEliminate";       return out;
-  case NorEliminate :       out << "NorEliminate";        return out;
-  case SdivEliminate :      out << "SdivEliminate";       return out;
-  case SremEliminate :      out << "SremEliminate";       return out;
-  case SmodEliminate :      out << "SmodEliminate";       return out;
-  case ZeroExtendEliminate :out << "ZeroExtendEliminate"; return out;
-  case EvalEquals :         out << "EvalEquals";          return out;
-  case EvalConcat :         out << "EvalConcat";          return out;
-  case EvalAnd :            out << "EvalAnd";             return out;
-  case EvalOr :             out << "EvalOr";              return out;
-  case EvalXor :            out << "EvalXor";             return out;
-  case EvalNot :            out << "EvalNot";             return out;
-  case EvalMult :           out << "EvalMult";            return out;
-  case EvalAdd: out << "EvalAdd"; return out;
-  case EvalUdiv :           out << "EvalUdiv";            return out;
-  case EvalUrem :           out << "EvalUrem";            return out;
-  case EvalShl :            out << "EvalShl";             return out;
-  case EvalLshr :           out << "EvalLshr";            return out;
-  case EvalAshr :           out << "EvalAshr";            return out;
-  case EvalUlt :            out << "EvalUlt";             return out;
-  case EvalUle :            out << "EvalUle";             return out;
-  case EvalSlt :            out << "EvalSlt";             return out;
-  case EvalSle :            out << "EvalSle";             return out; 
-  case EvalSltBv:           out << "EvalSltBv";           return out;
-  case EvalITEBv:           out << "EvalITEBv";           return out;
-  case EvalComp:            out << "EvalComp";            return out;
-  case EvalConstBvSym: out << "EvalConstBvSym"; return out;
-  case EvalEagerAtom: out << "EvalEagerAtom"; return out;
-  case EvalExtract :        out << "EvalExtract";         return out;
-  case EvalSignExtend :     out << "EvalSignExtend";      return out;
-  case EvalRotateLeft :     out << "EvalRotateLeft";      return out;
-  case EvalRotateRight :    out << "EvalRotateRight";     return out;
-  case EvalNeg :            out << "EvalNeg";             return out;
-  case BvIteConstCond :     out << "BvIteConstCond";      return out;
-  case BvIteEqualChildren : out << "BvIteEqualChildren";  return out;
-  case BvIteConstChildren : out << "BvIteConstChildren";  return out;
-  case BvIteEqualCond :     out << "BvIteEqualCond";      return out;
-  case BvIteMergeThenIf :   out << "BvIteMergeThenIf";    return out;
-  case BvIteMergeElseIf :   out << "BvIteMergeElseIf";    return out;
-  case BvIteMergeThenElse : out << "BvIteMergeThenElse";  return out;
-  case BvIteMergeElseElse : out << "BvIteMergeElseElse";  return out;
-  case BvComp :             out << "BvComp";              return out;
-  case ShlByConst :         out << "ShlByConst";          return out;
-  case LshrByConst :        out << "LshrByConst";         return out;
-  case AshrByConst :        out << "AshrByConst";         return out;
-  case ExtractNot :         out << "ExtractNot";          return out;
-  case DoubleNeg :          out << "DoubleNeg";           return out;
-  case NotConcat :          out << "NotConcat";           return out;
-  case UltZero :            out << "UltZero";             return out;
-  case UleZero :            out << "UleZero";             return out;
-  case ZeroUle :            out << "ZeroUle";             return out;
-  case UleMax :             out << "UleMax";              return out;
-  case SleEliminate :       out << "SleEliminate";        return out;
-  case XorOnes: out << "XorOnes"; return out;
-  case XorZero :       out << "XorZero";        return out;
-  case MultPow2 :            out << "MultPow2";             return out;
-  case MultSlice :            out << "MultSlice";             return out;
-  case ExtractMultLeadingBit :            out << "ExtractMultLeadingBit";             return out;
-  case NegIdemp :            out << "NegIdemp";             return out;
-  case UdivPow2 :            out << "UdivPow2";             return out;
-  case UdivZero:
-    out << "UdivZero";
-    return out;
-  case UdivOne :            out << "UdivOne";             return out;
-  case UremPow2 :            out << "UremPow2";             return out;
-  case UremOne :            out << "UremOne";             return out;
-  case UremSelf :            out << "UremSelf";             return out;
-  case ShiftZero :            out << "ShiftZero";             return out;
-  case UgtUrem: out << "UgtUrem"; return out;
-  case SubEliminate :            out << "SubEliminate";             return out;
-  case XnorEliminate :            out << "XnorEliminate";             return out;
-  case UaddoEliminate:            out << "UaddoEliminate";             return out;
-  case SaddoEliminate:            out << "SaddoEliminate";             return out;
-  case UmuloEliminate:            out << "UmuloEliminate";             return out;
-  case SmuloEliminate:            out << "SmuloEliminate";             return out;
-  case UsuboEliminate:            out << "SsuboEliminate";             return out;
-  case SsuboEliminate: out << "SsuboEliminate"; return out;
-  case NotIdemp :                  out << "NotIdemp"; return out;
-  case UleSelf:                    out << "UleSelf"; return out; 
-  case FlattenAssocCommut:     out << "FlattenAssocCommut"; return out;
-  case FlattenAssocCommutNoDuplicates:
-    out << "FlattenAssocCommutNoDuplicates";
-    return out;
-  case AddCombineLikeTerms: out << "AddCombineLikeTerms"; return out;
-  case MultSimplify: out << "MultSimplify"; return out;
-  case MultDistribConst: out << "MultDistribConst"; return out;
-  case SolveEq : out << "SolveEq"; return out;
-  case BitwiseEq : out << "BitwiseEq"; return out;
-  case NegMult : out << "NegMult"; return out;
-  case NegSub : out << "NegSub"; return out;
-  case AndSimplify : out << "AndSimplify"; return out;
-  case OrSimplify : out << "OrSimplify"; return out;
-  case XorSimplify : out << "XorSimplify"; return out;
-  case NegAdd: out << "NegAdd"; return out;
-  case UltOne : out << "UltOne"; return out;
-  case UltOnes: out << "UltOnes"; return out;
-  case MergeSignExtend : out << "MergeSignExtend"; return out;
-  case SignExtendEqConst: out << "SignExtendEqConst"; return out;
-  case ZeroExtendEqConst: out << "ZeroExtendEqConst"; return out;
-  case SignExtendUltConst: out << "SignExtendUltConst"; return out;
-  case ZeroExtendUltConst: out << "ZeroExtendUltConst"; return out;
-  case IneqElimConversion: out << "IneqElimConversion"; return out;
-
-  case UleEliminate : out << "UleEliminate"; return out;
-  case BitwiseSlicing : out << "BitwiseSlicing"; return out;
-  case ExtractSignExtend : out << "ExtractSignExtend"; return out;
-  case MultDistrib: out << "MultDistrib"; return out;
-  case UltAddOne: out << "UltAddOne"; return out;
-  case ConcatToMult: out << "ConcatToMult"; return out;
-  case MultSltMult: out << "MultSltMult"; return out;
-  case BitConst: out << "BitConst"; return out;
+inline std::ostream& operator<<(std::ostream& o, RewriteRuleId ruleId)
+{
+  // clang-format off
+  switch (ruleId) 
+  {
+  case EmptyRule:                      o << "EmptyRule";                      break;
+  case ConcatFlatten:                  o << "ConcatFlatten";                  break;
+  case ConcatExtractMerge:             o << "ConcatExtractMerge";             break;
+  case ConcatConstantMerge:            o << "ConcatConstantMerge";            break;
+  case AndOrXorConcatPullUp:           o << "AndOrXorConcatPullUp";           break;    
+  case NegEliminate:                   o << "NegEliminate";                   break;
+  case OrEliminate:                    o << "OrEliminate";                    break;
+  case XorEliminate:                   o << "XorEliminate";                   break;
+  case ExtractExtract:                 o << "ExtractExtract";                 break;
+  case ExtractWhole:                   o << "ExtractWhole";                   break;
+  case ExtractConcat:                  o << "ExtractConcat";                  break;
+  case ExtractConstant:                o << "ExtractConstant";                break;
+  case FailEq:                         o << "FailEq";                         break;
+  case SimplifyEq:                     o << "SimplifyEq";                     break;
+  case ReflexivityEq:                  o << "ReflexivityEq";                  break;
+  case UgtEliminate:                   o << "UgtEliminate";                   break;
+  case SgtEliminate:                   o << "SgtEliminate";                   break;
+  case UgeEliminate:                   o << "UgeEliminate";                   break;
+  case SgeEliminate:                   o << "SgeEliminate";                   break;
+  case RedorEliminate:                 o << "RedorEliminate";                 break;
+  case RedandEliminate:                o << "RedandEliminate";                break;
+  case RepeatEliminate:                o << "RepeatEliminate";                break;
+  case RotateLeftEliminate:            o << "RotateLeftEliminate";            break;
+  case RotateRightEliminate:           o << "RotateRightEliminate";           break;    
+  case SizeEliminate:                  o << "SizeEliminate";                  break;
+  case NandEliminate:                  o << "NandEliminate";                  break;
+  case NorEliminate:                   o << "NorEliminate";                   break;
+  case SdivEliminate:                  o << "SdivEliminate";                  break;
+  case SremEliminate:                  o << "SremEliminate";                  break;
+  case SmodEliminate:                  o << "SmodEliminate";                  break;
+  case ZeroExtendEliminate:            o << "ZeroExtendEliminate";            break;
+  case EvalEquals:                     o << "EvalEquals";                     break;
+  case EvalConcat:                     o << "EvalConcat";                     break;
+  case EvalAnd:                        o << "EvalAnd";                        break;
+  case EvalOr:                         o << "EvalOr";                         break;
+  case EvalXor:                        o << "EvalXor";                        break;
+  case EvalNot:                        o << "EvalNot";                        break;
+  case EvalMult:                       o << "EvalMult";                       break;
+  case EvalAdd:                        o << "EvalAdd";                        break;
+  case EvalUdiv:                       o << "EvalUdiv";                       break;
+  case EvalUrem:                       o << "EvalUrem";                       break;
+  case EvalShl:                        o << "EvalShl";                        break;
+  case EvalLshr:                       o << "EvalLshr";                       break;
+  case EvalAshr:                       o << "EvalAshr";                       break;
+  case EvalUlt:                        o << "EvalUlt";                        break;
+  case EvalUle:                        o << "EvalUle";                        break;
+  case EvalSlt:                        o << "EvalSlt";                        break;
+  case EvalSle:                        o << "EvalSle";                        break;
+  case EvalSltBv:                      o << "EvalSltBv";                      break;
+  case EvalITEBv:                      o << "EvalITEBv";                      break;
+  case EvalComp:                       o << "EvalComp";                       break;
+  case EvalConstBvSym:                 o << "EvalConstBvSym";                 break;
+  case EvalEagerAtom:                  o << "EvalEagerAtom";                  break;
+  case EvalExtract:                    o << "EvalExtract";                    break;
+  case EvalSignExtend:                 o << "EvalSignExtend";                 break;
+  case EvalRotateLeft:                 o << "EvalRotateLeft";                 break;
+  case EvalRotateRight:                o << "EvalRotateRight";                break;
+  case EvalNeg:                        o << "EvalNeg";                        break;
+  case BvIteConstCond:                 o << "BvIteConstCond";                 break;
+  case BvIteEqualChildren:             o << "BvIteEqualChildren";             break;
+  case BvIteConstChildren:             o << "BvIteConstChildren";             break;
+  case BvIteEqualCond:                 o << "BvIteEqualCond";                 break;
+  case BvIteMergeThenIf:               o << "BvIteMergeThenIf";               break;
+  case BvIteMergeElseIf:               o << "BvIteMergeElseIf";               break;
+  case BvIteMergeThenElse:             o << "BvIteMergeThenElse";             break;
+  case BvIteMergeElseElse:             o << "BvIteMergeElseElse";             break;
+  case BvComp:                         o << "BvComp";                         break;
+  case ShlByConst:                     o << "ShlByConst";                     break;
+  case LshrByConst:                    o << "LshrByConst";                    break;
+  case AshrByConst:                    o << "AshrByConst";                    break;
+  case ExtractNot:                     o << "ExtractNot";                     break;
+  case DoubleNeg:                      o << "DoubleNeg";                      break;
+  case NotConcat:                      o << "NotConcat";                      break;
+  case UltZero:                        o << "UltZero";                        break;
+  case UleZero:                        o << "UleZero";                        break;
+  case ZeroUle:                        o << "ZeroUle";                        break;
+  case UleMax:                         o << "UleMax";                         break;
+  case SleEliminate:                   o << "SleEliminate";                   break;
+  case XorOnes:                        o << "XorOnes";                        break;
+  case XorZero:                        o << "XorZero";                        break;
+  case MultPow2:                       o << "MultPow2";                       break;
+  case MultSlice:                      o << "MultSlice";                      break;
+  case ExtractMultLeadingBit:          o << "ExtractMultLeadingBit";          break;
+  case NegIdemp:                       o << "NegIdemp";                       break;
+  case UdivPow2:                       o << "UdivPow2";                       break;
+  case UdivZero:                       o << "UdivZero";                       break;
+  case UdivOne:                        o << "UdivOne";                        break;
+  case UremPow2:                       o << "UremPow2";                       break;
+  case UremOne:                        o << "UremOne";                        break;
+  case UremSelf:                       o << "UremSelf";                       break;
+  case ShiftZero:                      o << "ShiftZero";                      break;
+  case UgtUrem:                        o << "UgtUrem";                        break;
+  case SubEliminate:                   o << "SubEliminate";                   break;
+  case XnorEliminate:                  o << "XnorEliminate";                  break;
+  case UaddoEliminate:                 o << "UaddoEliminate";                 break;
+  case SaddoEliminate:                 o << "SaddoEliminate";                 break;
+  case UmuloEliminate:                 o << "UmuloEliminate";                 break;
+  case SmuloEliminate:                 o << "SmuloEliminate";                 break;
+  case UsuboEliminate:                 o << "UsuboEliminate";                 break;
+  case SsuboEliminate:                 o << "SsuboEliminate";                 break;
+  case NotIdemp:                       o << "NotIdemp";                       break;
+  case UleSelf:                        o << "UleSelf";                        break;
+  case FlattenAssocCommut:             o << "FlattenAssocCommut";             break;
+  case FlattenAssocCommutNoDuplicates: o << "FlattenAssocCommutNoDuplicates"; break;
+  case AddCombineLikeTerms:            o << "AddCombineLikeTerms";            break;
+  case MultSimplify:                   o << "MultSimplify";                   break;
+  case MultDistribConst:               o << "MultDistribConst";               break;
+  case SolveEq:                        o << "SolveEq";                        break;
+  case BitwiseEq:                      o << "BitwiseEq";                      break;
+  case NegMult:                        o << "NegMult";                        break;
+  case NegSub:                         o << "NegSub";                         break;
+  case AndSimplify:                    o << "AndSimplify";                    break;
+  case OrSimplify:                     o << "OrSimplify";                     break;
+  case XorSimplify:                    o << "XorSimplify";                    break;
+  case NegAdd:                         o << "NegAdd";                         break;
+  case UltOne:                         o << "UltOne";                         break;
+  case UltOnes:                        o << "UltOnes";                        break;
+  case MergeSignExtend:                o << "MergeSignExtend";                break;
+  case SignExtendEqConst:              o << "SignExtendEqConst";              break;
+  case ZeroExtendEqConst:              o << "ZeroExtendEqConst";              break;
+  case SignExtendUltConst:             o << "SignExtendUltConst";             break;
+  case ZeroExtendUltConst:             o << "ZeroExtendUltConst";             break;
+  case IneqElimConversion:             o << "IneqElimConversion";             break;
+  case UleEliminate:                   o << "UleEliminate";                   break;
+  case BitwiseSlicing:                 o << "BitwiseSlicing";                 break;
+  case ExtractSignExtend:              o << "ExtractSignExtend";              break;
+  case MultDistrib:                    o << "MultDistrib";                    break;
+  case UltAddOne:                      o << "UltAddOne";                      break;
+  case ConcatToMult:                   o << "ConcatToMult";                   break;
+  case MultSltMult:                    o << "MultSltMult";                    break;
+  case BitConst:                       o << "BitConst";                       break;
   default:
     Unreachable();
   }
+  return o;
+  // clang-format on
 };
 
 template <RewriteRuleId rule>
-class RewriteRule {
+class RewriteRule
+{
 
   /** Actually apply the rewrite rule */
   static inline Node apply(CVC5_UNUSED TNode node) {
@@ -338,13 +339,9 @@ class RewriteRule {
 
 public:
 
-  RewriteRule() {
-    
-  }
+  RewriteRule() = default;
 
-  ~RewriteRule() {
-    
-  }
+  ~RewriteRule() = default;
 
   static inline bool applies(CVC5_UNUSED TNode node)
   {
@@ -372,8 +369,10 @@ public:
   }
 };
 
+// clang-format off
 /** Have to list all the rewrite rules to get the statistics out */
-struct AllRewriteRules {
+struct AllRewriteRules
+{
   RewriteRule<EmptyRule>                      rule00;
   RewriteRule<ConcatFlatten>                  rule01;
   RewriteRule<ConcatExtractMerge>             rule02;
@@ -406,7 +405,7 @@ struct AllRewriteRules {
   RewriteRule<EvalNot>                        rule29;
   RewriteRule<EvalSlt>                        rule30;
   RewriteRule<EvalMult>                       rule31;
-  RewriteRule<EvalAdd> rule32;
+  RewriteRule<EvalAdd>                        rule32;
   RewriteRule<XorSimplify>                    rule33;
   RewriteRule<EvalUdiv>                       rule34;
   RewriteRule<EvalUrem>                       rule35;
@@ -435,7 +434,7 @@ struct AllRewriteRules {
   RewriteRule<UleMax>                         rule74;
   RewriteRule<SleEliminate>                   rule77;
   RewriteRule<SubEliminate>                   rule82;
-  RewriteRule<XorOnes> rule83;
+  RewriteRule<XorOnes>                        rule83;
   RewriteRule<XorZero>                        rule84;
   RewriteRule<MultSlice>                      rule85;
   RewriteRule<FlattenAssocCommutNoDuplicates> rule86;
@@ -453,17 +452,17 @@ struct AllRewriteRules {
   RewriteRule<NotIdemp>                       rule102;
   RewriteRule<UleSelf>                        rule103;
   RewriteRule<FlattenAssocCommut>             rule104;
-  RewriteRule<AddCombineLikeTerms> rule105;
+  RewriteRule<AddCombineLikeTerms>            rule105;
   RewriteRule<MultSimplify>                   rule106;
   RewriteRule<MultDistribConst>               rule107;
   RewriteRule<AndSimplify>                    rule108;
   RewriteRule<OrSimplify>                     rule109;
-  RewriteRule<NegAdd> rule110;
+  RewriteRule<NegAdd>                         rule110;
   RewriteRule<SolveEq>                        rule112;
   RewriteRule<BitwiseEq>                      rule113;
   RewriteRule<UltOne>                         rule114;
   RewriteRule<MultDistrib>                    rule118;
-  RewriteRule<UltAddOne> rule119;
+  RewriteRule<UltAddOne>                      rule119;
   RewriteRule<ConcatToMult>                   rule120;
   RewriteRule<RedorEliminate>                 rule122;
   RewriteRule<RedandEliminate>                rule123;
@@ -482,21 +481,22 @@ struct AllRewriteRules {
   RewriteRule<BvIteMergeThenElse>             rule137;
   RewriteRule<BvIteMergeElseElse>             rule138;
   RewriteRule<AndOrXorConcatPullUp>           rule139;
-  RewriteRule<NegEliminate> rule140;
-  RewriteRule<OrEliminate> rule141;
-  RewriteRule<XorEliminate> rule142;
-  RewriteRule<SdivEliminate> rule143;
-  RewriteRule<SremEliminate> rule144;
-  RewriteRule<SmodEliminate> rule145;
-  RewriteRule<UgtUrem> rule146;
-  RewriteRule<UltOnes> rule147;
-  RewriteRule<UaddoEliminate> rule148;
-  RewriteRule<SaddoEliminate> rule149;
-  RewriteRule<UmuloEliminate> rule150;
-  RewriteRule<SmuloEliminate> rule151;
-  RewriteRule<UsuboEliminate> rule152;
-  RewriteRule<SsuboEliminate> rule153;
+  RewriteRule<NegEliminate>                   rule140;
+  RewriteRule<OrEliminate>                    rule141;
+  RewriteRule<XorEliminate>                   rule142;
+  RewriteRule<SdivEliminate>                  rule143;
+  RewriteRule<SremEliminate>                  rule144;
+  RewriteRule<SmodEliminate>                  rule145;
+  RewriteRule<UgtUrem>                        rule146;
+  RewriteRule<UltOnes>                        rule147;
+  RewriteRule<UaddoEliminate>                 rule148;
+  RewriteRule<SaddoEliminate>                 rule149;
+  RewriteRule<UmuloEliminate>                 rule150;
+  RewriteRule<SmuloEliminate>                 rule151;
+  RewriteRule<UsuboEliminate>                 rule152;
+  RewriteRule<SsuboEliminate>                 rule153;
 };
+// clang-format on
 
 template <>
 inline bool RewriteRule<EmptyRule>::applies(CVC5_UNUSED TNode node)
@@ -511,82 +511,61 @@ Node RewriteRule<EmptyRule>::apply(TNode node) {
   return node;
 }
 
-template<Kind kind, RewriteRuleId rule>
-struct ApplyRuleToChildren {
-
-  static Node apply(TNode node) {
-    if (node.getKind() != kind) {
-      return RewriteRule<rule>::template run<true>(node);
+template <Kind Kind, RewriteRuleId Rule>
+struct ApplyRuleToChildren
+{
+  static Node apply(TNode node)
+  {
+    if (node.getKind() != Kind)
+    {
+      return RewriteRule<Rule>::template run<true>(node);
     }
-    NodeBuilder result(node.getNodeManager(), kind);
-    for (unsigned i = 0, end = node.getNumChildren(); i < end; ++ i) {
-      result << RewriteRule<rule>::template run<true>(node[i]);
+    NodeBuilder result(node.getNodeManager(), Kind);
+    for (unsigned i = 0, end = node.getNumChildren(); i < end; ++i)
+    {
+      result << RewriteRule<Rule>::template run<true>(node[i]);
     }
     return result;
   }
 
-  static bool applies(TNode node) {
-    if (node.getKind() == kind) return true;
-    return RewriteRule<rule>::applies(node);
+  static bool applies(TNode node)
+  {
+    if (node.getKind() == Kind) return true;
+    return RewriteRule<Rule>::applies(node);
   }
 
   template <bool checkApplies>
-  static Node run(TNode node) {
-    if (!checkApplies || applies(node)) {
+  static Node run(TNode node)
+  {
+    if (!checkApplies || applies(node))
+    {
       return apply(node);
-    } else {
+    }
+    else
+    {
       return node;
     }
   }
 };
 
-template <
-  typename R1,
-  typename R2  = RewriteRule<EmptyRule>,
-  typename R3  = RewriteRule<EmptyRule>,
-  typename R4  = RewriteRule<EmptyRule>,
-  typename R5  = RewriteRule<EmptyRule>,
-  typename R6  = RewriteRule<EmptyRule>,
-  typename R7  = RewriteRule<EmptyRule>,
-  typename R8  = RewriteRule<EmptyRule>,
-  typename R9  = RewriteRule<EmptyRule>,
-  typename R10 = RewriteRule<EmptyRule>,
-  typename R11 = RewriteRule<EmptyRule>,
-  typename R12 = RewriteRule<EmptyRule>,
-  typename R13 = RewriteRule<EmptyRule>,
-  typename R14 = RewriteRule<EmptyRule>,
-  typename R15 = RewriteRule<EmptyRule>,
-  typename R16 = RewriteRule<EmptyRule>,
-  typename R17 = RewriteRule<EmptyRule>,
-  typename R18 = RewriteRule<EmptyRule>,
-  typename R19 = RewriteRule<EmptyRule>,
-  typename R20 = RewriteRule<EmptyRule>
-  >
-struct LinearRewriteStrategy {
-  static Node apply(TNode node) {
+template <typename... Rules>
+struct LinearRewriteStrategy;
+
+template <typename Rule, typename... Rest>
+struct LinearRewriteStrategy<Rule, Rest...>
+{
+  static Node apply(TNode node)
+  {
     Node current = node;
-    if (R1::applies(current)) current  = R1::template run<false>(current);
-    if (R2::applies(current)) current  = R2::template run<false>(current);
-    if (R3::applies(current)) current  = R3::template run<false>(current);
-    if (R4::applies(current)) current  = R4::template run<false>(current);
-    if (R5::applies(current)) current  = R5::template run<false>(current);
-    if (R6::applies(current)) current  = R6::template run<false>(current);
-    if (R7::applies(current)) current  = R7::template run<false>(current);
-    if (R8::applies(current)) current  = R8::template run<false>(current);
-    if (R9::applies(current)) current  = R9::template run<false>(current);
-    if (R10::applies(current)) current = R10::template run<false>(current);
-    if (R11::applies(current)) current = R11::template run<false>(current);
-    if (R12::applies(current)) current = R12::template run<false>(current);
-    if (R13::applies(current)) current = R13::template run<false>(current);
-    if (R14::applies(current)) current = R14::template run<false>(current);
-    if (R15::applies(current)) current = R15::template run<false>(current);
-    if (R16::applies(current)) current = R16::template run<false>(current);
-    if (R17::applies(current)) current = R17::template run<false>(current);
-    if (R18::applies(current)) current = R18::template run<false>(current);
-    if (R19::applies(current)) current = R19::template run<false>(current);
-    if (R20::applies(current)) current = R20::template run<false>(current);
-    return current;
+    if (Rule::applies(current)) current = Rule::template run<false>(current);
+    return LinearRewriteStrategy<Rest...>::apply(current);
   }
+};
+
+template <>
+struct LinearRewriteStrategy<>
+{
+  static Node apply(TNode node) { return node; }
 };
 
 }  // namespace bv
