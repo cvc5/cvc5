@@ -198,6 +198,8 @@ class wrappedBitVector : public BitVector
   wrappedBitVector<isSigned> modularDecrement() const;
   wrappedBitVector<isSigned> modularAdd(
       const wrappedBitVector<isSigned>& op) const;
+  wrappedBitVector<isSigned> modularSubtract(
+      const wrappedBitVector<isSigned>& op) const;
   wrappedBitVector<isSigned> modularNegate() const;
 
   /** Bit-vector equality. */

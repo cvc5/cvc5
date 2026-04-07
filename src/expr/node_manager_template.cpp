@@ -984,12 +984,12 @@ TypeNode NodeManager::mkNullableType(const TypeNode& type)
   std::stringstream sst;
   sst << "__cvc5_nullable_" << type;
   DType dt(sst.str());
-  dt.setNullable();  
+  dt.setNullable();
   std::shared_ptr<DTypeConstructor> null =
       std::make_shared<DTypeConstructor>("nullable.null");
   dt.addConstructor(null);
   std::shared_ptr<DTypeConstructor> some =
-      std::make_shared<DTypeConstructor>("nullable.some");  
+      std::make_shared<DTypeConstructor>("nullable.some");
   some->addArg("nullable.val", type);
   dt.addConstructor(some);
   TypeNode datatype = mkDatatypeType(dt);
