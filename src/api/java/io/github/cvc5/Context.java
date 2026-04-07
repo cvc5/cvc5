@@ -29,7 +29,12 @@ import java.lang.Long;
 public class Context
 {
   // Store pointers for term managers, solvers, terms, sorts, etc
-  private static final Map<Long, AbstractPointer> abstractPointers = new LinkedHashMap<>();
+  private static final ThreadLocal<Map<Long, AbstractPointer>> abstractPointers = new ThreadLocal<>() {
+    @Override
+    protected Map<Long, AbstractPointer> initialValue() {
+      return new LinkedHashMap<>();
+    }
+  };
 
   /**
    * Private constructor to prevent instantiation of this memory management class.
@@ -43,9 +48,9 @@ public class Context
    *
    * @param pointer the {@link AbstractPointer} to register
    */
-  static synchronized void addAbstractPointer(AbstractPointer pointer)
+  static void addAbstractPointer(AbstractPointer pointer)
   {
-    abstractPointers.put(Long.valueOf(pointer.getPointer()), pointer);
+    abstractPointers.get().put(Long.valueOf(pointer.getPointer()), pointer);
   }
 
   /**
@@ -53,17 +58,17 @@ public class Context
    *
    * @param pointer the {@link AbstractPointer} to remove
    */
-  static synchronized void removeAbstractPointer(AbstractPointer pointer) {
+  static void removeAbstractPointer(AbstractPointer pointer) {
     if (pointer.getPointer() != 0) {
-      abstractPointers.remove(Long.valueOf(pointer.getPointer()));
+      abstractPointers.get().remove(Long.valueOf(pointer.getPointer()));
     }
   }
 
   /**
    * Delete all registered native pointers in reverse order of their registration.
    *
-   * <p>This method should be called by a single thread once all term managers and
-   * solver instances are no longer needed. It ensures that all native memory
+   * <p>This method should be called once all term managers and solver instances
+   * are no longer needed by the current thread. It ensures that all native memory
    * associated with registered {@link AbstractPointer}s is released to
    * prevent memory leaks.</p>
    *
@@ -71,14 +76,14 @@ public class Context
    * the {@link AbstractPointer#deletePointer()} method individually on
    * each Java object instead of calling this method.</p>
    */
-  public static synchronized void deletePointers()
+  public static void deletePointersFromCurrentThread()
   {
-    LinkedList<AbstractPointer> values = new LinkedList<AbstractPointer>(abstractPointers.values());
+    LinkedList<AbstractPointer> values = new LinkedList<AbstractPointer>(abstractPointers.get().values());
     Iterator<AbstractPointer> i = values.descendingIterator();
     while (i.hasNext()) {
       i.next().deletePointer();
     }
 
-    abstractPointers.clear();
+    abstractPointers.get().clear();
   }
 }
