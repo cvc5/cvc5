@@ -130,6 +130,22 @@ name   = "Driver"
   help       = "output proofs after every UNSAT/VALID response"
 
 [[option]]
+  name       = "tptpModels"
+  category   = "regular"
+  long       = "tptp-models"
+  type       = "bool"
+  default    = "false"
+  help       = "print finite models in TPTP format"
+
+[[option]]
+  name       = "tptpModelVerification"
+  category   = "regular"
+  long       = "tptp-model-verification"
+  type       = "bool"
+  default    = "false"
+  help       = "when printing TPTP models for verification, preserve the input TPTP dialect when it is provided explicitly"
+
+[[option]]
   name       = "dumpInstantiations"
   category   = "regular"
   long       = "dump-instantiations"

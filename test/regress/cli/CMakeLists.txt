@@ -1027,6 +1027,11 @@ set(regress_0_tests
   regress0/ho/issue5744-cg-model.smt2
   regress0/ho/issue6526.smt2
   regress0/ho/issue6536.smt2
+  regress0/ho/isabelle-pf-lemma.smt2
+  regress0/ho/tptp-models-ho-q-funarg.smt2
+  regress0/ho/tptp-models-isabelle-pf-lambda.smt2
+  regress0/ho/tptp-models-garfield.smt2
+  regress0/ho/tptp-models-garfield-verification.smt2
   regress0/ho/ite-apply-eq.smt2
   regress0/ho/lambda-cycle.smt2
   regress0/ho/lambda-elim-sat.smt2
@@ -1458,6 +1463,7 @@ set(regress_0_tests
   regress0/printer/print_unsat_core.smt2
   regress0/printer/print_unsat_core_lemmas.smt2
   regress0/printer/symbol_starting_w_digit.smt2
+  regress0/printer/tptpmodels_unsorted_i.smt2
   regress0/printer/tuples_and_records.cvc.smt2
   regress0/printer/unsat-core-dagify.smt2
   regress0/proj-issue307-get-value-re.smt2

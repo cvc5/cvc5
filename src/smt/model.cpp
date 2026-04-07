@@ -19,8 +19,35 @@
 namespace cvc5::internal {
 namespace smt {
 
-Model::Model(bool isKnownSat, const std::string& inputName)
-    : d_inputName(inputName), d_isKnownSat(isKnownSat)
+TptpDialect tptpDialectFromString(const std::string& input)
+{
+  if (input == "cnf")
+  {
+    return TptpDialect::CNF;
+  }
+  if (input == "fof")
+  {
+    return TptpDialect::FOF;
+  }
+  if (input == "tff")
+  {
+    return TptpDialect::TFF;
+  }
+  if (input == "thf")
+  {
+    return TptpDialect::THF;
+  }
+  return TptpDialect::AUTO;
+}
+
+Model::Model(bool isKnownSat,
+             const std::string& inputName,
+             bool tptpModelVerification,
+             TptpDialect tptpInputDialect)
+    : d_inputName(inputName),
+      d_tptpModelVerification(tptpModelVerification),
+      d_tptpInputDialect(tptpInputDialect),
+      d_isKnownSat(isKnownSat)
 {
 }
 
@@ -41,9 +68,84 @@ const std::vector<Node>& Model::getDomainElements(TypeNode tn) const
 
 Node Model::getValue(TNode n) const
 {
+  Node v = getValueOrNull(n);
+  Assert(!v.isNull());
+  return v;
+}
+
+Node Model::getValueOrNull(TNode n) const
+{
   std::map<Node, Node>::const_iterator it = d_declareTermValues.find(n);
-  Assert(it != d_declareTermValues.end());
-  return it->second;
+  if (it != d_declareTermValues.end())
+  {
+    return it->second;
+  }
+  if (d_evaluator)
+  {
+    return d_evaluator(n);
+  }
+  return Node::null();
+}
+
+bool Model::getBooleanValue(TNode n, bool& value) const
+{
+  Node cur = n;
+  for (size_t i = 0; i < 16; i++)
+  {
+    if (cur.getKind() == Kind::CONST_BOOLEAN)
+    {
+      value = cur.getConst<bool>();
+      return true;
+    }
+    NodeManager* nm = cur.getNodeManager();
+    if (d_evaluator)
+    {
+      // Ask evaluator for the concrete truth value of cur.
+      Node it = nm->mkNode(Kind::ITE, cur, nm->mkConst(true), nm->mkConst(false));
+      Node vit = d_evaluator(it);
+      if (!vit.isNull() && vit.getKind() == Kind::CONST_BOOLEAN)
+      {
+        value = vit.getConst<bool>();
+        return true;
+      }
+      Node eqT = nm->mkNode(Kind::EQUAL, cur, nm->mkConst(true));
+      Node veqT = d_evaluator(eqT);
+      if (!veqT.isNull() && veqT.getKind() == Kind::CONST_BOOLEAN
+          && veqT.getConst<bool>())
+      {
+        value = true;
+        return true;
+      }
+      Node eqF = nm->mkNode(Kind::EQUAL, cur, nm->mkConst(false));
+      Node veqF = d_evaluator(eqF);
+      if (!veqF.isNull() && veqF.getKind() == Kind::CONST_BOOLEAN
+          && veqF.getConst<bool>())
+      {
+        value = false;
+        return true;
+      }
+    }
+
+    Node nxt = Node::null();
+    if (d_evaluator)
+    {
+      nxt = d_evaluator(cur);
+    }
+    if (nxt.isNull() || nxt == cur)
+    {
+      std::map<Node, Node>::const_iterator it = d_declareTermValues.find(cur);
+      if (it != d_declareTermValues.end())
+      {
+        nxt = it->second;
+      }
+    }
+    if (nxt.isNull() || nxt == cur)
+    {
+      break;
+    }
+    cur = nxt;
+  }
+  return false;
 }
 
 bool Model::getHeapModel(Node& h, Node& nilEq) const
@@ -83,6 +185,11 @@ const std::vector<TypeNode>& Model::getDeclaredSorts() const
 const std::vector<Node>& Model::getDeclaredTerms() const
 {
   return d_declareTerms;
+}
+
+void Model::setEvaluator(const std::function<Node(TNode)>& eval)
+{
+  d_evaluator = eval;
 }
 
 }  // namespace smt

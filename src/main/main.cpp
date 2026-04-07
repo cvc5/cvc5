@@ -17,6 +17,7 @@
 
 #include "base/configuration.h"
 #include "main/command_executor.h"
+#include "options/language.h"
 #include "options/option_exception.h"
 
 using namespace cvc5::internal;
@@ -58,7 +59,8 @@ int main(int argc, char* argv[])
 #ifdef CVC5_COMPETITION_MODE
     solver->getDriverOptions().out() << "unknown" << std::endl;
 #endif
-    if (solver->getOption("output-language") == "LANG_SMTLIB_V2_6")
+    if (language::isLangSmt2(
+            language::toLanguage(solver->getOption("output-language"))))
     {
       solver->getDriverOptions().out()
           << "(error \"" << e << "\")" << std::endl;

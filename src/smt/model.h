@@ -15,6 +15,7 @@
 #ifndef CVC5__SMT__MODEL_H
 #define CVC5__SMT__MODEL_H
 
+#include <functional>
 #include <iosfwd>
 #include <vector>
 
@@ -22,6 +23,17 @@
 
 namespace cvc5::internal {
 namespace smt {
+
+enum class TptpDialect
+{
+  AUTO,
+  CNF,
+  FOF,
+  TFF,
+  THF,
+};
+
+TptpDialect tptpDialectFromString(const std::string& input);
 
 class Model;
 
@@ -36,9 +48,16 @@ class Model {
    * @param isKnownSat True if this model is associated with a "sat" response,
    * or false if it is associated with an "unknown" response.
    */
-  Model(bool isKnownSat, const std::string& inputName);
+  Model(bool isKnownSat,
+        const std::string& inputName,
+        bool tptpModelVerification = false,
+        TptpDialect tptpInputDialect = TptpDialect::AUTO);
   /** get the input name (file name, etc.) this model is associated to */
   std::string getInputName() const { return d_inputName; }
+  /** whether TPTP model output should preserve explicit input metadata */
+  bool useTptpModelVerification() const { return d_tptpModelVerification; }
+  /** input TPTP dialect supplied by the caller, when known */
+  TptpDialect getTptpInputDialect() const { return d_tptpInputDialect; }
   /**
    * Returns true if this model is guaranteed to be a model of the input
    * formula. Notice that when cvc5 answers "unknown", it may have a model
@@ -50,6 +69,10 @@ class Model {
   const std::vector<Node>& getDomainElements(TypeNode tn) const;
   /** Get value */
   Node getValue(TNode n) const;
+  /** Get value, or null if unavailable */
+  Node getValueOrNull(TNode n) const;
+  /** Get Boolean value of a closed Boolean term, if available */
+  bool getBooleanValue(TNode n, bool& value) const;
   /** Get separation logic heap and nil, return true if they have been set */
   bool getHeapModel(Node& h, Node& nilEq) const;
   //----------------------- model declarations
@@ -81,10 +104,16 @@ class Model {
   const std::vector<TypeNode>& getDeclaredSorts() const;
   /** get declared terms */
   const std::vector<Node>& getDeclaredTerms() const;
+  /** set fallback evaluator for arbitrary closed terms */
+  void setEvaluator(const std::function<Node(TNode)>& eval);
   //----------------------- end model declarations
  protected:
   /** the input name (file name, etc.) this model is associated to */
   std::string d_inputName;
+  /** whether model printing should preserve explicit input metadata */
+  bool d_tptpModelVerification;
+  /** input TPTP dialect supplied by the caller, when known */
+  TptpDialect d_tptpInputDialect;
   /**
    * Flag set to false if the model is associated with an "unknown" response
    * from the solver.
@@ -104,6 +133,8 @@ class Model {
   std::vector<Node> d_declareTerms;
   /** Mapping terms to values */
   std::map<Node, Node> d_declareTermValues;
+  /** Optional fallback evaluator (e.g. TheoryModel::getValue) */
+  std::function<Node(TNode)> d_evaluator;
   /** Separation logic heap and nil */
   Node d_sepHeap;
   Node d_sepNilEq;

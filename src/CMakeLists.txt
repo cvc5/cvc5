@@ -145,6 +145,8 @@ libcvc5_add_sources(
   printer/let_binding.h
   printer/printer.cpp
   printer/printer.h
+  printer/smt2/smt2_tptp_printer.cpp
+  printer/smt2/smt2_tptp_printer.h
   printer/smt2/smt2_printer.cpp
   printer/smt2/smt2_printer.h
   proof/eo/eo_dependent_type_converter.cpp
