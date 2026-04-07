@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Mudathir Mohamed, Amalee Wilson
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -41,7 +38,7 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_TermManager_newTermManager(JNIEnv*,
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_io_github_cvc5_TermManager_deletePointer(
-    JNIEnv* env, jobject, jlong pointer)
+    JNIEnv*, jobject, jlong pointer)
 {
   delete (reinterpret_cast<TermManager*>(pointer));
 }

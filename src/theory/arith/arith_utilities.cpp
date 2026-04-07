@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Alex Ozdemir
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -227,7 +224,7 @@ Node getApproximateConstant(Node c, bool isLower, unsigned prec)
   return cret;
 }
 
-void printRationalApprox(const char* c, Node cr, unsigned prec)
+void printRationalApprox(CVC5_UNUSED const char* c, Node cr, unsigned prec)
 {
   if (!cr.isConst())
   {
@@ -250,8 +247,8 @@ void printRationalApprox(const char* c, Node cr, unsigned prec)
 Node mkBounded(Node l, Node a, Node u)
 {
   return NodeManager::mkNode(Kind::AND,
-                             NodeManager::mkNode(Kind::GEQ, a, l),
-                             NodeManager::mkNode(Kind::LEQ, a, u));
+                             {NodeManager::mkNode(Kind::GEQ, a, l),
+                              NodeManager::mkNode(Kind::LEQ, a, u)});
 }
 
 Rational leastIntGreaterThan(const Rational& q) { return q.floor() + 1; }
@@ -376,9 +373,9 @@ Node eliminateInt2Bv(TNode node)
   {
     Node cond = nm->mkNode(
         Kind::GEQ,
-        nm->mkNode(
-            Kind::INTS_MODULUS_TOTAL, node[0], nm->mkConstInt(Rational(i))),
-        nm->mkConstInt(Rational(i, 2)));
+        {nm->mkNode(
+             Kind::INTS_MODULUS_TOTAL, node[0], nm->mkConstInt(Rational(i))),
+         nm->mkConstInt(Rational(i, 2))});
     v.push_back(nm->mkNode(Kind::ITE, cond, bvone, bvzero));
     i *= 2;
   }

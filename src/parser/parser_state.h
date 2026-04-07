@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Christopher L. Conway
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -558,6 +555,14 @@ class CVC5_EXPORT ParserState
    */
   std::string stripQuotes(const std::string& s);
 
+  /**
+   * Parse a non-negative numeral that must fit in uint32_t.
+   * Otherwise an exception is thrown.
+   * @param str The string to parse.
+   * @return the corresponding uint32_t if successful.
+   */
+  uint32_t parseStringToUnsigned(const std::string& str);
+
  protected:
   /** The API Solver object. */
   Solver* d_solver;
@@ -605,8 +610,16 @@ class CVC5_EXPORT ParserState
   std::map<std::pair<std::string, Sort>, Term> d_varCache;
 }; /* class Parser */
 
-/** Compute the unsigned integer for a token. */
-uint32_t stringToUnsigned(const std::string& str);
+/**
+ * Parse a non-negative numeral that must fit in uint32_t.
+ * @param str The string to parse.
+ * @param result The result of parsing str to a uint32_t if successful.
+ * @param os If provided, errors are written on this stream.
+ * @return true if the parsing was successful.
+ */
+bool stringToUnsigned(const std::string& str,
+                      uint32_t& result,
+                      std::ostream* os = nullptr);
 
 }  // namespace parser
 }  // namespace cvc5

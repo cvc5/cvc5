@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -445,7 +442,7 @@ std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
       std::vector<Term> bvs;
       Term func =
           d_state.setupDefineFunRecScope(fname, sortedVarNames, t, flattenVars);
-      d_state.pushDefineFunRecScope(sortedVarNames, func, flattenVars, bvs);
+      d_state.pushDefineFunRecScope(sortedVarNames, flattenVars, bvs);
       Term expr = d_tparser.parseTerm();
       d_state.popScope();
       if (!flattenVars.empty())
@@ -499,7 +496,7 @@ std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
       {
         std::vector<Term> bvs;
         d_state.pushDefineFunRecScope(
-            sortedVarNamesList[j], funcs[j], flattenVarsList[j], bvs);
+            sortedVarNamesList[j], flattenVarsList[j], bvs);
         Term expr = d_tparser.parseTerm();
         d_state.popScope();
         funcDefs.push_back(expr);
@@ -559,7 +556,7 @@ std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
       std::string key = d_tparser.parseKeyword();
       modes::FindSynthTarget fst = d_state.getFindSynthTarget(key);
       std::vector<Term> emptyVarList;
-      Grammar* g = d_tparser.parseGrammarOrNull(emptyVarList, "g_find-synth");
+      Grammar* g = d_tparser.parseGrammarOrNull(emptyVarList);
       cmd.reset(new FindSynthCommand(fst, g));
     }
     break;
@@ -577,7 +574,7 @@ std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
       Term t = d_tparser.parseTerm();
       // parse optional grammar
       std::vector<Term> emptyVarList;
-      Grammar* g = d_tparser.parseGrammarOrNull(emptyVarList, name);
+      Grammar* g = d_tparser.parseGrammarOrNull(emptyVarList);
       cmd.reset(new GetAbductCommand(name, t, g));
     }
     break;
@@ -623,7 +620,7 @@ std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
       std::string name = d_tparser.parseSymbol(CHECK_UNDECLARED, SYM_VARIABLE);
       Term t = d_tparser.parseTerm();
       std::vector<Term> emptyVarList;
-      Grammar* g = d_tparser.parseGrammarOrNull(emptyVarList, name);
+      Grammar* g = d_tparser.parseGrammarOrNull(emptyVarList);
       cmd.reset(new GetInterpolantCommand(name, t, g));
     }
     break;
@@ -941,7 +938,7 @@ std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
       }
       d_state.pushScope();
       std::vector<cvc5::Term> sygusVars = d_state.bindBoundVars(sortedVarNames);
-      Grammar* g = d_tparser.parseGrammarOrNull(sygusVars, name);
+      Grammar* g = d_tparser.parseGrammarOrNull(sygusVars);
 
       Trace("parser-sygus") << "Define synth fun : " << name << std::endl;
       d_state.popScope();

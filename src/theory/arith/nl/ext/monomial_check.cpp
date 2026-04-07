@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Tim King
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -821,10 +818,10 @@ Node MonomialCheck::mkLit(Node a, Node b, int status, bool isAbsolute) const
       Node negate_a = nm->mkNode(Kind::NEG, a);
       Node negate_b = nm->mkNode(Kind::NEG, b);
       ret = a_is_nonnegative.iteNode(
-          b_is_nonnegative.iteNode(nm->mkNode(k, a, b),
-                                   nm->mkNode(k, a, negate_b)),
-          b_is_nonnegative.iteNode(nm->mkNode(k, negate_a, b),
-                                   nm->mkNode(k, negate_a, negate_b)));
+          {b_is_nonnegative.iteNode(
+               {nm->mkNode(k, a, b), nm->mkNode(k, a, negate_b)}),
+           b_is_nonnegative.iteNode({nm->mkNode(k, negate_a, b),
+                                     nm->mkNode(k, negate_a, negate_b)})});
     }
   }
   return ret;

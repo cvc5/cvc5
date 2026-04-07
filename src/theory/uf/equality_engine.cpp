@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Dejan Jovanovic, Andrew Reynolds, Haniel Barbosa
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -104,7 +101,7 @@ EqualityEngine::EqualityEngine(Env& env,
                                bool anyTermTriggers)
     : ContextNotifyObj(c),
       EnvObj(env),
-      d_masterEqualityEngine(0),
+      d_masterEqualityEngine(nullptr),
       d_context(c),
       d_done(c, false),
       d_notify(&s_notifyNone),
@@ -1235,7 +1232,7 @@ void EqualityEngine::explainEquality(TNode t1, TNode t2, bool polarity,
           if (!c1.isNull() && !c2.isNull())
           {
             simpTrans = false;
-            Assert(c1.getType() == c2.getType());
+            AssertEqual(c1.getType(), c2.getType());
             std::shared_ptr<EqProof> eqpmc = std::make_shared<EqProof>();
             eqpmc->d_id = MERGED_THROUGH_CONSTANTS;
             eqpmc->d_node = c1.eqNode(c2).eqNode(d_false);
@@ -1676,7 +1673,8 @@ void EqualityEngine::getExplanation(
             currentIndex = bfsQueue[currentIndex].d_previousIndex;
 
             //---from Morgan---
-            if (eqpc != NULL && eqpc->d_id == MERGED_THROUGH_REFLEXIVITY) {
+            if (eqpc != nullptr && eqpc->d_id == MERGED_THROUGH_REFLEXIVITY)
+            {
               if(eqpc->d_node.isNull()) {
                 Assert(eqpc->d_children.size() == 1);
                 std::shared_ptr<EqProof> p = eqpc;

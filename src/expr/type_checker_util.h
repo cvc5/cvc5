@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andres Noetzli, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -68,7 +65,7 @@ struct RString
 /** Argument does not exist */
 struct ANone
 {
-  static bool checkArg(TNode n, size_t arg)
+  static bool checkArg(CVC5_UNUSED TNode n, CVC5_UNUSED size_t arg)
   {
     Assert(arg >= n.getNumChildren());
     return true;

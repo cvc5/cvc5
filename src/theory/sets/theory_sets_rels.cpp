@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Paul Meng, Mudathir Mohamed
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -639,17 +636,17 @@ void TheorySetsRels::check(Theory::Effort level)
         mem_of_r,
         nm->mkNode(
             Kind::AND,
-            nm->mkNode(Kind::SET_MEMBER,
-                       RelsUtils::constructPair(tc_rel, fst_element, sk_1),
-                       tc_rel[0]),
-            nm->mkNode(Kind::SET_MEMBER,
-                       RelsUtils::constructPair(tc_rel, sk_2, snd_element),
-                       tc_rel[0]),
-            nm->mkNode(Kind::OR,
-                       sk_eq,
-                       nm->mkNode(Kind::SET_MEMBER,
-                                  RelsUtils::constructPair(tc_rel, sk_1, sk_2),
-                                  tc_rel))));
+            {nm->mkNode(Kind::SET_MEMBER,
+                        RelsUtils::constructPair(tc_rel, fst_element, sk_1),
+                        tc_rel[0]),
+             nm->mkNode(Kind::SET_MEMBER,
+                        RelsUtils::constructPair(tc_rel, sk_2, snd_element),
+                        tc_rel[0]),
+             nm->mkNode(Kind::OR,
+                        sk_eq,
+                        nm->mkNode(Kind::SET_MEMBER,
+                                   RelsUtils::constructPair(tc_rel, sk_1, sk_2),
+                                   tc_rel))}));
 
     sendInfer(conc, InferenceId::SETS_RELS_TCLOSURE_UP, reason);
   }
@@ -1421,7 +1418,7 @@ void TheorySetsRels::check(Theory::Effort level)
 
   bool TheorySetsRels::hasTerm(Node a) { return d_state.hasTerm(a); }
   bool TheorySetsRels::areEqual( Node a, Node b ){
-    Assert(a.getType() == b.getType());
+    AssertEqual(a.getType(), b.getType());
     Trace("rels-eq") << "[sets-rels]**** checking equality between " << a << " and " << b << std::endl;
     if(a == b) {
       return true;

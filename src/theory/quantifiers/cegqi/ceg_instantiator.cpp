@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -494,7 +491,7 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf, unsigned i)
     //get the instantiator object
     Assert(d_instantiator.find(pv) != d_instantiator.end());
     Instantiator* vinst = d_instantiator[pv];
-    Assert(vinst != NULL);
+    Assert(vinst != nullptr);
     d_active_instantiators[pv] = vinst;
     vinst->reset(this, sf, pv, d_effort);
     // if d_effort is full, we must choose at least one model value
@@ -818,7 +815,7 @@ bool CegInstantiator::constructInstantiationInc(Node pv,
                                                 SolvedForm& sf,
                                                 bool revertOnSuccess)
 {
-  Assert(n.getType() == pv.getType());
+  AssertEqual(n.getType(), pv.getType());
   Node cnode = pv_prop.getCacheNode();
   if( d_curr_subs_proc[pv][n].find( cnode )==d_curr_subs_proc[pv][n].end() ){
     d_curr_subs_proc[pv][n][cnode] = true;
@@ -830,7 +827,7 @@ bool CegInstantiator::constructInstantiationInc(Node pv,
                          << ") ";
       Node mod_pv = pv_prop.getModifiedTerm( pv );
       Trace("cegqi-inst-debug") << mod_pv << " -> " << n << std::endl;
-      Assert(n.getType() == pv.getType());
+      AssertEqual(n.getType(), pv.getType());
     }
     //must ensure variables have been computed for n
     computeProgVars( n );
@@ -994,7 +991,7 @@ bool CegInstantiator::doAddInstantiation(std::vector<Node>& vars,
       Node n = it->second;
       Trace("cegqi-inst-debug") << "  " << d_input_vars[i] << " -> " << n
                                << std::endl;
-      Assert(n.getType() == d_input_vars[i].getType());
+      AssertEqual(n.getType(), d_input_vars[i].getType());
       subs.push_back( n );
     }
   }
@@ -1006,7 +1003,7 @@ bool CegInstantiator::doAddInstantiation(std::vector<Node>& vars,
       Node v = d_input_vars[i];
       Trace("cegqi-inst") << i << " (" << d_curr_iphase[v] << ") : " 
                          << v << " -> " << subs[i] << std::endl;
-      Assert(subs[i].getType() == v.getType());
+      AssertEqual(subs[i].getType(), v.getType());
     }
   }
   Trace("cegqi-inst-debug") << "Do the instantiation...." << std::endl;
@@ -1112,7 +1109,7 @@ Node CegInstantiator::applySubstitution( TypeNode tn, Node n, std::vector< Node 
     Trace("sygus-si-apply-subs-debug") << "is_basic = " << is_basic << "  " << tn << std::endl;
     for( unsigned i=0; i<subs.size(); i++ ){
       Trace("sygus-si-apply-subs-debug") << "  " << vars[i] << " -> " << subs[i] << "   types : " << vars[i].getType() << " -> " << subs[i].getType() << std::endl;
-      Assert(subs[i].getType() == vars[i].getType());
+      AssertEqual(subs[i].getType(), vars[i].getType());
     }
   }
   Node nret;

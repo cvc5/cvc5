@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Gereon Kremer, Tim King
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -43,13 +40,6 @@ Integer::Integer(const std::string& s, unsigned base)
 Integer::Integer(int64_t z) : d_value(construct_mpz(z)) {}
 Integer::Integer(uint64_t z) : d_value(construct_mpz(z)) {}
 #endif /* CVC5_NEED_INT64_T_OVERLOADS */
-
-Integer& Integer::operator=(const Integer& x)
-{
-  if (this == &x) return *this;
-  d_value = x.d_value;
-  return *this;
-}
 
 bool Integer::operator==(const Integer& y) const
 {

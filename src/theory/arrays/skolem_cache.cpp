@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Daniel Larraz, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -33,7 +30,7 @@ Node SkolemCache::getExtIndexSkolem(NodeManager* nm, Node deq)
   Node a = deq[0][0];
   Node b = deq[0][1];
   Assert(a.getType().isArray());
-  Assert(b.getType() == a.getType());
+  AssertEqual(b.getType(), a.getType());
 
   // make the skolem, which is deterministic for a,b.
   SkolemManager* sm = nm->getSkolemManager();

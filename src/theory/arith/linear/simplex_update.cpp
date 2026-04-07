@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Tim King, Andres Noetzli, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -66,7 +63,7 @@ UpdateInfo::UpdateInfo(ArithVar nb, int dir):
   Assert(dir == 1 || dir == -1);
 }
 
-UpdateInfo::UpdateInfo(bool conflict, ArithVar nb, const DeltaRational& delta, const Rational& r, ConstraintP c):
+UpdateInfo::UpdateInfo(CVC5_UNUSED bool conflict, ArithVar nb, const DeltaRational& delta, const Rational& r, ConstraintP c):
   d_nonbasic(nb),
   d_nonbasicDirection(delta.sgn()),
   d_nonbasicDelta(delta),

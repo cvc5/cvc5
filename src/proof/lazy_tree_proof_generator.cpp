@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Gereon Kremer, Andrew Reynolds, Hans-Joerg Schurr
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -89,7 +86,7 @@ std::shared_ptr<ProofNode> LazyTreeProofGenerator::getProof() const
   return d_cached;
 }
 
-std::shared_ptr<ProofNode> LazyTreeProofGenerator::getProofFor(Node f)
+std::shared_ptr<ProofNode> LazyTreeProofGenerator::getProofFor(CVC5_UNUSED Node f)
 {
   Assert(hasProofFor(f));
   return getProof();
@@ -150,7 +147,7 @@ void LazyTreeProofGenerator::print(std::ostream& os,
   {
     os << prefix << ":args ";
     container_to_stream(os, pn.d_args);
-    std::cout << std::endl;
+    os << std::endl;
   }
   for (const auto& c : pn.d_children)
   {

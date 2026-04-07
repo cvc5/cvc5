@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -142,7 +139,7 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
   {
     Node cv = candidate_values[i];
     Node skeleton = getSkeleton(cv, free_var_count, sk_vars);
-    Assert(skeleton.getType() == cv.getType());
+    AssertEqual(skeleton.getType(), cv.getType());
     if (TraceIsOn("sygus-repair-const"))
     {
       std::stringstream ss;

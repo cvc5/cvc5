@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Martin Brain, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -125,7 +122,7 @@ RewriteResponse convertSubtractionToAddition(NodeManager* nm,
   return RewriteResponse(REWRITE_DONE, addition);
 }
 
-RewriteResponse breakChain(NodeManager* nm, TNode node, bool isPreRewrite)
+RewriteResponse breakChain(NodeManager* nm, TNode node, CVC5_UNUSED bool isPreRewrite)
 {
   Assert(isPreRewrite);  // Should be run first
 
@@ -166,18 +163,19 @@ RewriteResponse ieeeEqToEq(NodeManager* nm,
       REWRITE_DONE,
       nm->mkNode(
           Kind::AND,
-          nm->mkNode(
-              Kind::AND,
-              nm->mkNode(Kind::NOT,
-                         nm->mkNode(Kind::FLOATINGPOINT_IS_NAN, node[0])),
-              nm->mkNode(Kind::NOT,
-                         nm->mkNode(Kind::FLOATINGPOINT_IS_NAN, node[1]))),
-          nm->mkNode(
-              Kind::OR,
-              nm->mkNode(Kind::EQUAL, node[0], node[1]),
-              nm->mkNode(Kind::AND,
-                         nm->mkNode(Kind::FLOATINGPOINT_IS_ZERO, node[0]),
-                         nm->mkNode(Kind::FLOATINGPOINT_IS_ZERO, node[1])))));
+          {nm->mkNode(
+               Kind::AND,
+               {nm->mkNode(Kind::NOT,
+                           nm->mkNode(Kind::FLOATINGPOINT_IS_NAN, node[0])),
+                nm->mkNode(Kind::NOT,
+                           nm->mkNode(Kind::FLOATINGPOINT_IS_NAN, node[1]))}),
+           nm->mkNode(
+               Kind::OR,
+               {nm->mkNode(Kind::EQUAL, node[0], node[1]),
+                nm->mkNode(
+                    Kind::AND,
+                    {nm->mkNode(Kind::FLOATINGPOINT_IS_ZERO, node[0]),
+                     nm->mkNode(Kind::FLOATINGPOINT_IS_ZERO, node[1])})})}));
 }
 
 RewriteResponse geqToleq(NodeManager* nm,
@@ -266,7 +264,7 @@ RewriteResponse compactMinMax(CVC5_UNUSED NodeManager* nm,
 
 RewriteResponse reorderFPEquality(NodeManager* nm,
                                   TNode node,
-                                  bool isPreRewrite)
+                                  CVC5_UNUSED bool isPreRewrite)
 {
   Assert(node.getKind() == Kind::FLOATINGPOINT_EQ);
   Assert(!isPreRewrite);  // Likely redundant in pre-rewrite
@@ -284,7 +282,7 @@ RewriteResponse reorderFPEquality(NodeManager* nm,
 
 RewriteResponse reorderBinaryOperation(NodeManager* nm,
                                        TNode node,
-                                       bool isPreRewrite)
+                                       CVC5_UNUSED bool isPreRewrite)
 {
   Kind k = node.getKind();
   Assert((k == Kind::FLOATINGPOINT_ADD) || (k == Kind::FLOATINGPOINT_MULT));
@@ -301,7 +299,7 @@ RewriteResponse reorderBinaryOperation(NodeManager* nm,
   }
 }
 
-RewriteResponse reorderFMA(NodeManager* nm, TNode node, bool isPreRewrite)
+RewriteResponse reorderFMA(NodeManager* nm, TNode node, CVC5_UNUSED bool isPreRewrite)
 {
   Assert(node.getKind() == Kind::FLOATINGPOINT_FMA);
   Assert(!isPreRewrite);  // Likely redundant in pre-rewrite
@@ -343,7 +341,7 @@ RewriteResponse removeSignOperations(NodeManager* nm,
   }
 }
 
-RewriteResponse compactRemainder(NodeManager* nm, TNode node, bool isPreRewrite)
+RewriteResponse compactRemainder(NodeManager* nm, TNode node, CVC5_UNUSED bool isPreRewrite)
 {
   Assert(node.getKind() == Kind::FLOATINGPOINT_REM);
   Assert(!isPreRewrite);  // status assumes parts have been rewritten
@@ -401,7 +399,7 @@ RewriteResponse ltId(NodeManager* nm, TNode node, CVC5_UNUSED bool isPreRewrite)
   return RewriteResponse(REWRITE_DONE, node);
 }
 
-RewriteResponse toFPSignedBV(NodeManager* nm, TNode node, bool isPreRewrite)
+RewriteResponse toFPSignedBV(NodeManager* nm, TNode node, CVC5_UNUSED bool isPreRewrite)
 {
   Assert(!isPreRewrite);
   Assert(node.getKind() == Kind::FLOATINGPOINT_TO_FP_FROM_SBV);
@@ -415,9 +413,9 @@ RewriteResponse toFPSignedBV(NodeManager* nm, TNode node, bool isPreRewrite)
     return RewriteResponse(
         REWRITE_AGAIN_FULL,
         nm->mkNode(Kind::ITE,
-                   node[1].eqNode(bv::utils::mkOne(nm, 1)),
-                   nm->mkNode(Kind::FLOATINGPOINT_NEG, fromubv),
-                   fromubv));
+                   {node[1].eqNode(bv::utils::mkOne(nm, 1)),
+                    nm->mkNode(Kind::FLOATINGPOINT_NEG, fromubv),
+                    fromubv}));
   }
   return RewriteResponse(REWRITE_DONE, node);
 }
@@ -1718,19 +1716,20 @@ RewriteResponse TheoryFpRewriter::postRewrite(TNode node)
           rs = REWRITE_AGAIN_FULL;
           rn = d_nm->mkNode(
               Kind::ITE,
-              d_nm->mkNode(Kind::EQUAL, rm, rne),
-              w_rne,
-              d_nm->mkNode(
-                  Kind::ITE,
-                  d_nm->mkNode(Kind::EQUAL, rm, rna),
-                  w_rna,
-                  d_nm->mkNode(Kind::ITE,
-                               d_nm->mkNode(Kind::EQUAL, rm, rtz),
-                               w_rtz,
-                               d_nm->mkNode(Kind::ITE,
-                                            d_nm->mkNode(Kind::EQUAL, rm, rtn),
-                                            w_rtn,
-                                            w_rtp))));
+              {d_nm->mkNode(Kind::EQUAL, rm, rne),
+               w_rne,
+               d_nm->mkNode(
+                   Kind::ITE,
+                   {d_nm->mkNode(Kind::EQUAL, rm, rna),
+                    w_rna,
+                    d_nm->mkNode(
+                        Kind::ITE,
+                        {d_nm->mkNode(Kind::EQUAL, rm, rtz),
+                         w_rtz,
+                         d_nm->mkNode(Kind::ITE,
+                                      d_nm->mkNode(Kind::EQUAL, rm, rtn),
+                                      w_rtn,
+                                      w_rtp)})})});
         }
       }
       else

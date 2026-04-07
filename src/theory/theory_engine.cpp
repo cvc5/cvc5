@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Dejan Jovanovic, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -249,8 +246,8 @@ TheoryEngine::TheoryEngine(Env& env)
   for(TheoryId theoryId = theory::THEORY_FIRST; theoryId != theory::THEORY_LAST;
       ++ theoryId)
   {
-    d_theoryTable[theoryId] = NULL;
-    d_theoryOut[theoryId] = NULL;
+    d_theoryTable[theoryId] = nullptr;
+    d_theoryOut[theoryId] = nullptr;
   }
 
   if (options().smt.sortInference)
@@ -272,7 +269,8 @@ TheoryEngine::TheoryEngine(Env& env)
 TheoryEngine::~TheoryEngine() {
 
   for(TheoryId theoryId = theory::THEORY_FIRST; theoryId != theory::THEORY_LAST; ++ theoryId) {
-    if(d_theoryTable[theoryId] != NULL) {
+    if (d_theoryTable[theoryId] != nullptr)
+    {
       delete d_theoryTable[theoryId];
       delete d_theoryOut[theoryId];
     }
@@ -1256,7 +1254,7 @@ bool TheoryEngine::propagate(TNode literal, theory::TheoryId theory) {
 
 theory::EqualityStatus TheoryEngine::getEqualityStatus(TNode a, TNode b)
 {
-  Assert(a.getType() == b.getType());
+  AssertEqual(a.getType(), b.getType());
   return d_sharedSolver->getEqualityStatus(a, b);
 }
 
@@ -1997,7 +1995,7 @@ TrustNode TheoryEngine::getExplanation(
           continue;
         }
         // otherwise should hold by rewriting
-        Assert(rewrite(tConc) == rewrite(tExp));
+        AssertEqual(rewrite(tConc), rewrite(tExp));
         // tExp
         // ---- MACRO_SR_PRED_TRANSFORM
         // tConc
@@ -2211,7 +2209,7 @@ std::pair<bool, Node> TheoryEngine::entailmentCheck(options::TheoryOfMode mode,
     theory::TheoryId tid = Theory::theoryOf(atom, mode);
     theory::Theory* th = theoryOf(tid);
 
-    Assert(th != NULL);
+    Assert(th != nullptr);
     Trace("theory-engine-entc") << "Entailment check : " << lit << std::endl;
 
     std::pair<bool, Node> chres = th->entailmentCheck(lit);

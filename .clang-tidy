@@ -1,9 +1,9 @@
+# Clang-tidy enables the following checks by default:
+#   clang-diagnostic-*,
+#   clang-analyzer-*
+# Additional checks:
 Checks: >
-  -*,
-  clang-analyzer-core.CallAndMessage,
-  clang-analyzer-core.uninitialized.UndefReturn,
-  clang-analyzer-deadcode.*,
-  clang-analyzer-optin.cplusplus.VirtualCall
+  modernize-use-nullptr
 HeaderFilterRegex: '.*'
 # Use .clang-format for formatting changes
 FormatStyle: file

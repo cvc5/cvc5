@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -68,7 +65,6 @@ void SygusSolver::declareSygusVar(Node var)
 
 void SygusSolver::declareSynthFun(Node fn,
                                   TypeNode sygusType,
-                                  bool isInv,
                                   const std::vector<Node>& vars)
 {
   Trace("smt") << "SygusSolver::declareSynthFun: " << fn << "\n";
@@ -438,7 +434,7 @@ bool SygusSolver::getSynthSolutions(std::map<Node, Node>& solMap)
       Node sf = quantifiers::SygusUtils::mkSygusTermFor(f);
       Trace("smt-debug") << "Got " << sf << " for trivial function " << f
                         << std::endl;
-      Assert(f.getType() == sf.getType());
+      AssertEqual(f.getType(), sf.getType());
       solMap[f] = sf;
     }
   }

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Clark Barrett, Aina Niemetz, Morgan Deters
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -42,7 +39,8 @@ void ContextMemoryManager::newChunk() {
   // Create new chunk if no free chunk available
   if(d_freeChunks.empty()) {
     d_chunkList.push_back((char*)malloc(chunkSizeBytes));
-    if(d_chunkList.back() == NULL) {
+    if (d_chunkList.back() == nullptr)
+    {
       throw std::bad_alloc();
     }
 
@@ -65,7 +63,8 @@ ContextMemoryManager::ContextMemoryManager() : d_indexChunkList(0) {
   // Create initial chunk
   d_chunkList.push_back((char*)malloc(chunkSizeBytes));
   d_nextFree = d_chunkList.back();
-  if(d_nextFree == NULL) {
+  if (d_nextFree == nullptr)
+  {
     throw std::bad_alloc();
   }
   d_endChunk = d_nextFree + chunkSizeBytes;

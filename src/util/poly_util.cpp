@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Gereon Kremer, Aina Niemetz, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -251,7 +248,7 @@ std::size_t totalDegree(const poly::Polynomial& p)
   std::size_t tdeg = 0;
 
   lp_polynomial_traverse_f f =
-      [](const lp_polynomial_context_t* ctx, lp_monomial_t* m, void* data) {
+      [](const lp_polynomial_context_t*, lp_monomial_t* m, void* data) {
         std::size_t sum = 0;
         for (std::size_t i = 0; i < m->n; ++i)
         {
@@ -304,7 +301,7 @@ void getVariableInformation(VariableInformation& vi,
   GetVarInfo varinfo;
   varinfo.info = &vi;
   lp_polynomial_traverse_f f =
-      [](const lp_polynomial_context_t* ctx, lp_monomial_t* m, void* data) {
+      [](const lp_polynomial_context_t*, lp_monomial_t* m, void* data) {
         GetVarInfo* gvi = static_cast<GetVarInfo*>(data);
         VariableInformation* info = gvi->info;
         // Total degree of this term

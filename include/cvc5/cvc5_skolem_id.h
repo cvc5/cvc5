@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Mudathir Mohamed
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -358,7 +355,7 @@ enum ENUM(SkolemId)
    * - Sort: ``(-> Int Int)``
    *
    * The term `(@strings_itos_result n)` is equivalent to
-   * `(lambda ((x Int)) (str.from_int (mod n (^ 10 x)))`.
+   * `(lambda ((x Int)) (str.from_int (mod n (** 10 x)))`.
    */
   EVALUE(STRINGS_ITOS_RESULT),
   /**

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -382,10 +379,10 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
     NodeManager* nm = nodeManager();
     return RewriteResponse(REWRITE_AGAIN_FULL,
                            nm->mkNode(Kind::EQUAL,
-                                      nm->mkNode(Kind::INTS_MODULUS_TOTAL,
-                                                 atom[0],
-                                                 rewriter::mkConst(d_nm, k)),
-                                      rewriter::mkConst(d_nm, Integer(0))));
+                                      {nm->mkNode(Kind::INTS_MODULUS_TOTAL,
+                                                  atom[0],
+                                                  rewriter::mkConst(d_nm, k)),
+                                       rewriter::mkConst(d_nm, Integer(0))}));
   }
   // left |><| right
   Kind kind = atom.getKind();
@@ -1483,8 +1480,8 @@ RewriteResponse ArithRewriter::postRewriteTranscendental(TNode t)
               Kind::SINE,
               nm->mkNode(Kind::SUB,
                          nm->mkNode(Kind::MULT,
-                                    nm->mkConstReal(Rational(1) / Rational(2)),
-                                    mkPi(nm)),
+                                    {nm->mkConstReal(Rational(1) / Rational(2)),
+                                     mkPi(nm)}),
                          t[0])));
     }
     break;
@@ -1492,32 +1489,32 @@ RewriteResponse ArithRewriter::postRewriteTranscendental(TNode t)
     {
       return RewriteResponse(REWRITE_AGAIN_FULL,
                              nm->mkNode(Kind::DIVISION,
-                                        nm->mkNode(Kind::SINE, t[0]),
-                                        nm->mkNode(Kind::COSINE, t[0])));
+                                        {nm->mkNode(Kind::SINE, t[0]),
+                                         nm->mkNode(Kind::COSINE, t[0])}));
     }
     break;
     case Kind::COSECANT:
     {
       return RewriteResponse(REWRITE_AGAIN_FULL,
                              nm->mkNode(Kind::DIVISION,
-                                        nm->mkConstReal(Rational(1)),
-                                        nm->mkNode(Kind::SINE, t[0])));
+                                        {nm->mkConstReal(Rational(1)),
+                                         nm->mkNode(Kind::SINE, t[0])}));
     }
     break;
     case Kind::SECANT:
     {
       return RewriteResponse(REWRITE_AGAIN_FULL,
                              nm->mkNode(Kind::DIVISION,
-                                        nm->mkConstReal(Rational(1)),
-                                        nm->mkNode(Kind::COSINE, t[0])));
+                                        {nm->mkConstReal(Rational(1)),
+                                         nm->mkNode(Kind::COSINE, t[0])}));
     }
     break;
     case Kind::COTANGENT:
     {
       return RewriteResponse(REWRITE_AGAIN_FULL,
                              nm->mkNode(Kind::DIVISION,
-                                        nm->mkNode(Kind::COSINE, t[0]),
-                                        nm->mkNode(Kind::SINE, t[0])));
+                                        {nm->mkNode(Kind::COSINE, t[0]),
+                                         nm->mkNode(Kind::SINE, t[0])}));
     }
     break;
     default: break;
@@ -1634,14 +1631,15 @@ Node ArithRewriter::rewriteIneqToBv(Kind kind,
     Node iToBvop = nm->mkConst(IntToBitVector(bvsize));
     Node ret = nm->mkNode(
         Kind::ITE,
-        ub,
-        nm->mkConst(!bv2natPol),
-        nm->mkNode(
-            Kind::ITE,
-            lb,
-            nm->mkConst(bv2natPol),
-            nm->mkNode(
-                bvKind, bvt, nm->mkNode(Kind::INT_TO_BITVECTOR, iToBvop, o))));
+        {ub,
+         nm->mkConst(!bv2natPol),
+         nm->mkNode(
+             Kind::ITE,
+             {lb,
+              nm->mkConst(bv2natPol),
+              nm->mkNode(bvKind,
+                         bvt,
+                         nm->mkNode(Kind::INT_TO_BITVECTOR, iToBvop, o))})});
     // E.g. (<= (bv2nat x) N) -->
     //      (ite (>= N 2^w) true (ite (< N 0) false (bvule x ((_ int2bv w) N))
     // or   (<= N (bv2nat x)) -->

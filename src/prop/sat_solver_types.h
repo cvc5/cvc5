@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Dejan Jovanovic, Alex Ozdemir, Liana Hadarean
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -15,7 +12,7 @@
 
 #pragma once
 
-#include <sstream>
+#include <ostream>
 #include <string>
 #include <unordered_set>
 #include <vector>
@@ -25,23 +22,28 @@
 namespace cvc5::internal {
 namespace prop {
 
+class SatSolver;
+
 /**
  * Boolean values of the SAT solver.
  */
-enum SatValue {
+enum SatValue : uint8_t {
   SAT_VALUE_UNKNOWN,
   SAT_VALUE_TRUE,
   SAT_VALUE_FALSE
 };
 
 /** Helper function for inverting a SatValue */
-inline SatValue invertValue(SatValue v)
+constexpr SatValue invertValue(const SatValue v)
 {
   if(v == SAT_VALUE_UNKNOWN) return SAT_VALUE_UNKNOWN;
-  else if(v == SAT_VALUE_TRUE) return SAT_VALUE_FALSE;
-  else return SAT_VALUE_TRUE;
+  return v == SAT_VALUE_TRUE ? SAT_VALUE_FALSE : SAT_VALUE_TRUE;
 }
 
+constexpr SatValue operator~(const SatValue v)
+{
+  return invertValue(v);
+}
 
 /**
  * A variable of the SAT solver.
@@ -51,7 +53,7 @@ typedef uint64_t SatVariable;
 /**
  * Undefined SAT solver variable.
  */
-constexpr SatVariable undefSatVariable = SatVariable(-1);
+constexpr SatVariable undefSatVariable = static_cast<SatVariable>(-1);
 
 /**
  * A SAT literal is a variable or a negated variable.
@@ -128,9 +130,7 @@ class SatLiteral {
    * Returns a string representation of the literal.
    */
   std::string toString() const {
-    std::ostringstream os;
-    os << (isNegated() ? "~" : "") << getSatVariable();
-    return os.str();
+    return std::string(isNegated() ? "~" : "") + std::to_string(getSatVariable());
   }
 
   /**
@@ -196,40 +196,40 @@ struct SatClauseLessThan
 };
 
 /**
- * Each object in the SAT solver, such as as variables and clauses, can be assigned a life span,
- * so that the SAT solver can (or should) remove them when the lifespan is over.
+ * Printing functions for Sat types.
  */
-enum SatSolverLifespan
-{
-  /**
-   * The object should stay forever and never be removed
-   */
-  SAT_LIFESPAN_PERMANENT,
-  /**
-   * The object can be removed at any point when it becomes unnecessary.
-   */
-  SAT_LIFESPAN_REMOVABLE,
-  /**
-   * The object must be removed as soon as the SAT solver exits the search context
-   * where the object got introduced.
-   */
-  SAT_LIFESPAN_SEARCH_CONTEXT_STRICT,
-  /**
-   * The object can be removed when SAT solver exits the search context where the object
-   * got introduced, but can be kept at the solver discretion.
-   */
-  SAT_LIFESPAN_SEARCH_CONTEXT_LENIENT,
-  /**
-   * The object must be removed as soon as the SAT solver exits the user-level context where
-   * the object got introduced.
-   */
-  SAT_LIFESPAN_USER_CONTEXT_STRICT,
-  /**
-   * The object can be removed when the SAT solver exits the user-level context where
-   * the object got introduced.
-   */
-  SAT_LIFESPAN_USER_CONTEXT_LENIENT
-};
+
+inline std::ostream& operator <<(std::ostream& out, SatLiteral lit) {
+  out << lit.toString();
+  return out;
+}
+
+inline std::ostream& operator <<(std::ostream& out, const SatClause& clause) {
+  out << "clause:";
+  for(unsigned i = 0; i < clause.size(); ++i) {
+    out << " " << clause[i];
+  }
+  out << ";";
+  return out;
+}
+
+inline std::ostream& operator <<(std::ostream& out, SatValue val) {
+  switch(val) {
+    case SAT_VALUE_UNKNOWN:
+      out << '_';
+      break;
+    case SAT_VALUE_TRUE:
+      out << '1';
+      break;
+    case SAT_VALUE_FALSE:
+      out << '0';
+      break;
+    default:
+      out << "Error";
+      break;
+  }
+  return out;
+}
 
 }
 }  // namespace cvc5::internal

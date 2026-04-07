@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Tianyi Liang, Andrew Reynolds, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -1150,9 +1147,9 @@ Node RegExpOpr::reduceRegExpPos(NodeManager* nm,
                       se,
                       sinr,
                       nm->mkNode(Kind::AND,
-                                 sinRExp,
-                                 newSkolemsC[0].eqNode(emp).negate(),
-                                 newSkolemsC[2].eqNode(emp).negate()));
+                                 {sinRExp,
+                                  newSkolemsC[0].eqNode(emp).negate(),
+                                  newSkolemsC[2].eqNode(emp).negate()}));
   }
   else
   {

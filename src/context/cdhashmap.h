@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Morgan Deters, Mikolas Janota, Tim King
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -136,9 +133,9 @@ class CDOhash_map : public ContextObj
   void restore(ContextObj* data) override
   {
     CDOhash_map* p = static_cast<CDOhash_map*>(data);
-    if (d_map != NULL)
+    if (d_map != nullptr)
     {
-      if (p->d_map == NULL)
+      if (p->d_map == nullptr)
       {
         Assert(d_map->d_map.find(getKey()) != d_map->d_map.end()
                && (*d_map->d_map.find(getKey())).second == this);
@@ -152,7 +149,7 @@ class CDOhash_map : public ContextObj
           if (d_next == this)
           {
             Assert(d_prev == this);
-            d_map->d_first = NULL;
+            d_map->d_first = nullptr;
           }
           else
           {
@@ -183,8 +180,8 @@ class CDOhash_map : public ContextObj
         // refcounts for Node keys messed up and leak memory
         d_value(Key(), other.d_value.second),
         d_map(other.d_map),
-        d_prev(NULL),
-        d_next(NULL)
+        d_prev(nullptr),
+        d_next(nullptr)
   {
   }
   CDOhash_map& operator=(const CDOhash_map&) = delete;
@@ -194,7 +191,7 @@ class CDOhash_map : public ContextObj
               CDHashMap<Key, Data, HashFcn>* map,
               const Key& key,
               const Data& data)
-      : ContextObj(context), d_value(key, data), d_map(NULL)
+      : ContextObj(context), d_value(key, data), d_map(nullptr)
   {
     // Normal map insertion: first makeCurrent(), then set the data
     // and then, later, the map.  Order is important; we can't
@@ -206,7 +203,7 @@ class CDOhash_map : public ContextObj
     d_map = map;
 
     CDOhash_map*& first = d_map->d_first;
-    if (first == NULL)
+    if (first == nullptr)
     {
       first = d_next = d_prev = this;
     }
@@ -245,7 +242,7 @@ class CDOhash_map : public ContextObj
   {
     if (d_next == d_map->d_first)
     {
-      return NULL;
+      return nullptr;
     }
     else
     {
@@ -288,7 +285,7 @@ class CDHashMap : public ContextObj
 
  public:
   CDHashMap(Context* context)
-      : ContextObj(context), d_map(), d_first(NULL), d_context(context)
+      : ContextObj(context), d_map(), d_first(nullptr), d_context(context)
   {
   }
 
@@ -360,7 +357,6 @@ class CDHashMap : public ContextObj
     using reference = typename CDOhash_map<Key, Data, HashFcn>::value_type&;
 
     iterator(const Element* p) : d_it(p) {}
-    iterator(const iterator& i) : d_it(i.d_it) {}
 
     // Default constructor
     iterator() : d_it(nullptr) {}
@@ -387,7 +383,7 @@ class CDHashMap : public ContextObj
 
   iterator begin() const { return iterator(d_first); }
 
-  iterator end() const { return iterator(NULL); }
+  iterator end() const { return iterator(nullptr); }
 
   iterator find(const Key& k) const
   {

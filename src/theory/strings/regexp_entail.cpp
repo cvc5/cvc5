@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -1036,9 +1033,9 @@ Node RegExpEntail::getGeneralizedConstRegExp(const Node& n)
     else if (nc.getKind() == Kind::STRING_ITOS)
     {
       nonTrivial = true;
-      Node digRange = nm->mkNode(Kind::REGEXP_RANGE,
-                                 nm->mkConst(String("0")),
-                                 nm->mkConst(String("9")));
+      Node digRange =
+          nm->mkNode(Kind::REGEXP_RANGE,
+                     {nm->mkConst(String("0")), nm->mkConst(String("9"))});
       re = nm->mkNode(Kind::REGEXP_STAR, digRange);
       // maybe non-empty digit range?
       // relies on RARE rule str-in-re-from-int-dig-range to prove

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Tim King, Tianyi Liang
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -231,11 +228,11 @@ std::vector<unsigned> String::toInternal(const std::string& s,
       // This is guaranteed not to overflow due to the length of hstr.
       uint32_t val;
       hexString >> std::hex >> val;
-      if (val > num_codes())
+      if (val >= num_codes())
       {
         // Failed due to being out of range. This can happen for strings of
         // the form \ u { d_4 d_3 d_2 d_1 d_0 } where d_4 is a hexadecimal not
-        // in the range [0-2].
+        // in the range [0-2], or the code point is exactly num_codes().
         isEscapeSequence = false;
       }
       else

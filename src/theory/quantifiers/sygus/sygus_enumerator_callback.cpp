@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -86,7 +83,7 @@ bool SygusEnumeratorCallback::addTermInternal(const Node& n,
     }
     // Is it equivalent under examples?
     // NOTE: currently assumes the cache value is the rewritten form of bn
-    Assert(cval.getType() == bn.getType());
+    AssertEqual(cval.getType(), bn.getType());
     Node bne = d_eec->addSearchVal(n.getType(), cval);
     if (!bne.isNull())
     {

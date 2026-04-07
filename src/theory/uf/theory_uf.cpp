@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Dejan Jovanovic
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -684,14 +681,15 @@ void TheoryUF::computeCareGraph() {
 }/* TheoryUF::computeCareGraph() */
 
 void TheoryUF::eqNotifyNewClass(TNode t) {
-  if (d_thss != NULL) {
+  if (d_thss != nullptr)
+  {
     d_thss->newEqClass(t);
   }
 }
 
 void TheoryUF::eqNotifyMerge(TNode t1, TNode t2)
 {
-  if (d_thss != NULL)
+  if (d_thss != nullptr)
   {
     d_thss->merge(t1, t2);
   }
@@ -700,7 +698,8 @@ void TheoryUF::eqNotifyMerge(TNode t1, TNode t2)
 }
 
 void TheoryUF::eqNotifyDisequal(TNode t1, TNode t2, TNode reason) {
-  if (d_thss != NULL) {
+  if (d_thss != nullptr)
+  {
     d_thss->assertDisequal(t1, t2, reason);
   }
 }

@@ -1,19 +1,16 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Daniel Larraz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
  * ****************************************************************************
  *
- * Implementation of ALF node conversion
+ * Implementation of Eunoia node conversion
  */
 
-#include "proof/alf/alf_node_converter.h"
+#include "proof/eo/eo_node_converter.h"
 
 #include <algorithm>
 #include <iomanip>
@@ -48,22 +45,22 @@ using namespace cvc5::internal::kind;
 namespace cvc5::internal {
 namespace proof {
 
-BaseAlfNodeConverter::BaseAlfNodeConverter(NodeManager* nm) : NodeConverter(nm)
+BaseEoNodeConverter::BaseEoNodeConverter(NodeManager* nm) : NodeConverter(nm)
 {
 }
 
-AlfNodeConverter::AlfNodeConverter(NodeManager* nm) : BaseAlfNodeConverter(nm)
+EoNodeConverter::EoNodeConverter(NodeManager* nm) : BaseEoNodeConverter(nm)
 {
   // use builtin operator type as the type of sorts, which makes a difference
   // e.g. for converting terms of kind SORT_TO_TERM.
   d_sortType = nm->builtinOperatorType();
 }
 
-AlfNodeConverter::~AlfNodeConverter() {}
+EoNodeConverter::~EoNodeConverter() {}
 
-Node AlfNodeConverter::preConvert(Node n)
+Node EoNodeConverter::preConvert(Node n)
 {
-  // match is not supported in ALF syntax, we eliminate it at pre-order
+  // match is not supported in Eunoia syntax, we eliminate it at pre-order
   // traversal, which avoids type-checking errors during conversion, since e.g.
   // match case nodes are required but cannot be preserved
   if (n.getKind() == Kind::MATCH)
@@ -73,12 +70,12 @@ Node AlfNodeConverter::preConvert(Node n)
   return n;
 }
 
-Node AlfNodeConverter::postConvert(Node n)
+Node EoNodeConverter::postConvert(Node n)
 {
   Kind k = n.getKind();
   // we eliminate MATCH at preConvert above
   Assert(k != Kind::MATCH);
-  Trace("alf-term-process-debug")
+  Trace("eo-term-process-debug")
       << "postConvert " << n << " " << k << std::endl;
   if (k == Kind::ASCRIPTION_TYPE || k == Kind::RAW_SYMBOL)
   {
@@ -332,7 +329,7 @@ Node AlfNodeConverter::postConvert(Node n)
   return n;
 }
 
-bool AlfNodeConverter::shouldTraverse(Node n)
+bool EoNodeConverter::shouldTraverse(Node n)
 {
   Kind k = n.getKind();
   // don't convert instantiation pattern list directly
@@ -351,7 +348,7 @@ bool AlfNodeConverter::shouldTraverse(Node n)
   return true;
 }
 
-Node AlfNodeConverter::maybeMkSkolemFun(Node k)
+Node EoNodeConverter::maybeMkSkolemFun(Node k)
 {
   SkolemManager* sm = d_nm->getSkolemManager();
   SkolemId sfi = SkolemId::NONE;
@@ -396,7 +393,7 @@ Node AlfNodeConverter::maybeMkSkolemFun(Node k)
   return Node::null();
 }
 
-Node AlfNodeConverter::typeAsNode(TypeNode tn)
+Node EoNodeConverter::typeAsNode(TypeNode tn)
 {
   // should always exist in the cache, as we always run types through
   // postConvertType before calling this method.
@@ -406,7 +403,7 @@ Node AlfNodeConverter::typeAsNode(TypeNode tn)
     return it->second;
   }
   // dummy symbol whose name is the type printed
-  // this suffices since ALF faithfully represents all types.
+  // this suffices since Eunoia faithfully represents all types.
   // note we cannot letify types (same as in SMT-LIB)
   std::stringstream ss;
   ss << tn;
@@ -415,13 +412,13 @@ Node AlfNodeConverter::typeAsNode(TypeNode tn)
   return ret;
 }
 
-size_t AlfNodeConverter::getNumChildrenToProcessForClosure(Kind k) const
+size_t EoNodeConverter::getNumChildrenToProcessForClosure(Kind k) const
 {
   return k == Kind::SET_COMPREHENSION ? 3 : 2;
 }
 
 
-Node AlfNodeConverter::mkList(const std::vector<Node>& args)
+Node EoNodeConverter::mkList(const std::vector<Node>& args)
 {
   Assert(!args.empty());
   TypeNode tn = d_nm->booleanType();
@@ -429,7 +426,7 @@ Node AlfNodeConverter::mkList(const std::vector<Node>& args)
   return mkInternalApp("@list", args, tn);
 }
 
-Node AlfNodeConverter::mkInternalSymbol(const std::string& name,
+Node EoNodeConverter::mkInternalSymbol(const std::string& name,
                                         TypeNode tn,
                                         bool useRawSym)
 {
@@ -440,7 +437,7 @@ Node AlfNodeConverter::mkInternalSymbol(const std::string& name,
   return sym;
 }
 
-Node AlfNodeConverter::mkInternalApp(const std::string& name,
+Node EoNodeConverter::mkInternalApp(const std::string& name,
                                      const std::vector<Node>& args,
                                      TypeNode ret,
                                      bool useRawSym)
@@ -463,12 +460,12 @@ Node AlfNodeConverter::mkInternalApp(const std::string& name,
   return mkInternalSymbol(name, ret, useRawSym);
 }
 
-Node AlfNodeConverter::getOperatorOfTerm(Node n)
+Node EoNodeConverter::getOperatorOfTerm(Node n)
 {
   Assert(n.hasOperator());
   Kind k = n.getKind();
   std::stringstream opName;
-  Trace("alf-term-process-debug2")
+  Trace("eo-term-process-debug2")
       << "getOperatorOfTerm " << n << " " << k << " "
       << (n.getMetaKind() == metakind::PARAMETERIZED) << " "
       << GenericOp::isIndexedOperatorKind(k) << std::endl;
@@ -627,11 +624,11 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n)
   {
     ret = args.empty() ? app : app.getOperator();
   }
-  Trace("alf-term-process-debug2") << "...return " << ret << std::endl;
+  Trace("eo-term-process-debug2") << "...return " << ret << std::endl;
   return ret;
 }
 
-size_t AlfNodeConverter::getOrAssignIndexForConst(Node v)
+size_t EoNodeConverter::getOrAssignIndexForConst(Node v)
 {
   std::map<Node, size_t>::iterator it = d_constIndex.find(v);
   if (it != d_constIndex.end())
@@ -643,7 +640,7 @@ size_t AlfNodeConverter::getOrAssignIndexForConst(Node v)
   return id;
 }
 
-bool AlfNodeConverter::isAmbiguousDtConstructor(const Node& op)
+bool EoNodeConverter::isAmbiguousDtConstructor(const Node& op)
 {
   std::map<Node, bool>::iterator it = d_ambDt.find(op);
   if (it != d_ambDt.end())
@@ -652,7 +649,7 @@ bool AlfNodeConverter::isAmbiguousDtConstructor(const Node& op)
   }
   bool ret = false;
   TypeNode tn = op.getType();
-  Trace("alf-amb-dt") << "Ambiguous datatype constructor? " << op << " " << tn
+  Trace("eo-amb-dt") << "Ambiguous datatype constructor? " << op << " " << tn
                       << std::endl;
   size_t nchild = tn.getNumChildren();
   Assert(nchild > 0);
@@ -667,18 +664,18 @@ bool AlfNodeConverter::isAmbiguousDtConstructor(const Node& op)
   {
     if (atypes.find(p) == atypes.end())
     {
-      Trace("alf-amb-dt") << "...yes since " << p << " not contained"
+      Trace("eo-amb-dt") << "...yes since " << p << " not contained"
                           << std::endl;
       ret = true;
       break;
     }
   }
-  Trace("alf-amb-dt") << "...returns " << ret << std::endl;
+  Trace("eo-amb-dt") << "...returns " << ret << std::endl;
   d_ambDt[op] = ret;
   return ret;
 }
 
-bool AlfNodeConverter::isHandledSkolemId(SkolemId id)
+bool EoNodeConverter::isHandledSkolemId(SkolemId id)
 {
   // Note we don't handle skolems that take types as arguments yet.
   switch (id)

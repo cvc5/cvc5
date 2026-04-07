@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Liana Hadarean, Aina Niemetz, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -595,19 +592,19 @@ void DefaultUremBB(TNode node, std::vector<T>& rem, TBitblaster<T>* bb)
 }
 
 template <class T>
-void DefaultSdivBB (TNode node, std::vector<T>& bits, TBitblaster<T>* bb) {
+void DefaultSdivBB (TNode node, CVC5_UNUSED std::vector<T>& bits, CVC5_UNUSED TBitblaster<T>* bb) {
   Trace("bitvector") << "theory::bv:: Unimplemented kind "
                      << node.getKind() << "\n";
   Unimplemented(); 
 }
 template <class T>
-void DefaultSremBB (TNode node, std::vector<T>& bits, TBitblaster<T>* bb) {
+void DefaultSremBB (TNode node, CVC5_UNUSED std::vector<T>& bits, CVC5_UNUSED TBitblaster<T>* bb) {
   Trace("bitvector") << "theory::bv:: Unimplemented kind "
                      << node.getKind() << "\n";
   Unimplemented(); 
 }
 template <class T>
-void DefaultSmodBB (TNode node, std::vector<T>& bits, TBitblaster<T>* bb) {
+void DefaultSmodBB (TNode node, CVC5_UNUSED std::vector<T>& bits, CVC5_UNUSED TBitblaster<T>* bb) {
   Trace("bitvector") << "theory::bv:: Unimplemented kind "
                      << node.getKind() << "\n";
   Unimplemented(); 
@@ -835,7 +832,8 @@ void DefaultIteBB (TNode node, std::vector<T>& res, TBitblaster<T>* bb) {
 
   for (unsigned i = 0; i < thenpart.size(); ++i) {
     // (~cond OR thenpart) AND (cond OR elsepart)
-    res.push_back(mkAnd(mkOr(mkNot(cond[0]),thenpart[i]),mkOr(cond[0],elsepart[i])));
+    res.push_back(
+        mkAnd({mkOr(mkNot(cond[0]), thenpart[i]), mkOr(cond[0], elsepart[i])}));
   }
 }
 

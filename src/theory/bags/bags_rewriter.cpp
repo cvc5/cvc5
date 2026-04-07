@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mudathir Mohamed, Aina Niemetz, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -34,11 +31,6 @@ BagsRewriteResponse::BagsRewriteResponse()
 
 BagsRewriteResponse::BagsRewriteResponse(Node n, Rewrite rewrite)
     : d_node(n), d_rewrite(rewrite)
-{
-}
-
-BagsRewriteResponse::BagsRewriteResponse(const BagsRewriteResponse& r)
-    : d_node(r.d_node), d_rewrite(r.d_rewrite)
 {
 }
 
@@ -637,7 +629,7 @@ BagsRewriteResponse BagsRewriter::postRewriteSome(TNode n)
     {
       // (bag.some p (bag x n)) = (and (> n 0) (p x))
       Node px = nm->mkNode(Kind::APPLY_UF, n[0], n[1][0]);
-      Node leq = nm->mkNode(Kind::GEQ, n[1][1], d_zero);
+      Node leq = nm->mkNode(Kind::GT, n[1][1], d_zero);
       Node ret = px.andNode(leq);
       return BagsRewriteResponse(ret, Rewrite::SOME_BAG_MAKE);
     }

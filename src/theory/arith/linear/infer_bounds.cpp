@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Tim King, Andres Noetzli, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -232,18 +229,20 @@ std::ostream& operator<<(std::ostream& os, const InferBoundsResult& ibr){
 }
 
 ArithEntailmentCheckSideEffects::ArithEntailmentCheckSideEffects()
-    : d_simplexSideEffects(NULL)
+    : d_simplexSideEffects(nullptr)
 {}
 
 ArithEntailmentCheckSideEffects::~ArithEntailmentCheckSideEffects(){
-  if(d_simplexSideEffects != NULL){
+  if (d_simplexSideEffects != nullptr)
+  {
     delete d_simplexSideEffects;
-    d_simplexSideEffects = NULL;
+    d_simplexSideEffects = nullptr;
   }
 }
 
 InferBoundsResult& ArithEntailmentCheckSideEffects::getSimplexSideEffects(){
-  if(d_simplexSideEffects == NULL){
+  if (d_simplexSideEffects == nullptr)
+  {
     d_simplexSideEffects = new InferBoundsResult;
   }
   return *d_simplexSideEffects;

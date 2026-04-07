@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Haniel Barbosa, Daniel Larraz, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -215,6 +212,30 @@ Node AletheNodeConverter::postConvert(Node n)
           return n;
         }
         return witness;
+      }
+      if (sfi == SkolemId::ARRAY_DEQ_DIFF)
+      {
+        Trace("alethe-conv")
+            << ".. to build array diff choice with arrays: " << cacheVal[0] << " / "
+            << cacheVal[1] << "\n";
+        Assert(cacheVal.getKind() == Kind::SEXPR
+               && cacheVal.getNumChildren() == 2);
+        Node a = cacheVal[0];
+        Assert(a.getType().isArray());
+        Node b = cacheVal[1];
+        Assert(b.getType().isArray());
+        TypeNode indexType = a.getType().getArrayIndexType();
+        // get index element of array
+        Node var = NodeManager::mkBoundVar("x", indexType);
+        Node eq = a.eqNode(b);
+        Node select = d_nm->mkNode(Kind::NOT,
+                         d_nm->mkNode(Kind::EQUAL,
+                                      d_nm->mkNode(Kind::SELECT, a, var),
+                                      d_nm->mkNode(Kind::SELECT, b, var)));
+        Node body = d_nm->mkNode(Kind::OR, eq, select);
+        Node choice = d_nm->mkNode(
+            Kind::WITNESS, d_nm->mkNode(Kind::BOUND_VAR_LIST, var), body);
+        return convert(choice);
       }
       std::stringstream ss;
       ss << "\"Proof unsupported by Alethe: contains Skolem (kind " << sfi

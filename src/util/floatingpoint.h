@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Martin Brain, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -33,7 +30,7 @@ namespace cvc5::internal {
 
 /* -------------------------------------------------------------------------- */
 
-class FloatingPointLiteral;
+class FloatingPointLiteralSymFPU;
 
 class FloatingPoint
 {
@@ -136,7 +133,10 @@ class FloatingPoint
   const FloatingPointSize& getSize() const;
 
   /** Get the wrapped floating-point value. */
-  const FloatingPointLiteral* getLiteral(void) const { return d_fpl.get(); }
+  const FloatingPointLiteralSymFPU* getLiteral(void) const
+  {
+    return d_fpl.get();
+  }
 
   /**
    * Return a string representation of this floating-point.
@@ -286,10 +286,10 @@ class FloatingPoint
    * Note: This constructor takes ownership of 'fpl' and is not intended for
    *       public use.
    */
-  FloatingPoint(FloatingPointLiteral* fpl);
+  FloatingPoint(FloatingPointLiteralSymFPU* fpl);
 
   /** The floating-point literal of this floating-point value. */
-  std::unique_ptr<FloatingPointLiteral> d_fpl;
+  std::unique_ptr<FloatingPointLiteralSymFPU> d_fpl;
 
 }; /* class FloatingPoint */
 

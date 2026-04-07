@@ -1,7 +1,5 @@
-; COMMAND-LINE: --solve-bv-as-int=sum
-; EXPECT: 
-; SCRUBBER: grep -v "uninterpreted"
-; EXIT: 1
+; COMMAND-LINE: --solve-bv-as-int=sum --mbqi
+; EXPECT: sat
 (set-logic ALL)
 (declare-const __ (_ BitVec 5))
 (declare-const o (_ BitVec 3))

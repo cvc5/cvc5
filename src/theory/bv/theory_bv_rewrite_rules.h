@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Liana Hadarean, Dejan Jovanovic, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -334,7 +331,7 @@ template <RewriteRuleId rule>
 class RewriteRule {
 
   /** Actually apply the rewrite rule */
-  static inline Node apply(TNode node) {
+  static inline Node apply(CVC5_UNUSED TNode node) {
     Unreachable();
     SuppressWrongNoReturnWarning;
   }
@@ -349,7 +346,7 @@ public:
     
   }
 
-  static inline bool applies(TNode node)
+  static inline bool applies(CVC5_UNUSED TNode node)
   {
     Unreachable();
     SuppressWrongNoReturnWarning;

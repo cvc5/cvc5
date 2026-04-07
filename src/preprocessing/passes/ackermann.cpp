@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Yoni Zohar, Ying Sheng, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -48,7 +45,7 @@ namespace {
 
 void addLemmaForPair(TNode args1,
                      TNode args2,
-                     const TNode func,
+                     CVC5_UNUSED const TNode func,
                      AssertionPipeline* assertionsToPreprocess,
                      NodeManager* nm)
 {
@@ -83,8 +80,8 @@ void addLemmaForPair(TNode args1,
     Assert(args1.getNumChildren() == 2);
     Assert(args2.getNumChildren() == 2);
     args_eq = nm->mkNode(Kind::AND,
-                         nm->mkNode(Kind::EQUAL, args1[0], args2[0]),
-                         nm->mkNode(Kind::EQUAL, args1[1], args2[1]));
+                         {nm->mkNode(Kind::EQUAL, args1[0], args2[0]),
+                          nm->mkNode(Kind::EQUAL, args1[1], args2[1])});
   }
   Node func_eq = nm->mkNode(Kind::EQUAL, args1, args2);
   Node lemma = nm->mkNode(Kind::IMPLIES, args_eq, func_eq);

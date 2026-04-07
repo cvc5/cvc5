@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Gereon Kremer, Andrew Reynolds, Daniel Larraz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -68,8 +65,8 @@ std::pair<Node, Node> TaylorGenerator::getTaylor(Kind k, std::uint64_t n)
         int sign = (counter % 4 == 0 ? -1 : 1);
         sum.push_back(d_nm->mkNode(Kind::MULT,
                                    d_nm->mkNode(Kind::DIVISION,
-                                                d_nm->mkConstReal(sign),
-                                                d_nm->mkConstReal(factorial)),
+                                                {d_nm->mkConstReal(sign),
+                                                 d_nm->mkConstReal(factorial)}),
                                    varpow));
       }
     }

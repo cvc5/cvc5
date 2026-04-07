@@ -1,10 +1,7 @@
 ###############################################################################
-# Top contributors (to current version):
-#   Aina Niemetz, Mathias Preiner, Gereon Kremer
-#
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -259,8 +256,9 @@ include(Config${CMAKE_BUILD_TYPE})
 
 add_check_c_cxx_flag("-O${OPTIMIZATION_LEVEL}")
 add_check_c_cxx_flag("-Wall")
-add_check_c_cxx_supression_flag("-Wno-dangling-reference")
 add_check_c_flag("-fexceptions")
+add_check_c_cxx_flag("-Wcast-function-type")
+add_check_cxx_flag("-Wdeprecated-copy")
 add_check_cxx_flag("-Wsuggest-override")
 add_check_cxx_flag("-Wnon-virtual-dtor")
 add_check_c_cxx_flag("-Wignored-qualifiers")
@@ -268,6 +266,7 @@ add_check_c_cxx_flag("-Wimplicit-fallthrough")
 add_check_c_cxx_flag("-Wmissing-field-initializers")
 add_check_c_cxx_flag("-Wshadow")
 add_check_c_cxx_flag("-Wtype-limits")
+add_check_c_cxx_flag("-Wunused-parameter")
 add_check_c_cxx_flag("-fno-operator-names")
 
 # Assume no dynamic initialization of thread-local variables in non-defining
@@ -276,10 +275,6 @@ add_check_c_cxx_flag("-fno-operator-names")
 if(NOT ENABLE_CLANG_TIDY)
   add_check_cxx_flag("-fno-extern-tls-init")
 endif()
-
-# Disable -Wclass-memaccess to suppress 'no trivial copy-assignment' in MiniSat
-# code.
-add_check_cxx_supression_flag("-Wno-class-memaccess")
 
 if (WIN32)
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--stack,100000000")
@@ -509,10 +504,6 @@ else()
   add_definitions(-DNDEBUG)
 endif()
 
-if(ENABLE_CLANG_TIDY)
-  add_definitions(-DCVC5_STATIC_ANALYSIS)
-endif()
-
 if(ENABLE_COVERAGE)
   include(CodeCoverage)
   append_coverage_compiler_flags()
@@ -628,9 +619,6 @@ endif()
 if(USE_EDITLINE)
   find_package(Editline REQUIRED)
   set(HAVE_LIBEDITLINE 1)
-  if(Editline_COMPENTRY_FUNC_RETURNS_CHARPTR)
-    set(EDITLINE_COMPENTRY_FUNC_RETURNS_CHARP 1)
-  endif()
 endif()
 
 find_package(SymFPU REQUIRED)

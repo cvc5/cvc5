@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Alex Ozdemir
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -30,7 +27,6 @@
 #include <memory>
 #include <sstream>
 
-#include "smt/assertions.h"
 #include "theory/ff/cocoa_util.h"
 #include "theory/ff/uni_roots.h"
 #include "theory/ff/util.h"
@@ -40,9 +36,9 @@ namespace cvc5::internal {
 namespace theory {
 namespace ff {
 
-AssignmentEnumerator::~AssignmentEnumerator() {};
+AssignmentEnumerator::~AssignmentEnumerator() = default;
 
-ListEnumerator::ListEnumerator(const std::vector<CoCoA::RingElem>&& options)
+ListEnumerator::ListEnumerator(std::vector<CoCoA::RingElem>&& options)
     : d_remainingOptions(std::move(options))
 {
   std::reverse(d_remainingOptions.begin(), d_remainingOptions.end());
@@ -68,7 +64,7 @@ std::string ListEnumerator::name() { return "list"; }
 
 std::unique_ptr<ListEnumerator> factorEnumerator(CoCoA::RingElem univariatePoly)
 {
-  int varIdx = CoCoA::UnivariateIndetIndex(univariatePoly);
+  long varIdx = CoCoA::UnivariateIndetIndex(univariatePoly);
   Assert(varIdx >= 0);
   Trace("ff::model::factor") << "roots for: " << univariatePoly << std::endl;
   std::vector<CoCoA::RingElem> theRoots = roots(univariatePoly);
@@ -131,8 +127,8 @@ std::pair<size_t, CoCoA::RingElem> extractAssignment(
 {
   Assert(CoCoA::deg(elem) == 1);
   Assert(CoCoA::NumTerms(elem) <= 2);
-  CoCoA::RingElem m = CoCoA::monic(elem);
-  int varNumber = CoCoA::UnivariateIndetIndex(elem);
+  const CoCoA::RingElem m = CoCoA::monic(elem);
+  long varNumber = CoCoA::UnivariateIndetIndex(elem);
   Assert(varNumber >= 0);
   return {varNumber, -CoCoA::ConstantCoeff(m)};
 }
@@ -145,7 +141,7 @@ std::unordered_set<std::string> assignedVars(const CoCoA::ideal& ideal)
   {
     if (CoCoA::deg(g) == 1)
     {
-      int varNumber = CoCoA::UnivariateIndetIndex(g);
+      long varNumber = CoCoA::UnivariateIndetIndex(g);
       if (varNumber >= 0)
       {
         ret.insert(ostring(CoCoA::indet(ideal->myRing(), varNumber)));
@@ -161,7 +157,8 @@ bool allVarsAssigned(const CoCoA::ideal& ideal)
          == (size_t)CoCoA::NumIndets(ideal->myRing());
 }
 
-std::unique_ptr<AssignmentEnumerator> applyRule(const CoCoA::ideal& ideal)
+std::unique_ptr<AssignmentEnumerator> applyRule(const CoCoA::ideal& ideal,
+                                                FfStatistics* stats = nullptr)
 {
   CoCoA::PolyRing polyRing(ideal->myRing());
   Assert(!isUnsat(ideal));
@@ -170,7 +167,7 @@ std::unique_ptr<AssignmentEnumerator> applyRule(const CoCoA::ideal& ideal)
   const auto& gens = CoCoA::GBasis(ideal);
   for (const auto& p : gens)
   {
-    int varNumber = CoCoA::UnivariateIndetIndex(p);
+    long varNumber = CoCoA::UnivariateIndetIndex(p);
     if (varNumber >= 0 && CoCoA::deg(p) > 1)
     {
       return factorEnumerator(p);
@@ -179,6 +176,7 @@ std::unique_ptr<AssignmentEnumerator> applyRule(const CoCoA::ideal& ideal)
   // now, we check the dimension
   if (CoCoA::IsZeroDim(ideal))
   {
+    if (stats) ++stats->d_idealMinPoly;
     // If zero-dimensional, we compute a minimal polynomial in some unset
     // variable.
     std::unordered_set<std::string> alreadySet = assignedVars(ideal);
@@ -196,6 +194,7 @@ std::unique_ptr<AssignmentEnumerator> applyRule(const CoCoA::ideal& ideal)
   }
   else
   {
+    if (stats) ++stats->d_idealPosDim;
     // If positive dimensional, we make a list of unset variables and
     // round-robin guess.
     //
@@ -216,7 +215,8 @@ std::unique_ptr<AssignmentEnumerator> applyRule(const CoCoA::ideal& ideal)
 }
 
 std::vector<CoCoA::RingElem> findZero(const CoCoA::ideal& initialIdeal,
-                                      const Env& env)
+                                      const Env& env,
+                                      FfStatistics* stats)
 {
   CoCoA::ring polyRing = initialIdeal->myRing();
   // We maintain two stacks:
@@ -289,7 +289,7 @@ std::vector<CoCoA::RingElem> findZero(const CoCoA::ideal& initialIdeal,
     else if (ideals.size() > branchers.size())
     {
       Assert(ideals.size() == branchers.size() + 1);
-      branchers.push_back(applyRule(ideal));
+      branchers.push_back(applyRule(ideal, stats));
       Trace("ff::model::branch")
           << "brancher: " << branchers.back()->name() << std::endl;
       if (TraceIsOn("ff::model::branch"))

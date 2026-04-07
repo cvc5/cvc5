@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Daniel Larraz, Hans-Joerg Schurr
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -490,8 +487,8 @@ bool BasicRewriteRCons::ensureProofMacroArithIntRelation(CDProof* cdp,
     // a real equality first to ensure the ARITH_POLY_NORM_REL step will
     // work below.
     Node rer = nm->mkNode(rk,
-                          nm->mkNode(Kind::TO_REAL, rewRel[0]),
-                          nm->mkNode(Kind::TO_REAL, rewRel[1]));
+                          {nm->mkNode(Kind::TO_REAL, rewRel[0]),
+                           nm->mkNode(Kind::TO_REAL, rewRel[1])});
     Node eqq = rewRel.eqNode(rer);
     cdp->addTrustedStep(
         eqq, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE, {}, {});
@@ -3061,9 +3058,10 @@ Node BasicRewriteRCons::proveTransIneq(CDProof* cdp,
     cdp->addStep(leq1n, ProofRule::EQ_RESOLVE, {leq1, eq1}, {});
   }
   Node negOne = nm->mkConstRealOrInt(leq2[1].getType(), Rational(-1));
-  Node leq2n = nm->mkNode(Kind::LEQ,
-                          nm->mkNode(Kind::MULT, negOne, leq2[isLeq ? 1 : 0]),
-                          nm->mkNode(Kind::MULT, negOne, leq2[isLeq ? 0 : 1]));
+  Node leq2n =
+      nm->mkNode(Kind::LEQ,
+                 {nm->mkNode(Kind::MULT, negOne, leq2[isLeq ? 1 : 0]),
+                  nm->mkNode(Kind::MULT, negOne, leq2[isLeq ? 0 : 1])});
   Node eq2 = leq2.eqNode(leq2n);
   cdp->addTrustedStep(eq2, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE, {}, {});
   cdp->addStep(leq2n, ProofRule::EQ_RESOLVE, {leq2, eq2}, {});
@@ -3103,8 +3101,8 @@ bool BasicRewriteRCons::proveIneqWeaken(CDProof* cdp,
     }
     TypeNode tn = srcn[0].getType();
     Node wineq = nm->mkNode(Kind::LT,
-                            nm->mkConstRealOrInt(tn, Rational(0)),
-                            nm->mkConstRealOrInt(tn, Rational(1)));
+                            {nm->mkConstRealOrInt(tn, Rational(0)),
+                             nm->mkConstRealOrInt(tn, Rational(1))});
     cdp->addTrustedStep(
         wineq, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE, {}, {});
     ProofChecker* pc = d_env.getProofNodeManager()->getChecker();

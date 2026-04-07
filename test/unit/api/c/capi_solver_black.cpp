@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Hans-Joerg Schurr, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -2363,11 +2360,11 @@ TEST_F(TestCApiBlackSolver, get_logic)
 
 TEST_F(TestCApiBlackSolver, set_option)
 {
-  cvc5_set_option(d_solver, "bv-sat-solver", "minisat");
+  cvc5_set_option(d_solver, "bv-sat-solver", "cadical");
   ASSERT_DEATH(cvc5_set_option(d_solver, "bv-sat-solver", "1"),
                "unknown option");
   cvc5_assert_formula(d_solver, cvc5_mk_true(d_tm));
-  ASSERT_DEATH(cvc5_set_option(d_solver, "bv-sat-solver", "minisat"),
+  ASSERT_DEATH(cvc5_set_option(d_solver, "bv-sat-solver", "cadical"),
                "fully initialized");
 }
 
@@ -2620,7 +2617,7 @@ TEST_F(TestCApiBlackSolver, declare_oracle_fun_unsat)
       sorts.data(),
       d_int,
       d_tm,
-      [](size_t size, const Cvc5Term* input, void* state) {
+      [](size_t, const Cvc5Term* input, void* state) {
         Cvc5TermManager* ctm = static_cast<Cvc5TermManager*>(state);
         if (cvc5_term_is_uint32_value(input[0]))
         {
@@ -2653,7 +2650,7 @@ TEST_F(TestCApiBlackSolver, declare_oracle_fun_unsat)
           sorts.data(),
           int_sort,
           tm,
-          [](size_t size, const Cvc5Term* input, void* state) {
+          [](size_t, const Cvc5Term* input, void* state) {
             Cvc5TermManager* ctm = static_cast<Cvc5TermManager*>(state);
             if (cvc5_term_is_uint32_value(input[0]))
             {
@@ -2670,7 +2667,7 @@ TEST_F(TestCApiBlackSolver, declare_oracle_fun_unsat)
                    sorts2.data(),
                    d_int,
                    tm,
-                   [](size_t size, const Cvc5Term* input, void* state) {
+                   [](size_t, const Cvc5Term* input, void* state) {
                      Cvc5TermManager* ctm =
                          static_cast<Cvc5TermManager*>(state);
                      if (cvc5_term_is_uint32_value(input[0]))
@@ -2689,7 +2686,7 @@ TEST_F(TestCApiBlackSolver, declare_oracle_fun_unsat)
       sorts2.data(),
       int_sort,
       d_tm,
-      [](size_t size, const Cvc5Term* input, void* state) {
+      [](size_t, const Cvc5Term* input, void* state) {
         Cvc5TermManager* ctm = static_cast<Cvc5TermManager*>(state);
         if (cvc5_term_is_uint32_value(input[0]))
         {
@@ -2878,7 +2875,7 @@ TEST_F(TestCApiBlackSolver, declare_oracle_fun_error2)
                    sorts.data(),
                    d_int,
                    d_tm,
-                   [](size_t size, const Cvc5Term* input, void* state) {
+                   [](size_t size, const Cvc5Term*, void* state) {
                      Assert(size == 2);
                      return cvc5_mk_integer_int64(
                          static_cast<Cvc5TermManager*>(state), 0);
@@ -3724,11 +3721,11 @@ TEST_F(TestCApiBlackSolver, plugin_unsat)
 }
 
 namespace {
-void plugin_listen_notify_sat_clause(const Cvc5Term clause, void* state)
+void plugin_listen_notify_sat_clause(const Cvc5Term, void* state)
 {
   *static_cast<bool*>(state) = true;
 }
-void plugin_listen_notify_theory_lemma(const Cvc5Term lemma, void* state)
+void plugin_listen_notify_theory_lemma(const Cvc5Term, void* state)
 {
   *static_cast<bool*>(state) = true;
 }

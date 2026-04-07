@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Andrew Reynolds, Haniel Barbosa
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -111,10 +108,10 @@ class DummyOutputChannel : public theory::OutputChannel
   }
   ~DummyOutputChannel() override {}
 
-  void safePoint(Resource r) override {}
-  void conflict(TNode n, theory::InferenceId id) override { push(CONFLICT, n); }
+  void safePoint(CVC5_UNUSED Resource r) override {}
+  void conflict(TNode n, CVC5_UNUSED theory::InferenceId id) override { push(CONFLICT, n); }
 
-  void trustedConflict(TrustNode n, theory::InferenceId id) override
+  void trustedConflict(TrustNode n, CVC5_UNUSED theory::InferenceId id) override
   {
     push(CONFLICT, n.getNode());
   }
@@ -126,22 +123,22 @@ class DummyOutputChannel : public theory::OutputChannel
   }
 
   void lemma(TNode n,
-             theory::InferenceId id,
-             theory::LemmaProperty p = theory::LemmaProperty::NONE) override
+             CVC5_UNUSED theory::InferenceId id,
+             CVC5_UNUSED theory::LemmaProperty p = theory::LemmaProperty::NONE) override
   {
     push(LEMMA, n);
   }
 
   void trustedLemma(TrustNode n,
-                    theory::InferenceId id,
-                    theory::LemmaProperty p) override
+                    CVC5_UNUSED theory::InferenceId id,
+                    CVC5_UNUSED theory::LemmaProperty p) override
   {
     push(LEMMA, n.getNode());
   }
 
   void preferPhase(TNode, bool) override {}
-  void setModelUnsound(theory::IncompleteId id) override {}
-  void setRefutationUnsound(theory::IncompleteId id) override {}
+  void setModelUnsound(CVC5_UNUSED theory::IncompleteId id) override {}
+  void setRefutationUnsound(CVC5_UNUSED theory::IncompleteId id) override {}
 
   void clear() { d_callHistory.clear(); }
 
@@ -195,12 +192,12 @@ class DummyProofRuleChecker : public ProofRuleChecker
 {
  public:
   DummyProofRuleChecker(NodeManager* nm) : ProofRuleChecker(nm) {}
-  void registerTo(ProofChecker* pc) override {}
+  void registerTo(CVC5_UNUSED ProofChecker* pc) override {}
 
  protected:
-  Node checkInternal(ProofRule id,
-                     const std::vector<Node>& children,
-                     const std::vector<Node>& args) override
+  Node checkInternal(CVC5_UNUSED ProofRule id,
+                     CVC5_UNUSED const std::vector<Node>& children,
+                     CVC5_UNUSED const std::vector<Node>& args) override
   {
     return Node::null();
   }
@@ -239,16 +236,16 @@ class DummyTheory : public theory::Theory
   }
 
   void presolve() override { Unimplemented(); }
-  void preRegisterTerm(TNode n) override { Unimplemented(); }
-  void propagate(Effort level) override { Unimplemented(); }
+  void preRegisterTerm(CVC5_UNUSED TNode n) override { Unimplemented(); }
+  void propagate(CVC5_UNUSED Effort level) override { Unimplemented(); }
   bool preNotifyFact(
-      TNode atom, bool pol, TNode fact, bool isPrereg, bool isInternal) override
+      CVC5_UNUSED TNode atom, CVC5_UNUSED bool pol, CVC5_UNUSED TNode fact, CVC5_UNUSED bool isPrereg, CVC5_UNUSED bool isInternal) override
   {
     // do not assert to equality engine, since this theory does not use one
     return true;
   }
-  TrustNode explain(TNode n) override { return TrustNode::null(); }
-  Node getValue(TNode n) { return Node::null(); }
+  TrustNode explain(CVC5_UNUSED TNode n) override { return TrustNode::null(); }
+  Node getValue(CVC5_UNUSED TNode n) { return Node::null(); }
   std::string identify() const override { return "DummyTheory" + d_id; }
 
   std::set<Node> d_registered;

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Liana Hadarean, Daniel Larraz, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -54,9 +51,13 @@ template <class T>
 T mkFalse(NodeManager* nm);
 template <class T> T mkNot(T a);
 template <class T> T mkOr(T a, T b);
+template <std::size_t N>
+Node mkOr(const TNode (&children)[N]);
 template <class T>
 T mkOr(NodeManager* nm, const std::vector<T>& a);
 template <class T> T mkAnd(T a, T b);
+template <std::size_t N>
+Node mkAnd(const TNode (&children)[N]);
 template <class T>
 T mkAnd(NodeManager* nm, const std::vector<T>& a);
 template <class T> T mkXor(T a, T b);
@@ -85,6 +86,14 @@ Node mkOr<Node>(Node a, Node b) {
   return NodeManager::mkNode(Kind::OR, a, b);
 }
 
+template <std::size_t N>
+inline Node mkOr(const TNode (&children)[N])
+{
+  static_assert(N >= 1, "mkOr requires at least 1 child!");
+  if constexpr (N == 1) return children[0];
+  return NodeManager::mkNode(Kind::OR, children);
+}
+
 template <>
 inline Node mkOr<Node>(NodeManager* nm, const std::vector<Node>& children)
 {
@@ -96,6 +105,14 @@ inline Node mkOr<Node>(NodeManager* nm, const std::vector<Node>& children)
 template <> inline
 Node mkAnd<Node>(Node a, Node b) {
   return NodeManager::mkNode(Kind::AND, a, b);
+}
+
+template <std::size_t N>
+inline Node mkAnd(const TNode (&children)[N])
+{
+  static_assert(N >= 1, "mkAnd requires at least 1 child!");
+  if constexpr (N == 1) return children[0];
+  return NodeManager::mkNode(Kind::AND, children);
 }
 
 template <>
@@ -199,9 +216,7 @@ T inline rippleCarryAdder(const std::vector<T>&a, const std::vector<T>& b, std::
 
   for (unsigned i = 0 ; i < a.size(); ++i) {
     T sum = mkXor(mkXor(a[i], b[i]), carry);
-    carry = mkOr( mkAnd(a[i], b[i]),
-                  mkAnd( mkXor(a[i], b[i]),
-                         carry));
+    carry = mkOr({mkAnd(a[i], b[i]), mkAnd(mkXor(a[i], b[i]), carry)});
     res.push_back(sum); 
   }
 
@@ -223,8 +238,8 @@ inline void shiftAddMultiplier(NodeManager* nm,
     T carry_out;
     for(unsigned j = 0; j < res.size() -k; ++j) {
       T aj = mkAnd(b[k], a[j]);
-      carry_out = mkOr(mkAnd(res[j+k], aj),
-                       mkAnd( mkXor(res[j+k], aj), carry_in));
+      carry_out =
+          mkOr({mkAnd(res[j + k], aj), mkAnd(mkXor(res[j + k], aj), carry_in)});
       res[j+k] = mkXor(mkXor(res[j+k], aj), carry_in);
       carry_in = carry_out; 
     }
@@ -242,9 +257,8 @@ T inline uLessThanBB(const std::vector<T>&a, const std::vector<T>& b, bool orEqu
   }
   
   for (unsigned i = 1; i < a.size(); ++i) {
-    // a < b iff ( a[i] <-> b[i] AND a[i-1:0] < b[i-1:0]) OR (~a[i] AND b[i]) 
-    res = mkOr(mkAnd(mkIff(a[i], b[i]), res),
-               mkAnd(mkNot(a[i]), b[i])); 
+    // a < b iff ( a[i] <-> b[i] AND a[i-1:0] < b[i-1:0]) OR (~a[i] AND b[i])
+    res = mkOr({mkAnd(mkIff(a[i], b[i]), res), mkAnd(mkNot(a[i]), b[i])});
   }
   return res;
 }
@@ -254,8 +268,7 @@ T inline sLessThanBB(const std::vector<T>&a, const std::vector<T>& b, bool orEqu
   Assert(a.size() && b.size());
   if (a.size() == 1) {
     if(orEqual) {
-      return  mkOr(mkIff(a[0], b[0]),
-                   mkAnd(a[0], mkNot(b[0]))); 
+      return mkOr({mkIff(a[0], b[0]), mkAnd(a[0], mkNot(b[0]))});
     }
 
     return mkAnd(a[0], mkNot(b[0]));
@@ -267,12 +280,10 @@ T inline sLessThanBB(const std::vector<T>&a, const std::vector<T>& b, bool orEqu
   
   // unsigned comparison of the first n-1 bits
   T ures = uLessThanBB(a1, b1, orEqual);
-  T res = mkOr(// a b have the same sign
-               mkAnd(mkIff(a[n], b[n]),
-                     ures),
-               // a is negative and b positive
-               mkAnd(a[n],
-                     mkNot(b[n])));
+  T res = mkOr({// a b have the same sign
+                mkAnd(mkIff(a[n], b[n]), ures),
+                // a is negative and b positive
+                mkAnd(a[n], mkNot(b[n]))});
   return res;
 }
 

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Andrew Reynolds, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -1459,18 +1456,6 @@ class CVC5_EXPORT Term
                    uint32_t p);
 
     /**
-     * Copy constructor.
-     */
-    const_iterator(const const_iterator& it);
-
-    /**
-     * Assignment operator.
-     * @param it The iterator to assign to.
-     * @return The reference to the iterator after assignment.
-     */
-    const_iterator& operator=(const const_iterator& it);
-
-    /**
      * Equality operator.
      * @param it The iterator to compare to for equality.
      * @return True if the iterators are equal.
@@ -2619,13 +2604,6 @@ class CVC5_EXPORT DatatypeConstructor
     const_iterator();
 
     /**
-     * Assignment operator.
-     * @param it The iterator to assign to.
-     * @return The reference to the iterator after assignment.
-     */
-    const_iterator& operator=(const const_iterator& it);
-
-    /**
      * Equality operator.
      * @param it The iterator to compare to for equality.
      * @return True if the iterators are equal.
@@ -2909,13 +2887,6 @@ class CVC5_EXPORT Datatype
 
     /** Nullary constructor (required for Cython). */
     const_iterator();
-
-    /**
-     * Assignment operator.
-     * @param it The iterator to assign to.
-     * @return The reference to the iterator after assignment.
-     */
-    const_iterator& operator=(const const_iterator& it);
 
     /**
      * Equality operator.
@@ -7084,14 +7055,12 @@ class CVC5_EXPORT Solver
    * @param symbol The name of the function.
    * @param boundVars The parameters to this function.
    * @param sort The sort of the return value of this function.
-   * @param isInv Determines whether this is `synth-fun` or `synth-inv`.
    * @param grammar The syntactic constraints.
    * @return The function.
    */
   Term synthFunHelper(const std::string& symbol,
                       const std::vector<Term>& boundVars,
                       const Sort& sort,
-                      bool isInv = false,
                       Grammar* grammar = nullptr) const;
 
   /** Helper for getting timeout cores */

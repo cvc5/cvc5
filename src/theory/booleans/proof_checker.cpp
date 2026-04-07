@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Haniel Barbosa, Andrew Reynolds, Hans-Joerg Schurr
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -574,7 +571,7 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
       return Node::null();
     }
     return nodeManager()->mkNode(
-        Kind::OR, children[0][0][0].notNode(), children[0][0][1].notNode());
+        Kind::OR, {children[0][0][0].notNode(), children[0][0][1].notNode()});
   }
   if (id == ProofRule::XOR_ELIM1)
   {
@@ -595,7 +592,7 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
       return Node::null();
     }
     return nodeManager()->mkNode(
-        Kind::OR, children[0][0].notNode(), children[0][1].notNode());
+        Kind::OR, {children[0][0].notNode(), children[0][1].notNode()});
   }
   if (id == ProofRule::NOT_XOR_ELIM1)
   {
@@ -652,7 +649,7 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
       return Node::null();
     }
     return nodeManager()->mkNode(
-        Kind::OR, children[0][0][0].notNode(), children[0][0][1].notNode());
+        Kind::OR, {children[0][0][0].notNode(), children[0][0][1].notNode()});
   }
   if (id == ProofRule::NOT_ITE_ELIM2)
   {

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Clark Barrett, Andrew Reynolds, Morgan Deters
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -599,7 +596,7 @@ void TheoryArrays::weakEquivAddSecondary(TNode index, TNode arrayFrom, TNode arr
   }
 }
 
-void TheoryArrays::checkWeakEquiv(bool arraysMerged) {
+void TheoryArrays::checkWeakEquiv(CVC5_UNUSED bool arraysMerged) {
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(&d_mayEqualEqualityEngine);
   for (; !eqcs_i.isFinished(); ++eqcs_i) {
     Node eqc = (*eqcs_i);
@@ -1243,7 +1240,7 @@ void TheoryArrays::postCheck(Effort level)
 
     d_readTableContext->push();
     TNode mayRep, iRep;
-    CTNodeList* bucketList = NULL;
+    CTNodeList* bucketList = nullptr;
     CTNodeList::const_iterator i = d_reads.begin(), readsEnd = d_reads.end();
     for (; i != readsEnd; ++i) {
       const TNode& r = *i;

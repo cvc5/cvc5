@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -92,7 +89,7 @@ RelevantDomain::~RelevantDomain() {
     for (auto& rr : r.second)
     {
       RDomain* current = rr.second;
-      Assert(current != NULL);
+      Assert(current != nullptr);
       delete current;
     }
   }
@@ -303,7 +300,7 @@ void RelevantDomain::computeRelevantDomainOpCh( RDomain * rf, Node n ) {
     Node q = TermUtil::getInstConstAttr(n);
     //merge the RDomains
     size_t id = n.getAttribute(InstVarNumAttribute());
-    Assert(q[0][id].getType() == n.getType());
+    AssertEqual(q[0][id].getType(), n.getType());
     Trace("rel-dom-debug") << n << " is variable # " << id << " for " << q;
     Trace("rel-dom-debug") << " with body : " << d_qreg.getInstConstantBody(q)
                            << std::endl;

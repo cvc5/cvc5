@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Morgan Deters
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -449,7 +446,8 @@ int InstMatchGenerator::getMatch(Node t, InstMatch& m)
 
 int InstMatchGenerator::continueNextMatch(InstMatch& m)
 {
-  if( d_next!=NULL ){
+  if (d_next != nullptr)
+  {
     return d_next->getNextMatch(m);
   }
   if (d_active_add)
@@ -628,8 +626,8 @@ InstMatchGenerator* InstMatchGenerator::mkInstMatchGenerator(
     std::map<Node, InstMatchGenerator*>& pat_map_init)
 {
   size_t pCounter = 0;
-  InstMatchGenerator* prev = NULL;
-  InstMatchGenerator* oinit = NULL;
+  InstMatchGenerator* prev = nullptr;
+  InstMatchGenerator* oinit = nullptr;
   while( pCounter<pats.size() ){
     size_t counter = 0;
     std::vector< InstMatchGenerator* > gens;

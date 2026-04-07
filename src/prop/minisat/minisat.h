@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mathias Preiner, Liana Hadarean, Dejan Jovanovic
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -46,17 +43,15 @@ class MinisatSatSolver : public CDCLTSatSolver, protected EnvObj
   static Minisat::lbool  toMinisatlbool(SatValue val);
   //(Commented because not in use) static bool            tobool(SatValue val);
 
-  static void  toMinisatClause(SatClause& clause, Minisat::vec<Minisat::Lit>& minisat_clause);
-  static void  toSatClause    (const Minisat::Clause& clause, SatClause& sat_clause);
-  void initialize(TheoryProxy* theoryProxy, PropPfManager* ppm) override;
+  static void toMinisatClause(const SatClause& clause,
+                              Minisat::vec<Minisat::Lit>& minisat_clause);
+  static void toSatClause(const Minisat::Clause& clause, SatClause& sat_clause);
 
-  ClauseId addClause(SatClause& clause, bool removable) override;
-  ClauseId addXorClause(CVC5_UNUSED SatClause& clause,
-                        CVC5_UNUSED bool rhs,
-                        CVC5_UNUSED bool removable) override
-  {
-    Unreachable() << "Minisat does not support native XOR reasoning";
-  }
+  void initialize() override;
+  void initialize(TheoryProxy* theoryProxy) override;
+  void attachProofManager(PropPfManager* ppm) override;
+
+  ClauseId addClause(const SatClause& clause, bool removable) override;
 
   SatVariable newVar(bool isTheoryAtom, bool canErase) override;
   SatVariable trueVar() override { return d_minisat->trueVar(); }

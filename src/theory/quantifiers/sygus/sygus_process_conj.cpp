@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -63,7 +60,7 @@ bool SynthConjectureProcessFun::checkMatch(
        ++it)
   {
     Assert(it->first < d_arg_vars.size());
-    Assert(it->second.getType() == d_arg_vars[it->first].getType());
+    AssertEqual(it->second.getType(), d_arg_vars[it->first].getType());
     vars.push_back(d_arg_vars[it->first]);
     subs.push_back(it->second);
   }
@@ -249,7 +246,7 @@ unsigned SynthConjectureProcessFun::assignRelevantDef(
 
 void SynthConjectureProcessFun::processTerms(
     std::vector<Node>& ns,
-    std::vector<Node>& ks,
+    CVC5_UNUSED std::vector<Node>& ks,
     Node nf,
     std::unordered_set<Node>& synth_fv,
     std::unordered_map<Node, std::unordered_set<Node>>& free_vars)

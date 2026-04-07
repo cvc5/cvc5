@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Tim King
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -397,7 +394,7 @@ bool TheoryArith::collectModelValues(TheoryModel* m,
       continue;
     }
     // maps to constant of same type
-    Assert(p.first.getType() == p.second.getType())
+    AssertEqual(p.first.getType(), p.second.getType())
         << "Bad type : " << p.first << " -> " << p.second;
     if (m->assertEquality(p.first, p.second, true))
     {
@@ -533,7 +530,7 @@ bool TheoryArith::sanityCheckIntegerModel()
   {
     for (CVC5_UNUSED const auto& p : d_arithModelCache)
     {
-      Assert(p.first.getType() == p.second.getType())
+      AssertEqual(p.first.getType(), p.second.getType())
           << "Bad type: " << p.first << " -> " << p.second;
     }
   }

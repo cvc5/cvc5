@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -478,7 +475,7 @@ void TermDb::computeUfTerms( TNode f ) {
             Assert(d_qstate.areEqual(at[k], n[k]));
           }
         }
-        Node lem = nm->mkNode(Kind::IMPLIES, nm->mkAnd(antec), at.eqNode(n));
+        Node lem = nm->mkNode(Kind::IMPLIES, {nm->mkAnd(antec), at.eqNode(n)});
         if (TraceIsOn("term-db-lemma"))
         {
           Trace("term-db-lemma") << "Disequal congruent terms : " << at << " "
@@ -730,7 +727,7 @@ TNodeTrie* TermDb::getTermArgTrie(Node f)
   if( itut!=d_func_map_trie.end() ){
     return &itut->second;
   }else{
-    return NULL;
+    return nullptr;
   }
 }
 
@@ -740,7 +737,7 @@ TNodeTrie* TermDb::getTermArgTrie(Node eqc, Node f)
   computeUfEqcTerms( f );
   std::map<Node, TNodeTrie>::iterator itut = d_func_map_eqc_trie.find(f);
   if( itut==d_func_map_eqc_trie.end() ){
-    return NULL;
+    return nullptr;
   }else{
     if( eqc.isNull() ){
       return &itut->second;
@@ -750,7 +747,7 @@ TNodeTrie* TermDb::getTermArgTrie(Node eqc, Node f)
       if( itute!=itut->second.d_data.end() ){
         return &itute->second;
       }else{
-        return NULL;
+        return nullptr;
       }
     }
   }

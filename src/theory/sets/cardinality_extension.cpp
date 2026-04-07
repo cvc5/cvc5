@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Mudathir Mohamed, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -295,9 +292,9 @@ void CardinalityExtension::registerCardinalityTerm(Node n)
         pos_lem, InferenceId::SETS_CARD_POSITIVE, d_emp_exp, 1);
     if (nn != nk)
     {
-      Node lem = nm->mkNode(Kind::EQUAL,
-                            nm->mkNode(Kind::SET_CARD, nk),
-                            nm->mkNode(Kind::SET_CARD, nn));
+      Node lem = nm->mkNode(
+          Kind::EQUAL,
+          {nm->mkNode(Kind::SET_CARD, nk), nm->mkNode(Kind::SET_CARD, nn)});
       lem = rewrite(lem);
       Trace("sets-card") << "  " << k << " : " << lem << std::endl;
       d_im.assertInference(lem, InferenceId::SETS_CARD_EQUAL, d_emp_exp, 1);

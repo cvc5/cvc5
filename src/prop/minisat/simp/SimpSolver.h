@@ -46,9 +46,11 @@ class SimpSolver : public Solver {
   SimpSolver(Env& env,
              prop::TheoryProxy* proxy,
              context::Context* context,
-             prop::PropPfManager* ppm,
              bool enableIncremental = false);
-  ~SimpSolver();
+
+  virtual ~SimpSolver() = default;
+
+  void attachProofManager(prop::PropPfManager* ppm) override;
 
   // Problem specification:
   //

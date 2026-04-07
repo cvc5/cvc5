@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Kartik Sabharwal, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -172,7 +169,7 @@ ConjectureGenerator::EqcInfo* ConjectureGenerator::getOrMakeEqcInfo( TNode n, bo
     d_eqc_info[n] = ei;
     return ei;
   }else{
-    return NULL;
+    return nullptr;
   }
 }
 
@@ -1346,7 +1343,7 @@ void ConjectureGenerator::getEnumerateUfTerm( Node n, unsigned num, std::vector<
             for( unsigned i=0; i<(vec.size()-1); i++ ){
               Node nn = te->getEnumerateTerm(types[i], vec[i]);
               Assert(!nn.isNull());
-              Assert(nn.getType() == n[i].getType());
+              AssertEqual(nn.getType(), n[i].getType());
               children.push_back( nn );
             }
             children.push_back( lc );
@@ -1429,7 +1426,7 @@ void ConjectureGenerator::processCandidateConjecture( TNode lhs, TNode rhs, unsi
 }
 
 int ConjectureGenerator::considerCandidateConjecture( TNode lhs, TNode rhs ) {
-  Assert(lhs.getType() == rhs.getType());
+  AssertEqual(lhs.getType(), rhs.getType());
 
   Trace("sg-cconj-debug") << "Consider candidate conjecture : " << lhs << " == " << rhs << "?" << std::endl;
   if( lhs==rhs ){
@@ -2423,7 +2420,7 @@ void TheoremIndex::getEquivalentTermsNode( Node curr, std::vector< TNode >& n_v,
   std::map< TypeNode, TNode >::iterator itt = d_var.find( tn );
   if( itt!=d_var.end() ){
     Trace("thm-db-debug") << "Check for substitution with " << itt->second << "..." << std::endl;
-    Assert(curr.getType() == itt->second.getType());
+    AssertEqual(curr.getType(), itt->second.getType());
     //add to substitution if possible
     bool success = false;
     std::map< TNode, TNode >::iterator it = smap.find( itt->second );

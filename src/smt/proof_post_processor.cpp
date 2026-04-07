@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Hans-Joerg Schurr
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -67,7 +64,7 @@ void ProofPostprocessCallback::setEliminateRule(ProofRule rule)
 
 bool ProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
                                             const std::vector<Node>& fa,
-                                            bool& continueUpdate)
+                                            CVC5_UNUSED bool& continueUpdate)
 {
   ProofRule id = pn->getRule();
   if (shouldExpand(id))
@@ -91,8 +88,9 @@ bool ProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
   return true;
 }
 
-bool ProofPostprocessCallback::shouldUpdatePost(std::shared_ptr<ProofNode> pn,
-                                                const std::vector<Node>& fa)
+bool ProofPostprocessCallback::shouldUpdatePost(
+    CVC5_UNUSED std::shared_ptr<ProofNode> pn,
+    CVC5_UNUSED const std::vector<Node>& fa)
 {
   return false;
 }
@@ -102,7 +100,7 @@ bool ProofPostprocessCallback::update(Node res,
                                       const std::vector<Node>& children,
                                       const std::vector<Node>& args,
                                       CDProof* cdp,
-                                      bool& continueUpdate)
+                                      CVC5_UNUSED bool& continueUpdate)
 {
   Trace("smt-proof-pp-debug") << "- Post process " << id << " " << children
                               << " / " << args << std::endl;

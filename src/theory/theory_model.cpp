@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Clark Barrett, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -167,7 +164,7 @@ Node TheoryModel::getValue(TNode n) const
   }
   Trace("model-getvalue") << "[model-getvalue] getValue( " << n << " ): " << std::endl
                           << "[model-getvalue] returning " << nn << std::endl;
-  Assert(nn.getType() == n.getType());
+  AssertEqual(nn.getType(), n.getType());
   return nn;
 }
 
@@ -570,7 +567,7 @@ void TheoryModel::assignRepresentative(const Node& r,
                                        bool isFinal)
 {
   Trace("model-builder-reps") << "Assign rep : " << r << " " << n << std::endl;
-  Assert(r.getType() == n.getType());
+  AssertEqual(r.getType(), n.getType());
   TypeNode tn = r.getType();
   if (isFinal && logicInfo().isHigherOrder() && tn.isFunction())
   {
@@ -898,7 +895,7 @@ void TheoryModel::assignFunctionDefaultHo(Node f) const
     Node hni = getRepresentative(hn[1]);
     Trace("model-builder-debug2")
         << "      get rep : " << hn[1] << " returned " << hni << std::endl;
-    Assert(hni.getType() == args[0].getType());
+    AssertEqual(hni.getType(), args[0].getType());
     // rewrite to ensure the equality is properly oriented, as required by
     // function constants
     hni = rewrite(args[0].eqNode(hni));
@@ -922,7 +919,7 @@ void TheoryModel::assignFunctionDefaultHo(Node f) const
           largs.begin(), largs.end(), apply_args.begin(), apply_args.end());
       hnv = rewrite(hnv);
     }
-    Assert(hnv.getType() == curr.getType());
+    AssertEqual(hnv.getType(), curr.getType());
     if (curr.isNull())
     {
       curr = hnv;

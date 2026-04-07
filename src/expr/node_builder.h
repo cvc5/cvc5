@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Morgan Deters, Andres Noetzli, Dejan Jovanovic
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -256,9 +253,6 @@ class NodeBuilder {
 
   /** Construct the Node out of the node builder */
   Node constructNode();
-
-  /** Construct a Node on the heap out of the node builder */
-  Node* constructNodePtr();
 
   /** Construction of the TypeNode out of the node builder */
   TypeNode constructTypeNode();

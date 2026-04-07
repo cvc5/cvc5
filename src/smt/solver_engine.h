@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Morgan Deters
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -390,19 +387,14 @@ class CVC5_EXPORT SolverEngine
    *
    * vars contains the arguments of the function-to-synthesize. These variables
    * are also stored to be used during solving.
-   *
-   * isInv determines whether the function-to-synthesize is actually an
-   * invariant. This information is necessary if we are dumping a command
-   * corresponding to this declaration, so that it can be properly printed.
    */
   void declareSynthFun(Node func,
                        TypeNode sygusType,
-                       bool isInv,
                        const std::vector<Node>& vars);
   /**
    * Same as above, without a sygus type.
    */
-  void declareSynthFun(Node func, bool isInv, const std::vector<Node>& vars);
+  void declareSynthFun(Node func, const std::vector<Node>& vars);
 
   /**
    * Add a regular sygus constraint or assumption.

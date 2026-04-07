@@ -1,19 +1,16 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Abdalrhman Mohamed
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
  * ****************************************************************************
  *
- * Print channels for ALF proofs.
+ * Print channels for Eunoia proofs.
  */
 
-#include "proof/alf/alf_print_channel.h"
+#include "proof/eo/eo_print_channel.h"
 
 #include <sstream>
 
@@ -26,14 +23,14 @@
 namespace cvc5::internal {
 namespace proof {
 
-AlfPrintChannel::AlfPrintChannel() {}
+EoPrintChannel::EoPrintChannel() {}
 
-AlfPrintChannel::~AlfPrintChannel() {}
+EoPrintChannel::~EoPrintChannel() {}
 
-AlfPrintChannelOut::AlfPrintChannelOut(std::ostream& out,
-                                       const LetBinding* lbind,
-                                       const std::string& tprefix,
-                                       bool trackWarn)
+EoPrintChannelOut::EoPrintChannelOut(std::ostream& out,
+                                     const LetBinding* lbind,
+                                     const std::string& tprefix,
+                                     bool trackWarn)
     : d_out(out),
       d_lbind(lbind),
       d_termLetPrefix(tprefix),
@@ -41,19 +38,19 @@ AlfPrintChannelOut::AlfPrintChannelOut(std::ostream& out,
 {
 }
 
-void AlfPrintChannelOut::printNode(TNode n)
+void EoPrintChannelOut::printNode(TNode n)
 {
   d_out << " ";
   printNodeInternal(d_out, n);
 }
 
-void AlfPrintChannelOut::printTypeNode(TypeNode tn)
+void EoPrintChannelOut::printTypeNode(TypeNode tn)
 {
   d_out << " ";
   printTypeNodeInternal(d_out, tn);
 }
 
-void AlfPrintChannelOut::printAssume(TNode n, size_t i, bool isPush)
+void EoPrintChannelOut::printAssume(TNode n, size_t i, bool isPush)
 {
   Assert(!n.isNull());
   d_out << "(" << (isPush ? "assume-push" : "assume") << " @p" << i;
@@ -61,23 +58,24 @@ void AlfPrintChannelOut::printAssume(TNode n, size_t i, bool isPush)
   d_out << ")" << std::endl;
 }
 
-void AlfPrintChannelOut::printStep(const std::string& rname,
-                                   TNode n,
-                                   size_t i,
-                                   const std::vector<size_t>& premises,
-                                   const std::vector<Node>& args,
-                                   bool isPop)
+void EoPrintChannelOut::printStep(const std::string& rname,
+                                  TNode n,
+                                  size_t i,
+                                  const std::vector<size_t>& premises,
+                                  const std::vector<Node>& args,
+                                  bool isPop)
 {
   printStepInternal(rname, n, i, premises, args, isPop, false);
 }
 
-void AlfPrintChannelOut::printStepInternal(const std::string& rname,
-                                           TNode n,
-                                           size_t i,
-                                           const std::vector<size_t>& premises,
-                                           const std::vector<Node>& args,
-                                           bool isPop,
-                                           bool reqPremises)
+void EoPrintChannelOut::printStepInternal(
+    const std::string& rname,
+    TNode n,
+    size_t i,
+    const std::vector<size_t>& premises,
+    const std::vector<Node>& args,
+    bool isPop,
+    bool reqPremises)
 {
   d_out << "(" << (isPop ? "step-pop" : "step") << " @p" << i;
   if (!n.isNull())
@@ -126,7 +124,7 @@ void AlfPrintChannelOut::printStepInternal(const std::string& rname,
   d_out << ")" << std::endl;
 }
 
-void AlfPrintChannelOut::printTrustStep(ProofRule r,
+void EoPrintChannelOut::printTrustStep(ProofRule r,
                                         TNode n,
                                         size_t i,
                                         const std::vector<size_t>& premises,
@@ -172,7 +170,7 @@ void AlfPrintChannelOut::printTrustStep(ProofRule r,
   printStepInternal("trust", n, i, premises, {nc}, false, true);
 }
 
-void AlfPrintChannelOut::printNodeInternal(std::ostream& out, Node n)
+void EoPrintChannelOut::printNodeInternal(std::ostream& out, Node n)
 {
   if (d_lbind)
   {
@@ -186,14 +184,14 @@ void AlfPrintChannelOut::printNodeInternal(std::ostream& out, Node n)
   }
 }
 
-void AlfPrintChannelOut::printTypeNodeInternal(std::ostream& out, TypeNode tn)
+void EoPrintChannelOut::printTypeNodeInternal(std::ostream& out, TypeNode tn)
 {
   tn.toStream(out);
 }
 
-AlfPrintChannelPre::AlfPrintChannelPre(LetBinding* lbind) : d_lbind(lbind) {}
+EoPrintChannelPre::EoPrintChannelPre(LetBinding* lbind) : d_lbind(lbind) {}
 
-void AlfPrintChannelPre::printNode(TNode n)
+void EoPrintChannelPre::printNode(TNode n)
 {
   if (d_lbind)
   {
@@ -201,19 +199,19 @@ void AlfPrintChannelPre::printNode(TNode n)
   }
 }
 
-void AlfPrintChannelPre::printTypeNode(CVC5_UNUSED TypeNode tn)
+void EoPrintChannelPre::printTypeNode(CVC5_UNUSED TypeNode tn)
 {
   // current do nothing
 }
 
-void AlfPrintChannelPre::printAssume(TNode n,
+void EoPrintChannelPre::printAssume(TNode n,
                                      CVC5_UNUSED size_t i,
                                      CVC5_UNUSED bool isPush)
 {
   processInternal(n);
 }
 
-void AlfPrintChannelPre::printStep(
+void EoPrintChannelPre::printStep(
     CVC5_UNUSED const std::string& rname,
     TNode n,
     CVC5_UNUSED size_t i,
@@ -231,7 +229,7 @@ void AlfPrintChannelPre::printStep(
   }
 }
 
-void AlfPrintChannelPre::printTrustStep(
+void EoPrintChannelPre::printTrustStep(
     CVC5_UNUSED ProofRule r,
     CVC5_UNUSED TNode n,
     CVC5_UNUSED size_t i,
@@ -243,7 +241,7 @@ void AlfPrintChannelPre::printTrustStep(
   processInternal(nc);
 }
 
-void AlfPrintChannelPre::processInternal(const Node& n)
+void EoPrintChannelPre::processInternal(const Node& n)
 {
   if (d_lbind)
   {

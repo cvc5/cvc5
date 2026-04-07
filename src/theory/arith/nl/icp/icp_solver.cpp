@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Gereon Kremer, Andrew Reynolds, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -388,7 +385,7 @@ void ICPSolver::check()
 
 #else /* CVC5_POLY_IMP */
 
-void ICPSolver::reset(const std::vector<Node>& assertions)
+void ICPSolver::reset(CVC5_UNUSED const std::vector<Node>& assertions)
 {
   Unimplemented() << "ICPSolver requires cvc5 to be configured with LibPoly";
 }

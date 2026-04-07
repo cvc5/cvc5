@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Paul Meng, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -40,7 +37,7 @@ using namespace std;
 namespace cvc5::internal {
 namespace theory {
 
-void SortInference::UnionFind::print(const char * c){
+void SortInference::UnionFind::print(CVC5_UNUSED const char * c){
   for( std::map< int, int >::iterator it = d_eqc.begin(); it != d_eqc.end(); ++it ){
     Trace(c) << "s_" << it->first << " = s_" << it->second << ", ";
   }
@@ -95,7 +92,7 @@ void SortInference::recordSubsort( TypeNode tn, int s ){
   }
 }
 
-void SortInference::printSort( const char* c, int t ){
+void SortInference::printSort(CVC5_UNUSED  const char* c, int t ){
   int rt = d_type_union_find.getRepresentative( t );
   if( d_type_types.find( rt )!=d_type_types.end() ){
     Trace(c) << d_type_types[rt];
@@ -436,7 +433,7 @@ int SortInference::process( Node n, std::map< Node, Node >& var_bound, std::map<
                                      false))
     {
       Trace("sort-inference-debug") << "For equality " << n << ", set equal types from : " << n[0].getType() << " " << n[1].getType() << std::endl;
-      Assert(n[0].getType() == n[1].getType());
+      AssertEqual(n[0].getType(), n[1].getType());
       // we only require that the left and right hand side must be equal
       setEqual(child_types[0], child_types[1]);
       d_equality_types[n] = child_types[0];
@@ -817,12 +814,12 @@ Node SortInference::mkInjection( TypeNode tn1, TypeNode tn2 ) {
   Node v2 = NodeManager::mkBoundVar("?y", tn1);
   Node ret =
       nm->mkNode(Kind::FORALL,
-                 nm->mkNode(Kind::BOUND_VAR_LIST, v1, v2),
-                 nm->mkNode(Kind::OR,
-                            nm->mkNode(Kind::APPLY_UF, f, v1)
-                                .eqNode(nm->mkNode(Kind::APPLY_UF, f, v2))
-                                .negate(),
-                            v1.eqNode(v2)));
+                 {nm->mkNode(Kind::BOUND_VAR_LIST, v1, v2),
+                  nm->mkNode(Kind::OR,
+                             {nm->mkNode(Kind::APPLY_UF, f, v1)
+                                  .eqNode(nm->mkNode(Kind::APPLY_UF, f, v2))
+                                  .negate(),
+                              v1.eqNode(v2)})});
   ret = rewrite(ret);
   return ret;
 }

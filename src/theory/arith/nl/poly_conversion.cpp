@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Gereon Kremer, Andrew Reynolds, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -390,11 +387,9 @@ Node ran_to_node(const poly::AlgebraicNumber& an, const Node& ran_variable)
   Node pred =
       nm->mkNode(Kind::AND,
                  // poly(var) == 0
-                 nm->mkNode(Kind::EQUAL, poly, nm->mkConstReal(Rational(0))),
-                 // lower_bound < var
-                 nm->mkNode(Kind::LT, lower, ran_variable),
-                 // var < upper_bound
-                 nm->mkNode(Kind::LT, ran_variable, upper));
+                 {nm->mkNode(Kind::EQUAL, poly, nm->mkConstReal(Rational(0))),
+                  nm->mkNode(Kind::LT, lower, ran_variable),
+                  nm->mkNode(Kind::LT, ran_variable, upper)});
   return nm->mkNode(
       Kind::WITNESS, nm->mkNode(Kind::BOUND_VAR_LIST, ran_variable), pred);
 }
@@ -479,10 +474,10 @@ Node lower_bound_as_node(const Node& var,
   }
   return nm->mkNode(
       Kind::OR,
-      nm->mkNode(Kind::LEQ, var, nm->mkConstReal(l)),
-      nm->mkNode(Kind::AND,
-                 nm->mkNode(Kind::LT, var, nm->mkConstReal(u)),
-                 nm->mkNode(relation, poly, nm->mkConstReal(Rational(0)))));
+      {nm->mkNode(Kind::LEQ, var, nm->mkConstReal(l)),
+       nm->mkNode(Kind::AND,
+                  {nm->mkNode(Kind::LT, var, nm->mkConstReal(u)),
+                   nm->mkNode(relation, poly, nm->mkConstReal(Rational(0)))})});
 }
 
 Node upper_bound_as_node(const Node& var,
@@ -537,10 +532,10 @@ Node upper_bound_as_node(const Node& var,
   }
   return nm->mkNode(
       Kind::OR,
-      nm->mkNode(Kind::GEQ, var, nm->mkConstReal(u)),
-      nm->mkNode(Kind::AND,
-                 nm->mkNode(Kind::GT, var, nm->mkConstReal(l)),
-                 nm->mkNode(relation, poly, nm->mkConstReal(Rational(0)))));
+      {nm->mkNode(Kind::GEQ, var, nm->mkConstReal(u)),
+       nm->mkNode(Kind::AND,
+                  {nm->mkNode(Kind::GT, var, nm->mkConstReal(l)),
+                   nm->mkNode(relation, poly, nm->mkConstReal(Rational(0)))})});
 }
 
 Node excluding_interval_to_lemma(const Node& variable,
@@ -574,13 +569,13 @@ Node excluding_interval_to_lemma(const Node& variable,
         Node poly = as_cvc_upolynomial(get_defining_polynomial(alg), variable);
         return nm->mkNode(
             Kind::OR,
-            nm->mkNode(Kind::DISTINCT, poly, nm->mkConstReal(Rational(0))),
-            nm->mkNode(Kind::LT,
-                       variable,
-                       nm->mkConstReal(poly_utils::toRationalBelow(lv))),
-            nm->mkNode(Kind::GT,
-                       variable,
-                       nm->mkConstReal(poly_utils::toRationalAbove(lv))));
+            {nm->mkNode(Kind::DISTINCT, poly, nm->mkConstReal(Rational(0))),
+             nm->mkNode(Kind::LT,
+                        variable,
+                        nm->mkConstReal(poly_utils::toRationalBelow(lv))),
+             nm->mkNode(Kind::GT,
+                        variable,
+                        nm->mkConstReal(poly_utils::toRationalAbove(lv)))});
       }
       return Node();
     }

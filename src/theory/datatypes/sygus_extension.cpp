@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -148,7 +145,8 @@ Node SygusExtension::getTermOrderPredicate( Node n1, Node n2 ) {
   std::vector< Node > comm_disj;
   // size of left is greater than or equal to the size of right
   Node szGeq = nm->mkNode(
-      Kind::GEQ, nm->mkNode(Kind::DT_SIZE, n1), nm->mkNode(Kind::DT_SIZE, n2));
+      Kind::GEQ,
+      {nm->mkNode(Kind::DT_SIZE, n1), nm->mkNode(Kind::DT_SIZE, n2)});
   return szGeq;
 }
 
@@ -938,11 +936,11 @@ Node SygusExtension::getSimpleSymBreakPred(Node e,
         Node child11 = nm->mkNode(Kind::APPLY_SELECTOR,
                                   getSelectorInternal(tn, dt[tindex], 1),
                                   children[0]);
-        Assert(child11.getType() == children[1].getType());
+        AssertEqual(child11.getType(), children[1].getType());
         Node order_pred_trans =
             nm->mkNode(Kind::OR,
-                       utils::mkTester(children[0], tindex, dt).negate(),
-                       getTermOrderPredicate(child11, children[1]));
+                       {utils::mkTester(children[0], tindex, dt).negate(),
+                        getTermOrderPredicate(child11, children[1])});
         sbp_conj.push_back(order_pred_trans);
       }
     }
@@ -999,7 +997,7 @@ Node SygusExtension::registerSearchValue(Node a,
                                            bool isVarAgnostic,
                                            bool doSym)
 {
-  Assert(n.getType() == nv.getType());
+  AssertEqual(n.getType(), nv.getType());
   TypeNode tn = n.getType();
   if (!tn.isDatatype())
   {

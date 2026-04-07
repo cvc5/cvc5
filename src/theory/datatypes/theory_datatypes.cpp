@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Morgan Deters
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -79,7 +76,7 @@ TheoryDatatypes::~TheoryDatatypes() {
   for(std::map< Node, EqcInfo* >::iterator i = d_eqc_info.begin(), iend = d_eqc_info.end();
       i != iend; ++i){
     EqcInfo* current = (*i).second;
-    Assert(current != NULL);
+    Assert(current != nullptr);
     delete current;
   }
 }
@@ -152,7 +149,7 @@ TheoryDatatypes::EqcInfo* TheoryDatatypes::getOrMakeEqcInfo( TNode n, bool doMak
 
       return ei;
     }else{
-      return NULL;
+      return nullptr;
     }
   }else{
     std::map< Node, EqcInfo* >::iterator eqc_i = d_eqc_info.find( n );
@@ -1145,8 +1142,7 @@ Node TheoryDatatypes::getSingletonLemma( TypeNode tn, bool pol ) {
       Node v1 = NodeManager::mkBoundVar(tn);
       Node v2 = NodeManager::mkBoundVar(tn);
       a = nm->mkNode(Kind::FORALL,
-                     nm->mkNode(Kind::BOUND_VAR_LIST, v1, v2),
-                     v1.eqNode(v2));
+                     {nm->mkNode(Kind::BOUND_VAR_LIST, v1, v2), v1.eqNode(v2)});
     }else{
       Node v1 = NodeManager::mkDummySkolem("k1", tn);
       Node v2 = NodeManager::mkDummySkolem("k2", tn);

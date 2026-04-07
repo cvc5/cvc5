@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Daniel Larraz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -450,7 +447,7 @@ void TheorySep::reduceFact(TNode atom, bool polarity, TNode fact)
       Node emp_s = nm->mkConst(EmptySet(slbl.getType()));
       if (polarity)
       {
-        lem = nm->mkNode(Kind::OR, fact.negate(), slbl.eqNode(emp_s));
+        lem = nm->mkNode(Kind::OR, {fact.negate(), slbl.eqNode(emp_s)});
       }
       else
       {
@@ -848,9 +845,9 @@ void TheorySep::postCheck(Effort level)
         // if location is in the heap, then something must point to it
         Node lem = nm->mkNode(
             Kind::IMPLIES,
-            nm->mkNode(Kind::SET_MEMBER, ll, d_base_label),
-            nm->mkNode(
-                Kind::SEP_STAR, nm->mkNode(Kind::SEP_PTO, ll, dsk), d_true));
+            {nm->mkNode(Kind::SET_MEMBER, ll, d_base_label),
+             nm->mkNode(
+                 Kind::SEP_STAR, nm->mkNode(Kind::SEP_PTO, ll, dsk), d_true)});
         Trace("sep-lemma") << "Sep::Lemma : witness finite data-pto : " << lem
                            << std::endl;
         d_im.lemma(lem, InferenceId::SEP_WITNESS_FINITE_DATA);
@@ -905,7 +902,7 @@ TheorySep::HeapAssertInfo * TheorySep::getOrMakeEqcInfo( Node n, bool doMake ) {
       d_eqc_info[n] = ei;
       return ei;
     }else{
-      return NULL;
+      return nullptr;
     }
   }else{
     return (*e_i).second;
@@ -1315,7 +1312,7 @@ void TheorySep::makeDisjointHeap(Node parent, const std::vector<Node>& children)
   // remember parent relationships
   for (const Node& c : children)
   {
-    Assert(c.getType() == parent.getType());
+    AssertEqual(c.getType(), parent.getType());
     d_parentMap[c].push_back(parent);
   }
   // make the disjointness constraints

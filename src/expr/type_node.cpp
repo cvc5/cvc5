@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Morgan Deters
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -391,7 +388,8 @@ TypeNode TypeNode::unifyInternal(const TypeNode& t, bool isLub) const
   if (k == Kind::TYPE_CONSTANT)
   {
     // Special case: String is comparable to (Seq ?). This must be a special
-    // case since String is defined in RARE/ALF to be (Seq Char), but String
+    // case since String is defined in RARE/Eunoia to be (Seq Char), but
+    // String
     // is a base type in cvc5's internals. This special case could be removed
     // if `String` was a macro for `(Seq Char)`, however this would lead to
     // complications, since `Char` is intentionally a sort we do not export

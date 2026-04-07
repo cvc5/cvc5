@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -125,7 +122,7 @@ Node NlModel::computeModelValue(TNode n, bool isConcrete)
   }
   Trace("nl-ext-mv-debug") << "computed " << (isConcrete ? "M" : "M_A") << "["
                            << n << "] = " << ret << std::endl;
-  Assert(n.getType() == ret.getType());
+  AssertEqual(n.getType(), ret.getType());
   cache[n] = ret;
   return ret;
 }
@@ -342,8 +339,8 @@ bool NlModel::addSubstitution(TNode v, TNode s)
 
 bool NlModel::addBound(TNode v, TNode l, TNode u)
 {
-  Assert(l.getType() == v.getType());
-  Assert(u.getType() == v.getType());
+  AssertEqual(l.getType(), v.getType());
+  AssertEqual(u.getType(), v.getType());
   Trace("nl-ext-model") << "* check model bound : " << v << " -> [" << l << " "
                         << u << "]" << std::endl;
   if (l == u)
@@ -677,9 +674,9 @@ bool NlModel::simpleCheckModelLit(Node lit)
         Trace("nl-ext-cms-debug") << "    a = " << a << std::endl;
         Trace("nl-ext-cms-debug") << "    b = " << b << std::endl;
         // find maximal/minimal value on the interval
-        Node apex = nm->mkNode(Kind::DIVISION,
-                               nm->mkNode(Kind::NEG, b),
-                               nm->mkNode(Kind::MULT, d_two, a));
+        Node apex = nm->mkNode(
+            Kind::DIVISION,
+            {nm->mkNode(Kind::NEG, b), nm->mkNode(Kind::MULT, d_two, a)});
         apex = rewrite(apex);
         Assert(apex.isConst());
         // for lower, upper, whether we are greater than the apex

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mathias Preiner, Andrew Reynolds, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -302,8 +299,8 @@ void SygusInst::check(Theory::Effort e, QEffort quant_e)
       else
       {
         lem = nm->mkNode(Kind::IMPLIES,
-                         exp.size() == 1 ? exp[0] : nm->mkNode(Kind::AND, exp),
-                         dt_eval.eqNode(t));
+                         {exp.size() == 1 ? exp[0] : nm->mkNode(Kind::AND, exp),
+                          dt_eval.eqNode(t)});
       }
       eval_unfold_lemmas.push_back(lem);
     }
@@ -583,7 +580,7 @@ void SygusInst::registerCeLemma(Node q, std::vector<TypeNode>& types)
   /* Add counterexample lemma (lit => ~P[x_i/eval_i]) */
   Node body =
       q[1].substitute(q[0].begin(), q[0].end(), evals.begin(), evals.end());
-  Node lem = nm->mkNode(Kind::OR, lit.negate(), body.negate());
+  Node lem = nm->mkNode(Kind::OR, {lit.negate(), body.negate()});
 
   d_ce_lemmas.emplace(std::make_pair(q, lem));
   Trace("sygus-inst") << "Register CE Lemma: " << lem << std::endl;

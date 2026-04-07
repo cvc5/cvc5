@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Lydia Kondylidou, Daniel Larraz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,6 +17,7 @@
 
 #include <map>
 #include <unordered_map>
+#include <unordered_set>
 
 #include "expr/sygus_term_enumerator.h"
 #include "smt/env_obj.h"
@@ -59,9 +57,35 @@ class MVarInfo
    */
   Node getEnumeratedTerm(NodeManager* nm, size_t i);
 
+  /**
+   * Get the auxiliary lemmas introduced while enumerating terms
+   */
+  std::vector<std::pair<Node, InferenceId>> getEnumeratedLemmas(const Node& t);
+
  private:
   /** The underlying sygus enumerator utility */
   std::unique_ptr<SygusTermEnumerator> d_senum;
+  /**
+   * Converts enumerated terms by eliminating witness terms, replacing each
+   * with an internal choice function symbol and recording the corresponding
+   * justification lemma.
+   */
+  class ChoiceElimNodeConverter : public NodeConverter
+  {
+   public:
+    ChoiceElimNodeConverter(NodeManager* nm);
+    Node postConvert(Node n) override;
+    std::vector<std::pair<Node, InferenceId>> getEnumeratedLemmas(
+        const Node& t);
+    /** Maps introduced choice symbols to their justification lemmas. */
+    std::map<Node, Node> d_lemmas;
+    /** Visited cache used while collecting symbols from terms. */
+    std::unordered_set<TNode> d_visited;
+  };
+  /** Converter used for witness/choice elimination. */
+  std::unique_ptr<ChoiceElimNodeConverter> d_cenc;
+  /** Callback used to post-process and filter enumerated terms. */
+  std::unique_ptr<SygusTermEnumeratorCallback> d_senumCb;
   /** A cache of all enumerated terms so far */
   std::vector<Node> d_enum;
   /**
@@ -94,8 +118,6 @@ class MQuantInfo
   std::vector<size_t> getNoInstIndices();
   /** Get variable info for the index^th variable of the quantified formula */
   MVarInfo& getVarInfo(size_t index);
-  /** Should we enumerate terms for type tn? */
-  static bool shouldEnumerate(const TypeNode& tn);
 
  private:
   /** The quantified formula */
@@ -136,13 +158,15 @@ class MbqiEnum : protected EnvObj
    * @param mvs The model values of vars found in the subsolver for MBQI.
    * @param mvFreshVar Maps model values to variables, for the purposes
    * of representing term models for uninterpreted sorts.
+   * @param auxLemmas Other lemmas to add.
    * @return true if we successfully modified the instantiation.
    */
   bool constructInstantiation(const Node& q,
                               const Node& query,
                               const std::vector<Node>& vars,
                               std::vector<Node>& mvs,
-                              const std::map<Node, Node>& mvFreshVar);
+                              const std::map<Node, Node>& mvFreshVar,
+                              std::vector<std::pair<Node, InferenceId>>& auxLemmas);
 
  private:
   /**

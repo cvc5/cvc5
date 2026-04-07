@@ -1,10 +1,7 @@
 ###############################################################################
-# Top contributors (to current version):
-#   Andrew Reynolds, Andres Noetzli, Gereon Kremer
-#
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -84,7 +81,8 @@ add_library(cvc5parser
   $<TARGET_OBJECTS:cvc5parserapi-objs>
 )
 if(BUILD_SHARED_LIBS)
-  set_target_properties(cvc5parser PROPERTIES SOVERSION ${CVC5_SOVERSION})
+  set_target_properties(cvc5parser PROPERTIES
+    VERSION ${CVC5_VERSION_NUMBER} SOVERSION ${CVC5_SOVERSION})
 endif()
 
 set_target_properties(cvc5parser PROPERTIES OUTPUT_NAME cvc5parser)

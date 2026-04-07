@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -384,7 +381,7 @@ bool BaseSolver::processConstantLike(Node a, Node b)
                         << " from " << a << ", " << b << std::endl;
   if (!d_state.areEqual(s, t))
   {
-    Assert(s.getType() == t.getType());
+    AssertEqual(s.getType(), t.getType());
     Node eq = s.eqNode(t);
     if (a.getType().isString())
     {
@@ -408,7 +405,7 @@ bool BaseSolver::processConstantLike(Node a, Node b)
         Node scr = utils::mkCodeRange(s, d_cardSize);
         Node tcr = utils::mkCodeRange(t, d_cardSize);
         Node conc =
-            nodeManager()->mkNode(Kind::OR, scr.notNode(), tcr.notNode());
+            nodeManager()->mkNode(Kind::OR, {scr.notNode(), tcr.notNode()});
         // We do not explain exp for two reasons. First, we are
         // caching this inference based on the user context and thus
         // it should not depend on the current explanation. Second,

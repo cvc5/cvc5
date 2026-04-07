@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Liana Hadarean
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -519,8 +516,8 @@ Node TheoryUfRewriter::rewriteLambda(Node node)
     Assert(anode.getType().isArray());
     Node retNode =
         nodeManager()->mkConst(FunctionArrayConst(node.getType(), anode));
-    Assert(anode.isConst() == retNode.isConst());
-    Assert(retNode.getType() == node.getType());
+    AssertEqual(anode.isConst(), retNode.isConst());
+    AssertEqual(retNode.getType(), node.getType());
     Assert(expr::hasFreeVar(node) == expr::hasFreeVar(retNode));
     return retNode;
   }

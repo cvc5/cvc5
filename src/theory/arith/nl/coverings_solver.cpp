@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Gereon Kremer, Andrew Reynolds, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -48,7 +45,7 @@ CoveringsSolver::CoveringsSolver(Env& env, InferenceManager& im, NlModel& model)
 
 CoveringsSolver::~CoveringsSolver() {}
 
-void CoveringsSolver::initLastCall(const std::vector<Node>& assertions)
+void CoveringsSolver::initLastCall(CVC5_UNUSED const std::vector<Node>& assertions)
 {
 #ifdef CVC5_POLY_IMP
   if (TraceIsOn("nl-cov"))
@@ -191,7 +188,7 @@ void CoveringsSolver::checkPartial()
 #endif
 }
 
-bool CoveringsSolver::constructModelIfAvailable(std::vector<Node>& assertions)
+bool CoveringsSolver::constructModelIfAvailable(CVC5_UNUSED std::vector<Node>& assertions)
 {
 #ifdef CVC5_POLY_IMP
   if (!d_foundSatisfiability)

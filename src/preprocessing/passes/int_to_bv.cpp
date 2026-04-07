@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andres Noetzli, Yoni Zohar, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -249,9 +246,9 @@ Node IntToBV::intToBV(TNode n, NodeMap& cache)
                                       nm->mkNode(Kind::BITVECTOR_NEG, result));
           Node bv2int = nm->mkNode(
               Kind::ITE,
-              nm->mkNode(Kind::BITVECTOR_SLT, result, nm->mkConst(bvzero)),
-              nm->mkNode(Kind::NEG, negResult),
-              nm->mkNode(Kind::BITVECTOR_UBV_TO_INT, result));
+              {nm->mkNode(Kind::BITVECTOR_SLT, result, nm->mkConst(bvzero)),
+               nm->mkNode(Kind::NEG, negResult),
+               nm->mkNode(Kind::BITVECTOR_UBV_TO_INT, result)});
           d_preprocContext->addSubstitution(current, bv2int);
         }
       }

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Dejan Jovanovic, Hans-Joerg Schurr
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -310,7 +307,7 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
 
       // The new assertion
       newAssertion = nodeManager()->mkNode(
-          Kind::ITE, node[0], skolem.eqNode(node[1]), skolem.eqNode(node[2]));
+          Kind::ITE, {node[0], skolem.eqNode(node[1]), skolem.eqNode(node[2])});
 
       // we justify it internally
       if (isProofEnabled())
@@ -446,7 +443,8 @@ Node RemoveTermFormulas::getAxiomFor(Node n)
   Kind k = n.getKind();
   if (k == Kind::ITE)
   {
-    return NodeManager::mkNode(Kind::ITE, n[0], n.eqNode(n[1]), n.eqNode(n[2]));
+    return NodeManager::mkNode(Kind::ITE,
+                               {n[0], n.eqNode(n[1]), n.eqNode(n[2])});
   }
   return Node::null();
 }

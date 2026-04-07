@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Morgan Deters, Mathias Preiner, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -35,7 +32,7 @@ class BitVectorEnumerator : public TypeEnumeratorBase<BitVectorEnumerator> {
 
 public:
  BitVectorEnumerator(TypeNode type,
-                     CVC5_UNUSED TypeEnumeratorProperties* tep = NULL)
+                     CVC5_UNUSED TypeEnumeratorProperties* tep = nullptr)
      : TypeEnumeratorBase<BitVectorEnumerator>(type),
        d_size(type.getBitVectorSize()),
        d_bits(0)

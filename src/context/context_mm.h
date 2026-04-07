@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Clark Barrett, Morgan Deters, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -236,10 +233,11 @@ public:
   {
     return ContextMemoryManager::getMaxAllocationSize() / sizeof(T);
   }
-  T* allocate(size_t n, const void* = 0) const {
+  T* allocate(size_t n, const void* = nullptr) const
+  {
     return static_cast<T*>(d_mm->newData(n * sizeof(T)));
   }
-  void deallocate(T* p, size_t n) const {
+  void deallocate(CVC5_UNUSED T* p, CVC5_UNUSED size_t n) const {
     /* no explicit delete */
   }
   void construct(T* p, T const& v) const {

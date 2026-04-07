@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Tim King, Gereon Kremer, Daniel Larraz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -68,15 +65,19 @@ struct Border{
     d_bound(l), d_diff(diff), d_areFixing(areFixing), d_entry(en),  d_upperbound(ub)
   {}
 
-  Border(ConstraintP l, const DeltaRational& diff, bool areFixing, bool ub):
-    d_bound(l), d_diff(diff), d_areFixing(areFixing), d_entry(NULL),  d_upperbound(ub)
+  Border(ConstraintP l, const DeltaRational& diff, bool areFixing, bool ub)
+      : d_bound(l),
+        d_diff(diff),
+        d_areFixing(areFixing),
+        d_entry(nullptr),
+        d_upperbound(ub)
   {}
   bool operator<(const Border& other) const{
     return d_diff < other.d_diff;
   }
 
   /** d_lim is the nonbasic variable's own bound. */
-  bool ownBorder() const { return d_entry == NULL; }
+  bool ownBorder() const { return d_entry == nullptr; }
 
   bool isZero() const { return d_diff.sgn() == 0; }
   static bool nonZero(const Border& b) { return !b.isZero(); }
