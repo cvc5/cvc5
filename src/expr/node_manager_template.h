@@ -525,7 +525,7 @@ class NodeManager
 
   /** Create a node with an arbitrary number of children. */
   template <bool ref_count>
-  Node mkNode(Kind kind, const std::vector<NodeTemplate<ref_count> >& children);
+  Node mkNode(Kind kind, const std::vector<NodeTemplate<ref_count>>& children);
 
   /**
    * Creates a node with two or more children using a fixed-size array.
@@ -554,7 +554,7 @@ class NodeManager
    * used for e.g. constructing explanations.
    */
   template <bool ref_count>
-  Node mkAnd(const std::vector<NodeTemplate<ref_count> >& children);
+  Node mkAnd(const std::vector<NodeTemplate<ref_count>>& children);
 
   /**
    * Create an OR node with arbitrary number of children. This returns the
@@ -565,7 +565,7 @@ class NodeManager
    * used for e.g. constructing explanations or lemmas.
    */
   template <bool ref_count>
-  Node mkOr(const std::vector<NodeTemplate<ref_count> >& children);
+  Node mkOr(const std::vector<NodeTemplate<ref_count>>& children);
 
   /** Create a node (with no children) by operator. */
   static Node mkNode(TNode opNode);
@@ -1105,8 +1105,8 @@ inline TypeNode NodeManager::mkArrayType(TypeNode indexType,
 {
   Assert(!indexType.isNull()) << "unexpected NULL index type";
   Assert(!constituentType.isNull()) << "unexpected NULL constituent type";
-  Trace("arrays") << "making array type " << indexType << " "
-                  << constituentType << std::endl;
+  Trace("arrays") << "making array type " << indexType << " " << constituentType
+                  << std::endl;
   NodeManager* nm = indexType.getNodeManager();
   return nm->mkTypeNode(Kind::ARRAY_TYPE, indexType, constituentType);
 }
@@ -1118,29 +1118,36 @@ inline TypeNode NodeManager::mkSetType(TypeNode elementType)
   return mkTypeNode(Kind::SET_TYPE, elementType);
 }
 
-inline expr::NodeValue* NodeManager::poolLookup(expr::NodeValue* nv) const {
+inline expr::NodeValue* NodeManager::poolLookup(expr::NodeValue* nv) const
+{
   NodeValuePool::const_iterator find = d_nodeValuePool.find(nv);
-  if(find == d_nodeValuePool.end()) {
+  if (find == d_nodeValuePool.end())
+  {
     return NULL;
-  } else {
+  }
+  else
+  {
     return *find;
   }
 }
 
-inline void NodeManager::poolInsert(expr::NodeValue* nv) {
+inline void NodeManager::poolInsert(expr::NodeValue* nv)
+{
   Assert(d_nodeValuePool.find(nv) == d_nodeValuePool.end())
       << "NodeValue already in the pool!";
   d_nodeValuePool.insert(nv);
 }
 
-inline void NodeManager::poolRemove(expr::NodeValue* nv) {
+inline void NodeManager::poolRemove(expr::NodeValue* nv)
+{
   Assert(d_nodeValuePool.find(nv) != d_nodeValuePool.end())
       << "NodeValue is not in the pool!";
 
   d_nodeValuePool.erase(nv);
 }
 
-inline Kind NodeManager::operatorToKind(TNode n) {
+inline Kind NodeManager::operatorToKind(TNode n)
+{
   return kind::operatorToKind(n.d_nv);
 }
 
@@ -1150,7 +1157,8 @@ inline Node NodeManager::mkNode(Kind kind)
   return nb.constructNode();
 }
 
-inline Node NodeManager::mkNode(Kind kind, TNode child1) {
+inline Node NodeManager::mkNode(Kind kind, TNode child1)
+{
   NodeBuilder nb(child1.getNodeManager(), kind);
   nb << child1;
   return nb.constructNode();
@@ -1168,14 +1176,18 @@ inline Node NodeManager::mkNode(Kind kind, const TNode (&children)[N])
   return nb.constructNode();
 }
 
-inline Node NodeManager::mkNode(Kind kind, TNode child1, TNode child2) {
+inline Node NodeManager::mkNode(Kind kind, TNode child1, TNode child2)
+{
   NodeBuilder nb(child1.getNodeManager(), kind);
   nb << child1 << child2;
   return nb.constructNode();
 }
 
-inline Node NodeManager::mkNode(Kind kind, TNode child1, TNode child2,
-                                TNode child3) {
+inline Node NodeManager::mkNode(Kind kind,
+                                TNode child1,
+                                TNode child2,
+                                TNode child3)
+{
   NodeBuilder nb(child1.getNodeManager(), kind);
   nb << child1 << child2 << child3;
   return nb.constructNode();
@@ -1183,16 +1195,16 @@ inline Node NodeManager::mkNode(Kind kind, TNode child1, TNode child2,
 
 // N-ary version
 template <bool ref_count>
-inline Node NodeManager::mkNode(Kind kind,
-                                const std::vector<NodeTemplate<ref_count> >&
-                                children) {
+inline Node NodeManager::mkNode(
+    Kind kind, const std::vector<NodeTemplate<ref_count>>& children)
+{
   NodeBuilder nb(this, kind);
   nb.append(children);
   return nb.constructNode();
 }
 
 template <bool ref_count>
-Node NodeManager::mkAnd(const std::vector<NodeTemplate<ref_count> >& children)
+Node NodeManager::mkAnd(const std::vector<NodeTemplate<ref_count>>& children)
 {
   if (children.empty())
   {
@@ -1206,7 +1218,7 @@ Node NodeManager::mkAnd(const std::vector<NodeTemplate<ref_count> >& children)
 }
 
 template <bool ref_count>
-Node NodeManager::mkOr(const std::vector<NodeTemplate<ref_count> >& children)
+Node NodeManager::mkOr(const std::vector<NodeTemplate<ref_count>>& children)
 {
   if (children.empty())
   {
@@ -1220,7 +1232,8 @@ Node NodeManager::mkOr(const std::vector<NodeTemplate<ref_count> >& children)
 }
 
 // for operators
-inline Node NodeManager::mkNode(TNode opNode) {
+inline Node NodeManager::mkNode(TNode opNode)
+{
   NodeBuilder nb(opNode.getNodeManager(), operatorToKind(opNode));
   if (opNode.getKind() != Kind::BUILTIN)
   {
@@ -1229,7 +1242,8 @@ inline Node NodeManager::mkNode(TNode opNode) {
   return nb.constructNode();
 }
 
-inline Node NodeManager::mkNode(TNode opNode, TNode child1) {
+inline Node NodeManager::mkNode(TNode opNode, TNode child1)
+{
   NodeBuilder nb(opNode.getNodeManager(), operatorToKind(opNode));
   if (opNode.getKind() != Kind::BUILTIN)
   {
@@ -1239,7 +1253,8 @@ inline Node NodeManager::mkNode(TNode opNode, TNode child1) {
   return nb.constructNode();
 }
 
-inline Node NodeManager::mkNode(TNode opNode, TNode child1, TNode child2) {
+inline Node NodeManager::mkNode(TNode opNode, TNode child1, TNode child2)
+{
   NodeBuilder nb(opNode.getNodeManager(), operatorToKind(opNode));
   if (opNode.getKind() != Kind::BUILTIN)
   {
@@ -1249,8 +1264,11 @@ inline Node NodeManager::mkNode(TNode opNode, TNode child1, TNode child2) {
   return nb.constructNode();
 }
 
-inline Node NodeManager::mkNode(TNode opNode, TNode child1, TNode child2,
-                                TNode child3) {
+inline Node NodeManager::mkNode(TNode opNode,
+                                TNode child1,
+                                TNode child2,
+                                TNode child3)
+{
   NodeBuilder nb(opNode.getNodeManager(), operatorToKind(opNode));
   if (opNode.getKind() != Kind::BUILTIN)
   {
@@ -1274,9 +1292,9 @@ inline Node NodeManager::mkNode(TNode opNode,
 
 // N-ary version for operators
 template <bool ref_count>
-inline Node NodeManager::mkNode(TNode opNode,
-                                const std::vector<NodeTemplate<ref_count> >&
-                                children) {
+inline Node NodeManager::mkNode(
+    TNode opNode, const std::vector<NodeTemplate<ref_count>>& children)
+{
   NodeBuilder nb(opNode.getNodeManager(), operatorToKind(opNode));
   if (opNode.getKind() != Kind::BUILTIN)
   {
@@ -1286,24 +1304,31 @@ inline Node NodeManager::mkNode(TNode opNode,
   return nb.constructNode();
 }
 
-inline TypeNode NodeManager::mkTypeNode(Kind kind, TypeNode child1) {
+inline TypeNode NodeManager::mkTypeNode(Kind kind, TypeNode child1)
+{
   return (NodeBuilder(this, kind) << child1).constructTypeNode();
 }
 
-inline TypeNode NodeManager::mkTypeNode(Kind kind, TypeNode child1,
-                                        TypeNode child2) {
+inline TypeNode NodeManager::mkTypeNode(Kind kind,
+                                        TypeNode child1,
+                                        TypeNode child2)
+{
   return (NodeBuilder(this, kind) << child1 << child2).constructTypeNode();
 }
 
-inline TypeNode NodeManager::mkTypeNode(Kind kind, TypeNode child1,
-                                        TypeNode child2, TypeNode child3) {
+inline TypeNode NodeManager::mkTypeNode(Kind kind,
+                                        TypeNode child1,
+                                        TypeNode child2,
+                                        TypeNode child3)
+{
   return (NodeBuilder(this, kind) << child1 << child2 << child3)
       .constructTypeNode();
 }
 
 // N-ary version for types
 inline TypeNode NodeManager::mkTypeNode(Kind kind,
-                                        const std::vector<TypeNode>& children) {
+                                        const std::vector<TypeNode>& children)
+{
   return NodeBuilder(this, kind).append(children).constructTypeNode();
 }
 
