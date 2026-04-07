@@ -783,6 +783,15 @@ endif()
 # Convert build type to lower case.
 string(TOLOWER ${CMAKE_BUILD_TYPE} CVC5_BUILD_PROFILE_STRING)
 
+# Sets the feature profile string
+if (ENABLE_SAFE_MODE)
+  set(CVC5_FEATURE_PROFILE_STRING "safe")
+elseif (ENABLE_STABLE_MODE)
+  set(CVC5_FEATURE_PROFILE_STRING "stable")
+else()
+  set(CVC5_FEATURE_PROFILE_STRING "unrestricted")
+endif()
+
 # Get all definitions added via add_definitions.
 get_directory_property(CVC5_DEFINITIONS COMPILE_DEFINITIONS)
 string(REPLACE ";" " " CVC5_DEFINITIONS "${CVC5_DEFINITIONS}")
@@ -790,13 +799,8 @@ string(REPLACE ";" " " CVC5_DEFINITIONS "${CVC5_DEFINITIONS}")
 message("")
 print_info("cvc5 ${CVC5_VERSION}")
 message("")
-if (ENABLE_SAFE_MODE)
-  print_config("Build profile             " "${CVC5_BUILD_PROFILE_STRING} (safe mode)")
-elseif (ENABLE_STABLE_MODE)
-  print_config("Build profile             " "${CVC5_BUILD_PROFILE_STRING} (stable mode)")
-else()
-  print_config("Build profile             " "${CVC5_BUILD_PROFILE_STRING}")
-endif()
+print_config("Build profile             " "${CVC5_BUILD_PROFILE_STRING}")
+print_config("Feature profile           " "${CVC5_FEATURE_PROFILE_STRING}")
 message("")
 print_config("Assertions                " ${ENABLE_ASSERTIONS})
 print_config("Debug symbols             " ${ENABLE_DEBUG_SYMBOLS})
@@ -879,6 +883,17 @@ else()
   "libraries which can improve cvc5's performance on arithmetic and bit-vector"
   "\n"
   "logics, use the 'configure.sh' script to re-configure with '--best --gpl'."
+  )
+endif()
+
+if(NOT ENABLE_SAFE_MODE AND NOT ENABLE_STABLE_MODE)
+  message(
+  "\n"
+  "Note that this configuration is built with an unrestricted feature profile. "
+  "\n"
+  "For industry applications you might want to consider building in safe or stable"
+  "\n"
+  "mode instead by re-configuring with 'safe-mode' or 'stable-mode', respectively."
   )
 endif()
 
