@@ -241,7 +241,7 @@
   )
 )
 
-; program: $bv_bitblast_slt
+; define: $bv_bitblast_slt
 ; args:
 ; - x T: The left hand side of the signed inequality predicate.
 ; - y T: The right hand side of the signed inequality predicate.
@@ -315,7 +315,7 @@
   )
 )
 
-; program: $bv_ripple_carry_adder
+; define: $bv_ripple_carry_adder
 ; args:
 ; - a1 (BitVec n): The first term to add, a list of bits.
 ; - a2 (BitVec n): The second term to add, a list of bits.
@@ -324,7 +324,7 @@
 (define $bv_ripple_carry_adder ((n Int :implicit) (a1 (BitVec n)) (a2 (BitVec n)) (carry Bool))
   ($pair_second ($bv_ripple_carry_adder_2 a1 a2 carry @bv_empty)))
 
-; define: $bv_mk_bitblast_step_add
+; program: $bv_mk_bitblast_step_add
 ; args:
 ; - a (BitVec n): An addition term over arguments that are lists of bits.
 ; - ac (BitVec n): The accumulated return value, a list of bits.
@@ -339,7 +339,7 @@
 
 ;;; multiplication
 
-; define: $bv_shift_add_multiplier_rec_step
+; program: $bv_shift_add_multiplier_rec_step
 ; args:
 ; - b1 Bool: The bit of the first term at the given index.
 ; - a2 (BitVec n): The second term to multiply, a lists of bits.
@@ -363,7 +363,7 @@
   )
 )
 
-; define: $bv_shift_add_multiplier_rec
+; program: $bv_shift_add_multiplier_rec
 ; args:
 ; - a1 (BitVec m): The remainder of the first term to multiply, a lists of bits.
 ; - a2 (BitVec n): The second term to multiply, a lists of bits.
@@ -379,7 +379,7 @@
   )
 )
 
-; define: $bv_shift_add_multiplier
+; program: $bv_shift_add_multiplier
 ; args:
 ; - a (BitVec n): The first term to multiply, a lists of bits.
 ; - b (BitVec n): The second term to multiply, a lists of bits.
@@ -393,7 +393,7 @@
   )
 )
 
-; define: $bv_mk_bitblast_step_mul
+; program: $bv_mk_bitblast_step_mul
 ; args:
 ; - a (BitVec n): A multiplication term over arguments that are lists of bits.
 ; - ac (BitVec n): The accumulated return value, a list of bits.
@@ -408,7 +408,7 @@
 
 ;;; division and remainder
 
-; define: $bv_div_mod_impl
+; program: $bv_div_mod_impl
 ; args:
 ; - x (BitVec n): The first argument to div/rem, expected to be a list of bits.
 ; - y (BitVec n): The second argument to div/rem, expected to be a list of bits.
@@ -466,7 +466,7 @@
 
 ;;; ite
 
-; define: $bv_mk_bitblast_step_ite
+; program: $bv_mk_bitblast_step_ite
 ; args:
 ; - c (BitVec 1): The condition, expected to be a singleton list of bits.
 ; - x (BitVec n): The then branch, expected to be a list of bits.
@@ -506,7 +506,7 @@
 
 ;;; shifts
 
-; define: $bv_mk_bitblast_step_shl_rec_step
+; program: $bv_mk_bitblast_step_shl_rec_step
 ; args:
 ; - a1 (BitVec m): The remainder of the first argument to shift, a lists of bits, which we strip the first i bits from.
 ; - a1c (BitVec n): The remainder of the first argument to shift, a lists of bits.
@@ -526,7 +526,7 @@
   )
 )
 
-; define: $bv_mk_bitblast_step_shl_rec
+; program: $bv_mk_bitblast_step_shl_rec
 ; args:
 ; - a1 (BitVec n): The current accumulated return value, starting with the first argument.
 ; - a2 (BitVec m): The remainder of the second argument to shift, a lists of bits.
@@ -558,7 +558,7 @@
     ($bv_bitblast_apply_ite ($bv_bitblast_ult a2 szc false) res ($bv_bitblast_repeat false sz))))))))
 
 
-; define: $bv_mk_bitblast_step_shr_rec_step
+; program: $bv_mk_bitblast_step_shr_rec_step
 ; args:
 ; - a1 (BitVec m): The remainder of the first argument to shift, a lists of bits.
 ; - a1c (BitVec n): The remainder of the first argument to shift, a lists of bits, which we initially strip the first i bits from.
@@ -581,14 +581,14 @@
   )
 )
 
-; define: $bv_mk_bitblast_step_shl_rec
+; program: $bv_mk_bitblast_step_shr_rec
 ; args:
 ; - a1 (BitVec n): The current accumulated return value, starting with the first argument.
 ; - a2 (BitVec m): The remainder of the second argument to shift, a lists of bits.
 ; - s Int: The index of bits we are considering.
 ; - lsz Int: The bitwidth of a1.
 ; - sbit Bool: The sign bit we are processing (the sign of first argument for bvashr, false otherwise).
-; return: the bitblasted term for processing the left shift of a1 and a2.
+; return: the bitblasted term for processing the right shift of a1 and a2.
 (program $bv_mk_bitblast_step_shr_rec ((s Int) (lsz Int) (n Int) (m Int) (a1 (BitVec n)) (b2 Bool) (a2 (BitVec m) :list) (sbit Bool))
   :signature ((BitVec n) (BitVec m) Int Int Bool) (BitVec n)
   (

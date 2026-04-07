@@ -57,7 +57,7 @@ std::set<Node>* TypeSet::getSet(TypeNode t) const
   const_iterator it = d_typeSet.find(t);
   if (it == d_typeSet.end())
   {
-    return NULL;
+    return nullptr;
   }
   return (*it).second;
 }

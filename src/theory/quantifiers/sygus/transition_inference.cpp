@@ -83,7 +83,7 @@ Node DetTrace::constructFormula(NodeManager* nm, const std::vector<Node>& vars)
   return d_trie.constructFormula(nm, vars);
 }
 
-void DetTrace::print(const char* c) const
+void DetTrace::print(CVC5_UNUSED const char* c) const
 {
   for (const Node& n : d_curr)
   {

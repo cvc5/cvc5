@@ -266,7 +266,8 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
       else if (node[0].isConst() && node[1].isConst())
       {
         Node newNode = rewriteViaRule(ProofRewriteRule::SETS_EVAL_OP, node);
-        Assert(newNode.isConst() && newNode.getType() == node.getType());
+        Assert(newNode.isConst()
+               && CVC5_EQUAL(newNode.getType(), node.getType()));
         Trace("sets-postrewrite")
             << "Sets::postRewrite returning " << newNode << std::endl;
         return RewriteResponse(REWRITE_DONE, newNode);
@@ -1035,11 +1036,13 @@ RewriteResponse TheorySetsRewriter::postRewriteFold(TNode n)
     }
     case Kind::SET_UNION:
     {
-      // (set.fold f t (set.union B C)) = (set.fold f (set.fold f t A) B))
+      // (set.fold f t (set.union A B)) =
+      // (set.fold f (set.fold f t A) (set.minus B A)))
       Node A = n[2][0];
       Node B = n[2][1];
       Node foldA = nm->mkNode(Kind::SET_FOLD, f, t, A);
-      Node fold = nm->mkNode(Kind::SET_FOLD, f, foldA, B);
+      Node fold = nm->mkNode(
+          Kind::SET_FOLD, f, foldA, nm->mkNode(Kind::SET_MINUS, B, A));
       return RewriteResponse(REWRITE_AGAIN_FULL, fold);
     }
 

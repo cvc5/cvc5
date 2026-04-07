@@ -902,7 +902,7 @@ TheorySep::HeapAssertInfo * TheorySep::getOrMakeEqcInfo( Node n, bool doMake ) {
       d_eqc_info[n] = ei;
       return ei;
     }else{
-      return NULL;
+      return nullptr;
     }
   }else{
     return (*e_i).second;
@@ -1312,7 +1312,7 @@ void TheorySep::makeDisjointHeap(Node parent, const std::vector<Node>& children)
   // remember parent relationships
   for (const Node& c : children)
   {
-    Assert(c.getType() == parent.getType());
+    AssertEqual(c.getType(), parent.getType());
     d_parentMap[c].push_back(parent);
   }
   // make the disjointness constraints

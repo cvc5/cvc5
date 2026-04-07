@@ -935,7 +935,7 @@ Node SygusExtension::getSimpleSymBreakPred(Node e,
         Node child11 = nm->mkNode(Kind::APPLY_SELECTOR,
                                   getSelectorInternal(tn, dt[tindex], 1),
                                   children[0]);
-        Assert(child11.getType() == children[1].getType());
+        AssertEqual(child11.getType(), children[1].getType());
         Node order_pred_trans =
             nm->mkNode(Kind::OR,
                        utils::mkTester(children[0], tindex, dt).negate(),
@@ -996,7 +996,7 @@ Node SygusExtension::registerSearchValue(Node a,
                                            bool isVarAgnostic,
                                            bool doSym)
 {
-  Assert(n.getType() == nv.getType());
+  AssertEqual(n.getType(), nv.getType());
   TypeNode tn = n.getType();
   if (!tn.isDatatype())
   {

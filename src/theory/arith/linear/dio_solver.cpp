@@ -627,8 +627,8 @@ std::pair<DioSolver::SubIndex, DioSolver::TrailIndex> DioSolver::solveIndex(DioS
   d_subs.push_back(Substitution(Node::null(), var, ci));
 
   Trace("arith::dio") << "after solveIndex " <<  d_trail[ci].d_eq.getNode() << " for " << av.getNode() << endl;
-  Assert(d_trail[ci].d_eq.getPolynomial().getCoefficient(vl)
-         == Constant::mkConstant(nodeManager(), -1));
+  AssertEqual(d_trail[ci].d_eq.getPolynomial().getCoefficient(vl),
+              Constant::mkConstant(nodeManager(), -1));
 
   return make_pair(subBy, i);
 }
@@ -667,7 +667,8 @@ std::pair<DioSolver::SubIndex, DioSolver::TrailIndex> DioSolver::decomposeIndex(
   SumPair r = SumPair::parseSumPair(qr[1]);
 
   NodeManager* nm = nodeManager();
-  Assert(q.getPolynomial().getCoefficient(vl) == Constant::mkConstant(nm, 1));
+  AssertEqual(q.getPolynomial().getCoefficient(vl),
+              Constant::mkConstant(nm, 1));
 
   Assert(!r.isZero());
   Node freshNode = makeIntegerVariable(nodeManager());
@@ -686,8 +687,8 @@ std::pair<DioSolver::SubIndex, DioSolver::TrailIndex> DioSolver::decomposeIndex(
 
   Trace("arith::dio") << "Decompose ci(" << ci <<":" <<  d_trail[ci].d_eq.getNode()
                       << ") for " << d_trail[i].d_minimalMonomial.getNode() << endl;
-  Assert(d_trail[ci].d_eq.getPolynomial().getCoefficient(vl)
-         == Constant::mkConstant(nm, -1));
+  AssertEqual(d_trail[ci].d_eq.getPolynomial().getCoefficient(vl),
+              Constant::mkConstant(nm, -1));
 
   SumPair newFact = r + fresh_a;
 
