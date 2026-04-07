@@ -1568,6 +1568,7 @@ set(regress_0_tests
   regress0/proofs/proj-issue773-nnf-double-neg.smt2
   regress0/proofs/proj-issue775-mult-sign.smt2
   regress0/proofs/proj-issue777-open-eqproof.smt2
+  regress0/proofs/proj-issue777-open-sat-proof.smt2
   regress0/proofs/proj-issue778-subtype-div.smt2
   regress0/proofs/proj-issue784-benchmark2.smt2
   regress0/proofs/proj-issue781-cyclic-pppg.smt2
