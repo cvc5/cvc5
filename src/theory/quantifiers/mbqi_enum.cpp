@@ -287,7 +287,7 @@ Node MVarInfo::ChoiceElimNodeConverter::postConvert(Node n)
       wchildren.insert(wchildren.end(), ubvl.begin(), ubvl.end());
       h = nm->mkNode(Kind::APPLY_UF, wchildren);
     }
-    Assert(h.getType() == n.getType());
+    AssertEqual(h.getType(), n.getType());
     Subs subs;
     subs.add(n[0][0], h);
     Node kpred = subs.apply(n[1]);

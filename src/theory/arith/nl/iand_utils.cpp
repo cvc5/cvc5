@@ -171,8 +171,10 @@ Node IAndUtils::createBitwiseIAndNode(Node x,
   }
   const std::map<std::pair<int64_t, int64_t>, uint64_t>& table =
       d_bvandTable[granularity];
-  return createITEFromTable(
-      iextract(high, low, x), iextract(high, low, y), granularity, table);
+  // Use iextractX and iextractY to ensure deterministic node ID assignments
+  Node iextractX = iextract(high, low, x);
+  Node iextractY = iextract(high, low, y);
+  return createITEFromTable(iextractX, iextractY, granularity, table);
 }
 
 Node IAndUtils::iextract(uint32_t i, uint32_t j, Node n) const

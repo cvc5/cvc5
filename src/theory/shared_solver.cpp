@@ -133,8 +133,10 @@ bool SharedSolver::propagateSharedEquality(theory::TheoryId theory,
   }
   else
   {
+    // Use negatedEquality to ensure deterministic node ID assignments
+    Node negatedEquality = equality.notNode();
     d_te.assertToTheory(
-        equality.notNode(), equality.notNode(), theory, THEORY_BUILTIN);
+        negatedEquality, negatedEquality, theory, THEORY_BUILTIN);
   }
   return true;
 }

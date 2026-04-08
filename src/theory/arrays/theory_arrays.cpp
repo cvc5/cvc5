@@ -960,7 +960,7 @@ void TheoryArrays::checkPair(TNode r1, TNode r2)
     // continue
     Assert(d_mayEqualEqualityEngine.hasTerm(r1[0])
            && d_mayEqualEqualityEngine.hasTerm(r2[0]));
-    if (r1[0].getType() != r2[0].getType()
+    if (!CVC5_EQUAL(r1[0].getType(), r2[0].getType())
         || d_equalityEngine->areDisequal(r1[0], r2[0], false))
     {
       Trace("arrays::sharing")
@@ -1037,7 +1037,7 @@ void TheoryArrays::computeCareGraph()
     {
       for (it2 = it1, ++it2; it2 != iend; ++it2)
       {
-        if ((*it1).getType() != (*it2).getType())
+        if (!CVC5_EQUAL((*it1).getType(), (*it2).getType()))
         {
           continue;
         }
@@ -2164,9 +2164,11 @@ void TheoryArrays::queueRowLemma(RowLemmaType lem)
     Trace("arrays-lem") << "Arrays::addRowLemma (1) adding " << lemma << "\n";
     d_RowAlreadyAdded.insert(lem);
     // use non-rewritten nodes
+    // Use notEq2 to ensure deterministic node ID assignments
+    Node notEq2 = eq2.notNode();
     d_im.arrayLemma(aj.eqNode(bj),
                     InferenceId::ARRAYS_READ_OVER_WRITE,
-                    eq2.notNode(),
+                    notEq2,
                     ProofRule::ARRAYS_READ_OVER_WRITE);
     ++d_numRow;
   }
@@ -2310,9 +2312,11 @@ bool TheoryArrays::dischargeLemmas()
     Trace("arrays-lem") << "Arrays::addRowLemma (2) adding " << lem << "\n";
     d_RowAlreadyAdded.insert(l);
     // use non-rewritten nodes, theory preprocessing will rewrite
+    // Use notEq2 to ensure deterministic node ID assignments
+    Node notEq2 = eq2.notNode();
     d_im.arrayLemma(aj.eqNode(bj),
                     InferenceId::ARRAYS_READ_OVER_WRITE,
-                    eq2.notNode(),
+                    notEq2,
                     ProofRule::ARRAYS_READ_OVER_WRITE);
     ++d_numRow;
     lemmasAdded = true;

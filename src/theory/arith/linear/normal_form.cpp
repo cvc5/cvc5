@@ -683,7 +683,9 @@ SumPair SumPair::mkSumPair(const Polynomial& p)
   else if (p.containsConstant())
   {
     Assert(!p.singleton());
-    return SumPair(p.getTail(), p.getHead().getConstant());
+    // Use tail to ensure deterministic node ID assignments
+    Polynomial tail = p.getTail();
+    return SumPair(tail, p.getHead().getConstant());
   }
   else
   {
@@ -736,11 +738,15 @@ SumPair Comparison::toSumPair() const
         Assert(!right.singleton());
 
         Polynomial noConstant = right.getTail();
-        return SumPair(left - noConstant, -right.getHead().getConstant());
+        // Use mRightLeadingConstant to ensure deterministic node ID assignments
+        Constant mRightLeadingConstant = -right.getHead().getConstant();
+        return SumPair(left - noConstant, mRightLeadingConstant);
       }
       else
       {
-        return SumPair(left - right, Constant::mkZero(nm));
+        // Use zero to ensure deterministic node ID assignments
+        Constant zero = Constant::mkZero(nm);
+        return SumPair(left - right, zero);
       }
     }
     default: Unhandled() << cmpKind;
@@ -880,7 +886,10 @@ std::tuple<Polynomial, Kind, Constant> Comparison::decompose(
     }
   }
 
-  Polynomial poly = getLeft() - getRight();
+  // Use pLeft and pRight to ensure deterministic node ID assignments
+  Polynomial pLeft = getLeft();
+  Polynomial pRight = getRight();
+  Polynomial poly = pLeft - pRight;
 
   if (!split_constant)
   {
@@ -1409,7 +1418,12 @@ Node Comparison::mkIntEquality(NodeManager* nm, const Polynomial& p)
     Monomial m = varPartMult.selectAbsMinimum();
     bool mIsPositive = m.getConstant().isPositive();
 
-    Polynomial noM = (varPartMult + (-m)) + Polynomial::mkPolynomial(constMult);
+    // Use negM, sumVar, and constPoly to ensure deterministic node ID
+    // assignments
+    Polynomial negM = -m;
+    Polynomial sumVar = varPartMult + negM;
+    Polynomial constPoly = Polynomial::mkPolynomial(constMult);
+    Polynomial noM = sumVar + constPoly;
 
     // m + noM = 0
     Polynomial newRight = mIsPositive ? -noM : noM;

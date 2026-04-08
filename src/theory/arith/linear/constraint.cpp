@@ -2085,10 +2085,10 @@ std::shared_ptr<ProofNode> Constraint::externalExplain(
         }
         case ArithProofType::IntHoleAP:
         {
-          pf = pnm->mkTrustedNode(TrustId::THEORY_INFERENCE_ARITH,
-                                  children,
-                                  {getProofLiteral()},
-                                  getProofLiteral());
+          // Use proofLit to ensure deterministic node ID assignments
+          Node proofLit = getProofLiteral();
+          pf = pnm->mkTrustedNode(
+              TrustId::THEORY_INFERENCE_ARITH, children, {proofLit}, proofLit);
           break;
         }
         case ArithProofType::TrichotomyAP:

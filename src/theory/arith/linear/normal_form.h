@@ -1249,13 +1249,18 @@ class SumPair : public NodeWrapper
 
   SumPair operator+(const SumPair& other) const
   {
-    return SumPair(getPolynomial() + other.getPolynomial(),
-                   getConstant() + other.getConstant());
+    // Use otherP, otherC, and p1 to ensure deterministic node ID assignments
+    Polynomial otherP = other.getPolynomial();
+    Constant otherC = other.getConstant();
+    Polynomial p1 = getPolynomial() + otherP;
+    return SumPair(p1, getConstant() + otherC);
   }
 
   SumPair operator*(const Constant& c) const
   {
-    return SumPair(getPolynomial() * c, getConstant() * c);
+    // Use p1 to ensure deterministic node ID assignments
+    Polynomial p1 = getPolynomial() * c;
+    return SumPair(p1, getConstant() * c);
   }
 
   SumPair operator-(const SumPair& other) const
@@ -1304,7 +1309,9 @@ class SumPair : public NodeWrapper
 
   static SumPair mkZero(NodeManager* nm)
   {
-    return SumPair(Polynomial::mkZero(nm), Constant::mkConstant(nm, 0));
+    // Use zero to ensure deterministic node ID assignments
+    Polynomial zero = Polynomial::mkZero(nm);
+    return SumPair(zero, Constant::mkConstant(nm, 0));
   }
 
   static Node computeQR(const SumPair& sp, const Integer& div);

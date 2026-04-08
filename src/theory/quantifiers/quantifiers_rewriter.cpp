@@ -1170,7 +1170,7 @@ Node QuantifiersRewriter::computeCondSplit(Node body,
 bool QuantifiersRewriter::isVarElim(Node v, Node s)
 {
   Assert(v.getKind() == Kind::BOUND_VARIABLE);
-  return !expr::hasSubterm(s, v) && s.getType() == v.getType();
+  return !expr::hasSubterm(s, v) && CVC5_EQUAL(s.getType(), v.getType());
 }
 
 bool QuantifiersRewriter::isSafeSubsTerm(const Node& body, const Node& s)

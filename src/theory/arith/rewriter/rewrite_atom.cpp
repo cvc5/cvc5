@@ -307,8 +307,9 @@ Node buildRealEquality(NodeManager* nm, Sum&& sum)
   auto lterm = removeLTerm(nm, sum);
   if (lterm.second.isZero())
   {
-    return buildRelation(
-        Kind::EQUAL, mkConst(nm, Integer(0)), collectSum(nm, sum));
+    // Use zero to ensure deterministic node ID assignments
+    Node zero = mkConst(nm, Integer(0));
+    return buildRelation(Kind::EQUAL, zero, collectSum(nm, sum));
   }
   RealAlgebraicNumber lcoeff = -lterm.second;
   for (auto& s : sum)
@@ -356,8 +357,9 @@ Node buildIntegerInequality(NodeManager* nm, Sum&& sum, Kind k)
   {
     rhs = rhs.ceiling();
   }
-  return buildRelation(
-      Kind::GEQ, collectSum(nm, sum), nm->mkConstInt(rhs), negate);
+  // Use rhsNode to ensure deterministic node ID assignments
+  Node rhsNode = nm->mkConstInt(rhs);
+  return buildRelation(Kind::GEQ, collectSum(nm, sum), rhsNode, negate);
 }
 
 Node buildRealInequality(NodeManager* nm, Sum&& sum, Kind k)

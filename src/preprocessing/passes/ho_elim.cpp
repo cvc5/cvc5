@@ -175,11 +175,15 @@ Node HoElim::reconstructHoFunction(Node n, TypeNode tn)
           remArgTypes.end(), argTypes.begin() + 1, argTypes.end());
       nextType = nm->mkFunctionType(remArgTypes, nextType);
     }
-    curr = nm->mkNode(
-        Kind::APPLY_UF,
-        getHoApplyUf(getUSort(ctn), getUSort(argType), getUSort(nextType)),
-        curr,
-        v);
+    // Use ctnSort, argTypeSort, and nextTypeSort to ensure deterministic node
+    // ID assignments
+    TypeNode ctnSort = getUSort(ctn);
+    TypeNode argTypeSort = getUSort(argType);
+    TypeNode nextTypeSort = getUSort(nextType);
+    curr = nm->mkNode(Kind::APPLY_UF,
+                      getHoApplyUf(ctnSort, argTypeSort, nextTypeSort),
+                      curr,
+                      v);
     ctn = nextType;
   }
   return nm->mkNode(Kind::LAMBDA, nm->mkNode(Kind::BOUND_VAR_LIST, args), curr);
@@ -313,8 +317,11 @@ Node HoElim::eliminateHo(Node n)
         {
           TypeNode tnr = ret.getType();
           tnr = getUSort(tnr);
-          Node hoa =
-              getHoApplyUf(children[0].getType(), children[1].getType(), tnr);
+          // Use child0Type and child1Type to ensure deterministic node ID
+          // assignments
+          TypeNode child0Type = children[0].getType();
+          TypeNode child1Type = children[1].getType();
+          Node hoa = getHoApplyUf(child0Type, child1Type, tnr);
           std::vector<Node> hchildren;
           hchildren.push_back(hoa);
           hchildren.push_back(children[0]);
