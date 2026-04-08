@@ -62,18 +62,23 @@ bool hasSubtermKinds(const std::unordered_set<Kind, kind::KindHashFunction>& ks,
  * @param ts The subterms of n that have that kind.
  * @param nested Whether we search beneath other applications of k.
  */
-void getSubtermsKind(Kind k, TNode n, std::unordered_set<Node>& ts, bool nested=true);
+void getSubtermsKind(Kind k,
+                     TNode n,
+                     std::unordered_set<Node>& ts,
+                     bool nested = true);
 
 /**
  * @param ks The kinds of node to check
  * @param n The node to search in.
  * @param ts Maps kinds to the subterms of n that have that kind.
- * @param nested Whether we search beneath other applications of terms with kinds in ks.
+ * @param nested Whether we search beneath other applications of terms with
+ * kinds in ks.
  */
 void getSubtermsKinds(
     const std::unordered_set<Kind, kind::KindHashFunction>& ks,
     TNode n,
-    std::map<Kind, std::unordered_set<Node>>& ts, bool nested=true);
+    std::map<Kind, std::unordered_set<Node>>& ts,
+    bool nested = true);
 
 /**
  * @param ks The kinds of node to check

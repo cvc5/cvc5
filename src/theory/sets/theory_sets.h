@@ -38,6 +38,7 @@ class TheorySets : public Theory
 {
   friend class TheorySetsPrivate;
   friend class TheorySetsRels;
+
  public:
   /** Constructs a new instance of TheorySets w.r.t. the provided contexts. */
   TheorySets(Env& env, OutputChannel& out, Valuation valuation);

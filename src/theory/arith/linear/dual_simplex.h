@@ -59,21 +59,21 @@ namespace cvc5::internal {
 namespace theory {
 namespace arith::linear {
 
-class DualSimplexDecisionProcedure : public SimplexDecisionProcedure{
-public:
- DualSimplexDecisionProcedure(Env& env,
-                              LinearEqualityModule& linEq,
-                              ErrorSet& errors,
-                              RaiseConflict conflictChannel,
-                              TempVarMalloc tvmalloc);
+class DualSimplexDecisionProcedure : public SimplexDecisionProcedure
+{
+ public:
+  DualSimplexDecisionProcedure(Env& env,
+                               LinearEqualityModule& linEq,
+                               ErrorSet& errors,
+                               RaiseConflict conflictChannel,
+                               TempVarMalloc tvmalloc);
 
- Result::Status findModel(bool exactResult) override
- {
-   return dualFindModel(exactResult);
+  Result::Status findModel(bool exactResult) override
+  {
+    return dualFindModel(exactResult);
   }
 
-private:
-
+ private:
   /**
    * Maps a variable to how many times they have been used as a pivot in the
    * simplex search.
@@ -90,16 +90,17 @@ private:
    * d_conflictVariable will be set and the conflict for this row is reported.
    */
   bool searchForFeasibleSolution(uint32_t maxIterations);
-  
 
-  bool processSignals(){
-    TimerStat &timer = d_statistics.d_processSignalsTime;
-    IntStat& conflictStat  = d_statistics.d_recentViolationCatches;
+  bool processSignals()
+  {
+    TimerStat& timer = d_statistics.d_processSignalsTime;
+    IntStat& conflictStat = d_statistics.d_recentViolationCatches;
     return standardProcessSignals(timer, conflictStat);
   }
   /** These fields are designed to be accessible to TheoryArith methods. */
-  class Statistics {
-  public:
+  class Statistics
+  {
+   public:
     IntStat d_statUpdateConflicts;
     TimerStat d_processSignalsTime;
     IntStat d_simplexConflicts;
@@ -110,8 +111,8 @@ private:
 
     Statistics(StatisticsRegistry& sr, uint32_t& pivots);
   } d_statistics;
-};/* class DualSimplexDecisionProcedure */
+}; /* class DualSimplexDecisionProcedure */
 
-}  // namespace arith
+}  // namespace arith::linear
 }  // namespace theory
 }  // namespace cvc5::internal

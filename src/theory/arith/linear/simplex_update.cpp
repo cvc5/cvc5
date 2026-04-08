@@ -24,9 +24,9 @@ namespace arith::linear {
  * Generates a string representation of std::optional and inserts it into a
  * stream.
  *
- * Note: We define this function here in the cvc5::internal::theory::arith namespace,
- * because it would otherwise not be found for std::optional<int>. This is due
- * to the argument-dependent lookup rules.
+ * Note: We define this function here in the cvc5::internal::theory::arith
+ * namespace, because it would otherwise not be found for std::optional<int>.
+ * This is due to the argument-dependent lookup rules.
  *
  * @param out The stream
  * @param m The value
@@ -37,51 +37,61 @@ std::ostream& operator<<(std::ostream& out, const std::optional<int>& m)
   return cvc5::internal::operator<<(out, m);
 }
 
-UpdateInfo::UpdateInfo():
-  d_nonbasic(ARITHVAR_SENTINEL),
-  d_nonbasicDirection(0),
-  d_nonbasicDelta(),
-  d_foundConflict(false),
-  d_errorsChange(),
-  d_focusDirection(),
-  d_tableauCoefficient(),
-  d_limiting(NullConstraint),
-  d_witness(AntiProductive)
-{}
+UpdateInfo::UpdateInfo()
+    : d_nonbasic(ARITHVAR_SENTINEL),
+      d_nonbasicDirection(0),
+      d_nonbasicDelta(),
+      d_foundConflict(false),
+      d_errorsChange(),
+      d_focusDirection(),
+      d_tableauCoefficient(),
+      d_limiting(NullConstraint),
+      d_witness(AntiProductive)
+{
+}
 
-UpdateInfo::UpdateInfo(ArithVar nb, int dir):
-  d_nonbasic(nb),
-  d_nonbasicDirection(dir),
-  d_nonbasicDelta(),
-  d_foundConflict(false),
-  d_errorsChange(),
-  d_focusDirection(),
-  d_tableauCoefficient(),
-  d_limiting(NullConstraint),
-  d_witness(AntiProductive)
+UpdateInfo::UpdateInfo(ArithVar nb, int dir)
+    : d_nonbasic(nb),
+      d_nonbasicDirection(dir),
+      d_nonbasicDelta(),
+      d_foundConflict(false),
+      d_errorsChange(),
+      d_focusDirection(),
+      d_tableauCoefficient(),
+      d_limiting(NullConstraint),
+      d_witness(AntiProductive)
 {
   Assert(dir == 1 || dir == -1);
 }
 
-UpdateInfo::UpdateInfo(CVC5_UNUSED bool conflict, ArithVar nb, const DeltaRational& delta, const Rational& r, ConstraintP c):
-  d_nonbasic(nb),
-  d_nonbasicDirection(delta.sgn()),
-  d_nonbasicDelta(delta),
-  d_foundConflict(true),
-  d_errorsChange(),
-  d_focusDirection(),
-  d_tableauCoefficient(&r),
-  d_limiting(c),
-  d_witness(ConflictFound)
+UpdateInfo::UpdateInfo(CVC5_UNUSED bool conflict,
+                       ArithVar nb,
+                       const DeltaRational& delta,
+                       const Rational& r,
+                       ConstraintP c)
+    : d_nonbasic(nb),
+      d_nonbasicDirection(delta.sgn()),
+      d_nonbasicDelta(delta),
+      d_foundConflict(true),
+      d_errorsChange(),
+      d_focusDirection(),
+      d_tableauCoefficient(&r),
+      d_limiting(c),
+      d_witness(ConflictFound)
 {
   Assert(conflict);
 }
 
-UpdateInfo UpdateInfo::conflict(ArithVar nb, const DeltaRational& delta, const Rational& r, ConstraintP lim){
+UpdateInfo UpdateInfo::conflict(ArithVar nb,
+                                const DeltaRational& delta,
+                                const Rational& r,
+                                ConstraintP lim)
+{
   return UpdateInfo(true, nb, delta, r, lim);
 }
 
-void UpdateInfo::updateUnbounded(const DeltaRational& delta, int ec, int f){
+void UpdateInfo::updateUnbounded(const DeltaRational& delta, int ec, int f)
+{
   d_limiting = NullConstraint;
   d_nonbasicDelta = delta;
   d_errorsChange = ec;
@@ -93,7 +103,8 @@ void UpdateInfo::updateUnbounded(const DeltaRational& delta, int ec, int f){
   Assert(!describesPivot());
   Assert(debugSgnAgreement());
 }
-void UpdateInfo::updatePureFocus(const DeltaRational& delta, ConstraintP c){
+void UpdateInfo::updatePureFocus(const DeltaRational& delta, ConstraintP c)
+{
   d_limiting = c;
   d_nonbasicDelta = delta;
   d_errorsChange.reset();
@@ -116,7 +127,11 @@ void UpdateInfo::updatePivot(const DeltaRational& delta, ConstraintP c)
   Assert(debugSgnAgreement());
 }
 
-void UpdateInfo::updatePivot(const DeltaRational& delta, const Rational& r, ConstraintP c, int ec){
+void UpdateInfo::updatePivot(const DeltaRational& delta,
+                             const Rational& r,
+                             ConstraintP c,
+                             int ec)
+{
   d_limiting = c;
   d_nonbasicDelta = delta;
   d_errorsChange = ec;
@@ -127,7 +142,11 @@ void UpdateInfo::updatePivot(const DeltaRational& delta, const Rational& r, Cons
   Assert(debugSgnAgreement());
 }
 
-void UpdateInfo::witnessedUpdate(const DeltaRational& delta, ConstraintP c, int ec, int fd){
+void UpdateInfo::witnessedUpdate(const DeltaRational& delta,
+                                 ConstraintP c,
+                                 int ec,
+                                 int fd)
+{
   d_limiting = c;
   d_nonbasicDelta = delta;
   d_errorsChange = ec;
@@ -138,7 +157,12 @@ void UpdateInfo::witnessedUpdate(const DeltaRational& delta, ConstraintP c, int 
   Assert(debugSgnAgreement());
 }
 
-void UpdateInfo::update(const DeltaRational& delta, const Rational& r, ConstraintP c, int ec, int fd){
+void UpdateInfo::update(const DeltaRational& delta,
+                        const Rational& r,
+                        ConstraintP c,
+                        int ec,
+                        int fd)
+{
   d_limiting = c;
   d_nonbasicDelta = delta;
   d_errorsChange = ec;
@@ -149,57 +173,50 @@ void UpdateInfo::update(const DeltaRational& delta, const Rational& r, Constrain
   Assert(debugSgnAgreement());
 }
 
-bool UpdateInfo::describesPivot() const {
+bool UpdateInfo::describesPivot() const
+{
   return !unbounded() && d_nonbasic != d_limiting->getVariable();
 }
 
-void UpdateInfo::output(std::ostream& out) const{
+void UpdateInfo::output(std::ostream& out) const
+{
   out << "{UpdateInfo"
-      << ", nb = " << d_nonbasic
-      << ", dir = " << d_nonbasicDirection
-      << ", delta = " << d_nonbasicDelta
-      << ", conflict = " << d_foundConflict
+      << ", nb = " << d_nonbasic << ", dir = " << d_nonbasicDirection
+      << ", delta = " << d_nonbasicDelta << ", conflict = " << d_foundConflict
       << ", errorChange = " << d_errorsChange
-      << ", focusDir = " << d_focusDirection
-      << ", witness = " << d_witness
-      << ", limiting = " << d_limiting
-      << "}";
+      << ", focusDir = " << d_focusDirection << ", witness = " << d_witness
+      << ", limiting = " << d_limiting << "}";
 }
 
-ArithVar UpdateInfo::leaving() const{
+ArithVar UpdateInfo::leaving() const
+{
   Assert(describesPivot());
 
   return d_limiting->getVariable();
 }
 
-std::ostream& operator<<(std::ostream& out, const UpdateInfo& up){
+std::ostream& operator<<(std::ostream& out, const UpdateInfo& up)
+{
   up.output(out);
   return out;
 }
 
-
-std::ostream& operator<<(std::ostream& out,  WitnessImprovement w){
-  switch(w){
-  case ConflictFound:
-    out << "ConflictFound"; break;
-  case ErrorDropped:
-    out << "ErrorDropped"; break;
-  case FocusImproved:
-    out << "FocusImproved"; break;
-  case FocusShrank:
-    out << "FocusShrank"; break;
-  case Degenerate:
-    out << "Degenerate"; break;
-  case BlandsDegenerate:
-    out << "BlandsDegenerate"; break;
-  case HeuristicDegenerate:
-    out << "HeuristicDegenerate"; break;
-  case AntiProductive:
-    out << "AntiProductive"; break;
+std::ostream& operator<<(std::ostream& out, WitnessImprovement w)
+{
+  switch (w)
+  {
+    case ConflictFound: out << "ConflictFound"; break;
+    case ErrorDropped: out << "ErrorDropped"; break;
+    case FocusImproved: out << "FocusImproved"; break;
+    case FocusShrank: out << "FocusShrank"; break;
+    case Degenerate: out << "Degenerate"; break;
+    case BlandsDegenerate: out << "BlandsDegenerate"; break;
+    case HeuristicDegenerate: out << "HeuristicDegenerate"; break;
+    case AntiProductive: out << "AntiProductive"; break;
   }
   return out;
 }
 
-}  // namespace arith
+}  // namespace arith::linear
 }  // namespace theory
 }  // namespace cvc5::internal

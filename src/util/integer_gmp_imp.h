@@ -323,7 +323,10 @@ class Integer
 
 struct IntegerHashFunction
 {
-  inline size_t operator()(const cvc5::internal::Integer& i) const { return i.hash(); }
+  inline size_t operator()(const cvc5::internal::Integer& i) const
+  {
+    return i.hash();
+  }
 }; /* struct IntegerHashFunction */
 
 inline std::ostream& operator<<(std::ostream& os, const Integer& n)

@@ -32,6 +32,7 @@ struct SortTypeSize
 {
   // stores the size of the type
   std::map<TypeNode, size_t> d_type_size;
+
  public:
   // compares the type size of i and j
   // returns true iff the size of i is less than that of j

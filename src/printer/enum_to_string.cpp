@@ -31,8 +31,7 @@ const char* toString(cvc5::SkolemId id)
     case cvc5::SkolemId::FP_TO_REAL: return "fp_to_real";
     case cvc5::SkolemId::INT_DIV_BY_ZERO: return "int_div_by_zero";
     case cvc5::SkolemId::MOD_BY_ZERO: return "mod_by_zero";
-    case cvc5::SkolemId::TRANSCENDENTAL_PURIFY:
-      return "transcendental_purify";
+    case cvc5::SkolemId::TRANSCENDENTAL_PURIFY: return "transcendental_purify";
     case cvc5::SkolemId::TRANSCENDENTAL_PURIFY_ARG:
       return "transcendental_purify_arg";
     case cvc5::SkolemId::TRANSCENDENTAL_SINE_PHASE_SHIFT:
@@ -44,8 +43,7 @@ const char* toString(cvc5::SkolemId id)
       return "arith_vts_infinity_free";
     case cvc5::SkolemId::SHARED_SELECTOR: return "shared_selector";
     case cvc5::SkolemId::HO_DEQ_DIFF: return "ho_deq_diff";
-    case cvc5::SkolemId::QUANTIFIERS_SKOLEMIZE:
-      return "quantifiers_skolemize";
+    case cvc5::SkolemId::QUANTIFIERS_SKOLEMIZE: return "quantifiers_skolemize";
     case cvc5::SkolemId::WITNESS_STRING_LENGTH: return "witness_string_length";
     case cvc5::SkolemId::WITNESS_INV_CONDITION: return "witness_inv_condition";
     case cvc5::SkolemId::STRINGS_NUM_OCCUR: return "strings_num_occur";

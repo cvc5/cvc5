@@ -38,20 +38,18 @@ const std::vector<std::string>& UnsatCore::getCoreNames() const
   return d_names;
 }
 
-UnsatCore::const_iterator UnsatCore::begin() const {
-  return d_core.begin();
-}
+UnsatCore::const_iterator UnsatCore::begin() const { return d_core.begin(); }
 
-UnsatCore::const_iterator UnsatCore::end() const {
-  return d_core.end();
-}
+UnsatCore::const_iterator UnsatCore::end() const { return d_core.end(); }
 
-void UnsatCore::toStream(std::ostream& out) const {
+void UnsatCore::toStream(std::ostream& out) const
+{
   options::ioutils::Scope scope(out);
   Printer::getPrinter(out)->toStream(out, *this);
 }
 
-std::ostream& operator<<(std::ostream& out, const UnsatCore& core) {
+std::ostream& operator<<(std::ostream& out, const UnsatCore& core)
+{
   core.toStream(out);
   return out;
 }

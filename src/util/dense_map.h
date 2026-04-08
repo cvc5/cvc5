@@ -36,14 +36,15 @@
 namespace cvc5::internal {
 
 template <class T>
-class DenseMap {
-public:
+class DenseMap
+{
+ public:
   typedef Index Key;
   typedef std::vector<Key> KeyList;
   typedef KeyList::const_iterator const_iterator;
 
-private:
-  //List of the keys in the dense map.
+ private:
+  // List of the keys in the dense map.
   KeyList d_list;
 
   typedef Index Position;
@@ -51,34 +52,30 @@ private:
   static const Position POSITION_SENTINEL =
       std::numeric_limits<Position>::max();
 
-  //Each Key in the set is mapped to its position in d_list.
-  //Each Key not in the set is mapped to KEY_SENTINEL
+  // Each Key in the set is mapped to its position in d_list.
+  // Each Key not in the set is mapped to KEY_SENTINEL
   PositionMap d_posVector;
 
   typedef std::vector<T> ImageMap;
-  //d_image : Key |-> T
+  // d_image : Key |-> T
   ImageMap d_image;
 
-public:
-
-  DenseMap() :  d_list(), d_posVector(), d_image() {}
+ public:
+  DenseMap() : d_list(), d_posVector(), d_image() {}
 
   /** Returns the number of elements in the set. */
-  size_t size() const {
-    return d_list.size();
-  }
+  size_t size() const { return d_list.size(); }
 
   /** Returns true if the map is empty(). */
-  bool empty() const {
-    return d_list.empty();
-  }
+  bool empty() const { return d_list.empty(); }
 
   /**
    * Similar to a std::vector::clear().
    *
    * Invalidates iterators.
    */
-  void clear() {
+  void clear()
+  {
     d_list.clear();
     d_posVector.clear();
     d_image.clear();
@@ -89,18 +86,24 @@ public:
    * Similar to a clear(), but the datastructures are not reset in size.
    * Invalidates iterators.
    */
-  void purge() {
-    while(!empty()){
+  void purge()
+  {
+    while (!empty())
+    {
       pop_back();
     }
     Assert(empty());
   }
 
   /** Returns true if k is a key of this datastructure. */
-  bool isKey(Key x) const{
-    if( x >= allocated()){
+  bool isKey(Key x) const
+  {
+    if (x >= allocated())
+    {
       return false;
-    }else{
+    }
+    else
+    {
       Assert(x < allocated());
       return d_posVector[x] != +POSITION_SENTINEL;
     }
@@ -110,12 +113,15 @@ public:
    * Maps the key to value in the map.
    * Invalidates iterators.
    */
-  void set(Key key, const T& value){
-    if( key >= allocated()){
+  void set(Key key, const T& value)
+  {
+    if (key >= allocated())
+    {
       increaseSize(key);
     }
 
-    if(!isKey(key)){
+    if (!isKey(key))
+    {
       d_posVector[key] = size();
       d_list.push_back(key);
     }
@@ -123,24 +129,24 @@ public:
   }
 
   /** Returns a mutable reference to the element mapped by key. */
-  T& get(Key key){
+  T& get(Key key)
+  {
     Assert(isKey(key));
     return d_image[key];
   }
 
   /** Returns a const reference to the element mapped by key.*/
-  const T& operator[](Key key) const {
+  const T& operator[](Key key) const
+  {
     Assert(isKey(key));
     return d_image[key];
   }
 
   /** Returns an iterator over the keys of the map. */
-  const_iterator begin() const{ return d_list.begin(); }
-  const_iterator end() const{ return d_list.end(); }
+  const_iterator begin() const { return d_list.begin(); }
+  const_iterator end() const { return d_list.end(); }
 
-  const KeyList& getKeys() const{
-    return d_list;
-  }
+  const KeyList& getKeys() const { return d_list; }
 
   /**
    * Removes the mapping associated with key.
@@ -148,7 +154,8 @@ public:
    *
    * Invalidates iterators.
    */
-  void remove(Key x){
+  void remove(Key x)
+  {
     Assert(isKey(x));
     swapToBack(x);
     Assert(d_list.back() == x);
@@ -156,12 +163,11 @@ public:
   }
 
   /** Returns the key at the back of a non-empty list.*/
-  Key back() const {
-    return d_list.back();
-  }
+  Key back() const { return d_list.back(); }
 
   /** Removes the element associated with the last Key from the map. */
-  void pop_back() {
+  void pop_back()
+  {
     Assert(!empty());
     Key atBack = back();
     d_posVector[atBack] = +POSITION_SENTINEL;
@@ -169,11 +175,13 @@ public:
     d_list.pop_back();
   }
 
-
-  /** Adds at least a constant fraction of the elements in the current map to another map. */
-  void splitInto(DenseMap<T>& target){
-    uint32_t targetSize = size()/2;
-    while(size() > targetSize){
+  /** Adds at least a constant fraction of the elements in the current map to
+   * another map. */
+  void splitInto(DenseMap<T>& target)
+  {
+    uint32_t targetSize = size() / 2;
+    while (size() > targetSize)
+    {
       Key key = back();
       target.set(key, get(key));
       pop_back();
@@ -181,30 +189,32 @@ public:
   }
 
   /** Adds the current target map to the current map.*/
-  void addAll(const DenseMap<T>& target){
-    for(const_iterator i = target.begin(), e = target.end(); i != e; ++i){
+  void addAll(const DenseMap<T>& target)
+  {
+    for (const_iterator i = target.begin(), e = target.end(); i != e; ++i)
+    {
       Key k = *i;
       set(k, target[k]);
     }
   }
 
-
-
  private:
-
-  size_t allocated() const {
+  size_t allocated() const
+  {
     Assert(d_posVector.size() == d_image.size());
     return d_posVector.size();
   }
 
-  void increaseSize(Key max){
+  void increaseSize(Key max)
+  {
     Assert(max >= allocated());
-    d_posVector.resize(max+1, +POSITION_SENTINEL);
-    d_image.resize(max+1);
+    d_posVector.resize(max + 1, +POSITION_SENTINEL);
+    d_image.resize(max + 1);
   }
 
   /** Swaps a member x to the back of d_list. */
-  void swapToBack(Key x){
+  void swapToBack(Key x)
+  {
     Assert(isKey(x));
 
     Position currentPos = d_posVector[x];
@@ -221,15 +231,17 @@ public:
 }; /* class DenseMap<T> */
 
 /**
- * This provides an abstraction for a set of unsigned integers with similar capabilities
- * as DenseMap. This is implemented as a light wrapper for DenseMap<bool> with an
- * interface designed for use as a set instead of a map.
+ * This provides an abstraction for a set of unsigned integers with similar
+ * capabilities as DenseMap. This is implemented as a light wrapper for
+ * DenseMap<bool> with an interface designed for use as a set instead of a map.
  */
-class DenseSet {
-private:
+class DenseSet
+{
+ private:
   typedef DenseMap<bool> BackingMap;
   BackingMap d_map;
-public:
+
+ public:
   typedef BackingMap::const_iterator const_iterator;
   typedef BackingMap::Key Element;
 
@@ -240,24 +252,25 @@ public:
   void purge() { d_map.purge(); }
   void clear() { d_map.clear(); }
 
-  bool isMember(Element x) const{ return d_map.isKey(x); }
+  bool isMember(Element x) const { return d_map.isKey(x); }
 
   /**
    * Adds an element that is not a member of the set to the set.
    */
-  void add(Element x){
+  void add(Element x)
+  {
     Assert(!isMember(x));
     d_map.set(x, true);
   }
 
   /** Adds an element to the set even if it is already an element of the set. */
-  void softAdd(Element x){ d_map.set(x, true); }
+  void softAdd(Element x) { d_map.set(x, true); }
 
   /** Removes an element from the set. */
-  void remove(Element x){ d_map.remove(x); }
+  void remove(Element x) { d_map.remove(x); }
 
-  const_iterator begin() const{ return d_map.begin(); }
-  const_iterator end() const{ return d_map.end(); }
+  const_iterator begin() const { return d_map.begin(); }
+  const_iterator end() const { return d_map.end(); }
 
   Element back() { return d_map.back(); }
   void pop_back() { d_map.pop_back(); }
@@ -269,19 +282,20 @@ public:
  * This is implemented as a light wrapper for DenseMap<bool> with an
  * interface designed for use as a set instead of a map.
  */
-class DenseMultiset {
-public:
+class DenseMultiset
+{
+ public:
   typedef uint32_t CountType;
 
-private:
+ private:
   typedef DenseMap<CountType> BackingMap;
   BackingMap d_map;
 
-public:
+ public:
   typedef BackingMap::const_iterator const_iterator;
   typedef BackingMap::Key Element;
 
-  DenseMultiset() :  d_map() {}
+  DenseMultiset() : d_map() {}
 
   size_t size() const { return d_map.size(); }
   bool empty() const { return d_map.empty(); }
@@ -289,49 +303,61 @@ public:
   void purge() { d_map.purge(); }
   void clear() { d_map.clear(); }
 
-  bool isMember(Element x) const{ return d_map.isKey(x); }
+  bool isMember(Element x) const { return d_map.isKey(x); }
 
-  void add(Element x, CountType c = 1u){
+  void add(Element x, CountType c = 1u)
+  {
     Assert(c > 0);
-    if(d_map.isKey(x)){
-      d_map.set(x, d_map.get(x)+c);
-    }else{
-      d_map.set(x,c);
+    if (d_map.isKey(x))
+    {
+      d_map.set(x, d_map.get(x) + c);
+    }
+    else
+    {
+      d_map.set(x, c);
     }
   }
 
-  void setCount(Element x, CountType c){
-    d_map.set(x, c);
-  }
+  void setCount(Element x, CountType c) { d_map.set(x, c); }
 
-  void removeAll(Element x){ return d_map.remove(x); }
+  void removeAll(Element x) { return d_map.remove(x); }
 
-  void removeOne(Element x){
+  void removeOne(Element x)
+  {
     CountType c = count(x);
-    switch(c){
-    case 0: break; // do nothing
-    case 1: removeAll(x); break; // remove
-    default: d_map.set(x, c-1); break; // decrease
+    switch (c)
+    {
+      case 0: break;                        // do nothing
+      case 1: removeAll(x); break;          // remove
+      default: d_map.set(x, c - 1); break;  // decrease
     }
   }
 
-  void removeOneOfEverything(){
+  void removeOneOfEverything()
+  {
     BackingMap::KeyList keys(d_map.begin(), d_map.end());
-    for(BackingMap::const_iterator i=keys.begin(), i_end = keys.end(); i != i_end; ++i){
+    for (BackingMap::const_iterator i = keys.begin(), i_end = keys.end();
+         i != i_end;
+         ++i)
+    {
       removeOne(*i);
     }
   }
 
-  CountType count(Element x) const {
-    if(d_map.isKey(x)){
+  CountType count(Element x) const
+  {
+    if (d_map.isKey(x))
+    {
       return d_map[x];
-    }else {
+    }
+    else
+    {
       return 0;
     }
   }
 
-  const_iterator begin() const{ return d_map.begin(); }
-  const_iterator end() const{ return d_map.end(); }
+  const_iterator begin() const { return d_map.begin(); }
+  const_iterator end() const { return d_map.end(); }
   Element back() { return d_map.back(); }
   void pop_back() { d_map.pop_back(); }
 }; /* class DenseMultiset */

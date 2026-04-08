@@ -321,7 +321,7 @@ Node buildRealEquality(NodeManager* nm, Sum&& sum)
   Node rhs = collectSum(nm, sum);
   Node lhsr = ensureReal(lhs);
   Node rhsr = ensureReal(rhs);
-  if (lhsr!=lhs && rhsr!=rhs)
+  if (lhsr != lhs && rhsr != rhs)
   {
     // if both were changed, then this implies we could make an integer equality
     // instead.
@@ -364,7 +364,8 @@ Node buildIntegerInequality(NodeManager* nm, Sum&& sum, Kind k)
 
 Node buildRealInequality(NodeManager* nm, Sum&& sum, Kind k)
 {
-  Trace("arith-rewriter") << "building real inequality from " << sum << std::endl;
+  Trace("arith-rewriter") << "building real inequality from " << sum
+                          << std::endl;
   normalizeLCoeffAbsOne(sum);
   Node rhs = mkConst(nm, -removeConstant(sum));
   return buildRelation(k, collectSum(nm, sum), rhs);

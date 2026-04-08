@@ -763,8 +763,7 @@ std::string LfscNodeConverter::getNameForUserNameOfInternal(
 {
   std::vector<uint64_t>& syms = d_userSymbolList[name];
   size_t variant = 0;
-  std::vector<uint64_t>::iterator itr =
-      std::find(syms.begin(), syms.end(), id);
+  std::vector<uint64_t>::iterator itr = std::find(syms.begin(), syms.end(), id);
   if (itr != syms.cend())
   {
     variant = std::distance(syms.begin(), itr);
@@ -817,8 +816,8 @@ Node LfscNodeConverter::maybeMkSkolemFun(Node k)
       Assert(!cacheVal.isNull() && cacheVal.getKind() == Kind::SEXPR
              && cacheVal.getNumChildren() == 3);
       // third value is mpz, which is not converted
-      return mkApplyUf(sk,
-          {convert(cacheVal[0]), convert(cacheVal[1]), cacheVal[2]});
+      return mkApplyUf(
+          sk, {convert(cacheVal[0]), convert(cacheVal[1]), cacheVal[2]});
     }
   }
   return Node::null();
@@ -913,13 +912,9 @@ Node LfscNodeConverter::getNullTerminator(NodeManager* nm, Kind k, TypeNode tn)
   switch (k)
   {
     // LFSC signature expects mixed arithmetic for null terminators
-    case Kind::ADD:
-      nullTerm = nm->mkConstInt(Rational(0));
-      break;
+    case Kind::ADD: nullTerm = nm->mkConstInt(Rational(0)); break;
     case Kind::MULT:
-    case Kind::NONLINEAR_MULT:
-      nullTerm = nm->mkConstInt(Rational(1));
-      break;
+    case Kind::NONLINEAR_MULT: nullTerm = nm->mkConstInt(Rational(1)); break;
     case Kind::REGEXP_CONCAT:
       // the language containing only the empty string, which has special
       // syntax in LFSC
@@ -1038,7 +1033,7 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
       {
         opName << "bit";
       }
-      else if (k==Kind::DIVISIBLE)
+      else if (k == Kind::DIVISIBLE)
       {
         opName << "a.divisible";
       }

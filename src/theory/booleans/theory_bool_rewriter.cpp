@@ -252,8 +252,11 @@ Node TheoryBoolRewriter::computeNnfNorm(NodeManager* nm,
       {
         if (preCur != cur)
         {
-          pg->addRewriteStep(
-              cur, preCur, nullptr, true, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE);
+          pg->addRewriteStep(cur,
+                             preCur,
+                             nullptr,
+                             true,
+                             TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE);
         }
       }
     }
@@ -340,8 +343,11 @@ Node TheoryBoolRewriter::computeNnfNorm(NodeManager* nm,
         }
         if (pcpc != ret)
         {
-          pg->addRewriteStep(
-              pcpc, ret, nullptr, false, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE);
+          pg->addRewriteStep(pcpc,
+                             ret,
+                             nullptr,
+                             false,
+                             TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE);
         }
       }
       visited[cur] = ret;
@@ -454,7 +460,8 @@ Node TheoryBoolRewriter::getBvInvertSolve(
   return ret;
 }
 
-RewriteResponse TheoryBoolRewriter::postRewrite(TNode node) {
+RewriteResponse TheoryBoolRewriter::postRewrite(TNode node)
+{
   return preRewrite(node);
 }
 
@@ -485,19 +492,26 @@ RewriteResponse TheoryBoolRewriter::flattenNode(TNode n,
 
   Kind k = n.getKind();
   typedef std::vector<TNode> ChildList;
-  ChildList childList;   //TNode should be fine, since 'n' is still there
+  ChildList childList;  // TNode should be fine, since 'n' is still there
 
-  for (unsigned i = 0; i < toProcess.size(); ++ i) {
+  for (unsigned i = 0; i < toProcess.size(); ++i)
+  {
     TNode current = toProcess[i];
-    for(unsigned j = 0, j_end = current.getNumChildren(); j < j_end; ++ j) {
+    for (unsigned j = 0, j_end = current.getNumChildren(); j < j_end; ++j)
+    {
       TNode child = current[j];
-      if(visited.find(child) != visited.end()) {
+      if (visited.find(child) != visited.end())
+      {
         continue;
-      } else if(child == trivialNode) {
+      }
+      else if (child == trivialNode)
+      {
         return RewriteResponse(REWRITE_DONE, trivialNode);
-      } else {
+      }
+      else
+      {
         visited.insert(child);
-        if(child.getKind() == k)
+        if (child.getKind() == k)
           toProcess.push_back(child);
         else
           childList.push_back(child);
@@ -505,7 +519,8 @@ RewriteResponse TheoryBoolRewriter::flattenNode(TNode n,
     }
   }
   if (childList.size() == 0) return RewriteResponse(REWRITE_DONE, skipNode);
-  if (childList.size() == 1) return RewriteResponse(REWRITE_AGAIN, childList[0]);
+  if (childList.size() == 1)
+    return RewriteResponse(REWRITE_AGAIN, childList[0]);
 
   /* Trickery to stay under number of children possible in a node */
   NodeManager* nm = nodeManager();
@@ -536,8 +551,10 @@ RewriteResponse TheoryBoolRewriter::flattenNode(TNode n,
 // * 1 if a == b
 // * 2 if a == not(b)
 // * 3 or b == not(a)
-inline int equalityParity(TNode a, TNode b){
-  if(a == b){
+inline int equalityParity(TNode a, TNode b)
+{
+  if (a == b)
+  {
     return 1;
   }
   else if (a.getKind() == Kind::NOT && a[0] == b)
@@ -562,21 +579,29 @@ Node TheoryBoolRewriter::makeNegation(TNode n) const
     n = n[0];
     even = !even;
   }
-  if(even){
+  if (even)
+  {
     return n;
-  } else {
-    if(n.isConst()){
+  }
+  else
+  {
+    if (n.isConst())
+    {
       return nodeManager()->mkConst(!n.getConst<bool>());
-    }else{
+    }
+    else
+    {
       return n.notNode();
     }
   }
 }
 
-RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
+RewriteResponse TheoryBoolRewriter::preRewrite(TNode n)
+{
   NodeManager* nm = nodeManager();
 
-  switch(n.getKind()) {
+  switch (n.getKind())
+  {
     case Kind::NOT:
     {
       if (n[0] == d_true) return RewriteResponse(REWRITE_DONE, d_false);
@@ -861,10 +886,10 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
         return RewriteResponse(REWRITE_AGAIN, resp);
       }
 
-    // Rewrites for ITEs with a constant branch. These rewrites are applied
-    // after the parity rewrites above because they may simplify ITEs such as
-    // `(ite c c true)` to `(ite c true true)`. As a result, we avoid
-    // introducing an unnecessary conjunction/disjunction here.
+      // Rewrites for ITEs with a constant branch. These rewrites are applied
+      // after the parity rewrites above because they may simplify ITEs such as
+      // `(ite c c true)` to `(ite c true true)`. As a result, we avoid
+      // introducing an unnecessary conjunction/disjunction here.
       if (n[1].isConst() && (n[1] == d_true || n[1] == d_false))
       {
         // ITE C true y --> C v y
@@ -884,12 +909,11 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
         Trace("bool-ite") << "TheoryBoolRewriter::preRewrite_ITE: n[2] const "
                           << n << ": " << resp << std::endl;
         return RewriteResponse(REWRITE_AGAIN, resp);
-    }
+      }
 
-    break;
+      break;
     }
-  default:
-    return RewriteResponse(REWRITE_DONE, n);
+    default: return RewriteResponse(REWRITE_DONE, n);
   }
   return RewriteResponse(REWRITE_DONE, n);
 }

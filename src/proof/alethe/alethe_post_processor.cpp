@@ -885,7 +885,8 @@ bool AletheProofPostprocessCallback::update(Node res,
       }
       Node vp1 = nm->mkNode(Kind::EQUAL, t, tf);
       Node vp2 = nm->mkNode(Kind::EQUAL, tf, res[1]);
-      // if the kind was not one of these, the simplification above would have failed
+      // if the kind was not one of these, the simplification above would have
+      // failed
       Assert(k == Kind::OR || k == Kind::AND) << "Kind is " << k;
       AletheRule rule =
           k == Kind::OR ? AletheRule::OR_SIMPLIFY : AletheRule::AND_SIMPLIFY;

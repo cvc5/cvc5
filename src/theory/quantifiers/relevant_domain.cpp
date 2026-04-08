@@ -16,10 +16,10 @@
 #include "expr/term_context_stack.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/quantifiers/first_order_model.h"
+#include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quantifiers_registry.h"
 #include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers/term_database.h"
-#include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/term_registry.h"
 #include "theory/quantifiers/term_util.h"
 #include "util/rational.h"
@@ -30,27 +30,35 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-void RelevantDomain::RDomain::merge( RDomain * r ) {
+void RelevantDomain::RDomain::merge(RDomain* r)
+{
   Assert(!d_parent);
   Assert(!r->d_parent);
   d_parent = r;
-  for( unsigned i=0; i<d_terms.size(); i++ ){
-    r->addTerm( d_terms[i] );
+  for (unsigned i = 0; i < d_terms.size(); i++)
+  {
+    r->addTerm(d_terms[i]);
   }
   d_terms.clear();
 }
 
-void RelevantDomain::RDomain::addTerm( Node t ) {
-  if( std::find( d_terms.begin(), d_terms.end(), t )==d_terms.end() ){
-    d_terms.push_back( t );
+void RelevantDomain::RDomain::addTerm(Node t)
+{
+  if (std::find(d_terms.begin(), d_terms.end(), t) == d_terms.end())
+  {
+    d_terms.push_back(t);
   }
 }
 
-RelevantDomain::RDomain * RelevantDomain::RDomain::getParent() {
-  if( !d_parent ){
+RelevantDomain::RDomain* RelevantDomain::RDomain::getParent()
+{
+  if (!d_parent)
+  {
     return this;
-  }else{
-    RDomain * p = d_parent->getParent();
+  }
+  else
+  {
+    RDomain* p = d_parent->getParent();
     d_parent = p;
     return p;
   }
@@ -58,19 +66,24 @@ RelevantDomain::RDomain * RelevantDomain::RDomain::getParent() {
 
 void RelevantDomain::RDomain::removeRedundantTerms(QuantifiersState& qs)
 {
-  std::map< Node, Node > rterms;
-  for( unsigned i=0; i<d_terms.size(); i++ ){
+  std::map<Node, Node> rterms;
+  for (unsigned i = 0; i < d_terms.size(); i++)
+  {
     Node r = d_terms[i];
-    if( !TermUtil::hasInstConstAttr( d_terms[i] ) ){
+    if (!TermUtil::hasInstConstAttr(d_terms[i]))
+    {
       r = qs.getRepresentative(d_terms[i]);
     }
-    if( rterms.find( r )==rterms.end() ){
+    if (rterms.find(r) == rterms.end())
+    {
       rterms[r] = d_terms[i];
     }
   }
   d_terms.clear();
-  for( std::map< Node, Node >::iterator it = rterms.begin(); it != rterms.end(); ++it ){
-    d_terms.push_back( it->second );
+  for (std::map<Node, Node>::iterator it = rterms.begin(); it != rterms.end();
+       ++it)
+  {
+    d_terms.push_back(it->second);
   }
 }
 
@@ -83,7 +96,8 @@ RelevantDomain::RelevantDomain(Env& env,
   d_is_computed = false;
 }
 
-RelevantDomain::~RelevantDomain() {
+RelevantDomain::~RelevantDomain()
+{
   for (auto& r : d_rel_doms)
   {
     for (auto& rr : r.second)
@@ -99,7 +113,9 @@ RelevantDomain::RDomain* RelevantDomain::getRDomain(Node n,
                                                     size_t i,
                                                     bool getParent)
 {
-  if( d_rel_doms.find( n )==d_rel_doms.end() || d_rel_doms[n].find( i )==d_rel_doms[n].end() ){
+  if (d_rel_doms.find(n) == d_rel_doms.end()
+      || d_rel_doms[n].find(i) == d_rel_doms[n].end())
+  {
     d_rel_doms[n][i] = new RDomain;
   }
   return getParent ? d_rel_doms[n][i]->getParent() : d_rel_doms[n][i];
@@ -112,8 +128,10 @@ bool RelevantDomain::reset(CVC5_UNUSED Theory::Effort e)
 }
 
 void RelevantDomain::registerQuantifier(CVC5_UNUSED Node q) {}
-void RelevantDomain::compute(){
-  if( !d_is_computed ){
+void RelevantDomain::compute()
+{
+  if (!d_is_computed)
+  {
     d_is_computed = true;
     for (auto& r : d_rel_doms)
     {
@@ -123,10 +141,12 @@ void RelevantDomain::compute(){
       }
     }
     FirstOrderModel* fm = d_treg.getModel();
-    for( unsigned i=0; i<fm->getNumAssertedQuantifiers(); i++ ){
-      Node q = fm->getAssertedQuantifier( i );
+    for (unsigned i = 0; i < fm->getNumAssertedQuantifiers(); i++)
+    {
+      Node q = fm->getAssertedQuantifier(i);
       Node icf = d_qreg.getInstConstantBody(q);
-      Trace("rel-dom-debug") << "compute relevant domain for " << icf << std::endl;
+      Trace("rel-dom-debug")
+          << "compute relevant domain for " << icf << std::endl;
       computeRelevantDomain(q);
     }
 
@@ -135,16 +155,21 @@ void RelevantDomain::compute(){
     for (unsigned k = 0; k < db->getNumOperators(); k++)
     {
       Node op = db->getOperator(k);
-      unsigned sz = db->getNumGroundTerms( op );
-      for( unsigned i=0; i<sz; i++ ){
+      unsigned sz = db->getNumGroundTerms(op);
+      for (unsigned i = 0; i < sz; i++)
+      {
         Node n = db->getGroundTerm(op, i);
         Trace("rel-dom-debug") << "Consider " << n << std::endl;
-        //if it is a non-redundant term
-        if( db->isTermActive( n ) ){
-          for( unsigned j=0; j<n.getNumChildren(); j++ ){
-            RDomain * rf = getRDomain( op, j );
-            rf->addTerm( n[j] );
-            Trace("rel-dom-debug") << "...add ground term " << n[j] << " to rel dom " << op << "[" << j << "]" << std::endl;
+        // if it is a non-redundant term
+        if (db->isTermActive(n))
+        {
+          for (unsigned j = 0; j < n.getNumChildren(); j++)
+          {
+            RDomain* rf = getRDomain(op, j);
+            rf->addTerm(n[j]);
+            Trace("rel-dom-debug")
+                << "...add ground term " << n[j] << " to rel dom " << op << "["
+                << j << "]" << std::endl;
           }
         }
       }
@@ -159,11 +184,14 @@ void RelevantDomain::compute(){
       {
         Trace("rel-dom") << "   " << dd.first << " : ";
         RDomain* r = dd.second;
-        RDomain * rp = r->getParent();
-        if( r==rp ){
+        RDomain* rp = r->getParent();
+        if (r == rp)
+        {
           r->removeRedundantTerms(d_qs);
           Trace("rel-dom") << r->d_terms;
-        }else{
+        }
+        else
+        {
           Trace("rel-dom") << "Dom( " << d.first << ", " << dd.first << " ) ";
         }
         Trace("rel-dom") << std::endl;
@@ -184,7 +212,7 @@ void RelevantDomain::compute(){
               else
               {
                 DebugUnhandled() << "Relevant domain: bad type " << t.getType()
-                              << ", expected " << expectedType;
+                                 << ", expected " << expectedType;
               }
             }
           }
@@ -240,7 +268,8 @@ void RelevantDomain::computeRelevantDomainNode(Node q,
                                                bool hasPol,
                                                bool pol)
 {
-  Trace("rel-dom-debug") << "Compute relevant domain " << n << "..." << std::endl;
+  Trace("rel-dom-debug") << "Compute relevant domain " << n << "..."
+                         << std::endl;
   Node op = d_treg.getTermDatabase()->getMatchOperator(n);
   // Relevant domain only makes sense for non-parametric operators, thus we
   // check op==n.getOperator() here. This otherwise would lead to bad types
@@ -249,16 +278,17 @@ void RelevantDomain::computeRelevantDomainNode(Node q,
   {
     for (size_t i = 0, nchild = n.getNumChildren(); i < nchild; i++)
     {
-      RDomain * rf = getRDomain( op, i );
+      RDomain* rf = getRDomain(op, i);
       if (n[i].getKind() == Kind::ITE)
       {
-        for( unsigned j=1; j<=2; j++ ){
-          computeRelevantDomainOpCh( rf, n[i][j] );
+        for (unsigned j = 1; j <= 2; j++)
+        {
+          computeRelevantDomainOpCh(rf, n[i][j]);
         }
       }
       else
       {
-        computeRelevantDomainOpCh( rf, n[i] );
+        computeRelevantDomainOpCh(rf, n[i]);
       }
     }
   }
@@ -267,16 +297,17 @@ void RelevantDomain::computeRelevantDomainNode(Node q,
        || n.getKind() == Kind::GEQ)
       && TermUtil::hasInstConstAttr(n))
   {
-    //compute the information for what this literal does
-    computeRelevantDomainLit( q, hasPol, pol, n );
+    // compute the information for what this literal does
+    computeRelevantDomainLit(q, hasPol, pol, n);
     RDomainLit& rdl = d_rel_dom_lit[hasPol][pol][n];
     if (rdl.d_merge)
     {
       Assert(rdl.d_rd[0] != nullptr && rdl.d_rd[1] != nullptr);
       RDomain* rd1 = rdl.d_rd[0]->getParent();
       RDomain* rd2 = rdl.d_rd[1]->getParent();
-      if( rd1!=rd2 ){
-        rd1->merge( rd2 );
+      if (rd1 != rd2)
+      {
+        rd1->merge(rd2);
       }
     }
     else
@@ -291,33 +322,41 @@ void RelevantDomain::computeRelevantDomainNode(Node q,
       }
     }
   }
-  Trace("rel-dom-debug") << "...finished Compute relevant domain " << n << std::endl;
+  Trace("rel-dom-debug") << "...finished Compute relevant domain " << n
+                         << std::endl;
 }
 
-void RelevantDomain::computeRelevantDomainOpCh( RDomain * rf, Node n ) {
+void RelevantDomain::computeRelevantDomainOpCh(RDomain* rf, Node n)
+{
   if (n.getKind() == Kind::INST_CONSTANT)
   {
     Node q = TermUtil::getInstConstAttr(n);
-    //merge the RDomains
+    // merge the RDomains
     size_t id = n.getAttribute(InstVarNumAttribute());
     AssertEqual(q[0][id].getType(), n.getType());
     Trace("rel-dom-debug") << n << " is variable # " << id << " for " << q;
     Trace("rel-dom-debug") << " with body : " << d_qreg.getInstConstantBody(q)
                            << std::endl;
-    RDomain * rq = getRDomain( q, id );
-    if( rf!=rq ){
-      rq->merge( rf );
+    RDomain* rq = getRDomain(q, id);
+    if (rf != rq)
+    {
+      rq->merge(rf);
     }
   }
   else if (!TermUtil::hasInstConstAttr(n))
   {
-    Trace("rel-dom-debug") << "...add ground term to rel dom " << n << std::endl;
-    //term to add
-    rf->addTerm( n );
+    Trace("rel-dom-debug") << "...add ground term to rel dom " << n
+                           << std::endl;
+    // term to add
+    rf->addTerm(n);
   }
 }
 
-void RelevantDomain::computeRelevantDomainLit( Node q, bool hasPol, bool pol, Node n ) {
+void RelevantDomain::computeRelevantDomainLit(Node q,
+                                              bool hasPol,
+                                              bool pol,
+                                              Node n)
+{
   if (d_rel_dom_lit[hasPol][pol].find(n) != d_rel_dom_lit[hasPol][pol].end())
   {
     return;

@@ -50,7 +50,7 @@ String::String(const std::u32string& s)
   }
 }
 
-String::String(const std::vector<unsigned> &s) : d_str(s)
+String::String(const std::vector<unsigned>& s) : d_str(s)
 {
 #ifdef CVC5_ASSERTIONS
   for (unsigned u : d_str)
@@ -60,12 +60,16 @@ String::String(const std::vector<unsigned> &s) : d_str(s)
 #endif
 }
 
-int String::cmp(const String &y) const {
-  if (size() != y.size()) {
+int String::cmp(const String& y) const
+{
+  if (size() != y.size())
+  {
     return size() < y.size() ? -1 : 1;
   }
-  for (unsigned int i = 0; i < size(); ++i) {
-    if (d_str[i] != y.d_str[i]) {
+  for (unsigned int i = 0; i < size(); ++i)
+  {
+    if (d_str[i] != y.d_str[i])
+    {
       unsigned cp = d_str[i];
       unsigned cpy = y.d_str[i];
       return cp < cpy ? -1 : 1;
@@ -74,7 +78,8 @@ int String::cmp(const String &y) const {
   return 0;
 }
 
-String String::concat(const String &other) const {
+String String::concat(const String& other) const
+{
   std::vector<unsigned int> ret_vec(d_str);
   ret_vec.insert(ret_vec.end(), other.d_str.begin(), other.d_str.end());
   return String(ret_vec);
@@ -84,14 +89,19 @@ bool String::strncmp(const String& y, std::size_t n) const
 {
   std::size_t b = (size() >= y.size()) ? size() : y.size();
   std::size_t s = (size() <= y.size()) ? size() : y.size();
-  if (n > s) {
-    if (b == s) {
+  if (n > s)
+  {
+    if (b == s)
+    {
       n = s;
-    } else {
+    }
+    else
+    {
       return false;
     }
   }
-  for (std::size_t i = 0; i < n; ++i) {
+  for (std::size_t i = 0; i < n; ++i)
+  {
     if (d_str[i] != y.d_str[i]) return false;
   }
   return true;
@@ -101,14 +111,19 @@ bool String::rstrncmp(const String& y, std::size_t n) const
 {
   std::size_t b = (size() >= y.size()) ? size() : y.size();
   std::size_t s = (size() <= y.size()) ? size() : y.size();
-  if (n > s) {
-    if (b == s) {
+  if (n > s)
+  {
+    if (b == s)
+    {
       n = s;
-    } else {
+    }
+    else
+    {
       return false;
     }
   }
-  for (std::size_t i = 0; i < n; ++i) {
+  for (std::size_t i = 0; i < n; ++i)
+  {
     if (d_str[size() - i - 1] != y.d_str[y.size() - i - 1]) return false;
   }
   return true;
@@ -268,33 +283,41 @@ unsigned String::back() const
   return d_str.back();
 }
 
-std::size_t String::overlap(const String &y) const {
+std::size_t String::overlap(const String& y) const
+{
   std::size_t i = size() < y.size() ? size() : y.size();
-  for (; i > 0; i--) {
+  for (; i > 0; i--)
+  {
     String s = suffix(i);
     String p = y.prefix(i);
-    if (s == p) {
+    if (s == p)
+    {
       return i;
     }
   }
   return i;
 }
 
-std::size_t String::roverlap(const String &y) const {
+std::size_t String::roverlap(const String& y) const
+{
   std::size_t i = size() < y.size() ? size() : y.size();
-  for (; i > 0; i--) {
+  for (; i > 0; i--)
+  {
     String s = prefix(i);
     String p = y.suffix(i);
-    if (s == p) {
+    if (s == p)
+    {
       return i;
     }
   }
   return i;
 }
 
-std::string String::toString(bool useEscSequences) const {
+std::string String::toString(bool useEscSequences) const
+{
   std::stringstream str;
-  for (unsigned int i = 0; i < size(); ++i) {
+  for (unsigned int i = 0; i < size(); ++i)
+  {
     // we always print backslash as a code point so that it cannot be
     // interpreted as specifying part of a code point, e.g. the string '\' +
     // 'u' + '0' of length three.
@@ -332,7 +355,7 @@ std::u32string String::toU32String() const
   return res;
 }
 
-bool String::isLeq(const String &y) const
+bool String::isLeq(const String& y) const
 {
   for (unsigned i = 0; i < size(); ++i)
   {
@@ -354,21 +377,27 @@ bool String::isLeq(const String &y) const
   return true;
 }
 
-bool String::isRepeated() const {
-  if (size() > 1) {
+bool String::isRepeated() const
+{
+  if (size() > 1)
+  {
     unsigned int f = d_str[0];
-    for (unsigned i = 1; i < size(); ++i) {
+    for (unsigned i = 1; i < size(); ++i)
+    {
       if (f != d_str[i]) return false;
     }
   }
   return true;
 }
 
-bool String::tailcmp(const String &y, int &c) const {
+bool String::tailcmp(const String& y, int& c) const
+{
   int id_x = size() - 1;
   int id_y = y.size() - 1;
-  while (id_x >= 0 && id_y >= 0) {
-    if (d_str[id_x] != y.d_str[id_y]) {
+  while (id_x >= 0 && id_y >= 0)
+  {
+    if (d_str[id_x] != y.d_str[id_y])
+    {
       c = id_x;
       return false;
     }
@@ -379,27 +408,31 @@ bool String::tailcmp(const String &y, int &c) const {
   return true;
 }
 
-std::size_t String::find(const String &y, const std::size_t start) const {
+std::size_t String::find(const String& y, const std::size_t start) const
+{
   if (size() < y.size() + start) return std::string::npos;
   if (y.empty()) return start;
   if (empty()) return std::string::npos;
 
   std::vector<unsigned>::const_iterator itr = std::search(
       d_str.begin() + start, d_str.end(), y.d_str.begin(), y.d_str.end());
-  if (itr != d_str.end()) {
+  if (itr != d_str.end())
+  {
     return itr - d_str.begin();
   }
   return std::string::npos;
 }
 
-std::size_t String::rfind(const String &y, const std::size_t start) const {
+std::size_t String::rfind(const String& y, const std::size_t start) const
+{
   if (size() < y.size() + start) return std::string::npos;
   if (y.empty()) return start;
   if (empty()) return std::string::npos;
 
   std::vector<unsigned>::const_reverse_iterator itr = std::search(
       d_str.rbegin() + start, d_str.rend(), y.d_str.rbegin(), y.d_str.rend());
-  if (itr != d_str.rend()) {
+  if (itr != d_str.rend())
+  {
     return itr - d_str.rbegin();
   }
   return std::string::npos;
@@ -463,20 +496,25 @@ String String::update(std::size_t i, const String& t) const
   return *this;
 }
 
-String String::replace(const String &s, const String &t) const {
+String String::replace(const String& s, const String& t) const
+{
   std::size_t ret = find(s);
-  if (ret != std::string::npos) {
+  if (ret != std::string::npos)
+  {
     std::vector<unsigned> vec;
     vec.insert(vec.begin(), d_str.begin(), d_str.begin() + ret);
     vec.insert(vec.end(), t.d_str.begin(), t.d_str.end());
     vec.insert(vec.end(), d_str.begin() + ret + s.size(), d_str.end());
     return String(vec);
-  } else {
+  }
+  else
+  {
     return *this;
   }
 }
 
-String String::substr(std::size_t i) const {
+String String::substr(std::size_t i) const
+{
   Assert(i <= size());
   std::vector<unsigned> ret_vec;
   std::vector<unsigned>::const_iterator itr = d_str.begin() + i;
@@ -484,7 +522,8 @@ String String::substr(std::size_t i) const {
   return String(ret_vec);
 }
 
-String String::substr(std::size_t i, std::size_t j) const {
+String String::substr(std::size_t i, std::size_t j) const
+{
   Assert(i + j <= size());
   std::vector<unsigned> ret_vec;
   std::vector<unsigned>::const_iterator itr = d_str.begin() + i;
@@ -492,11 +531,14 @@ String String::substr(std::size_t i, std::size_t j) const {
   return String(ret_vec);
 }
 
-bool String::isNumber() const {
-  if (d_str.empty()) {
+bool String::isNumber() const
+{
+  if (d_str.empty())
+  {
     return false;
   }
-  for (unsigned character : d_str) {
+  for (unsigned character : d_str)
+  {
     if (!isDigit(character))
     {
       return false;
@@ -547,7 +589,8 @@ size_t StringHashFunction::operator()(const cvc5::internal::String& s) const
 
 }  // namespace strings
 
-std::ostream &operator<<(std::ostream &os, const String &s) {
+std::ostream& operator<<(std::ostream& os, const String& s)
+{
   return os << "\"" << s.toString() << "\"";
 }
 

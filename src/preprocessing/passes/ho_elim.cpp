@@ -171,7 +171,8 @@ Node HoElim::reconstructHoFunction(Node n, TypeNode tn)
     if (argTypes.size() > 1)
     {
       std::vector<TypeNode> remArgTypes;
-      remArgTypes.insert(remArgTypes.end(), argTypes.begin() + 1, argTypes.end());
+      remArgTypes.insert(
+          remArgTypes.end(), argTypes.begin() + 1, argTypes.end());
       nextType = nm->mkFunctionType(remArgTypes, nextType);
     }
     // Use ctnSort, argTypeSort, and nextTypeSort to ensure deterministic node
@@ -368,8 +369,8 @@ PreprocessingPassResult HoElim::applyInternal(
     }
     visited.insert(cur);
     bool isInputFunSymbol = cur.getType().isFunction() && cur.isVar()
-                          && cur.getKind() != Kind::BOUND_VARIABLE
-                          && !cur.isSkolem();
+                            && cur.getKind() != Kind::BOUND_VARIABLE
+                            && !cur.isSkolem();
     if (isInputFunSymbol)
     {
       d_inputFunSymbols.insert(cur);
@@ -406,7 +407,8 @@ PreprocessingPassResult HoElim::applyInternal(
       }
     }
     // do lambda lifting on new lambda definitions
-    // this will do fixed point to eliminate lambdas within lambda lifting axioms.
+    // this will do fixed point to eliminate lambdas within lambda lifting
+    // axioms.
     while (!newLambda.empty())
     {
       std::map<Node, Node> lproc = newLambda;

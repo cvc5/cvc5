@@ -12,7 +12,6 @@
 #include "util/floatingpoint_literal_symfpu.h"
 
 #include "base/check.h"
-
 #include "symfpu/core/add.h"
 #include "symfpu/core/classify.h"
 #include "symfpu/core/compare.h"

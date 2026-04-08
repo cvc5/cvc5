@@ -52,7 +52,7 @@ LfscPrinter::LfscPrinter(Env& env,
 void LfscPrinter::print(std::ostream& out, const ProofNode* pn)
 {
   Trace("lfsc-print-debug") << "; ORIGINAL PROOF: " << *pn << std::endl;
-  Assert (!pn->getChildren().empty());
+  Assert(!pn->getChildren().empty());
   // closing parentheses
   std::stringstream cparen;
   const std::vector<Node>& definitions = pn->getArguments();
@@ -380,7 +380,7 @@ void LfscPrinter::printTypeDefinition(
       if (tupleArityProcessed.find(arity) == tupleArityProcessed.end())
       {
         tupleArityProcessed.insert(arity);
-        if (arity>0)
+        if (arity > 0)
         {
           os << "(declare Tuple";
           os << "_" << arity;

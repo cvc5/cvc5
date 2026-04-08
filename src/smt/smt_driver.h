@@ -42,7 +42,7 @@ class SmtDriver : protected EnvObj
 {
  public:
   SmtDriver(Env& env, SmtSolver& smt, ContextManager* ctx);
-  virtual ~SmtDriver(){}
+  virtual ~SmtDriver() {}
   /**
    * Check satisfiability. This invokes the algorithm given by this driver
    * for checking satisfiability.
@@ -135,7 +135,7 @@ class SmtDriverSingleCall : public SmtDriver
 {
  public:
   SmtDriverSingleCall(Env& env, SmtSolver& smt, ContextManager* ctx = nullptr);
-  virtual ~SmtDriverSingleCall(){}
+  virtual ~SmtDriverSingleCall() {}
 
  protected:
   /** Check sat next, takes result of underlying SMT solver only */

@@ -178,10 +178,8 @@ void IAndSolver::checkFullRefine()
         Trace("iand-lemma")
             << "IAndSolver::Lemma: " << lem << " ; VALUE_REFINE" << std::endl;
         // send the value lemma
-        d_im.addPendingLemma(lem,
-                             InferenceId::ARITH_NL_IAND_VALUE_REFINE,
-                             nullptr,
-                             true);
+        d_im.addPendingLemma(
+            lem, InferenceId::ARITH_NL_IAND_VALUE_REFINE, nullptr, true);
       }
     }
   }
@@ -262,7 +260,8 @@ Node IAndSolver::sumBasedLemma(Node i)
   Node y = i[1];
   uint32_t bvsize = i.getOperator().getConst<IntAnd>().d_size;
   Assert(options().smt.BVAndIntegerGranularity <= 8);
-  uint32_t granularity = static_cast<uint32_t>(options().smt.BVAndIntegerGranularity);
+  uint32_t granularity =
+      static_cast<uint32_t>(options().smt.BVAndIntegerGranularity);
   NodeManager* nm = nodeManager();
   Node lem = nm->mkNode(
       Kind::EQUAL, i, d_iandUtils.createSumNode(x, y, bvsize, granularity));
@@ -277,7 +276,8 @@ Node IAndSolver::bitwiseLemma(Node i)
 
   unsigned bvsize = i.getOperator().getConst<IntAnd>().d_size;
   Assert(options().smt.BVAndIntegerGranularity <= 8);
-  uint32_t granularity = static_cast<uint32_t>(options().smt.BVAndIntegerGranularity);
+  uint32_t granularity =
+      static_cast<uint32_t>(options().smt.BVAndIntegerGranularity);
 
   Rational absI = d_model.computeAbstractModelValue(i).getConst<Rational>();
   Rational concI = d_model.computeConcreteModelValue(i).getConst<Rational>();

@@ -18,8 +18,8 @@
 namespace cvc5::internal {
 namespace proof {
 
-EoDependentTypeConverter::EoDependentTypeConverter(
-    NodeManager* nm, BaseEoNodeConverter& tproc)
+EoDependentTypeConverter::EoDependentTypeConverter(NodeManager* nm,
+                                                   BaseEoNodeConverter& tproc)
     : d_nm(nm), d_tproc(tproc), d_typeCounter(0), d_intCounter(0)
 {
   d_sortType = nm->mkSort("Type");

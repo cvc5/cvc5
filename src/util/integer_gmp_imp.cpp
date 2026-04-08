@@ -28,13 +28,9 @@ using namespace std;
 
 namespace cvc5::internal {
 
-Integer::Integer(const char* s, unsigned base)
-  : d_value(s, base)
-{}
+Integer::Integer(const char* s, unsigned base) : d_value(s, base) {}
 
-Integer::Integer(const std::string& s, unsigned base)
-  : d_value(s, base)
-{}
+Integer::Integer(const std::string& s, unsigned base) : d_value(s, base) {}
 
 #ifdef CVC5_NEED_INT64_T_OVERLOADS
 Integer::Integer(int64_t z) : d_value(construct_mpz(z)) {}

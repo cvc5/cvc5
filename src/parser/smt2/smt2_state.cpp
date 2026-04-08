@@ -120,7 +120,6 @@ void Smt2State::addBitvectorOperators()
     addOperator(Kind::BITVECTOR_ITE, "bvite");
   }
 
-
   addIndexedOperator(Kind::BITVECTOR_EXTRACT, "extract");
   addIndexedOperator(Kind::BITVECTOR_REPEAT, "repeat");
   addIndexedOperator(Kind::BITVECTOR_ZERO_EXTEND, "zero_extend");
@@ -1024,11 +1023,11 @@ void Smt2State::setLogic(std::string name)
 
   // Builtin symbols of the logic are declared at context level zero, hence
   // we push the outermost scope in the symbol manager here.
-  // We only do this if the logic has not already been set, in which case we have already
-  // pushed the outermost context (and this method redeclares the symbols which does
-  // not impact the symbol manager).
-  // TODO (cvc5-projects #693): refactor this so that this method is moved to the
-  // symbol manager and only called once per symbol manager.
+  // We only do this if the logic has not already been set, in which case we
+  // have already pushed the outermost context (and this method redeclares the
+  // symbols which does not impact the symbol manager).
+  // TODO (cvc5-projects #693): refactor this so that this method is moved to
+  // the symbol manager and only called once per symbol manager.
   if (!smLogicAlreadySet)
   {
     pushScope(true);
@@ -1598,7 +1597,7 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
       // lenient for. In particular, any case that is ill-typed according to
       // the SMT standard but not in our internal type checker are handled
       // here.
-      Sort sreq; // if applicable, the sort which all arguments must be.
+      Sort sreq;  // if applicable, the sort which all arguments must be.
       bool sameType = false;
       if (kind == Kind::ADD || kind == Kind::MULT || kind == Kind::SUB
           || kind == Kind::GEQ || kind == Kind::GT || kind == Kind::LEQ
@@ -1608,8 +1607,8 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
         sreq = args[0].getSort();
         sameType = true;
       }
-      else if (kind == Kind::DIVISION
-               || kind == Kind::TO_INTEGER || kind == Kind::IS_INTEGER)
+      else if (kind == Kind::DIVISION || kind == Kind::TO_INTEGER
+               || kind == Kind::IS_INTEGER)
       {
         // must apply division, to_int, is_int to real only
         sreq = d_tm.getRealSort();

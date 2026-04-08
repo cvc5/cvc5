@@ -11,6 +11,7 @@
  */
 
 #include "theory/quantifiers/bv_inverter_utils.h"
+
 #include "theory/bv/theory_bv_utils.h"
 
 using namespace cvc5::internal::kind;

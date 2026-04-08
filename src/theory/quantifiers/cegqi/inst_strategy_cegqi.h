@@ -131,9 +131,9 @@ class InstStrategyCegqi : public QuantifiersModule
   /** whether we have added cbqi lemma */
   NodeSet d_added_cbqi_lemma;
   /** parent guards */
-  std::map< Node, std::vector< Node > > d_parent_quant;
-  std::map< Node, std::vector< Node > > d_children_quant;
-  std::map< Node, bool > d_active_quant;
+  std::map<Node, std::vector<Node>> d_parent_quant;
+  std::map<Node, std::vector<Node>> d_children_quant;
+  std::map<Node, bool> d_active_quant;
   /** Whether cegqi handles each quantified formula. */
   std::map<Node, CegHandledStatus> d_do_cbqi;
   /**
@@ -167,7 +167,7 @@ class InstStrategyCegqi : public QuantifiersModule
   context::CDO<bool> d_freeDeltaLb;
   //---------------------- end for vts delta minimization
   /** register ce lemma */
-  bool registerCbqiLemma( Node q );
+  bool registerCbqiLemma(Node q);
   /** register counterexample lemma
    *
    * This is called when we have constructed lem, the negation of the body of
@@ -177,7 +177,10 @@ class InstStrategyCegqi : public QuantifiersModule
    */
   void registerCounterexampleLemma(Node q, Node lem);
   /** has added cbqi lemma */
-  bool hasAddedCbqiLemma( Node q ) { return d_added_cbqi_lemma.find( q )!=d_added_cbqi_lemma.end(); }
+  bool hasAddedCbqiLemma(Node q)
+  {
+    return d_added_cbqi_lemma.find(q) != d_added_cbqi_lemma.end();
+  }
   /**
    * Return true if q can be processed with nested quantifier elimination.
    * This may add a lemma on the output channel of quantifiers engine if so.
@@ -203,8 +206,8 @@ class InstStrategyCegqi : public QuantifiersModule
   std::unique_ptr<NestedQe> d_nestedQe;
 };
 
-}
-}
+}  // namespace quantifiers
+}  // namespace theory
 }  // namespace cvc5::internal
 
 #endif

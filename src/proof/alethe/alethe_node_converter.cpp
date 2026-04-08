@@ -38,7 +38,8 @@ Node AletheNodeConverter::maybeConvert(Node n, bool isAssumption)
   return res;
 }
 
-void collectTypes(std::vector<TypeNode>& allTypesVec, std::unordered_set<TypeNode>& allTypes)
+void collectTypes(std::vector<TypeNode>& allTypesVec,
+                  std::unordered_set<TypeNode>& allTypes)
 {
   for (size_t i = 0, size = allTypesVec.size(); i < size; ++i)
   {
@@ -218,8 +219,8 @@ Node AletheNodeConverter::postConvert(Node n)
       if (sfi == SkolemId::ARRAY_DEQ_DIFF)
       {
         Trace("alethe-conv")
-            << ".. to build array diff choice with arrays: " << cacheVal[0] << " / "
-            << cacheVal[1] << "\n";
+            << ".. to build array diff choice with arrays: " << cacheVal[0]
+            << " / " << cacheVal[1] << "\n";
         Assert(cacheVal.getKind() == Kind::SEXPR
                && cacheVal.getNumChildren() == 2);
         Node a = cacheVal[0];
@@ -230,7 +231,8 @@ Node AletheNodeConverter::postConvert(Node n)
         // get index element of array
         Node var = NodeManager::mkBoundVar("x", indexType);
         Node eq = a.eqNode(b);
-        Node select = d_nm->mkNode(Kind::NOT,
+        Node select =
+            d_nm->mkNode(Kind::NOT,
                          d_nm->mkNode(Kind::EQUAL,
                                       d_nm->mkNode(Kind::SELECT, a, var),
                                       d_nm->mkNode(Kind::SELECT, b, var)));
@@ -463,7 +465,6 @@ Node AletheNodeConverter::postConvert(Node n)
       TypeNode unsupported = TypeNode::null();
       for (const TypeNode& ttn : allTypes)
       {
-
         Kind tnk = ttn.getKind();
         Trace("test") << "Test " << ttn << ", kind " << tnk << "\n";
         switch (tnk)
