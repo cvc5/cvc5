@@ -28,6 +28,6 @@ void NoEffectCCCB::multiplyRow(CVC5_UNUSED RowIndex ridx, CVC5_UNUSED int sgn)
 }
 bool NoEffectCCCB::canUseRow(CVC5_UNUSED RowIndex ridx) const { return false; }
 
-}  // namespace arith
+}  // namespace arith::linear
 }  // namespace theory
 }  // namespace cvc5::internal

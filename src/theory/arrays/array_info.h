@@ -31,17 +31,18 @@ namespace arrays {
 typedef context::CDList<TNode> CTNodeList;
 using RowLemmaType = std::tuple<TNode, TNode, TNode, TNode>;
 
-struct RowLemmaTypeHashFunction {
-  size_t operator()(const RowLemmaType& q) const {
+struct RowLemmaTypeHashFunction
+{
+  size_t operator()(const RowLemmaType& q) const
+  {
     TNode n1, n2, n3, n4;
     std::tie(n1, n2, n3, n4) = q;
-    return (size_t) (n1.getId()*0x9e3779b9 + n2.getId()*0x30000059 +
-        n3.getId()*0x60000005 + n4.getId()*0x07FFFFFF);
-
+    return (size_t)(n1.getId() * 0x9e3779b9 + n2.getId() * 0x30000059
+                    + n3.getId() * 0x60000005 + n4.getId() * 0x07FFFFFF);
   }
-};/* struct RowLemmaTypeHashFunction */
+}; /* struct RowLemmaTypeHashFunction */
 
-void printList (CTNodeList* list);
+void printList(CTNodeList* list);
 
 bool inList(const CTNodeList* l, const TNode el);
 
@@ -51,37 +52,38 @@ bool inList(const CTNodeList* l, const TNode el);
  * call the destructor.
  */
 
-class Info {
-public:
- context::CDO<bool> isNonLinear;
- context::CDO<bool> rIntro1Applied;
- context::CDO<TNode> modelRep;
- context::CDO<TNode> constArr;
- context::CDO<TNode> weakEquivPointer;
- context::CDO<TNode> weakEquivIndex;
- context::CDO<TNode> weakEquivSecondary;
- context::CDO<TNode> weakEquivSecondaryReason;
- CTNodeList* indices;
- CTNodeList* stores;
- CTNodeList* in_stores;
+class Info
+{
+ public:
+  context::CDO<bool> isNonLinear;
+  context::CDO<bool> rIntro1Applied;
+  context::CDO<TNode> modelRep;
+  context::CDO<TNode> constArr;
+  context::CDO<TNode> weakEquivPointer;
+  context::CDO<TNode> weakEquivIndex;
+  context::CDO<TNode> weakEquivSecondary;
+  context::CDO<TNode> weakEquivSecondaryReason;
+  CTNodeList* indices;
+  CTNodeList* stores;
+  CTNodeList* in_stores;
 
- Info(context::Context* c);
- ~Info();
+  Info(context::Context* c);
+  ~Info();
 
- /**
-  * prints the information
-  */
- void print() const
- {
-   Assert(indices != nullptr && stores != nullptr && in_stores != nullptr);
-   Trace("arrays-info") << "  indices   ";
-   printList(indices);
-   Trace("arrays-info") << "  stores ";
-   printList(stores);
-   Trace("arrays-info") << "  in_stores ";
-   printList(in_stores);
- }
-};/* class Info */
+  /**
+   * prints the information
+   */
+  void print() const
+  {
+    Assert(indices != nullptr && stores != nullptr && in_stores != nullptr);
+    Trace("arrays-info") << "  indices   ";
+    printList(indices);
+    Trace("arrays-info") << "  stores ";
+    printList(stores);
+    Trace("arrays-info") << "  in_stores ";
+    printList(in_stores);
+  }
+}; /* class Info */
 
 typedef std::unordered_map<Node, Info*> CNodeInfoMap;
 
@@ -94,37 +96,38 @@ typedef std::unordered_map<Node, Info*> CNodeInfoMap;
  *    stores in which it appears (terms of the form STORE a _ _ )
  *
  */
-class ArrayInfo {
-private:
- context::Context* ct;
- CNodeInfoMap info_map;
+class ArrayInfo
+{
+ private:
+  context::Context* ct;
+  CNodeInfoMap info_map;
 
- CTNodeList* emptyList;
+  CTNodeList* emptyList;
 
- /* == STATISTICS == */
+  /* == STATISTICS == */
 
- /** time spent in preregisterTerm() */
- TimerStat d_mergeInfoTimer;
- AverageStat d_avgIndexListLength;
- AverageStat d_avgStoresListLength;
- AverageStat d_avgInStoresListLength;
- IntStat d_listsCount;
- IntStat d_callsMergeInfo;
- IntStat d_maxList;
- SizeStat<CNodeInfoMap> d_tableSize;
+  /** time spent in preregisterTerm() */
+  TimerStat d_mergeInfoTimer;
+  AverageStat d_avgIndexListLength;
+  AverageStat d_avgStoresListLength;
+  AverageStat d_avgInStoresListLength;
+  IntStat d_listsCount;
+  IntStat d_callsMergeInfo;
+  IntStat d_maxList;
+  SizeStat<CNodeInfoMap> d_tableSize;
 
- /**
-  * checks if a certain element is in the list l
-  * FIXME: better way to check for duplicates?
-  */
+  /**
+   * checks if a certain element is in the list l
+   * FIXME: better way to check for duplicates?
+   */
 
- /**
-  * helper method that merges two lists into the first
-  * without adding duplicates
-  */
- void mergeLists(CTNodeList* la, const CTNodeList* lb) const;
+  /**
+   * helper method that merges two lists into the first
+   * without adding duplicates
+   */
+  void mergeLists(CTNodeList* la, const CTNodeList* lb) const;
 
-public:
+ public:
   const Info* emptyInfo;
 
   ArrayInfo(StatisticsRegistry& sr,
@@ -181,7 +184,7 @@ public:
    *  a should be the canonical representative of b
    */
   void mergeInfo(const TNode a, const TNode b);
-};/* class ArrayInfo */
+}; /* class ArrayInfo */
 
 }  // namespace arrays
 }  // namespace theory

@@ -110,7 +110,8 @@ class SymFpuNM
 };
 
 /**
- * Wrap the cvc5::internal::Node types so that we can debug issues with this back-end
+ * Wrap the cvc5::internal::Node types so that we can debug issues with this
+ * back-end
  */
 class nodeWrapper : public Node
 {
@@ -238,6 +239,8 @@ class symbolicBitVector : public nodeWrapper
   symbolicBitVector<isSigned> modularIncrement() const;
   symbolicBitVector<isSigned> modularDecrement() const;
   symbolicBitVector<isSigned> modularAdd(
+      const symbolicBitVector<isSigned>& op) const;
+  symbolicBitVector<isSigned> modularSubtract(
       const symbolicBitVector<isSigned>& op) const;
   symbolicBitVector<isSigned> modularNegate() const;
 

@@ -94,10 +94,10 @@ std::vector<TrustNode> BranchAndBound::branchIntegerVariable(TNode var,
       Pf pfNotRawEq =
           literal == rawEq
               ? pfNotLit
-              : pnm->mkNode(
-                  ProofRule::MACRO_SR_PRED_TRANSFORM,
-                  {pfNotLit, teq.getGenerator()->getProofFor(teq.getProven())},
-                  {rawEq.negate()});
+              : pnm->mkNode(ProofRule::MACRO_SR_PRED_TRANSFORM,
+                            {pfNotLit,
+                             teq.getGenerator()->getProofFor(teq.getProven())},
+                            {rawEq.negate()});
       Pf pfBot =
           pnm->mkNode(ProofRule::CONTRA,
                       {pnm->mkNode(ProofRule::ARITH_TRICHOTOMY,

@@ -16,6 +16,7 @@
 #define CVC5__THEORY__QUANTIFIERS__QUANT_BOUND_INFERENCE_H
 
 #include <vector>
+
 #include "expr/node.h"
 
 namespace cvc5::internal {

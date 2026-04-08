@@ -23,15 +23,15 @@ namespace cvc5::internal {
  * Traverses the nodes reverse-topologically (children before parents),
  * calling the visitor in order.
  */
-template<typename Visitor>
-class NodeVisitor {
-
-public:
-
+template <typename Visitor>
+class NodeVisitor
+{
+ public:
   /**
    * Element of the stack.
    */
-  struct stack_element {
+  struct stack_element
+  {
     /** The node to be visited */
     TNode d_node;
     /** The parent of the node */
@@ -42,26 +42,28 @@ public:
         : d_node(node), d_parent(parent), d_childrenAdded(false)
     {
     }
-  };/* struct preprocess_stack_element */
+  }; /* struct preprocess_stack_element */
 
   /**
    * Performs the traversal.
    */
-  static typename Visitor::return_type run(Visitor& visitor, TNode node) {
-
+  static typename Visitor::return_type run(Visitor& visitor, TNode node)
+  {
     // Notify of a start
     visitor.start(node);
 
     // Do a reverse-topological sort of the subexpressions
     std::vector<stack_element> toVisit;
     toVisit.push_back(stack_element(node, node));
-    while (!toVisit.empty()) {
+    while (!toVisit.empty())
+    {
       stack_element& stackHead = toVisit.back();
       // The current node we are processing
       TNode current = stackHead.d_node;
       TNode parent = stackHead.d_parent;
 
-      if (visitor.alreadyVisited(current, parent)) {
+      if (visitor.alreadyVisited(current, parent))
+      {
         // If already visited, we're done
         toVisit.pop_back();
       }
@@ -77,9 +79,13 @@ public:
         // Mark that we have added the children
         stackHead.d_childrenAdded = true;
         // We need to add the children
-        for(TNode::iterator child_it = current.begin(); child_it != current.end(); ++ child_it) {
+        for (TNode::iterator child_it = current.begin();
+             child_it != current.end();
+             ++child_it)
+        {
           TNode childNode = *child_it;
-          if (!visitor.alreadyVisited(childNode, current)) {
+          if (!visitor.alreadyVisited(childNode, current))
+          {
             toVisit.push_back(stack_element(childNode, current));
           }
         }
@@ -90,6 +96,6 @@ public:
     return visitor.done(node);
   }
 
-};/* class NodeVisitor<> */
+}; /* class NodeVisitor<> */
 
 }  // namespace cvc5::internal

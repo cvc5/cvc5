@@ -36,7 +36,10 @@ namespace passes {
 
 bool BVGauss::is_bv_const(Node n)
 {
-  if (n.isConst()) { return true; }
+  if (n.isConst())
+  {
+    return true;
+  }
   return rewrite(n).getKind() == Kind::CONST_BITVECTOR;
 }
 
@@ -93,7 +96,10 @@ uint32_t BVGauss::getMinBwExpr(Node expr)
       {
         visited[n] = 0;
         visit.push_back(n);
-        for (const Node &nn : n) { visit.push_back(nn); }
+        for (const Node& nn : n)
+        {
+          visit.push_back(nn);
+        }
       }
     }
     else if (it->second == 0)
@@ -135,7 +141,10 @@ uint32_t BVGauss::getMinBwExpr(Node expr)
             }
           }
           unsigned w = maxval.length();
-          if (w > bv::utils::getSize(n)) { return 0; } /* overflow */
+          if (w > bv::utils::getSize(n))
+          {
+            return 0;
+          } /* overflow */
           visited[n] = w;
           break;
         }
@@ -178,7 +187,7 @@ uint32_t BVGauss::getMinBwExpr(Node expr)
         case Kind::BITVECTOR_NAND:
         {
           unsigned wmax = 0;
-          for (const Node &nn : n)
+          for (const Node& nn : n)
           {
             if (visited[nn] > wmax)
             {
@@ -204,7 +213,10 @@ uint32_t BVGauss::getMinBwExpr(Node expr)
             }
           }
           unsigned w = maxval.length();
-          if (w > bv::utils::getSize(n)) { return 0; } /* overflow */
+          if (w > bv::utils::getSize(n))
+          {
+            return 0;
+          } /* overflow */
           visited[n] = w;
           break;
         }
@@ -332,7 +344,10 @@ BVGauss::Result BVGauss::gaussElim(Integer prime,
             lhs[j][k] = lhs[j][k].modAdd(-lhs[prow][k], prime);
           }
           rhs[j] = rhs[j].modMultiply(inv, prime);
-          if (j > prow) { rhs[j] = rhs[j].modAdd(-rhs[prow], prime); }
+          if (j > prow)
+          {
+            rhs[j] = rhs[j].modAdd(-rhs[prow], prime);
+          }
         }
         /* (2) */
         else if (j != prow)
@@ -490,7 +505,10 @@ BVGauss::Result BVGauss::gaussElimRewriteForUrem(
       Kind k = n.getKind();
       if (k == Kind::BITVECTOR_ADD)
       {
-        for (const Node& nn : n) { stack.push_back(nn); }
+        for (const Node& nn : n)
+        {
+          stack.push_back(nn);
+        }
       }
       else if (k == Kind::BITVECTOR_MULT)
       {
@@ -614,7 +632,10 @@ BVGauss::Result BVGauss::gaussElimRewriteForUrem(
   if (ret != BVGauss::Result::NONE && ret != BVGauss::Result::INVALID)
   {
     std::vector<Node> vvars;
-    for (const auto& p : vars) { vvars.push_back(p.first); }
+    for (const auto& p : vars)
+    {
+      vvars.push_back(p.first);
+    }
     Assert(nvars == vvars.size());
     Assert(nrows == lhs.size());
     Assert(nrows == rhs.size());
@@ -739,7 +760,10 @@ PreprocessingPassResult BVGauss::applyInternal(
   NodeManager* nm = nodeManager();
   for (const auto& eq : equations)
   {
-    if (eq.second.size() <= 1) { continue; }
+    if (eq.second.size() <= 1)
+    {
+      continue;
+    }
 
     std::unordered_map<Node, Node> res;
     BVGauss::Result ret = gaussElimRewriteForUrem(eq.second, res);
@@ -795,7 +819,6 @@ PreprocessingPassResult BVGauss::applyInternal(
   }
   return PreprocessingPassResult::NO_CONFLICT;
 }
-
 
 }  // namespace passes
 }  // namespace preprocessing

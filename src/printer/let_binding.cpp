@@ -162,8 +162,9 @@ void LetBinding::updateCounts(Node n)
     it = d_count.find(cur);
     bool isSkolem = (d_traverseSkolems && cur.getKind() == Kind::SKOLEM);
     // do not traverse beneath quantifiers if d_traverseBinders is false.
-    if ((!isSkolem && cur.getNumChildren() == 0) || cur.getKind() == Kind::BOUND_VAR_LIST
-             || (!d_traverseBinders && cur.isClosure()))
+    if ((!isSkolem && cur.getNumChildren() == 0)
+        || cur.getKind() == Kind::BOUND_VAR_LIST
+        || (!d_traverseBinders && cur.isClosure()))
     {
       visit.pop_back();
       continue;
@@ -175,7 +176,8 @@ void LetBinding::updateCounts(Node n)
       {
         SkolemId skid;
         Node cacheVal;
-        if (SkolemManager::isSkolemFunction(cur, skid, cacheVal) && !cacheVal.isNull())
+        if (SkolemManager::isSkolemFunction(cur, skid, cacheVal)
+            && !cacheVal.isNull())
         {
           if (cacheVal.getKind() == Kind::SEXPR)
           {

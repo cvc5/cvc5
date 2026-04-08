@@ -271,7 +271,8 @@ Node RewriteProofRule::getConclusionFor(
         // to determine the type, we get the type of the substitution of the
         // list context of the variable.
         Node subsCtx = visited[ctx];
-        Assert(!subsCtx.isNull()) << "Failed to get context for " << ctx << " in " << d_id;
+        Assert(!subsCtx.isNull())
+            << "Failed to get context for " << ctx << " in " << d_id;
         Node nt = expr::getNullTerminator(nm, ctx.getKind(), subsCtx.getType());
         wargs.push_back(nt);
       }

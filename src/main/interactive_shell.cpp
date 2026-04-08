@@ -31,10 +31,10 @@
 
 #if HAVE_LIBEDITLINE
 #include <editline/readline.h>
-#  if HAVE_EXT_STDIO_FILEBUF_H
-#    include <ext/stdio_filebuf.h>
-#  endif /* HAVE_EXT_STDIO_FILEBUF_H */
-#endif   /* HAVE_LIBEDITLINE */
+#if HAVE_EXT_STDIO_FILEBUF_H
+#include <ext/stdio_filebuf.h>
+#endif /* HAVE_EXT_STDIO_FILEBUF_H */
+#endif /* HAVE_LIBEDITLINE */
 
 #include <cvc5/cvc5.h>
 #include <cvc5/cvc5_parser.h>
@@ -66,7 +66,7 @@ char* commandGenerator(const char* text, int state);
 
 static const std::string smt2_commands[] = {
 #include "main/smt2_tokens.h"
-};/* smt2_commands */
+}; /* smt2_commands */
 
 static const std::string* commandsBegin;
 static const std::string* commandsEnd;
@@ -111,11 +111,7 @@ InteractiveShell::InteractiveShell(main::CommandExecutor* cexec,
   if (&d_in == &std::cin && isatty(fileno(stdin)))
   {
     ::rl_readline_name = const_cast<char*>("cvc5");
-#if EDITLINE_COMPENTRY_FUNC_RETURNS_CHARP
-    ::rl_completion_entry_function = commandGenerator;
-#else /* EDITLINE_COMPENTRY_FUNC_RETURNS_CHARP */
-    ::rl_completion_entry_function = (int (*)(const char*, int)) commandGenerator;
-#endif /* EDITLINE_COMPENTRY_FUNC_RETURNS_CHARP */
+    ::rl_attempted_completion_function = commandCompletion;
     ::using_history();
 
     if (d_lang == modes::InputLanguage::SMT_LIB_2_6)
@@ -129,11 +125,14 @@ InteractiveShell::InteractiveShell(main::CommandExecutor* cexec,
       ::stifle_history(s_historyLimit);
       if (d_solver->getOptionInfo("verbosity").intValue() >= 1)
       {
-        if(err == 0) {
+        if (err == 0)
+        {
           d_solver->getDriverOptions().err()
               << "Read " << ::history_length << " lines of history from "
               << d_historyFilename << std::endl;
-        } else {
+        }
+        else
+        {
           d_solver->getDriverOptions().err()
               << "Could not read history from " << d_historyFilename << ": "
               << strerror(err) << std::endl;
@@ -144,7 +143,8 @@ InteractiveShell::InteractiveShell(main::CommandExecutor* cexec,
 #endif /* HAVE_LIBEDITLINE */
 } /* InteractiveShell::InteractiveShell() */
 
-InteractiveShell::~InteractiveShell() {
+InteractiveShell::~InteractiveShell()
+{
 #if HAVE_LIBEDITLINE
   int err = ::write_history(d_historyFilename.c_str());
   if (d_solver->getOptionInfo("verbosity").intValue() >= 1)
@@ -154,11 +154,13 @@ InteractiveShell::~InteractiveShell() {
       d_solver->getDriverOptions().err()
           << "Wrote " << ::history_length << " lines of history to "
           << d_historyFilename << std::endl;
-    } else {
+    }
+    else
+    {
       d_solver->getDriverOptions().err()
           << "Could not write history to " << d_historyFilename << ": "
           << strerror(err) << std::endl;
-  }
+    }
   }
 #endif /* HAVE_LIBEDITLINE */
 }
@@ -171,7 +173,8 @@ restart:
 
   /* Don't do anything if the input is closed or if we've seen a
    * QuitCommand. */
-  if(d_in.eof() || d_quit) {
+  if (d_in.eof() || d_quit)
+  {
     if (d_isInteractive)
     {
       d_out << endl;
@@ -180,7 +183,8 @@ restart:
   }
 
   /* If something's wrong with the input, there's nothing we can do. */
-  if( !d_in.good() ) {
+  if (!d_in.good())
+  {
     throw ParserException("Interactive input broken.");
   }
 
@@ -190,7 +194,8 @@ restart:
 #if HAVE_LIBEDITLINE
     Assert(d_isInteractive);
     lineBuf = ::readline(line == "" ? "cvc5> " : "... > ");
-    if(lineBuf != NULL && lineBuf[0] != '\0') {
+    if (lineBuf != NULL && lineBuf[0] != '\0')
+    {
       ::add_history(lineBuf);
     }
     line += lineBuf == NULL ? "" : lineBuf;
@@ -218,14 +223,16 @@ restart:
   }
 
   string input = "";
-  while(true) {
+  while (true)
+  {
     Trace("interactive") << "Input now '" << input << line << "'" << endl
                          << flush;
 
     Assert(!(d_in.fail() && !d_in.eof()) || line.empty() || !d_isInteractive);
 
     /* Check for failure. */
-    if(d_in.fail() && !d_in.eof()) {
+    if (d_in.fail() && !d_in.eof())
+    {
       /* This should only happen if the input line was empty. */
       Assert(line.empty() || !d_isInteractive);
       d_in.clear();
@@ -233,8 +240,9 @@ restart:
 
     /* Strip trailing whitespace. */
     int n = line.length() - 1;
-    while( !line.empty() && isspace(line[n]) ) {
-      line.erase(n,1);
+    while (!line.empty() && isspace(line[n]))
+    {
+      line.erase(n, 1);
       n--;
     }
 
@@ -275,13 +283,15 @@ restart:
 
     /* If the last char was a backslash, continue on the next line. */
     n = input.length() - 1;
-    if( !line.empty() && input[n] == '\\' ) {
+    if (!line.empty() && input[n] == '\\')
+    {
       input[n] = '\n';
       if (d_usingEditline)
       {
 #if HAVE_LIBEDITLINE
         lineBuf = ::readline("... > ");
-        if(lineBuf != NULL && lineBuf[0] != '\0') {
+        if (lineBuf != NULL && lineBuf[0] != '\0')
+        {
           ::add_history(lineBuf);
         }
         line = lineBuf == NULL ? "" : lineBuf;
@@ -300,7 +310,9 @@ restart:
         d_in.get(sb);
         line = sb.str();
       }
-    } else {
+    }
+    else
+    {
       /* No continuation, we're done. */
       Trace("interactive") << "Leaving input loop." << endl << flush;
       break;
@@ -411,52 +423,65 @@ restart:
   }
 
   return true;
-}/* InteractiveShell::readCommand() */
+} /* InteractiveShell::readCommand() */
 
 #if HAVE_LIBEDITLINE
 
-char** commandCompletion(const char* text, int start, int end) {
+char** commandCompletion(const char* text, int start, int end)
+{
   Trace("rl") << "text: " << text << endl;
   Trace("rl") << "start: " << start << " end: " << end << endl;
   return rl_completion_matches(text, commandGenerator);
 }
 
 // Our peculiar versions of "less than" for strings
-struct StringPrefix1Less {
-  bool operator()(const std::string& s1, const std::string& s2) {
+struct StringPrefix1Less
+{
+  bool operator()(const std::string& s1, const std::string& s2)
+  {
     size_t l1 = s1.length(), l2 = s2.length();
     size_t l = l1 <= l2 ? l1 : l2;
     return s1.compare(0, l1, s2, 0, l) < 0;
   }
-};/* struct StringPrefix1Less */
-struct StringPrefix2Less {
-  bool operator()(const std::string& s1, const std::string& s2) {
+}; /* struct StringPrefix1Less */
+struct StringPrefix2Less
+{
+  bool operator()(const std::string& s1, const std::string& s2)
+  {
     size_t l1 = s1.length(), l2 = s2.length();
     size_t l = l1 <= l2 ? l1 : l2;
     return s1.compare(0, l, s2, 0, l2) < 0;
   }
-};/* struct StringPrefix2Less */
+}; /* struct StringPrefix2Less */
 
-char* commandGenerator(const char* text, int state) {
+char* commandGenerator(const char* text, int state)
+{
   static thread_local const std::string* rlCommand;
   static thread_local set<string>::const_iterator* rlDeclaration;
 
-  const std::string* i = lower_bound(commandsBegin, commandsEnd, text, StringPrefix2Less());
-  const std::string* j = upper_bound(commandsBegin, commandsEnd, text, StringPrefix1Less());
+  const std::string* i =
+      lower_bound(commandsBegin, commandsEnd, text, StringPrefix2Less());
+  const std::string* j =
+      upper_bound(commandsBegin, commandsEnd, text, StringPrefix1Less());
 
-  set<string>::const_iterator ii = lower_bound(s_declarations.begin(), s_declarations.end(), text, StringPrefix2Less());
-  set<string>::const_iterator jj = upper_bound(s_declarations.begin(), s_declarations.end(), text, StringPrefix1Less());
+  set<string>::const_iterator ii = lower_bound(
+      s_declarations.begin(), s_declarations.end(), text, StringPrefix2Less());
+  set<string>::const_iterator jj = upper_bound(
+      s_declarations.begin(), s_declarations.end(), text, StringPrefix1Less());
 
-  if(rlDeclaration == NULL) {
+  if (rlDeclaration == NULL)
+  {
     rlDeclaration = new set<string>::const_iterator();
   }
 
-  if(state == 0) {
+  if (state == 0)
+  {
     rlCommand = i;
     *rlDeclaration = ii;
   }
 
-  if(rlCommand != j) {
+  if (rlCommand != j)
+  {
     return strdup((*rlCommand++).c_str());
   }
 

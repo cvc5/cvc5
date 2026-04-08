@@ -953,12 +953,15 @@ set(regress_0_tests
   regress0/fp/issue6164.smt2
   regress0/fp/issue7002.smt2
   regress0/fp/issue7569.smt2
+  regress0/fp/issue9505.smt2
   regress0/fp/issue9854.smt2
   regress0/fp/issue9858.smt2
   regress0/fp/issue9864.smt2
   regress0/fp/issue9966.smt2
   regress0/fp/issue9972.smt2
   regress0/fp/issue9972-2.smt2
+  regress0/fp/issue11139.smt2
+  regress0/fp/issue12335.smt2
   regress0/fp/issuepr650.smt2
   regress0/fp/proj-issue329-prereg-context.smt2
   regress0/fp/proj-issue477-fp-set-comprehension.smt2

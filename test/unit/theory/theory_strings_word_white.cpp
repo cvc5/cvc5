@@ -121,7 +121,7 @@ TEST_F(TestTheoryWhiteStringsWord, strings)
   ASSERT_TRUE(Word::roverlap(cac, abc) == 1);
   ASSERT_TRUE(Word::roverlap(empty, abc) == 0);
   ASSERT_TRUE(Word::roverlap(aaaaa, aa) == 2);
-  
+
   ASSERT_FALSE(Word::hasOverlap(empty, empty, false));
   ASSERT_FALSE(Word::hasOverlap(empty, a, false));
   ASSERT_TRUE(Word::hasOverlap(abc, empty, false));
@@ -130,7 +130,7 @@ TEST_F(TestTheoryWhiteStringsWord, strings)
   ASSERT_TRUE(Word::hasOverlap(abc, b, false));
   ASSERT_TRUE(Word::hasOverlap(abc, abcd, false));
   ASSERT_FALSE(Word::hasOverlap(abc, aab, false));
-  
+
   ASSERT_FALSE(Word::hasOverlap(empty, empty, true));
   ASSERT_FALSE(Word::hasOverlap(empty, a, true));
   ASSERT_TRUE(Word::hasOverlap(abc, empty, true));
@@ -139,8 +139,6 @@ TEST_F(TestTheoryWhiteStringsWord, strings)
   ASSERT_TRUE(Word::hasOverlap(abc, b, true));
   ASSERT_FALSE(Word::hasOverlap(abc, abcd, true));
   ASSERT_TRUE(Word::hasOverlap(abc, aab, true));
-  
-  
 }
 }  // namespace test
 }  // namespace cvc5::internal

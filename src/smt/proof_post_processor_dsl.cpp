@@ -163,8 +163,9 @@ bool ProofPostprocessDsl::update(Node res,
     return true;
   }
   // clean up traversing, since we are setting continueUpdate to false
-  Assert (!d_traversing.empty());
-  Trace("pp-dsl-process") << "...pop due to fail " << d_traversing.back().get() << std::endl;
+  Assert(!d_traversing.empty());
+  Trace("pp-dsl-process") << "...pop due to fail " << d_traversing.back().get()
+                          << std::endl;
   d_traversing.pop_back();
   // otherwise no update
   return false;

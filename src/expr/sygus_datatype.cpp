@@ -13,6 +13,7 @@
 #include "expr/sygus_datatype.h"
 
 #include <sstream>
+
 #include "expr/skolem_manager.h"
 
 using namespace cvc5::internal::kind;

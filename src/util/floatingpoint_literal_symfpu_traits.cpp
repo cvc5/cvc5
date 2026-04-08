@@ -224,6 +224,13 @@ wrappedBitVector<isSigned> wrappedBitVector<isSigned>::modularAdd(
 }
 
 template <bool isSigned>
+wrappedBitVector<isSigned> wrappedBitVector<isSigned>::modularSubtract(
+    const wrappedBitVector<isSigned>& op) const
+{
+  return *this - op;
+}
+
+template <bool isSigned>
 wrappedBitVector<isSigned> wrappedBitVector<isSigned>::modularNegate() const
 {
   return -(*this);

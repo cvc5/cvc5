@@ -3550,7 +3550,7 @@ cdef class Solver:
 
             .. code-block:: smtlib
 
-                ( check-synth )
+                ( check-synth-next )
 
             :return: The result of the check, which is "solution" if the check
                      found a solution in which case solutions are available via

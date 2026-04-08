@@ -25,7 +25,8 @@ namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
-class RationalEnumerator : public TypeEnumeratorBase<RationalEnumerator> {
+class RationalEnumerator : public TypeEnumeratorBase<RationalEnumerator>
+{
   Rational d_rat;
 
  public:
@@ -46,31 +47,39 @@ class RationalEnumerator : public TypeEnumeratorBase<RationalEnumerator> {
     // sequence is 0, then diagonal with negatives interleaved
     // ( 0, 1/1, -1/1, 2/1, -2/1, 1/2, -1/2, 3/1, -3/1, 1/3, -1/3,
     // 4/1, -4/1, 3/2, -3/2, 2/3, -2/3, 1/4, -1/4, ...)
-    if(d_rat == 0) {
+    if (d_rat == 0)
+    {
       d_rat = 1;
-    } else if(d_rat < 0) {
+    }
+    else if (d_rat < 0)
+    {
       d_rat = -d_rat;
       Integer num = d_rat.getNumerator();
       Integer den = d_rat.getDenominator();
-      do {
+      do
+      {
         num -= 1;
         den += 1;
-        if(num == 0) {
+        if (num == 0)
+        {
           num = den;
           den = 1;
         }
         d_rat = Rational(num, den);
-      } while(d_rat.getNumerator() != num);
-    } else {
+      } while (d_rat.getNumerator() != num);
+    }
+    else
+    {
       d_rat = -d_rat;
     }
     return *this;
   }
 
   bool isFinished() override { return false; }
-};/* class RationalEnumerator */
+}; /* class RationalEnumerator */
 
-class IntegerEnumerator : public TypeEnumeratorBase<IntegerEnumerator> {
+class IntegerEnumerator : public TypeEnumeratorBase<IntegerEnumerator>
+{
   Integer d_int;
 
  public:
@@ -90,16 +99,19 @@ class IntegerEnumerator : public TypeEnumeratorBase<IntegerEnumerator> {
   IntegerEnumerator& operator++() override
   {
     // sequence is 0, 1, -1, 2, -2, 3, -3, ...
-    if(d_int <= 0) {
+    if (d_int <= 0)
+    {
       d_int = -d_int + 1;
-    } else {
+    }
+    else
+    {
       d_int = -d_int;
     }
     return *this;
   }
 
   bool isFinished() override { return false; }
-};/* class IntegerEnumerator */
+}; /* class IntegerEnumerator */
 
 }  // namespace arith
 }  // namespace theory

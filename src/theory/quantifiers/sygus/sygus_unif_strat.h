@@ -115,54 +115,54 @@ class UnifContext
 };
 
 /**
-* This class stores information regarding an enumerator, including
-* information regarding the role of this enumerator (see EnumRole), its
-* parent, whether it is templated, its slave enumerators, and so on.
-*
-* We say an enumerator is a master enumerator if it is the variable that
-* we use to enumerate values for its sort. Master enumerators may have
-* (possibly multiple) slave enumerators, stored in d_enum_slave. When
-* constructing a sygus unifciation strategy, we make the first enumerator for
-* each type a master enumerator, and any additional ones slaves of it.
-*/
+ * This class stores information regarding an enumerator, including
+ * information regarding the role of this enumerator (see EnumRole), its
+ * parent, whether it is templated, its slave enumerators, and so on.
+ *
+ * We say an enumerator is a master enumerator if it is the variable that
+ * we use to enumerate values for its sort. Master enumerators may have
+ * (possibly multiple) slave enumerators, stored in d_enum_slave. When
+ * constructing a sygus unifciation strategy, we make the first enumerator for
+ * each type a master enumerator, and any additional ones slaves of it.
+ */
 class EnumInfo
 {
  public:
   EnumInfo() : d_role(enum_io), d_is_conditional(false) {}
   /** initialize this class
-  *
-  * role is the "role" the enumerator plays in the high-level strategy,
-  *   which is one of enum_* above.
-  */
+   *
+   * role is the "role" the enumerator plays in the high-level strategy,
+   *   which is one of enum_* above.
+   */
   void initialize(EnumRole role);
   /** is this enumerator associated with a template? */
   bool isTemplated() { return !d_template.isNull(); }
   /** set conditional
-    *
-    * This flag is set to true if this enumerator may not apply to all
-    * input/output examples. For example, if this enumerator is used
-    * as an output value beneath a conditional in an instance of strat_ITE,
-    * then this enumerator is conditional.
-    */
+   *
+   * This flag is set to true if this enumerator may not apply to all
+   * input/output examples. For example, if this enumerator is used
+   * as an output value beneath a conditional in an instance of strat_ITE,
+   * then this enumerator is conditional.
+   */
   void setConditional() { d_is_conditional = true; }
   /** returns if this enumerator is conditional */
   bool isConditional() { return d_is_conditional; }
   /** get the role of this enumerator */
   EnumRole getRole() { return d_role; }
   /** enumerator template
-  *
-  * If d_template non-null, enumerated values V are immediately transformed to
-  * d_template { d_template_arg -> V }.
-  */
+   *
+   * If d_template non-null, enumerated values V are immediately transformed to
+   * d_template { d_template_arg -> V }.
+   */
   Node d_template;
   Node d_template_arg;
   /**
-  * Slave enumerators of this enumerator. These are other enumerators that
-  * have the same type, but a different role in the strategy tree. We
-  * generally
-  * only use one enumerator per type, and hence these slaves are notified when
-  * values are enumerated for this enumerator.
-  */
+   * Slave enumerators of this enumerator. These are other enumerators that
+   * have the same type, but a different role in the strategy tree. We
+   * generally
+   * only use one enumerator per type, and hence these slaves are notified when
+   * values are enumerated for this enumerator.
+   */
   std::vector<Node> d_enum_slave;
 
  private:
@@ -206,32 +206,32 @@ class EnumTypeInfo
 };
 
 /** represents a strategy for a SyGuS datatype type
-  *
-  * This represents a possible strategy to apply when processing a strategy
-  * node in constructSolution. When applying the strategy represented by this
-  * class, we may make recursive calls to the children of the strategy,
-  * given in d_cenum. If all recursive calls to constructSolution for these
-  * children are successful, say:
-  *   constructSolution( d_cenum[1], ... ) = t1,
-  *    ...,
-  *   constructSolution( d_cenum[n], ... ) = tn,
-  * Then, the solution returned by this strategy is
-  *   d_sol_templ * { d_sol_templ_args -> (t1,...,tn) }
-  * where * is application of substitution.
-  */
+ *
+ * This represents a possible strategy to apply when processing a strategy
+ * node in constructSolution. When applying the strategy represented by this
+ * class, we may make recursive calls to the children of the strategy,
+ * given in d_cenum. If all recursive calls to constructSolution for these
+ * children are successful, say:
+ *   constructSolution( d_cenum[1], ... ) = t1,
+ *    ...,
+ *   constructSolution( d_cenum[n], ... ) = tn,
+ * Then, the solution returned by this strategy is
+ *   d_sol_templ * { d_sol_templ_args -> (t1,...,tn) }
+ * where * is application of substitution.
+ */
 class EnumTypeInfoStrat
 {
  public:
   /** the type of strategy this represents */
   StrategyType d_this;
   /** the sygus datatype constructor that induced this strategy
-    *
-    * For example, this may be a sygus datatype whose sygus operator is ITE,
-    * if the strategy type above is strat_ITE.
-    */
+   *
+   * For example, this may be a sygus datatype whose sygus operator is ITE,
+   * if the strategy type above is strat_ITE.
+   */
   Node d_cons;
   /** children of this strategy */
-  std::vector<std::pair<Node, NodeRole> > d_cenum;
+  std::vector<std::pair<Node, NodeRole>> d_cenum;
   /** the arguments for the (templated) solution */
   std::vector<Node> d_sol_templ_args;
   /** the template for the solution */
@@ -339,15 +339,15 @@ class SygusUnifStrategy : protected EnvObj
   /** Info for sygus datatype type occurring in a field of d_root */
   std::map<TypeNode, EnumTypeInfo> d_tinfo;
   /**
-    * The root sygus datatype for the function-to-synthesize,
-    * which encodes the overall syntactic restrictions on the space
-    * of solutions.
-    */
+   * The root sygus datatype for the function-to-synthesize,
+   * which encodes the overall syntactic restrictions on the space
+   * of solutions.
+   */
   TypeNode d_root;
   /**
-    * Maps sygus datatypes to their master enumerator. This is the (single)
-    * enumerator of that type that we enumerate values for.
-    */
+   * Maps sygus datatypes to their master enumerator. This is the (single)
+   * enumerator of that type that we enumerate values for.
+   */
   std::map<TypeNode, Node> d_master_enum;
   /** Initialize necessary information for (sygus) type tn */
   void initializeType(TypeNode tn);
@@ -375,9 +375,9 @@ class SygusUnifStrategy : protected EnvObj
    * nodes that have child strategies.
    */
   void registerStrategyPoint(Node et,
-                          TypeNode tn,
-                          EnumRole enum_role,
-                          bool inSearch);
+                             TypeNode tn,
+                             EnumRole enum_role,
+                             bool inSearch);
   /** infer template */
   bool inferTemplate(unsigned k,
                      Node n,
@@ -407,7 +407,7 @@ class SygusUnifStrategy : protected EnvObj
    */
   void finishInit(Node e,
                   NodeRole nrole,
-                  std::map<Node, std::map<NodeRole, bool> >& visited,
+                  std::map<Node, std::map<NodeRole, bool>>& visited,
                   bool isCond);
   /** helper for debug print
    *
@@ -421,7 +421,7 @@ class SygusUnifStrategy : protected EnvObj
   void debugPrint(const char* c,
                   Node e,
                   NodeRole nrole,
-                  std::map<Node, std::map<NodeRole, bool> >& visited,
+                  std::map<Node, std::map<NodeRole, bool>>& visited,
                   int ind);
   //------------------------------ end strategy registration
 };

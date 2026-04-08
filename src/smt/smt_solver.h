@@ -65,8 +65,7 @@ class SmtSolver : protected EnvObj
   using NodeList = context::CDList<Node>;
 
  public:
-  SmtSolver(Env& env,
-            SolverEngineStatistics& stats);
+  SmtSolver(Env& env, SolverEngineStatistics& stats);
   ~SmtSolver();
   /**
    * Create theory engine, prop engine based on the environment.

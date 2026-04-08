@@ -120,7 +120,6 @@ class CommandExecutor
                     parser::Cmd* cmd);
 }; /* class CommandExecutor */
 
-
 }  // namespace main
 }  // namespace cvc5
 

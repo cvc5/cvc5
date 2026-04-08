@@ -28,33 +28,43 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-//priority levels :
-//1 : user patterns (when user-pat!={resort,ignore}), auto-gen patterns (for non-user pattern quantifiers, or when user-pat={resort,ignore})
-//2 : user patterns (when user-pat=resort), auto gen patterns (for user pattern quantifiers when user-pat=use)
+// priority levels :
+// 1 : user patterns (when user-pat!={resort,ignore}), auto-gen patterns (for
+// non-user pattern quantifiers, or when user-pat={resort,ignore}) 2 : user
+// patterns (when user-pat=resort), auto gen patterns (for user pattern
+// quantifiers when user-pat=use)
 
 // user-pat=interleave alternates between use and resort
 
-struct sortQuantifiersForSymbol {
+struct sortQuantifiersForSymbol
+{
   QuantRelevance* d_quant_rel;
-  std::map< Node, Node > d_op_map;
-  bool operator() (Node i, Node j) {
+  std::map<Node, Node> d_op_map;
+  bool operator()(Node i, Node j)
+  {
     size_t nqfsi = d_quant_rel->getNumQuantifiersForSymbol(d_op_map[i]);
     size_t nqfsj = d_quant_rel->getNumQuantifiersForSymbol(d_op_map[j]);
-    if( nqfsi<nqfsj ){
+    if (nqfsi < nqfsj)
+    {
       return true;
-    }else if( nqfsi>nqfsj ){
+    }
+    else if (nqfsi > nqfsj)
+    {
       return false;
     }
     return false;
   }
 };
 
-struct sortTriggers {
-  bool operator() (Node i, Node j) {
+struct sortTriggers
+{
+  bool operator()(Node i, Node j)
+  {
     int32_t wi = TriggerTermInfo::getTriggerWeight(i);
     int32_t wj = TriggerTermInfo::getTriggerWeight(j);
-    if( wi==wj ){
-      return i<j;
+    if (wi == wj)
+    {
+      return i < j;
     }
     return wi < wj;
   }
@@ -70,9 +80,9 @@ InstStrategyAutoGenTriggers::InstStrategyAutoGenTriggers(
     QuantRelevance* qrlv)
     : InstStrategy(env, td, qs, qim, qr, tr), d_quant_rel(qrlv)
 {
-  //how to select trigger terms
+  // how to select trigger terms
   d_tr_strategy = options().quantifiers.triggerSelMode;
-  //whether to select new triggers during the search
+  // whether to select new triggers during the search
   if (options().quantifiers.incrementTriggers)
   {
     d_regenerate_frequency = 3;
@@ -89,8 +99,9 @@ void InstStrategyAutoGenTriggers::processResetInstantiationRound(
     CVC5_UNUSED Theory::Effort effort)
 {
   Trace("inst-alg-debug") << "reset auto-gen triggers" << std::endl;
-  //reset triggers
-  for( unsigned r=0; r<2; r++ ){
+  // reset triggers
+  for (unsigned r = 0; r < 2; r++)
+  {
     std::map<Node, std::map<inst::Trigger*, bool> >& agts =
         d_auto_gen_trigger[r];
     for (std::pair<const Node, std::map<inst::Trigger*, bool> >& agt : agts)
@@ -135,7 +146,9 @@ InstStrategyStatus InstStrategyAutoGenTriggers::process(
     {
       d_counter[f] = 0;
       gen = true;
-    }else{
+    }
+    else
+    {
       d_counter[f]++;
       gen = d_regenerate && d_counter[f] % d_regenerate_frequency == 0;
     }
@@ -549,21 +562,27 @@ bool InstStrategyAutoGenTriggers::generatePatternTerms(Node f)
   return true;
 }
 
-void InstStrategyAutoGenTriggers::addPatternToPool( Node q, Node pat, unsigned num_fv, Node mpat ) {
+void InstStrategyAutoGenTriggers::addPatternToPool(Node q,
+                                                   Node pat,
+                                                   unsigned num_fv,
+                                                   Node mpat)
+{
   d_pat_to_mpat[pat] = mpat;
   unsigned num_vars = options().quantifiers.partialTriggers
                           ? d_num_trigger_vars[q]
                           : q[0].getNumChildren();
   if (num_fv == num_vars)
   {
-    d_patTerms[0][q].push_back( pat );
-  }else{
-    d_patTerms[1][q].push_back( pat );
+    d_patTerms[0][q].push_back(pat);
+  }
+  else
+  {
+    d_patTerms[1][q].push_back(pat);
   }
 }
 
-
-void InstStrategyAutoGenTriggers::addTrigger( inst::Trigger * tr, Node q ) {
+void InstStrategyAutoGenTriggers::addTrigger(inst::Trigger* tr, Node q)
+{
   if (tr == nullptr)
   {
     return;
@@ -612,7 +631,8 @@ void InstStrategyAutoGenTriggers::addTrigger( inst::Trigger * tr, Node q ) {
   agt[tr] = true;
 }
 
-bool InstStrategyAutoGenTriggers::hasUserPatterns( Node q ) {
+bool InstStrategyAutoGenTriggers::hasUserPatterns(Node q)
+{
   if (q.getNumChildren() != 3)
   {
     return false;
@@ -635,12 +655,14 @@ bool InstStrategyAutoGenTriggers::hasUserPatterns( Node q ) {
   return hasPat;
 }
 
-void InstStrategyAutoGenTriggers::addUserNoPattern( Node q, Node pat ) {
+void InstStrategyAutoGenTriggers::addUserNoPattern(Node q, Node pat)
+{
   Assert(pat.getKind() == Kind::INST_NO_PATTERN && pat.getNumChildren() == 1);
   std::vector<Node>& ung = d_user_no_gen[q];
   if (std::find(ung.begin(), ung.end(), pat[0]) == ung.end())
   {
-    Trace("user-pat") << "Add user no-pattern: " << pat[0] << " for " << q << std::endl;
+    Trace("user-pat") << "Add user no-pattern: " << pat[0] << " for " << q
+                      << std::endl;
     ung.push_back(pat[0]);
   }
 }

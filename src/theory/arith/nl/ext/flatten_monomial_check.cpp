@@ -48,7 +48,7 @@ class FlattenMonProofGenerator : protected EnvObj, public ProofGenerator
    * s1 = s2
    * -------------------------------- SCOPE
    * x1 = t1 ^ ... xn = tn => s1 = s2
-   * 
+   *
    * where the convert steps use the equalities as rewrite steps.
    */
   std::shared_ptr<ProofNode> getProofFor(Node fact) override
@@ -212,8 +212,7 @@ void FlattenMonomialCheck::check(const std::vector<Node>& mvec)
         if (baseTerms.find(f) != baseTerms.end())
         {
           Trace("nl-ff") << "*** Cyclic: " << n << " == " << ns
-                         << ", in equivalence class of " << f
-                         << std::endl;
+                         << ", in equivalence class of " << f << std::endl;
           cyclic = true;
           break;
         }

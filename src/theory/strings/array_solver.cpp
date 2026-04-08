@@ -220,10 +220,9 @@ void ArraySolver::checkTerm(Node t, bool checkInv)
         if (k == Kind::STRING_UPDATE)
         {
           iid = InferenceId::STRINGS_ARRAY_UPDATE_UNIT;
-          eq = nm->mkNode(Kind::ITE,
-                          t[1].eqNode(d_zero),
-                          t.eqNode(t[2]),
-                          t.eqNode(nf.d_nf[0]));
+          eq = nm->mkNode(
+              Kind::ITE,
+              {t[1].eqNode(d_zero), t.eqNode(t[2]), t.eqNode(nf.d_nf[0])});
         }
         else
         {

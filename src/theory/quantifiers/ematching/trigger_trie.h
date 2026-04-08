@@ -46,6 +46,7 @@ class TriggerTrie
    * t->d_nodes.
    */
   void addTrigger(const std::vector<Node>& nodes, Trigger* t);
+
  private:
   /** The trigger at this node in the trie. */
   std::vector<Trigger*> d_tr;

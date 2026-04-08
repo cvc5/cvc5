@@ -126,7 +126,7 @@ std::variant<Point, Poly, bool> splitZeroExtend(const Polys& origPolys,
   }
   return false;
 }
-}
+}  // namespace
 
 FfResult split(const std::vector<Node>& facts,
                const FfSize& size,
@@ -374,7 +374,7 @@ void checkZero(const SplitGb& origBases, const Point& zero)
   }
 }
 
-Gb::Gb() : d_ideal(), d_basis(){}
+Gb::Gb() : d_ideal(), d_basis() {}
 Gb::Gb(const std::vector<Poly>& generators, const ResourceManager* rm) : Gb()
 {
   if (generators.size())
@@ -440,7 +440,6 @@ Polys BitProp::getBitEqualities(const SplitGb& splitBasis)
       Poly normal = b.reduce(d_enc->getTermEncoding(bitsum));
       if (CoCoA::IsConstant(normal))
       {
-      
         // check that all inputs are bit-constrained
         if (std::all_of(bitsum.begin(), bitsum.end(), [&](const Node& bit) {
               return isBit(bit, splitBasis);

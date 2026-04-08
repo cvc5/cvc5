@@ -590,7 +590,8 @@ bool EqProof::expandTransitivityForTheoryDisequalities(
   //   (= (= t1 t2) (= c1 c2))         (= (= c1 c2) false)
   //  --------------------------------------------------------------------- TR
   //                   (= (= t1 t2) false)
-  Node constApp = conclusion.getNodeManager()->mkNode(Kind::EQUAL, constChildren);
+  Node constApp =
+      conclusion.getNodeManager()->mkNode(Kind::EQUAL, constChildren);
   Node constEquality = constApp.eqNode(conclusion[1 - termPos]);
   Trace("eqproof-conv")
       << "EqProof::expandTransitivityForTheoryDisequalities: adding "
@@ -1338,9 +1339,9 @@ Node EqProof::addToProof(CDProof* p,
       newChildren2.insert(newChildren2.end(),
                           d_node[1].begin() + arityPrefix2,
                           d_node[1].end());
-      conclusion = nm->mkNode(Kind::EQUAL,
-                              nm->mkNode(k, newChildren1),
-                              nm->mkNode(k, newChildren2));
+      conclusion = nm->mkNode(
+          Kind::EQUAL,
+          {nm->mkNode(k, newChildren1), nm->mkNode(k, newChildren2)});
       // update arity
       Assert((arity - emptyRows) == conclusion[0].getNumChildren());
       arity = arity - emptyRows;
