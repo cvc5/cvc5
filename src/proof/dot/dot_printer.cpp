@@ -527,6 +527,8 @@ void DotPrinter::ruleArguments(std::ostringstream& currentArguments,
   else if (r == ProofRule::ANNOTATE)
   {
     AnnotationId aid;
+    bool isTheoryLemma = getAnnotationId(args[0], aid)
+                         && aid == AnnotationId::THEORY_LEMMA;
     if (getAnnotationId(args[0], aid))
     {
       currentArguments << aid;
@@ -538,10 +540,16 @@ void DotPrinter::ruleArguments(std::ostringstream& currentArguments,
     for (size_t i = 1, size = args.size(); i < size; i++)
     {
       currentArguments << ", ";
-      theory::InferenceId iid;
-      if (i == 1 && theory::getInferenceId(args[i], iid))
+      theory::TheoryId tid;
+      if (i == 1
+          && isTheoryLemma
+          && theory::builtin::BuiltinProofRuleChecker::getTheoryId(args[i], tid))
       {
-        currentArguments << iid;
+        std::ostringstream ss;
+        ss << tid;
+        std::string s = ss.str();
+        s.erase(0, 7);
+        currentArguments << s;
       }
       else
       {

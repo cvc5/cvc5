@@ -33,6 +33,7 @@
 #include "prop/sat_solver_factory.h"
 #include "prop/theory_proxy.h"
 #include "smt/env.h"
+#include "theory/builtin/proof_checker.h"
 #include "theory/output_channel.h"
 #include "theory/theory_engine.h"
 #include "util/resource_manager.h"
@@ -189,7 +190,8 @@ void PropEngine::assertInputFormulas(
 
 void PropEngine::assertLemma(theory::InferenceId id,
                              TrustNode tlemma,
-                             theory::LemmaProperty p)
+                             theory::LemmaProperty p,
+                             theory::TheoryId tid)
 {
   bool removable = isLemmaPropertyRemovable(p);
   bool local = isLemmaPropertyLocal(p);
@@ -227,13 +229,15 @@ void PropEngine::assertLemma(theory::InferenceId id,
   }
 
   // now, assert the lemmas
-  assertLemmasInternal(id, tplemma, ppLemmas, removable, inprocess, local);
+  assertLemmasInternal(
+      id, tplemma, ppLemmas, removable, inprocess, local, tid);
 }
 
 void PropEngine::assertTrustedLemmaInternal(theory::InferenceId id,
                                             TrustNode trn,
                                             bool removable,
-                                            bool local)
+                                            bool local,
+                                            theory::TheoryId tid)
 {
   Node node = trn.getNode();
   if (local)
@@ -262,7 +266,8 @@ void PropEngine::assertTrustedLemmaInternal(theory::InferenceId id,
   {
     std::vector<Node> args{
         mkAnnotationId(nodeManager(), AnnotationId::THEORY_LEMMA),
-        theory::mkInferenceIdNode(nodeManager(), id)};
+        theory::builtin::BuiltinProofRuleChecker::mkTheoryIdNode(nodeManager(),
+                                                                 tid)};
     d_annotTheoryLemmaPg.addAnnotation(
         actualNode, trn.getGenerator(), args, TrustId::THEORY_LEMMA, {});
     trn = TrustNode::mkReplaceGenTrustNode(trn, &d_annotTheoryLemmaPg);
@@ -331,7 +336,8 @@ void PropEngine::assertLemmasInternal(
     const std::vector<theory::SkolemLemma>& ppLemmas,
     bool removable,
     bool inprocess,
-    bool local)
+    bool local,
+    theory::TheoryId tid)
 {
   // notify skolem definitions first to ensure that the computation of
   // when a literal contains a skolem is accurate in the calls below.
@@ -350,14 +356,15 @@ void PropEngine::assertLemmasInternal(
     {
       trn = d_theoryProxy->inprocessLemma(trn);
     }
-    assertTrustedLemmaInternal(id, trn, removable, local);
+    assertTrustedLemmaInternal(id, trn, removable, local, tid);
   }
   for (const theory::SkolemLemma& lem : ppLemmas)
   {
     assertTrustedLemmaInternal(theory::InferenceId::THEORY_PP_SKOLEM_LEM,
                                lem.d_lemma,
                                removable,
-                               local);
+                               local,
+                               tid);
   }
   // Note that this order is important for theories that send lemmas during
   // preregistration, as it impacts the order in which lemmas are processed
@@ -639,7 +646,8 @@ Node PropEngine::getPreprocessedTerm(TNode n)
                        newLemmas,
                        false,
                        false,
-                       false);
+                       false,
+                       theory::TheoryId::THEORY_BUILTIN);
   return tpn.isNull() ? Node(n) : tpn.getNode();
 }
 

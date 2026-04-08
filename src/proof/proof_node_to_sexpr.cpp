@@ -361,7 +361,12 @@ ProofNodeToSExpr::ArgFormat ProofNodeToSExpr::getArgumentFormat(
       }
       else if (i == 1)
       {
-        return ArgFormat::INFERENCE_ID;
+        AnnotationId aid;
+        if (getAnnotationId(pn->getArguments()[0], aid)
+            && aid == AnnotationId::THEORY_LEMMA)
+        {
+          return ArgFormat::THEORY_ID;
+        }
       }
     }
     break;

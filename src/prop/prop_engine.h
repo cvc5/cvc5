@@ -131,10 +131,12 @@ class PropEngine : protected EnvObj
    * @param id The inference identifier.
    * @param trn The trust node storing the formula to assert.
    * @param p The properties of the lemma.
+   * @param tid The theory that sent the lemma.
    */
   void assertLemma(theory::InferenceId id,
                    TrustNode tlemma,
-                   theory::LemmaProperty p);
+                   theory::LemmaProperty p,
+                   theory::TheoryId tid);
 
   /**
    * This is called when a theory propagation was explained with texp.
@@ -383,7 +385,8 @@ class PropEngine : protected EnvObj
   void assertTrustedLemmaInternal(theory::InferenceId id,
                                   TrustNode trn,
                                   bool removable,
-                                  bool local);
+                                  bool local,
+                                  theory::TheoryId tid);
   /**
    * Assert node as a formula to the CNF stream
    * @param id The inference identifier.
@@ -411,7 +414,8 @@ class PropEngine : protected EnvObj
                             const std::vector<theory::SkolemLemma>& ppLemmas,
                             bool removable,
                             bool inprocess,
-                            bool local);
+                            bool local,
+                            theory::TheoryId tid);
 
   /**
    * Indicates that the SAT solver is currently solving something and we should

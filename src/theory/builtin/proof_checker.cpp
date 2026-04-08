@@ -448,11 +448,20 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
   else if (id == ProofRule::ANNOTATE)
   {
     AnnotationId aid;
+    TheoryId tid;
     Assert(children.size() == 1);
     Assert(!args.empty());
     if (!getAnnotationId(args[0], aid))
     {
       return Node::null();
+    }
+    if (aid == AnnotationId::THEORY_LEMMA)
+    {
+      Assert(args.size() >= 2);
+      if (!getTheoryId(args[1], tid))
+      {
+        return Node::null();
+      }
     }
     return children[0];
   }

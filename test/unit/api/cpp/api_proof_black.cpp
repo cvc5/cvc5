@@ -131,7 +131,7 @@ TEST_F(TestApiBlackProof, annotateTheoryLemmas)
     {
       foundAnnotate = true;
       ASSERT_EQ(cur.getChildren().size(), 1);
-      ASSERT_GE(cur.getArguments().size(), 1);
+      ASSERT_GE(cur.getArguments().size(), 2);
       break;
     }
     std::vector<Proof> children = cur.getChildren();
