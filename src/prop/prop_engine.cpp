@@ -255,25 +255,28 @@ void PropEngine::assertTrustedLemmaInternal(theory::InferenceId id,
   bool negated = trn.getKind() == TrustNodeKind::CONFLICT;
   // should have a proof generator if the theory engine is proof producing
   Assert(!d_env.isTheoryProofProducing() || trn.getGenerator() != nullptr);
-  Node actualNode = negated ? node.notNode() : node;
-  if (isProofEnabled() && options().proof.proofAnnotateTheoryLemmas)
+  if (isProofEnabled())
   {
-    std::vector<Node> args{
-        mkAnnotationId(nodeManager(), AnnotationId::THEORY_LEMMA),
-        theory::builtin::BuiltinProofRuleChecker::mkTheoryIdNode(nodeManager(),
-                                                                 tid)};
-    d_annotTheoryLemmaPg.addAnnotation(
-        actualNode, trn.getGenerator(), args, TrustId::THEORY_LEMMA, {});
-    trn = TrustNode::mkReplaceGenTrustNode(trn, &d_annotTheoryLemmaPg);
-  }
-  // if we are producing proofs for the SAT solver but not for theory engine,
-  // then we need to prevent the lemma of being added as an assumption (since
-  // the generator will be null). We use the default proof generator for lemmas.
-  else if (d_env.isSatProofProducing() && !d_env.isTheoryProofProducing()
-           && !trn.getGenerator())
-  {
-    d_theoryLemmaPg.addTrustedStep(actualNode, TrustId::THEORY_LEMMA, {}, {});
-    trn = TrustNode::mkReplaceGenTrustNode(trn, &d_theoryLemmaPg);
+    Node actualNode = negated ? node.notNode() : node;
+    if (options().proof.proofAnnotateTheoryLemmas)
+    {
+      std::vector<Node> args{
+          mkAnnotationId(nodeManager(), AnnotationId::THEORY_LEMMA),
+          theory::builtin::BuiltinProofRuleChecker::mkTheoryIdNode(nodeManager(),
+                                                                  tid)};
+      d_annotTheoryLemmaPg.addAnnotation(
+          actualNode, trn.getGenerator(), args, TrustId::THEORY_LEMMA, {});
+      trn = TrustNode::mkReplaceGenTrustNode(trn, &d_annotTheoryLemmaPg);
+    }
+    // if we are producing proofs for the SAT solver but not for theory engine,
+    // then we need to prevent the lemma of being added as an assumption (since
+    // the generator will be null). We use the default proof generator for lemmas.
+    else if (d_env.isSatProofProducing() && !d_env.isTheoryProofProducing()
+            && !trn.getGenerator())
+    {
+      d_theoryLemmaPg.addTrustedStep(actualNode, TrustId::THEORY_LEMMA, {}, {});
+      trn = TrustNode::mkReplaceGenTrustNode(trn, &d_theoryLemmaPg);
+    }
   }
   assertInternal(id, node, negated, removable, false, trn.getGenerator());
 }
