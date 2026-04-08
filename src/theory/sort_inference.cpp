@@ -37,7 +37,7 @@ using namespace std;
 namespace cvc5::internal {
 namespace theory {
 
-void SortInference::UnionFind::print(const char * c){
+void SortInference::UnionFind::print(CVC5_UNUSED const char * c){
   for( std::map< int, int >::iterator it = d_eqc.begin(); it != d_eqc.end(); ++it ){
     Trace(c) << "s_" << it->first << " = s_" << it->second << ", ";
   }
@@ -92,7 +92,7 @@ void SortInference::recordSubsort( TypeNode tn, int s ){
   }
 }
 
-void SortInference::printSort( const char* c, int t ){
+void SortInference::printSort(CVC5_UNUSED  const char* c, int t ){
   int rt = d_type_union_find.getRepresentative( t );
   if( d_type_types.find( rt )!=d_type_types.end() ){
     Trace(c) << d_type_types[rt];
@@ -814,12 +814,12 @@ Node SortInference::mkInjection( TypeNode tn1, TypeNode tn2 ) {
   Node v2 = NodeManager::mkBoundVar("?y", tn1);
   Node ret =
       nm->mkNode(Kind::FORALL,
-                 nm->mkNode(Kind::BOUND_VAR_LIST, v1, v2),
-                 nm->mkNode(Kind::OR,
-                            nm->mkNode(Kind::APPLY_UF, f, v1)
-                                .eqNode(nm->mkNode(Kind::APPLY_UF, f, v2))
-                                .negate(),
-                            v1.eqNode(v2)));
+                 {nm->mkNode(Kind::BOUND_VAR_LIST, v1, v2),
+                  nm->mkNode(Kind::OR,
+                             {nm->mkNode(Kind::APPLY_UF, f, v1)
+                                  .eqNode(nm->mkNode(Kind::APPLY_UF, f, v2))
+                                  .negate(),
+                              v1.eqNode(v2)})});
   ret = rewrite(ret);
   return ret;
 }

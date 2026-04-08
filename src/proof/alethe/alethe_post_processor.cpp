@@ -822,8 +822,8 @@ bool AletheProofPostprocessCallback::update(Node res,
         success &=
             addAletheStep(AletheRule::IMPLIES_SIMPLIFY, vp9, vp9, {}, {}, *cdp);
 
-        Node vp10 =
-            nm->mkNode(Kind::SEXPR, d_cl, vp8[1].notNode(), andNode.notNode());
+        Node vp10 = nm->mkNode(Kind::SEXPR,
+                               {d_cl, vp8[1].notNode(), andNode.notNode()});
         success &=
             addAletheStep(AletheRule::EQUIV1, vp10, vp10, {vp9}, {}, *cdp);
 
@@ -1234,9 +1234,9 @@ bool AletheProofPostprocessCallback::update(Node res,
       Node vp1 = nm->mkNode(
           Kind::SEXPR, d_cl, args[0].notNode().notNode().notNode(), args[0]);
       Node vp2 = nm->mkNode(Kind::SEXPR,
-                            d_cl,
-                            args[0].notNode().notNode().notNode().notNode(),
-                            args[0].notNode());
+                            {d_cl,
+                             args[0].notNode().notNode().notNode().notNode(),
+                             args[0].notNode()});
       return addAletheStep(AletheRule::NOT_NOT, vp2, vp2, {}, {}, *cdp)
              && addAletheStep(AletheRule::NOT_NOT, vp1, vp1, {}, {}, *cdp)
              && addAletheStepFromOr(
@@ -2058,6 +2058,25 @@ bool AletheProofPostprocessCallback::update(Node res,
                            {},
                            *cdp);
     }
+    case ProofRule::BV_POLY_NORM:
+    {
+      return addAletheStep(AletheRule::POLY_SIMP,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           {},
+                           {},
+                           *cdp);
+    }
+    case ProofRule::BV_POLY_NORM_EQ:
+    {
+      return addAletheStep(AletheRule::POLY_SIMP_REL,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           children,
+                           {},
+                           *cdp);
+    }
+
     //================================================= Quantifiers rules
     // ======== Instantiate
     //
@@ -2483,7 +2502,8 @@ bool AletheProofPostprocessCallback::update(Node res,
           Node laDiseqOr = nm->mkNode(
               Kind::SEXPR,
               d_cl,
-              nm->mkNode(Kind::OR, res, leq.notNode(), leqInverted.notNode()));
+              nm->mkNode(Kind::OR,
+                         {res, leq.notNode(), leqInverted.notNode()}));
           Node laDiseqCl = nm->mkNode(
               Kind::SEXPR, {d_cl, res, leq.notNode(), leqInverted.notNode()});
           success &=
@@ -2677,8 +2697,8 @@ bool AletheProofPostprocessCallback::update(Node res,
           Node laDiseqOr = nm->mkNode(
               Kind::SEXPR,
               d_cl,
-              nm->mkNode(
-                  Kind::OR, notEq[0], leq.notNode(), leqInverted.notNode()));
+              nm->mkNode(Kind::OR,
+                         {notEq[0], leq.notNode(), leqInverted.notNode()}));
           Node laDiseqCl = nm->mkNode(
               Kind::SEXPR,
               {d_cl, notEq[0], leq.notNode(), leqInverted.notNode()});
@@ -2799,8 +2819,8 @@ bool AletheProofPostprocessCallback::update(Node res,
           Node laDiseqOr = nm->mkNode(
               Kind::SEXPR,
               d_cl,
-              nm->mkNode(
-                  Kind::OR, notEq[0], leq.notNode(), leqInverted.notNode()));
+              nm->mkNode(Kind::OR,
+                         {notEq[0], leq.notNode(), leqInverted.notNode()}));
           Node laDiseqCl = nm->mkNode(
               Kind::SEXPR,
               {d_cl, notEq[0], leq.notNode(), leqInverted.notNode()});
@@ -2850,6 +2870,46 @@ bool AletheProofPostprocessCallback::update(Node res,
         }
       }
       return success;
+    }
+    // arrays_idx
+    case ProofRule::ARRAYS_READ_OVER_WRITE_1:
+    {
+      return addAletheStep(AletheRule::ARRAYS_IDX,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           {},
+                           {},
+                           *cdp);
+    }
+    // arrays_row
+    case ProofRule::ARRAYS_READ_OVER_WRITE:
+    {
+      return addAletheStep(AletheRule::ARRAYS_ROW,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           children,
+                           {},
+                           *cdp);
+    }
+    // arrays_row_contra
+    case ProofRule::ARRAYS_READ_OVER_WRITE_CONTRA:
+    {
+      return addAletheStep(AletheRule::ARRAYS_ROW_CONTRA,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           children,
+                           {},
+                           *cdp);
+    }
+    // arrays_ext
+    case ProofRule::ARRAYS_EXT:
+    {
+      return addAletheStep(AletheRule::ARRAYS_EXT,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           children,
+                           {},
+                           *cdp);
     }
     case ProofRule::ACI_NORM:
     {

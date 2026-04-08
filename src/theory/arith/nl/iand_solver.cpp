@@ -101,7 +101,7 @@ void IAndSolver::checkInitialRefine()
       conj.push_back(nm->mkNode(Kind::LEQ, i, arg1Mod));
       // x=y => iand(x,y)=mod(x, 2^k)
       conj.push_back(
-          nm->mkNode(Kind::IMPLIES, i[0].eqNode(i[1]), i.eqNode(arg0Mod)));
+          nm->mkNode(Kind::IMPLIES, {i[0].eqNode(i[1]), i.eqNode(arg0Mod)}));
       Node lem = conj.size() == 1 ? conj[0] : nm->mkNode(Kind::AND, conj);
       Trace("iand-lemma") << "IAndSolver::Lemma: " << lem << " ; INIT_REFINE"
                           << std::endl;
@@ -248,9 +248,10 @@ Node IAndSolver::valueBasedLemma(Node i)
   //   (= ((_ iand n) x y) rewrite(((_ iand n) (mod c1 2^n) (mod c2 2^n))))
   // Note we use mod above since it ensures the the set of possible literals
   // introduced is finite, since there are finitely many values mod 2^n.
-  Node lem = nm->mkNode(Kind::IMPLIES,
-                        nm->mkNode(Kind::AND, xm.eqNode(valX), ym.eqNode(valY)),
-                        i.eqNode(valC));
+  Node lem =
+      nm->mkNode(Kind::IMPLIES,
+                 {nm->mkNode(Kind::AND, {xm.eqNode(valX), ym.eqNode(valY)}),
+                  i.eqNode(valC)});
   return lem;
 }
 

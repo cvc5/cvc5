@@ -224,7 +224,7 @@ Node getApproximateConstant(Node c, bool isLower, unsigned prec)
   return cret;
 }
 
-void printRationalApprox(const char* c, Node cr, unsigned prec)
+void printRationalApprox(CVC5_UNUSED const char* c, Node cr, unsigned prec)
 {
   if (!cr.isConst())
   {
@@ -247,8 +247,8 @@ void printRationalApprox(const char* c, Node cr, unsigned prec)
 Node mkBounded(Node l, Node a, Node u)
 {
   return NodeManager::mkNode(Kind::AND,
-                             NodeManager::mkNode(Kind::GEQ, a, l),
-                             NodeManager::mkNode(Kind::LEQ, a, u));
+                             {NodeManager::mkNode(Kind::GEQ, a, l),
+                              NodeManager::mkNode(Kind::LEQ, a, u)});
 }
 
 Rational leastIntGreaterThan(const Rational& q) { return q.floor() + 1; }
@@ -373,9 +373,9 @@ Node eliminateInt2Bv(TNode node)
   {
     Node cond = nm->mkNode(
         Kind::GEQ,
-        nm->mkNode(
-            Kind::INTS_MODULUS_TOTAL, node[0], nm->mkConstInt(Rational(i))),
-        nm->mkConstInt(Rational(i, 2)));
+        {nm->mkNode(
+             Kind::INTS_MODULUS_TOTAL, node[0], nm->mkConstInt(Rational(i))),
+         nm->mkConstInt(Rational(i, 2))});
     v.push_back(nm->mkNode(Kind::ITE, cond, bvone, bvzero));
     i *= 2;
   }

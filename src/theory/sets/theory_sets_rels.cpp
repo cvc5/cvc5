@@ -636,17 +636,17 @@ void TheorySetsRels::check(Theory::Effort level)
         mem_of_r,
         nm->mkNode(
             Kind::AND,
-            nm->mkNode(Kind::SET_MEMBER,
-                       RelsUtils::constructPair(tc_rel, fst_element, sk_1),
-                       tc_rel[0]),
-            nm->mkNode(Kind::SET_MEMBER,
-                       RelsUtils::constructPair(tc_rel, sk_2, snd_element),
-                       tc_rel[0]),
-            nm->mkNode(Kind::OR,
-                       sk_eq,
-                       nm->mkNode(Kind::SET_MEMBER,
-                                  RelsUtils::constructPair(tc_rel, sk_1, sk_2),
-                                  tc_rel))));
+            {nm->mkNode(Kind::SET_MEMBER,
+                        RelsUtils::constructPair(tc_rel, fst_element, sk_1),
+                        tc_rel[0]),
+             nm->mkNode(Kind::SET_MEMBER,
+                        RelsUtils::constructPair(tc_rel, sk_2, snd_element),
+                        tc_rel[0]),
+             nm->mkNode(Kind::OR,
+                        sk_eq,
+                        nm->mkNode(Kind::SET_MEMBER,
+                                   RelsUtils::constructPair(tc_rel, sk_1, sk_2),
+                                   tc_rel))}));
 
     sendInfer(conc, InferenceId::SETS_RELS_TCLOSURE_UP, reason);
   }

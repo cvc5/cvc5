@@ -30,7 +30,7 @@ namespace arith {
 namespace nl {
 
 namespace {
-void debugPrintBound(const char* c, Node coeff, Node x, Kind type, Node rhs)
+void debugPrintBound(CVC5_UNUSED const char* c, Node coeff, Node x, Kind type, Node rhs)
 {
   Node t = ArithMSum::mkCoeffTerm(coeff, x);
   Trace(c) << t << " " << type << " " << rhs;

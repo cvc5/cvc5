@@ -116,10 +116,10 @@ Node TermRegistry::eagerReduce(Node t, SkolemCache* sc, uint32_t alphaCard)
     // where f in { str.indexof, str.indexof_re }
     Node l = nm->mkNode(Kind::STRING_LENGTH, t[0]);
     lemma = nm->mkNode(Kind::AND,
-                       nm->mkNode(Kind::OR,
-                                  t.eqNode(nm->mkConstInt(Rational(-1))),
-                                  nm->mkNode(Kind::GEQ, t, t[2])),
-                       nm->mkNode(Kind::LEQ, t, l));
+                       {nm->mkNode(Kind::OR,
+                                   {t.eqNode(nm->mkConstInt(Rational(-1))),
+                                    nm->mkNode(Kind::GEQ, t, t[2])}),
+                        nm->mkNode(Kind::LEQ, t, l)});
   }
   else if (tk == Kind::STRING_STOI)
   {
@@ -154,13 +154,12 @@ Node TermRegistry::eagerReduce(Node t, SkolemCache* sc, uint32_t alphaCard)
     Node tc = t[0];
     Node card = nm->mkConstInt(Rational(alphaCard));
     Node cond = nm->mkNode(Kind::AND,
-                           nm->mkNode(Kind::LEQ, nm->mkConstInt(0), tc),
-                           nm->mkNode(Kind::LT, tc, card));
+                           {nm->mkNode(Kind::LEQ, nm->mkConstInt(0), tc),
+                            nm->mkNode(Kind::LT, tc, card)});
     Node emp = Word::mkEmptyWord(t.getType());
-    lemma = nm->mkNode(Kind::ITE,
-                       cond,
-                       tc.eqNode(nm->mkNode(Kind::STRING_TO_CODE, k)),
-                       k.eqNode(emp));
+    lemma = nm->mkNode(
+        Kind::ITE,
+        {cond, tc.eqNode(nm->mkNode(Kind::STRING_TO_CODE, k)), k.eqNode(emp)});
   }
   return lemma;
 }

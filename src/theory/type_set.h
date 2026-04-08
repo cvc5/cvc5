@@ -36,7 +36,7 @@ class TypeSet
   typedef TypeSetMap::const_iterator const_iterator;
 
  public:
-  TypeSet() : d_tep(NULL) {}
+  TypeSet() : d_tep(nullptr) {}
   ~TypeSet();
   /** set the properties of the type set
    *

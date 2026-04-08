@@ -23,7 +23,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace eq {
 
-void EqProof::debug_print(const char* c, unsigned tb) const
+void EqProof::debug_print(CVC5_UNUSED const char* c, unsigned tb) const
 {
   std::stringstream ss;
   debug_print(ss, tb);
@@ -1338,9 +1338,9 @@ Node EqProof::addToProof(CDProof* p,
       newChildren2.insert(newChildren2.end(),
                           d_node[1].begin() + arityPrefix2,
                           d_node[1].end());
-      conclusion = nm->mkNode(Kind::EQUAL,
-                              nm->mkNode(k, newChildren1),
-                              nm->mkNode(k, newChildren2));
+      conclusion = nm->mkNode(
+          Kind::EQUAL,
+          {nm->mkNode(k, newChildren1), nm->mkNode(k, newChildren2)});
       // update arity
       Assert((arity - emptyRows) == conclusion[0].getNumChildren());
       arity = arity - emptyRows;

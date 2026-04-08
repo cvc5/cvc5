@@ -81,7 +81,7 @@ void BvInstantiator::processLiteral(CegInstantiator* ci,
                                     Node alit,
                                     CVC5_UNUSED CegInstEffort effort)
 {
-  Assert(d_inverter != NULL);
+  Assert(d_inverter != nullptr);
   // find path to pv
   std::vector<unsigned> path;
   Node sv = d_inverter->getSolveVariable(pv.getType());

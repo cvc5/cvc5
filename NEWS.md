@@ -5,6 +5,8 @@ cvc5 1.3.4 prerelease
 
 ## Changes
 
+- Update SymFPU. Issue with divider encoding now fixed in SymFPU (related
+  issues: #9505, #11139, #12335).
 - Fixes parsing issues related to unchecked overflowing of indexed
   bit-vector operators. This impacts bit-vector operators having width
   that is greater than or equal to `2^32`.

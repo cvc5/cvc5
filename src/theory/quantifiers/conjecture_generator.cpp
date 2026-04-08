@@ -169,7 +169,7 @@ ConjectureGenerator::EqcInfo* ConjectureGenerator::getOrMakeEqcInfo( TNode n, bo
     d_eqc_info[n] = ei;
     return ei;
   }else{
-    return NULL;
+    return nullptr;
   }
 }
 

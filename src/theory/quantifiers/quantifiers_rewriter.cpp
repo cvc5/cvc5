@@ -321,9 +321,9 @@ Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       if (!expr::hasSubterm(body[0], args))
       {
         return d_nm->mkNode(Kind::ITE,
-                            body[0],
-                            d_nm->mkNode(Kind::FORALL, n[0], body[1]),
-                            d_nm->mkNode(Kind::FORALL, n[0], body[2]));
+                            {body[0],
+                             d_nm->mkNode(Kind::FORALL, n[0], body[1]),
+                             d_nm->mkNode(Kind::FORALL, n[0], body[2])});
       }
     }
     break;
@@ -1941,15 +1941,15 @@ Node QuantifiersRewriter::computePrenex(Node q,
   else if (prenexAgg && k == Kind::ITE && body.getType().isBoolean())
   {
     Node nn = nm->mkNode(Kind::AND,
-                         nm->mkNode(Kind::OR, body[0].notNode(), body[1]),
-                         nm->mkNode(Kind::OR, body[0], body[2]));
+                         {nm->mkNode(Kind::OR, body[0].notNode(), body[1]),
+                          nm->mkNode(Kind::OR, body[0], body[2])});
     return computePrenex(q, nn, args, nargs, pol, prenexAgg);
   }
   else if (prenexAgg && k == Kind::EQUAL && body[0].getType().isBoolean())
   {
     Node nn = nm->mkNode(Kind::AND,
-                         nm->mkNode(Kind::OR, body[0].notNode(), body[1]),
-                         nm->mkNode(Kind::OR, body[0], body[1].notNode()));
+                         {nm->mkNode(Kind::OR, body[0].notNode(), body[1]),
+                          nm->mkNode(Kind::OR, body[0], body[1].notNode())});
     return computePrenex(q, nn, args, nargs, pol, prenexAgg);
   }else if( body.getType().isBoolean() ){
     Assert(k != Kind::EXISTS);

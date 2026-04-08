@@ -73,7 +73,7 @@ public:
   */
  void print() const
  {
-   Assert(indices != NULL && stores != NULL && in_stores != NULL);
+   Assert(indices != nullptr && stores != nullptr && in_stores != nullptr);
    Trace("arrays-info") << "  indices   ";
    printList(indices);
    Trace("arrays-info") << "  stores ";

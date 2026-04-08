@@ -1134,7 +1134,7 @@ void QuantInfo::revertMatch(const std::vector<size_t>& assigned)
   }
 }
 
-void QuantInfo::debugPrintMatch(const char* c) const
+void QuantInfo::debugPrintMatch(CVC5_UNUSED const char* c) const
 {
   for (size_t i = 0, nvars = getNumVars(); i < nvars; i++)
   {
@@ -1547,7 +1547,7 @@ void MatchGen::reset(bool tgt)
       d_child_counter = 0;
     }
     if( d_child_counter==0 ){
-      d_qn.push_back( NULL );
+      d_qn.push_back(nullptr);
     }
   }
   else if (d_type == typ_var)
@@ -1580,7 +1580,7 @@ void MatchGen::reset(bool tgt)
         d_qni_bound[qvn.first] = repVar;
       }
     }
-    d_qn.push_back( NULL );
+    d_qn.push_back(nullptr);
   }
   else if (d_type == typ_pred || d_type == typ_eq)
   {
@@ -1656,14 +1656,14 @@ void MatchGen::reset(bool tgt)
     }
     //if successful, we will bind values to variables
     if( success ){
-      d_qn.push_back( NULL );
+      d_qn.push_back(nullptr);
     }
   }
   else
   {
     if( d_children.empty() ){
       //add dummy
-      d_qn.push_back( NULL );
+      d_qn.push_back(nullptr);
     }else{
       if (d_tgt && d_n.getKind() == Kind::FORALL)
       {
@@ -1982,7 +1982,7 @@ bool MatchGen::doMatching()
   {
     return false;
   }
-  if (d_qn[0] == NULL)
+  if (d_qn[0] == nullptr)
   {
     d_qn.clear();
     return true;
@@ -2154,7 +2154,7 @@ bool MatchGen::doMatching()
   return !d_qn.empty();
 }
 
-void MatchGen::debugPrintType(const char* c, short typ)
+void MatchGen::debugPrintType(CVC5_UNUSED const char* c, short typ)
 {
   switch (typ)
   {
@@ -2563,7 +2563,7 @@ void QuantConflictFind::checkQuantifiedFormula(Node q,
 
 //-------------------------------------------------- debugging
 
-void QuantConflictFind::debugPrint(const char* c) const
+void QuantConflictFind::debugPrint(CVC5_UNUSED const char* c) const
 {
   //print the equivalance classes
   Trace(c) << "----------EQ classes" << std::endl;
@@ -2588,7 +2588,7 @@ void QuantConflictFind::debugPrint(const char* c) const
   }
 }
 
-void QuantConflictFind::debugPrintQuant(const char* c, Node q) const
+void QuantConflictFind::debugPrintQuant(CVC5_UNUSED const char* c, Node q) const
 {
   std::map<Node, size_t>::const_iterator it = d_quant_id.find(q);
   if (it == d_quant_id.end())

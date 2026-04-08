@@ -182,7 +182,7 @@ TheorySetsPrivate::EqcInfo* TheorySetsPrivate::getOrMakeEqcInfo(TNode n,
   std::map<Node, EqcInfo*>::iterator eqc_i = d_eqc_info.find(n);
   if (eqc_i == d_eqc_info.end())
   {
-    EqcInfo* ei = NULL;
+    EqcInfo* ei = nullptr;
     if (doMake)
     {
       ei = new EqcInfo(context());
@@ -1352,11 +1352,11 @@ void TheorySetsPrivate::checkReduceComprehensions()
     body = nm->mkNode(Kind::EXISTS, bvl, body);
     Node k = sm->mkPurifySkolem(n);
     Node mem = nm->mkNode(Kind::SET_MEMBER, v, k);
-    Node lem = nm->mkNode(Kind::AND,
-                          k.eqNode(n),
-                          nm->mkNode(Kind::FORALL,
-                                     nm->mkNode(Kind::BOUND_VAR_LIST, v),
-                                     body.eqNode(mem)));
+    Node lem = nm->mkNode(
+        Kind::AND,
+        {k.eqNode(n),
+         nm->mkNode(Kind::FORALL,
+                    {nm->mkNode(Kind::BOUND_VAR_LIST, v), body.eqNode(mem)})});
     Trace("sets-comprehension")
         << "Comprehension reduction: " << lem << std::endl;
     d_im.lemma(lem, InferenceId::SETS_COMPREHENSION);

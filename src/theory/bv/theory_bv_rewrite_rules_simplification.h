@@ -222,10 +222,10 @@ inline Node RewriteRule<BvIteMergeThenElse>::apply(TNode node)
   Trace("bv-rewrite") << "RewriteRule<BvIteMergeThenElse>(" << node << ")"
                       << std::endl;
   Assert(node[2].getKind() == Kind::BITVECTOR_ITE);
-  Node cond =
-      NodeManager::mkNode(Kind::BITVECTOR_AND,
-                          NodeManager::mkNode(Kind::BITVECTOR_NOT, node[0]),
-                          NodeManager::mkNode(Kind::BITVECTOR_NOT, node[2][0]));
+  Node cond = NodeManager::mkNode(
+      Kind::BITVECTOR_AND,
+      {NodeManager::mkNode(Kind::BITVECTOR_NOT, node[0]),
+       NodeManager::mkNode(Kind::BITVECTOR_NOT, node[2][0])});
   return NodeManager::mkNode(Kind::BITVECTOR_ITE, cond, node[2][2], node[1]);
 }
 
@@ -1280,9 +1280,10 @@ inline Node RewriteRule<UgtUrem>::apply(TNode node)
   const Node& T = node[0][0];
   const Node& x = node[1];
   Node zero = utils::mkConst(nm, utils::getSize(x), 0);
-  return NodeManager::mkNode(Kind::AND,
-                             NodeManager::mkNode(Kind::EQUAL, x, zero),
-                             NodeManager::mkNode(Kind::BITVECTOR_UGT, T, zero));
+  return NodeManager::mkNode(
+      Kind::AND,
+      {NodeManager::mkNode(Kind::EQUAL, x, zero),
+       NodeManager::mkNode(Kind::BITVECTOR_UGT, T, zero)});
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1698,8 +1699,8 @@ inline Node RewriteRule<MultSlice>::apply(TNode node)
 
   Node term1 = NodeManager::mkNode(
       Kind::BITVECTOR_MULT,
-      NodeManager::mkNode(Kind::BITVECTOR_CONCAT, zeros, bottom_a),
-      NodeManager::mkNode(Kind::BITVECTOR_CONCAT, zeros, bottom_b));
+      {NodeManager::mkNode(Kind::BITVECTOR_CONCAT, zeros, bottom_a),
+       NodeManager::mkNode(Kind::BITVECTOR_CONCAT, zeros, bottom_b)});
 
   Node term2 = NodeManager::mkNode(
       Kind::BITVECTOR_CONCAT,

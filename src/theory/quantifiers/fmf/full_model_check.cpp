@@ -630,7 +630,7 @@ void FullModelChecker::debugPrintCond(const char * tr, Node n, bool dispStar) {
   Trace(tr) << ")";
 }
 
-void FullModelChecker::debugPrint(const char * tr, Node n, bool dispStar) {
+void FullModelChecker::debugPrint(CVC5_UNUSED const char * tr, Node n, bool dispStar) {
   if( n.isNull() ){
     Trace(tr) << "null";
   }

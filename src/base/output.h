@@ -72,7 +72,7 @@ class Cvc5ostream
   Cvc5ostream& operator=(const Cvc5ostream&) = delete;
 
  public:
-  Cvc5ostream() : d_os(NULL), d_firstColumn(false), d_endl(&std::endl) {}
+  Cvc5ostream() : d_os(nullptr), d_firstColumn(false), d_endl(&std::endl) {}
   explicit Cvc5ostream(std::ostream* os)
       : d_os(os), d_firstColumn(true), d_endl(&std::endl)
   {
@@ -85,12 +85,14 @@ class Cvc5ostream
   }
 
   void pushIndent() {
-    if(d_os != NULL) {
+    if (d_os != nullptr)
+    {
       ++d_os->iword(s_indentIosIndex);
     }
   }
   void popIndent() {
-    if(d_os != NULL) {
+    if (d_os != nullptr)
+    {
       long& indent = d_os->iword(s_indentIosIndex);
       if(indent > 0) {
         --indent;
@@ -100,13 +102,14 @@ class Cvc5ostream
 
   Cvc5ostream& flush()
   {
-    if(d_os != NULL) {
+    if (d_os != nullptr)
+    {
       d_os->flush();
     }
     return *this;
   }
 
-  bool isConnected() const { return d_os != NULL; }
+  bool isConnected() const { return d_os != nullptr; }
   operator std::ostream&() const { return isConnected() ? *d_os : null_os; }
 
   std::ostream* getStreamPointer() const { return d_os; }
@@ -133,7 +136,8 @@ class Cvc5ostream
   // support manipulators, endl, etc..
   Cvc5ostream& operator<<(std::ostream& (*pf)(std::ostream&))
   {
-    if(d_os != NULL) {
+    if (d_os != nullptr)
+    {
       d_os = &(*d_os << pf);
 
       if(pf == d_endl) {
@@ -144,14 +148,16 @@ class Cvc5ostream
   }
   Cvc5ostream& operator<<(std::ios& (*pf)(std::ios&))
   {
-    if(d_os != NULL) {
+    if (d_os != nullptr)
+    {
       d_os = &(*d_os << pf);
     }
     return *this;
   }
   Cvc5ostream& operator<<(std::ios_base& (*pf)(std::ios_base&))
   {
-    if(d_os != NULL) {
+    if (d_os != nullptr)
+    {
       d_os = &(*d_os << pf);
     }
     return *this;

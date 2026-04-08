@@ -571,7 +571,7 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
       return Node::null();
     }
     return nodeManager()->mkNode(
-        Kind::OR, children[0][0][0].notNode(), children[0][0][1].notNode());
+        Kind::OR, {children[0][0][0].notNode(), children[0][0][1].notNode()});
   }
   if (id == ProofRule::XOR_ELIM1)
   {
@@ -592,7 +592,7 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
       return Node::null();
     }
     return nodeManager()->mkNode(
-        Kind::OR, children[0][0].notNode(), children[0][1].notNode());
+        Kind::OR, {children[0][0].notNode(), children[0][1].notNode()});
   }
   if (id == ProofRule::NOT_XOR_ELIM1)
   {
@@ -649,7 +649,7 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
       return Node::null();
     }
     return nodeManager()->mkNode(
-        Kind::OR, children[0][0][0].notNode(), children[0][0][1].notNode());
+        Kind::OR, {children[0][0][0].notNode(), children[0][0][1].notNode()});
   }
   if (id == ProofRule::NOT_ITE_ELIM2)
   {

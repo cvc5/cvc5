@@ -882,6 +882,7 @@ public:
   template <bool ref_count2, bool ref_count3>
   NodeTemplate<true> iteNode(const NodeTemplate<ref_count2>& thenpart,
                              const NodeTemplate<ref_count3>& elsepart) const;
+  NodeTemplate<true> iteNode(const TNode (&args)[2]) const;
   template <bool ref_count2>
   NodeTemplate<true> impNode(const NodeTemplate<ref_count2>& right) const;
   template <bool ref_count2>
@@ -1048,7 +1049,7 @@ NodeTemplate<ref_count> NodeTemplate<ref_count>::s_null(&expr::NodeValue::null()
 template <bool ref_count>
 NodeTemplate<ref_count>::NodeTemplate(const expr::NodeValue* ev) :
   d_nv(const_cast<expr::NodeValue*> (ev)) {
-  Assert(d_nv != NULL) << "Expecting a non-NULL expression value!";
+  Assert(d_nv != nullptr) << "Expecting a non-NULL expression value!";
   if(ref_count) {
     d_nv->inc();
   } else {
@@ -1063,7 +1064,7 @@ NodeTemplate<ref_count>::NodeTemplate(const expr::NodeValue* ev) :
 
 template <bool ref_count>
 NodeTemplate<ref_count>::NodeTemplate(const NodeTemplate<!ref_count>& e) {
-  Assert(e.d_nv != NULL) << "Expecting a non-NULL expression value!";
+  Assert(e.d_nv != nullptr) << "Expecting a non-NULL expression value!";
   d_nv = e.d_nv;
   if(ref_count) {
     Assert(d_nv->d_rc > 0) << "Node constructed from TNode with rc == 0";
@@ -1076,7 +1077,7 @@ NodeTemplate<ref_count>::NodeTemplate(const NodeTemplate<!ref_count>& e) {
 
 template <bool ref_count>
 NodeTemplate<ref_count>::NodeTemplate(const NodeTemplate& e) {
-  Assert(e.d_nv != NULL) << "Expecting a non-NULL expression value!";
+  Assert(e.d_nv != nullptr) << "Expecting a non-NULL expression value!";
   d_nv = e.d_nv;
   if(ref_count) {
     // shouldn't ever fail
@@ -1089,7 +1090,7 @@ NodeTemplate<ref_count>::NodeTemplate(const NodeTemplate& e) {
 
 template <bool ref_count>
 NodeTemplate<ref_count>::~NodeTemplate() {
-  Assert(d_nv != NULL) << "Expecting a non-NULL expression value!";
+  Assert(d_nv != nullptr) << "Expecting a non-NULL expression value!";
   if(ref_count) {
     // shouldn't ever fail
     Assert(d_nv->d_rc > 0) << "Node reference count would be negative";
@@ -1110,8 +1111,8 @@ void NodeTemplate<ref_count>::assignNodeValue(expr::NodeValue* ev) {
 template <bool ref_count>
 NodeTemplate<ref_count>& NodeTemplate<ref_count>::
 operator=(const NodeTemplate& e) {
-  Assert(d_nv != NULL) << "Expecting a non-NULL expression value!";
-  Assert(e.d_nv != NULL) << "Expecting a non-NULL expression value on RHS!";
+  Assert(d_nv != nullptr) << "Expecting a non-NULL expression value!";
+  Assert(e.d_nv != nullptr) << "Expecting a non-NULL expression value on RHS!";
   if(__builtin_expect( ( d_nv != e.d_nv ), true )) {
     if(ref_count) {
       // shouldn't ever fail
@@ -1133,8 +1134,8 @@ operator=(const NodeTemplate& e) {
 template <bool ref_count>
 NodeTemplate<ref_count>& NodeTemplate<ref_count>::
 operator=(const NodeTemplate<!ref_count>& e) {
-  Assert(d_nv != NULL) << "Expecting a non-NULL expression value!";
-  Assert(e.d_nv != NULL) << "Expecting a non-NULL expression value on RHS!";
+  Assert(d_nv != nullptr) << "Expecting a non-NULL expression value!";
+  Assert(e.d_nv != nullptr) << "Expecting a non-NULL expression value on RHS!";
   if(__builtin_expect( ( d_nv != e.d_nv ), true )) {
     if(ref_count) {
       // shouldn't ever fail
@@ -1198,6 +1199,14 @@ NodeTemplate<ref_count>::iteNode(const NodeTemplate<ref_count2>& thenpart,
                                  const NodeTemplate<ref_count3>& elsepart) const {
   assertTNodeNotExpired();
   return d_nv->getNodeManager()->mkNode(Kind::ITE, *this, thenpart, elsepart);
+}
+
+template <bool ref_count>
+NodeTemplate<true> NodeTemplate<ref_count>::iteNode(
+    const TNode (&args)[2]) const
+{
+  assertTNodeNotExpired();
+  return d_nv->getNodeManager()->mkNode(Kind::ITE, *this, args[0], args[1]);
 }
 
 template <bool ref_count>

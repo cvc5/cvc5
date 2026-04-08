@@ -64,8 +64,7 @@ TypeNode TypeChecker::computeType(NodeManager* nodeManager,
   // Infer the type
   switch (n.getKind())
   {
-
-      // clang-format off
+    // clang-format off
 ${typerules}
       // clang-format on
 
@@ -95,7 +94,7 @@ ${construles}
 
   return false;
 
-}/* TypeChecker::computeIsConst */
+} /* TypeChecker::computeIsConst */
 
 }  // namespace expr
 }  // namespace cvc5::internal

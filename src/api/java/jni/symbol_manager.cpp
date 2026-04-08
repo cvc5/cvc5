@@ -40,7 +40,7 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_SymbolManager_newSymbolManager(
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_io_github_cvc5_SymbolManager_deletePointer(
-    JNIEnv* env, jobject, jlong pointer)
+    JNIEnv*, jobject, jlong pointer)
 {
   delete reinterpret_cast<SymbolManager*>(pointer);
 }

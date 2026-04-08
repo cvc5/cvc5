@@ -341,23 +341,25 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
     {
       Node ret = nodeManager()->mkNode(
           Kind::SUB,
-          nodeManager()->mkNode(
-              Kind::ADD,
-              nodeManager()->mkNode(Kind::SET_CARD, node[0][0]),
-              nodeManager()->mkNode(Kind::SET_CARD, node[0][1])),
-          nodeManager()->mkNode(
-              Kind::SET_CARD,
-              nodeManager()->mkNode(Kind::SET_INTER, node[0][0], node[0][1])));
+          {nodeManager()->mkNode(
+               Kind::ADD,
+               {nodeManager()->mkNode(Kind::SET_CARD, node[0][0]),
+                nodeManager()->mkNode(Kind::SET_CARD, node[0][1])}),
+           nodeManager()->mkNode(
+               Kind::SET_CARD,
+               nodeManager()->mkNode(
+                   Kind::SET_INTER, node[0][0], node[0][1]))});
       return RewriteResponse(REWRITE_DONE, ret );
     }
     else if (node[0].getKind() == Kind::SET_MINUS)
     {
       Node ret = nodeManager()->mkNode(
           Kind::SUB,
-          nodeManager()->mkNode(Kind::SET_CARD, node[0][0]),
-          nodeManager()->mkNode(
-              Kind::SET_CARD,
-              nodeManager()->mkNode(Kind::SET_INTER, node[0][0], node[0][1])));
+          {nodeManager()->mkNode(Kind::SET_CARD, node[0][0]),
+           nodeManager()->mkNode(
+               Kind::SET_CARD,
+               nodeManager()->mkNode(
+                   Kind::SET_INTER, node[0][0], node[0][1]))});
       return RewriteResponse(REWRITE_DONE, ret );
     }
     break;

@@ -397,7 +397,7 @@ void Region::getNumExternalDisequalities(
   }
 }
 
-void Region::debugPrint( const char* c, bool incClique ) {
+void Region::debugPrint(CVC5_UNUSED const char* c, bool incClique ) {
   Trace( c ) << "Num reps: " << d_reps_size << std::endl;
   for( Region::iterator it = begin(); it != end(); ++it ){
     RegionNodeInfo* rni = it->second;
@@ -1089,10 +1089,10 @@ void SortModel::addCliqueLemma(std::vector<Node>& clique)
 
 void SortModel::simpleCheckCardinality() {
   if( d_maxNegCard.get()!=0 && d_hasCard.get() && d_cardinality.get()<d_maxNegCard.get() ){
-    Node lem =
-        NodeManager::mkNode(Kind::AND,
-                            getCardinalityLiteral(d_cardinality.get()),
-                            getCardinalityLiteral(d_maxNegCard.get()).negate());
+    Node lem = NodeManager::mkNode(
+        Kind::AND,
+        {getCardinalityLiteral(d_cardinality.get()),
+         getCardinalityLiteral(d_maxNegCard.get()).negate()});
     Trace("uf-ss-lemma") << "*** Simple cardinality conflict : " << lem << std::endl;
     d_im.conflict(lem, InferenceId::UF_CARD_SIMPLE_CONFLICT);
   }
@@ -1657,7 +1657,7 @@ SortModel* CardinalityExtension::getSortModel(Node n)
   if( it!=d_rep_model.end() ){
     return it->second;
   }else{
-    return NULL;
+    return nullptr;
   }
 }
 
