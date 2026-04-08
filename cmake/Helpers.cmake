@@ -11,6 +11,14 @@
 include(CheckCCompilerFlag)
 include(CheckCXXCompilerFlag)
 
+function(check_min_compiler_version id min_version)
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "${id}")
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS "${min_version}")
+      message(FATAL_ERROR "${id} version must be at least ${min_version}")
+    endif()
+  endif()
+endfunction()
+
 if(NOT WIN32)
   string(ASCII 27 Esc)
   set(Yellow "${Esc}[33m")

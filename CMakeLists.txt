@@ -254,6 +254,9 @@ include(Config${CMAKE_BUILD_TYPE})
 #-----------------------------------------------------------------------------#
 # Compiler flags
 
+check_min_compiler_version("GNU" 10)
+check_min_compiler_version("Clang" 12)
+
 add_check_c_cxx_flag("-O${OPTIMIZATION_LEVEL}")
 add_check_c_cxx_flag("-Wall")
 add_check_c_flag("-fexceptions")
