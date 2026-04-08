@@ -17,6 +17,7 @@
 #define CVC5__THEORY__DECISION_MANAGER__H
 
 #include <map>
+
 #include "context/cdlist.h"
 #include "theory/decision_strategy.h"
 

@@ -204,14 +204,14 @@ Node QuantifiersPreprocess::preSkolemizeQuantifiers(
       if (k == Kind::ITE)
       {
         nn = nm->mkNode(Kind::AND,
-                        nm->mkNode(Kind::OR, n[0].notNode(), n[1]),
-                        nm->mkNode(Kind::OR, n[0], n[2]));
+                        {nm->mkNode(Kind::OR, n[0].notNode(), n[1]),
+                         nm->mkNode(Kind::OR, n[0], n[2])});
       }
       else if (k == Kind::EQUAL)
       {
         nn = nm->mkNode(Kind::AND,
-                        nm->mkNode(Kind::OR, n[0].notNode(), n[1]),
-                        nm->mkNode(Kind::OR, n[0], n[1].notNode()));
+                        {nm->mkNode(Kind::OR, n[0].notNode(), n[1]),
+                         nm->mkNode(Kind::OR, n[0], n[1].notNode())});
       }
       ret = preSkolemizeQuantifiers(nn, polarity, fvs, visited);
     }

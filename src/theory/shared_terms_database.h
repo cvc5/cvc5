@@ -43,7 +43,6 @@ class SharedTermsDatabase : protected EnvObj, public context::ContextNotifyObj
   typedef shared_terms_list::const_iterator shared_terms_iterator;
 
  private:
-
   /** Some statistics */
   IntStat d_statSharedTerms;
 
@@ -66,7 +65,8 @@ class SharedTermsDatabase : protected EnvObj, public context::ContextNotifyObj
       SharedTermsTheoriesMap;
   SharedTermsTheoriesMap d_termsToTheories;
 
-  /** Map from term to theories that have already been notified about the shared term */
+  /** Map from term to theories that have already been notified about the shared
+   * term */
   typedef context::CDHashMap<TNode, theory::TheoryIdSet> AlreadyNotifiedMap;
   AlreadyNotifiedMap d_alreadyNotifiedMap;
 
@@ -78,11 +78,14 @@ class SharedTermsDatabase : protected EnvObj, public context::ContextNotifyObj
   /** This method removes all the un-necessary stuff from the maps */
   void backtrack();
 
-  // EENotifyClass: template helper class for d_equalityEngine - handles call-backs
-  class EENotifyClass : public theory::eq::EqualityEngineNotify {
+  // EENotifyClass: template helper class for d_equalityEngine - handles
+  // call-backs
+  class EENotifyClass : public theory::eq::EqualityEngineNotify
+  {
     SharedTermsDatabase& d_sharedTerms;
-  public:
-    EENotifyClass(SharedTermsDatabase& shared): d_sharedTerms(shared) {}
+
+   public:
+    EENotifyClass(SharedTermsDatabase& shared) : d_sharedTerms(shared) {}
     bool eqNotifyTriggerPredicate(TNode predicate, bool value) override
     {
       Assert(predicate.getKind() == Kind::EQUAL);
@@ -116,10 +119,14 @@ class SharedTermsDatabase : protected EnvObj, public context::ContextNotifyObj
   EENotifyClass d_EENotify;
 
   /**
-   * Method called by equalityEngine when a becomes (dis-)equal to b and a and b are shared with
-   * the theory. Returns false if there is a direct conflict (via rewrite for example).
+   * Method called by equalityEngine when a becomes (dis-)equal to b and a and b
+   * are shared with the theory. Returns false if there is a direct conflict
+   * (via rewrite for example).
    */
-  bool propagateSharedEquality(theory::TheoryId theory, TNode a, TNode b, bool value);
+  bool propagateSharedEquality(theory::TheoryId theory,
+                               TNode a,
+                               TNode b,
+                               bool value);
 
   /**
    * Called from the equality engine when a trigger equality is deduced.
@@ -139,8 +146,10 @@ class SharedTermsDatabase : protected EnvObj, public context::ContextNotifyObj
   bool d_conflictPolarity;
 
   /** Called by the equality engine notify to mark the conflict */
-  void conflict(TNode lhs, TNode rhs, bool polarity) {
-    if (!d_inConflict) {
+  void conflict(TNode lhs, TNode rhs, bool polarity)
+  {
+    if (!d_inConflict)
+    {
       // Only remember it if we're not already in conflict
       d_inConflict = true;
       d_conflictLHS = lhs;
@@ -196,8 +205,8 @@ class SharedTermsDatabase : protected EnvObj, public context::ContextNotifyObj
   void addEqualityToPropagate(TNode equality);
 
   /**
-   * Add a shared term to the database. The shared term is a subterm of the atom and
-   * should be associated with the given theory.
+   * Add a shared term to the database. The shared term is a subterm of the atom
+   * and should be associated with the given theory.
    */
   void addSharedTerm(TNode atom, TNode term, theory::TheoryIdSet theories);
 
@@ -217,12 +226,14 @@ class SharedTermsDatabase : protected EnvObj, public context::ContextNotifyObj
   shared_terms_iterator begin(TNode atom) const;
 
   /**
-   * Iterator pointing to the end of the list of shared terms belonging to the given atom.
+   * Iterator pointing to the end of the list of shared terms belonging to the
+   * given atom.
    */
   shared_terms_iterator end(TNode atom) const;
 
   /**
-   * Get the theories that share the term in a given atom (and have not yet been notified).
+   * Get the theories that share the term in a given atom (and have not yet been
+   * notified).
    */
   theory::TheoryIdSet getTheoriesToNotify(TNode atom, TNode term) const;
 
@@ -232,17 +243,20 @@ class SharedTermsDatabase : protected EnvObj, public context::ContextNotifyObj
   theory::TheoryIdSet getNotifiedTheories(TNode term) const;
 
   /**
-   * Returns true if the term is currently registered as shared with some theory.
+   * Returns true if the term is currently registered as shared with some
+   * theory.
    */
-  bool isShared(TNode term) const {
+  bool isShared(TNode term) const
+  {
     return d_alreadyNotifiedMap.find(term) != d_alreadyNotifiedMap.end();
   }
 
   /**
-   * Returns true if the literal is an (dis-)equality with both sides registered as shared with
-   * some theory.
+   * Returns true if the literal is an (dis-)equality with both sides registered
+   * as shared with some theory.
    */
-  bool isSharedEquality(TNode literal) const {
+  bool isSharedEquality(TNode literal) const
+  {
     TNode atom = literal.getKind() == Kind::NOT ? literal[0] : literal;
     return atom.getKind() == Kind::EQUAL && isShared(atom[0])
            && isShared(atom[1]);

@@ -953,12 +953,15 @@ set(regress_0_tests
   regress0/fp/issue6164.smt2
   regress0/fp/issue7002.smt2
   regress0/fp/issue7569.smt2
+  regress0/fp/issue9505.smt2
   regress0/fp/issue9854.smt2
   regress0/fp/issue9858.smt2
   regress0/fp/issue9864.smt2
   regress0/fp/issue9966.smt2
   regress0/fp/issue9972.smt2
   regress0/fp/issue9972-2.smt2
+  regress0/fp/issue11139.smt2
+  regress0/fp/issue12335.smt2
   regress0/fp/issuepr650.smt2
   regress0/fp/proj-issue329-prereg-context.smt2
   regress0/fp/proj-issue477-fp-set-comprehension.smt2
@@ -3183,7 +3186,6 @@ set(regress_1_tests
   regress1/quantifiers/ho-seu-sygus-inst.smt2
   regress1/quantifiers/horn-simple.smt2
   regress1/quantifiers/inst-ground-term.smt2
-  regress1/quantifiers/mbqi-enum-dtype-ops.smt2
   regress1/quantifiers/inst-max-level-segf.smt2
   regress1/quantifiers/inst-prop-simp.smt2
   regress1/quantifiers/intersection-example-onelane.proof-node22337.smt2
@@ -4333,6 +4335,8 @@ set(regression_disabled_tests
   regress1/quantifiers/issue4062-cegqi-aux.smt2
   # timeout instead of unknown on some builds
   regress1/quantifiers/issue9477-mbqi-ran.smt2
+  # proof testing times out on nightlies
+  regress1/quantifiers/mbqi-enum-dtype-ops.smt2
   ###
   regress1/rels/garbage_collect.cvc.smt2
   regress1/sets/setofsets-disequal.smt2

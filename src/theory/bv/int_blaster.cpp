@@ -153,10 +153,7 @@ Node IntBlaster::maxInt(uint32_t k)
   return d_nm->mkConstInt(max_value);
 }
 
-Node IntBlaster::pow2(uint32_t k)
-{
-  return d_nm->mkConstInt(intpow2(k));
-}
+Node IntBlaster::pow2(uint32_t k) { return d_nm->mkConstInt(intpow2(k)); }
 
 Node IntBlaster::modpow2(Node n, uint32_t exponent)
 {
@@ -342,17 +339,17 @@ Node IntBlaster::translateWithChildren(
   // Store the translated node
   Node returnNode;
 
-   /**
-    * higher order logic allows comparing between functions
-    * The translation does not support this,
-    * as the translated functions may be different outside
-    * of the bounds that were relevant for the original
-    * bit-vectors.
-    */
-   if (childrenTypesChanged(original) && logicInfo().isHigherOrder())
-   {
-     throw LogicException("bv-to-int does not support higher order logic ");
-   }
+  /**
+   * higher order logic allows comparing between functions
+   * The translation does not support this,
+   * as the translated functions may be different outside
+   * of the bounds that were relevant for the original
+   * bit-vectors.
+   */
+  if (childrenTypesChanged(original) && logicInfo().isHigherOrder())
+  {
+    throw LogicException("bv-to-int does not support higher order logic ");
+  }
   // Translate according to the kind of the original node.
   switch (oldKind)
   {
@@ -382,9 +379,9 @@ Node IntBlaster::translateWithChildren(
           d_nm->mkNode(Kind::INTS_DIVISION_TOTAL, translated_children);
       returnNode = d_nm->mkNode(
           Kind::ITE,
-          d_nm->mkNode(Kind::EQUAL, translated_children[1], d_zero),
-          d_nm->mkNode(Kind::SUB, pow2BvSize, d_one),
-          divNode);
+          {d_nm->mkNode(Kind::EQUAL, translated_children[1], d_zero),
+           d_nm->mkNode(Kind::SUB, pow2BvSize, d_one),
+           divNode});
       break;
     }
     case Kind::BITVECTOR_UREM:
@@ -557,8 +554,8 @@ Node IntBlaster::translateWithChildren(
     {
       uint32_t bvsize = original[0].getType().getBitVectorSize();
       returnNode = d_nm->mkNode(Kind::LT,
-                                uts(translated_children[0], bvsize),
-                                uts(translated_children[1], bvsize));
+                                {uts(translated_children[0], bvsize),
+                                 uts(translated_children[1], bvsize)});
       break;
     }
     case Kind::BITVECTOR_ULE:
@@ -590,8 +587,8 @@ Node IntBlaster::translateWithChildren(
       returnNode =
           d_nm->mkNode(Kind::ITE,
                        d_nm->mkNode(Kind::LT,
-                                    uts(translated_children[0], bvsize),
-                                    uts(translated_children[1], bvsize)),
+                                    {uts(translated_children[0], bvsize),
+                                     uts(translated_children[1], bvsize)}),
                        d_one,
                        d_zero);
       break;
@@ -868,7 +865,8 @@ Node IntBlaster::translateNoChildren(Node original,
   }
   else
   {
-    // original is a constant (value) or an operator with no arguments (e.g., PI)
+    // original is a constant (value) or an operator with no arguments (e.g.,
+    // PI)
     if (original.getKind() == Kind::CONST_BITVECTOR)
     {
       // Bit-vector constants are transformed into their integer value.
@@ -1029,9 +1027,9 @@ Node IntBlaster::createShiftNode(std::vector<Node> children,
     Node pow2Node = d_nm->mkNode(Kind::POW2, y);
     if (isLeftShift)
     {
-      return d_nm->mkNode(Kind::INTS_MODULUS_TOTAL,
-                          d_nm->mkNode(Kind::MULT, x, pow2Node),
-                          pow2(bvsize));
+      return d_nm->mkNode(
+          Kind::INTS_MODULUS_TOTAL,
+          {d_nm->mkNode(Kind::MULT, x, pow2Node), pow2(bvsize)});
     }
     else
     {
@@ -1047,8 +1045,7 @@ Node IntBlaster::createShiftNode(std::vector<Node> children,
     if (isLeftShift)
     {
       body = d_nm->mkNode(Kind::INTS_MODULUS_TOTAL,
-                          d_nm->mkNode(Kind::MULT, x, pow2(i)),
-                          pow2(bvsize));
+                          {d_nm->mkNode(Kind::MULT, x, pow2(i)), pow2(bvsize)});
     }
     else
     {

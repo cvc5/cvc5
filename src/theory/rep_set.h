@@ -35,7 +35,7 @@ namespace theory {
  * instantiation-based
  * methods. The class goes beyond just maintaining a list of values that occur
  * in the equality engine in the following ways:
- 
+
  * (1) It maintains a partial mapping from representatives to a term that has
  * that value in the current
  * model.  This is important because algorithms like the instantiation method in
@@ -44,7 +44,7 @@ namespace theory {
  * representative terms. Hence,
  * instead of instantiating with e.g. uninterpreted constants u, we instantiate
  * with the corresponding term that is interpreted as u.
- 
+
  * (2) It is mutable, calls to add(...) and complete(...) may modify this class
  * as necessary, for instance
  * in the case that there are no ground terms of a type that occurs in a
@@ -52,14 +52,15 @@ namespace theory {
  * exhaustive instantiation strategies that enumerate over small interpreted
  * finite types.
  */
-class RepSet {
+class RepSet
+{
  public:
-  RepSet(){}
+  RepSet() {}
 
   /** map from types to the list of representatives
    * TODO : as part of #1199, encapsulate this
    */
-  std::map< TypeNode, std::vector< Node > > d_type_reps;
+  std::map<TypeNode, std::vector<Node> > d_type_reps;
   /** clear the set */
   void clear();
   /** does this set have representatives of type tn? */
@@ -77,15 +78,15 @@ class RepSet {
   const std::vector<Node>* getTypeRepsOrNull(TypeNode type_node) const;
 
   /** add representative n for type tn, where n has type tn */
-  void add( TypeNode tn, Node n );
+  void add(TypeNode tn, Node n);
   /** returns index in d_type_reps for node n */
-  int getIndexFor( Node n ) const;
+  int getIndexFor(Node n) const;
   /** complete the list for type t
    * Resets d_type_reps[tn] and repopulates by running the type enumerator for
    * that type exhaustively.
    * This should only be called for small finite interpreted types.
    */
-  bool complete( TypeNode t );
+  bool complete(TypeNode t);
   /** get term for representative
    * Returns a term that is interpreted as representative n in the current
    * model, null otherwise.
@@ -97,8 +98,8 @@ class RepSet {
    */
   void setTermForRepresentative(Node n, Node t);
   /** get existing domain value, with possible exclusions
-    *   This function returns a term in d_type_reps[tn] but not in exclude
-    */
+   *   This function returns a term in d_type_reps[tn] but not in exclude
+   */
   Node getDomainValue(TypeNode tn, const std::vector<Node>& exclude) const;
   /** debug print */
   void toStream(std::ostream& out);
@@ -110,8 +111,7 @@ class RepSet {
   std::map<Node, int> d_tmap;
   /** map from values to terms they were assigned for */
   std::map<Node, Node> d_values_to_terms;
-};/* class RepSet */
-
+}; /* class RepSet */
 
 }  // namespace theory
 }  // namespace cvc5::internal

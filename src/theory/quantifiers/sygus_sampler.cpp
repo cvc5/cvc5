@@ -200,7 +200,7 @@ void SygusSampler::initializeSamples(unsigned nsamples)
         if (sts[j] != d_var_sygus_types.end())
         {
           unsigned ntypes = sts[j]->second.size();
-          if(ntypes > 0)
+          if (ntypes > 0)
           {
             unsigned index = Random::getRandom().pick(0, ntypes - 1);
             if (index < ntypes)
@@ -587,7 +587,7 @@ Node SygusSampler::getRandomValue(TypeNode tn)
       }
       ret = d_env.getRewriter()->rewrite(ret);
       Assert(ret.isConst());
-      Assert(ret.getType()==tn);
+      Assert(ret.getType() == tn);
       return ret;
     }
   }
@@ -685,7 +685,7 @@ Node SygusSampler::getSygusRandomValue(TypeNode tn,
       Trace("sygus-sample-grammar") << "...after rewrite " << ret << std::endl;
       // A rare case where we generate a non-constant value from constant
       // leaves is (/ n 0).
-      if(ret.isConst())
+      if (ret.isConst())
       {
         return ret;
       }

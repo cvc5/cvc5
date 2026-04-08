@@ -48,7 +48,9 @@ class ManagedStream
 {
  public:
   ManagedStream(Stream* nonowned, std::string description)
-  : d_nonowned(nonowned), d_description(std::move(description)) {}
+      : d_nonowned(nonowned), d_description(std::move(description))
+  {
+  }
   virtual ~ManagedStream() {}
 
   /**

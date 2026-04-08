@@ -56,7 +56,7 @@ class TheoryState;
 class TrustSubstitutionMap;
 
 namespace eq {
-  class EqualityEngine;
+class EqualityEngine;
 }  // namespace eq
 
 /**
@@ -297,7 +297,7 @@ class Theory : protected EnvObj
    * Note this method does not take into account "Boolean term skolem". Boolean
    * term skolems always belong to THEORY_UF. This case is handled in
    * Env::theoryOf.
-   * 
+   *
    * @param node The node in question.
    * @param mdoe The theoryof mode, which impacts which theory owns e.g.
    * variables.

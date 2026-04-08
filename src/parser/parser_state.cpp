@@ -196,7 +196,7 @@ Term ParserState::bindBoundVar(const std::string& name,
 }
 
 std::vector<Term> ParserState::bindBoundVars(
-    std::vector<std::pair<std::string, Sort> >& sortedVarNames, bool fresh)
+    std::vector<std::pair<std::string, Sort>>& sortedVarNames, bool fresh)
 {
   std::vector<Term> vars;
   for (std::pair<std::string, Sort>& i : sortedVarNames)
@@ -268,7 +268,8 @@ std::vector<Term> ParserState::bindBoundVarsCtx(
       // below.
       Warning() << "Constructing a fresh variable for " << i.first
                 << " since this symbol occurs in a let term that is present in "
-                   "the current context. Set fresh-binders to true or use -q to avoid "
+                   "the current context. Set fresh-binders to true or use -q "
+                   "to avoid "
                    "this warning."
                 << std::endl;
     }
@@ -762,7 +763,7 @@ Term ParserState::mkCharConstant(const std::string& s)
   {
     parseError("Unexpected string for hexadecimal character: `" + s + "'");
   }
-  char32_t val = static_cast<char32_t>(std::stoul(s, 0, 16));
+  char32_t val = static_cast<char32_t>(std::stoul(s, nullptr, 16));
   return d_tm.mkString(std::u32string(1, val));
 }
 

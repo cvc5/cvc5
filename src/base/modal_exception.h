@@ -24,18 +24,16 @@ namespace cvc5::internal {
 class ModalException : public cvc5::internal::Exception
 {
  public:
-  ModalException() :
-    Exception("Feature used while operating in "
-              "incorrect state") {
+  ModalException()
+      : Exception(
+            "Feature used while operating in "
+            "incorrect state")
+  {
   }
 
-  ModalException(const std::string& msg) :
-    Exception(msg) {
-  }
+  ModalException(const std::string& msg) : Exception(msg) {}
 
-  ModalException(const char* msg) :
-    Exception(msg) {
-  }
+  ModalException(const char* msg) : Exception(msg) {}
 }; /* class ModalException */
 
 /**

@@ -64,7 +64,7 @@ class CVC5_EXPORT UnsatCore
   std::vector<Node> d_core;
   /** The names of assertions in the above core */
   std::vector<std::string> d_names;
-};/* class UnsatCore */
+}; /* class UnsatCore */
 
 /** Print the unsat core to stream out */
 std::ostream& operator<<(std::ostream& out, const UnsatCore& core);

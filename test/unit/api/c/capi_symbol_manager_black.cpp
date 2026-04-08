@@ -100,7 +100,7 @@ TEST_F(TestCApiBlackSymbolManager, getNamedTerms)
 {
   parse_and_set_logic("QF_LIA");
   size_t size;
-  Cvc5Term *terms;
+  Cvc5Term* terms;
   const char** names;
   (void)cvc5_sm_get_named_terms(d_sm, &size, &terms, &names);
   ASSERT_EQ(size, 0);

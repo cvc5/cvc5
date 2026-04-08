@@ -24,7 +24,8 @@ namespace cvc5::internal {
 namespace theory {
 namespace booleans {
 
-class TheoryBool : public Theory {
+class TheoryBool : public Theory
+{
  public:
   TheoryBool(Env& env, OutputChannel& out, Valuation valuation);
 
@@ -42,7 +43,7 @@ class TheoryBool : public Theory {
   TheoryBoolRewriter d_rewriter;
   /** Proof rule checker */
   BoolProofRuleChecker d_checker;
-};/* class TheoryBool */
+}; /* class TheoryBool */
 
 }  // namespace booleans
 }  // namespace theory

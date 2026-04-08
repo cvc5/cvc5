@@ -315,7 +315,7 @@ class CoreSolver : public InferSideEffectProcess, protected EnvObj
   /**
    * This returns the conclusion of the extensionality rule, see
    * ProofRule::STRING_EXT.
-   * 
+   *
    * @param nm Pointer to the node manager
    * @param a The first string term
    * @param a The second string term

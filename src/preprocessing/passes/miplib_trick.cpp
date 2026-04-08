@@ -75,9 +75,7 @@ MipLibTrick::MipLibTrick(PreprocessingPassContext* preprocContext)
 {
 }
 
-MipLibTrick::~MipLibTrick()
-{
-}
+MipLibTrick::~MipLibTrick() {}
 
 /**
  * Remove conjuncts in toRemove from conjunction n. Return # of removed
@@ -652,10 +650,9 @@ PreprocessingPassResult MipLibTrick::applyInternal(
 
 MipLibTrick::Statistics::Statistics(StatisticsRegistry& reg)
     : d_numMiplibAssertionsRemoved(reg.registerInt(
-        "preprocessing::passes::MipLibTrick::numMiplibAssertionsRemoved"))
+          "preprocessing::passes::MipLibTrick::numMiplibAssertionsRemoved"))
 {
 }
-
 
 }  // namespace passes
 }  // namespace preprocessing

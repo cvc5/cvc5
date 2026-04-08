@@ -57,7 +57,7 @@ class MbqiEnumTermEnumeratorCallback : protected EnvObj,
 };
 
 /**
- * Decide whether to inject witness/choice terms for grammar non-terminal `tn`. 
+ * Decide whether to inject witness/choice terms for grammar non-terminal `tn`.
  **/
 bool introduceChoice(const Options& opts,
                      const TypeNode& tn,
@@ -78,7 +78,7 @@ bool introduceChoice(const Options& opts,
 /**
  * Decide whether MBQI term enumeration should be used for type `tn`.
  */
-bool shouldEnumerate(const Options& opts, const TypeNode& tn)
+bool shouldEnumerate(CVC5_UNUSED const Options& opts, const TypeNode& tn)
 {
   // It may make sense to enumerate choice for FO uninterpreted sorts, but
   // seems to not work well in practice.
@@ -287,7 +287,7 @@ Node MVarInfo::ChoiceElimNodeConverter::postConvert(Node n)
       wchildren.insert(wchildren.end(), ubvl.begin(), ubvl.end());
       h = nm->mkNode(Kind::APPLY_UF, wchildren);
     }
-    Assert(h.getType() == n.getType());
+    AssertEqual(h.getType(), n.getType());
     Subs subs;
     subs.add(n[0][0], h);
     Node kpred = subs.apply(n[1]);
@@ -456,12 +456,13 @@ MQuantInfo& MbqiEnum::getOrMkQuantInfo(const Node& q)
   return it->second;
 }
 
-bool MbqiEnum::constructInstantiation(const Node& q,
-                                      const Node& query,
-                                      const std::vector<Node>& vars,
-                                      std::vector<Node>& mvs,
-                                      const std::map<Node, Node>& mvFreshVar,
-                                      std::vector<std::pair<Node, InferenceId>>& auxLemmas)
+bool MbqiEnum::constructInstantiation(
+    const Node& q,
+    const Node& query,
+    const std::vector<Node>& vars,
+    std::vector<Node>& mvs,
+    const std::map<Node, Node>& mvFreshVar,
+    std::vector<std::pair<Node, InferenceId>>& auxLemmas)
 {
   Assert(q[0].getNumChildren() == vars.size());
   Assert(vars.size() == mvs.size());
@@ -518,9 +519,8 @@ bool MbqiEnum::constructInstantiation(const Node& q,
       Node retc;
       if (!ret.isNull())
       {
-        Trace("mbqi-enum-debug")
-            << "- Try candidate: " << q.getId() << " " << v << " " << cindex
-            << " " << ret << std::endl;
+        Trace("mbqi-enum-debug") << "- Try candidate: " << q.getId() << " " << v
+                                 << " " << cindex << " " << ret << std::endl;
         Trace("mbqi-enum") << "- Try candidate: " << ret << std::endl;
         // apply current substitution (to account for cases where ret has
         // other variables in its grammar).

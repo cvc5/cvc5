@@ -21,7 +21,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace bv {
 
-typedef RewriteResponse (*RewriteFunction) (TNode, bool);
+typedef RewriteResponse (*RewriteFunction)(TNode, bool);
 
 class TheoryBVRewriter : public TheoryRewriter
 {
@@ -105,7 +105,8 @@ class TheoryBVRewriter : public TheoryRewriter
   static RewriteResponse RewriteRepeat(TNode node, bool prerewrite = false);
   static RewriteResponse RewriteZeroExtend(TNode node, bool prerewrite = false);
   static RewriteResponse RewriteSignExtend(TNode node, bool prerewrite = false);
-  static RewriteResponse RewriteRotateRight(TNode node, bool prerewrite = false);
+  static RewriteResponse RewriteRotateRight(TNode node,
+                                            bool prerewrite = false);
   static RewriteResponse RewriteRotateLeft(TNode node, bool prerewrite = false);
   static RewriteResponse RewriteRedor(TNode node, bool prerewrite = false);
   static RewriteResponse RewriteRedand(TNode node, bool prerewrite = false);

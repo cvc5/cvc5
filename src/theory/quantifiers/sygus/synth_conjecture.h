@@ -97,7 +97,7 @@ class SynthConjecture : protected EnvObj
    * sol_map[q] to contain the entry:
    *   f -> (lambda x. x+1)
    */
-  bool getSynthSolutions(std::map<Node, std::map<Node, Node> >& sol_map);
+  bool getSynthSolutions(std::map<Node, std::map<Node, Node>>& sol_map);
   /** is ground */
   bool isGround() const { return d_innerVars.empty(); }
   /** are we using single invocation techniques */
@@ -172,7 +172,7 @@ class SynthConjecture : protected EnvObj
   /** Reference to the quantifiers inference manager */
   QuantifiersInferenceManager& d_qim;
   /** The quantifiers registry */
-  CVC5_UNUSED_FIELD QuantifiersRegistry& d_qreg; // Only used in DEBUG
+  CVC5_UNUSED_FIELD QuantifiersRegistry& d_qreg;  // Only used in DEBUG
   /** Reference to the term registry */
   TermRegistry& d_treg;
   /** reference to the statistics of parent */

@@ -119,9 +119,7 @@ void MonomialIndex::addTerm(Node n,
   }
 }
 
-MonomialDb::MonomialDb()
-{
-}
+MonomialDb::MonomialDb() {}
 
 void MonomialDb::registerMonomial(Node n)
 {

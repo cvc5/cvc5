@@ -161,8 +161,7 @@ class CVC5ApiUnsupportedExceptionStream
 
 /** Check if given argument is not a null pointer. */
 #define CVC5_API_ARG_CHECK_NOT_NULLPTR(arg) \
-  CVC5_API_CHECK(arg != nullptr)            \
-      << "invalid null argument for '" << #arg << "'"
+  CVC5_API_CHECK(arg != nullptr) << "invalid null argument for '" << #arg << "'"
 /**
  * Check if given argument at given index in container 'args' is not a null
  * object.
@@ -424,7 +423,7 @@ class CVC5ApiUnsupportedExceptionStream
           << "a term associated with the term manager this object is "         \
              "associated "                                                     \
              "with";                                                           \
-      CVC5_API_CHECK(t.getSort() == sort)                                      \
+      CVC5_API_CHECK(CVC5_EQUAL(t.getSort(), sort))                            \
           << "Expected term with sort " << sort << " at index " << i << " in " \
           << #terms;                                                           \
       i += 1;                                                                  \
@@ -828,7 +827,7 @@ class CVC5ApiUnsupportedExceptionStream
   for (size_t i = 0, size = terms.size(); i < size; ++i)                     \
   {                                                                          \
     CVC5_API_SOLVER_CHECK_TERM_AT_INDEX(terms[i], terms, i);                 \
-    CVC5_API_CHECK(terms[i].getSort() == sort)                               \
+    CVC5_API_CHECK(CVC5_EQUAL(terms[i].getSort(), sort))                     \
         << "Expected term with sort " << sort << " at index " << i << " in " \
         << #terms;                                                           \
   }

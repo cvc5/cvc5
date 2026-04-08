@@ -23,50 +23,47 @@
 
 namespace cvc5::context {
 
-class CDRaised {
-private:
+class CDRaised
+{
+ private:
   context::CDO<bool> d_flag;
 
-public:
- CDRaised(context::Context* c)
- : d_flag(c, false)
- {}
+ public:
+  CDRaised(context::Context* c) : d_flag(c, false) {}
 
+  bool isRaised() const { return d_flag.get(); }
 
-  bool isRaised() const {
-    return d_flag.get();
-  }
-
-  void raise(){
+  void raise()
+  {
     Assert(!isRaised());
     d_flag.set(true);
   }
 
-};/* class CDRaised */
+}; /* class CDRaised */
 
 template <class T>
-class CDMaybe {
-private:
+class CDMaybe
+{
+ private:
   typedef std::pair<bool, T> BoolTPair;
   context::CDO<BoolTPair> d_data;
 
-public:
-  CDMaybe(context::Context* c) : d_data(c, std::make_pair(false, T()))
-  {}
+ public:
+  CDMaybe(context::Context* c) : d_data(c, std::make_pair(false, T())) {}
 
-  bool isSet() const {
-    return d_data.get().first;
-  }
+  bool isSet() const { return d_data.get().first; }
 
-  void set(const T& d){
+  void set(const T& d)
+  {
     Assert(!isSet());
     d_data.set(std::make_pair(true, d));
   }
 
-  const T& get() const{
+  const T& get() const
+  {
     Assert(isSet());
     return d_data.get().second;
   }
-};/* class CDMaybe<T> */
+}; /* class CDMaybe<T> */
 
 }  // namespace cvc5::context

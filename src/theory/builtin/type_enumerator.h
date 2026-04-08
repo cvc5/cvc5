@@ -24,7 +24,9 @@ namespace cvc5::internal {
 namespace theory {
 namespace builtin {
 
-class UninterpretedSortEnumerator : public TypeEnumeratorBase<UninterpretedSortEnumerator> {
+class UninterpretedSortEnumerator
+    : public TypeEnumeratorBase<UninterpretedSortEnumerator>
+{
   Integer d_count;
   bool d_has_fixed_bound;
   Integer d_fixed_bound;

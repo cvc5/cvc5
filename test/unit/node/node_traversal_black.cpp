@@ -170,7 +170,7 @@ TEST_F(TestNodeBlackNodeTraversalPostorder, skip_all)
   std::vector<TNode> expected = {};
 
   auto traversal =
-      NodeDfsIterable(top, VisitOrder::POSTORDER, [](TNode n) { return true; });
+      NodeDfsIterable(top, VisitOrder::POSTORDER, [](TNode) { return true; });
 
   std::vector<TNode> actual;
   std::copy(traversal.begin(), traversal.end(), std::back_inserter(actual));
