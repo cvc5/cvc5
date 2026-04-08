@@ -40,7 +40,7 @@ namespace theory {
 namespace eq {
 class ProofEqEngine;
 class EqualityEngine;
-}
+}  // namespace eq
 
 namespace arith::linear {
 
@@ -231,8 +231,9 @@ class ArithCongruenceManager : protected EnvObj
    */
   TrustNode explainInternal(TNode internal);
 
-  class Statistics {
-  public:
+  class Statistics
+  {
+   public:
     IntStat d_watchedVariables;
     IntStat d_watchedVariableIsZero;
     IntStat d_watchedVariableIsNotZero;
@@ -248,6 +249,6 @@ class ArithCongruenceManager : protected EnvObj
 
 }; /* class ArithCongruenceManager */
 
-}  // namespace arith
+}  // namespace arith::linear
 }  // namespace theory
 }  // namespace cvc5::internal

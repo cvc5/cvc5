@@ -24,8 +24,8 @@
 #include "expr/node_traversal.h"
 #include "options/smt_options.h"
 #include "options/uf_options.h"
-#include "theory/bv/theory_bv_rewrite_rules_operator_elimination.h"
 #include "preprocessing/assertion_pipeline.h"
+#include "theory/bv/theory_bv_rewrite_rules_operator_elimination.h"
 #include "theory/bv/theory_bv_rewrite_rules_simplification.h"
 #include "theory/rewriter.h"
 
@@ -41,7 +41,9 @@ BVToInt::BVToInt(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "bv-to-int"),
       d_intBlaster(preprocContext->getEnv(),
                    options().smt.solveBVAsInt,
-                   options().smt.BVAndIntegerGranularity) {}
+                   options().smt.BVAndIntegerGranularity)
+{
+}
 
 PreprocessingPassResult BVToInt::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
@@ -93,7 +95,8 @@ void BVToInt::addSkolemDefinitions(const std::map<Node, Node>& skolems)
     {
       body = definition;
     }
-    Trace("bv-to-int-debug") << "adding substitution: " << "[" << originalSkolem  << "] ----> [" << definition << "]"  << std::endl; 
+    Trace("bv-to-int-debug") << "adding substitution: " << "[" << originalSkolem
+                             << "] ----> [" << definition << "]" << std::endl;
     d_preprocContext->addSubstitution(originalSkolem, definition);
   }
 }

@@ -29,39 +29,21 @@ namespace cvc5::internal {
 
 string Configuration::getName() { return CVC5_PACKAGE_NAME; }
 
-bool Configuration::isSafeBuild()
-{
-  return IS_SAFE_BUILD;
-}
+bool Configuration::isSafeBuild() { return IS_SAFE_BUILD; }
 
-bool Configuration::isStableBuild()
-{
-  return IS_STABLE_BUILD;
-}
+bool Configuration::isStableBuild() { return IS_STABLE_BUILD; }
 
-bool Configuration::isDebugBuild() {
-  return IS_DEBUG_BUILD;
-}
+bool Configuration::isDebugBuild() { return IS_DEBUG_BUILD; }
 
-bool Configuration::isTracingBuild() {
-  return IS_TRACING_BUILD;
-}
+bool Configuration::isTracingBuild() { return IS_TRACING_BUILD; }
 
-bool Configuration::isMuzzledBuild() {
-  return IS_MUZZLED_BUILD;
-}
+bool Configuration::isMuzzledBuild() { return IS_MUZZLED_BUILD; }
 
-bool Configuration::isAssertionBuild() {
-  return IS_ASSERTIONS_BUILD;
-}
+bool Configuration::isAssertionBuild() { return IS_ASSERTIONS_BUILD; }
 
-bool Configuration::isCoverageBuild() {
-  return IS_COVERAGE_BUILD;
-}
+bool Configuration::isCoverageBuild() { return IS_COVERAGE_BUILD; }
 
-bool Configuration::isProfilingBuild() {
-  return IS_PROFILING_BUILD;
-}
+bool Configuration::isProfilingBuild() { return IS_PROFILING_BUILD; }
 
 bool Configuration::isAsanBuild() { return IS_ASAN_BUILD; }
 
@@ -69,31 +51,30 @@ bool Configuration::isUbsanBuild() { return IS_UBSAN_BUILD; }
 
 bool Configuration::isTsanBuild() { return IS_TSAN_BUILD; }
 
-bool Configuration::isCompetitionBuild() {
-  return IS_COMPETITION_BUILD;
-}
+bool Configuration::isCompetitionBuild() { return IS_COMPETITION_BUILD; }
 
-bool Configuration::isStaticBuild()
-{
-  return CVC5_STATIC_BUILD;
-}
+bool Configuration::isStaticBuild() { return CVC5_STATIC_BUILD; }
 
 string Configuration::getPackageName() { return CVC5_PACKAGE_NAME; }
 
 string Configuration::getVersionString() { return CVC5_FULL_VERSION; }
 
-std::string Configuration::copyright() {
+std::string Configuration::copyright()
+{
   std::stringstream ss;
   ss << "Copyright (c) 2009-2026 by the authors and their institutional\n"
      << "affiliations listed at https://cvc5.github.io/people.html\n\n";
 
-  if (Configuration::licenseIsGpl()) {
+  if (Configuration::licenseIsGpl())
+  {
     ss << "This build of cvc5 uses GPLed libraries, and is thus covered by\n"
        << "the GNU General Public License (GPL) version 3.  Versions of cvc5\n"
        << "are available that are covered by the (modified) BSD license. If\n"
        << "you want to license cvc5 under this license, please configure cvc5\n"
        << "with the \"--no-gpl\" option before building from sources.\n\n";
-  } else {
+  }
+  else
+  {
     ss << "cvc5 is open-source and is covered by the BSD license (modified)."
        << "\n\n";
   }
@@ -141,7 +122,8 @@ std::string Configuration::copyright() {
     ss << "This version of cvc5 is linked against the following third party\n"
        << "libraries covered by the LGPLv3 license.\n"
        << "See licenses/lgpl-3.0.txt for more information.\n\n";
-    if (Configuration::isBuiltWithGmp()) {
+    if (Configuration::isBuiltWithGmp())
+    {
       ss << "  GMP - Gnu Multi Precision Arithmetic Library\n"
          << "  See http://gmplib.org for copyright information.\n\n";
     }
@@ -167,19 +149,23 @@ std::string Configuration::copyright() {
     ss << "This version of cvc5 is linked against the following third party\n"
        << "libraries covered by the GPLv3 license.\n"
        << "See licenses/gpl-3.0.txt for more information.\n\n";
-    if (Configuration::isBuiltWithCln()) {
+    if (Configuration::isBuiltWithCln())
+    {
       ss << "  CLN - Class Library for Numbers\n"
          << "  See http://www.ginac.de/CLN for copyright information.\n\n";
     }
-    if (Configuration::isBuiltWithGlpk()) {
+    if (Configuration::isBuiltWithGlpk())
+    {
       ss << "  glpk-cut-log - a modified version of GPLK, "
          << "the GNU Linear Programming Kit\n"
          << "  See http://github.com/timothy-king/glpk-cut-log for copyright"
          << " information\n\n";
     }
-    if (Configuration::isBuiltWithCoCoA()) {
+    if (Configuration::isBuiltWithCoCoA())
+    {
       ss << "  CoCoALib - a computer algebra library\n"
-         << "  See https://cocoa.dima.unige.it/cocoa/cocoalib/index.shtml for copyright"
+         << "  See https://cocoa.dima.unige.it/cocoa/cocoalib/index.shtml for "
+            "copyright"
          << " information\n\n";
     }
     if (Configuration::isBuiltWithNormaliz())
@@ -196,35 +182,30 @@ std::string Configuration::copyright() {
   return ss.str();
 }
 
-std::string Configuration::about() {
+std::string Configuration::about()
+{
   std::stringstream ss;
   ss << "This is cvc5 version " << getVersionString();
-  if (Configuration::isGitBuild()) {
+  if (Configuration::isGitBuild())
+  {
     ss << " [" << Configuration::getGitInfo() << "]";
   }
-  ss << "\ncompiled with " << Configuration::getCompiler()
-     << "\non " << Configuration::getCompiledDateTime() << "\n\n";
-  ss << Configuration::copyright ();
+  ss << "\ncompiled with " << Configuration::getCompiler() << "\non "
+     << Configuration::getCompiledDateTime() << "\n\n";
+  ss << Configuration::copyright();
   return ss.str();
 }
 
-bool Configuration::licenseIsGpl() {
-  return IS_GPL_BUILD;
-}
+bool Configuration::licenseIsGpl() { return IS_GPL_BUILD; }
 
-bool Configuration::isBuiltWithGmp() {
-  return IS_GMP_BUILD;
-}
+bool Configuration::isBuiltWithGmp() { return IS_GMP_BUILD; }
 
-bool Configuration::isBuiltWithCln() {
-  return IS_CLN_BUILD;
-}
+bool Configuration::isBuiltWithCln() { return IS_CLN_BUILD; }
 
-bool Configuration::isBuiltWithGlpk() {
-  return IS_GLPK_BUILD;
-}
+bool Configuration::isBuiltWithGlpk() { return IS_GLPK_BUILD; }
 
-bool Configuration::isBuiltWithCryptominisat() {
+bool Configuration::isBuiltWithCryptominisat()
+{
   return IS_CRYPTOMINISAT_BUILD;
 }
 
@@ -232,10 +213,7 @@ bool Configuration::isBuiltWithKissat() { return IS_KISSAT_BUILD; }
 
 bool Configuration::isBuiltWithEditline() { return IS_EDITLINE_BUILD; }
 
-bool Configuration::isBuiltWithPoly()
-{
-  return IS_POLY_BUILD;
-}
+bool Configuration::isBuiltWithPoly() { return IS_POLY_BUILD; }
 bool Configuration::isBuiltWithCoCoA() { return IS_COCOA_BUILD; }
 
 bool Configuration::isBuiltWithNormaliz() { return IS_NORMALIZ_BUILD; }
@@ -253,30 +231,28 @@ bool Configuration::isTraceTag(const std::string& tag)
          != Trace_tags.end();
 }
 
-bool Configuration::isGitBuild() {
-  return GIT_BUILD;
-}
+bool Configuration::isGitBuild() { return GIT_BUILD; }
 
-std::string Configuration::getGitInfo() {
-  return CVC5_GIT_INFO;
-}
+std::string Configuration::getGitInfo() { return CVC5_GIT_INFO; }
 
-std::string Configuration::getCompiler() {
+std::string Configuration::getCompiler()
+{
   stringstream ss;
 #ifdef __GNUC__
   ss << "GCC";
-#else /* __GNUC__ */
+#else  /* __GNUC__ */
   ss << "unknown compiler";
 #endif /* __GNUC__ */
 #ifdef __VERSION__
   ss << " version " << __VERSION__;
-#else /* __VERSION__ */
+#else  /* __VERSION__ */
   ss << ", unknown version";
 #endif /* __VERSION__ */
   return ss.str();
 }
 
-std::string Configuration::getCompiledDateTime() {
+std::string Configuration::getCompiledDateTime()
+{
   return __DATE__ " " __TIME__;
 }
 

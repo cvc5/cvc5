@@ -170,19 +170,22 @@ inline bool RewriteRule<RepeatEliminate>::applies(TNode node)
 template <>
 inline Node RewriteRule<RepeatEliminate>::apply(TNode node)
 {
-  Trace("bv-rewrite") << "RewriteRule<RepeatEliminate>(" << node << ")" << std::endl;
+  Trace("bv-rewrite") << "RewriteRule<RepeatEliminate>(" << node << ")"
+                      << std::endl;
   TNode a = node[0];
   unsigned amount =
       node.getOperator().getConst<BitVectorRepeat>().d_repeatAmount;
   Assert(amount >= 1);
-  if(amount == 1) {
-    return a; 
+  if (amount == 1)
+  {
+    return a;
   }
   NodeBuilder result(node.getNodeManager(), Kind::BITVECTOR_CONCAT);
-  for(unsigned i = 0; i < amount; ++i) {
-    result << node[0]; 
+  for (unsigned i = 0; i < amount; ++i)
+  {
+    result << node[0];
   }
-  Node resultNode = result; 
+  Node resultNode = result;
   return resultNode;
 }
 
@@ -195,17 +198,20 @@ inline bool RewriteRule<RotateLeftEliminate>::applies(TNode node)
 template <>
 inline Node RewriteRule<RotateLeftEliminate>::apply(TNode node)
 {
-  Trace("bv-rewrite") << "RewriteRule<RotateLeftEliminate>(" << node << ")" << std::endl;
+  Trace("bv-rewrite") << "RewriteRule<RotateLeftEliminate>(" << node << ")"
+                      << std::endl;
   TNode a = node[0];
   unsigned amount =
       node.getOperator().getConst<BitVectorRotateLeft>().d_rotateLeftAmount;
-  amount = amount % utils::getSize(a); 
-  if (amount == 0) {
-    return a; 
+  amount = amount % utils::getSize(a);
+  if (amount == 0)
+  {
+    return a;
   }
 
-  Node left   = utils::mkExtract(a, utils::getSize(a)-1 - amount, 0);
-  Node right  = utils::mkExtract(a, utils::getSize(a) -1, utils::getSize(a) - amount);
+  Node left = utils::mkExtract(a, utils::getSize(a) - 1 - amount, 0);
+  Node right =
+      utils::mkExtract(a, utils::getSize(a) - 1, utils::getSize(a) - amount);
   Node result = utils::mkConcat(left, right);
 
   return result;
@@ -220,17 +226,19 @@ inline bool RewriteRule<RotateRightEliminate>::applies(TNode node)
 template <>
 inline Node RewriteRule<RotateRightEliminate>::apply(TNode node)
 {
-  Trace("bv-rewrite") << "RewriteRule<RotateRightEliminate>(" << node << ")" << std::endl;
+  Trace("bv-rewrite") << "RewriteRule<RotateRightEliminate>(" << node << ")"
+                      << std::endl;
   TNode a = node[0];
   unsigned amount =
       node.getOperator().getConst<BitVectorRotateRight>().d_rotateRightAmount;
-  amount = amount % utils::getSize(a); 
-  if (amount == 0) {
-    return a; 
+  amount = amount % utils::getSize(a);
+  if (amount == 0)
+  {
+    return a;
   }
-  
-  Node left  = utils::mkExtract(a, amount - 1, 0);
-  Node right = utils::mkExtract(a, utils::getSize(a)-1, amount);
+
+  Node left = utils::mkExtract(a, amount - 1, 0);
+  Node right = utils::mkExtract(a, utils::getSize(a) - 1, amount);
   Node result = utils::mkConcat(left, right);
 
   return result;
@@ -431,16 +439,18 @@ inline bool RewriteRule<ZeroExtendEliminate>::applies(TNode node)
 template <>
 inline Node RewriteRule<ZeroExtendEliminate>::apply(TNode node)
 {
-  Trace("bv-rewrite") << "RewriteRule<ZeroExtendEliminate>(" << node << ")" << std::endl;
+  Trace("bv-rewrite") << "RewriteRule<ZeroExtendEliminate>(" << node << ")"
+                      << std::endl;
   NodeManager* nm = node.getNodeManager();
   TNode bv = node[0];
   unsigned amount =
       node.getOperator().getConst<BitVectorZeroExtend>().d_zeroExtendAmount;
-  if (amount == 0) {
-    return node[0]; 
+  if (amount == 0)
+  {
+    return node[0];
   }
   Node zero = utils::mkConst(nm, amount, 0);
-  Node result = utils::mkConcat(zero, node[0]); 
+  Node result = utils::mkConcat(zero, node[0]);
 
   return result;
 }

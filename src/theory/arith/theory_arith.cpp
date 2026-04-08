@@ -12,10 +12,10 @@
 
 #include "theory/arith/theory_arith.h"
 
+#include "cvc5/cvc5_proof_rule.h"
 #include "options/smt_options.h"
 #include "printer/smt2/smt2_printer.h"
 #include "proof/proof_checker.h"
-#include "cvc5/cvc5_proof_rule.h"
 #include "smt/logic_exception.h"
 #include "theory/arith/arith_evaluator.h"
 #include "theory/arith/arith_rewriter.h"
@@ -66,8 +66,7 @@ TheoryArith::TheoryArith(Env& env, OutputChannel& out, Valuation valuation)
   d_eqSolver.reset(new EqualitySolver(env, d_astate, d_im));
 }
 
-TheoryArith::~TheoryArith(){
-}
+TheoryArith::~TheoryArith() {}
 
 TheoryRewriter* TheoryArith::getTheoryRewriter() { return &d_rewriter; }
 
@@ -180,9 +179,10 @@ void TheoryArith::preRegisterTerm(TNode n)
     d_liaStarExtension->preRegisterTerm(n);
   }
 #endif /* CVC5_USE_NORMALIZ */
-  else if (n.getKind()==Kind::NONLINEAR_MULT)
+  else if (n.getKind() == Kind::NONLINEAR_MULT)
   {
-    throw LogicException("A non-linear term was asserted to arithmetic in a linear logic.");
+    throw LogicException(
+        "A non-linear term was asserted to arithmetic in a linear logic.");
   }
   d_internal.preRegisterTerm(n);
 }
@@ -263,7 +263,7 @@ void TheoryArith::postCheck(Effort level)
     d_im.clearWaitingLemmas();
   }
   // we don't check at last call
-  Assert (level != Theory::EFFORT_LAST_CALL);
+  Assert(level != Theory::EFFORT_LAST_CALL);
   // otherwise, check with the linear solver
   if (d_internal.postCheck(level))
   {
@@ -357,13 +357,14 @@ bool TheoryArith::preNotifyFact(
   return ret;
 }
 
-bool TheoryArith::needsCheckLastEffort() {
+bool TheoryArith::needsCheckLastEffort()
+{
   if (d_nonlinearExtension != nullptr)
   {
     // If we computed lemmas in the last FULL_EFFORT check, send them now.
     if (d_im.hasPendingLemma())
     {
-      Trace("arith-nl-buffer") << "Send buffered lemmas..." << std::endl; 
+      Trace("arith-nl-buffer") << "Send buffered lemmas..." << std::endl;
       d_im.doPendingFacts();
       d_im.doPendingLemmas();
       d_im.doPendingPhaseRequirements();
@@ -410,7 +411,8 @@ bool TheoryArith::collectModelValues(TheoryModel* m,
     Trace("arith::model") << "arithmetic model after pruning" << std::endl;
     for (const auto& p : d_arithModelCache)
     {
-      Trace("arith::model") << "\t" << p.first << " -> " << p.second << std::endl;
+      Trace("arith::model")
+          << "\t" << p.first << " -> " << p.second << std::endl;
     }
   }
 
@@ -446,7 +448,7 @@ bool TheoryArith::collectModelValues(TheoryModel* m,
       return false;
     }
     DebugUnhandled() << "A model equality could not be asserted: " << p.first
-                  << " == " << p.second << std::endl;
+                     << " == " << p.second << std::endl;
     // If we failed to assert an equality, it is likely due to theory
     // combination, namely the repaired model for non-linear changed
     // an equality status that was agreed upon by both (linear) arithmetic
@@ -459,7 +461,8 @@ bool TheoryArith::collectModelValues(TheoryModel* m,
       Node eq = p.first.eqNode(p.second);
       Node lem = nodeManager()->mkNode(Kind::OR, eq, eq.negate());
       bool added = d_im.lemma(lem, InferenceId::ARITH_SPLIT_FOR_NL_MODEL);
-      AlwaysAssert(added) << "The lemma was already in cache. Probably there is something wrong with theory combination...";
+      AlwaysAssert(added) << "The lemma was already in cache. Probably there "
+                             "is something wrong with theory combination...";
     }
     return false;
   }
@@ -470,8 +473,10 @@ void TheoryArith::notifyRestart() { d_internal.notifyRestart(); }
 
 void TheoryArith::presolve() { d_internal.presolve(); }
 
-EqualityStatus TheoryArith::getEqualityStatus(TNode a, TNode b) {
-  Trace("arith-eq-status") << "TheoryArith::getEqualityStatus(" << a << ", " << b << ")" << std::endl;
+EqualityStatus TheoryArith::getEqualityStatus(TNode a, TNode b)
+{
+  Trace("arith-eq-status") << "TheoryArith::getEqualityStatus(" << a << ", "
+                           << b << ")" << std::endl;
   if (a == b)
   {
     Trace("arith-eq-status") << "...return (trivial) true" << std::endl;
@@ -483,8 +488,9 @@ EqualityStatus TheoryArith::getEqualityStatus(TNode a, TNode b) {
     Trace("arith-eq-status") << "...return (from linear) " << es << std::endl;
     return es;
   }
-  Trace("arith-eq-status") << "Evaluate under " << d_arithModelCacheSubs.d_vars << " / "
-                 << d_arithModelCacheSubs.d_subs << std::endl;
+  Trace("arith-eq-status") << "Evaluate under " << d_arithModelCacheSubs.d_vars
+                           << " / " << d_arithModelCacheSubs.d_subs
+                           << std::endl;
   Node diff = nodeManager()->mkNode(Kind::SUB, a, b);
   // do not traverse non-linear multiplication here, since the value of
   // multiplication in this method should consider the value of the

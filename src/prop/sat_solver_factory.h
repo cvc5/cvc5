@@ -19,10 +19,9 @@
 
 #include "options/bv_options.h"
 #include "options/prop_options.h"
-#include "util/resource_manager.h"
-
-#include "smt/env.h"
 #include "prop/sat_solver.h"
+#include "smt/env.h"
+#include "util/resource_manager.h"
 
 namespace cvc5::internal {
 namespace prop {
@@ -32,16 +31,16 @@ class TheoryProxy;
 class SatSolverFactory
 {
  public:
-  using Factory = SatSolver* (*) (Env&,
-                                  StatisticsRegistry&,
-                                  ResourceManager*,
-                                  const std::string&);
+  using Factory = SatSolver* (*)(Env&,
+                                 StatisticsRegistry&,
+                                 ResourceManager*,
+                                 const std::string&);
 
-  using CDCLTFactory = CDCLTSatSolver* (*) (Env&,
-                                            StatisticsRegistry&,
-                                            ResourceManager*,
-                                            TheoryProxy*,
-                                            const std::string&);
+  using CDCLTFactory = CDCLTSatSolver* (*)(Env&,
+                                           StatisticsRegistry&,
+                                           ResourceManager*,
+                                           TheoryProxy*,
+                                           const std::string&);
 
   template <options::BvSatSolverMode T>
   static SatSolver* createSatSolver(Env& env,
@@ -69,7 +68,8 @@ SatSolver* SatSolverFactory::createSatSolver<options::BvSatSolverMode::KISSAT>(
     Env&, StatisticsRegistry&, ResourceManager*, const std::string&);
 
 template <>
-SatSolver* SatSolverFactory::createSatSolver<options::BvSatSolverMode::CRYPTOMINISAT>(
+SatSolver*
+SatSolverFactory::createSatSolver<options::BvSatSolverMode::CRYPTOMINISAT>(
     Env&, StatisticsRegistry&, ResourceManager*, const std::string&);
 
 template <>

@@ -26,7 +26,8 @@ namespace theory {
 /**
  * A (ordered) pair of terms a theory cares about.
  */
-struct CarePair {
+struct CarePair
+{
   const TNode d_a, d_b;
   const TheoryId d_theory;
 
@@ -35,12 +36,14 @@ struct CarePair {
   {
   }
 
-  bool operator==(const CarePair& other) const {
+  bool operator==(const CarePair& other) const
+  {
     return (d_theory == other.d_theory) && (d_a == other.d_a)
            && (d_b == other.d_b);
   }
 
-  bool operator<(const CarePair& other) const {
+  bool operator<(const CarePair& other) const
+  {
     if (d_theory < other.d_theory) return true;
     if (d_theory > other.d_theory) return false;
     if (d_a < other.d_a) return true;

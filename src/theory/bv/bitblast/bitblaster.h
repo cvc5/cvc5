@@ -73,7 +73,6 @@ class TBitblaster
   virtual Node getModelFromSatSolver(TNode node, bool fullModel) = 0;
   virtual prop::SatSolver* getSatSolver() = 0;
 
-
  public:
   TBitblaster();
   virtual ~TBitblaster() {}

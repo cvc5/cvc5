@@ -771,7 +771,8 @@ class SolverTest
       assertions.add(() -> assertTrue(Arrays.asList(modeInfo.getModes()).contains("batch")));
       assertions.add(() -> assertTrue(Arrays.asList(modeInfo.getModes()).contains("none")));
       assertEquals(info.toString(),
-          "OptionInfo{ simplification, simplification-mode | mode | batch | default batch | modes: batch, none }");
+          "OptionInfo{ simplification, simplification-mode | mode | batch | default batch | modes: "
+          + "batch, none }");
     }
     assertAll(assertions);
   }

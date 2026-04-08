@@ -207,7 +207,8 @@ void getSubtermsKind(Kind k, TNode n, std::unordered_set<Node>& ts, bool nested)
 void getSubtermsKinds(
     const std::unordered_set<Kind, kind::KindHashFunction>& ks,
     TNode n,
-    std::map<Kind, std::unordered_set<Node>>& ts, bool nested)
+    std::map<Kind, std::unordered_set<Node>>& ts,
+    bool nested)
 {
   Assert(!ks.empty());
   for (Kind k : ks)
@@ -724,12 +725,15 @@ void getOperatorsMap(TNode n,
       // add the current operator to the result
       if (cur.hasOperator())
       {
-       Node o;
-       if (cur.getMetaKind() == kind::metakind::PARAMETERIZED) {
-         o = cur.getOperator();
-       } else {
-         o = cur.getNodeManager()->operatorOf(cur.getKind());
-       }
+        Node o;
+        if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
+        {
+          o = cur.getOperator();
+        }
+        else
+        {
+          o = cur.getNodeManager()->operatorOf(cur.getKind());
+        }
         ops[tn].insert(o);
       }
       // add children to visit in the future

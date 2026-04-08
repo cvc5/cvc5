@@ -17,8 +17,8 @@
 
 #include <cvc5/cvc5.h>
 
-#include <iostream>
 #include <cassert>
+#include <iostream>
 
 using namespace cvc5;
 
@@ -72,7 +72,7 @@ int main()
 
   r = solver.checkSat();  // result is sat
   std::cout << "Expect sat: " << r << std::endl;
-  assert (r.isSat());
+  assert(r.isSat());
 
   std::cout << "Value of `a`: " << solver.getValue(a) << std::endl;
   std::cout << "Value of `b`: " << solver.getValue(b) << std::endl;
@@ -89,7 +89,7 @@ int main()
 
   r = solver.checkSat();  // result is sat
   std::cout << "Expect sat: " << r << std::endl;
-  assert (r.isSat());
+  assert(r.isSat());
 
   std::cout << "Value of `a`: " << solver.getValue(a) << std::endl;
   std::cout << "Value of `b`: " << solver.getValue(b) << std::endl;
@@ -113,7 +113,7 @@ int main()
 
   r = solver.checkSat();  // result is sat
   std::cout << "Expect sat: " << r << std::endl;
-  assert (r.isSat());
+  assert(r.isSat());
   std::cout << std::endl;
 
   std::cout << "Get value of `d` as floating-point, bit-vector and real:"

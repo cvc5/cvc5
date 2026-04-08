@@ -53,7 +53,7 @@ struct VariableMapper
 
 /** Convert a poly univariate polynomial to a cvc5::internal::Node. */
 cvc5::internal::Node as_cvc_upolynomial(const poly::UPolynomial& p,
-                              const cvc5::internal::Node& var);
+                                        const cvc5::internal::Node& var);
 
 /**
  * Convert a cvc5::internal::Node to a poly univariate polynomial. Is robust to
@@ -71,12 +71,13 @@ poly::UPolynomial as_poly_upolynomial(const cvc5::internal::Node& n,
  * Once the polynomial has been fully constructed, we can oftentimes ignore the
  * denominator (except for its sign, which is always positive, though).
  * This is the case if we are solely interested in the roots of the polynomials
- * (like in the context of coverings). If we need the actual polynomial (for example
- * in the context of ICP) the second overload provides the denominator in the
- * third argument.
- * The method is robust to n being a `Kind::TO_REAL` wrapper node.
+ * (like in the context of coverings). If we need the actual polynomial (for
+ * example in the context of ICP) the second overload provides the denominator
+ * in the third argument. The method is robust to n being a `Kind::TO_REAL`
+ * wrapper node.
  */
-poly::Polynomial as_poly_polynomial(const cvc5::internal::Node& n, VariableMapper& vm);
+poly::Polynomial as_poly_polynomial(const cvc5::internal::Node& n,
+                                    VariableMapper& vm);
 poly::Polynomial as_poly_polynomial(const cvc5::internal::Node& n,
                                     VariableMapper& vm,
                                     poly::Rational& denominator);
@@ -153,7 +154,8 @@ poly::Value node_to_value(const Node& n, const Node& ran_variable);
  */
 std::size_t bitsize(const poly::Value& v);
 
-poly::IntervalAssignment getBounds(VariableMapper& vm, const BoundInference& bi);
+poly::IntervalAssignment getBounds(VariableMapper& vm,
+                                   const BoundInference& bi);
 
 }  // namespace nl
 }  // namespace arith

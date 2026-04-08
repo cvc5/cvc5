@@ -66,7 +66,7 @@ class EoPrintChannel
                               TNode conc) = 0;
 };
 
-  /** Prints the proof to output stream d_out */
+/** Prints the proof to output stream d_out */
 class EoPrintChannelOut : public EoPrintChannel
 {
  public:

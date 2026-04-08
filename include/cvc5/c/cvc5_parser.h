@@ -131,7 +131,6 @@ CVC5_EXPORT const Cvc5Sort* cvc5_sm_get_declared_sorts(Cvc5SymbolManager* sm,
 CVC5_EXPORT const Cvc5Term* cvc5_sm_get_declared_terms(Cvc5SymbolManager* sm,
                                                        size_t* size);
 
-
 /**
  * Get the named terms that have been given to them via the :named attribute.
  *

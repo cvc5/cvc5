@@ -77,8 +77,9 @@ class SetDefaults : protected EnvObj
    * the options to ensure that we are compatible with incremental mode.
    *
    * If this method returns true, then the reason why we were incompatible with
-   * incremental mode is written on the reason output stream. Suggestions for how to
-   * resolve the incompatibility exception are written on the suggest stream.
+   * incremental mode is written on the reason output stream. Suggestions for
+   * how to resolve the incompatibility exception are written on the suggest
+   * stream.
    */
   bool incompatibleWithIncremental(const LogicInfo& logic,
                                    Options& opts,

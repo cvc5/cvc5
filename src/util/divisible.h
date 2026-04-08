@@ -15,9 +15,10 @@
 #ifndef CVC5__DIVISIBLE_H
 #define CVC5__DIVISIBLE_H
 
+#include <stddef.h>
+
 #include <iosfwd>
 #include <ostream>
-#include <stddef.h>
 
 #include "util/integer.h"
 
@@ -32,13 +33,9 @@ struct Divisible
 
   Divisible(const Integer& n);
 
-  bool operator==(const Divisible& d) const {
-    return k == d.k;
-  }
+  bool operator==(const Divisible& d) const { return k == d.k; }
 
-  bool operator!=(const Divisible& d) const {
-    return !(*this == d);
-  }
+  bool operator!=(const Divisible& d) const { return !(*this == d); }
 }; /* struct Divisible */
 
 /**
@@ -46,13 +43,12 @@ struct Divisible
  */
 struct DivisibleHashFunction
 {
-  size_t operator()(const Divisible& d) const {
-    return d.k.hash();
-  }
+  size_t operator()(const Divisible& d) const { return d.k.hash(); }
 }; /* struct DivisibleHashFunction */
 
 inline std::ostream& operator<<(std::ostream& os, const Divisible& d);
-inline std::ostream& operator <<(std::ostream& os, const Divisible& d) {
+inline std::ostream& operator<<(std::ostream& os, const Divisible& d)
+{
   return os << "divisible-by-" << d.k;
 }
 

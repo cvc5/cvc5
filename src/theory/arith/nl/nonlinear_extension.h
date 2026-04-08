@@ -43,7 +43,7 @@
 namespace cvc5::internal {
 namespace theory {
 namespace eq {
-  class EqualityEngine;
+class EqualityEngine;
 }
 namespace arith {
 

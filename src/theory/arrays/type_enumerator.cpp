@@ -42,7 +42,7 @@ ArrayEnumerator::ArrayEnumerator(TypeNode type, TypeEnumeratorProperties* tep)
 
 ArrayEnumerator::ArrayEnumerator(const ArrayEnumerator& ae)
     : TypeEnumeratorBase<ArrayEnumerator>(
-        ae.d_nm->mkArrayType(ae.d_index.getType(), ae.d_constituentType)),
+          ae.d_nm->mkArrayType(ae.d_index.getType(), ae.d_constituentType)),
       d_tep(ae.d_tep),
       d_index(ae.d_index),
       d_constituentType(ae.d_constituentType),

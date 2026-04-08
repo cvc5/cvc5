@@ -29,7 +29,8 @@ class TheorySepRewriter : public TheoryRewriter
   RewriteResponse postRewrite(TNode node) override;
   RewriteResponse preRewrite(TNode node) override
   {
-    Trace("sep-prerewrite") << "Sep::preRewrite returning " << node << std::endl;
+    Trace("sep-prerewrite")
+        << "Sep::preRewrite returning " << node << std::endl;
     return RewriteResponse(REWRITE_DONE, node);
   }
 

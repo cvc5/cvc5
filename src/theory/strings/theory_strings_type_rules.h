@@ -135,14 +135,15 @@ class StringRelationTypeRule
                               std::ostream* errOut);
 };
 
-class RegExpRangeTypeRule {
-public:
- static TypeNode preComputeType(NodeManager* nm, TNode n);
+class RegExpRangeTypeRule
+{
+ public:
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
 
- static TypeNode computeType(NodeManager* nodeManager,
-                             TNode n,
-                             bool check,
-                             std::ostream* errOut);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
 };
 
 class StringToRegExpTypeRule

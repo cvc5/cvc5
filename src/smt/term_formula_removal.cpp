@@ -267,7 +267,8 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
                                             uint32_t cval,
                                             TConvProofGenerator* pg)
 {
-  AlwaysAssert (node.getKind()!=Kind::WITNESS) << "WITNESS should never appear in asserted terms";
+  AlwaysAssert(node.getKind() != Kind::WITNESS)
+      << "WITNESS should never appear in asserted terms";
   SkolemManager* sm = nodeManager()->getSkolemManager();
 
   TypeNode nodeType = node.getType();
@@ -369,7 +370,8 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
   }
 
   // if the term should be replaced by a skolem
-  if( !skolem.isNull() ){
+  if (!skolem.isNull())
+  {
     // this must be done regardless of whether the assertion was new below,
     // since a formula-term may rewrite to the same skolem in multiple contexts.
     if (isProofEnabled())

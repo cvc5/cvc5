@@ -13,6 +13,7 @@
 #include "expr/nary_match_trie.h"
 
 #include <sstream>
+
 #include "expr/nary_term_util.h"
 
 using namespace cvc5::internal::kind;
