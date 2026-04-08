@@ -394,6 +394,7 @@ void OptionsHandler::showConfiguration(CVC5_UNUSED const std::string& flag,
   print_config_cond(o, "kissat", Configuration::isBuiltWithKissat());
   print_config_cond(o, "poly", Configuration::isBuiltWithPoly());
   print_config_cond(o, "cocoa", Configuration::isBuiltWithCoCoA());
+  print_config_cond(o, "normaliz", Configuration::isBuiltWithNormaliz());
   print_config_cond(o, "editline", Configuration::isBuiltWithEditline());
 }
 
