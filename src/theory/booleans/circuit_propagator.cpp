@@ -31,7 +31,9 @@ namespace cvc5::internal {
 namespace theory {
 namespace booleans {
 
-CircuitPropagator::CircuitPropagator(Env& env, bool enableForward, bool enableBackward)
+CircuitPropagator::CircuitPropagator(Env& env,
+                                     bool enableForward,
+                                     bool enableBackward)
     : EnvObj(env),
       d_context(),
       d_propagationQueue(),
@@ -172,8 +174,9 @@ void CircuitPropagator::makeConflict(Node n)
     }
     else
     {
-      d_epg->setProofFor(bfalse,
-                         pcp.conflict(pcp.assume(n), pcp.assume(n.negate())));
+      // Use nPf to ensure deterministic node ID assignments
+      Pf nPf = pcp.assume(n);
+      d_epg->setProofFor(bfalse, pcp.conflict(nPf, pcp.assume(n.negate())));
     }
     g = d_proofInternal.get();
     Trace("circuit-prop") << "Added conflict " << *d_epg->getProofFor(bfalse)

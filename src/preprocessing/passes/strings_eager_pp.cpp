@@ -23,7 +23,7 @@ namespace preprocessing {
 namespace passes {
 
 StringsEagerPp::StringsEagerPp(PreprocessingPassContext* preprocContext)
-    : PreprocessingPass(preprocContext, "strings-eager-pp"){};
+    : PreprocessingPass(preprocContext, "strings-eager-pp") {};
 
 PreprocessingPassResult StringsEagerPp::applyInternal(
     AssertionPipeline* assertionsToPreprocess)

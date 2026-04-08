@@ -84,8 +84,8 @@ void SynthEngine::check(CVC5_UNUSED Theory::Effort e, QEffort quant_e)
     }
     else
     {
-      Trace("sygus-engine-debug") << "...no value for quantified formula."
-                                  << std::endl;
+      Trace("sygus-engine-debug")
+          << "...no value for quantified formula." << std::endl;
     }
     Trace("sygus-engine-debug")
         << "Current conjecture status : active : " << active << std::endl;

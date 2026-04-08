@@ -224,7 +224,7 @@ TypeNode LambdaTypeRule::computeType(NodeManager* nodeManager,
                                      CVC5_UNUSED bool check,
                                      std::ostream* errOut)
 {
-  if (n[0].getTypeOrNull() != nodeManager->boundVarListType())
+  if (!CVC5_EQUAL(n[0].getTypeOrNull(), nodeManager->boundVarListType()))
   {
     if (errOut)
     {

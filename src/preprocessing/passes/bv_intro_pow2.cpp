@@ -30,7 +30,7 @@ using NodeMap = std::unordered_map<Node, Node>;
 using namespace cvc5::internal::theory;
 
 BvIntroPow2::BvIntroPow2(PreprocessingPassContext* preprocContext)
-    : PreprocessingPass(preprocContext, "bv-intro-pow2"){};
+    : PreprocessingPass(preprocContext, "bv-intro-pow2") {};
 
 PreprocessingPassResult BvIntroPow2::applyInternal(
     AssertionPipeline* assertionsToPreprocess)

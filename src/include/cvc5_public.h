@@ -44,10 +44,10 @@
 // When using GCC, applying [[maybe_unused]] to a field triggers
 // a warning that the attribute is ignored, so we avoid it there.
 #if defined(__clang__)
-  #define CVC5_UNUSED_FIELD [[maybe_unused]]
+#define CVC5_UNUSED_FIELD [[maybe_unused]]
 #else
-  // GCC and others: leave blank to avoid "attribute ignored" warnings.
-  #define CVC5_UNUSED_FIELD
+// GCC and others: leave blank to avoid "attribute ignored" warnings.
+#define CVC5_UNUSED_FIELD
 #endif
 
 #define CVC5_NORETURN [[noreturn]]

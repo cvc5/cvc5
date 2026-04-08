@@ -35,42 +35,48 @@ std::string Exception::toString() const
 
 void Exception::toStream(std::ostream& os) const { os << d_msg; }
 
-thread_local LastExceptionBuffer* LastExceptionBuffer::s_currentBuffer = nullptr;
+thread_local LastExceptionBuffer* LastExceptionBuffer::s_currentBuffer =
+    nullptr;
 
 LastExceptionBuffer::LastExceptionBuffer() : d_contents(nullptr) {}
 
-LastExceptionBuffer::~LastExceptionBuffer() {
-  if(d_contents != nullptr){
+LastExceptionBuffer::~LastExceptionBuffer()
+{
+  if (d_contents != nullptr)
+  {
     free(d_contents);
     d_contents = nullptr;
   }
 }
 
-void LastExceptionBuffer::setContents(const char* string) {
-  if(d_contents != nullptr){
+void LastExceptionBuffer::setContents(const char* string)
+{
+  if (d_contents != nullptr)
+  {
     free(d_contents);
     d_contents = nullptr;
   }
 
-  if(string != nullptr){
+  if (string != nullptr)
+  {
     d_contents = strdup(string);
   }
 }
 
 const char* IllegalArgumentException::s_header = "Illegal argument detected";
 
-std::string IllegalArgumentException::formatVariadic() {
-  return std::string();
-}
+std::string IllegalArgumentException::formatVariadic() { return std::string(); }
 
-std::string IllegalArgumentException::formatVariadic(const char* format, ...) {
+std::string IllegalArgumentException::formatVariadic(const char* format, ...)
+{
   va_list args;
   va_start(args, format);
 
   int n = 512;
   char* buf = nullptr;
 
-  for (int i = 0; i < 2; ++i){
+  for (int i = 0; i < 2; ++i)
+  {
     Assert(n > 0);
     delete[] buf;
     buf = new char[n];
@@ -80,10 +86,13 @@ std::string IllegalArgumentException::formatVariadic(const char* format, ...) {
     int size = vsnprintf(buf, n, format, args);
     va_end(args_copy);
 
-    if(size >= n){
-      buf[n-1] = '\0';
+    if (size >= n)
+    {
+      buf[n - 1] = '\0';
       n = size + 1;
-    } else {
+    }
+    else
+    {
       break;
     }
   }
@@ -91,44 +100,55 @@ std::string IllegalArgumentException::formatVariadic(const char* format, ...) {
   // buf is also 0 terminated.
   Assert(buf != nullptr);
   std::string result(buf);
-  delete [] buf;
+  delete[] buf;
   va_end(args);
   return result;
 }
 
-std::string IllegalArgumentException::format_extra(const char* condStr, const char* argDesc){
-  return ( std::string("`") + argDesc + "' is a bad argument"
-           + (*condStr == '\0' ? std::string() :
-              ( std::string("; expected ") +
-                condStr + " to hold" )) );
+std::string IllegalArgumentException::format_extra(const char* condStr,
+                                                   const char* argDesc)
+{
+  return (std::string("`") + argDesc + "' is a bad argument"
+          + (*condStr == '\0'
+                 ? std::string()
+                 : (std::string("; expected ") + condStr + " to hold")));
 }
 
-void IllegalArgumentException::construct(const char* header, const char* extra,
-                                         const char* function, const char* tail) {
+void IllegalArgumentException::construct(const char* header,
+                                         const char* extra,
+                                         const char* function,
+                                         const char* tail)
+{
   // try building the exception msg with a smallish buffer first,
   // then with a larger one if sprintf tells us to.
   int n = 512;
   char* buf;
 
-  for(;;) {
+  for (;;)
+  {
     buf = new char[n];
 
     int size;
-    if(extra == nullptr) {
-      size = snprintf(buf, n, "%s\n%s\n%s",
-                      header, function, tail);
-    } else {
-      size = snprintf(buf, n, "%s\n%s\n\n  %s\n%s",
-                      header, function, extra, tail);
+    if (extra == nullptr)
+    {
+      size = snprintf(buf, n, "%s\n%s\n%s", header, function, tail);
+    }
+    else
+    {
+      size =
+          snprintf(buf, n, "%s\n%s\n\n  %s\n%s", header, function, extra, tail);
     }
 
-    if(size < n) {
+    if (size < n)
+    {
       break;
-    } else {
+    }
+    else
+    {
       // size >= n
       // try again with a buffer that's large enough
       n = size + 1;
-      delete [] buf;
+      delete[] buf;
     }
   }
 
@@ -136,40 +156,49 @@ void IllegalArgumentException::construct(const char* header, const char* extra,
 
 #ifdef CVC5_DEBUG
   LastExceptionBuffer* buffer = LastExceptionBuffer::getCurrent();
-  if(buffer != nullptr){
-    if(buffer->getContents() == nullptr) {
+  if (buffer != nullptr)
+  {
+    if (buffer->getContents() == nullptr)
+    {
       buffer->setContents(buf);
     }
   }
 #endif /* CVC5_DEBUG */
-  delete [] buf;
+  delete[] buf;
 }
 
-void IllegalArgumentException::construct(const char* header, const char* extra,
-                                         const char* function) {
+void IllegalArgumentException::construct(const char* header,
+                                         const char* extra,
+                                         const char* function)
+{
   // try building the exception msg with a smallish buffer first,
   // then with a larger one if sprintf tells us to.
   int n = 256;
   char* buf;
 
-  for(;;) {
+  for (;;)
+  {
     buf = new char[n];
 
     int size;
-    if(extra == nullptr) {
-      size = snprintf(buf, n, "%s.\n%s\n",
-                      header, function);
-    } else {
-      size = snprintf(buf, n, "%s.\n%s\n\n  %s\n",
-                      header, function, extra);
+    if (extra == nullptr)
+    {
+      size = snprintf(buf, n, "%s.\n%s\n", header, function);
+    }
+    else
+    {
+      size = snprintf(buf, n, "%s.\n%s\n\n  %s\n", header, function, extra);
     }
 
-    if(size < n) {
+    if (size < n)
+    {
       break;
-    } else {
+    }
+    else
+    {
       // try again with a buffer that's large enough
       n = size + 1;
-      delete [] buf;
+      delete[] buf;
     }
   }
 
@@ -177,13 +206,15 @@ void IllegalArgumentException::construct(const char* header, const char* extra,
 
 #ifdef CVC5_DEBUG
   LastExceptionBuffer* buffer = LastExceptionBuffer::getCurrent();
-  if(buffer != nullptr){
-    if(buffer->getContents() == nullptr) {
+  if (buffer != nullptr)
+  {
+    if (buffer->getContents() == nullptr)
+    {
       buffer->setContents(buf);
     }
   }
 #endif /* CVC5_DEBUG */
-  delete [] buf;
+  delete[] buf;
 }
 
 }  // namespace cvc5::internal

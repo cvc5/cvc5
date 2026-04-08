@@ -38,7 +38,7 @@ class NlModel;
  * A solver for nonlinear arithmetic that implements the CAD-based method
  * described in https://arxiv.org/pdf/2003.05633.pdf.
  */
-class CoveringsSolver: protected EnvObj
+class CoveringsSolver : protected EnvObj
 {
  public:
   CoveringsSolver(Env& env, InferenceManager& im, NlModel& model);

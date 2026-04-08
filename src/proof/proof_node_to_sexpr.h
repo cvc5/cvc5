@@ -46,7 +46,7 @@ class ProofNodeToSExpr
    * The s-expression for a ProofNode has the form:
    *   (SEXPR (VAR "<d_rule>") S1 ... Sn (VAR ":args") (SEXPR <d_args>))
    * where S1, ..., Sn are the s-expressions for its <d_children>.
-   * 
+   *
    * @param pn The proof node to print
    * @param printConclusion Whether to print conclusions
    */

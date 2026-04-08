@@ -46,7 +46,7 @@ typedef const RationalVector* RationalVectorCP;
 static constexpr RationalVectorCP RationalVectorCPSentinel = nullptr;
 static constexpr RationalVectorP RationalVectorPSentinel = nullptr;
 
-}  // namespace arith
+}  // namespace arith::linear
 }  // namespace theory
 }  // namespace cvc5::internal
 

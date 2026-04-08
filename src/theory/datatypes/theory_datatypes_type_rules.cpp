@@ -601,7 +601,7 @@ TypeNode MatchTypeRule::computeType(CVC5_UNUSED NodeManager* nodeManager,
     const DType& pdt = patType.getDType();
     // compare datatypes instead of the types to catch parametric case,
     // where the pattern has parametric type.
-    if (hdt.getTypeNode() != pdt.getTypeNode())
+    if (!CVC5_EQUAL(hdt.getTypeNode(), pdt.getTypeNode()))
     {
       if (errOut)
       {

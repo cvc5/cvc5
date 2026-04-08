@@ -18,11 +18,13 @@
 
 namespace cvc5::internal {
 
-std::ostream& operator<<(std::ostream& out, const EmptySet& asa) {
+std::ostream& operator<<(std::ostream& out, const EmptySet& asa)
+{
   return out << "emptyset(" << asa.getType() << ')';
 }
 
-size_t EmptySetHashFunction::operator()(const EmptySet& es) const {
+size_t EmptySetHashFunction::operator()(const EmptySet& es) const
+{
   return std::hash<TypeNode>()(es.getType());
 }
 
@@ -34,7 +36,8 @@ EmptySet::EmptySet(const TypeNode& setType) : d_type(new TypeNode(setType)) {}
 
 EmptySet::EmptySet(const EmptySet& es) : d_type(new TypeNode(es.getType())) {}
 
-EmptySet& EmptySet::operator=(const EmptySet& es) {
+EmptySet& EmptySet::operator=(const EmptySet& es)
+{
   (*d_type) = es.getType();
   return *this;
 }

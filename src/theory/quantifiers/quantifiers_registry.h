@@ -58,7 +58,8 @@ class QuantifiersRegistry : public QuantifiersUtil
    */
   void setOwner(Node q, QuantifiersModule* m, int32_t priority = 0);
   /**
-   * Return true if module q has no owner registered or if its registered owner is m.
+   * Return true if module q has no owner registered or if its registered owner
+   * is m.
    */
   bool hasOwnership(Node q, QuantifiersModule* m) const;
   //----------------------------- end ownership

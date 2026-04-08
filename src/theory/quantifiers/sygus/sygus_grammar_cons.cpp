@@ -603,7 +603,7 @@ void SygusGrammarCons::addDefaultRulesTo(
           }
           Trace("sygus-grammar-def")
               << "...suffix is " << isSuffix << std::endl;
-          if (isSuffix && ft.getRangeType() == tn.getRangeType())
+          if (isSuffix && CVC5_EQUAL(ft.getRangeType(), tn.getRangeType()))
           {
             std::map<TypeNode, std::vector<Node>>::const_iterator itta;
             for (const Node& f : itt.second)

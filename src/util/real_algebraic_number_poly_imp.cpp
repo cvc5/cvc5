@@ -62,9 +62,10 @@ RealAlgebraicNumber::RealAlgebraicNumber(const Rational& r)
 {
 }
 
-RealAlgebraicNumber::RealAlgebraicNumber(CVC5_UNUSED const std::vector<long>& coefficients,
-                                         CVC5_UNUSED long lower,
-                                         CVC5_UNUSED long upper)
+RealAlgebraicNumber::RealAlgebraicNumber(
+    CVC5_UNUSED const std::vector<long>& coefficients,
+    CVC5_UNUSED long lower,
+    CVC5_UNUSED long upper)
 {
 #ifdef CVC5_ASSERTIONS
   for (long c : coefficients)

@@ -93,10 +93,8 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_DatatypeSelector_getUpdaterTerm(
  * Method:    getCodomainSort
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_DatatypeSelector_getCodomainSort(JNIEnv* env,
-                                                         jobject,
-                                                         jlong pointer)
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_DatatypeSelector_getCodomainSort(
+    JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   DatatypeSelector* current = (DatatypeSelector*)pointer;
@@ -110,8 +108,8 @@ Java_io_github_cvc5_DatatypeSelector_getCodomainSort(JNIEnv* env,
  * Method:    isNull
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_io_github_cvc5_DatatypeSelector_isNull(
-    JNIEnv* env, jobject, jlong pointer)
+JNIEXPORT jboolean JNICALL
+Java_io_github_cvc5_DatatypeSelector_isNull(JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   DatatypeSelector* current = (DatatypeSelector*)pointer;

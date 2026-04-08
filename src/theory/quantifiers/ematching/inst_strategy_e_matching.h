@@ -112,7 +112,7 @@ class InstStrategyAutoGenTriggers : public InstStrategy
    */
   void sortPatTermsByRelevance(std::vector<Node>& patTerms);
 }; /* class InstStrategyAutoGenTriggers */
-}
+}  // namespace quantifiers
 }  // namespace theory
 }  // namespace cvc5::internal
 

@@ -149,11 +149,7 @@ void TangentPlaneCheck::check(bool asWaitingLemmas)
                 proof->addStep(tlem,
                                ProofRule::ARITH_MULT_TANGENT,
                                {},
-                               {a,
-                                b,
-                                a_v,
-                                b_v,
-                                nm->mkConst(d == 1)});
+                               {a, b, a_v, b_v, nm->mkConst(d == 1)});
               }
               d_data->d_im.addPendingLemma(tlem,
                                            InferenceId::ARITH_NL_TANGENT_PLANE,

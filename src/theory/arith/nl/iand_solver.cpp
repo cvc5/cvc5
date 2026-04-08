@@ -101,7 +101,7 @@ void IAndSolver::checkInitialRefine()
       conj.push_back(nm->mkNode(Kind::LEQ, i, arg1Mod));
       // x=y => iand(x,y)=mod(x, 2^k)
       conj.push_back(
-          nm->mkNode(Kind::IMPLIES, i[0].eqNode(i[1]), i.eqNode(arg0Mod)));
+          nm->mkNode(Kind::IMPLIES, {i[0].eqNode(i[1]), i.eqNode(arg0Mod)}));
       Node lem = conj.size() == 1 ? conj[0] : nm->mkNode(Kind::AND, conj);
       Trace("iand-lemma") << "IAndSolver::Lemma: " << lem << " ; INIT_REFINE"
                           << std::endl;
@@ -178,10 +178,8 @@ void IAndSolver::checkFullRefine()
         Trace("iand-lemma")
             << "IAndSolver::Lemma: " << lem << " ; VALUE_REFINE" << std::endl;
         // send the value lemma
-        d_im.addPendingLemma(lem,
-                             InferenceId::ARITH_NL_IAND_VALUE_REFINE,
-                             nullptr,
-                             true);
+        d_im.addPendingLemma(
+            lem, InferenceId::ARITH_NL_IAND_VALUE_REFINE, nullptr, true);
       }
     }
   }
@@ -207,7 +205,10 @@ Node IAndSolver::mkIAnd(unsigned k, Node x, Node y) const
 
 Node IAndSolver::mkIOr(unsigned k, Node x, Node y) const
 {
-  Node ret = mkINot(k, mkIAnd(k, mkINot(k, x), mkINot(k, y)));
+  // Use iNotX, iNotY to ensure deterministic node ID assignments
+  Node iNotX = mkINot(k, x);
+  Node iNotY = mkINot(k, y);
+  Node ret = mkINot(k, mkIAnd(k, iNotX, iNotY));
   ret = rewrite(ret);
   return ret;
 }
@@ -245,9 +246,10 @@ Node IAndSolver::valueBasedLemma(Node i)
   //   (= ((_ iand n) x y) rewrite(((_ iand n) (mod c1 2^n) (mod c2 2^n))))
   // Note we use mod above since it ensures the the set of possible literals
   // introduced is finite, since there are finitely many values mod 2^n.
-  Node lem = nm->mkNode(Kind::IMPLIES,
-                        nm->mkNode(Kind::AND, xm.eqNode(valX), ym.eqNode(valY)),
-                        i.eqNode(valC));
+  Node lem =
+      nm->mkNode(Kind::IMPLIES,
+                 {nm->mkNode(Kind::AND, {xm.eqNode(valX), ym.eqNode(valY)}),
+                  i.eqNode(valC)});
   return lem;
 }
 
@@ -258,7 +260,8 @@ Node IAndSolver::sumBasedLemma(Node i)
   Node y = i[1];
   uint32_t bvsize = i.getOperator().getConst<IntAnd>().d_size;
   Assert(options().smt.BVAndIntegerGranularity <= 8);
-  uint32_t granularity = static_cast<uint32_t>(options().smt.BVAndIntegerGranularity);
+  uint32_t granularity =
+      static_cast<uint32_t>(options().smt.BVAndIntegerGranularity);
   NodeManager* nm = nodeManager();
   Node lem = nm->mkNode(
       Kind::EQUAL, i, d_iandUtils.createSumNode(x, y, bvsize, granularity));
@@ -273,7 +276,8 @@ Node IAndSolver::bitwiseLemma(Node i)
 
   unsigned bvsize = i.getOperator().getConst<IntAnd>().d_size;
   Assert(options().smt.BVAndIntegerGranularity <= 8);
-  uint32_t granularity = static_cast<uint32_t>(options().smt.BVAndIntegerGranularity);
+  uint32_t granularity =
+      static_cast<uint32_t>(options().smt.BVAndIntegerGranularity);
 
   Rational absI = d_model.computeAbstractModelValue(i).getConst<Rational>();
   Rational concI = d_model.computeConcreteModelValue(i).getConst<Rational>();
