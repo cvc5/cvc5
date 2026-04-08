@@ -24,8 +24,8 @@
 #include "proof/proof_node_algorithm.h"
 #include "proof/proof_node_manager.h"
 #include "proof/trust_id.h"
-#include "theory/inference_id.h"
 #include "theory/builtin/proof_checker.h"
+#include "theory/inference_id.h"
 
 namespace cvc5::internal {
 namespace proof {
@@ -527,8 +527,8 @@ void DotPrinter::ruleArguments(std::ostringstream& currentArguments,
   else if (r == ProofRule::ANNOTATE)
   {
     AnnotationId aid;
-    bool isTheoryLemma = getAnnotationId(args[0], aid)
-                         && aid == AnnotationId::THEORY_LEMMA;
+    bool isTheoryLemma =
+        getAnnotationId(args[0], aid) && aid == AnnotationId::THEORY_LEMMA;
     if (getAnnotationId(args[0], aid))
     {
       currentArguments << aid;
@@ -541,9 +541,9 @@ void DotPrinter::ruleArguments(std::ostringstream& currentArguments,
     {
       currentArguments << ", ";
       theory::TheoryId tid;
-      if (i == 1
-          && isTheoryLemma
-          && theory::builtin::BuiltinProofRuleChecker::getTheoryId(args[i], tid))
+      if (i == 1 && isTheoryLemma
+          && theory::builtin::BuiltinProofRuleChecker::getTheoryId(args[i],
+                                                                   tid))
       {
         std::ostringstream ss;
         ss << tid;

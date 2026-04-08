@@ -68,9 +68,7 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
       d_cnfStream(nullptr),
       d_theoryLemmaPg(d_env, d_env.getUserContext(), "PropEngine::ThLemmaPg"),
       d_annotTheoryLemmaPg(
-          d_env,
-          d_env.getUserContext(),
-          "PropEngine::AnnotTheoryLemmaPg"),
+          d_env, d_env.getUserContext(), "PropEngine::AnnotTheoryLemmaPg"),
       d_ppm(nullptr),
       d_interrupted(false),
       d_assumptions(userContext()),
@@ -226,8 +224,7 @@ void PropEngine::assertLemma(theory::InferenceId id,
   }
 
   // now, assert the lemmas
-  assertLemmasInternal(
-      id, tplemma, ppLemmas, removable, inprocess, local, tid);
+  assertLemmasInternal(id, tplemma, ppLemmas, removable, inprocess, local, tid);
 }
 
 void PropEngine::assertTrustedLemmaInternal(theory::InferenceId id,
@@ -273,7 +270,7 @@ void PropEngine::assertTrustedLemmaInternal(theory::InferenceId id,
   // then we need to prevent the lemma of being added as an assumption (since
   // the generator will be null). We use the default proof generator for lemmas.
   else if (d_env.isSatProofProducing() && !d_env.isTheoryProofProducing()
-      && !trn.getGenerator())
+           && !trn.getGenerator())
   {
     d_theoryLemmaPg.addTrustedStep(actualNode, TrustId::THEORY_LEMMA, {}, {});
     trn = TrustNode::mkReplaceGenTrustNode(trn, &d_theoryLemmaPg);

@@ -30,9 +30,10 @@ class ProofNode;
 class AnnotationProofGenerator : protected EnvObj, public ProofGenerator
 {
  public:
-  AnnotationProofGenerator(Env& env,
-                           context::Context* c = nullptr,
-                           const std::string& name = "AnnotationProofGenerator");
+  AnnotationProofGenerator(
+      Env& env,
+      context::Context* c = nullptr,
+      const std::string& name = "AnnotationProofGenerator");
   ~AnnotationProofGenerator() override = default;
 
   /**
