@@ -91,11 +91,11 @@ Node ArithProofRuleChecker::checkInternal(ProofRule id,
       Node rhs = args[1][1];
       Node zero = nm->mkConstRealOrInt(mult.getType(), Rational(0));
       return nm->mkNode(Kind::IMPLIES,
-                        nm->mkAnd(std::vector<Node>{
-                            nm->mkNode(Kind::GT, mult, zero), args[1]}),
-                        nm->mkNode(rel,
-                                   nm->mkNode(Kind::MULT, mult, lhs),
-                                   nm->mkNode(Kind::MULT, mult, rhs)));
+                        {nm->mkAnd(std::vector<Node>{
+                             nm->mkNode(Kind::GT, mult, zero), args[1]}),
+                         nm->mkNode(rel,
+                                    {nm->mkNode(Kind::MULT, mult, lhs),
+                                     nm->mkNode(Kind::MULT, mult, rhs)})});
     }
     case ProofRule::ARITH_MULT_NEG:
     {
@@ -110,11 +110,11 @@ Node ArithProofRuleChecker::checkInternal(ProofRule id,
       Node rhs = args[1][1];
       Node zero = nm->mkConstRealOrInt(mult.getType(), Rational(0));
       return nm->mkNode(Kind::IMPLIES,
-                        nm->mkAnd(std::vector<Node>{
-                            nm->mkNode(Kind::LT, mult, zero), args[1]}),
-                        nm->mkNode(rel_inv,
-                                   nm->mkNode(Kind::MULT, mult, lhs),
-                                   nm->mkNode(Kind::MULT, mult, rhs)));
+                        {nm->mkAnd(std::vector<Node>{
+                             nm->mkNode(Kind::LT, mult, zero), args[1]}),
+                         nm->mkNode(rel_inv,
+                                    {nm->mkNode(Kind::MULT, mult, lhs),
+                                     nm->mkNode(Kind::MULT, mult, rhs)})});
     }
     case ProofRule::ARITH_SUM_UB:
     {
@@ -153,8 +153,7 @@ Node ArithProofRuleChecker::checkInternal(ProofRule id,
         rightSum << children[i][1];
       }
       Node r = nm->mkNode(strict ? Kind::LT : Kind::LEQ,
-                          leftSum.constructNode(),
-                          rightSum.constructNode());
+                          {leftSum.constructNode(), rightSum.constructNode()});
       return r;
     }
     case ProofRule::MACRO_ARITH_SCALE_SUM_UB:
@@ -288,8 +287,7 @@ Node ArithProofRuleChecker::checkInternal(ProofRule id,
         }
       }
       Node r = nm->mkNode(strict ? Kind::LT : Kind::LEQ,
-                          leftSum.constructNode(),
-                          rightSum.constructNode());
+                          {leftSum.constructNode(), rightSum.constructNode()});
       return r;
     }
     case ProofRule::INT_TIGHT_LB:

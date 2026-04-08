@@ -191,35 +191,35 @@ Node OperatorElim::eliminateOperators(NodeManager* nm,
         wasNonLinear = true;
         lem = nm->mkNode(
             Kind::AND,
-            nm->mkNode(
-                Kind::IMPLIES,
-                nm->mkNode(Kind::GT, den, nm->mkConstInt(Rational(0))),
-                nm->mkNode(
-                    Kind::AND,
-                    leqNum,
-                    nm->mkNode(
-                        Kind::LT,
-                        num,
-                        nm->mkNode(
-                            Kind::MULT,
-                            den,
-                            nm->mkNode(
-                                Kind::ADD, v, nm->mkConstInt(Rational(1))))))),
-            nm->mkNode(
-                Kind::IMPLIES,
-                nm->mkNode(Kind::LT, den, nm->mkConstInt(Rational(0))),
-                nm->mkNode(
-                    Kind::AND,
-                    leqNum,
-                    nm->mkNode(
-                        Kind::LT,
-                        num,
-                        nm->mkNode(
-                            Kind::MULT,
-                            den,
-                            nm->mkNode(Kind::ADD,
-                                       v,
-                                       nm->mkConstInt(Rational(-1))))))));
+            {nm->mkNode(
+                 Kind::IMPLIES,
+                 {nm->mkNode(Kind::GT, den, nm->mkConstInt(Rational(0))),
+                  nm->mkNode(
+                      Kind::AND,
+                      leqNum,
+                      nm->mkNode(Kind::LT,
+                                 num,
+                                 nm->mkNode(Kind::MULT,
+                                            den,
+                                            nm->mkNode(Kind::ADD,
+                                                       v,
+                                                       nm->mkConstInt(
+                                                           Rational(1))))))}),
+             nm->mkNode(
+                 Kind::IMPLIES,
+                 {nm->mkNode(Kind::LT, den, nm->mkConstInt(Rational(0))),
+                  nm->mkNode(
+                      Kind::AND,
+                      leqNum,
+                      nm->mkNode(
+                          Kind::LT,
+                          num,
+                          nm->mkNode(
+                              Kind::MULT,
+                              den,
+                              nm->mkNode(Kind::ADD,
+                                         v,
+                                         nm->mkConstInt(Rational(-1))))))})});
       }
       // add the skolem lemma to lems
       lems.emplace_back(lem, v);
@@ -260,8 +260,8 @@ Node OperatorElim::eliminateOperators(NodeManager* nm,
       }
       Node lem = nm->mkNode(
           Kind::IMPLIES,
-          den.eqNode(mkZero(den.getType())).negate(),
-          nm->mkNode(Kind::EQUAL, nm->mkNode(Kind::MULT, den, v), num));
+          {den.eqNode(mkZero(den.getType())).negate(),
+           nm->mkNode(Kind::EQUAL, nm->mkNode(Kind::MULT, den, v), num)});
       lems.emplace_back(lem, v);
       return v;
       break;
@@ -321,11 +321,11 @@ Node OperatorElim::eliminateOperators(NodeManager* nm,
     {
       return nm->mkNode(
           Kind::ITE,
-          nm->mkNode(Kind::LT,
-                     node[0],
-                     nm->mkConstRealOrInt(node[0].getType(), Rational(0))),
-          nm->mkNode(Kind::NEG, node[0]),
-          node[0]);
+          {nm->mkNode(Kind::LT,
+                      node[0],
+                      nm->mkConstRealOrInt(node[0].getType(), Rational(0))),
+           nm->mkNode(Kind::NEG, node[0]),
+           node[0]});
       break;
     }
     case Kind::SQRT:
@@ -349,8 +349,9 @@ Node OperatorElim::eliminateOperators(NodeManager* nm,
       BoundVarManager* bvm = nm->getBoundVarManager();
       Node x = bvm->mkBoundVar(
           BoundVarId::ARITH_TR_PURIFY, node.getOperator(), "x", nm->realType());
-      Node lam = nm->mkNode(
-          Kind::LAMBDA, nm->mkNode(Kind::BOUND_VAR_LIST, x), nm->mkNode(k, x));
+      Node lam =
+          nm->mkNode(Kind::LAMBDA,
+                     {nm->mkNode(Kind::BOUND_VAR_LIST, x), nm->mkNode(k, x)});
       Node fun = sm->mkSkolemFunction(SkolemId::TRANSCENDENTAL_PURIFY, lam);
       // Make (@TRANSCENDENTAL_PURIFY t), where t is node[0]
       Node var = nm->mkNode(Kind::APPLY_UF, fun, node[0]);
@@ -369,8 +370,8 @@ Node OperatorElim::eliminateOperators(NodeManager* nm,
         // otherwise the reduction of (x = -1) ^ (sqrt(x) != sqrt(-1)) would be
         // satisfiable.
         lem = nm->mkNode(Kind::IMPLIES,
-                         nm->mkNode(Kind::GEQ, node[0], zero),
-                         nm->mkNode(Kind::AND, resNonNeg, eq));
+                         {nm->mkNode(Kind::GEQ, node[0], zero),
+                          nm->mkNode(Kind::AND, resNonNeg, eq)});
       }
       else
       {
@@ -387,16 +388,16 @@ Node OperatorElim::eliminateOperators(NodeManager* nm,
               nm->mkNode(Kind::MULT, nm->mkConstReal(Rational(-1)), pi2);
           // -pi/2 < var <= pi/2
           rlem = nm->mkNode(Kind::AND,
-                            nm->mkNode(Kind::LT, npi2, var),
-                            nm->mkNode(Kind::LEQ, var, pi2));
+                            {nm->mkNode(Kind::LT, npi2, var),
+                             nm->mkNode(Kind::LEQ, var, pi2)});
         }
         else
         {
           // 0 <= var < pi
           rlem = nm->mkNode(
               Kind::AND,
-              nm->mkNode(Kind::LEQ, nm->mkConstReal(Rational(0)), var),
-              nm->mkNode(Kind::LT, var, pi));
+              {nm->mkNode(Kind::LEQ, nm->mkConstReal(Rational(0)), var),
+               nm->mkNode(Kind::LT, var, pi)});
         }
         Node cond;
         if (k == Kind::ARCSINE || k == Kind::ARCCOSINE || k == Kind::ARCSECANT
@@ -405,8 +406,8 @@ Node OperatorElim::eliminateOperators(NodeManager* nm,
           // -1 <= x <= 1
           cond = nm->mkNode(
               Kind::AND,
-              nm->mkNode(Kind::GEQ, node[0], nm->mkConstReal(Rational(-1))),
-              nm->mkNode(Kind::LEQ, node[0], nm->mkConstReal(Rational(1))));
+              {nm->mkNode(Kind::GEQ, node[0], nm->mkConstReal(Rational(-1))),
+               nm->mkNode(Kind::LEQ, node[0], nm->mkConstReal(Rational(1)))});
           if (k == Kind::ARCSECANT || k == Kind::ARCCOSECANT)
           {
             cond = cond.notNode();

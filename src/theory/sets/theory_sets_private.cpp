@@ -182,7 +182,7 @@ TheorySetsPrivate::EqcInfo* TheorySetsPrivate::getOrMakeEqcInfo(TNode n,
   std::map<Node, EqcInfo*>::iterator eqc_i = d_eqc_info.find(n);
   if (eqc_i == d_eqc_info.end())
   {
-    EqcInfo* ei = NULL;
+    EqcInfo* ei = nullptr;
     if (doMake)
     {
       ei = new EqcInfo(context());
@@ -1058,7 +1058,7 @@ void TheorySetsPrivate::groupNotEmpty(Node n)
 void TheorySetsPrivate::groupUp1(Node n, Node x, Node part)
 {
   Assert(n.getKind() == Kind::RELATION_GROUP);
-  Assert(x.getType() == n[0].getType().getSetElementType());
+  AssertEqual(x.getType(), n[0].getType().getSetElementType());
   NodeManager* nm = nodeManager();
 
   Node A = n[0];
@@ -1089,7 +1089,7 @@ void TheorySetsPrivate::groupUp1(Node n, Node x, Node part)
 void TheorySetsPrivate::groupUp2(Node n, Node x, Node part)
 {
   Assert(n.getKind() == Kind::RELATION_GROUP);
-  Assert(x.getType() == n[0].getType().getSetElementType());
+  AssertEqual(x.getType(), n[0].getType().getSetElementType());
   NodeManager* nm = nodeManager();
   Node A = n[0];
   TypeNode setType = A.getType();
@@ -1109,8 +1109,8 @@ void TheorySetsPrivate::groupUp2(Node n, Node x, Node part)
 void TheorySetsPrivate::groupDown(Node n, Node B, Node x, Node part)
 {
   Assert(n.getKind() == Kind::RELATION_GROUP);
-  Assert(B.getType() == n.getType().getSetElementType());
-  Assert(x.getType() == n[0].getType().getSetElementType());
+  AssertEqual(B.getType(), n.getType().getSetElementType());
+  AssertEqual(x.getType(), n[0].getType().getSetElementType());
   NodeManager* nm = nodeManager();
   Node A = n[0];
   TypeNode setType = A.getType();
@@ -1133,7 +1133,7 @@ void TheorySetsPrivate::groupDown(Node n, Node B, Node x, Node part)
 void TheorySetsPrivate::groupPartMember(Node n, Node B, Node part)
 {
   Assert(n.getKind() == Kind::RELATION_GROUP);
-  Assert(B.getType() == n.getType().getSetElementType());
+  AssertEqual(B.getType(), n.getType().getSetElementType());
 
   NodeManager* nm = nodeManager();
   SkolemManager* sm = nm->getSkolemManager();
@@ -1167,9 +1167,9 @@ void TheorySetsPrivate::groupSameProjection(
     Node n, Node B, Node x, Node y, Node part)
 {
   Assert(n.getKind() == Kind::RELATION_GROUP);
-  Assert(B.getType() == n.getType().getSetElementType());
-  Assert(x.getType() == n[0].getType().getSetElementType());
-  Assert(y.getType() == n[0].getType().getSetElementType());
+  AssertEqual(B.getType(), n.getType().getSetElementType());
+  AssertEqual(x.getType(), n[0].getType().getSetElementType());
+  AssertEqual(y.getType(), n[0].getType().getSetElementType());
   NodeManager* nm = nodeManager();
 
   Node A = n[0];
@@ -1209,9 +1209,9 @@ void TheorySetsPrivate::groupSameProjection(
 void TheorySetsPrivate::groupSamePart(Node n, Node B, Node x, Node y, Node part)
 {
   Assert(n.getKind() == Kind::RELATION_GROUP);
-  Assert(B.getType() == n.getType().getSetElementType());
-  Assert(x.getType() == n[0].getType().getSetElementType());
-  Assert(y.getType() == n[0].getType().getSetElementType());
+  AssertEqual(B.getType(), n.getType().getSetElementType());
+  AssertEqual(x.getType(), n[0].getType().getSetElementType());
+  AssertEqual(y.getType(), n[0].getType().getSetElementType());
   NodeManager* nm = nodeManager();
   Node A = n[0];
   TypeNode setType = A.getType();
@@ -1352,11 +1352,11 @@ void TheorySetsPrivate::checkReduceComprehensions()
     body = nm->mkNode(Kind::EXISTS, bvl, body);
     Node k = sm->mkPurifySkolem(n);
     Node mem = nm->mkNode(Kind::SET_MEMBER, v, k);
-    Node lem = nm->mkNode(Kind::AND,
-                          k.eqNode(n),
-                          nm->mkNode(Kind::FORALL,
-                                     nm->mkNode(Kind::BOUND_VAR_LIST, v),
-                                     body.eqNode(mem)));
+    Node lem = nm->mkNode(
+        Kind::AND,
+        {k.eqNode(n),
+         nm->mkNode(Kind::FORALL,
+                    {nm->mkNode(Kind::BOUND_VAR_LIST, v), body.eqNode(mem)})});
     Trace("sets-comprehension")
         << "Comprehension reduction: " << lem << std::endl;
     d_im.lemma(lem, InferenceId::SETS_COMPREHENSION);

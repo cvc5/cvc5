@@ -5,14 +5,19 @@ cvc5 1.3.4 prerelease
 
 ## Changes
 
+- Update SymFPU. Issue with divider encoding now fixed in SymFPU (related
+  issues: #9505, #11139, #12335).
 - Fixes parsing issues related to unchecked overflowing of indexed
   bit-vector operators. This impacts bit-vector operators having width
   that is greater than or equal to `2^32`.
+- Fixes a bug where the character code point `\u{30000}` was incorrectly
+  treated as a valid code point.
 - Fixes a parsing bug with option `--parse-skolem-definitions`.
 - Fixes a soundness bug in the `--learned-rewrite` preprocessing pass.
 - We now allow using option `--solve-bv-as-int` with quantifiers, even if the
   quantified variables occur under UFs.
-
+- Fixes an issue where the parser would abort prematurely when `get-value` was
+  called after an unsat response when uninterpreted sorts are present.
 
 cvc5 1.3.3
 ==========

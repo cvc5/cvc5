@@ -307,7 +307,7 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
 
       // The new assertion
       newAssertion = nodeManager()->mkNode(
-          Kind::ITE, node[0], skolem.eqNode(node[1]), skolem.eqNode(node[2]));
+          Kind::ITE, {node[0], skolem.eqNode(node[1]), skolem.eqNode(node[2])});
 
       // we justify it internally
       if (isProofEnabled())
@@ -443,7 +443,8 @@ Node RemoveTermFormulas::getAxiomFor(Node n)
   Kind k = n.getKind();
   if (k == Kind::ITE)
   {
-    return NodeManager::mkNode(Kind::ITE, n[0], n.eqNode(n[1]), n.eqNode(n[2]));
+    return NodeManager::mkNode(Kind::ITE,
+                               {n[0], n.eqNode(n[1]), n.eqNode(n[2])});
   }
   return Node::null();
 }

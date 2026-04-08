@@ -430,7 +430,7 @@ bool TheoryArith::collectModelValues(TheoryModel* m,
       continue;
     }
     // maps to constant of same type
-    Assert(p.first.getType() == p.second.getType())
+    AssertEqual(p.first.getType(), p.second.getType())
         << "Bad type : " << p.first << " -> " << p.second;
     if (m->assertEquality(p.first, p.second, true))
     {
@@ -566,7 +566,7 @@ bool TheoryArith::sanityCheckIntegerModel()
   {
     for (CVC5_UNUSED const auto& p : d_arithModelCache)
     {
-      Assert(p.first.getType() == p.second.getType())
+      AssertEqual(p.first.getType(), p.second.getType())
           << "Bad type: " << p.first << " -> " << p.second;
     }
   }

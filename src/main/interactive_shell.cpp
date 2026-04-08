@@ -111,11 +111,7 @@ InteractiveShell::InteractiveShell(main::CommandExecutor* cexec,
   if (&d_in == &std::cin && isatty(fileno(stdin)))
   {
     ::rl_readline_name = const_cast<char*>("cvc5");
-#if EDITLINE_COMPENTRY_FUNC_RETURNS_CHARP
-    ::rl_completion_entry_function = commandGenerator;
-#else /* EDITLINE_COMPENTRY_FUNC_RETURNS_CHARP */
-    ::rl_completion_entry_function = (int (*)(const char*, int)) commandGenerator;
-#endif /* EDITLINE_COMPENTRY_FUNC_RETURNS_CHARP */
+    ::rl_attempted_completion_function = commandCompletion;
     ::using_history();
 
     if (d_lang == modes::InputLanguage::SMT_LIB_2_6)
@@ -165,7 +161,7 @@ InteractiveShell::~InteractiveShell() {
 
 bool InteractiveShell::readAndExecCommands()
 {
-  char* lineBuf = NULL;
+  char* lineBuf = nullptr;
   string line = "";
 restart:
 
@@ -240,7 +236,7 @@ restart:
 
     /* If we hit EOF, we're done. */
     if ((!d_usingEditline && d_in.eof())
-        || (d_usingEditline && lineBuf == NULL))
+        || (d_usingEditline && lineBuf == nullptr))
     {
       input += line;
 
@@ -336,7 +332,7 @@ restart:
         return false;
       }
       cmdSeq.emplace_back(std::move(cmdp));
-      if (dynamic_cast<QuitCommand*>(cmd) != NULL)
+      if (dynamic_cast<QuitCommand*>(cmd) != nullptr)
       {
         d_quit = true;
         break;

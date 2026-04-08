@@ -147,16 +147,16 @@ libcvc5_add_sources(
   printer/printer.h
   printer/smt2/smt2_printer.cpp
   printer/smt2/smt2_printer.h
-  proof/alf/alf_dependent_type_converter.cpp
-  proof/alf/alf_dependent_type_converter.h
-  proof/alf/alf_list_node_converter.cpp
-  proof/alf/alf_list_node_converter.h
-  proof/alf/alf_node_converter.cpp
-  proof/alf/alf_node_converter.h
-  proof/alf/alf_print_channel.cpp
-  proof/alf/alf_print_channel.h
-  proof/alf/alf_printer.cpp
-  proof/alf/alf_printer.h
+  proof/eo/eo_dependent_type_converter.cpp
+  proof/eo/eo_dependent_type_converter.h
+  proof/eo/eo_list_node_converter.cpp
+  proof/eo/eo_list_node_converter.h
+  proof/eo/eo_node_converter.cpp
+  proof/eo/eo_node_converter.h
+  proof/eo/eo_print_channel.cpp
+  proof/eo/eo_print_channel.h
+  proof/eo/eo_printer.cpp
+  proof/eo/eo_printer.h
   proof/assumption_proof_generator.cpp
   proof/assumption_proof_generator.h
   proof/buffered_proof_generator.cpp

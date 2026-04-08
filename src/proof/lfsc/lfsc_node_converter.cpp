@@ -908,6 +908,14 @@ Node LfscNodeConverter::getNullTerminator(NodeManager* nm, Kind k, TypeNode tn)
   Node nullTerm;
   switch (k)
   {
+    // LFSC signature expects mixed arithmetic for null terminators
+    case Kind::ADD:
+      nullTerm = nm->mkConstInt(Rational(0));
+      break;
+    case Kind::MULT:
+    case Kind::NONLINEAR_MULT:
+      nullTerm = nm->mkConstInt(Rational(1));
+      break;
     case Kind::REGEXP_CONCAT:
       // the language containing only the empty string, which has special
       // syntax in LFSC

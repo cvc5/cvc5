@@ -59,7 +59,7 @@ CoreSolver::~CoreSolver() {
 
 }
 
-void CoreSolver::debugPrintFlatForms( const char * tc ){
+void CoreSolver::debugPrintFlatForms(CVC5_UNUSED const char * tc ){
   for( unsigned k=0; k<d_strings_eqc.size(); k++ ){
     Node eqc = d_strings_eqc[k];
     if( d_eqc[eqc].size()>1 ){
@@ -760,11 +760,11 @@ Node CoreSolver::getConclusion(NodeManager* nm,
     // we can assume its length is greater than zero
     Node emp = Word::mkEmptyWord(sk.getType());
     conc = nm->mkNode(Kind::AND,
-                      conc,
-                      sk.eqNode(emp).negate(),
-                      nm->mkNode(Kind::GT,
-                                 nm->mkNode(Kind::STRING_LENGTH, sk),
-                                 nm->mkConstInt(Rational(0))));
+                      {conc,
+                       sk.eqNode(emp).negate(),
+                       nm->mkNode(Kind::GT,
+                                  {nm->mkNode(Kind::STRING_LENGTH, sk),
+                                   nm->mkConstInt(Rational(0))})});
   }
   else if (rule == ProofRule::CONCAT_CSPLIT)
   {
@@ -1546,9 +1546,9 @@ bool CoreSolver::processSimpleNEq(NormalForm& nfi,
           // infer the purification equality, and the (dis)equality
           // with the empty string in the direction that the rewriter
           // inferred
-          iinfo.d_conc = nm->mkNode(Kind::AND,
-                                    p.eqNode(nc),
-                                    !eq.getConst<bool>() ? pEq.negate() : pEq);
+          iinfo.d_conc = nm->mkNode(
+              Kind::AND,
+              {p.eqNode(nc), !eq.getConst<bool>() ? pEq.negate() : pEq});
           iinfo.setId(InferenceId::STRINGS_INFER_EMP);
         }
         else
@@ -1936,9 +1936,9 @@ CoreSolver::ProcessLoopResult CoreSolver::processLoop(NormalForm& nfi,
           Kind::STRING_IN_REGEXP,
           vecoi[index],
           nm->mkNode(Kind::REGEXP_CONCAT,
-                     nm->mkNode(Kind::STRING_TO_REGEXP, y),
-                     nm->mkNode(Kind::REGEXP_STAR,
-                                nm->mkNode(Kind::STRING_TO_REGEXP, restr))));
+                     {nm->mkNode(Kind::STRING_TO_REGEXP, y),
+                      nm->mkNode(Kind::REGEXP_STAR,
+                                 nm->mkNode(Kind::STRING_TO_REGEXP, restr))}));
       cc = cc == d_true ? conc2 : nm->mkNode(Kind::AND, cc, conc2);
       vconc.push_back(cc);
     }
@@ -2052,7 +2052,7 @@ void CoreSolver::processDeq(Node ni, Node nj)
                || v.getKind() == Kind::STRING_UNIT);
         vc = v[0];
       }
-      Assert(u[0].getType() == vc.getType());
+      AssertEqual(u[0].getType(), vc.getType());
       // if already disequal, we are done
       if (d_state.areDisequal(u[0], vc))
       {
@@ -2065,7 +2065,7 @@ void CoreSolver::processDeq(Node ni, Node nj)
       Node deq = u.eqNode(v).notNode();
       std::vector<Node> premises;
       premises.push_back(deq);
-      Assert(u[0].getType()==vc.getType());
+      AssertEqual(u[0].getType(), vc.getType());
       Node conc = u[0].eqNode(vc).notNode();
       d_im.sendInference(premises, conc, InferenceId::STRINGS_UNIT_INJ_DEQ, false, true);
       return;

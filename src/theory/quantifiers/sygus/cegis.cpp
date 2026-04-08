@@ -262,9 +262,9 @@ bool Cegis::addEvalLemmas(const std::vector<Node>& candidates,
                          << " evaluation unfold lemmas.\n";
     for (unsigned i = 0, size = eager_terms.size(); i < size; ++i)
     {
-      Node lem = nm->mkNode(Kind::OR,
-                            eager_exps[i].negate(),
-                            eager_terms[i].eqNode(eager_vals[i]));
+      Node lem = nm->mkNode(
+          Kind::OR,
+          {eager_exps[i].negate(), eager_terms[i].eqNode(eager_vals[i])});
       // apply the substitution, which ensures that this lemma does not
       // contain free variables (e.g. if using forward declarations).
       lem = d_euSubs.apply(lem);
@@ -369,8 +369,8 @@ bool Cegis::constructCandidates(const std::vector<Node>& enums,
         NodeManager* nm = nodeManager();
         Node expn = exp.size() == 1 ? exp[0] : nm->mkNode(Kind::AND, exp);
         // must guard it
-        expn = nm->mkNode(
-            Kind::OR, d_parent->getConjecture().negate(), expn.negate());
+        expn = nm->mkNode(Kind::OR,
+                          {d_parent->getConjecture().negate(), expn.negate()});
         d_qim.addPendingLemma(
             expn, InferenceId::QUANTIFIERS_SYGUS_REPAIR_CONST_EXCLUDE);
       }
@@ -686,7 +686,7 @@ bool Cegis::checkRefinementEvalLemmas(const std::vector<Node>& vs,
       for (unsigned j = 0, psize = vsProc.size(); j < psize; j++)
       {
         evalVisited[vsProc[j]] = msProc[j];
-        Assert(vsProc[j].getType() == msProc[j].getType());
+        AssertEqual(vsProc[j].getType(), msProc[j].getType());
       }
     }
   }

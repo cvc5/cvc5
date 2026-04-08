@@ -229,18 +229,20 @@ std::ostream& operator<<(std::ostream& os, const InferBoundsResult& ibr){
 }
 
 ArithEntailmentCheckSideEffects::ArithEntailmentCheckSideEffects()
-    : d_simplexSideEffects(NULL)
+    : d_simplexSideEffects(nullptr)
 {}
 
 ArithEntailmentCheckSideEffects::~ArithEntailmentCheckSideEffects(){
-  if(d_simplexSideEffects != NULL){
+  if (d_simplexSideEffects != nullptr)
+  {
     delete d_simplexSideEffects;
-    d_simplexSideEffects = NULL;
+    d_simplexSideEffects = nullptr;
   }
 }
 
 InferBoundsResult& ArithEntailmentCheckSideEffects::getSimplexSideEffects(){
-  if(d_simplexSideEffects == NULL){
+  if (d_simplexSideEffects == nullptr)
+  {
     d_simplexSideEffects = new InferBoundsResult;
   }
   return *d_simplexSideEffects;

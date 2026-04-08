@@ -162,8 +162,8 @@ std::vector<Node> PartitionGenerator::collectLiterals(LiteralListType litType)
       break;
     }
     case HEAP:
-    { 
-      unfilteredLiterals = d_propEngine->getPropOrderHeap(); 
+    {
+      unfilteredLiterals = d_propEngine->getPropOrderHeap();
       break;
     }
     case LEMMA:

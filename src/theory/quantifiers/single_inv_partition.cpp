@@ -578,7 +578,7 @@ Node SingleInvocationPartition::getConjunct(int index)
                     : nodeManager()->mkNode(Kind::AND, d_conjuncts[index]));
 }
 
-void SingleInvocationPartition::debugPrint(const char* c)
+void SingleInvocationPartition::debugPrint(CVC5_UNUSED const char* c)
 {
   Trace(c) << "Single invocation variables : ";
   for (unsigned i = 0; i < d_si_vars.size(); i++)

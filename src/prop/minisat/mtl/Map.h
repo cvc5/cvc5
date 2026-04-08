@@ -68,10 +68,6 @@ class Map {
     int        cap;
     int        size;
 
-    // Don't allow copying (error prone):
-    Map<K, D, H, E>& operator=(Map<K, D, H, E>& other) { Assert(0); }
-    Map(Map<K, D, H, E>& other) { Assert(0); }
-
     bool    checkCap(int new_size) const { return new_size > cap; }
 
     int32_t index  (const K& k) const { return hash(k) % cap; }
@@ -106,6 +102,10 @@ class Map {
     Map (const H& h, const E& e) : hash(h), equals(e), table(NULL), cap(0), size(0){}
     ~Map () { delete [] table; }
 
+    // Don't allow copying (error prone):
+    Map(const Map<K, D, H, E>&) = delete;
+    Map<K, D, H, E>& operator=(const Map<K, D, H, E>&) = delete;
+    
     // PRECONDITION: the key must already exist in the map.
     const D& operator [] (const K& k) const
     {

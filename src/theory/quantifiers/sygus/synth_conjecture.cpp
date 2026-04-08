@@ -557,7 +557,7 @@ bool SynthConjecture::doCheck()
         // since we don't have function subtyping, this assertion should only
         // check the return type
         Assert(fvar.getType().isFunction());
-        Assert(fvar.getType().getRangeType() == bsol.getType());
+        AssertEqual(fvar.getType().getRangeType(), bsol.getType());
         bsol = nm->mkNode(Kind::LAMBDA, bvl, bsol);
       }
       Trace("sygus-engine-debug")
@@ -827,7 +827,7 @@ Node SynthConjecture::getModelValue(Node n)
   return d_treg.getModel()->getValue(n);
 }
 
-void SynthConjecture::debugPrint(const char* c)
+void SynthConjecture::debugPrint(CVC5_UNUSED const char* c)
 {
   Trace(c) << "Synthesis conjecture : " << d_embed_quant << std::endl;
   Trace(c) << "  * Candidate programs : " << d_candidates << std::endl;
@@ -1010,12 +1010,12 @@ bool SynthConjecture::getSynthSolutions(
       // since we don't have function subtyping, this assertion should only
       // check the return type
       Assert(fvar.getType().isFunction());
-      Assert(fvar.getType().getRangeType() == bsol.getType());
+      AssertEqual(fvar.getType().getRangeType(), bsol.getType());
       bsol = nm->mkNode(Kind::LAMBDA, bvl, bsol);
     }
     else
     {
-      Assert(fvar.getType() == bsol.getType());
+      AssertEqual(fvar.getType(), bsol.getType());
     }
     // store in map
     smc[fvar] = bsol;
@@ -1062,7 +1062,7 @@ bool SynthConjecture::getSynthSolutionsInternal(std::vector<Node>& sols,
     int8_t status = -1;
     if (isSingleInvocation())
     {
-      Assert(d_ceg_si != NULL);
+      Assert(d_ceg_si != nullptr);
       sol = d_ceg_si->getSolution(i, tn, status, true);
       if (sol.isNull())
       {

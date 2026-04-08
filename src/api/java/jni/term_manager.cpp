@@ -38,7 +38,7 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_TermManager_newTermManager(JNIEnv*,
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_io_github_cvc5_TermManager_deletePointer(
-    JNIEnv* env, jobject, jlong pointer)
+    JNIEnv*, jobject, jlong pointer)
 {
   delete (reinterpret_cast<TermManager*>(pointer));
 }

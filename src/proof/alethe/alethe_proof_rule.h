@@ -373,6 +373,24 @@ enum class AletheRule : uint32_t
   // ite, i.e. Gi := (ite Fi Hi Hi'), then Fi = (ite Fi (= Gi Hi) (= Gi Hi')) if
   // Hi is of sort Bool
   ITE_INTRO,
+  // ======== intro rules for arithmetic operators
+  // The rules below behave similarly to ite_intro, in that they introduce
+  // formulas defining the semantics of the respective operators.
+  // ======== div_intro
+  // > i. (and (<= (* b (div a b)) a) (< a (* b (+ (div a b) c))))
+  // where b is a constant different from 0 and c is 1 if b > 0, -1 otherwise.
+  DIV_INTRO,
+  // ======== log2_intro
+  // > i. (and
+  //        (=> (< 0 x)
+  //            (and (<= (int.pow2 (int.log2 x)) x)
+  //                 (< x (int.pow2 (+ (int.log2 x) 1)))))
+  //         (=> (not (< 0 x)) (= (int.log2 x) 0)))
+  LOG2_INTRO,
+  // ======== to_int_intro
+  // > i. (and (<= 0 (- x (to_real (to_int x))))
+  //           (< (- x (to_real (to_int x))) 1))
+  TO_INT_INTRO,
   // ======== contraction
   // > i. (cl F1 ... Fn)
   // ...
@@ -477,6 +495,20 @@ enum class AletheRule : uint32_t
   //         (lambda (x_k+1 ... x_n) t){x_1 -> t1, ..., x_k -> t_k})
   // where if k = n then the rhs has no lambda binding t.
   BETA_EQUIVALENCE,
+  // ======== arrays
+  // > l. (= (select (store a i e) i) e)
+  ARRAYS_IDX,
+  // > k. (not (= i j))
+  // > l. (= (select (store a i e) j) (select a j))
+  ARRAYS_ROW,
+  // > k. (not (= (select (store a i e) j) (select a j)))
+  // > l. (= i j)
+  ARRAYS_ROW_CONTRA,
+  // > k. (not (= a b))
+  // > l. (not (not (= (select a k) (select b k))))
+  // where k is (choice (x I) (or (= a b) (not (= (select a x) (select b x))))),
+  // with type of x coming from the array sort of a.
+  ARRAYS_EXT,
   // ======== bitvector
   //  > i. (cl (= t bbt(t)))
   BV_BITBLAST_STEP_VAR,

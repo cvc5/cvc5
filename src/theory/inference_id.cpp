@@ -289,6 +289,8 @@ const char* toString(InferenceId i)
       return "QUANTIFIERS_CEGQI_VTS_UB_DELTA";
     case InferenceId::QUANTIFIERS_CEGQI_VTS_LB_INF:
       return "QUANTIFIERS_CEGQI_VTS_LB_INF";
+    case InferenceId::QUANTIFIERS_MBQI_ENUM_CHOICE:
+      return "QUANTIFIERS_MBQI_ENUM_CHOICE";
     case InferenceId::QUANTIFIERS_ORACLE_INTERFACE:
       return "QUANTIFIERS_ORACLE_INTERFACE";
     case InferenceId::QUANTIFIERS_ORACLE_PURIFY_SUBS:

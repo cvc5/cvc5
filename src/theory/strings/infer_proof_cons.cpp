@@ -554,8 +554,8 @@ bool InferProofCons::convert(Env& env,
             mainEqCeq = psb.tryStep(ProofRule::SYMM, {mainEqCeq}, {});
             std::swap(t0, s0);
           }
-          Assert(conc[0].isConst() == t0.isConst());
-          Assert(conc[1].isConst() == s0.isConst());
+          AssertEqual(conc[0].isConst(), t0.isConst());
+          AssertEqual(conc[1].isConst(), s0.isConst());
         }
         ProofRule rule = ProofRule::UNKNOWN;
         // the form of the required length constraint expected by the proof
@@ -611,8 +611,8 @@ bool InferProofCons::convert(Env& env,
           for (unsigned r = 0; r < 2; r++)
           {
             lenReq = nm->mkNode(Kind::GT,
-                                nm->mkNode(Kind::STRING_LENGTH, t0),
-                                nm->mkNode(Kind::STRING_LENGTH, s0));
+                                {nm->mkNode(Kind::STRING_LENGTH, t0),
+                                 nm->mkNode(Kind::STRING_LENGTH, s0)});
             if (convertLengthPf(lenReq, lenConstraint, psb))
             {
               lenSuccess = true;

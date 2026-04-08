@@ -2635,7 +2635,7 @@ Term Term::substitute(const Term& term, const Term& replacement) const
   CVC5_API_CHECK_NOT_NULL;
   CVC5_API_CHECK_TERM(term);
   CVC5_API_CHECK_TERM(replacement);
-  CVC5_API_CHECK(term.getSort() == replacement.getSort())
+  CVC5_API_CHECK(CVC5_EQUAL(term.getSort(), replacement.getSort()))
       << "expected terms of the same sort in substitute";
   //////// all checks before this line
   return Term(d_tm,
@@ -6193,7 +6193,7 @@ Term TermManager::mkInteger(const std::string& s)
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_ARG_CHECK_EXPECTED(isValidInteger(s), s) << "an integer ";
   Term res = mkRealOrIntegerFromStrHelper(s);
-  CVC5_API_ARG_CHECK_EXPECTED(res.getSort() == getIntegerSort(), s)
+  CVC5_API_ARG_CHECK_EXPECTED(CVC5_EQUAL(res.getSort(), getIntegerSort()), s)
       << "a string representing an integer";
   //////// all checks before this line
   return res;
@@ -6206,7 +6206,7 @@ Term TermManager::mkInteger(int64_t val)
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   Term res = TermManager::mkRationalValHelper(internal::Rational(val), true);
-  Assert(res.getSort() == getIntegerSort());
+  AssertEqual(res.getSort(), getIntegerSort());
   return res;
   ////////
   CVC5_API_TRY_CATCH_END;
@@ -7247,7 +7247,7 @@ Term Solver::simplify(const Term& term, bool applySubs)
   CVC5_API_SOLVER_CHECK_TERM(term);
   //////// all checks before this line
   Term res = Term(&d_tm, d_slv->simplify(*term.d_node, applySubs));
-  Assert(*res.getSort().d_type == *term.getSort().d_type);
+  AssertEqual(*res.getSort().d_type, *term.getSort().d_type);
   return res;
   ////////
   CVC5_API_TRY_CATCH_END;
@@ -8091,7 +8091,7 @@ Term Solver::getValueHelper(const Term& term) const
   //////// all checks before this line
   internal::Node value = d_slv->getValue(*term.d_node, true);
   Term res = Term(&d_tm, value);
-  Assert(res.getSort() == term.getSort());
+  AssertEqual(res.getSort(), term.getSort());
   return res;
 }
 
@@ -8731,7 +8731,7 @@ void Solver::addSygusConstraint(const Term& term) const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(term);
   CVC5_API_ARG_CHECK_EXPECTED(
-      term.d_node->getType() == d_tm.d_nm->booleanType(), term)
+      CVC5_EQUAL(term.d_node->getType(), d_tm.d_nm->booleanType()), term)
       << "boolean term";
   CVC5_API_CHECK(d_slv->getOptions().quantifiers.sygus)
       << "cannot addSygusConstraint unless sygus is enabled (use --"
@@ -8757,7 +8757,7 @@ void Solver::addSygusAssume(const Term& term) const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(term);
   CVC5_API_ARG_CHECK_EXPECTED(
-      term.d_node->getType() == d_tm.d_nm->booleanType(), term)
+      CVC5_EQUAL(term.d_node->getType(), d_tm.d_nm->booleanType()), term)
       << "boolean term";
   CVC5_API_CHECK(d_slv->getOptions().quantifiers.sygus)
       << "cannot addSygusAssume unless sygus is enabled (use --"

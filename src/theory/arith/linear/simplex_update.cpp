@@ -63,7 +63,7 @@ UpdateInfo::UpdateInfo(ArithVar nb, int dir):
   Assert(dir == 1 || dir == -1);
 }
 
-UpdateInfo::UpdateInfo(bool conflict, ArithVar nb, const DeltaRational& delta, const Rational& r, ConstraintP c):
+UpdateInfo::UpdateInfo(CVC5_UNUSED bool conflict, ArithVar nb, const DeltaRational& delta, const Rational& r, ConstraintP c):
   d_nonbasic(nb),
   d_nonbasicDirection(delta.sgn()),
   d_nonbasicDelta(delta),

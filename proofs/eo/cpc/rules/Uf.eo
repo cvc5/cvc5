@@ -144,7 +144,7 @@
 
 ;;;;; ProofRule::PAIRWISE_CONG
 
-; rule: arg_list_cong
+; rule: pairwise_cong
 ; implements: ProofRule::PAIRWISE_CONG
 ; premises:
 ; - E [:list]: A conjunction of equalities to apply arg-list-congruence to.
@@ -307,19 +307,4 @@
   :args ((= (distinct xs) false))
   :requires (((eo::eq (eo::list_setof @list xs) xs) false))
   :conclusion (= (distinct xs) false)
-)
-
-; rule: lambda-elim
-; implements: ProofRewriteRule::LAMBDA_ELIM.
-; args:
-; - eq : Bool. The equality to prove between terms a and b.
-; requires: >
-;   Showing that the lambda on the left hand side of eq has bound variables that
-;   coincide with the arguments of its body, and its body is an application of
-;   the right hand side of the equality.
-; conclusion: The given equality.
-(declare-rule lambda-elim ((T Type) (U Type) (V Type) (x @List) (t T) (f (-> U V)))
-  :args ((= (lambda x t) f))
-  :requires ((($get_arg_list t) x) (($is_app f t) true))
-  :conclusion (= (lambda x t) f)
 )

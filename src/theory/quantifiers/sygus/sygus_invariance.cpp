@@ -85,7 +85,7 @@ bool EvalSygusInvarianceTest::invariant(TermDbSygus* tds, Node nvn, Node x)
   return d_is_conjunctive;
 }
 
-void EquivSygusInvarianceTest::init(TermDbSygus* tds,
+void EquivSygusInvarianceTest::init(CVC5_UNUSED TermDbSygus* tds,
                                     SynthConjecture* aconj,
                                     Node e,
                                     Node bvr)
@@ -132,7 +132,7 @@ bool EquivSygusInvarianceTest::invariant(TermDbSygus* tds, Node nvn, Node x)
       if (xtn == tn)
       {
         Node bx = tds->sygusToBuiltin(x, xtn);
-        Assert(bx.getType() == nbvr.getType());
+        AssertEqual(bx.getType(), nbvr.getType());
         if (nbvr == bx)
         {
           Trace("sygus-sb-mexp") << "sb-min-exp : " << tds->sygusToBuiltin(nvn)

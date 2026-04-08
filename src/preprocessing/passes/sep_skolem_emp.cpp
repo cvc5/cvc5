@@ -55,8 +55,7 @@ Node preSkolemEmp(NodeManager* nm,
         Node y = NodeManager::mkDummySkolem("ey", dataType);
         return nm
             ->mkNode(Kind::SEP_STAR,
-                     nm->mkNode(Kind::SEP_PTO, x, y),
-                     nm->mkConst(true))
+                     {nm->mkNode(Kind::SEP_PTO, x, y), nm->mkConst(true)})
             .negate();
       }
     }
