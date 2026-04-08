@@ -1373,9 +1373,9 @@ CVC5_EXPORT bool cvc5_term_is_string_value(Cvc5Term term);
  *          release.
  */
 CVC5_EXPORT
-    __attribute__((deprecated("Use cvc5_term_get_u32string_value instead")))
-    const wchar_t*
-    cvc5_term_get_string_value(Cvc5Term term);
+__attribute__((deprecated("Use cvc5_term_get_u32string_value instead")))
+const wchar_t*
+cvc5_term_get_string_value(Cvc5Term term);
 
 /**
  * Get the native UTF-32 string representation of a string value.

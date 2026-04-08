@@ -1642,7 +1642,7 @@ void CardinalityExtension::assertNode(Node n, bool isDecision)
       if (TraceIsOn("uf-ss-warn"))
       {
         ////FIXME: this is too strict: theory propagations are showing up as
-        ///isDecision=true, but /       a theory propagation is not a decision.
+        /// isDecision=true, but /       a theory propagation is not a decision.
         if (isDecision)
         {
           for (std::map<TypeNode, SortModel*>::iterator it =

@@ -326,8 +326,8 @@ class Solver : protected EnvObj
 
   // Extra results: (read-only member variable)
   //
-  vec<lbool> model;  // If problem is satisfiable, this vector contains the
-                     // model (if any).
+  vec<lbool> model;     // If problem is satisfiable, this vector contains the
+                        // model (if any).
   vec<Lit> d_conflict;  // If problem is unsatisfiable (possibly under
                         // assumptions), this vector represent the final
                         // conflict clause expressed in the assumptions.
@@ -355,8 +355,8 @@ class Solver : protected EnvObj
                        // in each restart.                    (default 1.5)
   double learntsize_factor;  // The intitial limit for learnt clauses is a
                              // factor of the original clauses. (default 1 / 3)
-  double learntsize_inc;  // The limit for learnt clauses is multiplied with
-                          // this factor each restart. (default 1.1)
+  double learntsize_inc;     // The limit for learnt clauses is multiplied with
+                             // this factor each restart. (default 1.1)
 
   int learntsize_adjust_start_confl;
   double learntsize_adjust_inc;

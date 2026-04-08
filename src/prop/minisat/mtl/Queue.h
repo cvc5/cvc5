@@ -87,7 +87,7 @@ class Queue
       vec<T> tmp((buf.size() * 3 + 1) >> 1);
       Assert(tmp.size() > 0);
       //**/printf("queue alloc: %d elems (%.1f MB)\n", tmp.size(), tmp.size() *
-      //sizeof(T) / 1000000.0);
+      // sizeof(T) / 1000000.0);
       int i = 0;
       for (int j = first; j < buf.size(); j++) tmp[i++] = buf[j];
       for (int j = 0; j < end; j++) tmp[i++] = buf[j];
