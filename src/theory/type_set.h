@@ -57,6 +57,7 @@ class TypeSet
   iterator end() { return d_typeSet.end(); }
   static TypeNode getType(iterator it) { return (*it).first; }
   static std::set<Node>& getSet(iterator it) { return *(*it).second; }
+
  private:
   /** sets of values for each type */
   TypeSetMap d_typeSet;

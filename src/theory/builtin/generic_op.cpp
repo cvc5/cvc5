@@ -373,8 +373,10 @@ Node GenericOp::getOperatorForIndices(NodeManager* nm,
         return nm->mkConst(Kind::TABLE_PROJECT_OP, ProjectOp(numerals));
       case Kind::TABLE_AGGREGATE:
         return nm->mkConst(Kind::TABLE_AGGREGATE_OP, ProjectOp(numerals));
-      case Kind::TABLE_JOIN: return nm->mkConst(Kind::TABLE_JOIN_OP, ProjectOp(numerals));
-      case Kind::TABLE_GROUP: return nm->mkConst(Kind::TABLE_GROUP_OP, ProjectOp(numerals));
+      case Kind::TABLE_JOIN:
+        return nm->mkConst(Kind::TABLE_JOIN_OP, ProjectOp(numerals));
+      case Kind::TABLE_GROUP:
+        return nm->mkConst(Kind::TABLE_GROUP_OP, ProjectOp(numerals));
       default:
         Unhandled() << "GenericOp::getOperatorForIndices: unhandled kind " << k;
         break;

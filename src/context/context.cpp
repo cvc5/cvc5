@@ -10,12 +10,13 @@
  * Implementation of base context operations.
  */
 
+#include "context/context.h"
+
 #include <iostream>
 #include <string>
 #include <vector>
 
 #include "base/check.h"
-#include "context/context.h"
 
 namespace cvc5::context {
 
@@ -25,10 +26,11 @@ Context::Context() : d_pCNOpre(nullptr), d_pCNOpost(nullptr)
   d_pCMM = new ContextMemoryManager();
 
   // Create initial Scope
-  d_scopeList.push_back(new(d_pCMM) Scope(this, d_pCMM, 0));
+  d_scopeList.push_back(new (d_pCMM) Scope(this, d_pCMM, 0));
 }
 
-Context::~Context() {
+Context::~Context()
+{
   // Delete all Scopes
   popto(0);
 
@@ -59,7 +61,8 @@ uint32_t Context::getLevel() const
   return d_scopeList.size() - 1;
 }
 
-void Context::push() {
+void Context::push()
+{
   Trace("pushpop") << std::string(2 * getLevel(), ' ') << "Push [to "
                    << getLevel() + 1 << "] { " << this << std::endl;
 
@@ -67,11 +70,11 @@ void Context::push() {
   d_pCMM->push();
 
   // Create a new top Scope
-  d_scopeList.push_back(new(d_pCMM) Scope(this, d_pCMM, getLevel()+1));
+  d_scopeList.push_back(new (d_pCMM) Scope(this, d_pCMM, getLevel() + 1));
 }
 
-
-void Context::pop() {
+void Context::pop()
+{
   Assert(getLevel() > 0) << "Cannot pop below level 0";
 
   // Notify the (pre-pop) ContextNotifyObj objects
@@ -116,7 +119,8 @@ void Context::popto(uint32_t toLevel)
   while (toLevel < getLevel()) pop();
 }
 
-void Context::addNotifyObjPre(ContextNotifyObj* pCNO) {
+void Context::addNotifyObjPre(ContextNotifyObj* pCNO)
+{
   // Insert pCNO at *front* of list
   if (d_pCNOpre != nullptr) d_pCNOpre->prev() = &(pCNO->next());
   pCNO->next() = d_pCNOpre;
@@ -124,8 +128,8 @@ void Context::addNotifyObjPre(ContextNotifyObj* pCNO) {
   d_pCNOpre = pCNO;
 }
 
-
-void Context::addNotifyObjPost(ContextNotifyObj* pCNO) {
+void Context::addNotifyObjPost(ContextNotifyObj* pCNO)
+{
   // Insert pCNO at *front* of list
   if (d_pCNOpost != nullptr) d_pCNOpost->prev() = &(pCNO->next());
   pCNO->next() = d_pCNOpost;
@@ -221,7 +225,8 @@ void ContextObj::destroy()
   /* Context can be big and complicated, so we only want to process this output
    * if we're really going to use it. (Same goes below.) */
   Trace("context") << "before destroy " << this << " (level " << getLevel()
-                   << "):" << std::endl << *getContext() << std::endl;
+                   << "):" << std::endl
+                   << *getContext() << std::endl;
 
   for (;;)
   {
@@ -252,26 +257,32 @@ ContextObj::ContextObj(Context* pContext)
 {
   Assert(pContext != nullptr) << "NULL context pointer";
 
-  Trace("context") << "create new ContextObj(" << this << " inCMM=false)" << std::endl;
+  Trace("context") << "create new ContextObj(" << this << " inCMM=false)"
+                   << std::endl;
   d_pScope = pContext->getBottomScope();
   d_pScope->addToChain(this);
 }
 
-void ContextObj::enqueueToGarbageCollect() {
+void ContextObj::enqueueToGarbageCollect()
+{
   Assert(d_pScope != nullptr);
   d_pScope->enqueueToGarbageCollect(this);
 }
 
-ContextNotifyObj::ContextNotifyObj(Context* pContext, bool preNotify) {
-  if(preNotify) {
+ContextNotifyObj::ContextNotifyObj(Context* pContext, bool preNotify)
+{
+  if (preNotify)
+  {
     pContext->addNotifyObjPre(this);
-  } else {
+  }
+  else
+  {
     pContext->addNotifyObjPost(this);
   }
 }
 
-
-ContextNotifyObj::~ContextNotifyObj() {
+ContextNotifyObj::~ContextNotifyObj()
+{
   if (d_pCNOnext != nullptr)
   {
     d_pCNOnext->d_ppCNOprev = d_ppCNOprev;
@@ -288,14 +299,14 @@ std::ostream& operator<<(std::ostream& out, const Context& context)
 
   uint32_t level = context.d_scopeList.size() - 1;
   typedef std::vector<Scope*>::const_reverse_iterator const_reverse_iterator;
-  for(const_reverse_iterator i = context.d_scopeList.rbegin();
-      i != context.d_scopeList.rend();
-      ++i, --level) {
+  for (const_reverse_iterator i = context.d_scopeList.rbegin();
+       i != context.d_scopeList.rend();
+       ++i, --level)
+  {
     Scope* pScope = *i;
     Assert(pScope->getLevel() == level);
     Assert(pScope->getContext() == &context);
-    out << separator << std::endl
-        << *pScope << std::endl;
+    out << separator << std::endl << *pScope << std::endl;
   }
   return out << separator << std::endl;
 }
@@ -309,7 +320,8 @@ std::ostream& operator<<(std::ostream& out, const Scope& scope)
   while (pContextObj != nullptr)
   {
     out << " <--> " << pContextObj;
-    if(pContextObj->d_pScope != &scope) {
+    if (pContextObj->d_pScope != &scope)
+    {
       out << " XXX bad scope" << std::endl;
     }
     Assert(pContextObj->d_pScope == &scope);
@@ -320,7 +332,8 @@ std::ostream& operator<<(std::ostream& out, const Scope& scope)
   return out << " --> NULL";
 }
 
-Scope::~Scope() {
+Scope::~Scope()
+{
   // Call restore() method on each ContextObj object in the list.
   // Note that it is the responsibility of restore() to return the
   // next item in the list.
@@ -335,7 +348,8 @@ Scope::~Scope() {
   }
 }
 
-void Scope::enqueueToGarbageCollect(ContextObj* obj) {
+void Scope::enqueueToGarbageCollect(ContextObj* obj)
+{
   d_garbage.push_back(obj);
 }
 

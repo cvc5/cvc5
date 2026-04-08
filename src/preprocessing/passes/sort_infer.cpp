@@ -82,7 +82,6 @@ PreprocessingPassResult SortInferencePass::applyInternal(
   return PreprocessingPassResult::NO_CONFLICT;
 }
 
-
 }  // namespace passes
 }  // namespace preprocessing
 }  // namespace cvc5::internal

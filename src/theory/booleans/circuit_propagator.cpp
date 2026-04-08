@@ -31,7 +31,9 @@ namespace cvc5::internal {
 namespace theory {
 namespace booleans {
 
-CircuitPropagator::CircuitPropagator(Env& env, bool enableForward, bool enableBackward)
+CircuitPropagator::CircuitPropagator(Env& env,
+                                     bool enableForward,
+                                     bool enableBackward)
     : EnvObj(env),
       d_context(),
       d_propagationQueue(),

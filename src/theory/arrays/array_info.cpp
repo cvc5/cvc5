@@ -29,12 +29,13 @@ Info::Info(context::Context* c)
       weakEquivSecondary(c, TNode()),
       weakEquivSecondaryReason(c, TNode())
 {
-  indices = new(true)CTNodeList(c);
-  stores = new(true)CTNodeList(c);
-  in_stores = new(true)CTNodeList(c);
+  indices = new (true) CTNodeList(c);
+  stores = new (true) CTNodeList(c);
+  in_stores = new (true) CTNodeList(c);
 }
 
-Info::~Info() {
+Info::~Info()
+{
   indices->deleteSelf();
   stores->deleteSelf();
   in_stores->deleteSelf();
@@ -58,15 +59,17 @@ ArrayInfo::ArrayInfo(StatisticsRegistry& sr,
       d_tableSize(sr.registerSize<CNodeInfoMap>(
           statisticsPrefix + "infoTableSize", info_map))
 {
-  emptyList = new(true) CTNodeList(ct);
+  emptyList = new (true) CTNodeList(ct);
   emptyInfo = new Info(ct);
 }
 
-ArrayInfo::~ArrayInfo() {
+ArrayInfo::~ArrayInfo()
+{
   CNodeInfoMap::iterator it = info_map.begin();
   for (; it != info_map.end(); ++it)
   {
-    if((*it).second!= emptyInfo) {
+    if ((*it).second != emptyInfo)
+    {
       delete (*it).second;
     }
   }
@@ -74,27 +77,29 @@ ArrayInfo::~ArrayInfo() {
   delete emptyInfo;
 }
 
-bool inList(const CTNodeList* l, const TNode el) {
+bool inList(const CTNodeList* l, const TNode el)
+{
   CTNodeList::const_iterator it = l->begin();
   for (; it != l->end(); ++it)
   {
-    if(*it == el)
-      return true;
+    if (*it == el) return true;
   }
   return false;
 }
 
-void printList (CTNodeList* list) {
+void printList(CTNodeList* list)
+{
   CTNodeList::const_iterator it = list->begin();
-  Trace("arrays-info")<<"   [ ";
+  Trace("arrays-info") << "   [ ";
   for (; it != list->end(); ++it)
   {
-    Trace("arrays-info")<<(*it)<<" ";
+    Trace("arrays-info") << (*it) << " ";
   }
-  Trace("arrays-info")<<"] \n";
+  Trace("arrays-info") << "] \n";
 }
 
-void ArrayInfo::mergeLists(CTNodeList* la, const CTNodeList* lb) const{
+void ArrayInfo::mergeLists(CTNodeList* la, const CTNodeList* lb) const
+{
   std::set<TNode> temp;
   CTNodeList::const_iterator it;
   for (it = la->begin(); it != la->end(); ++it)
@@ -104,39 +109,46 @@ void ArrayInfo::mergeLists(CTNodeList* la, const CTNodeList* lb) const{
 
   for (it = lb->begin(); it != lb->end(); ++it)
   {
-    if(temp.count(*it) == 0) {
+    if (temp.count(*it) == 0)
+    {
       la->push_back(*it);
     }
   }
 }
 
-void ArrayInfo::addIndex(const Node a, const TNode i) {
+void ArrayInfo::addIndex(const Node a, const TNode i)
+{
   Assert(a.getType().isArray());
   Assert(!i.getType().isArray());  // temporary for flat arrays
 
-  Trace("arrays-ind")<<"Arrays::addIndex "<<a<<"["<<i<<"]\n";
+  Trace("arrays-ind") << "Arrays::addIndex " << a << "[" << i << "]\n";
   CTNodeList* temp_indices;
   Info* temp_info;
 
   CNodeInfoMap::iterator it = info_map.find(a);
-  if(it == info_map.end()) {
+  if (it == info_map.end())
+  {
     temp_info = new Info(ct);
     temp_indices = temp_info->indices;
     temp_indices->push_back(i);
     info_map[a] = temp_info;
-  } else {
+  }
+  else
+  {
     temp_indices = (*it).second->indices;
-    if (! inList(temp_indices, i)) {
+    if (!inList(temp_indices, i))
+    {
       temp_indices->push_back(i);
     }
   }
-  if(TraceIsOn("arrays-ind")) {
+  if (TraceIsOn("arrays-ind"))
+  {
     printList((*(info_map.find(a))).second->indices);
   }
-
 }
 
-void ArrayInfo::addStore(const Node a, const TNode st){
+void ArrayInfo::addStore(const Node a, const TNode st)
+{
   Assert(a.getType().isArray());
   Assert(st.getKind() == Kind::STORE);  // temporary for flat arrays
 
@@ -144,22 +156,27 @@ void ArrayInfo::addStore(const Node a, const TNode st){
   Info* temp_info;
 
   CNodeInfoMap::iterator it = info_map.find(a);
-  if(it == info_map.end()) {
+  if (it == info_map.end())
+  {
     temp_info = new Info(ct);
     temp_store = temp_info->stores;
     temp_store->push_back(st);
-    info_map[a]=temp_info;
-  } else {
+    info_map[a] = temp_info;
+  }
+  else
+  {
     temp_store = (*it).second->stores;
-    if(! inList(temp_store, st)) {
+    if (!inList(temp_store, st))
+    {
       temp_store->push_back(st);
     }
   }
 };
 
-
-void ArrayInfo::addInStore(const TNode a, const TNode b){
-  Trace("arrays-addinstore")<<"Arrays::addInStore "<<a<<" ~ "<<b<<"\n";
+void ArrayInfo::addInStore(const TNode a, const TNode b)
+{
+  Trace("arrays-addinstore")
+      << "Arrays::addInStore " << a << " ~ " << b << "\n";
   Assert(a.getType().isArray());
   Assert(b.getType().isArray());
 
@@ -167,123 +184,155 @@ void ArrayInfo::addInStore(const TNode a, const TNode b){
   Info* temp_info;
 
   CNodeInfoMap::iterator it = info_map.find(a);
-  if(it == info_map.end()) {
+  if (it == info_map.end())
+  {
     temp_info = new Info(ct);
     temp_inst = temp_info->in_stores;
     temp_inst->push_back(b);
     info_map[a] = temp_info;
-  } else {
+  }
+  else
+  {
     temp_inst = (*it).second->in_stores;
-    if(! inList(temp_inst, b)) {
+    if (!inList(temp_inst, b))
+    {
       temp_inst->push_back(b);
     }
   }
 };
 
-
-void ArrayInfo::setNonLinear(const TNode a) {
+void ArrayInfo::setNonLinear(const TNode a)
+{
   Assert(a.getType().isArray());
   Info* temp_info;
   CNodeInfoMap::iterator it = info_map.find(a);
-  if(it == info_map.end()) {
+  if (it == info_map.end())
+  {
     temp_info = new Info(ct);
     temp_info->isNonLinear = true;
     info_map[a] = temp_info;
-  } else {
+  }
+  else
+  {
     (*it).second->isNonLinear = true;
   }
-
 }
 
-void ArrayInfo::setRIntro1Applied(const TNode a) {
+void ArrayInfo::setRIntro1Applied(const TNode a)
+{
   Assert(a.getType().isArray());
   Info* temp_info;
   CNodeInfoMap::iterator it = info_map.find(a);
-  if(it == info_map.end()) {
+  if (it == info_map.end())
+  {
     temp_info = new Info(ct);
     temp_info->rIntro1Applied = true;
     info_map[a] = temp_info;
-  } else {
+  }
+  else
+  {
     (*it).second->rIntro1Applied = true;
   }
-
 }
 
-void ArrayInfo::setModelRep(const TNode a, const TNode b) {
+void ArrayInfo::setModelRep(const TNode a, const TNode b)
+{
   Assert(a.getType().isArray());
   Info* temp_info;
   CNodeInfoMap::iterator it = info_map.find(a);
-  if(it == info_map.end()) {
+  if (it == info_map.end())
+  {
     temp_info = new Info(ct);
     temp_info->modelRep = b;
     info_map[a] = temp_info;
-  } else {
+  }
+  else
+  {
     (*it).second->modelRep = b;
   }
-
 }
 
-void ArrayInfo::setConstArr(const TNode a, const TNode constArr) {
+void ArrayInfo::setConstArr(const TNode a, const TNode constArr)
+{
   Assert(a.getType().isArray());
   Info* temp_info;
   CNodeInfoMap::iterator it = info_map.find(a);
-  if(it == info_map.end()) {
+  if (it == info_map.end())
+  {
     temp_info = new Info(ct);
     temp_info->constArr = constArr;
     info_map[a] = temp_info;
-  } else {
+  }
+  else
+  {
     (*it).second->constArr = constArr;
   }
 }
 
-void ArrayInfo::setWeakEquivPointer(const TNode a, const TNode pointer) {
+void ArrayInfo::setWeakEquivPointer(const TNode a, const TNode pointer)
+{
   Assert(a.getType().isArray());
   Info* temp_info;
   CNodeInfoMap::iterator it = info_map.find(a);
-  if(it == info_map.end()) {
+  if (it == info_map.end())
+  {
     temp_info = new Info(ct);
     temp_info->weakEquivPointer = pointer;
     info_map[a] = temp_info;
-  } else {
+  }
+  else
+  {
     (*it).second->weakEquivPointer = pointer;
   }
 }
 
-void ArrayInfo::setWeakEquivIndex(const TNode a, const TNode index) {
+void ArrayInfo::setWeakEquivIndex(const TNode a, const TNode index)
+{
   Assert(a.getType().isArray());
   Info* temp_info;
   CNodeInfoMap::iterator it = info_map.find(a);
-  if(it == info_map.end()) {
+  if (it == info_map.end())
+  {
     temp_info = new Info(ct);
     temp_info->weakEquivIndex = index;
     info_map[a] = temp_info;
-  } else {
+  }
+  else
+  {
     (*it).second->weakEquivIndex = index;
   }
 }
 
-void ArrayInfo::setWeakEquivSecondary(const TNode a, const TNode secondary) {
+void ArrayInfo::setWeakEquivSecondary(const TNode a, const TNode secondary)
+{
   Assert(a.getType().isArray());
   Info* temp_info;
   CNodeInfoMap::iterator it = info_map.find(a);
-  if(it == info_map.end()) {
+  if (it == info_map.end())
+  {
     temp_info = new Info(ct);
     temp_info->weakEquivSecondary = secondary;
     info_map[a] = temp_info;
-  } else {
+  }
+  else
+  {
     (*it).second->weakEquivSecondary = secondary;
   }
 }
 
-void ArrayInfo::setWeakEquivSecondaryReason(const TNode a, const TNode reason) {
+void ArrayInfo::setWeakEquivSecondaryReason(const TNode a, const TNode reason)
+{
   Assert(a.getType().isArray());
   Info* temp_info;
   CNodeInfoMap::iterator it = info_map.find(a);
-  if(it == info_map.end()) {
+  if (it == info_map.end())
+  {
     temp_info = new Info(ct);
     temp_info->weakEquivSecondaryReason = reason;
     info_map[a] = temp_info;
-  } else {
+  }
+  else
+  {
     (*it).second->weakEquivSecondaryReason = reason;
   }
 }
@@ -292,11 +341,13 @@ void ArrayInfo::setWeakEquivSecondaryReason(const TNode a, const TNode reason) {
  * Returns the information associated with TNode a
  */
 
-const Info* ArrayInfo::getInfo(const TNode a) const{
+const Info* ArrayInfo::getInfo(const TNode a) const
+{
   CNodeInfoMap::const_iterator it = info_map.find(a);
 
-  if(it!= info_map.end()) {
-      return (*it).second;
+  if (it != info_map.end())
+  {
+    return (*it).second;
   }
   return emptyInfo;
 }
@@ -305,7 +356,8 @@ bool ArrayInfo::isNonLinear(const TNode a) const
 {
   CNodeInfoMap::const_iterator it = info_map.find(a);
 
-  if(it!= info_map.end()) {
+  if (it != info_map.end())
+  {
     return (*it).second->isNonLinear;
   }
   return false;
@@ -315,7 +367,8 @@ bool ArrayInfo::rIntro1Applied(const TNode a) const
 {
   CNodeInfoMap::const_iterator it = info_map.find(a);
 
-  if(it!= info_map.end()) {
+  if (it != info_map.end())
+  {
     return (*it).second->rIntro1Applied;
   }
   return false;
@@ -325,7 +378,8 @@ const TNode ArrayInfo::getModelRep(const TNode a) const
 {
   CNodeInfoMap::const_iterator it = info_map.find(a);
 
-  if(it!= info_map.end()) {
+  if (it != info_map.end())
+  {
     return (*it).second->modelRep;
   }
   return TNode();
@@ -335,7 +389,8 @@ const TNode ArrayInfo::getConstArr(const TNode a) const
 {
   CNodeInfoMap::const_iterator it = info_map.find(a);
 
-  if(it!= info_map.end()) {
+  if (it != info_map.end())
+  {
     return (*it).second->constArr;
   }
   return TNode();
@@ -345,7 +400,8 @@ const TNode ArrayInfo::getWeakEquivPointer(const TNode a) const
 {
   CNodeInfoMap::const_iterator it = info_map.find(a);
 
-  if(it!= info_map.end()) {
+  if (it != info_map.end())
+  {
     return (*it).second->weakEquivPointer;
   }
   return TNode();
@@ -355,7 +411,8 @@ const TNode ArrayInfo::getWeakEquivIndex(const TNode a) const
 {
   CNodeInfoMap::const_iterator it = info_map.find(a);
 
-  if(it!= info_map.end()) {
+  if (it != info_map.end())
+  {
     return (*it).second->weakEquivIndex;
   }
   return TNode();
@@ -365,7 +422,8 @@ const TNode ArrayInfo::getWeakEquivSecondary(const TNode a) const
 {
   CNodeInfoMap::const_iterator it = info_map.find(a);
 
-  if(it!= info_map.end()) {
+  if (it != info_map.end())
+  {
     return (*it).second->weakEquivSecondary;
   }
   return TNode();
@@ -375,62 +433,68 @@ const TNode ArrayInfo::getWeakEquivSecondaryReason(const TNode a) const
 {
   CNodeInfoMap::const_iterator it = info_map.find(a);
 
-  if(it!= info_map.end()) {
+  if (it != info_map.end())
+  {
     return (*it).second->weakEquivSecondaryReason;
   }
   return TNode();
 }
 
-const CTNodeList* ArrayInfo::getIndices(const TNode a) const{
+const CTNodeList* ArrayInfo::getIndices(const TNode a) const
+{
   CNodeInfoMap::const_iterator it = info_map.find(a);
-  if(it!= info_map.end()) {
+  if (it != info_map.end())
+  {
     return (*it).second->indices;
   }
   return emptyList;
 }
 
-const CTNodeList* ArrayInfo::getStores(const TNode a) const{
+const CTNodeList* ArrayInfo::getStores(const TNode a) const
+{
   CNodeInfoMap::const_iterator it = info_map.find(a);
-  if(it!= info_map.end()) {
+  if (it != info_map.end())
+  {
     return (*it).second->stores;
   }
   return emptyList;
 }
 
-const CTNodeList* ArrayInfo::getInStores(const TNode a) const{
+const CTNodeList* ArrayInfo::getInStores(const TNode a) const
+{
   CNodeInfoMap::const_iterator it = info_map.find(a);
-  if(it!= info_map.end()) {
+  if (it != info_map.end())
+  {
     return (*it).second->in_stores;
   }
   return emptyList;
 }
 
-
-void ArrayInfo::mergeInfo(const TNode a, const TNode b){
+void ArrayInfo::mergeInfo(const TNode a, const TNode b)
+{
   // can't have assertion that find(b) = a !
   TimerStat::CodeTimer codeTimer(d_mergeInfoTimer);
   ++d_callsMergeInfo;
 
-  Trace("arrays-mergei")<<"Arrays::mergeInfo merging "<<a<<"\n";
-  Trace("arrays-mergei")<<"                      and "<<b<<"\n";
+  Trace("arrays-mergei") << "Arrays::mergeInfo merging " << a << "\n";
+  Trace("arrays-mergei") << "                      and " << b << "\n";
 
   CNodeInfoMap::iterator ita = info_map.find(a);
   CNodeInfoMap::iterator itb = info_map.find(b);
 
-  if(ita != info_map.end()) {
-    Trace("arrays-mergei")<<"Arrays::mergeInfo info "<<a<<"\n";
-    if(TraceIsOn("arrays-mergei"))
-      (*ita).second->print();
+  if (ita != info_map.end())
+  {
+    Trace("arrays-mergei") << "Arrays::mergeInfo info " << a << "\n";
+    if (TraceIsOn("arrays-mergei")) (*ita).second->print();
 
-    if(itb != info_map.end()) {
-      Trace("arrays-mergei")<<"Arrays::mergeInfo info "<<b<<"\n";
-      if(TraceIsOn("arrays-mergei"))
-        (*itb).second->print();
+    if (itb != info_map.end())
+    {
+      Trace("arrays-mergei") << "Arrays::mergeInfo info " << b << "\n";
+      if (TraceIsOn("arrays-mergei")) (*itb).second->print();
 
       CTNodeList* lista_i = (*ita).second->indices;
       CTNodeList* lista_st = (*ita).second->stores;
       CTNodeList* lista_inst = (*ita).second->in_stores;
-
 
       CTNodeList* listb_i = (*itb).second->indices;
       CTNodeList* listb_st = (*itb).second->stores;
@@ -442,37 +506,40 @@ void ArrayInfo::mergeInfo(const TNode a, const TNode b){
 
       /* sketchy stats */
 
-      //FIXME
-      int s = 0;//lista_i->size();
+      // FIXME
+      int s = 0;  // lista_i->size();
       d_maxList.maxAssign(s);
 
-
-      if(s!= 0) {
+      if (s != 0)
+      {
         d_avgIndexListLength << s;
         ++d_listsCount;
       }
       s = lista_st->size();
       d_maxList.maxAssign(s);
-      if(s!= 0) {
+      if (s != 0)
+      {
         d_avgStoresListLength << s;
         ++d_listsCount;
       }
 
       s = lista_inst->size();
       d_maxList.maxAssign(s);
-      if(s!=0) {
+      if (s != 0)
+      {
         d_avgInStoresListLength << s;
         ++d_listsCount;
       }
 
       /* end sketchy stats */
-
     }
-
-  } else {
-    Trace("arrays-mergei")<<" First element has no info \n";
-    if(itb != info_map.end()) {
-      Trace("arrays-mergei")<<" adding second element's info \n";
+  }
+  else
+  {
+    Trace("arrays-mergei") << " First element has no info \n";
+    if (itb != info_map.end())
+    {
+      Trace("arrays-mergei") << " adding second element's info \n";
       (*itb).second->print();
 
       CTNodeList* listb_i = (*itb).second->indices;
@@ -485,14 +552,13 @@ void ArrayInfo::mergeInfo(const TNode a, const TNode b){
       mergeLists(temp_info->stores, listb_st);
       mergeLists(temp_info->in_stores, listb_inst);
       info_map[a] = temp_info;
-
-    } else {
-    Trace("arrays-mergei")<<" Second element has no info \n";
     }
-
-   }
-  Trace("arrays-mergei")<<"Arrays::mergeInfo done \n";
-
+    else
+    {
+      Trace("arrays-mergei") << " Second element has no info \n";
+    }
+  }
+  Trace("arrays-mergei") << "Arrays::mergeInfo done \n";
 }
 
 }  // namespace arrays

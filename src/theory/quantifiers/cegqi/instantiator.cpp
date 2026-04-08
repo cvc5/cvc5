@@ -7,7 +7,8 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Implementation of instantiator for counterexample-guided quantifier instantiation.
+ * Implementation of instantiator for counterexample-guided quantifier
+ * instantiation.
  */
 
 #include "theory/quantifiers/cegqi/instantiator.h"

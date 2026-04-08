@@ -292,9 +292,9 @@ void CardinalityExtension::registerCardinalityTerm(Node n)
         pos_lem, InferenceId::SETS_CARD_POSITIVE, d_emp_exp, 1);
     if (nn != nk)
     {
-      Node lem = nm->mkNode(Kind::EQUAL,
-                            nm->mkNode(Kind::SET_CARD, nk),
-                            nm->mkNode(Kind::SET_CARD, nn));
+      Node lem = nm->mkNode(
+          Kind::EQUAL,
+          {nm->mkNode(Kind::SET_CARD, nk), nm->mkNode(Kind::SET_CARD, nn)});
       lem = rewrite(lem);
       Trace("sets-card") << "  " << k << " : " << lem << std::endl;
       d_im.assertInference(lem, InferenceId::SETS_CARD_EQUAL, d_emp_exp, 1);
@@ -437,7 +437,8 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
           conc.push_back(n[e].eqNode(sib[e]));
         }
       }
-      d_im.assertInference(conc, InferenceId::SETS_CARD_GRAPH_EMP, n.eqNode(emp_set));
+      d_im.assertInference(
+          conc, InferenceId::SETS_CARD_GRAPH_EMP, n.eqNode(emp_set));
       d_im.doPendingLemmas();
       if (d_im.hasSent())
       {
@@ -461,8 +462,9 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
       {
         Trace("sets-debug") << "  it is empty..." << std::endl;
         Assert(!d_state.areEqual(n, emp_set));
-        d_im.assertInference(
-            n.eqNode(emp_set), InferenceId::SETS_CARD_GRAPH_EMP_PARENT, p.eqNode(emp_set));
+        d_im.assertInference(n.eqNode(emp_set),
+                             InferenceId::SETS_CARD_GRAPH_EMP_PARENT,
+                             p.eqNode(emp_set));
         d_im.doPendingLemmas();
         if (d_im.hasSent())
         {
@@ -509,7 +511,8 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
         }
         Trace("sets-debug")
             << "...derived " << conc.size() << " conclusions" << std::endl;
-        d_im.assertInference(conc, InferenceId::SETS_CARD_GRAPH_EQ_PARENT, n.eqNode(p));
+        d_im.assertInference(
+            conc, InferenceId::SETS_CARD_GRAPH_EQ_PARENT, n.eqNode(p));
         d_im.doPendingLemmas();
         if (d_im.hasSent())
         {
@@ -562,7 +565,8 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
         if (eq_parent)
         {
           Node conc = n.eqNode(cpk);
-          d_im.assertInference(conc, InferenceId::SETS_CARD_GRAPH_PARENT_SINGLETON, exps);
+          d_im.assertInference(
+              conc, InferenceId::SETS_CARD_GRAPH_PARENT_SINGLETON, exps);
           d_im.doPendingLemmas();
         }
         else
@@ -832,8 +836,7 @@ void CardinalityExtension::checkNormalForm(Node eqc,
             {
               // Just try to make them equal. This is analogous
               // to the STRINGS_LEN_SPLIT inference in strings.
-              d_im.split(
-                  o0.eqNode(o1), InferenceId::SETS_CARD_SPLIT_EQ, 1);
+              d_im.split(o0.eqNode(o1), InferenceId::SETS_CARD_SPLIT_EQ, 1);
               Assert(d_im.hasSent());
               return;
             }
@@ -851,7 +854,7 @@ void CardinalityExtension::checkNormalForm(Node eqc,
                 {
                   Trace("sets-nf-debug")
                       << "Split term already exists, but not in cardinality "
-                        "graph : "
+                         "graph : "
                       << r1r2i << ", should be empty." << std::endl;
                   // their intersection is empty (probably?)
                   // e.g. these are two disjoint venn regions, proceed to next
@@ -868,8 +871,8 @@ void CardinalityExtension::checkNormalForm(Node eqc,
                 Node kca = d_treg.getProxy(o0);
                 Node kcb = d_treg.getProxy(o1);
                 Node intro = rewrite(nm->mkNode(Kind::SET_INTER, kca, kcb));
-                Trace("sets-nf") << "   Intro split : " << o0 << " against " << o1
-                                << ", term is " << intro << std::endl;
+                Trace("sets-nf") << "   Intro split : " << o0 << " against "
+                                 << o1 << ", term is " << intro << std::endl;
                 intro_sets.push_back(intro);
                 Assert(!d_state.hasTerm(intro));
                 return;

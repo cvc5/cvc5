@@ -30,7 +30,8 @@ namespace arith {
 namespace nl {
 
 namespace {
-void debugPrintBound(CVC5_UNUSED const char* c, Node coeff, Node x, Kind type, Node rhs)
+void debugPrintBound(
+    CVC5_UNUSED const char* c, Node coeff, Node x, Kind type, Node rhs)
 {
   Node t = ArithMSum::mkCoeffTerm(coeff, x);
   Trace(c) << t << " " << type << " " << rhs;
@@ -346,9 +347,8 @@ void MonomialBoundsCheck::checkBounds(const std::vector<Node>& asserts,
                              {mult, simpleeq});
               if (type == Kind::EQUAL && (rewrite(simpleeq) != rewrite(exp[1])))
               {
-                // it is not identical under rewriting and we need to do some work here
-                // The proof looks like this:
-                // (SCOPE
+                // it is not identical under rewriting and we need to do some
+                // work here The proof looks like this: (SCOPE
                 //   (MODUS_PONENS
                 //     <tmplem>
                 //     (AND_INTRO

@@ -20,14 +20,14 @@
 #if defined(__BUILDING_CVC5PARSERLIB) \
     || defined(__BUILDING_CVC5PARSERLIB_UNIT_TEST)
 #include "cvc5parser_private.h"
-#  else
+#else
 #if defined(__BUILDING_CVC5DRIVER) || defined(__BUILDING_CVC5_SYSTEM_TEST) \
     || defined(__BUILDING_STATISTICS_FOR_EXPORT)
 #include "base/cvc5config.h"
-#    else
+#else
 #      error Must be building libcvc5 or libcvc5parser to use replacement functions.  This is because replacement function headers should never be publicly-depended upon, as they should not be installed on user machines with 'make install'.
-#    endif
-#  endif
+#endif
+#endif
 #endif
 
 #endif /* CVC5__LIB__REPLACEMENTS_H */

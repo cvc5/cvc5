@@ -57,7 +57,8 @@ class Result
 
   Result(const std::string& s, std::string inputName = "");
 
-  Result(const Result& r, std::string inputName) {
+  Result(const Result& r, std::string inputName)
+  {
     *this = r;
     d_inputName = inputName;
   }

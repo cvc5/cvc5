@@ -16,6 +16,7 @@
 #define CVC5__EXPR__DTYPE_SELECTOR_H
 
 #include <string>
+
 #include "expr/node.h"
 #include "expr/type_node.h"
 

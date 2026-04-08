@@ -24,8 +24,8 @@
 #include "rewriter/rewrites.h"
 #include "smt/env_obj.h"
 #include "theory/inference_id.h"
-#include "util/statistics_stats.h"
 #include "theory/theory_id.h"
+#include "util/statistics_stats.h"
 
 namespace cvc5::internal {
 namespace smt {

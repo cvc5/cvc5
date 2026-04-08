@@ -127,8 +127,8 @@ Node TheoryFiniteFieldsRewriter::postRewriteFfAdd(TNode t)
     else
     {
       Node c = nm->mkConst(summand.second);
-      summands.push_back(expr::algorithm::flatten(nm,
-          nm->mkNode(Kind::FINITE_FIELD_MULT, c, summand.first)));
+      summands.push_back(expr::algorithm::flatten(
+          nm, nm->mkNode(Kind::FINITE_FIELD_MULT, c, summand.first)));
     }
   }
   if (summands.size() == 0)

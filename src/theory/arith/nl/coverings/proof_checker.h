@@ -27,9 +27,9 @@ namespace coverings {
 /**
  * A checker for coverings proofs
  *
- * This proof checker takes care of the two coverings proof rules ARITH_NL_COVERING_DIRECT
- * and ARITH_NL_COVERING_RECURSIVE. It does not do any actual proof checking yet, but
- * considers them to be trusted rules.
+ * This proof checker takes care of the two coverings proof rules
+ * ARITH_NL_COVERING_DIRECT and ARITH_NL_COVERING_RECURSIVE. It does not do any
+ * actual proof checking yet, but considers them to be trusted rules.
  */
 class CoveringsProofRuleChecker : public ProofRuleChecker
 {

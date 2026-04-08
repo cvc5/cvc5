@@ -47,7 +47,8 @@ class QuantDSplitProofGenerator;
  * This class is used to compute this splitting dynamically, by splitting
  * one variable per quantified formula at a time.
  */
-class QuantDSplit : public QuantifiersModule {
+class QuantDSplit : public QuantifiersModule
+{
   using NodeSet = context::CDHashSet<Node>;
   using NodeIntMap = context::CDHashMap<Node, size_t>;
 
@@ -89,8 +90,8 @@ class QuantDSplit : public QuantifiersModule {
   std::shared_ptr<QuantDSplitProofGenerator> d_pfgen;
 };
 
-}
-}
+}  // namespace quantifiers
+}  // namespace theory
 }  // namespace cvc5::internal
 
 #endif
