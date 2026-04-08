@@ -545,7 +545,7 @@ Result LiaStarUtils::areAssertionsUnsat(const std::vector<Node>& assertions,
   {
     Node variables = nm->mkNode(Kind::BOUND_VAR_LIST, freeVariables);
     assertion = expr::algorithm::flatten(nm, assertion);
-    return normalizCheckSat(variables, assertion, assertions.size());
+    return normalizCheckSat(variables, assertion);
   }
   else
   {
@@ -583,9 +583,7 @@ Result LiaStarUtils::cvc5CheckSat(const std::vector<Node>& freeVariables,
   return result;
 }
 
-Result LiaStarUtils::normalizCheckSat(Node variables,
-                                      Node assertion,
-                                      size_t constraintsSize)
+Result LiaStarUtils::normalizCheckSat(Node variables, Node assertion)
 {
   Trace("liastar-normalizCheckSat")
       << "---------------------------" << std::endl;

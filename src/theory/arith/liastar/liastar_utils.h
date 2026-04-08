@@ -58,9 +58,7 @@ class LiaStarUtils
   static Result cvc5CheckSat(const std::vector<Node>& freeVariables,
                              Node assertion,
                              Env* e);
-  static Result normalizCheckSat(Node variables,
-                                 Node assertion,
-                                 size_t constraintsSize);
+  static Result normalizCheckSat(Node variables, Node assertion);
 
   /**
    * This function returns a list of matrices representing cones (disjunctions)
