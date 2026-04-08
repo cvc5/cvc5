@@ -21,6 +21,7 @@
 
 #include "context/cdlist.h"
 #include "expr/node.h"
+#include "proof/annotation_proof_generator.h"
 #include "proof/proof.h"
 #include "proof/trust_node.h"
 #include "prop/learned_db.h"
@@ -437,6 +438,8 @@ class PropEngine : protected EnvObj
   CnfStream* d_cnfStream;
   /** A default proof generator for theory lemmas */
   CDProof d_theoryLemmaPg;
+  /** A proof generator for annotated theory lemmas */
+  AnnotationProofGenerator d_annotTheoryLemmaPg;
 
   /** The proof manager for prop engine */
   std::unique_ptr<PropPfManager> d_ppm;

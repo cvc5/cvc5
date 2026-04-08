@@ -183,6 +183,7 @@ bool EoPrinter::isHandled(const Options& opts, const ProofNode* pfn)
     case ProofRule::BV_POLY_NORM:
     case ProofRule::BV_POLY_NORM_EQ:
     case ProofRule::EXISTS_STRING_LENGTH:
+    case ProofRule::ANNOTATE:
     case ProofRule::DSL_REWRITE: return true;
     case ProofRule::BV_BITBLAST_STEP:
     {
@@ -1247,6 +1248,12 @@ void EoPrinter::printStepPost(EoPrintChannel* out, const ProofNode* pn)
                         premises,
                         pn->getArguments(),
                         conclusion);
+    return;
+  }
+  if (r == ProofRule::ANNOTATE)
+  {
+    Assert(premises.size() == 1);
+    d_pletMap[pn] = premises[0];
     return;
   }
   std::string rname = getRuleName(pn);

@@ -19,10 +19,12 @@
 #include "options/printer_options.h"
 #include "options/proof_options.h"
 #include "printer/smt2/smt2_printer.h"
+#include "proof/annotation_id.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_node_algorithm.h"
 #include "proof/proof_node_manager.h"
 #include "proof/trust_id.h"
+#include "theory/inference_id.h"
 #include "theory/builtin/proof_checker.h"
 
 namespace cvc5::internal {
@@ -521,6 +523,31 @@ void DotPrinter::ruleArguments(std::ostringstream& currentArguments,
     // delete "THEORY_" prefix
     s.erase(0, 7);
     currentArguments << s;
+  }
+  else if (r == ProofRule::ANNOTATE)
+  {
+    AnnotationId aid;
+    if (getAnnotationId(args[0], aid))
+    {
+      currentArguments << aid;
+    }
+    else
+    {
+      currentArguments << d_lbind.convert(args[0]);
+    }
+    for (size_t i = 1, size = args.size(); i < size; i++)
+    {
+      currentArguments << ", ";
+      theory::InferenceId iid;
+      if (i == 1 && theory::getInferenceId(args[i], iid))
+      {
+        currentArguments << iid;
+      }
+      else
+      {
+        currentArguments << d_lbind.convert(args[i]);
+      }
+    }
   }
   else
   {

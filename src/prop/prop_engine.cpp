@@ -24,6 +24,7 @@
 #include "options/proof_options.h"
 #include "options/prop_options.h"
 #include "options/smt_options.h"
+#include "proof/annotation_id.h"
 #include "proof/proof_node_algorithm.h"
 #include "prop/cnf_stream.h"
 #include "prop/proof_cnf_stream.h"
@@ -69,6 +70,10 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
       d_satSolver(nullptr),
       d_cnfStream(nullptr),
       d_theoryLemmaPg(d_env, d_env.getUserContext(), "PropEngine::ThLemmaPg"),
+      d_annotTheoryLemmaPg(
+          d_env,
+          d_env.getUserContext(),
+          "PropEngine::AnnotTheoryLemmaPg"),
       d_ppm(nullptr),
       d_interrupted(false),
       d_assumptions(userContext()),
@@ -252,13 +257,22 @@ void PropEngine::assertTrustedLemmaInternal(theory::InferenceId id,
   bool negated = trn.getKind() == TrustNodeKind::CONFLICT;
   // should have a proof generator if the theory engine is proof producing
   Assert(!d_env.isTheoryProofProducing() || trn.getGenerator() != nullptr);
+  Node actualNode = negated ? node.notNode() : node;
+  if (isProofEnabled() && options().proof.proofAnnotateTheoryLemmas)
+  {
+    std::vector<Node> args{
+        mkAnnotationId(nodeManager(), AnnotationId::THEORY_LEMMA),
+        theory::mkInferenceIdNode(nodeManager(), id)};
+    d_annotTheoryLemmaPg.addAnnotation(
+        actualNode, trn.getGenerator(), args, TrustId::THEORY_LEMMA, {});
+    trn = TrustNode::mkReplaceGenTrustNode(trn, &d_annotTheoryLemmaPg);
+  }
   // if we are producing proofs for the SAT solver but not for theory engine,
   // then we need to prevent the lemma of being added as an assumption (since
   // the generator will be null). We use the default proof generator for lemmas.
-  if (d_env.isSatProofProducing() && !d_env.isTheoryProofProducing()
+  else if (d_env.isSatProofProducing() && !d_env.isTheoryProofProducing()
       && !trn.getGenerator())
   {
-    Node actualNode = negated ? node.notNode() : node;
     d_theoryLemmaPg.addTrustedStep(actualNode, TrustId::THEORY_LEMMA, {}, {});
     trn = TrustNode::mkReplaceGenTrustNode(trn, &d_theoryLemmaPg);
   }

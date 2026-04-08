@@ -248,6 +248,11 @@ void ProofNodeUpdater::preSimplify(std::shared_ptr<ProofNode> cur)
     toMerge = nullptr;
     switch (id)
     {
+      case ProofRule::ANNOTATE:
+      {
+        // Preserve annotations, even though they are conclusion-preserving.
+      }
+      break;
       case ProofRule::AND_ELIM:
       {
         // hardcoded for pattern (AND_ELIM (AND_INTRO ...))
@@ -307,7 +312,7 @@ void ProofNodeUpdater::preSimplify(std::shared_ptr<ProofNode> cur)
     // post-processing F1 ... F{i-1} F{i+1} ... Fn. The depth is configurable by
     // --proof-pre-simp-lookahead=N, default 2.
     uint64_t depthLimit = options().proof.proofPreSimpLookahead;
-    if (toMerge == nullptr && depthLimit > 0)
+    if (toMerge == nullptr && depthLimit > 0 && id != ProofRule::ANNOTATE)
     {
       Node res = cur->getResult();
       std::vector<std::pair<size_t, std::shared_ptr<ProofNode>>> toProcess;
@@ -442,7 +447,7 @@ void ProofNodeUpdater::runFinalize(
   {
     Trace("pf-process-debug") << "...updated proof." << std::endl;
   }
-  if (d_mergeSubproofs)
+  if (d_mergeSubproofs && cur->getRule() != ProofRule::ANNOTATE)
   {
     Node res = cur->getResult();
     // cache the result if we don't contain an assumption
@@ -518,6 +523,10 @@ bool ProofNodeUpdater::checkMergeProof(
 {
   if (d_mergeSubproofs)
   {
+    if (cur->getRule() == ProofRule::ANNOTATE)
+    {
+      return false;
+    }
     const Node& res = cur->getResult();
     std::map<Node, std::shared_ptr<ProofNode>>::const_iterator itc =
         resCache.find(res);
