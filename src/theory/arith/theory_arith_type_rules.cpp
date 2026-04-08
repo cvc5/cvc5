@@ -307,7 +307,8 @@ TypeNode IndexedRootPredicateTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->booleanType();
 }
 
-TypeNode StarContainsTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode StarContainsTypeRule::preComputeType(NodeManager* nm,
+                                              CVC5_UNUSED TNode n)
 {
   return nm->booleanType();
 }
