@@ -516,7 +516,7 @@ std::pair<Rational, bool> FloatingPointLiteralSymFPU::convertToRational() const
   // As we convert Integer -> unsigned int -> uint32_t we need that
   // unsigned int is not smaller than uint32_t
   static_assert(sizeof(unsigned int) >= sizeof(uint32_t),
-                "Conversion float -> real could loose data");
+                "Conversion float -> real could lose data");
 #ifdef CVC5_ASSERTIONS
   // Note that multipling by 2^n requires n bits of space (worst case)
   // so, in effect, these tests limit us to cases where the resultant
