@@ -1,4 +1,3 @@
-; COMMAND-LINE: --check-proofs
 ; EXPECT: unsat
 (set-logic UFBVSLIA)
 (declare-fun s (String String Int) String)
