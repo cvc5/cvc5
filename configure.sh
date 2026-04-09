@@ -53,6 +53,7 @@ The following flags enable optional features (disable with --no-<option name>).
   --coverage               support for gcov coverage testing
   --profiling              support for gprof profiling
   --unit-testing           support for unit testing
+  --slow-tests             enable slow (exhaustive) unit tests
   --python-bindings        build Python bindings based on new C++ API
   --python-only-src        create only Python bindings source files
   --java-bindings          build Java bindings based on new C++ API
@@ -155,6 +156,7 @@ editline=default
 mpfr=default
 build_shared=ON
 safe_mode=default
+slow_tests=default
 stable_mode=default
 static_binary=default
 statistics=default
@@ -310,6 +312,9 @@ do
 
     --unit-testing) unit_testing=ON;;
     --no-unit-testing) unit_testing=OFF;;
+
+    --slow-tests) slow_tests=ON;;
+    --no-slow-tests) slow_tests=OFF;;
 
     --python-bindings) python_bindings=ON;;
     --no-python-bindings) python_bindings=OFF;;
@@ -474,6 +479,8 @@ fi
   && cmake_opts="$cmake_opts -DENABLE_TRACING=$tracing"
 [ $unit_testing != default ] \
   && cmake_opts="$cmake_opts -DENABLE_UNIT_TESTING=$unit_testing"
+[ $slow_tests != default ] \
+  && cmake_opts="$cmake_opts -DENABLE_SLOW_TESTS=$slow_tests"
 [ $docs != default ] \
   && cmake_opts="$cmake_opts -DBUILD_DOCS=$docs"
 [ $docs_ga != default ] \
