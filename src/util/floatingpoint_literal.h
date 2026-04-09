@@ -221,10 +221,20 @@ class FloatingPointLiteral
   /** Floating-point less than. */
   virtual bool operator<(const FloatingPointLiteral& arg) const = 0;
 
-  /** Get the exponent of this floating-point value. */
-  virtual BitVector getExponent() const = 0;
-  /** Get the significand of this floating-point value. */
-  virtual BitVector getSignificand() const = 0;
+  /**
+   * Get the unpacked representation of the exponent (as used by SymFPU) of this
+   * floating-point value.
+   * @note This is only required for constant-folding of floating-point variable
+   *       components, as required by model generation (see #1915).
+   */
+  virtual BitVector getUnpackedExponent() const = 0;
+  /**
+   * Get the unpacked representation of the significand (as used by SymFPU) of
+   * this floating-point value.
+   * @note This is only required for constant-folding of floating-point variable
+   *       components, as required by model generation (see #1915).
+   */
+  virtual BitVector getUnpackedSignificand() const = 0;
   /** True if this value is a negative value. */
   virtual bool getSign() const = 0;
 
