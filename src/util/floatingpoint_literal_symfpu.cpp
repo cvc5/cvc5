@@ -494,5 +494,48 @@ BitVector FloatingPointLiteralSymFPU::convertToUBVTotal(
       d_fp_size, rm, d_symuf, width, undefinedCase);
 }
 
+std::pair<Rational, bool> FloatingPointLiteralSymFPU::convertToRational() const
+{
+  if (isNaN() || isInfinite())
+  {
+    return std::make_pair(Rational(0U, 1U), false);
+  }
+  if (isZero())
+  {
+    return std::make_pair(Rational(0U, 1U), true);
+  }
+  Integer sign(d_symuf.sign ? -1 : 1);
+  Integer exp(
+      d_symuf.exponent.toSignedInteger()
+      - (Integer(d_fp_size.significandWidth()
+                 - 1)));  // -1 as forcibly normalised into the [1,2) range
+  Integer significand(d_symuf.significand.toInteger());
+  Integer signedSignificand(sign * significand);
+
+  // We only have multiplyByPow(uint32_t) so we can't convert all numbers.
+  // As we convert Integer -> unsigned int -> uint32_t we need that
+  // unsigned int is not smaller than uint32_t
+  static_assert(sizeof(unsigned int) >= sizeof(uint32_t),
+                "Conversion float -> real could loose data");
+#ifdef CVC5_ASSERTIONS
+  // Note that multipling by 2^n requires n bits of space (worst case)
+  // so, in effect, these tests limit us to cases where the resultant
+  // number requires up to 2^32 bits = 512 megabyte to represent.
+  Integer shiftLimit(std::numeric_limits<uint32_t>::max());
+#endif
+
+  if (!(exp.strictlyNegative()))
+  {
+    Assert(exp <= shiftLimit);
+    Integer r(signedSignificand.multiplyByPow2(exp.toUnsignedInt()));
+    return std::make_pair(Rational(r), true);
+  }
+  Integer one(1U);
+  Assert((-exp) <= shiftLimit);
+  Integer q(one.multiplyByPow2((-exp).toUnsignedInt()));
+  Rational r(signedSignificand, q);
+  return std::make_pair(r, true);
+}
+
 /* -------------------------------------------------------------------------- */
 }  // namespace cvc5::internal

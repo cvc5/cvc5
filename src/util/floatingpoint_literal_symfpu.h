@@ -136,6 +136,8 @@ class FloatingPointLiteralSymFPU : public FloatingPointLiteral
                               const RoundingMode& rm,
                               BitVector undefinedCase) const override;
 
+  std::pair<Rational, bool> convertToRational() const override;
+
  private:
   /**
    * Create a FP literal from unpacked representation.
