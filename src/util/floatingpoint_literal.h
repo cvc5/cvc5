@@ -14,16 +14,16 @@
 #define CVC5__UTIL__FLOATINGPOINT_LITERAL_H
 
 #include <memory>
+#include <utility>
 
 #include "util/bitvector.h"
 #include "util/floatingpoint_size.h"
+#include "util/rational.h"
 #include "util/roundingmode.h"
 
 /* -------------------------------------------------------------------------- */
 
 namespace cvc5::internal {
-
-class Rational;
 
 class FloatingPointLiteral
 {
@@ -263,7 +263,9 @@ class FloatingPointLiteral
   /**
    * Convert this floating-point to a signed bit-vector of given size,
    * with respect to given rounding mode (total version).
-   * Returns given bit-vector 'undefinedCase' in the undefined case.
+   * @param width The size of the target bit-vector.
+   * @param rm    The rounding mode.
+   * @returns The converted result, and `undefinedCase` in the undefined case.
    */
   virtual BitVector convertToSBVTotal(BitVectorSize width,
                                       const RoundingMode& rm,
@@ -271,11 +273,21 @@ class FloatingPointLiteral
   /**
    * Convert this floating-point to an unsigned bit-vector of given
    * size, with respect to given rounding mode (total version).
-   * Returns given bit-vector 'undefinedCase' in the undefined case.
+   * @param width The size of the target bit-vector.
+   * @param rm    The rounding mode.
+   * @returns The converted result, and `undefinedCase` in the undefined case.
    */
   virtual BitVector convertToUBVTotal(BitVectorSize width,
                                       const RoundingMode& rm,
                                       BitVector undefinedCase) const = 0;
+
+  /**
+   * Convert this floating-point to a rational.
+   * @returns A pair of Rational and bool. The boolean flag is true if the
+   *          result is defined (i.e., the value is not NaN or infinite), and
+   *          false otherwise.
+   */
+  virtual std::pair<Rational, bool> convertToRational() const = 0;
 
   /** Return the size of this floating-point. */
   const FloatingPointSize& getSize() const { return d_fp_size; };
