@@ -41,6 +41,12 @@
 (define @list.nil () eo::List::nil)
 (define @list () eo::List::cons)
 
+; homogeneous-typed list
+(declare-parameterized-const @@TypedList ((T Type)) Type)
+(declare-parameterized-const @@TypedList.nil ((T Type)) (@@TypedList T))
+(declare-parameterized-const @@TypedList.cons ((T Type :implicit))
+  (-> T (@@TypedList T) (@@TypedList T)) :right-assoc-nil (@@TypedList.nil T))
+
 ; note: This is a forward declaration of $evaluate_list defined in Cpc.eo.
 (program $evaluate_list () :signature (@List) @List)
 
