@@ -239,11 +239,14 @@ bool FloatingPoint::operator<(const FloatingPoint& fp) const
   return *d_fpl < *fp.d_fpl;
 }
 
-BitVector FloatingPoint::getExponent() const { return d_fpl->getExponent(); }
-
-BitVector FloatingPoint::getSignificand() const
+BitVector FloatingPoint::getUnpackedExponent() const
 {
-  return d_fpl->getSignificand();
+  return d_fpl->getUnpackedExponent();
+}
+
+BitVector FloatingPoint::getUnpackedSignificand() const
+{
+  return d_fpl->getUnpackedSignificand();
 }
 
 bool FloatingPoint::getSign() const { return d_fpl->getSign(); }
@@ -309,10 +312,10 @@ FloatingPoint::PartialRational FloatingPoint::convertToRational(void) const
   }
   Integer sign((d_fpl->getSign()) ? -1 : 1);
   Integer exp(
-      d_fpl->getExponent().toSignedInteger()
+      d_fpl->getUnpackedExponent().toSignedInteger()
       - (Integer(d_fpl->getSize().significandWidth()
                  - 1)));  // -1 as forcibly normalised into the [1,2) range
-  Integer significand(d_fpl->getSignificand().toInteger());
+  Integer significand(d_fpl->getUnpackedSignificand().toInteger());
   Integer signedSignificand(sign * significand);
 
   // We only have multiplyByPow(uint32_t) so we can't convert all numbers.

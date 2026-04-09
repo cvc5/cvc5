@@ -114,8 +114,8 @@ class FloatingPointLiteralSymFPU : public FloatingPointLiteral
   bool operator<=(const FloatingPointLiteral& arg) const override;
   bool operator<(const FloatingPointLiteral& arg) const override;
 
-  BitVector getExponent() const override;
-  BitVector getSignificand() const override;
+  BitVector getUnpackedExponent() const override;
+  BitVector getUnpackedSignificand() const override;
   bool getSign() const override;
 
   bool isNormal() const override;
