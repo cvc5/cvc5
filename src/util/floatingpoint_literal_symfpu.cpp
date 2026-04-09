@@ -420,12 +420,12 @@ bool FloatingPointLiteralSymFPU::operator<(
 
 /* -------------------------------------------------------------------------- */
 
-BitVector FloatingPointLiteralSymFPU::getExponent() const
+BitVector FloatingPointLiteralSymFPU::getUnpackedExponent() const
 {
   return d_symuf.exponent;
 }
 
-BitVector FloatingPointLiteralSymFPU::getSignificand() const
+BitVector FloatingPointLiteralSymFPU::getUnpackedSignificand() const
 {
   return d_symuf.significand;
 }
