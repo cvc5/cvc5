@@ -47,8 +47,8 @@
 ;   This function is declared pairwise in SMT-LIB. We annotate it as taking an
 ;   argument list for the sake of performance.
 (declare-parameterized-const distinct ((T Type :implicit))
-  (-> (@@TypedList T) Bool)
-  :arg-list @@TypedList.cons)
+  (-> (@TList T) Bool)
+  :arg-list @tlist)
   
 ; The purification skolem.
 (declare-parameterized-const @purify ((A Type :implicit) (t A :opaque)) A)

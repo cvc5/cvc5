@@ -49,6 +49,9 @@
 (declare-parameterized-const @@TypedList.nil ((T Type)) (@@TypedList T))
 (declare-parameterized-const @@TypedList.cons ((T Type :implicit))
   (-> T (@@TypedList T) (@@TypedList T)) :right-assoc-nil (@@TypedList.nil T))
+(define @TList () @@TypedList)
+(define @tlist.nil () @@TypedList.nil)
+(define @tlist () @@TypedList.cons)
 
 ; program: $typed_list_element_type
 ; args:
@@ -57,42 +60,19 @@
 (program $typed_list_element_type ((T Type))
   :signature (Type) Type
   (
-  (($typed_list_element_type (@@TypedList T)) T)
+  (($typed_list_element_type (@TList T)) T)
   )
 )
 
 ; program: $typed_list_to_untyped
 ; args:
-; - xs (@@TypedList T): the typed list.
+; - xs (@TList T): the typed list.
 ; return: The result of converting xs to an untyped (heterogeneous) list.
-(program $typed_list_to_untyped ((T Type) (x T) (xs (@@TypedList T) :list))
-  :signature ((@@TypedList T)) @List
+(program $typed_list_to_untyped ((T Type) (x T) (xs (@TList T) :list))
+  :signature ((@TList T)) @List
   (
-  (($typed_list_to_untyped (@@TypedList.cons x xs)) (_ @list x ($typed_list_to_untyped xs)))
-  (($typed_list_to_untyped (@@TypedList.nil T))     @list.nil)
-  )
-)
-
-;; =============== variable list
-
-(declare-const @@UnitVarList Type)
-(declare-const @@VarList (-> Type Type Type) :right-assoc-nil @@UnitVarList)
-
-(declare-const @@VarList.nil @@UnitVarList)
-(declare-parameterized-const @@VarList.cons
-  ((T Type :implicit) (U Type :implicit :list))
-  (-> T U (@@VarList T U)) :right-assoc-nil @@VarList.nil)
-(define @varlist () @@VarList.cons)
-
-; program: $is_var_list_type
-; args:
-; - T Type: the type in question
-; return: true if T is a variable list type, stuck otherwise.
-(program $is_var_list_type ((T Type) (U Type :list))
-  :signature (Type) Bool
-  (
-  (($is_var_list_type (@@VarList T U)) ($is_var_list_type U))
-  (($is_var_list_type @@UnitVarList) true)
+  (($typed_list_to_untyped (@tlist x xs))   (_ @list x ($typed_list_to_untyped xs)))
+  (($typed_list_to_untyped (@tlist.nil T))  @list.nil)
   )
 )
 
