@@ -47,6 +47,29 @@
 (declare-parameterized-const @@TypedList.cons ((T Type :implicit))
   (-> T (@@TypedList T) (@@TypedList T)) :right-assoc-nil (@@TypedList.nil T))
 
+; program: $typed_list_element_type
+; args:
+; - T Type: the type in question
+; return: The element type of T, if it is a typed list.
+(program $typed_list_element_type ((T Type))
+  :signature (Type) Type
+  (
+  (($typed_list_element_type (@@TypedList T)) T)
+  )
+)
+
+; program: $typed_list_to_untyped
+; args:
+; - xs (@@TypedList T): the typed list.
+; return: The result of converting xs to an untyped (heterogeneous) list.
+(program $typed_list_to_untyped ((T Type) (x T) (xs (@@TypedList T) :list))
+  :signature ((@@TypedList T)) @List
+  (
+  (($typed_list_to_untyped (@@TypedList.cons x xs)) (_ @list x ($typed_list_to_untyped xs)))
+  (($typed_list_to_untyped (@@TypedList.nil T))     @list.nil)
+  )
+)
+
 ; note: This is a forward declaration of $evaluate_list defined in Cpc.eo.
 (program $evaluate_list () :signature (@List) @List)
 

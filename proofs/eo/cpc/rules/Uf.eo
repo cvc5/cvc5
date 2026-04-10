@@ -293,7 +293,7 @@
 ; conclusion: The given equality.
 (declare-rule distinct-true ((T Type) (xs (@@TypedList T) :list))
   :args ((= (distinct xs) true))
-  :requires ((($are_distinct_terms_list xs ($assoc_nil_nth_type @@TypedList.cons xs 0)) true))
+  :requires ((($are_distinct_terms_list ($typed_list_to_untyped xs) ($typed_list_element_type (eo::typeof xs))) true))
   :conclusion (= (distinct xs) true)
 )
 
