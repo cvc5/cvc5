@@ -108,6 +108,9 @@ class BitVector
   /* Return k if the value of this is equal to 2^{k-1}, and zero otherwise. */
   unsigned isPow2() const;
 
+  /** @return True if this bit-vector represents value 1. */
+  bool is_one() const;
+
   /* -----------------------------------------------------------------------
    ** Operators
    * ----------------------------------------------------------------------- */

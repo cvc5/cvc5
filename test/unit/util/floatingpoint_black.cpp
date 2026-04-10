@@ -12,6 +12,7 @@
 
 #include "test.h"
 #include "util/floatingpoint.h"
+#include "util/floatingpoint_literal_symfpu.h"
 
 namespace cvc5::internal {
 namespace test {
@@ -131,5 +132,22 @@ TEST_F(TestUtilBlackFloatingPoint, makeMaxNormal)
   FloatingPoint mfp128 = FloatingPoint::makeMaxNormal(size128, false);
   ASSERT_TRUE(mfp128.isNormal());
 }
+
+TEST_F(TestUtilBlackFloatingPoint, fromSbv1)
+{
+  BitVector bv0(1, 0u);
+  BitVector bv1(1, 1u);
+  for (const auto& bv : {bv0, bv1})
+  {
+    for (bool sign : {true, false})
+    {
+      FloatingPoint fp(FloatingPointSize(5, 11),
+                       RoundingMode::ROUND_NEAREST_TIES_TO_AWAY,
+                       bv,
+                       sign);
+    }
+  }
+}
+
 }  // namespace test
 }  // namespace cvc5::internal
