@@ -874,10 +874,10 @@ void EoPrinter::print(std::ostream& out,
   }
 }
 
-void EoPrinter::print(AlfPrintChannelOut& aout,
-                       std::shared_ptr<ProofNode> pfn,
-                       ProofScopeMode psm,
-                       bool printDeclPreamble)
+void EoPrinter::print(EoPrintChannelOut& aout,
+                      std::shared_ptr<ProofNode> pfn,
+                      ProofScopeMode psm,
+                      bool printDeclPreamble)
 {
   std::ostream& out = aout.getOStream();
   if (d_isCpcLogos)

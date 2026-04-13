@@ -10,7 +10,7 @@
  * Implementation of Logos node conversion
  */
 
-#include "proof/alf/logos_node_converter.h"
+#include "proof/eo/logos_node_converter.h"
 
 #include <cstdlib>
 
@@ -29,7 +29,7 @@
 namespace cvc5::internal {
 namespace proof {
 
-LogosNodeConverter::LogosNodeConverter(NodeManager* nm) : AlfNodeConverter(nm)
+LogosNodeConverter::LogosNodeConverter(NodeManager* nm) : EoNodeConverter(nm)
 {
   d_constIdCount = 0;
   d_sortIdCount = 0;

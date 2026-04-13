@@ -19,7 +19,7 @@
 #include "printer/printer.h"
 #include "proof/trust_id.h"
 #include "rewriter/rewrite_db.h"
-#include "proof/alf/logos_node_converter.h"
+#include "proof/eo/logos_node_converter.h"
 
 namespace cvc5::internal {
 namespace proof {
@@ -249,7 +249,7 @@ void EoPrintChannelPre::processInternal(const Node& n)
 
 CpcLogosChannelOut::CpcLogosChannelOut(std::ostream& out,
                                        const LetBinding* lbind)
-    : AlfPrintChannelOut(out, lbind, false)
+    : EoPrintChannelOut(out, lbind, false)
 {
   d_stackSize = 0;
   d_stateId = 0;

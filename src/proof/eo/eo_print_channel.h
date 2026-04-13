@@ -178,7 +178,7 @@ class EoPrintChannelPre : public EoPrintChannel
  * Note that premise ids refer to the relative distance of the premise from the
  * top of the stack, where 0 refers to the last formula proven, and so on.
  */
-class CpcLogosChannelOut : public AlfPrintChannelOut
+class CpcLogosChannelOut : public EoPrintChannelOut
 {
  public:
   CpcLogosChannelOut(std::ostream& out, const LetBinding* lbind);

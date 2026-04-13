@@ -11,14 +11,14 @@
  */
 #include "cvc5_private.h"
 
-#ifndef CVC5__PROOF__ALF__LOGOS_NODE_CONVERTER_H
-#define CVC5__PROOF__ALF__LOGOS_NODE_CONVERTER_H
+#ifndef CVC5__PROOF__EO__LOGOS_NODE_CONVERTER_H
+#define CVC5__PROOF__EO__LOGOS_NODE_CONVERTER_H
 
 #include <iostream>
 #include <map>
 
 #include "expr/node.h"
-#include "proof/alf/alf_node_converter.h"
+#include "proof/eo/eo_node_converter.h"
 
 namespace cvc5::internal {
 namespace proof {
@@ -50,7 +50,7 @@ namespace proof {
  * This node converter involves rewriting cvc5 terms to their corresponding
  * deep embedding syntax in the Lean signature.
  */
-class LogosNodeConverter : public AlfNodeConverter
+class LogosNodeConverter : public EoNodeConverter
 {
  public:
   LogosNodeConverter(NodeManager* nm);
