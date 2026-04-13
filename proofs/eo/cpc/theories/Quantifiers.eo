@@ -26,6 +26,17 @@
     (($get_var_list (Q xs G)) xs)
   )
 )
+; program: $get_var_type
+; args:
+; - v T: The variable
+; return: >
+;   The type of the variable.
+(program $get_var_type ((s String) (T Type))
+  :signature (T) Type
+  (
+  (($get_var_type (eo::var s T)) T)
+  )
+)
 
 ; program: $get_nth_var_type
 ; args:
@@ -34,11 +45,10 @@
 ; return: >
 ;   The type of the i^th variable in the binder for F.
 (program $get_nth_var_type
-  ((Q (-> @List Bool Bool)) (s String) (T Type) (v T) (xs @List :list) (G Bool) (i Int))
+  ((Q (-> @List Bool Bool)) (xs @List :list) (G Bool) (i Int))
   :signature (Bool Int) Type
   (
-  (($get_nth_var_type (Q (@list (eo::var s T) xs) G) 0) T)
-  (($get_nth_var_type (Q (@list v xs) G) i) ($get_nth_var_type (Q (@list xs) G) (eo::add i -1)))
+  (($get_nth_var_type (Q xs G) i) ($get_var_type (eo::list_nth @list xs i)))
   )
 )
 
