@@ -88,7 +88,7 @@ Node LogosNodeConverter::postConvert(Node n)
     std::vector<Node> args(n.begin(), n.end());
     Node distinct = mkInternalSymbol("Term.distinct", tn);
     // it is :arg-list, so it must be a list of terms
-    Node an = mkLogosList(args, tn);
+    Node an = mkLogosTypedList(args, tn);
     return mkInternalApp("Term.Apply", {distinct, an}, tn);
   }
   else if (k == Kind::APPLY_CONSTRUCTOR || k == Kind::APPLY_TESTER
@@ -323,6 +323,23 @@ Node LogosNodeConverter::mkLogosList(const std::vector<Node>& args, const TypeNo
 {
   Node ret = mkInternalSymbol("Term.__eo_List_nil", tn);
   Node cons = mkInternalSymbol("Term.__eo_List_cons", tn);
+  // use generic list
+  for (size_t i = 0, nchild = args.size(); i < nchild; i++)
+  {
+    size_t ii = (nchild - i) - 1;
+    Node cc = mkInternalApp("Term.Apply", {cons, args[ii]}, tn);
+    ret = mkInternalApp("Term.Apply", {cc, ret}, tn);
+  }
+  return ret;
+}
+
+Node LogosNodeConverter::mkLogosTypedList(const std::vector<Node>& args, const TypeNode& tn)
+{
+  Assert (!args.empty());
+  std::stringstream nilName;
+  nilName << "(Term._at__at_TypedList_nil " << typeAsNode(args[0].getType()) << ")";
+  Node ret = mkInternalSymbol(nilName.str(), tn);
+  Node cons = mkInternalSymbol("Term._at__at_TypedList_cons", tn);
   // use generic list
   for (size_t i = 0, nchild = args.size(); i < nchild; i++)
   {

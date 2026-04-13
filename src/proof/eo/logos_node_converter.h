@@ -83,6 +83,7 @@ static std::string replace_all(std::string str,
   Node typeAsNodeDatatype(const DType& dt, std::unordered_set<TypeNode>& scope);
   /** make list */
   Node mkLogosList(const std::vector<Node>& args, const TypeNode& tn);
+  Node mkLogosTypedList(const std::vector<Node>& args, const TypeNode& tn);
 };
 
 }  // namespace proof
