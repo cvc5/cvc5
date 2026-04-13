@@ -57,6 +57,9 @@ class FloatingPointLiteralSymFPU : public FloatingPointLiteral
                              const BitVector& bv,
                              bool signedBV);
 
+  /** Copy Constructor.*/
+  FloatingPointLiteralSymFPU(const FloatingPointLiteralSymFPU& other);
+
   /** Destructor. */
   ~FloatingPointLiteralSymFPU();
 
@@ -154,19 +157,20 @@ class FloatingPointLiteralSymFPU : public FloatingPointLiteral
                              const BitVector& exp,
                              const BitVector& sig)
       : FloatingPointLiteral(size),
-        d_symuf(SymFPUUnpackedFloatLiteral(sign, exp, sig))
+        d_symuf(new SymFPUUnpackedFloatLiteral(sign, exp, sig))
   {
   }
 
   /** Create a FP literal from a symFPU unpacked float. */
   FloatingPointLiteralSymFPU(const FloatingPointSize& size,
                              SymFPUUnpackedFloatLiteral symuf)
-      : FloatingPointLiteral(size), d_symuf(symuf)
+      : FloatingPointLiteral(size),
+        d_symuf(new SymFPUUnpackedFloatLiteral(symuf))
   {
   }
 
   /** The actual floating-point value, a SymFPU unpackedFloat. */
-  SymFPUUnpackedFloatLiteral d_symuf;
+  std::unique_ptr<SymFPUUnpackedFloatLiteral> d_symuf;
 };
 
 /* -------------------------------------------------------------------------- */
