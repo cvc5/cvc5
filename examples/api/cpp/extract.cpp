@@ -23,7 +23,7 @@ int main()
 {
   TermManager tm;
   Solver slv(tm);
-  slv.setLogic("QF_BV"); // Set the logic
+  slv.setLogic("QF_BV");  // Set the logic
 
   Sort bv32 = tm.mkBitVectorSort(32);
 

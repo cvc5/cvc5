@@ -270,6 +270,7 @@
 (define seq.rev (# x term (apply f_str.rev x)))
 (define seq.update (# x term (# y term (# z term (apply (apply (apply f_str.update x) y) z)))))
 (define seq.at (# x term (# y term (apply (apply f_str.at x) y))))
+(define seq.replace_all (# x term (# y term (# z term (apply (apply (apply f_str.replace_all x) y) z)))))
 ; skolem types
 (declare skolem_re_unfold_pos (! t term (! r term (! z mpz term))))
 

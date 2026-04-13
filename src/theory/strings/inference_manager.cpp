@@ -174,7 +174,9 @@ void InferenceManager::sendInference(InferInfo& ii, bool asLemma)
     Trace("strings-infer-debug") << "...as conflict" << std::endl;
     Trace("strings-lemma") << "Strings::Conflict: " << ii.d_premises << " by "
                            << ii.getId() << std::endl;
-    Trace("strings-conflict") << "CONFLICT: inference conflict " << ii.d_premises << " by " << ii.getId() << std::endl;
+    Trace("strings-conflict")
+        << "CONFLICT: inference conflict " << ii.d_premises << " by "
+        << ii.getId() << std::endl;
     ++(d_statistics.d_conflictsInfer);
     // process the conflict immediately
     processConflict(ii);
@@ -384,12 +386,12 @@ void InferenceManager::processFact(InferInfo& ii, ProofGenerator*& pg)
     Node atom = ii.d_conc.getKind() == Kind::NOT ? ii.d_conc[0] : ii.d_conc;
     if (atom.getKind() == Kind::EQUAL)
     {
-      Assert(rewrite(atom[0])==atom[0]);
-      Assert(rewrite(atom[1])==atom[1]);
+      Assert(rewrite(atom[0]) == atom[0]);
+      Assert(rewrite(atom[1]) == atom[1]);
     }
     else
     {
-      Assert(rewrite(atom)==atom);
+      Assert(rewrite(atom) == atom);
     }
   }
 }

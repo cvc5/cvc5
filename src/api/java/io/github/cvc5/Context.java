@@ -12,11 +12,11 @@
 
 package io.github.cvc5;
 
+import java.lang.Long;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
-import java.lang.Long;
+import java.util.Map;
 
 /**
  * The {@code Context} class is responsible for tracking and deleting pointers to
@@ -53,8 +53,10 @@ public class Context
    *
    * @param pointer the {@link AbstractPointer} to remove
    */
-  static synchronized void removeAbstractPointer(AbstractPointer pointer) {
-    if (pointer.getPointer() != 0) {
+  static synchronized void removeAbstractPointer(AbstractPointer pointer)
+  {
+    if (pointer.getPointer() != 0)
+    {
       abstractPointers.remove(Long.valueOf(pointer.getPointer()));
     }
   }
@@ -75,7 +77,8 @@ public class Context
   {
     LinkedList<AbstractPointer> values = new LinkedList<AbstractPointer>(abstractPointers.values());
     Iterator<AbstractPointer> i = values.descendingIterator();
-    while (i.hasNext()) {
+    while (i.hasNext())
+    {
       i.next().deletePointer();
     }
 

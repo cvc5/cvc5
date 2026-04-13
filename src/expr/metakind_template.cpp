@@ -45,7 +45,7 @@ MetaKind metaKindOf(Kind k)
       // clang-format off
 ${metakind_kinds}  // clang-format on
       metakind::INVALID  /* LAST_KIND */
-  };                     /* metaKinds[] */
+  }; /* metaKinds[] */
 
   Assert(k >= Kind::NULL_EXPR && k < Kind::LAST_KIND);
 
@@ -105,9 +105,9 @@ size_t NodeValueCompare::constHash(const cvc5::internal::expr::NodeValue* nv)
 
   switch (static_cast<Kind>(nv->d_kind))
   {
-// clang-format off
+    // clang-format off
     ${metakind_constHashes}
-// clang-format on
+      // clang-format on
     default:
       Unhandled() << cvc5::internal::expr::NodeValue::dKindToKind(nv->d_kind);
   }
@@ -117,7 +117,8 @@ template <bool pool>
 bool NodeValueCompare::compare(const cvc5::internal::expr::NodeValue* nv1,
                                const cvc5::internal::expr::NodeValue* nv2)
 {
-  if(nv1->d_kind != nv2->d_kind) {
+  if (nv1->d_kind != nv2->d_kind)
+  {
     return false;
   }
 
@@ -125,15 +126,17 @@ bool NodeValueCompare::compare(const cvc5::internal::expr::NodeValue* nv1,
   {
     switch (static_cast<Kind>(nv1->d_kind))
     {
-// clang-format off
+      // clang-format off
 ${metakind_compares}
-// clang-format on
-default:
-  Unhandled() << cvc5::internal::expr::NodeValue::dKindToKind(nv1->d_kind);
+      // clang-format on
+      default:
+        Unhandled() << cvc5::internal::expr::NodeValue::dKindToKind(
+            nv1->d_kind);
     }
   }
 
-  if(nv1->d_nchildren != nv2->d_nchildren) {
+  if (nv1->d_nchildren != nv2->d_nchildren)
+  {
     return false;
   }
 
@@ -141,8 +144,10 @@ default:
   cvc5::internal::expr::NodeValue::const_nv_iterator j = nv2->nv_begin();
   cvc5::internal::expr::NodeValue::const_nv_iterator i_end = nv1->nv_end();
 
-  while(i != i_end) {
-    if((*i) != (*j)) {
+  while (i != i_end)
+  {
+    if ((*i) != (*j))
+    {
       return false;
     }
     ++i;
@@ -166,14 +171,13 @@ void nodeValueConstantToStream(std::ostream& out,
 
   switch (static_cast<Kind>(nv->d_kind))
   {
-// clang-format off
+    // clang-format off
 ${metakind_constPrinters}
-// clang-format on
-default:
-  Unhandled() << cvc5::internal::expr::NodeValue::dKindToKind(nv->d_kind);
+    // clang-format on
+    default:
+      Unhandled() << cvc5::internal::expr::NodeValue::dKindToKind(nv->d_kind);
   }
 }
-
 
 // The reinterpret_cast of d_children to various constant payload types
 // in deleteNodeValueConstant(), below, can flag a "strict aliasing"
@@ -197,16 +201,16 @@ void deleteNodeValueConstant(cvc5::internal::expr::NodeValue* nv)
 
   switch (static_cast<Kind>(nv->d_kind))
   {
-// clang-format off
+    // clang-format off
 ${metakind_constDeleters}
-// clang-format on
-default:
-  Unhandled() << cvc5::internal::expr::NodeValue::dKindToKind(nv->d_kind);
+    // clang-format on
+    default:
+      Unhandled() << cvc5::internal::expr::NodeValue::dKindToKind(nv->d_kind);
   }
 }
 
 // re-enable the strict-aliasing warning
-# pragma GCC diagnostic warning "-Wstrict-aliasing"
+#pragma GCC diagnostic warning "-Wstrict-aliasing"
 
 uint32_t getMinArityForKind(cvc5::internal::Kind k)
 {
@@ -256,9 +260,9 @@ Kind operatorToKind(cvc5::internal::expr::NodeValue* nv)
 
   switch (Kind k CVC5_UNUSED = nv->getKind())
   {
-// clang-format off
+    // clang-format off
     ${metakind_operatorKinds}
-// clang-format on
+      // clang-format on
 
     default: return Kind::UNDEFINED_KIND; /* LAST_KIND */
   };

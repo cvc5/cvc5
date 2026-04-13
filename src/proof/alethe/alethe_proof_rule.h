@@ -67,6 +67,14 @@ enum class AletheRule : uint32_t
   // G > k. (= (forall (x) F1) F2)
   ANCHOR_SKO_FORALL,
   ANCHOR_SKO_EX,
+  // ======== onepoint
+  // G,xk1,...,xkm,xji->tj1,...,xjo->tjo > (= F1 F2)
+  // -----------------------------------------------
+  // G > (= (Q (x1,...,xn) F1) (Q (xk1,...,xkm) F2))
+  //
+  // where Q is forall or exists, n = m + o, k1,...,km and j1,...,jo are
+  // monotone mappings to 1,...,n, and no xki appears in xj1,...,xjo
+  ANCHOR_ONEPOINT,
   // ======== input
   // > i. F
   ASSUME,
@@ -82,6 +90,13 @@ enum class AletheRule : uint32_t
   // ======== not_not
   // > i.  (cl (not(not(not F)))  F)
   NOT_NOT,
+  // ======== and_intro
+  // G > i1. F1
+  // ...
+  // G > in. Fn
+  // ...
+  // G > k. (and F1 ... Fn)
+  AND_INTRO,
   // ======== and_pos
   // > i.  (cl (not(and F1 ... Fn))  Fi)
   // , with 1 <= i <= n
@@ -358,6 +373,24 @@ enum class AletheRule : uint32_t
   // ite, i.e. Gi := (ite Fi Hi Hi'), then Fi = (ite Fi (= Gi Hi) (= Gi Hi')) if
   // Hi is of sort Bool
   ITE_INTRO,
+  // ======== intro rules for arithmetic operators
+  // The rules below behave similarly to ite_intro, in that they introduce
+  // formulas defining the semantics of the respective operators.
+  // ======== div_intro
+  // > i. (and (<= (* b (div a b)) a) (< a (* b (+ (div a b) c))))
+  // where b is a constant different from 0 and c is 1 if b > 0, -1 otherwise.
+  DIV_INTRO,
+  // ======== log2_intro
+  // > i. (and
+  //        (=> (< 0 x)
+  //            (and (<= (int.pow2 (int.log2 x)) x)
+  //                 (< x (int.pow2 (+ (int.log2 x) 1)))))
+  //         (=> (not (< 0 x)) (= (int.log2 x) 0)))
+  LOG2_INTRO,
+  // ======== to_int_intro
+  // > i. (and (<= 0 (- x (to_real (to_int x))))
+  //           (< (- x (to_real (to_int x))) 1))
+  TO_INT_INTRO,
   // ======== contraction
   // > i. (cl F1 ... Fn)
   // ...
@@ -396,6 +429,9 @@ enum class AletheRule : uint32_t
   ALL_SIMPLIFY,
   // Simplifications based on AC, identity, duplicates
   ACI_SIMP,
+  EVALUATE,
+  POLY_SIMP,
+  POLY_SIMP_REL,
   RARE_REWRITE,
   // ======== let
   // G,x1->F1,...,xn->Fn > j. (= G G')
@@ -454,6 +490,25 @@ enum class AletheRule : uint32_t
   // where set representation of F1 and F2 are the same and the number of
   // literals in C2 is the same of that of C1.
   REORDERING,
+  // ======== HO
+  // > i. (= ((lambda (x_1   ... x_n) t) t_1 ... t_k)
+  //         (lambda (x_k+1 ... x_n) t){x_1 -> t1, ..., x_k -> t_k})
+  // where if k = n then the rhs has no lambda binding t.
+  BETA_EQUIVALENCE,
+  // ======== arrays
+  // > l. (= (select (store a i e) i) e)
+  ARRAYS_IDX,
+  // > k. (not (= i j))
+  // > l. (= (select (store a i e) j) (select a j))
+  ARRAYS_ROW,
+  // > k. (not (= (select (store a i e) j) (select a j)))
+  // > l. (= i j)
+  ARRAYS_ROW_CONTRA,
+  // > k. (not (= a b))
+  // > l. (not (not (= (select a k) (select b k))))
+  // where k is (choice (x I) (or (= a b) (not (= (select a x) (select b x))))),
+  // with type of x coming from the array sort of a.
+  ARRAYS_EXT,
   // ======== bitvector
   //  > i. (cl (= t bbt(t)))
   BV_BITBLAST_STEP_VAR,

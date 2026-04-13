@@ -24,7 +24,7 @@
 
 namespace cvc5::internal {
 namespace options {
-  class OptionsHandler;
+class OptionsHandler;
 // clang-format off
 ${holder_fwd_decls}$
 // clang-format on
@@ -34,7 +34,7 @@ class OptionsListener;
 
 class CVC5_EXPORT Options
 {
-  public:
+ public:
   /**
    * Options cannot be copied as they are given an explicit list of
    * Listeners to respond to.
@@ -50,9 +50,7 @@ class CVC5_EXPORT Options
   Options();
   ~Options();
 
-  options::OptionsHandler& handler() const {
-    return *d_handler;
-  }
+  options::OptionsHandler& handler() const { return *d_handler; }
 
   /**
    * Copies the value of the options stored in OptionsHolder into the current
@@ -61,18 +59,18 @@ class CVC5_EXPORT Options
   void copyValues(const Options& options);
 
  private:
-
-// clang-format off
+  // clang-format off
 ${holder_mem_decls}$
-// clang-format on
- public:
-// clang-format off
+     // clang-format on
+     public :
+     // clang-format off
 ${holder_ref_decls}$
-// clang-format on
-  
- private:
-  /** The handler for the options of the theory. */
-  std::unique_ptr<options::OptionsHandler> d_handler;
+     // clang-format on
+
+     private :
+     /** The handler for the options of the theory. */
+     std::unique_ptr<options::OptionsHandler>
+         d_handler;
 }; /* class Options */
 
 }  // namespace cvc5::internal

@@ -59,13 +59,13 @@ class ModelCons : protected EnvObj
    * lts[i] for all elements in col.
    *
    * Must assign lts to *concrete* lengths.
-   * 
+   *
    * @param m Pointer to the theory model.
    * @param n The list of string terms.
    * @param cols Populated as a partition of n based on their lengths.
    * @param lts The list of lengths for each set in the parition cols.
    */
-  virtual void separateByLength(TheoryModel * m,
+  virtual void separateByLength(TheoryModel* m,
                                 const std::vector<Node>& n,
                                 std::vector<std::vector<Node>>& cols,
                                 std::vector<Node>& lts) = 0;

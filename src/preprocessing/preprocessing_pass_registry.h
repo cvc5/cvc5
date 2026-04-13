@@ -33,7 +33,8 @@ class PreprocessingPassContext;
  * to be used as a singleton and can be shared between threads (assuming that
  * the memory allocator is thread-safe) as well as different solver instances.
  */
-class PreprocessingPassRegistry {
+class PreprocessingPassRegistry
+{
  public:
   /**
    * Gets the single instance of this class.

@@ -34,26 +34,32 @@ namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
-Node ArithIteUtils::applyReduceVariablesInItes(Node n){
+Node ArithIteUtils::applyReduceVariablesInItes(Node n)
+{
   NodeBuilder nb(nodeManager(), n.getKind());
-  if(n.getMetaKind() == kind::metakind::PARAMETERIZED) {
+  if (n.getMetaKind() == kind::metakind::PARAMETERIZED)
+  {
     nb << (n.getOperator());
   }
-  for(Node::iterator it = n.begin(), end = n.end(); it != end; ++it){
+  for (Node::iterator it = n.begin(), end = n.end(); it != end; ++it)
+  {
     nb << reduceVariablesInItes(*it);
   }
   Node res = nb;
   return res;
 }
 
-Node ArithIteUtils::reduceVariablesInItes(Node n){
+Node ArithIteUtils::reduceVariablesInItes(Node n)
+{
   using namespace cvc5::internal::kind;
-  if(d_reduceVar.find(n) != d_reduceVar.end()){
+  if (d_reduceVar.find(n) != d_reduceVar.end())
+  {
     Node res = d_reduceVar[n];
     return res.isNull() ? n : res;
   }
 
-  switch(n.getKind()){
+  switch (n.getKind())
+  {
     case Kind::ITE:
     {
       Node c = n[0], t = n[1], e = n[2];
@@ -166,7 +172,7 @@ Node ArithIteUtils::reduceVariablesInItes(Node n){
           return n;
         }
       }
-  }
+    }
     break;
   }
   Unreachable();
@@ -187,36 +193,44 @@ ArithIteUtils::ArithIteUtils(
 {
 }
 
-ArithIteUtils::~ArithIteUtils(){
-}
+ArithIteUtils::~ArithIteUtils() {}
 
-void ArithIteUtils::clear(){
+void ArithIteUtils::clear()
+{
   d_reduceVar.clear();
   d_constants.clear();
   d_varParts.clear();
 }
 
-const Integer& ArithIteUtils::gcdIte(Node n){
-  if(d_gcds.find(n) != d_gcds.end()){
+const Integer& ArithIteUtils::gcdIte(Node n)
+{
+  if (d_gcds.find(n) != d_gcds.end())
+  {
     return d_gcds[n];
   }
   if (n.isConst())
   {
     const Rational& q = n.getConst<Rational>();
-    if(q.isIntegral()){
+    if (q.isIntegral())
+    {
       d_gcds[n] = q.getNumerator();
       return d_gcds[n];
-    }else{
+    }
+    else
+    {
       return d_one;
     }
   }
   else if (n.getKind() == Kind::ITE && n.getType().isRealOrInt())
   {
     const Integer& tgcd = gcdIte(n[1]);
-    if(tgcd.isOne()){
+    if (tgcd.isOne())
+    {
       d_gcds[n] = d_one;
       return d_one;
-    }else{
+    }
+    else
+    {
       const Integer& egcd = gcdIte(n[2]);
       Integer ite_gcd = tgcd.gcd(egcd);
       d_gcds[n] = ite_gcd;
@@ -226,12 +240,16 @@ const Integer& ArithIteUtils::gcdIte(Node n){
   return d_one;
 }
 
-Node ArithIteUtils::reduceIteConstantIteByGCD_rec(Node n, const Rational& q){
-  if(n.isConst()){
+Node ArithIteUtils::reduceIteConstantIteByGCD_rec(Node n, const Rational& q)
+{
+  if (n.isConst())
+  {
     Assert(n.getType().isRealOrInt());
     return nodeManager()->mkConstRealOrInt(n.getType(),
                                            n.getConst<Rational>() * q);
-  }else{
+  }
+  else
+  {
     Assert(n.getKind() == Kind::ITE);
     Assert(n.getType().isInteger());
     Node rc = reduceConstantIteByGCD(n[0]);
@@ -241,20 +259,26 @@ Node ArithIteUtils::reduceIteConstantIteByGCD_rec(Node n, const Rational& q){
   }
 }
 
-Node ArithIteUtils::reduceIteConstantIteByGCD(Node n){
+Node ArithIteUtils::reduceIteConstantIteByGCD(Node n)
+{
   Assert(n.getKind() == Kind::ITE);
   Assert(n.getType().isRealOrInt());
   const Integer& gcd = gcdIte(n);
   NodeManager* nm = nodeManager();
-  if(gcd.isOne()){
-    Node newIte = reduceConstantIteByGCD(n[0]).iteNode(n[1],n[2]);
+  if (gcd.isOne())
+  {
+    Node newIte = reduceConstantIteByGCD(n[0]).iteNode(n[1], n[2]);
     d_reduceGcd[n] = newIte;
     return newIte;
-  }else if(gcd.isZero()){
+  }
+  else if (gcd.isZero())
+  {
     Node zeroNode = nm->mkConstRealOrInt(n.getType(), Rational(0));
     d_reduceGcd[n] = zeroNode;
     return zeroNode;
-  }else{
+  }
+  else
+  {
     Rational divBy(Integer(1), gcd);
     Node redite = reduceIteConstantIteByGCD_rec(n, divBy);
     Node gcdNode = nm->mkConstRealOrInt(n.getType(), Rational(gcd));
@@ -264,8 +288,10 @@ Node ArithIteUtils::reduceIteConstantIteByGCD(Node n){
   }
 }
 
-Node ArithIteUtils::reduceConstantIteByGCD(Node n){
-  if(d_reduceGcd.find(n) != d_reduceGcd.end()){
+Node ArithIteUtils::reduceConstantIteByGCD(Node n)
+{
+  if (d_reduceGcd.find(n) != d_reduceGcd.end())
+  {
     return d_reduceGcd[n];
   }
   if (n.getKind() == Kind::ITE && n.getType().isRealOrInt())
@@ -273,71 +299,88 @@ Node ArithIteUtils::reduceConstantIteByGCD(Node n){
     return reduceIteConstantIteByGCD(n);
   }
 
-  if(n.getNumChildren() > 0){
+  if (n.getNumChildren() > 0)
+  {
     NodeBuilder nb(nodeManager(), n.getKind());
-    if(n.getMetaKind() == kind::metakind::PARAMETERIZED) {
+    if (n.getMetaKind() == kind::metakind::PARAMETERIZED)
+    {
       nb << (n.getOperator());
     }
     bool anychange = false;
-    for(Node::iterator it = n.begin(), end = n.end(); it != end; ++it){
+    for (Node::iterator it = n.begin(), end = n.end(); it != end; ++it)
+    {
       Node child = *it;
       Node redchild = reduceConstantIteByGCD(child);
       anychange = anychange || (child != redchild);
       nb << redchild;
     }
-    if(anychange){
+    if (anychange)
+    {
       Node res = nb;
       d_reduceGcd[n] = res;
       return res;
-    }else{
+    }
+    else
+    {
       d_reduceGcd[n] = n;
       return n;
     }
-  }else{
+  }
+  else
+  {
     return n;
   }
 }
 
-unsigned ArithIteUtils::getSubCount() const{
-  return d_subcount;
-}
+unsigned ArithIteUtils::getSubCount() const { return d_subcount; }
 
-void ArithIteUtils::addSubstitution(TNode f, TNode t){
+void ArithIteUtils::addSubstitution(TNode f, TNode t)
+{
   Trace("arith::ite") << "adding " << f << " -> " << t << endl;
   d_subcount = d_subcount + 1;
   d_subs.addSubstitution(f, t);
 }
 
-Node ArithIteUtils::applySubstitutions(TNode f){
+Node ArithIteUtils::applySubstitutions(TNode f)
+{
   AlwaysAssert(!options().base.incrementalSolving);
   return d_subs.apply(f);
 }
 
-Node ArithIteUtils::selectForCmp(Node n) const{
+Node ArithIteUtils::selectForCmp(Node n) const
+{
   if (n.getKind() == Kind::ITE)
   {
-    if(d_skolems.find(n[0]) != d_skolems.end()){
+    if (d_skolems.find(n[0]) != d_skolems.end())
+    {
       return selectForCmp(n[1]);
     }
   }
   return n;
 }
 
-void ArithIteUtils::learnSubstitutions(const std::vector<Node>& assertions){
+void ArithIteUtils::learnSubstitutions(const std::vector<Node>& assertions)
+{
   AlwaysAssert(!options().base.incrementalSolving);
-  for(size_t i=0, N=assertions.size(); i < N; ++i){
+  for (size_t i = 0, N = assertions.size(); i < N; ++i)
+  {
     collectAssertions(assertions[i]);
   }
   bool solvedSomething;
-  do{
+  do
+  {
     solvedSomething = false;
     size_t readPos = 0, writePos = 0, N = d_orBinEqs.size();
-    for(; readPos < N; readPos++){
+    for (; readPos < N; readPos++)
+    {
       Node curr = d_orBinEqs[readPos];
       bool solved = solveBinOr(curr);
-      if(solved){
+      if (solved)
+      {
         solvedSomething = true;
-      }else{
+      }
+      else
+      {
         // didn't solve, push back
         d_orBinEqs[writePos] = curr;
         writePos++;
@@ -345,13 +388,14 @@ void ArithIteUtils::learnSubstitutions(const std::vector<Node>& assertions){
     }
     Assert(writePos <= N);
     d_orBinEqs.resize(writePos);
-  }while(solvedSomething);
+  } while (solvedSomething);
 
   d_implies.clear();
   d_orBinEqs.clear();
 }
 
-void ArithIteUtils::addImplications(Node x, Node y){
+void ArithIteUtils::addImplications(Node x, Node y)
+{
   // (or x y)
   // (=> (not x) y)
   // (=> (not y) x)
@@ -362,15 +406,18 @@ void ArithIteUtils::addImplications(Node x, Node y){
   d_implies[yneg].insert(x);
 }
 
-void ArithIteUtils::collectAssertions(TNode assertion){
+void ArithIteUtils::collectAssertions(TNode assertion)
+{
   if (assertion.getKind() == Kind::OR)
   {
-    if(assertion.getNumChildren() == 2){
+    if (assertion.getNumChildren() == 2)
+    {
       TNode left = assertion[0], right = assertion[1];
       addImplications(left, right);
       if (left.getKind() == Kind::EQUAL && right.getKind() == Kind::EQUAL)
       {
-        if(left[0].getType().isInteger() && right[0].getType().isInteger()){
+        if (left[0].getType().isInteger() && right[0].getType().isInteger())
+        {
           d_orBinEqs.push_back(assertion);
         }
       }
@@ -378,19 +425,22 @@ void ArithIteUtils::collectAssertions(TNode assertion){
   }
   else if (assertion.getKind() == Kind::AND)
   {
-    for(unsigned i=0, N=assertion.getNumChildren(); i < N; ++i){
+    for (unsigned i = 0, N = assertion.getNumChildren(); i < N; ++i)
+    {
       collectAssertions(assertion[i]);
     }
   }
 }
 
-Node ArithIteUtils::findIteCnd(TNode tb, TNode fb) const{
+Node ArithIteUtils::findIteCnd(TNode tb, TNode fb) const
+{
   Node negtb = tb.negate();
   Node negfb = fb.negate();
   ImpMap::const_iterator ti = d_implies.find(negtb);
   ImpMap::const_iterator fi = d_implies.find(negfb);
 
-  if(ti != d_implies.end() && fi != d_implies.end()){
+  if (ti != d_implies.end() && fi != d_implies.end())
+  {
     const std::set<Node>& negtimp = ti->second;
     const std::set<Node>& negfimp = fi->second;
 
@@ -407,8 +457,9 @@ Node ArithIteUtils::findIteCnd(TNode tb, TNode fb) const{
     {
       Node impliedByNotTB = *ci;
       Node impliedByNotTBNeg = impliedByNotTB.negate();
-      if(negfimp.find(impliedByNotTBNeg) != negfimp.end()){
-        return impliedByNotTBNeg; // implies tb
+      if (negfimp.find(impliedByNotTBNeg) != negfimp.end())
+      {
+        return impliedByNotTBNeg;  // implies tb
       }
     }
   }
@@ -416,15 +467,17 @@ Node ArithIteUtils::findIteCnd(TNode tb, TNode fb) const{
   return Node::null();
 }
 
-bool ArithIteUtils::solveBinOr(TNode binor){
+bool ArithIteUtils::solveBinOr(TNode binor)
+{
   Assert(binor.getKind() == Kind::OR);
   Assert(binor.getNumChildren() == 2);
   Assert(binor[0].getKind() == Kind::EQUAL);
   Assert(binor[1].getKind() == Kind::EQUAL);
 
-  //Node n = 
+  // Node n =
   Node n = applySubstitutions(binor);
-  if(n != binor){
+  if (n != binor)
+  {
     n = rewrite(n);
 
     if (!(n.getKind() == Kind::OR && n.getNumChildren() == 2
@@ -447,18 +500,34 @@ bool ArithIteUtils::solveBinOr(TNode binor){
   bool lArithEq = l.getKind() == Kind::EQUAL && l[0].getType().isInteger();
   bool rArithEq = r.getKind() == Kind::EQUAL && r[0].getType().isInteger();
 
-  if(lArithEq && rArithEq){
+  if (lArithEq && rArithEq)
+  {
     TNode sel = Node::null();
     TNode otherL = Node::null();
     TNode otherR = Node::null();
-    if(l[0] == r[0]) {
-      sel = l[0]; otherL = l[1]; otherR = r[1];
-    }else if(l[0] == r[1]){
-      sel = l[0]; otherL = l[1]; otherR = r[0];
-    }else if(l[1] == r[0]){
-      sel = l[1]; otherL = l[0]; otherR = r[1];
-    }else if(l[1] == r[1]){
-      sel = l[1]; otherL = l[0]; otherR = r[0];
+    if (l[0] == r[0])
+    {
+      sel = l[0];
+      otherL = l[1];
+      otherR = r[1];
+    }
+    else if (l[0] == r[1])
+    {
+      sel = l[0];
+      otherL = l[1];
+      otherR = r[0];
+    }
+    else if (l[1] == r[0])
+    {
+      sel = l[1];
+      otherL = l[0];
+      otherR = r[1];
+    }
+    else if (l[1] == r[1])
+    {
+      sel = l[1];
+      otherL = l[0];
+      otherR = r[0];
     }
     Trace("arith::ite") << "selected " << sel << endl;
     if (sel.isVar() && sel.getKind() != Kind::SKOLEM)
@@ -470,12 +539,15 @@ bool ArithIteUtils::solveBinOr(TNode binor){
       Assert(linear::Polynomial::isMember(sel));
       Assert(linear::Polynomial::isMember(useForCmpL));
       Assert(linear::Polynomial::isMember(useForCmpR));
-      linear::Polynomial lside = linear::Polynomial::parsePolynomial( useForCmpL );
-      linear::Polynomial rside = linear::Polynomial::parsePolynomial( useForCmpR );
-      linear::Polynomial diff = lside-rside;
+      linear::Polynomial lside =
+          linear::Polynomial::parsePolynomial(useForCmpL);
+      linear::Polynomial rside =
+          linear::Polynomial::parsePolynomial(useForCmpR);
+      linear::Polynomial diff = lside - rside;
 
       Trace("arith::ite") << "diff: " << diff.getNode() << endl;
-      if(diff.isConstant()){
+      if (diff.isConstant())
+      {
         // a: (sel = otherL) or (sel = otherR), otherL-otherR = c
 
         NodeManager* nm = nodeManager();

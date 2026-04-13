@@ -82,7 +82,7 @@ int main()
   Result result = slv.checkSatAssuming(q);
   std::cout << "cvc5 reports: " << q << " is " << result << "." << std::endl;
 
-  if(result.isSat())
+  if (result.isSat())
   {
     std::cout << "  x  = " << slv.getValue(x) << std::endl;
     std::cout << "  s1.s2 = " << slv.getValue(s) << std::endl;

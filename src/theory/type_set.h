@@ -36,7 +36,7 @@ class TypeSet
   typedef TypeSetMap::const_iterator const_iterator;
 
  public:
-  TypeSet() : d_tep(NULL) {}
+  TypeSet() : d_tep(nullptr) {}
   ~TypeSet();
   /** set the properties of the type set
    *
@@ -57,6 +57,7 @@ class TypeSet
   iterator end() { return d_typeSet.end(); }
   static TypeNode getType(iterator it) { return (*it).first; }
   static std::set<Node>& getSet(iterator it) { return *(*it).second; }
+
  private:
   /** sets of values for each type */
   TypeSetMap d_typeSet;

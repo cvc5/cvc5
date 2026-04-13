@@ -7,13 +7,13 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Print channels for ALF proofs.
+ * Print channels for Eunoia proofs.
  */
 
 #include "cvc5_private.h"
 
-#ifndef CVC5__PROOF__ALF__ALF_PRINT_CHANNEL_H
-#define CVC5__PROOF__ALF__ALF_PRINT_CHANNEL_H
+#ifndef CVC5__PROOF__EO__EO_PRINT_CHANNEL_H
+#define CVC5__PROOF__EO__EO_PRINT_CHANNEL_H
 
 #include <iostream>
 #include <map>
@@ -26,16 +26,16 @@ namespace cvc5::internal {
 namespace proof {
 
 /**
- * ALF proofs are printed in two phases: the first phase computes the
+ * Eunoia proofs are printed in two phases: the first phase computes the
  * letification of terms in the proof as well as other information that is
  * required for printing the preamble of the proof. The second phase prints the
  * proof to an output stream. This is the base class for these two phases.
  */
-class AlfPrintChannel
+class EoPrintChannel
 {
  public:
-  AlfPrintChannel();
-  virtual ~AlfPrintChannel();
+  EoPrintChannel();
+  virtual ~EoPrintChannel();
   /** Print node n */
   virtual void printNode(TNode n) = 0;
   /** Print type node n */
@@ -67,10 +67,10 @@ class AlfPrintChannel
 };
 
 /** Prints the proof to output stream d_out */
-class AlfPrintChannelOut : public AlfPrintChannel
+class EoPrintChannelOut : public EoPrintChannel
 {
  public:
-  AlfPrintChannelOut(std::ostream& out,
+  EoPrintChannelOut(std::ostream& out,
                      const LetBinding* lbind,
                      bool trackWarn);
   void printNode(TNode n) override;
@@ -90,11 +90,11 @@ class AlfPrintChannelOut : public AlfPrintChannel
                       TNode conc) override;
 
   /**
-   * Print node to stream in the expected format of ALF.
+   * Print node to stream in the expected Eunoia format.
    */
   void printNodeInternal(std::ostream& out, Node n);
   /**
-   * Print type node to stream in the expected format of ALF.
+   * Print type node to stream in the expected Eunoia format.
    */
   void printTypeNodeInternal(std::ostream& out, TypeNode tn);
   std::ostream& getOStream() { return d_out; }
@@ -129,10 +129,10 @@ class AlfPrintChannelOut : public AlfPrintChannel
  * - Computes the letification of nodes that appear in the proof.
  * - Computes the set of variables that appear in the proof.
  */
-class AlfPrintChannelPre : public AlfPrintChannel
+class EoPrintChannelPre : public EoPrintChannel
 {
  public:
-  AlfPrintChannelPre(LetBinding* lbind);
+  EoPrintChannelPre(LetBinding* lbind);
   void printNode(TNode n) override;
   void printTypeNode(TypeNode tn) override;
   void printAssume(TNode n, size_t i, bool isPush) override;

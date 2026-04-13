@@ -87,11 +87,13 @@ bool ValidWitnessProofGenerator::getProofSpec(const Node& attr,
   return false;
 }
 
-ValidWitnessProofGenerator::ValidWitnessProofGenerator(Env& env) : EnvObj(env) {}
+ValidWitnessProofGenerator::ValidWitnessProofGenerator(Env& env) : EnvObj(env)
+{
+}
 
 ValidWitnessProofGenerator::~ValidWitnessProofGenerator() {}
 
-std::shared_ptr<ProofNode> ValidWitnessProofGenerator::getProofFor(Node fact) 
+std::shared_ptr<ProofNode> ValidWitnessProofGenerator::getProofFor(Node fact)
 {
   Trace("valid-witness") << "ValidWitness: Prove " << fact << std::endl;
   bool success = false;
@@ -118,7 +120,10 @@ std::shared_ptr<ProofNode> ValidWitnessProofGenerator::getProofFor(Node fact)
   return cdp.getProofFor(fact);
 }
 
-std::string ValidWitnessProofGenerator::identify() const { return "ValidWitnessProofGenerator"; }
+std::string ValidWitnessProofGenerator::identify() const
+{
+  return "ValidWitnessProofGenerator";
+}
 
 Node ValidWitnessProofGenerator::mkWitness(NodeManager* nm,
                                            ProofRule r,
@@ -204,4 +209,3 @@ Node ValidWitnessProofGenerator::mkSkolem(NodeManager* nm,
 }
 
 }  // namespace cvc5::internal
-

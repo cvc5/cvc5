@@ -73,7 +73,6 @@ class TheoryFiniteFieldsRewriter : public TheoryRewriter
   RewriteResponse preRewrite(TNode node) override;
 
  private:
-
   /** Make n-ary node */
   Node mkNary(Kind k, std::vector<Node>&& children);
 

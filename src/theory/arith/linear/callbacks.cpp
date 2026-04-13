@@ -23,47 +23,46 @@ namespace cvc5::internal {
 namespace theory {
 namespace arith::linear {
 
-SetupLiteralCallBack::SetupLiteralCallBack(TheoryArithPrivate& ta)
-  : d_arith(ta)
-{}
-void SetupLiteralCallBack::operator()(TNode lit){
+SetupLiteralCallBack::SetupLiteralCallBack(TheoryArithPrivate& ta) : d_arith(ta)
+{
+}
+void SetupLiteralCallBack::operator()(TNode lit)
+{
   TNode atom = (lit.getKind() == Kind::NOT) ? lit[0] : lit;
-  if(!d_arith.isSetup(atom)){
+  if (!d_arith.isSetup(atom))
+  {
     d_arith.setupAtom(atom);
   }
 }
 
 DeltaComputeCallback::DeltaComputeCallback(const TheoryArithPrivate& ta)
-  : d_ta(ta)
-{}
-Rational DeltaComputeCallback::operator()() const{
+    : d_ta(ta)
+{
+}
+Rational DeltaComputeCallback::operator()() const
+{
   return d_ta.deltaValueForTotalOrder();
 }
 
-TempVarMalloc::TempVarMalloc(TheoryArithPrivate& ta)
-: d_ta(ta)
-{}
-ArithVar TempVarMalloc::request(){
+TempVarMalloc::TempVarMalloc(TheoryArithPrivate& ta) : d_ta(ta) {}
+ArithVar TempVarMalloc::request()
+{
   NodeManager* nm = d_ta.getNodeManager();
   Node skolem = NodeManager::mkDummySkolem("tmpVar", nm->realType());
   return d_ta.requestArithVar(skolem, false, true);
 }
-void TempVarMalloc::release(ArithVar v){
-  d_ta.releaseArithVar(v);
-}
+void TempVarMalloc::release(ArithVar v) { d_ta.releaseArithVar(v); }
 
 BasicVarModelUpdateCallBack::BasicVarModelUpdateCallBack(TheoryArithPrivate& ta)
-  : d_ta(ta)
-{}
-void BasicVarModelUpdateCallBack::operator()(ArithVar x){
-  d_ta.signal(x);
+    : d_ta(ta)
+{
 }
+void BasicVarModelUpdateCallBack::operator()(ArithVar x) { d_ta.signal(x); }
 
-RaiseConflict::RaiseConflict(TheoryArithPrivate& ta)
-  : d_ta(ta)
-{}
+RaiseConflict::RaiseConflict(TheoryArithPrivate& ta) : d_ta(ta) {}
 
-void RaiseConflict::raiseConflict(ConstraintCP c, InferenceId id) const{
+void RaiseConflict::raiseConflict(ConstraintCP c, InferenceId id) const
+{
   Assert(c->inConflict());
   d_ta.raiseConflict(c, id);
 }
@@ -78,15 +77,15 @@ FarkasConflictBuilder::FarkasConflictBuilder(bool produceProofs)
   reset();
 }
 
-bool FarkasConflictBuilder::underConstruction() const{
+bool FarkasConflictBuilder::underConstruction() const
+{
   return d_consequent != NullConstraint;
 }
 
-bool FarkasConflictBuilder::consequentIsSet() const{
-  return d_consequentSet;
-}
+bool FarkasConflictBuilder::consequentIsSet() const { return d_consequentSet; }
 
-void FarkasConflictBuilder::reset(){
+void FarkasConflictBuilder::reset()
+{
   d_consequent = NullConstraint;
   d_constraints.clear();
   d_consequentSet = false;
@@ -98,7 +97,8 @@ void FarkasConflictBuilder::reset(){
 }
 
 /* Adds a constraint to the constraint under construction. */
-void FarkasConflictBuilder::addConstraint(ConstraintCP c, const Rational& fc){
+void FarkasConflictBuilder::addConstraint(ConstraintCP c, const Rational& fc)
+{
   Assert(
       !d_produceProofs
       || (!underConstruction() && d_constraints.empty() && d_farkas.empty())
@@ -106,9 +106,12 @@ void FarkasConflictBuilder::addConstraint(ConstraintCP c, const Rational& fc){
   Assert(d_produceProofs || d_farkas.empty());
   Assert(c->isTrue());
 
-  if(d_consequent == NullConstraint){
+  if (d_consequent == NullConstraint)
+  {
     d_consequent = c;
-  } else {
+  }
+  else
+  {
     d_constraints.push_back(c);
   }
   if (d_produceProofs)
@@ -119,7 +122,10 @@ void FarkasConflictBuilder::addConstraint(ConstraintCP c, const Rational& fc){
   Assert(d_produceProofs || d_farkas.empty());
 }
 
-void FarkasConflictBuilder::addConstraint(ConstraintCP c, const Rational& fc, const Rational& mult){
+void FarkasConflictBuilder::addConstraint(ConstraintCP c,
+                                          const Rational& fc,
+                                          const Rational& mult)
+{
   Assert(!mult.isZero());
   if (d_produceProofs && !mult.isOne())
   {
@@ -132,14 +138,18 @@ void FarkasConflictBuilder::addConstraint(ConstraintCP c, const Rational& fc, co
   }
 }
 
-void FarkasConflictBuilder::makeLastConsequent(){
+void FarkasConflictBuilder::makeLastConsequent()
+{
   Assert(!d_consequentSet);
   Assert(underConstruction());
 
-  if(d_constraints.empty()){
+  if (d_constraints.empty())
+  {
     // no-op
     d_consequentSet = true;
-  } else {
+  }
+  else
+  {
     Assert(d_consequent != NullConstraint);
     ConstraintCP last = d_constraints.back();
     d_constraints.back() = d_consequent;
@@ -179,8 +189,9 @@ ConstraintCP FarkasConflictBuilder::commitConflict(NodeManager* nm)
 }
 
 RaiseEqualityEngineConflict::RaiseEqualityEngineConflict(TheoryArithPrivate& ta)
-  : d_ta(ta)
-{}
+    : d_ta(ta)
+{
+}
 
 /* If you are not an equality engine, don't use this! */
 void RaiseEqualityEngineConflict::raiseEEConflict(
@@ -189,21 +200,22 @@ void RaiseEqualityEngineConflict::raiseEEConflict(
   d_ta.raiseBlackBoxConflict(n, pf);
 }
 
-BoundCountingLookup::BoundCountingLookup(TheoryArithPrivate& ta)
-: d_ta(ta)
-{}
+BoundCountingLookup::BoundCountingLookup(TheoryArithPrivate& ta) : d_ta(ta) {}
 
-const BoundsInfo& BoundCountingLookup::boundsInfo(ArithVar basic) const{
+const BoundsInfo& BoundCountingLookup::boundsInfo(ArithVar basic) const
+{
   return d_ta.boundsInfo(basic);
 }
 
-BoundCounts BoundCountingLookup::atBounds(ArithVar basic) const{
+BoundCounts BoundCountingLookup::atBounds(ArithVar basic) const
+{
   return boundsInfo(basic).atBounds();
 }
-BoundCounts BoundCountingLookup::hasBounds(ArithVar basic) const {
+BoundCounts BoundCountingLookup::hasBounds(ArithVar basic) const
+{
   return boundsInfo(basic).hasBounds();
 }
 
-}  // namespace arith
+}  // namespace arith::linear
 }  // namespace theory
 }  // namespace cvc5::internal

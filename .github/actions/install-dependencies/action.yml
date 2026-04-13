@@ -145,9 +145,6 @@ runs:
       shell: ${{ inputs.shell }}
       run: |
         echo "::group::Install macOS software"
-        brew config
-        brew untap homebrew/core homebrew/cask
-        brew config
         if [[ $RUNNER_ARCH == "ARM64" ]]; then
           AUTOTOOLS="autoconf libtool"
         fi

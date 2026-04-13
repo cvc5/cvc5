@@ -23,11 +23,12 @@
 namespace cvc5::internal {
 namespace expr {
 
-class NodeSelfIterator {
+class NodeSelfIterator
+{
   Node d_node;
   Node::const_iterator d_child;
 
-public:
+ public:
   /* The following types are required by trait std::iterator_traits */
 
   /** Iterator tag */
@@ -53,7 +54,6 @@ public:
   NodeSelfIterator();
   NodeSelfIterator(Node n);
   NodeSelfIterator(TNode n);
-  NodeSelfIterator(const NodeSelfIterator& i);
 
   NodeSelfIterator(Node::const_iterator i);
   NodeSelfIterator(TNode::const_iterator i);
@@ -65,75 +65,75 @@ public:
   bool operator==(NodeSelfIterator i) const;
   bool operator!=(NodeSelfIterator i) const;
 
-};/* class NodeSelfIterator */
+}; /* class NodeSelfIterator */
 
-inline NodeSelfIterator NodeSelfIterator::self(TNode n) {
+inline NodeSelfIterator NodeSelfIterator::self(TNode n)
+{
   Assert(!n.isNull()) << "Self-iteration over null nodes not permitted.";
   return NodeSelfIterator(n);
 }
 
-inline NodeSelfIterator NodeSelfIterator::selfEnd(TNode n) {
+inline NodeSelfIterator NodeSelfIterator::selfEnd(TNode n)
+{
   Assert(!n.isNull()) << "Self-iteration over null nodes not permitted.";
   return NodeSelfIterator(n.end());
 }
 
-inline NodeSelfIterator::NodeSelfIterator() :
-  d_node(),
-  d_child() {
-}
+inline NodeSelfIterator::NodeSelfIterator() : d_node(), d_child() {}
 
-inline NodeSelfIterator::NodeSelfIterator(Node node) :
-  d_node(node),
-  d_child() {
+inline NodeSelfIterator::NodeSelfIterator(Node node) : d_node(node), d_child()
+{
   Assert(!node.isNull()) << "Self-iteration over null nodes not permitted.";
 }
 
-inline NodeSelfIterator::NodeSelfIterator(TNode node) :
-  d_node(node),
-  d_child() {
+inline NodeSelfIterator::NodeSelfIterator(TNode node) : d_node(node), d_child()
+{
   Assert(!node.isNull()) << "Self-iteration over null nodes not permitted.";
 }
 
-inline NodeSelfIterator::NodeSelfIterator(const NodeSelfIterator& i) :
-  d_node(i.d_node),
-  d_child(i.d_child) {
+inline NodeSelfIterator::NodeSelfIterator(Node::const_iterator i)
+    : d_node(), d_child(i)
+{
 }
 
-inline NodeSelfIterator::NodeSelfIterator(Node::const_iterator i) :
-  d_node(),
-  d_child(i) {
+inline NodeSelfIterator::NodeSelfIterator(TNode::const_iterator i)
+    : d_node(), d_child(i)
+{
 }
 
-inline NodeSelfIterator::NodeSelfIterator(TNode::const_iterator i) :
-  d_node(),
-  d_child(i) {
-}
-
-inline Node NodeSelfIterator::operator*() const {
+inline Node NodeSelfIterator::operator*() const
+{
   return d_node.isNull() ? *d_child : d_node;
 }
 
-inline NodeSelfIterator& NodeSelfIterator::operator++() {
-  if(d_node.isNull()) {
+inline NodeSelfIterator& NodeSelfIterator::operator++()
+{
+  if (d_node.isNull())
+  {
     ++d_child;
-  } else {
+  }
+  else
+  {
     d_child = d_node.end();
     d_node = Node::null();
   }
   return *this;
 }
 
-inline NodeSelfIterator NodeSelfIterator::operator++(int) {
+inline NodeSelfIterator NodeSelfIterator::operator++(int)
+{
   NodeSelfIterator i = *this;
   ++*this;
   return i;
 }
 
-inline bool NodeSelfIterator::operator==(NodeSelfIterator i) const {
+inline bool NodeSelfIterator::operator==(NodeSelfIterator i) const
+{
   return d_node == i.d_node && d_child == i.d_child;
 }
 
-inline bool NodeSelfIterator::operator!=(NodeSelfIterator i) const {
+inline bool NodeSelfIterator::operator!=(NodeSelfIterator i) const
+{
   return !(*this == i);
 }
 

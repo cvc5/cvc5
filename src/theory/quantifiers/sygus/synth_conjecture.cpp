@@ -290,7 +290,8 @@ void SynthConjecture::assign(Node q)
   {
     conjForExamples = nm->mkNode(Kind::AND, d_embedSideCondition, d_base_inst);
   }
-  if (d_exampleInfer!=nullptr && !d_exampleInfer->initialize(conjForExamples, d_candidates))
+  if (d_exampleInfer != nullptr
+      && !d_exampleInfer->initialize(conjForExamples, d_candidates))
   {
     // there is a contradictory example pair, the conjecture is infeasible.
     Node infLem = d_quant.negate();
@@ -321,16 +322,12 @@ void SynthConjecture::assign(Node q)
                  << std::endl;
 }
 
-
 bool SynthConjecture::isSingleInvocation() const
 {
   return d_ceg_si->isSingleInvocation();
 }
 
-bool SynthConjecture::needsCheck()
-{
-  return true;
-}
+bool SynthConjecture::needsCheck() { return true; }
 
 bool SynthConjecture::doCheck()
 {
@@ -557,7 +554,7 @@ bool SynthConjecture::doCheck()
         // since we don't have function subtyping, this assertion should only
         // check the return type
         Assert(fvar.getType().isFunction());
-        Assert(fvar.getType().getRangeType() == bsol.getType());
+        AssertEqual(fvar.getType().getRangeType(), bsol.getType());
         bsol = nm->mkNode(Kind::LAMBDA, bvl, bsol);
       }
       Trace("sygus-engine-debug")
@@ -783,8 +780,9 @@ EnumValueManager* SynthConjecture::getEnumValueManagerFor(Node e)
   }
   // otherwise, allocate it
   Node f = d_tds->getSynthFunForEnumerator(e);
-  bool hasExamples = (d_exampleInfer != nullptr && d_exampleInfer->hasExamples(f)
-                      && d_exampleInfer->getNumExamples(f) != 0);
+  bool hasExamples =
+      (d_exampleInfer != nullptr && d_exampleInfer->hasExamples(f)
+       && d_exampleInfer->getNumExamples(f) != 0);
   d_enumManager[e].reset(
       new EnumValueManager(d_env, d_qim, d_treg, d_stats, e, hasExamples));
   EnumValueManager* eman = d_enumManager[e].get();
@@ -827,7 +825,7 @@ Node SynthConjecture::getModelValue(Node n)
   return d_treg.getModel()->getValue(n);
 }
 
-void SynthConjecture::debugPrint(const char* c)
+void SynthConjecture::debugPrint(CVC5_UNUSED const char* c)
 {
   Trace(c) << "Synthesis conjecture : " << d_embed_quant << std::endl;
   Trace(c) << "  * Candidate programs : " << d_candidates << std::endl;
@@ -972,7 +970,7 @@ bool SynthConjecture::runExprMiner()
 }
 
 bool SynthConjecture::getSynthSolutions(
-    std::map<Node, std::map<Node, Node> >& sol_map)
+    std::map<Node, std::map<Node, Node>>& sol_map)
 {
   NodeManager* nm = nodeManager();
   std::vector<Node> sols;
@@ -1010,12 +1008,12 @@ bool SynthConjecture::getSynthSolutions(
       // since we don't have function subtyping, this assertion should only
       // check the return type
       Assert(fvar.getType().isFunction());
-      Assert(fvar.getType().getRangeType() == bsol.getType());
+      AssertEqual(fvar.getType().getRangeType(), bsol.getType());
       bsol = nm->mkNode(Kind::LAMBDA, bvl, bsol);
     }
     else
     {
-      Assert(fvar.getType() == bsol.getType());
+      AssertEqual(fvar.getType(), bsol.getType());
     }
     // store in map
     smc[fvar] = bsol;
@@ -1062,7 +1060,7 @@ bool SynthConjecture::getSynthSolutionsInternal(std::vector<Node>& sols,
     int8_t status = -1;
     if (isSingleInvocation())
     {
-      Assert(d_ceg_si != NULL);
+      Assert(d_ceg_si != nullptr);
       sol = d_ceg_si->getSolution(i, tn, status, true);
       if (sol.isNull())
       {

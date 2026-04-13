@@ -33,6 +33,6 @@ SequencesStatistics::SequencesStatistics(StatisticsRegistry& sr)
 {
 }
 
-}
-}
+}  // namespace strings
+}  // namespace theory
 }  // namespace cvc5::internal

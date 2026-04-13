@@ -46,8 +46,6 @@ class Integer
   explicit Integer(const char* s, unsigned base = 10);
   explicit Integer(const std::string& s, unsigned base = 10);
 
-  Integer(const Integer& q) : d_value(q.d_value) {}
-
   Integer(signed int z) : d_value(z) {}
   Integer(unsigned int z) : d_value(z) {}
   Integer(signed long int z) : d_value(z) {}
@@ -58,14 +56,8 @@ class Integer
   Integer(uint64_t z);
 #endif /* CVC5_NEED_INT64_T_OVERLOADS */
 
-  /** Destructor. */
-  ~Integer() {}
-
   /** Returns a copy of d_value to enable public access of GMP data. */
   const mpz_class& getValue() const { return d_value; }
-
-  /** Overload copy assignment operator. */
-  Integer& operator=(const Integer& x);
 
   /** Overload equality comparison operator. */
   bool operator==(const Integer& y) const;
@@ -331,7 +323,10 @@ class Integer
 
 struct IntegerHashFunction
 {
-  inline size_t operator()(const cvc5::internal::Integer& i) const { return i.hash(); }
+  inline size_t operator()(const cvc5::internal::Integer& i) const
+  {
+    return i.hash();
+  }
 }; /* struct IntegerHashFunction */
 
 inline std::ostream& operator<<(std::ostream& os, const Integer& n)

@@ -41,11 +41,13 @@ void InstMatch::setEvaluatorMode(ieval::TermEvaluatorMode tev)
   }
 }
 
-void InstMatch::debugPrint( const char* c ){
+void InstMatch::debugPrint(CVC5_UNUSED const char* c)
+{
   for (unsigned i = 0, size = d_vals.size(); i < size; i++)
   {
-    if( !d_vals[i].isNull() ){
-      Trace( c ) << "   " << i << " -> " << d_vals[i] << std::endl;
+    if (!d_vals[i].isNull())
+    {
+      Trace(c) << "   " << i << " -> " << d_vals[i] << std::endl;
     }
   }
 }

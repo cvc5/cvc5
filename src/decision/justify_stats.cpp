@@ -29,5 +29,5 @@ JustifyStatistics::JustifyStatistics(StatisticsRegistry& sr)
 
 JustifyStatistics::~JustifyStatistics() {}
 
-}
+}  // namespace decision
 }  // namespace cvc5::internal
