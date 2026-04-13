@@ -250,7 +250,7 @@
 ; conclusion: The given equality.
 (declare-rule dt-cycle ((D Type) (s D) (t D))
   :args ((= (= s t) false))
-  :requires ((($dt_find_cycle s t false false) true))
+  :requires ((($dt_find_cycle t s false false) true))
   :conclusion (= (= s t) false)
 )
 
