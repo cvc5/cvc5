@@ -24,6 +24,7 @@
 #include "symfpu/core/remainder.h"
 #include "symfpu/core/sign.h"
 #include "symfpu/core/sqrt.h"
+#include "util/floatingpoint_literal.h"
 #include "util/rational.h"
 
 /* -------------------------------------------------------------------------- */
@@ -68,8 +69,9 @@ FloatingPointLiteralSymFPU::FloatingPointLiteralSymFPU(uint32_t exp_size,
                                                        uint32_t sig_size,
                                                        const BitVector& bv)
     : FloatingPointLiteral(exp_size, sig_size),
-      d_symuf(symfpu::unpack<symfpuLiteral::traits>(
-          symfpuLiteral::Cvc5FPSize(exp_size, sig_size), bv))
+      d_symuf(
+          new SymFPUUnpackedFloatLiteral(symfpu::unpack<symfpuLiteral::traits>(
+              symfpuLiteral::Cvc5FPSize(exp_size, sig_size), bv)))
 {
 }
 
@@ -77,7 +79,8 @@ FloatingPointLiteralSymFPU::FloatingPointLiteralSymFPU(
     const FloatingPointSize& size,
     CVC5_UNUSED FloatingPointLiteralSymFPU::SpecialConstKind kind)
     : FloatingPointLiteral(size),
-      d_symuf(SymFPUUnpackedFloatLiteral::makeNaN(size))
+      d_symuf(new SymFPUUnpackedFloatLiteral(
+          SymFPUUnpackedFloatLiteral::makeNaN(size)))
 {
   Assert(kind == FloatingPointLiteralSymFPU::SpecialConstKind::FPNAN);
 }
@@ -87,9 +90,10 @@ FloatingPointLiteralSymFPU::FloatingPointLiteralSymFPU(
     FloatingPointLiteralSymFPU::SpecialConstKind kind,
     bool sign)
     : FloatingPointLiteral(size),
-      d_symuf(kind == FloatingPointLiteralSymFPU::SpecialConstKind::FPINF
-                  ? SymFPUUnpackedFloatLiteral::makeInf(size, sign)
-                  : SymFPUUnpackedFloatLiteral::makeZero(size, sign))
+      d_symuf(new SymFPUUnpackedFloatLiteral(
+          kind == FloatingPointLiteralSymFPU::SpecialConstKind::FPINF
+              ? SymFPUUnpackedFloatLiteral::makeInf(size, sign)
+              : SymFPUUnpackedFloatLiteral::makeZero(size, sign)))
 {
   Assert(kind == FloatingPointLiteralSymFPU::SpecialConstKind::FPINF
          || kind == FloatingPointLiteralSymFPU::SpecialConstKind::FPZERO);
@@ -98,7 +102,8 @@ FloatingPointLiteralSymFPU::FloatingPointLiteralSymFPU(
 FloatingPointLiteralSymFPU::FloatingPointLiteralSymFPU(
     const FloatingPointSize& size, const BitVector& bv)
     : FloatingPointLiteral(size),
-      d_symuf(symfpu::unpack<symfpuLiteral::traits>(size, bv))
+      d_symuf(new SymFPUUnpackedFloatLiteral(
+          symfpu::unpack<symfpuLiteral::traits>(size, bv)))
 {
 }
 
@@ -107,15 +112,43 @@ FloatingPointLiteralSymFPU::FloatingPointLiteralSymFPU(
     const RoundingMode& rm,
     const BitVector& bv,
     bool signedBV)
-    : FloatingPointLiteral(size),
-      d_symuf(signedBV ? symfpu::convertSBVToFloat<symfpuLiteral::traits>(
-                             symfpuLiteral::Cvc5FPSize(size),
-                             symfpuLiteral::Cvc5RM(rm),
-                             symfpuLiteral::Cvc5SignedBitVector(bv))
-                       : symfpu::convertUBVToFloat<symfpuLiteral::traits>(
-                             symfpuLiteral::Cvc5FPSize(size),
-                             symfpuLiteral::Cvc5RM(rm),
-                             symfpuLiteral::Cvc5UnsignedBitVector(bv)))
+    : FloatingPointLiteral(size)
+{
+  if (signedBV)
+  {
+    if (bv.getSize() == 1)
+    {
+      SymFPUUnpackedFloatLiteral uf =
+          symfpu::convertUBVToFloat<symfpuLiteral::traits>(size, rm, bv);
+      /* We need special handling for bit-vectors of size one since symFPU does
+       * not allow conversions from signed bit-vectors of size one.  */
+      if (bv.is_one())
+      {
+        d_symuf.reset(new SymFPUUnpackedFloatLiteral(
+            symfpu::negate<symfpuLiteral::traits>(size, uf)));
+      }
+      else
+      {
+        d_symuf.reset(new SymFPUUnpackedFloatLiteral(uf));
+      }
+    }
+    else
+    {
+      d_symuf.reset(new SymFPUUnpackedFloatLiteral(
+          symfpu::convertSBVToFloat<symfpuLiteral::traits>(size, rm, bv)));
+    }
+  }
+  else
+  {
+    d_symuf.reset(new SymFPUUnpackedFloatLiteral(
+        symfpu::convertUBVToFloat<symfpuLiteral::traits>(size, rm, bv)));
+  }
+}
+
+FloatingPointLiteralSymFPU::FloatingPointLiteralSymFPU(
+    const FloatingPointLiteralSymFPU& other)
+    : FloatingPointLiteral(other.getSize()),
+      d_symuf(new SymFPUUnpackedFloatLiteral(*other.d_symuf))
 {
 }
 
@@ -263,7 +296,7 @@ std::unique_ptr<FloatingPointLiteral> FloatingPointLiteralSymFPU::clone() const
 
 BitVector FloatingPointLiteralSymFPU::pack(void) const
 {
-  BitVector bv(symfpu::pack<symfpuLiteral::traits>(d_fp_size, d_symuf));
+  BitVector bv(symfpu::pack<symfpuLiteral::traits>(d_fp_size, *d_symuf));
   return bv;
 }
 
@@ -273,13 +306,13 @@ std::unique_ptr<FloatingPointLiteral> FloatingPointLiteralSymFPU::absolute()
     const
 {
   return std::unique_ptr<FloatingPointLiteral>(new FloatingPointLiteralSymFPU(
-      d_fp_size, symfpu::absolute<symfpuLiteral::traits>(d_fp_size, d_symuf)));
+      d_fp_size, symfpu::absolute<symfpuLiteral::traits>(d_fp_size, *d_symuf)));
 }
 
 std::unique_ptr<FloatingPointLiteral> FloatingPointLiteralSymFPU::negate() const
 {
   return std::unique_ptr<FloatingPointLiteral>(new FloatingPointLiteralSymFPU(
-      d_fp_size, symfpu::negate<symfpuLiteral::traits>(d_fp_size, d_symuf)));
+      d_fp_size, symfpu::negate<symfpuLiteral::traits>(d_fp_size, *d_symuf)));
 }
 
 std::unique_ptr<FloatingPointLiteral> FloatingPointLiteralSymFPU::add(
@@ -290,7 +323,7 @@ std::unique_ptr<FloatingPointLiteral> FloatingPointLiteralSymFPU::add(
   return std::unique_ptr<FloatingPointLiteral>(new FloatingPointLiteralSymFPU(
       d_fp_size,
       symfpu::add<symfpuLiteral::traits>(
-          d_fp_size, rm, d_symuf, a.d_symuf, true)));
+          d_fp_size, rm, *d_symuf, *a.d_symuf, true)));
 }
 
 std::unique_ptr<FloatingPointLiteral> FloatingPointLiteralSymFPU::sub(
@@ -301,7 +334,7 @@ std::unique_ptr<FloatingPointLiteral> FloatingPointLiteralSymFPU::sub(
   return std::unique_ptr<FloatingPointLiteral>(new FloatingPointLiteralSymFPU(
       d_fp_size,
       symfpu::add<symfpuLiteral::traits>(
-          d_fp_size, rm, d_symuf, a.d_symuf, false)));
+          d_fp_size, rm, *d_symuf, *a.d_symuf, false)));
 }
 
 std::unique_ptr<FloatingPointLiteral> FloatingPointLiteralSymFPU::mult(
@@ -312,7 +345,7 @@ std::unique_ptr<FloatingPointLiteral> FloatingPointLiteralSymFPU::mult(
   return std::unique_ptr<FloatingPointLiteral>(
       new FloatingPointLiteralSymFPU(d_fp_size,
                                      symfpu::multiply<symfpuLiteral::traits>(
-                                         d_fp_size, rm, d_symuf, a.d_symuf)));
+                                         d_fp_size, rm, *d_symuf, *a.d_symuf)));
 }
 
 std::unique_ptr<FloatingPointLiteral> FloatingPointLiteralSymFPU::div(
@@ -323,7 +356,7 @@ std::unique_ptr<FloatingPointLiteral> FloatingPointLiteralSymFPU::div(
   return std::unique_ptr<FloatingPointLiteral>(
       new FloatingPointLiteralSymFPU(d_fp_size,
                                      symfpu::divide<symfpuLiteral::traits>(
-                                         d_fp_size, rm, d_symuf, a.d_symuf)));
+                                         d_fp_size, rm, *d_symuf, *a.d_symuf)));
 }
 
 std::unique_ptr<FloatingPointLiteral> FloatingPointLiteralSymFPU::fma(
@@ -338,14 +371,14 @@ std::unique_ptr<FloatingPointLiteral> FloatingPointLiteralSymFPU::fma(
   return std::unique_ptr<FloatingPointLiteral>(new FloatingPointLiteralSymFPU(
       d_fp_size,
       symfpu::fma<symfpuLiteral::traits>(
-          d_fp_size, rm, d_symuf, a1.d_symuf, a2.d_symuf)));
+          d_fp_size, rm, *d_symuf, *a1.d_symuf, *a2.d_symuf)));
 }
 
 std::unique_ptr<FloatingPointLiteral> FloatingPointLiteralSymFPU::sqrt(
     const RoundingMode& rm) const
 {
   return std::unique_ptr<FloatingPointLiteral>(new FloatingPointLiteralSymFPU(
-      d_fp_size, symfpu::sqrt<symfpuLiteral::traits>(d_fp_size, rm, d_symuf)));
+      d_fp_size, symfpu::sqrt<symfpuLiteral::traits>(d_fp_size, rm, *d_symuf)));
 }
 
 std::unique_ptr<FloatingPointLiteral> FloatingPointLiteralSymFPU::rti(
@@ -353,7 +386,7 @@ std::unique_ptr<FloatingPointLiteral> FloatingPointLiteralSymFPU::rti(
 {
   return std::unique_ptr<FloatingPointLiteral>(new FloatingPointLiteralSymFPU(
       d_fp_size,
-      symfpu::roundToIntegral<symfpuLiteral::traits>(d_fp_size, rm, d_symuf)));
+      symfpu::roundToIntegral<symfpuLiteral::traits>(d_fp_size, rm, *d_symuf)));
 }
 
 std::unique_ptr<FloatingPointLiteral> FloatingPointLiteralSymFPU::rem(
@@ -361,9 +394,10 @@ std::unique_ptr<FloatingPointLiteral> FloatingPointLiteralSymFPU::rem(
 {
   const auto& a = asSymFPU(arg);
   Assert(d_fp_size == a.d_fp_size);
-  return std::unique_ptr<FloatingPointLiteral>(new FloatingPointLiteralSymFPU(
-      d_fp_size,
-      symfpu::remainder<symfpuLiteral::traits>(d_fp_size, d_symuf, a.d_symuf)));
+  return std::unique_ptr<FloatingPointLiteral>(
+      new FloatingPointLiteralSymFPU(d_fp_size,
+                                     symfpu::remainder<symfpuLiteral::traits>(
+                                         d_fp_size, *d_symuf, *a.d_symuf)));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -376,7 +410,7 @@ std::unique_ptr<FloatingPointLiteral> FloatingPointLiteralSymFPU::maxTotal(
   return std::unique_ptr<FloatingPointLiteral>(new FloatingPointLiteralSymFPU(
       d_fp_size,
       symfpu::max<symfpuLiteral::traits>(
-          d_fp_size, d_symuf, a.d_symuf, zeroCaseLeft)));
+          d_fp_size, *d_symuf, *a.d_symuf, zeroCaseLeft)));
 }
 
 std::unique_ptr<FloatingPointLiteral> FloatingPointLiteralSymFPU::minTotal(
@@ -387,7 +421,7 @@ std::unique_ptr<FloatingPointLiteral> FloatingPointLiteralSymFPU::minTotal(
   return std::unique_ptr<FloatingPointLiteral>(new FloatingPointLiteralSymFPU(
       d_fp_size,
       symfpu::min<symfpuLiteral::traits>(
-          d_fp_size, d_symuf, a.d_symuf, zeroCaseLeft)));
+          d_fp_size, *d_symuf, *a.d_symuf, zeroCaseLeft)));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -398,7 +432,7 @@ bool FloatingPointLiteralSymFPU::operator==(
   const auto& other = asSymFPU(fp);
   return ((d_fp_size == other.d_fp_size)
           && symfpu::smtlibEqual<symfpuLiteral::traits>(
-              d_fp_size, d_symuf, other.d_symuf));
+              d_fp_size, *d_symuf, *other.d_symuf));
 }
 
 bool FloatingPointLiteralSymFPU::operator<=(
@@ -407,7 +441,7 @@ bool FloatingPointLiteralSymFPU::operator<=(
   const auto& a = asSymFPU(arg);
   Assert(d_fp_size == a.d_fp_size);
   return symfpu::lessThanOrEqual<symfpuLiteral::traits>(
-      d_fp_size, d_symuf, a.d_symuf);
+      d_fp_size, *d_symuf, *a.d_symuf);
 }
 
 bool FloatingPointLiteralSymFPU::operator<(
@@ -415,58 +449,59 @@ bool FloatingPointLiteralSymFPU::operator<(
 {
   const auto& a = asSymFPU(arg);
   Assert(d_fp_size == a.d_fp_size);
-  return symfpu::lessThan<symfpuLiteral::traits>(d_fp_size, d_symuf, a.d_symuf);
+  return symfpu::lessThan<symfpuLiteral::traits>(
+      d_fp_size, *d_symuf, *a.d_symuf);
 }
 
 /* -------------------------------------------------------------------------- */
 
 BitVector FloatingPointLiteralSymFPU::getUnpackedExponent() const
 {
-  return d_symuf.exponent;
+  return d_symuf->exponent;
 }
 
 BitVector FloatingPointLiteralSymFPU::getUnpackedSignificand() const
 {
-  return d_symuf.significand;
+  return d_symuf->significand;
 }
 
-bool FloatingPointLiteralSymFPU::getSign() const { return d_symuf.sign; }
+bool FloatingPointLiteralSymFPU::getSign() const { return d_symuf->sign; }
 
 /* -------------------------------------------------------------------------- */
 
 bool FloatingPointLiteralSymFPU::isNormal(void) const
 {
-  return symfpu::isNormal<symfpuLiteral::traits>(d_fp_size, d_symuf);
+  return symfpu::isNormal<symfpuLiteral::traits>(d_fp_size, *d_symuf);
 }
 
 bool FloatingPointLiteralSymFPU::isSubnormal(void) const
 {
-  return symfpu::isSubnormal<symfpuLiteral::traits>(d_fp_size, d_symuf);
+  return symfpu::isSubnormal<symfpuLiteral::traits>(d_fp_size, *d_symuf);
 }
 
 bool FloatingPointLiteralSymFPU::isZero(void) const
 {
-  return symfpu::isZero<symfpuLiteral::traits>(d_fp_size, d_symuf);
+  return symfpu::isZero<symfpuLiteral::traits>(d_fp_size, *d_symuf);
 }
 
 bool FloatingPointLiteralSymFPU::isInfinite(void) const
 {
-  return symfpu::isInfinite<symfpuLiteral::traits>(d_fp_size, d_symuf);
+  return symfpu::isInfinite<symfpuLiteral::traits>(d_fp_size, *d_symuf);
 }
 
 bool FloatingPointLiteralSymFPU::isNaN(void) const
 {
-  return symfpu::isNaN<symfpuLiteral::traits>(d_fp_size, d_symuf);
+  return symfpu::isNaN<symfpuLiteral::traits>(d_fp_size, *d_symuf);
 }
 
 bool FloatingPointLiteralSymFPU::isNegative(void) const
 {
-  return symfpu::isNegative<symfpuLiteral::traits>(d_fp_size, d_symuf);
+  return symfpu::isNegative<symfpuLiteral::traits>(d_fp_size, *d_symuf);
 }
 
 bool FloatingPointLiteralSymFPU::isPositive(void) const
 {
-  return symfpu::isPositive<symfpuLiteral::traits>(d_fp_size, d_symuf);
+  return symfpu::isPositive<symfpuLiteral::traits>(d_fp_size, *d_symuf);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -477,21 +512,21 @@ std::unique_ptr<FloatingPointLiteral> FloatingPointLiteralSymFPU::convert(
   return std::unique_ptr<FloatingPointLiteral>(new FloatingPointLiteralSymFPU(
       target,
       symfpu::convertFloatToFloat<symfpuLiteral::traits>(
-          d_fp_size, target, rm, d_symuf)));
+          d_fp_size, target, rm, *d_symuf)));
 }
 
 BitVector FloatingPointLiteralSymFPU::convertToSBVTotal(
     BitVectorSize width, const RoundingMode& rm, BitVector undefinedCase) const
 {
   return symfpu::convertFloatToSBV<symfpuLiteral::traits>(
-      d_fp_size, rm, d_symuf, width, undefinedCase);
+      d_fp_size, rm, *d_symuf, width, undefinedCase);
 }
 
 BitVector FloatingPointLiteralSymFPU::convertToUBVTotal(
     BitVectorSize width, const RoundingMode& rm, BitVector undefinedCase) const
 {
   return symfpu::convertFloatToUBV<symfpuLiteral::traits>(
-      d_fp_size, rm, d_symuf, width, undefinedCase);
+      d_fp_size, rm, *d_symuf, width, undefinedCase);
 }
 
 std::pair<Rational, bool> FloatingPointLiteralSymFPU::convertToRational() const
@@ -504,12 +539,12 @@ std::pair<Rational, bool> FloatingPointLiteralSymFPU::convertToRational() const
   {
     return std::make_pair(Rational(0U, 1U), true);
   }
-  Integer sign(d_symuf.sign ? -1 : 1);
+  Integer sign(d_symuf->sign ? -1 : 1);
   Integer exp(
-      d_symuf.exponent.toSignedInteger()
+      d_symuf->exponent.toSignedInteger()
       - (Integer(d_fp_size.significandWidth()
                  - 1)));  // -1 as forcibly normalised into the [1,2) range
-  Integer significand(d_symuf.significand.toInteger());
+  Integer significand(d_symuf->significand.toInteger());
   Integer signedSignificand(sign * significand);
 
   // We only have multiplyByPow(uint32_t) so we can't convert all numbers.
