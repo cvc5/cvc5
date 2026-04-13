@@ -13,10 +13,10 @@
  * Extension to the theory of arithmetic handling lia star operator.
  */
 
+#ifdef CVC5_USE_NORMALIZ
+
 #ifndef CVC5__THEORY__ARITH__LIASTAR_EXTENSION_H
 #define CVC5__THEORY__ARITH__LIASTAR_EXTENSION_H
-
-#ifdef CVC5_USE_NORMALIZ
 
 #include <map>
 #include <vector>

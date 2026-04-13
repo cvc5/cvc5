@@ -13,10 +13,10 @@
  * Utility functions for liastar extension.
  */
 
+#ifdef CVC5_USE_NORMALIZ
+
 #ifndef CVC5__THEORY__LIASTAR__UTILS_H
 #define CVC5__THEORY__LIASTAR__UTILS_H
-
-#ifdef CVC5_USE_NORMALIZ
 
 #include "expr/node.h"
 #include "smt/env.h"
