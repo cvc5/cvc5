@@ -336,9 +336,9 @@ Node LogosNodeConverter::mkLogosList(const std::vector<Node>& args, const TypeNo
 Node LogosNodeConverter::mkLogosTypedList(const std::vector<Node>& args, const TypeNode& tn)
 {
   Assert (!args.empty());
-  std::stringstream nilName;
-  nilName << "(Term._at__at_TypedList_nil " << typeAsNode(args[0].getType()) << ")";
-  Node ret = mkInternalSymbol(nilName.str(), tn);
+  Node nilu = mkInternalSymbol("Term._at__at_TypedList_nil", tn);
+  Node niltype = typeAsNode(args[0].getType());
+  Node ret = mkInternalApp("Term.Apply", {nilu, niltype}, tn);
   Node cons = mkInternalSymbol("Term._at__at_TypedList_cons", tn);
   // use generic list
   for (size_t i = 0, nchild = args.size(); i < nchild; i++)
