@@ -12,7 +12,7 @@
   :signature (eo::List D) Bool
   (
     (($mk_dt_split eo::List::nil x)          false)
-    (($mk_dt_split (eo::List::cons c xs) x)  (eo::cons or (is c x) ($mk_dt_split xs x)))
+    (($mk_dt_split (eo::List::cons c xs) x)  (_ or (is c x) ($mk_dt_split xs x)))
   )
 )
 
@@ -61,7 +61,7 @@
   :signature ((eo::quote U) D Int) U
   (
     (($mk_dt_inst_tuple_rec UnitTuple x n)     tuple.unit)
-    (($mk_dt_inst_tuple_rec (Tuple T1 T2) x n) (eo::cons tuple (tuple.select n x) ($mk_dt_inst_tuple_rec T2 x (eo::add n 1))))
+    (($mk_dt_inst_tuple_rec (Tuple T1 T2) x n) (_ tuple (tuple.select n x) ($mk_dt_inst_tuple_rec T2 x (eo::add n 1))))
   )
 )
 
@@ -161,7 +161,7 @@
 (program $mk_dt_cons_eq ((T Type) (U Type) (W Type) (c T) (f (-> U T)) (g (-> U T)) (a U) (b U) (as W :list) (bs W :list))
   :signature (T T) Bool
   (
-  (($mk_dt_cons_eq (tuple a as) (tuple b bs)) (eo::cons and (= a b) ($mk_dt_cons_eq as bs)))
+  (($mk_dt_cons_eq (tuple a as) (tuple b bs)) (_ and (= a b) ($mk_dt_cons_eq as bs)))
   (($mk_dt_cons_eq (f a) (g b))               (eo::list_concat and ($mk_dt_cons_eq f g) (and (= a b))))
   (($mk_dt_cons_eq c c)                       true)
   )
@@ -213,57 +213,29 @@
 
 ;;;;; ProofRewriteRule::DT_CYCLE
 
-; note: This is a forward declaration of $dt_find_cycle_list below.
-; note: >
-;   Since forward declarations must have a ground type signature, we wrap
-;   the term to find (the s argument of dt-cycle) in a list.
-(program $dt_find_cycle_list () :signature (@List @List) Bool)
-
-
-; program: $dt_find_cycle_rec
+; program: $dt_find_cycle
 ; args:
 ; - t T: The term.
-; - s @List: A list containing the term to find.
-; - l @List: The list of arguments to t we have seen so far.
+; - s V: The term to find.
+; - isC Bool: Whether we have confirmed that t is a constructor application.
+; - rec Bool: Whether we have recursed to a strict subterm of the original.
 ; return: >
 ;   True iff t contains s as a strict subterm beneath constructor applications.
 ; note: This is a helper for $dt_find_cycle below.
-(program $dt_find_cycle_rec ((T Type) (U Type) (W Type) (c T) (f (-> U W)) (a U) (s @List) (l @List))
-  :signature (T @List @List) Bool
+(program $dt_find_cycle
+  ((T Type) (U Type) (V Type) (c T) (f (-> U T)) (a U) (s V) (rec Bool))
+  :signature (T V Bool Bool) Bool
   (
-    (($dt_find_cycle_rec (f a) s l) ($dt_find_cycle_rec f s (eo::cons @list a l)))
-    (($dt_find_cycle_rec c s l)
-      (eo::ite ($dt_is_cons c)
-        ; only if the head is a constructor, we recurse on each argument
-        ($dt_find_cycle_list l s)
-        false))
-  )
-)
-
-; define: $dt_find_cycle
-; args:
-; - t T: The term.
-; - s @List: A list containing the term to find.
-; return: >
-;   True iff t contains s as a strict subterm beneath constructor applications.
-(define $dt_find_cycle ((T Type :implicit) (t T) (s @List))
-  ($dt_find_cycle_rec t s @list.nil))
-
-; program: $dt_find_cycle_list
-; args:
-; - ts @List: The list of terms to process.
-; - s @List: A list containing the term to find.
-; return: >
-;   True iff a term in ts is s, or contains s as a strict subterm beneath
-;   constructor applications.
-(program $dt_find_cycle_list ((U Type) (t U) (s U) (ts @List :list) (ss @List))
-  :signature (@List @List) Bool
-  (
-  (($dt_find_cycle_list (@list s ts) (@list s)) true)
-  (($dt_find_cycle_list (@list t ts) ss)        (eo::ite ($dt_find_cycle t ss)
-                                                  true
-                                                  ($dt_find_cycle_list ts ss)))
-  (($dt_find_cycle_list @list.nil ss)           false)
+    (($dt_find_cycle c s false rec)
+      (eo::ite ($is_cons_app c) ($dt_find_cycle c s true rec) false))
+    (($dt_find_cycle (f a) s true rec)
+      (eo::ite (eo::eq a s)
+        true
+        (eo::ite ($dt_find_cycle a s false true)
+          true
+          ($dt_find_cycle f s true rec))))
+    (($dt_find_cycle c s true rec)
+      (eo::and (eo::eq c s) rec))
   )
 )
 
@@ -278,7 +250,7 @@
 ; conclusion: The given equality.
 (declare-rule dt-cycle ((D Type) (s D) (t D))
   :args ((= (= s t) false))
-  :requires ((($dt_find_cycle t (@list s)) true)) 
+  :requires ((($dt_find_cycle s t false false) true))
   :conclusion (= (= s t) false)
 )
 
@@ -310,7 +282,7 @@
   :signature (U T Int) U
   (
   (($tuple_collapse_updater_rhs (tuple b ts) a 0)   (tuple a ts))
-  (($tuple_collapse_updater_rhs (tuple b ts) a n)   (eo::cons tuple b ($tuple_collapse_updater_rhs ts a (eo::add n -1))))
+  (($tuple_collapse_updater_rhs (tuple b ts) a n)   (_ tuple b ($tuple_collapse_updater_rhs ts a (eo::add n -1))))
   (($tuple_collapse_updater_rhs tuple.unit a n)     tuple.unit)
   )
 )
@@ -377,9 +349,9 @@
   :signature (D eo::List) D
   (
     (($tuple_updater_elim_rhs (tuple.update n t a) (eo::List::cons (tuple.select n) ss))
-       (eo::cons tuple a ($tuple_updater_elim_rhs (tuple.update n t a) ss)))
+       (_ tuple a ($tuple_updater_elim_rhs (tuple.update n t a) ss)))
     (($tuple_updater_elim_rhs (tuple.update n t a) (eo::List::cons s ss))
-       (eo::cons tuple (s t) ($tuple_updater_elim_rhs (tuple.update n t a) ss)))
+       (_ tuple (s t) ($tuple_updater_elim_rhs (tuple.update n t a) ss)))
     (($tuple_updater_elim_rhs (tuple.update n tu a) eo::List::nil)
        tuple.unit)
   )
