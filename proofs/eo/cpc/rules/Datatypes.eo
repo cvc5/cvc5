@@ -217,24 +217,22 @@
 ; args:
 ; - t T: The term.
 ; - s V: The term to find.
-; - isC Bool: Whether we have confirmed that t is a constructor application.
+; - isC Bool: Whether t is a constructor application.
 ; - rec Bool: Whether we have recursed to a strict subterm of the original.
 ; return: >
 ;   True iff t contains s as a strict subterm beneath constructor applications.
 ; note: This is a helper for $dt_find_cycle below.
 (program $dt_find_cycle
-  ((T Type) (U Type) (V Type) (c T) (f (-> U T)) (a U) (s V) (rec Bool))
+  ((T Type) (U Type) (V Type) (c T) (f (-> U T)) (a U) (s V) (isC Bool) (rec Bool))
   :signature (T V Bool Bool) Bool
   (
-    (($dt_find_cycle c s false rec)
-      (eo::ite ($is_cons_app c) ($dt_find_cycle c s true rec) false))
     (($dt_find_cycle (f a) s true rec)
       (eo::ite (eo::eq a s)
         true
-        (eo::ite ($dt_find_cycle a s false true)
+        (eo::ite ($dt_find_cycle a s ($is_cons_app a) true)
           true
           ($dt_find_cycle f s true rec))))
-    (($dt_find_cycle c s true rec)
+    (($dt_find_cycle c s isC rec)
       (eo::and (eo::eq c s) rec))
   )
 )
@@ -250,7 +248,7 @@
 ; conclusion: The given equality.
 (declare-rule dt-cycle ((D Type) (s D) (t D))
   :args ((= (= s t) false))
-  :requires ((($dt_find_cycle t s false false) true))
+  :requires ((($dt_find_cycle t s ($is_cons_app t) false) true))
   :conclusion (= (= s t) false)
 )
 
