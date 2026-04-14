@@ -15,7 +15,7 @@ find_package(GTest REQUIRED)
 include_directories(.)
 include_directories(${PROJECT_SOURCE_DIR}/src)
 include_directories(${PROJECT_SOURCE_DIR}/src/include)
-include_directories(${CMAKE_BINARY_DIR}/src)
+include_directories(${PROJECT_BINARY_DIR}/src)
 
 #-----------------------------------------------------------------------------#
 # Add target 'units', builds and runs
@@ -27,7 +27,7 @@ add_dependencies(build-tests build-units)
 
 # See the comment about 'make test' in test/regress/cli/CMakeLists.txt
 # Disabled temporarily due to problems in the nightly builds
-# add_test(build_units_test "${CMAKE_COMMAND}" --build "${CMAKE_BINARY_DIR}" --config "$<CONFIG>" --target build-units)
+# add_test(build_units_test "${CMAKE_COMMAND}" --build "${PROJECT_BINARY_DIR}" --config "$<CONFIG>" --target build-units)
 # set_tests_properties(build_units_test PROPERTIES FIXTURES_SETUP build_units_fixture)
 
 add_custom_target(units
@@ -67,7 +67,7 @@ macro(cvc5_add_unit_test is_white name output_dir)
     endif()
     add_dependencies(build-units ${name})
     # Generate into bin/test/unit/<output_dir>.
-    set(test_bin_dir ${CMAKE_BINARY_DIR}/bin/test/unit/${output_dir})
+    set(test_bin_dir ${PROJECT_BINARY_DIR}/bin/test/unit/${output_dir})
     set_target_properties(${name}
       PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${test_bin_dir})
     # The test target is prefixed with test identifier 'unit/' and the path,

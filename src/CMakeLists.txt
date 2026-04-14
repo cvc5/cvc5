@@ -1391,7 +1391,7 @@ if (BUILD_DOCS)
   list(
     APPEND
       options_gen_doc_files
-      "${CMAKE_BINARY_DIR}/docs/options_generated.rst"
+      "${PROJECT_BINARY_DIR}/docs/options_generated.rst"
   )
 endif()
 
@@ -1414,7 +1414,7 @@ add_custom_command(
     ${Python_EXECUTABLE}
     ${CMAKE_CURRENT_LIST_DIR}/options/mkoptions.py
     ${CMAKE_CURRENT_LIST_DIR}
-    ${CMAKE_BINARY_DIR}
+    ${PROJECT_BINARY_DIR}
     ${CMAKE_CURRENT_BINARY_DIR}
     ${abs_toml_files}
   BYPRODUCTS
@@ -1512,7 +1512,7 @@ set_target_properties(cvc5 PROPERTIES OUTPUT_NAME cvc5)
 # Link the shared library
 target_include_directories(cvc5
   PUBLIC
-    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include:${CMAKE_BINARY_DIR}/include>
+    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include:${PROJECT_BINARY_DIR}/include>
     $<INSTALL_INTERFACE:include>
 )
 # On Windows, CMake's default install action places
@@ -1532,10 +1532,10 @@ endif()
 include(GenerateExportHeader)
 generate_export_header(cvc5-obj
   BASE_NAME cvc5
-  EXPORT_FILE_NAME ${CMAKE_BINARY_DIR}/include/cvc5/cvc5_export.h
+  EXPORT_FILE_NAME ${PROJECT_BINARY_DIR}/include/cvc5/cvc5_export.h
 )
 install(FILES
-  ${CMAKE_BINARY_DIR}/include/cvc5/cvc5_export.h
+  ${PROJECT_BINARY_DIR}/include/cvc5/cvc5_export.h
   DESTINATION
     ${CMAKE_INSTALL_INCLUDEDIR}/cvc5/
 )
