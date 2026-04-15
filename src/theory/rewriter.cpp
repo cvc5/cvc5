@@ -424,10 +424,6 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
         rewriteStackTop.d_node = response.d_node;
         rewriteStackTop.d_theoryId = newTheoryId;
       }
-      if (pushedFullRewrite)
-      {
-        continue;
-      }
       continue;
     }
 
@@ -496,7 +492,11 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
         parent.d_node = rewriteStackTop.d_node;
         parent.d_theoryId = theoryOf(parent.d_node);
         parent.d_fullRewriteNode = Node::null();
-        parent.setState(RewriteStackElement::FINALIZE);
+        // Resume the parent's post-rewrite fixpoint on the fully rewritten
+        // node. This preserves the recursive behavior where a full rewrite
+        // requested from post-rewrite returns to post-rewrite, and only
+        // finalizes once post-rewriting is done.
+        parent.setState(RewriteStackElement::POST_REWRITE);
       }
       else
       {
