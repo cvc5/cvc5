@@ -365,7 +365,6 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
 
     if (state == RewriteStackElement::POST_REWRITE)
     {
-      bool pushedFullRewrite = false;
       for (;;)
       {
         // Do the post-rewrite
@@ -397,7 +396,6 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
           rewriteStackTop.setState(RewriteStackElement::WAIT_FOR_FULL_REWRITE);
           rewriteStack.push_back(
               RewriteStackElement(response.d_node, newTheoryId));
-          pushedFullRewrite = true;
           break;
         }
         else if ((response.d_status == REWRITE_DONE
