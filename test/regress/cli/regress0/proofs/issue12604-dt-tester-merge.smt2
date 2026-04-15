@@ -2,7 +2,7 @@
 ; EXPECT: unknown
 (set-logic ALL)
 (declare-const x Bool)
-(declare-datatypes ((F 0)) (((N) (A) (O (l F) (l2 F)) (a (d (_ BitVec 1)))))))
+(declare-datatypes ((F 0)) (((N) (A) (O (l F) (l2 F)) (a (d (_ BitVec 1))))))
 (declare-fun r () F)
 (declare-fun e (F) Bool)
 (declare-fun n (F) F)
