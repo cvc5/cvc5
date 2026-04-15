@@ -18,8 +18,7 @@ namespace cvc5::internal {
 
 static_assert(sizeof(Index) <= sizeof(size_t),
               "Index cannot be larger than size_t");
-static_assert(!std::numeric_limits<Index>::is_signed,
-              "Index must be unsigned");
+static_assert(!std::numeric_limits<Index>::is_signed, "Index must be unsigned");
 
 /* Discussion: Why is Index a uint32_t instead of size_t (or uint_fast32_t)?
  *

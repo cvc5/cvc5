@@ -55,13 +55,13 @@ class ArraySolver : protected EnvObj
   void checkArrayConcat();
   /**
    * Perform reasoning about seq.nth and seq.update operations (lazily), which
-   * calls the core sequences-array solver for the set of nth/update terms over atomic
-   * equivalence classes.
+   * calls the core sequences-array solver for the set of nth/update terms over
+   * atomic equivalence classes.
    */
   void checkArray();
   /**
-   * Same as `checkArray`, but called eagerly, and for all nth/update terms, not just
-   * those over atomic equivalence classes.
+   * Same as `checkArray`, but called eagerly, and for all nth/update terms, not
+   * just those over atomic equivalence classes.
    */
   void checkArrayEager();
 

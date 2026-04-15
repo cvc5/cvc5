@@ -92,7 +92,10 @@ class InferenceManager : public InferenceManagerBuffered
    * status for proof generation. If this is not done, then it is possible
    * to have proofs with missing connections and hence free assumptions.
    */
-  Node prepareDtInference(Node conc, Node exp, InferenceId id, InferProofCons* ipc);
+  Node prepareDtInference(Node conc,
+                          Node exp,
+                          InferenceId id,
+                          InferProofCons* ipc);
   /** The false node */
   Node d_false;
   /** The inference to proof converter */

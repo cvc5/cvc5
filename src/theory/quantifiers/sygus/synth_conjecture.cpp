@@ -290,7 +290,8 @@ void SynthConjecture::assign(Node q)
   {
     conjForExamples = nm->mkNode(Kind::AND, d_embedSideCondition, d_base_inst);
   }
-  if (d_exampleInfer!=nullptr && !d_exampleInfer->initialize(conjForExamples, d_candidates))
+  if (d_exampleInfer != nullptr
+      && !d_exampleInfer->initialize(conjForExamples, d_candidates))
   {
     // there is a contradictory example pair, the conjecture is infeasible.
     Node infLem = d_quant.negate();
@@ -321,16 +322,12 @@ void SynthConjecture::assign(Node q)
                  << std::endl;
 }
 
-
 bool SynthConjecture::isSingleInvocation() const
 {
   return d_ceg_si->isSingleInvocation();
 }
 
-bool SynthConjecture::needsCheck()
-{
-  return true;
-}
+bool SynthConjecture::needsCheck() { return true; }
 
 bool SynthConjecture::doCheck()
 {
@@ -783,8 +780,9 @@ EnumValueManager* SynthConjecture::getEnumValueManagerFor(Node e)
   }
   // otherwise, allocate it
   Node f = d_tds->getSynthFunForEnumerator(e);
-  bool hasExamples = (d_exampleInfer != nullptr && d_exampleInfer->hasExamples(f)
-                      && d_exampleInfer->getNumExamples(f) != 0);
+  bool hasExamples =
+      (d_exampleInfer != nullptr && d_exampleInfer->hasExamples(f)
+       && d_exampleInfer->getNumExamples(f) != 0);
   d_enumManager[e].reset(
       new EnumValueManager(d_env, d_qim, d_treg, d_stats, e, hasExamples));
   EnumValueManager* eman = d_enumManager[e].get();
@@ -972,7 +970,7 @@ bool SynthConjecture::runExprMiner()
 }
 
 bool SynthConjecture::getSynthSolutions(
-    std::map<Node, std::map<Node, Node> >& sol_map)
+    std::map<Node, std::map<Node, Node>>& sol_map)
 {
   NodeManager* nm = nodeManager();
   std::vector<Node> sols;

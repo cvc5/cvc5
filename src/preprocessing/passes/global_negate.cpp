@@ -15,8 +15,8 @@
 #include <vector>
 
 #include "expr/node.h"
-#include "preprocessing/assertion_pipeline.h"
 #include "expr/node_algorithm.h"
+#include "preprocessing/assertion_pipeline.h"
 #include "theory/rewriter.h"
 
 using namespace std;
@@ -74,8 +74,7 @@ Node GlobalNegate::simplify(const std::vector<Node>& assertions,
       bvs.push_back(bv);
     }
 
-    body = body.substitute(
-        fvs.begin(), fvs.end(), bvs.begin(), bvs.end());
+    body = body.substitute(fvs.begin(), fvs.end(), bvs.begin(), bvs.end());
 
     Node bvl = nm->mkNode(Kind::BOUND_VAR_LIST, bvs);
 
@@ -89,7 +88,7 @@ Node GlobalNegate::simplify(const std::vector<Node>& assertions,
 }
 
 GlobalNegate::GlobalNegate(PreprocessingPassContext* preprocContext)
-    : PreprocessingPass(preprocContext, "global-negate"){};
+    : PreprocessingPass(preprocContext, "global-negate") {};
 
 PreprocessingPassResult GlobalNegate::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
@@ -121,7 +120,6 @@ PreprocessingPassResult GlobalNegate::applyInternal(
   }
   return PreprocessingPassResult::NO_CONFLICT;
 }
-
 
 }  // namespace passes
 }  // namespace preprocessing

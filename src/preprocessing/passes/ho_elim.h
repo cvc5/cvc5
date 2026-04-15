@@ -115,10 +115,10 @@ class HoElim : public PreprocessingPass
    *
    * Given n : U(T1 -> ... -> Tn -> R), this builds
    *   lambda x1 : T1, ..., xn : Tn.
-   *     App_{Tn->R}(...App_{T2->...->Tn->R}(App_{T1->...->Tn->R}(n, x1), x2)..., xn)
-   * where each step uses the HO-elim application symbol for the current
-   * remaining function type. The result has type T1 -> ... -> Tn -> R and is
-   * used for model reconstruction via top-level substitutions.
+   *     App_{Tn->R}(...App_{T2->...->Tn->R}(App_{T1->...->Tn->R}(n, x1),
+   * x2)..., xn) where each step uses the HO-elim application symbol for the
+   * current remaining function type. The result has type T1 -> ... -> Tn -> R
+   * and is used for model reconstruction via top-level substitutions.
    */
   Node reconstructHoFunction(Node n, TypeNode tn);
   /**

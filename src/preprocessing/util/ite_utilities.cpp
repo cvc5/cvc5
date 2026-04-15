@@ -692,13 +692,13 @@ bool ITESimplifier::doneALotOfWorkHeuristic() const
 {
   static const size_t SIZE_BOUND = 1000;
   verbose(2) << "d_citeEqConstApplications size " << d_citeEqConstApplications
-         << endl;
+             << endl;
   return (d_citeEqConstApplications > SIZE_BOUND);
 }
 
 ITESimplifier::Statistics::Statistics(StatisticsRegistry& reg)
     : d_maxNonConstantsFolded(
-        reg.registerInt("ite-simp::maxNonConstantsFolded")),
+          reg.registerInt("ite-simp::maxNonConstantsFolded")),
       d_unexpected(reg.registerInt("ite-simp::unexpected")),
       d_unsimplified(reg.registerInt("ite-simp::unsimplified")),
       d_exactMatchFold(reg.registerInt("ite-simp::exactMatchFold")),
@@ -947,7 +947,7 @@ Node ITESimplifier::attemptLiftEquality(TNode atom)
       if (notIte.isConst() && (ite[1].isConst() || ite[2].isConst()))
       {
         ++(d_statistics.d_exactMatchFold);
-        return ite[0].iteNode(notIte.eqNode(ite[1]), notIte.eqNode(ite[2]));
+        return ite[0].iteNode({notIte.eqNode(ite[1]), notIte.eqNode(ite[2])});
       }
     }
   }
@@ -1604,7 +1604,8 @@ Node ITESimplifier::simpITE(TNode assertion)
   return d_simpITECache[assertion];
 }
 
-ITECareSimplifier::ITECareSimplifier(NodeManager* nm) : d_careSetsOutstanding(0), d_usedSets()
+ITECareSimplifier::ITECareSimplifier(NodeManager* nm)
+    : d_careSetsOutstanding(0), d_usedSets()
 {
   d_true = nm->mkConst<bool>(true);
   d_false = nm->mkConst<bool>(false);

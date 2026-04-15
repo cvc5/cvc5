@@ -203,7 +203,6 @@ const Cvc5Term* cvc5_sm_get_declared_terms(Cvc5SymbolManager* sm, size_t* size)
   return *size > 0 ? res.data() : nullptr;
 }
 
-
 void cvc5_sm_get_named_terms(Cvc5SymbolManager* sm,
                              size_t* size,
                              Cvc5Term* terms[],

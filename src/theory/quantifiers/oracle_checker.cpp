@@ -57,7 +57,7 @@ Node OracleChecker::evaluateApp(Node app)
   if (retv.size() != 1)
   {
     DebugUnhandled() << "Failed to evaluate " << app
-                  << " to a single return value, got: " << retv << std::endl;
+                     << " to a single return value, got: " << retv << std::endl;
     return app;
   }
   Node ret = retv[0];
@@ -76,7 +76,7 @@ Node OracleChecker::evaluateApp(Node app)
         "Evaluated an oracle call that is not associated with the term manager "
         "of this solver");
   }
-  if (ret.getType() != app.getType())
+  if (!CVC5_EQUAL(ret.getType(), app.getType()))
   {
     std::stringstream ss;
     ss << "Evaluated an oracle call with an unexpected type: " << app << " = "

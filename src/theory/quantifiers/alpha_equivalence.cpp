@@ -24,10 +24,12 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-struct sortTypeOrder {
+struct sortTypeOrder
+{
   expr::TermCanonize* d_tu;
-  bool operator() (TypeNode i, TypeNode j) {
-    return d_tu->getIdForType( i )<d_tu->getIdForType( j );
+  bool operator()(TypeNode i, TypeNode j)
+  {
+    return d_tu->getIdForType(i) < d_tu->getIdForType(j);
   }
 };
 
@@ -90,7 +92,7 @@ Node AlphaEquivalenceDb::addTerm(Node q)
 {
   Assert(q.getKind() == Kind::FORALL);
   Trace("aeq") << "Alpha equivalence : register " << q << std::endl;
-  //construct canonical quantified formula
+  // construct canonical quantified formula
   Node t = d_tc->getCanonicalTerm(q[1], d_sortCommutativeOpChildren);
   Trace("aeq") << "  canonical form: " << t << std::endl;
   return addTermToTypeTrie(t, q);
@@ -141,20 +143,21 @@ Node AlphaEquivalenceDb::addTermWithSubstitution(Node q,
 
 Node AlphaEquivalenceDb::addTermToTypeTrie(Node t, Node q)
 {
-  //compute variable type counts
+  // compute variable type counts
   std::map<TypeNode, size_t> typCount;
-  std::vector< TypeNode > typs;
+  std::vector<TypeNode> typs;
   for (const Node& v : q[0])
   {
     TypeNode tn = v.getType();
     typCount[tn]++;
-    if( std::find( typs.begin(), typs.end(), tn )==typs.end() ){
-      typs.push_back( tn );
+    if (std::find(typs.begin(), typs.end(), tn) == typs.end())
+    {
+      typs.push_back(tn);
     }
   }
   sortTypeOrder sto;
   sto.d_tu = d_tc;
-  std::sort( typs.begin(), typs.end(), sto );
+  std::sort(typs.begin(), typs.end(), sto);
   Trace("aeq-debug") << "  ";
   Node ret = d_ae_typ_trie.registerNode(d_context, q, t, typs, typCount);
   Trace("aeq") << "  ...result : " << ret << std::endl;

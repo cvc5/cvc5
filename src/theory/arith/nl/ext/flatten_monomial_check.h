@@ -28,17 +28,17 @@ class FlattenMonProofGenerator;
 /**
  * The flatten monomial check routine, which reasons about the associativity
  * of multiplication.
- * 
+ *
  * As a summary, this routine scans equivalence classes to build a substitution,
  * applies this substitution to non-linear multiplication terms and derives
  * equalities. For example, given equivalence classes:
- * 
+ *
  * { x, u*w, x*t }
  * { v, z*w }
  * { v*u }
  * { x*z }
  * { j, i }
- * 
+ *
  * We may infer the substitution { x -> u*w, v -> z*w, j -> i }. Applying this
  * substitution to v*u and rewriting gives z*w*u, similarly to x*z we
  * gives z*w*u. Hence we infer the lemma:

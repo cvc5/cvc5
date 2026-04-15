@@ -14,7 +14,7 @@
 
 namespace cvc5::internal {
 
-Listener::Listener(){}
-Listener::~Listener(){}
+Listener::Listener() {}
+Listener::~Listener() {}
 
 }  // namespace cvc5::internal

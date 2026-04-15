@@ -28,7 +28,7 @@ namespace eq {
 class EqualityEngineNotify
 {
  public:
-  virtual ~EqualityEngineNotify(){};
+  virtual ~EqualityEngineNotify() {};
 
   /**
    * Notifies about a trigger predicate that became true or false. Notice that

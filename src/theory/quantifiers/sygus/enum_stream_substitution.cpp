@@ -531,7 +531,8 @@ Node EnumStreamSubstitution::getNext()
       std::stringstream ss, ss1;
       TermDbSygus::toStreamSygus(ss, comb_value);
       Trace("synth-stream-concrete")
-          << " ..term " << ss.str() << " is REDUNDANT with " << builtin_comb_value
+          << " ..term " << ss.str() << " is REDUNDANT with "
+          << builtin_comb_value
           << "\n ..excluding all other concretizations (had "
           << d_comb_values.size() << " already)\n\n";
     }

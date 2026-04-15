@@ -31,7 +31,8 @@ namespace theory {
 // Note that this function is a simplified version of Theory::theoryOf for
 // (type-based) theoryOfMode. We expand and simplify it here for the sake of
 // efficiency.
-static TheoryId theoryOf(TNode node) {
+static TheoryId theoryOf(TNode node)
+{
   if (node.getKind() == Kind::EQUAL)
   {
     // Equality is owned by the theory that owns the domain
@@ -46,7 +47,8 @@ static TheoryId theoryOf(TNode node) {
  * and post-rewritten.  Each element of the stack is a
  * RewriteStackElement.
  */
-struct RewriteStackElement {
+struct RewriteStackElement
+{
   enum State
   {
     PRE_REWRITE,
@@ -104,8 +106,8 @@ struct RewriteStackElement {
   NodeBuilder d_builder;
 };
 
-
-Node Rewriter::rewrite(TNode node) {
+Node Rewriter::rewrite(TNode node)
+{
   if (node.getNumChildren() == 0)
   {
     // Nodes with zero children should never change via rewriting. We return
@@ -121,8 +123,7 @@ Node Rewriter::extendedRewrite(TNode node, bool aggr)
   return er.extendedRewrite(node);
 }
 
-TrustNode Rewriter::rewriteWithProof(TNode node,
-                                     bool isExtEq)
+TrustNode Rewriter::rewriteWithProof(TNode node, bool isExtEq)
 {
   // must set the proof checker before calling this
   Assert(d_tpg != nullptr);
@@ -222,7 +223,8 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
   }
 #endif
 
-  Trace("rewriter") << "Rewriter::rewriteTo(" << theoryId << "," << node << ")"<< std::endl;
+  Trace("rewriter") << "Rewriter::rewriteTo(" << theoryId << "," << node << ")"
+                    << std::endl;
 
   // Check if it's been cached already
   Node cached = getPostRewriteCache(theoryId, node);
@@ -263,7 +265,8 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
               && !hasRewrittenWithProofs(rewriteStackTop.d_node)))
       {
         // Rewrite until fix-point is reached
-        for(;;) {
+        for (;;)
+        {
           // Perform the pre-rewrite
           Kind originalKind = rewriteStackTop.d_node.getKind();
           RewriteResponse response = preRewrite(

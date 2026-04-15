@@ -12,6 +12,7 @@
 #include "util/synth_result.h"
 
 #include <sstream>
+
 #include "base/check.h"
 
 using namespace std;

@@ -122,40 +122,40 @@ class Trigger : protected EnvObj
   IMGenerator* getGenerator() { return d_mg; }
   /** Reset instantiation round.
    *
-  * Called once at beginning of an instantiation round.
-  */
+   * Called once at beginning of an instantiation round.
+   */
   void resetInstantiationRound();
   /** Reset the trigger.
    *
-  * eqc is the equivalence class from which to match ground terms. If eqc is
-  * Node::null(), then we match ground terms from all equivalence classes.
-  */
-  void reset( Node eqc );
+   * eqc is the equivalence class from which to match ground terms. If eqc is
+   * Node::null(), then we match ground terms from all equivalence classes.
+   */
+  void reset(Node eqc);
   /** add all available instantiations, based on the current context
-  *
-  * This function makes the appropriate calls to d_qe->addInstantiation(...)
-  * based on the current ground terms and equalities in the current context,
-  * via queries to functions in d_qe. This calls the addInstantiations function
-  * of the underlying match generator. It can be extended to
-  * produce instantiations beyond what is produced by the match generator
-  * (for example, see theory/quantifiers/ematching/ho_trigger.h).
-  */
+   *
+   * This function makes the appropriate calls to d_qe->addInstantiation(...)
+   * based on the current ground terms and equalities in the current context,
+   * via queries to functions in d_qe. This calls the addInstantiations function
+   * of the underlying match generator. It can be extended to
+   * produce instantiations beyond what is produced by the match generator
+   * (for example, see theory/quantifiers/ematching/ho_trigger.h).
+   */
   virtual uint64_t addInstantiations();
   /** Return whether this is a multi-trigger. */
   bool isMultiTrigger() const;
   /** Get instantiation pattern list associated with this trigger.
    *
-  * An instantiation pattern list is the node representation of a trigger, in
-  * particular, it is the third argument of quantified formulas which have user
-  * (! ... :pattern) attributes.
-  */
+   * An instantiation pattern list is the node representation of a trigger, in
+   * particular, it is the third argument of quantified formulas which have user
+   * (! ... :pattern) attributes.
+   */
   Node getInstPattern() const;
   /* A heuristic value indicating how active this generator is.
    *
-  * This returns the number of ground terms for the match operators in terms
-  * from d_nodes. This score is only used with the experimental option
-  *   --trigger-active-sel.
-  */
+   * This returns the number of ground terms for the match operators in terms
+   * from d_nodes. This score is only used with the experimental option
+   *   --trigger-active-sel.
+   */
   int getActiveScore();
   /** print debug information for the trigger */
   void debugPrint(const char* c) const;
@@ -218,9 +218,9 @@ class Trigger : protected EnvObj
   Node d_quant;
   /** match generator
    *
-  * This is the back-end utility that implements the underlying matching
-  * algorithm associated with this trigger.
-  */
+   * This is the back-end utility that implements the underlying matching
+   * algorithm associated with this trigger.
+   */
   IMGenerator* d_mg;
   /**
    * An instantiation match, for building instantiation terms and doing

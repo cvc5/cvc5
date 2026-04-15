@@ -43,7 +43,7 @@ class PrintBenchmark
    * @param sorted True if declarations should be sorted wrt node id.
    * @param c      The associated node converter.
    */
-  PrintBenchmark(NodeManager * nm,
+  PrintBenchmark(NodeManager* nm,
                  const Printer* p,
                  bool sorted = true,
                  NodeConverter* c = nullptr)
@@ -153,7 +153,7 @@ class PrintBenchmark
    */
   bool decomposeDefinition(Node a, bool& isRecDef, Node& sym, Node& body);
   /** Pointer to the node manager */
-  NodeManager * d_nm;
+  NodeManager* d_nm;
   /**
    * Pointer to the printer we are using, which is responsible for printing
    * individual commands.
