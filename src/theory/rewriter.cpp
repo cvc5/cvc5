@@ -12,6 +12,8 @@
 
 #include "theory/rewriter.h"
 
+#include <deque>
+
 #include "options/theory_options.h"
 #include "proof/conv_proof_generator.h"
 #include "theory/builtin/proof_checker.h"
@@ -20,8 +22,6 @@
 #include "theory/rewriter_tables.h"
 #include "theory/theory.h"
 #include "util/resource_manager.h"
-
-#include <deque>
 
 using namespace std;
 
@@ -317,9 +317,8 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
         rewriteStackTop.d_theoryId = theoryOf(cached);
       }
       rewriteStackTop.d_original = rewriteStackTop.d_node;
-      rewriteStackTop.d_postRewriteCache =
-          getPostRewriteCache(rewriteStackTop.getTheoryId(),
-                              rewriteStackTop.d_node);
+      rewriteStackTop.d_postRewriteCache = getPostRewriteCache(
+          rewriteStackTop.getTheoryId(), rewriteStackTop.d_node);
       if (!rewriteStackTop.d_postRewriteCache.isNull()
           && (tcpg == nullptr
               || hasRewrittenWithProofs(rewriteStackTop.d_node)))
@@ -457,8 +456,8 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
             Trace("rewriter-proof")
                 << " w/o proofs: " << rewriteStackTop.d_postRewriteCache
                 << std::endl;
-            Node eq =
-                rewriteStackTop.d_node.eqNode(rewriteStackTop.d_postRewriteCache);
+            Node eq = rewriteStackTop.d_node.eqNode(
+                rewriteStackTop.d_postRewriteCache);
             // we make this a post-rewrite, since we are processing a node that
             // has finished post-rewriting above
             Node trrid = mkTrustId(d_nm, TrustId::REWRITE_NO_ELABORATE);
