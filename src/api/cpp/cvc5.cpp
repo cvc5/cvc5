@@ -583,6 +583,7 @@ const static std::unordered_map<internal::Kind,
         {internal::Kind::TO_REAL, Kind::TO_REAL},
         {internal::Kind::PI, Kind::PI},
         {internal::Kind::IAND_OP, Kind::IAND},
+        {internal::Kind::STAR_CONTAINS, Kind::STAR_CONTAINS},
         /* BV -------------------------------------------------------------- */
         {internal::Kind::CONST_BITVECTOR, Kind::CONST_BITVECTOR},
         {internal::Kind::BITVECTOR_CONCAT, Kind::BITVECTOR_CONCAT},
