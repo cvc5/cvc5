@@ -199,7 +199,7 @@ else()
           -DINSTALL_NAME_TOOL=${CMAKE_INSTALL_NAME_TOOL}
           -DDYLIB_PATH=\${GMP_DYLIB}
           -DDEPS_BASE=${DEPS_BASE}
-          -P ${CMAKE_SOURCE_DIR}/cmake/update_rpath_macos.cmake)
+          -P ${PROJECT_SOURCE_DIR}/cmake/update_rpath_macos.cmake)
       endforeach()
     ")
   endif()

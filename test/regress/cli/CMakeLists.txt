@@ -4465,7 +4465,7 @@ endforeach()
 # we use a Cmake feature called FIXTURES to add 'build_regress' as the first test
 # which builds the 'build_regress' target.
 # Disabled temporarily due to problems in the nightly builds
-# add_test(build_regress_test "${CMAKE_COMMAND}" --build "${CMAKE_BINARY_DIR}" --config "$<CONFIG>" --target build-regress)
+# add_test(build_regress_test "${CMAKE_COMMAND}" --build "${PROJECT_BINARY_DIR}" --config "$<CONFIG>" --target build-regress)
 # set_tests_properties(build_regress_test PROPERTIES FIXTURES_SETUP build_regress_fixture)
 
 macro(cvc5_add_regression_test level file)
@@ -4481,11 +4481,11 @@ macro(cvc5_add_regression_test level file)
     ${Python_EXECUTABLE}
     ${run_regress_script}
     ${RUN_REGRESSION_ARGS}
-    --lfsc-binary ${CMAKE_SOURCE_DIR}/deps/bin/lfscc
-    --lfsc-sig-dir ${CMAKE_SOURCE_DIR}/proofs/lfsc/signatures
-    --carcara-binary ${CMAKE_SOURCE_DIR}/deps/bin/carcara
-    --ethos-binary ${CMAKE_SOURCE_DIR}/deps/bin/ethos
-    --cpc-sig-dir ${CMAKE_SOURCE_DIR}/proofs/eo
+    --lfsc-binary ${PROJECT_SOURCE_DIR}/deps/bin/lfscc
+    --lfsc-sig-dir ${PROJECT_SOURCE_DIR}/proofs/lfsc/signatures
+    --carcara-binary ${PROJECT_SOURCE_DIR}/deps/bin/carcara
+    --ethos-binary ${PROJECT_SOURCE_DIR}/deps/bin/ethos
+    --cpc-sig-dir ${PROJECT_SOURCE_DIR}/proofs/eo
     ${wrapper}
     ${path_to_cvc5}/cvc5${CMAKE_EXECUTABLE_SUFFIX}
     ${CMAKE_CURRENT_LIST_DIR}/${file})

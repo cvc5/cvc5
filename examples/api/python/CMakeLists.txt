@@ -82,7 +82,7 @@ function(_add_python_test example subdir)
   add_test(
     NAME     ${test_name}
     COMMAND  "${Python_EXECUTABLE}" ${ARGN}
-             "${CMAKE_SOURCE_DIR}/${subdir}/${example}.py"
+             "${PROJECT_SOURCE_DIR}/${subdir}/${example}.py"
   )
   set_tests_properties(${test_name} PROPERTIES
     LABELS      "example"
