@@ -328,5 +328,5 @@ macro(update_rpath_macos dylibname)
     -DINSTALL_NAME_TOOL=${CMAKE_INSTALL_NAME_TOOL}
     -DDYLIB_PATH=\${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/${dylibname}
     -DDEPS_BASE=${DEPS_BASE}
-    -P ${CMAKE_SOURCE_DIR}/cmake/update_rpath_macos.cmake)")
+    -P ${PROJECT_SOURCE_DIR}/cmake/update_rpath_macos.cmake)")
 endmacro()
