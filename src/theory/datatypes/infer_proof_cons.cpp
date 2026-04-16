@@ -274,7 +274,7 @@ void InferProofCons::convert(InferenceId infer,
           for (size_t i = 0; i < 2; i++)
           {
             Node t = i == 0 ? tester1 : tester1c;
-            Node inst = rr->rewriteViaRule(ProofRewriteRule::DT_INST, tester1);
+            Node inst = rr->rewriteViaRule(ProofRewriteRule::DT_INST, t);
             Assert(!inst.isNull());
             Assert(inst.getKind() == Kind::EQUAL);
             Node eq = t.eqNode(inst);
@@ -290,8 +290,8 @@ void InferProofCons::convert(InferenceId infer,
           }
           Node ceq = insts[0][0].eqNode(insts[1][1]);
           cdp->addStep(ceq, ProofRule::TRANS, insts, {});
+          tryRewriteRule(ceq, fn, ProofRewriteRule::MACRO_DT_CONS_EQ, cdp);
           Node ceqf = ceq.eqNode(fn);
-          tryRewriteRule(ceqf, conc, ProofRewriteRule::MACRO_DT_CONS_EQ, cdp);
           cdp->addStep(fn, ProofRule::EQ_RESOLVE, {ceq, ceqf}, {});
         }
         success = true;
