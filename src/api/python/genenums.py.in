@@ -24,7 +24,7 @@ import re
 import sys
 
 # get access to cvc5/src/api/parseenums.py
-SOURCE_DIR = '${CMAKE_SOURCE_DIR}'
+SOURCE_DIR = '${PROJECT_SOURCE_DIR}'
 INCLUDE_DIR = f'{SOURCE_DIR}/include'
 sys.path.insert(0, os.path.abspath(f'{SOURCE_DIR}/src/api'))
 

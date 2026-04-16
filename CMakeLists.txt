@@ -460,7 +460,7 @@ endmacro()
 if(ENABLE_AUTO_DOWNLOAD)
   if(USE_PYTHON_VENV)
     # Set up Python venv if one doesn't exist already
-    set(VENV_PATH "${CMAKE_BINARY_DIR}/venv-${Python_VERSION}")
+    set(VENV_PATH "${PROJECT_BINARY_DIR}/venv-${Python_VERSION}")
     if(NOT EXISTS ${VENV_PATH})
       create_venv()
     endif()
@@ -520,7 +520,7 @@ if(ENABLE_COVERAGE)
   setup_code_coverage_fastcov(
     NAME coverage
     PATH "${PROJECT_SOURCE_DIR}"
-    EXCLUDE "${CMAKE_BINARY_DIR}/deps/*"
+    EXCLUDE "${PROJECT_BINARY_DIR}/deps/*"
     DEPENDENCIES cvc5-bin
   )
 endif()
@@ -679,7 +679,7 @@ endif()
 
 # Include public headers
 include_directories(include)
-include_directories(${CMAKE_BINARY_DIR}/include)
+include_directories(${PROJECT_BINARY_DIR}/include)
 
 # Install public headers
 install(DIRECTORY include/cvc5 DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
@@ -766,8 +766,8 @@ install(EXPORT cvc5-targets
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/cvc5)
 
 configure_package_config_file(
-  ${CMAKE_SOURCE_DIR}/cmake/cvc5Config.cmake.in
-  ${CMAKE_BINARY_DIR}/cmake/cvc5Config.cmake
+  ${PROJECT_SOURCE_DIR}/cmake/cvc5Config.cmake.in
+  ${PROJECT_BINARY_DIR}/cmake/cvc5Config.cmake
   INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/cvc5
   PATH_VARS CMAKE_INSTALL_LIBDIR
 )
@@ -779,8 +779,8 @@ write_basic_package_version_file(
 )
 
 install(FILES
-  ${CMAKE_BINARY_DIR}/cmake/cvc5Config.cmake
-  ${CMAKE_BINARY_DIR}/cvc5ConfigVersion.cmake
+  ${PROJECT_BINARY_DIR}/cmake/cvc5Config.cmake
+  ${PROJECT_BINARY_DIR}/cvc5ConfigVersion.cmake
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/cvc5
 )
 
