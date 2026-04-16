@@ -26,6 +26,7 @@
     (($get_var_list (Q xs G)) xs)
   )
 )
+
 ; program: $get_var_type
 ; args:
 ; - v T: The variable
