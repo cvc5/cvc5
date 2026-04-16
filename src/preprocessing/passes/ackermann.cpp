@@ -72,6 +72,12 @@ void addLemmaForPair(TNode args1,
     {
       args_eq = eqs[0];
     }
+
+    // add consistency lemma
+    Node func_eq = nm->mkNode(Kind::EQUAL, args1, args2);
+    Node lemma = nm->mkNode(Kind::IMPLIES, args_eq, func_eq);
+    assertionsToPreprocess->push_back(
+        lemma, false, nullptr, TrustId::PREPROCESS_ACKERMANN_LEMMA);
   }
   else
   {
@@ -79,14 +85,19 @@ void addLemmaForPair(TNode args1,
     Assert(args2.getKind() == Kind::SELECT && args2.getOperator() == func);
     Assert(args1.getNumChildren() == 2);
     Assert(args2.getNumChildren() == 2);
-    args_eq = nm->mkNode(Kind::AND,
-                         {nm->mkNode(Kind::EQUAL, args1[0], args2[0]),
-                          nm->mkNode(Kind::EQUAL, args1[1], args2[1])});
+    // add consistency lemma only if types match
+    if (args1.getType() == args2.getType()
+        && args1[1].getType() == args2[1].getType())
+    {
+      args_eq = nm->mkNode(Kind::AND,
+                           nm->mkNode(Kind::EQUAL, args1[0], args2[0]),
+                           nm->mkNode(Kind::EQUAL, args1[1], args2[1]));
+      Node func_eq = nm->mkNode(Kind::EQUAL, args1, args2);
+      Node lemma = nm->mkNode(Kind::IMPLIES, args_eq, func_eq);
+      assertionsToPreprocess->push_back(
+          lemma, false, nullptr, TrustId::PREPROCESS_ACKERMANN_LEMMA);
+    }
   }
-  Node func_eq = nm->mkNode(Kind::EQUAL, args1, args2);
-  Node lemma = nm->mkNode(Kind::IMPLIES, args_eq, func_eq);
-  assertionsToPreprocess->push_back(
-      lemma, false, nullptr, TrustId::PREPROCESS_ACKERMANN_LEMMA);
 }
 
 void storeFunctionAndAddLemmas(TNode func,
