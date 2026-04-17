@@ -1462,7 +1462,8 @@ bool TheoryArrays::checkReadValueSplit()
   auto addReads = [&](const context::CDList<TNode>& reads) {
     for (const TNode& read : reads)
     {
-      if (!d_equalityEngine->hasTerm(read) || !d_equalityEngine->hasTerm(read[0]))
+      if (!d_equalityEngine->hasTerm(read)
+          || !d_equalityEngine->hasTerm(read[0]))
       {
         continue;
       }
