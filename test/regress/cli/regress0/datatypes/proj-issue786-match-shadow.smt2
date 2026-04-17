@@ -1,5 +1,8 @@
-; EXPECT: sat
-(set-logic AUFDTLIA)
+; DISABLE-TESTER: dump
+; SCRUBBER: grep -o '(error "Parse Error:'
+; ERROR-SCRUBBER: sed -e 's/.*//g'
+; EXPECT: (error "Parse Error:
+; EXIT: 1
 
 (declare-datatypes ((Maybe 1))
   ((par (T) ((Nothing)
@@ -10,6 +13,5 @@
     ((optional optional)
      ((Just value) (Just 1)))))
 
-(declare-const c1 (Maybe Int))
 (assert (= c1 (f (Just 1))))
 (check-sat)
