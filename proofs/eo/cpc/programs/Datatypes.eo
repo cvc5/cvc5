@@ -93,7 +93,7 @@
 ; program: $is_cons_app
 ; args:
 ; - t S: The term to inspect.
-; return: True if and only if t is an application of a constructor
+; return: True iff t has a constructor symbol at its head, including bare/nullary constructors.
 (program $is_cons_app ((T Type) (S Type) (g (-> T S)) (x T) (y S))
   :signature (S) Bool
   (

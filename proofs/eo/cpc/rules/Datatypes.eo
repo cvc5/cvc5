@@ -221,7 +221,7 @@
 ; - rec Bool: Whether we have recursed to a strict subterm of the original.
 ; return: >
 ;   True iff t contains s as a strict subterm beneath constructor applications.
-; note: This is a helper for $dt_find_cycle below.
+; note: This program is the side-condition helper for the dt-cycle rule below.
 (program $dt_find_cycle
   ((T Type) (U Type) (V Type) (c T) (f (-> U T)) (a U) (s V) (isC Bool) (rec Bool))
   :signature (T V Bool Bool) Bool
@@ -242,9 +242,9 @@
 ; args:
 ; - eq Bool: The equality to prove.
 ; requires: >
-;   The equality on the left hand side is conflicting based on finding
-;   subterms (beneath constructor applications) that have different constructor
-;   symbols on either side.
+;   The equality on the left hand side is conflicting because t contains s
+;   as a strict subterm beneath constructor applications (an occurs-check
+;   style cycle detected by $dt_find_cycle).
 ; conclusion: The given equality.
 (declare-rule dt-cycle ((D Type) (s D) (t D))
   :args ((= (= s t) false))
