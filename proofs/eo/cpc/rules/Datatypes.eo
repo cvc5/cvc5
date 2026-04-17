@@ -226,14 +226,16 @@
   ((T Type) (U Type) (V Type) (c T) (f (-> U T)) (a U) (s V) (isC Bool) (rec Bool))
   :signature (T V Bool Bool) Bool
   (
+    ; if we found the term, then we are successful if we have recursed.
+    (($dt_find_cycle c c isC rec) rec)
+    ; if we are a constructor application, we look inside the current argument,
+    ; and additionally look inside further arguments of f.
     (($dt_find_cycle (f a) s true rec)
-      (eo::ite (eo::eq a s)
+      (eo::ite ($dt_find_cycle a s ($is_cons_app a) true)
         true
-        (eo::ite ($dt_find_cycle a s ($is_cons_app a) true)
-          true
-          ($dt_find_cycle f s true rec))))
-    (($dt_find_cycle c s isC rec)
-      (eo::and (eo::eq c s) rec))
+        ($dt_find_cycle f s true rec)))
+    ; otherwise we fail.
+    (($dt_find_cycle c s isC rec) false)
   )
 )
 
