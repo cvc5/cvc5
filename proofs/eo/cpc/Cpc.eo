@@ -346,7 +346,7 @@
 (program $evaluate_list ((U Type) (t U) (ts @List :list))
   :signature (@List) @List
   (
-  (($evaluate_list (@list t ts))  (eo::cons @list ($run_evaluate t) ($evaluate_list ts)))
+  (($evaluate_list (@list t ts))  (_ @list ($run_evaluate t) ($evaluate_list ts)))
   (($evaluate_list @list.nil)     @list.nil)
   )
 )

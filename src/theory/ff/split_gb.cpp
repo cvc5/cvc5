@@ -57,8 +57,8 @@ std::variant<Point, Poly, bool> splitZeroExtend(const Polys& origPolys,
 {
   Assert(origPolys.size());
   CoCoA::ring polyRing = CoCoA::owner(origPolys[0]);
-  SplitGb bases(std::move(curBases));
-  PartialPoint r(std::move(curR));
+  SplitGb bases(curBases);
+  PartialPoint r(curR);
   long nAssigned = std::count_if(
       r.begin(), r.end(), [](const auto& v) { return v.has_value(); });
   if (std::any_of(bases.begin(), bases.end(), [](const Gb& i) {
