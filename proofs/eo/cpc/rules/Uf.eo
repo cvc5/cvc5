@@ -118,7 +118,7 @@
 (program $mk_nary_cong_rhs ((U Type) (f (-> U U U)) (s1 U) (s2 U) (t U :list) (tail Bool :list) (nil U))
     :signature (U Bool) U
     (
-        (($mk_nary_cong_rhs (f s1 t) (and (= s1 s2) tail))  (eo::cons f s2 ($mk_nary_cong_rhs t tail)))
+        (($mk_nary_cong_rhs (f s1 t) (and (= s1 s2) tail))  (_ f s2 ($mk_nary_cong_rhs t tail)))
         (($mk_nary_cong_rhs nil true)                       nil)
     )
 )
@@ -255,7 +255,7 @@
 (program $mk_distinct_elim_rec ((T Type) (x T) (y T) (xs (@TList T) :list) (b Bool))
   :signature (T (@TList T) Bool) Bool
   (
-  (($mk_distinct_elim_rec x (@tlist y xs) b)    (eo::cons and (not (= x y)) ($mk_distinct_elim_rec x xs b)))
+  (($mk_distinct_elim_rec x (@tlist y xs) b)    (_ and (not (= x y)) ($mk_distinct_elim_rec x xs b)))
   (($mk_distinct_elim_rec x (@tlist.nil T) b)   b)
   )
 )

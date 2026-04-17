@@ -115,7 +115,7 @@
 (program $get_arg_list_rec ((T Type) (S Type) (f (-> T S)) (x T) (y S) (acc @List))
   :signature (S @List) @List
   (
-    (($get_arg_list_rec (f x) acc)  ($get_arg_list_rec f (eo::cons @list x acc)))
+    (($get_arg_list_rec (f x) acc)  ($get_arg_list_rec f (_ @list x acc)))
     (($get_arg_list_rec y acc)      acc)
   )
 )

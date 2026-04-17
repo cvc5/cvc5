@@ -26,7 +26,7 @@
   :signature (@Polynomial) @Polynomial
   (
     (($poly_neg @poly.zero)           @poly.zero)
-    (($poly_neg (@poly (@mon a c) p)) (eo::cons @poly (@mon a (eo::neg c)) ($poly_neg p)))
+    (($poly_neg (@poly (@mon a c) p)) (_ @poly (@mon a (eo::neg c)) ($poly_neg p)))
   )
 )
 ; program: $poly_mod_coeffs
@@ -42,7 +42,7 @@
                                                (eo::ite (eo::eq newc 0)
                                                  ; if it becomes zero, it cancels
                                                  ($poly_mod_coeffs p w)
-                                                 (eo::cons @poly (@mon a (eo::to_q newc)) ($poly_mod_coeffs p w)))))
+                                                 (_ @poly (@mon a (eo::to_q newc)) ($poly_mod_coeffs p w)))))
   )
 )
 
@@ -57,10 +57,10 @@
     (($poly_add (@poly (@mon a1 c1) p1) (@poly (@mon a2 c2) p2)) (eo::ite (eo::eq a1 a2)
                                                                   (eo::define ((ca (eo::add c1 c2)) (pa ($poly_add p1 p2)))
                                                                   ; check if cancels
-                                                                  (eo::ite (eo::eq ca 0/1) pa (eo::cons @poly (@mon a1 ca) pa)))
+                                                                  (eo::ite (eo::eq ca 0/1) pa (_ @poly (@mon a1 ca) pa)))
                                                                 (eo::ite ($compare_var a1 a2)
-                                                                  (eo::cons @poly (@mon a1 c1) ($poly_add p1 (@poly (@mon a2 c2) p2)))
-                                                                  (eo::cons @poly (@mon a2 c2) ($poly_add (@poly (@mon a1 c1) p1) p2)))))
+                                                                  (_ @poly (@mon a1 c1) ($poly_add p1 (@poly (@mon a2 c2) p2)))
+                                                                  (_ @poly (@mon a2 c2) ($poly_add (@poly (@mon a1 c1) p1) p2)))))
     (($poly_add @poly.zero p)                                    p)
     (($poly_add p @poly.zero)                                    p)
   )
@@ -76,8 +76,8 @@
   (
     (($mvar_mul_mvar (eo::List::cons a1 a2) (eo::List::cons c1 c2))
       (eo::ite ($compare_var a1 c1)
-        (eo::cons eo::List::cons a1 ($mvar_mul_mvar a2 (eo::List::cons c1 c2)))
-        (eo::cons eo::List::cons c1 ($mvar_mul_mvar (eo::List::cons a1 a2) c2))))
+        (_ eo::List::cons a1 ($mvar_mul_mvar a2 (eo::List::cons c1 c2)))
+        (_ eo::List::cons c1 ($mvar_mul_mvar (eo::List::cons a1 a2) c2))))
     (($mvar_mul_mvar a2 eo::List::nil)          a2)
     (($mvar_mul_mvar eo::List::nil c2)          c2)
   )

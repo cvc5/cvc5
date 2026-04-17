@@ -84,7 +84,7 @@
 ;   The result of prepending string x to string y where the former is treated
 ;   as an element and the latter is treated as a list.
 (define $str_cons ((T Type :implicit) (x (Seq T)) (y (Seq T)))
-  (eo::cons str.++ x y)
+  (_ str.++ x y)
 )
 
 ; define: $str_is_code_point
@@ -200,8 +200,8 @@
     (($re_ac_merge re.inter re.none r1)      re.none)
     (($re_ac_merge f r1 r1)                  r1)
     (($re_ac_merge f (f r1 rr1) (f r2 rr2))  (eo::list_concat f (eo::list_diff f (f r1 rr1) (f r2 rr2)) (f r2 rr2)))
-    (($re_ac_merge f (f r1 rr1) r2)          (eo::ite (eo::is_neg (eo::list_find f (f r1 rr1) r2)) (eo::cons f r2 (f r1 rr1)) (f r1 rr1)))
-    (($re_ac_merge f r2 (f r1 rr1))          (eo::ite (eo::is_neg (eo::list_find f (f r1 rr1) r2)) (eo::cons f r2 (f r1 rr1)) (f r1 rr1)))
+    (($re_ac_merge f (f r1 rr1) r2)          (eo::ite (eo::is_neg (eo::list_find f (f r1 rr1) r2)) (_ f r2 (f r1 rr1)) (f r1 rr1)))
+    (($re_ac_merge f r2 (f r1 rr1))          (eo::ite (eo::is_neg (eo::list_find f (f r1 rr1) r2)) (_ f r2 (f r1 rr1)) (f r1 rr1)))
     (($re_ac_merge f r1 r2)                  (f r1 (f r2 (eo::nil f RegLan))))
   )
 )
@@ -219,7 +219,7 @@
   (
     (($re_concat_merge (re.++ r1 rr1) (re.++ r2 rr2))  (eo::list_concat re.++ (re.++ r1 rr1) (re.++ r2 rr2)))
     (($re_concat_merge re.none r1)                     re.none)
-    (($re_concat_merge r1 (re.++ r2 rr2))              (eo::cons re.++ r1 (re.++ r2 rr2)))
+    (($re_concat_merge r1 (re.++ r2 rr2))              (_ re.++ r1 (re.++ r2 rr2)))
     (($re_concat_merge @re.empty r1)                   r1)
     (($re_concat_merge r1 @re.empty)                   r1)
     (($re_concat_merge r1 r2)                          (re.++ r1 r2))
@@ -485,7 +485,7 @@
     (
         (($re_nary_intro (re.++ t ss))    (re.++ t ss))
         (($re_nary_intro @re.empty)       @re.empty)
-        (($re_nary_intro t)               (eo::cons re.++ t @re.empty))
+        (($re_nary_intro t)               (_ re.++ t @re.empty))
     )
 )
 
@@ -840,15 +840,15 @@
       (eo::define ((c ($pair_first res)))
       (eo::define ((M ($pair_second res)))
         ; a constant regular expression, append s
-        (@pair (eo::cons str.++ s c) M)))))
+        (@pair (_ str.++ s c) M)))))
     (($re_unfold_pos_concat_rec t (re.++ r1 r2) ro i)
       (eo::define ((res ($re_unfold_pos_concat_rec t r2 ro (eo::add i 1))))
       (eo::define ((c ($pair_first res)))
       (eo::define ((M ($pair_second res)))
       (eo::define ((k (@re_unfold_pos_component t ro i)))
         ; otherwise, make the skolem and append with constraint
-        (@pair (eo::cons str.++ k c)
-               (eo::cons and (str.in_re k r1) M)))))))
+        (@pair (_ str.++ k c)
+               (_ and (str.in_re k r1) M)))))))
   )
 )
 
@@ -1024,9 +1024,9 @@
   :signature (Int Int RegLan RegLan) RegLan
   (
     (($str_mk_re_loop_elim_rec 0 0 r rr)
-      (eo::cons re.union (eo::list_singleton_elim re.++ rr) re.none))
+      (_ re.union (eo::list_singleton_elim re.++ rr) re.none))
     (($str_mk_re_loop_elim_rec 0 d r rr)
-      (eo::cons re.union (eo::list_singleton_elim re.++ rr) ($str_mk_re_loop_elim_rec 0 (eo::add d -1) r (re.++ r rr))))
+      (_ re.union (eo::list_singleton_elim re.++ rr) ($str_mk_re_loop_elim_rec 0 (eo::add d -1) r (re.++ r rr))))
     (($str_mk_re_loop_elim_rec n d r rr)
       ($str_mk_re_loop_elim_rec (eo::add n -1) d r (re.++ r rr)))
   )
@@ -1059,7 +1059,7 @@
 (program $str_mk_str_in_re_concat_star_char ((s1 String) (s2 String :list) (r RegLan))
   :signature (String RegLan) Bool
   (
-    (($str_mk_str_in_re_concat_star_char (str.++ s1 s2) r) (eo::cons and (str.in_re s1 r) ($str_mk_str_in_re_concat_star_char s2 r)))
+    (($str_mk_str_in_re_concat_star_char (str.++ s1 s2) r) (_ and (str.in_re s1 r) ($str_mk_str_in_re_concat_star_char s2 r)))
     (($str_mk_str_in_re_concat_star_char "" r)             true)
   )
 )
@@ -1155,8 +1155,8 @@
 (program $re_str_to_flat_form ((r1 RegLan) (r2 RegLan :list) (s String) (rev Bool))
   :signature (Bool RegLan) RegLan
   (
-    (($re_str_to_flat_form rev (re.++ (str.to_re s) r2))  (eo::cons re.++ (str.to_re ($str_to_flat_form s rev)) ($re_str_to_flat_form rev r2)))
-    (($re_str_to_flat_form rev (re.++ r1 r2))             (eo::cons re.++ r1 ($re_str_to_flat_form rev r2)))
+    (($re_str_to_flat_form rev (re.++ (str.to_re s) r2))  (_ re.++ (str.to_re ($str_to_flat_form s rev)) ($re_str_to_flat_form rev r2)))
+    (($re_str_to_flat_form rev (re.++ r1 r2))             (_ re.++ r1 ($re_str_to_flat_form rev r2)))
     (($re_str_to_flat_form rev r1)                        r1)
   )
 )
@@ -1215,8 +1215,8 @@
 (program $re_str_from_flat_form ((r1 RegLan) (r2 RegLan :list) (s String) (rev Bool))
   :signature (Bool RegLan) RegLan
   (
-    (($re_str_from_flat_form rev (re.++ (str.to_re s) r2))  (eo::cons re.++ (str.to_re ($str_from_flat_form s rev)) ($re_str_from_flat_form rev r2)))
-    (($re_str_from_flat_form rev (re.++ r1 r2))             (eo::cons re.++ r1 ($re_str_from_flat_form rev r2)))
+    (($re_str_from_flat_form rev (re.++ (str.to_re s) r2))  (_ re.++ (str.to_re ($str_from_flat_form s rev)) ($re_str_from_flat_form rev r2)))
+    (($re_str_from_flat_form rev (re.++ r1 r2))             (_ re.++ r1 ($re_str_from_flat_form rev r2)))
     (($re_str_from_flat_form rev r1)                        r1)
   )
 )
