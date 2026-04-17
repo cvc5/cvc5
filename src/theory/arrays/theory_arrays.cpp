@@ -21,6 +21,7 @@
 #include "options/arrays_options.h"
 #include "options/smt_options.h"
 #include "proof/proof.h"
+#include "proof/proof_node_algorithm.h"
 #include "proof/proof_checker.h"
 #include "smt/logic_exception.h"
 #include "theory/arrays/skolem_cache.h"
@@ -1523,20 +1524,22 @@ bool TheoryArrays::checkReadValueSplit()
         if (proofsEnabled())
         {
           CDProof cdp(d_env);
-          Node arrayEq = read[0].eqNode(prevRead[0]);
-          std::vector<Node> congChildren;
+          std::vector<Node> premises;
+          premises.reserve(2);
           if (read[0] == prevRead[0])
           {
-            cdp.addStep(arrayEq, ProofRule::REFL, {}, {read[0]}, true);
+            premises.push_back(Node::null());
           }
           else
           {
+            Node arrayEq = read[0].eqNode(prevRead[0]);
             cdp.addStep(arrayEq, ProofRule::ASSUME, {}, {arrayEq}, true);
+            premises.push_back(arrayEq);
           }
-          congChildren.push_back(arrayEq);
           cdp.addStep(indexEq, ProofRule::ASSUME, {}, {indexEq}, true);
-          congChildren.push_back(indexEq);
-          cdp.addStep(readEq, ProofRule::CONG, congChildren, {read}, true);
+          premises.push_back(indexEq);
+          Node congEq = expr::proveCong(d_env, &cdp, read, premises);
+          Assert(congEq == readEq);
           cdp.addStep(lemma, ProofRule::SCOPE, {readEq}, assumps, true);
           pf = cdp.getProofFor(lemma);
         }
