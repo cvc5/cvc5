@@ -462,8 +462,12 @@ Node DatatypesRewriter::expandMatch(Node in)
     Kind ck = c.getKind();
     if (ck == Kind::MATCH_CASE)
     {
-      Assert(c[0].getKind() == Kind::APPLY_CONSTRUCTOR);
-      cons = c[0].getOperator();
+      Assert(c[0].getKind() == Kind::APPLY_CONSTRUCTOR
+             || c[0].getKind() == Kind::BOUND_VARIABLE);
+      if (c[0].getKind() == Kind::APPLY_CONSTRUCTOR)
+      {
+        cons = c[0].getOperator();
+      }
     }
     else if (ck == Kind::MATCH_BIND_CASE)
     {
