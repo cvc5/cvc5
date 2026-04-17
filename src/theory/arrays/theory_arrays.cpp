@@ -1271,7 +1271,26 @@ bool TheoryArrays::collectModelValues(TheoryModel* m,
     vector<Node>& reads = selects[nrep];
     for (unsigned j = 0; j < reads.size(); ++j)
     {
-      rep = nm->mkNode(Kind::STORE, rep, reads[j][1], reads[j]);
+      const Node& read = reads[j];
+      for (unsigned k = 0; k < j; ++k)
+      {
+        const Node& prevRead = reads[k];
+        if (m->getRepresentative(read) == m->getRepresentative(prevRead))
+        {
+          continue;
+        }
+        EqualityStatus ies = d_valuation.getEqualityStatus(read[1], prevRead[1]);
+        if (ies == EQUALITY_FALSE || ies == EQUALITY_FALSE_AND_PROPAGATED)
+        {
+          continue;
+        }
+        Node eq = prevRead[1].eqNode(read[1]);
+        d_out->lemma(
+            eq.orNode(eq.notNode()), InferenceId::NONE, LemmaProperty::SEND_ATOMS);
+        ++d_numGetModelValSplits;
+        return false;
+      }
+      rep = nm->mkNode(Kind::STORE, rep, read[1], read);
     }
     if (!m->assertEquality(n, rep, true))
     {

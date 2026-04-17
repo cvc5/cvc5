@@ -816,6 +816,17 @@ Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions)
   // case of options like e.g. deep restarts, this may invokve multiple calls
   // to check satisfiability in the underlying SMT solver
   Result r = d_smtDriver->checkSat(assumptions);
+  if (r.getStatus() == Result::SAT
+      && (d_env->getOptions().smt.checkModels
+          || d_env->getOptions().smt.produceModels))
+  {
+    TheoryEngine* te = d_smtSolver->getTheoryEngine();
+    Assert(te != nullptr);
+    while (r.getStatus() == Result::SAT && !te->buildModel())
+    {
+      r = d_smtDriver->checkSat(assumptions);
+    }
+  }
 
   Trace("smt") << "SolverEngine::checkSat(" << assumptions << ") => " << r
                << endl;
