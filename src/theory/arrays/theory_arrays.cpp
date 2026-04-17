@@ -1441,6 +1441,10 @@ void TheoryArrays::postCheck(Effort level)
     }
   }
 
+  // Before model construction, make sure conflicting read values have forced
+  // the corresponding index split. Without this, model building may be asked
+  // to assign two different values to reads whose indices are not yet known
+  // disequal.
   if (fullEffort(level) && !d_state.isInConflict() && checkReadValueSplit())
   {
     Trace("arrays") << spaces(context()->getLevel()) << "Arrays::check(): done"
@@ -1475,11 +1479,13 @@ bool TheoryArrays::checkReadValueSplit()
       for (size_t k = 0; k < j; ++k)
       {
         TNode prevRead = reads[k];
+        // Only split when we already know the reads have different values.
         EqualityStatus rstat = d_valuation.getEqualityStatus(read, prevRead);
         if (rstat != EQUALITY_FALSE && rstat != EQUALITY_FALSE_AND_PROPAGATED)
         {
           continue;
         }
+        // If the indices are already known disequal, there is nothing to add.
         EqualityStatus istat =
             d_valuation.getEqualityStatus(read[1], prevRead[1]);
         if (istat == EQUALITY_FALSE || istat == EQUALITY_FALSE_AND_PROPAGATED)
@@ -1490,12 +1496,16 @@ bool TheoryArrays::checkReadValueSplit()
         Node lemma = read.eqNode(prevRead).orNode(indexEq.notNode());
         if (read[0] != prevRead[0])
         {
+          // The array representatives are equal, but the original array terms
+          // may differ. Guard the row-style consequence by the array equality
+          // so that the lemma is valid before that equality is used.
           Node arrayEq = read[0].eqNode(prevRead[0]);
           lemma = nm->mkNode(Kind::OR,
                              arrayEq.notNode(),
                              read.eqNode(prevRead),
                              indexEq.notNode());
         }
+        // SEND_ATOMS ensures the index equality is available as a SAT atom.
         if (d_im.lemma(lemma, InferenceId::NONE, LemmaProperty::SEND_ATOMS))
         {
           ++d_numGetModelValSplits;

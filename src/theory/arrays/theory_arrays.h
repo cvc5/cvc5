@@ -466,6 +466,37 @@ class TheoryArrays : public Theory
   void checkStore(TNode a);
   void checkRowForIndex(TNode i, TNode a);
   void checkRowLemmas(TNode a, TNode b);
+  /**
+   * Check whether the current array arrangement is missing an index split
+   * needed to reconcile conflicting read values.
+   *
+   * This scans existing read terms from both read tables:
+   * - d_reads for reads whose index is not currently represented by a constant,
+   * - d_constReadsList for reads whose index representative is a constant.
+   *
+   * The reads are grouped by the representative of their array argument. For
+   * each pair of reads in the same group, if:
+   * - the read terms are already known to be disequal, and
+   * - their indices are not already known to be disequal,
+   *
+   * then the solver is still missing the usual array consequence that
+   * different read values require different indices.
+   *
+   * For reads from the same array term a, this sends:
+   *   (or (= (select a i) (select a j)) (not (= i j)))
+   *
+   * For reads from distinct but equal array terms a and b, this sends:
+   *   (or (not (= a b))
+   *       (= (select a i) (select b j))
+   *       (not (= i j)))
+   *
+   * The lemma is emitted during normal full-effort checking, before model
+   * construction. This avoids discovering the missing split only while trying
+   * to assemble a model, which was the source of the bad-model behavior in
+   * issue #12607.
+   *
+   * @return true if a lemma was sent.
+   */
   bool checkReadValueSplit();
   void propagateRowLemma(RowLemmaType lem);
   void queueRowLemma(RowLemmaType lem);
