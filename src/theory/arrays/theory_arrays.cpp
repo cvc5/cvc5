@@ -1462,6 +1462,10 @@ bool TheoryArrays::checkReadValueSplit()
   auto addReads = [&](const context::CDList<TNode>& reads) {
     for (const TNode& read : reads)
     {
+      if (!d_equalityEngine->hasTerm(read) || !d_equalityEngine->hasTerm(read[0]))
+      {
+        continue;
+      }
       readsByArray[d_equalityEngine->getRepresentative(read[0])].push_back(
           read);
     }
@@ -1479,9 +1483,10 @@ bool TheoryArrays::checkReadValueSplit()
       for (size_t k = 0; k < j; ++k)
       {
         TNode prevRead = reads[k];
-        // Only split when we already know the reads have different values.
-        EqualityStatus rstat = d_valuation.getEqualityStatus(read, prevRead);
-        if (rstat != EQUALITY_FALSE && rstat != EQUALITY_FALSE_AND_PROPAGATED)
+        // Read terms are owned by the arrays equality engine, not necessarily
+        // by the theory of their element type, so use the local equality engine
+        // to detect conflicting read values.
+        if (!d_equalityEngine->areDisequal(read, prevRead, false))
         {
           continue;
         }
