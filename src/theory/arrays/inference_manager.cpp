@@ -76,6 +76,22 @@ bool InferenceManager::arrayLemma(
   return lemma(lem, id, p);
 }
 
+bool InferenceManager::arrayLemma(Node conc,
+                                  std::shared_ptr<ProofNode> pf,
+                                  InferenceId id,
+                                  LemmaProperty p)
+{
+  Trace("arrays-infer") << "TheoryArrays::arrayLemma(proof): " << conc << "; "
+                        << id << std::endl;
+  if (isProofEnabled())
+  {
+    Assert(pf != nullptr);
+    TrustNode tlem = d_lemmaPg->mkTrustNode(conc, pf);
+    return trustedLemma(tlem, id, p);
+  }
+  return lemma(conc, id, p);
+}
+
 void InferenceManager::convert(ProofRule& id,
                                Node conc,
                                Node exp,

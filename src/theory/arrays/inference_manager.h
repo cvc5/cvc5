@@ -21,6 +21,9 @@
 #include "theory/theory_inference_manager.h"
 
 namespace cvc5::internal {
+
+class ProofNode;
+
 namespace theory {
 namespace arrays {
 
@@ -52,6 +55,13 @@ class InferenceManager : public TheoryInferenceManager
                   InferenceId id,
                   Node exp,
                   ProofRule pfr,
+                  LemmaProperty p = LemmaProperty::NONE);
+  /**
+   * Send lemma conc with an explicitly constructed proof.
+   */
+  bool arrayLemma(Node conc,
+                  std::shared_ptr<ProofNode> pf,
+                  InferenceId id,
                   LemmaProperty p = LemmaProperty::NONE);
 
  private:

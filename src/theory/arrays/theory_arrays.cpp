@@ -20,6 +20,7 @@
 #include "expr/node_algorithm.h"
 #include "options/arrays_options.h"
 #include "options/smt_options.h"
+#include "proof/proof.h"
 #include "proof/proof_checker.h"
 #include "smt/logic_exception.h"
 #include "theory/arrays/skolem_cache.h"
@@ -1442,9 +1443,10 @@ void TheoryArrays::postCheck(Effort level)
   }
 
   // Before model construction, make sure conflicting read values have forced
-  // the corresponding index split. Without this, model building may be asked
-  // to assign two different values to reads whose indices are not yet known
-  // disequal.
+  // the corresponding index split. Candidate-model information from other
+  // theories is weaker than the final interpreted model that arrays eventually
+  // has to satisfy, especially for non-linear arithmetic indices, so arrays
+  // cannot wait until model assembly to discover this split.
   if (fullEffort(level) && !d_state.isInConflict() && checkReadValueSplit())
   {
     Trace("arrays") << spaces(context()->getLevel()) << "Arrays::check(): done"
@@ -1492,6 +1494,10 @@ bool TheoryArrays::checkReadValueSplit()
           continue;
         }
         // If the indices are already known disequal, there is nothing to add.
+        // Notice this only asks whether the disequality is already explicit in
+        // the current arrangement. It does not assume candidate-model equality
+        // information is complete enough to settle the issue for model
+        // construction.
         EqualityStatus istat =
             d_valuation.getEqualityStatus(read[1], prevRead[1]);
         if (istat == EQUALITY_FALSE || istat == EQUALITY_FALSE_AND_PROPAGATED)
@@ -1499,20 +1505,43 @@ bool TheoryArrays::checkReadValueSplit()
           continue;
         }
         Node indexEq = read[1].eqNode(prevRead[1]);
-        Node lemma = read.eqNode(prevRead).orNode(indexEq.notNode());
+        Node readEq = read.eqNode(prevRead);
+        std::vector<Node> assumps;
         if (read[0] != prevRead[0])
         {
           // The array representatives are equal, but the original array terms
-          // may differ. Guard the row-style consequence by the array equality
-          // so that the lemma is valid before that equality is used.
-          Node arrayEq = read[0].eqNode(prevRead[0]);
-          lemma = nm->mkNode(Kind::OR,
-                             arrayEq.notNode(),
-                             read.eqNode(prevRead),
-                             indexEq.notNode());
+          // may differ. Guard the read congruence consequence by the array
+          // equality so that the lemma is valid before that equality is used.
+          assumps.push_back(read[0].eqNode(prevRead[0]));
         }
+        assumps.push_back(indexEq);
+        Node ant =
+            assumps.size() == 1 ? assumps[0] : nm->mkNode(Kind::AND, assumps);
+        Node lemma = nm->mkNode(Kind::IMPLIES, ant, readEq);
         // SEND_ATOMS ensures the index equality is available as a SAT atom.
-        if (d_im.lemma(lemma, InferenceId::NONE, LemmaProperty::SEND_ATOMS))
+        std::shared_ptr<ProofNode> pf;
+        if (proofsEnabled())
+        {
+          CDProof cdp(d_env);
+          Node arrayEq = read[0].eqNode(prevRead[0]);
+          std::vector<Node> congChildren;
+          if (read[0] == prevRead[0])
+          {
+            cdp.addStep(arrayEq, ProofRule::REFL, {}, {read[0]}, true);
+          }
+          else
+          {
+            cdp.addStep(arrayEq, ProofRule::ASSUME, {}, {arrayEq}, true);
+          }
+          congChildren.push_back(arrayEq);
+          cdp.addStep(indexEq, ProofRule::ASSUME, {}, {indexEq}, true);
+          congChildren.push_back(indexEq);
+          cdp.addStep(readEq, ProofRule::CONG, congChildren, {read}, true);
+          cdp.addStep(lemma, ProofRule::SCOPE, {readEq}, assumps, true);
+          pf = cdp.getProofFor(lemma);
+        }
+        if (d_im.arrayLemma(
+                lemma, pf, InferenceId::NONE, LemmaProperty::SEND_ATOMS))
         {
           ++d_numGetModelValSplits;
           return true;

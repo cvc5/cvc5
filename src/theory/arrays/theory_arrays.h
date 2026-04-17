@@ -483,17 +483,20 @@ class TheoryArrays : public Theory
    * different read values require different indices.
    *
    * For reads from the same array term a, this sends:
-   *   (or (= (select a i) (select a j)) (not (= i j)))
+   *   (=> (= i j) (= (select a i) (select a j)))
    *
    * For reads from distinct but equal array terms a and b, this sends:
-   *   (or (not (= a b))
-   *       (= (select a i) (select b j))
-   *       (not (= i j)))
+   *   (=> (and (= a b) (= i j)) (= (select a i) (select b j)))
    *
    * The lemma is emitted during normal full-effort checking, before model
-   * construction. This avoids discovering the missing split only while trying
-   * to assemble a model, which was the source of the bad-model behavior in
-   * issue #12607.
+   * construction. This is important because theory combination only has access
+   * to candidate-model information for shared terms at this stage. In
+   * particular, for non-linear arithmetic indices, semantically equal indices
+   * in the eventual final model need not already be exposed as equalities that
+   * arrays can rely on while assembling its model. This was the source of the
+   * bad-model behavior in issue #12607. These formulas are equivalent to the
+   * usual clause forms used for row-style splitting, but they are more direct
+   * to justify in the proof infrastructure.
    *
    * @return true if a lemma was sent.
    */
