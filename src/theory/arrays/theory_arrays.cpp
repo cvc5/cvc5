@@ -1186,7 +1186,7 @@ bool TheoryArrays::collectModelValues(TheoryModel* m,
   }
 
   // Build a list of all the relevant reads, indexed by the store representative
-  std::map<Node, std::vector<Node> > selects;
+  std::map<Node, std::vector<Node>> selects;
   set<Node>::iterator set_it = termSet.begin(), set_it_end = termSet.end();
   for (; set_it != set_it_end; ++set_it)
   {
@@ -1271,26 +1271,7 @@ bool TheoryArrays::collectModelValues(TheoryModel* m,
     vector<Node>& reads = selects[nrep];
     for (unsigned j = 0; j < reads.size(); ++j)
     {
-      const Node& read = reads[j];
-      for (unsigned k = 0; k < j; ++k)
-      {
-        const Node& prevRead = reads[k];
-        if (m->getRepresentative(read) == m->getRepresentative(prevRead))
-        {
-          continue;
-        }
-        EqualityStatus ies = d_valuation.getEqualityStatus(read[1], prevRead[1]);
-        if (ies == EQUALITY_FALSE || ies == EQUALITY_FALSE_AND_PROPAGATED)
-        {
-          continue;
-        }
-        Node eq = prevRead[1].eqNode(read[1]);
-        d_out->lemma(
-            eq.orNode(eq.notNode()), InferenceId::NONE, LemmaProperty::SEND_ATOMS);
-        ++d_numGetModelValSplits;
-        return false;
-      }
-      rep = nm->mkNode(Kind::STORE, rep, read[1], read);
+      rep = nm->mkNode(Kind::STORE, rep, reads[j][1], reads[j]);
     }
     if (!m->assertEquality(n, rep, true))
     {
@@ -1460,8 +1441,70 @@ void TheoryArrays::postCheck(Effort level)
     }
   }
 
+  if (fullEffort(level) && !d_state.isInConflict() && checkReadValueSplit())
+  {
+    Trace("arrays") << spaces(context()->getLevel()) << "Arrays::check(): done"
+                    << endl;
+    return;
+  }
+
   Trace("arrays") << spaces(context()->getLevel()) << "Arrays::check(): done"
                   << endl;
+}
+
+bool TheoryArrays::checkReadValueSplit()
+{
+  std::map<Node, std::vector<TNode>> readsByArray;
+  auto addReads = [&](const context::CDList<TNode>& reads) {
+    for (const TNode& read : reads)
+    {
+      readsByArray[d_equalityEngine->getRepresentative(read[0])].push_back(
+          read);
+    }
+  };
+  addReads(d_reads);
+  addReads(d_constReadsList);
+
+  NodeManager* nm = nodeManager();
+  for (const auto& entry : readsByArray)
+  {
+    const std::vector<TNode>& reads = entry.second;
+    for (size_t j = 0, size = reads.size(); j < size; ++j)
+    {
+      TNode read = reads[j];
+      for (size_t k = 0; k < j; ++k)
+      {
+        TNode prevRead = reads[k];
+        EqualityStatus rstat = d_valuation.getEqualityStatus(read, prevRead);
+        if (rstat != EQUALITY_FALSE && rstat != EQUALITY_FALSE_AND_PROPAGATED)
+        {
+          continue;
+        }
+        EqualityStatus istat =
+            d_valuation.getEqualityStatus(read[1], prevRead[1]);
+        if (istat == EQUALITY_FALSE || istat == EQUALITY_FALSE_AND_PROPAGATED)
+        {
+          continue;
+        }
+        Node indexEq = read[1].eqNode(prevRead[1]);
+        Node lemma = read.eqNode(prevRead).orNode(indexEq.notNode());
+        if (read[0] != prevRead[0])
+        {
+          Node arrayEq = read[0].eqNode(prevRead[0]);
+          lemma = nm->mkNode(Kind::OR,
+                             arrayEq.notNode(),
+                             read.eqNode(prevRead),
+                             indexEq.notNode());
+        }
+        if (d_im.lemma(lemma, InferenceId::NONE, LemmaProperty::SEND_ATOMS))
+        {
+          ++d_numGetModelValSplits;
+          return true;
+        }
+      }
+    }
+  }
+  return false;
 }
 
 bool TheoryArrays::preNotifyFact(TNode atom,
