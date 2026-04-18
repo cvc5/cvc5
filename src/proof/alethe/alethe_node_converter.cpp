@@ -146,12 +146,15 @@ Node AletheNodeConverter::postConvert(Node n)
         }
         return conv;
       }
-      // create the witness term (witness ((x_i T_i)) (exists ((x_i+1 T_i+1)
-      // ... (x_n T_n)) body), where the bound variables and the body come from
-      // the quantifier term which must be the first element of cacheVal (which
-      // should be a list), and i the second.
       if (sfi == SkolemId::QUANTIFIERS_SKOLEMIZE)
       {
+        // create the witness term
+        //
+        //   (witness ((x_i T_i)) (exists ((x_i+1 T_i+1) ... (x_n T_n)) body)
+        //
+        // where the bound variables and the body come from the quantifier term
+        // which must be the first element of cacheVal (which should be a list),
+        // and i the second.
         Trace("alethe-conv")
             << ".. to build witness with index/quant: " << cacheVal[1] << " / "
             << cacheVal[0] << "\n";
@@ -239,7 +242,23 @@ Node AletheNodeConverter::postConvert(Node n)
         Node body = d_nm->mkNode(Kind::OR, eq, select);
         Node choice = d_nm->mkNode(
             Kind::WITNESS, d_nm->mkNode(Kind::BOUND_VAR_LIST, var), body);
-        return convert(choice);
+        choice = convert(choice);
+        d_skolems[n] = choice;
+        return choice;
+      }
+      if (sfi == SkolemId::GROUND_TERM)
+      {
+        TypeNode tn = n.getType();
+        Trace("alethe-conv")
+            << ".. to build stand-in for arbitrary ground term of type: " << tn
+            << "\n";
+        Node var = NodeManager::mkBoundVar("x", tn);
+        Node trueNode = d_nm->mkConst(true);
+        Node choice = d_nm->mkNode(
+            Kind::WITNESS, d_nm->mkNode(Kind::BOUND_VAR_LIST, var), trueNode);
+        choice = convert(choice);
+        d_skolems[n] = choice;
+        return choice;
       }
       std::stringstream ss;
       ss << "\"Proof unsupported by Alethe: contains Skolem (kind " << sfi
