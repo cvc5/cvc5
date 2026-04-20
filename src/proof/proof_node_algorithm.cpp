@@ -12,13 +12,11 @@
 
 #include "proof/proof_node_algorithm.h"
 
-#include "expr/aci_norm.h"
 #include "proof/proof.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_node.h"
 #include "proof/proof_node_manager.h"
 #include "proof/proof_rule_checker.h"
-#include "theory/arith/arith_poly_norm.h"
 #include "theory/builtin/generic_op.h"
 
 namespace cvc5::internal {
@@ -290,11 +288,6 @@ Node proveCong(Env& env,
   std::vector<Node> cargs;
   ProofRule cr = getCongRule(n, cargs);
   cpremises.resize(n.getNumChildren());
-  // congruence on closures omit the first argument
-  if (n.isClosure())
-  {
-    cpremises.erase(cpremises.begin(), cpremises.begin() + 1);
-  }
   // add REFL if a premise is not provided
   for (size_t i = 0, npremises = cpremises.size(); i < npremises; i++)
   {
@@ -312,167 +305,6 @@ Node proveCong(Env& env,
     cdp->addStep(eq, cr, cpremises, cargs);
   }
   return eq;
-}
-
-bool proveEqualityWithRewriteSteps(
-    Env& env, CDProof& cdp, const Node& a, const Node& b, bool allowPredIntro)
-{
-  // the set of equalities we have visited
-  std::unordered_set<Node> visited;
-  // equalities that we have use ACI_NORM on at pre-rewrite
-  std::unordered_set<Node> visitedAciNorm;
-  // the list of equalities to visit
-  std::vector<Node> visit;
-  visit.push_back(a.eqNode(b));
-  while (!visit.empty())
-  {
-    Node eq = visit.back();
-    visit.pop_back();
-    if (cdp.hasStep(eq))
-    {
-      // already proven, skip
-      continue;
-    }
-    const Node& lhs = eq[0];
-    const Node& rhs = eq[1];
-    if (visited.insert(eq).second)
-    {
-      // We first check if lhs == rhs is directly provable by refl, aci norm,
-      // or arith/bv poly norm.
-      if (lhs == rhs)
-      {
-        cdp.addStep(eq, ProofRule::REFL, {}, {lhs});
-        continue;
-      }
-      if (expr::isACINorm(lhs, rhs))
-      {
-        cdp.addStep(eq, ProofRule::ACI_NORM, {}, {eq});
-        continue;
-      }
-      if (lhs.getType() == rhs.getType())
-      {
-        TypeNode tn = lhs.getType();
-        if (tn.isBitVector()
-            && theory::arith::PolyNorm::isArithPolyNorm(lhs, rhs))
-        {
-          cdp.addStep(eq, ProofRule::BV_POLY_NORM, {}, {eq});
-          continue;
-        }
-        if (tn.isRealOrInt()
-            && theory::arith::PolyNorm::isArithPolyNorm(lhs, rhs))
-        {
-          cdp.addStep(eq, ProofRule::ARITH_POLY_NORM, {}, {eq});
-          continue;
-        }
-      }
-      // if not, but if the equality still rewrites to true, and we are
-      // permitting sr_pred_intro subgoals, then we conclude.
-      Node eqr = env.rewriteViaMethod(eq);
-      if (allowPredIntro && eqr.isConst() && eqr.getConst<bool>())
-      {
-        cdp.addStep(eq, ProofRule::MACRO_SR_PRED_INTRO, {}, {eq});
-        continue;
-      }
-      // otherwise, we normalize based on AC reasoning if possible, which may
-      // allow us to align children when recursing.
-      Node an = expr::getACINormalForm(lhs);
-      Node bn = expr::getACINormalForm(rhs);
-      if (an != lhs || bn != rhs)
-      {
-        visitedAciNorm.insert(eq);
-        visit.push_back(eq);
-        if (an != bn)
-        {
-          visit.push_back(an.eqNode(bn));
-        }
-        continue;
-      }
-      // if AC reasoning is not available, we attempt to recurse on children
-      // and reconstruct via congruence.
-      if (lhs.getKind() != rhs.getKind()
-          || lhs.getNumChildren() != rhs.getNumChildren()
-          || lhs.getNumChildren() == 0)
-      {
-        return false;
-      }
-      if (lhs.isClosure() && lhs[0] != rhs[0])
-      {
-        // closures do not work if their variable lists are different.
-        return false;
-      }
-      visit.push_back(eq);
-      for (size_t i = lhs.getNumChildren(); i > 0; --i)
-      {
-        size_t index = i - 1;
-        if (lhs[index] != rhs[index])
-        {
-          visit.push_back(lhs[index].eqNode(rhs[index]));
-        }
-      }
-      continue;
-    }
-    if (visitedAciNorm.find(eq) != visitedAciNorm.end())
-    {
-      Node an = expr::getACINormalForm(lhs);
-      Node bn = expr::getACINormalForm(rhs);
-      // if so, we put together a proof of transitivity
-      // -------- ACI_NORM  --------------- ... ----------- ACI_NORM, SYMM
-      // lhs = aci(lhs)     aci(lhs)=aci(rhs)   aci(rhs) = rhs
-      // ----------------------------------------------------- TRANS
-      // lhs = rhs
-      std::vector<Node> transEq;
-      if (lhs != an)
-      {
-        Node aeq = lhs.eqNode(an);
-        cdp.addStep(aeq, ProofRule::ACI_NORM, {}, {aeq});
-        transEq.push_back(aeq);
-      }
-      if (an != bn)
-      {
-        transEq.push_back(an.eqNode(bn));
-      }
-      if (rhs != bn)
-      {
-        Node beq = rhs.eqNode(bn);
-        cdp.addStep(beq, ProofRule::ACI_NORM, {}, {beq});
-        Node beqs = bn.eqNode(rhs);
-        cdp.addStep(beqs, ProofRule::SYMM, {beq}, {});
-        transEq.push_back(beqs);
-      }
-      Assert(!transEq.empty());
-      if (transEq.size() == 1)
-      {
-        if (transEq[0] != eq)
-        {
-          return false;
-        }
-      }
-      else if (!cdp.addStep(eq, ProofRule::TRANS, transEq, {}))
-      {
-        return false;
-      }
-      continue;
-    }
-    // otherwise, we are reconstructing a proof of congruence from proven
-    // equalities of children.
-    std::vector<Node> premises(lhs.getNumChildren(), Node::null());
-    Assert(lhs.getNumChildren() > 0);
-    for (size_t i = 0, nchildren = lhs.getNumChildren(); i < nchildren; i++)
-    {
-      if (lhs[i] == rhs[i])
-      {
-        continue;
-      }
-      Node eqi = lhs[i].eqNode(rhs[i]);
-      premises[i] = eqi;
-    }
-    Node eqc = proveCong(env, &cdp, lhs, premises);
-    if (eqc != eq)
-    {
-      return false;
-    }
-  }
-  return true;
 }
 
 }  // namespace expr

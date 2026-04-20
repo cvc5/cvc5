@@ -296,19 +296,6 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
     {
       getMethodId(args[3], idr);
     }
-    if (children.empty() && idr == MethodId::RW_EXT_REWRITE)
-    {
-      // If we are using extended rewrite, we should first see if it we can
-      // devise a proof of the equality based on simple reconstruction methods,
-      // which is more robust than relying on the extended rewriter. This is
-      // necessary, e.g. for reconstruction of some alpha equivalence steps.
-      if (args[0].getKind() == Kind::EQUAL
-          && expr::proveEqualityWithRewriteSteps(
-              d_env, *cdp, args[0][0], args[0][1], false))
-      {
-        return args[0];
-      }
-    }
     // take into account witness form, if necessary
     WitnessReq reqw = d_wfpm.requiresWitnessFormIntro(args[0], idr);
     Trace("smt-proof-pp-debug") << "...pred intro reqw=" << reqw << std::endl;
