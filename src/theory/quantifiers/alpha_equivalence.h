@@ -54,7 +54,6 @@ class AlphaEquivalenceTypeNode
   Node registerNode(context::Context* c,
                     Node q,
                     Node t,
-                    expr::TermCanonize* tc,
                     std::vector<TypeNode>& typs,
                     std::map<TypeNode, size_t>& typCount);
 };

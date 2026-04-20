@@ -15,6 +15,7 @@
 #ifndef CVC5__PROOF__PROOF_NODE_ALGORITHM_H
 #define CVC5__PROOF__PROOF_NODE_ALGORITHM_H
 
+#include <functional>
 #include <vector>
 
 #include "cvc5/cvc5_proof_rule.h"
@@ -27,6 +28,12 @@ class ProofNode;
 class CDProof;
 
 namespace expr {
+
+/**
+ * A strict weak ordering on nodes used to align children of commutative terms
+ * during recursive equality reconstruction.
+ */
+using EqualityNodeLessCallback = std::function<bool(const Node&, const Node&)>;
 
 /**
  * This adds to the vector assump all formulas that are "free assumptions" of
@@ -172,13 +179,17 @@ Node proveCong(Env& env,
  * @param b The right-hand side of the equality to prove.
  * @param allowPredIntro Whether this method may use MACRO_SR_PRED_INTRO when
  * the equality rewrites directly to true.
+ * @param orderChildren An optional ordering used to align children of
+ * commutative operators before recursively proving equalities between them.
  * @return true if a proof of (= a b) was added to cdp.
  */
 bool proveEqualityWithRewriteSteps(Env& env,
                                    CDProof& cdp,
                                    const Node& a,
                                    const Node& b,
-                                   bool allowPredIntro = true);
+                                   bool allowPredIntro = true,
+                                   const EqualityNodeLessCallback& orderChildren =
+                                       EqualityNodeLessCallback());
 
 }  // namespace expr
 }  // namespace cvc5::internal

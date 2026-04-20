@@ -61,8 +61,12 @@ std::vector<Node> getAssocChildren(const Node& n)
 class CommChildProofCache
 {
  public:
-  CommChildProofCache(Env& env, bool allowPredIntro)
-      : d_env(env), d_allowPredIntro(allowPredIntro)
+  CommChildProofCache(Env& env,
+                      bool allowPredIntro,
+                      EqualityNodeLessCallback orderChildren)
+      : d_env(env),
+        d_allowPredIntro(allowPredIntro),
+        d_orderChildren(orderChildren)
   {
   }
 
@@ -83,7 +87,8 @@ class CommChildProofCache
       return nullptr;
     }
     CDProof cdp(d_env);
-    if (!proveEqualityWithRewriteSteps(d_env, cdp, a, b, d_allowPredIntro))
+    if (!proveEqualityWithRewriteSteps(
+            d_env, cdp, a, b, d_allowPredIntro, d_orderChildren))
     {
       d_fail.insert(eq);
       return nullptr;
@@ -101,9 +106,61 @@ class CommChildProofCache
  private:
   Env& d_env;
   bool d_allowPredIntro;
+  EqualityNodeLessCallback d_orderChildren;
   std::map<Node, std::shared_ptr<ProofNode>> d_success;
   std::unordered_set<Node> d_fail;
 };
+
+struct OrderedCommChild
+{
+  size_t d_index;
+  Node d_child;
+};
+
+bool matchCommChildrenOrdered(const std::vector<Node>& lhsChildren,
+                              const std::vector<Node>& rhsChildren,
+                              const EqualityNodeLessCallback& orderChildren,
+                              CommChildProofCache& cache,
+                              std::vector<int>& match,
+                              std::vector<std::shared_ptr<ProofNode>>& proofs)
+{
+  std::vector<OrderedCommChild> lhsOrdered;
+  std::vector<OrderedCommChild> rhsOrdered;
+  lhsOrdered.reserve(lhsChildren.size());
+  rhsOrdered.reserve(rhsChildren.size());
+  for (size_t i = 0, size = lhsChildren.size(); i < size; ++i)
+  {
+    lhsOrdered.push_back({i, lhsChildren[i]});
+    rhsOrdered.push_back({i, rhsChildren[i]});
+  }
+  auto cmp = [&orderChildren](const OrderedCommChild& a,
+                              const OrderedCommChild& b) {
+    return orderChildren(a.d_child, b.d_child);
+  };
+  std::stable_sort(lhsOrdered.begin(), lhsOrdered.end(), cmp);
+  std::stable_sort(rhsOrdered.begin(), rhsOrdered.end(), cmp);
+  for (size_t i = 0, size = lhsOrdered.size(); i < size; ++i)
+  {
+    const Node& lhsChild = lhsOrdered[i].d_child;
+    const Node& rhsChild = rhsOrdered[i].d_child;
+    if (!lhsChild.getType().isComparableTo(rhsChild.getType()))
+    {
+      return false;
+    }
+    size_t li = lhsOrdered[i].d_index;
+    match[li] = static_cast<int>(rhsOrdered[i].d_index);
+    if (lhsChild == rhsChild)
+    {
+      continue;
+    }
+    proofs[li] = cache.getProof(lhsChild, rhsChild);
+    if (proofs[li] == nullptr)
+    {
+      return false;
+    }
+  }
+  return true;
+}
 
 bool matchCommChildren(const std::vector<Node>& lhsChildren,
                        const std::vector<Node>& rhsChildren,
@@ -181,10 +238,12 @@ bool proveCommEqualityWithRewriteSteps(Env& env,
                                        CDProof& cdp,
                                        const Node& lhs,
                                        const Node& rhs,
-                                       bool allowPredIntro)
+                                       bool allowPredIntro,
+                                       const EqualityNodeLessCallback& orderChildren)
 {
   Kind k = lhs.getKind();
-  if (k != rhs.getKind() || !theory::quantifiers::TermUtil::isComm(k))
+  if (k != rhs.getKind() || !theory::quantifiers::TermUtil::isAssoc(k)
+      || !theory::quantifiers::TermUtil::isComm(k))
   {
     return false;
   }
@@ -201,11 +260,22 @@ bool proveCommEqualityWithRewriteSteps(Env& env,
                   ? rhs
                   : mkNodeWithChildren(rhs, rhsChildren);
 
-  CommChildProofCache cache(env, allowPredIntro);
+  CommChildProofCache cache(env, allowPredIntro, orderChildren);
   std::vector<int> match(lhsChildren.size(), -1);
   std::vector<std::shared_ptr<ProofNode>> proofs(lhsChildren.size(), nullptr);
-  std::vector<bool> used(rhsChildren.size(), false);
-  if (!matchCommChildren(lhsChildren, rhsChildren, cache, match, proofs, used))
+  bool matched = false;
+  if (orderChildren)
+  {
+    matched = matchCommChildrenOrdered(
+        lhsChildren, rhsChildren, orderChildren, cache, match, proofs);
+  }
+  else
+  {
+    std::vector<bool> used(rhsChildren.size(), false);
+    matched =
+        matchCommChildren(lhsChildren, rhsChildren, cache, match, proofs, used);
+  }
+  if (!matched)
   {
     return false;
   }
@@ -569,7 +639,12 @@ Node proveCong(Env& env,
 }
 
 bool proveEqualityWithRewriteSteps(
-    Env& env, CDProof& cdp, const Node& a, const Node& b, bool allowPredIntro)
+    Env& env,
+    CDProof& cdp,
+    const Node& a,
+    const Node& b,
+    bool allowPredIntro,
+    const EqualityNodeLessCallback& orderChildren)
 {
   // the set of equalities we have visited
   std::unordered_set<Node> visited;
@@ -619,14 +694,6 @@ bool proveEqualityWithRewriteSteps(
           continue;
         }
       }
-      // if not, but if the equality still rewrites to true, and we are
-      // permitting sr_pred_intro subgoals, then we conclude.
-      Node eqr = env.rewriteViaMethod(eq);
-      if (allowPredIntro && eqr.isConst() && eqr.getConst<bool>())
-      {
-        cdp.addStep(eq, ProofRule::MACRO_SR_PRED_INTRO, {}, {eq});
-        continue;
-      }
       // otherwise, we normalize based on AC reasoning if possible, which may
       // allow us to align children when recursing.
       Node an = expr::getACINormalForm(lhs);
@@ -647,16 +714,28 @@ bool proveEqualityWithRewriteSteps(
           || lhs.getNumChildren() != rhs.getNumChildren()
           || lhs.getNumChildren() == 0)
       {
+        Node eqr = env.rewriteViaMethod(eq);
+        if (allowPredIntro && eqr.isConst() && eqr.getConst<bool>())
+        {
+          cdp.addStep(eq, ProofRule::MACRO_SR_PRED_INTRO, {}, {eq});
+          continue;
+        }
         return false;
       }
       if (lhs.isClosure() && lhs[0] != rhs[0])
       {
         // closures do not work if their variable lists are different.
+        Node eqr = env.rewriteViaMethod(eq);
+        if (allowPredIntro && eqr.isConst() && eqr.getConst<bool>())
+        {
+          cdp.addStep(eq, ProofRule::MACRO_SR_PRED_INTRO, {}, {eq});
+          continue;
+        }
         return false;
       }
       if (theory::quantifiers::TermUtil::isComm(lhs.getKind())
           && proveCommEqualityWithRewriteSteps(
-              env, cdp, lhs, rhs, allowPredIntro))
+              env, cdp, lhs, rhs, allowPredIntro, orderChildren))
       {
         continue;
       }
@@ -729,6 +808,12 @@ bool proveEqualityWithRewriteSteps(
     Node eqc = proveCong(env, &cdp, lhs, premises);
     if (eqc != eq)
     {
+      Node eqr = env.rewriteViaMethod(eq);
+      if (allowPredIntro && eqr.isConst() && eqr.getConst<bool>())
+      {
+        cdp.addStep(eq, ProofRule::MACRO_SR_PRED_INTRO, {}, {eq});
+        continue;
+      }
       return false;
     }
   }
