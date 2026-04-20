@@ -24,11 +24,6 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-struct sortTypeOrder
-{
-  bool operator()(TypeNode i, TypeNode j) { return i < j; }
-};
-
 AlphaEquivalenceTypeNode::AlphaEquivalenceTypeNode(context::Context* c)
     : d_quant(c)
 {
@@ -162,8 +157,7 @@ Node AlphaEquivalenceDb::addTermToTypeTrie(Node t, Node q)
       typs.push_back(tn);
     }
   }
-  sortTypeOrder sto;
-  std::sort(typs.begin(), typs.end(), sto);
+  std::sort(typs.begin(), typs.end());
   Trace("aeq-debug") << "  ";
   Node ret = d_ae_typ_trie.registerNode(d_context, q, t, d_tc, typs, typCount);
   Trace("aeq") << "  ...result : " << ret << std::endl;

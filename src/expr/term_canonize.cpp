@@ -23,34 +23,7 @@ using namespace cvc5::internal::kind;
 namespace cvc5::internal {
 namespace expr {
 
-TermCanonize::TermCanonize(TypeClassCallback* tcc)
-    : d_tcc(tcc), d_op_id_count(0), d_typ_id_count(0)
-{
-}
-
-int TermCanonize::getIdForOperator(Node op)
-{
-  std::map<Node, int>::iterator it = d_op_id.find(op);
-  if (it == d_op_id.end())
-  {
-    d_op_id[op] = d_op_id_count;
-    d_op_id_count++;
-    return d_op_id[op];
-  }
-  return it->second;
-}
-
-int TermCanonize::getIdForType(TypeNode t)
-{
-  std::map<TypeNode, int>::iterator it = d_typ_id.find(t);
-  if (it == d_typ_id.end())
-  {
-    d_typ_id[t] = d_typ_id_count;
-    d_typ_id_count++;
-    return d_typ_id[t];
-  }
-  return it->second;
-}
+TermCanonize::TermCanonize(TypeClassCallback* tcc) : d_tcc(tcc) {}
 
 bool TermCanonize::getTermOrder(Node a, Node b)
 {
