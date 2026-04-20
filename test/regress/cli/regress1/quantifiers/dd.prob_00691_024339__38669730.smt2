@@ -1,4 +1,5 @@
 ; EXPECT: unsat
+; DISABLE-TESTER: alethe
 (set-logic ALL)
 (declare-sort A 0)
 (declare-sort A_ 0)

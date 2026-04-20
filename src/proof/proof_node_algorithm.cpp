@@ -470,10 +470,10 @@ bool proveEqualityWithRewriteSteps(
       Node an = getOrderedACITerm(lhs, orderChildren);
       Node bn = getOrderedACITerm(rhs, orderChildren);
       // if so, we put together a proof of transitivity
-      // lhs = aci(lhs)  aci(lhs)=sorted(lhs)  ...
-      //   ...  sorted(rhs)=aci(rhs)  aci(rhs)=rhs
-      // ------------------------------------------------ TRANS
-      //                         lhs = rhs
+      // ----------------- ACI_NORM                   ---------------- ACI_NORM
+      // lhs = sorted(lhs)  sorted(lhs) = sorted(rhs) sorted(rhs)=rhs
+      // --------------------------------------------------------------- TRANS
+      //             lhs = rhs
       std::vector<Node> transEq;
       if (lhs != an)
       {
@@ -487,11 +487,10 @@ bool proveEqualityWithRewriteSteps(
       }
       if (rhs != bn)
       {
-        Node beq = rhs.eqNode(bn);
+        // prove reverse by ACI_NORM, skips need for SYMM
+        Node beq = bn.eqNode(rhs);
         cdp.addStep(beq, ProofRule::ACI_NORM, {}, {beq});
-        Node beqs = bn.eqNode(rhs);
-        cdp.addStep(beqs, ProofRule::SYMM, {beq}, {});
-        transEq.push_back(beqs);
+        transEq.push_back(beq);
       }
       Assert(!transEq.empty());
       if (transEq.size() == 1)
