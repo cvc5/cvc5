@@ -27,6 +27,47 @@
 namespace cvc5::internal {
 namespace expr {
 
+namespace {
+
+/**
+ * Reorder the children of an n-ary AC term using the provided ordering.
+ *
+ * This is used by proveEqualityWithRewriteSteps to make its pre-rewrite
+ * normalization deterministic. If the ordering does not apply, or the
+ * reordered term is not related to the original by ACI normalization, this
+ * returns n unchanged.
+ */
+Node getOrderedACITerm(const Node& n,
+                       const EqualityNodeLessCallback& orderChildren)
+{
+  if (!orderChildren || n.getNumChildren() < 2
+      || !theory::quantifiers::TermUtil::isAssoc(n.getKind(), true)
+      || !theory::quantifiers::TermUtil::isComm(n.getKind(), true))
+  {
+    return n;
+  }
+  std::vector<Node> children;
+  children.insert(children.end(), n.begin(), n.end());
+  std::stable_sort(children.begin(), children.end(), orderChildren);
+  bool changed = false;
+  for (size_t i = 0, size = children.size(); i < size; ++i)
+  {
+    if (children[i] != n[i])
+    {
+      changed = true;
+      break;
+    }
+  }
+  if (!changed)
+  {
+    return n;
+  }
+  Node sn = n.getNodeManager()->mkNode(n.getKind(), children);
+  return expr::isACINorm(n, sn) ? sn : n;
+}
+
+}  // namespace
+
 void getFreeAssumptions(ProofNode* pn, std::vector<Node>& assump)
 {
   std::map<Node, std::vector<std::shared_ptr<ProofNode>>> amap;
@@ -325,32 +366,6 @@ bool proveEqualityWithRewriteSteps(
     bool allowPredIntro,
     const EqualityNodeLessCallback& orderChildren)
 {
-  auto getOrderedACITerm = [&orderChildren](const Node& n) {
-    if (!orderChildren || n.getNumChildren() < 2
-        || !theory::quantifiers::TermUtil::isAssoc(n.getKind(), true)
-        || !theory::quantifiers::TermUtil::isComm(n.getKind(), true))
-    {
-      return n;
-    }
-    std::vector<Node> children;
-    children.insert(children.end(), n.begin(), n.end());
-    std::stable_sort(children.begin(), children.end(), orderChildren);
-    bool changed = false;
-    for (size_t i = 0, size = children.size(); i < size; ++i)
-    {
-      if (children[i] != n[i])
-      {
-        changed = true;
-        break;
-      }
-    }
-    if (!changed)
-    {
-      return n;
-    }
-    Node sn = n.getNodeManager()->mkNode(n.getKind(), children);
-    return expr::isACINorm(n, sn) ? sn : n;
-  };
   // the set of equalities we have visited
   std::unordered_set<Node> visited;
   // equalities that have a pending pre-rewrite normalization proof
