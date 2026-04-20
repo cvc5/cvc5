@@ -234,12 +234,13 @@ bool matchCommChildren(const std::vector<Node>& lhsChildren,
   return false;
 }
 
-bool proveCommEqualityWithRewriteSteps(Env& env,
-                                       CDProof& cdp,
-                                       const Node& lhs,
-                                       const Node& rhs,
-                                       bool allowPredIntro,
-                                       const EqualityNodeLessCallback& orderChildren)
+bool proveCommEqualityWithRewriteSteps(
+    Env& env,
+    CDProof& cdp,
+    const Node& lhs,
+    const Node& rhs,
+    bool allowPredIntro,
+    const EqualityNodeLessCallback& orderChildren)
 {
   Kind k = lhs.getKind();
   if (k != rhs.getKind() || !theory::quantifiers::TermUtil::isAssoc(k)

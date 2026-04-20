@@ -183,13 +183,13 @@ Node proveCong(Env& env,
  * commutative operators before recursively proving equalities between them.
  * @return true if a proof of (= a b) was added to cdp.
  */
-bool proveEqualityWithRewriteSteps(Env& env,
-                                   CDProof& cdp,
-                                   const Node& a,
-                                   const Node& b,
-                                   bool allowPredIntro = true,
-                                   const EqualityNodeLessCallback& orderChildren =
-                                       EqualityNodeLessCallback());
+bool proveEqualityWithRewriteSteps(
+    Env& env,
+    CDProof& cdp,
+    const Node& a,
+    const Node& b,
+    bool allowPredIntro = true,
+    const EqualityNodeLessCallback& orderChildren = EqualityNodeLessCallback());
 
 }  // namespace expr
 }  // namespace cvc5::internal
