@@ -1396,8 +1396,8 @@ Term Smt2TermParser::parseMatchCasePattern(Sort headSort,
             "Must apply constructors of arity greater than 0 to arguments in "
             "pattern.");
       }
-      Term f = dt.isParametric() ? dc.getInstantiatedTerm(headSort)
-                                 : dc.getTerm();
+      Term f =
+          dt.isParametric() ? dc.getInstantiatedTerm(headSort) : dc.getTerm();
       return d_state.getSolver()->getTermManager().mkTerm(
           Kind::APPLY_CONSTRUCTOR, {f});
     }
