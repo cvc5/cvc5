@@ -14,6 +14,7 @@
 
 #include <sstream>
 
+#include "expr/bound_var_manager.h"
 // TODO #1216: move the code in this include
 #include "theory/quantifiers/term_util.h"
 
@@ -88,7 +89,7 @@ bool TermCanonize::getTermOrder(Node a, Node b)
     }
     else
     {
-      return getIdForOperator(aop) < getIdForOperator(bop);
+      return aop < bop;
     }
   }
   return false;
@@ -117,7 +118,11 @@ Node TermCanonize::getCanonicalFreeVar(TypeNode tn, size_t i, uint32_t tc)
       }
       os << typ_name[0] << i;
     }
-    Node x = NodeManager::mkBoundVar(os.str().c_str(), tn);
+    NodeManager* nm = tn.getNodeManager();
+    BoundVarManager* bvm = nm->getBoundVarManager();
+    Node cacheVal = BoundVarManager::getCacheValue(
+        BoundVarManager::getCacheValue(nm, tc), i);
+    Node x = bvm->mkBoundVar(BoundVarId::TERM_CANONIZE, cacheVal, os.str(), tn);
     d_fvIndex[x] = tvars.size();
     tvars.push_back(x);
   }
@@ -143,6 +148,23 @@ struct sortTermOrder
 {
   TermCanonize* d_tu;
   bool operator()(Node i, Node j) { return d_tu->getTermOrder(i, j); }
+};
+
+struct CanonicalSortChild
+{
+  /** The original child. */
+  Node d_child;
+  /** The alpha-invariant order key for the child. */
+  Node d_order;
+};
+
+struct sortCanonicalTermOrder
+{
+  TermCanonize* d_tu;
+  bool operator()(const CanonicalSortChild& i, const CanonicalSortChild& j)
+  {
+    return d_tu->getTermOrder(i.d_order, j.d_order);
+  }
 };
 
 Node TermCanonize::getCanonicalTerm(
@@ -186,9 +208,24 @@ Node TermCanonize::getCanonicalTerm(
     {
       Trace("canon-term-debug")
           << "Sort based on commutative operator " << n.getKind() << std::endl;
-      sortTermOrder sto;
+      std::vector<CanonicalSortChild> schildren;
+      schildren.reserve(cchildren.size());
+      for (const Node& cn : cchildren)
+      {
+        std::map<std::pair<TypeNode, uint32_t>, unsigned> localVarCount =
+            var_count;
+        std::map<TNode, Node> localVisited = visited;
+        Node order =
+            getCanonicalTerm(cn, apply_torder, doHoVar, localVarCount, localVisited);
+        schildren.push_back({cn, order});
+      }
+      sortCanonicalTermOrder sto;
       sto.d_tu = this;
-      std::sort(cchildren.begin(), cchildren.end(), sto);
+      std::stable_sort(schildren.begin(), schildren.end(), sto);
+      for (size_t i = 0, size = schildren.size(); i < size; ++i)
+      {
+        cchildren[i] = schildren[i].d_child;
+      }
     }
     // now make canonical
     Trace("canon-term-debug") << "Make canonical children" << std::endl;

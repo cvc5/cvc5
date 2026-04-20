@@ -26,11 +26,7 @@ namespace quantifiers {
 
 struct sortTypeOrder
 {
-  expr::TermCanonize* d_tu;
-  bool operator()(TypeNode i, TypeNode j)
-  {
-    return d_tu->getIdForType(i) < d_tu->getIdForType(j);
-  }
+  bool operator()(TypeNode i, TypeNode j) { return i < j; }
 };
 
 AlphaEquivalenceTypeNode::AlphaEquivalenceTypeNode(context::Context* c)
@@ -42,6 +38,7 @@ Node AlphaEquivalenceTypeNode::registerNode(
     context::Context* c,
     Node q,
     Node t,
+    expr::TermCanonize* tc,
     std::vector<TypeNode>& typs,
     std::map<TypeNode, size_t>& typCount)
 {
@@ -71,6 +68,16 @@ Node AlphaEquivalenceTypeNode::registerNode(
   NodeMap::iterator it = aetn->d_quant.find(t);
   if (it != aetn->d_quant.end() && !it->second.isNull())
   {
+    // Prefer the representative whose variable-canonized body is smallest,
+    // so equivalent terms converge to a reproducible witness.
+    Node qcurr = tc->getCanonicalTerm(q[1]);
+    Node qprev = tc->getCanonicalTerm(it->second[1]);
+    if (tc->getTermOrder(qcurr, qprev) || (qcurr == qprev && q < it->second))
+    {
+      Trace("aeq-debug") << "(replace) " << q << std::endl;
+      aetn->d_quant[t] = q;
+      return q;
+    }
     Trace("aeq-debug") << it->second << std::endl;
     return it->second;
   }
@@ -156,10 +163,9 @@ Node AlphaEquivalenceDb::addTermToTypeTrie(Node t, Node q)
     }
   }
   sortTypeOrder sto;
-  sto.d_tu = d_tc;
   std::sort(typs.begin(), typs.end(), sto);
   Trace("aeq-debug") << "  ";
-  Node ret = d_ae_typ_trie.registerNode(d_context, q, t, typs, typCount);
+  Node ret = d_ae_typ_trie.registerNode(d_context, q, t, d_tc, typs, typCount);
   Trace("aeq") << "  ...result : " << ret << std::endl;
   return ret;
 }
