@@ -13,6 +13,7 @@
 #include "theory/quantifiers/alpha_equivalence.h"
 
 #include "expr/node_algorithm.h"
+#include "proof/method_id.h"
 #include "proof/proof.h"
 #include "proof/proof_node.h"
 #include "proof/proof_node_algorithm.h"
@@ -313,6 +314,22 @@ TrustNode AlphaEquivalence::reduceQuantifier(Node q)
               d_env, cdp, sret, q, true, orderChildren))
       {
         success = true;
+      }
+      else
+      {
+        Node eq2r = extendedRewrite(eq2);
+        if (eq2r.isConst() && eq2r.getConst<bool>())
+        {
+          std::vector<Node> pfArgs2;
+          pfArgs2.push_back(eq2);
+          addMethodIds(nodeManager(),
+                       pfArgs2,
+                       MethodId::SB_DEFAULT,
+                       MethodId::SBA_SEQUENTIAL,
+                       MethodId::RW_EXT_REWRITE);
+          cdp.addStep(eq2, ProofRule::MACRO_SR_PRED_INTRO, {}, pfArgs2);
+          success = true;
+        }
       }
     }
     // if successful, store the proof and remember the proof generator
