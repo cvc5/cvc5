@@ -19,6 +19,13 @@
 #include "base/check.h"
 #include "cvc5_private.h"
 
+#ifdef CVC5_GMP_IMP
+#include <gmpxx.h>
+#endif
+#ifdef CVC5_CLN_IMP
+#include <cln/random.h>
+#endif
+
 namespace cvc5::internal {
 
 class Random
@@ -28,6 +35,8 @@ class Random
 
   /** Constructor. */
   Random(uint64_t seed);
+  /** Destructor. */
+  ~Random();
 
   Random(const Random& rng) = delete;
   Random& operator=(const Random& rng) = delete;
@@ -97,11 +106,25 @@ class Random
   /** Pick with given probability (yes / no). */
   bool pickWithProb(double probability);
 
+#ifdef CVC5_GMP_IMP
+  gmp_randstate_t* getGMPRandstate() { return &d_gmp_randstate; }
+#endif
+#ifdef CVC5_CLN_IMP
+  cln::random_state* getCLNRandstate() { return &d_cln_randstate; }
+#endif
+
  private:
   /* The seed of the RNG. */
   uint64_t d_seed;
   /** The underlying RNG Mersenne Twister engine. */
   std::mt19937_64 d_rng;
+
+#ifdef CVC5_GMP_IMP
+  gmp_randstate_t d_gmp_randstate;
+#endif
+#ifdef CVC5_CLN_IMP
+  cln::random_state d_cln_randstate;
+#endif
 };
 
 }  // namespace cvc5::internal
