@@ -86,7 +86,7 @@ Node SygusUnif::constructBestConditional(CVC5_UNUSED Node ce,
                                          const std::vector<Node>& conds)
 {
   Assert(!conds.empty());
-  double r = Random::getRandom().pickDouble(0.0, 1.0);
+  double r = Random::getRandom().pick<double>(0.0, 1.0);
   unsigned cindex = r * conds.size();
   if (cindex > conds.size())
   {
