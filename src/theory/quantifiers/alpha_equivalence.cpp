@@ -63,16 +63,6 @@ Node AlphaEquivalenceTypeNode::registerNode(
   NodeMap::iterator it = aetn->d_quant.find(t);
   if (it != aetn->d_quant.end() && !it->second.isNull())
   {
-    // Prefer the representative whose variable-canonized body is smallest,
-    // so equivalent terms converge to a reproducible witness.
-    Node qcurr = tc->getCanonicalTerm(q[1]);
-    Node qprev = tc->getCanonicalTerm(it->second[1]);
-    if (tc->getTermOrder(qcurr, qprev) || (qcurr == qprev && q < it->second))
-    {
-      Trace("aeq-debug") << "(replace) " << q << std::endl;
-      aetn->d_quant[t] = q;
-      return q;
-    }
     Trace("aeq-debug") << it->second << std::endl;
     return it->second;
   }
