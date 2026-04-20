@@ -41,7 +41,7 @@ static Cvc5ostream& operator<<(Cvc5ostream& out, const std::vector<T>& v)
 }
 
 /** Tracing purposes, printing a masked vector of indices. */
-static void traceMaskedVector(const char* trace,
+static void traceMaskedVector(CVC5_UNUSED const char* trace,
                               const char* name,
                               const std::vector<bool>& mask,
                               const std::vector<size_t>& values)
@@ -277,8 +277,7 @@ void TermTupleEnumeratorBase::failureReason(const std::vector<bool>& mask)
   // update change prefix accordingly
   for (d_changePrefix = mask.size();
        d_changePrefix && !mask[d_changePrefix - 1];
-       d_changePrefix--)
-    ;
+       d_changePrefix--);
 }
 
 void TermTupleEnumeratorBase::next(/*out*/ std::vector<Node>& terms)
@@ -294,7 +293,7 @@ void TermTupleEnumeratorBase::next(/*out*/ std::vector<Node>& terms)
     terms[variableIx] = t;
     Trace("inst-alg-rd") << t << "  ";
     Assert(!t.isNull());
-    Assert(t.getType() == d_quantifier[0][variableIx].getType())
+    AssertEqual(t.getType(), d_quantifier[0][variableIx].getType())
         << "Bad type: " << t << " " << t.getType() << " "
         << d_quantifier[0][variableIx].getType();
   }
@@ -505,8 +504,7 @@ class TermTupleEnumeratorPool : public TermTupleEnumeratorBase
   TermTupleEnumeratorPool(Node quantifier,
                           const TermTupleEnumeratorEnv* env,
                           Node pool)
-      : TermTupleEnumeratorBase(quantifier, env),
-        d_pool(pool)
+      : TermTupleEnumeratorBase(quantifier, env), d_pool(pool)
   {
     Assert(d_pool.getKind() == Kind::INST_POOL);
   }

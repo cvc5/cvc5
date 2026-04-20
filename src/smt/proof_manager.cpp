@@ -19,8 +19,8 @@
 #include "proof/alethe/alethe_node_converter.h"
 #include "proof/alethe/alethe_post_processor.h"
 #include "proof/alethe/alethe_printer.h"
-#include "proof/alf/alf_printer.h"
 #include "proof/dot/dot_printer.h"
+#include "proof/eo/eo_printer.h"
 #include "proof/lfsc/lfsc_post_processor.h"
 #include "proof/lfsc/lfsc_printer.h"
 #include "proof/proof_checker.h"
@@ -68,8 +68,8 @@ PfManager::PfManager(Env& env)
                "database with -o rare-db(-expert)"
             << std::endl;
       }
-      proof::AlfNodeConverter atp(nodeManager());
-      proof::AlfPrinter alfp(d_env, atp, d_rewriteDb.get());
+      proof::EoNodeConverter atp(nodeManager());
+      proof::EoPrinter eop(d_env, atp, d_rewriteDb.get());
       const std::map<ProofRewriteRule, RewriteProofRule>& rules =
           d_rewriteDb->getAllRules();
       for (const std::pair<const ProofRewriteRule, RewriteProofRule>& r : rules)
@@ -79,12 +79,12 @@ PfManager::PfManager(Env& env)
         if (l == Level::NORMAL && isNormalOut)
         {
           std::ostream& os = output(OutputTag::RARE_DB);
-          alfp.printDslRule(os, r.first);
+          eop.printDslRule(os, r.first);
         }
         else if (l == Level::EXPERT && isExpertOut)
         {
           std::ostream& os = output(OutputTag::RARE_DB_EXPERT);
-          alfp.printDslRule(os, r.first);
+          eop.printDslRule(os, r.first);
         }
       }
     }
@@ -133,8 +133,8 @@ PfManager::PfManager(Env& env)
     // Alethe does not require chain multiset resolution to be expanded,
     // LFSC requires it to be expanded.
     if ((options().proof.proofFormatMode != options::ProofFormatMode::ALETHE
-        && !options().proof.proofChainMRes) ||
-        options().proof.proofFormatMode == options::ProofFormatMode::LFSC)
+         && !options().proof.proofChainMRes)
+        || options().proof.proofFormatMode == options::ProofFormatMode::LFSC)
     {
       d_pfpp->setEliminateRule(ProofRule::CHAIN_M_RESOLUTION);
     }
@@ -317,7 +317,7 @@ void PfManager::printProof(std::ostream& out,
   // reused in further check-sat calls, or they may be used again if the
   // user asks for the proof again (in non-incremental mode). We don't need to
   // clone if the printing below does not modify the proof, which is the case
-  // for proof formats ALF and NONE.
+  // for proof formats Eunoia and NONE.
   if (mode != options::ProofFormatMode::CPC
       && mode != options::ProofFormatMode::NONE)
   {
@@ -332,9 +332,9 @@ void PfManager::printProof(std::ostream& out,
   }
   else if (mode == options::ProofFormatMode::CPC)
   {
-    proof::AlfNodeConverter atp(nodeManager());
-    proof::AlfPrinter alfp(d_env, atp, d_rewriteDb.get());
-    alfp.print(out, fp, scopeMode);
+    proof::EoNodeConverter atp(nodeManager());
+    proof::EoPrinter eop(d_env, atp, d_rewriteDb.get());
+    eop.print(out, fp, scopeMode);
   }
   else if (mode == options::ProofFormatMode::ALETHE)
   {

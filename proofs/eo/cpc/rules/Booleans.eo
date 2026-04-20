@@ -500,7 +500,7 @@
     :signature (Bool) Bool
     (
         (($lower_not_and true)       false) ; Terminator changes
-        (($lower_not_and (and l ls)) (eo::cons or (not l) ($lower_not_and ls)))
+        (($lower_not_and (and l ls)) (_ or (not l) ($lower_not_and ls)))
     )
 )
 
@@ -534,7 +534,7 @@
 ; conclusion: A clause corresponding to one of the cases of converting t to CNF.
 (declare-rule cnf_and_neg ((Fs Bool))
     :args (Fs)
-    :conclusion (eo::cons or Fs ($lower_not_and Fs))
+    :conclusion (_ or Fs ($lower_not_and Fs))
 )
 
 ; rule: cnf_or_pos

@@ -44,7 +44,11 @@ class PreprocessingPassContext;
  * Preprocessing passes return a result which indicates whether a conflict has
  * been detected during preprocessing.
  */
-enum PreprocessingPassResult { CONFLICT, NO_CONFLICT };
+enum PreprocessingPassResult
+{
+  CONFLICT,
+  NO_CONFLICT
+};
 
 class PreprocessingPass : protected EnvObj
 {
@@ -57,7 +61,6 @@ class PreprocessingPass : protected EnvObj
   virtual ~PreprocessingPass();
 
  protected:
-
   /*
    * Abstract method that each pass implements to do the actual preprocessing.
    */

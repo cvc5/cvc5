@@ -84,10 +84,9 @@ bool BitVector::isBitSet(uint32_t i) const
   return d_value.isBitSet(i);
 }
 
-unsigned BitVector::isPow2() const
-{
-  return d_value.isPow2();
-}
+unsigned BitVector::isPow2() const { return d_value.isPow2(); }
+
+bool BitVector::is_one() const { return d_value == Integer(1); }
 
 /* -----------------------------------------------------------------------
  * Operators

@@ -32,7 +32,8 @@ using namespace std;
 namespace cvc5::internal {
 namespace expr {
 
-string NodeValue::toString() const {
+string NodeValue::toString() const
+{
   stringstream ss;
   toStream(ss);
   return ss.str();
@@ -48,20 +49,29 @@ void NodeValue::toStream(std::ostream& out) const
   Printer::getPrinter(out)->toStream(out, TNode(this));
 }
 
-void NodeValue::printAst(std::ostream& out, int ind) const {
+void NodeValue::printAst(std::ostream& out, int ind) const
+{
   RefCountGuard guard(this);
 
   indent(out, ind);
   out << '(';
   out << getKind();
-  if (getMetaKind() == kind::metakind::VARIABLE || getMetaKind() == kind::metakind::NULLARY_OPERATOR ) {
+  if (getMetaKind() == kind::metakind::VARIABLE
+      || getMetaKind() == kind::metakind::NULLARY_OPERATOR)
+  {
     out << ' ' << getId();
-  } else if (getMetaKind() == kind::metakind::CONSTANT) {
+  }
+  else if (getMetaKind() == kind::metakind::CONSTANT)
+  {
     out << ' ';
     kind::metakind::nodeValueConstantToStream(out, this);
-  } else {
-    if (nv_begin() != nv_end()) {
-      for (const_nv_iterator child = nv_begin(); child != nv_end(); ++child) {
+  }
+  else
+  {
+    if (nv_begin() != nv_end())
+    {
+      for (const_nv_iterator child = nv_begin(); child != nv_end(); ++child)
+      {
         out << std::endl;
         (*child)->printAst(out, ind + 1);
       }

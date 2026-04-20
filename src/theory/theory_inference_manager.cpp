@@ -65,9 +65,7 @@ TheoryInferenceManager::TheoryInferenceManager(Env& env,
   }
 }
 
-TheoryInferenceManager::~TheoryInferenceManager()
-{
-}
+TheoryInferenceManager::~TheoryInferenceManager() {}
 
 void TheoryInferenceManager::setEqualityEngine(eq::EqualityEngine* ee)
 {
@@ -574,10 +572,7 @@ void TheoryInferenceManager::spendResource(Resource r)
   d_out.spendResource(r);
 }
 
-void TheoryInferenceManager::safePoint(Resource r)
-{
-  d_out.safePoint(r);
-}
+void TheoryInferenceManager::safePoint(Resource r) { d_out.safePoint(r); }
 
 void TheoryInferenceManager::setModelUnsound(IncompleteId id)
 {

@@ -111,7 +111,7 @@ PreprocessingPassResult LearnedRewrite::applyInternal(
         Node origin = i == 0 ? b.second.lower_origin : b.second.upper_origin;
         if (!origin.isNull())
         {
-          Assert (originLit.find(origin)!=originLit.end());
+          Assert(originLit.find(origin) != originLit.end());
           llrw.insert(originLit[origin]);
         }
       }
@@ -330,15 +330,17 @@ Node LearnedRewrite::rewriteLearned(Node nr,
         {
           Rational bnuml = nb.lower_value.getConst<Rational>();
           Rational bnumu = nb.upper_value.getConst<Rational>();
-          Rational bnum = bnumu.abs() > bnuml.abs() ? bnuml.abs() : bnumu.abs();
-          if (bnuml.sgn() == bnumu.sgn() && bdenl.abs() < bnum
-              && bdenu.abs() < bnum)
+          Rational bnumMaxAbs =
+              bnumu.abs() > bnuml.abs() ? bnumu.abs() : bnuml.abs();
+          if (bnuml.sgn() == bnumu.sgn() && bnumMaxAbs < bdenl.abs()
+              && bnumMaxAbs < bdenu.abs())
           {
             // if the numerator is negative, then (mod x y) ---> (+ x (abs y))
             // otherwise, (mod x y) ---> x
-            Node ret = bnuml.sgn() == -1 ? nm->mkNode(
-                           Kind::ADD, nr[0], nm->mkNode(Kind::ABS, nr[1]))
-                                         : nr[0];
+            Node ret =
+                bnuml.sgn() == -1
+                    ? nm->mkNode(Kind::ADD, nr[0], nm->mkNode(Kind::ABS, nr[1]))
+                    : nr[0];
             nr = returnRewriteLearned(nr, ret, LearnedRewriteId::INT_MOD_RANGE);
           }
         }

@@ -54,7 +54,7 @@ void AssertArgumentException::construct(const char* header,
   for (;;)
   {
     int size;
-    if (extra == NULL)
+    if (extra == nullptr)
     {
       size = snprintf(buf, n, "%s\n%s\n%s:%d\n", header, function, file, line);
     }
@@ -123,7 +123,7 @@ void AssertArgumentException::construct(const char* header,
     buf = new char[n];
 
     int size;
-    if (extra == NULL)
+    if (extra == nullptr)
     {
       size = snprintf(buf, n, "%s.\n%s\n%s:%d\n", header, function, file, line);
     }

@@ -262,7 +262,7 @@ void AletheProofPrinter::printInternal(std::ostream& out,
                           << std::endl;
   // We special case printing anchors
   if (arule >= AletheRule::ANCHOR_SUBPROOF
-      && arule <= AletheRule::ANCHOR_SKO_EX)
+      && arule <= AletheRule::ANCHOR_ONEPOINT)
   {
     Trace("alethe-printer") << push;
     Assert(pfChildren.size() == 1);
@@ -291,7 +291,7 @@ void AletheProofPrinter::printInternal(std::ostream& out,
     else
     {
       Assert(arule >= AletheRule::ANCHOR_BIND
-             && arule <= AletheRule::ANCHOR_SKO_EX);
+             && arule <= AletheRule::ANCHOR_ONEPOINT);
       out << " :args (";
       for (size_t i = 3, size = args.size(); i < size; ++i)
       {

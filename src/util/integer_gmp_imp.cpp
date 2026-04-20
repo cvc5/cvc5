@@ -28,25 +28,14 @@ using namespace std;
 
 namespace cvc5::internal {
 
-Integer::Integer(const char* s, unsigned base)
-  : d_value(s, base)
-{}
+Integer::Integer(const char* s, unsigned base) : d_value(s, base) {}
 
-Integer::Integer(const std::string& s, unsigned base)
-  : d_value(s, base)
-{}
+Integer::Integer(const std::string& s, unsigned base) : d_value(s, base) {}
 
 #ifdef CVC5_NEED_INT64_T_OVERLOADS
 Integer::Integer(int64_t z) : d_value(construct_mpz(z)) {}
 Integer::Integer(uint64_t z) : d_value(construct_mpz(z)) {}
 #endif /* CVC5_NEED_INT64_T_OVERLOADS */
-
-Integer& Integer::operator=(const Integer& x)
-{
-  if (this == &x) return *this;
-  d_value = x.d_value;
-  return *this;
-}
 
 bool Integer::operator==(const Integer& y) const
 {

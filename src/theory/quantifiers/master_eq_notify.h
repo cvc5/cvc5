@@ -21,7 +21,7 @@
 
 namespace cvc5::internal {
 namespace theory {
-  
+
 class QuantifiersEngine;
 
 namespace quantifiers {
@@ -32,9 +32,9 @@ class MasterNotifyClass : public theory::eq::EqualityEngineNotify
  public:
   MasterNotifyClass(QuantifiersEngine* qe);
   /**
-    * Called when a new equivalence class is created in the master equality
-    * engine.
-    */
+   * Called when a new equivalence class is created in the master equality
+   * engine.
+   */
   void eqNotifyNewClass(TNode t) override;
 
   bool eqNotifyTriggerPredicate(CVC5_UNUSED TNode predicate,
@@ -60,11 +60,10 @@ class MasterNotifyClass : public theory::eq::EqualityEngineNotify
   {
   }
 
-  private:
+ private:
   /** Pointer to quantifiers engine */
   QuantifiersEngine* d_quantEngine;
 };
-
 
 }  // namespace quantifiers
 }  // namespace theory

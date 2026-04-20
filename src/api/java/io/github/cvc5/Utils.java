@@ -40,7 +40,8 @@ public final class Utils
    *
    * It includes logic to detect the current operating system at runtime.
    */
-  public enum OS {
+  public enum OS
+  {
     /**
      * Microsoft Windows operating system.
      */
@@ -87,7 +88,8 @@ public final class Utils
    *
    * It includes logic to detect the current CPU architecture at runtime.
    */
-  public enum CPUArchitecture {
+  public enum CPUArchitecture
+  {
     /**
      * ARMv8 64 bit.
      */
@@ -101,7 +103,7 @@ public final class Utils
      */
     UNKNOWN;
 
-     /**
+    /**
      * The detected CPU architecture on which the application is currently running.
      */
     public static final CPUArchitecture CURRENT = detectCPUArchitecture();
@@ -115,14 +117,12 @@ public final class Utils
     private static CPUArchitecture detectCPUArchitecture()
     {
       String osArch = System.getProperty("os.arch").toLowerCase(Locale.ROOT);
-      switch (osArch) {
-        case "aarch64":
-          return AARCH_64;
+      switch (osArch)
+      {
+        case "aarch64": return AARCH_64;
         case "amd64":
-        case "x86_64":
-          return X86_64;
-        default:
-          return UNKNOWN;
+        case "x86_64": return X86_64;
+        default: return UNKNOWN;
       }
     }
   }
@@ -179,7 +179,7 @@ public final class Utils
    * @throws Exception If an I/O error occurs or the library cannot be loaded
    */
   public static void loadLibraryFromJar(Path tempDir, String path, String filename)
-    throws FileNotFoundException, Exception
+      throws FileNotFoundException, Exception
   {
     String pathInJar = path + "/" + filename;
     // Extract the library from the JAR

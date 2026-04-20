@@ -172,6 +172,7 @@ class LetBinding
   NodeIdMap d_count;
   /** The let list */
   NodeList d_letList;
+
  protected:
   /** The let map */
   NodeIdMap d_letMap;

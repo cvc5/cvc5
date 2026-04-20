@@ -31,7 +31,6 @@ class SatSolver
   friend class SatSolverFactory;
 
  public:
-
   /** Virtual destructor */
   virtual ~SatSolver() = default;
 
@@ -100,12 +99,12 @@ class SatSolver
    * Can only be called if satisfiability check under assumptions was used and
    * if it returned SAT_VALUE_FALSE.
    */
-  virtual void getUnsatAssumptions(std::vector<SatLiteral>& unsat_assumptions) = 0;
+  virtual void getUnsatAssumptions(
+      std::vector<SatLiteral>& unsat_assumptions) = 0;
 
  private:
   /** Is called by the SatSolverFactory right after construction. */
   virtual void initialize() = 0;
-
 };
 
 class CDCLTSatSolver : public SatSolver

@@ -20,8 +20,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-ExampleEvalCache::ExampleEvalCache(TermDbSygus* tds,
-                                   Node e)
+ExampleEvalCache::ExampleEvalCache(TermDbSygus* tds, Node e)
     : d_tds(tds), d_stn(e.getType())
 {
   d_indexSearchVals = !d_tds->isVariableAgnosticEnumerator(e);
@@ -54,7 +53,7 @@ Node ExampleEvalCache::addSearchVal(TypeNode tn, Node bv)
   {
     clearEvaluationCache(bv);
   }
-  Assert(ret.getType() == bv.getType());
+  AssertEqual(ret.getType(), bv.getType());
   return ret;
 }
 

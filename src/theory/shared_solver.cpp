@@ -126,15 +126,17 @@ bool SharedSolver::propagateSharedEquality(theory::TheoryId theory,
   // Propagate equality between shared terms to the one who asked for it
   // As an optimization, we ensure the equality is oriented based on the
   // same order used by the rewriter for equality.
-  Node equality = a>b ? b.eqNode(a) : a.eqNode(b);
+  Node equality = a > b ? b.eqNode(a) : a.eqNode(b);
   if (value)
   {
     d_te.assertToTheory(equality, equality, theory, THEORY_BUILTIN);
   }
   else
   {
+    // Use negatedEquality to ensure deterministic node ID assignments
+    Node negatedEquality = equality.notNode();
     d_te.assertToTheory(
-        equality.notNode(), equality.notNode(), theory, THEORY_BUILTIN);
+        negatedEquality, negatedEquality, theory, THEORY_BUILTIN);
   }
   return true;
 }

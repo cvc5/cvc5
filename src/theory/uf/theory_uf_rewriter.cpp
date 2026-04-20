@@ -516,8 +516,8 @@ Node TheoryUfRewriter::rewriteLambda(Node node)
     Assert(anode.getType().isArray());
     Node retNode =
         nodeManager()->mkConst(FunctionArrayConst(node.getType(), anode));
-    Assert(anode.isConst() == retNode.isConst());
-    Assert(retNode.getType() == node.getType());
+    AssertEqual(anode.isConst(), retNode.isConst());
+    AssertEqual(retNode.getType(), node.getType());
     Assert(expr::hasFreeVar(node) == expr::hasFreeVar(retNode));
     return retNode;
   }
@@ -587,7 +587,7 @@ RewriteResponse TheoryUfRewriter::rewriteIntToBV(TNode node)
     {
       // ((_ int2bv w) (bv2nat x)) ---> ((_ extract w-1 0) x)
       Assert(osize < isize);
-      Node extract = bv::utils::mkExtract(node[0][0], osize-1, 0);
+      Node extract = bv::utils::mkExtract(node[0][0], osize - 1, 0);
       return RewriteResponse(REWRITE_AGAIN_FULL, extract);
     }
   }

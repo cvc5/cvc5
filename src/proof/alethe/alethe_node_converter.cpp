@@ -38,7 +38,8 @@ Node AletheNodeConverter::maybeConvert(Node n, bool isAssumption)
   return res;
 }
 
-void collectTypes(std::vector<TypeNode>& allTypesVec, std::unordered_set<TypeNode>& allTypes)
+void collectTypes(std::vector<TypeNode>& allTypesVec,
+                  std::unordered_set<TypeNode>& allTypes)
 {
   for (size_t i = 0, size = allTypesVec.size(); i < size; ++i)
   {
@@ -83,7 +84,9 @@ Node AletheNodeConverter::postConvert(Node n)
       std::stringstream ss;
       ss << "(_ @bit_of " << n.getOperator().getConst<BitVectorBit>().d_bitIndex
          << ")";
-      TypeNode fType = d_nm->mkFunctionType(n[0].getType(), n.getType());
+      // Use n0Type to ensure deterministic node ID assignments
+      TypeNode n0Type = n[0].getType();
+      TypeNode fType = d_nm->mkFunctionType(n0Type, n.getType());
       Node op = mkInternalSymbol(ss.str(), fType, true);
       Node converted = d_nm->mkNode(Kind::APPLY_UF, op, n[0]);
       return converted;
@@ -212,6 +215,31 @@ Node AletheNodeConverter::postConvert(Node n)
           return n;
         }
         return witness;
+      }
+      if (sfi == SkolemId::ARRAY_DEQ_DIFF)
+      {
+        Trace("alethe-conv")
+            << ".. to build array diff choice with arrays: " << cacheVal[0]
+            << " / " << cacheVal[1] << "\n";
+        Assert(cacheVal.getKind() == Kind::SEXPR
+               && cacheVal.getNumChildren() == 2);
+        Node a = cacheVal[0];
+        Assert(a.getType().isArray());
+        Node b = cacheVal[1];
+        Assert(b.getType().isArray());
+        TypeNode indexType = a.getType().getArrayIndexType();
+        // get index element of array
+        Node var = NodeManager::mkBoundVar("x", indexType);
+        Node eq = a.eqNode(b);
+        Node select =
+            d_nm->mkNode(Kind::NOT,
+                         d_nm->mkNode(Kind::EQUAL,
+                                      d_nm->mkNode(Kind::SELECT, a, var),
+                                      d_nm->mkNode(Kind::SELECT, b, var)));
+        Node body = d_nm->mkNode(Kind::OR, eq, select);
+        Node choice = d_nm->mkNode(
+            Kind::WITNESS, d_nm->mkNode(Kind::BOUND_VAR_LIST, var), body);
+        return convert(choice);
       }
       std::stringstream ss;
       ss << "\"Proof unsupported by Alethe: contains Skolem (kind " << sfi
@@ -437,7 +465,6 @@ Node AletheNodeConverter::postConvert(Node n)
       TypeNode unsupported = TypeNode::null();
       for (const TypeNode& ttn : allTypes)
       {
-
         Kind tnk = ttn.getKind();
         Trace("test") << "Test " << ttn << ", kind " << tnk << "\n";
         switch (tnk)

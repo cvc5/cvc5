@@ -20,7 +20,7 @@
 #include <cstddef>
 
 namespace poly {
-  class Interval;
+class Interval;
 }
 
 namespace cvc5::internal {

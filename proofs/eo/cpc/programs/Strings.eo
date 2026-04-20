@@ -35,12 +35,12 @@
   )
 )
 
-; define: $str_value_len
+; program: $str_value_len
 ; args:
 ; - s (Seq T): The sequence term.
 ; return: >
 ;   The length of s, if it denotes a "value-like" sequence, that
-;   is, either a string literal or a concatentation of sequence units.
+;   is, either a string literal or a concatenation of sequence units.
 (program $str_value_len ((T Type) (s (Seq T)) (e T) (ss (Seq T) :list))
   :signature ((Seq T)) Int
   (
@@ -72,7 +72,7 @@
 
 ; define: $str_head
 ; args:
-; - x (Seq T): The string, expected to be a non-empty concatentation.
+; - x (Seq T): The string, expected to be a non-empty concatenation.
 ; return: the head (first child) of x.
 (define $str_head ((T Type :implicit) (x (Seq T))) (eo::list_nth str.++ x 0))
 
@@ -84,7 +84,7 @@
 ;   The result of prepending string x to string y where the former is treated
 ;   as an element and the latter is treated as a list.
 (define $str_cons ((T Type :implicit) (x (Seq T)) (y (Seq T)))
-  (eo::cons str.++ x y)
+  (_ str.++ x y)
 )
 
 ; define: $str_is_code_point
@@ -200,8 +200,8 @@
     (($re_ac_merge re.inter re.none r1)      re.none)
     (($re_ac_merge f r1 r1)                  r1)
     (($re_ac_merge f (f r1 rr1) (f r2 rr2))  (eo::list_concat f (eo::list_diff f (f r1 rr1) (f r2 rr2)) (f r2 rr2)))
-    (($re_ac_merge f (f r1 rr1) r2)          (eo::ite (eo::is_neg (eo::list_find f (f r1 rr1) r2)) (eo::cons f r2 (f r1 rr1)) (f r1 rr1)))
-    (($re_ac_merge f r2 (f r1 rr1))          (eo::ite (eo::is_neg (eo::list_find f (f r1 rr1) r2)) (eo::cons f r2 (f r1 rr1)) (f r1 rr1)))
+    (($re_ac_merge f (f r1 rr1) r2)          (eo::ite (eo::is_neg (eo::list_find f (f r1 rr1) r2)) (_ f r2 (f r1 rr1)) (f r1 rr1)))
+    (($re_ac_merge f r2 (f r1 rr1))          (eo::ite (eo::is_neg (eo::list_find f (f r1 rr1) r2)) (_ f r2 (f r1 rr1)) (f r1 rr1)))
     (($re_ac_merge f r1 r2)                  (f r1 (f r2 (eo::nil f RegLan))))
   )
 )
@@ -219,7 +219,7 @@
   (
     (($re_concat_merge (re.++ r1 rr1) (re.++ r2 rr2))  (eo::list_concat re.++ (re.++ r1 rr1) (re.++ r2 rr2)))
     (($re_concat_merge re.none r1)                     re.none)
-    (($re_concat_merge r1 (re.++ r2 rr2))              (eo::cons re.++ r1 (re.++ r2 rr2)))
+    (($re_concat_merge r1 (re.++ r2 rr2))              (_ re.++ r1 (re.++ r2 rr2)))
     (($re_concat_merge @re.empty r1)                   r1)
     (($re_concat_merge r1 @re.empty)                   r1)
     (($re_concat_merge r1 r2)                          (re.++ r1 r2))
@@ -271,7 +271,7 @@
 
 ;;;;; first match utilities
 
-; define: $str_first_match_rec_smallest
+; program: $str_first_match_rec_smallest
 ; args:
 ; - s String: The string to inspect.
 ; - r RegLan: The regular expression to inspect, assumed to contain s.
@@ -290,7 +290,7 @@
   )
 )
 
-; define: $str_first_match_rec
+; program: $str_first_match_rec
 ; args:
 ; - s String: The string to inspect.
 ; - r RegLan: The regular expression to inspect.
@@ -421,7 +421,7 @@
 (define $re_first_match_pre ((s String) (r RegLan))
   ($str_prefix s (str.indexof_re s r 0)))
 
-; define: $re_first_match_pre
+; define: $re_first_match
 ; args:
 ; - s String: The string term.
 ; - r RegLan: The regular expression.
@@ -430,7 +430,7 @@
   (eo::define ((n (str.indexof_re s r 0)))
     (str.substr s n (- (@strings_occur_index_re s r 1) n))))
 
-; define: $re_first_match_pre
+; define: $re_first_match_post
 ; args:
 ; - s String: The string term.
 ; - r RegLan: The regular expression.
@@ -485,7 +485,7 @@
     (
         (($re_nary_intro (re.++ t ss))    (re.++ t ss))
         (($re_nary_intro @re.empty)       @re.empty)
-        (($re_nary_intro t)               (eo::cons re.++ t @re.empty))
+        (($re_nary_intro t)               (_ re.++ t @re.empty))
     )
 )
 
@@ -840,15 +840,15 @@
       (eo::define ((c ($pair_first res)))
       (eo::define ((M ($pair_second res)))
         ; a constant regular expression, append s
-        (@pair (eo::cons str.++ s c) M)))))
+        (@pair (_ str.++ s c) M)))))
     (($re_unfold_pos_concat_rec t (re.++ r1 r2) ro i)
       (eo::define ((res ($re_unfold_pos_concat_rec t r2 ro (eo::add i 1))))
       (eo::define ((c ($pair_first res)))
       (eo::define ((M ($pair_second res)))
       (eo::define ((k (@re_unfold_pos_component t ro i)))
         ; otherwise, make the skolem and append with constraint
-        (@pair (eo::cons str.++ k c)
-               (eo::cons and (str.in_re k r1) M)))))))
+        (@pair (_ str.++ k c)
+               (_ and (str.in_re k r1) M)))))))
   )
 )
 
@@ -1024,9 +1024,9 @@
   :signature (Int Int RegLan RegLan) RegLan
   (
     (($str_mk_re_loop_elim_rec 0 0 r rr)
-      (eo::cons re.union (eo::list_singleton_elim re.++ rr) re.none))
+      (_ re.union (eo::list_singleton_elim re.++ rr) re.none))
     (($str_mk_re_loop_elim_rec 0 d r rr)
-      (eo::cons re.union (eo::list_singleton_elim re.++ rr) ($str_mk_re_loop_elim_rec 0 (eo::add d -1) r (re.++ r rr))))
+      (_ re.union (eo::list_singleton_elim re.++ rr) ($str_mk_re_loop_elim_rec 0 (eo::add d -1) r (re.++ r rr))))
     (($str_mk_re_loop_elim_rec n d r rr)
       ($str_mk_re_loop_elim_rec (eo::add n -1) d r (re.++ r rr)))
   )
@@ -1059,7 +1059,7 @@
 (program $str_mk_str_in_re_concat_star_char ((s1 String) (s2 String :list) (r RegLan))
   :signature (String RegLan) Bool
   (
-    (($str_mk_str_in_re_concat_star_char (str.++ s1 s2) r) (eo::cons and (str.in_re s1 r) ($str_mk_str_in_re_concat_star_char s2 r)))
+    (($str_mk_str_in_re_concat_star_char (str.++ s1 s2) r) (_ and (str.in_re s1 r) ($str_mk_str_in_re_concat_star_char s2 r)))
     (($str_mk_str_in_re_concat_star_char "" r)             true)
   )
 )
@@ -1102,7 +1102,8 @@
 (program $str_mk_str_in_re_sigma_star_rec ((s String) (r RegLan :list) (n Int))
   :signature (String RegLan Int) Bool
   (
-    (($str_mk_str_in_re_sigma_star_rec s @re.empty n)                    (= (mod (str.len s) n) 0))
+    (($str_mk_str_in_re_sigma_star_rec s @re.empty n)
+      (eo::requires (eo::eq n 0) false (= (mod (str.len s) n) 0)))
     (($str_mk_str_in_re_sigma_star_rec s (re.++ re.allchar r) n)         ($str_mk_str_in_re_sigma_star_rec s r (eo::add n 1)))
   )
 )
@@ -1154,8 +1155,8 @@
 (program $re_str_to_flat_form ((r1 RegLan) (r2 RegLan :list) (s String) (rev Bool))
   :signature (Bool RegLan) RegLan
   (
-    (($re_str_to_flat_form rev (re.++ (str.to_re s) r2))  (eo::cons re.++ (str.to_re ($str_to_flat_form s rev)) ($re_str_to_flat_form rev r2)))
-    (($re_str_to_flat_form rev (re.++ r1 r2))             (eo::cons re.++ r1 ($re_str_to_flat_form rev r2)))
+    (($re_str_to_flat_form rev (re.++ (str.to_re s) r2))  (_ re.++ (str.to_re ($str_to_flat_form s rev)) ($re_str_to_flat_form rev r2)))
+    (($re_str_to_flat_form rev (re.++ r1 r2))             (_ re.++ r1 ($re_str_to_flat_form rev r2)))
     (($re_str_to_flat_form rev r1)                        r1)
   )
 )
@@ -1214,8 +1215,8 @@
 (program $re_str_from_flat_form ((r1 RegLan) (r2 RegLan :list) (s String) (rev Bool))
   :signature (Bool RegLan) RegLan
   (
-    (($re_str_from_flat_form rev (re.++ (str.to_re s) r2))  (eo::cons re.++ (str.to_re ($str_from_flat_form s rev)) ($re_str_from_flat_form rev r2)))
-    (($re_str_from_flat_form rev (re.++ r1 r2))             (eo::cons re.++ r1 ($re_str_from_flat_form rev r2)))
+    (($re_str_from_flat_form rev (re.++ (str.to_re s) r2))  (_ re.++ (str.to_re ($str_from_flat_form s rev)) ($re_str_from_flat_form rev r2)))
+    (($re_str_from_flat_form rev (re.++ r1 r2))             (_ re.++ r1 ($re_str_from_flat_form rev r2)))
     (($re_str_from_flat_form rev r1)                        r1)
   )
 )
@@ -1408,22 +1409,31 @@
 
   )
 )
-
-; program: $str_arith_entail_simple
+; program: $str_arith_entail_simple_rec
 ; args:
-; - n T: An arithmetic term to process.
+; - p @Polynomial: A polynomial term to process.
 ; return: >
-;   true if we can show n is greater than or equal 0 using the fact that length
+;   true if we can show p is greater than or equal to 0 using the fact that length
 ;   is non-negative and basic properties of arithmetic.
-(program $str_arith_entail_simple ((T Type) (s String) (n1 T) (n2 T :list))
-  :signature (T) Bool
+(program $str_arith_entail_simple_rec ((s String) (q Real) (p @Polynomial :list) (t eo::List :list))
+  :signature (@Polynomial) Bool
   (
-    (($str_arith_entail_simple (str.len s)) true)
-    (($str_arith_entail_simple (+ n1 n2))   (eo::ite ($str_arith_entail_simple n1) ($str_arith_entail_simple n2) false))
-    (($str_arith_entail_simple (* n1 n2))   (eo::ite ($str_arith_entail_simple n1) ($str_arith_entail_simple n2) false))
-    (($str_arith_entail_simple n1)          (eo::not (eo::is_neg n1)))
+  (($str_arith_entail_simple_rec @poly.zero) true)
+  (($str_arith_entail_simple_rec (@poly (@mon (eo::List::cons (str.len s) t) q) p))
+    ($str_arith_entail_simple_rec (@poly (@mon t q) p)))
+  (($str_arith_entail_simple_rec (@poly (@mon eo::List::nil q) p))
+    (eo::ite (eo::is_neg q) false ($str_arith_entail_simple_rec p)))
   )
 )
+
+; define: $str_arith_entail_simple
+; args:
+; - t Int: An arithmetic term to process.
+; return: >
+;   true if we can show t is greater than or equal to 0 using the fact that length
+;   is non-negative and basic properties of arithmetic.
+(define $str_arith_entail_simple ((t Int))
+  ($str_arith_entail_simple_rec ($get_arith_poly_norm t)))
 
 ; program: $str_arith_entail_simple_pred
 ; args:
@@ -1432,22 +1442,22 @@
 ;   true if we can show that F holds using the fact that length
 ;   is non-negative and basic properties of arithmetic. We first
 ;   normalize the polynomial corresponding to F and check this
-;   using the $str_arith_entail_simple program above.
+;   using the $str_arith_entail_simple definition above.
 (program $str_arith_entail_simple_pred ((n Int) (m Int))
   :signature (Bool) Bool
   (
-    (($str_arith_entail_simple_pred (>= n m))  ($str_arith_entail_simple ($arith_poly_to_term (- n m))))
-    (($str_arith_entail_simple_pred (> n m))   ($str_arith_entail_simple ($arith_poly_to_term (- n (+ m 1)))))
+  (($str_arith_entail_simple_pred (>= n m))  ($str_arith_entail_simple (- n m)))
+  (($str_arith_entail_simple_pred (> n m))   ($str_arith_entail_simple (- n (+ m 1))))
   )
 )
 
 ; program: $str_arith_entail_is_approx_len
 ; args:
 ; - s String: The string whose length we are considering.
-; - n Int: An integer that may under (resp. over) approximate the length of s when b is true (resp. false).
-; - b Bool: Whether we are checking that n is an under (resp. over) approximation.
+; - n Int: An integer that may under-approximate (resp. over-approximate) the length of s when isUnder is true (resp. false).
+; - isUnder Bool: Whether we are checking that n is an under-approximation (resp. over-approximation).
 ; return: >
-;   true if we can show that (>= (str.len s) n) (or <= if b is false) holds using approximation
+;   true if we can show that (>= (str.len s) n) (or <= if isUnder is false) holds using approximation
 ;   cases as defined by Figure 2 of "High-Level Abstractions for Simplifying Extended String Constraints
 ;   in SMT", CAV 2019. When applicable, we also rely on calls that reason that string
 ;   length is non-negative and basic properties of arithmetic.
@@ -1497,10 +1507,10 @@
 ; - s String: The first string argument to str.indexof.
 ; - t String: The second string argument to str.indexof.
 ; - n Int: The third argument of str.indexof.
-; - m Int: An integer that may under (resp. over) approximate the given indexof term when b is true (resp. false).
-; - b Bool: Whether we are checking that m is an under (resp. over) approximation.
+; - m Int: An integer that may under-approximate (resp. over-approximate) the given indexof term when isUnder is true (resp. false).
+; - isUnder Bool: Whether we are checking that m is an under-approximation (resp. over-approximation).
 ; return: >
-;   true if we can show that (>= (str.indexof s t n) m) (or <= if b is false) holds using
+;   true if we can show that (>= (str.indexof s t n) m) (or <= if isUnder is false) holds using
 ;   approximation cases as defined by Figure 2 of "High-Level Abstractions for Simplifying
 ;   Extended String Constraints in SMT", CAV 2019. When applicable, we also rely on calls
 ;   that reason that string length is non-negative and basic properties of arithmetic.
@@ -1518,10 +1528,10 @@
 ; define: $str_arith_entail_is_approx_to_int
 ; args:
 ; - s String: The first string argument to str.to_int.
-; - n Int: An integer that may under (resp. over) approximate the given indexof term when b is true (resp. false).
-; - b Bool: Whether we are checking that n is an under (resp. over) approximation.
+; - n Int: An integer that may under-approximate (resp. over-approximate) the given str.to_int term when isUnder is true (resp. false).
+; - isUnder Bool: Whether we are checking that n is an under-approximation (resp. over-approximation).
 ; return: >
-;   true if we can show that (>= (str.to_int s) n) (or <= if b is false) holds using approximation cases
+;   true if we can show that (>= (str.to_int s) n) (or <= if isUnder is false) holds using approximation cases
 ;   as defined by Figure 2 of "High-Level Abstractions for Simplifying Extended String Constraints
 ;   in SMT", CAV 2019.
 (define $str_arith_entail_is_approx_to_int ((s String) (n Int) (isUnder Bool))
@@ -1532,9 +1542,9 @@
 ; args:
 ; - n Int: The first integer term.
 ; - m Int: The second integer term.
-; - b Bool: Whether we are checking that n is an under (resp. over) approximation of m.
+; - isUnder Bool: Whether we are checking that n is an under-approximation (resp. over-approximation) of m.
 ; return: >
-;   true if we can show that (>= n m) (resp (<= n m) when b is false) holds using approximation cases
+;   true if we can show that (>= n m) (resp. (<= n m) when isUnder is false) holds using approximation cases
 ;   as defined by Figure 2 of "High-Level Abstractions for Simplifying Extended String Constraints
 ;   in SMT", CAV 2019.
 (program $str_arith_entail_is_approx ((s String) (t String) (n1 Int) (n2 Int :list) (n3 Int) (n4 Int :list) (n5 Int) (isUnder Bool))
@@ -1674,7 +1684,7 @@
       (eo::define ((r2 ($str_membership_re resfwd)))
         (str.in_re ($str_from_flat_form s2 false) ($re_from_flat_form r2 false)))))))))))))))
 
-; define: $str_re_consume
+; program: $str_re_consume
 ; args:
 ; - s String: The string argument of the membership to rewrite.
 ; - r RegLan: The regular expression argument of the membership to rewrite.
@@ -1683,7 +1693,7 @@
 ;   otherwise `(str.in_re sr rr)` where sr and rr are the result of "consuming"
 ;   prefixes/suffixes from s and r. In addition to the above method
 ;   $str_re_consume_process, we additionally handle the case where we reason
-;   about the body of re.*, succeeding if a conflict is found or we full
+;   about the body of re.*, succeeding if a conflict is found or we fully
 ;   consume one copy.
 (program $str_re_consume ((s String) (r RegLan))
   :signature (String RegLan) Bool
@@ -1754,7 +1764,7 @@
   ($str_overlap_rec ($str_to_flat_form s rev) ($str_to_flat_form t rev)))
 
 
-; program: $str_has_overlap
+; define: $str_has_overlap
 ; args:
 ; - s (Seq U): The first string, expected to be a string or sequence value.
 ; - t (Seq U): The second string, expected to be a string or sequence value.
@@ -1939,7 +1949,7 @@
   )
 )
 
-; program: $str_eval_replace_all
+; define: $str_eval_replace_all
 ; args:
 ; - s String: A string.
 ; - t String: A string to find.

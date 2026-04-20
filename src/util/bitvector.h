@@ -77,16 +77,6 @@ class BitVector
    */
   BitVector(const std::string& num, uint32_t base = 2);
 
-  ~BitVector() {}
-
-  BitVector& operator=(const BitVector& x)
-  {
-    if (this == &x) return *this;
-    d_size = x.d_size;
-    d_value = x.d_value;
-    return *this;
-  }
-
   /* Get size (bit-width). */
   unsigned getSize() const;
   /* Get value. */
@@ -117,6 +107,9 @@ class BitVector
 
   /* Return k if the value of this is equal to 2^{k-1}, and zero otherwise. */
   unsigned isPow2() const;
+
+  /** @return True if this bit-vector represents value 1. */
+  bool is_one() const;
 
   /* -----------------------------------------------------------------------
    ** Operators

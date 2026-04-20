@@ -40,7 +40,7 @@ ArithInstantiator::ArithInstantiator(Env& env, TypeNode tn, VtsTermCache* vtc)
 
 void ArithInstantiator::reset(CVC5_UNUSED CegInstantiator* ci,
                               CVC5_UNUSED SolvedForm& sf,
-                              Node pv,
+                              CVC5_UNUSED Node pv,
                               CVC5_UNUSED CegInstEffort effort)
 {
   Assert(pv.getType() == d_type);
@@ -418,9 +418,9 @@ bool ArithInstantiator::processAssertions(CegInstantiator* ci,
             Assert(d_mbp_coeff[rr][j].isConst());
             value[t] = nm->mkNode(
                 Kind::MULT,
-                nm->mkConstReal(Rational(1)
-                                / d_mbp_coeff[rr][j].getConst<Rational>()),
-                nm->mkNode(Kind::TO_REAL, value[t]));
+                {nm->mkConstReal(Rational(1)
+                                 / d_mbp_coeff[rr][j].getConst<Rational>()),
+                 nm->mkNode(Kind::TO_REAL, value[t])});
             value[t] = rewrite(value[t]);
           }
           // check if new best, if we have not already set it.
@@ -579,8 +579,8 @@ bool ArithInstantiator::processAssertions(CegInstantiator* ci,
       else
       {
         val = nm->mkNode(Kind::MULT,
-                         nm->mkNode(Kind::ADD, vals[0], vals[1]),
-                         nm->mkConstReal(Rational(1) / Rational(2)));
+                         {nm->mkNode(Kind::ADD, vals[0], vals[1]),
+                          nm->mkConstReal(Rational(1) / Rational(2))});
         val = rewrite(val);
       }
     }
@@ -746,7 +746,7 @@ bool ArithInstantiator::postProcessInstantiationForVariable(
   return true;
 }
 
-CegTermType ArithInstantiator::solve_arith(CegInstantiator* ci,
+CegTermType ArithInstantiator::solve_arith(CVC5_UNUSED CegInstantiator* ci,
                                            Node pv,
                                            Node atom,
                                            Node& veq_c,
@@ -916,8 +916,9 @@ CegTermType ArithInstantiator::solve_arith(CegInstantiator* ci,
           Kind::TO_INTEGER,
           nm->mkNode(
               ires_use == -1 ? Kind::ADD : Kind::SUB,
-              nm->mkNode(ires_use == -1 ? Kind::SUB : Kind::ADD, val, realPart),
-              nm->mkNode(Kind::TO_INTEGER, realPart)));
+              {nm->mkNode(
+                   ires_use == -1 ? Kind::SUB : Kind::ADD, val, realPart),
+               nm->mkNode(Kind::TO_INTEGER, realPart)}));
       Trace("cegqi-arith-debug")
           << "result (pre-rewrite) : " << val << std::endl;
       val = rewrite(val);
@@ -936,7 +937,7 @@ CegTermType ArithInstantiator::solve_arith(CegInstantiator* ci,
   {
     val = nm->mkNode(Kind::TO_REAL, val);
   }
-  Assert(pv.getType() == val.getType());
+  AssertEqual(pv.getType(), val.getType());
   Trace("cegqi-arith-debug")
       << "Return " << veq_c << " * " << pv << " " << atom.getKind() << " "
       << val << ", vts = (" << vts_coeff_inf << ", " << vts_coeff_delta << ")"

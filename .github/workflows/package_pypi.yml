@@ -155,7 +155,7 @@ jobs:
         CIBW_TEST_COMMAND: python {project}/examples/api/python/quickstart.py
         CIBW_TEST_SKIP: "cp38-macosx_arm64" # Silence warning. See: https://github.com/pypa/cibuildwheel/pull/1171
 
-    # - uses: actions/upload-artifact@v5
+    # - uses: actions/upload-artifact@v6
     #   with:
     #     name: wheels-${{ matrix.name }}
     #     path: ./wheelhouse/*.whl

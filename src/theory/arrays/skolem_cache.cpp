@@ -30,7 +30,7 @@ Node SkolemCache::getExtIndexSkolem(NodeManager* nm, Node deq)
   Node a = deq[0][0];
   Node b = deq[0][1];
   Assert(a.getType().isArray());
-  Assert(b.getType() == a.getType());
+  AssertEqual(b.getType(), a.getType());
 
   // make the skolem, which is deterministic for a,b.
   SkolemManager* sm = nm->getSkolemManager();
@@ -43,7 +43,6 @@ Node SkolemCache::getEqRangeVar(NodeManager* nm, TNode eqr)
   BoundVarManager* bvm = nm->getBoundVarManager();
   return bvm->mkBoundVar(BoundVarId::ARRAYS_EQ_RANGE, eqr, eqr[2].getType());
 }
-
 
 }  // namespace arrays
 }  // namespace theory
