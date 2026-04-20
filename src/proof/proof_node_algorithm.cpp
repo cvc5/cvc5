@@ -417,17 +417,15 @@ bool proveEqualityWithRewriteSteps(
       // otherwise, we normalize based on AC reasoning and optionally reorder
       // commutative children using the provided ordering, which may allow us
       // to align children before recursing.
-      Node an = expr::getACINormalForm(lhs);
-      Node bn = expr::getACINormalForm(rhs);
-      Node san = getOrderedACITerm(an, orderChildren);
-      Node sbn = getOrderedACITerm(bn, orderChildren);
-      if (lhs != san || rhs != sbn)
+      Node an = getOrderedACITerm(lhs, orderChildren);
+      Node bn = getOrderedACITerm(rhs, orderChildren);
+      if (lhs != an || rhs != bn)
       {
         visitedNorm.insert(eq);
         visit.push_back(eq);
-        if (san != sbn)
+        if (an != bn)
         {
-          visit.push_back(san.eqNode(sbn));
+          visit.push_back(an.eqNode(bn));
         }
         continue;
       }
@@ -469,10 +467,8 @@ bool proveEqualityWithRewriteSteps(
     }
     if (visitedNorm.find(eq) != visitedNorm.end())
     {
-      Node an = expr::getACINormalForm(lhs);
-      Node bn = expr::getACINormalForm(rhs);
-      Node san = getOrderedACITerm(an, orderChildren);
-      Node sbn = getOrderedACITerm(bn, orderChildren);
+      Node an = getOrderedACITerm(lhs, orderChildren);
+      Node bn = getOrderedACITerm(rhs, orderChildren);
       // if so, we put together a proof of transitivity
       // lhs = aci(lhs)  aci(lhs)=sorted(lhs)  ...
       //   ...  sorted(rhs)=aci(rhs)  aci(rhs)=rhs
@@ -485,23 +481,9 @@ bool proveEqualityWithRewriteSteps(
         cdp.addStep(aeq, ProofRule::ACI_NORM, {}, {aeq});
         transEq.push_back(aeq);
       }
-      if (an != san)
+      if (an != bn)
       {
-        Node aseq = an.eqNode(san);
-        cdp.addStep(aseq, ProofRule::ACI_NORM, {}, {aseq});
-        transEq.push_back(aseq);
-      }
-      if (san != sbn)
-      {
-        transEq.push_back(san.eqNode(sbn));
-      }
-      if (bn != sbn)
-      {
-        Node bseq = bn.eqNode(sbn);
-        cdp.addStep(bseq, ProofRule::ACI_NORM, {}, {bseq});
-        Node bseqs = sbn.eqNode(bn);
-        cdp.addStep(bseqs, ProofRule::SYMM, {bseq}, {});
-        transEq.push_back(bseqs);
+        transEq.push_back(an.eqNode(bn));
       }
       if (rhs != bn)
       {
