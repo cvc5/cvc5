@@ -188,8 +188,8 @@ Node TermCanonize::getCanonicalTerm(
         std::map<std::pair<TypeNode, uint32_t>, unsigned> localVarCount =
             var_count;
         std::map<TNode, Node> localVisited = visited;
-        Node order =
-            getCanonicalTerm(cn, apply_torder, doHoVar, localVarCount, localVisited);
+        Node order = getCanonicalTerm(
+            cn, apply_torder, doHoVar, localVarCount, localVisited);
         schildren.push_back({cn, order});
       }
       sortCanonicalTermOrder sto;
