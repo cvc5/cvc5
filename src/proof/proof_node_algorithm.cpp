@@ -10,9 +10,9 @@
  * Implementation of proof node algorithm utilities.
  */
 
-#include <algorithm>
-
 #include "proof/proof_node_algorithm.h"
+
+#include <algorithm>
 
 #include "expr/aci_norm.h"
 #include "proof/proof.h"
