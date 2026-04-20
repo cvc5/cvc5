@@ -179,8 +179,9 @@ Node proveCong(Env& env,
  * @param b The right-hand side of the equality to prove.
  * @param allowPredIntro Whether this method may use MACRO_SR_PRED_INTRO when
  * the equality rewrites directly to true.
- * @param orderChildren An optional ordering used to align children of
- * commutative operators before recursively proving equalities between them.
+ * @param orderChildren An optional ordering used during pre-rewrite
+ * normalization to reorder commutative terms before recursively proving
+ * equalities between their children.
  * @return true if a proof of (= a b) was added to cdp.
  */
 bool proveEqualityWithRewriteSteps(

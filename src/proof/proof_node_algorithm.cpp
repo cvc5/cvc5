@@ -10,10 +10,11 @@
  * Implementation of proof node algorithm utilities.
  */
 
+#include <algorithm>
+
 #include "proof/proof_node_algorithm.h"
 
 #include "expr/aci_norm.h"
-#include "expr/algorithm/flatten.h"
 #include "proof/proof.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_node.h"
@@ -25,329 +26,6 @@
 
 namespace cvc5::internal {
 namespace expr {
-
-namespace {
-
-Node mkNodeWithChildren(const Node& n, const std::vector<Node>& children)
-{
-  NodeManager* nm = n.getNodeManager();
-  if (n.getMetaKind() == kind::metakind::PARAMETERIZED)
-  {
-    std::vector<Node> cchildren;
-    cchildren.reserve(children.size() + 1);
-    cchildren.push_back(n.getOperator());
-    cchildren.insert(cchildren.end(), children.begin(), children.end());
-    return nm->mkNode(n.getKind(), cchildren);
-  }
-  return nm->mkNode(n.getKind(), children);
-}
-
-std::vector<Node> getAssocChildren(const Node& n)
-{
-  std::vector<Node> children;
-  if (theory::quantifiers::TermUtil::isAssoc(n.getKind()))
-  {
-    std::vector<TNode> tchildren;
-    algorithm::flatten(n, tchildren);
-    children.insert(children.end(), tchildren.begin(), tchildren.end());
-  }
-  else
-  {
-    children.insert(children.end(), n.begin(), n.end());
-  }
-  return children;
-}
-
-class CommChildProofCache
-{
- public:
-  CommChildProofCache(Env& env,
-                      bool allowPredIntro,
-                      EqualityNodeLessCallback orderChildren)
-      : d_env(env),
-        d_allowPredIntro(allowPredIntro),
-        d_orderChildren(orderChildren)
-  {
-  }
-
-  std::shared_ptr<ProofNode> getProof(const Node& a, const Node& b)
-  {
-    if (a == b)
-    {
-      return nullptr;
-    }
-    Node eq = a.eqNode(b);
-    auto its = d_success.find(eq);
-    if (its != d_success.end())
-    {
-      return its->second;
-    }
-    if (d_fail.find(eq) != d_fail.end())
-    {
-      return nullptr;
-    }
-    CDProof cdp(d_env);
-    if (!proveEqualityWithRewriteSteps(
-            d_env, cdp, a, b, d_allowPredIntro, d_orderChildren))
-    {
-      d_fail.insert(eq);
-      return nullptr;
-    }
-    std::shared_ptr<ProofNode> pf = cdp.getProofFor(eq);
-    if (pf == nullptr)
-    {
-      d_fail.insert(eq);
-      return nullptr;
-    }
-    d_success[eq] = pf;
-    return pf;
-  }
-
- private:
-  Env& d_env;
-  bool d_allowPredIntro;
-  EqualityNodeLessCallback d_orderChildren;
-  std::map<Node, std::shared_ptr<ProofNode>> d_success;
-  std::unordered_set<Node> d_fail;
-};
-
-struct OrderedCommChild
-{
-  size_t d_index;
-  Node d_child;
-};
-
-bool matchCommChildrenOrdered(const std::vector<Node>& lhsChildren,
-                              const std::vector<Node>& rhsChildren,
-                              const EqualityNodeLessCallback& orderChildren,
-                              CommChildProofCache& cache,
-                              std::vector<int>& match,
-                              std::vector<std::shared_ptr<ProofNode>>& proofs)
-{
-  std::vector<OrderedCommChild> lhsOrdered;
-  std::vector<OrderedCommChild> rhsOrdered;
-  lhsOrdered.reserve(lhsChildren.size());
-  rhsOrdered.reserve(rhsChildren.size());
-  for (size_t i = 0, size = lhsChildren.size(); i < size; ++i)
-  {
-    lhsOrdered.push_back({i, lhsChildren[i]});
-    rhsOrdered.push_back({i, rhsChildren[i]});
-  }
-  auto cmp = [&orderChildren](const OrderedCommChild& a,
-                              const OrderedCommChild& b) {
-    return orderChildren(a.d_child, b.d_child);
-  };
-  std::stable_sort(lhsOrdered.begin(), lhsOrdered.end(), cmp);
-  std::stable_sort(rhsOrdered.begin(), rhsOrdered.end(), cmp);
-  for (size_t i = 0, size = lhsOrdered.size(); i < size; ++i)
-  {
-    const Node& lhsChild = lhsOrdered[i].d_child;
-    const Node& rhsChild = rhsOrdered[i].d_child;
-    if (!lhsChild.getType().isComparableTo(rhsChild.getType()))
-    {
-      return false;
-    }
-    size_t li = lhsOrdered[i].d_index;
-    match[li] = static_cast<int>(rhsOrdered[i].d_index);
-    if (lhsChild == rhsChild)
-    {
-      continue;
-    }
-    proofs[li] = cache.getProof(lhsChild, rhsChild);
-    if (proofs[li] == nullptr)
-    {
-      return false;
-    }
-  }
-  return true;
-}
-
-bool matchCommChildren(const std::vector<Node>& lhsChildren,
-                       const std::vector<Node>& rhsChildren,
-                       CommChildProofCache& cache,
-                       std::vector<int>& match,
-                       std::vector<std::shared_ptr<ProofNode>>& proofs,
-                       std::vector<bool>& used)
-{
-  size_t next = lhsChildren.size();
-  std::vector<int> candidates;
-  for (size_t i = 0, size = lhsChildren.size(); i < size; ++i)
-  {
-    if (match[i] != -1)
-    {
-      continue;
-    }
-    std::vector<int> curr;
-    for (size_t j = 0, rsize = rhsChildren.size(); j < rsize; ++j)
-    {
-      if (used[j]
-          || !lhsChildren[i].getType().isComparableTo(rhsChildren[j].getType()))
-      {
-        continue;
-      }
-      if (lhsChildren[i] == rhsChildren[j]
-          || cache.getProof(lhsChildren[i], rhsChildren[j]) != nullptr)
-      {
-        curr.push_back(static_cast<int>(j));
-      }
-    }
-    if (curr.empty())
-    {
-      return false;
-    }
-    if (next == lhsChildren.size() || curr.size() < candidates.size())
-    {
-      next = i;
-      candidates = std::move(curr);
-      if (candidates.size() == 1)
-      {
-        break;
-      }
-    }
-  }
-  if (next == lhsChildren.size())
-  {
-    return true;
-  }
-  for (int j : candidates)
-  {
-    match[next] = j;
-    used[j] = true;
-    if (lhsChildren[next] != rhsChildren[j])
-    {
-      proofs[next] = cache.getProof(lhsChildren[next], rhsChildren[j]);
-      if (proofs[next] == nullptr)
-      {
-        used[j] = false;
-        match[next] = -1;
-        continue;
-      }
-    }
-    if (matchCommChildren(lhsChildren, rhsChildren, cache, match, proofs, used))
-    {
-      return true;
-    }
-    proofs[next].reset();
-    used[j] = false;
-    match[next] = -1;
-  }
-  return false;
-}
-
-bool proveCommEqualityWithRewriteSteps(
-    Env& env,
-    CDProof& cdp,
-    const Node& lhs,
-    const Node& rhs,
-    bool allowPredIntro,
-    const EqualityNodeLessCallback& orderChildren)
-{
-  Kind k = lhs.getKind();
-  if (k != rhs.getKind() || !theory::quantifiers::TermUtil::isAssoc(k)
-      || !theory::quantifiers::TermUtil::isComm(k))
-  {
-    return false;
-  }
-  std::vector<Node> lhsChildren = getAssocChildren(lhs);
-  std::vector<Node> rhsChildren = getAssocChildren(rhs);
-  if (lhsChildren.size() != rhsChildren.size() || lhsChildren.empty())
-  {
-    return false;
-  }
-  Node flhs = lhsChildren.size() == lhs.getNumChildren()
-                  ? lhs
-                  : mkNodeWithChildren(lhs, lhsChildren);
-  Node frhs = rhsChildren.size() == rhs.getNumChildren()
-                  ? rhs
-                  : mkNodeWithChildren(rhs, rhsChildren);
-
-  CommChildProofCache cache(env, allowPredIntro, orderChildren);
-  std::vector<int> match(lhsChildren.size(), -1);
-  std::vector<std::shared_ptr<ProofNode>> proofs(lhsChildren.size(), nullptr);
-  bool matched = false;
-  if (orderChildren)
-  {
-    matched = matchCommChildrenOrdered(
-        lhsChildren, rhsChildren, orderChildren, cache, match, proofs);
-  }
-  else
-  {
-    std::vector<bool> used(rhsChildren.size(), false);
-    matched =
-        matchCommChildren(lhsChildren, rhsChildren, cache, match, proofs, used);
-  }
-  if (!matched)
-  {
-    return false;
-  }
-
-  std::vector<Node> rhsMatchedChildren;
-  rhsMatchedChildren.reserve(rhsChildren.size());
-  std::vector<Node> premises(lhsChildren.size(), Node::null());
-  for (size_t i = 0, size = lhsChildren.size(); i < size; ++i)
-  {
-    int mj = match[i];
-    Assert(mj >= 0);
-    rhsMatchedChildren.push_back(rhsChildren[mj]);
-    if (lhsChildren[i] == rhsChildren[mj])
-    {
-      continue;
-    }
-    Node eqc = lhsChildren[i].eqNode(rhsChildren[mj]);
-    cdp.addProof(proofs[i]);
-    premises[i] = eqc;
-  }
-  Node mrhs = mkNodeWithChildren(frhs, rhsMatchedChildren);
-  Node feq = flhs.eqNode(mrhs);
-  if (flhs != mrhs)
-  {
-    Node eqc = proveCong(env, &cdp, flhs, premises);
-    if (eqc != feq)
-    {
-      return false;
-    }
-  }
-
-  Node eq = lhs.eqNode(rhs);
-  std::vector<Node> transEq;
-  if (lhs != flhs)
-  {
-    Node lflat = lhs.eqNode(flhs);
-    cdp.addStep(lflat, ProofRule::ACI_NORM, {}, {lflat});
-    transEq.push_back(lflat);
-  }
-  if (flhs != mrhs)
-  {
-    transEq.push_back(feq);
-  }
-  if (mrhs != frhs)
-  {
-    Node req = frhs.eqNode(mrhs);
-    cdp.addStep(req, ProofRule::ACI_NORM, {}, {req});
-    Node reqs = mrhs.eqNode(frhs);
-    cdp.addStep(reqs, ProofRule::SYMM, {req}, {});
-    transEq.push_back(reqs);
-  }
-  if (frhs != rhs)
-  {
-    Node rflat = rhs.eqNode(frhs);
-    cdp.addStep(rflat, ProofRule::ACI_NORM, {}, {rflat});
-    Node rflats = frhs.eqNode(rhs);
-    cdp.addStep(rflats, ProofRule::SYMM, {rflat}, {});
-    transEq.push_back(rflats);
-  }
-  if (transEq.empty())
-  {
-    return eq == feq;
-  }
-  if (transEq.size() == 1)
-  {
-    return transEq[0] == eq;
-  }
-  return cdp.addStep(eq, ProofRule::TRANS, transEq, {});
-}
-
-}  // namespace
 
 void getFreeAssumptions(ProofNode* pn, std::vector<Node>& assump)
 {
@@ -647,10 +325,36 @@ bool proveEqualityWithRewriteSteps(
     bool allowPredIntro,
     const EqualityNodeLessCallback& orderChildren)
 {
+  auto getOrderedACITerm = [&orderChildren](const Node& n) {
+    if (!orderChildren || n.getNumChildren() < 2
+        || !theory::quantifiers::TermUtil::isAssoc(n.getKind(), true)
+        || !theory::quantifiers::TermUtil::isComm(n.getKind(), true))
+    {
+      return n;
+    }
+    std::vector<Node> children;
+    children.insert(children.end(), n.begin(), n.end());
+    std::stable_sort(children.begin(), children.end(), orderChildren);
+    bool changed = false;
+    for (size_t i = 0, size = children.size(); i < size; ++i)
+    {
+      if (children[i] != n[i])
+      {
+        changed = true;
+        break;
+      }
+    }
+    if (!changed)
+    {
+      return n;
+    }
+    Node sn = n.getNodeManager()->mkNode(n.getKind(), children);
+    return expr::isACINorm(n, sn) ? sn : n;
+  };
   // the set of equalities we have visited
   std::unordered_set<Node> visited;
-  // equalities that we have use ACI_NORM on at pre-rewrite
-  std::unordered_set<Node> visitedAciNorm;
+  // equalities that have a pending pre-rewrite normalization proof
+  std::unordered_set<Node> visitedNorm;
   // the list of equalities to visit
   std::vector<Node> visit;
   visit.push_back(a.eqNode(b));
@@ -695,17 +399,20 @@ bool proveEqualityWithRewriteSteps(
           continue;
         }
       }
-      // otherwise, we normalize based on AC reasoning if possible, which may
-      // allow us to align children when recursing.
+      // otherwise, we normalize based on AC reasoning and optionally reorder
+      // commutative children using the provided ordering, which may allow us
+      // to align children before recursing.
       Node an = expr::getACINormalForm(lhs);
       Node bn = expr::getACINormalForm(rhs);
-      if (an != lhs || bn != rhs)
+      Node san = getOrderedACITerm(an);
+      Node sbn = getOrderedACITerm(bn);
+      if (lhs != san || rhs != sbn)
       {
-        visitedAciNorm.insert(eq);
+        visitedNorm.insert(eq);
         visit.push_back(eq);
-        if (an != bn)
+        if (san != sbn)
         {
-          visit.push_back(an.eqNode(bn));
+          visit.push_back(san.eqNode(sbn));
         }
         continue;
       }
@@ -734,12 +441,6 @@ bool proveEqualityWithRewriteSteps(
         }
         return false;
       }
-      if (theory::quantifiers::TermUtil::isComm(lhs.getKind())
-          && proveCommEqualityWithRewriteSteps(
-              env, cdp, lhs, rhs, allowPredIntro, orderChildren))
-      {
-        continue;
-      }
       visit.push_back(eq);
       for (size_t i = lhs.getNumChildren(); i > 0; --i)
       {
@@ -751,15 +452,17 @@ bool proveEqualityWithRewriteSteps(
       }
       continue;
     }
-    if (visitedAciNorm.find(eq) != visitedAciNorm.end())
+    if (visitedNorm.find(eq) != visitedNorm.end())
     {
       Node an = expr::getACINormalForm(lhs);
       Node bn = expr::getACINormalForm(rhs);
+      Node san = getOrderedACITerm(an);
+      Node sbn = getOrderedACITerm(bn);
       // if so, we put together a proof of transitivity
-      // -------- ACI_NORM  --------------- ... ----------- ACI_NORM, SYMM
-      // lhs = aci(lhs)     aci(lhs)=aci(rhs)   aci(rhs) = rhs
-      // ----------------------------------------------------- TRANS
-      // lhs = rhs
+      // lhs = aci(lhs)  aci(lhs)=sorted(lhs)  ...
+      //   ...  sorted(rhs)=aci(rhs)  aci(rhs)=rhs
+      // ------------------------------------------------ TRANS
+      //                         lhs = rhs
       std::vector<Node> transEq;
       if (lhs != an)
       {
@@ -767,9 +470,23 @@ bool proveEqualityWithRewriteSteps(
         cdp.addStep(aeq, ProofRule::ACI_NORM, {}, {aeq});
         transEq.push_back(aeq);
       }
-      if (an != bn)
+      if (an != san)
       {
-        transEq.push_back(an.eqNode(bn));
+        Node aseq = an.eqNode(san);
+        cdp.addStep(aseq, ProofRule::ACI_NORM, {}, {aseq});
+        transEq.push_back(aseq);
+      }
+      if (san != sbn)
+      {
+        transEq.push_back(san.eqNode(sbn));
+      }
+      if (bn != sbn)
+      {
+        Node bseq = bn.eqNode(sbn);
+        cdp.addStep(bseq, ProofRule::ACI_NORM, {}, {bseq});
+        Node bseqs = sbn.eqNode(bn);
+        cdp.addStep(bseqs, ProofRule::SYMM, {bseq}, {});
+        transEq.push_back(bseqs);
       }
       if (rhs != bn)
       {
