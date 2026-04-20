@@ -173,7 +173,7 @@ Node TermCanonize::getCanonicalTerm(
           << "Sort based on commutative operator " << n.getKind() << std::endl;
       sortTermOrder sto;
       sto.d_tu = this;
-      std::stable_sort(cchildren.begin(), cchildren.end(), sto);
+      std::sort(cchildren.begin(), cchildren.end(), sto);
     }
     if (n.getMetaKind() == metakind::PARAMETERIZED)
     {

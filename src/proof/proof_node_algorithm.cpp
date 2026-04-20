@@ -48,7 +48,7 @@ Node getOrderedACITerm(const Node& n,
   }
   std::vector<Node> children;
   children.insert(children.end(), n.begin(), n.end());
-  std::stable_sort(children.begin(), children.end(), orderChildren);
+  std::sort(children.begin(), children.end(), orderChildren);
   bool changed = false;
   for (size_t i = 0, size = children.size(); i < size; ++i)
   {
