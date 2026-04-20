@@ -2209,6 +2209,7 @@ set(regress_0_tests
   regress0/strings/proj-issue595-max-model-option.smt2
   regress0/strings/proj-issue768-nctn-pf-rcons.smt2
   regress0/strings/proj-issue776-core-subs-pf-cyclic.smt2
+  regress0/strings/proj-issue784-3.smt2
   regress0/strings/quad-028-2-2-unsat.smt2
   regress0/strings/quad-138-4-2-unsat.smt2
   regress0/strings/replace-find-base.smt2
