@@ -32,7 +32,7 @@ namespace preprocessing {
 namespace passes {
 
 SygusInference::SygusInference(PreprocessingPassContext* preprocContext)
-    : PreprocessingPass(preprocContext, "sygus-infer"){};
+    : PreprocessingPass(preprocContext, "sygus-infer") {};
 
 PreprocessingPassResult SygusInference::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
@@ -339,7 +339,6 @@ bool SygusInference::solveSygus(const std::vector<Node>& assertions,
   }
   return true;
 }
-
 
 }  // namespace passes
 }  // namespace preprocessing

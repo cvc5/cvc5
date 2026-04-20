@@ -109,6 +109,8 @@ set(regress_0_tests
   regress0/array-const-real-parse.smt2
   regress0/arrayinuf_declare.smt2
   regress0/arrays/ackermann1.smt2
+  regress0/arrays/ackermann2.smt2
+  regress0/arrays/ackermann3.smt2
   regress0/arrays/arrays0.smt2
   regress0/arrays/arrays1.smt2
   regress0/arrays/arrays2.smt2
@@ -865,6 +867,7 @@ set(regress_0_tests
   regress0/ff/bool_nary_or_unsound.smt2
   regress0/ff/combination.smt2
   regress0/ff/ctx.smt2
+  regress0/ff/elim_disjunctive_bit_constraints.smt2
   regress0/ff/proj-issue704.smt2
   regress0/ff/ff_is_zero_sound.smt2
   regress0/ff/ff_is_zero_unsound.smt2
@@ -953,12 +956,18 @@ set(regress_0_tests
   regress0/fp/issue6164.smt2
   regress0/fp/issue7002.smt2
   regress0/fp/issue7569.smt2
+  regress0/fp/issue9078-1.smt2
+  regress0/fp/issue9078-2.smt2
+  regress0/fp/issue9078-3.smt2
+  regress0/fp/issue9505.smt2
   regress0/fp/issue9854.smt2
   regress0/fp/issue9858.smt2
   regress0/fp/issue9864.smt2
   regress0/fp/issue9966.smt2
   regress0/fp/issue9972.smt2
   regress0/fp/issue9972-2.smt2
+  regress0/fp/issue11139.smt2
+  regress0/fp/issue12335.smt2
   regress0/fp/issuepr650.smt2
   regress0/fp/proj-issue329-prereg-context.smt2
   regress0/fp/proj-issue477-fp-set-comprehension.smt2
@@ -978,6 +987,7 @@ set(regress_0_tests
   regress0/get-value-no-evaluate.smt2
   regress0/get-value-reals-ints.smt2
   regress0/get-value-reals.smt2
+  regress0/issue12548-get-value-incremental-uninterp.smt2
   regress0/ho/apply-collapse-sat.smt2
   regress0/ho/apply-collapse-unsat.smt2
   regress0/ho/bug_nodbuilding_interpreted_SYO042^1.smt2
@@ -1012,6 +1022,7 @@ set(regress_0_tests
   regress0/ho/issue11923-2-finite-ho-deq.smt2
   regress0/ho/issue11923-finite-ho-deq.smt2
   regress0/ho/issue12256-fun-arg-ext.smt2
+  regress0/ho/issue-ho-elim-fmf-bad-model.smt2
   regress0/ho/issue4434-const-preserve.smt2
   regress0/ho/issue4477.smt2
   regress0/ho/issue4990-care-graph.smt2
@@ -2105,6 +2116,7 @@ set(regress_0_tests
   regress0/strings/ext-op-re-eval-simple-test.smt2
   regress0/strings/foreign-theory-rew-simple.smt2
   regress0/strings/from_code.smt2
+  regress0/strings/out-of-bound-code-point.smt2
   regress0/strings/from-int-eval.smt2
   regress0/strings/gen-esc-seq.smt2
   regress0/strings/hconst-092618.smt2
@@ -2849,7 +2861,6 @@ set(regress_1_tests
   regress1/ho/dd.seu-mbqi.smt2
   regress1/ho/dd.seu589-wrong.smt2
   regress1/ho/fta0328.lfho.smt2
-  regress1/ho/ho-choice-partial-mbqi-enum.smt2
   regress1/ho/ho-fun-sharing-dd.smt2
   regress1/ho/issue12000.smt2
   regress1/ho/issue12000-2.smt2
@@ -3182,7 +3193,6 @@ set(regress_1_tests
   regress1/quantifiers/ho-seu-sygus-inst.smt2
   regress1/quantifiers/horn-simple.smt2
   regress1/quantifiers/inst-ground-term.smt2
-  regress1/quantifiers/mbqi-enum-dtype-ops.smt2
   regress1/quantifiers/inst-max-level-segf.smt2
   regress1/quantifiers/inst-prop-simp.smt2
   regress1/quantifiers/intersection-example-onelane.proof-node22337.smt2
@@ -4289,6 +4299,8 @@ set(regression_disabled_tests
   regress1/ho/nested_lambdas-AGT034^2.smt2
   regress1/ho/nested_lambdas-sat-SYO056^1-delta.smt2
   regress1/ho/SYO056^1.smt2
+  # assertion failure on some builds
+  regress1/ho/ho-choice-partial-mbqi-enum.smt2
   # timeout after fixes to uf-lazy-ll for cyclic lambda construction
   regress1/ho/bug_freevar_PHI004^4-delta.smt2
   # times out after update to circuit propagator
@@ -4330,6 +4342,8 @@ set(regression_disabled_tests
   regress1/quantifiers/issue4062-cegqi-aux.smt2
   # timeout instead of unknown on some builds
   regress1/quantifiers/issue9477-mbqi-ran.smt2
+  # proof testing times out on nightlies
+  regress1/quantifiers/mbqi-enum-dtype-ops.smt2
   ###
   regress1/rels/garbage_collect.cvc.smt2
   regress1/sets/setofsets-disequal.smt2
@@ -4457,7 +4471,7 @@ endforeach()
 # we use a Cmake feature called FIXTURES to add 'build_regress' as the first test
 # which builds the 'build_regress' target.
 # Disabled temporarily due to problems in the nightly builds
-# add_test(build_regress_test "${CMAKE_COMMAND}" --build "${CMAKE_BINARY_DIR}" --config "$<CONFIG>" --target build-regress)
+# add_test(build_regress_test "${CMAKE_COMMAND}" --build "${PROJECT_BINARY_DIR}" --config "$<CONFIG>" --target build-regress)
 # set_tests_properties(build_regress_test PROPERTIES FIXTURES_SETUP build_regress_fixture)
 
 macro(cvc5_add_regression_test level file)
@@ -4473,11 +4487,11 @@ macro(cvc5_add_regression_test level file)
     ${Python_EXECUTABLE}
     ${run_regress_script}
     ${RUN_REGRESSION_ARGS}
-    --lfsc-binary ${CMAKE_SOURCE_DIR}/deps/bin/lfscc
-    --lfsc-sig-dir ${CMAKE_SOURCE_DIR}/proofs/lfsc/signatures
-    --carcara-binary ${CMAKE_SOURCE_DIR}/deps/bin/carcara
-    --ethos-binary ${CMAKE_SOURCE_DIR}/deps/bin/ethos
-    --cpc-sig-dir ${CMAKE_SOURCE_DIR}/proofs/eo
+    --lfsc-binary ${PROJECT_SOURCE_DIR}/deps/bin/lfscc
+    --lfsc-sig-dir ${PROJECT_SOURCE_DIR}/proofs/lfsc/signatures
+    --carcara-binary ${PROJECT_SOURCE_DIR}/deps/bin/carcara
+    --ethos-binary ${PROJECT_SOURCE_DIR}/deps/bin/ethos
+    --cpc-sig-dir ${PROJECT_SOURCE_DIR}/proofs/eo
     ${wrapper}
     ${path_to_cvc5}/cvc5${CMAKE_EXECUTABLE_SUFFIX}
     ${CMAKE_CURRENT_LIST_DIR}/${file})

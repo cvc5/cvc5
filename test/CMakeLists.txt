@@ -19,8 +19,8 @@ set(ENV_PATH_CMD )
 if(WIN32)
   # Set up a command to add DLL library paths to PATH
   set(ENV_PATH )
-  list(APPEND ENV_PATH ${CMAKE_BINARY_DIR}\\src)
-  list(APPEND ENV_PATH ${CMAKE_BINARY_DIR}\\src\\parser)
+  list(APPEND ENV_PATH ${PROJECT_BINARY_DIR}\\src)
+  list(APPEND ENV_PATH ${PROJECT_BINARY_DIR}\\src\\parser)
   list(APPEND ENV_PATH ${DEPS_BASE}\\bin)
   list(APPEND ENV_PATH $ENV{PATH})
   # Escape semicolons and backslashes

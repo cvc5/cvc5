@@ -16,6 +16,7 @@
 #define CVC5__EXPR__TERM_CANONIZE_H
 
 #include <map>
+
 #include "expr/node.h"
 
 namespace cvc5::internal {

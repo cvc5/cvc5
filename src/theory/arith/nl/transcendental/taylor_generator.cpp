@@ -65,8 +65,8 @@ std::pair<Node, Node> TaylorGenerator::getTaylor(Kind k, std::uint64_t n)
         int sign = (counter % 4 == 0 ? -1 : 1);
         sum.push_back(d_nm->mkNode(Kind::MULT,
                                    d_nm->mkNode(Kind::DIVISION,
-                                                d_nm->mkConstReal(sign),
-                                                d_nm->mkConstReal(factorial)),
+                                                {d_nm->mkConstReal(sign),
+                                                 d_nm->mkConstReal(factorial)}),
                                    varpow));
       }
     }

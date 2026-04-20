@@ -32,7 +32,8 @@ namespace quantifiers {
 
 class QuantifiersMacros;
 
-class TheoryQuantifiers : public Theory {
+class TheoryQuantifiers : public Theory
+{
  public:
   TheoryQuantifiers(Env& env, OutputChannel& out, Valuation valuation);
   ~TheoryQuantifiers();
@@ -90,7 +91,7 @@ class TheoryQuantifiers : public Theory {
   std::unique_ptr<QuantifiersEngine> d_qengine;
   /** The quantifiers macro module, used for ppAssert. */
   std::unique_ptr<QuantifiersMacros> d_qmacros;
-};/* class TheoryQuantifiers */
+}; /* class TheoryQuantifiers */
 
 }  // namespace quantifiers
 }  // namespace theory

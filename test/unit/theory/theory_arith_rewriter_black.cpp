@@ -90,8 +90,8 @@ TEST_F(TestTheoryArithRewriterBlack, Abs)
     EXPECT_EQ(n, a);
   }
   {
-    Node a = d_nodeManager->mkConstReal(Rational(3,2));
-    Node b = d_nodeManager->mkConstReal(Rational(-3,2));
+    Node a = d_nodeManager->mkConstReal(Rational(3, 2));
+    Node b = d_nodeManager->mkConstReal(Rational(-3, 2));
     Node m = d_nodeManager->mkNode(Kind::ABS, a);
     Node n = d_nodeManager->mkNode(Kind::ABS, b);
     m = d_slvEngine->getEnv().getRewriter()->rewrite(m);

@@ -15,7 +15,7 @@
 #ifndef CVC5__LIB__FFS_H
 #define CVC5__LIB__FFS_H
 
-//We include this for HAVE_FFS
+// We include this for HAVE_FFS
 #include "base/cvc5config.h"
 
 #ifdef HAVE_FFS
@@ -34,7 +34,7 @@ extern "C" {
 int ffs(int i);
 
 #ifdef __cplusplus
-}/* extern "C" */
+} /* extern "C" */
 #endif /* __cplusplus */
 
 #endif /* HAVE_FFS */

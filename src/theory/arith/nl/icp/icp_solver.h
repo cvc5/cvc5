@@ -147,7 +147,7 @@ class ICPSolver : protected EnvObj
 class ICPSolver : protected EnvObj
 {
  public:
-  ICPSolver(Env& env, InferenceManager& im) : EnvObj(env) {}
+  ICPSolver(Env& env, CVC5_UNUSED InferenceManager& im) : EnvObj(env) {}
   void reset(const std::vector<Node>& assertions);
   void check();
 };

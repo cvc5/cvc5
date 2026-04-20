@@ -114,17 +114,20 @@ Node TermDbSygus::mkGeneric(const DType& dt,
   Assert(c < dt.getNumConstructors());
   Assert(dt.isSygus());
   Assert(!dt[c].getSygusOp().isNull());
-  std::vector< Node > children;
+  std::vector<Node> children;
   Trace("sygus-db-debug") << "mkGeneric " << dt.getName() << " " << c << "..."
                           << std::endl;
   for (unsigned i = 0, nargs = dt[c].getNumArgs(); i < nargs; i++)
   {
     Node a;
-    std::map< int, Node >::iterator it = pre.find( i );
-    if( it!=pre.end() ){
+    std::map<int, Node>::iterator it = pre.find(i);
+    if (it != pre.end())
+    {
       a = it->second;
       Trace("sygus-db-debug") << "From pre: " << a << std::endl;
-    }else{
+    }
+    else
+    {
       TypeNode tna = dt[c].getArgType(i);
       a = getFreeVarInc(tna, var_count);
       if (tna.isSygusDatatype())
@@ -135,7 +138,7 @@ Node TermDbSygus::mkGeneric(const DType& dt,
     Trace("sygus-db-debug")
         << "  child " << i << " : " << a << " : " << a.getType() << std::endl;
     Assert(!a.isNull());
-    children.push_back( a );
+    children.push_back(a);
   }
   Node ret = datatypes::utils::mkSygusTerm(dt, c, children, doBetaRed);
   Trace("sygus-db-debug") << "mkGeneric returns " << ret << std::endl;
@@ -551,7 +554,8 @@ SynthConjecture* TermDbSygus::getConjectureForEnumerator(Node e) const
 {
   std::map<Node, SynthConjecture*>::const_iterator itm =
       d_enum_to_conjecture.find(e);
-  if (itm != d_enum_to_conjecture.end()) {
+  if (itm != d_enum_to_conjecture.end())
+  {
     return itm->second;
   }
   return nullptr;
@@ -570,7 +574,8 @@ Node TermDbSygus::getSynthFunForEnumerator(Node e) const
 Node TermDbSygus::getActiveGuardForEnumerator(Node e) const
 {
   std::map<Node, Node>::const_iterator itag = d_enum_to_active_guard.find(e);
-  if (itag != d_enum_to_active_guard.end()) {
+  if (itag != d_enum_to_active_guard.end())
+  {
     return itag->second;
   }
   return Node::null();
@@ -623,7 +628,7 @@ void TermDbSygus::getEnumerators(std::vector<Node>& mts)
        itm != d_enum_to_conjecture.end();
        ++itm)
   {
-    mts.push_back( itm->first );
+    mts.push_back(itm->first);
   }
 }
 
@@ -686,7 +691,8 @@ bool TermDbSygus::isRegistered(TypeNode tn) const
   return d_tinfo.find(tn) != d_tinfo.end();
 }
 
-TypeNode TermDbSygus::sygusToBuiltinType( TypeNode tn ) {
+TypeNode TermDbSygus::sygusToBuiltinType(TypeNode tn)
+{
   std::map<TypeNode, SygusTypeInfo>::iterator it = d_tinfo.find(tn);
   Assert(it != d_tinfo.end());
   return it->second.getBuiltinType();
@@ -803,11 +809,16 @@ TypeNode TermDbSygus::getArgType(const DTypeConstructor& c, unsigned i) const
 bool TermDbSygus::isTypeMatch(const DTypeConstructor& c1,
                               const DTypeConstructor& c2)
 {
-  if( c1.getNumArgs()!=c2.getNumArgs() ){
+  if (c1.getNumArgs() != c2.getNumArgs())
+  {
     return false;
-  }else{
-    for( unsigned i=0; i<c1.getNumArgs(); i++ ){
-      if( getArgType( c1, i )!=getArgType( c2, i ) ){
+  }
+  else
+  {
+    for (unsigned i = 0; i < c1.getNumArgs(); i++)
+    {
+      if (!CVC5_EQUAL(getArgType(c1, i), getArgType(c2, i)))
+      {
         return false;
       }
     }
@@ -919,10 +930,11 @@ bool TermDbSygus::canConstructKind(TypeNode tn,
   return false;
 }
 
-Node TermDbSygus::getAnchor( Node n ) {
+Node TermDbSygus::getAnchor(Node n)
+{
   if (n.getKind() == Kind::APPLY_SELECTOR)
   {
-    return getAnchor( n[0] );
+    return getAnchor(n[0]);
   }
   else
   {
@@ -930,10 +942,11 @@ Node TermDbSygus::getAnchor( Node n ) {
   }
 }
 
-unsigned TermDbSygus::getAnchorDepth( Node n ) {
+unsigned TermDbSygus::getAnchorDepth(Node n)
+{
   if (n.getKind() == Kind::APPLY_SELECTOR)
   {
-    return 1+getAnchorDepth( n[0] );
+    return 1 + getAnchorDepth(n[0]);
   }
   else
   {

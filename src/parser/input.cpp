@@ -12,9 +12,9 @@
 
 #include "parser/input.h"
 
-#include <fstream>
-
 #include <cvc5/cvc5_parser.h>
+
+#include <fstream>
 
 namespace cvc5 {
 namespace parser {

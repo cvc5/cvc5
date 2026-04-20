@@ -36,6 +36,7 @@ class SubtypeElimNodeConverter : public NodeConverter
   ~SubtypeElimNodeConverter() {}
   /** convert node n as described above during post-order traversal */
   Node postConvert(Node n) override;
+
  private:
   /** Is real type (not integer)? */
   static bool isRealTypeStrict(TypeNode tn);

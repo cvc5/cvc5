@@ -50,10 +50,7 @@ class InferenceManager : public InferenceManagerBuffered
    * set as a lemma, and inferType=-1 forces fact to be processed as a fact
    * (if possible).
    */
-  void assertInference(Node fact,
-                       InferenceId id,
-                       Node exp,
-                       int inferType = 0);
+  void assertInference(Node fact, InferenceId id, Node exp, int inferType = 0);
   /** same as above, where exp is interpreted as a conjunction */
   void assertInference(Node fact,
                        InferenceId id,

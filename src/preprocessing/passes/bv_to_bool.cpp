@@ -39,7 +39,7 @@ BVToBool::BVToBool(PreprocessingPassContext* preprocContext)
       d_boolCache(),
       d_one(bv::utils::mkOne(nodeManager(), 1)),
       d_zero(bv::utils::mkZero(nodeManager(), 1)),
-      d_statistics(statisticsRegistry()){};
+      d_statistics(statisticsRegistry()) {};
 
 PreprocessingPassResult BVToBool::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
@@ -291,7 +291,7 @@ void BVToBool::liftBvToBool(const std::vector<Node>& assertions,
 
 BVToBool::Statistics::Statistics(StatisticsRegistry& reg)
     : d_numTermsLifted(
-        reg.registerInt("preprocessing::passes::BVToBool::NumTermsLifted")),
+          reg.registerInt("preprocessing::passes::BVToBool::NumTermsLifted")),
       d_numAtomsLifted(
           reg.registerInt("preprocessing::passes::BVToBool::NumAtomsLifted")),
       d_numTermsForcedLifted(reg.registerInt(

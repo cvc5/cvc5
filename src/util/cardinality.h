@@ -173,14 +173,16 @@ class Cardinality
   Cardinality& operator^=(const Cardinality& c);
 
   /** Add two cardinalities. */
-  Cardinality operator+(const Cardinality& c) const {
+  Cardinality operator+(const Cardinality& c) const
+  {
     Cardinality card(*this);
     card += c;
     return card;
   }
 
   /** Multiply two cardinalities. */
-  Cardinality operator*(const Cardinality& c) const {
+  Cardinality operator*(const Cardinality& c) const
+  {
     Cardinality card(*this);
     card *= c;
     return card;
@@ -189,7 +191,8 @@ class Cardinality
   /**
    * Exponentiation of two cardinalities.
    */
-  Cardinality operator^(const Cardinality& c) const {
+  Cardinality operator^(const Cardinality& c) const
+  {
     Cardinality card(*this);
     card ^= c;
     return card;

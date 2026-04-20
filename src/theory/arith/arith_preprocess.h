@@ -40,9 +40,7 @@ class OperatorElim;
 class ArithPreprocess : protected EnvObj
 {
  public:
-  ArithPreprocess(Env& env,
-                  InferenceManager& im,
-                  OperatorElim& oe);
+  ArithPreprocess(Env& env, InferenceManager& im, OperatorElim& oe);
   ~ArithPreprocess() {}
   /**
    * Call eliminate operators on formula n, return the resulting trust node,

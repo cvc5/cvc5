@@ -107,7 +107,7 @@ std::shared_ptr<ProofNode> BvPpAssert::getProofFor(Node fact)
   if (it == d_ppsolves.end())
   {
     DebugUnhandled() << "BvPpAssert::getProofFor: Failed to find source for "
-                  << fact;
+                     << fact;
     return nullptr;
   }
   Node assump = it->second.getProven();

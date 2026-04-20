@@ -29,9 +29,8 @@ namespace bv {
 class BitblastProofGenerator : public ProofGenerator, protected EnvObj
 {
  public:
-  BitblastProofGenerator(Env& env,
-                         TConvProofGenerator* tcpg);
-  ~BitblastProofGenerator(){};
+  BitblastProofGenerator(Env& env, TConvProofGenerator* tcpg);
+  ~BitblastProofGenerator() {};
 
   /**
    * Get proof for, which expects an equality of the form t = bb(t).

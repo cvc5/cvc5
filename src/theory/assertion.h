@@ -21,7 +21,8 @@ namespace cvc5::internal {
 namespace theory {
 
 /** Information about an assertion for the theories. */
-struct Assertion {
+struct Assertion
+{
   /** The assertion expression. */
   Node d_assertion;
 

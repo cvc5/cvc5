@@ -12,8 +12,8 @@
 (program $dt_get_constructors ((D Type) (T Type) (c T) (T1 Type) (T2 Type :list) (U Type) (DC (-> Type Type)))
   :signature (U) eo::List
   (
-    (($dt_get_constructors (Tuple T1 T2)) (eo::cons eo::List::cons tuple eo::List::nil))
-    (($dt_get_constructors UnitTuple)     (eo::cons eo::List::cons tuple.unit eo::List::nil))
+    (($dt_get_constructors (Tuple T1 T2)) (_ eo::List::cons tuple eo::List::nil))
+    (($dt_get_constructors UnitTuple)     (_ eo::List::cons tuple.unit eo::List::nil))
     (($dt_get_constructors (DC T))        ($dt_get_constructors DC))   ; user-defined parameteric datatypes, traverse
     (($dt_get_constructors D)             (eo::dt_constructors D))     ; ordinary user-defined datatypes
   )
@@ -47,7 +47,7 @@
   :signature (Type Int) eo::List
   (
     (($tuple_get_selectors_rec UnitTuple n)     eo::List::nil)
-    (($tuple_get_selectors_rec (Tuple T1 T2) n) (eo::cons eo::List::cons (tuple.select n) ($tuple_get_selectors_rec T2 (eo::add n 1))))
+    (($tuple_get_selectors_rec (Tuple T1 T2) n) (_ eo::List::cons (tuple.select n) ($tuple_get_selectors_rec T2 (eo::add n 1))))
   )
 )
 
@@ -99,7 +99,7 @@
   :signature (T) eo::List
   (
     ; for tuples, we manually accumulate the list.
-    (($dt_arg_list (tuple t1 t2))  (eo::cons @list t1 ($dt_arg_list t2)))
+    (($dt_arg_list (tuple t1 t2))  (_ @list t1 ($dt_arg_list t2)))
     ; otherwise we get the argument list using the utility method
     (($dt_arg_list t)              ($get_arg_list t))
   )

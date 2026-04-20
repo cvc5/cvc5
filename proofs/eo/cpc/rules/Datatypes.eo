@@ -12,7 +12,7 @@
   :signature (eo::List D) Bool
   (
     (($mk_dt_split eo::List::nil x)          false)
-    (($mk_dt_split (eo::List::cons c xs) x)  (eo::cons or (is c x) ($mk_dt_split xs x)))
+    (($mk_dt_split (eo::List::cons c xs) x)  (_ or (is c x) ($mk_dt_split xs x)))
   )
 )
 
@@ -61,7 +61,7 @@
   :signature ((eo::quote U) D Int) U
   (
     (($mk_dt_inst_tuple_rec UnitTuple x n)     tuple.unit)
-    (($mk_dt_inst_tuple_rec (Tuple T1 T2) x n) (eo::cons tuple (tuple.select n x) ($mk_dt_inst_tuple_rec T2 x (eo::add n 1))))
+    (($mk_dt_inst_tuple_rec (Tuple T1 T2) x n) (_ tuple (tuple.select n x) ($mk_dt_inst_tuple_rec T2 x (eo::add n 1))))
   )
 )
 
@@ -161,7 +161,7 @@
 (program $mk_dt_cons_eq ((T Type) (U Type) (W Type) (c T) (f (-> U T)) (g (-> U T)) (a U) (b U) (as W :list) (bs W :list))
   :signature (T T) Bool
   (
-  (($mk_dt_cons_eq (tuple a as) (tuple b bs)) (eo::cons and (= a b) ($mk_dt_cons_eq as bs)))
+  (($mk_dt_cons_eq (tuple a as) (tuple b bs)) (_ and (= a b) ($mk_dt_cons_eq as bs)))
   (($mk_dt_cons_eq (f a) (g b))               (eo::list_concat and ($mk_dt_cons_eq f g) (and (= a b))))
   (($mk_dt_cons_eq c c)                       true)
   )
@@ -231,7 +231,7 @@
 (program $dt_find_cycle_rec ((T Type) (U Type) (W Type) (c T) (f (-> U W)) (a U) (s @List) (l @List))
   :signature (T @List @List) Bool
   (
-    (($dt_find_cycle_rec (f a) s l) ($dt_find_cycle_rec f s (eo::cons @list a l)))
+    (($dt_find_cycle_rec (f a) s l) ($dt_find_cycle_rec f s (_ @list a l)))
     (($dt_find_cycle_rec c s l)
       (eo::ite ($dt_is_cons c)
         ; only if the head is a constructor, we recurse on each argument
@@ -310,7 +310,7 @@
   :signature (U T Int) U
   (
   (($tuple_collapse_updater_rhs (tuple b ts) a 0)   (tuple a ts))
-  (($tuple_collapse_updater_rhs (tuple b ts) a n)   (eo::cons tuple b ($tuple_collapse_updater_rhs ts a (eo::add n -1))))
+  (($tuple_collapse_updater_rhs (tuple b ts) a n)   (_ tuple b ($tuple_collapse_updater_rhs ts a (eo::add n -1))))
   (($tuple_collapse_updater_rhs tuple.unit a n)     tuple.unit)
   )
 )
@@ -377,9 +377,9 @@
   :signature (D eo::List) D
   (
     (($tuple_updater_elim_rhs (tuple.update n t a) (eo::List::cons (tuple.select n) ss))
-       (eo::cons tuple a ($tuple_updater_elim_rhs (tuple.update n t a) ss)))
+       (_ tuple a ($tuple_updater_elim_rhs (tuple.update n t a) ss)))
     (($tuple_updater_elim_rhs (tuple.update n t a) (eo::List::cons s ss))
-       (eo::cons tuple (s t) ($tuple_updater_elim_rhs (tuple.update n t a) ss)))
+       (_ tuple (s t) ($tuple_updater_elim_rhs (tuple.update n t a) ss)))
     (($tuple_updater_elim_rhs (tuple.update n tu a) eo::List::nil)
        tuple.unit)
   )

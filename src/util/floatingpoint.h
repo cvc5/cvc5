@@ -212,10 +212,20 @@ class FloatingPoint
   /** Floating-point less than. */
   bool operator<(const FloatingPoint& arg) const;
 
-  /** Get the exponent of this floating-point value. */
-  BitVector getExponent() const;
-  /** Get the significand of this floating-point value. */
-  BitVector getSignificand() const;
+  /**
+   * Get the unpacked representation of the exponent (as used by SymFPU) of this
+   * floating-point value.
+   * @note This is only required for constant-folding of floating-point variable
+   *       components, as required by model generation (see #1915).
+   */
+  BitVector getUnpackedExponent() const;
+  /**
+   * Get the unpacked representation of the significand (as used by SymFPU) of
+   * this floating-point value.
+   * @note This is only required for constant-folding of floating-point variable
+   *       components, as required by model generation (see #1915).
+   */
+  BitVector getUnpackedSignificand() const;
   /** True if this value is a negative value. */
   bool getSign() const;
 
@@ -283,7 +293,7 @@ class FloatingPoint
    * Note: This constructor takes ownership of 'fpl' and is not intended for
    *       public use.
    */
-  FloatingPoint(FloatingPointLiteral* fpl);
+  FloatingPoint(std::unique_ptr<FloatingPointLiteral>&& fpl);
 
   /** The floating-point literal of this floating-point value. */
   std::unique_ptr<FloatingPointLiteral> d_fpl;

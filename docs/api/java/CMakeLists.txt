@@ -62,7 +62,7 @@ if(BUILD_BINDINGS_JAVA)
       ${Java_JAVADOC_EXECUTABLE} io.github.cvc5
       ${Java_DOCLINT}
       -Xmaxwarns 1000
-      -sourcepath ${CMAKE_SOURCE_DIR}/src/api/java/:${CMAKE_BINARY_DIR}/src/api/java/
+      -sourcepath ${PROJECT_SOURCE_DIR}/src/api/java/:${PROJECT_BINARY_DIR}/src/api/java/
       -d ${JAVADOC_OUTPUT_DIR}
       -cp ${CVC5_JAR_FILE}
       -tag "api.note:a:Note:"

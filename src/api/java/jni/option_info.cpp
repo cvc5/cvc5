@@ -10,9 +10,9 @@
  * The cvc5 Java API.
  */
 
-#include <cstdint>
-
 #include <cvc5/cvc5.h>
+
+#include <cstdint>
 
 #include "api_utilities.h"
 #include "io_github_cvc5_OptionInfo.h"
@@ -24,8 +24,8 @@ using namespace cvc5;
  * Method:    deletePointer
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_io_github_cvc5_OptionInfo_deletePointer(
-    JNIEnv*, jobject, jlong pointer)
+JNIEXPORT void JNICALL
+Java_io_github_cvc5_OptionInfo_deletePointer(JNIEnv*, jobject, jlong pointer)
 {
   delete reinterpret_cast<OptionInfo*>(pointer);
 }
@@ -35,8 +35,9 @@ JNIEXPORT void JNICALL Java_io_github_cvc5_OptionInfo_deletePointer(
  * Method:    toString
  * Signature: (J)Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL
-Java_io_github_cvc5_OptionInfo_toString(JNIEnv* env, jobject, jlong pointer)
+JNIEXPORT jstring JNICALL Java_io_github_cvc5_OptionInfo_toString(JNIEnv* env,
+                                                                  jobject,
+                                                                  jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   OptionInfo* current = reinterpret_cast<OptionInfo*>(pointer);
@@ -51,8 +52,9 @@ Java_io_github_cvc5_OptionInfo_toString(JNIEnv* env, jobject, jlong pointer)
  * Method:    getName
  * Signature: (J)Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL
-Java_io_github_cvc5_OptionInfo_getName(JNIEnv* env, jobject, jlong pointer)
+JNIEXPORT jstring JNICALL Java_io_github_cvc5_OptionInfo_getName(JNIEnv* env,
+                                                                 jobject,
+                                                                 jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   OptionInfo* current = reinterpret_cast<OptionInfo*>(pointer);
@@ -65,8 +67,8 @@ Java_io_github_cvc5_OptionInfo_getName(JNIEnv* env, jobject, jlong pointer)
  * Method:    getAliases
  * Signature: (J)[Ljava/lang/String;
  */
-JNIEXPORT jobjectArray JNICALL Java_io_github_cvc5_OptionInfo_getAliases(
-    JNIEnv* env, jobject, jlong pointer)
+JNIEXPORT jobjectArray JNICALL
+Java_io_github_cvc5_OptionInfo_getAliases(JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   OptionInfo* current = reinterpret_cast<OptionInfo*>(pointer);
@@ -80,8 +82,8 @@ JNIEXPORT jobjectArray JNICALL Java_io_github_cvc5_OptionInfo_getAliases(
  * Method:    getSetByUser
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_io_github_cvc5_OptionInfo_getSetByUser(
-    JNIEnv* env, jobject, jlong pointer)
+JNIEXPORT jboolean JNICALL
+Java_io_github_cvc5_OptionInfo_getSetByUser(JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   OptionInfo* current = reinterpret_cast<OptionInfo*>(pointer);
@@ -165,8 +167,7 @@ JNIEXPORT jobject JNICALL Java_io_github_cvc5_OptionInfo_getBaseInfo(
 
   if (std::holds_alternative<OptionInfo::VoidInfo>(v))
   {
-    jclass voidInfoClass =
-        env->FindClass("io/github/cvc5/OptionInfo$VoidInfo");
+    jclass voidInfoClass = env->FindClass("io/github/cvc5/OptionInfo$VoidInfo");
     jmethodID methodId = env->GetMethodID(
         voidInfoClass, "<init>", "(Lio/github/cvc5/OptionInfo;)V");
     jobject ret = env->NewObject(voidInfoClass, methodId, optionInfo);
@@ -259,8 +260,7 @@ JNIEXPORT jobject JNICALL Java_io_github_cvc5_OptionInfo_getBaseInfo(
 
   if (std::holds_alternative<OptionInfo::ModeInfo>(v))
   {
-    jclass modeInfoClass =
-        env->FindClass("io/github/cvc5/OptionInfo$ModeInfo");
+    jclass modeInfoClass = env->FindClass("io/github/cvc5/OptionInfo$ModeInfo");
     jmethodID methodId = env->GetMethodID(
         modeInfoClass,
         "<init>",
@@ -289,8 +289,8 @@ JNIEXPORT jobject JNICALL Java_io_github_cvc5_OptionInfo_getBaseInfo(
  * Method:    booleanValue
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_io_github_cvc5_OptionInfo_booleanValue(
-    JNIEnv* env, jobject, jlong pointer)
+JNIEXPORT jboolean JNICALL
+Java_io_github_cvc5_OptionInfo_booleanValue(JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   OptionInfo* current = reinterpret_cast<OptionInfo*>(pointer);
@@ -303,8 +303,8 @@ JNIEXPORT jboolean JNICALL Java_io_github_cvc5_OptionInfo_booleanValue(
  * Method:    stringValue
  * Signature: (J)Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_io_github_cvc5_OptionInfo_stringValue(
-    JNIEnv* env, jobject, jlong pointer)
+JNIEXPORT jstring JNICALL
+Java_io_github_cvc5_OptionInfo_stringValue(JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   OptionInfo* current = reinterpret_cast<OptionInfo*>(pointer);
@@ -318,8 +318,9 @@ JNIEXPORT jstring JNICALL Java_io_github_cvc5_OptionInfo_stringValue(
  * Method:    intValue
  * Signature: (J)Ljava/math/BigInteger;
  */
-JNIEXPORT jobject JNICALL
-Java_io_github_cvc5_OptionInfo_intValue(JNIEnv* env, jobject, jlong pointer)
+JNIEXPORT jobject JNICALL Java_io_github_cvc5_OptionInfo_intValue(JNIEnv* env,
+                                                                  jobject,
+                                                                  jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   OptionInfo* current = reinterpret_cast<OptionInfo*>(pointer);
@@ -347,8 +348,8 @@ Java_io_github_cvc5_OptionInfo_intValue(JNIEnv* env, jobject, jlong pointer)
  * Method:    doubleValue
  * Signature: (J)D
  */
-JNIEXPORT jdouble JNICALL Java_io_github_cvc5_OptionInfo_doubleValue(
-    JNIEnv* env, jobject, jlong pointer)
+JNIEXPORT jdouble JNICALL
+Java_io_github_cvc5_OptionInfo_doubleValue(JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   OptionInfo* current = reinterpret_cast<OptionInfo*>(pointer);
@@ -362,8 +363,9 @@ JNIEXPORT jdouble JNICALL Java_io_github_cvc5_OptionInfo_doubleValue(
  * Method:    getCategory
  * Signature: (J)I
  */
-JNIEXPORT jint JNICALL Java_io_github_cvc5_OptionInfo_getCategory(
-    JNIEnv* env, jobject, jlong pointer)
+JNIEXPORT jint JNICALL Java_io_github_cvc5_OptionInfo_getCategory(JNIEnv* env,
+                                                                  jobject,
+                                                                  jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   OptionInfo* current = reinterpret_cast<OptionInfo*>(pointer);

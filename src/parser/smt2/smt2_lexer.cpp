@@ -21,9 +21,7 @@ namespace cvc5 {
 namespace parser {
 
 Smt2Lexer::Smt2Lexer(bool isStrict, bool isSygus)
-    : Lexer(),
-      d_isStrict(isStrict),
-      d_isSygus(isSygus)
+    : Lexer(), d_isStrict(isStrict), d_isSygus(isSygus)
 {
   for (int32_t ch = 'a'; ch <= 'z'; ++ch)
   {

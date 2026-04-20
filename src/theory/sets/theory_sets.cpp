@@ -43,9 +43,7 @@ TheorySets::TheorySets(Env& env, OutputChannel& out, Valuation valuation)
   d_inferManager = &d_im;
 }
 
-TheorySets::~TheorySets()
-{
-}
+TheorySets::~TheorySets() {}
 
 TheoryRewriter* TheorySets::getTheoryRewriter() { return &d_rewriter; }
 
@@ -114,14 +112,9 @@ bool TheorySets::collectModelValues(TheoryModel* m,
   return d_internal->collectModelValues(m, termSet);
 }
 
-void TheorySets::computeCareGraph() {
-  d_internal->computeCareGraph();
-}
+void TheorySets::computeCareGraph() { d_internal->computeCareGraph(); }
 
-TrustNode TheorySets::explain(TNode node)
-{
-  return d_im.explainLit(node);
-}
+TrustNode TheorySets::explain(TNode node) { return d_im.explainLit(node); }
 
 Node TheorySets::getCandidateModelValue(CVC5_UNUSED TNode node)
 {
@@ -225,12 +218,11 @@ bool TheorySets::ppAssert(TrustNode tin, TrustSubstitutionMap& outSubstitutions)
   return status;
 }
 
-void TheorySets::presolve() {
-  d_internal->presolve();
-}
+void TheorySets::presolve() { d_internal->presolve(); }
 
-bool TheorySets::isEntailed( Node n, bool pol ) {
-  return d_internal->isEntailed( n, pol );
+bool TheorySets::isEntailed(Node n, bool pol)
+{
+  return d_internal->isEntailed(n, pol);
 }
 
 void TheorySets::processCarePairArgs(TNode a, TNode b)

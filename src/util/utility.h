@@ -30,9 +30,13 @@ namespace cvc5::internal {
  * otherwise return the first (and unique) iterator satisfying pred().
  */
 template <class InputIterator, class Predicate>
-inline InputIterator find_if_unique(InputIterator first, InputIterator last, Predicate pred) {
+inline InputIterator find_if_unique(InputIterator first,
+                                    InputIterator last,
+                                    Predicate pred)
+{
   InputIterator match = std::find_if(first, last, pred);
-  if(match == last) {
+  if (match == last)
+  {
     return last;
   }
 

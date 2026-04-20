@@ -1038,9 +1038,10 @@ Node ProofPostprocessCallback::addProofForWitnessForm(Node t, CDProof* cdp)
   }
   else
   {
-    DebugUnhandled() << "ProofPostprocessCallback::addProofForWitnessForm: failed "
-                     "to add proof for witness form of "
-                  << t;
+    DebugUnhandled()
+        << "ProofPostprocessCallback::addProofForWitnessForm: failed "
+           "to add proof for witness form of "
+        << t;
   }
   return eq;
 }

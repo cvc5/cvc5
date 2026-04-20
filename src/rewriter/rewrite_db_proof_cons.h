@@ -47,7 +47,8 @@ class RewriteDbProofCons : protected EnvObj
    * If cdp is provided, we add a proof for this fact on it.
    *
    * More specifically, the strategy used by this method is:
-   * 1. Try to prove a=b via THEORY_REWRITE in context TheoryRewriteCtx::PRE_DSL,
+   * 1. Try to prove a=b via THEORY_REWRITE in context
+   * TheoryRewriteCtx::PRE_DSL,
    * 2. Try to prove a=b via a proof involving RARE rewrites,
    * 3. Try to prove a'=b' via a proof involving RARE rewrites, where a' and b'
    * are obtained by transforming a and b via RewriteDbNodeConverter.

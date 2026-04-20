@@ -18,8 +18,8 @@
 #include <iosfwd>
 #include <memory>
 
-#include "util/integer.h"
 #include "util/hash.h"
+#include "util/integer.h"
 
 namespace cvc5::internal {
 
