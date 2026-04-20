@@ -419,8 +419,8 @@ bool proveEqualityWithRewriteSteps(
       // to align children before recursing.
       Node an = expr::getACINormalForm(lhs);
       Node bn = expr::getACINormalForm(rhs);
-      Node san = getOrderedACITerm(an);
-      Node sbn = getOrderedACITerm(bn);
+      Node san = getOrderedACITerm(an, orderChildren);
+      Node sbn = getOrderedACITerm(bn, orderChildren);
       if (lhs != san || rhs != sbn)
       {
         visitedNorm.insert(eq);
@@ -471,8 +471,8 @@ bool proveEqualityWithRewriteSteps(
     {
       Node an = expr::getACINormalForm(lhs);
       Node bn = expr::getACINormalForm(rhs);
-      Node san = getOrderedACITerm(an);
-      Node sbn = getOrderedACITerm(bn);
+      Node san = getOrderedACITerm(an, orderChildren);
+      Node sbn = getOrderedACITerm(bn, orderChildren);
       // if so, we put together a proof of transitivity
       // lhs = aci(lhs)  aci(lhs)=sorted(lhs)  ...
       //   ...  sorted(rhs)=aci(rhs)  aci(rhs)=rhs
