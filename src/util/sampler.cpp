@@ -153,6 +153,7 @@ FloatingPoint Sampler::pickFpBiased(unsigned e, unsigned s)
       case 5:
       {
         // sign = x, exp = xx...xx0xx...xx, sig = xx...xx
+        Assert(e > 2);
         uint64_t lsbSize = rnd.pick<uint64_t>(1, e - 2);
         uint64_t msbSize = e - lsbSize - 1;
         BitVector lsb = pickBvUniform(lsbSize);

@@ -29,6 +29,7 @@ uint64_t Random::operator()() { return d_rng(); }
 bool Random::pickWithProb(double probability)
 {
   Assert(probability <= 1);
+  Assert(probability >= 0);
   uint64_t p = (uint64_t)(probability * 1000);
   uint64_t r = pick<uint64_t>(0, 999);
   return r < p;
