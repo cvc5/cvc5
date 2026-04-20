@@ -123,23 +123,6 @@ struct sortTermOrder
   bool operator()(Node i, Node j) { return d_tu->getTermOrder(i, j); }
 };
 
-struct CanonicalSortChild
-{
-  /** The original child. */
-  Node d_child;
-  /** The alpha-invariant order key for the child. */
-  Node d_order;
-};
-
-struct sortCanonicalTermOrder
-{
-  TermCanonize* d_tu;
-  bool operator()(const CanonicalSortChild& i, const CanonicalSortChild& j)
-  {
-    return d_tu->getTermOrder(i.d_order, j.d_order);
-  }
-};
-
 Node TermCanonize::getCanonicalTerm(
     TNode n,
     bool apply_torder,
@@ -176,36 +159,21 @@ Node TermCanonize::getCanonicalTerm(
     {
       cchildren.push_back(cn);
     }
-    // if applicable, first sort by term order
-    if (apply_torder && theory::quantifiers::TermUtil::isComm(n.getKind()))
-    {
-      Trace("canon-term-debug")
-          << "Sort based on commutative operator " << n.getKind() << std::endl;
-      std::vector<CanonicalSortChild> schildren;
-      schildren.reserve(cchildren.size());
-      for (const Node& cn : cchildren)
-      {
-        std::map<std::pair<TypeNode, uint32_t>, unsigned> localVarCount =
-            var_count;
-        std::map<TNode, Node> localVisited = visited;
-        Node order = getCanonicalTerm(
-            cn, apply_torder, doHoVar, localVarCount, localVisited);
-        schildren.push_back({cn, order});
-      }
-      sortCanonicalTermOrder sto;
-      sto.d_tu = this;
-      std::stable_sort(schildren.begin(), schildren.end(), sto);
-      for (size_t i = 0, size = schildren.size(); i < size; ++i)
-      {
-        cchildren[i] = schildren[i].d_child;
-      }
-    }
     // now make canonical
     Trace("canon-term-debug") << "Make canonical children" << std::endl;
     for (unsigned i = 0, size = cchildren.size(); i < size; i++)
     {
       cchildren[i] = getCanonicalTerm(
           cchildren[i], apply_torder, doHoVar, var_count, visited);
+    }
+    // if applicable, sort by term order
+    if (apply_torder && theory::quantifiers::TermUtil::isComm(n.getKind()))
+    {
+      Trace("canon-term-debug")
+          << "Sort based on commutative operator " << n.getKind() << std::endl;
+      sortTermOrder sto;
+      sto.d_tu = this;
+      std::stable_sort(cchildren.begin(), cchildren.end(), sto);
     }
     if (n.getMetaKind() == metakind::PARAMETERIZED)
     {
