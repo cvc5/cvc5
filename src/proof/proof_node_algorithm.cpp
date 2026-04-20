@@ -33,9 +33,9 @@ namespace {
  * Reorder the children of an n-ary AC term using the provided ordering.
  *
  * This is used by proveEqualityWithRewriteSteps to make its pre-rewrite
- * normalization deterministic. If the ordering does not apply, or the
- * reordered term is not related to the original by ACI normalization, this
- * returns n unchanged.
+ * normalization align with a desired ordering. If the ordering does not apply,
+ * or the reordered term is not related to the original by ACI normalization,
+ * this returns n unchanged.
  */
 Node getOrderedACITerm(const Node& n,
                        const EqualityNodeLessCallback& orderChildren)

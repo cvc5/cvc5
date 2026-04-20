@@ -11,6 +11,6 @@
 (declare-fun r () a)
 (declare-fun u (A_ A) A)
 (declare-fun u (a A) A_)
-(assert (or (exists ((v A)) (and (= (u (u c (u (u r f) g)) v) (u (u c (u (u r f) g)) h)) (= (u (u c (u (u p f) g)) v) (u (u c (u (u p f) g)) h)) (forall ((? A)) (or (= ? v) (not (= (u (u c (u (u r f) g)) ?) (u (u c (u (u r f) g)) h))) (not (= (u (u c (u (u p f) g)) ?) (u (u c (u (u p f) g)) h)))))))))
-(assert (or (forall ((v A)) (or (not (= (u (u c (u (u p f) g)) v) (u (u c (u (u p f) g)) h))) (not (= (u (u c (u (u r f) g)) v) (u (u c (u (u r f) g)) h))) (exists ((? A)) (and (not (= ? v)) (= (u (u c (u (u p f) g)) ?) (u (u c (u (u p f) g)) h)) (= (u (u c (u (u r f) g)) ?) (u (u c (u (u r f) g)) h))))))))
+(assert (exists ((v A)) (and (= (u (u c (u (u r f) g)) v) (u (u c (u (u r f) g)) h)) (= (u (u c (u (u p f) g)) v) (u (u c (u (u p f) g)) h)) (forall ((? A)) (or (= ? v) (not (= (u (u c (u (u r f) g)) ?) (u (u c (u (u r f) g)) h))) (not (= (u (u c (u (u p f) g)) ?) (u (u c (u (u p f) g)) h))))))))
+(assert (forall ((v A)) (or (not (= (u (u c (u (u p f) g)) v) (u (u c (u (u p f) g)) h))) (not (= (u (u c (u (u r f) g)) v) (u (u c (u (u r f) g)) h))) (exists ((? A)) (and (not (= ? v)) (= (u (u c (u (u p f) g)) ?) (u (u c (u (u p f) g)) h)) (= (u (u c (u (u r f) g)) ?) (u (u c (u (u r f) g)) h)))))))
 (check-sat)
