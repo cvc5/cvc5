@@ -344,7 +344,8 @@ void NonlinearExtension::checkFullEffort(std::map<Node, Node>& arithModel,
       {
         for (const Node& stf : st)
         {
-          if (arithModel.find(stf) == arithModel.end() && factorsSplit.insert(stf).second)
+          if (arithModel.find(stf) == arithModel.end()
+              && factorsSplit.insert(stf).second)
           {
             Trace("nl-model-final") << "*** Identified multiplication term "
                                        "with factor that is not preregistered: "
