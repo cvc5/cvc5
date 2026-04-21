@@ -73,6 +73,8 @@ static std::string replace_all(std::string str,
  private:
   /** Returns the Lean identifier for an SMT-LIB identifier. */
   std::string cleanSmtId(const std::string& str);
+  /** */
+  std::string mkUserOpId(const std::string& str);
   /** The number of uninterpreted constants we have allocated */
   size_t d_constIdCount;
   /** Cache for typeAsNode */

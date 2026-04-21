@@ -86,7 +86,7 @@ Node LogosNodeConverter::postConvert(Node n)
   else if (k == Kind::DISTINCT)
   {
     std::vector<Node> args(n.begin(), n.end());
-    Node distinct = mkInternalSymbol("Term.distinct", tn);
+    Node distinct = mkInternalSymbol(mkUserOpId("distinct"), tn);
     // it is :arg-list, so it must be a list of terms
     Node an = mkLogosTypedList(args, tn);
     return mkInternalApp("Term.Apply", {distinct, an}, tn);
@@ -109,7 +109,7 @@ Node LogosNodeConverter::postConvert(Node n)
       ret = mkInternalApp("Term.DtCons", children, tn);
       if (k == Kind::APPLY_TESTER)
       {
-        Node tester = mkInternalSymbol("Term.is", tn);
+        Node tester = mkInternalSymbol(mkUserOpId("is"), tn);
         ret = mkInternalApp("Term.Apply", {tester, ret}, tn);
       }
       for (size_t i = 0, nchild = n.getNumChildren(); i < nchild; i++)
@@ -125,7 +125,7 @@ Node LogosNodeConverter::postConvert(Node n)
       ret = mkInternalApp("Term.DtSel", children, tn);
       if (k == Kind::APPLY_UPDATER)
       {
-        Node update = mkInternalSymbol("Term.update", tn);
+        Node update = mkInternalSymbol(mkUserOpId("update"), tn);
         ret = mkInternalApp("Term.Apply", {update, ret}, tn);
       }
       ret = mkInternalApp("Term.Apply", {ret, n[0]}, tn);
@@ -141,7 +141,7 @@ Node LogosNodeConverter::postConvert(Node n)
   {
     std::stringstream ssOp;
     ssOp << printer::smt2::Smt2Printer::smtKindString(k);
-    std::string id = "Term." + cleanSmtId(ssOp.str());
+    std::string id = mkUserOpId(cleanSmtId(ssOp.str()));
     Node nil = expr::getNullTerminator(d_nm, k, tn);
     if (!nil.isNull())
     {
@@ -216,6 +216,13 @@ std::string LogosNodeConverter::cleanSmtId(const std::string& id)
   return idc;
 }
 
+std::string LogosNodeConverter::mkUserOpId(const std::string& str)
+{
+  std::stringstream ss;
+  ss << "(Term.UOp UserOp." << str << ")";
+  return ss.str();
+}
+
 Node LogosNodeConverter::typeAsNode(TypeNode tn)
 {
   // should always exist in the cache, as we always run types through
@@ -249,15 +256,15 @@ Node LogosNodeConverter::typeAsNode(TypeNode tn)
     }
     else if (tn.isArray())
     {
-      cons = mkInternalSymbol("Term.Array", d_sortType);
+      cons = mkInternalSymbol(mkUserOpId("Array"), d_sortType);
     }
     else if (tn.isSet())
     {
-      cons = mkInternalSymbol("Term.Set", d_sortType);
+      cons = mkInternalSymbol(mkUserOpId("Set"), d_sortType);
     }
     else if (tn.isSequence())
     {
-      cons = mkInternalSymbol("Term.Seq", d_sortType);
+      cons = mkInternalSymbol(mkUserOpId("Seq"), d_sortType);
     }
     ret = typeAsNode(tn[nchild - 1]);
     for (size_t i = 1; i < nchild; i++)
@@ -336,10 +343,10 @@ Node LogosNodeConverter::mkLogosList(const std::vector<Node>& args, const TypeNo
 Node LogosNodeConverter::mkLogosTypedList(const std::vector<Node>& args, const TypeNode& tn)
 {
   Assert (!args.empty());
-  Node nilu = mkInternalSymbol("Term._at__at_TypedList_nil", tn);
+  Node nilu = mkInternalSymbol(mkUserOpId("_at__at_TypedList_nil"), tn);
   Node niltype = typeAsNode(args[0].getType());
   Node ret = mkInternalApp("Term.Apply", {nilu, niltype}, tn);
-  Node cons = mkInternalSymbol("Term._at__at_TypedList_cons", tn);
+  Node cons = mkInternalSymbol(mkUserOpId("_at__at_TypedList_cons"), tn);
   // use generic list
   for (size_t i = 0, nchild = args.size(); i < nchild; i++)
   {
