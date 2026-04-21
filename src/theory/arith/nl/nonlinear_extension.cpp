@@ -339,16 +339,17 @@ void NonlinearExtension::checkFullEffort(std::map<Node, Node>& arithModel,
       // Corner case: if a multiplication term, need to ensure that each of
       // our variables are assigned in the model. If not, to force this to be
       // the case, we split on that variable and zero.
-      if (st.getKind()==Kind::NONLINEAR_MULT)
+      if (st.getKind() == Kind::NONLINEAR_MULT)
       {
         for (const Node& stf : st)
         {
-          if (arithModel.find(stf)==arithModel.end())
+          if (arithModel.find(stf) == arithModel.end())
           {
-            Trace("nl-model-final")
-                << "*** Identified multiplication term with factor that is not preregistered: " << st
-                << " " << stf << std::endl;
-            Node zero = nodeManager()->mkConstRealOrInt(stf.getType(), Rational(0));
+            Trace("nl-model-final") << "*** Identified multiplication term "
+                                       "with factor that is not preregistered: "
+                                    << st << " " << stf << std::endl;
+            Node zero =
+                nodeManager()->mkConstRealOrInt(stf.getType(), Rational(0));
             Node eq = stf.eqNode(zero);
             Node split = eq.orNode(eq.negate());
             NlLemma nlem(InferenceId::ARITH_NL_SHARED_TERM_FACTOR_SPLIT, split);
