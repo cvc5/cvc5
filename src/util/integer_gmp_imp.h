@@ -10,16 +10,16 @@
  * A multiprecision integer constant; wraps a GMP multiprecision integer.
  */
 
+#include "cvc5_public.h"
+
 #ifndef CVC5__UTIL__INTEGER_GMP_H
 #define CVC5__UTIL__INTEGER_GMP_H
 
 #include <gmpxx.h>
-#include <functional>
 
+#include <functional>
 #include <iosfwd>
 #include <string>
-
-#include "cvc5_public.h"
 
 namespace cvc5::internal {
 
