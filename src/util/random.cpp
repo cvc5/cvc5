@@ -16,12 +16,33 @@
 
 namespace cvc5::internal {
 
-Random::Random(uint64_t seed) { setSeed(seed); }
+Random::Random(uint64_t seed)
+{
+#ifdef CVC5_GMP_IMP
+  gmp_randinit_mt(d_gmp_randstate);
+#endif
+  setSeed(seed);
+}
+
+Random::~Random()
+{
+#ifdef CVC5_GMP_IMP
+  gmp_randclear(d_gmp_randstate);
+#endif
+}
 
 void Random::setSeed(uint64_t seed)
 {
   d_seed = seed == 0 ? ~seed : seed;
   d_rng.seed(d_seed);
+#ifdef CVC5_GMP_IMP
+  gmp_randseed_ui(d_gmp_randstate, d_seed);
+#endif
+#ifdef CVC5_CLN_IMP
+  // cln::random_state stores a 64 bit seed split into 32-bit hi and lo parts.
+  d_cln_randstate.seed.hi = static_cast<uint32_t>(d_seed >> 32);
+  d_cln_randstate.seed.lo = static_cast<uint32_t>(d_seed);
+#endif
 }
 
 uint64_t Random::operator()() { return d_rng(); }
