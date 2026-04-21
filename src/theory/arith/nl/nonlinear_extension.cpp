@@ -330,6 +330,7 @@ void NonlinearExtension::checkFullEffort(std::map<Node, Node>& arithModel,
     // prior to modifying the model. If we did so for two terms t and s, then we
     // must split on t = s.
     std::unordered_map<TNode, std::vector<Node>> sharedTermsPost;
+    std::unordered_set<Node> factorsSplit;
     for (TNode st : sts)
     {
       Node stv = d_model.computeAbstractModelValue(st);
@@ -343,7 +344,7 @@ void NonlinearExtension::checkFullEffort(std::map<Node, Node>& arithModel,
       {
         for (const Node& stf : st)
         {
-          if (arithModel.find(stf) == arithModel.end())
+          if (arithModel.find(stf) == arithModel.end() && factorsSplit.insert(stf).second)
           {
             Trace("nl-model-final") << "*** Identified multiplication term "
                                        "with factor that is not preregistered: "
