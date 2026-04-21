@@ -112,7 +112,7 @@ enum class InferenceId
   ARITH_NL_CONGRUENCE,
   // for theory combination when NL model construction identifies shared terms
   ARITH_NL_SHARED_TERM_SPLIT,
-  // for theory combination when NL has a muliplication term with factors that
+  // for theory combination when NL has a multiplication term with factors that
   // are not preregistered.
   ARITH_NL_SHARED_TERM_FACTOR_SPLIT,
   // checkModel found a conflict with a quadratic equality
