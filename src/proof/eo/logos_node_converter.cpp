@@ -279,8 +279,8 @@ Node LogosNodeConverter::typeAsNode(TypeNode tn)
   {
     // dummy symbol whose name is the type printed
     std::stringstream ss;
-    ss << "Term." << tn;
-    ret = mkInternalSymbol(ss.str(), d_sortType);
+    ss << tn;
+    ret = mkInternalSymbol(mkUserOpId(ss.str()), d_sortType);
   }
   d_ltypeAsNode[tn] = ret;
   return ret;
