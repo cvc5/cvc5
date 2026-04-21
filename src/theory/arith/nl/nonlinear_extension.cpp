@@ -330,12 +330,35 @@ void NonlinearExtension::checkFullEffort(std::map<Node, Node>& arithModel,
     // prior to modifying the model. If we did so for two terms t and s, then we
     // must split on t = s.
     std::unordered_map<TNode, std::vector<Node>> sharedTermsPost;
+    std::unordered_set<Node> factorsSplit;
     for (TNode st : sts)
     {
       Node stv = d_model.computeAbstractModelValue(st);
       Trace("nl-model-final")
           << "- shared term value (post) " << st << " = " << stv << std::endl;
       sharedTermsPost[stv].emplace_back(st);
+      // Corner case: if a multiplication term, need to ensure that each of
+      // our variables are assigned in the model. If not, to force this to be
+      // the case, we split on that variable and zero.
+      if (st.getKind() == Kind::NONLINEAR_MULT)
+      {
+        for (const Node& stf : st)
+        {
+          if (arithModel.find(stf) == arithModel.end()
+              && factorsSplit.insert(stf).second)
+          {
+            Trace("nl-model-final") << "*** Identified multiplication term "
+                                       "with factor that is not preregistered: "
+                                    << st << " " << stf << std::endl;
+            Node zero =
+                nodeManager()->mkConstRealOrInt(stf.getType(), Rational(0));
+            Node eq = stf.eqNode(zero);
+            Node split = eq.orNode(eq.negate());
+            NlLemma nlem(InferenceId::ARITH_NL_SHARED_TERM_FACTOR_SPLIT, split);
+            d_im.addPendingLemma(nlem);
+          }
+        }
+      }
     }
     std::unordered_map<TNode, Node>::iterator itrs;
     for (const std::pair<const TNode, std::vector<Node>>& stp : sharedTermsPost)
