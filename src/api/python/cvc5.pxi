@@ -4813,7 +4813,7 @@ cdef class Sort:
     def __lt__(self, Sort other not None):
         return self.csort < other.csort
 
-    def __gt__(self, Sort other):
+    def __gt__(self, Sort other not None):
         return self.csort > other.csort
 
     def __le__(self, Sort other not None):
