@@ -277,10 +277,17 @@ Node LogosNodeConverter::typeAsNode(TypeNode tn)
   }
   else
   {
-    // dummy symbol whose name is the type printed
     std::stringstream ss;
     ss << tn;
-    ret = mkInternalSymbol(mkUserOpId(ss.str()), d_sortType);
+    // if a Eunoia builtin type, don't wrap in UserOp
+    if (tn.isBoolean())
+    {
+      ret = mkInternalSymbol("Term." + ss.str(), d_sortType);
+    }
+    else
+    {
+      ret = mkInternalSymbol(mkUserOpId(ss.str()), d_sortType);
+    }
   }
   d_ltypeAsNode[tn] = ret;
   return ret;
