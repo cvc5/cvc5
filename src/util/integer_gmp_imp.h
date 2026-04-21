@@ -14,6 +14,7 @@
 #define CVC5__UTIL__INTEGER_GMP_H
 
 #include <gmpxx.h>
+#include <functional>
 
 #include <iosfwd>
 #include <string>

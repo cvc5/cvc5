@@ -10,7 +10,6 @@
  * Black box testing of cvc5::Integer.
  */
 
-#include <functional>
 #include <limits>
 #include <sstream>
 #include <unordered_set>
