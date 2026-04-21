@@ -16,7 +16,13 @@
 
 namespace cvc5::internal {
 
-Random::Random(uint64_t seed) { setSeed(seed); }
+Random::Random(uint64_t seed)
+{
+#ifdef CVC5_GMP_IMP
+  gmp_randinit_mt(d_gmp_randstate);
+#endif
+  setSeed(seed);
+}
 
 Random::~Random()
 {
@@ -30,7 +36,6 @@ void Random::setSeed(uint64_t seed)
   d_seed = seed == 0 ? ~seed : seed;
   d_rng.seed(d_seed);
 #ifdef CVC5_GMP_IMP
-  gmp_randinit_mt(d_gmp_randstate);
   gmp_randseed_ui(d_gmp_randstate, d_seed);
 #endif
 #ifdef CVC5_CLN_IMP

@@ -10,15 +10,15 @@
  * A multiprecision integer constant; wraps a GMP multiprecision integer.
  */
 
-#include "cvc5_public.h"
-
-#ifndef CVC5__UTIL__INTEGER_H
-#define CVC5__UTIL__INTEGER_H
+#ifndef CVC5__UTIL__INTEGER_GMP_H
+#define CVC5__UTIL__INTEGER_GMP_H
 
 #include <gmpxx.h>
 
 #include <iosfwd>
 #include <string>
+
+#include "cvc5_public.h"
 
 namespace cvc5::internal {
 
@@ -342,4 +342,4 @@ struct hash<cvc5::internal::Integer>
 };
 }  // namespace std
 
-#endif /* CVC5__INTEGER_H */
+#endif /* CVC5__UTIL__INTEGER_GMP_H */

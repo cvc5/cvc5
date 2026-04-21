@@ -10,6 +10,7 @@
  * Black box testing of cvc5::Integer.
  */
 
+#include <functional>
 #include <limits>
 #include <sstream>
 #include <unordered_set>
@@ -617,9 +618,10 @@ TEST_F(TestUtilBlackInteger, mkRandom_bound)
     std::unordered_set<Integer> values;
     for (size_t i = 0; i < 20; ++i)
     {
-      auto [it, inserted] = values.insert(Integer::mkRandom(nbits));
-      ASSERT_TRUE(*it >= 0);
-      ASSERT_TRUE(*it < bound);
+      Integer v = Integer::mkRandom(nbits);
+      values.insert(v);
+      ASSERT_TRUE(v >= 0);
+      ASSERT_TRUE(v < bound);
     }
     ASSERT_GT(values.size(), 1);
   }

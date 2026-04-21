@@ -12,12 +12,13 @@
 
 #include "cvc5_public.h"
 
-#ifndef CVC5__CLN__INTEGER_H
-#define CVC5__CLN__INTEGER_H
+#ifndef CVC5__UTIL__INTEGER_CLN_H
+#define CVC5__UTIL__INTEGER_CLN_H
 
 #include <cln/integer.h>
 #include <cln/random.h>
 
+#include <functional>
 #include <iosfwd>
 #include <string>
 
@@ -398,4 +399,4 @@ struct hash<cvc5::internal::Integer>
 };
 }  // namespace std
 
-#endif /* CVC5__INTEGER_H */
+#endif /* CVC5__UTIL__INTEGER_CLN_H */
