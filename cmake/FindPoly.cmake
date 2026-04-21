@@ -67,7 +67,7 @@ if(NOT Poly_FOUND_SYSTEM)
   if(CCWIN)
     set(POLY_PATCH_CMD
       ${POLY_PATCH_KWD}
-        ${CMAKE_SOURCE_DIR}/cmake/deps-utils/Poly-windows-patch.sh <SOURCE_DIR>
+        ${PROJECT_SOURCE_DIR}/cmake/deps-utils/Poly-windows-patch.sh <SOURCE_DIR>
     )
     set(POLY_PATCH_KWD COMMAND)
   endif()

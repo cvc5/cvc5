@@ -12,11 +12,12 @@
 
 #include "cvc5_public.h"
 
-#ifndef CVC5__INTEGER_H
-#define CVC5__INTEGER_H
+#ifndef CVC5__UTIL__INTEGER_GMP_H
+#define CVC5__UTIL__INTEGER_GMP_H
 
 #include <gmpxx.h>
 
+#include <functional>
 #include <iosfwd>
 #include <string>
 
@@ -307,6 +308,12 @@ class Integer
   /** Returns a reference to the maximum of two integers. */
   static const Integer& max(const Integer& a, const Integer& b);
 
+  /**
+   * Returns a uniformly random non-negative Integer in [0, 2^nbits).
+   * Uses the cvc5 Random singleton.
+   */
+  static Integer mkRandom(uint32_t nbits);
+
  private:
   /**
    * Gets a reference to the gmp data that backs up the integer.
@@ -321,14 +328,6 @@ class Integer
   mpz_class d_value;
 }; /* class Integer */
 
-struct IntegerHashFunction
-{
-  inline size_t operator()(const cvc5::internal::Integer& i) const
-  {
-    return i.hash();
-  }
-}; /* struct IntegerHashFunction */
-
 inline std::ostream& operator<<(std::ostream& os, const Integer& n)
 {
   return os << n.toString();
@@ -336,4 +335,12 @@ inline std::ostream& operator<<(std::ostream& os, const Integer& n)
 
 }  // namespace cvc5::internal
 
-#endif /* CVC5__INTEGER_H */
+namespace std {
+template <>
+struct hash<cvc5::internal::Integer>
+{
+  size_t operator()(const cvc5::internal::Integer& i) const { return i.hash(); }
+};
+}  // namespace std
+
+#endif /* CVC5__UTIL__INTEGER_GMP_H */

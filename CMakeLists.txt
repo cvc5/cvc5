@@ -260,18 +260,23 @@ check_min_compiler_version("Clang" 12)
 
 add_check_c_cxx_flag("-O${OPTIMIZATION_LEVEL}")
 add_check_c_cxx_flag("-Wall")
+add_check_c_cxx_flag("-Wextra")
 add_check_c_flag("-fexceptions")
-add_check_c_cxx_flag("-Wcast-function-type")
-add_check_cxx_flag("-Wdeprecated-copy")
 add_check_cxx_flag("-Wsuggest-override")
 add_check_cxx_flag("-Wnon-virtual-dtor")
-add_check_c_cxx_flag("-Wignored-qualifiers")
 add_check_c_cxx_flag("-Wimplicit-fallthrough")
-add_check_c_cxx_flag("-Wmissing-field-initializers")
 add_check_c_cxx_flag("-Wshadow")
 add_check_c_cxx_flag("-Wtype-limits")
-add_check_c_cxx_flag("-Wunused-parameter")
 add_check_c_cxx_flag("-fno-operator-names")
+
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
+   AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 13
+   AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 14)
+  # GCC 13 introduced -Wdangling-reference, but the
+  # [[gnu::no_dangling]] attribute to suppress it was only
+  # added in GCC 14, so disable the warning for GCC 13.
+  add_cxx_flag("-Wno-dangling-reference")
+endif()
 
 # Assume no dynamic initialization of thread-local variables in non-defining
 # translation units. This option should result in better performance and works
@@ -455,7 +460,7 @@ endmacro()
 if(ENABLE_AUTO_DOWNLOAD)
   if(USE_PYTHON_VENV)
     # Set up Python venv if one doesn't exist already
-    set(VENV_PATH "${CMAKE_BINARY_DIR}/venv-${Python_VERSION}")
+    set(VENV_PATH "${PROJECT_BINARY_DIR}/venv-${Python_VERSION}")
     if(NOT EXISTS ${VENV_PATH})
       create_venv()
     endif()
@@ -515,7 +520,7 @@ if(ENABLE_COVERAGE)
   setup_code_coverage_fastcov(
     NAME coverage
     PATH "${PROJECT_SOURCE_DIR}"
-    EXCLUDE "${CMAKE_BINARY_DIR}/deps/*"
+    EXCLUDE "${PROJECT_BINARY_DIR}/deps/*"
     DEPENDENCIES cvc5-bin
   )
 endif()
@@ -674,7 +679,7 @@ endif()
 
 # Include public headers
 include_directories(include)
-include_directories(${CMAKE_BINARY_DIR}/include)
+include_directories(${PROJECT_BINARY_DIR}/include)
 
 # Install public headers
 install(DIRECTORY include/cvc5 DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
@@ -761,8 +766,8 @@ install(EXPORT cvc5-targets
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/cvc5)
 
 configure_package_config_file(
-  ${CMAKE_SOURCE_DIR}/cmake/cvc5Config.cmake.in
-  ${CMAKE_BINARY_DIR}/cmake/cvc5Config.cmake
+  ${PROJECT_SOURCE_DIR}/cmake/cvc5Config.cmake.in
+  ${PROJECT_BINARY_DIR}/cmake/cvc5Config.cmake
   INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/cvc5
   PATH_VARS CMAKE_INSTALL_LIBDIR
 )
@@ -774,8 +779,8 @@ write_basic_package_version_file(
 )
 
 install(FILES
-  ${CMAKE_BINARY_DIR}/cmake/cvc5Config.cmake
-  ${CMAKE_BINARY_DIR}/cvc5ConfigVersion.cmake
+  ${PROJECT_BINARY_DIR}/cmake/cvc5Config.cmake
+  ${PROJECT_BINARY_DIR}/cvc5ConfigVersion.cmake
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/cvc5
 )
 

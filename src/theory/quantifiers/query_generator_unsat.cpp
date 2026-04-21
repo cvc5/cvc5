@@ -153,7 +153,7 @@ size_t QueryGeneratorUnsat::getNextRandomIndex(
 {
   Assert(!d_terms.empty());
   Assert(processed.size() < d_terms.size());
-  size_t rindex = Random::getRandom().pick(0, d_terms.size() - 1);
+  size_t rindex = Random::getRandom().pick<size_t>(0, d_terms.size() - 1);
   while (processed.find(rindex) != processed.end())
   {
     rindex++;

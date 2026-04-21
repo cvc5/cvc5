@@ -109,6 +109,8 @@ set(regress_0_tests
   regress0/array-const-real-parse.smt2
   regress0/arrayinuf_declare.smt2
   regress0/arrays/ackermann1.smt2
+  regress0/arrays/ackermann2.smt2
+  regress0/arrays/ackermann3.smt2
   regress0/arrays/arrays0.smt2
   regress0/arrays/arrays1.smt2
   regress0/arrays/arrays2.smt2
@@ -787,6 +789,7 @@ set(regress_0_tests
   regress0/datatypes/proj-issue620-inst-const-no-rew.smt2
   regress0/datatypes/proj-issue752-ipc.smt2
   regress0/datatypes/proj-issue754-check-model.smt2
+  regress0/datatypes/proj-issue786-match-shadow.smt2
   regress0/datatypes/rec1.cvc.smt2
   regress0/datatypes/rec2.cvc.smt2
   regress0/datatypes/rec4.cvc.smt2
@@ -954,6 +957,9 @@ set(regress_0_tests
   regress0/fp/issue6164.smt2
   regress0/fp/issue7002.smt2
   regress0/fp/issue7569.smt2
+  regress0/fp/issue9078-1.smt2
+  regress0/fp/issue9078-2.smt2
+  regress0/fp/issue9078-3.smt2
   regress0/fp/issue9505.smt2
   regress0/fp/issue9854.smt2
   regress0/fp/issue9858.smt2
@@ -1141,6 +1147,7 @@ set(regress_0_tests
   regress0/nl/issue11901-pow-rewrite-type.smt2
   regress0/nl/issue12239-subtype-elim.smt2
   regress0/nl/issue12408-nl-fm.smt2
+  regress0/nl/issue12607-shared-term-factor.smt2
   regress0/nl/issue3003.smt2
   regress0/nl/issue3407.smt2
   regress0/nl/issue3411.smt2
@@ -1247,6 +1254,7 @@ set(regress_0_tests
   regress0/nl/pow2-native-6.smt2
   regress0/nl/pow2-native-7.smt2
   regress0/nl/pow2-pow.smt2
+  regress0/nl/mod_elim_pow2.smt2
   regress0/nl/pow2-pow-isabelle.smt2
   regress0/nl/proj-issue-348.smt2
   regress0/nl/proj-issue-425.smt2
@@ -4465,7 +4473,7 @@ endforeach()
 # we use a Cmake feature called FIXTURES to add 'build_regress' as the first test
 # which builds the 'build_regress' target.
 # Disabled temporarily due to problems in the nightly builds
-# add_test(build_regress_test "${CMAKE_COMMAND}" --build "${CMAKE_BINARY_DIR}" --config "$<CONFIG>" --target build-regress)
+# add_test(build_regress_test "${CMAKE_COMMAND}" --build "${PROJECT_BINARY_DIR}" --config "$<CONFIG>" --target build-regress)
 # set_tests_properties(build_regress_test PROPERTIES FIXTURES_SETUP build_regress_fixture)
 
 macro(cvc5_add_regression_test level file)
@@ -4481,11 +4489,11 @@ macro(cvc5_add_regression_test level file)
     ${Python_EXECUTABLE}
     ${run_regress_script}
     ${RUN_REGRESSION_ARGS}
-    --lfsc-binary ${CMAKE_SOURCE_DIR}/deps/bin/lfscc
-    --lfsc-sig-dir ${CMAKE_SOURCE_DIR}/proofs/lfsc/signatures
-    --carcara-binary ${CMAKE_SOURCE_DIR}/deps/bin/carcara
-    --ethos-binary ${CMAKE_SOURCE_DIR}/deps/bin/ethos
-    --cpc-sig-dir ${CMAKE_SOURCE_DIR}/proofs/eo
+    --lfsc-binary ${PROJECT_SOURCE_DIR}/deps/bin/lfscc
+    --lfsc-sig-dir ${PROJECT_SOURCE_DIR}/proofs/lfsc/signatures
+    --carcara-binary ${PROJECT_SOURCE_DIR}/deps/bin/carcara
+    --ethos-binary ${PROJECT_SOURCE_DIR}/deps/bin/ethos
+    --cpc-sig-dir ${PROJECT_SOURCE_DIR}/proofs/eo
     ${wrapper}
     ${path_to_cvc5}/cvc5${CMAKE_EXECUTABLE_SUFFIX}
     ${CMAKE_CURRENT_LIST_DIR}/${file})
