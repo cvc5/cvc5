@@ -129,9 +129,7 @@ class MacroRewriteElaborator : protected EnvObj
    * ProofRewriteRule::MACRO_STR_STRIP_ENDPOINTS.
    * @return true if added a closed proof of eq to cdp.
    */
-  bool ensureProofForOverlap(ProofRewriteRule id,
-                             CDProof* cdp,
-                             const Node& eq);
+  bool ensureProofForOverlap(ProofRewriteRule id, CDProof* cdp, const Node& eq);
   /**
    * Elaborate a rewrite eq that was proven by
    * ProofRewriteRule::MACRO_STR_COMPONENT_CTN.

@@ -76,8 +76,8 @@ bool MacroRewriteElaborator::ensureProofFor(CDProof* cdp,
   return false;
 }
 
-bool MacroRewriteElaborator::ensureProofForArithStringPredEntail(
-    CDProof* cdp, const Node& eq)
+bool MacroRewriteElaborator::ensureProofForArithStringPredEntail(CDProof* cdp,
+                                                                 const Node& eq)
 {
   Assert(eq.getKind() == Kind::EQUAL);
   Trace("brc-macro") << "Expand entailment for " << eq << std::endl;
@@ -275,8 +275,8 @@ bool MacroRewriteElaborator::ensureProofForArithStringPredEntail(
   return true;
 }
 
-bool MacroRewriteElaborator::ensureProofForReInterUnionInclusion(
-    CDProof* cdp, const Node& eq)
+bool MacroRewriteElaborator::ensureProofForReInterUnionInclusion(CDProof* cdp,
+                                                                 const Node& eq)
 {
   NodeManager* nm = nodeManager();
   Trace("brc-macro") << "Expand re inter union inclusion " << eq << std::endl;
@@ -371,8 +371,8 @@ bool MacroRewriteElaborator::ensureProofForReInterUnionInclusion(
   return true;
 }
 
-bool MacroRewriteElaborator::ensureProofForReInterUnionConstElim(
-    CDProof* cdp, const Node& eq)
+bool MacroRewriteElaborator::ensureProofForReInterUnionConstElim(CDProof* cdp,
+                                                                 const Node& eq)
 {
   NodeManager* nm = nodeManager();
   Trace("brc-macro") << "Expand macro re inter union const elim for " << eq
@@ -466,8 +466,8 @@ bool MacroRewriteElaborator::ensureProofForReInterUnionConstElim(
   return true;
 }
 
-bool MacroRewriteElaborator::ensureProofForSubstrStripSymLength(
-    CDProof* cdp, const Node& eq)
+bool MacroRewriteElaborator::ensureProofForSubstrStripSymLength(CDProof* cdp,
+                                                                const Node& eq)
 {
   NodeManager* nm = nodeManager();
   Trace("brc-macro") << "Expand substring strip for " << eq << std::endl;
@@ -535,8 +535,8 @@ bool MacroRewriteElaborator::ensureProofForSubstrStripSymLength(
   return true;
 }
 
-bool MacroRewriteElaborator::ensureProofForStrEqLenUnifyPrefix(
-    CDProof* cdp, const Node& eq)
+bool MacroRewriteElaborator::ensureProofForStrEqLenUnifyPrefix(CDProof* cdp,
+                                                               const Node& eq)
 {
   Trace("brc-macro") << "Expand macro str eq len unify prefix " << eq
                      << std::endl;
@@ -1052,8 +1052,8 @@ bool MacroRewriteElaborator::ensureProofForStrComponentCtn(CDProof* cdp,
   return true;
 }
 
-bool MacroRewriteElaborator::ensureProofForStrConstNCtnConcat(
-    CDProof* cdp, const Node& eq)
+bool MacroRewriteElaborator::ensureProofForStrConstNCtnConcat(CDProof* cdp,
+                                                              const Node& eq)
 {
   Trace("brc-macro") << "Expand macro str const nctn concat " << eq
                      << std::endl;
@@ -1219,8 +1219,8 @@ bool MacroRewriteElaborator::ensureProofForArithPolyNormRel(CDProof* cdp,
     Trace("brc-macro") << "...fail rule" << std::endl;
     return false;
   }
-  Node premise = theory::arith::PolyNorm::getArithPolyNormRelPremise(
-      eq[0], eq[1], rx, ry);
+  Node premise =
+      theory::arith::PolyNorm::getArithPolyNormRelPremise(eq[0], eq[1], rx, ry);
   Trace("brc-macro") << "Show " << premise << " by arith poly norm"
                      << std::endl;
   bool isBv = eq[0][0].getType().isBitVector();
