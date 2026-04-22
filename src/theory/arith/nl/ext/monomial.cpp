@@ -23,6 +23,21 @@ namespace theory {
 namespace arith {
 namespace nl {
 
+namespace {
+
+const char* toString(MonomialRelation relation)
+{
+  switch (relation)
+  {
+    case MonomialRelation::EQUAL: return "equal";
+    case MonomialRelation::SUPERSET: return "superset";
+    case MonomialRelation::SUBSET: return "subset";
+    default: return "invalid";
+  }
+}
+
+}  // namespace
+
 // Returns a[key] if key is in a or value otherwise.
 unsigned getCountWithDefault(const NodeMultiset& a, Node key, unsigned value)
 {
@@ -111,16 +126,9 @@ void MonomialIndex::addTerm(Node n,
       {
         relation = MonomialRelation::SUPERSET;
       }
-      const char* relationStr = "invalid";
-      switch (relation)
-      {
-        case MonomialRelation::EQUAL: relationStr = "equal"; break;
-        case MonomialRelation::SUPERSET: relationStr = "superset"; break;
-        case MonomialRelation::SUBSET: relationStr = "subset"; break;
-        default: break;
-      }
-      Trace("nl-ext-mindex-debug") << "  compare " << n << " and " << m
-                                   << ", status = " << relationStr << std::endl;
+      Trace("nl-ext-mindex-debug")
+          << "  compare " << n << " and " << m
+          << ", status = " << toString(relation) << std::endl;
       if ((relation == MonomialRelation::EQUAL
            || relation == MonomialRelation::SUPERSET)
           && nla->isMonomialSubset(m, n))
