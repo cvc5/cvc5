@@ -168,7 +168,7 @@ class DType
    * sygus constructor, and following a naming convention that avoids
    * constructors with the same name.
    *
-   * @param op : the builtin operator, constant, or variable that this
+   * @param op the builtin operator, constant, or variable that this
    * constructor encodes
    * @param cname the name of the constructor (for printing only)
    * @param cargs the arguments of the constructor.
@@ -184,7 +184,8 @@ class DType
   void addSygusConstructor(Node op,
                            const std::string& cname,
                            const std::vector<TypeNode>& cargs,
-                           int weight = -1);
+                           int weight = -1,
+                           const std::map<Node, Node>& weights = {});
 
   /** set sygus
    *

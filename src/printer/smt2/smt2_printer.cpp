@@ -31,6 +31,7 @@
 #include "expr/node_visitor.h"
 #include "expr/sequence.h"
 #include "expr/skolem_manager.h"
+#include "expr/weight_symbol.h"
 #include "options/io_utils.h"
 #include "options/language.h"
 #include "printer/let_binding.h"
@@ -519,6 +520,10 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
       case Kind::REGEXP_LOOP_OP:
         out << "(_ re.loop " << n.getConst<RegExpLoop>().d_loopMinOcc << " "
             << n.getConst<RegExpLoop>().d_loopMaxOcc << ")";
+        break;
+      case Kind::WEIGHT_SYMBOL_OP:
+        out << "(_ " << n.getConst<WeightSymbol>().getWeight() << ' '
+            << n.getConst<WeightSymbol>().getUF() << ')';
         break;
       case Kind::TUPLE_PROJECT_OP:
       case Kind::TABLE_PROJECT_OP:
@@ -2292,8 +2297,21 @@ std::string Smt2Printer::sygusGrammarString(const TypeNode& t)
           }
           Node consToPrint = nm->mkNode(Kind::APPLY_CONSTRUCTOR, cchildren);
           // now, print it using the conversion to builtin with external
+          const std::map<Node, Node>& ws = cons.getWeights();
+          if (!ws.empty())
+          {
+            types_list << "(! ";
+          }
           types_list << theory::datatypes::utils::sygusToBuiltin(consToPrint,
                                                                  true);
+          if (!ws.empty())
+          {
+            for (const std::pair<const Node, Node>& w : ws)
+            {
+              types_list << " :" << w.first.getName() << ' ' << w.second;
+            }
+            types_list << ')';
+          }
         }
       }
       types_list << "))";

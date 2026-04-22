@@ -19,7 +19,9 @@
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/type_matcher.h"
+#include "expr/weight_symbol.h"
 #include "theory/datatypes/project_op.h"
+#include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/datatypes/tuple_utils.h"
 #include "util/rational.h"
@@ -504,6 +506,78 @@ TypeNode DtSygusEvalTypeRule::computeType(CVC5_UNUSED NodeManager* nodeManager,
     }
   }
   return dt.getSygusType();
+}
+
+TypeNode DtSygusWeightTypeRule::preComputeType(NodeManager* nm,
+                                               CVC5_UNUSED TNode n)
+{
+  return nm->integerType();
+}
+TypeNode DtSygusWeightTypeRule::computeType(NodeManager* nodeManager,
+                                            TNode n,
+                                            bool check,
+                                            CVC5_UNUSED std::ostream* errOut)
+{
+  if (check)
+  {
+    if (!n[0].getType(check).isInteger()
+        || !n[0].hasAttribute(SygusWeightAttribute()))
+    {
+      throw TypeCheckingExceptionPrivate(
+          n,
+          "datatype sygus weight must be an integer variable with a sygus "
+          "weight attribute");
+    }
+    TypeNode t = n[1].getType(check);
+    if (!t.isDatatype() || !t.getDType().isSygus())
+    {
+      throw TypeCheckingExceptionPrivate(
+          n, "datatype sygus weight takes a sygus datatype");
+    }
+  }
+  return nodeManager->integerType();
+}
+
+TypeNode WeightSymbolOpTypeRule::preComputeType(NodeManager* nm,
+                                                CVC5_UNUSED TNode n)
+{
+  return nm->builtinOperatorType();
+}
+TypeNode WeightSymbolOpTypeRule::computeType(NodeManager* nodeManager,
+                                             TNode n,
+                                             bool check,
+                                             CVC5_UNUSED std::ostream* errOut)
+{
+  if (check)
+  {
+    const WeightSymbol& ws = n.getConst<WeightSymbol>();
+    const Node& wn = ws.getWeight();
+    if (!wn.isVar() || !wn.getType(check).isInteger()
+        || !wn.hasAttribute(SygusWeightAttribute()))
+    {
+      throw TypeCheckingExceptionPrivate(
+          n, "weight must be an integer variable with a weight attribute");
+    }
+    if (!ws.getUF().isVar())
+    {
+      throw TypeCheckingExceptionPrivate(
+          n, "weight symbol takes a variable denoting function to synthesize");
+    }
+  }
+  return nodeManager->builtinOperatorType();
+}
+
+TypeNode WeightSymbolTypeRule::preComputeType(NodeManager* nm,
+                                              CVC5_UNUSED TNode n)
+{
+  return nm->integerType();
+}
+TypeNode WeightSymbolTypeRule::computeType(NodeManager* nodeManager,
+                                           CVC5_UNUSED TNode n,
+                                           CVC5_UNUSED bool check,
+                                           CVC5_UNUSED std::ostream* errOut)
+{
+  return nodeManager->integerType();
 }
 
 TypeNode MatchTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,

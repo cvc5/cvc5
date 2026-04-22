@@ -67,6 +67,15 @@ struct SygusVarFreeAttributeId
 {
 };
 typedef expr::Attribute<SygusVarFreeAttributeId, Node> SygusVarFreeAttribute;
+
+/** Sygus Weight
+ *
+ * This attribute is used to mark the weight of Sygus grammar rules.
+ */
+struct SygusWeightAttributeId
+{
+};
+typedef expr::Attribute<SygusWeightAttributeId, Node> SygusWeightAttribute;
 // ----------------------- end sygus datatype attributes
 
 namespace datatypes {
