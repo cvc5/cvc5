@@ -78,6 +78,14 @@ class SymManager::Implementation
   void addModelDeclarationTerm(cvc5::Term t);
   /** Add function to the list of functions to synthesize. */
   void addFunctionToSynthesize(cvc5::Term t);
+  /** Bind a weight keyword. */
+  void bindWeight(const std::string& name, const cvc5::Weight& w);
+  /** Look up a weight keyword. */
+  cvc5::Weight getWeight(const std::string& name) const;
+  /** Is there a weight keyword with this name? */
+  bool isWeight(const std::string& name) const;
+  /** Get all declared weight keywords in declaration order. */
+  std::vector<std::pair<std::string, cvc5::Weight>> getDeclaredWeights() const;
   /** reset */
   void reset();
   /** reset assertions */
@@ -110,6 +118,10 @@ class SymManager::Implementation
   TermList d_declareTerms;
   /** Functions to synthesize (for response to check-synth) */
   TermList d_funToSynth;
+  /** Declared weight keywords, in declaration order. */
+  std::vector<std::pair<std::string, cvc5::Weight>> d_weights;
+  /** Mapping from weight keyword name to index in d_weights. */
+  std::map<std::string, size_t> d_weightIndex;
   /**
    * Have we pushed a scope (e.g. a let or quantifier) in the current context?
    */
@@ -238,6 +250,36 @@ void SymManager::Implementation::addFunctionToSynthesize(cvc5::Term f)
   d_funToSynth.push_back(f);
 }
 
+void SymManager::Implementation::bindWeight(const std::string& name,
+                                            const cvc5::Weight& w)
+{
+  Trace("sym-manager") << "SymManager: bindWeight " << name << std::endl;
+  d_weightIndex[name] = d_weights.size();
+  d_weights.emplace_back(name, w);
+}
+
+cvc5::Weight SymManager::Implementation::getWeight(
+    const std::string& name) const
+{
+  auto it = d_weightIndex.find(name);
+  if (it == d_weightIndex.end())
+  {
+    return cvc5::Weight();
+  }
+  return d_weights[it->second].second;
+}
+
+bool SymManager::Implementation::isWeight(const std::string& name) const
+{
+  return d_weightIndex.find(name) != d_weightIndex.end();
+}
+
+std::vector<std::pair<std::string, cvc5::Weight>>
+SymManager::Implementation::getDeclaredWeights() const
+{
+  return d_weights;
+}
+
 void SymManager::Implementation::pushScope(bool isUserContext)
 {
   Trace("sym-manager") << "SymManager: pushScope, isUserContext = "
@@ -285,6 +327,8 @@ void SymManager::Implementation::reset()
   Trace("sym-manager") << "SymManager: reset" << std::endl;
   // reset resets the symbol table even when global declarations are true
   d_symtabAllocated.reset();
+  d_weights.clear();
+  d_weightIndex.clear();
   // clear names by popping to context level 0
   while (d_context.getLevel() > 0)
   {
@@ -490,6 +534,27 @@ void SymManager::addModelDeclarationTerm(cvc5::Term t)
 void SymManager::addFunctionToSynthesize(cvc5::Term f)
 {
   d_implementation->addFunctionToSynthesize(f);
+}
+
+void SymManager::bindWeight(const std::string& name, const cvc5::Weight& w)
+{
+  d_implementation->bindWeight(name, w);
+}
+
+cvc5::Weight SymManager::getWeight(const std::string& name) const
+{
+  return d_implementation->getWeight(name);
+}
+
+bool SymManager::isWeight(const std::string& name) const
+{
+  return d_implementation->isWeight(name);
+}
+
+std::vector<std::pair<std::string, cvc5::Weight>>
+SymManager::getDeclaredWeights() const
+{
+  return d_implementation->getDeclaredWeights();
 }
 
 size_t SymManager::scopeLevel() const

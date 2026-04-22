@@ -2337,6 +2337,8 @@ set(regress_0_tests
   regress0/sygus/sygus-uf.sy
   regress0/sygus/uminus_one.sy
   regress0/sygus/univ_3-long-repeat-conflict.sy
+  regress0/sygus/weight-default.sy
+  regress0/sygus/weight-simple.sy
   regress0/symmetric.smtv1.smt2
   regress0/test11.cvc.smt2
   regress0/test9.cvc.smt2

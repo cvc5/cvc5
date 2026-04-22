@@ -2349,6 +2349,19 @@ void Smt2Printer::toStreamCmdDeclareVar(std::ostream& out,
       << ')';
 }
 
+void Smt2Printer::toStreamCmdDeclareWeight(
+    std::ostream& out,
+    const std::string& id,
+    const std::unique_ptr<Node>& defaultValue) const
+{
+  out << "(declare-weight " << cvc5::internal::quoteSymbol(id);
+  if (defaultValue)
+  {
+    out << " :default " << *defaultValue;
+  }
+  out << ')';
+}
+
 void Smt2Printer::toStreamCmdConstraint(std::ostream& out, Node n) const
 {
   out << "(constraint " << n << ')';

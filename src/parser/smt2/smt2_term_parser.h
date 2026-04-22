@@ -89,6 +89,12 @@ class Smt2TermParser
    * parsed.
    */
   Grammar* parseGrammarOrNull(const std::vector<Term>& sygusVars);
+  /**
+   * Parse a single grammar rule term. If the term is annotated with weight
+   * attributes (`(! t :w k ...)`), returns the base term `t` and populates
+   * `weights` with the weight attributes.
+   */
+  Term parseGrammarRuleTerm(WeightMap& weights);
   /** Parse integer numeral */
   uint32_t parseIntegerNumeral();
   /**

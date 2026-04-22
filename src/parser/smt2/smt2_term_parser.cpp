@@ -996,9 +996,9 @@ Grammar* Smt2TermParser::parseGrammar(const std::vector<Term>& sygusVars)
         // We did not process tok. Note that Lex::d_peeked may contain
         // {tok2, LPAREN_TOK} or {tok}.
         d_lex.reinsertToken(tok);
-        // parse ordinary term
-        Term e = parseTerm();
-        ret->addRule(ntSyms[i], e);
+        WeightMap weights;
+        Term e = parseGrammarRuleTerm(weights);
+        ret->addRule(ntSyms[i], e, weights);
       }
       tok = d_lex.nextToken();
     }
@@ -1009,6 +1009,73 @@ Grammar* Smt2TermParser::parseGrammar(const std::vector<Term>& sygusVars)
   // pop scope from the pre-declaration
   d_state.popScope();
   return ret;
+}
+
+Term Smt2TermParser::parseGrammarRuleTerm(WeightMap& weights)
+{
+  // Detect `(! t :w k ...)` up front so we can extract weight attributes and
+  // avoid returning a term whose top-level kind is an annotation.
+  Token tok = d_lex.nextToken();
+  if (tok != Token::LPAREN_TOK)
+  {
+    d_lex.reinsertToken(tok);
+    return parseTerm();
+  }
+  Token tok2 = d_lex.nextToken();
+  if (tok2 != Token::ATTRIBUTE_TOK)
+  {
+    // Not an annotation. Put back the tokens and fall back to parseTerm.
+    // reinsertToken is LIFO, so push tok2 first, then LPAREN will be yielded
+    // on the next nextToken call inside parseTerm.
+    d_lex.reinsertToken(tok2);
+    d_lex.reinsertToken(tok);
+    return parseTerm();
+  }
+  // Parse the base term.
+  Term body = parseTerm();
+  // Parse the attribute list. According to the SyGuS 2.1 standard, only weight
+  // keywords have a well-defined effect here; other attributes are ignored.
+  SymManager* sm = d_state.getSymbolManager();
+  Token atok = d_lex.nextToken();
+  while (atok != Token::RPAREN_TOK)
+  {
+    if (atok != Token::KEYWORD)
+    {
+      d_lex.parseError("Expected attribute keyword in grammar rule annotation");
+    }
+    std::string key = d_lex.tokenStr();
+    // strip leading ':'
+    if (!key.empty() && key[0] == ':')
+    {
+      key = key.substr(1);
+    }
+    if (sm->isWeight(key))
+    {
+      Term v = parseTerm();
+      if (!v.getSort().isInteger() || !v.isIntegerValue())
+      {
+        d_lex.parseError("Weight attribute value must be an integer numeral");
+      }
+      Weight w = sm->getWeight(key);
+      weights[w] = v;
+    }
+    else
+    {
+      // Ignore unknown attribute. Consume a value, if present.
+      Token pk = d_lex.nextToken();
+      if (pk != Token::KEYWORD && pk != Token::RPAREN_TOK)
+      {
+        d_lex.reinsertToken(pk);
+        parseSymbolicExpr();
+      }
+      else
+      {
+        d_lex.reinsertToken(pk);
+      }
+    }
+    atok = d_lex.nextToken();
+  }
+  return body;
 }
 
 Grammar* Smt2TermParser::parseGrammarOrNull(const std::vector<Term>& sygusVars)
