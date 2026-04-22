@@ -136,6 +136,7 @@ set(JAVA_FILES
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/TermManager.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/Triplet.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/Utils.java
+  ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/Weight.java
   ${JAVA_KIND_FILE}
   ${JAVA_PROOF_RULE_FILE}
   ${JAVA_SKOLEM_FUN_ID_FILE}
@@ -163,6 +164,7 @@ set(JNI_HEADERS
   ${JNI_DIR}/io_github_cvc5_SynthResult.h
   ${JNI_DIR}/io_github_cvc5_Term.h
   ${JNI_DIR}/io_github_cvc5_TermManager.h
+  ${JNI_DIR}/io_github_cvc5_Weight.h
 )
 
 # generate jni headers
@@ -289,7 +291,8 @@ set(jni_files
   jni/symbol_manager.cpp
   jni/synth_result.cpp
   jni/term.cpp
-  jni/term_manager.cpp)
+  jni/term_manager.cpp
+  jni/weight.cpp)
 
 # Enforce the build of a shared library
 add_library(cvc5jni SHARED ${jni_files})
