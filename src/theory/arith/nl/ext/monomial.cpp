@@ -23,56 +23,6 @@ namespace theory {
 namespace arith {
 namespace nl {
 
-namespace {
-
-const char* toString(MonomialRelation relation)
-{
-  switch (relation)
-  {
-    case MonomialRelation::EQUAL: return "equal";
-    case MonomialRelation::SUPERSET: return "superset";
-    case MonomialRelation::SUBSET: return "subset";
-    default: return "invalid";
-  }
-}
-
-MonomialRelation updateRelation(MonomialRelation relation, bool childInQuery)
-{
-  if (!childInQuery)
-  {
-    return relation == MonomialRelation::SUPERSET ? MonomialRelation::INVALID
-                                                  : MonomialRelation::SUBSET;
-  }
-  if (relation == MonomialRelation::EQUAL)
-  {
-    return MonomialRelation::SUPERSET;
-  }
-  return relation;
-}
-
-MonomialRelation finalizeRelation(MonomialRelation relation, bool exhausted)
-{
-  if (relation == MonomialRelation::EQUAL && !exhausted)
-  {
-    return MonomialRelation::SUPERSET;
-  }
-  return relation;
-}
-
-bool currentMayBeSubsetOfQuery(MonomialRelation relation)
-{
-  return relation == MonomialRelation::EQUAL
-         || relation == MonomialRelation::SUPERSET;
-}
-
-bool queryMayBeSubsetOfCurrent(MonomialRelation relation)
-{
-  return relation == MonomialRelation::EQUAL
-         || relation == MonomialRelation::SUBSET;
-}
-
-}  // namespace
-
 // Returns a[key] if key is in a or value otherwise.
 unsigned getCountWithDefault(const NodeMultiset& a, Node key, unsigned value)
 {
@@ -133,7 +83,17 @@ void MonomialIndex::addTerm(Node n,
     {
       const bool childInQuery =
           std::find(reps.begin(), reps.end(), it->first) != reps.end();
-      MonomialRelation newStatus = updateRelation(status, childInQuery);
+      MonomialRelation newStatus = status;
+      if (!childInQuery)
+      {
+        newStatus = status == MonomialRelation::SUPERSET
+                        ? MonomialRelation::INVALID
+                        : MonomialRelation::SUBSET;
+      }
+      else if (status == MonomialRelation::EQUAL)
+      {
+        newStatus = MonomialRelation::SUPERSET;
+      }
       if (newStatus != MonomialRelation::INVALID)
       {
         it->second.addTerm(n, reps, nla, newStatus, argIndex);
@@ -146,17 +106,30 @@ void MonomialIndex::addTerm(Node n,
     Node m = d_monos[i];
     if (m != n)
     {
-      MonomialRelation relation =
-          finalizeRelation(status, argIndex == reps.size());
-      Trace("nl-ext-mindex-debug")
-          << "  compare " << n << " and " << m
-          << ", status = " << toString(relation) << std::endl;
-      if (currentMayBeSubsetOfQuery(relation) && nla->isMonomialSubset(m, n))
+      MonomialRelation relation = status;
+      if (relation == MonomialRelation::EQUAL && argIndex != reps.size())
+      {
+        relation = MonomialRelation::SUPERSET;
+      }
+      const char* relationStr = "invalid";
+      switch (relation)
+      {
+        case MonomialRelation::EQUAL: relationStr = "equal"; break;
+        case MonomialRelation::SUPERSET: relationStr = "superset"; break;
+        case MonomialRelation::SUBSET: relationStr = "subset"; break;
+        default: break;
+      }
+      Trace("nl-ext-mindex-debug") << "  compare " << n << " and " << m
+                                   << ", status = " << relationStr << std::endl;
+      if ((relation == MonomialRelation::EQUAL
+           || relation == MonomialRelation::SUPERSET)
+          && nla->isMonomialSubset(m, n))
       {
         nla->registerMonomialSubset(m, n);
         Trace("nl-ext-mindex-debug") << "...success" << std::endl;
       }
-      else if (queryMayBeSubsetOfCurrent(relation)
+      else if ((relation == MonomialRelation::EQUAL
+                || relation == MonomialRelation::SUBSET)
                && nla->isMonomialSubset(n, m))
       {
         nla->registerMonomialSubset(n, m);

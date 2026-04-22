@@ -40,23 +40,6 @@ struct IAWrapper
   const VariableMapper& vm;
 };
 
-enum class IsolateStatus
-{
-  FAILURE,
-  VARIABLE_ON_LEFT,
-  VARIABLE_ON_RIGHT
-};
-
-IsolateStatus getIsolateStatus(int status)
-{
-  switch (status)
-  {
-    case 1: return IsolateStatus::VARIABLE_ON_LEFT;
-    case -1: return IsolateStatus::VARIABLE_ON_RIGHT;
-    default: return IsolateStatus::FAILURE;
-  }
-}
-
 inline std::ostream& operator<<(std::ostream& os, const IAWrapper& iaw)
 {
   os << "{ ";
@@ -131,9 +114,8 @@ std::vector<Candidate> ICPSolver::constructCandidates(const Node& n)
 
     const poly::Context& polyCtx = nodeManager()->getPolyContext();
 
-    IsolateStatus isolateStatus =
-        getIsolateStatus(ArithMSum::isolate(v, msum, veq_c, val, k));
-    if (isolateStatus == IsolateStatus::VARIABLE_ON_LEFT)
+    int isolated = ArithMSum::isolate(v, msum, veq_c, val, k);
+    if (isolated == 1)
     {
       poly::Variable lhs = d_mapper(v);
       poly::SignCondition rel = poly::SignCondition::EQ;
@@ -164,7 +146,7 @@ std::vector<Candidate> ICPSolver::constructCandidates(const Node& n)
       Trace("nl-icp") << "\tAdded " << res << " from " << n << std::endl;
       result.emplace_back(res);
     }
-    else if (isolateStatus == IsolateStatus::VARIABLE_ON_RIGHT)
+    else if (isolated == -1)
     {
       poly::Variable lhs = d_mapper(v);
       poly::SignCondition rel = poly::SignCondition::EQ;

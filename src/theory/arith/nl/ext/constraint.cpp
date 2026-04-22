@@ -23,27 +23,6 @@ namespace theory {
 namespace arith {
 namespace nl {
 
-namespace {
-
-enum class IsolateStatus
-{
-  FAILURE,
-  VARIABLE_ON_LEFT,
-  VARIABLE_ON_RIGHT
-};
-
-IsolateStatus getIsolateStatus(int status)
-{
-  switch (status)
-  {
-    case 1: return IsolateStatus::VARIABLE_ON_LEFT;
-    case -1: return IsolateStatus::VARIABLE_ON_RIGHT;
-    default: return IsolateStatus::FAILURE;
-  }
-}
-
-}  // namespace
-
 ConstraintDb::ConstraintDb(MonomialDb& mdb) : d_mdb(mdb) {}
 
 void ConstraintDb::registerConstraint(Node atom)
@@ -92,12 +71,11 @@ void ConstraintDb::registerConstraint(Node atom)
     {
       Node m = all_m[i];
       Node rhs, coeff;
-      IsolateStatus isolateStatus = getIsolateStatus(
-          ArithMSum::isolate(m, msum, coeff, rhs, atom.getKind()));
-      if (isolateStatus != IsolateStatus::FAILURE)
+      int res = ArithMSum::isolate(m, msum, coeff, rhs, atom.getKind());
+      if (res != 0)
       {
         Kind type = atom.getKind();
-        if (isolateStatus == IsolateStatus::VARIABLE_ON_RIGHT)
+        if (res == -1)
         {
           type = reverseRelationKind(type);
         }

@@ -29,21 +29,6 @@ namespace theory {
 namespace arith {
 namespace nl {
 
-namespace {
-
-enum class IsolateStatus
-{
-  FAILURE,
-  SUCCESS
-};
-
-IsolateStatus getIsolateStatus(int status)
-{
-  return status == 0 ? IsolateStatus::FAILURE : IsolateStatus::SUCCESS;
-}
-
-}  // namespace
-
 NlModel::NlModel(Env& env) : EnvObj(env), d_used_approx(false)
 {
   d_true = nodeManager()->mkConst(true);
@@ -489,9 +474,7 @@ bool NlModel::solveEqualitySimple(Node eq,
       {
         Node slv;
         Node veqc;
-        if (getIsolateStatus(
-                ArithMSum::isolate(uv, msum, veqc, slv, Kind::EQUAL))
-            != IsolateStatus::FAILURE)
+        if (ArithMSum::isolate(uv, msum, veqc, slv, Kind::EQUAL) != 0)
         {
           Assert(!slv.isNull());
           // must rewrite here to be in substituted form
