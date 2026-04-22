@@ -278,7 +278,8 @@ void NonlinearExtension::checkFullEffort(std::map<Node, Node>& arithModel,
   // theory combination, we first record the model values for all shared
   // terms, if they exist.
   const context::CDList<TNode>& sts = d_astate.getSharedTerms();
-  // reset the model
+  // Reset the model now, as it is used to compute model values for shared
+  // terms in the loop below.
   d_model.reset(arithModel);
   // A mapping from shared terms to their model value, prior to
   // processing the model below.
