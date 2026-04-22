@@ -49,26 +49,6 @@ const char* toString(MonomialSign sign)
   }
 }
 
-const char* toString(ComparisonStatus status)
-{
-  switch (status)
-  {
-    case ComparisonStatus::EQUAL: return "equal";
-    case ComparisonStatus::GREATER_OR_EQUAL: return "greater-or-equal";
-    default: return "greater-than";
-  }
-}
-
-const char* toString(ComparisonResult result)
-{
-  switch (result)
-  {
-    case ComparisonResult::LESS_THAN: return "less-than";
-    case ComparisonResult::EQUAL: return "equal";
-    default: return "greater-than";
-  }
-}
-
 MonomialSign getMonomialSign(int sign)
 {
   Assert(sign >= -1 && sign <= 1);
@@ -94,55 +74,6 @@ Kind kindForSign(MonomialSign sign)
 {
   Assert(sign != MonomialSign::ZERO);
   return sign == MonomialSign::POSITIVE ? Kind::GT : Kind::LT;
-}
-
-ComparisonResult getComparisonResult(int result)
-{
-  Assert(result >= -1 && result <= 1);
-  if (result < 0)
-  {
-    return ComparisonResult::LESS_THAN;
-  }
-  if (result > 0)
-  {
-    return ComparisonResult::GREATER_THAN;
-  }
-  return ComparisonResult::EQUAL;
-}
-
-bool satisfies(ComparisonResult actual, ComparisonStatus desired)
-{
-  switch (desired)
-  {
-    case ComparisonStatus::EQUAL: return actual == ComparisonResult::EQUAL;
-    case ComparisonStatus::GREATER_OR_EQUAL:
-      return actual != ComparisonResult::LESS_THAN;
-    default: return actual == ComparisonResult::GREATER_THAN;
-  }
-}
-
-Kind kindForComparisonStatus(ComparisonStatus status)
-{
-  switch (status)
-  {
-    case ComparisonStatus::EQUAL: return Kind::EQUAL;
-    case ComparisonStatus::GREATER_OR_EQUAL: return Kind::GEQ;
-    default: return Kind::GT;
-  }
-}
-
-ComparisonStatus comparisonStatusFromKind(Kind k)
-{
-  Assert(k == Kind::EQUAL || k == Kind::GEQ || k == Kind::GT);
-  if (k == Kind::EQUAL)
-  {
-    return ComparisonStatus::EQUAL;
-  }
-  if (k == Kind::GEQ)
-  {
-    return ComparisonStatus::GREATER_OR_EQUAL;
-  }
-  return ComparisonStatus::GREATER_THAN;
 }
 
 }  // namespace
@@ -520,7 +451,7 @@ bool MonomialCheck::compareMonomial(
                       b,
                       0,
                       b_exp_proc,
-                      ComparisonStatus::EQUAL,
+                      Kind::EQUAL,
                       exp,
                       lem,
                       cmp_infers))
@@ -538,7 +469,7 @@ bool MonomialCheck::compareMonomial(
                       a,
                       0,
                       a_exp_proc,
-                      ComparisonStatus::EQUAL,
+                      Kind::EQUAL,
                       exp,
                       lem,
                       cmp_infers))
@@ -559,7 +490,7 @@ bool MonomialCheck::compareMonomial(
     Node b,
     unsigned b_index,
     NodeMultiset& b_exp_proc,
-    ComparisonStatus status,
+    Kind status,
     std::vector<Node>& exp,
     std::vector<SimpleTheoryLemma>& lem,
     MonomialCheck::CompareInferenceMap& cmp_infers)
@@ -567,33 +498,31 @@ bool MonomialCheck::compareMonomial(
   Trace("nl-ext-comp-debug")
       << "compareMonomial " << oa << " and " << ob << ", indices = " << a_index
       << " " << b_index << std::endl;
-  Assert(status == ComparisonStatus::EQUAL
-         || status == ComparisonStatus::GREATER_THAN);
+  Assert(status == Kind::EQUAL || status == Kind::GT);
   NodeManager* nm = nodeManager();
   const std::vector<Node>& vla = d_data->d_mdb.getVariableList(a);
   const std::vector<Node>& vlb = d_data->d_mdb.getVariableList(b);
   if (a_index == vla.size() && b_index == vlb.size())
   {
     // finished, compare absolute value of abstract model values
-    ComparisonResult modelStatus =
-        getComparisonResult(d_data->d_model.compare(oa, ob, false, true));
+    int modelCmp = d_data->d_model.compare(oa, ob, false, true);
+    Kind modelStatus =
+        modelCmp < 0 ? Kind::LT : (modelCmp == 0 ? Kind::EQUAL : Kind::GT);
     Trace("nl-ext-comp") << "...finished comparison with " << oa << " <"
-                         << toString(status) << "> " << ob
-                         << ", model status = " << toString(modelStatus)
-                         << std::endl;
-    if (!satisfies(modelStatus, status))
+                         << status << "> " << ob
+                         << ", model status = " << modelStatus << std::endl;
+    if (status != modelStatus)
     {
-      Trace("nl-ext-comp-infer") << "infer : " << oa << " <" << toString(status)
-                                 << "> " << ob << std::endl;
-      if (status == ComparisonStatus::GREATER_THAN)
+      Trace("nl-ext-comp-infer")
+          << "infer : " << oa << " <" << status << "> " << ob << std::endl;
+      if (status == Kind::GT)
       {
         for (const Node& v : vla)
         {
           exp.push_back(v.eqNode(mkZero(v.getType())).negate());
         }
       }
-      Kind k = kindForComparisonStatus(status);
-      Node conc = mkAndNotifyAbsLit(k, oa, ob);
+      Node conc = mkAndNotifyAbsLit(status, oa, ob);
       Node clem = nm->mkNode(Kind::IMPLIES, nm->mkAnd(exp), conc);
       Trace("nl-ext-comp-lemma") << "comparison lemma : " << clem << std::endl;
       // use dedicated proof generator d_ancPfGen
@@ -677,19 +606,18 @@ bool MonomialCheck::compareMonomial(
       Node one = mkOne(bv.getType());
       Kind k = bvo == ovo ? Kind::EQUAL : Kind::GT;
       exp.push_back(mkAndNotifyAbsLit(k, one, bv));
-      return compareMonomial(
-          oa,
-          a,
-          a_index,
-          a_exp_proc,
-          ob,
-          b,
-          b_index + 1,
-          b_exp_proc,
-          bvo == ovo ? status : ComparisonStatus::GREATER_THAN,
-          exp,
-          lem,
-          cmp_infers);
+      return compareMonomial(oa,
+                             a,
+                             a_index,
+                             a_exp_proc,
+                             ob,
+                             b,
+                             b_index + 1,
+                             b_exp_proc,
+                             bvo == ovo ? status : Kind::GT,
+                             exp,
+                             lem,
+                             cmp_infers);
     }
     Trace("nl-ext-comp-debug")
         << "...failure, unmatched |b|>1 component." << std::endl;
@@ -704,19 +632,18 @@ bool MonomialCheck::compareMonomial(
       Node one = mkOne(av.getType());
       Kind k = avo == ovo ? Kind::EQUAL : Kind::GT;
       exp.push_back(mkAndNotifyAbsLit(k, av, one));
-      return compareMonomial(
-          oa,
-          a,
-          a_index + 1,
-          a_exp_proc,
-          ob,
-          b,
-          b_index,
-          b_exp_proc,
-          avo == ovo ? status : ComparisonStatus::GREATER_THAN,
-          exp,
-          lem,
-          cmp_infers);
+      return compareMonomial(oa,
+                             a,
+                             a_index + 1,
+                             a_exp_proc,
+                             ob,
+                             b,
+                             b_index,
+                             b_exp_proc,
+                             avo == ovo ? status : Kind::GT,
+                             exp,
+                             lem,
+                             cmp_infers);
     }
     Trace("nl-ext-comp-debug")
         << "...failure, unmatched |a|<1 component." << std::endl;
@@ -732,19 +659,18 @@ bool MonomialCheck::compareMonomial(
       Node one = mkOne(av.getType());
       Kind k = avo == ovo ? Kind::EQUAL : Kind::GT;
       exp.push_back(mkAndNotifyAbsLit(k, av, one));
-      return compareMonomial(
-          oa,
-          a,
-          a_index + 1,
-          a_exp_proc,
-          ob,
-          b,
-          b_index,
-          b_exp_proc,
-          avo == ovo ? status : ComparisonStatus::GREATER_THAN,
-          exp,
-          lem,
-          cmp_infers);
+      return compareMonomial(oa,
+                             a,
+                             a_index + 1,
+                             a_exp_proc,
+                             ob,
+                             b,
+                             b_index,
+                             b_exp_proc,
+                             avo == ovo ? status : Kind::GT,
+                             exp,
+                             lem,
+                             cmp_infers);
     }
     unsigned min_exp = aexp > bexp ? bexp : aexp;
     a_exp_proc[av] += min_exp;
@@ -753,19 +679,18 @@ bool MonomialCheck::compareMonomial(
                                << av << " and " << bv << std::endl;
     Kind k = avo == bvo ? Kind::EQUAL : Kind::GT;
     exp.push_back(mkAndNotifyAbsLit(k, av, bv));
-    bool ret =
-        compareMonomial(oa,
-                        a,
-                        a_index,
-                        a_exp_proc,
-                        ob,
-                        b,
-                        b_index,
-                        b_exp_proc,
-                        avo == bvo ? status : ComparisonStatus::GREATER_THAN,
-                        exp,
-                        lem,
-                        cmp_infers);
+    bool ret = compareMonomial(oa,
+                               a,
+                               a_index,
+                               a_exp_proc,
+                               ob,
+                               b,
+                               b_index,
+                               b_exp_proc,
+                               avo == bvo ? status : Kind::GT,
+                               exp,
+                               lem,
+                               cmp_infers);
     a_exp_proc[av] -= min_exp;
     b_exp_proc[bv] -= min_exp;
     return ret;
@@ -785,7 +710,7 @@ bool MonomialCheck::compareMonomial(
                            b,
                            b_index + 1,
                            b_exp_proc,
-                           bvo == ovo ? status : ComparisonStatus::GREATER_THAN,
+                           bvo == ovo ? status : Kind::GT,
                            exp,
                            lem,
                            cmp_infers);
@@ -917,8 +842,7 @@ Node MonomialCheck::mkAndNotifyAbsLit(Kind k, Node a, Node b) const
       b = castToReal(nm, b);
     }
   }
-  ComparisonStatus status = comparisonStatusFromKind(k);
-  Node ret = mkLit(a, b, status, true);
+  Node ret = mkLit(a, b, k, true);
   // if proofs are enabled, we ensure we remember what the literal represents
   if (d_ancPfGen != nullptr)
   {
@@ -927,15 +851,12 @@ Node MonomialCheck::mkAndNotifyAbsLit(Kind k, Node a, Node b) const
   return ret;
 }
 
-Node MonomialCheck::mkLit(Node a,
-                          Node b,
-                          ComparisonStatus status,
-                          bool isAbsolute) const
+Node MonomialCheck::mkLit(Node a, Node b, Kind status, bool isAbsolute) const
 {
   NodeManager* nm = nodeManager();
   Assert(a.getType().isRealOrInt() && b.getType().isRealOrInt());
   Node ret;
-  if (status == ComparisonStatus::EQUAL)
+  if (status == Kind::EQUAL)
   {
     Node a_eq_b = mkEquality(a, b);
     if (!isAbsolute)
@@ -950,11 +871,10 @@ Node MonomialCheck::mkLit(Node a,
   }
   else
   {
-    Kind k = kindForComparisonStatus(status);
-    Assert(k == Kind::GEQ || k == Kind::GT);
+    Assert(status == Kind::GEQ || status == Kind::GT);
     if (!isAbsolute)
     {
-      ret = nm->mkNode(k, a, b);
+      ret = nm->mkNode(status, a, b);
     }
     else
     {
@@ -965,9 +885,9 @@ Node MonomialCheck::mkLit(Node a,
       Node negate_b = nm->mkNode(Kind::NEG, b);
       ret = a_is_nonnegative.iteNode(
           {b_is_nonnegative.iteNode(
-               {nm->mkNode(k, a, b), nm->mkNode(k, a, negate_b)}),
-           b_is_nonnegative.iteNode({nm->mkNode(k, negate_a, b),
-                                     nm->mkNode(k, negate_a, negate_b)})});
+               {nm->mkNode(status, a, b), nm->mkNode(status, a, negate_b)}),
+           b_is_nonnegative.iteNode({nm->mkNode(status, negate_a, b),
+                                     nm->mkNode(status, negate_a, negate_b)})});
     }
   }
   return ret;

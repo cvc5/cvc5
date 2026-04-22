@@ -46,22 +46,6 @@ enum class MonomialSign
   POSITIVE
 };
 
-/** A non-strict/strict comparison between arithmetic terms. */
-enum class ComparisonStatus
-{
-  EQUAL,
-  GREATER_OR_EQUAL,
-  GREATER_THAN
-};
-
-/** The current model comparison between two arithmetic terms. */
-enum class ComparisonResult
-{
-  LESS_THAN,
-  EQUAL,
-  GREATER_THAN
-};
-
 class MonomialCheck : protected EnvObj
 {
  public:
@@ -112,7 +96,7 @@ class MonomialCheck : protected EnvObj
 
  private:
   using CompareInferenceMap =
-      std::map<ComparisonStatus, std::map<Node, std::map<Node, Node> > >;
+      std::map<Kind, std::map<Node, std::map<Node, Node> > >;
 
   /** compute the sign of a.
    *
@@ -189,7 +173,7 @@ class MonomialCheck : protected EnvObj
                        Node b,
                        unsigned b_index,
                        NodeMultiset& b_exp_proc,
-                       ComparisonStatus status,
+                       Kind status,
                        std::vector<Node>& exp,
                        std::vector<SimpleTheoryLemma>& lem,
                        CompareInferenceMap& cmp_infers);
@@ -218,10 +202,7 @@ class MonomialCheck : protected EnvObj
    * Make literal that compares (the absolute value of) a and b based on
    * status.
    */
-  Node mkLit(Node a,
-             Node b,
-             ComparisonStatus status,
-             bool isAbsolute = false) const;
+  Node mkLit(Node a, Node b, Kind status, bool isAbsolute = false) const;
   /** register monomial */
   void setMonomialFactor(Node a, Node b, const NodeMultiset& common);
 
