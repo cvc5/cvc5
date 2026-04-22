@@ -243,8 +243,8 @@ Node AletheNodeConverter::postConvert(Node n)
         Node select =
             d_nm->mkNode(Kind::NOT,
                          d_nm->mkNode(Kind::EQUAL,
-                                      d_nm->mkNode(Kind::SELECT, a, var),
-                                      d_nm->mkNode(Kind::SELECT, b, var)));
+                                      {d_nm->mkNode(Kind::SELECT, a, var),
+                                       d_nm->mkNode(Kind::SELECT, b, var)}));
         Node body = d_nm->mkNode(Kind::OR, eq, select);
         Node choice = d_nm->mkNode(
             Kind::WITNESS, d_nm->mkNode(Kind::BOUND_VAR_LIST, var), body);
