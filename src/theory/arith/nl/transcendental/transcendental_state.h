@@ -83,7 +83,9 @@ inline std::ostream& operator<<(std::ostream& os, TranscendentalRegion r)
       return os << "SINE_ZERO_TO_PI_OVER_TWO";
     case TranscendentalRegion::SINE_NEG_PI_OVER_TWO_TO_ZERO:
       return os << "SINE_NEG_PI_OVER_TWO_TO_ZERO";
-    default: return os << "SINE_NEG_PI_TO_NEG_PI_OVER_TWO";
+    case TranscendentalRegion::SINE_NEG_PI_TO_NEG_PI_OVER_TWO:
+      return os << "SINE_NEG_PI_TO_NEG_PI_OVER_TWO";
+    default: return os << "UNKNOWN";
   }
 }
 inline bool isValidRegion(TranscendentalRegion region)
@@ -104,7 +106,8 @@ inline std::ostream& operator<<(std::ostream& os, MonotonicityDirection d)
   {
     case MonotonicityDirection::NONE: return os << "NONE";
     case MonotonicityDirection::INCREASING: return os << "INCREASING";
-    default: return os << "DECREASING";
+    case MonotonicityDirection::DECREASING: return os << "DECREASING";
+    default: return os << "UNKNOWN";
   }
 }
 
