@@ -32,7 +32,11 @@ NodeIdDeterminismCheck::NodeIdDeterminismCheck(StringRef Name, ClangTidyContext 
 
 void NodeIdDeterminismCheck::loadNodeIdDependencyList() {
   std::ifstream File(NodeIdDependencyListPath);
-  if (!File.is_open()) return;
+  if (!File.is_open()) {
+    llvm::errs() << "Error: Could not open NodeId dependency list at "
+                 << NodeIdDependencyListPath << "\n";
+    return;
+  }
 
   std::string Line;
   while (std::getline(File, Line)) {

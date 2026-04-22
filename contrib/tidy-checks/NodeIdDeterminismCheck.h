@@ -7,7 +7,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * A clang-tidy check that identifies potential non-deterministic NodeId assignments in 
+ * A clang-tidy check that identifies potential non-deterministic NodeId assignments
  * in the cvc5 codebase and suggests fixes to enforce deterministic evaluation order.
  */
 
