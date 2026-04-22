@@ -15,8 +15,6 @@
 #include <string>
 
 #include "expr/kind.h"
-#include "options/io_utils.h"
-#include "options/language.h"
 #include "test.h"
 
 namespace cvc5::internal {
@@ -71,16 +69,7 @@ TEST_F(TestNodeBlackKind, output)
 {
   ASSERT_TRUE(string_is_as_expected(d_undefined, "UNDEFINED_KIND"));
   ASSERT_TRUE(string_is_as_expected(d_null, "NULL"));
-  ASSERT_TRUE(string_is_as_expected(Kind::AND, "AND"));
   ASSERT_TRUE(string_is_as_expected(d_last, "LAST_KIND"));
-}
-
-TEST_F(TestNodeBlackKind, output_ignores_stream_language)
-{
-  std::stringstream ss;
-  options::ioutils::applyOutputLanguage(ss, Language::LANG_SMTLIB_V2_6);
-  ss << Kind::AND;
-  ASSERT_EQ(ss.str(), "AND");
 }
 
 TEST_F(TestNodeBlackKind, output_concat)

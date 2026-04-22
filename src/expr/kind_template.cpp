@@ -41,7 +41,8 @@ const char* toString(cvc5::internal::Kind k)
 
 std::ostream& operator<<(std::ostream& out, cvc5::internal::Kind k)
 {
-  return out << toString(k);
+  Printer::getPrinter(out)->toStream(out, k);
+  return out;
 }
 
 /** Returns true if the given kind is associative. This is used by ExprManager
