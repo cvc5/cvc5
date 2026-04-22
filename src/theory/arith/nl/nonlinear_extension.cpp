@@ -278,6 +278,8 @@ void NonlinearExtension::checkFullEffort(std::map<Node, Node>& arithModel,
   // theory combination, we first record the model values for all shared
   // terms, if they exist.
   const context::CDList<TNode>& sts = d_astate.getSharedTerms();
+  // reset the model
+  d_model.reset(arithModel);
   // A mapping from shared terms to their model value, prior to
   // processing the model below.
   std::unordered_map<TNode, Node> revSharedTermsPre;
@@ -299,7 +301,6 @@ void NonlinearExtension::checkFullEffort(std::map<Node, Node>& arithModel,
     Trace("nl-model-final") << "END" << std::endl;
   }
   Trace("nl-ext") << "NonlinearExtension::interceptModel begin" << std::endl;
-  d_model.reset(arithModel);
   // run a last call effort check
   Trace("nl-ext") << "interceptModel: do model-based refinement" << std::endl;
   Result::Status res = modelBasedRefinement(termSet);
