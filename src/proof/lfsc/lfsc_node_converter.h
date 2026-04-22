@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Abdalrhman Mohamed, Daniel Larraz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -146,7 +143,7 @@ class LfscNodeConverter : public NodeConverter
    * (in SkolemManager::mkSkolemFunction) that is supported in the LFSC
    * signature.
    */
-  Node maybeMkSkolemFun(Node k, bool macroApply = false);
+  Node maybeMkSkolemFun(Node k);
   /**
    * Type as node, returns a node that prints in the form that LFSC will
    * interpret as the type tni. This method is required since types can be

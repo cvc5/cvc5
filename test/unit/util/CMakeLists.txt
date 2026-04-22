@@ -1,10 +1,7 @@
 ###############################################################################
-# Top contributors (to current version):
-#   Mathias Preiner, Gereon Kremer, Aina Niemetz
-#
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -28,6 +25,7 @@ cvc5_add_unit_test_black(exception_black util)
 cvc5_add_unit_test_black(floatingpoint_black util)
 cvc5_add_unit_test_black(integer_black util)
 cvc5_add_unit_test_white(integer_white util)
+cvc5_add_unit_test_white(omt_result_white util)
 cvc5_add_unit_test_black(output_black util)
 cvc5_add_unit_test_black(rational_black util)
 cvc5_add_unit_test_white(rational_white util)

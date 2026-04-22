@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Yoni Zohar, Makai Mann, Daniel Larraz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -39,7 +36,6 @@ static Rational intpow2(uint32_t b)
 
 Node pow2(NodeManager* nm, uint32_t k)
 {
-  Assert(k >= 0);
   return nm->mkConstInt(Rational(intpow2(k)));
 }
 
@@ -54,8 +50,8 @@ Node intExtract(Node x, uint32_t i, uint32_t size)
   // (mod (div a (two_to_the j)) (two_to_the (+ (- i j) 1))))
   Node extract = NodeManager::mkNode(
       Kind::INTS_MODULUS_TOTAL,
-      NodeManager::mkNode(Kind::INTS_DIVISION_TOTAL, x, pow2(nm, i * size)),
-      pow2(nm, size));
+      {NodeManager::mkNode(Kind::INTS_DIVISION_TOTAL, x, pow2(nm, i * size)),
+       pow2(nm, size)});
   return extract;
 }
 
@@ -93,14 +89,14 @@ Node IAndUtils::createITEFromTable(
       // append the current value to the ite.
       ite = NodeManager::mkNode(
           Kind::ITE,
-          NodeManager::mkNode(
-              Kind::AND,
-              NodeManager::mkNode(
-                  Kind::EQUAL, x, d_nm->mkConstInt(Rational(i))),
-              NodeManager::mkNode(
-                  Kind::EQUAL, y, d_nm->mkConstInt(Rational(j)))),
-          d_nm->mkConstInt(Rational(table.at(std::make_pair(i, j)))),
-          ite);
+          {NodeManager::mkNode(
+               Kind::AND,
+               {NodeManager::mkNode(
+                    Kind::EQUAL, x, d_nm->mkConstInt(Rational(i))),
+                NodeManager::mkNode(
+                    Kind::EQUAL, y, d_nm->mkConstInt(Rational(j)))}),
+           d_nm->mkConstInt(Rational(table.at(std::make_pair(i, j)))),
+           ite});
     }
   }
   return ite;
@@ -175,8 +171,10 @@ Node IAndUtils::createBitwiseIAndNode(Node x,
   }
   const std::map<std::pair<int64_t, int64_t>, uint64_t>& table =
       d_bvandTable[granularity];
-  return createITEFromTable(
-      iextract(high, low, x), iextract(high, low, y), granularity, table);
+  // Use iextractX and iextractY to ensure deterministic node ID assignments
+  Node iextractX = iextract(high, low, x);
+  Node iextractY = iextract(high, low, y);
+  return createITEFromTable(iextractX, iextractY, granularity, table);
 }
 
 Node IAndUtils::iextract(uint32_t i, uint32_t j, Node n) const

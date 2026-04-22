@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,32 +24,46 @@ namespace cvc5::internal {
 namespace theory {
 
 // attribute for "contains instantiation constants from"
-struct InstConstantAttributeId {};
+struct InstConstantAttributeId
+{
+};
 typedef expr::Attribute<InstConstantAttributeId, Node> InstConstantAttribute;
 
-struct InstVarNumAttributeId {};
+struct InstVarNumAttributeId
+{
+};
 typedef expr::Attribute<InstVarNumAttributeId, uint64_t> InstVarNumAttribute;
 
-struct TermDepthAttributeId {};
+struct TermDepthAttributeId
+{
+};
 typedef expr::Attribute<TermDepthAttributeId, uint64_t> TermDepthAttribute;
 
-struct ContainsUConstAttributeId {};
-typedef expr::Attribute<ContainsUConstAttributeId, uint64_t> ContainsUConstAttribute;
+struct ContainsUConstAttributeId
+{
+};
+typedef expr::Attribute<ContainsUConstAttributeId, uint64_t>
+    ContainsUConstAttribute;
 
 /**
  * for quantifier instantiation level.
  */
-struct QuantInstLevelAttributeId {};
+struct QuantInstLevelAttributeId
+{
+};
 typedef expr::Attribute<QuantInstLevelAttributeId, uint64_t>
     QuantInstLevelAttribute;
 
 /** Attribute for id number */
-struct QuantIdNumAttributeId {};
-typedef expr::Attribute< QuantIdNumAttributeId, uint64_t > QuantIdNumAttribute;
+struct QuantIdNumAttributeId
+{
+};
+typedef expr::Attribute<QuantIdNumAttributeId, uint64_t> QuantIdNumAttribute;
 
 namespace quantifiers {
 
-// TODO : #1216 split this class, most of the functions in this class should be dispersed to where they are used.
+// TODO : #1216 split this class, most of the functions in this class should be
+// dispersed to where they are used.
 class TermUtil
 {
  public:
@@ -73,7 +84,7 @@ class TermUtil
    * @return (one of) the quantified formulas for which n contains instantiation
    * constants from, or the null node otherwise.
    */
-  static Node getInstConstAttr( Node n );
+  static Node getInstConstAttr(Node n);
   /**
    * Does n (or its original form) contain instantiation constants? This method
    * is used for determining when a term is ineligible for instantiation.
@@ -82,13 +93,14 @@ class TermUtil
    * @return true if n has instantiation constants.
    */
   static bool hasInstConstAttr(Node n);
-  
-private:
+
+ private:
   /** get bound vars */
-  static Node getRemoveQuantifiers2( Node n, std::map< Node, Node >& visited );
-public:
-  //remove quantifiers
-  static Node getRemoveQuantifiers( Node n );
+  static Node getRemoveQuantifiers2(Node n, std::map<Node, Node>& visited);
+
+ public:
+  // remove quantifiers
+  static Node getRemoveQuantifiers(Node n);
   /**
    * Adds the set of nodes of kind INST_CONSTANT in n that belong to quantified
    * formula q to vars.
@@ -99,11 +111,11 @@ public:
 
  public:
   /** contains uninterpreted constant */
-  static bool containsUninterpretedConstant( Node n );
+  static bool containsUninterpretedConstant(Node n);
   /** get the term depth of n */
-  static int getTermDepth( Node n );
+  static int getTermDepth(Node n);
   /** simple negate */
-  static Node simpleNegate( Node n );
+  static Node simpleNegate(Node n);
   /** is the kind k a negation kind?
    *
    * A kind k is a negation kind if <k>( <k>( n ) ) = n.
@@ -133,11 +145,11 @@ public:
    *   <k>( T1, x, T2 )
    * always holds, where T1 and T2 are vectors.
    */
-  static bool isNonAdditive( Kind k );
+  static bool isNonAdditive(Kind k);
   /** is k a bool connective? */
-  static bool isBoolConnective( Kind k );
+  static bool isBoolConnective(Kind k);
   /** is n a bool connective term? */
-  static bool isBoolConnectiveTerm( TNode n );
+  static bool isBoolConnectiveTerm(TNode n);
 
   /** is the kind k antisymmetric?
    * If so, return true and store its inverse kind in dk.
@@ -203,7 +215,7 @@ public:
    * if possible.
    */
   static Node ensureType(Node n, TypeNode tn);
-};/* class TermUtil */
+}; /* class TermUtil */
 
 }  // namespace quantifiers
 }  // namespace theory

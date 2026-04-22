@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -83,8 +80,8 @@ class InstLemmaList
  *
  * This class is used for generating instantiation lemmas.  It maintains an
  * instantiation trie, which is represented by a different data structure
- * depending on whether incremental solving is enabled (see d_inst_match_trie
- * and d_c_inst_match_trie).
+ * depending on whether incremental solving is enabled (see d_imt
+ * and d_cimt).
  *
  * Below, we say an instantiation lemma for q = forall x. F under substitution
  * { x -> t } is the formula:
@@ -102,6 +99,8 @@ class Instantiate : public QuantifiersUtil
 {
   using NodeInstListMap =
       context::CDHashMap<Node, std::shared_ptr<InstLemmaList>>;
+  using NodeInstTrieMap =
+      context::CDHashMap<Node, std::shared_ptr<CDInstMatchTrie>>;
 
  public:
   Instantiate(Env& env,
@@ -259,14 +258,14 @@ class Instantiate : public QuantifiersUtil
    * the current user context for quantified formula q, store them in tvecs.
    */
   void getInstantiationTermVectors(Node q,
-                                   std::vector<std::vector<Node> >& tvecs);
+                                   std::vector<std::vector<Node>>& tvecs);
   /** get instantiation term vectors
    *
    * Get term vectors for all instantiations lemmas added in the current user
    * context for quantified formula q, store them in tvecs.
    */
   void getInstantiationTermVectors(
-      std::map<Node, std::vector<std::vector<Node> > >& insts);
+      std::map<Node, std::vector<std::vector<Node>>>& insts);
   /**
    * Get instantiations for quantified formula q. If q is (forall ((x T)) (P
    * x)), this is a list of the form (P t1) ... (P tn) for ground terms ti.
@@ -302,7 +301,14 @@ class Instantiate : public QuantifiersUtil
                                 Node pfArg = Node::null(),
                                 bool doVts = false);
   /** record instantiation, return true if it was not a duplicate */
-  bool recordInstantiationInternal(Node q, const std::vector<Node>& terms);
+  bool recordInstantiationInternal(Node q,
+                                   const std::vector<Node>& terms,
+                                   bool isLocal);
+  /**
+   * Return true if id is an instantiation type that should be considered
+   * local when using inst-local.
+   */
+  static bool isLocalInstId(InferenceId id);
   /** Get or make the instantiation list for quantified formula q */
   InstLemmaList* getOrMkInstLemmaList(TNode q);
 
@@ -329,26 +335,29 @@ class Instantiate : public QuantifiersUtil
    * of these instantiations, for each quantified formula. This map is cleared
    * on presolve, e.g. it is local to a check-sat call.
    */
-  std::map<Node, std::vector<Node> > d_recordedInst;
+  std::map<Node, std::vector<Node>> d_recordedInst;
   /** statistics for debugging total instantiations per quantifier per round */
   std::map<Node, uint32_t> d_instDebugTemp;
-
   /** list of all instantiations produced for each quantifier
    *
    * We store context (dependent, independent) versions. If incremental solving
-   * is disabled, we use d_inst_match_trie for performance reasons.
+   * is disabled, we use d_imt for performance reasons.
    */
-  std::map<Node, InstMatchTrie> d_inst_match_trie;
-  std::map<Node, CDInstMatchTrie*> d_c_inst_match_trie;
+  std::map<Node, InstMatchTrie> d_imt;
+  /** A user dependent trie of instantiations */
+  NodeInstTrieMap d_uimt;
   /**
-   * The list of quantified formulas for which the domain of d_c_inst_match_trie
-   * is valid.
+   * A SAT-context dependent trie of instantiations, used for inst-local only.
+   * Local instantiations are stored both in d_cimt and in the
+   * main instantiation trie (d_imt or d_uimt).
    */
-  context::CDHashSet<Node> d_c_inst_match_trie_dom;
+  NodeInstTrieMap d_cimt;
   /**
    * A CDProof storing instantiation steps.
    */
   std::unique_ptr<CDProof> d_pfInst;
+  /** Whether we are using context-dependent trie index */
+  bool d_useCdInstTrie;
 };
 
 }  // namespace quantifiers

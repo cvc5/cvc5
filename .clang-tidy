@@ -1,0 +1,9 @@
+# Clang-tidy enables the following checks by default:
+#   clang-diagnostic-*,
+#   clang-analyzer-*
+# Additional checks:
+Checks: >
+  modernize-use-nullptr
+HeaderFilterRegex: '.*'
+# Use .clang-format for formatting changes
+FormatStyle: file

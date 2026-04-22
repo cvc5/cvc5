@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Morgan Deters, Mathias Preiner, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -32,7 +29,8 @@
 namespace cvc5::internal {
 
 template <class T, class U>
-std::ostream& operator<<(std::ostream& out, const std::pair<T, U>& p) {
+std::ostream& operator<<(std::ostream& out, const std::pair<T, U>& p)
+{
   return out << "[" << p.first << "," << p.second << "]";
 }
 
@@ -50,7 +48,7 @@ class null_streambuf : public std::streambuf
    * stream.  Perhaps this is not so critical, but recommended; this
    * way the output stream looks like it's functioning, in a non-error
    * state. */
- int overflow(int c) override { return c; }
+  int overflow(int c) override { return c; }
 }; /* class null_streambuf */
 
 /** A null stream-buffer singleton */
@@ -71,25 +69,36 @@ class Cvc5ostream
   /** The endl manipulator (why do we need to keep this?) */
   std::ostream& (*const d_endl)(std::ostream&);
 
-  // do not allow use
-  Cvc5ostream& operator=(const Cvc5ostream&);
+  Cvc5ostream(const Cvc5ostream&) = delete;
+  Cvc5ostream& operator=(const Cvc5ostream&) = delete;
 
  public:
-  Cvc5ostream() : d_os(NULL), d_firstColumn(false), d_endl(&std::endl) {}
+  Cvc5ostream() : d_os(nullptr), d_firstColumn(false), d_endl(&std::endl) {}
   explicit Cvc5ostream(std::ostream* os)
       : d_os(os), d_firstColumn(true), d_endl(&std::endl)
   {
   }
 
-  void pushIndent() {
-    if(d_os != NULL) {
+  void reset(std::ostream* os)
+  {
+    d_os = os;
+    d_firstColumn = (os != nullptr);
+  }
+
+  void pushIndent()
+  {
+    if (d_os != nullptr)
+    {
       ++d_os->iword(s_indentIosIndex);
     }
   }
-  void popIndent() {
-    if(d_os != NULL) {
+  void popIndent()
+  {
+    if (d_os != nullptr)
+    {
       long& indent = d_os->iword(s_indentIosIndex);
-      if(indent > 0) {
+      if (indent > 0)
+      {
         --indent;
       }
     }
@@ -97,13 +106,14 @@ class Cvc5ostream
 
   Cvc5ostream& flush()
   {
-    if(d_os != NULL) {
+    if (d_os != nullptr)
+    {
       d_os->flush();
     }
     return *this;
   }
 
-  bool isConnected() const { return d_os != NULL; }
+  bool isConnected() const { return d_os != nullptr; }
   operator std::ostream&() const { return isConnected() ? *d_os : null_os; }
 
   std::ostream* getStreamPointer() const { return d_os; }
@@ -130,10 +140,12 @@ class Cvc5ostream
   // support manipulators, endl, etc..
   Cvc5ostream& operator<<(std::ostream& (*pf)(std::ostream&))
   {
-    if(d_os != NULL) {
+    if (d_os != nullptr)
+    {
       d_os = &(*d_os << pf);
 
-      if(pf == d_endl) {
+      if (pf == d_endl)
+      {
         d_firstColumn = true;
       }
     }
@@ -141,14 +153,16 @@ class Cvc5ostream
   }
   Cvc5ostream& operator<<(std::ios& (*pf)(std::ios&))
   {
-    if(d_os != NULL) {
+    if (d_os != nullptr)
+    {
       d_os = &(*d_os << pf);
     }
     return *this;
   }
   Cvc5ostream& operator<<(std::ios_base& (*pf)(std::ios_base&))
   {
-    if(d_os != NULL) {
+    if (d_os != nullptr)
+    {
       d_os = &(*d_os << pf);
     }
     return *this;
@@ -178,9 +192,12 @@ inline Cvc5ostream& pop(Cvc5ostream& stream)
  */
 class NullC
 {
+  mutable Cvc5ostream d_null;
+
  public:
+  NullC() : d_null(nullptr) {}
   operator bool() const { return false; }
-  operator Cvc5ostream() const { return Cvc5ostream(); }
+  operator Cvc5ostream&() const { return d_null; }
   operator std::ostream&() const { return null_os; }
 }; /* class NullC */
 
@@ -192,12 +209,16 @@ class WarningC
   std::set<std::pair<std::string, size_t> > d_alreadyWarned;
   std::ostream* d_os;
 
-public:
+ public:
   explicit WarningC(std::ostream* os) : d_os(os) {}
 
   Cvc5ostream operator()() const { return Cvc5ostream(d_os); }
 
-  std::ostream& setStream(std::ostream* os) { d_os = os; return *d_os; }
+  std::ostream& setStream(std::ostream* os)
+  {
+    d_os = os;
+    return *d_os;
+  }
   std::ostream& getStream() const { return *d_os; }
   std::ostream* getStreamPointer() const { return d_os; }
 
@@ -209,7 +230,8 @@ public:
   bool warnOnce(const std::string& file, size_t line)
   {
     std::pair<std::string, size_t> pr = std::make_pair(file, line);
-    if(d_alreadyWarned.find(pr) != d_alreadyWarned.end()) {
+    if (d_alreadyWarned.find(pr) != d_alreadyWarned.end())
+    {
       // signal caller not to warn again
       return false;
     }
@@ -226,21 +248,27 @@ class TraceC
 {
   std::ostream* d_os;
   std::vector<std::string> d_tags;
+  mutable Cvc5ostream d_stream;
 
-public:
-  explicit TraceC(std::ostream* os) : d_os(os) {}
+ public:
+  explicit TraceC(std::ostream* os) : d_os(os), d_stream(os) {}
 
-  Cvc5ostream operator()() const
+  Cvc5ostream& operator()() const
   {
-    return Cvc5ostream(d_os);
+    d_stream.reset(d_os);
+    return d_stream;
   }
-  Cvc5ostream operator()(const std::string& tag) const
+  Cvc5ostream& operator()(const std::string& tag) const
   {
-    if (isOn(tag)) {
-      return Cvc5ostream(d_os);
-    } else {
-      return Cvc5ostream();
+    if (isOn(tag))
+    {
+      d_stream.reset(d_os);
     }
+    else
+    {
+      d_stream.reset(nullptr);
+    }
+    return d_stream;
   }
 
   bool on(const std::string& tag)
@@ -263,10 +291,15 @@ public:
   {
     // This is faster than using std::set::find() or sorting the vector and
     // using std::lower_bound.
-    return !d_tags.empty() && std::find(d_tags.begin(), d_tags.end(), tag) != d_tags.end();
+    return !d_tags.empty()
+           && std::find(d_tags.begin(), d_tags.end(), tag) != d_tags.end();
   }
 
-  std::ostream& setStream(std::ostream* os) { d_os = os; return *d_os; }
+  std::ostream& setStream(std::ostream* os)
+  {
+    d_os = os;
+    return *d_os;
+  }
   std::ostream& getStream() const { return *d_os; }
   std::ostream* getStreamPointer() const { return d_os; }
 
@@ -339,9 +372,10 @@ class __cvc5_true
  */
 class IndentedScope
 {
-  Cvc5ostream d_out;
+  Cvc5ostream& d_out;
+
  public:
-  inline IndentedScope(Cvc5ostream out) : d_out(out) { d_out << push; }
+  inline IndentedScope(Cvc5ostream& out) : d_out(out) { d_out << push; }
   inline ~IndentedScope() { d_out << pop; }
 }; /* class IndentedScope */
 

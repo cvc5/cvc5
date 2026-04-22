@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Martin Brain, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -45,7 +42,7 @@ TheoryFp::TheoryFp(Env& env, OutputChannel& out, Valuation valuation)
       d_wordBlaster(new FpWordBlaster(nodeManager(), userContext())),
       d_registeredTerms(userContext()),
       d_abstractionMap(userContext()),
-      d_rewriter(nodeManager(), userContext(), options().fp.fpExp),
+      d_rewriter(nodeManager(), options().fp.fpExp),
       d_state(env, valuation),
       d_im(env, *this, d_state, "theory::fp::", true),
       d_notify(d_im),
@@ -122,7 +119,8 @@ void TheoryFp::finishInit()
   d_equalityEngine->addFunctionKind(Kind::ROUNDINGMODE_BITBLAST);
 }
 
-TrustNode TheoryFp::ppRewrite(TNode node, std::vector<SkolemLemma>& lems)
+TrustNode TheoryFp::ppRewrite(TNode node,
+                              CVC5_UNUSED std::vector<SkolemLemma>& lems)
 {
   Trace("fp-ppRewrite") << "TheoryFp::ppRewrite(): " << node << std::endl;
 
@@ -149,7 +147,7 @@ TrustNode TheoryFp::ppRewrite(TNode node, std::vector<SkolemLemma>& lems)
   return TrustNode::null();
 }
 
-bool TheoryFp::refineAbstraction(TheoryModel *m, TNode abstract, TNode concrete)
+bool TheoryFp::refineAbstraction(TheoryModel* m, TNode abstract, TNode concrete)
 {
   Trace("fp-refineAbstraction") << "TheoryFp::refineAbstraction(): " << abstract
                                 << " vs. " << concrete << std::endl;
@@ -198,18 +196,18 @@ bool TheoryFp::refineAbstraction(TheoryModel *m, TNode abstract, TNode concrete)
 
       Node defined = nm->mkNode(
           Kind::AND,
-          nm->mkNode(Kind::NOT,
-                     nm->mkNode(Kind::FLOATINGPOINT_IS_NAN, concrete[0])),
-          nm->mkNode(Kind::NOT,
-                     nm->mkNode(Kind::FLOATINGPOINT_IS_INF, concrete[0])));
+          {nm->mkNode(Kind::NOT,
+                      nm->mkNode(Kind::FLOATINGPOINT_IS_NAN, concrete[0])),
+           nm->mkNode(Kind::NOT,
+                      nm->mkNode(Kind::FLOATINGPOINT_IS_INF, concrete[0]))});
       // First the "forward" constraints
       Node fg = nm->mkNode(
           Kind::IMPLIES,
           defined,
           nm->mkNode(
               Kind::EQUAL,
-              nm->mkNode(Kind::FLOATINGPOINT_GEQ, concrete[0], floatValue),
-              nm->mkNode(Kind::GEQ, abstract, concreteValue)));
+              {nm->mkNode(Kind::FLOATINGPOINT_GEQ, concrete[0], floatValue),
+               nm->mkNode(Kind::GEQ, abstract, concreteValue)}));
       handleLemma(fg, InferenceId::FP_PREPROCESS);
 
       Node fl = nm->mkNode(
@@ -217,43 +215,43 @@ bool TheoryFp::refineAbstraction(TheoryModel *m, TNode abstract, TNode concrete)
           defined,
           nm->mkNode(
               Kind::EQUAL,
-              nm->mkNode(Kind::FLOATINGPOINT_LEQ, concrete[0], floatValue),
-              nm->mkNode(Kind::LEQ, abstract, concreteValue)));
+              {nm->mkNode(Kind::FLOATINGPOINT_LEQ, concrete[0], floatValue),
+               nm->mkNode(Kind::LEQ, abstract, concreteValue)}));
       handleLemma(fl, InferenceId::FP_PREPROCESS);
 
       // Then the backwards constraints
       Node floatAboveAbstract = rewrite(
           nm->mkNode(Kind::FLOATINGPOINT_TO_FP_FROM_REAL,
-                     nm->mkConst(FloatingPointToFPReal(
-                         concrete[0].getType().getConst<FloatingPointSize>())),
-                     nm->mkConst(RoundingMode::ROUND_TOWARD_POSITIVE),
-                     abstractValue));
+                     {nm->mkConst(FloatingPointToFPReal(
+                          concrete[0].getType().getConst<FloatingPointSize>())),
+                      nm->mkConst(RoundingMode::ROUND_TOWARD_POSITIVE),
+                      abstractValue}));
 
       Node bg = nm->mkNode(
           Kind::IMPLIES,
           defined,
           nm->mkNode(
               Kind::EQUAL,
-              nm->mkNode(
-                  Kind::FLOATINGPOINT_GEQ, concrete[0], floatAboveAbstract),
-              nm->mkNode(Kind::GEQ, abstract, abstractValue)));
+              {nm->mkNode(
+                   Kind::FLOATINGPOINT_GEQ, concrete[0], floatAboveAbstract),
+               nm->mkNode(Kind::GEQ, abstract, abstractValue)}));
       handleLemma(bg, InferenceId::FP_PREPROCESS);
 
       Node floatBelowAbstract = rewrite(
           nm->mkNode(Kind::FLOATINGPOINT_TO_FP_FROM_REAL,
-                     nm->mkConst(FloatingPointToFPReal(
-                         concrete[0].getType().getConst<FloatingPointSize>())),
-                     nm->mkConst(RoundingMode::ROUND_TOWARD_NEGATIVE),
-                     abstractValue));
+                     {nm->mkConst(FloatingPointToFPReal(
+                          concrete[0].getType().getConst<FloatingPointSize>())),
+                      nm->mkConst(RoundingMode::ROUND_TOWARD_NEGATIVE),
+                      abstractValue}));
 
       Node bl = nm->mkNode(
           Kind::IMPLIES,
           defined,
           nm->mkNode(
               Kind::EQUAL,
-              nm->mkNode(
-                  Kind::FLOATINGPOINT_LEQ, concrete[0], floatBelowAbstract),
-              nm->mkNode(Kind::LEQ, abstract, abstractValue)));
+              {nm->mkNode(
+                   Kind::FLOATINGPOINT_LEQ, concrete[0], floatBelowAbstract),
+               nm->mkNode(Kind::LEQ, abstract, abstractValue)}));
       handleLemma(bl, InferenceId::FP_PREPROCESS);
       // TODO : see if the overflow conditions could be improved #1914
 
@@ -321,8 +319,8 @@ bool TheoryFp::refineAbstraction(TheoryModel *m, TNode abstract, TNode concrete)
           correctRoundingMode,
           nm->mkNode(
               Kind::EQUAL,
-              nm->mkNode(Kind::GEQ, concrete[1], realValue),
-              nm->mkNode(Kind::FLOATINGPOINT_GEQ, abstract, concreteValue)));
+              {nm->mkNode(Kind::GEQ, concrete[1], realValue),
+               nm->mkNode(Kind::FLOATINGPOINT_GEQ, abstract, concreteValue)}));
       handleLemma(fg, InferenceId::FP_PREPROCESS);
 
       Node fl = nm->mkNode(
@@ -330,8 +328,8 @@ bool TheoryFp::refineAbstraction(TheoryModel *m, TNode abstract, TNode concrete)
           correctRoundingMode,
           nm->mkNode(
               Kind::EQUAL,
-              nm->mkNode(Kind::LEQ, concrete[1], realValue),
-              nm->mkNode(Kind::FLOATINGPOINT_LEQ, abstract, concreteValue)));
+              {nm->mkNode(Kind::LEQ, concrete[1], realValue),
+               nm->mkNode(Kind::FLOATINGPOINT_LEQ, abstract, concreteValue)}));
       handleLemma(fl, InferenceId::FP_PREPROCESS);
 
       // Then the backwards constraints
@@ -347,8 +345,9 @@ bool TheoryFp::refineAbstraction(TheoryModel *m, TNode abstract, TNode concrete)
             correctRoundingMode,
             nm->mkNode(
                 Kind::EQUAL,
-                nm->mkNode(Kind::GEQ, concrete[1], realValueOfAbstract),
-                nm->mkNode(Kind::FLOATINGPOINT_GEQ, abstract, abstractValue)));
+                {nm->mkNode(Kind::GEQ, concrete[1], realValueOfAbstract),
+                 nm->mkNode(
+                     Kind::FLOATINGPOINT_GEQ, abstract, abstractValue)}));
         handleLemma(bg, InferenceId::FP_PREPROCESS);
 
         Node bl = nm->mkNode(
@@ -356,8 +355,9 @@ bool TheoryFp::refineAbstraction(TheoryModel *m, TNode abstract, TNode concrete)
             correctRoundingMode,
             nm->mkNode(
                 Kind::EQUAL,
-                nm->mkNode(Kind::LEQ, concrete[1], realValueOfAbstract),
-                nm->mkNode(Kind::FLOATINGPOINT_LEQ, abstract, abstractValue)));
+                {nm->mkNode(Kind::LEQ, concrete[1], realValueOfAbstract),
+                 nm->mkNode(
+                     Kind::FLOATINGPOINT_LEQ, abstract, abstractValue)}));
         handleLemma(bl, InferenceId::FP_PREPROCESS);
       }
 
@@ -493,23 +493,23 @@ void TheoryFp::registerTerm(TNode node)
     {
       equalityAlias = nm->mkNode(
           Kind::OR,
-          nm->mkNode(Kind::EQUAL,
-                     node[0],
-                     nm->mkConst(FloatingPoint::makeZero(s, true))),
-          nm->mkNode(Kind::EQUAL,
-                     node[0],
-                     nm->mkConst(FloatingPoint::makeZero(s, false))));
+          {nm->mkNode(Kind::EQUAL,
+                      node[0],
+                      nm->mkConst(FloatingPoint::makeZero(s, true))),
+           nm->mkNode(Kind::EQUAL,
+                      node[0],
+                      nm->mkConst(FloatingPoint::makeZero(s, false)))});
     }
     else if (k == Kind::FLOATINGPOINT_IS_INF)
     {
-      equalityAlias =
-          nm->mkNode(Kind::OR,
-                     nm->mkNode(Kind::EQUAL,
-                                node[0],
-                                nm->mkConst(FloatingPoint::makeInf(s, true))),
-                     nm->mkNode(Kind::EQUAL,
-                                node[0],
-                                nm->mkConst(FloatingPoint::makeInf(s, false))));
+      equalityAlias = nm->mkNode(
+          Kind::OR,
+          {nm->mkNode(Kind::EQUAL,
+                      node[0],
+                      nm->mkConst(FloatingPoint::makeInf(s, true))),
+           nm->mkNode(Kind::EQUAL,
+                      node[0],
+                      nm->mkConst(FloatingPoint::makeInf(s, false)))});
     }
     else
     {
@@ -527,18 +527,18 @@ void TheoryFp::registerTerm(TNode node)
     handleLemma(node.eqNode(sk), InferenceId::FP_REGISTER_TERM);
     d_abstractionMap.insert(sk, node);
 
-    Node pd =
-        nm->mkNode(Kind::IMPLIES,
-                   nm->mkNode(Kind::OR,
-                              nm->mkNode(Kind::FLOATINGPOINT_IS_NAN, node[0]),
-                              nm->mkNode(Kind::FLOATINGPOINT_IS_INF, node[0])),
-                   nm->mkNode(Kind::EQUAL, node, node[1]));
+    Node pd = nm->mkNode(
+        Kind::IMPLIES,
+        {nm->mkNode(Kind::OR,
+                    {nm->mkNode(Kind::FLOATINGPOINT_IS_NAN, node[0]),
+                     nm->mkNode(Kind::FLOATINGPOINT_IS_INF, node[0])}),
+         nm->mkNode(Kind::EQUAL, node, node[1])});
     handleLemma(pd, InferenceId::FP_REGISTER_TERM);
 
     Node z = nm->mkNode(
         Kind::IMPLIES,
-        nm->mkNode(Kind::FLOATINGPOINT_IS_ZERO, node[0]),
-        nm->mkNode(Kind::EQUAL, node, nm->mkConstReal(Rational(0U))));
+        {nm->mkNode(Kind::FLOATINGPOINT_IS_ZERO, node[0]),
+         nm->mkNode(Kind::EQUAL, node, nm->mkConstReal(Rational(0U)))});
     handleLemma(z, InferenceId::FP_REGISTER_TERM);
     return;
 
@@ -558,11 +558,12 @@ void TheoryFp::registerTerm(TNode node)
 
     Node z = nm->mkNode(
         Kind::IMPLIES,
-        nm->mkNode(Kind::EQUAL, node[1], nm->mkConstReal(Rational(0U))),
-        nm->mkNode(Kind::EQUAL,
-                   node,
-                   nm->mkConst(FloatingPoint::makeZero(
-                       node.getType().getConst<FloatingPointSize>(), false))));
+        {nm->mkNode(Kind::EQUAL, node[1], nm->mkConstReal(Rational(0U))),
+         nm->mkNode(
+             Kind::EQUAL,
+             node,
+             nm->mkConst(FloatingPoint::makeZero(
+                 node.getType().getConst<FloatingPointSize>(), false)))});
     handleLemma(z, InferenceId::FP_REGISTER_TERM);
     return;
 
@@ -668,8 +669,11 @@ void TheoryFp::postCheck(Effort level)
   /* Checking should be handled by the bit-vector engine */
 }
 
-bool TheoryFp::preNotifyFact(
-    TNode atom, bool pol, TNode fact, bool isPrereg, bool isInternal)
+bool TheoryFp::preNotifyFact(TNode atom,
+                             CVC5_UNUSED bool pol,
+                             CVC5_UNUSED TNode fact,
+                             CVC5_UNUSED bool isPrereg,
+                             CVC5_UNUSED bool isInternal)
 {
   /* Word-blast lazier if configured. */
   if (options().fp.fpLazyWb
@@ -761,7 +765,7 @@ Node TheoryFp::getCandidateModelValue(TNode node)
     {
       if (cur.getType().isFloatingPoint() || cur.getType().isRoundingMode())
       {
-        value = d_wordBlaster->getValue(d_valuation, cur);
+        value = d_wordBlaster->getValue(cur);
       }
       else
       {
@@ -864,20 +868,17 @@ bool TheoryFp::collectModelInfo(TheoryModel* m,
   return collectModelValues(m, relevantTerms);
 }
 
-bool TheoryFp::collectModelValues(TheoryModel* m,
-                                  const std::set<Node>& termSet)
+bool TheoryFp::collectModelValues(TheoryModel* m, const std::set<Node>& termSet)
 {
   Trace("fp-collectModelValues")
       << "TheoryFp::collectModelValues(): begin" << std::endl;
   if (TraceIsOn("fp-collectModelValues"))
   {
-    for (std::set<Node>::const_iterator i(termSet.begin());
-         i != termSet.end();
+    for (std::set<Node>::const_iterator i(termSet.begin()); i != termSet.end();
          ++i)
     {
       Trace("fp-collectModelValues")
-          << "TheoryFp::collectModelValues(): termSet " << *i
-          << std::endl;
+          << "TheoryFp::collectModelValues(): termSet " << *i << std::endl;
     }
   }
   NodeManager* nm = nodeManager();
@@ -892,7 +893,7 @@ bool TheoryFp::collectModelValues(TheoryModel* m,
     Trace("fp-collectModelValues")
         << "TheoryFp::collectModelValues(): " << node << std::endl;
 
-    Node wordBlasted = d_wordBlaster->getValue(d_valuation, node);
+    Node wordBlasted = d_wordBlaster->getValue(node);
     // We only assign the value if the FpWordBlaster actually has one, that is,
     // if FpWordBlaster::getValue() does not return a null node.
     if (!wordBlasted.isNull() && !m->assertEquality(node, wordBlasted, true))

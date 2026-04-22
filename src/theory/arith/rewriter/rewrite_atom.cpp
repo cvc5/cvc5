@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Gereon Kremer, Andrew Reynolds, Daniel Larraz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -310,23 +307,31 @@ Node buildRealEquality(NodeManager* nm, Sum&& sum)
   auto lterm = removeLTerm(nm, sum);
   if (lterm.second.isZero())
   {
-    return buildRelation(
-        Kind::EQUAL, mkConst(nm, Integer(0)), collectSum(nm, sum));
+    // Use zero to ensure deterministic node ID assignments
+    Node zero = mkConst(nm, Integer(0));
+    return buildRelation(Kind::EQUAL, zero, collectSum(nm, sum));
   }
   RealAlgebraicNumber lcoeff = -lterm.second;
   for (auto& s : sum)
   {
     s.second = s.second / lcoeff;
   }
-  // Must ensure real for both sides. This may change one but not both
-  // terms.
+  // Ensure real for both sides.
   Node lhs = lterm.first;
-  lhs = ensureReal(lhs);
   Node rhs = collectSum(nm, sum);
-  rhs = ensureReal(rhs);
-  Assert(lhs.getType().isReal() || lhs.getType().isFullyAbstract());
-  Assert(rhs.getType().isReal() || rhs.getType().isFullyAbstract());
-  return buildRelation(Kind::EQUAL, lhs, rhs);
+  Node lhsr = ensureReal(lhs);
+  Node rhsr = ensureReal(rhs);
+  if (lhsr != lhs && rhsr != rhs)
+  {
+    // if both were changed, then this implies we could make an integer equality
+    // instead.
+    Assert(lhs.getType().isInteger());
+    Assert(rhs.getType().isInteger());
+    return buildRelation(Kind::EQUAL, lhs, rhs);
+  }
+  Assert(lhsr.getType().isReal() || lhsr.getType().isFullyAbstract());
+  Assert(rhsr.getType().isReal() || rhsr.getType().isFullyAbstract());
+  return buildRelation(Kind::EQUAL, lhsr, rhsr);
 }
 
 Node buildIntegerInequality(NodeManager* nm, Sum&& sum, Kind k)
@@ -352,13 +357,15 @@ Node buildIntegerInequality(NodeManager* nm, Sum&& sum, Kind k)
   {
     rhs = rhs.ceiling();
   }
-  return buildRelation(
-      Kind::GEQ, collectSum(nm, sum), nm->mkConstInt(rhs), negate);
+  // Use rhsNode to ensure deterministic node ID assignments
+  Node rhsNode = nm->mkConstInt(rhs);
+  return buildRelation(Kind::GEQ, collectSum(nm, sum), rhsNode, negate);
 }
 
 Node buildRealInequality(NodeManager* nm, Sum&& sum, Kind k)
 {
-  Trace("arith-rewriter") << "building real inequality from " << sum << std::endl;
+  Trace("arith-rewriter") << "building real inequality from " << sum
+                          << std::endl;
   normalizeLCoeffAbsOne(sum);
   Node rhs = mkConst(nm, -removeConstant(sum));
   return buildRelation(k, collectSum(nm, sum), rhs);

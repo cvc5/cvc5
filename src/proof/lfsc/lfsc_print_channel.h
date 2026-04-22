@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Hans-Joerg Schurr, Abdalrhman Mohamed
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -42,24 +39,27 @@ class LfscPrintChannel
   LfscPrintChannel() {}
   virtual ~LfscPrintChannel() {}
   /** Print node n */
-  virtual void printNode(TNode n) {}
+  virtual void printNode(CVC5_UNUSED TNode n) {}
   /** Print type node n */
-  virtual void printTypeNode(TypeNode tn) {}
+  virtual void printTypeNode(CVC5_UNUSED TypeNode tn) {}
   /** Print a hole */
   virtual void printHole() {}
   /**
    * Print an application of the trusting the result res, whose source is the
    * given proof rule.
    */
-  virtual void printTrust(TNode res, ProofRule src) {}
+  virtual void printTrust(CVC5_UNUSED TNode res, CVC5_UNUSED ProofRule src) {}
   /** Print the opening of the rule of proof rule pn, e.g. "(and_elim ". */
-  virtual void printOpenRule(const ProofNode* pn) {}
+  virtual void printOpenRule(CVC5_UNUSED const ProofNode* pn) {}
   /** Print the opening of LFSC rule lr, e.g. "(cong " */
-  virtual void printOpenLfscRule(LfscRule lr) {}
+  virtual void printOpenLfscRule(CVC5_UNUSED LfscRule lr) {}
   /** Print the closing of # nparen proof rules */
-  virtual void printCloseRule(size_t nparen = 1) {}
+  virtual void printCloseRule(CVC5_UNUSED size_t nparen = 1) {}
   /** Print an identifier for the given prefix */
-  virtual void printId(size_t id, const std::string& prefix) {}
+  virtual void printId(CVC5_UNUSED size_t id,
+                       CVC5_UNUSED const std::string& prefix)
+  {
+  }
   /** Print an end line */
   virtual void printEndLine() {}
 };

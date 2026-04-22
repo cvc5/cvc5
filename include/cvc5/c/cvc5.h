@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Andrew Reynolds, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -33,23 +30,24 @@ extern "C" {
 #include <stddef.h>
 #include <stdint.h>
 
-// char32_t is a built-in keyword in C++11 and defined in C11 via <uchar.h>. See:
+// char32_t is a built-in keyword in C++11 and defined in C11 via <uchar.h>.
+// See:
 //   https://en.cppreference.com/w/cpp/keyword/char32_t.html
 //   https://en.cppreference.com/w/c/header/uchar.html
 // However, the uchar.h header is missing in Apple Clang. See:
 //   https://github.com/llvm/llvm-project/issues/41443
 // This workaround defines char32_t when uchar.h is not available (in C mode)
 #ifndef __cplusplus
-  #ifdef __has_include
-    #if __has_include(<uchar.h>)
-      #include <uchar.h>
-    #else
-      typedef uint_least32_t char32_t;
-    #endif
-  #else
-    // Fallback if __has_include is not supported
-    typedef uint_least32_t char32_t;
-  #endif
+#ifdef __has_include
+#if __has_include(<uchar.h>)
+#include <uchar.h>
+#else
+typedef uint_least32_t char32_t;
+#endif
+#else
+// Fallback if __has_include is not supported
+typedef uint_least32_t char32_t;
+#endif
 #endif
 
 /* -------------------------------------------------------------------------- */
@@ -1374,8 +1372,10 @@ CVC5_EXPORT bool cvc5_term_is_string_value(Cvc5Term term);
  *          cvc5_term_get_u32string_value(). It will be removed in a future
  *          release.
  */
-CVC5_EXPORT __attribute__((deprecated("Use cvc5_term_get_u32string_value instead")))
-const wchar_t* cvc5_term_get_string_value(Cvc5Term term);
+CVC5_EXPORT
+__attribute__((deprecated("Use cvc5_term_get_u32string_value instead")))
+const wchar_t*
+cvc5_term_get_string_value(Cvc5Term term);
 
 /**
  * Get the native UTF-32 string representation of a string value.
@@ -3185,9 +3185,9 @@ CVC5_EXPORT Cvc5Term cvc5_mk_string(Cvc5TermManager* tm,
  *          cvc5_mk_string_from_char32(). It will be removed in a future
  *          release.
  */
-CVC5_EXPORT __attribute__((deprecated("Use cvc5_mk_string_from_char32 instead")))
-Cvc5Term cvc5_mk_string_from_wchar(Cvc5TermManager* tm,
-                                   const wchar_t* s);
+CVC5_EXPORT __attribute__((
+    deprecated("Use cvc5_mk_string_from_char32 instead"))) Cvc5Term
+cvc5_mk_string_from_wchar(Cvc5TermManager* tm, const wchar_t* s);
 
 /**
  * Create a String constant from a UTF-32 string.
@@ -3537,6 +3537,8 @@ typedef enum
  *   is denoted as #CVC5_OPTION_INFO_MODES.
  *
  * \endverbatim
+ *
+ *  @note A typedef alias with the same name is also available for convenience.
  */
 struct Cvc5OptionInfo
 {
@@ -3680,6 +3682,8 @@ CVC5_EXPORT const char* cvc5_option_info_to_string(const Cvc5OptionInfo* info);
 
 /**
  * A cvc5 plugin.
+ *
+ * @note A typedef alias with the same name is also available for convenience.
  */
 struct Cvc5Plugin
 {

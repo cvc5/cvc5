@@ -1,10 +1,7 @@
 ###############################################################################
-# Top contributors (to current version):
-#   Abdalrhman Mohamed, Aina Niemetz, Hans-Joerg Schurr
-#
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -72,7 +69,7 @@ def create_rewrite_proof(tm, solver):
 
 
 def test_null_proof(solver):
-  proof = cvc5.Proof(solver)
+  proof = cvc5.Proof()
   assert proof.getRule() == ProofRule.UNKNOWN
   assert hash(ProofRule.UNKNOWN) == hash(ProofRule.UNKNOWN)
   assert proof.getResult().isNull()
@@ -119,7 +116,7 @@ def test_get_arguments(tm, solver):
 def test_eq(tm, solver):
     x = create_proof(tm, solver)
     y = x.getChildren()[0]
-    z = cvc5.Proof(solver)
+    z = cvc5.Proof()
 
     assert x == x
     assert not x != x

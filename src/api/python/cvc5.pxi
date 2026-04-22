@@ -1,3 +1,14 @@
+###############################################################################
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
+#
+# The base Python API.
+##
 from collections import defaultdict
 from fractions import Fraction
 from functools import wraps
@@ -93,7 +104,7 @@ cdef Op _op(tm: TermManager, op: c_Op):
   o.tm = tm
   return o
 
-cdef Term _term(tm: TermManager, term: c_Term):
+cdef Term _term(TermManager tm, const c_Term& term):
   t = Term()
   t.cterm = term
   t.tm = tm
@@ -270,6 +281,9 @@ cdef class Command:
     """
     cdef c_Command cc
 
+    def __init__(self):
+        pass
+
     def __str__(self):
         return self.cc.toString().decode()
 
@@ -282,7 +296,7 @@ cdef class Command:
         """
         return self.cc.toString().decode()
 
-    def invoke(self, Solver solver, SymbolManager sm):
+    def invoke(self, Solver solver not None, SymbolManager sm not None):
         """
             Invoke the command on the solver and symbol manager, and returns the result.
 
@@ -344,7 +358,7 @@ cdef class InputParser:
     cdef Solver solver
     cdef SymbolManager sm
 
-    def __cinit__(self, Solver solver, SymbolManager sm=None):
+    def __cinit__(self, Solver solver not None, SymbolManager sm=None):
         self.solver = solver
         if sm is None:
             self.sm = SymbolManager(solver.tm)
@@ -444,6 +458,9 @@ cdef class Datatype:
     """
     cdef c_Datatype cdt
     cdef TermManager tm
+
+    def __init__(self):
+        pass
 
     def __getitem__(self, index):
         """
@@ -575,6 +592,9 @@ cdef class DatatypeConstructor:
     cdef c_DatatypeConstructor cdtcons
     cdef TermManager tm
 
+    def __init__(self):
+        pass
+
     def __getitem__(self, index):
         """
             Get the datatype selector with the given index, where index can be
@@ -624,7 +644,7 @@ cdef class DatatypeConstructor:
         """
         return _term(self.tm, self.cdtcons.getTerm())
 
-    def getInstantiatedTerm(self, Sort retSort):
+    def getInstantiatedTerm(self, Sort retSort not None):
         """
             Get the constructor term of this datatype constructor whose
             return type is retSort. This function is intended to be used on
@@ -722,7 +742,10 @@ cdef class DatatypeConstructorDecl:
     cdef c_DatatypeConstructorDecl cdtconsdecl
     cdef TermManager tm
 
-    def addSelector(self, str name, Sort sort):
+    def __init__(self):
+        pass
+
+    def addSelector(self, str name, Sort sort not None):
         """
             Add datatype selector declaration.
 
@@ -788,7 +811,10 @@ cdef class DatatypeDecl:
     cdef c_DatatypeDecl cdtdecl
     cdef TermManager tm
 
-    def addConstructor(self, DatatypeConstructorDecl ctor):
+    def __init__(self):
+        pass
+
+    def addConstructor(self, DatatypeConstructorDecl ctor not None):
         """
             Add a datatype constructor declaration.
 
@@ -840,6 +866,9 @@ cdef class DatatypeSelector:
     """
     cdef c_DatatypeSelector cdtsel
     cdef TermManager tm
+
+    def __init__(self):
+        pass
 
     def getName(self):
         """
@@ -910,10 +939,13 @@ cdef class Op:
     cdef c_Op cop
     cdef TermManager tm
 
-    def __eq__(self, Op other):
+    def __init__(self):
+        pass
+
+    def __eq__(self, Op other not None):
         return self.cop == other.cop
 
-    def __ne__(self, Op other):
+    def __ne__(self, Op other not None):
         return self.cop != other.cop
 
     def __str__(self):
@@ -974,6 +1006,9 @@ cdef class Grammar:
     cdef c_Grammar  cgrammar
     cdef TermManager tm
 
+    def __init__(self):
+        pass
+
     def __str__(self):
         return self.cgrammar.toString().decode()
 
@@ -983,7 +1018,7 @@ cdef class Grammar:
     def isNull(self):
         return self.cgrammar.isNull()
 
-    def addRule(self, Term ntSymbol, Term rule):
+    def addRule(self, Term ntSymbol not None, Term rule not None):
         """
             Add ``rule`` to the set of rules corresponding to ``ntSymbol``.
 
@@ -992,7 +1027,7 @@ cdef class Grammar:
         """
         self.cgrammar.addRule(ntSymbol.cterm, rule.cterm)
 
-    def addAnyConstant(self, Term ntSymbol):
+    def addAnyConstant(self, Term ntSymbol not None):
         """
             Allow ``ntSymbol`` to be an arbitrary constant.
 
@@ -1000,7 +1035,7 @@ cdef class Grammar:
         """
         self.cgrammar.addAnyConstant(ntSymbol.cterm)
 
-    def addAnyVariable(self, Term ntSymbol):
+    def addAnyVariable(self, Term ntSymbol not None):
         """
             Allow ``ntSymbol`` to be any input variable to corresponding
             synth-fun/synth-inv with the same sort as ``ntSymbol``.
@@ -1009,7 +1044,7 @@ cdef class Grammar:
         """
         self.cgrammar.addAnyVariable(ntSymbol.cterm)
 
-    def addRules(self, Term ntSymbol, rules):
+    def addRules(self, Term ntSymbol not None, rules):
         """
             Add ``ntSymbol`` to the set of rules corresponding to ``ntSymbol``.
 
@@ -1031,10 +1066,10 @@ cdef class Result:
 
         Wrapper class for :cpp:class:`cvc5::Result`.
     """
-    cdef c_Result cr
-    def __cinit__(self):
-        # gets populated by solver
-        self.cr = c_Result()
+    cdef c_Result cr # gets populated by solver
+
+    def __init__(self):
+        pass
 
     def isNull(self):
         """
@@ -1074,10 +1109,10 @@ cdef class Result:
         """
         return UnknownExplanation(<int> self.cr.getUnknownExplanation())
 
-    def __eq__(self, Result other):
+    def __eq__(self, Result other not None):
         return self.cr == other.cr
 
-    def __ne__(self, Result other):
+    def __ne__(self, Result other not None):
         return self.cr != other.cr
 
     def __str__(self):
@@ -1098,15 +1133,15 @@ cdef class SynthResult:
       which we call synthesis queries. This class indicates whether the
       synthesis query has a solution, has no solution, or is unknown.
     """
-    cdef c_SynthResult cr
-    def __cinit__(self):
-        # gets populated by solver
-        self.cr = c_SynthResult()
+    cdef c_SynthResult cr # gets populated by solver
 
-    def __eq__(self, SynthResult other):
+    def __init__(self):
+        pass
+
+    def __eq__(self, SynthResult other not None):
         return self.cr == other.cr
 
-    def __ne__(self, SynthResult other):
+    def __ne__(self, SynthResult other not None):
         return self.cr != other.cr
 
     def isNull(self):
@@ -1169,6 +1204,9 @@ cdef class TermManager:
         res.cstats = self.ctm.getStatistics()
         return res
 
+    def __init__(self):
+        pass
+
     def __cinit__(self):
         self.ctm = new c_TermManager()
 
@@ -1211,7 +1249,7 @@ cdef class TermManager:
         """
         return  _sort(self, self.ctm.getStringSort())
 
-    def mkArraySort(self, Sort indexSort, Sort elemSort):
+    def mkArraySort(self, Sort indexSort not None, Sort elemSort not None):
         """
             Create an array sort.
 
@@ -1276,7 +1314,7 @@ cdef class TermManager:
             self.ctm.mkFiniteFieldSort(
               <const string&> str(size).encode(), <uint32_t> base))
 
-    def mkDatatypeSort(self, DatatypeDecl dtypedecl):
+    def mkDatatypeSort(self, DatatypeDecl dtypedecl not None):
         """
             Create a datatype sort.
 
@@ -1309,7 +1347,7 @@ cdef class TermManager:
           sorts.append(_sort(self, csort))
         return sorts
 
-    def mkFunctionSort(self, sorts, Sort codomain):
+    def mkFunctionSort(self, sorts, Sort codomain not None):
         """
             Create function sort.
 
@@ -1408,7 +1446,7 @@ cdef class TermManager:
             self,
             self.ctm.mkRecordSort(<const vector[pair[string, c_Sort]] &> v))
 
-    def mkSetSort(self, Sort elemSort):
+    def mkSetSort(self, Sort elemSort not None):
         """
             Create a set sort.
 
@@ -1417,7 +1455,7 @@ cdef class TermManager:
         """
         return _sort(self, self.ctm.mkSetSort(elemSort.csort))
 
-    def mkBagSort(self, Sort elemSort):
+    def mkBagSort(self, Sort elemSort not None):
         """
             Create a bag sort.
 
@@ -1426,7 +1464,7 @@ cdef class TermManager:
         """
         return _sort(self, self.ctm.mkBagSort(elemSort.csort))
 
-    def mkSequenceSort(self, Sort elemSort):
+    def mkSequenceSort(self, Sort elemSort not None):
         """
             Create a sequence sort.
 
@@ -1477,7 +1515,6 @@ cdef class TermManager:
             :param symbol: The name of the sort.
             :return: The uninterpreted sort.
         """
-        cdef Sort sort = Sort(self)
         if name is None:
           return _sort(self, self.ctm.mkUninterpretedSort())
         return _sort(self, self.ctm.mkUninterpretedSort(name.encode()))
@@ -1508,7 +1545,6 @@ cdef class TermManager:
             :param arity: The arity of the sort (must be > 0).
             :return: The sort constructor sort.
         """
-        cdef Sort sort = Sort(self)
         if symbol is None:
           return _sort(self, self.ctm.mkUninterpretedSortConstructorSort(arity))
         return _sort(
@@ -1527,7 +1563,7 @@ cdef class TermManager:
             v.push_back((<Sort?> s).csort)
         return _sort(self, self.ctm.mkTupleSort(v))
 
-    def mkNullableSort(self, Sort elemSort):
+    def mkNullableSort(self, Sort elemSort not None):
         """
             Create a nullable sort.
 
@@ -1573,7 +1609,7 @@ cdef class TermManager:
             cterms.push_back((<Term?> s).cterm)
         return _term(self, self.ctm.mkTuple(cterms))
 
-    def mkNullableSome(self, Term term):
+    def mkNullableSome(self, Term term not None):
         """
             Create a nullable some term.
 
@@ -1582,7 +1618,7 @@ cdef class TermManager:
         """
         return _term(self, self.ctm.mkNullableSome(term.cterm))
 
-    def mkNullableVal(self, Term term):
+    def mkNullableVal(self, Term term not None):
         """
             Create a selector for nullable term.
 
@@ -1591,7 +1627,7 @@ cdef class TermManager:
         """
         return _term(self, self.ctm.mkNullableVal(term.cterm))
 
-    def mkNullableIsNull(self, Term term):
+    def mkNullableIsNull(self, Term term not None):
         """
             Create a null tester for a nullable term.
 
@@ -1600,7 +1636,7 @@ cdef class TermManager:
         """
         return _term(self, self.ctm.mkNullableIsNull(term.cterm))
 
-    def mkNullableIsSome(self, Term term):
+    def mkNullableIsSome(self, Term term not None):
         """
             Create a some tester for a nullable term.
 
@@ -1609,7 +1645,7 @@ cdef class TermManager:
         """
         return _term(self, self.ctm.mkNullableIsSome(term.cterm))
 
-    def mkNullableNull(self, Sort sort):
+    def mkNullableNull(self, Sort sort not None):
         """
             Create a constant representing an null of the given sort.
 
@@ -1759,7 +1795,7 @@ cdef class TermManager:
         """
         return _term(self, self.ctm.mkRegexpNone())
 
-    def mkEmptySet(self, Sort s):
+    def mkEmptySet(self, Sort s not None):
         """
             Create a constant representing an empty set of the given sort.
 
@@ -1768,7 +1804,7 @@ cdef class TermManager:
         """
         return _term(self, self.ctm.mkEmptySet(s.csort))
 
-    def mkEmptyBag(self, Sort s):
+    def mkEmptyBag(self, Sort s not None):
         """
             Create a constant representing an empty bag of the given sort.
 
@@ -1789,7 +1825,7 @@ cdef class TermManager:
         """
         return _term(self, self.ctm.mkSepEmp())
 
-    def mkSepNil(self, Sort sort):
+    def mkSepNil(self, Sort sort not None):
         """
             Create a separation logic nil term.
 
@@ -1832,7 +1868,7 @@ cdef class TermManager:
 
         return _term(self, self.ctm.mkString(result))
 
-    def mkEmptySequence(self, Sort sort):
+    def mkEmptySequence(self, Sort sort not None):
         """
             Create an empty sequence of the given element sort.
 
@@ -1841,7 +1877,7 @@ cdef class TermManager:
         """
         return _term(self, self.ctm.mkEmptySequence(sort.csort))
 
-    def mkUniverseSet(self, Sort sort):
+    def mkUniverseSet(self, Sort sort not None):
         """
             Create a universe set of the given sort.
 
@@ -1897,7 +1933,7 @@ cdef class TermManager:
                   <uint32_t> base))
         raise ValueError("Unexpected inputs to mkBitVector")
 
-    def mkFiniteFieldElem(self, value, Sort sort, int base=10):
+    def mkFiniteFieldElem(self, value, Sort sort not None, int base=10):
         """
             Create finite field value.
 
@@ -1937,7 +1973,7 @@ cdef class TermManager:
               sort.csort,
               <uint32_t> base))
 
-    def mkConstArray(self, Sort sort, Term val):
+    def mkConstArray(self, Sort sort not None, Term val not None):
         """
             Create a constant array with the provided constant value stored at
             every index
@@ -2008,7 +2044,7 @@ cdef class TermManager:
         """
         return _term(self, self.ctm.mkRoundingMode(<c_RoundingMode> rm.value))
 
-    def mkFloatingPoint(self, arg0, arg1, Term arg2):
+    def mkFloatingPoint(self, arg0, arg1, Term arg2 not None):
         """
             Create a floating-point value from a bit-vector given in IEEE-754
             format, or from its three IEEE-754 bit-vector value components
@@ -2032,7 +2068,7 @@ cdef class TermManager:
             self.ctm.mkFloatingPoint(
                 (<Term> arg0).cterm, (<Term> arg1).cterm, arg2.cterm))
 
-    def mkCardinalityConstraint(self, Sort sort, int index):
+    def mkCardinalityConstraint(self, Sort sort not None, int index):
         """
             Create cardinality constraint.
 
@@ -2045,7 +2081,7 @@ cdef class TermManager:
         """
         return _term(self, self.ctm.mkCardinalityConstraint(sort.csort, index))
 
-    def mkConst(self, Sort sort, symbol=None):
+    def mkConst(self, Sort sort not None, symbol=None):
         """
             Create (first-order) constant (0-arity function symbol).
 
@@ -2067,7 +2103,7 @@ cdef class TermManager:
             self,
             self.ctm.mkConst(sort.csort, (<str?> symbol).encode()))
 
-    def mkVar(self, Sort sort, symbol=None):
+    def mkVar(self, Sort sort not None, symbol=None):
         """
             Create a bound variable to be used in a binder (i.e. a quantifier,
             a lambda, or a witness binder).
@@ -2150,10 +2186,10 @@ cdef class Plugin:
     cdef TermManager tm
 
     # Ensure that both __init__ and __cinit__ have the same signature
-    def __init__(self, TermManager tm):
+    def __init__(self, TermManager tm not None):
         pass
 
-    def __cinit__(self, TermManager tm):
+    def __cinit__(self, TermManager tm not None):
         self.tm = tm
         self.cplugin = new c_PyPlugin(<cpy_ref.PyObject*>self, dereference(tm.ctm))
 
@@ -2175,7 +2211,7 @@ cdef class Plugin:
             lemmas.append(_term(self.tm, l))
         return lemmas
 
-    def notifySatClause(self, Term cl):
+    def notifySatClause(self, Term cl not None):
         """
             Notify SAT clause, called when cl is a clause learned by the SAT
             solver.
@@ -2184,7 +2220,7 @@ cdef class Plugin:
         """
         self.cplugin.plugin_notifySatClause(cl.cterm)
 
-    def notifyTheoryLemma(self, Term lem):
+    def notifyTheoryLemma(self, Term lem not None):
         """
             Notify theory lemma, called when lem is a theory lemma sent by a
             theory solver.
@@ -3294,7 +3330,7 @@ cdef class Solver:
         """
         return self.tm.mkDatatypeDecl(name, sorts_or_bool, isCoDatatype)
 
-    def simplify(self, Term t, applySubs=False):
+    def simplify(self, Term t not None, applySubs=False):
         """
             Simplify a term or formula based on rewriting and (optionally)
             applying substitutions for solved variables.
@@ -3313,7 +3349,7 @@ cdef class Solver:
         """
         return _term(self.tm, self.csolver.simplify(t.cterm, <bint> applySubs))
 
-    def assertFormula(self, Term term):
+    def assertFormula(self, Term term not None):
         """
             Assert a formula
 
@@ -3364,7 +3400,7 @@ cdef class Solver:
             self.csolver.mkGrammar(
               <const vector[c_Term]&> bvc, <const vector[c_Term]&> ntc))
 
-    def declareSygusVar(self, str symbol, Sort sort):
+    def declareSygusVar(self, str symbol, Sort sort not None):
         """
             Append symbol to the current list of universal variables.
 
@@ -3382,7 +3418,7 @@ cdef class Solver:
             self.tm,
             self.csolver.declareSygusVar(symbol.encode(), sort.csort))
 
-    def addSygusConstraint(self, Term t):
+    def addSygusConstraint(self, Term t not None):
         """
             Add a formula to the set of SyGuS constraints.
 
@@ -3406,7 +3442,7 @@ cdef class Solver:
             constraints.append(_term(self.tm, c))
         return constraints
 
-    def addSygusAssume(self, Term t):
+    def addSygusAssume(self, Term t not None):
         """
             Add a formula to the set of Sygus assumptions.
 
@@ -3430,7 +3466,7 @@ cdef class Solver:
             assumptions.append(_term(self.tm, a))
         return assumptions
 
-    def addSygusInvConstraint(self, Term inv_f, Term pre_f, Term trans_f, Term post_f):
+    def addSygusInvConstraint(self, Term inv_f not None, Term pre_f not None, Term trans_f not None, Term post_f not None):
         """
             Add a set of SyGuS constraints to the current state that correspond
             to an invariant synthesis problem.
@@ -3449,7 +3485,7 @@ cdef class Solver:
         self.csolver.addSygusInvConstraint(
                 inv_f.cterm, pre_f.cterm, trans_f.cterm, post_f.cterm)
 
-    def synthFun(self, str symbol, bound_vars, Sort sort, Grammar grammar=None):
+    def synthFun(self, str symbol, bound_vars, Sort sort not None, Grammar grammar=None):
         """
             Synthesize n-ary function following specified syntactic constraints.
 
@@ -3514,7 +3550,7 @@ cdef class Solver:
 
             .. code-block:: smtlib
 
-                ( check-synth )
+                ( check-synth-next )
 
             :return: The result of the check, which is "solution" if the check
                      found a solution in which case solutions are available via
@@ -3525,7 +3561,7 @@ cdef class Solver:
         r.cr = self.csolver.checkSynthNext()
         return r
 
-    def getSynthSolution(self, Term term):
+    def getSynthSolution(self, Term term not None):
         """
             Get the synthesis solution of the given term. This function should be
             called immediately after the solver answers unsat for sygus input.
@@ -3639,7 +3675,7 @@ cdef class Solver:
             self.tm,
             self.csolver.declareDatatype(symbol.encode(), v))
 
-    def declareFun(self, str symbol, list sorts, Sort sort, fresh=True):
+    def declareFun(self, str symbol, list sorts, Sort sort not None, fresh=True):
         """
             Declare n-ary function symbol.
 
@@ -3695,7 +3731,7 @@ cdef class Solver:
             self.tm,
             self.csolver.declareSort(symbol.encode(), arity, <bint> fresh))
 
-    def defineFun(self, str symbol, list bound_vars, Sort sort, Term term, glbl=False):
+    def defineFun(self, str symbol, list bound_vars, Sort sort not None, Term term not None, glbl=False):
         """
             Define n-ary function.
 
@@ -3959,6 +3995,7 @@ cdef class Solver:
             'name': oi.name.decode(),
             'aliases': [s.decode() for s in oi.aliases],
             'setByUser': oi.setByUser,
+            'category': OptionCategory(<int> oi.category),
         }
 
         # now check which type is actually in the variant
@@ -4214,7 +4251,7 @@ cdef class Solver:
             return [self.getValue(t) for t in term_or_list]
         return _term(self.tm, self.csolver.getValue((<Term> term_or_list).cterm))
 
-    def getModelDomainElements(self, Sort s):
+    def getModelDomainElements(self, Sort s not None):
         """
             Get the domain elements of uninterpreted sort s in the current
             model. The current model interprets s as the finite sort whose
@@ -4229,7 +4266,7 @@ cdef class Solver:
             result.append(_term(self.tm, e))
         return result
 
-    def isModelCoreSymbol(self, Term v):
+    def isModelCoreSymbol(self, Term v not None):
         """
             This returns False if the model value of free constant v was not
             essential for showing the satisfiability of the last call to
@@ -4245,7 +4282,7 @@ cdef class Solver:
         """
         return self.csolver.isModelCoreSymbol(v.cterm)
 
-    def getQuantifierElimination(self, Term term):
+    def getQuantifierElimination(self, Term term not None):
         """
             Do quantifier elimination.
 
@@ -4280,7 +4317,7 @@ cdef class Solver:
         """
         return _term(self.tm, self.csolver.getQuantifierElimination(term.cterm))
 
-    def getQuantifierEliminationDisjunct(self, Term term):
+    def getQuantifierEliminationDisjunct(self, Term term not None):
         """
             Do partial quantifier elimination, which can be used for
             incrementally computing the result of a quantifier elimination.
@@ -4392,7 +4429,7 @@ cdef class Solver:
         """
         return _term(self.tm, self.csolver.getValueSepNil())
 
-    def declareSepHeap(self, Sort locType, Sort dataType):
+    def declareSepHeap(self, Sort locType not None, Sort dataType not None):
         """
             When using separation logic, this sets the location sort and the
             datatype sort to the given ones. This function should be invoked
@@ -4407,7 +4444,7 @@ cdef class Solver:
         """
         self.csolver.declareSepHeap(locType.csort, dataType.csort)
 
-    def declarePool(self, str symbol, Sort sort, initValue):
+    def declarePool(self, str symbol, Sort sort not None, initValue):
         """
             Declare a symbolic pool of terms with the given initial value.
 
@@ -4432,7 +4469,7 @@ cdef class Solver:
             self.tm,
             self.csolver.declarePool(symbol.encode(), sort.csort, niv))
 
-    def addPlugin(self, Plugin p):
+    def addPlugin(self, Plugin p not None):
         """
             Add plugin to this solver. Its callbacks will be called throughout the
             lifetime of this solver.
@@ -4547,7 +4584,7 @@ cdef class Solver:
         self.csolver.setOption(option.encode(), value.encode())
 
 
-    def getInterpolant(self, Term conj, Grammar grammar=None):
+    def getInterpolant(self, Term conj not None, Grammar grammar=None):
         """
             Get an interpolant.
 	    Assuming that :math:`A \\rightarrow B` is valid,
@@ -4620,7 +4657,7 @@ cdef class Solver:
         return _term(self.tm, self.csolver.getInterpolantNext())
 
 
-    def getAbduct(self, Term conj, Grammar grammar=None):
+    def getAbduct(self, Term conj not None, Grammar grammar=None):
         """
             Get an abduct.
 
@@ -4764,22 +4801,25 @@ cdef class Sort:
     cdef c_Sort csort
     cdef TermManager tm
 
-    def __eq__(self, Sort other):
+    def __init__(self):
+        pass
+
+    def __eq__(self, Sort other not None):
         return self.csort == other.csort
 
-    def __ne__(self, Sort other):
+    def __ne__(self, Sort other not None):
         return self.csort != other.csort
 
-    def __lt__(self, Sort other):
+    def __lt__(self, Sort other not None):
         return self.csort < other.csort
 
-    def __gt__(self, Sort other):
+    def __gt__(self, Sort other not None):
         return self.csort > other.csort
 
-    def __le__(self, Sort other):
+    def __le__(self, Sort other not None):
         return self.csort <= other.csort
 
-    def __ge__(self, Sort other):
+    def __ge__(self, Sort other not None):
         return self.csort >= other.csort
 
     def __str__(self):
@@ -5396,7 +5436,7 @@ cdef class Statistics:
         """
             Get all statistics as a dictionary.
 
-            :param internal:  True to also inclue internal statistics.
+            :param internal:  True to also include internal statistics.
             :param defaulted: True to also include unchanged statistics.
             :return: A dictionary with all available statistics.
         """
@@ -5423,22 +5463,25 @@ cdef class Term:
     cdef c_Term cterm
     cdef TermManager tm
 
-    def __eq__(self, Term other):
+    def __init__(self):
+        pass
+
+    def __eq__(self, Term other not None):
         return self.cterm == other.cterm
 
-    def __ne__(self, Term other):
+    def __ne__(self, Term other not None):
         return self.cterm != other.cterm
 
-    def __lt__(self, Term other):
+    def __lt__(self, Term other not None):
         return self.cterm < other.cterm
 
-    def __gt__(self, Term other):
+    def __gt__(self, Term other not None):
         return self.cterm > other.cterm
 
-    def __le__(self, Term other):
+    def __le__(self, Term other not None):
         return self.cterm <= other.cterm
 
-    def __ge__(self, Term other):
+    def __ge__(self, Term other not None):
         return self.cterm >= other.cterm
 
     def __getitem__(self, int index):
@@ -5549,9 +5592,7 @@ cdef class Term:
 
                 This is safe to call when :py:meth:`hasOp()` returns True.
         """
-        cdef Op op = Op(self.tm)
-        op.cop = self.cterm.getOp()
-        return op
+        return _op(self.tm, self.cterm.getOp())
 
     def hasSymbol(self):
         """
@@ -5581,16 +5622,16 @@ cdef class Term:
         """
         return _term(self.tm, self.cterm.notTerm())
 
-    def andTerm(self, Term t):
+    def andTerm(self, Term t not None):
         """
             Boolean and.
 
             :param t: A Boolean term.
             :return: The conjunction of this term and the given term.
         """
-        return _term(self.tm, self.cterm.andTerm((<Term> t).cterm))
+        return _term(self.tm, self.cterm.andTerm(t.cterm))
 
-    def orTerm(self, Term t):
+    def orTerm(self, Term t not None):
         """
            Boolean or.
 
@@ -5599,7 +5640,7 @@ cdef class Term:
         """
         return _term(self.tm, self.cterm.orTerm(t.cterm))
 
-    def xorTerm(self, Term t):
+    def xorTerm(self, Term t not None):
         """
            Boolean exclusive or.
 
@@ -5608,7 +5649,7 @@ cdef class Term:
         """
         return _term(self.tm, self.cterm.xorTerm(t.cterm))
 
-    def eqTerm(self, Term t):
+    def eqTerm(self, Term t not None):
         """
            Equality
 
@@ -5617,7 +5658,7 @@ cdef class Term:
         """
         return _term(self.tm, self.cterm.eqTerm(t.cterm))
 
-    def impTerm(self, Term t):
+    def impTerm(self, Term t not None):
         """
            Boolean Implication.
 
@@ -5626,7 +5667,7 @@ cdef class Term:
         """
         return _term(self.tm, self.cterm.impTerm(t.cterm))
 
-    def iteTerm(self, Term then_t, Term else_t):
+    def iteTerm(self, Term then_t not None, Term else_t not None):
         """
            If-then-else with this term as the Boolean condition.
 
@@ -5867,7 +5908,7 @@ cdef class Term:
         return self.cterm.isRealAlgebraicNumber()
 
 
-    def getRealAlgebraicNumberDefiningPolynomial(self, Term v):
+    def getRealAlgebraicNumberDefiningPolynomial(self, Term v not None):
         """
             .. note:: Asserts :py:meth:`isRealAlgebraicNumber()`.
 
@@ -6114,7 +6155,10 @@ cdef class Proof:
     cdef c_Proof cproof
     cdef TermManager tm
 
-    def __eq__(self, Proof other):
+    def __init__(self):
+        pass
+
+    def __eq__(self, Proof other not None):
         return self.cproof == other.cproof
 
     def __ne__(self, Proof other):

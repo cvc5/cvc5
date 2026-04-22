@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Tim King, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -13,9 +10,10 @@
  * Implementation of representative set.
  */
 
+#include "theory/rep_set.h"
+
 #include <unordered_set>
 
-#include "theory/rep_set.h"
 #include "theory/type_enumerator.h"
 
 using namespace std;
@@ -24,7 +22,8 @@ using namespace cvc5::internal::kind;
 namespace cvc5::internal {
 namespace theory {
 
-void RepSet::clear(){
+void RepSet::clear()
+{
   d_type_reps.clear();
   d_type_complete.clear();
   d_tmap.clear();
@@ -35,10 +34,14 @@ bool RepSet::hasRep(TypeNode tn, Node n) const
 {
   std::map<TypeNode, std::vector<Node> >::const_iterator it =
       d_type_reps.find(tn);
-  if( it==d_type_reps.end() ){
+  if (it == d_type_reps.end())
+  {
     return false;
-  }else{
-    return std::find( it->second.begin(), it->second.end(), n )!=it->second.end();
+  }
+  else
+  {
+    return std::find(it->second.begin(), it->second.end(), n)
+           != it->second.end();
   }
 }
 
@@ -71,7 +74,8 @@ namespace {
 
 bool containsStoreAll(Node n, std::unordered_set<Node>& cache)
 {
-  if( std::find( cache.begin(), cache.end(), n )==cache.end() ){
+  if (std::find(cache.begin(), cache.end(), n) == cache.end())
+  {
     cache.insert(n);
     if (n.getKind() == Kind::STORE_ALL)
     {
@@ -79,8 +83,10 @@ bool containsStoreAll(Node n, std::unordered_set<Node>& cache)
     }
     else
     {
-      for( unsigned i=0; i<n.getNumChildren(); i++ ){
-        if( containsStoreAll( n[i], cache ) ){
+      for (unsigned i = 0; i < n.getNumChildren(); i++)
+      {
+        if (containsStoreAll(n[i], cache))
+        {
           return true;
         }
       }
@@ -91,53 +97,70 @@ bool containsStoreAll(Node n, std::unordered_set<Node>& cache)
 
 }  // namespace
 
-void RepSet::add( TypeNode tn, Node n ){
-  //for now, do not add array constants FIXME
-  if( tn.isArray() ){
+void RepSet::add(TypeNode tn, Node n)
+{
+  // for now, do not add array constants FIXME
+  if (tn.isArray())
+  {
     std::unordered_set<Node> cache;
-    if( containsStoreAll( n, cache ) ){
+    if (containsStoreAll(n, cache))
+    {
       return;
     }
   }
-  Trace("rsi-debug") << "Add rep #" << d_type_reps[tn].size() << " for " << tn << " : " << n << std::endl;
+  Trace("rsi-debug") << "Add rep #" << d_type_reps[tn].size() << " for " << tn
+                     << " : " << n << std::endl;
   Assert(n.getType() == tn);
-  d_tmap[ n ] = (int)d_type_reps[tn].size();
-  d_type_reps[tn].push_back( n );
+  d_tmap[n] = (int)d_type_reps[tn].size();
+  d_type_reps[tn].push_back(n);
 }
 
-int RepSet::getIndexFor( Node n ) const {
-  std::map< Node, int >::const_iterator it = d_tmap.find( n );
-  if( it!=d_tmap.end() ){
+int RepSet::getIndexFor(Node n) const
+{
+  std::map<Node, int>::const_iterator it = d_tmap.find(n);
+  if (it != d_tmap.end())
+  {
     return it->second;
-  }else{
+  }
+  else
+  {
     return -1;
   }
 }
 
-bool RepSet::complete( TypeNode t ){
-  std::map< TypeNode, bool >::iterator it = d_type_complete.find( t );
-  if( it==d_type_complete.end() ){
-    //remove all previous
-    for( unsigned i=0; i<d_type_reps[t].size(); i++ ){
-      d_tmap.erase( d_type_reps[t][i] );
+bool RepSet::complete(TypeNode t)
+{
+  std::map<TypeNode, bool>::iterator it = d_type_complete.find(t);
+  if (it == d_type_complete.end())
+  {
+    // remove all previous
+    for (unsigned i = 0; i < d_type_reps[t].size(); i++)
+    {
+      d_tmap.erase(d_type_reps[t][i]);
     }
     d_type_reps[t].clear();
-    //now complete the type
+    // now complete the type
     d_type_complete[t] = true;
     TypeEnumerator te(t);
-    while( !te.isFinished() ){
+    while (!te.isFinished())
+    {
       Node n = *te;
-      if( std::find( d_type_reps[t].begin(), d_type_reps[t].end(), n )==d_type_reps[t].end() ){
-        add( t, n );
+      if (std::find(d_type_reps[t].begin(), d_type_reps[t].end(), n)
+          == d_type_reps[t].end())
+      {
+        add(t, n);
       }
       ++te;
     }
-    for( size_t i=0; i<d_type_reps[t].size(); i++ ){
+    for (size_t i = 0; i < d_type_reps[t].size(); i++)
+    {
       Trace("reps-complete") << d_type_reps[t][i] << " ";
     }
     Trace("reps-complete") << std::endl;
     return true;
-  }else{
+  }
+  else
+  {
     return it->second;
   }
 }
@@ -179,13 +202,23 @@ Node RepSet::getDomainValue(TypeNode tn, const std::vector<Node>& exclude) const
   return Node::null();
 }
 
-void RepSet::toStream(std::ostream& out){
-  for( std::map< TypeNode, std::vector< Node > >::iterator it = d_type_reps.begin(); it != d_type_reps.end(); ++it ){
-    if( !it->first.isFunction() && !it->first.isPredicate() ){
+void RepSet::toStream(std::ostream& out)
+{
+  for (std::map<TypeNode, std::vector<Node> >::iterator it =
+           d_type_reps.begin();
+       it != d_type_reps.end();
+       ++it)
+  {
+    if (!it->first.isFunction() && !it->first.isPredicate())
+    {
       out << "(" << it->first << " " << it->second.size();
       out << " (";
-      for( unsigned i=0; i<it->second.size(); i++ ){
-        if( i>0 ){ out << " "; }
+      for (unsigned i = 0; i < it->second.size(); i++)
+      {
+        if (i > 0)
+        {
+          out << " ";
+        }
         out << it->second[i];
       }
       out << ")";

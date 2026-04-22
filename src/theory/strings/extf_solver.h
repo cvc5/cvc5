@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -70,6 +67,7 @@ class ExtfInfoTmp
    * The explanation for why t is equal to its context-dependent simplified
    * form.
    */
+  std::vector<Node> d_initExp;
   std::vector<Node> d_exp;
   /** This flag is false if t is reduced in the model. */
   bool d_modelActive;
@@ -207,10 +205,9 @@ class ExtfSolver : public InferSideEffectProcess, protected EnvObj
  private:
   /**
    * Helper method for checkExtfReductions / maybeHasCandidateModel, returns
-   * true if a reduction lemma was sent if doSend = true, or would have been
-   * sent if doSend = false.
+   * true if a reduction lemma was sent
    */
-  bool checkExtfReductionsInternal(int effort, bool doSend);
+  bool checkExtfReductionsInternal(int effort);
   /**
    * Determines if n should be reduced based on the effort level.
    *
@@ -239,10 +236,9 @@ class ExtfSolver : public InferSideEffectProcess, protected EnvObj
    * to its reduction, but may help show a refutation.
    *
    * This function is called when the context-depdendent simplified form of
-   * n is nr. The argument "in" is the information object for n. The argument
-   * "effort" has the same meaning as the effort argument of checkExtfEval.
+   * n is nr. The argument "in" is the information object for n.
    */
-  void checkExtfInference(Node n, Node nr, ExtfInfoTmp& in, int effort);
+  void checkExtfInference(Node n, Node nr, ExtfInfoTmp& in);
   /** The solver state object */
   SolverState& d_state;
   /** The (custom) output channel of the theory of strings */
@@ -268,6 +264,8 @@ class ExtfSolver : public InferSideEffectProcess, protected EnvObj
   std::vector<Node> d_emptyVec;
   /** map extended functions to the above information */
   std::map<Node, ExtfInfoTmp> d_extfInfoTmp;
+  /** map from reduced extended functions to their original */
+  std::map<Node, Node> d_extfToOrig;
   /** any non-reduced extended functions exist? */
   context::CDO<bool> d_hasExtf;
   /** extended functions inferences cache */

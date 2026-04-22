@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Daniel Larraz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -256,7 +253,7 @@ int main()
   //! [docs-c-quickstart-18 start]
   size_t size;
   const Cvc5Term* unsat_core = cvc5_get_unsat_core(slv, &size);
-  printf("unsat core size: %lu\n", size);
+  printf("unsat core size: %zu\n", size);
   printf("unsat core: \n");
   for (size_t i = 0; i < size; i++)
   {

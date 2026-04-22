@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Abdalrhman Mohamed, Haniel Barbosa
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -15,14 +12,15 @@
 
 #include "smt/proof_manager.h"
 
+#include "expr/subtype_elim_node_converter.h"
 #include "options/base_options.h"
 #include "options/main_options.h"
 #include "options/smt_options.h"
 #include "proof/alethe/alethe_node_converter.h"
 #include "proof/alethe/alethe_post_processor.h"
 #include "proof/alethe/alethe_printer.h"
-#include "proof/alf/alf_printer.h"
 #include "proof/dot/dot_printer.h"
+#include "proof/eo/eo_printer.h"
 #include "proof/lfsc/lfsc_post_processor.h"
 #include "proof/lfsc/lfsc_printer.h"
 #include "proof/proof_checker.h"
@@ -70,8 +68,8 @@ PfManager::PfManager(Env& env)
                "database with -o rare-db(-expert)"
             << std::endl;
       }
-      proof::AlfNodeConverter atp(nodeManager());
-      proof::AlfPrinter alfp(d_env, atp, d_rewriteDb.get());
+      proof::EoNodeConverter atp(nodeManager());
+      proof::EoPrinter eop(d_env, atp, d_rewriteDb.get());
       const std::map<ProofRewriteRule, RewriteProofRule>& rules =
           d_rewriteDb->getAllRules();
       for (const std::pair<const ProofRewriteRule, RewriteProofRule>& r : rules)
@@ -81,12 +79,12 @@ PfManager::PfManager(Env& env)
         if (l == Level::NORMAL && isNormalOut)
         {
           std::ostream& os = output(OutputTag::RARE_DB);
-          alfp.printDslRule(os, r.first);
+          eop.printDslRule(os, r.first);
         }
         else if (l == Level::EXPERT && isExpertOut)
         {
           std::ostream& os = output(OutputTag::RARE_DB_EXPERT);
-          alfp.printDslRule(os, r.first);
+          eop.printDslRule(os, r.first);
         }
       }
     }
@@ -132,11 +130,13 @@ PfManager::PfManager(Env& env)
     d_pfpp->setEliminateRule(ProofRule::MACRO_SR_PRED_INTRO);
     d_pfpp->setEliminateRule(ProofRule::MACRO_SR_PRED_ELIM);
     d_pfpp->setEliminateRule(ProofRule::MACRO_SR_PRED_TRANSFORM);
-    // Alethe does not require macro resolution to be expanded
-    if (options().proof.proofFormatMode != options::ProofFormatMode::ALETHE)
+    // Alethe does not require chain multiset resolution to be expanded,
+    // LFSC requires it to be expanded.
+    if ((options().proof.proofFormatMode != options::ProofFormatMode::ALETHE
+         && !options().proof.proofChainMRes)
+        || options().proof.proofFormatMode == options::ProofFormatMode::LFSC)
     {
-      d_pfpp->setEliminateRule(ProofRule::MACRO_RESOLUTION_TRUST);
-      d_pfpp->setEliminateRule(ProofRule::MACRO_RESOLUTION);
+      d_pfpp->setEliminateRule(ProofRule::CHAIN_M_RESOLUTION);
     }
     d_pfpp->setEliminateRule(ProofRule::MACRO_ARITH_SCALE_SUM_UB);
     if (options().proof.proofGranularityMode
@@ -181,7 +181,7 @@ constexpr typename std::vector<T, Alloc>::size_type erase_if(
 void PfManager::startProofLogging(std::ostream& out, Assertions& as)
 {
   // by default, CPC proof logger
-  d_plog.reset(new ProofLoggerCpc(d_env, out, this, as, d_pfpp.get()));
+  d_plog.reset(new ProofLoggerCpc(d_env, out, this, as));
 }
 
 std::shared_ptr<ProofNode> PfManager::connectProofToAssertions(
@@ -317,7 +317,7 @@ void PfManager::printProof(std::ostream& out,
   // reused in further check-sat calls, or they may be used again if the
   // user asks for the proof again (in non-incremental mode). We don't need to
   // clone if the printing below does not modify the proof, which is the case
-  // for proof formats ALF and NONE.
+  // for proof formats Eunoia and NONE.
   if (mode != options::ProofFormatMode::CPC
       && mode != options::ProofFormatMode::NONE)
   {
@@ -332,9 +332,9 @@ void PfManager::printProof(std::ostream& out,
   }
   else if (mode == options::ProofFormatMode::CPC)
   {
-    proof::AlfNodeConverter atp(nodeManager());
-    proof::AlfPrinter alfp(d_env, atp, d_rewriteDb.get());
-    alfp.print(out, fp, scopeMode);
+    proof::EoNodeConverter atp(nodeManager());
+    proof::EoPrinter eop(d_env, atp, d_rewriteDb.get());
+    eop.print(out, fp, scopeMode);
   }
   else if (mode == options::ProofFormatMode::ALETHE)
   {
@@ -381,19 +381,27 @@ void PfManager::translateDifficultyMap(std::map<Node, Node>& dmap,
   {
     return;
   }
-  std::map<Node, Node> dmapp = dmap;
-  dmap.clear();
+  std::map<Node, Node> dmapp;
   Trace("difficulty-proc") << "Get ppAsserts" << std::endl;
   std::vector<Node> ppAsserts;
-  for (const std::pair<const Node, Node>& ppa : dmapp)
+  SubtypeElimNodeConverter senc(nodeManager());
+  for (const std::pair<const Node, Node>& ppa : dmap)
   {
-    Trace("difficulty") << "  preprocess difficulty: " << ppa.second << " for "
+    Node assertion = ppa.first;
+    // proof may eliminate mixed arithmetic from the assertion
+    if (options().proof.proofElimSubtypes)
+    {
+      assertion = senc.convert(ppa.first);
+    }
+    dmapp[assertion] = ppa.second;
+    Trace("difficulty") << "  preprocess difficulty: " << assertion << " for "
                         << ppa.first << std::endl;
     // The difficulty manager should only report difficulty for preprocessed
     // assertions, or we will get an open proof below. This is ensured
     // internally by the difficuly manager.
     ppAsserts.push_back(ppa.first);
   }
+  dmap.clear();
   Trace("difficulty-proc") << "Make SAT refutation" << std::endl;
   // assume a SAT refutation from all input assertions that were marked
   // as having a difficulty
@@ -425,7 +433,8 @@ void PfManager::translateDifficultyMap(std::map<Node, Node>& dmap,
   for (const std::shared_ptr<ProofNode>& c : children)
   {
     Node res = c->getResult();
-    Assert(dmapp.find(res) != dmapp.end());
+    Assert(dmapp.find(res) != dmapp.end())
+        << "Could not find assumption " << res;
     Trace("difficulty-debug") << "  process: " << res << std::endl;
     Trace("difficulty-debug") << "  .dvalue: " << dmapp[res] << std::endl;
     Trace("difficulty-debug") << "  ..proof: " << *c.get() << std::endl;

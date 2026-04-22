@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -59,6 +56,27 @@ void AssertionPipeline::push_back(
     // case where "false" was already seen as an input assertion.
     return;
   }
+  // If proof enabled, notify the preprocess proof generator.
+  // Note that if n is (and F1 ... Fn), below we instead add the assertions
+  // F1 .... Fn whose proofs are AND_ELIM steps given a proof of n. We do not
+  // add n as an assertion. However, we also remember the proof for n itself.
+  // The reason is that in rare cases we may relearn n (say via rewriting
+  // another assumption) which may lead to a cyclic proof if that rewriting
+  // depended on one of F1 ... Fn.
+  if (isProofEnabled())
+  {
+    if (!isInput)
+    {
+      // notice this is always called, regardless of whether pgen is nullptr
+      d_pppg->notifyNewAssert(n, pgen, trustId);
+    }
+    else
+    {
+      Assert(pgen == nullptr);
+      // n is an input assertion, whose proof should be ASSUME.
+      d_pppg->notifyInput(n);
+    }
+  }
   if (n == d_false)
   {
     markConflict();
@@ -90,7 +108,7 @@ void AssertionPipeline::push_back(
           NodeManager* nm = nodeManager();
           for (size_t j = 0, nchild = nc.getNumChildren(); j < nchild; j++)
           {
-            size_t jj = (nchild-1)-j;
+            size_t jj = (nchild - 1) - j;
             Node in = nm->mkConstInt(Rational(jj));
             // Never overwrite here. This is because the assumption we would
             // overwrite might be at a lower user context. Overwriting the
@@ -135,20 +153,6 @@ void AssertionPipeline::push_back(
   }
   Trace("assert-pipeline") << "Assertions: ...new assertion " << n
                            << ", isInput=" << isInput << std::endl;
-  if (isProofEnabled())
-  {
-    if (!isInput)
-    {
-      // notice this is always called, regardless of whether pgen is nullptr
-      d_pppg->notifyNewAssert(n, pgen, trustId);
-    }
-    else
-    {
-      Assert(pgen == nullptr);
-      // n is an input assertion, whose proof should be ASSUME.
-      d_pppg->notifyInput(n);
-    }
-  }
 }
 
 void AssertionPipeline::pushBackTrusted(TrustNode trn,

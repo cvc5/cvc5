@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Mudathir Mohamed, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -3123,7 +3120,7 @@ public class Solver extends AbstractPointer
    *
    * <p>
    * Given that {@code A->B} is valid,
-   * this function determines a term {@code I} 
+   * this function determines a term {@code I}
    * over the shared variables of {@code A} and
    * {@code B},
    * such that {@code A->I} and {@code I->B}
@@ -3159,7 +3156,7 @@ public class Solver extends AbstractPointer
    *
    * <p>
    * Given that {@code A->B} is valid,
-   * this function determines a term {@code I}, 
+   * this function determines a term {@code I},
    * over the shared variables of {@code A} and
    * {@code B},
    * with respect to a given grammar, such

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Daniel Larraz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -97,7 +94,7 @@ class SygusGrammarCons
   /**
    * Make the builtin constants for type "type" that should be included in a
    * sygus grammar, add them to vector ops.
-   * 
+   *
    * @param type The type to add constants for
    * @param op The vector to add the constants to
    */

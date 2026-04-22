@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Haniel Barbosa, Andrew Reynolds, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -39,7 +36,9 @@ RealToInt::RealToInt(PreprocessingPassContext* preprocContext)
 {
 }
 
-Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& var_eq)
+Node RealToInt::realToIntInternal(TNode n,
+                                  NodeMap& cache,
+                                  std::vector<Node>& var_eq)
 {
   Trace("real-as-int-debug") << "Convert : " << n << std::endl;
   NodeMap::iterator find = cache.find(n);
@@ -86,7 +85,7 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
                           ? Node::null()
                           : (coeffs.size() == 1 ? coeffs[0]
                                                 : rewrite(nodeManager()->mkNode(
-                                                    Kind::MULT, coeffs)));
+                                                      Kind::MULT, coeffs)));
             std::vector<Node> sum;
             for (std::map<Node, Node>::iterator itm = msum.begin();
                  itm != msum.end();
@@ -151,8 +150,8 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
         bool preserveTypes = true;
         // We change Real equalities to Int equalities, we handle other kinds
         // here as well.
-        if (k==Kind::EQUAL || k==Kind::MULT || k==Kind::NONLINEAR_MULT ||
-          k==Kind::ADD || k==Kind::SUB || k==Kind::NEG)
+        if (k == Kind::EQUAL || k == Kind::MULT || k == Kind::NONLINEAR_MULT
+            || k == Kind::ADD || k == Kind::SUB || k == Kind::NEG)
         {
           preserveTypes = false;
         }
@@ -239,7 +238,6 @@ PreprocessingPassResult RealToInt::applyInternal(
   }
   return PreprocessingPassResult::NO_CONFLICT;
 }
-
 
 }  // namespace passes
 }  // namespace preprocessing

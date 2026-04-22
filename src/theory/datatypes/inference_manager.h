@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -66,7 +63,7 @@ class InferenceManager : public InferenceManagerBuffered
   /**
    * Send lemma immediately on the output channel
    */
-  void sendDtLemma(Node lem,
+  bool sendDtLemma(Node lem,
                    InferenceId id,
                    LemmaProperty p = LemmaProperty::NONE);
   /**
@@ -95,7 +92,10 @@ class InferenceManager : public InferenceManagerBuffered
    * status for proof generation. If this is not done, then it is possible
    * to have proofs with missing connections and hence free assumptions.
    */
-  Node prepareDtInference(Node conc, Node exp, InferenceId id, InferProofCons* ipc);
+  Node prepareDtInference(Node conc,
+                          Node exp,
+                          InferenceId id,
+                          InferProofCons* ipc);
   /** The false node */
   Node d_false;
   /** The inference to proof converter */

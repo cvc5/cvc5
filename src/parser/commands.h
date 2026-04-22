@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Tim King
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -82,7 +79,8 @@ class CVC5_EXPORT Cmd
                       parser::SymManager* sm,
                       std::ostream& out);
   /**
-   * Same as invoke, but prints the result to the output stream associated to the solver.
+   * Same as invoke, but prints the result to the output stream associated to
+   * the solver.
    */
   virtual void invokeAndPrintResult(cvc5::Solver* solver,
                                     parser::SymManager* sm);
@@ -325,6 +323,7 @@ class CVC5_EXPORT DeclareSortCommand : public DeclarationDefinitionCommand
 {
  protected:
   size_t d_arity;
+
  public:
   DeclareSortCommand(const std::string& id, size_t arity);
 
@@ -395,11 +394,11 @@ class CVC5_EXPORT DefineFunctionRecCommand : public Cmd
                            const std::vector<cvc5::Term>& formals,
                            cvc5::Term formula);
   DefineFunctionRecCommand(const std::vector<cvc5::Term>& funcs,
-                           const std::vector<std::vector<cvc5::Term> >& formals,
+                           const std::vector<std::vector<cvc5::Term>>& formals,
                            const std::vector<cvc5::Term>& formula);
 
   const std::vector<cvc5::Term>& getFunctions() const;
-  const std::vector<std::vector<cvc5::Term> >& getFormals() const;
+  const std::vector<std::vector<cvc5::Term>>& getFormals() const;
   const std::vector<cvc5::Term>& getFormulas() const;
 
   void invoke(cvc5::Solver* solver, parser::SymManager* sm) override;
@@ -410,7 +409,7 @@ class CVC5_EXPORT DefineFunctionRecCommand : public Cmd
   /** functions we are defining */
   std::vector<cvc5::Term> d_funcs;
   /** formal arguments for each of the functions we are defining */
-  std::vector<std::vector<cvc5::Term> > d_formals;
+  std::vector<std::vector<cvc5::Term>> d_formals;
   /** formulas corresponding to the bodies of the functions we are defining */
   std::vector<cvc5::Term> d_formulas;
 }; /* class DefineFunctionRecCommand */
@@ -485,8 +484,7 @@ class CVC5_EXPORT CheckSatAssumingCommand : public Cmd
 class CVC5_EXPORT DeclareSygusVarCommand : public DeclarationDefinitionCommand
 {
  public:
-  DeclareSygusVarCommand(const std::string& id,
-                         cvc5::Sort sort);
+  DeclareSygusVarCommand(const std::string& id, cvc5::Sort sort);
   /** returns the declared variable */
   cvc5::Term getVar() const;
   /** returns the declared variable's sort */
@@ -614,7 +612,7 @@ class CVC5_EXPORT SygusInvConstraintCommand : public Cmd
 class CVC5_EXPORT CheckSynthCommand : public Cmd
 {
  public:
-  CheckSynthCommand(bool isNext = false) : d_isNext(isNext){};
+  CheckSynthCommand(bool isNext = false) : d_isNext(isNext) {};
   /** returns the result of the check-synth call */
   cvc5::SynthResult getResult() const;
   /** prints the result of the check-synth-call */
@@ -642,13 +640,12 @@ class CVC5_EXPORT CheckSynthCommand : public Cmd
   std::stringstream d_solution;
 };
 
-
 /** Find synth command */
 class CVC5_EXPORT FindSynthCommand : public Cmd
 {
  public:
   FindSynthCommand(modes::FindSynthTarget fst, cvc5::Grammar* g)
-      : d_fst(fst), d_grammar(g){};
+      : d_fst(fst), d_grammar(g) {};
   /** returns the result of the find-synth call */
   Term getResult() const;
   /** prints the result of the find-synth call */
@@ -674,7 +671,7 @@ class CVC5_EXPORT FindSynthCommand : public Cmd
 class CVC5_EXPORT FindSynthNextCommand : public Cmd
 {
  public:
-  FindSynthNextCommand(){};
+  FindSynthNextCommand() {};
   /** returns the result of the find-synth call */
   Term getResult() const;
   /** prints the result of the find-synth call */
@@ -729,6 +726,22 @@ class CVC5_EXPORT GetValueCommand : public Cmd
   std::string getCommandName() const override;
   void toStream(std::ostream& out) const override;
 }; /* class GetValueCommand */
+
+class CVC5_EXPORT GetModelDomainElementsCommand : public Cmd
+{
+ protected:
+  cvc5::Sort d_sort;
+  std::vector<cvc5::Term> d_result;
+
+ public:
+  GetModelDomainElementsCommand(cvc5::Sort sort);
+  cvc5::Sort getSort() const;
+  const std::vector<cvc5::Term>& getResult() const;
+  void invoke(cvc5::Solver* solver, parser::SymManager* sm) override;
+  void printResult(cvc5::Solver* solver, std::ostream& out) const override;
+  std::string getCommandName() const override;
+  void toStream(std::ostream& out) const override;
+}; /* class GetModelDomainElementsCommand */
 
 class CVC5_EXPORT GetAssignmentCommand : public Cmd
 {

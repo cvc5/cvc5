@@ -14,6 +14,7 @@ String Operators
 -------------------
 
 .. autofunction:: cvc5.pythonic.Length
+   :noindex:
 .. autofunction:: cvc5.pythonic.SubString
 .. autofunction:: cvc5.pythonic.Contains
 .. autofunction:: cvc5.pythonic.PrefixOf

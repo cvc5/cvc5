@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andres Noetzli, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -68,7 +65,7 @@ struct RString
 /** Argument does not exist */
 struct ANone
 {
-  static bool checkArg(TNode n, size_t arg)
+  static bool checkArg(CVC5_UNUSED TNode n, CVC5_UNUSED size_t arg)
   {
     Assert(arg >= n.getNumChildren());
     return true;
@@ -77,12 +74,13 @@ struct ANone
 };
 
 /** Argument is optional */
-template<class A>
+template <class A>
 struct AOptional
 {
   static bool checkArg(TNode n, size_t arg)
   {
-    if (arg < n.getNumChildren()) {
+    if (arg < n.getNumChildren())
+    {
       return A::checkArg(n, arg);
     }
     return true;
@@ -145,7 +143,7 @@ struct AString
   constexpr static const char* typeName = "string";
 };
 
-/** 
+/**
  * The SimpleTypeRule template can be used to obtain a simple type rule by
  * defining a return type and the argument types (up to three arguments are
  * supported).
@@ -154,7 +152,7 @@ template <class R, class A0 = ANone, class A1 = ANone, class A2 = ANone>
 class SimpleTypeRule
 {
  public:
-  static TypeNode preComputeType(NodeManager* nm, TNode n)
+  static TypeNode preComputeType(NodeManager* nm, CVC5_UNUSED TNode n)
   {
     return R::mkType(nm);
   }
@@ -198,7 +196,7 @@ class SimpleTypeRule
   }
 };
 
-/** 
+/**
  * The SimpleTypeRuleVar template can be used to obtain a simple type rule for
  * operators with a variable number of arguments. It takes the return type and
  * the type of the arguments as template parameters.
@@ -207,7 +205,7 @@ template <class R, class A>
 class SimpleTypeRuleVar
 {
  public:
-  static TypeNode preComputeType(NodeManager* nm, TNode n)
+  static TypeNode preComputeType(NodeManager* nm, CVC5_UNUSED TNode n)
   {
     return R::mkType(nm);
   }

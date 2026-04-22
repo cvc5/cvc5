@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Alex Ozdemir
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -44,8 +41,7 @@ std::string ostring(const T& t)
   return o.str();
 }
 
-Tracer::Tracer(const std::vector<CoCoA::RingElem>& inputs)
-    : d_inputNumbers()
+Tracer::Tracer(const std::vector<CoCoA::RingElem>& inputs) : d_inputNumbers()
 {
   for (size_t i = 0, end = inputs.size(); i < end; ++i)
   {
@@ -77,10 +73,7 @@ void Tracer::setFunctionPointers()
   CoCoA::reductionEndHandler = d_reductionEnd;
 }
 
-void Tracer::unsetFunctionPointers()
-{
-  CoCoA::handlersEnabled = false;
-}
+void Tracer::unsetFunctionPointers() { CoCoA::handlersEnabled = false; }
 
 std::vector<size_t> Tracer::trace(const CoCoA::RingElem& i) const
 {
@@ -124,8 +117,8 @@ std::vector<size_t> Tracer::trace(const CoCoA::RingElem& i) const
 }
 
 void Tracer::sPoly(CoCoA::ConstRefRingElem p,
-                              CoCoA::ConstRefRingElem q,
-                              CoCoA::ConstRefRingElem s)
+                   CoCoA::ConstRefRingElem q,
+                   CoCoA::ConstRefRingElem s)
 {
   std::string ss = ostring(s);
   Trace("ff::trace") << "s: " << p << ", " << q << " -> " << s << std::endl;
@@ -187,8 +180,7 @@ void Tracer::reductionEnd(CoCoA::ConstRefRingElem r)
   d_reductionSeq.clear();
 }
 
-void Tracer::addDep(const std::string& parent,
-                               const std::string& child)
+void Tracer::addDep(const std::string& parent, const std::string& child)
 {
   d_parents[child].push_back(parent);
 }

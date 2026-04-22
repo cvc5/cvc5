@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Gereon Kremer, Daniel Larraz, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,8 +17,8 @@
 
 #include <memory>
 
-#include "expr/node.h"
 #include "cvc5/cvc5_proof_rule.h"
+#include "expr/node.h"
 
 namespace cvc5::internal {
 
@@ -178,7 +175,6 @@ class ProofCircuitPropagatorForward : public ProofCircuitPropagator
   ProofCircuitPropagatorForward(NodeManager* nm,
                                 ProofNodeManager* pnm,
                                 Node child,
-                                bool childAssignment,
                                 Node parent);
 
   /** All children are true  -->  and is true */
@@ -207,8 +203,6 @@ class ProofCircuitPropagatorForward : public ProofCircuitPropagator
  private:
   /** The current child that triggered the propagations */
   Node d_child;
-  /** The assignment of d_child */
-  bool d_childAssignment;
   /** The parent node used for propagation */
   Node d_parent;
 };

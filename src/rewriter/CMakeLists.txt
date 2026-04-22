@@ -1,10 +1,7 @@
 ###############################################################################
-# Top contributors (to current version):
-#   Andrew Reynolds, Leni Aniva, Abdalrhman Mohamed
-#
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -51,14 +48,14 @@ libcvc5_add_sources(GENERATED
 )
 
 list(APPEND REWRITE_OUTPUT_FILES
-  ${CMAKE_BINARY_DIR}/src/api/cpp/cvc5_proof_rule.cpp
-  ${CMAKE_BINARY_DIR}/include/cvc5/cvc5_proof_rule.h
+  ${PROJECT_BINARY_DIR}/src/api/cpp/cvc5_proof_rule.cpp
+  ${PROJECT_BINARY_DIR}/include/cvc5/cvc5_proof_rule.h
 )
 
 # If the generated header differs from the source header, it should be copied to
 # the source directory manually for compilation to succeed.
 list(APPEND LIBCVC5_GEN_SRCS
-  ${CMAKE_BINARY_DIR}/src/api/cpp/cvc5_proof_rule.cpp
+  ${PROJECT_BINARY_DIR}/src/api/cpp/cvc5_proof_rule.cpp
 )
 
 set(LIBCVC5_GEN_SRCS ${LIBCVC5_GEN_SRCS} PARENT_SCOPE)
@@ -70,8 +67,8 @@ add_custom_command(
       ${Python_EXECUTABLE}
       ${mkrewrites_script}
       rewrite-db
-      --src ${CMAKE_SOURCE_DIR}
-      --bin ${CMAKE_BINARY_DIR}
+      --src ${PROJECT_SOURCE_DIR}
+      --bin ${PROJECT_BINARY_DIR}
       --rewrites_files ${REWRITES_FILES}
       --rewrites_files_expert ${REWRITES_FILES_EXPERT}
     DEPENDS
@@ -80,8 +77,8 @@ add_custom_command(
       ${REWRITES_FILES_EXPERT}
       ${CMAKE_CURRENT_LIST_DIR}/theory_rewrites_template.cpp
       ${CMAKE_CURRENT_LIST_DIR}/rewrites_template.cpp
-      ${CMAKE_SOURCE_DIR}/src/api/cpp/cvc5_proof_rule_template.cpp
-      ${CMAKE_SOURCE_DIR}/include/cvc5/cvc5_proof_rule.h
+      ${PROJECT_SOURCE_DIR}/src/api/cpp/cvc5_proof_rule_template.cpp
+      ${PROJECT_SOURCE_DIR}/include/cvc5/cvc5_proof_rule.h
     COMMENT
       "Generating rewrites.{h,cpp}"
 )

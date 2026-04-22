@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Tim King, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -15,10 +12,12 @@
 
 #include <limits>
 #include <sstream>
+#include <unordered_set>
 
 #include "base/exception.h"
 #include "test.h"
 #include "util/integer.h"
+#include "util/random.h"
 
 namespace cvc5::internal {
 namespace test {
@@ -539,16 +538,13 @@ TEST_F(TestUtilBlackInteger, modAdd)
       Integer x(i);
       Integer y = x + j;
       Integer yp = x.modAdd(j, 3);
-      for (yy = y; yy >= 3; yy -= 3)
-        ;
+      for (yy = y; yy >= 3; yy -= 3);
       ASSERT_EQ(yp, yy);
       yp = x.modAdd(j, 7);
-      for (yy = y; yy >= 7; yy -= 7)
-        ;
+      for (yy = y; yy >= 7; yy -= 7);
       ASSERT_EQ(yp, yy);
       yp = x.modAdd(j, 11);
-      for (yy = y; yy >= 11; yy -= 11)
-        ;
+      for (yy = y; yy >= 11; yy -= 11);
       ASSERT_EQ(yp, yy);
     }
   }
@@ -564,16 +560,13 @@ TEST_F(TestUtilBlackInteger, modMultiply)
       Integer x(i);
       Integer y = x * j;
       Integer yp = x.modMultiply(j, 3);
-      for (yy = y; yy >= 3; yy -= 3)
-        ;
+      for (yy = y; yy >= 3; yy -= 3);
       ASSERT_EQ(yp, yy);
       yp = x.modMultiply(j, 7);
-      for (yy = y; yy >= 7; yy -= 7)
-        ;
+      for (yy = y; yy >= 7; yy -= 7);
       ASSERT_EQ(yp, yy);
       yp = x.modMultiply(j, 11);
-      for (yy = y; yy >= 11; yy -= 11)
-        ;
+      for (yy = y; yy >= 11; yy -= 11);
       ASSERT_EQ(yp, yy);
     }
   }
@@ -613,5 +606,56 @@ TEST_F(TestUtilBlackInteger, modInverse)
     }
   }
 }
+
+TEST_F(TestUtilBlackInteger, mkRandom_bound)
+{
+  // Result must be in [0, 2^nbits) for various bit widths
+  uint32_t sizes[] = {1, 2, 7, 8, 16, 32, 63, 64, 65, 100, 128, 256};
+  for (uint32_t nbits : sizes)
+  {
+    Integer bound = Integer(1).multiplyByPow2(nbits);
+    std::unordered_set<Integer> values;
+    for (size_t i = 0; i < 20; ++i)
+    {
+      Integer v = Integer::mkRandom(nbits);
+      values.insert(v);
+      ASSERT_TRUE(v >= 0);
+      ASSERT_TRUE(v < bound);
+    }
+    ASSERT_GT(values.size(), 1);
+  }
+}
+
+TEST_F(TestUtilBlackInteger, mkRandom_deterministic)
+{
+  // Same seed should produce the same sequence
+  Random::getRandom().setSeed(42);
+  Integer a1 = Integer::mkRandom(128);
+  Integer a2 = Integer::mkRandom(128);
+
+  Random::getRandom().setSeed(42);
+  Integer b1 = Integer::mkRandom(128);
+  Integer b2 = Integer::mkRandom(128);
+
+  ASSERT_EQ(a1, b1);
+  ASSERT_EQ(a2, b2);
+}
+
+TEST_F(TestUtilBlackInteger, mkRandom_not_always_zero)
+{
+  // With 128 bits, getting all zeros 10 times in a row is unlikely.
+  Random::getRandom().setSeed(0);
+  bool nonZero = false;
+  for (int i = 0; i < 10; ++i)
+  {
+    if (!Integer::mkRandom(128).isZero())
+    {
+      nonZero = true;
+      break;
+    }
+  }
+  ASSERT_TRUE(nonZero);
+}
+
 }  // namespace test
 }  // namespace cvc5::internal

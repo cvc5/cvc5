@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Yoni Zohar, Andrew Reynolds, Daniel Larraz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -47,21 +44,18 @@ Node preSkolemEmp(NodeManager* nm,
   std::map<Node, Node>::iterator it = visited[pol].find(n);
   if (it == visited[pol].end())
   {
-    Trace("sep-preprocess") << "Pre-skolem emp " << n << " with pol " << pol
-                            << std::endl;
+    Trace("sep-preprocess")
+        << "Pre-skolem emp " << n << " with pol " << pol << std::endl;
     Node ret = n;
     if (n.getKind() == Kind::SEP_EMP)
     {
       if (!pol)
       {
-        Node x = NodeManager::mkDummySkolem(
-            "ex", locType, "skolem location for negated emp");
-        Node y = NodeManager::mkDummySkolem(
-            "ey", dataType, "skolem data for negated emp");
+        Node x = NodeManager::mkDummySkolem("ex", locType);
+        Node y = NodeManager::mkDummySkolem("ey", dataType);
         return nm
             ->mkNode(Kind::SEP_STAR,
-                     nm->mkNode(Kind::SEP_PTO, x, y),
-                     nm->mkConst(true))
+                     {nm->mkNode(Kind::SEP_PTO, x, y), nm->mkConst(true)})
             .negate();
       }
     }
@@ -102,7 +96,7 @@ Node preSkolemEmp(NodeManager* nm,
 }  // namespace
 
 SepSkolemEmp::SepSkolemEmp(PreprocessingPassContext* preprocContext)
-    : PreprocessingPass(preprocContext, "sep-skolem-emp"){};
+    : PreprocessingPass(preprocContext, "sep-skolem-emp") {};
 
 PreprocessingPassResult SepSkolemEmp::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
@@ -127,14 +121,13 @@ PreprocessingPassResult SepSkolemEmp::applyInternal(
     {
       assertionsToPreprocess->replace(i, rewrite(next));
       Trace("sep-preprocess") << "*** Preprocess sep " << prev << endl;
-      Trace("sep-preprocess") << "   ...got " << (*assertionsToPreprocess)[i]
-                              << endl;
+      Trace("sep-preprocess")
+          << "   ...got " << (*assertionsToPreprocess)[i] << endl;
     }
     visited.clear();
   }
   return PreprocessingPassResult::NO_CONFLICT;
 }
-
 
 }  // namespace passes
 }  // namespace preprocessing

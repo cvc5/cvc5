@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Daniel Larraz, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -37,7 +34,8 @@ typedef expr::Attribute<OriginalFormAttributeId, Node> OriginalFormAttribute;
 struct UnpurifiedFormAttributeId
 {
 };
-typedef expr::Attribute<UnpurifiedFormAttributeId, Node> UnpurifiedFormAttribute;
+typedef expr::Attribute<UnpurifiedFormAttributeId, Node>
+    UnpurifiedFormAttribute;
 
 SkolemManager::SkolemManager(NodeManager* nm) : d_nm(nm), d_skolemCounter(0) {}
 
@@ -153,9 +151,8 @@ Node SkolemManager::mkSkolemFunctionTyped(SkolemId id,
   // use null node if cacheVals is empty
   if (!cacheVals.empty())
   {
-    cacheVal = cacheVals.size() == 1
-                   ? cacheVals[0]
-                   : d_nm->mkNode(Kind::SEXPR, cacheVals);
+    cacheVal = cacheVals.size() == 1 ? cacheVals[0]
+                                     : d_nm->mkNode(Kind::SEXPR, cacheVals);
   }
   return mkSkolemFunctionTyped(id, tn, cacheVal);
 }
@@ -165,9 +162,7 @@ bool SkolemManager::isSkolemFunction(TNode k)
   return k.getKind() == Kind::SKOLEM;
 }
 
-bool SkolemManager::isSkolemFunction(TNode k,
-                                     SkolemId& id,
-                                     Node& cacheVal)
+bool SkolemManager::isSkolemFunction(TNode k, SkolemId& id, Node& cacheVal)
 {
   SkolemManager* skm = k.getNodeManager()->getSkolemManager();
   if (k.getKind() != Kind::SKOLEM)
@@ -234,7 +229,6 @@ InternalSkolemId SkolemManager::getInternalId(TNode k) const
 
 Node SkolemManager::mkDummySkolem(const std::string& prefix,
                                   const TypeNode& type,
-                                  const std::string& comment,
                                   SkolemFlags flags)
 {
   return mkSkolemNode(Kind::DUMMY_SKOLEM, prefix, type, flags);
@@ -542,7 +536,7 @@ TypeNode SkolemManager::getTypeFor(SkolemId id,
     }
     case SkolemId::BAGS_MAP_PREIMAGE_INJECTIVE:
     {
-      Assert (cacheVals[0].getType().isFunction());
+      Assert(cacheVals[0].getType().isFunction());
       return cacheVals[0].getType().getArgTypes()[0];
     }
     case SkolemId::SHARED_SELECTOR:

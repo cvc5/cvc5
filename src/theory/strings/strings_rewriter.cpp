@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -219,9 +216,9 @@ Node StringsRewriter::rewriteStringLt(Node n)
   Assert(n.getKind() == Kind::STRING_LT);
   NodeManager* nm = nodeManager();
   // eliminate s < t ---> s != t AND s <= t
-  Node retNode = nm->mkNode(Kind::AND,
-                            n[0].eqNode(n[1]).negate(),
-                            nm->mkNode(Kind::STRING_LEQ, n[0], n[1]));
+  Node retNode = nm->mkNode(
+      Kind::AND,
+      {n[0].eqNode(n[1]).negate(), nm->mkNode(Kind::STRING_LEQ, n[0], n[1])});
   return returnRewrite(n, retNode, Rewrite::STR_LT_ELIM);
 }
 
@@ -329,8 +326,8 @@ Node StringsRewriter::rewriteStringIsDigit(Node n)
   Node t = nm->mkNode(Kind::STRING_TO_CODE, n[0]);
   Node retNode =
       nm->mkNode(Kind::AND,
-                 nm->mkNode(Kind::LEQ, nm->mkConstInt(Rational(48)), t),
-                 nm->mkNode(Kind::LEQ, t, nm->mkConstInt(Rational(57))));
+                 {nm->mkNode(Kind::LEQ, nm->mkConstInt(Rational(48)), t),
+                  nm->mkNode(Kind::LEQ, t, nm->mkConstInt(Rational(57)))});
   return returnRewrite(n, retNode, Rewrite::IS_DIGIT_ELIM);
 }
 

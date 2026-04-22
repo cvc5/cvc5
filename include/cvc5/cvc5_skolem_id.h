@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Mudathir Mohamed
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -358,7 +355,7 @@ enum ENUM(SkolemId)
    * - Sort: ``(-> Int Int)``
    *
    * The term `(@strings_itos_result n)` is equivalent to
-   * `(lambda ((x Int)) (str.from_int (mod n (^ 10 x)))`.
+   * `(lambda ((x Int)) (str.from_int (mod n (** 10 x)))`.
    */
   EVALUE(STRINGS_ITOS_RESULT),
   /**
@@ -446,7 +443,7 @@ enum ENUM(SkolemId)
   /**
    * An uninterpreted function for bag.fold operator:
    * To compute ``(bag.fold f t A)``, we need a function that
-   * accumulates intermidiate values. We call this function
+   * accumulates intermediate values. We call this function
    * combine of type Int -> T2 where:
    * combine(0) = t
    * combine(i) = f(elements(i), combine(i - 1)) for 1 <= i <= n.
@@ -652,7 +649,7 @@ enum ENUM(SkolemId)
   /**
    * An uninterpreted function for set.fold operator:
    * To compute ``(set.fold f t A)``, we need a function that
-   * accumulates intermidiate values. We call this function
+   * accumulates intermediate values. We call this function
    * combine of type Int -> T2 where:
    * combine(0) = t
    * combine(i) = f(elements(i), combine(i - 1)) for 1 <= i <= n

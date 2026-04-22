@@ -1,4 +1,4 @@
-; COMMAND-LINE: --solve-bv-as-int=sum --finite-model-find
+; COMMAND-LINE: --solve-bv-as-int=iand --mbqi
 ; EXPECT: sat
 (set-logic ALL)
 (declare-fun b ((_ BitVec 1)) (_ BitVec 1))

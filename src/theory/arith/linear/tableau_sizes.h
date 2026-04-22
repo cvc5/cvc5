@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Tim King
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -28,16 +25,18 @@ namespace arith::linear {
 
 class Tableau;
 
-class TableauSizes {
-private:
+class TableauSizes
+{
+ private:
   const Tableau* d_tab;
-public:
-  TableauSizes(const Tableau* tab): d_tab(tab){}
+
+ public:
+  TableauSizes(const Tableau* tab) : d_tab(tab) {}
 
   uint32_t getRowLength(ArithVar b) const;
   uint32_t getColumnLength(ArithVar x) const;
 }; /* TableauSizes */
 
-}  // namespace arith
+}  // namespace arith::linear
 }  // namespace theory
 }  // namespace cvc5::internal

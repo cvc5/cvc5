@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -103,6 +100,7 @@ class Assertions : protected EnvObj
    * on initializeCheckSat.
    */
   std::vector<Node>& getAssumptions();
+
  private:
   /**
    * Fully type-check the argument, and also type-check that it's
@@ -124,9 +122,7 @@ class Assertions : protected EnvObj
    * assertions from the SyGuS parser may have free variables (say if the
    * input contains an assert or define-fun-rec command).
    */
-  void addFormula(TNode n,
-                  bool isFunDef,
-                  bool maybeHasFv);
+  void addFormula(TNode n, bool isFunDef, bool maybeHasFv);
   /**
    * The assertion list (before any conversion) for supporting getAssertions().
    */

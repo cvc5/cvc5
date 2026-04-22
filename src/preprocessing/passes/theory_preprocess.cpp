@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -31,7 +28,7 @@ namespace passes {
 using namespace cvc5::internal::theory;
 
 TheoryPreprocess::TheoryPreprocess(PreprocessingPassContext* preprocContext)
-    : PreprocessingPass(preprocContext, "theory-preprocess"){};
+    : PreprocessingPass(preprocContext, "theory-preprocess") {};
 
 PreprocessingPassResult TheoryPreprocess::applyInternal(
     AssertionPipeline* assertions)
@@ -65,7 +62,6 @@ PreprocessingPassResult TheoryPreprocess::applyInternal(
 
   return PreprocessingPassResult::NO_CONFLICT;
 }
-
 
 }  // namespace passes
 }  // namespace preprocessing

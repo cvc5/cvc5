@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Abdalrhman Mohamed, Daniel Larraz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -274,7 +271,8 @@ Node RewriteProofRule::getConclusionFor(
         // to determine the type, we get the type of the substitution of the
         // list context of the variable.
         Node subsCtx = visited[ctx];
-        Assert(!subsCtx.isNull()) << "Failed to get context for " << ctx << " in " << d_id;
+        Assert(!subsCtx.isNull())
+            << "Failed to get context for " << ctx << " in " << d_id;
         Node nt = expr::getNullTerminator(nm, ctx.getKind(), subsCtx.getType());
         wargs.push_back(nt);
       }

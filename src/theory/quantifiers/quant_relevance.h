@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -28,10 +25,10 @@ namespace quantifiers {
 
 /** QuantRelevance
  *
-* This class is used for implementing SinE-style heuristics
-* (e.g. see Hoder et al. CADE 2011)
-* This is enabled by the option --relevant-triggers.
-*/
+ * This class is used for implementing SinE-style heuristics
+ * (e.g. see Hoder et al. CADE 2011)
+ * This is enabled by the option --relevant-triggers.
+ */
 class QuantRelevance : public QuantifiersUtil
 {
  public:
@@ -43,7 +40,7 @@ class QuantRelevance : public QuantifiersUtil
   QuantRelevance(Env& env);
   ~QuantRelevance() {}
   /** reset */
-  bool reset(Theory::Effort e) override { return true; }
+  bool reset(CVC5_UNUSED Theory::Effort e) override { return true; }
   /** register quantifier */
   void registerQuantifier(Node q) override;
   /** identify */

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Dejan Jovanovic, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -25,10 +22,12 @@ using namespace cvc5::internal::theory;
 
 namespace cvc5::internal {
 
-std::string PreRegisterVisitor::toString() const {
+std::string PreRegisterVisitor::toString() const
+{
   std::stringstream ss;
   TNodeToTheorySetMap::const_iterator it = d_visited.begin();
-  for (; it != d_visited.end(); ++ it) {
+  for (; it != d_visited.end(); ++it)
+  {
     ss << (*it).first << ": " << TheoryIdSetUtil::setToString((*it).second)
        << std::endl;
   }
@@ -84,9 +83,10 @@ PreRegisterVisitor::PreRegisterVisitor(Env& env, TheoryEngine* engine)
 {
 }
 
-bool PreRegisterVisitor::alreadyVisited(TNode current, TNode parent) {
-
-  Trace("register::internal") << "PreRegisterVisitor::alreadyVisited(" << current << "," << parent << ")" << std::endl;
+bool PreRegisterVisitor::alreadyVisited(TNode current, TNode parent)
+{
+  Trace("register::internal") << "PreRegisterVisitor::alreadyVisited("
+                              << current << "," << parent << ")" << std::endl;
   Kind k = parent.getKind();
   if ((isClosureKind(k) || k == Kind::SEP_STAR || k == Kind::SEP_WAND
        || (k == Kind::SEP_LABEL && current.getType().isBoolean()))
@@ -95,10 +95,11 @@ bool PreRegisterVisitor::alreadyVisited(TNode current, TNode parent) {
     Trace("register::internal") << "quantifier:true" << std::endl;
     return true;
   }
-  
+
   // Get the theories that have already visited this node
   TNodeToTheorySetMap::iterator find = d_visited.find(current);
-  if (find == d_visited.end()) {
+  if (find == d_visited.end())
+  {
     // not visited at all, return false
     return false;
   }
@@ -107,10 +108,12 @@ bool PreRegisterVisitor::alreadyVisited(TNode current, TNode parent) {
   return isAlreadyVisited(d_env, visitedTheories, current, parent);
 }
 
-void PreRegisterVisitor::visit(TNode current, TNode parent) {
-
-  Trace("register") << "PreRegisterVisitor::visit(" << current << "," << parent << ")" << std::endl;
-  if (TraceIsOn("register::internal")) {
+void PreRegisterVisitor::visit(TNode current, TNode parent)
+{
+  Trace("register") << "PreRegisterVisitor::visit(" << current << "," << parent
+                    << ")" << std::endl;
+  if (TraceIsOn("register::internal"))
+  {
     Trace("register::internal") << toString() << std::endl;
   }
 
@@ -202,7 +205,7 @@ void PreRegisterVisitor::preRegisterWithTheory(TheoryEngine* te,
   th->preRegisterTerm(current);
 }
 
-void PreRegisterVisitor::start(TNode node) {}
+void PreRegisterVisitor::start(CVC5_UNUSED TNode node) {}
 
 SharedTermsVisitor::SharedTermsVisitor(Env& env,
                                        TheoryEngine* te,
@@ -214,19 +217,22 @@ SharedTermsVisitor::SharedTermsVisitor(Env& env,
 {
 }
 
-std::string SharedTermsVisitor::toString() const {
+std::string SharedTermsVisitor::toString() const
+{
   std::stringstream ss;
   TNodeVisitedMap::const_iterator it = d_visited.begin();
-  for (; it != d_visited.end(); ++ it) {
+  for (; it != d_visited.end(); ++it)
+  {
     ss << (*it).first << ": " << TheoryIdSetUtil::setToString((*it).second)
        << std::endl;
   }
   return ss.str();
 }
 
-bool SharedTermsVisitor::alreadyVisited(TNode current, TNode parent) const {
-
-  Trace("register::internal") << "SharedTermsVisitor::alreadyVisited(" << current << "," << parent << ")" << std::endl;
+bool SharedTermsVisitor::alreadyVisited(TNode current, TNode parent) const
+{
+  Trace("register::internal") << "SharedTermsVisitor::alreadyVisited("
+                              << current << "," << parent << ")" << std::endl;
   Kind k = parent.getKind();
   if ((isClosureKind(k) || k == Kind::SEP_STAR || k == Kind::SEP_WAND
        || (k == Kind::SEP_LABEL && current.getType().isBoolean()))
@@ -237,7 +243,8 @@ bool SharedTermsVisitor::alreadyVisited(TNode current, TNode parent) const {
   }
   TNodeVisitedMap::const_iterator find = d_visited.find(current);
   // If node is not visited at all, just return false
-  if (find == d_visited.end()) {
+  if (find == d_visited.end())
+  {
     Trace("register::internal") << "1:false" << std::endl;
     return false;
   }
@@ -246,10 +253,12 @@ bool SharedTermsVisitor::alreadyVisited(TNode current, TNode parent) const {
   return isAlreadyVisited(d_env, visitedTheories, current, parent);
 }
 
-void SharedTermsVisitor::visit(TNode current, TNode parent) {
-
-  Trace("register") << "SharedTermsVisitor::visit(" << current << "," << parent << ")" << std::endl;
-  if (TraceIsOn("register::internal")) {
+void SharedTermsVisitor::visit(TNode current, TNode parent)
+{
+  Trace("register") << "SharedTermsVisitor::visit(" << current << "," << parent
+                    << ")" << std::endl;
+  if (TraceIsOn("register::internal"))
+  {
     Trace("register::internal") << toString() << std::endl;
   }
   TheoryIdSet visitedTheories = d_visited[current];
@@ -266,7 +275,8 @@ void SharedTermsVisitor::visit(TNode current, TNode parent) {
   d_preregistered[current] =
       TheoryIdSetUtil::setUnion(preregTheories, visitedTheories);
 
-  // If there is more than two theories and a new one has been added notify the shared terms database
+  // If there is more than two theories and a new one has been added notify the
+  // shared terms database
   TheoryId currentTheoryId = d_env.theoryOf(current);
   if (TheoryIdSetUtil::setDifference(
           visitedTheories, TheoryIdSetUtil::setInsert(currentTheoryId)))
@@ -278,16 +288,16 @@ void SharedTermsVisitor::visit(TNode current, TNode parent) {
   Assert(alreadyVisited(current, parent));
 }
 
-void SharedTermsVisitor::start(TNode node) {
+void SharedTermsVisitor::start(TNode node)
+{
   d_visited.clear();
   d_atom = node;
 }
 
-void SharedTermsVisitor::done(TNode node) {
-  clear();
-}
+void SharedTermsVisitor::done(CVC5_UNUSED TNode node) { clear(); }
 
-void SharedTermsVisitor::clear() {
+void SharedTermsVisitor::clear()
+{
   d_atom = TNode();
   d_visited.clear();
 }

@@ -19,6 +19,12 @@ The following enums define such configuration modes.
 
 ----
 
+.. autoclass:: cvc5.OptionCategory
+    :members:
+    :undoc-members:
+
+----
+
 .. autoclass:: cvc5.ProofComponent
     :members:
     :undoc-members:

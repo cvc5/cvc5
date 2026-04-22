@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Morgan Deters
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -85,10 +82,8 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>& solver)
     printUsageCategories(*solver.get(), dopts.out());
     exit(1);
   }
-  for (const auto& name : {"show-config",
-                           "copyright",
-                           "show-trace-tags",
-                           "version"})
+  for (const auto& name :
+       {"show-config", "copyright", "show-trace-tags", "version"})
   {
     if (solver->getOptionInfo(name).boolValue())
     {
@@ -105,7 +100,8 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>& solver)
 #endif /* CVC5_COMPETITION_MODE */
 
   // We only accept one input file
-  if(filenames.size() > 1) {
+  if (filenames.size() > 1)
+  {
     throw Exception("Too many input files specified.");
   }
 
@@ -117,27 +113,34 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>& solver)
   {
     pExecutor->setOptionInternal(
         "interactive",
-        (inputFromStdin && isatty(fileno(stdin))) ? "true"  : "false");
+        (inputFromStdin && isatty(fileno(stdin))) ? "true" : "false");
   }
 
   // Auto-detect input language by filename extension
   std::string filenameStr("<stdin>");
-  if (!inputFromStdin) {
+  if (!inputFromStdin)
+  {
     filenameStr = std::move(filenames[0]);
   }
   const char* filename = filenameStr.c_str();
   cvc5::modes::InputLanguage ilang;
   if (solver->getOption("input-language") == "LANG_AUTO")
   {
-    if( inputFromStdin ) {
+    if (inputFromStdin)
+    {
       // We can't do any fancy detection on stdin
       pExecutor->setOptionInternal("input-language", "smt2");
-    } else {
+    }
+    else
+    {
       size_t len = filenameStr.size();
-      if(len >= 5 && !strcmp(".smt2", filename + len - 5)) {
+      if (len >= 5 && !strcmp(".smt2", filename + len - 5))
+      {
         pExecutor->setOptionInternal("input-language", "smt2");
-      } else if((len >= 3 && !strcmp(".sy", filename + len - 3))
-                || (len >= 3 && !strcmp(".sl", filename + len - 3))) {
+      }
+      else if ((len >= 3 && !strcmp(".sy", filename + len - 3))
+               || (len >= 3 && !strcmp(".sl", filename + len - 3)))
+      {
         // version 2 sygus is the default
         pExecutor->setOptionInternal("input-language", "sygus2");
       }
@@ -145,7 +148,7 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>& solver)
   }
   if (solver->getOption("input-language") == "LANG_SYGUS_V2")
   {
-    // Enable the sygus API. We set this here instead of in set defaults 
+    // Enable the sygus API. We set this here instead of in set defaults
     // to simplify checking at the API level. In particular, the sygus
     // option is the authority on whether sygus commands are currently
     // allowed in the API.
@@ -164,7 +167,8 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>& solver)
   }
 
   // Determine which messages to show based on smtcomp_mode and verbosity
-  if(Configuration::isMuzzledBuild()) {
+  if (Configuration::isMuzzledBuild())
+  {
     TraceChannel.setStream(&cvc5::internal::null_os);
     WarningChannel.setStream(&cvc5::internal::null_os);
   }
@@ -235,7 +239,8 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>& solver)
 
       std::unique_ptr<InputParser> parser(new InputParser(
           pExecutor->getSolver(), pExecutor->getSymbolManager()));
-      if( inputFromStdin ) {
+      if (inputFromStdin)
+      {
         parser->setStreamInput(ilang, cin, filename);
       }
       else

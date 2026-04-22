@@ -1,10 +1,7 @@
 ###############################################################################
-# Top contributors (to current version):
-#   Gereon Kremer, Andres Noetzli, Daniel Larraz
-#
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -50,14 +47,27 @@ if(NOT Poly_FOUND_SYSTEM)
 
   include(ExternalProject)
 
-  set(Poly_VERSION "0.2.0")
+  set(Poly_VERSION "0.2.1")
 
   set(POLY_PATCH_KWD PATCH_COMMAND)
+  if (NO_GLOBAL_POLY_CTX)
+    find_program(PATCH_BIN patch)
+    if(NOT PATCH_BIN)
+      message(FATAL_ERROR "Can not patch LibPoly, missing binary for patch")
+    endif()
+    set(POLY_PATCH_CMD
+      ${POLY_PATCH_KWD}
+        patch -p1 -d <SOURCE_DIR>
+        -i ${CMAKE_CURRENT_LIST_DIR}/deps-utils/poly-global-ctx.patch
+    )
+    set(POLY_PATCH_KWD COMMAND)
+  endif()
+
   check_if_cross_compiling(CCWIN "Windows" "")
   if(CCWIN)
     set(POLY_PATCH_CMD
-      PATCH_COMMAND
-        ${CMAKE_SOURCE_DIR}/cmake/deps-utils/Poly-windows-patch.sh <SOURCE_DIR>
+      ${POLY_PATCH_KWD}
+        ${PROJECT_SOURCE_DIR}/cmake/deps-utils/Poly-windows-patch.sh <SOURCE_DIR>
     )
     set(POLY_PATCH_KWD COMMAND)
   endif()
@@ -156,12 +166,14 @@ if(NOT Poly_FOUND_SYSTEM)
       "${DEPS_BASE}/lib/libpicpolyxx${CMAKE_STATIC_LIBRARY_SUFFIX}")
   endif()
 
-  # Disable a warning triggered by the Emscripten compiler due to code in
-  # a GMP header used by LibPoly.
+  # Disable a warning triggered by compilers (Emscripten, Apple Clang, etc.)
+  # due to deprecated literal operator syntax in a GMP header used by LibPoly.
   set(POLY_CXX_FLAGS "")
-  if(NOT(WASM STREQUAL "OFF"))
+  check_cxx_compiler_flag(-Wno-error=deprecated-literal-operator HAVE_CXX_FLAGWno_error_deprecated_literal_operator)
+  if(HAVE_CXX_FLAGWno_error_deprecated_literal_operator)
     set(POLY_CXX_FLAGS -DCMAKE_CXX_FLAGS=-Wno-error=deprecated-literal-operator)
   endif()
+  
   # We pass the full path of GMP to LibPoly, s.t. we can ensure that LibPoly is
   # able to find the correct version of GMP if we built it locally. This is
   # primarily important for cross-compiling cvc5, because LibPoly's search
@@ -170,7 +182,7 @@ if(NOT Poly_FOUND_SYSTEM)
     Poly-EP
     ${COMMON_EP_CONFIG}
     URL https://github.com/SRI-CSL/libpoly/archive/refs/tags/v${Poly_VERSION}.tar.gz
-    URL_HASH SHA256=146adc0d3f6fe8038adb6b8b69dd16114a4be12f520d5c1fb333f3746d233abe
+    URL_HASH SHA256=f9920afc876f998633348b9cbfcf180757ada48cc872040256c60ad0707b5a0f
     ${POLY_PATCH_CMD}
     CMAKE_ARGS -DCMAKE_BUILD_TYPE=Release
                -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>

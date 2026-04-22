@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Haniel Barbosa, Andrew Reynolds, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -15,6 +12,8 @@
 
 #include "theory/quantifiers/sygus/sygus_unif_rl.h"
 
+#include <math.h>
+
 #include "expr/skolem_manager.h"
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
@@ -23,8 +22,6 @@
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/rewriter.h"
 #include "util/random.h"
-
-#include <math.h>
 
 using namespace cvc5::internal::kind;
 
@@ -73,10 +70,12 @@ void SygusUnifRl::initializeCandidate(
   d_useCondPoolIGain = mode == options::SygusUnifPiMode::CENUM_IGAIN;
 }
 
-void SygusUnifRl::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
+void SygusUnifRl::notifyEnumeration(CVC5_UNUSED Node e,
+                                    CVC5_UNUSED Node v,
+                                    CVC5_UNUSED std::vector<Node>& lemmas)
 {
   // we do not use notify enumeration
-  Assert(false);
+  DebugUnhandled();
 }
 
 Node SygusUnifRl::purifyLemma(Node n,
@@ -187,8 +186,7 @@ Node SygusUnifRl::purifyLemma(Node n,
       // Build purified head with fresh skolem and recreate node
       std::stringstream ss;
       ss << nb[0] << "_" << d_cand_to_hd_count[nb[0]]++;
-      Node new_f = NodeManager::mkDummySkolem(
-          ss.str(), nb[0].getType(), "head of unif evaluation point");
+      Node new_f = NodeManager::mkDummySkolem(ss.str(), nb[0].getType());
       // Adds new enumerator to map from candidate
       Trace("sygus-unif-rl-purify")
           << "...new enum " << new_f << " for candidate " << nb[0] << "\n";
@@ -299,7 +297,7 @@ Node SygusUnifRl::addRefLemma(Node lemma,
 }
 
 void SygusUnifRl::initializeConstructSol() {}
-void SygusUnifRl::initializeConstructSolFor(Node f) {}
+void SygusUnifRl::initializeConstructSolFor(CVC5_UNUSED Node f) {}
 bool SygusUnifRl::constructSolution(std::vector<Node>& sols,
                                     std::vector<Node>& lemmas)
 {
@@ -578,12 +576,11 @@ Node SygusUnifRl::DecisionTreeInfo::buildSol(Node cons,
   // reset the trie
   d_pt_sep.d_trie.clear();
   return d_unif->usingConditionPool()
-             ? buildSolAllCond(cons, lemmas, shuffleCond, condIndNoRepeatSol)
+             ? buildSolAllCond(cons, shuffleCond, condIndNoRepeatSol)
              : buildSolMinCond(cons, lemmas);
 }
 
 Node SygusUnifRl::DecisionTreeInfo::buildSolAllCond(Node cons,
-                                                    std::vector<Node>& lemmas,
                                                     bool shuffleCond,
                                                     bool condIndNoRepeatSol)
 {
@@ -774,7 +771,7 @@ Node SygusUnifRl::DecisionTreeInfo::buildSolMinCond(Node cons,
     Assert(c_counter < d_conds.size());
     Node ce = d_enums[c_counter];
     Node cv = d_conds[c_counter];
-    Assert(ce.getType() == cv.getType());
+    AssertEqual(ce.getType(), cv.getType());
     if (TraceIsOn("sygus-unif-sol"))
     {
       std::stringstream ss;
@@ -1080,18 +1077,21 @@ void SygusUnifRl::DecisionTreeInfo::buildDtInfoGain(std::vector<Node>& hds,
   double maxgain = -1;
   unsigned picked_cond = 0;
   std::vector<std::pair<std::vector<Node>, std::vector<Node>>> splits;
-  double current_set_entropy = getEntropy(hds, hd_mv, ind);
+  double current_set_entropy = getEntropy(hds, hd_mv);
   for (unsigned j = 0, conds_size = conds.size(); j < conds_size; ++j)
   {
     std::pair<std::vector<Node>, std::vector<Node>> split =
         evaluateCond(hds, conds[j]);
     splits.push_back(split);
     Assert(hds.size() == split.first.size() + split.second.size());
-    double gain =
-        current_set_entropy
-        - (split.first.size() * getEntropy(split.first, hd_mv, ind)
-           + split.second.size() * getEntropy(split.second, hd_mv, ind))
-              / hds.size();
+    // Use split_fst_entropy and split_snd_entropy to ensure deterministic node
+    // ID assignments
+    double split_fst_entropy = getEntropy(split.first, hd_mv);
+    double split_snd_entropy = getEntropy(split.second, hd_mv);
+    double gain = current_set_entropy
+                  - (split.first.size() * split_fst_entropy
+                     + split.second.size() * split_snd_entropy)
+                        / hds.size();
     indent("sygus-unif-dt-debug", ind);
     Trace("sygus-unif-dt-debug")
         << "..gain of "
@@ -1136,8 +1136,7 @@ SygusUnifRl::DecisionTreeInfo::evaluateCond(std::vector<Node>& pts, Node cond)
 }
 
 double SygusUnifRl::DecisionTreeInfo::getEntropy(const std::vector<Node>& hds,
-                                                 std::map<Node, Node>& hd_mv,
-                                                 int ind)
+                                                 std::map<Node, Node>& hd_mv)
 {
   double p = 0, n = 0;
   TermDbSygus* tds = d_unif->d_tds;

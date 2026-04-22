@@ -1,10 +1,7 @@
 ###############################################################################
-# Top contributors (to current version):
-#   Aina Niemetz, Ying Sheng, Yoni Zohar
-#
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -16,7 +13,7 @@ import cvc5
 import sys
 from math import isnan
 
-from cvc5 import Kind, SortKind, TermManager, Solver, Plugin
+from cvc5 import Kind, OptionCategory, SortKind, TermManager, Solver, Plugin
 from cvc5 import RoundingMode
 from cvc5 import BlockModelsMode, LearnedLitType, FindSynthTarget
 from cvc5 import ProofComponent, ProofFormat
@@ -445,12 +442,14 @@ def test_get_option_info(solver):
 
     info = solver.getOptionInfo("verbose")
     assert info['name'] == "verbose"
+    assert info['category'] == OptionCategory.COMMON
     assert info['aliases'] == []
     assert not info['setByUser']
     assert info['type'] is None
 
     info = solver.getOptionInfo("print-success")
     assert info['name'] == "print-success"
+    assert info['category'] == OptionCategory.COMMON
     assert info['aliases'] == []
     assert not info['setByUser']
     assert info['type'] is bool
@@ -459,6 +458,7 @@ def test_get_option_info(solver):
 
     info = solver.getOptionInfo("verbosity")
     assert info['name'] == "verbosity"
+    assert info['category'] == OptionCategory.COMMON
     assert info['aliases'] == []
     assert not info['setByUser']
     assert info['type'] is int
@@ -468,6 +468,7 @@ def test_get_option_info(solver):
 
     info = solver.getOptionInfo("rlimit")
     assert info['name'] == "rlimit"
+    assert info['category'] == OptionCategory.COMMON
     assert info['aliases'] == []
     assert not info['setByUser']
     assert info['type'] is int
@@ -477,6 +478,7 @@ def test_get_option_info(solver):
 
     info = solver.getOptionInfo("random-freq")
     assert info['name'] == "random-freq"
+    assert info['category'] == OptionCategory.EXPERT
     assert info['aliases'] == ["random-frequency"]
     assert not info['setByUser']
     assert info['type'] is float
@@ -486,6 +488,7 @@ def test_get_option_info(solver):
 
     info = solver.getOptionInfo("force-logic")
     assert info['name'] == "force-logic"
+    assert info['category'] == OptionCategory.COMMON
     assert info['aliases'] == []
     assert not info['setByUser']
     assert info['type'] is str
@@ -494,6 +497,7 @@ def test_get_option_info(solver):
 
     info = solver.getOptionInfo("simplification")
     assert info['name'] == "simplification"
+    assert info['category'] == OptionCategory.REGULAR
     assert info['aliases'] == ["simplification-mode"]
     assert not info['setByUser']
     assert info['type'] == 'mode'
@@ -1304,12 +1308,12 @@ def test_get_logic(solver):
     assert solver.getLogic() == "QF_BV"
 
 def test_set_option(tm, solver):
-    solver.setOption("bv-sat-solver", "minisat")
+    solver.setOption("bv-sat-solver", "cadical")
     with pytest.raises(RuntimeError):
         solver.setOption("bv-sat-solver", "1")
     solver.assertFormula(tm.mkTrue())
     with pytest.raises(RuntimeError):
-        solver.setOption("bv-sat-solver", "minisat")
+        solver.setOption("bv-sat-solver", "cadical")
 
 
 def test_reset_assertions(tm, solver):

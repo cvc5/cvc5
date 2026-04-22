@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mudathir Mohamed, Aina Niemetz, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -200,8 +197,8 @@ public class DatatypeConstructor extends AbstractPointer implements Iterable<Dat
 
   /**
    * Provide a string representation of the native datatype constructor.
-   * 
-   * @param pointer The native memory address pointing to the datatype constructor. 
+   *
+   * @param pointer The native memory address pointing to the datatype constructor.
    * @return A string representation of this datatype constructor.
    */
   protected native String toString(long pointer);

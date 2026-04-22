@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -34,7 +31,8 @@ namespace quantifiers {
  * type T1 and 3 free variables of type T2, then it is stored at
  * d_children[T1][2].d_children[T2][3].
  */
-class AlphaEquivalenceTypeNode {
+class AlphaEquivalenceTypeNode
+{
   using NodeMap = context::CDHashMap<Node, Node>;
 
  public:
@@ -105,7 +103,7 @@ class AlphaEquivalenceDb
    * in addTermWithSubstitution. The range in d_bvmap[q] contains the mapping
    * from canonical free variables to variables in q.
    */
-  std::map<Node, std::map<Node, TNode> > d_bvmap;
+  std::map<Node, std::map<Node, TNode>> d_bvmap;
 };
 
 /**
@@ -116,7 +114,7 @@ class AlphaEquivalence : protected EnvObj
 {
  public:
   AlphaEquivalence(Env& env);
-  ~AlphaEquivalence(){}
+  ~AlphaEquivalence() {}
   /** reduce quantifier
    *
    * If non-null, its return value is a trust node containing the lemma
@@ -145,8 +143,8 @@ class AlphaEquivalence : protected EnvObj
   bool isProofEnabled() const;
 };
 
-}
-}
+}  // namespace quantifiers
+}  // namespace theory
 }  // namespace cvc5::internal
 
 #endif

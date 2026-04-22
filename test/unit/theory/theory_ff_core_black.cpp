@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Alex Ozdemir, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -57,7 +54,8 @@ TEST_F(TestTheoryFfRootsBlack, DistinctRootsPoly)
     CoCoA::RingElem x = CoCoA::indet(polyRing, 0);
     CoCoA::RingElem y = CoCoA::indet(polyRing, 1);
     CoCoA::RingElem z = CoCoA::indet(polyRing, 2);
-    std::vector<CoCoA::RingElem> gens{x,x-y,y-z,z*z-z,y-1,x-x*x};
+    std::vector<CoCoA::RingElem> gens{
+        x, x - y, y - z, z * z - z, y - 1, x - x * x};
     ff::Tracer tracer(gens);
     tracer.setFunctionPointers();
     CoCoA::ideal ideal(gens);

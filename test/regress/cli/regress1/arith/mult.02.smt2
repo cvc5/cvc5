@@ -1,6 +1,4 @@
-; EXPECT: (error "A non-linear fact was asserted to arithmetic in a linear logic.
-; EXPECT: The fact in question: (>= (* (- 1) (* n n)) (- 1))
-; EXPECT: ")
+; EXPECT: (error "A non-linear term was asserted to arithmetic in a linear logic.")
 ; EXIT: 1
 (set-logic QF_LRA)
 (set-info :status unknown)

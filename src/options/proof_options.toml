@@ -46,7 +46,7 @@ name   = "Proof"
   category   = "expert"
   long       = "proof-elim-subtypes"
   type       = "bool"
-  default    = "false"
+  default    = "true"
   help       = "Eliminate subtypes (mixed arithmetic) in proofs"
 
 [[option]]
@@ -129,10 +129,10 @@ name   = "Proof"
 
 [[option]]
   name       = "proofChainMRes"
-  category   = "expert"
+  category   = "regular"
   long       = "proof-chain-m-res"
   type       = "bool"
-  default    = "false"
+  default    = "true"
   help       = "Use chain multiset resolution"
 
 [[option]]
@@ -222,14 +222,6 @@ name   = "Proof"
   type       = "bool"
   default    = "false"
   help       = "Print reference to original file instead of redeclaring"
-
-[[option]]
-  name       = "dratBinaryFormat"
-  category   = "expert"
-  long       = "drat-binary-format"
-  type       = "bool"
-  default    = "false"
-  help       = "Print the DRAT proof in binary format"
 
 [[option]]
   name       = "satProofMinDimacs"

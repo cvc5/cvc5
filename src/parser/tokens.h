@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -86,6 +83,7 @@ enum Token : uint32_t
   GET_UNSAT_CORE_TOK,
   GET_UNSAT_CORE_LEMMAS_TOK,
   GET_VALUE_TOK,
+  GET_MODEL_DOMAIN_ELEMENTS_TOK,
   HEX_LITERAL,
   INCLUDE_TOK,
   INDEX_TOK,

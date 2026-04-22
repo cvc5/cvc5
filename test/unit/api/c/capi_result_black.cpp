@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -128,8 +125,7 @@ TEST_F(TestCApiBlackResult, is_unknown)
   ASSERT_TRUE(cvc5_result_is_unknown(res));
   Cvc5UnknownExplanation ue = cvc5_result_get_unknown_explanation(res);
   ASSERT_EQ(ue, CVC5_UNKNOWN_EXPLANATION_INCOMPLETE);
-  ASSERT_EQ(cvc5_unknown_explanation_to_string(ue),
-            std::string("INCOMPLETE"));
+  ASSERT_EQ(cvc5_unknown_explanation_to_string(ue), std::string("INCOMPLETE"));
 }
 
 TEST_F(TestCApiBlackResult, hash)

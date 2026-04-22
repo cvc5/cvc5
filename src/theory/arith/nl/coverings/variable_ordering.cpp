@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Gereon Kremer, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -26,7 +23,9 @@ namespace nl {
 namespace coverings {
 
 std::vector<poly_utils::VariableInformation> collectInformation(
-    const Constraints::ConstraintVector& polys, bool with_totals)
+    const poly::Context& polyCtx,
+    const Constraints::ConstraintVector& polys,
+    bool with_totals)
 {
   poly::VariableCollector vc;
   for (const auto& c : polys)
@@ -37,6 +36,7 @@ std::vector<poly_utils::VariableInformation> collectInformation(
   for (const auto& v : vc.get_variables())
   {
     res.emplace_back();
+    res.back().polyCtx = &polyCtx;
     res.back().var = v;
     for (const auto& c : polys)
     {
@@ -65,9 +65,10 @@ std::vector<poly::Variable> getVariables(
   return res;
 }
 
-std::vector<poly::Variable> sortByid(const Constraints::ConstraintVector& polys)
+std::vector<poly::Variable> sortByid(const poly::Context& polyCtx,
+                                     const Constraints::ConstraintVector& polys)
 {
-  auto vi = collectInformation(polys);
+  auto vi = collectInformation(polyCtx, polys);
   std::sort(
       vi.begin(),
       vi.end(),
@@ -77,9 +78,9 @@ std::vector<poly::Variable> sortByid(const Constraints::ConstraintVector& polys)
 };
 
 std::vector<poly::Variable> sortBrown(
-    const Constraints::ConstraintVector& polys)
+    const poly::Context& polyCtx, const Constraints::ConstraintVector& polys)
 {
-  auto vi = collectInformation(polys);
+  auto vi = collectInformation(polyCtx, polys);
   std::sort(vi.begin(),
             vi.end(),
             [](const poly_utils::VariableInformation& a,
@@ -94,9 +95,9 @@ std::vector<poly::Variable> sortBrown(
 };
 
 std::vector<poly::Variable> sortTriangular(
-    const Constraints::ConstraintVector& polys)
+    const poly::Context& polyCtx, const Constraints::ConstraintVector& polys)
 {
-  auto vi = collectInformation(polys);
+  auto vi = collectInformation(polyCtx, polys);
   std::sort(vi.begin(),
             vi.end(),
             [](const poly_utils::VariableInformation& a,
@@ -110,19 +111,17 @@ std::vector<poly::Variable> sortTriangular(
   return getVariables(vi);
 };
 
-VariableOrdering::VariableOrdering() {}
-VariableOrdering::~VariableOrdering() {}
-
 std::vector<poly::Variable> VariableOrdering::operator()(
     const Constraints::ConstraintVector& polys,
     VariableOrderingStrategy vos) const
 {
   switch (vos)
   {
-    case VariableOrderingStrategy::BYID: return sortByid(polys);
-    case VariableOrderingStrategy::BROWN: return sortBrown(polys);
-    case VariableOrderingStrategy::TRIANGULAR: return sortTriangular(polys);
-    default: Assert(false) << "Unsupported variable ordering.";
+    case VariableOrderingStrategy::BYID: return sortByid(d_polyCtx, polys);
+    case VariableOrderingStrategy::BROWN: return sortBrown(d_polyCtx, polys);
+    case VariableOrderingStrategy::TRIANGULAR:
+      return sortTriangular(d_polyCtx, polys);
+    default: DebugUnhandled() << "Unsupported variable ordering.";
   }
   return {};
 }

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Hans-Joerg Schurr
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -68,9 +65,7 @@ TheoryInferenceManager::TheoryInferenceManager(Env& env,
   }
 }
 
-TheoryInferenceManager::~TheoryInferenceManager()
-{
-}
+TheoryInferenceManager::~TheoryInferenceManager() {}
 
 void TheoryInferenceManager::setEqualityEngine(eq::EqualityEngine* ee)
 {
@@ -260,7 +255,7 @@ bool TheoryInferenceManager::trustedLemma(const TrustNode& tlem,
 {
   // if the policy says to cache lemmas, check the cache and return false if
   // we are a duplicate
-  if (d_cacheLemmas)
+  if (d_cacheLemmas && !isLemmaPropertyLocal(p))
   {
     if (!cacheLemma(tlem.getNode(), p))
     {
@@ -339,7 +334,8 @@ TrustNode TheoryInferenceManager::mkLemmaExp(Node conc,
   return TrustNode::mkTrustLemma(lem, nullptr);
 }
 
-bool TheoryInferenceManager::hasCachedLemma(TNode lem, LemmaProperty p)
+bool TheoryInferenceManager::hasCachedLemma(TNode lem,
+                                            CVC5_UNUSED LemmaProperty p)
 {
   Node rewritten = rewrite(lem);
   return d_lemmasSent.find(rewritten) != d_lemmasSent.end();
@@ -549,7 +545,7 @@ bool TheoryInferenceManager::hasSentFact() const
   return d_numCurrentFacts != 0;
 }
 
-bool TheoryInferenceManager::cacheLemma(TNode lem, LemmaProperty p)
+bool TheoryInferenceManager::cacheLemma(TNode lem, CVC5_UNUSED LemmaProperty p)
 {
   Node rewritten = rewrite(lem);
   if (d_lemmasSent.find(rewritten) != d_lemmasSent.end())
@@ -576,10 +572,7 @@ void TheoryInferenceManager::spendResource(Resource r)
   d_out.spendResource(r);
 }
 
-void TheoryInferenceManager::safePoint(Resource r)
-{
-  d_out.safePoint(r);
-}
+void TheoryInferenceManager::safePoint(Resource r) { d_out.safePoint(r); }
 
 void TheoryInferenceManager::setModelUnsound(IncompleteId id)
 {

@@ -1,6 +1,6 @@
 ; =============================================================================
 ;
-; This is porition of CPC that is not supported under cvc5's safe options. It
+; This is portion of CPC that is not supported under cvc5's safe options. It
 ; should *not* be included in proofs emitted by safe builds of cvc5 or when
 ; --safe-options is enabled. All proofs emitted in such cases will never
 ; reference any of the symbols or proof rules defined in this subdirectory.
@@ -22,6 +22,7 @@
 (include "./rules/Transcendentals.eo")
 (include "./rules/SetsExt.eo")
 (include "./rules/RewritesExpert.eo")
+(include "./rules/QuantifiersExpert.eo")
 
 (include "../programs/AciNorm.eo")
 
@@ -31,12 +32,11 @@
 (declare-const fmf.combined_card (-> Int Bool))
 
 ; Used in the --ho-elim preprocessing pass
-(declare-type @ho-elim-sort (Type))
+(declare-const @ho-elim-sort (-> Type Type))
 (declare-parameterized-const @fmf-fun-sort ((T Type :implicit)) (-> T Type))
 
-; Dataypes shared selector
+; Datatypes shared selector
 (declare-parameterized-const @shared_selector ((D Type :opaque) (T Type :opaque) (n Int :opaque)) (-> D T))
-
 
 ; program: $get_aci_normal_form_expert
 ; args:
@@ -74,4 +74,19 @@
                            (bn ($get_aci_normal_form_expert b)))
               ($is_aci_norm a b an bn)) true))
   :conclusion (= a b)
+)
+
+; rule: lambda-elim
+; implements: ProofRewriteRule::LAMBDA_ELIM.
+; args:
+; - eq : Bool. The equality to prove between terms a and b.
+; requires: >
+;   Showing that the lambda on the left hand side of eq has bound variables that
+;   coincide with the arguments of its body, and its body is an application of
+;   the right hand side of the equality.
+; conclusion: The given equality.
+(declare-rule lambda-elim ((T Type) (U Type) (V Type) (x @List) (t T) (f (-> U V)))
+  :args ((= (lambda x t) f))
+  :requires ((($get_arg_list t) x) (($is_app f t) true))
+  :conclusion (= (lambda x t) f)
 )

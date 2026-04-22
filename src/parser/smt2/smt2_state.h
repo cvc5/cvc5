@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Morgan Deters
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -195,10 +192,9 @@ class Smt2State : public ParserState
    * This calls ParserState::pushScope() and sets up
    * initial information for reading a body of a function definition
    * in the define-fun-rec and define-funs-rec command.
-   * The input parameters func/flattenVars are the result
+   * The input parameter flattenVars is the result
    * of a call to mkDefineRec above.
    *
-   * func : the function whose body we are defining.
    * sortedVarNames : the list of variable arguments for the function.
    * flattenVars : the implicit variables introduced when defining func.
    *
@@ -209,7 +205,6 @@ class Smt2State : public ParserState
    */
   void pushDefineFunRecScope(
       const std::vector<std::pair<std::string, Sort>>& sortedVarNames,
-      Term func,
       const std::vector<Term>& flattenVars,
       std::vector<Term>& bvs);
 
@@ -480,8 +475,6 @@ class Smt2State : public ParserState
   bool d_freshBinders;
   /** Has the logic been set (either by forcing it or a set-logic command)? */
   bool d_logicSet;
-  /** Have we seen a set-logic command yet? */
-  bool d_seenSetLogic;
   /** The current logic */
   internal::LogicInfo d_logic;
   /** Maps strings to the operator it is bound to */
