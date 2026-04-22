@@ -66,7 +66,7 @@ struct UninterpretedSortValueHashFunction
 {
   inline size_t operator()(const UninterpretedSortValue& val) const
   {
-    return IntegerHashFunction()(val.getIndex());
+    return std::hash<Integer>()(val.getIndex());
   }
 }; /* struct UninterpretedSortValueHashFunction */
 

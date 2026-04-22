@@ -789,6 +789,7 @@ set(regress_0_tests
   regress0/datatypes/proj-issue620-inst-const-no-rew.smt2
   regress0/datatypes/proj-issue752-ipc.smt2
   regress0/datatypes/proj-issue754-check-model.smt2
+  regress0/datatypes/proj-issue786-match-shadow.smt2
   regress0/datatypes/rec1.cvc.smt2
   regress0/datatypes/rec2.cvc.smt2
   regress0/datatypes/rec4.cvc.smt2
@@ -1146,6 +1147,7 @@ set(regress_0_tests
   regress0/nl/issue11901-pow-rewrite-type.smt2
   regress0/nl/issue12239-subtype-elim.smt2
   regress0/nl/issue12408-nl-fm.smt2
+  regress0/nl/issue12607-shared-term-factor.smt2
   regress0/nl/issue3003.smt2
   regress0/nl/issue3407.smt2
   regress0/nl/issue3411.smt2
@@ -1252,6 +1254,7 @@ set(regress_0_tests
   regress0/nl/pow2-native-6.smt2
   regress0/nl/pow2-native-7.smt2
   regress0/nl/pow2-pow.smt2
+  regress0/nl/mod_elim_pow2.smt2
   regress0/nl/pow2-pow-isabelle.smt2
   regress0/nl/proj-issue-348.smt2
   regress0/nl/proj-issue-425.smt2
@@ -1264,6 +1267,7 @@ set(regress_0_tests
   regress0/nl/proj-issue767-subtype-nl-abs.smt2
   regress0/nl/proj-issue769-nl-compare-rcons.smt2
   regress0/nl/proj-issue779-arith-distro-nidem.smt2
+  regress0/nl/proj-issue788-check-model.smt2
   regress0/nl/real-as-int.smt2
   regress0/nl/real-div-ufnra.smt2
   regress0/nl/sin-cos-346-b-chunk-0169.smt2

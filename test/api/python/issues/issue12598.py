@@ -7,14 +7,22 @@
 # directory for licensing information.
 # #############################################################################
 #
-# The build system configuration.
+# Test for issue #12598
 ##
 
-cvc5_add_python_api_test(issue5074 "issues")
-cvc5_add_python_api_test(issue6111 "issues")
-cvc5_add_python_api_test(issue12598 "issues")
-cvc5_add_python_api_test(proj-issue306 "issues")
+import cvc5
 
-if (NOT ENABLE_SAFE_MODE AND NOT ENABLE_STABLE_MODE)
-  cvc5_add_python_api_test(issue4889 "issues")
-endif()
+tm = cvc5.TermManager()
+solver = cvc5.Solver(tm)
+parser = cvc5.InputParser(solver)
+parser.setStringInput(
+    cvc5.InputLanguage.SMT_LIB_2_6,
+    "(set-logic ALL)\n(declare-const p Bool)\n(assert p)\n(check-sat)\n",
+    "repro",
+)
+cmd = parser.nextCommand()
+try:
+    cmd.invoke(solver, None)
+    assert False, "Expected TypeError"
+except TypeError as e:
+    print(f"TypeError: {e}")
