@@ -1,5 +1,6 @@
 ; COMMAND-LINE: --check-proofs
 ; EXPECT: unsat
+(set-logic ALL)
 (declare-fun x () (_ BitVec 4))
 (assert (not (=
   (bvand #b1011
