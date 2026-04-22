@@ -186,42 +186,42 @@ class BitVector
    * @param size The bit-width.
    * @return The bit-vector.
    */
-  static BitVector mkZero(uint32_t size);
+  static BitVector mkZero(unsigned size);
 
   /**
    * Create bit-vector representing value 1 of given size.
    * @param size The bit-width.
    * @return The bit-vector.
    */
-  static BitVector mkOne(uint32_t size);
+  static BitVector mkOne(unsigned size);
 
   /**
    * Create bit-vector of ones of given size.
    * @param size The bit-width.
    * @return The bit-vector.
    */
-  static BitVector mkOnes(uint32_t size);
+  static BitVector mkOnes(unsigned size);
 
   /**
    * Create bit-vector representing the minimum signed value of given size.
    * @param size The bit-width.
    * @return The bit-vector.
    */
-  static BitVector mkMinSigned(uint32_t size);
+  static BitVector mkMinSigned(unsigned size);
 
   /**
    * Create bit-vector representing the maximum signed value of given size.
    * @param size The bit-width.
    * @return The bit-vector.
    */
-  static BitVector mkMaxSigned(uint32_t size);
+  static BitVector mkMaxSigned(unsigned size);
 
   /**
    * Create a uniformly random bit-vector of given size.
    * @param size The bit-width.
    * @return The bit-vector.
    */
-  static BitVector mkRandom(uint32_t size);
+  static BitVector mkRandom(unsigned size);
 
  private:
   /**
