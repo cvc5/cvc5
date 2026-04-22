@@ -381,6 +381,9 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         # Sygus related functions
         Grammar mkGrammar(const vector[Term]& boundVars, const vector[Term]& ntSymbols) except +
         Term declareSygusVar(const string& symbol, Sort sort) except +
+        Weight declareWeight(const string& symbol) except +
+        Weight declareWeight(const string& symbol, const Term& defaultValue) except +
+        Term mkWeightSymbol(const Weight& weight, const Term& term) except +
         void addSygusConstraint(Term term) except +
         vector[Term] getSygusConstraints() except +
         void addSygusAssume(Term term) except +
@@ -507,14 +510,27 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         Statistics getStatistics() except +
         string getVersion() except +
 
+    cdef cppclass Weight:
+        Weight() except +
+        string getName() except +
+        Term getDefaultValue() except +
+        bint operator==(const Weight&) except +
+        bint operator!=(const Weight&) except +
+
+    ctypedef map[Weight, Term] WeightMap
+
     cdef cppclass Grammar:
         Grammar() except +
         Grammar(Solver* solver, vector[Term] boundVars, vector[Term] ntSymbols) except +
         bint isNull() except +
         void addRule(Term ntSymbol, Term rule) except +
+        void addRule(Term ntSymbol, Term rule, const WeightMap& weights) except +
         void addAnyConstant(Term ntSymbol) except +
+        void addAnyConstant(Term ntSymbol, const WeightMap& weights) except +
         void addAnyVariable(Term ntSymbol) except +
+        void addAnyVariable(Term ntSymbol, const WeightMap& weights) except +
         void addRules(Term ntSymbol, vector[Term] rules) except +
+        void addRules(Term ntSymbol, vector[Term] rules, const vector[WeightMap]& weights) except +
         string toString() except +
 
     cdef cppclass Sort:
