@@ -580,7 +580,7 @@ bool MacroRewriteElaborator::ensureProofForStrEqLenUnifyPrefix(
   }
   Node len1 = nm->mkNode(Kind::STRING_LENGTH, eqsrc[0]);
   Node len2 = nm->mkNode(Kind::STRING_LENGTH, eqsrc[1]);
-  Node leneq = proveCong(&cdfwd, len1, {eqsrc});
+  Node leneq = expr::proveCong(d_env, &cdfwd, len1, {eqsrc});
   Node li[2];
   std::vector<Node> eqi;
   eqi.resize(2);
@@ -600,7 +600,7 @@ bool MacroRewriteElaborator::ensureProofForStrEqLenUnifyPrefix(
   Node leneqi = li[0].eqNode(li[1]);
   if (leneqi != leneq)
   {
-    Node equiv = proveCong(&cdfwd, leneq, eqi);
+    Node equiv = expr::proveCong(d_env, &cdfwd, leneq, eqi);
     cdfwd.addStep(leneqi, ProofRule::EQ_RESOLVE, {leneq, equiv}, {});
   }
   Trace("brc-macro") << "...length: " << li[0] << " == " << li[1] << std::endl;
@@ -668,7 +668,7 @@ bool MacroRewriteElaborator::ensureProofForStrEqLenUnifyPrefix(
       eqe.push_back(Node::null());
     }
   }
-  Node cres = proveCong(&cdmid, srcRew, eqe);
+  Node cres = expr::proveCong(d_env, &cdmid, srcRew, eqe);
   if (cres.isNull())
   {
     Trace("brc-macro") << "...fail cong" << std::endl;
@@ -973,7 +973,7 @@ bool MacroRewriteElaborator::ensureProofForOverlap(ProofRewriteRule id,
   std::vector<Node> transEq;
   if (!premises.empty())
   {
-    Node ceq = proveCong(cdp, input, premises);
+    Node ceq = expr::proveCong(d_env, cdp, input, premises);
     transEq.push_back(ceq);
     input = ceq[1];
   }
@@ -1067,7 +1067,7 @@ bool MacroRewriteElaborator::ensureProofForStrConstNCtnConcat(
   Node truen = nm->mkConst(true);
   Node eqt = eq[0].eqNode(truen);
   cdp->addStep(eqt, ProofRule::TRUE_INTRO, {eq[0]}, {});
-  Node eqi = proveCong(cdp, er, {eqt});
+  Node eqi = expr::proveCong(d_env, cdp, er, {eqt});
   if (eqi.isNull())
   {
     Trace("brc-macro") << "...failed cong" << std::endl;
@@ -1111,7 +1111,7 @@ bool MacroRewriteElaborator::ensureProofForStrConstNCtnConcat(
   Node mem = proveGeneralReMembership(cdp, cf);
   Trace("brc-macro") << "Membership : " << mem << std::endl;
 
-  Node memc = proveCong(cdp, mem, {eqsfs});
+  Node memc = expr::proveCong(d_env, cdp, mem, {eqsfs});
   Trace("brc-macro") << "Cong membership : " << memc << std::endl;
 
   theory::Rewriter* rr = d_env.getRewriter();
@@ -1173,7 +1173,7 @@ bool MacroRewriteElaborator::ensureProofForStrInReInclusion(CDProof* cdp,
   Node imem = nm->mkNode(Kind::STRING_IN_REGEXP, eq[0][0], inter);
   cdp->addStep(imem, ProofRule::RE_INTER, {trivMemc, memComp}, {});
 
-  Node meq = proveCong(cdp, imem, {Node::null(), inclusionEq});
+  Node meq = expr::proveCong(d_env, cdp, imem, {Node::null(), inclusionEq});
   Assert(!meq.isNull());
   Node noneMem = meq[1];
 
@@ -1287,35 +1287,6 @@ Node MacroRewriteElaborator::proveSymm(CDProof* cdp, const Node& eq)
   Node eqs = eq[1].eqNode(eq[0]);
   cdp->addStep(eqs, ProofRule::SYMM, {eq}, {});
   return eqs;
-}
-
-Node MacroRewriteElaborator::proveCong(CDProof* cdp,
-                                       const Node& n,
-                                       const std::vector<Node>& premises)
-{
-  std::vector<Node> cpremises = premises;
-  std::vector<Node> cargs;
-  ProofRule cr = expr::getCongRule(n, cargs);
-  cpremises.resize(n.getNumChildren());
-  for (size_t i = 0, npremises = cpremises.size(); i < npremises; i++)
-  {
-    if (cpremises[i].isNull())
-    {
-      Node refl = n[i].eqNode(n[i]);
-      cdp->addStep(refl, ProofRule::REFL, {}, {n[i]});
-      cpremises[i] = refl;
-    }
-  }
-  Trace("brc-macro") << "- cong " << cr << " " << cpremises << " " << cargs
-                     << std::endl;
-  ProofChecker* pc = d_env.getProofNodeManager()->getChecker();
-  Node eq = pc->checkDebug(cr, cpremises, cargs);
-  Trace("brc-macro") << "...returns " << eq << std::endl;
-  if (!eq.isNull())
-  {
-    cdp->addStep(eq, cr, cpremises, cargs);
-  }
-  return eq;
 }
 
 Node MacroRewriteElaborator::proveDualImplication(CDProof* cdp,
