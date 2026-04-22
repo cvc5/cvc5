@@ -385,4 +385,10 @@ BitVector BitVector::mkMaxSigned(unsigned size)
   return ~BitVector::mkMinSigned(size);
 }
 
+BitVector BitVector::mkRandom(uint32_t size)
+{
+  Assert(size > 0);
+  return BitVector(size, Integer::mkRandom(size));
+}
+
 }  // namespace cvc5::internal
