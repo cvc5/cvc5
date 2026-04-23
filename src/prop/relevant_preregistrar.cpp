@@ -542,7 +542,7 @@ bool RelevantPreregistrar::isAtomPreregister(TNode n)
     // non-variable theory atom
     return true;
   }
-  NodeManager * nm = n.getNodeManager();
+  NodeManager* nm = n.getNodeManager();
   // only preregister variables corresponding to Boolean purification
   SkolemManager* sm = nm->getSkolemManager();
   return (sm->getId(n) == SkolemId::PURIFY);

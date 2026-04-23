@@ -21,10 +21,10 @@
 #include <map>
 #include <memory>
 
-#include "context/cdo.h"
 #include "context/cdhashset.h"
 #include "context/cdinsert_hashmap.h"
 #include "context/cdlist.h"
+#include "context/cdo.h"
 #include "decision/justify_cache.h"
 #include "decision/justify_info.h"
 #include "expr/node.h"
