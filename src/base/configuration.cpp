@@ -62,7 +62,7 @@ std::string Configuration::copyright()
   ss << "Copyright (c) 2009-2026 by the authors and their institutional\n"
      << "affiliations listed at https://cvc5.github.io/people.html\n\n";
 
-  if (Configuration::licenseIsGpl())
+  if (licenseIsGpl())
   {
     ss << "This build of cvc5 uses GPLed libraries, and is thus covered by\n"
        << "the GNU General Public License (GPL) version 3.  Versions of cvc5\n"
@@ -86,23 +86,22 @@ std::string Configuration::copyright()
      << "  See https://github.com/arminbiere/cadical for copyright "
      << "information.\n\n";
 
-  if (Configuration::isBuiltWithCryptominisat()
-      || Configuration::isBuiltWithKissat()
-      || Configuration::isBuiltWithEditline())
+  if (isBuiltWithCryptominisat() || isBuiltWithKissat()
+      || isBuiltWithEditline())
   {
-    if (Configuration::isBuiltWithCryptominisat())
+    if (isBuiltWithCryptominisat())
     {
       ss << "  CryptoMiniSat - An Advanced SAT Solver\n"
          << "  See https://github.com/msoos/cryptominisat for copyright "
          << "information.\n\n";
     }
-    if (Configuration::isBuiltWithKissat())
+    if (isBuiltWithKissat())
     {
       ss << "  Kissat - Simplified Satisfiability Solver\n"
          << "  See https://fmv.jku.at/kissat for copyright "
          << "information.\n\n";
     }
-    if (Configuration::isBuiltWithEditline())
+    if (isBuiltWithEditline())
     {
       ss << "  Editline Library\n"
          << "  See https://thrysoee.dk/editline\n"
@@ -114,23 +113,23 @@ std::string Configuration::copyright()
      << "  See https://github.com/martin-cs/symfpu/tree/CVC4 for copyright "
      << "information.\n\n";
 
-  if (Configuration::isBuiltWithGmp() || Configuration::isBuiltWithPoly())
+  if (isBuiltWithGmp() || isBuiltWithPoly())
   {
     ss << "This version of cvc5 is linked against the following third party\n"
        << "libraries covered by the LGPLv3 license.\n"
        << "See licenses/lgpl-3.0.txt for more information.\n\n";
-    if (Configuration::isBuiltWithGmp())
+    if (isBuiltWithGmp())
     {
       ss << "  GMP - Gnu Multi Precision Arithmetic Library\n"
          << "  See http://gmplib.org for copyright information.\n\n";
     }
-    if (Configuration::isBuiltWithPoly())
+    if (isBuiltWithPoly())
     {
       ss << "  LibPoly polynomial library\n"
          << "  See https://github.com/SRI-CSL/libpoly for copyright and\n"
          << "  licensing information.\n\n";
     }
-    if (Configuration::isStaticBuild())
+    if (isStaticBuild())
     {
       ss << "cvc5 is statically linked against these libraries. To recompile\n"
             "this version of cvc5 with different versions of these libraries\n"
@@ -139,25 +138,24 @@ std::string Configuration::copyright()
     }
   }
 
-  if (Configuration::isBuiltWithCln() || Configuration::isBuiltWithGlpk()
-      || Configuration::isBuiltWithCoCoA())
+  if (isBuiltWithCln() || isBuiltWithGlpk() || isBuiltWithCoCoA())
   {
     ss << "This version of cvc5 is linked against the following third party\n"
        << "libraries covered by the GPLv3 license.\n"
        << "See licenses/gpl-3.0.txt for more information.\n\n";
-    if (Configuration::isBuiltWithCln())
+    if (isBuiltWithCln())
     {
       ss << "  CLN - Class Library for Numbers\n"
          << "  See http://www.ginac.de/CLN for copyright information.\n\n";
     }
-    if (Configuration::isBuiltWithGlpk())
+    if (isBuiltWithGlpk())
     {
       ss << "  glpk-cut-log - a modified version of GPLK, "
          << "the GNU Linear Programming Kit\n"
          << "  See http://github.com/timothy-king/glpk-cut-log for copyright"
          << " information\n\n";
     }
-    if (Configuration::isBuiltWithCoCoA())
+    if (isBuiltWithCoCoA())
     {
       ss << "  CoCoALib - a computer algebra library\n"
          << "  See https://cocoa.dima.unige.it/cocoa/cocoalib/index.shtml for "
