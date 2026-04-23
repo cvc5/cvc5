@@ -154,7 +154,7 @@ class QuantifiersEngine : protected EnvObj
    * Check at level, setting setModelUnsoundId to an IncompleteId if we are
    * "unknown" instead of "unsat".
    * @param e the effort level
-   * @param setModelUnsoundId the incomplete id if e is last call are we should
+   * @param setModelUnsoundId the incomplete id if e is last call and we should
    * answer "unknown" instead of "sat".
    */
   void checkInternal(Theory::Effort e, IncompleteId& setModelUnsoundId);

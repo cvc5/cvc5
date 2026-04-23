@@ -150,7 +150,10 @@ class OutputChannel
                             LemmaProperty p = LemmaProperty::NONE);
   /**
    * Mark used. Called when we wish to mark that the output channel is used,
-   * for example, if we wish to recheck.
+   * for example, if we wish to manually call check again, even if no lemmas
+   * are sent. Note that theory engine determines whether to recheck
+   * (TheoryEngine::needsCheck) if lemmas were sent or if the output channel
+   * is marked as used.
    */
   virtual void markUsed();
   /**
