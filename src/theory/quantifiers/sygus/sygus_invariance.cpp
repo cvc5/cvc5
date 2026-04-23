@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -80,16 +77,18 @@ bool EvalSygusInvarianceTest::invariant(TermDbSygus* tds, Node nvn, Node x)
       // ti --> true  implies or( t1, ..., tn ) --> true
       return true;
     }
-    Trace("sygus-cref-eval2") << "Evaluation min explain : " << conj_subs
-                              << " still evaluates to " << d_result
-                              << " regardless of ";
+    Trace("sygus-cref-eval2")
+        << "Evaluation min explain : " << conj_subs << " still evaluates to "
+        << d_result << " regardless of ";
     Trace("sygus-cref-eval2") << x << std::endl;
   }
   return d_is_conjunctive;
 }
 
-void EquivSygusInvarianceTest::init(
-    TermDbSygus* tds, TypeNode tn, SynthConjecture* aconj, Node e, Node bvr)
+void EquivSygusInvarianceTest::init(CVC5_UNUSED TermDbSygus* tds,
+                                    SynthConjecture* aconj,
+                                    Node e,
+                                    Node bvr)
 {
   // compute the current examples
   d_bvr = bvr;
@@ -112,8 +111,8 @@ bool EquivSygusInvarianceTest::invariant(TermDbSygus* tds, Node nvn, Node x)
   TypeNode tn = nvn.getType();
   Node nbv = tds->sygusToBuiltin(nvn, tn);
   Node nbvr = d_rewriter->extendedRewrite(nbv);
-  Trace("sygus-sb-mexp-debug") << "  min-exp check : " << nbv << " -> " << nbvr
-                               << std::endl;
+  Trace("sygus-sb-mexp-debug")
+      << "  min-exp check : " << nbv << " -> " << nbvr << std::endl;
   bool exc_arg = false;
   // equivalent / singular up to normalization
   if (nbvr == d_bvr)
@@ -133,12 +132,12 @@ bool EquivSygusInvarianceTest::invariant(TermDbSygus* tds, Node nvn, Node x)
       if (xtn == tn)
       {
         Node bx = tds->sygusToBuiltin(x, xtn);
-        Assert(bx.getType() == nbvr.getType());
+        AssertEqual(bx.getType(), nbvr.getType());
         if (nbvr == bx)
         {
-          Trace("sygus-sb-mexp") << "sb-min-exp : " << tds->sygusToBuiltin(nvn)
-                                 << " always rewrites to argument " << nbvr
-                                 << std::endl;
+          Trace("sygus-sb-mexp")
+              << "sb-min-exp : " << tds->sygusToBuiltin(nvn)
+              << " always rewrites to argument " << nbvr << std::endl;
           // rewrites to the variable : then the explanation of this is
           // irrelevant as well
           exc_arg = true;

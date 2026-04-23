@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Tim King
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -41,6 +38,8 @@ TheoryBoolRewriter::TheoryBoolRewriter(NodeManager* nm) : TheoryRewriter(nm)
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::MACRO_BOOL_BV_INVERT_SOLVE,
                            TheoryRewriteCtx::POST_DSL);
+  registerProofRewriteRule(ProofRewriteRule::MACRO_BOOL_EQ_CONST_EQ,
+                           TheoryRewriteCtx::PRE_DSL);
 }
 
 Node TheoryBoolRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
@@ -76,6 +75,14 @@ Node TheoryBoolRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       if (slv == n[1][1])
       {
         return nm->mkConst(true);
+      }
+    }
+    break;
+    case ProofRewriteRule::MACRO_BOOL_EQ_CONST_EQ:
+    {
+      if (n.getKind() == Kind::EQUAL)
+      {
+        return rewriteViaEqConstEq(n);
       }
     }
     break;
@@ -245,8 +252,11 @@ Node TheoryBoolRewriter::computeNnfNorm(NodeManager* nm,
       {
         if (preCur != cur)
         {
-          pg->addRewriteStep(
-              cur, preCur, nullptr, true, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE);
+          pg->addRewriteStep(cur,
+                             preCur,
+                             nullptr,
+                             true,
+                             TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE);
         }
       }
     }
@@ -333,8 +343,11 @@ Node TheoryBoolRewriter::computeNnfNorm(NodeManager* nm,
         }
         if (pcpc != ret)
         {
-          pg->addRewriteStep(
-              pcpc, ret, nullptr, false, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE);
+          pg->addRewriteStep(pcpc,
+                             ret,
+                             nullptr,
+                             false,
+                             TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE);
         }
       }
       visited[cur] = ret;
@@ -447,7 +460,8 @@ Node TheoryBoolRewriter::getBvInvertSolve(
   return ret;
 }
 
-RewriteResponse TheoryBoolRewriter::postRewrite(TNode node) {
+RewriteResponse TheoryBoolRewriter::postRewrite(TNode node)
+{
   return preRewrite(node);
 }
 
@@ -478,19 +492,26 @@ RewriteResponse TheoryBoolRewriter::flattenNode(TNode n,
 
   Kind k = n.getKind();
   typedef std::vector<TNode> ChildList;
-  ChildList childList;   //TNode should be fine, since 'n' is still there
+  ChildList childList;  // TNode should be fine, since 'n' is still there
 
-  for (unsigned i = 0; i < toProcess.size(); ++ i) {
+  for (unsigned i = 0; i < toProcess.size(); ++i)
+  {
     TNode current = toProcess[i];
-    for(unsigned j = 0, j_end = current.getNumChildren(); j < j_end; ++ j) {
+    for (unsigned j = 0, j_end = current.getNumChildren(); j < j_end; ++j)
+    {
       TNode child = current[j];
-      if(visited.find(child) != visited.end()) {
+      if (visited.find(child) != visited.end())
+      {
         continue;
-      } else if(child == trivialNode) {
+      }
+      else if (child == trivialNode)
+      {
         return RewriteResponse(REWRITE_DONE, trivialNode);
-      } else {
+      }
+      else
+      {
         visited.insert(child);
-        if(child.getKind() == k)
+        if (child.getKind() == k)
           toProcess.push_back(child);
         else
           childList.push_back(child);
@@ -498,7 +519,8 @@ RewriteResponse TheoryBoolRewriter::flattenNode(TNode n,
     }
   }
   if (childList.size() == 0) return RewriteResponse(REWRITE_DONE, skipNode);
-  if (childList.size() == 1) return RewriteResponse(REWRITE_AGAIN, childList[0]);
+  if (childList.size() == 1)
+    return RewriteResponse(REWRITE_AGAIN, childList[0]);
 
   /* Trickery to stay under number of children possible in a node */
   NodeManager* nm = nodeManager();
@@ -529,8 +551,10 @@ RewriteResponse TheoryBoolRewriter::flattenNode(TNode n,
 // * 1 if a == b
 // * 2 if a == not(b)
 // * 3 or b == not(a)
-inline int equalityParity(TNode a, TNode b){
-  if(a == b){
+inline int equalityParity(TNode a, TNode b)
+{
+  if (a == b)
+  {
     return 1;
   }
   else if (a.getKind() == Kind::NOT && a[0] == b)
@@ -547,7 +571,7 @@ inline int equalityParity(TNode a, TNode b){
   }
 }
 
-Node TheoryBoolRewriter::makeNegation(TNode n)
+Node TheoryBoolRewriter::makeNegation(TNode n) const
 {
   bool even = false;
   while (n.getKind() == Kind::NOT)
@@ -555,21 +579,29 @@ Node TheoryBoolRewriter::makeNegation(TNode n)
     n = n[0];
     even = !even;
   }
-  if(even){
+  if (even)
+  {
     return n;
-  } else {
-    if(n.isConst()){
+  }
+  else
+  {
+    if (n.isConst())
+    {
       return nodeManager()->mkConst(!n.getConst<bool>());
-    }else{
+    }
+    else
+    {
       return n.notNode();
     }
   }
 }
 
-RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
+RewriteResponse TheoryBoolRewriter::preRewrite(TNode n)
+{
   NodeManager* nm = nodeManager();
 
-  switch(n.getKind()) {
+  switch (n.getKind())
+  {
     case Kind::NOT:
     {
       if (n[0] == d_true) return RewriteResponse(REWRITE_DONE, d_false);
@@ -689,71 +721,12 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
         // IFF x (NOT x)
         return RewriteResponse(REWRITE_DONE, d_false);
       }
-      else if (n[0].getKind() == Kind::EQUAL && n[1].getKind() == Kind::EQUAL)
+      // check if it is equality between equalities to constants
+      Node ret = rewriteViaEqConstEq(n);
+      if (!ret.isNull())
       {
-        // a : (= i x)
-        // i : (= j k)
-        // x : (= y z)
-
-        // assume wlog k, z are constants and j is the same symbol as y
-        // (= (= j k) (= j z))
-        // if k = z
-        //  then (= (= j k) (= j k)) => true
-        // else
-        //  (= (= j k) (= j z)) <=> b
-        //  b : (and (not (= j k)) (not (= j z)))
-        //  (= j k) (= j z) | a b
-        //  f       f       | t t
-        //  f       t       | f f
-        //  t       f       | f f
-        //  t       t       | * f
-        // * j cannot equal both k and z in a theory model
-        TNode t, c;
-        if (n[0][0].isConst())
-        {
-          c = n[0][0];
-          t = n[0][1];
-        }
-        else if (n[0][1].isConst())
-        {
-          c = n[0][1];
-          t = n[0][0];
-        }
-        bool matchesForm = false;
-        bool constantsEqual = false;
-        if (!c.isNull())
-        {
-          if (n[1][0] == t && n[1][1].isConst())
-          {
-            matchesForm = true;
-            constantsEqual = (n[1][1] == c);
-          }
-          else if (n[1][1] == t && n[1][0].isConst())
-          {
-            matchesForm = true;
-            constantsEqual = (n[1][0] == c);
-          }
-        }
-        if (matchesForm)
-        {
-          if (constantsEqual)
-          {
-            return RewriteResponse(REWRITE_DONE, d_true);
-          }
-          else
-          {
-            if (t.getType().isCardinalityLessThan(2))
-            {
-              return RewriteResponse(REWRITE_DONE, d_false);
-            }
-            else
-            {
-              Node neitherEquality =
-                  (makeNegation(n[0])).andNode(makeNegation(n[1]));
-              return RewriteResponse(REWRITE_AGAIN, neitherEquality);
-            }
-          }
-        }
+        return RewriteResponse(ret.isConst() ? REWRITE_DONE : REWRITE_AGAIN,
+                               ret);
       }
       // sort
       if (n[0].getId() > n[1].getId())
@@ -913,10 +886,10 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
         return RewriteResponse(REWRITE_AGAIN, resp);
       }
 
-    // Rewrites for ITEs with a constant branch. These rewrites are applied
-    // after the parity rewrites above because they may simplify ITEs such as
-    // `(ite c c true)` to `(ite c true true)`. As a result, we avoid
-    // introducing an unnecessary conjunction/disjunction here.
+      // Rewrites for ITEs with a constant branch. These rewrites are applied
+      // after the parity rewrites above because they may simplify ITEs such as
+      // `(ite c c true)` to `(ite c true true)`. As a result, we avoid
+      // introducing an unnecessary conjunction/disjunction here.
       if (n[1].isConst() && (n[1] == d_true || n[1] == d_false))
       {
         // ITE C true y --> C v y
@@ -936,14 +909,79 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
         Trace("bool-ite") << "TheoryBoolRewriter::preRewrite_ITE: n[2] const "
                           << n << ": " << resp << std::endl;
         return RewriteResponse(REWRITE_AGAIN, resp);
-    }
+      }
 
-    break;
+      break;
     }
-  default:
-    return RewriteResponse(REWRITE_DONE, n);
+    default: return RewriteResponse(REWRITE_DONE, n);
   }
   return RewriteResponse(REWRITE_DONE, n);
+}
+
+Node TheoryBoolRewriter::rewriteViaEqConstEq(const Node& n) const
+{
+  if (n[0].getKind() == Kind::EQUAL && n[1].getKind() == Kind::EQUAL)
+  {
+    // a : (= i x)
+    // i : (= j k)
+    // x : (= y z)
+
+    // assume wlog k, z are constants and j is the same symbol as y
+    // (= (= j k) (= j z))
+    // if k = z
+    //  then (= (= j k) (= j k)) => true
+    // else
+    //  (= (= j k) (= j z)) <=> b
+    //  b : (and (not (= j k)) (not (= j z)))
+    //  (= j k) (= j z) | a b
+    //  f       f       | t t
+    //  f       t       | f f
+    //  t       f       | f f
+    //  t       t       | * f
+    // * j cannot equal both k and z in a theory model
+    TNode t, c;
+    if (n[0][0].isConst())
+    {
+      c = n[0][0];
+      t = n[0][1];
+    }
+    else if (n[0][1].isConst())
+    {
+      c = n[0][1];
+      t = n[0][0];
+    }
+    bool matchesForm = false;
+    bool constantsEqual = false;
+    if (!c.isNull())
+    {
+      if (n[1][0] == t && n[1][1].isConst())
+      {
+        matchesForm = true;
+        constantsEqual = (n[1][1] == c);
+      }
+      else if (n[1][1] == t && n[1][0].isConst())
+      {
+        matchesForm = true;
+        constantsEqual = (n[1][0] == c);
+      }
+    }
+    if (matchesForm)
+    {
+      if (constantsEqual)
+      {
+        return d_true;
+      }
+      else
+      {
+        // if there were 2 distinct constants, the cardinality should be at
+        // least 2.
+        Assert(!t.getType().isCardinalityLessThan(2));
+        Node neitherEquality = (n[0].notNode()).andNode(n[1].notNode());
+        return neitherEquality;
+      }
+    }
+  }
+  return Node::null();
 }
 
 }  // namespace booleans

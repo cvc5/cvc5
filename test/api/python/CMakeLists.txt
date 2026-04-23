@@ -1,10 +1,7 @@
 ###############################################################################
-# Top contributors (to current version):
-#   Daniel Larraz, Yoni Zohar, Andrew Reynolds
-#
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -21,7 +18,7 @@ add_custom_target(pyapitests
   DEPENDS build-pyapitests)
 
 if(WIN32)
-  set(CVC5_PYAPI_TEST_DIR ${CMAKE_BINARY_DIR}/cvc5-pyapi-test)
+  set(CVC5_PYAPI_TEST_DIR ${PROJECT_BINARY_DIR}/cvc5-pyapi-test)
 
   set(WHEEL_INSTALL_CMD
        "${Python_EXECUTABLE} -m pip install --prefix ${CVC5_PYAPI_TEST_DIR}")
@@ -39,10 +36,10 @@ if(WIN32)
       ${CMAKE_COMMAND}
         -DPython_EXECUTABLE=${Python_EXECUTABLE}
         -DRepairwheel_EXECUTABLE=${Repairwheel_EXECUTABLE}
-        -DBUILD_DIR=${CMAKE_BINARY_DIR}
+        -DBUILD_DIR=${PROJECT_BINARY_DIR}
         -DDEPS_BASE=${DEPS_BASE}
         -DINSTALL_CMD="${WHEEL_INSTALL_CMD}"
-        -P ${CMAKE_SOURCE_DIR}/cmake/install_python_wheel.cmake
+        -P ${PROJECT_SOURCE_DIR}/cmake/install_python_wheel.cmake
     DEPENDS cvc5_python_api
   )
 
@@ -59,7 +56,7 @@ if(WIN32)
     OUTPUT_VARIABLE PYTHON_MODULE_PATH
     OUTPUT_STRIP_TRAILING_WHITESPACE)
 else()
-  set(PYTHON_MODULE_PATH ${CMAKE_BINARY_DIR}/src/api/python)
+  set(PYTHON_MODULE_PATH ${PROJECT_BINARY_DIR}/src/api/python)
   add_dependencies(build-pyapitests cvc5_python_api)
 endif()
 

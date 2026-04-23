@@ -1,10 +1,7 @@
 ###############################################################################
-# Top contributors (to current version):
-#   Gereon Kremer, Mathias Preiner, Andres Noetzli
-#
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -18,15 +15,15 @@
 
 find_program(LFSC_BINARY
     NAMES lfscc
-    PATHS ${CMAKE_SOURCE_DIR}/deps/bin
+    PATHS ${PROJECT_SOURCE_DIR}/deps/bin
 )
 find_path(LFSC_INCLUDE_DIR
     NAMES lfscc.h
-    PATHS ${CMAKE_SOURCE_DIR}/deps/include
+    PATHS ${PROJECT_SOURCE_DIR}/deps/include
 )
 find_library(LFSC_LIBRARIES
     NAMES lfscc
-    PATHS ${CMAKE_SOURCE_DIR}/deps/lib
+    PATHS ${PROJECT_SOURCE_DIR}/deps/lib
 )
 
 include(FindPackageHandleStandardArgs)

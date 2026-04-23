@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mudathir Mohamed, Aina Niemetz, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -45,7 +42,7 @@ void SolverState::registerBag(TNode n)
 void SolverState::registerCountTerm(Node bag, Node element, Node skolem)
 {
   Assert(bag.getType().isBag() && bag == getRepresentative(bag));
-  Assert(element.getType() == bag.getType().getBagElementType()
+  Assert(CVC5_EQUAL(element.getType(), bag.getType().getBagElementType())
          && element == getRepresentative(element));
   Assert(skolem.isVar() && skolem.getType().isInteger());
   std::pair<Node, Node> pair = std::make_pair(element, skolem);
@@ -139,7 +136,7 @@ const std::map<Node, Node>& SolverState::getDisequalBagTerms() { return d_deq; }
 void SolverState::registerPartElementSkolem(Node group, Node skolemElement)
 {
   Assert(group.getKind() == Kind::TABLE_GROUP);
-  Assert(skolemElement.getType() == group[0].getType().getBagElementType());
+  AssertEqual(skolemElement.getType(), group[0].getType().getBagElementType());
   d_partElementSkolems[group].get()->insert(skolemElement);
 }
 

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Abdalrhman Mohamed
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,6 +17,7 @@
 #include "expr/attribute.h"
 #include "expr/cardinality_constraint.h"
 #include "expr/dtype.h"
+#include "expr/skolem_manager.h"
 
 namespace cvc5::internal {
 namespace expr {
@@ -209,7 +207,8 @@ void getSubtermsKind(Kind k, TNode n, std::unordered_set<Node>& ts, bool nested)
 void getSubtermsKinds(
     const std::unordered_set<Kind, kind::KindHashFunction>& ks,
     TNode n,
-    std::map<Kind, std::unordered_set<Node>>& ts, bool nested)
+    std::map<Kind, std::unordered_set<Node>>& ts,
+    bool nested)
 {
   Assert(!ks.empty());
   for (Kind k : ks)
@@ -726,12 +725,15 @@ void getOperatorsMap(TNode n,
       // add the current operator to the result
       if (cur.hasOperator())
       {
-       Node o;
-       if (cur.getMetaKind() == kind::metakind::PARAMETERIZED) {
-         o = cur.getOperator();
-       } else {
-         o = cur.getNodeManager()->operatorOf(cur.getKind());
-       }
+        Node o;
+        if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
+        {
+          o = cur.getOperator();
+        }
+        else
+        {
+          o = cur.getNodeManager()->operatorOf(cur.getKind());
+        }
         ops[tn].insert(o);
       }
       // add children to visit in the future
@@ -900,7 +902,7 @@ void getConversionConditions(Node n1,
       // holds trivially
       continue;
     }
-    Assert(curr.first.getType() == curr.second.getType());
+    AssertEqual(curr.first.getType(), curr.second.getType());
     it = visited.find(curr);
     if (it != visited.end())
     {
@@ -940,7 +942,7 @@ void getConversionConditions(Node n1,
         for (size_t i = 0, n = curr.first.getNumChildren(); i < n; ++i)
         {
           // if there is a type mismatch, we can't unify
-          if (curr.first[i].getType() != curr.second[i].getType())
+          if (!CVC5_EQUAL(curr.first[i].getType(), curr.second[i].getType()))
           {
             stack.resize(prevSize);
             rec = false;

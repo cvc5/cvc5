@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Yoni Zohar
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -46,17 +43,14 @@ int main()
   Term p_f_y = tm.mkTerm(Kind::APPLY_UF, {p, f_y});
 
   // Construct the assertions
-  Term assertions =
-      tm.mkTerm(Kind::AND,
-                {
-                    tm.mkTerm(Kind::EQUAL, {x, f_x}),  
-                    tm.mkTerm(Kind::EQUAL, {y, f_y}),
-                    p_f_x.notTerm(),
-                    p_f_y
-                });
+  Term assertions = tm.mkTerm(Kind::AND,
+                              {tm.mkTerm(Kind::EQUAL, {x, f_x}),
+                               tm.mkTerm(Kind::EQUAL, {y, f_y}),
+                               p_f_x.notTerm(),
+                               p_f_y});
   slv.assertFormula(assertions);
 
-  std::cout << slv.checkSat()  << std::endl;
+  std::cout << slv.checkSat() << std::endl;
 
   return 0;
 }

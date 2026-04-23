@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Tim King
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -31,6 +28,6 @@ void NoEffectCCCB::multiplyRow(CVC5_UNUSED RowIndex ridx, CVC5_UNUSED int sgn)
 }
 bool NoEffectCCCB::canUseRow(CVC5_UNUSED RowIndex ridx) const { return false; }
 
-}  // namespace arith
+}  // namespace arith::linear
 }  // namespace theory
 }  // namespace cvc5::internal

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -109,9 +106,9 @@ Node SygusQePreproc::preprocess(Node q)
   Node conj_se_ngsi_subs = conj_se_ngsi.substitute(
       orig.begin(), orig.end(), subs.begin(), subs.end());
   Assert(!qe_vars.empty());
-  conj_se_ngsi_subs = nm->mkNode(Kind::EXISTS,
-                                 nm->mkNode(Kind::BOUND_VAR_LIST, qe_vars),
-                                 conj_se_ngsi_subs.negate());
+  conj_se_ngsi_subs = nm->mkNode(
+      Kind::EXISTS,
+      {nm->mkNode(Kind::BOUND_VAR_LIST, qe_vars), conj_se_ngsi_subs.negate()});
 
   Trace("cegqi-qep") << "Run quantifier elimination on " << conj_se_ngsi_subs
                      << std::endl;

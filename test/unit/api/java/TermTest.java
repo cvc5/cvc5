@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mudathir Mohamed, Aina Niemetz, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -1089,7 +1086,7 @@ class TermTest
       assertTrue(ub.isRealValue());
       // cannot call with non-variable
       Term yc = d_tm.mkConst(realsort, "y");
-      assertThrows(CVC5ApiException.class, () ->vx.getRealAlgebraicNumberDefiningPolynomial(yc));
+      assertThrows(CVC5ApiException.class, () -> vx.getRealAlgebraicNumberDefiningPolynomial(yc));
     }
   }
 
@@ -1099,8 +1096,8 @@ class TermTest
     // ordinary variables are not skolems
     Term x = d_solver.mkConst(d_solver.getIntegerSort(), "x");
     assertFalse(x.isSkolem());
-    assertThrows(CVC5ApiException.class, () ->x.getSkolemId());
-    assertThrows(CVC5ApiException.class, () ->x.getSkolemIndices());
+    assertThrows(CVC5ApiException.class, () -> x.getSkolemId());
+    assertThrows(CVC5ApiException.class, () -> x.getSkolemIndices());
   }
 
   @Test

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mathias Preiner, Andrew Reynolds, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -78,9 +75,7 @@ MipLibTrick::MipLibTrick(PreprocessingPassContext* preprocContext)
 {
 }
 
-MipLibTrick::~MipLibTrick()
-{
-}
+MipLibTrick::~MipLibTrick() {}
 
 /**
  * Remove conjuncts in toRemove from conjunction n. Return # of removed
@@ -655,10 +650,9 @@ PreprocessingPassResult MipLibTrick::applyInternal(
 
 MipLibTrick::Statistics::Statistics(StatisticsRegistry& reg)
     : d_numMiplibAssertionsRemoved(reg.registerInt(
-        "preprocessing::passes::MipLibTrick::numMiplibAssertionsRemoved"))
+          "preprocessing::passes::MipLibTrick::numMiplibAssertionsRemoved"))
 {
 }
-
 
 }  // namespace passes
 }  // namespace preprocessing

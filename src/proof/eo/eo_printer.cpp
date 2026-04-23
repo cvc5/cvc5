@@ -1,19 +1,16 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Abdalrhman Mohamed
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
  * ****************************************************************************
  *
- * The printer for the AletheLF format.
+ * The printer for the Eunoia format.
  */
 
-#include "proof/alf/alf_printer.h"
+#include "proof/eo/eo_printer.h"
 
 #include <cctype>
 #include <iostream>
@@ -25,27 +22,28 @@
 #include "expr/node_algorithm.h"
 #include "expr/sequence.h"
 #include "expr/subs.h"
+#include "options/base_options.h"
 #include "options/main_options.h"
 #include "options/strings_options.h"
 #include "printer/printer.h"
 #include "printer/smt2/smt2_printer.h"
-#include "proof/alf/alf_dependent_type_converter.h"
+#include "proof/eo/eo_dependent_type_converter.h"
 #include "proof/proof_node_to_sexpr.h"
 #include "rewriter/rewrite_db.h"
 #include "smt/print_benchmark.h"
+#include "theory/builtin/generic_op.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/theory.h"
 #include "util/string.h"
-#include "theory/builtin/generic_op.h"
 
 namespace cvc5::internal {
 
 namespace proof {
 
-AlfPrinter::AlfPrinter(Env& env,
-                       BaseAlfNodeConverter& atp,
-                       rewriter::RewriteDb* rdb,
-                       uint32_t letThresh)
+EoPrinter::EoPrinter(Env& env,
+                     BaseEoNodeConverter& atp,
+                     rewriter::RewriteDb* rdb,
+                     uint32_t letThresh)
     : EnvObj(env),
       d_tproc(atp),
       d_pfIdCounter(0),
@@ -60,14 +58,14 @@ AlfPrinter::AlfPrinter(Env& env,
       // utility.
       d_lbind(d_termLetPrefix, letThresh, true, true),
       d_lbindUse(options().proof.proofDagGlobal ? &d_lbind : nullptr),
-      d_aletify(d_lbindUse)
+      d_eletify(d_lbindUse)
 {
   d_pfType = nodeManager()->mkSort("proofType");
   d_false = nodeManager()->mkConst(false);
   d_absType = nodeManager()->mkAbstractType(Kind::ABSTRACT_TYPE);
 }
 
-bool AlfPrinter::isHandled(const Options& opts, const ProofNode* pfn)
+bool EoPrinter::isHandled(const Options& opts, const ProofNode* pfn)
 {
   const std::vector<Node> pargs = pfn->getArguments();
   switch (pfn->getRule())
@@ -147,21 +145,11 @@ bool AlfPrinter::isHandled(const Options& opts, const ProofNode* pfn)
     case ProofRule::ARITH_MULT_SIGN:
     case ProofRule::ARITH_MULT_ABS_COMPARISON:
     case ProofRule::ARITH_TRICHOTOMY:
-    case ProofRule::ARITH_TRANS_EXP_NEG:
-    case ProofRule::ARITH_TRANS_EXP_POSITIVITY:
-    case ProofRule::ARITH_TRANS_EXP_SUPER_LIN:
-    case ProofRule::ARITH_TRANS_EXP_ZERO:
-    case ProofRule::ARITH_TRANS_SINE_BOUNDS:
-    case ProofRule::ARITH_TRANS_SINE_SYMMETRY:
-    case ProofRule::ARITH_TRANS_SINE_TANGENT_ZERO:
-    case ProofRule::ARITH_TRANS_SINE_TANGENT_PI:
     case ProofRule::INT_TIGHT_LB:
     case ProofRule::INT_TIGHT_UB:
     case ProofRule::SKOLEM_INTRO:
     case ProofRule::SETS_SINGLETON_INJ:
     case ProofRule::SETS_EXT:
-    case ProofRule::SETS_FILTER_UP:
-    case ProofRule::SETS_FILTER_DOWN:
     case ProofRule::CONCAT_EQ:
     case ProofRule::CONCAT_UNIFY:
     case ProofRule::CONCAT_CSPLIT:
@@ -205,7 +193,7 @@ bool AlfPrinter::isHandled(const Options& opts, const ProofNode* pfn)
     {
       ProofRewriteRule id;
       rewriter::getRewriteRule(pfn->getArguments()[0], id);
-      return isHandledTheoryRewrite(id, pfn->getArguments()[1]);
+      return isHandledTheoryRewrite(opts, id, pfn->getArguments()[1]);
     }
     break;
     case ProofRule::ARITH_REDUCTION:
@@ -241,10 +229,9 @@ bool AlfPrinter::isHandled(const Options& opts, const ProofNode* pfn)
         case Kind::STRING_REV:
         case Kind::STRING_TO_LOWER:
         case Kind::STRING_TO_UPPER: return true;
-        default:
-          break;
+        default: break;
       }
-      Trace("alf-printer-debug") << "Cannot STRING_REDUCTION " << k << std::endl;
+      Trace("eo-printer-debug") << "Cannot STRING_REDUCTION " << k << std::endl;
       return false;
     }
     break;
@@ -268,7 +255,7 @@ bool AlfPrinter::isHandled(const Options& opts, const ProofNode* pfn)
     {
       if (canEvaluate(pargs[0]))
       {
-        Trace("alf-printer-debug") << "Can evaluate " << pargs[0] << std::endl;
+        Trace("eo-printer-debug") << "Can evaluate " << pargs[0] << std::endl;
         return true;
       }
     }
@@ -278,8 +265,26 @@ bool AlfPrinter::isHandled(const Options& opts, const ProofNode* pfn)
       if (isHandledDistinctValues(pargs[0])
           && isHandledDistinctValues(pargs[1]))
       {
-        Trace("alf-printer-debug") << "Can distinguish values " << pargs[0] << " "
-                                   << pargs[1] << std::endl;
+        Trace("eo-printer-debug") << "Can distinguish values " << pargs[0]
+                                  << " " << pargs[1] << std::endl;
+        return true;
+      }
+    }
+    break;
+    case ProofRule::ARITH_TRANS_EXP_NEG:
+    case ProofRule::ARITH_TRANS_EXP_POSITIVITY:
+    case ProofRule::ARITH_TRANS_EXP_SUPER_LIN:
+    case ProofRule::ARITH_TRANS_EXP_ZERO:
+    case ProofRule::ARITH_TRANS_SINE_BOUNDS:
+    case ProofRule::ARITH_TRANS_SINE_SYMMETRY:
+    case ProofRule::ARITH_TRANS_SINE_TANGENT_ZERO:
+    case ProofRule::ARITH_TRANS_SINE_TANGENT_PI:
+    case ProofRule::SETS_FILTER_UP:
+    case ProofRule::SETS_FILTER_DOWN:
+    {
+      // only supported in unrestricted builds
+      if (opts.base.safeMode == options::SafeMode::UNRESTRICTED)
+      {
         return true;
       }
     }
@@ -290,7 +295,9 @@ bool AlfPrinter::isHandled(const Options& opts, const ProofNode* pfn)
   return false;
 }
 
-bool AlfPrinter::isHandledTheoryRewrite(ProofRewriteRule id, const Node& n)
+bool EoPrinter::isHandledTheoryRewrite(const Options& opts,
+                                       ProofRewriteRule id,
+                                       const Node& n)
 {
   switch (id)
   {
@@ -299,15 +306,12 @@ bool AlfPrinter::isHandledTheoryRewrite(ProofRewriteRule id, const Node& n)
     case ProofRewriteRule::DISTINCT_TRUE:
     case ProofRewriteRule::DISTINCT_FALSE:
     case ProofRewriteRule::BETA_REDUCE:
-    case ProofRewriteRule::LAMBDA_ELIM:
     case ProofRewriteRule::UBV_TO_INT_ELIM:
     case ProofRewriteRule::INT_TO_BV_ELIM:
-    case ProofRewriteRule::ARITH_POW_ELIM:
     case ProofRewriteRule::ARITH_STRING_PRED_ENTAIL:
     case ProofRewriteRule::ARITH_STRING_PRED_SAFE_APPROX:
     case ProofRewriteRule::EXISTS_ELIM:
     case ProofRewriteRule::QUANT_UNUSED_VARS:
-    case ProofRewriteRule::ARRAYS_SELECT_CONST:
     case ProofRewriteRule::DT_INST:
     case ProofRewriteRule::DT_COLLAPSE_SELECTOR:
     case ProofRewriteRule::DT_COLLAPSE_TESTER:
@@ -349,13 +353,21 @@ bool AlfPrinter::isHandledTheoryRewrite(ProofRewriteRule id, const Node& n)
     case ProofRewriteRule::STR_IN_RE_EVAL:
       Assert(n[0].getKind() == Kind::STRING_IN_REGEXP && n[0][0].isConst());
       return canEvaluateRegExp(n[0][1]);
+    case ProofRewriteRule::ARITH_POW_ELIM:
+    case ProofRewriteRule::ARRAYS_SELECT_CONST:
+    case ProofRewriteRule::LAMBDA_ELIM:
+      // only supported in unrestricted builds
+      if (opts.base.safeMode == options::SafeMode::UNRESTRICTED)
+      {
+        return true;
+      }
+      break;
     default: break;
   }
   return false;
 }
 
-
-bool AlfPrinter::isHandledBitblastStep(const Node& eq)
+bool EoPrinter::isHandledBitblastStep(const Node& eq)
 {
   Assert(eq.getKind() == Kind::EQUAL);
   if (theory::Theory::isLeafOf(eq[0], theory::THEORY_BV))
@@ -392,13 +404,13 @@ bool AlfPrinter::isHandledBitblastStep(const Node& eq)
     case Kind::BITVECTOR_ULTBV:
     case Kind::BITVECTOR_SLTBV: return true;
     default:
-      Trace("alf-printer-debug") << "Cannot bitblast  " << eq[0] << std::endl;
+      Trace("eo-printer-debug") << "Cannot bitblast  " << eq[0] << std::endl;
       break;
   }
   return false;
 }
 
-bool AlfPrinter::canEvaluate(Node n)
+bool EoPrinter::canEvaluate(Node n)
 {
   std::unordered_set<TNode> visited;
   std::vector<TNode> visit;
@@ -412,7 +424,7 @@ bool AlfPrinter::canEvaluate(Node n)
     {
       visited.insert(cur);
       Kind k = cur.getKind();
-      if (k==Kind::APPLY_INDEXED_SYMBOLIC)
+      if (k == Kind::APPLY_INDEXED_SYMBOLIC)
       {
         k = cur.getOperator().getConst<GenericOp>().getKind();
       }
@@ -505,7 +517,7 @@ bool AlfPrinter::canEvaluate(Node n)
           // special case, evaluates no matter what is inside
           continue;
         default:
-          Trace("alf-printer-debug")
+          Trace("eo-printer-debug")
               << "Cannot evaluate " << cur.getKind() << std::endl;
           return false;
       }
@@ -518,7 +530,7 @@ bool AlfPrinter::canEvaluate(Node n)
   return true;
 }
 
-bool AlfPrinter::isHandledDistinctValues(const Node& n)
+bool EoPrinter::isHandledDistinctValues(const Node& n)
 {
   std::unordered_set<TNode> visited;
   std::vector<TNode> visit;
@@ -553,7 +565,7 @@ bool AlfPrinter::isHandledDistinctValues(const Node& n)
           }
           break;
         default:
-          Trace("alf-printer-debug")
+          Trace("eo-printer-debug")
               << "Cannot distinct values " << cur.getKind() << std::endl;
           return false;
       }
@@ -566,10 +578,10 @@ bool AlfPrinter::isHandledDistinctValues(const Node& n)
   return true;
 }
 
-bool AlfPrinter::canEvaluateRegExp(Node r)
+bool EoPrinter::canEvaluateRegExp(Node r)
 {
   Assert(r.getType().isRegExp());
-  Trace("alf-printer-debug") << "canEvaluateRegExp? " << r << std::endl;
+  Trace("eo-printer-debug") << "canEvaluateRegExp? " << r << std::endl;
   std::unordered_set<TNode> visited;
   std::vector<TNode> visit;
   TNode cur;
@@ -594,20 +606,20 @@ bool AlfPrinter::canEvaluateRegExp(Node r)
         case Kind::REGEXP_RANGE:
           if (!theory::strings::utils::isCharacterRange(cur))
           {
-            Trace("alf-printer-debug") << "Non-char range" << std::endl;
+            Trace("eo-printer-debug") << "Non-char range" << std::endl;
             return false;
           }
           continue;
         case Kind::STRING_TO_REGEXP:
           if (!canEvaluate(cur[0]))
           {
-            Trace("alf-printer-debug") << "Non-evaluatable string" << std::endl;
+            Trace("eo-printer-debug") << "Non-evaluatable string" << std::endl;
             return false;
           }
           continue;
         default:
-          Trace("alf-printer-debug") << "Cannot evaluate " << cur.getKind()
-                                     << " in regular expressions" << std::endl;
+          Trace("eo-printer-debug") << "Cannot evaluate " << cur.getKind()
+                                    << " in regular expressions" << std::endl;
           return false;
       }
       for (const Node& cn : cur)
@@ -619,7 +631,7 @@ bool AlfPrinter::canEvaluateRegExp(Node r)
   return true;
 }
 
-std::string AlfPrinter::getRuleName(const ProofNode* pfn) const
+std::string EoPrinter::getRuleName(const ProofNode* pfn) const
 {
   ProofRule r = pfn->getRule();
   if (r == ProofRule::DSL_REWRITE)
@@ -682,7 +694,7 @@ std::string AlfPrinter::getRuleName(const ProofNode* pfn) const
   return name;
 }
 
-void AlfPrinter::printDslRule(std::ostream& out, ProofRewriteRule r)
+void EoPrinter::printDslRule(std::ostream& out, ProofRewriteRule r)
 {
   options::ioutils::applyPrintArithLitToken(out, true);
   options::ioutils::applyPrintSkolemDefinitions(out, true);
@@ -692,12 +704,12 @@ void AlfPrinter::printDslRule(std::ostream& out, ProofRewriteRule r)
   const std::vector<Node>& conds = rpr.getConditions();
   Node conc = rpr.getConclusion(true);
   // We must map variables of the rule to internal symbols (via
-  // mkInternalSymbol) so that the ALF node converter will not treat the
+  // mkInternalSymbol) so that the Eunoia node converter will not treat the
   // BOUND_VARIABLE of this rule as user provided variables. The substitution
   // su stores this mapping.
   Subs su;
   out << "(declare-rule " << r << " (";
-  AlfDependentTypeConverter adtc(nodeManager(), d_tproc);
+  EoDependentTypeConverter adtc(nodeManager(), d_tproc);
   std::stringstream ssExplicit;
   std::map<std::string, size_t> nameCount;
   std::vector<Node> uviList;
@@ -748,7 +760,7 @@ void AlfPrinter::printDslRule(std::ostream& out, ProofRewriteRule r)
   }
   // carry the mapping from symbols to their types, which is used when
   // eliminating internal-only operators for representing empty set and sequence
-  AlfListNodeConverter ltproc(nodeManager(), d_tproc, adtcConvMap);
+  EoListNodeConverter ltproc(nodeManager(), d_tproc, adtcConvMap);
   // now print variables of the proof rule
   out << ssExplicit.str();
   out << ")" << std::endl;
@@ -802,16 +814,16 @@ void AlfPrinter::printDslRule(std::ostream& out, ProofRewriteRule r)
   Node sconc = d_tproc.convert(su.apply(conc));
   Node rhs = ltproc.convert(sconc[1]);
   // do not apply singleton elimination to head
-  AlfListNodeConverter ltprocNse(nodeManager(), d_tproc, adtcConvMap, false);
+  EoListNodeConverter ltprocNse(nodeManager(), d_tproc, adtcConvMap, false);
   Node lhs = ltprocNse.convert(sconc[0]);
   Assert(sconc.getKind() == Kind::EQUAL);
   out << "  :conclusion (= " << lhs << " " << rhs << ")" << std::endl;
   out << ")" << std::endl;
 }
 
-LetBinding* AlfPrinter::getLetBinding() { return d_lbindUse; }
+LetBinding* EoPrinter::getLetBinding() { return d_lbindUse; }
 
-void AlfPrinter::printLetList(std::ostream& out, LetBinding& lbind)
+void EoPrinter::printLetList(std::ostream& out, LetBinding& lbind)
 {
   std::vector<Node> letList;
   lbind.letify(letList);
@@ -827,22 +839,22 @@ void AlfPrinter::printLetList(std::ostream& out, LetBinding& lbind)
   }
 }
 
-void AlfPrinter::print(std::ostream& out,
-                       std::shared_ptr<ProofNode> pfn,
-                       ProofScopeMode psm)
+void EoPrinter::print(std::ostream& out,
+                      std::shared_ptr<ProofNode> pfn,
+                      ProofScopeMode psm)
 {
   // ensures options are set once and for all
   options::ioutils::applyOutputLanguage(out, Language::LANG_SMTLIB_V2_6);
   options::ioutils::applyPrintArithLitToken(out, true);
   options::ioutils::applyPrintSkolemDefinitions(out, true);
   // allocate a print channel
-  AlfPrintChannelOut aprint(out, d_lbindUse, d_termLetPrefix, true);
+  EoPrintChannelOut aprint(out, d_lbindUse, d_termLetPrefix, true);
   print(aprint, pfn, psm);
 }
 
-void AlfPrinter::print(AlfPrintChannelOut& aout,
-                       std::shared_ptr<ProofNode> pfn,
-                       ProofScopeMode psm)
+void EoPrinter::print(EoPrintChannelOut& aout,
+                      std::shared_ptr<ProofNode> pfn,
+                      ProofScopeMode psm)
 {
   std::ostream& out = aout.getOStream();
   Assert(d_pletMap.empty());
@@ -879,10 +891,10 @@ void AlfPrinter::print(AlfPrintChannelOut& aout,
   bool wasAlloc;
   for (size_t i = 0; i < 2; i++)
   {
-    AlfPrintChannel* ao;
+    EoPrintChannel* ao;
     if (i == 0)
     {
-      ao = &d_aletify;
+      ao = &d_eletify;
     }
     else
     {
@@ -894,9 +906,9 @@ void AlfPrinter::print(AlfPrintChannelOut& aout,
       if (!options().proof.proofPrintReference)
       {
         // [1] print the declarations
-        printer::smt2::Smt2Printer alfp(printer::smt2::Variant::alf_variant);
+        printer::smt2::Smt2Printer eprinter(printer::smt2::Variant::eo_variant);
         // we do not print declarations in a sorted manner to reduce overhead
-        smt::PrintBenchmark pb(nodeManager(), &alfp, false, &d_tproc);
+        smt::PrintBenchmark pb(nodeManager(), &eprinter, false, &d_tproc);
         std::stringstream outDecl;
         std::stringstream outDef;
         options::ioutils::applyPrintArithLitToken(outDef, true);
@@ -944,12 +956,12 @@ void AlfPrinter::print(AlfPrintChannelOut& aout,
   }
 }
 
-void AlfPrinter::printNext(AlfPrintChannelOut& aout,
-                           std::shared_ptr<ProofNode> pfn)
+void EoPrinter::printNext(EoPrintChannelOut& aout,
+                          std::shared_ptr<ProofNode> pfn)
 {
   const ProofNode* pnBody = pfn.get();
   // print with letification
-  printProofInternal(&d_aletify, pnBody, false);
+  printProofInternal(&d_eletify, pnBody, false);
   // print the new let bindings
   std::ostream& out = aout.getOStream();
   // Print new terms from the let binding. note that this should print only
@@ -959,9 +971,9 @@ void AlfPrinter::printNext(AlfPrintChannelOut& aout,
   printProofInternal(&aout, pnBody, true);
 }
 
-void AlfPrinter::printProofInternal(AlfPrintChannel* out,
-                                    const ProofNode* pn,
-                                    bool addToCache)
+void EoPrinter::printProofInternal(EoPrintChannel* out,
+                                   const ProofNode* pn,
+                                   bool addToCache)
 {
   // the stack
   std::vector<const ProofNode*> visit;
@@ -1018,7 +1030,7 @@ void AlfPrinter::printProofInternal(AlfPrintChannel* out,
   } while (!visit.empty());
 }
 
-void AlfPrinter::printStepPre(AlfPrintChannel* out, const ProofNode* pn)
+void EoPrinter::printStepPre(EoPrintChannel* out, const ProofNode* pn)
 {
   // if we haven't yet allocated a proof id, do it now
   ProofRule r = pn->getRule();
@@ -1038,7 +1050,7 @@ void AlfPrinter::printStepPre(AlfPrintChannel* out, const ProofNode* pn)
   }
 }
 
-void AlfPrinter::getChildrenFromProofRule(
+void EoPrinter::getChildrenFromProofRule(
     const ProofNode* pn, std::vector<std::shared_ptr<ProofNode>>& children)
 {
   const std::vector<std::shared_ptr<ProofNode>>& cc = pn->getChildren();
@@ -1063,8 +1075,8 @@ void AlfPrinter::getChildrenFromProofRule(
   children.insert(children.end(), cc.begin(), cc.end());
 }
 
-void AlfPrinter::getArgsFromProofRule(const ProofNode* pn,
-                                      std::vector<Node>& args)
+void EoPrinter::getArgsFromProofRule(const ProofNode* pn,
+                                     std::vector<Node>& args)
 {
   Node res = pn->getResult();
   const std::vector<Node> pargs = pn->getArguments();
@@ -1090,7 +1102,7 @@ void AlfPrinter::getArgsFromProofRule(const ProofNode* pn,
       {
         Unhandled() << "Failed to get DSL proof rule";
       }
-      Trace("alf-printer-debug") << "Get args for " << dr << std::endl;
+      Trace("eo-printer-debug") << "Get args for " << dr << std::endl;
       const rewriter::RewriteProofRule& rpr = d_rdb->getRule(dr);
       std::vector<Node> ss(pargs.begin() + 1, pargs.end());
       std::vector<std::pair<Kind, std::vector<Node>>> witnessTerms;
@@ -1156,7 +1168,7 @@ void AlfPrinter::getArgsFromProofRule(const ProofNode* pn,
   }
 }
 
-void AlfPrinter::printStepPost(AlfPrintChannel* out, const ProofNode* pn)
+void EoPrinter::printStepPost(EoPrintChannel* out, const ProofNode* pn)
 {
   Assert(pn->getRule() != ProofRule::ASSUME);
   // if we have yet to allocate a proof id, do it now
@@ -1219,9 +1231,9 @@ void AlfPrinter::printStepPost(AlfPrintChannel* out, const ProofNode* pn)
         getTrustId(pn->getArguments()[0], tid);
         ss << " (" << tid << ")";
       }
-      Trace("alf-pf-hole") << "Proof rule " << ss.str() << ": "
-                           << pn->getResult() << std::endl;
-      Unreachable() << "An ALF proof equires a trust step for " << ss.str()
+      Trace("eo-pf-hole") << "Proof rule " << ss.str() << ": "
+                          << pn->getResult() << std::endl;
+      Unreachable() << "A Eunoia proof requires a trust step for " << ss.str()
                     << ", but --" << options::proof::longName::proofAllowTrust
                     << " is false" << std::endl;
     }
@@ -1244,16 +1256,16 @@ void AlfPrinter::printStepPost(AlfPrintChannel* out, const ProofNode* pn)
     }
     else
     {
-      // Assuming the body of the scope has identifier id_0, the following prints:
-      // (step-pop id_1 :rule scope :premises (id_0))
+      // Assuming the body of the scope has identifier id_0, the following
+      // prints: (step-pop id_1 :rule scope :premises (id_0))
       // ...
       // (step-pop id_n :rule scope :premises (id_{n-1}))
       // (step id :rule process_scope :premises (id_n) :args (C))
       size_t tmpId;
       for (size_t i = 0, nargs = args.size(); i < nargs; i++)
       {
-        // Manually increment proof id counter and premises. Note they will only be
-        // used locally here to chain together the pops mentioned above.
+        // Manually increment proof id counter and premises. Note they will only
+        // be used locally here to chain together the pops mentioned above.
         d_pfIdCounter++;
         tmpId = d_pfIdCounter;
         out->printStep(rname, Node::null(), tmpId, premises, {}, true);
@@ -1275,7 +1287,7 @@ void AlfPrinter::printStepPost(AlfPrintChannel* out, const ProofNode* pn)
   }
 }
 
-size_t AlfPrinter::allocateAssumePushId(const ProofNode* pn, const Node& a)
+size_t EoPrinter::allocateAssumePushId(const ProofNode* pn, const Node& a)
 {
   std::pair<const ProofNode*, Node> key(pn, a);
 
@@ -1291,7 +1303,7 @@ size_t AlfPrinter::allocateAssumePushId(const ProofNode* pn, const Node& a)
   return aid;
 }
 
-size_t AlfPrinter::allocateAssumeId(const Node& n, bool& wasAlloc)
+size_t EoPrinter::allocateAssumeId(const Node& n, bool& wasAlloc)
 {
   context::CDHashMap<Node, size_t>::iterator it = d_passumeMap.find(n);
   if (it != d_passumeMap.end())
@@ -1305,7 +1317,7 @@ size_t AlfPrinter::allocateAssumeId(const Node& n, bool& wasAlloc)
   return d_pfIdCounter;
 }
 
-size_t AlfPrinter::allocateProofId(const ProofNode* pn, bool& wasAlloc)
+size_t EoPrinter::allocateProofId(const ProofNode* pn, bool& wasAlloc)
 {
   std::map<const ProofNode*, size_t>::iterator it = d_pletMap.find(pn);
   if (it != d_pletMap.end())

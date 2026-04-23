@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Gereon Kremer, Morgan Deters, Dejan Jovanovic
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -34,7 +31,9 @@ namespace cvc5::internal {
 namespace theory {
 namespace booleans {
 
-CircuitPropagator::CircuitPropagator(Env& env, bool enableForward, bool enableBackward)
+CircuitPropagator::CircuitPropagator(Env& env,
+                                     bool enableForward,
+                                     bool enableBackward)
     : EnvObj(env),
       d_context(),
       d_propagationQueue(),
@@ -121,7 +120,7 @@ void CircuitPropagator::assignAndEnqueue(TNode n,
     if (proof == nullptr)
     {
       warning() << "CircuitPropagator: Proof is missing for " << n << std::endl;
-      Assert(false);
+      DebugUnhandled();
     }
     else
     {
@@ -175,8 +174,9 @@ void CircuitPropagator::makeConflict(Node n)
     }
     else
     {
-      d_epg->setProofFor(bfalse,
-                         pcp.conflict(pcp.assume(n), pcp.assume(n.negate())));
+      // Use nPf to ensure deterministic node ID assignments
+      Pf nPf = pcp.assume(n);
+      d_epg->setProofFor(bfalse, pcp.conflict(nPf, pcp.assume(n.negate())));
     }
     g = d_proofInternal.get();
     Trace("circuit-prop") << "Added conflict " << *d_epg->getProofFor(bfalse)

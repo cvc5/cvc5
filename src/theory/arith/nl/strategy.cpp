@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Gereon Kremer, Yoni Zohar, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -102,7 +99,7 @@ const StepSequence& Interleaving::get()
     }
     cnt -= branch.d_interleavingConstant;
   }
-  Assert(false) << "Something went wrong.";
+  DebugUnhandled() << "Something went wrong.";
   return d_branches[0].d_steps;
 }
 bool Interleaving::empty() const { return d_branches.empty(); }
@@ -169,8 +166,8 @@ void Strategy::initializeStrategy(const Options& options)
     one << InferStep::COVERINGS_INIT << InferStep::BREAK;
     one << InferStep::COVERINGS_FULL << InferStep::BREAK;
   }
-  if (options.arith.nlExt == options::NlExtMode::FULL &&
-      (!options.arith.nlCov || options.arith.nlCovForce))
+  if (options.arith.nlExt == options::NlExtMode::FULL
+      && (!options.arith.nlCov || options.arith.nlCovForce))
   {
     // if nl-cov is not enabled or we forced it to be enabled, then we use
     // heuristic non-terminating techniques as a last resort

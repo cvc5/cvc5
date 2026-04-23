@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -169,10 +166,9 @@ Node mkPrefixExceptLen(Node t, Node n)
 {
   NodeManager* nm = t.getNodeManager();
   Node lent = nm->mkNode(Kind::STRING_LENGTH, t);
-  return nm->mkNode(Kind::STRING_SUBSTR,
-                    t,
-                    nm->mkConstInt(Rational(0)),
-                    nm->mkNode(Kind::SUB, lent, n));
+  return nm->mkNode(
+      Kind::STRING_SUBSTR,
+      {t, nm->mkConstInt(Rational(0)), nm->mkNode(Kind::SUB, lent, n)});
 }
 
 Node mkSuffixOfLen(Node t, Node n)
@@ -407,7 +403,7 @@ void printConcat(std::ostream& out, std::vector<Node>& n)
   }
 }
 
-void printConcatTrace(std::vector<Node>& n, const char* c)
+void printConcatTrace(std::vector<Node>& n, CVC5_UNUSED const char* c)
 {
   std::stringstream ss;
   printConcat(ss, n);
@@ -495,8 +491,8 @@ Node mkCodeRange(Node t, uint32_t alphaCard)
   NodeManager* nm = t.getNodeManager();
   return nm->mkNode(
       Kind::AND,
-      nm->mkNode(Kind::GEQ, t, nm->mkConstInt(Rational(0))),
-      nm->mkNode(Kind::LT, t, nm->mkConstInt(Rational(alphaCard))));
+      {nm->mkNode(Kind::GEQ, t, nm->mkConstInt(Rational(0))),
+       nm->mkNode(Kind::LT, t, nm->mkConstInt(Rational(alphaCard)))});
 }
 
 }  // namespace utils

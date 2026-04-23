@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -44,23 +41,19 @@ namespace cvc5::internal {
 namespace prop {
 
 /** Keeps a boolean flag scoped */
-class ScopedBool {
-
-private:
-
+class ScopedBool
+{
+ private:
   bool d_original;
   bool& d_reference;
 
-public:
-
-  ScopedBool(bool& reference) :
-    d_reference(reference) {
+ public:
+  ScopedBool(bool& reference) : d_reference(reference)
+  {
     d_original = reference;
   }
 
-  ~ScopedBool() {
-    d_reference = d_original;
-  }
+  ~ScopedBool() { d_reference = d_original; }
 };
 
 PropEngine::PropEngine(Env& env, TheoryEngine* te)
@@ -81,20 +74,15 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
   Trace("prop") << "Constructing the PropEngine" << std::endl;
   context::UserContext* userContext = d_env.getUserContext();
 
-  if (options().prop.satSolver == options::SatSolverMode::MINISAT)
-  {
-    d_satSolver =
-        SatSolverFactory::createCDCLTMinisat(d_env, statisticsRegistry());
-  }
-  else
-  {
-    d_satSolver = SatSolverFactory::createCadicalCDCLT(
-        d_env, statisticsRegistry(), env.getResourceManager(), "");
-  }
-
-  // CNF stream and theory proxy required pointers to each other, make the
-  // theory proxy first
+  // CNF stream, SAT solver and theory proxy required pointers to each other,
+  // make the theory proxy first
   d_theoryProxy = new TheoryProxy(d_env, this, d_theoryEngine, d_skdm.get());
+
+  const auto factory = SatSolverFactory::getFactory(options().prop.satSolver);
+  d_satSolver = factory(
+      env, statisticsRegistry(), env.getResourceManager(), d_theoryProxy, "");
+
+  // create CnfStream with new SAT solver
   d_cnfStream = new CnfStream(env,
                               d_satSolver,
                               d_theoryProxy,
@@ -107,11 +95,11 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
   // if proof producing at all
   if (options().smt.produceProofs)
   {
-    d_ppm.reset(
-        new PropPfManager(env, d_satSolver, *d_cnfStream, d_assumptions));
+    PropPfManager* ppm =
+        new PropPfManager(env, d_satSolver, *d_cnfStream, d_assumptions);
+    d_ppm.reset(ppm);
+    d_satSolver->attachProofManager(ppm);
   }
-  // connect SAT solver
-  d_satSolver->initialize(d_theoryProxy, d_ppm.get());
 }
 
 void PropEngine::finishInit()
@@ -135,7 +123,8 @@ void PropEngine::finishInit()
   }
 }
 
-PropEngine::~PropEngine() {
+PropEngine::~PropEngine()
+{
   Trace("prop") << "Destructing the PropEngine" << std::endl;
   delete d_cnfStream;
   delete d_satSolver;
@@ -163,7 +152,7 @@ void PropEngine::notifyTopLevelSubstitution(const Node& lhs,
     Node eq = SkolemManager::getOriginalForm(lhs.eqNode(rhs));
     output(OutputTag::SUBS) << "(substitution " << eq << ")" << std::endl;
   }
-  Assert(lhs.getType() == rhs.getType());
+  AssertEqual(lhs.getType(), rhs.getType());
 }
 
 void PropEngine::assertInputFormulas(
@@ -392,7 +381,8 @@ void PropEngine::preferPhase(TNode n, bool phase)
   d_satSolver->preferPhase(phase ? lit : ~lit);
 }
 
-bool PropEngine::isDecision(Node lit) const {
+bool PropEngine::isDecision(Node lit) const
+{
   Assert(isSatLiteral(lit));
   return d_satSolver->isDecision(d_cnfStream->getLiteral(lit).getSatVariable());
 }
@@ -422,19 +412,22 @@ bool PropEngine::isFixed(TNode lit) const
   return false;
 }
 
-void PropEngine::printSatisfyingAssignment(){
+void PropEngine::printSatisfyingAssignment()
+{
   const CnfStream::NodeToLiteralMap& transCache =
-    d_cnfStream->getTranslationCache();
+      d_cnfStream->getTranslationCache();
   Trace("prop-value") << "Literal | Value | Expr" << std::endl
                       << "----------------------------------------"
                       << "-----------------" << std::endl;
-  for(CnfStream::NodeToLiteralMap::const_iterator i = transCache.begin(),
-      end = transCache.end();
-      i != end;
-      ++i) {
+  for (CnfStream::NodeToLiteralMap::const_iterator i = transCache.begin(),
+                                                   end = transCache.end();
+       i != end;
+       ++i)
+  {
     std::pair<Node, SatLiteral> curr = *i;
     SatLiteral l = curr.second;
-    if(!l.isNegated()) {
+    if (!l.isNegated())
+    {
       Node n = curr.first;
       SatValue value = d_satSolver->modelValue(l);
       Trace("prop-value") << "'" << l << "' " << value << " " << n << std::endl;
@@ -456,7 +449,8 @@ void PropEngine::outputIncompleteReason(UnknownExplanation uexp,
   }
 }
 
-Result PropEngine::checkSat() {
+Result PropEngine::checkSat()
+{
   Assert(!d_inCheckSat) << "Sat solver in solve()!";
   Trace("prop") << "PropEngine::checkSat()" << std::endl;
 
@@ -502,7 +496,8 @@ Result PropEngine::checkSat() {
 
   d_theoryProxy->postsolve(result);
 
-  if( result == SAT_VALUE_UNKNOWN ) {
+  if (result == SAT_VALUE_UNKNOWN)
+  {
     ResourceManager* rm = resourceManager();
     UnknownExplanation why = UnknownExplanation::INTERRUPTED;
     if (rm->outOfTime())
@@ -517,7 +512,8 @@ Result PropEngine::checkSat() {
     return Result(Result::UNKNOWN, why);
   }
 
-  if( result == SAT_VALUE_TRUE && TraceIsOn("prop") ) {
+  if (result == SAT_VALUE_TRUE && TraceIsOn("prop"))
+  {
     printSatisfyingAssignment();
   }
 

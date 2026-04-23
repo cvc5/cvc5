@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Gereon Kremer, Daniel Larraz, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -107,7 +104,8 @@ void CDCAC::computeVariableOrdering()
 
 void CDCAC::retrieveInitialAssignment(NlModel& model, const Node& ran_variable)
 {
-  if (options().arith.nlCovLinearModel == options::nlCovLinearModelMode::NONE) return;
+  if (options().arith.nlCovLinearModel == options::nlCovLinearModelMode::NONE)
+    return;
   d_initialAssignment.clear();
   Trace("cdcac") << "Retrieving initial assignment:" << std::endl;
   for (const auto& var : d_variableOrdering)
@@ -150,8 +148,7 @@ std::vector<CACInterval> CDCAC::getUnsatIntervals(std::size_t cur_variable)
     Trace("cdcac") << "Infeasible intervals for " << p << " " << sc
                    << " 0 over " << d_assignment << std::endl;
     std::vector<poly::Interval> intervals;
-    if (options().arith.nlCovLifting
-        == options::nlCovLiftingMode::LAZARD)
+    if (options().arith.nlCovLifting == options::nlCovLiftingMode::LAZARD)
     {
       intervals = le.infeasibleRegions(p, sc);
       if (TraceIsOn("cdcac"))
@@ -203,7 +200,8 @@ bool CDCAC::sampleOutsideWithInitial(const std::vector<CACInterval>& infeasible,
     {
       if (poly::contains(i.d_interval, suggested))
       {
-        if (options().arith.nlCovLinearModel == options::nlCovLinearModelMode::INITIAL)
+        if (options().arith.nlCovLinearModel
+            == options::nlCovLinearModelMode::INITIAL)
         {
           d_initialAssignment.clear();
         }
@@ -352,7 +350,7 @@ PolyVector CDCAC::requiredCoefficients(const poly::Polynomial& p)
                                                 d_constraints.varMapper(),
                                                 d_env.getRewriter());
     default:
-      Assert(false);
+      DebugUnhandled();
       return requiredCoefficientsOriginal(p, d_assignment);
   }
 }
@@ -704,7 +702,7 @@ ProofGenerator* CDCAC::closeProof(const std::vector<Node>& assertions)
 bool CDCAC::checkIntegrality(std::size_t cur_variable, const poly::Value& value)
 {
   Node var = d_constraints.varMapper()(d_variableOrdering[cur_variable]);
-  if (var.getType() != d_env.getNodeManager()->integerType())
+  if (!var.getType().isInteger())
   {
     // variable is not integral
     return true;

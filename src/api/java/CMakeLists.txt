@@ -1,10 +1,7 @@
 ###############################################################################
-# Top contributors (to current version):
-#   Daniel Larraz, Mudathir Mohamed, Andres Noetzli
-#
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -306,7 +303,7 @@ endif()
 
 target_include_directories(cvc5jni PUBLIC ${JNI_INCLUDE_DIRS})
 target_include_directories(cvc5jni PUBLIC ${PROJECT_SOURCE_DIR}/src)
-target_include_directories(cvc5jni PUBLIC ${CMAKE_BINARY_DIR}/src/)
+target_include_directories(cvc5jni PUBLIC ${PROJECT_BINARY_DIR}/src/)
 target_include_directories(cvc5jni PUBLIC ${JNI_DIR})
 target_link_libraries(cvc5jni PRIVATE cvc5 cvc5parser)
 
@@ -400,7 +397,7 @@ if(NOT BUILD_SHARED_LIBS)
 endif()
 
 # POM file for publishing cvc5 Java bindings to Maven Central
-configure_file(pom.xml.in ${CMAKE_BINARY_DIR}/pom.xml @ONLY)
+configure_file(pom.xml.in ${PROJECT_BINARY_DIR}/pom.xml @ONLY)
 
 # Install in the same directory of cvc5-targets.
 # On Windows, CMake's default install action places

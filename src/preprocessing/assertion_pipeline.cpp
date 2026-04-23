@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -111,7 +108,7 @@ void AssertionPipeline::push_back(
           NodeManager* nm = nodeManager();
           for (size_t j = 0, nchild = nc.getNumChildren(); j < nchild; j++)
           {
-            size_t jj = (nchild-1)-j;
+            size_t jj = (nchild - 1) - j;
             Node in = nm->mkConstInt(Rational(jj));
             // Never overwrite here. This is because the assumption we would
             // overwrite might be at a lower user context. Overwriting the

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Tim King, Martin Brain, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -29,7 +26,8 @@ namespace theory {
 namespace fp {
 
 class FloatingPointEnumerator
-    : public TypeEnumeratorBase<FloatingPointEnumerator> {
+    : public TypeEnumeratorBase<FloatingPointEnumerator>
+{
  public:
   FloatingPointEnumerator(TypeNode type,
                           CVC5_UNUSED TypeEnumeratorProperties* tep = nullptr)
@@ -42,18 +40,24 @@ class FloatingPointEnumerator
   }
 
   /** Throws NoMoreValuesException if the enumeration is complete. */
-  Node operator*() override {
-    if (d_enumerationComplete) {
+  Node operator*() override
+  {
+    if (d_enumerationComplete)
+    {
       throw NoMoreValuesException(getType());
     }
     return getType().getNodeManager()->mkConst(createFP());
   }
 
-  FloatingPointEnumerator& operator++() override {
+  FloatingPointEnumerator& operator++() override
+  {
     const FloatingPoint current(createFP());
-    if (current.isNaN()) {
+    if (current.isNaN())
+    {
       d_enumerationComplete = true;
-    } else {
+    }
+    else
+    {
       d_state = d_state + BitVector(d_state.getSize(), 1U);
     }
     return *this;
@@ -62,7 +66,8 @@ class FloatingPointEnumerator
   bool isFinished() override { return d_enumerationComplete; }
 
  protected:
-  FloatingPoint createFP(void) const {
+  FloatingPoint createFP(void) const
+  {
     // Rotate the LSB into the sign so that NaN is the last value
     uint64_t vone = 1;
     uint64_t vmax = d_state.getSize() - 1;
@@ -81,8 +86,8 @@ class FloatingPointEnumerator
   bool d_enumerationComplete;
 }; /* FloatingPointEnumerator */
 
-class RoundingModeEnumerator
-    : public TypeEnumeratorBase<RoundingModeEnumerator> {
+class RoundingModeEnumerator : public TypeEnumeratorBase<RoundingModeEnumerator>
+{
  public:
   RoundingModeEnumerator(TypeNode type,
                          CVC5_UNUSED TypeEnumeratorProperties* tep = nullptr)
@@ -93,15 +98,19 @@ class RoundingModeEnumerator
   }
 
   /** Throws NoMoreValuesException if the enumeration is complete. */
-  Node operator*() override {
-    if (d_enumerationComplete) {
+  Node operator*() override
+  {
+    if (d_enumerationComplete)
+    {
       throw NoMoreValuesException(getType());
     }
     return getType().getNodeManager()->mkConst(d_rm);
   }
 
-  RoundingModeEnumerator& operator++() override {
-    switch (d_rm) {
+  RoundingModeEnumerator& operator++() override
+  {
+    switch (d_rm)
+    {
       case RoundingMode::ROUND_NEAREST_TIES_TO_EVEN:
         d_rm = RoundingMode::ROUND_TOWARD_POSITIVE;
         break;

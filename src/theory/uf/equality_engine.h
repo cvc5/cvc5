@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Dejan Jovanovic, Andrew Reynolds, Morgan Deters
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -50,8 +47,8 @@ class EqProof;
 class ProofEqEngine;
 
 /**
- * Class for keeping an incremental congruence closure over a set of terms. It provides
- * notifications via an EqualityEngineNotify object.
+ * Class for keeping an incremental congruence closure over a set of terms. It
+ * provides notifications via an EqualityEngineNotify object.
  */
 class EqualityEngine : public context::ContextNotifyObj, protected EnvObj
 {
@@ -299,21 +296,26 @@ class EqualityEngine : public context::ContextNotifyObj, protected EnvObj
   /** The map of kinds to be treated as function applications */
   KindMap d_congruenceKinds;
 
-  /** The map of kinds to be treated as interpreted function applications (for evaluation of constants) */
+  /** The map of kinds to be treated as interpreted function applications (for
+   * evaluation of constants) */
   KindMap d_congruenceKindsInterpreted;
 
-  /** The map of kinds with operators to be considered external (for higher-order) */
+  /** The map of kinds with operators to be considered external (for
+   * higher-order) */
   KindMap d_congruenceKindsExtOperators;
 
   /** Map from nodes to their ids */
   std::unordered_map<TNode, EqualityNodeId> d_nodeIds;
 
   /** Map from function applications to their ids */
-  typedef std::unordered_map<FunctionApplication, EqualityNodeId, FunctionApplicationHashFunction> ApplicationIdsMap;
+  typedef std::unordered_map<FunctionApplication,
+                             EqualityNodeId,
+                             FunctionApplicationHashFunction>
+      ApplicationIdsMap;
 
   /**
-   * A map from a pair (a', b') to a function application f(a, b), where a' and b' are the current representatives
-   * of a and b.
+   * A map from a pair (a', b') to a function application f(a, b), where a' and
+   * b' are the current representatives of a and b.
    */
   ApplicationIdsMap d_applicationLookup;
 
@@ -331,7 +333,8 @@ class EqualityEngine : public context::ContextNotifyObj, protected EnvObj
   /**
    * Store the application lookup, with enough information to backtrack
    */
-  void storeApplicationLookup(FunctionApplication& funNormalized, EqualityNodeId funId);
+  void storeApplicationLookup(FunctionApplication& funNormalized,
+                              EqualityNodeId funId);
 
   /** notify trigger term equality */
   bool notifyTriggerTermEquality(TheoryId tag, TNode t1, TNode t2, bool value)
@@ -345,7 +348,8 @@ class EqualityEngine : public context::ContextNotifyObj, protected EnvObj
     return d_notify->eqNotifyTriggerTermEquality(tag, t1, t2, value);
   }
 
-  /** Map from ids to the nodes (these need to be nodes as we pick up the operators) */
+  /** Map from ids to the nodes (these need to be nodes as we pick up the
+   * operators) */
   std::vector<Node> d_nodes;
 
   /** A context-dependents count of nodes */
@@ -367,7 +371,8 @@ class EqualityEngine : public context::ContextNotifyObj, protected EnvObj
    * We keep a list of asserted equalities. Not among original terms, but
    * among the class representatives.
    */
-  struct Equality {
+  struct Equality
+  {
     /** Left hand side of the equality */
     EqualityNodeId d_lhs;
     /** Right hand side of the equality */
@@ -377,7 +382,7 @@ class EqualityEngine : public context::ContextNotifyObj, protected EnvObj
         : d_lhs(l), d_rhs(r)
     {
     }
-  };/* struct EqualityEngine::Equality */
+  }; /* struct EqualityEngine::Equality */
 
   /** The ids of the classes we have merged */
   std::vector<Equality> d_assertedEqualities;
@@ -385,11 +390,11 @@ class EqualityEngine : public context::ContextNotifyObj, protected EnvObj
   /** The reasons for the equalities */
 
   /**
-   * An edge in the equality graph. This graph is an undirected graph (both edges added)
-   * containing the actual asserted equalities.
+   * An edge in the equality graph. This graph is an undirected graph (both
+   * edges added) containing the actual asserted equalities.
    */
-  class EqualityEdge {
-
+  class EqualityEdge
+  {
     // The id of the RHS of this equality
     EqualityNodeId d_nodeId;
     // The next edge
@@ -399,13 +404,24 @@ class EqualityEngine : public context::ContextNotifyObj, protected EnvObj
     // Reason of this equality
     TNode d_reason;
 
-  public:
+   public:
+    EqualityEdge()
+        : d_nodeId(null_edge),
+          d_nextId(null_edge),
+          d_mergeType(MERGED_THROUGH_CONGRUENCE)
+    {
+    }
 
-    EqualityEdge():
-      d_nodeId(null_edge), d_nextId(null_edge), d_mergeType(MERGED_THROUGH_CONGRUENCE) {}
-
-    EqualityEdge(EqualityNodeId nodeId, EqualityNodeId nextId, unsigned type, TNode reason):
-      d_nodeId(nodeId), d_nextId(nextId), d_mergeType(type), d_reason(reason) {}
+    EqualityEdge(EqualityNodeId nodeId,
+                 EqualityNodeId nextId,
+                 unsigned type,
+                 TNode reason)
+        : d_nodeId(nodeId),
+          d_nextId(nextId),
+          d_mergeType(type),
+          d_reason(reason)
+    {
+    }
 
     /** Returns the id of the next edge */
     EqualityEdgeId getNext() const { return d_nextId; }
@@ -418,12 +434,13 @@ class EqualityEngine : public context::ContextNotifyObj, protected EnvObj
 
     /** The reason of this edge */
     TNode getReason() const { return d_reason; }
-  };/* class EqualityEngine::EqualityEdge */
+  }; /* class EqualityEngine::EqualityEdge */
 
   /**
-   * All the equality edges (twice as many as the number of asserted equalities. If an equality
-   * t1 = t2 is asserted, the edges added are -> t2, -> t1 (in this order). Hence, having the index
-   * of one of the edges you can reconstruct the original equality.
+   * All the equality edges (twice as many as the number of asserted equalities.
+   * If an equality t1 = t2 is asserted, the edges added are -> t2, -> t1 (in
+   * this order). Hence, having the index of one of the edges you can
+   * reconstruct the original equality.
    */
   std::vector<EqualityEdge> d_equalityEdges;
 
@@ -433,13 +450,16 @@ class EqualityEngine : public context::ContextNotifyObj, protected EnvObj
   std::string edgesToString(EqualityEdgeId edgeId) const;
 
   /**
-   * Map from a node to its first edge in the equality graph. Edges are added to the front of the
-   * list which makes the insertion/backtracking easy.
+   * Map from a node to its first edge in the equality graph. Edges are added to
+   * the front of the list which makes the insertion/backtracking easy.
    */
   std::vector<EqualityEdgeId> d_equalityGraph;
 
   /** Add an edge to the equality graph */
-  void addGraphEdge(EqualityNodeId t1, EqualityNodeId t2, unsigned type, TNode reason);
+  void addGraphEdge(EqualityNodeId t1,
+                    EqualityNodeId t2,
+                    unsigned type,
+                    TNode reason);
 
   /** Returns the equality node of the given node */
   EqualityNode& getEqualityNode(TNode node);
@@ -460,10 +480,14 @@ class EqualityEngine : public context::ContextNotifyObj, protected EnvObj
    * Merge the class2 into class1
    * @return true if ok, false if to break out
    */
-  bool merge(EqualityNode& class1, EqualityNode& class2, std::vector<TriggerId>& triggers);
+  bool merge(EqualityNode& class1,
+             EqualityNode& class2,
+             std::vector<TriggerId>& triggers);
 
   /** Undo the merge of class2 into class1 */
-  void undoMerge(EqualityNode& class1, EqualityNode& class2, EqualityNodeId class2Id);
+  void undoMerge(EqualityNode& class1,
+                 EqualityNode& class2,
+                 EqualityNodeId class2Id);
 
   /** Backtrack the information if necessary */
   void backtrack();
@@ -471,7 +495,8 @@ class EqualityEngine : public context::ContextNotifyObj, protected EnvObj
   /**
    * Trigger that will be updated
    */
-  struct Trigger {
+  struct Trigger
+  {
     /** The current class id of the LHS of the trigger */
     EqualityNodeId d_classId;
     /** Next trigger for class */
@@ -482,12 +507,13 @@ class EqualityEngine : public context::ContextNotifyObj, protected EnvObj
         : d_classId(classId), d_nextTrigger(nextTrigger)
     {
     }
-  };/* struct EqualityEngine::Trigger */
+  }; /* struct EqualityEngine::Trigger */
 
   /**
    * Vector of triggers. Triggers come in pairs for an
-   * equality trigger (t1, t2): one at position 2k for t1, and one at position 2k + 1 for t2. When
-   * updating triggers we always know where the other one is (^1).
+   * equality trigger (t1, t2): one at position 2k for t1, and one at position
+   * 2k + 1 for t2. When updating triggers we always know where the other one is
+   * (^1).
    */
   std::vector<Trigger> d_equalityTriggers;
 
@@ -502,8 +528,8 @@ class EqualityEngine : public context::ContextNotifyObj, protected EnvObj
   context::CDO<DefaultSizeType> d_equalityTriggersCount;
 
   /**
-   * Trigger lists per node. The begin id changes as we merge, but the end always points to
-   * the actual end of the triggers for this node.
+   * Trigger lists per node. The begin id changes as we merge, but the end
+   * always points to the actual end of the triggers for this node.
    */
   std::vector<TriggerId> d_nodeTriggers;
 
@@ -514,8 +540,9 @@ class EqualityEngine : public context::ContextNotifyObj, protected EnvObj
   std::vector<bool> d_isConstant;
 
   /**
-   * Map from ids of proper terms, to the number of non-constant direct subterms. If we update an interpreted
-   * application to a constant, we can decrease this value. If we hit 0, we can evaluate the term.
+   * Map from ids of proper terms, to the number of non-constant direct
+   * subterms. If we update an interpreted application to a constant, we can
+   * decrease this value. If we hit 0, we can evaluate the term.
    *
    */
   std::vector<unsigned> d_subtermsToEvaluate;
@@ -540,15 +567,16 @@ class EqualityEngine : public context::ContextNotifyObj, protected EnvObj
   void subtermEvaluates(EqualityNodeId id);
 
   /**
-   * Returns the evaluation of the term when all (direct) children are replaced with
-   * the constant representatives.
+   * Returns the evaluation of the term when all (direct) children are replaced
+   * with the constant representatives.
    */
   Node evaluateTerm(TNode node);
 
   /**
    * Returns true if it's a constant
    */
-  bool isConstant(EqualityNodeId id) const {
+  bool isConstant(EqualityNodeId id) const
+  {
     return d_isConstant[getEqualityNode(id).getFind()];
   }
 
@@ -564,7 +592,8 @@ class EqualityEngine : public context::ContextNotifyObj, protected EnvObj
   std::vector<bool> d_isInternal;
 
   /**
-   * Adds the trigger with triggerId to the beginning of the trigger list of the node with id nodeId.
+   * Adds the trigger with triggerId to the beginning of the trigger list of the
+   * node with id nodeId.
    */
   void addTriggerToList(EqualityNodeId nodeId, TriggerId triggerId);
 
@@ -572,7 +601,10 @@ class EqualityEngine : public context::ContextNotifyObj, protected EnvObj
   Statistics d_stats;
 
   /** Add a new function application node to the database, i.e APP t1 t2 */
-  EqualityNodeId newApplicationNode(TNode original, EqualityNodeId t1, EqualityNodeId t2, FunctionApplicationType type);
+  EqualityNodeId newApplicationNode(TNode original,
+                                    EqualityNodeId t1,
+                                    EqualityNodeId t2,
+                                    FunctionApplicationType type);
 
   /** Add a new node to the database */
   EqualityNodeId newNode(TNode t);
@@ -644,12 +676,19 @@ class EqualityEngine : public context::ContextNotifyObj, protected EnvObj
   /**
    * Adds an equality of terms t1 and t2 to the database.
    */
-  void assertEqualityInternal(TNode t1, TNode t2, TNode reason, unsigned pid = MERGED_THROUGH_EQUALITY);
+  void assertEqualityInternal(TNode t1,
+                              TNode t2,
+                              TNode reason,
+                              unsigned pid = MERGED_THROUGH_EQUALITY);
 
   /**
-   * Adds a trigger equality to the database with the trigger node and polarity for notification.
+   * Adds a trigger equality to the database with the trigger node and polarity
+   * for notification.
    */
-  void addTriggerEqualityInternal(TNode t1, TNode t2, TNode trigger, bool polarity);
+  void addTriggerEqualityInternal(TNode t1,
+                                  TNode t2,
+                                  TNode trigger,
+                                  bool polarity);
 
   /**
    * This method gets called on backtracks from the context manager.
@@ -662,7 +701,8 @@ class EqualityEngine : public context::ContextNotifyObj, protected EnvObj
   void init();
 
   /** Set of trigger terms */
-  struct TriggerTermSet {
+  struct TriggerTermSet
+  {
     /** Set of theories in this set */
     TheoryIdSet d_tags;
     /** The trigger terms */
@@ -671,7 +711,7 @@ class EqualityEngine : public context::ContextNotifyObj, protected EnvObj
     TheoryIdSet hasTrigger(TheoryId tag) const;
     /** Returns a trigger by tag */
     EqualityNodeId getTrigger(TheoryId tag) const;
-  };/* struct EqualityEngine::TriggerTermSet */
+  }; /* struct EqualityEngine::TriggerTermSet */
 
   /** Are the constants triggers */
   bool d_constantsAreTriggers;
@@ -681,7 +721,8 @@ class EqualityEngine : public context::ContextNotifyObj, protected EnvObj
    */
   bool d_anyTermsAreTriggers;
 
-  /** The information about trigger terms is stored in this easily maintained memory. */
+  /** The information about trigger terms is stored in this easily maintained
+   * memory. */
   char* d_triggerDatabase;
 
   /** Allocated size of the trigger term database */
@@ -699,13 +740,15 @@ class EqualityEngine : public context::ContextNotifyObj, protected EnvObj
                                       unsigned newSetTriggersSize);
 
   /** Get the trigger set give a reference */
-  TriggerTermSet& getTriggerTermSet(TriggerTermSetRef ref) {
+  TriggerTermSet& getTriggerTermSet(TriggerTermSetRef ref)
+  {
     Assert(ref < d_triggerDatabaseSize);
     return *(reinterpret_cast<TriggerTermSet*>(d_triggerDatabase + ref));
   }
 
   /** Get the trigger set give a reference */
-  const TriggerTermSet& getTriggerTermSet(TriggerTermSetRef ref) const {
+  const TriggerTermSet& getTriggerTermSet(TriggerTermSetRef ref) const
+  {
     Assert(ref < d_triggerDatabaseSize);
     return *(reinterpret_cast<const TriggerTermSet*>(d_triggerDatabase + ref));
   }
@@ -713,7 +756,8 @@ class EqualityEngine : public context::ContextNotifyObj, protected EnvObj
   /** Used part of the trigger term database */
   context::CDO<DefaultSizeType> d_triggerDatabaseSize;
 
-  struct TriggerSetUpdate {
+  struct TriggerSetUpdate
+  {
     EqualityNodeId d_classId;
     TriggerTermSetRef d_oldValue;
     TriggerSetUpdate(EqualityNodeId classId = null_id,
@@ -721,7 +765,7 @@ class EqualityEngine : public context::ContextNotifyObj, protected EnvObj
         : d_classId(classId), d_oldValue(oldValue)
     {
     }
-  };/* struct EqualityEngine::TriggerSetUpdate */
+  }; /* struct EqualityEngine::TriggerSetUpdate */
 
   /**
    * List of trigger updates for backtracking.
@@ -738,10 +782,14 @@ class EqualityEngine : public context::ContextNotifyObj, protected EnvObj
    */
   std::vector<TriggerTermSetRef> d_nodeIndividualTrigger;
 
-  typedef std::unordered_map<EqualityPair, DisequalityReasonRef, EqualityPairHashFunction> DisequalityReasonsMap;
+  typedef std::unordered_map<EqualityPair,
+                             DisequalityReasonRef,
+                             EqualityPairHashFunction>
+      DisequalityReasonsMap;
 
   /**
-   * A map from pairs of disequal terms, to the reason why we deduced they are disequal.
+   * A map from pairs of disequal terms, to the reason why we deduced they are
+   * disequal.
    */
   DisequalityReasonsMap d_disequalityReasonsMap;
 
@@ -756,7 +804,8 @@ class EqualityEngine : public context::ContextNotifyObj, protected EnvObj
   context::CDO<size_t> d_deducedDisequalitiesSize;
 
   /**
-   * For each disequality deduced, we add the pairs of equivalences needed to explain it.
+   * For each disequality deduced, we add the pairs of equivalences needed to
+   * explain it.
    */
   std::vector<EqualityPair> d_deducedDisequalityReasons;
 
@@ -776,23 +825,29 @@ class EqualityEngine : public context::ContextNotifyObj, protected EnvObj
   /**
    * Has this equality been propagated to anyone.
    */
-  bool hasPropagatedDisequality(EqualityNodeId lhsId, EqualityNodeId rhsId) const;
+  bool hasPropagatedDisequality(EqualityNodeId lhsId,
+                                EqualityNodeId rhsId) const;
 
   /**
    * Has this equality been propagated to the tag owner.
    */
-  bool hasPropagatedDisequality(TheoryId tag, EqualityNodeId lhsId, EqualityNodeId rhsId) const;
+  bool hasPropagatedDisequality(TheoryId tag,
+                                EqualityNodeId lhsId,
+                                EqualityNodeId rhsId) const;
 
   /**
-   * Stores a propagated disequality for explanation purposes and remembers the reasons. The
-   * reasons should be pushed on the reasons vector.
+   * Stores a propagated disequality for explanation purposes and remembers the
+   * reasons. The reasons should be pushed on the reasons vector.
    */
-  void storePropagatedDisequality(TheoryId tag, EqualityNodeId lhsId, EqualityNodeId rhsId);
+  void storePropagatedDisequality(TheoryId tag,
+                                  EqualityNodeId lhsId,
+                                  EqualityNodeId rhsId);
 
   /**
    * An equality tagged with a set of tags.
    */
-  struct TaggedEquality {
+  struct TaggedEquality
+  {
     /** Id of the equality */
     EqualityNodeId d_equalityId;
     /** TriggerSet reference for the class of one of the sides */
@@ -812,11 +867,12 @@ class EqualityEngine : public context::ContextNotifyObj, protected EnvObj
   typedef std::vector<TaggedEquality> TaggedEqualitiesSet;
 
   /**
-   * Returns a set of equalities that have been asserted false where one side of the equality
-   * belongs to the given equivalence class. The equalities are restricted to the ones where
-   * one side of the equality is in the tags set, but the other one isn't. Each returned
-   * dis-equality is associated with the tags that are the subset of the input tags, such that
-   * exactly one side of the equality is not in the set yet.
+   * Returns a set of equalities that have been asserted false where one side of
+   * the equality belongs to the given equivalence class. The equalities are
+   * restricted to the ones where one side of the equality is in the tags set,
+   * but the other one isn't. Each returned dis-equality is associated with the
+   * tags that are the subset of the input tags, such that exactly one side of
+   * the equality is not in the set yet.
    *
    * @param classId the equivalence class to search
    * @param inputTags the tags to filter the equalities
@@ -828,8 +884,8 @@ class EqualityEngine : public context::ContextNotifyObj, protected EnvObj
                         TaggedEqualitiesSet& out);
 
   /**
-   * Propagates the remembered disequalities with given tags the original triggers for those tags,
-   * and the set of disequalities produced by above.
+   * Propagates the remembered disequalities with given tags the original
+   * triggers for those tags, and the set of disequalities produced by above.
    */
   bool propagateTriggerTermDisequalities(
       TheoryIdSet tags,
@@ -850,8 +906,8 @@ class EqualityEngine : public context::ContextNotifyObj, protected EnvObj
   void addTriggerEquality(TNode equality);
 };
 
-} // Namespace eq
-} // Namespace theory
+}  // Namespace eq
+}  // Namespace theory
 }  // namespace cvc5::internal
 
 #endif

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Yoni Zohar, Liana Hadarean, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -42,7 +39,7 @@ BVToBool::BVToBool(PreprocessingPassContext* preprocContext)
       d_boolCache(),
       d_one(bv::utils::mkOne(nodeManager(), 1)),
       d_zero(bv::utils::mkZero(nodeManager(), 1)),
-      d_statistics(statisticsRegistry()){};
+      d_statistics(statisticsRegistry()) {};
 
 PreprocessingPassResult BVToBool::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
@@ -54,11 +51,11 @@ PreprocessingPassResult BVToBool::applyInternal(
   {
     assertionsToPreprocess->replace(
         i, new_assertions[i], nullptr, TrustId::PREPROCESS_BV_TO_BOOL);
-    assertionsToPreprocess->ensureRewritten(i);
     if (assertionsToPreprocess->isInConflict())
     {
       return PreprocessingPassResult::CONFLICT;
     }
+    assertionsToPreprocess->ensureRewritten(i);
   }
   return PreprocessingPassResult::NO_CONFLICT;
 }
@@ -67,7 +64,7 @@ void BVToBool::addToLiftCache(TNode term, Node new_term)
 {
   Assert(new_term != Node());
   Assert(!hasLiftCache(term));
-  Assert(term.getType() == new_term.getType());
+  AssertEqual(term.getType(), new_term.getType());
   d_liftCache[term] = new_term;
 }
 
@@ -195,7 +192,6 @@ Node BVToBool::convertBvTerm(TNode node)
   // while BITVECTOR_XOR can be n-ary
   if (kind == Kind::BITVECTOR_XOR)
   {
-    new_kind = Kind::XOR;
     Node result = convertBvTerm(node[0]);
     for (unsigned i = 1; i < node.getNumChildren(); ++i)
     {
@@ -267,7 +263,7 @@ Node BVToBool::liftNode(TNode current)
       {
         // Recursively lift children
         Node converted = liftNode(current[i]);
-        Assert(converted.getType() == current[i].getType());
+        AssertEqual(converted.getType(), current[i].getType());
         builder << converted;
       }
       result = builder;
@@ -275,7 +271,7 @@ Node BVToBool::liftNode(TNode current)
     }
   }
   Assert(result != Node());
-  Assert(result.getType() == current.getType());
+  AssertEqual(result.getType(), current.getType());
   Trace("bv-to-bool") << "BVToBool::liftNode " << current << " => \n"
                       << result << "\n";
   return result;
@@ -295,7 +291,7 @@ void BVToBool::liftBvToBool(const std::vector<Node>& assertions,
 
 BVToBool::Statistics::Statistics(StatisticsRegistry& reg)
     : d_numTermsLifted(
-        reg.registerInt("preprocessing::passes::BVToBool::NumTermsLifted")),
+          reg.registerInt("preprocessing::passes::BVToBool::NumTermsLifted")),
       d_numAtomsLifted(
           reg.registerInt("preprocessing::passes::BVToBool::NumAtomsLifted")),
       d_numTermsForcedLifted(reg.registerInt(

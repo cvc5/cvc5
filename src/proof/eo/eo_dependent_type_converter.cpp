@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -13,7 +10,7 @@
  * Implementation of conversion between approximate and dependent types.
  */
 
-#include "proof/alf/alf_dependent_type_converter.h"
+#include "proof/eo/eo_dependent_type_converter.h"
 
 #include "printer/printer.h"
 #include "printer/smt2/smt2_printer.h"
@@ -21,8 +18,8 @@
 namespace cvc5::internal {
 namespace proof {
 
-AlfDependentTypeConverter::AlfDependentTypeConverter(
-    NodeManager* nm, BaseAlfNodeConverter& tproc)
+EoDependentTypeConverter::EoDependentTypeConverter(NodeManager* nm,
+                                                   BaseEoNodeConverter& tproc)
     : d_nm(nm), d_tproc(tproc), d_typeCounter(0), d_intCounter(0)
 {
   d_sortType = nm->mkSort("Type");
@@ -35,7 +32,7 @@ AlfDependentTypeConverter::AlfDependentTypeConverter(
   d_kindToName[Kind::SEQUENCE_TYPE] = "Seq";
 }
 
-Node AlfDependentTypeConverter::process(const TypeNode& tn)
+Node EoDependentTypeConverter::process(const TypeNode& tn)
 {
   // if abstract
   if (tn.isAbstract())
@@ -96,7 +93,7 @@ Node AlfDependentTypeConverter::process(const TypeNode& tn)
   return d_tproc.mkInternalApp(
       d_kindToName[tn.getKind()], {asNode}, d_sortType);
 }
-const std::vector<Node>& AlfDependentTypeConverter::getFreeParameters() const
+const std::vector<Node>& EoDependentTypeConverter::getFreeParameters() const
 {
   return d_params;
 }

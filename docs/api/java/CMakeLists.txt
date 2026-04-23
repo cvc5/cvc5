@@ -1,10 +1,7 @@
 ###############################################################################
-# Top contributors (to current version):
-#   Hans-Joerg Schurr, Gereon Kremer, Aina Niemetz
-#
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -65,7 +62,7 @@ if(BUILD_BINDINGS_JAVA)
       ${Java_JAVADOC_EXECUTABLE} io.github.cvc5
       ${Java_DOCLINT}
       -Xmaxwarns 1000
-      -sourcepath ${CMAKE_SOURCE_DIR}/src/api/java/:${CMAKE_BINARY_DIR}/src/api/java/
+      -sourcepath ${PROJECT_SOURCE_DIR}/src/api/java/:${PROJECT_BINARY_DIR}/src/api/java/
       -d ${JAVADOC_OUTPUT_DIR}
       -cp ${CVC5_JAR_FILE}
       -tag "api.note:a:Note:"

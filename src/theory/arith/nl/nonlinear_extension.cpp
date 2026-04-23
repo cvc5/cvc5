@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Tim King
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -229,7 +226,7 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions)
   unsigned tdegree = d_trSlv.getTaylorDegree();
   std::vector<NlLemma> lemmas;
   bool ret = d_model.checkModel(passertions, tdegree, lemmas);
-  for (const auto& al: lemmas)
+  for (const auto& al : lemmas)
   {
     d_im.addPendingLemma(al);
   }
@@ -281,6 +278,9 @@ void NonlinearExtension::checkFullEffort(std::map<Node, Node>& arithModel,
   // theory combination, we first record the model values for all shared
   // terms, if they exist.
   const context::CDList<TNode>& sts = d_astate.getSharedTerms();
+  // Reset the model now, as it is used to compute model values for shared
+  // terms in the loop below.
+  d_model.reset(arithModel);
   // A mapping from shared terms to their model value, prior to
   // processing the model below.
   std::unordered_map<TNode, Node> revSharedTermsPre;
@@ -302,7 +302,6 @@ void NonlinearExtension::checkFullEffort(std::map<Node, Node>& arithModel,
     Trace("nl-model-final") << "END" << std::endl;
   }
   Trace("nl-ext") << "NonlinearExtension::interceptModel begin" << std::endl;
-  d_model.reset(arithModel);
   // run a last call effort check
   Trace("nl-ext") << "interceptModel: do model-based refinement" << std::endl;
   Result::Status res = modelBasedRefinement(termSet);
@@ -329,16 +328,39 @@ void NonlinearExtension::checkFullEffort(std::map<Node, Node>& arithModel,
   if (res == Result::SAT)
   {
     d_model.reset(arithModel);
-    // Go back and see if we made two shared terms equal that were disequal prior
-    // to modifying the model. If we did so for two terms t and s, then we must
-    // split on t = s.
+    // Go back and see if we made two shared terms equal that were disequal
+    // prior to modifying the model. If we did so for two terms t and s, then we
+    // must split on t = s.
     std::unordered_map<TNode, std::vector<Node>> sharedTermsPost;
+    std::unordered_set<Node> factorsSplit;
     for (TNode st : sts)
     {
       Node stv = d_model.computeAbstractModelValue(st);
       Trace("nl-model-final")
           << "- shared term value (post) " << st << " = " << stv << std::endl;
       sharedTermsPost[stv].emplace_back(st);
+      // Corner case: if a multiplication term, need to ensure that each of
+      // our variables are assigned in the model. If not, to force this to be
+      // the case, we split on that variable and zero.
+      if (st.getKind() == Kind::NONLINEAR_MULT)
+      {
+        for (const Node& stf : st)
+        {
+          if (arithModel.find(stf) == arithModel.end()
+              && factorsSplit.insert(stf).second)
+          {
+            Trace("nl-model-final") << "*** Identified multiplication term "
+                                       "with factor that is not preregistered: "
+                                    << st << " " << stf << std::endl;
+            Node zero =
+                nodeManager()->mkConstRealOrInt(stf.getType(), Rational(0));
+            Node eq = stf.eqNode(zero);
+            Node split = eq.orNode(eq.negate());
+            NlLemma nlem(InferenceId::ARITH_NL_SHARED_TERM_FACTOR_SPLIT, split);
+            d_im.addPendingLemma(nlem);
+          }
+        }
+      }
     }
     std::unordered_map<TNode, Node>::iterator itrs;
     for (const std::pair<const TNode, std::vector<Node>>& stp : sharedTermsPost)
@@ -575,9 +597,7 @@ void NonlinearExtension::runStrategy(const std::vector<Node>& assertions,
       case InferStep::NL_TANGENT_PLANES_WAITING:
         d_tangentPlaneSlv.check(true);
         break;
-      case InferStep::TRANS_INIT:
-        d_trSlv.initLastCall(xts);
-        break;
+      case InferStep::TRANS_INIT: d_trSlv.initLastCall(xts); break;
       case InferStep::TRANS_INITIAL:
         d_trSlv.checkTranscendentalInitialRefine();
         break;

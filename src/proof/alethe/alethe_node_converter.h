@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Haniel Barbosa, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,7 +17,7 @@
 
 #include "expr/node.h"
 #include "expr/node_converter.h"
-#include "proof/alf/alf_node_converter.h"
+#include "proof/eo/eo_node_converter.h"
 
 namespace cvc5::internal {
 namespace proof {
@@ -29,7 +26,7 @@ namespace proof {
  * This is a helper class for the Alethe post-processor that converts nodes into
  * their expected form in Alethe.
  */
-class AletheNodeConverter : public BaseAlfNodeConverter
+class AletheNodeConverter : public BaseEoNodeConverter
 {
  public:
   /** Constructor
@@ -39,7 +36,7 @@ class AletheNodeConverter : public BaseAlfNodeConverter
    * separately.
    */
   AletheNodeConverter(NodeManager* nm, bool defineSkolems = false)
-      : BaseAlfNodeConverter(nm), d_defineSkolems(defineSkolems)
+      : BaseEoNodeConverter(nm), d_defineSkolems(defineSkolems)
   {
   }
   ~AletheNodeConverter() {}

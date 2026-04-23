@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Gereon Kremer, Andrew Reynolds, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -32,8 +29,7 @@ namespace arith {
 namespace nl {
 
 CoveringsSolver::CoveringsSolver(Env& env, InferenceManager& im, NlModel& model)
-    :
-      EnvObj(env),
+    : EnvObj(env),
 #ifdef CVC5_POLY_IMP
       d_CAC(env),
 #endif
@@ -48,7 +44,8 @@ CoveringsSolver::CoveringsSolver(Env& env, InferenceManager& im, NlModel& model)
 
 CoveringsSolver::~CoveringsSolver() {}
 
-void CoveringsSolver::initLastCall(const std::vector<Node>& assertions)
+void CoveringsSolver::initLastCall(
+    CVC5_UNUSED const std::vector<Node>& assertions)
 {
 #ifdef CVC5_POLY_IMP
   if (TraceIsOn("nl-cov"))
@@ -100,16 +97,18 @@ void CoveringsSolver::initLastCall(const std::vector<Node>& assertions)
   d_CAC.computeVariableOrdering();
   d_CAC.retrieveInitialAssignment(d_model, d_ranVariable);
 #else
-  warning() << "Tried to use CoveringsSolver but libpoly is not available. Compile "
-               "with --poly."
-            << std::endl;
+  warning()
+      << "Tried to use CoveringsSolver but libpoly is not available. Compile "
+         "with --poly."
+      << std::endl;
 #endif
 }
 
 void CoveringsSolver::checkFull()
 {
 #ifdef CVC5_POLY_IMP
-  if (d_CAC.getConstraints().getConstraints().empty()) {
+  if (d_CAC.getConstraints().getConstraints().empty())
+  {
     d_foundSatisfiability = true;
     Trace("nl-cov") << "No constraints. Return." << std::endl;
     return;
@@ -135,16 +134,18 @@ void CoveringsSolver::checkFull()
     d_im.addPendingLemma(lem, InferenceId::ARITH_NL_COVERING_CONFLICT, proof);
   }
 #else
-  warning() << "Tried to use CoveringsSolver but libpoly is not available. Compile "
-               "with --poly."
-            << std::endl;
+  warning()
+      << "Tried to use CoveringsSolver but libpoly is not available. Compile "
+         "with --poly."
+      << std::endl;
 #endif
 }
 
 void CoveringsSolver::checkPartial()
 {
 #ifdef CVC5_POLY_IMP
-  if (d_CAC.getConstraints().getConstraints().empty()) {
+  if (d_CAC.getConstraints().getConstraints().empty())
+  {
     Trace("nl-cov") << "No constraints. Return." << std::endl;
     return;
   }
@@ -185,13 +186,15 @@ void CoveringsSolver::checkPartial()
     }
   }
 #else
-  warning() << "Tried to use CoveringsSolver but libpoly is not available. Compile "
-               "with --poly."
-            << std::endl;
+  warning()
+      << "Tried to use CoveringsSolver but libpoly is not available. Compile "
+         "with --poly."
+      << std::endl;
 #endif
 }
 
-bool CoveringsSolver::constructModelIfAvailable(std::vector<Node>& assertions)
+bool CoveringsSolver::constructModelIfAvailable(
+    CVC5_UNUSED std::vector<Node>& assertions)
 {
 #ifdef CVC5_POLY_IMP
   if (!d_foundSatisfiability)
@@ -210,7 +213,7 @@ bool CoveringsSolver::constructModelIfAvailable(std::vector<Node>& assertions)
     Node value = value_to_node(d_CAC.getModel().get(v), variable);
     if (!addToModel(variable, value))
     {
-      Assert(false) << "Failed to add variable assignment to model";
+      DebugUnhandled() << "Failed to add variable assignment to model";
     }
   }
   for (const auto& sub : d_eqsubs.getSubstitutions())
@@ -219,7 +222,7 @@ bool CoveringsSolver::constructModelIfAvailable(std::vector<Node>& assertions)
                     << std::endl;
     if (!addToModel(sub.first, sub.second))
     {
-      Assert(false) << "Failed to add equality substitution to model";
+      DebugUnhandled() << "Failed to add equality substitution to model";
     }
   }
   if (foundNonVariable)
@@ -234,9 +237,10 @@ bool CoveringsSolver::constructModelIfAvailable(std::vector<Node>& assertions)
   assertions.clear();
   return true;
 #else
-  warning() << "Tried to use CoveringsSolver but libpoly is not available. Compile "
-               "with --poly."
-            << std::endl;
+  warning()
+      << "Tried to use CoveringsSolver but libpoly is not available. Compile "
+         "with --poly."
+      << std::endl;
   return false;
 #endif
 }

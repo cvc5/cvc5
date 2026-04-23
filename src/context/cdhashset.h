@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Morgan Deters, Tim King, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -33,121 +30,95 @@ class CDHashSet : protected CDInsertHashMap<V, bool, HashFcn>
   CDHashSet(const CDHashSet&) = delete;
   CDHashSet& operator=(const CDHashSet&) = delete;
 
-public:
-
+ public:
   // ensure these are publicly accessible
-  static void* operator new(size_t size, bool b) {
+  static void* operator new(size_t size, bool b)
+  {
     return ContextObj::operator new(size, b);
   }
 
-  static void operator delete(void* pMem, bool b) {
+  static void operator delete(void* pMem, bool b)
+  {
     return ContextObj::operator delete(pMem, b);
   }
 
-  void deleteSelf() {
-    this->ContextObj::deleteSelf();
-  }
+  void deleteSelf() { this->ContextObj::deleteSelf(); }
 
   static void operator delete(CVC5_UNUSED void* pMem)
   {
     AlwaysAssert(false) << "It is not allowed to delete a ContextObj this way!";
   }
 
-  CDHashSet(Context* context) :
-    super(context) {
-  }
+  CDHashSet(Context* context) : super(context) {}
 
-  size_t size() const {
-    return super::size();
-  }
+  size_t size() const { return super::size(); }
 
-  bool empty() const {
-    return super::empty();
-  }
+  bool empty() const { return super::empty(); }
 
-  bool insert(const V& v) {
-    return super::insert_safe(v, true);
-  }
+  bool insert(const V& v) { return super::insert_safe(v, true); }
 
-  bool contains(const V& v) const {
-    return super::contains(v);
-  }
+  bool contains(const V& v) const { return super::contains(v); }
 
-  class const_iterator {
+  class const_iterator
+  {
     typename super::const_iterator d_it;
 
-  public:
-
+   public:
     const_iterator(const typename super::const_iterator& it) : d_it(it) {}
-    const_iterator(const const_iterator& it) : d_it(it.d_it) {}
 
-    // Default constructor
-    const_iterator() {}
+    const_iterator() = default;
 
     // (Dis)equality
-    bool operator==(const const_iterator& i) const {
-      return d_it == i.d_it;
-    }
-    bool operator!=(const const_iterator& i) const {
-      return d_it != i.d_it;
-    }
+    bool operator==(const const_iterator& i) const { return d_it == i.d_it; }
+    bool operator!=(const const_iterator& i) const { return d_it != i.d_it; }
 
     // Dereference operators.
-    V operator*() const {
-      return (*d_it).first;
-    }
+    V operator*() const { return (*d_it).first; }
 
     // Prefix increment
-    const_iterator& operator++() {
+    const_iterator& operator++()
+    {
       ++d_it;
       return *this;
     }
 
     // Postfix increment: requires a Proxy object to hold the
     // intermediate value for dereferencing
-    class Proxy {
+    class Proxy
+    {
       const V& d_val;
 
-    public:
-
+     public:
       Proxy(const V& v) : d_val(v) {}
 
-      V operator*() const {
-        return d_val;
-      }
+      V operator*() const { return d_val; }
       V* operator->() const { return &d_val; }
-    };/* class CDSet<>::iterator::Proxy */
+    }; /* class CDSet<>::iterator::Proxy */
 
     // Actual postfix increment: returns Proxy with the old value.
     // Now, an expression like *i++ will return the current *i, and
     // then advance the orderedIterator.  However, don't try to use
     // Proxy for anything else.
-    const Proxy operator++(int) {
+    const Proxy operator++(int)
+    {
       Proxy e(*(*this));
       ++(*this);
       return e;
     }
-  };/* class CDSet<>::iterator */
+  }; /* class CDSet<>::iterator */
 
-  const_iterator begin() const {
-    return const_iterator(super::begin());
-  }
+  const_iterator begin() const { return const_iterator(super::begin()); }
 
-  const_iterator end() const {
-    return const_iterator(super::end());
-  }
+  const_iterator end() const { return const_iterator(super::end()); }
 
-  const_iterator find(const V& v) const {
+  const_iterator find(const V& v) const
+  {
     return const_iterator(super::find(v));
   }
 
   typedef typename super::key_iterator key_iterator;
-  key_iterator key_begin() const {
-    return super::key_begin();
-  }
-  key_iterator key_end() const {
-    return super::key_end();
-  }
+  key_iterator key_begin() const { return super::key_begin(); }
+  key_iterator key_end() const { return super::key_end(); }
 
 }; /* class CDHashSet */
 

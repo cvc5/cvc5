@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mudathir Mohamed, Aina Niemetz, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -236,8 +233,8 @@ public class Datatype extends AbstractPointer implements Iterable<DatatypeConstr
 
   /**
    * Provide a string representation of the native datatype.
-   * 
-   * @param pointer The native memory address pointing to the datatype. 
+   *
+   * @param pointer The native memory address pointing to the datatype.
    * @return A string representation of this datatype.
    */
   protected native String toString(long pointer);

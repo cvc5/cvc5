@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mathias Preiner, Aina Niemetz, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,7 +15,8 @@
 #include "prop/cadical/cadical.h"
 
 #include <cadical/cadical.hpp>
-#include <cadical/tracer.hpp>
+#include <cstdint>
+#include <memory>
 
 #include "base/check.h"
 #include "options/base_options.h"
@@ -29,12 +27,12 @@
 #include "prop/cadical/util.h"
 #include "prop/sat_solver_types.h"
 #include "prop/theory_proxy.h"
+#include "theory/shared_terms_database.h"
 #include "util/resource_manager.h"
 #include "util/statistics_registry.h"
 #include "util/string.h"
 
 namespace cvc5::internal::prop {
-
 using namespace cadical;
 
 /* -------------------------------------------------------------------------- */
@@ -89,7 +87,7 @@ CadicalSolver::CadicalSolver(Env& env,
 {
 }
 
-void CadicalSolver::init()
+void CadicalSolver::initialize()
 {
   d_solver->set("quiet", 1);  // CaDiCaL is verbose by default
 
@@ -105,28 +103,10 @@ void CadicalSolver::init()
     d_solver->connect_external_propagator(d_propagator.get());
   }
 
-  d_true = newVar();
-  d_false = newVar();
-  d_solver->add(toCadicalVar(d_true));
-  d_solver->add(0);
-  d_solver->add(-toCadicalVar(d_false));
-  d_solver->add(0);
-
-  bool logProofs = false;
-  // TODO (wishue #154): determine how to initialize the proofs for CaDiCaL
-  // here based on d_env.isSatProofProducing and options().proof.propProofMode.
-  // The latter should be extended to include modes DRAT and LRAT based on
-  // what is available here.
-  if (logProofs)
-  {
-    d_pfFile = options().driver.filename + ".drat_proof.txt";
-    if (!options().proof.dratBinaryFormat)
-    {
-      d_solver->set("binary", 0);
-    }
-    d_solver->set("inprocessing", 0);
-    d_solver->trace_proof(d_pfFile.c_str());
-  }
+  d_true = newVar(false, true);
+  d_false = newVar(false, true);
+  d_solver->clause(toCadicalVar(d_true));
+  d_solver->clause(-toCadicalVar(d_false));
 }
 
 CadicalSolver::~CadicalSolver()
@@ -144,7 +124,7 @@ CadicalSolver::~CadicalSolver()
 class ResourceLimitTerminator : public CaDiCaL::Terminator
 {
  public:
-  ResourceLimitTerminator(ResourceManager& resmgr) : d_resmgr(resmgr) {};
+  ResourceLimitTerminator(ResourceManager& resmgr) : d_resmgr(resmgr) {}
 
   bool terminate() override
   {
@@ -202,25 +182,6 @@ SatValue CadicalSolver::_solve(const std::vector<SatLiteral>& assumptions)
     Trace("cadical::propagator") << "solve done: " << res << std::endl;
     d_propagator->in_search(false);
   }
-#ifndef NDEBUG
-  // Check unsat core
-  if (res == SAT_VALUE_FALSE && d_proof_tracer != nullptr)
-  {
-    std::vector<SatClause> unsat_core;
-    d_proof_tracer->compute_unsat_core(unsat_core, true);
-
-    std::unique_ptr<CaDiCaL::Solver> solver(new CaDiCaL::Solver());
-    for (const auto& clause : unsat_core)
-    {
-      for (const auto& lit : clause)
-      {
-        solver->add(toCadicalLit(lit));
-      }
-      solver->add(0);
-    }
-    Assert(solver->solve() == CaDiCaL::UNSATISFIABLE);
-  }
-#endif
   ++d_statistics.d_numSatCalls;
   d_inSatMode = (res == SAT_VALUE_TRUE);
   return res;
@@ -228,7 +189,7 @@ SatValue CadicalSolver::_solve(const std::vector<SatLiteral>& assumptions)
 
 /* SatSolver Interface ------------------------------------------------------ */
 
-ClauseId CadicalSolver::addClause(SatClause& clause, bool removable)
+ClauseId CadicalSolver::addClause(const SatClause& clause, bool removable)
 {
   if (d_propagator && TraceIsOn("cadical::propagator"))
   {
@@ -258,14 +219,6 @@ ClauseId CadicalSolver::addClause(SatClause& clause, bool removable)
   }
   ++d_statistics.d_numClauses;
   return ClauseIdError;
-}
-
-ClauseId CadicalSolver::addXorClause(CVC5_UNUSED SatClause& clause,
-                                     CVC5_UNUSED bool rhs,
-                                     CVC5_UNUSED bool removable)
-{
-  Unreachable() << "CaDiCaL does not support adding XOR clauses.";
-  return 0;
 }
 
 SatVariable CadicalSolver::newVar(bool isTheoryAtom, CVC5_UNUSED bool canErase)
@@ -319,14 +272,8 @@ SatValue CadicalSolver::value(SatLiteral l) { return d_propagator->value(l); }
 SatValue CadicalSolver::modelValue(SatLiteral l)
 {
   Assert(d_inSatMode);
-  auto val = d_solver->val(toCadicalLit(l.getSatVariable()));
+  auto val = d_solver->val(toCadicalVar(l.getSatVariable()));
   return toSatValueLit(l.isNegated() ? -val : val);
-}
-
-uint32_t CadicalSolver::getAssertionLevel() const
-{
-  Assert(d_propagator);
-  return d_propagator->current_user_level();
 }
 
 bool CadicalSolver::ok() const { return d_inSatMode; }
@@ -342,8 +289,7 @@ CadicalSolver::Statistics::Statistics(StatisticsRegistry& registry,
 
 /* CDCLTSatSolver Interface ------------------------------------------------- */
 
-void CadicalSolver::initialize(prop::TheoryProxy* theoryProxy,
-                               CVC5_UNUSED PropPfManager* ppm)
+void CadicalSolver::initialize(TheoryProxy* theoryProxy)
 {
   d_proxy = theoryProxy;
   d_propagator.reset(new CadicalPropagator(
@@ -360,7 +306,12 @@ void CadicalSolver::initialize(prop::TheoryProxy* theoryProxy,
     d_solver->connect_proof_tracer(d_proof_tracer.get(), true);
   }
 
-  init();
+  initialize();
+}
+
+void CadicalSolver::attachProofManager(CVC5_UNUSED PropPfManager* ppm)
+{
+  // not implemented yet
 }
 
 void CadicalSolver::push()
@@ -371,8 +322,14 @@ void CadicalSolver::push()
   // Set new activation literal for pushed user level
   // Note: This happens after the push to ensure that the activation literal's
   // introduction level is the current user level.
-  SatVariable alit = newVar(false);
+  SatVariable alit = newVar(false, true);
   d_propagator->set_activation_lit(alit);
+}
+
+uint32_t CadicalSolver::getAssertionLevel() const
+{
+  Assert(d_propagator);
+  return d_propagator->current_user_level();
 }
 
 void CadicalSolver::pop()
@@ -414,7 +371,7 @@ std::vector<SatLiteral> CadicalSolver::getDecisions() const
   std::vector<SatLiteral> decisions;
   for (SatLiteral lit : d_propagator->get_decisions())
   {
-    if (lit != 0)
+    if (lit != undefSatLiteral)
     {
       decisions.push_back(lit);
     }
@@ -430,35 +387,8 @@ std::shared_ptr<ProofNode> CadicalSolver::getProof()
   {
     ProofNodeManager* pnm = d_env.getProofNodeManager();
     NodeManager* nm = d_env.getNodeManager();
-
-    std::vector<SatClause> unsat_core;
-    d_proof_tracer->compute_unsat_core(unsat_core);
-
-    std::vector<std::shared_ptr<ProofNode>> ps;
-    for (const auto& sat_clause : unsat_core)
-    {
-      NodeBuilder nb(nm, Kind::OR);
-      std::vector<Node> lits;
-      for (const auto& lit : sat_clause)
-      {
-        lits.push_back(d_proxy->getNode(lit));
-      }
-      // Sat clause is sorted by literal id. Ensure that node-level clause is
-      // sorted by node ids.
-      std::sort(lits.begin(), lits.end());
-      for (const auto& lit : lits)
-      {
-        nb << lit;
-      }
-      Node n = nb.getNumChildren() == 1 ? nb[0] : nb.constructNode();
-      ps.push_back(pnm->mkAssume(n));
-    }
-    return pnm->mkNode(ProofRule::SAT_REFUTATION, ps, {});
+    return d_proof_tracer->get_chain_resolution_proof(pnm, nm, d_proxy);
   }
-  // NOTE: we could return a DRAT_REFUTATION or LRAT_REFUTATION proof node
-  // consisting of a single step, referencing the files for the DIMACS + proof.
-  // do not throw an exception, since we test whether the proof is available
-  // by comparing it to nullptr.
   return nullptr;
 }
 

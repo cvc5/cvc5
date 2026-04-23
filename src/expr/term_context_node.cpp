@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -61,16 +58,17 @@ Node TCtxNode::decomposeNodeHash(Node h, uint32_t& val)
 {
   if (h.getKind() != Kind::SEXPR || h.getNumChildren() != 2)
   {
-    Assert(false) << "TermContext::decomposeNodeHash: unexpected node " << h;
+    DebugUnhandled() << "TermContext::decomposeNodeHash: unexpected node " << h;
     return Node::null();
   }
   Node ival = h[1];
   if (!ival.isConst() || !ival.getType().isInteger()
       || !ival.getConst<Rational>().getNumerator().fitsUnsignedInt())
   {
-    Assert(false) << "TermContext::decomposeNodeHash: unexpected term context "
-                     "integer in hash "
-                  << h;
+    DebugUnhandled()
+        << "TermContext::decomposeNodeHash: unexpected term context "
+           "integer in hash "
+        << h;
     return Node::null();
   }
   val = ival.getConst<Rational>().getNumerator().toUnsignedInt();

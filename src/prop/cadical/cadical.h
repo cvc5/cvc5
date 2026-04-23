@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Mathias Preiner, Andrew Reynolds
+ *   Mathias Preiner, Aina Niemetz, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -29,8 +29,7 @@ class Solver;
 class Terminator;
 }  // namespace CaDiCaL
 
-namespace cvc5::internal {
-namespace prop {
+namespace cvc5::internal::prop {
 
 namespace cadical {
 class CadicalPropagator;
@@ -47,14 +46,10 @@ class CadicalSolver : public CDCLTSatSolver, protected EnvObj
 
   /* SatSolver interface -------------------------------------------------- */
 
-  ClauseId addClause(SatClause& clause, bool removable) override;
+  ClauseId addClause(const SatClause& clause, bool removable) override;
 
-  ClauseId addXorClause(SatClause& clause, bool rhs, bool removable) override;
-
-  SatVariable newVar(bool isTheoryAtom = false, bool canErase = true) override;
-
+  SatVariable newVar(bool isTheoryAtom, bool canErase) override;
   SatVariable trueVar() override;
-
   SatVariable falseVar() override;
 
   SatValue solve() override;
@@ -69,13 +64,16 @@ class CadicalSolver : public CDCLTSatSolver, protected EnvObj
 
   SatValue modelValue(SatLiteral l) override;
 
-  uint32_t getAssertionLevel() const override;
-
   bool ok() const override;
 
   /* CDCLTSatSolver interface --------------------------------------------- */
 
-  void initialize(prop::TheoryProxy* theoryProxy, PropPfManager* ppm) override;
+  void initialize(TheoryProxy* theoryProxy) override;
+
+  void attachProofManager(PropPfManager* ppm) override;
+
+  uint32_t getAssertionLevel() const override;
+
   void push() override;
 
   void pop() override;
@@ -112,7 +110,7 @@ class CadicalSolver : public CDCLTSatSolver, protected EnvObj
    * Initialize SAT solver instance.
    * Note: Split out to not call virtual functions in constructor.
    */
-  void init();
+  void initialize() override;
 
   /**
    * Set resource limit.
@@ -169,7 +167,6 @@ class CadicalSolver : public CDCLTSatSolver, protected EnvObj
   Statistics d_statistics;
 };
 
-}  // namespace prop
-}  // namespace cvc5::internal
+}  // namespace cvc5::internal::prop
 
 #endif  // CVC5__PROP__CADICAL_H

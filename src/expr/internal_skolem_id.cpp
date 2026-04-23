@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -32,6 +29,7 @@ const char* toString(InternalSkolemId id)
       return "QUANTIFIERS_SYNTH_FUN_EMBED";
     case InternalSkolemId::HO_TYPE_MATCH_PRED: return "HO_TYPE_MATCH_PRED";
     case InternalSkolemId::MBQI_INPUT: return "MBQI_INPUT";
+    case InternalSkolemId::MBQI_CHOICE_FUN: return "MBQI_CHOICE_FUN";
     case InternalSkolemId::ABSTRACT_VALUE: return "ABSTRACT_VALUE";
     case InternalSkolemId::QE_CLOSED_INPUT: return "QE_CLOSED_INPUT";
     case InternalSkolemId::QUANTIFIERS_ATTRIBUTE_INTERNAL:

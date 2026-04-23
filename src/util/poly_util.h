@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Gereon Kremer, Mathias Preiner, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -51,20 +48,23 @@ Rational toRational(const poly::Rational& r);
 /** Converts a poly::DyadicRational to a cvc5::internal::Rational. */
 Rational toRational(const poly::DyadicRational& dr);
 
-/** Converts a poly::Value to a cvc5::internal::Rational (that may be a bit above). */
+/** Converts a poly::Value to a cvc5::internal::Rational (that may be a bit
+ * above). */
 Rational toRationalAbove(const poly::Value& v);
-/** Converts a poly::Value to a cvc5::internal::Rational (that may be a bit below). */
+/** Converts a poly::Value to a cvc5::internal::Rational (that may be a bit
+ * below). */
 Rational toRationalBelow(const poly::Value& v);
 
 /** Converts a cvc5::internal::Integer to a poly::Integer. */
 poly::Integer toInteger(const Integer& i);
-/** Converts a vector of cvc5::internal::Integers to a vector of poly::Integers. */
+/** Converts a vector of cvc5::internal::Integers to a vector of poly::Integers.
+ */
 std::vector<poly::Integer> toInteger(const std::vector<Integer>& vi);
 /** Converts a cvc5::internal::Rational to a poly::Rational. */
 poly::Rational toRational(const Rational& r);
 /**
- * Converts a cvc5::internal::Rational to a poly::DyadicRational. If the input is not
- * dyadic, no result is produced.
+ * Converts a cvc5::internal::Rational to a poly::DyadicRational. If the input
+ * is not dyadic, no result is produced.
  */
 std::optional<poly::DyadicRational> toDyadicRational(const Rational& r);
 /**

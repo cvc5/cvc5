@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Kshitij Bansal, Morgan Deters
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -135,8 +132,7 @@ class SkolemManager
    * @param cacheVals A vector of cache values.
    * @return The skolem function.
    */
-  Node mkSkolemFunction(SkolemId id,
-                        const std::vector<Node>& cacheVals);
+  Node mkSkolemFunction(SkolemId id, const std::vector<Node>& cacheVals);
   /**
    * Same as above, with multiple cache values and an internal skolem id.
    * This will call mkSkolemFunction where the (external) id is
@@ -222,6 +218,7 @@ class SkolemManager
    * we sort the arguments to the skolem upon construction via the API.
    */
   static bool isCommutativeSkolemId(SkolemId id);
+
  private:
   /** The associated node manager. */
   NodeManager* d_nm;

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Clark Barrett, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -73,7 +70,8 @@ void TheoryModel::finishInit(eq::EqualityEngine* ee)
   setIrrelevantKind(Kind::NOT);
 }
 
-void TheoryModel::reset(){
+void TheoryModel::reset()
+{
   d_modelCache.clear();
   d_semiEvalCacheSet = false;
   d_semiEvalCache.clear();
@@ -91,7 +89,8 @@ void TheoryModel::reset(){
   d_model_core.clear();
 }
 
-void TheoryModel::setHeapModel( Node h, Node neq ) { 
+void TheoryModel::setHeapModel(Node h, Node neq)
+{
   d_sep_heap = h;
   d_sep_nil_eq = neq;
 }
@@ -135,11 +134,12 @@ std::vector<Node> TheoryModel::getDomainElements(TypeNode tn) const
 
 Node TheoryModel::getValue(TNode n) const
 {
-  //apply substitutions
+  // apply substitutions
   Node nn = d_env.getTopLevelSubstitutions().apply(n);
   nn = rewrite(nn);
-  Trace("model-getvalue-debug") << "[model-getvalue] getValue : substitute " << n << " to " << nn << std::endl;
-  //get value in model
+  Trace("model-getvalue-debug") << "[model-getvalue] getValue : substitute "
+                                << n << " to " << nn << std::endl;
+  // get value in model
   nn = getModelValue(nn);
   if (nn.isNull())
   {
@@ -162,12 +162,13 @@ Node TheoryModel::getValue(TNode n) const
   }
   else
   {
-    //normalize
+    // normalize
     nn = rewrite(nn);
   }
-  Trace("model-getvalue") << "[model-getvalue] getValue( " << n << " ): " << std::endl
+  Trace("model-getvalue") << "[model-getvalue] getValue( " << n
+                          << " ): " << std::endl
                           << "[model-getvalue] returning " << nn << std::endl;
-  Assert(nn.getType() == n.getType());
+  AssertEqual(nn.getType(), n.getType());
   return nn;
 }
 
@@ -202,7 +203,7 @@ bool TheoryModel::isModelCoreSymbol(Node s) const
 
 size_t TheoryModel::getCardinality(const TypeNode& tn) const
 {
-  //for now, we only handle cardinalities for uninterpreted sorts
+  // for now, we only handle cardinalities for uninterpreted sorts
   Assert(tn.isUninterpretedSort());
   if (d_rep_set.hasType(tn))
   {
@@ -219,7 +220,8 @@ size_t TheoryModel::getCardinality(const TypeNode& tn) const
 Node TheoryModel::getModelValue(TNode n) const
 {
   std::unordered_map<Node, Node>::iterator it = d_modelCache.find(n);
-  if (it != d_modelCache.end()) {
+  if (it != d_modelCache.end())
+  {
     return (*it).second;
   }
   Trace("model-getvalue-debug") << "Get model value " << n << " ... ";
@@ -258,7 +260,7 @@ Node TheoryModel::getModelValue(TNode n) const
     // evaluate the children
     for (size_t i = 0, nchild = n.getNumChildren(); i < nchild; ++i)
     {
-      if (n.isClosure() && i==0)
+      if (n.isClosure() && i == 0)
       {
         // do not evaluate bound variable lists
         ret = n[0];
@@ -289,9 +291,9 @@ Node TheoryModel::getModelValue(TNode n) const
     // if the value was constant, we return it. If it was non-constant,
     // we only return it if we are an evaluated kind. This can occur if the
     // children of n failed to evaluate.
-    if (ret.isConst() || (
-     d_unevaluated_kinds.find(nk) == d_unevaluated_kinds.end()
-      && d_semi_evaluated_kinds.find(nk) == d_semi_evaluated_kinds.end()))
+    if (ret.isConst()
+        || (d_unevaluated_kinds.find(nk) == d_unevaluated_kinds.end()
+            && d_semi_evaluated_kinds.find(nk) == d_semi_evaluated_kinds.end()))
     {
       d_modelCache[n] = ret;
       return ret;
@@ -352,7 +354,6 @@ Node TheoryModel::getModelValue(TNode n) const
             break;
           }
         }
-        
       }
       // if the result was entailed, return it
       if (!retSev.isNull())
@@ -411,30 +412,38 @@ void TheoryModel::addTermInternal(TNode n)
 {
   Assert(d_equalityEngine->hasTerm(n));
   Trace("model-builder-debug2") << "TheoryModel::addTerm : " << n << std::endl;
-  //must collect UF terms
+  // must collect UF terms
   if (n.getKind() == Kind::APPLY_UF)
   {
     Node op = n.getOperator();
-    if( std::find( d_uf_terms[ op ].begin(), d_uf_terms[ op ].end(), n )==d_uf_terms[ op ].end() ){
-      d_uf_terms[ op ].push_back( n );
+    if (std::find(d_uf_terms[op].begin(), d_uf_terms[op].end(), n)
+        == d_uf_terms[op].end())
+    {
+      d_uf_terms[op].push_back(n);
       Trace("model-builder-fun") << "Add apply term " << n << std::endl;
     }
   }
   else if (n.getKind() == Kind::HO_APPLY)
   {
     Node op = n[0];
-    if( std::find( d_ho_uf_terms[ op ].begin(), d_ho_uf_terms[ op ].end(), n )==d_ho_uf_terms[ op ].end() ){
-      d_ho_uf_terms[ op ].push_back( n );
+    if (std::find(d_ho_uf_terms[op].begin(), d_ho_uf_terms[op].end(), n)
+        == d_ho_uf_terms[op].end())
+    {
+      d_ho_uf_terms[op].push_back(n);
       Trace("model-builder-fun") << "Add ho apply term " << n << std::endl;
     }
   }
   // all functions must be included, marked as higher-order
-  if( n.getType().isFunction() ){
-    Trace("model-builder-fun") << "Add function variable (without term) " << n << std::endl;
-    if( d_uf_terms.find( n )==d_uf_terms.end() ){
+  if (n.getType().isFunction())
+  {
+    Trace("model-builder-fun")
+        << "Add function variable (without term) " << n << std::endl;
+    if (d_uf_terms.find(n) == d_uf_terms.end())
+    {
       d_uf_terms[n].clear();
     }
-    if( d_ho_uf_terms.find( n )==d_ho_uf_terms.end() ){
+    if (d_ho_uf_terms.find(n) == d_ho_uf_terms.end())
+    {
       d_ho_uf_terms[n].clear();
     }
   }
@@ -444,13 +453,14 @@ void TheoryModel::addTermInternal(TNode n)
 bool TheoryModel::assertEquality(TNode a, TNode b, bool polarity)
 {
   Assert(d_equalityEngine->consistent());
-  if (a == b && polarity) {
+  if (a == b && polarity)
+  {
     return true;
   }
   Trace("model-builder-assertions")
       << "(assert " << (polarity ? "(= " : "(not (= ") << a << " " << b
       << (polarity ? "));" : ")));");
-  d_equalityEngine->assertEquality( a.eqNode(b), polarity, Node::null() );
+  d_equalityEngine->assertEquality(a.eqNode(b), polarity, Node::null());
   Trace("model-builder-assertions")
       << (d_equalityEngine->consistent() ? "" : "...inconsistent!")
       << std::endl;
@@ -461,19 +471,22 @@ bool TheoryModel::assertEquality(TNode a, TNode b, bool polarity)
 bool TheoryModel::assertPredicate(TNode a, bool polarity)
 {
   Assert(d_equalityEngine->consistent());
-  if ((a == d_true && polarity) ||
-      (a == d_false && (!polarity))) {
+  if ((a == d_true && polarity) || (a == d_false && (!polarity)))
+  {
     return true;
   }
   if (a.getKind() == Kind::EQUAL)
   {
-    Trace("model-builder-assertions") << "(assert " << (polarity ? " " : "(not ") << a << (polarity ? ");" : "));") << endl;
-    d_equalityEngine->assertEquality( a, polarity, Node::null() );
+    Trace("model-builder-assertions")
+        << "(assert " << (polarity ? " " : "(not ") << a
+        << (polarity ? ");" : "));") << endl;
+    d_equalityEngine->assertEquality(a, polarity, Node::null());
   }
   else
   {
-    Trace("model-builder-assertions") << "(assert " << (polarity ? "" : "(not ") << a << (polarity ? ");" : "));") << endl;
-    d_equalityEngine->assertPredicate( a, polarity, Node::null() );
+    Trace("model-builder-assertions") << "(assert " << (polarity ? "" : "(not ")
+                                      << a << (polarity ? ");" : "));") << endl;
+    d_equalityEngine->assertPredicate(a, polarity, Node::null());
   }
   return d_equalityEngine->consistent();
 }
@@ -483,24 +496,29 @@ bool TheoryModel::assertEqualityEngine(const eq::EqualityEngine* ee,
                                        const std::set<Node>* termSet)
 {
   Assert(d_equalityEngine->consistent());
-  eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( ee );
-  for (; !eqcs_i.isFinished(); ++eqcs_i) {
+  eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(ee);
+  for (; !eqcs_i.isFinished(); ++eqcs_i)
+  {
     Node eqc = (*eqcs_i);
     bool predicate = false;
     bool predTrue = false;
     bool predFalse = false;
-    Trace("model-builder-debug") << "...asserting terms in equivalence class " << eqc;
-    if (eqc.getType().isBoolean()) {
+    Trace("model-builder-debug")
+        << "...asserting terms in equivalence class " << eqc;
+    if (eqc.getType().isBoolean())
+    {
       predicate = true;
       predTrue = ee->areEqual(eqc, d_true);
       predFalse = ee->areEqual(eqc, d_false);
-      Trace("model-builder-debug") << ", pred = " << predTrue << "/" << predFalse;
+      Trace("model-builder-debug")
+          << ", pred = " << predTrue << "/" << predFalse;
     }
     Trace("model-builder-debug") << std::endl;
     eq::EqClassIterator eqc_i = eq::EqClassIterator(eqc, ee);
     bool first = true;
     Node rep;
-    for (; !eqc_i.isFinished(); ++eqc_i) {
+    for (; !eqc_i.isFinished(); ++eqc_i)
+    {
       Node n = *eqc_i;
       // notice that constants are always relevant
       if (termSet != nullptr && termSet->find(n) == termSet->end()
@@ -510,7 +528,8 @@ bool TheoryModel::assertEqualityEngine(const eq::EqualityEngine* ee,
             << "...skip node " << n << " in eqc " << eqc << std::endl;
         continue;
       }
-      if (predicate) {
+      if (predicate)
+      {
         if (predTrue || predFalse)
         {
           if (!assertPredicate(n, predTrue))
@@ -518,12 +537,15 @@ bool TheoryModel::assertEqualityEngine(const eq::EqualityEngine* ee,
             return false;
           }
         }
-        else {
-          if (first) {
+        else
+        {
+          if (first)
+          {
             rep = n;
             first = false;
           }
-          else {
+          else
+          {
             Node eq = (n).eqNode(rep);
             Trace("model-builder-assertions")
                 << "(assert " << eq << ");" << std::endl;
@@ -534,18 +556,25 @@ bool TheoryModel::assertEqualityEngine(const eq::EqualityEngine* ee,
             }
           }
         }
-      } else {
-        if (first) {
+      }
+      else
+      {
+        if (first)
+        {
           rep = n;
-          //add the term (this is specifically for the case of singleton equivalence classes)
+          // add the term (this is specifically for the case of singleton
+          // equivalence classes)
           if (!rep.getType().isRegExp())
           {
-            d_equalityEngine->addTerm( rep );
-            Trace("model-builder-debug") << "Add term to ee within assertEqualityEngine: " << rep << std::endl;
+            d_equalityEngine->addTerm(rep);
+            Trace("model-builder-debug")
+                << "Add term to ee within assertEqualityEngine: " << rep
+                << std::endl;
           }
           first = false;
         }
-        else {
+        else
+        {
           if (!assertEquality(n, rep, true))
           {
             return false;
@@ -560,8 +589,8 @@ bool TheoryModel::assertEqualityEngine(const eq::EqualityEngine* ee,
 void TheoryModel::assertSkeleton(TNode n)
 {
   Trace("model-builder-reps") << "Assert skeleton : " << n << std::endl;
-  Trace("model-builder-reps") << "...rep eqc is : " << getRepresentative(n)
-                              << std::endl;
+  Trace("model-builder-reps")
+      << "...rep eqc is : " << getRepresentative(n) << std::endl;
   d_reps[n] = n;
 }
 
@@ -570,7 +599,7 @@ void TheoryModel::assignRepresentative(const Node& r,
                                        bool isFinal)
 {
   Trace("model-builder-reps") << "Assign rep : " << r << " " << n << std::endl;
-  Assert(r.getType() == n.getType());
+  AssertEqual(r.getType(), n.getType());
   TypeNode tn = r.getType();
   if (isFinal && logicInfo().isHigherOrder() && tn.isFunction())
   {
@@ -625,7 +654,7 @@ bool TheoryModel::getAssignmentExclusionSet(TNode n,
   {
     return getAssignmentExclusionSet(itm->second, group, eset);
   }
-  std::map<Node, std::vector<Node> >::iterator ita = d_assignExcSet.find(n);
+  std::map<Node, std::vector<Node>>::iterator ita = d_assignExcSet.find(n);
   if (ita == d_assignExcSet.end())
   {
     return false;
@@ -669,21 +698,18 @@ const std::set<Kind>& TheoryModel::getIrrelevantKinds() const
   return d_irrKinds;
 }
 
-bool TheoryModel::isLegalElimination(TNode x, TNode val)
+bool TheoryModel::isLegalElimination(TNode val)
 {
   return !expr::hasSubtermKinds(d_unevaluated_kinds, val);
 }
 
-bool TheoryModel::hasTerm(TNode a)
-{
-  return d_equalityEngine->hasTerm( a );
-}
+bool TheoryModel::hasTerm(TNode a) { return d_equalityEngine->hasTerm(a); }
 
 Node TheoryModel::getRepresentative(TNode a) const
 {
   if (d_equalityEngine->hasTerm(a))
   {
-    Node r = d_equalityEngine->getRepresentative( a );
+    Node r = d_equalityEngine->getRepresentative(a);
     std::map<Node, Node>::const_iterator itr = d_reps.find(r);
     // note that d_reps[r]=r for equivalence classes that haven't been assigned
     if (itr != d_reps.end() && itr->second != r)
@@ -706,20 +732,28 @@ Node TheoryModel::getRepresentative(TNode a) const
 
 bool TheoryModel::areEqual(TNode a, TNode b) const
 {
-  if( a==b ){
+  if (a == b)
+  {
     return true;
-  }else if( d_equalityEngine->hasTerm( a ) && d_equalityEngine->hasTerm( b ) ){
-    return d_equalityEngine->areEqual( a, b );
-  }else{
+  }
+  else if (d_equalityEngine->hasTerm(a) && d_equalityEngine->hasTerm(b))
+  {
+    return d_equalityEngine->areEqual(a, b);
+  }
+  else
+  {
     return false;
   }
 }
 
 bool TheoryModel::areDisequal(TNode a, TNode b)
 {
-  if( d_equalityEngine->hasTerm( a ) && d_equalityEngine->hasTerm( b ) ){
-    return d_equalityEngine->areDisequal( a, b, false );
-  }else{
+  if (d_equalityEngine->hasTerm(a) && d_equalityEngine->hasTerm(b))
+  {
+    return d_equalityEngine->areDisequal(a, b, false);
+  }
+  else
+  {
     return false;
   }
 }
@@ -898,7 +932,7 @@ void TheoryModel::assignFunctionDefaultHo(Node f) const
     Node hni = getRepresentative(hn[1]);
     Trace("model-builder-debug2")
         << "      get rep : " << hn[1] << " returned " << hni << std::endl;
-    Assert(hni.getType() == args[0].getType());
+    AssertEqual(hni.getType(), args[0].getType());
     // rewrite to ensure the equality is properly oriented, as required by
     // function constants
     hni = rewrite(args[0].eqNode(hni));
@@ -922,7 +956,7 @@ void TheoryModel::assignFunctionDefaultHo(Node f) const
           largs.begin(), largs.end(), apply_args.begin(), apply_args.end());
       hnv = rewrite(hnv);
     }
-    Assert(hnv.getType() == curr.getType());
+    AssertEqual(hnv.getType(), curr.getType());
     if (curr.isNull())
     {
       curr = hnv;
@@ -946,7 +980,8 @@ void TheoryModel::assignFunctionDefaultHo(Node f) const
 
 void TheoryModel::assignFunctionDefinition(Node f, Node f_def) const
 {
-  Trace("model-builder") << "  Assigning function (" << f << ") to (" << f_def << ")" << endl;
+  Trace("model-builder") << "  Assigning function (" << f << ") to (" << f_def
+                         << ")" << endl;
   Assert(d_uf_models.find(f) == d_uf_models.end());
 
   if (logicInfo().isHigherOrder())
@@ -964,24 +999,31 @@ void TheoryModel::assignFunctionDefinition(Node f, Node f_def) const
 
   if (logicInfo().isHigherOrder() && d_equalityEngine->hasTerm(f))
   {
-    Trace("model-builder-debug") << "  ...function is first-class member of equality engine" << std::endl;
+    Trace("model-builder-debug")
+        << "  ...function is first-class member of equality engine"
+        << std::endl;
     // assign to representative if higher-order
-    Node r = d_equalityEngine->getRepresentative( f );
-    //always replace the representative, since it is initially assigned to itself
-    Trace("model-builder") << "    Assign: Setting function rep " << r << " to " << f_def << endl;
+    Node r = d_equalityEngine->getRepresentative(f);
+    // always replace the representative, since it is initially assigned to
+    // itself
+    Trace("model-builder") << "    Assign: Setting function rep " << r << " to "
+                           << f_def << endl;
     // should not have assigned it yet, unless it was set to itself
     Assert(d_reps.find(r) == d_reps.end() || d_reps[r] == r)
         << "Function already assigned " << d_reps[r];
-    d_reps[r] = f_def;  
+    d_reps[r] = f_def;
     // also assign to other assignable functions in the same equivalence class
-    eq::EqClassIterator eqc_i = eq::EqClassIterator(r,d_equalityEngine);
-    while( !eqc_i.isFinished() ) {
+    eq::EqClassIterator eqc_i = eq::EqClassIterator(r, d_equalityEngine);
+    while (!eqc_i.isFinished())
+    {
       Node n = *eqc_i;
       // if an unassigned variable function
       if (isAssignableUf(n) && !hasAssignedFunctionDefinition(n))
       {
         d_uf_models[n] = f_def;
-        Trace("model-builder") << "  Assigning function (" << n << ") to function definition of " << f << std::endl;
+        Trace("model-builder")
+            << "  Assigning function (" << n << ") to function definition of "
+            << f << std::endl;
       }
       ++eqc_i;
     }
@@ -1081,7 +1123,7 @@ Node TheoryModel::evaluateSemiEvalTerm(TNode n) const
     std::vector<Node> nargs = getModelValueArgs(n);
     Trace("semi-eval") << "Semi-eval: lookup " << nargs << std::endl;
     Node result = it->second.existsTerm(nargs);
-    Trace("semi-eval") << "...result is " << result << std::endl;    
+    Trace("semi-eval") << "...result is " << result << std::endl;
     return result;
   }
   return Node::null();

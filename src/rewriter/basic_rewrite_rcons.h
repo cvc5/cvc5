@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Hans-Joerg Schurr
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -68,10 +65,7 @@ class BasicRewriteRCons : protected EnvObj
    * @param tmode Determines if/when to try THEORY_REWRITE.
    * @return true if we successfully added a proof of (= a b) to cdp.
    */
-  bool prove(CDProof* cdp,
-             Node a,
-             Node b,
-             TheoryRewriteMode tmode);
+  bool prove(CDProof* cdp, Node a, Node b, TheoryRewriteMode tmode);
   /**
    * There are theory rewrites which cannot be expressed in RARE rules. In this
    * case we need to use proof rules which are not written in RARE. It is only
@@ -83,10 +77,7 @@ class BasicRewriteRCons : protected EnvObj
    * @param tmode Determines if/when to try THEORY_REWRITE.
    * @return true if we successfully added a proof of (= a b) to cdp.
    */
-  bool postProve(CDProof* cdp,
-                 Node a,
-                 Node b,
-                 TheoryRewriteMode tmode);
+  bool postProve(CDProof* cdp, Node a, Node b, TheoryRewriteMode tmode);
   /**
    * Add to cdp a proof of eq from free asumption eqi, where eqi is the result
    * of term conversion via RewriteDbNodeConverter.
@@ -131,6 +122,15 @@ class BasicRewriteRCons : protected EnvObj
    * @return true if added a closed proof of eq to cdp.
    */
   bool ensureProofMacroBoolNnfNorm(CDProof* cdp, const Node& eq);
+  /**
+   * Elaborate a rewrite eq that was proven by
+   * ProofRewriteRule::MACRO__BOOL_EQ_CONST_EQ.
+   *
+   * @param cdp The proof to add to.
+   * @param eq The rewrite proven by ProofRewriteRule::MACRO__BOOL_EQ_CONST_EQ.
+   * @return true if added a closed proof of eq to cdp.
+   */
+  bool ensureProofMacroBoolEqConstEq(CDProof* cdp, const Node& eq);
   /**
    * Elaborate a rewrite eq that was proven by
    * ProofRewriteRule::MACRO_BOOL_BV_INVERT_SOLVE.

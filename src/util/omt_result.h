@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Aina Niemetz, Nestan Tsiskaridze
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -35,13 +32,13 @@ class OmtResult
   {
     // the status has not been set
     NONE,
-    // the optimization query succeeded with an optimal solution 
+    // the optimization query succeeded with an optimal solution
     OPTIMAL,
-    // the optimization problem succeded with an asymptotically optimal 
-    // solutions, i.e. the objective value is asymptotically approaching  
+    // the optimization problem succeded with an asymptotically optimal
+    // solutions, i.e. the objective value is asymptotically approaching
     // a finite extreme that cannot be exactly reached
     LIMIT_OPTIMAL,
-    // the optimization query was interrupted providing an approximate 
+    // the optimization query was interrupted providing an approximate
     // solution, i.e. a solution from an anytime procedure
     NON_OPTIMAL,
     // the optimization query determined the problem is unbounded
@@ -57,7 +54,7 @@ class OmtResult
   /** Default constructor */
   OmtResult();
 
-  /** Constructor for all outcomes, with optional explanation when 
+  /** Constructor for all outcomes, with optional explanation when
    * solution is not successful */
   OmtResult(Status s,
             UnknownExplanation unknownExplanation =

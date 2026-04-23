@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -29,7 +26,7 @@ TypeNode SepEmpTypeRule::preComputeType(NodeManager* nm, CVC5_UNUSED TNode n)
   return nm->booleanType();
 }
 TypeNode SepEmpTypeRule::computeType(NodeManager* nodeManager,
-                                     TNode n,
+                                     CVC5_UNUSED TNode n,
                                      CVC5_UNUSED bool check,
                                      CVC5_UNUSED std::ostream* errOut)
 {
@@ -42,7 +39,7 @@ TypeNode SepPtoTypeRule::preComputeType(NodeManager* nm, CVC5_UNUSED TNode n)
   return nm->booleanType();
 }
 TypeNode SepPtoTypeRule::computeType(NodeManager* nodeManager,
-                                     TNode n,
+                                     CVC5_UNUSED TNode n,
                                      CVC5_UNUSED bool check,
                                      CVC5_UNUSED std::ostream* errOut)
 {
@@ -150,7 +147,7 @@ TypeNode SepNilTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
 }
 TypeNode SepNilTypeRule::computeType(CVC5_UNUSED NodeManager* nodeManager,
                                      TNode n,
-                                     bool check,
+                                     CVC5_UNUSED bool check,
                                      CVC5_UNUSED std::ostream* errOut)
 {
   Assert(n.getKind() == Kind::SEP_NIL);

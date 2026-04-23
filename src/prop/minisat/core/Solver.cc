@@ -134,7 +134,6 @@ class ScopedBool
 Solver::Solver(Env& env,
                cvc5::internal::prop::TheoryProxy* proxy,
                context::Context* context,
-               PropPfManager* ppm,
                bool enableIncremental)
     : EnvObj(env),
       d_proxy(proxy),
@@ -207,12 +206,6 @@ Solver::Solver(Env& env,
       propagation_budget(-1),
       asynch_interrupt(false)
 {
-  if (ppm)
-  {
-    d_pfManager.reset(
-        new SatProofManager(env, this, proxy->getCnfStream(), ppm));
-  }
-
   // Create the constant variables
   varTrue = newVar(true, false, false);
   varFalse = newVar(false, false, false);
@@ -222,11 +215,12 @@ Solver::Solver(Env& env,
   uncheckedEnqueue(mkLit(varFalse, true));
 }
 
-
-Solver::~Solver()
+void Solver::attachProofManager(prop::PropPfManager* ppm)
 {
+  Assert(d_pfManager == nullptr);
+  d_pfManager.reset(
+      new SatProofManager(d_env, this, d_proxy->getCnfStream(), ppm));
 }
-
 
 //=================================================================================================
 // Minor methods:
@@ -1793,6 +1787,7 @@ lbool Solver::solve_()
 
 static Var mapVar(Var x, vec<Var>& map, Var& max)
 {
+    Assert(x >= 0);
     if (map.size() <= x || map[x] == -1){
         map.growTo(x+1, -1);
         map[x] = max++;
@@ -1814,8 +1809,8 @@ void Solver::toDimacs(FILE* f, Clause& c, vec<Var>& map, Var& max)
 void Solver::toDimacs(const char* file)
 {
     FILE* f = fopen(file, "wr");
-    if (f == NULL)
-        fprintf(stderr, "could not open file %s\n", file), exit(1);
+    if (f == nullptr)
+      fprintf(stderr, "could not open file %s\n", file), exit(1);
     toDimacs(f);
     fclose(f);
 }
@@ -2200,7 +2195,7 @@ const std::vector<Node> Solver::getMiniSatOrderHeap()
   std::vector<Node> heapList;
   for (size_t i = 0, hsize = order_heap.size(); i < hsize; ++i)
   {
-    Node n = d_proxy->getNode(order_heap[i]);
+    Node n = d_proxy->getNode(SatLiteral(order_heap[i]));
     heapList.push_back(n);
   }
   return heapList;

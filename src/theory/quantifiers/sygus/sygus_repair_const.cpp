@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -142,7 +139,7 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
   {
     Node cv = candidate_values[i];
     Node skeleton = getSkeleton(cv, free_var_count, sk_vars);
-    Assert(skeleton.getType() == cv.getType());
+    AssertEqual(skeleton.getType(), cv.getType());
     if (TraceIsOn("sygus-repair-const"))
     {
       std::stringstream ss;
@@ -171,8 +168,7 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
   }
 
   Trace("sygus-repair-const") << "Get first-order query..." << std::endl;
-  Node fo_body =
-      getFoQuery(sygusBody, candidates, candidate_skeletons, sk_vars);
+  Node fo_body = getFoQuery(sygusBody, candidates, candidate_skeletons);
 
   Trace("sygus-repair-const-debug") << "...got : " << fo_body << std::endl;
   Assert(!expr::hasFreeVar(fo_body));
@@ -381,8 +377,7 @@ Node SygusRepairConst::getSkeleton(Node n,
 
 Node SygusRepairConst::getFoQuery(Node body,
                                   const std::vector<Node>& candidates,
-                                  const std::vector<Node>& candidate_skeletons,
-                                  const std::vector<Node>& sk_vars)
+                                  const std::vector<Node>& candidate_skeletons)
 {
   Trace("sygus-repair-const") << "  Substitute skeletons..." << std::endl;
   body = body.substitute(candidates.begin(),

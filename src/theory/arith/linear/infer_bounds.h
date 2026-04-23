@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Tim King, Andrew Reynolds, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -33,11 +30,23 @@ namespace theory {
 namespace arith::linear {
 
 namespace inferbounds {
-  enum Algorithms {None = 0, Lookup, RowSum, Simplex};
-  enum SimplexParamKind { Unbounded, NumVars, Direct};
+enum Algorithms
+{
+  None = 0,
+  Lookup,
+  RowSum,
+  Simplex
+};
+enum SimplexParamKind
+{
+  Unbounded,
+  NumVars,
+  Direct
+};
 
-class InferBoundAlgorithm {
-private:
+class InferBoundAlgorithm
+{
+ private:
   Algorithms d_alg;
   std::optional<int> d_simplexRounds;
   InferBoundAlgorithm(Algorithms a);
@@ -63,7 +72,7 @@ class ArithEntailmentCheckParameters
   typedef std::vector<inferbounds::InferBoundAlgorithm> VecInferBoundAlg;
   VecInferBoundAlg d_algorithms;
 
-public:
+ public:
   typedef VecInferBoundAlg::const_iterator const_iterator;
 
   ArithEntailmentCheckParameters();
@@ -76,10 +85,9 @@ public:
   const_iterator end() const;
 };
 
-
-
-class InferBoundsResult {
-public:
+class InferBoundsResult
+{
+ public:
   InferBoundsResult();
   InferBoundsResult(Node term, bool ub);
 
@@ -100,7 +108,7 @@ public:
 
   Node getTerm() const;
   Node getLiteral() const;
-  void setTerm(Node t){ d_term = t; }
+  void setTerm(Node t) { d_term = t; }
 
   /* If there is a bound, this is a node that explains the bound. */
   Node getExplanation() const;
@@ -115,7 +123,8 @@ public:
 
   void setFindLowerBound() { d_upperBound = false; }
   void setFindUpperBound() { d_upperBound = true; }
-private:
+
+ private:
   /* was a bound found */
   bool d_foundBound;
 
@@ -154,11 +163,10 @@ class ArithEntailmentCheckSideEffects
 
   InferBoundsResult& getSimplexSideEffects();
 
-private:
+ private:
   InferBoundsResult* d_simplexSideEffects;
 };
 
-
-} /* namespace arith */
+}  // namespace arith::linear
 } /* namespace theory */
 }  // namespace cvc5::internal

@@ -43,7 +43,7 @@
 ; The rules ProofRule::TRUST and ProofRule::TRUST_THEORY_REWRITE are output in
 ; proofs using a catch-all rule trust defined at the end of this file. This
 ; rule is also used for any ProofRule which the Eunoia signature does not
-; currently support. In cvc5's proof ouput, an Eunoia comment will be displayed
+; currently support. In cvc5's proof output, an Eunoia comment will be displayed
 ; above an application of this rule to indicate diagnostic information on the
 ; source of this inference, in the format of a TrustId, tracked internally in
 ; cvc5 to classify the source of the incompleteness.
@@ -69,7 +69,7 @@
 ; cvc5's internal symbols, including its skolems, other internally introduced
 ; terms, and extensions.
 ;
-; Furthermote, all symbols prefixed by @@ are furthermore used only internally
+; Furthermore, all symbols prefixed by @@ are furthermore used only internally
 ; to define this signature and will never appear in a formula that a proof
 ; rule concludes, nor will it appear in a proof script.
 ;
@@ -139,15 +139,15 @@
       (($run_evaluate (xor b b2))          (eo::xor ($run_evaluate b) ($run_evaluate b2)))
   
       ; arithmetic
-      (($run_evaluate (< x z))             (eo::is_neg ($arith_eval_qsub ($run_evaluate x) ($run_evaluate z))))
-      (($run_evaluate (<= x z))            (eo::define ((d ($arith_eval_qsub ($run_evaluate x) ($run_evaluate z))))
-                                             (eo::or (eo::is_neg d) (eo::eq d 0/1))))
-      (($run_evaluate (> x z))             (eo::is_neg ($arith_eval_qsub ($run_evaluate z) ($run_evaluate x))))
-      (($run_evaluate (>= x z))            (eo::define ((d ($arith_eval_qsub ($run_evaluate z) ($run_evaluate x))))
-                                             (eo::or (eo::is_neg d) (eo::eq d 0/1))))
-      (($run_evaluate (+ x ys))            ($arith_eval_add ($run_evaluate x) ($run_evaluate ys)))
-      (($run_evaluate (- x z))             ($arith_eval_sub ($run_evaluate x) ($run_evaluate z)))
-      (($run_evaluate (* x ys))            ($arith_eval_mul ($run_evaluate x) ($run_evaluate ys)))
+      (($run_evaluate (< x z))             (eo::is_neg (eo::add ($run_evaluate x) (eo::neg ($run_evaluate z)))))
+      (($run_evaluate (<= x z))            (eo::define ((d (eo::add ($run_evaluate x) (eo::neg ($run_evaluate z)))))
+                                             (eo::or (eo::is_neg d) (eo::eq (eo::to_q d) 0/1))))
+      (($run_evaluate (> x z))             (eo::is_neg (eo::add ($run_evaluate z) (eo::neg ($run_evaluate x)))))
+      (($run_evaluate (>= x z))            (eo::define ((d (eo::add ($run_evaluate z) (eo::neg ($run_evaluate x)))))
+                                             (eo::or (eo::is_neg d) (eo::eq (eo::to_q d) 0/1))))
+      (($run_evaluate (+ x ys))            (eo::add ($run_evaluate x) ($run_evaluate ys)))
+      (($run_evaluate (- x z))             (eo::add ($run_evaluate x) (eo::neg ($run_evaluate z))))
+      (($run_evaluate (* x ys))            (eo::mul ($run_evaluate x) ($run_evaluate ys)))
       (($run_evaluate (- x))               (eo::neg ($run_evaluate x)))
       (($run_evaluate (/ x y))             (eo::qdiv (eo::to_q ($run_evaluate x)) (eo::to_q ($run_evaluate y))))
       (($run_evaluate (/_total x y))       (eo::define ((d (eo::to_q ($run_evaluate y))))
@@ -263,16 +263,24 @@
       (($run_evaluate (concat xb zbs))     (eo::concat ($run_evaluate xb) ($run_evaluate zbs)))
       (($run_evaluate (bvsub xb yb))       (eo::add ($run_evaluate xb) (eo::neg ($run_evaluate yb))))
       (($run_evaluate (extract m n xb))    (eo::extract ($run_evaluate xb) n m)) ; note swap n/m
-      (($run_evaluate (bvult xb yb))       ($run_evaluate (bvugt yb xb)))
-      (($run_evaluate (bvule xb yb))       ($run_evaluate (bvuge yb xb)))
+      (($run_evaluate (bvult xb yb))       (eo::define ((ex (eo::to_z ($run_evaluate xb))))
+                                           (eo::define ((ey (eo::to_z ($run_evaluate yb))))
+                                             (eo::gt ey ex))))
+      (($run_evaluate (bvule xb yb))       (eo::define ((ex ($run_evaluate xb)))
+                                           (eo::define ((ey ($run_evaluate yb)))
+                                             (eo::or (eo::gt ey ex) (eo::eq ex ey)))))
       (($run_evaluate (bvugt xb yb))       (eo::define ((ex (eo::to_z ($run_evaluate xb))))
                                            (eo::define ((ey (eo::to_z ($run_evaluate yb))))
                                              (eo::gt ex ey))))
       (($run_evaluate (bvuge xb yb))       (eo::define ((ex ($run_evaluate xb)))
                                            (eo::define ((ey ($run_evaluate yb)))
                                              (eo::or (eo::gt ex ey) (eo::eq ex ey)))))
-      (($run_evaluate (bvslt xb yb))       ($run_evaluate (bvsgt yb xb)))
-      (($run_evaluate (bvsle xb yb))       ($run_evaluate (bvsge yb xb)))
+      (($run_evaluate (bvslt xb yb))       (eo::define ((ex ($bv_to_signed_int ($run_evaluate xb))))
+                                           (eo::define ((ey ($bv_to_signed_int ($run_evaluate yb))))
+                                             (eo::gt ey ex))))
+      (($run_evaluate (bvsle xb yb))       (eo::define ((ex ($bv_to_signed_int ($run_evaluate xb))))
+                                           (eo::define ((ey ($bv_to_signed_int ($run_evaluate yb))))
+                                             (eo::or (eo::gt ey ex) (eo::eq ex ey)))))
       (($run_evaluate (bvsgt xb yb))       (eo::define ((ex ($bv_to_signed_int ($run_evaluate xb))))
                                            (eo::define ((ey ($bv_to_signed_int ($run_evaluate yb))))
                                              (eo::gt ex ey))))
@@ -297,16 +305,23 @@
                                            ))))))
       (($run_evaluate (bvashr xb yb))      (eo::define ((ex ($run_evaluate xb)))
                                            (eo::define ((ey ($run_evaluate yb)))
-                                           (eo::define ((sb ($bv_sign_bit ex)))
-                                           (eo::ite (eo::eq sb #b0)
-                                             ($run_evaluate (bvlshr ex ey))
-                                             ($run_evaluate (bvnot (bvlshr (bvnot ex) ey)))
+                                           (eo::define ((eyz (eo::to_z ey)))
+                                           (eo::define ((w ($bv_bitwidth (eo::typeof xb))))
+                                             (eo::to_bin w (eo::zdiv ($bv_to_signed_int ex) ($arith_eval_int_pow_2 eyz)))
                                            )))))
-      (($run_evaluate (repeat n xb))       ($run_evaluate ($bv_unfold_repeat ($run_evaluate n) ($run_evaluate xb))))
-      (($run_evaluate (sign_extend n xb))  (eo::define ((ex ($run_evaluate xb)))
-                                              (eo::concat ($run_evaluate ($bv_unfold_repeat ($run_evaluate n) ($bv_sign_bit ex))) ex)))
-      (($run_evaluate (zero_extend n xb))  (eo::define ((ex ($run_evaluate xb)))
-                                              (eo::concat ($run_evaluate ($bv_unfold_repeat ($run_evaluate n) #b0)) ex)))
+      (($run_evaluate (repeat n xb))       (eo::define ((en ($run_evaluate n)))
+                                           (eo::define ((ex ($run_evaluate xb)))
+                                           (eo::ite (eo::and (eo::is_z en) (eo::not (eo::is_neg en)))
+                                             ($bv_repeat_eval_rec en ex)
+                                             (repeat en ex)))))
+      (($run_evaluate (sign_extend n xb))  (eo::define ((en ($run_evaluate n)))
+                                           (eo::define ((ex ($run_evaluate xb)))
+                                           (eo::define ((w ($bv_bitwidth (eo::typeof ex))))
+                                             (eo::to_bin (eo::add w en) ($bv_to_signed_int ex))))))
+      (($run_evaluate (zero_extend n xb))  (eo::define ((en ($run_evaluate n)))
+                                           (eo::define ((ex ($run_evaluate xb)))
+                                           (eo::define ((w ($bv_bitwidth (eo::typeof ex))))
+                                             (eo::to_bin (eo::add w en) (eo::to_z ex))))))
       (($run_evaluate (@bv n m))           (eo::to_bin ($run_evaluate m) ($run_evaluate n)))
       (($run_evaluate (@bvsize xb))        ($bv_bitwidth (eo::typeof xb)))
 
@@ -314,9 +329,11 @@
       (($run_evaluate (int_to_bv n m))     (eo::to_bin ($run_evaluate n) ($run_evaluate m)))
       (($run_evaluate (ubv_to_int xb))     (eo::to_z ($run_evaluate xb)))
       (($run_evaluate (sbv_to_int xb))     (eo::define ((ex ($run_evaluate xb)))
+                                           (eo::define ((w ($bv_bitwidth (eo::typeof ex))))
+                                             (eo::ite (eo::eq w 0) 0
                                              (eo::ite (eo::eq ($bv_sign_bit xb) #b0)
                                                (eo::to_z ex)
-                                               (eo::add (eo::to_z ex) (eo::neg ($arith_eval_int_pow_2 ($bv_bitwidth (eo::typeof xb))))))))
+                                               (eo::add (eo::to_z ex) (eo::neg ($arith_eval_int_pow_2 w))))))))
   
       (($run_evaluate z)                   z)
     )
@@ -329,7 +346,7 @@
 (program $evaluate_list ((U Type) (t U) (ts @List :list))
   :signature (@List) @List
   (
-  (($evaluate_list (@list t ts))  (eo::cons @list ($run_evaluate t) ($evaluate_list ts)))
+  (($evaluate_list (@list t ts))  (_ @list ($run_evaluate t) ($evaluate_list ts)))
   (($evaluate_list @list.nil)     @list.nil)
   )
 )

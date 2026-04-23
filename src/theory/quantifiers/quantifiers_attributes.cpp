@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Paul Meng
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -73,7 +70,7 @@ void QuantAttributes::setUserAttribute(const std::string& attr,
   {
     Trace("quant-attr-debug") << "Set function definition " << n << std::endl;
     FunDefAttribute fda;
-    n.setAttribute( fda, true );
+    n.setAttribute(fda, true);
   }
   else if (attr == "qid")
   {
@@ -81,24 +78,34 @@ void QuantAttributes::setUserAttribute(const std::string& attr,
     Trace("quant-attr-debug") << "Set quant-name " << n << std::endl;
     QuantNameAttribute qna;
     n.setAttribute(qna, true);
-  }else if( attr=="quant-inst-max-level" ){
+  }
+  else if (attr == "quant-inst-max-level")
+  {
     Assert(nodeValues.size() == 1);
     uint64_t lvl = nodeValues[0].getConst<Rational>().getNumerator().getLong();
-    Trace("quant-attr-debug") << "Set instantiation level " << n << " to " << lvl << std::endl;
+    Trace("quant-attr-debug")
+        << "Set instantiation level " << n << " to " << lvl << std::endl;
     QuantInstLevelAttribute qila;
-    n.setAttribute( qila, lvl );
-  }else if( attr=="quant-elim" ){
-    Trace("quant-attr-debug") << "Set quantifier elimination " << n << std::endl;
+    n.setAttribute(qila, lvl);
+  }
+  else if (attr == "quant-elim")
+  {
+    Trace("quant-attr-debug")
+        << "Set quantifier elimination " << n << std::endl;
     QuantElimAttribute qea;
-    n.setAttribute( qea, true );
-  }else if( attr=="quant-elim-partial" ){
-    Trace("quant-attr-debug") << "Set partial quantifier elimination " << n << std::endl;
+    n.setAttribute(qea, true);
+  }
+  else if (attr == "quant-elim-partial")
+  {
+    Trace("quant-attr-debug")
+        << "Set partial quantifier elimination " << n << std::endl;
     QuantElimPartialAttribute qepa;
-    n.setAttribute( qepa, true );
+    n.setAttribute(qepa, true);
   }
 }
 
-Node QuantAttributes::getFunDefHead( Node q ) {
+Node QuantAttributes::getFunDefHead(Node q)
+{
   //&& q[1].getKind()==EQUAL && q[1][0].getKind()==APPLY_UF &&
   if (q.getKind() == Kind::FORALL && q.getNumChildren() == 3)
   {
@@ -114,14 +121,19 @@ Node QuantAttributes::getFunDefHead( Node q ) {
   }
   return Node::null();
 }
-Node QuantAttributes::getFunDefBody( Node q ) {
-  Node h = getFunDefHead( q );
-  if( !h.isNull() ){
+Node QuantAttributes::getFunDefBody(Node q)
+{
+  Node h = getFunDefHead(q);
+  if (!h.isNull())
+  {
     if (q[1].getKind() == Kind::EQUAL)
     {
-      if( q[1][0]==h ){
+      if (q[1][0] == h)
+      {
         return q[1][1];
-      }else if( q[1][1]==h ){
+      }
+      else if (q[1][1] == h)
+      {
         return q[1][0];
       }
       else if (q[1][0].getType().isRealOrInt())
@@ -144,7 +156,8 @@ Node QuantAttributes::getFunDefBody( Node q ) {
     {
       Node atom = q[1].getKind() == Kind::NOT ? q[1][0] : q[1];
       bool pol = q[1].getKind() != Kind::NOT;
-      if( atom==h ){
+      if (atom == h)
+      {
         return q.getNodeManager()->mkConst(pol);
       }
     }
@@ -152,19 +165,24 @@ Node QuantAttributes::getFunDefBody( Node q ) {
   return Node::null();
 }
 
-bool QuantAttributes::checkSygusConjecture( Node q ) {
+bool QuantAttributes::checkSygusConjecture(Node q)
+{
   return (q.getKind() == Kind::FORALL && q.getNumChildren() == 3)
              ? checkSygusConjectureAnnotation(q[2])
              : false;
 }
 
-bool QuantAttributes::checkSygusConjectureAnnotation( Node ipl ){
-  if( !ipl.isNull() ){
-    for( unsigned i=0; i<ipl.getNumChildren(); i++ ){
+bool QuantAttributes::checkSygusConjectureAnnotation(Node ipl)
+{
+  if (!ipl.isNull())
+  {
+    for (unsigned i = 0; i < ipl.getNumChildren(); i++)
+    {
       if (ipl[i].getKind() == Kind::INST_ATTRIBUTE)
       {
         Node avar = ipl[i][0];
-        if( avar.getAttribute(SygusAttribute()) ){
+        if (avar.getAttribute(SygusAttribute()))
+        {
           return true;
         }
       }
@@ -191,13 +209,15 @@ bool QuantAttributes::hasPattern(Node q)
   return false;
 }
 
-void QuantAttributes::computeAttributes( Node q ) {
-  computeQuantAttributes( q, d_qattr[q] );
+void QuantAttributes::computeAttributes(Node q)
+{
+  computeQuantAttributes(q, d_qattr[q]);
   QAttributes& qa = d_qattr[q];
   if (qa.isFunDef())
   {
     Node f = qa.d_fundef_f;
-    if( d_fun_defs.find( f )!=d_fun_defs.end() ){
+    if (d_fun_defs.find(f) != d_fun_defs.end())
+    {
       AlwaysAssert(false) << "Cannot define function " << f
                           << " more than once." << std::endl;
     }
@@ -205,12 +225,15 @@ void QuantAttributes::computeAttributes( Node q ) {
   }
 }
 
-void QuantAttributes::computeQuantAttributes( Node q, QAttributes& qa ){
+void QuantAttributes::computeQuantAttributes(Node q, QAttributes& qa)
+{
   Trace("quant-attr-debug") << "Compute attributes for " << q << std::endl;
-  if( q.getNumChildren()==3 ){
+  if (q.getNumChildren() == 3)
+  {
     NodeManager* nm = q.getNodeManager();
     qa.d_ipl = q[2];
-    for( unsigned i=0; i<q[2].getNumChildren(); i++ ){
+    for (unsigned i = 0; i < q[2].getNumChildren(); i++)
+    {
       Kind k = q[2][i].getKind();
       Trace("quant-attr-debug")
           << "Check : " << q[2][i] << " " << k << std::endl;
@@ -247,15 +270,18 @@ void QuantAttributes::computeQuantAttributes( Node q, QAttributes& qa ){
           // assume the dummy variable has already had its attributes set
           avar = q[2][i][0];
         }
-        if( avar.getAttribute(FunDefAttribute()) ){
-          Trace("quant-attr") << "Attribute : function definition : " << q << std::endl;
-          //get operator directly from pattern
+        if (avar.getAttribute(FunDefAttribute()))
+        {
+          Trace("quant-attr")
+              << "Attribute : function definition : " << q << std::endl;
+          // get operator directly from pattern
           qa.d_fundef_f = q[2][i][0].getOperator();
         }
-        if( avar.getAttribute(SygusAttribute()) ){
-          //not necessarily nested existential
-          //Assert( q[1].getKind()==NOT );
-          //Assert( q[1][0].getKind()==FORALL );
+        if (avar.getAttribute(SygusAttribute()))
+        {
+          // not necessarily nested existential
+          // Assert( q[1].getKind()==NOT );
+          // Assert( q[1][0].getKind()==FORALL );
           Trace("quant-attr") << "Attribute : sygus : " << q << std::endl;
           qa.d_sygus = true;
         }
@@ -295,9 +321,11 @@ void QuantAttributes::computeQuantAttributes( Node q, QAttributes& qa ){
             Warning() << "Missing name for qid attribute";
           }
         }
-        if( avar.hasAttribute(QuantInstLevelAttribute()) ){
+        if (avar.hasAttribute(QuantInstLevelAttribute()))
+        {
           qa.d_qinstLevel = avar.getAttribute(QuantInstLevelAttribute());
-          Trace("quant-attr") << "Attribute : quant inst level " << qa.d_qinstLevel << " : " << q << std::endl;
+          Trace("quant-attr") << "Attribute : quant inst level "
+                              << qa.d_qinstLevel << " : " << q << std::endl;
         }
         if (avar.getAttribute(PreserveStructureAttribute()))
         {
@@ -305,18 +333,23 @@ void QuantAttributes::computeQuantAttributes( Node q, QAttributes& qa ){
               << "Attribute : preserve structure : " << q << std::endl;
           qa.d_preserveStructure = true;
         }
-        if( avar.getAttribute(QuantElimAttribute()) ){
-          Trace("quant-attr") << "Attribute : quantifier elimination : " << q << std::endl;
+        if (avar.getAttribute(QuantElimAttribute()))
+        {
+          Trace("quant-attr")
+              << "Attribute : quantifier elimination : " << q << std::endl;
           qa.d_preserveStructure = true;
           qa.d_quant_elim = true;
-          //don't set owner, should happen naturally
+          // don't set owner, should happen naturally
         }
-        if( avar.getAttribute(QuantElimPartialAttribute()) ){
-          Trace("quant-attr") << "Attribute : quantifier elimination partial : " << q << std::endl;
+        if (avar.getAttribute(QuantElimPartialAttribute()))
+        {
+          Trace("quant-attr")
+              << "Attribute : quantifier elimination partial : " << q
+              << std::endl;
           qa.d_preserveStructure = true;
           qa.d_quant_elim = true;
           qa.d_quant_elim_partial = true;
-          //don't set owner, should happen naturally
+          // don't set owner, should happen naturally
         }
         if (BoundedIntegers::isBoundedForallAttribute(avar))
         {
@@ -324,26 +357,34 @@ void QuantAttributes::computeQuantAttributes( Node q, QAttributes& qa ){
               << "Attribute : bounded quantifiers : " << q << std::endl;
           qa.d_isQuantBounded = true;
         }
-        if( avar.hasAttribute(QuantIdNumAttribute()) ){
+        if (avar.hasAttribute(QuantIdNumAttribute()))
+        {
           qa.d_qid_num = avar;
-          Trace("quant-attr") << "Attribute : id number " << qa.d_qid_num.getAttribute(QuantIdNumAttribute()) << " : " << q << std::endl;
+          Trace("quant-attr")
+              << "Attribute : id number "
+              << qa.d_qid_num.getAttribute(QuantIdNumAttribute()) << " : " << q
+              << std::endl;
         }
       }
     }
   }
 }
 
-bool QuantAttributes::isFunDef( Node q ) {
-  std::map< Node, QAttributes >::iterator it = d_qattr.find( q );
-  if( it==d_qattr.end() ){
+bool QuantAttributes::isFunDef(Node q)
+{
+  std::map<Node, QAttributes>::iterator it = d_qattr.find(q);
+  if (it == d_qattr.end())
+  {
     return false;
   }
   return it->second.isFunDef();
 }
 
-bool QuantAttributes::isSygus( Node q ) {
-  std::map< Node, QAttributes >::iterator it = d_qattr.find( q );
-  if( it==d_qattr.end() ){
+bool QuantAttributes::isSygus(Node q)
+{
+  std::map<Node, QAttributes>::iterator it = d_qattr.find(q);
+  if (it == d_qattr.end())
+  {
     return false;
   }
   return it->second.d_sygus;
@@ -361,10 +402,13 @@ bool QuantAttributes::isOracleInterface(Node q)
 
 int64_t QuantAttributes::getQuantInstLevel(Node q)
 {
-  std::map< Node, QAttributes >::iterator it = d_qattr.find( q );
-  if( it==d_qattr.end() ){
+  std::map<Node, QAttributes>::iterator it = d_qattr.find(q);
+  if (it == d_qattr.end())
+  {
     return -1;
-  }else{
+  }
+  else
+  {
     return it->second.d_qinstLevel;
   }
 }
@@ -381,7 +425,8 @@ bool QuantAttributes::isQuantElim(Node q) const
 bool QuantAttributes::isQuantElimPartial(Node q) const
 {
   std::map<Node, QAttributes>::const_iterator it = d_qattr.find(q);
-  if( it==d_qattr.end() ){
+  if (it == d_qattr.end())
+  {
     return false;
   }
   return it->second.d_quant_elim_partial;
@@ -396,7 +441,6 @@ bool QuantAttributes::isQuantBounded(Node q) const
   }
   return false;
 }
-
 Node QuantAttributes::getQuantName(Node q) const
 {
   std::map<Node, QAttributes>::const_iterator it = d_qattr.find(q);
@@ -415,21 +459,28 @@ std::string QuantAttributes::quantToString(Node q) const
   return ss.str();
 }
 
-int QuantAttributes::getQuantIdNum( Node q ) {
-  std::map< Node, QAttributes >::iterator it = d_qattr.find( q );
-  if( it!=d_qattr.end() ){
-    if( !it->second.d_qid_num.isNull() ){
+int QuantAttributes::getQuantIdNum(Node q)
+{
+  std::map<Node, QAttributes>::iterator it = d_qattr.find(q);
+  if (it != d_qattr.end())
+  {
+    if (!it->second.d_qid_num.isNull())
+    {
       return it->second.d_qid_num.getAttribute(QuantIdNumAttribute());
     }
   }
   return -1;
 }
 
-Node QuantAttributes::getQuantIdNumNode( Node q ) {
-  std::map< Node, QAttributes >::iterator it = d_qattr.find( q );
-  if( it==d_qattr.end() ){
+Node QuantAttributes::getQuantIdNumNode(Node q)
+{
+  std::map<Node, QAttributes>::iterator it = d_qattr.find(q);
+  if (it == d_qattr.end())
+  {
     return Node::null();
-  }else{
+  }
+  else
+  {
     return it->second.d_qid_num;
   }
 }
@@ -468,8 +519,8 @@ void QuantAttributes::setInstantiationLevelAttr(Node n, uint64_t level)
   if (!n.hasAttribute(ila))
   {
     n.setAttribute(ila, level);
-    Trace("inst-level-debug") << "Set instantiation level " << n << " to "
-                              << level << std::endl;
+    Trace("inst-level-debug")
+        << "Set instantiation level " << n << " to " << level << std::endl;
     for (unsigned i = 0; i < n.getNumChildren(); i++)
     {
       setInstantiationLevelAttr(n[i], level);

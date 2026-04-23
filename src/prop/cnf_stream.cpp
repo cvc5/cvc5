@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Dejan Jovanovic, Haniel Barbosa, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -101,7 +98,8 @@ bool CnfStream::assertClause(TNode node,
   return assertClause(node, clause);
 }
 
-bool CnfStream::hasLiteral(TNode n) const {
+bool CnfStream::hasLiteral(TNode n) const
+{
   NodeToLiteralMap::const_iterator find = d_nodeToLiteralMap.find(n);
   return find != d_nodeToLiteralMap.end();
 }
@@ -248,7 +246,8 @@ const CnfStream::LiteralToNodeMap& CnfStream::getNodeCache() const
   return d_literalToNodeMap;
 }
 
-void CnfStream::getBooleanVariables(std::vector<TNode>& outputVariables) const {
+void CnfStream::getBooleanVariables(std::vector<TNode>& outputVariables) const
+{
   outputVariables.insert(outputVariables.end(),
                          d_booleanVariables.begin(),
                          d_booleanVariables.end());
@@ -303,7 +302,8 @@ SatLiteral CnfStream::convertAtom(TNode node)
   return lit;
 }
 
-SatLiteral CnfStream::getLiteral(TNode node) {
+SatLiteral CnfStream::getLiteral(TNode node)
+{
   Assert(!node.isNull()) << "CnfStream: can't getLiteral() of null node";
 
   Assert(d_nodeToLiteralMap.contains(node))
@@ -571,18 +571,24 @@ void CnfStream::convertAndAssertAnd(TNode node, bool negated)
   Assert(node.getKind() == Kind::AND);
   Trace("cnf") << "CnfStream::convertAndAssertAnd(" << node
                << ", negated = " << (negated ? "true" : "false") << ")\n";
-  if (!negated) {
+  if (!negated)
+  {
     // If the node is a conjunction, we handle each conjunct separately
-    for(TNode::const_iterator conjunct = node.begin(), node_end = node.end();
-        conjunct != node_end; ++conjunct ) {
+    for (TNode::const_iterator conjunct = node.begin(), node_end = node.end();
+         conjunct != node_end;
+         ++conjunct)
+    {
       convertAndAssert(*conjunct, false);
     }
-  } else {
+  }
+  else
+  {
     // If the node is a disjunction, we construct a clause and assert it
     int nChildren = node.getNumChildren();
     SatClause clause(nChildren);
     TNode::const_iterator disjunct = node.begin();
-    for(int i = 0; i < nChildren; ++ disjunct, ++ i) {
+    for (int i = 0; i < nChildren; ++disjunct, ++i)
+    {
       Assert(disjunct != node.end());
       clause[i] = toCNF(*disjunct, true);
     }
@@ -596,21 +602,27 @@ void CnfStream::convertAndAssertOr(TNode node, bool negated)
   Assert(node.getKind() == Kind::OR);
   Trace("cnf") << "CnfStream::convertAndAssertOr(" << node
                << ", negated = " << (negated ? "true" : "false") << ")\n";
-  if (!negated) {
+  if (!negated)
+  {
     // If the node is a disjunction, we construct a clause and assert it
     int nChildren = node.getNumChildren();
     SatClause clause(nChildren);
     TNode::const_iterator disjunct = node.begin();
-    for(int i = 0; i < nChildren; ++ disjunct, ++ i) {
+    for (int i = 0; i < nChildren; ++disjunct, ++i)
+    {
       Assert(disjunct != node.end());
       clause[i] = toCNF(*disjunct, false);
     }
     Assert(disjunct == node.end());
     assertClause(node, clause);
-  } else {
+  }
+  else
+  {
     // If the node is a conjunction, we handle each conjunct separately
-    for(TNode::const_iterator conjunct = node.begin(), node_end = node.end();
-        conjunct != node_end; ++conjunct ) {
+    for (TNode::const_iterator conjunct = node.begin(), node_end = node.end();
+         conjunct != node_end;
+         ++conjunct)
+    {
       convertAndAssert(*conjunct, true);
     }
   }
@@ -621,7 +633,8 @@ void CnfStream::convertAndAssertXor(TNode node, bool negated)
   Assert(node.getKind() == Kind::XOR);
   Trace("cnf") << "CnfStream::convertAndAssertXor(" << node
                << ", negated = " << (negated ? "true" : "false") << ")\n";
-  if (!negated) {
+  if (!negated)
+  {
     // p XOR q
     SatLiteral p = toCNF(node[0], false);
     SatLiteral q = toCNF(node[1], false);
@@ -634,7 +647,9 @@ void CnfStream::convertAndAssertXor(TNode node, bool negated)
     clause2[0] = p;
     clause2[1] = q;
     assertClause(node, clause2);
-  } else {
+  }
+  else
+  {
     // !(p XOR q) is the same as p <=> q
     SatLiteral p = toCNF(node[0], false);
     SatLiteral q = toCNF(node[1], false);
@@ -655,7 +670,8 @@ void CnfStream::convertAndAssertIff(TNode node, bool negated)
   Assert(node.getKind() == Kind::EQUAL);
   Trace("cnf") << "CnfStream::convertAndAssertIff(" << node
                << ", negated = " << (negated ? "true" : "false") << ")\n";
-  if (!negated) {
+  if (!negated)
+  {
     // p <=> q
     SatLiteral p = toCNF(node[0], false);
     SatLiteral q = toCNF(node[1], false);
@@ -668,7 +684,9 @@ void CnfStream::convertAndAssertIff(TNode node, bool negated)
     clause2[0] = p;
     clause2[1] = ~q;
     assertClause(node, clause2);
-  } else {
+  }
+  else
+  {
     // !(p <=> q) is the same as p XOR q
     SatLiteral p = toCNF(node[0], false);
     SatLiteral q = toCNF(node[1], false);
@@ -689,7 +707,8 @@ void CnfStream::convertAndAssertImplies(TNode node, bool negated)
   Assert(node.getKind() == Kind::IMPLIES);
   Trace("cnf") << "CnfStream::convertAndAssertImplies(" << node
                << ", negated = " << (negated ? "true" : "false") << ")\n";
-  if (!negated) {
+  if (!negated)
+  {
     // p => q
     SatLiteral p = toCNF(node[0], false);
     SatLiteral q = toCNF(node[1], false);
@@ -698,7 +717,9 @@ void CnfStream::convertAndAssertImplies(TNode node, bool negated)
     clause[0] = ~p;
     clause[1] = q;
     assertClause(node, clause);
-  } else {// Construct the
+  }
+  else
+  {  // Construct the
     // !(p => q) is the same as (p && ~q)
     convertAndAssert(node[0], false);
     convertAndAssert(node[1], true);
@@ -720,7 +741,8 @@ void CnfStream::convertAndAssertIte(TNode node, bool negated)
   // Note that below q and r can be used directly because whether they are
   // negated has been push to the literal definitions above
   Node nnode = node;
-  if( negated ){
+  if (negated)
+  {
     nnode = node.negate();
   }
   SatClause clause1(2);
@@ -753,7 +775,8 @@ void CnfStream::convertAndAssert(TNode node, bool negated)
 
   resourceManager()->spendResource(Resource::CnfStep);
 
-  switch(node.getKind()) {
+  switch (node.getKind())
+  {
     case Kind::AND: convertAndAssertAnd(node, negated); break;
     case Kind::OR: convertAndAssertOr(node, negated); break;
     case Kind::XOR: convertAndAssertXor(node, negated); break;
@@ -776,7 +799,7 @@ void CnfStream::convertAndAssert(TNode node, bool negated)
       }
       // Atoms
       assertClause(nnode, toCNF(node, negated));
-  }
+    }
     break;
   }
 }
@@ -784,7 +807,7 @@ void CnfStream::convertAndAssert(TNode node, bool negated)
 CnfStream::Statistics::Statistics(StatisticsRegistry& sr,
                                   const std::string& name)
     : d_cnfConversionTime(
-        sr.registerTimer(name + "::CnfStream::cnfConversionTime")),
+          sr.registerTimer(name + "::CnfStream::cnfConversionTime")),
       d_numAtoms(sr.registerInt(name + "::CnfStream::numAtoms"))
 {
 }

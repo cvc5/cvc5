@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Haniel Barbosa, Andrew Reynolds, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -343,7 +340,7 @@ void SatProofManager::processRedundantLit(
     toProcess.push_back(MinisatSatSolver::toSatLiteral(reason[i]));
   }
   Node clauseNode = getClauseNode(reason);
-    // check if redundant literals in the reason. The first literal is the one we
+  // check if redundant literals in the reason. The first literal is the one we
   // will be eliminating, so we check the others
   for (unsigned i = 0, size = toProcess.size(); i < size; ++i)
   {
@@ -745,19 +742,19 @@ void SatProofManager::finalizeProof(Node inConflictNode,
 
 void SatProofManager::storeUnitConflict(Minisat::Lit inConflict)
 {
-  Assert(d_conflictLit == undefSatVariable);
+  Assert(d_conflictLit == undefSatLiteral);
   d_conflictLit = MinisatSatSolver::toSatLiteral(inConflict);
 }
 
 void SatProofManager::finalizeProof()
 {
-  Assert(d_conflictLit != undefSatVariable);
+  Assert(d_conflictLit != undefSatLiteral);
   Trace("sat-proof")
       << "SatProofManager::finalizeProof: conflicting (lazy) satLit: "
       << d_conflictLit << "\n";
   finalizeProof(d_cnfStream->getNode(d_conflictLit), {d_conflictLit});
   // reset since if in incremental mode this may be used again
-  d_conflictLit = undefSatVariable;
+  d_conflictLit = undefSatLiteral;
 }
 
 void SatProofManager::finalizeProof(Minisat::Lit inConflict, bool adding)

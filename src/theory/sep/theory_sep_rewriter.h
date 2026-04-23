@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -32,7 +29,8 @@ class TheorySepRewriter : public TheoryRewriter
   RewriteResponse postRewrite(TNode node) override;
   RewriteResponse preRewrite(TNode node) override
   {
-    Trace("sep-prerewrite") << "Sep::preRewrite returning " << node << std::endl;
+    Trace("sep-prerewrite")
+        << "Sep::preRewrite returning " << node << std::endl;
     return RewriteResponse(REWRITE_DONE, node);
   }
 

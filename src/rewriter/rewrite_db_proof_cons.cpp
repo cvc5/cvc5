@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Abdalrhman Mohamed
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -58,13 +55,12 @@ RewriteDbProofCons::RewriteDbProofCons(Env& env, RewriteDb* db)
   d_false = nm->mkConst(false);
 }
 
-bool RewriteDbProofCons::prove(
-    CDProof* cdp,
-    const Node& a,
-    const Node& b,
-    int64_t recLimit,
-    int64_t stepLimit,
-    TheoryRewriteMode tmode)
+bool RewriteDbProofCons::prove(CDProof* cdp,
+                               const Node& a,
+                               const Node& b,
+                               int64_t recLimit,
+                               int64_t stepLimit,
+                               TheoryRewriteMode tmode)
 {
   d_tmode = tmode;
   // clear the proof caches
@@ -150,13 +146,12 @@ bool RewriteDbProofCons::prove(
   return success;
 }
 
-bool RewriteDbProofCons::proveEqStratified(
-    CDProof* cdp,
-    const Node& eq,
-    const Node& eqi,
-    int64_t recLimit,
-    int64_t stepLimit,
-    TheoryRewriteMode tmode)
+bool RewriteDbProofCons::proveEqStratified(CDProof* cdp,
+                                           const Node& eq,
+                                           const Node& eqi,
+                                           int64_t recLimit,
+                                           int64_t stepLimit,
+                                           TheoryRewriteMode tmode)
 {
   bool success = false;
   // first, try the basic utility
@@ -252,7 +247,7 @@ Node RewriteDbProofCons::preprocessClosureEq(CDProof* cdp,
       }
       if (ai[0][i] != bi[0][i])
       {
-        if (ai[0][i].getType() != bi[0][i].getType())
+        if (!CVC5_EQUAL(ai[0][i].getType(), bi[0][i].getType()))
         {
           return Node::null();
         }
@@ -428,10 +423,15 @@ RewriteProofStatus RewriteDbProofCons::proveInternalViaStrategy(const Node& eqi)
   }
   // Maybe holds via a THEORY_REWRITE that has been marked with
   // TheoryRewriteCtx::DSL_SUBCALL.
-  if (d_tmode==TheoryRewriteMode::STANDARD)
+  if (d_tmode == TheoryRewriteMode::STANDARD)
   {
-    if (proveWithRule(
-            RewriteProofStatus::THEORY_REWRITE, eqi, {}, {}, false, false, true))
+    if (proveWithRule(RewriteProofStatus::THEORY_REWRITE,
+                      eqi,
+                      {},
+                      {},
+                      false,
+                      false,
+                      true))
     {
       return RewriteProofStatus::THEORY_REWRITE;
     }
@@ -1228,7 +1228,7 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
               // get the conditions, store into premises of cur.
               if (!rpr.getObligations(vs, rsubs, ps))
               {
-                Assert(false) << "failed a side condition?";
+                DebugUnhandled() << "failed a side condition?";
                 return false;
               }
               pfac.insert(pfac.end(), rsubs.begin(), rsubs.end());

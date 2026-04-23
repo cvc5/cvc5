@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Mudathir Mohamed
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -604,7 +601,7 @@ TypeNode MatchTypeRule::computeType(CVC5_UNUSED NodeManager* nodeManager,
     const DType& pdt = patType.getDType();
     // compare datatypes instead of the types to catch parametric case,
     // where the pattern has parametric type.
-    if (hdt.getTypeNode() != pdt.getTypeNode())
+    if (!CVC5_EQUAL(hdt.getTypeNode(), pdt.getTypeNode()))
     {
       if (errOut)
       {

@@ -1,10 +1,7 @@
 ###############################################################################
-# Top contributors (to current version):
-#   Daniel Larraz
-#
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -58,7 +55,7 @@ if (Sphinx_VERSION_CHECK_RESULT EQUAL 0)
     else()
       if (Sphinx_VERSION VERSION_LESS ${Sphinx_FIND_VERSION})
         set(INSTALL_SPHINX TRUE)
-        set(INSTALL_SPHINX_OPTION "<9;-U")
+        set(INSTALL_SPHINX_OPTION ";-U")
         set(INSTALL_SPHINX_MESSAGE ">=${Sphinx_FIND_VERSION}")
       endif()
     endif()
@@ -79,7 +76,7 @@ else()
       "Use --auto-download to let us install it for you.")
   else()
     set(INSTALL_SPHINX TRUE)
-    set(INSTALL_SPHINX_OPTION "<9;-U")
+    set(INSTALL_SPHINX_OPTION ";-U")
     set(INSTALL_SPHINX_MESSAGE "")
   endif()
 endif()

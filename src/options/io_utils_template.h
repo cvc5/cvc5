@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Gereon Kremer, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -41,15 +38,14 @@ namespace cvc5::internal::options::ioutils {
 
 // clang-format off
 ${iodecls}$
-// clang-format on
+    // clang-format on
 
-/**
- * A scope to copy and restore the options on an `std::ios_base` object in an
- * RAII-style fashion.
- * The options are read from the ios object on construction and restored on
- * destruction of the scope.
- */
-class CVC5_EXPORT Scope
+    /**
+     * A scope to copy and restore the options on an `std::ios_base` object in
+     * an RAII-style fashion. The options are read from the ios object on
+     * construction and restored on destruction of the scope.
+     */
+    class CVC5_EXPORT Scope
 {
  public:
   /** Copy the options from the ios object */
@@ -61,9 +57,9 @@ class CVC5_EXPORT Scope
   /** The ios object */
   std::ios_base& d_ios;
 
-// clang-format off
+  // clang-format off
 ${ioscope_members}$
-// clang-format on
+  // clang-format on
 };
 }  // namespace cvc5::internal::options::ioutils
 

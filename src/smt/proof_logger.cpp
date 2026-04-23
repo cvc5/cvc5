@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -32,8 +29,8 @@ ProofLoggerCpc::ProofLoggerCpc(Env& env,
       d_atp(nodeManager()),
       // we use thresh 1 since terms may come incrementally and would benefit
       // from previous eager letification
-      d_alfp(env, d_atp, pm->getRewriteDatabase(), 1),
-      d_aout(out, d_alfp.getLetBinding(), "@t", false)
+      d_eop(env, d_atp, pm->getRewriteDatabase(), 1),
+      d_eout(out, d_eop.getLetBinding(), "@t", false)
 {
   Trace("pf-log-debug") << "Make proof logger" << std::endl;
   // global options on out
@@ -46,7 +43,7 @@ ProofLoggerCpc::~ProofLoggerCpc() {}
 
 void ProofLoggerCpc::logCnfPreprocessInputs(const std::vector<Node>& inputs)
 {
-  d_aout.getOStream() << "; log start" << std::endl;
+  d_eout.getOStream() << "; log start" << std::endl;
   Trace("pf-log") << "; log: cnf preprocess input proof start" << std::endl;
   CDProof cdp(d_env);
   Node conc = nodeManager()->mkAnd(inputs);
@@ -54,7 +51,7 @@ void ProofLoggerCpc::logCnfPreprocessInputs(const std::vector<Node>& inputs)
   std::shared_ptr<ProofNode> pfn = cdp.getProofFor(conc);
   ProofScopeMode m = ProofScopeMode::DEFINITIONS_AND_ASSERTIONS;
   d_ppProof = d_pm->connectProofToAssertions(pfn, d_as, m);
-  d_alfp.print(d_aout, d_ppProof, m);
+  d_eop.print(d_eout, d_ppProof, m);
   Trace("pf-log") << "; log: cnf preprocess input proof end" << std::endl;
 }
 
@@ -76,7 +73,7 @@ void ProofLoggerCpc::logCnfPreprocessInputProofs(
     }
     ProofScopeMode m = ProofScopeMode::DEFINITIONS_AND_ASSERTIONS;
     d_ppProof = d_pm->connectProofToAssertions(pfn, d_as, m);
-    d_alfp.print(d_aout, d_ppProof, m);
+    d_eop.print(d_eout, d_ppProof, m);
   }
   Trace("pf-log") << "; log: cnf preprocess input proof end" << std::endl;
 }
@@ -86,7 +83,7 @@ void ProofLoggerCpc::logTheoryLemmaProof(std::shared_ptr<ProofNode>& pfn)
   Trace("pf-log") << "; log theory lemma proof start " << pfn->getResult()
                   << std::endl;
   d_lemmaPfs.emplace_back(pfn);
-  d_alfp.printNext(d_aout, pfn);
+  d_eop.printNext(d_eout, pfn);
   Trace("pf-log") << "; log theory lemma proof end" << std::endl;
 }
 
@@ -96,7 +93,7 @@ void ProofLoggerCpc::logTheoryLemma(const Node& n)
   std::shared_ptr<ProofNode> ptl =
       d_pnm->mkTrustedNode(TrustId::THEORY_LEMMA, {}, {}, n);
   d_lemmaPfs.emplace_back(ptl);
-  d_alfp.printNext(d_aout, ptl);
+  d_eop.printNext(d_eout, ptl);
   Trace("pf-log") << "; log theory lemma end" << std::endl;
 }
 
@@ -113,10 +110,10 @@ void ProofLoggerCpc::logSatRefutation()
   Node f = nodeManager()->mkConst(false);
   std::shared_ptr<ProofNode> psr =
       d_pnm->mkNode(ProofRule::SAT_REFUTATION, premises, {}, f);
-  d_alfp.printNext(d_aout, psr);
+  d_eop.printNext(d_eout, psr);
   Trace("pf-log") << "; log SAT refutation end" << std::endl;
   // for now, to avoid checking failure
-  d_aout.getOStream() << "(exit)" << std::endl;
+  d_eout.getOStream() << "(exit)" << std::endl;
 }
 
 void ProofLoggerCpc::logSatRefutationProof(std::shared_ptr<ProofNode>& pfn)
@@ -125,10 +122,10 @@ void ProofLoggerCpc::logSatRefutationProof(std::shared_ptr<ProofNode>& pfn)
   // connect to preprocessed
   std::shared_ptr<ProofNode> spf =
       d_pm->connectProofToAssertions(pfn, d_as, ProofScopeMode::NONE);
-  d_alfp.printNext(d_aout, spf);
+  d_eop.printNext(d_eout, spf);
   Trace("pf-log") << "; log SAT refutation proof end" << std::endl;
   // for now, to avoid checking failure
-  d_aout.getOStream() << "(exit)" << std::endl;
+  d_eout.getOStream() << "(exit)" << std::endl;
 }
 
 }  // namespace cvc5::internal

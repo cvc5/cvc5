@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -40,7 +37,7 @@ class UnsatCoreManager : protected EnvObj
 {
  public:
   UnsatCoreManager(Env& env, SmtSolver& slv, PfManager& pfm);
-  ~UnsatCoreManager(){};
+  ~UnsatCoreManager() {};
   /**
    * Convert preprocessed assertions to the input formulas that imply them. In
    * detail, this converts a set of preprocessed assertions to a set of input

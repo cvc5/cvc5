@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -30,9 +27,7 @@ EqEngineManagerDistributed::EqEngineManagerDistributed(Env& env,
 {
 }
 
-EqEngineManagerDistributed::~EqEngineManagerDistributed()
-{
-}
+EqEngineManagerDistributed::~EqEngineManagerDistributed() {}
 
 void EqEngineManagerDistributed::initializeTheories()
 {
@@ -99,7 +94,7 @@ void EqEngineManagerDistributed::initializeTheories()
   }
 }
 
-void EqEngineManagerDistributed::notifyModel(bool incomplete)
+void EqEngineManagerDistributed::notifyModel(CVC5_UNUSED bool incomplete)
 {
   // should have a consistent master equality engine
   if (d_masterEqualityEngine.get() != nullptr)

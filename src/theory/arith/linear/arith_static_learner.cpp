@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Tim King, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -44,12 +41,11 @@ ArithStaticLearner::ArithStaticLearner(Env& env)
 {
 }
 
-ArithStaticLearner::~ArithStaticLearner(){
-}
+ArithStaticLearner::~ArithStaticLearner() {}
 
 ArithStaticLearner::Statistics::Statistics(StatisticsRegistry& sr)
     : d_iteMinMaxApplications(
-        sr.registerInt("theory::arith::iteMinMaxApplications")),
+          sr.registerInt("theory::arith::iteMinMaxApplications")),
       d_iteConstantApplications(
           sr.registerInt("theory::arith::iteConstantApplications"))
 {
@@ -62,17 +58,20 @@ void ArithStaticLearner::staticLearning(TNode n,
   workList.push_back(n);
   TNodeSet processed;
 
-  //Contains an underapproximation of nodes that must hold.
+  // Contains an underapproximation of nodes that must hold.
   TNodeSet defTrue;
 
   defTrue.insert(n);
 
-  while(!workList.empty()) {
+  while (!workList.empty())
+  {
     n = workList.back();
 
     bool unprocessedChildren = false;
-    for(TNode::iterator i = n.begin(), iend = n.end(); i != iend; ++i) {
-      if(processed.find(*i) == processed.end()) {
+    for (TNode::iterator i = n.begin(), iend = n.end(); i != iend; ++i)
+    {
+      if (processed.find(*i) == processed.end())
+      {
         // unprocessed child
         workList.push_back(*i);
         unprocessedChildren = true;
@@ -80,18 +79,21 @@ void ArithStaticLearner::staticLearning(TNode n,
     }
     if (n.getKind() == Kind::AND && defTrue.find(n) != defTrue.end())
     {
-      for(TNode::iterator i = n.begin(), iend = n.end(); i != iend; ++i) {
+      for (TNode::iterator i = n.begin(), iend = n.end(); i != iend; ++i)
+      {
         defTrue.insert(*i);
       }
     }
 
-    if(unprocessedChildren) {
+    if (unprocessedChildren)
+    {
       continue;
     }
 
     workList.pop_back();
     // has node n been processed in the meantime ?
-    if(processed.find(n) != processed.end()) {
+    if (processed.find(n) != processed.end())
+    {
       continue;
     }
     processed.insert(n);
@@ -104,7 +106,8 @@ void ArithStaticLearner::process(TNode n, std::vector<TrustNode>& learned)
 {
   Trace("arith::static") << "===================== looking at " << n << endl;
 
-  switch(n.getKind()){
+  switch (n.getKind())
+  {
     case Kind::ITE:
       if (expr::hasBoundVar(n))
       {
@@ -154,7 +157,8 @@ void ArithStaticLearner::iteMinMax(TNode n, std::vector<TrustNode>& learned)
   TNode cleft = (c.getKind() == Kind::NOT) ? c[0][0] : c[0];
   TNode cright = (c.getKind() == Kind::NOT) ? c[0][1] : c[1];
 
-  if((t == cright) && (e == cleft)){
+  if ((t == cright) && (e == cleft))
+  {
     TNode tmp = t;
     t = e;
     e = tmp;
@@ -166,11 +170,13 @@ void ArithStaticLearner::iteMinMax(TNode n, std::vector<TrustNode>& learned)
   // ----------------
   // (ite (x - y < -c) )
 
-  if(t == cleft && e == cright){
+  if (t == cleft && e == cright)
+  {
     // t == cleft && e == cright
     Assert(t == cleft);
     Assert(e == cright);
-    switch(k){
+    switch (k)
+    {
       case Kind::LT:  // (ite (< x y) x y)
       case Kind::LEQ:
       {  // (ite (<= x y) x y)
@@ -195,7 +201,7 @@ void ArithStaticLearner::iteMinMax(TNode n, std::vector<TrustNode>& learned)
         ++(d_statistics.d_iteMinMaxApplications);
         break;
       }
-    default: Unreachable();
+      default: Unreachable();
     }
   }
 }
@@ -206,12 +212,15 @@ void ArithStaticLearner::iteConstant(TNode n, std::vector<TrustNode>& learned)
 
   Trace("arith::static") << "iteConstant(" << n << ")" << endl;
 
-  if (d_minMap.find(n[1]) != d_minMap.end() && d_minMap.find(n[2]) != d_minMap.end()) {
+  if (d_minMap.find(n[1]) != d_minMap.end()
+      && d_minMap.find(n[2]) != d_minMap.end())
+  {
     const DeltaRational& first = d_minMap[n[1]];
     const DeltaRational& second = d_minMap[n[2]];
     DeltaRational min = std::min(first, second);
     CDNodeToMinMaxMap::const_iterator minFind = d_minMap.find(n);
-    if (minFind == d_minMap.end() || (*minFind).second < min) {
+    if (minFind == d_minMap.end() || (*minFind).second < min)
+    {
       d_minMap.insert(n, min);
       NodeManager* nm = nodeManager();
       Node nGeqMin = nm->mkNode(
@@ -248,17 +257,20 @@ void ArithStaticLearner::iteConstant(TNode n, std::vector<TrustNode>& learned)
                     ? nGeqMin
                     : nm->mkNode(Kind::IMPLIES, nm->mkAnd(conj), nGeqMin);
       addLearnedLemma(nGeqMin, learned);
-      Trace("arith::static") << n << " iteConstant"  << nGeqMin << endl;
+      Trace("arith::static") << n << " iteConstant" << nGeqMin << endl;
       ++(d_statistics.d_iteConstantApplications);
     }
   }
 
-  if (d_maxMap.find(n[1]) != d_maxMap.end() && d_maxMap.find(n[2]) != d_maxMap.end()) {
+  if (d_maxMap.find(n[1]) != d_maxMap.end()
+      && d_maxMap.find(n[2]) != d_maxMap.end())
+  {
     const DeltaRational& first = d_maxMap[n[1]];
     const DeltaRational& second = d_maxMap[n[2]];
     DeltaRational max = std::max(first, second);
     CDNodeToMinMaxMap::const_iterator maxFind = d_maxMap.find(n);
-    if (maxFind == d_maxMap.end() || (*maxFind).second > max) {
+    if (maxFind == d_maxMap.end() || (*maxFind).second > max)
+    {
       d_maxMap.insert(n, max);
       NodeManager* nm = nodeManager();
       Node nLeqMax = nm->mkNode(
@@ -288,13 +300,14 @@ void ArithStaticLearner::iteConstant(TNode n, std::vector<TrustNode>& learned)
                     ? nLeqMax
                     : nm->mkNode(Kind::IMPLIES, nm->mkAnd(conj), nLeqMax);
       addLearnedLemma(nLeqMax, learned);
-      Trace("arith::static") << n << " iteConstant"  << nLeqMax << endl;
+      Trace("arith::static") << n << " iteConstant" << nLeqMax << endl;
       ++(d_statistics.d_iteConstantApplications);
     }
   }
 }
 
-std::set<Node> listToSet(TNode l){
+std::set<Node> listToSet(TNode l)
+{
   std::set<Node> ret;
   while (l.getKind() == Kind::OR)
   {
@@ -305,15 +318,16 @@ std::set<Node> listToSet(TNode l){
   return ret;
 }
 
-void ArithStaticLearner::addBound(TNode n) {
-
+void ArithStaticLearner::addBound(TNode n)
+{
   CDNodeToMinMaxMap::const_iterator minFind = d_minMap.find(n[0]);
   CDNodeToMinMaxMap::const_iterator maxFind = d_maxMap.find(n[0]);
 
   Rational constant = n[1].getConst<Rational>();
   DeltaRational bound = constant;
 
-  switch(Kind k = n.getKind()) {
+  switch (Kind k = n.getKind())
+  {
     case Kind::LT: bound = DeltaRational(constant, -1); CVC5_FALLTHROUGH;
     case Kind::LEQ:
       if (maxFind == d_maxMap.end() || (*maxFind).second > bound)
@@ -431,7 +445,7 @@ std::shared_ptr<ProofNode> ArithStaticLearner::getProofFor(Node fact)
     else
     {
       // this should always hold unless the rewriter for ITE changes
-      Assert(false) << "...failed rewrite " << eq2 << std::endl;
+      DebugUnhandled() << "...failed rewrite " << eq2 << std::endl;
       cdp.addTrustedStep(fact, TrustId::ARITH_STATIC_LEARN, {}, {});
       return cdp.getProofFor(fact);
     }
@@ -554,6 +568,6 @@ std::string ArithStaticLearner::identify() const
   return "ArithStaticLearner";
 }
 
-}  // namespace arith
+}  // namespace arith::linear
 }  // namespace theory
 }  // namespace cvc5::internal

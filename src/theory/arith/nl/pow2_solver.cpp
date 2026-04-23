@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Yoni Zohar, Aina Niemetz, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -32,9 +29,7 @@ namespace theory {
 namespace arith {
 namespace nl {
 
-Pow2Solver::Pow2Solver(Env& env,
-                       InferenceManager& im,
-                       NlModel& model)
+Pow2Solver::Pow2Solver(Env& env, InferenceManager& im, NlModel& model)
     : EnvObj(env), d_im(im), d_model(model), d_initRefine(userContext())
 {
   NodeManager* nm = nodeManager();
@@ -234,7 +229,7 @@ Node Pow2Solver::valueBasedLemma(Node i)
   Node valC = nm->mkNode(Kind::POW2, valX);
   valC = rewrite(valC);
 
-  return nm->mkNode(Kind::IMPLIES, x.eqNode(valX), i.eqNode(valC));
+  return nm->mkNode(Kind::IMPLIES, {x.eqNode(valX), i.eqNode(valC)});
 }
 
 }  // namespace nl

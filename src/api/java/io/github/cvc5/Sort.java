@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mudathir Mohamed, Aina Niemetz, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -110,7 +107,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
 
   /**
    * Get the raw symbol of the symbol.
-   * 
+   *
    * @api.note Asserts hasSymbol().
    * @return The raw symbol of the symbol.
    */
@@ -463,7 +460,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
 
   /**
    * Get the underlying datatype of a datatype sort.
-   * 
+   *
    * @return The underlying datatype of a datatype sort.
    */
   public Datatype getDatatype()
@@ -569,7 +566,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
 
   /**
    * Get the arity of a datatype constructor sort.
-   * 
+   *
    * @return The arity of a datatype constructor sort.
    */
   public int getDatatypeConstructorArity()
@@ -581,7 +578,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
 
   /**
    * Get the domain sorts of a datatype constructor sort.
-   * 
+   *
    * @return The domain sorts of a datatype constructor sort.
    */
   public Sort[] getDatatypeConstructorDomainSorts()
@@ -594,7 +591,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
 
   /**
    * Get the codomain sort of a datatype constructor sort.
-   * 
+   *
    * @return The codomain sort of a datatype constructor sort.
    */
   public Sort getDatatypeConstructorCodomainSort()
@@ -621,7 +618,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
 
   /**
    * Get the codomain sort of a datatype selector sort.
-   * 
+   *
    * @return The codomain sort of a datatype selector sort.
    */
   public Sort getDatatypeSelectorCodomainSort()
@@ -636,7 +633,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
 
   /**
    * Get the domain sort of a datatype tester sort.
-   * 
+   *
    * @return The domain sort of a datatype tester sort.
    */
   public Sort getDatatypeTesterDomainSort()
@@ -649,7 +646,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
 
   /**
    * Get the codomain sort of a datatype tester sort, which is the Boolean sort.
-   * 
+   *
    * @return The codomain sort of a datatype tester sort, which is the Boolean
    *         sort.
    */
@@ -665,7 +662,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
 
   /**
    * Get the arity of a function sort.
-   * 
+   *
    * @return The arity of a function sort.
    */
   public int getFunctionArity()
@@ -677,7 +674,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
 
   /**
    * Get the domain sorts of a function sort.
-   * 
+   *
    * @return The domain sorts of a function sort.
    */
   public Sort[] getFunctionDomainSorts()
@@ -690,7 +687,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
 
   /**
    * Get the codomain sort of a function sort.
-   * 
+   *
    * @return The codomain sort of a function sort.
    */
   public Sort getFunctionCodomainSort()
@@ -717,7 +714,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
 
   /**
    * Get the array element sort of an array element sort.
-   * 
+   *
    * @return The array element sort of an array element sort.
    */
   public Sort getArrayElementSort()
@@ -732,7 +729,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
 
   /**
    * Get the element sort of a set sort.
-   * 
+   *
    * @return The element sort of a set sort.
    */
   public Sort getSetElementSort()
@@ -747,7 +744,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
 
   /**
    * Get the element sort of a bag sort.
-   * 
+   *
    * @return The element sort of a bag sort.
    */
   public Sort getBagElementSort()
@@ -762,7 +759,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
 
   /**
    * Get the element sort of a sequence sort.
-   * 
+   *
    * @return The element sort of a sequence sort.
    */
   public Sort getSequenceElementSort()
@@ -778,7 +775,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   /**
    * Get the sort kind of an abstract sort, which denotes the kind of
    * sorts that this abstract sort denotes.
-   * 
+   *
    * @return The sort kind of an abstract sort, which denotes the kind of
    * sorts that this abstract sort denotes.
    * @throws CVC5ApiException on error
@@ -797,7 +794,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
 
   /**
    * Get the arity of an uninterpreted sort constructor sort.
-   * 
+   *
    * @return The arity of an uninterpreted sort constructor sort.
    */
   public int getUninterpretedSortConstructorArity()
@@ -811,7 +808,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
 
   /**
    * Get the bit-width of the bit-vector sort.
-   * 
+   *
    * @return The bit-width of the bit-vector sort.
    */
   public int getBitVectorSize()
@@ -825,7 +822,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
 
   /**
    * Get the bit-width of the bit-vector sort.
-   * 
+   *
    * @return The bit-width of the bit-vector sort.
    */
   public String getFiniteFieldSize()
@@ -839,7 +836,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
 
   /**
    * Get the bit-width of the exponent of the floating-point sort.
-   * 
+   *
    * @return The bit-width of the exponent of the floating-point sort.
    */
   public int getFloatingPointExponentSize()
@@ -851,7 +848,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
 
   /**
    * Get the width of the significand of the floating-point sort.
-   * 
+   *
    * @return The width of the significand of the floating-point sort.
    */
   public int getFloatingPointSignificandSize()
@@ -865,7 +862,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
 
   /**
    * Get the arity of a datatype sort.
-   * 
+   *
    * @return The arity of a datatype sort.
    */
   public int getDatatypeArity()
@@ -879,7 +876,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
 
   /**
    * Get the length of a tuple sort.
-   * 
+   *
    * @return The length of a tuple sort.
    */
   public int getTupleLength()
@@ -891,7 +888,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
 
   /**
    * Get the element sorts of a tuple sort.
-   * 
+   *
    * @return The element sorts of a tuple sort.
    */
   public Sort[] getTupleSorts()
@@ -904,7 +901,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
 
   /**
    * Get the element sort of a nullable sort.
-   * 
+   *
    * @return The element sort of a nullable sort.
    */
   public Sort getNullableElementSort()

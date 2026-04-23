@@ -49,6 +49,7 @@ The following flags enable optional features (disable with --no-<option name>).
   --assertions             turn on assertions
   --tracing                include tracing code
   --muzzle                 complete silence (no non-result output)
+  --clang-tidy             enable clang-tidy static analysis during build
   --coverage               support for gcov coverage testing
   --profiling              support for gprof profiling
   --unit-testing           support for unit testing
@@ -71,6 +72,7 @@ The following flags enable optional packages (disable with --no-<option name>).
   --poly                   use the LibPoly library [default=yes]
   --cocoa                  use the CoCoA library
   --editline               support the editline library
+  --mpfr                   use MPFR for FP constant folding instead of SymFPU
 
 Optional Path to Optional Packages:
   --glpk-dir=PATH          path to top level of GLPK installation
@@ -130,6 +132,7 @@ asan=default
 assertions=default
 auto_download=default
 cln=default
+clang_tidy=default
 coverage=default
 cryptominisat=default
 debug_context_mm=default
@@ -149,6 +152,7 @@ python_only_src=default
 pyvenv=default
 java_bindings=default
 editline=default
+mpfr=default
 build_shared=ON
 safe_mode=default
 stable_mode=default
@@ -239,6 +243,9 @@ do
     --cln) cln=ON;;
     --no-cln) cln=OFF;;
 
+    --clang-tidy) clang_tidy=ON;;
+    --no-clang-tidy) clang_tidy=OFF;;
+
     --coverage) coverage=ON;;
     --no-coverage) coverage=OFF;;
 
@@ -324,6 +331,9 @@ do
 
     --editline) editline=ON;;
     --no-editline) editline=OFF;;
+
+    --mpfr) mpfr=ON;;
+    --no-mpfr) mpfr=OFF;;
 
     --glpk-dir) die "missing argument to $1 (try -h)" ;;
     --glpk-dir=*) glpk_dir=${1##*=} ;;
@@ -434,6 +444,8 @@ fi
   && cmake_opts="$cmake_opts -DENABLE_SAFE_MODE=$safe_mode"
 [ $stable_mode != default ] \
   && cmake_opts="$cmake_opts -DENABLE_STABLE_MODE=$stable_mode"
+[ $clang_tidy != default ] \
+  && cmake_opts="$cmake_opts -DENABLE_CLANG_TIDY=$clang_tidy"
 [ $coverage != default ] \
   && cmake_opts="$cmake_opts -DENABLE_COVERAGE=$coverage"
 [ $debug_symbols != default ] \
@@ -490,6 +502,8 @@ fi
   && cmake_opts="$cmake_opts -DUSE_POLY=$poly"
 [ $cocoa != default ] \
   && cmake_opts="$cmake_opts -DUSE_COCOA=$cocoa"
+[ $mpfr != default ] \
+  && cmake_opts="$cmake_opts -DUSE_MPFR=$mpfr"
 [ "$glpk_dir" != default ] \
   && cmake_opts="$cmake_opts -DGLPK_DIR=$glpk_dir"
 [ "$dep_path" != default ] \

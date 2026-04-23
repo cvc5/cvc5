@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Daniel Larraz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -57,8 +54,8 @@ HigherOrderTrigger::HigherOrderTrigger(
     if (TraceIsOn("ho-quant-trigger"))
     {
       Trace("ho-quant-trigger") << "  have " << as.second.size();
-      Trace("ho-quant-trigger") << " patterns with variable operator " << n
-                                << ":" << std::endl;
+      Trace("ho-quant-trigger")
+          << " patterns with variable operator " << n << ":" << std::endl;
       for (unsigned j = 0; j < as.second.size(); j++)
       {
         Trace("ho-quant-trigger") << "  " << as.second[j] << std::endl;
@@ -66,8 +63,8 @@ HigherOrderTrigger::HigherOrderTrigger(
     }
     if (d_ho_var_types.find(tn) == d_ho_var_types.end())
     {
-      Trace("ho-quant-trigger") << "  type " << tn
-                                << " needs higher-order matching." << std::endl;
+      Trace("ho-quant-trigger")
+          << "  type " << tn << " needs higher-order matching." << std::endl;
       d_ho_var_types.insert(tn);
     }
     // make the bound variable lists
@@ -91,7 +88,9 @@ void HigherOrderTrigger::collectHoVarApplyTerms(
 }
 
 void HigherOrderTrigger::collectHoVarApplyTerms(
-    Node q, std::vector<Node>& ns, std::map<Node, std::vector<Node> >& apps)
+    CVC5_UNUSED Node q,
+    std::vector<Node>& ns,
+    std::map<Node, std::vector<Node> >& apps)
 {
   std::unordered_map<TNode, Node> visited;
   std::unordered_map<TNode, Node>::iterator it;
@@ -230,8 +229,8 @@ bool HigherOrderTrigger::sendInstantiation(std::vector<Node>& m)
         Node sapp =
             app.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
         ho_var_apps_subs[var].push_back(sapp);
-        Trace("ho-unif-debug") << "  app[" << var << "] : " << app << " -> "
-                               << sapp << std::endl;
+        Trace("ho-unif-debug")
+            << "  app[" << var << "] : " << app << " -> " << sapp << std::endl;
       }
     }
 
@@ -247,8 +246,8 @@ bool HigherOrderTrigger::sendInstantiation(std::vector<Node>& m)
       TNode value = m[vnum];
       Trace("ho-unif-debug") << "  val[" << var << "] = " << value << std::endl;
 
-      Trace("ho-unif-debug2") << "initialize lambda information..."
-                              << std::endl;
+      Trace("ho-unif-debug2")
+          << "initialize lambda information..." << std::endl;
       // initialize the lambda children
       d_lchildren[vnum].push_back(value);
       std::map<TNode, std::vector<Node> >::iterator ithb =
@@ -344,8 +343,8 @@ bool HigherOrderTrigger::sendInstantiation(std::vector<Node>& m)
               // although this order could be changed.
               d_arg_vector[vnum][index].push_back(bv_at_index);
               d_arg_vector[vnum][index].push_back(itf->second);
-              Trace("ho-unif-debug") << " = { self, " << itf->second << " } "
-                                     << std::endl;
+              Trace("ho-unif-debug")
+                  << " = { self, " << itf->second << " } " << std::endl;
             }
           }
           else

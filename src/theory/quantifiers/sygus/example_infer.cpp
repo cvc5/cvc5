@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Haniel Barbosa
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -234,7 +231,7 @@ void ExampleInfer::getExample(Node f, unsigned i, std::vector<Node>& ex) const
   }
   else
   {
-    Assert(false);
+    DebugUnhandled();
   }
 }
 
@@ -258,7 +255,7 @@ Node ExampleInfer::getExampleOut(Node f, unsigned i) const
     Assert(i < it->second.size());
     return it->second[i];
   }
-  Assert(false);
+  DebugUnhandled();
   return Node::null();
 }
 

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Liana Hadarean, Christopher L. Conway
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -87,10 +84,9 @@ bool BitVector::isBitSet(uint32_t i) const
   return d_value.isBitSet(i);
 }
 
-unsigned BitVector::isPow2() const
-{
-  return d_value.isPow2();
-}
+unsigned BitVector::isPow2() const { return d_value.isPow2(); }
+
+bool BitVector::is_one() const { return d_value == Integer(1); }
 
 /* -----------------------------------------------------------------------
  * Operators
@@ -387,6 +383,12 @@ BitVector BitVector::mkMaxSigned(unsigned size)
 {
   Assert(size > 0);
   return ~BitVector::mkMinSigned(size);
+}
+
+BitVector BitVector::mkRandom(uint32_t size)
+{
+  Assert(size > 0);
+  return BitVector(size, Integer::mkRandom(size));
 }
 
 }  // namespace cvc5::internal

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Morgan Deters
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -34,7 +31,7 @@ using namespace std;
 
 namespace cvc5::internal {
 
-TypeNode TypeNode::s_null( &expr::NodeValue::null() );
+TypeNode TypeNode::s_null(&expr::NodeValue::null());
 
 TypeNode TypeNode::substitute(
     const TypeNode& type,
@@ -43,7 +40,8 @@ TypeNode TypeNode::substitute(
 {
   // in cache?
   std::unordered_map<TypeNode, TypeNode>::const_iterator i = cache.find(*this);
-  if(i != cache.end()) {
+  if (i != cache.end())
+  {
     return (*i).second;
   }
   else if (*this == type)
@@ -58,7 +56,8 @@ TypeNode TypeNode::substitute(
 
   // otherwise compute
   NodeBuilder nb(getNodeManager(), getKind());
-  if(getMetaKind() == kind::metakind::PARAMETERIZED) {
+  if (getMetaKind() == kind::metakind::PARAMETERIZED)
+  {
     // push the operator
     nb << TypeNode(d_nv->d_children[0]);
   }
@@ -80,7 +79,8 @@ TypeNode TypeNode::substitute(
   return tn;
 }
 
-Cardinality TypeNode::getCardinality() const {
+Cardinality TypeNode::getCardinality() const
+{
   return kind::getCardinality(*this);
 }
 
@@ -197,30 +197,34 @@ CardinalityClass TypeNode::getCardinalityClass()
     else
     {
       // all types we care about should be handled above
-      Assert(false) << *this;
+      DebugUnhandled() << *this;
     }
   }
   setAttribute(TypeCardinalityClassAttr(), static_cast<uint64_t>(ret));
   return ret;
 }
 
-bool TypeNode::isBoolean() const {
+bool TypeNode::isBoolean() const
+{
   return (getKind() == Kind::TYPE_CONSTANT
           && getConst<TypeConstant>() == BOOLEAN_TYPE);
 }
 
-bool TypeNode::isString() const {
+bool TypeNode::isString() const
+{
   return getKind() == Kind::TYPE_CONSTANT
          && getConst<TypeConstant>() == STRING_TYPE;
 }
 
 /** Is this a regexp type */
-bool TypeNode::isRegExp() const {
+bool TypeNode::isRegExp() const
+{
   return getKind() == Kind::TYPE_CONSTANT
          && getConst<TypeConstant>() == REGEXP_TYPE;
- }
+}
 
-bool TypeNode::isRoundingMode() const {
+bool TypeNode::isRoundingMode() const
+{
   return getKind() == Kind::TYPE_CONSTANT
          && getConst<TypeConstant>() == ROUNDINGMODE_TYPE;
 }
@@ -391,7 +395,8 @@ TypeNode TypeNode::unifyInternal(const TypeNode& t, bool isLub) const
   if (k == Kind::TYPE_CONSTANT)
   {
     // Special case: String is comparable to (Seq ?). This must be a special
-    // case since String is defined in RARE/ALF to be (Seq Char), but String
+    // case since String is defined in RARE/Eunoia to be (Seq Char), but
+    // String
     // is a base type in cvc5's internals. This special case could be removed
     // if `String` was a macro for `(Seq Char)`, however this would lead to
     // complications, since `Char` is intentionally a sort we do not export
@@ -455,7 +460,8 @@ TypeNode TypeNode::getSequenceElementType() const
   return (*this)[0];
 }
 
-std::vector<TypeNode> TypeNode::getArgTypes() const {
+std::vector<TypeNode> TypeNode::getArgTypes() const
+{
   vector<TypeNode> args;
   if (isDatatypeTester())
   {
@@ -494,12 +500,14 @@ bool TypeNode::isRecord() const
   return (getKind() == Kind::DATATYPE_TYPE && getDType().isRecord());
 }
 
-size_t TypeNode::getTupleLength() const {
+size_t TypeNode::getTupleLength() const
+{
   Assert(isTuple());
   return getNumChildren();
 }
 
-vector<TypeNode> TypeNode::getTupleTypes() const {
+vector<TypeNode> TypeNode::getTupleTypes() const
+{
   Assert(isTuple());
   std::vector<TypeNode> args;
   for (uint32_t i = 0, i_end = getNumChildren(); i < i_end; ++i)
@@ -516,7 +524,8 @@ TypeNode TypeNode::getNullableElementType() const
 }
 
 /** Is this an instantiated datatype type */
-bool TypeNode::isInstantiatedDatatype() const {
+bool TypeNode::isInstantiatedDatatype() const
+{
   Kind k = getKind();
   if (k == Kind::DATATYPE_TYPE || k == Kind::TUPLE_TYPE
       || k == Kind::NULLABLE_TYPE)
@@ -590,10 +599,7 @@ bool TypeNode::isUnresolvedDatatype() const
   return getAttribute(expr::UnresolvedDatatypeAttr());
 }
 
-bool TypeNode::hasName() const
-{
-  return hasAttribute(expr::VarNameAttr());
-}
+bool TypeNode::hasName() const { return hasAttribute(expr::VarNameAttr()); }
 
 std::string TypeNode::getName() const
 {
@@ -722,7 +728,8 @@ bool TypeNode::isMaybeKind(Kind k) const
   return false;
 }
 
-std::string TypeNode::toString() const {
+std::string TypeNode::toString() const
+{
   std::stringstream ss;
   toStream(ss);
   return ss.str();
@@ -793,7 +800,8 @@ TypeNode TypeNode::getRangeType() const
 
 namespace std {
 
-size_t hash<cvc5::internal::TypeNode>::operator()(const cvc5::internal::TypeNode& tn) const
+size_t hash<cvc5::internal::TypeNode>::operator()(
+    const cvc5::internal::TypeNode& tn) const
 {
   return tn.getId();
 }

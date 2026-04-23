@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Martin Brain, Daniel Larraz, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -113,7 +110,8 @@ class SymFpuNM
 };
 
 /**
- * Wrap the cvc5::internal::Node types so that we can debug issues with this back-end
+ * Wrap the cvc5::internal::Node types so that we can debug issues with this
+ * back-end
  */
 class nodeWrapper : public Node
 {
@@ -131,7 +129,6 @@ class symbolicProposition : public nodeWrapper
  public:
   symbolicProposition(const Node n);
   symbolicProposition(bool v);
-  symbolicProposition(const symbolicProposition& old);
 
   symbolicProposition operator!(void) const;
   symbolicProposition operator&&(const symbolicProposition& op) const;
@@ -150,7 +147,6 @@ class symbolicRoundingMode : public nodeWrapper
  public:
   symbolicRoundingMode(const Node n);
   symbolicRoundingMode(const unsigned v);
-  symbolicRoundingMode(const symbolicRoundingMode& old);
 
   symbolicProposition valid(void) const;
   symbolicProposition operator==(const symbolicRoundingMode& op) const;
@@ -192,7 +188,6 @@ class symbolicBitVector : public nodeWrapper
   symbolicBitVector(const Node n);
   symbolicBitVector(const bwt w, const unsigned v);
   symbolicBitVector(const symbolicProposition& p);
-  symbolicBitVector(const symbolicBitVector<isSigned>& old);
   symbolicBitVector(const BitVector& old);
 
   bwt getWidth(void) const;
@@ -244,6 +239,8 @@ class symbolicBitVector : public nodeWrapper
   symbolicBitVector<isSigned> modularIncrement() const;
   symbolicBitVector<isSigned> modularDecrement() const;
   symbolicBitVector<isSigned> modularAdd(
+      const symbolicBitVector<isSigned>& op) const;
+  symbolicBitVector<isSigned> modularSubtract(
       const symbolicBitVector<isSigned>& op) const;
   symbolicBitVector<isSigned> modularNegate() const;
 

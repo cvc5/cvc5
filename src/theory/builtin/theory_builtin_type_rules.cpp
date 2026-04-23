@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -17,9 +14,9 @@
 
 #include "expr/attribute.h"
 #include "expr/skolem_manager.h"
+#include "expr/sort_to_term.h"
 #include "theory/builtin/generic_op.h"
 #include "util/uninterpreted_sort_value.h"
-#include "expr/sort_to_term.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -89,7 +86,7 @@ TypeNode WitnessTypeRule::computeType(NodeManager* nodeManager,
                                       bool check,
                                       std::ostream* errOut)
 {
-  if (n[0].getTypeOrNull() != nodeManager->boundVarListType())
+  if (!CVC5_EQUAL(n[0].getTypeOrNull(), nodeManager->boundVarListType()))
   {
     if (errOut)
     {
@@ -121,7 +118,7 @@ TypeNode WitnessTypeRule::computeType(NodeManager* nodeManager,
     }
     if (n.getNumChildren() == 3)
     {
-      if (n[2].getTypeOrNull() != nodeManager->instPatternListType())
+      if (!CVC5_EQUAL(n[2].getTypeOrNull(), nodeManager->instPatternListType()))
       {
         if (errOut)
         {

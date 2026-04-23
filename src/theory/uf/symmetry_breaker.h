@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Morgan Deters, Liana Hadarean, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -60,7 +57,8 @@ namespace uf {
 
 class SymmetryBreaker : protected EnvObj, public context::ContextNotifyObj
 {
-  class Template {
+  class Template
+  {
     Node d_template;
     NodeBuilder d_assertions;
     std::unordered_map<TNode, std::set<TNode>> d_sets;
@@ -69,24 +67,23 @@ class SymmetryBreaker : protected EnvObj, public context::ContextNotifyObj
     TNode find(TNode n);
     bool matchRecursive(TNode t, TNode n);
 
-  public:
-   Template(NodeManager* nm);
-   bool match(TNode n);
-   std::unordered_map<TNode, std::set<TNode>>& partitions() { return d_sets; }
-   Node assertions()
-   {
-     switch (d_assertions.getNumChildren())
-     {
-       case 0: return Node::null();
-       case 1: return d_assertions[0];
-       default: return Node(d_assertions);
-     }
+   public:
+    Template(NodeManager* nm);
+    bool match(TNode n);
+    std::unordered_map<TNode, std::set<TNode>>& partitions() { return d_sets; }
+    Node assertions()
+    {
+      switch (d_assertions.getNumChildren())
+      {
+        case 0: return Node::null();
+        case 1: return d_assertions[0];
+        default: return Node(d_assertions);
+      }
     }
     void reset();
-  };/* class SymmetryBreaker::Template */
+  }; /* class SymmetryBreaker::Template */
 
-public:
-
+ public:
   typedef std::set<TNode> Permutation;
   typedef std::set<Permutation> Permutations;
   typedef TNode Term;
@@ -129,10 +126,11 @@ public:
   Node norm(TNode n);
 
   std::string d_name;
-  
+
   // === STATISTICS ===
   /** number of new clauses that come from the SymmetryBreaker */
-  struct Statistics {
+  struct Statistics
+  {
     /** number of new clauses that come from the SymmetryBreaker */
     IntStat d_clauses;
     IntStat d_units;

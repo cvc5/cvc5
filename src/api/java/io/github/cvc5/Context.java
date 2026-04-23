@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mudathir Mohamed
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -15,11 +12,11 @@
 
 package io.github.cvc5;
 
+import java.lang.Long;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
-import java.lang.Long;
+import java.util.Map;
 
 /**
  * The {@code Context} class is responsible for tracking and deleting pointers to
@@ -56,8 +53,10 @@ public class Context
    *
    * @param pointer the {@link AbstractPointer} to remove
    */
-  static synchronized void removeAbstractPointer(AbstractPointer pointer) {
-    if (pointer.getPointer() != 0) {
+  static synchronized void removeAbstractPointer(AbstractPointer pointer)
+  {
+    if (pointer.getPointer() != 0)
+    {
       abstractPointers.remove(Long.valueOf(pointer.getPointer()));
     }
   }
@@ -78,7 +77,8 @@ public class Context
   {
     LinkedList<AbstractPointer> values = new LinkedList<AbstractPointer>(abstractPointers.values());
     Iterator<AbstractPointer> i = values.descendingIterator();
-    while (i.hasNext()) {
+    while (i.hasNext())
+    {
       i.next().deletePointer();
     }
 

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -125,7 +122,7 @@ class HoExtension : protected EnvObj
    * e.g. (@ f a), (@ (@ f a) b) to termSet.
    */
   void computeRelevantTerms(std::set<Node>& termSet);
-  
+
  protected:
   /** get apply uf for ho apply
    *
@@ -202,6 +199,7 @@ class HoExtension : protected EnvObj
    * true if the model m is consistent after this call.
    */
   bool collectModelInfoHoTerm(Node n, TheoryModel* m);
+
  private:
   /** Cache lemma lem, return true if it does not already exist */
   bool cacheLemma(TNode lem);

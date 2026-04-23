@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -420,7 +417,7 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
   else
   {
     // curr should not be an atom
-    Assert(false);
+    DebugUnhandled();
   }
   // we return null if we have determined the value of the current node
   if (value != SAT_VALUE_UNKNOWN)
@@ -462,8 +459,8 @@ void JustificationStrategy::addLocalAssertions(const std::vector<TNode>& lems)
   insertToAssertionList(lems, true);
 }
 
-void JustificationStrategy::insertToAssertionList(const std::vector<TNode>& lems,
-                                                  bool local)
+void JustificationStrategy::insertToAssertionList(
+    const std::vector<TNode>& lems, bool local)
 {
   std::vector<TNode> toProcess(lems.begin(), lems.end());
   AssertionList& al = local ? d_localAssertions : d_assertions;

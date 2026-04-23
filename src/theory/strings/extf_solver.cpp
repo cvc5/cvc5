@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -190,7 +187,8 @@ void ExtfSolver::doReduction(Node n, int pol)
     eq = eq[1];
     std::vector<Node> expn;
     expn.push_back(n);
-    d_im.sendInference(expn, expn, eq, InferenceId::STRINGS_CTN_POS, false, true);
+    d_im.sendInference(
+        expn, expn, eq, InferenceId::STRINGS_CTN_POS, false, true);
     Trace("strings-extf-debug")
         << "  resolve extf : " << n << " based on positive contain reduction."
         << std::endl;
@@ -243,17 +241,17 @@ void ExtfSolver::doReduction(Node n, int pol)
 void ExtfSolver::checkExtfReductionsEager()
 {
   // return value is ignored
-  checkExtfReductionsInternal(1, true);
+  checkExtfReductionsInternal(1);
 }
 
 void ExtfSolver::checkExtfReductions(Theory::Effort e)
 {
   int effort = e == Theory::EFFORT_LAST_CALL ? 3 : 2;
   // return value is ignored
-  checkExtfReductionsInternal(effort, true);
+  checkExtfReductionsInternal(effort);
 }
 
-bool ExtfSolver::checkExtfReductionsInternal(int effort, bool doSend)
+bool ExtfSolver::checkExtfReductionsInternal(int effort)
 {
   // Notice we don't make a standard call to ExtTheory::doReductions here,
   // since certain optimizations like context-dependent reductions and
@@ -441,7 +439,8 @@ void ExtfSolver::checkExtfEval(int effort)
           {
             Trace("strings-extf")
                 << "  resolve extf : " << sn << " -> " << nrc << std::endl;
-            InferenceId inf = effort == 0 ? InferenceId::STRINGS_EXTF : InferenceId::STRINGS_EXTF_N;
+            InferenceId inf = effort == 0 ? InferenceId::STRINGS_EXTF
+                                          : InferenceId::STRINGS_EXTF_N;
             d_im.sendInference(einfo.d_exp, conc, inf, false, true);
             d_statistics.d_cdSimplifications << n.getKind();
           }
@@ -478,8 +477,8 @@ void ExtfSolver::checkExtfEval(int effort)
           // reduced since this argument may be circular: we may infer than n
           // can be reduced to something else, but that thing may argue that it
           // can be reduced to n, in theory.
-          InferenceId infer =
-              effort == 0 ? InferenceId::STRINGS_EXTF_D : InferenceId::STRINGS_EXTF_D_N;
+          InferenceId infer = effort == 0 ? InferenceId::STRINGS_EXTF_D
+                                          : InferenceId::STRINGS_EXTF_D_N;
           d_im.sendInternalInference(einfo.d_exp, nrcAssert, infer);
         }
         to_reduce = nrc;
@@ -504,7 +503,7 @@ void ExtfSolver::checkExtfEval(int effort)
       // not based on the model (effort<3).
       if (effort < 3)
       {
-        checkExtfInference(n, to_reduce, einfo, effort);
+        checkExtfInference(n, to_reduce, einfo);
       }
       if (TraceIsOn("strings-extf-list"))
       {
@@ -533,10 +532,7 @@ void ExtfSolver::checkExtfEval(int effort)
   d_hasExtf = has_nreduce;
 }
 
-void ExtfSolver::checkExtfInference(Node n,
-                                    Node nr,
-                                    ExtfInfoTmp& in,
-                                    int effort)
+void ExtfSolver::checkExtfInference(Node n, Node nr, ExtfInfoTmp& in)
 {
   // see if any previous term rewrote to nr, if so, we can conclude that
   // term is equal to n.
@@ -743,7 +739,8 @@ void ExtfSolver::checkExtfInference(Node n,
     Trace("strings-extf-infer")
         << "checkExtfInference: " << inferEq << " ...reduces to " << inferEqrr
         << " with explanation " << in.d_exp << std::endl;
-    d_im.sendInternalInference(in.d_exp, inferEqrr, InferenceId::STRINGS_EXTF_EQ_REW);
+    d_im.sendInternalInference(
+        in.d_exp, inferEqrr, InferenceId::STRINGS_EXTF_EQ_REW);
   }
 }
 
@@ -830,7 +827,7 @@ bool ExtfSolver::isActiveInModel(Node n) const
   std::map<Node, ExtfInfoTmp>::const_iterator it = d_extfInfoTmp.find(n);
   if (it == d_extfInfoTmp.end())
   {
-    Assert(false) << "isActiveInModel: Expected extf info for " << n;
+    DebugUnhandled() << "isActiveInModel: Expected extf info for " << n;
     return true;
   }
   return it->second.d_modelActive;

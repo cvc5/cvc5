@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Haniel Barbosa
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -50,7 +47,7 @@ class TermDb;
 class TermDbSygus;
 class TermEnumeration;
 class TermRegistry;
-}
+}  // namespace quantifiers
 
 /**
  * The main class that manages techniques for quantified formulas.
@@ -92,7 +89,7 @@ class QuantifiersEngine : protected EnvObj
    */
   void preRegisterQuantifier(Node q);
   /** assert universal quantifier */
-  void assertQuantifier( Node q, bool pol );
+  void assertQuantifier(Node q, bool pol);
   /** notification when master equality engine is updated */
   void eqNotifyNewClass(TNode t);
   /** notification when master equality engine merges two classes*/

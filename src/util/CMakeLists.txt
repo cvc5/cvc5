@@ -1,10 +1,7 @@
 ###############################################################################
-# Top contributors (to current version):
-#   Mathias Preiner, Gereon Kremer, Andrew Reynolds
-#
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -41,6 +38,7 @@ libcvc5_add_sources(
   floatingpoint.h
   floatingpoint_size.cpp
   floatingpoint_size.h
+  floatingpoint_literal.cpp
   floatingpoint_literal_symfpu.cpp
   floatingpoint_literal_symfpu_traits.cpp
   gmp_util.h

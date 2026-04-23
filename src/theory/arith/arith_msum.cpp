@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Daniel Larraz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -115,10 +112,10 @@ bool ArithMSum::getMonomialSumLit(Node lit, std::map<Node, Node>& msum)
             }
             else
             {
-              msum[it->first] = it->second.isNull()
-                                    ? nm->mkConstInt(Rational(-1))
-                                    : nm->mkConstRealOrInt(
-                                          -it->second.getConst<Rational>());
+              msum[it->first] =
+                  it->second.isNull()
+                      ? nm->mkConstInt(Rational(-1))
+                      : nm->mkConstRealOrInt(-it->second.getConst<Rational>());
             }
           }
           return true;
@@ -278,7 +275,7 @@ int ArithMSum::isolate(
       {
         val = nm->mkNode(Kind::TO_INTEGER, val);
       }
-      Assert(val.getType() == vc.getType())
+      AssertEqual(val.getType(), vc.getType())
           << val << " " << vc << " " << val.getType() << " " << vc.getType();
     }
     veq = nm->mkNode(k, inOrder ? vc : val, inOrder ? val : vc);
@@ -340,7 +337,8 @@ bool ArithMSum::decompose(Node n, Node v, Node& coeff, Node& rem)
   return false;
 }
 
-void ArithMSum::debugPrintMonomialSum(std::map<Node, Node>& msum, const char* c)
+void ArithMSum::debugPrintMonomialSum(std::map<Node, Node>& msum,
+                                      CVC5_UNUSED const char* c)
 {
   for (std::map<Node, Node>::iterator it = msum.begin(); it != msum.end(); ++it)
   {

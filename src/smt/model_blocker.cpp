@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -171,7 +168,7 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
         }
         else if ((catom.getKind() == Kind::EQUAL
                   && catom[0].getType().isBoolean())
-                || catom.getKind() == Kind::XOR)
+                 || catom.getKind() == Kind::XOR)
         {
           // based on how the children evaluate in the model
           std::vector<Node> children;
@@ -204,7 +201,7 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
         }
         if (!impl.isNull())
         {
-          if  (impl.getKind() == Kind::AND)
+          if (impl.getKind() == Kind::AND)
           {
             Trace("model-blocker-debug") << "...recurse" << std::endl;
             visit.insert(visit.end(), impl.begin(), impl.end());
@@ -337,7 +334,7 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
         Node as = s.apply(a);
         for (size_t i = 0; i < 2; i++)
         {
-          if (as[i].isVar() && !expr::hasSubterm(as[1-i], as[i]))
+          if (as[i].isVar() && !expr::hasSubterm(as[1 - i], as[i]))
           {
             s.add(as[i], as[1 - i]);
             // this equality is definitely relevant
@@ -364,8 +361,7 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
   {
     std::vector<Node> bvec(blockers.begin(), blockers.end());
     Node bu = nm->mkAnd(bvec);
-    output(OutputTag::BLOCK_MODEL)
-        << "(block-model " << bu << ")" << std::endl;
+    output(OutputTag::BLOCK_MODEL) << "(block-model " << bu << ")" << std::endl;
   }
   // go back and erase the trivial blockers
   for (const Node& bt : blockersTriv)

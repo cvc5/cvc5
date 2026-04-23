@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mathias Preiner, Andrew Reynolds, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -31,7 +28,7 @@ class BVSolver : protected EnvObj
 {
  public:
   BVSolver(Env& env, TheoryState& state, TheoryInferenceManager& inferMgr)
-      : EnvObj(env), d_state(state), d_im(inferMgr){};
+      : EnvObj(env), d_state(state), d_im(inferMgr) {};
 
   virtual ~BVSolver() {}
 
@@ -45,7 +42,7 @@ class BVSolver : protected EnvObj
     return false;
   }
 
-  virtual void finishInit(){};
+  virtual void finishInit() {};
 
   virtual void preRegisterTerm(TNode n) = 0;
 
