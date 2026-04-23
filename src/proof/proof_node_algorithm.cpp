@@ -335,17 +335,20 @@ Node proveCong(Env& env,
   ProofRule cr = getCongRule(n, cargs);
   cpremises.resize(n.getNumChildren());
   // congruence on closures omit the first argument
+  size_t offset = 0;
   if (n.isClosure())
   {
     cpremises.erase(cpremises.begin(), cpremises.begin() + 1);
+    offset = 1;
   }
   // add REFL if a premise is not provided
   for (size_t i = 0, npremises = cpremises.size(); i < npremises; i++)
   {
     if (cpremises[i].isNull())
     {
-      Node refl = n[i].eqNode(n[i]);
-      cdp->addStep(refl, ProofRule::REFL, {}, {n[i]});
+      size_t ii = i + offset;
+      Node refl = n[ii].eqNode(n[ii]);
+      cdp->addStep(refl, ProofRule::REFL, {}, {n[ii]});
       cpremises[i] = refl;
     }
   }
