@@ -18,14 +18,18 @@
 #ifndef CVC5__DECISION__PROP_FINDER_H
 #define CVC5__DECISION__PROP_FINDER_H
 
+#include <map>
+#include <memory>
+
 #include "context/cdo.h"
+#include "context/cdhashset.h"
+#include "context/cdinsert_hashmap.h"
+#include "context/cdlist.h"
 #include "decision/justify_cache.h"
 #include "decision/justify_info.h"
 #include "expr/node.h"
-#include "prop/cnf_stream.h"
-#include "prop/sat_solver.h"
 #include "prop/sat_solver_types.h"
-#include "smt/env_obj.h"
+#include "prop/theory_preregistrar.h"
 
 namespace cvc5::internal {
 namespace prop {
@@ -95,37 +99,37 @@ class RlvInfo
  * marked relevant may cause its children to be relevant. Any theory literal
  * marked relevant (in either polarity) is preregistered.
  */
-class RelevantPreregistrar : protected EnvObj
+class RelevantPreregistrar : public TheoryPreregistrar
 {
   using NodeSet = context::CDHashSet<Node>;
 
  public:
-  RelevantPreregistrar(Env& env, CDCLTSatSolver* ss, CnfStream* cs);
-  ~RelevantPreregistrar();
+  RelevantPreregistrar(Env& env,
+                       TheoryEngine* te,
+                       CDCLTSatSolver* ss,
+                       CnfStream* cs);
+  ~RelevantPreregistrar() override;
   /**
-   * Called the beginning of theory checks (in TheoryProxy), adds literals to
-   * preregister to toPreregister.
+   * Called at the beginning of theory checks in TheoryProxy.
    */
-  void check(std::vector<TNode>& toPreregister);
+  bool needsActiveSkolemDefs() const override;
+  void check() override;
   /**
    * Notify n is an assertion (input formula), possibly associated with
    * skolem.
    */
-  void addAssertion(TNode n, TNode skolem, bool isLemma);
+  void addAssertion(TNode n, TNode skolem, bool isLemma) override;
   /** Notify that n is a literal allocated by the SAT solver */
-  void notifySatLiteral(TNode n);
+  void notifySatLiteral(TNode n) override;
   /**
-   * Notify active skolem definitions, adds literals to preregister to
-   * toPreregister.
+   * Notify active skolem definitions.
    */
-  void notifyActiveSkolemDefs(std::vector<TNode>& defs,
-                              std::vector<TNode>& toPreregister);
+  void notifyActiveSkolemDefs(std::vector<TNode>& defs) override;
   /**
    * Notify that n is asserted from SAT solver, return true if we should
-   * assert n to the theory engine, and adds literals to
-   * preregister to toPreregister.
+   * assert n to the theory engine.
    */
-  bool notifyAsserted(TNode n, std::vector<TNode>& toPreregister);
+  bool notifyAsserted(TNode n) override;
 
  private:
   /**

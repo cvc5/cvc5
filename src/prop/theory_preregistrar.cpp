@@ -53,47 +53,23 @@ TheoryPreregistrar::TheoryPreregistrar(Env& env,
       d_theoryEngine(te),
       d_notify(new TheoryPreregistrarNotify(env, *this))
 {
-  if (options().prop.preRegisterMode == options::PreRegisterMode::RELEVANT)
-  {
-    d_rlvPrereg.reset(new RelevantPreregistrar(d_env, ss, cs));
-  }
 }
 
 TheoryPreregistrar::~TheoryPreregistrar() {}
 
-bool TheoryPreregistrar::needsActiveSkolemDefs() const
+bool TheoryPreregistrar::needsActiveSkolemDefs() const { return false; }
+
+void TheoryPreregistrar::check() {}
+
+void TheoryPreregistrar::addAssertion(CVC5_UNUSED TNode n,
+                                      CVC5_UNUSED TNode skolem,
+                                      CVC5_UNUSED bool isLemma)
 {
-  return options().prop.preRegisterMode == options::PreRegisterMode::RELEVANT;
 }
 
-void TheoryPreregistrar::check()
+void TheoryPreregistrar::notifyActiveSkolemDefs(
+    CVC5_UNUSED std::vector<TNode>& defs)
 {
-  if (d_rlvPrereg != nullptr)
-  {
-    std::vector<TNode> toPreregister;
-    d_rlvPrereg->check(toPreregister);
-    preRegisterToTheory(toPreregister);
-  }
-}
-
-void TheoryPreregistrar::addAssertion(TNode n, TNode skolem, bool isLemma)
-{
-  if (d_rlvPrereg != nullptr)
-  {
-    // notice this does not trigger preregistration, instead the assertions
-    // are buffered
-    d_rlvPrereg->addAssertion(n, skolem, isLemma);
-  }
-}
-
-void TheoryPreregistrar::notifyActiveSkolemDefs(std::vector<TNode>& defs)
-{
-  if (d_rlvPrereg != nullptr)
-  {
-    std::vector<TNode> toPreregister;
-    d_rlvPrereg->notifyActiveSkolemDefs(defs, toPreregister);
-    preRegisterToTheory(toPreregister);
-  }
 }
 
 void TheoryPreregistrar::notifySatLiteral(TNode n)
@@ -105,10 +81,6 @@ void TheoryPreregistrar::notifySatLiteral(TNode n)
     d_theoryEngine->preRegister(n);
     // cache for registration
     d_sat_literals.emplace_back(n, d_env.getContext()->getLevel());
-  }
-  else if (d_rlvPrereg != nullptr)
-  {
-    d_rlvPrereg->notifySatLiteral(n);
   }
 }
 
@@ -154,14 +126,6 @@ bool TheoryPreregistrar::notifyAsserted(TNode n)
   if (options().prop.preRegisterMode == options::PreRegisterMode::EAGER)
   {
     return true;
-  }
-  // if we are using the propagation finder, use it
-  if (d_rlvPrereg != nullptr)
-  {
-    std::vector<TNode> toPreregister;
-    bool ret = d_rlvPrereg->notifyAsserted(n, toPreregister);
-    preRegisterToTheory(toPreregister);
-    return ret;
   }
   // otherwise, we always ensure it is preregistered now, which does nothing
   // if it is already preregistered

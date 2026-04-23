@@ -32,9 +32,10 @@ RlvInfo::RlvInfo(context::Context* c)
 }
 
 RelevantPreregistrar::RelevantPreregistrar(Env& env,
+                                           TheoryEngine* te,
                                            CDCLTSatSolver* ss,
                                            CnfStream* cs)
-    : EnvObj(env),
+    : TheoryPreregistrar(env, te, ss, cs),
       d_pstate(context()),
       d_assertions(userContext()),
       d_preregistered(context()),
@@ -48,8 +49,11 @@ RelevantPreregistrar::RelevantPreregistrar(Env& env,
 
 RelevantPreregistrar::~RelevantPreregistrar() {}
 
-void RelevantPreregistrar::check(std::vector<TNode>& toPreregister)
+bool RelevantPreregistrar::needsActiveSkolemDefs() const { return true; }
+
+void RelevantPreregistrar::check()
 {
+  std::vector<TNode> toPreregister;
   // ensure that all assertions have been marked as relevant
   size_t asize = d_assertions.size();
   while (d_assertionIndex.get() < asize)
@@ -58,9 +62,12 @@ void RelevantPreregistrar::check(std::vector<TNode>& toPreregister)
     setRelevant(n, toPreregister);
     d_assertionIndex = d_assertionIndex + 1;
   }
+  preRegisterToTheory(toPreregister);
 }
 
-void RelevantPreregistrar::addAssertion(TNode n, TNode skolem, bool isLemma)
+void RelevantPreregistrar::addAssertion(TNode n,
+                                        TNode skolem,
+                                        CVC5_UNUSED bool isLemma)
 {
   if (!skolem.isNull())
   {
@@ -81,20 +88,21 @@ void RelevantPreregistrar::notifySatLiteral(TNode n)
   d_statSatPrereg = d_statSatPrereg + 1;
 }
 
-void RelevantPreregistrar::notifyActiveSkolemDefs(
-    std::vector<TNode>& defs, std::vector<TNode>& toPreregister)
+void RelevantPreregistrar::notifyActiveSkolemDefs(std::vector<TNode>& defs)
 {
+  std::vector<TNode> toPreregister;
   for (TNode d : defs)
   {
     Trace("prereg-rlv") << "RelevantPreregistrar: add skolem definition " << d
                         << std::endl;
     setRelevant(d, toPreregister);
   }
+  preRegisterToTheory(toPreregister);
 }
 
-bool RelevantPreregistrar::notifyAsserted(TNode n,
-                                          std::vector<TNode>& toPreregister)
+bool RelevantPreregistrar::notifyAsserted(TNode n)
 {
+  std::vector<TNode> toPreregister;
   Trace("prereg-rlv") << "RelevantPreregistrar: notify asserted " << n
                       << std::endl;
   bool pol = n.getKind() != Kind::NOT;
@@ -115,6 +123,7 @@ bool RelevantPreregistrar::notifyAsserted(TNode n,
   Trace("prereg-rlv-debug2")
       << "...will visit " << toVisit.size() << " parents" << std::endl;
   updateRelevant(toVisit, toPreregister);
+  preRegisterToTheory(toPreregister);
 
   // we are notified about Boolean variables, but these should not be asserted
   // to the theory engine unless they are from purification
