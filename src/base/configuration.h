@@ -91,6 +91,8 @@ class CVC5_EXPORT Configuration
 
   static std::string about();
 
+  static std::string aboutAndCopyright();
+
   static bool licenseIsGpl();
 
   static bool isBuiltWithGmp();

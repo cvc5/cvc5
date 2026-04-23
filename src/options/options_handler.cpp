@@ -349,8 +349,7 @@ void OptionsHandler::showConfiguration(CVC5_UNUSED const std::string& flag,
 {
   if (!value) return;
   std::ostream& o = d_options->base.out;
-  o << Configuration::about() << std::endl;
-
+  print_config(o, "package", Configuration::getPackageName());
   print_config(o, "version", Configuration::getVersionString());
   if (Configuration::isGitBuild())
   {
@@ -360,12 +359,6 @@ void OptionsHandler::showConfiguration(CVC5_UNUSED const std::string& flag,
   {
     print_config_cond(o, "scm", false);
   }
-
-  o << std::endl;
-
-  std::stringstream ss;
-  ss << Configuration::getVersionString();
-  print_config(o, "library", ss.str());
 
   o << std::endl;
 
@@ -388,8 +381,8 @@ void OptionsHandler::showConfiguration(CVC5_UNUSED const std::string& flag,
 
   print_config_cond(o, "cln", Configuration::isBuiltWithCln());
   print_config_cond(o, "glpk", Configuration::isBuiltWithGlpk());
-  print_config_cond(
-      o, "cryptominisat", Configuration::isBuiltWithCryptominisat());
+  print_config_cond(o, "cryptominisat",
+    Configuration::isBuiltWithCryptominisat());
   print_config_cond(o, "gmp", Configuration::isBuiltWithGmp());
   print_config_cond(o, "kissat", Configuration::isBuiltWithKissat());
   print_config_cond(o, "poly", Configuration::isBuiltWithPoly());
@@ -408,7 +401,7 @@ void OptionsHandler::showVersion(CVC5_UNUSED const std::string& flag,
                                  bool value)
 {
   if (!value) return;
-  d_options->base.out << Configuration::about() << std::endl;
+  d_options->base.out << Configuration::aboutAndCopyright() << std::endl;
 }
 
 void OptionsHandler::showTraceTags(CVC5_UNUSED const std::string& flag,
