@@ -154,6 +154,10 @@ inline Node RewriteRule<FlattenAssocCommut>::apply(TNode node)
     else
     {
       children.push_back(current);
+      if (children.size()>32)
+      {
+        return node;
+      }
     }
   }
   if (node.getKind() == Kind::BITVECTOR_ADD
