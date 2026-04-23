@@ -299,8 +299,6 @@ class TermDb : public QuantifiersUtil
    */
   virtual bool checkCongruentDisequal(TNode a, TNode b, std::vector<Node>& exp);
   //----------------------------- end implementation-specific
-  /** set has term */
-  void setHasTerm(Node n);
   /** compute uf eqc terms :
    * Ensure entries for f are in d_func_map_eqc_trie for all equivalence classes
    */
