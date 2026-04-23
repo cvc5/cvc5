@@ -262,7 +262,7 @@ bool PatternTermSelector::isUsableTrigger(Node n, Node q) const
 // to falsify the quantified formula
 void PatternTermSelector::collectTermsInternal(
     Node n,
-    std::map<Node, std::vector<Node> >& visited,
+    std::map<Node, std::vector<Node>>& visited,
     std::map<Node, TriggerTermInfo>& tinfo,
     options::TriggerSelMode tstrt,
     std::vector<Node>& added,
@@ -272,7 +272,7 @@ void PatternTermSelector::collectTermsInternal(
     bool hasEPol,
     bool knowIsUsable)
 {
-  std::map<Node, std::vector<Node> >::iterator itv = visited.find(n);
+  std::map<Node, std::vector<Node>>::iterator itv = visited.find(n);
   if (itv != visited.end())
   {
     // already visited
@@ -438,7 +438,7 @@ void PatternTermSelector::collectInternal(
     options::TriggerSelMode tstrt,
     bool filterInst)
 {
-  std::map<Node, std::vector<Node> > visited;
+  std::map<Node, std::vector<Node>> visited;
   if (filterInst)
   {
     // immediately do not consider any term t for which another term is an
@@ -511,7 +511,7 @@ int PatternTermSelector::isInstanceOf(Node n1,
       std::pair<TNode, TNode>,
       PairHashFunction<TNode, TNode, std::hash<TNode>, std::hash<TNode>>>
       visited;
-  std::vector<std::pair<TNode, TNode> > visit;
+  std::vector<std::pair<TNode, TNode>> visit;
   std::pair<TNode, TNode> cur;
   TNode cur1;
   TNode cur2;

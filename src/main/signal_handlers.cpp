@@ -73,10 +73,13 @@ void* stackBase;
 #endif /* HAVE_SIGALTSTACK */
 
 /** Handler for SIGXCPU and SIGALRM, i.e., timeout. */
-void timeout_handler(int sig, siginfo_t* info, void*) { timeout_handler(); }
+void timeout_handler(CVC5_UNUSED int sig, CVC5_UNUSED siginfo_t* info, void*)
+{
+  timeout_handler();
+}
 
 /** Handler for SIGTERM. */
-void sigterm_handler(int sig, siginfo_t* info, void*)
+void sigterm_handler(int sig, CVC5_UNUSED siginfo_t* info, void*)
 {
   safe_print(STDERR_FILENO, "cvc5 interrupted by SIGTERM.\n");
   print_statistics();
@@ -85,7 +88,7 @@ void sigterm_handler(int sig, siginfo_t* info, void*)
 }
 
 /** Handler for SIGINT, i.e., when the user hits control C. */
-void sigint_handler(int sig, siginfo_t* info, void*)
+void sigint_handler(int sig, CVC5_UNUSED siginfo_t* info, void*)
 {
   safe_print(STDERR_FILENO, "cvc5 interrupted by user.\n");
   print_statistics();
@@ -95,7 +98,7 @@ void sigint_handler(int sig, siginfo_t* info, void*)
 
 #ifdef HAVE_SIGALTSTACK
 /** Handler for SIGSEGV (segfault). */
-void segv_handler(int sig, siginfo_t* info, void* c)
+void segv_handler(int sig, CVC5_UNUSED siginfo_t* info, void*)
 {
   uintptr_t extent = reinterpret_cast<uintptr_t>(stackBase) - stackSize;
   uintptr_t addr = reinterpret_cast<uintptr_t>(info->si_addr);
@@ -170,7 +173,7 @@ void segv_handler(int sig, siginfo_t* info, void* c)
 #endif /* HAVE_SIGALTSTACK */
 
 /** Handler for SIGILL (illegal instruction). */
-void ill_handler(int sig, siginfo_t* info, void*)
+void ill_handler(int sig, CVC5_UNUSED siginfo_t* info, void*)
 {
 #ifdef CVC5_DEBUG
   safe_print(STDERR_FILENO,
@@ -265,7 +268,7 @@ void install()
   act1.sa_sigaction = sigint_handler;
   act1.sa_flags = SA_SIGINFO;
   sigemptyset(&act1.sa_mask);
-  if (sigaction(SIGINT, &act1, NULL))
+  if (sigaction(SIGINT, &act1, nullptr))
   {
     throw Exception(string("sigaction(SIGINT) failure: ") + strerror(errno));
   }
@@ -274,7 +277,7 @@ void install()
   act2.sa_sigaction = timeout_handler;
   act2.sa_flags = SA_SIGINFO;
   sigemptyset(&act2.sa_mask);
-  if (sigaction(SIGXCPU, &act2, NULL))
+  if (sigaction(SIGXCPU, &act2, nullptr))
   {
     throw Exception(string("sigaction(SIGXCPU) failure: ") + strerror(errno));
   }
@@ -283,7 +286,7 @@ void install()
   act3.sa_sigaction = ill_handler;
   act3.sa_flags = SA_SIGINFO;
   sigemptyset(&act3.sa_mask);
-  if (sigaction(SIGILL, &act3, NULL))
+  if (sigaction(SIGILL, &act3, nullptr))
   {
     throw Exception(string("sigaction(SIGILL) failure: ") + strerror(errno));
   }
@@ -291,7 +294,7 @@ void install()
 #ifdef HAVE_SIGALTSTACK
   stack_t ss;
   ss.ss_sp = (char*)malloc(SIGSTKSZ);
-  if (ss.ss_sp == NULL)
+  if (ss.ss_sp == nullptr)
   {
     throw Exception("Can't malloc() space for a signal stack");
   }
@@ -309,7 +312,7 @@ void install()
   act4.sa_sigaction = segv_handler;
   act4.sa_flags = SA_SIGINFO | SA_ONSTACK;
   sigemptyset(&act4.sa_mask);
-  if (sigaction(SIGSEGV, &act4, NULL))
+  if (sigaction(SIGSEGV, &act4, nullptr))
   {
     throw Exception(string("sigaction(SIGSEGV) failure: ") + strerror(errno));
   }
@@ -319,7 +322,7 @@ void install()
   act5.sa_sigaction = sigterm_handler;
   act5.sa_flags = SA_SIGINFO;
   sigemptyset(&act5.sa_mask);
-  if (sigaction(SIGTERM, &act5, NULL))
+  if (sigaction(SIGTERM, &act5, nullptr))
   {
     throw Exception(string("sigaction(SIGTERM) failure: ") + strerror(errno));
   }

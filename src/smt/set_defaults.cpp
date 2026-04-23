@@ -354,18 +354,6 @@ void SetDefaults::setDefaultsPre(Options& opts)
   }
   if (opts.smt.produceProofs)
   {
-    // determine the prop proof mode, based on which SAT solver we are using
-    if (!opts.proof.propProofModeWasSetByUser)
-    {
-      if (opts.prop.satSolver == options::SatSolverMode::CADICAL)
-      {
-        // use SAT_EXTERNAL_PROVE for cadical by default
-        SET_AND_NOTIFY(proof,
-                       propProofMode,
-                       options::PropProofMode::SAT_EXTERNAL_PROVE,
-                       "cadical");
-      }
-    }
     // upgrade to full strict if safe options
     if (options().base.safeMode == options::SafeMode::SAFE
         && opts.smt.proofMode == options::ProofMode::FULL)
@@ -593,7 +581,7 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
   if (d_env.hasSepHeap())
   {
     std::stringstream reasonNoSepLogic;
-    if (incompatibleWithSeparationLogic(opts, reasonNoSepLogic))
+    if (incompatibleWithSeparationLogic(opts))
     {
       std::stringstream ss;
       ss << reasonNoSepLogic.str()
@@ -1150,20 +1138,7 @@ bool SetDefaults::incompatibleWithProofs(Options& opts,
     return true;
   }
   // specific to SAT solver
-  if (opts.prop.satSolver == options::SatSolverMode::CADICAL)
-  {
-    if (opts.proof.propProofMode == options::PropProofMode::PROOF)
-    {
-      reason << "(resolution) proofs in CaDiCaL";
-      return true;
-    }
-    if (opts.smt.proofMode != options::ProofMode::PP_ONLY)
-    {
-      reason << "CaDiCaL";
-      return true;
-    }
-  }
-  else if (opts.prop.satSolver == options::SatSolverMode::MINISAT)
+  if (opts.prop.satSolver == options::SatSolverMode::MINISAT)
   {
     // TODO (wishue #154): throw logic exception for modes e.g. DRAT or LRAT
     // not supported by Minisat.
@@ -1413,8 +1388,7 @@ bool SetDefaults::incompatibleWithQuantifiers(const Options& opts,
   return false;
 }
 
-bool SetDefaults::incompatibleWithSeparationLogic(Options& opts,
-                                                  std::ostream& reason) const
+bool SetDefaults::incompatibleWithSeparationLogic(Options& opts) const
 {
   // Spatial formulas in separation logic have a semantics that depends on
   // their position in the AST (e.g. their nesting beneath separation
@@ -1541,6 +1515,11 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
   if (opts.quantifiers.instMaxLevel != -1)
   {
     SET_AND_NOTIFY(quantifiers, cegqi, false, "instMaxLevel");
+  }
+  if (opts.quantifiers.mbqiEnumChoiceGrammar)
+  {
+    SET_AND_NOTIFY_IF_NOT_USER(
+        quantifiers, mbqiEnum, true, "mbqiEnumChoiceGrammar");
   }
   // enable MBQI if --mbqi-enum is provided
   if (opts.quantifiers.mbqiEnum)

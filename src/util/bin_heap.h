@@ -20,8 +20,8 @@
 #ifndef CVC5__BIN_HEAP_H
 #define CVC5__BIN_HEAP_H
 
-#include <limits>
 #include <functional>
+#include <limits>
 
 #include "base/check.h"
 #include "base/exception.h"
@@ -37,18 +37,20 @@ namespace cvc5::internal {
  * iterators are immutable.
  */
 template <class Elem, class CmpFcn = std::less<Elem> >
-class BinaryHeap {
-private:
+class BinaryHeap
+{
+ private:
   typedef Elem T;
   struct HElement;
 
   typedef std::vector<HElement*> ElementVector;
 
-  struct HElement {
-    HElement(size_t pos, const T& elem): d_pos(pos), d_elem(elem) {}
+  struct HElement
+  {
+    HElement(size_t pos, const T& elem) : d_pos(pos), d_elem(elem) {}
     size_t d_pos;
     T d_elem;
-  };/* struct HElement */
+  }; /* struct HElement */
 
   /** A 0 indexed binary heap. */
   ElementVector d_heap;
@@ -60,40 +62,35 @@ private:
   BinaryHeap(const BinaryHeap&) = delete;
   BinaryHeap& operator=(const BinaryHeap&) = delete;
 
-public:
-  BinaryHeap(const CmpFcn& c = CmpFcn())
-    : d_heap()
-    , d_cmp(c)
-  {}
+ public:
+  BinaryHeap(const CmpFcn& c = CmpFcn()) : d_heap(), d_cmp(c) {}
 
-  ~BinaryHeap(){
-    clear();
-  }
+  ~BinaryHeap() { clear(); }
 
-  class handle {
-  private:
+  class handle
+  {
+   private:
     HElement* d_pointer;
-    handle(HElement* p) : d_pointer(p){}
+    handle(HElement* p) : d_pointer(p) {}
     friend class BinaryHeap;
-  public:
-    handle() : d_pointer(NULL) {}
-    const T& operator*() const {
-      Assert(d_pointer != NULL);
+
+   public:
+    handle() : d_pointer(nullptr) {}
+    const T& operator*() const
+    {
+      Assert(d_pointer != nullptr);
       return d_pointer->d_elem;
     }
 
-    bool operator==(const handle& h) const {
-      return d_pointer == h.d_pointer;
-    }
+    bool operator==(const handle& h) const { return d_pointer == h.d_pointer; }
 
-    bool operator!=(const handle& h) const {
-      return d_pointer != h.d_pointer;
-    }
+    bool operator!=(const handle& h) const { return d_pointer != h.d_pointer; }
 
   }; /* BinaryHeap<>::handle */
 
-  class const_iterator {
-  public:
+  class const_iterator
+  {
+   public:
     /* The following types are required by trait std::iterator_traits */
 
     /** Iterator tag */
@@ -113,64 +110,71 @@ public:
 
     /* End of std::iterator_traits required types */
 
-  private:
+   private:
     typename ElementVector::const_iterator d_iter;
     friend class BinaryHeap;
     const_iterator(const typename ElementVector::const_iterator& iter)
-      : d_iter(iter)
-    {}
-  public:
-    const_iterator(){}
-    inline bool operator==(const const_iterator& ci) const{
+        : d_iter(iter)
+    {
+    }
+
+   public:
+    const_iterator() {}
+    inline bool operator==(const const_iterator& ci) const
+    {
       return d_iter == ci.d_iter;
     }
-    inline bool operator!=(const const_iterator& ci) const{
+    inline bool operator!=(const const_iterator& ci) const
+    {
       return d_iter != ci.d_iter;
     }
-    inline const_iterator& operator++(){
+    inline const_iterator& operator++()
+    {
       ++d_iter;
       return *this;
     }
-    inline const_iterator operator++(int){
+    inline const_iterator operator++(int)
+    {
       const_iterator i = *this;
       ++d_iter;
       return i;
     }
-    inline const T& operator*() const{
+    inline const T& operator*() const
+    {
       const HElement* he = *d_iter;
       return he->d_elem;
     }
 
-  };/* BinaryHeap<>::const_iterator */
+  }; /* BinaryHeap<>::const_iterator */
 
   typedef const_iterator iterator;
 
   inline size_t size() const { return d_heap.size(); }
   inline bool empty() const { return d_heap.empty(); }
 
-  inline const_iterator begin() const {
-    return const_iterator(d_heap.begin());
-  }
+  inline const_iterator begin() const { return const_iterator(d_heap.begin()); }
 
-  inline const_iterator end() const {
-    return const_iterator(d_heap.end());
-  }
+  inline const_iterator end() const { return const_iterator(d_heap.end()); }
 
-  void clear(){
-    typename ElementVector::iterator i=d_heap.begin(), iend=d_heap.end();
-    for(; i!=iend; ++i){
+  void clear()
+  {
+    typename ElementVector::iterator i = d_heap.begin(), iend = d_heap.end();
+    for (; i != iend; ++i)
+    {
       HElement* he = *i;
       delete he;
     }
     d_heap.clear();
   }
 
-  void swap(BinaryHeap& heap){
+  void swap(BinaryHeap& heap)
+  {
     std::swap(d_heap, heap.d_heap);
     std::swap(d_cmp, heap.d_cmp);
   }
 
-  handle push(const T& toAdded){
+  handle push(const T& toAdded)
+  {
     Assert(size() < MAX_SIZE);
     HElement* he = new HElement(size(), toAdded);
     d_heap.push_back(he);
@@ -178,20 +182,26 @@ public:
     return handle(he);
   }
 
-  void erase(handle h){
+  void erase(handle h)
+  {
     Assert(!empty());
     Assert(debugHandle(h));
 
     HElement* he = h.d_pointer;
     size_t pos = he->d_pos;
-    if(pos == root()){
+    if (pos == root())
+    {
       // the top element can be efficiently removed by pop
       pop();
-    }else if(pos == last()){
+    }
+    else if (pos == last())
+    {
       // the last element can be safely removed
       d_heap.pop_back();
       delete he;
-    }else{
+    }
+    else
+    {
       // This corresponds to
       // 1) swapping the elements at pos with the element at last:
       // 2) deleting the new last element
@@ -203,53 +213,64 @@ public:
     }
   }
 
-  void pop(){
+  void pop()
+  {
     Assert(!empty());
     swapIndices(root(), last());
     HElement* b = d_heap.back();
     d_heap.pop_back();
     delete b;
 
-    if(!empty()){
+    if (!empty())
+    {
       down_heap(d_heap.front());
     }
   }
 
-  const T& top() const {
+  const T& top() const
+  {
     Assert(!empty());
     return (d_heap.front())->d_elem;
   }
 
-private:
-  void update(handle h){
+ private:
+  void update(handle h)
+  {
     Assert(!empty());
     Assert(debugHandle(h));
 
-    // The relationship between h and its parent, left and right has become unknown.
-    // But it is assumed that parent <= left, and parent <= right still hold.
-    // Figure out whether to up_heap or down_heap.
+    // The relationship between h and its parent, left and right has become
+    // unknown. But it is assumed that parent <= left, and parent <= right still
+    // hold. Figure out whether to up_heap or down_heap.
 
     Assert(!empty());
     HElement* he = h.d_pointer;
 
     size_t pos = he->d_pos;
-    if(pos == root()){
+    if (pos == root())
+    {
       // no parent
       down_heap(he);
-    }else{
+    }
+    else
+    {
       size_t par = parent(pos);
       HElement* at_parent = d_heap[par];
-      if(gt(he->d_elem, at_parent->d_elem)){
+      if (gt(he->d_elem, at_parent->d_elem))
+      {
         // he > parent
         up_heap(he);
-      }else{
+      }
+      else
+      {
         down_heap(he);
       }
     }
   }
 
-public:
-  void update(handle h, const T& val){
+ public:
+  void update(handle h, const T& val)
+  {
     Assert(!empty());
     Assert(debugHandle(h));
     h.d_pointer->d_elem = val;
@@ -259,42 +280,46 @@ public:
   /** (std::numeric_limits<size_t>::max()-2)/2; */
   static const size_t MAX_SIZE;
 
-private:
-  inline bool gt(const T& a, const T& b) const{
+ private:
+  inline bool gt(const T& a, const T& b) const
+  {
     // cmp acts like an operator<
     return d_cmp(b, a);
   }
 
-  inline bool lt(const T& a, const T& b) const{
-    return d_cmp(a, b);
-  }
+  inline bool lt(const T& a, const T& b) const { return d_cmp(a, b); }
 
-  inline static size_t parent(size_t p){
+  inline static size_t parent(size_t p)
+  {
     Assert(p != root());
-    return (p-1)/2;
+    return (p - 1) / 2;
   }
-  inline static size_t right(size_t p){ return 2*p+2; }
-  inline static size_t left(size_t p){ return 2*p+1; }
-  inline static size_t root(){ return 0; }
-  inline size_t last() const{
+  inline static size_t right(size_t p) { return 2 * p + 2; }
+  inline static size_t left(size_t p) { return 2 * p + 1; }
+  inline static size_t root() { return 0; }
+  inline size_t last() const
+  {
     Assert(!empty());
     return size() - 1;
   }
 
-  inline void swapIndices(size_t i, size_t j){
+  inline void swapIndices(size_t i, size_t j)
+  {
     HElement* at_i = d_heap[i];
     HElement* at_j = d_heap[j];
-    swap(i,j,at_i,at_j);
+    swap(i, j, at_i, at_j);
   }
 
-  inline void swapPointers(HElement* at_i, HElement* at_j){
+  inline void swapPointers(HElement* at_i, HElement* at_j)
+  {
     // still works if at_i == at_j
     size_t i = at_i->d_pos;
     size_t j = at_j->d_pos;
-    swap(i,j,at_i,at_j);
+    swap(i, j, at_i, at_j);
   }
 
-  inline void swap(size_t i, size_t j, HElement* at_i, HElement* at_j){
+  inline void swap(size_t i, size_t j, HElement* at_i, HElement* at_j)
+  {
     // still works if i == j
     Assert(i == at_i->d_pos);
     Assert(j == at_j->d_pos);
@@ -304,49 +329,65 @@ private:
     at_j->d_pos = i;
   }
 
-  void up_heap(HElement* he){
+  void up_heap(HElement* he)
+  {
     const size_t& curr = he->d_pos;
     // The value of curr changes implicitly during swap operations.
-    while(curr != root()){
+    while (curr != root())
+    {
       // he->d_elem > parent
       size_t par = parent(curr);
       HElement* at_parent = d_heap[par];
-      if(gt(he->d_elem, at_parent->d_elem)){
+      if (gt(he->d_elem, at_parent->d_elem))
+      {
         swap(curr, par, he, at_parent);
-      }else{
+      }
+      else
+      {
         break;
       }
     }
   }
 
-  void down_heap(HElement* he){
+  void down_heap(HElement* he)
+  {
     const size_t& curr = he->d_pos;
     // The value of curr changes implicitly during swap operations.
     size_t N = size();
     size_t r, l;
 
-    while((r = right(curr)) < N){
+    while ((r = right(curr)) < N)
+    {
       l = left(curr);
 
       // if at_left == at_right, favor left
       HElement* at_left = d_heap[l];
       HElement* at_right = d_heap[r];
-      if(lt(he->d_elem, at_left->d_elem)){
+      if (lt(he->d_elem, at_left->d_elem))
+      {
         // he < at_left
-        if(lt(at_left->d_elem, at_right->d_elem)){
+        if (lt(at_left->d_elem, at_right->d_elem))
+        {
           // he < at_left < at_right
           swap(curr, r, he, at_right);
-        }else{
+        }
+        else
+        {
           //       he <  at_left
           // at_right <= at_left
           swap(curr, l, he, at_left);
         }
-      }else{
+      }
+      else
+      {
         // at_left <= he
-        if(lt(he->d_elem, at_right->d_elem)){
+        if (lt(he->d_elem, at_right->d_elem))
+        {
           // at_left <= he < at_right
           swap(curr, r, he, at_right);
-        }else{
+        }
+        else
+        {
           // at_left  <= he
           // at_right <= he
           break;
@@ -354,23 +395,31 @@ private:
       }
     }
     l = left(curr);
-    if(r >= N && l < N){
+    if (r >= N && l < N)
+    {
       // there is a left but not a right
       HElement* at_left = d_heap[l];
-      if(lt(he->d_elem, at_left->d_elem)){
+      if (lt(he->d_elem, at_left->d_elem))
+      {
         // he < at_left
         swap(curr, l, he, at_left);
       }
     }
   }
 
-  bool debugHandle(handle h) const{
+  bool debugHandle(handle h) const
+  {
     HElement* he = h.d_pointer;
-    if( he == NULL ){
+    if (he == nullptr)
+    {
       return true;
-    }else if(he->d_pos >= size()){
+    }
+    else if (he->d_pos >= size())
+    {
       return false;
-    }else{
+    }
+    else
+    {
       return he == d_heap[he->d_pos];
     }
   }
@@ -378,7 +427,8 @@ private:
 }; /* class BinaryHeap<> */
 
 template <class Elem, class CmpFcn>
-const size_t BinaryHeap<Elem,CmpFcn>::MAX_SIZE = (std::numeric_limits<size_t>::max()-2)/2;
+const size_t BinaryHeap<Elem, CmpFcn>::MAX_SIZE =
+    (std::numeric_limits<size_t>::max() - 2) / 2;
 
 }  // namespace cvc5::internal
 

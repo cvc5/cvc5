@@ -39,10 +39,10 @@ namespace preprocessing {
 namespace passes {
 
 SynthRewRulesPass::SynthRewRulesPass(PreprocessingPassContext* preprocContext)
-    : PreprocessingPass(preprocContext, "synth-rr"){};
+    : PreprocessingPass(preprocContext, "synth-rr") {};
 
 PreprocessingPassResult SynthRewRulesPass::applyInternal(
-    AssertionPipeline* assertionsToPreprocess)
+    CVC5_UNUSED AssertionPipeline* assertionsToPreprocess)
 {
   return PreprocessingPassResult::NO_CONFLICT;
 }
@@ -363,10 +363,7 @@ std::map<TypeNode, TypeNode> SynthRewRulesPass::constructTopLevelGrammar(
           Trace("srs-input-cons") << "Add (nested chain) " << lambdaOp << " "
                                   << lambdaOp.getType() << std::endl;
           // ID function is not printed and does not count towards weight
-          sdts[i].addConstructor(lambdaOp,
-                                 sscs.str(),
-                                 argListc,
-                                 0);
+          sdts[i].addConstructor(lambdaOp, sscs.str(), argListc, 0);
           j++;
         }
         // recursive apply
@@ -435,10 +432,7 @@ std::map<TypeNode, TypeNode> SynthRewRulesPass::constructTopLevelGrammar(
       std::stringstream ssc;
       ssc << "Ctl_" << i;
       // the no-op should not be printed, hence we pass an empty callback
-      sdttl.addConstructor(lambdaOp,
-                           ssc.str(),
-                           argList,
-                           0);
+      sdttl.addConstructor(lambdaOp, ssc.str(), argList, 0);
       Trace("srs-input-debug")
           << "Grammar for subterm " << n << " is: " << std::endl;
       Trace("srs-input-debug") << subtermTypes[n].getDType() << std::endl;

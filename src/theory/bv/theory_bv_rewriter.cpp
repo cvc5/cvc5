@@ -136,10 +136,8 @@ Node TheoryBVRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       BV_PROOF_REWRITE_CASE(ConcatExtractMerge)
     case ProofRewriteRule::MACRO_BV_CONCAT_CONSTANT_MERGE:
       BV_PROOF_REWRITE_CASE(ConcatConstantMerge)
-    case ProofRewriteRule::BV_UMULO_ELIM:
-      BV_PROOF_REWRITE_CASE(UmuloEliminate)
-    case ProofRewriteRule::BV_SMULO_ELIM:
-      BV_PROOF_REWRITE_CASE(SmuloEliminate)
+    case ProofRewriteRule::BV_UMULO_ELIM: BV_PROOF_REWRITE_CASE(UmuloEliminate)
+    case ProofRewriteRule::BV_SMULO_ELIM: BV_PROOF_REWRITE_CASE(SmuloEliminate)
     case ProofRewriteRule::BV_BITWISE_SLICING:
       BV_PROOF_REWRITE_CASE(BitwiseSlicing)
     case ProofRewriteRule::BV_REPEAT_ELIM:
@@ -442,8 +440,8 @@ RewriteResponse TheoryBVRewriter::RewriteOr(TNode node, bool prerewrite)
 
 RewriteResponse TheoryBVRewriter::RewriteXor(TNode node, bool prerewrite)
 {
-  TRY_REWRITE(XorSimplify) // simplify duplicates and constants
-  TRY_REWRITE(XorZero) // checks if the constant part is zero and eliminates it
+  TRY_REWRITE(XorSimplify)  // simplify duplicates and constants
+  TRY_REWRITE(XorZero)  // checks if the constant part is zero and eliminates it
   TRY_REWRITE(AndOrXorConcatPullUp)
 
   if (!prerewrite)
@@ -546,13 +544,13 @@ RewriteResponse TheoryBVRewriter::RewriteEagerAtom(TNode node,
 
 RewriteResponse TheoryBVRewriter::RewriteMult(TNode node, bool prerewrite)
 {
-  TRY_REWRITE(FlattenAssocCommut) // flattens and sorts
-  TRY_REWRITE(MultSimplify) // multiplies constant part and checks for 0
+  TRY_REWRITE(FlattenAssocCommut)  // flattens and sorts
+  TRY_REWRITE(MultSimplify)        // multiplies constant part and checks for 0
 
   // only apply if every subterm was already rewritten
   if (!prerewrite)
   {
-    TRY_REWRITE(MultPow2) // replaces multiplication by a power of 2 by a shift
+    TRY_REWRITE(MultPow2)  // replaces multiplication by a power of 2 by a shift
     TRY_REWRITE(MultDistribConst)
     TRY_REWRITE(MultDistrib)
   }

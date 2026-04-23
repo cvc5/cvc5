@@ -152,7 +152,8 @@ class NodeManager;
 /**
  * The NodeBuilder.
  */
-class NodeBuilder {
+class NodeBuilder
+{
   friend std::ostream& operator<<(std::ostream& out, const NodeBuilder& nb);
 
   constexpr static size_t default_nchild_thresh = 10;
@@ -239,7 +240,8 @@ class NodeBuilder {
   {
     Assert(!isUsed()) << "NodeBuilder is one-shot only; "
                          "attempt to access it after conversion";
-    for(Iterator i = begin; i != end; ++i) {
+    for (Iterator i = begin; i != end; ++i)
+    {
       append(*i);
     }
     return *this;
@@ -253,9 +255,6 @@ class NodeBuilder {
 
   /** Construct the Node out of the node builder */
   Node constructNode();
-
-  /** Construct a Node on the heap out of the node builder */
-  Node* constructNodePtr();
 
   /** Construction of the TypeNode out of the node builder */
   TypeNode constructTypeNode();
@@ -378,7 +377,8 @@ class NodeBuilder {
    * never accessed directly, but rather through
    * d_inlineNv.d_children[i].
    */
-  CVC5_UNUSED_FIELD expr::NodeValue* d_inlineNvChildSpace[default_nchild_thresh];
+  CVC5_UNUSED_FIELD expr::NodeValue*
+      d_inlineNvChildSpace[default_nchild_thresh];
 
   /**
    * A pointer to the "current" NodeValue buffer; either &d_inlineNv

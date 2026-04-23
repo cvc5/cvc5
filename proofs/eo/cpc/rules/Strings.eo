@@ -274,7 +274,7 @@
 (program $mk_re_concat ((Es Bool :list) (s String) (r RegLan) (s1 String) (r1 RegLan))
   :signature (Bool Bool) Bool
   (
-  (($mk_re_concat (and (str.in_re s r) Es) (str.in_re s1 r1)) ($mk_re_concat Es (str.in_re (eo::cons str.++ s s1) (eo::cons re.++ r r1))))
+  (($mk_re_concat (and (str.in_re s r) Es) (str.in_re s1 r1)) ($mk_re_concat Es (str.in_re (_ str.++ s s1) (_ re.++ r r1))))
   (($mk_re_concat true (str.in_re s1 r1))                     (str.in_re s1 r1))
   )
 )
@@ -328,7 +328,7 @@
         (eo::define ((res ($re_unfold_pos_concat t (re.++ r1 r2))))
         (eo::define ((teq (= t ($pair_first res))))
         (eo::define ((M ($pair_second res)))
-          (eo::ite (eo::eq M true) teq (eo::cons and teq M))))))
+          (eo::ite (eo::eq M true) teq (_ and teq M))))))
   )
 )
 
@@ -487,7 +487,7 @@
 ; implements: ProofRewriteRule::ARITH_STRING_PRED_ENTAIL
 ; args:
 ; - eq Bool: The equality to prove between an integer inequality and true.
-; requires: showing that n is entailed to be greater than 0 using $str_arith_entail_simple.
+; requires: showing that n is entailed to be non-negative using $str_arith_entail_simple.
 ; conclusion: The given equality.
 (declare-rule arith-string-pred-entail ((n Int))
   :args ((= (>= n 0) true))
@@ -495,7 +495,7 @@
   :conclusion (= (>= n 0) true)
 )
 
-; rule: arith-string-pred-entail
+; rule: arith-string-pred-safe-approx
 ; implements: ProofRewriteRule::ARITH_STRING_SAFE_APPROX
 ; args:
 ; - eq Bool: The equality to prove between integer inequalities.
@@ -822,7 +822,7 @@
 
 ;;;;; ProofRewriteRule::STR_REPLACE_RE_EVAL
 
-; program: $str_eval_indexof_re
+; program: $str_eval_replace_re
 ; args:
 ; - s String: A string.
 ; - r RegLan: A regular expression.
@@ -869,10 +869,10 @@
   :signature (String RegLan String (@Pair Int Int)) String
   (
   (($str_eval_replace_re_all_rec "" r t (@pair -1 -1))  "")
-  (($str_eval_replace_re_all_rec s r t (@pair -1 -1))   (eo::cons str.++ s ""))
+  (($str_eval_replace_re_all_rec s r t (@pair -1 -1))   (_ str.++ s ""))
   (($str_eval_replace_re_all_rec s r t (@pair sp ep))   (eo::define ((snext (eo::extract s ep (eo::len s))))
-                                                        (eo::cons str.++ (eo::extract s 0 (eo::add sp -1))
-                                                        (eo::cons str.++ t
+                                                        (_ str.++ (eo::extract s 0 (eo::add sp -1))
+                                                        (_ str.++ t
                                                           ($str_eval_replace_re_all_rec snext r t ($str_first_match snext r))))))
   )
 )
@@ -905,16 +905,16 @@
 
 ; program: $seq_is_prefix
 ; args:
-; - t (Seq T): The term to process, which is expected to be a seq.++ list.
-; - s (Seq T): The term to process, which is expected to be a seq.++ list.
-; reutrn: true if s is a prefix of t.
+; - t (Seq T): The candidate prefix, expected to be a seq.++ list.
+; - s (Seq T): The sequence to compare against, expected to be a seq.++ list.
+; return: true if t is a prefix of s.
 (program $seq_is_prefix ((T Type) (t (Seq T)) (et T) (es T) (ts (Seq T) :list) (ss (Seq T) :list))
   :signature ((Seq T) (Seq T)) Bool
   (
   (($seq_is_prefix t t)                                               true)
   (($seq_is_prefix (seq.++ t ts) (seq.++ t ss))                       ($seq_is_prefix ts ss))
   (($seq_is_prefix (seq.++ (seq.unit et) ts) (seq.++ (seq.unit es) ss))
-    (eo::requires ($are_distinct_terms et es) true false))  ; we require showing the chracters are truly disequal to return false
+    (eo::requires ($are_distinct_terms et es) true false))  ; we require showing the characters are truly disequal to return false
   (($seq_is_prefix (as seq.empty (Seq T)) t)                          true)
   (($seq_is_prefix (seq.++ (seq.unit et) ts) (as seq.empty (Seq T)))  false)
   )
@@ -922,38 +922,48 @@
 
 ; program: $seq_find
 ; args:
-; - t (Seq T): The term to process, which is expected to be a seq.++ list.
-; - s (Seq T): The term to process, which is expected to be a seq.++ list.
+; - t (Seq T): The sequence to search in, expected to be a seq.++ list.
+; - s (Seq T): The sequence to search for, expected to be a seq.++ list.
 ; - n Int: The current index.
-; reutrn: the index of the first occurrence of s in t.
+; return: the index of the first occurrence of s in t.
 (program $seq_find ((T Type) (t (Seq T)) (s (Seq T)) (n Int) (ts (Seq T) :list))
   :signature ((Seq T) (Seq T) Int) Int
   (
   (($seq_find t t n)                        n)
   (($seq_find (as seq.empty (Seq T)) s n)   -1)
-  (($seq_find (seq.++ t ts) s n)            (eo::ite ($seq_is_prefix (seq.++ t ts) s)
+  (($seq_find (seq.++ t ts) s n)            (eo::ite ($seq_is_prefix s (seq.++ t ts))
                                               n
                                               ($seq_find ts s (eo::add n 1))))
   )
 )
 
-; program: $seq_subsequence
+; program: $seq_subsequence_rec
 ; args:
 ; - l Int: The starting index, inclusive, of elements of t to extract.
-; - u Int: The end index, inclusive, of elements of t to extract.
+; - u Int: The end index, exclusive, of elements of t to extract.
 ; - t (Seq T): The term to process, which is expected to be a seq.++ list.
 ; return: >
-;   The subsequent of t between indices l up to (and not including) u.
-(program $seq_subsequence ((T Type) (t (Seq T)) (e T) (ts (Seq T) :list) (u Int) (l Int))
+;   The subsequence of t between indices l up to (and not including) u, assuming u is non-negative.
+(program $seq_subsequence_rec ((T Type) (t (Seq T)) (e T) (ts (Seq T) :list) (u Int) (l Int))
   :signature (Int Int (Seq T)) (Seq T)
   (
-    (($seq_subsequence l u (as seq.empty (Seq T)))      (as seq.empty (Seq T)))
-    (($seq_subsequence l 0 t)                           (as seq.empty (eo::typeof t)))
-    (($seq_subsequence 0 u (seq.++ (seq.unit e) ts))    (eo::cons seq.++ (seq.unit e) ($seq_subsequence 0 (eo::add u -1) ts)))
-    (($seq_subsequence l u (seq.++ (seq.unit e) ts))
-      ($seq_subsequence (eo::add l -1) (eo::add u -1) ts))
+    (($seq_subsequence_rec l u (as seq.empty (Seq T)))      (as seq.empty (Seq T)))
+    (($seq_subsequence_rec l 0 t)                           (as seq.empty (eo::typeof t)))
+    (($seq_subsequence_rec 0 u (seq.++ (seq.unit e) ts))    (_ seq.++ (seq.unit e) ($seq_subsequence_rec 0 (eo::add u -1) ts)))
+    (($seq_subsequence_rec l u (seq.++ (seq.unit e) ts))
+      ($seq_subsequence_rec (eo::add l -1) (eo::add u -1) ts))
   )
 )
+
+; define: $seq_subsequence
+; args:
+; - l Int: The starting index, inclusive, of elements of t to extract.
+; - u Int: The end index, exclusive, of elements of t to extract.
+; - t (Seq T): The term to process, which is expected to be a seq.++ list.
+; return: >
+;   The subsequence of t between indices l up to (and not including) u.
+(define $seq_subsequence ((T Type :implicit) (l Int) (u Int) (t (Seq T)))
+  (eo::ite (eo::is_neg u) (as seq.empty (eo::typeof t)) ($seq_subsequence_rec l u t)))
 
 ; program: $seq_eval_replace_all_rec
 ; args:
@@ -1009,7 +1019,7 @@
                                           (eo::define ((rn ($str_nary_intro r)))
                                           (eo::ite (eo::eq ($str_value_len s) 0)
                                             t
-                                            ($str_nary_elim ($seq_eval_replace_all_rec tn sn rn ($seq_find sn tn 0) ($str_value_len tn))))))))
+                                            ($str_nary_elim ($seq_eval_replace_all_rec tn sn rn ($seq_find tn sn 0) ($str_value_len sn))))))))
     (($seq_eval (seq.indexof t s n))      (eo::define ((tn ($str_nary_intro t)))
                                           (eo::define ((sn ($str_nary_intro s)))
                                           (eo::define ((tl ($str_value_len tn)))

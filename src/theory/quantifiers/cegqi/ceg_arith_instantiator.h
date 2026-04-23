@@ -16,6 +16,7 @@
 #define CVC5__THEORY__QUANTIFIERS__CEG_ARITH_INSTANTIATOR_H
 
 #include <vector>
+
 #include "expr/node.h"
 #include "theory/quantifiers/cegqi/instantiator.h"
 #include "theory/quantifiers/cegqi/vts_term_cache.h"

@@ -2887,7 +2887,7 @@ Cvc5Sort cvc5_mk_record_sort(Cvc5TermManager* tm,
   Cvc5Sort res = nullptr;
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_NOT_NULL(tm);
-  if (names != NULL)
+  if (names != nullptr)
   {
     CVC5_CAPI_CHECK_NOT_NULL(sorts);
     std::vector<std::pair<std::string, cvc5::Sort>> cfields;
@@ -4986,7 +4986,7 @@ void cvc5_get_option_info(Cvc5* cvc5, const char* option, Cvc5OptionInfo* info)
               info->info_double.has_max = true;
             }
           },
-          [info](const cvc5::OptionInfo::ModeInfo& vi) {
+          [info](const cvc5::OptionInfo::ModeInfo&) {
             info->kind = CVC5_OPTION_INFO_MODES;
             info->info_mode.cur =
                 std::get<cvc5::OptionInfo::ModeInfo>(cpp_info.valueInfo)

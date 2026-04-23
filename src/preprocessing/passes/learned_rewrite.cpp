@@ -111,7 +111,7 @@ PreprocessingPassResult LearnedRewrite::applyInternal(
         Node origin = i == 0 ? b.second.lower_origin : b.second.upper_origin;
         if (!origin.isNull())
         {
-          Assert (originLit.find(origin)!=originLit.end());
+          Assert(originLit.find(origin) != originLit.end());
           llrw.insert(originLit[origin]);
         }
       }
@@ -231,7 +231,7 @@ Node LearnedRewrite::rewriteLearnedRec(Node n,
       }
       // rewrite here
       ret = rewrite(ret);
-      ret = rewriteLearned(ret, binfer, learnedLits, lems);
+      ret = rewriteLearned(ret, binfer, learnedLits);
       visited[cur] = ret;
     }
   } while (!visit.empty());
@@ -242,8 +242,7 @@ Node LearnedRewrite::rewriteLearnedRec(Node n,
 
 Node LearnedRewrite::rewriteLearned(Node nr,
                                     arith::BoundInference& binfer,
-                                    const std::vector<Node>& learnedLits,
-                                    std::unordered_set<Node>& lems)
+                                    const std::vector<Node>& learnedLits)
 {
   NodeManager* nm = nodeManager();
   Trace("learned-rewrite-rr-debug") << "Rewrite " << nr << std::endl;
@@ -290,6 +289,18 @@ Node LearnedRewrite::rewriteLearned(Node nr,
         }
       }
     }
+    Kind den_k = den.getKind();
+    // pow2(e) positive for e >= 0.
+    if (den_k == Kind::POW2)
+    {
+      Node exp = den[0];
+      arith::Bounds exp_db = binfer.get(exp);
+      if (!exp_db.lower_value.isNull()
+          && exp_db.lower_value.getConst<Rational>().sgn() == 1)
+      {
+        isNonZeroDen = true;
+      }
+    }
     if (isNonZeroDen)
     {
       Trace("learned-rewrite-rr-debug")
@@ -331,15 +342,17 @@ Node LearnedRewrite::rewriteLearned(Node nr,
         {
           Rational bnuml = nb.lower_value.getConst<Rational>();
           Rational bnumu = nb.upper_value.getConst<Rational>();
-          Rational bnum = bnumu.abs() > bnuml.abs() ? bnuml.abs() : bnumu.abs();
-          if (bnuml.sgn() == bnumu.sgn() && bdenl.abs() < bnum
-              && bdenu.abs() < bnum)
+          Rational bnumMaxAbs =
+              bnumu.abs() > bnuml.abs() ? bnumu.abs() : bnuml.abs();
+          if (bnuml.sgn() == bnumu.sgn() && bnumMaxAbs < bdenl.abs()
+              && bnumMaxAbs < bdenu.abs())
           {
             // if the numerator is negative, then (mod x y) ---> (+ x (abs y))
             // otherwise, (mod x y) ---> x
-            Node ret = bnuml.sgn() == -1 ? nm->mkNode(
-                           Kind::ADD, nr[0], nm->mkNode(Kind::ABS, nr[1]))
-                                         : nr[0];
+            Node ret =
+                bnuml.sgn() == -1
+                    ? nm->mkNode(Kind::ADD, nr[0], nm->mkNode(Kind::ABS, nr[1]))
+                    : nr[0];
             nr = returnRewriteLearned(nr, ret, LearnedRewriteId::INT_MOD_RANGE);
           }
         }

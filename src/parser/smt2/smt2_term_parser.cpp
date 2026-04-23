@@ -244,8 +244,9 @@ Term Smt2TermParser::parseTerm()
       case Token::RPAREN_TOK:
       {
         // should only be here if we are expecting arguments
-        if (tstack.empty() || (xstack.back() != ParseCtx::NEXT_ARG
-               && xstack.back() != ParseCtx::CLOSURE_NEXT_ARG))
+        if (tstack.empty()
+            || (xstack.back() != ParseCtx::NEXT_ARG
+                && xstack.back() != ParseCtx::CLOSURE_NEXT_ARG))
         {
           d_lex.unexpectedTokenError(
               tok, "Mismatched parentheses in SMT-LIBv2 term");
@@ -909,8 +910,7 @@ std::string Smt2TermParser::parseKeyword()
   return s.erase(0, 1);
 }
 
-Grammar* Smt2TermParser::parseGrammar(const std::vector<Term>& sygusVars,
-                                      const std::string& fun)
+Grammar* Smt2TermParser::parseGrammar(const std::vector<Term>& sygusVars)
 {
   // We read a sorted variable list ((<symbol> <sort>)^n+1)
   std::vector<std::pair<std::string, Sort>> sortedVarNames =
@@ -1011,8 +1011,7 @@ Grammar* Smt2TermParser::parseGrammar(const std::vector<Term>& sygusVars,
   return ret;
 }
 
-Grammar* Smt2TermParser::parseGrammarOrNull(const std::vector<Term>& sygusVars,
-                                            const std::string& fun)
+Grammar* Smt2TermParser::parseGrammarOrNull(const std::vector<Term>& sygusVars)
 {
   Token t = d_lex.peekToken();
   // note that we assume that the grammar is not present if the input continues
@@ -1021,7 +1020,7 @@ Grammar* Smt2TermParser::parseGrammarOrNull(const std::vector<Term>& sygusVars,
   {
     return nullptr;
   }
-  return parseGrammar(sygusVars, fun);
+  return parseGrammar(sygusVars);
 }
 
 uint32_t Smt2TermParser::parseIntegerNumeral()
@@ -1045,10 +1044,7 @@ uint32_t Smt2TermParser::tokenStrToUnsigned()
   {
     d_lex.parseError("Negative numerals are forbidden in indices");
   }
-  uint32_t result;
-  std::stringstream ss;
-  ss << token;
-  ss >> result;
+  uint32_t result = d_state.parseStringToUnsigned(token);
   return result;
 }
 
@@ -1233,10 +1229,10 @@ void Smt2TermParser::unescapeString(std::string& s)
     }
   }
   size_t dst = 0;
-  for (size_t src = 0; src<s.size(); ++src, ++dst)
+  for (size_t src = 0; src < s.size(); ++src, ++dst)
   {
     s[dst] = s[src];
-    if (s[src]=='"')
+    if (s[src] == '"')
     {
       ++src;
     }
@@ -1382,22 +1378,30 @@ Term Smt2TermParser::parseMatchCasePattern(Sort headSort,
 {
   if (d_lex.eatTokenChoice(Token::SYMBOL, Token::LPAREN_TOK))
   {
-    // a nullary constructor or variable, depending on if the symbol is declared
+    // A bare pattern symbol is either a nullary constructor of the matched
+    // datatype or a fresh binder for the default case. Existing declarations
+    // must not affect this choice since match patterns may shadow outer names.
     std::string name = d_lex.tokenStr();
-    if (d_state.isDeclared(name, SYM_VARIABLE))
+    const Datatype& dt = headSort.getDatatype();
+    for (size_t i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
     {
-      Term pat = d_state.getVariable(name);
-      Sort type = pat.getSort();
-      if (!type.isDatatype())
+      const DatatypeConstructor& dc = dt[i];
+      if (dc.getName() != name)
+      {
+        continue;
+      }
+      if (dc.getNumSelectors() > 0)
       {
         d_lex.parseError(
             "Must apply constructors of arity greater than 0 to arguments in "
             "pattern.");
       }
-      // make nullary constructor application
-      return pat;
+      Term f =
+          dt.isParametric() ? dc.getInstantiatedTerm(headSort) : dc.getTerm();
+      return d_state.getSolver()->getTermManager().mkTerm(
+          Kind::APPLY_CONSTRUCTOR, {f});
     }
-    // it has the type of the head expr
+    // Otherwise, it is a fresh variable with the type of the head expression.
     Term pat = d_state.bindBoundVar(name, headSort);
     boundVars.push_back(pat);
     return pat;

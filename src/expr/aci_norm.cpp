@@ -36,15 +36,13 @@ Node getNullTerminator(NodeManager* nm, Kind k, TypeNode tn)
     case Kind::AND:
     case Kind::SEP_STAR: nullTerm = nm->mkConst(true); break;
     case Kind::ADD:
-      // Note that we ignore the type. This is safe since ADD is permissive
-      // for subtypes.
-      nullTerm = nm->mkConstInt(Rational(0));
+      nullTerm = tn.isInteger() ? nm->mkConstInt(Rational(0))
+                                : nm->mkConstReal(Rational(0));
       break;
     case Kind::MULT:
     case Kind::NONLINEAR_MULT:
-      // Note that we ignore the type. This is safe since multiplication is
-      // permissive for subtypes.
-      nullTerm = nm->mkConstInt(Rational(1));
+      nullTerm = tn.isInteger() ? nm->mkConstInt(Rational(1))
+                                : nm->mkConstReal(Rational(1));
       break;
     case Kind::STRING_CONCAT:
       // handles strings and sequences
@@ -129,10 +127,7 @@ bool isAssocCommIdem(Kind k)
   return false;
 }
 
-bool isAssocComm(Kind k)
-{
-  return (k==Kind::BITVECTOR_XOR);
-}
+bool isAssocComm(Kind k) { return (k == Kind::BITVECTOR_XOR); }
 
 bool isAssoc(Kind k)
 {

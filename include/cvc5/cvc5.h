@@ -508,7 +508,8 @@ class CVC5_EXPORT Sort
    * The symbol of this sort is the string that was
    * provided when constructing it via
    * TermManager::mkUninterpretedSort(const std::optional<std::string>&), or
-   * TermManager::mkUninterpretedSortConstructorSort(size_t, const std::optional<std::string>&).
+   * TermManager::mkUninterpretedSortConstructorSort(size_t, const
+   * std::optional<std::string>&).
    *
    * @return The raw symbol of the sort.
    */
@@ -2604,13 +2605,6 @@ class CVC5_EXPORT DatatypeConstructor
     const_iterator();
 
     /**
-     * Assignment operator.
-     * @param it The iterator to assign to.
-     * @return The reference to the iterator after assignment.
-     */
-    const_iterator& operator=(const const_iterator& it);
-
-    /**
      * Equality operator.
      * @param it The iterator to compare to for equality.
      * @return True if the iterators are equal.
@@ -2894,13 +2888,6 @@ class CVC5_EXPORT Datatype
 
     /** Nullary constructor (required for Cython). */
     const_iterator();
-
-    /**
-     * Assignment operator.
-     * @param it The iterator to assign to.
-     * @return The reference to the iterator after assignment.
-     */
-    const_iterator& operator=(const const_iterator& it);
 
     /**
      * Equality operator.
@@ -4197,10 +4184,12 @@ class CVC5_EXPORT TermManager
    * @param s The string this constant represents.
    * @return The String constant.
    * @warning This function is deprecated and replaced by
-   *          \ref TermManager::mkString(const std::u32string& s) "TermManager::mkString(const std::u32string& s)".
-   *          It will be removed in a future release.
+   *          \ref TermManager::mkString(const std::u32string& s)
+   * "TermManager::mkString(const std::u32string& s)". It will be removed in a
+   * future release.
    */
-  [[deprecated("Use TermManager::mkString(const std::u32string& s) instead")]] Term
+  [[deprecated(
+      "Use TermManager::mkString(const std::u32string& s) instead")]] Term
   mkString(const std::wstring& s);
   /**
    * Create a String constant from a `std::u32string`.
@@ -5332,10 +5321,12 @@ class CVC5_EXPORT Solver
    * @param s The string this constant represents.
    * @return The String constant.
    * @warning This function is deprecated and replaced by
-   *          `TermManager::mkString(const std::u32string& s)`. It will be removed in a future release.
+   *          `TermManager::mkString(const std::u32string& s)`. It will be
+   * removed in a future release.
    */
-  [[deprecated("Use TermManager::mkString(const std::u32string& s) instead")]] Term mkString(
-      const std::wstring& s) const;
+  [[deprecated(
+      "Use TermManager::mkString(const std::u32string& s) instead")]] Term
+  mkString(const std::wstring& s) const;
 
   /**
    * Create an empty sequence of the given element sort.
@@ -7069,14 +7060,12 @@ class CVC5_EXPORT Solver
    * @param symbol The name of the function.
    * @param boundVars The parameters to this function.
    * @param sort The sort of the return value of this function.
-   * @param isInv Determines whether this is `synth-fun` or `synth-inv`.
    * @param grammar The syntactic constraints.
    * @return The function.
    */
   Term synthFunHelper(const std::string& symbol,
                       const std::vector<Term>& boundVars,
                       const Sort& sort,
-                      bool isInv = false,
                       Grammar* grammar = nullptr) const;
 
   /** Helper for getting timeout cores */

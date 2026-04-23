@@ -25,8 +25,9 @@
 namespace cvc5::internal {
 namespace prop {
 
-class Registrar {
-public:
+class Registrar
+{
+ public:
   virtual ~Registrar() {}
   /**
    * Called when a SAT literal for atom n has been allocated in the SAT solver.
@@ -34,13 +35,14 @@ public:
    */
   virtual void notifySatLiteral(Node n) = 0;
 
-};/* class Registrar */
+}; /* class Registrar */
 
-class NullRegistrar : public Registrar {
-public:
- void notifySatLiteral(CVC5_UNUSED Node n) override {}
+class NullRegistrar : public Registrar
+{
+ public:
+  void notifySatLiteral(CVC5_UNUSED Node n) override {}
 
-};/* class NullRegistrar */
+}; /* class NullRegistrar */
 
 }  // namespace prop
 }  // namespace cvc5::internal

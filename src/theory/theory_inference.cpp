@@ -19,7 +19,7 @@ using namespace cvc5::internal::kind;
 namespace cvc5::internal {
 namespace theory {
 
-SimpleTheoryLemma::SimpleTheoryLemma(InferenceId id, 
+SimpleTheoryLemma::SimpleTheoryLemma(InferenceId id,
                                      Node n,
                                      LemmaProperty p,
                                      ProofGenerator* pg)

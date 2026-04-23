@@ -57,7 +57,7 @@ std::set<Node>* TypeSet::getSet(TypeNode t) const
   const_iterator it = d_typeSet.find(t);
   if (it == d_typeSet.end())
   {
-    return NULL;
+    return nullptr;
   }
   return (*it).second;
 }
@@ -103,7 +103,7 @@ Node TypeSet::nextTypeEnum(TypeNode t)
   s->insert(n);
   // add all subterms of n to this set as well
   // this is necessary for parametric types whose values are constructed from
-  // other types to ensure that we do not enumerate subterms of other 
+  // other types to ensure that we do not enumerate subterms of other
   // previously enumerated values
   std::unordered_set<TNode> visited;
   addSubTerms(n, visited);

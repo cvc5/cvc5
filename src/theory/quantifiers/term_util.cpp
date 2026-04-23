@@ -39,28 +39,35 @@ size_t TermUtil::getVariableNum(Node q, Node v)
   return it - q[0].begin();
 }
 
-Node TermUtil::getRemoveQuantifiers2( Node n, std::map< Node, Node >& visited ) {
-  std::map< Node, Node >::iterator it = visited.find( n );
-  if( it!=visited.end() ){
+Node TermUtil::getRemoveQuantifiers2(Node n, std::map<Node, Node>& visited)
+{
+  std::map<Node, Node>::iterator it = visited.find(n);
+  if (it != visited.end())
+  {
     return it->second;
-  }else{
+  }
+  else
+  {
     Node ret = n;
     if (n.getKind() == Kind::FORALL)
     {
-      ret = getRemoveQuantifiers2( n[1], visited );
+      ret = getRemoveQuantifiers2(n[1], visited);
     }
     else if (n.getNumChildren() > 0)
     {
-      std::vector< Node > children;
+      std::vector<Node> children;
       bool childrenChanged = false;
-      for( unsigned i=0; i<n.getNumChildren(); i++ ){
-        Node ni = getRemoveQuantifiers2( n[i], visited );
-        childrenChanged = childrenChanged || ni!=n[i];
-        children.push_back( ni );
+      for (unsigned i = 0; i < n.getNumChildren(); i++)
+      {
+        Node ni = getRemoveQuantifiers2(n[i], visited);
+        childrenChanged = childrenChanged || ni != n[i];
+        children.push_back(ni);
       }
-      if( childrenChanged ){
-        if( n.getMetaKind() == kind::metakind::PARAMETERIZED ){
-          children.insert( children.begin(), n.getOperator() );
+      if (childrenChanged)
+      {
+        if (n.getMetaKind() == kind::metakind::PARAMETERIZED)
+        {
+          children.insert(children.begin(), n.getOperator());
         }
         ret = n.getNodeManager()->mkNode(n.getKind(), children);
       }
@@ -70,7 +77,8 @@ Node TermUtil::getRemoveQuantifiers2( Node n, std::map< Node, Node >& visited ) 
   }
 }
 
-Node TermUtil::getInstConstAttr( Node n ) {
+Node TermUtil::getInstConstAttr(Node n)
+{
   if (!n.hasAttribute(InstConstantAttribute()))
   {
     Node q;
@@ -114,10 +122,11 @@ bool TermUtil::hasInstConstAttr(Node n)
   return !getInstConstAttr(n).isNull();
 }
 
-//remove quantifiers
-Node TermUtil::getRemoveQuantifiers( Node n ) {
-  std::map< Node, Node > visited;
-  return getRemoveQuantifiers2( n, visited );
+// remove quantifiers
+Node TermUtil::getRemoveQuantifiers(Node n)
+{
+  std::map<Node, Node> visited;
+  return getRemoveQuantifiers2(n, visited);
 }
 
 void TermUtil::computeInstConstContainsForQuant(Node q,
@@ -138,22 +147,27 @@ void TermUtil::computeInstConstContainsForQuant(Node q,
   }
 }
 
-int TermUtil::getTermDepth( Node n ) {
-  if (!n.hasAttribute(TermDepthAttribute()) ){
+int TermUtil::getTermDepth(Node n)
+{
+  if (!n.hasAttribute(TermDepthAttribute()))
+  {
     int maxDepth = -1;
-    for( unsigned i=0; i<n.getNumChildren(); i++ ){
-      int depth = getTermDepth( n[i] );
-      if( depth>maxDepth ){
+    for (unsigned i = 0; i < n.getNumChildren(); i++)
+    {
+      int depth = getTermDepth(n[i]);
+      if (depth > maxDepth)
+      {
         maxDepth = depth;
       }
     }
     TermDepthAttribute tda;
-    n.setAttribute(tda,1+maxDepth);
+    n.setAttribute(tda, 1 + maxDepth);
   }
   return n.getAttribute(TermDepthAttribute());
 }
 
-bool TermUtil::containsUninterpretedConstant( Node n ) {
+bool TermUtil::containsUninterpretedConstant(Node n)
+{
   if (n.hasAttribute(ContainsUConstAttribute()))
   {
     return n.getAttribute(ContainsUConstAttribute()) != 0;
@@ -208,7 +222,7 @@ Node TermUtil::simpleNegate(Node n)
   NodeManager* nm = n.getNodeManager();
   if (n.getKind() == Kind::OR || n.getKind() == Kind::AND)
   {
-    std::vector< Node > children;
+    std::vector<Node> children;
     for (const Node& cn : n)
     {
       children.push_back(simpleNegate(cn));
@@ -275,17 +289,20 @@ bool TermUtil::isComm(Kind k, bool reqNAry)
          || k == Kind::SET_INTER || k == Kind::SEP_STAR;
 }
 
-bool TermUtil::isNonAdditive( Kind k ) {
+bool TermUtil::isNonAdditive(Kind k)
+{
   return k == Kind::AND || k == Kind::OR || k == Kind::BITVECTOR_AND
          || k == Kind::BITVECTOR_OR;
 }
 
-bool TermUtil::isBoolConnective( Kind k ) {
+bool TermUtil::isBoolConnective(Kind k)
+{
   return k == Kind::OR || k == Kind::AND || k == Kind::EQUAL || k == Kind::ITE
          || k == Kind::FORALL || k == Kind::NOT || k == Kind::SEP_STAR;
 }
 
-bool TermUtil::isBoolConnectiveTerm( TNode n ) {
+bool TermUtil::isBoolConnectiveTerm(TNode n)
+{
   return isBoolConnective(n.getKind())
          && (n.getKind() != Kind::EQUAL || n[0].getType().isBoolean())
          && (n.getKind() != Kind::ITE || n.getType().isBoolean());

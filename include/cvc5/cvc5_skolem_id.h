@@ -145,7 +145,7 @@ enum ENUM(SkolemId)
    */
   EVALUE(MOD_BY_ZERO),
   /**
-   * A function introduced to eliminate extended trancendental functions.
+   * A function introduced to eliminate extended transcendental functions.
    * Transcendental functions like sqrt, arccos, arcsin, etc. are replaced
    * during processing with uninterpreted functions that are unique to
    * each function.
@@ -155,16 +155,16 @@ enum ENUM(SkolemId)
    *   `(lambda ((x Real)) (sqrt x))`.
    * - Sort: ``(-> Real Real)``
    * 
-   * The term `(@trancendental_purify f)` is equivalent to `f`.
+   * The term `(@transcendental_purify f)` is equivalent to `f`.
    */
   EVALUE(TRANSCENDENTAL_PURIFY),
   /**
-   * Argument used to purify trancendental function app ``(f x)``.
+   * Argument used to purify transcendental function app ``(f x)``.
    * For ``(sin x)``, this is a variable that is assumed to be in phase with
    * ``x`` that is between ``-pi`` and ``pi``.
    *
    * - Number of skolem indices: ``1``
-   *   - ``1:`` The application of a trancendental function.
+   *   - ``1:`` The application of a transcendental function.
    * - Sort: ``Real``
    */
   EVALUE(TRANSCENDENTAL_PURIFY_ARG),
@@ -202,7 +202,7 @@ enum ENUM(SkolemId)
    * infinity.  This skolem is expected to appear in instantiations
    * and immediately be rewritten via virtual term substitution.
    *
-   * - Number of skolem indices: ``0``
+   * - Number of skolem indices: ``1``
    *   - ``1:`` A term that represents an arithmetic sort (Int or Real).
    * - Sort: The sort given by the index.
    */
@@ -212,13 +212,13 @@ enum ENUM(SkolemId)
    * infinity. Unlike ARITH_VTS_INFINITY, this skolem may appear in
    * lemmas.
    *
-   * - Number of skolem indices: ``0``
+   * - Number of skolem indices: ``1``
    *   - ``1:`` A term that represents an arithmetic sort (Int or Real).
    * - Sort: The sort given by the index.
    */
   EVALUE(ARITH_VTS_INFINITY_FREE),
   /** 
-   * A shared datatype selector, see Reynolds et. al. "Datatypes with Shared
+   * A shared datatype selector, see Reynolds et al. "Datatypes with Shared
    * Selectors", IJCAR 2018. Represents a selector that can extract fields
    * of multiple constructors.
    *
@@ -232,10 +232,10 @@ enum ENUM(SkolemId)
    */
   EVALUE(SHARED_SELECTOR),
   /**
-   * The higher-roder diff skolem, which is the witness k for the inference
+   * The higher-order diff skolem, which is the witness k for the inference
    * ``(=> (not (= A B)) (not (= (A k1 ... kn) (B k1 ... kn))))``.
    *
-   * - Number of skolem indices: ``2``
+   * - Number of skolem indices: ``3``
    *   - ``1:`` The first function of sort ``(-> T1 ... Tn T)``.
    *   - ``2:`` The second function of sort ``(-> T1 ... Tn T)``.
    *   - ``3:`` The argument index i.
@@ -324,7 +324,7 @@ enum ENUM(SkolemId)
    * Difference index for string disequalities, such that k is the witness for
    * the inference
    *  ``(=> (not (= a b)) (not (= (substr a k 1) (substr b k 1))))``
-   * where note that `k` may be out of bounds for at most of a,b.
+   * where note that `k` may be out of bounds for at most one of `a` and `b`.
    *
    * - Number of skolem indices: ``2``
    *   - ``1:`` The first string.
@@ -355,17 +355,17 @@ enum ENUM(SkolemId)
    * - Sort: ``(-> Int Int)``
    *
    * The term `(@strings_itos_result n)` is equivalent to
-   * `(lambda ((x Int)) (str.from_int (mod n (^ 10 x)))`.
+   * `(lambda ((x Int)) (mod n (** 10 x)))`.
    */
   EVALUE(STRINGS_ITOS_RESULT),
   /**
-   * A function used to define intermediate results of str.from_int
-   * applications. This is a function k of type ``(-> Int String)`` denoting the
+   * A function used to define intermediate results of str.to_int
+   * applications. This is a function k of type ``(-> Int Int)`` denoting the
    * result of processing the first n characters of the argument.
    *
    * - Number of skolem indices: ``1``
    *   - ``1:`` The argument to str.to_int.
-   * - Sort: ``(-> Int String)``
+   * - Sort: ``(-> Int Int)``
    *
    * The term `(@strings_stoi_result s)` is equivalent to
    * `(lambda ((x Int)) (str.to_int (str.substr s 0 x)))`.

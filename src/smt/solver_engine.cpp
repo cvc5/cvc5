@@ -194,7 +194,8 @@ void SolverEngine::finishInit()
                != options::ProofGranularityMode::DSL_REWRITE)
     {
       Warning() << "WARNING: -o rare-db requires --produce-proofs and "
-                   "--proof-granularity=dsl-rewrite" << std::endl;
+                   "--proof-granularity=dsl-rewrite"
+                << std::endl;
     }
   }
   // enable proof support in the environment/rewriter
@@ -255,7 +256,6 @@ void SolverEngine::shutdown()
 
 SolverEngine::~SolverEngine()
 {
-
   try
   {
     shutdown();
@@ -287,7 +287,8 @@ SolverEngine::~SolverEngine()
   }
   catch (Exception& e)
   {
-    d_env->warning() << "cvc5 threw an exception during cleanup." << std::endl << e << std::endl;
+    d_env->warning() << "cvc5 threw an exception during cleanup." << std::endl
+                     << e << std::endl;
   }
 }
 
@@ -356,9 +357,10 @@ void SolverEngine::setInfo(const std::string& key, const std::string& value)
   {
     if (value != "2" && value != "2.6")
     {
-      d_env->warning() << "SMT-LIB version " << value
-                << " unsupported, defaulting to language (and semantics of) "
-                   "SMT-LIB 2.6\n";
+      d_env->warning()
+          << "SMT-LIB version " << value
+          << " unsupported, defaulting to language (and semantics of) "
+             "SMT-LIB 2.6\n";
     }
     getOptions().write_base().inputLanguage = Language::LANG_SMTLIB_V2_6;
     // also update the output language
@@ -531,9 +533,12 @@ void SolverEngine::debugCheckFunctionBody(Node formula,
   }
 }
 
-void SolverEngine::declareConst(const Node& c) { d_state->notifyDeclaration(); }
+void SolverEngine::declareConst(CVC5_UNUSED const Node& c)
+{
+  d_state->notifyDeclaration();
+}
 
-void SolverEngine::declareSort(const TypeNode& tn)
+void SolverEngine::declareSort(CVC5_UNUSED const TypeNode& tn)
 {
   d_state->notifyDeclaration();
 }
@@ -977,20 +982,17 @@ void SolverEngine::declareSygusVar(Node var)
 
 void SolverEngine::declareSynthFun(Node func,
                                    TypeNode sygusType,
-                                   bool isInv,
                                    const std::vector<Node>& vars)
 {
   beginCall();
-  d_sygusSolver->declareSynthFun(func, sygusType, isInv, vars);
+  d_sygusSolver->declareSynthFun(func, sygusType, vars);
 }
-void SolverEngine::declareSynthFun(Node func,
-                                   bool isInv,
-                                   const std::vector<Node>& vars)
+void SolverEngine::declareSynthFun(Node func, const std::vector<Node>& vars)
 {
   beginCall();
   // use a null sygus type
   TypeNode sygusType;
-  d_sygusSolver->declareSynthFun(func, sygusType, isInv, vars);
+  d_sygusSolver->declareSynthFun(func, sygusType, vars);
 }
 
 void SolverEngine::assertSygusConstraint(Node n, bool isAssume)
@@ -1511,7 +1513,8 @@ void SolverEngine::ensureWellFormedTerm(const Node& n,
     {
       std::stringstream se;
       se << "Cannot process term " << n << " with ";
-      se << "free variables: " << fvs << std::endl;
+      se << "free variables: " << fvs;
+      se << " in context " << src << std::endl;
       throw ModalException(se.str().c_str());
     }
   }
@@ -1748,9 +1751,10 @@ void SolverEngine::checkUnsatCore()
                     << std::endl;
   if (r.isUnknown())
   {
-    d_env->warning() << "SolverEngine::checkUnsatCore(): could not check core result "
-                 "unknown."
-              << std::endl;
+    d_env->warning()
+        << "SolverEngine::checkUnsatCore(): could not check core result "
+           "unknown."
+        << std::endl;
   }
   else if (r.getStatus() == Result::SAT)
   {
@@ -1945,8 +1949,7 @@ std::vector<std::shared_ptr<ProofNode>> SolverEngine::getProof(
 void SolverEngine::proofToString(std::ostream& out,
                                  std::shared_ptr<ProofNode> fp)
 {
-  options::ProofFormatMode format_mode =
-      getOptions().proof.proofFormatMode;
+  options::ProofFormatMode format_mode = getOptions().proof.proofFormatMode;
   d_pfManager->printProof(
       out, fp, format_mode, ProofScopeMode::DEFINITIONS_AND_ASSERTIONS);
 }
@@ -2316,8 +2319,7 @@ void SolverEngine::setOption(const std::string& key,
     {
       // option exception
       std::stringstream ss;
-      ss << "expert option " << key
-         << " cannot be set in safe mode.";
+      ss << "expert option " << key << " cannot be set in safe mode.";
       // If we are setting to a default value, the exception can be avoided
       // by omitting the expert option.
       if (getOption(key) == value)
@@ -2331,7 +2333,8 @@ void SolverEngine::setOption(const std::string& key,
     }
     else if (oinfo.category == options::OptionInfo::Category::REGULAR)
     {
-      if (options().base.safeMode == options::SafeMode::SAFE && !oinfo.noSupports.empty())
+      if (options().base.safeMode == options::SafeMode::SAFE
+          && !oinfo.noSupports.empty())
       {
         std::stringstream ss;
         ss << "cannot set option " << key
@@ -2369,7 +2372,8 @@ void SolverEngine::setOption(const std::string& key,
         for (size_t i = 0; i < 2; i++)
         {
           const std::string& rkey = i == 0 ? d_safeOptsRegularOption : key;
-          const std::string& rvalue = i == 0 ? d_safeOptsRegularOptionValue : value;
+          const std::string& rvalue =
+              i == 0 ? d_safeOptsRegularOptionValue : value;
           bool isDefault = i == 0 ? d_safeOptsSetRegularOptionToDefault
                                   : (getOption(key) == value);
           if (isDefault)

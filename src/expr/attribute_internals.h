@@ -10,14 +10,15 @@
  * Node attributes' internals.
  */
 
+#include <stdint.h>
+
 #include <algorithm>
 #include <numeric>
-#include <stdint.h>
 
 #include "cvc5_private.h"
 
 #ifndef CVC5_ATTRIBUTE_H__INCLUDING__ATTRIBUTE_INTERNALS_H
-#  error expr/attribute_internals.h should only be included by expr/attribute.h
+#error expr/attribute_internals.h should only be included by expr/attribute.h
 #endif /* CVC5_ATTRIBUTE_H__INCLUDING__ATTRIBUTE_INTERNALS_H */
 
 #ifndef CVC5__EXPR__ATTRIBUTE_INTERNALS_H
@@ -36,23 +37,27 @@ namespace attr {
  * A hash function for attribute table keys.  Attribute table keys are
  * pairs, (unique-attribute-id, Node).
  */
-struct AttrHashFunction {
-  enum { LARGE_PRIME = 32452843ul };
-  std::size_t operator()(const std::pair<uint64_t, NodeValue*>& p) const {
+struct AttrHashFunction
+{
+  enum
+  {
+    LARGE_PRIME = 32452843ul
+  };
+  std::size_t operator()(const std::pair<uint64_t, NodeValue*>& p) const
+  {
     return p.first * LARGE_PRIME + p.second->getId();
   }
-};/* struct AttrHashFunction */
+}; /* struct AttrHashFunction */
 
 /**
  * A hash function for boolean-valued attribute table keys; here we
  * don't have to store a pair as the key, because we use a known bit
  * in [0..63] for each attribute
  */
-struct AttrBoolHashFunction {
-  std::size_t operator()(NodeValue* nv) const {
-    return (size_t)nv->getId();
-  }
-};/* struct AttrBoolHashFunction */
+struct AttrBoolHashFunction
+{
+  std::size_t operator()(NodeValue* nv) const { return (size_t)nv->getId(); }
+}; /* struct AttrBoolHashFunction */
 
 }  // namespace attr
 
@@ -367,7 +372,8 @@ class AttrHash
     // of the current L2 map, e.g.:
     // initialization: the first L2 map is empty
     // increment: the L2 iterator was pointing at the last element
-    // erase: the L2 iterator was pointing at the erased element and there are no more
+    // erase: the L2 iterator was pointing at the erased element and there are
+    // no more
     void legalize()
     {
       // move forward to next valid entry
@@ -527,18 +533,16 @@ class AttrHash
 
  private:
   Storage d_storage;
-};/* class AttrHash<> */
+}; /* class AttrHash<> */
 
 /**
  * In the case of Boolean-valued attributes we have a special
  * "AttrHash<bool>" to pack bits together in words.
  */
 template <>
-class AttrHash<bool> :
-    protected std::unordered_map<NodeValue*,
-                                  uint64_t,
-                                  AttrBoolHashFunction> {
-
+class AttrHash<bool>
+    : protected std::unordered_map<NodeValue*, uint64_t, AttrBoolHashFunction>
+{
   /** A "super" type, like in Java, for easy reference below. */
   typedef std::unordered_map<NodeValue*, uint64_t, AttrBoolHashFunction> super;
 
@@ -547,8 +551,8 @@ class AttrHash<bool> :
    * we don't require bit-addressibility supported by the system, we
    * do it with a complex type.
    */
-  class BitAccessor {
-
+  class BitAccessor
+  {
     uint64_t& d_word;
 
     uint64_t d_bit;
@@ -556,11 +560,15 @@ class AttrHash<bool> :
    public:
     BitAccessor(uint64_t& word, uint64_t bit) : d_word(word), d_bit(bit) {}
 
-    BitAccessor& operator=(bool b) {
-      if(b) {
+    BitAccessor& operator=(bool b)
+    {
+      if (b)
+      {
         // set the bit
         d_word |= GetBitSet(d_bit);
-      } else {
+      }
+      else
+      {
         // clear the bit
         d_word &= ~GetBitSet(d_bit);
       }
@@ -569,7 +577,7 @@ class AttrHash<bool> :
     }
 
     operator bool() const { return (d_word & GetBitSet(d_bit)) ? true : false; }
-  };/* class AttrHash<bool>::BitAccessor */
+  }; /* class AttrHash<bool>::BitAccessor */
 
   /**
    * A (somewhat degenerate) iterator over boolean-valued attributes.
@@ -577,33 +585,31 @@ class AttrHash<bool> :
    * dereference.  It's intended just for the result of find() on the
    * table.
    */
-  class BitIterator {
-
+  class BitIterator
+  {
     std::pair<NodeValue* const, uint64_t>* d_entry;
 
     uint64_t d_bit;
 
    public:
-
-    BitIterator() :
-      d_entry(NULL),
-      d_bit(0) {
-    }
+    BitIterator() : d_entry(nullptr), d_bit(0) {}
 
     BitIterator(std::pair<NodeValue* const, uint64_t>& entry, uint64_t bit)
         : d_entry(&entry), d_bit(bit)
     {
     }
 
-    std::pair<NodeValue* const, BitAccessor> operator*() {
+    std::pair<NodeValue* const, BitAccessor> operator*()
+    {
       return std::make_pair(d_entry->first,
                             BitAccessor(d_entry->second, d_bit));
     }
 
-    bool operator==(const BitIterator& b) {
+    bool operator==(const BitIterator& b)
+    {
       return d_entry == b.d_entry && d_bit == b.d_bit;
     }
-  };/* class AttrHash<bool>::BitIterator */
+  }; /* class AttrHash<bool>::BitIterator */
 
   /**
    * A (somewhat degenerate) const_iterator over boolean-valued
@@ -611,18 +617,14 @@ class AttrHash<bool> :
    * comparison and dereference.  It's intended just for the result of
    * find() on the table.
    */
-  class ConstBitIterator {
-
+  class ConstBitIterator
+  {
     const std::pair<NodeValue* const, uint64_t>* d_entry;
 
     uint64_t d_bit;
 
    public:
-
-    ConstBitIterator() :
-      d_entry(NULL),
-      d_bit(0) {
-    }
+    ConstBitIterator() : d_entry(nullptr), d_bit(0) {}
 
     ConstBitIterator(const std::pair<NodeValue* const, uint64_t>& entry,
                      uint64_t bit)
@@ -636,13 +638,13 @@ class AttrHash<bool> :
           d_entry->first, (d_entry->second & GetBitSet(d_bit)) ? true : false);
     }
 
-    bool operator==(const ConstBitIterator& b) {
+    bool operator==(const ConstBitIterator& b)
+    {
       return d_entry == b.d_entry && d_bit == b.d_bit;
     }
-  };/* class AttrHash<bool>::ConstBitIterator */
+  }; /* class AttrHash<bool>::ConstBitIterator */
 
-public:
-
+ public:
   typedef std::pair<uint64_t, NodeValue*> key_type;
   typedef bool data_type;
   typedef std::pair<const key_type, data_type> value_type;
@@ -656,9 +658,11 @@ public:
    * Find the boolean value in the hash table.  Returns something ==
    * end() if not found.
    */
-  BitIterator find(const std::pair<uint64_t, NodeValue*>& k) {
+  BitIterator find(const std::pair<uint64_t, NodeValue*>& k)
+  {
     super::iterator i = super::find(k.second);
-    if(i == super::end()) {
+    if (i == super::end())
+    {
       return BitIterator();
     }
     /*
@@ -672,17 +676,17 @@ public:
   }
 
   /** The "off the end" iterator */
-  BitIterator end() {
-    return BitIterator();
-  }
+  BitIterator end() { return BitIterator(); }
 
   /**
    * Find the boolean value in the hash table.  Returns something ==
    * end() if not found.
    */
-  ConstBitIterator find(const std::pair<uint64_t, NodeValue*>& k) const {
+  ConstBitIterator find(const std::pair<uint64_t, NodeValue*>& k) const
+  {
     super::const_iterator i = super::find(k.second);
-    if(i == super::end()) {
+    if (i == super::end())
+    {
       return ConstBitIterator();
     }
     /*
@@ -696,16 +700,15 @@ public:
   }
 
   /** The "off the end" const_iterator */
-  ConstBitIterator end() const {
-    return ConstBitIterator();
-  }
+  ConstBitIterator end() const { return ConstBitIterator(); }
 
   /**
    * Access the hash table using the underlying operator[].  Inserts
    * the key into the table (associated to default value) if it's not
    * already there.
    */
-  BitAccessor operator[](const std::pair<uint64_t, NodeValue*>& k) {
+  BitAccessor operator[](const std::pair<uint64_t, NodeValue*>& k)
+  {
     uint64_t& word = super::operator[](k.second);
     return BitAccessor(word, k.first);
   }
@@ -713,27 +716,19 @@ public:
   /**
    * Delete all flags from the given node.
    */
-  void erase(NodeValue* nv) {
-    super::erase(nv);
-  }
+  void erase(NodeValue* nv) { super::erase(nv); }
 
   /**
    * Clear the hash table.
    */
-  void clear() {
-    super::clear();
-  }
+  void clear() { super::clear(); }
 
   /** Is the hash table empty? */
-  bool empty() const {
-    return super::empty();
-  }
+  bool empty() const { return super::empty(); }
 
   /** This is currently very misleading! */
-  size_t size() const {
-    return super::size();
-  }
-};/* class AttrHash<bool> */
+  size_t size() const { return super::size(); }
+}; /* class AttrHash<bool> */
 
 }  // namespace attr
 
@@ -749,15 +744,15 @@ template <class T>
 struct LastAttributeId
 {
  public:
-  static uint64_t getNextId() {
+  static uint64_t getNextId()
+  {
     uint64_t* id = raw_id();
     const uint64_t next_id = *id;
     ++(*id);
     return next_id;
   }
-  static uint64_t getId() {
-    return *raw_id();
-  }
+  static uint64_t getId() { return *raw_id(); }
+
  private:
   static uint64_t* raw_id()
   {
@@ -786,8 +781,7 @@ class Attribute
    */
   static const uint64_t s_id;
 
-public:
-
+ public:
   /** The value type for this attribute. */
   typedef value_t value_type;
 
@@ -807,12 +801,14 @@ public:
    * for bool-valued attributes.  Fail an assert if not.  Otherwise
    * return the id.
    */
-  static inline uint64_t registerAttribute() {
-    typedef typename attr::KindValueToTableValueMapping<value_t>::
-                     table_value_type table_value_type;
+  static inline uint64_t registerAttribute()
+  {
+    typedef
+        typename attr::KindValueToTableValueMapping<value_t>::table_value_type
+            table_value_type;
     return attr::LastAttributeId<table_value_type>::getNextId();
   }
-};/* class Attribute<> */
+}; /* class Attribute<> */
 
 /**
  * An "attribute type" structure for boolean flags (special).
@@ -823,8 +819,7 @@ class Attribute<T, bool>
   /** IDs for bool-valued attributes are actually bit assignments. */
   static const uint64_t s_id;
 
-public:
-
+ public:
   /** The value type for this attribute; here, bool. */
   typedef bool value_type;
 
@@ -850,13 +845,14 @@ public:
    * for bool-valued attributes.  Fail an assert if not.  Otherwise
    * return the id.
    */
-  static inline uint64_t registerAttribute() {
+  static inline uint64_t registerAttribute()
+  {
     const uint64_t id = attr::LastAttributeId<bool>::getNextId();
     AlwaysAssert(id <= 63) << "Too many boolean node attributes registered "
                               "during initialization !";
     return id;
   }
-};/* class Attribute<..., bool, ...> */
+}; /* class Attribute<..., bool, ...> */
 
 // ATTRIBUTE IDENTIFIER ASSIGNMENT =============================================
 

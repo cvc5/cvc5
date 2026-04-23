@@ -29,25 +29,32 @@
 namespace cvc5::internal {
 
 template <>
-void safe_print(int fd, const std::string& msg) {
+void safe_print(int fd, const std::string& msg)
+{
   // Print characters one by one instead of using
   // string::data()/string::c_str() to avoid allocations (pre-c++11)
-  for (size_t i = 0; i < msg.length(); i++) {
-    if (write(fd, &(msg[i]), 1) != 1) {
+  for (size_t i = 0; i < msg.length(); i++)
+  {
+    if (write(fd, &(msg[i]), 1) != 1)
+    {
       abort();
     }
   }
 }
 
 template <>
-void safe_print(int fd, const int64_t& _i) {
+void safe_print(int fd, const int64_t& _i)
+{
   char buf[BUFFER_SIZE];
   int64_t i = _i;
 
-  if (i == 0) {
+  if (i == 0)
+  {
     safe_print(fd, "0");
     return;
-  } else if (i < 0) {
+  }
+  else if (i < 0)
+  {
     safe_print(fd, "-");
     i *= -1;
   }
@@ -55,29 +62,34 @@ void safe_print(int fd, const int64_t& _i) {
   // This loop fills the buffer from the end. The number of elements in the
   // buffer is BUFER_SIZE - idx - 1 and they start at position idx + 1.
   ssize_t idx = BUFFER_SIZE - 1;
-  while (i != 0 && idx >= 0) {
+  while (i != 0 && idx >= 0)
+  {
     buf[idx] = '0' + i % 10;
     i /= 10;
     idx--;
   }
 
   ssize_t nbyte = BUFFER_SIZE - idx - 1;
-  if (write(fd, buf + idx + 1, nbyte) != nbyte) {
+  if (write(fd, buf + idx + 1, nbyte) != nbyte)
+  {
     abort();
   }
 }
 
 template <>
-void safe_print(int fd, const int32_t& i) {
+void safe_print(int fd, const int32_t& i)
+{
   safe_print<int64_t>(fd, i);
 }
 
 template <>
-void safe_print(int fd, const uint64_t& _i) {
+void safe_print(int fd, const uint64_t& _i)
+{
   char buf[BUFFER_SIZE];
   uint64_t i = _i;
 
-  if (i == 0) {
+  if (i == 0)
+  {
     safe_print(fd, "0");
     return;
   }
@@ -85,25 +97,29 @@ void safe_print(int fd, const uint64_t& _i) {
   // This loop fills the buffer from the end. The number of elements in the
   // buffer is BUFER_SIZE - idx - 1 and they start at position idx + 1.
   ssize_t idx = BUFFER_SIZE - 1;
-  while (i != 0 && idx >= 0) {
+  while (i != 0 && idx >= 0)
+  {
     buf[idx] = '0' + i % 10;
     i /= 10;
     idx--;
   }
 
   ssize_t nbyte = BUFFER_SIZE - idx - 1;
-  if (write(fd, buf + idx + 1, nbyte) != nbyte) {
+  if (write(fd, buf + idx + 1, nbyte) != nbyte)
+  {
     abort();
   }
 }
 
 template <>
-void safe_print(int fd, const uint32_t& i) {
+void safe_print(int fd, const uint32_t& i)
+{
   safe_print<uint64_t>(fd, i);
 }
 
 template <>
-void safe_print(int fd, const double& _d) {
+void safe_print(int fd, const double& _d)
+{
   // Note: this print function for floating-point values is optimized for
   // simplicity, not correctness or performance.
   char buf[BUFFER_SIZE];
@@ -113,7 +129,8 @@ void safe_print(int fd, const double& _d) {
   int64_t v = static_cast<int64_t>(d);
   d -= v;
 
-  if (d < 0.0) {
+  if (d < 0.0)
+  {
     d *= -1.0;
   }
 
@@ -122,7 +139,8 @@ void safe_print(int fd, const double& _d) {
 
   // Print decimal digits as long as the remaining value is larger than zero
   // and print at least one digit.
-  while (i == 0 || (d > 0.0 && i < BUFFER_SIZE)) {
+  while (i == 0 || (d > 0.0 && i < BUFFER_SIZE))
+  {
     d *= 10.0;
     char c = static_cast<char>(d);
     buf[i] = '0' + c;
@@ -130,42 +148,52 @@ void safe_print(int fd, const double& _d) {
     i++;
   }
 
-  if (write(fd, buf, i) != i) {
+  if (write(fd, buf, i) != i)
+  {
     abort();
   }
 }
 
 template <>
-void safe_print(int fd, const float& f) {
+void safe_print(int fd, const float& f)
+{
   safe_print<double>(fd, (double)f);
 }
 
 template <>
-void safe_print(int fd, const bool& b) {
-  if (b) {
+void safe_print(int fd, const bool& b)
+{
+  if (b)
+  {
     safe_print(fd, "true");
-  } else {
+  }
+  else
+  {
     safe_print(fd, "false");
   }
 }
 
 template <>
-void safe_print(int fd, void* const& addr) {
+void safe_print(int fd, void* const& addr)
+{
   safe_print_hex(fd, (uint64_t)addr);
 }
 
 template <>
-void safe_print(int fd, const timespec& t) {
+void safe_print(int fd, const timespec& t)
+{
   safe_print<uint64_t>(fd, t.tv_sec);
   safe_print(fd, ".");
   safe_print_right_aligned(fd, t.tv_nsec, 9);
 }
 
-void safe_print_hex(int fd, uint64_t i) {
+void safe_print_hex(int fd, uint64_t i)
+{
   char buf[BUFFER_SIZE];
 
   safe_print(fd, "0x");
-  if (i == 0) {
+  if (i == 0)
+  {
     safe_print(fd, "0");
     return;
   }
@@ -173,11 +201,15 @@ void safe_print_hex(int fd, uint64_t i) {
   // This loop fills the buffer from the end. The number of elements in the
   // buffer is BUFER_SIZE - idx - 1 and they start at position idx + 1.
   ssize_t idx = BUFFER_SIZE - 1;
-  while (i != 0 && idx >= 0) {
+  while (i != 0 && idx >= 0)
+  {
     char current = i % 16;
-    if (current <= 9) {
+    if (current <= 9)
+    {
       buf[idx] = '0' + current;
-    } else {
+    }
+    else
+    {
       buf[idx] = 'a' + current - 10;
     }
     i /= 16;
@@ -185,29 +217,34 @@ void safe_print_hex(int fd, uint64_t i) {
   }
 
   ssize_t nbyte = BUFFER_SIZE - idx - 1;
-  if (write(fd, buf + idx + 1, nbyte) != nbyte) {
+  if (write(fd, buf + idx + 1, nbyte) != nbyte)
+  {
     abort();
   }
 }
 
-void safe_print_right_aligned(int fd, uint64_t i, ssize_t width) {
+void safe_print_right_aligned(int fd, uint64_t i, ssize_t width)
+{
   char buf[BUFFER_SIZE];
 
   // Make sure that the result fits in the buffer
   width = (width < BUFFER_SIZE) ? width : BUFFER_SIZE;
 
-  for (ssize_t j = 0; j < width; j++) {
+  for (ssize_t j = 0; j < width; j++)
+  {
     buf[j] = '0';
   }
 
   ssize_t idx = width - 1;
-  while (i != 0 && idx >= 0) {
+  while (i != 0 && idx >= 0)
+  {
     buf[idx] = '0' + i % 10;
     i /= 10;
     idx--;
   }
 
-  if (write(fd, buf, width) != width) {
+  if (write(fd, buf, width) != width)
+  {
     abort();
   }
 }

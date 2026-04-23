@@ -19,8 +19,8 @@
 #include "expr/node_algorithm.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/inference_manager.h"
-#include "theory/arith/nl/poly_conversion.h"
 #include "theory/arith/linear/normal_form.h"
+#include "theory/arith/nl/poly_conversion.h"
 #include "theory/rewriter.h"
 #include "util/poly_util.h"
 
@@ -385,7 +385,7 @@ void ICPSolver::check()
 
 #else /* CVC5_POLY_IMP */
 
-void ICPSolver::reset(const std::vector<Node>& assertions)
+void ICPSolver::reset(CVC5_UNUSED const std::vector<Node>& assertions)
 {
   Unimplemented() << "ICPSolver requires cvc5 to be configured with LibPoly";
 }

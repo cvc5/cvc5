@@ -173,8 +173,10 @@ Node LfscNodeConverter::postConvert(Node n)
         n.getOperator().getConst<CardinalityConstraint>();
     Node tnn = typeAsNode(convertType(cc.getType()));
     Node ub = d_nm->mkConstInt(Rational(cc.getUpperBound()));
-    TypeNode tnc = d_nm->mkFunctionType({tnn.getType(), ub.getType()},
-                                        d_nm->booleanType());
+    // Use boolType to ensure deterministic node ID assignments
+    TypeNode boolType = d_nm->booleanType();
+    TypeNode tnc =
+        d_nm->mkFunctionType({tnn.getType(), ub.getType()}, boolType);
     Node fcard = getSymbolInternal(k, tnc, "fmf.card");
     return mkApplyUf(fcard, {tnn, ub});
   }
@@ -761,8 +763,7 @@ std::string LfscNodeConverter::getNameForUserNameOfInternal(
 {
   std::vector<uint64_t>& syms = d_userSymbolList[name];
   size_t variant = 0;
-  std::vector<uint64_t>::iterator itr =
-      std::find(syms.begin(), syms.end(), id);
+  std::vector<uint64_t>::iterator itr = std::find(syms.begin(), syms.end(), id);
   if (itr != syms.cend())
   {
     variant = std::distance(syms.begin(), itr);
@@ -815,8 +816,8 @@ Node LfscNodeConverter::maybeMkSkolemFun(Node k)
       Assert(!cacheVal.isNull() && cacheVal.getKind() == Kind::SEXPR
              && cacheVal.getNumChildren() == 3);
       // third value is mpz, which is not converted
-      return mkApplyUf(sk,
-          {convert(cacheVal[0]), convert(cacheVal[1]), cacheVal[2]});
+      return mkApplyUf(
+          sk, {convert(cacheVal[0]), convert(cacheVal[1]), cacheVal[2]});
     }
   }
   return Node::null();
@@ -877,7 +878,9 @@ void LfscNodeConverter::getCharVectorInternal(Node c, std::vector<Node>& chars)
     chars.push_back(ec);
     return;
   }
-  TypeNode tnc = d_nm->mkFunctionType(d_nm->integerType(), c.getType());
+  // Use intType to ensure deterministic node ID assignments
+  TypeNode intType = d_nm->integerType();
+  TypeNode tnc = d_nm->mkFunctionType(intType, c.getType());
   Node aconstf = getSymbolInternal(Kind::CONST_STRING, tnc, "char");
   for (unsigned i = 0, size = vec.size(); i < size; i++)
   {
@@ -908,6 +911,10 @@ Node LfscNodeConverter::getNullTerminator(NodeManager* nm, Kind k, TypeNode tn)
   Node nullTerm;
   switch (k)
   {
+    // LFSC signature expects mixed arithmetic for null terminators
+    case Kind::ADD: nullTerm = nm->mkConstInt(Rational(0)); break;
+    case Kind::MULT:
+    case Kind::NONLINEAR_MULT: nullTerm = nm->mkConstInt(Rational(1)); break;
     case Kind::REGEXP_CONCAT:
       // the language containing only the empty string, which has special
       // syntax in LFSC
@@ -1026,7 +1033,7 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
       {
         opName << "bit";
       }
-      else if (k==Kind::DIVISIBLE)
+      else if (k == Kind::DIVISIBLE)
       {
         opName << "a.divisible";
       }

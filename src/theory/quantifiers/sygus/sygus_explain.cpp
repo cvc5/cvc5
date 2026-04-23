@@ -132,7 +132,7 @@ void SygusExplain::getExplanationForEquality(Node n,
 {
   // since builtin types occur in grammar, types are comparable but not
   // necessarily equal
-  Assert(n.getType() == vn.getType());
+  AssertEqual(n.getType(), vn.getType());
   if (n == vn)
   {
     return;
@@ -189,7 +189,7 @@ void SygusExplain::getExplanationFor(TermRecBuild& trb,
                                      int& sz)
 {
   Assert(vnr.isNull() || vn != vnr);
-  Assert(n.getType() == vn.getType());
+  AssertEqual(n.getType(), vn.getType());
   TypeNode ntn = n.getType();
   if (!ntn.isDatatype())
   {
@@ -205,7 +205,7 @@ void SygusExplain::getExplanationFor(TermRecBuild& trb,
   Assert(vn.getKind() == Kind::APPLY_CONSTRUCTOR);
   Assert(vnr.isNull() || vnr.getKind() == Kind::APPLY_CONSTRUCTOR);
   std::map<unsigned, bool> cexc;
-  // for each child, 
+  // for each child,
   // check whether replacing that child by a fresh variable
   // also satisfies the invariance test.
   for (unsigned i = 0; i < vn.getNumChildren(); i++)

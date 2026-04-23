@@ -14,9 +14,9 @@
 
 #ifdef CVC5_POLY_IMP
 
-#include <iostream>
-
 #include <poly/polyxx.h>
+
+#include <iostream>
 
 #include "base/check.h"
 #include "base/output.h"
@@ -33,7 +33,7 @@ PropagationResult intersect_interval_with(poly::Interval& cur,
                                           std::size_t size_threshold)
 {
   Trace("nl-icp-debug") << cur << " := " << cur << " intersected with " << res
-                  << std::endl;
+                        << std::endl;
 
   if (bitsize(get_lower(res)) > size_threshold
       || bitsize(get_upper(res)) > size_threshold)
@@ -57,13 +57,14 @@ PropagationResult intersect_interval_with(poly::Interval& cur,
     // upper(res) at 2
     if (get_upper_open(res) || get_lower_open(cur))
     {
-      Trace("nl-icp-debug") << "meet at lower, but one is open -> conflict"
-                      << std::endl;
+      Trace("nl-icp-debug")
+          << "meet at lower, but one is open -> conflict" << std::endl;
       return PropagationResult::CONFLICT;
     }
     if (!is_point(cur))
     {
-      Trace("nl-icp-debug") << "contracts to point interval at lower" << std::endl;
+      Trace("nl-icp-debug")
+          << "contracts to point interval at lower" << std::endl;
       cur = poly::Interval(get_upper(res));
       return PropagationResult::CONTRACTED;
     }
@@ -84,7 +85,8 @@ PropagationResult intersect_interval_with(poly::Interval& cur,
     if (get_lower(res) == get_lower(cur))
     {
       // lower(res) at 2
-      Trace("nl-icp-debug") << "meet at lower, lower(cur) .. upper(res)" << std::endl;
+      Trace("nl-icp-debug")
+          << "meet at lower, lower(cur) .. upper(res)" << std::endl;
       cur = poly::Interval(get_lower(cur),
                            get_lower_open(cur) || get_lower_open(res),
                            get_upper(res),
@@ -196,13 +198,14 @@ PropagationResult intersect_interval_with(poly::Interval& cur,
     // lower(res) at 4
     if (get_lower_open(res) || get_upper_open(cur))
     {
-      Trace("nl-icp-debug") << "meet at upper, but one is open -> conflict"
-                      << std::endl;
+      Trace("nl-icp-debug")
+          << "meet at upper, but one is open -> conflict" << std::endl;
       return PropagationResult::CONFLICT;
     }
     if (!is_point(cur))
     {
-      Trace("nl-icp-debug") << "contracts to point interval at upper" << std::endl;
+      Trace("nl-icp-debug")
+          << "contracts to point interval at upper" << std::endl;
       cur = poly::Interval(get_lower(res));
       return PropagationResult::CONTRACTED;
     }

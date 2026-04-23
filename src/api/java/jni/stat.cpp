@@ -23,8 +23,8 @@ using namespace cvc5;
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_io_github_cvc5_Stat_deletePointer(JNIEnv*,
-                                                                  jobject,
-                                                                  jlong pointer)
+                                                              jobject,
+                                                              jlong pointer)
 {
   delete reinterpret_cast<Stat*>(pointer);
 }
@@ -35,8 +35,8 @@ JNIEXPORT void JNICALL Java_io_github_cvc5_Stat_deletePointer(JNIEnv*,
  * Signature: (J)Ljava/lang/String;
  */
 JNIEXPORT jstring JNICALL Java_io_github_cvc5_Stat_toString(JNIEnv* env,
-                                                                jobject,
-                                                                jlong pointer)
+                                                            jobject,
+                                                            jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
 
@@ -52,8 +52,8 @@ JNIEXPORT jstring JNICALL Java_io_github_cvc5_Stat_toString(JNIEnv* env,
  * Signature: (J)Z
  */
 JNIEXPORT jboolean JNICALL Java_io_github_cvc5_Stat_isInternal(JNIEnv* env,
-                                                                 jobject,
-                                                                 jlong pointer)
+                                                               jobject,
+                                                               jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Stat* current = reinterpret_cast<Stat*>(pointer);
@@ -67,8 +67,8 @@ JNIEXPORT jboolean JNICALL Java_io_github_cvc5_Stat_isInternal(JNIEnv* env,
  * Signature: (J)Z
  */
 JNIEXPORT jboolean JNICALL Java_io_github_cvc5_Stat_isDefault(JNIEnv* env,
-                                                                  jobject,
-                                                                  jlong pointer)
+                                                              jobject,
+                                                              jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Stat* current = reinterpret_cast<Stat*>(pointer);
@@ -82,8 +82,8 @@ JNIEXPORT jboolean JNICALL Java_io_github_cvc5_Stat_isDefault(JNIEnv* env,
  * Signature: (J)Z
  */
 JNIEXPORT jboolean JNICALL Java_io_github_cvc5_Stat_isInt(JNIEnv* env,
-                                                              jobject,
-                                                              jlong pointer)
+                                                          jobject,
+                                                          jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Stat* current = reinterpret_cast<Stat*>(pointer);
@@ -97,8 +97,8 @@ JNIEXPORT jboolean JNICALL Java_io_github_cvc5_Stat_isInt(JNIEnv* env,
  * Signature: (J)J
  */
 JNIEXPORT jlong JNICALL Java_io_github_cvc5_Stat_getInt(JNIEnv* env,
-                                                            jobject,
-                                                            jlong pointer)
+                                                        jobject,
+                                                        jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Stat* current = reinterpret_cast<Stat*>(pointer);
@@ -112,8 +112,8 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Stat_getInt(JNIEnv* env,
  * Signature: (J)Z
  */
 JNIEXPORT jboolean JNICALL Java_io_github_cvc5_Stat_isDouble(JNIEnv* env,
-                                                                 jobject,
-                                                                 jlong pointer)
+                                                             jobject,
+                                                             jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Stat* current = reinterpret_cast<Stat*>(pointer);
@@ -127,8 +127,8 @@ JNIEXPORT jboolean JNICALL Java_io_github_cvc5_Stat_isDouble(JNIEnv* env,
  * Signature: (J)D
  */
 JNIEXPORT jdouble JNICALL Java_io_github_cvc5_Stat_getDouble(JNIEnv* env,
-                                                                 jobject,
-                                                                 jlong pointer)
+                                                             jobject,
+                                                             jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Stat* current = reinterpret_cast<Stat*>(pointer);
@@ -142,8 +142,8 @@ JNIEXPORT jdouble JNICALL Java_io_github_cvc5_Stat_getDouble(JNIEnv* env,
  * Signature: (J)Z
  */
 JNIEXPORT jboolean JNICALL Java_io_github_cvc5_Stat_isString(JNIEnv* env,
-                                                                 jobject,
-                                                                 jlong pointer)
+                                                             jobject,
+                                                             jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Stat* current = reinterpret_cast<Stat*>(pointer);
@@ -157,8 +157,8 @@ JNIEXPORT jboolean JNICALL Java_io_github_cvc5_Stat_isString(JNIEnv* env,
  * Signature: (J)Ljava/lang/String;
  */
 JNIEXPORT jstring JNICALL Java_io_github_cvc5_Stat_getString(JNIEnv* env,
-                                                                 jobject,
-                                                                 jlong pointer)
+                                                             jobject,
+                                                             jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Stat* current = reinterpret_cast<Stat*>(pointer);
@@ -171,8 +171,9 @@ JNIEXPORT jstring JNICALL Java_io_github_cvc5_Stat_getString(JNIEnv* env,
  * Method:    isHistogram
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL
-Java_io_github_cvc5_Stat_isHistogram(JNIEnv* env, jobject, jlong pointer)
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_Stat_isHistogram(JNIEnv* env,
+                                                                jobject,
+                                                                jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Stat* current = reinterpret_cast<Stat*>(pointer);
@@ -185,8 +186,9 @@ Java_io_github_cvc5_Stat_isHistogram(JNIEnv* env, jobject, jlong pointer)
  * Method:    getHistogram
  * Signature: (J)Ljava/util/Map;
  */
-JNIEXPORT jobject JNICALL
-Java_io_github_cvc5_Stat_getHistogram(JNIEnv* env, jobject, jlong pointer)
+JNIEXPORT jobject JNICALL Java_io_github_cvc5_Stat_getHistogram(JNIEnv* env,
+                                                                jobject,
+                                                                jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Stat* current = reinterpret_cast<Stat*>(pointer);

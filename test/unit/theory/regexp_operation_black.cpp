@@ -33,10 +33,7 @@ namespace test {
 class TestTheoryBlackRegexpOperation : public TestSmt
 {
  protected:
-  void SetUp() override
-  {
-    TestSmt::SetUp();
-  }
+  void SetUp() override { TestSmt::SetUp(); }
 
   void includes(Node r1, Node r2)
   {

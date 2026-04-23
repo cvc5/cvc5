@@ -118,7 +118,7 @@
 (program $mk_nary_cong_rhs ((U Type) (f (-> U U U)) (s1 U) (s2 U) (t U :list) (tail Bool :list) (nil U))
     :signature (U Bool) U
     (
-        (($mk_nary_cong_rhs (f s1 t) (and (= s1 s2) tail))  (eo::cons f s2 ($mk_nary_cong_rhs t tail)))
+        (($mk_nary_cong_rhs (f s1 t) (and (= s1 s2) tail))  (_ f s2 ($mk_nary_cong_rhs t tail)))
         (($mk_nary_cong_rhs nil true)                       nil)
     )
 )
@@ -144,7 +144,7 @@
 
 ;;;;; ProofRule::PAIRWISE_CONG
 
-; rule: arg_list_cong
+; rule: pairwise_cong
 ; implements: ProofRule::PAIRWISE_CONG
 ; premises:
 ; - E [:list]: A conjunction of equalities to apply arg-list-congruence to.
@@ -255,7 +255,7 @@
 (program $mk_distinct_elim_rec ((T Type) (x T) (y T) (xs @List :list) (b Bool))
   :signature (T @List Bool) Bool
   (
-  (($mk_distinct_elim_rec x (@list y xs) b)  (eo::cons and (not (= x y)) ($mk_distinct_elim_rec x xs b)))
+  (($mk_distinct_elim_rec x (@list y xs) b)  (_ and (not (= x y)) ($mk_distinct_elim_rec x xs b)))
   (($mk_distinct_elim_rec x @list.nil b)     b)
   )
 )
@@ -307,19 +307,4 @@
   :args ((= (distinct xs) false))
   :requires (((eo::eq (eo::list_setof @list xs) xs) false))
   :conclusion (= (distinct xs) false)
-)
-
-; rule: lambda-elim
-; implements: ProofRewriteRule::LAMBDA_ELIM.
-; args:
-; - eq : Bool. The equality to prove between terms a and b.
-; requires: >
-;   Showing that the lambda on the left hand side of eq has bound variables that
-;   coincide with the arguments of its body, and its body is an application of
-;   the right hand side of the equality.
-; conclusion: The given equality.
-(declare-rule lambda-elim ((T Type) (U Type) (V Type) (x @List) (t T) (f (-> U V)))
-  :args ((= (lambda x t) f))
-  :requires ((($get_arg_list t) x) (($is_app f t) true))
-  :conclusion (= (lambda x t) f)
 )

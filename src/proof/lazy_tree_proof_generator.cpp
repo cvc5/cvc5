@@ -86,7 +86,8 @@ std::shared_ptr<ProofNode> LazyTreeProofGenerator::getProof() const
   return d_cached;
 }
 
-std::shared_ptr<ProofNode> LazyTreeProofGenerator::getProofFor(Node f)
+std::shared_ptr<ProofNode> LazyTreeProofGenerator::getProofFor(
+    CVC5_UNUSED Node f)
 {
   Assert(hasProofFor(f));
   return getProof();
@@ -147,7 +148,7 @@ void LazyTreeProofGenerator::print(std::ostream& os,
   {
     os << prefix << ":args ";
     container_to_stream(os, pn.d_args);
-    std::cout << std::endl;
+    os << std::endl;
   }
   for (const auto& c : pn.d_children)
   {

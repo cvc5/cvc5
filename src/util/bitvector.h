@@ -77,16 +77,6 @@ class BitVector
    */
   BitVector(const std::string& num, uint32_t base = 2);
 
-  ~BitVector() {}
-
-  BitVector& operator=(const BitVector& x)
-  {
-    if (this == &x) return *this;
-    d_size = x.d_size;
-    d_value = x.d_value;
-    return *this;
-  }
-
   /* Get size (bit-width). */
   unsigned getSize() const;
   /* Get value. */
@@ -117,6 +107,9 @@ class BitVector
 
   /* Return k if the value of this is equal to 2^{k-1}, and zero otherwise. */
   unsigned isPow2() const;
+
+  /** @return True if this bit-vector represents value 1. */
+  bool is_one() const;
 
   /* -----------------------------------------------------------------------
    ** Operators
@@ -188,20 +181,47 @@ class BitVector
    ** Static helpers.
    * ----------------------------------------------------------------------- */
 
-  /* Create zero bit-vector of given size. */
+  /**
+   * Create zero bit-vector of given size.
+   * @param size The bit-width.
+   * @return The bit-vector.
+   */
   static BitVector mkZero(unsigned size);
 
-  /* Create bit-vector representing value 1 of given size. */
+  /**
+   * Create bit-vector representing value 1 of given size.
+   * @param size The bit-width.
+   * @return The bit-vector.
+   */
   static BitVector mkOne(unsigned size);
 
-  /* Create bit-vector of ones of given size. */
+  /**
+   * Create bit-vector of ones of given size.
+   * @param size The bit-width.
+   * @return The bit-vector.
+   */
   static BitVector mkOnes(unsigned size);
 
-  /* Create bit-vector representing the minimum signed value of given size. */
+  /**
+   * Create bit-vector representing the minimum signed value of given size.
+   * @param size The bit-width.
+   * @return The bit-vector.
+   */
   static BitVector mkMinSigned(unsigned size);
 
-  /* Create bit-vector representing the maximum signed value of given size. */
+  /**
+   * Create bit-vector representing the maximum signed value of given size.
+   * @param size The bit-width.
+   * @return The bit-vector.
+   */
   static BitVector mkMaxSigned(unsigned size);
+
+  /**
+   * Create a uniformly random bit-vector of given size.
+   * @param size The bit-width.
+   * @return The bit-vector.
+   */
+  static BitVector mkRandom(unsigned size);
 
  private:
   /**
