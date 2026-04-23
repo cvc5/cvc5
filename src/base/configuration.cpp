@@ -175,13 +175,13 @@ std::string Configuration::copyright()
 std::string Configuration::about()
 {
   std::stringstream ss;
-  ss << "This is cvc5 version " << getVersionString();
+  ss << "cvc5 " << getVersionString();
   if (isGitBuild())
   {
     ss << " [" << getGitInfo() << "]";
   }
-  ss << std::endl << "compiled with " << getCompiler();
-  ss << std::endl << "on " << getCompiledDateTime();
+  ss << std::endl;
+  ss << "compiled with " << getCompiler() << " on " << getCompiledDateTime();
   return ss.str();
 }
 
