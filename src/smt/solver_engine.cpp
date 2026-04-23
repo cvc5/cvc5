@@ -909,6 +909,12 @@ std::pair<Result, std::vector<Node>> SolverEngine::getTimeoutCore(
 
 std::vector<Node> SolverEngine::getUnsatAssumptions(void)
 {
+  // see if another solver engine was responsible for the last status
+  SolverEngine* ssolver = d_state->getStatusSolver();
+  if (ssolver != nullptr)
+  {
+    return ssolver->getUnsatAssumptions();
+  }
   Trace("smt") << "SMT getUnsatAssumptions()" << endl;
   if (!d_env->getOptions().smt.unsatAssumptions)
   {
