@@ -706,7 +706,7 @@ bool TermDb::reset(Theory::Effort effort)
 
   Assert(d_qstate.getEqualityEngine()->consistent());
 
-  //compute has map
+  // compute has map
   if (d_trackRlv)
   {
     d_term_elig_eqc.clear();

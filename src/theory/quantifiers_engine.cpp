@@ -184,7 +184,8 @@ void QuantifiersEngine::ppNotifyAssertions(const std::vector<Node>& assertions)
     mi->ppNotifyAssertions(assertions);
   }
 }
-void QuantifiersEngine::check( Theory::Effort e ){
+void QuantifiersEngine::check(Theory::Effort e)
+{
   IncompleteId setModelUnsoundId = IncompleteId::NONE;
   checkInternal(e, setModelUnsoundId);
   // SAT case
@@ -526,13 +527,8 @@ void QuantifiersEngine::checkInternal(Theory::Effort e,
               // we reported a conflicting lemma, should return
               setModelUnsoundId = IncompleteId::QUANTIFIERS;
             }
-<<<<<<< HEAD
-            //if we have a chance not to set incomplete
-            if (setModelUnsoundId == IncompleteId::NONE)
-=======
             // if we have a chance not to set incomplete
-            if (!setModelUnsound)
->>>>>>> e133ac82d08663ccf6760b63ff9358f3056845b0
+            if (setModelUnsoundId == IncompleteId::NONE)
             {
               // check if we should set the incomplete flag
               for (QuantifiersModule*& mdl : d_modules)
@@ -572,18 +568,12 @@ void QuantifiersEngine::checkInternal(Theory::Effort e,
                       }
                     }
                   }
-<<<<<<< HEAD
-                  if( !hasCompleteM ){
-                    Trace("quant-engine-debug") << "Set incomplete because " << q << " was not fully processed." << std::endl;
-                    setModelUnsoundId = IncompleteId::QUANTIFIERS;
-=======
                   if (!hasCompleteM)
                   {
                     Trace("quant-engine-debug")
                         << "Set incomplete because " << q
                         << " was not fully processed." << std::endl;
-                    setModelUnsound = true;
->>>>>>> e133ac82d08663ccf6760b63ff9358f3056845b0
+                    setModelUnsoundId = IncompleteId::QUANTIFIERS;
                     break;
                   }
                   else
@@ -633,22 +623,6 @@ void QuantifiersEngine::checkInternal(Theory::Effort e,
     // increment counter
     d_qstate.incrementInstRoundCounters(e);
   }
-<<<<<<< HEAD
-=======
-
-  // SAT case
-  if (e == Theory::EFFORT_LAST_CALL && !d_qim.hasSentLemma())
-  {
-    if (setModelUnsound)
-    {
-      Trace("quant-engine") << "Set incomplete flag." << std::endl;
-      d_qim.setModelUnsound(setModelUnsoundId);
-    }
-    // output debug stats
-    d_qim.getInstantiate()->debugPrintModel();
-  }
-  d_qim.clearPending();
->>>>>>> e133ac82d08663ccf6760b63ff9358f3056845b0
 }
 
 void QuantifiersEngine::notifyCombineTheories()
