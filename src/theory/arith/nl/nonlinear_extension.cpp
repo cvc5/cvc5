@@ -118,6 +118,7 @@ void NonlinearExtension::presolve()
     return;
   }
   d_monomialSlv.checkInitialRefine(monomials);
+  d_im.doPendingLemmas();
 }
 
 void NonlinearExtension::computeRelevantAssertions(
