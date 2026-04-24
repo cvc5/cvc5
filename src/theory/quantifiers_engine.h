@@ -164,7 +164,8 @@ class QuantifiersEngine : protected EnvObj
    * @param setModelUnsoundId the incomplete id indicating why we are currently
    * answering "unknown".
    */
-  bool shouldRecheck(CVC5_UNUSED Theory::Effort e, IncompleteId setModelUnsoundId);
+  bool shouldRecheck(CVC5_UNUSED Theory::Effort e,
+                     IncompleteId setModelUnsoundId);
   //---------------------- private initialization
   /**
    * Finish initialize, which passes pointers to the objects that quantifiers
