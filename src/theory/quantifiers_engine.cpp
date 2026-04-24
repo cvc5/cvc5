@@ -217,7 +217,7 @@ void QuantifiersEngine::check(Theory::Effort e)
   d_qim.clearPending();
 }
 
-bool QuantifiersEngine::shouldRecheck(Theory::Effort e,
+bool QuantifiersEngine::shouldRecheck(CVC5_UNUSED Theory::Effort e,
                                       IncompleteId setModelUnsoundId)
 {
   // special case: IncompleteId::QUANTIFIERS_RECORDED_INST indicates we wish
