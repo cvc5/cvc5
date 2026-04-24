@@ -150,6 +150,22 @@ class QuantifiersEngine : protected EnvObj
   std::vector<Node> getOracleFuns() const;
   //----------end user interface for instantiations
  private:
+  /**
+   * Check at level, setting setModelUnsoundId to an IncompleteId if we are
+   * "unknown" instead of "unsat".
+   * @param e the effort level
+   * @param setModelUnsoundId the incomplete id if e is last call and we should
+   * answer "unknown" instead of "sat".
+   */
+  void checkInternal(Theory::Effort e, IncompleteId& setModelUnsoundId);
+  /**
+   * Return true if we should recheck
+   * @param e the effort level
+   * @param setModelUnsoundId the incomplete id indicating why we are currently
+   * answering "unknown".
+   */
+  bool shouldRecheck(CVC5_UNUSED Theory::Effort e,
+                     IncompleteId setModelUnsoundId);
   //---------------------- private initialization
   /**
    * Finish initialize, which passes pointers to the objects that quantifiers
