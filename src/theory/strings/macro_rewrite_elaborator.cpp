@@ -1018,7 +1018,7 @@ bool MacroRewriteElaborator::ensureProofForStrComponentCtn(CDProof* cdp,
   {
     return false;
   }
-  Trace("brc-macro") << "...paritioned to " << nc1rb << " " << nc1 << " "
+  Trace("brc-macro") << "...partitioned to " << nc1rb << " " << nc1 << " "
                      << nc1re << std::endl;
   TypeNode stype = eq[0][0].getType();
   NodeManager* nm = nodeManager();
