@@ -25,12 +25,12 @@ namespace cvc5::internal {
 class BitVector
 {
  public:
-  BitVector(unsigned size, const Integer& val)
+  BitVector(uint32_t size, const Integer& val)
       : d_size(size), d_value(val.modByPow2(size))
   {
   }
 
-  BitVector(unsigned size = 0) : d_size(size), d_value(0) {}
+  BitVector(uint32_t size = 0) : d_size(size), d_value(0) {}
 
   /**
    * BitVector constructor using a 32-bit unsigned integer for the value.
@@ -39,7 +39,7 @@ class BitVector
    * platforms (long is 32-bit when compiling 64-bit binaries on
    * Windows but 64-bit on Linux) and to prevent ambiguous overloads.
    */
-  BitVector(unsigned size, uint32_t z) : d_size(size), d_value(z)
+  BitVector(uint32_t size, uint32_t z) : d_size(size), d_value(z)
   {
     d_value = d_value.modByPow2(size);
   }
@@ -51,12 +51,12 @@ class BitVector
    * platforms (long is 32-bit when compiling 64-bit binaries on
    * Windows but 64-bit on Linux) and to prevent ambiguous overloads.
    */
-  BitVector(unsigned size, uint64_t z) : d_size(size), d_value(z)
+  BitVector(uint32_t size, uint64_t z) : d_size(size), d_value(z)
   {
     d_value = d_value.modByPow2(size);
   }
 
-  BitVector(unsigned size, const BitVector& q)
+  BitVector(uint32_t size, const BitVector& q)
       : d_size(size), d_value(q.d_value.modByPow2(size))
   {
   }
@@ -78,7 +78,7 @@ class BitVector
   BitVector(const std::string& num, uint32_t base = 2);
 
   /* Get size (bit-width). */
-  unsigned getSize() const;
+  uint32_t getSize() const;
   /* Get value. */
   const Integer& getValue() const;
 
@@ -87,7 +87,7 @@ class BitVector
   /* Return Integer corresponding to two's complement interpretation of this. */
   Integer toSignedInteger() const;
   /* Return (binary) string representation. */
-  std::string toString(unsigned int base = 2) const;
+  std::string toString(uint32_t base = 2) const;
 
   /* Return hash value. */
   size_t hash() const;
@@ -121,7 +121,7 @@ class BitVector
   BitVector concat(const BitVector& other) const;
 
   /* Return the bit range from index 'high' to index 'low'. */
-  BitVector extract(unsigned high, unsigned low) const;
+  BitVector extract(uint32_t high, uint32_t low) const;
 
   /* Unsigned Inequality --------------------------------------------------- */
 
@@ -159,11 +159,11 @@ class BitVector
   /* Extend operations ----------------------------------------------------- */
 
   /* Return a bit-vector representing this extended by 'n' zero bits. */
-  BitVector zeroExtend(unsigned n) const;
+  BitVector zeroExtend(uint32_t n) const;
 
   /* Return a bit-vector representing this extended by 'n' bits of the value
    * of the signed bit. */
-  BitVector signExtend(unsigned n) const;
+  BitVector signExtend(uint32_t n) const;
 
   /* Shift operations ------------------------------------------------------ */
 
@@ -186,42 +186,42 @@ class BitVector
    * @param size The bit-width.
    * @return The bit-vector.
    */
-  static BitVector mkZero(unsigned size);
+  static BitVector mkZero(uint32_t size);
 
   /**
    * Create bit-vector representing value 1 of given size.
    * @param size The bit-width.
    * @return The bit-vector.
    */
-  static BitVector mkOne(unsigned size);
+  static BitVector mkOne(uint32_t size);
 
   /**
    * Create bit-vector of ones of given size.
    * @param size The bit-width.
    * @return The bit-vector.
    */
-  static BitVector mkOnes(unsigned size);
+  static BitVector mkOnes(uint32_t size);
 
   /**
    * Create bit-vector representing the minimum signed value of given size.
    * @param size The bit-width.
    * @return The bit-vector.
    */
-  static BitVector mkMinSigned(unsigned size);
+  static BitVector mkMinSigned(uint32_t size);
 
   /**
    * Create bit-vector representing the maximum signed value of given size.
    * @param size The bit-width.
    * @return The bit-vector.
    */
-  static BitVector mkMaxSigned(unsigned size);
+  static BitVector mkMaxSigned(uint32_t size);
 
   /**
    * Create a uniformly random bit-vector of given size.
    * @param size The bit-width.
    * @return The bit-vector.
    */
-  static BitVector mkRandom(unsigned size);
+  static BitVector mkRandom(uint32_t size);
 
  private:
   /**
@@ -230,7 +230,7 @@ class BitVector
    *  - no negative numbers: d_value >= 0
    */
 
-  unsigned d_size;
+  uint32_t d_size;
   Integer d_value;
 
 }; /* class BitVector */
@@ -331,11 +331,11 @@ BitVector operator*(const BitVector& a, const BitVector& b);
 struct BitVectorExtract
 {
   /** The high bit of the range for this extract */
-  unsigned d_high;
+  uint32_t d_high;
   /** The low bit of the range for this extract */
-  unsigned d_low;
+  uint32_t d_low;
 
-  BitVectorExtract(unsigned high, unsigned low) : d_high(high), d_low(low) {}
+  BitVectorExtract(uint32_t high, uint32_t low) : d_high(high), d_low(low) {}
 
   bool operator==(const BitVectorExtract& extract) const
   {
@@ -349,8 +349,8 @@ struct BitVectorExtract
 struct BitVectorBit
 {
   /** The index of the bit */
-  unsigned d_bitIndex;
-  BitVectorBit(unsigned i) : d_bitIndex(i) {}
+  uint32_t d_bitIndex;
+  BitVectorBit(uint32_t i) : d_bitIndex(i) {}
 
   bool operator==(const BitVectorBit& other) const
   {
@@ -360,63 +360,63 @@ struct BitVectorBit
 
 struct BitVectorSize
 {
-  unsigned d_size;
-  BitVectorSize(unsigned size) : d_size(size) {}
-  operator unsigned() const { return d_size; }
+  uint32_t d_size;
+  BitVectorSize(uint32_t size) : d_size(size) {}
+  operator uint32_t() const { return d_size; }
 }; /* struct BitVectorSize */
 
 struct BitVectorRepeat
 {
-  unsigned d_repeatAmount;
-  BitVectorRepeat(unsigned repeatAmount) : d_repeatAmount(repeatAmount) {}
-  operator unsigned() const { return d_repeatAmount; }
+  uint32_t d_repeatAmount;
+  BitVectorRepeat(uint32_t repeatAmount) : d_repeatAmount(repeatAmount) {}
+  operator uint32_t() const { return d_repeatAmount; }
 }; /* struct BitVectorRepeat */
 
 struct BitVectorZeroExtend
 {
-  unsigned d_zeroExtendAmount;
-  BitVectorZeroExtend(unsigned zeroExtendAmount)
+  uint32_t d_zeroExtendAmount;
+  BitVectorZeroExtend(uint32_t zeroExtendAmount)
       : d_zeroExtendAmount(zeroExtendAmount)
   {
   }
-  operator unsigned() const { return d_zeroExtendAmount; }
+  operator uint32_t() const { return d_zeroExtendAmount; }
 }; /* struct BitVectorZeroExtend */
 
 struct BitVectorSignExtend
 {
-  unsigned d_signExtendAmount;
-  BitVectorSignExtend(unsigned signExtendAmount)
+  uint32_t d_signExtendAmount;
+  BitVectorSignExtend(uint32_t signExtendAmount)
       : d_signExtendAmount(signExtendAmount)
   {
   }
-  operator unsigned() const { return d_signExtendAmount; }
+  operator uint32_t() const { return d_signExtendAmount; }
 }; /* struct BitVectorSignExtend */
 
 struct BitVectorRotateLeft
 {
-  unsigned d_rotateLeftAmount;
-  BitVectorRotateLeft(unsigned rotateLeftAmount)
+  uint32_t d_rotateLeftAmount;
+  BitVectorRotateLeft(uint32_t rotateLeftAmount)
       : d_rotateLeftAmount(rotateLeftAmount)
   {
   }
-  operator unsigned() const { return d_rotateLeftAmount; }
+  operator uint32_t() const { return d_rotateLeftAmount; }
 }; /* struct BitVectorRotateLeft */
 
 struct BitVectorRotateRight
 {
-  unsigned d_rotateRightAmount;
-  BitVectorRotateRight(unsigned rotateRightAmount)
+  uint32_t d_rotateRightAmount;
+  BitVectorRotateRight(uint32_t rotateRightAmount)
       : d_rotateRightAmount(rotateRightAmount)
   {
   }
-  operator unsigned() const { return d_rotateRightAmount; }
+  operator uint32_t() const { return d_rotateRightAmount; }
 }; /* struct BitVectorRotateRight */
 
 struct IntToBitVector
 {
-  unsigned d_size;
-  IntToBitVector(unsigned size) : d_size(size) {}
-  operator unsigned() const { return d_size; }
+  uint32_t d_size;
+  IntToBitVector(uint32_t size) : d_size(size) {}
+  operator uint32_t() const { return d_size; }
 }; /* struct IntToBitVector */
 
 /* -----------------------------------------------------------------------
