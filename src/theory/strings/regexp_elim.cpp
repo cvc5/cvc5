@@ -347,9 +347,9 @@ Node RegExpElimination::eliminateConcat(Node atom, bool isAgg)
         std::vector<Node> children2;
         for (const Node& v : non_greedy_find_vars)
         {
-          Node bound = nm->mkNode(Kind::AND,
-                                  nm->mkNode(Kind::LEQ, zero, v),
-                                  nm->mkNode(Kind::LT, v, lenx));
+          Node bound = nm->mkNode(
+              Kind::AND,
+              {nm->mkNode(Kind::LEQ, zero, v), nm->mkNode(Kind::LT, v, lenx)});
           children2.push_back(bound);
         }
         children2.push_back(res);
@@ -468,8 +468,8 @@ Node RegExpElimination::eliminateConcat(Node atom, bool isAgg)
             BoundVarId::STRINGS_RE_ELIM_CONCAT_INDEX, cacheVal, intType);
         Node bound = nm->mkNode(
             Kind::AND,
-            nm->mkNode(Kind::LEQ, zero, k),
-            nm->mkNode(Kind::LEQ, k, nm->mkNode(Kind::SUB, lenx, lens)));
+            {nm->mkNode(Kind::LEQ, zero, k),
+             nm->mkNode(Kind::LEQ, k, nm->mkNode(Kind::SUB, lenx, lens))});
         echildren.push_back(bound);
       }
       Node substrEq = nm->mkNode(Kind::STRING_SUBSTR, x, k, lens).eqNode(s);
@@ -586,8 +586,8 @@ Node RegExpElimination::eliminateStar(Node atom, bool isAgg)
   {
     Assert(!char_constraints.empty());
     Node bound = nm->mkNode(Kind::AND,
-                            nm->mkNode(Kind::LEQ, zero, index),
-                            nm->mkNode(Kind::LT, index, lenx));
+                            {nm->mkNode(Kind::LEQ, zero, index),
+                             nm->mkNode(Kind::LT, index, lenx)});
     Node conc = char_constraints.size() == 1
                     ? char_constraints[0]
                     : nm->mkNode(Kind::OR, char_constraints);
@@ -614,10 +614,10 @@ Node RegExpElimination::eliminateStar(Node atom, bool isAgg)
         // lens is a positive constant, so it is safe to use total div/mod here.
         Node bound = nm->mkNode(
             Kind::AND,
-            nm->mkNode(Kind::LEQ, zero, index),
-            nm->mkNode(Kind::LT,
-                       index,
-                       nm->mkNode(Kind::INTS_DIVISION_TOTAL, lenx, lens)));
+            {nm->mkNode(Kind::LEQ, zero, index),
+             nm->mkNode(Kind::LT,
+                        index,
+                        nm->mkNode(Kind::INTS_DIVISION_TOTAL, lenx, lens))});
         Node conc = nm->mkNode(Kind::STRING_SUBSTR,
                                x,
                                nm->mkNode(Kind::MULT, index, lens),

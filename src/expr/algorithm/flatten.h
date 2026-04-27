@@ -113,6 +113,6 @@ Node flatten(NodeManager* nm, TNode t, Kinds... kinds)
   return nm->mkNode(t.getKind(), children);
 }
 
-}  // namespace cvc5::internal::expr
+}  // namespace cvc5::internal::expr::algorithm
 
 #endif

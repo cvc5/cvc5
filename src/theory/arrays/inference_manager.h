@@ -15,9 +15,9 @@
 #ifndef CVC5__THEORY__ARRAYS__INFERENCE_MANAGER_H
 #define CVC5__THEORY__ARRAYS__INFERENCE_MANAGER_H
 
+#include "cvc5/cvc5_proof_rule.h"
 #include "expr/node.h"
 #include "proof/eager_proof_generator.h"
-#include "cvc5/cvc5_proof_rule.h"
 #include "theory/theory_inference_manager.h"
 
 namespace cvc5::internal {

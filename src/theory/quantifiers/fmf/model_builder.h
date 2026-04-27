@@ -47,21 +47,21 @@ class QModelBuilder : public TheoryEngineModelBuilder
                 TermRegistry& tr);
   /** finish init, which sets the model object */
   virtual void finishInit();
-  //do exhaustive instantiation  
-  // 0 :  failed, but resorting to true exhaustive instantiation may work
-  // >0 : success
-  // <0 : failed
+  // do exhaustive instantiation
+  //  0 :  failed, but resorting to true exhaustive instantiation may work
+  //  >0 : success
+  //  <0 : failed
   virtual int doExhaustiveInstantiation(CVC5_UNUSED FirstOrderModel* fm,
                                         CVC5_UNUSED Node f,
                                         CVC5_UNUSED int effort)
   {
     return false;
   }
-  //whether to construct model
+  // whether to construct model
   virtual bool optUseModel();
-  //debug model
+  // debug model
   void debugModel(TheoryModel* m) override;
-  //statistics 
+  // statistics
   unsigned getNumAddedLemmas() { return d_addedLemmas; }
   unsigned getNumTriedLemmas() { return d_triedLemmas; }
   /** get the model we are using */

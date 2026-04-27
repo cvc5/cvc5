@@ -12,6 +12,8 @@
 
 #include "theory/quantifiers/sygus/sygus_unif_rl.h"
 
+#include <math.h>
+
 #include "expr/skolem_manager.h"
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
@@ -20,8 +22,6 @@
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/rewriter.h"
 #include "util/random.h"
-
-#include <math.h>
 
 using namespace cvc5::internal::kind;
 
@@ -1084,9 +1084,13 @@ void SygusUnifRl::DecisionTreeInfo::buildDtInfoGain(std::vector<Node>& hds,
         evaluateCond(hds, conds[j]);
     splits.push_back(split);
     Assert(hds.size() == split.first.size() + split.second.size());
+    // Use split_fst_entropy and split_snd_entropy to ensure deterministic node
+    // ID assignments
+    double split_fst_entropy = getEntropy(split.first, hd_mv);
+    double split_snd_entropy = getEntropy(split.second, hd_mv);
     double gain = current_set_entropy
-                  - (split.first.size() * getEntropy(split.first, hd_mv)
-                     + split.second.size() * getEntropy(split.second, hd_mv))
+                  - (split.first.size() * split_fst_entropy
+                     + split.second.size() * split_snd_entropy)
                         / hds.size();
     indent("sygus-unif-dt-debug", ind);
     Trace("sygus-unif-dt-debug")

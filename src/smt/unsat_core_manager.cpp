@@ -68,9 +68,11 @@ std::vector<Node> UnsatCoreManager::getUnsatCoreLemmas(bool isInternal)
       smt::PrintBenchmark pb(nodeManager(), Printer::getPrinter(ss));
       pb.printBenchmark(
           ss, logicInfo().getLogicString(), coreDefs, coreAsserts);
-      output(OutputTag::UNSAT_CORE_LEMMAS_BENCHMARK) << ";; unsat core + lemmas" << std::endl;
+      output(OutputTag::UNSAT_CORE_LEMMAS_BENCHMARK)
+          << ";; unsat core + lemmas" << std::endl;
       output(OutputTag::UNSAT_CORE_LEMMAS_BENCHMARK) << ss.str();
-      output(OutputTag::UNSAT_CORE_LEMMAS_BENCHMARK) << ";; end unsat core + lemmas" << std::endl;
+      output(OutputTag::UNSAT_CORE_LEMMAS_BENCHMARK)
+          << ";; end unsat core + lemmas" << std::endl;
     }
   }
   return coreLemmas;

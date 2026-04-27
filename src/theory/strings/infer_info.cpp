@@ -20,7 +20,8 @@ namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
-InferInfo::InferInfo(InferenceId id): TheoryInference(id), d_sim(nullptr), d_idRev(false)
+InferInfo::InferInfo(InferenceId id)
+    : TheoryInference(id), d_sim(nullptr), d_idRev(false)
 {
 }
 

@@ -315,7 +315,8 @@ std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
         binName = d_tparser.parseSymbol(CHECK_NONE, SYM_VARIABLE);
       }
       // not supported
-      d_state.warning("Oracles not supported via the text interface in this version");
+      d_state.warning(
+          "Oracles not supported via the text interface in this version");
       cmd.reset(new EmptyCommand());
     }
     break;
@@ -886,7 +887,7 @@ std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
       {
         ss = d_state.stripQuotes(ss);
       }
-      else if (key=="use-portfolio")
+      else if (key == "use-portfolio")
       {
         // we don't allow setting portfolio via the command line
         d_lex.parseError("Can only enable use-portfolio via the command line");

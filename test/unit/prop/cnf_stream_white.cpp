@@ -41,7 +41,8 @@ class FakeSatSolver : public SatSolver
 
   void initialize() override {}
 
-  SatVariable newVar(CVC5_UNUSED bool theoryAtom, CVC5_UNUSED bool canErase) override
+  SatVariable newVar(CVC5_UNUSED bool theoryAtom,
+                     CVC5_UNUSED bool canErase) override
   {
     return d_nextVar++;
   }
@@ -50,7 +51,8 @@ class FakeSatSolver : public SatSolver
 
   SatVariable falseVar() override { return d_nextVar++; }
 
-  ClauseId addClause(CVC5_UNUSED const SatClause& c, CVC5_UNUSED bool lemma) override
+  ClauseId addClause(CVC5_UNUSED const SatClause& c,
+                     CVC5_UNUSED bool lemma) override
   {
     d_addClauseCalled = true;
     return ClauseIdUndef;
@@ -77,20 +79,32 @@ class FakeSatSolver : public SatSolver
     return SAT_VALUE_UNKNOWN;
   }
 
-  SatValue solve(CVC5_UNUSED const std::vector<SatLiteral>& assumptions) override
+  SatValue solve(
+      CVC5_UNUSED const std::vector<SatLiteral>& assumptions) override
   {
     return SAT_VALUE_UNKNOWN;
   }
 
-  void getUnsatAssumptions(CVC5_UNUSED std::vector<SatLiteral>& unsat_assumptions) override
+  void getUnsatAssumptions(
+      CVC5_UNUSED std::vector<SatLiteral>& unsat_assumptions) override
   {
   }
 
-  SatValue value(CVC5_UNUSED SatLiteral l) override { return SAT_VALUE_UNKNOWN; }
+  SatValue value(CVC5_UNUSED SatLiteral l) override
+  {
+    return SAT_VALUE_UNKNOWN;
+  }
 
-  SatValue modelValue(CVC5_UNUSED SatLiteral l) override { return SAT_VALUE_UNKNOWN; }
+  SatValue modelValue(CVC5_UNUSED SatLiteral l) override
+  {
+    return SAT_VALUE_UNKNOWN;
+  }
 
-  bool properExplanation(CVC5_UNUSED SatLiteral lit, CVC5_UNUSED SatLiteral expl) const { return true; }
+  bool properExplanation(CVC5_UNUSED SatLiteral lit,
+                         CVC5_UNUSED SatLiteral expl) const
+  {
+    return true;
+  }
 
   bool ok() const override { return true; }
 

@@ -341,8 +341,7 @@ TEST_F(TestNodeBlackTypeCardinality, lessThan)
       d_nodeManager->mkFloatingPointType(3, 5).isCardinalityLessThan(228));
   ASSERT_FALSE(d_nodeManager->roundingModeType().isCardinalityLessThan(5));
   ASSERT_TRUE(d_nodeManager->roundingModeType().isCardinalityLessThan(6));
-  ASSERT_FALSE(
-      d_nodeManager->mkFiniteFieldType(11).isCardinalityLessThan(11));
+  ASSERT_FALSE(d_nodeManager->mkFiniteFieldType(11).isCardinalityLessThan(11));
   ASSERT_TRUE(d_nodeManager->mkFiniteFieldType(11).isCardinalityLessThan(13));
 }
 }  // namespace test

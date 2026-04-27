@@ -112,10 +112,10 @@ bool ArithMSum::getMonomialSumLit(Node lit, std::map<Node, Node>& msum)
             }
             else
             {
-              msum[it->first] = it->second.isNull()
-                                    ? nm->mkConstInt(Rational(-1))
-                                    : nm->mkConstRealOrInt(
-                                          -it->second.getConst<Rational>());
+              msum[it->first] =
+                  it->second.isNull()
+                      ? nm->mkConstInt(Rational(-1))
+                      : nm->mkConstRealOrInt(-it->second.getConst<Rational>());
             }
           }
           return true;
@@ -337,7 +337,8 @@ bool ArithMSum::decompose(Node n, Node v, Node& coeff, Node& rem)
   return false;
 }
 
-void ArithMSum::debugPrintMonomialSum(std::map<Node, Node>& msum, CVC5_UNUSED const char* c)
+void ArithMSum::debugPrintMonomialSum(std::map<Node, Node>& msum,
+                                      CVC5_UNUSED const char* c)
 {
   for (std::map<Node, Node>::iterator it = msum.begin(); it != msum.end(); ++it)
   {

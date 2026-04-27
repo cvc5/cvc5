@@ -459,8 +459,8 @@ void JustificationStrategy::addLocalAssertions(const std::vector<TNode>& lems)
   insertToAssertionList(lems, true);
 }
 
-void JustificationStrategy::insertToAssertionList(const std::vector<TNode>& lems,
-                                                  bool local)
+void JustificationStrategy::insertToAssertionList(
+    const std::vector<TNode>& lems, bool local)
 {
   std::vector<TNode> toProcess(lems.begin(), lems.end());
   AssertionList& al = local ? d_localAssertions : d_assertions;

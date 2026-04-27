@@ -495,7 +495,7 @@ class TheoryModel : protected EnvObj
    */
   mutable std::map<Node, Node> d_uf_models;
   //---------------------------- end function values
-};/* class TheoryModel */
+}; /* class TheoryModel */
 
 }  // namespace theory
 }  // namespace cvc5::internal

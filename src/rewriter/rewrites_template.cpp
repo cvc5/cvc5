@@ -27,8 +27,7 @@ namespace rewriter {
 ${decl_individual_rewrites}$
     // clang-format on
 
-    void
-    addRules(NodeManager* nm, RewriteDb& db){
+    void addRules(NodeManager* nm, RewriteDb& db){
         // Calls to individual rewrites
         // clang-format off
   ${call_individual_rewrites}$

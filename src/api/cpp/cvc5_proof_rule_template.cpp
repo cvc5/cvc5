@@ -241,7 +241,8 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::MACRO_BOOL_NNF_NORM: return "macro-bool-nnf-norm";
     case ProofRewriteRule::MACRO_BOOL_EQ_CONST_EQ:
       return "macro-bool-eq-const-eq";
-    case ProofRewriteRule::MACRO_BOOL_BV_INVERT_SOLVE: return "macro-bool-bv-invert-solve";
+    case ProofRewriteRule::MACRO_BOOL_BV_INVERT_SOLVE:
+      return "macro-bool-bv-invert-solve";
     case ProofRewriteRule::MACRO_ARITH_INT_EQ_CONFLICT:
       return "macro-arith-int-eq-conflict";
     case ProofRewriteRule::MACRO_ARITH_INT_GEQ_TIGHTEN:
@@ -260,7 +261,8 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::MACRO_LAMBDA_CAPTURE_AVOID:
       return "macro-lambda-capture-avoid";
     case ProofRewriteRule::ARRAYS_SELECT_CONST: return "arrays-select-const";
-    case ProofRewriteRule::MACRO_ARRAYS_NORMALIZE_OP: return "macro-arrays-normalize-op";
+    case ProofRewriteRule::MACRO_ARRAYS_NORMALIZE_OP:
+      return "macro-arrays-normalize-op";
     case ProofRewriteRule::MACRO_ARRAYS_NORMALIZE_CONSTANT:
       return "macro-arrays-normalize-constant";
     case ProofRewriteRule::ARRAYS_EQ_RANGE_EXPAND:

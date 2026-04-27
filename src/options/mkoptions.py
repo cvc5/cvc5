@@ -281,7 +281,7 @@ def generate_public_includes(modules):
     headers.add(format_include("<unordered_map>"))
     for _, option in all_options(modules):
         headers.update([format_include(x) for x in option.includes])
-    return '\n'.join(headers)
+    return '\n'.join(sorted(headers))
 
 
 def generate_option_enum_and_table(modules):
@@ -307,7 +307,7 @@ def generate_option_enum_and_table(modules):
     for module, option in all_options(modules, True):
         if not option.long:
             continue
-        for name in option.names:
+        for name in sorted(option.names):
             res.append('  {{ \"{}\", OptionEnum::{} }},'
                        .format(name, option.enum_name()))
     res.append('};')

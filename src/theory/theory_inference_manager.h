@@ -18,8 +18,8 @@
 #include <memory>
 
 #include "context/cdhashset.h"
-#include "expr/node.h"
 #include "cvc5/cvc5_proof_rule.h"
+#include "expr/node.h"
 #include "proof/trust_node.h"
 #include "smt/env_obj.h"
 #include "theory/inference_id.h"
@@ -39,7 +39,7 @@ class DecisionManager;
 namespace eq {
 class EqualityEngine;
 class ProofEqEngine;
-}
+}  // namespace eq
 
 /**
  * The base class for inference manager. An inference manager is a wrapper
@@ -387,6 +387,11 @@ class TheoryInferenceManager : protected EnvObj
    * dependent.
    */
   void setRefutationUnsound(IncompleteId id);
+  /**
+   * Mark used. Called when we wish to mark that the output channel is used,
+   * for example, if we wish to recheck.
+   */
+  void markUsed();
   /**
    * Notify this inference manager that a conflict was sent in this SAT context.
    * This method is called via TheoryEngine when a conflict is sent.

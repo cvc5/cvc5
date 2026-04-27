@@ -36,7 +36,9 @@
 
 namespace cvc5::context {
 
-template <class T, class CleanUp = DefaultCleanUp<T>, class Allocator = std::allocator<T> >
+template <class T,
+          class CleanUp = DefaultCleanUp<T>,
+          class Allocator = std::allocator<T> >
 class CDList;
 
 /// \endcond

@@ -36,7 +36,8 @@ class SortInference;
 /**
  * The status of an equality in the current context.
  */
-enum EqualityStatus {
+enum EqualityStatus
+{
   /** The equality is known to be true and has been propagated */
   EQUALITY_TRUE_AND_PROPAGATED,
   /** The equality is known to be false and has been propagated */
@@ -51,7 +52,7 @@ enum EqualityStatus {
   EQUALITY_FALSE_IN_MODEL,
   /** The equality is completely unknown */
   EQUALITY_UNKNOWN
-};/* enum EqualityStatus */
+}; /* enum EqualityStatus */
 
 std::ostream& operator<<(std::ostream& os, EqualityStatus s);
 
@@ -61,12 +62,12 @@ std::ostream& operator<<(std::ostream& os, EqualityStatus s);
  */
 bool equalityStatusCompatible(EqualityStatus s1, EqualityStatus s2);
 
-class Valuation {
+class Valuation
+{
   TheoryEngine* d_engine;
-public:
-  Valuation(TheoryEngine* engine) :
-    d_engine(engine) {
-  }
+
+ public:
+  Valuation(TheoryEngine* engine) : d_engine(engine) {}
 
   /**
    * Return true if n has an associated SAT literal
@@ -101,8 +102,8 @@ public:
   bool hasSatValue(TNode n) const;
 
   /**
-   * Returns the equality status of the two terms, from the theory that owns the domain type.
-   * The types of a and b must be the same.
+   * Returns the equality status of the two terms, from the theory that owns the
+   * domain type. The types of a and b must be the same.
    */
   EqualityStatus getEqualityStatus(TNode a, TNode b);
 
@@ -181,9 +182,9 @@ public:
 
   /**
    * Returns whether the given lit (which must be a SAT literal) is a decision
-   * literal or not.  Throws an exception if lit is not a SAT literal.  "lit" may
-   * be in either phase; that is, if "lit" is a SAT literal, this function returns
-   * true both for lit and the negation of lit.
+   * literal or not.  Throws an exception if lit is not a SAT literal.  "lit"
+   * may be in either phase; that is, if "lit" is a SAT literal, this function
+   * returns true both for lit and the negation of lit.
    */
   bool isDecision(Node lit) const;
 
@@ -242,7 +243,7 @@ public:
   context::CDList<Assertion>::const_iterator factsBegin(TheoryId tid);
   /** The beginning iterator of facts for theory tid.*/
   context::CDList<Assertion>::const_iterator factsEnd(TheoryId tid);
-};/* class Valuation */
+}; /* class Valuation */
 
 }  // namespace theory
 }  // namespace cvc5::internal

@@ -10,7 +10,7 @@
 (program $bv_bitblast_concat ((n Int) (m Int) (k Int) (x Bool) (y (BitVec k) :list) (z (BitVec m)))
   :signature ((BitVec n) (BitVec m)) (BitVec (eo::add n m))
   (
-  (($bv_bitblast_concat (@from_bools x y) z)  (eo::cons @from_bools x ($bv_bitblast_concat y z)))
+  (($bv_bitblast_concat (@from_bools x y) z)  (_ @from_bools x ($bv_bitblast_concat y z)))
   (($bv_bitblast_concat @bv_empty z)          z)
   )
 )
@@ -40,7 +40,7 @@
   :signature (Bool (eo::quote n)) (BitVec n)
   (
     (($bv_bitblast_repeat b 0)  @bv_empty)
-    (($bv_bitblast_repeat b n)  (eo::cons @from_bools b ($bv_bitblast_repeat b (eo::add n -1))))
+    (($bv_bitblast_repeat b n)  (_ @from_bools b ($bv_bitblast_repeat b (eo::add n -1))))
   )
 )
 
@@ -55,7 +55,7 @@
     (($bv_bitblast_prefix 0 t)                   @bv_empty)
     (($bv_bitblast_prefix l @bv_empty)           @bv_empty)
     (($bv_bitblast_prefix l (@from_bools b a))
-      (eo::cons @from_bools b ($bv_bitblast_prefix (eo::add l -1) a)))
+      (_ @from_bools b ($bv_bitblast_prefix (eo::add l -1) a)))
   )
 )
 
@@ -121,7 +121,7 @@
   :signature ((-> Bool Bool) (BitVec n)) (BitVec n)
   (
   (($bv_bitblast_apply_unary f @bv_empty)           @bv_empty)
-  (($bv_bitblast_apply_unary f (@from_bools b1 a1)) (eo::cons @from_bools (f b1) ($bv_bitblast_apply_unary f a1)))
+  (($bv_bitblast_apply_unary f (@from_bools b1 a1)) (_ @from_bools (f b1) ($bv_bitblast_apply_unary f a1)))
   )
 )
 
@@ -135,7 +135,7 @@
   :signature ((-> T T Bool) (BitVec n) (BitVec n)) (BitVec n)
   (
   (($bv_bitblast_apply_binary f @bv_empty @bv_empty)                     @bv_empty)
-  (($bv_bitblast_apply_binary f (@from_bools b1 a1) (@from_bools b2 a2)) (eo::cons @from_bools ($bv_bitblast_binary_app f b1 b2) ($bv_bitblast_apply_binary f a1 a2)))
+  (($bv_bitblast_apply_binary f (@from_bools b1 a1) (@from_bools b2 a2)) (_ @from_bools ($bv_bitblast_binary_app f b1 b2) ($bv_bitblast_apply_binary f a1 a2)))
   )
 )
 
@@ -149,7 +149,7 @@
   :signature (Bool (BitVec n) (BitVec n)) (BitVec n)
   (
   (($bv_bitblast_apply_ite bc @bv_empty @bv_empty)                      @bv_empty)
-  (($bv_bitblast_apply_ite bc (@from_bools b1 a1) (@from_bools b2 a2))  (eo::cons @from_bools (ite bc b1 b2) ($bv_bitblast_apply_ite bc a1 a2)))
+  (($bv_bitblast_apply_ite bc (@from_bools b1 a1) (@from_bools b2 a2))  (_ @from_bools (ite bc b1 b2) ($bv_bitblast_apply_ite bc a1 a2)))
   )
 )
 
@@ -182,7 +182,7 @@
   :signature ((BitVec n) (BitVec n)) Bool
   (
   (($bv_mk_bitblast_step_eq_rec @bv_empty @bv_empty)                      true)
-  (($bv_mk_bitblast_step_eq_rec (@from_bools b1 a1) (@from_bools b2 a2))  (eo::cons and (= b1 b2) ($bv_mk_bitblast_step_eq_rec a1 a2)))
+  (($bv_mk_bitblast_step_eq_rec (@from_bools b1 a1) (@from_bools b2 a2))  (_ and (= b1 b2) ($bv_mk_bitblast_step_eq_rec a1 a2)))
   )
 )
 
@@ -310,7 +310,7 @@
   (
   (($bv_ripple_carry_adder_2 (@from_bools b1 a1) (@from_bools b2 a2) carry res) ($bv_ripple_carry_adder_2 a1 a2 
                                                                                   (or (and b1 b2) (and (xor b1 b2) carry))
-                                                                                  (eo::cons @from_bools (xor (xor b1 b2) carry) res)))
+                                                                                  (_ @from_bools (xor (xor b1 b2) carry) res)))
   (($bv_ripple_carry_adder_2 @bv_empty @bv_empty carry res)                     (@pair carry (eo::list_rev @from_bools res)))
   )
 )
@@ -356,10 +356,10 @@
   (($bv_shift_add_multiplier_rec_step b1 a2 0 @bv_empty carry)                              @bv_empty)
   (($bv_shift_add_multiplier_rec_step b1 (@from_bools b2 a2) 0 (@from_bools br ar) carry)
       (eo::define ((aj (and b1 b2)))
-      (eo::cons @from_bools (xor (xor br aj) carry)
+      (_ @from_bools (xor (xor br aj) carry)
         ($bv_shift_add_multiplier_rec_step b1 a2 0 ar (or (and br aj) (and (xor br aj) carry))))))
   (($bv_shift_add_multiplier_rec_step b1 a2 k (@from_bools br ar) carry)
-      (eo::cons @from_bools br ($bv_shift_add_multiplier_rec_step b1 a2 (eo::add k -1) ar carry)))
+      (_ @from_bools br ($bv_shift_add_multiplier_rec_step b1 a2 (eo::add k -1) ar carry)))
   )
 )
 
@@ -431,7 +431,7 @@
         (eo::define ((cares1 ($bv_ripple_carry_adder_2 r1sa a2n true @bv_empty)))
         (eo::define ((rmb_carry ($pair_first cares1)))
         (eo::define ((rmb ($pair_second cares1)))
-        (eo::define ((q1ss (eo::cons @from_bools (ite (not rmb_carry) ($bv_bitblast_head q1s) true) ($bv_bitblast_tail q1s))))
+        (eo::define ((q1ss (_ @from_bools (ite (not rmb_carry) ($bv_bitblast_head q1s) true) ($bv_bitblast_tail q1s))))
         (eo::define ((r1sa2 ($bv_bitblast_apply_ite (not rmb_carry) r1sa rmb)))
         (eo::define ((cares2 ($bv_ripple_carry_adder_2 a1 a2n true @bv_empty)))
         (eo::define ((amb_carry ($pair_first cares2)))
@@ -476,7 +476,7 @@
   :signature ((BitVec 1) (BitVec n) (BitVec n)) (BitVec n)
   (
   (($bv_mk_bitblast_step_ite (@from_bools bc) (@from_bools b1 a1) (@from_bools b2 a2))
-    (eo::cons @from_bools (and (or (not bc) b1) (or bc b2)) ($bv_mk_bitblast_step_ite (@from_bools bc) a1 a2)))
+    (_ @from_bools (and (or (not bc) b1) (or bc b2)) ($bv_mk_bitblast_step_ite (@from_bools bc) a1 a2)))
   (($bv_mk_bitblast_step_ite (@from_bools bc) @bv_empty @bv_empty) @bv_empty)
   )
 )
@@ -493,7 +493,7 @@
   :signature ((BitVec n) (eo::quote i) Int) (BitVec (eo::add n (eo::neg i)))
   (
     (($bv_const_to_bitlist_rec c n n)   @bv_empty)
-    (($bv_const_to_bitlist_rec c i n)   (eo::cons @from_bools ($bv_bit_set c i) ($bv_const_to_bitlist_rec c (eo::add i 1) n)))
+    (($bv_const_to_bitlist_rec c i n)   (_ @from_bools ($bv_bit_set c i) ($bv_const_to_bitlist_rec c (eo::add i 1) n)))
   )
 )
 
@@ -520,9 +520,9 @@
   (
   (($bv_mk_bitblast_step_shl_rec_step @bv_empty a1c i b2)                              @bv_empty)
   (($bv_mk_bitblast_step_shl_rec_step (@from_bools b1 a1) (@from_bools b1c a1c) 0 b2)
-    (eo::cons @from_bools (ite b2 b1c b1) ($bv_mk_bitblast_step_shl_rec_step a1 a1c 0 b2)))
+    (_ @from_bools (ite b2 b1c b1) ($bv_mk_bitblast_step_shl_rec_step a1 a1c 0 b2)))
   (($bv_mk_bitblast_step_shl_rec_step (@from_bools b1 a1) a1c i b2)
-    (eo::cons @from_bools (ite b2 false b1) ($bv_mk_bitblast_step_shl_rec_step a1 a1c (eo::add i -1) b2)))
+    (_ @from_bools (ite b2 false b1) ($bv_mk_bitblast_step_shl_rec_step a1 a1c (eo::add i -1) b2)))
   )
 )
 
@@ -573,9 +573,9 @@
   (
   (($bv_mk_bitblast_step_shr_rec_step @bv_empty a1c i b2 sbit)                              @bv_empty)
   (($bv_mk_bitblast_step_shr_rec_step (@from_bools b1 a1) (@from_bools b1c a1c) 0 b2 sbit)
-    (eo::cons @from_bools (ite (not b2) b1 b1c) ($bv_mk_bitblast_step_shr_rec_step a1 a1c 0 b2 sbit)))
+    (_ @from_bools (ite (not b2) b1 b1c) ($bv_mk_bitblast_step_shr_rec_step a1 a1c 0 b2 sbit)))
   (($bv_mk_bitblast_step_shr_rec_step (@from_bools b1 a1) @bv_empty 0 b2 sbit)
-    (eo::cons @from_bools (ite b2 sbit b1) ($bv_mk_bitblast_step_shr_rec_step a1 @bv_empty 0 b2 sbit)))
+    (_ @from_bools (ite b2 sbit b1) ($bv_mk_bitblast_step_shr_rec_step a1 @bv_empty 0 b2 sbit)))
   (($bv_mk_bitblast_step_shr_rec_step a1 (@from_bools b1c a1c) i b2 sbit)
     ($bv_mk_bitblast_step_shr_rec_step a1 a1c (eo::add i -1) b2 sbit))
   )
@@ -625,7 +625,7 @@
   :signature ((BitVec n) (eo::quote i)) (BitVec (eo::add i 1))
   (
     (($bv_mk_bitblast_step_var_rec a -1)  @bv_empty)
-    (($bv_mk_bitblast_step_var_rec a i)   (eo::cons @from_bools (@bit i a) ($bv_mk_bitblast_step_var_rec a (eo::add i -1))))
+    (($bv_mk_bitblast_step_var_rec a i)   (_ @from_bools (@bit i a) ($bv_mk_bitblast_step_var_rec a (eo::add i -1))))
   )
 )
 

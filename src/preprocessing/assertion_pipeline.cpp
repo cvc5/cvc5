@@ -108,7 +108,7 @@ void AssertionPipeline::push_back(
           NodeManager* nm = nodeManager();
           for (size_t j = 0, nchild = nc.getNumChildren(); j < nchild; j++)
           {
-            size_t jj = (nchild-1)-j;
+            size_t jj = (nchild - 1) - j;
             Node in = nm->mkConstInt(Rational(jj));
             // Never overwrite here. This is because the assumption we would
             // overwrite might be at a lower user context. Overwriting the

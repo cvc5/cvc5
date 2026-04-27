@@ -19,10 +19,7 @@ namespace smt {
 
 ResourceOutListener::ResourceOutListener(SolverEngine& slv) : d_slv(slv) {}
 
-void ResourceOutListener::notify()
-{
-  d_slv.interrupt();
-}
+void ResourceOutListener::notify() { d_slv.interrupt(); }
 
 }  // namespace smt
 }  // namespace cvc5::internal

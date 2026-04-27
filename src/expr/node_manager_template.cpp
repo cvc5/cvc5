@@ -984,12 +984,12 @@ TypeNode NodeManager::mkNullableType(const TypeNode& type)
   std::stringstream sst;
   sst << "__cvc5_nullable_" << type;
   DType dt(sst.str());
-  dt.setNullable();  
+  dt.setNullable();
   std::shared_ptr<DTypeConstructor> null =
       std::make_shared<DTypeConstructor>("nullable.null");
   dt.addConstructor(null);
   std::shared_ptr<DTypeConstructor> some =
-      std::make_shared<DTypeConstructor>("nullable.some");  
+      std::make_shared<DTypeConstructor>("nullable.some");
   some->addArg("nullable.val", type);
   dt.addConstructor(some);
   TypeNode datatype = mkDatatypeType(dt);
@@ -1435,24 +1435,6 @@ Kind NodeManager::getKindForFunction(TNode fun)
     return Kind::APPLY_UPDATER;
   }
   return Kind::UNDEFINED_KIND;
-}
-
-Node NodeManager::mkNode(Kind kind, std::initializer_list<TNode> children)
-{
-  NodeBuilder nb(this, kind);
-  nb.append(children.begin(), children.end());
-  return nb.constructNode();
-}
-
-Node NodeManager::mkNode(TNode opNode, std::initializer_list<TNode> children)
-{
-  NodeBuilder nb(this, operatorToKind(opNode));
-  if (opNode.getKind() != Kind::BUILTIN)
-  {
-    nb << opNode;
-  }
-  nb.append(children.begin(), children.end());
-  return nb.constructNode();
 }
 
 Node NodeManager::mkConstReal(const Rational& r)

@@ -92,9 +92,9 @@ struct signedToLiteralType<false>
 };
 
 /**
- * This extends the interface for cvc5::internal::BitVector for compatibility with symFPU.
- * The template parameter distinguishes signed and unsigned bit-vectors, a
- * distinction symfpu uses.
+ * This extends the interface for cvc5::internal::BitVector for compatibility
+ * with symFPU. The template parameter distinguishes signed and unsigned
+ * bit-vectors, a distinction symfpu uses.
  */
 template <bool isSigned>
 class wrappedBitVector : public BitVector
@@ -197,6 +197,8 @@ class wrappedBitVector : public BitVector
   wrappedBitVector<isSigned> modularIncrement() const;
   wrappedBitVector<isSigned> modularDecrement() const;
   wrappedBitVector<isSigned> modularAdd(
+      const wrappedBitVector<isSigned>& op) const;
+  wrappedBitVector<isSigned> modularSubtract(
       const wrappedBitVector<isSigned>& op) const;
   wrappedBitVector<isSigned> modularNegate() const;
 

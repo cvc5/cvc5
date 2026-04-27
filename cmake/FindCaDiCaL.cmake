@@ -21,8 +21,8 @@ find_library(CaDiCaL_LIBRARIES NAMES cadical)
 set(CaDiCaL_FOUND_SYSTEM FALSE)
 if(CaDiCaL_INCLUDE_DIR AND CaDiCaL_LIBRARIES)
 
-  # Generate our version check file in CMAKE_BINARY_DIR
-  set(CaDiCaL_version_src "${CMAKE_BINARY_DIR}/CaDiCaL_version.cpp")
+  # Generate our version check file in PROJECT_BINARY_DIR
+  set(CaDiCaL_version_src "${PROJECT_BINARY_DIR}/CaDiCaL_version.cpp")
   file(WRITE ${CaDiCaL_version_src}
     "
     #include <cadical/cadical.hpp>
@@ -48,7 +48,7 @@ if(CaDiCaL_INCLUDE_DIR AND CaDiCaL_LIBRARIES)
   # Try to compile and run our version file
   try_run(RUN_RESULT_VAR
     COMPILE_RESULT_VAR
-    ${CMAKE_BINARY_DIR}
+    ${PROJECT_BINARY_DIR}
     ${CaDiCaL_version_src}
     LINK_LIBRARIES ${CaDiCaL_LIBRARIES}
     RUN_OUTPUT_VARIABLE CaDiCaL_VERSION

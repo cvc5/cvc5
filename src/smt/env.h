@@ -56,7 +56,7 @@ class TrustSubstitutionMap;
 namespace quantifiers {
 class OracleChecker;
 }
-}
+}  // namespace theory
 
 /**
  * The environment class.
@@ -175,8 +175,8 @@ class Env
   /**
    * Return the output stream for the given output tag. If the output tag is
    * enabled, this returns the output stream from the `out` option. Otherwise,
-   * a null stream (`cvc5::internal::null_os`) is returned. The user of this method needs
-   * to make sure that a proper S-expression is printed.
+   * a null stream (`cvc5::internal::null_os`) is returned. The user of this
+   * method needs to make sure that a proper S-expression is printed.
    */
   std::ostream& output(OutputTag tag) const;
 

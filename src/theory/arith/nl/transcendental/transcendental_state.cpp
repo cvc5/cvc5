@@ -118,7 +118,8 @@ void TranscendentalState::init(const std::vector<Node>& xts,
         d_trPurifies[a] = a;
       }
     }
-    Trace("nl-ext-trans-init") << "extf: " << a << ", consider=" << consider << std::endl;
+    Trace("nl-ext-trans-init")
+        << "extf: " << a << ", consider=" << consider << std::endl;
     if (!consider)
     {
       // must assign a purified term
@@ -238,8 +239,8 @@ void TranscendentalState::getCurrentPiBounds()
   {
     NodeManager* nm = nodeManager();
     Node pi_lem = nm->mkNode(Kind::AND,
-                             nm->mkNode(Kind::GEQ, d_pi, d_pi_bound[0]),
-                             nm->mkNode(Kind::LEQ, d_pi, d_pi_bound[1]));
+                             {nm->mkNode(Kind::GEQ, d_pi, d_pi_bound[0]),
+                              nm->mkNode(Kind::LEQ, d_pi, d_pi_bound[1])});
     CDProof* proof = nullptr;
     if (isProofEnabled())
     {
@@ -297,10 +298,10 @@ Node TranscendentalState::mkSecantPlane(
       nm->mkNode(Kind::ADD,
                  lval,
                  nm->mkNode(Kind::MULT,
-                            nm->mkNode(Kind::DIVISION,
-                                       nm->mkNode(Kind::SUB, lval, uval),
-                                       nm->mkNode(Kind::SUB, lower, upper)),
-                            nm->mkNode(Kind::SUB, arg, lower)));
+                            {nm->mkNode(Kind::DIVISION,
+                                        {nm->mkNode(Kind::SUB, lval, uval),
+                                         nm->mkNode(Kind::SUB, lower, upper)}),
+                             nm->mkNode(Kind::SUB, arg, lower)}));
   Trace("nl-trans") << "Creating secant plane for transcendental function of "
                     << arg << std::endl;
   Trace("nl-trans") << "\tfrom ( " << lower << " ; " << lval << " ) to ( "
@@ -336,8 +337,8 @@ NlLemma TranscendentalState::mkSecantLemma(TNode lower,
   // This is sound since we are guarded by the symbolic
   // representation of PI/2.
   Node antec_n = nm->mkNode(Kind::AND,
-                            nm->mkNode(Kind::GEQ, tf[0], lower),
-                            nm->mkNode(Kind::LEQ, tf[0], upper));
+                            {nm->mkNode(Kind::GEQ, tf[0], lower),
+                             nm->mkNode(Kind::LEQ, tf[0], upper)});
   Trace("nl-trans") << "Bound for secant plane: " << lower << " <= " << tf[0]
                     << " <= " << upper << std::endl;
   Trace("nl-trans") << "\t" << antec_n << std::endl;

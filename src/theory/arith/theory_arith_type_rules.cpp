@@ -256,7 +256,7 @@ TypeNode PowTypeRule::computeType(CVC5_UNUSED NodeManager* nodeManager,
                                   CVC5_UNUSED bool check,
                                   std::ostream* errOut)
 {
-  Assert (n.getKind() == Kind::POW);
+  Assert(n.getKind() == Kind::POW);
   TypeNode arg1 = n[0].getTypeOrNull();
   TypeNode arg2 = n[1].getTypeOrNull();
   TypeNode t = arg1.leastUpperBound(arg2);

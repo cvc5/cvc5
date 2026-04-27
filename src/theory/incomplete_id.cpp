@@ -59,7 +59,8 @@ const char* toString(IncompleteId i)
     case IncompleteId::PREPROCESSING: return "PREPROCESSING";
     case IncompleteId::UNKNOWN: return "UNKNOWN";
     default:
-      DebugUnhandled() << "No print for incomplete id " << static_cast<size_t>(i);
+      DebugUnhandled() << "No print for incomplete id "
+                       << static_cast<size_t>(i);
       return "?IncompleteId?";
   }
 }

@@ -21,10 +21,10 @@
 #include <vector>
 
 #include "options/arith_options.h"
+#include "theory/arith/delta_rational.h"
 #include "theory/arith/linear/arithvar.h"
 #include "theory/arith/linear/bound_counts.h"
 #include "theory/arith/linear/callbacks.h"
-#include "theory/arith/delta_rational.h"
 #include "theory/arith/linear/partial_model.h"
 #include "theory/arith/linear/tableau_sizes.h"
 #include "util/bin_heap.h"
@@ -33,7 +33,6 @@
 namespace cvc5::internal {
 namespace theory {
 namespace arith::linear {
-
 
 /**
  * The priority queue has 3 different modes of operation:
@@ -48,7 +47,8 @@ namespace arith::linear {
  *   to determine which to dequeue first.
  *
  * - Variable Order Queue
- *   This mode uses the variable order to determine which ArithVar is dequeued first.
+ *   This mode uses the variable order to determine which ArithVar is dequeued
+ * first.
  *
  * The transitions between the modes of operation are:
  *  Collection => Difference Queue
@@ -59,11 +59,11 @@ namespace arith::linear {
  * The queue begins in Collection mode.
  */
 
-
 class ErrorSet;
 
-class ComparatorPivotRule {
-private:
+class ComparatorPivotRule
+{
+ private:
   const ErrorSet* d_errorSet;
 
   options::ErrorSelectionRule d_rule;
@@ -94,9 +94,9 @@ private:
 typedef BinaryHeap<ArithVar, ComparatorPivotRule> FocusSet;
 typedef FocusSet::handle FocusSetHandle;
 
-
-class ErrorInformation {
-private:
+class ErrorInformation
+{
+ private:
   /** The variable that is in error. */
   ArithVar d_variable;
 
@@ -130,15 +130,15 @@ private:
   FocusSetHandle d_handle;
 
   /**
-   * Auxillary information for storing the difference between a variable and its bound.
-   * Only set on signals.
+   * Auxillary information for storing the difference between a variable and its
+   * bound. Only set on signals.
    */
   std::unique_ptr<DeltaRational> d_amount;
 
   /** */
   uint32_t d_metric;
 
-public:
+ public:
   ErrorInformation();
   ErrorInformation(ArithVar var, ConstraintP vio, int sgn);
   ~ErrorInformation();
@@ -164,13 +164,12 @@ public:
   inline int sgn() const { return d_sgn; }
 
   inline bool inFocus() const { return d_inFocus; }
-  inline int focusSgn() const {
-    return (d_inFocus) ? sgn() : 0;
-  }
+  inline int focusSgn() const { return (d_inFocus) ? sgn() : 0; }
 
   inline void setInFocus(bool inFocus) { d_inFocus = inFocus; }
 
-  const DeltaRational& getAmount() const {
+  const DeltaRational& getAmount() const
+  {
     Assert(d_amount != nullptr);
     return *d_amount;
   }
@@ -179,26 +178,24 @@ public:
   void setMetric(uint32_t m) { d_metric = m; }
   uint32_t getMetric() const { return d_metric; }
 
-  inline void setHandle(FocusSetHandle h) {
+  inline void setHandle(FocusSetHandle h)
+  {
     Assert(d_inFocus);
     d_handle = h;
   }
-  inline const FocusSetHandle& getHandle() const{ return d_handle; }
+  inline const FocusSetHandle& getHandle() const { return d_handle; }
 
   inline ConstraintP getViolated() const { return d_violated; }
 
-  bool debugInitialized() const {
-    return
-      d_variable != ARITHVAR_SENTINEL &&
-      d_violated != NullConstraint &&
-      d_sgn != 0;
+  bool debugInitialized() const
+  {
+    return d_variable != ARITHVAR_SENTINEL && d_violated != NullConstraint
+           && d_sgn != 0;
   }
-  void print(std::ostream& os) const {
-    os << "{ErrorInfo: " << d_variable
-       << ", " << d_violated
-       << ", " << d_sgn
-       << ", " << d_relaxed
-       << ", " << d_inFocus;
+  void print(std::ostream& os) const
+  {
+    os << "{ErrorInfo: " << d_variable << ", " << d_violated << ", " << d_sgn
+       << ", " << d_relaxed << ", " << d_inFocus;
     if (d_amount == nullptr)
     {
       os << "nullptr";
@@ -211,10 +208,13 @@ public:
   }
 };
 
-class ErrorInfoMap : public DenseMap<ErrorInformation> {};
+class ErrorInfoMap : public DenseMap<ErrorInformation>
+{
+};
 
-class ErrorSet {
-private:
+class ErrorSet
+{
+ private:
   /**
    * Reference to the arithmetic partial model for checking if a variable
    * is consistent with its upper and lower bounds.
@@ -232,7 +232,6 @@ private:
    */
   FocusSet d_focus;
 
-
   /**
    * A strict subset of the error set.
    *   d_outOfFocus \neq d_errInfo.
@@ -244,9 +243,9 @@ private:
   ArithVarVec d_outOfFocus;
 
   /**
-   * Before a variable is added to the error set, it is added to the signals list.
-   * A variable may appear on the list multiple times.
-   * This introduces a delay.
+   * Before a variable is added to the error set, it is added to the signals
+   * list. A variable may appear on the list multiple times. This introduces a
+   * delay.
    */
   ArithVarVec d_signals;
 
@@ -257,24 +256,28 @@ private:
   /**
    * Computes the difference between the assignment and its bound for x.
    */
-public:
+ public:
   DeltaRational computeDiff(ArithVar x) const;
-private:
- void recomputeAmount(ErrorInformation& ei, options::ErrorSelectionRule r);
 
- void update(ErrorInformation& ei);
- void transitionVariableOutOfError(ArithVar v);
- void transitionVariableIntoError(ArithVar v);
- void addBackIntoFocus(ArithVar v);
+ private:
+  void recomputeAmount(ErrorInformation& ei, options::ErrorSelectionRule r);
 
-public:
+  void update(ErrorInformation& ei);
+  void transitionVariableOutOfError(ArithVar v);
+  void transitionVariableIntoError(ArithVar v);
+  void addBackIntoFocus(ArithVar v);
 
+ public:
   /** The new focus set is the entire error set. */
   void blur();
   void dropFromFocus(ArithVar v);
 
-  void dropFromFocusAll(const ArithVarVec& vec) {
-    for(ArithVarVec::const_iterator i = vec.begin(), i_end = vec.end(); i != i_end; ++i){
+  void dropFromFocusAll(const ArithVarVec& vec)
+  {
+    for (ArithVarVec::const_iterator i = vec.begin(), i_end = vec.end();
+         i != i_end;
+         ++i)
+    {
       ArithVar v = *i;
       dropFromFocus(v);
     }
@@ -298,48 +301,50 @@ public:
   options::ErrorSelectionRule getSelectionRule() const;
   void setSelectionRule(options::ErrorSelectionRule rule);
 
-  inline ArithVar topFocusVariable() const{
+  inline ArithVar topFocusVariable() const
+  {
     Assert(!focusEmpty());
     return d_focus.top();
   }
 
-  inline void signalVariable(ArithVar var){
-    d_signals.push_back(var);
+  inline void signalVariable(ArithVar var) { d_signals.push_back(var); }
+
+  inline void signalUnderCnd(ArithVar var, bool b)
+  {
+    if (b)
+    {
+      signalVariable(var);
+    }
   }
 
-  inline void signalUnderCnd(ArithVar var, bool b){
-    if(b){ signalVariable(var); }
+  inline bool inconsistent(ArithVar var) const
+  {
+    return !d_variables.assignmentIsConsistent(var);
   }
-
-  inline bool inconsistent(ArithVar var) const{
-    return !d_variables.assignmentIsConsistent(var) ;
-  }
-  inline void signalIfInconsistent(ArithVar var){
+  inline void signalIfInconsistent(ArithVar var)
+  {
     signalUnderCnd(var, inconsistent(var));
   }
 
-  inline bool errorEmpty() const{
-    return d_errInfo.empty();
-  }
-  inline uint32_t errorSize() const{
-    return d_errInfo.size();
-  }
+  inline bool errorEmpty() const { return d_errInfo.empty(); }
+  inline uint32_t errorSize() const { return d_errInfo.size(); }
 
-  inline bool focusEmpty() const {
-    return d_focus.empty();
-  }
-  inline uint32_t focusSize() const{
-    return d_focus.size();
-  }
+  inline bool focusEmpty() const { return d_focus.empty(); }
+  inline uint32_t focusSize() const { return d_focus.size(); }
 
-  inline int getSgn(ArithVar x) const {
+  inline int getSgn(ArithVar x) const
+  {
     Assert(inError(x));
     return d_errInfo[x].sgn();
   }
-  inline int focusSgn(ArithVar v) const {
-    if(inError(v)){
+  inline int focusSgn(ArithVar v) const
+  {
+    if (inError(v))
+    {
       return d_errInfo[v].focusSgn();
-    }else{
+    }
+    else
+    {
       return 0;
     }
   }
@@ -352,13 +357,10 @@ public:
   void clear();
   void reduceToSignals();
 
-  bool noSignals() const {
-    return d_signals.empty();
-  }
-  bool moreSignals() const {
-    return !noSignals();
-  }
-  ArithVar topSignal() const {
+  bool noSignals() const { return d_signals.empty(); }
+  bool moreSignals() const { return !noSignals(); }
+  ArithVar topSignal() const
+  {
     Assert(moreSignals());
     return d_signals.back();
   }
@@ -370,28 +372,29 @@ public:
    */
   int popSignal();
 
-  const DeltaRational& getAmount(ArithVar v) const {
+  const DeltaRational& getAmount(ArithVar v) const
+  {
     return d_errInfo[v].getAmount();
   }
 
-  uint32_t sumMetric(ArithVar a) const{
+  uint32_t sumMetric(ArithVar a) const
+  {
     Assert(inError(a));
     BoundCounts bcs = d_boundLookup.atBounds(a);
-    uint32_t count = getSgn(a) > 0 ? bcs.upperBoundCount() : bcs.lowerBoundCount();
+    uint32_t count =
+        getSgn(a) > 0 ? bcs.upperBoundCount() : bcs.lowerBoundCount();
 
     uint32_t length = d_tableauSizes.getRowLength(a);
 
     return (length - count);
   }
 
-  uint32_t getMetric(ArithVar a) const {
-    return d_errInfo[a].getMetric();
-  }
+  uint32_t getMetric(ArithVar a) const { return d_errInfo[a].getMetric(); }
 
-  ConstraintP getViolated(ArithVar a) const {
+  ConstraintP getViolated(ArithVar a) const
+  {
     return d_errInfo[a].getViolated();
   }
-
 
   typedef FocusSet::const_iterator focus_iterator;
   focus_iterator focusBegin() const { return d_focus.begin(); }
@@ -399,9 +402,10 @@ public:
 
   void debugPrint(std::ostream& out) const;
 
-private:
-  class Statistics {
-  public:
+ private:
+  class Statistics
+  {
+   public:
     IntStat d_enqueues;
     IntStat d_enqueuesCollection;
     IntStat d_enqueuesDiffMode;
@@ -416,6 +420,6 @@ private:
   Statistics d_statistics;
 };
 
-}  // namespace arith
+}  // namespace arith::linear
 }  // namespace theory
 }  // namespace cvc5::internal

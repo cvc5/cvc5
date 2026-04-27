@@ -262,9 +262,9 @@ bool Cegis::addEvalLemmas(const std::vector<Node>& candidates,
                          << " evaluation unfold lemmas.\n";
     for (unsigned i = 0, size = eager_terms.size(); i < size; ++i)
     {
-      Node lem = nm->mkNode(Kind::OR,
-                            eager_exps[i].negate(),
-                            eager_terms[i].eqNode(eager_vals[i]));
+      Node lem = nm->mkNode(
+          Kind::OR,
+          {eager_exps[i].negate(), eager_terms[i].eqNode(eager_vals[i])});
       // apply the substitution, which ensures that this lemma does not
       // contain free variables (e.g. if using forward declarations).
       lem = d_euSubs.apply(lem);
@@ -369,8 +369,8 @@ bool Cegis::constructCandidates(const std::vector<Node>& enums,
         NodeManager* nm = nodeManager();
         Node expn = exp.size() == 1 ? exp[0] : nm->mkNode(Kind::AND, exp);
         // must guard it
-        expn = nm->mkNode(
-            Kind::OR, d_parent->getConjecture().negate(), expn.negate());
+        expn = nm->mkNode(Kind::OR,
+                          {d_parent->getConjecture().negate(), expn.negate()});
         d_qim.addPendingLemma(
             expn, InferenceId::QUANTIFIERS_SYGUS_REPAIR_CONST_EXCLUDE);
       }
@@ -648,8 +648,8 @@ bool Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
         }
         if (std::find(lems.begin(), lems.end(), cre_lem) == lems.end())
         {
-          Trace("sygus-cref-eval") << "...produced lemma : " << cre_lem
-                                   << std::endl;
+          Trace("sygus-cref-eval")
+              << "...produced lemma : " << cre_lem << std::endl;
           lems.push_back(cre_lem);
         }
       }
@@ -719,8 +719,8 @@ bool Cegis::sampleAddRefinementLemma(const std::vector<Node>& candidates,
                           << std::endl;
     for (unsigned i = 0, size = vals.size(); i < size; i++)
     {
-      Trace("cegis-sample") << "  " << candidates[i] << " -> " << vals[i]
-                            << std::endl;
+      Trace("cegis-sample")
+          << "  " << candidates[i] << " -> " << vals[i] << std::endl;
     }
   }
   Assert(vals.size() == candidates.size());
@@ -737,8 +737,8 @@ bool Cegis::sampleAddRefinementLemma(const std::vector<Node>& candidates,
     if (d_cegis_sample_refine.find(i) == d_cegis_sample_refine.end())
     {
       Node ev = d_cegis_sampler.evaluate(sbody, i);
-      Trace("cegis-sample-debug") << "...evaluate point #" << i << " to " << ev
-                                  << std::endl;
+      Trace("cegis-sample-debug")
+          << "...evaluate point #" << i << " to " << ev << std::endl;
       Assert(ev.getType().isBoolean());
       // if it evaluates to false
       if (ev.isConst() && !ev.getConst<bool>())

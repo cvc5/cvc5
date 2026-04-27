@@ -25,7 +25,7 @@
 (program $mk_skolems ((x @List) (xs @List :list) (F Bool) (i Int))
   :signature (@List Bool Int) @List
   (
-    (($mk_skolems (@list x xs) F i) (eo::cons @list (@quantifiers_skolemize F i) ($mk_skolems xs F (eo::add i 1))))
+    (($mk_skolems (@list x xs) F i) (_ @list (@quantifiers_skolemize F i) ($mk_skolems xs F (eo::add i 1))))
     (($mk_skolems @list.nil F i)    @list.nil)
   )
 )
@@ -139,7 +139,7 @@
   (($mk_quant_unused_vars_rec (@list x xs) F) (eo::define ((r ($mk_quant_unused_vars_rec xs F)))
                                               (eo::ite ($contains_atomic_term F x)
                                                 ; remove the duplicate of x in r if it exists
-                                                (eo::cons @list x (eo::list_erase @list r x))
+                                                (_ @list x (eo::list_erase @list r x))
                                                 r)))
   )
 )
@@ -212,7 +212,7 @@
 (program $mk_quant_miniscope_and ((x @List) (f Bool) (fs Bool :list))
   :signature (@List Bool) Bool
   (
-  (($mk_quant_miniscope_and x (and f fs)) (eo::cons and (forall x f) ($mk_quant_miniscope_and x fs)))
+  (($mk_quant_miniscope_and x (and f fs)) (_ and (forall x f) ($mk_quant_miniscope_and x fs)))
   (($mk_quant_miniscope_and x true)       true)
   )
 )
@@ -364,11 +364,12 @@
 (program $is_quant_dt_split ((T Type) (x T) (C Type) (c C) (cs eo::List :list) (ys @List) (F Bool) (g Bool) (G Bool :list))
   :signature (T eo::List @List Bool Bool) Bool
   (
-    (($is_quant_dt_split x (eo::List::cons c cs) ys F (and g G)) (eo::requires
-                                                                    ($is_quant_dt_split_conj x c ys F g) true
-                                                                    ($is_quant_dt_split x cs ys F G)))
+    (($is_quant_dt_split x (eo::List::cons c cs) ys F (and g G))
+      (eo::requires ($is_quant_dt_split_conj x c ys F g) true
+         ($is_quant_dt_split x cs ys F G)))
     (($is_quant_dt_split x eo::List::nil ys F true)              true)
-    (($is_quant_dt_split x cs ys F g)                            ($is_quant_dt_split x cs ys F (and g)))  ; singleton case
+    (($is_quant_dt_split x (eo::List::cons c cs) ys F g)
+      (eo::requires cs eo::List::nil ($is_quant_dt_split_conj x c ys F g)))  ; singleton case
   )
 )
 

@@ -44,7 +44,6 @@ Node SkolemCache::getEqRangeVar(NodeManager* nm, TNode eqr)
   return bvm->mkBoundVar(BoundVarId::ARRAYS_EQ_RANGE, eqr, eqr[2].getType());
 }
 
-
 }  // namespace arrays
 }  // namespace theory
 }  // namespace cvc5::internal

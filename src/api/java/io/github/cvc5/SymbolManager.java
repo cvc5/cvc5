@@ -145,8 +145,6 @@ public class SymbolManager extends AbstractPointer
 
   private native long[] getDeclaredTerms(long pointer);
 
-
-
   /**
    * Get a mapping from terms to names that have been given to them via the
    * :named attribute.

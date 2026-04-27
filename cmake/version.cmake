@@ -25,7 +25,7 @@ else()
   add_custom_target(gen-versioninfo
     COMMAND ${CMAKE_COMMAND}
       -DPROJECT_SOURCE_DIR=${PROJECT_SOURCE_DIR}
-      -DCMAKE_BINARY_DIR=${CMAKE_BINARY_DIR}
+      -DPROJECT_BINARY_DIR=${PROJECT_BINARY_DIR}
       -P ${PROJECT_SOURCE_DIR}/cmake/version.cmake
   )
 endif()
@@ -126,4 +126,4 @@ endif()
 
 # actually configure versioninfo.cpp
 configure_file(
-    ${PROJECT_SOURCE_DIR}/src/base/versioninfo.cpp.in ${CMAKE_BINARY_DIR}/src/base/versioninfo.cpp)
+    ${PROJECT_SOURCE_DIR}/src/base/versioninfo.cpp.in ${PROJECT_BINARY_DIR}/src/base/versioninfo.cpp)

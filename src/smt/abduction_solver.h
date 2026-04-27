@@ -63,7 +63,7 @@ class AbductionSolver : protected EnvObj
   /**
    * Get the next abduct, return true if successful and store the result
    * in abd if so.
-   * 
+   *
    * @param abd This argument is updated to contain the solution C to the
    * abduction problem.
    * @return true if the abduct was successfully computed

@@ -339,7 +339,7 @@ theory::TrustSubstitutionMap& ZeroLevelLearner::getSimplifications()
 
 void ZeroLevelLearner::addSimplification(const Node& t, const Node& s)
 {
-  // in rare cases we may already have a substitution for v, e.g. 
+  // in rare cases we may already have a substitution for v, e.g.
   // if x -> 0, (f y) ---> a, and we learn (f (+ x y)) = b, we
   // would substitute+rewrite to get (f y) --> b despite already
   // having a substitution for (f y). We could avoid this by applying

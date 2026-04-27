@@ -65,10 +65,7 @@ class BasicRewriteRCons : protected EnvObj
    * @param tmode Determines if/when to try THEORY_REWRITE.
    * @return true if we successfully added a proof of (= a b) to cdp.
    */
-  bool prove(CDProof* cdp,
-             Node a,
-             Node b,
-             TheoryRewriteMode tmode);
+  bool prove(CDProof* cdp, Node a, Node b, TheoryRewriteMode tmode);
   /**
    * There are theory rewrites which cannot be expressed in RARE rules. In this
    * case we need to use proof rules which are not written in RARE. It is only
@@ -80,10 +77,7 @@ class BasicRewriteRCons : protected EnvObj
    * @param tmode Determines if/when to try THEORY_REWRITE.
    * @return true if we successfully added a proof of (= a b) to cdp.
    */
-  bool postProve(CDProof* cdp,
-                 Node a,
-                 Node b,
-                 TheoryRewriteMode tmode);
+  bool postProve(CDProof* cdp, Node a, Node b, TheoryRewriteMode tmode);
   /**
    * Add to cdp a proof of eq from free asumption eqi, where eqi is the result
    * of term conversion via RewriteDbNodeConverter.

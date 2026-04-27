@@ -27,15 +27,17 @@
 namespace cvc5::internal {
 
 /** Hashes the gmp integer primitive in a word by word fashion. */
-inline size_t gmpz_hash(const mpz_t toHash) {
+inline size_t gmpz_hash(const mpz_t toHash)
+{
   size_t hash = 0;
-  for (int i = 0, n = mpz_size(toHash); i < n; ++i){
+  for (int i = 0, n = mpz_size(toHash); i < n; ++i)
+  {
     mp_limb_t limb = mpz_getlimbn(toHash, i);
     hash = hash * 2;
     hash = hash ^ limb;
   }
   return hash;
-}/* gmpz_hash() */
+} /* gmpz_hash() */
 
 #ifdef CVC5_NEED_INT64_T_OVERLOADS
 /*

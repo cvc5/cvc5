@@ -20,7 +20,7 @@ import re
 import textwrap
 
 # get access to cvc5/src/api/parseenums.py
-SOURCE_DIR = '${CMAKE_SOURCE_DIR}/src'
+SOURCE_DIR = '${PROJECT_SOURCE_DIR}/src'
 sys.path.insert(0, os.path.abspath(f'{SOURCE_DIR}/api'))
 
 from parseenums import *

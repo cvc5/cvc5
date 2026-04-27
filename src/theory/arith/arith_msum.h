@@ -166,14 +166,14 @@ class ArithMSum
   static Node solveEqualityFor(Node lit, Node v);
 
   /** decompose real-valued term n
-  *
-  * If this function returns true, then
-  *   ([coeff]*v + rem) is equivalent to n
-  * where coeff is non-zero m-constant.
-  *
-  * This function will return false if n is not a monomial sum containing
-  * a monomial with factor v.
-  */
+   *
+   * If this function returns true, then
+   *   ([coeff]*v + rem) is equivalent to n
+   * where coeff is non-zero m-constant.
+   *
+   * This function will return false if n is not a monomial sum containing
+   * a monomial with factor v.
+   */
   static bool decompose(Node n, Node v, Node& coeff, Node& rem);
 
   /** debug print for a monmoial sum, prints to Trace(c) */

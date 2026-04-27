@@ -13,6 +13,7 @@
  */
 
 #include "didyoumean.h"
+
 #include <iostream>
 
 using namespace std;
@@ -21,21 +22,25 @@ using namespace cvc5::internal;
 set<string> getDebugTags();
 set<string> getOptionStrings();
 
-int main() {
+int main()
+{
   string a, b;
 
   cin >> a;
   cout << "Matches with debug tags:" << endl;
-  for (const string& s : DidYouMean(getDebugTags()).getMatch(a)) {
+  for (const string& s : DidYouMean(getDebugTags()).getMatch(a))
+  {
     cout << s << endl;
   }
   cout << "Matches with option strings:" << endl;
-  for (const string& s : DidYouMean(getOptionStrings()).getMatch(a)) {
+  for (const string& s : DidYouMean(getOptionStrings()).getMatch(a))
+  {
     cout << s << endl;
   }
 }
 
-set<string> getDebugTags() {
+set<string> getDebugTags()
+{
   set<string> a;
   a.insert("CDInsertHashMap");
   a.insert("CDTrailHashMap");
@@ -414,7 +419,8 @@ set<string> getDebugTags() {
   return a;
 }
 
-set<string> getOptionStrings() {
+set<string> getOptionStrings()
+{
   const char* cmdlineOptions[] = {
       "lang",
       "output-lang",
@@ -744,7 +750,8 @@ set<string> getOptionStrings() {
   }; /* cmdlineOptions */
   int i = 0;
   set<string> ret;
-  while (cmdlineOptions[i] != NULL) {
+  while (cmdlineOptions[i] != NULL)
+  {
     ret.insert(cmdlineOptions[i]);
     i++;
   }

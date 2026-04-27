@@ -24,7 +24,8 @@
 
 namespace cvc5::internal {
 
-class CVC5_EXPORT DidYouMean {
+class CVC5_EXPORT DidYouMean
+{
  public:
   void addWord(const std::string& word) { d_words.emplace_back(word); }
   void addWords(const std::vector<std::string>& words)

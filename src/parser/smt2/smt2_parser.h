@@ -18,9 +18,9 @@
 #include <cvc5/cvc5.h>
 
 #include "parser/parser.h"
-#include "parser/smt2/smt2_state.h"
 #include "parser/smt2/smt2_cmd_parser.h"
 #include "parser/smt2/smt2_lexer.h"
+#include "parser/smt2/smt2_state.h"
 #include "parser/smt2/smt2_term_parser.h"
 
 namespace cvc5 {

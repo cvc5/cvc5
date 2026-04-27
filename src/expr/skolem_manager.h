@@ -132,8 +132,7 @@ class SkolemManager
    * @param cacheVals A vector of cache values.
    * @return The skolem function.
    */
-  Node mkSkolemFunction(SkolemId id,
-                        const std::vector<Node>& cacheVals);
+  Node mkSkolemFunction(SkolemId id, const std::vector<Node>& cacheVals);
   /**
    * Same as above, with multiple cache values and an internal skolem id.
    * This will call mkSkolemFunction where the (external) id is
@@ -219,6 +218,7 @@ class SkolemManager
    * we sort the arguments to the skolem upon construction via the API.
    */
   static bool isCommutativeSkolemId(SkolemId id);
+
  private:
   /** The associated node manager. */
   NodeManager* d_nm;

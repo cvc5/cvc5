@@ -17,6 +17,7 @@
 
 #include <map>
 #include <vector>
+
 #include "expr/node_trie.h"
 #include "theory/quantifiers/ematching/inst_match_generator.h"
 #include "theory/quantifiers/inst_match_trie.h"

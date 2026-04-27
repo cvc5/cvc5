@@ -187,7 +187,8 @@ void ExtfSolver::doReduction(Node n, int pol)
     eq = eq[1];
     std::vector<Node> expn;
     expn.push_back(n);
-    d_im.sendInference(expn, expn, eq, InferenceId::STRINGS_CTN_POS, false, true);
+    d_im.sendInference(
+        expn, expn, eq, InferenceId::STRINGS_CTN_POS, false, true);
     Trace("strings-extf-debug")
         << "  resolve extf : " << n << " based on positive contain reduction."
         << std::endl;
@@ -438,7 +439,8 @@ void ExtfSolver::checkExtfEval(int effort)
           {
             Trace("strings-extf")
                 << "  resolve extf : " << sn << " -> " << nrc << std::endl;
-            InferenceId inf = effort == 0 ? InferenceId::STRINGS_EXTF : InferenceId::STRINGS_EXTF_N;
+            InferenceId inf = effort == 0 ? InferenceId::STRINGS_EXTF
+                                          : InferenceId::STRINGS_EXTF_N;
             d_im.sendInference(einfo.d_exp, conc, inf, false, true);
             d_statistics.d_cdSimplifications << n.getKind();
           }
@@ -475,8 +477,8 @@ void ExtfSolver::checkExtfEval(int effort)
           // reduced since this argument may be circular: we may infer than n
           // can be reduced to something else, but that thing may argue that it
           // can be reduced to n, in theory.
-          InferenceId infer =
-              effort == 0 ? InferenceId::STRINGS_EXTF_D : InferenceId::STRINGS_EXTF_D_N;
+          InferenceId infer = effort == 0 ? InferenceId::STRINGS_EXTF_D
+                                          : InferenceId::STRINGS_EXTF_D_N;
           d_im.sendInternalInference(einfo.d_exp, nrcAssert, infer);
         }
         to_reduce = nrc;
@@ -737,7 +739,8 @@ void ExtfSolver::checkExtfInference(Node n, Node nr, ExtfInfoTmp& in)
     Trace("strings-extf-infer")
         << "checkExtfInference: " << inferEq << " ...reduces to " << inferEqrr
         << " with explanation " << in.d_exp << std::endl;
-    d_im.sendInternalInference(in.d_exp, inferEqrr, InferenceId::STRINGS_EXTF_EQ_REW);
+    d_im.sendInternalInference(
+        in.d_exp, inferEqrr, InferenceId::STRINGS_EXTF_EQ_REW);
   }
 }
 

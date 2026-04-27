@@ -75,7 +75,7 @@ class LfscProofPostprocessCallback : protected EnvObj,
                    const std::vector<Node>& args);
   /** Make chained form of a term */
   Node mkChain(Kind k, const std::vector<Node>& children);
-  /** 
+  /**
    * Reconstruct the proof for congruence proving res with the given
    * children, populate into cdp. Used for:
    * (1) CONG over operator startOp != null,

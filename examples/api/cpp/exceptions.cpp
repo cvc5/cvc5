@@ -13,6 +13,7 @@
  */
 
 #include <cvc5/cvc5.h>
+
 #include <iostream>
 
 int main()

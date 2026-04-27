@@ -229,8 +229,7 @@ bool EoPrinter::isHandled(const Options& opts, const ProofNode* pfn)
         case Kind::STRING_REV:
         case Kind::STRING_TO_LOWER:
         case Kind::STRING_TO_UPPER: return true;
-        default:
-          break;
+        default: break;
       }
       Trace("eo-printer-debug") << "Cannot STRING_REDUCTION " << k << std::endl;
       return false;
@@ -266,8 +265,8 @@ bool EoPrinter::isHandled(const Options& opts, const ProofNode* pfn)
       if (isHandledDistinctValues(pargs[0])
           && isHandledDistinctValues(pargs[1]))
       {
-        Trace("eo-printer-debug") << "Can distinguish values " << pargs[0] << " "
-                                   << pargs[1] << std::endl;
+        Trace("eo-printer-debug") << "Can distinguish values " << pargs[0]
+                                  << " " << pargs[1] << std::endl;
         return true;
       }
     }
@@ -297,8 +296,8 @@ bool EoPrinter::isHandled(const Options& opts, const ProofNode* pfn)
 }
 
 bool EoPrinter::isHandledTheoryRewrite(const Options& opts,
-                                        ProofRewriteRule id,
-                                        const Node& n)
+                                       ProofRewriteRule id,
+                                       const Node& n)
 {
   switch (id)
   {
@@ -368,7 +367,6 @@ bool EoPrinter::isHandledTheoryRewrite(const Options& opts,
   return false;
 }
 
-
 bool EoPrinter::isHandledBitblastStep(const Node& eq)
 {
   Assert(eq.getKind() == Kind::EQUAL);
@@ -426,7 +424,7 @@ bool EoPrinter::canEvaluate(Node n)
     {
       visited.insert(cur);
       Kind k = cur.getKind();
-      if (k==Kind::APPLY_INDEXED_SYMBOLIC)
+      if (k == Kind::APPLY_INDEXED_SYMBOLIC)
       {
         k = cur.getOperator().getConst<GenericOp>().getKind();
       }
@@ -621,7 +619,7 @@ bool EoPrinter::canEvaluateRegExp(Node r)
           continue;
         default:
           Trace("eo-printer-debug") << "Cannot evaluate " << cur.getKind()
-                                     << " in regular expressions" << std::endl;
+                                    << " in regular expressions" << std::endl;
           return false;
       }
       for (const Node& cn : cur)
@@ -908,8 +906,7 @@ void EoPrinter::print(EoPrintChannelOut& aout,
       if (!options().proof.proofPrintReference)
       {
         // [1] print the declarations
-        printer::smt2::Smt2Printer eprinter(
-            printer::smt2::Variant::eo_variant);
+        printer::smt2::Smt2Printer eprinter(printer::smt2::Variant::eo_variant);
         // we do not print declarations in a sorted manner to reduce overhead
         smt::PrintBenchmark pb(nodeManager(), &eprinter, false, &d_tproc);
         std::stringstream outDecl;
@@ -1079,7 +1076,7 @@ void EoPrinter::getChildrenFromProofRule(
 }
 
 void EoPrinter::getArgsFromProofRule(const ProofNode* pn,
-                                      std::vector<Node>& args)
+                                     std::vector<Node>& args)
 {
   Node res = pn->getResult();
   const std::vector<Node> pargs = pn->getArguments();
@@ -1235,9 +1232,8 @@ void EoPrinter::printStepPost(EoPrintChannel* out, const ProofNode* pn)
         ss << " (" << tid << ")";
       }
       Trace("eo-pf-hole") << "Proof rule " << ss.str() << ": "
-                           << pn->getResult() << std::endl;
-      Unreachable() << "A Eunoia proof requires a trust step for "
-                    << ss.str()
+                          << pn->getResult() << std::endl;
+      Unreachable() << "A Eunoia proof requires a trust step for " << ss.str()
                     << ", but --" << options::proof::longName::proofAllowTrust
                     << " is false" << std::endl;
     }
@@ -1260,16 +1256,16 @@ void EoPrinter::printStepPost(EoPrintChannel* out, const ProofNode* pn)
     }
     else
     {
-      // Assuming the body of the scope has identifier id_0, the following prints:
-      // (step-pop id_1 :rule scope :premises (id_0))
+      // Assuming the body of the scope has identifier id_0, the following
+      // prints: (step-pop id_1 :rule scope :premises (id_0))
       // ...
       // (step-pop id_n :rule scope :premises (id_{n-1}))
       // (step id :rule process_scope :premises (id_n) :args (C))
       size_t tmpId;
       for (size_t i = 0, nargs = args.size(); i < nargs; i++)
       {
-        // Manually increment proof id counter and premises. Note they will only be
-        // used locally here to chain together the pops mentioned above.
+        // Manually increment proof id counter and premises. Note they will only
+        // be used locally here to chain together the pops mentioned above.
         d_pfIdCounter++;
         tmpId = d_pfIdCounter;
         out->printStep(rname, Node::null(), tmpId, premises, {}, true);

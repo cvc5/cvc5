@@ -31,9 +31,7 @@ class BBProof : protected EnvObj
   using Bits = std::vector<Node>;
 
  public:
-  BBProof(Env& env,
-          TheoryState* state,
-          bool fineGrained);
+  BBProof(Env& env, TheoryState* state, bool fineGrained);
   ~BBProof();
 
   /** Bit-blast atom 'node'. */
@@ -71,7 +69,6 @@ class BBProof : protected EnvObj
   /** Flag to indicate whether fine-grained proofs should be recorded. */
   bool d_recordFineGrainedProofs;
 };
-
 
 }  // namespace bv
 }  // namespace theory

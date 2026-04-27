@@ -132,8 +132,7 @@ bool TheoryEngineModelBuilder::isAssignerActive(TheoryModel* tm, Assigner& a)
 bool TheoryEngineModelBuilder::isAssignable(TNode n)
 {
   Kind k = n.getKind();
-  if (k == Kind::SELECT || k == Kind::APPLY_SELECTOR
-      || k == Kind::SEQ_NTH)
+  if (k == Kind::SELECT || k == Kind::APPLY_SELECTOR || k == Kind::SEQ_NTH)
   {
     // selectors are always assignable (where we guarantee that they are not
     // evaluatable here)
@@ -148,7 +147,7 @@ bool TheoryEngineModelBuilder::isAssignable(TNode n)
       return !n.getType().isFunction();
     }
   }
-  else if (k == Kind::FLOATINGPOINT_COMPONENT_SIGN || k==Kind::SEP_NIL)
+  else if (k == Kind::FLOATINGPOINT_COMPONENT_SIGN || k == Kind::SEP_NIL)
   {
     // - Extracting the sign of a floating-point number acts similar to a
     // selector on a datatype, i.e. if `(sign x)` wasn't assigned a value, we
@@ -170,10 +169,8 @@ bool TheoryEngineModelBuilder::isAssignable(TNode n)
     }
     else
     {
-      return (n.isVar() && !n.getType().isFunction())
-             || k == Kind::APPLY_UF
-             || (k == Kind::HO_APPLY
-                 && n[0].getType().getNumChildren() == 2);
+      return (n.isVar() && !n.getType().isFunction()) || k == Kind::APPLY_UF
+             || (k == Kind::HO_APPLY && n[0].getType().getNumChildren() == 2);
     }
   }
 }
@@ -321,8 +318,8 @@ bool TheoryEngineModelBuilder::isExcludedUSortValue(
     TypeNode tn = v.getType();
     if (tn.isUninterpretedSort())
     {
-      Trace("model-builder-debug") << "Is excluded usort value : " << v << " "
-                                   << tn << std::endl;
+      Trace("model-builder-debug")
+          << "Is excluded usort value : " << v << " " << tn << std::endl;
       unsigned card = eqc_usort_count[tn];
       Trace("model-builder-debug") << "  Cardinality is " << card << std::endl;
       unsigned index =
@@ -555,8 +552,8 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
               else
               {
                 DebugUnhandled() << "Distinct base model values in the same "
-                                 "equivalence class "
-                              << constRep << " " << n << std::endl;
+                                    "equivalence class "
+                                 << constRep << " " << n << std::endl;
               }
             }
           }
@@ -634,7 +631,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
       if (eqct.isUninterpretedSort())
       {
         // we never assign uninterpreted sorts a priori.
-        Assert (constRep.isNull());
+        Assert(constRep.isNull());
         eqc_usort_count[eqct]++;
         // For uninterpreted sorts when finite model finding is enabled,
         // we preemptively assign the next value in the enumeration here.
@@ -647,8 +644,8 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
         // (e.g. terms introduced as subfields of datatypes) are assign
         // arbitrary values.
         constRep = typeConstSet.nextTypeEnum(eqct);
-        Trace("model-value-enum") << "Enum fmf usort " << eqct << " " << constRep
-                                  << " for " << eqc << std::endl;
+        Trace("model-value-enum") << "Enum fmf usort " << eqct << " "
+                                  << constRep << " for " << eqc << std::endl;
       }
     }
     // Assign representative for this equivalence class
@@ -787,16 +784,16 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
         // 1. Try to evaluate the EC's in this type
         if (noRepSet != nullptr && !noRepSet->empty())
         {
-          Trace("model-builder") << "  Eval phase, working on type: " << t
-                                 << endl;
+          Trace("model-builder")
+              << "  Eval phase, working on type: " << t << endl;
           bool evaluable;
           d_normalizedCache.clear();
           for (i = noRepSet->begin(); i != noRepSet->end();)
           {
             i2 = i;
             ++i;
-            Trace("model-builder-debug") << "Look at eqc : " << (*i2)
-                                         << std::endl;
+            Trace("model-builder-debug")
+                << "Look at eqc : " << (*i2) << std::endl;
             Node normalized;
             // only possible to normalize if we are evaluable
             evaluable = evaluableEqc.find(*i2) != evaluableEqc.end();
@@ -944,8 +941,8 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
           continue;
         }
       }
-      Trace("model-builder") << "  Assign phase, working on type: " << t
-                             << endl;
+      Trace("model-builder")
+          << "  Assign phase, working on type: " << t << endl;
       bool assignable, evaluable CVC5_UNUSED;
       std::map<Node, Assigner>::iterator itAssigner;
       std::map<Node, Node>::iterator itAssignerM;
@@ -1011,14 +1008,14 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
             bool success;
             do
             {
-              Trace("model-builder-debug") << "Enumerate term of type " << t
-                                           << std::endl;
+              Trace("model-builder-debug")
+                  << "Enumerate term of type " << t << std::endl;
               n = typeConstSet.nextTypeEnum(t);
               //--- AJR: this code checks whether n is a legal value
               Assert(!n.isNull());
               success = true;
-              Trace("model-builder-debug") << "Check if excluded : " << n
-                                           << std::endl;
+              Trace("model-builder-debug")
+                  << "Check if excluded : " << n << std::endl;
 #ifdef CVC5_ASSERTIONS
               if (isUSortFiniteRestricted)
               {
@@ -1105,7 +1102,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
       // unsuccessfully here.
       if (assignOne)
       {
-        Assert (false) << "Reached a deadlock during model construction";
+        Assert(false) << "Reached a deadlock during model construction";
         Trace("model-builder-debug") << "...avoid loop, fail" << std::endl;
         return false;
       }
@@ -1231,7 +1228,7 @@ void TheoryEngineModelBuilder::debugCheckModel(TheoryModel* tm)
         {
           AlwaysAssert(val == rep) << err.str();
         }
-        else if (rewrite(val) != rewrite(rep))
+        else if (!CVC5_EQUAL(rewrite(val), rewrite(rep)))
         {
           // if it does not evaluate, it is just a warning, which may be the
           // case for non-constant values, e.g. lambdas. Furthermore we only
@@ -1286,7 +1283,8 @@ Node TheoryEngineModelBuilder::normalize(TheoryModel* m, TNode r, bool evalOnly)
           if (itMap != d_constantReps.end())
           {
             ri = (*itMap).second;
-            Trace("model-builder-debug") << i << ": const child " << ri << std::endl;
+            Trace("model-builder-debug")
+                << i << ": const child " << ri << std::endl;
             // need to recurse if d_constantReps stores a non-constant
             recurse = !ri.isConst();
           }
@@ -1298,7 +1296,8 @@ Node TheoryEngineModelBuilder::normalize(TheoryModel* m, TNode r, bool evalOnly)
         }
         else
         {
-          Trace("model-builder-debug") << i << ": no hasTerm " << ri << std::endl;
+          Trace("model-builder-debug")
+              << i << ": no hasTerm " << ri << std::endl;
         }
         if (recurse)
         {

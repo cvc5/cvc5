@@ -164,11 +164,10 @@ void printUsageCategories(cvc5::Solver& solver, std::ostream& os)
  *    value to set the 3rd entry to; see #3)
  */
 static struct option cmdlineOptions[] = {
-// clang-format off
+    // clang-format off
   ${cmdoptions_long}$
-// clang-format on
-  {nullptr, no_argument, nullptr, '\0'}
-};
+    // clang-format on
+    {nullptr, no_argument, nullptr, '\0'}};
 
 std::string suggestCommandLineOptions(const std::string& optionName)
 {
@@ -279,11 +278,11 @@ void parseInternal(cvc5::Solver& solver,
 
     switch (c)
     {
-// clang-format off
+      // clang-format off
     ${parseinternal_impl}$
-// clang-format on
+        // clang-format on
 
-    case ':' :
+        case ':':
       // This can be a long or short option, and the way to get at the
       // name of it is different.
       throw OptionException(std::string("option `") + option

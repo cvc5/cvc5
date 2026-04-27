@@ -402,8 +402,11 @@ bool RegExpSolver::checkEqcInclusion(std::vector<Node>& mems)
           }
 
           Node conc;
-          d_im.sendInference(
-              vec_nodes, conc, InferenceId::STRINGS_RE_INTER_INCLUDE, false, true);
+          d_im.sendInference(vec_nodes,
+                             conc,
+                             InferenceId::STRINGS_RE_INTER_INCLUDE,
+                             false,
+                             true);
           return false;
         }
       }
@@ -566,7 +569,8 @@ bool RegExpSolver::checkPDerivative(Node x,
         }
         std::vector<Node> iexp = nf_exp;
         iexp.insert(iexp.end(), noExplain.begin(), noExplain.end());
-        d_im.sendInference(iexp, noExplain, d_false, InferenceId::STRINGS_RE_DELTA_CONF);
+        d_im.sendInference(
+            iexp, noExplain, d_false, InferenceId::STRINGS_RE_DELTA_CONF);
         return false;
       }
       default:

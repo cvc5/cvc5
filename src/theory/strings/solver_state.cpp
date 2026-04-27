@@ -220,7 +220,7 @@ void SolverState::separateByLength(const std::vector<Node>& n,
   // Collection of eqc for each identifier. Notice that some identifiers may
   // not have an associated length in the mappings above, if the length of
   // an equivalence class is unknown.
-  std::map<unsigned, std::vector<Node> > eqc_to_strings;
+  std::map<unsigned, std::vector<Node>> eqc_to_strings;
   for (const Node& eqc : n)
   {
     Assert(d_ee->getRepresentative(eqc) == eqc);
@@ -243,7 +243,7 @@ void SolverState::separateByLength(const std::vector<Node>& n,
       leqc_counter++;
     }
   }
-  for (const std::pair<const unsigned, std::vector<Node> >& p : eqc_to_strings)
+  for (const std::pair<const unsigned, std::vector<Node>>& p : eqc_to_strings)
   {
     Assert(!p.second.empty());
     cols.emplace_back(p.second.begin(), p.second.end());

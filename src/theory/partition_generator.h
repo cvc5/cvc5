@@ -74,8 +74,8 @@ class PartitionGenerator : public TheoryEngineModule
     ZLL
   };
   /**
-   * Increment d_numPartitionsSoFar and print the cube to 
-   * the output file specified by --write-partitions-to. 
+   * Increment d_numPartitionsSoFar and print the cube to
+   * the output file specified by --write-partitions-to.
    */
   void emitPartition(Node toEmit);
 
@@ -128,111 +128,113 @@ class PartitionGenerator : public TheoryEngineModule
 
   /**
    * Get a list of literals.
-   * litType specifies whether to pull from the decision trail in the sat solver,
-   * from the order heap in the sat solver, or from the zero level learned literals.
+   * litType specifies whether to pull from the decision trail in the sat
+   * solver, from the order heap in the sat solver, or from the zero level
+   * learned literals.
    */
   std::vector<Node> collectLiterals(LiteralListType litType);
 
-/**
- * Returns the d_cubes, the cubes that have been created for partitioning the
- * original problem.
- */
+  /**
+   * Returns the d_cubes, the cubes that have been created for partitioning the
+   * original problem.
+   */
 
-std::vector<Node> getPartitions() const { return d_cubes; }
+  std::vector<Node> getPartitions() const { return d_cubes; }
 
-/**
- * Check if we can use the atom represented by Node n.
- */
-bool isUnusable(Node n);
+  /**
+   * Check if we can use the atom represented by Node n.
+   */
+  bool isUnusable(Node n);
 
-/**
- * The time point when this partition generator was instantiated, used to
- * compute elapsed time.
- */
-std::chrono::time_point<std::chrono::steady_clock> d_startTime;
+  /**
+   * The time point when this partition generator was instantiated, used to
+   * compute elapsed time.
+   */
+  std::chrono::time_point<std::chrono::steady_clock> d_startTime;
 
-/**
- * Used to track the inter-partition time.
- */
-std::chrono::time_point<std::chrono::steady_clock>
-    d_startTimeOfPreviousPartition;
+  /**
+   * Used to track the inter-partition time.
+   */
+  std::chrono::time_point<std::chrono::steady_clock>
+      d_startTimeOfPreviousPartition;
 
-/**
- * Current propEngine.
- */
-prop::PropEngine* d_propEngine;
+  /**
+   * Current propEngine.
+   */
+  prop::PropEngine* d_propEngine;
 
-/**
- * Valuation of the theory engine.
- */
-std::unique_ptr<Valuation> d_valuation;
+  /**
+   * Valuation of the theory engine.
+   */
+  std::unique_ptr<Valuation> d_valuation;
 
-/**
- * The number of partitions requested through the compute-partitions option.
- */
-const uint64_t d_numPartitions;
+  /**
+   * The number of partitions requested through the compute-partitions option.
+   */
+  const uint64_t d_numPartitions;
 
-/**
- * Number of standard or full (depending on partition check mode) checks that
- * have occured.
- */
-uint64_t d_numChecks;
+  /**
+   * Number of standard or full (depending on partition check mode) checks that
+   * have occured.
+   */
+  uint64_t d_numChecks;
 
-/**
- * Number of standard checks that have occured since the last partition that was emitted. 
- */
-uint64_t d_betweenChecks;
+  /**
+   * Number of standard checks that have occured since the last partition that
+   * was emitted.
+   */
+  uint64_t d_betweenChecks;
 
-/**
- * The number of partitions that have been created.
- */
-uint64_t d_numPartitionsSoFar;
+  /**
+   * The number of partitions that have been created.
+   */
+  uint64_t d_numPartitionsSoFar;
 
-/**
- * Lemmas that have been sent to the SAT solver.
- */
-std::vector<Node> d_assertedLemmas;
+  /**
+   * Lemmas that have been sent to the SAT solver.
+   */
+  std::vector<Node> d_assertedLemmas;
 
-/**
- * List of the cubes that have been created.
- */
-std::vector<Node> d_cubes;
+  /**
+   * List of the cubes that have been created.
+   */
+  std::vector<Node> d_cubes;
 
-/**
- * List of the scatter partitions that have been created.
- */
-std::vector<Node> d_scatterPartitions;
+  /**
+   * List of the scatter partitions that have been created.
+   */
+  std::vector<Node> d_scatterPartitions;
 
-/**
- * Minimum number of literals required in the list of decisions for cubes to
- * be made.
- */
-uint64_t d_conflictSize;
+  /**
+   * Minimum number of literals required in the list of decisions for cubes to
+   * be made.
+   */
+  uint64_t d_conflictSize;
 
-/**
- * Track whether any partitions have been emitted.
- */
-bool d_createdAnyPartitions;
+  /**
+   * Track whether any partitions have been emitted.
+   */
+  bool d_createdAnyPartitions;
 
-/**
- * Track whether all partitions have been emitted.
- */
-bool d_emittedAllPartitions;
+  /**
+   * Track whether all partitions have been emitted.
+   */
+  bool d_emittedAllPartitions;
 
-/**
- * Track lemma literals that we have seen and their frequency.
- */
-std::unordered_map<Node, uint64_t> d_lemmaMap;
+  /**
+   * Track lemma literals that we have seen and their frequency.
+   */
+  std::unordered_map<Node, uint64_t> d_lemmaMap;
 
-/**
- * Track lemma literals we have seen.
- */
-std::set<Node> d_lemmaLiterals;
+  /**
+   * Track lemma literals we have seen.
+   */
+  std::set<Node> d_lemmaLiterals;
 
-/**
- * Track lemma literals we have used in DNCs.
- */
-std::set<Node> d_usedLemmaLiterals;
+  /**
+   * Track lemma literals we have used in DNCs.
+   */
+  std::set<Node> d_usedLemmaLiterals;
 };
 }  // namespace theory
 }  // namespace cvc5::internal

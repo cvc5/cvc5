@@ -260,9 +260,8 @@ void BaseSolver::checkInit()
               tti[k].add(n, 0, d_state, emps, true, c);
               std::swap(nc, n);
             }
-            Trace("strings-base-debug")
-                << "  congruent term : " << n << " (via " << nc << ")"
-                << std::endl;
+            Trace("strings-base-debug") << "  congruent term : " << n
+                                        << " (via " << nc << ")" << std::endl;
             d_congruent.insert(n);
             congruentCount[k].first++;
           }
@@ -405,7 +404,7 @@ bool BaseSolver::processConstantLike(Node a, Node b)
         Node scr = utils::mkCodeRange(s, d_cardSize);
         Node tcr = utils::mkCodeRange(t, d_cardSize);
         Node conc =
-            nodeManager()->mkNode(Kind::OR, scr.notNode(), tcr.notNode());
+            nodeManager()->mkNode(Kind::OR, {scr.notNode(), tcr.notNode()});
         // We do not explain exp for two reasons. First, we are
         // caching this inference based on the user context and thus
         // it should not depend on the current explanation. Second,
@@ -591,7 +590,8 @@ void BaseSolver::checkConstantEquivalenceClasses(TermIndex* ti,
       }
       else if (d_state.hasTerm(c))
       {
-        d_im.sendInference(exp, n.eqNode(c), InferenceId::STRINGS_I_CONST_MERGE);
+        d_im.sendInference(
+            exp, n.eqNode(c), InferenceId::STRINGS_I_CONST_MERGE);
         return;
       }
       else if (!d_im.hasProcessed())
@@ -624,7 +624,8 @@ void BaseSolver::checkConstantEquivalenceClasses(TermIndex* ti,
             exp.push_back(bei.d_exp);
             d_im.addToExplanation(n, bei.d_base, exp);
           }
-          d_im.sendInference(exp, d_false, InferenceId::STRINGS_I_CONST_CONFLICT);
+          d_im.sendInference(
+              exp, d_false, InferenceId::STRINGS_I_CONST_CONFLICT);
           return;
         }
         else
@@ -663,10 +664,10 @@ void BaseSolver::checkCardinality()
   // are pairwise propagated to be equal. We do not require disequalities
   // between the lengths of each collection, since we split on disequalities
   // between lengths of string terms that are disequal (DEQ-LENGTH-SP).
-  std::map<TypeNode, std::vector<std::vector<Node> > > cols;
-  std::map<TypeNode, std::vector<Node> > lts;
+  std::map<TypeNode, std::vector<std::vector<Node>>> cols;
+  std::map<TypeNode, std::vector<Node>> lts;
   d_state.separateByLengthTyped(d_stringLikeEqc, cols, lts);
-  for (std::pair<const TypeNode, std::vector<std::vector<Node> > >& c : cols)
+  for (std::pair<const TypeNode, std::vector<std::vector<Node>>>& c : cols)
   {
     checkCardinalityType(c.first, c.second, lts[c.first]);
   }
