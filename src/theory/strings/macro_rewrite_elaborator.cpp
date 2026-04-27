@@ -364,7 +364,7 @@ bool MacroRewriteElaborator::ensureProofForReInterUnionInclusion(CDProof* cdp,
     Node rret = r.eqNode(rkret);
     cdp->addStep(rret, cr, {equiv, refl}, cargs);
     transEq.push_back(rret);
-    if (rkret!=eq[1])
+    if (rkret != eq[1])
     {
       Node eqt = rkret.eqNode(eq[1]);
       Trace("brc-macro") << "... subgoal " << eqt << std::endl;

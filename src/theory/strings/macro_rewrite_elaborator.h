@@ -162,7 +162,7 @@ class MacroRewriteElaborator : protected EnvObj
   bool ensureProofForStrInReInclusion(CDProof* cdp, const Node& eq);
   /**
    * Add to cdp a proof of eq from free assumption eqi, where eqi is the result
-   * of term conversion via RewriteDbNodeConverter.
+   * of term conversion via ProofRewriteDbNodeConverter.
    *
    * @param cdp The proof to add to.
    * @param eq The original equality.
