@@ -23,7 +23,9 @@
 
 #include "expr/node.h"
 #include "libnormaliz/libnormaliz.h"
+#include "proof/proof_set.h"
 #include "smt/env_obj.h"
+#include "theory/arith/liastar/liastar_proof_generator.h"
 #include "theory/ext_theory.h"
 #include "theory/theory.h"
 #include "util/result.h"
@@ -36,6 +38,8 @@ class InferenceManager;
 class TheoryArith;
 
 namespace liastar {
+
+class CDProof;
 
 // Arbitrary‑precision integers.
 typedef mpz_class Integer;
@@ -147,6 +151,17 @@ class LiaStarExtension : EnvObj
   /** Do we have any liaStar terms? */
   context::CDO<bool> d_hasLiaStarTerms;
   std::vector<Node> d_processedStarTerms;
+
+  /**
+   * A CDProofSet that hands out CDProof objects for lemmas.
+   */
+  std::unique_ptr<CDProofSet<CDProof>> d_proof;
+
+  /**
+   * Lazy proof generator for the lia* lemmas (split, non-negativity, and
+   * STAR_CONTAINS reduction). Allocated only when proofs are enabled.
+   */
+  std::unique_ptr<LiaStarProofGenerator> d_proofGen;
 
 }; /* class LiaStarExtension */
 
