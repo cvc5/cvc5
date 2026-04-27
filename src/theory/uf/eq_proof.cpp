@@ -1162,6 +1162,14 @@ Node EqProof::addToProof(CDProof* p,
     }
     // Eliminate spurious premises. Reasoning below assumes no refl steps.
     cleanReflPremises(children);
+    // A recursive premise may have introduced the conclusion as an assumption
+    // while reconstructing a nested congruence. In that case, deriving it here
+    // would overwrite the assumption with a proof that depends on itself.
+    if (assumptions.count(conclusion))
+    {
+      visited[d_node] = conclusion;
+      return conclusion;
+    }
     // If any premise is of the form (= (t1 t2) false), then the transitivity
     // step may be coarse-grained and needs to be expanded. If the expansion
     // happens it also finalizes the proof of conclusion.
