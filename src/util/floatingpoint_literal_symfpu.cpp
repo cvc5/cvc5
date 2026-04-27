@@ -115,43 +115,6 @@ FloatingPointLiteralSymFPU::FloatingPointLiteralSymFPU(
     const BitVector& bv,
     bool signedBV)
     : FloatingPointLiteral(size)
-<<<<<<< HEAD
-{
-  if (signedBV)
-  {
-    if (bv.getSize() == 1)
-    {
-      SymFPUUnpackedFloatLiteral uf =
-          symfpu::convertUBVToFloat<symfpuLiteral::traits>(size, rm, bv);
-      /* We need special handling for bit-vectors of size one since symFPU does
-       * not allow conversions from signed bit-vectors of size one.  */
-      if (bv.is_one())
-      {
-        d_symuf.reset(new SymFPUUnpackedFloatLiteral(
-            symfpu::negate<symfpuLiteral::traits>(size, uf)));
-      }
-      else
-      {
-        d_symuf.reset(new SymFPUUnpackedFloatLiteral(uf));
-      }
-    }
-    else
-    {
-      d_symuf.reset(new SymFPUUnpackedFloatLiteral(
-          symfpu::convertSBVToFloat<symfpuLiteral::traits>(size, rm, bv)));
-    }
-  }
-  else
-  {
-    d_symuf.reset(new SymFPUUnpackedFloatLiteral(
-        symfpu::convertUBVToFloat<symfpuLiteral::traits>(size, rm, bv)));
-  }
-}
-
-FloatingPointLiteralSymFPU::FloatingPointLiteralSymFPU(
-    const FloatingPointLiteralSymFPU& other)
-    : FloatingPointLiteral(other.getSize()),
-      d_symuf(new SymFPUUnpackedFloatLiteral(*other.d_symuf))
 {
   if (signedBV)
   {
