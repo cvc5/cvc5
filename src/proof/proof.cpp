@@ -443,6 +443,20 @@ bool CDProof::hasStep(Node fact)
   return false;
 }
 
+bool CDProof::hasFact(Node fact) const
+{
+  if (getProof(fact) != nullptr)
+  {
+    return true;
+  }
+  if (!d_autoSymm)
+  {
+    return false;
+  }
+  Node symFact = getSymmFact(fact);
+  return !symFact.isNull() && getProof(symFact) != nullptr;
+}
+
 size_t CDProof::getNumProofNodes() const { return d_nodes.size(); }
 
 ProofNodeManager* CDProof::getManager() const
