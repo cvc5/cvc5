@@ -156,7 +156,15 @@ TypeNode DatatypeSelectorTypeRule::computeType(
 {
   Assert(n.getKind() == Kind::APPLY_SELECTOR);
   TypeNode selType = n.getOperator().getTypeOrNull();
-  TypeNode t = selType[0];
+  if (!selType.isDatatypeSelector())
+  {
+    if (errOut)
+    {
+      (*errOut) << "expected selector to apply";
+    }
+    return TypeNode::null();
+  }
+  TypeNode t = selType.getDatatypeSelectorDomainType();
   Assert(t.isDatatype());
   if ((t.isParametricDatatype() || check) && n.getNumChildren() != 1)
   {
@@ -181,7 +189,7 @@ TypeNode DatatypeSelectorTypeRule::computeType(
     }
     // note that parametric datatype matching does not account for gradual
     // types.
-    if (!m.doMatching(selType[0], childType))
+    if (!m.doMatching(t, childType))
     {
       if (errOut)
       {
@@ -193,11 +201,12 @@ TypeNode DatatypeSelectorTypeRule::computeType(
     std::vector<TypeNode> types, matches;
     m.getTypes(types);
     m.getMatches(matches);
-    TypeNode range = selType[1];
+    TypeNode range = selType.getDatatypeSelectorRangeType();
     range = range.substitute(
         types.begin(), types.end(), matches.begin(), matches.end());
     Trace("typecheck-idt") << "Return (selector) " << range << " for " << n
-                           << " from " << selType[1] << std::endl;
+                           << " from " << selType.getDatatypeSelectorRangeType()
+                           << std::endl;
     return range;
   }
   else
@@ -207,9 +216,9 @@ TypeNode DatatypeSelectorTypeRule::computeType(
       Trace("typecheck-idt") << "typecheck sel: " << n << std::endl;
       Trace("typecheck-idt") << "sel type: " << selType << std::endl;
       TypeNode childType = n[0].getTypeOrNull();
-      if (!selType[0].isComparableTo(childType))
+      if (!t.isComparableTo(childType))
       {
-        Trace("typecheck-idt") << "ERROR: " << selType[0].getKind() << " "
+        Trace("typecheck-idt") << "ERROR: " << t.getKind() << " "
                                << childType.getKind() << std::endl;
         if (errOut)
         {
@@ -218,7 +227,7 @@ TypeNode DatatypeSelectorTypeRule::computeType(
         return TypeNode::null();
       }
     }
-    return selType[1];
+    return selType.getDatatypeSelectorRangeType();
   }
 }
 
