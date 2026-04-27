@@ -360,12 +360,17 @@ bool MacroRewriteElaborator::ensureProofForReInterUnionInclusion(CDProof* cdp,
     ProofRule cr = expr::getCongRule(r, cargs);
     Node refl = r[1].eqNode(r[1]);
     cdp->addStep(refl, ProofRule::REFL, {}, {r[1]});
-    Node rret = r.eqNode(nm->mkNode(k, ret, r[1]));
+    Node rkret = nm->mkNode(k, ret, r[1]);
+    Node rret = r.eqNode(rkret);
     cdp->addStep(rret, cr, {equiv, refl}, cargs);
     transEq.push_back(rret);
-    Node eqt = rret.eqNode(eq[1]);
-    Trace("brc-macro") << "... subgoal " << eqt << std::endl;
-    cdp->addTrustedStep(eqt, TrustId::MACRO_THEORY_REWRITE_RCONS, {}, {});
+    if (rkret!=eq[1])
+    {
+      Node eqt = rkret.eqNode(eq[1]);
+      Trace("brc-macro") << "... subgoal " << eqt << std::endl;
+      cdp->addTrustedStep(eqt, TrustId::MACRO_THEORY_REWRITE_RCONS, {}, {});
+      transEq.push_back(eqt);
+    }
   }
   cdp->addStep(eq, ProofRule::TRANS, transEq, {});
   return true;
