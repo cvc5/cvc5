@@ -22,11 +22,17 @@ FloatingPointSize::FloatingPointSize(uint32_t exp_size, uint32_t sig_size)
   Assert(validSignificandSize(sig_size));
 }
 
-FloatingPointSize::FloatingPointSize(const FloatingPointSize& old)
-    : d_exp_size(old.d_exp_size), d_sig_size(old.d_sig_size)
+FloatingPointSize::FloatingPointSize(const FloatingPointSize& other)
+    : d_exp_size(other.d_exp_size), d_sig_size(other.d_sig_size)
 {
   Assert(validExponentSize(d_exp_size));
   Assert(validSignificandSize(d_sig_size));
 }
 
+FloatingPointSize& FloatingPointSize::operator=(const FloatingPointSize& other)
+{
+  d_exp_size = other.d_exp_size;
+  d_sig_size = other.d_sig_size;
+  return *this;
+}
 }  // namespace cvc5::internal

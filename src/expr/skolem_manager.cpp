@@ -622,6 +622,8 @@ size_t SkolemManager::getNumIndicesForSkolemId(SkolemId id) const
   switch (id)
   {
     // Number of skolem indices: 0
+    case SkolemId::ARITH_VTS_DELTA:
+    case SkolemId::ARITH_VTS_DELTA_FREE:
     case SkolemId::BV_EMPTY:
     case SkolemId::DIV_BY_ZERO:
     case SkolemId::INT_DIV_BY_ZERO:
@@ -633,6 +635,9 @@ size_t SkolemManager::getNumIndicesForSkolemId(SkolemId id) const
     case SkolemId::TRANSCENDENTAL_PURIFY:
     case SkolemId::TRANSCENDENTAL_PURIFY_ARG:
     case SkolemId::TRANSCENDENTAL_SINE_PHASE_SHIFT:
+    case SkolemId::ARITH_VTS_INFINITY:
+    case SkolemId::ARITH_VTS_INFINITY_FREE:
+    case SkolemId::WITNESS_INV_CONDITION:
     case SkolemId::STRINGS_REPLACE_ALL_RESULT:
     case SkolemId::STRINGS_ITOS_RESULT:
     case SkolemId::STRINGS_STOI_RESULT:
@@ -674,6 +679,8 @@ size_t SkolemManager::getNumIndicesForSkolemId(SkolemId id) const
 
     // Number of skolem indices: 3
     case SkolemId::SHARED_SELECTOR:
+    case SkolemId::HO_DEQ_DIFF:
+    case SkolemId::WITNESS_STRING_LENGTH:
     case SkolemId::RE_UNFOLD_POS_COMPONENT:
     case SkolemId::BAGS_FOLD_COMBINE:
     case SkolemId::BAGS_MAP_PREIMAGE_INJECTIVE:
