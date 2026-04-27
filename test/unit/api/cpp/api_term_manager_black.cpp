@@ -1122,8 +1122,15 @@ TEST_F(TestApiBlackTermManager, mkSkolem)
 
 TEST_F(TestApiBlackTermManager, getNumIndicesForSkolemId)
 {
-  size_t numIndices = d_tm.getNumIndicesForSkolemId(SkolemId::BAGS_MAP_INDEX);
-  ASSERT_EQ(numIndices, 5);
+  ASSERT_EQ(d_tm.getNumIndicesForSkolemId(SkolemId::ARITH_VTS_DELTA), 0);
+  ASSERT_EQ(d_tm.getNumIndicesForSkolemId(SkolemId::ARITH_VTS_DELTA_FREE), 0);
+  ASSERT_EQ(d_tm.getNumIndicesForSkolemId(SkolemId::ARITH_VTS_INFINITY), 1);
+  ASSERT_EQ(d_tm.getNumIndicesForSkolemId(SkolemId::ARITH_VTS_INFINITY_FREE),
+            1);
+  ASSERT_EQ(d_tm.getNumIndicesForSkolemId(SkolemId::WITNESS_INV_CONDITION), 1);
+  ASSERT_EQ(d_tm.getNumIndicesForSkolemId(SkolemId::HO_DEQ_DIFF), 3);
+  ASSERT_EQ(d_tm.getNumIndicesForSkolemId(SkolemId::WITNESS_STRING_LENGTH), 3);
+  ASSERT_EQ(d_tm.getNumIndicesForSkolemId(SkolemId::BAGS_MAP_INDEX), 5);
 }
 
 TEST_F(TestApiBlackTermManager, uFIteration)

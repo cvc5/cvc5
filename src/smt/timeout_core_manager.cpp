@@ -399,7 +399,7 @@ bool TimeoutCoreManager::recordCurrentModel(bool& allAssertsSat,
   size_t indexScore = 0;
   size_t nasserts = d_ppAsserts.size();
   size_t startIndex =
-      nasserts == 0 ? 0 : Random::getRandom().pick(0, nasserts - 1);
+      nasserts == 0 ? 0 : Random::getRandom().pick<size_t>(0, nasserts - 1);
   currModel.resize(nasserts);
   bool hadFalseAssert = false;
   for (size_t i = 0; i < nasserts; i++)

@@ -11,6 +11,8 @@
  */
 #include "util/floatingpoint_literal_symfpu.h"
 
+#include <limits>
+
 #include "base/check.h"
 #include "symfpu/core/add.h"
 #include "symfpu/core/classify.h"
@@ -113,6 +115,7 @@ FloatingPointLiteralSymFPU::FloatingPointLiteralSymFPU(
     const BitVector& bv,
     bool signedBV)
     : FloatingPointLiteral(size)
+<<<<<<< HEAD
 {
   if (signedBV)
   {
@@ -150,6 +153,70 @@ FloatingPointLiteralSymFPU::FloatingPointLiteralSymFPU(
     : FloatingPointLiteral(other.getSize()),
       d_symuf(new SymFPUUnpackedFloatLiteral(*other.d_symuf))
 {
+  if (signedBV)
+  {
+    if (bv.getSize() == 1)
+    {
+      SymFPUUnpackedFloatLiteral uf =
+          symfpu::convertUBVToFloat<symfpuLiteral::traits>(size, rm, bv);
+      /* We need special handling for bit-vectors of size one since symFPU does
+       * not allow conversions from signed bit-vectors of size one.  */
+      if (bv.is_one())
+      {
+        d_symuf.reset(new SymFPUUnpackedFloatLiteral(
+            symfpu::negate<symfpuLiteral::traits>(size, uf)));
+      }
+      else
+      {
+        d_symuf.reset(new SymFPUUnpackedFloatLiteral(uf));
+      }
+    }
+    else
+    {
+      d_symuf.reset(new SymFPUUnpackedFloatLiteral(
+          symfpu::convertSBVToFloat<symfpuLiteral::traits>(size, rm, bv)));
+    }
+  }
+  else
+  {
+    d_symuf.reset(new SymFPUUnpackedFloatLiteral(
+        symfpu::convertUBVToFloat<symfpuLiteral::traits>(size, rm, bv)));
+  }
+}
+
+FloatingPointLiteralSymFPU::FloatingPointLiteralSymFPU(
+    const FloatingPointLiteralSymFPU& other)
+    : FloatingPointLiteral(other.getSize()),
+      d_symuf(new SymFPUUnpackedFloatLiteral(*other.d_symuf))
+{
+}
+
+FloatingPointLiteralSymFPU::FloatingPointLiteralSymFPU(
+    FloatingPointLiteralSymFPU&& other) noexcept
+    : FloatingPointLiteral(other.getSize()), d_symuf(std::move(other.d_symuf))
+{
+}
+
+FloatingPointLiteralSymFPU& FloatingPointLiteralSymFPU::operator=(
+    const FloatingPointLiteralSymFPU& other)
+{
+  if (this != &other)
+  {
+    d_fp_size = other.d_fp_size;
+    d_symuf.reset(new SymFPUUnpackedFloatLiteral(*other.d_symuf));
+  }
+  return *this;
+}
+
+FloatingPointLiteralSymFPU& FloatingPointLiteralSymFPU::operator=(
+    FloatingPointLiteralSymFPU&& other) noexcept
+{
+  if (this != &other)
+  {
+    d_fp_size = other.d_fp_size;
+    d_symuf = std::move(other.d_symuf);
+  }
+  return *this;
 }
 
 FloatingPointLiteralSymFPU::~FloatingPointLiteralSymFPU() {}
