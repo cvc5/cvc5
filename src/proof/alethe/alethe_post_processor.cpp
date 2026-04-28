@@ -2872,6 +2872,41 @@ bool AletheProofPostprocessCallback::update(Node res,
       }
       return success;
     }
+    // incremental linearization rules for multiplication
+    case ProofRule::ARITH_MULT_SIGN:
+    {
+      return addAletheStep(AletheRule::LA_MULT_SIGN,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           {},
+                           {},
+                           *cdp);
+    }
+    case ProofRule::ARITH_MULT_ABS_COMPARISON:
+    {
+      return addAletheStep(AletheRule::LA_MULT_ABS_COMPARISON,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           {},
+                           {},
+                           *cdp);
+    }
+    case ProofRule::ARITH_MULT_TANGENT:
+    {
+      // upper
+      Node ruleStr = nm->mkRawSymbol(args.back().getConst<bool>()
+                                         ? "\"mult-tangent-upper\""
+                                         : "\"mult-tangent-lower\"",
+                                     nm->sExprType());
+      std::vector<Node> ruleArgs{ruleStr};
+      ruleArgs.insert(ruleArgs.end(), args.begin(), args.end() - 1);
+      return addAletheStep(AletheRule::RARE_REWRITE,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           {},
+                           ruleArgs,
+                           *cdp);
+    }
     // arrays_idx
     case ProofRule::ARRAYS_READ_OVER_WRITE_1:
     {
