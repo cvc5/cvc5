@@ -205,10 +205,10 @@ enum class AletheRule : uint32_t
   // ----------
   // > j. F
   //
- // where F is of the form |t1 * tn| <> |s1 <> sn|. If <> is an equality, than
- // each Fi is |ti| = |si|. Otherwise <> is > then each ti is different from
- // zero, and each Fi is either an equality or > between the absolute values of
- // ti, si.
+  // where F is of the form |t1 * tn| <> |s1 <> sn|. If <> is an equality, than
+  // each Fi is |ti| = |si|. Otherwise <> is > then each ti is different from
+  // zero, and each Fi is either an equality or > between the absolute values of
+  // ti, si.
   LA_MULT_ABS_COMPARISON,
   // Tautology of linear integer arithmetic
   // > i. (cl F1 ... Fn)
