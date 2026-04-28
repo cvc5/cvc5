@@ -1162,6 +1162,14 @@ Node EqProof::addToProof(CDProof* p,
     }
     // Eliminate spurious premises. Reasoning below assumes no refl steps.
     cleanReflPremises(children);
+    // A recursive premise may have introduced the conclusion as an assumption
+    // while reconstructing a nested congruence. In that case, deriving it here
+    // would overwrite the assumption with a proof that depends on itself.
+    if (assumptions.count(conclusion))
+    {
+      visited[d_node] = conclusion;
+      return conclusion;
+    }
     // If any premise is of the form (= (t1 t2) false), then the transitivity
     // step may be coarse-grained and needs to be expanded. If the expansion
     // happens it also finalizes the proof of conclusion.
@@ -1406,9 +1414,12 @@ Node EqProof::addToProof(CDProof* p,
         << "EqProof::addToProof: premises " << transitivityChildren[i] << "for "
         << i << "-th cong premise " << transConclusion << " don't justify it\n";
     unsigned sizeTrans = transitivityChildren[i].size();
-    // If no transitivity premise left or if (= ai bi) is an assumption (which
-    // might lead to a cycle with a transtivity step), nothing else to do.
-    if (sizeTrans == 0 || assumptions.count(transConclusion) > 0)
+    // If no transitivity premise left or if (= ai bi) is already present in
+    // the local proof, nothing else to do. Re-deriving it can create a cyclic
+    // proof when a congruence premise reuses the same fact through
+    // symmetry/rewriting.
+    if (sizeTrans == 0 || assumptions.count(transConclusion) > 0
+        || p->hasFact(transConclusion))
     {
       continue;
     }
