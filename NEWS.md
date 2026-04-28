@@ -19,6 +19,8 @@ cvc5 1.3.4 prerelease
   quantified variables occur under UFs.
 - Fixes an issue where the parser would abort prematurely when `get-value` was
   called after an unsat response when uninterpreted sorts are present.
+- Fixes issues related to theory combination with arrays and non-linear
+  arithmetic.
 
 cvc5 1.3.3
 ==========

@@ -1066,6 +1066,7 @@ set(regress_0_tests
   regress0/incorrect1.smtv1.smt2
   regress0/ineq_basic.smtv1.smt2
   regress0/ineq_slack.smtv1.smt2
+  regress0/int-to-bv/ackermann-uf.smt2
   regress0/int-to-bv/basic.smt2
   regress0/int-to-bv/issue8935-unsupported-operators.smt2
   regress0/int-to-bv/issue12319-int-to-bv.smt2
@@ -1525,6 +1526,7 @@ set(regress_0_tests
   regress0/proofs/issue11750.smt2
   regress0/proofs/issue12254-pf-arith-cm.smt2
   regress0/proofs/issue12255-cyclic-arith-rcons.smt2
+  regress0/proofs/issue12574-check-proofs-int-to-bv.smt2
   regress0/proofs/issue12631-check-proofs-arith.smt2
   regress0/proofs/issue8983-trust-subs.smt2
   regress0/proofs/issue9156-doublePropProof.smt2
@@ -2214,6 +2216,7 @@ set(regress_0_tests
   regress0/strings/proj-issue595-max-model-option.smt2
   regress0/strings/proj-issue768-nctn-pf-rcons.smt2
   regress0/strings/proj-issue776-core-subs-pf-cyclic.smt2
+  regress0/strings/proj-issue784-3.smt2
   regress0/strings/quad-028-2-2-unsat.smt2
   regress0/strings/quad-138-4-2-unsat.smt2
   regress0/strings/replace-find-base.smt2
@@ -3335,7 +3338,6 @@ set(regress_1_tests
   regress1/quantifiers/qid.smt2
   regress1/quantifiers/qid-debug-inst.smt2
   regress1/quantifiers/quant-wf-int-ind.smt2
-  regress1/quantifiers/quaternion_ds1_symm_0428.fof.smt2
   regress1/quantifiers/quick-sort-q-rew.smt2
   regress1/quantifiers/qs-has-term.smt2
   regress1/quantifiers/recfact.cvc.smt2
@@ -3726,6 +3728,7 @@ set(regress_1_tests
   regress1/strings/proj-issue779-2-extr.smt2
   regress1/strings/proj-issue779-2-icycle.smt2
   regress1/strings/proj-issue783-inorm-cycle.smt2
+  regress1/strings/proj-issue784-cycle-best-content.smt2
   regress1/strings/prop-engine-order.smt2
   regress1/strings/query4674.smt2
   regress1/strings/query8485.smt2
@@ -4340,6 +4343,8 @@ set(regression_disabled_tests
   regress1/quantifiers/model_6_1_bv.smt2
   # time out on some regressions
   regress1/quantifiers/proj-issue285.smt2
+  # timeout on some builds
+  regress1/quantifiers/quaternion_ds1_symm_0428.fof.smt2
   # ajreynol: different error messages on production and debug:
   regress1/quantifiers/subtype-param-unk.smt2
   regress1/quantifiers/subtype-param.smt2

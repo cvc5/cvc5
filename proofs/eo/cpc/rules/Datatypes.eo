@@ -213,57 +213,29 @@
 
 ;;;;; ProofRewriteRule::DT_CYCLE
 
-; note: This is a forward declaration of $dt_find_cycle_list below.
-; note: >
-;   Since forward declarations must have a ground type signature, we wrap
-;   the term to find (the s argument of dt-cycle) in a list.
-(program $dt_find_cycle_list () :signature (@List @List) Bool)
-
-
-; program: $dt_find_cycle_rec
+; program: $dt_find_cycle
 ; args:
 ; - t T: The term.
-; - s @List: A list containing the term to find.
-; - l @List: The list of arguments to t we have seen so far.
+; - s V: The term to find.
+; - isC Bool: Whether t is a constructor application.
+; - rec Bool: Whether we have recursed to a strict subterm of the original.
 ; return: >
 ;   True iff t contains s as a strict subterm beneath constructor applications.
-; note: This is a helper for $dt_find_cycle below.
-(program $dt_find_cycle_rec ((T Type) (U Type) (W Type) (c T) (f (-> U W)) (a U) (s @List) (l @List))
-  :signature (T @List @List) Bool
+; note: This program is the side-condition helper for the dt-cycle rule below.
+(program $dt_find_cycle
+  ((T Type) (U Type) (V Type) (c T) (f (-> U T)) (a U) (s V) (isC Bool) (rec Bool))
+  :signature (T V Bool Bool) Bool
   (
-    (($dt_find_cycle_rec (f a) s l) ($dt_find_cycle_rec f s (_ @list a l)))
-    (($dt_find_cycle_rec c s l)
-      (eo::ite ($dt_is_cons c)
-        ; only if the head is a constructor, we recurse on each argument
-        ($dt_find_cycle_list l s)
-        false))
-  )
-)
-
-; define: $dt_find_cycle
-; args:
-; - t T: The term.
-; - s @List: A list containing the term to find.
-; return: >
-;   True iff t contains s as a strict subterm beneath constructor applications.
-(define $dt_find_cycle ((T Type :implicit) (t T) (s @List))
-  ($dt_find_cycle_rec t s @list.nil))
-
-; program: $dt_find_cycle_list
-; args:
-; - ts @List: The list of terms to process.
-; - s @List: A list containing the term to find.
-; return: >
-;   True iff a term in ts is s, or contains s as a strict subterm beneath
-;   constructor applications.
-(program $dt_find_cycle_list ((U Type) (t U) (s U) (ts @List :list) (ss @List))
-  :signature (@List @List) Bool
-  (
-  (($dt_find_cycle_list (@list s ts) (@list s)) true)
-  (($dt_find_cycle_list (@list t ts) ss)        (eo::ite ($dt_find_cycle t ss)
-                                                  true
-                                                  ($dt_find_cycle_list ts ss)))
-  (($dt_find_cycle_list @list.nil ss)           false)
+    ; if we found the term, then we are successful if we have recursed.
+    (($dt_find_cycle c c isC rec) rec)
+    ; if we are a constructor application, we look inside the current argument,
+    ; and additionally look inside further arguments of f.
+    (($dt_find_cycle (f a) s true rec)
+      (eo::ite ($dt_find_cycle a s ($is_cons_app a) true)
+        true
+        ($dt_find_cycle f s true rec)))
+    ; otherwise we fail.
+    (($dt_find_cycle c s isC rec) false)
   )
 )
 
@@ -272,13 +244,13 @@
 ; args:
 ; - eq Bool: The equality to prove.
 ; requires: >
-;   The equality on the left hand side is conflicting based on finding
-;   subterms (beneath constructor applications) that have different constructor
-;   symbols on either side.
+;   The equality on the left hand side is conflicting because t contains s
+;   as a strict subterm beneath constructor applications (an occurs-check
+;   style cycle detected by $dt_find_cycle).
 ; conclusion: The given equality.
 (declare-rule dt-cycle ((D Type) (s D) (t D))
   :args ((= (= s t) false))
-  :requires ((($dt_find_cycle t (@list s)) true)) 
+  :requires ((($dt_find_cycle t s ($is_cons_app t) false) true))
   :conclusion (= (= s t) false)
 )
 
