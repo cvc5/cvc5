@@ -1061,14 +1061,14 @@ bool AletheProofPostprocessCallback::update(Node res,
     }
     case ProofRule::TRUST_THEORY_REWRITE:
     {
-      return addAletheStep(options().proof.proofAletheTesting
-                               ? AletheRule::UNDEFINED
-                               : AletheRule::HOLE,
-                           res,
-                           nm->mkNode(Kind::SEXPR, d_cl, res),
-                           children,
-                           {nm->mkRawSymbol("\"untranslated rewrite\"", nm->sExprType())},
-                           *cdp);
+      return addAletheStep(
+          options().proof.proofAletheTesting ? AletheRule::UNDEFINED
+                                             : AletheRule::HOLE,
+          res,
+          nm->mkNode(Kind::SEXPR, d_cl, res),
+          children,
+          {nm->mkRawSymbol("\"untranslated rewrite\"", nm->sExprType())},
+          *cdp);
     }
     // ======== Resolution and N-ary Resolution
     // Because the RESOLUTION rule is merely a special case of CHAIN_RESOLUTION,
