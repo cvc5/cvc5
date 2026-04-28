@@ -163,7 +163,7 @@
   (
   (($mk_dt_cons_eq (tuple a as) (tuple b bs)) (_ and (= a b) ($mk_dt_cons_eq as bs)))
   (($mk_dt_cons_eq (f a) (g b))               (eo::list_concat and ($mk_dt_cons_eq f g) (and (= a b))))
-  (($mk_dt_cons_eq c c)                       (eo::requires ($dt_is_cons c) true true))
+  (($mk_dt_cons_eq c c)                       true)
   )
 )
 
