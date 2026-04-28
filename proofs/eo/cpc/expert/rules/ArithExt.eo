@@ -11,7 +11,7 @@
   :signature (Int T) T
   (
     (($arith_unfold_pow_rec 0 a)  ($arith_mk_one (eo::typeof a)))
-    (($arith_unfold_pow_rec n a)  (eo::cons * a ($arith_unfold_pow_rec (eo::add n -1) a)))
+    (($arith_unfold_pow_rec n a)  (_ * a ($arith_unfold_pow_rec (eo::add n -1) a)))
   )
 )
 

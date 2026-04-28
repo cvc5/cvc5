@@ -86,7 +86,7 @@ TypeNode WitnessTypeRule::computeType(NodeManager* nodeManager,
                                       bool check,
                                       std::ostream* errOut)
 {
-  if (n[0].getTypeOrNull() != nodeManager->boundVarListType())
+  if (!CVC5_EQUAL(n[0].getTypeOrNull(), nodeManager->boundVarListType()))
   {
     if (errOut)
     {
@@ -118,7 +118,7 @@ TypeNode WitnessTypeRule::computeType(NodeManager* nodeManager,
     }
     if (n.getNumChildren() == 3)
     {
-      if (n[2].getTypeOrNull() != nodeManager->instPatternListType())
+      if (!CVC5_EQUAL(n[2].getTypeOrNull(), nodeManager->instPatternListType()))
       {
         if (errOut)
         {

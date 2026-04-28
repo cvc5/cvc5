@@ -16,6 +16,7 @@
 #include <cln/numtheory.h>
 
 #include <iostream>
+#include <limits>
 #include <sstream>
 #include <string>
 
@@ -27,6 +28,7 @@
 #endif /* CVC5_CLN_IMP */
 
 #include "base/check.h"
+#include "util/random.h"
 
 using namespace std;
 
@@ -592,6 +594,16 @@ const Integer& Integer::min(const Integer& a, const Integer& b)
 const Integer& Integer::max(const Integer& a, const Integer& b)
 {
   return (a >= b) ? a : b;
+}
+
+Integer Integer::mkRandom(uint32_t nbits)
+{
+  Assert(nbits > 0);
+  Random& rnd = Random::getRandom();
+  cln::cl_I max(2);
+  max = cln::expt_pos(max, nbits);
+  cln::cl_I res = cln::random_I(*rnd.getCLNRandstate(), max);
+  return Integer(res);
 }
 
 std::ostream& operator<<(std::ostream& os, const Integer& n)

@@ -10,15 +10,44 @@
  * Black box testing of cvc5::FloatingPoint.
  */
 
+#include "base/check.h"
 #include "test.h"
 #include "util/floatingpoint.h"
+#include "util/floatingpoint_literal_symfpu.h"
 
 namespace cvc5::internal {
 namespace test {
 
 class TestUtilBlackFloatingPoint : public TestInternal
 {
+ protected:
+  TestUtilBlackFloatingPoint() : d_fp16(5, 11), d_fp128(15, 113) {}
+
+  FloatingPointSize d_fp16;
+  FloatingPointSize d_fp128;
 };
+
+/* -------------------------------------------------------------------------- */
+
+TEST_F(TestUtilBlackFloatingPoint, move)
+{
+  BitVector bv1 = BitVector::mkRandom(d_fp16.packedWidth());
+  BitVector bv2 = BitVector::mkRandom(d_fp128.packedWidth());
+  FloatingPoint fp1(d_fp16, bv1);
+  FloatingPoint fp2(d_fp128, bv2);
+
+  fp1 = std::move(fp2);
+  ASSERT_EQ(fp1.pack(), bv2);
+  ASSERT_EQ(fp1.getSize(), d_fp128);
+
+  auto fp3 = std::move(fp1);
+  ASSERT_EQ(fp3.pack(), bv2);
+  ASSERT_EQ(fp3.getSize(), d_fp128);
+
+  FloatingPoint fp4(std::move(fp3));
+  ASSERT_EQ(fp4.pack(), bv2);
+  ASSERT_EQ(fp4.getSize(), d_fp128);
+}
 
 TEST_F(TestUtilBlackFloatingPoint, makeMinSubnormal)
 {
@@ -131,5 +160,22 @@ TEST_F(TestUtilBlackFloatingPoint, makeMaxNormal)
   FloatingPoint mfp128 = FloatingPoint::makeMaxNormal(size128, false);
   ASSERT_TRUE(mfp128.isNormal());
 }
+
+TEST_F(TestUtilBlackFloatingPoint, fromSbv1)
+{
+  BitVector bv0(1, 0u);
+  BitVector bv1(1, 1u);
+  for (const auto& bv : {bv0, bv1})
+  {
+    for (bool sign : {true, false})
+    {
+      FloatingPoint fp(FloatingPointSize(5, 11),
+                       RoundingMode::ROUND_NEAREST_TIES_TO_AWAY,
+                       bv,
+                       sign);
+    }
+  }
+}
+
 }  // namespace test
 }  // namespace cvc5::internal

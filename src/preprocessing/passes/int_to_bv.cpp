@@ -240,7 +240,7 @@ Node IntToBV::intToBV(TNode n, NodeMap& cache)
       Node result = current;
       if (current.isVar())
       {
-        if (current.getType() == nm->integerType())
+        if (CVC5_EQUAL(current.getType(), nm->integerType()))
         {
           result = NodeManager::mkDummySkolem("__intToBV_var",
                                               nm->mkBitVectorType(size));

@@ -72,6 +72,7 @@ The following flags enable optional packages (disable with --no-<option name>).
   --poly                   use the LibPoly library [default=yes]
   --cocoa                  use the CoCoA library
   --editline               support the editline library
+  --mpfr                   use MPFR for FP constant folding instead of SymFPU
   --normaliz               use the Normaliz library
 
 Optional Path to Optional Packages:
@@ -153,6 +154,7 @@ python_only_src=default
 pyvenv=default
 java_bindings=default
 editline=default
+mpfr=default
 build_shared=ON
 safe_mode=default
 stable_mode=default
@@ -335,6 +337,9 @@ do
     --editline) editline=ON;;
     --no-editline) editline=OFF;;
 
+    --mpfr) mpfr=ON;;
+    --no-mpfr) mpfr=OFF;;
+
     --glpk-dir) die "missing argument to $1 (try -h)" ;;
     --glpk-dir=*) glpk_dir=${1##*=} ;;
 
@@ -502,6 +507,8 @@ fi
   && cmake_opts="$cmake_opts -DUSE_POLY=$poly"
 [ $cocoa != default ] \
   && cmake_opts="$cmake_opts -DUSE_COCOA=$cocoa"
+[ $mpfr != default ] \
+  && cmake_opts="$cmake_opts -DUSE_MPFR=$mpfr"
 [ $normaliz != default ] \
   && cmake_opts="$cmake_opts -DUSE_NORMALIZ=$normaliz"
 [ "$glpk_dir" != default ] \

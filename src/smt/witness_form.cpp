@@ -138,7 +138,7 @@ WitnessReq WitnessFormGenerator::requiresWitnessFormTransform(
     // rewriting via the method is enough
     return WitnessReq::NONE;
   }
-  if (rewrite(tr) == rewrite(sr))
+  if (CVC5_EQUAL(rewrite(tr), rewrite(sr)))
   {
     // calling ordinary rewrite after (extended) rewriting is enough
     return WitnessReq::REWRITE;

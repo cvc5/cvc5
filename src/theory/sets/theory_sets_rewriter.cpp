@@ -591,8 +591,9 @@ RewriteResponse TheorySetsRewriter::postRewriteRelations(TNode node)
           int right_len = (*right_it).getType().getTupleLength();
           while (right_it != right.end())
           {
-            if (TupleUtils::nthElementOfTuple(*left_it, left_len - 1)
-                == TupleUtils::nthElementOfTuple(*right_it, 0))
+            if (CVC5_EQUAL(
+                    TupleUtils::nthElementOfTuple(*left_it, left_len - 1),
+                    TupleUtils::nthElementOfTuple(*right_it, 0)))
             {
               std::vector<Node> right_tuple;
               for (int j = 1; j < right_len; j++)

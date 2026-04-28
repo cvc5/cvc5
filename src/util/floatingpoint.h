@@ -30,7 +30,7 @@ namespace cvc5::internal {
 
 /* -------------------------------------------------------------------------- */
 
-class FloatingPointLiteralSymFPU;
+class FloatingPointLiteral;
 
 class FloatingPoint
 {
@@ -81,6 +81,13 @@ class FloatingPoint
 
   /** Copy constructor. */
   FloatingPoint(const FloatingPoint& fp);
+  /** Move constructor. */
+  FloatingPoint(FloatingPoint&& fp) noexcept;
+
+  /** Copy Assignment. */
+  FloatingPoint& operator=(const FloatingPoint& other);
+  /** Move Assignment. */
+  FloatingPoint& operator=(FloatingPoint&& other) noexcept;
 
   /** Destructor. */
   ~FloatingPoint();
@@ -133,10 +140,7 @@ class FloatingPoint
   const FloatingPointSize& getSize() const;
 
   /** Get the wrapped floating-point value. */
-  const FloatingPointLiteralSymFPU* getLiteral(void) const
-  {
-    return d_fpl.get();
-  }
+  const FloatingPointLiteral* getLiteral(void) const { return d_fpl.get(); }
 
   /**
    * Return a string representation of this floating-point.
@@ -215,10 +219,20 @@ class FloatingPoint
   /** Floating-point less than. */
   bool operator<(const FloatingPoint& arg) const;
 
-  /** Get the exponent of this floating-point value. */
-  BitVector getExponent() const;
-  /** Get the significand of this floating-point value. */
-  BitVector getSignificand() const;
+  /**
+   * Get the unpacked representation of the exponent (as used by SymFPU) of this
+   * floating-point value.
+   * @note This is only required for constant-folding of floating-point variable
+   *       components, as required by model generation (see #1915).
+   */
+  BitVector getUnpackedExponent() const;
+  /**
+   * Get the unpacked representation of the significand (as used by SymFPU) of
+   * this floating-point value.
+   * @note This is only required for constant-folding of floating-point variable
+   *       components, as required by model generation (see #1915).
+   */
+  BitVector getUnpackedSignificand() const;
   /** True if this value is a negative value. */
   bool getSign() const;
 
@@ -286,10 +300,10 @@ class FloatingPoint
    * Note: This constructor takes ownership of 'fpl' and is not intended for
    *       public use.
    */
-  FloatingPoint(FloatingPointLiteralSymFPU* fpl);
+  FloatingPoint(std::unique_ptr<FloatingPointLiteral>&& fpl);
 
   /** The floating-point literal of this floating-point value. */
-  std::unique_ptr<FloatingPointLiteralSymFPU> d_fpl;
+  std::unique_ptr<FloatingPointLiteral> d_fpl;
 
 }; /* class FloatingPoint */
 

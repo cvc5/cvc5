@@ -1008,10 +1008,11 @@ Node StringsPreprocess::reduce(Node t,
     }
     disj.push_back(nm->mkNode(Kind::ITE, ite_ch));
 
-    Node conjn =
-        utils::mkForallInternal(
-            nm, nm->mkNode(Kind::BOUND_VAR_LIST, k), nm->mkNode(Kind::OR, disj))
-            .negate();
+    // Use disjNode to ensure deterministic node ID assignments
+    Node disjNode = nm->mkNode(Kind::OR, disj);
+    Node conjn = utils::mkForallInternal(
+                     nm, nm->mkNode(Kind::BOUND_VAR_LIST, k), disjNode)
+                     .negate();
     // Intuitively, the reduction says either x and y are equal, or they have
     // some (maximal) common prefix after which their characters at position k
     // are distinct, and the comparison of their code matches the return value

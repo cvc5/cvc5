@@ -817,7 +817,7 @@ bool TermDbSygus::isTypeMatch(const DTypeConstructor& c1,
   {
     for (unsigned i = 0; i < c1.getNumArgs(); i++)
     {
-      if (getArgType(c1, i) != getArgType(c2, i))
+      if (!CVC5_EQUAL(getArgType(c1, i), getArgType(c2, i)))
       {
         return false;
       }

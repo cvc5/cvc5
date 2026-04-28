@@ -38,6 +38,7 @@ libcvc5_add_sources(
   floatingpoint.h
   floatingpoint_size.cpp
   floatingpoint_size.h
+  floatingpoint_literal.cpp
   floatingpoint_literal_symfpu.cpp
   floatingpoint_literal_symfpu_traits.cpp
   gmp_util.h

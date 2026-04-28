@@ -84,7 +84,9 @@ Node AletheNodeConverter::postConvert(Node n)
       std::stringstream ss;
       ss << "(_ @bit_of " << n.getOperator().getConst<BitVectorBit>().d_bitIndex
          << ")";
-      TypeNode fType = d_nm->mkFunctionType(n[0].getType(), n.getType());
+      // Use n0Type to ensure deterministic node ID assignments
+      TypeNode n0Type = n[0].getType();
+      TypeNode fType = d_nm->mkFunctionType(n0Type, n.getType());
       Node op = mkInternalSymbol(ss.str(), fType, true);
       Node converted = d_nm->mkNode(Kind::APPLY_UF, op, n[0]);
       return converted;
@@ -144,12 +146,15 @@ Node AletheNodeConverter::postConvert(Node n)
         }
         return conv;
       }
-      // create the witness term (witness ((x_i T_i)) (exists ((x_i+1 T_i+1)
-      // ... (x_n T_n)) body), where the bound variables and the body come from
-      // the quantifier term which must be the first element of cacheVal (which
-      // should be a list), and i the second.
       if (sfi == SkolemId::QUANTIFIERS_SKOLEMIZE)
       {
+        // create the witness term
+        //
+        //   (witness ((x_i T_i)) (exists ((x_i+1 T_i+1) ... (x_n T_n)) body))
+        //
+        // where the bound variables and the body come from the quantifier term
+        // which must be the first element of cacheVal (which should be a list),
+        // and i the second.
         Trace("alethe-conv")
             << ".. to build witness with index/quant: " << cacheVal[1] << " / "
             << cacheVal[0] << "\n";
@@ -216,6 +221,12 @@ Node AletheNodeConverter::postConvert(Node n)
       }
       if (sfi == SkolemId::ARRAY_DEQ_DIFF)
       {
+        // create the witness term
+        //
+        //   (witness ((x T)) (or (= a b) (not (= (select a x) (select b x)))))
+        //
+        // where a and b come from cache and T is the index type of a (which
+        // must be the same of b).
         Trace("alethe-conv")
             << ".. to build array diff choice with arrays: " << cacheVal[0]
             << " / " << cacheVal[1] << "\n";
@@ -237,7 +248,29 @@ Node AletheNodeConverter::postConvert(Node n)
         Node body = d_nm->mkNode(Kind::OR, eq, select);
         Node choice = d_nm->mkNode(
             Kind::WITNESS, d_nm->mkNode(Kind::BOUND_VAR_LIST, var), body);
-        return convert(choice);
+        choice = convert(choice);
+        d_skolems[n] = choice;
+        return choice;
+      }
+      if (sfi == SkolemId::GROUND_TERM)
+      {
+        // create the witness term (witness ((x T)) true) where T is the type of
+        // the skolem. This skolem is introduced for example by enumerative
+        // quantifier instantiation when no ground term exists in the formula of
+        // the same type as the variable being instantiated. This is done only
+        // once per type, so the formula in the body of the witness term is
+        // nonrestrictive.
+        TypeNode tn = n.getType();
+        Trace("alethe-conv")
+            << ".. to build stand-in for arbitrary ground term of type: " << tn
+            << "\n";
+        Node var = NodeManager::mkBoundVar("x", tn);
+        Node trueNode = d_nm->mkConst(true);
+        Node choice = d_nm->mkNode(
+            Kind::WITNESS, d_nm->mkNode(Kind::BOUND_VAR_LIST, var), trueNode);
+        choice = convert(choice);
+        d_skolems[n] = choice;
+        return choice;
       }
       std::stringstream ss;
       ss << "\"Proof unsupported by Alethe: contains Skolem (kind " << sfi

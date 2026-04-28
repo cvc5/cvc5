@@ -425,7 +425,9 @@ bool SygusReconstruct::match(Node t, Node tz, NodePairMap& subs)
 {
   // rewrite pattern and replace n-ary ops with binary ones before performing
   // simple pattern-matching.
-  return expr::match(convert(rewrite(tz)), convert(t), subs);
+  // Use convertedTz to ensure deterministic node ID assignments
+  Node convertedTz = convert(rewrite(tz));
+  return expr::match(convertedTz, convert(t), subs);
 }
 
 void SygusReconstruct::markSolved(RConsObligation* ob, Node s)
@@ -502,9 +504,10 @@ void SygusReconstruct::initialize(TypeNode stn)
   // variables).
   for (Node sv : stn.getDType().getSygusVarList())
   {
-    builtinVars.push_back(datatypes::utils::sygusToBuiltin(sv));
-    d_sygusVars.emplace(datatypes::utils::sygusToBuiltin(sv),
-                        datatypes::utils::sygusToBuiltin(sv));
+    // Use builtinSv to ensure deterministic node ID assignments
+    Node builtinSv = datatypes::utils::sygusToBuiltin(sv);
+    builtinVars.push_back(builtinSv);
+    d_sygusVars.emplace(builtinSv, builtinSv);
   }
 
   SygusTypeInfo stnInfo;

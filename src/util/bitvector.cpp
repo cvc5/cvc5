@@ -86,6 +86,8 @@ bool BitVector::isBitSet(uint32_t i) const
 
 unsigned BitVector::isPow2() const { return d_value.isPow2(); }
 
+bool BitVector::is_one() const { return d_value == Integer(1); }
+
 /* -----------------------------------------------------------------------
  * Operators
  * ----------------------------------------------------------------------- */
@@ -381,6 +383,12 @@ BitVector BitVector::mkMaxSigned(unsigned size)
 {
   Assert(size > 0);
   return ~BitVector::mkMinSigned(size);
+}
+
+BitVector BitVector::mkRandom(uint32_t size)
+{
+  Assert(size > 0);
+  return BitVector(size, Integer::mkRandom(size));
 }
 
 }  // namespace cvc5::internal

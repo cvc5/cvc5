@@ -67,6 +67,8 @@ const char* toString(InferenceId i)
     case InferenceId::ARITH_NL_CONGRUENCE: return "ARITH_NL_CONGRUENCE";
     case InferenceId::ARITH_NL_SHARED_TERM_SPLIT:
       return "ARITH_NL_SHARED_TERM_SPLIT";
+    case InferenceId::ARITH_NL_SHARED_TERM_FACTOR_SPLIT:
+      return "ARITH_NL_SHARED_TERM_FACTOR_SPLIT";
     case InferenceId::ARITH_NL_CM_QUADRATIC_EQ:
       return "ARITH_NL_CM_QUADRATIC_EQ";
     case InferenceId::ARITH_NL_SPLIT_ZERO: return "ARITH_NL_SPLIT_ZERO";
