@@ -78,8 +78,8 @@ std::shared_ptr<ProofNode> LiaStarProofGenerator::getProofFor(Node fact)
   Unreachable();
 }
 
-std::shared_ptr<ProofNode> LiaStarProofGenerator::mkSplitProof(
-    Node lemma, const Info& info)
+std::shared_ptr<ProofNode> LiaStarProofGenerator::mkSplitProof(Node lemma,
+                                                               const Info& info)
 {
   // (or vp (not vp))  via   ProofRule::SPLIT  with arg vp.
   CDProof cdp(d_env);
