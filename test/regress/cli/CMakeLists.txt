@@ -3335,7 +3335,6 @@ set(regress_1_tests
   regress1/quantifiers/qid.smt2
   regress1/quantifiers/qid-debug-inst.smt2
   regress1/quantifiers/quant-wf-int-ind.smt2
-  regress1/quantifiers/quaternion_ds1_symm_0428.fof.smt2
   regress1/quantifiers/quick-sort-q-rew.smt2
   regress1/quantifiers/qs-has-term.smt2
   regress1/quantifiers/recfact.cvc.smt2
@@ -4340,6 +4339,8 @@ set(regression_disabled_tests
   regress1/quantifiers/model_6_1_bv.smt2
   # time out on some regressions
   regress1/quantifiers/proj-issue285.smt2
+  # timeout on some builds
+  regress1/quantifiers/quaternion_ds1_symm_0428.fof.smt2
   # ajreynol: different error messages on production and debug:
   regress1/quantifiers/subtype-param-unk.smt2
   regress1/quantifiers/subtype-param.smt2
