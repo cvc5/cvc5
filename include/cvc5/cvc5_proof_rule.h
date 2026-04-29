@@ -306,7 +306,7 @@ enum ENUM(ProofRule)
   EVALUE(MACRO_SR_PRED_INTRO),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Builtin theory -- Substitution + Rewriting predicate transform**
+   * **Builtin theory -- Substitution + Rewriting predicate elimination**
    *
    * .. math::
    *
@@ -323,7 +323,7 @@ enum ENUM(ProofRule)
   EVALUE(MACRO_SR_PRED_ELIM),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Builtin theory -- Substitution + Rewriting predicate elimination**
+   * **Builtin theory -- Substitution + Rewriting predicate transformation**
    *
    * .. math::
    *
@@ -560,8 +560,9 @@ enum ENUM(ProofRule)
    *
    *   \inferrule{C_1 \mid -}{C_2}
    *
-   * where :math:`C_2` is the clause :math:`C_1`, but every occurrence of a literal
-   * after its first occurrence is omitted.
+   * where :math:`C_1` is an ``OR`` node containing at least one repeated
+   * literal, and :math:`C_2` is the clause :math:`C_1`, but every occurrence of
+   * a literal after its first occurrence is omitted.
    * \endverbatim
    */
   EVALUE(FACTORING),
@@ -1287,8 +1288,10 @@ enum ENUM(ProofRule)
    *   \inferrule{f=g, t_1=s_1,\dots,t_n=s_n\mid k}{k(f, t_1,\dots, t_n) =
    *   k(g, s_1,\dots, s_n)}
    *
-   * Notice that this rule is only used when the application kind :math:`k` is
-   * either `cvc5::Kind::APPLY_UF` or `cvc5::Kind::HO_APPLY`.
+   * The kind argument :math:`k` is optional and defaults to
+   * ``cvc5::Kind::HO_APPLY``. Notice that this rule is only used when the
+   * application kind :math:`k` is either ``cvc5::Kind::APPLY_UF`` or
+   * ``cvc5::Kind::HO_APPLY``.
    * \endverbatim
    */
   EVALUE(HO_CONG),
@@ -1583,6 +1586,8 @@ enum ENUM(ProofRule)
    *
    * Alternatively for the reverse:
    *
+   * .. math::
+   *
    *   \inferrule{(t \cdot t_1 \cdot \ldots \cdot t_n) = (s \cdot t_1 \cdot \ldots \cdot t_n)\mid \top}{t = s}
    *
    * Notice that :math:`t` or :math:`s` may be empty, in which case they are
@@ -1687,7 +1692,7 @@ enum ENUM(ProofRule)
    *
    * .. math::
    *
-   *   \inferrule{(t_1\cdot \ldots \cdot t_n) = (s_1 \cdot \ldots \cdot s_m)),\,
+   *   \inferrule{(t_1\cdot \ldots \cdot t_n) = (s_1 \cdot \ldots \cdot s_m),\,
    *   \mathit{len}(t_n) > \mathit{len}(s_m)\mid \top}{(t_n = r \cdot s_m)}
    *
    * where :math:`r` is the purification Skolem for
@@ -1708,9 +1713,9 @@ enum ENUM(ProofRule)
    *   \mathit{len}(t_1) \neq 0\mid \bot}{(t_1 = t_3\cdot r)}
    *
    * where :math:`w_1,\,w_2` are words, :math:`t_3` is
-   * :math:`\mathit{pre}(w_2,p)`, :math:`p` is
-   * :math:`\texttt{Word::overlap}(\mathit{suf}(w_2,1), w_1)`, and :math:`r` is
-   * the purification skolem for
+   * :math:`\mathit{pre}(w_2,p)`, :math:`p` is computed by
+   * ``CoreSolver::getSufficientNonEmptyOverlap(w_2,w_1,false)``, and
+   * :math:`r` is the purification skolem for
    * :math:`\mathit{suf}(t_1,\mathit{len}(t_3))`.  Note that
    * :math:`\mathit{suf}(w_2,p)` is the largest suffix of
    * :math:`\mathit{suf}(w_2,1)` that can contain a prefix of :math:`w_1`; since
@@ -1726,8 +1731,8 @@ enum ENUM(ProofRule)
    *
    * where :math:`w_1,\,w_2` are words, :math:`t_3` is
    * :math:`\mathit{substr}(w_2, \mathit{len}(w_2) - p, p)`, :math:`p` is
-   * :math:`\texttt{Word::roverlap}(\mathit{pre}(w_2, \mathit{len}(w_2) - 1),
-   * w_1)`, and :math:`r` is the purification skolem for
+   * computed by ``CoreSolver::getSufficientNonEmptyOverlap(w_2,w_1,true)``,
+   * and :math:`r` is the purification skolem for
    * :math:`\mathit{pre}(t_n,\mathit{len}(t_n) - \mathit{len}(t_3))`.  Note that
    * :math:`\mathit{pre}(w_2, \mathit{len}(w_2) - p)` is the largest prefix of
    * :math:`\mathit{pre}(w_2, \mathit{len}(w_2) - 1)` that can contain a suffix
@@ -1754,8 +1759,9 @@ enum ENUM(ProofRule)
    *   \inferrule{n \geq 0,\, \mathit{len}(t) \geq n\mid \top}{t = w_1\cdot w_2 \wedge
    *   \mathit{len}(w_2) = n}
    *
-   * where :math:`w_1` is the purification skolem for :math:`\mathit{pre}(t,n)` and
-   * :math:`w_2` is the purification skolem for :math:`\mathit{suf}(t,n)`.
+   * where :math:`w_1` is the purification skolem for
+   * :math:`\mathit{pre}(t,\mathit{len}(t) - n)` and :math:`w_2` is the
+   * purification skolem for :math:`\mathit{suf}(t,\mathit{len}(t) - n)`.
    * \endverbatim
    */
   EVALUE(STRING_DECOMPOSE),
@@ -1820,7 +1826,9 @@ enum ENUM(ProofRule)
    *
    * .. math::
    *
-   *   \inferrule{t\in R_1,\,t\in R_2\mid -}{t\in \mathit{re.inter}(R_1,R_2)}
+   *   \inferrule{t\in R_1,\,\ldots,\,t\in R_n\mid -}{t\in \mathit{re.inter}(R_1,\ldots,R_n)}
+   *
+   * where :math:`n \geq 1`. If :math:`n = 1`, the conclusion is the premise.
    *
    * \endverbatim
    */
@@ -1832,6 +1840,8 @@ enum ENUM(ProofRule)
    * .. math::
    *
    *   \inferrule{t_1\in R_1,\,\ldots,\,t_n\in R_n\mid -}{\text{str.++}(t_1, \ldots, t_n)\in \text{re.++}(R_1, \ldots, R_n)}
+   *
+   * where :math:`n \geq 2`.
    *
    * \endverbatim
    */
@@ -1880,8 +1890,7 @@ enum ENUM(ProofRule)
    *
    * where :math:`r_1` has fixed length :math:`L`.
    *
-   * or alternatively for the reverse:
-   *
+   * Or alternatively for the reverse:
    *
    * .. math::
    *
@@ -1928,11 +1937,10 @@ enum ENUM(ProofRule)
    *   \inferrule{s \neq t\mid -}
    *   {\mathit{seq.len}(s) \neq \mathit{seq.len}(t) \vee (\mathit{seq.nth}(s,k)\neq\mathit{seq.nth}(t,k) \wedge 0 \leq k \wedge k < \mathit{seq.len}(s))}
    *
-   * where :math:`s,t` are terms of sequence type, :math:`k` is the
-   * :math:`\texttt{STRINGS_DEQ_DIFF}` skolem for :math:`s,t`. Alternatively,
-   * if :math:`s,t` are terms of string type, we use 
-   * :math:`\mathit{seq.substr}(s,k,1)` instead of :math:`\mathit{seq.nth}(s,k)`
-   * and similarly for :math:`t`.
+   * where :math:`s,t` are string-like terms, :math:`k` is the
+   * :math:`\texttt{STRINGS_DEQ_DIFF}` skolem for :math:`s,t`. If :math:`s,t`
+   * are terms of string type, we use :math:`\mathit{str.substr}(s,k,1)`
+   * instead of :math:`\mathit{seq.nth}(s,k)` and similarly for :math:`t`.
    *
    * \endverbatim
    */
@@ -1967,7 +1975,7 @@ enum ENUM(ProofRule)
    * negative) such that :math:`\diamond_i \in \{ <, \leq \}` (this implies that
    * lower bounds have negative :math:`k_i` and upper bounds have positive
    * :math:`k_i`), :math:`t_1` is the sum of the scaled polynomials and
-   * :math:`t_2` is the sum of the scaled constants:
+   * :math:`t_2` is the sum of the scaled constants, and :math:`n \geq 2`:
    *
    * .. math::
    *
@@ -2010,7 +2018,8 @@ enum ENUM(ProofRule)
    * where :math:`P_i` has the form :math:`L_i \diamond_i R_i` and
    * :math:`\diamond_i \in \{<, \leq, =\}`. Furthermore :math:`\diamond = <` if
    * :math:`\diamond_i = <` for any :math:`i` and :math:`\diamond = \leq`
-   * otherwise, :math:`L = L_1 + \cdots + L_n` and :math:`R = R_1 + \cdots + R_n`.
+   * otherwise, :math:`L = L_1 + \cdots + L_n`,
+   * :math:`R = R_1 + \cdots + R_n`, and :math:`n \geq 2`.
    * \endverbatim
    */
   EVALUE(ARITH_SUM_UB),
@@ -2040,7 +2049,7 @@ enum ENUM(ProofRule)
   EVALUE(INT_TIGHT_LB),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Arithmetic -- Trichotomy of the reals**
+   * **Arithmetic -- Trichotomy of arithmetic values**
    *
    * .. math::
    *
@@ -2130,7 +2139,7 @@ enum ENUM(ProofRule)
    *
    *   \inferrule{- \mid m, l \diamond r}{(m > 0 \land l \diamond r) \rightarrow m \cdot l \diamond m \cdot r}
    *
-   * where :math:`\diamond` is a relation symbol.
+   * where :math:`\diamond \in \{=, \neq, <, \leq, >, \geq\}`.
    * \endverbatim
    */
   EVALUE(ARITH_MULT_POS),
@@ -2142,8 +2151,9 @@ enum ENUM(ProofRule)
    *
    *   \inferrule{- \mid m, l \diamond r}{(m < 0 \land l \diamond r) \rightarrow m \cdot l \diamond_{inv} m \cdot r}
    *
-   * where :math:`\diamond` is a relation symbol and :math:`\diamond_{inv}` the
-   * inverted relation symbol.
+   * where :math:`\diamond \in \{=, \neq, <, \leq, >, \geq\}` and
+   * :math:`\diamond_{inv}` is the inverted relation symbol. The inverse of
+   * :math:`\neq` is itself.
    * \endverbatim
    */
   EVALUE(ARITH_MULT_NEG),
@@ -2157,8 +2167,8 @@ enum ENUM(ProofRule)
    *
    *   \inferruleSC{- \mid x, y, a, b, \sigma}{(t \geq tplane) = ((x \leq a \land y \leq b) \lor (x \geq a \land y \geq b))}{if $\sigma = \top$}
    *
-   * where :math:`x,y` are real terms (variables or extended terms),
-   * :math:`t = x \cdot y`, :math:`a,b` are real
+   * where :math:`x,y` are arithmetic terms (variables or extended terms),
+   * :math:`t = x \cdot y`, :math:`a,b` are arithmetic
    * constants, :math:`\sigma \in \{ \top, \bot\}` and :math:`tplane := b \cdot x + a \cdot y - a \cdot b` is the tangent plane of :math:`x \cdot y` at :math:`(a,b)`.
    * \endverbatim
    */
