@@ -36,8 +36,10 @@ Node toNode(NodeManager* nm, TheoryProxy* proxy, const SatClause& clause)
     lits.push_back(proxy->getNode(lit));
   }
   // Sat clause is sorted by literal id. Ensure that node-level clause is
-  // sorted by node ids.
+  // sorted by node ids. Also factor duplicate literals to match the
+  // normalization done by PropPfManager when registering CNF clause proofs.
   std::sort(lits.begin(), lits.end());
+  lits.erase(std::unique(lits.begin(), lits.end()), lits.end());
   return lits.size() == 1 ? lits[0] : nm->mkNode(Kind::OR, lits);
 }
 
