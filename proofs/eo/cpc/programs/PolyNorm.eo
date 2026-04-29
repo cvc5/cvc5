@@ -124,18 +124,19 @@
 
 ; define: $get_arith_poly_norm_div
 ; args:
-; - a1 T: The numerator to process of type Int or Real.
-; - a1p @Polynomial: The normalization of a1.
-; - a2 T: The denominator to process of type Int or Real.
+; - a Real: The division term we are processing.
+; - a1p @Polynomial: The normalization of the numerator of a.
+; - a2 Real: The denominator of a.
 ; return: >
 ;   The polynomial corresponding to the (normalized) form of (/ a1 a2).
-(define $get_arith_poly_norm_div ((U Type :implicit) (V Type :implicit) (a1 U) (a1p @Polynomial) (a2 V))
+(define $get_arith_poly_norm_div
+  ((U Type :implicit) (V Type :implicit) (a U) (a1p @Polynomial) (a2 V))
   (eo::define ((a2q (eo::to_q a2)))
   (eo::ite (eo::ite (eo::is_q a2q) (eo::not (eo::eq a2q 0/1)) false)
     ; if division by non-zero constant, we normalize
     ($poly_mul_mon (@mon eo::List::nil (eo::qdiv 1/1 a2q)) a1p)
     ; otherwise it is treated as a variable
-    (@poly (@mon (eo::List::cons (/ a1 a2)) 1/1)))))
+    (@poly (@mon (eo::List::cons a) 1/1)))))
 
 ; program: $get_arith_poly_norm
 ; args:
@@ -148,8 +149,8 @@
     (($get_arith_poly_norm (+ a1 a2))       ($poly_add ($get_arith_poly_norm a1) ($get_arith_poly_norm a2)))
     (($get_arith_poly_norm (- a1 a2))       ($poly_add ($get_arith_poly_norm a1) ($poly_neg ($get_arith_poly_norm a2))))
     (($get_arith_poly_norm (* a1 a2))       ($poly_mul ($get_arith_poly_norm a1) ($get_arith_poly_norm a2)))
-    (($get_arith_poly_norm (/ a1 a2))       ($get_arith_poly_norm_div a1 ($get_arith_poly_norm a1) a2))
-    (($get_arith_poly_norm (/_total a1 a2)) ($get_arith_poly_norm_div a1 ($get_arith_poly_norm a1) a2))
+    (($get_arith_poly_norm (/ a1 a2))       ($get_arith_poly_norm_div (/ a1 a2) ($get_arith_poly_norm a1) a2))
+    (($get_arith_poly_norm (/_total a1 a2)) ($get_arith_poly_norm_div (/_total a1 a2) ($get_arith_poly_norm a1) a2))
     (($get_arith_poly_norm (to_real a1))    ($get_arith_poly_norm a1))
     (($get_arith_poly_norm a)               (eo::define ((aq (eo::to_q a)))
                                             ; check if a is a constant (Int or Real)
