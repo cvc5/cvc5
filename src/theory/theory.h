@@ -334,7 +334,7 @@ class Theory : protected EnvObj
   }
 
   /** Returns true if the assertFact queue is empty*/
-  bool done() const { return d_factsHead == d_facts.size(); }
+  virtual bool done() const { return d_factsHead == d_facts.size(); }
   /**
    * Destructs a Theory.
    */

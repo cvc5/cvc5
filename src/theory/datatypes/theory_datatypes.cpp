@@ -2174,6 +2174,15 @@ std::pair<bool, Node> TheoryDatatypes::entailmentCheck(TNode lit)
   return make_pair(false, Node::null());
 }
 
+bool TheoryDatatypes::done() const
+{
+  if (options().theory.eeMode == options::EqEngineMode::CENTRAL)
+  {
+    return false;
+  }
+  return Theory::done();
+}
+
 }  // namespace datatypes
 }  // namespace theory
 }  // namespace cvc5::internal

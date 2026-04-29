@@ -560,7 +560,7 @@ void Theory::check(Effort level)
   }
   Trace("theory-check") << "Theory::process fact queue " << d_id << std::endl;
   // process the pending fact queue
-  while (!done() && !d_theoryState->isInConflict())
+  while (d_factsHead != d_facts.size() && !d_theoryState->isInConflict())
   {
     // Get the next assertion from the fact queue
     Assertion assertion = get();
