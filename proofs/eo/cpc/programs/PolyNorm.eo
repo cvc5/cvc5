@@ -124,11 +124,11 @@
 
 ; define: $get_arith_poly_norm_div
 ; args:
-; - a Real: The division term we are processing.
+; - a Real: The division term we are processing, which may be / or /_total.
 ; - a1p @Polynomial: The normalization of the numerator of a.
 ; - a2 Real: The denominator of a.
 ; return: >
-;   The polynomial corresponding to the (normalized) form of (/ a1 a2).
+;   The polynomial corresponding to the (normalized) form of a.
 (define $get_arith_poly_norm_div
   ((U Type :implicit) (V Type :implicit) (a U) (a1p @Polynomial) (a2 V))
   (eo::define ((a2q (eo::to_q a2)))
