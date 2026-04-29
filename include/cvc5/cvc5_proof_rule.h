@@ -167,9 +167,8 @@ enum ENUM(ProofRule)
    *
    *   \inferrule{- \mid t}{t = \texttt{evaluate}(t)}
    *
-   * where :math:`\texttt{evaluate}` is implemented by calling the method
-   * :math:`\texttt{Evalutor::evaluate}` in :cvc5src:`theory/evaluator.h` with an
-   * empty substitution.
+   * where :math:`\texttt{evaluate}` is implemented by rewriting with
+   * ``MethodId::RW_EVALUATE``.
    * Note this is equivalent to: ``(REWRITE t MethodId::RW_EVALUATE)``.
    *
    * Note this proof rule only applies to atomic sorts, that is, operators on
@@ -215,7 +214,7 @@ enum ENUM(ProofRule)
    * where :math:`t` and :math:`s` are equivalent modulo associativity
    * and identity elements, and (optionally) commutativity and idempotency.
    *
-   * This method normalizes currently based on two kinds of operators:
+   * This method normalizes currently based on three kinds of operators:
    * (1) those that are associative, commutative, idempotent, and have an
    * identity element (examples are or, and, bvand),
    * (2) those that are associative, commutative and have an identity
@@ -307,7 +306,7 @@ enum ENUM(ProofRule)
   EVALUE(MACRO_SR_PRED_INTRO),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Builtin theory -- Substitution + Rewriting predicate elimination**
+   * **Builtin theory -- Substitution + Rewriting predicate transform**
    *
    * .. math::
    *
@@ -357,7 +356,7 @@ enum ENUM(ProofRule)
    * external proof format.
    *
    * More specifically, it is the case that
-   * :math:`\texttt{RewriteDbNodeConverter::postConvert}(t) = t;`.
+   * :math:`\texttt{RewriteDbNodeConverter::postConvert}(t) = t'`.
    * This conversion method for instance may drop user patterns from quantified
    * formulas or change the representation of :math:`t` in a way that is a
    * no-op in external proof formats.
@@ -377,7 +376,8 @@ enum ENUM(ProofRule)
    *   \inferrule{F_1 \dots F_n \mid id t_1 \dots t_n}{F}
    *
    * where `id` is a :cpp:enum:`ProofRewriteRule` whose definition in the
-   * RARE DSL is :math:`\forall x_1 \dots x_n. (G_1 \wedge G_n) \Rightarrow G`
+   * RARE DSL is
+   * :math:`\forall x_1 \dots x_n. (G_1 \wedge \cdots \wedge G_n) \Rightarrow G`
    * where for :math:`i=1, \dots n`, we have that :math:`F_i = \sigma(G_i)`
    * and :math:`F = \sigma(G)` where :math:`\sigma` is the substitution
    * :math:`\{x_1\mapsto t_1,\dots,x_n\mapsto t_n\}`.
@@ -544,7 +544,7 @@ enum ENUM(ProofRule)
    *   :math:`C_1` with :math:`C_2` with pivot :math:`L` and polarity
    *   :math:`pol`, as defined above
    * - let :math:`C_1' = C_1`,
-   * - for each :math:`i > 1`, let :math:`C_i' = C_{i-1} \diamond_{L_{i-1}, pol_{i-1}} C_i'`
+   * - for each :math:`i > 1`, let :math:`C_i' = C_{i-1}' \diamond_{L_{i-1}, pol_{i-1}} C_i`
    *
    * Note the list of polarities and pivots are provided as s-expressions.
    *
@@ -574,7 +574,7 @@ enum ENUM(ProofRule)
    *   \inferrule{C_1 \mid C_2}{C_2}
    *
    * where
-   * the multiset representations of :math:`C_1` and :math:`C_2` are the same.
+   * the set representations of :math:`C_1` and :math:`C_2` are the same.
    * \endverbatim
    */
   EVALUE(REORDERING),
@@ -597,8 +597,8 @@ enum ENUM(ProofRule)
    *   :cpp:enumerator:`RESOLUTION <cvc5::ProofRule::RESOLUTION>`
    * - let :math:`C_1'` be equal, in its set representation, to :math:`C_1`,
    * - for each :math:`i > 1`, let :math:`C_i'` be equal, in its set
-   *   representation, to :math:`C_{i-1} \diamond_{L_{i-1},\mathit{pol}_{i-1}}
-   *   C_i'`
+   *   representation, to :math:`C_{i-1}' \diamond_{L_{i-1},\mathit{pol}_{i-1}}
+   *   C_i`
    *
    * The result of the chain resolution is :math:`C`, which is equal, in its set
    * representation, to :math:`C_n'`.
@@ -1413,8 +1413,7 @@ enum ENUM(ProofRule)
    *  \inferrule{c_x \cdot (x_1 - x_2) = c_y \cdot (y_1 - y_2) \mid (x_1 = x_2) = (y_1 = y_2)}
    *            {(x_1 = x_2) = (y_1 = y_2)}
    *
-   * :math:`c_x` and :math:`c_y` are scaling factors, currently required to
-   * be one.
+   * :math:`c_x` and :math:`c_y` are scaling factors, required to be odd.
    * \endverbatim
    */
   EVALUE(BV_POLY_NORM_EQ),
@@ -1712,10 +1711,10 @@ enum ENUM(ProofRule)
    * :math:`\mathit{pre}(w_2,p)`, :math:`p` is
    * :math:`\texttt{Word::overlap}(\mathit{suf}(w_2,1), w_1)`, and :math:`r` is
    * the purification skolem for
-   * :math:`\mathit{suf}(t_1,\mathit{len}(w_3))`.  Note that
+   * :math:`\mathit{suf}(t_1,\mathit{len}(t_3))`.  Note that
    * :math:`\mathit{suf}(w_2,p)` is the largest suffix of
    * :math:`\mathit{suf}(w_2,1)` that can contain a prefix of :math:`w_1`; since
-   * :math:`t_1` is non-empty, :math:`w_3` must therefore be contained in
+   * :math:`t_1` is non-empty, :math:`t_3` must therefore be contained in
    * :math:`t_1`.
    *
    * Alternatively for the reverse:
@@ -1729,10 +1728,10 @@ enum ENUM(ProofRule)
    * :math:`\mathit{substr}(w_2, \mathit{len}(w_2) - p, p)`, :math:`p` is
    * :math:`\texttt{Word::roverlap}(\mathit{pre}(w_2, \mathit{len}(w_2) - 1),
    * w_1)`, and :math:`r` is the purification skolem for
-   * :math:`\mathit{pre}(t_n,\mathit{len}(t_n) - \mathit{len}(w_3))`.  Note that
+   * :math:`\mathit{pre}(t_n,\mathit{len}(t_n) - \mathit{len}(t_3))`.  Note that
    * :math:`\mathit{pre}(w_2, \mathit{len}(w_2) - p)` is the largest prefix of
    * :math:`\mathit{pre}(w_2, \mathit{len}(w_2) - 1)` that can contain a suffix
-   * of :math:`w_1`; since :math:`t_n` is non-empty, :math:`w_3` must therefore
+   * of :math:`w_1`; since :math:`t_n` is non-empty, :math:`t_3` must therefore
    * be contained in :math:`t_n`.
    * \endverbatim
    */
@@ -1743,7 +1742,7 @@ enum ENUM(ProofRule)
    *
    * .. math::
    *
-   *   \inferrule{\mathit{len}(t) \geq n\mid \bot}{t = w_1\cdot w_2 \wedge
+   *   \inferrule{n \geq 0,\, \mathit{len}(t) \geq n\mid \bot}{t = w_1\cdot w_2 \wedge
    *   \mathit{len}(w_1) = n}
    *
    * where :math:`w_1` is the purification skolem for :math:`\mathit{pre}(t,n)`
@@ -1752,7 +1751,7 @@ enum ENUM(ProofRule)
    *
    * .. math::
    *
-   *   \inferrule{\mathit{len}(t) \geq n\mid \top}{t = w_1\cdot w_2 \wedge
+   *   \inferrule{n \geq 0,\, \mathit{len}(t) \geq n\mid \top}{t = w_1\cdot w_2 \wedge
    *   \mathit{len}(w_2) = n}
    *
    * where :math:`w_1` is the purification skolem for :math:`\mathit{pre}(t,n)` and
@@ -1876,8 +1875,8 @@ enum ENUM(ProofRule)
    *
    * .. math::
    *
-   *   \inferrule{t\not\in \mathit{re}.\text{re.++}(r_1, \ldots, r_n) \mid \bot}{
-   *  \mathit{pre}(t, L) \not \in r_1 \vee \mathit{suf}(t, L) \not \in \mathit{re}.\text{re.++}(r_2, \ldots, r_n)}
+   *   \inferrule{t\not\in \mathit{re}.\text{++}(r_1, \ldots, r_n) \mid \bot}{
+   *  \mathit{pre}(t, L) \not \in r_1 \vee \mathit{suf}(t, L) \not \in \mathit{re}.\text{++}(r_2, \ldots, r_n)}
    *
    * where :math:`r_1` has fixed length :math:`L`.
    *
@@ -1886,9 +1885,9 @@ enum ENUM(ProofRule)
    *
    * .. math::
    *
-   *   \inferrule{t \not \in \mathit{re}.\text{re.++}(r_1, \ldots, r_n) \mid \top}{
+   *   \inferrule{t \not \in \mathit{re}.\text{++}(r_1, \ldots, r_n) \mid \top}{
    *   \mathit{suf}(t, str.len(t) - L) \not \in r_n \vee
-   *   \mathit{pre}(t, str.len(t) - L) \not \in \mathit{re}.\text{re.++}(r_1, \ldots, r_{n-1})}
+   *   \mathit{pre}(t, str.len(t) - L) \not \in \mathit{re}.\text{++}(r_1, \ldots, r_{n-1})}
    *
    * where :math:`r_n` has fixed length :math:`L`.
    *
@@ -1915,8 +1914,8 @@ enum ENUM(ProofRule)
    *
    *   \inferrule{\mathit{unit}(x) = \mathit{unit}(y)\mid -}{x = y}
    *
-   * Also applies to the case where :math:`\mathit{unit}(y)` is a constant
-   * sequence of length one.
+   * Also applies to the case where either side is a constant sequence of
+   * length one.
    * \endverbatim
    */
   EVALUE(STRING_SEQ_UNIT_INJ),
@@ -1927,7 +1926,7 @@ enum ENUM(ProofRule)
    * .. math::
    *
    *   \inferrule{s \neq t\mid -}
-   *   {\mathit{seq.len}(s) \neq \mathit{seq.len}(t) \vee (\mathit{seq.nth}(s,k)\neq\mathit{set.nth}(t,k) \wedge 0 \leq k \wedge k < \mathit{seq.len}(s))}
+   *   {\mathit{seq.len}(s) \neq \mathit{seq.len}(t) \vee (\mathit{seq.nth}(s,k)\neq\mathit{seq.nth}(t,k) \wedge 0 \leq k \wedge k < \mathit{seq.len}(s))}
    *
    * where :math:`s,t` are terms of sequence type, :math:`k` is the
    * :math:`\texttt{STRINGS_DEQ_DIFF}` skolem for :math:`s,t`. Alternatively,
@@ -2115,9 +2114,9 @@ enum ENUM(ProofRule)
    * where :math:`f_1 \dots f_k` are variables compared to zero (less, greater
    * or not equal), :math:`m` is a monomial from these variables and
    * :math:`\diamond` is the comparison (less or greater) that results from the
-   * signs of the variables. In particular, :math:`\diamond` is :math`<`
-   * if :math:`f_1 \dots f_k` contains an odd number of :math`<`. Otherwise
-   * :math:`\diamond` is :math`>`. All variables with even exponent in :math:`m`
+   * signs of the variables. In particular, :math:`\diamond` is :math:`<`
+   * if :math:`f_1 \dots f_k` contains an odd number of :math:`<`. Otherwise
+   * :math:`\diamond` is :math:`>`. All variables with even exponent in :math:`m`
    * are given as not equal to zero while all variables with odd exponent
    * in :math:`m` should be given as less or greater than zero.
    * \endverbatim
@@ -2480,7 +2479,7 @@ enum ENUM(ProofRule)
    * .. math::
    *
    *   \inferrule{- \mid \ell_1, \dots, \ell_n, G}
-   *   {(\ell_1 \land \dots \land l_n) \iff \mathcal V(\langle G \rangle) \neq \emptyset}
+   *   {(\ell_1 \land \dots \land \ell_n) \iff \mathcal V(\langle G \rangle) \neq \emptyset}
    *
    * where each :math:`\ell_i` is a literal in the Finite Fields theory, :math:`G = (g_1, \dots, g_m)`
    * in which each :math:`g_i` is a polynomial that represents the literal :math:`\ell_i`.
@@ -2613,7 +2612,7 @@ enum ENUM(ProofRule)
    *   {\lor_{x \in N} \lor_{v \in F_p} \mathcal V(\langle G \cup \{x - v \}\rangle) \neq \emptyset}
    *
    * where :math:`N` is the set of unassigned variables, :math:`F_p` is the fixed prime field
-   * and :math:`G`` is  a set of polynomials.
+   * and :math:`G` is a set of polynomials.
    * 
    * This rule is an analogue of FF_ROOT_BRANCH where instead of branching on the
    * roots of a univariate polynomial, it branches on all possible values in the field.
@@ -2699,13 +2698,13 @@ enum ENUM(ProofRewriteRule)
    *
    * .. math::
    *
-   *   \texttt{distinct}(t_1, t_2) = \neg (t_1 = t2)
+   *   \texttt{distinct}(t_1, t_2) = \neg (t_1 = t_2)
    *
    * if :math:`n = 2`, or
    * 
    * .. math::
    *
-   *   \texttt{distinct}(t_1, \ldots, tn) = \bigwedge_{i=1}^n \bigwedge_{j=i+1}^n t_i \neq t_j
+   *   \texttt{distinct}(t_1, \ldots, t_n) = \bigwedge_{i=1}^n \bigwedge_{j=i+1}^n t_i \neq t_j
    *
    * if :math:`n > 2`
    *
@@ -2718,7 +2717,7 @@ enum ENUM(ProofRewriteRule)
    *
    * .. math::
    *
-   *   \texttt{distinct}(t_1, \ldots, tn) = \bot
+   *   \texttt{distinct}(t_1, \ldots, t_n) = \bot
    *
    * where :math:`n` is greater than the cardinality of the type of
    * :math:`t_1, \ldots, t_n`.
@@ -3061,7 +3060,7 @@ enum ENUM(ProofRewriteRule)
    *
    *   Q X.\> F = Q X_1.\> F
    *
-   * where :math:`Q` is either :math:`\forall or :math:`\exists` and :math:`X_1` is the subset of :math:`X`
+   * where :math:`Q` is either :math:`\forall` or :math:`\exists` and :math:`X_1` is the subset of :math:`X`
    * that appear free in :math:`F` and :math:`X_1` does not contain duplicate variables.
    *
    * \endverbatim
@@ -3765,7 +3764,7 @@ enum ENUM(ProofRewriteRule)
    *   \mathit{str.contains}(\mathit{str.++}(t_1, t_2, t_3), s) =
    *   \mathit{str.contains}(t_2, s)
    *
-   * where :math:`s` is `:math:\mathit{str.++}(s_1, s_2, s_3)`,
+   * where :math:`s` is :math:`\mathit{str.++}(s_1, s_2, s_3)`,
    * :math:`t_1` has no forward overlap with :math:`s_1` and
    * :math:`t_3` has no reverse overlap with :math:`s_3`.
    * For details see :math:`\texttt{Word::hasOverlap}` in
@@ -3783,7 +3782,7 @@ enum ENUM(ProofRewriteRule)
    *   \mathit{str.indexof}(\mathit{str.++}(t_1, t_2), s, n) =
    *   \mathit{str.indexof}(t_1, s, n)
    *
-   * where :math:`s` is `:math:\mathit{str.++}(s_1, s_2)` and
+   * where :math:`s` is :math:`\mathit{str.++}(s_1, s_2)` and
    * :math:`t_2` has no reverse overlap with :math:`s_2`.
    * For details see :math:`\texttt{Word::hasOverlap}` in
    * :cvc5src:`theory/strings/word.h`.
@@ -3799,7 +3798,7 @@ enum ENUM(ProofRewriteRule)
    *   \mathit{str.replace}(\mathit{str.++}(t_1, t_2, t_3), s, r) =
    *   \mathit{str.++}(t_1, \mathit{str.replace}(t_2, s, r) t_3)
    *
-   * where :math:`s` is `:math:\mathit{str.++}(s_1, s_2, s_3)`,
+   * where :math:`s` is :math:`\mathit{str.++}(s_1, s_2, s_3)`,
    * :math:`t_1` has no forward overlap with :math:`s_1` and
    * :math:`t_3` has no reverse overlap with :math:`s_3`.
    * For details see :math:`\texttt{Word::hasOverlap}` in
