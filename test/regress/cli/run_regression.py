@@ -23,8 +23,10 @@ import subprocess
 import sys
 import tempfile
 import threading
+import time
 
 g_args = None
+g_timeout_detected = False
 
 # For maximum reliability, we get a fully qualified path for the executable.
 bash_bin = shutil.which("bash")
@@ -69,6 +71,8 @@ class Tester:
                           error, flags):
         if is_timeout(exit_status, output, error):
             print_error("Timeout")
+            if not g_args.skip_timeout:
+                note_timeout_detected()
             return EXIT_SKIP if g_args.skip_timeout else EXIT_TIMEOUT
         elif exit_status == EXIT_SKIP:
             return EXIT_SKIP
@@ -593,6 +597,13 @@ EXIT_FAILURE = 1
 EXIT_SKIP = 77
 EXIT_TIMEOUT = 124
 STATUS_TIMEOUT = EXIT_TIMEOUT
+CTEST_TIMEOUT_ENV = "CVC5_REGRESSION_TIMEOUT_AS_CTEST_TIMEOUT"
+CTEST_TIMEOUT_SLEEP = 2
+
+
+def note_timeout_detected():
+    global g_timeout_detected
+    g_timeout_detected = True
 
 
 def is_timeout(exit_status, output, error):
@@ -1039,7 +1050,7 @@ def main():
         lfsc_sigs = [os.path.join(lfsc_sig_dir, sig + ".plf")
                      for sig in lfsc_sigs]
     cpc_sig_dir = os.path.abspath(g_args.cpc_sig_dir)
-    return run_regression(
+    exit_code = run_regression(
         testers,
         wrapper,
         cvc5_binary,
@@ -1050,6 +1061,13 @@ def main():
         g_args.benchmark,
         timeout,
     )
+    if g_timeout_detected and os.environ.get(CTEST_TIMEOUT_ENV) == "1":
+        # Let CTest see the timeout diagnostic and terminate this process so
+        # its native summary reports the test as a timeout.
+        sys.stdout.flush()
+        sys.stderr.flush()
+        time.sleep(CTEST_TIMEOUT_SLEEP)
+    return exit_code
 
 
 if __name__ == "__main__":

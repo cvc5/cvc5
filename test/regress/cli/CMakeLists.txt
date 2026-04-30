@@ -4441,15 +4441,13 @@ set(regression_disabled_tests
 
 get_target_property(path_to_cvc5 cvc5-bin RUNTIME_OUTPUT_DIRECTORY)
 set(run_regress_script ${CMAKE_CURRENT_LIST_DIR}/run_regression.py)
-set(summarize_regress_script ${CMAKE_CURRENT_LIST_DIR}/summarize_regressions.py)
 
 add_custom_target(build-regress DEPENDS cvc5-bin)
 add_dependencies(build-tests build-regress)
 
 add_custom_target(regress
   COMMAND
-    ${Python_EXECUTABLE} ${summarize_regress_script}
-      ctest --output-on-failure -L "regress[0-2]" -j${CTEST_NTHREADS} $$ARGS
+    ctest --output-on-failure -L "regress[0-2]" -j${CTEST_NTHREADS} $$ARGS
   DEPENDS build-regress)
 
 set(testers
@@ -4468,8 +4466,7 @@ set(testers
 foreach(tester ${testers})
   add_custom_target(regress-${tester}
     COMMAND ${CMAKE_COMMAND} -E env RUN_REGRESSION_ARGS='--tester ${tester}'
-      ${Python_EXECUTABLE} ${summarize_regress_script}
-        ctest --output-on-failure -L "regress[0-2]" -j${CTEST_NTHREADS} $$ARGS
+      ctest --output-on-failure -L "regress[0-2]" -j${CTEST_NTHREADS} $$ARGS
     DEPENDS build-regress)
 endforeach()
 
@@ -4511,8 +4508,14 @@ macro(cvc5_add_regression_test level file)
     ${wrapper}
     ${path_to_cvc5}/cvc5${CMAKE_EXECUTABLE_SUFFIX}
     ${CMAKE_CURRENT_LIST_DIR}/${file})
-  set_tests_properties(${file} PROPERTIES LABELS "regress${level}")
-  set_tests_properties(${file} PROPERTIES SKIP_RETURN_CODE 77)
+  # Let CTest report run_regression.py timeouts as native Timeout results.
+  # TEST_TIMEOUT still controls the cvc5 subprocess timeout.
+  set_tests_properties(${file} PROPERTIES
+    LABELS "regress${level}"
+    SKIP_RETURN_CODE 77
+    TIMEOUT 86400
+    TIMEOUT_AFTER_MATCH "1;(✖|>) Timeout"
+    ENVIRONMENT "CVC5_REGRESSION_TIMEOUT_AS_CTEST_TIMEOUT=1")
   # set_tests_properties(${file} PROPERTIES FIXTURES_REQUIRED build_regress_fixture)
 endmacro()
 
