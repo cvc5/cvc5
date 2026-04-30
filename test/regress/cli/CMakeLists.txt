@@ -4503,7 +4503,7 @@ macro(cvc5_add_regression_test level file)
     --lfsc-binary ${PROJECT_SOURCE_DIR}/deps/bin/lfscc
     --lfsc-sig-dir ${PROJECT_SOURCE_DIR}/proofs/lfsc/signatures
     --carcara-binary ${PROJECT_SOURCE_DIR}/deps/bin/carcara
-    --carcara-rare ${PROJECT_SOURCE_DIR}/deps/carcara/rewrites.eo
+    --carcara-rare ${PROJECT_SOURCE_DIR}/deps/rare/rewrites.eo
     --ethos-binary ${PROJECT_SOURCE_DIR}/deps/bin/ethos
     --cpc-sig-dir ${PROJECT_SOURCE_DIR}/proofs/eo
     ${wrapper}
