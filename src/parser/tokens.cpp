@@ -50,6 +50,7 @@ std::ostream& operator<<(std::ostream& o, Token t)
       o << "DECLARE_SORT_PARAMETER_TOK";
       break;
     case Token::DECLARE_VAR_TOK: o << "DECLARE_VAR_TOK"; break;
+    case Token::DECLARE_WEIGHT_TOK: o << "DECLARE_WEIGHT_TOK"; break;
     case Token::DEFINE_CONST_TOK: o << "DEFINE_CONST_TOK"; break;
     case Token::DEFINE_FUNS_REC_TOK: o << "DEFINE_FUNS_REC_TOK"; break;
     case Token::DEFINE_FUN_REC_TOK: o << "DEFINE_FUN_REC_TOK"; break;

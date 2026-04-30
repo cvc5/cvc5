@@ -195,6 +195,23 @@ class CVC5_EXPORT Printer
                                      const std::string& id,
                                      TypeNode type) const;
 
+  /**
+   * Print declare-weight command.
+   * @param out The output stream.
+   * @param id The weight keyword name (without the leading ':').
+   * @param defaultValue The default weight, or a null pointer if unset.
+   * @note The parameter is a `std::unique_ptr` (rather than a sentinel
+   * `Node::null()` analogous to `TypeNode::null()` in synth-fun) because
+   * `NodeTemplate<ref_count>::s_null` is defined in a header and can have
+   * per-dylib copies on platforms with two-level namespacing (e.g. macOS),
+   * making an `isNull()` check across the libcvc5/libcvc5parser boundary
+   * unreliable.
+   */
+  virtual void toStreamCmdDeclareWeight(
+      std::ostream& out,
+      const std::string& id,
+      const std::unique_ptr<Node>& defaultValue) const;
+
   /** Print synth-fun command */
   virtual void toStreamCmdSynthFun(std::ostream& out,
                                    const std::string& id,

@@ -1,0 +1,29 @@
+; EXPECT: feasible
+; EXPECT: (
+; EXPECT:   (define-fun f ((x Int)) Int (+ x (+ x x)))
+; EXPECT: )
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status-and-def --no-check-synth-sol
+
+; Simple SyGuS 2.1 weight example:
+; Find a synthesis of 3*x using only `+` (weight 1) or `*` (weight 31),
+; constrained to have a total `w` weight of 2.
+; Solution: (+ x (+ x x)) uses two additions, total weight = 2.
+
+(set-logic NIA)
+(set-feature :weights true)
+
+(declare-weight w)
+
+(synth-fun f ((x Int)) Int
+  ((Start Int))
+  ((Start Int (0 1 3 x
+                (! (+ Start Start) :w 1)
+                (! (* Start Start) :w 31))))
+)
+
+(declare-var x Int)
+
+(constraint (= (f x) (* 3 x)))
+(constraint (= (_ w f) 2))
+
+(check-synth)

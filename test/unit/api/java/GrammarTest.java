@@ -182,7 +182,9 @@ class GrammarTest
     {
       g1 = d_solver.mkGrammar(new Term[] {x}, new Term[] {start1});
       g2 = d_solver.mkGrammar(new Term[] {x}, new Term[] {start2});
-      assertNotEquals(g1.hashCode(), g2.hashCode());
+      // start1 and start2 have the same name and sort, so the grammars hash
+      // equally (matching the Python test behavior).
+      assertEquals(g1.hashCode(), g2.hashCode());
       assertTrue(g1.equals(g1));
       assertFalse(g1.equals(g2));
     }

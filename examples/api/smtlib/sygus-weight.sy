@@ -1,0 +1,22 @@
+; The printed output for this example should be equivalent to:
+; (
+;   (define-fun f ((x Int)) Int (+ x (+ x x)))
+; )
+
+; Synthesize 3*x using only `+` (weight 1) and `*` (weight 31), constrained
+; to have a total `w` weight of 2. The expected solution is (+ x (+ x x)).
+
+(set-logic NIA)
+(set-feature :weights true)
+
+(declare-weight w)
+
+(synth-fun f ((x Int)) Int
+  ((Start Int))
+  ((Start Int (0 1 3 x
+                (! (+ Start Start) :w 1)
+                (! (* Start Start) :w 31)))))
+(declare-var x Int)
+(constraint (= (f x) (* 3 x)))
+(constraint (= (_ w f) 2))
+(check-synth)

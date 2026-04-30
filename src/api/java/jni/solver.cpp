@@ -1370,6 +1370,69 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_declareSygusVar(
 
 /*
  * Class:     io_github_cvc5_Solver
+ * Method:    declareWeight
+ * Signature: (JLjava/lang/String;)J
+ */
+JNIEXPORT jlong JNICALL
+Java_io_github_cvc5_Solver_declareWeight__JLjava_lang_String_2(JNIEnv* env,
+                                                               jobject,
+                                                               jlong pointer,
+                                                               jstring jSymbol)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = reinterpret_cast<Solver*>(pointer);
+  const char* s = env->GetStringUTFChars(jSymbol, nullptr);
+  std::string cSymbol(s);
+  Weight* retPointer = new Weight(solver->declareWeight(cSymbol));
+  env->ReleaseStringUTFChars(jSymbol, s);
+  return reinterpret_cast<jlong>(retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     io_github_cvc5_Solver
+ * Method:    declareWeight
+ * Signature: (JLjava/lang/String;J)J
+ */
+JNIEXPORT jlong JNICALL
+Java_io_github_cvc5_Solver_declareWeight__JLjava_lang_String_2J(
+    JNIEnv* env,
+    jobject,
+    jlong pointer,
+    jstring jSymbol,
+    jlong defaultValuePointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = reinterpret_cast<Solver*>(pointer);
+  Term* defaultValue = reinterpret_cast<Term*>(defaultValuePointer);
+  const char* s = env->GetStringUTFChars(jSymbol, nullptr);
+  std::string cSymbol(s);
+  Weight* retPointer =
+      new Weight(solver->declareWeight(cSymbol, *defaultValue));
+  env->ReleaseStringUTFChars(jSymbol, s);
+  return reinterpret_cast<jlong>(retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     io_github_cvc5_Solver
+ * Method:    mkWeightSymbol
+ * Signature: (JJJ)J
+ */
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkWeightSymbol(
+    JNIEnv* env, jobject, jlong pointer, jlong weightPointer, jlong termPointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = reinterpret_cast<Solver*>(pointer);
+  Weight* weight = reinterpret_cast<Weight*>(weightPointer);
+  Term* term = reinterpret_cast<Term*>(termPointer);
+  Term* retPointer = new Term(solver->mkWeightSymbol(*weight, *term));
+  return reinterpret_cast<jlong>(retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     io_github_cvc5_Solver
  * Method:    mkGrammar
  * Signature: (J[J[J)J
  */

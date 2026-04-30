@@ -459,6 +459,26 @@ struct cvc5_grammar_t
   Cvc5* d_cvc5 = nullptr;
 };
 
+/** Wrapper for cvc5 C++ weights. */
+struct cvc5_weight_t
+{
+  /**
+   * Constructor.
+   * @param cvc5   The associated solver instance.
+   * @param weight The wrapped C++ weight.
+   */
+  cvc5_weight_t(Cvc5* cvc5, const cvc5::Weight& weight)
+      : d_weight(weight), d_cvc5(cvc5)
+  {
+  }
+  /** The wrapped C++ weight. */
+  cvc5::Weight d_weight;
+  /** External refs count. */
+  uint32_t d_refs = 1;
+  /** The associated solver instance. */
+  Cvc5* d_cvc5 = nullptr;
+};
+
 /** Wrapper for cvc5 C++ solver instance. */
 struct Cvc5
 {
@@ -543,6 +563,24 @@ struct Cvc5
    */
   cvc5_grammar_t* copy(cvc5_grammar_t* grammar);
 
+  /**
+   * Export C++ weight to C API.
+   * @param weight The weight to export.
+   */
+  Cvc5Weight export_weight(const cvc5::Weight& weight);
+  /**
+   * Decrement the external ref count of a weight. If the ref count reaches
+   * zero, the weight is released (freed).
+   * @param weight The weight to release.
+   */
+  void release(cvc5_weight_t* weight);
+  /**
+   * Increment the external ref count of a weight.
+   * @param weight The weight to copy.
+   * @return The copied weight.
+   */
+  cvc5_weight_t* copy(cvc5_weight_t* weight);
+
   /** The associated cvc5 instance. */
   cvc5::Solver d_solver;
   /** The associated term manager. */
@@ -557,6 +595,8 @@ struct Cvc5
   std::unordered_map<cvc5::Proof, cvc5_proof_t> d_alloc_proofs;
   /** Cache of allocated grammars. */
   std::unordered_map<cvc5::Grammar, cvc5_grammar_t> d_alloc_grammars;
+  /** Cache of allocated weights. */
+  std::unordered_map<cvc5::Weight, cvc5_weight_t> d_alloc_weights;
   /** Out file stream for output tag (configured via `cvc5_get_output()`. */
   std::ofstream d_output_tag_file_stream;
   /**

@@ -17,6 +17,33 @@
 
 using namespace cvc5;
 
+namespace {
+/**
+ * Build a WeightMap from two parallel jlongArray arrays of pointers.
+ */
+static WeightMap buildWeightMap(JNIEnv* env,
+                                jlongArray jWeightPointers,
+                                jlongArray jTermPointers)
+{
+  WeightMap result;
+  jsize size = env->GetArrayLength(jWeightPointers);
+  std::vector<jlong> weightPointers(size);
+  std::vector<jlong> termPointers(size);
+  if (size > 0)
+  {
+    env->GetLongArrayRegion(jWeightPointers, 0, size, weightPointers.data());
+    env->GetLongArrayRegion(jTermPointers, 0, size, termPointers.data());
+  }
+  for (jsize i = 0; i < size; i++)
+  {
+    Weight* w = reinterpret_cast<Weight*>(weightPointers[i]);
+    Term* t = reinterpret_cast<Term*>(termPointers[i]);
+    result.emplace(*w, *t);
+  }
+  return result;
+}
+}  // namespace
+
 /*
  * Class:     io_github_cvc5_Grammar
  * Method:    copyGrammar
@@ -84,11 +111,11 @@ JNIEXPORT jboolean JNICALL Java_io_github_cvc5_Grammar_equals(JNIEnv* env,
  * Signature: (JJJ)V
  */
 JNIEXPORT void JNICALL
-Java_io_github_cvc5_Grammar_addRule(JNIEnv* env,
-                                    jobject,
-                                    jlong pointer,
-                                    jlong ntSymbolPointer,
-                                    jlong rulePointer)
+Java_io_github_cvc5_Grammar_addRule__JJJ(JNIEnv* env,
+                                         jobject,
+                                         jlong pointer,
+                                         jlong ntSymbolPointer,
+                                         jlong rulePointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Grammar* current = reinterpret_cast<Grammar*>(pointer);
@@ -104,11 +131,11 @@ Java_io_github_cvc5_Grammar_addRule(JNIEnv* env,
  * Signature: (JJ[J)V
  */
 JNIEXPORT void JNICALL
-Java_io_github_cvc5_Grammar_addRules(JNIEnv* env,
-                                     jobject,
-                                     jlong pointer,
-                                     jlong ntSymbolPointer,
-                                     jlongArray rulePointers)
+Java_io_github_cvc5_Grammar_addRules__JJ_3J(JNIEnv* env,
+                                            jobject,
+                                            jlong pointer,
+                                            jlong ntSymbolPointer,
+                                            jlongArray rulePointers)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Grammar* current = reinterpret_cast<Grammar*>(pointer);
@@ -123,7 +150,7 @@ Java_io_github_cvc5_Grammar_addRules(JNIEnv* env,
  * Method:    addAnyConstant
  * Signature: (JJ)V
  */
-JNIEXPORT void JNICALL Java_io_github_cvc5_Grammar_addAnyConstant(
+JNIEXPORT void JNICALL Java_io_github_cvc5_Grammar_addAnyConstant__JJ(
     JNIEnv* env, jobject, jlong pointer, jlong ntSymbolPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -138,13 +165,113 @@ JNIEXPORT void JNICALL Java_io_github_cvc5_Grammar_addAnyConstant(
  * Method:    addAnyVariable
  * Signature: (JJ)V
  */
-JNIEXPORT void JNICALL Java_io_github_cvc5_Grammar_addAnyVariable(
+JNIEXPORT void JNICALL Java_io_github_cvc5_Grammar_addAnyVariable__JJ(
     JNIEnv* env, jobject, jlong pointer, jlong ntSymbolPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Grammar* current = reinterpret_cast<Grammar*>(pointer);
   Term* ntSymbol = reinterpret_cast<Term*>(ntSymbolPointer);
   current->addAnyVariable(*ntSymbol);
+  CVC5_JAVA_API_TRY_CATCH_END(env);
+}
+
+/*
+ * Class:     io_github_cvc5_Grammar
+ * Method:    addRule
+ * Signature: (JJJ[J[J)V
+ */
+JNIEXPORT void JNICALL
+Java_io_github_cvc5_Grammar_addRule__JJJ_3J_3J(JNIEnv* env,
+                                               jobject,
+                                               jlong pointer,
+                                               jlong ntSymbolPointer,
+                                               jlong rulePointer,
+                                               jlongArray jWeightPointers,
+                                               jlongArray jTermPointers)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Grammar* current = reinterpret_cast<Grammar*>(pointer);
+  Term* ntSymbol = reinterpret_cast<Term*>(ntSymbolPointer);
+  Term* rule = reinterpret_cast<Term*>(rulePointer);
+  WeightMap weights = buildWeightMap(env, jWeightPointers, jTermPointers);
+  current->addRule(*ntSymbol, *rule, weights);
+  CVC5_JAVA_API_TRY_CATCH_END(env);
+}
+
+/*
+ * Class:     io_github_cvc5_Grammar
+ * Method:    addRules
+ * Signature: (JJ[J[[J[[J)V
+ */
+JNIEXPORT void JNICALL Java_io_github_cvc5_Grammar_addRules__JJ_3J_3_3J_3_3J(
+    JNIEnv* env,
+    jobject,
+    jlong pointer,
+    jlong ntSymbolPointer,
+    jlongArray rulePointers,
+    jobjectArray jWeightPointers,
+    jobjectArray jTermPointers)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Grammar* current = reinterpret_cast<Grammar*>(pointer);
+  Term* ntSymbol = reinterpret_cast<Term*>(ntSymbolPointer);
+  std::vector<Term> rules = getObjectsFromPointers<Term>(env, rulePointers);
+  jsize numWeights = env->GetArrayLength(jWeightPointers);
+  std::vector<WeightMap> weights;
+  weights.reserve(numWeights);
+  for (jsize i = 0; i < numWeights; i++)
+  {
+    jlongArray weightsArr =
+        (jlongArray)env->GetObjectArrayElement(jWeightPointers, i);
+    jlongArray termsArr =
+        (jlongArray)env->GetObjectArrayElement(jTermPointers, i);
+    weights.push_back(buildWeightMap(env, weightsArr, termsArr));
+    env->DeleteLocalRef(weightsArr);
+    env->DeleteLocalRef(termsArr);
+  }
+  current->addRules(*ntSymbol, rules, weights);
+  CVC5_JAVA_API_TRY_CATCH_END(env);
+}
+
+/*
+ * Class:     io_github_cvc5_Grammar
+ * Method:    addAnyConstant
+ * Signature: (JJ[J[J)V
+ */
+JNIEXPORT void JNICALL
+Java_io_github_cvc5_Grammar_addAnyConstant__JJ_3J_3J(JNIEnv* env,
+                                                     jobject,
+                                                     jlong pointer,
+                                                     jlong ntSymbolPointer,
+                                                     jlongArray jWeightPointers,
+                                                     jlongArray jTermPointers)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Grammar* current = reinterpret_cast<Grammar*>(pointer);
+  Term* ntSymbol = reinterpret_cast<Term*>(ntSymbolPointer);
+  WeightMap weights = buildWeightMap(env, jWeightPointers, jTermPointers);
+  current->addAnyConstant(*ntSymbol, weights);
+  CVC5_JAVA_API_TRY_CATCH_END(env);
+}
+
+/*
+ * Class:     io_github_cvc5_Grammar
+ * Method:    addAnyVariable
+ * Signature: (JJ[J[J)V
+ */
+JNIEXPORT void JNICALL
+Java_io_github_cvc5_Grammar_addAnyVariable__JJ_3J_3J(JNIEnv* env,
+                                                     jobject,
+                                                     jlong pointer,
+                                                     jlong ntSymbolPointer,
+                                                     jlongArray jWeightPointers,
+                                                     jlongArray jTermPointers)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Grammar* current = reinterpret_cast<Grammar*>(pointer);
+  Term* ntSymbol = reinterpret_cast<Term*>(ntSymbolPointer);
+  WeightMap weights = buildWeightMap(env, jWeightPointers, jTermPointers);
+  current->addAnyVariable(*ntSymbol, weights);
   CVC5_JAVA_API_TRY_CATCH_END(env);
 }
 

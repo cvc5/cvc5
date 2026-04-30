@@ -12,6 +12,7 @@
 
 #include "theory/quantifiers/sygus/sygus_enumerator_callback.h"
 
+#include "expr/dtype_cons.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/sygus/example_eval_cache.h"
 #include "theory/quantifiers/sygus/sygus_enumerator.h"
@@ -62,12 +63,62 @@ bool SygusEnumeratorCallback::addTerm(const Node& n,
   return true;
 }
 
-Node SygusEnumeratorCallback::getCacheValue(CVC5_UNUSED const Node& n,
-                                            const Node& bn)
+Node SygusEnumeratorCallback::getCacheValue(const Node& n, const Node& bn)
 {
-  // By default, we cache based on the rewritten form.
-  // Further criteria for uniqueness (e.g. weights) may go here.
-  return d_tds == nullptr ? extendedRewrite(bn) : d_tds->rewriteNode(bn);
+  // By default, we cache based on the rewritten form. Additional uniqueness
+  // criteria (e.g. SyGuS 2.1 weights) are folded in below.
+  Node rewritten =
+      d_tds == nullptr ? extendedRewrite(bn) : d_tds->rewriteNode(bn);
+  // Fast path: grammars without weight annotations keep the legacy cache key.
+  const std::vector<Node>& weights = getWeightVars(n.getType());
+  if (weights.empty())
+  {
+    return rewritten;
+  }
+  NodeManager* nm = n.getNodeManager();
+  std::vector<Node> cvals;
+  cvals.reserve(weights.size() + 1);
+  cvals.push_back(rewritten);
+  for (const Node& weight : weights)
+  {
+    Node wn = nm->mkNode(Kind::DT_SYGUS_WEIGHT, weight, n);
+    cvals.push_back(d_tds == nullptr ? extendedRewrite(wn)
+                                     : d_tds->rewriteNode(wn));
+  }
+  return nm->mkNode(Kind::SEXPR, cvals);
+}
+
+const std::vector<Node>& SygusEnumeratorCallback::getWeightVars(
+    const TypeNode& tn)
+{
+  std::unordered_map<TypeNode, std::vector<Node>>::iterator it =
+      d_weightVars.find(tn);
+  if (it != d_weightVars.end())
+  {
+    return it->second;
+  }
+  std::vector<Node>& weights = d_weightVars[tn];
+  if (!tn.isDatatype())
+  {
+    return weights;
+  }
+  const DType& dt = tn.getDType();
+  if (!dt.isSygus())
+  {
+    return weights;
+  }
+  std::unordered_set<Node> seen;
+  for (const std::shared_ptr<DTypeConstructor>& cons : dt.getConstructors())
+  {
+    for (const std::pair<const Node, Node>& pair : cons->getWeights())
+    {
+      if (seen.insert(pair.first).second)
+      {
+        weights.push_back(pair.first);
+      }
+    }
+  }
+  return weights;
 }
 
 bool SygusEnumeratorCallback::addTermInternal(const Node& n,
