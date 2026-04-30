@@ -71,6 +71,13 @@ TheoryDatatypes::TheoryDatatypes(Env& env,
   d_theoryState = &d_state;
   d_inferManager = &d_im;
 
+  // This theory queues pending inferences based on equality engine
+  // notifications which are processed at the beginning of postCheck.
+  // If we are using the central equality engine, we may receive such
+  // notifications even when no facts are asserted explicitly to this theory.
+  // Thus, we should always check at STANDARD effort. We set d_checkEarlyExit
+  // to false to disable an optimization in the base Theory class which would
+  // otherwise skip these checks.
   if (options().theory.eeMode == options::EqEngineMode::CENTRAL)
   {
     d_checkEarlyExit = false;
