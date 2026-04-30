@@ -86,12 +86,12 @@ void addLemmaForPair(TNode args1,
     Assert(args1.getNumChildren() == 2);
     Assert(args2.getNumChildren() == 2);
     // add consistency lemma only if types match
-    if (args1.getType() == args2.getType()
-        && args1[1].getType() == args2[1].getType())
+    if (CVC5_EQUAL(args1.getType(), args2.getType())
+        && CVC5_EQUAL(args1[1].getType(), args2[1].getType()))
     {
       args_eq = nm->mkNode(Kind::AND,
-                           nm->mkNode(Kind::EQUAL, args1[0], args2[0]),
-                           nm->mkNode(Kind::EQUAL, args1[1], args2[1]));
+                           {nm->mkNode(Kind::EQUAL, args1[0], args2[0]),
+                            nm->mkNode(Kind::EQUAL, args1[1], args2[1])});
       Node func_eq = nm->mkNode(Kind::EQUAL, args1, args2);
       Node lemma = nm->mkNode(Kind::IMPLIES, args_eq, func_eq);
       assertionsToPreprocess->push_back(

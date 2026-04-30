@@ -1,8 +1,14 @@
 # Clang-tidy enables the following checks by default:
 #   clang-diagnostic-*,
 #   clang-analyzer-*
+# NOTE:
+#  We disable clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling,
+#  since it produces non-actionable warnings. See:
+#    https://github.com/llvm/llvm-project/issues/64027
 # Additional checks:
 Checks: >
+  -clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling,
+  cvc5-*,
   modernize-use-nullptr
 HeaderFilterRegex: '.*'
 # Use .clang-format for formatting changes
