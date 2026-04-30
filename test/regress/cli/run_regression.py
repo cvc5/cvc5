@@ -285,7 +285,9 @@ class AletheTester(Tester):
         with tempfile.NamedTemporaryFile(suffix=".smt2.proof") as tmpf:
             cvc5_args = benchmark_info.command_line_args + [
                 "--dump-proofs",
-                "--proof-format=alethe"
+                "--proof-format=alethe",
+                "--proof-granularity=dsl-rewrite",
+                "--proof-alethe-testing"
             ]
             # remove duplicates
             cvc5_args = list(dict.fromkeys(cvc5_args))
@@ -313,7 +315,12 @@ class AletheTester(Tester):
             carcara_args = [
                 "--allow-int-real-subtyping",
                 "--expand-let-bindings",
-                "--ignore-unknown-rules"
+                "--allowed-rules",
+                "undefined",
+                "la_mult_sign",
+                "la_mult_abs_comparison",
+                "--rare-file",
+                benchmark_info.carcara_rare,
             ]
             output, error, exit_status = run_process(
                 [benchmark_info.carcara_binary] + ["check"] +
@@ -326,7 +333,7 @@ class AletheTester(Tester):
                                                error, cvc5_args)
             if exit_code != EXIT_OK:
                 return exit_code
-            if "valid" not in output and "holey" not in output:
+            if "valid" not in output:
                 print_error("Invalid proof")
                 print()
                 print_outputs(output, error)
@@ -569,6 +576,7 @@ BenchmarkInfo = collections.namedtuple(
         "lfsc_binary",
         "lfsc_sigs",
         "carcara_binary",
+        "carcara_rare",
         "ethos_binary",
         "benchmark_dir",
         "benchmark_basename",
@@ -809,6 +817,7 @@ def run_regression(
     lfsc_binary,
     lfsc_sigs,
     carcara_binary,
+    carcara_rare,
     ethos_binary,
     benchmark_path,
     timeout,
@@ -951,6 +960,7 @@ def run_regression(
             lfsc_binary=lfsc_binary,
             lfsc_sigs=lfsc_sigs,
             carcara_binary=carcara_binary,
+            carcara_rare=carcara_rare,
             ethos_binary=ethos_binary,
             benchmark_dir=benchmark_dir,
             benchmark_basename=benchmark_basename,
@@ -996,7 +1006,7 @@ def main():
     parser = argparse.ArgumentParser(
         description="Runs benchmark and checks for correct exit status and output."
     )
-    
+
     g_testers_keys = list(g_testers.keys())
     tester_choices = ["all"] + g_testers_keys
     parser.add_argument("--use-skip-return-code", action="store_true")
@@ -1006,6 +1016,7 @@ def main():
     parser.add_argument("--lfsc-binary", default="")
     parser.add_argument("--lfsc-sig-dir", default="")
     parser.add_argument("--carcara-binary", default="")
+    parser.add_argument("--carcara-rare", default="")
     parser.add_argument("--ethos-binary", default="")
     parser.add_argument("--cpc-sig-dir", default="")
     parser.add_argument("wrapper", nargs="*")
@@ -1022,6 +1033,7 @@ def main():
     cvc5_binary = os.path.abspath(g_args.cvc5_binary)
     lfsc_binary = os.path.abspath(g_args.lfsc_binary)
     carcara_binary = os.path.abspath(g_args.carcara_binary)
+    carcara_rare = os.path.abspath(g_args.carcara_rare)
     ethos_binary = os.path.abspath(g_args.ethos_binary)
 
     wrapper = g_args.wrapper
@@ -1058,6 +1070,7 @@ def main():
         lfsc_binary,
         lfsc_sigs,
         carcara_binary,
+        carcara_rare,
         ethos_binary,
         g_args.benchmark,
         timeout,
