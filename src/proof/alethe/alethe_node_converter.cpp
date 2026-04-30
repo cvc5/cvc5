@@ -369,6 +369,8 @@ Node AletheNodeConverter::postConvert(Node n)
     case Kind::IS_INTEGER:
     case Kind::TO_INTEGER:
     case Kind::TO_REAL:
+    case Kind::INTS_ISPOW2:
+    case Kind::INTS_LOG2:
     case Kind::POW2:
     /* from arrays */
     case Kind::ARRAY_TYPE:
