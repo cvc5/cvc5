@@ -4441,13 +4441,16 @@ set(regression_disabled_tests
 
 get_target_property(path_to_cvc5 cvc5-bin RUNTIME_OUTPUT_DIRECTORY)
 set(run_regress_script ${CMAKE_CURRENT_LIST_DIR}/run_regression.py)
+set(summarize_regress_script ${CMAKE_CURRENT_LIST_DIR}/summarize_regressions.py)
 
 add_custom_target(build-regress DEPENDS cvc5-bin)
 add_dependencies(build-tests build-regress)
 
 add_custom_target(regress
   COMMAND
-    ctest --output-on-failure -L "regress[0-2]" -j${CTEST_NTHREADS} $$ARGS
+    ${Python_EXECUTABLE} ${summarize_regress_script}
+      -- ${CMAKE_CTEST_COMMAND} --output-on-failure -L "regress[0-2]"
+      -j${CTEST_NTHREADS} $$ARGS
   DEPENDS build-regress)
 
 set(testers
@@ -4466,7 +4469,9 @@ set(testers
 foreach(tester ${testers})
   add_custom_target(regress-${tester}
     COMMAND ${CMAKE_COMMAND} -E env RUN_REGRESSION_ARGS='--tester ${tester}'
-      ctest --output-on-failure -L "regress[0-2]" -j${CTEST_NTHREADS} $$ARGS
+      ${Python_EXECUTABLE} ${summarize_regress_script}
+        -- ${CMAKE_CTEST_COMMAND} --output-on-failure -L "regress[0-2]"
+        -j${CTEST_NTHREADS} $$ARGS
     DEPENDS build-regress)
 endforeach()
 

@@ -69,7 +69,7 @@ class Tester:
                           error, flags):
         if exit_status == STATUS_TIMEOUT:
             print_error("Timeout")
-            return EXIT_SKIP if g_args.skip_timeout else EXIT_FAILURE
+            return EXIT_SKIP if g_args.skip_timeout else EXIT_TIMEOUT
         elif exit_status == EXIT_SKIP:
             return EXIT_SKIP
         elif exit_status != expected_exit_status:
@@ -96,7 +96,7 @@ class Tester:
                                            exit_status, output, error,
                                            benchmark_info.command_line_args)
 
-        if exit_code == EXIT_SKIP:
+        if exit_code == EXIT_SKIP or exit_code == EXIT_TIMEOUT:
             return exit_code
 
         if benchmark_info.compare_outputs and output != benchmark_info.expected_output:
@@ -225,6 +225,10 @@ class LfscTester(Tester):
                 benchmark_info.benchmark_dir,
                 benchmark_info.timeout,
             )
+            exit_code = self.check_exit_status(EXIT_OK, exit_status, output,
+                                               error, cvc5_args)
+            if exit_code != EXIT_OK:
+                return exit_code
             # strip the unsat and parentheses
             output, exit_code = self.strip_proof_body(output)
             if exit_code == EXIT_FAILURE:
@@ -232,8 +236,6 @@ class LfscTester(Tester):
             tmpf.write(output)
             tmpf.flush()
             output, error = output.decode(), error.decode()
-            exit_code = self.check_exit_status(EXIT_OK, exit_status, output,
-                                               error, cvc5_args)
             if "check" not in output:
                 print_error("Empty proof")
                 print()
@@ -250,6 +252,8 @@ class LfscTester(Tester):
             output, error = output.decode(), error.decode()
             exit_code = self.check_exit_status(EXIT_OK, exit_status, output,
                                                error, cvc5_args)
+            if exit_code != EXIT_OK:
+                return exit_code
             if "success" not in output:
                 print_error("Invalid proof")
                 print()
@@ -290,6 +294,10 @@ class AletheTester(Tester):
             )
             if (re.search(r'Proof unsupported by Alethe', output.decode()) or re.search(r'Proof unsupported by Alethe', error.decode())):
                 return EXIT_SKIP
+            exit_code = self.check_exit_status(EXIT_OK, exit_status, output,
+                                               error, cvc5_args)
+            if exit_code != EXIT_OK:
+                return exit_code
             # strip the unsat and parentheses
             output, exit_code = self.strip_proof_body(output)
             if exit_code == EXIT_FAILURE:
@@ -297,11 +305,6 @@ class AletheTester(Tester):
             tmpf.write(output)
             tmpf.flush()
             output, error = output.decode(), error.decode()
-            exit_code = self.check_exit_status(EXIT_OK, exit_status, output,
-                                               error, cvc5_args)
-
-            if exit_code != EXIT_OK:
-                return exit_code
             original_file = benchmark_info.benchmark_dir + '/' + benchmark_info.benchmark_basename
             carcara_args = [
                 "--allow-int-real-subtyping",
@@ -317,6 +320,8 @@ class AletheTester(Tester):
             output, error = output.decode(), error.decode()
             exit_code = self.check_exit_status(EXIT_OK, exit_status, output,
                                                error, cvc5_args)
+            if exit_code != EXIT_OK:
+                return exit_code
             if "valid" not in output and "holey" not in output:
                 print_error("Invalid proof")
                 print()
@@ -356,6 +361,10 @@ class CpcTester(Tester):
             if ((benchmark_info.safe_mode or benchmark_info.stable_mode) and
                 (re.search(r'in safe mode', output.decode()) or re.search(r'in safe mode', error.decode()))):
                 return EXIT_SKIP
+            exit_code = self.check_exit_status(EXIT_OK, exit_status, output,
+                                               error, cvc5_args)
+            if exit_code != EXIT_OK:
+                return exit_code
             cpc_sig_dir = os.path.abspath(g_args.cpc_sig_dir)
             tmpf.write(("(include \"" + cpc_sig_dir + "/cpc/Cpc.eo\")").encode())
             # note this line is not necessary if in a safe build
@@ -368,8 +377,6 @@ class CpcTester(Tester):
             tmpf.write(output)
             tmpf.flush()
             output, error = output.decode(), error.decode()
-            exit_code = self.check_exit_status(EXIT_OK, exit_status, output,
-                                               error, cvc5_args)
             if ("step" not in output) and ("assume" not in output):
                 print_error("Empty proof")
                 return EXIT_FAILURE
@@ -384,6 +391,8 @@ class CpcTester(Tester):
             output, error = output.decode(), error.decode()
             exit_code = self.check_exit_status(EXIT_OK, exit_status, output,
                                                error, cvc5_args)
+            if exit_code != EXIT_OK:
+                return exit_code
             if ("correct" not in output) and ("incomplete" not in output):
                 print_error("Invalid proof")
                 print()
@@ -484,7 +493,7 @@ class DumpTester(Tester):
                 "raw-benchmark",
                 "--output-lang={}".format(ext_to_lang[benchmark_info.benchmark_ext]),
             ]
-            dump_output, _, _ = run_process(
+            dump_output, dump_error, dump_exit_status = run_process(
                 [benchmark_info.cvc5_binary]
                 + benchmark_info.command_line_args
                 + dump_args
@@ -492,6 +501,10 @@ class DumpTester(Tester):
                 benchmark_info.benchmark_dir,
                 benchmark_info.timeout,
             )
+            dump_exit_code = self.check_exit_status(
+                EXIT_OK, dump_exit_status, dump_output, dump_error, dump_args)
+            if dump_exit_code != EXIT_OK:
+                return dump_exit_code
 
             tmpf_name = tmpf.name
             tmpf.write(dump_output)
@@ -578,7 +591,16 @@ DISABLE_TESTER = "DISABLE-TESTER:"
 EXIT_OK = 0
 EXIT_FAILURE = 1
 EXIT_SKIP = 77
-STATUS_TIMEOUT = 124
+EXIT_TIMEOUT = 124
+STATUS_TIMEOUT = EXIT_TIMEOUT
+
+
+def print_regression_result(exit_code):
+    """Prints a machine-readable result for regression summary wrappers."""
+    if exit_code == EXIT_FAILURE:
+        print("CVC5_REGRESSION_RESULT: FAILURE")
+    elif exit_code == EXIT_TIMEOUT:
+        print("CVC5_REGRESSION_RESULT: TIMEOUT")
 
 
 def print_colored(color, text):
@@ -720,12 +742,14 @@ def run_benchmark(benchmark_info):
     # If a scrubber command has been specified then apply it to the output.
     scrubber_error = ""
     if benchmark_info.scrubber:
-        output, scrubber_error, _ = run_process(
+        output, scrubber_error, scrubber_exit_status = run_process(
             benchmark_info.scrubber,
             benchmark_info.benchmark_dir,
             benchmark_info.timeout,
             output,
         )
+        if scrubber_exit_status == STATUS_TIMEOUT:
+            return (output, scrubber_error, STATUS_TIMEOUT)
     # Make sure that the scrubber itself did not print anything to its error output
     check_result =  check_scrubber(scrubber_error, benchmark_info.scrubber)
     if check_result != None:
@@ -733,12 +757,14 @@ def run_benchmark(benchmark_info):
 
     scrubber_error = ""
     if benchmark_info.error_scrubber:
-        error, scrubber_error, _ = run_process(
+        error, scrubber_error, scrubber_exit_status = run_process(
             benchmark_info.error_scrubber,
             benchmark_info.benchmark_dir,
             benchmark_info.timeout,
             error,
         )
+        if scrubber_exit_status == STATUS_TIMEOUT:
+            return (output, scrubber_error, STATUS_TIMEOUT)
     # Make sure that the error scrubber itself did not print anything to its error output
     check_result =  check_scrubber(scrubber_error, benchmark_info.error_scrubber)
     if check_result != None:
@@ -934,6 +960,8 @@ def run_regression(
         test_exit_code = tester.run(benchmark_info)
         if exit_code == EXIT_FAILURE or test_exit_code == EXIT_FAILURE:
             exit_code = EXIT_FAILURE
+        elif exit_code == EXIT_TIMEOUT or test_exit_code == EXIT_TIMEOUT:
+            exit_code = EXIT_TIMEOUT
         else:
             exit_code = test_exit_code
 
@@ -1019,4 +1047,5 @@ def main():
 
 if __name__ == "__main__":
     exit_code = main()
+    print_regression_result(exit_code)
     sys.exit(exit_code)
