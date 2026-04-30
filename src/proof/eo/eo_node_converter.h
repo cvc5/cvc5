@@ -117,7 +117,7 @@ class EoNodeConverter : public BaseEoNodeConverter
    */
   size_t getNumChildrenToProcessForClosure(Kind k) const;
 
- private:
+ protected:
   /**
    * Get the variable index for free variable fv, or assign a fresh index if it
    * is not yet assigned.
