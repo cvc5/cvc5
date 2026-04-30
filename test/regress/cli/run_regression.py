@@ -67,7 +67,7 @@ class Tester:
 
     def check_exit_status(self, expected_exit_status, exit_status, output,
                           error, flags):
-        if exit_status == STATUS_TIMEOUT:
+        if is_timeout(exit_status, output, error):
             print_error("Timeout")
             return EXIT_SKIP if g_args.skip_timeout else EXIT_TIMEOUT
         elif exit_status == EXIT_SKIP:
@@ -603,6 +603,19 @@ def print_regression_result(exit_code):
         print("CVC5_REGRESSION_RESULT: TIMEOUT")
 
 
+def is_timeout(exit_status, output, error):
+    """Returns true if the process result indicates a timeout."""
+    if exit_status == STATUS_TIMEOUT:
+        return True
+
+    for stream in (output, error):
+        if isinstance(stream, bytes):
+            stream = stream.decode(errors="replace")
+        if "interrupted by timeout" in stream:
+            return True
+    return False
+
+
 def print_colored(color, text):
     """Prints `text` in color `color`."""
 
@@ -738,6 +751,8 @@ def run_benchmark(benchmark_info):
     if ((benchmark_info.safe_mode or benchmark_info.stable_mode) and
         (re.search(r'in safe mode', output.decode()) or re.search(r'in safe mode', error.decode()))):
         return (output, error, EXIT_SKIP)
+    if is_timeout(exit_status, output, error):
+        return (output, error, STATUS_TIMEOUT)
 
     # If a scrubber command has been specified then apply it to the output.
     scrubber_error = ""
