@@ -595,14 +595,6 @@ EXIT_TIMEOUT = 124
 STATUS_TIMEOUT = EXIT_TIMEOUT
 
 
-def print_regression_result(exit_code):
-    """Prints a machine-readable result for regression summary wrappers."""
-    if exit_code == EXIT_FAILURE:
-        print("CVC5_REGRESSION_RESULT: FAILURE")
-    elif exit_code == EXIT_TIMEOUT:
-        print("CVC5_REGRESSION_RESULT: TIMEOUT")
-
-
 def is_timeout(exit_status, output, error):
     """Returns true if the process result indicates a timeout."""
     if exit_status == STATUS_TIMEOUT:
@@ -1062,5 +1054,4 @@ def main():
 
 if __name__ == "__main__":
     exit_code = main()
-    print_regression_result(exit_code)
     sys.exit(exit_code)
