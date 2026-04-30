@@ -159,6 +159,10 @@ libcvc5_add_sources(
   proof/eo/eo_printer.h
   proof/assumption_proof_generator.cpp
   proof/assumption_proof_generator.h
+  proof/annotation_id.cpp
+  proof/annotation_id.h
+  proof/annotation_proof_generator.cpp
+  proof/annotation_proof_generator.h
   proof/buffered_proof_generator.cpp
   proof/buffered_proof_generator.h
   proof/conv_proof_generator.cpp

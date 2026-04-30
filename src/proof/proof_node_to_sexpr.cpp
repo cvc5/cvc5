@@ -203,6 +203,25 @@ Node ProofNodeToSExpr::getOrMkTrustIdVariable(TNode n)
   d_tridMap[tid] = var;
   return var;
 }
+Node ProofNodeToSExpr::getOrMkAnnotationIdVariable(TNode n)
+{
+  AnnotationId aid;
+  if (!getAnnotationId(n, aid))
+  {
+    DebugUnhandled() << "Expected annotation id node, got " << n;
+    return n;
+  }
+  std::map<AnnotationId, Node>::iterator it = d_annidMap.find(aid);
+  if (it != d_annidMap.end())
+  {
+    return it->second;
+  }
+  std::stringstream ss;
+  ss << aid;
+  Node var = NodeManager::mkBoundVar(ss.str(), d_nm->sExprType());
+  d_annidMap[aid] = var;
+  return var;
+}
 Node ProofNodeToSExpr::getOrMkInferenceIdVariable(TNode n)
 {
   theory::InferenceId iid;
@@ -267,6 +286,7 @@ Node ProofNodeToSExpr::getArgument(Node arg, ArgFormat f)
     case ArgFormat::THEORY_ID: return getOrMkTheoryIdVariable(arg);
     case ArgFormat::METHOD_ID: return getOrMkMethodIdVariable(arg);
     case ArgFormat::TRUST_ID: return getOrMkTrustIdVariable(arg);
+    case ArgFormat::ANNOTATION_ID: return getOrMkAnnotationIdVariable(arg);
     case ArgFormat::INFERENCE_ID: return getOrMkInferenceIdVariable(arg);
     case ArgFormat::DSL_REWRITE_ID: return getOrMkDslRewriteVariable(arg);
     case ArgFormat::NODE_VAR: return getOrMkNodeVariable(arg);
@@ -327,6 +347,23 @@ ProofNodeToSExpr::ArgFormat ProofNodeToSExpr::getArgumentFormat(
         TrustId tid;
         getTrustId(pn->getArguments()[0], tid);
         if (tid == TrustId::THEORY_LEMMA)
+        {
+          return ArgFormat::THEORY_ID;
+        }
+      }
+    }
+    break;
+    case ProofRule::ANNOTATE:
+    {
+      if (i == 0)
+      {
+        return ArgFormat::ANNOTATION_ID;
+      }
+      else if (i == 1)
+      {
+        AnnotationId aid;
+        if (getAnnotationId(pn->getArguments()[0], aid)
+            && aid == AnnotationId::THEORY_LEMMA)
         {
           return ArgFormat::THEORY_ID;
         }

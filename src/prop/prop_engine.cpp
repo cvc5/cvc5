@@ -24,6 +24,7 @@
 #include "options/proof_options.h"
 #include "options/prop_options.h"
 #include "options/smt_options.h"
+#include "proof/annotation_id.h"
 #include "proof/proof_node_algorithm.h"
 #include "prop/cnf_stream.h"
 #include "prop/proof_cnf_stream.h"
@@ -32,6 +33,7 @@
 #include "prop/sat_solver_factory.h"
 #include "prop/theory_proxy.h"
 #include "smt/env.h"
+#include "theory/builtin/proof_checker.h"
 #include "theory/output_channel.h"
 #include "theory/theory_engine.h"
 #include "util/resource_manager.h"
@@ -65,6 +67,8 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
       d_satSolver(nullptr),
       d_cnfStream(nullptr),
       d_theoryLemmaPg(d_env, d_env.getUserContext(), "PropEngine::ThLemmaPg"),
+      d_annotTheoryLemmaPg(
+          d_env, d_env.getUserContext(), "PropEngine::AnnotTheoryLemmaPg"),
       d_ppm(nullptr),
       d_interrupted(false),
       d_assumptions(userContext()),
@@ -181,7 +185,8 @@ void PropEngine::assertInputFormulas(
 
 void PropEngine::assertLemma(theory::InferenceId id,
                              TrustNode tlemma,
-                             theory::LemmaProperty p)
+                             theory::LemmaProperty p,
+                             theory::TheoryId tid)
 {
   bool removable = isLemmaPropertyRemovable(p);
   bool local = isLemmaPropertyLocal(p);
@@ -219,13 +224,14 @@ void PropEngine::assertLemma(theory::InferenceId id,
   }
 
   // now, assert the lemmas
-  assertLemmasInternal(id, tplemma, ppLemmas, removable, inprocess, local);
+  assertLemmasInternal(id, tplemma, ppLemmas, removable, inprocess, local, tid);
 }
 
 void PropEngine::assertTrustedLemmaInternal(theory::InferenceId id,
                                             TrustNode trn,
                                             bool removable,
-                                            bool local)
+                                            bool local,
+                                            theory::TheoryId tid)
 {
   Node node = trn.getNode();
   if (local)
@@ -249,15 +255,29 @@ void PropEngine::assertTrustedLemmaInternal(theory::InferenceId id,
   bool negated = trn.getKind() == TrustNodeKind::CONFLICT;
   // should have a proof generator if the theory engine is proof producing
   Assert(!d_env.isTheoryProofProducing() || trn.getGenerator() != nullptr);
-  // if we are producing proofs for the SAT solver but not for theory engine,
-  // then we need to prevent the lemma of being added as an assumption (since
-  // the generator will be null). We use the default proof generator for lemmas.
-  if (d_env.isSatProofProducing() && !d_env.isTheoryProofProducing()
-      && !trn.getGenerator())
+  if (isProofEnabled())
   {
     Node actualNode = negated ? node.notNode() : node;
-    d_theoryLemmaPg.addTrustedStep(actualNode, TrustId::THEORY_LEMMA, {}, {});
-    trn = TrustNode::mkReplaceGenTrustNode(trn, &d_theoryLemmaPg);
+    if (options().proof.proofAnnotateTheoryLemmas)
+    {
+      std::vector<Node> args{
+          mkAnnotationId(nodeManager(), AnnotationId::THEORY_LEMMA),
+          theory::builtin::BuiltinProofRuleChecker::mkTheoryIdNode(
+              nodeManager(), tid)};
+      d_annotTheoryLemmaPg.addAnnotation(
+          actualNode, trn.getGenerator(), args, TrustId::THEORY_LEMMA, {});
+      trn = TrustNode::mkReplaceGenTrustNode(trn, &d_annotTheoryLemmaPg);
+    }
+    // if we are producing proofs for the SAT solver but not for theory engine,
+    // then we need to prevent the lemma of being added as an assumption (since
+    // the generator will be null). We use the default proof generator for
+    // lemmas.
+    else if (d_env.isSatProofProducing() && !d_env.isTheoryProofProducing()
+             && !trn.getGenerator())
+    {
+      d_theoryLemmaPg.addTrustedStep(actualNode, TrustId::THEORY_LEMMA, {}, {});
+      trn = TrustNode::mkReplaceGenTrustNode(trn, &d_theoryLemmaPg);
+    }
   }
   assertInternal(id, node, negated, removable, false, trn.getGenerator());
 }
@@ -314,7 +334,8 @@ void PropEngine::assertLemmasInternal(
     const std::vector<theory::SkolemLemma>& ppLemmas,
     bool removable,
     bool inprocess,
-    bool local)
+    bool local,
+    theory::TheoryId tid)
 {
   // notify skolem definitions first to ensure that the computation of
   // when a literal contains a skolem is accurate in the calls below.
@@ -333,14 +354,15 @@ void PropEngine::assertLemmasInternal(
     {
       trn = d_theoryProxy->inprocessLemma(trn);
     }
-    assertTrustedLemmaInternal(id, trn, removable, local);
+    assertTrustedLemmaInternal(id, trn, removable, local, tid);
   }
   for (const theory::SkolemLemma& lem : ppLemmas)
   {
     assertTrustedLemmaInternal(theory::InferenceId::THEORY_PP_SKOLEM_LEM,
                                lem.d_lemma,
                                removable,
-                               local);
+                               local,
+                               tid);
   }
   // Note that this order is important for theories that send lemmas during
   // preregistration, as it impacts the order in which lemmas are processed
@@ -629,7 +651,8 @@ Node PropEngine::getPreprocessedTerm(TNode n)
                        newLemmas,
                        false,
                        false,
-                       false);
+                       false,
+                       theory::TheoryId::THEORY_BUILTIN);
   return tpn.isNull() ? Node(n) : tpn.getNode();
 }
 
