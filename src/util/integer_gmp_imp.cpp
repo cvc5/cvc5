@@ -18,6 +18,7 @@
 #include "base/check.h"
 #include "base/cvc5config.h"
 #include "util/integer.h"
+#include "util/random.h"
 #include "util/rational.h"
 
 #ifndef CVC5_GMP_IMP
@@ -509,6 +510,15 @@ const Integer& Integer::min(const Integer& a, const Integer& b)
 const Integer& Integer::max(const Integer& a, const Integer& b)
 {
   return (a >= b) ? a : b;
+}
+
+Integer Integer::mkRandom(uint32_t nbits)
+{
+  Assert(nbits > 0);
+  mpz_class res;
+  Random& rnd = Random::getRandom();
+  mpz_urandomb(res.get_mpz_t(), *rnd.getGMPRandstate(), nbits);
+  return Integer(res);
 }
 
 }  // namespace cvc5::internal
