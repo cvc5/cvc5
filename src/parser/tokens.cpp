@@ -31,6 +31,7 @@ std::ostream& operator<<(std::ostream& o, Token t)
     case Token::BLOCK_MODEL_TOK: o << "BLOCK_MODEL_TOK"; break;
     case Token::BLOCK_MODEL_VALUES_TOK: o << "BLOCK_MODEL_VALUES_TOK"; break;
     case Token::CHECK_SAT_ASSUMING_TOK: o << "CHECK_SAT_ASSUMING_TOK"; break;
+    case Token::CHECK_SAT_FFD_TOK: o << "CHECK_SAT_FFD_TOK"; break;
     case Token::CHECK_SAT_TOK: o << "CHECK_SAT_TOK"; break;
     case Token::CHECK_SYNTH_NEXT_TOK: o << "CHECK_SYNTH_NEXT_TOK"; break;
     case Token::CHECK_SYNTH_TOK: o << "CHECK_SYNTH_TOK"; break;

@@ -19,6 +19,7 @@
 #include "context/cdo.h"
 #include "expr/node.h"
 #include "smt/env_obj.h"
+#include "theory/output_channel.h"
 #include "theory/valuation.h"
 
 namespace cvc5::internal {
@@ -45,6 +46,49 @@ class DecisionStrategy : protected EnvObj
   virtual Node getNextDecisionRequest() = 0;
   /** identify this strategy (for debugging) */
   virtual std::string identify() const = 0;
+};
+
+/**
+ * Decision strategy fixed first decisions
+ *
+ * Ensure that a specific decision is made until its negation is learned or the
+ * problem is solved.
+ */
+class DecisionStrategyFFD : public DecisionStrategy
+{
+ public:
+  DecisionStrategyFFD(Env& env, Valuation valuation);
+  virtual ~DecisionStrategyFFD() {}
+  /** initialize */
+  void initialize() override;
+  /** get next decision request */
+  Node getNextDecisionRequest() override;
+
+  void addLiteral(Node n);
+
+  std::string identify() const override { return d_name; }
+
+  void setOutputChannel(TheoryEngine* te);
+
+ protected:
+  /**
+   * The valuation of this class, used for knowing what literals are asserted,
+   * and with what polarity.
+   */
+  Valuation d_valuation;
+
+  /** The list of literals for this strategy. */
+  std::vector<Node> d_literals;
+
+  /** The name of this strategy. */
+  std::string d_name;
+
+  /** The number of times a decision has been made using this strategy. */
+  int d_forced_count;
+
+  bool d_notifiedPlugin;
+
+  OutputChannel* d_out;
 };
 
 /**
