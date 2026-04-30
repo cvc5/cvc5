@@ -70,7 +70,7 @@ TheoryDatatypes::TheoryDatatypes(Env& env,
   // indicate we are using the default theory state object
   d_theoryState = &d_state;
   d_inferManager = &d_im;
-  
+
   if (options().theory.eeMode == options::EqEngineMode::CENTRAL)
   {
     d_checkEarlyExit = false;

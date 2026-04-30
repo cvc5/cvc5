@@ -281,7 +281,6 @@ class TheoryDatatypes : public Theory
   /** check instantiate, return true if an inference was generated. */
   bool instantiate(EqcInfo* eqc, Node n);
 
-
  private:
   // equality queries
   TNode getRepresentative(TNode a);
