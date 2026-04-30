@@ -505,10 +505,11 @@ class DumpTester(Tester):
                 benchmark_info.benchmark_dir,
                 benchmark_info.timeout,
             )
-            dump_exit_code = self.check_exit_status(
-                EXIT_OK, dump_exit_status, dump_output, dump_error, dump_args)
-            if dump_exit_code != EXIT_OK:
-                return dump_exit_code
+            if is_timeout(dump_exit_status, dump_output, dump_error):
+                print_error("Timeout")
+                if not g_args.skip_timeout:
+                    note_timeout_detected()
+                return EXIT_SKIP if g_args.skip_timeout else EXIT_TIMEOUT
 
             tmpf_name = tmpf.name
             tmpf.write(dump_output)
