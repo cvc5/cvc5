@@ -158,6 +158,8 @@ option(BUILD_DOCS_GA "Build API documentation with Google Analytics")
 option(BUILD_GMP "Build GMP from source")
 option(BUILD_CLN "Build CLN from source")
 
+option(ATOMIC_REFCOUNT "Enable Atomic Reference Counts")
+
 # Link against static system libraries
 cvc5_option(STATIC_BINARY "Link against static system libraries \
 (enabled by default for static builds)")
