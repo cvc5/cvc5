@@ -74,7 +74,7 @@ NonlinearExtension::~NonlinearExtension() {}
 void NonlinearExtension::preRegisterTerm(TNode n)
 {
   // register terms with extended theory, to find extended terms that can be
-  // eliminated by context-depedendent simplification.
+  // eliminated by context-dependent simplification.
   if (d_extTheory.hasFunctionKind(n.getKind()))
   {
     d_hasNlTerms = true;
@@ -186,6 +186,11 @@ std::vector<Node> NonlinearExtension::getUnsatisfiedAssertions(
   std::vector<Node> false_asserts;
   for (const auto& lit : assertions)
   {
+    if (lit.getKind() == Kind::STAR_CONTAINS)
+    {
+      // skip int.star-contains nodes when nonlinear operators are used
+      continue;
+    }
     Node litv = d_model.computeConcreteModelValue(lit);
     Trace("nl-ext-mv-assert") << "M[[ " << lit << " ]] -> " << litv;
     if (litv != d_true)
