@@ -26,6 +26,26 @@ namespace nl {
 
 class ExtState;
 
+/** The kind of magnitude comparison performed by MonomialCheck::checkMagnitude.
+ */
+enum class MagnitudeCompareMode
+{
+  /** Compare monomials against one. */
+  ONE,
+  /** Compare monomials against variables. */
+  VARIABLE,
+  /** Compare monomials against other monomials. */
+  MONOMIAL
+};
+
+/** The sign of a monomial with respect to zero. */
+enum class MonomialSign
+{
+  NEGATIVE,
+  ZERO,
+  POSITIVE
+};
+
 class MonomialCheck : protected EnvObj
 {
  public:
@@ -65,22 +85,19 @@ class MonomialCheck : protected EnvObj
    * |x|>|y| => |x*z|>|y*z|
    * |x|>|y| ^ |z|>|w| ^ |x|>=1 => |x*x*z*u|>|y*w|
    *
-   * Argument c indicates the class of inferences to perform for the
-   * (non-linear) monomials in the vector d_ms. 0 : compare non-linear monomials
-   * against 1, 1 : compare non-linear monomials against variables, 2 : compare
-   * non-linear monomials against other non-linear monomials.
+   * Argument mode indicates the class of inferences to perform for the
+   * (non-linear) monomials in the vector d_ms:
+   * - ONE: compare non-linear monomials against 1
+   * - VARIABLE: compare non-linear monomials against variables
+   * - MONOMIAL: compare non-linear monomials against other non-linear
+   *   monomials
    */
-  void checkMagnitude(unsigned c);
+  void checkMagnitude(MagnitudeCompareMode mode);
 
  private:
-  /** In the following functions, status states a relationship
-   * between two arithmetic terms, where:
-   * 0 : equal
-   * 1 : greater than or equal
-   * 2 : greater than
-   * -X : (greater -> less)
-   * TODO (#1287) make this an enum?
-   */
+  using CompareInferenceMap =
+      std::map<Kind, std::map<Node, std::map<Node, Node> > >;
+
   /** compute the sign of a.
    *
    * Calls to this function are such that :
@@ -95,8 +112,11 @@ class MonomialCheck : protected EnvObj
    * We add lemmas to lem of the form given by the
    * lemma schema checkSign(...).
    */
-  int compareSign(
-      Node oa, Node a, unsigned a_index, int status, std::vector<Node>& exp);
+  MonomialSign compareSign(Node oa,
+                           Node a,
+                           unsigned a_index,
+                           MonomialSign status,
+                           std::vector<Node>& exp);
   /** compare monomials a and b
    *
    * Initially, a call to this function is such that :
@@ -131,34 +151,32 @@ class MonomialCheck : protected EnvObj
    * We add lemmas to lem of the form given by the
    * lemma schema checkMagnitude(...).
    */
-  bool compareMonomial(
-      Node oa,
-      Node a,
-      NodeMultiset& a_exp_proc,
-      Node ob,
-      Node b,
-      NodeMultiset& b_exp_proc,
-      std::vector<Node>& exp,
-      std::vector<SimpleTheoryLemma>& lem,
-      std::map<int, std::map<Node, std::map<Node, Node> > >& cmp_infers);
+  bool compareMonomial(Node oa,
+                       Node a,
+                       NodeMultiset& a_exp_proc,
+                       Node ob,
+                       Node b,
+                       NodeMultiset& b_exp_proc,
+                       std::vector<Node>& exp,
+                       std::vector<SimpleTheoryLemma>& lem,
+                       CompareInferenceMap& cmp_infers);
   /** helper function for above
    *
    * The difference is the inputs a_index and b_index, which are the indices of
    * children (factors) in monomials a and b which we are currently looking at.
    */
-  bool compareMonomial(
-      Node oa,
-      Node a,
-      unsigned a_index,
-      NodeMultiset& a_exp_proc,
-      Node ob,
-      Node b,
-      unsigned b_index,
-      NodeMultiset& b_exp_proc,
-      int status,
-      std::vector<Node>& exp,
-      std::vector<SimpleTheoryLemma>& lem,
-      std::map<int, std::map<Node, std::map<Node, Node> > >& cmp_infers);
+  bool compareMonomial(Node oa,
+                       Node a,
+                       unsigned a_index,
+                       NodeMultiset& a_exp_proc,
+                       Node ob,
+                       Node b,
+                       unsigned b_index,
+                       NodeMultiset& b_exp_proc,
+                       Kind status,
+                       std::vector<Node>& exp,
+                       std::vector<SimpleTheoryLemma>& lem,
+                       CompareInferenceMap& cmp_infers);
   /** Check whether we have already inferred a relationship between monomials
    * x and y based on the information in cmp_infers. This computes the
    * transitive closure of the relation stored in cmp_infers.
@@ -184,7 +202,7 @@ class MonomialCheck : protected EnvObj
    * Make literal that compares (the absolute value of) a and b based on
    * status.
    */
-  Node mkLit(Node a, Node b, int status, bool isAbsolute = false) const;
+  Node mkLit(Node a, Node b, Kind status, bool isAbsolute = false) const;
   /** register monomial */
   void setMonomialFactor(Node a, Node b, const NodeMultiset& common);
 

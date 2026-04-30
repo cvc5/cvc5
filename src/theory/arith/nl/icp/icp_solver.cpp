@@ -39,6 +39,7 @@ struct IAWrapper
   const poly::IntervalAssignment& ia;
   const VariableMapper& vm;
 };
+
 inline std::ostream& operator<<(std::ostream& os, const IAWrapper& iaw)
 {
   os << "{ ";

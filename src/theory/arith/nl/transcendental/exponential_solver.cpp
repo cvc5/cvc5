@@ -200,7 +200,7 @@ void ExponentialSolver::checkMonotonic()
                            << s;
 
     // store the concavity region
-    d_data->d_tf_region[s] = 1;
+    d_data->d_tf_region[s] = TranscendentalRegion::EXPONENTIAL;
     Trace("nl-ext-concavity") << ", arg model value = " << sargval << std::endl;
 
     if (!tval.isNull() && sval.getConst<Rational>() > tval.getConst<Rational>())
