@@ -560,9 +560,10 @@ enum ENUM(ProofRule)
    *
    *   \inferrule{C_1 \mid -}{C_2}
    *
-   * where :math:`C_1` is an ``OR`` node containing at least one repeated
-   * literal, and :math:`C_2` is the clause :math:`C_1`, but every occurrence of
-   * a literal after its first occurrence is omitted.
+   * where :math:`C_2` is the clause :math:`C_1`, but every occurrence of
+   * a literal after its first occurrence is omitted. This rule is
+   * only applied when :math:`C_1` containing at least one repeated
+   * literal.
    * \endverbatim
    */
   EVALUE(FACTORING),
@@ -1828,7 +1829,7 @@ enum ENUM(ProofRule)
    *
    *   \inferrule{t\in R_1,\,\ldots,\,t\in R_n\mid -}{t\in \mathit{re.inter}(R_1,\ldots,R_n)}
    *
-   * where :math:`n \geq 1`. If :math:`n = 1`, the conclusion is the premise.
+   * where :math:`n \geq 2`.
    *
    * \endverbatim
    */
@@ -2018,8 +2019,8 @@ enum ENUM(ProofRule)
    * where :math:`P_i` has the form :math:`L_i \diamond_i R_i` and
    * :math:`\diamond_i \in \{<, \leq, =\}`. Furthermore :math:`\diamond = <` if
    * :math:`\diamond_i = <` for any :math:`i` and :math:`\diamond = \leq`
-   * otherwise, :math:`L = L_1 + \cdots + L_n`,
-   * :math:`R = R_1 + \cdots + R_n`, and :math:`n \geq 2`.
+   * otherwise, :math:`L = L_1 + \cdots + L_n` and
+   * :math:`R = R_1 + \cdots + R_n`, where :math:`n \geq 2`.
    * \endverbatim
    */
   EVALUE(ARITH_SUM_UB),
