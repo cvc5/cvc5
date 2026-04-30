@@ -25,8 +25,17 @@ FAILED_ENTRY_RE = re.compile(r"^(\s*\d+\s+-\s+)(.*?)(\s+\(([^)]+)\)(.*))$")
 TIMEOUT_OUTPUT_RE = re.compile(r"^(?:[>✖]\s*)?Timeout$")
 
 
+class Color:
+    RED = "\033[91m"
+    ENDC = "\033[0m"
+
+
 def strip_ansi(text):
     return ANSI_RE.sub("", text)
+
+
+def red(text):
+    return Color.RED + text + Color.ENDC
 
 
 def is_timeout_output(line):
@@ -69,9 +78,9 @@ def print_failed_sections(entries, timed_out_tests, output):
     if timed_out:
         if failed:
             output("")
-        output("The following tests TIMED OUT:")
+        output(red("The following tests TIMED OUT:"))
         for line in timed_out:
-            output(line)
+            output(red(line))
 
 
 class CTestOutputFilter:
