@@ -70,6 +70,11 @@ TheoryDatatypes::TheoryDatatypes(Env& env,
   // indicate we are using the default theory state object
   d_theoryState = &d_state;
   d_inferManager = &d_im;
+  
+  if (options().theory.eeMode == options::EqEngineMode::CENTRAL)
+  {
+    d_checkEarlyExit = false;
+  }
 }
 
 TheoryDatatypes::~TheoryDatatypes()
@@ -2172,15 +2177,6 @@ std::pair<bool, Node> TheoryDatatypes::entailmentCheck(TNode lit)
     }
   }
   return make_pair(false, Node::null());
-}
-
-bool TheoryDatatypes::done() const
-{
-  if (options().theory.eeMode == options::EqEngineMode::CENTRAL)
-  {
-    return false;
-  }
-  return Theory::done();
 }
 
 }  // namespace datatypes

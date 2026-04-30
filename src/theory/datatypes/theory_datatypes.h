@@ -280,7 +280,7 @@ class TheoryDatatypes : public Theory
   Node getInstantiateCons(Node n, const DType& dt, int index);
   /** check instantiate, return true if an inference was generated. */
   bool instantiate(EqcInfo* eqc, Node n);
-  bool done() const override;
+
 
  private:
   // equality queries

@@ -189,6 +189,13 @@ class Theory : protected EnvObj
 
   /** Pointer to proof node manager */
   ProofNodeManager* d_pnm;
+  
+  /**
+   * Whether we can exit early from check at standard effort if no facts are
+   * asserted.
+   */
+  bool d_checkEarlyExit;
+
   /**
    * Are proofs enabled?
    *
@@ -334,7 +341,7 @@ class Theory : protected EnvObj
   }
 
   /** Returns true if the assertFact queue is empty*/
-  virtual bool done() const { return d_factsHead == d_facts.size(); }
+  bool done() const { return d_factsHead == d_facts.size(); }
   /**
    * Destructs a Theory.
    */
