@@ -32,7 +32,7 @@ BitVector::BitVector(const std::string& num, uint32_t base)
   }
 }
 
-unsigned BitVector::getSize() const { return d_size; }
+uint32_t BitVector::getSize() const { return d_size; }
 
 const Integer& BitVector::getValue() const { return d_value; }
 
@@ -40,20 +40,20 @@ Integer BitVector::toInteger() const { return d_value; }
 
 Integer BitVector::toSignedInteger() const
 {
-  unsigned size = d_size;
+  uint32_t size = d_size;
   Integer sign_bit = d_value.extractBitRange(1, size - 1);
   Integer val = d_value.extractBitRange(size - 1, 0);
   Integer res = Integer(-1) * sign_bit.multiplyByPow2(size - 1) + val;
   return res;
 }
 
-std::string BitVector::toString(unsigned int base) const
+std::string BitVector::toString(uint32_t base) const
 {
   std::string str = d_value.toString(base);
   if (base == 2 && d_size > str.size())
   {
     std::string zeroes;
-    for (unsigned int i = 0; i < d_size - str.size(); ++i)
+    for (uint32_t i = 0; i < d_size - str.size(); ++i)
     {
       zeroes.append("0");
     }
@@ -100,7 +100,7 @@ BitVector BitVector::concat(const BitVector& other) const
                    (d_value.multiplyByPow2(other.d_size)) + other.d_value);
 }
 
-BitVector BitVector::extract(unsigned high, unsigned low) const
+BitVector BitVector::extract(uint32_t high, uint32_t low) const
 {
   Assert(high < d_size);
   Assert(low <= high);
@@ -267,12 +267,12 @@ BitVector BitVector::unsignedRemTotal(const BitVector& y) const
 
 /* Extend operations ----------------------------------------------------- */
 
-BitVector BitVector::zeroExtend(unsigned n) const
+BitVector BitVector::zeroExtend(uint32_t n) const
 {
   return BitVector(d_size + n, d_value);
 }
 
-BitVector BitVector::signExtend(unsigned n) const
+BitVector BitVector::signExtend(uint32_t n) const
 {
   Integer sign_bit = d_value.extractBitRange(1, d_size - 1);
   if (sign_bit == Integer(0))
@@ -353,25 +353,25 @@ BitVector BitVector::arithRightShift(const BitVector& y) const
  * Static helpers.
  * ----------------------------------------------------------------------- */
 
-BitVector BitVector::mkZero(unsigned size)
+BitVector BitVector::mkZero(uint32_t size)
 {
   Assert(size > 0);
   return BitVector(size);
 }
 
-BitVector BitVector::mkOne(unsigned size)
+BitVector BitVector::mkOne(uint32_t size)
 {
   Assert(size > 0);
   return BitVector(size, 1u);
 }
 
-BitVector BitVector::mkOnes(unsigned size)
+BitVector BitVector::mkOnes(uint32_t size)
 {
   Assert(size > 0);
   return BitVector(1, Integer(1)).signExtend(size - 1);
 }
 
-BitVector BitVector::mkMinSigned(unsigned size)
+BitVector BitVector::mkMinSigned(uint32_t size)
 {
   Assert(size > 0);
   BitVector res(size);
@@ -379,7 +379,7 @@ BitVector BitVector::mkMinSigned(unsigned size)
   return res;
 }
 
-BitVector BitVector::mkMaxSigned(unsigned size)
+BitVector BitVector::mkMaxSigned(uint32_t size)
 {
   Assert(size > 0);
   return ~BitVector::mkMinSigned(size);
