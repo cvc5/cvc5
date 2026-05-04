@@ -1378,22 +1378,30 @@ Term Smt2TermParser::parseMatchCasePattern(Sort headSort,
 {
   if (d_lex.eatTokenChoice(Token::SYMBOL, Token::LPAREN_TOK))
   {
-    // a nullary constructor or variable, depending on if the symbol is declared
+    // A bare pattern symbol is either a nullary constructor of the matched
+    // datatype or a fresh binder for the default case. Existing declarations
+    // must not affect this choice since match patterns may shadow outer names.
     std::string name = d_lex.tokenStr();
-    if (d_state.isDeclared(name, SYM_VARIABLE))
+    const Datatype& dt = headSort.getDatatype();
+    for (size_t i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
     {
-      Term pat = d_state.getVariable(name);
-      Sort type = pat.getSort();
-      if (!type.isDatatype())
+      const DatatypeConstructor& dc = dt[i];
+      if (dc.getName() != name)
+      {
+        continue;
+      }
+      if (dc.getNumSelectors() > 0)
       {
         d_lex.parseError(
             "Must apply constructors of arity greater than 0 to arguments in "
             "pattern.");
       }
-      // make nullary constructor application
-      return pat;
+      Term f =
+          dt.isParametric() ? dc.getInstantiatedTerm(headSort) : dc.getTerm();
+      return d_state.getSolver()->getTermManager().mkTerm(
+          Kind::APPLY_CONSTRUCTOR, {f});
     }
-    // it has the type of the head expr
+    // Otherwise, it is a fresh variable with the type of the head expression.
     Term pat = d_state.bindBoundVar(name, headSort);
     boundVars.push_back(pat);
     return pat;

@@ -41,10 +41,10 @@ namespace options {
 class OptionsHandler
 {
  public:
-  OptionsHandler(Options* options);
+  explicit OptionsHandler(Options* options);
 
   template <typename T>
-  void checkMinimum(const std::string& flag, T value, T minimum) const
+  static void checkMinimum(const std::string& flag, T value, T minimum)
   {
     if (value < minimum)
     {
@@ -56,7 +56,7 @@ class OptionsHandler
     }
   }
   template <typename T>
-  void checkMaximum(const std::string& flag, T value, T maximum) const
+  static void checkMaximum(const std::string& flag, T value, T maximum)
   {
     if (value > maximum)
     {
@@ -70,50 +70,52 @@ class OptionsHandler
 
   /******************************* base options *******************************/
   /** Apply the error output stream to the different output channels */
-  void setErrStream(const std::string& flag, const ManagedErr& me);
+  void setErrStream(const std::string& flag, const ManagedErr& me) const;
 
   /** Convert option value to Language enum */
-  Language stringToLanguage(const std::string& flag, const std::string& optarg);
+  Language stringToLanguage(const std::string& flag,
+                            const std::string& optarg) const;
   /** Set the input language. Check that lang is not LANG_AST */
-  void setInputLanguage(const std::string& flag, Language lang);
+  void setInputLanguage(const std::string& flag, Language lang) const;
   /** Apply verbosity to the different output channels */
-  void setVerbosity(const std::string& flag, int value);
+  void setVerbosity(const std::string& flag, int value) const;
   /** Decrease verbosity and call setVerbosity */
   void decreaseVerbosity(const std::string& flag, bool value);
   /** Increase verbosity and call setVerbosity */
   void increaseVerbosity(const std::string& flag, bool value);
   /** If statistics are disabled, disable statistics sub-options */
-  void setStats(const std::string& flag, bool value);
+  void setStats(const std::string& flag, bool value) const;
   /** If statistics sub-option is disabled, enable statistics */
-  void setStatsDetail(const std::string& flag, bool value);
+  void setStatsDetail(const std::string& flag, bool value) const;
   /** Enable a particular trace tag */
-  void enableTraceTag(const std::string& flag, const std::string& optarg);
+  void enableTraceTag(const std::string& flag, const std::string& optarg) const;
   /** Enable a particular output tag */
-  void enableOutputTag(const std::string& flag, OutputTag optarg);
+  void enableOutputTag(const std::string& flag, OutputTag optarg) const;
   /** Pass the resource weight specification to the resource manager */
-  void setResourceWeight(const std::string& flag, const std::string& optarg);
+  void setResourceWeight(const std::string& flag,
+                         const std::string& optarg) const;
 
   /******************************* bv options *******************************/
 
   /** Check that the sat solver mode is compatible with other bv options */
-  void checkBvSatSolver(const std::string& flag, BvSatSolverMode m);
+  void checkBvSatSolver(const std::string& flag, BvSatSolverMode m) const;
 
   /******************************* main options *******************************/
   /** Show the solver build configuration and exit */
-  void showConfiguration(const std::string& flag, bool value);
+  void showConfiguration(const std::string& flag, bool value) const;
   /** Show copyright information and exit */
-  void showCopyright(const std::string& flag, bool value);
+  void showCopyright(const std::string& flag, bool value) const;
   /** Show version information and exit */
-  void showVersion(const std::string& flag, bool value);
+  void showVersion(const std::string& flag, bool value) const;
   /** Show all trace tags and exit */
-  void showTraceTags(const std::string& flag, bool value);
+  void showTraceTags(const std::string& flag, bool value) const;
 
   /***************************** parser options *******************************/
-  void strictParsing(const std::string& flag, bool value);
+  void strictParsing(const std::string& flag, bool value) const;
 
  private:
   /** Pointer to the containing Options object.*/
-  Options* d_options;
+  Options* const d_options;
 }; /* class OptionHandler */
 
 }  // namespace options

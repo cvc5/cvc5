@@ -1193,6 +1193,8 @@ libcvc5_add_sources(
   theory/strings/infer_proof_cons.h
   theory/strings/inference_manager.cpp
   theory/strings/inference_manager.h
+  theory/strings/macro_rewrite_elaborator.cpp
+  theory/strings/macro_rewrite_elaborator.h
   theory/strings/model_cons.h
   theory/strings/model_cons_default.cpp
   theory/strings/model_cons_default.h

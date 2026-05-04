@@ -191,6 +191,25 @@ enum class AletheRule : uint32_t
   LA_MULT_POS,
   // Tautology for multiplying both sides of inequality by negative factor
   LA_MULT_NEG,
+  // ======== la_mult_sign
+  // > i. (f1 ^ ... ^ fn) -> m <> 0
+  //
+  // in which each fi are variables compared to zero (less, greater or not
+  // equal), m is a monomial from these variables and <> is the comparison (less
+  // or greater) that results from the signs of the variables.
+  LA_MULT_SIGN,
+  // ======== la_mult_abs_comparison
+  // > i1. F1
+  // ...
+  // > in. Fn
+  // ----------
+  // > j. F
+  //
+  // where F is of the form |t1 * tn| <> |s1 <> sn|. If <> is an equality, than
+  // each Fi is |ti| = |si|. Otherwise <> is > then each ti is different from
+  // zero, and each Fi is either an equality or > between the absolute values of
+  // ti, si.
+  LA_MULT_ABS_COMPARISON,
   // Tautology of linear integer arithmetic
   // > i. (cl F1 ... Fn)
   LIA_GENERIC,

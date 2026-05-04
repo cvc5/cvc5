@@ -289,6 +289,18 @@ Node LearnedRewrite::rewriteLearned(Node nr,
         }
       }
     }
+    Kind den_k = den.getKind();
+    // pow2(e) positive for e >= 0.
+    if (den_k == Kind::POW2)
+    {
+      Node exp = den[0];
+      arith::Bounds exp_db = binfer.get(exp);
+      if (!exp_db.lower_value.isNull()
+          && exp_db.lower_value.getConst<Rational>().sgn() == 1)
+      {
+        isNonZeroDen = true;
+      }
+    }
     if (isNonZeroDen)
     {
       Trace("learned-rewrite-rr-debug")

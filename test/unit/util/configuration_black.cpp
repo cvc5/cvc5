@@ -85,8 +85,10 @@ TEST_F(TestUtilBlackConfiguration, versions)
 
 TEST_F(TestUtilBlackConfiguration, about)
 {
-  // just test that the function exists
+  // just test that the functions exists
   Configuration::about();
+  Configuration::copyright();
+  Configuration::aboutAndCopyright();
 }
 }  // namespace test
 }  // namespace cvc5::internal

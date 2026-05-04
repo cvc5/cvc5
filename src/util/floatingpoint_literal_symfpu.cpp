@@ -11,6 +11,8 @@
  */
 #include "util/floatingpoint_literal_symfpu.h"
 
+#include <limits>
+
 #include "base/check.h"
 #include "symfpu/core/add.h"
 #include "symfpu/core/classify.h"
@@ -150,6 +152,34 @@ FloatingPointLiteralSymFPU::FloatingPointLiteralSymFPU(
     : FloatingPointLiteral(other.getSize()),
       d_symuf(new SymFPUUnpackedFloatLiteral(*other.d_symuf))
 {
+}
+
+FloatingPointLiteralSymFPU::FloatingPointLiteralSymFPU(
+    FloatingPointLiteralSymFPU&& other) noexcept
+    : FloatingPointLiteral(other.getSize()), d_symuf(std::move(other.d_symuf))
+{
+}
+
+FloatingPointLiteralSymFPU& FloatingPointLiteralSymFPU::operator=(
+    const FloatingPointLiteralSymFPU& other)
+{
+  if (this != &other)
+  {
+    d_fp_size = other.d_fp_size;
+    d_symuf.reset(new SymFPUUnpackedFloatLiteral(*other.d_symuf));
+  }
+  return *this;
+}
+
+FloatingPointLiteralSymFPU& FloatingPointLiteralSymFPU::operator=(
+    FloatingPointLiteralSymFPU&& other) noexcept
+{
+  if (this != &other)
+  {
+    d_fp_size = other.d_fp_size;
+    d_symuf = std::move(other.d_symuf);
+  }
+  return *this;
 }
 
 FloatingPointLiteralSymFPU::~FloatingPointLiteralSymFPU() {}

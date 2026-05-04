@@ -57,8 +57,17 @@ class FloatingPointLiteralSymFPU : public FloatingPointLiteral
                              const BitVector& bv,
                              bool signedBV);
 
-  /** Copy Constructor.*/
+  /** Copy constructor. */
   FloatingPointLiteralSymFPU(const FloatingPointLiteralSymFPU& other);
+  /** Move constructor. */
+  FloatingPointLiteralSymFPU(FloatingPointLiteralSymFPU&& other) noexcept;
+
+  /** Copy Assignment. */
+  FloatingPointLiteralSymFPU& operator=(
+      const FloatingPointLiteralSymFPU& other);
+  /** Move Assignment. */
+  FloatingPointLiteralSymFPU& operator=(
+      FloatingPointLiteralSymFPU&& other) noexcept;
 
   /** Destructor. */
   ~FloatingPointLiteralSymFPU();
