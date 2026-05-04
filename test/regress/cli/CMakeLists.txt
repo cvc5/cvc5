@@ -1291,6 +1291,7 @@ set(regress_0_tests
   regress0/options/safe-options-fatal.smt2
   regress0/options/set-after-init.smt2
   regress0/options/set-and-get-options.smt2
+  regress0/options/stable-options1.smt2
   regress0/options/statistics.smt2
   regress0/options/stream-printing.smt2
   regress0/options/version.smt2
