@@ -172,6 +172,36 @@ void TheorySetsRels::check()
         {
           computeMembersForBinOpRel(*term_it);
           ++term_it;
+          // bool is_true_eq = eqc_rep.getConst<bool>();
+
+          // // collect membership info
+          // if (eqc_node.getKind() == Kind::SET_MEMBER
+          //     && eqc_node[1].getType().getSetElementType().isTuple())
+          // {
+          //   Node tup_rep = getRepresentative( eqc_node[0] );
+          //   Node rel_rep = getRepresentative( eqc_node[1] );
+
+          //   if( eqc_node[0].isVar() ){
+          //     reduceTupleVar( eqc_node );
+          //   }
+
+          //   Node reason        = is_true_eq ? eqc_node : eqc_node.negate();
+
+          //   if( is_true_eq ) {
+          //     if( safelyAddToMap(d_rReps_memberReps_cache, rel_rep, tup_rep) ) {
+          //       d_rReps_memberReps_exp_cache[rel_rep].push_back(reason);
+          //       computeTupleReps(tup_rep);
+          //       d_membership_trie[rel_rep].addTerm(tup_rep, d_tuple_reps[tup_rep]);
+          //     }
+          //   }
+          // }
+          // else if (eqc_node.getKind() == Kind::RELATION_ACYCLIC)
+          // {
+          //   Trace("rels-acyclic") << "[Theory::Rels] Collecting acyclic terms!"
+          //                         << eqc_node << is_true_eq << std::endl;
+          //   d_acyclic_cache[eqc_node] = is_true_eq;
+          }
+        // collect relational terms info
         }
       }
       else if (k_t_it->first == Kind::RELATION_TRANSPOSE)
@@ -222,6 +252,7 @@ void TheorySetsRels::check()
   d_rRep_tcGraph.clear();
   d_tcr_tcGraph_exps.clear();
   d_tcr_tcGraph.clear();
+  d_acyclic_cache.clear();
 }
 
 /*
