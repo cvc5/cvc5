@@ -125,7 +125,7 @@ class TheorySetsRels : protected EnvObj
 
   /** Mapping between transitive closure relation TC(r) and its TC graph
    * constructed based on the members of r*/
-  
+
   /** Mapping from acyclic predicates to their truth value */
   std::map<Node, bool> d_acyclic_cache;
 
