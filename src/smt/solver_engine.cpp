@@ -2330,8 +2330,7 @@ void SolverEngine::setOption(const std::string& key,
     {
       // option exception
       std::stringstream ss;
-      ss << "expert option " << key << " cannot be set in " << modeName
-         << ".";
+      ss << "expert option " << key << " cannot be set in " << modeName << ".";
       // If we are setting to a default value, the exception can be avoided
       // by omitting the expert option.
       if (getOption(key) == value)
@@ -2349,8 +2348,7 @@ void SolverEngine::setOption(const std::string& key,
           && !oinfo.noSupports.empty())
       {
         std::stringstream ss;
-        ss << "cannot set option " << key
-           << " in " << modeName
+        ss << "cannot set option " << key << " in " << modeName
            << ", as this option does not support ";
         bool firstTime = true;
         for (const std::string& s : oinfo.noSupports)
