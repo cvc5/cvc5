@@ -235,7 +235,7 @@ std::string Configuration::getCompiler()
   stringstream ss;
 #ifdef __GNUC__
   ss << "GCC";
-#else /* __GNUC__ */
+#else  /* __GNUC__ */
   ss << "unknown compiler";
 #endif /* __GNUC__ */
 #ifdef __VERSION__
