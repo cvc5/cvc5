@@ -200,7 +200,7 @@ void TheorySetsRels::check()
           //   Trace("rels-acyclic") << "[Theory::Rels] Collecting acyclic terms!"
           //                         << eqc_node << is_true_eq << std::endl;
           //   d_acyclic_cache[eqc_node] = is_true_eq;
-          }
+          // }
         // collect relational terms info
         }
       }
