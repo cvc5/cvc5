@@ -39,6 +39,7 @@ class Color:
     ENDC = "\033[0m"
 
 is_windows = sys.platform.startswith('win')
+ADMISSIBLE_MODE_ERROR = re.compile(r'in (?:safe|stable) mode')
 
 class BulletSymbol:
     # On Windows, the special characters cause this error:
@@ -56,6 +57,10 @@ def print_ok(msg):
 
 def print_error(err):
     print(Color.RED + BulletSymbol.ERROR + err + Color.ENDC)
+
+def has_admissible_mode_error(output, error):
+    return bool(ADMISSIBLE_MODE_ERROR.search(output.decode()) or
+                ADMISSIBLE_MODE_ERROR.search(error.decode()))
 
 class Tester:
 
@@ -358,10 +363,10 @@ class CpcTester(Tester):
                 benchmark_info.benchmark_dir,
                 benchmark_info.timeout,
             )
-            # if we throw an admissible error (with text "in safe mode"), we
-            # allow the benchmark to be skipped.
+            # if we throw an admissible error (with text "in safe mode" or
+            # "in stable mode"), we allow the benchmark to be skipped.
             if ((benchmark_info.safe_mode or benchmark_info.stable_mode) and
-                (re.search(r'in safe mode', output.decode()) or re.search(r'in safe mode', error.decode()))):
+                has_admissible_mode_error(output, error)):
                 return EXIT_SKIP
             cpc_sig_dir = os.path.abspath(g_args.cpc_sig_dir)
             tmpf.write(("(include \"" + cpc_sig_dir + "/cpc/Cpc.eo\")").encode())
@@ -720,9 +725,9 @@ def run_benchmark(benchmark_info):
         benchmark_info.timeout,
     )
     # For all testers, if we throw an admissible error (with text
-    # "in safe mode"), we allow the benchmark to be skipped.
+    # "in safe mode" or "in stable mode"), we allow the benchmark to be skipped.
     if ((benchmark_info.safe_mode or benchmark_info.stable_mode) and
-        (re.search(r'in safe mode', output.decode()) or re.search(r'in safe mode', error.decode()))):
+        has_admissible_mode_error(output, error)):
         return (output, error, EXIT_SKIP)
 
     # If a scrubber command has been specified then apply it to the output.
