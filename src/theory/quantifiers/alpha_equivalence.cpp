@@ -205,6 +205,7 @@ TrustNode AlphaEquivalence::reduceQuantifier(Node q)
     // remove patterns from both sides
     if (q.getNumChildren() == 3)
     {
+      Trace("alpha-eq") << "...remove pattern" << std::endl;
       Node qo = q;
       q = builtin::BuiltinProofRuleChecker::getEncodeEqIntro(nm, q);
       if (q != qo)
@@ -220,6 +221,7 @@ TrustNode AlphaEquivalence::reduceQuantifier(Node q)
     }
     if (ret.getNumChildren() == 3)
     {
+      Trace("alpha-eq") << "...remove pattern return" << std::endl;
       Node reto = ret;
       ret = builtin::BuiltinProofRuleChecker::getEncodeEqIntro(nm, ret);
       if (ret != reto)
@@ -250,9 +252,11 @@ TrustNode AlphaEquivalence::reduceQuantifier(Node q)
       {
         isubs.emplace_back(NodeManager::mkBoundVar(v.getType()));
       }
+      Trace("alpha-eq") << "...initial aeq subs " << vars << " -> " << isubs << std::endl;
       // ---------- ALPHA_EQUIV
       // ret = iret
       Node ieq = addAlphaEquivStep(cdp, ret, vars, isubs);
+      Trace("alpha-eq") << "...initial alpha equivalent " << ieq << std::endl;
       transEq.emplace_back(ieq);
       ret = ieq[1];
       vars = isubs;
@@ -260,12 +264,14 @@ TrustNode AlphaEquivalence::reduceQuantifier(Node q)
     // ---------- ALPHA_EQUIV
     // ret = sret
     Node eq = addAlphaEquivStep(cdp, ret, vars, subs);
+    Trace("alpha-eq") << "...alpha equivalent " << eq << std::endl;
     Assert(eq.getKind() == Kind::EQUAL);
     Node sret = eq[1];
     transEq.emplace_back(eq);
     Assert(sret.getKind() == Kind::FORALL);
     if (sret[0] != q[0])
     {
+      Trace("alpha-eq") << "...reordering " << sret << " vs " << q << std::endl;
       // variable reorder?
       std::vector<Node> children;
       children.push_back(q[0]);
@@ -280,6 +286,7 @@ TrustNode AlphaEquivalence::reduceQuantifier(Node q)
       {
         transEq.push_back(eqqr);
         sret = sreorder;
+        Trace("alpha-eq") << "...reordering success, now " << sret << std::endl;
       }
       // if var reordering did not apply, we likely will not succeed below
     }
@@ -317,7 +324,7 @@ TrustNode AlphaEquivalence::reduceQuantifier(Node q)
       }
       else
       {
-        Node eq2r = extendedRewrite(eq2);
+        Node eq2r = extendedRewrite(eq2, false);
         if (eq2r.isConst() && eq2r.getConst<bool>())
         {
           std::vector<Node> pfArgs2;
