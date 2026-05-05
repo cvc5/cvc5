@@ -1009,7 +1009,7 @@ RewriteResponse TheorySetsRewriter::postRewriteRTClosure(TNode n)
   Node tcloseA = nm->mkNode(Kind::RELATION_TCLOSURE, A);
   Node ret = nm->mkNode(Kind::SET_UNION, rcloseA, tcloseA);
 
-  return RewriteResponse(REWRITE_AGAIN_FULL, n);
+  return RewriteResponse(REWRITE_AGAIN_FULL, ret);
 }
 
 RewriteResponse TheorySetsRewriter::postRewriteMap(TNode n)
