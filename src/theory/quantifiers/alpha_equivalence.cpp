@@ -252,7 +252,8 @@ TrustNode AlphaEquivalence::reduceQuantifier(Node q)
       {
         isubs.emplace_back(NodeManager::mkBoundVar(v.getType()));
       }
-      Trace("alpha-eq") << "...initial aeq subs " << vars << " -> " << isubs << std::endl;
+      Trace("alpha-eq") << "...initial aeq subs " << vars << " -> " << isubs
+                        << std::endl;
       // ---------- ALPHA_EQUIV
       // ret = iret
       Node ieq = addAlphaEquivStep(cdp, ret, vars, isubs);
