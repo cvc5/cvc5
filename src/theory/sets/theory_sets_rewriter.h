@@ -115,6 +115,22 @@ class TheorySetsRewriter : public TheoryRewriter
   RewriteResponse postRewriteAcyclic(TNode n);
   /**
    *  rewrites for n include:
+   *  - (rel.rclosure (as set.empty (Relation T T))) = (as set.empty (Relation T
+   * T))
+   *  - (rel.rclosure (set.singleton (tuple x y))) =
+   *      (set.insert (tuple y y) (set.insert (tuple x x) (set.singleton (tuple
+   * x y))))
+   *  - (rel.rclosure (set.union A B)) = (set.union (rel.rclosure A)
+   * (rel.rclosure B))
+   */
+  RewriteResponse postRewriteRClosure(TNode n);
+  /**
+   *  rewrites for n include:
+   *  - (rel.rtclosure A) = (set.union (rel.tclosure A) (rel.rclosure A))
+   */
+  RewriteResponse postRewriteRTClosure(TNode n);
+  /**
+   *  rewrites for n include:
    *  - (set.map f (as set.empty (Set T1)) = (as set.empty (Set T2))
    *  - (set.map f (set.singleton x)) = (set.singleton (apply f x))
    *  - (set.map f (set.union A B)) =

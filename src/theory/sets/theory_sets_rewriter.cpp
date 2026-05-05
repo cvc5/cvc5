@@ -423,6 +423,8 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node)
     case Kind::SET_SOME: return postRewriteSome(node);
     case Kind::SET_FOLD: return postRewriteFold(node);
     case Kind::RELATION_ACYCLIC: return postRewriteAcyclic(node);
+    case Kind::RELATION_RCLOSURE: return postRewriteRClosure(node);
+    case Kind::RELATION_RTCLOSURE: return postRewriteRTClosure(node);
     case Kind::RELATION_TABLE_JOIN:
     case Kind::RELATION_TRANSPOSE:
     case Kind::RELATION_PRODUCT:
@@ -940,6 +942,74 @@ RewriteResponse TheorySetsRewriter::postRewriteAcyclic(TNode n)
     default: break;
   }
   return RewriteResponse(REWRITE_DONE, n);
+}
+
+RewriteResponse TheorySetsRewriter::postRewriteRClosure(TNode n)
+{
+  Assert(n.getKind() == Kind::RELATION_RCLOSURE);
+  NodeManager* nm = nodeManager();
+  Kind k = n[0].getKind();
+  switch (k)
+  {
+    case Kind::SET_EMPTY:
+    {
+      // (rel.rclosure (as set.empty (Relation T T))) = (as set.empty (Relation
+      // T T))
+      Node ret = n[0];
+      return RewriteResponse(REWRITE_DONE, ret);
+    }
+    case Kind::SET_SINGLETON:
+    {
+      // (rel.rclosure (set.singleton (tuple x y))) =
+      //   (set.insert (tuple y y) (set.insert (tuple x x) (set.singleton (tuple
+      //   x y))))
+      Node tuple = n[0][0];
+      Node x = TupleUtils::nthElementOfTuple(tuple, 0);
+      Node y = TupleUtils::nthElementOfTuple(tuple, 1);
+
+      Node ret = n[0];
+      Node tuplex =
+          TupleUtils::constructTupleFromElements(tuple.getType(), {x, x}, 0, 1);
+      Node singletonx = nm->mkNode(Kind::SET_SINGLETON, tuplex);
+      ret = nm->mkNode(Kind::SET_UNION, singletonx, ret);
+      Node tupley =
+          TupleUtils::constructTupleFromElements(tuple.getType(), {y, y}, 0, 1);
+      Node singletony = nm->mkNode(Kind::SET_SINGLETON, tupley);
+      ret = nm->mkNode(Kind::SET_UNION, singletony, ret);
+
+      return RewriteResponse(REWRITE_AGAIN_FULL, ret);
+    }
+    case Kind::SET_UNION:
+    {
+      // (rel.rclosure (set.union A B)) = (set.union (rel.rclosure A)
+      // (rel.rclosure B))
+      Node A = n[0];
+      Node B = n[1];
+
+      Node rcloseA = nm->mkNode(Kind::RELATION_RCLOSURE, A);
+      Node rcloseB = nm->mkNode(Kind::RELATION_RCLOSURE, B);
+
+      Node ret = nm->mkNode(Kind::SET_UNION, rcloseA, rcloseB);
+
+      return RewriteResponse(REWRITE_AGAIN_FULL, ret);
+    }
+
+    default: break;
+  }
+  return RewriteResponse(REWRITE_DONE, n);
+}
+
+RewriteResponse TheorySetsRewriter::postRewriteRTClosure(TNode n)
+{
+  Assert(n.getKind() == Kind::RELATION_RTCLOSURE);
+  NodeManager* nm = nodeManager();
+  // (rel.rtclosure A) = (set.union (rel.tclosure A) (rel.rclosure A))
+  Node A = n[0];
+  Node rcloseA = nm->mkNode(Kind::RELATION_RCLOSURE, A);
+  Node tcloseA = nm->mkNode(Kind::RELATION_TCLOSURE, A);
+  Node ret = nm->mkNode(Kind::SET_UNION, rcloseA, tcloseA);
+
+  return RewriteResponse(REWRITE_AGAIN_FULL, n);
 }
 
 RewriteResponse TheorySetsRewriter::postRewriteMap(TNode n)
