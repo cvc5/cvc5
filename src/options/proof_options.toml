@@ -176,6 +176,14 @@ name   = "Proof"
   help       = "Add pivots to Alethe resolution steps"
 
 [[option]]
+  name       = "proofAletheTesting"
+  category   = "expert"
+  long       = "proof-alethe-testing"
+  type       = "bool"
+  default    = "false"
+  help       = "If testing, do not support experimental features such as BV, Strings, Datatypes, and print holes coming from the CPC proof with an \"undefined\" rule to help identify it."
+
+[[option]]
   name       = "printDotAsDAG"
   category   = "expert"
   long       = "proof-dot-dag"

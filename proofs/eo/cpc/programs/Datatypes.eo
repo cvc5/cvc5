@@ -90,6 +90,18 @@
     true
     (eo::is_ok (eo::dt_selectors t)))) ; if it has selectors, then it is a constructor
 
+; program: $is_cons_app
+; args:
+; - t S: The term to inspect.
+; return: True iff t has a constructor symbol at its head, including bare/nullary constructors.
+(program $is_cons_app ((T Type) (S Type) (g (-> T S)) (x T) (y S))
+  :signature (S) Bool
+  (
+    (($is_cons_app (g x))  ($is_cons_app g))
+    (($is_cons_app y)      ($dt_is_cons y))
+  )
+)
+
 ; program: $dt_arg_list
 ; args:
 ; - t T: The term to inspect, expected to be a constructor application.
