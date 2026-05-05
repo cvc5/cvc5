@@ -201,7 +201,7 @@ jobs:
           - name: ubuntu:production-dbg-clang
             os: ubuntu-22.04
             use-clang: true
-            config: production --auto-download --assertions --tracing --cln --gpl -DNO_GLOBAL_POLY_CTX=1
+            config: production --auto-download --assertions --tracing --cln --gpl --unit-testing -DNO_GLOBAL_POLY_CTX=1
             cache-key: dbgclang
             exclude_regress: 3-4
             run_regression_args: --tester cpc --tester alethe --tester base --tester model --tester synth --tester abduct --tester unsat-core --tester dump

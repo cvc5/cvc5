@@ -601,7 +601,7 @@ Integer Integer::mkRandom(uint32_t nbits)
   Assert(nbits > 0);
   Random& rnd = Random::getRandom();
   cln::cl_I max(2);
-  max = cln::expt_pos(max, nbits) - 1;
+  max = cln::expt_pos(max, nbits);
   cln::cl_I res = cln::random_I(*rnd.getCLNRandstate(), max);
   return Integer(res);
 }

@@ -177,14 +177,14 @@ bool ProcessAssertions::apply(AssertionPipeline& ap)
     applyPass("real-to-int", ap);
   }
 
-  if (options().smt.solveIntAsBV > 0)
-  {
-    applyPass("int-to-bv", ap);
-  }
-
   if (options().smt.ackermann)
   {
     applyPass("ackermann", ap);
+  }
+
+  if (options().smt.solveIntAsBV > 0)
+  {
+    applyPass("int-to-bv", ap);
   }
 
   Trace("smt") << " assertions     : " << ap.size() << endl;
