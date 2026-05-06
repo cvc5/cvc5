@@ -132,7 +132,7 @@
 ; return: >
 ;   A pair corresponding to the result of chain resolution for the clauses in C for
 ;   the given pivots and a list of (positive) pivots to remove in prior clauses.
-(program $chain_m_resolve_rec ((C1 Bool) (C2 Bool) (Cs Bool :list) (pol Bool) (pols @List :list) (L Bool) (lits @List :list))
+(program $chain_m_resolve_rec ((C1 Bool) (Cs Bool :list) (pol Bool) (pols @List :list) (L Bool) (lits @List :list))
   :signature (Bool @List @List) (@Pair Bool Bool)
   (
   (($chain_m_resolve_rec true @list.nil @list.nil)  (@pair false false))

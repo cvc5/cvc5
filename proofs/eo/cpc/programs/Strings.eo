@@ -279,7 +279,7 @@
 ; - lens Int: The length of s.
 ; return: >
 ;   The size of the smallest prefix of s that is contained in r.
-(program $str_first_match_rec_smallest ((s String) (r RegLan) (n Int) (m Int) (lens Int))
+(program $str_first_match_rec_smallest ((s String) (r RegLan) (m Int) (lens Int))
   :signature (String RegLan Int Int) Int
   (
     (($str_first_match_rec_smallest s r m lens)   (eo::define ((ss (eo::extract s 0 (eo::add m -1))))
@@ -381,7 +381,7 @@
 ;   The unified splitting term for t and s, which is the term that denotes the
 ;   prefix (or suffix if rev is true) remainder of t (resp. s) in the case that
 ;   t (resp. s) is the longer string.
-(program $str_unify_split ((U Type) (t (Seq U)) (s (Seq U)) (rev Bool))
+(program $str_unify_split ((U Type) (t (Seq U)) (s (Seq U)))
   :signature ((Seq U) (Seq U) Bool) (Seq U)
   (
     (($str_unify_split t s true)  (ite (>= (str.len t) (str.len s))
@@ -777,7 +777,7 @@
 ; args:
 ; - t U: The term to process.
 ; return: the eager reduction predicate of term t.
-(program $mk_str_eager_reduction ((U Type) (x (Seq U)) (y (Seq U)) (r RegLan) (n Int) (m Int) (s String))
+(program $mk_str_eager_reduction ((U Type) (x (Seq U)) (y (Seq U)) (r RegLan) (n Int) (s String))
   :signature (U) Bool
   (
     (($mk_str_eager_reduction (str.from_code n))
@@ -1383,7 +1383,7 @@
 ; - r2 RegLan: The second regular expression.
 ; return: >
 ;   true if we can infer that all strings in r2 are also in r1.
-(program $str_re_includes ((s1 String) (s2 String) (s3 String) (s4 String) (r1 RegLan) (r2 RegLan :list) (r3 RegLan))
+(program $str_re_includes ((s1 String) (s2 String) (s3 String) (s4 String) (r1 RegLan) (r3 RegLan))
   :signature (RegLan RegLan) Bool
   (
   (($str_re_includes r1 r1)                               true)
@@ -1506,7 +1506,6 @@
 ; args:
 ; - s String: The first string argument to str.indexof.
 ; - t String: The second string argument to str.indexof.
-; - n Int: The third argument of str.indexof.
 ; - m Int: An integer that may under-approximate (resp. over-approximate) the given indexof term when isUnder is true (resp. false).
 ; - isUnder Bool: Whether we are checking that m is an under-approximation (resp. over-approximation).
 ; return: >
@@ -1514,7 +1513,7 @@
 ;   approximation cases as defined by Figure 2 of "High-Level Abstractions for Simplifying
 ;   Extended String Constraints in SMT", CAV 2019. When applicable, we also rely on calls
 ;   that reason that string length is non-negative and basic properties of arithmetic.
-(define $str_arith_entail_is_approx_indexof ((s String) (t String) (n Int) (m Int) (isUnder Bool))
+(define $str_arith_entail_is_approx_indexof ((s String) (t String) (m Int) (isUnder Bool))
   (eo::define ((ls (str.len s)))
   (eo::define ((lt (str.len t)))
   (eo::ite (eo::eq m -1)
@@ -1527,14 +1526,13 @@
 
 ; define: $str_arith_entail_is_approx_to_int
 ; args:
-; - s String: The first string argument to str.to_int.
 ; - n Int: An integer that may under-approximate (resp. over-approximate) the given str.to_int term when isUnder is true (resp. false).
 ; - isUnder Bool: Whether we are checking that n is an under-approximation (resp. over-approximation).
 ; return: >
 ;   true if we can show that (>= (str.to_int s) n) (or <= if isUnder is false) holds using approximation cases
 ;   as defined by Figure 2 of "High-Level Abstractions for Simplifying Extended String Constraints
 ;   in SMT", CAV 2019.
-(define $str_arith_entail_is_approx_to_int ((s String) (n Int) (isUnder Bool))
+(define $str_arith_entail_is_approx_to_int ((n Int) (isUnder Bool))
   (eo::ite (eo::eq n -1) isUnder false)
 )
 
@@ -1552,8 +1550,8 @@
   (
     (($str_arith_entail_is_approx n1 n1 isUnder)                    true)
     (($str_arith_entail_is_approx (str.len s) n1 isUnder)           ($str_arith_entail_is_approx_len s n1 isUnder))
-    (($str_arith_entail_is_approx (str.indexof s t n3) n1 isUnder)  ($str_arith_entail_is_approx_indexof s t n3 n1 isUnder))
-    (($str_arith_entail_is_approx (str.to_int s) n1 isUnder)        ($str_arith_entail_is_approx_to_int s n1 isUnder))
+    (($str_arith_entail_is_approx (str.indexof s t n3) n1 isUnder)  ($str_arith_entail_is_approx_indexof s t n1 isUnder))
+    (($str_arith_entail_is_approx (str.to_int s) n1 isUnder)        ($str_arith_entail_is_approx_to_int n1 isUnder))
     (($str_arith_entail_is_approx (+ n1 n2) (+ n3 n4) isUnder)      (eo::and
                                                                       ($str_arith_entail_is_approx n1 n3 isUnder)
                                                                       ($str_arith_entail_is_approx n2 n4 isUnder)))
@@ -1576,7 +1574,7 @@
 ; return: >
 ;   The result of implied consumption of string s in regular expression r.
 (program $str_re_consume_rec
-  ((s1 String) (s2 String :list) (s String) (r1 RegLan) (r2 RegLan :list) (b Bool) (rev Bool)
+  ((s1 String) (s2 String :list) (r1 RegLan) (r2 RegLan :list) (b Bool) (rev Bool)
    (s3 String) (s4 String :list) (s5 String) (r3 RegLan))
   :signature (String RegLan Bool Bool) Bool
   (

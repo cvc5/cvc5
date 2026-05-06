@@ -21,7 +21,7 @@
 ; - b1 Bool: The first Boolean.
 ; - b2 Bool: The second Boolean.
 ; return: the result of applying f to b1 and b2.
-(program $bv_bitblast_binary_app ((T Type) (f (-> T T Bool)) (a Bool) (b Bool))
+(program $bv_bitblast_binary_app ((T Type) (a Bool) (b Bool))
   :signature ((-> T T Bool) Bool Bool) Bool
   (
   (($bv_bitblast_binary_app and a b)  (and a b))

@@ -100,7 +100,7 @@
 ; note: Assumes applications with lists as their first argument are binders.
 ; note: This method does not evaluate if variable capture is encountered.
 (program $substitute_simul
-  ((T Type) (S Type) (x S) (f (-> T S)) (a T) (xs @List :list) (ss @List :list) (s S) (y S)
+  ((T Type) (S Type) (x S) (f (-> T S)) (a T) (xs @List :list) (ss @List :list)
    (q (-> @List T S)) (V Type) (v V) (vs @List :list))
   :signature (S @List @List) S
   (
@@ -137,7 +137,7 @@
 ; - ss @List: The accumulated list of arguments to pass to the lambda.
 ; return: the result of beta reduction.
 (program $beta_reduce
-  ((U Type) (T Type) (S Type) (u U) (f (-> T U)) (a T) (t S) (x T) (xs @List :list) (ss @List :list) (X Type))
+  ((U Type) (T Type) (S Type) (u U) (f (-> T U)) (a T) (t S) (x T) (xs @List :list) (ss @List :list))
   :signature ((eo::quote u) (eo::quote ss)) ($beta_reduce_type (eo::typeof u) ss)
   (
   ; handle higher-order case: if lambda is applied to one argument, it may be a partial application

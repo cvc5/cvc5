@@ -20,7 +20,7 @@
 ; - F Bool: The quantified formula.
 ; return: >
 ;   The variable list for F.
-(program $get_var_list ((Q (-> @List Bool Bool)) (xs @List) (G Bool) (i Int))
+(program $get_var_list ((Q (-> @List Bool Bool)) (xs @List) (G Bool))
   :signature (Bool) @List
   (
     (($get_var_list (Q xs G)) xs)
