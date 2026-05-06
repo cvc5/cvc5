@@ -451,12 +451,6 @@ Node AletheNodeConverter::postConvert(Node n)
     case Kind::BITVECTOR_ZERO_EXTEND_OP:
     case Kind::BITVECTOR_ZERO_EXTEND:
     case Kind::BITVECTOR_ITE:
-    /* from arrays */
-    case Kind::ARRAY_TYPE:
-    case Kind::SELECT:
-    case Kind::STORE:
-    case Kind::STORE_ALL:
-    case Kind::ARRAY_LAMBDA:
     /* from datatypes */
     case Kind::CONSTRUCTOR_TYPE:
     case Kind::SELECTOR_TYPE:
