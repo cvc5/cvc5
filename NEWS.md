@@ -1,7 +1,7 @@
 This file contains a summary of important user-visible changes.
 
-cvc5 1.3.4 prerelease
-=====================
+cvc5 1.3.4
+==========
 
 ## Changes
 
@@ -21,6 +21,8 @@ cvc5 1.3.4 prerelease
   called after an unsat response when uninterpreted sorts are present.
 - Fixes issues related to theory combination with arrays and non-linear
   arithmetic.
+- Minor updates and fixes to the CPC proof signature. The current CPC proofs are
+  checkable by Ethos 0.2.3 (`./contrib/get-ethos-checker`).
 
 cvc5 1.3.3
 ==========
