@@ -23,6 +23,8 @@ cvc5 1.3.4
   arithmetic.
 - Added full proof support in CaDiCaL, meaning `--sat-solver=cadical` can now be
   used in combination with proofs `--produce-proofs`.
+- Improved proof support for Alethe: full translation for CPC fragment for
+  logics in AUFNIRA.
 - Minor updates and fixes to the CPC proof signature. The current CPC proofs are
   checkable by Ethos 0.2.3 (`./contrib/get-ethos-checker`).
 
