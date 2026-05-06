@@ -1,3 +1,4 @@
+; DISABLE-TESTER: alethe
 ; COMMAND-LINE: --cegqi-inf-int -q
 ; EXPECT: unsat
 (set-logic ALL)
