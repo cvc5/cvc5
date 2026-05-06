@@ -21,6 +21,8 @@ cvc5 1.3.4
   called after an unsat response when uninterpreted sorts are present.
 - Fixes issues related to theory combination with arrays and non-linear
   arithmetic.
+- Added full proof support in CaDiCaL, meaning `--sat-solver=cadical` can now be
+  used in combination with proofs `--produce-proofs`.
 - Minor updates and fixes to the CPC proof signature. The current CPC proofs are
   checkable by Ethos 0.2.3 (`./contrib/get-ethos-checker`).
 
