@@ -62,15 +62,38 @@ FloatingPoint::FloatingPoint(std::unique_ptr<FloatingPointLiteral>&& fpl)
 {
 }
 
-FloatingPoint::FloatingPoint(const FloatingPoint& fp) : d_fpl(fp.d_fpl->clone())
-{
-}
-
 FloatingPoint::FloatingPoint(const FloatingPointSize& size,
                              const RoundingMode& rm,
                              const Rational& r)
     : d_fpl(FloatingPointLiteral::createFromRational(size, rm, r))
 {
+}
+
+FloatingPoint::FloatingPoint(const FloatingPoint& fp) : d_fpl(fp.d_fpl->clone())
+{
+}
+
+FloatingPoint::FloatingPoint(FloatingPoint&& fp) noexcept
+    : d_fpl(std::move(fp.d_fpl))
+{
+}
+
+FloatingPoint& FloatingPoint::operator=(const FloatingPoint& other)
+{
+  if (this != &other)
+  {
+    d_fpl = other.d_fpl->clone();
+  }
+  return *this;
+}
+
+FloatingPoint& FloatingPoint::operator=(FloatingPoint&& other) noexcept
+{
+  if (this != &other)
+  {
+    d_fpl = std::move(other.d_fpl);
+  }
+  return *this;
 }
 
 FloatingPoint::~FloatingPoint() {}

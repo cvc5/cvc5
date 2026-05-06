@@ -33,6 +33,8 @@
   )
 )
 
+;; =============== untyped list
+
 ; untyped list.
 ; note: >
 ;   We use this as a synonym for eo::List. We use this syntax as it avoids
@@ -40,6 +42,42 @@
 (define @List () eo::List)
 (define @list.nil () eo::List::nil)
 (define @list () eo::List::cons)
+
+;; =============== homogeneous list
+
+(declare-parameterized-const @@TypedList ((T Type)) Type)
+(declare-parameterized-const @@TypedList.nil ((T Type)) (@@TypedList T))
+(declare-parameterized-const @@TypedList.cons ((T Type :implicit))
+  (-> T (@@TypedList T) (@@TypedList T)) :right-assoc-nil (@@TypedList.nil T))
+(define @TList () @@TypedList)
+(define @tlist.nil () @@TypedList.nil)
+(define @tlist () @@TypedList.cons)
+
+; program: $typed_list_element_type
+; args:
+; - T Type: the type in question
+; return: The element type of T, if it is a typed list.
+(program $typed_list_element_type ((T Type))
+  :signature (Type) Type
+  (
+  (($typed_list_element_type (@TList T)) T)
+  )
+)
+
+; program: $typed_list_to_untyped
+; args:
+; - xs (@TList T): the typed list.
+; return: The result of converting xs to an untyped (heterogeneous) list.
+(program $typed_list_to_untyped ((T Type) (x T) (xs (@TList T) :list))
+  :signature ((@TList T)) @List
+  (
+  (($typed_list_to_untyped (@tlist x xs))   (_ @list x ($typed_list_to_untyped xs)))
+  (($typed_list_to_untyped (@tlist.nil T))  @list.nil)
+  )
+)
+
+  
+;; =============== evaluation utilities
 
 ; note: This is a forward declaration of $evaluate_list defined in Cpc.eo.
 (program $evaluate_list () :signature (@List) @List)
@@ -154,36 +192,5 @@
     (($result_combine b1 @result.null) b1)
     (($result_combine b1 b1)           b1)
     (($result_combine b1 b2)           @result.invalid)
-  )
-)
-
-;; =============== associative nil
-
-; program: $assoc_nil_has_type_rec
-; args:
-; - f (-> T U V): The function, expected to be an n-ary function.
-; - t W: The term to inspect, expected to be an f-list.
-; - W Type: The type to check.
-; return: true iff all children of t have type W.
-(program $assoc_nil_has_type_rec
-  ((T Type) (U Type) (V Type) (W Type) (f (-> T U V)) (nil V) (x1 T) (x2 U))
-  :signature ((-> T U V) V Type) Bool
-  (
-  (($assoc_nil_has_type_rec f (f x1 x2) W)  (eo::requires (eo::typeof x1) W ($assoc_nil_has_type_rec f x2 W)))
-  (($assoc_nil_has_type_rec f nil W)        true)
-  )
-)
-
-; program: $assoc_nil_same_type
-; args:
-; - f (-> T U V): The function, expected to be an n-ary function.
-; - t W: The term to inspect, expected to be an f-list.
-; - T Type: The type to check.
-; return: true iff all children of t have type T.
-(program $assoc_nil_same_type
-  ((T Type) (U Type) (V Type) (W Type) (f (-> T U V)) (x1 T) (x2 U))
-  :signature ((-> T U V) V) Bool
-  (
-  (($assoc_nil_same_type f (f x1 x2))  ($assoc_nil_has_type_rec f x2 (eo::typeof x1)))
   )
 )

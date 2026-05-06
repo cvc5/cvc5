@@ -246,6 +246,8 @@ class CDProof : protected EnvObj, public ProofGenerator
                 bool doCopy = false);
   /** Return true if fact already has a proof step */
   bool hasStep(Node fact);
+  /** Return true if fact already has any proof node, including assumptions. */
+  bool hasFact(Node fact) const;
   /** Return how many proof nodes currently in proof */
   size_t getNumProofNodes() const;
   /** Get the proof manager for this proof */

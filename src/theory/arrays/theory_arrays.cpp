@@ -1648,6 +1648,12 @@ void TheoryArrays::mergeArrays(TNode a, TNode b)
   // Note: a is the new representative
   Assert(a.getType().isArray() && b.getType().isArray());
 
+  // Preregistration skips array bookkeeping once this theory is in conflict.
+  if (d_state.isInConflict())
+  {
+    return;
+  }
+
   if (d_mergeInProgress)
   {
     // Nested call to mergeArrays, just push on the queue and return

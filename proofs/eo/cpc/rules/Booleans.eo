@@ -257,7 +257,7 @@
 (declare-rule reordering ((C1 Bool) (C2 Bool))
     :premises (C1)
     :args (C2)
-    :requires (((eo::list_minclude or C1 C2) true))
+    :requires (((eo::list_minclude or C2 C1) true))
     :conclusion C2
 )
 

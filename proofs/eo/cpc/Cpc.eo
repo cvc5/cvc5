@@ -526,11 +526,11 @@
 ; note: >
 ;   If the argument list contains duplicates, then it is trivially false,
 ;   hence there is no need to check for duplicates.
-(declare-rule distinct-card-conflict ((T Type) (U Type) (xs @List :list))
+(declare-rule distinct-card-conflict ((T Type) (xs (@TList T) :list))
   :args ((= (distinct xs) false))
   :requires (((eo::gt
-                (eo::list_len @list xs)
-                ($compute_card ($assoc_nil_nth_type @list xs 0))) true))
+                (eo::list_len @tlist xs)
+                ($compute_card ($assoc_nil_nth_type @tlist xs 0))) true))
   :conclusion (= (distinct xs) false)
 )
 
