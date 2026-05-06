@@ -144,6 +144,7 @@ set(regress_0_tests
   regress0/arrays/issue11908-eec-ensure-atom.smt2
   regress0/arrays/issue12026.smt2
   regress0/arrays/issue12648.smt2
+  regress0/arrays/issue3065-write-chain.smt2
   regress0/arrays/issue3813-massign-assert.smt2
   regress0/arrays/issue3814.smt2
   regress0/arrays/issue4240.smt2
@@ -165,6 +166,7 @@ set(regress_0_tests
   regress0/arrays/issue6807-idem-rew.smt2
   regress0/arrays/issue7596-define-array-uminus.smt2
   regress0/arrays/issue8103-1-weak-equiv-models.smt2
+  regress0/arrays/issue8112-ext-rew-prep-model.smt2
   regress0/arrays/issue8241-bad-model.smt2
   regress0/arrays/issue8276-arith-getModelValue.smt2
   regress0/arrays/issue8810-model-success.smt2
@@ -173,6 +175,7 @@ set(regress_0_tests
   regress0/arrays/issue9043_2.smt2
   regress0/arrays/issue9043_3.smt2
   regress0/arrays/issue9043_4.smt2
+  regress0/arrays/issue9163-ext-rew-prep-model.smt2
   regress0/arrays/issue10494.smt2
   regress0/arrays/issue10494-2.smt2
   regress0/arrays/issue11889-eec-unsat.smt2
@@ -958,6 +961,8 @@ set(regress_0_tests
   regress0/fp/issue6164.smt2
   regress0/fp/issue7002.smt2
   regress0/fp/issue7569.smt2
+  regress0/fp/issue7858-fp-exp.smt2
+  regress0/fp/issue8950-9162-9662-afp-model.smt2
   regress0/fp/issue9078-1.smt2
   regress0/fp/issue9078-2.smt2
   regress0/fp/issue9078-3.smt2
@@ -1751,6 +1756,7 @@ set(regress_0_tests
   regress0/quantifiers/issue9070-syqi-model.smt2
   regress0/quantifiers/issue9602-rewrite-pow-type.smt2
   regress0/quantifiers/issue9640-vts-iff.smt2
+  regress0/quantifiers/issue10067-cegqi-inf-int.smt2
   regress0/quantifiers/lra-triv-gn.smt2
   regress0/quantifiers/macro-back-subs-sat.smt2
   regress0/quantifiers/macros-int-real.smt2
@@ -2318,6 +2324,7 @@ set(regress_0_tests
   regress0/sygus/issue3356-syg-inf-usort.smt2
   regress0/sygus/issue3624.sy
   regress0/sygus/issue3645-grammar-sets.smt2
+  regress0/sygus/issue3646-array-sygus-inference.smt2
   regress0/sygus/issue4383-cache-fv-id.sy
   regress0/sygus/issue4790-dtd.sy
   regress0/sygus/issue5512-vvv.sy
@@ -2806,6 +2813,7 @@ set(regress_1_tests
   regress1/difficulty-polarity.smt2
   regress1/errorcrash.smt2
   regress1/fp/fp_to_real.smt2
+  regress1/fp/issue8242-check-models.smt2
   regress1/fp/rti_3_5_bug_report.smt2
   regress1/fmf-fun-dbu.smt2
   regress1/fmf/ALG008-1.smt2
