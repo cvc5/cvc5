@@ -51,17 +51,6 @@
   )
 )
 
-; program: $char_type_of
-; args:
-; - T Type: The string-like type to check.
-; return: the character type of the string-like type T
-(program $char_type_of ((U Type))
-  :signature (Type) Type
-  (
-  (($char_type_of (Seq U)) U)
-  )
-)
-
 ; define: $str_concat
 ; args:
 ; - x (Seq T): The first string.
