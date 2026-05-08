@@ -2313,11 +2313,16 @@ void SolverEngine::setOption(const std::string& key,
 {
   if (fromUser && options().base.safeMode != options::SafeMode::UNRESTRICTED)
   {
-    // Note that the text "in safe mode" must appear in the error messages or
-    // CI will fail, as it searches for this text.
+    const char* modeName = options().base.safeMode == options::SafeMode::STABLE
+                               ? "stable mode"
+                               : "safe mode";
+    // Note that the text "in safe mode" or "in stable mode" must appear in
+    // the error messages or CI will fail, as it searches for this text.
     if (key == "trace")
     {
-      throw FatalOptionException("cannot use trace messages in safe mode");
+      std::stringstream ss;
+      ss << "cannot use trace messages in " << modeName;
+      throw FatalOptionException(ss.str());
     }
     // verify its a regular option
     options::OptionInfo oinfo = options::getInfo(getOptions(), key);
@@ -2325,7 +2330,7 @@ void SolverEngine::setOption(const std::string& key,
     {
       // option exception
       std::stringstream ss;
-      ss << "expert option " << key << " cannot be set in safe mode.";
+      ss << "expert option " << key << " cannot be set in " << modeName << ".";
       // If we are setting to a default value, the exception can be avoided
       // by omitting the expert option.
       if (getOption(key) == value)
@@ -2343,8 +2348,8 @@ void SolverEngine::setOption(const std::string& key,
           && !oinfo.noSupports.empty())
       {
         std::stringstream ss;
-        ss << "cannot set option " << key
-           << " in safe mode, as this option does not support ";
+        ss << "cannot set option " << key << " in " << modeName
+           << ", as this option does not support ";
         bool firstTime = true;
         for (const std::string& s : oinfo.noSupports)
         {
@@ -2372,7 +2377,7 @@ void SolverEngine::setOption(const std::string& key,
         // option exception
         std::stringstream ss;
         ss << "cannot set two regular options (" << d_safeOptsRegularOption
-           << " and " << key << ") in safe mode.";
+           << " and " << key << ") in " << modeName << ".";
         // similar to above, if setting to default value for either of the
         // regular options.
         for (size_t i = 0; i < 2; i++)

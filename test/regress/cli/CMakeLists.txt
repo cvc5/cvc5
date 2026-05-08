@@ -143,6 +143,7 @@ set(regress_0_tests
   regress0/arrays/incorrect9.smtv1.smt2
   regress0/arrays/issue11908-eec-ensure-atom.smt2
   regress0/arrays/issue12026.smt2
+  regress0/arrays/issue12648.smt2
   regress0/arrays/issue3813-massign-assert.smt2
   regress0/arrays/issue3814.smt2
   regress0/arrays/issue4240.smt2
@@ -1291,6 +1292,7 @@ set(regress_0_tests
   regress0/options/safe-options-fatal.smt2
   regress0/options/set-after-init.smt2
   regress0/options/set-and-get-options.smt2
+  regress0/options/stable-options1.smt2
   regress0/options/statistics.smt2
   regress0/options/stream-printing.smt2
   regress0/options/version.smt2
@@ -4503,6 +4505,7 @@ macro(cvc5_add_regression_test level file)
     --lfsc-binary ${PROJECT_SOURCE_DIR}/deps/bin/lfscc
     --lfsc-sig-dir ${PROJECT_SOURCE_DIR}/proofs/lfsc/signatures
     --carcara-binary ${PROJECT_SOURCE_DIR}/deps/bin/carcara
+    --carcara-rare ${PROJECT_SOURCE_DIR}/deps/rare/rewrites.eo
     --ethos-binary ${PROJECT_SOURCE_DIR}/deps/bin/ethos
     --cpc-sig-dir ${PROJECT_SOURCE_DIR}/proofs/eo
     ${wrapper}

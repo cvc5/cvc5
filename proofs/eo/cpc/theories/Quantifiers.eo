@@ -27,6 +27,33 @@
   )
 )
 
+; program: $get_var_type
+; args:
+; - v T: The variable
+; return: >
+;   The type of the variable.
+(program $get_var_type ((s String) (T Type))
+  :signature (T) Type
+  (
+  (($get_var_type (eo::var s T)) T)
+  )
+)
+
+; program: $get_nth_var_type
+; args:
+; - F Bool: The quantified formula.
+; - i Int: The index of the variable
+; return: >
+;   The type of the i^th variable in the binder for F.
+(program $get_nth_var_type
+  ((Q (-> @List Bool Bool)) (xs @List :list) (G Bool) (i Int))
+  :signature (Bool Int) Type
+  (
+  (($get_nth_var_type (Q xs G) i) ($get_var_type (eo::list_nth @list xs i)))
+  )
+)
+
 ; skolems
-(declare-parameterized-const @quantifiers_skolemize ((F Bool :opaque) (i Int :opaque))
-  ($assoc_nil_nth_type @list ($get_var_list F) i))
+(declare-parameterized-const @quantifiers_skolemize
+  ((F Bool :opaque) (i Int :opaque))
+  ($get_nth_var_type F i))
