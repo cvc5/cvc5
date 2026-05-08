@@ -124,6 +124,8 @@ void TheorySetsRels::check()
         std::vector<Node>& tc_terms = kind_terms[Kind::RELATION_TCLOSURE];
         for (unsigned int j = 0; j < tc_terms.size(); j++)
         {
+          // Fill in strategy
+          applyAcyclicDownRule(mem, tc_terms[j], rel_rep, exp);
           applyTCRule(mem, tc_terms[j], rel_rep, exp);
         }
       }
@@ -1290,6 +1292,55 @@ void TheorySetsRels::applyTransposeRule(Node tp_rel, Node tp_rel_rep, Node exp)
   }
   sendInfer(nm->mkNode(Kind::SET_MEMBER, reversed_mem, tp_rel[0]),
             InferenceId::SETS_RELS_TRANSPOSE_REV,
+            reason);
+}
+
+/*
+ * RELATION_ACYLIC_DOWN:   (a, b) IS_IN RELATION_TCLOSURE(x)     RELATION_ACYCLIC(x)
+ *                         ---------------------------------------------------------
+ *                                              a != b
+ */
+void TheorySetsRels::applyAcyclicDownRule(Node mem_rep,
+                                          Node tc_rel,
+                                          Node tc_rel_rep,
+                                          Node exp)
+{
+  Trace("rels-debug") << "\n[Theory::Rels] *********** Applying "
+                         "RELATION_ACYCLIC rule on member" << mem_rep << ", transivitely closed term = "
+                      << tc_rel << " and its representative = " << tc_rel_rep
+                      << ", with explanation = " << exp << std::endl;
+  // Step 1: find rep of the transitively closed relation in d_acyclic_cache
+  // Question: should d_acyclic_cache be changed so that it also tracks
+  // the original relation, not just the representative? 
+  Node tc_rel0_rep = getRepresentative(tc_rel[0]);
+  if (d_acyclic_cache.find(tc_rel0_rep) == d_acyclic_cache.end())
+  {
+    return;
+  }
+
+  bool is_acyclic = d_acyclic_cache[tc_rel0_rep];
+  if (!is_acyclic) return;
+
+  NodeManager* nm = nodeManager();
+
+  Node reason = nodeManager()->mkNode(
+        Kind::AND, exp, nodeManager()->mkNode(Kind::RELATION_ACYCLIC, tc_rel[0]));
+
+  // If we add the original relation to d_acyclic_cache, then
+  // the following code will be necessary again (with tc_rel replaced)
+  // with the acyclic relation compared to tc_rel0_rep)
+  // if (tc_rel0_rep != d_acyclic_cache[tc_rel0_rep].first)
+  // {
+  //   reason = nodeManager()->mkNode(
+  //       Kind::AND, 
+  //       reason, 
+  //       nodeManager()->mkNode(Kind::EQUAL, tc_rel0_rep, d_acyclic_cache[tc_rel0_rep].first));
+  // }
+  Node mem_rep0 = TupleUtils::nthElementOfTuple(mem_rep, 0);
+  Node mem_rep1 = TupleUtils::nthElementOfTuple(mem_rep, 1);
+
+  sendInfer(nm->mkNode(Kind::NOT, nm->mkNode(Kind::EQUAL, mem_rep0, mem_rep1)),
+            InferenceId::SETS_RELS_ACYCLIC_DOWN,
             reason);
 }
 

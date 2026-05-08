@@ -126,7 +126,7 @@ class TheorySetsRels : protected EnvObj
   /** Mapping between transitive closure relation TC(r) and its TC graph
    * constructed based on the members of r*/
 
-  /** Mapping from acyclic relations to their truth value */
+  /** Mapping from acyclic relation representatives to their truth value */
   std::map<Node, bool> d_acyclic_cache;
 
   /** Mapping between transitive closure relation TC(r) and its TC graph
@@ -162,6 +162,7 @@ class TheorySetsRels : protected EnvObj
   void collectRelsInfo();
   void applyTransposeRule(std::vector<Node> tp_terms);
   void applyTransposeRule(Node rel, Node rel_rep, Node exp);
+  void applyAcyclicDownRule(Node mem, Node rel, Node rel_rep, Node exp);
   void applyProductRule(Node rel, Node rel_rep, Node exp);
   void applyJoinRule(Node rel, Node rel_rep, Node exp);
   /**
