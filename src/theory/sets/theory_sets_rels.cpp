@@ -285,6 +285,9 @@ void TheorySetsRels::collectRelsInfo()
 
       if (erType.isBoolean() && eqc_rep.isConst())
       {
+        bool is_true_eq = eqc_rep.getConst<bool>();
+        Node reason = is_true_eq ? eqc_node : eqc_node.negate();
+
         // collect membership info
         if (eqc_node.getKind() == Kind::SET_MEMBER
             && eqc_node[1].getType().getSetElementType().isTuple())
@@ -297,9 +300,6 @@ void TheorySetsRels::collectRelsInfo()
             reduceTupleVar(eqc_node);
           }
 
-          bool is_true_eq = eqc_rep.getConst<bool>();
-          Node reason = is_true_eq ? eqc_node : eqc_node.negate();
-
           if (is_true_eq)
           {
             if (safelyAddToMap(d_rReps_memberReps_cache, rel_rep, tup_rep))
@@ -310,6 +310,13 @@ void TheorySetsRels::collectRelsInfo()
                                                  d_tuple_reps[tup_rep]);
             }
           }
+        }
+        // collect acyclic info
+        else if (eqc_node.getKind() == Kind::RELATION_ACYCLIC)
+        {
+          Node rel_rep = getRepresentative(eqc_node[0]);
+
+          d_acyclic_cache[rel_rep] = is_true_eq;
         }
         // collect relational terms info
       }
