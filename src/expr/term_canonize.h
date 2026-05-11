@@ -56,16 +56,12 @@ class TermCanonize
   TermCanonize(TypeClassCallback* tcc = nullptr);
   ~TermCanonize() {}
 
-  /** Maps operators to an identifier, useful for ordering. */
-  int getIdForOperator(Node op);
-  /** Maps types to an identifier, useful for ordering. */
-  int getIdForType(TypeNode t);
   /** get term order
    *
    * Returns true if a <= b in the term ordering used by this class. The
    * term order is determined by the leftmost position in a and b whose
    * operators o_a and o_b are distinct at that position. Then a <= b iff
-   * getIdForOperator( o_a ) <= getIdForOperator( o_b ).
+   * o_a <= o_b in the built-in node ordering.
    */
   bool getTermOrder(Node a, Node b);
   /** get canonical free variable #i of type tn */
@@ -102,14 +98,6 @@ class TermCanonize
  private:
   /** The (optional) type class callback */
   TypeClassCallback* d_tcc;
-  /** the number of ids we have allocated for operators */
-  int d_op_id_count;
-  /** map from operators to id */
-  std::map<Node, int> d_op_id;
-  /** the number of ids we have allocated for types */
-  int d_typ_id_count;
-  /** map from type to id */
-  std::map<TypeNode, int> d_typ_id;
   /** free variables for each type / type class pair */
   std::map<std::pair<TypeNode, uint32_t>, std::vector<Node> > d_cn_free_var;
   /**
