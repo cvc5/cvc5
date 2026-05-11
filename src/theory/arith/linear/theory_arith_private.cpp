@@ -2731,6 +2731,7 @@ std::vector<ConstraintCPVec> TheoryArithPrivate::replayLogRec(
             ++d_statistics.d_cutsProven;
 
             const ConstraintCPVec& exp = ci->getExplanation();
+            Assert(con != NullConstraint);
             // success
             if (con->isTrue())
             {
