@@ -1063,7 +1063,8 @@ void EoPrinter::getChildrenFromProofRule(
       // stating equality over indices to indexed operators, which cong does
       // not handle.
       size_t start = 0;
-      while (start<cc.size() && cc[start]->getResult()[0]==cc[start]->getResult()[1])
+      while (start < cc.size()
+             && cc[start]->getResult()[0] == cc[start]->getResult()[1])
       {
         start++;
       }
@@ -1074,12 +1075,13 @@ void EoPrinter::getChildrenFromProofRule(
         // This ensures that we ignore e.g. equalities between patterns
         // which can appear in term conversion proofs.
         size_t arity = kind::metakind::getMinArityForKind(res[0].getKind());
-        children.insert(children.end(), cc.begin()+start, cc.begin() + arity - 1);
+        children.insert(
+            children.end(), cc.begin() + start, cc.begin() + arity - 1);
         return;
       }
-      else if (start>0)
+      else if (start > 0)
       {
-        children.insert(children.end(), cc.begin()+start, cc.end());
+        children.insert(children.end(), cc.begin() + start, cc.end());
         return;
       }
     }
