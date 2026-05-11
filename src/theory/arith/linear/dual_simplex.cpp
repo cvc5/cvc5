@@ -92,8 +92,8 @@ Result::Status DualSimplexDecisionProcedure::dualFindModel(bool exactResult)
   uint32_t checkPeriod = options().arith.arithSimplexCheckPeriod;
 
   uint32_t numDifferencePivots = options().arith.arithHeuristicPivots < 0
-                                      ? d_numVariables + 1
-                                      : options().arith.arithHeuristicPivots;
+                                     ? d_numVariables + 1
+                                     : options().arith.arithHeuristicPivots;
   // The signed to unsigned conversion is safe.
   if (numDifferencePivots > 0)
   {
