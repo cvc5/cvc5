@@ -41,6 +41,39 @@ Node toNode(NodeManager* nm, TheoryProxy* proxy, const SatClause& clause)
   return lits.size() == 1 ? lits[0] : nm->mkNode(Kind::OR, lits);
 }
 
+std::shared_ptr<ProofNode> normalizeDerivedClause(
+    ProofNodeManager* pnm,
+    const std::shared_ptr<ProofNode>& child,
+    const Node& conclusion)
+{
+  Node childConclusion = child->getResult();
+  if (childConclusion == conclusion)
+  {
+    return child;
+  }
+
+  std::vector<std::shared_ptr<ProofNode>> children{child};
+  std::shared_ptr<ProofNode> factored =
+      pnm->mkNode(ProofRule::FACTORING, children, {}, conclusion);
+  if (factored != nullptr)
+  {
+    return factored;
+  }
+
+  factored = pnm->mkNode(ProofRule::FACTORING, children, {});
+  if (factored != nullptr)
+  {
+    if (factored->getResult() == conclusion)
+    {
+      return factored;
+    }
+    return pnm->mkNode(
+        ProofRule::REORDERING, {factored}, {conclusion}, conclusion);
+  }
+
+  return pnm->mkNode(ProofRule::REORDERING, children, {conclusion}, conclusion);
+}
+
 }  // namespace
 
 ProofTracer::ProofTracer(const CadicalPropagator& propagator)
@@ -142,7 +175,7 @@ std::shared_ptr<ProofNode> ProofTracer::get_chain_resolution_proof(
     const auto& clause = d_clauses.at(cid);
     if (clause.type == ClauseType::DERIVED)
     {
-      Assert(clause.antecedents.size() > 1);
+      Assert(!clause.antecedents.empty());
       steps.emplace(cid,
                     chain_resolution_step(cid, proxy, pnm, nm, steps, alits));
     }
@@ -196,6 +229,13 @@ std::shared_ptr<ProofNode> ProofTracer::chain_resolution_step(
   SatClause expected_cl = toSatClause(activation_literals, cl.literals);
   Node conclusion = toNode(nm, proxy, expected_cl);
   const auto& antecedents = cl.antecedents;
+  // CaDiCaL may use a unary derivation to factor duplicate literals.
+  if (antecedents.size() == 1)
+  {
+    auto it = steps.find(antecedents[0]);
+    Assert(it != steps.end());
+    return normalizeDerivedClause(pnm, it->second, conclusion);
+  }
   std::vector<std::shared_ptr<ProofNode>> children;
   std::vector<Node> polarities, literals;
   std::unordered_map<int32_t, uint8_t> marked_vars;
