@@ -3456,7 +3456,8 @@ bool TheoryArithPrivate::solveRealRelaxation(Theory::Effort effortLevel)
       << safeToCallApprox() << endl;
 
   bool noPivotLimitPass1 = noPivotLimit && !useApprox;
-  simplex.setVarOrderPivotLimit(options().arith.arithStandardCheckVarOrderPivots);
+  simplex.setVarOrderPivotLimit(
+      options().arith.arithStandardCheckVarOrderPivots);
   d_qflraStatus = simplex.findModel(noPivotLimitPass1);
 
   Trace("TheoryArithPrivate::solveRealRelaxation")
