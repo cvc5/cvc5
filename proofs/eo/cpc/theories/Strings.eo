@@ -118,7 +118,7 @@
 
 (declare-const re.* (-> RegLan RegLan))
 (declare-const re.+ (-> RegLan RegLan))
-(declare-const re.^ (-> Int RegLan RegLan))
+(declare-parameterized-const re.^ ((i Int :opaque)) (-> RegLan RegLan))
 (declare-const re.opt (-> RegLan RegLan))
 (declare-const re.comp (-> RegLan RegLan))
 (declare-const re.range (-> String String RegLan))
@@ -134,7 +134,7 @@
 ;   functions.
 (declare-const re.union (-> RegLan RegLan RegLan) :right-assoc-nil re.none)
 (declare-const re.diff (-> RegLan RegLan RegLan))
-(declare-const re.loop (-> Int Int RegLan RegLan))
+(declare-parameterized-const re.loop ((l Int :opaque) (h Int :opaque)) (-> RegLan RegLan))
 (declare-const str.in_re (-> String RegLan Bool))
 
 ; Sequence-specific operators.
@@ -199,5 +199,6 @@
   ((T Type :implicit) (t (Seq T) :opaque))
   (-> Int (Seq T)))
 
-(declare-parameterized-const @witness_string_length ((T Type))
+(declare-parameterized-const @witness_string_length 
+  ((T Type :opaque))
   (-> Int Int T))
