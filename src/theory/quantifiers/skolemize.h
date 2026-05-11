@@ -127,7 +127,7 @@ class Skolemize : protected EnvObj
    * which prints an informal justification of steps taken by the quantifiers
    * module.
    */
-  void getSkolemTermVectors(std::map<Node, std::vector<Node> >& sks) const;
+  void getSkolemTermVectors(std::map<Node, std::vector<Node>>& sks) const;
 
  private:
   /** Are proofs enabled? */

@@ -11,11 +11,11 @@
  */
 #include "cvc5_private.h"
 
-#ifndef CVC4__PROOF__ALF__ALF_DEPENDENT_TYPE_CONVERTER_H
-#define CVC4__PROOF__ALF__ALF_DEPENDENT_TYPE_CONVERTER_H
+#ifndef CVC5__PROOF__EO__EO_DEPENDENT_TYPE_CONVERTER_H
+#define CVC5__PROOF__EO__EO_DEPENDENT_TYPE_CONVERTER_H
 
 #include "expr/node_converter.h"
-#include "proof/alf/alf_node_converter.h"
+#include "proof/eo/eo_node_converter.h"
 
 namespace cvc5::internal {
 namespace proof {
@@ -23,7 +23,7 @@ namespace proof {
 /**
  * Converts an (approximate) type into a dependent one.
  *
- * This is used for printing RARE rules in ALF. For example, the RARE rule:
+ * This is used for printing RARE rules in Eunoia. For example, the RARE rule:
  *
  * (define-cond-rule bv-extract-concat-1
  *   ((x ?BitVec) (xs ?BitVec :list) (y ?BitVec) (i Int) (j Int))
@@ -31,7 +31,7 @@ namespace proof {
  *   (extract j i (concat xs y x))
  *   (extract j i x))
  *
- * becomes the ALF rule:
+ * becomes the Eunoia rule:
  *
  * (declare-rule bv-extract-concat-1
  *   ((@n0 Int) (@n1 Int) (@n2 Int) (x (BitVec @n0)) (xs (BitVec @n1) :list)
@@ -58,10 +58,10 @@ namespace proof {
  * Note that approximate functions and approximate tuples are the only two types
  * that are not converted precisely in this translation.
  */
-class AlfDependentTypeConverter
+class EoDependentTypeConverter
 {
  public:
-  AlfDependentTypeConverter(NodeManager* nm, BaseAlfNodeConverter& tproc);
+  EoDependentTypeConverter(NodeManager* nm, BaseEoNodeConverter& tproc);
   /**
    * Convert the approximate type tn to a node that prints the dependent
    * type that is equivalent to tn, possibly with free parameters.
@@ -78,13 +78,13 @@ class AlfDependentTypeConverter
   /** Pointer to node manager */
   NodeManager* d_nm;
   /** The parent converter, used for getting internal symbols and utilities */
-  BaseAlfNodeConverter& d_tproc;
+  BaseEoNodeConverter& d_tproc;
   /** The free parameters introduced by this pass */
   std::vector<Node> d_params;
   /** Counters for allocating unique types and integers */
   size_t d_typeCounter;
   size_t d_intCounter;
-  /** The type of ALF sorts, which can appear in terms */
+  /** The type of Eunoia sorts, which can appear in terms */
   TypeNode d_sortType;
   /** Kind to name */
   std::map<Kind, std::string> d_kindToName;

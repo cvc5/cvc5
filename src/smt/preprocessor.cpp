@@ -30,15 +30,13 @@ using namespace cvc5::internal::kind;
 namespace cvc5::internal {
 namespace smt {
 
-Preprocessor::Preprocessor(Env& env,
-                           SolverEngineStatistics& stats)
+Preprocessor::Preprocessor(Env& env, SolverEngineStatistics& stats)
     : EnvObj(env),
       d_pppg(nullptr),
       d_propagator(env, true, true),
       d_assertionsProcessed(env.getUserContext(), false),
       d_processor(env, stats)
 {
-
 }
 
 Preprocessor::~Preprocessor() {}

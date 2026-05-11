@@ -404,7 +404,11 @@ std::optional<Node> disjunctiveBitConstraint(const Node& t)
     if ((oneConstraint(t[0]) && zeroConstraint(t[1]))
         || (oneConstraint(t[1]) && zeroConstraint(t[0])))
     {
-      return {theory::ff::parse::spectrum(t[0])->var};
+      auto s0 = theory::ff::parse::spectrum(t[0]);
+      auto s1 = theory::ff::parse::spectrum(t[1]);
+      Assert(s0.has_value());
+      Assert(s1.has_value());
+      if (s0->var == s1->var) return {s0->var};
     }
   }
   return {};

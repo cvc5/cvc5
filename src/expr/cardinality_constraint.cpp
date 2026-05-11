@@ -57,7 +57,7 @@ size_t CardinalityConstraintHashFunction::operator()(
     const CardinalityConstraint& cc) const
 {
   return std::hash<TypeNode>()(cc.getType())
-         * IntegerHashFunction()(cc.getUpperBound());
+         * std::hash<Integer>()(cc.getUpperBound());
 }
 
 CombinedCardinalityConstraint::CombinedCardinalityConstraint(const Integer& ub)

@@ -210,7 +210,7 @@ TypeNode NodeConverter::convertType(TypeNode tn)
         // type nodes.
         NodeBuilder nb(d_nm, ret.getKind());
         // there are no parameterized types
-        Assert (ret.getMetaKind() != kind::metakind::PARAMETERIZED);
+        Assert(ret.getMetaKind() != kind::metakind::PARAMETERIZED);
         for (TypeNode::const_iterator j = ret.begin(), iend = ret.end();
              j != iend;
              ++j)

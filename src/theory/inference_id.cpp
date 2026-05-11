@@ -13,6 +13,7 @@
 #include "theory/inference_id.h"
 
 #include <iostream>
+
 #include "proof/proof_checker.h"
 #include "util/rational.h"
 
@@ -66,6 +67,8 @@ const char* toString(InferenceId i)
     case InferenceId::ARITH_NL_CONGRUENCE: return "ARITH_NL_CONGRUENCE";
     case InferenceId::ARITH_NL_SHARED_TERM_SPLIT:
       return "ARITH_NL_SHARED_TERM_SPLIT";
+    case InferenceId::ARITH_NL_SHARED_TERM_FACTOR_SPLIT:
+      return "ARITH_NL_SHARED_TERM_FACTOR_SPLIT";
     case InferenceId::ARITH_NL_CM_QUADRATIC_EQ:
       return "ARITH_NL_CM_QUADRATIC_EQ";
     case InferenceId::ARITH_NL_SPLIT_ZERO: return "ARITH_NL_SPLIT_ZERO";
@@ -124,7 +127,8 @@ const char* toString(InferenceId i)
       return "ARITH_NL_POW2_DIV0_CASE_REFINE";
     case InferenceId::ARITH_NL_POW2_LOWER_BOUND_CASE_REFINE:
       return "ARITH_NL_POW2_LOWER_BOUND_CASE_REFINE";
-    case InferenceId::ARITH_NL_COVERING_CONFLICT: return "ARITH_NL_COVERING_CONFLICT";
+    case InferenceId::ARITH_NL_COVERING_CONFLICT:
+      return "ARITH_NL_COVERING_CONFLICT";
     case InferenceId::ARITH_NL_COVERING_EXCLUDED_INTERVAL:
       return "ARITH_NL_COVERING_EXCLUDED_INTERVAL";
     case InferenceId::ARITH_NL_ICP_CONFLICT: return "ARITH_NL_ICP_CONFLICT";
@@ -134,8 +138,10 @@ const char* toString(InferenceId i)
 
     case InferenceId::ARRAYS_EXT: return "ARRAYS_EXT";
     case InferenceId::ARRAYS_READ_OVER_WRITE: return "ARRAYS_READ_OVER_WRITE";
-    case InferenceId::ARRAYS_READ_OVER_WRITE_1: return "ARRAYS_READ_OVER_WRITE_1";
-    case InferenceId::ARRAYS_READ_OVER_WRITE_CONTRA: return "ARRAYS_READ_OVER_WRITE_CONTRA";
+    case InferenceId::ARRAYS_READ_OVER_WRITE_1:
+      return "ARRAYS_READ_OVER_WRITE_1";
+    case InferenceId::ARRAYS_READ_OVER_WRITE_CONTRA:
+      return "ARRAYS_READ_OVER_WRITE_CONTRA";
     case InferenceId::ARRAYS_CONST_ARRAY_DEFAULT:
       return "ARRAYS_CONST_ARRAY_DEFAULT";
     case InferenceId::ARRAYS_EQ_TAUTOLOGY: return "ARRAYS_EQ_TAUTOLOGY";
@@ -285,6 +291,8 @@ const char* toString(InferenceId i)
       return "QUANTIFIERS_CEGQI_VTS_UB_DELTA";
     case InferenceId::QUANTIFIERS_CEGQI_VTS_LB_INF:
       return "QUANTIFIERS_CEGQI_VTS_LB_INF";
+    case InferenceId::QUANTIFIERS_MBQI_ENUM_CHOICE:
+      return "QUANTIFIERS_MBQI_ENUM_CHOICE";
     case InferenceId::QUANTIFIERS_ORACLE_INTERFACE:
       return "QUANTIFIERS_ORACLE_INTERFACE";
     case InferenceId::QUANTIFIERS_ORACLE_PURIFY_SUBS:
@@ -527,8 +535,7 @@ const char* toString(InferenceId i)
       return "STRINGS_ARRAY_NTH_TERM_FROM_UPDATE";
     case InferenceId::STRINGS_ARRAY_UPDATE_BOUND:
       return "STRINGS_ARRAY_UPDATE_BOUND";
-    case InferenceId::STRINGS_ARRAY_EQ_SPLIT:
-	  return "STRINGS_ARRAY_EQ_SPLIT";
+    case InferenceId::STRINGS_ARRAY_EQ_SPLIT: return "STRINGS_ARRAY_EQ_SPLIT";
     case InferenceId::STRINGS_ARRAY_NTH_UPDATE_WITH_UNIT:
       return "STRINGS_ARRAY_NTH_UPDATE_WITH_UNIT";
     case InferenceId::STRINGS_ARRAY_NTH_REV: return "STRINGS_ARRAY_NTH_REV";
@@ -573,9 +580,11 @@ const char* toString(InferenceId i)
     case InferenceId::UF_DISTINCT_DEQ_MODEL: return "UF_DISTINCT_DEQ_MODEL";
     case InferenceId::UF_CARD_CLIQUE: return "UF_CARD_CLIQUE";
     case InferenceId::UF_CARD_COMBINED: return "UF_CARD_COMBINED";
-    case InferenceId::UF_CARD_ENFORCE_NEGATIVE: return "UF_CARD_ENFORCE_NEGATIVE";
+    case InferenceId::UF_CARD_ENFORCE_NEGATIVE:
+      return "UF_CARD_ENFORCE_NEGATIVE";
     case InferenceId::UF_CARD_EQUIV: return "UF_CARD_EQUIV";
-    case InferenceId::UF_CARD_MONOTONE_COMBINED: return "UF_CARD_MONOTONE_COMBINED";
+    case InferenceId::UF_CARD_MONOTONE_COMBINED:
+      return "UF_CARD_MONOTONE_COMBINED";
     case InferenceId::UF_CARD_SIMPLE_CONFLICT: return "UF_CARD_SIMPLE_CONFLICT";
     case InferenceId::UF_CARD_SPLIT: return "UF_CARD_SPLIT";
 
@@ -599,7 +608,8 @@ const char* toString(InferenceId i)
     case InferenceId::UNKNOWN: return "?";
 
     default:
-      DebugUnhandled() << "No print for inference id " << static_cast<size_t>(i);
+      DebugUnhandled() << "No print for inference id "
+                       << static_cast<size_t>(i);
       return "?Unhandled";
   }
 }

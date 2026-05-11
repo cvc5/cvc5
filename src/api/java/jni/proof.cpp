@@ -38,7 +38,7 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Proof_getNullProof(JNIEnv* env,
  * Method:    deletePointer
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_io_github_cvc5_Proof_deletePointer(JNIEnv* env,
+JNIEXPORT void JNICALL Java_io_github_cvc5_Proof_deletePointer(JNIEnv*,
                                                                jobject,
                                                                jlong pointer)
 {

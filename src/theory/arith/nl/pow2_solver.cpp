@@ -29,9 +29,7 @@ namespace theory {
 namespace arith {
 namespace nl {
 
-Pow2Solver::Pow2Solver(Env& env,
-                       InferenceManager& im,
-                       NlModel& model)
+Pow2Solver::Pow2Solver(Env& env, InferenceManager& im, NlModel& model)
     : EnvObj(env), d_im(im), d_model(model), d_initRefine(userContext())
 {
   NodeManager* nm = nodeManager();
@@ -231,7 +229,7 @@ Node Pow2Solver::valueBasedLemma(Node i)
   Node valC = nm->mkNode(Kind::POW2, valX);
   valC = rewrite(valC);
 
-  return nm->mkNode(Kind::IMPLIES, x.eqNode(valX), i.eqNode(valC));
+  return nm->mkNode(Kind::IMPLIES, {x.eqNode(valX), i.eqNode(valC)});
 }
 
 }  // namespace nl

@@ -31,7 +31,7 @@ class TestUtilBlackBinaryHeap : public TestInternal
   struct Cmp
   {
     Cmp() : d_valid(false) {}
-    Cmp(int32_t x) : d_valid(true) {}
+    Cmp(int32_t) : d_valid(true) {}
 
     bool operator()(Elem x, Elem y) const
     {

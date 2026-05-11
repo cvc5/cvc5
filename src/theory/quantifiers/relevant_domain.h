@@ -67,31 +67,34 @@ class RelevantDomain : public QuantifiersUtil
    */
   class RDomain
   {
-  public:
-    RDomain() : d_parent( NULL ) {}
+   public:
+    RDomain() : d_parent(nullptr) {}
     /** the set of terms in this relevant domain */
-    std::vector< Node > d_terms;
+    std::vector<Node> d_terms;
     /** reset this object */
     void reset()
     {
-      d_parent = NULL;
+      d_parent = nullptr;
       d_terms.clear();
     }
     /** merge this with r
      * This sets d_parent of this to r and
      * copies the terms of this to r.
      */
-    void merge( RDomain * r );
+    void merge(RDomain* r);
     /** add term to the relevant domain */
-    void addTerm( Node t );
+    void addTerm(Node t);
     /** get the parent of this */
-    RDomain * getParent();
+    RDomain* getParent();
     /** remove redundant terms for d_terms, removes
      * duplicates modulo equality.
      */
     void removeRedundantTerms(QuantifiersState& qs);
     /** is n in this relevant domain? */
-    bool hasTerm( Node n ) { return std::find( d_terms.begin(), d_terms.end(), n )!=d_terms.end(); }
+    bool hasTerm(Node n)
+    {
+      return std::find(d_terms.begin(), d_terms.end(), n) != d_terms.end();
+    }
 
    private:
     /** the parent of this relevant domain */
@@ -123,26 +126,28 @@ class RelevantDomain : public QuantifiersUtil
   /** relevant domain literal
    * Caches the effect of literals on the relevant domain.
    */
-  class RDomainLit {
-  public:
-    RDomainLit() : d_merge(false){
-      d_rd[0] = NULL;
-      d_rd[1] = NULL;
+  class RDomainLit
+  {
+   public:
+    RDomainLit() : d_merge(false)
+    {
+      d_rd[0] = nullptr;
+      d_rd[1] = nullptr;
     }
-    ~RDomainLit(){}
+    ~RDomainLit() {}
     /** whether this literal forces the merge of two relevant domains */
     bool d_merge;
     /** the relevant domains that are merged as a result
      * of this literal
      */
-    RDomain * d_rd[2];
+    RDomain* d_rd[2];
     /** the terms that are added to
      * the relevant domain as a result of this literal
      */
-    std::vector< Node > d_val;
+    std::vector<Node> d_val;
   };
   /** Cache of the effect of literals on the relevant domain */
-  std::map< bool, std::map< bool, std::map< Node, RDomainLit > > > d_rel_dom_lit;
+  std::map<bool, std::map<bool, std::map<Node, RDomainLit> > > d_rel_dom_lit;
   /** Compute the relevant domain for quantified formula q. */
   void computeRelevantDomain(Node q);
   /** Compute the relevant domain for a subformula n of q,
@@ -158,8 +163,8 @@ class RelevantDomain : public QuantifiersUtil
    * Updates the relevant domains based on a literal n in quantified
    * formula q whose polarity is given by hasPol/pol.
    */
-  void computeRelevantDomainLit( Node q, bool hasPol, bool pol, Node n );
-};/* class RelevantDomain */
+  void computeRelevantDomainLit(Node q, bool hasPol, bool pol, Node n);
+}; /* class RelevantDomain */
 
 }  // namespace quantifiers
 }  // namespace theory

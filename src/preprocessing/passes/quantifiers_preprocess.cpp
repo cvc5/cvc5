@@ -27,8 +27,9 @@ namespace passes {
 using namespace std;
 using namespace cvc5::internal::theory;
 
-QuantifiersPreprocess::QuantifiersPreprocess(PreprocessingPassContext* preprocContext)
-    : PreprocessingPass(preprocContext, "quantifiers-preprocess"){};
+QuantifiersPreprocess::QuantifiersPreprocess(
+    PreprocessingPassContext* preprocContext)
+    : PreprocessingPass(preprocContext, "quantifiers-preprocess") {};
 
 PreprocessingPassResult QuantifiersPreprocess::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
@@ -57,7 +58,6 @@ PreprocessingPassResult QuantifiersPreprocess::applyInternal(
 
   return PreprocessingPassResult::NO_CONFLICT;
 }
-
 
 }  // namespace passes
 }  // namespace preprocessing

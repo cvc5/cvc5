@@ -18,7 +18,7 @@ namespace smt {
 SolverEngineStatistics::SolverEngineStatistics(StatisticsRegistry& sr,
                                                const std::string& name)
     : d_definitionExpansionTime(
-        sr.registerTimer(name + "definitionExpansionTime")),
+          sr.registerTimer(name + "definitionExpansionTime")),
       d_numConstantProps(sr.registerInt(name + "numConstantProps")),
       d_numAssertionsPre(sr.registerInt(name + "numAssertionsPreITERemoval")),
       d_numAssertionsPost(sr.registerInt(name + "numAssertionsPostITERemoval")),

@@ -47,8 +47,7 @@ class SolverState : public TheoryState
   typedef context::CDList<Node> NodeList;
 
  public:
-  SolverState(Env& env,
-              Valuation& v);
+  SolverState(Env& env, Valuation& v);
   ~SolverState();
   //-------------------------------------- disequality information
   /**

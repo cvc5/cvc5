@@ -122,7 +122,7 @@ int InstMatchGeneratorMultiLinear::resetChildren()
   return 1;
 }
 
-bool InstMatchGeneratorMultiLinear::reset(Node eqc)
+bool InstMatchGeneratorMultiLinear::reset(CVC5_UNUSED Node eqc)
 {
   Assert(eqc.isNull());
   if (options().quantifiers.multiTriggerLinear)

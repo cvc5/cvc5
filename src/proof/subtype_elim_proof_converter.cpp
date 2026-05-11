@@ -153,8 +153,8 @@ Node SubtypeElimConverterCallback::convert(Node res,
       {
         // integer relation multiplied by real, cast to a real relation
         cargs[1] = nm->mkNode(cargs[1].getKind(),
-                              theory::arith::castToReal(nm, cargs[1][0]),
-                              theory::arith::castToReal(nm, cargs[1][1]));
+                              {theory::arith::castToReal(nm, cargs[1][0]),
+                               theory::arith::castToReal(nm, cargs[1][1])});
       }
     }
     break;

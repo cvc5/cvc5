@@ -12,6 +12,8 @@
 
 #include "theory/quantifiers/sygus/sygus_unif_io.h"
 
+#include <math.h>
+
 #include "options/quantifiers_options.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/sygus/example_infer.h"
@@ -21,8 +23,6 @@
 #include "theory/rewriter.h"
 #include "theory/strings/word.h"
 #include "util/random.h"
-
-#include <math.h>
 
 using namespace cvc5::internal::kind;
 
@@ -441,7 +441,7 @@ void SubsumeTrie::getSubsumedBy(const std::vector<Node>& vals,
 
 void SubsumeTrie::getLeavesInternal(const std::vector<Node>& vals,
                                     bool pol,
-                                    std::map<int, std::vector<Node> >& v,
+                                    std::map<int, std::vector<Node>>& v,
                                     unsigned index,
                                     int status)
 {
@@ -498,7 +498,7 @@ void SubsumeTrie::getLeavesInternal(const std::vector<Node>& vals,
 
 void SubsumeTrie::getLeaves(const std::vector<Node>& vals,
                             bool pol,
-                            std::map<int, std::vector<Node> >& v)
+                            std::map<int, std::vector<Node>>& v)
 {
   getLeavesInternal(vals, pol, v, 0, -2);
 }
@@ -915,11 +915,10 @@ bool SygusUnifIo::useStrContainsEnumeratorExclude(Node e)
   return false;
 }
 
-bool SygusUnifIo::getExplanationForEnumeratorExclude(
-    Node e,
-    Node v,
-    std::vector<Node>& results,
-    std::vector<Node>& exp)
+bool SygusUnifIo::getExplanationForEnumeratorExclude(Node e,
+                                                     Node v,
+                                                     std::vector<Node>& results,
+                                                     std::vector<Node>& exp)
 {
   NodeManager* nm = nodeManager();
   if (useStrContainsEnumeratorExclude(e))
@@ -1005,7 +1004,7 @@ void SygusUnifIo::initializeConstructSol()
   d_sol_cons_nondet = false;
 }
 
-void SygusUnifIo::initializeConstructSolFor(Node f)
+void SygusUnifIo::initializeConstructSolFor(CVC5_UNUSED Node f)
 {
   Assert(d_candidate == f);
 }
@@ -1288,7 +1287,7 @@ Node SygusUnifIo::constructSol(
   }
   if (!ret_dt.isNull() || einfo.isTemplated())
   {
-    Assert(ret_dt.isNull() || ret_dt.getType() == e.getType());
+    Assert(ret_dt.isNull() || CVC5_EQUAL(ret_dt.getType(), e.getType()));
     indent("sygus-sui-dt", ind);
     Trace("sygus-sui-dt") << "ConstructPBE: returned (pre-strategy) " << ret_dt
                           << std::endl;
@@ -1396,7 +1395,7 @@ Node SygusUnifIo::constructSol(
 
           // get the conditionals in the current context : they must be
           // distinguishable
-          std::map<int, std::vector<Node> > possible_cond;
+          std::map<int, std::vector<Node>> possible_cond;
           std::map<Node, int> solved_cond;  // stores branch
           ecache_child.d_term_trie.getLeaves(x.d_vals, true, possible_cond);
 
@@ -1522,7 +1521,7 @@ Node SygusUnifIo::constructSol(
     }
     else if (d_enableMinimality)
     {
-      Assert(ret_dt.getType() == cached_ret_dt.getType());
+      AssertEqual(ret_dt.getType(), cached_ret_dt.getType());
       // take the cached one if it is smaller
       std::vector<Node> retDts;
       retDts.push_back(cached_ret_dt);
@@ -1530,7 +1529,7 @@ Node SygusUnifIo::constructSol(
       ret_dt = getMinimalTerm(retDts);
     }
   }
-  Assert(ret_dt.isNull() || ret_dt.getType() == e.getType());
+  Assert(ret_dt.isNull() || CVC5_EQUAL(ret_dt.getType(), e.getType()));
   if (TraceIsOn("sygus-sui-dt"))
   {
     indent("sygus-sui-dt", ind);

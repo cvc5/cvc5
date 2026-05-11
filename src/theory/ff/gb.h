@@ -43,9 +43,9 @@ FfResult gb(const std::vector<Node>& facts,
             const Env& env,
             FfStatistics* stats = nullptr);
 
-}
-}
-}
+}  // namespace ff
+}  // namespace theory
+}  // namespace cvc5::internal
 
 #endif  // CVC5__THEORY__FF__GB_H
 

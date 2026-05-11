@@ -30,23 +30,24 @@ extern "C" {
 #include <stddef.h>
 #include <stdint.h>
 
-// char32_t is a built-in keyword in C++11 and defined in C11 via <uchar.h>. See:
+// char32_t is a built-in keyword in C++11 and defined in C11 via <uchar.h>.
+// See:
 //   https://en.cppreference.com/w/cpp/keyword/char32_t.html
 //   https://en.cppreference.com/w/c/header/uchar.html
 // However, the uchar.h header is missing in Apple Clang. See:
 //   https://github.com/llvm/llvm-project/issues/41443
 // This workaround defines char32_t when uchar.h is not available (in C mode)
 #ifndef __cplusplus
-  #ifdef __has_include
-    #if __has_include(<uchar.h>)
-      #include <uchar.h>
-    #else
-      typedef uint_least32_t char32_t;
-    #endif
-  #else
-    // Fallback if __has_include is not supported
-    typedef uint_least32_t char32_t;
-  #endif
+#ifdef __has_include
+#if __has_include(<uchar.h>)
+#include <uchar.h>
+#else
+typedef uint_least32_t char32_t;
+#endif
+#else
+// Fallback if __has_include is not supported
+typedef uint_least32_t char32_t;
+#endif
 #endif
 
 /* -------------------------------------------------------------------------- */
@@ -1371,8 +1372,10 @@ CVC5_EXPORT bool cvc5_term_is_string_value(Cvc5Term term);
  *          cvc5_term_get_u32string_value(). It will be removed in a future
  *          release.
  */
-CVC5_EXPORT __attribute__((deprecated("Use cvc5_term_get_u32string_value instead")))
-const wchar_t* cvc5_term_get_string_value(Cvc5Term term);
+CVC5_EXPORT
+__attribute__((deprecated("Use cvc5_term_get_u32string_value instead")))
+const wchar_t*
+cvc5_term_get_string_value(Cvc5Term term);
 
 /**
  * Get the native UTF-32 string representation of a string value.
@@ -3182,9 +3185,9 @@ CVC5_EXPORT Cvc5Term cvc5_mk_string(Cvc5TermManager* tm,
  *          cvc5_mk_string_from_char32(). It will be removed in a future
  *          release.
  */
-CVC5_EXPORT __attribute__((deprecated("Use cvc5_mk_string_from_char32 instead")))
-Cvc5Term cvc5_mk_string_from_wchar(Cvc5TermManager* tm,
-                                   const wchar_t* s);
+CVC5_EXPORT __attribute__((
+    deprecated("Use cvc5_mk_string_from_char32 instead"))) Cvc5Term
+cvc5_mk_string_from_wchar(Cvc5TermManager* tm, const wchar_t* s);
 
 /**
  * Create a String constant from a UTF-32 string.

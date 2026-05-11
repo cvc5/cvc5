@@ -95,7 +95,7 @@ class Lexer
   {
     if (d_bufferPos < d_bufferEnd)
     {
-      d_ch = d_buffer[d_bufferPos];
+      d_ch = static_cast<unsigned char>(d_buffer[d_bufferPos]);
       d_bufferPos++;
     }
     else if (d_isInteractive)
@@ -104,7 +104,7 @@ class Lexer
     }
     else
     {
-      d_istream->read(d_buffer, INPUT_BUFFER_SIZE);
+      d_istream->read(reinterpret_cast<char*>(d_buffer), INPUT_BUFFER_SIZE);
       d_bufferEnd = static_cast<size_t>(d_istream->gcount());
       if (d_bufferEnd == 0)
       {
@@ -113,7 +113,7 @@ class Lexer
       }
       else
       {
-        d_ch = d_buffer[0];
+        d_ch = static_cast<unsigned char>(d_buffer[0]);
         d_bufferPos = 1;
       }
     }
@@ -183,7 +183,7 @@ class Lexer
   /** True if the input stream is interactive */
   bool d_isInteractive;
   /** The current buffer */
-  char d_buffer[INPUT_BUFFER_SIZE];
+  unsigned char d_buffer[INPUT_BUFFER_SIZE];
   /** The position in the current buffer we are reading from */
   size_t d_bufferPos;
   /** The size of characters in the current buffer */

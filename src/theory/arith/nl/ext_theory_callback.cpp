@@ -22,9 +22,7 @@ namespace theory {
 namespace arith {
 namespace nl {
 
-NlExtTheoryCallback::NlExtTheoryCallback(eq::EqualityEngine* ee) : d_ee(ee)
-{
-}
+NlExtTheoryCallback::NlExtTheoryCallback(eq::EqualityEngine* ee) : d_ee(ee) {}
 
 bool NlExtTheoryCallback::getCurrentSubstitution(
     CVC5_UNUSED int effort,

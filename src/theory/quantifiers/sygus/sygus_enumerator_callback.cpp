@@ -83,7 +83,7 @@ bool SygusEnumeratorCallback::addTermInternal(const Node& n,
     }
     // Is it equivalent under examples?
     // NOTE: currently assumes the cache value is the rewritten form of bn
-    Assert(cval.getType() == bn.getType());
+    AssertEqual(cval.getType(), bn.getType());
     Node bne = d_eec->addSearchVal(n.getType(), cval);
     if (!bne.isNull())
     {

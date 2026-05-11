@@ -30,15 +30,13 @@ InferenceManager::InferenceManager(Env& env, Theory& t, TheoryState& state)
     : InferenceManagerBuffered(env, t, state, "theory::datatypes::"),
       d_ipc(isProofEnabled() ? new InferProofCons(env, context()) : nullptr),
       d_lemPg(isProofEnabled() ? new EagerProofGenerator(
-                  env, userContext(), "datatypes::lemPg")
+                                     env, userContext(), "datatypes::lemPg")
                                : nullptr)
 {
   d_false = nodeManager()->mkConst(false);
 }
 
-InferenceManager::~InferenceManager()
-{
-}
+InferenceManager::~InferenceManager() {}
 
 void InferenceManager::addPendingInference(Node conc,
                                            InferenceId id,
@@ -85,7 +83,8 @@ bool InferenceManager::sendDtLemma(Node lem, InferenceId id, LemmaProperty p)
   return lemma(lem, id, p);
 }
 
-void InferenceManager::sendDtConflict(const std::vector<Node>& conf, InferenceId id)
+void InferenceManager::sendDtConflict(const std::vector<Node>& conf,
+                                      InferenceId id)
 {
   if (isProofEnabled())
   {

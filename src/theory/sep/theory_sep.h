@@ -34,7 +34,8 @@ class TheoryModel;
 
 namespace sep {
 
-class TheorySep : public Theory {
+class TheorySep : public Theory
+{
   typedef context::CDList<Node> NodeList;
   typedef context::CDHashSet<Node> NodeSet;
   typedef context::CDHashMap<Node, Node> NodeNodeMap;
@@ -53,7 +54,7 @@ class TheorySep : public Theory {
   /** Trust id (for proofs) */
   Node d_tiid;
 
-  //whether bounds have been initialized
+  // whether bounds have been initialized
   bool d_bounds_init;
 
   TheorySepRewriter d_rewriter;
@@ -114,7 +115,6 @@ class TheorySep : public Theory {
   void conflict(TNode a, TNode b);
 
  public:
-
   void presolve() override;
 
   /////////////////////////////////////////////////////////////////////////////
@@ -202,31 +202,32 @@ class TheorySep : public Theory {
   NotifyClass d_notify;
 
   /** list of all refinement lemms */
-  std::map< Node, std::map< Node, std::vector< Node > > > d_refinement_lem;
+  std::map<Node, std::map<Node, std::vector<Node> > > d_refinement_lem;
 
-  //cache for positive polarity start reduction
+  // cache for positive polarity start reduction
   NodeSet d_reduce;
-  std::map< Node, std::map< Node, Node > > d_red_conc;
-  std::map< Node, std::map< Node, Node > > d_neg_guard;
-  std::vector< Node > d_neg_guards;
+  std::map<Node, std::map<Node, Node> > d_red_conc;
+  std::map<Node, std::map<Node, Node> > d_neg_guard;
+  std::vector<Node> d_neg_guards;
   /** a (singleton) decision strategy for each negative guard. */
   std::map<Node, std::unique_ptr<DecisionStrategySingleton> >
       d_neg_guard_strategy;
-  std::map< Node, Node > d_guard_to_assertion;
+  std::map<Node, Node> d_guard_to_assertion;
   NodeList d_spatial_assertions;
 
-  //data,ref type (globally fixed)
+  // data,ref type (globally fixed)
   TypeNode d_type_ref;
   TypeNode d_type_data;
-  //information about types
+  // information about types
   Node d_base_label;
   Node d_nil_ref;
-  //reference bound
+  // reference bound
   Node d_reference_bound;
   Node d_reference_bound_max;
   std::vector<Node> d_type_references;
-  //kind of bound for reference types
-  enum {
+  // kind of bound for reference types
+  enum
+  {
     bound_strict,
     bound_default,
     bound_invalid,
@@ -234,13 +235,13 @@ class TheorySep : public Theory {
   unsigned d_bound_kind;
 
   std::vector<Node> d_type_references_card;
-  std::map< Node, unsigned > d_type_ref_card_id;
+  std::map<Node, unsigned> d_type_ref_card_id;
   std::vector<Node> d_type_references_all;
   size_t d_card_max;
-  //for empty argument
+  // for empty argument
   Node d_emp_arg;
-  //map from ( atom, label, child index ) -> label
-  std::map< Node, std::map< Node, std::map< int, Node > > > d_label_map;
+  // map from ( atom, label, child index ) -> label
+  std::map<Node, std::map<Node, std::map<int, Node> > > d_label_map;
 
   /**
    * Maps label sets to their direct parents. A set may have multiple parents
@@ -270,9 +271,9 @@ class TheorySep : public Theory {
    */
   bool sharesRootLabel(Node p, Node q) const;
 
-  //term model
-  std::map< Node, Node > d_tmodel;
-  std::map< Node, Node > d_pto_model;
+  // term model
+  std::map<Node, Node> d_tmodel;
+  std::map<Node, Node> d_pto_model;
 
   /**
    * A heap assert info is maintained per set equivalence class. It is
@@ -284,17 +285,18 @@ class TheorySep : public Theory {
    * constraints, which track their labels. In the checkPto method, we
    * distinguish whether the pto constraints refer to the same heap.
    */
-  class HeapAssertInfo {
-  public:
-   HeapAssertInfo(context::Context* c);
-   ~HeapAssertInfo() {}
-   /** List of positive pto */
-   NodeList d_posPto;
-   /** List of negative pto */
-   NodeList d_negPto;
+  class HeapAssertInfo
+  {
+   public:
+    HeapAssertInfo(context::Context* c);
+    ~HeapAssertInfo() {}
+    /** List of positive pto */
+    NodeList d_posPto;
+    /** List of negative pto */
+    NodeList d_negPto;
   };
-  std::map< Node, HeapAssertInfo * > d_eqc_info;
-  HeapAssertInfo * getOrMakeEqcInfo( Node n, bool doMake = false );
+  std::map<Node, HeapAssertInfo*> d_eqc_info;
+  HeapAssertInfo* getOrMakeEqcInfo(Node n, bool doMake = false);
 
   /**
    * Ensure that reference and data types have been set to something that is
@@ -309,28 +311,32 @@ class TheorySep : public Theory {
    * heap type is consistent in the case of (B).
    */
   void registerRefDataTypes(TypeNode tn1, TypeNode tn2, Node atom);
-  //get location/data type
-  //get the base label for the spatial assertion
+  // get location/data type
+  // get the base label for the spatial assertion
   Node getBaseLabel();
-  Node getLabel( Node atom, int child, Node lbl );
+  Node getLabel(Node atom, int child, Node lbl);
   /**
    * Apply label lbl to all top-level spatial assertions, recursively, in n.
    */
-  Node applyLabel( Node n, Node lbl, std::map< Node, Node >& visited );
-  void getLabelChildren( Node atom, Node lbl, std::vector< Node >& children, std::vector< Node >& labels );
+  Node applyLabel(Node n, Node lbl, std::map<Node, Node>& visited);
+  void getLabelChildren(Node atom,
+                        Node lbl,
+                        std::vector<Node>& children,
+                        std::vector<Node>& labels);
 
-  class HeapInfo {
-  public:
+  class HeapInfo
+  {
+   public:
     HeapInfo() : d_computed(false) {}
-    //information about the model
+    // information about the model
     bool d_computed;
-    std::vector< Node > d_heap_locs;
-    std::vector< Node > d_heap_locs_model;
-    //get value
+    std::vector<Node> d_heap_locs;
+    std::vector<Node> d_heap_locs_model;
+    // get value
     Node getValue(NodeManager* nm, TypeNode tn);
   };
-  //heap info ( label -> HeapInfo )
-  std::map< Node, HeapInfo > d_label_model;
+  // heap info ( label -> HeapInfo )
+  std::map<Node, HeapInfo> d_label_model;
   /**
    * This checks the impact of adding the pto assertion p to heap assert info e,
    * where p has been asserted with the given polarity.
@@ -345,7 +351,7 @@ class TheorySep : public Theory {
    * if the constraint was redundant.
    */
   bool checkPto(HeapAssertInfo* e, Node p, bool polarity);
-  void computeLabelModel( Node lbl );
+  void computeLabelModel(Node lbl);
   Node instantiateLabel(Node n,
                         Node o_lbl,
                         Node lbl,
@@ -355,21 +361,27 @@ class TheorySep : public Theory {
                         TypeNode rtn,
                         std::map<Node, bool>& active_lbl,
                         unsigned ind = 0);
-  void setInactiveAssertionRec( Node fact, std::map< Node, std::vector< Node > >& lbl_to_assertions, std::map< Node, bool >& assert_active );
+  void setInactiveAssertionRec(
+      Node fact,
+      std::map<Node, std::vector<Node> >& lbl_to_assertions,
+      std::map<Node, bool>& assert_active);
 
-  Node mkUnion( TypeNode tn, std::vector< Node >& locs );
+  Node mkUnion(TypeNode tn, std::vector<Node>& locs);
 
-  Node getRepresentative( Node t );
-  bool hasTerm( Node a );
-  bool areEqual( Node a, Node b );
-  bool areDisequal( Node a, Node b );
+  Node getRepresentative(Node t);
+  bool hasTerm(Node a);
+  bool areEqual(Node a, Node b);
+  bool areDisequal(Node a, Node b);
   void eqNotifyMerge(TNode t1, TNode t2);
 
-  void sendLemma( std::vector< Node >& ant, Node conc, InferenceId id, bool infer = false );
+  void sendLemma(std::vector<Node>& ant,
+                 Node conc,
+                 InferenceId id,
+                 bool infer = false);
   void doPending();
 
   void initializeBounds();
-};/* class TheorySep */
+}; /* class TheorySep */
 
 }  // namespace sep
 }  // namespace theory

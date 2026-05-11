@@ -307,8 +307,9 @@ Node buildRealEquality(NodeManager* nm, Sum&& sum)
   auto lterm = removeLTerm(nm, sum);
   if (lterm.second.isZero())
   {
-    return buildRelation(
-        Kind::EQUAL, mkConst(nm, Integer(0)), collectSum(nm, sum));
+    // Use zero to ensure deterministic node ID assignments
+    Node zero = mkConst(nm, Integer(0));
+    return buildRelation(Kind::EQUAL, zero, collectSum(nm, sum));
   }
   RealAlgebraicNumber lcoeff = -lterm.second;
   for (auto& s : sum)
@@ -320,7 +321,7 @@ Node buildRealEquality(NodeManager* nm, Sum&& sum)
   Node rhs = collectSum(nm, sum);
   Node lhsr = ensureReal(lhs);
   Node rhsr = ensureReal(rhs);
-  if (lhsr!=lhs && rhsr!=rhs)
+  if (lhsr != lhs && rhsr != rhs)
   {
     // if both were changed, then this implies we could make an integer equality
     // instead.
@@ -356,13 +357,15 @@ Node buildIntegerInequality(NodeManager* nm, Sum&& sum, Kind k)
   {
     rhs = rhs.ceiling();
   }
-  return buildRelation(
-      Kind::GEQ, collectSum(nm, sum), nm->mkConstInt(rhs), negate);
+  // Use rhsNode to ensure deterministic node ID assignments
+  Node rhsNode = nm->mkConstInt(rhs);
+  return buildRelation(Kind::GEQ, collectSum(nm, sum), rhsNode, negate);
 }
 
 Node buildRealInequality(NodeManager* nm, Sum&& sum, Kind k)
 {
-  Trace("arith-rewriter") << "building real inequality from " << sum << std::endl;
+  Trace("arith-rewriter") << "building real inequality from " << sum
+                          << std::endl;
   normalizeLCoeffAbsOne(sum);
   Node rhs = mkConst(nm, -removeConstant(sum));
   return buildRelation(k, collectSum(nm, sum), rhs);

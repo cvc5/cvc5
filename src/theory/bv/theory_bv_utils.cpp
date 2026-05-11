@@ -29,10 +29,7 @@ namespace utils {
 
 /* ------------------------------------------------------------------------- */
 
-unsigned getSize(TNode node)
-{
-  return node.getType().getBitVectorSize();
-}
+unsigned getSize(TNode node) { return node.getType().getBitVectorSize(); }
 
 bool getBit(TNode node, unsigned i)
 {
@@ -113,7 +110,10 @@ bool isBvConstTerm(TNode node)
 
   for (const TNode& n : node)
   {
-    if (!n.isConst()) { return false; }
+    if (!n.isConst())
+    {
+      return false;
+    }
   }
   return true;
 }
@@ -419,7 +419,10 @@ Node flattenAnd(std::vector<TNode>& queue)
     {
       for (const TNode& n : current)
       {
-        if (nodes.count(n) == 0) { queue.push_back(n); }
+        if (nodes.count(n) == 0)
+        {
+          queue.push_back(n);
+        }
       }
     }
     else

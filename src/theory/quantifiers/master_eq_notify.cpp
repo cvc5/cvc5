@@ -18,7 +18,9 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-MasterNotifyClass::MasterNotifyClass(QuantifiersEngine* qe) : d_quantEngine(qe) {}
+MasterNotifyClass::MasterNotifyClass(QuantifiersEngine* qe) : d_quantEngine(qe)
+{
+}
 
 void MasterNotifyClass::eqNotifyNewClass(TNode t)
 {

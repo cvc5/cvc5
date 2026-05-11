@@ -206,12 +206,12 @@ class CegInstantiator : protected EnvObj
 
   //-------------------------------globally cached
   /** cache from nodes to the set of variables it contains
-    * (from the quantified formula we are instantiating).
-    */
+   * (from the quantified formula we are instantiating).
+   */
   std::unordered_map<Node, std::unordered_set<Node>> d_prog_var;
   /** cache of the set of terms that we have established are
    * ineligible for instantiation.
-    */
+   */
   std::unordered_set<Node> d_inelig;
   /** ensures n is in d_prog_var and d_inelig. */
   void computeProgVars(Node n);
@@ -219,11 +219,11 @@ class CegInstantiator : protected EnvObj
 
   //-------------------------------cached per round
   /** current assertions per theory */
-  std::map<TheoryId, std::vector<Node> > d_curr_asserts;
+  std::map<TheoryId, std::vector<Node>> d_curr_asserts;
   /** map from representatives to the terms in their equivalence class */
-  std::map<Node, std::vector<Node> > d_curr_eqc;
+  std::map<Node, std::vector<Node>> d_curr_eqc;
   /** map from types to representatives of that type */
-  std::map<TypeNode, std::vector<Node> > d_curr_type_eqc;
+  std::map<TypeNode, std::vector<Node>> d_curr_type_eqc;
   /** solved asserts */
   std::unordered_set<Node> d_solved_asserts;
   /** process assertions
@@ -315,7 +315,7 @@ class CegInstantiator : protected EnvObj
   /** map from variables to the phase in which we instantiated them */
   std::map<Node, CegInstPhase> d_curr_iphase;
   /** cache of current substitutions tried between activate/deactivate */
-  std::map<Node, std::map<Node, std::map<Node, bool> > > d_curr_subs_proc;
+  std::map<Node, std::map<Node, std::map<Node, bool>>> d_curr_subs_proc;
   /** stack of temporary variables we are solving for,
    * e.g. subfields of datatypes.
    */
@@ -346,30 +346,55 @@ class CegInstantiator : protected EnvObj
 
   //---------------------------------for applying substitutions
   /** can use basic substitution */
-  bool canApplyBasicSubstitution( Node n, std::vector< Node >& non_basic );
+  bool canApplyBasicSubstitution(Node n, std::vector<Node>& non_basic);
   /** apply substitution
-  * We wish to process the substitution: 
-  *   ( pv = n * sf )
-  * where pv is a variable with type tn, and * denotes application of substitution.
-  * The return value "ret" and pv_prop is such that the above equality is equivalent to
-  *   ( pv_prop.getModifiedTerm(pv) = ret )
-  */
-  Node applySubstitution( TypeNode tn, Node n, SolvedForm& sf, TermProperties& pv_prop, bool try_coeff = true ) {
-    return applySubstitution( tn, n, sf.d_vars, sf.d_subs, sf.d_props, sf.d_non_basic, pv_prop, try_coeff );
+   * We wish to process the substitution:
+   *   ( pv = n * sf )
+   * where pv is a variable with type tn, and * denotes application of
+   * substitution. The return value "ret" and pv_prop is such that the above
+   * equality is equivalent to ( pv_prop.getModifiedTerm(pv) = ret )
+   */
+  Node applySubstitution(TypeNode tn,
+                         Node n,
+                         SolvedForm& sf,
+                         TermProperties& pv_prop,
+                         bool try_coeff = true)
+  {
+    return applySubstitution(tn,
+                             n,
+                             sf.d_vars,
+                             sf.d_subs,
+                             sf.d_props,
+                             sf.d_non_basic,
+                             pv_prop,
+                             try_coeff);
   }
-  /** apply substitution, with solved form expanded to subs/prop/non_basic/vars */
-  Node applySubstitution( TypeNode tn, Node n, std::vector< Node >& vars, std::vector< Node >& subs, std::vector< TermProperties >& prop, 
-                          std::vector< Node >& non_basic, TermProperties& pv_prop, bool try_coeff = true );
-  /** apply substitution to literal lit 
-  * The return value is equivalent to ( lit * sf )
-  * where * denotes application of substitution.
-  */
-  Node applySubstitutionToLiteral( Node lit, SolvedForm& sf ) {
-    return applySubstitutionToLiteral( lit, sf.d_vars, sf.d_subs, sf.d_props, sf.d_non_basic );
+  /** apply substitution, with solved form expanded to subs/prop/non_basic/vars
+   */
+  Node applySubstitution(TypeNode tn,
+                         Node n,
+                         std::vector<Node>& vars,
+                         std::vector<Node>& subs,
+                         std::vector<TermProperties>& prop,
+                         std::vector<Node>& non_basic,
+                         TermProperties& pv_prop,
+                         bool try_coeff = true);
+  /** apply substitution to literal lit
+   * The return value is equivalent to ( lit * sf )
+   * where * denotes application of substitution.
+   */
+  Node applySubstitutionToLiteral(Node lit, SolvedForm& sf)
+  {
+    return applySubstitutionToLiteral(
+        lit, sf.d_vars, sf.d_subs, sf.d_props, sf.d_non_basic);
   }
-  /** apply substitution to literal lit, with solved form expanded to subs/prop/non_basic/vars */
-  Node applySubstitutionToLiteral( Node lit, std::vector< Node >& vars, std::vector< Node >& subs, std::vector< TermProperties >& prop, 
-                                   std::vector< Node >& non_basic );
+  /** apply substitution to literal lit, with solved form expanded to
+   * subs/prop/non_basic/vars */
+  Node applySubstitutionToLiteral(Node lit,
+                                  std::vector<Node>& vars,
+                                  std::vector<Node>& subs,
+                                  std::vector<TermProperties>& prop,
+                                  std::vector<Node>& non_basic);
   //---------------------------------end for applying substitutions
 
   /** map from variables to their instantiators */

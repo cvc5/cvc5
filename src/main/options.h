@@ -32,8 +32,7 @@ void printUsage(const std::string& binary,
 /**
  * Print overall command-line options, partitioned into categories.
  */
-void printUsageCategories(cvc5::Solver& solver,
-                          std::ostream& os);
+void printUsageCategories(cvc5::Solver& solver, std::ostream& os);
 
 /**
  * Initialize the Options object options based on the given

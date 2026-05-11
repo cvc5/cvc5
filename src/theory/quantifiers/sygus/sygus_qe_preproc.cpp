@@ -106,9 +106,9 @@ Node SygusQePreproc::preprocess(Node q)
   Node conj_se_ngsi_subs = conj_se_ngsi.substitute(
       orig.begin(), orig.end(), subs.begin(), subs.end());
   Assert(!qe_vars.empty());
-  conj_se_ngsi_subs = nm->mkNode(Kind::EXISTS,
-                                 nm->mkNode(Kind::BOUND_VAR_LIST, qe_vars),
-                                 conj_se_ngsi_subs.negate());
+  conj_se_ngsi_subs = nm->mkNode(
+      Kind::EXISTS,
+      {nm->mkNode(Kind::BOUND_VAR_LIST, qe_vars), conj_se_ngsi_subs.negate()});
 
   Trace("cegqi-qep") << "Run quantifier elimination on " << conj_se_ngsi_subs
                      << std::endl;

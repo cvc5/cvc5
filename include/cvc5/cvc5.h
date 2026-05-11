@@ -508,7 +508,8 @@ class CVC5_EXPORT Sort
    * The symbol of this sort is the string that was
    * provided when constructing it via
    * TermManager::mkUninterpretedSort(const std::optional<std::string>&), or
-   * TermManager::mkUninterpretedSortConstructorSort(size_t, const std::optional<std::string>&).
+   * TermManager::mkUninterpretedSortConstructorSort(size_t, const
+   * std::optional<std::string>&).
    *
    * @return The raw symbol of the sort.
    */
@@ -4183,10 +4184,12 @@ class CVC5_EXPORT TermManager
    * @param s The string this constant represents.
    * @return The String constant.
    * @warning This function is deprecated and replaced by
-   *          \ref TermManager::mkString(const std::u32string& s) "TermManager::mkString(const std::u32string& s)".
-   *          It will be removed in a future release.
+   *          \ref TermManager::mkString(const std::u32string& s)
+   * "TermManager::mkString(const std::u32string& s)". It will be removed in a
+   * future release.
    */
-  [[deprecated("Use TermManager::mkString(const std::u32string& s) instead")]] Term
+  [[deprecated(
+      "Use TermManager::mkString(const std::u32string& s) instead")]] Term
   mkString(const std::wstring& s);
   /**
    * Create a String constant from a `std::u32string`.
@@ -5318,10 +5321,12 @@ class CVC5_EXPORT Solver
    * @param s The string this constant represents.
    * @return The String constant.
    * @warning This function is deprecated and replaced by
-   *          `TermManager::mkString(const std::u32string& s)`. It will be removed in a future release.
+   *          `TermManager::mkString(const std::u32string& s)`. It will be
+   * removed in a future release.
    */
-  [[deprecated("Use TermManager::mkString(const std::u32string& s) instead")]] Term mkString(
-      const std::wstring& s) const;
+  [[deprecated(
+      "Use TermManager::mkString(const std::u32string& s) instead")]] Term
+  mkString(const std::wstring& s) const;
 
   /**
    * Create an empty sequence of the given element sort.

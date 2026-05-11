@@ -126,7 +126,7 @@ void TermProperties::composeProperty(TermProperties& p)
 // push the substitution pv_prop.getModifiedTerm(pv) -> n
 void SolvedForm::push_back(Node pv, Node n, TermProperties& pv_prop)
 {
-  Assert(n.getType() == pv.getType());
+  AssertEqual(n.getType(), pv.getType());
   d_vars.push_back(pv);
   d_subs.push_back(n);
   d_props.push_back(pv_prop);

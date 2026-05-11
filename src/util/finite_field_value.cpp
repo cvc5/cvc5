@@ -167,7 +167,6 @@ FiniteFieldValue& FiniteFieldValue::operator/=(const FiniteFieldValue& y)
   return *this;
 }
 
-
 /* -----------------------------------------------------------------------
  * Output stream
  * ----------------------------------------------------------------------- */

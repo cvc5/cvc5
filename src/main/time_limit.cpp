@@ -69,16 +69,14 @@ void posix_timeout_handler(CVC5_UNUSED int sig,
 #else
 std::atomic<bool> abort_timer_flag;
 
-TimeLimit::~TimeLimit()
-{
-  abort_timer_flag.store(true);
-}
+TimeLimit::~TimeLimit() { abort_timer_flag.store(true); }
 #endif
 
 TimeLimit install_time_limit(uint64_t ms)
 {
   // Skip if no time limit shall be set.
-  if (ms == 0) {
+  if (ms == 0)
+  {
     return TimeLimit();
   }
 
@@ -88,7 +86,7 @@ TimeLimit install_time_limit(uint64_t ms)
   sact.sa_sigaction = posix_timeout_handler;
   sact.sa_flags = SA_SIGINFO;
   sigemptyset(&sact.sa_mask);
-  if (sigaction(SIGALRM, &sact, NULL))
+  if (sigaction(SIGALRM, &sact, nullptr))
   {
     throw internal::Exception(std::string("sigaction(SIGALRM) failure: ")
                               + strerror(errno));
@@ -111,10 +109,10 @@ TimeLimit install_time_limit(uint64_t ms)
   }
 #else
   abort_timer_flag.store(false);
-  std::thread t([ms]()
-  {
+  std::thread t([ms]() {
     // when to stop
-    auto limit = std::chrono::system_clock::now() + std::chrono::milliseconds(ms);
+    auto limit =
+        std::chrono::system_clock::now() + std::chrono::milliseconds(ms);
     while (limit > std::chrono::system_clock::now())
     {
       // check if the main thread is done

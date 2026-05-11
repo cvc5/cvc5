@@ -61,9 +61,9 @@ const char* toString(cvc5::internal::Kind k);
  */
 std::ostream& operator<<(std::ostream&, cvc5::internal::Kind);
 
-/** Returns true if the given kind is associative. This is used by ExprManager to
- * decide whether it's safe to modify big expressions by changing the grouping of
- * the arguments. */
+/** Returns true if the given kind is associative. This is used by ExprManager
+ * to decide whether it's safe to modify big expressions by changing the
+ * grouping of the arguments. */
 /* TODO: This could be generated. */
 bool isAssociative(cvc5::internal::Kind k);
 std::string kindToString(cvc5::internal::Kind k);

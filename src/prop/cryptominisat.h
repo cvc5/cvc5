@@ -27,7 +27,7 @@
 // forward declare CMSat::SATSolver and include the cryptominisat header only
 // in cryptominisat.cpp.
 namespace CMSat {
-  class SATSolver;
+class SATSolver;
 }
 
 namespace cvc5::internal {

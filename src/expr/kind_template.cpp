@@ -45,13 +45,14 @@ std::ostream& operator<<(std::ostream& out, cvc5::internal::Kind k)
   return out;
 }
 
-/** Returns true if the given kind is associative. This is used by ExprManager to
- * decide whether it's safe to modify big expressions by changing the grouping of
- * the arguments. */
+/** Returns true if the given kind is associative. This is used by ExprManager
+ * to decide whether it's safe to modify big expressions by changing the
+ * grouping of the arguments. */
 /* TODO: This could be generated. */
 bool isAssociative(cvc5::internal::Kind k)
 {
-  switch(k) {
+  switch (k)
+  {
     case Kind::AND:
     case Kind::OR:
     case Kind::MULT:

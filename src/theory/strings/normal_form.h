@@ -17,6 +17,7 @@
 
 #include <map>
 #include <vector>
+
 #include "expr/node.h"
 
 namespace cvc5::internal {

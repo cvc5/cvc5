@@ -27,7 +27,7 @@ runs:
 
     - name: Upload main Maven JAR and POM file
       if: ${{ inputs.upload-main }}
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v6
       with:
         name: mvn-main
         retention-days: 1
@@ -44,7 +44,7 @@ runs:
 
     - name: Upload sources and javadoc Maven JARs
       if: ${{ inputs.artifact-suffix == 'docs' }}
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v6
       with:
         name: mvn-docs
         retention-days: 1
@@ -60,7 +60,7 @@ runs:
 
     - name: Upload architecture-specific Mave JARs
       if: ${{ inputs.artifact-suffix != 'docs' }}
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v6
       with:
         name: mvn-${{ inputs.artifact-suffix }}
         retention-days: 1

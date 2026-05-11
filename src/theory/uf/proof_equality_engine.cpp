@@ -346,7 +346,8 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
         << std::endl
         << std::endl;
     // should have existed
-    DebugUnhandled() << "pfee::assertConflict: failed to get proof for " << conc;
+    DebugUnhandled() << "pfee::assertConflict: failed to get proof for "
+                     << conc;
     return TrustNode::null();
   }
   // clone it so that we have a fresh copy

@@ -34,9 +34,10 @@ namespace arith::linear {
  * Tableau is optimized for pivoting.
  * The tableau should only be updated via pivot calls.
  */
-class Tableau : public Matrix<Rational> {
-public:
-private:
+class Tableau : public Matrix<Rational>
+{
+ public:
+ private:
   typedef DenseMap<RowIndex> BasicToRowMap;
   // Set of all of the basic variables in the tableau.
   // ArithVarMap<RowIndex> : ArithVar |-> RowIndex
@@ -46,8 +47,7 @@ private:
   typedef DenseMap<ArithVar> RowIndexToBasicMap;
   RowIndexToBasicMap d_rowIndex2basic;
 
-public:
-
+ public:
   Tableau() : Matrix<Rational>(Rational(0)) {}
 
   typedef Matrix<Rational>::ColIterator ColIterator;
@@ -56,47 +56,42 @@ public:
 
   typedef MatrixEntry<Rational> Entry;
 
-  bool isBasic(ArithVar v) const{
-    return d_basic2RowIndex.isKey(v);
-  }
+  bool isBasic(ArithVar v) const { return d_basic2RowIndex.isKey(v); }
 
-  void debugPrintIsBasic(ArithVar v) const {
-    if(isBasic(v)){
+  void debugPrintIsBasic(ArithVar v) const
+  {
+    if (isBasic(v))
+    {
       Trace("model") << v << " is basic." << std::endl;
-    }else{
+    }
+    else
+    {
       Trace("model") << v << " is non-basic." << std::endl;
     }
   }
 
-  BasicIterator beginBasic() const {
-    return d_basic2RowIndex.begin();
-  }
-  BasicIterator endBasic() const {
-    return d_basic2RowIndex.end();
-  }
+  BasicIterator beginBasic() const { return d_basic2RowIndex.begin(); }
+  BasicIterator endBasic() const { return d_basic2RowIndex.end(); }
 
-  RowIndex basicToRowIndex(ArithVar x) const {
-    return d_basic2RowIndex[x];
-  }
+  RowIndex basicToRowIndex(ArithVar x) const { return d_basic2RowIndex[x]; }
 
-  ArithVar rowIndexToBasic(RowIndex rid) const {
+  ArithVar rowIndexToBasic(RowIndex rid) const
+  {
     Assert(d_rowIndex2basic.isKey(rid));
     return d_rowIndex2basic[rid];
   }
 
-  ColIterator colIterator(ArithVar x) const {
-    return getColumn(x).begin();
-  }
+  ColIterator colIterator(ArithVar x) const { return getColumn(x).begin(); }
 
-  RowIterator ridRowIterator(RowIndex rid) const {
-    return getRow(rid).begin();
-  }
+  RowIterator ridRowIterator(RowIndex rid) const { return getRow(rid).begin(); }
 
-  RowIterator basicRowIterator(ArithVar basic) const {
+  RowIterator basicRowIterator(ArithVar basic) const
+  {
     return ridRowIterator(basicToRowIndex(basic));
   }
 
-  const Entry& basicFindEntry(ArithVar basic, ArithVar col) const {
+  const Entry& basicFindEntry(ArithVar basic, ArithVar col) const
+  {
     return findEntry(basicToRowIndex(basic), col);
   }
 
@@ -121,11 +116,14 @@ public:
    *   x_s is non-basic, and
    *   a_rs != 0.
    */
-  void pivot(ArithVar basicOld, ArithVar basicNew, CoefficientChangeCallback& cb);
+  void pivot(ArithVar basicOld,
+             ArithVar basicNew,
+             CoefficientChangeCallback& cb);
 
   void removeBasicRow(ArithVar basic);
 
-  uint32_t basicRowLength(ArithVar basic) const{
+  uint32_t basicRowLength(ArithVar basic) const
+  {
     RowIndex ridx = basicToRowIndex(basic);
     return getRowLength(ridx);
   }
@@ -134,9 +132,16 @@ public:
    *  to += mult * from
    * replacing from with its row.
    */
-  void substitutePlusTimesConstant(ArithVar to, ArithVar from, const Rational& mult,  CoefficientChangeCallback& cb);
+  void substitutePlusTimesConstant(ArithVar to,
+                                   ArithVar from,
+                                   const Rational& mult,
+                                   CoefficientChangeCallback& cb);
 
-  void directlyAddToCoefficient(ArithVar rowVar, ArithVar col, const Rational& mult,  CoefficientChangeCallback& cb){
+  void directlyAddToCoefficient(ArithVar rowVar,
+                                ArithVar col,
+                                const Rational& mult,
+                                CoefficientChangeCallback& cb)
+  {
     RowIndex ridx = basicToRowIndex(rowVar);
     manipulateRowEntry(ridx, col, mult, cb);
   }
@@ -149,12 +154,14 @@ public:
 
   void printBasicRow(ArithVar basic, std::ostream& out);
 
-private:
+ private:
   /* Changes the basic variable on the row for basicOld to basicNew. */
-  void rowPivot(ArithVar basicOld, ArithVar basicNew, CoefficientChangeCallback& cb);
+  void rowPivot(ArithVar basicOld,
+                ArithVar basicNew,
+                CoefficientChangeCallback& cb);
 
-};/* class Tableau */
+}; /* class Tableau */
 
-}  // namespace arith
+}  // namespace arith::linear
 }  // namespace theory
 }  // namespace cvc5::internal

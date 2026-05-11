@@ -10,9 +10,9 @@
  * A simple demonstration of the transcendental extension.
  */
 
-#include <iostream>
-
 #include <cvc5/cvc5.h>
+
+#include <iostream>
 
 using namespace std;
 using namespace cvc5;

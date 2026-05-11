@@ -7,22 +7,22 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Implementation of ALF node conversion for list variables in DSL rules
+ * Implementation of Eunoia node conversion for list variables in DSL rules
  */
 #include "cvc5_private.h"
 
-#ifndef CVC4__PROOF__ALF__ALF_LIST_NODE_CONVERTER_H
-#define CVC4__PROOF__ALF__ALF_LIST_NODE_CONVERTER_H
+#ifndef CVC5__PROOF__EO__EO_LIST_NODE_CONVERTER_H
+#define CVC5__PROOF__EO__EO_LIST_NODE_CONVERTER_H
 
 #include "expr/node_converter.h"
-#include "proof/alf/alf_node_converter.h"
+#include "proof/eo/eo_node_converter.h"
 
 namespace cvc5::internal {
 namespace proof {
 
 /**
  * This node converter adds applications of "singleton elimination" to
- * accurately reflect the difference in semantics between ALF and RARE.
+ * accurately reflect the difference in semantics between Eunoia and RARE.
  *
  * This is used when printing RARE rules in Eunoia. For example, the RARE rule:
  *
@@ -66,10 +66,10 @@ namespace proof {
  *   (@set.empty_of_type (@type_of x1)) becomes (set.empty T1).
  *   (@seq.empty_of_type (@type_of x1)) becomes (seq.empty T1).
  * where T1 is the type of x1, which was assigned by the dependent type
- * converter (alf_dependent_type_converter.h). We take this mapping as
+ * converter (eo_dependent_type_converter.h). We take this mapping as
  * an input to this class.
  */
-class AlfListNodeConverter : public NodeConverter
+class EoListNodeConverter : public NodeConverter
 {
  public:
   /**
@@ -79,14 +79,14 @@ class AlfListNodeConverter : public NodeConverter
    * @param adtcMap Mapping from variables to symbols whose names are the
    * types of the variables assigned to them. For example, a variable of type
    * ?Set may be mapped to `(Set T1)` where `T1` is a sort name allocated by
-   * the dependent type converter (alf_dependent_type_converter.h).
+   * the dependent type converter (eo_dependent_type_converter.h).
    * @param useSingletonElim Whether we are introducing $singleton_elim to
    * terms.
    */
-  AlfListNodeConverter(NodeManager* nm,
-                       BaseAlfNodeConverter& tproc,
-                       const std::map<Node, Node>& adtcMap,
-                       bool useSingletonElim = true);
+  EoListNodeConverter(NodeManager* nm,
+                      BaseEoNodeConverter& tproc,
+                      const std::map<Node, Node>& adtcMap,
+                      bool useSingletonElim = true);
   /** Convert node n based on the conversion described above. */
   Node preConvert(Node n) override;
   /** Convert node n based on the conversion described above. */
@@ -94,7 +94,7 @@ class AlfListNodeConverter : public NodeConverter
 
  private:
   /** The parent converter, used for getting internal symbols and utilities */
-  BaseAlfNodeConverter& d_tproc;
+  BaseEoNodeConverter& d_tproc;
   /** Are we introducing $singleton_elim? */
   bool d_useSingletonElim;
   /** Mapping symbols to a node whose name is the type associated to that symbol

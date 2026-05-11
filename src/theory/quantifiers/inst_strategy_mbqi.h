@@ -25,7 +25,7 @@
 #include "theory/smt_engine_subsolver.h"
 
 namespace cvc5::internal {
-    
+
 class SolverEngine;
 
 namespace theory {
@@ -47,6 +47,7 @@ class MbqiEnum;
 class InstStrategyMbqi : public QuantifiersModule
 {
   friend class MbqiEnum;
+
  public:
   InstStrategyMbqi(Env& env,
                    QuantifiersState& qs,

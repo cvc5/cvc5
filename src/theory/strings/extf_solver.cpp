@@ -187,7 +187,8 @@ void ExtfSolver::doReduction(Node n, int pol)
     eq = eq[1];
     std::vector<Node> expn;
     expn.push_back(n);
-    d_im.sendInference(expn, expn, eq, InferenceId::STRINGS_CTN_POS, false, true);
+    d_im.sendInference(
+        expn, expn, eq, InferenceId::STRINGS_CTN_POS, false, true);
     Trace("strings-extf-debug")
         << "  resolve extf : " << n << " based on positive contain reduction."
         << std::endl;
@@ -438,7 +439,8 @@ void ExtfSolver::checkExtfEval(int effort)
           {
             Trace("strings-extf")
                 << "  resolve extf : " << sn << " -> " << nrc << std::endl;
-            InferenceId inf = effort == 0 ? InferenceId::STRINGS_EXTF : InferenceId::STRINGS_EXTF_N;
+            InferenceId inf = effort == 0 ? InferenceId::STRINGS_EXTF
+                                          : InferenceId::STRINGS_EXTF_N;
             d_im.sendInference(einfo.d_exp, conc, inf, false, true);
             d_statistics.d_cdSimplifications << n.getKind();
           }
@@ -475,8 +477,8 @@ void ExtfSolver::checkExtfEval(int effort)
           // reduced since this argument may be circular: we may infer than n
           // can be reduced to something else, but that thing may argue that it
           // can be reduced to n, in theory.
-          InferenceId infer =
-              effort == 0 ? InferenceId::STRINGS_EXTF_D : InferenceId::STRINGS_EXTF_D_N;
+          InferenceId infer = effort == 0 ? InferenceId::STRINGS_EXTF_D
+                                          : InferenceId::STRINGS_EXTF_D_N;
           d_im.sendInternalInference(einfo.d_exp, nrcAssert, infer);
         }
         to_reduce = nrc;
@@ -737,7 +739,8 @@ void ExtfSolver::checkExtfInference(Node n, Node nr, ExtfInfoTmp& in)
     Trace("strings-extf-infer")
         << "checkExtfInference: " << inferEq << " ...reduces to " << inferEqrr
         << " with explanation " << in.d_exp << std::endl;
-    d_im.sendInternalInference(in.d_exp, inferEqrr, InferenceId::STRINGS_EXTF_EQ_REW);
+    d_im.sendInternalInference(
+        in.d_exp, inferEqrr, InferenceId::STRINGS_EXTF_EQ_REW);
   }
 }
 
@@ -800,9 +803,38 @@ Node ExtfSolver::getCurrentSubstitutionFor(int effort,
     return ns;
   }
   // otherwise, we use the best content heuristic
-  Node c = d_bsolver.explainBestContentEqc(n, nr, exp);
+  std::vector<Node> cexp;
+  Node c = d_bsolver.explainBestContentEqc(n, nr, cexp);
+  if (!c.isNull() && n.getKind() == Kind::STRING_CONCAT)
+  {
+    cexp.clear();
+    // Similar to above, if we are a string concatentation, we ask for the
+    // best content of each of our children and concatenate them together.
+    // We consider the substitution only if at least one child had a best
+    // content. This prevents substitutions with concatenation terms on the
+    // left hand side, which can lead to cycles in the algorithm that elaborates
+    // proofs in very rare cases.
+    std::vector<Node> vec;
+    for (const Node& nc : n)
+    {
+      Node ncr = d_state.getRepresentative(nc);
+      Node cc = d_bsolver.explainBestContentEqc(nc, ncr, cexp);
+      if (!cc.isNull())
+      {
+        vec.push_back(cc);
+      }
+      else
+      {
+        // otherwise keep the same
+        vec.push_back(nc);
+      }
+    }
+    TypeNode stype = n.getType();
+    c = d_termReg.mkNConcat(vec, stype);
+  }
   if (!c.isNull())
   {
+    exp.insert(exp.end(), cexp.begin(), cexp.end());
     return c;
   }
   return n;

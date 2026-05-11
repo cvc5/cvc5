@@ -157,11 +157,10 @@ int main()
   // it is easier to let the solver do the evaluation.
   //! [docs-cpp-quickstart-13 start]
   std::pair<int64_t, uint64_t> xMinusYComputed = {
-    xPair.first * yPair.second - xPair.second * yPair.first,
-    xPair.second * yPair.second
-  };
+      xPair.first * yPair.second - xPair.second * yPair.first,
+      xPair.second * yPair.second};
   uint64_t g = std::gcd(xMinusYComputed.first, xMinusYComputed.second);
-  xMinusYComputed = { xMinusYComputed.first / g, xMinusYComputed.second / g };
+  xMinusYComputed = {xMinusYComputed.first / g, xMinusYComputed.second / g};
   if (xMinusYComputed == xMinusYPair)
   {
     std::cout << "computed correctly" << std::endl;

@@ -139,7 +139,7 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
   {
     Node cv = candidate_values[i];
     Node skeleton = getSkeleton(cv, free_var_count, sk_vars);
-    Assert(skeleton.getType() == cv.getType());
+    AssertEqual(skeleton.getType(), cv.getType());
     if (TraceIsOn("sygus-repair-const"))
     {
       std::stringstream ss;

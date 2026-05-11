@@ -41,8 +41,7 @@ std::ostream& operator<<(std::ostream& os, const Sum& sum)
   return os;
 }
 
-namespace
-{
+namespace {
 
 /**
  * Adds a factor n to a product, consisting of the numerical multiplicity and
@@ -135,12 +134,12 @@ Node collectSumWithBase(NodeManager* nm,
   }
   return nb.constructNode();
 }
-}
+}  // namespace
 
 bool isIntegral(const Sum& sum)
 {
   std::vector<TNode> queue;
-  for (const auto& s: sum)
+  for (const auto& s : sum)
   {
     queue.emplace_back(s.first);
     if (!s.second.isRational()) return false;

@@ -233,8 +233,8 @@ public class Datatype extends AbstractPointer implements Iterable<DatatypeConstr
 
   /**
    * Provide a string representation of the native datatype.
-   * 
-   * @param pointer The native memory address pointing to the datatype. 
+   *
+   * @param pointer The native memory address pointing to the datatype.
    * @return A string representation of this datatype.
    */
   protected native String toString(long pointer);

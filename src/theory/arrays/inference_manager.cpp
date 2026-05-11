@@ -27,9 +27,10 @@ namespace arrays {
 
 InferenceManager::InferenceManager(Env& env, Theory& t, TheoryState& state)
     : TheoryInferenceManager(env, t, state, "theory::arrays::", false),
-      d_lemmaPg(isProofEnabled() ? new EagerProofGenerator(
-                    env, userContext(), "ArrayLemmaProofGenerator")
-                                 : nullptr)
+      d_lemmaPg(isProofEnabled()
+                    ? new EagerProofGenerator(
+                          env, userContext(), "ArrayLemmaProofGenerator")
+                    : nullptr)
 {
 }
 
@@ -124,7 +125,8 @@ void InferenceManager::convert(ProofRule& id,
         DebugUnhandled() << "Unknown rule " << id << "\n";
       }
       children.push_back(exp);
-      args.push_back(mkTrustId(nodeManager(), TrustId::THEORY_INFERENCE_ARRAYS));
+      args.push_back(
+          mkTrustId(nodeManager(), TrustId::THEORY_INFERENCE_ARRAYS));
       args.push_back(conc);
       id = ProofRule::TRUST;
       break;

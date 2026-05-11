@@ -162,6 +162,10 @@ Node ArithEntail::rewriteLengthIntro(const Node& n,
       Kind k = cur.getKind();
       bool childChanged = false;
       std::vector<Node> children;
+      if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
+      {
+        children.push_back(cur.getOperator());
+      }
       for (const Node& cn : cur)
       {
         it = visited.find(cn);

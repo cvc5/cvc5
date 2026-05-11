@@ -36,7 +36,10 @@ InferenceManager::InferenceManager(Env& env,
   d_false = nodeManager()->mkConst(false);
 }
 
-bool InferenceManager::assertFactRec(Node fact, InferenceId id, Node exp, int inferType)
+bool InferenceManager::assertFactRec(Node fact,
+                                     InferenceId id,
+                                     Node exp,
+                                     int inferType)
 {
   // should we send this fact out as a lemma?
   if (inferType != -1)

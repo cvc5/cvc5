@@ -247,7 +247,7 @@ Node HoExtension::getApplyUfForHoApply(Node node)
         {
           new_f = nm->mkNode(Kind::HO_APPLY, new_f, v);
         }
-        Assert(new_f.getType() == f.getType());
+        AssertEqual(new_f.getType(), f.getType());
         Node eq = new_f.eqNode(f);
         Node seq = eq.substitute(vs.begin(), vs.end(), nvs.begin(), nvs.end());
         lem = nm->mkNode(
@@ -280,7 +280,7 @@ Node HoExtension::getApplyUfForHoApply(Node node)
   Assert(TheoryUfRewriter::canUseAsApplyUfOperator(new_f));
   args[0] = new_f;
   Node ret = nm->mkNode(Kind::APPLY_UF, args);
-  Assert(ret.getType() == node.getType());
+  AssertEqual(ret.getType(), node.getType());
   return ret;
 }
 
@@ -292,7 +292,7 @@ void HoExtension::computeRelevantTerms(std::set<Node>& termSet)
     {
       Node ht = TheoryUfRewriter::getHoApplyForApplyUf(t);
       // also add all subterms
-      while (ht.getKind()==Kind::HO_APPLY)
+      while (ht.getKind() == Kind::HO_APPLY)
       {
         termSet.insert(ht);
         termSet.insert(ht[1]);
@@ -444,17 +444,20 @@ unsigned HoExtension::checkExtensionality(TheoryModel* m)
                 // Model construction assigns the first value for all
                 // unconstrained variables for such sorts, which does not
                 // suffice in this context since we are trying to make the
-                // functions disequal. Thus, for such case we enumerate the first
-                // two values for this sort and set the extensionality index to
-                // be equal to these two distinct values.  There must be at least
-                // two values since this is an infinite function sort.
+                // functions disequal. Thus, for such case we enumerate the
+                // first two values for this sort and set the extensionality
+                // index to be equal to these two distinct values.  There must
+                // be at least two values since this is an infinite function
+                // sort.
                 TypeEnumerator te(tn);
                 Node v1 = *te;
                 te++;
                 Node v2 = *te;
                 Assert(!v2.isNull() && v2 != v1);
-                Trace("uf-ho-debug") << "Finite witness: " << edeq[0][0] << " == " << v1 << std::endl;
-                Trace("uf-ho-debug") << "Finite witness: " << edeq[0][1] << " == " << v2 << std::endl;
+                Trace("uf-ho-debug") << "Finite witness: " << edeq[0][0]
+                                     << " == " << v1 << std::endl;
+                Trace("uf-ho-debug") << "Finite witness: " << edeq[0][1]
+                                     << " == " << v2 << std::endl;
                 success = m->assertEquality(edeq[0][0], v1, true);
                 if (success)
                 {
@@ -465,7 +468,7 @@ unsigned HoExtension::checkExtensionality(TheoryModel* m)
             if (!success)
             {
               Node eq = edeq[0][0].eqNode(edeq[0][1]);
-              Node lem = nm->mkNode(Kind::OR, deq.negate(), eq.negate());
+              Node lem = nm->mkNode(Kind::OR, {deq.negate(), eq.negate()});
               Trace("uf-ho") << "HoExtension: cmi extensionality lemma " << lem
                              << std::endl;
               d_im.lemma(lem, InferenceId::UF_HO_MODEL_EXTENSIONALITY);
@@ -665,14 +668,14 @@ unsigned HoExtension::checkLazyLambda()
         Node f = lamRep < n ? lamRep : n;
         Node g = lamRep < n ? n : lamRep;
         // swap based on order
-        if (g<f)
+        if (g < f)
         {
           Node tmp = f;
           f = g;
           g = tmp;
         }
         Node fgEq = f.eqNode(g);
-        if (d_lamEqProcessed.find(fgEq)!=d_lamEqProcessed.end())
+        if (d_lamEqProcessed.find(fgEq) != d_lamEqProcessed.end())
         {
           continue;
         }
@@ -707,14 +710,15 @@ unsigned HoExtension::checkLazyLambda()
         // elimination, e.g. LIA or BV.
         if (options().uf.ufHoLambdaQe)
         {
-          Trace("uf-lambda-qe") << "Given " << flam << " == " << glam << std::endl;
+          Trace("uf-lambda-qe")
+              << "Given " << flam << " == " << glam << std::endl;
           Trace("uf-lambda-qe") << "Run QE on " << univ << std::endl;
           std::unique_ptr<SolverEngine> lqe;
           // initialize the subsolver using the standard method
           initializeSubsolver(lqe, d_env);
           Node univQe = lqe->getQuantifierElimination(univ, true);
           Trace("uf-lambda-qe") << "QE is " << univQe << std::endl;
-          Assert (!univQe.isNull());
+          Assert(!univQe.isNull());
           // Note that if quantifier elimination failed, then univQe will
           // be equal to univ, in which case this above code has no effect.
           univ = univQe;
@@ -907,7 +911,7 @@ bool HoExtension::collectModelInfoHoTerm(Node n, TheoryModel* m)
     }
     // also add all subterms
     eq::EqualityEngine* ee = m->getEqualityEngine();
-    while (hn.getKind()==Kind::HO_APPLY)
+    while (hn.getKind() == Kind::HO_APPLY)
     {
       ee->addTerm(hn);
       ee->addTerm(hn[1]);

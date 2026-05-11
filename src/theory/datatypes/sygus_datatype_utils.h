@@ -72,7 +72,6 @@ typedef expr::Attribute<SygusVarFreeAttributeId, Node> SygusVarFreeAttribute;
 namespace datatypes {
 namespace utils {
 
-
 /** get operator kind for sygus builtin
  *
  * This returns the Kind corresponding to applications of the operator op

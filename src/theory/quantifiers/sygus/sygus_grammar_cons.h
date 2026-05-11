@@ -94,7 +94,7 @@ class SygusGrammarCons
   /**
    * Make the builtin constants for type "type" that should be included in a
    * sygus grammar, add them to vector ops.
-   * 
+   *
    * @param type The type to add constants for
    * @param op The vector to add the constants to
    */

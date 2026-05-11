@@ -405,7 +405,7 @@ bool MacroRewriteElaborator::ensureProofForAndOrXorConcatPullup(CDProof* cdp,
                            : nm->mkNode(Kind::BITVECTOR_CONCAT, cpost);
           Node cg = nm->mkNode(Kind::BITVECTOR_CONCAT, {npre, c[i], npost});
           Trace("ajr-temp") << "Groupd " << c << " to " << cg << std::endl;
-          Assert(cg.getType() == c.getType());
+          AssertEqual(cg.getType(), c.getType());
           // should be shown by ACI_NORM
           tcpg.addRewriteStep(c,
                               cg,

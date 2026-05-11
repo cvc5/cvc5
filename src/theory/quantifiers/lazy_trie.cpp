@@ -23,7 +23,7 @@ Node LazyTrie::add(Node n,
                    bool forceKeep)
 {
   LazyTrie* lt = this;
-  while (lt != NULL)
+  while (lt != nullptr)
   {
     if (index == ntotal)
     {
@@ -130,8 +130,8 @@ Node LazyTrieMulti::add(Node f, LazyTrieEvaluator* ev, unsigned ntotal)
   // f was added to the separation class with representative res
   if (res != f)
   {
-    Trace("lazy-trie-multi") << "... added " << f << " to the sepclass of "
-                             << res << "\n";
+    Trace("lazy-trie-multi")
+        << "... added " << f << " to the sepclass of " << res << "\n";
     Assert(d_rep_to_class.find(res) != d_rep_to_class.end());
     Assert(!d_rep_to_class[res].empty());
     d_rep_to_class[res].push_back(f);

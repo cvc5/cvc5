@@ -110,7 +110,7 @@ class TheorySetsPrivate : protected EnvObj
    *       (set.member x A)
    *     )
    *   )
-   *   where x is a fresh skolem   
+   *   where x is a fresh skolem
    */
   void checkMapDown();
   void checkGroups();
@@ -278,20 +278,20 @@ class TheorySetsPrivate : protected EnvObj
    * context.
    */
   NodeSet d_termProcessed;
-  
-  //propagation
+
+  // propagation
   class EqcInfo
   {
-  public:
-   EqcInfo(context::Context* c);
-   ~EqcInfo() {}
-   // singleton or emptyset equal to this eqc
-   context::CDO<Node> d_singleton;
+   public:
+    EqcInfo(context::Context* c);
+    ~EqcInfo() {}
+    // singleton or emptyset equal to this eqc
+    context::CDO<Node> d_singleton;
   };
   /** information necessary for equivalence classes */
-  std::map< Node, EqcInfo* > d_eqc_info;
+  std::map<Node, EqcInfo*> d_eqc_info;
   /** get or make eqc info */
-  EqcInfo* getOrMakeEqcInfo( TNode n, bool doMake = false );
+  EqcInfo* getOrMakeEqcInfo(TNode n, bool doMake = false);
 
   /** full check incomplete
    *
@@ -304,7 +304,6 @@ class TheorySetsPrivate : protected EnvObj
   IncompleteId d_fullCheckIncompleteId;
 
  public:
-
   /**
    * Constructs a new instance of TheorySetsPrivate w.r.t. the provided
    * contexts.
@@ -372,7 +371,7 @@ class TheorySetsPrivate : protected EnvObj
   /** Pointer to the equality engine of theory of sets */
   eq::EqualityEngine* d_equalityEngine;
 
-  bool isCareArg( Node n, unsigned a );
+  bool isCareArg(Node n, unsigned a);
 
   /** expand the definition of the choose operator */
   TrustNode expandChooseOperator(const Node& node,

@@ -31,8 +31,7 @@ class EqualityEngine;
 class TheoryState : protected EnvObj
 {
  public:
-  TheoryState(Env& env,
-              Valuation val);
+  TheoryState(Env& env, Valuation val);
   virtual ~TheoryState() {}
   /**
    * Set equality engine, where ee is a pointer to the official equality engine

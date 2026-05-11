@@ -65,13 +65,14 @@ class TheoryUfRewriter : public TheoryRewriter
   static Node decomposeHoApply(TNode n,
                                std::vector<TNode>& args,
                                bool opInArgs = false);
-  /** returns true if this node can be used as an operator of an APPLY_UF node.  In higher-order logic,
-   * terms can have function types and not just variables. 
-   * Currently, we want only free variables to be used as operators of APPLY_UF nodes. This is motivated by
-   * E-matching, ite-lifting among other things.  For example:
-   * f: Int -> Int, g : Int -> Int
-   * forall x : ( Int -> Int ), y : Int. (x y) = (f 0)
-   * Then, f and g can be used as APPLY_UF operators, but (ite C f g), (lambda x1. (f x1)) as well as the variable x above are not.
+  /** returns true if this node can be used as an operator of an APPLY_UF node.
+   * In higher-order logic, terms can have function types and not just
+   * variables. Currently, we want only free variables to be used as operators
+   * of APPLY_UF nodes. This is motivated by E-matching, ite-lifting among other
+   * things.  For example: f: Int -> Int, g : Int -> Int forall x : ( Int -> Int
+   * ), y : Int. (x y) = (f 0) Then, f and g can be used as APPLY_UF operators,
+   * but (ite C f g), (lambda x1. (f x1)) as well as the variable x above are
+   * not.
    */
   static bool canUseAsApplyUfOperator(TNode n);
   /**

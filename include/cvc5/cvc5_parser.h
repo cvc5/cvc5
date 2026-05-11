@@ -182,7 +182,7 @@ class CVC5_EXPORT Command
   std::shared_ptr<Cmd> d_cmd;
 }; /* class Command */
 
- CVC5_EXPORT std::ostream& operator<<(std::ostream&, const Command&);
+CVC5_EXPORT std::ostream& operator<<(std::ostream&, const Command&);
 
 /**
  * This class is the main interface for retrieving commands and expressions
@@ -309,7 +309,8 @@ class CVC5_EXPORT InputParser
 
  private:
   /**
-   * Set the input to the given concrete input string, without allocating a new parser.
+   * Set the input to the given concrete input string, without allocating a new
+   * parser.
    */
   void setStringInputInternal(const std::string& input,
                               const std::string& name);

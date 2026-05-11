@@ -34,8 +34,8 @@ class Sequence
  public:
   /** constructors for Sequence
    *
-   * Internally, a cvc5::internal::Sequence is represented by a vector of Nodes (d_seq),
-   * where each Node in this vector must be a constant.
+   * Internally, a cvc5::internal::Sequence is represented by a vector of Nodes
+   * (d_seq), where each Node in this vector must be a constant.
    */
   Sequence() = default;
   explicit Sequence(const TypeNode& t, const std::vector<Node>& s);

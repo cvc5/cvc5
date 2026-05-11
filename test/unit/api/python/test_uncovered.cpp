@@ -395,59 +395,59 @@ TEST_F(TestApiBlackUncovered, Options)
   {
     auto info = d_solver->getOptionInfo("verbose");
     ss << info;
-    }
-    {
+  }
+  {
     auto info = d_solver->getOptionInfo("print-success");
     ss << info;
     info.boolValue();
-    }
-    {
+  }
+  {
     auto info = d_solver->getOptionInfo("verbosity");
     ss << info;
     info.intValue();
-    }
-    {
+  }
+  {
     auto info = d_solver->getOptionInfo("rlimit");
     ss << info;
     info.uintValue();
-    }
-    {
+  }
+  {
     auto info = d_solver->getOptionInfo("random-freq");
     ss << info;
     info.doubleValue();
-    }
-    {
+  }
+  {
     auto info = d_solver->getOptionInfo("force-logic");
     ss << info;
     info.stringValue();
-    }
-    {
+  }
+  {
     auto info = d_solver->getOptionInfo("simplification");
     ss << info;
-    }
+  }
 }
 
 TEST_F(TestApiBlackUncovered, Statistics)
 {
-    d_solver->assertFormula(d_tm.mkConst(d_tm.getBooleanSort(), "x"));
-    d_solver->checkSat();
-    Statistics stats = d_solver->getStatistics();
-    auto s = stats.get("global::totalTime");
-    std::stringstream ss;
-    ss << stats << s.toString();
-    auto it = stats.begin();
-    ASSERT_NE(it, stats.end());
-    it++;
-    it--;
-    ++it;
-    --it;
-    ASSERT_EQ(it, stats.begin());
-    ss << it->first;
+  d_solver->assertFormula(d_tm.mkConst(d_tm.getBooleanSort(), "x"));
+  d_solver->checkSat();
+  Statistics stats = d_solver->getStatistics();
+  auto s = stats.get("global::totalTime");
+  std::stringstream ss;
+  ss << stats << s.toString();
+  auto it = stats.begin();
+  ASSERT_NE(it, stats.end());
+  it++;
+  it--;
+  ++it;
+  --it;
+  ASSERT_EQ(it, stats.begin());
+  ss << it->first;
 
-    testing::internal::CaptureStdout();
-    d_solver->printStatisticsSafe(STDOUT_FILENO);
-    d_tm.printStatisticsSafe(STDOUT_FILENO);
-    testing::internal::GetCapturedStdout();
+  testing::internal::CaptureStdout();
+  d_solver->printStatisticsSafe(STDOUT_FILENO);
+  d_tm.printStatisticsSafe(STDOUT_FILENO);
+  testing::internal::GetCapturedStdout();
 }
 
 TEST_F(TestApiBlackUncovered, SynthResult)
@@ -467,23 +467,23 @@ TEST_F(TestApiBlackUncovered, SynthResult)
 // Copied from api/cpp/solver_black.cpp
 TEST_F(TestApiBlackUncovered, declareOracleFunUnsat)
 {
-    d_solver->setOption("oracles", "true");
-    Sort iSort = d_tm.getIntegerSort();
-    // f is the function implementing (lambda ((x Int)) (+ x 1))
-    Term f = d_solver->declareOracleFun(
-        "f", {iSort}, iSort, [&](const std::vector<Term>& input) {
-          if (input[0].isUInt32Value())
-          {
-            return d_tm.mkInteger(input[0].getUInt32Value() + 1);
-          }
-          return d_tm.mkInteger(0);
-        });
-    Term three = d_tm.mkInteger(3);
-    Term five = d_tm.mkInteger(5);
-    Term eq = d_tm.mkTerm(Kind::EQUAL,
-                          {d_tm.mkTerm(Kind::APPLY_UF, {f, three}), five});
-    d_solver->assertFormula(eq);
-    d_solver->checkSat();
+  d_solver->setOption("oracles", "true");
+  Sort iSort = d_tm.getIntegerSort();
+  // f is the function implementing (lambda ((x Int)) (+ x 1))
+  Term f = d_solver->declareOracleFun(
+      "f", {iSort}, iSort, [&](const std::vector<Term>& input) {
+        if (input[0].isUInt32Value())
+        {
+          return d_tm.mkInteger(input[0].getUInt32Value() + 1);
+        }
+        return d_tm.mkInteger(0);
+      });
+  Term three = d_tm.mkInteger(3);
+  Term five = d_tm.mkInteger(5);
+  Term eq =
+      d_tm.mkTerm(Kind::EQUAL, {d_tm.mkTerm(Kind::APPLY_UF, {f, three}), five});
+  d_solver->assertFormula(eq);
+  d_solver->checkSat();
 }
 
 TEST_F(TestApiBlackUncovered, Proof)

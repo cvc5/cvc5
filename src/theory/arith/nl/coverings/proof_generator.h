@@ -142,7 +142,8 @@ class CoveringsProofGenerator : protected EnvObj
  * Prints the underlying LazyTreeProofGenerator. Please check the documentation
  * of std::ostream& operator<<(std::ostream&, const LazyTreeProofGenerator&)
  */
-std::ostream& operator<<(std::ostream& os, const CoveringsProofGenerator& proof);
+std::ostream& operator<<(std::ostream& os,
+                         const CoveringsProofGenerator& proof);
 
 }  // namespace coverings
 }  // namespace nl

@@ -12,12 +12,13 @@
 
 #include "parser/lexer.h"
 
+#include <cvc5/cvc5_parser.h>
+
 #include <cassert>
 #include <iostream>
 #include <sstream>
 
 #include "base/output.h"
-#include <cvc5/cvc5_parser.h>
 
 namespace cvc5 {
 namespace parser {
