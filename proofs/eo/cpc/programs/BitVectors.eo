@@ -35,8 +35,8 @@
 ; - n Int: The number of times to repeat, expected to be a non-negative numeral.
 ; - b (BitVec m): The bitvector term.
 ; return: The result of concatenating b n times.
-(define $bv_unfold_repeat_rec ((n Int) (b (BitVec m)))
-  (eo::list_repeat concat concat n b))
+(define $bv_unfold_repeat_rec ((m Int :implicit) (n Int) (b (BitVec m)))
+  (eo::list_repeat concat n b))
 
 ; program: $bv_repeat_eval_rec
 ; args:
