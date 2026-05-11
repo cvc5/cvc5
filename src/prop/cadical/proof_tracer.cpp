@@ -41,6 +41,22 @@ Node toNode(NodeManager* nm, TheoryProxy* proxy, const SatClause& clause)
   return lits.size() == 1 ? lits[0] : nm->mkNode(Kind::OR, lits);
 }
 
+/**
+ * Normalize a unary CaDiCaL derivation to a proof of conclusion.
+ *
+ * CaDiCaL's LRUP trace can contain derived clauses with exactly one
+ * antecedent. These steps are not resolution chains; they typically remove
+ * duplicate literals from the antecedent and may leave the node-level clause
+ * order different from the normalized conclusion expected by cvc5.
+ *
+ * Since CHAIN_M_RESOLUTION needs at least two premises, this builds the proof
+ * with the smaller Boolean proof rules instead:
+ * - reuse the child if it already proves conclusion,
+ * - use FACTORING when duplicate literals are removed,
+ * - add REORDERING when the factored clause has the right literals in a
+ *   different order,
+ * - or use REORDERING directly if no factoring is required.
+ */
 std::shared_ptr<ProofNode> normalizeDerivedClause(
     ProofNodeManager* pnm,
     const std::shared_ptr<ProofNode>& child,
@@ -229,7 +245,7 @@ std::shared_ptr<ProofNode> ProofTracer::chain_resolution_step(
   SatClause expected_cl = toSatClause(activation_literals, cl.literals);
   Node conclusion = toNode(nm, proxy, expected_cl);
   const auto& antecedents = cl.antecedents;
-  // CaDiCaL may use a unary derivation to factor duplicate literals.
+  // Handle unary derivations separately; see normalizeDerivedClause.
   if (antecedents.size() == 1)
   {
     auto it = steps.find(antecedents[0]);
