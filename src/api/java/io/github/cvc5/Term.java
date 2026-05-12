@@ -447,6 +447,18 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   private native boolean isRealValue(long pointer);
 
   /**
+   * Determine if the term is a constant.
+   *
+   * @return True if the term is a constant.
+   */
+  public boolean isConst()
+  {
+    return isConst(pointer);
+  }
+
+  private native boolean isConst(long pointer);
+
+  /**
    * Asserts isRealValue().
    * @return The representation of a rational value as a pair of its numerator.
    *         and denominator.

@@ -1653,6 +1653,12 @@ class CVC5_EXPORT Term
   std::string getRealValue() const;
 
   /**
+   * Determine if this term is a constant.
+   * @return True if the term is a constant.
+   */
+  bool isConst() const;
+
+  /**
    * Determine if this term is a constant array.
    * @return True if the term is a constant array.
    */

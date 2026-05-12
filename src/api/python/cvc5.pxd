@@ -663,6 +663,7 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         SkolemId getSkolemId() except +
         vector[Term] getSkolemIndices() except +
 
+        bint isConst() except +
         bint isConstArray() except +
         bint isBooleanValue() except +
         bint getBooleanValue() except +
