@@ -646,8 +646,8 @@
 (program $str_multiset_overapprox_word ((T Type) (s (Seq T)) (ss (Seq T) :list))
     :signature ((Seq T)) @List
     (
-      (($str_multiset_overapprox_word (str.++ s ss))  (@list s ($str_multiset_overapprox_word ss)))
-      (($str_multiset_overapprox_word s)              @list.nil)
+      (($str_multiset_overapprox_word (str.++ s ss))  (_ @list s ($str_multiset_overapprox_word ss)))
+      (($str_multiset_overapprox_word s)              (eo::ite ($str_is_empty s) @list.nil (_ @list s @list.nil)))
     )
 )
 
@@ -669,7 +669,7 @@
                                                           @list.nil
                                                           (eo::ite (eo::is_str s)
                                                             ($str_multiset_overapprox_word ($str_to_flat_form s false))
-                                                            (@list s))))
+                                                            (_ @list s @list.nil))))
     )
 )
 
@@ -682,6 +682,16 @@
 ;   True if the string approximated by s is definitely not contained in the string
 ;   approximated by t. We compute this by iteratively removing the components of
 ;   s from t, and then checking if a term in nr is provably distinct from the final xs.
+(program $str_is_multiset_subset_strict_done ((T Type) (s (Seq T)) (xs @List) (nr @List :list))
+    :signature (@List @List) Bool
+    (
+      (($str_is_multiset_subset_strict_done xs (@list s nr)) (eo::ite ($are_distinct_terms_list_rec s xs (eo::typeof s))
+                                                                 true
+                                                                 ($str_is_multiset_subset_strict_done xs nr)))
+      (($str_is_multiset_subset_strict_done xs nr)           false)
+    )
+)
+
 (program $str_is_multiset_subset_strict ((T Type) (emp (Seq T)) (s (Seq T)) (ss (Seq T) :list) (xs @List) (nr @List :list))
     :signature ((Seq T) @List @List) Bool
     (
@@ -689,12 +699,14 @@
                                                             (eo::define ((nrem (eo::eq xs xsr)))
                                                               ($str_is_multiset_subset_strict ss xsr
                                                                 ; we add s to the accumulated list if it was not removed from xs
-                                                                (eo::ite nrem (@list s nr) nr)))))
-      (($str_is_multiset_subset_strict emp xs (@list s nr)) (eo::ite ($are_distinct_terms_list_rec s xs (eo::typeof s))
-                                                              ; if something was in s that is provably distinct from the remainder of t, we succeed
-                                                              true
-                                                              ($str_is_multiset_subset_strict emp xs nr)))
-      (($str_is_multiset_subset_strict emp xs nr)           false)
+                                                                (eo::ite nrem (_ @list s nr) nr)))))
+      (($str_is_multiset_subset_strict emp xs nr)           (eo::ite ($str_is_empty emp)
+                                                              ($str_is_multiset_subset_strict_done xs nr)
+                                                              (eo::define ((xsr (eo::list_erase @list xs emp)))
+                                                                (eo::define ((nrem (eo::eq xs xsr)))
+                                                                  ($str_is_multiset_subset_strict_done xsr
+                                                                    ; we add emp to the accumulated list if it was not removed from xs
+                                                                    (eo::ite nrem (_ @list emp nr) nr))))))
     )
 )
 
