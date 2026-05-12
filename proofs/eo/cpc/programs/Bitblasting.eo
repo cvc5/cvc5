@@ -31,18 +31,13 @@
   )
 )
 
-; program: $bv_bitblast_repeat
+; define: $bv_bitblast_repeat
 ; args:
 ; - b Bool: The Boolean to repeat
 ; - n Int: The number of times to repeat it.
 ; return: the list of bits containing b, n times.
-(program $bv_bitblast_repeat ((b Bool) (n Int))
-  :signature (Bool (eo::quote n)) (BitVec n)
-  (
-    (($bv_bitblast_repeat b 0)  @bv_empty)
-    (($bv_bitblast_repeat b n)  (_ @from_bools b ($bv_bitblast_repeat b (eo::add n -1))))
-  )
-)
+(define $bv_bitblast_repeat ((b Bool) (n Int))
+  (eo::list_repeat @from_bools b n))
 
 ; program: $bv_bitblast_prefix
 ; args:

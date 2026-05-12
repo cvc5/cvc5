@@ -132,7 +132,8 @@ class SimplexDecisionProcedure : protected EnvObj
    * Locally cached value of arithStandardCheckVarOrderPivots option. It is
    * cached here to allow for single runs with a different (lower) limit.
    */
-  int64_t d_varOrderPivotLimit = -1;
+  int64_t d_varOrderPivotLimit =
+      options().arith.arithStandardCheckVarOrderPivots;
 
   ArithVar constructInfeasiblityFunction(TimerStat& timer);
   ArithVar constructInfeasiblityFunction(TimerStat& timer, ArithVar e);

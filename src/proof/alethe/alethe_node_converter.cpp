@@ -450,6 +450,7 @@ Node AletheNodeConverter::postConvert(Node n)
     case Kind::BITVECTOR_SIGN_EXTEND:
     case Kind::BITVECTOR_ZERO_EXTEND_OP:
     case Kind::BITVECTOR_ZERO_EXTEND:
+    case Kind::BITVECTOR_ITE:
     /* from datatypes */
     case Kind::CONSTRUCTOR_TYPE:
     case Kind::SELECTOR_TYPE:
