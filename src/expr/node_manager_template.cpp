@@ -482,10 +482,13 @@ std::vector<NodeValue*> NodeManager::TopologicalSort(
       {
         stack.back().first = true;
         visited.insert(current);
-        for (unsigned i = 0; i < current->getNumChildren(); ++i)
+        // Match NodeValue::decrRefCounts(): it decrements all raw children,
+        // including the operator of PARAMETERIZED nodes.
+        for (expr::NodeValue::nv_iterator i = current->nv_begin();
+             i != current->nv_end();
+             ++i)
         {
-          expr::NodeValue* child = current->getChild(i);
-          stack.push_back(std::make_pair(false, child));
+          stack.push_back(std::make_pair(false, *i));
         }
       }
       else
