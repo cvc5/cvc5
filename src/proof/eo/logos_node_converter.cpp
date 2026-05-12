@@ -109,8 +109,7 @@ Node LogosNodeConverter::postConvert(Node n)
       ret = mkInternalApp("Term.DtCons", children, tn);
       if (k == Kind::APPLY_TESTER)
       {
-        Node tester = mkInternalSymbol(mkUserOpId("is"), tn);
-        ret = mkInternalApp("Term.Apply", {tester, ret}, tn);
+        ret = mkIndexedApp("is", {ret}, tn);
       }
       for (size_t i = 0, nchild = n.getNumChildren(); i < nchild; i++)
       {
@@ -125,8 +124,7 @@ Node LogosNodeConverter::postConvert(Node n)
       ret = mkInternalApp("Term.DtSel", children, tn);
       if (k == Kind::APPLY_UPDATER)
       {
-        Node update = mkInternalSymbol(mkUserOpId("update"), tn);
-        ret = mkInternalApp("Term.Apply", {update, ret}, tn);
+        ret = mkIndexedApp("update", {ret}, tn);
       }
       ret = mkInternalApp("Term.Apply", {ret, n[0]}, tn);
     }
@@ -362,6 +360,22 @@ Node LogosNodeConverter::mkLogosTypedList(const std::vector<Node>& args, const T
     ret = mkInternalApp("Term.Apply", {cc, ret}, tn);
   }
   return ret;
+}
+
+Node LogosNodeConverter::mkIndexedApp(const std::string& name,
+                    const std::vector<Node>& args,
+                    TypeNode ret,
+                    bool useRawSym)
+{
+  std::vector<Node> targs;
+  std::stringstream sso;
+  sso << "UserOp" << args.size() << "." << name;
+  Node sym = mkInternalSymbol(sso.str(), ret);
+  targs.push_back(sym);
+  targs.insert(targs.end(), args.begin(), args.end());
+  std::stringstream ss;
+  ss << "Term.UOp" << args.size();
+  return mkInternalApp(ss.str(), targs, ret, useRawSym);
 }
 
 }  // namespace proof

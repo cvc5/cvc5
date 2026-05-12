@@ -75,6 +75,15 @@ static std::string replace_all(std::string str,
   std::string cleanSmtId(const std::string& str);
   /** */
   std::string mkUserOpId(const std::string& str);
+  /**
+   * Make an internal symbol with custom name. This is a BOUND_VARIABLE that
+   * has a distinguished status so that it is *not* printed as (bvar ...). The
+   * returned variable is always fresh.
+   */
+  Node mkIndexedApp(const std::string& name,
+                     const std::vector<Node>& args,
+                     TypeNode ret,
+                     bool useRawSym = true);
   /** The number of uninterpreted constants we have allocated */
   size_t d_constIdCount;
   /** Cache for typeAsNode */
