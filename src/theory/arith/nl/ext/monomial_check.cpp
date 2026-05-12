@@ -88,8 +88,8 @@ void MonomialCheck::checkInitialRefine(const std::vector<Node>& monomials)
       Node prem = v.eqNode(mkZero(v.getType()));
       Node conc = a.eqNode(zeroA);
       Node lemma = nm->mkNode(Kind::IMPLIES, prem, conc);
-      Trace("nl-ext-lemma")
-          << "MonomialCheck::Lemma: " << lemma << " ; SIGN_INITIAL" << std::endl;
+      Trace("nl-ext-lemma") << "MonomialCheck::Lemma: " << lemma
+                            << " ; SIGN_INITIAL" << std::endl;
       d_data->d_im.addPendingLemma(lemma, InferenceId::ARITH_NL_SIGN);
     }
   }
