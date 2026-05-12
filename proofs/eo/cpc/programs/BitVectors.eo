@@ -42,8 +42,8 @@
 ; args:
 ; - b (BitVec m): The bitvector concatenation term.
 ; return: The result of concatenating each child of b.
-(program $bv_eval_concat ((m Int) (n Int) (b (BitVec m)) (bs (BitVec n) :list))
-  :signature ((BitVec m)) (BitVec m)
+(program $bv_eval_concat ((m Int) (n Int) (k Int) (b (BitVec m)) (bs (BitVec n) :list))
+  :signature ((BitVec k)) (BitVec k)
   (
   (($bv_eval_concat (concat b bs))  (eo::concat b ($bv_eval_concat bs)))
   (($bv_eval_concat @bv_empty)      @bv_empty)
