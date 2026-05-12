@@ -369,6 +369,8 @@ Node AletheNodeConverter::postConvert(Node n)
     case Kind::IS_INTEGER:
     case Kind::TO_INTEGER:
     case Kind::TO_REAL:
+    case Kind::INTS_ISPOW2:
+    case Kind::INTS_LOG2:
     case Kind::POW2:
     /* from arrays */
     case Kind::ARRAY_TYPE:
@@ -448,6 +450,7 @@ Node AletheNodeConverter::postConvert(Node n)
     case Kind::BITVECTOR_SIGN_EXTEND:
     case Kind::BITVECTOR_ZERO_EXTEND_OP:
     case Kind::BITVECTOR_ZERO_EXTEND:
+    case Kind::BITVECTOR_ITE:
     /* from datatypes */
     case Kind::CONSTRUCTOR_TYPE:
     case Kind::SELECTOR_TYPE:

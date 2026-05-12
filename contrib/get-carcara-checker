@@ -36,6 +36,8 @@ pushd $CARCARA_DIR
 cargo build --release
 mkdir -p $BASE_DIR/bin
 cp ./target/release/carcara $BASE_DIR/bin/carcara
+mkdir -p $BASE_DIR/rare
+cp ./rewrites.eo $BASE_DIR/rare/rewrites.eo
 popd
 
 cat << EOF > $BASE_DIR/bin/cvc5-carcara-check.sh

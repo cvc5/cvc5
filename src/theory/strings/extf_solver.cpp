@@ -826,7 +826,7 @@ Node ExtfSolver::getCurrentSubstitutionFor(int effort,
       else
       {
         // otherwise keep the same
-        vec.push_back(ncr);
+        vec.push_back(nc);
       }
     }
     TypeNode stype = n.getType();

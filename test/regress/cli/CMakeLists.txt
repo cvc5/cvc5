@@ -143,6 +143,7 @@ set(regress_0_tests
   regress0/arrays/incorrect9.smtv1.smt2
   regress0/arrays/issue11908-eec-ensure-atom.smt2
   regress0/arrays/issue12026.smt2
+  regress0/arrays/issue12648.smt2
   regress0/arrays/issue3813-massign-assert.smt2
   regress0/arrays/issue3814.smt2
   regress0/arrays/issue4240.smt2
@@ -1291,6 +1292,7 @@ set(regress_0_tests
   regress0/options/safe-options-fatal.smt2
   regress0/options/set-after-init.smt2
   regress0/options/set-and-get-options.smt2
+  regress0/options/stable-options1.smt2
   regress0/options/statistics.smt2
   regress0/options/stream-printing.smt2
   regress0/options/version.smt2
@@ -1491,6 +1493,7 @@ set(regress_0_tests
   regress0/proofs/dd.fastclose.smt2
   regress0/proofs/dd.fastclose2.smt2
   regress0/proofs/dd.fastclose3.smt2
+  regress0/proofs/dd.read6-cadical.smt2
   regress0/proofs/dd.S715-026__dic_loop__ordering_buffers.adb_11_83_range_check___00.smt2
   regress0/proofs/dd_ada_open.smt2
   regress0/proofs/dd_alpha_eq_qpattern.smt2
@@ -3079,6 +3082,7 @@ set(regress_1_tests
   regress1/proofs/alpha-eq-var-shadow-name-only.smt2
   regress1/proofs/alpha-eq-var-shadow-name-only2.smt2
   regress1/proofs/base-lfsc-treesize.smt2
+  regress1/proofs/dd.SEQ035_size5.smt2
   regress1/proofs/eq-engine-corner-case-constants-disequal.smt2
   regress1/proofs/issue6625-unsat-core-proofs.smt2
   regress1/proofs/macro-res-exp-crowding-lit-inside-unit.smt2
@@ -4503,7 +4507,7 @@ macro(cvc5_add_regression_test level file)
     --lfsc-binary ${PROJECT_SOURCE_DIR}/deps/bin/lfscc
     --lfsc-sig-dir ${PROJECT_SOURCE_DIR}/proofs/lfsc/signatures
     --carcara-binary ${PROJECT_SOURCE_DIR}/deps/bin/carcara
-    --carcara-rare ${PROJECT_SOURCE_DIR}/deps/carcara/rewrites.eo
+    --carcara-rare ${PROJECT_SOURCE_DIR}/deps/rare/rewrites.eo
     --ethos-binary ${PROJECT_SOURCE_DIR}/deps/bin/ethos
     --cpc-sig-dir ${PROJECT_SOURCE_DIR}/proofs/eo
     ${wrapper}
