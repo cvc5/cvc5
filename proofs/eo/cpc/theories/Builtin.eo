@@ -46,11 +46,9 @@
 ; disclaimer: >
 ;   This function is declared pairwise in SMT-LIB. We annotate it as taking an
 ;   argument list for the sake of performance.
-(declare-parameterized-const distinct ((xs @List))
-  (eo::requires
-    ($assoc_nil_same_type @list xs) true
-    Bool)
-  :arg-list @list)
+(declare-parameterized-const distinct ((T Type :implicit))
+  (-> (@TList T) Bool)
+  :arg-list @tlist)
   
 ; The purification skolem.
 (declare-parameterized-const @purify ((A Type :implicit) (t A :opaque)) A)

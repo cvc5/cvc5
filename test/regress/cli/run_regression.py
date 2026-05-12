@@ -39,6 +39,7 @@ class Color:
     ENDC = "\033[0m"
 
 is_windows = sys.platform.startswith('win')
+ADMISSIBLE_MODE_ERROR = re.compile(r'in (?:safe|stable) mode')
 
 class BulletSymbol:
     # On Windows, the special characters cause this error:
@@ -56,6 +57,10 @@ def print_ok(msg):
 
 def print_error(err):
     print(Color.RED + BulletSymbol.ERROR + err + Color.ENDC)
+
+def has_admissible_mode_error(output, error):
+    return bool(ADMISSIBLE_MODE_ERROR.search(output.decode()) or
+                ADMISSIBLE_MODE_ERROR.search(error.decode()))
 
 class Tester:
 
@@ -277,7 +282,9 @@ class AletheTester(Tester):
         with tempfile.NamedTemporaryFile(suffix=".smt2.proof") as tmpf:
             cvc5_args = benchmark_info.command_line_args + [
                 "--dump-proofs",
-                "--proof-format=alethe"
+                "--proof-format=alethe",
+                "--proof-granularity=dsl-rewrite",
+                "--proof-alethe-testing"
             ]
             # remove duplicates
             cvc5_args = list(dict.fromkeys(cvc5_args))
@@ -306,7 +313,12 @@ class AletheTester(Tester):
             carcara_args = [
                 "--allow-int-real-subtyping",
                 "--expand-let-bindings",
-                "--ignore-unknown-rules"
+                "--allowed-rules",
+                "undefined",
+                "la_mult_sign",
+                "la_mult_abs_comparison",
+                "--rare-file",
+                benchmark_info.carcara_rare,
             ]
             output, error, exit_status = run_process(
                 [benchmark_info.carcara_binary] + ["check"] +
@@ -317,7 +329,7 @@ class AletheTester(Tester):
             output, error = output.decode(), error.decode()
             exit_code = self.check_exit_status(EXIT_OK, exit_status, output,
                                                error, cvc5_args)
-            if "valid" not in output and "holey" not in output:
+            if "valid" not in output:
                 print_error("Invalid proof")
                 print()
                 print_outputs(output, error)
@@ -351,10 +363,10 @@ class CpcTester(Tester):
                 benchmark_info.benchmark_dir,
                 benchmark_info.timeout,
             )
-            # if we throw an admissible error (with text "in safe mode"), we
-            # allow the benchmark to be skipped.
+            # if we throw an admissible error (with text "in safe mode" or
+            # "in stable mode"), we allow the benchmark to be skipped.
             if ((benchmark_info.safe_mode or benchmark_info.stable_mode) and
-                (re.search(r'in safe mode', output.decode()) or re.search(r'in safe mode', error.decode()))):
+                has_admissible_mode_error(output, error)):
                 return EXIT_SKIP
             cpc_sig_dir = os.path.abspath(g_args.cpc_sig_dir)
             tmpf.write(("(include \"" + cpc_sig_dir + "/cpc/Cpc.eo\")").encode())
@@ -551,6 +563,7 @@ BenchmarkInfo = collections.namedtuple(
         "lfsc_binary",
         "lfsc_sigs",
         "carcara_binary",
+        "carcara_rare",
         "ethos_binary",
         "benchmark_dir",
         "benchmark_basename",
@@ -712,9 +725,9 @@ def run_benchmark(benchmark_info):
         benchmark_info.timeout,
     )
     # For all testers, if we throw an admissible error (with text
-    # "in safe mode"), we allow the benchmark to be skipped.
+    # "in safe mode" or "in stable mode"), we allow the benchmark to be skipped.
     if ((benchmark_info.safe_mode or benchmark_info.stable_mode) and
-        (re.search(r'in safe mode', output.decode()) or re.search(r'in safe mode', error.decode()))):
+        has_admissible_mode_error(output, error)):
         return (output, error, EXIT_SKIP)
 
     # If a scrubber command has been specified then apply it to the output.
@@ -764,6 +777,7 @@ def run_regression(
     lfsc_binary,
     lfsc_sigs,
     carcara_binary,
+    carcara_rare,
     ethos_binary,
     benchmark_path,
     timeout,
@@ -906,6 +920,7 @@ def run_regression(
             lfsc_binary=lfsc_binary,
             lfsc_sigs=lfsc_sigs,
             carcara_binary=carcara_binary,
+            carcara_rare=carcara_rare,
             ethos_binary=ethos_binary,
             benchmark_dir=benchmark_dir,
             benchmark_basename=benchmark_basename,
@@ -949,7 +964,7 @@ def main():
     parser = argparse.ArgumentParser(
         description="Runs benchmark and checks for correct exit status and output."
     )
-    
+
     g_testers_keys = list(g_testers.keys())
     tester_choices = ["all"] + g_testers_keys
     parser.add_argument("--use-skip-return-code", action="store_true")
@@ -959,6 +974,7 @@ def main():
     parser.add_argument("--lfsc-binary", default="")
     parser.add_argument("--lfsc-sig-dir", default="")
     parser.add_argument("--carcara-binary", default="")
+    parser.add_argument("--carcara-rare", default="")
     parser.add_argument("--ethos-binary", default="")
     parser.add_argument("--cpc-sig-dir", default="")
     parser.add_argument("wrapper", nargs="*")
@@ -975,6 +991,7 @@ def main():
     cvc5_binary = os.path.abspath(g_args.cvc5_binary)
     lfsc_binary = os.path.abspath(g_args.lfsc_binary)
     carcara_binary = os.path.abspath(g_args.carcara_binary)
+    carcara_rare = os.path.abspath(g_args.carcara_rare)
     ethos_binary = os.path.abspath(g_args.ethos_binary)
 
     wrapper = g_args.wrapper
@@ -1011,6 +1028,7 @@ def main():
         lfsc_binary,
         lfsc_sigs,
         carcara_binary,
+        carcara_rare,
         ethos_binary,
         g_args.benchmark,
         timeout,
