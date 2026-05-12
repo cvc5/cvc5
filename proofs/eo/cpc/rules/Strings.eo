@@ -673,15 +673,13 @@
     )
 )
 
-; program: $str_is_multiset_subset_strict
+; program: $str_is_multiset_subset_strict_done
 ; args:
-; - s (Seq T): a string term, expected to be in flattened form.
-; - xs @List: the multiset (over)approximation of a string term.
-; - nr @List: the accumulated list of previously processed terms from s that were not removed from xs.
+; - xs @List: the remaining multiset (over)approximation of a string term.
+; - nr @List: the accumulated list of terms that were not removed from xs.
 ; return: >
-;   True if the string approximated by s is definitely not contained in the string
-;   approximated by t. We compute this by iteratively removing the components of
-;   s from t, and then checking if a term in nr is provably distinct from the final xs.
+;   True if some accumulated term is provably distinct from every term in the
+;   remaining overapproximation xs.
 (program $str_is_multiset_subset_strict_done ((T Type) (s (Seq T)) (xs @List) (nr @List :list))
     :signature (@List @List) Bool
     (
@@ -692,6 +690,15 @@
     )
 )
 
+; program: $str_is_multiset_subset_strict
+; args:
+; - s (Seq T): a string term, expected to be in flattened form.
+; - xs @List: the multiset (over)approximation of a string term.
+; - nr @List: the accumulated list of previously processed terms from s that were not removed from xs.
+; return: >
+;   True if the string approximated by s is definitely not contained in the string
+;   approximated by t. We compute this by iteratively removing the components of
+;   s from t, and then checking if a term in nr is provably distinct from the final xs.
 (program $str_is_multiset_subset_strict ((T Type) (emp (Seq T)) (s (Seq T)) (ss (Seq T) :list) (xs @List) (nr @List :list))
     :signature ((Seq T) @List @List) Bool
     (
