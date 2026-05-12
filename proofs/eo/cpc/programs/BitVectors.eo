@@ -38,16 +38,15 @@
 (define $bv_unfold_repeat_rec ((m Int :implicit) (n Int) (b (BitVec m)))
   (eo::list_repeat concat b n))
 
-; program: $bv_repeat_eval_rec
+; program: $bv_eval_concat
 ; args:
-; - n Int: The number of times to repeat, assumed to be a non-negative numeral.
-; - b (BitVec m): The bitvector term.
-; return: The result of concatenating b n times.
-(program $bv_repeat_eval_rec ((m Int) (n Int) (b (BitVec m)) (bs (BitVec n) :list))
+; - b (BitVec m): The bitvector concatenation term.
+; return: The result of concatenating each child of b.
+(program $bv_eval_concat ((m Int) (n Int) (b (BitVec m)) (bs (BitVec n) :list))
   :signature ((BitVec m)) (BitVec m)
   (
-  (($bv_repeat_eval_rec (concat b bs))  (eo::concat b ($bv_repeat_eval_rec bs)))
-  (($bv_repeat_eval_rec b)              (eo::to_bin 0 0))
+  (($bv_eval_concat (concat b bs))  (eo::concat b ($bv_eval_concat bs)))
+  (($bv_eval_concat b)              (eo::to_bin 0 0))
   )
 )
 
