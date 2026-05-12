@@ -46,7 +46,7 @@
   :signature ((BitVec m)) (BitVec m)
   (
   (($bv_eval_concat (concat b bs))  (eo::concat b ($bv_eval_concat bs)))
-  (($bv_eval_concat b)              (eo::to_bin 0 0))
+  (($bv_eval_concat @bv_empty)      @bv_empty)
   )
 )
 
