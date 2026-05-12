@@ -90,19 +90,17 @@ Result::Status DualSimplexDecisionProcedure::dualFindModel(bool exactResult)
   exactResult |= d_varOrderPivotLimit < 0;
 
   uint32_t checkPeriod = options().arith.arithSimplexCheckPeriod;
-  if (result == Result::UNKNOWN)
+
+  uint32_t numDifferencePivots = options().arith.arithHeuristicPivots < 0
+                                     ? d_numVariables + 1
+                                     : options().arith.arithHeuristicPivots;
+  // The signed to unsigned conversion is safe.
+  if (numDifferencePivots > 0)
   {
-    uint32_t numDifferencePivots = options().arith.arithHeuristicPivots < 0
-                                       ? d_numVariables + 1
-                                       : options().arith.arithHeuristicPivots;
-    // The signed to unsigned conversion is safe.
-    if (numDifferencePivots > 0)
+    d_errorSet.setSelectionRule(d_heuristicRule);
+    if (searchForFeasibleSolution(numDifferencePivots))
     {
-      d_errorSet.setSelectionRule(d_heuristicRule);
-      if (searchForFeasibleSolution(numDifferencePivots))
-      {
-        result = Result::UNSAT;
-      }
+      result = Result::UNSAT;
     }
   }
   Assert(!d_errorSet.moreSignals());
