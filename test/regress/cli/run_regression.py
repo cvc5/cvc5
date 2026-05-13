@@ -26,7 +26,6 @@ import threading
 import time
 
 g_args = None
-g_timeout_detected = False
 
 # For maximum reliability, we get a fully qualified path for the executable.
 bash_bin = shutil.which("bash")
@@ -71,8 +70,6 @@ class Tester:
                           error, flags):
         if is_timeout(exit_status, output, error):
             print_error("Timeout")
-            if not g_args.skip_timeout:
-                note_timeout_detected()
             return EXIT_SKIP if g_args.skip_timeout else EXIT_TIMEOUT
         elif exit_status == EXIT_SKIP:
             return EXIT_SKIP
@@ -514,8 +511,6 @@ class DumpTester(Tester):
             )
             if is_timeout(dump_exit_status, dump_output, dump_error):
                 print_error("Timeout")
-                if not g_args.skip_timeout:
-                    note_timeout_detected()
                 return EXIT_SKIP if g_args.skip_timeout else EXIT_TIMEOUT
 
             tmpf_name = tmpf.name
@@ -607,12 +602,41 @@ EXIT_SKIP = 77
 EXIT_TIMEOUT = 124
 STATUS_TIMEOUT = EXIT_TIMEOUT
 CTEST_TIMEOUT_ENV = "CVC5_REGRESSION_TIMEOUT_AS_CTEST_TIMEOUT"
+CTEST_TIMEOUT_MARKER = "CVC5_REGRESSION_CTEST_TIMEOUT"
 CTEST_TIMEOUT_SLEEP = 2
+# Some testers run cvc5 plus an external checker or scrubbers.
+CTEST_TIMEOUT_PROCESS_FACTOR = 4
+CTEST_TIMEOUT_MARGIN = 60
 
 
-def note_timeout_detected():
-    global g_timeout_detected
-    g_timeout_detected = True
+def ctest_timeout_enabled():
+    return os.environ.get(CTEST_TIMEOUT_ENV) == "1"
+
+
+def emit_ctest_timeout_marker():
+    print(CTEST_TIMEOUT_MARKER)
+    sys.stdout.flush()
+    sys.stderr.flush()
+
+
+def ctest_timeout_watchdog():
+    emit_ctest_timeout_marker()
+    while True:
+        time.sleep(CTEST_TIMEOUT_SLEEP)
+
+
+def start_ctest_timeout_watchdog(timeout, num_tests):
+    if not ctest_timeout_enabled():
+        return None
+
+    watchdog_timeout = int(
+        timeout * max(1, num_tests) * CTEST_TIMEOUT_PROCESS_FACTOR
+        + CTEST_TIMEOUT_MARGIN
+    )
+    watchdog = threading.Timer(max(1, watchdog_timeout), ctest_timeout_watchdog)
+    watchdog.daemon = True
+    watchdog.start()
+    return watchdog
 
 
 def is_timeout(exit_status, output, error):
@@ -706,10 +730,15 @@ def run_process(args, cwd, timeout, s_input=None):
     return out, err, exit_status
 
 
-def get_cvc5_features(cvc5_binary):
+def get_cvc5_features(cvc5_binary, timeout):
     """Returns a list of features supported by the cvc5 binary `cvc5_binary`."""
 
-    output, _, _ = run_process([cvc5_binary, "--show-config"], None, None)
+    output, error, exit_status = run_process([cvc5_binary, "--show-config"],
+                                             None, timeout)
+    if is_timeout(exit_status, output, error):
+        print_error("Timeout")
+        return None, None
+
     if isinstance(output, bytes):
         output = output.decode()
 
@@ -830,7 +859,10 @@ def run_regression(
     if not os.path.isfile(benchmark_path):
         sys.exit('"{}" does not exist or is not a file'.format(benchmark_path))
 
-    cvc5_features, cvc5_disabled_features = get_cvc5_features(cvc5_binary)
+    cvc5_features, cvc5_disabled_features = get_cvc5_features(cvc5_binary,
+                                                              timeout)
+    if cvc5_features is None:
+        return EXIT_TIMEOUT
 
     basic_command_line_args = []
 
@@ -985,14 +1017,19 @@ def run_regression(
     # Run cvc5 on the benchmark with the different testers and check whether
     # the exit status, stdout output, stderr output are as expected.
     exit_code = EXIT_OK
-    for tester, benchmark_info in tests:
-        test_exit_code = tester.run(benchmark_info)
-        if exit_code == EXIT_FAILURE or test_exit_code == EXIT_FAILURE:
-            exit_code = EXIT_FAILURE
-        elif exit_code == EXIT_TIMEOUT or test_exit_code == EXIT_TIMEOUT:
-            exit_code = EXIT_TIMEOUT
-        else:
-            exit_code = test_exit_code
+    watchdog = start_ctest_timeout_watchdog(timeout, len(tests))
+    try:
+        for tester, benchmark_info in tests:
+            test_exit_code = tester.run(benchmark_info)
+            if exit_code == EXIT_FAILURE or test_exit_code == EXIT_FAILURE:
+                exit_code = EXIT_FAILURE
+            elif exit_code == EXIT_TIMEOUT or test_exit_code == EXIT_TIMEOUT:
+                exit_code = EXIT_TIMEOUT
+            else:
+                exit_code = test_exit_code
+    finally:
+        if watchdog is not None:
+            watchdog.cancel()
 
     return exit_code
 
@@ -1075,11 +1112,10 @@ def main():
         g_args.benchmark,
         timeout,
     )
-    if g_timeout_detected and os.environ.get(CTEST_TIMEOUT_ENV) == "1":
-        # Let CTest see the timeout diagnostic and terminate this process so
-        # its native summary reports the test as a timeout.
-        sys.stdout.flush()
-        sys.stderr.flush()
+    if exit_code == EXIT_TIMEOUT and ctest_timeout_enabled():
+        # Let CTest terminate this process so its native summary reports the
+        # test as a timeout.
+        emit_ctest_timeout_marker()
         time.sleep(CTEST_TIMEOUT_SLEEP)
     return exit_code
 

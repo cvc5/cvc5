@@ -4509,13 +4509,13 @@ macro(cvc5_add_regression_test level file)
     ${wrapper}
     ${path_to_cvc5}/cvc5${CMAKE_EXECUTABLE_SUFFIX}
     ${CMAKE_CURRENT_LIST_DIR}/${file})
-  # Let CTest report run_regression.py timeouts as native Timeout results.
-  # TEST_TIMEOUT still controls the cvc5 subprocess timeout.
+  # Let CTest report final run_regression.py timeouts as native Timeout
+  # results. The marker is printed only for the final timeout result or the
+  # TEST_TIMEOUT-derived watchdog in run_regression.py.
   set_tests_properties(${file} PROPERTIES
     LABELS "regress${level}"
     SKIP_RETURN_CODE 77
-    TIMEOUT 86400
-    TIMEOUT_AFTER_MATCH "1;(✖|>) Timeout"
+    TIMEOUT_AFTER_MATCH "1;CVC5_REGRESSION_CTEST_TIMEOUT"
     ENVIRONMENT "CVC5_REGRESSION_TIMEOUT_AS_CTEST_TIMEOUT=1")
   # set_tests_properties(${file} PROPERTIES FIXTURES_REQUIRED build_regress_fixture)
 endmacro()
