@@ -145,13 +145,11 @@ FfResult split(const std::vector<Node>& facts,
     enc.addFact(fact);
   }
 
-  Polys nlGens;
+  Polys nlGens = enc.polys();
   Polys lGens = enc.bitsumPolys();
   for (const auto& p : enc.polys())
   {
-    if (CoCoA::IsZero(p)) continue;
-    nlGens.push_back(p);
-    if (CoCoA::deg(p) <= 1)
+    if (!CoCoA::IsZero(p) && CoCoA::deg(p) <= 1)
     {
       lGens.push_back(p);
     }
