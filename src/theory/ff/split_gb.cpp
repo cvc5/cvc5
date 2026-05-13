@@ -145,10 +145,12 @@ FfResult split(const std::vector<Node>& facts,
     enc.addFact(fact);
   }
 
-  Polys nlGens = enc.polys();
+  Polys nlGens;
   Polys lGens = enc.bitsumPolys();
   for (const auto& p : enc.polys())
   {
+    if (CoCoA::IsZero(p)) continue;
+    nlGens.push_back(p);
     if (CoCoA::deg(p) <= 1)
     {
       lGens.push_back(p);
@@ -262,6 +264,12 @@ std::optional<Point> splitFindZero(SplitGb&& splitBasisIn,
     {
       std::copy(
           b.basis().begin(), b.basis().end(), std::back_inserter(allGens));
+    }
+    if (allGens.empty())
+    {
+      // no constraints - trivially SAT; return a zero point.
+      long n = CoCoA::NumIndets(polyRing);
+      return Point(n, CoCoA::zero(polyRing->myBaseRing()));
     }
     PartialPoint nullPartialRoot(CoCoA::NumIndets(polyRing));
     auto result = splitZeroExtend(allGens,
