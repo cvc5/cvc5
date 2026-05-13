@@ -9,6 +9,7 @@
 Checks: >
   -clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling,
   cvc5-*,
+  modernize-deprecated-headers,
   modernize-use-nullptr
 HeaderFilterRegex: '.*'
 # Use .clang-format for formatting changes
