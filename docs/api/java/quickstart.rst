@@ -5,7 +5,7 @@ First, create a cvc5 `TermManager <io/github/cvc5/TermManager.html>`_ instance:
 
 .. literalinclude:: ../../../examples/api/java/QuickStart.java
    :language: java
-   :dedent: 6
+   :dedent: 4
    :start-after: docs-java-quickstart-0 start
    :end-before: docs-java-quickstart-0 end
 
@@ -14,7 +14,7 @@ instance:
 
 .. literalinclude:: ../../../examples/api/java/QuickStart.java
    :language: java
-   :dedent: 6
+   :dedent: 4
    :start-after: docs-java-quickstart-1 start
    :end-before: docs-java-quickstart-1 end
 
@@ -206,6 +206,7 @@ Example
 .. api-examples::
     <examples>/api/java/QuickStart.java
     <examples>/api/cpp/quickstart.cpp
+    <examples>/api/c/quickstart.c
     <pythonicapi>/test/pgms/example_quickstart.py
     <examples>/api/python/quickstart.py
     <examples>/api/smtlib/quickstart.smt2

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Hans-Joerg Schurr
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -204,7 +201,7 @@ Node FactoringCheck::getFactorSkolem(Node n, CDProof* proof)
   {
     k = itf->second;
   }
-  if (d_data->isProofEnabled())
+  if (proof != nullptr)
   {
     Node k_eq = k.eqNode(n);
     proof->addStep(k_eq, ProofRule::MACRO_SR_PRED_INTRO, {}, {k_eq});

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Alex Ozdemir, Daniel Larraz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -407,7 +404,11 @@ std::optional<Node> disjunctiveBitConstraint(const Node& t)
     if ((oneConstraint(t[0]) && zeroConstraint(t[1]))
         || (oneConstraint(t[1]) && zeroConstraint(t[0])))
     {
-      return {theory::ff::parse::spectrum(t[0])->var};
+      auto s0 = theory::ff::parse::spectrum(t[0]);
+      auto s1 = theory::ff::parse::spectrum(t[1]);
+      Assert(s0.has_value());
+      Assert(s1.has_value());
+      if (s0->var == s1->var) return {s0->var};
     }
   }
   return {};

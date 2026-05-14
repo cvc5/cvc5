@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andres Noetzli, Morgan Deters, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -340,20 +337,18 @@ void NodeBuilder::decrRefCounts()
   d_inlineNv.d_nchildren = 0;
 }
 
-TypeNode NodeBuilder::constructTypeNode() { return TypeNode(constructNV()); }
+TypeNode NodeBuilder::constructTypeNode()
+{
+  // NOLINTNEXTLINE(clang-analyzer-unix.Malloc)
+  return TypeNode(constructNV());
+}
 
 Node NodeBuilder::constructNode()
 {
+  // NOLINTNEXTLINE(clang-analyzer-unix.Malloc)
   Node n(constructNV());
   maybeCheckType(n);
   return n;
-}
-
-Node* NodeBuilder::constructNodePtr()
-{
-  std::unique_ptr<Node> np(new Node(constructNV()));
-  maybeCheckType(*np.get());
-  return np.release();
 }
 
 NodeBuilder::operator Node() { return constructNode(); }

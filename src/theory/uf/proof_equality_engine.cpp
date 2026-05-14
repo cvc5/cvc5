@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Hans-Joerg Schurr
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -185,7 +182,7 @@ TrustNode ProofEqEngine::assertConflict(Node lit)
     std::vector<Node> args;
     if (!d_proof.addStep(d_false, ProofRule::MACRO_SR_PRED_ELIM, exp, args))
     {
-      Assert(false) << "pfee::assertConflict: failed conflict step";
+      DebugUnhandled() << "pfee::assertConflict: failed conflict step";
       return TrustNode::null();
     }
   }
@@ -245,7 +242,7 @@ TrustNode ProofEqEngine::assertLemma(Node conc,
   if (!outer.addStep(conc, id, exp, args))
   {
     // a step went wrong, e.g. during checking
-    Assert(false) << "pfee::assertConflict: register proof step";
+    DebugUnhandled() << "pfee::assertConflict: register proof step";
     return TrustNode::null();
   }
   // Now get the proof for conc.
@@ -349,7 +346,8 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
         << std::endl
         << std::endl;
     // should have existed
-    Assert(false) << "pfee::assertConflict: failed to get proof for " << conc;
+    DebugUnhandled() << "pfee::assertConflict: failed to get proof for "
+                     << conc;
     return TrustNode::null();
   }
   // clone it so that we have a fresh copy

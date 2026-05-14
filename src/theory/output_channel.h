@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -151,6 +148,14 @@ class OutputChannel
   virtual void trustedLemma(TrustNode plem,
                             InferenceId id,
                             LemmaProperty p = LemmaProperty::NONE);
+  /**
+   * Mark used. Called when we wish to mark that the output channel is used,
+   * for example, if we wish to manually call check again, even if no lemmas
+   * are sent. Note that theory engine determines whether to recheck
+   * (TheoryEngine::needsCheck) if lemmas were sent or if the output channel
+   * is marked as used.
+   */
+  virtual void markUsed();
   /**
    * Get the theory identifier
    */

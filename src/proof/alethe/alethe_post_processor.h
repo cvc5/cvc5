@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Hanna Lachnitt, Haniel Barbosa, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -103,6 +100,8 @@ class AletheProofPostprocessCallback : protected EnvObj,
   bool d_resPivots;
   /** The cl operator. */
   Node d_cl;
+  /** The rare-list operator. */
+  Node d_rareList;
   /** Adds an Alethe step to the CDProof argument
    *
    * The added step to `cdp` uses ProofRule::ALETHE_RULE with `rule` as the

@@ -400,3 +400,10 @@ K2       = "IAND_OP"
 children = 2
 comment  = "integer version of AND operator; first parameter is an IAND_OP, second and third are integer terms"
 typerule = "::cvc5::internal::theory::arith::IAndTypeRule"
+
+[[kinds]]
+type     = "operator"
+name     = "PIAND"
+children = 3
+comment  = "parametric integer version of AND operator"
+typerule = "SimpleTypeRule<RInteger, AInteger, AInteger, AInteger>"

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mathias Preiner, Andrew Reynolds, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -53,7 +50,8 @@ TheoryBV::TheoryBV(Env& env,
       break;
 
     default:
-      AlwaysAssert(options().bv.bvSolver == options::BVSolver::BITBLAST_INTERNAL);
+      AlwaysAssert(options().bv.bvSolver
+                   == options::BVSolver::BITBLAST_INTERNAL);
       d_internal.reset(new BVSolverBitblastInternal(d_env, &d_state, d_im));
   }
   d_theoryState = &d_state;
@@ -198,7 +196,8 @@ bool TheoryBV::ppAssert(TrustNode tin, TrustSubstitutionMap& outSubstitutions)
   return false;
 }
 
-TrustNode TheoryBV::ppRewrite(TNode t, std::vector<SkolemLemma>& lems)
+TrustNode TheoryBV::ppRewrite(TNode t,
+                              CVC5_UNUSED std::vector<SkolemLemma>& lems)
 {
   Trace("theory-bv-pp-rewrite") << "ppRewrite " << t << "\n";
   Node res = t;
@@ -294,10 +293,7 @@ EqualityStatus TheoryBV::getEqualityStatus(TNode a, TNode b)
 
 TrustNode TheoryBV::explain(TNode node) { return d_internal->explain(node); }
 
-void TheoryBV::notifySharedTerm(TNode t)
-{
-  d_internal->notifySharedTerm(t);
-}
+void TheoryBV::notifySharedTerm(TNode t) { d_internal->notifySharedTerm(t); }
 
 void TheoryBV::ppStaticLearn(TNode in, std::vector<TrustNode>& learned)
 {

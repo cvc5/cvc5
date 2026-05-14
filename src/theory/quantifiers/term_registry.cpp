@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -131,11 +128,9 @@ void TermRegistry::declarePool(Node p, const std::vector<Node>& initValue)
   d_termPools->registerPool(p, initValue);
 }
 
-void TermRegistry::processInstantiation(Node q,
-                                        const std::vector<Node>& terms,
-                                        bool success)
+void TermRegistry::processInstantiation(Node q, const std::vector<Node>& terms)
 {
-  d_termPools->processInstantiation(q, terms, success);
+  d_termPools->processInstantiation(q, terms);
 }
 void TermRegistry::processSkolemization(Node q,
                                         const std::vector<Node>& skolems)

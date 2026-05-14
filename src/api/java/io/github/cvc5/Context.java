@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mudathir Mohamed
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -15,11 +12,11 @@
 
 package io.github.cvc5;
 
+import java.lang.Long;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
-import java.lang.Long;
+import java.util.Map;
 
 /**
  * The {@code Context} class is responsible for tracking and deleting pointers to
@@ -32,7 +29,7 @@ import java.lang.Long;
 public class Context
 {
   // Store pointers for term managers, solvers, terms, sorts, etc
-  private static Map<Long, AbstractPointer> abstractPointers = new LinkedHashMap<>();
+  private static final Map<Long, AbstractPointer> abstractPointers = new LinkedHashMap<>();
 
   /**
    * Private constructor to prevent instantiation of this memory management class.
@@ -46,7 +43,7 @@ public class Context
    *
    * @param pointer the {@link AbstractPointer} to register
    */
-  static void addAbstractPointer(AbstractPointer pointer)
+  static synchronized void addAbstractPointer(AbstractPointer pointer)
   {
     abstractPointers.put(Long.valueOf(pointer.getPointer()), pointer);
   }
@@ -56,8 +53,10 @@ public class Context
    *
    * @param pointer the {@link AbstractPointer} to remove
    */
-  static void removeAbstractPointer(AbstractPointer pointer) {
-    if (pointer.getPointer() != 0) {
+  static synchronized void removeAbstractPointer(AbstractPointer pointer)
+  {
+    if (pointer.getPointer() != 0)
+    {
       abstractPointers.remove(Long.valueOf(pointer.getPointer()));
     }
   }
@@ -74,11 +73,12 @@ public class Context
    * the {@link AbstractPointer#deletePointer()} method individually on
    * each Java object instead of calling this method.</p>
    */
-  public static void deletePointers()
+  public static synchronized void deletePointers()
   {
     LinkedList<AbstractPointer> values = new LinkedList<AbstractPointer>(abstractPointers.values());
     Iterator<AbstractPointer> i = values.descendingIterator();
-    while (i.hasNext()) {
+    while (i.hasNext())
+    {
       i.next().deletePointer();
     }
 

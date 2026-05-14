@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Justin Xu, Aina Niemetz, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -47,7 +44,11 @@ class PreprocessingPassContext;
  * Preprocessing passes return a result which indicates whether a conflict has
  * been detected during preprocessing.
  */
-enum PreprocessingPassResult { CONFLICT, NO_CONFLICT };
+enum PreprocessingPassResult
+{
+  CONFLICT,
+  NO_CONFLICT
+};
 
 class PreprocessingPass : protected EnvObj
 {
@@ -60,7 +61,6 @@ class PreprocessingPass : protected EnvObj
   virtual ~PreprocessingPass();
 
  protected:
-
   /*
    * Abstract method that each pass implements to do the actual preprocessing.
    */

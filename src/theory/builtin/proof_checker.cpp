@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Hans-Joerg Schurr, Hanna Lachnitt
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -80,6 +77,10 @@ Node BuiltinProofRuleChecker::applySubstitutionRewrite(
     MethodId idr)
 {
   Node nks = applySubstitution(n, exp, ids, ida);
+  if (nks.isNull())
+  {
+    return nks;
+  }
   return d_env.rewriteViaMethod(nks, idr);
 }
 
@@ -111,9 +112,9 @@ bool BuiltinProofRuleChecker::getSubstitutionForLit(Node exp,
   }
   else
   {
-    Assert(false) << "BuiltinProofRuleChecker::applySubstitution: no "
-                     "substitution for "
-                  << ids << std::endl;
+    DebugUnhandled() << "BuiltinProofRuleChecker::applySubstitution: no "
+                        "substitution for "
+                     << ids << std::endl;
     return false;
   }
   return true;
@@ -290,7 +291,7 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
   {
     Assert(children.empty());
     Assert(args.size() == 2);
-    Assert(args[0].getType() == args[1].getType());
+    AssertEqual(args[0].getType(), args[1].getType());
     if (!args[0].isConst() || !args[1].isConst() || args[0] == args[1])
     {
       return Node::null();
@@ -362,8 +363,9 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
       return Node::null();
     }
     Trace("builtin-pfcheck") << "Result is " << res << std::endl;
-    Trace("builtin-pfcheck") << "Witness form is "
-                             << SkolemManager::getOriginalForm(res) << std::endl;
+    Trace("builtin-pfcheck")
+        << "Witness form is " << SkolemManager::getOriginalForm(res)
+        << std::endl;
     // **** NOTE: can rewrite the witness form here. This enables certain lemmas
     // to be provable, e.g. (= k t) where k is a purification Skolem for t.
     res = d_rewriter->rewrite(SkolemManager::getOriginalForm(res));
@@ -409,6 +411,10 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
     exp.insert(exp.end(), children.begin() + 1, children.end());
     Node res1 = applySubstitutionRewrite(children[0], exp, ids, ida, idr);
     Node res2 = applySubstitutionRewrite(args[0], exp, ids, ida, idr);
+    if (res1.isNull() || res2.isNull())
+    {
+      return Node::null();
+    }
     // if not already equal, do rewriting
     if (res1 != res2)
     {

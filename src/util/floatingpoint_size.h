@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Martin Brain, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -33,7 +30,10 @@ class FloatingPointSize
  public:
   /** Constructors. */
   FloatingPointSize(uint32_t exp_size, uint32_t sig_size);
-  FloatingPointSize(const FloatingPointSize& old);
+  FloatingPointSize(const FloatingPointSize& other);
+
+  /** Copy assignment. */
+  FloatingPointSize& operator=(const FloatingPointSize& other);
 
   /** Operator overload for equality comparison. */
   bool operator==(const FloatingPointSize& fps) const

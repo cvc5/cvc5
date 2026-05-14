@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -44,7 +41,7 @@ SygusPbe::SygusPbe(Env& env,
 
 SygusPbe::~SygusPbe() {}
 
-bool SygusPbe::initialize(Node conj,
+bool SygusPbe::initialize(CVC5_UNUSED Node conj,
                           Node n,
                           const std::vector<Node>& candidates)
 {
@@ -147,14 +144,16 @@ bool SygusPbe::initialize(Node conj,
   return true;
 }
 
-// ------------------------------------------- solution construction from enumeration
+// ------------------------------------------- solution construction from
+// enumeration
 
 void SygusPbe::getTermList(const std::vector<Node>& candidates,
                            std::vector<Node>& terms)
 {
-  for( unsigned i=0; i<candidates.size(); i++ ){
+  for (unsigned i = 0; i < candidates.size(); i++)
+  {
     Node v = candidates[i];
-    std::map<Node, std::vector<Node> >::iterator it =
+    std::map<Node, std::vector<Node>>::iterator it =
         d_candidate_to_enum.find(v);
     if (it != d_candidate_to_enum.end())
     {
@@ -174,7 +173,8 @@ bool SygusPbe::constructCandidates(const std::vector<Node>& enums,
                                    std::vector<Node>& candidate_values)
 {
   Assert(enums.size() == enum_values.size());
-  if( !enums.empty() ){
+  if (!enums.empty())
+  {
     unsigned min_term_size = 0;
     Trace("sygus-pbe-enum") << "Register new enumerated values : " << std::endl;
     std::vector<unsigned> szs;
@@ -220,7 +220,8 @@ bool SygusPbe::constructCandidates(const std::vector<Node>& enums,
     }
 
     // only consider the enumerators that are at minimum size (for fairness)
-    Trace("sygus-pbe-enum") << "...register " << enum_consider.size() << " / " << enums.size() << std::endl;
+    Trace("sygus-pbe-enum") << "...register " << enum_consider.size() << " / "
+                            << enums.size() << std::endl;
     NodeManager* nm = nodeManager();
     for (unsigned i = 0, ecsize = enum_consider.size(); i < ecsize; i++)
     {
@@ -245,9 +246,10 @@ bool SygusPbe::constructCandidates(const std::vector<Node>& enums,
       }
     }
   }
-  for( unsigned i=0; i<candidates.size(); i++ ){
+  for (unsigned i = 0; i < candidates.size(); i++)
+  {
     Node c = candidates[i];
-    //build decision tree for candidate
+    // build decision tree for candidate
     std::vector<Node> sol;
     std::vector<Node> lems;
     bool solSuccess = d_sygus_unif[c]->constructSolution(sol, lems);
@@ -269,6 +271,6 @@ bool SygusPbe::constructCandidates(const std::vector<Node>& enums,
   return true;
 }
 
-}
-}
+}  // namespace quantifiers
+}  // namespace theory
 }  // namespace cvc5::internal

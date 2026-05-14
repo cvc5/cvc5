@@ -6,13 +6,6 @@
 (define $compare_geq ((T Type :implicit) (x T) (y T))
   (eo::ite (eo::eq x y) true (eo::gt x y)))
 
-; define: $sgn
-; args:
-; - x T: The term to inspect. Assumed to be an arithmetic value.
-; return: The sign of x: -1 if x < 0, 1 if x > 0, and 0 otherwise.
-(define $sgn ((T Type :implicit) (x T))
-  (eo::ite (eo::is_neg x) -1 (eo::ite (eo::is_neg (eo::neg x)) 1 0)))
-
 (declare-const @@Pair (-> Type Type Type))
 (define @Pair () @@Pair)
 (declare-parameterized-const @@pair ((U Type :implicit) (T Type :implicit)) (-> U T (@Pair U T)))
@@ -40,6 +33,8 @@
   )
 )
 
+;; =============== untyped list
+
 ; untyped list.
 ; note: >
 ;   We use this as a synonym for eo::List. We use this syntax as it avoids
@@ -47,6 +42,42 @@
 (define @List () eo::List)
 (define @list.nil () eo::List::nil)
 (define @list () eo::List::cons)
+
+;; =============== homogeneous list
+
+(declare-parameterized-const @@TypedList ((T Type)) Type)
+(declare-parameterized-const @@TypedList.nil ((T Type)) (@@TypedList T))
+(declare-parameterized-const @@TypedList.cons ((T Type :implicit))
+  (-> T (@@TypedList T) (@@TypedList T)) :right-assoc-nil (@@TypedList.nil T))
+(define @TList () @@TypedList)
+(define @tlist.nil () @@TypedList.nil)
+(define @tlist () @@TypedList.cons)
+
+; program: $typed_list_element_type
+; args:
+; - T Type: the type in question
+; return: The element type of T, if it is a typed list.
+(program $typed_list_element_type ((T Type))
+  :signature (Type) Type
+  (
+  (($typed_list_element_type (@TList T)) T)
+  )
+)
+
+; program: $typed_list_to_untyped
+; args:
+; - xs (@TList T): the typed list.
+; return: The result of converting xs to an untyped (heterogeneous) list.
+(program $typed_list_to_untyped ((T Type) (x T) (xs (@TList T) :list))
+  :signature ((@TList T)) @List
+  (
+  (($typed_list_to_untyped (@tlist x xs))   (_ @list x ($typed_list_to_untyped xs)))
+  (($typed_list_to_untyped (@tlist.nil T))  @list.nil)
+  )
+)
+
+  
+;; =============== evaluation utilities
 
 ; note: This is a forward declaration of $evaluate_list defined in Cpc.eo.
 (program $evaluate_list () :signature (@List) @List)
@@ -84,7 +115,7 @@
 (program $get_arg_list_rec ((T Type) (S Type) (f (-> T S)) (x T) (y S) (acc @List))
   :signature (S @List) @List
   (
-    (($get_arg_list_rec (f x) acc)  ($get_arg_list_rec f (eo::cons @list x acc)))
+    (($get_arg_list_rec (f x) acc)  ($get_arg_list_rec f (_ @list x acc)))
     (($get_arg_list_rec y acc)      acc)
   )
 )
@@ -110,6 +141,18 @@
   )
 )
 
+; program: $is_var_list
+; args:
+; - xs @List: The list of terms.
+; return: true if all terms in xs are variables.
+(program $is_var_list ((U Type) (x U) (xs @List :list))
+  :signature (@List) Bool
+  (
+    (($is_var_list (@list x xs))  (eo::ite (eo::is_var x) ($is_var_list xs) false))
+    (($is_var_list @list.nil)     true)
+  )
+)
+
 ; define: $compare_var
 ; args:
 ; - a T: The first term to compare.
@@ -124,21 +167,6 @@
 ;   the ones where this compare returns true, then the term remains unchanged.
 (define $compare_var ((T Type :implicit) (U Type :implicit) (a T) (b U))
   (eo::cmp b a))
-
-; program: $singleton_elim
-; args:
-; - s S: The term to proces.
-; return: >
-;   The result of applying singleton elimination for s. In particular,
-;   if s is of the form (f x1 x2) where x2 is the nil terminator of f, then we
-;   return x1. Otherwise, we return s unchanged.
-(program $singleton_elim ((T Type) (S Type) (U Type) (f (-> T U S)) (x S) (x1 S) (x2 T))
-  :signature (S) S
-  (
-    (($singleton_elim (f x1 x2))  (eo::ite (eo::eq x2 (eo::nil f (eo::typeof (f x1 x2)))) x1 (f x1 x2)))
-    (($singleton_elim x)          x)
-  )
-)
 
 ;; =============== for results
 
@@ -164,61 +192,5 @@
     (($result_combine b1 @result.null) b1)
     (($result_combine b1 b1)           b1)
     (($result_combine b1 b2)           @result.invalid)
-  )
-)
-;; =============== for pairwise
-
-; program: $is_pairwise
-; args:
-; - f (-> T T U): The pairwise operator, e.g. distinct.
-; - op (-> U U U): The combining operator, e.g. and for distinct.
-; - a T: The current LHS element we are checking.
-; - bs @List: The list of RHS elements that should be related to a next.
-; - B U: The term that is potentially a pairwise application of f for the given elements.
-; - rem @List: The list of elements we have yet to process on the LHS.
-; return: True if B is a pairwise application of f for the given arguments.
-(program $is_pairwise ((T Type) (U Type) (f (-> T T U)) (op (-> U U U)) (a T) (b T) (bs @List :list) (B U :list) (nil U) (rem @List :list))
-  :signature ((-> T T U) (-> U U U) T @List U @List) Bool
-  (
-  (($is_pairwise f op a (@list b bs) (op (f a b) B) rem) ($is_pairwise f op a bs B rem))
-  (($is_pairwise f op a @list.nil B (@list b rem))       ($is_pairwise f op b rem B rem))
-  (($is_pairwise f op a @list.nil nil @list.nil)         (eo::requires nil (eo::nil op (eo::typeof a)) true))
-  )
-)
-
-; program: $extract_pairwise_args_rec
-; args:
-; - f (-> T T U): The pairwise operator, e.g. distinct.
-; - op (-> U U U): The combining operator, e.g. and for distinct.
-; - a T: The first LHS element.
-; - B U: The term that is potentially a pairwise application of f starting with a.
-; return: The list of arguments that a is related to.
-(program $extract_pairwise_args_rec ((T Type) (U Type) (f (-> T T U)) (op (-> U U U)) (a T) (b T) (c T) (B U :list))
-  :signature ((-> T T U) (-> U U U) T U) @List
-  (
-  (($extract_pairwise_args_rec f op a (op (f a c) B)) (eo::cons @list c ($extract_pairwise_args_rec f op a B)))
-  (($extract_pairwise_args_rec f op a B)              @list.nil)  ; no further elements
-  )
-)
-
-; program: $extract_pairwise_args_rec
-; args:
-; - f (-> T T U): The pairwise operator, e.g. distinct.
-; - op (-> U U U): The combining operator, e.g. and for distinct.
-; - B U: The term that is potentially a pairwise application of f.
-; return: The list of arguments that are the input to the pairwise application of f.
-; note: >
-;   This method is required since desugaring is applied at compile time. This
-;   means to recognize whether a term originated from parsing e.g.
-;   (distinct a b c) is non-trivial: it requires a scan to confirm that
-;   its desugared version (and (distinct a b) (distinct a c) (distinct b c)) is
-;   indeed obtained by desugaring distinct in the expected way.
-(program $extract_pairwise_args ((T Type) (U Type) (f (-> T T U)) (op (-> U U U)) (a T) (b T) (B U :list))
-  :signature ((-> T T U) (-> U U U) U) @List
-  (
-  (($extract_pairwise_args f op (op (f a b) B)) (eo::define ((D (op (f a b) B)))
-                                                (eo::define ((elems ($extract_pairwise_args_rec f op a D)))
-                                                  (eo::requires ($is_pairwise f op a elems D elems) true (eo::cons @list a elems)))))
-  (($extract_pairwise_args f op (f a b))        (@list a b)) ; binary case, trivial
   )
 )

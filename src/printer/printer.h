@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Abdalrhman Mohamed, Andrew Reynolds, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -236,6 +233,10 @@ class CVC5_EXPORT Printer
   virtual void toStreamCmdGetValue(std::ostream& out,
                                    const std::vector<Node>& nodes) const;
 
+  /** Print get-model-domain-elements command */
+  virtual void toStreamCmdGetModelDomainElements(std::ostream& out,
+                                                 TypeNode type) const;
+
   /** Print get-assignment command */
   virtual void toStreamCmdGetAssignment(std::ostream& out) const;
 
@@ -388,10 +389,6 @@ class CVC5_EXPORT Printer
 
   /** Make a Printer for a given Language */
   static std::unique_ptr<Printer> makePrinter(Language lang);
-
-  /** Printers for each Language */
-  static thread_local std::unique_ptr<Printer>
-      d_printers[static_cast<size_t>(Language::LANG_MAX)];
 
 }; /* class Printer */
 

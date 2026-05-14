@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andres Noetzli, Yoni Zohar, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -43,11 +40,12 @@ namespace passes {
 using namespace std;
 using namespace cvc5::internal::theory;
 
-
 namespace {
 
-bool childrenTypesChanged(Node n, NodeMap& cache) {
-  for (Node child : n) {
+bool childrenTypesChanged(Node n, NodeMap& cache)
+{
+  for (Node child : n)
+  {
     TypeNode originalType = child.getType();
     TypeNode newType = cache[child].getType();
     if (newType != originalType)
@@ -60,8 +58,10 @@ bool childrenTypesChanged(Node n, NodeMap& cache) {
 
 Node intToBVMakeBinary(NodeManager* nm, TNode n, NodeMap& cache)
 {
-  for (TNode current : NodeDfsIterable(n, VisitOrder::POSTORDER,
-           [&cache](TNode nn) { return cache.count(nn) > 0; }))
+  for (TNode current :
+       NodeDfsIterable(n, VisitOrder::POSTORDER, [&cache](TNode nn) {
+         return cache.count(nn) > 0;
+       }))
   {
     Node result;
     if (current.getNumChildren() == 0)
@@ -86,7 +86,8 @@ Node intToBVMakeBinary(NodeManager* nm, TNode n, NodeMap& cache)
     else
     {
       NodeBuilder builder(nm, current.getKind());
-      if (current.getMetaKind() == kind::metakind::PARAMETERIZED) {
+      if (current.getMetaKind() == kind::metakind::PARAMETERIZED)
+      {
         builder << current.getOperator();
       }
 
@@ -114,11 +115,15 @@ Node IntToBV::intToBV(TNode n, NodeMap& cache)
   NodeMap binaryCache;
   Node n_binary = intToBVMakeBinary(nm, n, binaryCache);
 
-  for (TNode current : NodeDfsIterable(n_binary, VisitOrder::POSTORDER,
-           [&cache](TNode nn) { return cache.count(nn) > 0; }))
+  for (TNode current :
+       NodeDfsIterable(n_binary, VisitOrder::POSTORDER, [&cache](TNode nn) {
+         return cache.count(nn) > 0;
+       }))
   {
     TypeNode tn = current.getType();
-    if (tn.isReal() && !tn.isInteger())
+    // we only permit pure integer problems to be converted to BV with this
+    // preprocessing pass.
+    if (current.isClosure() || (!tn.isBoolean() && !tn.isInteger()))
     {
       throw TypeCheckingExceptionPrivate(
           current, string("Cannot translate to BV: ") + current.toString());
@@ -177,7 +182,8 @@ Node IntToBV::intToBV(TNode n, NodeMap& cache)
           case Kind::EQUAL:
           case Kind::ITE: break;
           default:
-            if (childrenTypesChanged(current, cache)) {
+            if (childrenTypesChanged(current, cache))
+            {
               std::stringstream ss;
               ss << "Cannot translate " << current
                  << " to a bit-vector term. Remove option `--solve-int-as-bv`.";
@@ -217,7 +223,8 @@ Node IntToBV::intToBV(TNode n, NodeMap& cache)
         throw LogicException(ss.str());
       }
       NodeBuilder builder(nm, newKind);
-      if (current.getMetaKind() == kind::metakind::PARAMETERIZED) {
+      if (current.getMetaKind() == kind::metakind::PARAMETERIZED)
+      {
         builder << current.getOperator();
       }
       builder.append(children);
@@ -233,12 +240,10 @@ Node IntToBV::intToBV(TNode n, NodeMap& cache)
       Node result = current;
       if (current.isVar())
       {
-        if (current.getType() == nm->integerType())
+        if (CVC5_EQUAL(current.getType(), nm->integerType()))
         {
-          result =
-              NodeManager::mkDummySkolem("__intToBV_var",
-                                         nm->mkBitVectorType(size),
-                                         "Variable introduced in intToBV pass");
+          result = NodeManager::mkDummySkolem("__intToBV_var",
+                                              nm->mkBitVectorType(size));
           /**
            * Correctly convert signed/unsigned BV values to Integers as follows
            * x < 0 ? -nat(-x) : nat(x)
@@ -249,9 +254,9 @@ Node IntToBV::intToBV(TNode n, NodeMap& cache)
                                       nm->mkNode(Kind::BITVECTOR_NEG, result));
           Node bv2int = nm->mkNode(
               Kind::ITE,
-              nm->mkNode(Kind::BITVECTOR_SLT, result, nm->mkConst(bvzero)),
-              nm->mkNode(Kind::NEG, negResult),
-              nm->mkNode(Kind::BITVECTOR_UBV_TO_INT, result));
+              {nm->mkNode(Kind::BITVECTOR_SLT, result, nm->mkConst(bvzero)),
+               nm->mkNode(Kind::NEG, negResult),
+               nm->mkNode(Kind::BITVECTOR_UBV_TO_INT, result)});
           d_preprocContext->addSubstitution(current, bv2int);
         }
       }
@@ -260,7 +265,7 @@ Node IntToBV::intToBV(TNode n, NodeMap& cache)
         if (current.getType().isInteger())
         {
           Rational constant = current.getConst<Rational>();
-          Assert (constant.isIntegral());
+          Assert(constant.isIntegral());
           BitVector bv(size, constant.getNumerator());
           if (bv.toSignedInteger() != constant.getNumerator())
           {
@@ -287,7 +292,7 @@ Node IntToBV::intToBV(TNode n, NodeMap& cache)
 }
 
 IntToBV::IntToBV(PreprocessingPassContext* preprocContext)
-    : PreprocessingPass(preprocContext, "int-to-bv"){};
+    : PreprocessingPass(preprocContext, "int-to-bv") {};
 
 PreprocessingPassResult IntToBV::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
@@ -302,7 +307,6 @@ PreprocessingPassResult IntToBV::applyInternal(
   }
   return PreprocessingPassResult::NO_CONFLICT;
 }
-
 
 }  // namespace passes
 }  // namespace preprocessing

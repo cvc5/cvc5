@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Tim King, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -82,13 +79,6 @@ class String
   {
   }
   explicit String(const std::vector<unsigned>& s);
-
-  String& operator=(const String& y) {
-    if (this != &y) {
-      d_str = y.d_str;
-    }
-    return *this;
-  }
 
   String concat(const String& other) const;
 
@@ -177,30 +167,32 @@ class String
   String suffix(std::size_t i) const { return substr(size() - i, i); }
 
   /** string overlap
-  *
-  * if overlap returns m>0,
-  * then the maximal suffix of this string that is a prefix of y is of length m.
-  *
-  * For example, if x is "abcdef", then:
-  * x.overlap("defg") = 3
-  * x.overlap("ab") = 0
-  * x.overlap("d") = 0
-  * x.overlap("bcdefdef") = 5
-  */
+   *
+   * if overlap returns m>0,
+   * then the maximal suffix of this string that is a prefix of y is of length
+   * m.
+   *
+   * For example, if x is "abcdef", then:
+   * x.overlap("defg") = 3
+   * x.overlap("ab") = 0
+   * x.overlap("d") = 0
+   * x.overlap("bcdefdef") = 5
+   */
   std::size_t overlap(const String& y) const;
   /** string reverse overlap
-  *
-  * if roverlap returns m>0,
-  * then the maximal prefix of this string that is a suffix of y is of length m.
-  *
-  * For example, if x is "abcdef", then:
-  * x.roverlap("aaabc") = 3
-  * x.roverlap("def") = 0
-  * x.roverlap("d") = 0
-  * x.roverlap("defabcde") = 5
-  *
-  * Notice that x.overlap(y) = y.roverlap(x)
-  */
+   *
+   * if roverlap returns m>0,
+   * then the maximal prefix of this string that is a suffix of y is of length
+   * m.
+   *
+   * For example, if x is "abcdef", then:
+   * x.roverlap("aaabc") = 3
+   * x.roverlap("def") = 0
+   * x.roverlap("d") = 0
+   * x.roverlap("defabcde") = 5
+   *
+   * Notice that x.overlap(y) = y.roverlap(x)
+   */
   std::size_t roverlap(const String& y) const;
 
   /**
@@ -243,6 +235,7 @@ class String
    * Corresponds to the maximum size of d_str.
    */
   static size_t maxSize();
+
  private:
   /**
    * Helper for toInternal: add character ch to vector vec, storing a string in

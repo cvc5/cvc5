@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -36,15 +33,11 @@ namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
-TermRegistry::TermRegistry(Env& env,
-                           Theory& t,
-                           SolverState& s,
-                           SequencesStatistics& statistics)
+TermRegistry::TermRegistry(Env& env, Theory& t, SolverState& s)
     : EnvObj(env),
       d_theory(t),
       d_state(s),
       d_im(nullptr),
-      d_statistics(statistics),
       d_hasStrCode(false),
       d_hasSeqUpdate(false),
       d_skCache(nodeManager(), env.getRewriter()),
@@ -57,10 +50,12 @@ TermRegistry::TermRegistry(Env& env,
       d_proxyVar(userContext()),
       d_proxyVarToLength(userContext()),
       d_lengthLemmaTermsCache(userContext()),
-      d_epg(
-          env.isTheoryProofProducing() ? new EagerProofGenerator(
-              env, userContext(), "strings::TermRegistry::EagerProofGenerator")
-                                       : nullptr),
+      d_epg(env.isTheoryProofProducing()
+                ? new EagerProofGenerator(
+                      env,
+                      userContext(),
+                      "strings::TermRegistry::EagerProofGenerator")
+                : nullptr),
       d_inFullEffortCheck(false)
 {
   NodeManager* nm = nodeManager();
@@ -121,10 +116,10 @@ Node TermRegistry::eagerReduce(Node t, SkolemCache* sc, uint32_t alphaCard)
     // where f in { str.indexof, str.indexof_re }
     Node l = nm->mkNode(Kind::STRING_LENGTH, t[0]);
     lemma = nm->mkNode(Kind::AND,
-                       nm->mkNode(Kind::OR,
-                                  t.eqNode(nm->mkConstInt(Rational(-1))),
-                                  nm->mkNode(Kind::GEQ, t, t[2])),
-                       nm->mkNode(Kind::LEQ, t, l));
+                       {nm->mkNode(Kind::OR,
+                                   {t.eqNode(nm->mkConstInt(Rational(-1))),
+                                    nm->mkNode(Kind::GEQ, t, t[2])}),
+                        nm->mkNode(Kind::LEQ, t, l)});
   }
   else if (tk == Kind::STRING_STOI)
   {
@@ -159,13 +154,12 @@ Node TermRegistry::eagerReduce(Node t, SkolemCache* sc, uint32_t alphaCard)
     Node tc = t[0];
     Node card = nm->mkConstInt(Rational(alphaCard));
     Node cond = nm->mkNode(Kind::AND,
-                           nm->mkNode(Kind::LEQ, nm->mkConstInt(0), tc),
-                           nm->mkNode(Kind::LT, tc, card));
+                           {nm->mkNode(Kind::LEQ, nm->mkConstInt(0), tc),
+                            nm->mkNode(Kind::LT, tc, card)});
     Node emp = Word::mkEmptyWord(t.getType());
-    lemma = nm->mkNode(Kind::ITE,
-                       cond,
-                       tc.eqNode(nm->mkNode(Kind::STRING_TO_CODE, k)),
-                       k.eqNode(emp));
+    lemma = nm->mkNode(
+        Kind::ITE,
+        {cond, tc.eqNode(nm->mkNode(Kind::STRING_TO_CODE, k)), k.eqNode(emp)});
   }
   return lemma;
 }
@@ -196,6 +190,17 @@ void TermRegistry::preRegisterTerm(TNode n)
       << "TheoryString::preregister : " << n << std::endl;
   // check for logic exceptions
   Kind k = n.getKind();
+  if (k == Kind::EQUAL && n[0].getType().isRegExp())
+  {
+    // if an equality between regular expressions was introduced during solving,
+    // e.g. by theory combination, we send the equivalance for its quantified
+    // reduction here, e.g.
+    // (R1 = R2) = (forall s. (s in R1) = (s in R2)).
+    Node res =
+        d_env.getRewriter()->rewriteViaRule(ProofRewriteRule::RE_EQ_ELIM, n);
+    Node lem = nodeManager()->mkNode(Kind::EQUAL, n, res);
+    d_im->lemma(lem, InferenceId::STRINGS_RE_EQ_ELIM_EQUIV);
+  }
   if (k == Kind::STRING_IN_REGEXP)
   {
     d_im->preferPhase(n, true);
@@ -313,7 +318,7 @@ void TermRegistry::registerSubterms(Node n)
       if (k == Kind::EQUAL || theory::kindToTheoryId(k) == THEORY_STRINGS)
       {
         // strings does not have any closure kinds
-        Assert (!cur.isClosure());
+        Assert(!cur.isClosure());
         visit.insert(visit.end(), cur.begin(), cur.end());
       }
     }

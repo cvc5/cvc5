@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Justin Xu, Gereon Kremer, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -25,7 +22,8 @@ namespace cvc5::internal {
 namespace preprocessing {
 
 PreprocessingPassResult PreprocessingPass::apply(
-    AssertionPipeline* assertionsToPreprocess) {
+    AssertionPipeline* assertionsToPreprocess)
+{
   TimerStat::CodeTimer codeTimer(d_timer);
   Trace("preprocessing") << "PRE " << d_name << std::endl;
   verbose(2) << d_name << "..." << std::endl;

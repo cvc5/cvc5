@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Tim King, Morgan Deters
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -24,22 +21,27 @@ using namespace std;
 
 namespace cvc5::internal {
 
-std::ostream& operator<<(std::ostream& os, const DeltaRational& dq){
-  return os << "(" << dq.getNoninfinitesimalPart()
-            << "," << dq.getInfinitesimalPart() << ")";
+std::ostream& operator<<(std::ostream& os, const DeltaRational& dq)
+{
+  return os << "(" << dq.getNoninfinitesimalPart() << ","
+            << dq.getInfinitesimalPart() << ")";
 }
 
-
-std::string DeltaRational::toString() const {
-  return "(" + getNoninfinitesimalPart().toString() + "," +
-    getInfinitesimalPart().toString() + ")";
+std::string DeltaRational::toString() const
+{
+  return "(" + getNoninfinitesimalPart().toString() + ","
+         + getInfinitesimalPart().toString() + ")";
 }
 
-void DeltaRational::seperatingDelta(Rational& res, const DeltaRational& a, const DeltaRational& b){
+void DeltaRational::seperatingDelta(Rational& res,
+                                    const DeltaRational& a,
+                                    const DeltaRational& b)
+{
   Assert(res.sgn() > 0);
 
   int cmp = a.cmp(b);
-  if(cmp != 0){
+  if (cmp != 0)
+  {
     bool aLeqB = cmp < 0;
 
     const DeltaRational& min = aLeqB ? a : b;
@@ -51,13 +53,18 @@ void DeltaRational::seperatingDelta(Rational& res, const DeltaRational& a, const
     const Rational& pmaj = min.getNoninfinitesimalPart();
     const Rational& cmaj = max.getNoninfinitesimalPart();
 
-    if(pmaj == cmaj){
+    if (pmaj == cmaj)
+    {
       Assert(pinf < cinf);
       // any value of delta preserves the order
-    }else if(pinf == cinf){
+    }
+    else if (pinf == cinf)
+    {
       Assert(pmaj < cmaj);
       // any value of delta preserves the order
-    }else{
+    }
+    else
+    {
       Assert(pinf != cinf && pmaj != cmaj);
       Rational denDiffAbs = (cinf - pinf).abs();
 
@@ -67,7 +74,8 @@ void DeltaRational::seperatingDelta(Rational& res, const DeltaRational& a, const
       Rational ratio = numDiff / denDiffAbs;
       Assert(ratio.sgn() > 0);
 
-      if(ratio < res){
+      if (ratio < res)
+      {
         res = ratio;
       }
     }
@@ -87,22 +95,28 @@ DeltaRationalException::DeltaRationalException(const char* op,
 DeltaRationalException::~DeltaRationalException() {}
 Integer DeltaRational::euclidianDivideQuotient(const DeltaRational& y) const
 {
-  if(isIntegral() && y.isIntegral()){
+  if (isIntegral() && y.isIntegral())
+  {
     Integer ti = floor();
     Integer yi = y.floor();
     return ti.euclidianDivideQuotient(yi);
-  }else{
+  }
+  else
+  {
     throw DeltaRationalException("euclidianDivideQuotient", *this, y);
   }
 }
 
 Integer DeltaRational::euclidianDivideRemainder(const DeltaRational& y) const
 {
-  if(isIntegral() && y.isIntegral()){
+  if (isIntegral() && y.isIntegral())
+  {
     Integer ti = floor();
     Integer yi = y.floor();
     return ti.euclidianDivideRemainder(yi);
-  }else{
+  }
+  else
+  {
     throw DeltaRationalException("euclidianDivideRemainder", *this, y);
   }
 }

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Mathias Preiner, Abdalrhman Mohamed
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -164,8 +161,7 @@ class CVC5ApiUnsupportedExceptionStream
 
 /** Check if given argument is not a null pointer. */
 #define CVC5_API_ARG_CHECK_NOT_NULLPTR(arg) \
-  CVC5_API_CHECK(arg != nullptr)            \
-      << "invalid null argument for '" << #arg << "'"
+  CVC5_API_CHECK(arg != nullptr) << "invalid null argument for '" << #arg << "'"
 /**
  * Check if given argument at given index in container 'args' is not a null
  * object.
@@ -427,7 +423,7 @@ class CVC5ApiUnsupportedExceptionStream
           << "a term associated with the term manager this object is "         \
              "associated "                                                     \
              "with";                                                           \
-      CVC5_API_CHECK(t.getSort() == sort)                                      \
+      CVC5_API_CHECK(CVC5_EQUAL(t.getSort(), sort))                            \
           << "Expected term with sort " << sort << " at index " << i << " in " \
           << #terms;                                                           \
       i += 1;                                                                  \
@@ -459,7 +455,7 @@ class CVC5ApiUnsupportedExceptionStream
           << "a term associated with the term manager this object is "     \
              "associated "                                                 \
              "with";                                                       \
-      CVC5_API_CHECK(t1.getSort() == t2.getSort())                         \
+      CVC5_API_CHECK(CVC5_EQUAL(t1.getSort(), t2.getSort()))               \
           << "expecting terms of the same sort at index " << i;            \
       i += 1;                                                              \
     }                                                                      \
@@ -818,7 +814,7 @@ class CVC5ApiUnsupportedExceptionStream
   do                                                     \
   {                                                      \
     CVC5_API_SOLVER_CHECK_TERM(term);                    \
-    CVC5_API_CHECK(term.getSort() == sort)               \
+    CVC5_API_CHECK(CVC5_EQUAL(term.getSort(), sort))     \
         << "Expected term with sort " << sort;           \
   } while (0)
 
@@ -831,7 +827,7 @@ class CVC5ApiUnsupportedExceptionStream
   for (size_t i = 0, size = terms.size(); i < size; ++i)                     \
   {                                                                          \
     CVC5_API_SOLVER_CHECK_TERM_AT_INDEX(terms[i], terms, i);                 \
-    CVC5_API_CHECK(terms[i].getSort() == sort)                               \
+    CVC5_API_CHECK(CVC5_EQUAL(terms[i].getSort(), sort))                     \
         << "Expected term with sort " << sort << " at index " << i << " in " \
         << #terms;                                                           \
   }

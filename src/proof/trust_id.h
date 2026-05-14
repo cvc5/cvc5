@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Daniel Larraz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -109,6 +106,8 @@ enum class TrustId : uint32_t
   PREPROCESS_SORT_INFER_LEMMA,
   /** StringsEagerPp preprocessing pass */
   PREPROCESS_STRINGS_EAGER_PP,
+  /** A step from the distinct extension */
+  UF_DISTINCT,
   /**
    * We use :math:`\texttt{IRP}_k(poly)` for an IndexedRootPredicate that is
    * defined as the :math:`k`'th root of the polynomial :math:`poly`. Note that
@@ -170,6 +169,8 @@ enum class TrustId : uint32_t
   ARITH_STATIC_LEARN,
   /** A nonlinear comparison lemma that failed proof reconstruction */
   ARITH_NL_COMPARE_LEMMA,
+  /** A nonlinear flatten monomial lemma that failed proof reconstruction */
+  ARITH_NL_FLATTEN_MON_LEMMA,
   /** A conflict coming from the bitblast solver */
   BV_BITBLAST_CONFLICT,
   /** A step from BvPpAssert utility */

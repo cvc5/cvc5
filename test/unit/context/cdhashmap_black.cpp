@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Andrew Reynolds, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -77,8 +74,7 @@ TEST_F(TestContextBlackCDHashMap, simple_sequence)
 
         map.insert(1, 45);
 
-        ASSERT_TRUE(
-            elements_are(map, {{1, 45}, {3, 4}, {5, 6}, {9, 8}}));
+        ASSERT_TRUE(elements_are(map, {{1, 45}, {3, 4}, {5, 6}, {9, 8}}));
         map.insert(23, 324);
 
         ASSERT_TRUE(
@@ -86,8 +82,7 @@ TEST_F(TestContextBlackCDHashMap, simple_sequence)
         d_context->pop();
       }
 
-      ASSERT_TRUE(
-          elements_are(map, {{1, 2}, {3, 4}, {5, 6}, {9, 8}}));
+      ASSERT_TRUE(elements_are(map, {{1, 2}, {3, 4}, {5, 6}, {9, 8}}));
       d_context->pop();
     }
 
@@ -154,8 +149,7 @@ TEST_F(TestContextBlackCDHashMap, insert_at_context_level_zero)
 
       ASSERT_TRUE(elements_are(map, {{1, 2}, {3, 4}, {5, 6}, {9, 8}}));
 
-      ASSERT_TRUE(
-          elements_are(map, {{1, 2}, {3, 4}, {5, 6}, {9, 8}}));
+      ASSERT_TRUE(elements_are(map, {{1, 2}, {3, 4}, {5, 6}, {9, 8}}));
 
       map.insert(23, 472);
 

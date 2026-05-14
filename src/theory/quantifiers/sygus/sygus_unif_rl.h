@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Haniel Barbosa, Andrew Reynolds, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -233,10 +230,7 @@ class SygusUnifRl : public SygusUnif
                   bool shuffleCond,
                   bool condIndNoRepeatSol);
     /** bulids a solution by considering all condition values ever enumerated */
-    Node buildSolAllCond(Node cons,
-                         std::vector<Node>& lemmas,
-                         bool shuffleCond,
-                         bool condIndNoRepeatSol);
+    Node buildSolAllCond(Node cons, bool shuffleCond, bool condIndNoRepeatSol);
     /** builds a solution by incrementally adding points and conditions to DT
      *
      * Differently from the above method, here a condition is only added to the
@@ -348,12 +342,9 @@ class SygusUnifRl : public SygusUnif
      * The entropy depends on how many positive and negative heads are in the
      * set and in their distribution. The polarity of the evaluation heads is
      * queried from their model values in hd_mv.
-     *
-     * ind is the current level of indentation (for debugging)
      */
     double getEntropy(const std::vector<Node>& hds,
-                      std::map<Node, Node>& hd_mv,
-                      int ind);
+                      std::map<Node, Node>& hd_mv);
     /** evaluates a condition on a set of points
      *
      * The result is two sets of points: those on which the condition holds

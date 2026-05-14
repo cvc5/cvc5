@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Daniel Larraz, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,6 +16,7 @@
 
 #include "base/modal_exception.h"
 #include "expr/node_algorithm.h"
+#include "expr/subtype_elim_node_converter.h"
 #include "options/base_options.h"
 #include "options/expr_options.h"
 #include "options/language.h"
@@ -43,9 +41,7 @@ Assertions::Assertions(Env& env)
 {
 }
 
-Assertions::~Assertions()
-{
-}
+Assertions::~Assertions() {}
 
 void Assertions::refresh()
 {
@@ -102,9 +98,7 @@ std::unordered_set<Node> Assertions::getCurrentAssertionListDefitions() const
   return defSet;
 }
 
-void Assertions::addFormula(TNode n,
-                            bool isFunDef,
-                            bool maybeHasFv)
+void Assertions::addFormula(TNode n, bool isFunDef, bool maybeHasFv)
 {
   // add to assertion list
   d_assertionList.push_back(n);
@@ -113,8 +107,8 @@ void Assertions::addFormula(TNode n,
     // true, nothing to do
     return;
   }
-  Trace("smt") << "Assertions::addFormula(" << n
-               << ", isFunDef = " << isFunDef << std::endl;
+  Trace("smt") << "Assertions::addFormula(" << n << ", isFunDef = " << isFunDef
+               << std::endl;
   // In non-incremental, we treat higher-order equality as define-fun
   if (!options().base.incrementalSolving || isFunDef)
   {
@@ -172,7 +166,7 @@ void Assertions::addFormula(TNode n,
           Node eqBody = defRewBody.getProven();
           d_defFunRewPf->addLazyStep(eqBody, defRewBody.getGenerator());
           Node eqRew = n[1].eqNode(defRew);
-          Assert (n[1].getKind() == Kind::LAMBDA);
+          Assert(n[1].getKind() == Kind::LAMBDA);
           // congruence over the binder
           std::vector<Node> cargs;
           ProofRule cr = expr::getCongRule(n[1], cargs);

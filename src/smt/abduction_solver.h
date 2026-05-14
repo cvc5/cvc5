@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Morgan Deters
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -66,7 +63,7 @@ class AbductionSolver : protected EnvObj
   /**
    * Get the next abduct, return true if successful and store the result
    * in abd if so.
-   * 
+   *
    * @param abd This argument is updated to contain the solution C to the
    * abduction problem.
    * @return true if the abduct was successfully computed

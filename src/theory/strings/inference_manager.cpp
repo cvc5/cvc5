@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -41,10 +38,8 @@ InferenceManager::InferenceManager(Env& env,
       d_termReg(tr),
       d_extt(e),
       d_statistics(statistics),
-      d_ipc(isProofEnabled() ? new InferProofCons(env, context(), d_statistics)
-                             : nullptr),
-      d_ipcl(isProofEnabled() ? new InferProofCons(env, context(), d_statistics)
-                              : nullptr)
+      d_ipc(isProofEnabled() ? new InferProofCons(env, context()) : nullptr),
+      d_ipcl(isProofEnabled() ? new InferProofCons(env, context()) : nullptr)
 {
   NodeManager* nm = nodeManager();
   d_zero = nm->mkConstInt(Rational(0));
@@ -179,7 +174,9 @@ void InferenceManager::sendInference(InferInfo& ii, bool asLemma)
     Trace("strings-infer-debug") << "...as conflict" << std::endl;
     Trace("strings-lemma") << "Strings::Conflict: " << ii.d_premises << " by "
                            << ii.getId() << std::endl;
-    Trace("strings-conflict") << "CONFLICT: inference conflict " << ii.d_premises << " by " << ii.getId() << std::endl;
+    Trace("strings-conflict")
+        << "CONFLICT: inference conflict " << ii.d_premises << " by "
+        << ii.getId() << std::endl;
     ++(d_statistics.d_conflictsInfer);
     // process the conflict immediately
     processConflict(ii);
@@ -389,12 +386,12 @@ void InferenceManager::processFact(InferInfo& ii, ProofGenerator*& pg)
     Node atom = ii.d_conc.getKind() == Kind::NOT ? ii.d_conc[0] : ii.d_conc;
     if (atom.getKind() == Kind::EQUAL)
     {
-      Assert(rewrite(atom[0])==atom[0]);
-      Assert(rewrite(atom[1])==atom[1]);
+      Assert(rewrite(atom[0]) == atom[0]);
+      Assert(rewrite(atom[1]) == atom[1]);
     }
     else
     {
-      Assert(rewrite(atom)==atom);
+      Assert(rewrite(atom) == atom);
     }
   }
 }

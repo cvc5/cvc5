@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -402,7 +399,7 @@ bool TimeoutCoreManager::recordCurrentModel(bool& allAssertsSat,
   size_t indexScore = 0;
   size_t nasserts = d_ppAsserts.size();
   size_t startIndex =
-      nasserts == 0 ? 0 : Random::getRandom().pick(0, nasserts - 1);
+      nasserts == 0 ? 0 : Random::getRandom().pick<size_t>(0, nasserts - 1);
   currModel.resize(nasserts);
   bool hadFalseAssert = false;
   for (size_t i = 0; i < nasserts; i++)

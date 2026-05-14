@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Daniel Larraz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -28,7 +25,9 @@ namespace cvc5::internal {
 namespace theory {
 
 ConflictProcessor::ConflictProcessor(Env& env, bool useExtRewriter)
-    : EnvObj(env), d_useExtRewriter(useExtRewriter), d_stats(statisticsRegistry())
+    : EnvObj(env),
+      d_useExtRewriter(useExtRewriter),
+      d_stats(statisticsRegistry())
 {
   NodeManager* nm = env.getNodeManager();
   d_true = nm->mkConst(true);
@@ -161,8 +160,8 @@ TrustNode ConflictProcessor::processLemma(const TrustNode& lem)
       // invariant that the target literal still evaluates to true.
       // For example, the lemma (=> (and (= x 1) (= y 0)) (> x 0)) can be
       // minimized to (=> (= x 1) (> x 0)) noting that (> x 0) simplifies to
-      // true under substitution { x -> 1, y -> 0 }, and moreover still simplifies
-      // to true under { x -> 1 }.
+      // true under substitution { x -> 1, y -> 0 }, and moreover still
+      // simplifies to true under { x -> 1 }.
       for (std::pair<const Node, Node>& ss : smap)
       {
         // try eliminating the substitution
@@ -170,7 +169,7 @@ TrustNode ConflictProcessor::processLemma(const TrustNode& lem)
         s.eraseSubstitution(v);
         Trace("confp") << "--- try substitution without " << v << std::endl;
         Node ev = evaluateSubstitution(s, tgtLit);
-        if (ev==d_true)
+        if (ev == d_true)
         {
           toErase.push_back(v);
         }

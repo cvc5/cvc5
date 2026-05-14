@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -66,7 +63,7 @@ class QuantDSplitProofGenerator : protected EnvObj, public ProofGenerator
     context::CDHashMap<Node, size_t>::iterator it = d_index.find(fact);
     if (it == d_index.end())
     {
-      Assert(false) << "QuantDSplitProofGenerator failed to get proof";
+      DebugUnhandled() << "QuantDSplitProofGenerator failed to get proof";
       return nullptr;
     }
     Assert(fact.getKind() == Kind::EQUAL && fact[0].getKind() == Kind::FORALL);
@@ -146,16 +143,19 @@ void QuantDSplit::checkOwnership(Node q)
   bool takeOwnership = false;
   bool doSplit = false;
   QuantifiersBoundInference& qbi = d_qreg.getQuantifiersBoundInference();
-  Trace("quant-dsplit-debug") << "Check split quantified formula : " << q << std::endl;
+  Trace("quant-dsplit-debug")
+      << "Check split quantified formula : " << q << std::endl;
   for (size_t i = 0, nvars = q[0].getNumChildren(); i < nvars; i++)
   {
     TypeNode tn = q[0][i].getType();
-    if( tn.isDatatype() ){
+    if (tn.isDatatype())
+    {
       bool isFinite = d_env.isFiniteType(tn);
       const DType& dt = tn.getDType();
       if (dt.isRecursiveSingleton(tn))
       {
-        Trace("quant-dsplit-debug") << "Datatype " << dt.getName() << " is recursive singleton." << std::endl;
+        Trace("quant-dsplit-debug") << "Datatype " << dt.getName()
+                                    << " is recursive singleton." << std::endl;
       }
       else
       {
@@ -215,19 +215,21 @@ void QuantDSplit::checkOwnership(Node q)
 }
 
 /* whether this module needs to check this round */
-bool QuantDSplit::needsCheck( Theory::Effort e ) {
-  return e>=Theory::EFFORT_FULL && !d_quant_to_reduce.empty();
+bool QuantDSplit::needsCheck(Theory::Effort e)
+{
+  return e >= Theory::EFFORT_FULL && !d_quant_to_reduce.empty();
 }
 
-bool QuantDSplit::checkCompleteFor( Node q ) {
+bool QuantDSplit::checkCompleteFor(Node q)
+{
   // true if we split q
-  return d_added_split.find( q )!=d_added_split.end();
+  return d_added_split.find(q) != d_added_split.end();
 }
 
 /* Call during quantifier engine's check */
-void QuantDSplit::check(Theory::Effort e, QEffort quant_e)
+void QuantDSplit::check(CVC5_UNUSED Theory::Effort e, QEffort quant_e)
 {
-  //add lemmas ASAP (they are a reduction)
+  // add lemmas ASAP (they are a reduction)
   if (quant_e != QEFFORT_CONFLICT)
   {
     return;

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Daniel Larraz, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -87,6 +84,7 @@ const char* toString(TrustId id)
     case TrustId::PREPROCESS_STRINGS_EAGER_PP:
       return "PREPROCESS_STRINGS_EAGER_PP";
     // other
+    case TrustId::UF_DISTINCT: return "UF_DISTINCT";
     case TrustId::ARITH_NL_COVERING_DIRECT: return "ARITH_NL_COVERING_DIRECT";
     case TrustId::ARITH_NL_COVERING_RECURSIVE:
       return "ARITH_NL_COVERING_RECURSIVE";
@@ -95,6 +93,8 @@ const char* toString(TrustId id)
     case TrustId::ARITH_DIO_LEMMA: return "ARITH_DIO_LEMMA";
     case TrustId::ARITH_STATIC_LEARN: return "ARITH_STATIC_LEARN";
     case TrustId::ARITH_NL_COMPARE_LEMMA: return "ARITH_NL_COMPARE_LEMMA";
+    case TrustId::ARITH_NL_FLATTEN_MON_LEMMA:
+      return "ARITH_NL_FLATTEN_MON_LEMMA";
     case TrustId::BV_BITBLAST_CONFLICT: return "BV_BITBLAST_CONFLICT";
     case TrustId::BV_PP_ASSERT: return "BV_PP_ASSERT";
     case TrustId::DIAMONDS: return "DIAMONDS";

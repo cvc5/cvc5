@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Alex Ozdemir
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -31,20 +28,23 @@ Cardinality FiniteFieldProperties::computeCardinality(TypeNode type)
   return cardinality;
 }
 
-TypeNode FiniteFieldConstantTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode FiniteFieldConstantTypeRule::preComputeType(
+    CVC5_UNUSED NodeManager* nm, CVC5_UNUSED TNode n)
 {
   return TypeNode::null();
 }
-TypeNode FiniteFieldConstantTypeRule::computeType(NodeManager* nodeManager,
-                                                  TNode n,
-                                                  bool check,
-                                                  std::ostream* errOut)
+TypeNode FiniteFieldConstantTypeRule::computeType(
+    NodeManager* nodeManager,
+    TNode n,
+    CVC5_UNUSED bool check,
+    CVC5_UNUSED std::ostream* errOut)
 {
   return nodeManager->mkFiniteFieldType(
       n.getConst<FiniteFieldValue>().getFieldSize());
 }
 
-TypeNode FiniteFieldFixedFieldTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode FiniteFieldFixedFieldTypeRule::preComputeType(
+    CVC5_UNUSED NodeManager* nm, CVC5_UNUSED TNode n)
 {
   return TypeNode::null();
 }

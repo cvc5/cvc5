@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -598,7 +595,9 @@ bool StringsEntail::stripConstantEndpoints(std::vector<Node>& n1,
         {
           // inconclusive
         }
-        Trace("strings-rewrite-debug2") << "rem = " << removeComponent << ", overlap = " << overlap << std::endl;
+        Trace("strings-rewrite-debug2")
+            << "rem = " << removeComponent << ", overlap = " << overlap
+            << std::endl;
         // process the overlap
         if (overlap < slen)
         {
@@ -946,7 +945,7 @@ Node StringsEntail::inferEqsFromContains(Node x, Node y)
 {
   NodeManager* nm = x.getNodeManager();
   Node emp = Word::mkEmptyWord(x.getType());
-  Assert(x.getType() == y.getType());
+  AssertEqual(x.getType(), y.getType());
   TypeNode stype = x.getType();
 
   Node xLen = nm->mkNode(Kind::STRING_LENGTH, x);

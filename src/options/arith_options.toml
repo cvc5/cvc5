@@ -346,7 +346,7 @@ name   = "Arithmetic Theory"
 
 [[option]]
   name       = "nlExt"
-  category   = "regular"
+  category   = "common"
   long       = "nl-ext=MODE"
   type       = "NlExtMode"
   default    = "FULL"
@@ -385,6 +385,14 @@ name   = "Arithmetic Theory"
   type       = "bool"
   default    = "true"
   help       = "use factoring inference in non-linear incremental linearization solver"
+
+[[option]]
+  name       = "nlExtFlattenMon"
+  category   = "regular"
+  long       = "nl-ext-flatten-mon"
+  type       = "bool"
+  default    = "true"
+  help       = "use inference schema based on flattening monomials"
 
 [[option]]
   name       = "nlExtTangentPlanes"

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -129,7 +126,7 @@ void TermProperties::composeProperty(TermProperties& p)
 // push the substitution pv_prop.getModifiedTerm(pv) -> n
 void SolvedForm::push_back(Node pv, Node n, TermProperties& pv_prop)
 {
-  Assert(n.getType() == pv.getType());
+  AssertEqual(n.getType(), pv.getType());
   d_vars.push_back(pv);
   d_subs.push_back(n);
   d_props.push_back(pv_prop);
@@ -151,7 +148,7 @@ void SolvedForm::push_back(Node pv, Node n, TermProperties& pv_prop)
   d_theta.push_back(new_theta);
 }
 // pop the substitution pv_prop.getModifiedTerm(pv) -> n
-void SolvedForm::pop_back(Node pv, Node n, TermProperties& pv_prop)
+void SolvedForm::pop_back(TermProperties& pv_prop)
 {
   d_vars.pop_back();
   d_subs.pop_back();

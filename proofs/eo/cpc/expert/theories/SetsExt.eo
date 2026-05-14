@@ -44,7 +44,7 @@
       (($tuple_type_join (Tuple x xs) (Tuple y ys))
         (eo::ite (eo::eq xs UnitTuple)
           (eo::requires x y ys)
-          (eo::cons Tuple x ($tuple_type_join xs (Tuple y ys)))))
+          (_ Tuple x ($tuple_type_join xs (Tuple y ys)))))
     )
 )
 

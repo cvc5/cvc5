@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -17,12 +14,12 @@
 #ifndef CVC5__PREPROCESSING__PASSES__LEARNED_REWRITE_H
 #define CVC5__PREPROCESSING__PASSES__LEARNED_REWRITE_H
 
+#include <iosfwd>
+
 #include "preprocessing/preprocessing_pass.h"
 #include "preprocessing/preprocessing_pass_context.h"
 #include "theory/arith/bound_inference.h"
 #include "util/statistics_stats.h"
-
-#include <iosfwd>
 
 namespace cvc5::internal {
 namespace preprocessing {
@@ -95,8 +92,7 @@ class LearnedRewrite : public PreprocessingPass
    */
   Node rewriteLearned(Node n,
                       theory::arith::BoundInference& binfer,
-                      const std::vector<Node>& learnedLits,
-                      std::unordered_set<Node>& lems);
+                      const std::vector<Node>& learnedLits);
   /** Return learned rewrite */
   Node returnRewriteLearned(Node n, Node nr, LearnedRewriteId id);
   /** Counts number of applications of learned rewrites */

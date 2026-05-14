@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mudathir Mohamed, Andres Noetzli, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -1011,9 +1008,8 @@ JNIEXPORT jint JNICALL Java_io_github_cvc5_Sort_getBitVectorSize(JNIEnv* env,
  * Method:    getFiniteFieldSize
  * Signature: (J)I
  */
-JNIEXPORT jstring JNICALL Java_io_github_cvc5_Sort_getFiniteFieldSize(JNIEnv* env,
-                                                                      jobject,
-                                                                      jlong pointer)
+JNIEXPORT jstring JNICALL
+Java_io_github_cvc5_Sort_getFiniteFieldSize(JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Sort* current = reinterpret_cast<Sort*>(pointer);

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Gereon Kremer, Liana Hadarean, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -110,7 +107,7 @@ struct ResourceManager::Statistics
 
 ResourceManager::Statistics::Statistics(StatisticsRegistry& stats)
     : d_resourceUnitsUsed(
-        stats.registerReference<uint64_t>("resource::resourceUnitsUsed")),
+          stats.registerReference<uint64_t>("resource::resourceUnitsUsed")),
       d_spendResourceCalls(stats.registerInt("resource::spendResourceCalls")),
       d_inferenceIdSteps(stats.registerHistogram<theory::InferenceId>(
           "resource::steps::inference-id")),

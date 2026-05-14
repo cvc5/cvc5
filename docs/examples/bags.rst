@@ -8,3 +8,4 @@ Theory of Bags
     <examples>/api/java/Bags.java
     <examples>/api/python/bags.py
     <examples>/api/smtlib/bags.smt2
+    :skip: py-pythonicapi

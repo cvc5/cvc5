@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Gereon Kremer, Aina Niemetz, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -97,7 +94,7 @@ Rational toRationalAbove(const poly::Value& v)
   {
     return toRational(as_rational(v));
   }
-  Assert(false) << "Can not convert " << v << " to rational.";
+  DebugUnhandled() << "Can not convert " << v << " to rational.";
   return Rational();
 }
 Rational toRationalBelow(const poly::Value& v)
@@ -118,7 +115,7 @@ Rational toRationalBelow(const poly::Value& v)
   {
     return toRational(as_rational(v));
   }
-  Assert(false) << "Can not convert " << v << " to rational.";
+  DebugUnhandled() << "Can not convert " << v << " to rational.";
   return Rational();
 }
 
@@ -251,7 +248,7 @@ std::size_t totalDegree(const poly::Polynomial& p)
   std::size_t tdeg = 0;
 
   lp_polynomial_traverse_f f =
-      [](const lp_polynomial_context_t* ctx, lp_monomial_t* m, void* data) {
+      [](const lp_polynomial_context_t*, lp_monomial_t* m, void* data) {
         std::size_t sum = 0;
         for (std::size_t i = 0; i < m->n; ++i)
         {
@@ -280,7 +277,7 @@ std::ostream& operator<<(std::ostream& os, const VariableInformation& vi)
   }
   else
   {
-    os << "Info for " << vi.var << ": ";
+    os << "Info for " << stream_variable(*(vi.polyCtx), vi.var) << ": ";
     os << "max deg " << vi.max_degree;
     os << ", max lc deg: " << vi.max_lc_degree;
     os << ", max term tdeg: " << vi.max_terms_tdegree;
@@ -304,7 +301,7 @@ void getVariableInformation(VariableInformation& vi,
   GetVarInfo varinfo;
   varinfo.info = &vi;
   lp_polynomial_traverse_f f =
-      [](const lp_polynomial_context_t* ctx, lp_monomial_t* m, void* data) {
+      [](const lp_polynomial_context_t*, lp_monomial_t* m, void* data) {
         GetVarInfo* gvi = static_cast<GetVarInfo*>(data);
         VariableInformation* info = gvi->info;
         // Total degree of this term
@@ -314,7 +311,7 @@ void getVariableInformation(VariableInformation& vi,
         for (std::size_t i = 0; i < m->n; ++i)
         {
           tdeg += m->p[i].d;
-          if (m->p[i].x == info->var)
+          if (poly::Variable(m->p[i].x) == info->var)
           {
             info->max_degree = std::max(info->max_degree, m->p[i].d);
             info->sum_term_degree += m->p[i].d;
