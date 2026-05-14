@@ -2164,6 +2164,89 @@ enum ENUM(ProofRule)
    * \endverbatim
    */
   EVALUE(ARITH_MULT_TANGENT),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Pow2 -- Initial refinement**
+   *
+   * .. math::
+   *
+   *   \inferrule{- \mid t}{
+   *     ((t \geq 0) \rightarrow ((\texttt{pow2}~t) > 0))
+   *     \land ((t \neq 0) \rightarrow ((\texttt{pow2}~t) \bmod 2 = 0))}
+   *
+   * where :math:`t` is an integer term. This rule emits the initial-refinement
+   * axiom used by the nonlinear pow2 solver for the pow2 application
+   * :math:`(\texttt{pow2}~t)`.
+   * \endverbatim
+   */
+  EVALUE(ARITH_POW2_INIT_REFINE),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Pow2 -- Monotonicity refinement**
+   *
+   * .. math::
+   *
+   *   \inferrule{- \mid x, y}{
+   *     (0 \leq x \land x < y) \rightarrow
+   *     ((\texttt{pow2}~x) < (\texttt{pow2}~y))}
+   *
+   * where :math:`x, y` are integer terms.
+   * \endverbatim
+   */
+  EVALUE(ARITH_POW2_MONOTONE_REFINE),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Pow2 -- Negative argument refinement**
+   *
+   * .. math::
+   *
+   *   \inferrule{- \mid t}{(t < 0) \rightarrow ((\texttt{pow2}~t) = 0)}
+   *
+   * where :math:`t` is an integer term.
+   * \endverbatim
+   */
+  EVALUE(ARITH_POW2_NEG_REFINE),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Pow2 -- Division refinement**
+   *
+   * .. math::
+   *
+   *   \inferrule{- \mid t}{(t \geq 0) \rightarrow ((t \mathbin{\texttt{div}} (\texttt{pow2}~t)) = 0)}
+   *
+   * where :math:`t` is an integer term. This is sound because for non-negative
+   * :math:`t` we have :math:`t < (\texttt{pow2}~t)`.
+   * \endverbatim
+   */
+  EVALUE(ARITH_POW2_DIV0_REFINE),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Pow2 -- Lower bound refinement**
+   *
+   * .. math::
+   *
+   *   \inferrule{- \mid t, k}{(t \geq k \land k \geq 7) \rightarrow
+   *     ((\texttt{pow2}~t) > k \cdot t + k \cdot k)}
+   *
+   * where :math:`t` is an integer term and :math:`k` is an integer constant.
+   * \endverbatim
+   */
+  EVALUE(ARITH_POW2_LOWER_BOUND_REFINE),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Pow2 -- Value refinement**
+   *
+   * .. math::
+   *
+   *   \inferrule{- \mid t, v}{(t = v) \rightarrow ((\texttt{pow2}~t) = (\texttt{pow2}~v))}
+   *
+   * where :math:`t` is an integer term and :math:`v` is an integer constant.
+   * The conclusion is intended to be used after rewriting, where
+   * :math:`(\texttt{pow2}~v)` evaluates to :math:`2^v` if :math:`v \geq 0` and
+   * to :math:`0` otherwise.
+   * \endverbatim
+   */
+  EVALUE(ARITH_POW2_VALUE_REFINE),
 
   /**
    * \verbatim embed:rst:leading-asterisk

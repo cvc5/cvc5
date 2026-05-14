@@ -168,6 +168,14 @@ const char* toString(ProofRule rule)
     case ProofRule::ARITH_MULT_TANGENT: return "ARITH_MULT_TANGENT";
     case ProofRule::ARITH_MULT_ABS_COMPARISON:
       return "ARITH_MULT_ABS_COMPARISON";
+    case ProofRule::ARITH_POW2_INIT_REFINE: return "ARITH_POW2_INIT_REFINE";
+    case ProofRule::ARITH_POW2_MONOTONE_REFINE:
+      return "ARITH_POW2_MONOTONE_REFINE";
+    case ProofRule::ARITH_POW2_NEG_REFINE: return "ARITH_POW2_NEG_REFINE";
+    case ProofRule::ARITH_POW2_DIV0_REFINE: return "ARITH_POW2_DIV0_REFINE";
+    case ProofRule::ARITH_POW2_LOWER_BOUND_REFINE:
+      return "ARITH_POW2_LOWER_BOUND_REFINE";
+    case ProofRule::ARITH_POW2_VALUE_REFINE: return "ARITH_POW2_VALUE_REFINE";
     case ProofRule::ARITH_REDUCTION: return "ARITH_REDUCTION";
     case ProofRule::ARITH_POLY_NORM: return "ARITH_POLY_NORM";
     case ProofRule::ARITH_POLY_NORM_REL: return "ARITH_POLY_NORM_REL";
