@@ -562,7 +562,7 @@ enum ENUM(ProofRule)
    *
    * where :math:`C_2` is the clause :math:`C_1`, but every occurrence of
    * a literal after its first occurrence is omitted. This rule is
-   * only applied when :math:`C_1` containing at least one repeated
+   * only applied when :math:`C_1` contains at least one repeated
    * literal.
    * \endverbatim
    */
