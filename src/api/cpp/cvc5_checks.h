@@ -501,12 +501,12 @@ class CVC5ApiUnsupportedExceptionStream
  * Check if given sort at given index of given sorts is not null and associated
  * with this term manager.
  */
-#define CVC5_API_TM_CHECK_SORT_AT_INDEX(sort, sorts, index)                   \
-  do                                                                          \
-  {                                                                           \
-    CVC5_API_ARG_AT_INDEX_CHECK_NOT_NULL("sort", sort, sorts, i);             \
-    CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(d_nm == sort.d_nm, "sort", sorts, i) \
-        << "a sort associated with this term manager";                        \
+#define CVC5_API_TM_CHECK_SORT_AT_INDEX(sort, sorts, index)                       \
+  do                                                                              \
+  {                                                                               \
+    CVC5_API_ARG_AT_INDEX_CHECK_NOT_NULL("sort", sort, sorts, index);             \
+    CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(d_nm == sort.d_nm, "sort", sorts, index) \
+        << "a sort associated with this term manager";                            \
   } while (0)
 
 /**
