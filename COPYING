@@ -65,7 +65,7 @@ this library does not affect the license terms of the cvc5 code.
 
 The implementation of the floating point solver in cvc5 depends on symfpu
 (https://github.com/martin-cs/symfpu) written by Martin Brain.
-See https://raw.githubusercontent.com/martin-cs/symfpu/CVC4/LICENSE for
+See https://raw.githubusercontent.com/martin-cs/symfpu/main/LICENSE for
 copyright and licensing information.
 
 When building with GCC, cvc5 links against the libgcc and libstdc++ libraries,
