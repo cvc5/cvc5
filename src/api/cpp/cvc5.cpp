@@ -1100,8 +1100,7 @@ uint32_t maxArity(Kind k)
 class PluginInternal : public internal::Plugin
 {
  public:
-  PluginInternal(NodeManagerSharedPtr nm,
-                 cvc5::Plugin& e)
+  PluginInternal(NodeManagerSharedPtr nm, cvc5::Plugin& e)
       : internal::Plugin(nm.get()), d_nm(std::move(nm)), d_external(e)
   {
   }
@@ -1317,8 +1316,7 @@ std::vector<internal::TypeNode> Sort::sortVectorToTypeNodes(
 }
 
 std::vector<Sort> Sort::typeNodeVectorToSorts(
-    NodeManagerSharedPtr nm,
-    const std::vector<internal::TypeNode>& types)
+    NodeManagerSharedPtr nm, const std::vector<internal::TypeNode>& types)
 {
   std::vector<Sort> sorts;
   for (size_t i = 0, tsize = types.size(); i < tsize; i++)
@@ -2268,40 +2266,48 @@ Term Op::getIndexHelper(size_t index)
   {
     case Kind::DIVISIBLE:
     {
-      t = TermManager::mkRationalValHelper(d_nm,
-          internal::Rational(d_node->getConst<internal::Divisible>().k), true);
+      t = TermManager::mkRationalValHelper(
+          d_nm,
+          internal::Rational(d_node->getConst<internal::Divisible>().k),
+          true);
       break;
     }
     case Kind::BITVECTOR_REPEAT:
     {
-      t = TermManager::mkRationalValHelper(d_nm,
-          d_node->getConst<internal::BitVectorRepeat>().d_repeatAmount, true);
+      t = TermManager::mkRationalValHelper(
+          d_nm,
+          d_node->getConst<internal::BitVectorRepeat>().d_repeatAmount,
+          true);
       break;
     }
     case Kind::BITVECTOR_ZERO_EXTEND:
     {
-      t = TermManager::mkRationalValHelper(d_nm,
+      t = TermManager::mkRationalValHelper(
+          d_nm,
           d_node->getConst<internal::BitVectorZeroExtend>().d_zeroExtendAmount,
           true);
       break;
     }
     case Kind::BITVECTOR_SIGN_EXTEND:
     {
-      t = TermManager::mkRationalValHelper(d_nm,
+      t = TermManager::mkRationalValHelper(
+          d_nm,
           d_node->getConst<internal::BitVectorSignExtend>().d_signExtendAmount,
           true);
       break;
     }
     case Kind::BITVECTOR_ROTATE_LEFT:
     {
-      t = TermManager::mkRationalValHelper(d_nm,
+      t = TermManager::mkRationalValHelper(
+          d_nm,
           d_node->getConst<internal::BitVectorRotateLeft>().d_rotateLeftAmount,
           true);
       break;
     }
     case Kind::BITVECTOR_ROTATE_RIGHT:
     {
-      t = TermManager::mkRationalValHelper(d_nm,
+      t = TermManager::mkRationalValHelper(
+          d_nm,
           d_node->getConst<internal::BitVectorRotateRight>()
               .d_rotateRightAmount,
           true);
@@ -2309,40 +2315,44 @@ Term Op::getIndexHelper(size_t index)
     }
     case Kind::INT_TO_BITVECTOR:
     {
-      t = TermManager::mkRationalValHelper(d_nm,
-          d_node->getConst<internal::IntToBitVector>().d_size, true);
+      t = TermManager::mkRationalValHelper(
+          d_nm, d_node->getConst<internal::IntToBitVector>().d_size, true);
       break;
     }
     case Kind::BITVECTOR_BIT:
     {
-      t = TermManager::mkRationalValHelper(d_nm,
-          d_node->getConst<internal::BitVectorBit>().d_bitIndex, true);
+      t = TermManager::mkRationalValHelper(
+          d_nm, d_node->getConst<internal::BitVectorBit>().d_bitIndex, true);
       break;
     }
     case Kind::IAND:
     {
-      t = TermManager::mkRationalValHelper(d_nm,d_node->getConst<internal::IntAnd>().d_size,
-                                    true);
+      t = TermManager::mkRationalValHelper(
+          d_nm, d_node->getConst<internal::IntAnd>().d_size, true);
       break;
     }
     case Kind::FLOATINGPOINT_TO_UBV:
     {
-      t = TermManager::mkRationalValHelper(d_nm,
+      t = TermManager::mkRationalValHelper(
+          d_nm,
           d_node->getConst<internal::FloatingPointToUBV>().d_bv_size.d_size,
           true);
       break;
     }
     case Kind::FLOATINGPOINT_TO_SBV:
     {
-      t = TermManager::mkRationalValHelper(d_nm,
+      t = TermManager::mkRationalValHelper(
+          d_nm,
           d_node->getConst<internal::FloatingPointToSBV>().d_bv_size.d_size,
           true);
       break;
     }
     case Kind::REGEXP_REPEAT:
     {
-      t = TermManager::mkRationalValHelper(d_nm,
-          d_node->getConst<internal::RegExpRepeat>().d_repeatAmount, true);
+      t = TermManager::mkRationalValHelper(
+          d_nm,
+          d_node->getConst<internal::RegExpRepeat>().d_repeatAmount,
+          true);
       break;
     }
     case Kind::BITVECTOR_EXTRACT:
@@ -2358,20 +2368,20 @@ Term Op::getIndexHelper(size_t index)
       internal::FloatingPointToFPIEEEBitVector ext =
           d_node->getConst<internal::FloatingPointToFPIEEEBitVector>();
 
-      t = index == 0
-              ? TermManager::mkRationalValHelper(d_nm, ext.getSize().exponentWidth(), true)
-              : TermManager::mkRationalValHelper(d_nm, ext.getSize().significandWidth(),
-                                          true);
+      t = index == 0 ? TermManager::mkRationalValHelper(
+                           d_nm, ext.getSize().exponentWidth(), true)
+                     : TermManager::mkRationalValHelper(
+                           d_nm, ext.getSize().significandWidth(), true);
       break;
     }
     case Kind::FLOATINGPOINT_TO_FP_FROM_FP:
     {
       internal::FloatingPointToFPFloatingPoint ext =
           d_node->getConst<internal::FloatingPointToFPFloatingPoint>();
-      t = index == 0
-              ? TermManager::mkRationalValHelper(d_nm, ext.getSize().exponentWidth(), true)
-              : TermManager::mkRationalValHelper(d_nm, ext.getSize().significandWidth(),
-                                          true);
+      t = index == 0 ? TermManager::mkRationalValHelper(
+                           d_nm, ext.getSize().exponentWidth(), true)
+                     : TermManager::mkRationalValHelper(
+                           d_nm, ext.getSize().significandWidth(), true);
       break;
     }
     case Kind::FLOATINGPOINT_TO_FP_FROM_REAL:
@@ -2379,37 +2389,38 @@ Term Op::getIndexHelper(size_t index)
       internal::FloatingPointToFPReal ext =
           d_node->getConst<internal::FloatingPointToFPReal>();
 
-      t = index == 0
-              ? TermManager::mkRationalValHelper(d_nm, ext.getSize().exponentWidth(), true)
-              : TermManager::mkRationalValHelper(d_nm, ext.getSize().significandWidth(),
-                                          true);
+      t = index == 0 ? TermManager::mkRationalValHelper(
+                           d_nm, ext.getSize().exponentWidth(), true)
+                     : TermManager::mkRationalValHelper(
+                           d_nm, ext.getSize().significandWidth(), true);
       break;
     }
     case Kind::FLOATINGPOINT_TO_FP_FROM_SBV:
     {
       internal::FloatingPointToFPSignedBitVector ext =
           d_node->getConst<internal::FloatingPointToFPSignedBitVector>();
-      t = index == 0
-              ? TermManager::mkRationalValHelper(d_nm, ext.getSize().exponentWidth(), true)
-              : TermManager::mkRationalValHelper(d_nm, ext.getSize().significandWidth(),
-                                          true);
+      t = index == 0 ? TermManager::mkRationalValHelper(
+                           d_nm, ext.getSize().exponentWidth(), true)
+                     : TermManager::mkRationalValHelper(
+                           d_nm, ext.getSize().significandWidth(), true);
       break;
     }
     case Kind::FLOATINGPOINT_TO_FP_FROM_UBV:
     {
       internal::FloatingPointToFPUnsignedBitVector ext =
           d_node->getConst<internal::FloatingPointToFPUnsignedBitVector>();
-      t = index == 0
-              ? TermManager::mkRationalValHelper(d_nm, ext.getSize().exponentWidth(), true)
-              : TermManager::mkRationalValHelper(d_nm, ext.getSize().significandWidth(),
-                                          true);
+      t = index == 0 ? TermManager::mkRationalValHelper(
+                           d_nm, ext.getSize().exponentWidth(), true)
+                     : TermManager::mkRationalValHelper(
+                           d_nm, ext.getSize().significandWidth(), true);
       break;
     }
     case Kind::REGEXP_LOOP:
     {
       internal::RegExpLoop ext = d_node->getConst<internal::RegExpLoop>();
-      t = index == 0 ? TermManager::mkRationalValHelper(d_nm, ext.d_loopMinOcc, true)
-                     : TermManager::mkRationalValHelper(d_nm, ext.d_loopMaxOcc, true);
+      t = index == 0
+              ? TermManager::mkRationalValHelper(d_nm, ext.d_loopMinOcc, true)
+              : TermManager::mkRationalValHelper(d_nm, ext.d_loopMaxOcc, true);
 
       break;
     }
@@ -2425,7 +2436,8 @@ Term Op::getIndexHelper(size_t index)
     {
       const std::vector<uint32_t>& projectionIndices =
           d_node->getConst<internal::ProjectOp>().getIndices();
-      t = TermManager::mkRationalValHelper(d_nm, projectionIndices[index], true);
+      t = TermManager::mkRationalValHelper(
+          d_nm, projectionIndices[index], true);
       break;
     }
     default:
@@ -2485,7 +2497,8 @@ bool Op::isIndexedHelper() const { return !d_node->isNull(); }
 
 Term::Term() : d_nm(nullptr), d_node(new internal::Node()) {}
 
-Term::Term(NodeManagerSharedPtr nm, const internal::Node& n) : d_nm(std::move(nm))
+Term::Term(NodeManagerSharedPtr nm, const internal::Node& n)
+    : d_nm(std::move(nm))
 {
   d_node.reset(new internal::Node(n));
 }
@@ -3163,8 +3176,7 @@ std::vector<internal::Node> Term::termVectorToNodes(
 }
 
 std::vector<Term> Term::nodeVectorToTerms(
-    NodeManagerSharedPtr nm,
-    const std::vector<internal::Node>& nodes)
+    NodeManagerSharedPtr nm, const std::vector<internal::Node>& nodes)
 {
   std::vector<Term> res;
   for (const internal::Node& n : nodes)
@@ -3675,8 +3687,7 @@ Term Term::getRealAlgebraicNumberLowerBound() const
 #ifdef CVC5_POLY_IMP
   const internal::RealAlgebraicNumber& ran =
       d_node->getOperator().getConst<internal::RealAlgebraicNumber>();
-  return Term(d_nm,
-              internal::PolyConverter::ran_to_lower(d_nm.get(), ran));
+  return Term(d_nm, internal::PolyConverter::ran_to_lower(d_nm.get(), ran));
 #else
   return Term();
 #endif
@@ -3701,8 +3712,7 @@ Term Term::getRealAlgebraicNumberUpperBound() const
 #ifdef CVC5_POLY_IMP
   const internal::RealAlgebraicNumber& ran =
       d_node->getOperator().getConst<internal::RealAlgebraicNumber>();
-  return Term(d_nm,
-              internal::PolyConverter::ran_to_upper(d_nm.get(), ran));
+  return Term(d_nm, internal::PolyConverter::ran_to_upper(d_nm.get(), ran));
 #else
   return Term();
 #endif
@@ -4310,9 +4320,7 @@ DatatypeConstructor::const_iterator DatatypeConstructor::end() const
 }
 
 DatatypeConstructor::const_iterator::const_iterator(
-    NodeManagerSharedPtr nm,
-    const internal::DTypeConstructor& ctor,
-    bool begin)
+    NodeManagerSharedPtr nm, const internal::DTypeConstructor& ctor, bool begin)
 {
   d_nm = std::move(nm);
   d_int_stors = &ctor.getArgs();
@@ -5135,7 +5143,8 @@ std::ostream& operator<<(std::ostream& out, const Statistics& stats)
 
 Proof::Proof() : d_nm(nullptr) {}
 
-Proof::Proof(NodeManagerSharedPtr nm, const std::shared_ptr<internal::ProofNode> p)
+Proof::Proof(NodeManagerSharedPtr nm,
+             const std::shared_ptr<internal::ProofNode> p)
     : d_proofNode(p), d_nm(std::move(nm))
 {
 }
@@ -6204,7 +6213,8 @@ Term TermManager::mkInteger(int64_t val)
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  Term res = TermManager::mkRationalValHelper(d_nm, internal::Rational(val), true);
+  Term res =
+      TermManager::mkRationalValHelper(d_nm, internal::Rational(val), true);
   AssertEqual(res.getSort(), getIntegerSort());
   return res;
   ////////
@@ -6239,7 +6249,8 @@ Term TermManager::mkReal(int64_t num, int64_t den)
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(den != 0) << "invalid denominator '" << den << "'";
   //////// all checks before this line
-  return TermManager::mkRationalValHelper(d_nm, internal::Rational(num, den), false);
+  return TermManager::mkRationalValHelper(
+      d_nm, internal::Rational(num, den), false);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -6452,8 +6463,9 @@ Term TermManager::mkFloatingPointPosInf(uint32_t exp, uint32_t sig)
   CVC5_API_ARG_CHECK_EXPECTED(exp > 1, exp) << "exponent size > 1";
   CVC5_API_ARG_CHECK_EXPECTED(sig > 1, sig) << "significand size > 1";
   //////// all checks before this line
-  return mkValHelper(d_nm, internal::FloatingPoint::makeInf(
-      internal::FloatingPointSize(exp, sig), false));
+  return mkValHelper(d_nm,
+                     internal::FloatingPoint::makeInf(
+                         internal::FloatingPointSize(exp, sig), false));
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -6464,8 +6476,9 @@ Term TermManager::mkFloatingPointNegInf(uint32_t exp, uint32_t sig)
   CVC5_API_ARG_CHECK_EXPECTED(exp > 1, exp) << "exponent size > 1";
   CVC5_API_ARG_CHECK_EXPECTED(sig > 1, sig) << "significand size > 1";
   //////// all checks before this line
-  return mkValHelper(d_nm, internal::FloatingPoint::makeInf(
-      internal::FloatingPointSize(exp, sig), true));
+  return mkValHelper(d_nm,
+                     internal::FloatingPoint::makeInf(
+                         internal::FloatingPointSize(exp, sig), true));
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -6476,7 +6489,8 @@ Term TermManager::mkFloatingPointNaN(uint32_t exp, uint32_t sig)
   CVC5_API_ARG_CHECK_EXPECTED(exp > 1, exp) << "exponent size > 1";
   CVC5_API_ARG_CHECK_EXPECTED(sig > 1, sig) << "significand size > 1";
   //////// all checks before this line
-  return mkValHelper(d_nm, 
+  return mkValHelper(
+      d_nm,
       internal::FloatingPoint::makeNaN(internal::FloatingPointSize(exp, sig)));
   ////////
   CVC5_API_TRY_CATCH_END;
@@ -6488,8 +6502,9 @@ Term TermManager::mkFloatingPointPosZero(uint32_t exp, uint32_t sig)
   CVC5_API_ARG_CHECK_EXPECTED(exp > 1, exp) << "exponent size > 1";
   CVC5_API_ARG_CHECK_EXPECTED(sig > 1, sig) << "significand size > 1";
   //////// all checks before this line
-  return mkValHelper(d_nm, internal::FloatingPoint::makeZero(
-      internal::FloatingPointSize(exp, sig), false));
+  return mkValHelper(d_nm,
+                     internal::FloatingPoint::makeZero(
+                         internal::FloatingPointSize(exp, sig), false));
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -6500,8 +6515,9 @@ Term TermManager::mkFloatingPointNegZero(uint32_t exp, uint32_t sig)
   CVC5_API_ARG_CHECK_EXPECTED(exp > 1, exp) << "exponent size > 1";
   CVC5_API_ARG_CHECK_EXPECTED(sig > 1, sig) << "significand size > 1";
   //////// all checks before this line
-  return mkValHelper(d_nm, internal::FloatingPoint::makeZero(
-      internal::FloatingPointSize(exp, sig), true));
+  return mkValHelper(d_nm,
+                     internal::FloatingPoint::makeZero(
+                         internal::FloatingPointSize(exp, sig), true));
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -6529,8 +6545,10 @@ Term TermManager::mkFloatingPoint(uint32_t exp, uint32_t sig, const Term& val)
       val.d_node->getType().isBitVector() && val.d_node->isConst(), val)
       << "bit-vector value";
   //////// all checks before this line
-  return mkValHelper(d_nm, internal::FloatingPoint(
-      exp, sig, val.d_node->getConst<internal::BitVector>()));
+  return mkValHelper(
+      d_nm,
+      internal::FloatingPoint(
+          exp, sig, val.d_node->getConst<internal::BitVector>()));
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -6560,12 +6578,14 @@ Term TermManager::mkFloatingPoint(const Term& sign,
   //////// all checks before this line
   uint32_t esize = exp.d_node->getType().getBitVectorSize();
   uint32_t ssize = sig.d_node->getType().getBitVectorSize() + 1;
-  return mkValHelper(d_nm, internal::FloatingPoint(
-      esize,
-      ssize,
-      sign.d_node->getConst<internal::BitVector>().concat(
-          exp.d_node->getConst<internal::BitVector>().concat(
-              sig.d_node->getConst<internal::BitVector>()))));
+  return mkValHelper(
+      d_nm,
+      internal::FloatingPoint(
+          esize,
+          ssize,
+          sign.d_node->getConst<internal::BitVector>().concat(
+              exp.d_node->getConst<internal::BitVector>().concat(
+                  sig.d_node->getConst<internal::BitVector>()))));
   ////////
   CVC5_API_TRY_CATCH_END;
 }

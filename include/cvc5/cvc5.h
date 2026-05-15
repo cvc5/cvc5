@@ -953,8 +953,7 @@ class CVC5_EXPORT Sort
       const std::vector<Sort>& sorts);
   /** Helper to convert a vector of internal TypeNodes to Sorts. */
   std::vector<Sort> static typeNodeVectorToSorts(
-      NodeManagerSharedPtr nm,
-      const std::vector<internal::TypeNode>& types);
+      NodeManagerSharedPtr nm, const std::vector<internal::TypeNode>& types);
 
   /**
    * Constructor.
@@ -1957,8 +1956,7 @@ class CVC5_EXPORT Term
       const std::vector<Term>& terms);
   /** Helper to convert a vector of internal Nodes to Terms. */
   std::vector<Term> static nodeVectorToTerms(
-      NodeManagerSharedPtr nm,
-      const std::vector<internal::Node>& nodes);
+      NodeManagerSharedPtr nm, const std::vector<internal::Node>& nodes);
 
   /**
    * Helper for isNull checks. This prevents calling an API function with
@@ -2399,7 +2397,8 @@ class CVC5_EXPORT DatatypeSelector
    * @param stor The internal datatype selector to be wrapped.
    * @return The DatatypeSelector.
    */
-  DatatypeSelector(NodeManagerSharedPtr nm, const internal::DTypeSelector& stor);
+  DatatypeSelector(NodeManagerSharedPtr nm,
+                   const internal::DTypeSelector& stor);
 
   /**
    * Helper for isNull checks. This prevents calling an API function with
@@ -2689,7 +2688,8 @@ class CVC5_EXPORT DatatypeConstructor
    * @param ctor The internal datatype constructor to be wrapped.
    * @return The DatatypeConstructor.
    */
-  DatatypeConstructor(NodeManagerSharedPtr nm, const internal::DTypeConstructor& ctor);
+  DatatypeConstructor(NodeManagerSharedPtr nm,
+                      const internal::DTypeConstructor& ctor);
 
   /**
    * Return selector for name.
@@ -2934,7 +2934,9 @@ class CVC5_EXPORT Datatype
      * @param dtype The internal datatype to iterate over.
      * @param begin True if this is a begin() iterator.
      */
-    const_iterator(NodeManagerSharedPtr nm, const internal::DType& dtype, bool begin);
+    const_iterator(NodeManagerSharedPtr nm,
+                   const internal::DType& dtype,
+                   bool begin);
 
     /**
      * The associated node manager.
