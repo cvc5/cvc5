@@ -3517,7 +3517,7 @@ bool Term::isSetValue() const
 
 void Term::collectSet(std::set<Term>& set,
                       const internal::Node& node,
-                      NodeManagerSharedPtr nm)
+                      const NodeManagerSharedPtr& nm)
 {
   // We asserted that node has a set type, and node.isConst()
   // Thus, node only contains of SET_EMPTY, SET_UNION and SET_SINGLETON.

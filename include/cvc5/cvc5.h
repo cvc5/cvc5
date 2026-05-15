@@ -1939,7 +1939,7 @@ class CVC5_EXPORT Term
   /** Helper function to collect all elements of a set. */
   static void collectSet(std::set<Term>& set,
                          const internal::Node& node,
-                         NodeManagerSharedPtr nm);
+                         const NodeManagerSharedPtr& nm);
 
   /**
    * Constructor.
