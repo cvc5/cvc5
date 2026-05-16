@@ -280,7 +280,7 @@
 ;   The right hand side of the equality is the result of miniscoping the
 ;   left hand side.
 ; conclusion: The given equality.
-(declare-rule quant-miniscope-ite ((x @List) (A Bool) (F1 Bool) (F2 Bool) (G Bool))
+(declare-rule quant-miniscope-ite ((x @List) (A Bool) (F1 Bool) (F2 Bool))
   :args ((= (forall x (ite A F1 F2)) (ite A (forall x F1) (forall x F2))))
   :requires ((($contains_atomic_term_list A x) false))
   :conclusion (= (forall x (ite A F1 F2)) (ite A (forall x F1) (forall x F2)))
