@@ -88,7 +88,9 @@
 (define $dt_is_cons ((T Type :implicit) (t T))
   (eo::ite (eo::is_eq t tuple)    ; must check this first
     true
-    (eo::is_ok (eo::dt_selectors t)))) ; if it has selectors, then it is a constructor
+    (eo::ite (eo::is_eq t tuple.unit)
+      true
+      (eo::is_ok (eo::dt_selectors t))))) ; if it has selectors, then it is a constructor
 
 ; program: $is_cons_app
 ; args:
