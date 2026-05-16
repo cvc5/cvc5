@@ -113,8 +113,7 @@ class ParserLifetimeTest
   }
 
   @Test
-  void parsedTermOutlivesParserWithInternalSymbolManager()
-      throws CVC5ApiException
+  void parsedTermOutlivesParserWithInternalSymbolManager() throws CVC5ApiException
   {
     TermManager tm = new TermManager();
     Solver solver = new Solver(tm);
