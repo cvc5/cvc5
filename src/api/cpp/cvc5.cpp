@@ -5145,7 +5145,7 @@ Proof::Proof() : d_nm(nullptr) {}
 
 Proof::Proof(NodeManagerSharedPtr nm,
              const std::shared_ptr<internal::ProofNode> p)
-    : d_proofNode(p), d_nm(std::move(nm))
+    : d_nm(std::move(nm)), d_proofNode(p)
 {
 }
 

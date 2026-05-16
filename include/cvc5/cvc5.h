@@ -3731,14 +3731,10 @@ class CVC5_EXPORT Proof
   /** Construct a proof by wrapping a ProofNode. */
   Proof(NodeManagerSharedPtr nm, const std::shared_ptr<internal::ProofNode> p);
 
+  /** The associated node manager. */
+  NodeManagerSharedPtr d_nm;
   /** The internal proof node wrapped by this proof object. */
   std::shared_ptr<internal::ProofNode> d_proofNode;
-  /**
-   * The associated node manager.
-   * @note This is only needed temporarily until deprecated term/sort handling
-   * functions are removed.
-   */
-  NodeManagerSharedPtr d_nm;
 };
 
 }  // namespace cvc5
@@ -7094,15 +7090,15 @@ class CVC5_EXPORT Solver
   /** Vector version of above. */
   void ensureWellFormedTerms(const std::vector<Term>& ts) const;
 
+  /** The associated term manager. */
+  mutable TermManager d_tm;
+
   /** Keep a copy of the original option settings (for resets). */
   std::unique_ptr<internal::Options> d_originalOptions;
   /** The SMT engine of this solver. */
   std::unique_ptr<internal::SolverEngine> d_slv;
   /** The random number generator of this solver. */
   std::unique_ptr<internal::Random> d_rng;
-
-  /** The associated term manager. */
-  mutable TermManager d_tm;
 };
 
 }  // namespace cvc5
