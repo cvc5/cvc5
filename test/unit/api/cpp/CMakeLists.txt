@@ -31,6 +31,7 @@ cvc5_add_unit_test_black(api_term_black api/cpp)
 cvc5_add_unit_test_white(api_term_white api/cpp)
 cvc5_add_unit_test_black(api_term_manager_black api/cpp)
 cvc5_add_unit_test_black(api_types_black api/cpp)
+cvc5_add_unit_test_black(api_weight_black api/cpp)
 
 # do not issue deprecation warnings when using deprecated functions
 set_source_files_properties(input_parser_black.cpp

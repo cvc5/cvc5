@@ -316,6 +316,35 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
       return RewriteResponse(REWRITE_AGAIN_FULL, res);
     }
   }
+  else if (kind == Kind::DT_SYGUS_WEIGHT)
+  {
+    if (in[1].getKind() == Kind::APPLY_CONSTRUCTOR)
+    {
+      std::vector<Node> children;
+      for (unsigned i = 0, size = in[1].getNumChildren(); i < size; i++)
+      {
+        if (in[1][i].getType().isDatatype())
+        {
+          children.push_back(
+              nm->mkNode(Kind::DT_SYGUS_WEIGHT, in[0], in[1][i]));
+        }
+      }
+      TNode constructor = in[1].getOperator();
+      size_t constructorIndex = utils::indexOf(constructor);
+      const DType& dt = utils::datatypeOf(constructor);
+      const DTypeConstructor& c = dt[constructorIndex];
+      const Node& weight = c.getWeights().find(in[0]) == c.getWeights().cend()
+                               ? in[0].getAttribute(SygusWeightAttribute())
+                               : c.getWeights().at(in[0]);
+      children.push_back(weight);
+      Node res =
+          children.size() == 1 ? children[0] : nm->mkNode(Kind::ADD, children);
+      Trace("datatypes-rewrite")
+          << "DatatypesRewriter::postRewrite: rewrite weight " << in << " to "
+          << res << std::endl;
+      return RewriteResponse(REWRITE_AGAIN_FULL, res);
+    }
+  }
   else if (kind == Kind::DT_HEIGHT_BOUND)
   {
     if (in[0].getKind() == Kind::APPLY_CONSTRUCTOR)
