@@ -13,6 +13,9 @@
 #ifndef CVC5__PY_PLUGIN_H
 #define CVC5__PY_PLUGIN_H
 
+// Python.h must come first to avoid libc macro redefinition warnings
+#include <Python.h>
+
 #include <cvc5/cvc5.h>
 
 // Created by Cython when providing 'public api' keywords
