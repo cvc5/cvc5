@@ -325,13 +325,13 @@
   :signature (Bool Bool T) Bool
   (
   (($mk_arith_mult_sign_sgn sgn (and (not (= t z)) F) (* t t m))  ; ensures non-empty
-      (eo::requires (eo::to_z z) 0
+      (eo::requires ($sgn z) 0
         ($mk_arith_mult_sign_sgn sgn F ($strip_even_exponent t m))))
   (($mk_arith_mult_sign_sgn sgn (and (> t z) F) (* t m))
-      (eo::requires (eo::to_z z) 0
+      (eo::requires ($sgn z) 0
         ($mk_arith_mult_sign_sgn sgn F ($strip_even_exponent t m))))
   (($mk_arith_mult_sign_sgn sgn (and (< t z) F) (* t m))
-      (eo::requires (eo::to_z z) 0
+      (eo::requires ($sgn z) 0
         ($mk_arith_mult_sign_sgn (eo::not sgn) F ($strip_even_exponent t m))))
   ; base case
   (($mk_arith_mult_sign_sgn sgn true one)   (eo::requires (eo::to_q one) 1/1 sgn))
@@ -375,7 +375,7 @@
         (r (eo::list_concat * a (* t)) (eo::list_concat * b (* u)))))
     (($mk_arith_mult_abs_comparison_rec (and (and (= (abs t) (abs u))
                                                   (not (= t z))) B) (> a b))
-      (eo::requires (eo::to_z z) 0
+      (eo::requires ($sgn z) 0
         ($mk_arith_mult_abs_comparison_rec B
           (> (eo::list_concat * a (* t)) (eo::list_concat * b (* u))))))
     (($mk_arith_mult_abs_comparison_rec true (r a b))  (r (abs a) (abs b)))
