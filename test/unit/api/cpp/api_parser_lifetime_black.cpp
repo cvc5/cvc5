@@ -61,9 +61,11 @@ TEST_F(TestApiBlackParserLifetime, declaredSymbolsOutliveParserAndManagers)
     p.appendIncrementalStringInput("(declare-fun a () Int)\n");
     p.appendIncrementalStringInput("(declare-fun b () U)\n");
     std::stringstream out;
-    for (Command cmd = p.nextCommand(); !cmd.isNull(); cmd = p.nextCommand())
+    Command cmd = p.nextCommand();
+    while (!cmd.isNull())
     {
       cmd.invoke(&slv, &sm, out);
+      cmd = p.nextCommand();
     }
     terms = sm.getDeclaredTerms();
     sorts = sm.getDeclaredSorts();

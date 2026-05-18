@@ -90,11 +90,10 @@ TEST_F(TestApiBlackLifetime, termIteratorOutlivesTermManager)
   // tm is destroyed here; iterating over t (which constructs
   // Term::const_iterator objects) must still be safe.
   size_t count = 0;
-  for (auto it = t.begin(), end = t.end(); it != end; ++it)
+  for (const Term& child : t)
   {
-    Term child = *it;
     ASSERT_FALSE(child.isNull());
-    ++count;
+    count++;
   }
   ASSERT_EQ(count, 2);
 }

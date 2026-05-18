@@ -40,9 +40,9 @@ class ParserLifetimeTest
   {
     TermManager tm = new TermManager();
     SymbolManager sm = new SymbolManager(tm);
-    // Deterministically free the native term manager; the symbol manager
-    // keeps the node manager alive through its own copy of the term manager.
     tm.deletePointer();
+    // tm is destroyed here; the symbol manager keeps the node manager alive
+    // through its own copy of the term manager and must still be usable.
     assertFalse(sm.isLogicSet());
     assertEquals(0, sm.getDeclaredTerms().length);
     assertEquals(0, sm.getDeclaredSorts().length);
@@ -60,19 +60,22 @@ class ParserLifetimeTest
     p.appendIncrementalStringInput("(declare-sort U 0)\n");
     p.appendIncrementalStringInput("(declare-fun a () Int)\n");
     p.appendIncrementalStringInput("(declare-fun b () U)\n");
-    for (Command cmd = p.nextCommand(); !cmd.isNull(); cmd = p.nextCommand())
+    Command cmd = p.nextCommand();
+    while (!cmd.isNull())
     {
       cmd.invoke(solver, sm);
+      cmd = p.nextCommand();
     }
     Term[] terms = sm.getDeclaredTerms();
     Sort[] sorts = sm.getDeclaredSorts();
     assertEquals(2, terms.length);
     assertEquals(1, sorts.length);
-    // Deterministically free parser, symbol manager, solver and term manager.
     p.deletePointer();
     sm.deletePointer();
     solver.deletePointer();
     tm.deletePointer();
+    // The parser, symbol manager, solver and term manager are all destroyed
+    // here; the declared terms and sorts must still be usable.
     for (Term t : terms)
     {
       assertFalse(t.isNull());
@@ -106,6 +109,8 @@ class ParserLifetimeTest
     sm.deletePointer();
     solver.deletePointer();
     tm.deletePointer();
+    // The parser, symbol manager, solver and term manager are all destroyed
+    // here; the parsed term must still be usable.
     assertFalse(t.isNull());
     assertEquals(ADD, t.getKind());
     assertTrue(t.getSort().isInteger());
@@ -131,6 +136,9 @@ class ParserLifetimeTest
     p.deletePointer();
     solver.deletePointer();
     tm.deletePointer();
+    // The parser (and its internally allocated symbol manager), solver and
+    // term manager are all destroyed here; the parsed term must still be
+    // usable.
     assertFalse(t.isNull());
     assertEquals(MULT, t.getKind());
     assertTrue(t.getSort().isInteger());

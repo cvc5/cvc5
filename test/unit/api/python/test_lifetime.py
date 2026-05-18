@@ -36,6 +36,7 @@ def test_sort_outlives_term_manager():
     arr = tm.mkArraySort(s, tm.getBooleanSort())
     del tm
     gc.collect()
+    # tm is destroyed here; s and arr must still be usable.
     assert s.isInteger()
     assert arr.isArray()
     assert s == arr.getArrayIndexSort()
@@ -49,6 +50,7 @@ def test_term_outlives_term_manager():
     t = tm.mkTerm(Kind.ADD, x, tm.mkInteger(1))
     del tm
     gc.collect()
+    # tm is destroyed here; t must still be usable.
     assert t.getKind() == Kind.ADD
     assert t.getSort() == int_sort
     assert t.getNumChildren() == 2
@@ -60,6 +62,7 @@ def test_op_outlives_term_manager():
     op = tm.mkOp(Kind.BITVECTOR_EXTRACT, 4, 0)
     del tm
     gc.collect()
+    # tm is destroyed here; op must still be usable.
     assert op.isIndexed()
     assert op.getKind() == Kind.BITVECTOR_EXTRACT
     assert op.getNumIndices() == 2
@@ -73,6 +76,7 @@ def test_term_iterator_outlives_term_manager():
     t = tm.mkTerm(Kind.AND, tm.mkConst(b, "x"), tm.mkConst(b, "y"))
     del tm
     gc.collect()
+    # Iterating over t (which constructs term iterators) must still be safe.
     count = 0
     for child in t:
         assert not child.isNull()
@@ -92,6 +96,8 @@ def test_datatype_outlives_term_manager():
     list_sort = tm.mkDatatypeSort(decl)
     del tm
     gc.collect()
+    # tm is destroyed here; the datatype, its constructors and selectors
+    # (and their iterators) must still be usable.
     dt = list_sort.getDatatype()
     assert dt.getName() == "list"
     assert dt.getNumConstructors() == 2
@@ -112,10 +118,15 @@ def test_datatype_outlives_term_manager():
 
 
 def test_solver_outlives_term_manager():
+    # The Solver stores its own copy of the TermManager (sharing the
+    # underlying node manager), so it stays usable after the TermManager
+    # that constructed it has been destroyed.
     tm = TermManager()
     solver = Solver(tm)
     del tm
     gc.collect()
+    # tm is destroyed here; the solver and the term manager returned by
+    # getTermManager() must still be usable.
     tm2 = solver.getTermManager()
     x = tm2.mkConst(tm2.getBooleanSort(), "x")
     solver.assertFormula(x)
@@ -134,6 +145,8 @@ def test_value_outlives_solver_and_term_manager():
     del solver
     del tm
     gc.collect()
+    # Both the solver and the term manager are destroyed here; the value
+    # term obtained from the solver must still be usable.
     assert not value.isNull()
     assert value.getSort().isInteger()
     assert str(value)
@@ -150,6 +163,8 @@ def test_grammar_outlives_solver_and_term_manager():
     del solver
     del tm
     gc.collect()
+    # Both the solver and the term manager are destroyed here; the grammar
+    # must still be usable.
     assert str(g) != ""
 
 
@@ -166,10 +181,8 @@ def test_proof_outlives_solver_and_term_manager():
     del solver
     del tm
     gc.collect()
+    # Both the solver and the term manager are destroyed here; the proof
+    # must still be usable.
     proof.getRule()
     proof.getResult()
     proof.getChildren()
-
-
-if __name__ == "__main__":
-    raise SystemExit(pytest.main([__file__]))

@@ -41,8 +41,8 @@ class LifetimeTest
     TermManager tm = new TermManager();
     Sort s = tm.getIntegerSort();
     Sort arr = tm.mkArraySort(s, tm.getBooleanSort());
-    // Deterministically free the native term manager.
     tm.deletePointer();
+    // tm is destroyed here; s and arr must still be usable.
     assertTrue(s.isInteger());
     assertTrue(arr.isArray());
     assertEquals(s, arr.getArrayIndexSort());
@@ -57,6 +57,7 @@ class LifetimeTest
     Term x = tm.mkConst(intSort, "x");
     Term t = tm.mkTerm(ADD, x, tm.mkInteger(1));
     tm.deletePointer();
+    // tm is destroyed here; t must still be usable.
     assertEquals(ADD, t.getKind());
     assertEquals(intSort, t.getSort());
     assertEquals(2, t.getNumChildren());
@@ -69,6 +70,7 @@ class LifetimeTest
     TermManager tm = new TermManager();
     Op op = tm.mkOp(BITVECTOR_EXTRACT, 4, 0);
     tm.deletePointer();
+    // tm is destroyed here; op must still be usable.
     assertTrue(op.isIndexed());
     assertEquals(BITVECTOR_EXTRACT, op.getKind());
     assertEquals(2, op.getNumIndices());
@@ -105,9 +107,9 @@ class LifetimeTest
     DatatypeConstructorDecl nil = tm.mkDatatypeConstructorDecl("nil");
     decl.addConstructor(nil);
     Sort listSort = tm.mkDatatypeSort(decl);
-    // The datatype, its constructors and selectors (and their iterators)
-    // must still be usable after the term manager is gone.
     tm.deletePointer();
+    // tm is destroyed here; the datatype, its constructors and selectors
+    // (and their iterators) must still be usable.
     Datatype dt = listSort.getDatatype();
     assertEquals("list", dt.getName());
     assertEquals(2, dt.getNumConstructors());
@@ -134,11 +136,14 @@ class LifetimeTest
   @Test
   void solverOutlivesTermManager() throws CVC5ApiException
   {
+    // The Solver stores its own copy of the TermManager (sharing the
+    // underlying node manager), so it stays usable after the TermManager
+    // that constructed it has been destroyed.
     TermManager tm = new TermManager();
     Solver solver = new Solver(tm);
-    // Free the native term manager while the solver is still in use. The
-    // solver keeps its own (shared) reference to the node manager.
     tm.deletePointer();
+    // tm is destroyed here; the solver and the term manager returned by
+    // getTermManager() must still be usable.
     TermManager tm2 = solver.getTermManager();
     Term x = tm2.mkConst(tm2.getBooleanSort(), "x");
     solver.assertFormula(x);
@@ -156,9 +161,10 @@ class LifetimeTest
     solver.assertFormula(tm.mkTerm(GT, x, tm.mkInteger(0)));
     assertTrue(solver.checkSat().isSat());
     Term value = solver.getValue(x);
-    // Deterministically free the native solver and term manager.
     solver.deletePointer();
     tm.deletePointer();
+    // Both the solver and the term manager are destroyed here; the value
+    // term obtained from the solver must still be usable.
     assertFalse(value.isNull());
     assertTrue(value.getSort().isInteger());
     assertDoesNotThrow(() -> value.toString());
@@ -176,6 +182,8 @@ class LifetimeTest
     g.addRule(start, tm.mkBoolean(false));
     solver.deletePointer();
     tm.deletePointer();
+    // Both the solver and the term manager are destroyed here; the grammar
+    // must still be usable.
     assertNotEquals("", g.toString());
   }
 
@@ -194,6 +202,8 @@ class LifetimeTest
     // Deterministically free the native solver and term manager.
     solver.deletePointer();
     tm.deletePointer();
+    // Both the solver and the term manager are destroyed here; the proof
+    // must still be usable.
     assertDoesNotThrow(() -> proof.getRule());
     assertDoesNotThrow(() -> proof.getResult());
     assertDoesNotThrow(() -> proof.getChildren());

@@ -34,6 +34,8 @@ def test_symbol_manager_outlives_term_manager():
     sm = SymbolManager(tm)
     del tm
     gc.collect()
+    # tm is destroyed here; the symbol manager keeps the node manager alive
+    # through its own copy of the term manager and must still be usable.
     assert sm.isLogicSet() is False
     assert len(sm.getDeclaredTerms()) == 0
     assert len(sm.getDeclaredSorts()) == 0
@@ -63,6 +65,8 @@ def test_declared_symbols_outlive_parser_and_managers():
     del solver
     del tm
     gc.collect()
+    # The parser, symbol manager, solver and term manager are all destroyed
+    # here; the declared terms and sorts must still be usable.
     for t in terms:
         assert not t.isNull()
         t.getSort()
@@ -92,6 +96,8 @@ def test_parsed_term_outlives_parser_and_managers():
     del solver
     del tm
     gc.collect()
+    # The parser, symbol manager, solver and term manager are all destroyed
+    # here; the parsed term must still be usable.
     assert not t.isNull()
     assert t.getKind() == Kind.ADD
     assert t.getSort().isInteger()
@@ -117,11 +123,10 @@ def test_parsed_term_outlives_parser_with_internal_symbol_manager():
     del solver
     del tm
     gc.collect()
+    # The parser (and its internally allocated symbol manager), solver and
+    # term manager are all destroyed here; the parsed term must still be
+    # usable.
     assert not t.isNull()
     assert t.getKind() == Kind.MULT
     assert t.getSort().isInteger()
     assert str(t)
-
-
-if __name__ == "__main__":
-    raise SystemExit(pytest.main([__file__]))
