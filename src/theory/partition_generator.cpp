@@ -12,9 +12,8 @@
 
 #include "theory/partition_generator.h"
 
-#include <math.h>
-
 #include <algorithm>
+#include <cmath>
 #include <random>
 
 #include "expr/node_algorithm.h"

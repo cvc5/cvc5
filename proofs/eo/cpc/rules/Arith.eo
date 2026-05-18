@@ -388,7 +388,7 @@
 ; return: >
 ;   The literal proven by arith_mult_abs_comparison given premises F.
 (program $mk_arith_mult_abs_comparison
-  ((T Type) (r T) (t T) (u T) (z T) (B Bool :list))
+  ((T Type) (t T) (u T) (B Bool :list))
   :signature (Bool) Bool
   (
     (($mk_arith_mult_abs_comparison (and (> (abs t) (abs u)) B))
@@ -452,7 +452,7 @@
 ; args:
 ; - t T: The term we are considering, which is expected to be an application of an extended arithmetic operator.
 ; return: the reduction predicate for term t.
-(program $arith_reduction_pred ((T Type) (r Real) (a Int) (b Int) (u T) (v T))
+(program $arith_reduction_pred ((T Type) (a Int) (b Int) (u T) (v T))
   :signature (T) Bool
   (
   (($arith_reduction_pred (is_int u))       (eo::define ((k (@purify (to_int u))))

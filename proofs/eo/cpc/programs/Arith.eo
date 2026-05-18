@@ -40,19 +40,6 @@
 (define $arith_eval_int_log_2 ((x Int))
   (eo::ite (eo::is_neg (eo::neg x)) ($arith_eval_int_log_2_rec x) 0))
 
-; program: $arith_eval_int_pow_2_rec
-; args:
-; - x  Int: The term to compute 2 to the power of, assumed to be a positive numeral value.
-; return: 2 to the power of x.
-; note: Helper method for $arith_eval_int_pow_2 below.
-(program $arith_eval_int_pow_2_rec ((x Int))
-  :signature (Int) Int
-  (
-  (($arith_eval_int_pow_2_rec 0) 1)
-  (($arith_eval_int_pow_2_rec x) (eo::mul 2 ($arith_eval_int_pow_2_rec (eo::add x -1))))
-  )
-)
-
 ; define: $arith_eval_int_pow_2
 ; args:
 ; - x Int: The term to compute take as the exponent of two.
@@ -61,7 +48,7 @@
 ;   the term (int.pow2 x).
 (define $arith_eval_int_pow_2 ((x Int))
   (eo::ite (eo::is_z x)
-    (eo::ite (eo::is_neg x) 0 ($arith_eval_int_pow_2_rec x))
+    (eo::ite (eo::is_neg x) 0 (eo::pow 2 x))
     (int.pow2 x)))
 
 ; define: $arith_eval_int_is_pow_2
@@ -74,5 +61,5 @@
   (eo::ite (eo::is_z x) 
     (eo::ite (eo::is_neg x)
       false
-      (eo::eq x ($arith_eval_int_pow_2 ($arith_eval_int_log_2 x))))
+      (eo::eq x (eo::pow 2 ($arith_eval_int_log_2 x))))
     (int.ispow2 x)))
