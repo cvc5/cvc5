@@ -886,6 +886,7 @@ set(regress_0_tests
   regress0/ff/issue11107.smt2
   regress0/ff/issue11932.smt2
   regress0/ff/issue11969.smt2
+  regress0/ff/issue12627.smt2
   regress0/ff/proj-issue705.smt2
   regress0/ff/proj-issue748-safe.smt2
   regress0/ff/randcompile-sound-3i-5t-circ.smt2
@@ -1498,6 +1499,7 @@ set(regress_0_tests
   regress0/proofs/dd.fastclose.smt2
   regress0/proofs/dd.fastclose2.smt2
   regress0/proofs/dd.fastclose3.smt2
+  regress0/proofs/dd.read6-cadical.smt2
   regress0/proofs/dd.S715-026__dic_loop__ordering_buffers.adb_11_83_range_check___00.smt2
   regress0/proofs/dd_ada_open.smt2
   regress0/proofs/dd_alpha_eq_qpattern.smt2
@@ -1591,6 +1593,7 @@ set(regress_0_tests
   regress0/proofs/proj-issue777-open-eqproof.smt2
   regress0/proofs/proj-issue778-subtype-div.smt2
   regress0/proofs/proj-issue784-benchmark2.smt2
+  regress0/proofs/proj-issue787-bvxor-fixed-point.smt2
   regress0/proofs/proj-issue781-cyclic-pppg.smt2
   regress0/proofs/proj-issue781-cyclic-pppg-2.smt2
   regress0/proofs/proof-components.smt2
@@ -3089,6 +3092,7 @@ set(regress_1_tests
   regress1/proofs/alpha-eq-var-shadow-name-only.smt2
   regress1/proofs/alpha-eq-var-shadow-name-only2.smt2
   regress1/proofs/base-lfsc-treesize.smt2
+  regress1/proofs/dd.SEQ035_size5.smt2
   regress1/proofs/eq-engine-corner-case-constants-disequal.smt2
   regress1/proofs/issue6625-unsat-core-proofs.smt2
   regress1/proofs/macro-res-exp-crowding-lit-inside-unit.smt2
@@ -4519,8 +4523,14 @@ macro(cvc5_add_regression_test level file)
     ${wrapper}
     ${path_to_cvc5}/cvc5${CMAKE_EXECUTABLE_SUFFIX}
     ${CMAKE_CURRENT_LIST_DIR}/${file})
-  set_tests_properties(${file} PROPERTIES LABELS "regress${level}")
-  set_tests_properties(${file} PROPERTIES SKIP_RETURN_CODE 77)
+  # Let CTest report final run_regression.py timeouts as native Timeout
+  # results. The marker is printed only for the final timeout result or the
+  # TEST_TIMEOUT-derived watchdog in run_regression.py.
+  set_tests_properties(${file} PROPERTIES
+    LABELS "regress${level}"
+    SKIP_RETURN_CODE 77
+    TIMEOUT_AFTER_MATCH "1;CVC5_REGRESSION_CTEST_TIMEOUT"
+    ENVIRONMENT "CVC5_REGRESSION_TIMEOUT_AS_CTEST_TIMEOUT=1")
   # set_tests_properties(${file} PROPERTIES FIXTURES_REQUIRED build_regress_fixture)
 endmacro()
 

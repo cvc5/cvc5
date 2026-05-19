@@ -312,7 +312,7 @@
       (($run_evaluate (repeat n xb))       (eo::define ((en ($run_evaluate n)))
                                            (eo::define ((ex ($run_evaluate xb)))
                                            (eo::ite (eo::and (eo::is_z en) (eo::not (eo::is_neg en)))
-                                             ($bv_repeat_eval_rec en ex)
+                                             ($bv_eval_concat ($bv_unfold_repeat_rec en ex))
                                              (repeat en ex)))))
       (($run_evaluate (sign_extend n xb))  (eo::define ((en ($run_evaluate n)))
                                            (eo::define ((ex ($run_evaluate xb)))

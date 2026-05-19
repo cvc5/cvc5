@@ -133,7 +133,7 @@
 ; - f (-> T U): The function.
 ; - t S: The term to inspect.
 ; return: True if and only if t is an application of f.
-(program $is_app ((T Type) (S Type) (U Type) (f (-> T U)) (g (-> T S)) (x T) (y S))
+(program $is_app ((T Type) (S Type) (U Type) (f (-> T U)) (g (-> T S)) (x T))
   :signature ((-> T U) S) Bool
   (
     (($is_app f (g x))  ($is_app f g))
