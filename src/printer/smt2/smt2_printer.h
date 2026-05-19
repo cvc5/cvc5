@@ -140,6 +140,12 @@ class Smt2Printer : public cvc5::internal::Printer
                              const std::string& id,
                              TypeNode type) const override;
 
+  /** Print declare-weight command */
+  void toStreamCmdDeclareWeight(
+      std::ostream& out,
+      const std::string& id,
+      const std::unique_ptr<Node>& defaultValue) const override;
+
   /** Print synth-fun command */
   void toStreamCmdSynthFun(std::ostream& out,
                            const std::string& id,

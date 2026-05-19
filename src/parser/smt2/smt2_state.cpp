@@ -586,6 +586,21 @@ Term Smt2State::mkIndexedConstant(const std::string& name,
       return d_tm.mkCardinalityConstraint(t, ubound);
     }
   }
+  // SyGuS weight symbols: `(_ <weight-keyword> <fun-to-synth>)`
+  if (d_isSygus && symbols.size() == 1)
+  {
+    if (getSymbolManager()->isWeight(name))
+    {
+      cvc5::Weight w = getSymbolManager()->getWeight(name);
+      if (!isDeclared(symbols[0], SYM_VARIABLE))
+      {
+        parseError(std::string("Unknown function-to-synthesize `") + symbols[0]
+                   + "' in weight symbol");
+      }
+      Term uf = getVariable(symbols[0]);
+      return d_solver->mkWeightSymbol(w, uf);
+    }
+  }
   parseError(std::string("Unknown indexed literal `") + name + "'");
   return Term();
 }

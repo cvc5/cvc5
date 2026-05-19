@@ -3511,6 +3511,65 @@ public class Solver extends AbstractPointer
   private native long declareSygusVar(long pointer, String symbol, long sortPointer);
 
   /**
+   * Declare a new weight attribute {@code symbol} for Sygus grammars.
+   *
+   * SyGuS v2:
+   * {@code
+   *   ( declare-weight <symbol> )
+   * }
+   *
+   * @param symbol The name of the weight attribute.
+   * @return The weight attribute.
+   */
+  public Weight declareWeight(String symbol)
+  {
+    long weightPointer = declareWeight(pointer, symbol);
+    return new Weight(weightPointer);
+  }
+
+  private native long declareWeight(long pointer, String symbol);
+
+  /**
+   * Declare a new weight attribute {@code symbol} for Sygus grammars.
+   *
+   * SyGuS v2:
+   * {@code
+   *   ( declare-weight <symbol> :default <defaultValue> )
+   * }
+   *
+   * @param symbol The name of the weight attribute.
+   * @param defaultValue The default integer value for the weight attribute.
+   * @return The weight attribute.
+   */
+  public Weight declareWeight(String symbol, Term defaultValue)
+  {
+    long weightPointer = declareWeight(pointer, symbol, defaultValue.getPointer());
+    return new Weight(weightPointer);
+  }
+
+  private native long declareWeight(long pointer, String symbol, long defaultValuePointer);
+
+  /**
+   * Create a weight symbol for {@code term} with weight attribute {@code weight}.
+   *
+   * SyGuS v2:
+   * {@code
+   *   ( _ <weight> <term> )
+   * }
+   *
+   * @param weight The weight attribute for the weight symbol.
+   * @param term The term with which to create the weight symbol.
+   * @return The weight symbol.
+   */
+  public Term mkWeightSymbol(Weight weight, Term term)
+  {
+    long termPointer = mkWeightSymbol(pointer, weight.getPointer(), term.getPointer());
+    return new Term(termPointer);
+  }
+
+  private native long mkWeightSymbol(long pointer, long weightPointer, long termPointer);
+
+  /**
    * Create a Sygus grammar.
    *
    * The first non-terminal is treated as the starting non-terminal, so the

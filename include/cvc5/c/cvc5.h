@@ -123,6 +123,12 @@ typedef struct cvc5_dt_decl_t* Cvc5DatatypeDecl;
 typedef struct cvc5_grammar_t* Cvc5Grammar;
 
 /**
+ * A weight attribute for Sygus grammars. Weights can be attached to rules of a
+ * Sygus grammar and used to bias the synthesis search.
+ */
+typedef struct cvc5_weight_t* Cvc5Weight;
+
+/**
  * A cvc5 solver.
  */
 typedef struct Cvc5 Cvc5;
@@ -2426,6 +2432,25 @@ CVC5_EXPORT void cvc5_grammar_add_rule(Cvc5Grammar grammar,
                                        Cvc5Term rule);
 
 /**
+ * Add `rule` to the set of rules corresponding to `symbol` of a given grammar,
+ * with an associated weight map. The weight map is passed as two parallel
+ * arrays `weights` and `values` of length `weight_size`, where `values[i]` is
+ * the weight value associated with the weight attribute `weights[i]`.
+ * @param grammar     The grammar.
+ * @param symbol      The non-terminal to which the rule is added.
+ * @param rule        The rule to add.
+ * @param weight_size The number of entries in the weight map.
+ * @param weights     The weight attributes.
+ * @param values      The values associated with each weight attribute.
+ */
+CVC5_EXPORT void cvc5_grammar_add_rule_with_weights(Cvc5Grammar grammar,
+                                                    Cvc5Term symbol,
+                                                    Cvc5Term rule,
+                                                    size_t weight_size,
+                                                    const Cvc5Weight weights[],
+                                                    const Cvc5Term values[]);
+
+/**
  * Add `rules` to the set of rules corresponding to `symbol` of a given grammar.
  * @param grammar The grammar.
  * @param symbol The non-terminal to which the rules are added.
@@ -2438,12 +2463,56 @@ CVC5_EXPORT void cvc5_grammar_add_rules(Cvc5Grammar grammar,
                                         const Cvc5Term rules[]);
 
 /**
+ * Add `rules` to the set of rules corresponding to `symbol` of a given grammar,
+ * with associated weight maps. The weight maps are passed as a flat encoding:
+ * `weight_sizes[i]` is the number of entries in the i-th weight map, and the
+ * entries of each map are stored contiguously in `weights` and `values` in
+ * the same order (i.e., the i-th map occupies the range
+ * `[sum(weight_sizes[0..i]), sum(weight_sizes[0..i+1]))` of the `weights` and
+ * `values` arrays). If `weight_sizes` is NULL, all rules are added with empty
+ * weight maps.
+ * @param grammar      The grammar.
+ * @param symbol       The non-terminal to which the rules are added.
+ * @param size         The number of rules to add.
+ * @param rules        The rules to add.
+ * @param weight_sizes Array of size `size` containing the number of weight
+ *                     entries for each rule, or NULL for empty weight maps.
+ * @param weights      Flat array of weight attributes.
+ * @param values       Flat array of values associated with each weight
+ *                     attribute.
+ */
+CVC5_EXPORT void cvc5_grammar_add_rules_with_weights(
+    Cvc5Grammar grammar,
+    Cvc5Term symbol,
+    size_t size,
+    const Cvc5Term rules[],
+    const size_t weight_sizes[],
+    const Cvc5Weight weights[],
+    const Cvc5Term values[]);
+
+/**
  * Allow `symbol` to be an arbitrary constant of a given grammar.
  * @param grammar The grammar.
  * @param symbol The non-terminal allowed to be any constant.
  */
 CVC5_EXPORT void cvc5_grammar_add_any_constant(Cvc5Grammar grammar,
                                                Cvc5Term symbol);
+
+/**
+ * Allow `symbol` to be an arbitrary constant of a given grammar, with an
+ * associated weight map.
+ * @param grammar     The grammar.
+ * @param symbol      The non-terminal allowed to be any constant.
+ * @param weight_size The number of entries in the weight map.
+ * @param weights     The weight attributes.
+ * @param values      The values associated with each weight attribute.
+ */
+CVC5_EXPORT void cvc5_grammar_add_any_constant_with_weights(
+    Cvc5Grammar grammar,
+    Cvc5Term symbol,
+    size_t weight_size,
+    const Cvc5Weight weights[],
+    const Cvc5Term values[]);
 
 /**
  * Allow `symbol` to be any input variable of a given grammar to corresponding
@@ -2453,6 +2522,23 @@ CVC5_EXPORT void cvc5_grammar_add_any_constant(Cvc5Grammar grammar,
  */
 CVC5_EXPORT void cvc5_grammar_add_any_variable(Cvc5Grammar grammar,
                                                Cvc5Term symbol);
+
+/**
+ * Allow `symbol` to be any input variable of a given grammar to corresponding
+ * synth-fun/synth-inv with the same sort as `symbol`, with an associated
+ * weight map.
+ * @param grammar     The grammar.
+ * @param symbol      The non-terminal allowed to be any input variable.
+ * @param weight_size The number of entries in the weight map.
+ * @param weights     The weight attributes.
+ * @param values      The values associated with each weight attribute.
+ */
+CVC5_EXPORT void cvc5_grammar_add_any_variable_with_weights(
+    Cvc5Grammar grammar,
+    Cvc5Term symbol,
+    size_t weight_size,
+    const Cvc5Weight weights[],
+    const Cvc5Term values[]);
 
 /**
  * Get a string representation of a given grammar.
@@ -2509,6 +2595,77 @@ CVC5_EXPORT Cvc5Grammar cvc5_grammar_copy(Cvc5Grammar grammar);
  *       that is owned by the callee of the function and thus, can be released.
  */
 CVC5_EXPORT void cvc5_grammar_release(Cvc5Grammar grammar);
+
+/** @} */
+
+/* -------------------------------------------------------------------------- */
+/* Cvc5Weight                                                                 */
+/* -------------------------------------------------------------------------- */
+
+/** \addtogroup c_cvc5weight
+ *  @{
+ */
+
+/**
+ * Get the name of a weight attribute.
+ * @param weight The weight.
+ * @return The name of the weight attribute.
+ * @note The returned char* pointer is only valid until the next call to this
+ *       function.
+ */
+CVC5_EXPORT const char* cvc5_weight_get_name(Cvc5Weight weight);
+
+/**
+ * Get the default value of a weight attribute.
+ * @param weight The weight.
+ * @return The default value of the weight attribute.
+ */
+CVC5_EXPORT Cvc5Term cvc5_weight_get_default_value(Cvc5Weight weight);
+
+/**
+ * Determine equality of two weights.
+ * @param a The first weight.
+ * @param b The second weight.
+ * @return True if both weights are equal.
+ */
+CVC5_EXPORT bool cvc5_weight_is_equal(Cvc5Weight a, Cvc5Weight b);
+
+/**
+ * Determine disequality of two weights.
+ * @param a The first weight.
+ * @param b The second weight.
+ * @return True if both weights are not equal.
+ */
+CVC5_EXPORT bool cvc5_weight_is_disequal(Cvc5Weight a, Cvc5Weight b);
+
+/**
+ * Compute the hash value of a weight.
+ * @param weight The weight.
+ * @return The hash value of the weight.
+ */
+CVC5_EXPORT size_t cvc5_weight_hash(Cvc5Weight weight);
+
+/**
+ * Make copy of weight, increases reference counter of `weight`.
+ *
+ * @param weight The weight to copy.
+ * @return The same weight with its reference count increased by one.
+ *
+ * @note This step is optional and allows users to manage resources in a more
+ *       fine-grained manner.
+ */
+CVC5_EXPORT Cvc5Weight cvc5_weight_copy(Cvc5Weight weight);
+
+/**
+ * Release copy of weight, decrements reference counter of `weight`.
+ *
+ * @param weight The weight to release.
+ *
+ * @note This step is optional and allows users to release resources in a more
+ *       fine-grained manner. Further, any API function that returns a copy
+ *       that is owned by the callee of the function and thus, can be released.
+ */
+CVC5_EXPORT void cvc5_weight_release(Cvc5Weight weight);
 
 /** @} */
 
@@ -5281,6 +5438,63 @@ CVC5_EXPORT void cvc5_set_option(Cvc5* cvc5,
 CVC5_EXPORT Cvc5Term cvc5_declare_sygus_var(Cvc5* cvc5,
                                             const char* symbol,
                                             Cvc5Sort sort);
+
+/**
+ * Declare a new weight attribute `symbol` for Sygus grammars.
+ *
+ * SyGuS v2:
+ *
+ * \verbatim embed:rst:leading-asterisk
+ * .. code:: smtlib
+ *
+ *     (declare-weight <symbol>)
+ * \endverbatim
+ *
+ * @param cvc5   The solver instance.
+ * @param symbol The name of the weight attribute.
+ * @return The weight attribute.
+ */
+CVC5_EXPORT Cvc5Weight cvc5_declare_weight(Cvc5* cvc5, const char* symbol);
+
+/**
+ * Declare a new weight attribute `symbol` for Sygus grammars with a default
+ * value.
+ *
+ * SyGuS v2:
+ *
+ * \verbatim embed:rst:leading-asterisk
+ * .. code:: smtlib
+ *
+ *     (declare-weight <symbol> :default <defaultValue>)
+ * \endverbatim
+ *
+ * @param cvc5           The solver instance.
+ * @param symbol         The name of the weight attribute.
+ * @param default_weight The default integer value for the weight attribute.
+ * @return The weight attribute.
+ */
+CVC5_EXPORT Cvc5Weight cvc5_declare_weight_with_default(
+    Cvc5* cvc5, const char* symbol, Cvc5Term default_weight);
+
+/**
+ * Create a weight symbol for `term` with weight attribute `weight`.
+ *
+ * SyGuS v2:
+ *
+ * \verbatim embed:rst:leading-asterisk
+ * .. code:: smtlib
+ *
+ *     (_ <weight> <term>)
+ * \endverbatim
+ *
+ * @param cvc5   The solver instance.
+ * @param weight The weight attribute for the weight symbol.
+ * @param term   The term with which to create the weight symbol.
+ * @return The weight symbol.
+ */
+CVC5_EXPORT Cvc5Term cvc5_mk_weight_symbol(Cvc5* cvc5,
+                                           Cvc5Weight weight,
+                                           Cvc5Term term);
 
 /**
  * Create a Sygus grammar. The first non-terminal is treated as the starting

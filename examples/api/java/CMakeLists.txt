@@ -26,6 +26,7 @@ set(EXAMPLES_API_JAVA
    Strings
    SygusFun
    SygusInv
+   SygusWeight
    UnsatCores
    Uf
 )

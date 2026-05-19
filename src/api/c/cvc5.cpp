@@ -4202,6 +4202,194 @@ void cvc5_grammar_release(Cvc5Grammar grammar)
   CVC5_CAPI_TRY_CATCH_END;
 }
 
+namespace {
+/** Build a C++ WeightMap from two parallel arrays. */
+cvc5::WeightMap cvc5_to_weight_map(size_t weight_size,
+                                   const Cvc5Weight weights[],
+                                   const Cvc5Term values[])
+{
+  cvc5::WeightMap cweights;
+  if (weight_size == 0)
+  {
+    return cweights;
+  }
+  CVC5_API_CHECK(weights != nullptr)
+      << "invalid call, unexpected NULL weights argument";
+  CVC5_API_CHECK(values != nullptr)
+      << "invalid call, unexpected NULL values argument";
+  for (size_t i = 0; i < weight_size; ++i)
+  {
+    CVC5_API_CHECK(weights[i] != nullptr) << "invalid weight at index " << i;
+    CVC5_API_CHECK(values[i] != nullptr) << "invalid term at index " << i;
+    cweights.emplace(weights[i]->d_weight, values[i]->d_term);
+  }
+  return cweights;
+}
+}  // namespace
+
+void cvc5_grammar_add_rule_with_weights(Cvc5Grammar grammar,
+                                        Cvc5Term symbol,
+                                        Cvc5Term rule,
+                                        size_t weight_size,
+                                        const Cvc5Weight weights[],
+                                        const Cvc5Term values[])
+{
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_GRAMMAR(grammar);
+  CVC5_CAPI_CHECK_TERM(symbol);
+  CVC5_CAPI_CHECK_TERM(rule);
+  cvc5::WeightMap cweights = cvc5_to_weight_map(weight_size, weights, values);
+  grammar->d_grammar.addRule(symbol->d_term, rule->d_term, cweights);
+  CVC5_CAPI_TRY_CATCH_END;
+}
+
+void cvc5_grammar_add_rules_with_weights(Cvc5Grammar grammar,
+                                         Cvc5Term symbol,
+                                         size_t size,
+                                         const Cvc5Term rules[],
+                                         const size_t weight_sizes[],
+                                         const Cvc5Weight weights[],
+                                         const Cvc5Term values[])
+{
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_GRAMMAR(grammar);
+  CVC5_CAPI_CHECK_TERM(symbol);
+  CVC5_CAPI_CHECK_NOT_NULL(rules);
+  std::vector<cvc5::Term> crules;
+  for (size_t i = 0; i < size; ++i)
+  {
+    CVC5_CAPI_CHECK_TERM_AT_IDX(rules, i);
+    crules.push_back(rules[i]->d_term);
+  }
+  std::vector<cvc5::WeightMap> cweights;
+  if (weight_sizes != nullptr)
+  {
+    size_t offset = 0;
+    for (size_t i = 0; i < size; ++i)
+    {
+      cweights.push_back(
+          cvc5_to_weight_map(weight_sizes[i],
+                             weight_sizes[i] == 0 ? nullptr : weights + offset,
+                             weight_sizes[i] == 0 ? nullptr : values + offset));
+      offset += weight_sizes[i];
+    }
+  }
+  grammar->d_grammar.addRules(symbol->d_term, crules, cweights);
+  CVC5_CAPI_TRY_CATCH_END;
+}
+
+void cvc5_grammar_add_any_constant_with_weights(Cvc5Grammar grammar,
+                                                Cvc5Term symbol,
+                                                size_t weight_size,
+                                                const Cvc5Weight weights[],
+                                                const Cvc5Term values[])
+{
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_GRAMMAR(grammar);
+  CVC5_CAPI_CHECK_TERM(symbol);
+  cvc5::WeightMap cweights = cvc5_to_weight_map(weight_size, weights, values);
+  grammar->d_grammar.addAnyConstant(symbol->d_term, cweights);
+  CVC5_CAPI_TRY_CATCH_END;
+}
+
+void cvc5_grammar_add_any_variable_with_weights(Cvc5Grammar grammar,
+                                                Cvc5Term symbol,
+                                                size_t weight_size,
+                                                const Cvc5Weight weights[],
+                                                const Cvc5Term values[])
+{
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_GRAMMAR(grammar);
+  CVC5_CAPI_CHECK_TERM(symbol);
+  cvc5::WeightMap cweights = cvc5_to_weight_map(weight_size, weights, values);
+  grammar->d_grammar.addAnyVariable(symbol->d_term, cweights);
+  CVC5_CAPI_TRY_CATCH_END;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Cvc5Weight                                                                 */
+/* -------------------------------------------------------------------------- */
+
+const char* cvc5_weight_get_name(Cvc5Weight weight)
+{
+  static thread_local std::string str;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_WEIGHT(weight);
+  str = weight->d_weight.getName();
+  CVC5_CAPI_TRY_CATCH_END;
+  return str.c_str();
+}
+
+Cvc5Term cvc5_weight_get_default_value(Cvc5Weight weight)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_WEIGHT(weight);
+  res = weight->d_cvc5->d_tm->export_term(weight->d_weight.getDefaultValue());
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+bool cvc5_weight_is_equal(Cvc5Weight a, Cvc5Weight b)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  if (a == nullptr || b == nullptr)
+  {
+    res = a == b;
+  }
+  else
+  {
+    res = a->d_weight == b->d_weight;
+  }
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+bool cvc5_weight_is_disequal(Cvc5Weight a, Cvc5Weight b)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  if (a == nullptr || b == nullptr)
+  {
+    res = a != b;
+  }
+  else
+  {
+    res = a->d_weight != b->d_weight;
+  }
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+size_t cvc5_weight_hash(Cvc5Weight weight)
+{
+  size_t res = 0;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_WEIGHT(weight);
+  res = std::hash<cvc5::Weight>{}(weight->d_weight);
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Weight cvc5_weight_copy(Cvc5Weight weight)
+{
+  Cvc5Weight res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_WEIGHT(weight);
+  res = weight->d_cvc5->copy(weight);
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+void cvc5_weight_release(Cvc5Weight weight)
+{
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_WEIGHT(weight);
+  weight->d_cvc5->release(weight);
+  CVC5_CAPI_TRY_CATCH_END;
+}
+
 /* -------------------------------------------------------------------------- */
 /* Cvc5Stat                                                                   */
 /* -------------------------------------------------------------------------- */
@@ -5597,6 +5785,45 @@ Cvc5Term cvc5_declare_sygus_var(Cvc5* cvc5, const char* symbol, Cvc5Sort sort)
   CVC5_CAPI_CHECK_SORT(sort);
   res = cvc5->d_tm->export_term(
       cvc5->d_solver.declareSygusVar(symbol, sort->d_sort));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Weight cvc5_declare_weight(Cvc5* cvc5, const char* symbol)
+{
+  Cvc5Weight res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(cvc5);
+  CVC5_CAPI_CHECK_NOT_NULL(symbol);
+  res = cvc5->export_weight(cvc5->d_solver.declareWeight(symbol));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Weight cvc5_declare_weight_with_default(Cvc5* cvc5,
+                                            const char* symbol,
+                                            Cvc5Term default_weight)
+{
+  Cvc5Weight res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(cvc5);
+  CVC5_CAPI_CHECK_NOT_NULL(symbol);
+  CVC5_CAPI_CHECK_TERM(default_weight);
+  res = cvc5->export_weight(
+      cvc5->d_solver.declareWeight(symbol, default_weight->d_term));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_weight_symbol(Cvc5* cvc5, Cvc5Weight weight, Cvc5Term term)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(cvc5);
+  CVC5_CAPI_CHECK_WEIGHT(weight);
+  CVC5_CAPI_CHECK_TERM(term);
+  res = cvc5->d_tm->export_term(
+      cvc5->d_solver.mkWeightSymbol(weight->d_weight, term->d_term));
   CVC5_CAPI_TRY_CATCH_END;
   return res;
 }

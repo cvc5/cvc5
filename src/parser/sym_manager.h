@@ -197,6 +197,27 @@ class CVC5_EXPORT SymManager
    */
   void addFunctionToSynthesize(cvc5::Term f);
 
+  /**
+   * Bind a weight keyword to the given weight attribute.
+   * @param name The (keyword) name of the weight attribute, without the
+   * leading ':' prefix.
+   * @param w The weight object.
+   */
+  void bindWeight(const std::string& name, const cvc5::Weight& w);
+
+  /**
+   * Get the weight attribute for the given keyword name, or the null weight
+   * if no such keyword is bound.
+   * @param name The name of the weight keyword (without the leading ':').
+   */
+  cvc5::Weight getWeight(const std::string& name) const;
+
+  /** @return Whether a weight keyword with the given name is bound. */
+  bool isWeight(const std::string& name) const;
+
+  /** @return All declared weight keywords, in declaration order. */
+  std::vector<std::pair<std::string, cvc5::Weight>> getDeclaredWeights() const;
+
   //---------------------------- end named expressions
   /**
    * Get the scope level of the symbol table.

@@ -434,6 +434,32 @@ cvc5_grammar_t* Cvc5::copy(cvc5_grammar_t* grammar)
   return grammar;
 }
 
+Cvc5Weight Cvc5::export_weight(const cvc5::Weight& weight)
+{
+  auto [it, inserted] = d_alloc_weights.try_emplace(weight, this, weight);
+  if (!inserted)
+  {
+    copy(&it->second);
+  }
+  return &it->second;
+}
+
+void Cvc5::release(cvc5_weight_t* weight)
+{
+  weight->d_refs -= 1;
+  if (weight->d_refs == 0)
+  {
+    Assert(d_alloc_weights.find(weight->d_weight) != d_alloc_weights.end());
+    d_alloc_weights.erase(weight->d_weight);
+  }
+}
+
+cvc5_weight_t* Cvc5::copy(cvc5_weight_t* weight)
+{
+  weight->d_refs += 1;
+  return weight;
+}
+
 std::vector<cvc5::Term> Cvc5::PluginCpp::check()
 {
   Assert(d_plugin);

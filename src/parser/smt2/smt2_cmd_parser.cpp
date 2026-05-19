@@ -90,6 +90,7 @@ Smt2CmdParser::Smt2CmdParser(Smt2Lexer& lex,
     d_table["check-synth"] = Token::CHECK_SYNTH_TOK;
     d_table["constraint"] = Token::CONSTRAINT_TOK;
     d_table["declare-var"] = Token::DECLARE_VAR_TOK;
+    d_table["declare-weight"] = Token::DECLARE_WEIGHT_TOK;
     d_table["inv-constraint"] = Token::INV_CONSTRAINT_TOK;
     d_table["set-feature"] = Token::SET_FEATURE_TOK;
     d_table["synth-fun"] = Token::SYNTH_FUN_TOK;
@@ -364,6 +365,56 @@ std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
       d_state.checkUserSymbol(name);
       Sort t = d_tparser.parseSort();
       cmd.reset(new DeclareSygusVarCommand(name, t));
+    }
+    break;
+    // (declare-weight <symbol> <attribute>*)
+    case Token::DECLARE_WEIGHT_TOK:
+    {
+      d_state.checkThatLogicIsSet();
+      std::string name = d_tparser.parseSymbol(CHECK_NONE, SYM_VARIABLE);
+      d_state.checkUserSymbol(name);
+      // Parse any attributes; the only one we currently recognize is
+      // ':default <numeral>'. All others are silently ignored with a warning.
+      // We use `peekToken` at the top of the loop so the terminating ')' is
+      // left for the outer dispatch to consume via `eatToken(RPAREN_TOK)`.
+      bool hasDefault = false;
+      Term defaultValue;
+      while (d_lex.peekToken() == Token::KEYWORD)
+      {
+        std::string key = d_tparser.parseKeyword();
+        if (key == "default")
+        {
+          Term v = d_tparser.parseTerm();
+          if (!v.getSort().isInteger() || !v.isIntegerValue())
+          {
+            d_lex.parseError(
+                ":default weight value must be an integer numeral");
+          }
+          defaultValue = v;
+          hasDefault = true;
+        }
+        else
+        {
+          std::stringstream ss;
+          ss << "declare-weight attribute " << key
+             << " not currently supported";
+          d_state.warning(ss.str());
+          // Consume an optional attribute value.
+          Token pk = d_lex.peekToken();
+          if (pk != Token::KEYWORD && pk != Token::RPAREN_TOK)
+          {
+            d_tparser.parseSymbolicExpr();
+          }
+        }
+      }
+      if (hasDefault)
+      {
+        cmd.reset(new DeclareWeightCommand(name, defaultValue));
+      }
+      else
+      {
+        cmd.reset(new DeclareWeightCommand(name));
+      }
     }
     break;
     // (define-const <symbol> <sort> <term>)
@@ -835,9 +886,10 @@ std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
     {
       std::string key = d_tparser.parseKeyword();
       Term s = d_tparser.parseSymbolicExpr();
-      // ":grammars" and "fwd-decls" are defined in the SyGuS version 2.1
-      // standard and are supported by default, all other features are not.
-      if (key != "grammars" && key != "fwd-decls")
+      // ":grammars", ":fwd-decls", and ":weights" are defined in the SyGuS
+      // version 2.1 standard and are supported by default; all other features
+      // are not.
+      if (key != "grammars" && key != "fwd-decls" && key != "weights")
       {
         std::stringstream ss;
         ss << "SyGuS feature " << key << " not currently supported";

@@ -483,6 +483,51 @@ void DeclareSygusVarCommand::toStream(std::ostream& out) const
 }
 
 /* -------------------------------------------------------------------------- */
+/* class DeclareWeightCommand                                                 */
+/* -------------------------------------------------------------------------- */
+
+DeclareWeightCommand::DeclareWeightCommand(const std::string& id,
+                                           cvc5::Term defaultValue)
+    : DeclarationDefinitionCommand(id),
+      d_defaultValue(std::make_unique<cvc5::Term>(defaultValue))
+{
+}
+
+DeclareWeightCommand::DeclareWeightCommand(const std::string& id)
+    : DeclarationDefinitionCommand(id), d_defaultValue(nullptr)
+{
+}
+
+const std::unique_ptr<cvc5::Term>& DeclareWeightCommand::getDefaultValue() const
+{
+  return d_defaultValue;
+}
+
+void DeclareWeightCommand::invoke(cvc5::Solver* solver, SymManager* sm)
+{
+  cvc5::Weight w = d_defaultValue
+                       ? solver->declareWeight(d_symbol, *d_defaultValue)
+                       : solver->declareWeight(d_symbol);
+  sm->bindWeight(d_symbol, w);
+  d_commandStatus = CommandSuccess::instance();
+}
+
+std::string DeclareWeightCommand::getCommandName() const
+{
+  return "declare-weight";
+}
+
+void DeclareWeightCommand::toStream(std::ostream& out) const
+{
+  std::unique_ptr<internal::Node> def =
+      d_defaultValue
+          ? std::make_unique<internal::Node>(termToNode(*d_defaultValue))
+          : nullptr;
+  internal::Printer::getPrinter(out)->toStreamCmdDeclareWeight(
+      out, d_symbol, def);
+}
+
+/* -------------------------------------------------------------------------- */
 /* class SynthFunCommand                                                      */
 /* -------------------------------------------------------------------------- */
 

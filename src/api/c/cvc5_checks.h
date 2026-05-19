@@ -201,6 +201,14 @@ class Cvc5CApiAbortStream
 
 /* -------------------------------------------------------------------------- */
 
+#define CVC5_CAPI_CHECK_WEIGHT(weight) \
+  CVC5_API_CHECK(weight != nullptr) << "invalid weight"
+
+#define CVC5_CAPI_CHECK_WEIGHT_AT_IDX(weights, i) \
+  CVC5_API_CHECK(weights[i] != nullptr) << "invalid weight at index " << i
+
+/* -------------------------------------------------------------------------- */
+
 #define CVC5_CAPI_CHECK_STAT(stat) \
   CVC5_API_CHECK(stat != nullptr) << "invalid statistic"
 

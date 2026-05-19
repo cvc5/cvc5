@@ -50,6 +50,8 @@ from cvc5 cimport PyPlugin as c_PyPlugin
 from cvc5 cimport Statistics as c_Statistics
 from cvc5 cimport Stat as c_Stat
 from cvc5 cimport Grammar as c_Grammar
+from cvc5 cimport Weight as c_Weight
+from cvc5 cimport WeightMap as c_WeightMap
 from cvc5 cimport Proof as c_Proof
 from cvc5 cimport Sort as c_Sort
 from cvc5 cimport Term as c_Term
@@ -154,6 +156,21 @@ cdef Grammar _grammar(tm: TermManager, grammar: c_Grammar):
   g.tm = tm
   return g
 
+cdef Weight _weight(tm: TermManager, weight: c_Weight):
+  w = Weight()
+  w.cweight = weight
+  w.tm = tm
+  return w
+
+cdef c_WeightMap _toWeightMap(weights):
+  """Convert a Python dict-like {Weight: Term} to a C++ WeightMap."""
+  cdef c_WeightMap cweights
+  if weights is None:
+    return cweights
+  for w, v in weights.items():
+    cweights[(<Weight?> w).cweight] = (<Term?> v).cterm
+  return cweights
+
 cdef Proof _proof(tm: TermManager, proof: c_Proof):
   p = Proof()
   p.cproof = proof
@@ -169,6 +186,7 @@ cdef c_hash[c_Op] cophash = c_hash[c_Op]()
 cdef c_hash[c_Sort] csorthash = c_hash[c_Sort]()
 cdef c_hash[c_Term] ctermhash = c_hash[c_Term]()
 cdef c_hash[c_Grammar] cgrammarhash = c_hash[c_Grammar]()
+cdef c_hash[c_Weight] cweighthash = c_hash[c_Weight]()
 cdef c_hash[c_Proof] cproofhash = c_hash[c_Proof]()
 
 # ----------------------------------------------------------------------------
@@ -995,6 +1013,49 @@ cdef class Op:
 # Grammar
 # ----------------------------------------------------------------------------
 
+cdef class Weight:
+    """
+        A weight attribute for Sygus Grammars. Weights can be attached to
+        grammar production rules and constrained via weight symbols.
+
+        Wrapper class for :cpp:class:`cvc5::Weight`.
+    """
+    cdef c_Weight cweight
+    cdef TermManager tm
+
+    def __init__(self):
+        pass
+
+    def __eq__(self, other):
+        if not isinstance(other, Weight):
+            return NotImplemented
+        return self.cweight == (<Weight> other).cweight
+
+    def __ne__(self, other):
+        if not isinstance(other, Weight):
+            return NotImplemented
+        return self.cweight != (<Weight> other).cweight
+
+    def __hash__(self):
+        return cweighthash(self.cweight)
+
+    def getName(self):
+        """
+            Get the name of this weight attribute.
+
+            :return: The name of this weight attribute.
+        """
+        return self.cweight.getName().decode()
+
+    def getDefaultValue(self):
+        """
+            Get the default value of this weight attribute.
+
+            :return: The default value of this weight attribute.
+        """
+        return _term(self.tm, self.cweight.getDefaultValue())
+
+
 cdef class Grammar:
     """
         A Sygus Grammar. This class can be used to define a context-free grammar
@@ -1018,43 +1079,69 @@ cdef class Grammar:
     def isNull(self):
         return self.cgrammar.isNull()
 
-    def addRule(self, Term ntSymbol not None, Term rule not None):
+    def addRule(self, Term ntSymbol not None, Term rule not None, weights=None):
         """
             Add ``rule`` to the set of rules corresponding to ``ntSymbol``.
 
             :param ntSymbol: The non-terminal to which the rule is added.
             :param rule: The rule to add.
+            :param weights: Optional ``{Weight: Term}`` mapping of weight
+                            attribute values for this rule.
         """
-        self.cgrammar.addRule(ntSymbol.cterm, rule.cterm)
+        if weights is None:
+            self.cgrammar.addRule(ntSymbol.cterm, rule.cterm)
+        else:
+            self.cgrammar.addRule(
+                ntSymbol.cterm, rule.cterm, _toWeightMap(weights))
 
-    def addAnyConstant(self, Term ntSymbol not None):
+    def addAnyConstant(self, Term ntSymbol not None, weights=None):
         """
             Allow ``ntSymbol`` to be an arbitrary constant.
 
             :param ntSymbol: The non-terminal allowed to be constant.
+            :param weights: Optional ``{Weight: Term}`` mapping of weight
+                            attribute values for this rule.
         """
-        self.cgrammar.addAnyConstant(ntSymbol.cterm)
+        if weights is None:
+            self.cgrammar.addAnyConstant(ntSymbol.cterm)
+        else:
+            self.cgrammar.addAnyConstant(
+                ntSymbol.cterm, _toWeightMap(weights))
 
-    def addAnyVariable(self, Term ntSymbol not None):
+    def addAnyVariable(self, Term ntSymbol not None, weights=None):
         """
             Allow ``ntSymbol`` to be any input variable to corresponding
             synth-fun/synth-inv with the same sort as ``ntSymbol``.
 
             :param ntSymbol: The non-terminal allowed to be any input variable.
+            :param weights: Optional ``{Weight: Term}`` mapping of weight
+                            attribute values for this rule.
         """
-        self.cgrammar.addAnyVariable(ntSymbol.cterm)
+        if weights is None:
+            self.cgrammar.addAnyVariable(ntSymbol.cterm)
+        else:
+            self.cgrammar.addAnyVariable(
+                ntSymbol.cterm, _toWeightMap(weights))
 
-    def addRules(self, Term ntSymbol not None, rules):
+    def addRules(self, Term ntSymbol not None, rules, weights=None):
         """
-            Add ``ntSymbol`` to the set of rules corresponding to ``ntSymbol``.
+            Add ``rules`` to the set of rules corresponding to ``ntSymbol``.
 
             :param ntSymbol: The non-terminal to which the rules are added.
             :param rules: The rules to add.
+            :param weights: Optional list of ``{Weight: Term}`` dicts, one
+                            per rule.
         """
         cdef vector[c_Term] crules
+        cdef vector[c_WeightMap] cweights
         for r in rules:
             crules.push_back((<Term?> r).cterm)
-        self.cgrammar.addRules(ntSymbol.cterm, crules)
+        if weights is None:
+            self.cgrammar.addRules(ntSymbol.cterm, crules)
+        else:
+            for wm in weights:
+                cweights.push_back(_toWeightMap(wm))
+            self.cgrammar.addRules(ntSymbol.cterm, crules, cweights)
 
 # ----------------------------------------------------------------------------
 # Results
@@ -3417,6 +3504,47 @@ cdef class Solver:
         return _term(
             self.tm,
             self.csolver.declareSygusVar(symbol.encode(), sort.csort))
+
+    def declareWeight(self, str symbol, Term defaultValue=None):
+        """
+            Declare a new weight attribute for Sygus grammars.
+
+            SyGuS v2:
+
+            .. code-block:: smtlib
+
+                ( declare-weight <symbol> [ :default <defaultValue> ] )
+
+            :param symbol: The name of the weight attribute.
+            :param defaultValue: Optional integer default value for the
+                                  weight attribute. Defaults to 0.
+            :return: The weight attribute.
+        """
+        if defaultValue is None:
+            return _weight(
+                self.tm, self.csolver.declareWeight(symbol.encode()))
+        return _weight(
+            self.tm,
+            self.csolver.declareWeight(symbol.encode(), defaultValue.cterm))
+
+    def mkWeightSymbol(self, Weight weight not None, Term term not None):
+        """
+            Create a weight symbol for ``term`` with the given weight
+            attribute.
+
+            SyGuS v2:
+
+            .. code-block:: smtlib
+
+                ( _ <weight> <term> )
+
+            :param weight: The weight attribute.
+            :param term: The function-to-synthesize with which to create the
+                         weight symbol.
+            :return: The weight symbol.
+        """
+        return _term(
+            self.tm, self.csolver.mkWeightSymbol(weight.cweight, term.cterm))
 
     def addSygusConstraint(self, Term t not None):
         """

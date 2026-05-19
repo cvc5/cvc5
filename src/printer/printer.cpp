@@ -391,6 +391,14 @@ void Printer::toStreamCmdDeclareVar(std::ostream& out,
   printUnknownCommand(out, "declare-var");
 }
 
+void Printer::toStreamCmdDeclareWeight(
+    std::ostream& out,
+    CVC5_UNUSED const std::string& id,
+    CVC5_UNUSED const std::unique_ptr<Node>& defaultValue) const
+{
+  printUnknownCommand(out, "declare-weight");
+}
+
 void Printer::toStreamCmdSynthFun(std::ostream& out,
                                   CVC5_UNUSED const std::string& id,
                                   CVC5_UNUSED const std::vector<Node>& vars,

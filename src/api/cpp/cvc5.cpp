@@ -54,6 +54,7 @@
 #include "expr/skolem_manager.h"
 #include "expr/sygus_grammar.h"
 #include "expr/type_node.h"
+#include "expr/weight_symbol.h"
 #include "options/base_options.h"
 #include "options/expr_options.h"
 #include "options/main_options.h"
@@ -69,6 +70,7 @@
 #include "smt/solver_engine.h"
 #include "theory/arith/nl/poly_conversion.h"
 #include "theory/datatypes/project_op.h"
+#include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/logic_info.h"
 #include "theory/theory_model.h"
 #include "util/bitvector.h"
@@ -4734,6 +4736,58 @@ std::ostream& operator<<(std::ostream& out, const Datatype& dtype)
 }
 
 /* -------------------------------------------------------------------------- */
+/* Weight                                                                     */
+/* -------------------------------------------------------------------------- */
+
+Weight::Weight(TermManager* tm,
+               const std::string& name,
+               const Term& defaultValue)
+    : d_tm(tm),
+      d_node(std::make_shared<internal::Node>(
+          tm->d_nm->getSkolemManager()->mkDummySkolem(
+              name,
+              tm->d_nm->integerType(),
+              internal::SkolemFlags::SKOLEM_EXACT_NAME)))
+{
+  tm->d_nm->setAttribute(
+      *d_node, internal::theory::SygusWeightAttribute(), *defaultValue.d_node);
+}
+
+std::string Weight::getName() const { return d_node->getName(); }
+
+Term Weight::getDefaultValue() const
+{
+  internal::Node defaultValue = d_tm->d_nm->getAttribute(
+      *d_node, internal::theory::SygusWeightAttribute());
+  return Term(d_tm, defaultValue);
+}
+
+bool Weight::operator==(const Weight& w) const
+{
+  return d_tm == w.d_tm && *d_node == *w.d_node;
+}
+
+bool Weight::operator!=(const Weight& w) const { return !(*this == w); }
+
+bool Weight::operator<(const Weight& w) const
+{
+  return d_node && w.d_node && *d_node < *w.d_node;
+}
+
+Weight::Weight() : d_tm(nullptr), d_node() {}
+
+std::map<internal::Node, internal::Node> Weight::weightMapToNodeMap(
+    const WeightMap& weights)
+{
+  std::map<internal::Node, internal::Node> nodeWeights;
+  for (const std::pair<const Weight, Term>& pair : weights)
+  {
+    nodeWeights.emplace(*pair.first.d_node, *pair.second.d_node);
+  }
+  return nodeWeights;
+}
+
+/* -------------------------------------------------------------------------- */
 /* Grammar                                                                    */
 /* -------------------------------------------------------------------------- */
 
@@ -4758,7 +4812,9 @@ bool contains(const std::vector<internal::Node>& ns, const internal::Node& n)
   return std::find(ns.cbegin(), ns.cend(), n) != ns.cend();
 }
 
-void Grammar::addRule(const Term& ntSymbol, const Term& rule)
+void Grammar::addRule(const Term& ntSymbol,
+                      const Term& rule,
+                      const WeightMap& weights)
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(!d_grammar->isResolved())
@@ -4774,12 +4830,15 @@ void Grammar::addRule(const Term& ntSymbol, const Term& rule)
       ntSymbol.d_node->getType().isInstanceOf(rule.d_node->getType()))
       << "expected ntSymbol and rule to have the same sort";
   //////// all checks before this line
-  d_grammar->addRule(*ntSymbol.d_node, *rule.d_node);
+  d_grammar->addRule(
+      *ntSymbol.d_node, *rule.d_node, Weight::weightMapToNodeMap(weights));
   ////////
   CVC5_API_TRY_CATCH_END;
 }
 
-void Grammar::addRules(const Term& ntSymbol, const std::vector<Term>& rules)
+void Grammar::addRules(const Term& ntSymbol,
+                       const std::vector<Term>& rules,
+                       const std::vector<WeightMap>& weights)
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(!d_grammar->isResolved())
@@ -4792,12 +4851,18 @@ void Grammar::addRules(const Term& ntSymbol, const std::vector<Term>& rules)
       << "ntSymbol to be one of the non-terminal symbols given in the "
          "predeclaration";
   //////// all checks before this line
-  d_grammar->addRules(*ntSymbol.d_node, Term::termVectorToNodes(rules));
+  std::vector<std::map<internal::Node, internal::Node>> nodeWeights;
+  for (const WeightMap& weight : weights)
+  {
+    nodeWeights.push_back(Weight::weightMapToNodeMap(weight));
+  }
+  d_grammar->addRules(
+      *ntSymbol.d_node, Term::termVectorToNodes(rules), nodeWeights);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
 
-void Grammar::addAnyConstant(const Term& ntSymbol)
+void Grammar::addAnyConstant(const Term& ntSymbol, const WeightMap& weights)
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(!d_grammar->isResolved())
@@ -4809,12 +4874,14 @@ void Grammar::addAnyConstant(const Term& ntSymbol)
       << "ntSymbol to be one of the non-terminal symbols given in the "
          "predeclaration";
   //////// all checks before this line
-  d_grammar->addAnyConstant(*ntSymbol.d_node, ntSymbol.d_node->getType());
+  d_grammar->addAnyConstant(*ntSymbol.d_node,
+                            ntSymbol.d_node->getType(),
+                            Weight::weightMapToNodeMap(weights));
   ////////
   CVC5_API_TRY_CATCH_END;
 }
 
-void Grammar::addAnyVariable(const Term& ntSymbol)
+void Grammar::addAnyVariable(const Term& ntSymbol, const WeightMap& weights)
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(!d_grammar->isResolved())
@@ -4826,7 +4893,8 @@ void Grammar::addAnyVariable(const Term& ntSymbol)
       << "ntSymbol to be one of the non-terminal symbols given in the "
          "predeclaration";
   //////// all checks before this line
-  d_grammar->addAnyVariable(*ntSymbol.d_node);
+  d_grammar->addAnyVariable(*ntSymbol.d_node,
+                            Weight::weightMapToNodeMap(weights));
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -8673,6 +8741,53 @@ Term Solver::declareSygusVar(const std::string& symbol, const Sort& sort) const
   CVC5_API_TRY_CATCH_END;
 }
 
+Weight Solver::declareWeight(const std::string& symbol) const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK(d_slv->getOptions().quantifiers.sygus)
+      << "cannot call declareWeight unless sygus is enabled (use --"
+      << internal::options::quantifiers::longName::sygus << ")";
+  //////// all checks before this line
+  Term zero(&d_tm, d_tm.d_nm->mkConstInt(0));
+  return Weight(&d_tm, symbol, zero);
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+Weight Solver::declareWeight(const std::string& symbol,
+                             const Term& defaultValue) const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_SOLVER_CHECK_TERM_WITH_SORT(defaultValue, getIntegerSort());
+  CVC5_API_CHECK(defaultValue.isIntegerValue())
+      << "expected default weight to be an integer value";
+  CVC5_API_CHECK(d_slv->getOptions().quantifiers.sygus)
+      << "cannot call declareWeight unless sygus is enabled (use --"
+      << internal::options::quantifiers::longName::sygus << ")";
+  //////// all checks before this line
+  return Weight(&d_tm, symbol, defaultValue);
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+Term Solver::mkWeightSymbol(const Weight& weight, const Term& term) const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK(&d_tm == weight.d_tm)
+      << "given weight is not associated with the term manager of this solver";
+  CVC5_API_SOLVER_CHECK_TERM(term);
+  CVC5_API_CHECK(d_slv->getOptions().quantifiers.sygus)
+      << "cannot call mkWeightSymbol unless sygus is enabled (use --"
+      << internal::options::quantifiers::longName::sygus << ")";
+  //////// all checks before this line
+  return Term(&d_tm,
+              d_tm.d_nm->mkNode(internal::Kind::WEIGHT_SYMBOL,
+                                d_tm.d_nm->mkConst(internal::WeightSymbol(
+                                    *weight.d_node, *term.d_node))));
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
 Grammar Solver::mkGrammar(const std::vector<Term>& boundVars,
                           const std::vector<Term>& ntSymbols) const
 {
@@ -9114,6 +9229,11 @@ size_t hash<cvc5::Grammar>::operator()(const cvc5::Grammar& grammar) const
     return 0;
   }
   return std::hash<cvc5::internal::SygusGrammar>{}(*grammar.d_grammar);
+}
+
+size_t hash<cvc5::Weight>::operator()(const cvc5::Weight& w) const
+{
+  return std::hash<cvc5::internal::Node>()(*w.d_node);
 }
 
 }  // namespace std

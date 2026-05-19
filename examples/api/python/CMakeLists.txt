@@ -28,6 +28,7 @@ set(EXAMPLES_API_PYTHON
   strings
   sygus-fun
   sygus-inv
+  sygus-weight
   uf
 )
 

@@ -22,6 +22,7 @@
 #include <cvc5/cvc5.h>
 
 #include <iosfwd>
+#include <memory>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -503,6 +504,40 @@ class CVC5_EXPORT DeclareSygusVarCommand : public DeclarationDefinitionCommand
  protected:
   /** the declared variable's sort */
   cvc5::Sort d_sort;
+};
+
+/**
+ * Declares a sygus weight keyword. See
+ * `Solver::declareWeight(const std::string&, const Term&)`.
+ */
+class CVC5_EXPORT DeclareWeightCommand : public DeclarationDefinitionCommand
+{
+ public:
+  /** Declare a weight keyword with the given (optional) default value. */
+  DeclareWeightCommand(const std::string& id, cvc5::Term defaultValue);
+  /** Declare a weight keyword with a default value of 0. */
+  DeclareWeightCommand(const std::string& id);
+  /**
+   * @return The default weight value, or a null pointer if none was
+   * explicitly provided.
+   */
+  const std::unique_ptr<cvc5::Term>& getDefaultValue() const;
+  /** Register the weight with the solver and symbol manager. */
+  void invoke(cvc5::Solver* solver, parser::SymManager* sm) override;
+  /** @return This command's name. */
+  std::string getCommandName() const override;
+  /** Print this command. */
+  void toStream(std::ostream& out) const override;
+
+ private:
+  /**
+   * The default weight value, or a null pointer if none was explicitly
+   * provided. We use a `std::unique_ptr` (rather than a pair of Term +
+   * bool flag, or a sentinel `Term()`) to avoid relying on the default
+   * `Term()` comparing equal to itself across shared-library boundaries
+   * on platforms with per-dylib static initializers (e.g. macOS).
+   */
+  std::unique_ptr<cvc5::Term> d_defaultValue;
 };
 
 /** Declares a sygus function-to-synthesize
