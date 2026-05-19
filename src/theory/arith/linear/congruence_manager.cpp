@@ -443,6 +443,13 @@ bool ArithCongruenceManager::propagate(TNode x)
         Node peq = proven[1][0].isConst() ? proven[1][1].eqNode(proven[1][0])
                                           : proven[1];
         Assert(peq.getKind() == Kind::EQUAL);
+        // Prefer the side that occurs in the contradictory literal.
+        if (peq[0].getKind() == Kind::TO_REAL && !peq[1].isConst()
+            && !ArithSubs::hasArithSubterm(neg, peq[0], false)
+            && ArithSubs::hasArithSubterm(neg, peq[1], false))
+        {
+          peq = peq[1].eqNode(peq[0]);
+        }
         if (peq[0].getKind() == Kind::TO_REAL)
         {
           // if we have (= (to_real t) c) where c is a rational, we do:
