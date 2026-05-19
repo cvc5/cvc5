@@ -1,4 +1,4 @@
-; COMMAND-LINE: --ext-rew-prep=agg --check-models -q
+; COMMAND-LINE: --ext-rew-prep=agg --check-models
 ; EXPECT: sat
 (set-logic QF_ABV)
 (declare-const x (Array (_ BitVec 32) (_ BitVec 8)))

@@ -1,4 +1,4 @@
-; COMMAND-LINE: --fp-exp -q
+; COMMAND-LINE: --fp-exp
 ; EXPECT: sat
 (set-logic QF_FP)
 (declare-fun v () Float64)

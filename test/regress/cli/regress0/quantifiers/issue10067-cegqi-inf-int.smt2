@@ -1,5 +1,5 @@
 ; DISABLE-TESTER: alethe
-; COMMAND-LINE: --cegqi-inf-int -q
+; COMMAND-LINE: --cegqi-inf-int
 ; EXPECT: unsat
 (set-logic ALL)
 (declare-fun a () Real)

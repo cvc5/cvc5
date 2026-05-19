@@ -964,6 +964,7 @@ set(regress_0_tests
   regress0/fp/issue7569.smt2
   regress0/fp/issue7858-fp-exp.smt2
   regress0/fp/issue8950-9162-9662-afp-model.smt2
+  regress0/fp/issue8950-select-distinct-afp-model.smt2
   regress0/fp/issue9078-1.smt2
   regress0/fp/issue9078-2.smt2
   regress0/fp/issue9078-3.smt2
@@ -2328,6 +2329,8 @@ set(regress_0_tests
   regress0/sygus/issue3624.sy
   regress0/sygus/issue3645-grammar-sets.smt2
   regress0/sygus/issue3646-array-sygus-inference.smt2
+  regress0/sygus/issue3646-decision-array-sygus-inference.smt2
+  regress0/sygus/issue3646-ext-rew-prep-array-sygus-inference.smt2
   regress0/sygus/issue4383-cache-fv-id.sy
   regress0/sygus/issue4790-dtd.sy
   regress0/sygus/issue5512-vvv.sy
@@ -2817,6 +2820,9 @@ set(regress_1_tests
   regress1/errorcrash.smt2
   regress1/fp/fp_to_real.smt2
   regress1/fp/issue8242-check-models.smt2
+  regress1/fp/issue8242-fp-eq-sub-div.smt2
+  regress1/fp/issue8242-fp-max-div.smt2
+  regress1/fp/issue8242-nested-div.smt2
   regress1/fp/rti_3_5_bug_report.smt2
   regress1/fmf-fun-dbu.smt2
   regress1/fmf/ALG008-1.smt2

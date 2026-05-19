@@ -1,4 +1,4 @@
-; COMMAND-LINE: --check-models -q
+; COMMAND-LINE: --check-models
 ; EXPECT: sat
 (set-logic QF_FP)
 (declare-const a (_ FloatingPoint 11 53))
