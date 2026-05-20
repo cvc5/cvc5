@@ -935,10 +935,11 @@ Node FpWordBlaster::wordBlast(TNode node)
         {
           if (kind == Kind::CONST_FLOATINGPOINT)
           {
-            d_fpMap.insert(
-                cur,
-                symfpu::unpackedFloat<traits>(
-                    cur.getConst<FloatingPoint>().getLiteral()->getSymUF()));
+            const FloatingPoint& fp = cur.getConst<FloatingPoint>();
+            FloatingPointSize fps = fp.getSize();
+            fpt format(fps.exponentWidth(), fps.significandWidth());
+            ubv packed(d_nm->mkConst(fp.pack()));
+            d_fpMap.insert(cur, symfpu::unpack<traits>(format, packed));
           }
           else
           {

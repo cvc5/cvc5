@@ -22,7 +22,7 @@ add_dependencies(build-apitests build-cppapitests)
 
 # Disabled temporarily due to problems in the nightly builds
 # # See the comment about 'make test' in test/regress/cli/CMakeLists.txt
-# add_test(build_apitests_test "${CMAKE_COMMAND}" --build "${CMAKE_BINARY_DIR}" --config "$<CONFIG>" --target build-apitests)
+# add_test(build_apitests_test "${CMAKE_COMMAND}" --build "${PROJECT_BINARY_DIR}" --config "$<CONFIG>" --target build-apitests)
 # set_tests_properties(build_apitests_test PROPERTIES FIXTURES_SETUP build_apitests_fixture)
 
 add_custom_target(cppapitests
@@ -32,7 +32,7 @@ add_custom_target(cppapitests
 set(CVC5_API_TEST_FLAGS -D__BUILDING_CVC5_API_TEST -Dcvc5_obj_EXPORTS)
 
 macro(cvc5_add_api_test name dir)
-  set(test_bin_dir ${CMAKE_BINARY_DIR}/bin/test/api/cpp/${dir})
+  set(test_bin_dir ${PROJECT_BINARY_DIR}/bin/test/api/cpp/${dir})
   add_executable(${name} ${name}.cpp)
   target_link_libraries(${name} PUBLIC main-test)
   target_compile_definitions(${name} PRIVATE ${CVC5_API_TEST_FLAGS})

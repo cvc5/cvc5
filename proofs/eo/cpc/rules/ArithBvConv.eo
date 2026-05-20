@@ -18,7 +18,7 @@
   :signature ((BitVec n) Int Int Int) Int
   (
     (($abconv_ubv_to_int_elim b w w p) 0)
-    (($abconv_ubv_to_int_elim b i w p) (eo::cons +
+    (($abconv_ubv_to_int_elim b i w p) (_ +
                                         (ite (= (extract i i b) #b1) p 0)
                                         ($abconv_ubv_to_int_elim b (eo::add i 1) w (eo::mul p 2))))
   )
@@ -53,7 +53,7 @@
     (($abconv_int_to_bv_elim n 0 p) @bv_empty)
     (($abconv_int_to_bv_elim n w p) (eo::define ((wm1 (eo::add w -1)))
                                     (eo::define ((pd2 (eo::zdiv p 2)))
-                                    (eo::cons concat
+                                    (_ concat
                                       (ite (>= (mod_total n p) pd2) #b1 #b0)
                                       ($abconv_int_to_bv_elim n wm1 pd2)))))
   )

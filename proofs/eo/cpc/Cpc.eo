@@ -312,7 +312,7 @@
       (($run_evaluate (repeat n xb))       (eo::define ((en ($run_evaluate n)))
                                            (eo::define ((ex ($run_evaluate xb)))
                                            (eo::ite (eo::and (eo::is_z en) (eo::not (eo::is_neg en)))
-                                             ($bv_repeat_eval_rec en ex)
+                                             ($bv_eval_concat ($bv_unfold_repeat_rec en ex))
                                              (repeat en ex)))))
       (($run_evaluate (sign_extend n xb))  (eo::define ((en ($run_evaluate n)))
                                            (eo::define ((ex ($run_evaluate xb)))
@@ -346,7 +346,7 @@
 (program $evaluate_list ((U Type) (t U) (ts @List :list))
   :signature (@List) @List
   (
-  (($evaluate_list (@list t ts))  (eo::cons @list ($run_evaluate t) ($evaluate_list ts)))
+  (($evaluate_list (@list t ts))  (_ @list ($run_evaluate t) ($evaluate_list ts)))
   (($evaluate_list @list.nil)     @list.nil)
   )
 )
@@ -526,11 +526,11 @@
 ; note: >
 ;   If the argument list contains duplicates, then it is trivially false,
 ;   hence there is no need to check for duplicates.
-(declare-rule distinct-card-conflict ((T Type) (U Type) (xs @List :list))
+(declare-rule distinct-card-conflict ((T Type) (xs (@TList T) :list))
   :args ((= (distinct xs) false))
   :requires (((eo::gt
-                (eo::list_len @list xs)
-                ($compute_card ($assoc_nil_nth_type @list xs 0))) true))
+                (eo::list_len @tlist xs)
+                ($compute_card ($assoc_nil_nth_type @tlist xs 0))) true))
   :conclusion (= (distinct xs) false)
 )
 

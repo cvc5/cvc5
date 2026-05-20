@@ -29,7 +29,7 @@ import datetime
 sys.path.insert(0, '${CMAKE_CURRENT_SOURCE_DIR}/ext/')
 
 # path to python api
-sys.path.insert(0, '${CMAKE_BINARY_DIR}/src/api/python')
+sys.path.insert(0, '${PROJECT_BINARY_DIR}/src/api/python')
 
 if("${BUILD_BINDINGS_PYTHON}" == "ON"):
         tags.add('bindings_python')
@@ -105,7 +105,7 @@ lexers['smtlib'] = SmtLibLexer()
 
 # -- Java configuration ------------------------------------------------------
 if tags.has('bindings_java'):
-        html_extra_path.append('${CMAKE_BINARY_DIR}/docs/api/java/build/')
+        html_extra_path.append('${PROJECT_BINARY_DIR}/docs/api/java/build/')
 
 
 # -- core extension:: sphinx.ext.autosectionlabel ----------------------------
@@ -217,7 +217,7 @@ examples_file_patterns = {
                 'urlname': 'examples{}',
         },
         r'<pythonicapi>(.*)': {
-                'local': '/' + os.path.relpath('${CMAKE_BINARY_DIR}/deps/src/CVC5PythonicAPI', '${CMAKE_CURRENT_SOURCE_DIR}') + '{}',
+                'local': '/' + os.path.relpath('${PROJECT_BINARY_DIR}/deps/src/CVC5PythonicAPI', '${CMAKE_CURRENT_SOURCE_DIR}') + '{}',
                 'url': 'https://github.com/cvc5/cvc5_pythonic_api/tree/main{}',
                 'urlname': 'cvc5_pythonic_api:{}',
         }
@@ -232,4 +232,4 @@ ibf_folders = ['${CMAKE_CURRENT_BINARY_DIR}']
 
 # -- custom extension:: run_command ------------------------------------------
 
-runcmd_build = '/' + os.path.relpath('${CMAKE_BINARY_DIR}', '${CMAKE_CURRENT_SOURCE_DIR}')
+runcmd_build = '/' + os.path.relpath('${PROJECT_BINARY_DIR}', '${CMAKE_CURRENT_SOURCE_DIR}')

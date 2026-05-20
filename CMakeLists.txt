@@ -132,6 +132,7 @@ option(USE_CRYPTOMINISAT "Use CryptoMiniSat SAT solver")
 option(USE_EDITLINE      "Use Editline for better interactive support")
 option(USE_GLPK          "Use GLPK simplex solver")
 option(USE_KISSAT        "Use Kissat SAT solver")
+option(USE_MPFR          "Use MPFR for FP constant folding instead of SymFPU")
 option(USE_POLY          "Use LibPoly for polynomial arithmetic")
 
 # Custom install directories for dependencies
@@ -254,20 +255,28 @@ include(Config${CMAKE_BUILD_TYPE})
 #-----------------------------------------------------------------------------#
 # Compiler flags
 
+check_min_compiler_version("GNU" 10)
+check_min_compiler_version("Clang" 12)
+
 add_check_c_cxx_flag("-O${OPTIMIZATION_LEVEL}")
 add_check_c_cxx_flag("-Wall")
+add_check_c_cxx_flag("-Wextra")
 add_check_c_flag("-fexceptions")
-add_check_c_cxx_flag("-Wcast-function-type")
-add_check_cxx_flag("-Wdeprecated-copy")
 add_check_cxx_flag("-Wsuggest-override")
 add_check_cxx_flag("-Wnon-virtual-dtor")
-add_check_c_cxx_flag("-Wignored-qualifiers")
 add_check_c_cxx_flag("-Wimplicit-fallthrough")
-add_check_c_cxx_flag("-Wmissing-field-initializers")
 add_check_c_cxx_flag("-Wshadow")
 add_check_c_cxx_flag("-Wtype-limits")
-add_check_c_cxx_flag("-Wunused-parameter")
 add_check_c_cxx_flag("-fno-operator-names")
+
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
+   AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 13
+   AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 14)
+  # GCC 13 introduced -Wdangling-reference, but the
+  # [[gnu::no_dangling]] attribute to suppress it was only
+  # added in GCC 14, so disable the warning for GCC 13.
+  add_cxx_flag("-Wno-dangling-reference")
+endif()
 
 # Assume no dynamic initialization of thread-local variables in non-defining
 # translation units. This option should result in better performance and works
@@ -451,7 +460,7 @@ endmacro()
 if(ENABLE_AUTO_DOWNLOAD)
   if(USE_PYTHON_VENV)
     # Set up Python venv if one doesn't exist already
-    set(VENV_PATH "${CMAKE_BINARY_DIR}/venv-${Python_VERSION}")
+    set(VENV_PATH "${PROJECT_BINARY_DIR}/venv-${Python_VERSION}")
     if(NOT EXISTS ${VENV_PATH})
       create_venv()
     endif()
@@ -511,7 +520,7 @@ if(ENABLE_COVERAGE)
   setup_code_coverage_fastcov(
     NAME coverage
     PATH "${PROJECT_SOURCE_DIR}"
-    EXCLUDE "${CMAKE_BINARY_DIR}/deps/*"
+    EXCLUDE "${PROJECT_BINARY_DIR}/deps/*"
     DEPENDENCIES cvc5-bin
   )
 endif()
@@ -621,7 +630,16 @@ if(USE_EDITLINE)
   set(HAVE_LIBEDITLINE 1)
 endif()
 
+# SymFPU is always needed for the symbolic FP word blaster in the theory solver.
 find_package(SymFPU REQUIRED)
+
+if(USE_MPFR)
+  find_package(MPFR REQUIRED)
+  add_definitions(-DCVC5_USE_MPFR)
+  set(CVC5_USE_MPFR TRUE)
+else()
+  set(CVC5_USE_MPFR FALSE)
+endif()
 
 if(GPL_LIBS)
   if(NOT ENABLE_GPL)
@@ -661,7 +679,7 @@ endif()
 
 # Include public headers
 include_directories(include)
-include_directories(${CMAKE_BINARY_DIR}/include)
+include_directories(${PROJECT_BINARY_DIR}/include)
 
 # Install public headers
 install(DIRECTORY include/cvc5 DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
@@ -748,8 +766,8 @@ install(EXPORT cvc5-targets
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/cvc5)
 
 configure_package_config_file(
-  ${CMAKE_SOURCE_DIR}/cmake/cvc5Config.cmake.in
-  ${CMAKE_BINARY_DIR}/cmake/cvc5Config.cmake
+  ${PROJECT_SOURCE_DIR}/cmake/cvc5Config.cmake.in
+  ${PROJECT_BINARY_DIR}/cmake/cvc5Config.cmake
   INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/cvc5
   PATH_VARS CMAKE_INSTALL_LIBDIR
 )
@@ -761,8 +779,8 @@ write_basic_package_version_file(
 )
 
 install(FILES
-  ${CMAKE_BINARY_DIR}/cmake/cvc5Config.cmake
-  ${CMAKE_BINARY_DIR}/cvc5ConfigVersion.cmake
+  ${PROJECT_BINARY_DIR}/cmake/cvc5Config.cmake
+  ${PROJECT_BINARY_DIR}/cvc5ConfigVersion.cmake
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/cvc5
 )
 
@@ -827,6 +845,11 @@ if(CVC5_USE_CLN_IMP)
   print_config("MP library                " "cln" FOUND_SYSTEM ${CLN_FOUND_SYSTEM})
 else()
   print_config("MP library                " "gmp" FOUND_SYSTEM ${GMP_FOUND_SYSTEM})
+endif()
+if(CVC5_USE_MPFR)
+  print_config("FP literal backend        " "mpfr" FOUND_SYSTEM ${MPFR_FOUND_SYSTEM})
+else()
+  print_config("FP literal backend        " "symfpu" FOUND_SYSTEM ${SymFPU_FOUND_SYSTEM})
 endif()
 print_config("Editline                  " ${USE_EDITLINE})
 message("")

@@ -3,6 +3,7 @@
 #   clang-analyzer-*
 # Additional checks:
 Checks: >
+  modernize-deprecated-headers,
   modernize-use-nullptr
 HeaderFilterRegex: '.*'
 # Use .clang-format for formatting changes
