@@ -486,6 +486,13 @@ void ProofNodeUpdater::runFinalize(
     bool childChanged = false;
     for (const std::shared_ptr<ProofNode>& cp : ccp)
     {
+      // ANNOTATE is conclusion-preserving, but the wrapper carries metadata
+      // that should survive proof post-processing.
+      if (cp->getRule() == ProofRule::ANNOTATE)
+      {
+        newChildren.emplace_back(cp);
+        continue;
+      }
       Node cpres = cp->getResult();
       itr = resCache.find(cpres);
       if (itr != resCache.end() && itr->second != cp)
