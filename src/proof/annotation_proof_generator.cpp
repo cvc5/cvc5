@@ -41,6 +41,7 @@ void AnnotationProofGenerator::addAnnotation(Node fact,
                                              const std::vector<Node>& targs)
 {
   Assert(pg != nullptr || tid != TrustId::NONE);
+  Assert(!args.empty());
   d_annotations[fact] = std::make_shared<AnnotationInfo>(pg, args, tid, targs);
 }
 
