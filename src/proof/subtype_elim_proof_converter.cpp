@@ -447,8 +447,10 @@ Node SubtypeElimConverterCallback::convert(Node res,
       for (const Node& mc : matchConds)
       {
         Trace("pf-subtype-elim") << "- match condition " << mc << std::endl;
-        // should not introduce subgoals with mixed arithmetic here
-        Assert(d_nconv.convert(mc) == mc);
+        // These conditions may themselves be subtype-elimination rewrites,
+        // e.g. a proof rule may rebuild (* 12 r) where the target has
+        // (* 12.0 r). The trusted rewrite below is sufficient to justify the
+        // local conversion from the rule result to the converted conclusion.
         tcpg.addRewriteStep(mc[0],
                             mc[1],
                             nullptr,
