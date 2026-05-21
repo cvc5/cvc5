@@ -137,6 +137,33 @@ Node SubtypeElimConverterCallback::convert(Node res,
       }
     }
     break;
+    case ProofRule::ARITH_MULT_TANGENT:
+    {
+      Assert(cargs.size() == 5);
+      bool needsReal = false;
+      for (size_t i = 0; i < 4; i++)
+      {
+        if (cargs[i].getType().isReal())
+        {
+          needsReal = true;
+          break;
+        }
+      }
+      if (needsReal)
+      {
+        // The CPC rule for tangent planes is monomorphic in the arithmetic
+        // type of x, y, a, b. Ensure this proof step is replayed fully over
+        // Real when subtype elimination exposed mixed Int/Real arguments.
+        for (size_t i = 0; i < 4; i++)
+        {
+          if (cargs[i].getType().isInteger())
+          {
+            cargs[i] = theory::arith::castToReal(nm, cargs[i]);
+          }
+        }
+      }
+    }
+    break;
     case ProofRule::ARITH_MULT_POS:
     case ProofRule::ARITH_MULT_NEG:
     {
