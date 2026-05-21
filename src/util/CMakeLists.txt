@@ -90,6 +90,10 @@ libcvc5_add_sources(
   utility.h
 )
 
+if(CVC5_USE_MPFR)
+  libcvc5_add_sources(floatingpoint_literal_mpfr.cpp)
+endif()
+
 if(CVC5_USE_CLN_IMP)
   libcvc5_add_sources(rational_cln_imp.cpp integer_cln_imp.cpp)
 endif()
