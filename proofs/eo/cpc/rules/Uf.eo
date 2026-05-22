@@ -79,7 +79,7 @@
 ; - E Bool: A conjunction of the remaining equalities we have left to process, in reverse order.
 ; return: >
 ;   The right hand side of the equality.
-(program $mk_cong_rhs ((T Type) (U Type) (f (-> T U)) (t1 U) (t2 U) (t3 U) (tail Bool :list))
+(program $mk_cong_rhs ((T Type) (U Type) (f (-> T U)) (t1 U) (t2 U) (tail Bool :list))
     :signature (U Bool) U
     (
         (($mk_cong_rhs (f t1) (and (= t1 t2) tail))  (_ ($mk_cong_rhs f tail) t2))

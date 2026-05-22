@@ -43,6 +43,8 @@ void InferenceManager::addPendingInference(Node conc,
                                            Node exp,
                                            bool forceLemma)
 {
+  Trace("dt-im") << "Pending inference: " << conc << " / " << exp << " / " << id
+                 << std::endl;
   // if we are forcing the inference to be processed as a lemma, if the
   // dtInferAsLemmas option is set, or if the inference must be sent as a lemma
   // based on the policy in mustCommunicateFact.

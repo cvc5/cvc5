@@ -84,7 +84,7 @@
 ; - s (Set T): The set to process, expected to be a set operator applied to values
 ; return: >
 ;   The result of evaluating the operator.
-(program $eval_sets_op ((T Type) (s (Set T)) (t (Set T)) (r (Set T)))
+(program $eval_sets_op ((T Type) (s (Set T)) (t (Set T)))
   :signature ((Set T)) @List
   (
     (($eval_sets_op (set.union s t)) (eo::list_concat @list ($set_union_to_list s) ($set_union_to_list t)))

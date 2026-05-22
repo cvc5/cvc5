@@ -47,7 +47,7 @@
 ; - s (Set T): The second set terms.
 ; return: >
 ;   True if we can show that t is not a subset of s based on reasoning about values.
-(program $set_is_not_subset ((T Type) (t (Set T)) (ts (Set T) :list) (s (Set T)) (ss (Set T) :list) (e1 T) (e2 T))
+(program $set_is_not_subset ((T Type) (ts (Set T) :list) (s (Set T)) (ss (Set T) :list) (e1 T) (e2 T))
   :signature ((Set T) (Set T)) Bool
   (
   (($set_is_not_subset (as set.empty (Set T)) s)                              false)
@@ -135,7 +135,7 @@
 ; return: >
 ;   True if we can shown that t and s are semantically distinct, e.g. (not (= t s)) holds.
 (program $are_distinct_terms_type
-  ((T Type) (t T) (s T) (U Type) (W Type) (n Int) (st (Set U)) (ss (Set U)) (sst (Seq U)) (sss (Seq U)))
+  ((T Type) (t T) (s T) (U Type) (n Int) (st (Set U)) (ss (Set U)) (sst (Seq U)) (sss (Seq U)))
   :signature (T T Type) Bool
   (
   (($are_distinct_terms_type t t T)           false)
