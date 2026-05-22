@@ -37,7 +37,19 @@ void CadicalPropagator::notify_assignment(const std::vector<int>& lits)
 
   if (d_found_solution)
   {
-    return;
+    for (const auto& lit : lits)
+    {
+      SatVariable var = toSatLiteral(lit).getSatVariable();
+      Assert(var < d_var_info.size());
+      const auto& info = d_var_info[var];
+      if (info.is_active && info.is_theory_atom && info.assignment == 0)
+      {
+        Trace("cadical::propagator")
+            << "new theory assignment after partial solution" << std::endl;
+        d_found_solution = false;
+        break;
+      }
+    }
   }
 
   for (const auto& lit : lits)
