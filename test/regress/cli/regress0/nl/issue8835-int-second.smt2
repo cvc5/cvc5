@@ -1,3 +1,4 @@
+; COMMAND-LINE: --sat-solver=minisat
 ; EXPECT: sat
 ; REQUIRES: poly
 (set-logic ALL)
