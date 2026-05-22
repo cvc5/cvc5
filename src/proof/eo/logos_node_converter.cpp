@@ -57,7 +57,7 @@ Node LogosNodeConverter::postConvert(Node n)
   else if (k == Kind::CONST_STRING)
   {
     std::stringstream ss;
-    ss << "(Term.String (native_str_lit " << n << "))";
+    ss << "(Term.String (native_string_lit " << n << "))";
     return mkInternalSymbol(ss.str(), n.getType());
   }
   else if (k == Kind::CONST_BITVECTOR)
