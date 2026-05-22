@@ -200,5 +200,5 @@
   (-> Int (Seq T)))
 
 (declare-parameterized-const @witness_string_length 
-  ((T Type :opaque))
-  (-> Int Int T))
+  ((T Type :opaque) (len Int :opaque) (id Int :opaque))
+  T)
