@@ -16,6 +16,10 @@
 #include <poly/polyxx.h>
 #endif
 
+#if CVC5_ATOMIC_REFCOUNT
+#include <mutex>
+#endif
+
 /* circular dependency; force node.h first */
 #include "expr/node.h"
 #include "expr/type_node.h"
@@ -1062,6 +1066,10 @@ class NodeManager
    * we also need to avoid processing a zombie twice.
    */
   NodeValueIDSet d_zombies;
+
+#if CVC5_ATOMIC_REFCOUNT
+	std::mutex reclaim_mutex;
+#endif
 
   /**
    * NodeValues with maxed out reference counts. These live as long as the
