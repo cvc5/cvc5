@@ -1,3 +1,4 @@
+; COMMAND-LINE: --enum-inst
 (set-logic ALL)
 (declare-fun T () Bool)
 (declare-fun v () String)

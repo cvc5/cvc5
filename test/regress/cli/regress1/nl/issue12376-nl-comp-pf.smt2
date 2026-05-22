@@ -1,3 +1,4 @@
+; COMMAND-LINE: --sat-solver=minisat
 ; EXPECT: unsat
 (set-logic NIRA)
 (declare-const p Int)
