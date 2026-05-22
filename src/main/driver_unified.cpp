@@ -12,9 +12,9 @@
 
 #include <cvc5/cvc5.h>
 #include <cvc5/cvc5_parser.h>
-#include <stdio.h>
 #include <unistd.h>
 
+#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <fstream>

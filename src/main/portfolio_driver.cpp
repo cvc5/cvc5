@@ -11,9 +11,10 @@
 #include "main/portfolio_driver.h"
 
 #if HAVE_SYS_WAIT_H
-#include <signal.h>
 #include <sys/wait.h>
 #include <unistd.h>
+
+#include <csignal>
 #endif
 
 #include <cvc5/cvc5.h>

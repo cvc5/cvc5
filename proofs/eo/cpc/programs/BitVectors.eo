@@ -68,7 +68,7 @@
 ; return: >
 ;   The first direct child of a that it is a bitvector constant if one exists,
 ;   or the term @bv_empty otherwise.
-(program $bv_get_first_const_child ((n Int) (k Int) (f (-> (BitVec n) (BitVec n) (BitVec n))) (a (BitVec n)) (b (BitVec n) :list))
+(program $bv_get_first_const_child ((n Int) (f (-> (BitVec n) (BitVec n) (BitVec n))) (a (BitVec n)) (b (BitVec n) :list))
   :signature ((BitVec n)) (BitVec n)
   (
     (($bv_get_first_const_child (f a b))  (eo::ite (eo::is_bin a) a ($bv_get_first_const_child b)))

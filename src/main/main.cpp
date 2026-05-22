@@ -18,6 +18,9 @@
 #include "base/configuration.h"
 #include "main/command_executor.h"
 #include "options/option_exception.h"
+#ifdef CVC5_USE_COCOA
+#include <CoCoA/error.H>
+#endif
 
 using namespace cvc5::internal;
 using namespace cvc5::main;
@@ -73,6 +76,12 @@ int main(int argc, char* argv[])
       pExecutor->printStatistics(solver->getDriverOptions().err());
     }
   }
+#ifdef CVC5_USE_COCOA
+  catch (CoCoA::ErrorInfo& e)
+  {
+    e.myOutputSelf(std::cerr);
+  }
+#endif
   // Make sure that the command executor is destroyed before the node manager.
   pExecutor.reset();
   exit(1);
