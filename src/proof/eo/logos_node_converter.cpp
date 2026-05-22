@@ -314,7 +314,7 @@ Node LogosNodeConverter::typeAsNodeDatatype(const DType& dt,
         }
         else
         {
-          Node dtName = d_nm->mkConst(String(argt.getDType().getName()));
+          Node dtName = convert(d_nm->mkConst(String(argt.getDType().getName())));
           an = mkInternalApp("Term.DatatypeTypeRef", {dtName}, d_sortType);
         }
       }
@@ -326,7 +326,7 @@ Node LogosNodeConverter::typeAsNodeDatatype(const DType& dt,
     }
     ret = mkInternalApp("Datatype.sum", {cons, ret}, d_sortType);
   }
-  Node dtName = d_nm->mkConst(String(dt.getName()));
+  Node dtName = convert(d_nm->mkConst(String(dt.getName())));
   ret = mkInternalApp("Term.DatatypeType", {dtName, ret}, d_sortType);
   return ret;
 }
