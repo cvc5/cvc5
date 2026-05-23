@@ -13,12 +13,114 @@
 
 #include "theory/decision_strategy.h"
 
+#include "expr/plugin.h"
+#include "options/parallel_options.h"
+#include "smt/env.h"
+#include "theory/output_channel.h"
 #include "theory/rewriter.h"
 
 using namespace cvc5::internal::kind;
 
 namespace cvc5::internal {
 namespace theory {
+
+DecisionStrategyFFD::DecisionStrategyFFD(Env& env, Valuation valuation)
+    : DecisionStrategy(env),
+      d_valuation(valuation),
+      d_name("decisionStrategyFFD"),
+      d_forced_count(0),
+      d_notifiedPlugin(false)
+{
+}
+
+void DecisionStrategyFFD::initialize() {}
+
+void DecisionStrategyFFD::addLiteral(Node n)
+{
+  Node lit = rewrite(n);
+  d_literals.push_back(d_valuation.ensureLiteral(lit));
+}
+
+void DecisionStrategyFFD::setOutputChannel(TheoryEngine* te)
+{
+  d_out = new OutputChannel(statisticsRegistry(), te, "ffdoc", 42);
+}
+
+Node DecisionStrategyFFD::getNextDecisionRequest()
+{
+  Trace("dec-strategy-debug")
+      << "Get next decision request " << identify() << "... " << std::endl;
+
+  if (options().parallel.forceFirstDecisionsOnce)
+  {
+    if (d_forced_count < d_literals.size())
+    {
+      for (auto n : d_literals)
+      {
+        bool value;
+        if (!d_valuation.hasSatValue(n, value))
+        {
+          d_forced_count += 1;
+          return n;
+        }
+      }
+    }
+  }
+  else if (!d_notifiedPlugin)
+  {
+    bool allFalse = true;
+    bool anyFalse = false;
+    // for (auto n : d_literals)
+    for (int i = 0; i < d_literals.size(); ++i)
+    {
+      Node n = d_literals[i];
+      bool value;
+      if (!d_valuation.hasSatValue(n, value))
+      {
+        return n;
+      }
+      if (value)
+      {
+        allFalse = false;
+      }
+      else
+      {
+        anyFalse = true;
+      }
+    }
+    if (anyFalse && options().parallel.ffdPartitionMode)
+    {
+      // std::cout << "all false, returning unsat node" << std::endl;
+      auto unsatNode = nodeManager()->mkConst(false);
+      // return unsatNode;
+      // // d_out(statisticsRegistry(), engine, name, d_idCounter)
+      // OutputChannel d_out(statisticsRegistry(), d_valuation.d_engine, "ffd",
+      // 42);
+
+      d_out->lemma(unsatNode, InferenceId::PARTITION_GENERATOR_PARTITION);
+    }
+    else if (anyFalse && options().parallel.ffdFastPartitionMode)
+    {
+      std::vector<Plugin*> plugins = d_env.getPlugins();
+      for (auto p : plugins)
+      {
+        if (p->getName() == "LemmaTransceiver")
+        {
+          p->handlePartitionSolved();
+          d_notifiedPlugin = true;
+        }
+      }
+      // If not sharing, want to stop trying to solve
+      if (!d_notifiedPlugin)
+      {
+        auto unsatNode = nodeManager()->mkConst(false);
+        d_out->lemma(unsatNode, InferenceId::PARTITION_GENERATOR_PARTITION);
+      }
+    }
+  }
+
+  return Node::null();
+}
 
 DecisionStrategyFmf::DecisionStrategyFmf(Env& env, Valuation valuation)
     : DecisionStrategy(env),
