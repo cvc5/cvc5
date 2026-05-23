@@ -12,6 +12,7 @@
 
 #include "preprocessing/passes/sort_infer.h"
 
+#include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "options/uf_options.h"
 #include "preprocessing/assertion_pipeline.h"
@@ -37,7 +38,11 @@ PreprocessingPassResult SortInferencePass::applyInternal(
   theory::SortInference* si =
       d_preprocContext->getTheoryEngine()->getSortInference();
 
-  if (options().smt.sortInference)
+  // Sort inference is unsound with finite model finding: FMF only bounds
+  // non-monotonic subsorts, leaving monotonic subsorts unbounded. This breaks
+  // the cardinality constraints imposed by the injections between subsorts,
+  // allowing FMF to find spurious models.
+  if (options().smt.sortInference && !options().quantifiers.finiteModelFind)
   {
     si->initialize(assertionsToPreprocess->ref());
     std::map<Node, Node> model_replace_f;

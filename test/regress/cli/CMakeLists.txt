@@ -2872,6 +2872,7 @@ set(regress_1_tests
   regress1/fmf/sc-crash-052316.smt2
   regress1/fmf/sort-inf-int-real.smt2
   regress1/fmf/sort-inf-int.smt2
+  regress1/fmf/sort-infer-fmf-pigeon.smt2
   regress1/fmf/with-ind-104-core.smt2
   regress1/gensys_brn001.smt2
   regress1/get-learned-literals.smt2
