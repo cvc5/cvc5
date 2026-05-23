@@ -21,44 +21,69 @@ namespace theory {
 
 QuantifiersUtil::QuantifiersUtil(Env& env) : EnvObj(env) {}
 
-QuantPhaseReq::QuantPhaseReq( Node n, bool computeEq ){
-  initialize( n, computeEq );
+QuantPhaseReq::QuantPhaseReq(Node n, bool computeEq)
+{
+  initialize(n, computeEq);
 }
 
-void QuantPhaseReq::initialize( Node n, bool computeEq ){
-  std::map< Node, int > phaseReqs2;
-  computePhaseReqs( n, false, phaseReqs2 );
-  for( std::map< Node, int >::iterator it = phaseReqs2.begin(); it != phaseReqs2.end(); ++it ){
-    if( it->second==1 ){
-      d_phase_reqs[ it->first ] = true;
-    }else if( it->second==-1 ){
-      d_phase_reqs[ it->first ] = false;
+void QuantPhaseReq::initialize(Node n, bool computeEq)
+{
+  std::map<Node, int> phaseReqs2;
+  computePhaseReqs(n, false, phaseReqs2);
+  for (std::map<Node, int>::iterator it = phaseReqs2.begin();
+       it != phaseReqs2.end();
+       ++it)
+  {
+    if (it->second == 1)
+    {
+      d_phase_reqs[it->first] = true;
+    }
+    else if (it->second == -1)
+    {
+      d_phase_reqs[it->first] = false;
     }
   }
-  Trace("inst-engine-phase-req") << "Phase requirements for " << n << ":" << std::endl;
-  //now, compute if any patterns are equality required
-  if( computeEq ){
-    for( std::map< Node, bool >::iterator it = d_phase_reqs.begin(); it != d_phase_reqs.end(); ++it ){
-      Trace("inst-engine-phase-req") << "   " << it->first << " -> " << it->second << std::endl;
+  Trace("inst-engine-phase-req")
+      << "Phase requirements for " << n << ":" << std::endl;
+  // now, compute if any patterns are equality required
+  if (computeEq)
+  {
+    for (std::map<Node, bool>::iterator it = d_phase_reqs.begin();
+         it != d_phase_reqs.end();
+         ++it)
+    {
+      Trace("inst-engine-phase-req")
+          << "   " << it->first << " -> " << it->second << std::endl;
       if (it->first.getKind() == Kind::EQUAL)
       {
-        if( quantifiers::TermUtil::hasInstConstAttr(it->first[0]) ){
-          if( !quantifiers::TermUtil::hasInstConstAttr(it->first[1]) ){
-            d_phase_reqs_equality_term[ it->first[0] ] = it->first[1];
-            d_phase_reqs_equality[ it->first[0] ] = it->second;
-            Trace("inst-engine-phase-req") << "      " << it->first[0] << ( it->second ? " == " : " != " ) << it->first[1] << std::endl;
+        if (quantifiers::TermUtil::hasInstConstAttr(it->first[0]))
+        {
+          if (!quantifiers::TermUtil::hasInstConstAttr(it->first[1]))
+          {
+            d_phase_reqs_equality_term[it->first[0]] = it->first[1];
+            d_phase_reqs_equality[it->first[0]] = it->second;
+            Trace("inst-engine-phase-req")
+                << "      " << it->first[0] << (it->second ? " == " : " != ")
+                << it->first[1] << std::endl;
           }
-        }else if( quantifiers::TermUtil::hasInstConstAttr(it->first[1]) ){
-          d_phase_reqs_equality_term[ it->first[1] ] = it->first[0];
-          d_phase_reqs_equality[ it->first[1] ] = it->second;
-          Trace("inst-engine-phase-req") << "      " << it->first[1] << ( it->second ? " == " : " != " ) << it->first[0] << std::endl;
+        }
+        else if (quantifiers::TermUtil::hasInstConstAttr(it->first[1]))
+        {
+          d_phase_reqs_equality_term[it->first[1]] = it->first[0];
+          d_phase_reqs_equality[it->first[1]] = it->second;
+          Trace("inst-engine-phase-req")
+              << "      " << it->first[1] << (it->second ? " == " : " != ")
+              << it->first[0] << std::endl;
         }
       }
     }
   }
 }
 
-void QuantPhaseReq::computePhaseReqs( Node n, bool polarity, std::map< Node, int >& phaseReqs ){
+void QuantPhaseReq::computePhaseReqs(Node n,
+                                     bool polarity,
+                                     std::map<Node, int>& phaseReqs)
+{
   bool newReqPol = false;
   bool newPolarity;
   if (n.getKind() == Kind::NOT)
@@ -68,14 +93,16 @@ void QuantPhaseReq::computePhaseReqs( Node n, bool polarity, std::map< Node, int
   }
   else if (n.getKind() == Kind::OR || n.getKind() == Kind::IMPLIES)
   {
-    if( !polarity ){
+    if (!polarity)
+    {
       newReqPol = true;
       newPolarity = false;
     }
   }
   else if (n.getKind() == Kind::AND)
   {
-    if( polarity ){
+    if (polarity)
+    {
       newReqPol = true;
       newPolarity = true;
     }
@@ -83,21 +110,26 @@ void QuantPhaseReq::computePhaseReqs( Node n, bool polarity, std::map< Node, int
   else
   {
     int val = polarity ? 1 : -1;
-    if( phaseReqs.find( n )==phaseReqs.end() ){
+    if (phaseReqs.find(n) == phaseReqs.end())
+    {
       phaseReqs[n] = val;
-    }else if( val!=phaseReqs[n] ){
+    }
+    else if (val != phaseReqs[n])
+    {
       phaseReqs[n] = 0;
     }
   }
-  if( newReqPol ){
-    for( int i=0; i<(int)n.getNumChildren(); i++ ){
+  if (newReqPol)
+  {
+    for (int i = 0; i < (int)n.getNumChildren(); i++)
+    {
       if (n.getKind() == Kind::IMPLIES && i == 0)
       {
-        computePhaseReqs( n[i], !newPolarity, phaseReqs );
+        computePhaseReqs(n[i], !newPolarity, phaseReqs);
       }
       else
       {
-        computePhaseReqs( n[i], newPolarity, phaseReqs );
+        computePhaseReqs(n[i], newPolarity, phaseReqs);
       }
     }
   }
@@ -115,7 +147,7 @@ void QuantPhaseReq::getPolarity(
   else if (n.getKind() == Kind::IMPLIES)
   {
     newHasPol = hasPol;
-    newPol = child==0 ? !pol : pol;
+    newPol = child == 0 ? !pol : pol;
   }
   else if (n.getKind() == Kind::NOT)
   {
@@ -124,12 +156,12 @@ void QuantPhaseReq::getPolarity(
   }
   else if (n.getKind() == Kind::ITE)
   {
-    newHasPol = (child!=0) && hasPol;
+    newHasPol = (child != 0) && hasPol;
     newPol = pol;
   }
   else if (n.getKind() == Kind::FORALL)
   {
-    newHasPol = (child==1) && hasPol;
+    newHasPol = (child == 1) && hasPol;
     newPol = pol;
   }
   else
@@ -151,7 +183,7 @@ void QuantPhaseReq::getEntailPolarity(
   else if (n.getKind() == Kind::IMPLIES)
   {
     newHasPol = hasPol && !pol;
-    newPol = child==0 ? !pol : pol;
+    newPol = child == 0 ? !pol : pol;
   }
   else if (n.getKind() == Kind::NOT)
   {

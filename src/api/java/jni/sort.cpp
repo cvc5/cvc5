@@ -1008,9 +1008,8 @@ JNIEXPORT jint JNICALL Java_io_github_cvc5_Sort_getBitVectorSize(JNIEnv* env,
  * Method:    getFiniteFieldSize
  * Signature: (J)I
  */
-JNIEXPORT jstring JNICALL Java_io_github_cvc5_Sort_getFiniteFieldSize(JNIEnv* env,
-                                                                      jobject,
-                                                                      jlong pointer)
+JNIEXPORT jstring JNICALL
+Java_io_github_cvc5_Sort_getFiniteFieldSize(JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Sort* current = reinterpret_cast<Sort*>(pointer);

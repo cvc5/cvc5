@@ -424,9 +424,9 @@ std::tuple<InferInfo, Node, Node> InferenceGenerator::mapDown(Node n, Node e)
   Node f_uf_i = d_nm->mkNode(Kind::APPLY_UF, f, uf_i);
   Node uf_iPlusOne = d_nm->mkNode(Kind::APPLY_UF, uf, iPlusOne);
   Node uf_iMinusOne = d_nm->mkNode(Kind::APPLY_UF, uf, iMinusOne);
-  Node interval_i = d_nm->mkNode(Kind::AND,
-                                 d_nm->mkNode(Kind::GEQ, i, d_one),
-                                 d_nm->mkNode(Kind::LEQ, i, size));
+  Node interval_i = d_nm->mkNode(
+      Kind::AND,
+      {d_nm->mkNode(Kind::GEQ, i, d_one), d_nm->mkNode(Kind::LEQ, i, size)});
   Node sum_i = d_nm->mkNode(Kind::APPLY_UF, sum, i);
   Node sum_iPlusOne = d_nm->mkNode(Kind::APPLY_UF, sum, iPlusOne);
   Node sum_iMinusOne = d_nm->mkNode(Kind::APPLY_UF, sum, iMinusOne);
@@ -440,9 +440,9 @@ std::tuple<InferInfo, Node, Node> InferenceGenerator::mapDown(Node n, Node e)
   Node geqOne = d_nm->mkNode(Kind::GEQ, count_uf_i, d_one);
 
   // i < j <= size
-  Node interval_j = d_nm->mkNode(Kind::AND,
-                                 d_nm->mkNode(Kind::LT, i, j),
-                                 d_nm->mkNode(Kind::LEQ, j, size));
+  Node interval_j = d_nm->mkNode(
+      Kind::AND,
+      {d_nm->mkNode(Kind::LT, i, j), d_nm->mkNode(Kind::LEQ, j, size)});
   // uf(i) != uf(j)
   Node uf_i_equals_uf_j = d_nm->mkNode(Kind::EQUAL, uf_i, uf_j);
   Node notEqual = d_nm->mkNode(Kind::EQUAL, uf_i, uf_j).negate();
@@ -537,9 +537,9 @@ InferInfo InferenceGenerator::mapUp2(Node n, Node uf, Node size, Node y, Node x)
 
   Node k =
       d_sm->mkSkolemFunction(SkolemId::BAGS_MAP_INDEX, {n, uf, size, y, x});
-  Node inRange = d_nm->mkNode(Kind::AND,
-                              d_nm->mkNode(Kind::GEQ, k, d_one),
-                              d_nm->mkNode(Kind::LEQ, k, size));
+  Node inRange = d_nm->mkNode(
+      Kind::AND,
+      {d_nm->mkNode(Kind::GEQ, k, d_one), d_nm->mkNode(Kind::LEQ, k, size)});
   Node equal =
       d_nm->mkNode(Kind::EQUAL, d_nm->mkNode(Kind::APPLY_UF, uf, k), x);
   Node andNode = d_nm->mkNode(Kind::AND, inRange, equal);

@@ -22,8 +22,8 @@ using namespace cvc5::internal::kind;
 namespace cvc5::internal {
 
 ProofCheckerStatistics::ProofCheckerStatistics(StatisticsRegistry& sr)
-    : d_ruleChecks(
-        sr.registerHistogram<ProofRule>("ProofCheckerStatistics::ruleChecks")),
+    : d_ruleChecks(sr.registerHistogram<ProofRule>(
+          "ProofCheckerStatistics::ruleChecks")),
       d_totalRuleChecks(
           sr.registerInt("ProofCheckerStatistics::totalRuleChecks"))
 {

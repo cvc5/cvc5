@@ -482,10 +482,13 @@ std::vector<NodeValue*> NodeManager::TopologicalSort(
       {
         stack.back().first = true;
         visited.insert(current);
-        for (unsigned i = 0; i < current->getNumChildren(); ++i)
+        // Match NodeValue::decrRefCounts(): it decrements all raw children,
+        // including the operator of PARAMETERIZED nodes.
+        for (expr::NodeValue::nv_iterator i = current->nv_begin();
+             i != current->nv_end();
+             ++i)
         {
-          expr::NodeValue* child = current->getChild(i);
-          stack.push_back(std::make_pair(false, child));
+          stack.push_back(std::make_pair(false, *i));
         }
       }
       else
@@ -1435,24 +1438,6 @@ Kind NodeManager::getKindForFunction(TNode fun)
     return Kind::APPLY_UPDATER;
   }
   return Kind::UNDEFINED_KIND;
-}
-
-Node NodeManager::mkNode(Kind kind, std::initializer_list<TNode> children)
-{
-  NodeBuilder nb(this, kind);
-  nb.append(children.begin(), children.end());
-  return nb.constructNode();
-}
-
-Node NodeManager::mkNode(TNode opNode, std::initializer_list<TNode> children)
-{
-  NodeBuilder nb(this, operatorToKind(opNode));
-  if (opNode.getKind() != Kind::BUILTIN)
-  {
-    nb << opNode;
-  }
-  nb.append(children.begin(), children.end());
-  return nb.constructNode();
 }
 
 Node NodeManager::mkConstReal(const Rational& r)

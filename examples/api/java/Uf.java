@@ -13,7 +13,7 @@
 import io.github.cvc5.*;
 import java.util.Iterator;
 
-public class Uf 
+public class Uf
 {
   public static void main(String[] args) throws CVC5ApiException
   {
@@ -52,7 +52,7 @@ public class Uf
 
       System.out.println("Call checkSat to show that the assertions are satisfiable. \n"
           + "cvc5: " + slv.checkSat() + ".\n");
-    
+
       Context.deletePointers();
     }
   }

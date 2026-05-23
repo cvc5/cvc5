@@ -11,7 +11,6 @@
  */
 
 #include "test.h"
-
 #include "util/didyoumean.h"
 
 namespace cvc5::internal::test {
@@ -46,27 +45,27 @@ TEST_F(TestUtilDidYouMean, getMatch)
 
 TEST_F(TestUtilDidYouMean, getMatchAsString)
 {
-    DidYouMean dym;
-    dym.addWords({"abfish", "cdfish", "whale"});
-    {
-      std::string expected = "";
-      EXPECT_EQ(dym.getMatchAsString("elephant"), expected);
-    }
-    {
-      std::string expected = R"FOOBAR(
+  DidYouMean dym;
+  dym.addWords({"abfish", "cdfish", "whale"});
+  {
+    std::string expected = "";
+    EXPECT_EQ(dym.getMatchAsString("elephant"), expected);
+  }
+  {
+    std::string expected = R"FOOBAR(
 
 Did you mean this?
         whale)FOOBAR";
-      EXPECT_EQ(dym.getMatchAsString("wahl"), expected);
-    }
-    {
-      std::string expected = R"FOOBAR(
+    EXPECT_EQ(dym.getMatchAsString("wahl"), expected);
+  }
+  {
+    std::string expected = R"FOOBAR(
 
 Did you mean any of these?
         abfish
         cdfish)FOOBAR";
-      EXPECT_EQ(dym.getMatchAsString("fish"), expected);
-    }
+    EXPECT_EQ(dym.getMatchAsString("fish"), expected);
+  }
 }
 
 }  // namespace cvc5::internal::test

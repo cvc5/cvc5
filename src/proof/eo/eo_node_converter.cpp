@@ -45,9 +45,7 @@ using namespace cvc5::internal::kind;
 namespace cvc5::internal {
 namespace proof {
 
-BaseEoNodeConverter::BaseEoNodeConverter(NodeManager* nm) : NodeConverter(nm)
-{
-}
+BaseEoNodeConverter::BaseEoNodeConverter(NodeManager* nm) : NodeConverter(nm) {}
 
 EoNodeConverter::EoNodeConverter(NodeManager* nm) : BaseEoNodeConverter(nm)
 {
@@ -417,7 +415,6 @@ size_t EoNodeConverter::getNumChildrenToProcessForClosure(Kind k) const
   return k == Kind::SET_COMPREHENSION ? 3 : 2;
 }
 
-
 Node EoNodeConverter::mkList(const std::vector<Node>& args)
 {
   Assert(!args.empty());
@@ -427,8 +424,8 @@ Node EoNodeConverter::mkList(const std::vector<Node>& args)
 }
 
 Node EoNodeConverter::mkInternalSymbol(const std::string& name,
-                                        TypeNode tn,
-                                        bool useRawSym)
+                                       TypeNode tn,
+                                       bool useRawSym)
 {
   // use raw symbol so that it is never quoted
   Node sym = useRawSym ? NodeManager::mkRawSymbol(name, tn)
@@ -438,9 +435,9 @@ Node EoNodeConverter::mkInternalSymbol(const std::string& name,
 }
 
 Node EoNodeConverter::mkInternalApp(const std::string& name,
-                                     const std::vector<Node>& args,
-                                     TypeNode ret,
-                                     bool useRawSym)
+                                    const std::vector<Node>& args,
+                                    TypeNode ret,
+                                    bool useRawSym)
 {
   if (!args.empty())
   {
@@ -650,7 +647,7 @@ bool EoNodeConverter::isAmbiguousDtConstructor(const Node& op)
   bool ret = false;
   TypeNode tn = op.getType();
   Trace("eo-amb-dt") << "Ambiguous datatype constructor? " << op << " " << tn
-                      << std::endl;
+                     << std::endl;
   size_t nchild = tn.getNumChildren();
   Assert(nchild > 0);
   std::unordered_set<TypeNode> atypes;
@@ -665,7 +662,7 @@ bool EoNodeConverter::isAmbiguousDtConstructor(const Node& op)
     if (atypes.find(p) == atypes.end())
     {
       Trace("eo-amb-dt") << "...yes since " << p << " not contained"
-                          << std::endl;
+                         << std::endl;
       ret = true;
       break;
     }

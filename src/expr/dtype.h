@@ -284,8 +284,8 @@ class DType
    * @param fmfEnabled Whether finite model finding is enabled
    * @return true if finite model finding is enabled
    */
-  bool isFinite(TypeNode t, bool fmfEnabled=false) const;
-  bool isFinite(bool fmfEnabled=false) const;
+  bool isFinite(TypeNode t, bool fmfEnabled = false) const;
+  bool isFinite(bool fmfEnabled = false) const;
 
   /** is well-founded
    *

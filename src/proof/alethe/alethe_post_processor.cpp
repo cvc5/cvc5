@@ -120,25 +120,23 @@ bool AletheProofPostprocessCallback::updateTheoryRewriteProofRewriteRule(
     {
       Node eq = res[0];
       Node t1 = eq[0];
+      // Use sexp to ensure deterministic node ID assignments
+      Node sexp = nm->mkNode(Kind::SEXPR, d_cl, res);
       if (di == ProofRewriteRule::DISTINCT_ELIM && t1.getType().isBoolean()
           && eq.getNumChildren() == 2)
       {
         return addAletheStep(
             AletheRule::RARE_REWRITE,
             res,
-            nm->mkNode(Kind::SEXPR, d_cl, res),
+            sexp,
             {},
             {nm->mkRawSymbol("\"distinct-binary-elim\"", nm->sExprType()),
              t1,
              eq[1]},
             *cdp);
       }
-      return addAletheStep(AletheRule::DISTINCT_ELIM,
-                           res,
-                           nm->mkNode(Kind::SEXPR, d_cl, res),
-                           children,
-                           new_args,
-                           *cdp);
+      return addAletheStep(
+          AletheRule::DISTINCT_ELIM, res, sexp, children, new_args, *cdp);
     }
     // ======== DISTINCT_TRUE
     case ProofRewriteRule::DISTINCT_TRUE:
@@ -490,9 +488,11 @@ bool AletheProofPostprocessCallback::updateTheoryRewriteProofRewriteRule(
                     {},
                     *cdp);
       // build onepoint step
+      // Use sexp to ensure deterministic node ID assignments
+      Node sexp = nm->mkNode(Kind::SEXPR, d_cl, res);
       return addAletheStep(AletheRule::ANCHOR_ONEPOINT,
                            res,
-                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           sexp,
                            {transConc},
                            {x.eqNode(t)},
                            *cdp);
@@ -822,8 +822,8 @@ bool AletheProofPostprocessCallback::update(Node res,
         success &=
             addAletheStep(AletheRule::IMPLIES_SIMPLIFY, vp9, vp9, {}, {}, *cdp);
 
-        Node vp10 =
-            nm->mkNode(Kind::SEXPR, d_cl, vp8[1].notNode(), andNode.notNode());
+        Node vp10 = nm->mkNode(Kind::SEXPR,
+                               {d_cl, vp8[1].notNode(), andNode.notNode()});
         success &=
             addAletheStep(AletheRule::EQUIV1, vp10, vp10, {vp9}, {}, *cdp);
 
@@ -873,17 +873,20 @@ bool AletheProofPostprocessCallback::update(Node res,
       }
       if (!success || k != tf.getKind() || (k != Kind::OR && k != Kind::AND))
       {
+        // Use sexp to ensure deterministic node ID assignments
+        Node sexp = nm->mkNode(Kind::SEXPR, d_cl, res);
         return addAletheStep(
             AletheRule::HOLE,
             res,
-            nm->mkNode(Kind::SEXPR, d_cl, res),
+            sexp,
             {},
             {nm->mkRawSymbol("\"failed absorb\"", nm->sExprType())},
             *cdp);
       }
       Node vp1 = nm->mkNode(Kind::EQUAL, t, tf);
       Node vp2 = nm->mkNode(Kind::EQUAL, tf, res[1]);
-      // if the kind was not one of these, the simplification above would have failed
+      // if the kind was not one of these, the simplification above would have
+      // failed
       Assert(k == Kind::OR || k == Kind::AND) << "Kind is " << k;
       AletheRule rule =
           k == Kind::OR ? AletheRule::OR_SIMPLIFY : AletheRule::AND_SIMPLIFY;
@@ -1010,8 +1013,6 @@ bool AletheProofPostprocessCallback::update(Node res,
                            {},
                            *cdp);
     }
-    // If the trusted rule is a theory lemma from arithmetic, we try to phrase
-    // it with "lia_generic".
     case ProofRule::TRUST:
     {
       // check for case where the trust step is introducing an equality between
@@ -1031,36 +1032,6 @@ bool AletheProofPostprocessCallback::update(Node res,
       }
       TrustId tid;
       bool hasTrustId = getTrustId(args[0], tid);
-      if (hasTrustId && tid == TrustId::THEORY_LEMMA)
-      {
-        // if we are in the arithmetic case, we rather add a LIA_GENERIC step
-        if (res.getKind() == Kind::NOT && res[0].getKind() == Kind::AND)
-        {
-          Trace("alethe-proof") << "... test each arg if ineq\n";
-          bool allIneqs = true;
-          for (const Node& arg : res[0])
-          {
-            Node toTest = arg.getKind() == Kind::NOT ? arg[0] : arg;
-            Kind k = toTest.getKind();
-            if (k != Kind::LT && k != Kind::LEQ && k != Kind::GT
-                && k != Kind::GEQ && k != Kind::EQUAL)
-            {
-              Trace("alethe-proof") << "... arg " << arg << " not ineq\n";
-              allIneqs = false;
-              break;
-            }
-          }
-          if (allIneqs)
-          {
-            return addAletheStep(AletheRule::LIA_GENERIC,
-                                 res,
-                                 nm->mkNode(Kind::SEXPR, d_cl, res),
-                                 children,
-                                 {},
-                                 *cdp);
-          }
-        }
-      }
       std::stringstream ss;
       if (hasTrustId)
       {
@@ -1079,12 +1050,27 @@ bool AletheProofPostprocessCallback::update(Node res,
       std::vector<Node> newArgs{
           NodeManager::mkRawSymbol(ss.str(), nm->sExprType())};
       newArgs.insert(newArgs.end(), args.begin() + 1, args.end());
-      return addAletheStep(AletheRule::HOLE,
+      return addAletheStep(options().proof.proofAletheTesting
+                               ? AletheRule::UNDEFINED
+                               : AletheRule::HOLE,
                            res,
                            nm->mkNode(Kind::SEXPR, d_cl, res),
                            children,
                            newArgs,
                            *cdp);
+    }
+    case ProofRule::TRUST_THEORY_REWRITE:
+    {
+      // Use sexp to ensure deterministic node ID assignments
+      Node sexp = nm->mkNode(Kind::SEXPR, d_cl, res);
+      return addAletheStep(
+          options().proof.proofAletheTesting ? AletheRule::UNDEFINED
+                                             : AletheRule::HOLE,
+          res,
+          sexp,
+          children,
+          {nm->mkRawSymbol("\"untranslated rewrite\"", nm->sExprType())},
+          *cdp);
     }
     // ======== Resolution and N-ary Resolution
     // Because the RESOLUTION rule is merely a special case of CHAIN_RESOLUTION,
@@ -1232,9 +1218,9 @@ bool AletheProofPostprocessCallback::update(Node res,
       Node vp1 = nm->mkNode(
           Kind::SEXPR, d_cl, args[0].notNode().notNode().notNode(), args[0]);
       Node vp2 = nm->mkNode(Kind::SEXPR,
-                            d_cl,
-                            args[0].notNode().notNode().notNode().notNode(),
-                            args[0].notNode());
+                            {d_cl,
+                             args[0].notNode().notNode().notNode().notNode(),
+                             args[0].notNode()});
       return addAletheStep(AletheRule::NOT_NOT, vp2, vp2, {}, {}, *cdp)
              && addAletheStep(AletheRule::NOT_NOT, vp1, vp1, {}, {}, *cdp)
              && addAletheStepFromOr(
@@ -1887,9 +1873,11 @@ bool AletheProofPostprocessCallback::update(Node res,
       Node vp1 = nm->mkNode(Kind::EQUAL, res, d_true);
       Node vp2 = nm->mkNode(Kind::OR, res, d_true.notNode());
       Node args_0 = args[0];
+      // Use vp1_sexp to ensure deterministic node ID assignments
+      Node vp1_sexp = nm->mkNode(Kind::SEXPR, d_cl, vp1);
       return addAletheStep(AletheRule::RARE_REWRITE,
                            vp1,
-                           nm->mkNode(Kind::SEXPR, d_cl, vp1),
+                           vp1_sexp,
                            {},
                            {nm->mkRawSymbol("\"ite-eq\"", nm->sExprType()),
                             args_0[0],
@@ -2498,7 +2486,8 @@ bool AletheProofPostprocessCallback::update(Node res,
           Node laDiseqOr = nm->mkNode(
               Kind::SEXPR,
               d_cl,
-              nm->mkNode(Kind::OR, res, leq.notNode(), leqInverted.notNode()));
+              nm->mkNode(Kind::OR,
+                         {res, leq.notNode(), leqInverted.notNode()}));
           Node laDiseqCl = nm->mkNode(
               Kind::SEXPR, {d_cl, res, leq.notNode(), leqInverted.notNode()});
           success &=
@@ -2692,8 +2681,8 @@ bool AletheProofPostprocessCallback::update(Node res,
           Node laDiseqOr = nm->mkNode(
               Kind::SEXPR,
               d_cl,
-              nm->mkNode(
-                  Kind::OR, notEq[0], leq.notNode(), leqInverted.notNode()));
+              nm->mkNode(Kind::OR,
+                         {notEq[0], leq.notNode(), leqInverted.notNode()}));
           Node laDiseqCl = nm->mkNode(
               Kind::SEXPR,
               {d_cl, notEq[0], leq.notNode(), leqInverted.notNode()});
@@ -2750,10 +2739,12 @@ bool AletheProofPostprocessCallback::update(Node res,
                                         : std::vector<Node>(),
                             *cdp);
           // Now we build the final resolution
+          // Use sexp to ensure deterministic node ID assignments
+          Node sexp = nm->mkNode(Kind::SEXPR, d_cl, res);
           success &=
               addAletheStep(AletheRule::RESOLUTION,
                             res,
-                            nm->mkNode(Kind::SEXPR, d_cl, res),
+                            sexp,
                             {notEq, laDiseqCl, resPi1Conc, resPi2Conc},
                             d_resPivots ? std::vector<Node>{notEq[0],
                                                             d_false,
@@ -2812,8 +2803,8 @@ bool AletheProofPostprocessCallback::update(Node res,
           Node laDiseqOr = nm->mkNode(
               Kind::SEXPR,
               d_cl,
-              nm->mkNode(
-                  Kind::OR, notEq[0], leq.notNode(), leqInverted.notNode()));
+              nm->mkNode(Kind::OR,
+                         {notEq[0], leq.notNode(), leqInverted.notNode()}));
           Node laDiseqCl = nm->mkNode(
               Kind::SEXPR,
               {d_cl, notEq[0], leq.notNode(), leqInverted.notNode()});
@@ -2838,10 +2829,12 @@ bool AletheProofPostprocessCallback::update(Node res,
               AletheRule::EQUIV_POS1, equivPos1Cl, equivPos1Cl, {}, {}, *cdp);
           // We do a single resolution step , inlining the one finishing PI_3
           // above, to build the final resolution
+          // Use sexp to ensure deterministic node ID assignments
+          Node sexp = nm->mkNode(Kind::SEXPR, d_cl, res);
           success &= addAletheStep(
               AletheRule::RESOLUTION,
               res,
-              nm->mkNode(Kind::SEXPR, d_cl, res),
+              sexp,
               {laDiseqCl, notEq, leq, equivPos1Cl, compSimpCl},
               d_resPivots ? std::vector<Node>{notEq[0],
                                               d_true,
@@ -2861,6 +2854,41 @@ bool AletheProofPostprocessCallback::update(Node res,
         }
       }
       return success;
+    }
+    // incremental linearization rules for multiplication
+    case ProofRule::ARITH_MULT_SIGN:
+    {
+      return addAletheStep(AletheRule::LA_MULT_SIGN,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           {},
+                           {},
+                           *cdp);
+    }
+    case ProofRule::ARITH_MULT_ABS_COMPARISON:
+    {
+      return addAletheStep(AletheRule::LA_MULT_ABS_COMPARISON,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           {},
+                           {},
+                           *cdp);
+    }
+    case ProofRule::ARITH_MULT_TANGENT:
+    {
+      // upper
+      Node ruleStr = nm->mkRawSymbol(args.back().getConst<bool>()
+                                         ? "\"mult-tangent-upper\""
+                                         : "\"mult-tangent-lower\"",
+                                     nm->sExprType());
+      std::vector<Node> ruleArgs{ruleStr};
+      ruleArgs.insert(ruleArgs.end(), args.begin(), args.end() - 1);
+      return addAletheStep(AletheRule::RARE_REWRITE,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           {},
+                           ruleArgs,
+                           *cdp);
     }
     // arrays_idx
     case ProofRule::ARRAYS_READ_OVER_WRITE_1:
@@ -2968,9 +2996,11 @@ bool AletheProofPostprocessCallback::update(Node res,
           //
           // (define-rule mod-elim ((a Int) (b Int))
           //  (mod a b) (- a (* b (div a b))))
+          // Use opEqSexp to ensure deterministic node ID assignments
+          Node opEqSexp = nm->mkNode(Kind::SEXPR, d_cl, opEq);
           addAletheStep(AletheRule::RARE_REWRITE,
                         opEq,
-                        nm->mkNode(Kind::SEXPR, d_cl, opEq),
+                        opEqSexp,
                         {},
                         {nm->mkRawSymbol("\"mod-elim\"", nm->sExprType()),
                          opEq[0][0],
@@ -3007,10 +3037,12 @@ bool AletheProofPostprocessCallback::update(Node res,
           //
           // (define-rule is_int-elim ((x Real))
           //   (is_int x) (= x (to_real (to_int x))))
+          // Use opEqSexp to ensure deterministic node ID assignments
+          Node opEqSexp = nm->mkNode(Kind::SEXPR, d_cl, opEq);
           addAletheStep(
               AletheRule::RARE_REWRITE,
               opEq,
-              nm->mkNode(Kind::SEXPR, d_cl, opEq),
+              opEqSexp,
               {},
               {nm->mkRawSymbol("\"is_int-elim\"", nm->sExprType()), opEq[0][0]},
               *cdp);
@@ -3061,10 +3093,11 @@ bool AletheProofPostprocessCallback::update(Node res,
           // (define-rule abs-elim-real ((t Real))
           //    (abs t) (ite (< t 0/1) (- t) t))
           Node absArg = args[0][0];
-          Node ruleStr = nm->mkRawSymbol(absArg.getType().isInteger()
-                                             ? "\"abs-elim-int\""
-                                             : "\"abs-elim-real\"",
-                                         nm->sExprType());
+          // Use absArgType to ensure deterministic node ID assignments
+          TypeNode absArgType = absArg.getType();
+          Node ruleStr = nm->mkRawSymbol(
+              absArgType.isInteger() ? "\"abs-elim-int\"" : "\"abs-elim-real\"",
+              nm->sExprType());
           return addAletheStep(AletheRule::RARE_REWRITE,
                                res,
                                nm->mkNode(Kind::SEXPR, d_cl, res),
@@ -3074,10 +3107,12 @@ bool AletheProofPostprocessCallback::update(Node res,
         }
         default:
         {
+          // Use sexp to ensure deterministic node ID assignments
+          Node sexp = nm->mkNode(Kind::SEXPR, d_cl, res);
           return addAletheStep(
               AletheRule::HOLE,
               res,
-              nm->mkNode(Kind::SEXPR, d_cl, res),
+              sexp,
               {},
               {nm->mkRawSymbol("\"unsupported operator in ARITH_REDUCTION\"",
                                nm->sExprType())},
@@ -3354,10 +3389,12 @@ bool AletheProofPostprocessCallback::updatePost(
         pivIdx = 2 * (i - 1) + 3;
         if (children[i].getKind() == Kind::OR
             && (args[polIdx] != d_false
-                || d_anc.convert(args[pivIdx]) != d_anc.convert(children[i])))
+                || !CVC5_EQUAL(d_anc.convert(args[pivIdx]),
+                               d_anc.convert(children[i]))))
         {
           if (args[polIdx] == d_false
-              && d_anc.convert(args[pivIdx]) == d_anc.convert(children[i]))
+              && CVC5_EQUAL(d_anc.convert(args[pivIdx]),
+                            d_anc.convert(children[i])))
           {
             continue;
           }
@@ -3401,7 +3438,8 @@ bool AletheProofPostprocessCallback::updatePost(
         else if (children[i].getKind() == Kind::OR)
         {
           Assert(args[polIdx] == d_false
-                 && d_anc.convert(args[pivIdx]) == d_anc.convert(children[i]));
+                 && CVC5_EQUAL(d_anc.convert(args[pivIdx]),
+                               d_anc.convert(children[i])));
           if (maybeReplacePremiseProof(children[i], cdp))
           {
             hasUpdated = true;

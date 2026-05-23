@@ -1195,6 +1195,8 @@ libcvc5_add_sources(
   theory/strings/infer_proof_cons.h
   theory/strings/inference_manager.cpp
   theory/strings/inference_manager.h
+  theory/strings/macro_rewrite_elaborator.cpp
+  theory/strings/macro_rewrite_elaborator.h
   theory/strings/model_cons.h
   theory/strings/model_cons_default.cpp
   theory/strings/model_cons_default.h
@@ -1393,7 +1395,7 @@ if (BUILD_DOCS)
   list(
     APPEND
       options_gen_doc_files
-      "${CMAKE_BINARY_DIR}/docs/options_generated.rst"
+      "${PROJECT_BINARY_DIR}/docs/options_generated.rst"
   )
 endif()
 
@@ -1416,7 +1418,7 @@ add_custom_command(
     ${Python_EXECUTABLE}
     ${CMAKE_CURRENT_LIST_DIR}/options/mkoptions.py
     ${CMAKE_CURRENT_LIST_DIR}
-    ${CMAKE_BINARY_DIR}
+    ${PROJECT_BINARY_DIR}
     ${CMAKE_CURRENT_BINARY_DIR}
     ${abs_toml_files}
   BYPRODUCTS
@@ -1514,7 +1516,8 @@ set_target_properties(cvc5 PROPERTIES OUTPUT_NAME cvc5)
 # Link the shared library
 target_include_directories(cvc5
   PUBLIC
-    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include:${CMAKE_BINARY_DIR}/include>
+    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+    $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>
     $<INSTALL_INTERFACE:include>
 )
 # On Windows, CMake's default install action places
@@ -1534,10 +1537,10 @@ endif()
 include(GenerateExportHeader)
 generate_export_header(cvc5-obj
   BASE_NAME cvc5
-  EXPORT_FILE_NAME ${CMAKE_BINARY_DIR}/include/cvc5/cvc5_export.h
+  EXPORT_FILE_NAME ${PROJECT_BINARY_DIR}/include/cvc5/cvc5_export.h
 )
 install(FILES
-  ${CMAKE_BINARY_DIR}/include/cvc5/cvc5_export.h
+  ${PROJECT_BINARY_DIR}/include/cvc5/cvc5_export.h
   DESTINATION
     ${CMAKE_INSTALL_INCLUDEDIR}/cvc5/
 )
@@ -1606,6 +1609,12 @@ if(BUILD_SHARED_LIBS)
   target_link_libraries(cvc5 PRIVATE $<BUILD_INTERFACE:GMP> $<INSTALL_INTERFACE:gmp>)
 else()
   target_link_libraries(cvc5 PUBLIC $<BUILD_INTERFACE:GMP> $<INSTALL_INTERFACE:gmp>)
+endif()
+
+if(CVC5_USE_MPFR)
+  add_dependencies(cvc5-obj MPFR)
+  target_include_directories(cvc5-obj PRIVATE ${MPFR_INCLUDE_DIR})
+  target_link_libraries(cvc5 PRIVATE $<BUILD_INTERFACE:MPFR> $<INSTALL_INTERFACE:mpfr>)
 endif()
 
 #-----------------------------------------------------------------------------#

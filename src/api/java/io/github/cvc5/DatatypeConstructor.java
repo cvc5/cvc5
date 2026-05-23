@@ -197,8 +197,8 @@ public class DatatypeConstructor extends AbstractPointer implements Iterable<Dat
 
   /**
    * Provide a string representation of the native datatype constructor.
-   * 
-   * @param pointer The native memory address pointing to the datatype constructor. 
+   *
+   * @param pointer The native memory address pointing to the datatype constructor.
    * @return A string representation of this datatype constructor.
    */
   protected native String toString(long pointer);

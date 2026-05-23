@@ -29,7 +29,8 @@ namespace quantifiers {
 class InstStrategyUserPatterns;
 class InstStrategyAutoGenTriggers;
 
-class InstantiationEngine : public QuantifiersModule {
+class InstantiationEngine : public QuantifiersModule
+{
  public:
   InstantiationEngine(Env& env,
                       QuantifiersState& qs,
@@ -49,6 +50,7 @@ class InstantiationEngine : public QuantifiersModule {
   void addUserNoPattern(Node q, Node pat);
   /** Identify this module */
   std::string identify() const override;
+
  private:
   /** do instantiation round */
   void doInstantiationRound(Theory::Effort effort);

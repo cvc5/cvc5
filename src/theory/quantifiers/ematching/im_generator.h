@@ -118,8 +118,8 @@ class IMGenerator : protected EnvObj
 }; /* class IMGenerator */
 
 }  // namespace inst
-}
-}
+}  // namespace quantifiers
+}  // namespace theory
 }  // namespace cvc5::internal
 
 #endif

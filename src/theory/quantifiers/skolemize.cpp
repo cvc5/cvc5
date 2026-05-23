@@ -57,7 +57,7 @@ TrustNode Skolemize::process(Node q)
   if (isProofEnabled() && !options().quantifiers.dtStcInduction
       && !options().quantifiers.intWfInduction)
   {
-    ProofNodeManager * pnm = d_env.getProofNodeManager();
+    ProofNodeManager* pnm = d_env.getProofNodeManager();
     // if using proofs and not using induction, we use the justified
     // skolemization
     NodeManager* nm = d_env.getNodeManager();
@@ -141,8 +141,8 @@ void Skolemize::getSelfSel(const DType& dt,
   {
     if (dt.isParametric())
     {
-      Trace("sk-ind-debug") << "Compare " << tspec[j] << " " << ntn
-                            << std::endl;
+      Trace("sk-ind-debug")
+          << "Compare " << tspec[j] << " " << ntn << std::endl;
       if (tspec[j] != ntn)
       {
         continue;
@@ -186,7 +186,7 @@ Node Skolemize::mkSkolemizedBodyInduction(const Options& opts,
                                           Node& sub,
                                           std::vector<unsigned>& sub_vars)
 {
-  Assert (f.getKind()==Kind::FORALL);
+  Assert(f.getKind() == Kind::FORALL);
   NodeManager* nm = f.getNodeManager();
   // compute the argument types from the free variables
   std::vector<TypeNode> argTypes;
@@ -327,8 +327,8 @@ Node Skolemize::mkSkolemizedBodyInduction(const Options& opts,
     }
     ret = nm->mkNode(Kind::OR, nret, n_str_ind);
   }
-  Trace("quantifiers-sk-debug") << "mkSkolem body for " << f
-                                << " returns : " << ret << std::endl;
+  Trace("quantifiers-sk-debug")
+      << "mkSkolem body for " << f << " returns : " << ret << std::endl;
   // if it has an instantiation level, set the skolemized body to that level
   uint64_t level;
   if (QuantAttributes::getInstantiationLevel(f, level))
@@ -396,7 +396,7 @@ bool Skolemize::isInductionTerm(const Options& opts, Node n)
 }
 
 void Skolemize::getSkolemTermVectors(
-    std::map<Node, std::vector<Node> >& sks) const
+    std::map<Node, std::vector<Node>>& sks) const
 {
   std::unordered_map<Node, std::vector<Node>>::const_iterator itk;
   for (const auto& p : d_skolemized)

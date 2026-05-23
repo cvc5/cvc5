@@ -60,41 +60,43 @@ namespace cvc5::internal {
 namespace theory {
 namespace arith::linear {
 
-class AttemptSolutionSDP : public SimplexDecisionProcedure {
-public:
- AttemptSolutionSDP(Env& env,
-                    LinearEqualityModule& linEq,
-                    ErrorSet& errors,
-                    RaiseConflict conflictChannel,
-                    TempVarMalloc tvmalloc);
+class AttemptSolutionSDP : public SimplexDecisionProcedure
+{
+ public:
+  AttemptSolutionSDP(Env& env,
+                     LinearEqualityModule& linEq,
+                     ErrorSet& errors,
+                     RaiseConflict conflictChannel,
+                     TempVarMalloc tvmalloc);
 
- Result::Status attempt(const ApproximateSimplex::Solution& sol);
+  Result::Status attempt(const ApproximateSimplex::Solution& sol);
 
- Result::Status findModel(CVC5_UNUSED bool exactResult) override
- {
-   Unreachable();
- }
+  Result::Status findModel(CVC5_UNUSED bool exactResult) override
+  {
+    Unreachable();
+  }
 
-private:
- bool matchesNewValue(const DenseMap<DeltaRational>& nv, ArithVar v) const;
+ private:
+  bool matchesNewValue(const DenseMap<DeltaRational>& nv, ArithVar v) const;
 
- bool processSignals()
- {
-   TimerStat& timer = d_statistics.d_queueTime;
-   IntStat& conflictStat = d_statistics.d_conflicts;
-   return standardProcessSignals(timer, conflictStat);
+  bool processSignals()
+  {
+    TimerStat& timer = d_statistics.d_queueTime;
+    IntStat& conflictStat = d_statistics.d_conflicts;
+    return standardProcessSignals(timer, conflictStat);
   }
   /** These fields are designed to be accessible to TheoryArith methods. */
-  class Statistics {
-  public:
+  class Statistics
+  {
+   public:
     TimerStat d_searchTime;
     TimerStat d_queueTime;
     IntStat d_conflicts;
 
     Statistics(StatisticsRegistry& sr);
   } d_statistics;
-};/* class AttemptSolutionSDP */
+}; /* class AttemptSolutionSDP */
 
-}  // namespace arith
+}  // namespace arith::linear
 }  // namespace theory
 }  // namespace cvc5::internal

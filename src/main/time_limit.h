@@ -26,7 +26,7 @@ namespace cvc5::main {
  */
 struct TimeLimit
 {
-    ~TimeLimit();
+  ~TimeLimit();
 };
 
 /**

@@ -413,7 +413,6 @@ void PseudoBooleanProcessor::clear()
   d_neg.clear();
 }
 
-
 }  // namespace passes
 }  // namespace preprocessing
 }  // namespace cvc5::internal

@@ -32,23 +32,25 @@ namespace sets {
 class TheorySetsPrivate;
 
 /**
- * A prefix tree for tuples and their elements' representatives. 
+ * A prefix tree for tuples and their elements' representatives.
  * Suppose we have a tuple representative t = <e1, ..., en>,
- * then the tuple tree would be 
+ * then the tuple tree would be
  * e1 -> e2 -> ... -> e_n -> t
-*/
-class TupleTrie {
-public:
+ */
+class TupleTrie
+{
+ public:
   /** the data */
-  std::map< Node, TupleTrie > d_data;
-public:
-  std::vector<Node> findTerms( std::vector< Node >& reps, int argIndex = 0 );
-  std::vector<Node> findSuccessors( std::vector< Node >& reps, int argIndex = 0 );
-  Node existsTerm( std::vector< Node >& reps, int argIndex = 0 );
-  bool addTerm( Node n, std::vector< Node >& reps, int argIndex = 0 );
-  void debugPrint( const char * c, Node n, unsigned depth = 0 );
+  std::map<Node, TupleTrie> d_data;
+
+ public:
+  std::vector<Node> findTerms(std::vector<Node>& reps, int argIndex = 0);
+  std::vector<Node> findSuccessors(std::vector<Node>& reps, int argIndex = 0);
+  Node existsTerm(std::vector<Node>& reps, int argIndex = 0);
+  bool addTerm(Node n, std::vector<Node>& reps, int argIndex = 0);
+  void debugPrint(const char* c, Node n, unsigned depth = 0);
   void clear() { d_data.clear(); }
-};/* class TupleTrie */
+}; /* class TupleTrie */
 
 /** The relations extension of the theory of sets
  *
@@ -89,8 +91,8 @@ class TheorySetsRels : protected EnvObj
 
  private:
   /** True and false constant nodes */
-  Node                          d_trueNode;
-  Node                          d_falseNode;
+  Node d_trueNode;
+  Node d_falseNode;
 
   /** Reference to the state object for the theory of sets */
   SolverState& d_state;
@@ -100,30 +102,32 @@ class TheorySetsRels : protected EnvObj
   SkolemCache& d_skCache;
   /** Reference to the term registry */
   TermRegistry& d_treg;
-  NodeSet                       d_shared_terms;
+  NodeSet d_shared_terms;
 
   std::unordered_set<Node> d_rel_nodes;
   /** a map from tuples to their elements' representatives*/
-  std::map< Node, std::vector<Node> >           d_tuple_reps;
+  std::map<Node, std::vector<Node> > d_tuple_reps;
   /** a map from relation terms to their member tuples*/
-  std::map< Node, TupleTrie >                   d_membership_trie;
+  std::map<Node, TupleTrie> d_membership_trie;
 
   /** Symbolic tuple variables that has been reduced to concrete ones */
   std::unordered_set<Node> d_symbolic_tuples;
 
   /** Mapping between relation and its member representatives */
-  std::map< Node, std::vector< Node > >           d_rReps_memberReps_cache;
+  std::map<Node, std::vector<Node> > d_rReps_memberReps_cache;
 
   /** Mapping between relation and its member representatives explanation */
-  std::map< Node, std::vector< Node > >           d_rReps_memberReps_exp_cache;
+  std::map<Node, std::vector<Node> > d_rReps_memberReps_exp_cache;
 
-  /** Mapping between a relation representative and its equivalent relations involving relational operators */
+  /** Mapping between a relation representative and its equivalent relations
+   * involving relational operators */
   std::map<Node, std::map<Kind, std::vector<Node> > > d_terms_cache;
 
-  /** Mapping between transitive closure relation TC(r) and its TC graph constructed based on the members of r*/
+  /** Mapping between transitive closure relation TC(r) and its TC graph
+   * constructed based on the members of r*/
   std::map<Node, std::map<Node, std::unordered_set<Node> > > d_rRep_tcGraph;
   std::map<Node, std::map<Node, std::unordered_set<Node> > > d_tcr_tcGraph;
-  std::map< Node, std::map< Node, Node > > d_tcr_tcGraph_exps;
+  std::map<Node, std::map<Node, Node> > d_tcr_tcGraph_exps;
 
  private:
   /** Send infer
@@ -150,10 +154,10 @@ class TheorySetsRels : protected EnvObj
   /** Methods used in full effort */
   void check();
   void collectRelsInfo();
-  void applyTransposeRule( std::vector<Node> tp_terms );
-  void applyTransposeRule( Node rel, Node rel_rep, Node exp );
-  void applyProductRule( Node rel, Node rel_rep, Node exp );
-  void applyJoinRule( Node rel, Node rel_rep, Node exp);
+  void applyTransposeRule(std::vector<Node> tp_terms);
+  void applyTransposeRule(Node rel, Node rel_rep, Node exp);
+  void applyProductRule(Node rel, Node rel_rep, Node exp);
+  void applyJoinRule(Node rel, Node rel_rep, Node exp);
   /**
    * @param n is a ((_ table.join m1 n1 ... mk nk) A B) where A, B are tables
    * @param nRep a representative of n
@@ -168,10 +172,10 @@ class TheorySetsRels : protected EnvObj
    *     (set.member (tuple b1 ... bn) B)))
    */
   void applyTableJoinRule(Node n, Node nRep, Node exp);
-  void applyJoinImageRule( Node mem_rep, Node rel_rep, Node exp);
-  void applyIdenRule( Node mem_rep, Node rel_rep, Node exp);
-  void applyTCRule( Node mem, Node rel, Node rel_rep, Node exp);
-  void buildTCGraphForRel( Node tc_rel );
+  void applyJoinImageRule(Node mem_rep, Node rel_rep, Node exp);
+  void applyIdenRule(Node mem_rep, Node rel_rep, Node exp);
+  void applyTCRule(Node mem, Node rel, Node rel_rep, Node exp);
+  void buildTCGraphForRel(Node tc_rel);
   void doTCInference();
   void doTCInference(std::map<Node, std::unordered_set<Node> > rel_tc_graph,
                      std::map<Node, Node> rel_tc_graph_exps,
@@ -184,7 +188,7 @@ class TheorySetsRels : protected EnvObj
                      Node cur_node_rep,
                      std::unordered_set<Node>& seen);
 
-  void composeMembersForRels( Node );
+  void composeMembersForRels(Node);
   /**
    * @param n is ((_ rel.join m1 n1 ... mk nk) A B) where A, B are relations
    * This functions looks for current members of A, B.
@@ -198,12 +202,12 @@ class TheorySetsRels : protected EnvObj
    *    (set.member (tuple a1 ... am b1 ... bn) n))
    */
   void applyTableJoinUp(Node);
-  void computeMembersForBinOpRel( Node );
-  void computeMembersForIdenTerm( Node );
-  void computeMembersForUnaryOpRel( Node );
-  void computeMembersForJoinImageTerm( Node );
+  void computeMembersForBinOpRel(Node);
+  void computeMembersForIdenTerm(Node);
+  void computeMembersForUnaryOpRel(Node);
+  void computeMembersForJoinImageTerm(Node);
 
-  bool isTCReachable( Node mem_rep, Node tc_rel );
+  bool isTCReachable(Node mem_rep, Node tc_rel);
   void isTCReachable(Node start,
                      Node dest,
                      std::unordered_set<Node>& hasSeen,
@@ -211,17 +215,20 @@ class TheorySetsRels : protected EnvObj
                      bool& isReachable);
 
   /** Helper functions */
-  bool hasTerm( Node a );
+  bool hasTerm(Node a);
   void makeSharedTerm(Node a);
-  void reduceTupleVar( Node );
-  bool hasMember( Node, Node );
-  void computeTupleReps( Node );
-  bool areEqual( Node a, Node b );
-  Node getRepresentative( Node t );
-  inline void addToMembershipDB( Node, Node, Node  );
+  void reduceTupleVar(Node);
+  bool hasMember(Node, Node);
+  void computeTupleReps(Node);
+  bool areEqual(Node a, Node b);
+  Node getRepresentative(Node t);
+  inline void addToMembershipDB(Node, Node, Node);
   inline Node constructPair(Node tc_rep, Node a, Node b);
-  bool safelyAddToMap( std::map< Node, std::vector<Node> >&, Node, Node );
-  bool isRel( Node n ) {return n.getType().isSet() && n.getType().getSetElementType().isTuple();}
+  bool safelyAddToMap(std::map<Node, std::vector<Node> >&, Node, Node);
+  bool isRel(Node n)
+  {
+    return n.getType().isSet() && n.getType().getSetElementType().isTuple();
+  }
 };
 
 }  // namespace sets

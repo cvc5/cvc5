@@ -104,9 +104,9 @@ class SygusPbe : public SygusModule
                   const std::vector<Node>& candidates) override;
   /** get term list
    *
-  * Adds all active enumerators associated with functions-to-synthesize in
-  * candidates to terms.
-  */
+   * Adds all active enumerators associated with functions-to-synthesize in
+   * candidates to terms.
+   */
   void getTermList(const std::vector<Node>& candidates,
                    std::vector<Node>& terms) override;
   /**

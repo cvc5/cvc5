@@ -109,7 +109,10 @@ class DummyOutputChannel : public theory::OutputChannel
   ~DummyOutputChannel() override {}
 
   void safePoint(CVC5_UNUSED Resource r) override {}
-  void conflict(TNode n, CVC5_UNUSED theory::InferenceId id) override { push(CONFLICT, n); }
+  void conflict(TNode n, CVC5_UNUSED theory::InferenceId id) override
+  {
+    push(CONFLICT, n);
+  }
 
   void trustedConflict(TrustNode n, CVC5_UNUSED theory::InferenceId id) override
   {
@@ -124,7 +127,8 @@ class DummyOutputChannel : public theory::OutputChannel
 
   void lemma(TNode n,
              CVC5_UNUSED theory::InferenceId id,
-             CVC5_UNUSED theory::LemmaProperty p = theory::LemmaProperty::NONE) override
+             CVC5_UNUSED theory::LemmaProperty p =
+                 theory::LemmaProperty::NONE) override
   {
     push(LEMMA, n);
   }
@@ -238,8 +242,11 @@ class DummyTheory : public theory::Theory
   void presolve() override { Unimplemented(); }
   void preRegisterTerm(CVC5_UNUSED TNode n) override { Unimplemented(); }
   void propagate(CVC5_UNUSED Effort level) override { Unimplemented(); }
-  bool preNotifyFact(
-      CVC5_UNUSED TNode atom, CVC5_UNUSED bool pol, CVC5_UNUSED TNode fact, CVC5_UNUSED bool isPrereg, CVC5_UNUSED bool isInternal) override
+  bool preNotifyFact(CVC5_UNUSED TNode atom,
+                     CVC5_UNUSED bool pol,
+                     CVC5_UNUSED TNode fact,
+                     CVC5_UNUSED bool isPrereg,
+                     CVC5_UNUSED bool isInternal) override
   {
     // do not assert to equality engine, since this theory does not use one
     return true;

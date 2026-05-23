@@ -46,7 +46,7 @@ using FfResult = std::variant<FfUnknown, FfModel, FfCore>;
 class FieldObj
 {
  public:
-  FieldObj(NodeManager* nm, FfSize  size);
+  FieldObj(NodeManager* nm, FfSize size);
   /** create a sum (with as few as 0 elements); accepts Nodes or TNodes */
   template <bool ref_count>
   Node mkAdd(const std::vector<NodeTemplate<ref_count>>& summands);

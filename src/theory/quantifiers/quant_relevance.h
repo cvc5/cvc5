@@ -25,10 +25,10 @@ namespace quantifiers {
 
 /** QuantRelevance
  *
-* This class is used for implementing SinE-style heuristics
-* (e.g. see Hoder et al. CADE 2011)
-* This is enabled by the option --relevant-triggers.
-*/
+ * This class is used for implementing SinE-style heuristics
+ * (e.g. see Hoder et al. CADE 2011)
+ * This is enabled by the option --relevant-triggers.
+ */
 class QuantRelevance : public QuantifiersUtil
 {
  public:

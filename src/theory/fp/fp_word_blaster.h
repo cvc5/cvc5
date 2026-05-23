@@ -110,7 +110,8 @@ class SymFpuNM
 };
 
 /**
- * Wrap the cvc5::internal::Node types so that we can debug issues with this back-end
+ * Wrap the cvc5::internal::Node types so that we can debug issues with this
+ * back-end
  */
 class nodeWrapper : public Node
 {

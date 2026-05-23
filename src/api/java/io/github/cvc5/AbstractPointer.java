@@ -26,7 +26,7 @@ abstract class AbstractPointer implements IPointer
    * Return the raw native pointer.
    *
    * @return the pointer value
-  */
+   */
   public long getPointer()
   {
     return pointer;
@@ -88,7 +88,7 @@ abstract class AbstractPointer implements IPointer
    * Automatically registers this instance with the {@code Context}.
    *
    * @param pointer the native pointer to wrap
-  */
+   */
   AbstractPointer(long pointer)
   {
     this.pointer = pointer;

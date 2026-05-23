@@ -63,7 +63,8 @@ bool isUpperBoundCTT(CegTermType c);
  * For LIA, this includes the coefficient of the variable, and the bound type
  * for the variable.
  */
-class TermProperties {
+class TermProperties
+{
  public:
   TermProperties() : d_type(CEG_TT_EQUAL) {}
   virtual ~TermProperties() {}
@@ -84,14 +85,18 @@ class TermProperties {
   // get modified term
   Node getModifiedTerm(Node pv) const
   {
-    if( !d_coeff.isNull() ){
+    if (!d_coeff.isNull())
+    {
       return NodeManager::mkNode(Kind::MULT, d_coeff, pv);
-    }else{
+    }
+    else
+    {
       return pv;
     }
   }
-  // compose property, should be such that: 
-  //   p.getModifiedTerm( this.getModifiedTerm( x ) ) = this_updated.getModifiedTerm( x )
+  // compose property, should be such that:
+  //   p.getModifiedTerm( this.getModifiedTerm( x ) ) =
+  //   this_updated.getModifiedTerm( x )
   void composeProperty(TermProperties& p);
 };
 
@@ -99,16 +104,19 @@ class TermProperties {
  *  This specifies a substitution:
  *  { d_props[i].getModifiedTerm(d_vars[i]) -> d_subs[i] | i = 0...|d_vars| }
  */
-class SolvedForm {
-public:
+class SolvedForm
+{
+ public:
   // list of variables
-  std::vector< Node > d_vars;
+  std::vector<Node> d_vars;
   // list of terms that they are substituted to
-  std::vector< Node > d_subs;
+  std::vector<Node> d_subs;
   // properties for each variable
-  std::vector< TermProperties > d_props;
-  // the variables that have non-basic information regarding how they are substituted
-  //   an example is for linear arithmetic, we store "substitution with coefficients".
+  std::vector<TermProperties> d_props;
+  // the variables that have non-basic information regarding how they are
+  // substituted
+  //   an example is for linear arithmetic, we store "substitution with
+  //   coefficients".
   std::vector<Node> d_non_basic;
   // push the substitution pv_prop.getModifiedTerm(pv) -> n
   void push_back(Node pv, Node n, TermProperties& pv_prop);
@@ -116,15 +124,21 @@ public:
   void pop_back(TermProperties& pv_prop);
   // is this solved form empty?
   bool empty() { return d_vars.empty(); }
-public:
+
+ public:
   // theta values (for LIA, see Section 4 of Reynolds/King/Kuncak FMSD 2017)
-  std::vector< Node > d_theta;
-  // get the current value for theta (for LIA, see Section 4 of Reynolds/King/Kuncak FMSD 2017)
-  Node getTheta() {
-    if( d_theta.empty() ){
+  std::vector<Node> d_theta;
+  // get the current value for theta (for LIA, see Section 4 of
+  // Reynolds/King/Kuncak FMSD 2017)
+  Node getTheta()
+  {
+    if (d_theta.empty())
+    {
       return Node::null();
-    }else{
-      return d_theta[d_theta.size()-1];
+    }
+    else
+    {
+      return d_theta[d_theta.size() - 1];
     }
   }
 };

@@ -111,7 +111,7 @@ PreprocessingPassResult LearnedRewrite::applyInternal(
         Node origin = i == 0 ? b.second.lower_origin : b.second.upper_origin;
         if (!origin.isNull())
         {
-          Assert (originLit.find(origin)!=originLit.end());
+          Assert(originLit.find(origin) != originLit.end());
           llrw.insert(originLit[origin]);
         }
       }
@@ -289,6 +289,18 @@ Node LearnedRewrite::rewriteLearned(Node nr,
         }
       }
     }
+    Kind den_k = den.getKind();
+    // pow2(e) positive for e >= 0.
+    if (den_k == Kind::POW2)
+    {
+      Node exp = den[0];
+      arith::Bounds exp_db = binfer.get(exp);
+      if (!exp_db.lower_value.isNull()
+          && exp_db.lower_value.getConst<Rational>().sgn() == 1)
+      {
+        isNonZeroDen = true;
+      }
+    }
     if (isNonZeroDen)
     {
       Trace("learned-rewrite-rr-debug")
@@ -337,9 +349,10 @@ Node LearnedRewrite::rewriteLearned(Node nr,
           {
             // if the numerator is negative, then (mod x y) ---> (+ x (abs y))
             // otherwise, (mod x y) ---> x
-            Node ret = bnuml.sgn() == -1 ? nm->mkNode(
-                           Kind::ADD, nr[0], nm->mkNode(Kind::ABS, nr[1]))
-                                         : nr[0];
+            Node ret =
+                bnuml.sgn() == -1
+                    ? nm->mkNode(Kind::ADD, nr[0], nm->mkNode(Kind::ABS, nr[1]))
+                    : nr[0];
             nr = returnRewriteLearned(nr, ret, LearnedRewriteId::INT_MOD_RANGE);
           }
         }

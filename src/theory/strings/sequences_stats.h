@@ -87,8 +87,8 @@ class SequencesStatistics
   //--------------- end of conflicts
 };
 
-}
-}
+}  // namespace strings
+}  // namespace theory
 }  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__STRINGS__SEQUENCES_STATS_H */

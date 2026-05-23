@@ -85,17 +85,17 @@ Node ArithProofRuleChecker::checkInternal(ProofRule id,
       Assert(args.size() == 2);
       Node mult = args[0];
       Kind rel = args[1].getKind();
-      Assert(rel == Kind::EQUAL || rel == Kind::DISTINCT || rel == Kind::LT
-             || rel == Kind::LEQ || rel == Kind::GT || rel == Kind::GEQ);
+      Assert(rel == Kind::EQUAL || rel == Kind::LT || rel == Kind::LEQ
+             || rel == Kind::GT || rel == Kind::GEQ);
       Node lhs = args[1][0];
       Node rhs = args[1][1];
       Node zero = nm->mkConstRealOrInt(mult.getType(), Rational(0));
       return nm->mkNode(Kind::IMPLIES,
-                        nm->mkAnd(std::vector<Node>{
-                            nm->mkNode(Kind::GT, mult, zero), args[1]}),
-                        nm->mkNode(rel,
-                                   nm->mkNode(Kind::MULT, mult, lhs),
-                                   nm->mkNode(Kind::MULT, mult, rhs)));
+                        {nm->mkAnd(std::vector<Node>{
+                             nm->mkNode(Kind::GT, mult, zero), args[1]}),
+                         nm->mkNode(rel,
+                                    {nm->mkNode(Kind::MULT, mult, lhs),
+                                     nm->mkNode(Kind::MULT, mult, rhs)})});
     }
     case ProofRule::ARITH_MULT_NEG:
     {
@@ -103,18 +103,18 @@ Node ArithProofRuleChecker::checkInternal(ProofRule id,
       Assert(args.size() == 2);
       Node mult = args[0];
       Kind rel = args[1].getKind();
-      Assert(rel == Kind::EQUAL || rel == Kind::DISTINCT || rel == Kind::LT
-             || rel == Kind::LEQ || rel == Kind::GT || rel == Kind::GEQ);
-      Kind rel_inv = (rel == Kind::DISTINCT ? rel : reverseRelationKind(rel));
+      Assert(rel == Kind::EQUAL || rel == Kind::LT || rel == Kind::LEQ
+             || rel == Kind::GT || rel == Kind::GEQ);
+      Kind rel_inv = reverseRelationKind(rel);
       Node lhs = args[1][0];
       Node rhs = args[1][1];
       Node zero = nm->mkConstRealOrInt(mult.getType(), Rational(0));
       return nm->mkNode(Kind::IMPLIES,
-                        nm->mkAnd(std::vector<Node>{
-                            nm->mkNode(Kind::LT, mult, zero), args[1]}),
-                        nm->mkNode(rel_inv,
-                                   nm->mkNode(Kind::MULT, mult, lhs),
-                                   nm->mkNode(Kind::MULT, mult, rhs)));
+                        {nm->mkAnd(std::vector<Node>{
+                             nm->mkNode(Kind::LT, mult, zero), args[1]}),
+                         nm->mkNode(rel_inv,
+                                    {nm->mkNode(Kind::MULT, mult, lhs),
+                                     nm->mkNode(Kind::MULT, mult, rhs)})});
     }
     case ProofRule::ARITH_SUM_UB:
     {
@@ -153,8 +153,7 @@ Node ArithProofRuleChecker::checkInternal(ProofRule id,
         rightSum << children[i][1];
       }
       Node r = nm->mkNode(strict ? Kind::LT : Kind::LEQ,
-                          leftSum.constructNode(),
-                          rightSum.constructNode());
+                          {leftSum.constructNode(), rightSum.constructNode()});
       return r;
     }
     case ProofRule::MACRO_ARITH_SCALE_SUM_UB:
@@ -288,8 +287,7 @@ Node ArithProofRuleChecker::checkInternal(ProofRule id,
         }
       }
       Node r = nm->mkNode(strict ? Kind::LT : Kind::LEQ,
-                          leftSum.constructNode(),
-                          rightSum.constructNode());
+                          {leftSum.constructNode(), rightSum.constructNode()});
       return r;
     }
     case ProofRule::INT_TIGHT_LB:

@@ -54,7 +54,8 @@ class ProofChecker;
  * A pair of a theory and a node. This is used to mark the flow of
  * propagations between theories.
  */
-struct NodeTheoryPair {
+struct NodeTheoryPair
+{
   Node d_node;
   theory::TheoryId d_theory;
   size_t d_timestamp;
@@ -64,20 +65,22 @@ struct NodeTheoryPair {
   }
   NodeTheoryPair() : d_theory(theory::THEORY_LAST), d_timestamp() {}
   // Comparison doesn't take into account the timestamp
-  bool operator == (const NodeTheoryPair& pair) const {
+  bool operator==(const NodeTheoryPair& pair) const
+  {
     return d_node == pair.d_node && d_theory == pair.d_theory;
   }
-};/* struct NodeTheoryPair */
+}; /* struct NodeTheoryPair */
 
-struct NodeTheoryPairHashFunction {
+struct NodeTheoryPairHashFunction
+{
   std::hash<Node> hashFunction;
   // Hash doesn't take into account the timestamp
-  size_t operator()(const NodeTheoryPair& pair) const {
+  size_t operator()(const NodeTheoryPair& pair) const
+  {
     uint64_t hash = fnv1a::fnv1a_64(std::hash<Node>()(pair.d_node));
     return static_cast<size_t>(fnv1a::fnv1a_64(pair.d_theory, hash));
   }
-};/* struct NodeTheoryPairHashFunction */
-
+}; /* struct NodeTheoryPairHashFunction */
 
 /* Forward declarations */
 namespace theory {

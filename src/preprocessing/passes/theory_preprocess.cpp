@@ -28,7 +28,7 @@ namespace passes {
 using namespace cvc5::internal::theory;
 
 TheoryPreprocess::TheoryPreprocess(PreprocessingPassContext* preprocContext)
-    : PreprocessingPass(preprocContext, "theory-preprocess"){};
+    : PreprocessingPass(preprocContext, "theory-preprocess") {};
 
 PreprocessingPassResult TheoryPreprocess::applyInternal(
     AssertionPipeline* assertions)
@@ -62,7 +62,6 @@ PreprocessingPassResult TheoryPreprocess::applyInternal(
 
   return PreprocessingPassResult::NO_CONFLICT;
 }
-
 
 }  // namespace passes
 }  // namespace preprocessing

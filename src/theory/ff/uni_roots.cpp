@@ -36,8 +36,8 @@
 #include <unordered_map>
 #include <vector>
 
-#include "smt/assertions.h"
 #include "base/output.h"
+#include "smt/assertions.h"
 
 namespace cvc5::internal {
 namespace theory {

@@ -56,8 +56,8 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_InputParser_newInputParser__J(
  * Method:    deletePointer
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_io_github_cvc5_InputParser_deletePointer(
-    JNIEnv*, jobject, jlong pointer)
+JNIEXPORT void JNICALL
+Java_io_github_cvc5_InputParser_deletePointer(JNIEnv*, jobject, jlong pointer)
 {
   delete reinterpret_cast<InputParser*>(pointer);
 }
@@ -133,7 +133,7 @@ Java_io_github_cvc5_InputParser_setStringInput(JNIEnv* env,
   std::string sName(cName);
   parser->setStringInput(lang, sInput, sName);
   env->ReleaseStringUTFChars(jName, cName);
-  env->ReleaseStringUTFChars(jName, cInput);
+  env->ReleaseStringUTFChars(jInput, cInput);
   CVC5_JAVA_API_TRY_CATCH_END(env);
 }
 

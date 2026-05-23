@@ -68,14 +68,13 @@ void EoPrintChannelOut::printStep(const std::string& rname,
   printStepInternal(rname, n, i, premises, args, isPop, false);
 }
 
-void EoPrintChannelOut::printStepInternal(
-    const std::string& rname,
-    TNode n,
-    size_t i,
-    const std::vector<size_t>& premises,
-    const std::vector<Node>& args,
-    bool isPop,
-    bool reqPremises)
+void EoPrintChannelOut::printStepInternal(const std::string& rname,
+                                          TNode n,
+                                          size_t i,
+                                          const std::vector<size_t>& premises,
+                                          const std::vector<Node>& args,
+                                          bool isPop,
+                                          bool reqPremises)
 {
   d_out << "(" << (isPop ? "step-pop" : "step") << " @p" << i;
   if (!n.isNull())
@@ -125,11 +124,11 @@ void EoPrintChannelOut::printStepInternal(
 }
 
 void EoPrintChannelOut::printTrustStep(ProofRule r,
-                                        TNode n,
-                                        size_t i,
-                                        const std::vector<size_t>& premises,
-                                        const std::vector<Node>& args,
-                                        TNode nc)
+                                       TNode n,
+                                       size_t i,
+                                       const std::vector<size_t>& premises,
+                                       const std::vector<Node>& args,
+                                       TNode nc)
 {
   Assert(!nc.isNull());
   if (d_trackWarn)
@@ -205,8 +204,8 @@ void EoPrintChannelPre::printTypeNode(CVC5_UNUSED TypeNode tn)
 }
 
 void EoPrintChannelPre::printAssume(TNode n,
-                                     CVC5_UNUSED size_t i,
-                                     CVC5_UNUSED bool isPush)
+                                    CVC5_UNUSED size_t i,
+                                    CVC5_UNUSED bool isPush)
 {
   processInternal(n);
 }

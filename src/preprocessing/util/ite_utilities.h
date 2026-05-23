@@ -193,7 +193,7 @@ class ITECompressor : protected EnvObj
   Node d_true;  /* Copy of true. */
   Node d_false; /* Copy of false. */
 
-  CVC5_UNUSED_FIELD ContainsTermITEVisitor* d_contains; // Only used in DEBUG
+  CVC5_UNUSED_FIELD ContainsTermITEVisitor* d_contains;  // Only used in DEBUG
   AssertionPipeline* d_assertions;
   IncomingArcCounter d_incoming;
 

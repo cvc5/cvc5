@@ -11,7 +11,7 @@
   (
     (($get_ai_norm_rec f id (f x1 x2))  (eo::list_setof f (eo::list_concat f ($get_ai_norm_rec f id x1) ($get_ai_norm_rec f id x2))))
     (($get_ai_norm_rec f id id)         id)
-    (($get_ai_norm_rec f id x)          (eo::cons f x id))
+    (($get_ai_norm_rec f id x)          (_ f x id))
   )
 )
 
@@ -38,7 +38,7 @@
   (
     (($get_a_norm_rec f id (f x1 x2))  (eo::list_concat f ($get_a_norm_rec f id x1) ($get_a_norm_rec f id x2)))
     (($get_a_norm_rec f id id)         id)
-    (($get_a_norm_rec f id x)          (eo::cons f x id))
+    (($get_a_norm_rec f id x)          (_ f x id))
   )
 )
 

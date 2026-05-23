@@ -45,6 +45,7 @@ class ModelManagerDistributed : public ModelManager
    * model, return true if successful.
    */
   bool finishBuildModel() const override;
+
  protected:
   /** Initialize model equality engine */
   void initializeModelEqEngine(eq::EqualityEngineNotify* notify) override;

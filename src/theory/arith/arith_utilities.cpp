@@ -247,8 +247,8 @@ void printRationalApprox(CVC5_UNUSED const char* c, Node cr, unsigned prec)
 Node mkBounded(Node l, Node a, Node u)
 {
   return NodeManager::mkNode(Kind::AND,
-                             NodeManager::mkNode(Kind::GEQ, a, l),
-                             NodeManager::mkNode(Kind::LEQ, a, u));
+                             {NodeManager::mkNode(Kind::GEQ, a, l),
+                              NodeManager::mkNode(Kind::LEQ, a, u)});
 }
 
 Rational leastIntGreaterThan(const Rational& q) { return q.floor() + 1; }
@@ -305,7 +305,7 @@ Node mkEquality(const Node& a, const Node& b)
   Assert(a.getType().isRealOrInt());
   Assert(b.getType().isRealOrInt());
   // if they have the same type, just make them equal
-  if (a.getType() == b.getType())
+  if (CVC5_EQUAL(a.getType(), b.getType()))
   {
     return NodeManager::mkNode(Kind::EQUAL, a, b);
   }
@@ -320,7 +320,7 @@ Node castToReal(NodeManager* nm, const Node& n)
                      : nm->mkNode(Kind::TO_REAL, n);
 }
 
-std::pair<Node,Node> mkSameType(const Node& a, const Node& b)
+std::pair<Node, Node> mkSameType(const Node& a, const Node& b)
 {
   TypeNode at = a.getType();
   TypeNode bt = b.getType();
@@ -373,9 +373,9 @@ Node eliminateInt2Bv(TNode node)
   {
     Node cond = nm->mkNode(
         Kind::GEQ,
-        nm->mkNode(
-            Kind::INTS_MODULUS_TOTAL, node[0], nm->mkConstInt(Rational(i))),
-        nm->mkConstInt(Rational(i, 2)));
+        {nm->mkNode(
+             Kind::INTS_MODULUS_TOTAL, node[0], nm->mkConstInt(Rational(i))),
+         nm->mkConstInt(Rational(i, 2))});
     v.push_back(nm->mkNode(Kind::ITE, cond, bvone, bvzero));
     i *= 2;
   }

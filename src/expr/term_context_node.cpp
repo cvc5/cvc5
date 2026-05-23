@@ -65,9 +65,10 @@ Node TCtxNode::decomposeNodeHash(Node h, uint32_t& val)
   if (!ival.isConst() || !ival.getType().isInteger()
       || !ival.getConst<Rational>().getNumerator().fitsUnsignedInt())
   {
-    DebugUnhandled() << "TermContext::decomposeNodeHash: unexpected term context "
-                     "integer in hash "
-                  << h;
+    DebugUnhandled()
+        << "TermContext::decomposeNodeHash: unexpected term context "
+           "integer in hash "
+        << h;
     return Node::null();
   }
   val = ival.getConst<Rational>().getNumerator().toUnsignedInt();

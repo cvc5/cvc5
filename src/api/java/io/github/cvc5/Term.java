@@ -111,7 +111,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
 
   /**
    * Get the id of this term.
-   * 
+   *
    * @return The id of this term.
    */
   public long getId()
@@ -123,7 +123,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
 
   /**
    * Get the kind of this term.
-   * 
+   *
    * @return The kind of this term.
    * @throws CVC5ApiException on error
    */
@@ -137,7 +137,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
 
   /**
    * Get the sort of this term.
-   * 
+   *
    * @return The sort of this term.
    */
   public Sort getSort()
@@ -206,7 +206,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
 
   /**
    * Determine if this term has an operator.
-   * 
+   *
    * @return True iff this term has an operator.
    */
   public boolean hasOp()
@@ -218,7 +218,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
 
   /**
    * Get the Op used to create this term.
-   * 
+   *
    * @return The Op used to create this term.
    * @api.note This is safe to call when {@link Term#hasOp()} returns true.
    */
@@ -232,7 +232,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
 
   /**
    * Determine if the term has a symbol.
-   * 
+   *
    * @return True if the term has a symbol.
    */
   public boolean hasSymbol()
@@ -255,7 +255,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
 
   /**
    * Determine if this term is a null term.
-   * 
+   *
    * @return True if this Term is a null term.
    */
   public boolean isNull()
@@ -383,7 +383,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
 
   /**
    * Determine if the term is an integer value.
-   * 
+   *
    * @return True if the term is an integer value.
    */
   public boolean isIntegerValue()
@@ -406,7 +406,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
 
   /**
    * Determine if the term is a string constant.
-   * 
+   *
    * @return True if the term is a string constant.
    */
   public boolean isStringValue()
@@ -436,7 +436,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
 
   /**
    * Determine if the term is a rational value.
-   * 
+   *
    * @return True if the term is a rational value.
    */
   public boolean isRealValue()
@@ -461,7 +461,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
 
   /**
    * Determine if the term is a constant array.
-   * 
+   *
    * @return True if the term is a constant array.
    */
   public boolean isConstArray()
@@ -485,7 +485,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
 
   /**
    * Determine if the term is a Boolean value.
-   * 
+   *
    * @return True if the term is a Boolean value.
    */
   public boolean isBooleanValue()
@@ -507,7 +507,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
 
   /**
    * Determine if the term is a bit-vector value.
-   * 
+   *
    * @return True if the term is a bit-vector value.
    */
   public boolean isBitVectorValue()
@@ -551,7 +551,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
 
   /**
    * Determine if the term is a finite field value.
-   * 
+   *
    * @return True if the term is a finite field value.
    */
   public boolean isFiniteFieldValue()
@@ -578,7 +578,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
 
   /**
    * Determine if the term is an uninterpreted sort value.
-   * 
+   *
    * @return True if the term is an uninterpreted sort value.
    */
   public boolean isUninterpretedSortValue()
@@ -601,7 +601,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
 
   /**
    * Determine if the term is a floating-point rounding mode value.
-   * 
+   *
    * @return True if the term is a floating-point rounding mode value.
    */
   public boolean isRoundingModeValue()
@@ -626,7 +626,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
 
   /**
    * Determine if the term is a tuple value.
-   * 
+   *
    * @return True if the term is a tuple value.
    */
   public boolean isTupleValue()
@@ -650,7 +650,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
 
   /**
    * Determine if the term is the floating-point value for positive zero.
-   * 
+   *
    * @return True if the term is the floating-point value for positive zero.
    */
   public boolean isFloatingPointPosZero()
@@ -662,7 +662,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
 
   /**
    * Determine if the term is the floating-point value for negative zero.
-   * 
+   *
    * @return True if the term is the floating-point value for negative zero.
    */
   public boolean isFloatingPointNegZero()
@@ -687,7 +687,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   /**
    * Determine if the term is the floating-point value for negative.
    * infinity.
-   * 
+   *
    * @return True if the term is the floating-point value for negative.
    * infinity.
    */
@@ -699,7 +699,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   private native boolean isFloatingPointNegInf(long pointer);
   /**
    * Determine if the term is the floating-point value for not a number.
-   * 
+   *
    * @return True if the term is the floating-point value for not a number.
    */
   public boolean isFloatingPointNaN()
@@ -710,7 +710,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   private native boolean isFloatingPointNaN(long pointer);
   /**
    * Determine if the term is a floating-point value.
-   * 
+   *
    * @return True if the term is a floating-point value.
    */
   public boolean isFloatingPointValue()
@@ -736,7 +736,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
 
   /**
    * Determine if the term is a set value.
-   * 
+   *
    * @return True if the term is a set value.
    */
   public boolean isSetValue()
@@ -760,7 +760,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
 
   /**
    * Determine if the term is a sequence value.
-   * 
+   *
    * @return True if the term is a sequence value.
    */
   public boolean isSequenceValue()
@@ -788,7 +788,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
 
   /**
    * Determine if the term is a cardinality constraint.
-   * 
+   *
    * @return True if the term is a cardinality constraint.
    */
   public boolean isCardinalityConstraint()
@@ -813,7 +813,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
 
   /**
    * Determine if the term is a real algebraic number.
-   * 
+   *
    * @return True if the term is a real algebraic number.
    */
   public boolean isRealAlgebraicNumber()
@@ -862,7 +862,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
 
   /**
    * Determine if this term is a skolem function.
-   * 
+   *
    * @api.note This method is experimental and may change in future versions.
    * @return True if this term is a skolem function.
    */

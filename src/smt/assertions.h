@@ -100,6 +100,7 @@ class Assertions : protected EnvObj
    * on initializeCheckSat.
    */
   std::vector<Node>& getAssumptions();
+
  private:
   /**
    * Fully type-check the argument, and also type-check that it's
@@ -121,9 +122,7 @@ class Assertions : protected EnvObj
    * assertions from the SyGuS parser may have free variables (say if the
    * input contains an assert or define-fun-rec command).
    */
-  void addFormula(TNode n,
-                  bool isFunDef,
-                  bool maybeHasFv);
+  void addFormula(TNode n, bool isFunDef, bool maybeHasFv);
   /**
    * The assertion list (before any conversion) for supporting getAssertions().
    */

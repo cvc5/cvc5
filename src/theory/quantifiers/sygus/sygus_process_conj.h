@@ -111,12 +111,12 @@ class SynthConjectureProcessArg
 };
 
 /** This structure stores information regarding conjecture-specific
-* analysis of a single function to synthesize within
-* a conjecture to synthesize.
-*
-* It maintains information about each of the function to
-* synthesize's arguments.
-*/
+ * analysis of a single function to synthesize within
+ * a conjecture to synthesize.
+ *
+ * It maintains information about each of the function to
+ * synthesize's arguments.
+ */
 struct SynthConjectureProcessFun : protected EnvObj
 {
  public:
@@ -299,15 +299,16 @@ class SynthConjectureProcess : protected EnvObj
    */
   bool getIrrelevantArgs(Node f, std::unordered_set<unsigned>& args);
   /** get symmetry breaking predicate
-  *
-  * Returns a formula that restricts the enumerative search space (for a given
-  * depth) for a term x of sygus type tn whose top symbol is the tindex^{th}
-  * constructor, where x is a subterm of enumerator e.
-  */
+   *
+   * Returns a formula that restricts the enumerative search space (for a given
+   * depth) for a term x of sygus type tn whose top symbol is the tindex^{th}
+   * constructor, where x is a subterm of enumerator e.
+   */
   Node getSymmetryBreakingPredicate(
       Node x, Node e, TypeNode tn, unsigned tindex, unsigned depth);
   /** print out debug information about this conjecture */
   void debugPrint(const char* c);
+
  private:
   /** process conjunct
    *

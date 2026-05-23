@@ -28,10 +28,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-BvInverter::BvInverter(Rewriter* r)
-    : d_rewriter(r)
-{
-}
+BvInverter::BvInverter(Rewriter* r) : d_rewriter(r) {}
 
 /*---------------------------------------------------------------------------*/
 

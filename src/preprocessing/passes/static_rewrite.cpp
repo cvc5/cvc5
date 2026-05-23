@@ -76,7 +76,7 @@ TrustNode StaticRewrite::rewriteAssertion(TNode n)
 
     if (it == visited.end())
     {
-      if (cur.getNumChildren()==0)
+      if (cur.getNumChildren() == 0)
       {
         visit.pop_back();
         visited[cur] = cur;

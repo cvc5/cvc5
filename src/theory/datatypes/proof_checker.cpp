@@ -30,9 +30,10 @@ void DatatypesProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(ProofRule::DT_SPLIT, this);
 }
 
-Node DatatypesProofRuleChecker::checkInternal(ProofRule id,
-                                              CVC5_UNUSED const std::vector<Node>& children,
-                                              const std::vector<Node>& args)
+Node DatatypesProofRuleChecker::checkInternal(
+    ProofRule id,
+    CVC5_UNUSED const std::vector<Node>& children,
+    const std::vector<Node>& args)
 {
   if (id == ProofRule::DT_SPLIT)
   {

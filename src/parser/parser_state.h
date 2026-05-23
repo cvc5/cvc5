@@ -17,13 +17,13 @@
 
 #include <cvc5/cvc5.h>
 #include <cvc5/cvc5_export.h>
+#include <cvc5/cvc5_parser.h>
 
 #include <list>
 #include <memory>
 #include <string>
 
 #include "parser/parse_op.h"
-#include <cvc5/cvc5_parser.h>
 #include "parser/parser_utils.h"
 #include "parser/sym_manager.h"
 #include "parser/symbol_table.h"
@@ -240,7 +240,7 @@ class CVC5_EXPORT ParserState
    * each variable in the cache.
    */
   std::vector<Term> bindBoundVars(
-      std::vector<std::pair<std::string, Sort> >& sortedVarNames,
+      std::vector<std::pair<std::string, Sort>>& sortedVarNames,
       bool fresh = true);
   /**
    * Same as above, but ensure that the shadowing is compatible with current

@@ -95,7 +95,8 @@ class InstMatch : protected EnvObj
   ieval::InstEvaluator* d_ieval;
 };
 
-inline std::ostream& operator<<(std::ostream& out, const InstMatch& m) {
+inline std::ostream& operator<<(std::ostream& out, const InstMatch& m)
+{
   m.toStream(out);
   return out;
 }

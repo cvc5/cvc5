@@ -64,8 +64,7 @@ TheoryUF::TheoryUF(Env& env,
   d_inferManager = &d_im;
 }
 
-TheoryUF::~TheoryUF() {
-}
+TheoryUF::~TheoryUF() {}
 
 TheoryRewriter* TheoryUF::getTheoryRewriter() { return &d_rewriter; }
 
@@ -86,7 +85,8 @@ bool TheoryUF::needsEqualityEngine(EeSetupInfo& esi)
   return true;
 }
 
-void TheoryUF::finishInit() {
+void TheoryUF::finishInit()
+{
   Assert(d_equalityEngine != nullptr);
   // combined cardinality constraints are not evaluated in getModelValue
   d_valuation.setUnevaluatedKind(Kind::COMBINED_CARDINALITY_CONSTRAINT);
@@ -364,10 +364,10 @@ void TheoryUF::preRegisterTerm(TNode node)
       d_equalityEngine->addTerm(node);
       if (logicInfo().isHigherOrder())
       {
-        // When using lazy lambda handling, if node is a lambda function, it must
-        // be marked as a shared term. This is to ensure we split on the equality
-        // of lambda functions with other functions when doing care graph
-        // based theory combination.
+        // When using lazy lambda handling, if node is a lambda function, it
+        // must be marked as a shared term. This is to ensure we split on the
+        // equality of lambda functions with other functions when doing care
+        // graph based theory combination.
         if (d_lambdaLift->isLambdaFunction(node))
         {
           addSharedTerm(node);
@@ -382,7 +382,6 @@ void TheoryUF::preRegisterTerm(TNode node)
       }
       break;
   }
-
 }
 
 void TheoryUF::preRegisterFunctionTerm(TNode node)
@@ -439,7 +438,8 @@ bool TheoryUF::collectModelValues(TheoryModel* m, const std::set<Node>& termSet)
   return true;
 }
 
-void TheoryUF::presolve() {
+void TheoryUF::presolve()
+{
   // TimerStat::CodeTimer codeTimer(d_presolveTimer);
 
   Trace("uf") << "uf: begin presolve()" << endl;
@@ -447,15 +447,17 @@ void TheoryUF::presolve() {
   {
     vector<Node> newClauses;
     d_symb.apply(newClauses);
-    for(vector<Node>::const_iterator i = newClauses.begin();
-        i != newClauses.end();
-        ++i) {
+    for (vector<Node>::const_iterator i = newClauses.begin();
+         i != newClauses.end();
+         ++i)
+    {
       Trace("uf") << "uf: generating a lemma: " << *i << std::endl;
       // no proof generator provided
       d_im.lemma(*i, InferenceId::UF_BREAK_SYMMETRY);
     }
   }
-  if( d_thss ){
+  if (d_thss)
+  {
     d_thss->presolve();
   }
   Trace("uf") << "uf: end presolve()" << endl;
@@ -463,7 +465,7 @@ void TheoryUF::presolve() {
 
 void TheoryUF::ppStaticLearn(TNode n, std::vector<TrustNode>& learned)
 {
-  //TimerStat::CodeTimer codeTimer(d_staticLearningTimer);
+  // TimerStat::CodeTimer codeTimer(d_staticLearningTimer);
 
   // Use the diamonds utility
   d_dpfgen.ppStaticLearn(n, learned);
@@ -474,8 +476,8 @@ void TheoryUF::ppStaticLearn(TNode n, std::vector<TrustNode>& learned)
   }
 } /* TheoryUF::ppStaticLearn() */
 
-EqualityStatus TheoryUF::getEqualityStatus(TNode a, TNode b) {
-
+EqualityStatus TheoryUF::getEqualityStatus(TNode a, TNode b)
+{
   // Check for equality (simplest)
   if (d_equalityEngine->areEqual(a, b))
   {
@@ -559,7 +561,7 @@ void TheoryUF::processCarePairArgs(TNode a, TNode b)
       // considered a separate entity. The types below must be equal to handle
       // polymorphic operators taking higher-order arguments, e.g. set.map.
       TypeNode xt = x.getType();
-      if (xt.isFunction() && xt==y.getType())
+      if (xt.isFunction() && xt == y.getType())
       {
         Node lemma = x.eqNode(y);
         lemma = nm->mkNode(Kind::OR, lemma, lemma.notNode());
@@ -571,13 +573,14 @@ void TheoryUF::processCarePairArgs(TNode a, TNode b)
 
 void TheoryUF::computeRelevantTerms(std::set<Node>& termSet)
 {
-  if (d_ho!=nullptr)
+  if (d_ho != nullptr)
   {
     d_ho->computeRelevantTerms(termSet);
   }
 }
 
-void TheoryUF::computeCareGraph() {
+void TheoryUF::computeCareGraph()
+{
   bool isHigherOrder = logicInfo().isHigherOrder();
   // note that if we are higher-order, we may still generate splits for
   // function arguments
@@ -678,9 +681,10 @@ void TheoryUF::computeCareGraph() {
   }
   Trace("uf::sharing") << "TheoryUf::computeCareGraph(): finished."
                        << std::endl;
-}/* TheoryUF::computeCareGraph() */
+} /* TheoryUF::computeCareGraph() */
 
-void TheoryUF::eqNotifyNewClass(TNode t) {
+void TheoryUF::eqNotifyNewClass(TNode t)
+{
   if (d_thss != nullptr)
   {
     d_thss->newEqClass(t);
@@ -697,7 +701,8 @@ void TheoryUF::eqNotifyMerge(TNode t1, TNode t2)
   d_distinct.eqNotifyMerge(t1, t2);
 }
 
-void TheoryUF::eqNotifyDisequal(TNode t1, TNode t2, TNode reason) {
+void TheoryUF::eqNotifyDisequal(TNode t1, TNode t2, TNode reason)
+{
   if (d_thss != nullptr)
   {
     d_thss->assertDisequal(t1, t2, reason);

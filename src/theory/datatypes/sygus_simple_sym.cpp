@@ -208,7 +208,7 @@ bool SygusSimpleSymBreak::considerArgKind(
     else
     {
       Kind reqk = Kind::UNDEFINED_KIND;  // required kind for all children
-      std::map<unsigned, Kind> reqkc;  // required kind for some children
+      std::map<unsigned, Kind> reqkc;    // required kind for some children
       if (pk == Kind::NOT)
       {
         if (k == Kind::AND)

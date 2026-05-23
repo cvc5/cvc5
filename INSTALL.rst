@@ -170,8 +170,8 @@ installed in a non-standard location, you can use ``--dep-path`` to define an
 additional search path for all dependencies. Versions given are minimum
 versions; more recent versions should be compatible.
 
-- `GNU C and C++ (gcc and g++, >= 7) <https://gcc.gnu.org>`_
-  or `Clang (>= 5) <https://clang.llvm.org>`_
+- `GNU C and C++ (gcc and g++, >= 10) <https://gcc.gnu.org>`_
+  or `Clang (>= 12) <https://clang.llvm.org>`_
 - `CMake >= 3.16 <https://cmake.org>`_
 - `GNU Make <https://www.gnu.org/software/make/>`_
   or `Ninja <https://ninja-build.org/>`_

@@ -51,7 +51,8 @@ Model::Model(bool isKnownSat,
 {
 }
 
-std::ostream& operator<<(std::ostream& out, const Model& m) {
+std::ostream& operator<<(std::ostream& out, const Model& m)
+{
   options::ioutils::Scope scope(out);
   options::ioutils::applyDagThresh(out, 0);
   Printer::getPrinter(out)->toStream(out, m);

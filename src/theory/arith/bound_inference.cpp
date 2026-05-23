@@ -23,7 +23,8 @@ namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
-std::ostream& operator<<(std::ostream& os, const Bounds& b) {
+std::ostream& operator<<(std::ostream& os, const Bounds& b)
+{
   return os << (b.lower_strict ? '(' : '[') << b.lower_value << " .. "
             << b.upper_value << (b.upper_strict ? ')' : ']');
 }
