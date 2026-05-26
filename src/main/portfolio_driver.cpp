@@ -30,6 +30,7 @@
 #include "main/command_executor.h"
 #include "parser/command_status.h"
 #include "parser/commands.h"
+#include "theory/logic_info.h"
 
 using namespace cvc5::parser;
 
@@ -554,6 +555,12 @@ class PortfolioProcessPool
 
 #endif
 
+static bool useCadicalByDefaultForLogic(const std::string& logic);
+
+static void addDefaultOption(PortfolioStrategy& strategy,
+                             const std::string& option,
+                             const std::string& value);
+
 bool PortfolioDriver::solve(std::unique_ptr<CommandExecutor>& executor)
 {
   ExecutionContext ctx{executor.get()};
@@ -574,7 +581,13 @@ bool PortfolioDriver::solve(std::unique_ptr<CommandExecutor>& executor)
   bool dry_run = solver.getOption("portfolio-dry-run") == "true";
 
   bool incremental_solving = solver.getOption("incremental") == "true";
+  bool use_cadical_default =
+      !solver.getOptionInfo("sat-solver").setByUser && !incremental_solving;
   PortfolioStrategy strategy = getStrategy(incremental_solving, *ctx.d_logic);
+  if (use_cadical_default && useCadicalByDefaultForLogic(*ctx.d_logic))
+  {
+    addDefaultOption(strategy, "sat-solver", "cadical");
+  }
   Assert(!strategy.d_strategies.empty())
       << "The portfolio strategy should never be empty.";
   if (strategy.d_strategies.size() == 1)
@@ -670,6 +683,43 @@ template <typename... T>
 bool isOneOf(const std::string& logic, T&&... list)
 {
   return ((logic == list) || ...);
+}
+
+/**
+ * Returns true if non-incremental portfolio strategies should default to
+ * CaDiCaL for the given logic.
+ */
+static bool useCadicalByDefaultForLogic(const std::string& logic)
+{
+  cvc5::internal::LogicInfo info(logic);
+  return !info.isQuantified()
+         && !info.isTheoryEnabled(cvc5::internal::theory::THEORY_STRINGS);
+}
+
+/**
+ * Add a default option to all portfolio configurations. Insert at the front so
+ * that a strategy-specific setting of the same option, if any, wins.
+ */
+static void addDefaultOption(PortfolioStrategy& strategy,
+                             const std::string& option,
+                             const std::string& value)
+{
+  for (PortfolioConfig& config : strategy.d_strategies)
+  {
+    bool has_option = false;
+    for (const std::pair<std::string, std::string>& o : config.d_options)
+    {
+      if (o.first == option)
+      {
+        has_option = true;
+        break;
+      }
+    }
+    if (!has_option)
+    {
+      config.d_options.emplace(config.d_options.begin(), option, value);
+    }
+  }
 }
 
 PortfolioStrategy PortfolioDriver::getStrategy(bool incremental_solving,
