@@ -561,6 +561,10 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
         {
           if (needProof())
           {
+            if (ps.size() > 1)
+            {
+              d_pfManager->registerSatAssumption(ca[cr]);
+            }
             if (ca[confl].size() == 1)
             {
               d_pfManager->finalizeProof(ca[confl][0]);

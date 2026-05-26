@@ -813,6 +813,14 @@ void SatProofManager::registerSatLitAssumption(Minisat::Lit lit)
       d_cnfStream->getNode(MinisatSatSolver::toSatLiteral(lit)));
 }
 
+void SatProofManager::registerSatAssumption(const Minisat::Clause& clause)
+{
+  Node cnode = getClauseNode(clause);
+  Trace("sat-proof") << "SatProofManager::registerSatAssumption: - " << cnode
+                     << "\n";
+  d_assumptions.insert(cnode);
+}
+
 void SatProofManager::registerSatAssumptions(const std::vector<Node>& assumps)
 {
   for (const Node& a : assumps)

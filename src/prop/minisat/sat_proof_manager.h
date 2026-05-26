@@ -359,6 +359,8 @@ class SatProofManager : protected EnvObj
 
   /** Register a unit clause input, converted to its node representation.  */
   void registerSatLitAssumption(Minisat::Lit lit);
+  /** Register a clause input, converted to its node representation. */
+  void registerSatAssumption(const Minisat::Clause& clause);
   /** Register a set clause inputs. */
   void registerSatAssumptions(const std::vector<Node>& assumps);
 
