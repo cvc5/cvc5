@@ -393,6 +393,7 @@ bool ArithCongruenceManager::propagate(TNode x)
       CDProof cdp(d_env);
       Node falsen = nm->mkConst(false);
       Node finalPfNeg = finalPf.notNode();
+      ProofChecker* pc = d_env.getProofNodeManager()->getChecker();
       cdp.addProof(texpC.toProofNode());
       Node proven = texpC.getProven();
       Trace("arith-cm-proof") << "Proven was " << proven << std::endl;
@@ -436,6 +437,97 @@ bool ArithCongruenceManager::propagate(TNode x)
           break;
         }
       }
+      if (!success && proven[1].getKind() == Kind::NOT
+          && proven[1][0].getKind() == Kind::EQUAL)
+      {
+        // The equality engine proved a disequality while arithmetic proved
+        // bounds implying the corresponding equality.
+        Node peq = proven[1][0];
+        Node triEq = peq;
+        if (triEq[0].isConst() && !triEq[1].isConst())
+        {
+          triEq = triEq[1].eqNode(triEq[0]);
+        }
+        if (triEq[0].getKind() == Kind::TO_REAL && triEq[1].isConst()
+            && triEq[1].getConst<Rational>().isIntegral())
+        {
+          Node ic = nm->mkConstInt(triEq[1].getConst<Rational>());
+          triEq = triEq[0][0].eqNode(ic);
+        }
+        else if (triEq[1].getKind() == Kind::TO_REAL && triEq[0].isConst()
+                 && triEq[0].getConst<Rational>().isIntegral())
+        {
+          Node ic = nm->mkConstInt(triEq[0].getConst<Rational>());
+          triEq = triEq[1][0].eqNode(ic);
+        }
+        if (triEq[0].getType().isRealOrInt()
+            && triEq[1].getType().isRealOrInt()
+            && triEq[0].getType() == triEq[1].getType())
+        {
+          std::vector<Node> negc = andComponents(nm, neg);
+          std::vector<Node> triChildren;
+          std::vector<Node> targets{
+              nm->mkNode(Kind::GEQ, triEq[0], triEq[1]),
+              nm->mkNode(Kind::LEQ, triEq[0], triEq[1])};
+          for (const Node& target : targets)
+          {
+            Node source;
+            for (const Node& nc : negc)
+            {
+              if (nc == target)
+              {
+                source = nc;
+                break;
+              }
+              Node res =
+                  pc->checkDebug(ProofRule::MACRO_SR_PRED_TRANSFORM,
+                                 {nc},
+                                 {target},
+                                 target);
+              if (!res.isNull())
+              {
+                source = nc;
+                break;
+              }
+            }
+            if (source.isNull())
+            {
+              triChildren.clear();
+              break;
+            }
+            if (source != target)
+            {
+              cdp.addStep(target,
+                          ProofRule::MACRO_SR_PRED_TRANSFORM,
+                          {source},
+                          {target});
+            }
+            triChildren.push_back(target);
+          }
+          if (triChildren.size() == 2)
+          {
+            cdp.addStep(triEq, ProofRule::ARITH_TRICHOTOMY, triChildren, {});
+            if (triEq != peq)
+            {
+              Node res =
+                  pc->checkDebug(ProofRule::MACRO_SR_PRED_TRANSFORM,
+                                 {triEq},
+                                 {peq},
+                                 peq);
+              if (!res.isNull())
+              {
+                cdp.addStep(
+                    peq, ProofRule::MACRO_SR_PRED_TRANSFORM, {triEq}, {peq});
+              }
+            }
+            if (triEq == peq || cdp.hasStep(peq))
+            {
+              cdp.addStep(falsen, ProofRule::CONTRA, {peq, proven[1]}, {});
+              success = true;
+            }
+          }
+        }
+      }
       if (!success && proven[1].getKind() == Kind::EQUAL)
       {
         // otherwise typically proven[1] is of the form (= t c) or (= c t) where
@@ -471,7 +563,6 @@ bool ArithCongruenceManager::propagate(TNode x)
           cdp.addStep(peqi, ProofRule::EQ_RESOLVE, {peq, equiv}, {});
           peq = peqi;
         }
-        ProofChecker* pc = d_env.getProofNodeManager()->getChecker();
         // We substitute t -> c within the arithmetic context of neg.
         // In particular using an arithmetic context ensures that this rewrite
         // should be locally handled as an ARITH_POLY_NORM step.
