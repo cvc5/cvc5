@@ -1248,6 +1248,7 @@ set(regress_0_tests
   regress0/nl/piand-range.smt2
   regress0/nl/piand-symmetry.smt2
   regress0/nl/piand-symmetry-sat.smt2
+  regress0/nl/pow2-monotone-neg-soundness.smt2
   regress0/nl/pow2-native-0.smt2
   regress0/nl/pow2-native-1.smt2
   regress0/nl/pow2-native-2.smt2
