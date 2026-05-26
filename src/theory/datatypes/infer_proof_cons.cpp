@@ -445,10 +445,22 @@ void InferProofCons::convert(InferenceId infer,
           d_env.getRewriter()->rewriteViaRule(ProofRewriteRule::DT_CYCLE, eq1);
       if (!falsen.isNull())
       {
+        // If eq1 is already one of the premises modulo symmetry, let CDProof
+        // use that premise directly. Adding a TRANS proof for it would make
+        // the premise's assumption depend on itself via automatic symmetry.
+        bool cycleEqIsPremise = false;
+        for (const Node& e : expv)
+        {
+          if (CDProof::isSame(e, eq1))
+          {
+            cycleEqIsPremise = true;
+            break;
+          }
+        }
         Node eqq = eq1.eqNode(falsen);
         cdp->addTheoryRewriteStep(eqq, ProofRewriteRule::DT_CYCLE);
         cdp->addStep(falsen, ProofRule::EQ_RESOLVE, {eq1, eqq}, {});
-        if (eq1 != lastEq)
+        if (eq1 != lastEq && !cycleEqIsPremise)
         {
           cdp->addStep(eq1, ProofRule::TRANS, {lastEq, eq}, {});
         }
