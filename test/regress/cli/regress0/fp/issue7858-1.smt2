@@ -2,8 +2,8 @@
 ;; Fixed in SymFPU 1.2.0
 
 (set-info :smt-lib-version 2.6)
-(set-logic ALL)
-(set-info :source |https://github.com/cvc5/cvc5/issues/7585|)
+(set-logic QF_FP)
+(set-info :source |https://github.com/cvc5/cvc5/issues/7858|)
 (set-option :produce-models true)
 (set-option :check-models true)
 (set-info :status sat)
