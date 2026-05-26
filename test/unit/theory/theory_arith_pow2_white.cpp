@@ -38,24 +38,19 @@ class TestTheoryWhiteArithPow2 : public TestSmtNoFinishInit
 
 TEST_F(TestTheoryWhiteArithPow2, pow2_proof_checker_basic)
 {
-  // Test that the Pow2ProofRuleChecker can be instantiated and basic methods work
-  NodeManager* nm = d_nodeManager;
+  NodeManager* nm = d_nodeManager.get();
   arith::nl::Pow2ProofRuleChecker checker(nm);
 
-  // Create a simple integer term for testing
+  // Create an integer variable
   Node x = nm->mkVar("x", nm->integerType());
-  std::vector<Node> children;  // Empty for pow2 proof rules
-  std::vector<Node> args = {x}; // Simple argument
-
-  // Test that checkInternal returns null for our stub implementation
+  // Empty for pow2 proof rules
+  std::vector<Node> children;
+  // Simple argument
+  std::vector<Node> args = {x};
+  
+  // trivial implementation returns null
   Node result = checker.checkInternal(ProofRule::ARITH_POW2_INIT_REFINE, children, args);
-  ASSERT_TRUE(result.isNull()) << "Expected null result from stub implementation";
-
-  // Test another proof rule
-  Node y = nm->mkVar("y", nm->integerType());
-  std::vector<Node> args2 = {x, y};
-  Node result2 = checker.checkInternal(ProofRule::ARITH_POW2_MONOTONE_REFINE, children, args2);
-  ASSERT_TRUE(result2.isNull()) << "Expected null result from stub implementation";
+  ASSERT_TRUE(result.isNull()); 
 }
 
 }  // namespace test

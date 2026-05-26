@@ -2181,12 +2181,10 @@ enum ENUM(ProofRule)
    * .. math::
    *
    *   \inferrule{- \mid t}{
-   *     ((t \geq 0) \rightarrow ((\texttt{pow2}~t) > 0))
-   *     \land ((t \neq 0) \rightarrow ((\texttt{pow2}~t) \bmod 2 = 0))}
+   *     ((t \geq 0) \rightarrow (\texttt{pow2}(t) > 0))
+   *     \land ((t \neq 0) \rightarrow (\texttt{pow2}(t) \bmod 2 = 0))}
    *
-   * where :math:`t` is an integer term. This rule emits the initial-refinement
-   * axiom used by the nonlinear pow2 solver for the pow2 application
-   * :math:`(\texttt{pow2}~t)`.
+   * where :math:`t` is an integer term.
    * \endverbatim
    */
   EVALUE(ARITH_POW2_INIT_REFINE),
@@ -2198,9 +2196,9 @@ enum ENUM(ProofRule)
    *
    *   \inferrule{- \mid x, y}{
    *     (0 \leq x \land x < y) \rightarrow
-   *     ((\texttt{pow2}~x) < (\texttt{pow2}~y))}
+   *     (\texttt{pow2}(x) < \texttt{pow2}(y))}
    *
-   * where :math:`x, y` are integer terms.
+   * where :math:`x,y` are integer terms.
    * \endverbatim
    */
   EVALUE(ARITH_POW2_MONOTONE_REFINE),
@@ -2210,7 +2208,7 @@ enum ENUM(ProofRule)
    *
    * .. math::
    *
-   *   \inferrule{- \mid t}{(t < 0) \rightarrow ((\texttt{pow2}~t) = 0)}
+   *   \inferrule{- \mid t}{(t < 0) \rightarrow (\texttt{pow2}(t) = 0)}
    *
    * where :math:`t` is an integer term.
    * \endverbatim
@@ -2222,10 +2220,10 @@ enum ENUM(ProofRule)
    *
    * .. math::
    *
-   *   \inferrule{- \mid t}{(t \geq 0) \rightarrow ((t \mathbin{\texttt{div}} (\texttt{pow2}~t)) = 0)}
+   *   \inferrule{- \mid t}{(t \geq 0) \rightarrow ((t \mathbin{\texttt{div}} \texttt{pow2}(t)) = 0)}
    *
    * where :math:`t` is an integer term. This is sound because for non-negative
-   * :math:`t` we have :math:`t < (\texttt{pow2}~t)`.
+   * :math:`t` we have :math:`t < \texttt{pow2}(t)`.
    * \endverbatim
    */
   EVALUE(ARITH_POW2_DIV0_REFINE),
@@ -2236,7 +2234,7 @@ enum ENUM(ProofRule)
    * .. math::
    *
    *   \inferrule{- \mid t, k}{(t \geq k \land k \geq 7) \rightarrow
-   *     ((\texttt{pow2}~t) > k \cdot t + k \cdot k)}
+   *     (\texttt{pow2}(t) > k \cdot t + k \cdot k)}
    *
    * where :math:`t` is an integer term and :math:`k` is an integer constant.
    * \endverbatim
@@ -2248,11 +2246,11 @@ enum ENUM(ProofRule)
    *
    * .. math::
    *
-   *   \inferrule{- \mid t, v}{(t = v) \rightarrow ((\texttt{pow2}~t) = (\texttt{pow2}~v))}
+   *   \inferrule{- \mid t, v}{(t = v) \rightarrow (\texttt{pow2}(t) = \texttt{pow2}(v))}
    *
    * where :math:`t` is an integer term and :math:`v` is an integer constant.
    * The conclusion is intended to be used after rewriting, where
-   * :math:`(\texttt{pow2}~v)` evaluates to :math:`2^v` if :math:`v \geq 0` and
+   * :math:`\texttt{pow2}(v)` evaluates to :math:`2^v` if :math:`v \geq 0` and
    * to :math:`0` otherwise.
    * \endverbatim
    */

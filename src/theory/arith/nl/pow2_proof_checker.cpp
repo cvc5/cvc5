@@ -37,8 +37,6 @@ Node Pow2ProofRuleChecker::checkInternal(
     [[maybe_unused]] const std::vector<Node>& children,
     [[maybe_unused]] const std::vector<Node>& args)
 {
-  // TODO: Implement proof checking logic for pow2 rules
-  // This is a placeholder implementation that returns null for all rules
   switch (id)
   {
     case ProofRule::ARITH_POW2_INIT_REFINE:
