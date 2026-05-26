@@ -33,7 +33,7 @@ class FloatingPointSize
   FloatingPointSize(const FloatingPointSize& other);
 
   /** Copy assignment. */
-  FloatingPointSize& operator=(const FloatingPointSize& other);
+  FloatingPointSize& operator=(const FloatingPointSize& other) = default;
 
   /** Operator overload for equality comparison. */
   bool operator==(const FloatingPointSize& fps) const

@@ -14,18 +14,18 @@
  * a list of async-signal-safe POSIX.1 functions.
  */
 
-#include <string.h>
-
 #include <cerrno>
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 #include <exception>
 
 #ifndef __WIN32__
 
-#include <signal.h>
 #include <sys/resource.h>
 #include <unistd.h>
+
+#include <csignal>
 
 #endif /* __WIN32__ */
 
