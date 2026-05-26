@@ -149,6 +149,31 @@ void CardinalityExtension::checkCardinalityExtended(TypeNode& t)
     // the universe set is a subset of itself
     if (representative != d_state.getRepresentative(univ))
     {
+      // Negative members are members of the universe set. This is sound for
+      // any representative (independent of whether it is a variable set),
+      // since an excluded element is still an element of the universe. It is
+      // crucial to do this for all representatives: a negative membership on a
+      // set whose equivalence class only contains skolems or derived terms
+      // (e.g. set.minus terms) would otherwise be invisible to the universe
+      // cardinality reasoning, which can lead to unsound models for finite
+      // types where a slack element is assigned the excluded value.
+      const std::map<Node, Node>& negativeMembers =
+          d_state.getNegativeMembers(representative);
+
+      for (const auto& negativeMember : negativeMembers)
+      {
+        Node member = nm->mkNode(Kind::SET_MEMBER, negativeMember.first, univ);
+        // negativeMember.second is the reason for the negative membership and
+        // has kind SET_MEMBER. So we specify the negation as the reason for the
+        // negative membership lemma
+        Node notMember = nm->mkNode(Kind::NOT, negativeMember.second);
+        // (=>
+        //    (not (member negativeMember representative)))
+        //    (member negativeMember (as univset t)))
+        d_im.assertInference(
+            member, InferenceId::SETS_CARD_NEGATIVE_MEMBER, notMember, 1);
+      }
+
       // here we only add representatives with variables to avoid adding
       // infinite equivalent generated terms to the cardinality graph
       Node variable = d_state.getVariableSet(representative);
@@ -166,24 +191,6 @@ void CardinalityExtension::checkCardinalityExtended(TypeNode& t)
       {
         d_im.assertInference(
             subset, InferenceId::SETS_CARD_UNIV_SUPERSET, d_true, 1);
-      }
-
-      // negative members are members in the universe set
-      const std::map<Node, Node>& negativeMembers =
-          d_state.getNegativeMembers(representative);
-
-      for (const auto& negativeMember : negativeMembers)
-      {
-        Node member = nm->mkNode(Kind::SET_MEMBER, negativeMember.first, univ);
-        // negativeMember.second is the reason for the negative membership and
-        // has kind SET_MEMBER. So we specify the negation as the reason for the
-        // negative membership lemma
-        Node notMember = nm->mkNode(Kind::NOT, negativeMember.second);
-        // (=>
-        //    (not (member negativeMember representative)))
-        //    (member negativeMember (as univset t)))
-        d_im.assertInference(
-            member, InferenceId::SETS_CARD_NEGATIVE_MEMBER, notMember, 1);
       }
     }
   }
