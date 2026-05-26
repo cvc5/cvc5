@@ -30,6 +30,7 @@ namespace theory {
 namespace sets {
 
 typedef std::map<Node, std::vector<Node> >::iterator MEM_IT;
+typedef std::map<std::vector<Node>, std::pair<Node, size_t>>::iterator CYC_IT;
 typedef std::map<Kind, std::vector<Node> >::iterator KIND_TERM_IT;
 typedef std::map<Node, std::unordered_set<Node> >::iterator TC_GRAPH_IT;
 typedef std::map<Node, std::map<Kind, std::vector<Node> > >::iterator TERM_IT;
@@ -125,7 +126,7 @@ void TheorySetsRels::check()
         for (unsigned int j = 0; j < tc_terms.size(); j++)
         {
           // Fill in strategy
-          applyAcyclicDownRule(mem, tc_terms[j], rel_rep, exp);
+          applyAcyclicDownRule(mem, tc_terms[j], exp);
           applyTCRule(mem, tc_terms[j], rel_rep, exp);
         }
       }
@@ -245,6 +246,9 @@ void TheorySetsRels::check()
     }
     ++t_it;
   }
+
+  doCycleInference();
+
   doTCInference();
 
   // clean up
@@ -258,6 +262,7 @@ void TheorySetsRels::check()
   d_tcr_tcGraph_exps.clear();
   d_tcr_tcGraph.clear();
   d_acyclic_cache.clear();
+  // d_cycle_sequences.clear();
 }
 
 /*
@@ -316,9 +321,15 @@ void TheorySetsRels::collectRelsInfo()
         // collect acyclic info
         else if (eqc_node.getKind() == Kind::RELATION_ACYCLIC)
         {
-          Node rel_rep = getRepresentative(eqc_node[0]);
-
-          d_acyclic_cache[rel_rep] = is_true_eq;
+          if (is_true_eq)
+          {
+            Node rel_rep = getRepresentative(eqc_node[0]);
+            d_acyclic_cache[rel_rep].push_back(eqc_node);
+          }
+          else
+          {
+            applyInstCycleRule(eqc_node[0], eqc_node.negate());
+          }
         }
         // collect relational terms info
       }
@@ -1296,54 +1307,208 @@ void TheorySetsRels::applyTransposeRule(Node tp_rel, Node tp_rel_rep, Node exp)
 }
 
 /*
+ * RELATION_INST_CYCLE:   NOT RELATION_ACYCLIC(x)  (x,s',cnt) NOT IN C
+ *                         ---------------------------------------------------------
+ *                                              C := C U {(x,s,1)}
+ * for x a fresh sequence variable
+ */
+void TheorySetsRels::applyInstCycleRule(Node rel, Node exp)
+{
+  Trace("rels-debug") << "\n[Theory::Rels] *********** Applying "
+                         "RELATION_INST_CYCLE rule on relation = "
+                      << rel << " and explanation " << exp << std::endl;
+  // We make one cycle per cyclic relation, not equivalence class
+  // TODO will need to split on unions of relations -- see {rel} in this
+  // function
+  if (d_cycle_sequences.find({rel}) != d_cycle_sequences.end())
+  {
+    return;
+  }
+
+  NodeManager* nm = nodeManager();
+  SkolemManager* sm = nm->getSkolemManager();
+
+  Node s = sm->mkSkolemFunction(SkolemId::RELS_SEQUENCE, {rel});
+
+  d_cycle_sequences[{rel}] = std::make_pair(s, 1);
+
+  Node conc = nm->mkNode(Kind::LT,
+                         nm->mkConstInt(Rational(1)),
+                         nm->mkNode(Kind::STRING_LENGTH, s));
+
+  Trace("rels-cycles") << "InstCycleRule: exp = " << exp << ", conc = " << conc
+                       << std::endl;
+
+  // QUESTION: What's the reason?
+  sendInfer(conc, InferenceId::SETS_RELS_INST_CYCLE, exp);
+}
+
+/*
+ * RELATION_SPLIT_CYCLE_LEN:             (x,s,cnt) IN C
+ *                           ------------------------------------------------------
+ *                            S := S U {len(s) < cnt}  ||  C := C U {len(s) =
+ * cnt} for x a fresh sequence variable
+ */
+Node TheorySetsRels::applySplitCycleLenRule(Node seq, size_t cnt)
+{
+  // For each cycle split the cycle len
+  // QUESTION: should we check if the max len has already been reached in the
+  // constraints? Or will the solver filter this case out easily enough?
+
+  Trace("rels-debug") << "\n[Theory::Rels] *********** Applying "
+                         "RELATION_SPLIT_CYCLE_LEN rule on sequence "
+                      << seq << ", cnt = " << cnt << std::endl;
+  //
+  NodeManager* nm = nodeManager();
+
+  Node s_len = nm->mkNode(Kind::STRING_LENGTH, seq);
+  Node cnt_node = nm->mkConstInt(Rational(cnt));
+
+  Node ret_exp = nm->mkNode(Kind::LT, s_len, cnt_node);
+
+  Node conc =
+      nm->mkNode(Kind::OR, nm->mkNode(Kind::EQUAL, s_len, cnt_node), ret_exp);
+
+  Trace("rels-cycles") << "SplitCycleLen: " << conc << std::endl;
+
+  sendInfer(conc, InferenceId::SETS_RELS_SPLIT_CYCLE_LEN, d_trueNode);
+
+  return ret_exp;
+}
+
+/*
+ * RELATION_UNROLL_CYCLE:   ((R1,...,Rk),s,cnt) IN C  cnt < len(s) IN S
+ *                            C' === C  \ {(R,s,cnt)} U {(R,s,cnt+1)}
+ *                         ---------------------------------------------------------
+ *                         C := C'   S := S U {(s[cnt],s[cnt+1]) IS_IN
+ * RELATION_TCLOSURE(R1)}
+ *                        || ... || C := C'   S := S U {(s[cnt],s[cnt+1]) IS_IN
+ * RELATION_TCLOSURE(Rk)}
+ */
+void TheorySetsRels::applyUnrollCycle(std::vector<Node>& rels,
+                                      Node seq,
+                                      size_t cnt,
+                                      Node exp)
+{
+  Assert(0 < rels.size());
+
+  NodeManager* nm = nodeManager();
+  Node one = nm->mkConstInt(Rational(1));
+  Node cnt_node = nm->mkConstInt(Rational(cnt));
+  Node seq_cnt = nm->mkNode(Kind::SEQ_NTH, seq, cnt_node);
+  Node seq_cnt_1 =
+      nm->mkNode(Kind::SEQ_NTH, seq, nm->mkNode(Kind::ADD, cnt_node, one));
+
+  std::vector<Node> disjs;
+  for (const Node& Ri : rels)
+  {
+    TypeNode tt = Ri.getType().getSetElementType();
+    Node tup =
+        TupleUtils::constructTupleFromElements(tt, {seq_cnt, seq_cnt_1}, 0, 1);
+    disjs.push_back(nm->mkNode(Kind::SET_MEMBER, tup, Ri));
+  }
+
+  Node disj = disjs.size() == 1 ? disjs[0] : nm->mkNode(Kind::OR, disjs);
+
+  Trace("rels-cycles") << "UnrollCycle: exp = " << exp << ", disj = " << disj
+                       << std::endl;
+
+  sendInfer(disj, InferenceId::SETS_RELS_UNROLL_CYCLE, exp);
+
+  // Increment cnt
+  std::pair<Node, size_t> new_c = std::make_pair(seq, cnt + 1);
+  d_cycle_sequences[rels] = new_c;
+}
+
+/*
  * RELATION_ACYLIC_DOWN:   (a, b) IS_IN RELATION_TCLOSURE(x) RELATION_ACYCLIC(x)
  *                         ---------------------------------------------------------
  *                                              a != b
  */
 void TheorySetsRels::applyAcyclicDownRule(Node mem_rep,
                                           Node tc_rel,
-                                          Node tc_rel_rep,
-                                          Node exp)
+                                          Node exp_tc)
 {
+  Node tc_rel0_rep = getRepresentative(tc_rel[0]);
+
   Trace("rels-debug") << "\n[Theory::Rels] *********** Applying "
                          "RELATION_ACYCLIC rule on member"
-                      << mem_rep << ", transivitely closed term = " << tc_rel
-                      << " and its representative = " << tc_rel_rep
-                      << ", with explanation = " << exp << std::endl;
+                      << mem_rep << ", transitively closed term = " << tc_rel
+                      << " and its representative = " << tc_rel0_rep
+                      << ", with explanation = " << exp_tc << std::endl;
   // Step 1: find rep of the transitively closed relation in d_acyclic_cache
-  // Question: should d_acyclic_cache be changed so that it also tracks
-  // the original relation, not just the representative?
-  Node tc_rel0_rep = getRepresentative(tc_rel[0]);
+  // This means that some relation in the equivalence class of tc_rel[0] is
+  // acyclic Meaning tc_rel[0] is also acyclic
   if (d_acyclic_cache.find(tc_rel0_rep) == d_acyclic_cache.end())
   {
     return;
   }
 
-  bool is_acyclic = d_acyclic_cache[tc_rel0_rep];
-  if (!is_acyclic) return;
+  // Pick any acyclic relation in our equivalence class of tc_rel[0] as the
+  // reason for the acyclicity of the transitively closed relation
+  Node exp_acyc = d_acyclic_cache[tc_rel0_rep][0];
 
   NodeManager* nm = nodeManager();
 
-  Node reason = nodeManager()->mkNode(
-      Kind::AND, exp, nodeManager()->mkNode(Kind::RELATION_ACYCLIC, tc_rel[0]));
+  // Reason is that mem_rep is in tc_rel_rep, and that some relation
+  // equivalent to tc_rel0_rep is acyclic
+  // Node reason = nodeManager()->mkNode(
+  //     Kind::AND, exp_tc, exp_acyc);
 
-  // If we add the original relation to d_acyclic_cache, then
-  // the following code will be necessary again (with tc_rel replaced)
-  // with the acyclic relation compared to tc_rel0_rep)
-  // if (tc_rel0_rep != d_acyclic_cache[tc_rel0_rep].first)
+  // If the membership explanation involves a relation that is not tc_rel,
+  // update the reason to include the equality of these relations
+  // if (tc_rel != exp_tc[1])
+  // {
+  //   reason = nm->mkNode(Kind::AND, reason,
+  //                       nm->mkNode(Kind::EQUAL, tc_rel, exp_tc[1]));
+  // }
+
+  // If the acyclic relation is not the tc one, then we must assert
+  // the equality of these two relations
+  // if (exp_acyc[0] != tc_rel[0])
   // {
   //   reason = nodeManager()->mkNode(
   //       Kind::AND,
   //       reason,
-  //       nodeManager()->mkNode(Kind::EQUAL, tc_rel0_rep,
-  //       d_acyclic_cache[tc_rel0_rep].first));
+  //       nodeManager()->mkNode(Kind::EQUAL, exp_acyc[0],
+  //       tc_rel[0]));
   // }
+
+  // Here is a cleaner way of doing the above:
+  std::vector<Node> reasons{exp_tc, exp_acyc};
+  if (tc_rel != exp_tc[1])
+    reasons.push_back(nm->mkNode(Kind::EQUAL, tc_rel, exp_tc[1]));
+  if (exp_acyc[0] != tc_rel[0])
+    reasons.push_back(nm->mkNode(Kind::EQUAL, exp_acyc[0], tc_rel[0]));
+  Node reason =
+      reasons.size() == 1 ? reasons[0] : nm->mkNode(Kind::AND, reasons);
+
   Node mem_rep0 = TupleUtils::nthElementOfTuple(mem_rep, 0);
   Node mem_rep1 = TupleUtils::nthElementOfTuple(mem_rep, 1);
 
   sendInfer(nm->mkNode(Kind::NOT, nm->mkNode(Kind::EQUAL, mem_rep0, mem_rep1)),
             InferenceId::SETS_RELS_ACYCLIC_DOWN,
             reason);
+}
+
+void TheorySetsRels::doCycleInference()
+{
+  // SplitCycleLen
+  CYC_IT c_it = d_cycle_sequences.begin();
+
+  while (c_it != d_cycle_sequences.end())
+  {
+    std::vector<Node> rels = c_it->first;
+    Node seq = c_it->second.first;
+    size_t cnt = c_it->second.second;
+    Node exp = applySplitCycleLenRule(seq, cnt);
+    // Question: how do we only apply the second function
+    // in the case that we're in the < case?
+    applyUnrollCycle(rels, seq, cnt, exp);
+    ++c_it;
+  }
+
+  // UnrollCycle
 }
 
 void TheorySetsRels::doTCInference()

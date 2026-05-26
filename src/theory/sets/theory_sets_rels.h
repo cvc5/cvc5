@@ -126,8 +126,14 @@ class TheorySetsRels : protected EnvObj
   /** Mapping between transitive closure relation TC(r) and its TC graph
    * constructed based on the members of r*/
 
-  /** Mapping from acyclic relation representatives to their truth value */
-  std::map<Node, bool> d_acyclic_cache;
+  /** Mapping from acyclic relation representative to its explanation(s) */
+  std::map<Node, std::vector<Node>> d_acyclic_cache;
+
+  /** Mapping from acyclic relation representatives to their sequence
+   * representations and counts */
+  std::map<std::vector<Node>, std::pair<Node, size_t>> d_cycle_sequences;
+  // context::CDHashMap<std::vector<Node>, std::pair<Node, size_t> >
+  // d_cycle_sequences;
 
   /** Mapping between transitive closure relation TC(r) and its TC graph
    * constructed based on the members of r*/
@@ -162,7 +168,13 @@ class TheorySetsRels : protected EnvObj
   void collectRelsInfo();
   void applyTransposeRule(std::vector<Node> tp_terms);
   void applyTransposeRule(Node rel, Node rel_rep, Node exp);
-  void applyAcyclicDownRule(Node mem, Node rel, Node rel_rep, Node exp);
+  void applyAcyclicDownRule(Node mem, Node rel, Node exp);
+  void applyInstCycleRule(Node rel_rep, Node exp);
+  Node applySplitCycleLenRule(Node seq, size_t cnt);
+  void applyUnrollCycle(std::vector<Node>& rels,
+                        Node seq,
+                        size_t cnt,
+                        Node exp);
   void applyProductRule(Node rel, Node rel_rep, Node exp);
   void applyJoinRule(Node rel, Node rel_rep, Node exp);
   /**
@@ -183,6 +195,7 @@ class TheorySetsRels : protected EnvObj
   void applyIdenRule(Node mem_rep, Node rel_rep, Node exp);
   void applyTCRule(Node mem, Node rel, Node rel_rep, Node exp);
   void buildTCGraphForRel(Node tc_rel);
+  void doCycleInference();
   void doTCInference();
   void doTCInference(std::map<Node, std::unordered_set<Node> > rel_tc_graph,
                      std::map<Node, Node> rel_tc_graph_exps,
