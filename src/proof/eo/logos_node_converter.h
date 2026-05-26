@@ -84,6 +84,7 @@ static std::string replace_all(std::string str,
                      const std::vector<Node>& args,
                      TypeNode ret,
                      bool useRawSym = true);
+  Node mkNativeStringLit(const Node& n);
   /** The number of uninterpreted constants we have allocated */
   size_t d_constIdCount;
   /** Cache for typeAsNode */

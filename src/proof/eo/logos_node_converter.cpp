@@ -57,7 +57,7 @@ Node LogosNodeConverter::postConvert(Node n)
   else if (k == Kind::CONST_STRING)
   {
     std::stringstream ss;
-    ss << "(Term.String (native_string_lit " << n << "))";
+    ss << "(Term.String (SmtEval.native_string_lit " << n << "))";
     return mkInternalSymbol(ss.str(), n.getType());
   }
   else if (k == Kind::CONST_BITVECTOR)
@@ -314,7 +314,7 @@ Node LogosNodeConverter::typeAsNodeDatatype(const DType& dt,
         }
         else
         {
-          Node dtName = convert(d_nm->mkConst(String(argt.getDType().getName())));
+          Node dtName = mkNativeStringLit(d_nm->mkConst(String(argt.getDType().getName())));
           an = mkInternalApp("Term.DatatypeTypeRef", {dtName}, d_sortType);
         }
       }
@@ -326,7 +326,7 @@ Node LogosNodeConverter::typeAsNodeDatatype(const DType& dt,
     }
     ret = mkInternalApp("Datatype.sum", {cons, ret}, d_sortType);
   }
-  Node dtName = convert(d_nm->mkConst(String(dt.getName())));
+  Node dtName = mkNativeStringLit(d_nm->mkConst(String(dt.getName())));
   ret = mkInternalApp("Term.DatatypeType", {dtName, ret}, d_sortType);
   return ret;
 }
@@ -376,6 +376,13 @@ Node LogosNodeConverter::mkIndexedApp(const std::string& name,
   std::stringstream ss;
   ss << "Term.UOp" << args.size();
   return mkInternalApp(ss.str(), targs, ret, useRawSym);
+}
+
+Node LogosNodeConverter::mkNativeStringLit(const Node& n)
+{
+  std::stringstream ss;
+  ss << "(SmtEval.native_string_lit " << n << ")";
+  return mkInternalSymbol(ss.str(), n.getType());
 }
 
 }  // namespace proof
