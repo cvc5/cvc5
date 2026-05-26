@@ -32,7 +32,13 @@ namespace test {
 class TestUtilBlackFloatingPoint : public TestInternal
 {
  protected:
+  /** Default number of random tests when not exhaustively testing. */
   static constexpr uint32_t N_TESTS = 1000;
+  /** Number of tests fp.rem (significantly slower than other operators). */
+  static constexpr uint32_t N_TESTS_REM = 100;
+  /** Min/max bit-vector width used in convertToBV cross-checks. */
+  static constexpr uint32_t MIN_SIZE_TO_BV = 4;
+  static constexpr uint32_t MAX_SIZE_TO_BV = 64;
 
   TestUtilBlackFloatingPoint()
       : d_rng(Random::getRandom()),
@@ -54,6 +60,9 @@ class TestUtilBlackFloatingPoint : public TestInternal
                  RoundingMode::ROUND_TOWARD_NEGATIVE,
                  RoundingMode::ROUND_TOWARD_ZERO};
   }
+
+  /** @return A random boolean. */
+  bool pickBool() { return d_rng.pick<uint32_t>(0, 1) != 0; }
 
   /** @return A random rounding mode. */
   RoundingMode pickRm()
@@ -352,6 +361,15 @@ TEST_F(TestUtilBlackFloatingPoint, components)
     }
   };
   testForFloat16(fun16);
+  testForFormats(
+      d_formats_32_128,
+      N_TESTS,
+      [](const FloatingPointSize& fmt, const BitVector& bv) {
+        auto mpfr = fpMPFR(fmt, bv);
+        auto sym = fpSymFPU(fmt, bv);
+        ASSERT_EQ(mpfr.getUnpackedExponent(), sym.getUnpackedExponent());
+        ASSERT_EQ(mpfr.getUnpackedSignificand(), sym.getUnpackedSignificand());
+      });
 }
 
 TEST_F(TestUtilBlackFloatingPoint, specialConstants)
@@ -517,10 +535,10 @@ TEST_F(TestUtilBlackFloatingPoint, fpRem)
 {
   // Exhaustive for Float16 (one operand exhaustive, other random)
   auto fun16 = [this](const BitVector& bvexp, const BitVector& bvsig) {
-    bool sign = d_rng() & 1;
+    bool sign = pickBool();
     BitVector bvsign = sign ? BitVector::mkOne(1) : BitVector::mkZero(1);
     BitVector bv1 = bvsign.concat(bvexp).concat(bvsig);
-    BitVector bv2 = BitVector::mkRandom(16);
+    BitVector bv2 = BitVector::mkRandom(d_fp16.packedWidth());
 
     auto mpfr1 = fpMPFR(d_fp16, bv1);
     auto mpfr2 = fpMPFR(d_fp16, bv2);
@@ -551,10 +569,10 @@ TEST_F(TestUtilBlackFloatingPoint, fpRem)
   TEST_F(TestUtilBlackFloatingPoint, NAME)                                  \
   {                                                                         \
     auto fun16 = [this](const BitVector& bvexp, const BitVector& bvsig) {   \
-      bool sign = d_rng() & 1;                                              \
+      bool sign = pickBool();                                               \
       BitVector bvsign = sign ? BitVector::mkOne(1) : BitVector::mkZero(1); \
       BitVector bv1 = bvsign.concat(bvexp).concat(bvsig);                   \
-      BitVector bv2 = BitVector::mkRandom(16);                              \
+      BitVector bv2 = BitVector::mkRandom(d_fp16.packedWidth());            \
       auto mpfr1 = fpMPFR(d_fp16, bv1);                                     \
       auto mpfr2 = fpMPFR(d_fp16, bv2);                                     \
       auto sym1 = fpSymFPU(d_fp16, bv1);                                    \
@@ -597,11 +615,11 @@ TEST_BINARY_RM_OP(fpDiv, div)
 TEST_F(TestUtilBlackFloatingPoint, fpFma)
 {
   auto fun16 = [this](const BitVector& bvexp, const BitVector& bvsig) {
-    bool sign = d_rng() & 1;
+    bool sign = pickBool();
     BitVector bvsign = sign ? BitVector::mkOne(1) : BitVector::mkZero(1);
     BitVector bv1 = bvsign.concat(bvexp).concat(bvsig);
-    BitVector bv2 = BitVector::mkRandom(16);
-    BitVector bv3 = BitVector::mkRandom(16);
+    BitVector bv2 = BitVector::mkRandom(d_fp16.packedWidth());
+    BitVector bv3 = BitVector::mkRandom(d_fp16.packedWidth());
 
     auto mpfr1 = fpMPFR(d_fp16, bv1);
     auto mpfr2 = fpMPFR(d_fp16, bv2);
@@ -644,10 +662,10 @@ TEST_F(TestUtilBlackFloatingPoint, fpFma)
 TEST_F(TestUtilBlackFloatingPoint, fpMinMax)
 {
   auto fun16 = [this](const BitVector& bvexp, const BitVector& bvsig) {
-    bool sign = d_rng() & 1;
+    bool sign = pickBool();
     BitVector bvsign = sign ? BitVector::mkOne(1) : BitVector::mkZero(1);
     BitVector bv1 = bvsign.concat(bvexp).concat(bvsig);
-    BitVector bv2 = BitVector::mkRandom(16);
+    BitVector bv2 = BitVector::mkRandom(d_fp16.packedWidth());
 
     auto mpfr1 = fpMPFR(d_fp16, bv1);
     auto mpfr2 = fpMPFR(d_fp16, bv2);
@@ -663,6 +681,22 @@ TEST_F(TestUtilBlackFloatingPoint, fpMinMax)
     }
   };
   testForFloat16(fun16);
+  testForFormats(d_formats_32_128,
+                 N_TESTS,
+                 [](const FloatingPointSize& fmt, const BitVector& bv1) {
+                   BitVector bv2 = BitVector::mkRandom(fmt.packedWidth());
+                   auto mpfr1 = fpMPFR(fmt, bv1);
+                   auto mpfr2 = fpMPFR(fmt, bv2);
+                   auto sym1 = fpSymFPU(fmt, bv1);
+                   auto sym2 = fpSymFPU(fmt, bv2);
+                   for (bool zeroCaseLeft : {false, true})
+                   {
+                     ASSERT_EQ(mpfr1.maxTotal(mpfr2, zeroCaseLeft)->pack(),
+                               sym1.maxTotal(sym2, zeroCaseLeft)->pack());
+                     ASSERT_EQ(mpfr1.minTotal(mpfr2, zeroCaseLeft)->pack(),
+                               sym1.minTotal(sym2, zeroCaseLeft)->pack());
+                   }
+                 });
 }
 
 /* -------------------------------------------------------------------------- */
@@ -672,10 +706,10 @@ TEST_F(TestUtilBlackFloatingPoint, fpMinMax)
 TEST_F(TestUtilBlackFloatingPoint, comparisons)
 {
   auto fun16 = [this](const BitVector& bvexp, const BitVector& bvsig) {
-    bool sign = d_rng() & 1;
+    bool sign = pickBool();
     BitVector bvsign = sign ? BitVector::mkOne(1) : BitVector::mkZero(1);
     BitVector bv1 = bvsign.concat(bvexp).concat(bvsig);
-    BitVector bv2 = BitVector::mkRandom(16);
+    BitVector bv2 = BitVector::mkRandom(d_fp16.packedWidth());
 
     auto mpfr1 = fpMPFR(d_fp16, bv1);
     auto mpfr2 = fpMPFR(d_fp16, bv2);
@@ -692,6 +726,21 @@ TEST_F(TestUtilBlackFloatingPoint, comparisons)
     ASSERT_EQ(mpfr1 < mpfr1, sym1 < sym1);
   };
   testForFloat16(fun16);
+  testForFormats(d_formats_32_128,
+                 N_TESTS,
+                 [](const FloatingPointSize& fmt, const BitVector& bv1) {
+                   BitVector bv2 = BitVector::mkRandom(fmt.packedWidth());
+                   auto mpfr1 = fpMPFR(fmt, bv1);
+                   auto mpfr2 = fpMPFR(fmt, bv2);
+                   auto sym1 = fpSymFPU(fmt, bv1);
+                   auto sym2 = fpSymFPU(fmt, bv2);
+                   ASSERT_EQ(mpfr1 == mpfr2, sym1 == sym2);
+                   ASSERT_EQ(mpfr1 <= mpfr2, sym1 <= sym2);
+                   ASSERT_EQ(mpfr1 < mpfr2, sym1 < sym2);
+                   ASSERT_EQ(mpfr1 == mpfr1, sym1 == sym1);
+                   ASSERT_EQ(mpfr1 <= mpfr1, sym1 <= sym1);
+                   ASSERT_EQ(mpfr1 < mpfr1, sym1 < sym1);
+                 });
 }
 
 /* -------------------------------------------------------------------------- */
@@ -726,7 +775,7 @@ TEST_F(TestUtilBlackFloatingPoint, convertToBV)
     FloatingPointSize fmt = pickFormat();
     BitVector bv = BitVector::mkRandom(fmt.packedWidth());
     RoundingMode rm = pickRm();
-    uint32_t width = 4 + (d_rng() % 61);
+    uint32_t width = d_rng.pick<uint32_t>(MIN_SIZE_TO_BV, MAX_SIZE_TO_BV);
     BitVector undef = BitVector::mkRandom(width);
 
     auto mpfr = fpMPFR(fmt, bv);
@@ -817,7 +866,7 @@ TEST_F(TestUtilBlackFloatingPoint, chainedSqrtAdd)
 TEST_F(TestUtilBlackFloatingPoint, chainedRemAdd)
 {
   testForFormats(d_all_formats,
-                 100,
+                 N_TESTS_REM,
                  [this](const FloatingPointSize& fmt, const BitVector& bv1) {
                    BitVector bv2 = BitVector::mkRandom(fmt.packedWidth());
                    BitVector bv3 = BitVector::mkRandom(fmt.packedWidth());
@@ -838,6 +887,11 @@ TEST_F(TestUtilBlackFloatingPoint, chainedRemAdd)
                    ASSERT_EQ(mpfr1.rem(mpfr2)->add(rm, mpfr3)->pack(),
                              sym1.rem(sym2)->add(rm, sym3)->pack());
                  });
+}
+#else
+TEST_F(TestUtilBlackFloatingPoint, crosscheckDisabled)
+{
+  GTEST_SKIP() << "MPFR-vs-SymFPU cross-checks require -DUSE_MPFR=ON";
 }
 #endif
 
