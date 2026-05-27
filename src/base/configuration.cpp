@@ -110,7 +110,7 @@ std::string Configuration::copyright()
   }
 
   ss << "  SymFPU - The Symbolic Floating Point Unit\n"
-     << "  See https://github.com/martin-cs/symfpu/tree/CVC4 for copyright "
+     << "  See https://github.com/martin-cs/symfpu/tree/main for copyright "
      << "information.\n\n";
 
   if (isBuiltWithGmp() || isBuiltWithPoly())
