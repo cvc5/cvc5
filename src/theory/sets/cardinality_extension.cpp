@@ -1069,7 +1069,9 @@ void CardinalityExtension::mkModelValueElementsFor(
         throw LogicException(ss.str());
       }
       std::uint32_t vu = v.getConst<Rational>().getNumerator().toUnsignedInt();
-      Assert(els.size() <= vu);
+      // The members collected in els are syntactic witnesses. They may be
+      // assigned the same model value unless they are known to be disequal, so
+      // els.size() can exceed the cardinality value here.
       NodeManager* nm = nodeManager();
       if (elementTypeFinite)
       {
