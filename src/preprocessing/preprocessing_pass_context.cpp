@@ -97,7 +97,8 @@ void PreprocessingPassContext::addSubstitution(const Node& lhs,
   d_env.getTopLevelSubstitutions().addSubstitution(lhs, rhs, id, {}, args);
 }
 
-void PreprocessingPassContext::addSubstitutions(theory::TrustSubstitutionMap& tm)
+void PreprocessingPassContext::addSubstitutions(
+    theory::TrustSubstitutionMap& tm)
 {
   std::unordered_map<Node, Node> subs = tm.get().getSubstitutions();
   for (const std::pair<const Node, Node>& s : subs)
