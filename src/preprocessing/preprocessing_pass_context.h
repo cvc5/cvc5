@@ -41,8 +41,6 @@ class PropEngine;
 
 namespace preprocessing {
 
-class AssertionPipeline;
-
 class PreprocessingPassContext : protected EnvObj
 {
  public:
@@ -113,17 +111,14 @@ class PreprocessingPassContext : protected EnvObj
    */
   void addSubstitution(const Node& lhs,
                        const Node& rhs,
-                       ProofGenerator* pg = nullptr,
-                       AssertionPipeline* assertions = nullptr);
+                       ProofGenerator* pg = nullptr);
   /** Same as above, with proof id */
   void addSubstitution(const Node& lhs,
                        const Node& rhs,
                        ProofRule id,
-                       const std::vector<Node>& args,
-                       AssertionPipeline* assertions = nullptr);
+                       const std::vector<Node>& args);
   /** Add top level substitutions for a substitution map */
-  void addSubstitutions(theory::TrustSubstitutionMap& tm,
-                        AssertionPipeline* assertions = nullptr);
+  void addSubstitutions(theory::TrustSubstitutionMap& tm);
 
  private:
   /** Helper method for printing substitutions */
