@@ -44,3 +44,27 @@
   (($assoc_nil_nth f (f x1 x2) n)   ($assoc_nil_nth f x2 (eo::add n -1)))
   )
 )
+
+; program: $iota_rec
+; args:
+; - ns (@TList Int): A list of zeroes, the length of the list to generate.
+; - n Int: The current counter to add to the list.
+; return: >
+;  The iota list starting from n of length of ns. This is used to generate e.g. the
+;  list (@tlist 0 (@tlist 1 .... (@tlist n (@tlist.nil Int)) ... )).
+(program $iota_rec ((n Int) (ns (@TList Int) :list))
+  :signature ((@TList Int) Int) (@TList Int)
+  (
+  (($iota_rec (@tlist.nil Int) n) (@tlist.nil Int))
+  (($iota_rec (@tlist 0 ns) n)    (_ @tlist n ($iota_rec ns (eo::add n 1))))
+  )
+)
+
+; program: $iota
+; args:
+; - n Int: The desired length of the list, expected to be non-negative.
+; return: >
+;  The iota list of length n. This the list
+;  (@tlist 0 (@tlist 1 .... (@tlist n (@tlist.nil Int)) ... )).
+(define $iota ((n Int))
+  (eo::requires (eo::is_neg n) false ($iota_rec (eo::list_repeat @tlist 0 n) 0)))
