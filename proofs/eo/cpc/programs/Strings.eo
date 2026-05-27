@@ -242,19 +242,19 @@
   )
 )
 
-; program: $str_eval_str_in_re
+; program: $str_eval_str_in_re_rec
 ; args:
-; - s String: The input string.
+; - s String: The input string, expected to be in flat form.
 ; - r RegLan: The regular expression.
 ; returns: Bool
 ;   Checks if the string s is accepted by the regular language L(r) using the derivative method.
 ;   String s is accepted if and only if the derivative is nullable.
-(program $str_eval_str_in_re ((s String) (r RegLan))
+(program $str_eval_str_in_re_rec ((s String) (s1 String) (s2 String :list) (r RegLan))
   :signature (String RegLan) Bool
   (
-    (($str_eval_str_in_re "" r)       ($re_nullable r))
-    (($str_eval_str_in_re s re.none)  false)
-    (($str_eval_str_in_re s r)        ($str_eval_str_in_re (eo::extract s 1 (eo::add -1 (eo::len s))) ($derivative (eo::extract s 0 0) r)))
+    (($str_eval_str_in_re_rec "" r)             ($re_nullable r))
+    (($str_eval_str_in_re_rec s re.none)        false)
+    (($str_eval_str_in_re_rec (str.++ s1 s2) r) ($str_eval_str_in_re_rec s2 ($derivative s1 r)))
   )
 )
 
@@ -262,62 +262,49 @@
 
 ; program: $str_first_match_rec_smallest
 ; args:
-; - s String: The string to inspect.
+; - s String: The string to inspect, expected to be in flat form.
 ; - r RegLan: The regular expression to inspect, assumed to contain s.
 ; - m Int: The current prefix size of s we are considering.
-; - lens Int: The length of s.
 ; return: >
 ;   The size of the smallest prefix of s that is contained in r.
-(program $str_first_match_rec_smallest ((s String) (r RegLan) (m Int) (lens Int))
-  :signature (String RegLan Int Int) Int
+(program $str_first_match_rec_smallest ((s1 String) (s2 String :list) (r RegLan) (m Int))
+  :signature (String RegLan Int) Int
+
   (
-    (($str_first_match_rec_smallest s r m lens)   (eo::define ((ss (eo::extract s 0 (eo::add m -1))))
-                                                  (eo::ite ($str_eval_str_in_re ss r)
-                                                    m
-                                                    (eo::requires (eo::eq m lens) false
-                                                      ($str_first_match_rec_smallest s r (eo::add m 1) lens)))))
+    (($str_first_match_rec_smallest (str.++ s1 s2) r m)
+      (eo::ite ($re_nullable r)
+        m
+        ($str_first_match_rec_smallest s2 ($derivative s1 r) (eo::add m 1))))
+    (($str_first_match_rec_smallest "" r m)
+      (eo::requires ($re_nullable r) true m))
   )
 )
 
 ; program: $str_first_match_rec
 ; args:
-; - s String: The string to inspect.
+; - s String: The string to inspect, expected to be in flat form.
 ; - r RegLan: The regular expression to inspect.
 ; - rs RegLan: Equivalent to (re.++ r re.all), used for finding whether a prefix of s is contained in r.
 ; - n Int: The position of the original string we are searching.
-; - lens Int: The length of s.
 ; return: >
 ;   A pair of the form (n+n', n+m') where the first shortest match of r in s is
 ;   at start position n' and end position m', or (-1, -1) if r does not match
 ;   any substring of s.
-(program $str_first_match_rec ((s String) (r RegLan) (rs RegLan) (n Int) (lens Int))
-  :signature (String RegLan RegLan Int Int) (@Pair Int Int)
+(program $str_first_match_rec ((s1 String) (s2 String :list) (r RegLan) (rs RegLan) (n Int))
+  :signature (String RegLan RegLan Int) (@Pair Int Int)
   (
-    (($str_first_match_rec s r rs n lens)  (eo::ite ($str_eval_str_in_re s rs)
-                                            ; found (superstring) match, now find the smallest exact match
-                                            (@pair n (eo::add n ($str_first_match_rec_smallest s r 0 lens)))
-                                            (eo::ite (eo::eq lens 0)
-                                              ; we are at the end of s, did not find a match
-                                              (@pair -1 -1)
-                                              ; move to the next position in s
-                                              (eo::define ((lsm1 (eo::add lens -1)))
-                                                ($str_first_match_rec (eo::extract s 1 lsm1) r rs (eo::add n 1) lsm1)))))
+    (($str_first_match_rec (str.++ s1 s2) r rs n)
+      (eo::ite ($str_eval_str_in_re_rec (str.++ s1 s2) rs)
+        ; found (superstring) match, now find the smallest exact match
+        (@pair n (eo::add n ($str_first_match_rec_smallest (str.++ s1 s2) r 0)))
+        ; move to the next position in s
+        ($str_first_match_rec s2 r rs (eo::add n 1))))
+    (($str_first_match_rec "" r rs n)
+      (eo::ite ($str_eval_str_in_re_rec "" rs)
+        (@pair n (eo::add n ($str_first_match_rec_smallest "" r 0)))
+        (@pair -1 -1)))
   )
 )
-
-; define: $str_first_match
-; args:
-; - s String: The string to inspect.
-; - r RegLan: The regular expression to inspect.
-; return: >
-;   A pair of the form (n, m) where the first shortest match of r in s is at
-;   start position n and end position m, or (-1, -1) if r does not match any
-;   substring of s.
-(define $str_first_match ((s String) (r RegLan))
-  (eo::define ((lens (eo::len s)))
-  (eo::define ((rs (re.++ r re.all)))
-  (eo::requires (eo::is_str s) true
-    ($str_first_match_rec s r rs 0 lens)))))
 
 ;;-------------------- Skolem terms
 
@@ -1133,6 +1120,41 @@
   ; intro, reverse
   ($str_rev rev ($str_nary_intro s)))
 
+; define: $str_eval_str_in_re
+; args:
+; - s String: The input string.
+; - r RegLan: The regular expression.
+; returns: Bool
+;   Checks if string literal s is accepted by the regular language L(r).
+(define $str_eval_str_in_re ((s String) (r RegLan))
+  ($str_eval_str_in_re_rec ($str_to_flat_form s false) r))
+
+; define: $str_first_match
+; args:
+; - s String: The string to inspect.
+; - r RegLan: The regular expression to inspect.
+; return: >
+;   A pair of the form (n, m) where the first shortest match of r in s is at
+;   start position n and end position m, or (-1, -1) if r does not match any
+;   substring of s.
+(define $str_first_match ((s String) (r RegLan))
+  (eo::define ((rs (re.++ r re.all)))
+  (eo::requires (eo::is_str s) true
+    ($str_first_match_rec ($str_to_flat_form s false) r rs 0))))
+
+; define: $str_first_prefix_match
+; args:
+; - s String: The string to inspect, expected to be in flat form.
+; - r RegLan: The regular expression to inspect.
+; return: >
+;   The size of the shortest prefix of s that is contained in r, or -1 if no
+;   prefix of s is contained in r.
+(define $str_first_prefix_match ((s String) (r RegLan))
+  (eo::define ((rs (re.++ r re.all)))
+    (eo::ite ($str_eval_str_in_re_rec s rs)
+      ($str_first_match_rec_smallest s r 0)
+      -1)))
+
 ; program: $re_str_to_flat_form
 ; args:
 ; - rev Bool: Whether to reverse the strings that occur in r.
@@ -1915,24 +1937,39 @@
     (str.<= s t)))
 
 
+; program: $str_is_prefix_flat
+; args:
+; - s String: A string, expected to be in flat form.
+; - t String: A string, expected to be in flat form.
+; return: >
+;   True if t is a prefix of s.
+(program $str_is_prefix_flat ((s String) (s1 String) (s2 String :list) (t String) (t1 String) (t2 String :list))
+  :signature (String String) Bool
+  (
+  (($str_is_prefix_flat s "")                         true)
+  (($str_is_prefix_flat (str.++ s1 s2) (str.++ s1 t2)) ($str_is_prefix_flat s2 t2))
+  (($str_is_prefix_flat (str.++ s1 s2) (str.++ t1 t2)) false)
+  (($str_is_prefix_flat s t)                          false)
+  )
+)
+
 ; program: $str_eval_replace_all_rec
 ; args:
-; - s String: A string.
-; - t String: A string to find.
+; - s String: A string, expected to be in flat form.
+; - t String: A non-empty string to find, expected to be in flat form.
 ; - u String: A string to replace with.
-; - n Int: The result of finding t in s.
+; - skip Int: The number of characters to skip after a previous match.
 ; - lent Int: The length of t.
 ; return: >
 ;   The result of evaluating (str.replace_all s t u).
-(program $str_eval_replace_all_rec ((s String) (t String) (u String) (n Int) (lent Int))
+(program $str_eval_replace_all_rec ((s1 String) (s2 String :list) (t String) (u String) (skip Int) (lent Int))
   :signature (String String String Int Int) String
   (
-  (($str_eval_replace_all_rec s t u -1 lent)  s)
-  (($str_eval_replace_all_rec s t u n lent)   (eo::define ((snext (eo::extract s (eo::add n lent) (eo::len s))))
-                                              (eo::concat
-                                                (eo::extract s 0 (eo::add n -1))
-                                                u
-                                                ($str_eval_replace_all_rec snext t u (eo::find snext t) lent))))
+  (($str_eval_replace_all_rec "" t u skip lent)              "")
+  (($str_eval_replace_all_rec (str.++ s1 s2) t u 0 lent)     (eo::ite ($str_is_prefix_flat (str.++ s1 s2) t)
+                                                                  (eo::concat u ($str_eval_replace_all_rec s2 t u (eo::add lent -1) lent))
+                                                                  (eo::concat s1 ($str_eval_replace_all_rec s2 t u 0 lent))))
+  (($str_eval_replace_all_rec (str.++ s1 s2) t u skip lent)  ($str_eval_replace_all_rec s2 t u (eo::add skip -1) lent))
   )
 )
 
@@ -1947,5 +1984,5 @@
   (eo::ite (eo::and (eo::is_str s) (eo::is_str t) (eo::is_str u))
     (eo::ite (eo::eq t "")
       s
-      ($str_eval_replace_all_rec s t u (eo::find s t) (eo::len t)))
+      ($str_eval_replace_all_rec ($str_to_flat_form s false) ($str_to_flat_form t false) u 0 (eo::len t)))
     (str.replace_all s t u)))
