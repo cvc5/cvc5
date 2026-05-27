@@ -13,7 +13,6 @@
 
 #include "preprocessing/assertion_pipeline.h"
 
-#include "expr/node_algorithm.h"
 #include "expr/node_manager.h"
 #include "options/smt_options.h"
 #include "proof/lazy_proof.h"
@@ -189,14 +188,23 @@ void AssertionPipeline::replace(size_t i,
   }
   else
   {
-    IteSkolemMap::iterator it = d_iteSkolemMap.find(i);
-    if (it != d_iteSkolemMap.end() && !expr::hasSubterm(n, it->second))
-    {
-      // Replacements may eliminate an ITE-removal skolem. In that case, this
-      // assertion is no longer a skolem definition.
-      d_iteSkolemMap.erase(it);
-    }
     d_nodes[i] = n;
+  }
+}
+
+void AssertionPipeline::removeIteSkolem(TNode skolem)
+{
+  for (IteSkolemMap::iterator it = d_iteSkolemMap.begin();
+       it != d_iteSkolemMap.end();)
+  {
+    if (it->second == skolem)
+    {
+      it = d_iteSkolemMap.erase(it);
+    }
+    else
+    {
+      ++it;
+    }
   }
 }
 

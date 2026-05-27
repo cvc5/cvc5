@@ -14,6 +14,7 @@
 
 #include "expr/node_algorithm.h"
 #include "options/base_options.h"
+#include "preprocessing/assertion_pipeline.h"
 #include "prop/prop_engine.h"
 #include "smt/env.h"
 #include "theory/theory_engine.h"
@@ -82,28 +83,42 @@ std::vector<Node> PreprocessingPassContext::getLearnedLiterals() const
 
 void PreprocessingPassContext::addSubstitution(const Node& lhs,
                                                const Node& rhs,
-                                               ProofGenerator* pg)
+                                               ProofGenerator* pg,
+                                               AssertionPipeline* assertions)
 {
   d_propEngine->notifyTopLevelSubstitution(lhs, rhs);
+  if (assertions != nullptr && lhs.getKind() == Kind::SKOLEM)
+  {
+    assertions->removeIteSkolem(lhs);
+  }
   d_env.getTopLevelSubstitutions().addSubstitution(lhs, rhs, pg);
 }
 
 void PreprocessingPassContext::addSubstitution(const Node& lhs,
                                                const Node& rhs,
                                                ProofRule id,
-                                               const std::vector<Node>& args)
+                                               const std::vector<Node>& args,
+                                               AssertionPipeline* assertions)
 {
   d_propEngine->notifyTopLevelSubstitution(lhs, rhs);
+  if (assertions != nullptr && lhs.getKind() == Kind::SKOLEM)
+  {
+    assertions->removeIteSkolem(lhs);
+  }
   d_env.getTopLevelSubstitutions().addSubstitution(lhs, rhs, id, {}, args);
 }
 
 void PreprocessingPassContext::addSubstitutions(
-    theory::TrustSubstitutionMap& tm)
+    theory::TrustSubstitutionMap& tm, AssertionPipeline* assertions)
 {
   std::unordered_map<Node, Node> subs = tm.get().getSubstitutions();
   for (const std::pair<const Node, Node>& s : subs)
   {
     d_propEngine->notifyTopLevelSubstitution(s.first, s.second);
+    if (assertions != nullptr && s.first.getKind() == Kind::SKOLEM)
+    {
+      assertions->removeIteSkolem(s.first);
+    }
   }
   d_env.getTopLevelSubstitutions().addSubstitutions(tm);
 }
