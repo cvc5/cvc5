@@ -90,6 +90,13 @@ void MonomialCheck::checkInitialRefine(const std::vector<Node>& monomials)
       Node lemma = nm->mkNode(Kind::IMPLIES, prem, conc);
       Trace("nl-ext-lemma") << "MonomialCheck::Lemma: " << lemma
                             << " ; SIGN_INITIAL" << std::endl;
+      CDProof* proof = nullptr;
+      if (d_data->isProofEnabled())
+      {
+        proof = d_data->getProof();
+        proof->addStep(conc, ProofRule::MACRO_SR_PRED_INTRO, {prem}, {conc});
+        proof->addStep(lemma, ProofRule::SCOPE, {conc}, {prem});
+      }
       d_data->d_im.addPendingLemma(lemma, InferenceId::ARITH_NL_SIGN);
     }
   }
