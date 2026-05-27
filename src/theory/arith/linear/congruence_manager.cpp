@@ -460,15 +460,13 @@ bool ArithCongruenceManager::propagate(TNode x)
           Node ic = nm->mkConstInt(triEq[0].getConst<Rational>());
           triEq = triEq[1][0].eqNode(ic);
         }
-        if (triEq[0].getType().isRealOrInt()
-            && triEq[1].getType().isRealOrInt()
+        if (triEq[0].getType().isRealOrInt() && triEq[1].getType().isRealOrInt()
             && triEq[0].getType() == triEq[1].getType())
         {
           std::vector<Node> negc = andComponents(nm, neg);
           std::vector<Node> triChildren;
-          std::vector<Node> targets{
-              nm->mkNode(Kind::GEQ, triEq[0], triEq[1]),
-              nm->mkNode(Kind::LEQ, triEq[0], triEq[1])};
+          std::vector<Node> targets{nm->mkNode(Kind::GEQ, triEq[0], triEq[1]),
+                                    nm->mkNode(Kind::LEQ, triEq[0], triEq[1])};
           for (const Node& target : targets)
           {
             Node source;
@@ -479,11 +477,8 @@ bool ArithCongruenceManager::propagate(TNode x)
                 source = nc;
                 break;
               }
-              Node res =
-                  pc->checkDebug(ProofRule::MACRO_SR_PRED_TRANSFORM,
-                                 {nc},
-                                 {target},
-                                 target);
+              Node res = pc->checkDebug(
+                  ProofRule::MACRO_SR_PRED_TRANSFORM, {nc}, {target}, target);
               if (!res.isNull())
               {
                 source = nc;
@@ -509,11 +504,8 @@ bool ArithCongruenceManager::propagate(TNode x)
             cdp.addStep(triEq, ProofRule::ARITH_TRICHOTOMY, triChildren, {});
             if (triEq != peq)
             {
-              Node res =
-                  pc->checkDebug(ProofRule::MACRO_SR_PRED_TRANSFORM,
-                                 {triEq},
-                                 {peq},
-                                 peq);
+              Node res = pc->checkDebug(
+                  ProofRule::MACRO_SR_PRED_TRANSFORM, {triEq}, {peq}, peq);
               if (!res.isNull())
               {
                 cdp.addStep(
