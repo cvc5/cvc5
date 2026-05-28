@@ -1,6 +1,4 @@
 ; COMMAND-LINE: --early-ite-removal
-; DISABLE-TESTER: unsat-core
-; DISABLE-TESTER: proof
 ; EXPECT: unsat
 (set-logic QF_ABV)
 (set-info :status unsat)
