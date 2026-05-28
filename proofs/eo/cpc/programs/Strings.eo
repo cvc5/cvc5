@@ -434,6 +434,23 @@
 (define $str_re_rev ((rev Bool) (t RegLan))
   (eo::ite rev (eo::list_rev re.++ t) t))
 
+; program: $str_nary_intro
+; args:
+; - t (Seq U): The string term.
+; return: >
+;   The result of ensuring that the input t is a str.++ list.
+;   In particular, if it is not a str.++ and not the empty string, then we
+;   return (str.++ t empty) where empty is the empty string for the type of t.
+(program $str_nary_intro
+  ((T Type) (t (Seq T)) (ss (Seq T) :list))
+  :signature ((Seq T)) (Seq T)
+  (
+  (($str_nary_intro (str.++ t ss)) (str.++ t ss))
+  (($str_nary_intro t)             (eo::define ((nil ($seq_empty (eo::typeof t))))
+                                      (eo::ite (eo::eq t nil) t (_ str.++ t nil))))
+  )
+)
+
 ; program: $re_nary_intro
 ; args:
 ; - t RegLan: The regular expresion.
