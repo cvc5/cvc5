@@ -1871,7 +1871,8 @@ bool TheorySetsRels::isRelationKind(Kind k)
   return k == Kind::RELATION_TRANSPOSE || k == Kind::RELATION_PRODUCT
          || k == Kind::RELATION_JOIN || k == Kind::RELATION_TABLE_JOIN
          || k == Kind::RELATION_TCLOSURE || k == Kind::RELATION_IDEN
-         || k == Kind::RELATION_JOIN_IMAGE;
+         || k == Kind::RELATION_JOIN_IMAGE || k == Kind::RELATION_ACYCLIC
+         || k == Kind::RELATION_RCLOSURE || k == Kind::RELATION_RTCLOSURE;
 }
 
 Node TheorySetsRels::getRepresentative(Node t)
