@@ -1029,7 +1029,10 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
   }
   if (logic.isQuantified())
   {
-    SET_AND_NOTIFY_IF_NOT_USER(arith, nlExtInitialSignLemmas, false,
+    SET_AND_NOTIFY_IF_NOT_USER(
+        arith,
+        nlExtInitialSignLemmas,
+        false,
         "Preemptive lemmas for incremental linearization are disabled "
         "when the logic has quantifiers");
   }
