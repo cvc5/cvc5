@@ -97,7 +97,7 @@ void MonomialCheck::checkInitialRefine(const std::vector<Node>& monomials)
         proof->addStep(conc, ProofRule::MACRO_SR_PRED_INTRO, {prem}, {conc});
         proof->addStep(lemma, ProofRule::SCOPE, {conc}, {prem});
       }
-      d_data->d_im.addPendingLemma(lemma, InferenceId::ARITH_NL_SIGN);
+      d_data->d_im.addPendingLemma(lemma, InferenceId::ARITH_NL_SIGN, proof);
     }
   }
 }
