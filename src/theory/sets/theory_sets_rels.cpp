@@ -1364,10 +1364,10 @@ Node TheorySetsRels::applySplitCycleLenRule(Node seq, size_t cnt)
   Node s_len = nm->mkNode(Kind::STRING_LENGTH, seq);
   Node cnt_node = nm->mkConstInt(Rational(cnt));
 
-  Node ret_exp = nm->mkNode(Kind::LT, s_len, cnt_node);
+  Node ret_exp = nm->mkNode(Kind::LT, cnt_node, s_len);
 
   Node conc =
-      nm->mkNode(Kind::OR, nm->mkNode(Kind::EQUAL, s_len, cnt_node), ret_exp);
+      nm->mkNode(Kind::OR, nm->mkNode(Kind::EQUAL, cnt_node, s_len), ret_exp);
 
   Trace("rels-cycles") << "SplitCycleLen: " << conc << std::endl;
 
