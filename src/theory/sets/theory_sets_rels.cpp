@@ -29,12 +29,12 @@ namespace cvc5::internal {
 namespace theory {
 namespace sets {
 
-typedef std::map<Node, std::vector<Node> >::iterator MEM_IT;
+typedef std::map<Node, std::vector<Node>>::iterator MEM_IT;
 typedef std::map<std::vector<Node>, std::pair<Node, size_t>>::iterator CYC_IT;
-typedef std::map<Kind, std::vector<Node> >::iterator KIND_TERM_IT;
-typedef std::map<Node, std::unordered_set<Node> >::iterator TC_GRAPH_IT;
-typedef std::map<Node, std::map<Kind, std::vector<Node> > >::iterator TERM_IT;
-typedef std::map<Node, std::map<Node, std::unordered_set<Node> > >::iterator
+typedef std::map<Kind, std::vector<Node>>::iterator KIND_TERM_IT;
+typedef std::map<Node, std::unordered_set<Node>>::iterator TC_GRAPH_IT;
+typedef std::map<Node, std::map<Kind, std::vector<Node>>>::iterator TERM_IT;
+typedef std::map<Node, std::map<Node, std::unordered_set<Node>>>::iterator
     TC_IT;
 
 TheorySetsRels::TheorySetsRels(Env& env,
@@ -85,7 +85,7 @@ void TheorySetsRels::check()
     {
       Node mem = d_rReps_memberReps_cache[rel_rep][i];
       Node exp = d_rReps_memberReps_exp_cache[rel_rep][i];
-      std::map<Kind, std::vector<Node> >& kind_terms = d_terms_cache[rel_rep];
+      std::map<Kind, std::vector<Node>>& kind_terms = d_terms_cache[rel_rep];
 
       if (kind_terms.find(Kind::RELATION_TRANSPOSE) != kind_terms.end())
       {
@@ -721,7 +721,7 @@ void TheorySetsRels::applyTCRule(Node mem_rep,
 
   if (tc_it != d_tcr_tcGraph.end())
   {
-    std::map<Node, std::map<Node, Node> >::iterator tc_exp_it =
+    std::map<Node, std::map<Node, Node>>::iterator tc_exp_it =
         d_tcr_tcGraph_exps.find(tc_rel);
 
     TC_GRAPH_IT tc_graph_it = (tc_it->second).find(mem_rep_fst);
@@ -749,7 +749,7 @@ void TheorySetsRels::applyTCRule(Node mem_rep,
   {
     std::map<Node, Node> exp_map;
     std::unordered_set<Node> sets;
-    std::map<Node, std::unordered_set<Node> > element_map;
+    std::map<Node, std::unordered_set<Node>> element_map;
     sets.insert(mem_rep_snd);
     element_map[mem_rep_fst] = sets;
     d_tcr_tcGraph[tc_rel] = element_map;
@@ -833,7 +833,7 @@ void TheorySetsRels::isTCReachable(
     Node start,
     Node dest,
     std::unordered_set<Node>& hasSeen,
-    std::map<Node, std::unordered_set<Node> >& tc_graph,
+    std::map<Node, std::unordered_set<Node>>& tc_graph,
     bool& isReachable)
 {
   if (hasSeen.find(start) == hasSeen.end())
@@ -870,7 +870,7 @@ void TheorySetsRels::isTCReachable(
 void TheorySetsRels::buildTCGraphForRel(Node tc_rel)
 {
   std::map<Node, Node> rel_tc_graph_exps;
-  std::map<Node, std::unordered_set<Node> > rel_tc_graph;
+  std::map<Node, std::unordered_set<Node>> rel_tc_graph;
 
   Node rel_rep = getRepresentative(tc_rel[0]);
   Node tc_rel_rep = getRepresentative(tc_rel);
@@ -885,7 +885,7 @@ void TheorySetsRels::buildTCGraphForRel(Node tc_rel)
         getRepresentative(TupleUtils::nthElementOfTuple(members[i], 1));
     Node tuple_rep =
         RelsUtils::constructPair(rel_rep, fst_element_rep, snd_element_rep);
-    std::map<Node, std::unordered_set<Node> >::iterator rel_tc_graph_it =
+    std::map<Node, std::unordered_set<Node>>::iterator rel_tc_graph_it =
         rel_tc_graph.find(fst_element_rep);
 
     if (rel_tc_graph_it == rel_tc_graph.end())
@@ -912,7 +912,7 @@ void TheorySetsRels::buildTCGraphForRel(Node tc_rel)
 }
 
 void TheorySetsRels::doTCInference(
-    std::map<Node, std::unordered_set<Node> > rel_tc_graph,
+    std::map<Node, std::unordered_set<Node>> rel_tc_graph,
     std::map<Node, Node> rel_tc_graph_exps,
     Node tc_rel)
 {
@@ -953,7 +953,7 @@ void TheorySetsRels::doTCInference(
 void TheorySetsRels::doTCInference(
     Node tc_rel,
     std::vector<Node> reasons,
-    std::map<Node, std::unordered_set<Node> >& tc_graph,
+    std::map<Node, std::unordered_set<Node>>& tc_graph,
     std::map<Node, Node>& rel_tc_graph_exps,
     Node start_node_rep,
     Node cur_node_rep,
@@ -1930,11 +1930,11 @@ bool TheorySetsRels::areEqual(Node a, Node b)
 /*
  * Make sure duplicate members are not added in map
  */
-bool TheorySetsRels::safelyAddToMap(std::map<Node, std::vector<Node> >& map,
+bool TheorySetsRels::safelyAddToMap(std::map<Node, std::vector<Node>>& map,
                                     Node rel_rep,
                                     Node member)
 {
-  std::map<Node, std::vector<Node> >::iterator mem_it = map.find(rel_rep);
+  std::map<Node, std::vector<Node>>::iterator mem_it = map.find(rel_rep);
   if (mem_it == map.end())
   {
     std::vector<Node> members;
