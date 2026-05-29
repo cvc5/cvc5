@@ -1364,16 +1364,24 @@ Node TheorySetsRels::applySplitCycleLenRule(Node seq, size_t cnt)
   Node s_len = nm->mkNode(Kind::STRING_LENGTH, seq);
   Node cnt_node = nm->mkConstInt(Rational(cnt));
 
-  Node ret_exp = nm->mkNode(Kind::LT, cnt_node, s_len);
+  Node case_1 = nm->mkNode(Kind::LT, cnt_node, s_len);
 
-  Node conc =
-      nm->mkNode(Kind::OR, nm->mkNode(Kind::EQUAL, cnt_node, s_len), ret_exp);
+  Node zero = nm->mkConstInt(Rational(0));
+  Node one = nm->mkConstInt(Rational(1));
+  Node s_len_1 = nm->mkNode(Kind::SUB, s_len, one);
+  Node node_1 = nm->mkNode(Kind::SEQ_NTH, seq, zero);
+  Node node_len = nm->mkNode(Kind::SEQ_NTH, seq, s_len_1);
+  Node case_2 = nm->mkNode(Kind::AND,
+                           nm->mkNode(Kind::EQUAL, cnt_node, s_len),
+                           nm->mkNode(Kind::EQUAL, node_1, node_len));
+
+  Node conc = nm->mkNode(Kind::OR, case_1, case_2);
 
   Trace("rels-cycles") << "SplitCycleLen: " << conc << std::endl;
 
   sendInfer(conc, InferenceId::SETS_RELS_SPLIT_CYCLE_LEN, d_trueNode);
 
-  return ret_exp;
+  return case_1;
 }
 
 /*
@@ -1397,15 +1405,16 @@ void TheorySetsRels::applyUnrollCycle(std::vector<Node>& rels,
   Node cnt_node = nm->mkConstInt(Rational(cnt));
   Node seq_cnt = nm->mkNode(Kind::SEQ_NTH, seq, cnt_node);
   Node seq_cnt_1 =
-      nm->mkNode(Kind::SEQ_NTH, seq, nm->mkNode(Kind::ADD, cnt_node, one));
+      nm->mkNode(Kind::SEQ_NTH, seq, nm->mkNode(Kind::SUB, cnt_node, one));
 
   std::vector<Node> disjs;
   for (const Node& Ri : rels)
   {
     TypeNode tt = Ri.getType().getSetElementType();
     Node tup =
-        TupleUtils::constructTupleFromElements(tt, {seq_cnt, seq_cnt_1}, 0, 1);
-    disjs.push_back(nm->mkNode(Kind::SET_MEMBER, tup, Ri));
+        TupleUtils::constructTupleFromElements(tt, {seq_cnt_1, seq_cnt}, 0, 1);
+    Node Ri_tclos = nm->mkNode(Kind::RELATION_TCLOSURE, Ri);
+    disjs.push_back(nm->mkNode(Kind::SET_MEMBER, tup, Ri_tclos));
   }
 
   Node disj = disjs.size() == 1 ? disjs[0] : nm->mkNode(Kind::OR, disjs);
