@@ -192,27 +192,19 @@ void SortInference::initialize(const std::vector<Node>& assertions)
     Trace("sort-inference") << std::endl;
   }
 
-  // Determine monotonicity of the original sorts. This is used below to
-  // conservatively classify all inferred subsorts of a non-monotonic sort.
+  Trace("sort-inference-proc")
+      << "Calculating monotonicty for original sorts..." << std::endl;
   std::map<Node, std::map<int, bool> > visitedmt;
   for (const Node& a : assertions)
   {
+    Trace("sort-inference-debug")
+        << "Process type monotonicity for " << a << std::endl;
     std::map<Node, Node> var_bound;
     processMonotonic(a, true, true, var_bound, visitedmt, true);
   }
-
-  // determine monotonicity of sorts
-  Trace("sort-inference-proc")
-      << "Calculating monotonicty for subsorts..." << std::endl;
-  std::map<Node, std::map<int, bool> > visitedm;
-  for (const Node& a : assertions)
-  {
-    Trace("sort-inference-debug")
-        << "Process monotonicity for " << a << std::endl;
-    std::map<Node, Node> var_bound;
-    processMonotonic(a, true, true, var_bound, visitedm);
-  }
   Trace("sort-inference-proc") << "...done" << std::endl;
+
+  // Classify inferred subsorts based on monotonicity of their original sorts.
   for (const std::pair<const TypeNode, std::vector<int> >& tss :
        d_type_sub_sorts)
   {
