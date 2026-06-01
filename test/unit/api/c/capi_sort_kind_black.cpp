@@ -13,6 +13,7 @@
 #include <cvc5/c/cvc5.h>
 
 #include "gtest/gtest.h"
+#include "test_capi.h"
 
 namespace cvc5::internal::test {
 
@@ -22,7 +23,7 @@ class TestCApiSortKind : public ::testing::Test
 
 TEST_F(TestCApiSortKind, sort_kind_to_string)
 {
-  ASSERT_DEATH(cvc5_sort_kind_to_string(static_cast<Cvc5SortKind>(-5)),
+  ASSERT_CVC5_ERROR(cvc5_sort_kind_to_string(static_cast<Cvc5SortKind>(-5)),
                "invalid sort kind");
 
   std::stringstream ss;
