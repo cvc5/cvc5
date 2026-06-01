@@ -936,6 +936,8 @@ set(regress_0_tests
   regress0/fmf/quant_real_univ.cvc.smt2
   regress0/fmf/sat-logic.smt2
   regress0/fmf/sc_bad_model_1221.smt2
+  regress0/fmf/sort-infer-nonmonotonic-orig.smt2‎
+  regress0/fmf/sort-infer-original-injection.smt2
   regress0/fmf/sort-infer-typed-082718.smt2
   regress0/fmf/syn002-si-real-int.smt2
   regress0/fmf/tail_rec.smt2
