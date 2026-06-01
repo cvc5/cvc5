@@ -81,6 +81,10 @@ CVC5_EXPORT const char* cvc5_capi_get_error_message();
  * error instead of terminating the process. On error, the function falls
  * through and returns its default-initialized return value; the caller is
  * expected to check `cvc5_has_error()`.
+ *
+ * @note The trailing `catch (...)` ensures that even foreign exception types
+ *       that do not derive from `std::exception` cannot escape the `extern "C"`
+ *       boundary (which would call `std::terminate`).
  */
 #define CVC5_CAPI_TRY_CATCH_END                          \
   }                                                      \
@@ -91,6 +95,10 @@ CVC5_EXPORT const char* cvc5_capi_get_error_message();
   catch (const std::exception& e)                        \
   {                                                      \
     cvc5::cvc5_capi_set_error(e.what());                 \
+  }                                                      \
+  catch (...)                                            \
+  {                                                      \
+    cvc5::cvc5_capi_set_error("unknown C++ exception");  \
   }
 
 #endif
