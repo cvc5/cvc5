@@ -37,6 +37,12 @@ using namespace std;
 namespace cvc5::internal {
 namespace theory {
 
+SortInference::SortInference(Env& env) : EnvObj(env), d_sortCount(1)
+{
+  d_sortInferSubsortSc =
+      nodeManager()->mkSortConstructor("@sort-infer-subsort", 1);
+}
+
 void SortInference::UnionFind::print(CVC5_UNUSED const char* c)
 {
   for (std::map<int, int>::iterator it = d_eqc.begin(); it != d_eqc.end(); ++it)
@@ -705,8 +711,9 @@ TypeNode SortInference::getOrCreateTypeForId(int t, TypeNode pref)
     {
       // must create new type
       std::stringstream ss;
-      ss << "it_" << t << "_" << pref;
-      retType = nodeManager()->mkSort(ss.str());
+      ss << rt;
+      TypeNode indexType = nodeManager()->mkRawSymbolType(ss.str());
+      retType = nodeManager()->mkSort(d_sortInferSubsortSc, {indexType});
     }
     Trace("sort-inference")
         << "-> Make type " << retType << " to correspond to ";

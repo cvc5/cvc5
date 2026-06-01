@@ -77,6 +77,8 @@ class SortInference : protected EnvObj
  private:
   /** the id count for all subsorts we have allocated */
   int d_sortCount;
+  /** The sort constructor for fresh subsorts introduced by sort inference. */
+  TypeNode d_sortInferSubsortSc;
   UnionFind d_type_union_find;
   std::map<int, TypeNode> d_type_types;
   std::map<TypeNode, int> d_id_for_types;
@@ -125,7 +127,7 @@ class SortInference : protected EnvObj
   void reset();
 
  public:
-  SortInference(Env& env) : EnvObj(env), d_sortCount(1) {}
+  SortInference(Env& env);
   ~SortInference() {}
 
   /** initialize

@@ -28,6 +28,7 @@
 #include "expr/emptybag.h"
 #include "expr/emptyset.h"
 #include "expr/function_array_const.h"
+#include "expr/node_manager_attributes.h"
 #include "expr/node_visitor.h"
 #include "expr/sequence.h"
 #include "expr/skolem_manager.h"
@@ -631,8 +632,12 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
     }
     if (!printed)
     {
+      if (k == Kind::SORT_TYPE && n.hasAttribute(expr::RawSymbolTypeAttr()))
+      {
+        out << n.getAttribute(expr::RawSymbolTypeAttr());
+      }
       // variable
-      if (n.hasName())
+      else if (n.hasName())
       {
         std::string s = n.getName();
         if (k == Kind::RAW_SYMBOL)
