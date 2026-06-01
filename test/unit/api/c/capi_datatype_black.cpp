@@ -82,7 +82,8 @@ TEST_F(TestCApiBlackDatatype, mk_dt_sort)
   cvc5_dt_decl_add_constructor(decl, nil);
 
   ASSERT_CVC5_ERROR(cvc5_mk_dt_sort(nullptr, decl), "unexpected NULL argument");
-  ASSERT_CVC5_ERROR(cvc5_mk_dt_sort(d_tm, nullptr), "invalid datatype declaration");
+  ASSERT_CVC5_ERROR(cvc5_mk_dt_sort(d_tm, nullptr),
+                    "invalid datatype declaration");
   Cvc5Sort list_sort = cvc5_mk_dt_sort(d_tm, decl);
   Cvc5Datatype dt = cvc5_sort_get_datatype(list_sort);
   Cvc5DatatypeConstructor cons_cons = cvc5_dt_get_constructor(dt, 0);
@@ -147,7 +148,7 @@ TEST_F(TestCApiBlackDatatype, equal_hash)
   ASSERT_FALSE(cvc5_dt_is_equal(dt1, dt2));
 
   ASSERT_CVC5_ERROR(cvc5_dt_cons_decl_hash(nullptr),
-               "invalid datatype constructor declaration");
+                    "invalid datatype constructor declaration");
   ASSERT_CVC5_ERROR(cvc5_dt_decl_hash(nullptr), "invalid datatype declaration");
   ASSERT_CVC5_ERROR(cvc5_dt_cons_hash(nullptr), "invalid datatype constructor");
   ASSERT_CVC5_ERROR(cvc5_dt_sel_hash(nullptr), "invalid datatype selector");
@@ -224,23 +225,24 @@ TEST_F(TestCApiBlackDatatype, mk_datatype_sorts)
       cvc5_dt_sel_get_codomain_sort(dt_tree_node_left), dtsorts[0]));
 
   ASSERT_CVC5_ERROR(cvc5_mk_dt_sorts(nullptr, dtdecls.size(), dtdecls.data()),
-               "unexpected NULL argument");
+                    "unexpected NULL argument");
   ASSERT_CVC5_ERROR(cvc5_mk_dt_sorts(d_tm, dtdecls.size(), nullptr),
-               "unexpected NULL argument");
+                    "unexpected NULL argument");
 
   // fails due to empty datatype
   std::vector<Cvc5DatatypeDecl> dtdecls_bad{
       cvc5_mk_dt_decl(d_tm, "emptyD", false)};
-  ASSERT_CVC5_ERROR(cvc5_mk_dt_sorts(d_tm, dtdecls_bad.size(), dtdecls_bad.data()),
-               "invalid datatype declaration");
+  ASSERT_CVC5_ERROR(
+      cvc5_mk_dt_sorts(d_tm, dtdecls_bad.size(), dtdecls_bad.data()),
+      "invalid datatype declaration");
 }
 
 TEST_F(TestCApiBlackDatatype, dt_cons_decl_copy_release)
 {
   ASSERT_CVC5_ERROR(cvc5_dt_cons_decl_copy(nullptr),
-               "invalid datatype constructor declaration");
+                    "invalid datatype constructor declaration");
   ASSERT_CVC5_ERROR(cvc5_dt_cons_decl_release(nullptr),
-               "invalid datatype constructor declaration");
+                    "invalid datatype constructor declaration");
   Cvc5DatatypeConstructorDecl decl = cvc5_mk_dt_cons_decl(d_tm, "cons");
   Cvc5DatatypeConstructorDecl decl_copy = cvc5_dt_cons_decl_copy(decl);
   ASSERT_EQ(cvc5_dt_cons_decl_hash(decl), cvc5_dt_cons_decl_hash(decl_copy));
@@ -255,37 +257,40 @@ TEST_F(TestCApiBlackDatatype, dt_cons_decl_add_selector)
 {
   Cvc5DatatypeConstructorDecl cons = cvc5_mk_dt_cons_decl(d_tm, "cons");
   ASSERT_CVC5_ERROR(cvc5_dt_cons_decl_add_selector(nullptr, "foo", d_int),
-               "invalid datatype constructor declaration");
+                    "invalid datatype constructor declaration");
   ASSERT_CVC5_ERROR(cvc5_dt_cons_decl_add_selector(cons, nullptr, d_int),
-               "unexpected NULL argument");
+                    "unexpected NULL argument");
   ASSERT_CVC5_ERROR(cvc5_dt_cons_decl_add_selector(cons, "foo", nullptr),
-               "invalid sort");
+                    "invalid sort");
 }
 
 TEST_F(TestCApiBlackDatatype, dt_cons_decl_add_selector_self)
 {
   Cvc5DatatypeConstructorDecl cons = cvc5_mk_dt_cons_decl(d_tm, "cons");
   ASSERT_CVC5_ERROR(cvc5_dt_cons_decl_add_selector_self(nullptr, "foo"),
-               "invalid datatype constructor declaration");
+                    "invalid datatype constructor declaration");
   ASSERT_CVC5_ERROR(cvc5_dt_cons_decl_add_selector_self(cons, nullptr),
-               "unexpected NULL argument");
+                    "unexpected NULL argument");
 }
 
 TEST_F(TestCApiBlackDatatype, dt_cons_decl_add_selector_unresolved)
 {
   Cvc5DatatypeConstructorDecl cons = cvc5_mk_dt_cons_decl(d_tm, "cons");
-  ASSERT_CVC5_ERROR(cvc5_dt_cons_decl_add_selector_unresolved(nullptr, "foo", "bar"),
-               "invalid datatype constructor declaration");
-  ASSERT_CVC5_ERROR(cvc5_dt_cons_decl_add_selector_unresolved(cons, nullptr, "bar"),
-               "unexpected NULL argument");
-  ASSERT_CVC5_ERROR(cvc5_dt_cons_decl_add_selector_unresolved(cons, "foo", nullptr),
-               "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(
+      cvc5_dt_cons_decl_add_selector_unresolved(nullptr, "foo", "bar"),
+      "invalid datatype constructor declaration");
+  ASSERT_CVC5_ERROR(
+      cvc5_dt_cons_decl_add_selector_unresolved(cons, nullptr, "bar"),
+      "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(
+      cvc5_dt_cons_decl_add_selector_unresolved(cons, "foo", nullptr),
+      "unexpected NULL argument");
 }
 
 TEST_F(TestCApiBlackDatatype, dt_cons_decl_to_string)
 {
   ASSERT_CVC5_ERROR(cvc5_dt_cons_decl_to_string(nullptr),
-               "invalid datatype constructor declaration");
+                    "invalid datatype constructor declaration");
   Cvc5DatatypeConstructorDecl cons = cvc5_mk_dt_cons_decl(d_tm, "cons");
   (void)cvc5_dt_cons_decl_to_string(cons);
 }
@@ -293,13 +298,14 @@ TEST_F(TestCApiBlackDatatype, dt_cons_decl_to_string)
 TEST_F(TestCApiBlackDatatype, dt_cons_decl_hash)
 {
   ASSERT_CVC5_ERROR(cvc5_dt_cons_decl_hash(nullptr),
-               "invalid datatype constructor declaration");
+                    "invalid datatype constructor declaration");
 }
 
 TEST_F(TestCApiBlackDatatype, dt_decl_copy_release)
 {
   ASSERT_CVC5_ERROR(cvc5_dt_decl_copy(nullptr), "invalid datatype declaration");
-  ASSERT_CVC5_ERROR(cvc5_dt_decl_release(nullptr), "invalid datatype declaration");
+  ASSERT_CVC5_ERROR(cvc5_dt_decl_release(nullptr),
+                    "invalid datatype declaration");
   Cvc5DatatypeDecl decl = cvc5_mk_dt_decl(d_tm, "tree", false);
   Cvc5DatatypeDecl decl_copy = cvc5_dt_decl_copy(decl);
   ASSERT_EQ(cvc5_dt_decl_hash(decl), cvc5_dt_decl_hash(decl_copy));
@@ -315,15 +321,15 @@ TEST_F(TestCApiBlackDatatype, dt_decl_add_constructor)
   Cvc5DatatypeDecl decl = cvc5_mk_dt_decl(d_tm, "tree", false);
   Cvc5DatatypeConstructorDecl node = cvc5_mk_dt_cons_decl(d_tm, "node");
   ASSERT_CVC5_ERROR(cvc5_dt_decl_add_constructor(nullptr, node),
-               "invalid datatype declaration");
+                    "invalid datatype declaration");
   ASSERT_CVC5_ERROR(cvc5_dt_decl_add_constructor(decl, nullptr),
-               "unexpected NULL argument");
+                    "unexpected NULL argument");
 }
 
 TEST_F(TestCApiBlackDatatype, dt_decl_get_num_constructors)
 {
   ASSERT_CVC5_ERROR(cvc5_dt_decl_get_num_constructors(nullptr),
-               "invalid datatype declaration");
+                    "invalid datatype declaration");
   Cvc5DatatypeDecl decl = create_datatype_decl();
   ASSERT_EQ(cvc5_dt_decl_get_num_constructors(decl), 2);
 }
@@ -331,7 +337,7 @@ TEST_F(TestCApiBlackDatatype, dt_decl_get_num_constructors)
 TEST_F(TestCApiBlackDatatype, dt_decl_is_parametric)
 {
   ASSERT_CVC5_ERROR(cvc5_dt_decl_is_parametric(nullptr),
-               "invalid datatype declaration");
+                    "invalid datatype declaration");
   Cvc5DatatypeDecl decl = create_datatype_decl();
   ASSERT_FALSE(cvc5_dt_decl_is_parametric(decl));
 }
@@ -339,21 +345,23 @@ TEST_F(TestCApiBlackDatatype, dt_decl_is_parametric)
 TEST_F(TestCApiBlackDatatype, dt_decl_is_resolved)
 {
   ASSERT_CVC5_ERROR(cvc5_dt_decl_is_resolved(nullptr),
-               "invalid datatype declaration");
+                    "invalid datatype declaration");
   Cvc5DatatypeDecl decl = create_datatype_decl();
   ASSERT_FALSE(cvc5_dt_decl_is_resolved(decl));
 }
 
 TEST_F(TestCApiBlackDatatype, dt_decl_get_name)
 {
-  ASSERT_CVC5_ERROR(cvc5_dt_decl_get_name(nullptr), "invalid datatype declaration");
+  ASSERT_CVC5_ERROR(cvc5_dt_decl_get_name(nullptr),
+                    "invalid datatype declaration");
   Cvc5DatatypeDecl decl = create_datatype_decl();
   ASSERT_EQ(cvc5_dt_decl_get_name(decl), std::string("list"));
 }
 
 TEST_F(TestCApiBlackDatatype, dt_decl_to_string)
 {
-  ASSERT_CVC5_ERROR(cvc5_dt_decl_to_string(nullptr), "invalid datatype declaration");
+  ASSERT_CVC5_ERROR(cvc5_dt_decl_to_string(nullptr),
+                    "invalid datatype declaration");
 }
 
 TEST_F(TestCApiBlackDatatype, dt_decl_hash)
@@ -389,18 +397,19 @@ TEST_F(TestCApiBlackDatatype, dt_sel_get_term)
 TEST_F(TestCApiBlackDatatype, dt_sel_get_updater_term)
 {
   ASSERT_CVC5_ERROR(cvc5_dt_sel_get_updater_term(nullptr),
-               "invalid datatype selector");
+                    "invalid datatype selector");
 }
 
 TEST_F(TestCApiBlackDatatype, dt_sel_get_codomain_sort)
 {
   ASSERT_CVC5_ERROR(cvc5_dt_sel_get_codomain_sort(nullptr),
-               "invalid datatype selector");
+                    "invalid datatype selector");
 }
 
 TEST_F(TestCApiBlackDatatype, dt_sel_to_string)
 {
-  ASSERT_CVC5_ERROR(cvc5_dt_sel_to_string(nullptr), "invalid datatype selector");
+  ASSERT_CVC5_ERROR(cvc5_dt_sel_to_string(nullptr),
+                    "invalid datatype selector");
   Cvc5Datatype dt = create_datatype();
   Cvc5DatatypeSelector head =
       cvc5_dt_cons_get_selector_by_name(cvc5_dt_get_constructor(dt, 0), "head");
@@ -415,7 +424,8 @@ TEST_F(TestCApiBlackDatatype, dt_sel_hash)
 TEST_F(TestCApiBlackDatatype, dt_cons_copy_release)
 {
   ASSERT_CVC5_ERROR(cvc5_dt_cons_copy(nullptr), "invalid datatype constructor");
-  ASSERT_CVC5_ERROR(cvc5_dt_cons_release(nullptr), "invalid datatype constructor");
+  ASSERT_CVC5_ERROR(cvc5_dt_cons_release(nullptr),
+                    "invalid datatype constructor");
   Cvc5Datatype dt = create_datatype();
   Cvc5DatatypeConstructor cons = cvc5_dt_get_constructor(dt, 0);
   Cvc5DatatypeConstructor cons_copy = cvc5_dt_cons_copy(cons);
@@ -429,12 +439,14 @@ TEST_F(TestCApiBlackDatatype, dt_cons_copy_release)
 
 TEST_F(TestCApiBlackDatatype, dt_cons_get_name)
 {
-  ASSERT_CVC5_ERROR(cvc5_dt_cons_get_name(nullptr), "invalid datatype constructor");
+  ASSERT_CVC5_ERROR(cvc5_dt_cons_get_name(nullptr),
+                    "invalid datatype constructor");
 }
 
 TEST_F(TestCApiBlackDatatype, dt_cons_get_term)
 {
-  ASSERT_CVC5_ERROR(cvc5_dt_cons_get_term(nullptr), "invalid datatype constructor");
+  ASSERT_CVC5_ERROR(cvc5_dt_cons_get_term(nullptr),
+                    "invalid datatype constructor");
 }
 
 TEST_F(TestCApiBlackDatatype, dt_cons_get_instantiated_term)
@@ -442,27 +454,27 @@ TEST_F(TestCApiBlackDatatype, dt_cons_get_instantiated_term)
   Cvc5Datatype dt = create_datatype();
   Cvc5DatatypeConstructor cons = cvc5_dt_get_constructor(dt, 0);
   ASSERT_CVC5_ERROR(cvc5_dt_cons_get_instantiated_term(nullptr, d_int),
-               "invalid datatype constructor");
+                    "invalid datatype constructor");
   ASSERT_CVC5_ERROR(cvc5_dt_cons_get_instantiated_term(cons, nullptr),
-               "invalid sort");
+                    "invalid sort");
 }
 
 TEST_F(TestCApiBlackDatatype, dt_cons_get_tester_term)
 {
   ASSERT_CVC5_ERROR(cvc5_dt_cons_get_tester_term(nullptr),
-               "invalid datatype constructor");
+                    "invalid datatype constructor");
 }
 
 TEST_F(TestCApiBlackDatatype, dt_cons_get_num_selectors)
 {
   ASSERT_CVC5_ERROR(cvc5_dt_cons_get_num_selectors(nullptr),
-               "invalid datatype constructor");
+                    "invalid datatype constructor");
 }
 
 TEST_F(TestCApiBlackDatatype, dt_cons_get_selector)
 {
   ASSERT_CVC5_ERROR(cvc5_dt_cons_get_selector(nullptr, 0),
-               "invalid datatype constructor");
+                    "invalid datatype constructor");
 }
 
 TEST_F(TestCApiBlackDatatype, dt_cons_get_selector_by_name)
@@ -470,9 +482,9 @@ TEST_F(TestCApiBlackDatatype, dt_cons_get_selector_by_name)
   Cvc5Datatype dt = create_datatype();
   Cvc5DatatypeConstructor cons = cvc5_dt_get_constructor(dt, 0);
   ASSERT_CVC5_ERROR(cvc5_dt_cons_get_selector_by_name(nullptr, "cons"),
-               "invalid datatype constructor");
+                    "invalid datatype constructor");
   ASSERT_CVC5_ERROR(cvc5_dt_cons_get_selector_by_name(cons, nullptr),
-               "unexpected NULL argument");
+                    "unexpected NULL argument");
 }
 
 TEST_F(TestCApiBlackDatatype, dt_copy_release)
@@ -491,7 +503,8 @@ TEST_F(TestCApiBlackDatatype, dt_copy_release)
 
 TEST_F(TestCApiBlackDatatype, dt_cons_to_string)
 {
-  ASSERT_CVC5_ERROR(cvc5_dt_cons_to_string(nullptr), "invalid datatype constructor");
+  ASSERT_CVC5_ERROR(cvc5_dt_cons_to_string(nullptr),
+                    "invalid datatype constructor");
   Cvc5Datatype dt = create_datatype();
   Cvc5DatatypeConstructor cons = cvc5_dt_get_constructor(dt, 0);
   ASSERT_EQ(cvc5_dt_cons_to_string(cons),
@@ -512,16 +525,17 @@ TEST_F(TestCApiBlackDatatype, dt_get_constructor_by_name)
 {
   Cvc5Datatype dt = create_datatype();
   ASSERT_CVC5_ERROR(cvc5_dt_get_constructor_by_name(nullptr, "cons"),
-               "invalid datatype");
+                    "invalid datatype");
   ASSERT_CVC5_ERROR(cvc5_dt_get_constructor_by_name(dt, nullptr),
-               "unexpected NULL argument");
+                    "unexpected NULL argument");
 }
 
 TEST_F(TestCApiBlackDatatype, dt_get_selector)
 {
   Cvc5Datatype dt = create_datatype();
   ASSERT_CVC5_ERROR(cvc5_dt_get_selector(nullptr, "cons"), "invalid datatype");
-  ASSERT_CVC5_ERROR(cvc5_dt_get_selector(dt, nullptr), "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_dt_get_selector(dt, nullptr),
+                    "unexpected NULL argument");
 }
 
 TEST_F(TestCApiBlackDatatype, dt_get_name)
@@ -539,7 +553,8 @@ TEST_F(TestCApiBlackDatatype, dt_get_parameters)
   size_t size;
   Cvc5Datatype dt = create_datatype();
   ASSERT_CVC5_ERROR(cvc5_dt_get_parameters(nullptr, &size), "invalid datatype");
-  ASSERT_CVC5_ERROR(cvc5_dt_get_parameters(dt, nullptr), "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_dt_get_parameters(dt, nullptr),
+                    "unexpected NULL argument");
 }
 
 TEST_F(TestCApiBlackDatatype, dt_is_parametric)
@@ -638,7 +653,7 @@ TEST_F(TestCApiBlackDatatype, datatype_structs)
   cvc5_dt_cons_decl_add_selector_self(cons, "tail");
 
   ASSERT_CVC5_ERROR(cvc5_dt_cons_decl_add_selector(cons, "head", nullptr),
-               "invalid sort");
+                    "invalid sort");
   ;
 
   cvc5_dt_decl_add_constructor(decl, cons);
@@ -726,12 +741,12 @@ TEST_F(TestCApiBlackDatatype, datatype_names)
   Cvc5Datatype dt = cvc5_sort_get_datatype(dt_sort);
   size_t size;
   ASSERT_CVC5_ERROR(cvc5_dt_get_parameters(dt, &size),
-               "expected parametric datatype");
+                    "expected parametric datatype");
   ASSERT_EQ(cvc5_dt_get_name(dt), std::string("list"));
   (void)cvc5_dt_get_constructor_by_name(dt, "nil");
   (void)cvc5_dt_get_constructor_by_name(dt, "cons");
   ASSERT_CVC5_ERROR(cvc5_dt_get_constructor_by_name(dt, "head"),
-               "no constructor head");
+                    "no constructor head");
   ASSERT_CVC5_ERROR(cvc5_dt_get_constructor_by_name(dt, ""), "no constructor");
 
   Cvc5DatatypeConstructor dt_cons = cvc5_dt_get_constructor(dt, 0);
@@ -739,7 +754,7 @@ TEST_F(TestCApiBlackDatatype, datatype_names)
   (void)cvc5_dt_cons_get_selector_by_name(dt_cons, "head");
   (void)cvc5_dt_cons_get_selector_by_name(dt_cons, "tail");
   ASSERT_CVC5_ERROR(cvc5_dt_cons_get_selector_by_name(dt_cons, "cons"),
-               "no selector");
+                    "no selector");
 
   // get selector
   Cvc5DatatypeSelector dt_sel_tail = cvc5_dt_cons_get_selector(dt_cons, 1);
@@ -751,9 +766,11 @@ TEST_F(TestCApiBlackDatatype, datatype_names)
   (void)cvc5_dt_get_selector(dt, "head");
   ASSERT_CVC5_ERROR(cvc5_dt_get_selector(dt, "cons"), "no selector");
 
-  ASSERT_CVC5_ERROR(cvc5_dt_decl_get_name(nullptr), "invalid datatype declaration");
+  ASSERT_CVC5_ERROR(cvc5_dt_decl_get_name(nullptr),
+                    "invalid datatype declaration");
   ASSERT_CVC5_ERROR(cvc5_dt_get_name(nullptr), "invalid datatype");
-  ASSERT_CVC5_ERROR(cvc5_dt_cons_get_name(nullptr), "invalid datatype constructor");
+  ASSERT_CVC5_ERROR(cvc5_dt_cons_get_name(nullptr),
+                    "invalid datatype constructor");
   ASSERT_CVC5_ERROR(cvc5_dt_sel_get_name(nullptr), "invalid datatype selector");
 }
 
@@ -830,7 +847,7 @@ TEST_F(TestCApiBlackDatatype, is_finite)
 
   Cvc5Sort pdt_sort = cvc5_mk_dt_sort(d_tm, pdecl);
   ASSERT_CVC5_ERROR(cvc5_dt_is_finite(cvc5_sort_get_datatype(pdt_sort)),
-               "expected non-parametric datatype");
+                    "expected non-parametric datatype");
 }
 
 TEST_F(TestCApiBlackDatatype, datatype_simply_rec)
@@ -1045,6 +1062,6 @@ TEST_F(TestCApiBlackDatatype, datatype_specialized_cons)
   ASSERT_TRUE(cvc5_term_is_disequal(cons_term, cvc5_dt_cons_get_term(nilc)));
   // error to get the specialized constructor term for Int
   ASSERT_CVC5_ERROR(cvc5_dt_cons_get_instantiated_term(nilc, d_int),
-               "cannot get specialized constructor");
+                    "cannot get specialized constructor");
 }
 }  // namespace cvc5::internal::test

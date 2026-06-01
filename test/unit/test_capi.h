@@ -29,18 +29,17 @@
  * gtest's `ASSERT_DEATH`: it runs `stmt` and checks that it set the error
  * state to a message containing `msg`.
  */
-#define ASSERT_CVC5_ERROR(stmt, msg)                                        \
-  do                                                                        \
-  {                                                                         \
-    cvc5_reset_error();                                                     \
-    (void)(stmt);                                                           \
-    ASSERT_TRUE(cvc5_has_error())                                           \
-        << "expected an error containing '" << (msg)                        \
-        << "' but no error occurred";                                       \
-    ASSERT_NE(std::string(cvc5_get_error_message()).find(msg),             \
-              std::string::npos)                                            \
-        << "expected error message to contain '" << (msg) << "' but got '"  \
-        << cvc5_get_error_message() << "'";                                 \
+#define ASSERT_CVC5_ERROR(stmt, msg)                                           \
+  do                                                                           \
+  {                                                                            \
+    cvc5_reset_error();                                                        \
+    (void)(stmt);                                                              \
+    ASSERT_TRUE(cvc5_has_error()) << "expected an error containing '" << (msg) \
+                                  << "' but no error occurred";                \
+    ASSERT_NE(std::string(cvc5_get_error_message()).find(msg),                 \
+              std::string::npos)                                               \
+        << "expected error message to contain '" << (msg) << "' but got '"     \
+        << cvc5_get_error_message() << "'";                                    \
   } while (false)
 
 #endif

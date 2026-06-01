@@ -83,7 +83,7 @@ TEST_F(TestCApiBlackSymbolManager, get_declared_sorts)
   (void)cvc5_sm_get_declared_sorts(d_sm, &size);
   ASSERT_EQ(size, 0);
   ASSERT_CVC5_ERROR(cvc5_sm_get_declared_sorts(nullptr, &size),
-               "unexpected NULL argument");
+                    "unexpected NULL argument");
   ASSERT_CVC5_ERROR(cvc5_sm_get_declared_sorts(d_sm, nullptr), "NULL argument");
 }
 
@@ -93,7 +93,7 @@ TEST_F(TestCApiBlackSymbolManager, get_declared_terms)
   (void)cvc5_sm_get_declared_terms(d_sm, &size);
   ASSERT_EQ(size, 0);
   ASSERT_CVC5_ERROR(cvc5_sm_get_declared_terms(nullptr, &size),
-               "unexpected NULL argument");
+                    "unexpected NULL argument");
   ASSERT_CVC5_ERROR(cvc5_sm_get_declared_terms(d_sm, nullptr), "NULL argument");
 }
 

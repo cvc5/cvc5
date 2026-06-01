@@ -30,7 +30,10 @@ extern "C" {
 
 bool cvc5_has_error() { return cvc5::cvc5_capi_has_error(); }
 
-const char* cvc5_get_error_message() { return cvc5::cvc5_capi_get_error_message(); }
+const char* cvc5_get_error_message()
+{
+  return cvc5::cvc5_capi_get_error_message();
+}
 
 void cvc5_reset_error() { cvc5::cvc5_capi_reset_error(); }
 

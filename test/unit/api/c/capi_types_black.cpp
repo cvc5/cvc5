@@ -29,26 +29,26 @@ class TestCApiBlackTypes : public ::testing::Test
 TEST_F(TestCApiBlackTypes, printEnum)
 {
   ASSERT_CVC5_ERROR(cvc5_kind_to_string(static_cast<Cvc5Kind>(-5)),
-               "invalid term kind");
+                    "invalid term kind");
   ASSERT_CVC5_ERROR(cvc5_sort_kind_to_string(static_cast<Cvc5SortKind>(-5)),
-               "invalid sort kind");
+                    "invalid sort kind");
   ASSERT_CVC5_ERROR(cvc5_rm_to_string(static_cast<Cvc5RoundingMode>(-5)),
-               "invalid rounding mode");
+                    "invalid rounding mode");
   ASSERT_CVC5_ERROR(cvc5_unknown_explanation_to_string(
-                   static_cast<Cvc5UnknownExplanation>(-5)),
-               "invalid unknown explanation kind");
+                        static_cast<Cvc5UnknownExplanation>(-5)),
+                    "invalid unknown explanation kind");
   ASSERT_CVC5_ERROR(cvc5_modes_block_models_mode_to_string(
-                   static_cast<Cvc5BlockModelsMode>(-5)),
-               "invalid block models mode");
+                        static_cast<Cvc5BlockModelsMode>(-5)),
+                    "invalid block models mode");
   ASSERT_CVC5_ERROR(cvc5_modes_find_synth_target_to_string(
-                   static_cast<Cvc5FindSynthTarget>(-5)),
-               "invalid find synthesis target");
+                        static_cast<Cvc5FindSynthTarget>(-5)),
+                    "invalid find synthesis target");
   ASSERT_CVC5_ERROR(
       cvc5_modes_input_language_to_string(static_cast<Cvc5InputLanguage>(-5)),
       "invalid input language");
   ASSERT_CVC5_ERROR(cvc5_modes_learned_lit_type_to_string(
-                   static_cast<Cvc5LearnedLitType>(-5)),
-               "invalid learned literal type");
+                        static_cast<Cvc5LearnedLitType>(-5)),
+                    "invalid learned literal type");
   ASSERT_CVC5_ERROR(
       cvc5_modes_proof_component_to_string(static_cast<Cvc5ProofComponent>(-5)),
       "invalid proof component kind");

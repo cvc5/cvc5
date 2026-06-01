@@ -44,12 +44,14 @@ TEST_F(TestCApiBlackTermManager, new) {}
 
 TEST_F(TestCApiBlackTermManager, delete)
 {
-  ASSERT_CVC5_ERROR(cvc5_term_manager_delete(nullptr), "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_term_manager_delete(nullptr),
+                    "unexpected NULL argument");
 }
 
 TEST_F(TestCApiBlackTermManager, release)
 {
-  ASSERT_CVC5_ERROR(cvc5_term_manager_release(nullptr), "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_term_manager_release(nullptr),
+                    "unexpected NULL argument");
   cvc5_term_manager_release(d_tm);
 }
 
@@ -104,14 +106,15 @@ TEST_F(TestCApiBlackTermManager, mk_array_sort)
   (void)cvc5_mk_array_sort(d_tm, bvsort, fpsort);
 
   ASSERT_CVC5_ERROR(cvc5_mk_array_sort(nullptr, bvsort, fpsort),
-               "unexpected NULL argument");
+                    "unexpected NULL argument");
   ASSERT_CVC5_ERROR(cvc5_mk_array_sort(d_tm, nullptr, fpsort), "invalid sort");
   ASSERT_CVC5_ERROR(cvc5_mk_array_sort(d_tm, bvsort, nullptr), "invalid sort");
 
   Cvc5TermManager* tm = cvc5_term_manager_new();
-  ASSERT_CVC5_ERROR(cvc5_mk_array_sort(
-                   d_tm, cvc5_get_boolean_sort(tm), cvc5_get_integer_sort(tm)),
-               "sort is not associated with this term manager");
+  ASSERT_CVC5_ERROR(
+      cvc5_mk_array_sort(
+          d_tm, cvc5_get_boolean_sort(tm), cvc5_get_integer_sort(tm)),
+      "sort is not associated with this term manager");
   cvc5_term_manager_delete(tm);
 }
 
@@ -125,9 +128,12 @@ TEST_F(TestCApiBlackTermManager, mk_bv_sort)
 TEST_F(TestCApiBlackTermManager, mk_ff_sort)
 {
   (void)cvc5_mk_ff_sort(d_tm, "31", 10);
-  ASSERT_CVC5_ERROR(cvc5_mk_ff_sort(nullptr, "31", 10), "unexpected NULL argument");
-  ASSERT_CVC5_ERROR(cvc5_mk_ff_sort(d_tm, nullptr, 10), "unexpected NULL argument");
-  ASSERT_CVC5_ERROR(cvc5_mk_ff_sort(d_tm, "6", 10), "expected modulus is prime");
+  ASSERT_CVC5_ERROR(cvc5_mk_ff_sort(nullptr, "31", 10),
+                    "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_mk_ff_sort(d_tm, nullptr, 10),
+                    "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_mk_ff_sort(d_tm, "6", 10),
+                    "expected modulus is prime");
 
   ASSERT_CVC5_ERROR(cvc5_mk_ff_sort(d_tm, "b", 10), "");
 
@@ -139,12 +145,17 @@ TEST_F(TestCApiBlackTermManager, mk_ff_sort)
   (void)cvc5_mk_ff_sort(d_tm, "8CC5", 16);
 
   ASSERT_CVC5_ERROR(cvc5_mk_ff_sort(d_tm, "1100100", 2),
-               "expected modulus is prime");
-  ASSERT_CVC5_ERROR(cvc5_mk_ff_sort(d_tm, "10201", 3), "expected modulus is prime");
-  ASSERT_CVC5_ERROR(cvc5_mk_ff_sort(d_tm, "400", 5), "expected modulus is prime");
-  ASSERT_CVC5_ERROR(cvc5_mk_ff_sort(d_tm, "7919", 11), "expected modulus is prime");
-  ASSERT_CVC5_ERROR(cvc5_mk_ff_sort(d_tm, "970e", 16), "expected modulus is prime");
-  ASSERT_CVC5_ERROR(cvc5_mk_ff_sort(d_tm, "8CC4", 16), "expected modulus is prime");
+                    "expected modulus is prime");
+  ASSERT_CVC5_ERROR(cvc5_mk_ff_sort(d_tm, "10201", 3),
+                    "expected modulus is prime");
+  ASSERT_CVC5_ERROR(cvc5_mk_ff_sort(d_tm, "400", 5),
+                    "expected modulus is prime");
+  ASSERT_CVC5_ERROR(cvc5_mk_ff_sort(d_tm, "7919", 11),
+                    "expected modulus is prime");
+  ASSERT_CVC5_ERROR(cvc5_mk_ff_sort(d_tm, "970e", 16),
+                    "expected modulus is prime");
+  ASSERT_CVC5_ERROR(cvc5_mk_ff_sort(d_tm, "8CC4", 16),
+                    "expected modulus is prime");
 }
 
 TEST_F(TestCApiBlackTermManager, mk_fp_sort)
@@ -152,9 +163,11 @@ TEST_F(TestCApiBlackTermManager, mk_fp_sort)
   (void)cvc5_mk_fp_sort(d_tm, 4, 8);
   ASSERT_CVC5_ERROR(cvc5_mk_fp_sort(nullptr, 4, 8), "unexpected NULL argument");
   ASSERT_CVC5_ERROR(cvc5_mk_fp_sort(d_tm, 0, 8), "expected exponent size > 1");
-  ASSERT_CVC5_ERROR(cvc5_mk_fp_sort(d_tm, 4, 0), "expected significand size > 1");
+  ASSERT_CVC5_ERROR(cvc5_mk_fp_sort(d_tm, 4, 0),
+                    "expected significand size > 1");
   ASSERT_CVC5_ERROR(cvc5_mk_fp_sort(d_tm, 1, 8), "expected exponent size > 1");
-  ASSERT_CVC5_ERROR(cvc5_mk_fp_sort(d_tm, 4, 1), "expected significand size > 1");
+  ASSERT_CVC5_ERROR(cvc5_mk_fp_sort(d_tm, 4, 1),
+                    "expected significand size > 1");
 }
 
 TEST_F(TestCApiBlackTermManager, mk_dt_sort)
@@ -167,7 +180,8 @@ TEST_F(TestCApiBlackTermManager, mk_dt_sort)
     Cvc5DatatypeConstructorDecl nil = cvc5_mk_dt_cons_decl(d_tm, "nil");
     cvc5_dt_decl_add_constructor(decl, nil);
     (void)cvc5_mk_dt_sort(d_tm, decl);
-    ASSERT_CVC5_ERROR(cvc5_mk_dt_sort(nullptr, decl), "unexpected NULL argument");
+    ASSERT_CVC5_ERROR(cvc5_mk_dt_sort(nullptr, decl),
+                      "unexpected NULL argument");
     ASSERT_CVC5_ERROR(cvc5_mk_dt_sort(d_tm, decl), "is already resolved");
   }
 
@@ -210,19 +224,19 @@ TEST_F(TestCApiBlackTermManager, mk_dt_sorts)
     std::vector<Cvc5DatatypeDecl> decls = {decl1, decl2};
     (void)cvc5_mk_dt_sorts(d_tm, decls.size(), decls.data());
     ASSERT_CVC5_ERROR(cvc5_mk_dt_sorts(nullptr, decls.size(), decls.data()),
-                 "unexpected NULL argument");
+                      "unexpected NULL argument");
     ASSERT_CVC5_ERROR(cvc5_mk_dt_sorts(d_tm, decls.size(), nullptr),
-                 "unexpected NULL argument");
+                      "unexpected NULL argument");
 
     ASSERT_CVC5_ERROR(cvc5_mk_dt_sorts(d_tm, decls.size(), decls.data()),
-                 "is already resolved");
+                      "is already resolved");
   }
 
   {
     std::vector<Cvc5DatatypeDecl> decls = {
         cvc5_mk_dt_decl(d_tm, "list", "false")};
     ASSERT_CVC5_ERROR(cvc5_mk_dt_sorts(d_tm, decls.size(), decls.data()),
-                 "at least one constructor");
+                      "at least one constructor");
   }
 
   {
@@ -239,7 +253,7 @@ TEST_F(TestCApiBlackTermManager, mk_dt_sorts)
     (void)cvc5_mk_dt_sorts(d_tm, udecls.size(), udecls.data());
 
     ASSERT_CVC5_ERROR(cvc5_mk_dt_sorts(d_tm, udecls.size(), udecls.data()),
-                 "has already been used");
+                      "has already been used");
   }
 
   {
@@ -314,16 +328,18 @@ TEST_F(TestCApiBlackTermManager, mk_fun_sort)
   // function arguments are allowed
   domain = {funsort};
   (void)cvc5_mk_fun_sort(d_tm, domain.size(), domain.data(), d_int);
-  ASSERT_CVC5_ERROR(cvc5_mk_fun_sort(nullptr, domain.size(), domain.data(), d_int),
-               "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(
+      cvc5_mk_fun_sort(nullptr, domain.size(), domain.data(), d_int),
+      "unexpected NULL argument");
   ASSERT_CVC5_ERROR(cvc5_mk_fun_sort(d_tm, domain.size(), nullptr, d_int),
-               "unexpected NULL argument");
+                    "unexpected NULL argument");
   domain = {nullptr};
   ASSERT_CVC5_ERROR(cvc5_mk_fun_sort(d_tm, domain.size(), domain.data(), d_int),
-               "invalid sort at index 0");
+                    "invalid sort at index 0");
   domain = {d_int};
-  ASSERT_CVC5_ERROR(cvc5_mk_fun_sort(d_tm, domain.size(), domain.data(), funsort),
-               "expected non-function sort as codomain sort");
+  ASSERT_CVC5_ERROR(
+      cvc5_mk_fun_sort(d_tm, domain.size(), domain.data(), funsort),
+      "expected non-function sort as codomain sort");
 
   domain = {unsort, d_int};
   (void)cvc5_mk_fun_sort(d_tm, domain.size(), domain.data(), d_int);
@@ -336,8 +352,9 @@ TEST_F(TestCApiBlackTermManager, mk_fun_sort)
   (void)cvc5_mk_fun_sort(d_tm, domain.size(), domain.data(), d_int);
 
   domain = {d_int, unsort};
-  ASSERT_CVC5_ERROR(cvc5_mk_fun_sort(d_tm, domain.size(), domain.data(), funsort),
-               "expected non-function sort as codomain sort");
+  ASSERT_CVC5_ERROR(
+      cvc5_mk_fun_sort(d_tm, domain.size(), domain.data(), funsort),
+      "expected non-function sort as codomain sort");
 
   domain = {d_bool, d_int, d_int};
   (void)cvc5_mk_fun_sort(d_tm, domain.size(), domain.data(), d_int);
@@ -345,12 +362,13 @@ TEST_F(TestCApiBlackTermManager, mk_fun_sort)
   (void)cvc5_mk_fun_sort(d_tm, domain.size(), domain.data(), d_int);
 
   Cvc5TermManager* tm = cvc5_term_manager_new();
-  ASSERT_CVC5_ERROR(cvc5_mk_fun_sort(
-                   tm, domain.size(), domain.data(), cvc5_get_integer_sort(tm)),
-               "expected a sort associated with this term manager");
+  ASSERT_CVC5_ERROR(
+      cvc5_mk_fun_sort(
+          tm, domain.size(), domain.data(), cvc5_get_integer_sort(tm)),
+      "expected a sort associated with this term manager");
   domain = {cvc5_get_boolean_sort(tm), cvc5_get_integer_sort(tm)};
   ASSERT_CVC5_ERROR(cvc5_mk_fun_sort(tm, domain.size(), domain.data(), d_int),
-               "sort is not associated with this term manager");
+                    "sort is not associated with this term manager");
   cvc5_term_manager_delete(tm);
 }
 
@@ -358,8 +376,10 @@ TEST_F(TestCApiBlackTermManager, mk_param_sort)
 {
   (void)cvc5_mk_param_sort(d_tm, "T");
   (void)cvc5_mk_param_sort(d_tm, "");
-  ASSERT_CVC5_ERROR(cvc5_mk_param_sort(nullptr, ""), "unexpected NULL argument");
-  ASSERT_CVC5_ERROR(cvc5_mk_param_sort(d_tm, nullptr), "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_mk_param_sort(nullptr, ""),
+                    "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_mk_param_sort(d_tm, nullptr),
+                    "unexpected NULL argument");
 }
 
 TEST_F(TestCApiBlackTermManager, mk_predicate_sort)
@@ -367,20 +387,20 @@ TEST_F(TestCApiBlackTermManager, mk_predicate_sort)
   std::vector<Cvc5Sort> sorts = {d_int};
   (void)cvc5_mk_predicate_sort(d_tm, sorts.size(), sorts.data());
   ASSERT_CVC5_ERROR(cvc5_mk_predicate_sort(nullptr, sorts.size(), sorts.data()),
-               "unexpected NULL argument");
+                    "unexpected NULL argument");
   ASSERT_CVC5_ERROR(cvc5_mk_predicate_sort(d_tm, sorts.size(), nullptr),
-               "unexpected NULL argument");
+                    "unexpected NULL argument");
   sorts = {nullptr};
   ASSERT_CVC5_ERROR(cvc5_mk_predicate_sort(d_tm, sorts.size(), sorts.data()),
-               "invalid sort at index 0");
+                    "invalid sort at index 0");
 
   sorts = {};
   ASSERT_CVC5_ERROR(cvc5_mk_predicate_sort(d_tm, sorts.size(), sorts.data()),
-               "expected at least one parameter sort");
+                    "expected at least one parameter sort");
 
   sorts = {nullptr};
   ASSERT_CVC5_ERROR(cvc5_mk_predicate_sort(d_tm, sorts.size(), sorts.data()),
-               "invalid sort at index 0");
+                    "invalid sort at index 0");
 
   sorts = {cvc5_mk_uninterpreted_sort(d_tm, "u"), d_int};
   Cvc5Sort funsort = cvc5_mk_fun_sort(d_tm, sorts.size(), sorts.data(), d_int);
@@ -391,7 +411,7 @@ TEST_F(TestCApiBlackTermManager, mk_predicate_sort)
   Cvc5TermManager* tm = cvc5_term_manager_new();
   sorts = {d_int};
   ASSERT_CVC5_ERROR(cvc5_mk_predicate_sort(tm, sorts.size(), sorts.data()),
-               "expected a sort associated with this term manager");
+                    "expected a sort associated with this term manager");
   cvc5_term_manager_delete(tm);
 }
 
@@ -438,11 +458,12 @@ TEST_F(TestCApiBlackTermManager, mk_set_sort)
   (void)cvc5_mk_set_sort(d_tm, d_int);
   (void)cvc5_mk_set_sort(d_tm, cvc5_mk_bv_sort(d_tm, 4));
   (void)cvc5_mk_set_sort(d_tm, cvc5_mk_bv_sort(d_tm, 4));
-  ASSERT_CVC5_ERROR(cvc5_mk_set_sort(nullptr, d_bool), "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_mk_set_sort(nullptr, d_bool),
+                    "unexpected NULL argument");
   ASSERT_CVC5_ERROR(cvc5_mk_set_sort(d_tm, nullptr), "invalid sort");
   Cvc5TermManager* tm = cvc5_term_manager_new();
   ASSERT_CVC5_ERROR(cvc5_mk_set_sort(d_tm, cvc5_get_boolean_sort(tm)),
-               "sort is not associated with this term manager");
+                    "sort is not associated with this term manager");
   cvc5_term_manager_delete(tm);
 }
 
@@ -452,11 +473,12 @@ TEST_F(TestCApiBlackTermManager, mk_bag_sort)
   (void)cvc5_mk_bag_sort(d_tm, d_int);
   (void)cvc5_mk_bag_sort(d_tm, cvc5_mk_bv_sort(d_tm, 4));
   (void)cvc5_mk_bag_sort(d_tm, cvc5_mk_bv_sort(d_tm, 4));
-  ASSERT_CVC5_ERROR(cvc5_mk_bag_sort(nullptr, d_bool), "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_mk_bag_sort(nullptr, d_bool),
+                    "unexpected NULL argument");
   ASSERT_CVC5_ERROR(cvc5_mk_bag_sort(d_tm, nullptr), "invalid sort");
   Cvc5TermManager* tm = cvc5_term_manager_new();
   ASSERT_CVC5_ERROR(cvc5_mk_bag_sort(d_tm, cvc5_get_boolean_sort(tm)),
-               "sort is not associated with this term manager");
+                    "sort is not associated with this term manager");
   cvc5_term_manager_delete(tm);
 }
 
@@ -467,11 +489,11 @@ TEST_F(TestCApiBlackTermManager, mk_sequence_sort)
   (void)cvc5_mk_sequence_sort(d_tm, cvc5_mk_bv_sort(d_tm, 4));
   (void)cvc5_mk_sequence_sort(d_tm, cvc5_mk_bv_sort(d_tm, 4));
   ASSERT_CVC5_ERROR(cvc5_mk_sequence_sort(nullptr, d_bool),
-               "unexpected NULL argument");
+                    "unexpected NULL argument");
   ASSERT_CVC5_ERROR(cvc5_mk_sequence_sort(d_tm, nullptr), "invalid sort");
   Cvc5TermManager* tm = cvc5_term_manager_new();
   ASSERT_CVC5_ERROR(cvc5_mk_sequence_sort(d_tm, cvc5_get_boolean_sort(tm)),
-               "sort is not associated with this term manager");
+                    "sort is not associated with this term manager");
   cvc5_term_manager_delete(tm);
 }
 
@@ -482,11 +504,11 @@ TEST_F(TestCApiBlackTermManager, mk_abstract_sort)
   (void)cvc5_mk_abstract_sort(d_tm, CVC5_SORT_KIND_TUPLE_SORT);
   (void)cvc5_mk_abstract_sort(d_tm, CVC5_SORT_KIND_SET_SORT);
   ASSERT_CVC5_ERROR(cvc5_mk_abstract_sort(nullptr, CVC5_SORT_KIND_SET_SORT),
-               "unexpected NULL argument");
+                    "unexpected NULL argument");
   ASSERT_CVC5_ERROR(cvc5_mk_abstract_sort(d_tm, CVC5_SORT_KIND_BOOLEAN_SORT),
-               "cannot construct abstract type");
+                    "cannot construct abstract type");
   ASSERT_CVC5_ERROR(cvc5_mk_abstract_sort(d_tm, static_cast<Cvc5SortKind>(-1)),
-               "cannot construct abstract type");
+                    "cannot construct abstract type");
 }
 
 TEST_F(TestCApiBlackTermManager, mk_uninterpreted_sort)
@@ -494,7 +516,7 @@ TEST_F(TestCApiBlackTermManager, mk_uninterpreted_sort)
   (void)cvc5_mk_uninterpreted_sort(d_tm, "u");
   (void)cvc5_mk_uninterpreted_sort(d_tm, "");
   ASSERT_CVC5_ERROR(cvc5_mk_uninterpreted_sort(nullptr, ""),
-               "unexpected NULL argument");
+                    "unexpected NULL argument");
 }
 
 TEST_F(TestCApiBlackTermManager, mk_unresolved_dt_sort)
@@ -504,9 +526,9 @@ TEST_F(TestCApiBlackTermManager, mk_unresolved_dt_sort)
   (void)cvc5_mk_unresolved_dt_sort(d_tm, "", 0);
   (void)cvc5_mk_unresolved_dt_sort(d_tm, "", 1);
   ASSERT_CVC5_ERROR(cvc5_mk_unresolved_dt_sort(nullptr, "", 1),
-               "unexpected NULL argument");
+                    "unexpected NULL argument");
   ASSERT_CVC5_ERROR(cvc5_mk_unresolved_dt_sort(d_tm, nullptr, 1),
-               "unexpected NULL argument");
+                    "unexpected NULL argument");
 }
 
 TEST_F(TestCApiBlackTermManager, mk_uninterpreted_sort_constructor_sort)
@@ -514,11 +536,12 @@ TEST_F(TestCApiBlackTermManager, mk_uninterpreted_sort_constructor_sort)
   (void)cvc5_mk_uninterpreted_sort_constructor_sort(d_tm, 2, "s");
   (void)cvc5_mk_uninterpreted_sort_constructor_sort(d_tm, 2, "");
   (void)cvc5_mk_uninterpreted_sort_constructor_sort(d_tm, 2, nullptr);
-  ASSERT_CVC5_ERROR(cvc5_mk_uninterpreted_sort_constructor_sort(nullptr, 2, "s"),
-               "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(
+      cvc5_mk_uninterpreted_sort_constructor_sort(nullptr, 2, "s"),
+      "unexpected NULL argument");
   (void)cvc5_mk_uninterpreted_sort_constructor_sort(d_tm, 2, nullptr);
   ASSERT_CVC5_ERROR(cvc5_mk_uninterpreted_sort_constructor_sort(d_tm, 0, ""),
-               "expected an arity > 0");
+                    "expected an arity > 0");
 }
 
 TEST_F(TestCApiBlackTermManager, mk_tuple_sort)
@@ -526,12 +549,12 @@ TEST_F(TestCApiBlackTermManager, mk_tuple_sort)
   std::vector<Cvc5Sort> sorts = {d_int};
   (void)cvc5_mk_tuple_sort(d_tm, sorts.size(), sorts.data());
   ASSERT_CVC5_ERROR(cvc5_mk_tuple_sort(nullptr, sorts.size(), sorts.data()),
-               "unexpected NULL argument");
+                    "unexpected NULL argument");
   ASSERT_CVC5_ERROR(cvc5_mk_tuple_sort(nullptr, sorts.size(), nullptr),
-               "unexpected NULL argument");
+                    "unexpected NULL argument");
   sorts = {d_int, nullptr};
   ASSERT_CVC5_ERROR(cvc5_mk_tuple_sort(d_tm, sorts.size(), sorts.data()),
-               "invalid sort at index 1");
+                    "invalid sort at index 1");
   sorts = {cvc5_mk_uninterpreted_sort(d_tm, "u"), d_int};
   Cvc5Sort funsort = cvc5_mk_tuple_sort(d_tm, sorts.size(), sorts.data());
   sorts = {d_int, funsort};
@@ -542,7 +565,7 @@ TEST_F(TestCApiBlackTermManager, mk_tuple_sort)
   Cvc5TermManager* tm = cvc5_term_manager_new();
   sorts = {cvc5_get_boolean_sort(tm)};
   ASSERT_CVC5_ERROR(cvc5_mk_tuple_sort(d_tm, sorts.size(), sorts.data()),
-               "expected a sort associated with this term manager");
+                    "expected a sort associated with this term manager");
   cvc5_term_manager_delete(tm);
 }
 
@@ -552,11 +575,11 @@ TEST_F(TestCApiBlackTermManager, mk_nullable_sort)
   (void)cvc5_mk_nullable_sort(d_tm, d_int);
 
   ASSERT_CVC5_ERROR(cvc5_mk_nullable_sort(nullptr, d_int),
-               "unexpected NULL argument");
+                    "unexpected NULL argument");
   ASSERT_CVC5_ERROR(cvc5_mk_nullable_sort(d_tm, nullptr), "invalid sort");
   Cvc5TermManager* tm = cvc5_term_manager_new();
   ASSERT_CVC5_ERROR(cvc5_mk_nullable_sort(tm, d_int),
-               "sort is not associated with this term manager");
+                    "sort is not associated with this term manager");
   cvc5_term_manager_delete(tm);
 }
 
@@ -571,31 +594,34 @@ TEST_F(TestCApiBlackTermManager, mk_bv)
   (void)cvc5_mk_bv(d_tm, 8, "a0", 16);
 
   ASSERT_CVC5_ERROR(cvc5_mk_bv(nullptr, 8, "-1111111", 2),
-               "unexpected NULL argument");
+                    "unexpected NULL argument");
 
   ASSERT_CVC5_ERROR(cvc5_mk_bv(d_tm, 0, "-127", 10),
-               "invalid argument '0' for 'size'");
+                    "invalid argument '0' for 'size'");
   ASSERT_CVC5_ERROR(cvc5_mk_bv(d_tm, 0, "a0", 16),
-               "invalid argument '0' for 'size'");
+                    "invalid argument '0' for 'size'");
 
   ASSERT_CVC5_ERROR(cvc5_mk_bv(d_tm, 8, "", 2), "expected a non-empty string");
 
-  ASSERT_CVC5_ERROR(cvc5_mk_bv(d_tm, 8, "101", 5), "expected base 2, 10, or 16");
-  ASSERT_CVC5_ERROR(cvc5_mk_bv(d_tm, 8, "128", 11), "expected base 2, 10, or 16");
-  ASSERT_CVC5_ERROR(cvc5_mk_bv(d_tm, 8, "a0", 21), "expected base 2, 10, or 16");
+  ASSERT_CVC5_ERROR(cvc5_mk_bv(d_tm, 8, "101", 5),
+                    "expected base 2, 10, or 16");
+  ASSERT_CVC5_ERROR(cvc5_mk_bv(d_tm, 8, "128", 11),
+                    "expected base 2, 10, or 16");
+  ASSERT_CVC5_ERROR(cvc5_mk_bv(d_tm, 8, "a0", 21),
+                    "expected base 2, 10, or 16");
 
   ASSERT_CVC5_ERROR(cvc5_mk_bv(d_tm, 8, "-11111111", 2),
-               "overflow in bit-vector construction");
+                    "overflow in bit-vector construction");
   ASSERT_CVC5_ERROR(cvc5_mk_bv(d_tm, 8, "101010101", 2),
-               "overflow in bit-vector construction");
+                    "overflow in bit-vector construction");
   ASSERT_CVC5_ERROR(cvc5_mk_bv(d_tm, 8, "-256", 10),
-               "overflow in bit-vector construction");
+                    "overflow in bit-vector construction");
   ASSERT_CVC5_ERROR(cvc5_mk_bv(d_tm, 8, "257", 10),
-               "overflow in bit-vector construction");
+                    "overflow in bit-vector construction");
   ASSERT_CVC5_ERROR(cvc5_mk_bv(d_tm, 8, "-a0", 16),
-               "overflow in bit-vector construction");
+                    "overflow in bit-vector construction");
   ASSERT_CVC5_ERROR(cvc5_mk_bv(d_tm, 8, "fffff", 16),
-               "overflow in bit-vector construction");
+                    "overflow in bit-vector construction");
 
   ASSERT_CVC5_ERROR(cvc5_mk_bv(d_tm, 8, "10201010", 2), "");
   ASSERT_CVC5_ERROR(cvc5_mk_bv(d_tm, 8, "-25x", 10), "");
@@ -617,9 +643,10 @@ TEST_F(TestCApiBlackTermManager, mk_bv_uint64)
 {
   (void)cvc5_mk_bv_uint64(d_tm, 8, 2);
   (void)cvc5_mk_bv_uint64(d_tm, 32, 2);
-  ASSERT_CVC5_ERROR(cvc5_mk_bv_uint64(nullptr, 0, 2), "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_mk_bv_uint64(nullptr, 0, 2),
+                    "unexpected NULL argument");
   ASSERT_CVC5_ERROR(cvc5_mk_bv_uint64(d_tm, 0, 2),
-               "invalid argument '0' for 'size'");
+                    "invalid argument '0' for 'size'");
 }
 
 TEST_F(TestCApiBlackTermManager, mk_ff_elem)
@@ -634,10 +661,10 @@ TEST_F(TestCApiBlackTermManager, mk_ff_elem)
   (void)cvc5_mk_ff_elem(d_tm, "-1", ff_sort, 10);
 
   ASSERT_CVC5_ERROR(cvc5_mk_ff_elem(nullptr, "-1", ff_sort, 10),
-               "unexpected NULL argument");
+                    "unexpected NULL argument");
   ASSERT_CVC5_ERROR(cvc5_mk_ff_elem(d_tm, "a", ff_sort, 10), "");
   ASSERT_CVC5_ERROR(cvc5_mk_ff_elem(d_tm, "-1", bv_sort, 10),
-               "expected a finite field sort");
+                    "expected a finite field sort");
 
   ASSERT_EQ(cvc5_mk_ff_elem(d_tm, "-1", ff_sort, 10),
             cvc5_mk_ff_elem(d_tm, "6", ff_sort, 10));
@@ -667,22 +694,24 @@ TEST_F(TestCApiBlackTermManager, mk_const_array)
   (void)cvc5_mk_const_array(d_tm, arr_sort, zero);
 
   ASSERT_CVC5_ERROR(cvc5_mk_const_array(nullptr, arr_sort, zero),
-               "unexpected NULL argument");
+                    "unexpected NULL argument");
   ASSERT_CVC5_ERROR(cvc5_mk_const_array(d_tm, nullptr, zero), "invalid sort");
-  ASSERT_CVC5_ERROR(cvc5_mk_const_array(d_tm, arr_sort, nullptr), "invalid term");
+  ASSERT_CVC5_ERROR(cvc5_mk_const_array(d_tm, arr_sort, nullptr),
+                    "invalid term");
   ASSERT_CVC5_ERROR(
       cvc5_mk_const_array(d_tm, arr_sort, cvc5_mk_bv_uint64(d_tm, 1, 1)),
       "value does not match element sort");
   ASSERT_CVC5_ERROR(cvc5_mk_const_array(d_tm, d_int, zero),
-               "expected an array sort");
+                    "expected an array sort");
 
   Cvc5Sort arr_sort2 = cvc5_mk_array_sort(d_tm, d_int, d_int);
   Cvc5Term zero2 = cvc5_mk_integer_int64(d_tm, 0);
   (void)cvc5_mk_const_array(d_tm, arr_sort2, zero);
   (void)cvc5_mk_const_array(d_tm, arr_sort, zero2);
   Cvc5TermManager* tm = cvc5_term_manager_new();
-  ASSERT_CVC5_ERROR(cvc5_mk_const_array(tm, arr_sort, cvc5_mk_integer_int64(tm, 0)),
-               "sort is not associated with this term manager");
+  ASSERT_CVC5_ERROR(
+      cvc5_mk_const_array(tm, arr_sort, cvc5_mk_integer_int64(tm, 0)),
+      "sort is not associated with this term manager");
   ASSERT_CVC5_ERROR(
       cvc5_mk_const_array(
           tm,
@@ -703,11 +732,12 @@ TEST_F(TestCApiBlackTermManager, mk_var)
   (void)cvc5_mk_var(d_tm, d_bool, "b");
   (void)cvc5_mk_var(d_tm, fun_sort, "");
 
-  ASSERT_CVC5_ERROR(cvc5_mk_var(nullptr, d_bool, ""), "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_mk_var(nullptr, d_bool, ""),
+                    "unexpected NULL argument");
   ASSERT_CVC5_ERROR(cvc5_mk_var(d_tm, nullptr, ""), "invalid sort");
   Cvc5TermManager* tm = cvc5_term_manager_new();
   ASSERT_CVC5_ERROR(cvc5_mk_var(tm, d_bool, "b"),
-               "sort is not associated with this term manager");
+                    "sort is not associated with this term manager");
   cvc5_term_manager_delete(tm);
 }
 
@@ -735,7 +765,7 @@ TEST_F(TestCApiBlackTermManager, mk_rm)
       cvc5_term_to_string(cvc5_mk_rm(d_tm, CVC5_RM_ROUND_NEAREST_TIES_TO_AWAY)),
       std::string("roundNearestTiesToAway"));
   ASSERT_CVC5_ERROR(cvc5_mk_rm(nullptr, CVC5_RM_ROUND_TOWARD_ZERO),
-               "unexpected NULL argument");
+                    "unexpected NULL argument");
 }
 
 TEST_F(TestCApiBlackTermManager, mk_fp)
@@ -748,10 +778,12 @@ TEST_F(TestCApiBlackTermManager, mk_fp)
   ASSERT_CVC5_ERROR(cvc5_mk_fp(d_tm, 3, 5, nullptr), "invalid term");
   ASSERT_CVC5_ERROR(cvc5_mk_fp(d_tm, 0, 5, t1), "expected exponent size > 1");
   ASSERT_CVC5_ERROR(cvc5_mk_fp(d_tm, 1, 5, t1), "expected exponent size > 1");
-  ASSERT_CVC5_ERROR(cvc5_mk_fp(d_tm, 3, 0, t1), "expected significand size > 1");
-  ASSERT_CVC5_ERROR(cvc5_mk_fp(d_tm, 3, 1, t1), "expected significand size > 1");
+  ASSERT_CVC5_ERROR(cvc5_mk_fp(d_tm, 3, 0, t1),
+                    "expected significand size > 1");
+  ASSERT_CVC5_ERROR(cvc5_mk_fp(d_tm, 3, 1, t1),
+                    "expected significand size > 1");
   ASSERT_CVC5_ERROR(cvc5_mk_fp(d_tm, 3, 5, t2),
-               "expected a bit-vector value with bit-width '8'");
+                    "expected a bit-vector value with bit-width '8'");
 
   Cvc5Term sign = cvc5_mk_bv_uint64(d_tm, 1, 0);
   Cvc5Term exp = cvc5_mk_bv_uint64(d_tm, 5, 0);
@@ -760,10 +792,13 @@ TEST_F(TestCApiBlackTermManager, mk_fp)
             cvc5_mk_fp(d_tm, 5, 11, cvc5_mk_bv_uint64(d_tm, 16, 0)));
 
   ASSERT_CVC5_ERROR(cvc5_mk_fp_from_ieee(nullptr, sign, exp, sig),
-               "unexpected NULL argument");
-  ASSERT_CVC5_ERROR(cvc5_mk_fp_from_ieee(d_tm, nullptr, exp, sig), "invalid term");
-  ASSERT_CVC5_ERROR(cvc5_mk_fp_from_ieee(d_tm, sign, nullptr, sig), "invalid term");
-  ASSERT_CVC5_ERROR(cvc5_mk_fp_from_ieee(d_tm, sign, exp, nullptr), "invalid term");
+                    "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_mk_fp_from_ieee(d_tm, nullptr, exp, sig),
+                    "invalid term");
+  ASSERT_CVC5_ERROR(cvc5_mk_fp_from_ieee(d_tm, sign, nullptr, sig),
+                    "invalid term");
+  ASSERT_CVC5_ERROR(cvc5_mk_fp_from_ieee(d_tm, sign, exp, nullptr),
+                    "invalid term");
   ASSERT_CVC5_ERROR(
       cvc5_mk_fp_from_ieee(
           d_tm, cvc5_mk_const(d_tm, cvc5_mk_bv_sort(d_tm, 1), ""), exp, sig),
@@ -782,7 +817,7 @@ TEST_F(TestCApiBlackTermManager, mk_fp)
 
   Cvc5TermManager* tm = cvc5_term_manager_new();
   ASSERT_CVC5_ERROR(cvc5_mk_fp(tm, 3, 5, t1),
-               "term is not associated with this term manager");
+                    "term is not associated with this term manager");
   ASSERT_CVC5_ERROR(
       cvc5_mk_fp_from_ieee(
           tm, sign, cvc5_mk_bv_uint64(tm, 5, 0), cvc5_mk_bv_uint64(tm, 10, 0)),
@@ -803,17 +838,17 @@ TEST_F(TestCApiBlackTermManager, mk_cardinality_constraint)
   Cvc5Sort unsort = cvc5_mk_uninterpreted_sort(d_tm, "u");
   (void)cvc5_mk_cardinality_constraint(d_tm, unsort, 3);
   ASSERT_CVC5_ERROR(cvc5_mk_cardinality_constraint(nullptr, unsort, 3),
-               "unexpected NULL argument");
+                    "unexpected NULL argument");
   ASSERT_CVC5_ERROR(cvc5_mk_cardinality_constraint(d_tm, nullptr, 3),
-               "invalid sort");
+                    "invalid sort");
   ASSERT_CVC5_ERROR(cvc5_mk_cardinality_constraint(d_tm, d_int, 3),
-               "expected an uninterpreted sort");
+                    "expected an uninterpreted sort");
   ASSERT_CVC5_ERROR(cvc5_mk_cardinality_constraint(d_tm, unsort, 0),
-               "expected a value > 0");
+                    "expected a value > 0");
 
   Cvc5TermManager* tm = cvc5_term_manager_new();
   ASSERT_CVC5_ERROR(cvc5_mk_cardinality_constraint(tm, unsort, 3),
-               "sort is not associated with this term manager");
+                    "sort is not associated with this term manager");
   cvc5_term_manager_delete(tm);
 }
 
@@ -821,14 +856,15 @@ TEST_F(TestCApiBlackTermManager, mk_empty_set)
 {
   Cvc5Sort sort = cvc5_mk_set_sort(d_tm, d_bool);
   (void)cvc5_mk_empty_set(d_tm, sort);
-  ASSERT_CVC5_ERROR(cvc5_mk_empty_set(nullptr, sort), "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_mk_empty_set(nullptr, sort),
+                    "unexpected NULL argument");
   ASSERT_CVC5_ERROR(cvc5_mk_empty_set(d_tm, nullptr), "invalid sort");
   ASSERT_CVC5_ERROR(cvc5_mk_empty_set(d_tm, d_bool),
-               "expected null sort or set sort");
+                    "expected null sort or set sort");
 
   Cvc5TermManager* tm = cvc5_term_manager_new();
   ASSERT_CVC5_ERROR(cvc5_mk_empty_set(tm, sort),
-               "sort is not associated with this term manager");
+                    "sort is not associated with this term manager");
   cvc5_term_manager_delete(tm);
 }
 
@@ -836,14 +872,15 @@ TEST_F(TestCApiBlackTermManager, mk_empty_bag)
 {
   Cvc5Sort sort = cvc5_mk_bag_sort(d_tm, d_bool);
   (void)cvc5_mk_empty_bag(d_tm, sort);
-  ASSERT_CVC5_ERROR(cvc5_mk_empty_bag(nullptr, sort), "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_mk_empty_bag(nullptr, sort),
+                    "unexpected NULL argument");
   ASSERT_CVC5_ERROR(cvc5_mk_empty_bag(d_tm, nullptr), "invalid sort");
   ASSERT_CVC5_ERROR(cvc5_mk_empty_bag(d_tm, d_bool),
-               "expected null sort or bag sort");
+                    "expected null sort or bag sort");
 
   Cvc5TermManager* tm = cvc5_term_manager_new();
   ASSERT_CVC5_ERROR(cvc5_mk_empty_bag(tm, sort),
-               "sort is not associated with this term manager");
+                    "sort is not associated with this term manager");
   cvc5_term_manager_delete(tm);
 }
 
@@ -853,12 +890,12 @@ TEST_F(TestCApiBlackTermManager, mk_empty_sequence)
   (void)cvc5_mk_empty_sequence(d_tm, sort);
   (void)cvc5_mk_empty_sequence(d_tm, d_bool);
   ASSERT_CVC5_ERROR(cvc5_mk_empty_sequence(nullptr, sort),
-               "unexpected NULL argument");
+                    "unexpected NULL argument");
   ASSERT_CVC5_ERROR(cvc5_mk_empty_sequence(d_tm, nullptr), "invalid sort");
 
   Cvc5TermManager* tm = cvc5_term_manager_new();
   ASSERT_CVC5_ERROR(cvc5_mk_empty_sequence(tm, sort),
-               "sort is not associated with this term manager");
+                    "sort is not associated with this term manager");
   cvc5_term_manager_delete(tm);
 }
 
@@ -873,36 +910,41 @@ TEST_F(TestCApiBlackTermManager, mk_fp_nan)
 TEST_F(TestCApiBlackTermManager, mk_fp_neg_zero)
 {
   (void)cvc5_mk_fp_neg_zero(d_tm, 3, 5);
-  ASSERT_CVC5_ERROR(cvc5_mk_fp_neg_zero(nullptr, 3, 5), "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_mk_fp_neg_zero(nullptr, 3, 5),
+                    "unexpected NULL argument");
 }
 
 TEST_F(TestCApiBlackTermManager, mk_fp_pos_zero)
 {
   (void)cvc5_mk_fp_pos_zero(d_tm, 3, 5);
-  ASSERT_CVC5_ERROR(cvc5_mk_fp_pos_zero(nullptr, 3, 5), "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_mk_fp_pos_zero(nullptr, 3, 5),
+                    "unexpected NULL argument");
 }
 
 TEST_F(TestCApiBlackTermManager, mk_fp_neg_inf)
 {
   (void)cvc5_mk_fp_neg_inf(d_tm, 3, 5);
-  ASSERT_CVC5_ERROR(cvc5_mk_fp_neg_inf(nullptr, 3, 5), "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_mk_fp_neg_inf(nullptr, 3, 5),
+                    "unexpected NULL argument");
 }
 
 TEST_F(TestCApiBlackTermManager, mk_fp_pos_inf)
 {
   (void)cvc5_mk_fp_pos_inf(d_tm, 3, 5);
-  ASSERT_CVC5_ERROR(cvc5_mk_fp_pos_inf(nullptr, 3, 5), "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_mk_fp_pos_inf(nullptr, 3, 5),
+                    "unexpected NULL argument");
 }
 
 TEST_F(TestCApiBlackTermManager, mk_op)
 {
   (void)cvc5_mk_op_from_str(d_tm, CVC5_KIND_DIVISIBLE, "2147483648");
-  ASSERT_CVC5_ERROR(cvc5_mk_op_from_str(nullptr, CVC5_KIND_DIVISIBLE, "2147483648"),
-               "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(
+      cvc5_mk_op_from_str(nullptr, CVC5_KIND_DIVISIBLE, "2147483648"),
+      "unexpected NULL argument");
   ASSERT_CVC5_ERROR(cvc5_mk_op_from_str(d_tm, CVC5_KIND_DIVISIBLE, nullptr),
-               "unexpected NULL argument");
+                    "unexpected NULL argument");
   ASSERT_CVC5_ERROR(cvc5_mk_op_from_str(d_tm, CVC5_KIND_BITVECTOR_EXTRACT, "1"),
-               "expected DIVISIBLE");
+                    "expected DIVISIBLE");
 
   std::vector<uint32_t> idxs = {1};
   (void)cvc5_mk_op(d_tm, CVC5_KIND_DIVISIBLE, 1, idxs.data());
@@ -911,15 +953,17 @@ TEST_F(TestCApiBlackTermManager, mk_op)
   ASSERT_CVC5_ERROR(
       cvc5_mk_op(nullptr, CVC5_KIND_BITVECTOR_ROTATE_RIGHT, 1, idxs.data()),
       "unexpected NULL argument");
-  ASSERT_CVC5_ERROR(cvc5_mk_op(d_tm, CVC5_KIND_BITVECTOR_ROTATE_RIGHT, 1, nullptr),
-               "unexpected NULL argument");
-  ASSERT_CVC5_ERROR(cvc5_mk_op(d_tm, CVC5_KIND_BITVECTOR_EXTRACT, 1, idxs.data()),
-               "expected 2 but got 1");
+  ASSERT_CVC5_ERROR(
+      cvc5_mk_op(d_tm, CVC5_KIND_BITVECTOR_ROTATE_RIGHT, 1, nullptr),
+      "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(
+      cvc5_mk_op(d_tm, CVC5_KIND_BITVECTOR_EXTRACT, 1, idxs.data()),
+      "expected 2 but got 1");
 
   idxs = {1, 1};
   (void)cvc5_mk_op(d_tm, CVC5_KIND_BITVECTOR_EXTRACT, 2, idxs.data());
   ASSERT_CVC5_ERROR(cvc5_mk_op(d_tm, CVC5_KIND_DIVISIBLE, 2, idxs.data()),
-               "expected 1 but got 2");
+                    "expected 1 but got 2");
 
   idxs = {1, 2, 2};
   (void)cvc5_mk_op(d_tm, CVC5_KIND_TUPLE_PROJECT, 3, idxs.data());
@@ -934,7 +978,8 @@ TEST_F(TestCApiBlackTermManager, mk_pi)
 TEST_F(TestCApiBlackTermManager, mk_integer)
 {
   (void)cvc5_mk_integer(d_tm, "123");
-  ASSERT_CVC5_ERROR(cvc5_mk_integer(nullptr, "123"), "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_mk_integer(nullptr, "123"),
+                    "unexpected NULL argument");
   ASSERT_CVC5_ERROR(cvc5_mk_integer(d_tm, nullptr), "unexpected NULL argument");
   ASSERT_CVC5_ERROR(cvc5_mk_integer(d_tm, "1.23"), "expected an integer");
   ASSERT_CVC5_ERROR(cvc5_mk_integer(d_tm, "1/23"), "expected an integer");
@@ -986,8 +1031,10 @@ TEST_F(TestCApiBlackTermManager, mkReal)
   (void)cvc5_mk_real_num_den(d_tm, 1, -1);
   (void)cvc5_mk_real_num_den(d_tm, -1, 1);
   (void)cvc5_mk_real_num_den(d_tm, 0, 1);
-  ASSERT_CVC5_ERROR(cvc5_mk_real_num_den(nullptr, 1, 1), "unexpected NULL argument");
-  ASSERT_CVC5_ERROR(cvc5_mk_real_num_den(d_tm, 1, 0), "invalid denominator '0'");
+  ASSERT_CVC5_ERROR(cvc5_mk_real_num_den(nullptr, 1, 1),
+                    "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_mk_real_num_den(d_tm, 1, 0),
+                    "invalid denominator '0'");
 }
 
 TEST_F(TestCApiBlackTermManager, mk_regexp_all)
@@ -1005,7 +1052,8 @@ TEST_F(TestCApiBlackTermManager, mk_regexp_allchar)
   Cvc5Term s = cvc5_mk_const(d_tm, sort, "s");
   std::vector<Cvc5Term> args = {s, cvc5_mk_regexp_allchar(d_tm)};
   (void)cvc5_mk_term(d_tm, CVC5_KIND_STRING_IN_REGEXP, 2, args.data());
-  ASSERT_CVC5_ERROR(cvc5_mk_regexp_allchar(nullptr), "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_mk_regexp_allchar(nullptr),
+                    "unexpected NULL argument");
 }
 
 TEST_F(TestCApiBlackTermManager, mk_regexp_none)
@@ -1027,12 +1075,13 @@ TEST_F(TestCApiBlackTermManager, mk_sep_nil)
 {
   (void)cvc5_mk_sep_nil(d_tm, d_bool);
   (void)cvc5_mk_sep_nil(d_tm, d_int);
-  ASSERT_CVC5_ERROR(cvc5_mk_sep_nil(nullptr, d_bool), "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_mk_sep_nil(nullptr, d_bool),
+                    "unexpected NULL argument");
   ASSERT_CVC5_ERROR(cvc5_mk_sep_nil(d_tm, nullptr), "invalid sort");
 
   Cvc5TermManager* tm = cvc5_term_manager_new();
   ASSERT_CVC5_ERROR(cvc5_mk_sep_nil(tm, d_bool),
-               "sort is not associated with this term manager");
+                    "sort is not associated with this term manager");
   cvc5_term_manager_delete(tm);
 }
 
@@ -1089,15 +1138,16 @@ TEST_F(TestCApiBlackTermManager, mk_term)
       args.data());
 
   ASSERT_CVC5_ERROR(cvc5_mk_term(nullptr, CVC5_KIND_PI, 0, args.data()),
-               "unexpected NULL argument");
+                    "unexpected NULL argument");
   ASSERT_CVC5_ERROR(cvc5_mk_term(d_tm, CVC5_KIND_PI, 1, nullptr),
-               "unexpected NULL argument for 'children'");
+                    "unexpected NULL argument for 'children'");
   ASSERT_CVC5_ERROR(cvc5_mk_term(d_tm, CVC5_KIND_PI, 1, {}),
-               "unexpected NULL argument for 'children'");
+                    "unexpected NULL argument for 'children'");
   ASSERT_CVC5_ERROR(cvc5_mk_term(d_tm, CVC5_KIND_PI, 1, args.data()),
-               "unexpected NULL argument for 'children'");
-  ASSERT_CVC5_ERROR(cvc5_mk_term(d_tm, CVC5_KIND_CONST_BITVECTOR, 0, args.data()),
-               "invalid kind");
+                    "unexpected NULL argument for 'children'");
+  ASSERT_CVC5_ERROR(
+      cvc5_mk_term(d_tm, CVC5_KIND_CONST_BITVECTOR, 0, args.data()),
+      "invalid kind");
 
   args = {cvc5_mk_true(d_tm)};
   (void)cvc5_mk_term(d_tm, CVC5_KIND_NOT, 1, args.data());
@@ -1112,10 +1162,10 @@ TEST_F(TestCApiBlackTermManager, mk_term)
       args.data());
   args = {nullptr};
   ASSERT_CVC5_ERROR(cvc5_mk_term(d_tm, CVC5_KIND_NOT, 1, args.data()),
-               "invalid term at index 0");
+                    "invalid term at index 0");
   args = {a};
   ASSERT_CVC5_ERROR(cvc5_mk_term(d_tm, CVC5_KIND_NOT, 1, args.data()),
-               "expecting a Boolean");
+                    "expecting a Boolean");
 
   args = {a, b};
   (void)cvc5_mk_term(d_tm, CVC5_KIND_EQUAL, 2, args.data());
@@ -1127,18 +1177,18 @@ TEST_F(TestCApiBlackTermManager, mk_term)
       d_tm, cvc5_mk_op(d_tm, CVC5_KIND_EQUAL, 0, idxs.data()), 2, args.data());
 
   ASSERT_CVC5_ERROR(cvc5_mk_term(nullptr, CVC5_KIND_EQUAL, 2, nullptr),
-               "unexpected NULL argument");
+                    "unexpected NULL argument");
   ASSERT_CVC5_ERROR(cvc5_mk_term(nullptr, CVC5_KIND_EQUAL, 2, {}),
-               "unexpected NULL argument");
+                    "unexpected NULL argument");
   args = {nullptr, b};
   ASSERT_CVC5_ERROR(cvc5_mk_term(d_tm, CVC5_KIND_EQUAL, 2, args.data()),
-               "invalid term at index 0");
+                    "invalid term at index 0");
   args = {a, nullptr};
   ASSERT_CVC5_ERROR(cvc5_mk_term(d_tm, CVC5_KIND_EQUAL, 2, args.data()),
-               "invalid term at index 1");
+                    "invalid term at index 1");
   args = {a, cvc5_mk_true(d_tm)};
   ASSERT_CVC5_ERROR(cvc5_mk_term(d_tm, CVC5_KIND_EQUAL, 2, args.data()),
-               "Subexpressions must have the same type");
+                    "Subexpressions must have the same type");
 
   args = {cvc5_mk_true(d_tm), cvc5_mk_true(d_tm), cvc5_mk_true(d_tm)};
   (void)cvc5_mk_term(d_tm, CVC5_KIND_ITE, 3, args.data());
@@ -1146,19 +1196,19 @@ TEST_F(TestCApiBlackTermManager, mk_term)
       d_tm, cvc5_mk_op(d_tm, CVC5_KIND_ITE, 0, idxs.data()), 3, args.data());
   args = {nullptr, cvc5_mk_true(d_tm), cvc5_mk_true(d_tm)};
   ASSERT_CVC5_ERROR(cvc5_mk_term(d_tm, CVC5_KIND_ITE, 3, args.data()),
-               "invalid term at index 0");
+                    "invalid term at index 0");
   args = {cvc5_mk_true(d_tm), nullptr, cvc5_mk_true(d_tm)};
   ASSERT_CVC5_ERROR(cvc5_mk_term(d_tm, CVC5_KIND_ITE, 3, args.data()),
-               "invalid term at index 1");
+                    "invalid term at index 1");
   args = {cvc5_mk_true(d_tm), cvc5_mk_true(d_tm), nullptr};
   ASSERT_CVC5_ERROR(cvc5_mk_term(d_tm, CVC5_KIND_ITE, 3, args.data()),
-               "invalid term at index 2");
+                    "invalid term at index 2");
   args = {a, cvc5_mk_true(d_tm), cvc5_mk_true(d_tm)};
   ASSERT_CVC5_ERROR(cvc5_mk_term(d_tm, CVC5_KIND_ITE, 3, args.data()),
-               "condition of ITE is not Boolean");
+                    "condition of ITE is not Boolean");
   args = {cvc5_mk_true(d_tm), cvc5_mk_true(d_tm), b};
   ASSERT_CVC5_ERROR(cvc5_mk_term(d_tm, CVC5_KIND_ITE, 3, args.data()),
-               "Branches of the ITE must have comparable type");
+                    "Branches of the ITE must have comparable type");
 
   // Test cases that are nary via the API but have arity = 2 internally
   Cvc5Term t_bool = cvc5_mk_const(d_tm, d_bool, "t_bool");
@@ -1228,22 +1278,22 @@ TEST_F(TestCApiBlackTermManager, mk_term)
 
   Cvc5TermManager* tm = cvc5_term_manager_new();
   ASSERT_CVC5_ERROR(cvc5_mk_sep_nil(tm, d_bool),
-               "sort is not associated with this term manager");
+                    "sort is not associated with this term manager");
   args = {t_bool,
           cvc5_mk_const(tm, cvc5_get_boolean_sort(tm), ""),
           cvc5_mk_const(tm, cvc5_get_boolean_sort(tm), "")};
   ASSERT_CVC5_ERROR(cvc5_mk_term(tm, CVC5_KIND_IMPLIES, 3, args.data()),
-               "expected a term associated with this term manager");
+                    "expected a term associated with this term manager");
   args = {cvc5_mk_const(tm, cvc5_get_boolean_sort(tm), ""),
           t_bool,
           cvc5_mk_const(tm, cvc5_get_boolean_sort(tm), "")};
   ASSERT_CVC5_ERROR(cvc5_mk_term(tm, CVC5_KIND_IMPLIES, 3, args.data()),
-               "expected a term associated with this term manager");
+                    "expected a term associated with this term manager");
   args = {cvc5_mk_const(tm, cvc5_get_boolean_sort(tm), ""),
           cvc5_mk_const(tm, cvc5_get_boolean_sort(tm), ""),
           t_bool};
   ASSERT_CVC5_ERROR(cvc5_mk_term(tm, CVC5_KIND_IMPLIES, 3, args.data()),
-               "expected a term associated with this term manager");
+                    "expected a term associated with this term manager");
   cvc5_term_manager_delete(tm);
 }
 
@@ -1261,10 +1311,11 @@ TEST_F(TestCApiBlackTermManager, mk_term_from_op)
   idxs = {1};
   Cvc5Op op2 = cvc5_mk_op(d_tm, CVC5_KIND_DIVISIBLE, 1, idxs.data());
 
-  ASSERT_CVC5_ERROR(cvc5_mk_op(nullptr, CVC5_KIND_BITVECTOR_EXTRACT, 2, idxs.data()),
-               "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(
+      cvc5_mk_op(nullptr, CVC5_KIND_BITVECTOR_EXTRACT, 2, idxs.data()),
+      "unexpected NULL argument");
   ASSERT_CVC5_ERROR(cvc5_mk_op(nullptr, CVC5_KIND_BITVECTOR_EXTRACT, 2, {}),
-               "unexpected NULL argument");
+                    "unexpected NULL argument");
 
   // list datatype
   Cvc5Sort sort = cvc5_mk_param_sort(d_tm, "T");
@@ -1296,17 +1347,17 @@ TEST_F(TestCApiBlackTermManager, mk_term_from_op)
   // mk_term(_from_op)
   std::vector<Cvc5Term> args = {nil_term};
   (void)cvc5_mk_term(d_tm, CVC5_KIND_APPLY_CONSTRUCTOR, 1, args.data());
-  ASSERT_CVC5_ERROR(cvc5_mk_term(d_tm, CVC5_KIND_APPLY_SELECTOR, 1, args.data()),
-               "");
+  ASSERT_CVC5_ERROR(
+      cvc5_mk_term(d_tm, CVC5_KIND_APPLY_SELECTOR, 1, args.data()), "");
   args = {cons_term};
-  ASSERT_CVC5_ERROR(cvc5_mk_term(d_tm, CVC5_KIND_APPLY_SELECTOR, 1, args.data()),
-               "");
-  ASSERT_CVC5_ERROR(cvc5_mk_term(d_tm, CVC5_KIND_APPLY_CONSTRUCTOR, 1, args.data()),
-               "");
+  ASSERT_CVC5_ERROR(
+      cvc5_mk_term(d_tm, CVC5_KIND_APPLY_SELECTOR, 1, args.data()), "");
+  ASSERT_CVC5_ERROR(
+      cvc5_mk_term(d_tm, CVC5_KIND_APPLY_CONSTRUCTOR, 1, args.data()), "");
 
   args = {head_term};
-  ASSERT_CVC5_ERROR(cvc5_mk_term(d_tm, CVC5_KIND_APPLY_SELECTOR, 1, args.data()),
-               "");
+  ASSERT_CVC5_ERROR(
+      cvc5_mk_term(d_tm, CVC5_KIND_APPLY_SELECTOR, 1, args.data()), "");
 
   args = {head_term, c};
   (void)cvc5_mk_term(d_tm, CVC5_KIND_APPLY_SELECTOR, 2, args.data());
@@ -1324,8 +1375,8 @@ TEST_F(TestCApiBlackTermManager, mk_term_from_op)
   ASSERT_CVC5_ERROR(cvc5_mk_term_from_op(d_tm, op1, 1, args.data()), "");
 
   args = {cons_term, cvc5_mk_integer_int64(d_tm, 0)};
-  ASSERT_CVC5_ERROR(cvc5_mk_term(d_tm, CVC5_KIND_APPLY_CONSTRUCTOR, 2, args.data()),
-               "");
+  ASSERT_CVC5_ERROR(
+      cvc5_mk_term(d_tm, CVC5_KIND_APPLY_CONSTRUCTOR, 2, args.data()), "");
   args = {nil_term};
   args = {cons_term,
           cvc5_mk_integer_int64(d_tm, 0),
@@ -1353,7 +1404,7 @@ TEST_F(TestCApiBlackTermManager, mk_term_from_op)
   Cvc5TermManager* tm = cvc5_term_manager_new();
   args = {cvc5_mk_integer_int64(tm, 1)};
   ASSERT_CVC5_ERROR(cvc5_mk_term_from_op(tm, op2, 1, args.data()),
-               "operator is not associated with this term manager");
+                    "operator is not associated with this term manager");
   idxs = {1};
   (void)cvc5_mk_term_from_op(
       tm, cvc5_mk_op(tm, CVC5_KIND_DIVISIBLE, 1, idxs.data()), 1, args.data());
@@ -1375,12 +1426,12 @@ TEST_F(TestCApiBlackTermManager, mk_tuple)
   args = {cvc5_mk_real(d_tm, "5.3")};
   (void)cvc5_mk_tuple(d_tm, 1, args.data());
   ASSERT_CVC5_ERROR(cvc5_mk_tuple(nullptr, 1, args.data()),
-               "unexpected NULL argument");
+                    "unexpected NULL argument");
   ASSERT_CVC5_ERROR(cvc5_mk_tuple(nullptr, 0, {}), "unexpected NULL argument");
   Cvc5TermManager* tm = cvc5_term_manager_new();
   args = {cvc5_mk_bv(d_tm, 3, "101", 2)};
   ASSERT_CVC5_ERROR(cvc5_mk_tuple(tm, 1, args.data()),
-               "expected a term associated with this term manager");
+                    "expected a term associated with this term manager");
   cvc5_term_manager_delete(tm);
 }
 
@@ -1390,12 +1441,12 @@ TEST_F(TestCApiBlackTermManager, mk_nullable_some)
   (void)cvc5_mk_nullable_some(d_tm, cvc5_mk_integer(d_tm, "5"));
   (void)cvc5_mk_nullable_some(d_tm, cvc5_mk_real(d_tm, "5.3"));
   ASSERT_CVC5_ERROR(cvc5_mk_nullable_some(nullptr, cvc5_mk_real(d_tm, "5.3")),
-               "unexpected NULL argument");
+                    "unexpected NULL argument");
   ASSERT_CVC5_ERROR(cvc5_mk_nullable_some(d_tm, nullptr), "invalid term");
 
   Cvc5TermManager* tm = cvc5_term_manager_new();
   ASSERT_CVC5_ERROR(cvc5_mk_nullable_some(tm, cvc5_mk_bv(d_tm, 3, "101", 2)),
-               "term is not associated with this term manager");
+                    "term is not associated with this term manager");
   cvc5_term_manager_delete(tm);
 }
 
@@ -1479,12 +1530,12 @@ TEST_F(TestCApiBlackTermManager, mk_nullable_null)
   cvc5_delete(solver);
 
   ASSERT_CVC5_ERROR(cvc5_mk_nullable_null(nullptr, sort),
-               "unexpected NULL argument");
+                    "unexpected NULL argument");
   ASSERT_CVC5_ERROR(cvc5_mk_nullable_null(d_tm, nullptr), "invalid sort");
 
   Cvc5TermManager* tm = cvc5_term_manager_new();
   ASSERT_CVC5_ERROR(cvc5_mk_nullable_null(tm, sort),
-               "sort is not associated with this term manager");
+                    "sort is not associated with this term manager");
   cvc5_term_manager_delete(tm);
 }
 
@@ -1500,14 +1551,15 @@ TEST_F(TestCApiBlackTermManager, mk_nullable_lift)
   cvc5_delete(solver);
 
   ASSERT_EQ(3, cvc5_term_get_int64_value(three));
-  ASSERT_CVC5_ERROR(cvc5_mk_nullable_lift(nullptr, CVC5_KIND_ADD, 2, args.data()),
-               "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(
+      cvc5_mk_nullable_lift(nullptr, CVC5_KIND_ADD, 2, args.data()),
+      "unexpected NULL argument");
   ASSERT_CVC5_ERROR(cvc5_mk_nullable_lift(d_tm, CVC5_KIND_ADD, 0, {}),
-               "unexpected NULL argument");
+                    "unexpected NULL argument");
 
   Cvc5TermManager* tm = cvc5_term_manager_new();
   ASSERT_CVC5_ERROR(cvc5_mk_nullable_lift(tm, CVC5_KIND_ADD, 2, args.data()),
-               "expected a term associated with this term manager");
+                    "expected a term associated with this term manager");
   cvc5_term_manager_delete(tm);
 }
 
@@ -1515,12 +1567,12 @@ TEST_F(TestCApiBlackTermManager, mk_universe_set)
 {
   (void)cvc5_mk_universe_set(d_tm, d_bool);
   ASSERT_CVC5_ERROR(cvc5_mk_universe_set(nullptr, d_bool),
-               "unexpected NULL argument");
+                    "unexpected NULL argument");
   ASSERT_CVC5_ERROR(cvc5_mk_universe_set(d_tm, nullptr), "invalid sort");
 
   Cvc5TermManager* tm = cvc5_term_manager_new();
   ASSERT_CVC5_ERROR(cvc5_mk_universe_set(tm, d_bool),
-               "sort is not associated with this term manager");
+                    "sort is not associated with this term manager");
   cvc5_term_manager_delete(tm);
 }
 
@@ -1535,11 +1587,11 @@ TEST_F(TestCApiBlackTermManager, mk_const)
   (void)cvc5_mk_const(d_tm, fun_sort, "f");
   (void)cvc5_mk_const(d_tm, fun_sort, "");
   ASSERT_CVC5_ERROR(cvc5_mk_const(nullptr, d_bool, nullptr),
-               "unexpected NULL argument");
+                    "unexpected NULL argument");
   ASSERT_CVC5_ERROR(cvc5_mk_const(d_tm, nullptr, nullptr), "invalid sort");
   Cvc5TermManager* tm = cvc5_term_manager_new();
   ASSERT_CVC5_ERROR(cvc5_mk_const(tm, d_bool, nullptr),
-               "sort is not associated with this term manager");
+                    "sort is not associated with this term manager");
   cvc5_term_manager_delete(tm);
 }
 
@@ -1574,8 +1626,9 @@ TEST_F(TestCApiBlackTermManager, mk_skolem)
       cvc5_mk_skolem(
           nullptr, CVC5_SKOLEM_ID_ARRAY_DEQ_DIFF, idxs.size(), idxs.data()),
       "unexpected NULL argument");
-  ASSERT_CVC5_ERROR(cvc5_mk_skolem(d_tm, CVC5_SKOLEM_ID_ARRAY_DEQ_DIFF, 0, nullptr),
-               "invalid number of indices");
+  ASSERT_CVC5_ERROR(
+      cvc5_mk_skolem(d_tm, CVC5_SKOLEM_ID_ARRAY_DEQ_DIFF, 0, nullptr),
+      "invalid number of indices");
 }
 
 TEST_F(TestCApiBlackTermManager, get_num_idxs_for_skolem_id)
@@ -1590,7 +1643,7 @@ TEST_F(TestCApiBlackTermManager, get_num_idxs_for_skolem_id)
 TEST_F(TestCApiBlackTermManager, get_statistics)
 {
   ASSERT_CVC5_ERROR(cvc5_term_manager_get_statistics(nullptr),
-               "unexpected NULL argument");
+                    "unexpected NULL argument");
 
   // do some array reasoning to make sure we have a double statistics
   Cvc5* solver = cvc5_new(d_tm);

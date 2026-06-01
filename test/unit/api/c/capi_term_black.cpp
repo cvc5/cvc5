@@ -413,7 +413,7 @@ TEST_F(TestCApiBlackTerm, get_integer)
   ASSERT_CVC5_ERROR(cvc5_term_get_uint32_value(nullptr), "invalid term");
   ASSERT_CVC5_ERROR(cvc5_term_get_uint64_value(nullptr), "invalid term");
   ASSERT_CVC5_ERROR(cvc5_term_get_real_or_integer_value_sign(nullptr),
-               "invalid term");
+                    "invalid term");
 
   ASSERT_TRUE(
       !cvc5_term_is_int32_value(int1) && !cvc5_term_is_uint32_value(int1)
@@ -529,11 +529,11 @@ TEST_F(TestCApiBlackTerm, get_integer)
 TEST_F(TestCApiBlackTerm, get_string)
 {
   ASSERT_CVC5_ERROR(cvc5_mk_string(nullptr, "abcde", false),
-               "unexpected NULL argument");
+                    "unexpected NULL argument");
   ASSERT_CVC5_ERROR(cvc5_term_is_string_value(nullptr), "invalid term");
   ASSERT_CVC5_ERROR(cvc5_term_get_u32string_value(nullptr), "invalid term");
   ASSERT_CVC5_ERROR(cvc5_mk_string(d_tm, nullptr, false),
-               "unexpected NULL argument");
+                    "unexpected NULL argument");
   Cvc5Term s1 = cvc5_mk_string(d_tm, "abcde", false);
   ASSERT_TRUE(cvc5_term_is_string_value(s1));
   ASSERT_EQ(cvc5_term_get_u32string_value(s1), std::u32string(U"abcde"));
@@ -565,19 +565,19 @@ TEST_F(TestCApiBlackTerm, get_real)
   ASSERT_CVC5_ERROR(cvc5_term_is_real_value(nullptr), "invalid term");
   ASSERT_CVC5_ERROR(cvc5_term_get_real_value(nullptr), "invalid term");
   ASSERT_CVC5_ERROR(cvc5_term_get_real32_value(nullptr, &num32, &den32),
-               "invalid term");
+                    "invalid term");
   ASSERT_CVC5_ERROR(cvc5_term_get_real32_value(real1, nullptr, &den32),
-               "unexpected NULL argument");
+                    "unexpected NULL argument");
   ASSERT_CVC5_ERROR(cvc5_term_get_real32_value(real1, &num32, nullptr),
-               "unexpected NULL argument");
+                    "unexpected NULL argument");
   ASSERT_CVC5_ERROR(cvc5_term_get_real64_value(real1, nullptr, &den64),
-               "unexpected NULL argument");
+                    "unexpected NULL argument");
   ASSERT_CVC5_ERROR(cvc5_term_get_real64_value(real1, &num64, nullptr),
-               "unexpected NULL argument");
+                    "unexpected NULL argument");
   ASSERT_CVC5_ERROR(cvc5_term_get_real64_value(nullptr, &num64, &den64),
-               "invalid term");
+                    "invalid term");
   ASSERT_CVC5_ERROR(cvc5_term_get_real_or_integer_value_sign(nullptr),
-               "invalid term");
+                    "invalid term");
 
   ASSERT_TRUE(cvc5_term_is_real_value(real1) && cvc5_term_is_real64_value(real1)
               && cvc5_term_is_real32_value(real1));
@@ -689,7 +689,8 @@ TEST_F(TestCApiBlackTerm, get_boolean_value)
 
 TEST_F(TestCApiBlackTerm, get_bv_value)
 {
-  ASSERT_CVC5_ERROR(cvc5_mk_bv_uint64(nullptr, 8, 15), "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_mk_bv_uint64(nullptr, 8, 15),
+                    "unexpected NULL argument");
   ASSERT_CVC5_ERROR(cvc5_term_is_bv_value(nullptr), "invalid term");
 
   Cvc5Term b1 = cvc5_mk_bv_uint64(d_tm, 8, 15);
@@ -749,12 +750,13 @@ TEST_F(TestCApiBlackTerm, get_ff_value)
   ASSERT_EQ(std::string("1"), cvc5_term_get_ff_value(fv));
   Cvc5Term b1 = cvc5_mk_bv_uint64(d_tm, 8, 15);
   ASSERT_CVC5_ERROR(cvc5_term_get_ff_value(b1),
-               "expected Term to be a finite field value");
+                    "expected Term to be a finite field value");
 }
 
 TEST_F(TestCApiBlackTerm, get_uninterpreted_sort_value)
 {
-  ASSERT_CVC5_ERROR(cvc5_term_get_uninterpreted_sort_value(nullptr), "invalid term");
+  ASSERT_CVC5_ERROR(cvc5_term_get_uninterpreted_sort_value(nullptr),
+                    "invalid term");
   cvc5_set_option(d_solver, "produce-models", "true");
   Cvc5Term x = cvc5_mk_const(d_tm, d_uninterpreted, "x");
   Cvc5Term y = cvc5_mk_const(d_tm, d_uninterpreted, "y");
@@ -785,7 +787,7 @@ TEST_F(TestCApiBlackTerm, get_rm_value)
 {
   ASSERT_CVC5_ERROR(cvc5_term_get_rm_value(nullptr), "invalid term");
   ASSERT_CVC5_ERROR(cvc5_term_get_rm_value(cvc5_mk_integer_int64(d_tm, 15)),
-               "invalid argument");
+                    "invalid argument");
 
   ASSERT_EQ(cvc5_term_get_rm_value(
                 cvc5_mk_rm(d_tm, CVC5_RM_ROUND_NEAREST_TIES_TO_EVEN)),
@@ -814,7 +816,7 @@ TEST_F(TestCApiBlackTerm, get_tuple)
   size_t size;
   ASSERT_CVC5_ERROR(cvc5_term_get_tuple_value(nullptr, &size), "invalid term");
   ASSERT_CVC5_ERROR(cvc5_term_get_tuple_value(tup, nullptr),
-               "unexpected NULL argument");
+                    "unexpected NULL argument");
   ASSERT_CVC5_ERROR(cvc5_term_is_tuple_value(nullptr), "invalid term");
 
   ASSERT_TRUE(cvc5_term_is_tuple_value(tup));
@@ -838,13 +840,14 @@ TEST_F(TestCApiBlackTerm, get_fp_value)
   ASSERT_CVC5_ERROR(cvc5_term_is_fp_pos_inf(nullptr), "invalid term");
   ASSERT_CVC5_ERROR(cvc5_term_is_fp_neg_inf(nullptr), "invalid term");
   ASSERT_CVC5_ERROR(cvc5_term_is_fp_nan(nullptr), "invalid term");
-  ASSERT_CVC5_ERROR(cvc5_term_get_fp_value(nullptr, &ew, &sw, &res), "invalid term");
+  ASSERT_CVC5_ERROR(cvc5_term_get_fp_value(nullptr, &ew, &sw, &res),
+                    "invalid term");
   ASSERT_CVC5_ERROR(cvc5_term_get_fp_value(fp_val, nullptr, &sw, &res),
-               "unexpected NULL argument");
+                    "unexpected NULL argument");
   ASSERT_CVC5_ERROR(cvc5_term_get_fp_value(fp_val, &ew, nullptr, &res),
-               "unexpected NULL argument");
+                    "unexpected NULL argument");
   ASSERT_CVC5_ERROR(cvc5_term_get_fp_value(fp_val, &ew, &sw, nullptr),
-               "unexpected NULL argument");
+                    "unexpected NULL argument");
 
   ASSERT_TRUE(cvc5_term_is_fp_value(fp_val));
   ASSERT_FALSE(cvc5_term_is_fp_pos_zero(fp_val));
@@ -899,7 +902,7 @@ TEST_F(TestCApiBlackTerm, get_set_value)
   size_t size;
   ASSERT_CVC5_ERROR(cvc5_term_get_set_value(nullptr, &size), "invalid term");
   ASSERT_CVC5_ERROR(cvc5_term_get_set_value(s1, nullptr),
-               "unexpected NULL argument");
+                    "unexpected NULL argument");
   (void)cvc5_term_get_set_value(s1, &size);
   ASSERT_EQ(size, 0);
   const Cvc5Term* res2 = cvc5_term_get_set_value(s2, &size);
@@ -940,7 +943,7 @@ TEST_F(TestCApiBlackTerm, get_sequence_value)
       cvc5_mk_term(d_tm, CVC5_KIND_SEQ_CONCAT, args.size(), args.data());
 
   ASSERT_CVC5_ERROR(cvc5_mk_empty_sequence(nullptr, seq_sort),
-               "unexpected NULL argument");
+                    "unexpected NULL argument");
   ASSERT_CVC5_ERROR(cvc5_mk_empty_sequence(d_tm, nullptr), "invalid sort");
   ASSERT_CVC5_ERROR(cvc5_term_is_sequence_value(nullptr), "invalid term");
 
@@ -959,9 +962,10 @@ TEST_F(TestCApiBlackTerm, get_sequence_value)
   ASSERT_TRUE(cvc5_term_is_sequence_value(s5));
 
   size_t size;
-  ASSERT_CVC5_ERROR(cvc5_term_get_sequence_value(nullptr, &size), "invalid term");
+  ASSERT_CVC5_ERROR(cvc5_term_get_sequence_value(nullptr, &size),
+                    "invalid term");
   ASSERT_CVC5_ERROR(cvc5_term_get_sequence_value(s1, nullptr),
-               "unexpected NULL argument");
+                    "unexpected NULL argument");
   (void)cvc5_term_get_sequence_value(s1, &size);
   ASSERT_EQ(size, 0);
   const Cvc5Term* res2 = cvc5_term_get_sequence_value(s2, &size);
@@ -991,7 +995,8 @@ TEST_F(TestCApiBlackTerm, get_sequence_value)
   args = {cvc5_mk_real_int64(d_tm, 1)};
   Cvc5Term su =
       cvc5_mk_term(d_tm, CVC5_KIND_SEQ_UNIT, args.size(), args.data());
-  ASSERT_CVC5_ERROR(cvc5_term_get_sequence_value(su, &size), "invalid argument");
+  ASSERT_CVC5_ERROR(cvc5_term_get_sequence_value(su, &size),
+                    "invalid argument");
 }
 
 TEST_F(TestCApiBlackTerm, substitute)
@@ -1006,14 +1011,15 @@ TEST_F(TestCApiBlackTerm, substitute)
       cvc5_mk_term(d_tm, CVC5_KIND_ADD, args.size(), args.data());
 
   ASSERT_CVC5_ERROR(cvc5_term_substitute_term(nullptr, x, one), "invalid term");
-  ASSERT_CVC5_ERROR(cvc5_term_substitute_term(xpx, nullptr, one), "invalid term");
+  ASSERT_CVC5_ERROR(cvc5_term_substitute_term(xpx, nullptr, one),
+                    "invalid term");
   ASSERT_CVC5_ERROR(cvc5_term_substitute_term(xpx, x, nullptr), "invalid term");
 
   ASSERT_TRUE(
       cvc5_term_is_equal(cvc5_term_substitute_term(xpx, x, one), onepone));
   // incorrect due to type
   ASSERT_CVC5_ERROR(cvc5_term_substitute_term(xpx, one, ttrue),
-               "expected terms of the same sort");
+                    "expected terms of the same sort");
 
   // simultaneous substitution
   Cvc5Term y = cvc5_mk_const(d_tm, d_int, "y");
@@ -1028,24 +1034,29 @@ TEST_F(TestCApiBlackTerm, substitute)
 
   // incorrect substitution due to types
   rs[1] = ttrue;
-  ASSERT_CVC5_ERROR(cvc5_term_substitute_terms(xpy, es.size(), es.data(), rs.data()),
-               "expecting terms of the same sort at index 1");
+  ASSERT_CVC5_ERROR(
+      cvc5_term_substitute_terms(xpy, es.size(), es.data(), rs.data()),
+      "expecting terms of the same sort at index 1");
 
   // null cannot substitute
   es = {nullptr, y};
   rs = {y, one};
-  ASSERT_CVC5_ERROR(cvc5_term_substitute_terms(xpy, es.size(), es.data(), rs.data()),
-               "invalid term at index 0");
+  ASSERT_CVC5_ERROR(
+      cvc5_term_substitute_terms(xpy, es.size(), es.data(), rs.data()),
+      "invalid term at index 0");
   es = {x, nullptr};
-  ASSERT_CVC5_ERROR(cvc5_term_substitute_terms(xpy, es.size(), es.data(), rs.data()),
-               "invalid term at index 1");
+  ASSERT_CVC5_ERROR(
+      cvc5_term_substitute_terms(xpy, es.size(), es.data(), rs.data()),
+      "invalid term at index 1");
   es = {x, y};
   rs = {nullptr, one};
-  ASSERT_CVC5_ERROR(cvc5_term_substitute_terms(xpy, es.size(), es.data(), rs.data()),
-               "invalid term at index 0");
+  ASSERT_CVC5_ERROR(
+      cvc5_term_substitute_terms(xpy, es.size(), es.data(), rs.data()),
+      "invalid term at index 0");
   rs = {y, nullptr};
-  ASSERT_CVC5_ERROR(cvc5_term_substitute_terms(xpy, es.size(), es.data(), rs.data()),
-               "invalid term at index 1");
+  ASSERT_CVC5_ERROR(
+      cvc5_term_substitute_terms(xpy, es.size(), es.data(), rs.data()),
+      "invalid term at index 1");
 }
 
 TEST_F(TestCApiBlackTerm, const_array)
@@ -1058,11 +1069,12 @@ TEST_F(TestCApiBlackTerm, const_array)
   Cvc5Term const_arr = cvc5_mk_const_array(d_tm, arr_sort, one);
 
   ASSERT_CVC5_ERROR(cvc5_mk_const_array(nullptr, arr_sort, one),
-               "unexpected NULL argument");
+                    "unexpected NULL argument");
   ASSERT_CVC5_ERROR(cvc5_mk_const_array(d_tm, nullptr, one), "invalid sort");
-  ASSERT_CVC5_ERROR(cvc5_mk_const_array(d_tm, arr_sort, nullptr), "invalid term");
+  ASSERT_CVC5_ERROR(cvc5_mk_const_array(d_tm, arr_sort, nullptr),
+                    "invalid term");
   ASSERT_CVC5_ERROR(cvc5_mk_const_array(d_tm, arr_sort, two),
-               "value does not match element sort");
+                    "value does not match element sort");
   ASSERT_CVC5_ERROR(cvc5_mk_const_array(d_tm, arr_sort, i), "invalid argument");
 
   ASSERT_CVC5_ERROR(cvc5_term_get_const_array_base(nullptr), "invalid term");
@@ -1088,22 +1100,25 @@ TEST_F(TestCApiBlackTerm, const_array)
 TEST_F(TestCApiBlackTerm, get_cardinality_constraint)
 {
   ASSERT_CVC5_ERROR(cvc5_mk_cardinality_constraint(nullptr, d_uninterpreted, 3),
-               "unexpected NULL argument");
+                    "unexpected NULL argument");
   ASSERT_CVC5_ERROR(cvc5_mk_cardinality_constraint(d_tm, nullptr, 3),
-               "invalid sort");
-  ASSERT_CVC5_ERROR(cvc5_term_is_cardinality_constraint(nullptr), "invalid term");
+                    "invalid sort");
+  ASSERT_CVC5_ERROR(cvc5_term_is_cardinality_constraint(nullptr),
+                    "invalid term");
 
   Cvc5Term t = cvc5_mk_cardinality_constraint(d_tm, d_uninterpreted, 3);
   ASSERT_TRUE(cvc5_term_is_cardinality_constraint(t));
 
   Cvc5Sort res;
   uint32_t res_upper;
-  ASSERT_CVC5_ERROR(cvc5_term_get_cardinality_constraint(nullptr, &res, &res_upper),
-               "invalid term");
-  ASSERT_CVC5_ERROR(cvc5_term_get_cardinality_constraint(t, nullptr, &res_upper),
-               "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(
+      cvc5_term_get_cardinality_constraint(nullptr, &res, &res_upper),
+      "invalid term");
+  ASSERT_CVC5_ERROR(
+      cvc5_term_get_cardinality_constraint(t, nullptr, &res_upper),
+      "unexpected NULL argument");
   ASSERT_CVC5_ERROR(cvc5_term_get_cardinality_constraint(t, &res, nullptr),
-               "unexpected NULL argument");
+                    "unexpected NULL argument");
 
   cvc5_term_get_cardinality_constraint(t, &res, &res_upper);
   ASSERT_TRUE(cvc5_sort_is_equal(res, d_uninterpreted));
@@ -1112,7 +1127,7 @@ TEST_F(TestCApiBlackTerm, get_cardinality_constraint)
   Cvc5Term x = cvc5_mk_const(d_tm, d_int, "x");
   ASSERT_FALSE(cvc5_term_is_cardinality_constraint(x));
   ASSERT_CVC5_ERROR(cvc5_term_get_cardinality_constraint(x, &res, &res_upper),
-               "invalid argument");
+                    "invalid argument");
 }
 
 TEST_F(TestCApiBlackTerm, get_real_algebraic_number)
@@ -1128,7 +1143,8 @@ TEST_F(TestCApiBlackTerm, get_real_algebraic_number)
   Cvc5Term eq = cvc5_mk_term(d_tm, CVC5_KIND_EQUAL, args.size(), args.data());
   cvc5_assert_formula(d_solver, eq);
 
-  ASSERT_CVC5_ERROR(cvc5_term_is_real_algebraic_number(nullptr), "invalid term");
+  ASSERT_CVC5_ERROR(cvc5_term_is_real_algebraic_number(nullptr),
+                    "invalid term");
   ASSERT_CVC5_ERROR(
       cvc5_term_get_real_algebraic_number_defining_polynomial(nullptr, y),
       "invalid term");
@@ -1136,9 +1152,9 @@ TEST_F(TestCApiBlackTerm, get_real_algebraic_number)
       cvc5_term_get_real_algebraic_number_defining_polynomial(x, nullptr),
       "invalid term");
   ASSERT_CVC5_ERROR(cvc5_term_get_real_algebraic_number_lower_bound(nullptr),
-               "invalid term");
+                    "invalid term");
   ASSERT_CVC5_ERROR(cvc5_term_get_real_algebraic_number_upper_bound(nullptr),
-               "invalid term");
+                    "invalid term");
 
   // Note that check-sat should only return "sat" if libpoly is enabled.
   // Otherwise, we do not test the following functionality.
@@ -1175,9 +1191,10 @@ TEST_F(TestCApiBlackTerm, get_skolem)
   ASSERT_FALSE(cvc5_term_is_skolem(x));
   ASSERT_CVC5_ERROR(cvc5_term_get_skolem_id(x), "invalid argument");
   ASSERT_CVC5_ERROR(cvc5_term_get_skolem_indices(x, &size), "invalid argument");
-  ASSERT_CVC5_ERROR(cvc5_term_get_skolem_indices(nullptr, &size), "invalid term");
+  ASSERT_CVC5_ERROR(cvc5_term_get_skolem_indices(nullptr, &size),
+                    "invalid term");
   ASSERT_CVC5_ERROR(cvc5_term_get_skolem_indices(x, nullptr),
-               "unexpected NULL argument");
+                    "unexpected NULL argument");
 }
 
 TEST_F(TestCApiBlackTerm, term_scoped_to_string)

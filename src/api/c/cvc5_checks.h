@@ -86,20 +86,14 @@ CVC5_EXPORT const char* cvc5_capi_get_error_message();
  *       that do not derive from `std::exception` cannot escape the `extern "C"`
  *       boundary (which would call `std::terminate`).
  */
-#define CVC5_CAPI_TRY_CATCH_END                          \
-  }                                                      \
-  catch (const cvc5::CVC5ApiException& e)                \
-  {                                                      \
-    cvc5::cvc5_capi_set_error(e.getMessage());           \
-  }                                                      \
-  catch (const std::exception& e)                        \
-  {                                                      \
-    cvc5::cvc5_capi_set_error(e.what());                 \
-  }                                                      \
-  catch (...)                                            \
-  {                                                      \
-    cvc5::cvc5_capi_set_error("unknown C++ exception");  \
-  }
+#define CVC5_CAPI_TRY_CATCH_END                                            \
+  }                                                                        \
+  catch (const cvc5::CVC5ApiException& e)                                  \
+  {                                                                        \
+    cvc5::cvc5_capi_set_error(e.getMessage());                             \
+  }                                                                        \
+  catch (const std::exception& e) { cvc5::cvc5_capi_set_error(e.what()); } \
+  catch (...) { cvc5::cvc5_capi_set_error("unknown C++ exception"); }
 
 #endif
 

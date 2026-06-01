@@ -75,10 +75,12 @@ TEST_F(TestCApiBlackCommand, invoke)
       "(error \"cannot get model unless model generation is enabled (try "
       "--produce-models)\")\n",
       std::string(out));
-  ASSERT_CVC5_ERROR(cvc5_cmd_invoke(nullptr, d_solver, d_sm), "invalid command");
-  ASSERT_CVC5_ERROR(cvc5_cmd_invoke(cmd, nullptr, d_sm), "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_cmd_invoke(nullptr, d_solver, d_sm),
+                    "invalid command");
+  ASSERT_CVC5_ERROR(cvc5_cmd_invoke(cmd, nullptr, d_sm),
+                    "unexpected NULL argument");
   ASSERT_CVC5_ERROR(cvc5_cmd_invoke(cmd, d_solver, nullptr),
-               "unexpected NULL argument");
+                    "unexpected NULL argument");
   // logic already set
   parse_command(
       "(set-logic QF_LRA)", &cmd, true, "Only one set-logic is allowed");

@@ -76,19 +76,20 @@ TEST_F(TestCApiBlackGrammar, add_rule)
   cvc5_grammar_add_rule(g, start, cvc5_mk_false(d_tm));
 
   ASSERT_CVC5_ERROR(cvc5_grammar_add_rule(nullptr, start, cvc5_mk_false(d_tm)),
-               "invalid grammar");
+                    "invalid grammar");
   ASSERT_CVC5_ERROR(cvc5_grammar_add_rule(g, nullptr, cvc5_mk_false(d_tm)),
-               "invalid term");
+                    "invalid term");
   ASSERT_CVC5_ERROR(cvc5_grammar_add_rule(g, start, nullptr), "invalid term");
 
   ASSERT_CVC5_ERROR(cvc5_grammar_add_rule(g, nts, cvc5_mk_false(d_tm)),
-               "invalid argument");
-  ASSERT_CVC5_ERROR(cvc5_grammar_add_rule(g, start, cvc5_mk_integer_int64(d_tm, 0)),
-               "same sort");
+                    "invalid argument");
+  ASSERT_CVC5_ERROR(
+      cvc5_grammar_add_rule(g, start, cvc5_mk_integer_int64(d_tm, 0)),
+      "same sort");
 
   (void)cvc5_synth_fun_with_grammar(d_solver, "f", 0, nullptr, d_bool, g);
   ASSERT_CVC5_ERROR(cvc5_grammar_add_rule(g, start, cvc5_mk_false(d_tm)),
-               "cannot be modified");
+                    "cannot be modified");
 }
 
 TEST_F(TestCApiBlackGrammar, add_rules)
@@ -108,28 +109,32 @@ TEST_F(TestCApiBlackGrammar, add_rules)
   ASSERT_CVC5_ERROR(
       cvc5_grammar_add_rules(nullptr, start, rules.size(), rules.data()),
       "invalid grammar");
-  ASSERT_CVC5_ERROR(cvc5_grammar_add_rules(g, nullptr, rules.size(), rules.data()),
-               "invalid term");
+  ASSERT_CVC5_ERROR(
+      cvc5_grammar_add_rules(g, nullptr, rules.size(), rules.data()),
+      "invalid term");
   ASSERT_CVC5_ERROR(cvc5_grammar_add_rules(g, start, 0, nullptr),
-               "unexpected NULL argument");
+                    "unexpected NULL argument");
 
   ASSERT_CVC5_ERROR(cvc5_grammar_add_rules(g, nts, rules.size(), rules.data()),
-               "invalid argument");
+                    "invalid argument");
   rules.push_back(nullptr);
-  ASSERT_CVC5_ERROR(cvc5_grammar_add_rules(g, start, rules.size(), rules.data()),
-               "invalid term at index 1");
+  ASSERT_CVC5_ERROR(
+      cvc5_grammar_add_rules(g, start, rules.size(), rules.data()),
+      "invalid term at index 1");
   rules = {cvc5_mk_false(d_tm)};
   ASSERT_CVC5_ERROR(cvc5_grammar_add_rules(g, nts, rules.size(), rules.data()),
-               "invalid argument");
+                    "invalid argument");
   rules = {cvc5_mk_integer_int64(d_tm, 0)};
-  ASSERT_CVC5_ERROR(cvc5_grammar_add_rules(g, start, rules.size(), rules.data()),
-               "Expected term with sort Bool");
+  ASSERT_CVC5_ERROR(
+      cvc5_grammar_add_rules(g, start, rules.size(), rules.data()),
+      "Expected term with sort Bool");
 
   (void)cvc5_synth_fun_with_grammar(d_solver, "f", 0, nullptr, d_bool, g);
 
   rules = {cvc5_mk_false(d_tm)};
-  ASSERT_CVC5_ERROR(cvc5_grammar_add_rules(g, start, rules.size(), rules.data()),
-               "cannot be modified");
+  ASSERT_CVC5_ERROR(
+      cvc5_grammar_add_rules(g, start, rules.size(), rules.data()),
+      "cannot be modified");
 }
 
 TEST_F(TestCApiBlackGrammar, add_any_constant)
@@ -148,14 +153,15 @@ TEST_F(TestCApiBlackGrammar, add_any_constant)
   cvc5_grammar_add_any_constant(g, start);
 
   ASSERT_CVC5_ERROR(cvc5_grammar_add_any_constant(nullptr, start),
-               "invalid grammar");
+                    "invalid grammar");
   ASSERT_CVC5_ERROR(cvc5_grammar_add_any_constant(g, nullptr), "invalid term");
   ASSERT_CVC5_ERROR(cvc5_grammar_add_any_constant(g, nts),
-               "expected ntSymbol to be one of the non-terminal symbols");
+                    "expected ntSymbol to be one of the non-terminal symbols");
 
   (void)cvc5_synth_fun_with_grammar(d_solver, "f", 0, nullptr, d_bool, g);
 
-  ASSERT_CVC5_ERROR(cvc5_grammar_add_any_constant(g, start), "cannot be modified");
+  ASSERT_CVC5_ERROR(cvc5_grammar_add_any_constant(g, start),
+                    "cannot be modified");
 }
 
 TEST_F(TestCApiBlackGrammar, add_any_variable)
@@ -178,14 +184,15 @@ TEST_F(TestCApiBlackGrammar, add_any_variable)
   cvc5_grammar_add_any_variable(g2, start);
 
   ASSERT_CVC5_ERROR(cvc5_grammar_add_any_variable(nullptr, start),
-               "invalid grammar");
+                    "invalid grammar");
   ASSERT_CVC5_ERROR(cvc5_grammar_add_any_variable(g1, nullptr), "invalid term");
   ASSERT_CVC5_ERROR(cvc5_grammar_add_any_variable(g1, nts),
-               "expected ntSymbol to be one of the non-terminal symbols");
+                    "expected ntSymbol to be one of the non-terminal symbols");
 
   (void)cvc5_synth_fun_with_grammar(d_solver, "f", 0, nullptr, d_bool, g1);
 
-  ASSERT_CVC5_ERROR(cvc5_grammar_add_any_variable(g1, start), "cannot be modified");
+  ASSERT_CVC5_ERROR(cvc5_grammar_add_any_variable(g1, start),
+                    "cannot be modified");
 }
 
 TEST_F(TestCApiBlackGrammar, equal_hash)

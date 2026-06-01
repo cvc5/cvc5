@@ -24,7 +24,7 @@ class TestCApiSortKind : public ::testing::Test
 TEST_F(TestCApiSortKind, sort_kind_to_string)
 {
   ASSERT_CVC5_ERROR(cvc5_sort_kind_to_string(static_cast<Cvc5SortKind>(-5)),
-               "invalid sort kind");
+                    "invalid sort kind");
 
   std::stringstream ss;
   for (int32_t k = static_cast<int32_t>(CVC5_SORT_KIND_INTERNAL_SORT_KIND);

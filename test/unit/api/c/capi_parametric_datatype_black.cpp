@@ -40,11 +40,11 @@ TEST_F(TestCApiBlackParametricDatatype, mk_dt_decl_with_params)
   Cvc5Sort p = cvc5_mk_param_sort(d_tm, "_x4");
   std::vector<Cvc5Sort> params = {p};
   ASSERT_CVC5_ERROR(cvc5_mk_dt_decl_with_params(
-                   nullptr, "_x0", params.size(), params.data(), false),
-               "unexpected NULL argument");
+                        nullptr, "_x0", params.size(), params.data(), false),
+                    "unexpected NULL argument");
   ASSERT_CVC5_ERROR(cvc5_mk_dt_decl_with_params(
-                   d_tm, nullptr, params.size(), params.data(), false),
-               "unexpected NULL argument");
+                        d_tm, nullptr, params.size(), params.data(), false),
+                    "unexpected NULL argument");
   (void)cvc5_mk_dt_decl_with_params(d_tm, "_x0", 0, nullptr, false);
 }
 
@@ -60,7 +60,7 @@ TEST_F(TestCApiBlackParametricDatatype, proj_issue387)
   (void)cvc5_mk_dt_cons_decl(d_tm, "_x18");
   params = {p1, p2};
   ASSERT_CVC5_ERROR(cvc5_sort_instantiate(u2, params.size(), params.data()),
-               "arity mismatch");
+                    "arity mismatch");
 }
 
 }  // namespace cvc5::internal::test

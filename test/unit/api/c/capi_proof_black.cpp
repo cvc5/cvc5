@@ -137,7 +137,8 @@ TEST_F(TestCApiBlackProof, get_rewrite_rule)
   ASSERT_CVC5_ERROR(cvc5_proof_get_rewrite_rule(nullptr), "invalid proof");
 
   Cvc5Proof proof = create_rewrite_proof();
-  ASSERT_CVC5_ERROR(cvc5_proof_get_rewrite_rule(proof), "to return `DSL_REWRITE`");
+  ASSERT_CVC5_ERROR(cvc5_proof_get_rewrite_rule(proof),
+                    "to return `DSL_REWRITE`");
   Cvc5ProofRule rule;
   std::vector<Cvc5Proof> stack = {proof};
   do
@@ -170,7 +171,7 @@ TEST_F(TestCApiBlackProof, get_children)
   ASSERT_TRUE(size > 0);
   ASSERT_CVC5_ERROR(cvc5_proof_get_children(nullptr, &size), "invalid proof");
   ASSERT_CVC5_ERROR(cvc5_proof_get_children(proof, nullptr),
-               "unexpected NULL argument");
+                    "unexpected NULL argument");
 }
 
 TEST_F(TestCApiBlackProof, get_arguments)
@@ -180,7 +181,7 @@ TEST_F(TestCApiBlackProof, get_arguments)
   (void)cvc5_proof_get_arguments(proof, &size);
   ASSERT_CVC5_ERROR(cvc5_proof_get_arguments(nullptr, &size), "invalid proof");
   ASSERT_CVC5_ERROR(cvc5_proof_get_arguments(proof, nullptr),
-               "unexpected NULL argument");
+                    "unexpected NULL argument");
 }
 
 TEST_F(TestCApiBlackProof, is_equal_disequal_hash)
