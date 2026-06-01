@@ -198,6 +198,7 @@ set(regress_0_tests
   regress0/aufbv/dd.fifo32bc06k08.delta01.smtv1.smt2
   regress0/aufbv/diseqprop.01.smtv1.smt2
   regress0/aufbv/dubreva005ue.delta01.smtv1.smt2
+  regress0/aufbv/early-ite-removal-bv-pp-assert.smt2
   regress0/aufbv/fifo32bc06k08.delta01.smtv1.smt2
   regress0/aufbv/fifo32in06k08.delta01.smtv1.smt2
   regress0/aufbv/fuzz00.smtv1.smt2
