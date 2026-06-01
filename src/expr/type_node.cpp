@@ -636,14 +636,13 @@ bool TypeNode::isUninterpretedSortConstructor() const
 
 bool TypeNode::isRawSymbolType() const
 {
-  return getKind() == Kind::SORT_TYPE && !hasAttribute(expr::SortArityAttr())
-         && hasAttribute(expr::RawSymbolTypeAttr());
+  return getKind() == Kind::RAW_SYMBOL_TYPE;
 }
 
 std::string TypeNode::getRawSymbol() const
 {
   Assert(isRawSymbolType());
-  return getAttribute(expr::RawSymbolTypeAttr());
+  return getName();
 }
 
 bool TypeNode::isFloatingPoint() const

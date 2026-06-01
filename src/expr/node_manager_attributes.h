@@ -28,9 +28,6 @@ struct VarNameTag
 struct SortArityTag
 {
 };
-struct RawSymbolTypeTag
-{
-};
 struct TypeTag
 {
 };
@@ -56,7 +53,6 @@ struct OracleIndexTag
 
 typedef Attribute<attr::VarNameTag, std::string> VarNameAttr;
 typedef Attribute<attr::SortArityTag, uint64_t> SortArityAttr;
-typedef Attribute<attr::RawSymbolTypeTag, std::string> RawSymbolTypeAttr;
 typedef expr::Attribute<expr::attr::TypeTag, TypeNode> TypeAttr;
 typedef expr::Attribute<expr::attr::TypeCheckedTag, bool> TypeCheckedAttr;
 
