@@ -157,13 +157,6 @@ class SortInference : protected EnvObj
    * equisatisfiable.
    */
   void getNewAssertions(std::vector<Node>& new_asserts);
-  /** compute monotonicity
-   *
-   * This computes whether sorts are monotonic (see e.g. Claessen 2011). If
-   * this function is called, then calls to isMonotonic() can subsequently be
-   * used to query whether sorts are monotonic.
-   */
-  void computeMonotonicity(const std::vector<Node>& assertions);
   /** return true if tn was inferred to be monotonic */
   bool isMonotonic(TypeNode tn) const;
   // get sort id for term n

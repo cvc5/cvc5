@@ -339,22 +339,6 @@ void SortInference::getNewAssertions(std::vector<Node>& new_asserts)
   Trace("sort-inference-debug") << "Finished sort inference" << std::endl;
 }
 
-void SortInference::computeMonotonicity(const std::vector<Node>& assertions)
-{
-  d_non_monotonic_sorts_orig.clear();
-  std::map<Node, std::map<int, bool> > visitedmt;
-  Trace("sort-inference-proc")
-      << "Calculating monotonicty for types..." << std::endl;
-  for (const Node& a : assertions)
-  {
-    Trace("sort-inference-debug")
-        << "Process type monotonicity for " << a << std::endl;
-    std::map<Node, Node> var_bound;
-    processMonotonic(a, true, true, var_bound, visitedmt, true);
-  }
-  Trace("sort-inference-proc") << "...done" << std::endl;
-}
-
 void SortInference::setEqual(int t1, int t2)
 {
   if (t1 != t2)
