@@ -1906,7 +1906,6 @@ void CardinalityExtension::checkCombinedCardinality()
         << "Check combined cardinality, get maximum negative cardinalities..."
         << std::endl;
     uint32_t totalCombinedCard = 0;
-    uint32_t maxMonoSlave = 0;
     TypeNode maxSlaveType;
     for (std::map<TypeNode, SortModel*>::iterator it = d_rep_model.begin();
          it != d_rep_model.end();
