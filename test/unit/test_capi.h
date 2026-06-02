@@ -30,19 +30,19 @@
  * state to a message containing `msg`. Both `stmt` and `msg` are evaluated
  * exactly once.
  */
-#define ASSERT_CVC5_ERROR(stmt, msg)                                          \
-  do                                                                          \
-  {                                                                           \
-    const std::string cvc5_expected_msg{(msg)};                               \
-    cvc5_reset_error();                                                        \
-    (void)(stmt);                                                             \
-    const std::string cvc5_actual_msg{cvc5_get_error_message()};              \
-    ASSERT_TRUE(cvc5_has_error())                                             \
-        << "expected an error containing '" << cvc5_expected_msg              \
-        << "' but no error occurred";                                         \
-    ASSERT_NE(cvc5_actual_msg.find(cvc5_expected_msg), std::string::npos)     \
-        << "expected error message to contain '" << cvc5_expected_msg         \
-        << "' but got '" << cvc5_actual_msg << "'";                           \
+#define ASSERT_CVC5_ERROR(stmt, msg)                                      \
+  do                                                                      \
+  {                                                                       \
+    const std::string cvc5_expected_msg{(msg)};                           \
+    cvc5_reset_error();                                                   \
+    (void)(stmt);                                                         \
+    const std::string cvc5_actual_msg{cvc5_get_error_message()};          \
+    ASSERT_TRUE(cvc5_has_error())                                         \
+        << "expected an error containing '" << cvc5_expected_msg          \
+        << "' but no error occurred";                                     \
+    ASSERT_NE(cvc5_actual_msg.find(cvc5_expected_msg), std::string::npos) \
+        << "expected error message to contain '" << cvc5_expected_msg     \
+        << "' but got '" << cvc5_actual_msg << "'";                       \
   } while (false)
 
 #endif
