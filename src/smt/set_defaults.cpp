@@ -847,7 +847,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
   // DIO solver typically makes things worse for quantifier-free logics with
   // non-linear arithmetic.
   if (!logic.isQuantified() && logic.isTheoryEnabled(THEORY_ARITH)
-      && !logic.isLinear())
+      && !logic.isLinear() && !opts.arith.arithDioSolverWasSetByUser)
   {
     SET_AND_NOTIFY(
         arith, arithDioSolver, false, "quantifier-free non-linear logic");
