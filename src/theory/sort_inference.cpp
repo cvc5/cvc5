@@ -1071,13 +1071,6 @@ bool SortInference::isWellSorted(Node n)
   }
 }
 
-bool SortInference::isMonotonic(TypeNode tn) const
-{
-  Assert(tn.isUninterpretedSort());
-  return d_non_monotonic_sorts_orig.find(tn)
-         == d_non_monotonic_sorts_orig.end();
-}
-
 bool SortInference::isHandledApplyUf(Kind k) const
 {
   return k == Kind::APPLY_UF && !logicInfo().isHigherOrder();

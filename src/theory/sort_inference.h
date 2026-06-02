@@ -157,8 +157,6 @@ class SortInference : protected EnvObj
    * equisatisfiable.
    */
   void getNewAssertions(std::vector<Node>& new_asserts);
-  /** return true if tn was inferred to be monotonic */
-  bool isMonotonic(TypeNode tn) const;
   // get sort id for term n
   int getSortId(Node n);
   // get sort id for variable of quantified formula f
