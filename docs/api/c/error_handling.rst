@@ -9,9 +9,11 @@ error in **thread-local** state and return a default value (e.g., ``NULL``,
 
 After invoking a C API function, the caller can check whether it succeeded via
 :cpp:func:`cvc5_has_error()` and retrieve the associated message via
-:cpp:func:`cvc5_get_error_message()`. The error state is reset at the beginning
-of each C API call, so it always reflects the outcome of the most recent call.
-For example:
+:cpp:func:`cvc5_get_error_message()`. The error state is reset at the start of
+the next C API call that can raise an error, so it reflects the outcome of the
+most recent such call. The query functions :cpp:func:`cvc5_has_error()` and
+:cpp:func:`cvc5_get_error_message()` never modify the error state themselves; it
+can also be cleared explicitly via :cpp:func:`cvc5_reset_error()`. For example:
 
 .. code:: c
 
