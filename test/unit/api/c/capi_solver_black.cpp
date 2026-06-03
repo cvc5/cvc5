@@ -1569,7 +1569,7 @@ TEST_F(TestCApiBlackSolver, get_difficulty3)
 
 TEST_F(TestCApiBlackSolver, get_timeout_core)
 {
-  cvc5_set_option(d_solver, "timeout-core-timeout", "10");
+  cvc5_set_option(d_solver, "timeout-core-timeout", "100");
   cvc5_set_option(d_solver, "produce-unsat-cores", "true");
 
   Cvc5Term x = cvc5_mk_const(d_tm, d_int, "x");
@@ -1584,13 +1584,7 @@ TEST_F(TestCApiBlackSolver, get_timeout_core)
   Cvc5Result result;
   size_t size;
   const Cvc5Term* core = cvc5_get_timeout_core(d_solver, &result, &size);
-  ASSERT_TRUE(cvc5_result_is_unknown(result) || cvc5_result_is_unsat(result)
-              || cvc5_result_is_sat(result));
-  if (cvc5_result_is_sat(result))
-  {
-    ASSERT_EQ(size, 0);
-    return;
-  }
+  ASSERT_TRUE(cvc5_result_is_unknown(result));
   ASSERT_EQ(size, 1);
   ASSERT_TRUE(cvc5_term_is_equal(core[0], hard));
 
