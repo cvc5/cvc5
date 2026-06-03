@@ -77,8 +77,8 @@ bool TptpModel::getBooleanValue(TNode n, bool& value) const
     NodeManager* nm = cur.getNodeManager();
     if (d_evaluator)
     {
-      Node it = nm->mkNode(
-          Kind::ITE, cur, nm->mkConst(true), nm->mkConst(false));
+      Node it =
+          nm->mkNode(Kind::ITE, cur, nm->mkConst(true), nm->mkConst(false));
       Node vit = d_evaluator(it);
       if (!vit.isNull() && vit.getKind() == Kind::CONST_BOOLEAN)
       {
@@ -1914,8 +1914,8 @@ void Smt2TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
         if (val.isNull())
         {
           std::map<Node, Node> emptySubst;
-          val = evalFiniteTerm(
-              app, tm, isDeclared, finiteTypeElems, emptySubst);
+          val =
+              evalFiniteTerm(app, tm, isDeclared, finiteTypeElems, emptySubst);
           if (val.isNull())
           {
             continue;
