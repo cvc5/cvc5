@@ -66,6 +66,32 @@ index 190dbb4..c8d281f 100755
      /bin/rm -rf "$TMP_DIR"  &&  /bin/mkdir -p "$TMP_DIR"
      if [ $? -ne 0 ]
      then
+@@ -25,22 +25,22 @@ echounderline()
+ echounderline()
+ {
+   echo "$*"
+-  echo "$*" | tr "\040-\377" "[-*]"
++  echo "$*" | tr "\040-\377" "-"
+ }
+
+ echobox()
+ {
+   mesg=">>>>  $*  <<<<"
+-  dashes=`echo "$mesg" | tr "\040-\377" "[-*]"`
++  dashes=`echo "$mesg" | tr "\040-\377" "-"`
+   echo "$dashes"
+   echo "$mesg"
+   echo "$dashes"
+ }
+
+ echoerror()
+ {
+   mesg=">>>>>  $*  <<<<<"
+-  equals=`echo "$mesg" | tr "\040-\377" "[=*]"`
++  equals=`echo "$mesg" | tr "\040-\377" "="`
+   echo "$equals"
+   echo "$mesg"
+   echo "$equals"
 diff --git a/include/CoCoA/TmpGPoly.H b/include/CoCoA/TmpGPoly.H
 index 4c4d51e..efe50f7 100644
 --- a/include/CoCoA/TmpGPoly.H
@@ -200,3 +226,29 @@ index 769750d..5ac5e90 100755
      fi
    fi
  fi
+diff --git a/include/CoCoA/MakeUnifiedHeader.sh b/include/CoCoA/MakeUnifiedHeader.sh
+index 1111111..2222222 100755
+--- a/include/CoCoA/MakeUnifiedHeader.sh
++++ b/include/CoCoA/MakeUnifiedHeader.sh
+@@ -33,7 +33,7 @@ echobox()
+ echobox()
+ {
+   mesg=">>>>  $*  <<<<"
+-  dashes=`echo "$mesg" | tr "\040-\377" "[-*]"`
++  dashes=`echo "$mesg" | tr "\040-\377" "-"`
+   echo "$dashes"
+   echo "$mesg"
+   echo "$dashes"
+diff --git a/src/AlgebraicCore/CheckSourceFiles.sh b/src/AlgebraicCore/CheckSourceFiles.sh
+index 3333333..4444444 100755
+--- a/src/AlgebraicCore/CheckSourceFiles.sh
++++ b/src/AlgebraicCore/CheckSourceFiles.sh
+@@ -24,7 +24,7 @@ done
+ done
+ sort "$TMPFILE2" > "$TMPFILE1"
+
+-/bin/ls -d ./*.C | cut -b 3- > "$TMPFILE2"
++/bin/ls -d ./*.C | cut -b 3- | sort > "$TMPFILE2"
+
+ cmp "$TMPFILE1" "$TMPFILE2" > /dev/null
+ if [ $? = 0 ]
