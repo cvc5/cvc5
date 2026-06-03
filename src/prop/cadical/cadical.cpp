@@ -217,6 +217,12 @@ ClauseId CadicalSolver::addClause(const SatClause& clause, bool removable)
     }
     d_solver->add(0);
   }
+  // Match MiniSat's behavior for unit clauses, which are not exported through
+  // CaDiCaL's learned clause callback during search.
+  if (clause.size() == 1)
+  {
+    d_proxy->notifySatClause(clause);
+  }
   ++d_statistics.d_numClauses;
   return ClauseIdError;
 }

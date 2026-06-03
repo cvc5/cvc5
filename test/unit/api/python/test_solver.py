@@ -2360,8 +2360,7 @@ class PluginListen(Plugin):
         return "PluginListen"
 
 def test_plugin_listen(tm, solver):
-    # NOTE: this shouldn't be necessary but ensures notifySatClause is called here.
-    solver.setOption("sat-solver", "minisat")
+    # Allow notifications for unit clauses added before the main solve.
     solver.setOption("plugin-notify-sat-clause-in-solve", "false")
     pl = PluginListen(tm)
     solver.addPlugin(pl)

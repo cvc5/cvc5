@@ -3744,9 +3744,7 @@ TEST_F(TestCApiBlackSolver, plugin_listen)
                     &clause_seen,
                     &lemma_seen};
 
-  // NOTE: this shouldn't be necessary but ensures notify_sat_clause is called
-  // here.
-  cvc5_set_option(d_solver, "sat-solver", "minisat");
+  // Allow notifications for unit clauses added before the main solve.
   cvc5_set_option(d_solver, "plugin-notify-sat-clause-in-solve", "false");
   cvc5_add_plugin(d_solver, &plugin);
   Cvc5Sort string_sort = cvc5_get_string_sort(d_tm);
