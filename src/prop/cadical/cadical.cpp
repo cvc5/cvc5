@@ -218,8 +218,9 @@ ClauseId CadicalSolver::addClause(const SatClause& clause, bool removable)
     d_solver->add(0);
   }
   // Match MiniSat's behavior for unit clauses, which are not exported through
-  // CaDiCaL's learned clause callback during search.
-  if (clause.size() == 1)
+  // CaDiCaL's learned clause callback during search. Non-CDCL(T) SAT solvers,
+  // e.g. the private BV bitblast solver, do not have a theory proxy.
+  if (d_proxy != nullptr && clause.size() == 1)
   {
     d_proxy->notifySatClause(clause);
   }
