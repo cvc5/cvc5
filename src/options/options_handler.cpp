@@ -127,7 +127,7 @@ Languages currently supported as arguments to the --output-lang option:
   auto                           match output language to input language
   smt | smtlib | smt2 |
   smt2.6 | smtlib2.6             SMT-LIB format 2.6 with support for the strings standard
-  smt2-tptp | smtlib2.6-tptp     custom SMT-LIB v2.6-derived output format for tptpmodels
+  smt2-tptp                      custom SMT-LIB v2.6-derived output format for tptpmodels
   ast                            internal format (simple syntax trees)
 )FOOBAR" << std::endl;
     throw OptionException("help is not a valid language");
