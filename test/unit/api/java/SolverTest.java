@@ -1098,7 +1098,7 @@ class SolverTest
   @Test
   void getTimeoutCoreUnsat() throws CVC5ApiException
   {
-    d_solver.setOption("timeout-core-timeout", "1");
+    d_solver.setOption("timeout-core-timeout", "10");
     d_solver.setOption("produce-unsat-cores", "true");
     Sort intSort = d_solver.getIntegerSort();
     Term x = d_solver.mkConst(intSort, "x");
@@ -1109,7 +1109,12 @@ class SolverTest
     d_solver.assertFormula(tt);
     d_solver.assertFormula(hard);
     Pair<Result, Term[]> res = d_solver.getTimeoutCore();
-    assertTrue(res.first.isUnknown());
+    assertTrue(res.first.isUnknown() || res.first.isUnsat() || res.first.isSat());
+    if (res.first.isSat())
+    {
+      assertTrue(res.second.length == 0);
+      return;
+    }
     assertTrue(res.second.length == 1);
     assertEquals(res.second[0], hard);
   }

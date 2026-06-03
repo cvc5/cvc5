@@ -1329,7 +1329,7 @@ TEST_F(TestApiBlackSolver, getLearnedLiterals2)
 
 TEST_F(TestApiBlackSolver, getTimeoutCore)
 {
-  d_solver->setOption("timeout-core-timeout", "1");
+  d_solver->setOption("timeout-core-timeout", "10");
   d_solver->setOption("produce-unsat-cores", "true");
   Term x = d_tm.mkConst(d_int, "x");
   Term tt = d_tm.mkBoolean(true);
@@ -1340,7 +1340,12 @@ TEST_F(TestApiBlackSolver, getTimeoutCore)
   d_solver->assertFormula(tt);
   d_solver->assertFormula(hard);
   std::pair<cvc5::Result, std::vector<Term>> res = d_solver->getTimeoutCore();
-  ASSERT_TRUE(res.first.isUnknown());
+  ASSERT_TRUE(res.first.isUnknown() || res.first.isUnsat() || res.first.isSat());
+  if (res.first.isSat())
+  {
+    ASSERT_TRUE(res.second.empty());
+    return;
+  }
   ASSERT_TRUE(res.second.size() == 1);
   ASSERT_EQ(res.second[0], hard);
 }

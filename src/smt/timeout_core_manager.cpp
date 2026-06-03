@@ -16,6 +16,7 @@
 
 #include <fstream>
 
+#include "base/modal_exception.h"
 #include "expr/node_algorithm.h"
 #include "options/base_options.h"
 #include "options/smt_options.h"
@@ -284,7 +285,17 @@ Result TimeoutCoreManager::checkSatNext(const std::vector<Node>& nextAssertions,
   }
   Trace("smt-to-core") << "checkSatNext: recordCurrentModel" << std::endl;
   bool allAssertsSat;
-  if (recordCurrentModel(allAssertsSat, nextInclude))
+  bool recordedModel = false;
+  try
+  {
+    recordedModel = recordCurrentModel(allAssertsSat, nextInclude);
+  }
+  catch (const RecoverableModalException&)
+  {
+    Trace("smt-to-core") << "...return, no model available" << std::endl;
+    return Result(Result::UNKNOWN, UnknownExplanation::UNKNOWN_REASON);
+  }
+  if (recordedModel)
   {
     Trace("smt-to-core") << "...return, check again" << std::endl;
     return Result(Result::UNKNOWN, UnknownExplanation::REQUIRES_CHECK_AGAIN);
@@ -293,9 +304,9 @@ Result TimeoutCoreManager::checkSatNext(const std::vector<Node>& nextAssertions,
   {
     // core is discarded if we terminate with sat
     d_ainfo.clear();
-    Trace("smt-to-core") << "...return, SAT" << std::endl;
-    // a model happened to satisfy every assertion
-    return Result(Result::SAT);
+    Trace("smt-to-core") << "...return, " << result << std::endl;
+    // If check-sat was unknown, the model is only a candidate.
+    return result.getStatus() == Result::SAT ? Result(Result::SAT) : result;
   }
   else
   {
