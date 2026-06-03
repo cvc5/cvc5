@@ -192,6 +192,22 @@ void AssertionPipeline::replace(size_t i,
   }
 }
 
+void AssertionPipeline::removeIteSkolem(TNode skolem)
+{
+  for (IteSkolemMap::iterator it = d_iteSkolemMap.begin();
+       it != d_iteSkolemMap.end();)
+  {
+    if (it->second == skolem)
+    {
+      it = d_iteSkolemMap.erase(it);
+    }
+    else
+    {
+      ++it;
+    }
+  }
+}
+
 void AssertionPipeline::replaceTrusted(size_t i, TrustNode trn, TrustId trustId)
 {
   Assert(i < d_nodes.size());
