@@ -131,7 +131,7 @@ name   = "Driver"
 
 [[option]]
   name       = "tptpModels"
-  category   = "regular"
+  category   = "expert"
   long       = "tptp-models"
   type       = "bool"
   default    = "false"
@@ -139,7 +139,7 @@ name   = "Driver"
 
 [[option]]
   name       = "tptpModelVerification"
-  category   = "regular"
+  category   = "expert"
   long       = "tptp-model-verification"
   type       = "bool"
   default    = "false"
