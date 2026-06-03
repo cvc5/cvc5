@@ -1340,7 +1340,8 @@ TEST_F(TestApiBlackSolver, getTimeoutCore)
   d_solver->assertFormula(tt);
   d_solver->assertFormula(hard);
   std::pair<cvc5::Result, std::vector<Term>> res = d_solver->getTimeoutCore();
-  ASSERT_TRUE(res.first.isUnknown() || res.first.isUnsat() || res.first.isSat());
+  ASSERT_TRUE(res.first.isUnknown() || res.first.isUnsat()
+              || res.first.isSat());
   if (res.first.isSat())
   {
     ASSERT_TRUE(res.second.empty());
