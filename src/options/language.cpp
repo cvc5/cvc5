@@ -39,8 +39,7 @@ Language toLanguage(const std::string& language)
   {
     return Language::LANG_SMTLIB_V2_6;
   }
-  else if (language == "smt2-tptp" || language == "smtlib2.6-tptp"
-           || language == "tptp-smt2" || language == "LANG_SMTLIB_V2_6_TPTP")
+  else if (language == "smt2-tptp")
   {
     return Language::LANG_SMTLIB_V2_6_TPTP;
   }
