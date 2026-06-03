@@ -131,7 +131,7 @@ name   = "Driver"
 
 [[option]]
   name       = "tptpModels"
-  category   = "regular"
+  category   = "expert"
   long       = "tptp-models"
   type       = "bool"
   default    = "false"
