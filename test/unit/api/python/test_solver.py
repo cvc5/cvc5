@@ -679,7 +679,7 @@ def test_learned_literals2(tm, solver):
     solver.getLearnedLiterals(LearnedLitType.INPUT)
 
 def test_get_timeout_core_unsat(tm, solver):
-  solver.setOption("timeout-core-timeout", "100")
+  solver.setOption("timeout-core-timeout", "1")
   solver.setOption("produce-unsat-cores", "true")
   intSort = tm.getIntegerSort()
   x = tm.mkConst(intSort, "x")
@@ -2361,6 +2361,7 @@ class PluginListen(Plugin):
 
 def test_plugin_listen(tm, solver):
     # NOTE: this shouldn't be necessary but ensures notifySatClause is called here.
+    solver.setOption("sat-solver", "minisat")
     solver.setOption("plugin-notify-sat-clause-in-solve", "false")
     pl = PluginListen(tm)
     solver.addPlugin(pl)

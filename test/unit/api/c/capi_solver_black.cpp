@@ -1569,7 +1569,7 @@ TEST_F(TestCApiBlackSolver, get_difficulty3)
 
 TEST_F(TestCApiBlackSolver, get_timeout_core)
 {
-  cvc5_set_option(d_solver, "timeout-core-timeout", "100");
+  cvc5_set_option(d_solver, "timeout-core-timeout", "1");
   cvc5_set_option(d_solver, "produce-unsat-cores", "true");
 
   Cvc5Term x = cvc5_mk_const(d_tm, d_int, "x");
@@ -3734,7 +3734,8 @@ const char* plugin_listen_get_name() { return "PluginListen"; }
 
 TEST_F(TestCApiBlackSolver, plugin_listen)
 {
-  bool clause_seen, lemma_seen;
+  bool clause_seen = false;
+  bool lemma_seen = false;
   Cvc5Plugin plugin{nullptr,
                     &plugin_listen_notify_sat_clause,
                     &plugin_listen_notify_theory_lemma,
@@ -3745,6 +3746,7 @@ TEST_F(TestCApiBlackSolver, plugin_listen)
 
   // NOTE: this shouldn't be necessary but ensures notify_sat_clause is called
   // here.
+  cvc5_set_option(d_solver, "sat-solver", "minisat");
   cvc5_set_option(d_solver, "plugin-notify-sat-clause-in-solve", "false");
   cvc5_add_plugin(d_solver, &plugin);
   Cvc5Sort string_sort = cvc5_get_string_sort(d_tm);

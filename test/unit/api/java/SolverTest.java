@@ -1098,7 +1098,7 @@ class SolverTest
   @Test
   void getTimeoutCoreUnsat() throws CVC5ApiException
   {
-    d_solver.setOption("timeout-core-timeout", "100");
+    d_solver.setOption("timeout-core-timeout", "1");
     d_solver.setOption("produce-unsat-cores", "true");
     Sort intSort = d_solver.getIntegerSort();
     Term x = d_solver.mkConst(intSort, "x");
@@ -2454,6 +2454,7 @@ class SolverTest
   void pluginListen()
   {
     // NOTE: this shouldn't be necessary but ensures notifySatClause is called here.
+    d_solver.setOption("sat-solver", "minisat");
     d_solver.setOption("plugin-notify-sat-clause-in-solve", "false");
     PluginListen pl = new PluginListen(d_tm);
     d_solver.addPlugin(pl);

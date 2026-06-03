@@ -1329,7 +1329,7 @@ TEST_F(TestApiBlackSolver, getLearnedLiterals2)
 
 TEST_F(TestApiBlackSolver, getTimeoutCore)
 {
-  d_solver->setOption("timeout-core-timeout", "100");
+  d_solver->setOption("timeout-core-timeout", "1");
   d_solver->setOption("produce-unsat-cores", "true");
   Term x = d_tm.mkConst(d_int, "x");
   Term tt = d_tm.mkBoolean(true);
@@ -2536,6 +2536,7 @@ TEST_F(TestApiBlackSolver, pluginListen)
 {
   // NOTE: this shouldn't be necessary but ensures notifySatClause is called
   // here.
+  d_solver->setOption("sat-solver", "minisat");
   d_solver->setOption("plugin-notify-sat-clause-in-solve", "false");
   PluginListen pl(d_tm);
   d_solver->addPlugin(pl);
