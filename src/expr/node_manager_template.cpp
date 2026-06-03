@@ -1019,6 +1019,14 @@ TypeNode NodeManager::mkSort(const std::string& name, bool fresh)
   return mkSortConstructor(name, 0, fresh);
 }
 
+TypeNode NodeManager::mkRawSymbolType(const std::string& symbol)
+{
+  NodeBuilder nb(this, Kind::RAW_SYMBOL_TYPE);
+  TypeNode type = nb.constructTypeNode();
+  setAttribute(type, expr::VarNameAttr(), symbol);
+  return type;
+}
+
 TypeNode NodeManager::mkSort(TypeNode constructor,
                              const std::vector<TypeNode>& children)
 {
