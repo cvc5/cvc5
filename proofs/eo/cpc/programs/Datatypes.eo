@@ -104,6 +104,19 @@
   )
 )
 
+; program: $tuple_arg_list
+; args:
+; - t T: The term to inspect, expected to be a tuple constructor application.
+; return: >
+;   The list of arguments of the tuple constructor application t.
+(program $tuple_arg_list ((T Type) (V Type) (W Type) (t T) (t1 V) (t2 W :list))
+  :signature (T) eo::List
+  (
+  (($tuple_arg_list (tuple t1 t2))  (_ @list t1 ($tuple_arg_list t2)))
+  (($tuple_arg_list tuple.unit)     @list.nil)
+  )
+)
+
 ; program: $dt_arg_list
 ; args:
 ; - t T: The term to inspect, expected to be a constructor application.
@@ -112,10 +125,10 @@
 (program $dt_arg_list ((T Type) (V Type) (W Type) (t T) (t1 V) (t2 W :list))
   :signature (T) eo::List
   (
-    ; for tuples, we manually accumulate the list.
-    (($dt_arg_list (tuple t1 t2))  (_ @list t1 ($dt_arg_list t2)))
-    ; otherwise we get the argument list using the utility method
-    (($dt_arg_list t)              ($get_arg_list t))
+  ; for tuples, we manually accumulate the list.
+  (($dt_arg_list (tuple t1 t2))  ($tuple_arg_list (tuple t1 t2)))
+  ; otherwise we get the argument list using the utility method
+  (($dt_arg_list t)              ($get_arg_list t))
   )
 )
 
