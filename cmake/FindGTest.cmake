@@ -18,7 +18,29 @@ find_library(GTest_MAIN_LIBRARIES NAMES gtest_main)
 
 set(GTest_FOUND_SYSTEM FALSE)
 if(GTest_INCLUDE_DIR AND GTest_LIBRARIES AND GTest_MAIN_LIBRARIES)
+    # Set FOUND_SYSTEM to true; check_system_version will unset this if the
+    # system version is less than the minimum required version.
     set(GTest_FOUND_SYSTEM TRUE)
+
+    # GTest does not expose its version through a header macro, so we query the
+    # gtest.pc pkg-config file (shipped by GTest) to determine the version.
+    find_package(PkgConfig QUIET)
+    if(PKG_CONFIG_FOUND)
+        pkg_check_modules(PC_GTest QUIET gtest)
+        set(GTest_VERSION "${PC_GTest_VERSION}")
+    endif()
+
+    # Minimum required version, set by find_package(GTest <version> ...).
+    if(GTest_FIND_VERSION AND NOT GTest_VERSION)
+        message(STATUS "Could not determine the version of the system GTest \
+installation; assuming it does not satisfy the minimum required version \
+${GTest_FIND_VERSION}")
+        set(GTest_FOUND_SYSTEM FALSE)
+    else()
+        # Check the detected version against the required version; this unsets
+        # GTest_FOUND_SYSTEM if the version is too old.
+        check_system_version("GTest")
+    endif()
 endif()
 
 if(NOT GTest_FOUND_SYSTEM)
