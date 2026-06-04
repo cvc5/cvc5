@@ -2496,6 +2496,7 @@ class PluginUnsat : public Plugin
 
 TEST_F(TestApiBlackSolver, pluginUnsat)
 {
+  d_solver->setOption("sat-solver", "minisat");
   PluginUnsat pu(d_tm);
   d_solver->addPlugin(pu);
   ASSERT_TRUE(pu.getName() == "PluginUnsat");
@@ -2534,6 +2535,7 @@ class PluginListen : public Plugin
 
 TEST_F(TestApiBlackSolver, pluginListen)
 {
+  d_solver->setOption("sat-solver", "minisat");
   // Allow notifications for unit clauses added before the main solve.
   d_solver->setOption("plugin-notify-sat-clause-in-solve", "false");
   PluginListen pl(d_tm);

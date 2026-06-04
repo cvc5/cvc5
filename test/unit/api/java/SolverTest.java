@@ -2400,6 +2400,7 @@ class SolverTest
   @Test
   void pluginUnsat()
   {
+    d_solver.setOption("sat-solver", "minisat");
     PluginUnsat pu = new PluginUnsat(d_tm);
     d_solver.addPlugin(pu);
     assertTrue(pu.getName().equals("PluginUnsat"));
@@ -2453,6 +2454,7 @@ class SolverTest
   @Test
   void pluginListen()
   {
+    d_solver.setOption("sat-solver", "minisat");
     // Allow notifications for unit clauses added before the main solve.
     d_solver.setOption("plugin-notify-sat-clause-in-solve", "false");
     PluginListen pl = new PluginListen(d_tm);

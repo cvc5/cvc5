@@ -429,6 +429,7 @@ class PluginListen : public Plugin
 
 TEST_F(TestApiBlackUncovered, plugin_uncovered_default)
 {
+  d_solver->setOption("sat-solver", "minisat");
   // Allow notifications for unit clauses added before the main solve.
   d_solver->setOption("plugin-notify-sat-clause-in-solve", "false");
   PluginListen pl(d_tm);

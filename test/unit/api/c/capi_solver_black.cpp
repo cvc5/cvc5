@@ -3707,6 +3707,7 @@ const char* plugin_unsat_get_name() { return "PluginUnsat"; }
 
 TEST_F(TestCApiBlackSolver, plugin_unsat)
 {
+  cvc5_set_option(d_solver, "sat-solver", "minisat");
   Cvc5Plugin plugin{&plugin_unsat_check,
                     nullptr,
                     nullptr,
@@ -3744,6 +3745,7 @@ TEST_F(TestCApiBlackSolver, plugin_listen)
                     &clause_seen,
                     &lemma_seen};
 
+  cvc5_set_option(d_solver, "sat-solver", "minisat");
   // Allow notifications for unit clauses added before the main solve.
   cvc5_set_option(d_solver, "plugin-notify-sat-clause-in-solve", "false");
   cvc5_add_plugin(d_solver, &plugin);
