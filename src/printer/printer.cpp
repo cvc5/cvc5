@@ -21,7 +21,7 @@
 #include "printer/ast/ast_printer.h"
 #include "printer/let_binding.h"
 #include "printer/smt2/smt2_printer.h"
-#include "printer/smt2/smt2_tptp_printer.h"
+#include "printer/tptp/smt2_tptp_printer.h"
 #include "proof/unsat_core.h"
 #include "smt/model.h"
 #include "theory/quantifiers/instantiation_list.h"

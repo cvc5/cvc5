@@ -10,7 +10,7 @@
  * The pretty-printer interface for SMT2-derived TPTP output.
  */
 
-#include "printer/smt2/smt2_tptp_printer.h"
+#include "printer/tptp/smt2_tptp_printer.h"
 
 #include <algorithm>
 #include <cctype>
