@@ -1,4 +1,4 @@
-; COMMAND-LINE: --sat-solver=minisat -q
+; COMMAND-LINE: -q
 ; EXPECT: sat
 (set-logic ALL)
 (set-info :status sat)

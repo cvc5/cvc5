@@ -1,4 +1,3 @@
-; COMMAND-LINE: --sat-solver=minisat
 (set-logic ALL)
 (declare-fun T () Bool)
 (declare-fun v () String)
