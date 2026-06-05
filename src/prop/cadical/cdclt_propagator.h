@@ -117,10 +117,10 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator,
 
   /**
    * Callback of the SAT solver to determine if we have a new clause to add.
-   * @param is_forgettable True if the clause is not irredundant.
+   * @param forgettable True if the clause is not irredundant.
    * @return True to indicate that we have clauses to add.
    */
-  bool cb_has_external_clause(bool& is_forgettable) override;
+  bool cb_has_external_clause(bool& forgettable) override;
 
   /**
    * Callback of the SAT solver to add a new clause.
@@ -155,9 +155,10 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator,
    *
    * Note: Filters out clauses satisfied by fixed literals.
    *
-   * @param clause The clause to add.
+   * @param clause      The clause to add.
+   * @param forgettable True if the clause is not irredundant.
    */
-  void add_clause(const SatClause& clause);
+  void add_clause(const SatClause& clause, bool forgettable);
 
   /**
    * Add new CaDiCaL variable.
@@ -323,6 +324,8 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator,
    * cb_add_reason_clause_lit().
    */
   std::deque<CadicalLit> d_new_clauses;
+  /** Keep track of forgettable status of clauses buffered in d_new_clauses. */
+  std::deque<CadicalLit> d_new_clauses_forgettable;
 
   /**
    * Flag indicating whether cb_add_reason_clause_lit() is currently
