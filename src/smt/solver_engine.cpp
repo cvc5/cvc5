@@ -39,7 +39,7 @@
 #include "options/theory_options.h"
 #include "preprocessing/passes/synth_rew_rules.h"
 #include "printer/printer.h"
-#include "printer/smt2/smt2_tptp_printer.h"
+#include "printer/tptp/smt2_tptp_printer.h"
 #include "proof/unsat_core.h"
 #include "prop/prop_engine.h"
 #include "smt/abduction_solver.h"
