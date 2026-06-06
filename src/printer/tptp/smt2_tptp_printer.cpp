@@ -15,6 +15,7 @@
 #include <algorithm>
 #include <cctype>
 #include <cstddef>
+#include <functional>
 #include <map>
 #include <set>
 #include <sstream>
@@ -67,6 +68,8 @@ Node TptpModel::getValueOrNull(TNode n) const
 bool TptpModel::getBooleanValue(TNode n, bool& value) const
 {
   Node cur = n;
+  // Iteratively resolve chains of model definitions (e.g. a := b, b := true)
+  // until we reach a CONST_BOOLEAN or exhaust the chain.
   for (size_t i = 0; i < 16; i++)
   {
     if (cur.getKind() == Kind::CONST_BOOLEAN)
@@ -209,8 +212,6 @@ std::string sanitizeUpper(const std::string& in)
   return out;
 }
 
-std::string join(const std::vector<std::string>& xs, const std::string& sep);
-
 void printTypeDecl(std::ostream& out,
                    const char* ff,
                    const std::string& id,
@@ -230,6 +231,20 @@ bool isBuiltinIndividualSort(TypeNode tn)
   // TPTP's builtin individual type $i is represented internally as
   // the default unsorted uninterpreted sort.
   return sanitizeLower(tn.toString()) == "unsorted";
+}
+
+std::string join(const std::vector<std::string>& xs, const std::string& sep)
+{
+  std::stringstream ss;
+  for (size_t i = 0, n = xs.size(); i < n; i++)
+  {
+    if (i > 0)
+    {
+      ss << sep;
+    }
+    ss << xs[i];
+  }
+  return ss.str();
 }
 
 std::string typeToTptp(TypeNode tn, bool useThfTuple = false)
@@ -280,20 +295,6 @@ std::string typeToTptp(TypeNode tn, bool useThfTuple = false)
     return "( " + join(argStrs, " * ") + " ) > " + r;
   }
   return sanitizeLower(tn.toString());
-}
-
-std::string join(const std::vector<std::string>& xs, const std::string& sep)
-{
-  std::stringstream ss;
-  for (size_t i = 0, n = xs.size(); i < n; i++)
-  {
-    if (i > 0)
-    {
-      ss << sep;
-    }
-    ss << xs[i];
-  }
-  return ss.str();
 }
 
 std::string mkApplyString(const std::string& op,
@@ -698,26 +699,86 @@ bool getTypeDomainValues(
   return true;
 }
 
+// Constant-fold boolean connectives and equality when all children are already
+// constants.  Returns n unchanged for any node that cannot be reduced.
+Node foldConstants(Node n)
+{
+  if (n.isConst())
+  {
+    return n;
+  }
+  NodeManager* nm = n.getNodeManager();
+  const Kind k = n.getKind();
+  if (k == Kind::NOT)
+  {
+    if (n[0].getKind() == Kind::CONST_BOOLEAN)
+    {
+      return nm->mkConst(!n[0].getConst<bool>());
+    }
+  }
+  else if (k == Kind::AND || k == Kind::OR)
+  {
+    const bool isAnd = (k == Kind::AND);
+    bool acc = isAnd;
+    for (const Node& c : n)
+    {
+      if (c.getKind() != Kind::CONST_BOOLEAN)
+      {
+        return n;
+      }
+      bool b = c.getConst<bool>();
+      acc = isAnd ? (acc && b) : (acc || b);
+    }
+    return nm->mkConst(acc);
+  }
+  else if (k == Kind::IMPLIES)
+  {
+    if (n[0].getKind() == Kind::CONST_BOOLEAN
+        && n[1].getKind() == Kind::CONST_BOOLEAN)
+    {
+      return nm->mkConst(!n[0].getConst<bool>() || n[1].getConst<bool>());
+    }
+  }
+  else if (k == Kind::ITE)
+  {
+    if (n[0].getKind() == Kind::CONST_BOOLEAN)
+    {
+      return n[0].getConst<bool>() ? n[1] : n[2];
+    }
+  }
+  else if (k == Kind::EQUAL)
+  {
+    if (n[0].isConst() && n[1].isConst())
+    {
+      return nm->mkConst(n[0] == n[1]);
+    }
+  }
+  return n;
+}
+
 Node evalFiniteTerm(
     const Node& n,
     const TptpModel& m,
     const std::map<Node, bool>& isDeclared,
     const std::map<TypeNode, std::vector<Node>>& finiteTypeElems,
-    const std::map<Node, Node>& subst);
+    const std::map<Node, Node>& subst,
+    const std::function<Node(Node)>& rewriter);
 
 Node evalFiniteApply(
     const Node& app,
     const TptpModel& m,
     const std::map<Node, bool>& isDeclared,
     const std::map<TypeNode, std::vector<Node>>& finiteTypeElems,
-    const std::map<Node, Node>& subst)
+    const std::map<Node, Node>& subst,
+    const std::function<Node(Node)>& rewriter)
 {
   if (app.getNumChildren() == 0)
   {
     return Node::null();
   }
   Node opn = app.getKind() == Kind::APPLY_UF ? app.getOperator() : app[0];
-  Node op = evalFiniteTerm(opn, m, isDeclared, finiteTypeElems, subst);
+  Node op =
+      evalFiniteTerm(opn, m, isDeclared, finiteTypeElems, subst, rewriter);
   if (op.isNull())
   {
     return Node::null();
@@ -727,7 +788,8 @@ Node evalFiniteApply(
   args.reserve(app.getNumChildren() - argStart);
   for (size_t i = argStart, n = app.getNumChildren(); i < n; i++)
   {
-    Node av = evalFiniteTerm(app[i], m, isDeclared, finiteTypeElems, subst);
+    Node av =
+        evalFiniteTerm(app[i], m, isDeclared, finiteTypeElems, subst, rewriter);
     if (av.isNull())
     {
       return Node::null();
@@ -803,7 +865,8 @@ Node evalFiniteApply(
       lam[1].substitute(svars.begin(), svars.end(), args.begin(), args.end());
   if (bvl.getNumChildren() == args.size())
   {
-    return evalFiniteTerm(bodySub, m, isDeclared, finiteTypeElems, subst);
+    return evalFiniteTerm(
+        bodySub, m, isDeclared, finiteTypeElems, subst, rewriter);
   }
   std::vector<Node> rbvs;
   for (size_t i = args.size(), n = bvl.getNumChildren(); i < n; i++)
@@ -820,7 +883,8 @@ Node evalFiniteQuant(
     const TptpModel& m,
     const std::map<Node, bool>& isDeclared,
     const std::map<TypeNode, std::vector<Node>>& finiteTypeElems,
-    const std::map<Node, Node>& subst)
+    const std::map<Node, Node>& subst,
+    const std::function<Node(Node)>& rewriter)
 {
   Node bvl = q[0];
   Node body = q[1];
@@ -846,7 +910,8 @@ Node evalFiniteQuant(
     {
       nsubst[bvl[i]] = tup[i];
     }
-    Node bv = evalFiniteTerm(body, m, isDeclared, finiteTypeElems, nsubst);
+    Node bv =
+        evalFiniteTerm(body, m, isDeclared, finiteTypeElems, nsubst, rewriter);
     if (bv.isNull() || bv.getKind() != Kind::CONST_BOOLEAN)
     {
       return Node::null();
@@ -869,7 +934,8 @@ Node evalFiniteTerm(
     const TptpModel& m,
     const std::map<Node, bool>& isDeclared,
     const std::map<TypeNode, std::vector<Node>>& finiteTypeElems,
-    const std::map<Node, Node>& subst)
+    const std::map<Node, Node>& subst,
+    const std::function<Node(Node)>& rewriter)
 {
   auto sit = subst.find(n);
   if (sit != subst.end())
@@ -882,92 +948,38 @@ Node evalFiniteTerm(
   }
   if (n.getKind() == Kind::APPLY_UF || n.getKind() == Kind::HO_APPLY)
   {
-    return evalFiniteApply(n, m, isDeclared, finiteTypeElems, subst);
+    return evalFiniteApply(n, m, isDeclared, finiteTypeElems, subst, rewriter);
   }
   if (n.getKind() == Kind::FORALL)
   {
-    return evalFiniteQuant(n, true, m, isDeclared, finiteTypeElems, subst);
+    return evalFiniteQuant(
+        n, true, m, isDeclared, finiteTypeElems, subst, rewriter);
   }
   if (n.getKind() == Kind::EXISTS)
   {
-    return evalFiniteQuant(n, false, m, isDeclared, finiteTypeElems, subst);
+    return evalFiniteQuant(
+        n, false, m, isDeclared, finiteTypeElems, subst, rewriter);
   }
-  if (n.getKind() == Kind::NOT)
+  // Generic: evaluate children, rebuild with the same kind, and let the
+  // rewriter constant-fold (handles NOT, AND, OR, IMPLIES, ITE, EQUAL, etc.).
+  if (n.getNumChildren() > 0)
   {
-    Node c = evalFiniteTerm(n[0], m, isDeclared, finiteTypeElems, subst);
-    if (c.isNull() || c.getKind() != Kind::CONST_BOOLEAN)
+    NodeManager* nm = n.getNodeManager();
+    std::vector<Node> echildren;
+    echildren.reserve(n.getNumChildren());
+    for (const Node& child : n)
     {
-      return Node::null();
-    }
-    return n.getNodeManager()->mkConst(!c.getConst<bool>());
-  }
-  if (n.getKind() == Kind::AND || n.getKind() == Kind::OR)
-  {
-    const bool isAnd = n.getKind() == Kind::AND;
-    bool acc = isAnd;
-    for (size_t i = 0, nc = n.getNumChildren(); i < nc; i++)
-    {
-      Node c = evalFiniteTerm(n[i], m, isDeclared, finiteTypeElems, subst);
-      if (c.isNull() || c.getKind() != Kind::CONST_BOOLEAN)
+      Node ec = evalFiniteTerm(
+          child, m, isDeclared, finiteTypeElems, subst, rewriter);
+      if (ec.isNull())
       {
         return Node::null();
       }
-      bool b = c.getConst<bool>();
-      if (isAnd)
-      {
-        acc = acc && b;
-        if (!acc)
-        {
-          break;
-        }
-      }
-      else
-      {
-        acc = acc || b;
-        if (acc)
-        {
-          break;
-        }
-      }
+      echildren.push_back(ec);
     }
-    return n.getNodeManager()->mkConst(acc);
+    return rewriter(nm->mkNode(n.getKind(), echildren));
   }
-  if (n.getKind() == Kind::IMPLIES)
-  {
-    Node a = evalFiniteTerm(n[0], m, isDeclared, finiteTypeElems, subst);
-    Node b = evalFiniteTerm(n[1], m, isDeclared, finiteTypeElems, subst);
-    if (a.isNull() || b.isNull() || a.getKind() != Kind::CONST_BOOLEAN
-        || b.getKind() != Kind::CONST_BOOLEAN)
-    {
-      return Node::null();
-    }
-    return n.getNodeManager()->mkConst(!a.getConst<bool>()
-                                       || b.getConst<bool>());
-  }
-  if (n.getKind() == Kind::ITE)
-  {
-    Node c = evalFiniteTerm(n[0], m, isDeclared, finiteTypeElems, subst);
-    if (c.isNull() || c.getKind() != Kind::CONST_BOOLEAN)
-    {
-      return Node::null();
-    }
-    return evalFiniteTerm(c.getConst<bool>() ? n[1] : n[2],
-                          m,
-                          isDeclared,
-                          finiteTypeElems,
-                          subst);
-  }
-  if (n.getKind() == Kind::EQUAL)
-  {
-    Node a = evalFiniteTerm(n[0], m, isDeclared, finiteTypeElems, subst);
-    Node b = evalFiniteTerm(n[1], m, isDeclared, finiteTypeElems, subst);
-    if (a.isNull() || b.isNull())
-    {
-      return Node::null();
-    }
-    return n.getNodeManager()->mkConst(a == b);
-  }
-  // fall back to declared-model lookup for unresolved symbols/aliases
+  // Fall back to declared-model lookup for unresolved leaf symbols/aliases.
   if (isDeclared.find(n) != isDeclared.end())
   {
     return resolveModelValue(m, isDeclared, n);
@@ -1002,10 +1014,11 @@ bool getBoolValueFinite(
     const std::map<Node, bool>& isDeclared,
     const std::map<TypeNode, std::vector<Node>>& finiteTypeElems,
     Node n,
-    bool& value)
+    bool& value,
+    const std::function<Node(Node)>& rewriter)
 {
   std::map<Node, Node> subst;
-  Node v = evalFiniteTerm(n, m, isDeclared, finiteTypeElems, subst);
+  Node v = evalFiniteTerm(n, m, isDeclared, finiteTypeElems, subst, rewriter);
   if (v.isNull() || v.getKind() != Kind::CONST_BOOLEAN)
   {
     return false;
@@ -1019,13 +1032,14 @@ bool resolveBoolValue(
     const std::map<Node, bool>& isDeclared,
     const std::map<TypeNode, std::vector<Node>>& finiteTypeElems,
     Node n,
-    bool& value)
+    bool& value,
+    const std::function<Node(Node)>& rewriter)
 {
   if (m.getBooleanValue(n, value))
   {
     return true;
   }
-  return getBoolValueFinite(m, isDeclared, finiteTypeElems, n, value);
+  return getBoolValueFinite(m, isDeclared, finiteTypeElems, n, value, rewriter);
 }
 
 bool modelNodeToTptp(const Node& n,
@@ -1349,6 +1363,7 @@ bool modelNodeToTptp(const Node& n,
 void Smt2TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
 {
   const TptpModel& tm = static_cast<const TptpModel&>(m);
+  const std::function<Node(Node)> rewriter = foldConstants;
   const std::vector<TypeNode>& allSorts = m.getDeclaredSorts();
   const std::vector<Node>& terms = m.getDeclaredTerms();
   std::vector<TypeNode> sorts;
@@ -1847,8 +1862,9 @@ void Smt2TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
         }
         bool b = false;
         const bool resolved =
-            resolveBoolValue(tm, isDeclared, finiteTypeElems, t, b)
-            || resolveBoolValue(tm, isDeclared, finiteTypeElems, v, b);
+            resolveBoolValue(tm, isDeclared, finiteTypeElems, t, b, rewriter)
+            || resolveBoolValue(
+                tm, isDeclared, finiteTypeElems, v, b, rewriter);
         if (!resolved)
         {
           // Fallback for unresolved propositional constants: keep the symbol
@@ -1914,8 +1930,8 @@ void Smt2TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
         if (val.isNull())
         {
           std::map<Node, Node> emptySubst;
-          val =
-              evalFiniteTerm(app, tm, isDeclared, finiteTypeElems, emptySubst);
+          val = evalFiniteTerm(
+              app, tm, isDeclared, finiteTypeElems, emptySubst, rewriter);
           if (val.isNull())
           {
             continue;
@@ -1927,8 +1943,10 @@ void Smt2TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
       if (isPred)
       {
         bool bval = false;
-        if (!resolveBoolValue(tm, isDeclared, finiteTypeElems, app, bval)
-            && !resolveBoolValue(tm, isDeclared, finiteTypeElems, val, bval))
+        if (!resolveBoolValue(
+                tm, isDeclared, finiteTypeElems, app, bval, rewriter)
+            && !resolveBoolValue(
+                tm, isDeclared, finiteTypeElems, val, bval, rewriter))
         {
           // If model value cannot be resolved to true/false, skip this row
           // rather than emitting an unsound negation.
