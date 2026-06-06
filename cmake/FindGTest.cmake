@@ -67,13 +67,13 @@ if(NOT GTest_FOUND_SYSTEM)
         COMMAND ${CMAKE_COMMAND} --build .
             --config ${CMAKE_BUILD_TYPE} --target gtest_main
         BUILD_BYPRODUCTS
-            <INSTALL_DIR>/lib/libgtest.a
-            <INSTALL_DIR>/lib/libgtest_main.a
+            <INSTALL_DIR>/${CMAKE_INSTALL_LIBDIR}/libgtest.a
+            <INSTALL_DIR>/${CMAKE_INSTALL_LIBDIR}/libgtest_main.a
     )
 
     set(GTest_INCLUDE_DIR "${DEPS_BASE}/include/")
-    set(GTest_LIBRARIES "${DEPS_BASE}/lib/libgtest.a")
-    set(GTest_MAIN_LIBRARIES "${DEPS_BASE}/lib/libgtest_main.a")
+    set(GTest_LIBRARIES "${DEPS_BASE}/${CMAKE_INSTALL_LIBDIR}/libgtest.a")
+    set(GTest_MAIN_LIBRARIES "${DEPS_BASE}/${CMAKE_INSTALL_LIBDIR}/libgtest_main.a")
 endif()
 
 set(GTest_FOUND TRUE)

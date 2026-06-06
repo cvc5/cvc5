@@ -68,8 +68,12 @@ class TptpModel : public smt::Model
   void setEvaluator(const std::function<Node(TNode)>& eval);
 
  private:
+  /** Whether model output should preserve explicit input metadata. */
   bool d_tptpModelVerification;
+  /** Input TPTP dialect supplied by the caller (AUTO when not known). */
   TptpDialect d_tptpInputDialect;
+  /** Optional fallback evaluator for closed terms (e.g. TheoryModel::getValue).
+   */
   std::function<Node(TNode)> d_evaluator;
 };
 
