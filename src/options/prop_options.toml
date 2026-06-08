@@ -3,7 +3,7 @@ name   = "SAT Layer"
 
 [[option]]
   name       = "satSolver"
-  category   = "regular"
+  category   = "common"
   long       = "sat-solver=MODE"
   type       = "SatSolverMode"
   default    = "CADICAL"
