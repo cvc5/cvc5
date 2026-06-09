@@ -115,7 +115,7 @@ name   = "Driver"
 
 [[option]]
   name       = "dumpModels"
-  category   = "regular"
+  category   = "common"
   long       = "dump-models"
   type       = "bool"
   default    = "false"
@@ -123,7 +123,7 @@ name   = "Driver"
 
 [[option]]
   name       = "dumpProofs"
-  category   = "regular"
+  category   = "common"
   long       = "dump-proofs"
   type       = "bool"
   default    = "false"
@@ -147,7 +147,7 @@ name   = "Driver"
 
 [[option]]
   name       = "dumpInstantiations"
-  category   = "regular"
+  category   = "common"
   long       = "dump-instantiations"
   type       = "bool"
   default    = "false"
