@@ -80,27 +80,17 @@ void InferenceManager::flushWaitingLemmas()
 {
   for (auto& lem : d_waitingLem)
   {
-    Trace("arith::infman") << "Flush waiting lemma to pending: "
-                           << lem->getId() << " " << lem->d_node
-                           << std::endl;
+    Trace("arith::infman") << "Flush waiting lemma to pending: " << lem->getId()
+                           << " " << lem->d_node << std::endl;
     d_pendingLem.emplace_back(std::move(lem));
   }
   d_waitingLem.clear();
 }
-void InferenceManager::clearWaitingLemmas()
-{
-  d_waitingLem.clear();
-}
+void InferenceManager::clearWaitingLemmas() { d_waitingLem.clear(); }
 
-bool InferenceManager::hasUsed() const
-{
-  return hasSent() || hasPending();
-}
+bool InferenceManager::hasUsed() const { return hasSent() || hasPending(); }
 
-bool InferenceManager::hasWaitingLemma() const
-{
-  return !d_waitingLem.empty();
-}
+bool InferenceManager::hasWaitingLemma() const { return !d_waitingLem.empty(); }
 
 std::size_t InferenceManager::numWaitingLemmas() const
 {

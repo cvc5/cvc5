@@ -55,13 +55,12 @@ RewriteDbProofCons::RewriteDbProofCons(Env& env, RewriteDb* db)
   d_false = nm->mkConst(false);
 }
 
-bool RewriteDbProofCons::prove(
-    CDProof* cdp,
-    const Node& a,
-    const Node& b,
-    int64_t recLimit,
-    int64_t stepLimit,
-    TheoryRewriteMode tmode)
+bool RewriteDbProofCons::prove(CDProof* cdp,
+                               const Node& a,
+                               const Node& b,
+                               int64_t recLimit,
+                               int64_t stepLimit,
+                               TheoryRewriteMode tmode)
 {
   d_tmode = tmode;
   // clear the proof caches
@@ -147,13 +146,12 @@ bool RewriteDbProofCons::prove(
   return success;
 }
 
-bool RewriteDbProofCons::proveEqStratified(
-    CDProof* cdp,
-    const Node& eq,
-    const Node& eqi,
-    int64_t recLimit,
-    int64_t stepLimit,
-    TheoryRewriteMode tmode)
+bool RewriteDbProofCons::proveEqStratified(CDProof* cdp,
+                                           const Node& eq,
+                                           const Node& eqi,
+                                           int64_t recLimit,
+                                           int64_t stepLimit,
+                                           TheoryRewriteMode tmode)
 {
   bool success = false;
   // first, try the basic utility
@@ -425,10 +423,15 @@ RewriteProofStatus RewriteDbProofCons::proveInternalViaStrategy(const Node& eqi)
   }
   // Maybe holds via a THEORY_REWRITE that has been marked with
   // TheoryRewriteCtx::DSL_SUBCALL.
-  if (d_tmode==TheoryRewriteMode::STANDARD)
+  if (d_tmode == TheoryRewriteMode::STANDARD)
   {
-    if (proveWithRule(
-            RewriteProofStatus::THEORY_REWRITE, eqi, {}, {}, false, false, true))
+    if (proveWithRule(RewriteProofStatus::THEORY_REWRITE,
+                      eqi,
+                      {},
+                      {},
+                      false,
+                      false,
+                      true))
     {
       return RewriteProofStatus::THEORY_REWRITE;
     }

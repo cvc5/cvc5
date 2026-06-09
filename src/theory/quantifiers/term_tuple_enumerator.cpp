@@ -277,8 +277,7 @@ void TermTupleEnumeratorBase::failureReason(const std::vector<bool>& mask)
   // update change prefix accordingly
   for (d_changePrefix = mask.size();
        d_changePrefix && !mask[d_changePrefix - 1];
-       d_changePrefix--)
-    ;
+       d_changePrefix--);
 }
 
 void TermTupleEnumeratorBase::next(/*out*/ std::vector<Node>& terms)
@@ -505,8 +504,7 @@ class TermTupleEnumeratorPool : public TermTupleEnumeratorBase
   TermTupleEnumeratorPool(Node quantifier,
                           const TermTupleEnumeratorEnv* env,
                           Node pool)
-      : TermTupleEnumeratorBase(quantifier, env),
-        d_pool(pool)
+      : TermTupleEnumeratorBase(quantifier, env), d_pool(pool)
   {
     Assert(d_pool.getKind() == Kind::INST_POOL);
   }

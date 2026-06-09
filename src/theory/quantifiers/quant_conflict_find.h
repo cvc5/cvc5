@@ -31,15 +31,21 @@ namespace quantifiers {
 class QuantConflictFind;
 class QuantInfo;
 
-//match generator
-class MatchGen : protected EnvObj {
+// match generator
+class MatchGen : protected EnvObj
+{
   friend class QuantInfo;
 
  public:
-  MatchGen(Env& env, QuantConflictFind* p, QuantInfo* qi, Node n, bool isVar = false);
+  MatchGen(Env& env,
+           QuantConflictFind* p,
+           QuantInfo* qi,
+           Node n,
+           bool isVar = false);
 
-  //type of the match generator
-  enum {
+  // type of the match generator
+  enum
+  {
     typ_invalid,
     typ_ground,
     typ_pred,
@@ -50,13 +56,13 @@ class MatchGen : protected EnvObj {
     typ_tconstraint,
     typ_tsym,
   };
-  void debugPrintType( const char * c, short typ);
+  void debugPrintType(const char* c, short typ);
 
   bool d_tgt;
   bool d_tgt_orig;
   bool d_wasSet;
   Node d_n;
-  std::vector<std::unique_ptr<MatchGen> > d_children;
+  std::vector<std::unique_ptr<MatchGen>> d_children;
   short d_type;
   bool d_type_not;
   /** reset round
@@ -73,10 +79,10 @@ class MatchGen : protected EnvObj {
   Node getNode() const { return d_n; }
 
   // is this term treated as UF application?
-  static bool isHandledBoolConnective( TNode n );
-  static bool isHandledUfTerm( TNode n );
-  //can this node be handled by the algorithm
-  static bool isHandled( TNode n );
+  static bool isHandledBoolConnective(TNode n);
+  static bool isHandledUfTerm(TNode n);
+  // can this node be handled by the algorithm
+  static bool isHandled(TNode n);
 
  private:
   // determine variable order
@@ -118,7 +124,7 @@ class MatchGen : protected EnvObj {
   std::map<size_t, Node> d_ground_eval;
 };
 
-//info for quantifiers
+// info for quantifiers
 class QuantInfo : protected EnvObj
 {
  public:
@@ -152,8 +158,8 @@ class QuantInfo : protected EnvObj
   bool getNextMatch() { return d_mg->getNextMatch(); }
   bool reset_round();
   size_t getCurrentRepVar(size_t v);
-  TNode getCurrentValue( TNode n );
-  TNode getCurrentExpValue( TNode n );
+  TNode getCurrentValue(TNode n);
+  TNode getCurrentExpValue(TNode n);
   bool getCurrentCanBeEqual(size_t v, TNode n, bool chDiseq = false);
   int addConstraint(size_t v, TNode n, bool polarity);
   int addConstraint(size_t v, TNode n, int vn, bool polarity, bool doRemove);
@@ -166,12 +172,12 @@ class QuantInfo : protected EnvObj
   void revertMatch(const std::vector<size_t>& assigned);
   void debugPrintMatch(const char* c) const;
   bool isConstrainedVar(size_t v);
-  void getMatch( std::vector< Node >& terms );
+  void getMatch(std::vector<Node>& terms);
 
   // current constraints
   std::vector<TNode> d_match;
   std::vector<TNode> d_match_term;
-  std::map<size_t, std::map<TNode, size_t> > d_curr_var_deq;
+  std::map<size_t, std::map<TNode, size_t>> d_curr_var_deq;
   std::map<Node, bool> d_tconstraints;
 
  private:
@@ -197,7 +203,7 @@ class QuantInfo : protected EnvObj
   size_t d_una_index;
   std::vector<int> d_una_eqc_count;
   // optimization: track which arguments variables appear under UF terms in
-  std::map<size_t, std::map<TNode, std::vector<size_t> > > d_var_rel_dom;
+  std::map<size_t, std::map<TNode, std::vector<size_t>>> d_var_rel_dom;
   // optimization: number of variables set, to track when we can stop
   std::unordered_set<size_t> d_vars_set;
   std::vector<Node> d_extra_var;
@@ -207,6 +213,7 @@ class QuantConflictFind : public QuantifiersModule
 {
   friend class MatchGen;
   friend class QuantInfo;
+
  public:
   QuantConflictFind(Env& env,
                     QuantifiersState& qs,
@@ -229,8 +236,9 @@ class QuantConflictFind : public QuantifiersModule
   void check(Theory::Effort level, QEffort quant_e) override;
 
   /** statistics class */
-  class Statistics {
-  public:
+  class Statistics
+  {
+   public:
     IntStat d_inst_rounds;
     IntStat d_entailment_checks;
     Statistics(StatisticsRegistry& sr);
@@ -295,7 +303,7 @@ class QuantConflictFind : public QuantifiersModule
   std::vector<Node> d_quants;
   std::map<Node, size_t> d_quant_id;
   /** Map from quantified formulas to their info class to compute instances */
-  std::map<Node, std::unique_ptr<QuantInfo> > d_qinfo;
+  std::map<Node, std::unique_ptr<QuantInfo>> d_qinfo;
   /** Map from type -> list(eqc) of that type */
   std::map<TypeNode, std::vector<TNode>> d_eqcs;
   /** Zeros for (type, kind) pairs */
@@ -305,7 +313,7 @@ class QuantConflictFind : public QuantifiersModule
   std::vector<Node> d_tempCache;
   // optimization: list of quantifiers that depend on ground function
   // applications
-  std::map<TNode, std::vector<Node> > d_func_rel_dom;
+  std::map<TNode, std::vector<Node>> d_func_rel_dom;
   std::map<TNode, bool> d_irr_func;
   std::map<Node, bool> d_irr_quant;
   /** The current effort */

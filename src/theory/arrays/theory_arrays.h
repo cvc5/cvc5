@@ -44,8 +44,8 @@ namespace arrays {
  *   Stores(a)  = {t | a ~ t and t = store( _ _ _ )}
  *   InStores(a) = {t | t = store (b _ _) and a ~ b }
  *   Indices(a) = {i | there exists a term b[i] such that a ~ b or store(b i v)}
- *   ~ represents the equivalence relation based on the asserted equalities in the
- *   current context.
+ *   ~ represents the equivalence relation based on the asserted equalities in
+ * the current context.
  *
  * The rules implemented are the following:
  *             store(b i v)
@@ -70,19 +70,20 @@ namespace arrays {
  *  Because new store terms are not created, we need to check if we need to
  *  instantiate a new Row axiom in the following cases:
  *     1. the congruence relation changes (i.e. two terms get merged)
- *         - when a new equality between array terms a = b is asserted we check if
- *           we can instantiate a Row lemma for all pairs of indices i where a is
- *           being read and stores
+ *         - when a new equality between array terms a = b is asserted we check
+ * if we can instantiate a Row lemma for all pairs of indices i where a is being
+ * read and stores
  *         - this is only done during full effort check
- *     2. a new read term is created either as a consequences of an Ext lemma or a
- *        Row lemma
+ *     2. a new read term is created either as a consequences of an Ext lemma or
+ * a Row lemma
  *         - this is implemented in the checkRowForIndex method which is called
  *           when preregistering a term of the form a[i].
- *         - as a consequence lemmas are instantiated even before full effort check
+ *         - as a consequence lemmas are instantiated even before full effort
+ * check
  *
- *  The Ext axiom is instantiated when a disequality is asserted during full effort
- *  check. Ext lemmas are stored in a cache to prevent instantiating essentially
- *  the same lemma multiple times.
+ *  The Ext axiom is instantiated when a disequality is asserted during full
+ * effort check. Ext lemmas are stored in a cache to prevent instantiating
+ * essentially the same lemma multiple times.
  */
 
 static inline std::string spaces(int level)
@@ -91,14 +92,13 @@ static inline std::string spaces(int level)
   return indentStr;
 }
 
-class TheoryArrays : public Theory {
-
+class TheoryArrays : public Theory
+{
   /////////////////////////////////////////////////////////////////////////////
   // MISC
   /////////////////////////////////////////////////////////////////////////////
 
  private:
-
   /** True node for predicates = true */
   Node d_true;
 
@@ -157,12 +157,13 @@ class TheoryArrays : public Theory {
   /////////////////////////////////////////////////////////////////////////////
 
  private:
-
-  // PPNotifyClass: dummy template class for d_ppEqualityEngine - notifications not used
-  class PPNotifyClass {
-  public:
-   bool notify(CVC5_UNUSED TNode propagation) { return true; }
-   void notify(CVC5_UNUSED TNode t1, CVC5_UNUSED TNode t2) {}
+  // PPNotifyClass: dummy template class for d_ppEqualityEngine - notifications
+  // not used
+  class PPNotifyClass
+  {
+   public:
+    bool notify(CVC5_UNUSED TNode propagation) { return true; }
+    void notify(CVC5_UNUSED TNode t1, CVC5_UNUSED TNode t2) {}
   };
 
   /** The notify class for d_ppEqualityEngine */
@@ -171,7 +172,8 @@ class TheoryArrays : public Theory {
   /** Equaltity engine */
   eq::EqualityEngine d_ppEqualityEngine;
 
-  // List of facts learned by preprocessor - needed for permanent ref for benefit of d_ppEqualityEngine
+  // List of facts learned by preprocessor - needed for permanent ref for
+  // benefit of d_ppEqualityEngine
   context::CDList<Node> d_ppFacts;
 
   Node preprocessTerm(TNode term);
@@ -204,7 +206,8 @@ class TheoryArrays : public Theory {
   /** Should be called to propagate the literal.  */
   bool propagateLit(TNode literal);
 
-  /** For debugging only- checks invariants about when things are preregistered*/
+  /** For debugging only- checks invariants about when things are
+   * preregistered*/
   context::CDHashSet<Node> d_isPreRegistered;
 
   /** Helper for preRegisterTerm, also used internally */
@@ -219,10 +222,11 @@ class TheoryArrays : public Theory {
   /////////////////////////////////////////////////////////////////////////////
 
  private:
-  class MayEqualNotifyClass {
-  public:
-   bool notify(CVC5_UNUSED TNode propagation) { return true; }
-   void notify(CVC5_UNUSED TNode t1, CVC5_UNUSED TNode t2) {}
+  class MayEqualNotifyClass
+  {
+   public:
+    bool notify(CVC5_UNUSED TNode propagation) { return true; }
+    void notify(CVC5_UNUSED TNode t1, CVC5_UNUSED TNode t2) {}
   };
 
   /** The notify class for d_mayEqualEqualityEngine */
@@ -255,7 +259,6 @@ class TheoryArrays : public Theory {
   // NOTIFICATIONS
   /////////////////////////////////////////////////////////////////////////////
 
-
   void presolve() override;
 
   /////////////////////////////////////////////////////////////////////////////
@@ -279,17 +282,25 @@ class TheoryArrays : public Theory {
   TNode weakEquivGetRep(TNode node);
   TNode weakEquivGetRepIndex(TNode node, TNode index);
   void visitAllLeaves(TNode reason, std::vector<TNode>& conjunctions);
-  void weakEquivBuildCond(TNode node, TNode index, std::vector<TNode>& conjunctions);
+  void weakEquivBuildCond(TNode node,
+                          TNode index,
+                          std::vector<TNode>& conjunctions);
   void weakEquivMakeRep(TNode node);
   void weakEquivMakeRepIndex(TNode node);
-  void weakEquivAddSecondary(TNode index, TNode arrayFrom, TNode arrayTo, TNode reason);
+  void weakEquivAddSecondary(TNode index,
+                             TNode arrayFrom,
+                             TNode arrayTo,
+                             TNode reason);
   void checkWeakEquiv(bool arraysMerged);
 
-  // NotifyClass: template helper class for d_equalityEngine - handles call-back from congruence closure module
-  class NotifyClass : public eq::EqualityEngineNotify {
+  // NotifyClass: template helper class for d_equalityEngine - handles call-back
+  // from congruence closure module
+  class NotifyClass : public eq::EqualityEngineNotify
+  {
     TheoryArrays& d_arrays;
-  public:
-    NotifyClass(TheoryArrays& arrays): d_arrays(arrays) {}
+
+   public:
+    NotifyClass(TheoryArrays& arrays) : d_arrays(arrays) {}
 
     bool eqNotifyTriggerPredicate(TNode predicate, bool value) override
     {
@@ -298,7 +309,8 @@ class TheoryArrays : public Theory {
           << "NotifyClass::eqNotifyTriggerPredicate(" << predicate << ", "
           << (value ? "true" : "false") << ")" << std::endl;
       // Just forward to arrays
-      if (value) {
+      if (value)
+      {
         return d_arrays.propagateLit(predicate);
       }
       return d_arrays.propagateLit(predicate.notNode());
@@ -313,7 +325,8 @@ class TheoryArrays : public Theory {
           << spaces(d_arrays.context()->getLevel())
           << "NotifyClass::eqNotifyTriggerTermEquality(" << t1 << ", " << t2
           << ", " << (value ? "true" : "false") << ")" << std::endl;
-      if (value) {
+      if (value)
+      {
         // Propagate equality between shared terms
         return d_arrays.propagateLit(t1.eqNode(t2));
       }
@@ -334,7 +347,8 @@ class TheoryArrays : public Theory {
     }
     void eqNotifyMerge(TNode t1, TNode t2) override
     {
-      if (t1.getType().isArray()) {
+      if (t1.getType().isArray())
+      {
         d_arrays.mergeArrays(t1, t2);
       }
     }
@@ -359,8 +373,8 @@ class TheoryArrays : public Theory {
 
   /**
    * Context dependent map from a congruence class canonical representative of
-   * type array to an Info pointer that keeps track of information useful to axiom
-   * instantiation
+   * type array to an Info pointer that keeps track of information useful to
+   * axiom instantiation
    */
   ArrayInfo d_infoMap;
 
@@ -379,10 +393,12 @@ class TheoryArrays : public Theory {
   CDNodeSet d_sharedOther;
   context::CDO<bool> d_sharedTerms;
 
-  // Map from constant values to read terms that read from that values equal to that constant value in the current model
-  // When a new read term is created, we check the index to see if we know the model value.  If so, we add it to d_constReads (and d_constReadsList)
-  // If not, we push it onto d_reads and figure out where it goes at computeCareGraph time.
-  // d_constReadsList is used as a backup in case we can't compute the model at computeCareGraph time.
+  // Map from constant values to read terms that read from that values equal to
+  // that constant value in the current model When a new read term is created,
+  // we check the index to see if we know the model value.  If so, we add it to
+  // d_constReads (and d_constReadsList) If not, we push it onto d_reads and
+  // figure out where it goes at computeCareGraph time. d_constReadsList is used
+  // as a backup in case we can't compute the model at computeCareGraph time.
   typedef std::unordered_map<Node, CTNodeList*> CNodeNListMap;
   CNodeNListMap d_constReads;
   context::CDList<TNode> d_reads;
@@ -427,17 +443,25 @@ class TheoryArrays : public Theory {
   typedef context::CDHashMap<Node, Node> DefValMap;
   DefValMap d_defValues;
 
-  typedef std::unordered_map<std::pair<TNode, TNode>, CTNodeList*, TNodePairHashFunction> ReadBucketMap;
+  typedef std::
+      unordered_map<std::pair<TNode, TNode>, CTNodeList*, TNodePairHashFunction>
+          ReadBucketMap;
   ReadBucketMap d_readBucketTable;
   context::Context* d_readTableContext;
   context::CDList<Node> d_arrayMerges;
   std::vector<CTNodeList*> d_readBucketAllocations;
 
   Node getSkolem(TNode ref);
-  Node mkAnd(std::vector<TNode>& conjunctions, bool invert = false, unsigned startIndex = 0);
+  Node mkAnd(std::vector<TNode>& conjunctions,
+             bool invert = false,
+             unsigned startIndex = 0);
   void setNonLinear(TNode a);
   Node removeRepLoops(TNode a, TNode rep);
-  Node expandStores(TNode s, std::vector<TNode>& assumptions, bool checkLoop = false, TNode a = TNode(), TNode b = TNode());
+  Node expandStores(TNode s,
+                    std::vector<TNode>& assumptions,
+                    bool checkLoop = false,
+                    TNode a = TNode(),
+                    TNode b = TNode());
   void mergeArrays(TNode a, TNode b);
   void checkStore(TNode a);
   void checkRowForIndex(TNode i, TNode a);
@@ -481,7 +505,7 @@ class TheoryArrays : public Theory {
    * RIntro1 and RIntro2 rules.
    */
   void computeRelevantTerms(std::set<Node>& termSet) override;
-};/* class TheoryArrays */
+}; /* class TheoryArrays */
 
 }  // namespace arrays
 }  // namespace theory

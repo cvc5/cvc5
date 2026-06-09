@@ -127,10 +127,7 @@ bool isAssocCommIdem(Kind k)
   return false;
 }
 
-bool isAssocComm(Kind k)
-{
-  return (k==Kind::BITVECTOR_XOR);
-}
+bool isAssocComm(Kind k) { return (k == Kind::BITVECTOR_XOR); }
 
 bool isAssoc(Kind k)
 {

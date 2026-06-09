@@ -318,7 +318,7 @@ void TermRegistry::registerSubterms(Node n)
       if (k == Kind::EQUAL || theory::kindToTheoryId(k) == THEORY_STRINGS)
       {
         // strings does not have any closure kinds
-        Assert (!cur.isClosure());
+        Assert(!cur.isClosure());
         visit.insert(visit.end(), cur.begin(), cur.end());
       }
     }

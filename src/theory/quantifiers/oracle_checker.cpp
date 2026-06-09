@@ -57,7 +57,7 @@ Node OracleChecker::evaluateApp(Node app)
   if (retv.size() != 1)
   {
     DebugUnhandled() << "Failed to evaluate " << app
-                  << " to a single return value, got: " << retv << std::endl;
+                     << " to a single return value, got: " << retv << std::endl;
     return app;
   }
   Node ret = retv[0];

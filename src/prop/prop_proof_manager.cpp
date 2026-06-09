@@ -218,7 +218,8 @@ std::vector<std::shared_ptr<ProofNode>> PropPfManager::getProofLeaves(
   for (const std::shared_ptr<ProofNode>& pf : pfs)
   {
     Node proven = pf->getResult();
-    if (std::find(satLeaves.begin(), satLeaves.end(), proven) != satLeaves.end())
+    if (std::find(satLeaves.begin(), satLeaves.end(), proven)
+        != satLeaves.end())
     {
       usedPfs.push_back(pf);
     }

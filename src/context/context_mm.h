@@ -115,9 +115,7 @@ class CVC5_EXPORT ContextMemoryManager
   /**
    * Get the maximum allocation size for this memory manager.
    */
-  static unsigned getMaxAllocationSize() {
-    return chunkSizeBytes;
-  }
+  static unsigned getMaxAllocationSize() { return chunkSizeBytes; }
 
   /**
    * Constructor - creates an initial region and an empty stack
@@ -202,11 +200,11 @@ class ContextMemoryManager
  * An STL-like allocator class for allocating from context memory.
  */
 template <class T>
-class ContextMemoryAllocator {
+class ContextMemoryAllocator
+{
   ContextMemoryManager* d_mm;
 
-public:
-
+ public:
   typedef size_t size_type;
   typedef std::ptrdiff_t difference_type;
   typedef T* pointer;
@@ -214,7 +212,9 @@ public:
   typedef T& reference;
   typedef T const& const_reference;
   typedef T value_type;
-  template <class U> struct rebind {
+  template <class U>
+  struct rebind
+  {
     typedef ContextMemoryAllocator<U> other;
   };
 
@@ -237,26 +237,28 @@ public:
   {
     return static_cast<T*>(d_mm->newData(n * sizeof(T)));
   }
-  void deallocate(CVC5_UNUSED T* p, CVC5_UNUSED size_t n) const {
+  void deallocate(CVC5_UNUSED T* p, CVC5_UNUSED size_t n) const
+  {
     /* no explicit delete */
   }
-  void construct(T* p, T const& v) const {
-    ::new(reinterpret_cast<void*>(p)) T(v);
+  void construct(T* p, T const& v) const
+  {
+    ::new (reinterpret_cast<void*>(p)) T(v);
   }
-  void destroy(T* p) const {
-    p->~T();
-  }
-};/* class ContextMemoryAllocator<T> */
+  void destroy(T* p) const { p->~T(); }
+}; /* class ContextMemoryAllocator<T> */
 
 template <class T>
 inline bool operator==(const ContextMemoryAllocator<T>& a1,
-                       const ContextMemoryAllocator<T>& a2) {
+                       const ContextMemoryAllocator<T>& a2)
+{
   return a1.d_mm == a2.d_mm;
 }
 
 template <class T>
 inline bool operator!=(const ContextMemoryAllocator<T>& a1,
-                       const ContextMemoryAllocator<T>& a2) {
+                       const ContextMemoryAllocator<T>& a2)
+{
   return a1.d_mm != a2.d_mm;
 }
 

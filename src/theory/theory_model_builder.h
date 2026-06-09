@@ -86,7 +86,6 @@ class TheoryEngineModelBuilder : protected EnvObj
   void postProcessModel(bool incomplete, TheoryModel* m);
 
  protected:
-
   //-----------------------------------virtual functions
   /** pre-process build model
    * Do pre-processing specific to this model builder.

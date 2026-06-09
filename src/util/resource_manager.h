@@ -104,8 +104,8 @@ constexpr std::size_t ResourceMax = static_cast<std::size_t>(Resource::Unknown);
 
 /**
  * This class manages resource limits (cumulative or per call) and (per call)
- * time limits. The available resources are listed in Resource and their individual
- * costs are configured via command line options.
+ * time limits. The available resources are listed in Resource and their
+ * individual costs are configured via command line options.
  */
 class ResourceManager
 {

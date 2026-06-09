@@ -16,6 +16,7 @@
 
 #include "expr/bound_var_manager.h"
 #include "options/arith_options.h"
+#include "proof/proof.h"
 #include "proof/proof_node_manager.h"
 #include "proof/trust_id.h"
 #include "smt/env.h"
@@ -24,7 +25,6 @@
 #include "theory/arith/nl/poly_conversion.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
-#include "proof/proof.h"
 
 using namespace cvc5::internal::kind;
 
@@ -125,7 +125,7 @@ Node OperatorElim::eliminateOperators(NodeManager* nm,
         return node;
       }
       // for a fresh skolem v, the elimination is:
-      // (int.log2 x) --> v, with lemmas: 
+      // (int.log2 x) --> v, with lemmas:
       // (=> (> x 0) (and (<= (int.pow2 v) x) (< x (* 2 (int.pow2 v)))))
       // (=> (<= x 0) (= v 0))
       Node zero = nm->mkConstInt(Integer(0));
@@ -140,7 +140,7 @@ Node OperatorElim::eliminateOperators(NodeManager* nm,
       Node pos_prop2 = nm->mkNode(Kind::LT, x, ptv1);
       Node pos_prop = nm->mkNode(Kind::AND, pos_prop1, pos_prop2);
       Node pos_lem = nm->mkNode(Kind::IMPLIES, pos_assumption, pos_prop);
-      
+
       Node neg_assumption = nm->mkNode(Kind::NOT, pos_assumption);
       Node neg_prop = nm->mkNode(Kind::EQUAL, v, zero);
       Node neg_lem = nm->mkNode(Kind::IMPLIES, neg_assumption, neg_prop);
@@ -465,7 +465,7 @@ Node OperatorElim::getAxiomFor(NodeManager* nm, const Node& n)
   std::vector<std::pair<Node, Node>> klems;
   bool wasNonLinear = false;
   Node nn = eliminateOperators(nm, n, klems, false, wasNonLinear);
-  if (nn==n)
+  if (nn == n)
   {
     return Node::null();
   }
@@ -529,7 +529,7 @@ std::shared_ptr<ProofNode> OperatorElim::getProofFor(Node f)
   Node tgt;
   if (it == d_lemmaMap.end())
   {
-    if (f.getKind()!=Kind::EQUAL)
+    if (f.getKind() != Kind::EQUAL)
     {
       DebugUnhandled() << "arith::OperatorElim could not prove " << f;
       return nullptr;
@@ -548,12 +548,12 @@ std::shared_ptr<ProofNode> OperatorElim::getProofFor(Node f)
   bool success = false;
   // If the axiom was an AND, then the fact in question should be one of the
   // conjuncts, in which case we do an AND_ELIM step.
-  if (res.getKind()==Kind::AND)
+  if (res.getKind() == Kind::AND)
   {
-    Assert (res.getNumChildren()==2);
-    for (size_t i=0; i<2; i++)
+    Assert(res.getNumChildren() == 2);
+    for (size_t i = 0; i < 2; i++)
     {
-      if (res[i]==f)
+      if (res[i] == f)
       {
         Node ni = nodeManager()->mkConstInt(i);
         cdp.addStep(f, ProofRule::AND_ELIM, {res}, {ni});
@@ -564,7 +564,7 @@ std::shared_ptr<ProofNode> OperatorElim::getProofFor(Node f)
   }
   else
   {
-    success = (res==f);
+    success = (res == f);
   }
   Assert(success) << "arith::OperatorElim could not prove " << f;
   if (!success)

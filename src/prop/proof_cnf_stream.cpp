@@ -30,11 +30,8 @@ ProofCnfStream::ProofCnfStream(Env& env,
 {
 }
 
-void ProofCnfStream::convertAndAssert(TNode node,
-                                      bool negated,
-                                      bool removable,
-                                      bool input,
-                                      ProofGenerator* pg)
+void ProofCnfStream::convertAndAssert(
+    TNode node, bool negated, bool removable, bool input, ProofGenerator* pg)
 {
   // this method is re-entrant due to lemmas sent during preregistration of new
   // lemmas, thus we must remember and revert d_input below.

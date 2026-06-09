@@ -24,18 +24,16 @@ namespace cvc5::internal {
 class LogicException : public cvc5::internal::Exception
 {
  public:
-  LogicException() :
-    Exception("Feature used while operating in "
-              "incorrect state") {
+  LogicException()
+      : Exception(
+            "Feature used while operating in "
+            "incorrect state")
+  {
   }
 
-  LogicException(const std::string& msg) :
-    Exception(msg) {
-  }
+  LogicException(const std::string& msg) : Exception(msg) {}
 
-  LogicException(const char* msg) :
-    Exception(msg) {
-  }
+  LogicException(const char* msg) : Exception(msg) {}
 }; /* class LogicException */
 
 /**

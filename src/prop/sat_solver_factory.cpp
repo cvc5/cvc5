@@ -31,9 +31,7 @@ SatSolverFactory::Factory SatSolverFactory::getFactory(
       return createSatSolver<options::BvSatSolverMode::KISSAT>;
     case options::BvSatSolverMode::CRYPTOMINISAT:
       return createSatSolver<options::BvSatSolverMode::CRYPTOMINISAT>;
-    default:
-      Unreachable();
-      return nullptr;
+    default: Unreachable(); return nullptr;
   }
 }
 
@@ -47,9 +45,7 @@ SatSolverFactory::CDCLTFactory SatSolverFactory::getFactory(
       return createCDCLTSatSolver<SatSolverMode::CADICAL>;
     case SatSolverMode::MINISAT:
       return createCDCLTSatSolver<SatSolverMode::MINISAT>;
-    default:
-      Unreachable();
-      return nullptr;
+    default: Unreachable(); return nullptr;
   }
 }
 
@@ -84,7 +80,8 @@ SatSolver* SatSolverFactory::createSatSolver<options::BvSatSolverMode::KISSAT>(
 }
 
 template <>
-SatSolver* SatSolverFactory::createSatSolver<options::BvSatSolverMode::CRYPTOMINISAT>(
+SatSolver*
+SatSolverFactory::createSatSolver<options::BvSatSolverMode::CRYPTOMINISAT>(
     CVC5_UNUSED Env& env,
     CVC5_UNUSED StatisticsRegistry& registry,
     CVC5_UNUSED ResourceManager* resmgr,

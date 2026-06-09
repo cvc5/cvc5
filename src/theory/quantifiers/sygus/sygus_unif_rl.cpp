@@ -12,6 +12,8 @@
 
 #include "theory/quantifiers/sygus/sygus_unif_rl.h"
 
+#include <math.h>
+
 #include "expr/skolem_manager.h"
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
@@ -20,8 +22,6 @@
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/rewriter.h"
 #include "util/random.h"
-
-#include <math.h>
 
 using namespace cvc5::internal::kind;
 

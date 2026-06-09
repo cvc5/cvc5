@@ -22,26 +22,34 @@ namespace expr {
 
 // Definition of an attribute for the variable name.
 namespace attr {
-  struct VarNameTag { };
-  struct SortArityTag { };
-  struct TypeTag { };
-  struct TypeCheckedTag { };
-  struct UnresolvedDatatypeTag
-  {
-  };
-  struct TupleDatatypeTag
-  {
-  };
-  struct NullableDatatypeTag
-  {
-  };
-  struct DatatypeIndexTag
-  {
-  };
-  struct OracleIndexTag
-  {
-  };
-  }  // namespace attr
+struct VarNameTag
+{
+};
+struct SortArityTag
+{
+};
+struct TypeTag
+{
+};
+struct TypeCheckedTag
+{
+};
+struct UnresolvedDatatypeTag
+{
+};
+struct TupleDatatypeTag
+{
+};
+struct NullableDatatypeTag
+{
+};
+struct DatatypeIndexTag
+{
+};
+struct OracleIndexTag
+{
+};
+}  // namespace attr
 
 typedef Attribute<attr::VarNameTag, std::string> VarNameAttr;
 typedef Attribute<attr::SortArityTag, uint64_t> SortArityAttr;

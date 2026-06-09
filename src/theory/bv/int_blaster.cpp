@@ -153,10 +153,7 @@ Node IntBlaster::maxInt(uint32_t k)
   return d_nm->mkConstInt(max_value);
 }
 
-Node IntBlaster::pow2(uint32_t k)
-{
-  return d_nm->mkConstInt(intpow2(k));
-}
+Node IntBlaster::pow2(uint32_t k) { return d_nm->mkConstInt(intpow2(k)); }
 
 Node IntBlaster::modpow2(Node n, uint32_t exponent)
 {
@@ -342,17 +339,17 @@ Node IntBlaster::translateWithChildren(
   // Store the translated node
   Node returnNode;
 
-   /**
-    * higher order logic allows comparing between functions
-    * The translation does not support this,
-    * as the translated functions may be different outside
-    * of the bounds that were relevant for the original
-    * bit-vectors.
-    */
-   if (childrenTypesChanged(original) && logicInfo().isHigherOrder())
-   {
-     throw LogicException("bv-to-int does not support higher order logic ");
-   }
+  /**
+   * higher order logic allows comparing between functions
+   * The translation does not support this,
+   * as the translated functions may be different outside
+   * of the bounds that were relevant for the original
+   * bit-vectors.
+   */
+  if (childrenTypesChanged(original) && logicInfo().isHigherOrder())
+  {
+    throw LogicException("bv-to-int does not support higher order logic ");
+  }
   // Translate according to the kind of the original node.
   switch (oldKind)
   {
@@ -868,7 +865,8 @@ Node IntBlaster::translateNoChildren(Node original,
   }
   else
   {
-    // original is a constant (value) or an operator with no arguments (e.g., PI)
+    // original is a constant (value) or an operator with no arguments (e.g.,
+    // PI)
     if (original.getKind() == Kind::CONST_BITVECTOR)
     {
       // Bit-vector constants are transformed into their integer value.

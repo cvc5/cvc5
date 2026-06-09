@@ -48,7 +48,7 @@ class ModelConsDefault : public ModelCons
    * It furthermore computes the model value for each of these length
    * terms based on the valuation class.
    */
-  void separateByLength(TheoryModel * m,
+  void separateByLength(TheoryModel* m,
                         const std::vector<Node>& ns,
                         std::vector<std::vector<Node>>& cols,
                         std::vector<Node>& lts) override;

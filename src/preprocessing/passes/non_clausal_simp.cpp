@@ -38,19 +38,19 @@ namespace passes {
 
 NonClausalSimp::Statistics::Statistics(StatisticsRegistry& reg)
     : d_numConstantProps(reg.registerInt(
-        "preprocessing::passes::NonClausalSimp::NumConstantProps"))
+          "preprocessing::passes::NonClausalSimp::NumConstantProps"))
 {
 }
-
 
 /* -------------------------------------------------------------------------- */
 
 NonClausalSimp::NonClausalSimp(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "non-clausal-simp"),
       d_statistics(statisticsRegistry()),
-      d_llpg(options().smt.produceProofs ? new smt::PreprocessProofGenerator(
-                 d_env, userContext(), "NonClausalSimp::llpg")
-                                         : nullptr),
+      d_llpg(options().smt.produceProofs
+                 ? new smt::PreprocessProofGenerator(
+                       d_env, userContext(), "NonClausalSimp::llpg")
+                 : nullptr),
       d_tsubsList(userContext())
 {
 }
@@ -79,7 +79,8 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   for (size_t i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
   {
     Assert(rewrite((*assertionsToPreprocess)[i])
-           == (*assertionsToPreprocess)[i]) << (*assertionsToPreprocess)[i];
+           == (*assertionsToPreprocess)[i])
+        << (*assertionsToPreprocess)[i];
     // Don't reprocess substitutions
     if (assertionsToPreprocess->isSubstsIndex(i))
     {
@@ -322,7 +323,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   // means that all *subsequent* assertions after (= x t) will replace x by t.
   if (assertionsToPreprocess->storeSubstsInAsserts())
   {
-    for (const std::pair<const Node, const Node>& pos: nss)
+    for (const std::pair<const Node, const Node>& pos : nss)
     {
       Node lhs = pos.first;
       // If using incremental, we must check whether this variable has occurred

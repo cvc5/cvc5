@@ -182,8 +182,7 @@ bool CegisCoreConnective::processInitialize(Node conj,
     Component& c = r == 0 ? d_pre : d_post;
     Kind rk = r == 0 ? Kind::OR : Kind::AND;
     int i = gti.getKindConsNum(rk);
-    if (i != -1 && gdt[i].getNumArgs() == 2
-        && gdt[i].getArgType(0) == gt
+    if (i != -1 && gdt[i].getNumArgs() == 2 && gdt[i].getArgType(0) == gt
         && gdt[i].getArgType(1) == gt)
     {
       Trace("sygus-ccore-init") << "  will do " << (r == 0 ? "pre" : "post")
@@ -295,7 +294,8 @@ bool CegisCoreConnective::constructSolution(
     Node fpred = cfilter.getFormula();
     if (!fpred.isNull() && !fpred.isConst())
     {
-      Trace("sygus-ccore-debug") << "...check filter pred " << fpred << std::endl;
+      Trace("sygus-ccore-debug")
+          << "...check filter pred " << fpred << std::endl;
       // check refinement points
       Node etsrn = d == 0 ? etsr : etsr.negate();
       std::unordered_set<Node> visited;
@@ -771,7 +771,7 @@ Node CegisCoreConnective::constructSolutionFromPool(Component& ccheck,
           // In the rare case in which the side condition implies the goal
           // already, then uasserts may be empty and any solution suffices.
           // Take the last enumerated term from the pool.
-          Assert (!passerts.empty());
+          Assert(!passerts.empty());
           uasserts.push_back(passerts.back());
         }
         Trace("sygus-ccore") << ">>> Solution : " << uasserts << std::endl;

@@ -94,7 +94,7 @@ public class Op extends AbstractPointer
 
   /**
    * Determine if this operator is indexed.
-   * 
+   *
    * @return True iff this operator is indexed.
    */
   public boolean isIndexed()

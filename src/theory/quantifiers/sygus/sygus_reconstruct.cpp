@@ -253,7 +253,8 @@ void SygusReconstruct::fast(Node sol, TypeNode stn)
         args.push_back(cons->getConstructor());
         // populate each constructor argument with a free variable of the
         // corresponding type
-        for (const std::shared_ptr<cvc5::internal::DTypeSelector>& arg : cons->getArgs())
+        for (const std::shared_ptr<cvc5::internal::DTypeSelector>& arg :
+             cons->getArgs())
         {
           args.push_back(d_tds->getFreeVarInc(arg->getRangeType(), varCount));
         }

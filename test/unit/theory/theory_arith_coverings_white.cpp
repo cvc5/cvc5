@@ -18,11 +18,11 @@
 #include <memory>
 #include <vector>
 
-#include "test_smt.h"
 #include "options/options_handler.h"
 #include "options/proof_options.h"
 #include "options/smt_options.h"
 #include "smt/proof_manager.h"
+#include "test_smt.h"
 #include "theory/arith/nl/coverings/cdcac.h"
 #include "theory/arith/nl/coverings/lazard_evaluation.h"
 #include "theory/arith/nl/coverings/projections.h"
@@ -410,7 +410,7 @@ TEST_F(TestTheoryWhiteArithCoverings, test_cdcac_proof_1)
   env.finishInit(&pfm);
   EXPECT_TRUE(env.isTheoryProofProducing());
   // register checkers that we need
-  NodeManager * nm = env.getNodeManager();
+  NodeManager* nm = env.getNodeManager();
   builtin::BuiltinProofRuleChecker btchecker(nm, env.getRewriter(), env);
   btchecker.registerTo(env.getProofNodeManager()->getChecker());
   coverings::CoveringsProofRuleChecker checker(nm);
@@ -432,18 +432,17 @@ TEST_F(TestTheoryWhiteArithCoverings, test_cdcac_proof_1)
       3 * y - 5 + (x - 2) * (x - 2), poly::SignCondition::GT, dummy(2));
   cac.getConstraints().addConstraint(
       4 * y - x - 2, poly::SignCondition::GT, dummy(3));
-  cac.getConstraints().addConstraint(
-      x + 1, poly::SignCondition::GT, dummy(4));
-  cac.getConstraints().addConstraint(
-      x - 2, poly::SignCondition::LT, dummy(5));
+  cac.getConstraints().addConstraint(x + 1, poly::SignCondition::GT, dummy(4));
+  cac.getConstraints().addConstraint(x - 2, poly::SignCondition::LT, dummy(5));
 
   cac.computeVariableOrdering();
 
   auto cover = cac.getUnsatCover();
   EXPECT_FALSE(cover.empty());
-  
+
   std::vector<Node> mis{dummy(1), dummy(3), dummy(4), dummy(5)};
-  LazyTreeProofGenerator* pg = dynamic_cast<LazyTreeProofGenerator*>(cac.closeProof(mis));
+  LazyTreeProofGenerator* pg =
+      dynamic_cast<LazyTreeProofGenerator*>(cac.closeProof(mis));
   EXPECT_TRUE(pg != nullptr);
 }
 

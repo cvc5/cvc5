@@ -60,7 +60,7 @@ std::ostream& print(std::ostream& out, const StatExportData& sed)
              sed);
   return out;
 }
-}
+}  // namespace detail
 
 StatisticBaseValue::~StatisticBaseValue() {}
 

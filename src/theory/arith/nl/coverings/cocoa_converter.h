@@ -102,7 +102,6 @@ class CoCoAConverter
   }
 
  private:
-
   /** Helper class for the conversion of a libpoly polynomial to CoCoA. */
   struct CoCoAPolyConstructor
   {

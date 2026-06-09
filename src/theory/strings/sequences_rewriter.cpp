@@ -1218,7 +1218,7 @@ Node SequencesRewriter::rewriteLoopRegExp(TNode node)
     retNode = nm->mkNode(Kind::REGEXP_NONE, nvec);
     return returnRewrite(node, retNode, Rewrite::RE_LOOP_NONE);
   }
-  else if (u==0)
+  else if (u == 0)
   {
     retNode = nm->mkNode(Kind::STRING_TO_REGEXP, nm->mkConst(String("")));
     return returnRewrite(node, retNode, Rewrite::RE_LOOP_ZERO);
@@ -1872,7 +1872,7 @@ Node SequencesRewriter::rewriteViaStrReplaceReAllEval(const Node& n)
       rem = rem.substr(match.second);
     }
     // only concatenate remainder if non-empty
-    if (rem.size()!=0)
+    if (rem.size() != 0)
     {
       res.push_back(nm->mkConst(rem));
     }
@@ -2031,7 +2031,7 @@ Node SequencesRewriter::rewriteRangeRegExp(TNode node)
       hasNonConst = true;
       continue;
     }
-    else if (node[i].getConst<String>().size()!=1)
+    else if (node[i].getConst<String>().size() != 1)
     {
       // non-singleton means empty
       Node retNode = nm->mkNode(Kind::REGEXP_NONE);
@@ -2061,7 +2061,6 @@ Node SequencesRewriter::rewriteRangeRegExp(TNode node)
   return node;
 }
 
-
 Node SequencesRewriter::rewriteViaStrInReConsume(const Node& node)
 {
   if (node.getKind() != Kind::STRING_IN_REGEXP)
@@ -2069,11 +2068,11 @@ Node SequencesRewriter::rewriteViaStrInReConsume(const Node& node)
     return Node::null();
   }
   // if star, we consider the body of the star
-  bool isStar = (node[1].getKind()==Kind::REGEXP_STAR);
+  bool isStar = (node[1].getKind() == Kind::REGEXP_STAR);
   size_t numIter = isStar ? 2 : 1;
-  for (size_t i=0; i<numIter; i++)
+  for (size_t i = 0; i < numIter; i++)
   {
-    int dir = isStar ? (i==0 ? 0 : 1) : -1;
+    int dir = isStar ? (i == 0 ? 0 : 1) : -1;
     Node r = isStar ? node[1][0] : node[1];
     std::vector<Node> children;
     utils::getConcat(r, children);
@@ -2094,10 +2093,7 @@ Node SequencesRewriter::rewriteViaStrInReConsume(const Node& node)
       // if we considered the body of the star, we revert to the original RE
       Node rn = isStar ? node[1] : utils::mkConcat(children, node[1].getType());
       // construct the updated regular expression
-      Node newMem =
-          nodeManager()->mkNode(Kind::STRING_IN_REGEXP,
-                                xn,
-                                rn);
+      Node newMem = nodeManager()->mkNode(Kind::STRING_IN_REGEXP, xn, rn);
       if (newMem != node)
       {
         return newMem;
@@ -2932,11 +2928,11 @@ Node SequencesRewriter::rewriteContains(Node node)
     return returnRewrite(node, cret, Rewrite::CTN_COMPONENT);
   }
   TypeNode stype = node[0].getType();
-  
+
   // (str.contains (str.++ ... s ...) (str.substr s n m)) ---> true
-  if (node[1].getKind()==Kind::STRING_SUBSTR)
+  if (node[1].getKind() == Kind::STRING_SUBSTR)
   {
-    if (std::find(nc1.begin(), nc1.end(), node[1][0])!=nc1.end())
+    if (std::find(nc1.begin(), nc1.end(), node[1][0]) != nc1.end())
     {
       Node res = nm->mkConst(true);
       return returnRewrite(node, res, Rewrite::CTN_CONCAT_CTN_SUBSTR);
@@ -3362,7 +3358,7 @@ Node SequencesRewriter::rewriteIndexofRe(Node node)
         return returnRewrite(node, n, Rewrite::INDEXOF_RE_EMP_RE);
       }
     }
-    if (r.getKind()==Kind::REGEXP_NONE)
+    if (r.getKind() == Kind::REGEXP_NONE)
     {
       Node ret = nm->mkConstInt(Rational(-1));
       return returnRewrite(node, ret, Rewrite::INDEXOF_RE_NONE);
@@ -3818,7 +3814,7 @@ Node SequencesRewriter::rewriteReplaceAll(Node node)
         children.push_back(Word::substr(s, index, sizeS - index));
       }
     } while (curr != std::string::npos && curr < sizeS);
-    Assert (!children.empty());
+    Assert(!children.empty());
     // constant evaluation, construct the concatenation and flatten it.
     Node res;
     if (node[2].isConst())
@@ -3894,7 +3890,7 @@ Node SequencesRewriter::rewriteReplaceRe(Node node)
       Node ret = nm->mkNode(Kind::STRING_CONCAT, z, x);
       return returnRewrite(node, ret, Rewrite::REPLACE_RE_EMP_RE);
     }
-    if (y.getKind()==Kind::REGEXP_NONE)
+    if (y.getKind() == Kind::REGEXP_NONE)
     {
       return returnRewrite(node, x, Rewrite::REPLACE_RE_NONE);
     }
@@ -3916,7 +3912,7 @@ Node SequencesRewriter::rewriteReplaceReAll(Node node)
     {
       return returnRewrite(node, neval, Rewrite::REPLACE_RE_ALL_EVAL);
     }
-    if (y.getKind()==Kind::REGEXP_NONE)
+    if (y.getKind() == Kind::REGEXP_NONE)
     {
       return returnRewrite(node, x, Rewrite::REPLACE_RE_ALL_NONE);
     }

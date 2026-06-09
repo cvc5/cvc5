@@ -15,6 +15,7 @@
 #include "util/random.h"
 
 #include <cfloat>
+
 #include "base/check.h"
 
 namespace cvc5::internal {
@@ -57,7 +58,7 @@ double Random::pickDouble(double from, double to)
 bool Random::pickWithProb(double probability)
 {
   Assert(probability <= 1);
-  uint64_t p = (uint64_t) (probability * 1000);
+  uint64_t p = (uint64_t)(probability * 1000);
   uint64_t r = pick(0, 999);
   return r < p;
 }

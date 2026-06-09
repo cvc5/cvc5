@@ -42,7 +42,7 @@ enum class VariableOrderingStrategy
 class VariableOrdering
 {
  public:
-  VariableOrdering(const poly::Context& ctx) : d_polyCtx(ctx){};
+  VariableOrdering(const poly::Context& ctx) : d_polyCtx(ctx) {};
   std::vector<poly::Variable> operator()(
       const Constraints::ConstraintVector& polys,
       VariableOrderingStrategy vos) const;

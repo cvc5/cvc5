@@ -39,7 +39,8 @@ class ConflictProcessor : protected EnvObj
   /**
    * The constructor for this class.
    * @param env The environment.
-   * @param useExtRewriter Whether we use the extended rewriter when evaluating substitutions below.
+   * @param useExtRewriter Whether we use the extended rewriter when evaluating
+   * substitutions below.
    */
   ConflictProcessor(Env& env, bool useExtRewriter = false);
   ~ConflictProcessor() {}
@@ -53,7 +54,7 @@ class ConflictProcessor : protected EnvObj
    * This method also may minimize the antecedant corresponding to a
    * substituion, e.g. (=> (and (= x a) (= y b)) B) may be replaced by
    * (=> (= x a) B) if B[a/x] rewrites to true.
-   * 
+   *
    * @param lem The lemma.
    * @return A trust node for a lemma that implies lem.
    */

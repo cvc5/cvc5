@@ -19,8 +19,8 @@
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/nl/nl_lemma_utils.h"
-#include "theory/theory_model.h"
 #include "theory/rewriter.h"
+#include "theory/theory_model.h"
 
 using namespace cvc5::internal::kind;
 
@@ -318,8 +318,9 @@ bool NlModel::addSubstitution(TNode v, TNode s)
     {
       Trace("nl-ext-model")
           << "...ERROR: already has bound which is out of range." << std::endl;
-      DebugUnhandled() << "Out of bounds exact bound given for a variable with an "
-                       "approximate bound";
+      DebugUnhandled()
+          << "Out of bounds exact bound given for a variable with an "
+             "approximate bound";
       return false;
     }
   }
@@ -354,7 +355,8 @@ bool NlModel::addBound(TNode v, TNode l, TNode u)
     Trace("nl-ext-model")
         << "...ERROR: setting bound for variable that already has exact value."
         << std::endl;
-    DebugUnhandled() << "Setting bound for variable that already has exact value.";
+    DebugUnhandled()
+        << "Setting bound for variable that already has exact value.";
     return false;
   }
   Assert(l.isConst());
@@ -888,7 +890,7 @@ bool NlModel::simpleCheckModelMsum(const std::map<Node, Node>& msum, bool pol)
           // should either assign a model bound or eliminate the variable
           // via substitution
           DebugUnhandled() << "A variable " << vc
-                        << " is missing a bound/value in the model";
+                           << " is missing a bound/value in the model";
           return false;
         }
       }

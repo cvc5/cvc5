@@ -12,6 +12,8 @@
 
 #include "theory/quantifiers/sygus/sygus_unif_io.h"
 
+#include <math.h>
+
 #include "options/quantifiers_options.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/sygus/example_infer.h"
@@ -21,8 +23,6 @@
 #include "theory/rewriter.h"
 #include "theory/strings/word.h"
 #include "util/random.h"
-
-#include <math.h>
 
 using namespace cvc5::internal::kind;
 
@@ -441,7 +441,7 @@ void SubsumeTrie::getSubsumedBy(const std::vector<Node>& vals,
 
 void SubsumeTrie::getLeavesInternal(const std::vector<Node>& vals,
                                     bool pol,
-                                    std::map<int, std::vector<Node> >& v,
+                                    std::map<int, std::vector<Node>>& v,
                                     unsigned index,
                                     int status)
 {
@@ -498,7 +498,7 @@ void SubsumeTrie::getLeavesInternal(const std::vector<Node>& vals,
 
 void SubsumeTrie::getLeaves(const std::vector<Node>& vals,
                             bool pol,
-                            std::map<int, std::vector<Node> >& v)
+                            std::map<int, std::vector<Node>>& v)
 {
   getLeavesInternal(vals, pol, v, 0, -2);
 }
@@ -915,11 +915,10 @@ bool SygusUnifIo::useStrContainsEnumeratorExclude(Node e)
   return false;
 }
 
-bool SygusUnifIo::getExplanationForEnumeratorExclude(
-    Node e,
-    Node v,
-    std::vector<Node>& results,
-    std::vector<Node>& exp)
+bool SygusUnifIo::getExplanationForEnumeratorExclude(Node e,
+                                                     Node v,
+                                                     std::vector<Node>& results,
+                                                     std::vector<Node>& exp)
 {
   NodeManager* nm = nodeManager();
   if (useStrContainsEnumeratorExclude(e))
@@ -1396,7 +1395,7 @@ Node SygusUnifIo::constructSol(
 
           // get the conditionals in the current context : they must be
           // distinguishable
-          std::map<int, std::vector<Node> > possible_cond;
+          std::map<int, std::vector<Node>> possible_cond;
           std::map<Node, int> solved_cond;  // stores branch
           ecache_child.d_term_trie.getLeaves(x.d_vals, true, possible_cond);
 

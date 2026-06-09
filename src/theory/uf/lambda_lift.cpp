@@ -151,7 +151,7 @@ bool LambdaLift::needsLift(const Node& lam)
 
 bool LambdaLift::isLifted(const Node& node) const
 {
-  return d_lifted.find(node)!=d_lifted.end();
+  return d_lifted.find(node) != d_lifted.end();
 }
 
 TrustNode LambdaLift::ppRewrite(Node node, std::vector<SkolemLemma>& lems)
@@ -248,7 +248,8 @@ Node LambdaLift::getAssertionFor(TNode node)
     skolem_app_c[0] = lambda;
     Node rhs = nm->mkNode(Kind::APPLY_UF, skolem_app_c);
     // For the sake of proofs, we use
-    // (= (k t1 ... tn) ((lambda (x1 ... xn) s) t1 ... tn)) here. This is instead of
+    // (= (k t1 ... tn) ((lambda (x1 ... xn) s) t1 ... tn)) here. This is
+    // instead of
     // (= (k t1 ... tn) s); the former is more accurate since
     // beta reduction uses capture-avoiding substitution, which implies that
     // ((lambda (y1 ... yn) s) t1 ... tn) is alpha-equivalent but not

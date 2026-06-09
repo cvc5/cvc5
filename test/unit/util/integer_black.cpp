@@ -536,16 +536,13 @@ TEST_F(TestUtilBlackInteger, modAdd)
       Integer x(i);
       Integer y = x + j;
       Integer yp = x.modAdd(j, 3);
-      for (yy = y; yy >= 3; yy -= 3)
-        ;
+      for (yy = y; yy >= 3; yy -= 3);
       ASSERT_EQ(yp, yy);
       yp = x.modAdd(j, 7);
-      for (yy = y; yy >= 7; yy -= 7)
-        ;
+      for (yy = y; yy >= 7; yy -= 7);
       ASSERT_EQ(yp, yy);
       yp = x.modAdd(j, 11);
-      for (yy = y; yy >= 11; yy -= 11)
-        ;
+      for (yy = y; yy >= 11; yy -= 11);
       ASSERT_EQ(yp, yy);
     }
   }
@@ -561,16 +558,13 @@ TEST_F(TestUtilBlackInteger, modMultiply)
       Integer x(i);
       Integer y = x * j;
       Integer yp = x.modMultiply(j, 3);
-      for (yy = y; yy >= 3; yy -= 3)
-        ;
+      for (yy = y; yy >= 3; yy -= 3);
       ASSERT_EQ(yp, yy);
       yp = x.modMultiply(j, 7);
-      for (yy = y; yy >= 7; yy -= 7)
-        ;
+      for (yy = y; yy >= 7; yy -= 7);
       ASSERT_EQ(yp, yy);
       yp = x.modMultiply(j, 11);
-      for (yy = y; yy >= 11; yy -= 11)
-        ;
+      for (yy = y; yy >= 11; yy -= 11);
       ASSERT_EQ(yp, yy);
     }
   }

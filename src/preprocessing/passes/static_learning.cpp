@@ -26,7 +26,7 @@ namespace passes {
 
 StaticLearning::StaticLearning(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "static-learning"),
-      d_cache(userContext()){};
+      d_cache(userContext()) {};
 
 PreprocessingPassResult StaticLearning::applyInternal(
     AssertionPipeline* assertionsToPreprocess)

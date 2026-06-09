@@ -64,7 +64,8 @@ cvc5::internal::Node VariableMapper::operator()(const poly::Variable& n)
   return it->second;
 }
 
-cvc5::internal::Node as_cvc_upolynomial(const poly::UPolynomial& p, const cvc5::internal::Node& var)
+cvc5::internal::Node as_cvc_upolynomial(const poly::UPolynomial& p,
+                                        const cvc5::internal::Node& var)
 {
   Trace("poly::conversion")
       << "Converting " << p << " over " << var << std::endl;
@@ -103,9 +104,9 @@ poly::UPolynomial as_poly_upolynomial_impl(cvc5::internal::Node n,
   }
   if (n.isConst())
   {
-      Rational r = n.getConst<Rational>();
-      denominator = poly_utils::toInteger(r.getDenominator());
-      return poly::UPolynomial(poly_utils::toInteger(r.getNumerator()));
+    Rational r = n.getConst<Rational>();
+    denominator = poly_utils::toInteger(r.getDenominator());
+    return poly::UPolynomial(poly_utils::toInteger(r.getNumerator()));
   }
   switch (n.getKind())
   {
@@ -138,7 +139,7 @@ poly::UPolynomial as_poly_upolynomial_impl(cvc5::internal::Node n,
     }
     default:
       DebugUnhandled() << "Unhandled node " << n << " with kind " << n.getKind()
-                << std::endl;
+                       << std::endl;
   }
   return poly::UPolynomial();
 }
@@ -162,10 +163,10 @@ poly::Polynomial as_poly_polynomial_impl(cvc5::internal::Node n,
   }
   if (n.isConst())
   {
-      Rational r = n.getConst<Rational>();
-      denominator = poly_utils::toInteger(r.getDenominator());
-      return poly::Polynomial(vm.polyCtx,
-                              poly_utils::toInteger(r.getNumerator()));
+    Rational r = n.getConst<Rational>();
+    denominator = poly_utils::toInteger(r.getDenominator());
+    return poly::Polynomial(vm.polyCtx,
+                            poly_utils::toInteger(r.getNumerator()));
   }
   switch (n.getKind())
   {
@@ -200,7 +201,8 @@ poly::Polynomial as_poly_polynomial_impl(cvc5::internal::Node n,
   }
   return poly::Polynomial(vm.polyCtx);
 }
-poly::Polynomial as_poly_polynomial(const cvc5::internal::Node& n, VariableMapper& vm)
+poly::Polynomial as_poly_polynomial(const cvc5::internal::Node& n,
+                                    VariableMapper& vm)
 {
   poly::Integer denom;
   return as_poly_polynomial_impl(n, denom, vm);

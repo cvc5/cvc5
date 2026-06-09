@@ -17,20 +17,20 @@
 
 #pragma once
 
+#include "context/cdhashmap.h"
+#include "context/cdhashset.h"
+#include "context/cdlist.h"
 #include "expr/node.h"
 #include "theory/theory_id.h"
-#include "context/cdlist.h"
-#include "context/cdhashset.h"
-#include "context/cdhashmap.h"
 
 namespace cvc5::internal {
 
-class AtomRequests {
-
-public:
-
+class AtomRequests
+{
+ public:
   /** Which atom and where to send it */
-  struct Request {
+  struct Request
+  {
     /** Atom */
     Node d_atom;
     /** Where to send it */
@@ -39,7 +39,8 @@ public:
     Request(TNode a, theory::TheoryId tt) : d_atom(a), d_toTheory(tt) {}
     Request() : d_toTheory(theory::THEORY_LAST) {}
 
-    bool operator == (const Request& other) const {
+    bool operator==(const Request& other) const
+    {
       return d_atom == other.d_atom && d_toTheory == other.d_toTheory;
     }
 
@@ -48,7 +49,8 @@ public:
 
   AtomRequests(context::Context* context);
 
-  /** Mark the atom to be sent to a theory, when the trigger atom gets assigned */
+  /** Mark the atom to be sent to a theory, when the trigger atom gets assigned
+   */
   void add(TNode triggerAtom, TNode atomToSend, theory::TheoryId toTheory);
 
   /** Returns true if the node is a trigger and has a list of atoms to send */
@@ -57,7 +59,8 @@ public:
   /** Indices in lists */
   typedef size_t element_index;
 
-  class atom_iterator {
+  class atom_iterator
+  {
     const AtomRequests& d_requests;
     element_index d_index;
     friend class AtomRequests;
@@ -66,7 +69,7 @@ public:
     {
     }
 
-  public:
+   public:
     /** Is this iterator done  */
     bool done() const;
     /** Go to the next element */
@@ -77,12 +80,10 @@ public:
 
   atom_iterator getAtomIterator(TNode trigger) const;
 
-private:
-
-  struct RequestHashFunction {
-    size_t operator () (const Request& r) const {
-      return r.hash();
-    }
+ private:
+  struct RequestHashFunction
+  {
+    size_t operator()(const Request& r) const { return r.hash(); }
   };
 
   /** Set of all requests so we don't add twice */
@@ -90,7 +91,8 @@ private:
 
   static const element_index null_index = -1;
 
-  struct Element {
+  struct Element
+  {
     /** Current request */
     Request d_request;
     /** Previous request */
@@ -109,7 +111,6 @@ private:
 
   /** Get the list index of the trigger */
   element_index getList(TNode trigger) const;
-
 };
 
 }  // namespace cvc5::internal

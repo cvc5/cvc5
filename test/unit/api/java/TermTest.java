@@ -1086,7 +1086,7 @@ class TermTest
       assertTrue(ub.isRealValue());
       // cannot call with non-variable
       Term yc = d_tm.mkConst(realsort, "y");
-      assertThrows(CVC5ApiException.class, () ->vx.getRealAlgebraicNumberDefiningPolynomial(yc));
+      assertThrows(CVC5ApiException.class, () -> vx.getRealAlgebraicNumberDefiningPolynomial(yc));
     }
   }
 
@@ -1096,8 +1096,8 @@ class TermTest
     // ordinary variables are not skolems
     Term x = d_solver.mkConst(d_solver.getIntegerSort(), "x");
     assertFalse(x.isSkolem());
-    assertThrows(CVC5ApiException.class, () ->x.getSkolemId());
-    assertThrows(CVC5ApiException.class, () ->x.getSkolemIndices());
+    assertThrows(CVC5ApiException.class, () -> x.getSkolemId());
+    assertThrows(CVC5ApiException.class, () -> x.getSkolemIndices());
   }
 
   @Test

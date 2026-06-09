@@ -16,6 +16,7 @@
 #define CVC5__THEORY__QUANTIFIERS__SYGUS_UNIF_IO_H
 
 #include <map>
+
 #include "theory/quantifiers/sygus/sygus_unif.h"
 
 namespace cvc5::internal {
@@ -25,11 +26,11 @@ namespace quantifiers {
 class SygusUnifIo;
 
 /** Unification context
-  *
-  * This class maintains state information during calls to
-  * SygusUnifIo::constructSolution, which implements unification-based
-  * approaches for constructing solutions to synthesis conjectures.
-  */
+ *
+ * This class maintains state information during calls to
+ * SygusUnifIo::constructSolution, which implements unification-based
+ * approaches for constructing solutions to synthesis conjectures.
+ */
 class UnifContextIo : public UnifContext
 {
  public:
@@ -45,62 +46,62 @@ class UnifContextIo : public UnifContext
 
   //----------for ITE strategy
   /** the value of the context conditional
-  *
-  * This stores a list of Boolean constants that is the same length of the
-  * number of input/output example pairs we are considering. For each i,
-  * if d_vals[i] = true, i/o pair #i is active according to this context
-  * if d_vals[i] = false, i/o pair #i is inactive according to this context
-  */
+   *
+   * This stores a list of Boolean constants that is the same length of the
+   * number of input/output example pairs we are considering. For each i,
+   * if d_vals[i] = true, i/o pair #i is active according to this context
+   * if d_vals[i] = false, i/o pair #i is inactive according to this context
+   */
   std::vector<Node> d_vals;
   /** update the examples
-  *
-  * if pol=true, this method updates d_vals to d_vals & vals
-  * if pol=false, this method updates d_vals to d_vals & ( ~vals )
-  */
+   *
+   * if pol=true, this method updates d_vals to d_vals & vals
+   * if pol=false, this method updates d_vals to d_vals & ( ~vals )
+   */
   bool updateContext(std::vector<Node>& vals, bool pol);
   //----------end for ITE strategy
 
   //----------for CONCAT strategies
   /** the position in the strings
-  *
-  * For each i/o example pair, this stores the length of the current solution
-  * for the input of the pair, where the solution for that input is a prefix
-  * or
-  * suffix of the output of the pair. For example, if our i/o pairs are:
-  *   f( "abcd" ) = "abcdcd"
-  *   f( "aa" ) = "aacd"
-  * If the solution we have currently constructed is str.++( x1, "c", ... ),
-  * then d_str_pos = ( 5, 3 ), where notice that
-  *   str.++( "abc", "c" ) is a prefix of "abcdcd" and
-  *   str.++( "aa", "c" ) is a prefix of "aacd".
-  */
+   *
+   * For each i/o example pair, this stores the length of the current solution
+   * for the input of the pair, where the solution for that input is a prefix
+   * or
+   * suffix of the output of the pair. For example, if our i/o pairs are:
+   *   f( "abcd" ) = "abcdcd"
+   *   f( "aa" ) = "aacd"
+   * If the solution we have currently constructed is str.++( x1, "c", ... ),
+   * then d_str_pos = ( 5, 3 ), where notice that
+   *   str.++( "abc", "c" ) is a prefix of "abcdcd" and
+   *   str.++( "aa", "c" ) is a prefix of "aacd".
+   */
   std::vector<unsigned> d_str_pos;
   /** update the string examples
-  *
-  * This method updates d_str_pos to d_str_pos + pos, and updates the current
-  * role to nrole.
-  */
+   *
+   * This method updates d_str_pos to d_str_pos + pos, and updates the current
+   * role to nrole.
+   */
   bool updateStringPosition(std::vector<size_t>& pos, NodeRole nrole);
   /** get current strings
-  *
-  * This returns the prefix/suffix of the string constants stored in vals
-  * of size d_str_pos, and stores the result in ex_vals. For example, if vals
-  * is (abcdcd", "aacde") and d_str_pos = ( 5, 3 ), then we add
-  * "d" and "de" to ex_vals.
-  */
+   *
+   * This returns the prefix/suffix of the string constants stored in vals
+   * of size d_str_pos, and stores the result in ex_vals. For example, if vals
+   * is (abcdcd", "aacde") and d_str_pos = ( 5, 3 ), then we add
+   * "d" and "de" to ex_vals.
+   */
   void getCurrentStrings(SygusUnifIo* sui,
                          const std::vector<Node>& vals,
                          std::vector<Node>& ex_vals);
   /** get string increment
-  *
-  * If this method returns true, then inc and tot are updated such that
-  *   for all active indices i,
-  *      vals[i] is a prefix (or suffix if isPrefix=false) of ex_vals[i], and
-  *      inc[i] = str.len(vals[i])
-  *   for all inactive indices i, inc[i] = 0
-  * We set tot to the sum of inc[i] for i=1,...,n. This indicates the total
-  * number of characters incremented across all examples.
-  */
+   *
+   * If this method returns true, then inc and tot are updated such that
+   *   for all active indices i,
+   *      vals[i] is a prefix (or suffix if isPrefix=false) of ex_vals[i], and
+   *      inc[i] = str.len(vals[i])
+   *   for all inactive indices i, inc[i] = 0
+   * We set tot to the sum of inc[i] for i=1,...,n. This indicates the total
+   * number of characters incremented across all examples.
+   */
   bool getStringIncrement(SygusUnifIo* sui,
                           bool isPrefix,
                           const std::vector<Node>& ex_vals,
@@ -114,10 +115,10 @@ class UnifContextIo : public UnifContext
   //----------end for CONCAT strategies
 
   /** visited role
-  *
-  * This is the current set of enumerator/node role pairs we are currently
-  * visiting. This set is cleared when the context is updated.
-  */
+   *
+   * This is the current set of enumerator/node role pairs we are currently
+   * visiting. This set is cleared when the context is updated.
+   */
   std::map<Node, std::map<NodeRole, bool>> d_visit_role;
 
  private:
@@ -131,52 +132,52 @@ class UnifContextIo : public UnifContext
 };
 
 /** Subsumption trie
-*
-* This class manages a set of terms for a PBE sygus enumerator.
-*
-* In PBE sygus, we are interested in, for each term t, the set of I/O examples
-* that it satisfies, which can be represented by a vector of Booleans.
-* For example, given conjecture:
-*   f( 1 ) = 2 ^ f( 3 ) = 4 ^ f( -1 ) = 1 ^ f( 5 ) = 5
-* If solutions for f are of the form (lambda x. [term]), then:
-*   Term x satisfies 0001,
-*   Term x+1 satisfies 1100,
-*   Term 2 satisfies 0100.
-* Above, term 2 is subsumed by term x+1, since the set of I/O examples that
-* x+1 satisfies are a superset of those satisfied by 2.
-*/
+ *
+ * This class manages a set of terms for a PBE sygus enumerator.
+ *
+ * In PBE sygus, we are interested in, for each term t, the set of I/O examples
+ * that it satisfies, which can be represented by a vector of Booleans.
+ * For example, given conjecture:
+ *   f( 1 ) = 2 ^ f( 3 ) = 4 ^ f( -1 ) = 1 ^ f( 5 ) = 5
+ * If solutions for f are of the form (lambda x. [term]), then:
+ *   Term x satisfies 0001,
+ *   Term x+1 satisfies 1100,
+ *   Term 2 satisfies 0100.
+ * Above, term 2 is subsumed by term x+1, since the set of I/O examples that
+ * x+1 satisfies are a superset of those satisfied by 2.
+ */
 class SubsumeTrie
 {
  public:
   SubsumeTrie() {}
   /**
-  * Adds term t to the trie, removes all terms that are subsumed by t from the
-  * trie and adds them to subsumed. The set of I/O examples that t satisfies
-  * is given by (pol ? vals : !vals).
-  */
+   * Adds term t to the trie, removes all terms that are subsumed by t from the
+   * trie and adds them to subsumed. The set of I/O examples that t satisfies
+   * is given by (pol ? vals : !vals).
+   */
   Node addTerm(Node t,
                const std::vector<Node>& vals,
                bool pol,
                std::vector<Node>& subsumed);
   /**
-  * Adds term c to the trie, without calculating/updating based on
-  * subsumption. This is useful for using this class to store conditionals
-  * in ITE strategies, where any conditional whose set of vals is unique
-  * (as opposed to not subsumed) is useful.
-  */
+   * Adds term c to the trie, without calculating/updating based on
+   * subsumption. This is useful for using this class to store conditionals
+   * in ITE strategies, where any conditional whose set of vals is unique
+   * (as opposed to not subsumed) is useful.
+   */
   Node addCond(Node c, const std::vector<Node>& vals, bool pol);
   /**
-    * Returns the set of terms that are subsumed by (pol ? vals : !vals).
-    */
+   * Returns the set of terms that are subsumed by (pol ? vals : !vals).
+   */
   void getSubsumed(const std::vector<Node>& vals,
                    bool pol,
                    std::vector<Node>& subsumed);
   /**
-    * Returns the set of terms that subsume (pol ? vals : !vals). This
-    * is for instance useful when determining whether there exists a term
-    * that satisfies all active examples in the decision tree learning
-    * algorithm.
-    */
+   * Returns the set of terms that subsume (pol ? vals : !vals). This
+   * is for instance useful when determining whether there exists a term
+   * that satisfies all active examples in the decision tree learning
+   * algorithm.
+   */
   void getSubsumedBy(const std::vector<Node>& vals,
                      bool pol,
                      std::vector<Node>& subsumed_by);
@@ -284,6 +285,7 @@ class SygusUnifIo : public SygusUnif
   /** Construct solution */
   bool constructSolution(std::vector<Node>& sols,
                          std::vector<Node>& lemmas) override;
+
  protected:
   /** The synthesis conjecture */
   SynthConjecture* d_parent;
@@ -344,23 +346,24 @@ class SygusUnifIo : public SygusUnif
   std::vector<Node> d_examples_out;
 
   /**
-  * This class stores information regarding an enumerator, including:
-  * a database of values that have been enumerated for this enumerator.
-  */
+   * This class stores information regarding an enumerator, including:
+   * a database of values that have been enumerated for this enumerator.
+   */
   class EnumCache
   {
    public:
     EnumCache() {}
     /**
-    * Notify this class that the term v has been enumerated for this enumerator.
-    * Its evaluation under the set of examples in sui are stored in results.
-    */
+     * Notify this class that the term v has been enumerated for this
+     * enumerator. Its evaluation under the set of examples in sui are stored in
+     * results.
+     */
     void addEnumValue(Node v, std::vector<Node>& results);
     /**
-    * Notify this class that slv is the complete solution to the synthesis
-    * conjecture. This occurs rarely, for instance, when during an ITE strategy
-    * we find that a single enumerated term covers all examples.
-    */
+     * Notify this class that slv is the complete solution to the synthesis
+     * conjecture. This occurs rarely, for instance, when during an ITE strategy
+     * we find that a single enumerated term covers all examples.
+     */
     void setSolved(Node slv) { d_enum_solved = slv; }
     /** Have we been notified that a complete solution exists? */
     bool isSolved() { return !d_enum_solved.isNull(); }
@@ -369,30 +372,30 @@ class SygusUnifIo : public SygusUnif
     /** Values that have been enumerated for this enumerator */
     std::vector<Node> d_enum_vals;
     /**
-      * This either stores the values of f( I ) for inputs
-      * or the value of f( I ) = O if d_role==enum_io
-      */
+     * This either stores the values of f( I ) for inputs
+     * or the value of f( I ) = O if d_role==enum_io
+     */
     std::vector<std::vector<Node>> d_enum_vals_res;
     /**
-    * The set of values in d_enum_vals that have been "subsumed" by others
-    * (see SubsumeTrie for explanation of subsumed).
-    */
+     * The set of values in d_enum_vals that have been "subsumed" by others
+     * (see SubsumeTrie for explanation of subsumed).
+     */
     std::vector<Node> d_enum_subsume;
     /** Map from values to their index in d_enum_vals. */
     std::map<Node, unsigned> d_enum_val_to_index;
     /**
-    * A subsumption trie containing the values in d_enum_vals. Depending on the
-    * role of this enumerator, values may either be added to d_term_trie with
-    * subsumption (if role=enum_io), or without (if role=enum_ite_condition or
-    * enum_concat_term).
-    */
+     * A subsumption trie containing the values in d_enum_vals. Depending on the
+     * role of this enumerator, values may either be added to d_term_trie with
+     * subsumption (if role=enum_io), or without (if role=enum_ite_condition or
+     * enum_concat_term).
+     */
     SubsumeTrie d_term_trie;
 
    private:
     /**
-      * Whether an enumerated value for this conjecture has solved the entire
-      * conjecture.
-      */
+     * Whether an enumerated value for this conjecture has solved the entire
+     * conjecture.
+     */
     Node d_enum_solved;
   };
   /** maps enumerators to the information above */
@@ -413,11 +416,10 @@ class SygusUnifIo : public SygusUnif
    * exp : if this function returns true, then exp contains a (possibly
    * generalize) explanation for why v can be excluded.
    */
-  bool getExplanationForEnumeratorExclude(
-      Node e,
-      Node v,
-      std::vector<Node>& results,
-      std::vector<Node>& exp);
+  bool getExplanationForEnumeratorExclude(Node e,
+                                          Node v,
+                                          std::vector<Node>& results,
+                                          std::vector<Node>& exp);
   /** returns true if we can exlude values of e based on negative str.contains
    *
    * Values v for e may be excluded if we realize that the value of v under the

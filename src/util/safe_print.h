@@ -58,7 +58,8 @@ template <size_t N>
 void safe_print(int fd, const char (&msg)[N])
 {
   ssize_t nb = N - 1;
-  if (write(fd, msg, nb) != nb) {
+  if (write(fd, msg, nb) != nb)
+  {
     abort();
   }
 }

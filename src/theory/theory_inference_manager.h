@@ -18,8 +18,8 @@
 #include <memory>
 
 #include "context/cdhashset.h"
-#include "expr/node.h"
 #include "cvc5/cvc5_proof_rule.h"
+#include "expr/node.h"
 #include "proof/trust_node.h"
 #include "smt/env_obj.h"
 #include "theory/inference_id.h"
@@ -39,7 +39,7 @@ class DecisionManager;
 namespace eq {
 class EqualityEngine;
 class ProofEqEngine;
-}
+}  // namespace eq
 
 /**
  * The base class for inference manager. An inference manager is a wrapper

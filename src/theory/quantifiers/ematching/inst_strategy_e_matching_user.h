@@ -16,6 +16,7 @@
 #define CVC5__INST_STRATEGY_E_MATCHING_USER_H
 
 #include <map>
+
 #include "expr/node.h"
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/ematching/inst_strategy.h"

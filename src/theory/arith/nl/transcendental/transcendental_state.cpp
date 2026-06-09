@@ -118,7 +118,8 @@ void TranscendentalState::init(const std::vector<Node>& xts,
         d_trPurifies[a] = a;
       }
     }
-    Trace("nl-ext-trans-init") << "extf: " << a << ", consider=" << consider << std::endl;
+    Trace("nl-ext-trans-init")
+        << "extf: " << a << ", consider=" << consider << std::endl;
     if (!consider)
     {
       // must assign a purified term

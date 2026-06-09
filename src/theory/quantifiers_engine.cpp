@@ -145,7 +145,8 @@ TermDbSygus* QuantifiersEngine::getTermDatabaseSygus() const
 }
 /// !!!!!!!!!!!!!!
 
-void QuantifiersEngine::presolve() {
+void QuantifiersEngine::presolve()
+{
   Trace("quant-engine-proc") << "QuantifiersEngine : presolve " << std::endl;
   d_numInstRoundsLemma = 0;
   d_qim.clearPending();
@@ -159,8 +160,8 @@ void QuantifiersEngine::presolve() {
   }
 }
 
-void QuantifiersEngine::ppNotifyAssertions(
-    const std::vector<Node>& assertions) {
+void QuantifiersEngine::ppNotifyAssertions(const std::vector<Node>& assertions)
+{
   Trace("quant-engine-proc")
       << "ppNotifyAssertions in QE, #assertions = " << assertions.size()
       << std::endl;
@@ -184,13 +185,15 @@ void QuantifiersEngine::ppNotifyAssertions(
   }
 }
 
-void QuantifiersEngine::check( Theory::Effort e ){
+void QuantifiersEngine::check(Theory::Effort e)
+{
   QuantifiersStatistics& stats = d_qstate.getStats();
   CodeTimer codeTimer(stats.d_time);
   Assert(d_qstate.getEqualityEngine() != nullptr);
   if (!d_qstate.getEqualityEngine()->consistent())
   {
-    Trace("quant-engine-debug") << "Master equality engine not consistent, return." << std::endl;
+    Trace("quant-engine-debug")
+        << "Master equality engine not consistent, return." << std::endl;
     return;
   }
   if (d_qstate.isInConflict())
@@ -220,19 +223,24 @@ void QuantifiersEngine::check( Theory::Effort e ){
   }
   bool needsCheck = d_qim.hasPendingLemma();
   QuantifiersModule::QEffort needsModelE = QuantifiersModule::QEFFORT_NONE;
-  std::vector< QuantifiersModule* > qm;
-  if( d_model->checkNeeded() ){
-    needsCheck = needsCheck || e>=Theory::EFFORT_LAST_CALL;  //always need to check at or above last call
+  std::vector<QuantifiersModule*> qm;
+  if (d_model->checkNeeded())
+  {
+    needsCheck =
+        needsCheck || e >= Theory::EFFORT_LAST_CALL;  // always need to check at
+                                                      // or above last call
     for (QuantifiersModule*& mdl : d_modules)
     {
       if (mdl->needsCheck(e))
       {
         qm.push_back(mdl);
         needsCheck = true;
-        //can only request model at last call since theory combination can find inconsistencies
-        if( e>=Theory::EFFORT_LAST_CALL ){
+        // can only request model at last call since theory combination can find
+        // inconsistencies
+        if (e >= Theory::EFFORT_LAST_CALL)
+        {
           QuantifiersModule::QEffort me = mdl->needsModel(e);
-          needsModelE = me<needsModelE ? me : needsModelE;
+          needsModelE = me < needsModelE ? me : needsModelE;
         }
       }
     }
@@ -250,9 +258,13 @@ void QuantifiersEngine::check( Theory::Effort e ){
     setModelUnsoundId = IncompleteId::QUANTIFIERS_MAX_INST_ROUNDS;
   }
 
-  Trace("quant-engine-debug2") << "Quantifiers Engine call to check, level = " << e << ", needsCheck=" << needsCheck << std::endl;
-  if( needsCheck ){
-    //flush previous lemmas (for instance, if was interrupted), or other lemmas to process
+  Trace("quant-engine-debug2")
+      << "Quantifiers Engine call to check, level = " << e
+      << ", needsCheck=" << needsCheck << std::endl;
+  if (needsCheck)
+  {
+    // flush previous lemmas (for instance, if was interrupted), or other lemmas
+    // to process
     d_qim.doPending();
     if (d_qim.hasSentLemma())
     {
@@ -260,21 +272,28 @@ void QuantifiersEngine::check( Theory::Effort e ){
     }
 
     double clSet = 0;
-    if( TraceIsOn("quant-engine") ){
-      clSet = double(clock())/double(CLOCKS_PER_SEC);
-      Trace("quant-engine") << ">>>>> Quantifiers Engine Round, effort = " << e << " <<<<<" << std::endl;
+    if (TraceIsOn("quant-engine"))
+    {
+      clSet = double(clock()) / double(CLOCKS_PER_SEC);
+      Trace("quant-engine") << ">>>>> Quantifiers Engine Round, effort = " << e
+                            << " <<<<<" << std::endl;
     }
 
-    if( TraceIsOn("quant-engine-debug") ){
-      Trace("quant-engine-debug") << "Quantifiers Engine check, level = " << e << std::endl;
+    if (TraceIsOn("quant-engine-debug"))
+    {
+      Trace("quant-engine-debug")
+          << "Quantifiers Engine check, level = " << e << std::endl;
       Trace("quant-engine-debug")
           << "  depth : " << d_qstate.getInstRoundDepth() << std::endl;
       Trace("quant-engine-debug") << "  modules to check : ";
-      for( unsigned i=0; i<qm.size(); i++ ){
+      for (unsigned i = 0; i < qm.size(); i++)
+      {
         Trace("quant-engine-debug") << qm[i]->identify() << " ";
       }
       Trace("quant-engine-debug") << std::endl;
-      Trace("quant-engine-debug") << "  # quantified formulas = " << d_model->getNumAssertedQuantifiers() << std::endl;
+      Trace("quant-engine-debug")
+          << "  # quantified formulas = "
+          << d_model->getNumAssertedQuantifiers() << std::endl;
       if (d_qim.hasPendingLemma())
       {
         Trace("quant-engine-debug")
@@ -283,69 +302,80 @@ void QuantifiersEngine::check( Theory::Effort e ){
       Trace("quant-engine-debug")
           << "  Theory engine finished : "
           << !d_qstate.getValuation().needCheck() << std::endl;
-      Trace("quant-engine-debug") << "  Needs model effort : " << needsModelE << std::endl;
+      Trace("quant-engine-debug")
+          << "  Needs model effort : " << needsModelE << std::endl;
       Trace("quant-engine-debug")
           << "  In conflict : " << d_qstate.isInConflict() << std::endl;
     }
-    if( TraceIsOn("quant-engine-ee-pre") ){
-      Trace("quant-engine-ee-pre") << "Equality engine (pre-inference): " << std::endl;
+    if (TraceIsOn("quant-engine-ee-pre"))
+    {
+      Trace("quant-engine-ee-pre")
+          << "Equality engine (pre-inference): " << std::endl;
       d_qstate.debugPrintEqualityEngine("quant-engine-ee-pre");
     }
-    if( TraceIsOn("quant-engine-assert") ){
+    if (TraceIsOn("quant-engine-assert"))
+    {
       Trace("quant-engine-assert") << "Assertions : " << std::endl;
       d_te->printAssertions("quant-engine-assert");
     }
 
-    //reset utilities
+    // reset utilities
     Trace("quant-engine-debug") << "Resetting all utilities..." << std::endl;
     for (QuantifiersUtil*& util : d_util)
     {
-      Trace("quant-engine-debug2") << "Reset " << util->identify().c_str()
-                                   << "..." << std::endl;
+      Trace("quant-engine-debug2")
+          << "Reset " << util->identify().c_str() << "..." << std::endl;
       if (!util->reset(e))
       {
         d_qim.doPending();
         if (d_qim.hasSentLemma())
         {
           return;
-        }else{
-          //should only fail reset if added a lemma
+        }
+        else
+        {
+          // should only fail reset if added a lemma
           DebugUnhandled();
         }
       }
     }
 
-    if( TraceIsOn("quant-engine-ee") ){
+    if (TraceIsOn("quant-engine-ee"))
+    {
       Trace("quant-engine-ee") << "Equality engine : " << std::endl;
       d_qstate.debugPrintEqualityEngine("quant-engine-ee");
     }
 
-    //reset the model
+    // reset the model
     Trace("quant-engine-debug") << "Reset model..." << std::endl;
     d_model->reset_round();
 
-    //reset the modules
+    // reset the modules
     Trace("quant-engine-debug") << "Resetting all modules..." << std::endl;
     for (QuantifiersModule*& mdl : d_modules)
     {
-      Trace("quant-engine-debug2") << "Reset " << mdl->identify().c_str()
-                                   << std::endl;
+      Trace("quant-engine-debug2")
+          << "Reset " << mdl->identify().c_str() << std::endl;
       mdl->reset_round(e);
     }
     Trace("quant-engine-debug") << "Done resetting all modules." << std::endl;
-    //reset may have added lemmas
+    // reset may have added lemmas
     d_qim.doPending();
     if (d_qim.hasSentLemma())
     {
       return;
     }
 
-    if( e==Theory::EFFORT_LAST_CALL ){
+    if (e == Theory::EFFORT_LAST_CALL)
+    {
       ++(stats.d_instantiation_rounds_lc);
-    }else if( e==Theory::EFFORT_FULL ){
+    }
+    else if (e == Theory::EFFORT_FULL)
+    {
       ++(stats.d_instantiation_rounds);
     }
-    Trace("quant-engine-debug") << "Check modules that needed check..." << std::endl;
+    Trace("quant-engine-debug")
+        << "Check modules that needed check..." << std::endl;
     for (unsigned qef = QuantifiersModule::QEFFORT_CONFLICT;
          qef <= QuantifiersModule::QEFFORT_LAST_CALL;
          ++qef)
@@ -366,12 +396,12 @@ void QuantifiersEngine::check( Theory::Effort e ){
       }
       if (!d_qim.hasSentLemma())
       {
-        //check each module
+        // check each module
         for (QuantifiersModule*& mdl : qm)
         {
-          Trace("quant-engine-debug") << "Check " << mdl->identify().c_str()
-                                      << " at effort " << quant_e << "..."
-                                      << std::endl;
+          Trace("quant-engine-debug")
+              << "Check " << mdl->identify().c_str() << " at effort " << quant_e
+              << "..." << std::endl;
           mdl->check(e, quant_e);
           if (d_qstate.isInConflict())
           {
@@ -379,7 +409,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
             break;
           }
         }
-        //flush all current lemmas
+        // flush all current lemmas
         d_qim.doPending();
       }
       // If we have added a lemma, stop. We also stop if we are in conflict.
@@ -393,7 +423,9 @@ void QuantifiersEngine::check( Theory::Effort e ){
       {
         Assert(d_qim.hasSentLemma() || e != Theory::EFFORT_LAST_CALL);
         break;
-      }else{
+      }
+      else
+      {
         if (quant_e == QuantifiersModule::QEFFORT_CONFLICT)
         {
           // increment the instantiation round counter only if we did not find a
@@ -402,8 +434,9 @@ void QuantifiersEngine::check( Theory::Effort e ){
         }
         else if (quant_e == QuantifiersModule::QEFFORT_MODEL)
         {
-          if( e==Theory::EFFORT_LAST_CALL ){
-            //sources of incompleteness
+          if (e == Theory::EFFORT_LAST_CALL)
+          {
+            // sources of incompleteness
             for (QuantifiersUtil*& util : d_util)
             {
               if (!util->checkComplete(setModelUnsoundId))
@@ -419,10 +452,10 @@ void QuantifiersEngine::check( Theory::Effort e ){
               // we reported a conflicting lemma, should return
               setModelUnsound = true;
             }
-            //if we have a chance not to set incomplete
+            // if we have a chance not to set incomplete
             if (!setModelUnsound)
             {
-              //check if we should set the incomplete flag
+              // check if we should set the incomplete flag
               for (QuantifiersModule*& mdl : d_modules)
               {
                 if (!mdl->checkComplete(setModelUnsoundId))
@@ -437,32 +470,44 @@ void QuantifiersEngine::check( Theory::Effort e ){
               }
               if (!setModelUnsound)
               {
-                //look at individual quantified formulas, one module must claim completeness for each one
-                for( unsigned i=0; i<d_model->getNumAssertedQuantifiers(); i++ ){
+                // look at individual quantified formulas, one module must claim
+                // completeness for each one
+                for (unsigned i = 0; i < d_model->getNumAssertedQuantifiers();
+                     i++)
+                {
                   bool hasCompleteM = false;
-                  Node q = d_model->getAssertedQuantifier( i );
+                  Node q = d_model->getAssertedQuantifier(i);
                   QuantifiersModule* qmd = d_qreg.getOwner(q);
                   if (qmd != nullptr)
                   {
-                    hasCompleteM = qmd->checkCompleteFor( q );
+                    hasCompleteM = qmd->checkCompleteFor(q);
                   }
                   else
                   {
-                    for( unsigned j=0; j<d_modules.size(); j++ ){
-                      if( d_modules[j]->checkCompleteFor( q ) ){
+                    for (unsigned j = 0; j < d_modules.size(); j++)
+                    {
+                      if (d_modules[j]->checkCompleteFor(q))
+                      {
                         qmd = d_modules[j];
                         hasCompleteM = true;
                         break;
                       }
                     }
                   }
-                  if( !hasCompleteM ){
-                    Trace("quant-engine-debug") << "Set incomplete because " << q << " was not fully processed." << std::endl;
+                  if (!hasCompleteM)
+                  {
+                    Trace("quant-engine-debug")
+                        << "Set incomplete because " << q
+                        << " was not fully processed." << std::endl;
                     setModelUnsound = true;
                     break;
-                  }else{
+                  }
+                  else
+                  {
                     Assert(qmd != nullptr);
-                    Trace("quant-engine-debug2") << "Complete for " << q << " due to " << qmd->identify().c_str() << std::endl;
+                    Trace("quant-engine-debug2")
+                        << "Complete for " << q << " due to "
+                        << qmd->identify().c_str() << std::endl;
                   }
                 }
               }
@@ -477,28 +522,35 @@ void QuantifiersEngine::check( Theory::Effort e ){
         }
       }
     }
-    Trace("quant-engine-debug") << "Done check modules that needed check." << std::endl;
+    Trace("quant-engine-debug")
+        << "Done check modules that needed check." << std::endl;
     // debug print
     if (d_qim.hasSentLemma())
     {
       d_qim.getInstantiate()->notifyEndRound();
       d_numInstRoundsLemma++;
     }
-    if( TraceIsOn("quant-engine") ){
-      double clSet2 = double(clock())/double(CLOCKS_PER_SEC);
-      Trace("quant-engine") << "Finished quantifiers engine, total time = " << (clSet2-clSet);
+    if (TraceIsOn("quant-engine"))
+    {
+      double clSet2 = double(clock()) / double(CLOCKS_PER_SEC);
+      Trace("quant-engine")
+          << "Finished quantifiers engine, total time = " << (clSet2 - clSet);
       Trace("quant-engine") << ", sent lemma = " << d_qim.hasSentLemma();
       Trace("quant-engine") << std::endl;
     }
 
-    Trace("quant-engine-debug2") << "Finished quantifiers engine check." << std::endl;
-  }else{
-    Trace("quant-engine-debug2") << "Quantifiers Engine does not need check." << std::endl;
+    Trace("quant-engine-debug2")
+        << "Finished quantifiers engine check." << std::endl;
+  }
+  else
+  {
+    Trace("quant-engine-debug2")
+        << "Quantifiers Engine does not need check." << std::endl;
     // increment counter
     d_qstate.incrementInstRoundCounters(e);
   }
 
-  //SAT case
+  // SAT case
   if (e == Theory::EFFORT_LAST_CALL && !d_qim.hasSentLemma())
   {
     if (setModelUnsound)
@@ -506,13 +558,14 @@ void QuantifiersEngine::check( Theory::Effort e ){
       Trace("quant-engine") << "Set incomplete flag." << std::endl;
       d_qim.setModelUnsound(setModelUnsoundId);
     }
-    //output debug stats
+    // output debug stats
     d_qim.getInstantiate()->debugPrintModel();
   }
   d_qim.clearPending();
 }
 
-void QuantifiersEngine::notifyCombineTheories() {
+void QuantifiersEngine::notifyCombineTheories()
+{
   // If allowing theory combination to happen at most once between instantiation
   // rounds, this would reset d_ierCounter to 1 and d_ierCounterLastLc to -1
   // in quantifiers state.
@@ -553,8 +606,9 @@ bool QuantifiersEngine::reduceQuantifier(Node q)
 
 void QuantifiersEngine::registerQuantifierInternal(Node f)
 {
-  std::map< Node, bool >::iterator it = d_quants.find( f );
-  if( it==d_quants.end() ){
+  std::map<Node, bool>::iterator it = d_quants.find(f);
+  if (it == d_quants.end())
+  {
     Trace("quant") << "QuantifiersEngine : Register quantifier ";
     Trace("quant") << " : " << f << std::endl;
     size_t prev_lemma_waiting = d_qim.numPendingLemmas();
@@ -620,13 +674,15 @@ void QuantifiersEngine::preRegisterQuantifier(Node q)
   Trace("quant-debug") << "...finish pre-register " << q << "..." << std::endl;
 }
 
-void QuantifiersEngine::assertQuantifier( Node f, bool pol ){
+void QuantifiersEngine::assertQuantifier(Node f, bool pol)
+{
   if (reduceQuantifier(f))
   {
     // if we can reduce it, nothing left to do
     return;
   }
-  if( !pol ){
+  if (!pol)
+  {
     // do skolemization
     TrustNode lem = d_qim.getSkolemize()->process(f);
     if (!lem.isNull())
@@ -665,15 +721,17 @@ void QuantifiersEngine::eqNotifyMerge(TNode t1, TNode t2)
   d_treg.eqNotifyMerge(t1, t2);
 }
 
-void QuantifiersEngine::markRelevant( Node q ) {
-  d_model->markRelevant( q );
-}
+void QuantifiersEngine::markRelevant(Node q) { d_model->markRelevant(q); }
 
-void QuantifiersEngine::getInstantiationTermVectors( Node q, std::vector< std::vector< Node > >& tvecs ) {
+void QuantifiersEngine::getInstantiationTermVectors(
+    Node q, std::vector<std::vector<Node> >& tvecs)
+{
   d_qim.getInstantiate()->getInstantiationTermVectors(q, tvecs);
 }
 
-void QuantifiersEngine::getInstantiationTermVectors( std::map< Node, std::vector< std::vector< Node > > >& insts ) {
+void QuantifiersEngine::getInstantiationTermVectors(
+    std::map<Node, std::vector<std::vector<Node> > >& insts)
+{
   d_qim.getInstantiate()->getInstantiationTermVectors(insts);
 }
 

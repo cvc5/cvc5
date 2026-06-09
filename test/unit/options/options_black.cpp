@@ -283,14 +283,14 @@ TEST_F(TestBlackOptions, getOptionInfoBenchmark)
 {
   auto names = options::getNames();
   std::unordered_set<std::string> ignore = {
-    "output",
-    "quiet",
-    "rweight",
-    "trace",
-    "verbose",
+      "output",
+      "quiet",
+      "rweight",
+      "trace",
+      "verbose",
   };
-  auto end = std::remove_if(names.begin(), names.end(), [&](const auto& i){
-      return ignore.count(i);
+  auto end = std::remove_if(names.begin(), names.end(), [&](const auto& i) {
+    return ignore.count(i);
   });
   names.erase(end, names.end());
   size_t ct = 0;

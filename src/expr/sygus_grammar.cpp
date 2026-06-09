@@ -16,10 +16,10 @@
 
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
+#include "expr/skolem_manager.h"
 #include "printer/printer.h"
 #include "printer/smt2/smt2_printer.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
-#include "expr/skolem_manager.h"
 #include "util/hash.h"
 
 namespace cvc5::internal {
@@ -319,7 +319,8 @@ TypeNode SygusGrammar::resolve(bool allowAny)
       for (const Node& rule : d_rules[ntSym])
       {
         if (rule.getKind() == Kind::SKOLEM
-            && rule.getInternalSkolemId() == InternalSkolemId::SYGUS_ANY_CONSTANT)
+            && rule.getInternalSkolemId()
+                   == InternalSkolemId::SYGUS_ANY_CONSTANT)
         {
           allowConsts.insert(ntSym);
         }

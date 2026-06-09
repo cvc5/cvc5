@@ -51,7 +51,7 @@ void getTheoriesOf(Env& env, const Node& n, std::vector<TheoryId>& theories)
         theories.push_back(tid);
       }
       TheoryId ttid = env.theoryOf(cur.getType());
-      if (ttid!=tid)
+      if (ttid != tid)
       {
         if (std::find(theories.begin(), theories.end(), ttid) == theories.end())
         {

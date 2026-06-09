@@ -37,7 +37,10 @@ LfscProofPostprocessCallback::LfscProofPostprocessCallback(
 {
 }
 
-void LfscProofPostprocessCallback::initializeUpdate() { d_numIgnoredScopes = 0; }
+void LfscProofPostprocessCallback::initializeUpdate()
+{
+  d_numIgnoredScopes = 0;
+}
 
 bool LfscProofPostprocessCallback::shouldUpdate(
     std::shared_ptr<ProofNode> pn,

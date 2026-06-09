@@ -244,8 +244,9 @@ Term Smt2TermParser::parseTerm()
       case Token::RPAREN_TOK:
       {
         // should only be here if we are expecting arguments
-        if (tstack.empty() || (xstack.back() != ParseCtx::NEXT_ARG
-               && xstack.back() != ParseCtx::CLOSURE_NEXT_ARG))
+        if (tstack.empty()
+            || (xstack.back() != ParseCtx::NEXT_ARG
+                && xstack.back() != ParseCtx::CLOSURE_NEXT_ARG))
         {
           d_lex.unexpectedTokenError(
               tok, "Mismatched parentheses in SMT-LIBv2 term");
@@ -1228,10 +1229,10 @@ void Smt2TermParser::unescapeString(std::string& s)
     }
   }
   size_t dst = 0;
-  for (size_t src = 0; src<s.size(); ++src, ++dst)
+  for (size_t src = 0; src < s.size(); ++src, ++dst)
   {
     s[dst] = s[src];
-    if (s[src]=='"')
+    if (s[src] == '"')
     {
       ++src;
     }

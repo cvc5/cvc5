@@ -54,9 +54,7 @@ void StatisticsRegistry::storeSnapshot()
     {
       if (!d_internal && s.second->d_internal) continue;
       if (!d_all && s.second->isDefault()) continue;
-      d_lastSnapshot->emplace(
-          s.first,
-          s.second->getViewer());
+      d_lastSnapshot->emplace(s.first, s.second->getViewer());
     }
   }
 }
@@ -117,7 +115,8 @@ void StatisticsRegistry::printDiff(std::ostream& os) const
       if (!d_all && s.second->isDefault())
       {
         auto oldit = d_lastSnapshot->find(s.first);
-        if (oldit != d_lastSnapshot->end() && oldit->second != s.second->getViewer())
+        if (oldit != d_lastSnapshot->end()
+            && oldit->second != s.second->getViewer())
         {
           // present in the snapshot, now defaulted
           os << s.first << " = " << *s.second << " (was ";

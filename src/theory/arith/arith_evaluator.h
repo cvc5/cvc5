@@ -38,7 +38,7 @@ std::optional<bool> isExpressionZero(Env& env,
                                      Node expr,
                                      const ArithSubs& subs,
                                      bool traverseNlMult);
-}
+}  // namespace arith
 }  // namespace theory
 }  // namespace cvc5::internal
 

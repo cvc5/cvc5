@@ -69,7 +69,8 @@ std::string suggestTags(const std::vector<std::string>& validTags,
  * `.*` and matched using std::regex. If no wildcards are present, regular
  * string comparisons are used.
  */
-std::vector<std::string> selectTags(const std::vector<std::string>& validTags, std::string pattern)
+std::vector<std::string> selectTags(const std::vector<std::string>& validTags,
+                                    std::string pattern)
 {
   bool isRegex = false;
   size_t pos = 0;
@@ -83,13 +84,15 @@ std::vector<std::string> selectTags(const std::vector<std::string>& validTags, s
   if (isRegex)
   {
     std::regex re(pattern);
-    std::copy_if(validTags.begin(), validTags.end(), std::back_inserter(results),
-      [&re](const auto& tag){ return std::regex_match(tag, re); }
-    );
+    std::copy_if(validTags.begin(),
+                 validTags.end(),
+                 std::back_inserter(results),
+                 [&re](const auto& tag) { return std::regex_match(tag, re); });
   }
   else
   {
-    if (std::find(validTags.begin(), validTags.end(), pattern) != validTags.end())
+    if (std::find(validTags.begin(), validTags.end(), pattern)
+        != validTags.end())
     {
       results.emplace_back(pattern);
     }
@@ -99,7 +102,7 @@ std::vector<std::string> selectTags(const std::vector<std::string>& validTags, s
 
 }  // namespace
 
-OptionsHandler::OptionsHandler(Options* options) : d_options(options) { }
+OptionsHandler::OptionsHandler(Options* options) : d_options(options) {}
 
 void OptionsHandler::setErrStream(CVC5_UNUSED const std::string& flag,
                                   const ManagedErr& me)
@@ -158,13 +161,19 @@ void OptionsHandler::setInputLanguage(const std::string& flag, Language lang)
 void OptionsHandler::setVerbosity(CVC5_UNUSED const std::string& flag,
                                   int value)
 {
-  if(Configuration::isMuzzledBuild()) {
+  if (Configuration::isMuzzledBuild())
+  {
     TraceChannel.setStream(&cvc5::internal::null_os);
     WarningChannel.setStream(&cvc5::internal::null_os);
-  } else {
-    if(value < 0) {
+  }
+  else
+  {
+    if (value < 0)
+    {
       WarningChannel.setStream(&cvc5::internal::null_os);
-    } else {
+    }
+    else
+    {
       WarningChannel.setStream(&std::cerr);
     }
   }
@@ -226,7 +235,7 @@ void OptionsHandler::setStatsDetail(CVC5_UNUSED const std::string& flag,
 void OptionsHandler::enableTraceTag(CVC5_UNUSED const std::string& flag,
                                     const std::string& optarg)
 {
-  if(!Configuration::isTracingBuild())
+  if (!Configuration::isTracingBuild())
   {
     throw OptionException("trace tags not available in non-tracing builds");
   }
@@ -241,10 +250,11 @@ void OptionsHandler::enableTraceTag(CVC5_UNUSED const std::string& flag,
     }
 
     throw OptionException(
-        std::string("no trace tag matching ") + optarg + std::string(" was found.")
+        std::string("no trace tag matching ") + optarg
+        + std::string(" was found.")
         + suggestTags(Configuration::getTraceTags(), optarg, {}));
   }
-  for (const auto& tag: tags)
+  for (const auto& tag : tags)
   {
     TraceChannel.on(tag);
   }
@@ -378,7 +388,8 @@ void OptionsHandler::showConfiguration(CVC5_UNUSED const std::string& flag,
 
   print_config_cond(o, "cln", Configuration::isBuiltWithCln());
   print_config_cond(o, "glpk", Configuration::isBuiltWithGlpk());
-  print_config_cond(o, "cryptominisat", Configuration::isBuiltWithCryptominisat());
+  print_config_cond(
+      o, "cryptominisat", Configuration::isBuiltWithCryptominisat());
   print_config_cond(o, "gmp", Configuration::isBuiltWithGmp());
   print_config_cond(o, "kissat", Configuration::isBuiltWithKissat());
   print_config_cond(o, "poly", Configuration::isBuiltWithPoly());

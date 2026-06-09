@@ -37,7 +37,7 @@ class UnsatCoreManager : protected EnvObj
 {
  public:
   UnsatCoreManager(Env& env, SmtSolver& slv, PfManager& pfm);
-  ~UnsatCoreManager(){};
+  ~UnsatCoreManager() {};
   /**
    * Convert preprocessed assertions to the input formulas that imply them. In
    * detail, this converts a set of preprocessed assertions to a set of input

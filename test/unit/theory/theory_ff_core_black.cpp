@@ -54,7 +54,8 @@ TEST_F(TestTheoryFfRootsBlack, DistinctRootsPoly)
     CoCoA::RingElem x = CoCoA::indet(polyRing, 0);
     CoCoA::RingElem y = CoCoA::indet(polyRing, 1);
     CoCoA::RingElem z = CoCoA::indet(polyRing, 2);
-    std::vector<CoCoA::RingElem> gens{x,x-y,y-z,z*z-z,y-1,x-x*x};
+    std::vector<CoCoA::RingElem> gens{
+        x, x - y, y - z, z * z - z, y - 1, x - x * x};
     ff::Tracer tracer(gens);
     tracer.setFunctionPointers();
     CoCoA::ideal ideal(gens);

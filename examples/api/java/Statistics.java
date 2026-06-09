@@ -63,5 +63,5 @@ public class Statistics
       }
     }
     Context.deletePointers();
-  } 
+  }
 }

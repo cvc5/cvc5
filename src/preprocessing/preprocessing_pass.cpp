@@ -22,7 +22,8 @@ namespace cvc5::internal {
 namespace preprocessing {
 
 PreprocessingPassResult PreprocessingPass::apply(
-    AssertionPipeline* assertionsToPreprocess) {
+    AssertionPipeline* assertionsToPreprocess)
+{
   TimerStat::CodeTimer codeTimer(d_timer);
   Trace("preprocessing") << "PRE " << d_name << std::endl;
   verbose(2) << d_name << "..." << std::endl;

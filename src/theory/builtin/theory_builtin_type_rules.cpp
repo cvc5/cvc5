@@ -14,9 +14,9 @@
 
 #include "expr/attribute.h"
 #include "expr/skolem_manager.h"
+#include "expr/sort_to_term.h"
 #include "theory/builtin/generic_op.h"
 #include "util/uninterpreted_sort_value.h"
-#include "expr/sort_to_term.h"
 
 namespace cvc5::internal {
 namespace theory {

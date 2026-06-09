@@ -27,7 +27,6 @@ typedef std::unordered_map<Node, Node> NodeNodeMap;
 
 class BVToBool : public PreprocessingPass
 {
-
  public:
   BVToBool(PreprocessingPassContext* preprocContext);
 

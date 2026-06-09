@@ -54,8 +54,8 @@ enum RegExpConstType
 class RegExpOpr : protected EnvObj
 {
   typedef std::pair<Node, cvc5::internal::String> PairNodeStr;
-  typedef std::set< Node > SetNodes;
-  typedef std::pair< Node, Node > PairNodes;
+  typedef std::set<Node> SetNodes;
+  typedef std::pair<Node, Node> PairNodes;
 
  private:
   /** the code point of the last character in the alphabet we are using */
@@ -88,11 +88,11 @@ class RegExpOpr : protected EnvObj
    */
   static std::string niceChar(Node r);
   Node mkAllExceptOne(unsigned c);
-  bool isPairNodesInSet(std::set<PairNodes> &s, Node n1, Node n2);
+  bool isPairNodesInSet(std::set<PairNodes>& s, Node n1, Node n2);
 
   bool containC2(unsigned cnt, Node n);
   Node convert1(unsigned cnt, Node n);
-  void convert2(unsigned cnt, Node n, Node &r1, Node &r2);
+  void convert2(unsigned cnt, Node n, Node& r1, Node& r2);
   Node intersectInternal(Node r1,
                          Node r2,
                          std::map<PairNodes, Node> cache,
@@ -102,7 +102,7 @@ class RegExpOpr : protected EnvObj
    * that contains no applications of intersection.
    */
   Node removeIntersection(Node r);
-  void firstChars(Node r, std::set<unsigned> &pcset, SetNodes &pvset);
+  void firstChars(Node r, std::set<unsigned>& pcset, SetNodes& pvset);
 
  public:
   RegExpOpr(Env& env, SkolemCache* sc);
@@ -113,7 +113,7 @@ class RegExpOpr : protected EnvObj
    * of regular expression operators whose subterms of the form (str.to.re t)
    * are such that t is a constant (or rewrites to one).
    */
-  bool checkConstRegExp( Node r );
+  bool checkConstRegExp(Node r);
   /** get the constant type for regular expression r */
   RegExpConstType getRegExpConstType(Node r);
   /** Simplify
@@ -172,7 +172,7 @@ class RegExpOpr : protected EnvObj
    * - delta( (re.++ (str.to.re "A") R) ) returns 2,
    * - delta( (re.union (re.* "A") R) ) returns 1.
    */
-  int delta( Node r, Node &exp );
+  int delta(Node r, Node& exp);
   int derivativeS(Node r, cvc5::internal::String c, Node& retNode);
   Node derivativeSingle(Node r, cvc5::internal::String c);
   /**

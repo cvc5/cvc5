@@ -23,8 +23,8 @@
 #include "printer/smt2/smt2_printer.h"
 #include "proof/unsat_core.h"
 #include "smt/model.h"
-#include "theory/uf/function_const.h"
 #include "theory/quantifiers/instantiation_list.h"
+#include "theory/uf/function_const.h"
 
 using namespace std;
 
@@ -35,7 +35,8 @@ static thread_local unique_ptr<Printer>
 
 unique_ptr<Printer> Printer::makePrinter(Language lang)
 {
-  switch(lang) {
+  switch (lang)
+  {
     case Language::LANG_SMTLIB_V2_6:
       return unique_ptr<Printer>(new printer::smt2::Smt2Printer);
 
@@ -86,11 +87,12 @@ void Printer::toStream(std::ostream& out, const smt::Model& m) const
 
 void Printer::toStream(std::ostream& out, const UnsatCore& core) const
 {
-  for(UnsatCore::iterator i = core.begin(); i != core.end(); ++i) {
+  for (UnsatCore::iterator i = core.begin(); i != core.end(); ++i)
+  {
     toStreamCmdAssert(out, *i);
     out << std::endl;
   }
-}/* Printer::toStream(UnsatCore) */
+} /* Printer::toStream(UnsatCore) */
 
 void Printer::toStream(std::ostream& out, const InstantiationList& is) const
 {

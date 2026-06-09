@@ -29,9 +29,7 @@ namespace theory {
 namespace arith {
 namespace nl {
 
-Pow2Solver::Pow2Solver(Env& env,
-                       InferenceManager& im,
-                       NlModel& model)
+Pow2Solver::Pow2Solver(Env& env, InferenceManager& im, NlModel& model)
     : EnvObj(env), d_im(im), d_model(model), d_initRefine(userContext())
 {
   NodeManager* nm = nodeManager();

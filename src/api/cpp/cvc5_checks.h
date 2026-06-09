@@ -161,8 +161,7 @@ class CVC5ApiUnsupportedExceptionStream
 
 /** Check if given argument is not a null pointer. */
 #define CVC5_API_ARG_CHECK_NOT_NULLPTR(arg) \
-  CVC5_API_CHECK(arg != nullptr)            \
-      << "invalid null argument for '" << #arg << "'"
+  CVC5_API_CHECK(arg != nullptr) << "invalid null argument for '" << #arg << "'"
 /**
  * Check if given argument at given index in container 'args' is not a null
  * object.

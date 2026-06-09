@@ -28,10 +28,10 @@
 extern "C" {
 #endif /* __cplusplus */
 
-char* strtok_r(char *str, const char *delim, char **saveptr);
+char* strtok_r(char* str, const char* delim, char** saveptr);
 
 #ifdef __cplusplus
-}/* extern "C" */
+} /* extern "C" */
 #endif /* __cplusplus */
 
 #endif /* HAVE_STRTOK_R */

@@ -320,7 +320,7 @@ Node castToReal(NodeManager* nm, const Node& n)
                      : nm->mkNode(Kind::TO_REAL, n);
 }
 
-std::pair<Node,Node> mkSameType(const Node& a, const Node& b)
+std::pair<Node, Node> mkSameType(const Node& a, const Node& b)
 {
   TypeNode at = a.getType();
   TypeNode bt = b.getType();

@@ -11,6 +11,7 @@
  */
 
 #include "theory/booleans/proof_checker.h"
+
 #include "expr/skolem_manager.h"
 #include "theory/rewriter.h"
 

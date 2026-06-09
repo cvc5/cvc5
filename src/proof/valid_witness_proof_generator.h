@@ -43,7 +43,7 @@ class ValidWitnessProofGenerator : protected EnvObj, public ProofGenerator
   std::shared_ptr<ProofNode> getProofFor(Node fact) override;
   /** identify */
   std::string identify() const override;
-  /** 
+  /**
    * Make the appropriate witness term for proof rule r with arguments args.
    * This is a term (WITNESS (BOUND_VAR_LIST v) F (INST_PATTERN_LIST attr))
    * where v is a canonical variable for (r, args), F is mkAxiom(nm, v, r args),

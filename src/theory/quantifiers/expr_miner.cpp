@@ -53,7 +53,7 @@ void ExprMiner::initializeChecker(std::unique_ptr<SolverEngine>& checker,
                                   Node query,
                                   const SubsolverSetupInfo& info)
 {
-  Assert (!query.isNull());
+  Assert(!query.isNull());
   initializeSubsolver(
       nodeManager(),
       checker,

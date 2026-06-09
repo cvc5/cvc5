@@ -28,7 +28,7 @@ class BVSolver : protected EnvObj
 {
  public:
   BVSolver(Env& env, TheoryState& state, TheoryInferenceManager& inferMgr)
-      : EnvObj(env), d_state(state), d_im(inferMgr){};
+      : EnvObj(env), d_state(state), d_im(inferMgr) {};
 
   virtual ~BVSolver() {}
 
@@ -42,7 +42,7 @@ class BVSolver : protected EnvObj
     return false;
   }
 
-  virtual void finishInit(){};
+  virtual void finishInit() {};
 
   virtual void preRegisterTerm(TNode n) = 0;
 

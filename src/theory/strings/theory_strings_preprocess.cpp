@@ -39,9 +39,7 @@ StringsPreprocess::StringsPreprocess(Env& env,
 {
 }
 
-StringsPreprocess::~StringsPreprocess(){
-
-}
+StringsPreprocess::~StringsPreprocess() {}
 
 Node StringsPreprocess::reduce(Node t,
                                std::vector<Node>& asserts,
@@ -65,11 +63,11 @@ Node StringsPreprocess::reduce(Node t,
     Node skt = sc->mkSkolemCached(t, SkolemCache::SK_PURIFY, "sst");
     Node t12 = nm->mkNode(Kind::ADD, n, m);
     Node lt0 = nm->mkNode(Kind::STRING_LENGTH, s);
-    //start point is greater than or equal zero
+    // start point is greater than or equal zero
     Node c1 = nm->mkNode(Kind::GEQ, n, zero);
-    //start point is less than end of string
+    // start point is less than end of string
     Node c2 = nm->mkNode(Kind::GT, lt0, n);
-    //length is positive
+    // length is positive
     Node c3 = nm->mkNode(Kind::GT, m, zero);
     Node cond = nm->mkNode(Kind::AND, c1, c2, c3);
 
@@ -78,7 +76,7 @@ Node StringsPreprocess::reduce(Node t,
     Node sk1 = sc->mkSkolemCached(s, n, SkolemCache::SK_PREFIX, "sspre");
     Node sk2 = sc->mkSkolemCached(s, t12, SkolemCache::SK_SUFFIX_REM, "sssufr");
     Node b11 = s.eqNode(nm->mkNode(Kind::STRING_CONCAT, sk1, skt, sk2));
-    //length of first skolem is second argument
+    // length of first skolem is second argument
     Node b12 = nm->mkNode(Kind::STRING_LENGTH, sk1).eqNode(n);
     Node lsk2 = nm->mkNode(Kind::STRING_LENGTH, sk2);
     // Length of the suffix is either 0 (in the case where m + n > len(s)) or
@@ -351,7 +349,7 @@ Node StringsPreprocess::reduce(Node t,
     Node leni = nm->mkNode(Kind::STRING_LENGTH, itost);
 
     std::vector<Node> conc;
-    std::vector< TypeNode > argTypes;
+    std::vector<TypeNode> argTypes;
     argTypes.push_back(nm->integerType());
     Node u = sc->mkSkolemFun(nm, SkolemId::STRINGS_ITOS_RESULT, t[0]);
 
@@ -456,7 +454,7 @@ Node StringsPreprocess::reduce(Node t,
         nm->mkNode(Kind::OR, sEmpty, nm->mkNode(Kind::AND, kc1, kc2, kc3)));
 
     std::vector<Node> conc2;
-    std::vector< TypeNode > argTypes;
+    std::vector<TypeNode> argTypes;
     argTypes.push_back(nm->integerType());
     Node u = sc->mkSkolemFun(nm, SkolemId::STRINGS_STOI_RESULT, t[0]);
 
@@ -545,7 +543,7 @@ Node StringsPreprocess::reduce(Node t,
     Node b12 = nm->mkNode(Kind::STRING_LENGTH, sk1).eqNode(n);
     Node lsk2 = nm->mkNode(Kind::STRING_LENGTH, sk2);
     Node b13 = nm->mkNode(Kind::EQUAL, lsk2, nm->mkNode(Kind::SUB, lt0, t12));
-    std::vector<Node> bchildren { b11, b12, b13 };
+    std::vector<Node> bchildren{b11, b12, b13};
     if (s.getType().isString())
     {
       Node crange = utils::mkCodeRange(skt, alphaCard);
@@ -959,7 +957,7 @@ Node StringsPreprocess::reduce(Node t,
   {
     Node x = t[0];
     Node s = t[1];
-    //negative contains reduces to existential
+    // negative contains reduces to existential
     Node lenx = NodeManager::mkNode(Kind::STRING_LENGTH, x);
     Node lens = NodeManager::mkNode(Kind::STRING_LENGTH, s);
     Node b1 = SkolemCache::mkIndexVar(nm, t);
@@ -1047,8 +1045,10 @@ Node StringsPreprocess::simplify(Node t, std::vector<Node>& asserts)
   size_t prev_asserts = asserts.size();
   // call the static reduce routine
   Node retNode = reduce(t, asserts, d_sc, options().strings.stringsAlphaCard);
-  if( t!=retNode ){
-    Trace("strings-preprocess") << "StringsPreprocess::simplify: " << t << " -> " << retNode << std::endl;
+  if (t != retNode)
+  {
+    Trace("strings-preprocess") << "StringsPreprocess::simplify: " << t
+                                << " -> " << retNode << std::endl;
     if (!asserts.empty())
     {
       Trace("strings-preprocess")
@@ -1078,28 +1078,35 @@ Node StringsPreprocess::simplifyRec(Node t, std::vector<Node>& asserts)
   if (it != d_visited.end())
   {
     return it->second;
-  }else{
+  }
+  else
+  {
     Node retNode = t;
-    if( t.getNumChildren()==0 ){
+    if (t.getNumChildren() == 0)
+    {
       retNode = simplify(t, asserts);
     }
     else if (!t.isClosure())
     {
       bool changed = false;
-      std::vector< Node > cc;
-      if( t.getMetaKind() == kind::metakind::PARAMETERIZED ){
-        cc.push_back( t.getOperator() );
+      std::vector<Node> cc;
+      if (t.getMetaKind() == kind::metakind::PARAMETERIZED)
+      {
+        cc.push_back(t.getOperator());
       }
-      for(unsigned i=0; i<t.getNumChildren(); i++) {
+      for (unsigned i = 0; i < t.getNumChildren(); i++)
+      {
         Node s = simplifyRec(t[i], asserts);
-        cc.push_back( s );
-        if( s!=t[i] ) {
+        cc.push_back(s);
+        if (s != t[i])
+        {
           changed = true;
         }
       }
       Node tmp = t;
-      if( changed ){
-        tmp = nodeManager()->mkNode( t.getKind(), cc );
+      if (changed)
+      {
+        tmp = nodeManager()->mkNode(t.getKind(), cc);
       }
       // We cannot statically reduce seq.nth due to it being partial function.
       // Reducing it here would violate the functional property of seq.nth.

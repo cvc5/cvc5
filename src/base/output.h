@@ -29,7 +29,8 @@
 namespace cvc5::internal {
 
 template <class T, class U>
-std::ostream& operator<<(std::ostream& out, const std::pair<T, U>& p) {
+std::ostream& operator<<(std::ostream& out, const std::pair<T, U>& p)
+{
   return out << "[" << p.first << "," << p.second << "]";
 }
 
@@ -47,7 +48,7 @@ class null_streambuf : public std::streambuf
    * stream.  Perhaps this is not so critical, but recommended; this
    * way the output stream looks like it's functioning, in a non-error
    * state. */
- int overflow(int c) override { return c; }
+  int overflow(int c) override { return c; }
 }; /* class null_streambuf */
 
 /** A null stream-buffer singleton */
@@ -84,17 +85,20 @@ class Cvc5ostream
     d_firstColumn = (os != nullptr);
   }
 
-  void pushIndent() {
+  void pushIndent()
+  {
     if (d_os != nullptr)
     {
       ++d_os->iword(s_indentIosIndex);
     }
   }
-  void popIndent() {
+  void popIndent()
+  {
     if (d_os != nullptr)
     {
       long& indent = d_os->iword(s_indentIosIndex);
-      if(indent > 0) {
+      if (indent > 0)
+      {
         --indent;
       }
     }
@@ -140,7 +144,8 @@ class Cvc5ostream
     {
       d_os = &(*d_os << pf);
 
-      if(pf == d_endl) {
+      if (pf == d_endl)
+      {
         d_firstColumn = true;
       }
     }
@@ -187,7 +192,7 @@ inline Cvc5ostream& pop(Cvc5ostream& stream)
  */
 class NullC
 {
- mutable Cvc5ostream d_null;
+  mutable Cvc5ostream d_null;
 
  public:
   NullC() : d_null(nullptr) {}
@@ -204,12 +209,16 @@ class WarningC
   std::set<std::pair<std::string, size_t> > d_alreadyWarned;
   std::ostream* d_os;
 
-public:
+ public:
   explicit WarningC(std::ostream* os) : d_os(os) {}
 
   Cvc5ostream operator()() const { return Cvc5ostream(d_os); }
 
-  std::ostream& setStream(std::ostream* os) { d_os = os; return *d_os; }
+  std::ostream& setStream(std::ostream* os)
+  {
+    d_os = os;
+    return *d_os;
+  }
   std::ostream& getStream() const { return *d_os; }
   std::ostream* getStreamPointer() const { return d_os; }
 
@@ -221,7 +230,8 @@ public:
   bool warnOnce(const std::string& file, size_t line)
   {
     std::pair<std::string, size_t> pr = std::make_pair(file, line);
-    if(d_alreadyWarned.find(pr) != d_alreadyWarned.end()) {
+    if (d_alreadyWarned.find(pr) != d_alreadyWarned.end())
+    {
       // signal caller not to warn again
       return false;
     }
@@ -240,7 +250,7 @@ class TraceC
   std::vector<std::string> d_tags;
   mutable Cvc5ostream d_stream;
 
-public:
+ public:
   explicit TraceC(std::ostream* os) : d_os(os), d_stream(os) {}
 
   Cvc5ostream& operator()() const
@@ -250,9 +260,12 @@ public:
   }
   Cvc5ostream& operator()(const std::string& tag) const
   {
-    if (isOn(tag)) {
+    if (isOn(tag))
+    {
       d_stream.reset(d_os);
-    } else {
+    }
+    else
+    {
       d_stream.reset(nullptr);
     }
     return d_stream;
@@ -278,10 +291,15 @@ public:
   {
     // This is faster than using std::set::find() or sorting the vector and
     // using std::lower_bound.
-    return !d_tags.empty() && std::find(d_tags.begin(), d_tags.end(), tag) != d_tags.end();
+    return !d_tags.empty()
+           && std::find(d_tags.begin(), d_tags.end(), tag) != d_tags.end();
   }
 
-  std::ostream& setStream(std::ostream* os) { d_os = os; return *d_os; }
+  std::ostream& setStream(std::ostream* os)
+  {
+    d_os = os;
+    return *d_os;
+  }
   std::ostream& getStream() const { return *d_os; }
   std::ostream* getStreamPointer() const { return d_os; }
 
@@ -355,6 +373,7 @@ class __cvc5_true
 class IndentedScope
 {
   Cvc5ostream& d_out;
+
  public:
   inline IndentedScope(Cvc5ostream& out) : d_out(out) { d_out << push; }
   inline ~IndentedScope() { d_out << pop; }
