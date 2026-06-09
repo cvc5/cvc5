@@ -321,6 +321,23 @@ Node TheoryModel::getModelValue(TNode n) const
     Trace("model-getvalue-debug")
         << "get value from representative " << ret << "..." << std::endl;
     ret = getRepresentative(ret);
+    // If the representative is a lambda function value whose body still applies
+    // other (model-assigned) functions, e.g. (lambda (e) (r e c)) for a
+    // purified higher-order predicate, evaluate the body under the model so
+    // that the inner functions are resolved to their model values. Otherwise
+    // consumers of this value (e.g. set.filter/set.all over the predicate) and
+    // the model checkers observe an unevaluated function application and cannot
+    // verify an otherwise sound model.
+    if (ret.getKind() == Kind::LAMBDA
+        && (expr::hasSubtermKind(Kind::APPLY_UF, ret[1])
+            || expr::hasSubtermKind(Kind::HO_APPLY, ret[1])))
+    {
+      Node bodyVal = getModelValue(ret[1]);
+      if (bodyVal != ret[1])
+      {
+        ret = rewrite(nm->mkNode(Kind::LAMBDA, ret[0], bodyVal));
+      }
+    }
     d_modelCache[n] = ret;
     Trace("model-getvalue-debug") << "...set rep is " << ret << std::endl;
     return ret;
