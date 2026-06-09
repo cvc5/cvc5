@@ -46,13 +46,21 @@ if(NOT Normaliz_FOUND_SYSTEM)
 
   set(Normaliz_INCLUDE_DIR "${DEPS_BASE}/include/")
 
-  if(BUILD_SHARED_LIBS)
+  # On Windows, libtool cannot build a shared C++ library with clang: it links
+  # the DLL with -nostdlib, which drops clang's compiler-rt builtins (e.g.
+  # __chkstk_ms), and mingw's order-sensitive linker then cannot resolve them.
+  # Build Normaliz statically instead and let it be absorbed into libcvc5
+  # (cvc5's own link goes through the clang driver, which places compiler-rt
+  # correctly). Normaliz is compiled with --with-pic, so this is safe.
+  if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    set(Normaliz_STATIC_BUILD TRUE)
+  else()
+    set(Normaliz_STATIC_BUILD FALSE)
+  endif()
+
+  if(BUILD_SHARED_LIBS AND NOT Normaliz_STATIC_BUILD)
     set(LINK_OPTS --enable-shared --disable-static)
-    if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-      set(Normaliz_LIBRARIES "${DEPS_BASE}/lib/libnormaliz.dll.a")
-    else()
-      set(Normaliz_LIBRARIES "${DEPS_BASE}/lib/libnormaliz${CMAKE_SHARED_LIBRARY_SUFFIX}")
-    endif()
+    set(Normaliz_LIBRARIES "${DEPS_BASE}/lib/libnormaliz${CMAKE_SHARED_LIBRARY_SUFFIX}")
   else()
     set(LINK_OPTS --disable-shared --enable-static)
     set(Normaliz_LIBRARIES "${DEPS_BASE}/lib/libnormaliz.a")
@@ -80,7 +88,34 @@ if(NOT Normaliz_FOUND_SYSTEM)
 
   set(Normaliz_VERSION "3.11.1")
   set(Normaliz_CHECKSUM "9a00d590f0fdcad847e2189696d2842d97ed896ed36c22421874a364047f76e8")
-  
+
+  # The build is in-source (BUILD_IN_SOURCE), so the working directory is the
+  # source dir. On Windows ${SHELL} is the sh interpreter needed to run the
+  # autotools configure (CreateProcess cannot exec a shell script); elsewhere
+  # it is empty. We invoke ./configure by its relative name because autoconf
+  # 2.71's auxiliary-directory detection mishandles an absolute Windows path
+  # passed as $0 (same approach as FindCoCoA).
+  set(Normaliz_BUILD_COMMAND "")
+  set(Normaliz_INSTALL_COMMAND "")
+  if(Normaliz_STATIC_BUILD)
+    # CMake's tarball extraction can leave Makefile.am newer than the shipped
+    # Makefile.in, which makes make try to regenerate it with automake (not
+    # installed). Neutralise the maintainer regeneration tools so the shipped
+    # generated files are used as-is.
+    set(Normaliz_NO_REGEN AUTOMAKE=: AUTOCONF=: AUTOHEADER=: ACLOCAL=: MAKEINFO=:)
+    # For a self-contained cvc5 (BUILD_SHARED_LIBS OFF), also link the standalone
+    # normaliz tool statically (-all-static) so the installed normaliz.exe carries
+    # no libc++/libgmp DLL dependencies, matching the static cvc5.exe. This only
+    # affects Normaliz's own programs; the libnormaliz.a that cvc5 consumes is an
+    # archive and is unaffected.
+    set(Normaliz_EXE_LDFLAGS "")
+    if(NOT BUILD_SHARED_LIBS)
+      set(Normaliz_EXE_LDFLAGS LDFLAGS=-all-static)
+    endif()
+    set(Normaliz_BUILD_COMMAND BUILD_COMMAND make ${Normaliz_NO_REGEN} ${Normaliz_EXE_LDFLAGS})
+    set(Normaliz_INSTALL_COMMAND INSTALL_COMMAND make install ${Normaliz_NO_REGEN} ${Normaliz_EXE_LDFLAGS})
+  endif()
+
   ExternalProject_Add(
     Normaliz-EP
     ${COMMON_EP_CONFIG}
@@ -89,10 +124,12 @@ if(NOT Normaliz_FOUND_SYSTEM)
     BUILD_IN_SOURCE YES
 
     CONFIGURE_COMMAND
-      ${CONFIGURE_ENV} <SOURCE_DIR>/configure
+      ${CONFIGURE_ENV} ${SHELL} ./configure
         --prefix=<INSTALL_DIR> ${LINK_OPTS} --with-pic ${Normaliz_WITH_GMP}
         ${CONFIGURE_OPTS} --without-cocoalib --without-flint --without-hashlibrary
         --without-nauty --without-e-antic --disable-openmp
+    ${Normaliz_BUILD_COMMAND}
+    ${Normaliz_INSTALL_COMMAND}
     BUILD_BYPRODUCTS ${Normaliz_LIBRARIES}
   )
   add_dependencies(Normaliz-EP GMP)
@@ -100,11 +137,10 @@ endif()
 
 set(Normaliz_FOUND TRUE)
 
-if(BUILD_SHARED_LIBS)
+# On Windows Normaliz is always built statically (see above) and linked into
+# libcvc5, so import it as a static library there regardless of BUILD_SHARED_LIBS.
+if(BUILD_SHARED_LIBS AND NOT CMAKE_SYSTEM_NAME STREQUAL "Windows")
   add_library(Normaliz SHARED IMPORTED GLOBAL)
-  if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-    set_target_properties(Normaliz PROPERTIES IMPORTED_IMPLIB "${Normaliz_LIBRARIES}")
-  endif()
 else()
   add_library(Normaliz STATIC IMPORTED GLOBAL)
 endif()
