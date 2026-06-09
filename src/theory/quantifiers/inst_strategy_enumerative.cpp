@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Mikolas Janota, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -66,8 +63,8 @@ bool InstStrategyEnum::needsCheck(Theory::Effort e)
   return false;
 }
 
-void InstStrategyEnum::reset_round(Theory::Effort e) {}
-void InstStrategyEnum::check(Theory::Effort e, QEffort quant_e)
+void InstStrategyEnum::reset_round(CVC5_UNUSED Theory::Effort e) {}
+void InstStrategyEnum::check(CVC5_UNUSED Theory::Effort e, QEffort quant_e)
 {
   bool doCheck = false;
   bool fullEffort = false;

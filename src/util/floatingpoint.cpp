@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Martin Brain, Haniel Barbosa
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -34,23 +31,23 @@ namespace cvc5::internal {
 
 uint32_t FloatingPoint::getUnpackedExponentWidth(FloatingPointSize& size)
 {
-  return FloatingPointLiteral::getUnpackedExponentWidth(size);
+  return FloatingPointLiteralSymFPU::getUnpackedExponentWidth(size);
 }
 
 uint32_t FloatingPoint::getUnpackedSignificandWidth(FloatingPointSize& size)
 {
-  return FloatingPointLiteral::getUnpackedSignificandWidth(size);
+  return FloatingPointLiteralSymFPU::getUnpackedSignificandWidth(size);
 }
 
 FloatingPoint::FloatingPoint(uint32_t d_exp_size,
                              uint32_t d_sig_size,
                              const BitVector& bv)
-    : d_fpl(new FloatingPointLiteral(d_exp_size, d_sig_size, bv))
+    : d_fpl(new FloatingPointLiteralSymFPU(d_exp_size, d_sig_size, bv))
 {
 }
 
 FloatingPoint::FloatingPoint(const FloatingPointSize& size, const BitVector& bv)
-    : d_fpl(new FloatingPointLiteral(size, bv))
+    : d_fpl(new FloatingPointLiteralSymFPU(size, bv))
 {
 }
 
@@ -58,15 +55,18 @@ FloatingPoint::FloatingPoint(const FloatingPointSize& size,
                              const RoundingMode& rm,
                              const BitVector& bv,
                              bool signedBV)
-    : d_fpl(new FloatingPointLiteral(size, rm, bv, signedBV))
+    : d_fpl(new FloatingPointLiteralSymFPU(size, rm, bv, signedBV))
 {
 }
 
-FloatingPoint::FloatingPoint(FloatingPointLiteral* fpl) { d_fpl.reset(fpl); }
+FloatingPoint::FloatingPoint(FloatingPointLiteralSymFPU* fpl)
+{
+  d_fpl.reset(fpl);
+}
 
 FloatingPoint::FloatingPoint(const FloatingPoint& fp)
 {
-  d_fpl.reset(new FloatingPointLiteral(*fp.d_fpl));
+  d_fpl.reset(new FloatingPointLiteralSymFPU(*fp.d_fpl));
 }
 
 FloatingPoint::FloatingPoint(const FloatingPointSize& size,
@@ -78,8 +78,8 @@ FloatingPoint::FloatingPoint(const FloatingPointSize& size,
   if (r.isZero())
   {
     // In keeping with the SMT-LIB standard
-    d_fpl.reset(new FloatingPointLiteral(
-        size, FloatingPointLiteral::SpecialConstKind::FPZERO, false));
+    d_fpl.reset(new FloatingPointLiteralSymFPU(
+        size, FloatingPointLiteralSymFPU::SpecialConstKind::FPZERO, false));
   }
   else
   {
@@ -180,13 +180,14 @@ FloatingPoint::FloatingPoint(const FloatingPointSize& size,
     // may have more to allow subnormals to be normalised.
     // Thus...
     uint32_t extension =
-        FloatingPointLiteral::getUnpackedExponentWidth(exactFormat) - expBits;
+        FloatingPointLiteralSymFPU::getUnpackedExponentWidth(exactFormat)
+        - expBits;
 
-    FloatingPointLiteral exactFloat(
+    FloatingPointLiteralSymFPU exactFloat(
         exactFormat, negative, exactExp.signExtend(extension), sig);
 
     // Then cast...
-    d_fpl.reset(new FloatingPointLiteral(exactFloat.convert(size, rm)));
+    d_fpl.reset(new FloatingPointLiteralSymFPU(exactFloat.convert(size, rm)));
   }
 }
 
@@ -201,20 +202,20 @@ const FloatingPointSize& FloatingPoint::getSize() const
 
 FloatingPoint FloatingPoint::makeNaN(const FloatingPointSize& size)
 {
-  return FloatingPoint(new FloatingPointLiteral(
-      size, FloatingPointLiteral::SpecialConstKind::FPNAN));
+  return FloatingPoint(new FloatingPointLiteralSymFPU(
+      size, FloatingPointLiteralSymFPU::SpecialConstKind::FPNAN));
 }
 
 FloatingPoint FloatingPoint::makeInf(const FloatingPointSize& size, bool sign)
 {
-  return FloatingPoint(new FloatingPointLiteral(
-      size, FloatingPointLiteral::SpecialConstKind::FPINF, sign));
+  return FloatingPoint(new FloatingPointLiteralSymFPU(
+      size, FloatingPointLiteralSymFPU::SpecialConstKind::FPINF, sign));
 }
 
 FloatingPoint FloatingPoint::makeZero(const FloatingPointSize& size, bool sign)
 {
-  return FloatingPoint(new FloatingPointLiteral(
-      size, FloatingPointLiteral::SpecialConstKind::FPZERO, sign));
+  return FloatingPoint(new FloatingPointLiteralSymFPU(
+      size, FloatingPointLiteralSymFPU::SpecialConstKind::FPZERO, sign));
 }
 
 FloatingPoint FloatingPoint::makeMinSubnormal(const FloatingPointSize& size,
@@ -256,30 +257,33 @@ FloatingPoint FloatingPoint::makeMaxNormal(const FloatingPointSize& size,
 
 FloatingPoint FloatingPoint::absolute(void) const
 {
-  return FloatingPoint(new FloatingPointLiteral(d_fpl->absolute()));
+  return FloatingPoint(new FloatingPointLiteralSymFPU(d_fpl->absolute()));
 }
 
 FloatingPoint FloatingPoint::negate(void) const
 {
-  return FloatingPoint(new FloatingPointLiteral(d_fpl->negate()));
+  return FloatingPoint(new FloatingPointLiteralSymFPU(d_fpl->negate()));
 }
 
 FloatingPoint FloatingPoint::add(const RoundingMode& rm,
                                  const FloatingPoint& arg) const
 {
-  return FloatingPoint(new FloatingPointLiteral(d_fpl->add(rm, *arg.d_fpl)));
+  return FloatingPoint(
+      new FloatingPointLiteralSymFPU(d_fpl->add(rm, *arg.d_fpl)));
 }
 
 FloatingPoint FloatingPoint::sub(const RoundingMode& rm,
                                  const FloatingPoint& arg) const
 {
-  return FloatingPoint(new FloatingPointLiteral(d_fpl->sub(rm, *arg.d_fpl)));
+  return FloatingPoint(
+      new FloatingPointLiteralSymFPU(d_fpl->sub(rm, *arg.d_fpl)));
 }
 
 FloatingPoint FloatingPoint::mult(const RoundingMode& rm,
                                   const FloatingPoint& arg) const
 {
-  return FloatingPoint(new FloatingPointLiteral(d_fpl->mult(rm, *arg.d_fpl)));
+  return FloatingPoint(
+      new FloatingPointLiteralSymFPU(d_fpl->mult(rm, *arg.d_fpl)));
 }
 
 FloatingPoint FloatingPoint::fma(const RoundingMode& rm,
@@ -287,44 +291,49 @@ FloatingPoint FloatingPoint::fma(const RoundingMode& rm,
                                  const FloatingPoint& arg2) const
 {
   return FloatingPoint(
-      new FloatingPointLiteral(d_fpl->fma(rm, *arg1.d_fpl, *arg2.d_fpl)));
+      new FloatingPointLiteralSymFPU(d_fpl->fma(rm, *arg1.d_fpl, *arg2.d_fpl)));
 }
 
 FloatingPoint FloatingPoint::div(const RoundingMode& rm,
                                  const FloatingPoint& arg) const
 {
-  return FloatingPoint(new FloatingPointLiteral(d_fpl->div(rm, *arg.d_fpl)));
+  return FloatingPoint(
+      new FloatingPointLiteralSymFPU(d_fpl->div(rm, *arg.d_fpl)));
 }
 
 FloatingPoint FloatingPoint::sqrt(const RoundingMode& rm) const
 {
-  return FloatingPoint(new FloatingPointLiteral(d_fpl->sqrt(rm)));
+  return FloatingPoint(new FloatingPointLiteralSymFPU(d_fpl->sqrt(rm)));
 }
 
 FloatingPoint FloatingPoint::rti(const RoundingMode& rm) const
 {
-  return FloatingPoint(new FloatingPointLiteral(d_fpl->rti(rm)));
+  return FloatingPoint(new FloatingPointLiteralSymFPU(d_fpl->rti(rm)));
 }
 
 FloatingPoint FloatingPoint::rem(const FloatingPoint& arg) const
 {
-  return FloatingPoint(new FloatingPointLiteral(d_fpl->rem(*arg.d_fpl)));
+  return FloatingPoint(new FloatingPointLiteralSymFPU(d_fpl->rem(*arg.d_fpl)));
 }
 
 FloatingPoint FloatingPoint::maxTotal(const FloatingPoint& arg,
                                       bool zeroCaseLeft) const
 {
-  return FloatingPoint(
-      new FloatingPointLiteral(d_fpl->maxTotal(*arg.d_fpl, zeroCaseLeft)));
+  return FloatingPoint(new FloatingPointLiteralSymFPU(
+      d_fpl->maxTotal(*arg.d_fpl, zeroCaseLeft)));
 }
 
 FloatingPoint FloatingPoint::minTotal(const FloatingPoint& arg,
                                       bool zeroCaseLeft) const
 {
-  return FloatingPoint(
-      new FloatingPointLiteral(d_fpl->minTotal(*arg.d_fpl, zeroCaseLeft)));
+  return FloatingPoint(new FloatingPointLiteralSymFPU(
+      d_fpl->minTotal(*arg.d_fpl, zeroCaseLeft)));
 }
 
+// Suppress clang-analyzer-core.uninitialized.Assign for the
+// following functions as a workaround for a false positive
+// in clang-tidy 18.
+// NOLINTBEGIN(clang-analyzer-core.uninitialized.Assign)
 FloatingPoint::PartialFloatingPoint FloatingPoint::max(
     const FloatingPoint& arg) const
 {
@@ -338,6 +347,7 @@ FloatingPoint::PartialFloatingPoint FloatingPoint::min(
   FloatingPoint tmp(minTotal(arg, true));
   return PartialFloatingPoint(tmp, tmp == minTotal(arg, false));
 }
+// NOLINTEND(clang-analyzer-core.uninitialized.Assign)
 
 bool FloatingPoint::operator==(const FloatingPoint& fp) const
 {
@@ -380,7 +390,8 @@ bool FloatingPoint::isPositive(void) const { return d_fpl->isPositive(); }
 FloatingPoint FloatingPoint::convert(const FloatingPointSize& target,
                                      const RoundingMode& rm) const
 {
-  return FloatingPoint(new FloatingPointLiteral(d_fpl->convert(target, rm)));
+  return FloatingPoint(
+      new FloatingPointLiteralSymFPU(d_fpl->convert(target, rm)));
 }
 
 BitVector FloatingPoint::convertToBVTotal(BitVectorSize width,

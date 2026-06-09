@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andres Noetzli, Morgan Deters, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -61,7 +58,7 @@ class CVC5_EXPORT OptionException : public cvc5::internal::Exception
  *     beginning of a `check-sat` command, in which case any exception is
  *     treated as unrecoverable.
  * (2) If we discover an illegal combination of options during a `set-option`
- *     command (e.g., due to restrictions on `safe-options`).
+ *     command (e.g., due to restrictions on `safe-mode`).
  *
  * The latter is made a fatal exception for consistency, since some
  * options misconfigurations are discovered during SetDefaults and others

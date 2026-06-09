@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,7 +18,8 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-TypeNode QuantifierTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode QuantifierTypeRule::preComputeType(NodeManager* nm,
+                                            CVC5_UNUSED TNode n)
 {
   return nm->booleanType();
 }
@@ -88,7 +86,7 @@ TypeNode QuantifierTypeRule::computeType(NodeManager* nodeManager,
 }
 
 TypeNode QuantifierBoundVarListTypeRule::preComputeType(NodeManager* nm,
-                                                        TNode n)
+                                                        CVC5_UNUSED TNode n)
 {
   return nm->boundVarListType();
 }
@@ -115,7 +113,8 @@ TypeNode QuantifierBoundVarListTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->boundVarListType();
 }
 
-TypeNode QuantifierInstPatternTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode QuantifierInstPatternTypeRule::preComputeType(NodeManager* nm,
+                                                       CVC5_UNUSED TNode n)
 {
   return nm->instPatternType();
 }
@@ -143,7 +142,8 @@ TypeNode QuantifierInstPatternTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->instPatternType();
 }
 
-TypeNode QuantifierAnnotationTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode QuantifierAnnotationTypeRule::preComputeType(NodeManager* nm,
+                                                      CVC5_UNUSED TNode n)
 {
   return nm->instPatternType();
 }
@@ -200,7 +200,7 @@ TypeNode QuantifierAnnotationTypeRule::computeType(NodeManager* nodeManager,
 }
 
 TypeNode QuantifierInstPatternListTypeRule::preComputeType(NodeManager* nm,
-                                                           TNode n)
+                                                           CVC5_UNUSED TNode n)
 {
   return nm->instPatternListType();
 }
@@ -230,7 +230,7 @@ TypeNode QuantifierInstPatternListTypeRule::computeType(
 }
 
 TypeNode QuantifierOracleFormulaGenTypeRule::preComputeType(NodeManager* nm,
-                                                            TNode n)
+                                                            CVC5_UNUSED TNode n)
 {
   return nm->booleanType();
 }

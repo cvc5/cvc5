@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mudathir Mohamed, Aina Niemetz, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -787,7 +784,7 @@ class TermTest
     assertTrue(s1.isStringValue());
     assertEquals(s1.getStringValue(), "abcde");
     Term s2 = d_tm.mkString("\\u{200cb}", true);
-    assertEquals(s2.getStringValue(), Character.toString(0x200cb));
+    assertEquals(s2.getStringValue(), new String(Character.toChars(0x200cb)));
   }
 
   @Test

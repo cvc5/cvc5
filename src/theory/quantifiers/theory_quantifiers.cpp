@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -139,8 +136,8 @@ void TheoryQuantifiers::ppNotifyAssertions(
   }
 }
 
-bool TheoryQuantifiers::collectModelValues(TheoryModel* m,
-                                           const std::set<Node>& termSet)
+bool TheoryQuantifiers::collectModelValues(
+    TheoryModel* m, CVC5_UNUSED const std::set<Node>& termSet)
 {
   for(assertions_iterator i = facts_begin(); i != facts_end(); ++i) {
     if ((*i).d_assertion.getKind() == Kind::NOT)
@@ -171,8 +168,11 @@ void TheoryQuantifiers::postCheck(Effort level)
   getQuantifiersEngine()->check(level);
 }
 
-bool TheoryQuantifiers::preNotifyFact(
-    TNode atom, bool polarity, TNode fact, bool isPrereg, bool isInternal)
+bool TheoryQuantifiers::preNotifyFact(TNode atom,
+                                      bool polarity,
+                                      TNode fact,
+                                      CVC5_UNUSED bool isPrereg,
+                                      CVC5_UNUSED bool isInternal)
 {
   Kind k = atom.getKind();
   if (k == Kind::FORALL)

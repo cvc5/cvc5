@@ -1,24 +1,16 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
  * ****************************************************************************
  *
- * [[ Add one-line brief description here ]]
- *
- * [[ Add lengthier description here ]]
- * \todo document this file
+ * This is not built as a part of cvc5 and is not built by Makefile.am.
+ * Compile: g++ didyoumean_test.cpp didyoumean.cpp
+ * For debug compile with -DDIDYOUMEAN_DEBUG or -DDIDYOUMEAN_DEBUG1 or both
  */
-
-// This is not built as a part of cvc5 and is not built by Makefile.am.
-// Compile: g++ didyoumean_test.cpp didyoumean.cpp
-// For debug compile with -DDIDYOUMEAN_DEBUG or -DDIDYOUMEAN_DEBUG1 or both
 
 #include "didyoumean.h"
 #include <iostream>

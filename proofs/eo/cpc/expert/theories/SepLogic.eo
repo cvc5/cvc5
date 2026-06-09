@@ -5,7 +5,7 @@
 ; disclaimer: All of the functions in this file are not in SMT-LIB.
 
 ; The distinguished nil element.
-(declare-parameterized-const sep.nil ((T Type)) T)
+(declare-parameterized-const sep.nil ((T Type :implicit)) T)
 
 ; The empty heap constraint.
 (declare-const sep.emp Bool)

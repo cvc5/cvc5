@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -49,7 +46,7 @@ class EqualityQuery : public QuantifiersUtil
   /** reset */
   bool reset(Theory::Effort e) override;
   /* Called for new quantifiers */
-  void registerQuantifier(Node q) override {}
+  void registerQuantifier(CVC5_UNUSED Node q) override {}
   /** identify */
   std::string identify() const override { return "EqualityQuery"; }
   /** gets the current best representative in the equivalence
@@ -88,7 +85,7 @@ class EqualityQuery : public QuantifiersUtil
                    const std::vector<Node>& eqc,
                    std::unordered_map<TNode, Node>& cache);
   /** get score */
-  int32_t getRepScore(Node n, Node f, size_t index, TypeNode v_tn);
+  int32_t getRepScore(Node n, TypeNode v_tn);
 }; /* EqualityQuery */
 
 }  // namespace quantifiers

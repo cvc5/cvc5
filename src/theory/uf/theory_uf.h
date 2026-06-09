@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Tim King
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -24,6 +21,7 @@
 #include "theory/theory_eq_notify.h"
 #include "theory/theory_state.h"
 #include "theory/uf/diamonds_proof_generator.h"
+#include "theory/uf/distinct_extension.h"
 #include "theory/uf/proof_checker.h"
 #include "theory/uf/symmetry_breaker.h"
 #include "theory/uf/theory_uf_rewriter.h"
@@ -37,7 +35,8 @@ class HoExtension;
 class ConversionsSolver;
 class LambdaLift;
 
-class TheoryUF : public Theory {
+class TheoryUF : public Theory
+{
  public:
   class NotifyClass : public TheoryEqNotifyClass
   {
@@ -167,6 +166,10 @@ private:
    */
   void processCarePairArgs(TNode a, TNode b) override;
   /**
+   * Compute relevant terms. Used in higher-order.
+   */
+  void computeRelevantTerms(std::set<Node>& termSet) override;
+  /**
    * Is t a higher order type? A higher-order type is a function type having
    * an argument type that is also a function type. This is used for checking
    * logic exceptions.
@@ -179,13 +182,15 @@ private:
   TheoryState d_state;
   /** A (default) inference manager */
   TheoryInferenceManager d_im;
+  /** the distinct extension */
+  DistinctExtension d_distinct;
   /** The notify class */
   NotifyClass d_notify;
   /** Cache for isHigherOrderType */
   std::map<TypeNode, bool> d_isHoType;
   /** The care pair argument callback, used for theory combination */
   CarePairArgumentCallback d_cpacb;
-};/* class TheoryUF */
+}; /* class TheoryUF */
 
 }  // namespace uf
 }  // namespace theory

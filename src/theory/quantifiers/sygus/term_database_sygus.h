@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -407,10 +404,7 @@ class TermDbSygus : protected EnvObj
    * above to infer a kind is constructable. If this flag is false, we only
    * check if the kind is literally a constructor of the grammar.
    */
-  bool canConstructKind(TypeNode tn,
-                        Kind k,
-                        std::vector<TypeNode>& argts,
-                        bool aggr = false);
+  bool canConstructKind(TypeNode tn, Kind k, std::vector<TypeNode>& argts);
 
   Node getSygusNormalized( Node n, std::map< TypeNode, int >& var_count, std::map< Node, Node >& subs );
   Node getNormalized(TypeNode t, Node prog);

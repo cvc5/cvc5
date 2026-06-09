@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Liana Hadarean, Dejan Jovanovic, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -54,10 +51,8 @@ enum RewriteRuleId
   RedorEliminate,
   RedandEliminate,
   SubEliminate,
-  SltEliminate,
   SleEliminate,
   UleEliminate,
-  CompEliminate,
   RepeatEliminate,
   RotateLeftEliminate,
   RotateRightEliminate,
@@ -65,14 +60,10 @@ enum RewriteRuleId
   NorEliminate,
   XnorEliminate,
   SdivEliminate,
-  SdivEliminateFewerBitwiseOps,
   UdivEliminate,
   SmodEliminate,
-  SmodEliminateFewerBitwiseOps,
   SremEliminate,
-  SremEliminateFewerBitwiseOps,
   ZeroExtendEliminate,
-  SignExtendEliminate,
   NegoEliminate,
   UaddoEliminate,
   SaddoEliminate,
@@ -127,32 +118,21 @@ enum RewriteRuleId
   ShlByConst,
   LshrByConst,
   AshrByConst,
-  BitwiseIdemp,
-  AndZero,
-  AndOne,
   AndOrXorConcatPullUp,
   NegEliminate,
   OrEliminate,
   XorEliminate,
   OrZero,
   OrOne,
-  XorDuplicate,
   XorOnes,
   XorZero,
-  BitwiseNotAnd,
-  BitwiseNotOr,
-  XorNot,
   NotIdemp,
-  LtSelf,
-  LteSelf,
   UltZero,
   UltSelf,
   UleZero,
   UleSelf,
   ZeroUle,
   UleMax,
-  NotUlt,
-  NotUle,
   MultPow2,
   MultSlice,
   ExtractMultLeadingBit,
@@ -170,7 +150,6 @@ enum RewriteRuleId
   UltOnes,
   SltZero,
   SltSelf,
-  ZeroUlt,
   MergeSignExtend,
   SignExtendEqConst,
   ZeroExtendEqConst,
@@ -179,19 +158,13 @@ enum RewriteRuleId
   IneqElimConversion,
 
   /// normalization rules
-  ExtractBitwise,
   ExtractNot,
-  ExtractArith,
-  ExtractArith2,
   ExtractSignExtend,
   DoubleNeg,
   NegMult,
   NegSub,
   NegAdd,
   NotConcat,
-  NotAnd,  // not sure why this would help (not done)
-  NotOr,   // not sure why this would help (not done)
-  NotXor,  // not sure why this would help (not done)
   FlattenAssocCommut,
   FlattenAssocCommutNoDuplicates,
   AddCombineLikeTerms,
@@ -204,9 +177,7 @@ enum RewriteRuleId
   OrSimplify,
   XorSimplify,
   BitwiseSlicing,
-  NormalizeEqAddNeg,
   // rules to simplify bitblasting
-  BBAddNeg,
   UltAddOne,
   ConcatToMult,
   MultSltMult,
@@ -243,17 +214,8 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case NandEliminate:       out << "NandEliminate";       return out;
   case NorEliminate :       out << "NorEliminate";        return out;
   case SdivEliminate :      out << "SdivEliminate";       return out;
-  case SdivEliminateFewerBitwiseOps:
-    out << "SdivEliminateFewerBitwiseOps";
-    return out;
   case SremEliminate :      out << "SremEliminate";       return out;
-  case SremEliminateFewerBitwiseOps:
-    out << "SremEliminateFewerBitwiseOps";
-    return out;
   case SmodEliminate :      out << "SmodEliminate";       return out;
-  case SmodEliminateFewerBitwiseOps:
-    out << "SmodEliminateFewerBitwiseOps";
-    return out;
   case ZeroExtendEliminate :out << "ZeroExtendEliminate"; return out;
   case EvalEquals :         out << "EvalEquals";          return out;
   case EvalConcat :         out << "EvalConcat";          return out;
@@ -294,34 +256,14 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case ShlByConst :         out << "ShlByConst";          return out;
   case LshrByConst :        out << "LshrByConst";         return out;
   case AshrByConst :        out << "AshrByConst";         return out;
-  case ExtractBitwise :     out << "ExtractBitwise";      return out;
   case ExtractNot :         out << "ExtractNot";          return out;
-  case ExtractArith :       out << "ExtractArith";        return out;
-  case ExtractArith2 :      out << "ExtractArith2";       return out;
   case DoubleNeg :          out << "DoubleNeg";           return out;
   case NotConcat :          out << "NotConcat";           return out;
-  case NotAnd :             out << "NotAnd";              return out;
-  case NotOr :              out << "NotOr";               return out;
-  case NotXor :             out << "NotXor";              return out;
-  case BitwiseIdemp :       out << "BitwiseIdemp";        return out;
-  case XorDuplicate :       out << "XorDuplicate";        return out;
-  case BitwiseNotAnd :      out << "BitwiseNotAnd";       return out;
-  case BitwiseNotOr :       out << "BitwiseNotOr";        return out;
-  case XorNot :             out << "XorNot";              return out;
-  case LtSelf :             out << "LtSelf";              return out;
-  case LteSelf :            out << "LteSelf";             return out;
   case UltZero :            out << "UltZero";             return out;
   case UleZero :            out << "UleZero";             return out;
   case ZeroUle :            out << "ZeroUle";             return out;
-  case NotUlt :             out << "NotUlt";              return out;
-  case NotUle :             out << "NotUle";              return out;
   case UleMax :             out << "UleMax";              return out;
-  case SltEliminate :       out << "SltEliminate";        return out;
   case SleEliminate :       out << "SleEliminate";        return out;
-  case AndZero :       out << "AndZero";        return out;
-  case AndOne :       out << "AndOne";        return out;
-  case OrZero :       out << "OrZero";        return out;
-  case OrOne :       out << "OrOne";        return out;
   case XorOnes: out << "XorOnes"; return out;
   case XorZero :       out << "XorZero";        return out;
   case MultPow2 :            out << "MultPow2";             return out;
@@ -339,9 +281,7 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case ShiftZero :            out << "ShiftZero";             return out;
   case UgtUrem: out << "UgtUrem"; return out;
   case SubEliminate :            out << "SubEliminate";             return out;
-  case CompEliminate :            out << "CompEliminate";             return out;
   case XnorEliminate :            out << "XnorEliminate";             return out;
-  case SignExtendEliminate: out << "SignExtendEliminate"; return out;
   case UaddoEliminate:            out << "UaddoEliminate";             return out;
   case SaddoEliminate:            out << "SaddoEliminate";             return out;
   case UmuloEliminate:            out << "UmuloEliminate";             return out;
@@ -365,11 +305,8 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case OrSimplify : out << "OrSimplify"; return out;
   case XorSimplify : out << "XorSimplify"; return out;
   case NegAdd: out << "NegAdd"; return out;
-  case BBAddNeg: out << "BBAddNeg"; return out;
   case UltOne : out << "UltOne"; return out;
   case UltOnes: out << "UltOnes"; return out;
-  case SltZero : out << "SltZero"; return out;
-  case ZeroUlt : out << "ZeroUlt"; return out;
   case MergeSignExtend : out << "MergeSignExtend"; return out;
   case SignExtendEqConst: out << "SignExtendEqConst"; return out;
   case ZeroExtendEqConst: out << "ZeroExtendEqConst"; return out;
@@ -384,7 +321,6 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case UltAddOne: out << "UltAddOne"; return out;
   case ConcatToMult: out << "ConcatToMult"; return out;
   case MultSltMult: out << "MultSltMult"; return out;
-  case NormalizeEqAddNeg: out << "NormalizeEqAddNeg"; return out;
   case BitConst: out << "BitConst"; return out;
   default:
     Unreachable();
@@ -394,42 +330,8 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
 template <RewriteRuleId rule>
 class RewriteRule {
 
-  // class RuleStatistics {
-
-  //   /** The name of the rule prefixed with the prefix */
-  //   static std::string getStatName(const char* prefix) {
-  //     std::stringstream statName;
-  //     statName << prefix << rule;
-  //     return statName.str();
-  //   }
-
-  // public:
-
-  //   /** Number of applications of this rule */
-  //   IntStat d_ruleApplications;
-
-  //   /** Constructor */
-  //   RuleStatistics()
-  //   : d_ruleApplications(getStatName("theory::bv::RewriteRules::count"), 0) {
-  //     currentStatisticsRegistry()->registerStat(&d_ruleApplications);
-  //   }
-
-  //   /** Destructor */
-  //   ~RuleStatistics() {
-  //     StatisticsRegistry::unregisterStat(&d_ruleApplications);
-  //   }
-  // };
-
-  // /* Statistics about the rule */
-  // // NOTE: Cannot have static fields like this, or else you can't have
-  // // two SolverEngines in the process (the second-to-be-destroyed will
-  // // have a dangling pointer and segfault).  If this statistic is needed,
-  // // fix the rewriter by making it an instance per-SolverEngine (instead of
-  // // static).
-  // static RuleStatistics* s_statistics;
-
   /** Actually apply the rewrite rule */
-  static inline Node apply(TNode node) {
+  static inline Node apply(CVC5_UNUSED TNode node) {
     Unreachable();
     SuppressWrongNoReturnWarning;
   }
@@ -438,20 +340,13 @@ public:
 
   RewriteRule() {
     
-    // if (s_statistics == NULL) {
-    //   s_statistics = new RuleStatistics();
-    // }
-    
   }
 
   ~RewriteRule() {
     
-    // delete s_statistics;
-    // s_statistics = NULL;
-    
   }
 
-  static inline bool applies(TNode node)
+  static inline bool applies(CVC5_UNUSED TNode node)
   {
     Unreachable();
     SuppressWrongNoReturnWarning;
@@ -476,11 +371,6 @@ public:
     }
   }
 };
-
-
- // template<RewriteRuleId rule>
- //   typename RewriteRule<rule>::RuleStatistics* RewriteRule<rule>::s_statistics = NULL;
-
 
 /** Have to list all the rewrite rules to get the statistics out */
 struct AllRewriteRules {
@@ -535,35 +425,15 @@ struct AllRewriteRules {
   RewriteRule<ShlByConst>                     rule50;
   RewriteRule<LshrByConst>                    rule51;
   RewriteRule<AshrByConst>                    rule52;
-  RewriteRule<ExtractBitwise>                 rule53;
   RewriteRule<ExtractNot>                     rule54;
-  RewriteRule<ExtractArith>                   rule55;
   RewriteRule<DoubleNeg>                      rule56;
   RewriteRule<NotConcat>                      rule57;
-  RewriteRule<NotAnd>                         rule58;
-  RewriteRule<NotOr>                          rule59;
-  RewriteRule<NotXor>                         rule60;
-  RewriteRule<BitwiseIdemp>                   rule61;
-  RewriteRule<XorDuplicate>                   rule62;
-  RewriteRule<BitwiseNotAnd>                  rule63;
-  RewriteRule<BitwiseNotOr>                   rule64;
-  RewriteRule<XorNot>                         rule65;
-  RewriteRule<LtSelf>                         rule66;
-  RewriteRule<LtSelf>                         rule67;
   RewriteRule<UltZero>                        rule68;
   RewriteRule<UleZero>                        rule69;
   RewriteRule<ZeroUle>                        rule70;
-  RewriteRule<NotUlt>                         rule71;
-  RewriteRule<NotUle>                         rule72;
   RewriteRule<ZeroExtendEliminate>            rule73;
   RewriteRule<UleMax>                         rule74;
-  RewriteRule<LteSelf>                        rule75;
-  RewriteRule<SltEliminate>                   rule76;
   RewriteRule<SleEliminate>                   rule77;
-  RewriteRule<AndZero>                        rule78;
-  RewriteRule<AndOne>                         rule79;
-  RewriteRule<OrZero>                         rule80;
-  RewriteRule<OrOne>                          rule81;
   RewriteRule<SubEliminate>                   rule82;
   RewriteRule<XorOnes> rule83;
   RewriteRule<XorZero>                        rule84;
@@ -579,9 +449,7 @@ struct AllRewriteRules {
   RewriteRule<UremOne>                        rule96;
   RewriteRule<UremSelf>                       rule97;
   RewriteRule<ShiftZero>                      rule98;
-  RewriteRule<CompEliminate>                  rule99;
   RewriteRule<XnorEliminate>                  rule100;
-  RewriteRule<SignExtendEliminate>            rule101;
   RewriteRule<NotIdemp>                       rule102;
   RewriteRule<UleSelf>                        rule103;
   RewriteRule<FlattenAssocCommut>             rule104;
@@ -591,11 +459,9 @@ struct AllRewriteRules {
   RewriteRule<AndSimplify>                    rule108;
   RewriteRule<OrSimplify>                     rule109;
   RewriteRule<NegAdd> rule110;
-  RewriteRule<BBAddNeg> rule111;
   RewriteRule<SolveEq>                        rule112;
   RewriteRule<BitwiseEq>                      rule113;
   RewriteRule<UltOne>                         rule114;
-  RewriteRule<SltZero>                        rule115;
   RewriteRule<MultDistrib>                    rule118;
   RewriteRule<UltAddOne> rule119;
   RewriteRule<ConcatToMult>                   rule120;
@@ -606,7 +472,6 @@ struct AllRewriteRules {
   RewriteRule<SignExtendUltConst>             rule126;
   RewriteRule<ZeroExtendUltConst>             rule127;
   RewriteRule<MultSltMult>                    rule128;
-  RewriteRule<NormalizeEqAddNeg> rule129;
   RewriteRule<BvComp>                         rule130;
   RewriteRule<BvIteConstCond>                 rule131;
   RewriteRule<BvIteEqualChildren>             rule132;
@@ -633,8 +498,9 @@ struct AllRewriteRules {
   RewriteRule<SsuboEliminate> rule153;
 };
 
-template<> inline
-bool RewriteRule<EmptyRule>::applies(TNode node) {
+template <>
+inline bool RewriteRule<EmptyRule>::applies(CVC5_UNUSED TNode node)
+{
   return false;
 }
 

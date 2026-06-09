@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Abdalrhman Mohamed, Morgan Deters
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -258,7 +255,7 @@ void AstPrinter::toStreamCmdDeclareFunction(
 void AstPrinter::toStreamCmdDefineFunction(std::ostream& out,
                                            const std::string& id,
                                            const std::vector<Node>& formals,
-                                           TypeNode range,
+                                           CVC5_UNUSED TypeNode range,
                                            Node formula) const
 {
   out << "DefineFunction( \"" << id << "\", [";

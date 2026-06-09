@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Hans-Joerg Schurr, Abdalrhman Mohamed
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -869,7 +866,7 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
       ProofRewriteRule di = ProofRewriteRule::NONE;
       if (!rewriter::getRewriteRule(args[0], di))
       {
-        Assert(false);
+        DebugUnhandled();
       }
       Trace("lfsc-print-debug2") << "Printing dsl rule " << di << std::endl;
       const rewriter::RewriteProofRule& rpr = d_rdb->getRule(di);

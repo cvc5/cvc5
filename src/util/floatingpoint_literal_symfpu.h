@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -31,7 +28,7 @@ namespace cvc5::internal {
 using SymFPUUnpackedFloatLiteral =
     ::symfpu::unpackedFloat<symfpuLiteral::traits>;
 
-class FloatingPointLiteral
+class FloatingPointLiteralSymFPU
 {
   friend class FloatingPoint;
 
@@ -64,27 +61,29 @@ class FloatingPointLiteral
   /** Constructors. */
 
   /** Create a FP literal from its IEEE bit-vector representation. */
-  FloatingPointLiteral(uint32_t exp_size,
-                       uint32_t sig_size,
-                       const BitVector& bv);
-  FloatingPointLiteral(const FloatingPointSize& size, const BitVector& bv);
+  FloatingPointLiteralSymFPU(uint32_t exp_size,
+                             uint32_t sig_size,
+                             const BitVector& bv);
+  FloatingPointLiteralSymFPU(const FloatingPointSize& size,
+                             const BitVector& bv);
 
   /** Create a FP literal that represents a special constants. */
-  FloatingPointLiteral(const FloatingPointSize& size, SpecialConstKind kind);
-  FloatingPointLiteral(const FloatingPointSize& size,
-                       SpecialConstKind kind,
-                       bool sign);
+  FloatingPointLiteralSymFPU(const FloatingPointSize& size,
+                             SpecialConstKind kind);
+  FloatingPointLiteralSymFPU(const FloatingPointSize& size,
+                             SpecialConstKind kind,
+                             bool sign);
 
   /**
    * Create a FP literal from a signed or unsigned bit-vector value with
    * respect to given rounding mode.
    */
-  FloatingPointLiteral(const FloatingPointSize& size,
-                       const RoundingMode& rm,
-                       const BitVector& bv,
-                       bool signedBV);
+  FloatingPointLiteralSymFPU(const FloatingPointSize& size,
+                             const RoundingMode& rm,
+                             const BitVector& bv,
+                             bool signedBV);
 
-  ~FloatingPointLiteral() {}
+  ~FloatingPointLiteralSymFPU() {}
 
   /** Return the size of this FP literal. */
   const FloatingPointSize& getSize() const { return d_fp_size; };
@@ -93,53 +92,53 @@ class FloatingPointLiteral
   BitVector pack(void) const;
 
   /** Floating-point absolute value literal. */
-  FloatingPointLiteral absolute(void) const;
+  FloatingPointLiteralSymFPU absolute(void) const;
   /** Floating-point negation literal. */
-  FloatingPointLiteral negate(void) const;
+  FloatingPointLiteralSymFPU negate(void) const;
   /** Floating-point addition literal. */
-  FloatingPointLiteral add(const RoundingMode& rm,
-                           const FloatingPointLiteral& arg) const;
+  FloatingPointLiteralSymFPU add(const RoundingMode& rm,
+                                 const FloatingPointLiteralSymFPU& arg) const;
   /** Floating-point subtraction literal. */
-  FloatingPointLiteral sub(const RoundingMode& rm,
-                           const FloatingPointLiteral& arg) const;
+  FloatingPointLiteralSymFPU sub(const RoundingMode& rm,
+                                 const FloatingPointLiteralSymFPU& arg) const;
   /** Floating-point multiplication literal. */
-  FloatingPointLiteral mult(const RoundingMode& rm,
-                            const FloatingPointLiteral& arg) const;
+  FloatingPointLiteralSymFPU mult(const RoundingMode& rm,
+                                  const FloatingPointLiteralSymFPU& arg) const;
   /** Floating-point division literal. */
-  FloatingPointLiteral div(const RoundingMode& rm,
-                           const FloatingPointLiteral& arg) const;
+  FloatingPointLiteralSymFPU div(const RoundingMode& rm,
+                                 const FloatingPointLiteralSymFPU& arg) const;
   /** Floating-point fused multiplication and addition literal. */
-  FloatingPointLiteral fma(const RoundingMode& rm,
-                           const FloatingPointLiteral& arg1,
-                           const FloatingPointLiteral& arg2) const;
+  FloatingPointLiteralSymFPU fma(const RoundingMode& rm,
+                                 const FloatingPointLiteralSymFPU& arg1,
+                                 const FloatingPointLiteralSymFPU& arg2) const;
   /** Floating-point square root literal. */
-  FloatingPointLiteral sqrt(const RoundingMode& rm) const;
+  FloatingPointLiteralSymFPU sqrt(const RoundingMode& rm) const;
   /** Floating-point round to integral literal. */
-  FloatingPointLiteral rti(const RoundingMode& rm) const;
+  FloatingPointLiteralSymFPU rti(const RoundingMode& rm) const;
   /** Floating-point remainder literal. */
-  FloatingPointLiteral rem(const FloatingPointLiteral& arg) const;
+  FloatingPointLiteralSymFPU rem(const FloatingPointLiteralSymFPU& arg) const;
 
   /**
    * Floating-point max literal (total version).
    * zeroCase: true to return the left (rather than the right operand) in case
    *           of max(-0,+0) or max(+0,-0).
    */
-  FloatingPointLiteral maxTotal(const FloatingPointLiteral& arg,
-                                bool zeroCaseLeft) const;
+  FloatingPointLiteralSymFPU maxTotal(const FloatingPointLiteralSymFPU& arg,
+                                      bool zeroCaseLeft) const;
   /**
    * Floating-point min literal (total version).
    * zeroCase: true to return the left (rather than the right operand) in case
    *           of min(-0,+0) or min(+0,-0).
    */
-  FloatingPointLiteral minTotal(const FloatingPointLiteral& arg,
-                                bool zeroCaseLeft) const;
+  FloatingPointLiteralSymFPU minTotal(const FloatingPointLiteralSymFPU& arg,
+                                      bool zeroCaseLeft) const;
 
   /** Equality literal (NOT: fp.eq but =) over floating-point values. */
-  bool operator==(const FloatingPointLiteral& fp) const;
+  bool operator==(const FloatingPointLiteralSymFPU& fp) const;
   /** Floating-point less or equal than literal. */
-  bool operator<=(const FloatingPointLiteral& arg) const;
+  bool operator<=(const FloatingPointLiteralSymFPU& arg) const;
   /** Floating-point less than literal. */
-  bool operator<(const FloatingPointLiteral& arg) const;
+  bool operator<(const FloatingPointLiteralSymFPU& arg) const;
 
   /** Get the exponent of this floating-point value. */
   BitVector getExponent() const;
@@ -167,8 +166,8 @@ class FloatingPointLiteral
    * Convert this floating-point literal to a literal of given size, with
    * respect to given rounding mode.
    */
-  FloatingPointLiteral convert(const FloatingPointSize& target,
-                               const RoundingMode& rm) const;
+  FloatingPointLiteralSymFPU convert(const FloatingPointSize& target,
+                                     const RoundingMode& rm) const;
 
   /**
    * Convert this floating-point literal to a signed bit-vector of given size,
@@ -200,18 +199,18 @@ class FloatingPointLiteral
    * representation -- for this, the above constructor is to be used while
    * creating a SymFPUUnpackedFloatLiteral via symfpu::unpack.
    */
-  FloatingPointLiteral(const FloatingPointSize& size,
-                       const bool sign,
-                       const BitVector& exp,
-                       const BitVector& sig)
+  FloatingPointLiteralSymFPU(const FloatingPointSize& size,
+                             const bool sign,
+                             const BitVector& exp,
+                             const BitVector& sig)
       : d_fp_size(size), d_symuf(SymFPUUnpackedFloatLiteral(sign, exp, sig))
   {
   }
 
   /** Create a FP literal from a symFPU unpacked float. */
-  FloatingPointLiteral(const FloatingPointSize& size,
-                       SymFPUUnpackedFloatLiteral symuf)
-      : d_fp_size(size), d_symuf(symuf){};
+  FloatingPointLiteralSymFPU(const FloatingPointSize& size,
+                             SymFPUUnpackedFloatLiteral symuf)
+      : d_fp_size(size), d_symuf(symuf) {};
 
   /** The floating-point size of this floating-point literal. */
   FloatingPointSize d_fp_size;

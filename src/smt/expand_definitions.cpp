@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -85,7 +82,7 @@ Node ExpandDefs::expandDefinitions(TNode n,
       theory::TheoryId tid = d_env.theoryOf(nr);
       theory::TheoryRewriter* tr = rr->getTheoryRewriter(tid);
 
-      Assert(tr != NULL);
+      Assert(tr != nullptr);
       Trace("expand") << "Expand definition on " << nr << " (from " << n << ")"
                       << std::endl;
       Node nre = tr->expandDefinition(nr);
@@ -110,12 +107,10 @@ Node ExpandDefs::expandDefinitions(TNode n,
       Trace("expand") << "cons : " << node << std::endl;
       if (node.getNumChildren() > 0)
       {
-        // cout << "cons : " << node << std::endl;
         NodeBuilder nb(nodeManager(), node.getKind());
         if (node.getMetaKind() == metakind::PARAMETERIZED)
         {
           Trace("expand") << "op   : " << node.getOperator() << std::endl;
-          // cout << "op   : " << node.getOperator() << std::endl;
           nb << node.getOperator();
         }
         for (size_t i = 0, nchild = node.getNumChildren(); i < nchild; ++i)
@@ -123,7 +118,6 @@ Node ExpandDefs::expandDefinitions(TNode n,
           Assert(!result.empty());
           Node expanded = result.top();
           result.pop();
-          // cout << "exchld : " << expanded << std::endl;
           Trace("expand") << "exchld : " << expanded << std::endl;
           nb << expanded;
         }

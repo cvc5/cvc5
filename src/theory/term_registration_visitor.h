@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Dejan Jovanovic, Andrew Reynolds, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -81,7 +78,7 @@ class PreRegisterVisitor : protected EnvObj
   void start(TNode node);
 
   /** Called when the visitor is finished with a term, do nothing */
-  void done(TNode node) {}
+  void done(CVC5_UNUSED TNode node) {}
 
   /**
    * Preregister the term current occuring under term parent.  This calls

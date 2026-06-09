@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Jeff Trull, Morgan Deters, Tim King
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -587,11 +584,7 @@ class AttrHash<bool> :
     uint64_t d_bit;
 
    public:
-
-    BitIterator() :
-      d_entry(NULL),
-      d_bit(0) {
-    }
+    BitIterator() : d_entry(nullptr), d_bit(0) {}
 
     BitIterator(std::pair<NodeValue* const, uint64_t>& entry, uint64_t bit)
         : d_entry(&entry), d_bit(bit)
@@ -621,11 +614,7 @@ class AttrHash<bool> :
     uint64_t d_bit;
 
    public:
-
-    ConstBitIterator() :
-      d_entry(NULL),
-      d_bit(0) {
-    }
+    ConstBitIterator() : d_entry(nullptr), d_bit(0) {}
 
     ConstBitIterator(const std::pair<NodeValue* const, uint64_t>& entry,
                      uint64_t bit)

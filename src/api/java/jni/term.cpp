@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mudathir Mohamed, Andres Noetzli, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -41,7 +38,7 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Term_getNullTerm(JNIEnv* env,
  * Method:    deletePointer
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_io_github_cvc5_Term_deletePointer(JNIEnv* env,
+JNIEXPORT void JNICALL Java_io_github_cvc5_Term_deletePointer(JNIEnv*,
                                                               jobject,
                                                               jlong pointer)
 {
@@ -546,10 +543,10 @@ JNIEXPORT jstring JNICALL Java_io_github_cvc5_Term_getStringValue(JNIEnv* env,
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Term* current = reinterpret_cast<Term*>(pointer);
-  std::wstring termString = current->getStringValue();
+  std::u32string termString = current->getU32StringValue();
 
   std::u16string utf16String;
-  for (wchar_t wc : termString)
+  for (char32_t wc : termString)
   {
     if (wc <= 0xFFFF)
     {
@@ -559,7 +556,7 @@ JNIEXPORT jstring JNICALL Java_io_github_cvc5_Term_getStringValue(JNIEnv* env,
     else
     {
       // Convert to surrogate pair
-      wchar_t codepoint = wc - 0x10000;
+      char32_t codepoint = wc - 0x10000;
       char16_t highSurrogate =
           static_cast<char16_t>((codepoint >> 10) + 0xD800);
       char16_t lowSurrogate =
@@ -871,7 +868,7 @@ JNIEXPORT jboolean JNICALL Java_io_github_cvc5_Term_isFloatingPointValue(
  * Signature: (J)Lio/github/cvc5/Triplet;
  */
 JNIEXPORT jobject JNICALL Java_io_github_cvc5_Term_getFloatingPointValue(
-    JNIEnv* env, jobject thisObject, jlong pointer)
+    JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Term* current = reinterpret_cast<Term*>(pointer);

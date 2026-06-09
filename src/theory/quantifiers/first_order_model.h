@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Paul Meng, Clark Barrett
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -198,11 +195,11 @@ class FirstOrderModel : protected EnvObj
   /** get variable id */
   std::map<Node, std::map<Node, int> > d_quant_var_id;
   /** process initialize model for term */
-  virtual void processInitializeModelForTerm(Node n) {}
+  virtual void processInitializeModelForTerm(CVC5_UNUSED Node n) {}
   /** process initialize quantifier */
-  virtual void processInitializeQuantifier(Node q) {}
+  virtual void processInitializeQuantifier(CVC5_UNUSED Node q) {}
   /** process initialize */
-  virtual void processInitialize(bool ispre) {}
+  virtual void processInitialize(CVC5_UNUSED bool ispre) {}
 
  private:
   // list of inactive quantified formulas

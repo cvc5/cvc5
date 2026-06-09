@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -220,9 +217,9 @@ bool CegisCoreConnective::processInitialize(Node conj,
 bool CegisCoreConnective::processConstructCandidates(
     const std::vector<Node>& enums,
     const std::vector<Node>& enum_values,
-    const std::vector<Node>& candidates,
+    CVC5_UNUSED const std::vector<Node>& candidates,
     std::vector<Node>& candidate_values,
-    bool satisfiedRl)
+    CVC5_UNUSED bool satisfiedRl)
 {
   Assert(isActive());
   bool ret = constructSolution(enums, enum_values, candidate_values);
@@ -786,7 +783,7 @@ Node CegisCoreConnective::constructSolutionFromPool(Component& ccheck,
       {
         // should never happen, since we check that side condition is
         // satisfiable when initializing the sygus conjecture
-        Assert(false);
+        DebugUnhandled();
         Trace("sygus-ccore") << "--- Empty core, skip" << std::endl;
         return Node::null();
       }

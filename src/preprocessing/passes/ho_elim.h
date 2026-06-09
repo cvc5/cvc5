@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -114,6 +111,17 @@ class HoElim : public PreprocessingPass
    */
   Node eliminateHo(Node n);
   /**
+   * Reconstruct a function-typed term from an HO-elim encoded term.
+   *
+   * Given n : U(T1 -> ... -> Tn -> R), this builds
+   *   lambda x1 : T1, ..., xn : Tn.
+   *     App_{Tn->R}(...App_{T2->...->Tn->R}(App_{T1->...->Tn->R}(n, x1), x2)..., xn)
+   * where each step uses the HO-elim application symbol for the current
+   * remaining function type. The result has type T1 -> ... -> Tn -> R and is
+   * used for model reconstruction via top-level substitutions.
+   */
+  Node reconstructHoFunction(Node n, TypeNode tn);
+  /**
    * Stores the set of nodes we have current visited and their results
    * in steps [1] and [2] of this pass.
    */
@@ -125,6 +133,8 @@ class HoElim : public PreprocessingPass
   std::unordered_map<TNode, Node> d_visited_op;
   /** The set of all function types encountered in assertions. */
   std::unordered_set<TypeNode> d_funTypes;
+  /** Free function symbols from the original input assertions. */
+  std::unordered_set<Node> d_inputFunSymbols;
 
   /**
    * Get ho apply uf, this returns App_{@_{T1 x T2 ... x Tn -> T}}

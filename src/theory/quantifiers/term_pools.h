@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -92,9 +89,7 @@ class TermPools : public QuantifiersUtil
    * q with terms. This adds terms to pools based on INST_ADD_TO_POOL
    * annotations.
    */
-  void processInstantiation(Node q,
-                            const std::vector<Node>& terms,
-                            bool success);
+  void processInstantiation(Node q, const std::vector<Node>& terms);
   /** Same as above, for SKOLEM_ADD_TO_POOL. */
   void processSkolemization(Node q, const std::vector<Node>& skolems);
  private:

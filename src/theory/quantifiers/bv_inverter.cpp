@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Andrew Reynolds, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -112,7 +109,7 @@ Node BvInverter::getInversionNode(Node cond, TypeNode tn, BvInverterQuery* m)
 
 /*---------------------------------------------------------------------------*/
 
-static bool isInvertible(Kind k, unsigned index)
+static bool isInvertible(Kind k)
 {
   return k == Kind::NOT || k == Kind::EQUAL || k == Kind::BITVECTOR_ULT
          || k == Kind::BITVECTOR_SLT || k == Kind::BITVECTOR_COMP
@@ -146,7 +143,7 @@ Node BvInverter::getPathToPv(Node lit,
         size_t ii = (i + rmod) % lit.getNumChildren();
         // only recurse if the kind is invertible
         // this allows us to avoid paths that go through skolem functions
-        if (!isInvertible(lit.getKind(), ii))
+        if (!isInvertible(lit.getKind()))
         {
           continue;
         }

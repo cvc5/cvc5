@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Abdalrhman Mohamed
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -105,6 +102,14 @@ bool hasSubterm(TNode n, const std::vector<Node>& t, bool strict = false);
  * @return true iff this node contains a bound variable
  */
 bool hasBoundVar(TNode n);
+
+/**
+ * @param n The node under investigation
+ * @param fvs The variables to find
+ * @return true iff n contains a variable fvs as a bound variable (i.e. as
+ * the child of a variable list of a binder).
+ */
+bool hasBoundVar(TNode n, const std::unordered_set<Node>& fvs);
 
 /**
  * Returns true iff the node n contains a free variable, that is, a node

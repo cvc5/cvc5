@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Tianyi Liang, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -162,7 +159,9 @@ class TheoryStrings : public Theory {
                        << std::endl;
       d_str.eqNotifyMerge(t1, t2);
     }
-    void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override
+    void eqNotifyDisequal(CVC5_UNUSED TNode t1,
+                          CVC5_UNUSED TNode t2,
+                          CVC5_UNUSED TNode reason) override
     {
     }
 

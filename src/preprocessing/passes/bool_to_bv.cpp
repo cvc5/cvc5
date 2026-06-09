@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Makai Mann, Yoni Zohar, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -262,11 +259,11 @@ void BoolToBV::visit(const TNode& n, bool allowIteIntroduction)
       rebuildNode(n, k);
     }
 
-    updateCache(n,
-                nm->mkNode(Kind::ITE,
-                           fromCache(n),
-                           bv::utils::mkOne(nm, 1),
-                           bv::utils::mkZero(nm, 1)));
+    updateCache(
+        n,
+        nm->mkNode(
+            Kind::ITE,
+            {fromCache(n), bv::utils::mkOne(nm, 1), bv::utils::mkZero(nm, 1)}));
     Trace("bool-to-bv") << "BoolToBV::visit forcing " << n
                         << " =>\n"
                         << fromCache(n) << std::endl;
@@ -290,8 +287,8 @@ void BoolToBV::visit(const TNode& n, bool allowIteIntroduction)
     // with ITE introductions
     updateCache(
         n,
-        nm->mkNode(
-            Kind::ITE, n, bv::utils::mkOne(nm, 1), bv::utils::mkZero(nm, 1)));
+        nm->mkNode(Kind::ITE,
+                   {n, bv::utils::mkOne(nm, 1), bv::utils::mkZero(nm, 1)}));
     Trace("bool-to-bv") << "BoolToBV::visit forcing " << n
                         << " =>\n"
                         << fromCache(n) << std::endl;

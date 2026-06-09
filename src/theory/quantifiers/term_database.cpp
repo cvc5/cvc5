@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -115,6 +112,7 @@ TermDb::TermDb(Env& env, QuantifiersState& qs, QuantifiersRegistry& qr)
       d_ops(context()),
       d_opMap(context()),
       d_inactive_map(context()),
+      d_has_map(context()),
       d_dcproof(options().smt.produceProofs ? new DeqCongProofGenerator(d_env)
                                             : nullptr)
 {
@@ -167,7 +165,7 @@ Node TermDb::getGroundTerm(TNode f, size_t i) const
     Assert(i < it->second->d_list.size());
     return it->second->d_list[i];
   }
-  Assert(false);
+  DebugUnhandled();
   return Node::null();
 }
 
@@ -199,7 +197,7 @@ Node TermDb::getTypeGroundTerm(TypeNode tn, size_t i) const
     Assert(i < it->second->d_list.size());
     return it->second->d_list[i];
   }
-  Assert(false);
+  DebugUnhandled();
   return Node::null();
 }
 
@@ -280,6 +278,23 @@ Node TermDb::getMatchOperator(TNode n)
 }
 
 bool TermDb::isMatchable(TNode n) { return !getMatchOperator(n).isNull(); }
+
+void TermDb::eqNotifyMerge(TNode t1, TNode t2)
+{
+  if (options().quantifiers.termDbMode == options::TermDbMode::RELEVANT)
+  {
+    // Since the equivalence class of t1 and t2 merged, we now consider these
+    // two terms to be relevant in the current context. Note technically this
+    // does not mean that these terms are in assertions, e.g. t1 and t2 may be
+    // merged via congruence if a=b is an assertion and f(a) and f(b) are
+    // preregistered terms. Nevertheless this is a close approximation of the
+    // terms we care about. Since we are listening to the master equality
+    // engine notifications, this also includes internally introduced terms
+    // (if any) introduced by theory solvers.
+    setHasTerm(t1);
+    setHasTerm(t2);
+  }
+}
 
 void TermDb::addTerm(Node n)
 {
@@ -363,6 +378,7 @@ void TermDb::computeUfEqcTerms( TNode f ) {
   {
     return;
   }
+  Trace("term-db-debug") << "computeUfEqcTerms for " << f << std::endl;
   TNodeTrie& tnt = d_func_map_eqc_trie[f];
   tnt.clear();
   // get the matchable operators in the equivalence class of f
@@ -379,6 +395,9 @@ void TermDb::computeUfEqcTerms( TNode f ) {
         computeArgReps(n);
         TNode r = ee->hasTerm(n) ? ee->getRepresentative(n) : TNode(n);
         tnt.d_data[r].addTerm(n, d_arg_reps[n]);
+        Trace("term-db-debug")
+            << "Adding term " << n << " to eqc " << r
+            << " with arg reps : " << d_arg_reps[n] << std::endl;
       }
     }
   }
@@ -429,22 +448,8 @@ void TermDb::computeUfTerms( TNode f ) {
 
       computeArgReps(n);
       std::vector<TNode>& reps = d_arg_reps[n];
-      Trace("term-db-debug") << "Adding term " << n << " with arg reps : ";
-      std::vector<std::vector<TNode> >& frds = d_fmapRelDom[f];
-      size_t rsize = reps.size();
-      // ensure the relevant domain vector has been allocated
-      frds.resize(rsize);
-      for (size_t i = 0; i < rsize; i++)
-      {
-        TNode r = reps[i];
-        Trace("term-db-debug") << r << " ";
-        std::vector<TNode>& frd = frds[i];
-        if (std::find(frd.begin(), frd.end(), r) == frd.end())
-        {
-          frd.push_back(r);
-        }
-      }
-      Trace("term-db-debug") << std::endl;
+      Trace("term-db-debug")
+          << "Adding term " << n << " with arg reps : " << reps << std::endl;
       Assert(d_qstate.hasTerm(n));
       Trace("term-db-debug")
           << "  and value : " << d_qstate.getRepresentative(n) << std::endl;
@@ -470,7 +475,7 @@ void TermDb::computeUfTerms( TNode f ) {
             Assert(d_qstate.areEqual(at[k], n[k]));
           }
         }
-        Node lem = nm->mkNode(Kind::IMPLIES, nm->mkAnd(antec), at.eqNode(n));
+        Node lem = nm->mkNode(Kind::IMPLIES, {nm->mkAnd(antec), at.eqNode(n)});
         if (TraceIsOn("term-db-lemma"))
         {
           Trace("term-db-lemma") << "Disequal congruent terms : " << at << " "
@@ -489,6 +494,21 @@ void TermDb::computeUfTerms( TNode f ) {
                                d_dcproof.get());
         d_qstate.notifyInConflict();
         return;
+      }
+      // Also populate relevant domain. Note this only will add if the term is
+      // non-congruent, which is why we wait to compute it here.
+      std::vector<std::vector<TNode> >& frds = d_fmapRelDom[f];
+      size_t rsize = reps.size();
+      // ensure the relevant domain vector has been allocated
+      frds.resize(rsize);
+      for (size_t i = 0; i < rsize; i++)
+      {
+        TNode r = reps[i];
+        std::vector<TNode>& frd = frds[i];
+        if (std::find(frd.begin(), frd.end(), r) == frd.end())
+        {
+          frd.push_back(r);
+        }
       }
       nonCongruentCount++;
       d_op_nonred_count[f]++;
@@ -509,7 +529,9 @@ void TermDb::computeUfTerms( TNode f ) {
 
 Node TermDb::getOperatorRepresentative(TNode op) const { return op; }
 
-bool TermDb::checkCongruentDisequal(TNode a, TNode b, std::vector<Node>& exp)
+bool TermDb::checkCongruentDisequal(TNode a,
+                                    TNode b,
+                                    CVC5_UNUSED std::vector<Node>& exp)
 {
   if (d_qstate.areDisequal(a, b))
   {
@@ -558,7 +580,7 @@ bool TermDb::hasTermCurrent(const Node& n, bool useMode) const
   {
     return d_has_map.find( n )!=d_has_map.end();
   }
-  Assert(false) << "TermDb::hasTermCurrent: Unknown termDbMode : "
+  DebugUnhandled() << "TermDb::hasTermCurrent: Unknown termDbMode : "
                 << options().quantifiers.termDbMode;
   return false;
 }
@@ -622,13 +644,13 @@ Node TermDb::getEligibleTermInEqc( TNode r ) {
   }
 }
 
-bool TermDb::finishResetInternal(Theory::Effort e)
+bool TermDb::finishResetInternal(CVC5_UNUSED Theory::Effort e)
 {
   // do nothing
   return true;
 }
 
-void TermDb::addTermInternal(Node n)
+void TermDb::addTermInternal(CVC5_UNUSED Node n)
 {
   // do nothing
 }
@@ -638,14 +660,22 @@ void TermDb::getOperatorsFor(TNode f, std::vector<TNode>& ops)
   ops.push_back(f);
 }
 
-void TermDb::setHasTerm( Node n ) {
+void TermDb::setHasTerm(Node n)
+{
   Trace("term-db-debug2") << "hasTerm : " << n  << std::endl;
-  if( d_has_map.find( n )==d_has_map.end() ){
-    d_has_map[n] = true;
-    for( unsigned i=0; i<n.getNumChildren(); i++ ){
-      setHasTerm( n[i] );
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(n);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    if (d_has_map.find(cur) == d_has_map.end())
+    {
+      d_has_map.insert(cur);
+      visit.insert(visit.end(), cur.begin(), cur.end());
     }
-  }
+  } while (!visit.empty());
 }
 
 void TermDb::presolve() {}
@@ -657,37 +687,12 @@ bool TermDb::reset( Theory::Effort effort ){
   d_func_map_eqc_trie.clear();
   d_fmapRelDom.clear();
 
-  eq::EqualityEngine* ee = d_qstate.getEqualityEngine();
-
-  Assert(ee->consistent());
+  Assert(d_qstate.getEqualityEngine()->consistent());
 
   //compute has map
   if (options().quantifiers.termDbMode == options::TermDbMode::RELEVANT)
   {
-    d_has_map.clear();
     d_term_elig_eqc.clear();
-    eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( ee );
-    while( !eqcs_i.isFinished() ){
-      TNode r = (*eqcs_i);
-      bool addedFirst = false;
-      Node first;
-      //TODO: ignoring singleton eqc isn't enough, need to ensure eqc are relevant
-      eq::EqClassIterator eqc_i = eq::EqClassIterator(r, ee);
-      while( !eqc_i.isFinished() ){
-        TNode n = (*eqc_i);
-        if( first.isNull() ){
-          first = n;
-        }else{
-          if( !addedFirst ){
-            addedFirst = true;
-            setHasTerm( first );
-          }
-          setHasTerm( n );
-        }
-        ++eqc_i;
-      }
-      ++eqcs_i;
-    }
     const LogicInfo& logicInfo = d_qstate.getLogicInfo();
     for (TheoryId theoryId = THEORY_FIRST; theoryId < THEORY_LAST; ++theoryId)
     {
@@ -695,6 +700,11 @@ bool TermDb::reset( Theory::Effort effort ){
       {
         continue;
       }
+      // Note that we have already marked all terms that have participated in
+      // equality engine merges as relevant. We go back and ensure all
+      // remaining terms that appear in assertions are marked relevant here
+      // in case there are terms appearing in assertions but not in the master
+      // equality engine.
       for (context::CDList<Assertion>::const_iterator
                it = d_qstate.factsBegin(theoryId),
                it_end = d_qstate.factsEnd(theoryId);
@@ -717,7 +727,7 @@ TNodeTrie* TermDb::getTermArgTrie(Node f)
   if( itut!=d_func_map_trie.end() ){
     return &itut->second;
   }else{
-    return NULL;
+    return nullptr;
   }
 }
 
@@ -727,7 +737,7 @@ TNodeTrie* TermDb::getTermArgTrie(Node eqc, Node f)
   computeUfEqcTerms( f );
   std::map<Node, TNodeTrie>::iterator itut = d_func_map_eqc_trie.find(f);
   if( itut==d_func_map_eqc_trie.end() ){
-    return NULL;
+    return nullptr;
   }else{
     if( eqc.isNull() ){
       return &itut->second;
@@ -737,7 +747,7 @@ TNodeTrie* TermDb::getTermArgTrie(Node eqc, Node f)
       if( itute!=itut->second.d_data.end() ){
         return &itute->second;
       }else{
-        return NULL;
+        return nullptr;
       }
     }
   }

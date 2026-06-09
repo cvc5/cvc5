@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Tim King, Andres Noetzli, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -68,10 +65,7 @@ Node ArithVariables::asNode(ArithVar a) const{
   return d_vars[a].d_node;
 }
 
-ArithVariables::var_iterator::var_iterator()
-  : d_vars(NULL)
-  , d_wrapped()
-{}
+ArithVariables::var_iterator::var_iterator() : d_vars(nullptr), d_wrapped() {}
 
 ArithVariables::var_iterator::var_iterator(const VarInfoVec* vars, VarInfoVec::const_iterator ci)
   : d_vars(vars), d_wrapped(ci)

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Tim King, Daniel Larraz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -116,7 +113,7 @@ public:
   // push the substitution pv_prop.getModifiedTerm(pv) -> n
   void push_back(Node pv, Node n, TermProperties& pv_prop);
   // pop the substitution pv_prop.getModifiedTerm(pv) -> n
-  void pop_back(Node pv, Node n, TermProperties& pv_prop);
+  void pop_back(TermProperties& pv_prop);
   // is this solved form empty?
   bool empty() { return d_vars.empty(); }
 public:

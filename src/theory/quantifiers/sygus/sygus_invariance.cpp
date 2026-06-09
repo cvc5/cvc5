@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -88,8 +85,10 @@ bool EvalSygusInvarianceTest::invariant(TermDbSygus* tds, Node nvn, Node x)
   return d_is_conjunctive;
 }
 
-void EquivSygusInvarianceTest::init(
-    TermDbSygus* tds, TypeNode tn, SynthConjecture* aconj, Node e, Node bvr)
+void EquivSygusInvarianceTest::init(CVC5_UNUSED TermDbSygus* tds,
+                                    SynthConjecture* aconj,
+                                    Node e,
+                                    Node bvr)
 {
   // compute the current examples
   d_bvr = bvr;
@@ -133,7 +132,7 @@ bool EquivSygusInvarianceTest::invariant(TermDbSygus* tds, Node nvn, Node x)
       if (xtn == tn)
       {
         Node bx = tds->sygusToBuiltin(x, xtn);
-        Assert(bx.getType() == nbvr.getType());
+        AssertEqual(bx.getType(), nbvr.getType());
         if (nbvr == bx)
         {
           Trace("sygus-sb-mexp") << "sb-min-exp : " << tds->sygusToBuiltin(nvn)

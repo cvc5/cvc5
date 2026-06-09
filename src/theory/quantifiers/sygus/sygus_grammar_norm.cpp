@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Haniel Barbosa, Andrew Reynolds, Daniel Larraz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -128,10 +125,11 @@ void SygusGrammarNorm::TypeObject::initializeDatatype(
   Trace("sygus-grammar-normalize") << "---------------------------------\n";
 }
 
-void SygusGrammarNorm::TransfDrop::buildType(SygusGrammarNorm* sygus_norm,
-                                             TypeObject& to,
-                                             const DType& dt,
-                                             std::vector<unsigned>& op_pos)
+void SygusGrammarNorm::TransfDrop::buildType(
+    CVC5_UNUSED SygusGrammarNorm* sygus_norm,
+    CVC5_UNUSED TypeObject& to,
+    CVC5_UNUSED const DType& dt,
+    std::vector<unsigned>& op_pos)
 {
   std::vector<unsigned> difference;
   std::set_difference(op_pos.begin(),

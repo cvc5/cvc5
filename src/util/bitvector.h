@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Andres Noetzli, Dejan Jovanovic
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -60,7 +57,7 @@ class BitVector
   }
 
   BitVector(unsigned size, const BitVector& q)
-      : d_size(size), d_value(q.d_value)
+      : d_size(size), d_value(q.d_value.modByPow2(size))
   {
   }
 
@@ -79,16 +76,6 @@ class BitVector
    * @param base The base of the string representation.
    */
   BitVector(const std::string& num, uint32_t base = 2);
-
-  ~BitVector() {}
-
-  BitVector& operator=(const BitVector& x)
-  {
-    if (this == &x) return *this;
-    d_size = x.d_size;
-    d_value = x.d_value;
-    return *this;
-  }
 
   /* Get size (bit-width). */
   unsigned getSize() const;
@@ -209,7 +196,7 @@ class BitVector
  private:
   /**
    * Class invariants:
-   *  - no overflows: 2^d_size < d_value
+   *  - no overflows: d_value < 2^d_size
    *  - no negative numbers: d_value >= 0
    */
 

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Andrew Reynolds, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -52,8 +49,7 @@ std::vector<Node> makeNSkolemNodes(NodeManager* nodeManager,
   SkolemManager* sm = nodeManager->getSkolemManager();
   for (uint32_t i = 0; i < n; i++)
   {
-    skolems.push_back(
-        sm->mkDummySkolem("skolem_", type, "Created by makeNSkolemNodes()"));
+    skolems.push_back(sm->mkDummySkolem("skolem_", type));
   }
   return skolems;
 }
@@ -538,13 +534,13 @@ TEST_F(TestNodeBlackNode, toString)
   TypeNode booleanType = d_nodeManager->booleanType();
 
   Node w = d_skolemManager->mkDummySkolem(
-      "w", booleanType, "", SkolemFlags::SKOLEM_EXACT_NAME);
+      "w", booleanType, SkolemFlags::SKOLEM_EXACT_NAME);
   Node x = d_skolemManager->mkDummySkolem(
-      "x", booleanType, "", SkolemFlags::SKOLEM_EXACT_NAME);
+      "x", booleanType, SkolemFlags::SKOLEM_EXACT_NAME);
   Node y = d_skolemManager->mkDummySkolem(
-      "y", booleanType, "", SkolemFlags::SKOLEM_EXACT_NAME);
+      "y", booleanType, SkolemFlags::SKOLEM_EXACT_NAME);
   Node z = d_skolemManager->mkDummySkolem(
-      "z", booleanType, "", SkolemFlags::SKOLEM_EXACT_NAME);
+      "z", booleanType, SkolemFlags::SKOLEM_EXACT_NAME);
   Node m = NodeBuilder(d_nodeManager.get()) << w << x << Kind::OR;
   Node n = NodeBuilder(d_nodeManager.get()) << m << y << z << Kind::AND;
 
@@ -556,13 +552,13 @@ TEST_F(TestNodeBlackNode, toStream)
   TypeNode booleanType = d_nodeManager->booleanType();
 
   Node w = d_skolemManager->mkDummySkolem(
-      "w", booleanType, "", SkolemFlags::SKOLEM_EXACT_NAME);
+      "w", booleanType, SkolemFlags::SKOLEM_EXACT_NAME);
   Node x = d_skolemManager->mkDummySkolem(
-      "x", booleanType, "", SkolemFlags::SKOLEM_EXACT_NAME);
+      "x", booleanType, SkolemFlags::SKOLEM_EXACT_NAME);
   Node y = d_skolemManager->mkDummySkolem(
-      "y", booleanType, "", SkolemFlags::SKOLEM_EXACT_NAME);
+      "y", booleanType, SkolemFlags::SKOLEM_EXACT_NAME);
   Node z = d_skolemManager->mkDummySkolem(
-      "z", booleanType, "", SkolemFlags::SKOLEM_EXACT_NAME);
+      "z", booleanType, SkolemFlags::SKOLEM_EXACT_NAME);
   Node m = NodeBuilder(d_nodeManager.get()) << x << y << Kind::OR;
   Node n = NodeBuilder(d_nodeManager.get()) << w << m << z << Kind::AND;
   Node o = NodeBuilder(d_nodeManager.get()) << n << n << Kind::XOR;
@@ -629,13 +625,13 @@ TEST_F(TestNodeBlackNode, dagifier)
   TypeNode fnType = d_nodeManager->mkFunctionType(intType, intType);
 
   Node x = d_skolemManager->mkDummySkolem(
-      "x", intType, "", SkolemFlags::SKOLEM_EXACT_NAME);
+      "x", intType, SkolemFlags::SKOLEM_EXACT_NAME);
   Node y = d_skolemManager->mkDummySkolem(
-      "y", intType, "", SkolemFlags::SKOLEM_EXACT_NAME);
+      "y", intType, SkolemFlags::SKOLEM_EXACT_NAME);
   Node f = d_skolemManager->mkDummySkolem(
-      "f", fnType, "", SkolemFlags::SKOLEM_EXACT_NAME);
+      "f", fnType, SkolemFlags::SKOLEM_EXACT_NAME);
   Node g = d_skolemManager->mkDummySkolem(
-      "g", fnType, "", SkolemFlags::SKOLEM_EXACT_NAME);
+      "g", fnType, SkolemFlags::SKOLEM_EXACT_NAME);
   Node fx = d_nodeManager->mkNode(Kind::APPLY_UF, f, x);
   Node fy = d_nodeManager->mkNode(Kind::APPLY_UF, f, y);
   Node gx = d_nodeManager->mkNode(Kind::APPLY_UF, g, x);

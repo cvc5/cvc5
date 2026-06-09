@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Gereon Kremer, Mathias Preiner, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -109,6 +106,9 @@ std::size_t totalDegree(const poly::Polynomial& p);
  */
 struct VariableInformation
 {
+  /** The libpoly context */
+  const poly::Context* polyCtx;
+  /** The variable */
   poly::Variable var;
   /** Maximum degree of this variable. */
   std::size_t max_degree = 0;

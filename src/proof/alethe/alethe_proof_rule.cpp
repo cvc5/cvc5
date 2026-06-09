@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Hanna Lachnitt, Haniel Barbosa
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -32,6 +29,7 @@ const char* aletheRuleToString(AletheRule id)
     case AletheRule::ANCHOR_BIND: return "bind";
     case AletheRule::ANCHOR_SKO_FORALL: return "sko_forall";
     case AletheRule::ANCHOR_SKO_EX: return "sko_ex";
+    case AletheRule::ANCHOR_ONEPOINT: return "onepoint";
     case AletheRule::TRUE: return "true";
     case AletheRule::FALSE: return "false";
     case AletheRule::NOT_NOT: return "not_not";
@@ -98,8 +96,12 @@ const char* aletheRuleToString(AletheRule id)
     case AletheRule::NOT_ITE1: return "not_ite1";
     case AletheRule::NOT_ITE2: return "not_ite2";
     case AletheRule::ITE_INTRO: return "ite_intro";
+    case AletheRule::DIV_INTRO: return "div_intro";
+    case AletheRule::LOG2_INTRO: return "log2_intro";
+    case AletheRule::TO_INT_INTRO: return "to_int_intro";
     case AletheRule::CONTRACTION: return "contraction";
     case AletheRule::CONNECTIVE_DEF: return "connective_def";
+    case AletheRule::AC_SIMP: return "ac_simp";
     case AletheRule::ITE_SIMPLIFY: return "ite_simplify";
     case AletheRule::EQ_SIMPLIFY: return "eq_simplify";
     case AletheRule::AND_SIMPLIFY: return "and_simplify";
@@ -121,10 +123,22 @@ const char* aletheRuleToString(AletheRule id)
     case AletheRule::SKO_EX: return "sko_ex";
     case AletheRule::SKO_FORALL: return "sko_forall";
     case AletheRule::ALL_SIMPLIFY: return "all_simplify";
+    case AletheRule::ACI_SIMP: return "aci_simp";
+    case AletheRule::POLY_SIMP: return "poly_simp";
+    case AletheRule::POLY_SIMP_REL: return "poly_simp_rel";
+    case AletheRule::EVALUATE: return "evaluate";
     case AletheRule::RARE_REWRITE: return "rare_rewrite";
     case AletheRule::SYMM: return "symm";
     case AletheRule::NOT_SYMM: return "not_symm";
+    case AletheRule::MINISCOPE_DISTRIBUTE: return "miniscope_distribute";
+    case AletheRule::MINISCOPE_SPLIT: return "miniscope_split";
+    case AletheRule::MINISCOPE_ITE: return "miniscope_ite";
     case AletheRule::REORDERING: return "reordering";
+    case AletheRule::BETA_EQUIVALENCE: return "beta_equiv";
+    case AletheRule::ARRAYS_IDX: return "arrays_idx";
+    case AletheRule::ARRAYS_ROW: return "arrays_row";
+    case AletheRule::ARRAYS_ROW_CONTRA: return "arrays_row_contra";
+    case AletheRule::ARRAYS_EXT: return "arrays_ext";
     case AletheRule::BV_BITBLAST_STEP_VAR: return "bv_bitblast_step_var";
     case AletheRule::BV_BITBLAST_STEP_BVAND: return "bv_bitblast_step_bvand";
     case AletheRule::BV_BITBLAST_STEP_BVOR: return "bv_bitblast_step_bvor";
@@ -146,8 +160,12 @@ const char* aletheRuleToString(AletheRule id)
     case AletheRule::BV_BITBLAST_STEP_CONST: return "bv_bitblast_step_const";
     case AletheRule::BV_BITBLAST_STEP_SIGN_EXTEND:
       return "bv_bitblast_step_sign_extend";
+    //================================================= Temporary
+    case AletheRule::BV_BITWISE_SLICING: return "bv_bitwise_slicing";
+    case AletheRule::BV_REPEAT_ELIM: return "bv_repeat_elim";
     //================================================= Hole
     case AletheRule::HOLE: return "hole";
+    case AletheRule::AND_INTRO: return "and_intro";
     //================================================= Undefined rule
     case AletheRule::UNDEFINED: return "undefined";
     default: return "?";

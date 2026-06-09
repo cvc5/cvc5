@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Haniel Barbosa, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,7 +17,7 @@
 
 #include "expr/node.h"
 #include "expr/node_converter.h"
-#include "proof/alf/alf_node_converter.h"
+#include "proof/eo/eo_node_converter.h"
 
 namespace cvc5::internal {
 namespace proof {
@@ -29,7 +26,7 @@ namespace proof {
  * This is a helper class for the Alethe post-processor that converts nodes into
  * their expected form in Alethe.
  */
-class AletheNodeConverter : public BaseAlfNodeConverter
+class AletheNodeConverter : public BaseEoNodeConverter
 {
  public:
   /** Constructor
@@ -39,7 +36,7 @@ class AletheNodeConverter : public BaseAlfNodeConverter
    * separately.
    */
   AletheNodeConverter(NodeManager* nm, bool defineSkolems = false)
-      : BaseAlfNodeConverter(nm), d_defineSkolems(defineSkolems)
+      : BaseEoNodeConverter(nm), d_defineSkolems(defineSkolems)
   {
   }
   ~AletheNodeConverter() {}
@@ -75,14 +72,14 @@ class AletheNodeConverter : public BaseAlfNodeConverter
                         TypeNode tn,
                         bool useRawSym = true) override;
 
-  Node getOperatorOfTerm(Node n) override { return Node::null(); };
+  Node getOperatorOfTerm(CVC5_UNUSED Node n) override { return Node::null(); };
 
-  Node typeAsNode(TypeNode tni) override { return Node::null(); };
+  Node typeAsNode(CVC5_UNUSED TypeNode tni) override { return Node::null(); };
 
-  Node mkInternalApp(const std::string& name,
-                     const std::vector<Node>& args,
-                     TypeNode ret,
-                     bool useRawSym = true) override
+  Node mkInternalApp(CVC5_UNUSED const std::string& name,
+                     CVC5_UNUSED const std::vector<Node>& args,
+                     CVC5_UNUSED TypeNode ret,
+                     CVC5_UNUSED bool useRawSym = true) override
   {
     return Node::null();
   };

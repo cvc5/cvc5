@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Mudathir Mohamed, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -53,8 +50,7 @@ TheorySetsPrivate::TheorySetsPrivate(Env& env,
       d_external(external),
       d_state(state),
       d_im(im),
-      d_skCache(skc),
-      d_treg(d_env, state, im, skc),
+      d_treg(d_env, im, skc),
       d_rels(new TheorySetsRels(d_env, state, im, skc, d_treg)),
       d_cardSolver(new CardinalityExtension(d_env, state, im, d_treg)),
       d_hasEnabledRels(false),
@@ -164,7 +160,9 @@ void TheorySetsPrivate::eqNotifyMerge(TNode t1, TNode t2)
   }
 }
 
-void TheorySetsPrivate::eqNotifyDisequal(TNode t1, TNode t2, TNode reason)
+void TheorySetsPrivate::eqNotifyDisequal(TNode t1,
+                                         TNode t2,
+                                         CVC5_UNUSED TNode reason)
 {
   if (t1.getType().isSet())
   {
@@ -184,7 +182,7 @@ TheorySetsPrivate::EqcInfo* TheorySetsPrivate::getOrMakeEqcInfo(TNode n,
   std::map<Node, EqcInfo*>::iterator eqc_i = d_eqc_info.find(n);
   if (eqc_i == d_eqc_info.end())
   {
-    EqcInfo* ei = NULL;
+    EqcInfo* ei = nullptr;
     if (doMake)
     {
       ei = new EqcInfo(context());
@@ -211,7 +209,7 @@ void TheorySetsPrivate::ensureCardinalityEnabled()
       std::stringstream ss;
       ss << "Set cardinality is not supported in this configuration, try "
             "--sets-card-exp.";
-      throw LogicException(ss.str());
+      throw SafeLogicException(ss.str());
     }
     d_hasEnabledCard = true;
   }
@@ -230,7 +228,7 @@ void TheorySetsPrivate::ensureRelationsEnabled()
       std::stringstream ss;
       ss << "Relations are not supported in this configuration, try "
             "--rels-exp.";
-      throw LogicException(ss.str());
+      throw SafeLogicException(ss.str());
     }
     d_hasEnabledRels = true;
   }
@@ -1083,7 +1081,7 @@ void TheorySetsPrivate::groupNotEmpty(Node n)
 void TheorySetsPrivate::groupUp1(Node n, Node x, Node part)
 {
   Assert(n.getKind() == Kind::RELATION_GROUP);
-  Assert(x.getType() == n[0].getType().getSetElementType());
+  AssertEqual(x.getType(), n[0].getType().getSetElementType());
   NodeManager* nm = nodeManager();
 
   Node A = n[0];
@@ -1114,7 +1112,7 @@ void TheorySetsPrivate::groupUp1(Node n, Node x, Node part)
 void TheorySetsPrivate::groupUp2(Node n, Node x, Node part)
 {
   Assert(n.getKind() == Kind::RELATION_GROUP);
-  Assert(x.getType() == n[0].getType().getSetElementType());
+  AssertEqual(x.getType(), n[0].getType().getSetElementType());
   NodeManager* nm = nodeManager();
   Node A = n[0];
   TypeNode setType = A.getType();
@@ -1134,8 +1132,8 @@ void TheorySetsPrivate::groupUp2(Node n, Node x, Node part)
 void TheorySetsPrivate::groupDown(Node n, Node B, Node x, Node part)
 {
   Assert(n.getKind() == Kind::RELATION_GROUP);
-  Assert(B.getType() == n.getType().getSetElementType());
-  Assert(x.getType() == n[0].getType().getSetElementType());
+  AssertEqual(B.getType(), n.getType().getSetElementType());
+  AssertEqual(x.getType(), n[0].getType().getSetElementType());
   NodeManager* nm = nodeManager();
   Node A = n[0];
   TypeNode setType = A.getType();
@@ -1158,7 +1156,7 @@ void TheorySetsPrivate::groupDown(Node n, Node B, Node x, Node part)
 void TheorySetsPrivate::groupPartMember(Node n, Node B, Node part)
 {
   Assert(n.getKind() == Kind::RELATION_GROUP);
-  Assert(B.getType() == n.getType().getSetElementType());
+  AssertEqual(B.getType(), n.getType().getSetElementType());
 
   NodeManager* nm = nodeManager();
   SkolemManager* sm = nm->getSkolemManager();
@@ -1192,9 +1190,9 @@ void TheorySetsPrivate::groupSameProjection(
     Node n, Node B, Node x, Node y, Node part)
 {
   Assert(n.getKind() == Kind::RELATION_GROUP);
-  Assert(B.getType() == n.getType().getSetElementType());
-  Assert(x.getType() == n[0].getType().getSetElementType());
-  Assert(y.getType() == n[0].getType().getSetElementType());
+  AssertEqual(B.getType(), n.getType().getSetElementType());
+  AssertEqual(x.getType(), n[0].getType().getSetElementType());
+  AssertEqual(y.getType(), n[0].getType().getSetElementType());
   NodeManager* nm = nodeManager();
 
   Node A = n[0];
@@ -1234,9 +1232,9 @@ void TheorySetsPrivate::groupSameProjection(
 void TheorySetsPrivate::groupSamePart(Node n, Node B, Node x, Node y, Node part)
 {
   Assert(n.getKind() == Kind::RELATION_GROUP);
-  Assert(B.getType() == n.getType().getSetElementType());
-  Assert(x.getType() == n[0].getType().getSetElementType());
-  Assert(y.getType() == n[0].getType().getSetElementType());
+  AssertEqual(B.getType(), n.getType().getSetElementType());
+  AssertEqual(x.getType(), n[0].getType().getSetElementType());
+  AssertEqual(y.getType(), n[0].getType().getSetElementType());
   NodeManager* nm = nodeManager();
   Node A = n[0];
   TypeNode setType = A.getType();
@@ -1377,11 +1375,11 @@ void TheorySetsPrivate::checkReduceComprehensions()
     body = nm->mkNode(Kind::EXISTS, bvl, body);
     Node k = sm->mkPurifySkolem(n);
     Node mem = nm->mkNode(Kind::SET_MEMBER, v, k);
-    Node lem = nm->mkNode(Kind::AND,
-                          k.eqNode(n),
-                          nm->mkNode(Kind::FORALL,
-                                     nm->mkNode(Kind::BOUND_VAR_LIST, v),
-                                     body.eqNode(mem)));
+    Node lem = nm->mkNode(
+        Kind::AND,
+        {k.eqNode(n),
+         nm->mkNode(Kind::FORALL,
+                    {nm->mkNode(Kind::BOUND_VAR_LIST, v), body.eqNode(mem)})});
     Trace("sets-comprehension")
         << "Comprehension reduction: " << lem << std::endl;
     d_im.lemma(lem, InferenceId::SETS_COMPREHENSION);
@@ -1413,7 +1411,9 @@ void TheorySetsPrivate::postCheck(Theory::Effort level)
   Trace("sets-check") << "Sets finish Check effort " << level << std::endl;
 }
 
-void TheorySetsPrivate::notifyFact(TNode atom, bool polarity, TNode fact)
+void TheorySetsPrivate::notifyFact(TNode atom,
+                                   bool polarity,
+                                   CVC5_UNUSED TNode fact)
 {
   if (d_state.isInConflict())
   {

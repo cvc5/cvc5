@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Tim King, Morgan Deters, Yancheng Ou
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -79,9 +76,9 @@ public:
     handle(HElement* p) : d_pointer(p){}
     friend class BinaryHeap;
   public:
-    handle() : d_pointer(NULL) {}
+    handle() : d_pointer(nullptr) {}
     const T& operator*() const {
-      Assert(d_pointer != NULL);
+      Assert(d_pointer != nullptr);
       return d_pointer->d_elem;
     }
 
@@ -369,11 +366,16 @@ private:
 
   bool debugHandle(handle h) const{
     HElement* he = h.d_pointer;
-    if( he == NULL ){
+    if (he == nullptr)
+    {
       return true;
-    }else if(he->d_pos >= size()){
+    }
+    else if (he->d_pos >= size())
+    {
       return false;
-    }else{
+    }
+    else
+    {
       return he == d_heap[he->d_pos];
     }
   }

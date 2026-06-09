@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Abdalrhman Mohamed
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -158,8 +155,7 @@ void CegSingleInv::finishInit(bool syntaxRestricted)
   d_sip->getSingleInvocationVariables(sivars);
   for (unsigned i = 0, size = sivars.size(); i < size; i++)
   {
-    Node v = NodeManager::mkDummySkolem(
-        "a", sivars[i].getType(), "single invocation arg");
+    Node v = NodeManager::mkDummySkolem("a", sivars[i].getType());
     d_single_inv_arg_sk.push_back(v);
   }
   d_single_inv = d_single_inv.substitute(sivars.begin(),

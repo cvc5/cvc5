@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Gereon Kremer, Hans-Joerg Schurr, Daniel Larraz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -438,15 +435,8 @@ std::shared_ptr<ProofNode> ProofCircuitPropagatorBackward::impliesNegY()
 }
 
 ProofCircuitPropagatorForward::ProofCircuitPropagatorForward(
-    NodeManager* nm,
-    ProofNodeManager* pnm,
-    Node child,
-    bool childAssignment,
-    Node parent)
-    : ProofCircuitPropagator{nm, pnm},
-      d_child(child),
-      d_childAssignment(childAssignment),
-      d_parent(parent)
+    NodeManager* nm, ProofNodeManager* pnm, Node child, Node parent)
+    : ProofCircuitPropagator{nm, pnm}, d_child(child), d_parent(parent)
 {
 }
 

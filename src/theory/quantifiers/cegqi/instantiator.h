@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -51,10 +48,10 @@ class Instantiator : protected EnvObj
    * This function sets up any initial information necessary for constructing
    * instantiations for pv based on the current context.
    */
-  virtual void reset(CegInstantiator* ci,
-                     SolvedForm& sf,
-                     Node pv,
-                     CegInstEffort effort)
+  virtual void reset(CVC5_UNUSED CegInstantiator* ci,
+                     CVC5_UNUSED SolvedForm& sf,
+                     CVC5_UNUSED Node pv,
+                     CVC5_UNUSED CegInstEffort effort)
   {
   }
 
@@ -63,10 +60,10 @@ class Instantiator : protected EnvObj
    * Whether this instantiator implements processEqualTerm and
    * processEqualTerms.
    */
-  virtual bool hasProcessEqualTerm(CegInstantiator* ci,
-                                   SolvedForm& sf,
-                                   Node pv,
-                                   CegInstEffort effort)
+  virtual bool hasProcessEqualTerm(CVC5_UNUSED CegInstantiator* ci,
+                                   CVC5_UNUSED SolvedForm& sf,
+                                   CVC5_UNUSED Node pv,
+                                   CVC5_UNUSED CegInstEffort effort)
   {
     return false;
   }
@@ -93,20 +90,20 @@ class Instantiator : protected EnvObj
    * Returns true if an instantiation was successfully added via a call to
    * CegInstantiator::constructInstantiationInc.
    */
-  virtual bool processEqualTerms(CegInstantiator* ci,
-                                 SolvedForm& sf,
-                                 Node pv,
-                                 std::vector<Node>& eqc,
-                                 CegInstEffort effort)
+  virtual bool processEqualTerms(CVC5_UNUSED CegInstantiator* ci,
+                                 CVC5_UNUSED SolvedForm& sf,
+                                 CVC5_UNUSED Node pv,
+                                 CVC5_UNUSED std::vector<Node>& eqc,
+                                 CVC5_UNUSED CegInstEffort effort)
   {
     return false;
   }
 
   /** whether the instantiator implements processEquality */
-  virtual bool hasProcessEquality(CegInstantiator* ci,
-                                  SolvedForm& sf,
-                                  Node pv,
-                                  CegInstEffort effort)
+  virtual bool hasProcessEquality(CVC5_UNUSED CegInstantiator* ci,
+                                  CVC5_UNUSED SolvedForm& sf,
+                                  CVC5_UNUSED Node pv,
+                                  CVC5_UNUSED CegInstEffort effort)
   {
     return false;
   }
@@ -122,21 +119,22 @@ class Instantiator : protected EnvObj
    *  Returns true if an instantiation was successfully added via a call to
    *  CegInstantiator::constructInstantiationInc.
    */
-  virtual bool processEquality(CegInstantiator* ci,
-                               SolvedForm& sf,
-                               Node pv,
-                               std::vector<TermProperties>& term_props,
-                               std::vector<Node>& terms,
-                               CegInstEffort effort)
+  virtual bool processEquality(
+      CVC5_UNUSED CegInstantiator* ci,
+      CVC5_UNUSED SolvedForm& sf,
+      CVC5_UNUSED Node pv,
+      CVC5_UNUSED std::vector<TermProperties>& term_props,
+      CVC5_UNUSED std::vector<Node>& terms,
+      CVC5_UNUSED CegInstEffort effort)
   {
     return false;
   }
 
   /** whether the instantiator implements processAssertion for any literal */
-  virtual bool hasProcessAssertion(CegInstantiator* ci,
-                                   SolvedForm& sf,
-                                   Node pv,
-                                   CegInstEffort effort)
+  virtual bool hasProcessAssertion(CVC5_UNUSED CegInstantiator* ci,
+                                   CVC5_UNUSED SolvedForm& sf,
+                                   CVC5_UNUSED Node pv,
+                                   CVC5_UNUSED CegInstEffort effort)
   {
     return false;
   }
@@ -155,11 +153,11 @@ class Instantiator : protected EnvObj
   *   (2) lit' implies lit.
   *   where typically lit' = lit.
   */
-  virtual Node hasProcessAssertion(CegInstantiator* ci,
-                                   SolvedForm& sf,
-                                   Node pv,
-                                   Node lit,
-                                   CegInstEffort effort)
+  virtual Node hasProcessAssertion(CVC5_UNUSED CegInstantiator* ci,
+                                   CVC5_UNUSED SolvedForm& sf,
+                                   CVC5_UNUSED Node pv,
+                                   CVC5_UNUSED Node lit,
+                                   CVC5_UNUSED CegInstEffort effort)
   {
     return Node::null();
   }
@@ -172,12 +170,12 @@ class Instantiator : protected EnvObj
    *  Returns true if an instantiation was successfully added via a call to
    *  CegInstantiator::constructInstantiationInc.
    */
-  virtual bool processAssertion(CegInstantiator* ci,
-                                SolvedForm& sf,
-                                Node pv,
-                                Node lit,
-                                Node alit,
-                                CegInstEffort effort)
+  virtual bool processAssertion(CVC5_UNUSED CegInstantiator* ci,
+                                CVC5_UNUSED SolvedForm& sf,
+                                CVC5_UNUSED Node pv,
+                                CVC5_UNUSED Node lit,
+                                CVC5_UNUSED Node alit,
+                                CVC5_UNUSED CegInstEffort effort)
   {
     return false;
   }
@@ -189,10 +187,10 @@ class Instantiator : protected EnvObj
    * Returns true if an instantiation was successfully added via a call to
    * CegInstantiator::constructInstantiationInc.
    */
-  virtual bool processAssertions(CegInstantiator* ci,
-                                 SolvedForm& sf,
-                                 Node pv,
-                                 CegInstEffort effort)
+  virtual bool processAssertions(CVC5_UNUSED CegInstantiator* ci,
+                                 CVC5_UNUSED SolvedForm& sf,
+                                 CVC5_UNUSED Node pv,
+                                 CVC5_UNUSED CegInstEffort effort)
   {
     return false;
   }
@@ -201,27 +199,28 @@ class Instantiator : protected EnvObj
    * This method returns true if we use model value instantiations
    * at the same effort level as those determined by this instantiator.
    */
-  virtual bool useModelValue(CegInstantiator* ci,
-                             SolvedForm& sf,
-                             Node pv,
+  virtual bool useModelValue(CVC5_UNUSED CegInstantiator* ci,
+                             CVC5_UNUSED SolvedForm& sf,
+                             CVC5_UNUSED Node pv,
                              CegInstEffort effort)
   {
     return effort > CEG_INST_EFFORT_STANDARD;
   }
   /** do we allow the model value as instantiation for pv? */
-  virtual bool allowModelValue(CegInstantiator* ci,
-                               SolvedForm& sf,
-                               Node pv,
-                               CegInstEffort effort)
+  virtual bool allowModelValue(CVC5_UNUSED CegInstantiator* ci,
+                               CVC5_UNUSED SolvedForm& sf,
+                               CVC5_UNUSED Node pv,
+                               CVC5_UNUSED CegInstEffort effort)
   {
     return d_closed_enum_type;
   }
 
   /** do we need to postprocess the solved form for pv? */
-  virtual bool needsPostProcessInstantiationForVariable(CegInstantiator* ci,
-                                                        SolvedForm& sf,
-                                                        Node pv,
-                                                        CegInstEffort effort)
+  virtual bool needsPostProcessInstantiationForVariable(
+      CVC5_UNUSED CegInstantiator* ci,
+      CVC5_UNUSED SolvedForm& sf,
+      CVC5_UNUSED Node pv,
+      CVC5_UNUSED CegInstEffort effort)
   {
     return false;
   }
@@ -230,10 +229,11 @@ class Instantiator : protected EnvObj
    * This method returns true if we successfully postprocessed the solved form.
    * lemmas is a set of lemmas we wish to return along with the instantiation.
    */
-  virtual bool postProcessInstantiationForVariable(CegInstantiator* ci,
-                                                   SolvedForm& sf,
-                                                   Node pv,
-                                                   CegInstEffort effort)
+  virtual bool postProcessInstantiationForVariable(
+      CVC5_UNUSED CegInstantiator* ci,
+      CVC5_UNUSED SolvedForm& sf,
+      CVC5_UNUSED Node pv,
+      CVC5_UNUSED CegInstEffort effort)
   {
     return true;
   }
@@ -251,10 +251,10 @@ class ModelValueInstantiator : public Instantiator {
 public:
  ModelValueInstantiator(Env& env, TypeNode tn) : Instantiator(env, tn) {}
  virtual ~ModelValueInstantiator() {}
- bool useModelValue(CegInstantiator* ci,
-                    SolvedForm& sf,
-                    Node pv,
-                    CegInstEffort effort) override
+ bool useModelValue(CVC5_UNUSED CegInstantiator* ci,
+                    CVC5_UNUSED SolvedForm& sf,
+                    CVC5_UNUSED Node pv,
+                    CVC5_UNUSED CegInstEffort effort) override
  {
    return true;
  }
@@ -276,9 +276,10 @@ class InstantiatorPreprocess
    * of counterexample lemmas, with the same contract as
    * CegInstantiation::registerCounterexampleLemma.
    */
-  virtual void registerCounterexampleLemma(Node lem,
-                                           std::vector<Node>& ceVars,
-                                           std::vector<Node>& auxLems)
+  virtual void registerCounterexampleLemma(
+      CVC5_UNUSED Node lem,
+      CVC5_UNUSED std::vector<Node>& ceVars,
+      CVC5_UNUSED std::vector<Node>& auxLems)
   {
   }
 };

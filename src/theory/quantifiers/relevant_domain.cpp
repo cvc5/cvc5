@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -92,7 +89,7 @@ RelevantDomain::~RelevantDomain() {
     for (auto& rr : r.second)
     {
       RDomain* current = rr.second;
-      Assert(current != NULL);
+      Assert(current != nullptr);
       delete current;
     }
   }
@@ -108,12 +105,13 @@ RelevantDomain::RDomain* RelevantDomain::getRDomain(Node n,
   return getParent ? d_rel_doms[n][i]->getParent() : d_rel_doms[n][i];
 }
 
-bool RelevantDomain::reset( Theory::Effort e ) {
+bool RelevantDomain::reset(CVC5_UNUSED Theory::Effort e)
+{
   d_is_computed = false;
   return true;
 }
 
-void RelevantDomain::registerQuantifier(Node q) {}
+void RelevantDomain::registerQuantifier(CVC5_UNUSED Node q) {}
 void RelevantDomain::compute(){
   if( !d_is_computed ){
     d_is_computed = true;
@@ -140,6 +138,7 @@ void RelevantDomain::compute(){
       unsigned sz = db->getNumGroundTerms( op );
       for( unsigned i=0; i<sz; i++ ){
         Node n = db->getGroundTerm(op, i);
+        Trace("rel-dom-debug") << "Consider " << n << std::endl;
         //if it is a non-redundant term
         if( db->isTermActive( n ) ){
           for( unsigned j=0; j<n.getNumChildren(); j++ ){
@@ -184,7 +183,7 @@ void RelevantDomain::compute(){
               }
               else
               {
-                Assert(false) << "Relevant domain: bad type " << t.getType()
+                DebugUnhandled() << "Relevant domain: bad type " << t.getType()
                               << ", expected " << expectedType;
               }
             }
@@ -301,7 +300,7 @@ void RelevantDomain::computeRelevantDomainOpCh( RDomain * rf, Node n ) {
     Node q = TermUtil::getInstConstAttr(n);
     //merge the RDomains
     size_t id = n.getAttribute(InstVarNumAttribute());
-    Assert(q[0][id].getType() == n.getType());
+    AssertEqual(q[0][id].getType(), n.getType());
     Trace("rel-dom-debug") << n << " is variable # " << id << " for " << q;
     Trace("rel-dom-debug") << " with body : " << d_qreg.getInstConstantBody(q)
                            << std::endl;
@@ -419,7 +418,7 @@ void RelevantDomain::computeRelevantDomainLit( Node q, bool hasPol, bool pol, No
             }
           }
         }
-        else if (!hasNonVar)
+        else if (!hasNonVar && var.getType()==var2.getType())
         {
           Assert(var2.hasAttribute(InstVarNumAttribute()));
           // merge the domains

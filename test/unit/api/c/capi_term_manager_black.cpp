@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Mudathir Mohamed, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -323,11 +320,6 @@ TEST_F(TestCApiBlackTermManager, mk_fun_sort)
   domain = {nullptr};
   ASSERT_DEATH(cvc5_mk_fun_sort(d_tm, domain.size(), domain.data(), d_int),
                "invalid sort at index 0");
-  // non-first-class arguments are not allowed
-  Cvc5Sort regexpsort = cvc5_get_regexp_sort(d_tm);
-  domain = {regexpsort};
-  ASSERT_DEATH(cvc5_mk_fun_sort(d_tm, domain.size(), domain.data(), d_int),
-               "expected first-class sort as domain sort");
   domain = {d_int};
   ASSERT_DEATH(cvc5_mk_fun_sort(d_tm, domain.size(), domain.data(), funsort),
                "expected non-function sort as codomain sort");
@@ -1053,9 +1045,9 @@ TEST_F(TestCApiBlackTermManager, mk_string)
   ASSERT_EQ(
       cvc5_term_to_string(cvc5_mk_string(d_tm, "asdf\\u{005c}nasdf", true)),
       std::string("\"asdf\\u{5c}nasdf\""));
-  const wchar_t* s = L"";
-  ASSERT_EQ(cvc5_term_get_string_value(cvc5_mk_string_from_wchar(d_tm, s)),
-            std::wstring(s));
+  const char32_t* s = U"";
+  ASSERT_EQ(cvc5_term_get_u32string_value(cvc5_mk_string_from_char32(d_tm, s)),
+            std::u32string(s));
 }
 
 TEST_F(TestCApiBlackTermManager, mk_term)

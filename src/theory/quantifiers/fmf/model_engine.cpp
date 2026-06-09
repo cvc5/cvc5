@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -58,7 +55,7 @@ bool ModelEngine::needsCheck( Theory::Effort e ) {
   return e==Theory::EFFORT_LAST_CALL;
 }
 
-QuantifiersModule::QEffort ModelEngine::needsModel(Theory::Effort e)
+QuantifiersModule::QEffort ModelEngine::needsModel(CVC5_UNUSED Theory::Effort e)
 {
   if (options().quantifiers.mbqiInterleave)
   {
@@ -70,10 +67,11 @@ QuantifiersModule::QEffort ModelEngine::needsModel(Theory::Effort e)
   }
 }
 
-void ModelEngine::reset_round( Theory::Effort e ) {
+void ModelEngine::reset_round(CVC5_UNUSED Theory::Effort e)
+{
   d_incomplete_check = true;
 }
-void ModelEngine::check(Theory::Effort e, QEffort quant_e)
+void ModelEngine::check(CVC5_UNUSED Theory::Effort e, QEffort quant_e)
 {
   bool doCheck = false;
   if (options().quantifiers.mbqiInterleave)
@@ -214,11 +212,13 @@ int ModelEngine::checkModel(){
   }
 
   Trace("model-engine-debug") << "Do exhaustive instantiation..." << std::endl;
-  // FMC uses two sub-effort levels
+  // FMC uses two sub-effort levels. In trust mode, we intentionally skip
+  // exhaustive instantiation, which means any active quantifier we would have
+  // processed here must force an unknown answer instead of sat.
   options::FmfMbqiMode mode = options().quantifiers.fmfMbqiMode;
   int e_max = mode == options::FmfMbqiMode::FMC
                   ? 2
-                  : (mode == options::FmfMbqiMode::TRUST ? 0 : 1);
+                  : 1;
   for( int e=0; e<e_max; e++) {
     d_incompleteQuants.clear();
     for( unsigned i=0; i<fm->getNumAssertedQuantifiers(); i++ ){
@@ -233,6 +233,14 @@ int ModelEngine::checkModel(){
       if (!shouldProcess(q))
       {
         Trace("fmf-exh-inst") << "-> Not processed : " << q << std::endl;
+        d_incompleteQuants.insert(q);
+        continue;
+      }
+      if (mode == options::FmfMbqiMode::TRUST)
+      {
+        Trace("fmf-exh-inst")
+            << "-> Trust mode skips exhaustive instantiation." << std::endl;
+        d_incomplete_check = true;
         d_incompleteQuants.insert(q);
         continue;
       }

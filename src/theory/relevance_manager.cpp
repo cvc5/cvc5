@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -151,7 +148,7 @@ void RelevanceManager::check(Theory::Effort effort)
   }
 }
 
-void RelevanceManager::postCheck(Theory::Effort effort)
+void RelevanceManager::postCheck(CVC5_UNUSED Theory::Effort effort)
 {
   d_inFullEffortCheck = false;
 }
@@ -209,7 +206,7 @@ bool RelevanceManager::computeRelevanceFor(TNode input)
       serr << "RelevanceManager::computeRelevance: WARNING: failed to justify "
            << input;
       Trace("rel-manager") << serr.str() << std::endl;
-      Assert(false) << serr.str();
+      DebugUnhandled() << serr.str();
       d_fullEffortCheckFail = true;
       return false;
     }
@@ -540,10 +537,10 @@ std::unordered_set<TNode> RelevanceManager::getRelevantAssertions(bool& success)
 }
 
 void RelevanceManager::notifyLemma(TNode n,
-                                   InferenceId id,
+                                   CVC5_UNUSED InferenceId id,
                                    LemmaProperty p,
                                    const std::vector<Node>& skAsserts,
-                                   const std::vector<Node>& sks)
+                                   CVC5_UNUSED const std::vector<Node>& sks)
 {
   // add to assertions
   if (options().theory.relevanceFilter && isLemmaPropertyNeedsJustify(p))

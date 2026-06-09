@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Mudathir Mohamed
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -106,7 +103,7 @@ void TheorySets::postCheck(Effort level) { d_internal->postCheck(level); }
 void TheorySets::notifyFact(TNode atom,
                             bool polarity,
                             TNode fact,
-                            bool isInternal)
+                            CVC5_UNUSED bool isInternal)
 {
   d_internal->notifyFact(atom, polarity, fact);
 }
@@ -126,7 +123,10 @@ TrustNode TheorySets::explain(TNode node)
   return d_im.explainLit(node);
 }
 
-Node TheorySets::getCandidateModelValue(TNode node) { return Node::null(); }
+Node TheorySets::getCandidateModelValue(CVC5_UNUSED TNode node)
+{
+  return Node::null();
+}
 
 void TheorySets::preRegisterTerm(TNode node)
 {

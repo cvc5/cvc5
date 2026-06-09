@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mudathir Mohamed, Aina Niemetz, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -63,6 +60,8 @@ public class Op extends AbstractPointer
   private native boolean equals(long pointer1, long pointer2);
 
   /**
+   * Get the kind of this operator.
+   *
    * @return The kind of this operator.
    */
   public Kind getKind()
@@ -82,6 +81,8 @@ public class Op extends AbstractPointer
   private native int getKind(long pointer);
 
   /**
+   * Determine if this operator is a null term.
+   *
    * @return True if this operator is a null term.
    */
   public boolean isNull()
@@ -92,6 +93,8 @@ public class Op extends AbstractPointer
   private native boolean isNull(long pointer);
 
   /**
+   * Determine if this operator is indexed.
+   * 
    * @return True iff this operator is indexed.
    */
   public boolean isIndexed()
@@ -102,6 +105,8 @@ public class Op extends AbstractPointer
   private native boolean isIndexed(long pointer);
 
   /**
+   * Get the number of indices of this op.
+   *
    * @return The number of indices of this op.
    */
   public int getNumIndices()

@@ -1,11 +1,8 @@
 #!/usr/bin/env python
 ###############################################################################
-# Top contributors (to current version):
-#   Gereon Kremer, Mathias Preiner, Alex Ozdemir
-#
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -64,10 +61,13 @@ OPTION_ATTR_REQ = ['category', 'type']
 OPTION_ATTR_ALL = OPTION_ATTR_REQ + [
     'name', 'short', 'long', 'alias', 'default', 'alternate', 'mode',
     'handler', 'predicates', 'includes', 'minimum', 'maximum', 'help',
-    'help_mode'
+    'help_mode', 'no_support'
 ]
 
 CATEGORY_VALUES = ['common', 'expert', 'regular', 'undocumented']
+
+# legal values for the "no_support" field
+NO_SUPPORT_VALUES = ['proofs', 'models', 'unsat-cores']
 
 ################################################################################
 ################################################################################
@@ -432,6 +432,7 @@ def generate_getinfo_impl(modules):
             'type': option.type,
             'value': 'opts.{}.{}'.format(module.id, option.name),
             'setbyuser': 'opts.{}.{}WasSetByUser'.format(module.id, option.name),
+            'no_support': '',
             'default': option.default if option.default else '{}()'.format(option.type),
             'minimum': option.minimum if option.minimum else '{}',
             'maximum': option.maximum if option.maximum else '{}',
@@ -439,6 +440,8 @@ def generate_getinfo_impl(modules):
         }
         if option.alias:
             fmt['alias'] = ', '.join(map(lambda s: '"{}"'.format(s), option.alias))
+        if option.no_support:
+            fmt['no_support'] = ', '.join(map(lambda s: '"{}"'.format(s), option.no_support))
         if not option.name:
             fmt['setbyuser'] = 'false'
             constr = 'OptionInfo::VoidInfo{{}}'
@@ -454,7 +457,7 @@ def generate_getinfo_impl(modules):
         else:
             constr = 'OptionInfo::VoidInfo{{}}'
         res.append("  case OptionEnum::{}:".format(option.enum_name()))
-        line = '    return OptionInfo{{"{name}", {{{alias}}}, {setbyuser}, {category}, ' + constr + '}};'
+        line = '    return OptionInfo{{"{name}", {{{alias}}}, {{{no_support}}}, {setbyuser}, {category}, ' + constr + '}};'
         res.append(line.format(**fmt))
     res.append("}")
     return '\n  '.join(res)
@@ -498,16 +501,36 @@ def generate_module_mode_decl(module):
 
 
 def generate_module_holder_decl(module):
-    res = []
+    # Buckets to group fields by size to minimize padding
+    size_8 = []  # double, int64_t, uint64_t
+    size_4 = []  # enum
+    size_1 = []  # bool and bool flags
+
     for option in module.options:
         if option.name is None:
             continue
+
+        # Determine the field declaration
         if option.fqdefault:
-            res.append('{} {} = {};'.format(option.type, option.name, option.fqdefault))
+            decl = '{} {} = {};'.format(option.type, option.name, option.fqdefault)
         else:
-            res.append('{} {};'.format(option.type, option.name))
-        res.append('bool {}WasSetByUser = false;'.format(option.name))
-    return '\n  '.join(res)
+            decl = '{} {};'.format(option.type, option.name)
+
+        flag_decl = 'bool {}WasSetByUser = false;'.format(option.name)
+
+        # Sort into buckets based on type
+        if option.type in ['double', 'int64_t', 'uint64_t']:
+            size_8.append(decl)
+        elif option.type == 'bool':
+            size_1.append(decl)
+        else:
+            # Assuming remaining types are user-defined enums (4 bytes)
+            size_4.append(decl)
+        size_1.append(flag_decl)
+
+    # Combine buckets from largest alignment to smallest
+    all_fields = size_8 + size_4 + size_1
+    return '\n  '.join(all_fields)
 
 def generate_module_long_name_decl(module):
     res = []
@@ -1125,6 +1148,12 @@ class Checker:
                     self.__check_option_long(o, alias)
                     if o.alternate:
                         self.__check_option_long(o, 'no-' + alias)
+        if o.no_support:
+            if o.category != "regular":
+                self.perr("has a no_support field but is not a regular option", option=o)
+            for ns in o.no_support:
+                if ns not in NO_SUPPORT_VALUES:
+                    self.perr("has invalid no_support field '{}'", ns, option=o)
         return o
 
 

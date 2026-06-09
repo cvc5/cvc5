@@ -1,10 +1,7 @@
 ###############################################################################
-# Top contributors (to current version):
-#   Mathias Preiner, Gereon Kremer, Andrew Reynolds
-#
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -48,6 +45,8 @@ libcvc5_add_sources(
   iand.h
   index.cpp
   index.h
+  omt_result.cpp
+  omt_result.h 
   ostream_util.cpp
   ostream_util.h
   poly_util.cpp

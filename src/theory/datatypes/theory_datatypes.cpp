@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Morgan Deters
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -79,7 +76,7 @@ TheoryDatatypes::~TheoryDatatypes() {
   for(std::map< Node, EqcInfo* >::iterator i = d_eqc_info.begin(), iend = d_eqc_info.end();
       i != iend; ++i){
     EqcInfo* current = (*i).second;
-    Assert(current != NULL);
+    Assert(current != nullptr);
     delete current;
   }
 }
@@ -122,6 +119,8 @@ void TheoryDatatypes::finishInit()
   // testers are not relevant for model building
   d_valuation.setIrrelevantKind(Kind::APPLY_TESTER);
   d_valuation.setIrrelevantKind(Kind::DT_SYGUS_BOUND);
+  // evaluation functions are not relevant to model construction.
+  d_valuation.setIrrelevantKind(Kind::DT_SYGUS_EVAL);
   // selectors don't always evaluate
   d_valuation.setSemiEvaluatedKind(Kind::APPLY_SELECTOR);
 }
@@ -150,7 +149,7 @@ TheoryDatatypes::EqcInfo* TheoryDatatypes::getOrMakeEqcInfo( TNode n, bool doMak
 
       return ei;
     }else{
-      return NULL;
+      return nullptr;
     }
   }else{
     std::map< Node, EqcInfo* >::iterator eqc_i = d_eqc_info.find( n );
@@ -332,7 +331,7 @@ void TheoryDatatypes::preRegisterTerm(TNode n)
         std::stringstream ss;
         ss << "Codatatypes not available in this configuration, try "
               "--datatypes-exp.";
-        throw LogicException(ss.str());
+        throw SafeLogicException(ss.str());
       }
     }
   }
@@ -349,7 +348,7 @@ void TheoryDatatypes::preRegisterTerm(TNode n)
       std::stringstream ss;
       ss << "Match terms not available in this configuration, try "
             "--datatypes-exp.";
-      throw LogicException(ss.str());
+      throw SafeLogicException(ss.str());
     }
       break;
     default:
@@ -1143,8 +1142,7 @@ Node TheoryDatatypes::getSingletonLemma( TypeNode tn, bool pol ) {
       Node v1 = NodeManager::mkBoundVar(tn);
       Node v2 = NodeManager::mkBoundVar(tn);
       a = nm->mkNode(Kind::FORALL,
-                     nm->mkNode(Kind::BOUND_VAR_LIST, v1, v2),
-                     v1.eqNode(v2));
+                     {nm->mkNode(Kind::BOUND_VAR_LIST, v1, v2), v1.eqNode(v2)});
     }else{
       Node v1 = NodeManager::mkDummySkolem("k1", tn);
       Node v2 = NodeManager::mkDummySkolem("k2", tn);
@@ -1276,6 +1274,9 @@ void TheoryDatatypes::checkCycles() {
   Trace("datatypes-cycle-check") << "Check acyclicity" << std::endl;
   std::vector< Node > cdt_eqc;
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(d_equalityEngine);
+  std::map< TNode, bool > visited;
+  std::map< TNode, bool > proc;
+  std::vector<Node> expl;
   while( !eqcs_i.isFinished() ){
     Node eqc = (*eqcs_i);
     TypeNode tn = eqc.getType();
@@ -1284,9 +1285,6 @@ void TheoryDatatypes::checkCycles() {
         if (options().datatypes.dtCyclic)
         {
           //do cycle checks
-          std::map< TNode, bool > visited;
-          std::map< TNode, bool > proc;
-          std::vector<Node> expl;
           Trace("datatypes-cycle-check") << "...search for cycle starting at " << eqc << std::endl;
           Node cn = searchForCycle( eqc, eqc, visited, proc, expl );
           Trace("datatypes-cycle-check") << "...finish." << std::endl;
@@ -1667,12 +1665,14 @@ void TheoryDatatypes::checkSplit()
         consIndex = j;
       }
       Trace("datatypes-debug") << j << " compute finite..." << std::endl;
-      // Notice that we split here on all datatypes except the
-      // truly infinite ones. It is possible to also not split
-      // on those that are interpreted-finite when finite model
-      // finding is disabled, but as a heuristic we choose to split
-      // on those too.
-      bool ifin = dt[j].getCardinalityClass(tn) != CardinalityClass::INFINITE;
+      // Notice that whether there exists infinitely many datatype values
+      // for a given constructor depends on whether finite model finding is
+      // enabled (which interprets uninterpreted sorts as finite). Thus we
+      // require asking the Env class whether the cardinality class of the
+      // datatype constructor is finite or not. For example, a datatype
+      // constructor leaf : U -> Tree where U is an uninterpreted sort is
+      // finite iff finite model finding is enabled.
+      bool ifin = d_env.isFiniteCardinalityClass(dt[j].getCardinalityClass(tn));
       Trace("datatypes-debug") << "...returned " << ifin << std::endl;
       if (!ifin)
       {
@@ -1706,6 +1706,7 @@ void TheoryDatatypes::checkSplit()
     else
     {
       Assert(consIndex != -1 || dt.isSygus());
+      bool sentLemma = false;
       if (options().datatypes.dtBinarySplit && consIndex != -1)
       {
         Node test = utils::mkTester(n, consIndex, dt);
@@ -1715,8 +1716,11 @@ void TheoryDatatypes::checkSplit()
         NodeBuilder nb(nodeManager(), Kind::OR);
         nb << test << test.notNode();
         Node lemma = nb;
-        d_im.lemma(lemma, InferenceId::DATATYPES_BINARY_SPLIT);
-        d_im.preferPhase(test, true);
+        if (d_im.lemma(lemma, InferenceId::DATATYPES_BINARY_SPLIT))
+        {
+          sentLemma = true;
+          d_im.preferPhase(test, true);
+        }
       }
       else
       {
@@ -1724,10 +1728,10 @@ void TheoryDatatypes::checkSplit()
                           << endl;
         Node lemma = utils::mkSplit(n, dt);
         Trace("dt-split-debug") << "Split lemma is : " << lemma << std::endl;
-        d_im.sendDtLemma(
+        sentLemma = d_im.sendDtLemma(
             lemma, InferenceId::DATATYPES_SPLIT, LemmaProperty::SEND_ATOMS);
       }
-      if (!options().datatypes.dtBlastSplits)
+      if (sentLemma && !options().datatypes.dtBlastSplits)
       {
         return;
       }
@@ -1843,13 +1847,18 @@ void TheoryDatatypes::computeRelevantTerms(std::set<Node>& termSet)
     }
     // scan the equivalence class
     bool foundCons = false;
+    bool hasRlv = false;
     eq::EqClassIterator eqc_i = eq::EqClassIterator(r, d_equalityEngine);
     while (!eqc_i.isFinished())
     {
       TNode n = *eqc_i;
       ++eqc_i;
-      if (n.getKind() == Kind::APPLY_CONSTRUCTOR
-          && termSet.find(n) != termSet.end())
+      if (termSet.find(n) == termSet.end())
+      {
+        continue;
+      }
+      hasRlv = true;
+      if (n.getKind() == Kind::APPLY_CONSTRUCTOR)
       {
         // change the recorded constructor to be a relevant one
         ei->d_constructor = n;
@@ -1857,11 +1866,22 @@ void TheoryDatatypes::computeRelevantTerms(std::set<Node>& termSet)
         break;
       }
     }
+    // if no relevant terms whatsoever, we skip
+    if (!hasRlv)
+    {
+      continue;
+    }
     // If there are no constructors that are relevant, we consider the
     // recorded constructor to be relevant.
     if (!foundCons)
     {
-      termSet.insert(ei->d_constructor.get());
+      Node cons = ei->d_constructor.get();
+      termSet.insert(cons);
+      // its arguments are also relevant
+      for (const Node& nc : cons)
+      {
+        termSet.insert(nc);
+      }
     }
   }
 }

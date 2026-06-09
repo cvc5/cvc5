@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Mudathir Mohamed, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -98,6 +95,8 @@ public class DatatypeConstructorDecl extends AbstractPointer
   private native void addSelectorUnresolved(long pointer, String name, String unresDataypeName);
 
   /**
+   * Determine if this DatatypeConstructorDecl is a null declaration.
+   *
    * @return True If this DatatypeConstructorDecl is a null declaration.
    */
   public boolean isNull()

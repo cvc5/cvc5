@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Tim King, Gereon Kremer, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -184,14 +181,17 @@ uint32_t SumOfInfeasibilitiesSPD::degeneratePivotsInARow() const {
   Unreachable();
 }
 
-void SumOfInfeasibilitiesSPD::adjustFocusAndError(const UpdateInfo& up, const AVIntPairVec& focusChanges){
+void SumOfInfeasibilitiesSPD::adjustFocusAndError(
+    const AVIntPairVec& focusChanges)
+{
   uint32_t newErrorSize = d_errorSet.errorSize();
   adjustInfeasFunc(d_statistics.d_soiFocusConstructionTimer, d_soiVar, focusChanges);
   d_errorSize = newErrorSize;
 }
 
-
-UpdateInfo SumOfInfeasibilitiesSPD::selectUpdate(LinearEqualityModule::UpdatePreferenceFunction upf, LinearEqualityModule::VarPreferenceFunction bpf) {
+UpdateInfo SumOfInfeasibilitiesSPD::selectUpdate(
+    LinearEqualityModule::UpdatePreferenceFunction upf)
+{
   UpdateInfo selected;
 
   Trace("soi::selectPrimalUpdate")
@@ -311,8 +311,8 @@ void SumOfInfeasibilitiesSPD::debugPrintSignal(ArithVar updated) const{
   Trace("updateAndSignal") << " debugBasicAtBoundCount " << d_linEq.debugBasicAtBoundCount(updated) << endl;
 }
 
-
-void SumOfInfeasibilitiesSPD::updateAndSignal(const UpdateInfo& selected, WitnessImprovement w){
+void SumOfInfeasibilitiesSPD::updateAndSignal(const UpdateInfo& selected)
+{
   ArithVar nonbasic = selected.nonbasic();
 
   Trace("updateAndSignal") << "updateAndSignal " << selected << endl;
@@ -363,7 +363,7 @@ void SumOfInfeasibilitiesSPD::updateAndSignal(const UpdateInfo& selected, Witnes
 
   //Assert(debugSelectedErrorDropped(selected, d_errorSize, d_errorSet.errorSize()));
 
-  adjustFocusAndError(selected, focusChanges);
+  adjustFocusAndError(focusChanges);
 }
 
 void SumOfInfeasibilitiesSPD::qeAddRange(uint32_t begin, uint32_t end){
@@ -418,9 +418,11 @@ uint32_t SumOfInfeasibilitiesSPD::quickExplainRec(uint32_t cEnd, uint32_t uEnd){
   Assert(d_qeInUAndNotInSoi.empty());
   Assert(d_qeGreedyOrder.empty());
 
-  const Tableau::Entry* spoiler = NULL;
+  const Tableau::Entry* spoiler = nullptr;
 
-  if(d_soiVar != ARITHVAR_SENTINEL && d_linEq.selectSlackEntry(d_soiVar, false) == NULL){
+  if (d_soiVar != ARITHVAR_SENTINEL
+      && d_linEq.selectSlackEntry(d_soiVar, false) == nullptr)
+  {
     // already in conflict
     return cEnd;
   }
@@ -439,7 +441,8 @@ uint32_t SumOfInfeasibilitiesSPD::quickExplainRec(uint32_t cEnd, uint32_t uEnd){
     d_qeInUAndNotInSoi.remove(first);
     d_qeGreedyOrder.push_back(first);
   }
-  while((spoiler = d_linEq.selectSlackEntry(d_soiVar, false)) != NULL){
+  while ((spoiler = d_linEq.selectSlackEntry(d_soiVar, false)) != nullptr)
+  {
     Assert(!d_qeInUAndNotInSoi.empty());
 
     ArithVar nb = spoiler->getColVar();
@@ -454,7 +457,7 @@ uint32_t SumOfInfeasibilitiesSPD::quickExplainRec(uint32_t cEnd, uint32_t uEnd){
     d_qeInUAndNotInSoi.remove(basicWithOp);
     d_qeGreedyOrder.push_back(basicWithOp);
   }
-  Assert(spoiler == NULL);
+  Assert(spoiler == nullptr);
 
   // Compact the set u
   uint32_t newEnd = cEnd + d_qeGreedyOrder.size();
@@ -523,7 +526,6 @@ void SumOfInfeasibilitiesSPD::quickExplain(){
   d_qeConflict.clear();
   d_errorSet.pushFocusInto(d_qeConflict);
 
-  //cout <<  d_qeConflict.size() << " ";
   uint32_t size = d_qeConflict.size();
 
   if(size > 2){
@@ -543,8 +545,6 @@ void SumOfInfeasibilitiesSPD::quickExplain(){
     d_qeSgns.clear();
   }
 
-  //cout << d_qeConflict.size() << endl;
-
   Assert(d_qeInSoi.empty());
   Assert(d_qeInUAndNotInSoi.empty());
   Assert(d_qeGreedyOrder.empty());
@@ -557,7 +557,7 @@ unsigned SumOfInfeasibilitiesSPD::trySet(const ArithVarVec& set){
   bool success = false;
   if(set.size() >= 2){
     d_soiVar = constructInfeasiblityFunction(d_statistics.d_soiConflictMinimization, set);
-    success = d_linEq.selectSlackEntry(d_soiVar, false) == NULL;
+    success = d_linEq.selectSlackEntry(d_soiVar, false) == nullptr;
 
     tearDownInfeasiblityFunction(d_statistics.d_soiConflictMinimization, d_soiVar);
     d_soiVar = ARITHVAR_SENTINEL;
@@ -607,7 +607,7 @@ std::vector< ArithVarVec > SumOfInfeasibilitiesSPD::greedyConflictSubsets(){
     int errSgn = d_errorSet.getSgn(e);
     bool decreasing = errSgn < 0;
     const Tableau::Entry* spoiler = d_linEq.selectSlackEntry(e, decreasing);
-    Assert(spoiler != NULL);
+    Assert(spoiler != nullptr);
     ArithVar nb = spoiler->getColVar();
     int oppositeSgn = -(errSgn * (spoiler->getCoefficient().sgn()));
 
@@ -653,8 +653,9 @@ std::vector< ArithVarVec > SumOfInfeasibilitiesSPD::greedyConflictSubsets(){
 
     Trace("arith::greedyConflictSubsets") << "trying " << v << endl;
 
-    const Tableau::Entry* spoiler = NULL;
-    while( (spoiler = d_linEq.selectSlackEntry(d_soiVar, false)) != NULL){
+    const Tableau::Entry* spoiler = nullptr;
+    while ((spoiler = d_linEq.selectSlackEntry(d_soiVar, false)) != nullptr)
+    {
       ArithVar nb = spoiler->getColVar();
       int oppositeSgn = -(spoiler->getCoefficient().sgn());
       Assert(oppositeSgn != 0);
@@ -675,7 +676,8 @@ std::vector< ArithVarVec > SumOfInfeasibilitiesSPD::greedyConflictSubsets(){
         underConstruction.push_back(basicWithOp);
       }
     }
-    if(spoiler == NULL){
+    if (spoiler == nullptr)
+    {
       Trace("arith::greedyConflictSubsets") << "success" << endl;
       //then underConstruction contains a conflicting subset
       Assert(debugIsASet(underConstruction));
@@ -686,20 +688,13 @@ std::vector< ArithVarVec > SumOfInfeasibilitiesSPD::greedyConflictSubsets(){
       }else{
         ++d_statistics.d_maybeNotMinimal;
       }
-    }else{
+    }
+    else
+    {
       Trace("arith::greedyConflictSubsets") << "failure" << endl;
     }
     tearDownInfeasiblityFunction(d_statistics.d_soiConflictMinimization, d_soiVar);
     d_soiVar = ARITHVAR_SENTINEL;
-    // if(false && spoiler == NULL){
-    //   ArithVarVec tmp;
-    //   int smallest = tryAllSubsets(underConstruction, 0, tmp);
-    //   cout << underConstruction.size() << " " << smallest << endl;
-    //   Assert(smallest >= underConstruction.size());
-    //   if(smallest < underConstruction.size()){
-    //     exit(-1);
-    //   }
-    // }
   }
 
   Assert(d_soiVar == ARITHVAR_SENTINEL);
@@ -780,9 +775,9 @@ WitnessImprovement SumOfInfeasibilitiesSPD::SOIConflict(){
   Trace("arith::SOIConflict") << "SumOfInfeasibilitiesSPD::SOIConflict() start "
                               << ": |E| = " << d_errorSize << endl;
   if(TraceIsOn("arith::SOIConflict")){
-    d_errorSet.debugPrint(cout);
+    d_errorSet.debugPrint(Trace("arith::SOIConflict"));
+    Trace("arith::SOIConflict") << endl;
   }
-  Trace("arith::SOIConflict") << endl;
 
   tearDownInfeasiblityFunction(d_statistics.d_soiConflictMinimization, d_soiVar);
   d_soiVar = ARITHVAR_SENTINEL;
@@ -802,9 +797,6 @@ WitnessImprovement SumOfInfeasibilitiesSPD::SOIConflict(){
       const ArithVarVec& subset = *i;
       Assert(debugIsASet(subset));
       anySuccess = generateSOIConflict(subset) || anySuccess;
-      //Node conflict = generateSOIConflict(subset);
-      //cout << conflict << endl;
-
       //reportConflict(conf); do not do this. We need a custom explanations!
       //d_conflictChannel(conflict);
     }
@@ -832,12 +824,7 @@ WitnessImprovement SumOfInfeasibilitiesSPD::soiRound() {
     upf = &LinearEqualityModule::preferWitness<true>;
   }
 
-  LinearEqualityModule::VarPreferenceFunction bpf = useBlands ?
-    &LinearEqualityModule::minVarOrder :
-    &LinearEqualityModule::minRowLength;
-  bpf = &LinearEqualityModule::minVarOrder;
-
-  UpdateInfo selected = selectUpdate(upf, bpf);
+  UpdateInfo selected = selectUpdate(upf);
 
   if(selected.uninitialized()){
     Trace("selectFocusImproving") << "SOI is optimum, but we don't have sat/conflict yet" << endl;
@@ -847,7 +834,7 @@ WitnessImprovement SumOfInfeasibilitiesSPD::soiRound() {
     WitnessImprovement w = selected.getWitness(false);
     Assert(debugCheckWitness(selected, w, false));
 
-    updateAndSignal(selected, w);
+    updateAndSignal(selected);
     logPivot(w);
     return w;
   }

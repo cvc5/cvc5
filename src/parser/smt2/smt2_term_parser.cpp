@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Alex Ozdemir
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -560,7 +557,7 @@ Term Smt2TermParser::parseTerm()
             }
             else if (key == ":qid")
             {
-              std::string sym = parseSymbol(CHECK_UNDECLARED, SYM_VARIABLE);
+              std::string sym = parseSymbol(CHECK_NONE, SYM_VARIABLE);
               // must create a variable whose name is the name of the quantified
               // formula, not a string.
               attrValue = tm.mkConst(tm.getBooleanSort(), sym);
@@ -599,11 +596,32 @@ Term Smt2TermParser::parseTerm()
             {
               // e.g. `:pattern (t1 ... tn)`, where we have parsed `:pattern (`
               d_lex.eatToken(Token::LPAREN_TOK);
-              // Will parse list as arguments to the kind + closing parenthesis.
-              ParseOp op;
-              op.d_kind = attrKind;
-              tstack.emplace_back(op, std::vector<Term>());
-              xstack.emplace_back(ParseCtx::NEXT_ARG);
+              // Corner case: the list of terms is empty. This is a legal
+              // pattern in SMT-LIB, and hence we ignore it, for other
+              // attributes we throw an error.
+              if (d_lex.peekToken() == Token::RPAREN_TOK)
+              {
+                if (attrKind == Kind::INST_PATTERN)
+                {
+                  // silently ignores
+                  d_lex.eatToken(Token::RPAREN_TOK);
+                }
+                else
+                {
+                  d_lex.parseError(
+                      "Expecting at least one term in annotation.");
+                }
+                needsUpdateCtx = true;
+              }
+              else
+              {
+                // Will parse list as arguments to the kind + closing
+                // parenthesis.
+                ParseOp op;
+                op.d_kind = attrKind;
+                tstack.emplace_back(op, std::vector<Term>());
+                xstack.emplace_back(ParseCtx::NEXT_ARG);
+              }
             }
             else if (!attrValue.isNull())
             {
@@ -891,8 +909,7 @@ std::string Smt2TermParser::parseKeyword()
   return s.erase(0, 1);
 }
 
-Grammar* Smt2TermParser::parseGrammar(const std::vector<Term>& sygusVars,
-                                      const std::string& fun)
+Grammar* Smt2TermParser::parseGrammar(const std::vector<Term>& sygusVars)
 {
   // We read a sorted variable list ((<symbol> <sort>)^n+1)
   std::vector<std::pair<std::string, Sort>> sortedVarNames =
@@ -993,8 +1010,7 @@ Grammar* Smt2TermParser::parseGrammar(const std::vector<Term>& sygusVars,
   return ret;
 }
 
-Grammar* Smt2TermParser::parseGrammarOrNull(const std::vector<Term>& sygusVars,
-                                            const std::string& fun)
+Grammar* Smt2TermParser::parseGrammarOrNull(const std::vector<Term>& sygusVars)
 {
   Token t = d_lex.peekToken();
   // note that we assume that the grammar is not present if the input continues
@@ -1003,7 +1019,7 @@ Grammar* Smt2TermParser::parseGrammarOrNull(const std::vector<Term>& sygusVars,
   {
     return nullptr;
   }
-  return parseGrammar(sygusVars, fun);
+  return parseGrammar(sygusVars);
 }
 
 uint32_t Smt2TermParser::parseIntegerNumeral()
@@ -1027,10 +1043,7 @@ uint32_t Smt2TermParser::tokenStrToUnsigned()
   {
     d_lex.parseError("Negative numerals are forbidden in indices");
   }
-  uint32_t result;
-  std::stringstream ss;
-  ss << token;
-  ss >> result;
+  uint32_t result = d_state.parseStringToUnsigned(token);
   return result;
 }
 
@@ -1139,7 +1152,7 @@ std::vector<DatatypeDecl> Smt2TermParser::parseDatatypesDef(
       // if the arity is not yet fixed, declare it as an unresolved type
       d_state.mkUnresolvedType(dnames[i], params.size());
     }
-    else if (arities[i] >= 0 && params.size() != arities[i])
+    else if (params.size() != arities[i])
     {
       // if the arity was fixed by prelude and is not equal to the number of
       // parameters

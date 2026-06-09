@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Daniel Larraz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -797,7 +794,7 @@ bool LfscNodeConverter::shouldTraverse(Node n)
   return true;
 }
 
-Node LfscNodeConverter::maybeMkSkolemFun(Node k, bool macroApply)
+Node LfscNodeConverter::maybeMkSkolemFun(Node k)
 {
   SkolemManager* sm = d_nm->getSkolemManager();
   SkolemId sfi = SkolemId::NONE;
@@ -911,6 +908,14 @@ Node LfscNodeConverter::getNullTerminator(NodeManager* nm, Kind k, TypeNode tn)
   Node nullTerm;
   switch (k)
   {
+    // LFSC signature expects mixed arithmetic for null terminators
+    case Kind::ADD:
+      nullTerm = nm->mkConstInt(Rational(0));
+      break;
+    case Kind::MULT:
+    case Kind::NONLINEAR_MULT:
+      nullTerm = nm->mkConstInt(Rational(1));
+      break;
     case Kind::REGEXP_CONCAT:
       // the language containing only the empty string, which has special
       // syntax in LFSC
@@ -1047,7 +1052,7 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
     }
     else if (k == Kind::APPLY_SELECTOR)
     {
-      ret = maybeMkSkolemFun(op, macroApply);
+      ret = maybeMkSkolemFun(op);
       if (ret.isNull())
       {
         unsigned index = DType::indexOf(op);

@@ -1,10 +1,7 @@
 ###############################################################################
-# Top contributors (to current version):
-#   Gereon Kremer, Mathias Preiner, Alex Ozdemir
-#
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -32,8 +29,8 @@ if(NOT SymFPU_FOUND_SYSTEM)
   include(ExternalProject)
   include(deps-helper)
 
-  set(SymFPU_COMMIT "e6ac3af9c2c574498ea171c957425b407625448b")
-  set(SymFPU_CHECKSUM "823aa663fcc2f6844ae5e9ea83ceda4ed393cdb3dadefce9b3c7c41cd0f4f702")
+  set(SymFPU_COMMIT "227a7246b8ce513b393cc2645d6d65d3490ea1de")
+  set(SymFPU_CHECKSUM "ff22e37dbc133120ada5760878974811737bec65b12a8883f92b1ed9e3f96e99")
 
   ExternalProject_Add(
     SymFPU-EP

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -172,7 +169,7 @@ ConjectureGenerator::EqcInfo* ConjectureGenerator::getOrMakeEqcInfo( TNode n, bo
     d_eqc_info[n] = ei;
     return ei;
   }else{
-    return NULL;
+    return nullptr;
   }
 }
 
@@ -368,10 +365,8 @@ bool ConjectureGenerator::hasEnumeratedUf( Node n ) {
   return true;
 }
 
-void ConjectureGenerator::reset_round( Theory::Effort e ) {
-
-}
-void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
+void ConjectureGenerator::reset_round(CVC5_UNUSED Theory::Effort e) {}
+void ConjectureGenerator::check(CVC5_UNUSED Theory::Effort e, QEffort quant_e)
 {
   if (quant_e == QEFFORT_STANDARD)
   {
@@ -907,7 +902,7 @@ void ConjectureGenerator::generateConjectures()
           std::map<TNode, bool> rev_subs;
           // only get ground terms
           unsigned mode = 2;
-          d_tge.resetMatching(r, mode);
+          d_tge.resetMatching(mode);
           while (d_tge.getNextMatch(r, subs, rev_subs))
           {
             // we will be building substitutions
@@ -1266,8 +1261,7 @@ Node ConjectureGenerator::getPredicateForType( TypeNode tn ) {
   if( it==d_typ_pred.end() ){
     NodeManager* nm = nodeManager();
     TypeNode op_tn = nm->mkFunctionType(tn, nm->booleanType());
-    Node op = NodeManager::mkDummySkolem(
-        "PE", op_tn, "was created by conjecture ground term enumerator.");
+    Node op = NodeManager::mkDummySkolem("PE", op_tn);
     d_typ_pred[tn] = op;
     return op;
   }else{
@@ -1349,7 +1343,7 @@ void ConjectureGenerator::getEnumerateUfTerm( Node n, unsigned num, std::vector<
             for( unsigned i=0; i<(vec.size()-1); i++ ){
               Node nn = te->getEnumerateTerm(types[i], vec[i]);
               Assert(!nn.isNull());
-              Assert(nn.getType() == n[i].getType());
+              AssertEqual(nn.getType(), n[i].getType());
               children.push_back( nn );
             }
             children.push_back( lc );
@@ -1432,7 +1426,7 @@ void ConjectureGenerator::processCandidateConjecture( TNode lhs, TNode rhs, unsi
 }
 
 int ConjectureGenerator::considerCandidateConjecture( TNode lhs, TNode rhs ) {
-  Assert(lhs.getType() == rhs.getType());
+  AssertEqual(lhs.getType(), rhs.getType());
 
   Trace("sg-cconj-debug") << "Consider candidate conjecture : " << lhs << " == " << rhs << "?" << std::endl;
   if( lhs==rhs ){
@@ -1763,7 +1757,8 @@ bool TermGenerator::getNextTerm( TermGenEnv * s, unsigned depth ) {
   }
 }
 
-void TermGenerator::resetMatching( TermGenEnv * s, TNode eqc, unsigned mode ) {
+void TermGenerator::resetMatching(unsigned mode)
+{
   d_match_status = 0;
   d_match_status_child_num = 0;
   d_match_children.clear();
@@ -1887,7 +1882,8 @@ bool TermGenerator::getNextMatch( TermGenEnv * s, TNode eqc, std::map< TypeNode,
           return true;//return d_match_children[d_match_status]!=d_match_children_end[d_match_status];
         }else{
           //do next binding
-          s->d_tg_alloc[d_children[d_match_status_child_num]].resetMatching( s, d_match_children[d_match_status_child_num]->first, d_match_mode );
+          s->d_tg_alloc[d_children[d_match_status_child_num]].resetMatching(
+              d_match_mode);
           return getNextMatch( s, eqc, subs, rev_subs );
         }
       }
@@ -1907,7 +1903,7 @@ bool TermGenerator::getNextMatch( TermGenEnv * s, TNode eqc, std::map< TypeNode,
       }
     }
   }
-  Assert(false);
+  DebugUnhandled();
   return false;
 }
 
@@ -1978,7 +1974,7 @@ Node TermGenerator::getTerm( TermGenEnv * s ) {
       return s->d_cg->nodeManager()->mkNode(s->d_func_kind[f], children);
     }
   }else{
-    Assert(false);
+    DebugUnhandled();
   }
   return Node::null();
 }
@@ -2104,8 +2100,9 @@ bool TermGenEnv::getNextTerm() {
 }
 
 //reset matching
-void TermGenEnv::resetMatching( TNode eqc, unsigned mode ) {
-  d_tg_alloc[0].resetMatching( this, eqc, mode );
+void TermGenEnv::resetMatching(unsigned mode)
+{
+  d_tg_alloc[0].resetMatching(mode);
 }
 
 //get next match
@@ -2213,7 +2210,7 @@ bool TermGenEnv::considerCurrentTerm() {
         }else{
           mode =  1 << 1;
         }
-        d_tg_alloc[0].resetMatching( this, d_ccand_eqc[r][i-1][j], mode );
+        d_tg_alloc[0].resetMatching(mode);
         if( d_tg_alloc[0].getNextMatch( this, d_ccand_eqc[r][i-1][j], subs, rev_subs ) ){
           d_ccand_eqc[r][i].push_back( d_ccand_eqc[r][i-1][j] );
         }
@@ -2423,7 +2420,7 @@ void TheoremIndex::getEquivalentTermsNode( Node curr, std::vector< TNode >& n_v,
   std::map< TypeNode, TNode >::iterator itt = d_var.find( tn );
   if( itt!=d_var.end() ){
     Trace("thm-db-debug") << "Check for substitution with " << itt->second << "..." << std::endl;
-    Assert(curr.getType() == itt->second.getType());
+    AssertEqual(curr.getType(), itt->second.getType());
     //add to substitution if possible
     bool success = false;
     std::map< TNode, TNode >::iterator it = smap.find( itt->second );

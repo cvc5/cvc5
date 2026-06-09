@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Tianyi Liang
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -46,7 +43,7 @@ TheoryStrings::TheoryStrings(Env& env, OutputChannel& out, Valuation valuation)
       d_notify(*this),
       d_statistics(statisticsRegistry()),
       d_state(env, d_valuation),
-      d_termReg(env, *this, d_state, d_statistics),
+      d_termReg(env, *this, d_state),
       d_arithEntail(
           env.getNodeManager(),
           options().strings.stringRecArithApprox ? env.getRewriter() : nullptr,
@@ -58,7 +55,7 @@ TheoryStrings::TheoryStrings(Env& env, OutputChannel& out, Valuation valuation)
                  &d_statistics.d_rewrites,
                  d_termReg.getAlphabetCardinality()),
       d_eagerSolver(options().strings.stringEagerSolver
-                        ? new EagerSolver(env, d_state, d_termReg)
+                        ? new EagerSolver(env, d_state)
                         : nullptr),
       d_extTheoryCb(),
       d_im(env, *this, d_state, d_termReg, d_extTheory, d_statistics),
@@ -319,7 +316,7 @@ bool TheoryStrings::collectModelInfoType(
   std::vector<std::vector<Node>> col;
   std::vector<Node> lts;
   const std::vector<Node> repVec(repSet.at(tn).begin(), repSet.at(tn).end());
-  mc->separateByLength(repVec, col, lts);
+  mc->separateByLength(m, repVec, col, lts);
   Assert(col.size() == lts.size());
   // indices in col that have lengths that are too big to represent
   std::unordered_set<size_t> oobIndices;
@@ -870,8 +867,11 @@ void TheoryStrings::preRegisterTerm(TNode n)
   d_extTheory.registerTerm(n);
 }
 
-bool TheoryStrings::preNotifyFact(
-    TNode atom, bool pol, TNode fact, bool isPrereg, bool isInternal)
+bool TheoryStrings::preNotifyFact(TNode atom,
+                                  bool pol,
+                                  CVC5_UNUSED TNode fact,
+                                  CVC5_UNUSED bool isPrereg,
+                                  bool isInternal)
 {
   if (atom.getKind() == Kind::EQUAL)
   {
@@ -1123,8 +1123,10 @@ void TheoryStrings::notifySharedTerm(TNode n)
   {
     d_termReg.registerSubterms(n);
   }
-  if (n.getType().isRegExp())
+  TypeNode tn = n.getType();
+  if (!d_env.isFirstClassType(tn))
   {
+    Assert(tn.isRegExp());
     std::stringstream ss;
     ss << "Regular expression terms are not supported in theory combination";
     throw LogicException(ss.str());
@@ -1154,11 +1156,7 @@ TrustNode TheoryStrings::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
         throw LogicException(
             "expecting a constant string term in regexp range");
       }
-      if (nc.getConst<String>().size() != 1)
-      {
-        throw LogicException(
-            "expecting a single constant string term in regexp range");
-      }
+      Assert (nc.getConst<String>().size() == 1);
     }
   }
 
@@ -1234,9 +1232,9 @@ TrustNode TheoryStrings::ppStaticRewrite(TNode atom)
   {
     if (atom[0].getType().isRegExp())
     {
-      std::stringstream ss;
-      ss << "Equality between regular expressions is not supported";
-      throw LogicException(ss.str());
+      Node res = d_rewriter.rewriteViaRule(ProofRewriteRule::RE_EQ_ELIM, atom);
+      Assert(!res.isNull());
+      return TrustNode::mkTrustRewrite(atom, res, d_psrewPg.get());
     }
     // always apply aggressive equality rewrites here
     Node ret = d_rewriter.rewriteEqualityExt(atom);

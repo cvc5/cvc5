@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Andrew Reynolds, Makai Mann
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -533,12 +530,12 @@ TEST_F(TestCApiBlackTerm, get_string)
   ASSERT_DEATH(cvc5_mk_string(nullptr, "abcde", false),
                "unexpected NULL argument");
   ASSERT_DEATH(cvc5_term_is_string_value(nullptr), "invalid term");
-  ASSERT_DEATH(cvc5_term_get_string_value(nullptr), "invalid term");
+  ASSERT_DEATH(cvc5_term_get_u32string_value(nullptr), "invalid term");
   ASSERT_DEATH(cvc5_mk_string(d_tm, nullptr, false),
                "unexpected NULL argument");
   Cvc5Term s1 = cvc5_mk_string(d_tm, "abcde", false);
   ASSERT_TRUE(cvc5_term_is_string_value(s1));
-  ASSERT_EQ(cvc5_term_get_string_value(s1), std::wstring(L"abcde"));
+  ASSERT_EQ(cvc5_term_get_u32string_value(s1), std::u32string(U"abcde"));
 }
 
 TEST_F(TestCApiBlackTerm, get_real)

@@ -1,5 +1,5 @@
 ; REQUIRES: poly
-; COMMAND-LINE: -q --nl-cov
+; COMMAND-LINE: --nl-cov
 ; EXPECT: sat
 (set-logic NIRA)
 (declare-const x Bool)

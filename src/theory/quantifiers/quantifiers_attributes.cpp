@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Paul Meng
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -396,7 +393,6 @@ bool QuantAttributes::isQuantBounded(Node q) const
   }
   return false;
 }
-
 Node QuantAttributes::getQuantName(Node q) const
 {
   std::map<Node, QAttributes>::const_iterator it = d_qattr.find(q);
@@ -492,7 +488,7 @@ Node mkNamedQuant(Kind k, Node bvl, Node body, const std::string& name)
 {
   NodeManager* nm = bvl.getNodeManager();
   Node v = NodeManager::mkDummySkolem(
-      name, nm->booleanType(), "", SkolemFlags::SKOLEM_EXACT_NAME);
+      name, nm->booleanType(), SkolemFlags::SKOLEM_EXACT_NAME);
   Node attr = nm->mkConst(String("qid"));
   Node ip = nm->mkNode(Kind::INST_ATTRIBUTE, attr, v);
   Node ipl = nm->mkNode(Kind::INST_PATTERN_LIST, ip);

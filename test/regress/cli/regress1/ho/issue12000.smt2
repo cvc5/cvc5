@@ -1,0 +1,12 @@
+; EXPECT: sat
+(set-logic HO_ALL)
+(declare-sort U 0)
+(declare-fun f (Bool U) U)
+(declare-fun f ((-> Bool U) (-> U U)) U)
+(declare-fun n (Bool) U)
+(declare-fun fn (U) U)
+(declare-const c U)
+(declare-sort v 0)
+(declare-sort n 0)
+(assert (exists ((r n)) (and (forall ((s v)) (distinct c (f true (f n fn)))))))
+(check-sat)

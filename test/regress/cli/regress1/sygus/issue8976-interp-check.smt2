@@ -1,4 +1,4 @@
-; COMMAND-LINE: --produce-interpolants -q --check-models
+; COMMAND-LINE: --produce-interpolants --check-models
 ; EXPECT: fail
 (set-logic ALL)
 (declare-fun a () String)                                                       

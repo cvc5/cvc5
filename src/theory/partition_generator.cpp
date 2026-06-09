@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Amalee Wilson, Andrew Reynolds, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -73,11 +70,12 @@ void PartitionGenerator::incrementOrInsertLemmaAtom(Node& node)
   }
 }
 
-void PartitionGenerator::notifyLemma(TNode n,
-                                     InferenceId id,
-                                     LemmaProperty p,
-                                     const std::vector<Node>& skAsserts,
-                                     const std::vector<Node>& sks)
+void PartitionGenerator::notifyLemma(
+    TNode n,
+    CVC5_UNUSED InferenceId id,
+    CVC5_UNUSED LemmaProperty p,
+    CVC5_UNUSED const std::vector<Node>& skAsserts,
+    CVC5_UNUSED const std::vector<Node>& sks)
 {
   if (options().parallel.partitionStrategy == options::PartitionMode::LEMMA_CUBE
       || options().parallel.partitionStrategy
@@ -164,8 +162,8 @@ std::vector<Node> PartitionGenerator::collectLiterals(LiteralListType litType)
       break;
     }
     case HEAP:
-    { 
-      unfilteredLiterals = d_propEngine->getPropOrderHeap(); 
+    {
+      unfilteredLiterals = d_propEngine->getPropOrderHeap();
       break;
     }
     case LEMMA:
@@ -239,7 +237,6 @@ Node PartitionGenerator::stopPartitioning()
 // timeout or total number of requested partitions.
 // Once we reach that point, we dump all the partitions.
 Node PartitionGenerator::makeScatterPartitions(LiteralListType litType,
-                                               bool emitZLL,
                                                bool timedOut,
                                                bool randomize)
 {
@@ -543,15 +540,15 @@ void PartitionGenerator::check(Theory::Effort e)
       break;
     case options::PartitionMode::HEAP_SCATTER:
       lem = makeScatterPartitions(
-          /*litType=*/HEAP, emitZLL, timeOutExceeded, randomize);
+          /*litType=*/HEAP, timeOutExceeded, randomize);
       break;
     case options::PartitionMode::DECISION_SCATTER:
       lem = makeScatterPartitions(
-          /*litType=*/DECISION, emitZLL, timeOutExceeded, randomize);
+          /*litType=*/DECISION, timeOutExceeded, randomize);
       break;
     case options::PartitionMode::LEMMA_SCATTER:
       lem = makeScatterPartitions(
-          /*litType=*/LEMMA, emitZLL, timeOutExceeded, randomize);
+          /*litType=*/LEMMA, timeOutExceeded, randomize);
       break;
     default: return;
   }

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Gereon Kremer, Amalee Wilson
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -237,10 +234,6 @@ TEST_F(TestApiBlackTermManager, mkFunctionSort)
                                      d_tm.getIntegerSort());
   // function arguments are allowed
   ASSERT_NO_THROW(d_tm.mkFunctionSort({funSort}, d_tm.getIntegerSort()));
-  // non-first-class arguments are not allowed
-  Sort reSort = d_tm.getRegExpSort();
-  ASSERT_THROW(d_tm.mkFunctionSort({reSort}, d_tm.getIntegerSort()),
-               CVC5ApiException);
   ASSERT_THROW(d_tm.mkFunctionSort({d_tm.getIntegerSort()}, funSort),
                CVC5ApiException);
   ASSERT_NO_THROW(d_tm.mkFunctionSort(
@@ -778,8 +771,8 @@ TEST_F(TestApiBlackTermManager, mkString)
   ASSERT_EQ(d_tm.mkString("asdf\\nasdf").toString(), "\"asdf\\u{5c}nasdf\"");
   ASSERT_EQ(d_tm.mkString("asdf\\u{005c}nasdf", true).toString(),
             "\"asdf\\u{5c}nasdf\"");
-  std::wstring s;
-  ASSERT_EQ(d_tm.mkString(s).getStringValue(), s);
+  std::u32string s;
+  ASSERT_EQ(d_tm.mkString(s).getU32StringValue(), s);
 }
 
 TEST_F(TestApiBlackTermManager, mkTerm)

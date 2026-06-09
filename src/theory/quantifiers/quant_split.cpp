@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -66,7 +63,7 @@ class QuantDSplitProofGenerator : protected EnvObj, public ProofGenerator
     context::CDHashMap<Node, size_t>::iterator it = d_index.find(fact);
     if (it == d_index.end())
     {
-      Assert(false) << "QuantDSplitProofGenerator failed to get proof";
+      DebugUnhandled() << "QuantDSplitProofGenerator failed to get proof";
       return nullptr;
     }
     Assert(fact.getKind() == Kind::EQUAL && fact[0].getKind() == Kind::FORALL);
@@ -225,7 +222,7 @@ bool QuantDSplit::checkCompleteFor( Node q ) {
 }
 
 /* Call during quantifier engine's check */
-void QuantDSplit::check(Theory::Effort e, QEffort quant_e)
+void QuantDSplit::check(CVC5_UNUSED Theory::Effort e, QEffort quant_e)
 {
   //add lemmas ASAP (they are a reduction)
   if (quant_e != QEFFORT_CONFLICT)

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andres Noetzli, Tim King, Morgan Deters
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -33,7 +30,7 @@ std::ostream& operator<<(std::ostream& out, const CommandStatus& s)
 
 ostream& operator<<(ostream& out, const CommandStatus* s)
 {
-  if (s == NULL)
+  if (s == nullptr)
   {
     out << "null";
   }

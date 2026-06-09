@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Morgan Deters
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -173,10 +170,15 @@ protected:
 
   /** process build model */
   bool preProcessBuildModel(TheoryModel* m) override;
-  bool processBuildModel(TheoryModel* m) override;
 
   bool useSimpleModels();
  private:
+  /**
+   * Initialize functions for exhaustive instantiation. Called at the beginning
+   * of doExhaustiveInstantiation to ensure data structures in this class are
+   * initialized.
+   */
+  void initializeFunctions(TheoryModel* m);
   /**
    * Register quantified formula.
    * This checks whether q can be handled by model-based instantiation and
@@ -190,6 +192,8 @@ protected:
    * class that is specialized for this class.
    */
   std::unique_ptr<FirstOrderModelFmc> d_fm;
+  /** Have we intialized functions this round? */
+  bool d_initFuncs;
 };/* class FullModelChecker */
 
 }  // namespace fmcheck

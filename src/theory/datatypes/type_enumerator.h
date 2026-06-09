@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Tim King, Morgan Deters
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -80,6 +77,11 @@ class DatatypesEnumerator : public TypeEnumeratorBase<DatatypesEnumerator> {
   bool increment( unsigned index );
 
   Node getCurrentTerm( unsigned index );
+
+  bool isEnumerationComplete()
+  {
+    return d_ctor >= d_has_debruijn+d_datatype.getNumConstructors();
+  }
 
   void init();
 
@@ -157,7 +159,7 @@ class DatatypesEnumerator : public TypeEnumeratorBase<DatatypesEnumerator> {
 
   bool isFinished() override
   {
-    return d_ctor >= d_has_debruijn+d_datatype.getNumConstructors();
+    return isEnumerationComplete();
   }
 
 };/* DatatypesEnumerator */

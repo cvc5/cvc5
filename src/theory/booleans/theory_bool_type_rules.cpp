@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Morgan Deters
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -26,7 +23,7 @@ bool isMaybeBoolean(const TypeNode& tn)
   return tn.isBoolean() || tn.isFullyAbstract();
 }
 
-TypeNode BooleanTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode BooleanTypeRule::preComputeType(NodeManager* nm, CVC5_UNUSED TNode n)
 {
   return nm->booleanType();
 }
@@ -54,7 +51,8 @@ TypeNode BooleanTypeRule::computeType(NodeManager* nodeManager,
   return booleanType;
 }
 
-TypeNode IteTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode IteTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
+                                     CVC5_UNUSED TNode n)
 {
   return TypeNode::null();
 }

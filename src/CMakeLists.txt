@@ -1,10 +1,7 @@
 ###############################################################################
-# Top contributors (to current version):
-#   Andrew Reynolds, Mathias Preiner, Gereon Kremer
-#
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -128,6 +125,8 @@ libcvc5_add_sources(
   preprocessing/passes/theory_preprocess.h
   preprocessing/passes/unconstrained_simplifier.cpp
   preprocessing/passes/unconstrained_simplifier.h
+  preprocessing/passes/normalize.cpp
+  preprocessing/passes/normalize.h
   preprocessing/preprocessing_pass.cpp
   preprocessing/preprocessing_pass.h
   preprocessing/preprocessing_pass_context.cpp
@@ -148,16 +147,16 @@ libcvc5_add_sources(
   printer/printer.h
   printer/smt2/smt2_printer.cpp
   printer/smt2/smt2_printer.h
-  proof/alf/alf_dependent_type_converter.cpp
-  proof/alf/alf_dependent_type_converter.h
-  proof/alf/alf_list_node_converter.cpp
-  proof/alf/alf_list_node_converter.h
-  proof/alf/alf_node_converter.cpp
-  proof/alf/alf_node_converter.h
-  proof/alf/alf_print_channel.cpp
-  proof/alf/alf_print_channel.h
-  proof/alf/alf_printer.cpp
-  proof/alf/alf_printer.h
+  proof/eo/eo_dependent_type_converter.cpp
+  proof/eo/eo_dependent_type_converter.h
+  proof/eo/eo_list_node_converter.cpp
+  proof/eo/eo_list_node_converter.h
+  proof/eo/eo_node_converter.cpp
+  proof/eo/eo_node_converter.h
+  proof/eo/eo_print_channel.cpp
+  proof/eo/eo_print_channel.h
+  proof/eo/eo_printer.cpp
+  proof/eo/eo_printer.h
   proof/assumption_proof_generator.cpp
   proof/assumption_proof_generator.h
   proof/buffered_proof_generator.cpp
@@ -242,14 +241,22 @@ libcvc5_add_sources(
   proof/alethe/alethe_let_binding.h
   proof/alethe/alethe_node_converter.cpp
   proof/alethe/alethe_node_converter.h
+  proof/alethe/alethe_post_processor_algorithm.cpp
+  proof/alethe/alethe_post_processor_algorithm.h
   proof/alethe/alethe_post_processor.cpp
   proof/alethe/alethe_post_processor.h
   proof/alethe/alethe_printer.h
   proof/alethe/alethe_printer.cpp
   proof/alethe/alethe_proof_rule.cpp
   proof/alethe/alethe_proof_rule.h
-  prop/cadical.cpp
-  prop/cadical.h
+  prop/cadical/cadical.cpp
+  prop/cadical/cadical.h
+  prop/cadical/cdclt_propagator.cpp
+  prop/cadical/cdclt_propagator.h
+  prop/cadical/proof_tracer.cpp
+  prop/cadical/proof_tracer.h
+  prop/cadical/util.cpp
+  prop/cadical/util.h
   prop/cnf_stream.cpp
   prop/cnf_stream.h
   prop/cryptominisat.cpp
@@ -325,6 +332,8 @@ libcvc5_add_sources(
   smt/listeners.cpp
   smt/listeners.h
   smt/logic_exception.h
+  smt/illegal_checker.cpp
+  smt/illegal_checker.h
   smt/interpolation_solver.cpp
   smt/interpolation_solver.h
   smt/model.cpp
@@ -487,6 +496,8 @@ libcvc5_add_sources(
   theory/arith/nl/ext/constraint.h
   theory/arith/nl/ext/factoring_check.cpp
   theory/arith/nl/ext/factoring_check.h
+  theory/arith/nl/ext/flatten_monomial_check.cpp
+  theory/arith/nl/ext/flatten_monomial_check.h
   theory/arith/nl/ext/monomial.cpp
   theory/arith/nl/ext/monomial.h
   theory/arith/nl/ext/monomial_bounds_check.cpp
@@ -505,6 +516,8 @@ libcvc5_add_sources(
   theory/arith/nl/ext_theory_callback.h
   theory/arith/nl/iand_solver.cpp
   theory/arith/nl/iand_solver.h
+  theory/arith/nl/piand_solver.cpp
+  theory/arith/nl/piand_solver.h
   theory/arith/nl/icp/candidate.cpp
   theory/arith/nl/icp/candidate.h
   theory/arith/nl/icp/contraction_origins.cpp
@@ -735,6 +748,8 @@ libcvc5_add_sources(
   theory/ff/cocoa_util.h
   theory/ff/core.cpp
   theory/ff/core.h
+  theory/ff/gb.cpp
+  theory/ff/gb.h
   theory/ff/multi_roots.cpp
   theory/ff/multi_roots.h
   theory/ff/parse.cpp
@@ -1273,6 +1288,8 @@ libcvc5_add_sources(
   theory/uf/conversions_solver.h
   theory/uf/diamonds_proof_generator.cpp
   theory/uf/diamonds_proof_generator.h
+  theory/uf/distinct_extension.cpp
+  theory/uf/distinct_extension.h
   theory/uf/equality_engine.cpp
   theory/uf/equality_engine.h
   theory/uf/equality_engine_iterator.cpp
@@ -1311,6 +1328,9 @@ libcvc5_add_sources(
 
 # suppress deprecated warnings to not error in CI
 set_source_files_properties(api/cpp/cvc5.cpp
+  PROPERTIES COMPILE_OPTIONS
+  "-Wno-deprecated-declarations;-Wno-error=deprecated-declarations")
+set_source_files_properties(api/c/cvc5.cpp
   PROPERTIES COMPILE_OPTIONS
   "-Wno-deprecated-declarations;-Wno-error=deprecated-declarations")
 set_source_files_properties(api/cpp/cvc5_parser.cpp
@@ -1417,22 +1437,6 @@ add_custom_target(gen-options DEPENDS options/options.stamp)
 
 #-----------------------------------------------------------------------------#
 
-set(KINDS_FILES
-  ${PROJECT_SOURCE_DIR}/src/theory/builtin/kinds
-  ${PROJECT_SOURCE_DIR}/src/theory/booleans/kinds
-  ${PROJECT_SOURCE_DIR}/src/theory/uf/kinds
-  ${PROJECT_SOURCE_DIR}/src/theory/arith/kinds
-  ${PROJECT_SOURCE_DIR}/src/theory/bv/kinds
-  ${PROJECT_SOURCE_DIR}/src/theory/ff/kinds
-  ${PROJECT_SOURCE_DIR}/src/theory/fp/kinds
-  ${PROJECT_SOURCE_DIR}/src/theory/arrays/kinds
-  ${PROJECT_SOURCE_DIR}/src/theory/datatypes/kinds
-  ${PROJECT_SOURCE_DIR}/src/theory/sep/kinds
-  ${PROJECT_SOURCE_DIR}/src/theory/sets/kinds
-  ${PROJECT_SOURCE_DIR}/src/theory/bags/kinds
-  ${PROJECT_SOURCE_DIR}/src/theory/strings/kinds
-  ${PROJECT_SOURCE_DIR}/src/theory/quantifiers/kinds)
-
   set(KINDS_TOML_FILES
   ${PROJECT_SOURCE_DIR}/src/theory/builtin/kinds.toml
   ${PROJECT_SOURCE_DIR}/src/theory/booleans/kinds.toml
@@ -1487,6 +1491,11 @@ add_subdirectory(util)
 
 set_source_files_properties(${LIBCVC5_GEN_SRCS} PROPERTIES GENERATED TRUE)
 
+# With debug enabled, var tracking will exceed max-vartrack-size for some autogenerated files, this makes
+# the compiler to start-over without var-tracking-assignments which increases build time.
+# This option has no effect for non-debug build (builds without "-g")
+add_check_cxx_flag("-fno-var-tracking-assignments" ${LIBCVC5_GEN_SRCS})
+
 # First build the object library
 add_library(cvc5-obj OBJECT ${LIBCVC5_SRCS} ${LIBCVC5_GEN_SRCS})
 target_compile_definitions(cvc5-obj PRIVATE -D__BUILDING_CVC5LIB -Dcvc5_obj_EXPORTS)
@@ -1516,7 +1525,8 @@ if(NOT SKIP_SET_RPATH AND BUILD_SHARED_LIBS AND APPLE)
 endif()
 
 if(BUILD_SHARED_LIBS)
-  set_target_properties(cvc5 PROPERTIES SOVERSION ${CVC5_SOVERSION})
+  set_target_properties(cvc5 PROPERTIES
+    VERSION ${CVC5_VERSION_NUMBER} SOVERSION ${CVC5_SOVERSION})
 endif()
 
 include(GenerateExportHeader)

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -50,7 +47,10 @@ class TheoryInference
    * @return The trust node (of kind TrustNodeKind::LEMMA) corresponding to the
    * lemma and its proof generator.
    */
-  virtual TrustNode processLemma(LemmaProperty& p) { return TrustNode::null(); }
+  virtual TrustNode processLemma(CVC5_UNUSED LemmaProperty& p)
+  {
+    return TrustNode::null();
+  }
   /**
    * Process internal fact, return the conclusion to pass to
    * TheoryInferenceManager::assertInternalFact. In addition, the inference
@@ -61,7 +61,8 @@ class TheoryInference
    * engine.
    * @return The (possibly negated) conclusion.
    */
-  virtual Node processFact(std::vector<Node>& exp, ProofGenerator*& pg)
+  virtual Node processFact(CVC5_UNUSED std::vector<Node>& exp,
+                           CVC5_UNUSED ProofGenerator*& pg)
   {
     return Node::null();
   }

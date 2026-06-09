@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Tim King, Mathias Preiner, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -197,12 +194,6 @@ public:
   int compare(const DeltaRational& other) const{
     int cmpRes = c.cmp(other.c);
     return (cmpRes != 0) ? cmpRes : (k.cmp(other.k));
-  }
-
-  DeltaRational& operator=(const DeltaRational& other){
-    c = other.c;
-    k = other.k;
-    return *(this);
   }
 
   DeltaRational& operator*=(const cvc5::internal::Rational& a)

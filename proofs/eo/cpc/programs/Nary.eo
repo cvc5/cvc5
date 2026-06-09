@@ -12,199 +12,35 @@
 ;
 ; =============================================
 
-; program: $nary_is_subset
+;; =============== for assoc-nil
+
+; program: $assoc_nil_nth_type
 ; args:
-; - cons (-> L L L): The n-ary function symbol.
-; - nil L: The nil terminator of cons.
-; - c1 L: The first term, assumed to be a cons-list.
-; - c2 L: The second term, assumed to be a cons-list.
-; return: >
-;   true if c1 is a subset of c2, e.g. all children of c1 are also children of
-;   c2, or false otherwise.
-(program $nary_is_subset
-    ((L Type) (cons (-> L L L)) (nil L) (c L) (t L) (xs L :list))
-    ((-> L L L) L L L) Bool
-    (
-        (($nary_is_subset cons nil (cons c xs) t) (eo::ite (eo::is_neg (eo::list_find cons t c)) false ($nary_is_subset cons nil xs t)))
-        (($nary_is_subset cons nil nil t)         true)
-    )
+; - f (-> T U V): The function, expected to be an n-ary function.
+; - t W: The term to inspect, expected to be an f-list.
+; - n Int: The index of the child in t.
+; return: The type of the n^th child of t.
+(program $assoc_nil_nth_type
+  ((T Type) (U Type) (V Type) (W Type) (W1 Type) (W2 Type)
+   (f (-> T U V)) (n Int) (x1 W1) (x2 W2))
+  :signature ((-> T U V) W Int) Type
+  (
+  (($assoc_nil_nth_type f (f x1 x2) 0)   (eo::typeof x1))
+  (($assoc_nil_nth_type f (f x1 x2) n)   ($assoc_nil_nth_type f x2 (eo::add n -1)))
+  )
 )
 
-; define: $nary_is_eq_set
+; program: $assoc_nil_nth
 ; args:
-; - cons (-> L L L): The n-ary function symbol.
-; - nil L: The nil terminator of cons.
-; - c1 L: The first term, assumed to be a cons-list.
-; - c2 L: The second term, assumed to be a cons-list.
-; return: >
-;   true if c1 is a subset of c2 and c2 is a subset of c1.
-(define $nary_is_eq_set ((L Type :implicit) (cons (-> L L L)) (nil L) (c1 L) (c2 L))
-  (eo::ite ($nary_is_subset cons nil c1 c2)
-    ($nary_is_subset cons nil c2 c1)
-    false))
-
-; program: $nary_remove
-; args:
-; - cons (-> L L L): The n-ary function symbol.
-; - nil L: The nil terminator of cons.
-; - c L: The term to find.
-; - xs L: The term to search in, assumed to be a cons-list.
-; return: >
-;   The result of removing the first occurrence of c from xs if it exists.
-(program $nary_remove
-    ((L Type) (cons (-> L L L)) (nil L) (c L) (y L) (xs L :list))
-    ((-> L L L) L L L) L
-    (
-        (($nary_remove cons nil c (cons c xs)) xs)
-        (($nary_remove cons nil c (cons y xs)) (eo::cons cons y ($nary_remove cons nil c xs)))
-        (($nary_remove cons nil c nil)         nil)
-    )
-)
-
-; Helper for reverse
-; program: $nary_reverse_rec
-; args:
-; - cons (-> L L L): The n-ary function symbol.
-; - nil L: The nil terminator of cons.
-; - c L: The term to reverse, assumed to be a cons-list.
-; - acc L: The current accumulated reversal of elements we have processed.
-; return: >
-;   The result of prepending the reverse of c to acc.
-(program $nary_reverse_rec
-    ((L Type) (cons (-> L L L)) (nil L) (x L) (xs L :list) (l L :list))
-    ((-> L L L) L L L) L
-    (
-        (($nary_reverse_rec cons nil (cons x xs) l) ($nary_reverse_rec cons nil xs (eo::cons cons x l)))
-        (($nary_reverse_rec cons nil nil l)         l)
-    )
-)
-
-; program: $nary_reverse
-; args:
-; - x L: The term to reverse.
-; return: >
-;   The reverse of x. Assumes that x is the application of a :right-assoc-nil
-;   function, otherwise returns x itself.
-(program $nary_reverse
-    ((L Type) (cons (-> L L L)) (x L) (xs L :list))
-    (L) L
-    (
-        (($nary_reverse (cons x xs)) (eo::define ((nil (eo::nil cons x xs))) ($nary_reverse_rec cons nil (cons x xs) nil)))
-        (($nary_reverse x)           x)
-    )
-)
-
-; program: $nary_is_prefix
-; args:
-; - cons (-> L L L): The n-ary function symbol.
-; - nil L: The nil terminator of cons.
-; - c1 L: The first term, assumed to be a cons-list.
-; - c2 L: The second term, assumed to be a cons-list.
-; return: true if c1 is a prefix of c2.
-(program $nary_is_prefix
-    ((L Type) (cons (-> L L L)) (nil L) (t L) (c1 L) (c2 L) (xs1 L :list) (xs2 L :list))
-    ((-> L L L) L L L) Bool
-    (
-        (($nary_is_prefix cons nil nil t)                       true)
-        (($nary_is_prefix cons nil t nil)                       false)
-        (($nary_is_prefix cons nil (cons c1 xs1) (cons c2 xs2)) (eo::ite (eo::is_eq c1 c2) ($nary_is_prefix cons nil xs1 xs2) false))
-    )
-)
-
-; program: $nary_is_compatible
-; args:
-; - cons (-> L L L): The n-ary function symbol.
-; - nil L: The nil terminator of cons.
-; - c1 L: The first term, assumed to be a cons-list.
-; - c2 L: The second term, assumed to be a cons-list.
-; return: true if c1 is a prefix of c2, or c2 is a prefix of c1.
-(program $nary_is_compatible
-    ((L Type) (cons (-> L L L)) (nil L) (t L) (c1 L) (c2 L) (xs1 L :list) (xs2 L :list))
-    ((-> L L L) L L L) Bool
-    (
-        (($nary_is_compatible cons nil nil t)                       true)
-        (($nary_is_compatible cons nil t nil)                       true)
-        (($nary_is_compatible cons nil (cons c1 xs1) (cons c2 xs2)) (eo::ite (eo::is_eq c1 c2) ($nary_is_compatible cons nil xs1 xs2) false))
-    )
-)
-
-; program: $nary_prefix
-; args:
-; - cons (-> L L L): The n-ary function symbol.
-; - nil L: The nil terminator of cons.
-; - l Int: The number of elements in the prefix left to extract.
-; - t L: The term to process, which is expected to be a cons-list.
-; return: the prefix of t consisting of at most l children.
-(program $nary_prefix
-    ((L Type) (cons (-> L L L)) (nil L) (t L) (c1 L) (c2 L :list) (l Int))
-    ((-> L L L) L Int L) L
-    (
-        (($nary_prefix cons nil l nil)             nil)
-        (($nary_prefix cons nil 0 t)               nil)
-        (($nary_prefix cons nil l (cons c1 c2))    (eo::cons cons c1 ($nary_prefix cons nil (eo::add l -1) c2)))
-    )
-)
-
-; program: $nary_subsequence
-; args:
-; - cons (-> L L L): The n-ary function symbol.
-; - nil L: The nil terminator of cons.
-; - l Int: The starting index, inclusive, of elements of t to extract.
-; - u Int: The end index, inclusive, of elements of t to extract.
-; - t L: The term to process, which is expected to be a cons-list.
-; return: >
-;   The subsequent of t between indices l and u inclusive. Indices that
-;   fall out of bounds of the number of children of t are ignored.
-(program $nary_subsequence
-    ((L Type) (cons (-> L L L)) (nil L) (t L) (c1 L) (c2 L :list) (u Int) (l Int))
-    ((-> L L L) L Int Int L) L
-    (
-        (($nary_subsequence cons nil l u nil)            nil)
-        (($nary_subsequence cons nil 0 u t)              ($nary_prefix cons nil (eo::add u 1) t))
-        (($nary_subsequence cons nil l u (cons c1 c2))   ($nary_subsequence cons nil (eo::add l -1) (eo::add u -1) c2))
-    )
-)
-
-; program: $nary_join
-; args:
-; - cons (-> L L L): The n-ary function symbol.
-; - nil L: The nil terminator of cons.
-; - c1 L: The first term, assumed to be a cons-list.
-; - c2 L: The second term, assumed to be a cons-list.
-; return: >
-;   The "join" of c1 and c2, that is, if the last child of c1 is the same as the
-;   first child of c2, then those 2 children are dropped and c1 and c2 are
-;   appended together. Otherwise, this program does not evaluate.
-(program $nary_join
-    ((L Type) (cons (-> L L L)) (nil L) (elim-nil L) (c L) (x L) (xs L :list) (y L) (ys L :list))
-    ((-> L L L) L L L) L
-    (
-        (($nary_join cons nil (cons x nil) (cons x ys)) ys)
-        (($nary_join cons nil (cons x xs) y)            (cons x ($nary_join cons nil xs y)))
-    )
-)
-
-; program: $nary_diff
-; args:
-; - cons (-> L L L): >
-;   The function whose applications we are considering. It is assumed that
-;   cons is a function with attribute :right-assoc-nil.
-; - nil L: The nil terminator of cons.
-; - t1 L: The first term, assumed to be a cons-list.
-; - t2 L: The second term, assumed to be a cons-list.
-; return: >
-;   The result of subtracting t2 from t1, where these terms are cons-lists.
-;   For example, ($nary_diff or false (or a b c d) (or a c)) = (or b d).
-;   This is different from set difference, in that we eliminate elements of the
-;   list only in order. This corresponds to set difference only if the lists are
-;   both ordered.
-(program $nary_diff
-    ((L Type) (cons (-> L L L)) (nil L) (t L) (c1 L) (c2 L) (xs1 L :list) (xs2 L :list))
-    ((-> L L L) L L L) L
-    (
-        (($nary_diff cons nil (cons c1 xs1) (cons c2 xs2))  (eo::ite (eo::is_eq c1 c2)
-                                                              ($nary_diff cons nil xs1 xs2)
-                                                              (eo::cons cons c1 ($nary_diff cons nil xs1 (cons c2 xs2)))))
-        (($nary_diff cons nil c1 nil)                       c1)
-    )
+; - f (-> T U V): The function, expected to be an n-ary function.
+; - t W: The term to inspect, expected to be an f-list.
+; - n Int: The index of the child in t.
+; return: The n^th child of t.
+(program $assoc_nil_nth ((T Type) (U Type) (V Type) (W Type) (W1 Type) (W2 Type)
+   (f (-> T U V)) (n Int) (x W) (x1 W1) (x2 W2))
+  :signature ((eo::quote f) (eo::quote x) (eo::quote n)) ($assoc_nil_nth_type f x n)
+  (
+  (($assoc_nil_nth f (f x1 x2) 0)   x1)
+  (($assoc_nil_nth f (f x1 x2) n)   ($assoc_nil_nth f x2 (eo::add n -1)))
+  )
 )

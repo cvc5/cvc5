@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -187,8 +184,7 @@ class EquivSygusInvarianceTest : public SygusInvarianceTest
    * bvr is the builtin version of the right hand side of the rewrite that we
    * are checking for invariance
    */
-  void init(
-      TermDbSygus* tds, TypeNode tn, SynthConjecture* aconj, Node e, Node bvr);
+  void init(TermDbSygus* tds, SynthConjecture* aconj, Node e, Node bvr);
 
  protected:
   /** checks whether the analog of nvn still rewrites to d_bvr */

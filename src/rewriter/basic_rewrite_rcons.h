@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Hans-Joerg Schurr
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -131,6 +128,15 @@ class BasicRewriteRCons : protected EnvObj
    * @return true if added a closed proof of eq to cdp.
    */
   bool ensureProofMacroBoolNnfNorm(CDProof* cdp, const Node& eq);
+  /**
+   * Elaborate a rewrite eq that was proven by
+   * ProofRewriteRule::MACRO__BOOL_EQ_CONST_EQ.
+   *
+   * @param cdp The proof to add to.
+   * @param eq The rewrite proven by ProofRewriteRule::MACRO__BOOL_EQ_CONST_EQ.
+   * @return true if added a closed proof of eq to cdp.
+   */
+  bool ensureProofMacroBoolEqConstEq(CDProof* cdp, const Node& eq);
   /**
    * Elaborate a rewrite eq that was proven by
    * ProofRewriteRule::MACRO_BOOL_BV_INVERT_SOLVE.
@@ -369,14 +375,17 @@ class BasicRewriteRCons : protected EnvObj
   bool ensureProofMacroBvEqSolve(CDProof* cdp, const Node& eq);
   /**
    * Elaborate a rewrite eq that was proven by
-   * ProofRewriteRule::MACRO_LAMBDA_CAPTURE_AVOID.
+   * ProofRewriteRule::MACRO_LAMBDA_CAPTURE_AVOID or
+   * ProofRewriteRule::MACRO_QUANT_ELIM_SHADOW. This rule uses the conversion
+   * utility to generate small step rewrites to justify the overall rewrite.
    *
    * @param cdp The proof to add to.
    * @param eq The rewrite proven by
-   * ProofRewriteRule::MACRO_LAMBDA_CAPTURE_AVOID.
+   * ProofRewriteRule::MACRO_LAMBDA_CAPTURE_AVOID or
+   * ProofRewriteRule::MACRO_QUANT_ELIM_SHADOW.
    * @return true if added a closed proof of eq to cdp.
    */
-  bool ensureProofMacroLambdaCaptureAvoid(CDProof* cdp, const Node& eq);
+  bool ensureProofMacroElimShadow(CDProof* cdp, const Node& eq);
   /**
    * Elaborate a rewrite eq that was proven by
    * ProofRewriteRule::MACRO_ARRAYS_NORMALIZE_OP.
@@ -453,6 +462,10 @@ class BasicRewriteRCons : protected EnvObj
   bool tryTheoryRewrite(CDProof* cdp,
                         const Node& eq,
                         theory::TheoryRewriteCtx ctx);
+  /**
+   * Try a specific theory rewrite to prove eq. Return true if successful.
+   */
+  bool doTheoryRewrite(CDProof* cdp, const Node& eq, ProofRewriteRule r);
   /**
    * Counts number of proof nodes for each kind of THEORY_REWRITE that were
    * expanded in macro elimination by this class.

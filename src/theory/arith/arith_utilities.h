@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Tim King, Andrew Reynolds, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -270,7 +267,7 @@ inline Node mkInRange(Node term, Node start, Node end) {
 //   (ite (= n 0) (= q if_zero) (= q not_zero))
 inline Node mkOnZeroIte(Node n, Node q, Node if_zero, Node not_zero) {
   Node zero = mkZero(n.getType());
-  return n.eqNode(zero).iteNode(q.eqNode(if_zero), q.eqNode(not_zero));
+  return n.eqNode(zero).iteNode({q.eqNode(if_zero), q.eqNode(not_zero)});
 }
 
 inline Node mkPi(NodeManager* nm)
@@ -291,6 +288,17 @@ Kind transKinds(Kind k1, Kind k2);
 
 /** Is k a transcendental function kind? */
 bool isTranscendentalKind(Kind k);
+
+/**
+ * Is k an extended non-linear function kind? These kinds are treated by the
+ * non-linear solver. We distinguish these kinds by the fact that they do not
+ * generate irrational outputs given rational inputs. Examples of extended
+ * non-linear kinds include IAND and POW2. All kinds that are non-linear
+ * and arithmetic should return true for either isTranscendentalKind or
+ * isExtendedNonLinearKind.
+ */
+bool isExtendedNonLinearKind(Kind k);
+
 /**
  * Get a lower/upper approximation of the constant r within the given
  * level of precision. In other words, this returns a constant c' such that

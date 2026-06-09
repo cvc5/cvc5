@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -67,8 +64,8 @@ SynthConjecture::SynthConjecture(Env& env,
       d_templInfer(new SygusTemplateInfer(env)),
       d_ceg_proc(new SynthConjectureProcess(env)),
       d_embConv(new EmbeddingConverter(env, d_tds, this)),
-      d_sygus_rconst(new SygusRepairConst(env, qim, d_tds)),
-      d_exampleInfer(new ExampleInfer(nodeManager(), d_tds)),
+      d_sygus_rconst(new SygusRepairConst(env, d_tds)),
+      d_exampleInfer(new ExampleInfer(nodeManager())),
       d_ceg_pbe(new SygusPbe(env, qs, qim, d_tds, this)),
       d_ceg_cegis(new Cegis(env, qs, qim, d_tds, this)),
       d_ceg_cegisUnif(new CegisUnif(env, qs, qim, d_tds, this)),
@@ -560,7 +557,7 @@ bool SynthConjecture::doCheck()
         // since we don't have function subtyping, this assertion should only
         // check the return type
         Assert(fvar.getType().isFunction());
-        Assert(fvar.getType().getRangeType() == bsol.getType());
+        AssertEqual(fvar.getType().getRangeType(), bsol.getType());
         bsol = nm->mkNode(Kind::LAMBDA, bvl, bsol);
       }
       Trace("sygus-engine-debug")
@@ -620,7 +617,7 @@ bool SynthConjecture::doCheck()
     {
       d_verifyWarned = true;
       std::stringstream ss;
-      ss << "Warning: The SyGuS solver failed to verify a canidate solution, "
+      ss << "Warning: The SyGuS solver failed to verify a candidate solution, "
             "likely due to the base logic being undecidable.";
       if (!options().quantifiers.fullSygusVerify)
       {
@@ -788,8 +785,8 @@ EnumValueManager* SynthConjecture::getEnumValueManagerFor(Node e)
   Node f = d_tds->getSynthFunForEnumerator(e);
   bool hasExamples = (d_exampleInfer != nullptr && d_exampleInfer->hasExamples(f)
                       && d_exampleInfer->getNumExamples(f) != 0);
-  d_enumManager[e].reset(new EnumValueManager(
-      d_env, d_qstate, d_qim, d_treg, d_stats, e, hasExamples));
+  d_enumManager[e].reset(
+      new EnumValueManager(d_env, d_qim, d_treg, d_stats, e, hasExamples));
   EnumValueManager* eman = d_enumManager[e].get();
   // set up the examples
   if (hasExamples)
@@ -830,7 +827,7 @@ Node SynthConjecture::getModelValue(Node n)
   return d_treg.getModel()->getValue(n);
 }
 
-void SynthConjecture::debugPrint(const char* c)
+void SynthConjecture::debugPrint(CVC5_UNUSED const char* c)
 {
   Trace(c) << "Synthesis conjecture : " << d_embed_quant << std::endl;
   Trace(c) << "  * Candidate programs : " << d_candidates << std::endl;
@@ -1013,12 +1010,12 @@ bool SynthConjecture::getSynthSolutions(
       // since we don't have function subtyping, this assertion should only
       // check the return type
       Assert(fvar.getType().isFunction());
-      Assert(fvar.getType().getRangeType() == bsol.getType());
+      AssertEqual(fvar.getType().getRangeType(), bsol.getType());
       bsol = nm->mkNode(Kind::LAMBDA, bvl, bsol);
     }
     else
     {
-      Assert(fvar.getType() == bsol.getType());
+      AssertEqual(fvar.getType(), bsol.getType());
     }
     // store in map
     smc[fvar] = bsol;
@@ -1065,7 +1062,7 @@ bool SynthConjecture::getSynthSolutionsInternal(std::vector<Node>& sols,
     int8_t status = -1;
     if (isSingleInvocation())
     {
-      Assert(d_ceg_si != NULL);
+      Assert(d_ceg_si != nullptr);
       sol = d_ceg_si->getSolution(i, tn, status, true);
       if (sol.isNull())
       {

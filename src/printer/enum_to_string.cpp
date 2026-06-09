@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Yoni Zohar
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -56,7 +53,6 @@ const char* toString(cvc5::SkolemId id)
     case cvc5::SkolemId::STRINGS_OCCUR_INDEX: return "strings_occur_index";
     case cvc5::SkolemId::STRINGS_OCCUR_INDEX_RE:
       return "strings_occur_index_re";
-    case cvc5::SkolemId::STRINGS_OCCUR_LEN_RE: return "strings_occur_len_re";
     case cvc5::SkolemId::STRINGS_DEQ_DIFF: return "strings_deq_diff";
     case cvc5::SkolemId::STRINGS_REPLACE_ALL_RESULT:
       return "strings_replace_all_result";
@@ -64,9 +60,6 @@ const char* toString(cvc5::SkolemId id)
     case cvc5::SkolemId::STRINGS_STOI_RESULT: return "strings_stoi_result";
     case cvc5::SkolemId::STRINGS_STOI_NON_DIGIT:
       return "strings_stoi_non_digit";
-    case cvc5::SkolemId::RE_FIRST_MATCH_PRE: return "re_first_match_pre";
-    case cvc5::SkolemId::RE_FIRST_MATCH: return "re_first_match";
-    case cvc5::SkolemId::RE_FIRST_MATCH_POST: return "re_first_match_post";
     case cvc5::SkolemId::RE_UNFOLD_POS_COMPONENT:
       return "re_unfold_pos_component";
     case cvc5::SkolemId::BAGS_CARD_COMBINE: return "bags_card_combine";

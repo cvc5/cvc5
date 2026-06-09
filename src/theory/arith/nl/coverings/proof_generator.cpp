@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Gereon Kremer, Daniel Larraz, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -84,10 +81,9 @@ Node mkIRP(NodeManager* nm,
            VariableMapper& vm)
 {
   auto op = nm->mkConst<IndexedRootPredicate>(IndexedRootPredicate(k));
-  return nm->mkNode(Kind::INDEXED_ROOT_PREDICATE,
-                    op,
-                    nm->mkNode(rel, var, zero),
-                    as_cvc_polynomial(nm, poly, vm));
+  return nm->mkNode(
+      Kind::INDEXED_ROOT_PREDICATE,
+      {op, nm->mkNode(rel, var, zero), as_cvc_polynomial(nm, poly, vm)});
 }
 
 }  // namespace
@@ -128,13 +124,12 @@ ProofGenerator* CoveringsProofGenerator::getProofGenerator() const
 }
 
 void CoveringsProofGenerator::addDirect(Node var,
-                                  VariableMapper& vm,
-                                  const poly::Polynomial& poly,
-                                  const poly::Assignment& a,
-                                  poly::SignCondition& sc,
-                                  const poly::Interval& interval,
-                                  Node constraint,
-                                  size_t intervalId)
+                                        VariableMapper& vm,
+                                        const poly::Polynomial& poly,
+                                        const poly::Assignment& a,
+                                        const poly::Interval& interval,
+                                        Node constraint,
+                                        size_t intervalId)
 {
   if (is_minus_infinity(get_lower(interval))
       && is_plus_infinity(get_upper(interval)))

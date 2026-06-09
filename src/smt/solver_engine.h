@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Morgan Deters
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -187,7 +184,7 @@ class CVC5_EXPORT SolverEngine
    * @param key The option to set
    * @param value The value to set
    * @param fromUser Whether this option was set by the user. This impacts
-   * whether we enable checks e.g. when --safe-options is enabled.
+   * whether we enable checks e.g. when safe mode is enabled.
    * @throw OptionException, ModalException
    */
   void setOption(const std::string& key,
@@ -390,19 +387,14 @@ class CVC5_EXPORT SolverEngine
    *
    * vars contains the arguments of the function-to-synthesize. These variables
    * are also stored to be used during solving.
-   *
-   * isInv determines whether the function-to-synthesize is actually an
-   * invariant. This information is necessary if we are dumping a command
-   * corresponding to this declaration, so that it can be properly printed.
    */
   void declareSynthFun(Node func,
                        TypeNode sygusType,
-                       bool isInv,
                        const std::vector<Node>& vars);
   /**
    * Same as above, without a sygus type.
    */
-  void declareSynthFun(Node func, bool isInv, const std::vector<Node>& vars);
+  void declareSynthFun(Node func, const std::vector<Node>& vars);
 
   /**
    * Add a regular sygus constraint or assumption.
@@ -509,14 +501,27 @@ class CVC5_EXPORT SolverEngine
    * query). Only permitted if the SolverEngine is set to operate interactively
    * and produce-models is on.
    *
+   * Note that this method may make a subcall to another copy of the SMT solver
+   * (if --check-model-subsolver is enabled). We do this only if the call
+   * originated from the user (fromUser is true), in which case we insist
+   * that we find a concrete value. This means if e is a quantified formula,
+   * we must call a subsolver. Other uses of internal subsolvers (e.g. MBQI)
+   * do not generally insist that the returned value is concrete.
+   *
+   * @param e The term to get the value of.
+   * @param fromUser Whether the call originated from an external user.
    * @throw ModalException, TypeCheckingException, LogicException
    */
-  Node getValue(const Node& e) const;
+  Node getValue(const Node& e, bool fromUser = false);
 
   /**
    * Same as getValue but for a vector of expressions
+   *
+   * @param e The term to get the value of.
+   * @param fromUser Whether the call originated from an external user.
    */
-  std::vector<Node> getValues(const std::vector<Node>& exprs) const;
+  std::vector<Node> getValues(const std::vector<Node>& exprs,
+                              bool fromUser = false);
 
   /**
    * @return the domain elements for uninterpreted sort tn.
@@ -1127,11 +1132,11 @@ class CVC5_EXPORT SolverEngine
   /** Has the above logic been initialized? */
   bool d_userLogicSet;
 
-  /** Have we set a regular option yet? (for --safe-options) */
+  /** Have we set a regular option yet? (for --safe-mode) */
   bool d_safeOptsSetRegularOption;
-  /** The regular option we set (for --safe-options) */
+  /** The regular option we set (for --safe-mode) */
   std::string d_safeOptsRegularOption;
-  /** The value of the regular option we set (for --safe-options) */
+  /** The value of the regular option we set (for --safe-mode) */
   std::string d_safeOptsRegularOptionValue;
   /** Was the option already the default setting */
   bool d_safeOptsSetRegularOptionToDefault;

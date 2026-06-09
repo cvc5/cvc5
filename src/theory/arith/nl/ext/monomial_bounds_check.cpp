@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Tim King
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -33,7 +30,7 @@ namespace arith {
 namespace nl {
 
 namespace {
-void debugPrintBound(const char* c, Node coeff, Node x, Kind type, Node rhs)
+void debugPrintBound(CVC5_UNUSED const char* c, Node coeff, Node x, Kind type, Node rhs)
 {
   Node t = ArithMSum::mkCoeffTerm(coeff, x);
   Trace(c) << t << " " << type << " " << rhs;

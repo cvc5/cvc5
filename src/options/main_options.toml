@@ -33,6 +33,15 @@ name   = "Driver"
   help       = "regular command line reference"
 
 [[option]]
+  name       = "helpOptionCategories"
+  category   = "common"
+  long       = "help-option-categories"
+  type       = "bool"
+  default    = "false"
+  alternate  = false
+  help       = "Print summary of options for each category"
+
+[[option]]
   name       = "showConfiguration"
   category   = "common"
   long       = "show-config"
@@ -74,7 +83,7 @@ name   = "Driver"
 
 [[option]]
   name       = "earlyExit"
-  category   = "expert"
+  category   = "common"
   long       = "early-exit"
   type       = "bool"
   default    = "true"
@@ -175,6 +184,14 @@ name   = "Driver"
   type       = "bool"
   default    = "false"
   help       = "Use internal portfolio mode based on the logic"
+
+[[option]]
+  name       = "portfolioDryRun"
+  category   = "expert"
+  long       = "portfolio-dry-run"
+  type       = "bool"
+  default    = "false"
+  help       = "Print the strategies that would be run with --use-portfolio, without executing them"
 
 [[option]]
   name       = "portfolioJobs"

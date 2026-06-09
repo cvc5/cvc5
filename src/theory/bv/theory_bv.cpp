@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mathias Preiner, Aina Niemetz, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -198,30 +195,15 @@ bool TheoryBV::ppAssert(TrustNode tin, TrustSubstitutionMap& outSubstitutions)
   return false;
 }
 
-TrustNode TheoryBV::ppRewrite(TNode t, std::vector<SkolemLemma>& lems)
+TrustNode TheoryBV::ppRewrite(TNode t,
+                              CVC5_UNUSED std::vector<SkolemLemma>& lems)
 {
   Trace("theory-bv-pp-rewrite") << "ppRewrite " << t << "\n";
   Node res = t;
-  if (options().bv.bitwiseEq && RewriteRule<BitwiseEq>::applies(t))
-  {
-    res = RewriteRule<BitwiseEq>::run<false>(t);
-  }
   // useful on QF_BV/space/ndist
-  else if (RewriteRule<UltAddOne>::applies(t))
+  if (RewriteRule<UltAddOne>::applies(t))
   {
     res = RewriteRule<UltAddOne>::run<false>(t);
-  }
-  // Useful for BV/2017-Preiner-scholl-smt08, but not for QF_BV
-  else if (options().bv.rwExtendEq)
-  {
-    if (RewriteRule<SignExtendEqConst>::applies(t))
-    {
-      res = RewriteRule<SignExtendEqConst>::run<false>(t);
-    }
-    else if (RewriteRule<ZeroExtendEqConst>::applies(t))
-    {
-      res = RewriteRule<ZeroExtendEqConst>::run<false>(t);
-    }
   }
   // When int-blasting, it is better to handle most overflow operators
   // natively, rather than to eliminate them eagerly.
@@ -247,6 +229,31 @@ TrustNode TheoryBV::ppStaticRewrite(TNode atom)
     if (RewriteRule<SolveEq>::applies(atom))
     {
       Node res = RewriteRule<SolveEq>::run<false>(atom);
+      if (res != atom)
+      {
+        return TrustNode::mkTrustRewrite(atom, res);
+      }
+    }
+    if (options().bv.bitwiseEq && RewriteRule<BitwiseEq>::applies(atom))
+    {
+      Node res = RewriteRule<BitwiseEq>::run<false>(atom);
+      if (res != atom)
+      {
+        return TrustNode::mkTrustRewrite(atom, res);
+      }
+    }
+    // Useful for BV/2017-Preiner-scholl-smt08, but not for QF_BV
+    if (options().bv.rwExtendEq)
+    {
+      Node res;
+      if (RewriteRule<SignExtendEqConst>::applies(atom))
+      {
+        res = RewriteRule<SignExtendEqConst>::run<false>(atom);
+      }
+      else if (RewriteRule<ZeroExtendEqConst>::applies(atom))
+      {
+        res = RewriteRule<ZeroExtendEqConst>::run<false>(atom);
+      }
       if (res != atom)
       {
         return TrustNode::mkTrustRewrite(atom, res);

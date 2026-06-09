@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Morgan Deters, Tim King, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -48,7 +45,8 @@ public:
     this->ContextObj::deleteSelf();
   }
 
-  static void operator delete(void* pMem) {
+  static void operator delete(CVC5_UNUSED void* pMem)
+  {
     AlwaysAssert(false) << "It is not allowed to delete a ContextObj this way!";
   }
 
@@ -76,30 +74,22 @@ public:
     typename super::const_iterator d_it;
 
   public:
+   const_iterator(const typename super::const_iterator& it) : d_it(it) {}
 
-    const_iterator(const typename super::const_iterator& it) : d_it(it) {}
-    const_iterator(const const_iterator& it) : d_it(it.d_it) {}
+   const_iterator() = default;
 
-    // Default constructor
-    const_iterator() {}
+   // (Dis)equality
+   bool operator==(const const_iterator& i) const { return d_it == i.d_it; }
+   bool operator!=(const const_iterator& i) const { return d_it != i.d_it; }
 
-    // (Dis)equality
-    bool operator==(const const_iterator& i) const {
-      return d_it == i.d_it;
-    }
-    bool operator!=(const const_iterator& i) const {
-      return d_it != i.d_it;
-    }
+   // Dereference operators.
+   V operator*() const { return (*d_it).first; }
 
-    // Dereference operators.
-    V operator*() const {
-      return (*d_it).first;
-    }
-
-    // Prefix increment
-    const_iterator& operator++() {
-      ++d_it;
-      return *this;
+   // Prefix increment
+   const_iterator& operator++()
+   {
+     ++d_it;
+     return *this;
     }
 
     // Postfix increment: requires a Proxy object to hold the

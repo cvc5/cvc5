@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Morgan Deters, Clark Barrett, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -304,7 +301,7 @@ const Info* ArrayInfo::getInfo(const TNode a) const{
   return emptyInfo;
 }
 
-const bool ArrayInfo::isNonLinear(const TNode a) const
+bool ArrayInfo::isNonLinear(const TNode a) const
 {
   CNodeInfoMap::const_iterator it = info_map.find(a);
 
@@ -314,7 +311,7 @@ const bool ArrayInfo::isNonLinear(const TNode a) const
   return false;
 }
 
-const bool ArrayInfo::rIntro1Applied(const TNode a) const
+bool ArrayInfo::rIntro1Applied(const TNode a) const
 {
   CNodeInfoMap::const_iterator it = info_map.find(a);
 

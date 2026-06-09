@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Morgan Deters
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -197,11 +194,32 @@ CardinalityClass TypeNode::getCardinalityClass()
     else
     {
       // all types we care about should be handled above
-      Assert(false) << *this;
+      DebugUnhandled() << *this;
     }
   }
   setAttribute(TypeCardinalityClassAttr(), static_cast<uint64_t>(ret));
   return ret;
+}
+
+bool TypeNode::isBoolean() const {
+  return (getKind() == Kind::TYPE_CONSTANT
+          && getConst<TypeConstant>() == BOOLEAN_TYPE);
+}
+
+bool TypeNode::isString() const {
+  return getKind() == Kind::TYPE_CONSTANT
+         && getConst<TypeConstant>() == STRING_TYPE;
+}
+
+/** Is this a regexp type */
+bool TypeNode::isRegExp() const {
+  return getKind() == Kind::TYPE_CONSTANT
+         && getConst<TypeConstant>() == REGEXP_TYPE;
+ }
+
+bool TypeNode::isRoundingMode() const {
+  return getKind() == Kind::TYPE_CONSTANT
+         && getConst<TypeConstant>() == ROUNDINGMODE_TYPE;
 }
 
 bool TypeNode::isCardinalityLessThan(size_t n)
@@ -297,8 +315,7 @@ bool TypeNode::isFirstClass() const
          && k != Kind::TESTER_TYPE && k != Kind::UPDATER_TYPE
          && k != Kind::ABSTRACT_TYPE
          && (k != Kind::TYPE_CONSTANT
-             || (getConst<TypeConstant>() != REGEXP_TYPE
-                 && getConst<TypeConstant>() != SEXPR_TYPE));
+             || getConst<TypeConstant>() != SEXPR_TYPE);
 }
 
 bool TypeNode::isWellFounded() const { return kind::isWellFounded(*this); }
@@ -371,7 +388,8 @@ TypeNode TypeNode::unifyInternal(const TypeNode& t, bool isLub) const
   if (k == Kind::TYPE_CONSTANT)
   {
     // Special case: String is comparable to (Seq ?). This must be a special
-    // case since String is defined in RARE/ALF to be (Seq Char), but String
+    // case since String is defined in RARE/Eunoia to be (Seq Char), but
+    // String
     // is a base type in cvc5's internals. This special case could be removed
     // if `String` was a macro for `(Seq Char)`, however this would lead to
     // complications, since `Char` is intentionally a sort we do not export

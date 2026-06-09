@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mathias Preiner, Aina Niemetz, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -140,7 +137,7 @@ Node BvInstantiatorUtil::normalizePvMult(
 }
 
 bool BvInstantiatorUtil::isLinearPlus(
-    TNode n, TNode pv, std::unordered_map<Node, bool>& contains_pv) const
+    TNode n, TNode pv, CVC5_UNUSED std::unordered_map<Node, bool>& contains_pv) const
 {
   Node coeff;
   Assert(n.getAttribute(BvLinearAttribute()));

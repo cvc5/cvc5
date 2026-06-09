@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mudathir Mohamed, Andres Noetzli, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -26,11 +23,8 @@ namespace cvc5::internal {
 namespace theory {
 namespace bags {
 
-TermRegistry::TermRegistry(Env& env, SolverState& state, InferenceManager& im)
-    : EnvObj(env),
-      d_im(im),
-      d_proxy(userContext()),
-      d_proxy_to_term(userContext())
+TermRegistry::TermRegistry(Env& env)
+    : EnvObj(env), d_proxy(userContext()), d_proxy_to_term(userContext())
 {
 }
 

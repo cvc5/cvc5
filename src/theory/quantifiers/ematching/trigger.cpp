@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Morgan Deters
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -183,8 +180,9 @@ uint64_t Trigger::addInstantiations()
   return gtAddedLemmas + addedLemmas;
 }
 
-bool Trigger::sendInstantiation(std::vector<Node>& m, InferenceId id)
+bool Trigger::sendInstantiation(std::vector<Node>& m)
 {
+  InferenceId id = d_mg->getInferenceId();
   return d_qim.getInstantiate()->addInstantiation(d_quant, m, id, d_trNode);
 }
 
@@ -254,7 +252,7 @@ Node Trigger::ensureGroundTermPreprocessed(Valuation& val,
   return visited[n];
 }
 
-void Trigger::debugPrint(const char* c) const
+void Trigger::debugPrint(CVC5_UNUSED const char* c) const
 {
   Trace(c) << "TRIGGER( " << d_nodes << " )" << std::endl;
 }

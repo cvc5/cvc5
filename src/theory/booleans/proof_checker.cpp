@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Haniel Barbosa, Andrew Reynolds, Hans-Joerg Schurr
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -31,8 +28,7 @@ void BoolProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(ProofRule::SPLIT, this);
   pc->registerChecker(ProofRule::RESOLUTION, this);
   pc->registerChecker(ProofRule::CHAIN_RESOLUTION, this);
-  pc->registerTrustedChecker(ProofRule::MACRO_RESOLUTION_TRUST, this, 3);
-  pc->registerChecker(ProofRule::MACRO_RESOLUTION, this);
+  pc->registerChecker(ProofRule::CHAIN_M_RESOLUTION, this);
   pc->registerChecker(ProofRule::FACTORING, this);
   pc->registerChecker(ProofRule::REORDERING, this);
   pc->registerChecker(ProofRule::EQ_RESOLVE, this);
@@ -297,16 +293,9 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
                           << pop;
     return nm->mkOr(lhsClause);
   }
-  if (id == ProofRule::MACRO_RESOLUTION_TRUST)
+  if (id == ProofRule::CHAIN_M_RESOLUTION)
   {
     Assert(children.size() > 1);
-    Assert(args.size() == 2 * (children.size() - 1) + 1);
-    return args[0];
-  }
-  if (id == ProofRule::MACRO_RESOLUTION)
-  {
-    Assert(children.size() > 1);
-    Assert(args.size() == 2 * (children.size() - 1) + 1);
     Trace("bool-pfcheck") << "macro_res: " << args[0] << "\n" << push;
     NodeManager* nm = nodeManager();
     Node trueNode = nm->mkConst(true);
@@ -314,12 +303,13 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
     std::vector<Node> lhsClause, rhsClause;
     Node lhsElim, rhsElim;
     std::vector<Node> pols, lits;
-    for (size_t i = 1, nargs = args.size(); i < nargs; i = i + 2)
+    Assert(args.size() == 3);
+    pols.insert(pols.end(), args[1].begin(), args[1].end());
+    lits.insert(lits.end(), args[2].begin(), args[2].end());
+    if (pols.size() != lits.size())
     {
-      pols.push_back(args[i]);
-      lits.push_back(args[i + 1]);
+      return Node::null();
     }
-
     if (children[0].getKind() != Kind::OR
         || (pols[0] == trueNode && children[0] == lits[0])
         || (pols[0] == falseNode && children[0] == lits[0].notNode()))
@@ -581,7 +571,7 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
       return Node::null();
     }
     return nodeManager()->mkNode(
-        Kind::OR, children[0][0][0].notNode(), children[0][0][1].notNode());
+        Kind::OR, {children[0][0][0].notNode(), children[0][0][1].notNode()});
   }
   if (id == ProofRule::XOR_ELIM1)
   {
@@ -602,7 +592,7 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
       return Node::null();
     }
     return nodeManager()->mkNode(
-        Kind::OR, children[0][0].notNode(), children[0][1].notNode());
+        Kind::OR, {children[0][0].notNode(), children[0][1].notNode()});
   }
   if (id == ProofRule::NOT_XOR_ELIM1)
   {
@@ -659,7 +649,7 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
       return Node::null();
     }
     return nodeManager()->mkNode(
-        Kind::OR, children[0][0][0].notNode(), children[0][0][1].notNode());
+        Kind::OR, {children[0][0][0].notNode(), children[0][0][1].notNode()});
   }
   if (id == ProofRule::NOT_ITE_ELIM2)
   {

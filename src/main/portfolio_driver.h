@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Gereon Kremer, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -35,12 +32,21 @@ namespace cvc5::main {
 class ExecutionContext
 {
  public:
+  ExecutionContext(CommandExecutor* executor)
+      : d_executor(executor), d_hasReadCheckSat(false)
+  {
+  }
+
   /** The command executor used for solving */
   CommandExecutor* d_executor;
+  /* Whether a check-sat command has been read */
+  bool d_hasReadCheckSat;
   /** The logic, if it has been set by a command */
   std::optional<std::string> d_logic;
-  /* Whether a check-sat command has been read */
-  bool d_hasReadCheckSat = false;
+  /** The last stored declarations and named terms **/
+  std::vector<cvc5::Sort> d_sorts;
+  std::vector<cvc5::Term> d_terms;
+  std::map<cvc5::Term, std::string> d_named_terms;
 
   /** Retrieve the solver object from the command executor */
   Solver& solver() { return *d_executor->getSolver(); }
@@ -60,6 +66,21 @@ class ExecutionContext
   bool solveContinuous(parser::InputParser* parser,
                        bool stopAtSetLogic,
                        bool stopAtCheckSat = false);
+
+  /**
+   * Store the current declarations and named terms to be used by
+   * continueAfterSolving().
+   */
+  void storeDeclarationsAndNamedTerms();
+
+  /**
+   * Read commands from the parser and continuously execute them.
+   * If a (get-model) command is detected, the last stored declarations are
+   * used. If a (get-unsat-core) command is detected, the last stored named
+   * terms are used. Returns true if the commands were executed without
+   * interruption.
+   */
+  bool continueAfterSolving(parser::InputParser* parser);
 
   /**
    * Execute a check-sat command.

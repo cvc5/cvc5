@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Morgan Deters
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -565,11 +562,17 @@ CardinalityClass DType::getCardinalityClass(TypeNode t) const
   // if we have one constructor and FINITE otherwise.
   CardinalityClass c = d_constructors.size() == 1 ? CardinalityClass::ONE
                                                   : CardinalityClass::FINITE;
+  Trace("datatypes-card-class")
+      << "Compute cardinality class of " << t << "..." << std::endl;
   for (std::shared_ptr<DTypeConstructor> ctor : d_constructors)
   {
     CardinalityClass cc = ctor->getCardinalityClass(t);
+    Trace("datatypes-card-class")
+        << "- constructor " << ctor->getName() << " is " << cc << std::endl;
     c = maxCardinalityClass(c, cc);
   }
+  Trace("datatypes-card-class")
+      << "Cardinality class of " << t << " is " << c << std::endl;
   d_cardClass[t] = c;
   return c;
 }

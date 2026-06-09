@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Mudathir Mohamed
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -57,9 +54,9 @@ bool GenericOp::operator==(const GenericOp& op) const
 bool GenericOp::isNumeralIndexedOperatorKind(Kind k)
 {
   return k == Kind::DIVISIBLE || k == Kind::REGEXP_LOOP
-         || k == Kind::BITVECTOR_EXTRACT || k == Kind::BITVECTOR_REPEAT
-         || k == Kind::BITVECTOR_ZERO_EXTEND || k == Kind::BITVECTOR_SIGN_EXTEND
-         || k == Kind::BITVECTOR_ROTATE_LEFT
+         || k == Kind::REGEXP_REPEAT || k == Kind::BITVECTOR_EXTRACT
+         || k == Kind::BITVECTOR_REPEAT || k == Kind::BITVECTOR_ZERO_EXTEND
+         || k == Kind::BITVECTOR_SIGN_EXTEND || k == Kind::BITVECTOR_ROTATE_LEFT
          || k == Kind::BITVECTOR_ROTATE_RIGHT || k == Kind::INT_TO_BITVECTOR
          || k == Kind::BITVECTOR_BIT || k == Kind::IAND
          || k == Kind::FLOATINGPOINT_TO_FP_FROM_FP
@@ -93,6 +90,12 @@ std::vector<Node> GenericOp::getIndicesForOperator(Kind k, Node n)
     {
       const Divisible& op = n.getConst<Divisible>();
       indices.push_back(nm->mkConstInt(Rational(op.k)));
+      break;
+    }
+    case Kind::REGEXP_REPEAT:
+    {
+      const RegExpRepeat& op = n.getConst<RegExpRepeat>();
+      indices.push_back(nm->mkConstInt(Rational(op.d_repeatAmount)));
       break;
     }
     case Kind::REGEXP_LOOP:
@@ -297,6 +300,9 @@ Node GenericOp::getOperatorForIndices(NodeManager* nm,
       case Kind::DIVISIBLE:
         Assert(numerals.size() == 1);
         return nm->mkConst(Divisible(numerals[0]));
+      case Kind::REGEXP_REPEAT:
+        Assert(numerals.size() == 1);
+        return nm->mkConst(RegExpRepeat(numerals[0]));
       case Kind::REGEXP_LOOP:
         Assert(numerals.size() == 2);
         return nm->mkConst(RegExpLoop(numerals[0], numerals[1]));

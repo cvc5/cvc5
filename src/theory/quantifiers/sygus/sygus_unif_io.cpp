@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Daniel Larraz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -42,9 +39,7 @@ UnifContextIo::UnifContextIo(NodeManager* nm)
 
 NodeRole UnifContextIo::getCurrentRole() { return d_curr_role; }
 
-bool UnifContextIo::updateContext(SygusUnifIo* sui,
-                                  std::vector<Node>& vals,
-                                  bool pol)
+bool UnifContextIo::updateContext(std::vector<Node>& vals, bool pol)
 {
   Assert(d_vals.size() == vals.size());
   bool changed = false;
@@ -74,8 +69,7 @@ bool UnifContextIo::updateContext(SygusUnifIo* sui,
   return changed;
 }
 
-bool UnifContextIo::updateStringPosition(SygusUnifIo* sui,
-                                         std::vector<size_t>& pos,
+bool UnifContextIo::updateStringPosition(std::vector<size_t>& pos,
                                          NodeRole nrole)
 {
   Assert(pos.size() == d_str_pos.size());
@@ -1011,7 +1005,7 @@ void SygusUnifIo::initializeConstructSol()
   d_sol_cons_nondet = false;
 }
 
-void SygusUnifIo::initializeConstructSolFor(Node f)
+void SygusUnifIo::initializeConstructSolFor(CVC5_UNUSED Node f)
 {
   Assert(d_candidate == f);
 }
@@ -1273,7 +1267,7 @@ Node SygusUnifIo::constructSol(
             << "PBE: CONCAT strategy : choose " << (isPrefix ? "pre" : "suf")
             << "fix value " << d_tds->sygusToBuiltin(ret_dt) << std::endl;
         // update the context
-        bool ret = x.updateStringPosition(this, incr[ret_dt], nrole);
+        bool ret = x.updateStringPosition(incr[ret_dt], nrole);
         AlwaysAssert(ret == (total_inc[ret_dt] > 0));
       }
       else
@@ -1294,7 +1288,7 @@ Node SygusUnifIo::constructSol(
   }
   if (!ret_dt.isNull() || einfo.isTemplated())
   {
-    Assert(ret_dt.isNull() || ret_dt.getType() == e.getType());
+    Assert(ret_dt.isNull() || CVC5_EQUAL(ret_dt.getType(), e.getType()));
     indent("sygus-sui-dt", ind);
     Trace("sygus-sui-dt") << "ConstructPBE: returned (pre-strategy) " << ret_dt
                           << std::endl;
@@ -1386,8 +1380,7 @@ Node SygusUnifIo::constructSol(
           Assert(set_split_cond_res_index);
           Assert(split_cond_res_index < ecache_cond.d_enum_vals_res.size());
           prev = x.d_vals;
-          x.updateContext(this,
-                          ecache_cond.d_enum_vals_res[split_cond_res_index],
+          x.updateContext(ecache_cond.d_enum_vals_res[split_cond_res_index],
                           sc == 1);
           // return value of above call may be false in corner cases where we
           // must choose a non-separating condition to traverse to another
@@ -1529,7 +1522,7 @@ Node SygusUnifIo::constructSol(
     }
     else if (d_enableMinimality)
     {
-      Assert(ret_dt.getType() == cached_ret_dt.getType());
+      AssertEqual(ret_dt.getType(), cached_ret_dt.getType());
       // take the cached one if it is smaller
       std::vector<Node> retDts;
       retDts.push_back(cached_ret_dt);
@@ -1537,7 +1530,7 @@ Node SygusUnifIo::constructSol(
       ret_dt = getMinimalTerm(retDts);
     }
   }
-  Assert(ret_dt.isNull() || ret_dt.getType() == e.getType());
+  Assert(ret_dt.isNull() || CVC5_EQUAL(ret_dt.getType(), e.getType()));
   if (TraceIsOn("sygus-sui-dt"))
   {
     indent("sygus-sui-dt", ind);

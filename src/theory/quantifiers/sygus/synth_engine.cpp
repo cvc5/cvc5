@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -59,12 +56,12 @@ bool SynthEngine::needsCheck(Theory::Effort e)
   return e >= Theory::EFFORT_LAST_CALL;
 }
 
-QuantifiersModule::QEffort SynthEngine::needsModel(Theory::Effort e)
+QuantifiersModule::QEffort SynthEngine::needsModel(CVC5_UNUSED Theory::Effort e)
 {
   return QEFFORT_MODEL;
 }
 
-void SynthEngine::check(Theory::Effort e, QEffort quant_e)
+void SynthEngine::check(CVC5_UNUSED Theory::Effort e, QEffort quant_e)
 {
   // are we at the proper effort level?
   if (quant_e != QEFFORT_MODEL)
@@ -138,33 +135,54 @@ void SynthEngine::checkOwnership(Node q)
   // take ownership of quantified formulas with sygus attribute, and function
   // definitions when the sygusRecFun option is true.
   QuantAttributes& qa = d_qreg.getQuantAttributes();
-  if (qa.isSygus(q) || (qa.isFunDef(q) && options().quantifiers.sygusRecFun))
+  if (qa.isSygus(q))
   {
     d_qreg.setOwner(q, this, 2);
+    return;
   }
+  if (options().quantifiers.sygusRecFun)
+  {
+    // see if we should try to infer that it is a recursive function
+    if (qa.isFunDef(q) || options().quantifiers.sygusRecFunInfer)
+    {
+      FunDefEvaluator* fde =
+          d_treg.getTermDatabaseSygus()->getFunDefEvaluator();
+      // if it can be inferred as a recursive function definition, we take
+      // ownership
+      if (fde->isDefinition(q))
+      {
+        d_qreg.setOwner(q, this, 2);
+        return;
+      }
+    }
+  }
+  Trace("sygus-quant") << "Free quantified formula: " << q << std::endl;
 }
 
 void SynthEngine::registerQuantifier(Node q)
 {
   Trace("cegqi-debug") << "SynthEngine: Register quantifier : " << q
                        << std::endl;
+  // if we did not take ownership above, ignore
   if (d_qreg.getOwner(q) != this)
   {
     return;
   }
-  if (d_qreg.getQuantAttributes().isFunDef(q))
+  QuantAttributes& qa = d_qreg.getQuantAttributes();
+  if (qa.isSygus(q))
   {
-    Assert(options().quantifiers.sygusRecFun);
-    // If it is a recursive function definition, add it to the function
-    // definition evaluator class.
-    Trace("cegqi") << "Registering function definition : " << q << "\n";
-    FunDefEvaluator* fde = d_treg.getTermDatabaseSygus()->getFunDefEvaluator();
-    fde->assertDefinition(q);
+    Trace("cegqi") << "Register conjecture : " << q << std::endl;
+    // assign it now
+    assignConjecture(q);
     return;
   }
-  Trace("cegqi") << "Register conjecture : " << q << std::endl;
-  // assign it now
-  assignConjecture(q);
+  // otherwise it should be a recursive function definition
+  Assert(options().quantifiers.sygusRecFun);
+  // If it is a recursive function definition, add it to the function
+  // definition evaluator class.
+  Trace("cegqi") << "Registering function definition : " << q << "\n";
+  FunDefEvaluator* fde = d_treg.getTermDatabaseSygus()->getFunDefEvaluator();
+  fde->assertDefinition(q);
 }
 
 bool SynthEngine::checkConjecture(SynthConjecture* conj)

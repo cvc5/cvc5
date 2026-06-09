@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Mudathir Mohamed, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -377,7 +374,7 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
       Node ret = sygusToBuiltinEval(ev, args);
       Trace("dt-sygus-util") << "...got " << ret << "\n";
       Trace("dt-sygus-util") << "Type is " << ret.getType() << std::endl;
-      Assert(in.getType() == ret.getType());
+      AssertEqual(in.getType(), ret.getType());
       return RewriteResponse(REWRITE_AGAIN_FULL, ret);
     }
   }

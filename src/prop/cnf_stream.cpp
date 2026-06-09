@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Dejan Jovanovic, Haniel Barbosa, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -14,8 +11,6 @@
  * equisatisfiable stream of assertions to PropEngine.
  */
 #include "prop/cnf_stream.h"
-
-#include <queue>
 
 #include "base/check.h"
 #include "base/output.h"
@@ -57,7 +52,21 @@ bool CnfStream::assertClause(TNode node, SatClause& c)
 {
   Trace("cnf") << "Inserting into stream " << c << " node = " << node << "\n";
 
-  ClauseId clauseId = d_satSolver->addClause(c, d_removable);
+  // Filter out duplicate literals. Don't rely on the SAT solver to do it.
+  // The ProofCnfStream assumes this happens in every SAT solver implicitely.
+  // However, CaDiCaL generates additional proof steps if clauses with
+  // duplicate literals are added.
+  std::unordered_set<uint64_t> cache;
+  SatClause cl;
+  for (const auto& lit : c)
+  {
+    if (cache.insert(lit.toInt()).second)
+    {
+      cl.push_back(lit);
+    }
+  }
+
+  ClauseId clauseId = d_satSolver->addClause(cl, d_removable);
 
   return clauseId != ClauseIdUndef;
 }

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mudathir Mohamed, Andrew Reynolds, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -269,9 +266,11 @@ class InferenceGenerator
    * (Bag E)
    * @param y is a node of Type T
    * @return an inference that represents the following conjunction
-   * (and
-   *   (= (bag.count x A) (bag.count y skolem))
-   *   (= (f x) y)
+   * (=> (>= (bag.count y skolem) 1)
+   *   (and
+   *     (= (f x) y)
+   *     (= (bag.count x A) (bag.count y skolem))
+   *   )
    * )
    * where skolem is a fresh variable equals (bag.map f A))
    * and x is a fresh variable unique per n, y.

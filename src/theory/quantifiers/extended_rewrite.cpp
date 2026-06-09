@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Daniel Larraz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -102,6 +99,7 @@ bool ExtendedRewriter::addToChildren(Node nc,
 
 Node ExtendedRewriter::extendedRewrite(Node n) const
 {
+  Trace("q-ext-rewrite-debug") << "extendedRewrite: " << n << std::endl;
   n = d_rew.rewrite(n);
 
   // has it already been computed?
@@ -617,7 +615,7 @@ Node ExtendedRewriter::extendedRewriteAndOr(Node n) const
     return new_ret;
   }
   // factoring
-  new_ret = extendedRewriteFactoring(Kind::AND, Kind::OR, Kind::NOT, n);
+  new_ret = extendedRewriteFactoring(Kind::AND, Kind::OR, n);
   if (!new_ret.isNull())
   {
     debugExtendedRewrite(n, new_ret, "Bool factoring");
@@ -965,7 +963,6 @@ Node ExtendedRewriter::extendedRewriteBcp(Kind andk,
 
 Node ExtendedRewriter::extendedRewriteFactoring(Kind andk,
                                                 Kind ork,
-                                                Kind notk,
                                                 Node n) const
 {
   Trace("ext-rew-factoring") << "Factoring: *** INPUT: " << n << std::endl;
@@ -1054,7 +1051,7 @@ Node ExtendedRewriter::extendedRewriteFactoring(Kind andk,
 }
 
 Node ExtendedRewriter::extendedRewriteEqRes(Kind andk,
-                                            Kind ork,
+                                            CVC5_UNUSED Kind ork,
                                             Kind eqk,
                                             Kind notk,
                                             std::map<Kind, bool>& bcp_kinds,
@@ -1655,7 +1652,7 @@ Node ExtendedRewriter::partialSubstitute(
   return partialSubstitute(n, assign, rkinds);
 }
 
-Node ExtendedRewriter::solveEquality(Node n) const
+Node ExtendedRewriter::solveEquality(CVC5_UNUSED Node n) const
 {
   // TODO (#1706) : implement
   Assert(n.getKind() == Kind::EQUAL);

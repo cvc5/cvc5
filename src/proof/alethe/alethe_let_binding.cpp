@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Haniel Barbosa, Andrew Reynolds, Daniel Larraz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -57,6 +54,13 @@ Node AletheLetBinding::convert(NodeManager* nm,
     if (it == visited.end())
     {
       uint32_t id = getId(cur);
+      // do not letify partially applied terms, which may have been generated
+      // during RARE elaboration.
+      if (cur.getKind() == Kind::HO_APPLY && cur.getType().isFunction())
+      {
+        visited[cur] = cur;
+        continue;
+      }
       // do not letify id 0
       if (id > 0)
       {

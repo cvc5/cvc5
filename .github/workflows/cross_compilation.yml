@@ -1,0 +1,49 @@
+on:
+  schedule:
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+
+name: Cross-compilation
+
+jobs:
+  cross-compile:
+    name: ${{ matrix.name }}
+    if: (github.repository == 'cvc5/cvc5') || (github.event_name != 'schedule')
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - name: ubuntu:production-arm64-cross
+            os: ubuntu-latest
+            config: production --auto-download --arm64
+            strip-bin: aarch64-linux-gnu-strip
+
+          - name: macos:production-arm64-cross
+            os: macos-15-intel
+            config: production --auto-download --all-bindings --editline --arm64
+            strip-bin: strip
+            python-bindings: true
+            macos-target: 11.0
+
+          - name: win64:production-cross
+            os: ubuntu-latest
+            config: production --auto-download --win64
+            strip-bin: x86_64-w64-mingw32-strip
+            windows-build: true
+          
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Install dependencies
+      uses: ./.github/actions/install-dependencies
+      with:
+        windows-build: ${{ matrix.windows-build }}
+
+    - name: Configure and build
+      id: configure-and-build
+      uses: ./.github/actions/configure-and-build
+      with:
+        configure-config: ${{ matrix.config }}
+        macos-target: ${{ matrix.macos-target }}
+        strip-bin: ${{ matrix.strip-bin }}
+

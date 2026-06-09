@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -141,10 +138,10 @@ class ExtendedRewriter
    *   ( A V B ) ^ ( A V C ) ----> A V ( B ^ C )
    *   ( A ^ B ) V ( A ^ C ) ----> A ^ ( B V C )
    *
-   * This function takes as arguments the kinds that specify AND, OR, NOT.
+   * This function takes as arguments the kinds that specify AND, OR.
    * We assume that the children of n do not contain duplicates.
    */
-  Node extendedRewriteFactoring(Kind andk, Kind ork, Kind notk, Node n) const;
+  Node extendedRewriteFactoring(Kind andk, Kind ork, Node n) const;
   /** (type-independent) equality resolution, for example:
    *
    *   ( A V C ) & ( A = B ) ---> ( B V C ) & ( A = B )
