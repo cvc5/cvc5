@@ -617,7 +617,8 @@ TypeNode SetAllSomeTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->booleanType();
 }
 
-TypeNode SetMinMaxTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode SetMinMaxTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
+                                           CVC5_UNUSED TNode n)
 {
   return TypeNode::null();
 }
@@ -691,7 +692,8 @@ TypeNode SetMinMaxTypeRule::computeType(NodeManager* nodeManager,
   return setType.getSetElementType();
 }
 
-TypeNode RelationMinMaxTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode RelationMinMaxTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
+                                                CVC5_UNUSED TNode n)
 {
   return TypeNode::null();
 }
