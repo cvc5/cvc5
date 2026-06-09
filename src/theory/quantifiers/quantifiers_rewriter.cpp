@@ -1170,7 +1170,7 @@ Node QuantifiersRewriter::computeCondSplit(Node body,
 bool QuantifiersRewriter::isVarElim(Node v, Node s)
 {
   Assert(v.getKind() == Kind::BOUND_VARIABLE);
-  return !expr::hasSubterm(s, v) && s.getType() == v.getType();
+  return !expr::hasSubterm(s, v) && CVC5_EQUAL(s.getType(), v.getType());
 }
 
 bool QuantifiersRewriter::isSafeSubsTerm(const Node& body, const Node& s)
@@ -1264,18 +1264,14 @@ Node QuantifiersRewriter::getVarElimEqBv(Node lit,
 
   // if the option varEntEqElimQuant is disabled, we must preserve equivalence
   // when solving the variable, meaning that BITVECTOR_CONCAT cannot be
-  // on the path to the variable.
+  // on the path to the variable. We also only support proofs for such cases,
+  // so we disallow this case as well during reconstruction.
   std::unordered_set<Kind> disallowedKinds;
-  if (!d_opts.quantifiers.varEntEqElimQuant)
+  if (!d_opts.quantifiers.varEntEqElimQuant || cdp != nullptr)
   {
     // concatenation does not perserve equivalence i.e.
     // (concat x y) = z is not equivalent to x = ((_ extract n m) z)
     disallowedKinds.insert(Kind::BITVECTOR_CONCAT);
-  }
-  else if (cdp != nullptr)
-  {
-    // does not support proofs
-    return Node::null();
   }
 
   // compute a subset active_args of the bound variables args that occur in lit

@@ -305,7 +305,7 @@ Node mkEquality(const Node& a, const Node& b)
   Assert(a.getType().isRealOrInt());
   Assert(b.getType().isRealOrInt());
   // if they have the same type, just make them equal
-  if (a.getType() == b.getType())
+  if (CVC5_EQUAL(a.getType(), b.getType()))
   {
     return NodeManager::mkNode(Kind::EQUAL, a, b);
   }

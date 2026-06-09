@@ -89,7 +89,7 @@ void ArrayCoreSolver::checkNth(const std::vector<Node>& nthTerms)
       TNode x = nthTerms[i][0];
       TNode y = nthTerms[j][0];
 
-      if (x.getType() != y.getType())
+      if (!CVC5_EQUAL(x.getType(), y.getType()))
       {
         continue;
       }

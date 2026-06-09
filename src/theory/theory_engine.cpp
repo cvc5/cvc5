@@ -876,7 +876,7 @@ bool TheoryEngine::isLegalElimination(TNode x, TNode val)
   {
     return false;
   }
-  if (val.getType() != x.getType())
+  if (!CVC5_EQUAL(val.getType(), x.getType()))
   {
     return false;
   }
@@ -1545,8 +1545,12 @@ void TheoryEngine::ensureLemmaAtoms(const std::vector<TNode>& atoms,
       }
       else
       {
-        assertToTheory(eq.notNode(),
-                       eqNormalized.notNode(),
+        // Use notEq and notEqNormalized to ensure deterministic node ID
+        // assignments
+        Node notEq = eq.notNode();
+        Node notEqNormalized = eqNormalized.notNode();
+        assertToTheory(notEq,
+                       notEqNormalized,
                        /** to */ atomsTo,
                        /** Sat solver */ theory::THEORY_SAT_SOLVER);
       }
@@ -1582,10 +1586,12 @@ void TheoryEngine::ensureLemmaAtoms(const std::vector<TNode>& atoms,
         }
         else
         {
-          assertToTheory(eq.notNode(),
-                         eqNormalized.notNode(),
-                         atomsTo,
-                         theory::THEORY_SAT_SOLVER);
+          // Use notEq and notEqNormalized to ensure deterministic node ID
+          // assignments
+          Node notEq = eq.notNode();
+          Node notEqNormalized = eqNormalized.notNode();
+          assertToTheory(
+              notEq, notEqNormalized, atomsTo, theory::THEORY_SAT_SOLVER);
           continue;
         }
       }

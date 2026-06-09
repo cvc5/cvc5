@@ -101,7 +101,7 @@ size_t CodatatypeBoundVariableHashFunction::operator()(
     const CodatatypeBoundVariable& cbv) const
 {
   return std::hash<TypeNode>()(cbv.getType())
-         * IntegerHashFunction()(cbv.getIndex());
+         * std::hash<Integer>()(cbv.getIndex());
 }
 
 }  // namespace cvc5::internal

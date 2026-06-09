@@ -23,7 +23,6 @@
 #include "options/sep_options.h"
 #include "options/smt_options.h"
 #include "options/strings_options.h"
-#include "options/uf_options.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_context.h"
 #include "preprocessing/preprocessing_pass_registry.h"
@@ -177,14 +176,14 @@ bool ProcessAssertions::apply(AssertionPipeline& ap)
     applyPass("real-to-int", ap);
   }
 
-  if (options().smt.solveIntAsBV > 0)
-  {
-    applyPass("int-to-bv", ap);
-  }
-
   if (options().smt.ackermann)
   {
     applyPass("ackermann", ap);
+  }
+
+  if (options().smt.solveIntAsBV > 0)
+  {
+    applyPass("int-to-bv", ap);
   }
 
   Trace("smt") << " assertions     : " << ap.size() << endl;
@@ -261,7 +260,7 @@ bool ProcessAssertions::apply(AssertionPipeline& ap)
     // were already solved for in incremental mode
     applyPass("apply-substs", ap);
   }
-  if (options().smt.sortInference || options().uf.ufssFairnessMonotone)
+  if (options().smt.sortInference)
   {
     applyPass("sort-inference", ap);
   }

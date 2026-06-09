@@ -1143,8 +1143,7 @@ RewriteResponse componentExponent(NodeManager* nm,
   FloatingPoint arg0(node[0].getConst<FloatingPoint>());
 
   // \todo Add a proper interface for this sort of thing to FloatingPoint #1915
-  return RewriteResponse(REWRITE_DONE,
-                         nm->mkConst((BitVector)arg0.getExponent()));
+  return RewriteResponse(REWRITE_DONE, nm->mkConst(arg0.getUnpackedExponent()));
 }
 
 RewriteResponse componentSignificand(NodeManager* nm,
@@ -1156,7 +1155,7 @@ RewriteResponse componentSignificand(NodeManager* nm,
   FloatingPoint arg0(node[0].getConst<FloatingPoint>());
 
   return RewriteResponse(REWRITE_DONE,
-                         nm->mkConst((BitVector)arg0.getSignificand()));
+                         nm->mkConst(arg0.getUnpackedSignificand()));
 }
 
 RewriteResponse roundingModeBitBlast(NodeManager* nm,

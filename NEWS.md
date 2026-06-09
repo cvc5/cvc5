@@ -1,10 +1,11 @@
 This file contains a summary of important user-visible changes.
 
-cvc5 1.3.4 prerelease
-=====================
+cvc5 1.3.4
+==========
 
 ## Changes
 
+- We now require GCC >= 10 and Clang >= 12.
 - Update SymFPU. Issue with divider encoding now fixed in SymFPU (related
   issues: #9505, #11139, #12335).
 - Fixes parsing issues related to unchecked overflowing of indexed
@@ -18,6 +19,14 @@ cvc5 1.3.4 prerelease
   quantified variables occur under UFs.
 - Fixes an issue where the parser would abort prematurely when `get-value` was
   called after an unsat response when uninterpreted sorts are present.
+- Fixes issues related to theory combination with arrays and non-linear
+  arithmetic.
+- Added full proof support in CaDiCaL, meaning `--sat-solver=cadical` can now be
+  used in combination with proofs `--produce-proofs`.
+- Improved proof support for Alethe: full translation for CPC fragment for
+  logics in AUFNIRA.
+- Minor updates and fixes to the CPC proof signature. The current CPC proofs are
+  checkable by Ethos 0.2.3 (`./contrib/get-ethos-checker`).
 
 cvc5 1.3.3
 ==========

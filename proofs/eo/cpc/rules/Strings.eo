@@ -274,7 +274,7 @@
 (program $mk_re_concat ((Es Bool :list) (s String) (r RegLan) (s1 String) (r1 RegLan))
   :signature (Bool Bool) Bool
   (
-  (($mk_re_concat (and (str.in_re s r) Es) (str.in_re s1 r1)) ($mk_re_concat Es (str.in_re (eo::cons str.++ s s1) (eo::cons re.++ r r1))))
+  (($mk_re_concat (and (str.in_re s r) Es) (str.in_re s1 r1)) ($mk_re_concat Es (str.in_re (_ str.++ s s1) (_ re.++ r r1))))
   (($mk_re_concat true (str.in_re s1 r1))                     (str.in_re s1 r1))
   )
 )
@@ -328,7 +328,7 @@
         (eo::define ((res ($re_unfold_pos_concat t (re.++ r1 r2))))
         (eo::define ((teq (= t ($pair_first res))))
         (eo::define ((M ($pair_second res)))
-          (eo::ite (eo::eq M true) teq (eo::cons and teq M))))))
+          (eo::ite (eo::eq M true) teq (_ and teq M))))))
   )
 )
 
@@ -638,6 +638,19 @@
 
 ;;;;; ProofRewriteRule::STR_CTN_MULTISET_SUBSET
 
+; program: $str_multiset_overapprox_word
+; args:
+; - s (Seq T): the term, expected to be a flat string literal.
+; return: >
+;   The list of characters in s.
+(program $str_multiset_overapprox_word ((T Type) (s (Seq T)) (ss (Seq T) :list))
+    :signature ((Seq T)) @List
+    (
+      (($str_multiset_overapprox_word (str.++ s ss))  (_ @list s ($str_multiset_overapprox_word ss)))
+      (($str_multiset_overapprox_word s)              (eo::ite ($str_is_empty s) @list.nil (_ @list s @list.nil)))
+    )
+)
+
 ; program: $str_multiset_overapprox
 ; args:
 ; - s (Seq T): the term.
@@ -655,11 +668,25 @@
       (($str_multiset_overapprox s)                    (eo::ite ($str_is_empty s)
                                                           @list.nil
                                                           (eo::ite (eo::is_str s)
-                                                            (eo::ite (eo::gt (eo::len s) 1)
-                                                              ; if a string constant of size > 1, flatten to characters and add to list
-                                                              ($str_multiset_overapprox ($str_flatten_word s))
-                                                              (@list s))
-                                                            (@list s))))
+                                                            ($str_multiset_overapprox_word ($str_to_flat_form s false))
+                                                            (_ @list s @list.nil))))
+    )
+)
+
+; program: $str_is_multiset_subset_strict_done
+; args:
+; - xs @List: the remaining multiset (over)approximation of a string term.
+; - nr @List: the accumulated list of terms that were not removed from xs.
+; return: >
+;   True if some accumulated term is provably distinct from every term in the
+;   remaining overapproximation xs.
+(program $str_is_multiset_subset_strict_done ((T Type) (s (Seq T)) (xs @List) (nr @List :list))
+    :signature (@List @List) Bool
+    (
+      (($str_is_multiset_subset_strict_done xs (@list s nr)) (eo::ite ($are_distinct_terms_list_rec s xs (eo::typeof s))
+                                                                 true
+                                                                 ($str_is_multiset_subset_strict_done xs nr)))
+      (($str_is_multiset_subset_strict_done xs nr)           false)
     )
 )
 
@@ -679,12 +706,14 @@
                                                             (eo::define ((nrem (eo::eq xs xsr)))
                                                               ($str_is_multiset_subset_strict ss xsr
                                                                 ; we add s to the accumulated list if it was not removed from xs
-                                                                (eo::ite nrem (@list s nr) nr)))))
-      (($str_is_multiset_subset_strict emp xs (@list s nr)) (eo::ite ($are_distinct_terms_list_rec s xs (eo::typeof s))
-                                                              ; if something was in s that is provably distinct from the remainder of t, we succeed
-                                                              true
-                                                              ($str_is_multiset_subset_strict emp xs nr)))
-      (($str_is_multiset_subset_strict emp xs nr)           false)
+                                                                (eo::ite nrem (_ @list s nr) nr)))))
+      (($str_is_multiset_subset_strict emp xs nr)           (eo::ite ($str_is_empty emp)
+                                                              ($str_is_multiset_subset_strict_done xs nr)
+                                                              (eo::define ((xsr (eo::list_erase @list xs emp)))
+                                                                (eo::define ((nrem (eo::eq xs xsr)))
+                                                                  ($str_is_multiset_subset_strict_done xsr
+                                                                    ; we add emp to the accumulated list if it was not removed from xs
+                                                                    (eo::ite nrem (_ @list emp nr) nr))))))
     )
 )
 
@@ -859,21 +888,25 @@
 
 ; program: $str_eval_replace_re_all_rec
 ; args:
-; - s String: A string.
+; - s String: A string, expected to be in flat form.
+; - acc String: The unmatched prefix accumulated since the previous match.
 ; - r RegLan: A regular expression not containing the empty string.
 ; - t String: A string to replace with.
-; - p @Pair: The result of finding the first match of r in s.
+; - skip Int: The number of characters to skip after a previous match.
 ; return: >
 ;   The result of evaluating (str.replace_re_all s r t), which is a concatenation.
-(program $str_eval_replace_re_all_rec ((s String) (r RegLan) (t String) (sp Int) (ep Int))
-  :signature (String RegLan String (@Pair Int Int)) String
+(program $str_eval_replace_re_all_rec ((s1 String) (s2 String :list) (acc String) (r RegLan) (t String) (skip Int))
+  :signature (String String RegLan String Int) String
   (
-  (($str_eval_replace_re_all_rec "" r t (@pair -1 -1))  "")
-  (($str_eval_replace_re_all_rec s r t (@pair -1 -1))   (eo::cons str.++ s ""))
-  (($str_eval_replace_re_all_rec s r t (@pair sp ep))   (eo::define ((snext (eo::extract s ep (eo::len s))))
-                                                        (eo::cons str.++ (eo::extract s 0 (eo::add sp -1))
-                                                        (eo::cons str.++ t
-                                                          ($str_eval_replace_re_all_rec snext r t ($str_first_match snext r))))))
+  (($str_eval_replace_re_all_rec "" acc r t skip)
+    (eo::ite (eo::eq acc "") "" (_ str.++ acc "")))
+  (($str_eval_replace_re_all_rec (str.++ s1 s2) acc r t 0)
+    (eo::define ((ep ($str_first_prefix_match (str.++ s1 s2) r)))
+      (eo::ite (eo::eq ep -1)
+        ($str_eval_replace_re_all_rec s2 (eo::concat acc s1) r t 0)
+        (_ str.++ acc (_ str.++ t ($str_eval_replace_re_all_rec s2 "" r t (eo::add ep -1)))))))
+  (($str_eval_replace_re_all_rec (str.++ s1 s2) acc r t skip)
+    ($str_eval_replace_re_all_rec s2 acc r t (eo::add skip -1)))
   )
 )
 
@@ -886,7 +919,7 @@
 ;   The result of evaluating (str.replace_re_all s r t).
 (define $str_eval_replace_re_all ((s String) (r RegLan) (t String))
   (eo::define ((rnemp (re.inter r (re.comp (str.to_re ""))))) ; looking for non-empty matches
-  (eo::list_singleton_elim str.++ ($str_eval_replace_re_all_rec s rnemp t ($str_first_match s rnemp)))))
+  (eo::list_singleton_elim str.++ ($str_eval_replace_re_all_rec ($str_to_flat_form s false) "" rnemp t 0))))
 
 ; rule: str-replace-re-all-eval
 ; implements: ProofRewriteRule::STR_REPLACE_RE_ALL_EVAL
@@ -949,7 +982,7 @@
   (
     (($seq_subsequence_rec l u (as seq.empty (Seq T)))      (as seq.empty (Seq T)))
     (($seq_subsequence_rec l 0 t)                           (as seq.empty (eo::typeof t)))
-    (($seq_subsequence_rec 0 u (seq.++ (seq.unit e) ts))    (eo::cons seq.++ (seq.unit e) ($seq_subsequence_rec 0 (eo::add u -1) ts)))
+    (($seq_subsequence_rec 0 u (seq.++ (seq.unit e) ts))    (_ seq.++ (seq.unit e) ($seq_subsequence_rec 0 (eo::add u -1) ts)))
     (($seq_subsequence_rec l u (seq.++ (seq.unit e) ts))
       ($seq_subsequence_rec (eo::add l -1) (eo::add u -1) ts))
   )

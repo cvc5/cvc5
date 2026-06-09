@@ -792,7 +792,7 @@ Node SygusExtension::getSimpleSymBreakPred(Node e,
         if (quantifiers::TermUtil::isComm(nk))
         {
           if (children.size() == 2
-              && children[0].getType() == children[1].getType())
+              && CVC5_EQUAL(children[0].getType(), children[1].getType()))
           {
             Node order_pred = getTermOrderPredicate(children[0], children[1]);
             sbp_conj.push_back(order_pred);

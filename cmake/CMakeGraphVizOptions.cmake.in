@@ -10,8 +10,8 @@
 # targets.
 ##
 
-set(CTX "@CMAKE_BINARY_DIR@/src/context/CMakeFiles/cvc5base.dir/")
-set(BASE "@CMAKE_BINARY_DIR@/src/base/CMakeFiles/cvc5base.dir/")
+set(CTX "@PROJECT_BINARY_DIR@/src/context/CMakeFiles/cvc5base.dir/")
+set(BASE "@PROJECT_BINARY_DIR@/src/base/CMakeFiles/cvc5base.dir/")
 
 # ignore targets that do not actually help the understanding or are (usually)
 # not interesting: tests and object files.

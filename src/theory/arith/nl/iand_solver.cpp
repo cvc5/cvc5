@@ -205,7 +205,10 @@ Node IAndSolver::mkIAnd(unsigned k, Node x, Node y) const
 
 Node IAndSolver::mkIOr(unsigned k, Node x, Node y) const
 {
-  Node ret = mkINot(k, mkIAnd(k, mkINot(k, x), mkINot(k, y)));
+  // Use iNotX, iNotY to ensure deterministic node ID assignments
+  Node iNotX = mkINot(k, x);
+  Node iNotY = mkINot(k, y);
+  Node ret = mkINot(k, mkIAnd(k, iNotX, iNotY));
   ret = rewrite(ret);
   return ret;
 }

@@ -592,7 +592,11 @@ SumPair DioSolver::purifyIndex(TrailIndex i)
       {
         const SumPair& sj = d_trail[d_subs[i2].d_constraint].d_eq;
         Assert(sj.getPolynomial().getCoefficient(VarList(var)).isOne());
-        SumPair newSi = (curr * negOne) + (sj * a);
+        // Use currTimesNegOne and sjTimesA to ensure deterministic node ID
+        // assignments
+        SumPair currTimesNegOne = curr * negOne;
+        SumPair sjTimesA = sj * a;
+        SumPair newSi = currTimesNegOne + sjTimesA;
         Assert(newSi.getPolynomial().getCoefficient(VarList(var)).isZero());
         curr = newSi;
       }
@@ -617,11 +621,17 @@ DioSolver::TrailIndex DioSolver::combineEqAtIndexes(DioSolver::TrailIndex i,
   Trace("arith::dio") << "d_facts[i] = " << si.getNode() << endl
                       << "d_facts[j] = " << sj.getNode() << endl;
 
-  SumPair newSi = (si * cq) + (sj * cr);
+  // Use siTimesCq and sjTimesCr to ensure deterministic node ID assignments
+  SumPair siTimesCq = si * cq;
+  SumPair sjTimesCr = sj * cr;
+  SumPair newSi = siTimesCq + sjTimesCr;
 
   const Polynomial& pi = d_trail[i].d_proof;
   const Polynomial& pj = d_trail[j].d_proof;
-  Polynomial newPi = (pi * cq) + (pj * cr);
+  // Use piTimesCq and pjTimesCr to ensure deterministic node ID assignments
+  Polynomial piTimesCq = pi * cq;
+  Polynomial pjTimesCr = pj * cr;
+  Polynomial newPi = piTimesCq + pjTimesCr;
 
   TrailIndex k = d_trail.size();
   d_trail.push_back(Constraint(newSi, newPi));

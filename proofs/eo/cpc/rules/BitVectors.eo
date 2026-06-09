@@ -99,7 +99,7 @@
       (eo::define ((ia (eo::add n -1 (eo::neg i))))
       (eo::define ((ip1 (eo::add i 1)))
       (eo::define ((uppcn (bvor (extract ia ia a) uppc)))
-        (eo::cons bvor (bvand (extract i i b) uppc) ($bv_umulo_elim_rec a b uppcn res ip1 n))))))
+        (_ bvor (bvand (extract i i b) uppc) ($bv_umulo_elim_rec a b uppcn res ip1 n))))))
   )
 )
 
@@ -154,12 +154,12 @@
   :signature ((-> (BitVec n) (BitVec n) (BitVec n)) (BitVec k) (BitVec k) (BitVec m) Bool Int Int) (BitVec k)
   (
   (($bv_mk_bitwise_slicing_rec f c a bs bn start -1)
-      (eo::cons concat ($nary_app f (extract start 0 c) (extract start 0 a)) @bv_empty))
+      (_ concat ($nary_app f (extract start 0 c) (extract start 0 a)) @bv_empty))
   (($bv_mk_bitwise_slicing_rec f c a (@from_bools b bs) bn start end)
         (eo::define ((em1 (eo::add end -1)) (ep1 (eo::add end 1)))
         (eo::ite (eo::eq b bn)
           ($bv_mk_bitwise_slicing_rec f c a bs b start em1)
-          (eo::cons concat
+          (_ concat
             ($nary_app f (extract start ep1 c) (extract start ep1 a))
             ($bv_mk_bitwise_slicing_rec f c a bs b end em1)))))
   )

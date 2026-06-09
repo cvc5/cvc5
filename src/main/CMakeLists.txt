@@ -60,7 +60,7 @@ target_compile_definitions(cvc5-bin PRIVATE -D__BUILDING_CVC5DRIVER -Dcvc5_obj_E
 set_target_properties(cvc5-bin
   PROPERTIES
     OUTPUT_NAME cvc5
-    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+    RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
 if(PROGRAM_PREFIX)
   install(PROGRAMS
     $<TARGET_FILE:cvc5-bin>
@@ -84,6 +84,9 @@ if(NOT BUILD_SHARED_LIBS)
   set_target_properties(cvc5-bin PROPERTIES INSTALL_RPATH "")
 endif()
 target_link_libraries(cvc5-bin PUBLIC cvc5 cvc5parser)
+if(USE_COCOA)
+  target_include_directories(cvc5-bin SYSTEM PRIVATE ${CoCoA_INCLUDE_DIR})
+endif()
 
 if(USE_EDITLINE)
   target_link_libraries(cvc5-bin PUBLIC ${Editline_LIBRARIES})

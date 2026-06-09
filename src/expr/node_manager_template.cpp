@@ -482,10 +482,13 @@ std::vector<NodeValue*> NodeManager::TopologicalSort(
       {
         stack.back().first = true;
         visited.insert(current);
-        for (unsigned i = 0; i < current->getNumChildren(); ++i)
+        // Match NodeValue::decrRefCounts(): it decrements all raw children,
+        // including the operator of PARAMETERIZED nodes.
+        for (expr::NodeValue::nv_iterator i = current->nv_begin();
+             i != current->nv_end();
+             ++i)
         {
-          expr::NodeValue* child = current->getChild(i);
-          stack.push_back(std::make_pair(false, child));
+          stack.push_back(std::make_pair(false, *i));
         }
       }
       else
@@ -1014,6 +1017,14 @@ TypeNode NodeManager::mkSort()
 TypeNode NodeManager::mkSort(const std::string& name, bool fresh)
 {
   return mkSortConstructor(name, 0, fresh);
+}
+
+TypeNode NodeManager::mkRawSymbolType(const std::string& symbol)
+{
+  NodeBuilder nb(this, Kind::RAW_SYMBOL_TYPE);
+  TypeNode type = nb.constructTypeNode();
+  setAttribute(type, expr::VarNameAttr(), symbol);
+  return type;
 }
 
 TypeNode NodeManager::mkSort(TypeNode constructor,

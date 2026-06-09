@@ -11,6 +11,14 @@
 include(CheckCCompilerFlag)
 include(CheckCXXCompilerFlag)
 
+function(check_min_compiler_version id min_version)
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "${id}")
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS "${min_version}")
+      message(FATAL_ERROR "${id} version must be at least ${min_version}")
+    endif()
+  endif()
+endfunction()
+
 if(NOT WIN32)
   string(ASCII 27 Esc)
   set(Yellow "${Esc}[33m")
@@ -320,5 +328,5 @@ macro(update_rpath_macos dylibname)
     -DINSTALL_NAME_TOOL=${CMAKE_INSTALL_NAME_TOOL}
     -DDYLIB_PATH=\${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/${dylibname}
     -DDEPS_BASE=${DEPS_BASE}
-    -P ${CMAKE_SOURCE_DIR}/cmake/update_rpath_macos.cmake)")
+    -P ${PROJECT_SOURCE_DIR}/cmake/update_rpath_macos.cmake)")
 endmacro()

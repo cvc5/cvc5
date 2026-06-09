@@ -394,7 +394,7 @@ TypeNode BagFilterTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
 {
   return TypeNode::null();
 }
-TypeNode BagFilterTypeRule::computeType(NodeManager* nodeManager,
+TypeNode BagFilterTypeRule::computeType(CVC5_UNUSED NodeManager* nodeManager,
                                         TNode n,
                                         bool check,
                                         std::ostream* errOut)
@@ -429,7 +429,7 @@ TypeNode BagFilterTypeRule::computeType(NodeManager* nodeManager,
     }
     std::vector<TypeNode> argTypes = functionType.getArgTypes();
     if (!(argTypes.size() == 1 && argTypes[0] == elementType
-          && functionType.getRangeType() == nodeManager->booleanType()))
+          && functionType.getRangeType().isBoolean()))
     {
       if (errOut)
       {

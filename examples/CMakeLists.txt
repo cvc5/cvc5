@@ -23,7 +23,7 @@ enable_testing()
 # of cvc5Config.cmake.
 find_package(cvc5)
 
-set(EXAMPLES_BIN_DIR ${CMAKE_BINARY_DIR}/bin)
+set(EXAMPLES_BIN_DIR ${PROJECT_BINARY_DIR}/bin)
 
 # Add example target and create test to run example with ctest.
 #
@@ -94,7 +94,7 @@ if(TARGET cvc5::cvc5jar)
     NAME java/SimpleVC
     COMMAND
       ${Java_JAVA_EXECUTABLE}
-        -cp "${CVC5_JAR}${PATH_SEP}${CMAKE_BINARY_DIR}/SimpleVC.jar"
+        -cp "${CVC5_JAR}${PATH_SEP}${PROJECT_BINARY_DIR}/SimpleVC.jar"
         -Djava.library.path=${CVC5_JNI_PATH}
         SimpleVC
   )

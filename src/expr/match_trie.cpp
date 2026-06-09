@@ -126,7 +126,7 @@ bool MatchTrie::getMatches(Node n, NotifyMatch* ntm)
               recurse = false;
             }
           }
-          else if (var.getType() != cn.getType())
+          else if (!CVC5_EQUAL(var.getType(), cn.getType()))
           {
             recurse = false;
           }

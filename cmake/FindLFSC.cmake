@@ -15,15 +15,15 @@
 
 find_program(LFSC_BINARY
     NAMES lfscc
-    PATHS ${CMAKE_SOURCE_DIR}/deps/bin
+    PATHS ${PROJECT_SOURCE_DIR}/deps/bin
 )
 find_path(LFSC_INCLUDE_DIR
     NAMES lfscc.h
-    PATHS ${CMAKE_SOURCE_DIR}/deps/include
+    PATHS ${PROJECT_SOURCE_DIR}/deps/include
 )
 find_library(LFSC_LIBRARIES
     NAMES lfscc
-    PATHS ${CMAKE_SOURCE_DIR}/deps/lib
+    PATHS ${PROJECT_SOURCE_DIR}/deps/lib
 )
 
 include(FindPackageHandleStandardArgs)

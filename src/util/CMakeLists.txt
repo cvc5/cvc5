@@ -38,6 +38,7 @@ libcvc5_add_sources(
   floatingpoint.h
   floatingpoint_size.cpp
   floatingpoint_size.h
+  floatingpoint_literal.cpp
   floatingpoint_literal_symfpu.cpp
   floatingpoint_literal_symfpu_traits.cpp
   gmp_util.h
@@ -88,6 +89,10 @@ libcvc5_add_sources(
   utility.cpp
   utility.h
 )
+
+if(CVC5_USE_MPFR)
+  libcvc5_add_sources(floatingpoint_literal_mpfr.cpp)
+endif()
 
 if(CVC5_USE_CLN_IMP)
   libcvc5_add_sources(rational_cln_imp.cpp integer_cln_imp.cpp)
