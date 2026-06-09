@@ -46,7 +46,12 @@ Node SetReduction::reduceMinOperator(Node node, std::vector<Node>& asserts)
   Node emptyCase = isEmpty.andNode(min.eqNode(i));
   Node minMember = nm->mkNode(Kind::SET_MEMBER, min, A);
   Node e = nm->mkBoundVar("e", A.getType().getSetElementType());
-  Node leq = nm->mkNode(Kind::APPLY_UF, r, min, e);
+  // Use the original (un-purified) form of the relation so that the predicate
+  // beta-reduces to a concrete body. Otherwise a purified relation symbol
+  // survives in the set.filter predicate and the model cannot evaluate it
+  // (see reduceMaxOperator for why this matters for model soundness checks).
+  Node rOrig = SkolemManager::getOriginalForm(r);
+  Node leq = nm->mkNode(Kind::APPLY_UF, rOrig, min, e);
   Node lambda =
       nm->mkNode(Kind::LAMBDA, nm->mkNode(Kind::BOUND_VAR_LIST, e), leq);
   Node all = nm->mkNode(Kind::SET_ALL, lambda, A);
@@ -70,7 +75,14 @@ Node SetReduction::reduceMaxOperator(Node node, std::vector<Node>& asserts)
   Node emptyCase = isEmpty.andNode(max.eqNode(i));
   Node maxMember = nm->mkNode(Kind::SET_MEMBER, max, A);
   Node e = nm->mkBoundVar("e", A.getType().getSetElementType());
-  Node leq = nm->mkNode(Kind::APPLY_UF, r, e, max);
+  // Use the original (un-purified) form of the relation. The max predicate is
+  // (lambda (e) (r e max)): with a purified relation symbol @purify this stays
+  // (lambda (e) (@purify e max)), which the model builder cannot evaluate (the
+  // curried application puts the bound variable in a non-tail position), so the
+  // relation collapses to a constant in the model and --check-models reports a
+  // spurious failure. Inlining the original relation lets the body beta-reduce.
+  Node rOrig = SkolemManager::getOriginalForm(r);
+  Node leq = nm->mkNode(Kind::APPLY_UF, rOrig, e, max);
   Node lambda =
       nm->mkNode(Kind::LAMBDA, nm->mkNode(Kind::BOUND_VAR_LIST, e), leq);
   Node all = nm->mkNode(Kind::SET_ALL, lambda, A);
@@ -101,7 +113,10 @@ Node SetReduction::reduceRelationMinOperator(Node node,
   Node lambdaSome =
       nm->mkNode(Kind::LAMBDA, nm->mkNode(Kind::BOUND_VAR_LIST, t), eq);
   Node some = nm->mkNode(Kind::SET_SOME, lambdaSome, A);
-  Node leq = nm->mkNode(Kind::APPLY_UF, r, min, tSelect);
+  // Inline the original relation so the predicate body beta-reduces (see
+  // reduceMaxOperator for why a purified relation breaks model evaluation).
+  Node rOrig = SkolemManager::getOriginalForm(r);
+  Node leq = nm->mkNode(Kind::APPLY_UF, rOrig, min, tSelect);
   Node lambdaAll =
       nm->mkNode(Kind::LAMBDA, nm->mkNode(Kind::BOUND_VAR_LIST, t), leq);
 
@@ -133,7 +148,10 @@ Node SetReduction::reduceRelationMaxOperator(Node node,
   Node lambdaSome =
       nm->mkNode(Kind::LAMBDA, nm->mkNode(Kind::BOUND_VAR_LIST, t), eq);
   Node some = nm->mkNode(Kind::SET_SOME, lambdaSome, A);
-  Node leq = nm->mkNode(Kind::APPLY_UF, r, tSelect, max);
+  // Inline the original relation so the predicate body beta-reduces (see
+  // reduceMaxOperator for why a purified relation breaks model evaluation).
+  Node rOrig = SkolemManager::getOriginalForm(r);
+  Node leq = nm->mkNode(Kind::APPLY_UF, rOrig, tSelect, max);
   Node lambdaAll =
       nm->mkNode(Kind::LAMBDA, nm->mkNode(Kind::BOUND_VAR_LIST, t), leq);
 
