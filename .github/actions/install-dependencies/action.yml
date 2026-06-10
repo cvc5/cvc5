@@ -112,6 +112,7 @@ runs:
           mingw-w64-clang-x86_64-clang
           mingw-w64-clang-x86_64-cmake
           mingw-w64-clang-x86_64-gmp
+          mingw-w64-clang-x86_64-mpfr
           zip
 
     # Pin MSYS2 installation to use Clang 19.1.4 (required by lean-cvc5)
@@ -129,6 +130,7 @@ runs:
           mingw-w64-clang-aarch64-clang
           mingw-w64-clang-aarch64-cmake
           mingw-w64-clang-aarch64-gmp
+          mingw-w64-clang-aarch64-mpfr
           zip
 
     - name: Set up num_proc variable for Linux and Windows

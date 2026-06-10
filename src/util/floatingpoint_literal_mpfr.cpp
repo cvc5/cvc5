@@ -20,6 +20,7 @@
 
 #include <cassert>
 #include <cstring>
+#include <limits>
 #include <string>
 
 #include "base/check.h"
@@ -116,6 +117,43 @@ const FloatingPointLiteralMPFR& asMPFR(const FloatingPointLiteral& lit)
 {
   Assert(dynamic_cast<const FloatingPointLiteralMPFR*>(&lit) != nullptr);
   return static_cast<const FloatingPointLiteralMPFR&>(lit);
+}
+
+/**
+ * Convert a cvc5 Integer to a GMP integer, independent of which
+ * multi-precision integer back end (GMP or CLN) cvc5 is built with.
+ */
+mpz_class toMpz(const Integer& i)
+{
+#ifdef CVC5_GMP_IMP
+  return i.getValue();
+#endif
+#ifdef CVC5_CLN_IMP
+  if (std::numeric_limits<long>::min() <= i.getValue()
+      && i.getValue() <= std::numeric_limits<long>::max())
+  {
+    return mpz_class(cln::cl_I_to_long(i.getValue()));
+  }
+  return mpz_class(i.toString());
+#endif
+}
+
+/**
+ * Convert a GMP integer to a cvc5 Integer, independent of which
+ * multi-precision integer back end (GMP or CLN) cvc5 is built with.
+ */
+Integer toInteger(const mpz_class& z)
+{
+#ifdef CVC5_GMP_IMP
+  return Integer(z);
+#endif
+#ifdef CVC5_CLN_IMP
+  if (z.fits_slong_p())
+  {
+    return Integer(z.get_si());
+  }
+  return Integer(z.get_str());
+#endif
 }
 
 }  // namespace
@@ -226,12 +264,12 @@ FloatingPointLiteralMPFR::FloatingPointLiteralMPFR(
   if (signedBV)
   {
     // Signed interpretation
-    bvMpz = bv.toSignedInteger().getValue();
+    bvMpz = toMpz(bv.toSignedInteger());
   }
   else
   {
     // Unsigned interpretation
-    bvMpz = bv.toInteger().getValue();
+    bvMpz = toMpz(bv.toInteger());
   }
 
   int32_t i = 0;
@@ -313,8 +351,8 @@ std::unique_ptr<FloatingPointLiteral> FloatingPointLiteralMPFR::fromRational(
 
   mpq_t q;
   mpq_init(q);
-  mpz_set(mpq_numref(q), r.getNumerator().getValue().get_mpz_t());
-  mpz_set(mpq_denref(q), r.getDenominator().getValue().get_mpz_t());
+  mpz_set(mpq_numref(q), toMpz(r.getNumerator()).get_mpz_t());
+  mpz_set(mpq_denref(q), toMpz(r.getDenominator()).get_mpz_t());
   mpq_canonicalize(q);
 
   mpfr_rnd_t rmMpfr = rm2mpfr(rm);
@@ -899,7 +937,7 @@ BitVector FloatingPointLiteralMPFR::convertToSBVTotal(
   mpfr_clear(rounded);
 
   // Convert to bit-vector (signed)
-  Integer intVal(result);
+  Integer intVal = toInteger(result);
   if (intVal.sgn() < 0)
   {
     // Two's complement representation
@@ -963,7 +1001,7 @@ BitVector FloatingPointLiteralMPFR::convertToUBVTotal(
   mpfr_get_z(result.get_mpz_t(), rounded, MPFR_RNDZ);
   mpfr_clear(rounded);
 
-  return BitVector(w, Integer(result));
+  return BitVector(w, toInteger(result));
 }
 
 std::pair<Rational, bool> FloatingPointLiteralMPFR::convertToRational() const
