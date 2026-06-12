@@ -1290,10 +1290,7 @@ Node RegExpOpr::reduceRegExpPos(NodeManager* nm,
     // This means that the overall conclusion is:
     //  (x = "") v (x in R) v (x = (str.++ k1 k2 k3) ^
     //                         k1 in (R \ "") ^ k2 in (re.* R) ^ k3 in (R \ ""))
-    conc = nm->mkNode(Kind::OR,
-                      se,
-                      sinr,
-                      sinRExp);
+    conc = nm->mkNode(Kind::OR, se, sinr, sinRExp);
   }
   else
   {
