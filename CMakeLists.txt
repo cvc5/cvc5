@@ -296,7 +296,8 @@ if (NOT ("${CMAKE_GENERATOR}" STREQUAL "MSYS Makefiles") AND
     NOT CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND
     NOT USE_DEFAULT_LINKER)
   #-----------------------------------------------------------------------------#
-  # Use ld.mold if available, otherwise use ld.gold if available
+  # Use ld.mold if available, otherwise use ld.lld if available, otherwise
+  # use ld.gold if available (unless ASan is enabled).
 
   set(USE_EXPLICIT_LINKER_FLAG FALSE)
   execute_process(COMMAND ${CMAKE_C_COMPILER}
@@ -308,12 +309,21 @@ if (NOT ("${CMAKE_GENERATOR}" STREQUAL "MSYS Makefiles") AND
     message(STATUS "Using mold linker.")
   else ()
     execute_process(COMMAND ${CMAKE_C_COMPILER}
-                    -fuse-ld=gold
-                    -Wl,--version ERROR_QUIET OUTPUT_VARIABLE LD_GOLD_VERSION)
-    if ("${LD_GOLD_VERSION}" MATCHES "GNU gold")
+                    -fuse-ld=lld
+                    -Wl,--version ERROR_QUIET OUTPUT_VARIABLE LD_LLD_VERSION)
+    if ("${LD_LLD_VERSION}" MATCHES "LLD")
       set(USE_EXPLICIT_LINKER_FLAG TRUE)
-      set(EXPLICIT_LINKER_FLAG " -fuse-ld=gold")
-      message(STATUS "Using GNU gold linker.")
+      set(EXPLICIT_LINKER_FLAG " -fuse-ld=lld")
+      message(STATUS "Using LLD linker.")
+    elseif (NOT ENABLE_ASAN)
+      execute_process(COMMAND ${CMAKE_C_COMPILER}
+                      -fuse-ld=gold
+                      -Wl,--version ERROR_QUIET OUTPUT_VARIABLE LD_GOLD_VERSION)
+      if ("${LD_GOLD_VERSION}" MATCHES "GNU gold")
+        set(USE_EXPLICIT_LINKER_FLAG TRUE)
+        set(EXPLICIT_LINKER_FLAG " -fuse-ld=gold")
+        message(STATUS "Using GNU gold linker.")
+      endif ()
     endif ()
   endif ()
   if (USE_EXPLICIT_LINKER_FLAG)
