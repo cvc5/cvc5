@@ -404,28 +404,24 @@ void ProofCnfStream::convertAndAssertIte(TNode node, bool negated)
   SatClause clause1(2);
   clause1[0] = ~p;
   clause1[1] = q;
-  if (true)
+  // redo the negation here to avoid silent double negation elimination
+  if (!negated)
   {
-    // redo the negation here to avoid silent double negation elimination
-    if (!negated)
-    {
-      Node clauseNode = nm->mkNode(Kind::OR, node[0].notNode(), node[1]);
-      d_proof->addStep(clauseNode, ProofRule::ITE_ELIM1, {node}, {});
-      Trace("cnf") << "ProofCnfStream::convertAndAssertIte: ITE_ELIM1 added "
-                   << clauseNode << "\n";
-      d_ppm->normalizeAndRegister(clauseNode, d_input);
-    }
-    else
-    {
-      Node clauseNode =
-          nm->mkNode(Kind::OR, {node[0].notNode(), node[1].notNode()});
-      d_proof->addStep(
-          clauseNode, ProofRule::NOT_ITE_ELIM1, {node.notNode()}, {});
-      Trace("cnf")
-          << "ProofCnfStream::convertAndAssertIte: NOT_ITE_ELIM1 added "
-          << clauseNode << "\n";
-      d_ppm->normalizeAndRegister(clauseNode, d_input);
-    }
+    Node clauseNode = nm->mkNode(Kind::OR, node[0].notNode(), node[1]);
+    d_proof->addStep(clauseNode, ProofRule::ITE_ELIM1, {node}, {});
+    Trace("cnf") << "ProofCnfStream::convertAndAssertIte: ITE_ELIM1 added "
+                 << clauseNode << "\n";
+    d_ppm->normalizeAndRegister(clauseNode, d_input);
+  }
+  else
+  {
+    Node clauseNode =
+        nm->mkNode(Kind::OR, {node[0].notNode(), node[1].notNode()});
+    d_proof->addStep(
+        clauseNode, ProofRule::NOT_ITE_ELIM1, {node.notNode()}, {});
+    Trace("cnf") << "ProofCnfStream::convertAndAssertIte: NOT_ITE_ELIM1 added "
+                 << clauseNode << "\n";
+    d_ppm->normalizeAndRegister(clauseNode, d_input);
   }
   d_cnfStream.assertClause(nnode, clause1);
   // (p v r)
