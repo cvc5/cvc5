@@ -10,7 +10,7 @@
 # The build system configuration.
 ##
 
-find_package(GTest REQUIRED)
+find_package(GTest 1.10.0 REQUIRED)
 
 include_directories(.)
 include_directories(${PROJECT_SOURCE_DIR}/src)

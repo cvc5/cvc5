@@ -198,6 +198,7 @@ set(regress_0_tests
   regress0/aufbv/dd.fifo32bc06k08.delta01.smtv1.smt2
   regress0/aufbv/diseqprop.01.smtv1.smt2
   regress0/aufbv/dubreva005ue.delta01.smtv1.smt2
+  regress0/aufbv/early-ite-removal-bv-pp-assert.smt2
   regress0/aufbv/fifo32bc06k08.delta01.smtv1.smt2
   regress0/aufbv/fifo32in06k08.delta01.smtv1.smt2
   regress0/aufbv/fuzz00.smtv1.smt2
@@ -936,6 +937,8 @@ set(regress_0_tests
   regress0/fmf/quant_real_univ.cvc.smt2
   regress0/fmf/sat-logic.smt2
   regress0/fmf/sc_bad_model_1221.smt2
+  regress0/fmf/sort-infer-nonmonotonic-orig.smt2
+  regress0/fmf/sort-infer-original-injection.smt2
   regress0/fmf/sort-infer-typed-082718.smt2
   regress0/fmf/syn002-si-real-int.smt2
   regress0/fmf/tail_rec.smt2
@@ -959,10 +962,12 @@ set(regress_0_tests
   regress0/fp/issue6164.smt2
   regress0/fp/issue7002.smt2
   regress0/fp/issue7569.smt2
+  regress0/fp/issue7858-1.smt2
   regress0/fp/issue9078-1.smt2
   regress0/fp/issue9078-2.smt2
   regress0/fp/issue9078-3.smt2
   regress0/fp/issue9505.smt2
+  regress0/fp/issue9697.smt2
   regress0/fp/issue9854.smt2
   regress0/fp/issue9858.smt2
   regress0/fp/issue9864.smt2
@@ -1248,6 +1253,7 @@ set(regress_0_tests
   regress0/nl/piand-range.smt2
   regress0/nl/piand-symmetry.smt2
   regress0/nl/piand-symmetry-sat.smt2
+  regress0/nl/pow2-monotone-neg-soundness.smt2
   regress0/nl/pow2-native-0.smt2
   regress0/nl/pow2-native-1.smt2
   regress0/nl/pow2-native-2.smt2
@@ -1534,6 +1540,8 @@ set(regress_0_tests
   regress0/proofs/issue12631-check-proofs-arith.smt2
   regress0/proofs/issue12683-check-proofs-arith-mixed.smt2
   regress0/proofs/issue12696-check-proofs-subtype.smt2
+  regress0/proofs/issue12697-check-proofs-arith.smt2
+  regress0/proofs/issue12708-check-proofs-arith-cm.smt2
   regress0/proofs/issue8983-trust-subs.smt2
   regress0/proofs/issue9156-doublePropProof.smt2
   regress0/proofs/issue9172-doublePropProof.smt2
@@ -1690,6 +1698,7 @@ set(regress_0_tests
   regress0/quantifiers/dd_check_eq_bvnot_32bit.smt2
   regress0/quantifiers/dd_check_ic_sext_4_4.smt2
   regress0/quantifiers/dd.example10714-core-no-miniscope-user.smt2
+  regress0/quantifiers/dd.sparknacl-stream-bv-var-elim.smt2
   regress0/quantifiers/dd_german169_semi_eval.smt2
   regress0/quantifiers/dd_kmdf_osrubvfx2.smt2
   regress0/quantifiers/dd_nra_key_subtype_ineq.smt2
@@ -3893,7 +3902,6 @@ set(regress_1_tests
   regress1/sygus/issue3461.sy
   regress1/sygus/issue3514.smt2
   regress1/sygus/issue3507.smt2
-  regress1/sygus/issue3580.sy
   regress1/sygus/issue3633.smt2
   regress1/sygus/issue3634.smt2
   regress1/sygus/issue3635.smt2
@@ -4383,6 +4391,8 @@ set(regression_disabled_tests
   regress1/sygus/interpol_from_pono_3.smt2
   regress1/sygus/interpol_dt.smt2
   regress1/sygus/inv_gen_fig8.sy
+  # takes a long time (>300 seconds) when using libc++ builds on both Linux and macOS
+  regress1/sygus/issue3580.sy
   # timeout since nl-rlv is required; however it cannot be used with quantifiers
   regress1/sygus/issue3648.smt2
   # new reconstruct algorithm is slow at reconstructing random constants (see wishue #82)
