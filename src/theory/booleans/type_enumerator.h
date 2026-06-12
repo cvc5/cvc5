@@ -15,16 +15,22 @@
 #ifndef CVC5__THEORY__BOOLEANS__TYPE_ENUMERATOR_H
 #define CVC5__THEORY__BOOLEANS__TYPE_ENUMERATOR_H
 
-#include "theory/type_enumerator.h"
-#include "expr/type_node.h"
 #include "expr/kind.h"
+#include "expr/type_node.h"
+#include "theory/type_enumerator.h"
 
 namespace cvc5::internal {
 namespace theory {
 namespace booleans {
 
-class BooleanEnumerator : public TypeEnumeratorBase<BooleanEnumerator> {
-  enum { FALSE, TRUE, DONE } d_value;
+class BooleanEnumerator : public TypeEnumeratorBase<BooleanEnumerator>
+{
+  enum
+  {
+    FALSE,
+    TRUE,
+    DONE
+  } d_value;
 
  public:
   BooleanEnumerator(TypeNode type,
@@ -35,8 +41,10 @@ class BooleanEnumerator : public TypeEnumeratorBase<BooleanEnumerator> {
            && type.getConst<TypeConstant>() == BOOLEAN_TYPE);
   }
 
-  Node operator*() override {
-    switch(d_value) {
+  Node operator*() override
+  {
+    switch (d_value)
+    {
       case FALSE: return getType().getNodeManager()->mkConst(false);
       case TRUE: return getType().getNodeManager()->mkConst(true);
       default: throw NoMoreValuesException(getType());
@@ -46,16 +54,19 @@ class BooleanEnumerator : public TypeEnumeratorBase<BooleanEnumerator> {
   BooleanEnumerator& operator++() override
   {
     // sequence is FALSE, TRUE
-    if(d_value == FALSE) {
+    if (d_value == FALSE)
+    {
       d_value = TRUE;
-    } else {
+    }
+    else
+    {
       d_value = DONE;
     }
     return *this;
   }
 
   bool isFinished() override { return d_value == DONE; }
-};/* class BooleanEnumerator */
+}; /* class BooleanEnumerator */
 
 }  // namespace booleans
 }  // namespace theory

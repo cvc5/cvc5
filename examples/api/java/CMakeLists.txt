@@ -33,7 +33,7 @@ set(EXAMPLES_API_JAVA
 function(add_java_example example)
   add_jar(${example} ${example}.java
           INCLUDE_JARS "${CVC5_JAR}"
-          OUTPUT_DIR "${CMAKE_BINARY_DIR}/bin/api/java")
+          OUTPUT_DIR "${PROJECT_BINARY_DIR}/bin/api/java")
 
   set(EXAMPLE_TEST_NAME api/java/${example})
 
@@ -47,7 +47,7 @@ function(add_java_example example)
     NAME ${EXAMPLE_TEST_NAME}
     COMMAND
       ${Java_JAVA_EXECUTABLE}
-        -cp "${CVC5_JAR}${PATH_SEP}${CMAKE_BINARY_DIR}/bin/api/java/${example}.jar"
+        -cp "${CVC5_JAR}${PATH_SEP}${PROJECT_BINARY_DIR}/bin/api/java/${example}.jar"
         -Djava.library.path=${CVC5_JNI_PATH}
         ${example}
   )

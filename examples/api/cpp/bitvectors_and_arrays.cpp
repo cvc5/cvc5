@@ -23,10 +23,11 @@ int main()
 {
   TermManager tm;
   Solver slv(tm);
-  slv.setOption("produce-models", "true");    // Produce Models
-  slv.setLogic("QF_ABV");                     // Set the logic
+  slv.setOption("produce-models", "true");  // Produce Models
+  slv.setLogic("QF_ABV");                   // Set the logic
 
-  // Consider the following code (where size is some previously defined constant):
+  // Consider the following code (where size is some previously defined
+  // constant):
   //
   //
   //   Assert (current_array[0] > 0);
@@ -55,8 +56,8 @@ int main()
 
   // Asserting that current_array[0] > 0
   Term current_array0 = tm.mkTerm(Kind::SELECT, {current_array, zero});
-  Term current_array0_gt_0 = tm.mkTerm(
-      Kind::BITVECTOR_SGT, {current_array0, tm.mkBitVector(32, 0u)});
+  Term current_array0_gt_0 =
+      tm.mkTerm(Kind::BITVECTOR_SGT, {current_array0, tm.mkBitVector(32, 0u)});
   slv.assertFormula(current_array0_gt_0);
 
   // Building the assertions in the loop unrolling
@@ -70,8 +71,7 @@ int main()
     index = tm.mkBitVector(index_size, i);
     Term new_current = tm.mkTerm(Kind::BITVECTOR_MULT, {two, old_current});
     // current[i] = 2 * current[i-1]
-    current_array =
-        tm.mkTerm(Kind::STORE, {current_array, index, new_current});
+    current_array = tm.mkTerm(Kind::STORE, {current_array, index, new_current});
     // current[i-1] < current [i]
     Term current_slt_new_current =
         tm.mkTerm(Kind::BITVECTOR_SLT, {old_current, new_current});

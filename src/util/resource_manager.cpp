@@ -107,7 +107,7 @@ struct ResourceManager::Statistics
 
 ResourceManager::Statistics::Statistics(StatisticsRegistry& stats)
     : d_resourceUnitsUsed(
-        stats.registerReference<uint64_t>("resource::resourceUnitsUsed")),
+          stats.registerReference<uint64_t>("resource::resourceUnitsUsed")),
       d_spendResourceCalls(stats.registerInt("resource::spendResourceCalls")),
       d_inferenceIdSteps(stats.registerHistogram<theory::InferenceId>(
           "resource::steps::inference-id")),
@@ -188,7 +188,9 @@ uint64_t ResourceManager::getTimeUsage() const { return d_cumulativeTimeUsed; }
 
 uint64_t ResourceManager::getRemainingTime() const
 {
-  return d_options.base.perCallMillisecondLimit - d_perCallTimer.elapsed();
+  const uint64_t elapsed = d_perCallTimer.elapsed();
+  if (d_options.base.perCallMillisecondLimit <= elapsed) return 0;
+  return d_options.base.perCallMillisecondLimit - elapsed;
 }
 
 uint64_t ResourceManager::getResourceRemaining() const

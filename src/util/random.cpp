@@ -7,58 +7,52 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * A random number generator, implements the xorshift* generator
- * (see S. Vigna, An experimental exploration of Marsaglia's xorshift
- * generators, scrambled. ACM Trans. Math. Softw. 42(4): 30:1-30:23, 2016).
+ * A random number generator, based on the Mersenne-Twister engine.
  */
 
 #include "util/random.h"
 
-#include <cfloat>
 #include "base/check.h"
 
 namespace cvc5::internal {
 
-Random::Random(uint64_t seed) { setSeed(seed); }
+Random::Random(uint64_t seed)
+{
+#ifdef CVC5_GMP_IMP
+  gmp_randinit_mt(d_gmp_randstate);
+#endif
+  setSeed(seed);
+}
+
+Random::~Random()
+{
+#ifdef CVC5_GMP_IMP
+  gmp_randclear(d_gmp_randstate);
+#endif
+}
 
 void Random::setSeed(uint64_t seed)
 {
   d_seed = seed == 0 ? ~seed : seed;
-  d_state = d_seed;
+  d_rng.seed(d_seed);
+#ifdef CVC5_GMP_IMP
+  gmp_randseed_ui(d_gmp_randstate, d_seed);
+#endif
+#ifdef CVC5_CLN_IMP
+  // cln::random_state stores a 64 bit seed split into 32-bit hi and lo parts.
+  d_cln_randstate.seed.hi = static_cast<uint32_t>(d_seed >> 32);
+  d_cln_randstate.seed.lo = static_cast<uint32_t>(d_seed);
+#endif
 }
 
-uint64_t Random::operator()() { return rand(); }
-
-uint64_t Random::rand()
-{
-  /* xorshift* generator (see S. Vigna, An experimental exploration of
-   * Marsaglia's xorshift generators, scrambled. ACM Trans. Math. Softw.
-   * 42(4): 30:1-30:23, 2016). */
-  d_state ^= d_state >> 12;
-  d_state ^= d_state << 25;
-  d_state ^= d_state >> 27;
-  return d_state * uint64_t{2685821657736338717};
-}
-
-uint64_t Random::pick(uint64_t from, uint64_t to)
-{
-  Assert(from <= to);
-  Assert(to < UINT64_MAX);
-  return (Random::rand() % (to - from + 1)) + from;
-}
-
-double Random::pickDouble(double from, double to)
-{
-  Assert(from <= to);
-  Assert(to <= DBL_MAX);
-  return Random::rand() * (to - from) + from;
-}
+uint64_t Random::operator()() { return d_rng(); }
 
 bool Random::pickWithProb(double probability)
 {
   Assert(probability <= 1);
-  uint64_t p = (uint64_t) (probability * 1000);
-  uint64_t r = pick(0, 999);
+  Assert(probability >= 0);
+  uint64_t p = (uint64_t)(probability * 1000);
+  uint64_t r = pick<uint64_t>(0, 999);
   return r < p;
 }
 

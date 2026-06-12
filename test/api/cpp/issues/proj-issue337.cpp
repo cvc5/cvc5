@@ -22,5 +22,8 @@ int main(void)
 
   Term t = tm.mkTerm(Kind::SEQ_UNIT, {tm.mkReal("3416574625719121610379268")});
   Term tt = solver.simplify(t);
-  assert(t.getSort() == tt.getSort());
+  // Use variables to silence non-deterministic node ID assignment warning
+  Sort t_sort = t.getSort();
+  Sort tt_sort = tt.getSort();
+  assert(t_sort == tt_sort);
 }

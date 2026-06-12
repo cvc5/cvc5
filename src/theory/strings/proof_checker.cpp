@@ -325,7 +325,10 @@ Node StringProofRuleChecker::checkInternal(ProofRule id,
   }
   else if (id == ProofRule::RE_INTER)
   {
-    Assert(children.size() >= 1);
+    if (children.size() < 2)
+    {
+      return Node::null();
+    }
     Assert(args.empty());
     std::vector<Node> reis;
     Node x;
@@ -348,8 +351,7 @@ Node StringProofRuleChecker::checkInternal(ProofRule id,
       }
       reis.push_back(c[1]);
     }
-    Node rei =
-        reis.size() == 1 ? reis[0] : nm->mkNode(Kind::REGEXP_INTER, reis);
+    Node rei = nm->mkNode(Kind::REGEXP_INTER, reis);
     return nm->mkNode(Kind::STRING_IN_REGEXP, x, rei);
   }
   else if (id == ProofRule::RE_CONCAT)
@@ -483,7 +485,7 @@ Node StringProofRuleChecker::checkInternal(ProofRule id,
     Trace("strings-pfcheck-debug")
         << "STRING_SEQ_UNIT_INJ: " << children[0] << " => " << t[0]
         << " == " << t[1] << std::endl;
-    AlwaysAssert(t[0].getType() == t[1].getType());
+    AlwaysAssert(CVC5_EQUAL(t[0].getType(), t[1].getType()));
     return t[0].eqNode(t[1]);
   }
   else if (id == ProofRule::STRING_EXT)

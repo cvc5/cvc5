@@ -73,7 +73,7 @@ Node BagReduction::reduceFoldOperator(Node node, std::vector<Node>& asserts)
   Node unionDisjoint_i_equal = unionDisjoint_i.eqNode(
       nm->mkNode(Kind::BAG_UNION_DISJOINT, singleton, unionDisjoint_iMinusOne));
   Node interval_i = nm->mkNode(
-      Kind::AND, nm->mkNode(Kind::GEQ, i, one), nm->mkNode(Kind::LEQ, i, n));
+      Kind::AND, {nm->mkNode(Kind::GEQ, i, one), nm->mkNode(Kind::LEQ, i, n)});
 
   Node body_i =
       nm->mkNode(Kind::IMPLIES,
@@ -139,11 +139,11 @@ Node BagReduction::reduceCardOperator(Node node, std::vector<Node>& asserts)
       nm->mkNode(Kind::BAG_UNION_DISJOINT, bag, unionDisjoint_iMinusOne));
   // 1 <= i <= n
   Node interval_i = nm->mkNode(
-      Kind::AND, nm->mkNode(Kind::GEQ, i, one), nm->mkNode(Kind::LEQ, i, n));
+      Kind::AND, {nm->mkNode(Kind::GEQ, i, one), nm->mkNode(Kind::LEQ, i, n)});
 
   // i < j <= n
   Node interval_j = nm->mkNode(
-      Kind::AND, nm->mkNode(Kind::LT, i, j), nm->mkNode(Kind::LEQ, j, n));
+      Kind::AND, {nm->mkNode(Kind::LT, i, j), nm->mkNode(Kind::LEQ, j, n)});
   // elements(i) != elements(j)
   Node elements_i_equals_elements_j =
       nm->mkNode(Kind::EQUAL, elements_i, elements_j);

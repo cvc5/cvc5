@@ -29,13 +29,13 @@ if(NOT SymFPU_FOUND_SYSTEM)
   include(ExternalProject)
   include(deps-helper)
 
-  set(SymFPU_COMMIT "e6ac3af9c2c574498ea171c957425b407625448b")
-  set(SymFPU_CHECKSUM "823aa663fcc2f6844ae5e9ea83ceda4ed393cdb3dadefce9b3c7c41cd0f4f702")
+  set(SymFPU_COMMIT "40bdec00e99f8ea1b96c3dac0a05eed11c541639")
+  set(SymFPU_CHECKSUM "ba17877fbf0c851e113fddaab225152f1c0b2044429396b56b2f113832e36ce5")
 
   ExternalProject_Add(
     SymFPU-EP
     ${COMMON_EP_CONFIG}
-    URL https://github.com/cvc5/symfpu/archive/${SymFPU_COMMIT}.tar.gz
+    URL https://github.com/martin-cs/symfpu/archive/${SymFPU_COMMIT}.tar.gz
     URL_HASH SHA256=${SymFPU_CHECKSUM}
     CONFIGURE_COMMAND ""
     BUILD_COMMAND ""

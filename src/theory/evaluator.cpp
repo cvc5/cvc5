@@ -12,7 +12,7 @@
 
 #include "theory/evaluator.h"
 
-#include <math.h>
+#include <cmath>
 
 #include "theory/builtin/theory_builtin_rewriter.h"
 #include "theory/bv/theory_bv_utils.h"
@@ -1267,7 +1267,7 @@ EvalResult Evaluator::evalInternal(
           BitVector res = results[currNode[0]].d_bv;
           const uint32_t size = currNode[0].getType().getBitVectorSize();
           // should not evaluate on empty bitvectors
-          Assert (size!=0);
+          Assert(size != 0);
           if (res.isBitSet(size - 1))
           {
             Rational ttm = Rational(Integer(2).pow(size));

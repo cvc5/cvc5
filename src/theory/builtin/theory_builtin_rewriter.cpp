@@ -86,7 +86,7 @@ Node TheoryBuiltinRewriter::rewriteWitness(TNode node)
         // cannot contain the variable, and it must be the same type as the
         // variable
         if (!expr::hasSubterm(node[1][1 - i], node[0][0])
-            && node[1][i].getType() == node[0][0].getType())
+            && CVC5_EQUAL(node[1][i].getType(), node[0][0].getType()))
         {
           return node[1][1 - i];
         }

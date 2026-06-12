@@ -246,7 +246,7 @@ void UnconstrainedSimplifier::processUnconstrained()
         case Kind::EQUAL:
         {
           // equality uses strict type rule
-          Assert(parent[0].getType() == parent[1].getType());
+          AssertEqual(parent[0].getType(), parent[1].getType());
           CardinalityClass c = parent[0].getType().getCardinalityClass();
           if (c == CardinalityClass::ONE)
           {
@@ -521,7 +521,7 @@ void UnconstrainedSimplifier::processUnconstrained()
               // TODO(#2377): could build ITE here
               Node test = other.eqNode(
                   nm->mkConstRealOrInt(other.getType(), Rational(0)));
-              if (rewrite(test) != nm->mkConst<bool>(false))
+              if (!CVC5_EQUAL(rewrite(test), nm->mkConst<bool>(false)))
               {
                 break;
               }
@@ -564,7 +564,7 @@ void UnconstrainedSimplifier::processUnconstrained()
               Node test = nm->mkNode(extractOp, children);
               BitVector one(1, unsigned(1));
               test = test.eqNode(nm->mkConst<BitVector>(one));
-              if (rewrite(test) != nm->mkConst<bool>(true))
+              if (!CVC5_EQUAL(rewrite(test), nm->mkConst<bool>(true)))
               {
                 done = true;
                 break;
@@ -871,7 +871,6 @@ PreprocessingPassResult UnconstrainedSimplifier::applyInternal(
 
   return PreprocessingPassResult::NO_CONFLICT;
 }
-
 
 }  // namespace passes
 }  // namespace preprocessing

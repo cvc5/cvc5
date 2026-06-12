@@ -25,7 +25,7 @@ else()
   add_custom_target(gen-versioninfo
     COMMAND ${CMAKE_COMMAND}
       -DPROJECT_SOURCE_DIR=${PROJECT_SOURCE_DIR}
-      -DCMAKE_BINARY_DIR=${CMAKE_BINARY_DIR}
+      -DPROJECT_BINARY_DIR=${PROJECT_BINARY_DIR}
       -P ${PROJECT_SOURCE_DIR}/cmake/version.cmake
   )
 endif()
@@ -58,6 +58,9 @@ if(CVC5_IS_RELEASE STREQUAL "false")
   endwhile()
 
   set(CVC5_VERSION "${NEXT_CVC5_VERSION}.dev")
+  set(CVC5_VERSION_NUMBER "${NEXT_CVC5_VERSION}")
+  # Set SOVERSION to cvc5 major version number
+  string(REGEX MATCH "^[0-9]+" CVC5_SOVERSION "${NEXT_CVC5_VERSION}")
   set(CVC5_FULL_VERSION "${NEXT_CVC5_VERSION}.dev")
   # Python: Development segment MUST follow the format devN, where N is a sequence of digits.
   set(CVC5_WHEEL_VERSION "${NEXT_CVC5_VERSION}.dev0")
@@ -123,4 +126,4 @@ endif()
 
 # actually configure versioninfo.cpp
 configure_file(
-    ${PROJECT_SOURCE_DIR}/src/base/versioninfo.cpp.in ${CMAKE_BINARY_DIR}/src/base/versioninfo.cpp)
+    ${PROJECT_SOURCE_DIR}/src/base/versioninfo.cpp.in ${PROJECT_BINARY_DIR}/src/base/versioninfo.cpp)

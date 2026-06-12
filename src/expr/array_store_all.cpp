@@ -53,7 +53,8 @@ ArrayStoreAll::ArrayStoreAll(const ArrayStoreAll& other)
 }
 
 ArrayStoreAll::~ArrayStoreAll() {}
-ArrayStoreAll& ArrayStoreAll::operator=(const ArrayStoreAll& other) {
+ArrayStoreAll& ArrayStoreAll::operator=(const ArrayStoreAll& other)
+{
   (*d_type) = other.getType();
   (*d_value) = other.getValue();
   return *this;
@@ -95,12 +96,14 @@ bool ArrayStoreAll::operator>=(const ArrayStoreAll& asa) const
   return !(*this < asa);
 }
 
-std::ostream& operator<<(std::ostream& out, const ArrayStoreAll& asa) {
+std::ostream& operator<<(std::ostream& out, const ArrayStoreAll& asa)
+{
   return out << "__array_store_all__(" << asa.getType() << ", "
              << asa.getValue() << ')';
 }
 
-size_t ArrayStoreAllHashFunction::operator()(const ArrayStoreAll& asa) const {
+size_t ArrayStoreAllHashFunction::operator()(const ArrayStoreAll& asa) const
+{
   return std::hash<TypeNode>()(asa.getType())
          * std::hash<Node>()(asa.getValue());
 }

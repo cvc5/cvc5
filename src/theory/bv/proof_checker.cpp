@@ -90,7 +90,8 @@ Node BVProofRuleChecker::checkInternal(ProofRule id,
     }
     Node l = children[0][0];
     Node r = children[0][1];
-    if (l.getKind() != Kind::BITVECTOR_MULT || r.getKind() != Kind::BITVECTOR_MULT)
+    if (l.getKind() != Kind::BITVECTOR_MULT
+        || r.getKind() != Kind::BITVECTOR_MULT)
     {
       return Node::null();
     }

@@ -15,8 +15,8 @@
 #ifndef CVC5__SMT__PROOF_LOGGER_H
 #define CVC5__SMT__PROOF_LOGGER_H
 
-#include "proof/alf/alf_node_converter.h"
-#include "proof/alf/alf_printer.h"
+#include "proof/eo/eo_node_converter.h"
+#include "proof/eo/eo_printer.h"
 #include "proof/proof_node.h"
 #include "smt/env_obj.h"
 
@@ -36,11 +36,11 @@ class ProofPostprocess;
  * (1) When preprocessing has completed, determining the set of input clauses.
  * (2) When theory lemmas are learned
  * (3) When a SAT refutation is derived.
- * 
+ *
  * Dependending on the proof mode, the notifications for the above three things
  * may be in the form of ProofNode (if proofs are enabled for that component),
  * or Node (if proofs are disabled for that component).
- * 
+ *
  * As with dumped proofs, the granularity of the proofs is subject to the
  * option `proof-granularity`.
  */
@@ -48,8 +48,8 @@ class ProofLogger : protected EnvObj
 {
  public:
   /** */
-  ProofLogger(Env& env) : EnvObj(env){}
-  ~ProofLogger(){}
+  ProofLogger(Env& env) : EnvObj(env) {}
+  ~ProofLogger() {}
   /**
    * Called when preprocessing is complete with the list of input clauses,
    * after preprocessing and conversion to CNF.
@@ -138,11 +138,11 @@ class ProofLoggerCpc : public ProofLogger
   /** Reference to the assertions of SMT solver */
   smt::Assertions& d_as;
   /** The node converter, used for printing */
-  proof::AlfNodeConverter d_atp;
+  proof::EoNodeConverter d_atp;
   /** The proof printer */
-  proof::AlfPrinter d_alfp;
+  proof::EoPrinter d_eop;
   /** The output channel we are using */
-  proof::AlfPrintChannelOut d_aout;
+  proof::EoPrintChannelOut d_eout;
   /** The preprocessing proof we were notified of, which we may have created */
   std::shared_ptr<ProofNode> d_ppProof;
   /**

@@ -213,7 +213,8 @@ TEST_F(TestTheoryFfModelBlack, CommonRootBig)
 
   std::vector<CoCoA::RingElem> gens = {
       a * a - a, b * b - b, a - b, a, c * d - 1};
-  std::vector<CoCoA::RingElem> values = ff::findZero(CoCoA::ideal(gens), *d_env);
+  std::vector<CoCoA::RingElem> values =
+      ff::findZero(CoCoA::ideal(gens), *d_env);
   EXPECT_EQ(values[0], z);
   EXPECT_EQ(values[1], z);
   EXPECT_EQ(values[2] * values[3], z + 1);
@@ -231,7 +232,8 @@ TEST_F(TestTheoryFfModelBlack, CommonRootCosntraints)
   // b is a perfect square
   // c is its inverse
   std::vector<CoCoA::RingElem> gens = {a * a - b, b * c - 1};
-  std::vector<CoCoA::RingElem> values = ff::findZero(CoCoA::ideal(gens), *d_env);
+  std::vector<CoCoA::RingElem> values =
+      ff::findZero(CoCoA::ideal(gens), *d_env);
   EXPECT_EQ(values[0] * values[0], values[1]);
   EXPECT_EQ(values[1] * values[2], z + 1);
 }

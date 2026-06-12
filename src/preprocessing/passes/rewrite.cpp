@@ -32,7 +32,7 @@ Rewrite::Rewrite(PreprocessingPassContext* preprocContext)
 }
 
 PreprocessingPassResult Rewrite::applyInternal(
-  AssertionPipeline* assertionsToPreprocess)
+    AssertionPipeline* assertionsToPreprocess)
 {
   for (size_t i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
   {
@@ -46,7 +46,6 @@ PreprocessingPassResult Rewrite::applyInternal(
   }
   return PreprocessingPassResult::NO_CONFLICT;
 }
-
 
 }  // namespace passes
 }  // namespace preprocessing

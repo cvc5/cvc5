@@ -30,7 +30,7 @@ std::ostream& operator<<(std::ostream& out, const CommandStatus& s)
 
 ostream& operator<<(ostream& out, const CommandStatus* s)
 {
-  if (s == NULL)
+  if (s == nullptr)
   {
     out << "null";
   }

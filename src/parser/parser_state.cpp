@@ -18,6 +18,7 @@
 #include <fstream>
 #include <iostream>
 #include <iterator>
+#include <limits>
 #include <sstream>
 #include <unordered_set>
 
@@ -195,7 +196,7 @@ Term ParserState::bindBoundVar(const std::string& name,
 }
 
 std::vector<Term> ParserState::bindBoundVars(
-    std::vector<std::pair<std::string, Sort> >& sortedVarNames, bool fresh)
+    std::vector<std::pair<std::string, Sort>>& sortedVarNames, bool fresh)
 {
   std::vector<Term> vars;
   for (std::pair<std::string, Sort>& i : sortedVarNames)
@@ -267,7 +268,8 @@ std::vector<Term> ParserState::bindBoundVarsCtx(
       // below.
       Warning() << "Constructing a fresh variable for " << i.first
                 << " since this symbol occurs in a let term that is present in "
-                   "the current context. Set fresh-binders to true or use -q to avoid "
+                   "the current context. Set fresh-binders to true or use -q "
+                   "to avoid "
                    "this warning."
                 << std::endl;
     }
@@ -707,23 +709,34 @@ void ParserState::pushGetValueScope()
   std::vector<Sort> declareSorts = d_symman->getDeclaredSorts();
   Trace("parser") << "Push get value scope, with " << declareSorts.size()
                   << " declared sorts" << std::endl;
-  for (const Sort& s : declareSorts)
+  try
   {
-    std::vector<Term> elements = d_solver->getModelDomainElements(s);
-    Trace("parser") << "elements for " << s << ":" << std::endl;
-    for (const Term& e : elements)
+    for (const Sort& s : declareSorts)
     {
-      Trace("parser") << "  " << e.getKind() << " " << e << std::endl;
-      if (e.getKind() == Kind::UNINTERPRETED_SORT_VALUE)
+      std::vector<Term> elements = d_solver->getModelDomainElements(s);
+      Trace("parser") << "elements for " << s << ":" << std::endl;
+      for (const Term& e : elements)
       {
-        defineVar(e.getUninterpretedSortValue(), e);
-      }
-      else
-      {
-        DebugUnhandled()
-            << "model domain element is not an uninterpreted sort value: " << e;
+        Trace("parser") << "  " << e.getKind() << " " << e << std::endl;
+        if (e.getKind() == Kind::UNINTERPRETED_SORT_VALUE)
+        {
+          defineVar(e.getUninterpretedSortValue(), e);
+        }
+        else
+        {
+          DebugUnhandled()
+              << "model domain element is not an uninterpreted sort value: "
+              << e;
+        }
       }
     }
+  }
+  catch (const CVC5ApiRecoverableException& e)
+  {
+    // Let the get-value command report recoverable model-state errors itself
+    // instead of turning them into fatal parse errors while binding @U_i names.
+    Trace("parser") << "Skipping get-value model bindings: " << e.what()
+                    << std::endl;
   }
 }
 
@@ -750,16 +763,58 @@ Term ParserState::mkCharConstant(const std::string& s)
   {
     parseError("Unexpected string for hexadecimal character: `" + s + "'");
   }
-  char32_t val = static_cast<char32_t>(std::stoul(s, 0, 16));
+  char32_t val = static_cast<char32_t>(std::stoul(s, nullptr, 16));
   return d_tm.mkString(std::u32string(1, val));
 }
 
-uint32_t stringToUnsigned(const std::string& str)
+bool stringToUnsigned(const std::string& str,
+                      uint32_t& result,
+                      std::ostream* os)
 {
-  uint32_t result;
-  std::stringstream ss;
-  ss << str;
-  ss >> result;
+  if (str.empty() || str.find_first_not_of("0123456789") != std::string::npos)
+  {
+    if (os != nullptr)
+    {
+      (*os) << " String is not a numeral.";
+    }
+    return false;
+  }
+  size_t pos = 0;
+  unsigned long long parsed = 0;
+  try
+  {
+    parsed = std::stoull(str, &pos);
+  }
+  catch (const std::exception&)
+  {
+    if (os != nullptr)
+    {
+      (*os) << " Exception encountered in std::stoull.";
+    }
+    return false;
+  }
+  if (pos != str.size() || parsed > std::numeric_limits<uint32_t>::max())
+  {
+    if (os != nullptr)
+    {
+      (*os) << " Numerals must fit into 32-bit unsigned integers.";
+    }
+    return false;
+  }
+  result = static_cast<uint32_t>(parsed);
+  return true;
+}
+
+uint32_t ParserState::parseStringToUnsigned(const std::string& str)
+{
+  uint32_t result = 0;
+  if (!stringToUnsigned(str, result))
+  {
+    std::stringstream ss;
+    ss << "Failed to parse numeral.";
+    stringToUnsigned(str, result, &ss);
+    parseError(ss.str());
+  }
   return result;
 }
 

@@ -81,11 +81,12 @@ std::vector<Node> EqualitySubstitution::eliminateEqualities(
       for (size_t i = 0; i < 2; ++i)
       {
         const auto& l = (o[i].getKind() == Kind::TO_REAL ? o[i][0] : o[i]);
-        const auto& r = (o[1-i].getKind() == Kind::TO_REAL ? o[1-i][0] : o[1-i]);
+        const auto& r =
+            (o[1 - i].getKind() == Kind::TO_REAL ? o[1 - i][0] : o[1 - i]);
         // lhs can't be constant
         if (l.isConst()) continue;
         // types must match (otherwise we might have int/real issues)
-        if (r.getType() != l.getType()) continue;
+        if (!CVC5_EQUAL(r.getType(), l.getType())) continue;
         // can't substitute stuff from other theories
         if (!Theory::isLeafOf(l, TheoryId::THEORY_ARITH)) continue;
         // can't substitute the same thing twice
@@ -94,7 +95,9 @@ std::vector<Node> EqualitySubstitution::eliminateEqualities(
         if (expr::hasSubterm(r, l)) continue;
         // the same, but after substitution
         d_substitutions->invalidateCache();
-        if (expr::hasSubterm(d_substitutions->apply(r, nullptr, nullptr, &stc), l)) continue;
+        if (expr::hasSubterm(d_substitutions->apply(r, nullptr, nullptr, &stc),
+                             l))
+          continue;
         Trace("nl-eqs") << "Found substitution " << l << " -> " << r
                         << std::endl
                         << " from " << o << " / " << orig << std::endl;

@@ -49,7 +49,7 @@ size_t FreeVarCache::getFreeVarId(const Node& n) const
   if (it == d_fvId.end())
   {
     DebugUnhandled() << "FreeVarCache::isFreeVar: " << n
-                  << " is not a cached free variable.";
+                     << " is not a cached free variable.";
     return 0;
   }
   return it->second;

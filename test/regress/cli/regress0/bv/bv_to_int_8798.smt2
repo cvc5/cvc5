@@ -1,7 +1,5 @@
-; COMMAND-LINE: --solve-bv-as-int=iand
-; EXPECT: 
-; SCRUBBER: grep -v "uninterpreted"
-; EXIT: 1
+; COMMAND-LINE: --solve-bv-as-int=iand --mbqi
+; EXPECT: sat
 (set-logic ALL)
 (declare-sort byte 0)
 (declare-fun to_rep1 (byte) (_ BitVec 8))

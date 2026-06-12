@@ -64,7 +64,9 @@ class CircuitPropagator : protected EnvObj
   /**
    * Construct a new CircuitPropagator.
    */
-  CircuitPropagator(Env& env, bool enableForward = true, bool enableBackward = true);
+  CircuitPropagator(Env& env,
+                    bool enableForward = true,
+                    bool enableBackward = true);
 
   /** Get Node assignment in circuit.  Assert-fails if Node is unassigned. */
   bool getAssignment(TNode n) const

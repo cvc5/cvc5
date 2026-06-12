@@ -36,11 +36,11 @@ class MinisatSatSolver : public CDCLTSatSolver, protected EnvObj
   MinisatSatSolver(Env& env, StatisticsRegistry& registry);
   ~MinisatSatSolver() override;
 
-  static SatVariable     toSatVariable(Minisat::Var var);
-  static Minisat::Lit    toMinisatLit(SatLiteral lit);
-  static SatLiteral      toSatLiteral(Minisat::Lit lit);
-  static SatValue        toSatLiteralValue(Minisat::lbool res);
-  static Minisat::lbool  toMinisatlbool(SatValue val);
+  static SatVariable toSatVariable(Minisat::Var var);
+  static Minisat::Lit toMinisatLit(SatLiteral lit);
+  static SatLiteral toSatLiteral(Minisat::Lit lit);
+  static SatValue toSatLiteralValue(Minisat::lbool res);
+  static Minisat::lbool toMinisatlbool(SatValue val);
   //(Commented because not in use) static bool            tobool(SatValue val);
 
   static void toMinisatClause(const SatClause& clause,
@@ -102,7 +102,6 @@ class MinisatSatSolver : public CDCLTSatSolver, protected EnvObj
   std::shared_ptr<ProofNode> getProof() override;
 
  private:
-
   /** The SatSolver used */
   Minisat::SimpSolver* d_minisat;
 
@@ -119,19 +118,20 @@ class MinisatSatSolver : public CDCLTSatSolver, protected EnvObj
 
   void setupOptions();
 
-  class Statistics {
-  private:
-   ReferenceStat<int64_t> d_statStarts, d_statDecisions;
-   ReferenceStat<int64_t> d_statRndDecisions, d_statPropagations;
-   ReferenceStat<int64_t> d_statConflicts, d_statClausesLiterals;
-   ReferenceStat<int64_t> d_statLearntsLiterals, d_statMaxLiterals;
-   ReferenceStat<int64_t> d_statTotLiterals;
+  class Statistics
+  {
+   private:
+    ReferenceStat<int64_t> d_statStarts, d_statDecisions;
+    ReferenceStat<int64_t> d_statRndDecisions, d_statPropagations;
+    ReferenceStat<int64_t> d_statConflicts, d_statClausesLiterals;
+    ReferenceStat<int64_t> d_statLearntsLiterals, d_statMaxLiterals;
+    ReferenceStat<int64_t> d_statTotLiterals;
 
-  public:
-   Statistics(StatisticsRegistry& registry);
-   void init(Minisat::SimpSolver* d_minisat);
-   void deinit();
-  };/* class MinisatSatSolver::Statistics */
+   public:
+    Statistics(StatisticsRegistry& registry);
+    void init(Minisat::SimpSolver* d_minisat);
+    void deinit();
+  }; /* class MinisatSatSolver::Statistics */
   Statistics d_statistics;
 
 }; /* class MinisatSatSolver */

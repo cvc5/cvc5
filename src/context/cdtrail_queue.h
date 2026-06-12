@@ -27,63 +27,53 @@ namespace cvc5::context {
 class Context;
 
 template <class T>
-class CDTrailQueue {
-private:
-
+class CDTrailQueue
+{
+ private:
   /** List of elements in the queue. */
   CDList<T> d_list;
 
   /** Points to the next element in the current context to dequeue. */
   CDO<size_t> d_iter;
 
-
-public:
-
+ public:
   /** Creates a new CDTrailQueue associated with the current context. */
-  CDTrailQueue(Context* context)
-    : d_list(context),
-      d_iter(context, 0)
-  {}
+  CDTrailQueue(Context* context) : d_list(context), d_iter(context, 0) {}
 
   /** Returns true if the queue is empty in the current context. */
-  bool empty() const{
-    return d_iter >= d_list.size();
-  }
+  bool empty() const { return d_iter >= d_list.size(); }
 
   /**
    * Enqueues an element in the current context.
    * Returns its index in the queue.
    */
-  size_t enqueue(const T& data){
+  size_t enqueue(const T& data)
+  {
     size_t res = d_list.size();
     d_list.push_back(data);
     return res;
   }
 
-  size_t frontIndex() const{
-    return d_iter;
-  }
+  size_t frontIndex() const { return d_iter; }
 
-  const T& front() const{
-    return d_list[frontIndex()];
-  }
+  const T& front() const { return d_list[frontIndex()]; }
 
   /** Moves the iterator for the queue forward. */
-  void dequeue(){
+  void dequeue()
+  {
     Assert(!empty()) << "Attempting to queue from an empty queue.";
     d_iter = d_iter + 1;
   }
 
-  const T& operator[](size_t index) const{
+  const T& operator[](size_t index) const
+  {
     Assert(index < d_list.size());
     return d_list[index];
   }
 
-  size_t size() const{
-    return d_list.size();
-  }
+  size_t size() const { return d_list.size(); }
 
-};/* class CDTrailQueue<> */
+}; /* class CDTrailQueue<> */
 
 }  // namespace cvc5::context
 

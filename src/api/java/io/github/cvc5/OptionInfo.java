@@ -56,9 +56,12 @@ public class OptionInfo extends AbstractPointer
     this.name = getName(pointer);
     this.aliases = getAliases(pointer);
     this.setByUser = getSetByUser(pointer);
-    try {
+    try
+    {
       this.category = OptionCategory.fromInt(getCategory(pointer));
-    } catch (CVC5ApiException e) {
+    }
+    catch (CVC5ApiException e)
+    {
       throw new RuntimeException("Invalid OptionCategory value", e);
     }
     this.baseInfo = getBaseInfo(pointer);

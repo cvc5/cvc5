@@ -227,8 +227,8 @@ Node CandidateRewriteDatabase::addOrGetTerm(Node sol,
         // debugging information
         if (TraceIsOn("sygus-rr-debug"))
         {
-          Trace("sygus-rr-debug") << "; candidate #1 ext-rewrites to: " << solbr
-                                  << std::endl;
+          Trace("sygus-rr-debug")
+              << "; candidate #1 ext-rewrites to: " << solbr << std::endl;
           Trace("sygus-rr-debug")
               << "; candidate #2 ext-rewrites to: " << eq_solr << std::endl;
         }
@@ -251,8 +251,8 @@ Node CandidateRewriteDatabase::addOrGetTerm(Node sol,
           Node x = d_tds->getFreeVar(ptn, 0);
           Node lem = d_tds->getExplain()->getExplanationForEquality(x, exc_sol);
           lem = lem.negate();
-          Trace("sygus-rr-sb") << "Symmetry breaking lemma : " << lem
-                               << std::endl;
+          Trace("sygus-rr-sb")
+              << "Symmetry breaking lemma : " << lem << std::endl;
           d_tds->registerSymBreakLemma(d_candidate, lem, ptn, sz);
         }
       }

@@ -69,7 +69,7 @@ Node SetReduction::reduceFoldOperator(Node node, std::vector<Node>& asserts)
   Node union_i_equal =
       union_i.eqNode(nm->mkNode(Kind::SET_UNION, singleton, union_iMinusOne));
   Node interval_i = nm->mkNode(
-      Kind::AND, nm->mkNode(Kind::GEQ, i, one), nm->mkNode(Kind::LEQ, i, n));
+      Kind::AND, {nm->mkNode(Kind::GEQ, i, one), nm->mkNode(Kind::LEQ, i, n)});
 
   Node body_i =
       nm->mkNode(Kind::IMPLIES,

@@ -26,11 +26,11 @@ namespace passes {
 class ITESimp : public PreprocessingPass
 {
  public:
-   ITESimp(PreprocessingPassContext* preprocContext);
+  ITESimp(PreprocessingPassContext* preprocContext);
 
  protected:
-   PreprocessingPassResult applyInternal(
-       AssertionPipeline* assertionsToPreprocess) override;
+  PreprocessingPassResult applyInternal(
+      AssertionPipeline* assertionsToPreprocess) override;
 
  private:
   struct Statistics
@@ -40,7 +40,7 @@ class ITESimp : public PreprocessingPass
   };
 
   Node simpITE(util::ITEUtilities* ite_utils, TNode assertion);
-  bool doneSimpITE(AssertionPipeline *assertionsToPreprocesss);
+  bool doneSimpITE(AssertionPipeline* assertionsToPreprocesss);
 
   /** A collection of ite preprocessing passes. */
   util::ITEUtilities d_iteUtilities;

@@ -27,9 +27,7 @@ EqEngineManagerDistributed::EqEngineManagerDistributed(Env& env,
 {
 }
 
-EqEngineManagerDistributed::~EqEngineManagerDistributed()
-{
-}
+EqEngineManagerDistributed::~EqEngineManagerDistributed() {}
 
 void EqEngineManagerDistributed::initializeTheories()
 {

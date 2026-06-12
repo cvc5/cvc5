@@ -50,30 +50,34 @@ void QModelBuilder::finishInit()
   d_model = d_modelAloc.get();
 }
 
-bool QModelBuilder::optUseModel() {
+bool QModelBuilder::optUseModel()
+{
   return options().quantifiers.fmfMbqiMode != options::FmfMbqiMode::NONE
          || options().quantifiers.fmfBound || options().strings.stringExp;
 }
 
-bool QModelBuilder::preProcessBuildModel(TheoryModel* m) {
-  return preProcessBuildModelStd( m );
+bool QModelBuilder::preProcessBuildModel(TheoryModel* m)
+{
+  return preProcessBuildModelStd(m);
 }
 
-bool QModelBuilder::preProcessBuildModelStd(TheoryModel* m) {
+bool QModelBuilder::preProcessBuildModelStd(TheoryModel* m)
+{
   d_addedLemmas = 0;
   d_triedLemmas = 0;
   if (options().quantifiers.fmfFunWellDefinedRelevant)
   {
-    //traverse equality engine
-    std::map< TypeNode, bool > eqc_usort;
+    // traverse equality engine
+    std::map<TypeNode, bool> eqc_usort;
     eq::EqClassesIterator eqcs_i =
         eq::EqClassesIterator(m->getEqualityEngine());
-    while( !eqcs_i.isFinished() ){
+    while (!eqcs_i.isFinished())
+    {
       TypeNode tr = (*eqcs_i).getType();
       eqc_usort[tr] = true;
       ++eqcs_i;
     }
-    //look at quantified formulas
+    // look at quantified formulas
     for (size_t i = 0, nquant = d_model->getNumAssertedQuantifiers();
          i < nquant;
          i++)
@@ -81,7 +85,7 @@ bool QModelBuilder::preProcessBuildModelStd(TheoryModel* m) {
       Node q = d_model->getAssertedQuantifier(i, true);
       if (d_model->isQuantifierActive(q))
       {
-        //check if any of these quantified formulas can be set inactive
+        // check if any of these quantified formulas can be set inactive
         if (q[0].getNumChildren() == 1)
         {
           TypeNode tn = q[0][0].getType();
@@ -102,11 +106,15 @@ bool QModelBuilder::preProcessBuildModelStd(TheoryModel* m) {
   return true;
 }
 
-void QModelBuilder::debugModel( TheoryModel* m ){
-  //debug the model: cycle through all instantiations for all quantifiers, report ones that are not true
-  if( TraceIsOn("quant-check-model") ){
+void QModelBuilder::debugModel(TheoryModel* m)
+{
+  // debug the model: cycle through all instantiations for all quantifiers,
+  // report ones that are not true
+  if (TraceIsOn("quant-check-model"))
+  {
     FirstOrderModel* fm = d_model;
-    Trace("quant-check-model") << "Testing quantifier instantiations..." << std::endl;
+    Trace("quant-check-model")
+        << "Testing quantifier instantiations..." << std::endl;
     int tests = 0;
     int bad = 0;
     QuantifiersBoundInference& qbi = d_qreg.getQuantifiersBoundInference();
@@ -120,26 +128,30 @@ void QModelBuilder::debugModel( TheoryModel* m ){
       RepSetIterator riter(m->getRepSet(), &qrbe);
       if (riter.setQuantifier(q))
       {
-        while( !riter.isFinished() ){
+        while (!riter.isFinished())
+        {
           tests++;
-          std::vector< Node > terms;
+          std::vector<Node> terms;
           for (unsigned k = 0; k < riter.getNumTerms(); k++)
           {
-            terms.push_back( riter.getCurrentTerm( k ) );
+            terms.push_back(riter.getCurrentTerm(k));
           }
           Node n = inst->getInstantiation(q, vars, terms);
           Node val = m->getValue(n);
           if (!val.isConst() || !val.getConst<bool>())
           {
-            Trace("quant-check-model") << "*******  Instantiation " << n << " for " << std::endl;
+            Trace("quant-check-model")
+                << "*******  Instantiation " << n << " for " << std::endl;
             Trace("quant-check-model") << "         " << q << std::endl;
-            Trace("quant-check-model") << "         Evaluates to " << val << std::endl;
+            Trace("quant-check-model")
+                << "         Evaluates to " << val << std::endl;
             bad++;
           }
           riter.increment();
         }
         Trace("quant-check-model") << "Tested " << tests << " instantiations";
-        if( bad>0 ){
+        if (bad > 0)
+        {
           Trace("quant-check-model") << ", " << bad << " failed" << std::endl;
         }
         Trace("quant-check-model") << "." << std::endl;

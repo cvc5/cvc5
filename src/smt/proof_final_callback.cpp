@@ -15,7 +15,7 @@
 #include "expr/skolem_manager.h"
 #include "options/base_options.h"
 #include "options/proof_options.h"
-#include "proof/alf/alf_printer.h"
+#include "proof/eo/eo_printer.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_node_manager.h"
 #include "rewriter/rewrite_proof_rule.h"
@@ -108,7 +108,7 @@ void ProofFinalCallback::finalize(std::shared_ptr<ProofNode> pn)
   {
     // record stats for the rule
     d_ruleCount << r;
-    bool isHandled = proof::AlfPrinter::isHandled(options(), pn.get());
+    bool isHandled = proof::EoPrinter::isHandled(options(), pn.get());
     if (!isHandled)
     {
       d_ruleEouCount << r;

@@ -59,12 +59,11 @@ PreprocessingPassResult IteRemoval::applyInternal(AssertionPipeline* assertions)
   }
   for (unsigned i = 0, size = assertions->size(); i < size; ++i)
   {
-    assertions->replace(i, rewrite((*assertions)[i]));
+    assertions->ensureRewritten(i);
   }
 
   return PreprocessingPassResult::NO_CONFLICT;
 }
-
 
 }  // namespace passes
 }  // namespace preprocessing

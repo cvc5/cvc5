@@ -270,6 +270,7 @@
 (define seq.rev (# x term (apply f_str.rev x)))
 (define seq.update (# x term (# y term (# z term (apply (apply (apply f_str.update x) y) z)))))
 (define seq.at (# x term (# y term (apply (apply f_str.at x) y))))
+(define seq.replace_all (# x term (# y term (# z term (apply (apply (apply f_str.replace_all x) y) z)))))
 ; skolem types
 (declare skolem_re_unfold_pos (! t term (! r term (! z mpz term))))
 
@@ -382,10 +383,10 @@
 (define BITVECTOR_EAGER_ATOM (# x term (apply f_BITVECTOR_EAGER_ATOM x)))
 (declare f_bvite term)
 (define bvite (# x term (# y term (# z term (apply (apply (apply f_bvite x) y) z)))))
-(declare f_BITVECTOR_SLTBV term)
-(define BITVECTOR_SLTBV (# x term (# y term (apply (apply f_BITVECTOR_SLTBV x) y))))
-(declare f_BITVECTOR_ULTBV term)
-(define BITVECTOR_ULTBV (# x term (# y term (apply (apply f_BITVECTOR_ULTBV x) y))))
+(declare f_bvsltbv term)
+(define bvsltbv (# x term (# y term (apply (apply f_bvsltbv x) y))))
+(declare f_bvultbv term)
+(define bvultbv (# x term (# y term (apply (apply f_bvultbv x) y))))
 ; The empty bitvector, which is used as the null terminator of bvconcat chains
 (declare emptybv term)
 

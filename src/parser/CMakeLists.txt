@@ -81,7 +81,8 @@ add_library(cvc5parser
   $<TARGET_OBJECTS:cvc5parserapi-objs>
 )
 if(BUILD_SHARED_LIBS)
-  set_target_properties(cvc5parser PROPERTIES SOVERSION ${CVC5_SOVERSION})
+  set_target_properties(cvc5parser PROPERTIES
+    VERSION ${CVC5_VERSION_NUMBER} SOVERSION ${CVC5_SOVERSION})
 endif()
 
 set_target_properties(cvc5parser PROPERTIES OUTPUT_NAME cvc5parser)

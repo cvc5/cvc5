@@ -41,8 +41,7 @@ std::string ostring(const T& t)
   return o.str();
 }
 
-Tracer::Tracer(const std::vector<CoCoA::RingElem>& inputs)
-    : d_inputNumbers()
+Tracer::Tracer(const std::vector<CoCoA::RingElem>& inputs) : d_inputNumbers()
 {
   for (size_t i = 0, end = inputs.size(); i < end; ++i)
   {
@@ -72,11 +71,30 @@ void Tracer::setFunctionPointers()
   CoCoA::reductionStartHandler = d_reductionStart;
   CoCoA::reductionStepHandler = d_reductionStep;
   CoCoA::reductionEndHandler = d_reductionEnd;
+  d_handlersRegistered = true;
 }
 
 void Tracer::unsetFunctionPointers()
 {
   CoCoA::handlersEnabled = false;
+  CoCoA::sPolyHandler = {};
+  CoCoA::reductionStartHandler = {};
+  CoCoA::reductionStepHandler = {};
+  CoCoA::reductionEndHandler = {};
+  d_handlersRegistered = false;
+}
+
+Tracer::~Tracer()
+{
+  // RAII safety: if an exception unwound the stack between
+  // setFunctionPointers() and unsetFunctionPointers(), the explicit unset
+  // never ran. Detach the global CoCoA handlers here so the next CoCoA
+  // call doesn't invoke a std::function capturing pointers into our
+  // (about to be destroyed) storage.
+  if (d_handlersRegistered)
+  {
+    unsetFunctionPointers();
+  }
 }
 
 std::vector<size_t> Tracer::trace(const CoCoA::RingElem& i) const
@@ -121,8 +139,8 @@ std::vector<size_t> Tracer::trace(const CoCoA::RingElem& i) const
 }
 
 void Tracer::sPoly(CoCoA::ConstRefRingElem p,
-                              CoCoA::ConstRefRingElem q,
-                              CoCoA::ConstRefRingElem s)
+                   CoCoA::ConstRefRingElem q,
+                   CoCoA::ConstRefRingElem s)
 {
   std::string ss = ostring(s);
   Trace("ff::trace") << "s: " << p << ", " << q << " -> " << s << std::endl;
@@ -184,8 +202,7 @@ void Tracer::reductionEnd(CoCoA::ConstRefRingElem r)
   d_reductionSeq.clear();
 }
 
-void Tracer::addDep(const std::string& parent,
-                               const std::string& child)
+void Tracer::addDep(const std::string& parent, const std::string& child)
 {
   d_parents[child].push_back(parent);
 }

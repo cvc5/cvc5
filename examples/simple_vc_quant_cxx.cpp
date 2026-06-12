@@ -37,7 +37,7 @@ int main()
   Term quantpospx = tm.mkTerm(Kind::FORALL, {var_list, px});
   std::cout << "Made expression : " << quantpospx << std::endl;
 
-  //make ~P( 5 )
+  // make ~P( 5 )
   Term five = tm.mkInteger(5);
   Term pfive = tm.mkTerm(Kind::APPLY_UF, {p, five});
   Term negpfive = tm.mkTerm(Kind::NOT, {pfive});
@@ -54,7 +54,8 @@ int main()
 
   slv.resetAssertions();
 
-  // this version has a pattern e.g. in smt2 syntax (forall ((x Int)) (! (P x ) :pattern ((P x))))
+  // this version has a pattern e.g. in smt2 syntax (forall ((x Int)) (! (P x )
+  // :pattern ((P x))))
   Term pattern = tm.mkTerm(Kind::INST_PATTERN, {px});
   Term pattern_list = tm.mkTerm(Kind::INST_PATTERN_LIST, {pattern});
   Term quantpospx_pattern =

@@ -89,7 +89,7 @@ class QuantifiersRewriter : public TheoryRewriter
    */
   Node rewriteViaRule(ProofRewriteRule id, const Node& n) override;
 
-  static bool isLiteral( Node n );
+  static bool isLiteral(Node n);
   //-------------------------------------variable elimination utilities
   /** is variable elimination
    *
@@ -344,11 +344,11 @@ class QuantifiersRewriter : public TheoryRewriter
    * This function is used in quantifier rewriting, e.g., for Leibniz equality
    * elimination, to extract the operator, its arguments, and negation status
    * from a literal node.
-  */
+   */
   bool matchUfLiteral(Node lit,
-                    Node& op,
-                    std::vector<Node>& argsOut,
-                    bool& neg) const;
+                      Node& op,
+                      std::vector<Node>& argsOut,
+                      bool& neg) const;
   //-------------------------------------end variable elimination
   //-------------------------------------conditional splitting
   /** compute conditional splitting

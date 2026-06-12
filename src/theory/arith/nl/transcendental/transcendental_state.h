@@ -45,8 +45,10 @@ enum class Convexity
   CONCAVE,
   UNKNOWN
 };
-inline std::ostream& operator<<(std::ostream& os, Convexity c) {
-  switch (c) {
+inline std::ostream& operator<<(std::ostream& os, Convexity c)
+{
+  switch (c)
+  {
     case Convexity::CONVEX: return os << "CONVEX";
     case Convexity::CONCAVE: return os << "CONCAVE";
     default: return os << "UNKNOWN";
@@ -199,7 +201,6 @@ class TranscendentalState : protected EnvObj
    * A CDProofSet that hands out CDProof objects for lemmas.
    */
   std::unique_ptr<CDProofSet<CDProof>> d_proof;
-
 
   /**
    * Some transcendental functions f(t) are "purified", e.g. we add

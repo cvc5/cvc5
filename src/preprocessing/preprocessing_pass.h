@@ -35,6 +35,11 @@
 #include "util/statistics_stats.h"
 
 namespace cvc5::internal {
+
+namespace theory {
+class TrustSubstitutionMap;
+}
+
 namespace preprocessing {
 
 class AssertionPipeline;
@@ -44,7 +49,11 @@ class PreprocessingPassContext;
  * Preprocessing passes return a result which indicates whether a conflict has
  * been detected during preprocessing.
  */
-enum PreprocessingPassResult { CONFLICT, NO_CONFLICT };
+enum PreprocessingPassResult
+{
+  CONFLICT,
+  NO_CONFLICT
+};
 
 class PreprocessingPass : protected EnvObj
 {
@@ -57,12 +66,15 @@ class PreprocessingPass : protected EnvObj
   virtual ~PreprocessingPass();
 
  protected:
-
   /*
    * Abstract method that each pass implements to do the actual preprocessing.
    */
   virtual PreprocessingPassResult applyInternal(
       AssertionPipeline* assertionsToPreprocess) = 0;
+
+  /** Add top level substitutions and update skolem metadata in assertions. */
+  void addSubstitutions(AssertionPipeline* assertionsToPreprocess,
+                        theory::TrustSubstitutionMap& tm);
 
   /* Context for Preprocessing Passes that initializes necessary variables */
   PreprocessingPassContext* d_preprocContext;

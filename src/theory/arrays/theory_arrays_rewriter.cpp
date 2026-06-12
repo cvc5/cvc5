@@ -517,11 +517,11 @@ Node TheoryArraysRewriter::expandEqRange(NodeManager* nm, TNode node)
                     << node.getKind();
   }
 
-  range = nm->mkNode(Kind::AND, nm->mkNode(kle, i, k), nm->mkNode(kle, k, j));
+  range = nm->mkNode(Kind::AND, {nm->mkNode(kle, i, k), nm->mkNode(kle, k, j)});
 
-  Node eq = nm->mkNode(Kind::EQUAL,
-                       nm->mkNode(Kind::SELECT, a, k),
-                       nm->mkNode(Kind::SELECT, b, k));
+  Node eq = nm->mkNode(
+      Kind::EQUAL,
+      {nm->mkNode(Kind::SELECT, a, k), nm->mkNode(Kind::SELECT, b, k)});
   Node implies = nm->mkNode(Kind::IMPLIES, range, eq);
   return nm->mkNode(Kind::FORALL, bvl, implies);
 }
@@ -869,7 +869,7 @@ Node TheoryArraysRewriter::mkEqNode(const Node& a, const Node& b) const
   Node eq = a.eqNode(b);
   return d_rewriter->rewrite(eq);
 }
-  
+
 }  // namespace arrays
 }  // namespace theory
 }  // namespace cvc5::internal

@@ -16,8 +16,8 @@
 #define CVC5__REWRITER__REWRITE_PROOF_RULE__H
 
 #include <string>
-#include <vector>
 #include <unordered_set>
+#include <vector>
 
 #include "expr/nary_match_trie.h"
 #include "expr/node.h"

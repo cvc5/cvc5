@@ -19,8 +19,8 @@
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/nl/nl_lemma_utils.h"
-#include "theory/theory_model.h"
 #include "theory/rewriter.h"
+#include "theory/theory_model.h"
 
 using namespace cvc5::internal::kind;
 
@@ -122,7 +122,7 @@ Node NlModel::computeModelValue(TNode n, bool isConcrete)
   }
   Trace("nl-ext-mv-debug") << "computed " << (isConcrete ? "M" : "M_A") << "["
                            << n << "] = " << ret << std::endl;
-  Assert(n.getType() == ret.getType());
+  AssertEqual(n.getType(), ret.getType());
   cache[n] = ret;
   return ret;
 }
@@ -318,8 +318,9 @@ bool NlModel::addSubstitution(TNode v, TNode s)
     {
       Trace("nl-ext-model")
           << "...ERROR: already has bound which is out of range." << std::endl;
-      DebugUnhandled() << "Out of bounds exact bound given for a variable with an "
-                       "approximate bound";
+      DebugUnhandled()
+          << "Out of bounds exact bound given for a variable with an "
+             "approximate bound";
       return false;
     }
   }
@@ -339,8 +340,8 @@ bool NlModel::addSubstitution(TNode v, TNode s)
 
 bool NlModel::addBound(TNode v, TNode l, TNode u)
 {
-  Assert(l.getType() == v.getType());
-  Assert(u.getType() == v.getType());
+  AssertEqual(l.getType(), v.getType());
+  AssertEqual(u.getType(), v.getType());
   Trace("nl-ext-model") << "* check model bound : " << v << " -> [" << l << " "
                         << u << "]" << std::endl;
   if (l == u)
@@ -354,7 +355,8 @@ bool NlModel::addBound(TNode v, TNode l, TNode u)
     Trace("nl-ext-model")
         << "...ERROR: setting bound for variable that already has exact value."
         << std::endl;
-    DebugUnhandled() << "Setting bound for variable that already has exact value.";
+    DebugUnhandled()
+        << "Setting bound for variable that already has exact value.";
     return false;
   }
   Assert(l.isConst());
@@ -481,7 +483,7 @@ bool NlModel::solveEqualitySimple(Node eq,
           // We also ensure types are correct here, which avoids substituting
           // a term of non-integer type for a variable of integer type.
           if (veqc.isNull() && !expr::hasSubterm(slv, uv)
-              && slv.getType() == uv.getType())
+              && CVC5_EQUAL(slv.getType(), uv.getType()))
           {
             Trace("nl-ext-cm")
                 << "check-model-subs : " << uv << " -> " << slv << std::endl;
@@ -674,9 +676,9 @@ bool NlModel::simpleCheckModelLit(Node lit)
         Trace("nl-ext-cms-debug") << "    a = " << a << std::endl;
         Trace("nl-ext-cms-debug") << "    b = " << b << std::endl;
         // find maximal/minimal value on the interval
-        Node apex = nm->mkNode(Kind::DIVISION,
-                               nm->mkNode(Kind::NEG, b),
-                               nm->mkNode(Kind::MULT, d_two, a));
+        Node apex = nm->mkNode(
+            Kind::DIVISION,
+            {nm->mkNode(Kind::NEG, b), nm->mkNode(Kind::MULT, d_two, a)});
         apex = rewrite(apex);
         Assert(apex.isConst());
         // for lower, upper, whether we are greater than the apex
@@ -888,7 +890,7 @@ bool NlModel::simpleCheckModelMsum(const std::map<Node, Node>& msum, bool pol)
           // should either assign a model bound or eliminate the variable
           // via substitution
           DebugUnhandled() << "A variable " << vc
-                        << " is missing a bound/value in the model";
+                           << " is missing a bound/value in the model";
           return false;
         }
       }

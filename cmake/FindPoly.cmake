@@ -67,7 +67,7 @@ if(NOT Poly_FOUND_SYSTEM)
   if(CCWIN)
     set(POLY_PATCH_CMD
       ${POLY_PATCH_KWD}
-        ${CMAKE_SOURCE_DIR}/cmake/deps-utils/Poly-windows-patch.sh <SOURCE_DIR>
+        ${PROJECT_SOURCE_DIR}/cmake/deps-utils/Poly-windows-patch.sh <SOURCE_DIR>
     )
     set(POLY_PATCH_KWD COMMAND)
   endif()
@@ -166,12 +166,14 @@ if(NOT Poly_FOUND_SYSTEM)
       "${DEPS_BASE}/lib/libpicpolyxx${CMAKE_STATIC_LIBRARY_SUFFIX}")
   endif()
 
-  # Disable a warning triggered by the Emscripten compiler due to code in
-  # a GMP header used by LibPoly.
+  # Disable a warning triggered by compilers (Emscripten, Apple Clang, etc.)
+  # due to deprecated literal operator syntax in a GMP header used by LibPoly.
   set(POLY_CXX_FLAGS "")
-  if(NOT(WASM STREQUAL "OFF"))
+  check_cxx_compiler_flag(-Wno-error=deprecated-literal-operator HAVE_CXX_FLAGWno_error_deprecated_literal_operator)
+  if(HAVE_CXX_FLAGWno_error_deprecated_literal_operator)
     set(POLY_CXX_FLAGS -DCMAKE_CXX_FLAGS=-Wno-error=deprecated-literal-operator)
   endif()
+  
   # We pass the full path of GMP to LibPoly, s.t. we can ensure that LibPoly is
   # able to find the correct version of GMP if we built it locally. This is
   # primarily important for cross-compiling cvc5, because LibPoly's search

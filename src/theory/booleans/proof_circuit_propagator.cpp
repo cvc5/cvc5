@@ -313,21 +313,20 @@ std::shared_ptr<ProofNode> ProofCircuitPropagator::mkCResolution(
 std::shared_ptr<ProofNode> ProofCircuitPropagator::mkResolution(
     const std::shared_ptr<ProofNode>& clause, const Node& lit, bool polarity)
 {
+  // Use t_true and t_false to ensure deterministic node ID assignments
+  Node t_true = d_nm->mkConst<bool>(true);
+  Node t_false = d_nm->mkConst<bool>(false);
   if (polarity)
   {
     if (lit.getKind() == Kind::NOT)
     {
-      return mkProof(ProofRule::RESOLUTION,
-                     {clause, assume(lit[0])},
-                     {d_nm->mkConst(false), lit[0]});
+      return mkProof(
+          ProofRule::RESOLUTION, {clause, assume(lit[0])}, {t_false, lit[0]});
     }
-    return mkProof(ProofRule::RESOLUTION,
-                   {clause, assume(lit.notNode())},
-                   {d_nm->mkConst(true), lit});
+    return mkProof(
+        ProofRule::RESOLUTION, {clause, assume(lit.notNode())}, {t_true, lit});
   }
-  return mkProof(ProofRule::RESOLUTION,
-                 {clause, assume(lit)},
-                 {d_nm->mkConst(false), lit});
+  return mkProof(ProofRule::RESOLUTION, {clause, assume(lit)}, {t_false, lit});
 }
 
 std::shared_ptr<ProofNode> ProofCircuitPropagator::mkNot(

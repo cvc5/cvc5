@@ -577,7 +577,7 @@ TypeNode SeqEmptyOfTypeTypeRule::computeType(NodeManager* nm,
   return nm->mkAbstractType(Kind::SEQUENCE_TYPE);
 }
 
-Cardinality SequenceProperties::computeCardinality(TypeNode type)
+Cardinality SequenceProperties::computeCardinality(CVC5_UNUSED TypeNode type)
 {
   Assert(type.getKind() == Kind::SEQUENCE_TYPE);
   return Cardinality::INTEGERS;

@@ -17,11 +17,10 @@
 
 namespace cvc5::internal {
 
-struct BoolHashFunction {
-  inline size_t operator()(bool b) const {
-    return b;
-  }
-};/* struct BoolHashFunction */
+struct BoolHashFunction
+{
+  inline size_t operator()(bool b) const { return b; }
+}; /* struct BoolHashFunction */
 
 }  // namespace cvc5::internal
 

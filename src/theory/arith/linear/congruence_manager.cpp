@@ -99,7 +99,7 @@ void ArithCongruenceManager::finishInit(eq::EqualityEngine* ee)
 
 ArithCongruenceManager::Statistics::Statistics(StatisticsRegistry& sr)
     : d_watchedVariables(
-        sr.registerInt("theory::arith::congruence::watchedVariables")),
+          sr.registerInt("theory::arith::congruence::watchedVariables")),
       d_watchedVariableIsZero(
           sr.registerInt("theory::arith::congruence::watchedVariableIsZero")),
       d_watchedVariableIsNotZero(sr.registerInt(
@@ -117,49 +117,58 @@ void ArithCongruenceManager::raiseConflict(Node conflict,
                                            std::shared_ptr<ProofNode> pf)
 {
   Assert(!inConflict());
-  Trace("arith::conflict") << "difference manager conflict   " << conflict << std::endl;
+  Trace("arith::conflict") << "difference manager conflict   " << conflict
+                           << std::endl;
   d_inConflict.raise();
   d_raiseConflict.raiseEEConflict(conflict, pf);
 }
-bool ArithCongruenceManager::inConflict() const{
+bool ArithCongruenceManager::inConflict() const
+{
   return d_inConflict.isRaised();
 }
 
-bool ArithCongruenceManager::hasMorePropagations() const {
+bool ArithCongruenceManager::hasMorePropagations() const
+{
   return !d_propagatations.empty();
 }
-const Node ArithCongruenceManager::getNextPropagation() {
+const Node ArithCongruenceManager::getNextPropagation()
+{
   Assert(hasMorePropagations());
   Node prop = d_propagatations.front();
   d_propagatations.dequeue();
   return prop;
 }
 
-bool ArithCongruenceManager::canExplain(TNode n) const {
+bool ArithCongruenceManager::canExplain(TNode n) const
+{
   return d_explanationMap.find(n) != d_explanationMap.end();
 }
 
-Node ArithCongruenceManager::externalToInternal(TNode n) const{
+Node ArithCongruenceManager::externalToInternal(TNode n) const
+{
   Assert(canExplain(n));
   ExplainMap::const_iterator iter = d_explanationMap.find(n);
   size_t pos = (*iter).second;
   return d_propagatations[pos];
 }
 
-void ArithCongruenceManager::pushBack(TNode n){
+void ArithCongruenceManager::pushBack(TNode n)
+{
   d_explanationMap.insert(n, d_propagatations.size());
   d_propagatations.enqueue(n);
 
   ++(d_statistics.d_propagations);
 }
-void ArithCongruenceManager::pushBack(TNode n, TNode r){
+void ArithCongruenceManager::pushBack(TNode n, TNode r)
+{
   d_explanationMap.insert(r, d_propagatations.size());
   d_explanationMap.insert(n, d_propagatations.size());
   d_propagatations.enqueue(n);
 
   ++(d_statistics.d_propagations);
 }
-void ArithCongruenceManager::pushBack(TNode n, TNode r, TNode w){
+void ArithCongruenceManager::pushBack(TNode n, TNode r, TNode w)
+{
   d_explanationMap.insert(w, d_propagatations.size());
   d_explanationMap.insert(r, d_propagatations.size());
   d_explanationMap.insert(n, d_propagatations.size());
@@ -168,7 +177,9 @@ void ArithCongruenceManager::pushBack(TNode n, TNode r, TNode w){
   ++(d_statistics.d_propagations);
 }
 
-void ArithCongruenceManager::watchedVariableIsZero(ConstraintCP lb, ConstraintCP ub){
+void ArithCongruenceManager::watchedVariableIsZero(ConstraintCP lb,
+                                                   ConstraintCP ub)
+{
   Assert(lb->isLowerBound());
   Assert(ub->isUpperBound());
   Assert(lb->getVariable() == ub->getVariable());
@@ -201,7 +212,8 @@ void ArithCongruenceManager::watchedVariableIsZero(ConstraintCP lb, ConstraintCP
   assertionToEqualityEngine(true, s, reason, pf);
 }
 
-void ArithCongruenceManager::watchedVariableIsZero(ConstraintCP eq){
+void ArithCongruenceManager::watchedVariableIsZero(ConstraintCP eq)
+{
   Trace("arith::cong") << "Cong::watchedVariableIsZero: " << *eq << std::endl;
 
   Assert(eq->isEquality());
@@ -211,9 +223,9 @@ void ArithCongruenceManager::watchedVariableIsZero(ConstraintCP eq){
 
   ArithVar s = eq->getVariable();
 
-  //Explain for conflict is correct as these proofs are generated
-  //and stored eagerly
-  //These will be safe for propagation later as well
+  // Explain for conflict is correct as these proofs are generated
+  // and stored eagerly
+  // These will be safe for propagation later as well
   NodeBuilder nb(nodeManager(), Kind::AND);
   // An open proof of eq from literals now in reason.
   if (TraceIsOn("arith::cong"))
@@ -231,7 +243,8 @@ void ArithCongruenceManager::watchedVariableIsZero(ConstraintCP eq){
   assertionToEqualityEngine(true, s, reason, pf);
 }
 
-void ArithCongruenceManager::watchedVariableCannotBeZero(ConstraintCP c){
+void ArithCongruenceManager::watchedVariableCannotBeZero(ConstraintCP c)
+{
   Trace("arith::cong::notzero")
       << "Cong::watchedVariableCannotBeZero " << *c << std::endl;
   ++(d_statistics.d_watchedVariableIsNotZero);
@@ -239,8 +252,8 @@ void ArithCongruenceManager::watchedVariableCannotBeZero(ConstraintCP c){
   ArithVar s = c->getVariable();
   Node disEq = d_watchedEqualities[s].negate();
 
-  //Explain for conflict is correct as these proofs are generated and stored eagerly
-  //These will be safe for propagation later as well
+  // Explain for conflict is correct as these proofs are generated and stored
+  // eagerly These will be safe for propagation later as well
   NodeBuilder nb(nodeManager(), Kind::AND);
   // An open proof of eq from literals now in reason.
   auto pf = c->externalExplainByAssertions(nb);
@@ -301,28 +314,35 @@ void ArithCongruenceManager::watchedVariableCannotBeZero(ConstraintCP c){
   assertionToEqualityEngine(false, s, reason, pf);
 }
 
-
-bool ArithCongruenceManager::propagate(TNode x){
-  Trace("arith::congruenceManager")<< "ArithCongruenceManager::propagate("<<x<<")"<<std::endl;
-  if(inConflict()){
+bool ArithCongruenceManager::propagate(TNode x)
+{
+  Trace("arith::congruenceManager")
+      << "ArithCongruenceManager::propagate(" << x << ")" << std::endl;
+  if (inConflict())
+  {
     return true;
   }
 
   Node rewritten = rewrite(x);
 
-  //Need to still propagate this!
+  // Need to still propagate this!
   if (rewritten.getKind() == Kind::CONST_BOOLEAN)
   {
     pushBack(x);
 
-    if(rewritten.getConst<bool>()){
+    if (rewritten.getConst<bool>())
+    {
       return true;
-    }else{
+    }
+    else
+    {
       // x rewrites to false.
       ++(d_statistics.d_conflicts);
       TrustNode trn = explainInternal(x);
       Node conf = flattenAnd(trn.getNode());
-      Trace("arith::congruenceManager") << "rewritten to false "<<x<<" with explanation "<< conf << std::endl;
+      Trace("arith::congruenceManager")
+          << "rewritten to false " << x << " with explanation " << conf
+          << std::endl;
       if (isProofEnabled())
       {
         auto pf = trn.getGenerator()->getProofFor(trn.getProven());
@@ -340,20 +360,20 @@ bool ArithCongruenceManager::propagate(TNode x){
   Assert(rewritten.getKind() != Kind::CONST_BOOLEAN);
 
   ConstraintP c = d_constraintDatabase.lookup(rewritten);
-  if(c == NullConstraint){
-    //using setup as there may not be a corresponding congruence literal yet
+  if (c == NullConstraint)
+  {
+    // using setup as there may not be a corresponding congruence literal yet
     d_setupLiteral(rewritten);
     c = d_constraintDatabase.lookup(rewritten);
     Assert(c != NullConstraint);
   }
 
-  Trace("arith::congruenceManager")<< "x is "
-                                   <<  c->hasProof() << " "
-                                   << (x == rewritten) << " "
-                                   << c->canBePropagated() << " "
-                                   << c->negationHasProof() << std::endl;
+  Trace("arith::congruenceManager")
+      << "x is " << c->hasProof() << " " << (x == rewritten) << " "
+      << c->canBePropagated() << " " << c->negationHasProof() << std::endl;
 
-  if(c->negationHasProof()){
+  if (c->negationHasProof())
+  {
     TrustNode texpC = explainInternal(x);
     Node expC = texpC.getNode();
     ConstraintCP negC = c->getNegation();
@@ -373,6 +393,7 @@ bool ArithCongruenceManager::propagate(TNode x){
       CDProof cdp(d_env);
       Node falsen = nm->mkConst(false);
       Node finalPfNeg = finalPf.notNode();
+      ProofChecker* pc = d_env.getProofNodeManager()->getChecker();
       cdp.addProof(texpC.toProofNode());
       Node proven = texpC.getProven();
       Trace("arith-cm-proof") << "Proven was " << proven << std::endl;
@@ -416,14 +437,104 @@ bool ArithCongruenceManager::propagate(TNode x){
           break;
         }
       }
+      if (!success && proven[1].getKind() == Kind::NOT
+          && proven[1][0].getKind() == Kind::EQUAL)
+      {
+        // The equality engine proved a disequality while arithmetic proved
+        // bounds implying the corresponding equality.
+        Node peq = proven[1][0];
+        Node triEq = peq;
+        if (triEq[0].isConst() && !triEq[1].isConst())
+        {
+          triEq = triEq[1].eqNode(triEq[0]);
+        }
+        if (triEq[0].getKind() == Kind::TO_REAL && triEq[1].isConst()
+            && triEq[1].getConst<Rational>().isIntegral())
+        {
+          Node ic = nm->mkConstInt(triEq[1].getConst<Rational>());
+          triEq = triEq[0][0].eqNode(ic);
+        }
+        else if (triEq[1].getKind() == Kind::TO_REAL && triEq[0].isConst()
+                 && triEq[0].getConst<Rational>().isIntegral())
+        {
+          Node ic = nm->mkConstInt(triEq[0].getConst<Rational>());
+          triEq = triEq[1][0].eqNode(ic);
+        }
+        if (triEq[0].getType().isRealOrInt() && triEq[1].getType().isRealOrInt()
+            && triEq[0].getType() == triEq[1].getType())
+        {
+          std::vector<Node> negc = andComponents(nm, neg);
+          std::vector<Node> triChildren;
+          std::vector<Node> targets{nm->mkNode(Kind::GEQ, triEq[0], triEq[1]),
+                                    nm->mkNode(Kind::LEQ, triEq[0], triEq[1])};
+          for (const Node& target : targets)
+          {
+            Node source;
+            for (const Node& nc : negc)
+            {
+              if (nc == target)
+              {
+                source = nc;
+                break;
+              }
+              Node res = pc->checkDebug(
+                  ProofRule::MACRO_SR_PRED_TRANSFORM, {nc}, {target}, target);
+              if (!res.isNull())
+              {
+                source = nc;
+                break;
+              }
+            }
+            if (source.isNull())
+            {
+              triChildren.clear();
+              break;
+            }
+            if (source != target)
+            {
+              cdp.addStep(target,
+                          ProofRule::MACRO_SR_PRED_TRANSFORM,
+                          {source},
+                          {target});
+            }
+            triChildren.push_back(target);
+          }
+          if (triChildren.size() == 2)
+          {
+            cdp.addStep(triEq, ProofRule::ARITH_TRICHOTOMY, triChildren, {});
+            if (triEq != peq)
+            {
+              Node res = pc->checkDebug(
+                  ProofRule::MACRO_SR_PRED_TRANSFORM, {triEq}, {peq}, peq);
+              if (!res.isNull())
+              {
+                cdp.addStep(
+                    peq, ProofRule::MACRO_SR_PRED_TRANSFORM, {triEq}, {peq});
+              }
+            }
+            if (triEq == peq || cdp.hasStep(peq))
+            {
+              cdp.addStep(falsen, ProofRule::CONTRA, {peq, proven[1]}, {});
+              success = true;
+            }
+          }
+        }
+      }
       if (!success && proven[1].getKind() == Kind::EQUAL)
       {
         // otherwise typically proven[1] is of the form (= t c) or (= c t) where
         // neg is the (negation of) a relation involving t.
         Node peq = proven[1][0].isConst() ? proven[1][1].eqNode(proven[1][0])
                                           : proven[1];
-        Assert (peq.getKind()==Kind::EQUAL);
-        if (peq[0].getKind()==Kind::TO_REAL)
+        Assert(peq.getKind() == Kind::EQUAL);
+        // Prefer the side that occurs in the contradictory literal.
+        if (peq[0].getKind() == Kind::TO_REAL && !peq[1].isConst()
+            && !ArithSubs::hasArithSubterm(neg, peq[0], false)
+            && ArithSubs::hasArithSubterm(neg, peq[1], false))
+        {
+          peq = peq[1].eqNode(peq[0]);
+        }
+        if (peq[0].getKind() == Kind::TO_REAL)
         {
           // if we have (= (to_real t) c) where c is a rational, we do:
           //                     -------------------------- ARITH_POLY_NORM_REL
@@ -431,18 +542,19 @@ bool ArithCongruenceManager::propagate(TNode x){
           // ------------------------------------------------- EQ_RESOLVE
           // (= t c')
           // where c' is integer equivalent of c.
-          Assert (peq[1].isConst() && peq[1].getConst<Rational>().isIntegral());
+          Assert(peq[1].isConst() && peq[1].getConst<Rational>().isIntegral());
           Node ic = nm->mkConstInt(peq[1].getConst<Rational>());
           Node peqi = peq[0][0].eqNode(ic);
           Node equiv = peq.eqNode(peqi);
           Rational cx, cy;
-          Node premise = PolyNorm::getArithPolyNormRelPremise(peq, peqi, cx, cy);
+          Node premise =
+              PolyNorm::getArithPolyNormRelPremise(peq, peqi, cx, cy);
           cdp.addStep(premise, ProofRule::ARITH_POLY_NORM, {}, {premise});
-          cdp.addStep(equiv, ProofRule::ARITH_POLY_NORM_REL, {premise}, {equiv});
+          cdp.addStep(
+              equiv, ProofRule::ARITH_POLY_NORM_REL, {premise}, {equiv});
           cdp.addStep(peqi, ProofRule::EQ_RESOLVE, {peq, equiv}, {});
           peq = peqi;
         }
-        ProofChecker* pc = d_env.getProofNodeManager()->getChecker();
         // We substitute t -> c within the arithmetic context of neg.
         // In particular using an arithmetic context ensures that this rewrite
         // should be locally handled as an ARITH_POLY_NORM step.
@@ -512,33 +624,49 @@ bool ArithCongruenceManager::propagate(TNode x){
   // 10* : propagate x, do not mark c and do not propagate c
   // 11* : drop the constraint, do not propagate x or c
 
-  if(!c->hasProof() && x != rewritten){
-    if(c->assertedToTheTheory()){
+  if (!c->hasProof() && x != rewritten)
+  {
+    if (c->assertedToTheTheory())
+    {
       pushBack(x, rewritten, c->getWitness());
-    }else{
+    }
+    else
+    {
       pushBack(x, rewritten);
     }
 
     c->setEqualityEngineProof();
-    if(c->canBePropagated() && !c->assertedToTheTheory()){
-
+    if (c->canBePropagated() && !c->assertedToTheTheory())
+    {
       ++(d_statistics.d_propagateConstraints);
       c->propagate();
     }
-  }else if(!c->hasProof() && x == rewritten){
-    if(c->assertedToTheTheory()){
+  }
+  else if (!c->hasProof() && x == rewritten)
+  {
+    if (c->assertedToTheTheory())
+    {
       pushBack(x, c->getWitness());
-    }else{
+    }
+    else
+    {
       pushBack(x);
     }
     c->setEqualityEngineProof();
-  }else if(c->hasProof() && x != rewritten){
-    if(c->assertedToTheTheory()){
-      pushBack(x);
-    }else{
+  }
+  else if (c->hasProof() && x != rewritten)
+  {
+    if (c->assertedToTheTheory())
+    {
       pushBack(x);
     }
-  }else{
+    else
+    {
+      pushBack(x);
+    }
+  }
+  else
+  {
     Assert(c->hasProof() && x == rewritten);
   }
   return true;
@@ -587,12 +715,12 @@ TrustNode ArithCongruenceManager::explain(TNode external)
   return trn;
 }
 
-void ArithCongruenceManager::addWatchedPair(ArithVar s, TNode x, TNode y){
+void ArithCongruenceManager::addWatchedPair(ArithVar s, TNode x, TNode y)
+{
   Assert(!isWatchedVariable(s));
 
   Trace("arith::congruenceManager")
-    << "addWatchedPair(" << s << ", " << x << ", " << y << ")" << std::endl;
-
+      << "addWatchedPair(" << s << ", " << x << ", " << y << ")" << std::endl;
 
   ++(d_statistics.d_watchedVariables);
 
@@ -685,7 +813,8 @@ void ArithCongruenceManager::setProofFor(TNode f,
   d_pfGenEe->mkTrustNode(symF, symPf);
 }
 
-void ArithCongruenceManager::equalsConstant(ConstraintCP c){
+void ArithCongruenceManager::equalsConstant(ConstraintCP c)
+{
   Assert(c->isEquality());
 
   ++(d_statistics.d_equalsConstantCalls);
@@ -707,11 +836,13 @@ void ArithCongruenceManager::equalsConstant(ConstraintCP c){
   Node reason = mkAndFromBuilder(nodeManager(), nb);
   d_keepAlive.push_back(reason);
 
-  Trace("arith-ee") << "Assert equalsConstant " << eq << ", reason " << reason << std::endl;
+  Trace("arith-ee") << "Assert equalsConstant " << eq << ", reason " << reason
+                    << std::endl;
   assertLitToEqualityEngine(eq, reason, pf);
 }
 
-void ArithCongruenceManager::equalsConstant(ConstraintCP lb, ConstraintCP ub){
+void ArithCongruenceManager::equalsConstant(ConstraintCP lb, ConstraintCP ub)
+{
   Assert(lb->isLowerBound());
   Assert(ub->isUpperBound());
   Assert(lb->getVariable() == ub->getVariable());
@@ -742,13 +873,14 @@ void ArithCongruenceManager::equalsConstant(ConstraintCP lb, ConstraintCP ub){
   d_keepAlive.push_back(eq);
   d_keepAlive.push_back(reason);
 
-  Trace("arith-ee") << "Assert equalsConstant2 " << eq << ", reason " << reason << std::endl;
+  Trace("arith-ee") << "Assert equalsConstant2 " << eq << ", reason " << reason
+                    << std::endl;
 
   assertLitToEqualityEngine(eq, reason, pf);
 }
 
 bool ArithCongruenceManager::isProofEnabled() const { return d_pnm != nullptr; }
 
-}  // namespace arith
+}  // namespace arith::linear
 }  // namespace theory
 }  // namespace cvc5::internal

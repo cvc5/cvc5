@@ -40,7 +40,8 @@ class EqualitySolver;
  * The linear arithmetic solver is based upon:
  * http://research.microsoft.com/en-us/um/people/leonardo/cav06.pdf
  */
-class TheoryArith : public Theory {
+class TheoryArith : public Theory
+{
  public:
   TheoryArith(Env& env, OutputChannel& out, Valuation valuation);
   virtual ~TheoryArith();
@@ -115,10 +116,7 @@ class TheoryArith : public Theory {
   std::pair<bool, Node> entailmentCheck(TNode lit) override;
 
   /** Return a reference to the arith::InferenceManager. */
-  InferenceManager& getInferenceManager()
-  {
-    return d_im;
-  }
+  InferenceManager& getInferenceManager() { return d_im; }
 
  private:
   /**
@@ -193,7 +191,7 @@ class TheoryArith : public Theory {
   /** Checks the proof rules of this theory. */
   ArithProofRuleChecker d_checker;
 
-};/* class TheoryArith */
+}; /* class TheoryArith */
 
 }  // namespace arith
 }  // namespace theory

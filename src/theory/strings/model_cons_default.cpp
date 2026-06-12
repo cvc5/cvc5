@@ -44,7 +44,7 @@ void ModelConsDefault::getStringRepresentativesFrom(
   }
 }
 
-void ModelConsDefault::separateByLength(TheoryModel * m,
+void ModelConsDefault::separateByLength(TheoryModel* m,
                                         const std::vector<Node>& ns,
                                         std::vector<std::vector<Node>>& cols,
                                         std::vector<Node>& lts)

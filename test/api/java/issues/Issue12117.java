@@ -12,15 +12,20 @@
 
 import io.github.cvc5.*;
 
-public class Issue12117 {
-    public static void main(String[] args) {
-        TermManager tm = new TermManager();
-        try {
-            // Attempt to create a string term with a high Unicode surrogate
-            Term t = tm.mkString("\uD880\uDC4C");
-            System.out.println("Term created: " + t);
-        } catch (CVC5ApiException e) {
-            System.out.println("Exception occurred: " + e.getMessage());
-        }
+public class Issue12117
+{
+  public static void main(String[] args)
+  {
+    TermManager tm = new TermManager();
+    try
+    {
+      // Attempt to create a string term with a high Unicode surrogate
+      Term t = tm.mkString("\uD880\uDC4C");
+      System.out.println("Term created: " + t);
     }
+    catch (CVC5ApiException e)
+    {
+      System.out.println("Exception occurred: " + e.getMessage());
+    }
+  }
 }

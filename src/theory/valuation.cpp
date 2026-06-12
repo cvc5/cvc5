@@ -43,43 +43,44 @@ std::ostream& operator<<(std::ostream& os, EqualityStatus s)
   return os;
 }
 
-bool equalityStatusCompatible(EqualityStatus s1, EqualityStatus s2) {
-  switch (s1) {
-  case EQUALITY_TRUE:
-  case EQUALITY_TRUE_IN_MODEL:
-  case EQUALITY_TRUE_AND_PROPAGATED:
-    switch (s2) {
+bool equalityStatusCompatible(EqualityStatus s1, EqualityStatus s2)
+{
+  switch (s1)
+  {
     case EQUALITY_TRUE:
     case EQUALITY_TRUE_IN_MODEL:
     case EQUALITY_TRUE_AND_PROPAGATED:
-      return true;
-    default:
-      return false;
-    }
-    break;
-  case EQUALITY_FALSE:
-  case EQUALITY_FALSE_IN_MODEL:
-  case EQUALITY_FALSE_AND_PROPAGATED:
-    switch (s2) {
+      switch (s2)
+      {
+        case EQUALITY_TRUE:
+        case EQUALITY_TRUE_IN_MODEL:
+        case EQUALITY_TRUE_AND_PROPAGATED: return true;
+        default: return false;
+      }
+      break;
     case EQUALITY_FALSE:
     case EQUALITY_FALSE_IN_MODEL:
     case EQUALITY_FALSE_AND_PROPAGATED:
-      return true;
-    default:
-      return false;
-    }
-    break;
-  default:
-    return false;
+      switch (s2)
+      {
+        case EQUALITY_FALSE:
+        case EQUALITY_FALSE_IN_MODEL:
+        case EQUALITY_FALSE_AND_PROPAGATED: return true;
+        default: return false;
+      }
+      break;
+    default: return false;
   }
 }
 
-bool Valuation::isSatLiteral(TNode n) const {
+bool Valuation::isSatLiteral(TNode n) const
+{
   Assert(d_engine != nullptr);
   return d_engine->getPropEngine()->isSatLiteral(n);
 }
 
-Node Valuation::getSatValue(TNode n) const {
+Node Valuation::getSatValue(TNode n) const
+{
   Assert(d_engine != nullptr);
   if (n.getKind() == Kind::NOT)
   {
@@ -100,7 +101,8 @@ Node Valuation::getSatValue(TNode n) const {
   }
 }
 
-bool Valuation::hasSatValue(TNode n, bool& value) const {
+bool Valuation::hasSatValue(TNode n, bool& value) const
+{
   Assert(d_engine != nullptr);
   return d_engine->hasSatValue(n, value);
 }
@@ -111,7 +113,8 @@ bool Valuation::hasSatValue(TNode n) const
   return d_engine->hasSatValue(n);
 }
 
-EqualityStatus Valuation::getEqualityStatus(TNode a, TNode b) {
+EqualityStatus Valuation::getEqualityStatus(TNode a, TNode b)
+{
   Assert(d_engine != nullptr);
   return d_engine->getEqualityStatus(a, b);
 }
@@ -122,7 +125,8 @@ Node Valuation::getCandidateModelValue(TNode var)
   return d_engine->getCandidateModelValue(var);
 }
 
-TheoryModel* Valuation::getModel() {
+TheoryModel* Valuation::getModel()
+{
   if (d_engine == nullptr)
   {
     // no theory engine, thus we don't have a model object
@@ -170,7 +174,8 @@ void Valuation::setIrrelevantKind(Kind k)
   }
 }
 
-Node Valuation::ensureLiteral(TNode n) {
+Node Valuation::ensureLiteral(TNode n)
+{
   Assert(d_engine != nullptr);
   return d_engine->getPropEngine()->ensureLiteral(n);
 }
@@ -189,7 +194,8 @@ Node Valuation::getPreprocessedTerm(TNode n,
   return d_engine->getPropEngine()->getPreprocessedTerm(n, skAsserts, sks);
 }
 
-bool Valuation::isDecision(Node lit) const {
+bool Valuation::isDecision(Node lit) const
+{
   Assert(d_engine != nullptr);
   return d_engine->getPropEngine()->isDecision(lit);
 }
@@ -200,7 +206,8 @@ bool Valuation::isFixed(TNode lit) const
   return d_engine->getPropEngine()->isFixed(lit);
 }
 
-unsigned Valuation::getAssertionLevel() const{
+unsigned Valuation::getAssertionLevel() const
+{
   Assert(d_engine != nullptr);
   return d_engine->getPropEngine()->getAssertionLevel();
 }
@@ -212,7 +219,8 @@ std::pair<bool, Node> Valuation::entailmentCheck(options::TheoryOfMode mode,
   return d_engine->entailmentCheck(mode, lit);
 }
 
-bool Valuation::needCheck() const{
+bool Valuation::needCheck() const
+{
   Assert(d_engine != nullptr);
   return d_engine->needCheck();
 }

@@ -119,7 +119,7 @@ class LazyTrieMulti
    * d -> (1, 3, 0)
    *
    * then a is the representative of the class {a}, while b of the class {b,c,d}
-    */
+   */
   std::map<Node, std::vector<Node>> d_rep_to_class;
   /** adds a new classifier to the trie
    *

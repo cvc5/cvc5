@@ -258,14 +258,14 @@ class Instantiate : public QuantifiersUtil
    * the current user context for quantified formula q, store them in tvecs.
    */
   void getInstantiationTermVectors(Node q,
-                                   std::vector<std::vector<Node> >& tvecs);
+                                   std::vector<std::vector<Node>>& tvecs);
   /** get instantiation term vectors
    *
    * Get term vectors for all instantiations lemmas added in the current user
    * context for quantified formula q, store them in tvecs.
    */
   void getInstantiationTermVectors(
-      std::map<Node, std::vector<std::vector<Node> > >& insts);
+      std::map<Node, std::vector<std::vector<Node>>>& insts);
   /**
    * Get instantiations for quantified formula q. If q is (forall ((x T)) (P
    * x)), this is a list of the form (P t1) ... (P tn) for ground terms ti.
@@ -335,7 +335,7 @@ class Instantiate : public QuantifiersUtil
    * of these instantiations, for each quantified formula. This map is cleared
    * on presolve, e.g. it is local to a check-sat call.
    */
-  std::map<Node, std::vector<Node> > d_recordedInst;
+  std::map<Node, std::vector<Node>> d_recordedInst;
   /** statistics for debugging total instantiations per quantifier per round */
   std::map<Node, uint32_t> d_instDebugTemp;
   /** list of all instantiations produced for each quantifier

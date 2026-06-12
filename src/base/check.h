@@ -125,11 +125,27 @@ class OstreamVoider
   CVC5_FATAL_IF(false, __PRETTY_FUNCTION__, __FILE__, __LINE__)
 #endif
 
-// DebugUnhandled() logs an error and aborts if CVC5_ASSERTIONS is set but
-// CVC5_STATIC_ANALYSIS is not. Otherwise, it does nothing.
-// Allows static analyzers to follow production control flow but
-// fail during debugging.
-#ifdef CVC5_STATIC_ANALYSIS
+// CVC5_EQUAL(lhs, rhs) checks if two expressions are equal while forcing
+// a left-to-right evaluation order. This is essential when expressions
+// have side effects (e.g., generating new node IDs) and a predictable,
+// deterministic evaluation order is required.
+#define CVC5_EQUAL(lhs, rhs) \
+  ([&] {                     \
+    auto _l = (lhs);         \
+    auto _r = (rhs);         \
+    return _l == _r;         \
+  }())
+
+// AssertEqual(lhs, rhs) asserts that two expressions are equal, forcing
+// a left-to-right evaluation order.
+// Refer to CVC5_EQUAL for specific use cases involving side effects.
+#define AssertEqual(lhs, rhs) Assert(CVC5_EQUAL(lhs, rhs))
+
+// DebugUnhandled() triggers an assertion failure (when CVC5_ASSERTIONS is
+// enabled) to flag potential unhandled code paths. When running under
+// the Clang Static Analyzer, it becomes a no-op so the analyzer can continue
+// exploring the production control flow.
+#if defined(__clang_analyzer__)
 #define DebugUnhandled() Assert(true)
 #else
 #define DebugUnhandled() Assert(false)

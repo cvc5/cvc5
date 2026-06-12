@@ -43,6 +43,7 @@
 #include "preprocessing/passes/miplib_trick.h"
 #include "preprocessing/passes/nl_ext_purify.h"
 #include "preprocessing/passes/non_clausal_simp.h"
+#include "preprocessing/passes/normalize.h"
 #include "preprocessing/passes/pseudo_boolean_processor.h"
 #include "preprocessing/passes/quantifiers_preprocess.h"
 #include "preprocessing/passes/real_to_int.h"
@@ -50,13 +51,12 @@
 #include "preprocessing/passes/sep_skolem_emp.h"
 #include "preprocessing/passes/sort_infer.h"
 #include "preprocessing/passes/static_learning.h"
+#include "preprocessing/passes/static_rewrite.h"
 #include "preprocessing/passes/strings_eager_pp.h"
 #include "preprocessing/passes/sygus_inference.h"
 #include "preprocessing/passes/synth_rew_rules.h"
 #include "preprocessing/passes/theory_preprocess.h"
-#include "preprocessing/passes/static_rewrite.h"
 #include "preprocessing/passes/unconstrained_simplifier.h"
-#include "preprocessing/passes/normalize.h"
 #include "preprocessing/preprocessing_pass.h"
 
 namespace cvc5::internal {

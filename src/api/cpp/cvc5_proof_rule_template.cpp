@@ -206,13 +206,15 @@ const char* toString(ProofRule rule)
     case ProofRule::FF_FIELD_POLYS: return "FF_FIELD_POLYS";
     case ProofRule::FF_ONE_UNSAT: return "FF_ONE_UNSAT";
     case ProofRule::FF_POLY_CONVERSION: return "FF_POLY_CONVERSION";
-    case ProofRule::FF_IDEAL_ZERO: return "FF_IDEAL_ZERO";
     case ProofRule::FF_IDEAL_GENERATOR: return "FF_IDEAL_GENERATOR";
-    case ProofRule::FF_IDEAL_REDUCE_UP: return "F_IDEAL_REDUCE_UP";
-    case ProofRule::FF_IDEAL_REDUCE_DOWN: return "FF_IDEAL_REDUCE_DOWN";
-    case ProofRule::FF_IDEAL_SPOLY: return "FF_IDEAL_SPOLY";
-    case ProofRule::FF_IDEAL_MONIC: return "FF_IDEAL_MONIC";
-    //================================================= External rules
+    case ProofRule::MACRO_FF_POLY_COMBINATION:
+      return "MACRO_FF_POLY_COMBINATION";
+    case ProofRule::FF_POLY_COMBINATION: return "FF_POLY_COMBINATION";
+    case ProofRule::FF_DISEQ: return "FF_DISEQ";
+    case ProofRule::FF_POLY_NORM: return "FF_POLY_NORM";
+    case ProofRule::FF_POLY_NORM_EQ:
+      return "FF_POLY_NORM_EQ";
+      //================================================= External rules
     case ProofRule::LFSC_RULE: return "LFSC_RULE";
     case ProofRule::ALETHE_RULE: return "ALETHE_RULE";
     //================================================= Unknown rule
@@ -241,7 +243,8 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::MACRO_BOOL_NNF_NORM: return "macro-bool-nnf-norm";
     case ProofRewriteRule::MACRO_BOOL_EQ_CONST_EQ:
       return "macro-bool-eq-const-eq";
-    case ProofRewriteRule::MACRO_BOOL_BV_INVERT_SOLVE: return "macro-bool-bv-invert-solve";
+    case ProofRewriteRule::MACRO_BOOL_BV_INVERT_SOLVE:
+      return "macro-bool-bv-invert-solve";
     case ProofRewriteRule::MACRO_ARITH_INT_EQ_CONFLICT:
       return "macro-arith-int-eq-conflict";
     case ProofRewriteRule::MACRO_ARITH_INT_GEQ_TIGHTEN:
@@ -260,7 +263,8 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::MACRO_LAMBDA_CAPTURE_AVOID:
       return "macro-lambda-capture-avoid";
     case ProofRewriteRule::ARRAYS_SELECT_CONST: return "arrays-select-const";
-    case ProofRewriteRule::MACRO_ARRAYS_NORMALIZE_OP: return "macro-arrays-normalize-op";
+    case ProofRewriteRule::MACRO_ARRAYS_NORMALIZE_OP:
+      return "macro-arrays-normalize-op";
     case ProofRewriteRule::MACRO_ARRAYS_NORMALIZE_CONSTANT:
       return "macro-arrays-normalize-constant";
     case ProofRewriteRule::ARRAYS_EQ_RANGE_EXPAND:

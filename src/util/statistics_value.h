@@ -42,7 +42,7 @@ class StatisticsRegistry;
 using StatExportData =
     std::variant<int64_t, double, std::string, std::map<std::string, uint64_t>>;
 namespace detail {
-  std::ostream& print(std::ostream& out, const StatExportData& sed);
+std::ostream& print(std::ostream& out, const StatExportData& sed);
 }
 
 /**
@@ -364,7 +364,7 @@ struct StatisticTimerValue : StatisticBaseValue
   uint64_t get() const;
 
   /**
-   * The cumulative duration of the timer so far. 
+   * The cumulative duration of the timer so far.
    * Does not include a currently running timer, but `get()` takes care of this.
    */
   duration d_duration;

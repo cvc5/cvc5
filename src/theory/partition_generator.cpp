@@ -12,9 +12,8 @@
 
 #include "theory/partition_generator.h"
 
-#include <math.h>
-
 #include <algorithm>
+#include <cmath>
 #include <random>
 
 #include "expr/node_algorithm.h"
@@ -162,8 +161,8 @@ std::vector<Node> PartitionGenerator::collectLiterals(LiteralListType litType)
       break;
     }
     case HEAP:
-    { 
-      unfilteredLiterals = d_propEngine->getPropOrderHeap(); 
+    {
+      unfilteredLiterals = d_propEngine->getPropOrderHeap();
       break;
     }
     case LEMMA:

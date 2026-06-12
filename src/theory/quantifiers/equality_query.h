@@ -73,13 +73,14 @@ class EqualityQuery : public QuantifiersUtil
   /** quantifiers equality inference */
   context::CDO<unsigned> d_eqi_counter;
   /** internal representatives */
-  std::map< TypeNode, std::map< Node, Node > > d_int_rep;
+  std::map<TypeNode, std::map<Node, Node> > d_int_rep;
   /** rep score */
   std::map<Node, int32_t> d_rep_score;
   /** the number of times reset( e ) has been called */
   size_t d_reset_count;
-  /** processInferences : will merge equivalence classes in master equality engine, if possible */
-  bool processInferences( Theory::Effort e );
+  /** processInferences : will merge equivalence classes in master equality
+   * engine, if possible */
+  bool processInferences(Theory::Effort e);
   /** node contains */
   Node getInstance(Node n,
                    const std::vector<Node>& eqc,

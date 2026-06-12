@@ -13,22 +13,25 @@
  * \todo document this file
  */
 
-#include "base/output.h"
 #include "theory/arith/linear/tableau_sizes.h"
+
+#include "base/output.h"
 #include "theory/arith/linear/tableau.h"
 
 namespace cvc5::internal {
 namespace theory {
 namespace arith::linear {
 
-uint32_t TableauSizes::getRowLength(ArithVar b) const {
+uint32_t TableauSizes::getRowLength(ArithVar b) const
+{
   return d_tab->basicRowLength(b);
 }
 
-uint32_t TableauSizes::getColumnLength(ArithVar x) const {
+uint32_t TableauSizes::getColumnLength(ArithVar x) const
+{
   return d_tab->getColLength(x);
 }
 
-}  // namespace arith
+}  // namespace arith::linear
 }  // namespace theory
 }  // namespace cvc5::internal

@@ -33,10 +33,10 @@ extern const ArithVar ARITHVAR_SENTINEL;
 
 typedef std::vector<ArithVar> ArithVarVec;
 typedef std::pair<ArithVar, Rational> ArithRatPair;
-typedef std::vector< ArithRatPair > ArithRatPairVec;
+typedef std::vector<ArithRatPair> ArithRatPairVec;
 
 extern bool debugIsASet(const ArithVarVec& variables);
 
-}  // namespace arith
+}  // namespace arith::linear
 }  // namespace theory
 }  // namespace cvc5::internal

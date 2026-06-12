@@ -28,9 +28,7 @@ size_t SortToTermHashFunction::operator()(const SortToTerm& stt) const
   return std::hash<TypeNode>()(stt.getType());
 }
 
-SortToTerm::SortToTerm(const TypeNode& sort) : d_type(new TypeNode(sort))
-{
-}
+SortToTerm::SortToTerm(const TypeNode& sort) : d_type(new TypeNode(sort)) {}
 
 SortToTerm::SortToTerm(const SortToTerm& stt)
     : d_type(new TypeNode(stt.getType()))
