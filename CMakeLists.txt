@@ -289,12 +289,7 @@ if (WIN32)
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--stack,100000000")
 endif ()
 
-# Keep the default linker on MSYS, as switching it prevents the build system from
-# using the GMP system library if available. For Linux ARM64, the default linker is
-# also required due to a bug in the gold linker specific to ARM64 architectures.
-if (NOT ("${CMAKE_GENERATOR}" STREQUAL "MSYS Makefiles") AND
-    NOT CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND
-    NOT USE_DEFAULT_LINKER)
+if (NOT USE_DEFAULT_LINKER)
   #-----------------------------------------------------------------------------#
   # Use ld.mold if available, otherwise use ld.lld if available, otherwise
   # use ld.gold if available (unless ASan is enabled).
@@ -315,7 +310,9 @@ if (NOT ("${CMAKE_GENERATOR}" STREQUAL "MSYS Makefiles") AND
       set(USE_EXPLICIT_LINKER_FLAG TRUE)
       set(EXPLICIT_LINKER_FLAG " -fuse-ld=lld")
       message(STATUS "Using LLD linker.")
-    elseif (NOT ENABLE_ASAN)
+    elseif (NOT CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND NOT ENABLE_ASAN)
+      # On Linux ARM64, the gold linker has a bug that causes build failures. Additionally,
+      # using the gold linker with ASan triggers "cannot export local symbol" warnings.
       execute_process(COMMAND ${CMAKE_C_COMPILER}
                       -fuse-ld=gold
                       -Wl,--version ERROR_QUIET OUTPUT_VARIABLE LD_GOLD_VERSION)
