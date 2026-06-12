@@ -168,9 +168,13 @@ class TheorySetsRels : protected EnvObj
   void collectRelsInfo();
   void applyTransposeRule(std::vector<Node> tp_terms);
   void applyTransposeRule(Node rel, Node rel_rep, Node exp);
+  void applyContrMinimalRule(const std::vector<Node>& rels,
+                             Node seq,
+                             size_t cnt,
+                             Node exp);
   void applyAcyclicDownRule(Node mem, Node rel, Node exp);
   void applyInstCycleRule(Node rel_rep, Node exp);
-  Node applySplitCycleLenRule(Node seq, size_t cnt);
+  Node applySplitCycleLenRule(std::vector<Node> rels, Node seq, size_t cnt);
   void applyUnrollCycle(std::vector<Node>& rels,
                         Node seq,
                         size_t cnt,

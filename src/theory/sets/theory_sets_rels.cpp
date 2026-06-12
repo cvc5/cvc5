@@ -57,6 +57,8 @@ TheorySetsRels::~TheorySetsRels() {}
 
 void TheorySetsRels::check(Theory::Effort level)
 {
+  Trace("rels-tcgraph") << "=========== NEW check() ROUND (effort=" << level
+                        << ") ===========" << std::endl;
   Trace("rels") << "\n[sets-rels] ******************************* Start the "
                    "relational solver, effort = "
                 << level << " *******************************\n"
@@ -222,7 +224,15 @@ void TheorySetsRels::check()
       {
         while (term_it != k_t_it->second.end())
         {
-          buildTCGraphForRel(*term_it);
+          // BUG FIX: protect d_tcr_tcGraph from being overwritten,
+          // if it already exists
+          if (d_rel_nodes.find(*term_it) == d_rel_nodes.end()
+              && d_rRep_tcGraph.find(getRepresentative((*term_it)[0]))
+                     == d_rRep_tcGraph.end())
+          {
+            buildTCGraphForRel(*term_it);
+            d_rel_nodes.insert(*term_it);
+          }
           ++term_it;
         }
       }
@@ -247,10 +257,14 @@ void TheorySetsRels::check()
     ++t_it;
   }
 
-  doCycleInference();
-
   doTCInference();
 
+  doCycleInference();
+
+  // just before d_tcr_tcGraph.clear(); at :263
+  Trace("rels-tcgraph")
+      << "----------- clearing TC graph (end of round) -----------"
+      << std::endl;
   // clean up
   d_tuple_reps.clear();
   d_rReps_memberReps_exp_cache.clear();
@@ -699,16 +713,32 @@ void TheorySetsRels::applyTCRule(Node mem_rep,
     d_rel_nodes.insert(tc_rel);
   }
 
-  // mem_rep is a member of tc_rel[0] or mem_rep can be infered by TC_Graph of
-  // tc_rel[0], thus skip
-  if (isTCReachable(mem_rep, tc_rel))
+  // ===== TEMP CHANGE (cycle-ext): add edge even when reachable, gate split
+  // ===== OLD CODE (skipped the membership entirely when already reachable):
+  // // mem_rep is a member of tc_rel[0] or mem_rep can be infered by TC_Graph
+  // of
+  // // tc_rel[0], thus skip
+  // if (isTCReachable(mem_rep, tc_rel))
+  // {
+  //   Trace("rels-tcgraph") << "  isTCReachable SKIP for mem_rep = " << mem_rep
+  //                       << " in " << tc_rel << std::endl;
+  //   Trace("rels-debug") << "[Theory::Rels] mem_rep is a member of tc_rel[0] =
+  //   "
+  //                       << tc_rel[0]
+  //                       << " or can be infered by TC_Graph of tc_rel[0]! "
+  //                       << std::endl;
+  //   return;
+  // }
+  // NEW CODE: keep going so the edge is still added below; only the TClos-Down
+  // split (further down) is gated on `reachable`.
+  bool reachable = isTCReachable(mem_rep, tc_rel);
+  if (reachable)
   {
-    Trace("rels-debug") << "[Theory::Rels] mem_rep is a member of tc_rel[0] = "
-                        << tc_rel[0]
-                        << " or can be infered by TC_Graph of tc_rel[0]! "
-                        << std::endl;
-    return;
+    Trace("rels-tcgraph")
+        << "  isTCReachable (add edge, no split) for mem_rep = " << mem_rep
+        << " in " << tc_rel << std::endl;
   }
+  // ===== END TEMP CHANGE =====
   NodeManager* nm = nodeManager();
 
   // add mem_rep to d_tcrRep_tcGraph
@@ -726,13 +756,19 @@ void TheorySetsRels::applyTCRule(Node mem_rep,
 
     TC_GRAPH_IT tc_graph_it = (tc_it->second).find(mem_rep_fst);
     Assert(tc_exp_it != d_tcr_tcGraph_exps.end());
-    std::map<Node, Node>::iterator exp_map_it =
-        (tc_exp_it->second).find(mem_rep_tup);
-
-    if (exp_map_it == (tc_exp_it->second).end())
-    {
-      (tc_exp_it->second)[mem_rep_tup] = exp;
-    }
+    // OLD CODE (only stored exp if none existed yet, so a base-R explanation
+    // from buildTCGraphForRel would win and doTCInference would chain a
+    // withdrawable base grounding):
+    // std::map<Node, Node>::iterator exp_map_it =
+    //     (tc_exp_it->second).find(mem_rep_tup);
+    // if (exp_map_it == (tc_exp_it->second).end())
+    // {
+    //   (tc_exp_it->second)[mem_rep_tup] = exp;
+    // }
+    // NEW CODE: always overwrite with the TC membership exp, so doTCInference
+    // chains the forced TC unit rather than the withdrawable base grounding.
+    (tc_exp_it->second)[mem_rep_tup] = exp;
+    // ===== END TEMP CHANGE =====
 
     if (tc_graph_it != (tc_it->second).end())
     {
@@ -743,6 +779,18 @@ void TheorySetsRels::applyTCRule(Node mem_rep,
       std::unordered_set<Node> sets;
       sets.insert(mem_rep_snd);
       (tc_it->second)[mem_rep_fst] = sets;
+
+      // --- TEMP DEBUG: dump the whole TC graph ---
+      for (const auto& relEntry : d_tcr_tcGraph)
+      {
+        Trace("rels-tcgraph")
+            << "[TCGraph] " << relEntry.first << ":" << std::endl;
+        for (const auto& adj : relEntry.second)  // from-vertex -> {to-vertices}
+          for (const Node& to : adj.second)
+            Trace("rels-tcgraph")
+                << "    " << adj.first << " -> " << to << std::endl;
+      }
+      // --- end TEMP DEBUG ---
     }
   }
   else
@@ -756,6 +804,15 @@ void TheorySetsRels::applyTCRule(Node mem_rep,
     exp_map[mem_rep_tup] = exp;
     d_tcr_tcGraph_exps[tc_rel] = exp_map;
   }
+
+  // ===== TEMP CHANGE (cycle-ext): gate the TClos-Down case split =====
+  // NEW CODE: the edge has now been added above. If the membership was already
+  // reachable, skip the expensive, case-splitting TClos-Down unfolding below.
+  // (Previously this was unreachable code because the isTCReachable check up
+  // top returned early before getting here.)
+  if (reachable) return;
+  // ===== END TEMP CHANGE =====
+
   Node fst_element = TupleUtils::nthElementOfTuple(exp[0], 0);
   Node snd_element = TupleUtils::nthElementOfTuple(exp[0], 1);
   Node sk_1 = d_skCache.mkTypedSkolemCached(fst_element.getType(),
@@ -1349,7 +1406,9 @@ void TheorySetsRels::applyInstCycleRule(Node rel, Node exp)
  *                            S := S U {len(s) < cnt}  ||  C := C U {len(s) =
  * cnt} for x a fresh sequence variable
  */
-Node TheorySetsRels::applySplitCycleLenRule(Node seq, size_t cnt)
+Node TheorySetsRels::applySplitCycleLenRule(std::vector<Node> rels,
+                                            Node seq,
+                                            size_t cnt)
 {
   // For each cycle split the cycle len
   // QUESTION: should we check if the max len has already been reached in the
@@ -1376,10 +1435,11 @@ Node TheorySetsRels::applySplitCycleLenRule(Node seq, size_t cnt)
                            nm->mkNode(Kind::EQUAL, node_1, node_len));
 
   Node conc = nm->mkNode(Kind::OR, case_1, case_2);
+  Node exp = nm->mkNode(Kind::NOT, nm->mkNode(Kind::RELATION_ACYCLIC, rels[0]));
 
   Trace("rels-cycles") << "SplitCycleLen: " << conc << std::endl;
 
-  sendInfer(conc, InferenceId::SETS_RELS_SPLIT_CYCLE_LEN, d_trueNode);
+  sendInfer(conc, InferenceId::SETS_RELS_SPLIT_CYCLE_LEN, exp);
 
   return case_1;
 }
@@ -1427,6 +1487,83 @@ void TheorySetsRels::applyUnrollCycle(std::vector<Node>& rels,
   // Increment cnt
   std::pair<Node, size_t> new_c = std::make_pair(seq, cnt + 1);
   d_cycle_sequences[rels] = new_c;
+}
+
+/*
+ * RELATION_CONTR_MINIMAL:        ((R1,...,Rk),s,cnt) IN C
+ *                           0 <= q < r-1 < cnt       b IN [1,k]
+ *                         ---------------------------------------
+ *                           (s[q],s[r]) NOT IN RELATION_TCLOSURE(Rb)
+ *
+ * Given that the cycle (R,s,cnt) is in C (justified by exp = NOT ACYCLIC(R)),
+ * and by definition s is a minimal cycle in R1 U ... U Rk, no "shortcut" edge
+ * may exist between two non-adjacent nodes of the cycle, i.e. we forbid
+ * (s[q],s[r]) IN TC(R) for every 0 <= q < r-1 < cnt.
+ *
+ * This does not prune real cycles: edges of s are in TC(R), not base R, so any
+ * cyclic R has some a with (a,a) IN TC(R), and the identity cycle s = [a,a] is
+ * itself minimal (no non-adjacent pair, no chord). A longer cycle a->b->c->a is
+ * correctly pruned as non-minimal, collapsing to that self-loop. (Base R for
+ * the edges would break this; the self-loop fallback relies on TC.)
+ *
+ * TODO We emit the full set of pairs each round (re-emitted lemmas are
+ * deduped by the inference manager). Once d_cycle_sequences is context
+ * dependent and cnt rolls back correctly, this can be specialized to only the
+ * newly-usable index r = cnt-1 per round.
+ *
+ * The reason we attach is  exp /\ (r < len(s)),  where exp = NOT ACYCLIC(R) is
+ * the justification for (R,s,cnt) being in C. The (r < len(s)) conjunct is a
+ * soundness guard. Note: in any accepted model SplitCycle
+ * already forces len(s) >= cnt > r, so this guard is in principle redundant --
+ * but only as long as cnt is correctly bounded by len(s). Since cnt is not yet
+ * context dependent and can over-increment, we add the guard explicitly so
+ * this rule stays sound independent of cnt management; this keeps it
+ * committable before the d_cycle_sequences -> CDHashMap change rather than
+ * depending on it.
+ * TODO once we change d_cycle_sequences, we can safely remove this guard.
+ *
+ * TODO once InstCycle flattens unions, rels may hold more than one relation
+ * and exp must be the justification for that tuple's C-entry rather than
+ * NOT ACYCLIC(rels[0]).
+ */
+void TheorySetsRels::applyContrMinimalRule(const std::vector<Node>& rels,
+                                           Node seq,
+                                           size_t cnt,
+                                           Node exp)
+{
+  Trace("rels-debug") << "\n[Theory::Rels] *********** Applying "
+                         "RELATION_CONTR_MINIMAL rule on seq = "
+                      << seq << ", cnt = " << cnt << ", exp = " << exp
+                      << std::endl;
+  // need r >= 2 and q <= r-2, so the smallest usable case is q=0, r=2
+  if (cnt < 3) return;
+  NodeManager* nm = nodeManager();
+  Node seq_len = nm->mkNode(Kind::STRING_LENGTH, seq);
+  for (const Node& Ri : rels)
+  {
+    TypeNode tt = Ri.getType().getSetElementType();
+    Node Ri_tc = nm->mkNode(Kind::RELATION_TCLOSURE, Ri);
+    // 0 <= q < r-1 < cnt  =>  r in [2, cnt-1], q in [0, r-2]
+    for (size_t r = 2; r < cnt; ++r)
+    {
+      Node sr = nm->mkNode(Kind::SEQ_NTH, seq, nm->mkConstInt(Rational(r)));
+      // In-bounds guard: r < len(s). With q < r this also keeps s[q] in bounds.
+      Node in_bounds =
+          nm->mkNode(Kind::LT, nm->mkConstInt(Rational(r)), seq_len);
+      Node reason = nm->mkNode(Kind::AND, exp, in_bounds);
+      for (size_t q = 0; q + 2 <= r; ++q)
+      {
+        Node sq = nm->mkNode(Kind::SEQ_NTH, seq, nm->mkConstInt(Rational(q)));
+        Node tup = TupleUtils::constructTupleFromElements(tt, {sq, sr}, 0, 1);
+        Node mem = nm->mkNode(Kind::SET_MEMBER, tup, Ri_tc);
+        Node conc = mem.notNode();
+        sendInfer(conc, InferenceId::SETS_RELS_CONTR_MINIMAL, reason);
+
+        Trace("rels-cycles") << "ContrMinimal: exp = " << reason
+                             << ", conc = " << conc << std::endl;
+      }
+    }
+  }
 }
 
 /*
@@ -1510,10 +1647,16 @@ void TheorySetsRels::doCycleInference()
     std::vector<Node> rels = c_it->first;
     Node seq = c_it->second.first;
     size_t cnt = c_it->second.second;
-    Node exp = applySplitCycleLenRule(seq, cnt);
+    Node exp = applySplitCycleLenRule(rels, seq, cnt);
     // Question: how do we only apply the second function
     // in the case that we're in the < case?
     applyUnrollCycle(rels, seq, cnt, exp);
+    // Minimality: forbid shortcut edges in the cycle. The reason is the
+    // justification for (rels,seq,cnt) being in C, i.e. NOT ACYCLIC(rels[0]).
+    // TODO single relation only; revisit when InstCycle flattens unions.
+    Node acyc_exp =
+        nodeManager()->mkNode(Kind::RELATION_ACYCLIC, rels[0]).negate();
+    applyContrMinimalRule(rels, seq, cnt, acyc_exp);
     ++c_it;
   }
 
@@ -1525,6 +1668,18 @@ void TheorySetsRels::doTCInference()
   Trace("rels-debug")
       << "[Theory::Rels] ****** Finalizing transitive closure inferences!"
       << std::endl;
+
+  // --- TEMP DEBUG: dump the whole TC graph ---
+  for (const auto& relEntry : d_tcr_tcGraph)
+  {
+    Trace("rels-tcgraph") << "[TCGraph] " << relEntry.first << ":" << std::endl;
+    for (const auto& adj : relEntry.second)  // from-vertex -> {to-vertices}
+      for (const Node& to : adj.second)
+        Trace("rels-tcgraph")
+            << "    " << adj.first << " -> " << to << std::endl;
+  }
+  // --- end TEMP DEBUG ---
+
   TC_IT tc_graph_it = d_tcr_tcGraph.begin();
   while (tc_graph_it != d_tcr_tcGraph.end())
   {
