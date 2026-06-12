@@ -1267,7 +1267,9 @@ Node RegExpOpr::reduceRegExpPos(NodeManager* nm,
     Node emp = Word::mkEmptyWord(s.getType());
     Node se = s.eqNode(emp);
     Node sinr = nm->mkNode(Kind::STRING_IN_REGEXP, s, r[0]);
-    Node reExpand = nm->mkNode(Kind::REGEXP_CONCAT, r[0], r, r[0]);
+    Node empr = nm->mkNode(Kind::STRING_TO_REGEXP, emp);
+    Node rd = nm->mkNode(Kind::REGEXP_DIFF, r[0], empr);
+    Node reExpand = nm->mkNode(Kind::REGEXP_CONCAT, rd, r, rd);
     Node sinRExp = nm->mkNode(Kind::STRING_IN_REGEXP, s, reExpand);
     // We unfold `x in R*` by considering three cases: `x` is empty, `x`
     // is matched by `R`, or `x` is matched by two or more `R`s. For the
@@ -1286,16 +1288,12 @@ Node RegExpOpr::reduceRegExpPos(NodeManager* nm,
     // make the return lemma
     // can also assume the component match the first and last R are non-empty.
     // This means that the overall conclusion is:
-    //   (x = "") v (x in R) v (x = (str.++ k1 k2 k3) ^
-    //                          k1 in R ^ k2 in (re.* R) ^ k3 in R ^
-    //                          k1 != ""  ^ k3 != "")
+    //  (x = "") v (x in R) v (x = (str.++ k1 k2 k3) ^
+    //                         k1 in (R \ "") ^ k2 in (re.* R) ^ k3 in (R \ ""))
     conc = nm->mkNode(Kind::OR,
                       se,
                       sinr,
-                      nm->mkNode(Kind::AND,
-                                 {sinRExp,
-                                  newSkolemsC[0].eqNode(emp).negate(),
-                                  newSkolemsC[2].eqNode(emp).negate()}));
+                      sinRExp);
   }
   else
   {
