@@ -713,24 +713,8 @@ void TheorySetsRels::applyTCRule(Node mem_rep,
     d_rel_nodes.insert(tc_rel);
   }
 
-  // ===== TEMP CHANGE (cycle-ext): add edge even when reachable, gate split
-  // ===== OLD CODE (skipped the membership entirely when already reachable):
-  // // mem_rep is a member of tc_rel[0] or mem_rep can be infered by TC_Graph
-  // of
-  // // tc_rel[0], thus skip
-  // if (isTCReachable(mem_rep, tc_rel))
-  // {
-  //   Trace("rels-tcgraph") << "  isTCReachable SKIP for mem_rep = " << mem_rep
-  //                       << " in " << tc_rel << std::endl;
-  //   Trace("rels-debug") << "[Theory::Rels] mem_rep is a member of tc_rel[0] =
-  //   "
-  //                       << tc_rel[0]
-  //                       << " or can be infered by TC_Graph of tc_rel[0]! "
-  //                       << std::endl;
-  //   return;
-  // }
-  // NEW CODE: keep going so the edge is still added below; only the TClos-Down
-  // split (further down) is gated on `reachable`.
+  // Unconditionally add TC edge to the graph. Only the later TClos-Down
+  // split is guarded by `reachable`.
   bool reachable = isTCReachable(mem_rep, tc_rel);
   if (reachable)
   {
@@ -738,7 +722,7 @@ void TheorySetsRels::applyTCRule(Node mem_rep,
         << "  isTCReachable (add edge, no split) for mem_rep = " << mem_rep
         << " in " << tc_rel << std::endl;
   }
-  // ===== END TEMP CHANGE =====
+
   NodeManager* nm = nodeManager();
 
   // add mem_rep to d_tcrRep_tcGraph
@@ -756,19 +740,9 @@ void TheorySetsRels::applyTCRule(Node mem_rep,
 
     TC_GRAPH_IT tc_graph_it = (tc_it->second).find(mem_rep_fst);
     Assert(tc_exp_it != d_tcr_tcGraph_exps.end());
-    // OLD CODE (only stored exp if none existed yet, so a base-R explanation
-    // from buildTCGraphForRel would win and doTCInference would chain a
-    // withdrawable base grounding):
-    // std::map<Node, Node>::iterator exp_map_it =
-    //     (tc_exp_it->second).find(mem_rep_tup);
-    // if (exp_map_it == (tc_exp_it->second).end())
-    // {
-    //   (tc_exp_it->second)[mem_rep_tup] = exp;
-    // }
-    // NEW CODE: always overwrite with the TC membership exp, so doTCInference
+    // Always overwrite with the TC membership exp, so doTCInference
     // chains the forced TC unit rather than the withdrawable base grounding.
     (tc_exp_it->second)[mem_rep_tup] = exp;
-    // ===== END TEMP CHANGE =====
 
     if (tc_graph_it != (tc_it->second).end())
     {
@@ -805,13 +779,9 @@ void TheorySetsRels::applyTCRule(Node mem_rep,
     d_tcr_tcGraph_exps[tc_rel] = exp_map;
   }
 
-  // ===== TEMP CHANGE (cycle-ext): gate the TClos-Down case split =====
-  // NEW CODE: the edge has now been added above. If the membership was already
-  // reachable, skip the expensive, case-splitting TClos-Down unfolding below.
-  // (Previously this was unreachable code because the isTCReachable check up
-  // top returned early before getting here.)
+  // The TC edge has now been added above. If the membership was already
+  // reachable, skip the TClos-Down case split.
   if (reachable) return;
-  // ===== END TEMP CHANGE =====
 
   Node fst_element = TupleUtils::nthElementOfTuple(exp[0], 0);
   Node snd_element = TupleUtils::nthElementOfTuple(exp[0], 1);
