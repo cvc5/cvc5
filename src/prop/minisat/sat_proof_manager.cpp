@@ -641,7 +641,8 @@ void SatProofManager::finalizeProof(Node inConflictNode,
       Trace("sat-proof") << "SatProofManager::finalizeProof:   " << children[i];
       if (i > 0)
       {
-        Trace("sat-proof") << " [" << pols[i - 1] << "]";
+        Trace("sat-proof") << " [" << lits[i - 1] << ", " << pols[i - 1]
+                           << "]";
       }
       Trace("sat-proof") << "\n";
     }
