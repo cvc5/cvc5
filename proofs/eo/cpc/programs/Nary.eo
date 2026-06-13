@@ -45,13 +45,15 @@
   )
 )
 
+
+
 ; program: $iota_rec
 ; args:
 ; - ns (@TList Int): A list of zeroes, the length of the list to generate.
 ; - n Int: The current counter to add to the list.
 ; return: >
-;  The iota list starting from n of length of ns. This is used to generate e.g. the
-;  list (@tlist 0 (@tlist 1 .... (@tlist n-1 (@tlist.nil Int)) ... )).
+;   The iota list (see below) starting from n of length of ns. This is a helper method
+;   for the methods below.
 (program $iota_rec ((n Int) (ns (@TList Int) :list))
   :signature ((@TList Int) Int) (@TList Int)
   (
@@ -65,7 +67,7 @@
 ; - l Int: The desired start index.
 ; - h Int: The desired end index, expected to be larger than l.
 ; return: >
-;  The iota list between l and h inclusive. This the list
+;  The iota list between l and h inclusive, i.e. the list
 ;  (@tlist l (@tlist l+1 .... (@tlist h (@tlist.nil Int)) ... )).
 (define $iota2 ((l Int) (h Int))
   (eo::define ((diff (eo::add 1 h (eo::neg l))))
@@ -75,7 +77,7 @@
 ; args:
 ; - n Int: The desired length of the list, expected to be non-negative.
 ; return: >
-;  The iota list of length n. This the list
+;  The iota list of length n, i.e. the list
 ;  (@tlist 0 (@tlist 1 .... (@tlist n-1 (@tlist.nil Int)) ... )).
 (define $iota ((n Int))
   (eo::requires (eo::is_neg n) false ($iota_rec (eo::list_repeat @tlist 0 n) 0)))
