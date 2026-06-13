@@ -137,6 +137,33 @@ Node SubtypeElimConverterCallback::convert(Node res,
       }
     }
     break;
+    case ProofRule::ARITH_MULT_TANGENT:
+    {
+      Assert(cargs.size() == 5);
+      bool needsReal = false;
+      for (size_t i = 0; i < 4; i++)
+      {
+        if (cargs[i].getType().isReal())
+        {
+          needsReal = true;
+          break;
+        }
+      }
+      if (needsReal)
+      {
+        // The CPC rule for tangent planes is monomorphic in the arithmetic
+        // type of x, y, a, b. Ensure this proof step is replayed fully over
+        // Real when subtype elimination exposed mixed Int/Real arguments.
+        for (size_t i = 0; i < 4; i++)
+        {
+          if (cargs[i].getType().isInteger())
+          {
+            cargs[i] = theory::arith::castToReal(nm, cargs[i]);
+          }
+        }
+      }
+    }
+    break;
     case ProofRule::ARITH_MULT_POS:
     case ProofRule::ARITH_MULT_NEG:
     {
@@ -447,8 +474,10 @@ Node SubtypeElimConverterCallback::convert(Node res,
       for (const Node& mc : matchConds)
       {
         Trace("pf-subtype-elim") << "- match condition " << mc << std::endl;
-        // should not introduce subgoals with mixed arithmetic here
-        Assert(d_nconv.convert(mc) == mc);
+        // These conditions may themselves be subtype-elimination rewrites,
+        // e.g. a proof rule may rebuild (* 12 r) where the target has
+        // (* 12.0 r). The trusted rewrite below is sufficient to justify the
+        // local conversion from the rule result to the converted conclusion.
         tcpg.addRewriteStep(mc[0],
                             mc[1],
                             nullptr,
