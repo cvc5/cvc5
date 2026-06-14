@@ -898,6 +898,18 @@ def test_get_const_array_base(tm):
         a.getConstArrayBase()
 
 
+    def test_is_const(tm):
+        intsort = tm.getIntegerSort()
+        arrsort = tm.mkArraySort(intsort, intsort)
+        one = tm.mkInteger(1)
+        constarr = tm.mkConstArray(arrsort, one)
+        x = tm.mkConst(intsort, "x")
+
+        assert one.isConst()
+        assert constarr.isConst()
+        assert not x.isConst()
+
+
 def test_get_uninterpreted_sort_value(tm, solver):
     solver.setOption("produce-models", "true")
     uSort = tm.mkUninterpretedSort("u")

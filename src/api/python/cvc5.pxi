@@ -5678,6 +5678,12 @@ cdef class Term:
         """
         return _term(self.tm, self.cterm.iteTerm(then_t.cterm, else_t.cterm))
 
+    def isConst(self):
+        """
+            :return: True iff this term is a constant.
+        """
+        return self.cterm.isConst()
+
     def isConstArray(self):
         """
             :return: True iff this term is a constant array.

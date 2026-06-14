@@ -673,6 +673,19 @@ TEST_F(TestCApiBlackTerm, get_const_array_base)
   ASSERT_DEATH(cvc5_term_get_const_array_base(one), "invalid argument");
 }
 
+TEST_F(TestCApiBlackTerm, is_const)
+{
+  Cvc5Term one = cvc5_mk_integer_int64(d_tm, 1);
+  Cvc5Term x = cvc5_mk_var(d_tm, d_int, "x");
+  Cvc5Sort arr_sort = cvc5_mk_array_sort(d_tm, d_int, d_int);
+  Cvc5Term const_arr = cvc5_mk_const_array(d_tm, arr_sort, one);
+
+  ASSERT_DEATH(cvc5_term_is_const(nullptr), "invalid term");
+  ASSERT_TRUE(cvc5_term_is_const(one));
+  ASSERT_TRUE(cvc5_term_is_const(const_arr));
+  ASSERT_FALSE(cvc5_term_is_const(x));
+}
+
 TEST_F(TestCApiBlackTerm, get_boolean_value)
 {
   Cvc5Term b1 = cvc5_mk_true(d_tm);

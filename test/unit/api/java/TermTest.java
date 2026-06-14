@@ -844,6 +844,20 @@ class TermTest
   }
 
   @Test
+  void isConst()
+  {
+    Sort intsort = d_tm.getIntegerSort();
+    Sort arrsort = d_tm.mkArraySort(intsort, intsort);
+    Term one = d_tm.mkInteger(1);
+    Term constarr = d_tm.mkConstArray(arrsort, one);
+    Term x = d_tm.mkConst(intsort, "x");
+
+    assertTrue(one.isConst());
+    assertTrue(constarr.isConst());
+    assertFalse(x.isConst());
+  }
+
+  @Test
   void getBoolean()
   {
     Term b1 = d_tm.mkBoolean(true);

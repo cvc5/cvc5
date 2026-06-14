@@ -1449,6 +1449,13 @@ CVC5_EXPORT bool cvc5_term_is_real_value(Cvc5Term term);
 CVC5_EXPORT const char* cvc5_term_get_real_value(Cvc5Term term);
 
 /**
+ * Determine if a given term is a constant.
+ * @param term The term.
+ * @return True if the term is a constant.
+ */
+CVC5_EXPORT bool cvc5_term_is_const(Cvc5Term term);
+
+/**
  * Determine if a given term is a constant array.
  * @param term The term.
  * @return True if the term is a constant array.
