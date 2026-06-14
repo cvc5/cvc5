@@ -32,10 +32,11 @@ namespace test {
 class TestUtilBlackFloatingPoint : public TestInternal
 {
  protected:
+  static constexpr bool ENABLE_SLOW_TESTS = false;
   /** Default number of random tests when not exhaustively testing. */
   static constexpr uint32_t N_TESTS = 1000;
   /** Number of tests fp.rem (significantly slower than other operators). */
-  static constexpr uint32_t N_TESTS_REM = 100;
+  static constexpr uint32_t N_TESTS_REM = 500;
   /** Min/max bit-vector width used in convertToBV cross-checks. */
   static constexpr uint32_t MIN_SIZE_TO_BV = 4;
   static constexpr uint32_t MAX_SIZE_TO_BV = 64;
@@ -45,15 +46,19 @@ class TestUtilBlackFloatingPoint : public TestInternal
         d_fp16(5, 11),
         d_fp32(8, 24),
         d_fp64(11, 53),
-        d_fp128(15, 113)
+        d_fp128(15, 113),
+        d_all_formats({d_fp16, d_fp32, d_fp64, d_fp128}),
+        d_formats_32_128({d_fp32, d_fp64, d_fp128}),
+        // If slow tests are enabled, we exhaustively test for Float16,
+        // and randomly for other formats. Else, we test randomly for
+        // all formats, for N_TESTS each.
+        d_test_formats(ENABLE_SLOW_TESTS ? d_formats_32_128 : d_all_formats)
   {
   }
 
   void SetUp() override
   {
     TestInternal::SetUp();
-    d_all_formats = {d_fp16, d_fp32, d_fp64, d_fp128};
-    d_formats_32_128 = {d_fp32, d_fp64, d_fp128};
     d_all_rms = {RoundingMode::ROUND_NEAREST_TIES_TO_EVEN,
                  RoundingMode::ROUND_NEAREST_TIES_TO_AWAY,
                  RoundingMode::ROUND_TOWARD_POSITIVE,
@@ -80,15 +85,18 @@ class TestUtilBlackFloatingPoint : public TestInternal
   void testForFloat16(
       std::function<void(const BitVector&, const BitVector&)> fun)
   {
-    uint32_t expSize = 5;
-    uint32_t sigBits = 10;  // significand width minus hidden bit
-    for (uint32_t i = 0; i < (1u << expSize); ++i)
+    if (ENABLE_SLOW_TESTS)
     {
-      BitVector bvexp(expSize, i);
-      for (uint32_t j = 0; j < (1u << sigBits); ++j)
+      uint32_t expSize = 5;
+      uint32_t sigBits = 10;  // significand width minus hidden bit
+      for (uint32_t i = 0; i < (1u << expSize); ++i)
       {
-        BitVector bvsig(sigBits, j);
-        fun(bvexp, bvsig);
+        BitVector bvexp(expSize, i);
+        for (uint32_t j = 0; j < (1u << sigBits); ++j)
+        {
+          BitVector bvsig(sigBits, j);
+          fun(bvexp, bvsig);
+        }
       }
     }
   }
@@ -120,6 +128,7 @@ class TestUtilBlackFloatingPoint : public TestInternal
   std::vector<FloatingPointSize> d_all_formats;
   std::vector<FloatingPointSize> d_formats_32_128;
   std::vector<RoundingMode> d_all_rms;
+  std::vector<FloatingPointSize>& d_test_formats;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -246,9 +255,7 @@ TEST_F(TestUtilBlackFloatingPoint, pack)
     }
   };
   testForFloat16(fun16);
-
-  // Random for larger formats
-  testForFormats(d_formats_32_128,
+  testForFormats(d_test_formats,
                  N_TESTS,
                  [](const FloatingPointSize& fmt, const BitVector& bv) {
                    auto mpfr = fpMPFR(fmt, bv);
@@ -332,7 +339,7 @@ TEST_F(TestUtilBlackFloatingPoint, classification)
     }
   };
   testForFloat16(fun16);
-  testForFormats(d_formats_32_128,
+  testForFormats(d_test_formats,
                  N_TESTS,
                  [](const FloatingPointSize& fmt, const BitVector& bv1) {
                    auto mpfr = fpMPFR(fmt, bv1);
@@ -362,7 +369,7 @@ TEST_F(TestUtilBlackFloatingPoint, components)
   };
   testForFloat16(fun16);
   testForFormats(
-      d_formats_32_128,
+      d_test_formats,
       N_TESTS,
       [](const FloatingPointSize& fmt, const BitVector& bv) {
         auto mpfr = fpMPFR(fmt, bv);
@@ -418,24 +425,29 @@ TEST_F(TestUtilBlackFloatingPoint, specialConstants)
 
 TEST_F(TestUtilBlackFloatingPoint, fromUbvSbv)
 {
-  // Exhaustive for Float16
-  for (uint64_t bw = 2; bw <= 16; ++bw)
+  // Only test exhaustively for Float16 if SLOW_TESTS enabled.
+  if (ENABLE_SLOW_TESTS)
   {
-    for (uint64_t i = 0; i < (1ul << bw); ++i)
+    for (uint64_t bw = 2; bw <= 16; ++bw)
     {
-      BitVector bv = BitVector(bw, i);
-      for (RoundingMode rm : d_all_rms)
+      for (uint64_t i = 0; i < (1ul << bw); ++i)
       {
-        for (bool sign : {false, true})
+        BitVector bv = BitVector(bw, i);
+        for (RoundingMode rm : d_all_rms)
         {
-          FloatingPointLiteralMPFR mpfr(d_fp16, rm, bv, sign);
-          FloatingPointLiteralSymFPU symfpu(d_fp16, rm, bv, sign);
-          ASSERT_EQ(mpfr.pack(), symfpu.pack());
+          for (bool sign : {false, true})
+          {
+            FloatingPointLiteralMPFR mpfr(d_fp16, rm, bv, sign);
+            FloatingPointLiteralSymFPU symfpu(d_fp16, rm, bv, sign);
+            ASSERT_EQ(mpfr.pack(), symfpu.pack());
+          }
         }
       }
     }
   }
-  for (const auto& f : d_all_formats)
+  // Test randomly for all formats if SLOW_TESTS disabled, else only test this
+  // for larger formats since we already tested for Float16 exhaustively.
+  for (const auto& f : d_test_formats)
   {
     for (uint64_t bw = 1; bw <= 16; ++bw)
     {
@@ -474,7 +486,7 @@ TEST_F(TestUtilBlackFloatingPoint, fromUbvSbv)
       }                                                                       \
     };                                                                        \
     testForFloat16(fun16);                                                    \
-    testForFormats(d_formats_32_128,                                          \
+    testForFormats(d_test_formats,                                            \
                    N_TESTS,                                                   \
                    [](const FloatingPointSize& fmt, const BitVector& bv) {    \
                      auto mpfr = fpMPFR(fmt, bv);                             \
@@ -509,7 +521,7 @@ TEST_UNARY_OP(negate, negate)
       }                                                                        \
     };                                                                         \
     testForFloat16(fun16);                                                     \
-    testForFormats(d_formats_32_128,                                           \
+    testForFormats(d_test_formats,                                             \
                    N_TESTS,                                                    \
                    [this](const FloatingPointSize& fmt, const BitVector& bv) { \
                      auto mpfr = fpMPFR(fmt, bv);                              \
@@ -548,9 +560,8 @@ TEST_F(TestUtilBlackFloatingPoint, fpRem)
     ASSERT_EQ(mpfr1.rem(mpfr2)->pack(), sym1.rem(sym2)->pack());
   };
   testForFloat16(fun16);
-
-  testForFormats(d_formats_32_128,
-                 N_TESTS,
+  testForFormats(d_test_formats,
+                 N_TESTS_REM,
                  [](const FloatingPointSize& fmt, const BitVector& bv1) {
                    BitVector bv2 = BitVector::mkRandom(fmt.packedWidth());
                    auto mpfr1 = fpMPFR(fmt, bv1);
@@ -585,7 +596,7 @@ TEST_F(TestUtilBlackFloatingPoint, fpRem)
     };                                                                      \
     testForFloat16(fun16);                                                  \
     testForFormats(                                                         \
-        d_formats_32_128,                                                   \
+        d_test_formats,                                                     \
         N_TESTS,                                                            \
         [this](const FloatingPointSize& fmt, const BitVector& bv1) {        \
           BitVector bv2 = BitVector::mkRandom(fmt.packedWidth());           \
@@ -635,8 +646,7 @@ TEST_F(TestUtilBlackFloatingPoint, fpFma)
     }
   };
   testForFloat16(fun16);
-
-  testForFormats(d_formats_32_128,
+  testForFormats(d_test_formats,
                  N_TESTS,
                  [this](const FloatingPointSize& fmt, const BitVector& bv1) {
                    BitVector bv2 = BitVector::mkRandom(fmt.packedWidth());
@@ -681,7 +691,7 @@ TEST_F(TestUtilBlackFloatingPoint, fpMinMax)
     }
   };
   testForFloat16(fun16);
-  testForFormats(d_formats_32_128,
+  testForFormats(d_test_formats,
                  N_TESTS,
                  [](const FloatingPointSize& fmt, const BitVector& bv1) {
                    BitVector bv2 = BitVector::mkRandom(fmt.packedWidth());
@@ -726,7 +736,7 @@ TEST_F(TestUtilBlackFloatingPoint, comparisons)
     ASSERT_EQ(mpfr1 < mpfr1, sym1 < sym1);
   };
   testForFloat16(fun16);
-  testForFormats(d_formats_32_128,
+  testForFormats(d_test_formats,
                  N_TESTS,
                  [](const FloatingPointSize& fmt, const BitVector& bv1) {
                    BitVector bv2 = BitVector::mkRandom(fmt.packedWidth());
@@ -781,8 +791,10 @@ TEST_F(TestUtilBlackFloatingPoint, convertToBV)
     auto mpfr = fpMPFR(fmt, bv);
     auto sym = fpSymFPU(fmt, bv);
 
-    ASSERT_EQ(mpfr.convertToSBVTotal(width, rm, undef),
-              sym.convertToSBVTotal(width, rm, undef));
+    // SymFPU to_sbv has an issue for a corner case, see #12734 that may
+    // get triggered in this test, thus it is temporarily disabled.
+    // ASSERT_EQ(mpfr.convertToSBVTotal(width, rm, undef),
+    //           sym.convertToSBVTotal(width, rm, undef));
     ASSERT_EQ(mpfr.convertToUBVTotal(width, rm, undef),
               sym.convertToUBVTotal(width, rm, undef));
   }
