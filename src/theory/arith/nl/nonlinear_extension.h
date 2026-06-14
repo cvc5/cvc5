@@ -271,4 +271,4 @@ class NonlinearExtension : EnvObj
 }  // namespace theory
 }  // namespace cvc5::internal
 
-#endif /* CVC5__THEORY__ARITH__NONLINEAR_EXTENSION_H */
+#endif /* CVC5__THEORY__ARITH__NL__NONLINEAR_EXTENSION_H */
