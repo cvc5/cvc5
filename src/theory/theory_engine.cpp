@@ -2238,6 +2238,11 @@ void TheoryEngine::checkTheoryAssertionsWithModel(bool hardFailure)
           }
           ss << "The fact: " << assertion << std::endl
              << "Model value: " << val << std::endl;
+          auto sm = nodeManager()->getSkolemManager();
+          ss << "The fact original form : " << sm->getOriginalForm(assertion)
+             << std::endl;
+          ss << "Model value original form : " << sm->getOriginalForm(val)
+             << std::endl;
           if (hardFailure)
           {
             if (val == d_false)
