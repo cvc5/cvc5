@@ -1036,6 +1036,7 @@ set(regress_0_tests
   regress0/ho/issue11923-2-finite-ho-deq.smt2
   regress0/ho/issue11923-finite-ho-deq.smt2
   regress0/ho/issue12256-fun-arg-ext.smt2
+  regress0/ho/issue12703-lambda-dup-binder.smt2
   regress0/ho/issue-ho-elim-fmf-bad-model.smt2
   regress0/ho/issue4434-const-preserve.smt2
   regress0/ho/issue4477.smt2
