@@ -1125,6 +1125,8 @@ class CVC5_EXPORT SolverEngine
   std::string d_safeOptsRegularOptionValue;
   /** Was the option already the default setting */
   bool d_safeOptsSetRegularOptionToDefault;
+  /** Explicit source TPTP dialect metadata, when provided via set-info. */
+  std::string d_tptpDialect;
 
   /** Whether this is an internal subsolver. */
   bool d_isInternalSubsolver;
