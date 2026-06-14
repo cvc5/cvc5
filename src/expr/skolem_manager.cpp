@@ -471,6 +471,18 @@ TypeNode SkolemManager::getTypeFor(SkolemId id,
       Assert(stype.getNumChildren() == 1);
       return stype[0];
     }
+    // skolems that return the sequence element type
+    case SkolemId::RELS_SEQUENCE:
+    {
+      Assert(cacheVals.size() > 0);
+      TypeNode stype = cacheVals[0].getType();
+      Assert(stype.getNumChildren() == 1);
+      TypeNode TupleType = stype[0];
+      TypeNode elementType = TupleType.getTupleTypes()[0];
+      TypeNode seqType = d_nm->mkSequenceType(elementType);
+      return seqType;
+    }
+
     // skolems that return the set to set element type
     case SkolemId::BAGS_CHOOSE:
     case SkolemId::SETS_CHOOSE:

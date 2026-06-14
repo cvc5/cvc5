@@ -106,7 +106,7 @@ class TheorySetsRels : protected EnvObj
 
   std::unordered_set<Node> d_rel_nodes;
   /** a map from tuples to their elements' representatives*/
-  std::map<Node, std::vector<Node> > d_tuple_reps;
+  std::map<Node, std::vector<Node>> d_tuple_reps;
   /** a map from relation terms to their member tuples*/
   std::map<Node, TupleTrie> d_membership_trie;
 
@@ -114,20 +114,32 @@ class TheorySetsRels : protected EnvObj
   std::unordered_set<Node> d_symbolic_tuples;
 
   /** Mapping between relation and its member representatives */
-  std::map<Node, std::vector<Node> > d_rReps_memberReps_cache;
+  std::map<Node, std::vector<Node>> d_rReps_memberReps_cache;
 
   /** Mapping between relation and its member representatives explanation */
-  std::map<Node, std::vector<Node> > d_rReps_memberReps_exp_cache;
+  std::map<Node, std::vector<Node>> d_rReps_memberReps_exp_cache;
 
   /** Mapping between a relation representative and its equivalent relations
    * involving relational operators */
-  std::map<Node, std::map<Kind, std::vector<Node> > > d_terms_cache;
+  std::map<Node, std::map<Kind, std::vector<Node>>> d_terms_cache;
 
   /** Mapping between transitive closure relation TC(r) and its TC graph
    * constructed based on the members of r*/
-  std::map<Node, std::map<Node, std::unordered_set<Node> > > d_rRep_tcGraph;
-  std::map<Node, std::map<Node, std::unordered_set<Node> > > d_tcr_tcGraph;
-  std::map<Node, std::map<Node, Node> > d_tcr_tcGraph_exps;
+
+  /** Mapping from acyclic relation representative to its explanation(s) */
+  std::map<Node, std::vector<Node>> d_acyclic_cache;
+
+  /** Mapping from acyclic relation representatives to their sequence
+   * representations and counts */
+  std::map<std::vector<Node>, std::pair<Node, size_t>> d_cycle_sequences;
+  // context::CDHashMap<std::vector<Node>, std::pair<Node, size_t> >
+  // d_cycle_sequences;
+
+  /** Mapping between transitive closure relation TC(r) and its TC graph
+   * constructed based on the members of r*/
+  std::map<Node, std::map<Node, std::unordered_set<Node>>> d_rRep_tcGraph;
+  std::map<Node, std::map<Node, std::unordered_set<Node>>> d_tcr_tcGraph;
+  std::map<Node, std::map<Node, Node>> d_tcr_tcGraph_exps;
 
  private:
   /** Send infer
@@ -156,6 +168,17 @@ class TheorySetsRels : protected EnvObj
   void collectRelsInfo();
   void applyTransposeRule(std::vector<Node> tp_terms);
   void applyTransposeRule(Node rel, Node rel_rep, Node exp);
+  void applyContrMinimalRule(const std::vector<Node>& rels,
+                             Node seq,
+                             size_t cnt,
+                             Node exp);
+  void applyAcyclicDownRule(Node mem, Node rel, Node exp);
+  void applyInstCycleRule(Node rel_rep, Node exp);
+  Node applySplitCycleLenRule(std::vector<Node> rels, Node seq, size_t cnt);
+  void applyUnrollCycle(std::vector<Node>& rels,
+                        Node seq,
+                        size_t cnt,
+                        Node exp);
   void applyProductRule(Node rel, Node rel_rep, Node exp);
   void applyJoinRule(Node rel, Node rel_rep, Node exp);
   /**
@@ -176,13 +199,14 @@ class TheorySetsRels : protected EnvObj
   void applyIdenRule(Node mem_rep, Node rel_rep, Node exp);
   void applyTCRule(Node mem, Node rel, Node rel_rep, Node exp);
   void buildTCGraphForRel(Node tc_rel);
+  void doCycleInference();
   void doTCInference();
-  void doTCInference(std::map<Node, std::unordered_set<Node> > rel_tc_graph,
+  void doTCInference(std::map<Node, std::unordered_set<Node>> rel_tc_graph,
                      std::map<Node, Node> rel_tc_graph_exps,
                      Node tc_rel);
   void doTCInference(Node tc_rel,
                      std::vector<Node> reasons,
-                     std::map<Node, std::unordered_set<Node> >& tc_graph,
+                     std::map<Node, std::unordered_set<Node>>& tc_graph,
                      std::map<Node, Node>& rel_tc_graph_exps,
                      Node start_node_rep,
                      Node cur_node_rep,
@@ -211,7 +235,7 @@ class TheorySetsRels : protected EnvObj
   void isTCReachable(Node start,
                      Node dest,
                      std::unordered_set<Node>& hasSeen,
-                     std::map<Node, std::unordered_set<Node> >& tc_graph,
+                     std::map<Node, std::unordered_set<Node>>& tc_graph,
                      bool& isReachable);
 
   /** Helper functions */
@@ -224,7 +248,7 @@ class TheorySetsRels : protected EnvObj
   Node getRepresentative(Node t);
   inline void addToMembershipDB(Node, Node, Node);
   inline Node constructPair(Node tc_rep, Node a, Node b);
-  bool safelyAddToMap(std::map<Node, std::vector<Node> >&, Node, Node);
+  bool safelyAddToMap(std::map<Node, std::vector<Node>>&, Node, Node);
   bool isRel(Node n)
   {
     return n.getType().isSet() && n.getType().getSetElementType().isTuple();

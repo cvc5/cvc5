@@ -30,3 +30,5 @@
   :args (P)
   :conclusion (= (set.member x (set.filter P S)) (P x))
 )
+(declare-parameterized-const rel.acyclic ((T Type :implicit))
+  (-> (Set (Tuple T T)) Bool))
