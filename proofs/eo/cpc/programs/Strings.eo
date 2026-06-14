@@ -159,17 +159,19 @@
 ; - r RegLan: The regular language to check.
 ; returns: Bool
 ;   Whether the regular language r contains the empty string.
-(program $re_nullable ((r RegLan) (rr RegLan :list))
+(program $re_nullable ((r RegLan) (rr RegLan :list) (s String) (t String))
   :signature (RegLan) Bool
   (
-    (($re_nullable re.all)          true)
-    (($re_nullable @re.empty)       true)
-    (($re_nullable (re.* r))        true)
-    (($re_nullable (re.union r rr)) (eo::or ($re_nullable r) ($re_nullable rr)))
-    (($re_nullable (re.inter r rr)) (eo::and ($re_nullable r) ($re_nullable rr)))
-    (($re_nullable (re.++ r rr))    (eo::and ($re_nullable r) ($re_nullable rr)))
-    (($re_nullable (re.comp r))     (eo::not ($re_nullable r)))
-    (($re_nullable r)               false)
+  (($re_nullable re.all)          true)
+  (($re_nullable re.none)         false)
+  (($re_nullable re.allchar)      false)
+  (($re_nullable (str.to_re s))   (eo::requires (eo::is_str s) true (eo::eq s "")))
+  (($re_nullable (re.* r))        true)
+  (($re_nullable (re.range s t))  false)
+  (($re_nullable (re.union r rr)) (eo::or ($re_nullable r) ($re_nullable rr)))
+  (($re_nullable (re.inter r rr)) (eo::and ($re_nullable r) ($re_nullable rr)))
+  (($re_nullable (re.++ r rr))    (eo::and ($re_nullable r) ($re_nullable rr)))
+  (($re_nullable (re.comp r))     (eo::not ($re_nullable r)))
   )
 )
 
@@ -234,7 +236,7 @@
     (($derivative c (re.comp r))       (re.comp ($derivative c r)))
     (($derivative c (re.* r))          ($re_concat_merge ($derivative c r) (re.* r)))
     (($derivative c @re.empty)         re.none)
-    (($derivative c (str.to_re s1))    (eo::ite (eo::is_eq (eo::extract s1 0 0) c) (str.to_re (eo::extract s1 1 (eo::add -1 (eo::len s1)))) re.none))
+    (($derivative c (str.to_re s1))    (eo::ite (eo::eq (eo::extract s1 0 0) c) (str.to_re (eo::extract s1 1 (eo::add -1 (eo::len s1)))) re.none))
     (($derivative c (re.range s1 s2))  (eo::ite (eo::and ($compare_geq (eo::to_z c) (eo::to_z s1)) ($compare_geq (eo::to_z s2) (eo::to_z c))) @re.empty re.none))
     (($derivative c re.none)           re.none)
     (($derivative c re.all)            re.all)
@@ -440,13 +442,13 @@
 ;   In particular, if it is not a str.++ and not the empty string, then we
 ;   return (str.++ t empty) where empty is the empty string for the type of t.
 (program $str_nary_intro
-    ((T Type) (t (Seq T)) (ss (Seq T) :list))
-    :signature ((Seq T)) (Seq T)
-    (
-        (($str_nary_intro (str.++ t ss)) (str.++ t ss))
-        (($str_nary_intro t)             (eo::define ((nil ($seq_empty (eo::typeof t))))
-                                            (eo::ite (eo::eq t nil) t ($str_cons t nil))))
-    )
+  ((T Type) (t (Seq T)) (ss (Seq T) :list))
+  :signature ((Seq T)) (Seq T)
+  (
+  (($str_nary_intro (str.++ t ss)) (str.++ t ss))
+  (($str_nary_intro t)             (eo::define ((nil ($seq_empty (eo::typeof t))))
+                                      (eo::ite (eo::eq t nil) t (_ str.++ t nil))))
+  )
 )
 
 ; program: $re_nary_intro
@@ -872,19 +874,29 @@
 ; This rule may fail if s is not a str.++ application corresponding to a term
 ; in cvc5 rewritten form.
 
-; program: $str_flatten_word
+; program: $str_flatten_word_rec
+; args:
+; - ns (@TList Int): A list of indices to process in t.
+; - t String: A string term, assumed to be a string literal.
+; return: >
+;   The result of "flattening" t, for example given "AB", this returns the term
+;   (str.++ "A" (str.++ "B" "")).
+(program $str_flatten_word_rec ((U Type) (t (Seq U)) (n Int) (ns (@TList Int) :list))
+  :signature ((@TList Int) (Seq U)) (Seq U)
+  (
+  (($str_flatten_word_rec (@tlist.nil Int) t) "")
+  (($str_flatten_word_rec (@tlist n ns) t)    ($str_cons (eo::extract t n n) ($str_flatten_word_rec ns t)))
+  )
+)
+
+; define: $str_flatten_word
 ; args:
 ; - t String: A string term, assumed to be a string literal.
 ; return: >
 ;   The result of "flattening" t, for example given "AB", this returns the term
 ;   (str.++ "A" (str.++ "B" "")).
-(program $str_flatten_word ((U Type) (t (Seq U)))
-  :signature ((Seq U)) (Seq U)  ; NOTE: this could be string, but leads to upstream type checking issues
-  (
-    (($str_flatten_word "") "")
-    (($str_flatten_word t)  ($str_cons (eo::extract t 0 0) ($str_flatten_word (eo::extract t 1 (eo::len t)))))
-  )
-)
+(define $str_flatten_word ((U Type :implicit) (s (Seq U)))
+  ($str_flatten_word_rec ($iota (eo::len s)) s))
 
 ; program: $str_flatten
 ; args:
@@ -986,8 +998,7 @@
 
 ; program: $str_mk_re_loop_elim_rec
 ; args:
-; - n Int: The minimum number of iterations for a re.loop term.
-; - d Int: The difference between the min and max iterations for a re.loop term.
+; - ns (@TList Int): A list of zeroes whose length is the difference between the min and max iterations for a re.loop term.
 ; - r RegLan: The regular expression argument of re.loop.
 ; - rr RegLan: The current accumulated regular expression.
 ; return: >
@@ -996,15 +1007,14 @@
 ;   is zero, while accumulating rr. When n is zero, then rr is r^n.
 ;   We then decrement d until it is zero, while adding regular expressions
 ;   to a union, giving us (re.union r^n ... r^{n+d}).
-(program $str_mk_re_loop_elim_rec ((n Int) (d Int) (r RegLan) (rr RegLan :list))
-  :signature (Int Int RegLan RegLan) RegLan
+(program $str_mk_re_loop_elim_rec
+  ((n Int) (ns (@TList Int) :list) (r RegLan) (rr RegLan :list))
+  :signature ((@TList Int) RegLan RegLan) RegLan
   (
-    (($str_mk_re_loop_elim_rec 0 0 r rr)
-      (_ re.union (eo::list_singleton_elim re.++ rr) re.none))
-    (($str_mk_re_loop_elim_rec 0 d r rr)
-      (_ re.union (eo::list_singleton_elim re.++ rr) ($str_mk_re_loop_elim_rec 0 (eo::add d -1) r (re.++ r rr))))
-    (($str_mk_re_loop_elim_rec n d r rr)
-      ($str_mk_re_loop_elim_rec (eo::add n -1) d r (re.++ r rr)))
+  (($str_mk_re_loop_elim_rec (@tlist.nil Int) r rr)
+    (_ re.union (eo::list_singleton_elim re.++ rr) re.none))
+  (($str_mk_re_loop_elim_rec (@tlist 0 ns) r rr)
+    (_ re.union (eo::list_singleton_elim re.++ rr) ($str_mk_re_loop_elim_rec ns r (re.++ r rr))))
   )
 )
 
@@ -1021,7 +1031,8 @@
 ;   where r^k is (re.++ r ... r), where r is repeated k times when k>1, or
 ;   r if k=1 or @re.empty if k=0.
 (define $str_mk_re_loop_elim ((n Int) (d Int) (r RegLan))
-  (eo::list_singleton_elim re.union ($str_mk_re_loop_elim_rec n d r @re.empty)))
+  (eo::list_singleton_elim re.union
+    ($str_mk_re_loop_elim_rec (eo::list_repeat @tlist 0 d) r (eo::list_repeat re.++ r n))))
 
 ; program: $str_mk_str_in_re_concat_star_char
 ; args:

@@ -519,7 +519,7 @@
 ; conclusion: The given equality.
 (declare-rule str-in-re-eval ((s String) (r RegLan) (b Bool))
   :args ((= (str.in_re s r) b))
-  :requires ((($str_eval_str_in_re s r) b))
+  :requires (((eo::is_str s) true) (($str_eval_str_in_re s r) b))
   :conclusion (= (str.in_re s r) b)
 )
 
