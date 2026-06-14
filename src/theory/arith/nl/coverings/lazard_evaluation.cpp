@@ -28,6 +28,7 @@
 #include <optional>
 
 #include "theory/arith/nl/coverings/cocoa_converter.h"
+#include "util/cocoa_globals.h"
 
 namespace cvc5::internal::theory::arith::nl::coverings {
 
@@ -569,9 +570,20 @@ std::ostream& operator<<(std::ostream& os, const LazardEvaluationState& state)
   return os;
 }
 
+namespace {
+
+std::unique_ptr<LazardEvaluationState> makeLazardEvaluationState(
+    StatisticsRegistry& reg, const poly::Context& ctx)
+{
+  initCocoaGlobalManager();
+  return std::make_unique<LazardEvaluationState>(reg, ctx);
+}
+
+}  // namespace
+
 LazardEvaluation::LazardEvaluation(StatisticsRegistry& reg,
                                    const poly::Context& ctx)
-    : d_state(std::make_unique<LazardEvaluationState>(reg, ctx))
+    : d_state(makeLazardEvaluationState(reg, ctx))
 {
 }
 
