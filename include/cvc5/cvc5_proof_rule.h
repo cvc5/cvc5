@@ -439,6 +439,19 @@ enum ENUM(ProofRule)
   EVALUE(TRUST),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Annotation**
+   *
+   * .. math::
+   *
+   *   \inferrule{F \mid aid, A_1, \dots, A_n}{F}
+   *
+   * where :math:`aid` is an annotation identifier. This rule is used for
+   * carrying metadata on a proof step without changing its conclusion.
+   * \endverbatim
+   */
+  EVALUE(ANNOTATE),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Trusted rules -- Theory rewrite**
    *
    * .. math::

@@ -19,11 +19,13 @@
 #include "options/printer_options.h"
 #include "options/proof_options.h"
 #include "printer/smt2/smt2_printer.h"
+#include "proof/annotation_id.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_node_algorithm.h"
 #include "proof/proof_node_manager.h"
 #include "proof/trust_id.h"
 #include "theory/builtin/proof_checker.h"
+#include "theory/inference_id.h"
 
 namespace cvc5::internal {
 namespace proof {
@@ -521,6 +523,39 @@ void DotPrinter::ruleArguments(std::ostringstream& currentArguments,
     // delete "THEORY_" prefix
     s.erase(0, 7);
     currentArguments << s;
+  }
+  else if (r == ProofRule::ANNOTATE)
+  {
+    AnnotationId aid;
+    bool isTheoryLemma =
+        getAnnotationId(args[0], aid) && aid == AnnotationId::THEORY_LEMMA;
+    if (getAnnotationId(args[0], aid))
+    {
+      currentArguments << aid;
+    }
+    else
+    {
+      currentArguments << d_lbind.convert(args[0]);
+    }
+    for (size_t i = 1, size = args.size(); i < size; i++)
+    {
+      currentArguments << ", ";
+      theory::TheoryId tid;
+      if (i == 1 && isTheoryLemma
+          && theory::builtin::BuiltinProofRuleChecker::getTheoryId(args[i],
+                                                                   tid))
+      {
+        std::ostringstream ss;
+        ss << tid;
+        std::string s = ss.str();
+        s.erase(0, 7);
+        currentArguments << s;
+      }
+      else
+      {
+        currentArguments << d_lbind.convert(args[i]);
+      }
+    }
   }
   else
   {
