@@ -1027,6 +1027,15 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
   {
     SET_AND_NOTIFY(base, preprocessOnly, true, "normalize output");
   }
+  if (logic.isQuantified())
+  {
+    SET_AND_NOTIFY_IF_NOT_USER(
+        arith,
+        nlExtInitialSignLemmas,
+        false,
+        "Preemptive lemmas for incremental linearization are disabled "
+        "when the logic has quantifiers");
+  }
 }
 
 bool SetDefaults::isSygus(const Options& opts) const

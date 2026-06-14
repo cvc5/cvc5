@@ -87,6 +87,40 @@ void NonlinearExtension::processSideEffect(const NlLemma& se)
   d_trSlv.processSideEffect(se);
 }
 
+void NonlinearExtension::presolve()
+{
+  if (!options().arith.nlExtInitialSignLemmas)
+  {
+    return;
+  }
+  if (options().arith.nlExt != options::NlExtMode::FULL
+      && options().arith.nlExt != options::NlExtMode::LIGHT)
+  {
+    return;
+  }
+  // Collect all nonlinear multiplications that were preregistered. At this
+  // point preprocessing is complete, so these cover every monomial that will
+  // ever be asserted from the input (monomials introduced later by waiting
+  // lemmas are handled by NL_MONOMIAL_SIGN_INITIAL during runStrategy).
+  std::vector<Node> xtsAll;
+  d_extTheory.getTerms(xtsAll);
+  std::vector<Node> monomials;
+  for (const Node& x : xtsAll)
+  {
+    if (x.getKind() == Kind::NONLINEAR_MULT)
+    {
+      d_extState.d_mdb.registerMonomial(x);
+      monomials.push_back(x);
+    }
+  }
+  if (monomials.empty())
+  {
+    return;
+  }
+  d_monomialSlv.checkInitialRefine(monomials);
+  d_im.doPendingLemmas();
+}
+
 void NonlinearExtension::computeRelevantAssertions(
     const std::vector<Node>& assertions, std::vector<Node>& keep)
 {
