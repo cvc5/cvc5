@@ -17,6 +17,7 @@ extern "C" {
 #include "base/check.h"
 #include "base/output.h"
 #include "gtest/gtest.h"
+#include "test_capi.h"
 
 namespace cvc5::internal::test {
 
@@ -45,7 +46,7 @@ class TestCApiBlackResult : public ::testing::Test
 
 TEST_F(TestCApiBlackResult, is_null)
 {
-  ASSERT_DEATH(cvc5_result_is_null(nullptr), "invalid result");
+  ASSERT_CVC5_ERROR(cvc5_result_is_null(nullptr), "invalid result");
   Cvc5Term x = cvc5_mk_const(d_tm, d_uninterpreted, "x");
   std::vector<Cvc5Term> args = {x, x};
   cvc5_assert_formula(
@@ -78,7 +79,7 @@ TEST_F(TestCApiBlackResult, is_equal_disequal)
 
 TEST_F(TestCApiBlackResult, is_sat)
 {
-  ASSERT_DEATH(cvc5_result_is_sat(nullptr), "invalid result");
+  ASSERT_CVC5_ERROR(cvc5_result_is_sat(nullptr), "invalid result");
 
   Cvc5Term x = cvc5_mk_const(d_tm, d_uninterpreted, "x");
   std::vector<Cvc5Term> args = {x, x};
@@ -92,7 +93,7 @@ TEST_F(TestCApiBlackResult, is_sat)
 
 TEST_F(TestCApiBlackResult, is_unsat)
 {
-  ASSERT_DEATH(cvc5_result_is_unsat(nullptr), "invalid result");
+  ASSERT_CVC5_ERROR(cvc5_result_is_unsat(nullptr), "invalid result");
 
   Cvc5Term x = cvc5_mk_const(d_tm, d_uninterpreted, "x");
   std::vector<Cvc5Term> args = {x, x};
@@ -107,7 +108,7 @@ TEST_F(TestCApiBlackResult, is_unsat)
 
 TEST_F(TestCApiBlackResult, is_unknown)
 {
-  ASSERT_DEATH(cvc5_result_is_unknown(nullptr), "invalid result");
+  ASSERT_CVC5_ERROR(cvc5_result_is_unknown(nullptr), "invalid result");
 
   cvc5_set_logic(d_solver, "QF_NIA");
   cvc5_set_option(d_solver, "incremental", "false");
@@ -142,13 +143,13 @@ TEST_F(TestCApiBlackResult, hash)
   Cvc5Result res2 = cvc5_check_sat(d_solver);
   ASSERT_EQ(cvc5_result_hash(res1), cvc5_result_hash(res1));
   ASSERT_NE(cvc5_result_hash(res1), cvc5_result_hash(res2));
-  ASSERT_DEATH(cvc5_result_hash(nullptr), "invalid result");
+  ASSERT_CVC5_ERROR(cvc5_result_hash(nullptr), "invalid result");
 }
 
 TEST_F(TestCApiBlackResult, copy_release)
 {
-  ASSERT_DEATH(cvc5_result_copy(nullptr), "invalid result");
-  ASSERT_DEATH(cvc5_result_release(nullptr), "invalid result");
+  ASSERT_CVC5_ERROR(cvc5_result_copy(nullptr), "invalid result");
+  ASSERT_CVC5_ERROR(cvc5_result_release(nullptr), "invalid result");
   Cvc5Term x = cvc5_mk_const(d_tm, d_uninterpreted, "x");
   std::vector<Cvc5Term> args = {x, x};
   cvc5_assert_formula(

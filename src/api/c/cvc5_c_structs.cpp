@@ -15,6 +15,37 @@
 #include "api/c/cvc5_checks.h"
 
 /* -------------------------------------------------------------------------- */
+/* Thread-local error state                                                   */
+/* -------------------------------------------------------------------------- */
+
+namespace cvc5 {
+
+namespace {
+/** Whether an error occurred during the most recent guarded C API call. */
+thread_local bool s_error_flag = false;
+/** The message associated with the most recent error (if any). */
+thread_local std::string s_error_msg;
+}  // namespace
+
+void cvc5_capi_set_error(const std::string& msg)
+{
+  s_error_flag = true;
+  s_error_msg = msg;
+}
+
+void cvc5_capi_reset_error()
+{
+  s_error_flag = false;
+  s_error_msg.clear();
+}
+
+bool cvc5_capi_has_error() { return s_error_flag; }
+
+const char* cvc5_capi_get_error_message() { return s_error_msg.c_str(); }
+
+}  // namespace cvc5
+
+/* -------------------------------------------------------------------------- */
 /* Cvc5TermManager struct                                                     */
 /* -------------------------------------------------------------------------- */
 
