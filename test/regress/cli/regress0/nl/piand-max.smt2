@@ -1,3 +1,4 @@
+; COMMAND-LINE: --sat-solver=minisat
 ; EXPECT: unsat
 (set-logic QF_NIA)
 (declare-const k Int)
