@@ -157,6 +157,15 @@ Node LogosNodeConverter::postConvert(Node n)
     std::vector<Node> args(n.begin(), n.end());
     return convert(mkInternalApp(id, args, tn));
   }
+  else if (k==Kind::BOUND_VARIABLE)
+  {
+    std::stringstream sss;
+    sss << n;
+    Node str = d_nm->mkConst(String(sss.str()));
+    Node name = convert(str);
+    Node tnn = typeAsNode(n.getType());
+    return mkInternalApp("Term.Var", {name, tnn}, n.getType());
+  }
   else if (n.isVar() && d_symbols.find(n) == d_symbols.end())
   {
     // don't change builtin datatype operators
