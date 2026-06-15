@@ -120,7 +120,7 @@
   :signature (@List (Set T)) (Set T)
   (
     (($set_eval_insert (@list x xs) t) (set.union (set.singleton x) ($set_eval_insert xs t)))
-    (($set_eval_insert list.nil t)    t)
+    (($set_eval_insert @list.nil t)    t)
   )
 )
 
