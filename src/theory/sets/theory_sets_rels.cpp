@@ -30,7 +30,9 @@ namespace theory {
 namespace sets {
 
 typedef std::map<Node, std::vector<Node>>::iterator MEM_IT;
-typedef std::map<std::vector<Node>, std::pair<Node, size_t>>::iterator CYC_IT;
+typedef context::CDHashMap<std::vector<Node>,
+                           std::pair<Node, size_t>,
+                           VectorNodeHashFunction>::iterator CYC_IT;
 typedef std::map<Kind, std::vector<Node>>::iterator KIND_TERM_IT;
 typedef std::map<Node, std::unordered_set<Node>>::iterator TC_GRAPH_IT;
 typedef std::map<Node, std::map<Kind, std::vector<Node>>>::iterator TERM_IT;
@@ -47,7 +49,13 @@ TheorySetsRels::TheorySetsRels(Env& env,
       d_im(im),
       d_skCache(skc),
       d_treg(treg),
-      d_shared_terms(userContext())
+      d_shared_terms(userContext()),
+      // ===== TEMP CHANGE (cycle-ext): construct CD map with SAT context =====
+      // NEW CODE: context() = SAT search context, so entries roll back on every
+      // decision/backtrack (unlike userContext() used for d_shared_terms
+      // above).
+      d_cycle_sequences(context())
+// ===== END TEMP CHANGE =====
 {
   d_trueNode = nodeManager()->mkConst(true);
   d_falseNode = nodeManager()->mkConst(false);
@@ -276,7 +284,6 @@ void TheorySetsRels::check()
   d_tcr_tcGraph_exps.clear();
   d_tcr_tcGraph.clear();
   d_acyclic_cache.clear();
-  // d_cycle_sequences.clear();
 }
 
 /*
@@ -1357,7 +1364,7 @@ void TheorySetsRels::applyInstCycleRule(Node rel, Node exp)
 
   Node s = sm->mkSkolemFunction(SkolemId::RELS_SEQUENCE, {rel});
 
-  d_cycle_sequences[{rel}] = std::make_pair(s, 1);
+  d_cycle_sequences.insert({rel}, std::make_pair(s, 1));
 
   Node conc = nm->mkNode(Kind::LT,
                          nm->mkConstInt(Rational(1)),
@@ -1456,7 +1463,7 @@ void TheorySetsRels::applyUnrollCycle(std::vector<Node>& rels,
 
   // Increment cnt
   std::pair<Node, size_t> new_c = std::make_pair(seq, cnt + 1);
-  d_cycle_sequences[rels] = new_c;
+  d_cycle_sequences.insert(rels, new_c);
 }
 
 /*

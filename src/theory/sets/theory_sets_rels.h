@@ -52,6 +52,21 @@ class TupleTrie
   void clear() { d_data.clear(); }
 }; /* class TupleTrie */
 
+/**
+ * Hash function for vector of nodes, used for the context-dependent map
+ * d_cycle_sequences, which maps a relation list to its sequence representation
+ * and count.
+ */
+struct VectorNodeHashFunction
+{
+  size_t operator()(const std::vector<Node>& v) const
+  {
+    size_t h = 0;
+    for (const Node& n : v) h = h * 31 + std::hash<Node>()(n);
+    return h;
+  }
+};
+
 /** The relations extension of the theory of sets
  *
  * This class implements inference schemes described in Meng et al. CADE 2017
@@ -131,9 +146,11 @@ class TheorySetsRels : protected EnvObj
 
   /** Mapping from acyclic relation representatives to their sequence
    * representations and counts */
-  std::map<std::vector<Node>, std::pair<Node, size_t>> d_cycle_sequences;
-  // context::CDHashMap<std::vector<Node>, std::pair<Node, size_t> >
-  // d_cycle_sequences;
+  // TODO Explain why this needs to be context depedent
+  context::CDHashMap<std::vector<Node>,
+                     std::pair<Node, size_t>,
+                     VectorNodeHashFunction>
+      d_cycle_sequences;
 
   /** Mapping between transitive closure relation TC(r) and its TC graph
    * constructed based on the members of r*/
