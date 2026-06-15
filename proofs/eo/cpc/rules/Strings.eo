@@ -686,10 +686,10 @@
   :signature ((@TList T) (@TList T)) Bool
   (
   (($str_is_multiset_subset_strict_done xs (@tlist s nr)) 
-    ; A missing symbolic term may be empty, so only definitely non-empty
-    ; components witness strictness.
     (eo::define ((ls ($str_value_len s)))
     (eo::define ((rec ($str_is_multiset_subset_strict_done xs nr)))
+      ; We must check that s has length exactly one, since we are trying to
+      ; show that it is distinct from xs which contains characters.
       (eo::ite (eo::and (eo::is_eq ls 1) ($are_distinct_terms_list_rec s xs (eo::typeof s)))
         true
         rec))))
