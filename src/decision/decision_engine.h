@@ -62,8 +62,7 @@ class DecisionEngine : protected EnvObj
    * are satisfied. Used for instantiation lemmas under --inst-defer.
    * @param lems The lemmas to add.
    */
-  virtual void addDeferredAssertions(
-      CVC5_UNUSED const std::vector<TNode>& lems)
+  virtual void addDeferredAssertions(CVC5_UNUSED const std::vector<TNode>& lems)
   {
   }
 

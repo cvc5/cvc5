@@ -173,11 +173,8 @@ void TheoryProxy::notifySkolemDefinition(Node a, TNode skolem)
   d_skdm->notifySkolemDefinition(skolem, a);
 }
 
-void TheoryProxy::notifyAssertion(Node a,
-                                  TNode skolem,
-                                  bool isLemma,
-                                  bool local,
-                                  bool defer)
+void TheoryProxy::notifyAssertion(
+    Node a, TNode skolem, bool isLemma, bool local, bool defer)
 {
   // ignore constants
   if (a.isConst())

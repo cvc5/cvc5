@@ -548,8 +548,7 @@ bool JustificationStrategy::refreshCurrentAssertion()
   {
     return true;
   }
-  if (refreshCurrentAssertionFromList(secondList,
-                                      &secondList == &d_assertions))
+  if (refreshCurrentAssertionFromList(secondList, &secondList == &d_assertions))
   {
     return true;
   }
