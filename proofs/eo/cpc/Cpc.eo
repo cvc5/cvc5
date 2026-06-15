@@ -372,7 +372,7 @@
 ; conclusion: The term t is not equal to s.
 (declare-rule distinct_values ((U Type) (t U) (s U))
   :args (t s)
-  :requires ((($are_distinct_terms t s) true))
+  :requires ((($are_distinct_terms (eo::typeof t) t s) true))
   :conclusion (not (= t s))
 )
 
