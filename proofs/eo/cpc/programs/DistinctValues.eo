@@ -9,7 +9,7 @@
 (include "Utils.eo")
 (include "Datatypes.eo")
 
-; note: This is a forward declaration of $are_distinct_terms_list below.
+; note: This is a forward declaration of $are_distinct_terms_type below.
 (program $are_distinct_terms_type ((T Type)) :signature (T T Type) Bool)
 
 ; define: $are_distinct_terms
@@ -27,6 +27,7 @@
 ; args:
 ; - t (Set T): The first set terms.
 ; - s (Set T): The second set terms.
+; - T Type: The element type of t and s.
 ; return: >
 ;   True if we can show that t is not a subset of s based on reasoning about values.
 (program $set_is_not_subset
@@ -69,6 +70,7 @@
 ; args:
 ; - t (Seq T): The first term, expected to be a constant-like sequence.
 ; - s (Seq T): The second term, expected to be a constant-like sequence.
+; - T Type: The element type of t and s.
 ; return: >
 ;   True if we can derive that t and s are distinct based on their length,
 ;   or by a character prefix that can be shown distinct.
