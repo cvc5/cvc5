@@ -216,7 +216,7 @@
                                               (eo::ite (eo::is_z len) -1
                                                 (str.to_code ex))))))
       (($run_evaluate (str.from_code n))    (eo::define ((ex ($run_evaluate n)))
-                                              (eo::ite ($str_is_code_point ex) (eo::to_str n) "")))
+                                              (eo::ite ($str_is_code_point ex) (eo::to_str n) (str.from_code n))))
       (($run_evaluate (str.to_int ssx))     (eo::define ((ex ($run_evaluate ssx)))
                                               ($str_to_int_eval ex)))
       (($run_evaluate (str.from_int n))     (eo::define ((en ($run_evaluate n)))
