@@ -176,7 +176,8 @@ void TheoryProxy::notifySkolemDefinition(Node a, TNode skolem)
 void TheoryProxy::notifyAssertion(Node a,
                                   TNode skolem,
                                   bool isLemma,
-                                  bool local)
+                                  bool local,
+                                  bool defer)
 {
   // ignore constants
   if (a.isConst())
@@ -184,7 +185,12 @@ void TheoryProxy::notifyAssertion(Node a,
     return;
   }
   // notify the decision engine
-  if (local)
+  if (defer)
+  {
+    // If it is marked deferred, add as deferred assertions.
+    d_decisionEngine->addDeferredAssertions({a});
+  }
+  else if (local)
   {
     // If it is marked local, add as local assertions.
     d_decisionEngine->addLocalAssertions({a});

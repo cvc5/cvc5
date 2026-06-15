@@ -32,6 +32,9 @@ JustificationStrategy::JustificationStrategy(Env& env,
               .decision.jhRlvOrder),  // assertions are user-context dependent
       d_localAssertions(
           context(), context()),  // local assertions are SAT-context dependent
+      // Deferred assertions are user-context dependent: they are sent once
+      // (never re-derived after backtracking), hence they must persist.
+      d_deferredAssertions(userContext(), context()),
       d_jcache(context(), ss, cs),
       d_stack(context()),
       d_lastDecisionLit(context()),
@@ -53,6 +56,7 @@ void JustificationStrategy::presolve()
   // reset the dynamic assertion list data
   d_assertions.presolve();
   d_localAssertions.presolve();
+  d_deferredAssertions.presolve();
   // clear the stack
   d_stack.clear();
 }
@@ -450,22 +454,27 @@ bool JustificationStrategy::isDone() { return !refreshCurrentAssertion(); }
 void JustificationStrategy::addAssertions(const std::vector<TNode>& lems)
 {
   Trace("jh-assert") << "addAssertions " << lems << std::endl;
-  insertToAssertionList(lems, false);
+  insertToAssertionList(lems, d_assertions, d_stats.d_maxAssertionsSize);
 }
 
 void JustificationStrategy::addLocalAssertions(const std::vector<TNode>& lems)
 {
   Trace("jh-assert") << "addLocalAssertions: " << lems << std::endl;
-  insertToAssertionList(lems, true);
+  insertToAssertionList(lems, d_localAssertions, d_stats.d_maxSkolemDefsSize);
+}
+
+void JustificationStrategy::addDeferredAssertions(
+    const std::vector<TNode>& lems)
+{
+  Trace("jh-assert") << "addDeferredAssertions: " << lems << std::endl;
+  insertToAssertionList(
+      lems, d_deferredAssertions, d_stats.d_maxSkolemDefsSize);
 }
 
 void JustificationStrategy::insertToAssertionList(
-    const std::vector<TNode>& lems, bool local)
+    const std::vector<TNode>& lems, AssertionList& al, IntStat& sizeStat)
 {
   std::vector<TNode> toProcess(lems.begin(), lems.end());
-  AssertionList& al = local ? d_localAssertions : d_assertions;
-  IntStat& sizeStat =
-      local ? d_stats.d_maxSkolemDefsSize : d_stats.d_maxAssertionsSize;
   // always miniscope AND and negated OR immediately
   size_t index = 0;
   // must keep some intermediate nodes below around for ref counting
@@ -531,20 +540,26 @@ bool JustificationStrategy::refreshCurrentAssertion()
     return true;
   }
   bool skFirst = (d_jhSkMode != options::JutificationSkolemMode::LAST);
-  // use main assertions first
-  if (refreshCurrentAssertionFromList(skFirst))
+  // use main assertions and local (skolem definition) assertions, in the
+  // order determined by the skolem mode
+  AssertionList& firstList = skFirst ? d_localAssertions : d_assertions;
+  AssertionList& secondList = skFirst ? d_assertions : d_localAssertions;
+  if (refreshCurrentAssertionFromList(firstList, &firstList == &d_assertions))
   {
     return true;
   }
-  // if satisfied all main assertions, use the skolem assertions, which may
-  // fail
-  return refreshCurrentAssertionFromList(!skFirst);
+  if (refreshCurrentAssertionFromList(secondList,
+                                      &secondList == &d_assertions))
+  {
+    return true;
+  }
+  // lastly, consider the deferred assertions, which are always last
+  return refreshCurrentAssertionFromList(d_deferredAssertions, false);
 }
 
-bool JustificationStrategy::refreshCurrentAssertionFromList(bool local)
+bool JustificationStrategy::refreshCurrentAssertionFromList(AssertionList& al,
+                                                            bool doWatchStatus)
 {
-  AssertionList& al = local ? d_localAssertions : d_assertions;
-  bool doWatchStatus = !local;
   d_currUnderStatus = Node::null();
   TNode curr = al.getNextAssertion();
   SatValue currValue;

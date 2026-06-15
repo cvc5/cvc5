@@ -1866,6 +1866,14 @@ name   = "Quantifiers"
   default    = "false"
   help       = "Instantiations are local to the SAT context"
 
+[[option]]
+  name       = "instDefer"
+  category   = "expert"
+  long       = "inst-defer"
+  type       = "bool"
+  default    = "false"
+  help       = "Instantiations are recorded globally (never re-derived) but are treated like local assertions in the justification heuristic; a variant of inst-local that avoids re-deriving instantiations after backtracking"
+
 ### SyGuS instantiation options
 
 [[option]]

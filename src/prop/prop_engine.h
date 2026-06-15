@@ -410,7 +410,8 @@ class PropEngine : protected EnvObj
                             const std::vector<theory::SkolemLemma>& ppLemmas,
                             bool removable,
                             bool inprocess,
-                            bool local);
+                            bool local,
+                            bool defer = false);
 
   /**
    * Indicates that the SAT solver is currently solving something and we should

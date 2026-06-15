@@ -56,6 +56,16 @@ class DecisionEngine : protected EnvObj
    * @param lems The lemmas to add.
    */
   virtual void addLocalAssertions(CVC5_UNUSED const std::vector<TNode>& lems) {}
+  /**
+   * Adds assertions lems to satisfy that persist in the user context, but
+   * are deprioritized: they are considered only after all other assertions
+   * are satisfied. Used for instantiation lemmas under --inst-defer.
+   * @param lems The lemmas to add.
+   */
+  virtual void addDeferredAssertions(
+      CVC5_UNUSED const std::vector<TNode>& lems)
+  {
+  }
 
  protected:
   /** Get next internal, the engine-specific implementation of getNext */
