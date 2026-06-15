@@ -440,16 +440,20 @@ Result::Status NonlinearExtension::modelBasedRefinement(
   bool needsRecheck;
   do
   {
+    enum class CheckCompletion
+    {
+      COMPLETE,
+      NEEDS_MODEL_CHECK
+    };
+
     d_model.resetCheck();
     needsRecheck = false;
-    // complete_status:
-    //   1 : we may answer SAT, -1 : we may not answer SAT, 0 : unknown
-    int complete_status = 1;
+    CheckCompletion completeStatus = CheckCompletion::COMPLETE;
     // We require a check either if an assertion is false or a shared term has
     // a wrong value
     if (!false_asserts.empty())
     {
-      complete_status = 0;
+      completeStatus = CheckCompletion::NEEDS_MODEL_CHECK;
       runStrategy(assertions, false_asserts, xts);
       if (d_im.hasSentLemma() || d_im.hasPendingLemma())
       {
@@ -457,11 +461,14 @@ Result::Status NonlinearExtension::modelBasedRefinement(
         return Result::UNSAT;
       }
     }
-    Trace("nl-ext") << "Finished check with status : " << complete_status
+    Trace("nl-ext") << "Finished check with status : "
+                    << (completeStatus == CheckCompletion::COMPLETE
+                            ? "complete"
+                            : "needs-model-check")
                     << std::endl;
 
     // if we did not add a lemma during check and there is a chance for SAT
-    if (complete_status == 0)
+    if (completeStatus == CheckCompletion::NEEDS_MODEL_CHECK)
     {
       Trace("nl-ext")
           << "Check model based on bounds for irrational-valued functions..."
@@ -470,7 +477,7 @@ Result::Status NonlinearExtension::modelBasedRefinement(
       // error bounds on the Taylor approximation of transcendental functions.
       if (checkModel(assertions))
       {
-        complete_status = 1;
+        completeStatus = CheckCompletion::COMPLETE;
       }
       if (d_im.hasUsed())
       {
@@ -480,7 +487,7 @@ Result::Status NonlinearExtension::modelBasedRefinement(
     }
 
     // if we have not concluded SAT
-    if (complete_status != 1)
+    if (completeStatus != CheckCompletion::COMPLETE)
     {
       // flush the waiting lemmas
       if (d_im.hasWaitingLemma())
@@ -580,13 +587,13 @@ void NonlinearExtension::runStrategy(const std::vector<Node>& assertions,
         d_monomialBoundsSlv.checkBounds(assertions, false_asserts);
         break;
       case InferStep::NL_MONOMIAL_MAGNITUDE0:
-        d_monomialSlv.checkMagnitude(0);
+        d_monomialSlv.checkMagnitude(MagnitudeCompareMode::ONE);
         break;
       case InferStep::NL_MONOMIAL_MAGNITUDE1:
-        d_monomialSlv.checkMagnitude(1);
+        d_monomialSlv.checkMagnitude(MagnitudeCompareMode::VARIABLE);
         break;
       case InferStep::NL_MONOMIAL_MAGNITUDE2:
-        d_monomialSlv.checkMagnitude(2);
+        d_monomialSlv.checkMagnitude(MagnitudeCompareMode::MONOMIAL);
         break;
       case InferStep::NL_MONOMIAL_SIGN: d_monomialSlv.checkSign(); break;
       case InferStep::NL_RESOLUTION_BOUNDS:
