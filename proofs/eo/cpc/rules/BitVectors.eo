@@ -156,7 +156,7 @@
    (b Bool) (bn Bool) (bs (BitVec m) :list) (start Int) (end Int))
   :signature ((-> (BitVec n) (BitVec n) (BitVec n)) (BitVec k) (BitVec k) (BitVec m) Bool Int Int) (BitVec k)
   (
-  (($bv_mk_bitwise_slicing_rec f c a bs bn start -1)
+  (($bv_mk_bitwise_slicing_rec f c a @bv_empty bn start end)
       (_ concat ($nary_app f (extract start 0 c) (extract start 0 a)) @bv_empty))
   (($bv_mk_bitwise_slicing_rec f c a (@from_bools b bs) bn start end)
         (eo::define ((em1 (eo::add end -1)) (ep1 (eo::add end 1)))
