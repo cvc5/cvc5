@@ -4887,6 +4887,10 @@ enum ENUM(ProofRewriteRule)
   EVALUE(RE_CONCAT_STAR_SUBSUME1),
   /** Auto-generated from RARE rule re-concat-star-subsume2 */
   EVALUE(RE_CONCAT_STAR_SUBSUME2),
+  /** Auto-generated from RARE rule re-concat-star-subsume3 */
+  EVALUE(RE_CONCAT_STAR_SUBSUME3),
+  /** Auto-generated from RARE rule re-concat-star-subsume4 */
+  EVALUE(RE_CONCAT_STAR_SUBSUME4),
   /** Auto-generated from RARE rule re-concat-merge */
   EVALUE(RE_CONCAT_MERGE),
   /** Auto-generated from RARE rule re-union-all */

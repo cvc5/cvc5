@@ -588,6 +588,19 @@
   (re.++ xs (re.* re.allchar) (re.* r) ys)
   (re.++ xs (re.* re.allchar) ys))
 
+; Any nullable regular expression adjacent to (re.* re.allchar) can be dropped,
+; since (re.* re.allchar) already matches all strings and r accepts the empty
+; string. This generalizes re-concat-star-subsume1/2, where (re.* r) is nullable.
+(define-cond-rule re-concat-star-subsume3 ((xs RegLan :list) (r RegLan) (ys RegLan :list))
+  (str.in_re "" r)
+  (re.++ xs (re.* re.allchar) r ys)
+  (re.++ xs (re.* re.allchar) ys))
+
+(define-cond-rule re-concat-star-subsume4 ((xs RegLan :list) (r RegLan) (ys RegLan :list))
+  (str.in_re "" r)
+  (re.++ xs r (re.* re.allchar) ys)
+  (re.++ xs (re.* re.allchar) ys))
+
 (define-rule* re-concat-merge ((xs RegLan :list) (s String) (t String) (ys RegLan :list)) 
   (re.++ xs (str.to_re s) (str.to_re t) ys)
   (re.++ xs (str.to_re (str.++ s t)) ys)
