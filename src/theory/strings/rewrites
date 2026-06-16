@@ -652,6 +652,14 @@
   (re.loop n m r)
   re.none)
 
+; Looping a starred regex collapses to the star itself: (re.* r) is idempotent
+; under concatenation and contains the empty string, so any number of copies
+; (with m >= 1 and m >= n) is equivalent to (re.* r).
+(define-cond-rule re-loop-star ((n Int) (m Int) (r RegLan))
+  (and (>= m n) (>= m 1))
+  (re.loop n m (re.* r))
+  (re.* r))
+
 (define-cond-rule re-inter-cstring ((x RegLan) (ys RegLan :list) (s String))
   (str.in_re s (re.inter (str.to_re s) x ys))
   (re.inter (str.to_re s) x ys) 

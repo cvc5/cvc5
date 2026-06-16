@@ -4915,6 +4915,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(RE_STAR_UNION_DROP_EMP),
   /** Auto-generated from RARE rule re-loop-neg */
   EVALUE(RE_LOOP_NEG),
+  /** Auto-generated from RARE rule re-loop-star */
+  EVALUE(RE_LOOP_STAR),
   /** Auto-generated from RARE rule re-inter-cstring */
   EVALUE(RE_INTER_CSTRING),
   /** Auto-generated from RARE rule re-inter-cstring-neg */
