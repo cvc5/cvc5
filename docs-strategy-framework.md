@@ -213,10 +213,12 @@ std::ostream& operator<<(std::ostream& out, InferStep s)
 }
 ```
 
-### Step 4 — write the driver (in `theory/foo/theory_foo.cpp`)
+### Step 4 — write `runStrategy`/`runInferStep` and wire up `postCheck`
 
-The framework does **not** dictate this; copy the proven shape from strings/bags.
-The two pieces:
+`runStrategy` and `runInferStep` are theory-specific (they dispatch to your
+sub-solvers); copy the proven shape from strings/bags. The `postCheck` loop
+itself is **not** rewritten — you implement `StrategyCallback` and call the
+shared `postCheckStrategy()` (see the end of this step).
 
 **`runStrategy`** — walk the list, yield at `BREAK`:
 
@@ -264,35 +266,44 @@ void TheoryFoo::runInferStep(InferStep s, int effort)
 }
 ```
 
-**The `postCheck` driver loop** — the anti-starvation engine (copy verbatim,
-swapping the trace tags):
+**The `postCheck` driver** — you do **not** hand-write the check loop. The
+anti-starvation loop lives once in `theory::postCheckStrategy()`
+([theory/strategy.cpp](src/theory/strategy.cpp)). Your theory implements the
+`StrategyCallback` interface (typically on the `Theory` subclass itself) and
+delegates `Theory::postCheck` to the shared driver:
 
 ```cpp
+// theory_foo.h
+class TheoryFoo : public Theory, public StrategyCallback { ... };
+
+// theory_foo.cpp — StrategyCallback overrides (forward to your members):
+bool TheoryFoo::isStrategyInit() const { return d_strat.isStrategyInit(); }
+bool TheoryFoo::hasStrategyEffort(Effort e) const {
+  return d_strat.hasStrategyEffort(e);
+}
+void TheoryFoo::doPending() { d_im.doPending(); }
+// runStrategy(e) as written above. The three notifyStrategy{CheckStart,
+// RoundStart,CheckEnd}(Effort) hooks default to no-ops; override them for
+// per-check or per-round work (e.g. statistics, resetting state). Strings uses
+// all three; bags overrides only RoundStart (to re-collect its terms).
+
 void TheoryFoo::postCheck(Effort e)
 {
-  d_im.doPendingFacts();
-  Assert(d_strat.isStrategyInit());
-  if (!d_state.isInConflict() && !d_valuation.needCheck()
-      && d_strat.hasStrategyEffort(e))
-  {
-    bool sentLemma = false, hadPending = false;
-    do {
-      d_im.reset();
-      runStrategy(e);
-      hadPending = d_im.hasPending();   // did a step buffer anything?
-      d_im.doPending();                 // facts first, then lemmas
-      sentLemma  = d_im.hasSentLemma();
-    } while (!d_state.isInConflict() && !sentLemma && hadPending);
-  }
-  Assert(!d_im.hasPendingFact());
-  Assert(!d_im.hasPendingLemma());
+  postCheckStrategy(e, *this, d_im, d_state, d_valuation);
 }
 ```
+
+`postCheckStrategy()` runs the shared loop: flush pending facts, then (if not in
+conflict, a check is needed, and a strategy exists for `e`) repeatedly
+`reset()` → `notifyStrategyRoundStart` → `runStrategy` → `doPending`, stopping
+the moment a lemma is sent or a conflict is reached, and otherwise continuing
+while a round produced internal facts only.
 
 > The loop re-runs **only** while there was pending work *and* no lemma was sent
 > *and* no conflict — i.e. only for cheap fact-only progress. Any lemma or
 > conflict returns control to the SAT solver immediately. This is the rule that
-> keeps the theory from monopolizing the solver; preserve it exactly.
+> keeps the theory from monopolizing the solver; it is centralized in
+> `postCheckStrategy` so every theory inherits it.
 
 Don't forget to call `d_strat.initializeStrategy()` once (theories do this in
 `presolve()`), and to use an `InferenceManagerBuffered`-derived inference manager
@@ -401,12 +412,15 @@ If `CHECK_BAG_MAKE` (index 2) buffers a lemma, the `BREAK` at index 3 fires
   `template class StrategyBase<...>;` for each Step type and each new theory adds
   one line there (see Step 5). The alternative — a header-only template — needs no
   such list but recompiles the bodies in every TU that includes it.
-- **Why keep `runStrategy`/`runInferStep`/`postCheck` per-theory?** They reference
+- **Why is `postCheck` shared but `runStrategy`/`runInferStep` per-theory?** The
+  `postCheck` *loop* (flush facts → run → flush → repeat-or-yield) is identical
+  across theories, so it lives once in `postCheckStrategy()` and theories plug in
+  via `StrategyCallback`. `runStrategy`/`runInferStep`, by contrast, dispatch to
   theory-specific sub-solvers and (subtly) differ in yield semantics — e.g. some
   bags steps short-circuit via a `bool` return, strings keys off
-  `hasProcessed()`. Unifying them would risk behavior changes in the complex
-  strings solver for no real sharing benefit. The framework's scope is the
-  *recipe container* only.
+  `hasProcessed()`. Unifying *those* would risk behavior changes in the complex
+  strings solver for no real sharing benefit, so they stay per-theory and are
+  invoked through the callback's `runStrategy`.
 - **Why `BREAK` is a constructor parameter.** Different theories number their
   enums differently (strings: `NONE=0, BREAK=1, …`; bags: `BREAK=0, …`). Passing
   the marker once avoids reserving a magic value and keeps each theory's enum

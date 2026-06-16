@@ -936,68 +936,50 @@ void TheoryStrings::notifyFact(TNode atom,
 
 void TheoryStrings::postCheck(Effort e)
 {
-  d_im.doPendingFacts();
-
-  Assert(d_strat.isStrategyInit());
-  if (!d_state.isInConflict() && !d_valuation.needCheck()
-      && d_strat.hasStrategyEffort(e))
-  {
-    Trace("strings-check-debug")
-        << "Theory of strings " << e << " effort check " << std::endl;
-    if (TraceIsOn("strings-eqc"))
-    {
-      Trace("strings-eqc") << debugPrintStringsEqc() << std::endl;
-    }
-    // Start the full effort check. This will compute the relevant term set,
-    // which is independent of the loop below, which adds internal facts.
-    d_termReg.notifyStartFullEffortCheck();
-    ++(d_statistics.d_checkRuns);
-    bool sentLemma = false;
-    bool hadPending = false;
-    Trace("strings-check") << "Check at effort " << e << "..." << std::endl;
-    do
-    {
-      d_im.reset();
-      // assume the default model constructor in case we answer sat after this
-      // check
-      d_state.setModelConstructor(&d_mcd);
-      ++(d_statistics.d_strategyRuns);
-      Trace("strings-check") << "  * Run strategy..." << std::endl;
-      runStrategy(e);
-      // remember if we had pending facts or lemmas
-      hadPending = d_im.hasPending();
-      // Send the facts *and* the lemmas. We send lemmas regardless of whether
-      // we send facts since some lemmas cannot be dropped. Other lemmas are
-      // otherwise avoided by aborting the strategy when a fact is ready.
-      d_im.doPending();
-      // Did we successfully send a lemma? Notice that if hasPending = true
-      // and sentLemma = false, then the above call may have:
-      // (1) had no pending lemmas, but successfully processed pending facts,
-      // (2) unsuccessfully processed pending lemmas.
-      // In either case, we repeat the strategy if we are not in conflict.
-      sentLemma = d_im.hasSentLemma();
-      if (TraceIsOn("strings-check"))
-      {
-        Trace("strings-check") << "  ...finish run strategy: ";
-        Trace("strings-check") << (hadPending ? "hadPending " : "");
-        Trace("strings-check") << (sentLemma ? "sentLemma " : "");
-        Trace("strings-check") << (d_state.isInConflict() ? "conflict " : "");
-        if (!hadPending && !sentLemma && !d_state.isInConflict())
-        {
-          Trace("strings-check") << "(none)";
-        }
-        Trace("strings-check") << std::endl;
-      }
-      // repeat if we did not add a lemma or conflict, and we had pending
-      // facts or lemmas.
-    } while (!d_state.isInConflict() && !sentLemma && hadPending);
-    // End the full effort check.
-    d_termReg.notifyEndFullEffortCheck();
-  }
+  // Run the shared full-effort strategy driver (see theory/strategy.h). The
+  // theory-specific behavior is supplied via the StrategyCallback overrides
+  // below.
+  postCheckStrategy(e, *this, d_im, d_state, d_valuation);
   Trace("strings-check") << "Theory of strings, done check : " << e
                          << std::endl;
-  Assert(!d_im.hasPendingFact());
-  Assert(!d_im.hasPendingLemma());
+}
+
+bool TheoryStrings::isStrategyInit() const { return d_strat.isStrategyInit(); }
+
+bool TheoryStrings::hasStrategyEffort(Theory::Effort e) const
+{
+  return d_strat.hasStrategyEffort(e);
+}
+
+void TheoryStrings::doPending() { d_im.doPending(); }
+
+void TheoryStrings::notifyStrategyCheckStart(Theory::Effort e)
+{
+  Trace("strings-check-debug")
+      << "Theory of strings " << e << " effort check " << std::endl;
+  if (TraceIsOn("strings-eqc"))
+  {
+    Trace("strings-eqc") << debugPrintStringsEqc() << std::endl;
+  }
+  // Start the full effort check. This will compute the relevant term set,
+  // which is independent of the strategy loop, which adds internal facts.
+  d_termReg.notifyStartFullEffortCheck();
+  ++(d_statistics.d_checkRuns);
+  Trace("strings-check") << "Check at effort " << e << "..." << std::endl;
+}
+
+void TheoryStrings::notifyStrategyRoundStart(Theory::Effort)
+{
+  // assume the default model constructor in case we answer sat after this check
+  d_state.setModelConstructor(&d_mcd);
+  ++(d_statistics.d_strategyRuns);
+  Trace("strings-check") << "  * Run strategy..." << std::endl;
+}
+
+void TheoryStrings::notifyStrategyCheckEnd(Theory::Effort)
+{
+  // End the full effort check.
+  d_termReg.notifyEndFullEffortCheck();
 }
 
 bool TheoryStrings::needsCheckLastEffort()

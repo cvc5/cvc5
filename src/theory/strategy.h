@@ -151,6 +151,69 @@ class StrategyBase
   std::map<Theory::Effort, size_t> d_stepEnd;
 }; /* class StrategyBase */
 
+class InferenceManagerBuffered;
+class TheoryState;
+
+/**
+ * Callback interface implemented by a theory that is driven by
+ * postCheckStrategy(). It exposes the small set of theory-specific operations
+ * the shared full-effort check loop needs: the strategy queries, a single pass
+ * over the strategy steps, flushing buffered facts/lemmas, and optional hooks
+ * run at the boundaries of the check. A theory typically implements this
+ * interface on the Theory subclass itself and forwards to its members.
+ */
+class StrategyCallback
+{
+ public:
+  virtual ~StrategyCallback() = default;
+  /** Has the strategy been initialized? (typically d_strat.isStrategyInit()) */
+  virtual bool isStrategyInit() const = 0;
+  /** Is there a strategy for effort e? (typically d_strat.hasStrategyEffort(e))
+   */
+  virtual bool hasStrategyEffort(Theory::Effort e) const = 0;
+  /** Run one pass over the strategy steps at effort e. */
+  virtual void runStrategy(Theory::Effort e) = 0;
+  /**
+   * Send all buffered facts and then lemmas (typically d_im.doPending()). This
+   * is routed through the callback because each theory's inference manager
+   * defines its own doPending().
+   */
+  virtual void doPending() = 0;
+  /** Optional hook: called once before the first strategy round. */
+  virtual void notifyStrategyCheckStart(Theory::Effort) {}
+  /**
+   * Optional hook: called each round, after the inference manager is reset and
+   * before runStrategy().
+   */
+  virtual void notifyStrategyRoundStart(Theory::Effort) {}
+  /** Optional hook: called once after the last strategy round. */
+  virtual void notifyStrategyCheckEnd(Theory::Effort) {}
+};
+
+/**
+ * The shared full-effort "strategy check" driver, factored out of the
+ * per-theory postCheck implementations.
+ *
+ * It runs the standard loop: flush pending facts, then (if not in conflict, a
+ * check is needed, and a strategy exists for effort e) repeatedly run the
+ * strategy and flush its output, stopping as soon as a lemma is sent or a
+ * conflict is reached, and otherwise continuing while a round produced internal
+ * facts only. A theory uses it by implementing StrategyCallback and calling
+ * this from its Theory::postCheck.
+ *
+ * @param e The effort of the check.
+ * @param cb The theory's callback (typically the theory itself).
+ * @param im The theory's (buffered) inference manager.
+ * @param state The theory's state, used to detect conflicts.
+ * @param valuation The theory's valuation, used to detect whether a check is
+ *                  needed.
+ */
+void postCheckStrategy(Theory::Effort e,
+                       StrategyCallback& cb,
+                       InferenceManagerBuffered& im,
+                       TheoryState& state,
+                       Valuation& valuation);
+
 }  // namespace theory
 }  // namespace cvc5::internal
 

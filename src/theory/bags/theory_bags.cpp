@@ -233,56 +233,27 @@ void TheoryBags::collectBagsAndCountTerms()
 
 void TheoryBags::postCheck(Effort effort)
 {
-  d_im.doPendingFacts();
-  Assert(d_strat.isStrategyInit());
-  if (!d_state.isInConflict() && !d_valuation.needCheck()
-      && d_strat.hasStrategyEffort(effort))
-  {
-    Trace("bags::TheoryBags::postCheck") << "effort: " << effort << std::endl;
-
-    // TODO issue #78: add ++(d_statistics.d_checkRuns);
-    bool sentLemma = false;
-    bool hadPending = false;
-    Trace("bags-check") << "Full effort check..." << std::endl;
-    do
-    {
-      d_im.reset();
-      // TODO issue #78: add ++(d_statistics.d_strategyRuns);
-      Trace("bags-check") << "  * Run strategy..." << std::endl;
-      initialize();
-      runStrategy(effort);
-
-      // remember if we had pending facts or lemmas
-      hadPending = d_im.hasPending();
-      // Send the facts *and* the lemmas. We send lemmas regardless of whether
-      // we send facts since some lemmas cannot be dropped. Other lemmas are
-      // otherwise avoided by aborting the strategy when a fact is ready.
-      d_im.doPending();
-      // Did we successfully send a lemma? Notice that if hasPending = true
-      // and sentLemma = false, then the above call may have:
-      // (1) had no pending lemmas, but successfully processed pending facts,
-      // (2) unsuccessfully processed pending lemmas.
-      // In either case, we repeat the strategy if we are not in conflict.
-      sentLemma = d_im.hasSentLemma();
-      if (TraceIsOn("bags-check"))
-      {
-        Trace("bags-check") << "  ...finish run strategy: ";
-        Trace("bags-check") << (hadPending ? "hadPending " : "");
-        Trace("bags-check") << (sentLemma ? "sentLemma " : "");
-        Trace("bags-check") << (d_state.isInConflict() ? "conflict " : "");
-        if (!hadPending && !sentLemma && !d_state.isInConflict())
-        {
-          Trace("bags-check") << "(none)";
-        }
-        Trace("bags-check") << std::endl;
-      }
-      // repeat if we did not add a lemma or conflict, and we had pending
-      // facts or lemmas.
-    } while (!d_state.isInConflict() && !sentLemma && hadPending);
-  }
+  // Run the shared full-effort strategy driver (see theory/strategy.h). The
+  // theory-specific behavior is supplied via the StrategyCallback overrides
+  // below.
+  postCheckStrategy(effort, *this, d_im, d_state, d_valuation);
   Trace("bags-check") << "Theory of bags, done check : " << effort << std::endl;
-  Assert(!d_im.hasPendingFact());
-  Assert(!d_im.hasPendingLemma());
+}
+
+bool TheoryBags::isStrategyInit() const { return d_strat.isStrategyInit(); }
+
+bool TheoryBags::hasStrategyEffort(Theory::Effort e) const
+{
+  return d_strat.hasStrategyEffort(e);
+}
+
+void TheoryBags::doPending() { d_im.doPending(); }
+
+void TheoryBags::notifyStrategyRoundStart(Theory::Effort)
+{
+  // (re)initialize the bag and count terms for this round
+  initialize();
+  Trace("bags-check") << "  * Run strategy..." << std::endl;
 }
 
 void TheoryBags::runStrategy(Theory::Effort e)

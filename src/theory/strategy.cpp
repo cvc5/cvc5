@@ -13,6 +13,9 @@
 #include "theory/strategy.h"
 
 #include "base/check.h"
+#include "theory/inference_manager_buffered.h"
+#include "theory/theory_state.h"
+#include "theory/valuation.h"
 // The headers below define the Step enum types that StrategyBase is explicitly
 // instantiated with at the bottom of this file. A new theory that adds a
 // strategy must include its Step enum here and add a matching explicit
@@ -112,6 +115,44 @@ void StrategyBase<Step>::finishInit()
   d_stepBegin.clear();
   d_stepEnd.clear();
   d_strategyInit = true;
+}
+
+void postCheckStrategy(Theory::Effort e,
+                       StrategyCallback& cb,
+                       InferenceManagerBuffered& im,
+                       TheoryState& state,
+                       Valuation& valuation)
+{
+  im.doPendingFacts();
+  Assert(cb.isStrategyInit());
+  if (!state.isInConflict() && !valuation.needCheck()
+      && cb.hasStrategyEffort(e))
+  {
+    // Start the full effort check.
+    cb.notifyStrategyCheckStart(e);
+    bool sentLemma = false;
+    bool hadPending = false;
+    do
+    {
+      im.reset();
+      cb.notifyStrategyRoundStart(e);
+      cb.runStrategy(e);
+      // Remember whether the round produced pending facts or lemmas.
+      hadPending = im.hasPending();
+      // Send the facts *and* the lemmas. We send lemmas regardless of whether
+      // we send facts since some lemmas cannot be dropped. Other lemmas are
+      // otherwise avoided by aborting the strategy when a fact is ready.
+      cb.doPending();
+      // Did we successfully send a lemma? If we had pending work but sent no
+      // lemma (only processed facts, or unsuccessfully processed lemmas), we
+      // repeat the strategy as long as we are not in conflict.
+      sentLemma = im.hasSentLemma();
+    } while (!state.isInConflict() && !sentLemma && hadPending);
+    // End the full effort check.
+    cb.notifyStrategyCheckEnd(e);
+  }
+  Assert(!im.hasPendingFact());
+  Assert(!im.hasPendingLemma());
 }
 
 // Explicit instantiations for the theories that use the strategy framework.
