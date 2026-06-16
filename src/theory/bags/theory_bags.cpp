@@ -288,8 +288,7 @@ void TheoryBags::postCheck(Effort effort)
 void TheoryBags::runStrategy(Theory::Effort e)
 {
   std::vector<std::pair<InferStep, int>>::iterator it = d_strat.stepBegin(e);
-  std::vector<std::pair<InferStep, int>>::iterator stepEnd =
-      d_strat.stepEnd(e);
+  std::vector<std::pair<InferStep, int>>::iterator stepEnd = d_strat.stepEnd(e);
 
   Trace("bags-process") << "----check, next round---" << std::endl;
   while (it != stepEnd)
