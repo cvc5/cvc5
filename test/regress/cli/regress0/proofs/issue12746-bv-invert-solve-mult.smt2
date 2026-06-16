@@ -1,5 +1,4 @@
 ; COMMAND-LINE: --check-proofs
-; DISABLE-TESTER: unsat-core
 ; EXPECT: unsat
 (set-logic ALL)
 (declare-const a (_ BitVec 4))
