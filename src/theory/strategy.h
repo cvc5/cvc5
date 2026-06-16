@@ -19,7 +19,6 @@
 #include <utility>
 #include <vector>
 
-#include "base/check.h"
 #include "theory/theory.h"
 
 namespace cvc5::internal {
@@ -44,7 +43,9 @@ namespace theory {
  *   2. deriving `class Strategy : public StrategyBase<Step> { ... }`;
  *   3. implementing initializeStrategy() to build the list using the protected
  *      helpers below (markStartEffort / addStrategyStep / markEndEffort /
- *      finishInit).
+ *      finishInit);
+ *   4. adding an explicit instantiation `template class StrategyBase<Step>;` to
+ *      strategy.cpp (the template member definitions live there, not here).
  *
  * The theory's own check loop (typically runStrategy / runInferStep) is
  * intentionally NOT part of this class: those dispatch to theory-specific
@@ -72,39 +73,22 @@ class StrategyBase
    * is inserted automatically after each step added with addBreak=true; the
    * theory's runStrategy treats a BREAK as a yield point.
    */
-  StrategyBase(Step breakStep) : d_break(breakStep), d_strategyInit(false) {}
-  virtual ~StrategyBase() {}
+  StrategyBase(Step breakStep);
+  virtual ~StrategyBase();
 
   /** Has initializeStrategy() finished building the strategy? */
-  bool isStrategyInit() const { return d_strategyInit; }
+  bool isStrategyInit() const;
 
   /** Is there a sequence of steps registered for effort e? */
-  bool hasStrategyEffort(Theory::Effort e) const
-  {
-    return d_stratSteps.find(e) != d_stratSteps.end();
-  }
+  bool hasStrategyEffort(Theory::Effort e) const;
 
   /** Begin iterator over the steps to run at effort e. */
   typename std::vector<std::pair<Step, int> >::iterator stepBegin(
-      Theory::Effort e)
-  {
-    typename std::map<Theory::Effort,
-                      std::pair<size_t, size_t> >::const_iterator it =
-        d_stratSteps.find(e);
-    Assert(it != d_stratSteps.end());
-    return d_inferSteps.begin() + it->second.first;
-  }
+      Theory::Effort e);
 
   /** End iterator over the steps to run at effort e. */
   typename std::vector<std::pair<Step, int> >::iterator stepEnd(
-      Theory::Effort e)
-  {
-    typename std::map<Theory::Effort,
-                      std::pair<size_t, size_t> >::const_iterator it =
-        d_stratSteps.find(e);
-    Assert(it != d_stratSteps.end());
-    return d_inferSteps.begin() + it->second.second;
-  }
+      Theory::Effort e);
 
   /**
    * Build the strategy. Implemented by each theory's derived class. A typical
@@ -129,25 +113,13 @@ class StrategyBase
    * addBreak is true (default), a BREAK marker is appended after it, which the
    * theory's runStrategy uses as a yield point.
    */
-  void addStrategyStep(Step s, int effort = 0, bool addBreak = true)
-  {
-    // BREAK markers are inserted automatically and must never be added by hand.
-    Assert(s != d_break);
-    d_inferSteps.push_back(std::pair<Step, int>(s, effort));
-    if (addBreak)
-    {
-      d_inferSteps.push_back(std::pair<Step, int>(d_break, 0));
-    }
-  }
+  void addStrategyStep(Step s, int effort = 0, bool addBreak = true);
 
   /**
    * Mark that the steps for effort e begin at the current end of the list.
    * Call this immediately before adding the steps for effort e.
    */
-  void markStartEffort(Theory::Effort e)
-  {
-    d_stepBegin[e] = d_inferSteps.size();
-  }
+  void markStartEffort(Theory::Effort e);
 
   /**
    * Mark that the steps for effort e end at the current end of the list. Call
@@ -155,38 +127,14 @@ class StrategyBase
    * index is the trailing BREAK of the last step (size()-1), which is excluded
    * from iteration; see the class-level note on stepEnd().
    */
-  void markEndEffort(Theory::Effort e)
-  {
-    // markStartEffort(e) must have been called before markEndEffort(e), and at
-    // least one step must have been added for effort e. This is the generic
-    // well-formedness check that replaces the old per-theory assertion that the
-    // first step added was that theory's CHECK_INIT step.
-    Assert(d_stepBegin.find(e) != d_stepBegin.end());
-    Assert(d_inferSteps.size() > d_stepBegin.find(e)->second);
-    d_stepEnd[e] = d_inferSteps.size() - 1;
-  }
+  void markEndEffort(Theory::Effort e);
 
   /**
    * Finalize the strategy: compute the per-effort index ranges from the marks
    * recorded above and flag the strategy as initialized. Must be called once,
    * after all steps and effort marks have been added.
    */
-  void finishInit()
-  {
-    for (const std::pair<const Theory::Effort, size_t>& b : d_stepBegin)
-    {
-      Theory::Effort e = b.first;
-      typename std::map<Theory::Effort, size_t>::const_iterator itEnd =
-          d_stepEnd.find(e);
-      Assert(itEnd != d_stepEnd.end());
-      d_stratSteps[e] = std::pair<size_t, size_t>(b.second, itEnd->second);
-    }
-    // the begin/end marks are scratch state only needed while building the
-    // strategy; drop them so no stale data persists after initialization.
-    d_stepBegin.clear();
-    d_stepEnd.clear();
-    d_strategyInit = true;
-  }
+  void finishInit();
 
  private:
   /** The designated BREAK marker for this theory's Step type. */

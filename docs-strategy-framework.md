@@ -33,7 +33,7 @@ ranges, handing out iterators — is inherited.
 
 ```
         ┌──────────────────────────────────────────────────────────┐
-        │  theory::StrategyBase<Step>   (src/theory/strategy.h)      │
+        │  theory::StrategyBase<Step>   (src/theory/strategy.{h,cpp}) │
         │  SHARED, REUSABLE                                          │
         │   • d_inferSteps : flat ordered list of (Step, effort)     │
         │   • BREAK markers inserted automatically                   │
@@ -298,7 +298,24 @@ Don't forget to call `d_strat.initializeStrategy()` once (theories do this in
 `presolve()`), and to use an `InferenceManagerBuffered`-derived inference manager
 so `d_im.hasPending()`, `doPending()`, `hasSentLemma()` exist.
 
-### Step 5 — register files in the build
+### Step 5 — register your explicit instantiation
+
+`StrategyBase` is a class template whose member definitions live in
+[src/theory/strategy.cpp](src/theory/strategy.cpp) (not in the header). So a new
+theory must add one explicit instantiation there, next to the existing ones:
+
+```cpp
+// src/theory/strategy.cpp
+#include "theory/foo/strategy.h"          // for foo::InferStep
+...
+template class StrategyBase<foo::InferStep>;
+```
+
+Without it, `theory_foo.cpp` will fail to *link* (undefined references to the
+`StrategyBase<foo::InferStep>` members). This per-theory line is the one-time
+cost of keeping the template split across a header and a source file.
+
+### Step 6 — register files in the build
 
 Add to `src/CMakeLists.txt`:
 
@@ -307,8 +324,7 @@ Add to `src/CMakeLists.txt`:
   theory/foo/strategy.h
 ```
 
-`theory/strategy.h` (the shared base) is already registered and header-only — no
-`.cpp` to add.
+`theory/strategy.{h,cpp}` (the shared base) are already registered.
 
 ---
 
@@ -378,6 +394,13 @@ If `CHECK_BAG_MAKE` (index 2) buffers a lemma, the `BREAK` at index 3 fires
   theory's `runStrategy` needs **no casts** and reads naturally
   (`curr == InferStep::BREAK`). It also made the strings migration *zero-change*
   in `theory_strings.cpp`.
+- **Why split a template into `.h` + `.cpp`?** Keeping the member definitions out
+  of the header trims what every includer must parse. The cost is that a template
+  cannot be linked without an explicit instantiation, so
+  [strategy.cpp](src/theory/strategy.cpp) lists
+  `template class StrategyBase<...>;` for each Step type and each new theory adds
+  one line there (see Step 5). The alternative — a header-only template — needs no
+  such list but recompiles the bodies in every TU that includes it.
 - **Why keep `runStrategy`/`runInferStep`/`postCheck` per-theory?** They reference
   theory-specific sub-solvers and (subtly) differ in yield semantics — e.g. some
   bags steps short-circuit via a `bool` return, strings keys off
@@ -419,7 +442,7 @@ If `CHECK_BAG_MAKE` (index 2) buffers a lemma, the `BREAK` at index 3 fires
 
 | File | Role |
 |------|------|
-| [src/theory/strategy.h](src/theory/strategy.h) | **Shared** generic `StrategyBase<Step>` template (header-only). |
+| [src/theory/strategy.h](src/theory/strategy.h) / [.cpp](src/theory/strategy.cpp) | **Shared** generic `StrategyBase<Step>` template: declarations in the header, definitions + per-theory explicit instantiations in the source. |
 | [src/theory/strings/strategy.h](src/theory/strings/strategy.h) / [.cpp](src/theory/strings/strategy.cpp) | Strings enum + recipe (full-featured: options, two efforts). |
 | [src/theory/bags/strategy.h](src/theory/bags/strategy.h) / [.cpp](src/theory/bags/strategy.cpp) | Bags enum + recipe (minimal: one effort, no options). |
 | [src/theory/inference_manager_buffered.h](src/theory/inference_manager_buffered.h) | The buffered fact/lemma queues the driver flushes. |
