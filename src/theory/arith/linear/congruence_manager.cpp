@@ -461,7 +461,7 @@ bool ArithCongruenceManager::propagate(TNode x)
           triEq = triEq[1][0].eqNode(ic);
         }
         if (triEq[0].getType().isRealOrInt() && triEq[1].getType().isRealOrInt()
-            && triEq[0].getType() == triEq[1].getType())
+            && CVC5_EQUAL(triEq[0].getType(), triEq[1].getType()))
         {
           std::vector<Node> negc = andComponents(nm, neg);
           std::vector<Node> triChildren;
