@@ -196,7 +196,7 @@ void CadicalPropagator::notify_backtrack(size_t level)
         << "re-enqueue (backtrack): " << lit << std::endl;
     d_proxy->enqueueTheoryLiteral(lit);
   }
-  // Clear the propgations since they are not valid anymore.
+  // Clear the propagations since they are not valid anymore.
   d_propagations.clear();
   ++d_stats.notifyBacktrack;
 
@@ -368,7 +368,7 @@ int CadicalPropagator::cb_propagate()
   {
     // Only propagate if all activation literals are processed. Activation
     // literals are always assumed first. If we don't do this, explanations
-    // for theory propgations may force activation literals to different
+    // for theory propagations may force activation literals to different
     // values before they can get decided on.
     if (d_decisions.size() < current_user_level())
     {
