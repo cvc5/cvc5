@@ -60,7 +60,7 @@ namespace strings {
  * Its rewriter is described in:
  * - Reynolds et al, CAV 2019.
  */
-class TheoryStrings : public Theory, public StrategyCallback
+class TheoryStrings : public Theory
 {
   friend class InferenceManager;
   typedef context::CDHashSet<Node> NodeSet;
@@ -234,16 +234,8 @@ class TheoryStrings : public Theory, public StrategyCallback
   //-----------------------end inference steps
   /** run the given inference step */
   void runInferStep(InferStep s, Theory::Effort e, int effort);
-  //-----------------------StrategyCallback interface (see theory/strategy.h)
-  bool isStrategyInit() const override;
-  bool hasStrategyEffort(Theory::Effort e) const override;
   /** run strategy for effort e */
-  void runStrategy(Theory::Effort e) override;
-  void doPending() override;
-  void notifyStrategyCheckStart(Theory::Effort e) override;
-  void notifyStrategyRoundStart(Theory::Effort e) override;
-  void notifyStrategyCheckEnd(Theory::Effort e) override;
-  //-----------------------end StrategyCallback interface
+  void runStrategy(Theory::Effort e);
   /** print strings equivalence classes for debugging */
   std::string debugPrintStringsEqc();
   /** Commonly used constants */

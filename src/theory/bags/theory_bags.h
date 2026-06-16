@@ -32,7 +32,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace bags {
 
-class TheoryBags : public Theory, public StrategyCallback
+class TheoryBags : public Theory
 {
  public:
   /** Constructs a new instance of TheoryBags w.r.t. the provided contexts. */
@@ -83,14 +83,8 @@ class TheoryBags : public Theory, public StrategyCallback
   void computeCareGraph() override;
   void processCarePairArgs(TNode a, TNode b) override;
   bool isCareArg(Node n, unsigned a);
-  //-----------------------StrategyCallback interface (see theory/strategy.h)
-  bool isStrategyInit() const override;
-  bool hasStrategyEffort(Theory::Effort e) const override;
   /** run strategy for effort e */
-  void runStrategy(Theory::Effort e) override;
-  void doPending() override;
-  void notifyStrategyRoundStart(Theory::Effort e) override;
-  //-----------------------end StrategyCallback interface
+  void runStrategy(Theory::Effort e);
   /** run the given inference step */
   bool runInferStep(InferStep s, int effort);
 
