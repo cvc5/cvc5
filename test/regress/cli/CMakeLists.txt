@@ -2126,6 +2126,7 @@ set(regress_0_tests
   regress0/strings/ctn-repl-to-ctn.smt2
   regress0/strings/ctn-split-no-overlap.smt2
   regress0/strings/dd.instance12194.smt2
+  regress0/strings/dd.instance46612.smt2
   regress0/strings/dd_1302_str_rewrite.smt2
   regress0/strings/dd_67_str_at_eval.smt2
   regress0/strings/dd_a1d_static_rewrite.smt2

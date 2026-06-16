@@ -576,7 +576,12 @@
 
 (define-rule re-repeat-elim ((n Int) (x RegLan)) (re.^ n x) (re.loop n n x))
 
-(define-rule re-concat-star-swap ((xs RegLan :list) (r RegLan) (ys RegLan :list)) (re.++ xs (re.* r) r ys) (re.++ xs r (re.* r) ys))
+; Applied to a fixed point, this moves (re.* r) to the right past any number of
+; adjacent occurrences of r, e.g. (re.* r) ++ r ++ r ---> r ++ r ++ (re.* r).
+; This matches the normal form computed by the theory rewriter and avoids the
+; reconstruction recursion limit when many copies of r are present (e.g. from
+; re.loop expansion).
+(define-rule* re-concat-star-swap ((xs RegLan :list) (r RegLan) (ys RegLan :list)) (re.++ xs (re.* r) r ys) (re.++ xs r (re.* r) ys))
 
 (define-rule re-concat-star-repeat ((xs RegLan :list) (r RegLan) (ys RegLan :list)) (re.++ xs (re.* r) (re.* r) ys) (re.++ xs (re.* r) ys))
 
