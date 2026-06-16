@@ -4883,14 +4883,10 @@ enum ENUM(ProofRewriteRule)
   EVALUE(RE_CONCAT_STAR_SWAP),
   /** Auto-generated from RARE rule re-concat-star-repeat */
   EVALUE(RE_CONCAT_STAR_REPEAT),
-  /** Auto-generated from RARE rule re-concat-star-subsume1 */
-  EVALUE(RE_CONCAT_STAR_SUBSUME1),
-  /** Auto-generated from RARE rule re-concat-star-subsume2 */
-  EVALUE(RE_CONCAT_STAR_SUBSUME2),
-  /** Auto-generated from RARE rule re-concat-star-subsume3 */
-  EVALUE(RE_CONCAT_STAR_SUBSUME3),
-  /** Auto-generated from RARE rule re-concat-star-subsume4 */
-  EVALUE(RE_CONCAT_STAR_SUBSUME4),
+  /** Auto-generated from RARE rule re-concat-star-nullable1 */
+  EVALUE(RE_CONCAT_STAR_NULLABLE1),
+  /** Auto-generated from RARE rule re-concat-star-nullable2 */
+  EVALUE(RE_CONCAT_STAR_NULLABLE2),
   /** Auto-generated from RARE rule re-concat-merge */
   EVALUE(RE_CONCAT_MERGE),
   /** Auto-generated from RARE rule re-union-all */
