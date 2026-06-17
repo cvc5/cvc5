@@ -154,5 +154,51 @@ TEST_F(TestPropWhiteCadicalPropagator, input_clause_uses_current_level)
             d_prop->current_activation_lit());
 }
 
+// The following tests cover the reason path (cb_add_reason_clause_lit()), which
+// guards the reason with activation_lit(clause_user_level(reason)). We exercise
+// that computation directly rather than driving the callback, since the
+// callback obtains the reason via TheoryProxy::explainPropagation() and setting
+// up a TheoryProxy requires a full theory engine. explainPropagation() returns
+// the propagated literal followed by the negated antecedents, so the reason's
+// user level is the max introduction level over all of them.
+
+TEST_F(TestPropWhiteCadicalPropagator, reason_clause_user_level)
+{
+  // Propagated literal at level 1 with a base-level antecedent: max -> level 1.
+  SatClause level1{SatLiteral(4), SatLiteral(1)};
+  EXPECT_EQ(d_prop->clause_user_level(level1), 1u);
+
+  // Highest literal at level 2 dominates: max -> level 2.
+  SatClause level2{SatLiteral(1), SatLiteral(4), SatLiteral(6)};
+  EXPECT_EQ(d_prop->clause_user_level(level2), 2u);
+
+  // Reason derived purely from base-level facts: level 0.
+  SatClause base{SatLiteral(1), SatLiteral(2)};
+  EXPECT_EQ(d_prop->clause_user_level(base), 0u);
+}
+
+TEST_F(TestPropWhiteCadicalPropagator, reason_clause_guard)
+{
+  // The activation literal cb_add_reason_clause_lit() prepends to the reason is
+  // activation_lit(clause_user_level(reason)).
+
+  // A reason depending on level 1 is guarded by level 1's activation literal
+  // (3), not the current level's (5), so it survives popping level 2.
+  SatClause level1{SatLiteral(4), SatLiteral(1)};
+  EXPECT_EQ(d_prop->activation_lit(d_prop->clause_user_level(level1)),
+            SatLiteral(3));
+
+  // A reason depending on level 2 is guarded by level 2's activation literal.
+  SatClause level2{SatLiteral(6), SatLiteral(4)};
+  EXPECT_EQ(d_prop->activation_lit(d_prop->clause_user_level(level2)),
+            SatLiteral(5));
+
+  // A reason over only base-level literals is globally valid and gets no
+  // activation literal guard.
+  SatClause base{SatLiteral(1), SatLiteral(2)};
+  EXPECT_EQ(d_prop->activation_lit(d_prop->clause_user_level(base)),
+            undefSatLiteral);
+}
+
 }  // namespace test
 }  // namespace cvc5::internal

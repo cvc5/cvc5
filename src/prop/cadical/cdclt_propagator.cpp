@@ -360,8 +360,9 @@ int CadicalPropagator::cb_add_reason_clause_lit(int propagated_lit)
     SatLiteral slit = toSatLiteral(propagated_lit);
     SatClause clause;
     d_proxy->explainPropagation(slit, clause);
-    // Add activation literal to reason
-    SatLiteral alit = current_activation_lit();
+    Assert(d_in_search);
+    // Add activation literal of the clause's user level to the reason.
+    SatLiteral alit = activation_lit(clause_user_level(clause));
     if (alit != undefSatLiteral)
     {
       d_reason.push_back(alit);
@@ -634,7 +635,7 @@ void CadicalPropagator::phase(SatLiteral lit)
   d_var_info[lit.getSatVariable()].phase = lit.isNegated() ? -1 : 1;
 }
 
-const SatLiteral& CadicalPropagator::current_activation_lit()
+const SatLiteral& CadicalPropagator::current_activation_lit() const
 {
   if (d_activation_literals.empty())
   {
@@ -643,7 +644,7 @@ const SatLiteral& CadicalPropagator::current_activation_lit()
   return d_activation_literals.back();
 }
 
-const SatLiteral& CadicalPropagator::activation_lit(size_t user_level)
+const SatLiteral& CadicalPropagator::activation_lit(size_t user_level) const
 {
   // User level 0 has no activation literal.
   if (user_level == 0)
@@ -652,6 +653,18 @@ const SatLiteral& CadicalPropagator::activation_lit(size_t user_level)
   }
   Assert(user_level <= d_activation_literals.size());
   return d_activation_literals[user_level - 1];
+}
+
+uint32_t CadicalPropagator::clause_user_level(const SatClause& clause) const
+{
+  uint32_t max_user_level = 0;
+  for (const SatLiteral& lit : clause)
+  {
+    SatVariable var = lit.getSatVariable();
+    Assert(var < d_var_info.size());
+    max_user_level = std::max(max_user_level, d_var_info[var].level_intro);
+  }
+  return max_user_level;
 }
 
 void CadicalPropagator::renotify_fixed()
