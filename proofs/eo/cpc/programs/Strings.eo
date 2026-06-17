@@ -1746,7 +1746,7 @@
     :signature ((Seq T) (Seq T)) Bool
     (
     (($str_is_compatible (str.++ c1 xs1) (str.++ c1 xs2)) ($str_is_compatible xs1 xs2))
-    (($str_is_compatible (str.++ c1 xs1) (str.++ c2 xs2)) (eo::requires ($are_distinct_terms c1 c2) true false))
+    (($str_is_compatible (str.++ c1 xs1) (str.++ c2 xs2)) (eo::requires ($are_distinct_terms (eo::typeof c1) c1 c2) true false))
     (($str_is_compatible c1 c2)                           (eo::or ($str_is_empty c1) ($str_is_empty c2)))
     )
 )

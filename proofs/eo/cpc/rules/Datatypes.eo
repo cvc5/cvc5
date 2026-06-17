@@ -207,7 +207,7 @@
 ;   why the equality is conflicting.
 (declare-rule dt-cons-eq-clash ((D Type) (t D) (s D))
   :args ((= (= t s) false))
-  :requires ((($are_distinct_terms t s) true))
+  :requires ((($are_distinct_terms (eo::typeof t) t s) true))
   :conclusion (= (= t s) false)
 )
 
