@@ -1793,18 +1793,20 @@
 
 ; program: $str_from_int_eval_rec
 ; args:
+; - is (@TList Int): The list of digits to process, used to make this method structurally recursive.
 ; - n Int: The integer to process, expected to be non-negative.
 ; - s String: The accumulated return value.
 ; returns: >
 ;   The result of evaluating `(str.from_int n)` given the current accumulated return value.
-(program $str_from_int_eval_rec ((s String) (n Int))
-  :signature (Int String) String
+(program $str_from_int_eval_rec ((s String) (n Int) (i Int) (js (@TList Int) :list))
+  :signature ((@TList Int) Int String) String
   (
-  (($str_from_int_eval_rec n s) (eo::ite (eo::eq n 0)
-                                  (eo::ite (eo::eq s "") "0" s)
-                                  ($str_from_int_eval_rec
-                                    (eo::zdiv n 10)
-                                    (eo::concat (eo::to_str (eo::add 48 (eo::zmod n 10))) s))))
+  (($str_from_int_eval_rec js 0 s) (eo::ite (eo::eq s "") "0" s))
+  (($str_from_int_eval_rec (@tlist i js) n s) 
+    ($str_from_int_eval_rec
+      js
+      (eo::zdiv n 10)
+      (eo::concat (eo::to_str (eo::add 48 (eo::zmod n 10))) s)))
   )
 )
 
@@ -1818,7 +1820,8 @@
   (eo::ite (eo::is_z n)
     (eo::ite (eo::is_neg n)
       ""
-      ($str_from_int_eval_rec n ""))
+      ; number of digits to process determined by log base 10
+      ($str_from_int_eval_rec ($iota (eo::add (eo::log 10 n) 1)) n ""))
     (str.from_int n)))
 
 ; program: $str_to_int_eval_rec
