@@ -1547,6 +1547,7 @@ set(regress_0_tests
   regress0/proofs/issue12683-check-proofs-arith-mixed.smt2
   regress0/proofs/issue12696-check-proofs-subtype.smt2
   regress0/proofs/issue12697-check-proofs-arith.smt2
+  regress0/proofs/issue12746-bv-invert-solve-mult.smt2
   regress0/proofs/issue12708-check-proofs-arith-cm.smt2
   regress0/proofs/issue12709-open-sat-proof.smt2
   regress0/proofs/issue8983-trust-subs.smt2
