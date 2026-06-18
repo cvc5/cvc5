@@ -423,7 +423,7 @@ Node TheoryBoolRewriter::getBvInvertSolve(
       // constructed for the operator of t. For most operators (NOT, NEG,
       // ADD->SUB, XOR) the previously solved term is the first child of this
       // inversion term. For multiplication by an odd constant, however,
-      // solveBvLit builds (bvmul inv prevRhs), so the previously solved term
+      // solveBvLit builds (bvmul inv t), so the previously solved term
       // is the second child.
       size_t innerIndex = (t.getKind() == Kind::BITVECTOR_MULT) ? 1 : 0;
       Node next = t.eqNode(curr[1][innerIndex]);
