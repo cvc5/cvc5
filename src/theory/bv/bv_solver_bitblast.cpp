@@ -106,7 +106,8 @@ class BBRegistrar : public prop::Registrar
 
 BVSolverBitblast::BVSolverBitblast(Env& env,
                                    TheoryState* s,
-                                   TheoryInferenceManager& inferMgr)
+                                   TheoryInferenceManager& inferMgr,
+                                   TheoryBV* bv)
     : BVSolver(env, *s, inferMgr),
       d_bitblaster(new NodeBitblaster(env, s)),
       d_bbRegistrar(new BBRegistrar(d_bitblaster.get())),
@@ -122,7 +123,11 @@ BVSolverBitblast::BVSolverBitblast(Env& env,
       d_factLiteralCache(context()),
       d_literalFactCache(context()),
       d_propagate(options().bv.bitvectorPropagate),
-      d_resetNotify(new NotifyResetAssertions(userContext()))
+      d_am(options().bv.bvAbstraction ? new abstract::AbstractionModule(env, bv)
+                                      : nullptr),
+      d_bv(bv),
+      d_resetNotify(new NotifyResetAssertions(userContext())),
+      d_isModelConsistent(true)
 {
   if (env.isTheoryProofProducing())
   {
@@ -176,8 +181,13 @@ void BVSolverBitblast::postCheck(Theory::Effort level)
       }
       else
       {
-        d_bitblaster->bbAtom(fact);
-        Node bb_fact = d_bitblaster->getStoredBBAtom(fact);
+        // Abstract arithmetic subterms before bit-blasting; the fresh
+        // abstraction constants are bit-blasted as variables, so the
+        // multiplier/divider circuits are never built. The fact -> literal
+        // bookkeeping still keys on the original `fact`.
+        Node afact = d_am ? d_am->abstract(fact) : fact;
+        d_bitblaster->bbAtom(afact);
+        Node bb_fact = d_bitblaster->getStoredBBAtom(afact);
         d_cnfStream->convertAndAssert(bb_fact, false, false);
       }
     }
@@ -200,8 +210,9 @@ void BVSolverBitblast::postCheck(Theory::Effort level)
       }
       else
       {
-        d_bitblaster->bbAtom(fact);
-        Node bb_fact = d_bitblaster->getStoredBBAtom(fact);
+        Node afact = d_am ? d_am->abstract(fact) : fact;
+        d_bitblaster->bbAtom(afact);
+        Node bb_fact = d_bitblaster->getStoredBBAtom(afact);
         d_cnfStream->ensureLiteral(bb_fact);
         lit = d_cnfStream->getLiteral(bb_fact);
       }
@@ -214,6 +225,16 @@ void BVSolverBitblast::postCheck(Theory::Effort level)
   std::vector<prop::SatLiteral> assumptions(d_assumptions.begin(),
                                             d_assumptions.end());
   prop::SatValue val = d_satSolver->solve(assumptions);
+
+  // CEGAR refinement loop: if the over-approximation is sat, restore
+  // consistency with the abstracted terms by asserting refinement lemmas.
+  // Only refine at full effort: at standard effort we solve in propagate-only
+  // mode, and refining against such a partial assignment is wasted work.
+  if (d_am && level == Theory::Effort::EFFORT_FULL
+      && val == prop::SatValue::SAT_VALUE_TRUE)
+  {
+    val = refine(assumptions);
+  }
 
   if (val == prop::SatValue::SAT_VALUE_FALSE)
   {
@@ -368,6 +389,11 @@ Node BVSolverBitblast::getValue(TNode node, bool initialize)
     return node;
   }
 
+  if (d_am && d_am->abstractable(node) && d_am->isAbstracted(node))
+  {
+    node = d_am->getAbstraction(node);
+  }
+
   NodeManager* nm = node.getNodeManager();
   if (!d_bitblaster->hasBBTerm(node))
   {
@@ -419,6 +445,66 @@ void BVSolverBitblast::handleEagerAtom(TNode fact, bool assertFact)
   }
   // Clear cache since we only need to do this once per bit-blasted atom.
   registeredAtoms.clear();
+}
+
+prop::SatValue BVSolverBitblast::refine(
+    const std::vector<prop::SatLiteral>& assumptions)
+{
+  Assert(d_am != nullptr);
+  NodeManager* nm = nodeManager();
+  prop::SatValue result = prop::SatValue::SAT_VALUE_TRUE;
+  d_isModelConsistent = false;
+  while (true)
+  {
+    // We get a different model from the SAT solver in each iteration of this
+    // loop, thus have to invalidate TheoryBV's model cache each time.
+    d_bv->invalidateModelCache();
+    std::vector<Node> lemmas;
+    d_am->check(lemmas);
+    if (lemmas.empty())
+    {
+      // The model is consistent with all abstracted terms: genuinely sat.
+      Assert(d_am->isModelConsistent()) << "BV abstraction reported sat but "
+                                           "the model is inconsistent with an "
+                                           "abstracted term";
+      d_isModelConsistent = true;
+      break;
+    }
+    Trace("bv-abstraction")
+        << "refine: adding " << lemmas.size() << " lemma(s)" << std::endl;
+    // Assert the refinement lemmas directly to this solver's private CNF stream
+    // and SAT solver, *not* via the theory inference manager (d_im.lemma()).
+    //
+    // The abstraction is internal to BVSolverBitblast, which bit-blasts to
+    // a SAT solver instance that is local to the bit-blasting solver.
+    // The abstraction constants are fresh skolems introduced at bit-blasting
+    // time, thus invisible to the CDCL(T) SAT solver instance and TheoryEngine
+    // (the only thing surfaced to the engine is the final conflict, via
+    // d_im.trustedConflict()).
+    //
+    // A refinement lemma constrains these internal abstraction constants,
+    // thus we do not send it to the main SAT solver via d_im.lemma() (since
+    // it is unaware of the abstraction).
+    //
+    // The lemmas are T_BV-valid given the abstracted term semantics, hence
+    // sound to assert permanently (they accumulate across solve calls and are
+    // dropped when the SAT solver is rebuilt on reset-assertions). A lemma is
+    // an arbitrary Boolean combination of bit-vector atoms, so we assert it
+    // through the CNF stream and let the bit-blast registrar bit-blast the
+    // atoms it contains (the BITVECTOR_EAGER_ATOM mechanism). Rewriting
+    // normalizes atoms (e.g. bvuge) into the forms the registrar recognizes.
+    for (const Node& lem : lemmas)
+    {
+      Node eager = nm->mkNode(Kind::BITVECTOR_EAGER_ATOM, rewrite(lem));
+      handleEagerAtom(eager, true);
+    }
+    result = d_satSolver->solve(assumptions);
+    if (result != prop::SatValue::SAT_VALUE_TRUE)
+    {
+      break;  // unsat or unknown (e.g., resource out)
+    }
+  }
+  return result;
 }
 
 }  // namespace bv

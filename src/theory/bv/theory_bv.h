@@ -107,6 +107,13 @@ class TheoryBV : public Theory
    */
   Node getValue(TNode node);
 
+  /**
+   * Mark the model value cache used by getValue() as stale. Must be called
+   * whenever the underlying model may have changed (e.g. between solve calls of
+   * the abstraction refinement loop).
+   */
+  void invalidateModelCache() { d_invalidateModelCache = true; }
+
  private:
   void notifySharedTerm(TNode t) override;
 
@@ -130,6 +137,8 @@ class TheoryBV : public Theory
 
   /** Flag indicating whether `d_modelCache` should be invalidated. */
   context::CDO<bool> d_invalidateModelCache;
+
+  bool d_inPostCheck;
 
   /**
    * Cache for getValue() calls.

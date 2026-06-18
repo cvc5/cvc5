@@ -142,7 +142,7 @@ Node AbstractionModule::abstract(TNode fact)
       {
         ret = abstractNode(ret);
       }
-      it->second = ret;
+      it->second = rewrite(ret);
     }
     visit.pop_back();
   } while (!visit.empty());
