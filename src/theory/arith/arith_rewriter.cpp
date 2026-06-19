@@ -833,19 +833,6 @@ RewriteResponse ArithRewriter::rewriteDiv(TNode t, bool pre)
       }
       else
       {
-        // The result of division is always Real. Normalize integer constant
-        // operands to real constants so that e.g. (/ 0.0 0) and (/ 0.0 0.0)
-        // rewrite to the same term. Otherwise the two forms are semantically
-        // equal but not syntactically identical, which can break proof
-        // reconstruction (see cvc5#12754).
-        if (left.getKind() == Kind::CONST_INTEGER)
-        {
-          left = nm->mkConstReal(left.getConst<Rational>());
-        }
-        if (right.getKind() == Kind::CONST_INTEGER)
-        {
-          right = nm->mkConstReal(right.getConst<Rational>());
-        }
         Node ret = nm->mkNode(t.getKind(), left, right);
         return RewriteResponse(REWRITE_DONE, ret);
       }
