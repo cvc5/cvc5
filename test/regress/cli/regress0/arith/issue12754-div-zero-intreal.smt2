@@ -1,3 +1,4 @@
+; DISABLE-TESTER: alethe
 ; COMMAND-LINE: --check-proofs
 ; EXPECT: unsat
 (set-logic ALL)
