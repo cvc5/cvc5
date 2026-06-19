@@ -1,5 +1,5 @@
 (set-logic ALL)
-;; (set-info :status sat)
+;; (set-info :status unsat)
 (set-option :rels-exp true)
 (set-option :produce-unsat-cores true)
 ; Test cycle rules
@@ -24,7 +24,7 @@
  )
 
 (assert (irreflexive (rel.tclosure R)))
-(assert (not (rel.acyclic R)))
+(assert (not (rel.acyclic (tuple R))))
 
 
 (check-sat)

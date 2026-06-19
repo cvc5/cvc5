@@ -6,5 +6,5 @@
 (declare-fun x () Int)
 
 (assert (set.member (tuple x x) (rel.tclosure R)))
-(assert (rel.acyclic R))
+(assert (rel.acyclic (tuple R)))
 (check-sat)

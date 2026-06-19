@@ -888,60 +888,43 @@ RewriteResponse TheorySetsRewriter::postRewriteAcyclic(TNode n)
 {
   Assert(n.getKind() == Kind::RELATION_ACYCLIC);
   NodeManager* nm = nodeManager();
-  Kind k = n[0].getKind();
-  switch (k)
+  // acyclic((R1,...,Rk)) is acyclic(R1 union ... union Rk). If every component
+  // relation is constant, decide it directly: the union's edge set is acyclic
+  // iff its transitive closure contains no self-loop (a,a). Otherwise leave the
+  // term for the solver.
+  std::vector<Node> rels = TupleUtils::getTupleElements(n[0]);
+  std::set<Node> rel_mems;
+  for (const Node& r : rels)
   {
-    case Kind::SET_EMPTY:
+    if (!r.isConst())
     {
-      // (rel.acyclic (as set.empty (Relation T T))) = true
-      Node ret = nm->mkConst(true);
-      return RewriteResponse(REWRITE_DONE, ret);
+      return RewriteResponse(REWRITE_DONE, n);
     }
-    case Kind::SET_SINGLETON:
+    if (r.getKind() != Kind::SET_EMPTY)
     {
-      // (rel.acyclic (set.singleton (tuple x y))) = (distinct x y)
-      Node tuple = n[0][0];
-      Node x = TupleUtils::nthElementOfTuple(tuple, 0);
-      Node y = TupleUtils::nthElementOfTuple(tuple, 1);
-      Node ret = x.eqNode(y).notNode();
-      return RewriteResponse(REWRITE_AGAIN_FULL, ret);
+      std::set<Node> m = NormalForm::getElementsFromNormalConstant(r);
+      rel_mems.insert(m.begin(), m.end());
     }
-    case Kind::SET_UNION:
+  }
+  if (rel_mems.empty())
+  {
+    // the empty union is acyclic
+    return RewriteResponse(REWRITE_DONE, nm->mkConst(true));
+  }
+  // rels[0] is only a type carrier for constructing the closure pairs
+  std::set<Node> tc_rel_mems = RelsUtils::computeTC(rel_mems, rels[0]);
+  bool acyclic = true;
+  for (const Node& tuple : tc_rel_mems)
+  {
+    Node x = TupleUtils::nthElementOfTuple(tuple, 0);
+    Node y = TupleUtils::nthElementOfTuple(tuple, 1);
+    if (x == y)
     {
-      // (rel.acyclic (set.union A B)) = if A and B are const, check if
-      //   (rel.tclosure (set.union A B)) intersect iden != empty, then
-      //   return false, otherwise true.
-      //   If A or B are not const, return the original node.
-      if (n[0].isConst())
-      {
-        std::set<Node> rel_mems =
-            NormalForm::getElementsFromNormalConstant(n[0]);
-        std::set<Node> tc_rel_mems = RelsUtils::computeTC(rel_mems, n[0]);
-
-        bool acyclic = true;
-        for (const Node& tuple : tc_rel_mems)
-        {
-          Node x = TupleUtils::nthElementOfTuple(tuple, 0);
-          Node y = TupleUtils::nthElementOfTuple(tuple, 1);
-
-          Assert(x.isConst() && y.isConst());
-
-          if (x == y)
-          {
-            acyclic = false;
-            break;
-          }
-        }
-
-        Node ret = nm->mkConst(acyclic);
-        return RewriteResponse(REWRITE_AGAIN_FULL, ret);
-      }
+      acyclic = false;
       break;
     }
-
-    default: break;
   }
-  return RewriteResponse(REWRITE_DONE, n);
+  return RewriteResponse(REWRITE_AGAIN_FULL, nm->mkConst(acyclic));
 }
 
 RewriteResponse TheorySetsRewriter::postRewriteRClosure(TNode n)

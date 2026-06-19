@@ -3375,7 +3375,12 @@ set(regress_1_tests
   regress1/rels/cycles/acyclic1.smt2
   regress1/rels/cycles/acyclic2.smt2
   regress1/rels/cycles/acyclic3.smt2
+  regress1/rels/cycles/acyclic4.smt2
+  regress1/rels/cycles/acyclic5.smt2
+  regress1/rels/cycles/acyclic6.smt2
+  regress1/rels/cycles/acyclic7.smt2
   regress1/rels/cycles/acyclic10.smt2
+  regress1/rels/cycles/acyclic_multi_rel.smt2
   regress1/rels/addr_book_1.cvc.smt2
   regress1/rels/addr_book_1_1.cvc.smt2
   regress1/rels/bv1-unit.cvc.smt2

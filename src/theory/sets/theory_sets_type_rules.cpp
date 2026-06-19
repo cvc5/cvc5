@@ -1073,20 +1073,30 @@ TypeNode RelAcyclicTypeRule::computeType(NodeManager* nodeManager,
                                          std::ostream* errOut)
 {
   Assert(n.getKind() == Kind::RELATION_ACYCLIC);
-  TypeNode setType = n[0].getTypeOrNull();
+  TypeNode argType = n[0].getTypeOrNull();
   if (check)
   {
-    if (!isMaybeRelation(setType))
+    if (!argType.isTuple())
     {
       if (errOut)
       {
-        (*errOut) << "acyclic predicate operates on non-relation";
+        (*errOut) << "acyclic predicate operates on a non-tuple argument";
       }
       return TypeNode::null();
     }
-    if (setType.isRelation())
+    // The argument is a tuple of relations; each element must be a binary
+    // relation with comparable element types.
+    for (const TypeNode& relType : argType.getTupleTypes())
     {
-      std::vector<TypeNode> tupleTypes = setType[0].getTupleTypes();
+      if (!relType.isRelation())
+      {
+        if (errOut)
+        {
+          (*errOut) << "acyclic predicate tuple element is not a relation";
+        }
+        return TypeNode::null();
+      }
+      std::vector<TypeNode> tupleTypes = relType[0].getTupleTypes();
       if (tupleTypes.size() != 2)
       {
         if (errOut)
@@ -1095,10 +1105,7 @@ TypeNode RelAcyclicTypeRule::computeType(NodeManager* nodeManager,
         }
         return TypeNode::null();
       }
-      if (!tupleTypes[0].isComparableTo(
-              tupleTypes[1]))  // TODO check mathematical definition of
-                               // tclosure,
-      // check if we want this to error out in acyclic as well
+      if (!tupleTypes[0].isComparableTo(tupleTypes[1]))
       {
         if (errOut)
         {

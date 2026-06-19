@@ -471,16 +471,19 @@ TypeNode SkolemManager::getTypeFor(SkolemId id,
       Assert(stype.getNumChildren() == 1);
       return stype[0];
     }
-    // skolems that return the sequence element type
+    // sequence skolem witnessing a cycle in a relation
     case SkolemId::RELS_SEQUENCE:
     {
+      // The RELS_SEQUENCE skolem is the witness for a cycle in a relation,
+      // created in applyInstCycleRule. It is identified by and typed from
+      // that relation, so cacheVals[0] must be a binary relation (Set of
+      // (Tuple T T)). The sequence's element type is the node type T.
       Assert(cacheVals.size() > 0);
       TypeNode stype = cacheVals[0].getType();
-      Assert(stype.getNumChildren() == 1);
-      TypeNode TupleType = stype[0];
-      TypeNode elementType = TupleType.getTupleTypes()[0];
-      TypeNode seqType = d_nm->mkSequenceType(elementType);
-      return seqType;
+      Assert(stype.isRelation());     // must be (Set (Tuple T T))
+      TypeNode tupleType = stype[0];  // (Tuple T T)
+      TypeNode elementType = tupleType.getTupleTypes()[0];  // node type T
+      return d_nm->mkSequenceType(elementType);             // Seq<T>
     }
 
     // skolems that return the set to set element type

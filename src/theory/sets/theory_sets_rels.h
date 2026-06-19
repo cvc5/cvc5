@@ -191,6 +191,10 @@ class TheorySetsRels : protected EnvObj
                              Node exp);
   void applyAcyclicDownRule(Node mem, Node rel, Node exp);
   void applyInstCycleRule(Node rel_rep, Node exp);
+  /** Build a tuple term whose elements are the given relations. */
+  Node mkRelTuple(const std::vector<Node>& rels);
+  /** Build the (rewritten) union of the given relations. */
+  Node mkRelUnion(const std::vector<Node>& rels);
   Node applySplitCycleLenRule(std::vector<Node> rels, Node seq, size_t cnt);
   void applyUnrollCycle(std::vector<Node>& rels,
                         Node seq,

@@ -344,8 +344,11 @@ void TheorySetsRels::collectRelsInfo()
         {
           if (is_true_eq)
           {
-            Node rel_rep = getRepresentative(eqc_node[0]);
-            d_acyclic_cache[rel_rep].push_back(eqc_node);
+            // acyclic((R1,...,Rk)) is acyclic(R1 ∪ ... ∪ Rk); key by the
+            // union's representative so the down-rule (a membership in
+            // TC(union)) finds it directly.
+            Node u = mkRelUnion(TupleUtils::getTupleElements(eqc_node[0]));
+            d_acyclic_cache[getRepresentative(u)].push_back(eqc_node);
           }
           else
           {
@@ -1346,15 +1349,37 @@ void TheorySetsRels::applyTransposeRule(Node tp_rel, Node tp_rel_rep, Node exp)
  *                                              C := C U {(x,s,1)}
  * for x a fresh sequence variable
  */
-void TheorySetsRels::applyInstCycleRule(Node rel, Node exp)
+Node TheorySetsRels::mkRelTuple(const std::vector<Node>& rels)
+{
+  std::vector<TypeNode> relTypes;
+  for (const Node& r : rels)
+  {
+    relTypes.push_back(r.getType());
+  }
+  return TupleUtils::constructTupleFromElements(
+      nodeManager()->mkTupleType(relTypes), rels, 0, rels.size() - 1);
+}
+
+Node TheorySetsRels::mkRelUnion(const std::vector<Node>& rels)
+{
+  Assert(!rels.empty());
+  Node u = rels[0];
+  for (size_t i = 1, n = rels.size(); i < n; i++)
+  {
+    u = nodeManager()->mkNode(Kind::SET_UNION, u, rels[i]);
+  }
+  return rewrite(u);
+}
+
+void TheorySetsRels::applyInstCycleRule(Node relTuple, Node exp)
 {
   Trace("rels-debug") << "\n[Theory::Rels] *********** Applying "
-                         "RELATION_INST_CYCLE rule on relation = "
-                      << rel << " and explanation " << exp << std::endl;
-  // We make one cycle per cyclic relation, not equivalence class
-  // TODO will need to split on unions of relations -- see {rel} in this
-  // function
-  if (d_cycle_sequences.find({rel}) != d_cycle_sequences.end())
+                         "RELATION_INST_CYCLE rule on relation tuple = "
+                      << relTuple << " and explanation " << exp << std::endl;
+  // The acyclic argument is a tuple of relations; split it into the vector of
+  // component relations used as the d_cycle_sequences key.
+  std::vector<Node> rels = TupleUtils::getTupleElements(relTuple);
+  if (d_cycle_sequences.find(rels) != d_cycle_sequences.end())
   {
     return;
   }
@@ -1362,9 +1387,13 @@ void TheorySetsRels::applyInstCycleRule(Node rel, Node exp)
   NodeManager* nm = nodeManager();
   SkolemManager* sm = nm->getSkolemManager();
 
-  Node s = sm->mkSkolemFunction(SkolemId::RELS_SEQUENCE, {rel});
+  // Key the sequence skolem on the union relation (a Set of binary tuples),
+  // not the tuple-of-relations: RELS_SEQUENCE's type rule derives the sequence
+  // element type from the relation's node type. For a single-relation tuple
+  // this is just that relation, matching the original behavior.
+  Node s = sm->mkSkolemFunction(SkolemId::RELS_SEQUENCE, {mkRelUnion(rels)});
 
-  d_cycle_sequences.insert({rel}, std::make_pair(s, 1));
+  d_cycle_sequences.insert(rels, std::make_pair(s, 1));
 
   Node conc = nm->mkNode(Kind::LT,
                          nm->mkConstInt(Rational(1)),
@@ -1412,7 +1441,8 @@ Node TheorySetsRels::applySplitCycleLenRule(std::vector<Node> rels,
                            nm->mkNode(Kind::EQUAL, node_1, node_len));
 
   Node conc = nm->mkNode(Kind::OR, case_1, case_2);
-  Node exp = nm->mkNode(Kind::NOT, nm->mkNode(Kind::RELATION_ACYCLIC, rels[0]));
+  Node exp = nm->mkNode(Kind::NOT,
+                        nm->mkNode(Kind::RELATION_ACYCLIC, mkRelTuple(rels)));
 
   Trace("rels-cycles") << "SplitCycleLen: " << conc << std::endl;
 
@@ -1601,8 +1631,10 @@ void TheorySetsRels::applyAcyclicDownRule(Node mem_rep,
   std::vector<Node> reasons{exp_tc, exp_acyc};
   if (tc_rel != exp_tc[1])
     reasons.push_back(nm->mkNode(Kind::EQUAL, tc_rel, exp_tc[1]));
-  if (exp_acyc[0] != tc_rel[0])
-    reasons.push_back(nm->mkNode(Kind::EQUAL, exp_acyc[0], tc_rel[0]));
+  // x in the rule is the union of the acyclic tuple's relations; relate it to
+  // tc_rel[0].
+  Node u = mkRelUnion(TupleUtils::getTupleElements(exp_acyc[0]));
+  if (u != tc_rel[0]) reasons.push_back(nm->mkNode(Kind::EQUAL, u, tc_rel[0]));
   Node reason =
       reasons.size() == 1 ? reasons[0] : nm->mkNode(Kind::AND, reasons);
 
@@ -1631,8 +1663,9 @@ void TheorySetsRels::doCycleInference()
     // Minimality: forbid shortcut edges in the cycle. The reason is the
     // justification for (rels,seq,cnt) being in C, i.e. NOT ACYCLIC(rels[0]).
     // TODO single relation only; revisit when InstCycle flattens unions.
-    Node acyc_exp =
-        nodeManager()->mkNode(Kind::RELATION_ACYCLIC, rels[0]).negate();
+    Node acyc_exp = nodeManager()
+                        ->mkNode(Kind::RELATION_ACYCLIC, mkRelTuple(rels))
+                        .negate();
     applyContrMinimalRule(rels, seq, cnt, acyc_exp);
     ++c_it;
   }

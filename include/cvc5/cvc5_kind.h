@@ -3945,7 +3945,7 @@ enum ENUM(Kind)
    *
    * - Arity: ``1``
    *
-   *   - ``1:`` Term of relation Sort
+   *   - ``1:`` Term of tuple Sort whose elements are binary relation Sorts
    *
    * - Create Term of this Kind with:
    *
