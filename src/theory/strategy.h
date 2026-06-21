@@ -52,7 +52,7 @@ class StrategyBase
 {
  public:
   /** a destructor */
-  virtual ~StrategyBase() = 0;
+  virtual ~StrategyBase();
 
   /** Has initializeStrategy() finished building the strategy? */
   bool isStrategyInit() const;

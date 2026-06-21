@@ -17,6 +17,8 @@
 namespace cvc5::internal {
 namespace theory {
 
+StrategyBase::~StrategyBase() {}
+
 bool StrategyBase::isStrategyInit() const { return d_strategyInit; }
 
 bool StrategyBase::hasStrategyEffort(Theory::Effort e) const
