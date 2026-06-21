@@ -17,8 +17,6 @@
 namespace cvc5::internal {
 namespace theory {
 
-StrategyBase::~StrategyBase() {}
-
 bool StrategyBase::isStrategyInit() const { return d_strategyInit; }
 
 bool StrategyBase::hasStrategyEffort(Theory::Effort e) const
@@ -26,20 +24,20 @@ bool StrategyBase::hasStrategyEffort(Theory::Effort e) const
   return d_stratSteps.find(e) != d_stratSteps.end();
 }
 
-typename std::vector<std::pair<Step, int> >::iterator StrategyBase::stepBegin(
+std::vector<std::pair<Step, int> >::iterator StrategyBase::stepBegin(
     Theory::Effort e)
 {
-  typename std::map<Theory::Effort, std::pair<size_t, size_t> >::const_iterator
-      it = d_stratSteps.find(e);
+  std::map<Theory::Effort, std::pair<size_t, size_t> >::const_iterator it =
+      d_stratSteps.find(e);
   Assert(it != d_stratSteps.end());
   return d_inferSteps.begin() + it->second.first;
 }
 
-typename std::vector<std::pair<Step, int> >::iterator StrategyBase::stepEnd(
+std::vector<std::pair<Step, int> >::iterator StrategyBase::stepEnd(
     Theory::Effort e)
 {
-  typename std::map<Theory::Effort, std::pair<size_t, size_t> >::const_iterator
-      it = d_stratSteps.find(e);
+  std::map<Theory::Effort, std::pair<size_t, size_t> >::const_iterator it =
+      d_stratSteps.find(e);
   Assert(it != d_stratSteps.end());
   return d_inferSteps.begin() + it->second.second;
 }
@@ -73,8 +71,7 @@ void StrategyBase::finishInit()
   for (const std::pair<const Theory::Effort, size_t>& b : d_stepBegin)
   {
     Theory::Effort e = b.first;
-    typename std::map<Theory::Effort, size_t>::const_iterator itEnd =
-        d_stepEnd.find(e);
+    std::map<Theory::Effort, size_t>::const_iterator itEnd = d_stepEnd.find(e);
     Assert(itEnd != d_stepEnd.end());
     d_stratSteps[e] = std::pair<size_t, size_t>(b.second, itEnd->second);
   }

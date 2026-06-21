@@ -29,38 +29,30 @@ namespace theory {
  * Generic base class for a theory "strategy".
  *
  * A strategy is an ordered list of inference steps that a theory runs during
- * its full-effort (and, optionally, last-call) check.
+ * its standard, full or last-call effort check.
  *
  * A new theory can add a strategy with only a few lines of theory-specific
  * code. A theory specializes it by:
- *   1. extending enum `Step` with its own inference steps.
+ *   1. adding enum `Step` with its own inference steps.
  *   2. deriving `class Strategy : public StrategyBase { ... }`;
  *   3. implementing initializeStrategy() to build the list using the protected
  *      helpers below (markStartEffort / addStrategyStep / markEndEffort /
  *      finishInit).
  * The theory's own check loop (typically runStrategy / runInferStep) is
  * intentionally NOT part of this class: those dispatch to theory-specific
- * sub-solvers and may apply theory-specific BREAK semantics. This class owns
- * only the *recipe* (the ordered list and its per-effort slices); the theory
- * owns how the recipe is executed.
+ * sub-solvers.
+ * This class owns only the *recipe* (the ordered list and its per-effort
+ * slices); the theory owns how the recipe is executed.
  *
  * The step list is stored flat. For an effort e, the steps to run are the
- * half-open iterator range [stepBegin(e), stepEnd(e)). Note that stepEnd(e)
- * points at the trailing BREAK of the last step for e (i.e. the list index
- * size()-1 at the time markEndEffort(e) was called), so that final BREAK is
- * excluded from iteration.
+ * half-open iterator range [stepBegin(e), stepEnd(e)).
  *
  */
 class StrategyBase
 {
  public:
-  /**
-   * @param breakStep The value of `Step` that denotes a BREAK marker. A BREAK
-   * is inserted automatically after each step added with addBreak=true; the
-   * theory's runStrategy treats a BREAK as a yield point.
-   */
-  StrategyBase(Step breakStep);
-  virtual ~StrategyBase();
+  /** a destructor */
+  virtual ~StrategyBase() = 0;
 
   /** Has initializeStrategy() finished building the strategy? */
   bool isStrategyInit() const;
