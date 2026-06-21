@@ -46,7 +46,6 @@ typename std::vector<std::pair<Step, int> >::iterator StrategyBase::stepEnd(
 
 void StrategyBase::addStrategyStep(Step s, int effort, bool addBreak)
 {
-  // BREAK markers are inserted automatically and must never be added by hand.
   Assert(s != BREAK);
   d_inferSteps.push_back(std::pair<Step, int>(s, effort));
   if (addBreak)

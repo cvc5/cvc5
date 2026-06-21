@@ -19,36 +19,11 @@
 #include <utility>
 #include <vector>
 
+#include "theory/step.h"
 #include "theory/theory.h"
 
 namespace cvc5::internal {
 namespace theory {
-
-/** inference steps
- *
- * Corresponds to a step in the overall strategy of the theory solver.
- */
-enum Step : uint32_t
-{
-  // placeholder specfying no inference step
-  NONE,
-
-  // indicates that the strategy should break if lemmas or facts are added
-  BREAK,
-  // check basic sets operations
-  SETS_CHECK_BASIC,
-  // check cardinality operations
-  SETS_CHECK_CARDINALITY,
-  // check basic relational operators
-  SETS_CHECK_RELATIONS,
-  // check transitive closure
-  SETS_CHECK_TRANSITIVE_CLOSURE,
-  // check fold
-  SETS_CHECK_FOLD,
-  // unknown inference step
-  UNKNOWN
-};
-std::ostream& operator<<(std::ostream& out, Step i);
 
 /**
  * Generic base class for a theory "strategy".

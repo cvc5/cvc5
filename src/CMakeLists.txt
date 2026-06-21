@@ -1169,6 +1169,8 @@ libcvc5_add_sources(
   theory/partition_generator.h
   theory/plugin_module.cpp
   theory/plugin_module.h
+  theory/step.cpp
+  theory/step.h
   theory/strategy.cpp
   theory/strategy.h
   theory/strings/array_solver.cpp
