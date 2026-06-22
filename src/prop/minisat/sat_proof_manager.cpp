@@ -134,14 +134,14 @@ void SatProofManager::addResolutionStep(const Minisat::Clause& clause,
   }
 }
 
-void SatProofManager::endResChain(Minisat::Lit lit)
+void SatProofManager::endResChain(Minisat::Lit lit, uint32_t clauseLevel)
 {
   SatLiteral satLit = MinisatSatSolver::toSatLiteral(lit);
   Trace("sat-proof") << "SatProofManager::endResChain: curr user level: "
                      << userContext()->getLevel() << "\n";
   Trace("sat-proof") << "SatProofManager::endResChain: chain_res for "
                      << satLit;
-  endResChain(d_cnfStream->getNode(satLit), {satLit});
+  endResChain(d_cnfStream->getNode(satLit), {satLit}, clauseLevel);
 }
 
 void SatProofManager::endResChain(const Minisat::Clause& clause)
