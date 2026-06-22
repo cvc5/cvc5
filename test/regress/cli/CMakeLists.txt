@@ -1534,6 +1534,7 @@ set(regress_0_tests
   regress0/proofs/exists-shadow-simple.smt2
   regress0/proofs/fixed-point-rew.smt2
   regress0/proofs/fixed-point-rew-conc.smt2
+  regress0/proofs/from_code_oob_eval.smt2
   regress0/proofs/indexof-eval-rw_155.smt2
   regress0/proofs/ios_np_sf.smt2
   regress0/proofs/issue277-circuit-propagator.smt2
