@@ -30,8 +30,3 @@
   :args (P)
   :conclusion (= (set.member x (set.filter P S)) (P x))
 )
-; rel.acyclic takes a tuple of binary relations. Bind the head to a binary 
-; relation (Set (Tuple T T)) and capture the rest of the tuple in tail param U, 
-; using the RAW application (_ Tuple head tail).
-(declare-parameterized-const rel.acyclic ((T Type :implicit) (U Type :implicit))
-  (-> (_ Tuple (Set (Tuple T T)) U) Bool))
