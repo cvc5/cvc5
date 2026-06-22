@@ -307,6 +307,21 @@ JNIEXPORT jboolean JNICALL Java_io_github_cvc5_Term_isNull(JNIEnv* env,
 
 /*
  * Class:     io_github_cvc5_Term
+ * Method:    isConst
+ * Signature: (J)Z
+ */
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_Term_isConst(JNIEnv* env,
+                                                            jobject,
+                                                            jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Term* current = reinterpret_cast<Term*>(pointer);
+  return static_cast<jboolean>(current->isConst());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
+}
+
+/*
+ * Class:     io_github_cvc5_Term
  * Method:    isConstArray
  * Signature: (J)Z
  */

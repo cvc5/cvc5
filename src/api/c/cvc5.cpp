@@ -2135,6 +2135,16 @@ const char* cvc5_term_get_real_value(Cvc5Term term)
   return res.c_str();
 }
 
+bool cvc5_term_is_const(Cvc5Term term)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_TERM(term);
+  res = term->d_term.isConst();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
 bool cvc5_term_is_const_array(Cvc5Term term)
 {
   bool res = false;

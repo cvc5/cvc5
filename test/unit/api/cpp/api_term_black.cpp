@@ -875,6 +875,19 @@ TEST_F(TestApiBlackTerm, getConstArrayBase)
   ASSERT_THROW(one.getConstArrayBase(), CVC5ApiException);
 }
 
+TEST_F(TestApiBlackTerm, isConst)
+{
+  Sort intsort = d_tm.getIntegerSort();
+  Sort arrsort = d_tm.mkArraySort(intsort, intsort);
+  Term one = d_tm.mkInteger(1);
+  Term constarr = d_tm.mkConstArray(arrsort, one);
+  Term x = d_tm.mkConst(intsort, "x");
+
+  ASSERT_TRUE(one.isConst());
+  ASSERT_TRUE(constarr.isConst());
+  ASSERT_FALSE(x.isConst());
+}
+
 TEST_F(TestApiBlackTerm, getBoolean)
 {
   Term b1 = d_tm.mkBoolean(true);
