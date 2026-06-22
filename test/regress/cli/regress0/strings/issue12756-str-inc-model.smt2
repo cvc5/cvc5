@@ -1,3 +1,5 @@
+; EXPECT: sat
+; EXPECT: sat
 (set-logic ALL)
 (declare-const x Int)
 (declare-const c String)
