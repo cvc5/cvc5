@@ -349,6 +349,47 @@ void TheorySetsRels::collectRelsInfo()
             // TC(union)) finds it directly.
             Node u = mkRelUnion(TupleUtils::getTupleElements(eqc_node[0]));
             d_acyclic_cache[getRepresentative(u)].push_back(eqc_node);
+
+            // ===== NEW (cycle-ext): drive TC processing from acyclic(u) =====
+            // The acyclic-down rule is term-driven: it can only contradict a
+            // self-loop (a,a) in TC(u), and that membership is only ever
+            // materialized if (a) u itself is a registered relation whose
+            // members are populated -- for a union u = R1 u ... u Rk this needs
+            // the core solver's set-union up-rule, which only fires once u is a
+            // registered term -- and (b) (rel.tclosure u) is processed by the
+            // TC solver. If the user never mentions u / (rel.tclosure u),
+            // nothing registers them, the cycle is never derived, and we
+            // wrongly answer sat (and the extracted unsat core, which drops the
+            // user's tclosure assertion, re-checks as sat).
+            //
+            // OLD CODE (insufficient): synthesize TC(u) straight into the
+            // relations solver's scratch index. This only worked for a single
+            // relation, where u == R already has its members; for a union it
+            // leaves R u S unregistered, so union-up never fires and R u S has
+            // no members to build a closure from. (It also keyed TC(u) under
+            // rep(u) rather than rep(TC(u)), feeding the m_it-loop rules u's
+            // base members as if they were TC(u) members.)
+            //   Node tc = nodeManager()->mkNode(Kind::RELATION_TCLOSURE, u);
+            //   d_terms_cache[getRepresentative(u)][Kind::RELATION_TCLOSURE]
+            //       .push_back(tc);
+            //
+            // NEW CODE: emit the vacuous lemma acyclic(u) => u <= TC(u). The
+            // consequent (u is a subset of its own transitive closure) is
+            // always true, so it constrains nothing; its only job is to
+            // introduce u and TC(u) as registered terms, so union-up
+            // materializes u's members and the TC solver builds the closure and
+            // derives the self-loop.
+            //
+            // NOTE: the consequent must SURVIVE rewriting to actually register
+            // the terms. A reflexive equality TC(u) = TC(u) does not -- the
+            // lemma path rewrites it to true before the term registers, so it
+            // registers nothing (verified: even the single-relation case stays
+            // sat with that consequent). subset(u, TC(u)) has no such
+            // collapsing rewrite, so the terms survive into the registered set.
+            Node tc = nodeManager()->mkNode(Kind::RELATION_TCLOSURE, u);
+            Node reg = nodeManager()->mkNode(Kind::SET_SUBSET, u, tc);
+            sendInfer(reg, InferenceId::SETS_RELS_ACYCLIC_DOWN, eqc_node);
+            // ===== END NEW =====
           }
           else
           {
