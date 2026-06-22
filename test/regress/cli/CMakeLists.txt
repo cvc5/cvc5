@@ -179,7 +179,6 @@ set(regress_0_tests
   regress0/arrays/issue10494.smt2
   regress0/arrays/issue10494-2.smt2
   regress0/arrays/issue11889-eec-unsat.smt2
-  regress0/arrays/issue12756.smt2
   regress0/arrays/proj-issue322-has-term.smt2
   regress0/arrays/proj-issue391-minisat-elim.smt2
   regress0/arrays/proj-issue467-cm.smt2
@@ -2174,6 +2173,7 @@ set(regress_0_tests
   regress0/strings/issue12027-str-ae.smt2
   regress0/strings/issue12241-aci.smt2
   regress0/strings/issue12322-pf-eager-len-re.smt2
+  regress0/strings/issue12756-str-inc-model.smt2
   regress0/strings/issue1189.smt2
   regress0/strings/issue2958.smt2
   regress0/strings/issue3440.smt2
