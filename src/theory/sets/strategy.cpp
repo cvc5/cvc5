@@ -13,16 +13,18 @@
 #include "theory/sets/strategy.h"
 
 #include "theory/inference_manager_buffered.h"
+#include "theory/sets/theory_sets_private.h"
 #include "theory/theory_state.h"
 
 namespace cvc5::internal {
 namespace theory {
 namespace sets {
 
-Strategy::Strategy(TheoryState* state,
+Strategy::Strategy(TheorySetsPrivate* parent,
+                   TheoryState* state,
                    InferenceManagerBuffered* im,
                    Valuation* valuation)
-    : StrategyBase(TheoryId::THEORY_SETS, state, im, valuation)
+    : StrategyBase(TheoryId::THEORY_SETS, state, im, valuation), d_parent(parent)
 {
 }
 
@@ -56,18 +58,27 @@ void Strategy::runStep(Step s, Theory::Effort, unsigned effort)
     Trace("sets-process") << ", effort = " << effort;
   }
   Trace("sets-process") << "..." << std::endl;
+  Assert(d_parent != nullptr);
   switch (s)
   {
-    case Step::SETS_CHECK_BASIC: break;
-    case Step::SETS_CHECK_CARDINALITY: break;
-    case Step::SETS_CHECK_RELATIONS: break;
-    case Step::SETS_CHECK_TRANSITIVE_CLOSURE: break;
-    case Step::SETS_CHECK_FOLD: break;
+    case Step::SETS_CHECK_BASIC: d_parent->checkBasic(); break;
+    case Step::SETS_CHECK_CARDINALITY: d_parent->checkCardinality(); break;
+    case Step::SETS_CHECK_RELATIONS: d_parent->checkRelations(); break;
+    case Step::SETS_CHECK_TRANSITIVE_CLOSURE:
+      // TODO: transitive closure is currently handled inside the relations
+      // subsolver; this is a placeholder for splitting it out.
+      break;
+    case Step::SETS_CHECK_FOLD:
+      // TODO: fold is currently reduced at ppRewrite time; this is a
+      // placeholder for handling it as a dedicated step.
+      break;
 
     default: Unreachable(); break;
   }
+  // Sets asserts facts directly to the equality engine, so "addedFact" is
+  // reported via hasSentFact rather than the pending-fact queue.
   Trace("sets-process") << "Done " << s
-                        << ", addedFact = " << d_im->hasPendingFact()
+                        << ", addedFact = " << d_im->hasSentFact()
                         << ", addedLemma = " << d_im->hasPendingLemma()
                         << ", conflict = " << d_state->isInConflict()
                         << std::endl;

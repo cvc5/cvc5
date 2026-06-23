@@ -21,15 +21,19 @@ namespace cvc5::internal {
 namespace theory {
 namespace sets {
 
+class TheorySetsPrivate;
+
 /**
  * The strategy of theory of sets.
- * This class only supplies the sets-specific step ordering in
- * initializeStrategy().
+ * This class supplies the sets-specific step ordering in initializeStrategy()
+ * and dispatches each step (via runStep) to the corresponding check method on
+ * the owning TheorySetsPrivate.
  */
 class Strategy : public StrategyBase
 {
  public:
-  Strategy(TheoryState* state = nullptr,
+  Strategy(TheorySetsPrivate* parent = nullptr,
+           TheoryState* state = nullptr,
            InferenceManagerBuffered* im = nullptr,
            Valuation* valuation = nullptr);
 
@@ -42,9 +46,14 @@ class Strategy : public StrategyBase
   void initializeStrategy() override;
 
   /**
-   * Execute a single inference step.
+   * Execute a single inference step by dispatching to the matching check
+   * method on the owning TheorySetsPrivate.
    */
   void runStep(Step s, Theory::Effort e, unsigned effort) override;
+
+ private:
+  /** The sets solver that owns this strategy and implements the steps. */
+  TheorySetsPrivate* d_parent;
 }; /* class Strategy */
 
 }  // namespace sets

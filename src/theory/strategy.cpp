@@ -134,7 +134,11 @@ void StrategyBase::runStrategy(Theory::Effort e)
 
 bool StrategyBase::hasProcessed() const
 {
-  return d_state->isInConflict() || d_im->hasPending();
+  // A step may either buffer its conclusions as pending facts/lemmas (caught by
+  // hasPending) or assert facts / send lemmas immediately (caught by hasSent,
+  // which also covers conflicts). Accounting for both lets the BREAK markers
+  // fire regardless of which style a theory uses to emit inferences.
+  return d_im->hasSent() || d_im->hasPending();
 }
 
 void StrategyBase::doPending()
@@ -171,8 +175,12 @@ void StrategyBase::postCheck(Theory::Effort e)
       // ++(d_statistics->d_strategyRuns);
       Trace("check") << "  * Run strategy..." << std::endl;
       runStrategy(e);
-      // remember if we had pending facts or lemmas
-      hadPending = d_im->hasPending();
+      // Remember if this round produced work. Conclusions may be buffered as
+      // pending facts/lemmas (hasPending), or facts may be asserted immediately
+      // to the equality engine, which only shows up via hasSentFact. Either
+      // case means the round was productive and we should iterate again (unless
+      // we end up sending a lemma or hitting a conflict below).
+      hadPending = d_im->hasPending() || d_im->hasSentFact();
       // Send the facts *and* the lemmas. We send lemmas regardless of whether
       // we send facts since some lemmas cannot be dropped. Other lemmas are
       // otherwise avoided by aborting the strategy when a fact is ready.

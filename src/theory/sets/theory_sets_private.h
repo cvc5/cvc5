@@ -23,6 +23,7 @@
 #include "theory/sets/cardinality_extension.h"
 #include "theory/sets/inference_manager.h"
 #include "theory/sets/solver_state.h"
+#include "theory/sets/strategy.h"
 #include "theory/sets/term_registry.h"
 #include "theory/sets/theory_sets_rels.h"
 #include "theory/theory.h"
@@ -46,13 +47,6 @@ class TheorySetsPrivate : protected EnvObj
   void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
 
  private:
-  /**
-   * Invoke the decision procedure for this theory, which is run at
-   * full effort. This will either send a lemma or conflict on the output
-   * channel of this class, or otherwise the current set of constraints is
-   * satisfiable w.r.t. the theory of sets.
-   */
-  void fullEffortCheck();
   /**
    * Reset the information for a full effort check.
    */
@@ -333,6 +327,24 @@ class TheorySetsPrivate : protected EnvObj
   void notifyFact(TNode atom, bool polarity, TNode fact);
   //--------------------------------- end standard check
 
+  //--------------------------------- strategy steps
+  // These are the individual steps of the full-effort strategy. They are
+  // invoked by sets::Strategy::runStep in the order set up by
+  // Strategy::initializeStrategy. Each step asserts facts directly and/or
+  // buffers lemmas; the strategy decides when to flush and when to iterate.
+  /**
+   * Register the relevant terms with the solver state and run the core sets
+   * inference schemas (membership downwards/upwards closure, filter, map,
+   * group, disequalities and comprehension reductions). Returns as soon as a
+   * fact or lemma has been produced, so the strategy can flush and restart.
+   */
+  void checkBasic();
+  /** Run the cardinality subsolver, if cardinality constraints are present. */
+  void checkCardinality();
+  /** Run the relations subsolver, if relational constraints are present. */
+  void checkRelations();
+  //--------------------------------- end strategy steps
+
   /** Collect model values in m based on the relevant terms given by termSet */
   bool collectModelValues(TheoryModel* m, const std::set<Node>& termSet);
 
@@ -424,6 +436,14 @@ class TheorySetsPrivate : protected EnvObj
   std::map<Node, Node> d_isSingletonNodes;
   /** Reference to care pair argument callback, used for theory combination */
   CarePairArgumentCallback& d_cpacb;
+  /**
+   * The relevant terms for the current full-effort check. Collected once per
+   * postCheck and reused by checkBasic while registering terms on each strategy
+   * pass (mirrors the hoist that used to live at the top of fullEffortCheck).
+   */
+  std::set<Node> d_relevantTerms;
+  /** The strategy that drives the full-effort check loop. */
+  Strategy d_strategy;
 }; /* class TheorySetsPrivate */
 
 }  // namespace sets

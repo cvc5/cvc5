@@ -23,7 +23,6 @@
 #include "theory/sets/proof_checker.h"
 #include "theory/sets/skolem_cache.h"
 #include "theory/sets/solver_state.h"
-#include "theory/sets/strategy.h"
 #include "theory/sets/theory_sets_rewriter.h"
 #include "theory/theory.h"
 #include "theory/theory_eq_notify.h"
@@ -120,8 +119,6 @@ class TheorySets : public Theory
   SetsProofRuleChecker d_checker;
   /** Instance of the above class */
   NotifyClass d_notify;
-  /** a strategy for theory of sets */
-  Strategy d_strategy;
 }; /* class TheorySets */
 
 }  // namespace sets
