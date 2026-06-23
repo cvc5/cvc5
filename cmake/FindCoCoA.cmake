@@ -83,7 +83,7 @@ if(NOT CoCoA_FOUND_SYSTEM)
   ExternalProject_Add(
     CoCoA-EP
     ${COMMON_EP_CONFIG}
-    URL https://cocoa.altervista.org/cocoalib/tgz/CoCoALib-${CoCoA_VERSION}.tgz
+    URL https://github.com/cvc5/cvc5-deps/blob/main/CoCoALib-${CoCoA_VERSION}.tgz?raw=true
     URL_HASH SHA256=d3e7af0153c6950f83f4e3556540f0177fedf5179f0f7667b7d6d670268fd445
     # CoCoA requires C++14, but the check does not work with compilers that
     # default to C++17 or newer. The patch fixes the check.
