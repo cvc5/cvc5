@@ -132,8 +132,6 @@ void StrategyBase::runStrategy(Theory::Effort e)
   Trace("strings-process") << "----finished round---" << std::endl;
 }
 
-void StrategyBase::runStep(Step, Theory::Effort, unsigned) {}
-
 bool StrategyBase::hasProcessed() const
 {
   return d_state->isInConflict() || d_im->hasPending();

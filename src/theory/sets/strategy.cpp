@@ -45,6 +45,8 @@ void Strategy::initializeStrategy()
   finishInit();
 }
 
+void Strategy::runStep(Step, Theory::Effort, unsigned) {}
+
 }  // namespace sets
 }  // namespace theory
 }  // namespace cvc5::internal

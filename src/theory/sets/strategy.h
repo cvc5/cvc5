@@ -40,6 +40,11 @@ class Strategy : public StrategyBase
    * StrategyBase) to build the sets strategy.
    */
   void initializeStrategy() override;
+
+  /**
+   * Execute a single inference step.
+   */
+  void runStep(Step s, Theory::Effort e, unsigned effort) override;
 }; /* class Strategy */
 
 }  // namespace sets

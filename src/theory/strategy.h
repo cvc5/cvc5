@@ -110,10 +110,9 @@ class StrategyBase
   void runStrategy(Theory::Effort e);
 
   /**
-   * Execute a single inference step. Theory-specific dispatch; the default is a
-   * no-op placeholder until this is generalized.
+   * Execute a single inference step.
    */
-  virtual void runStep(Step s, Theory::Effort e, unsigned effort);
+  virtual void runStep(Step s, Theory::Effort e, unsigned effort) = 0;
 
   /**
    * Append step s (running at the given effort index) to the strategy. If
