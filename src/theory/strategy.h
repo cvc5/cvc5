@@ -16,6 +16,7 @@
 #define CVC5__THEORY__STRATEGY_H
 
 #include <map>
+#include <string>
 #include <utility>
 #include <vector>
 
@@ -24,6 +25,8 @@
 
 namespace cvc5::internal {
 namespace theory {
+
+class InferenceManagerBuffered;
 
 /**
  * Generic base class for a theory "strategy".
@@ -51,6 +54,11 @@ namespace theory {
 class StrategyBase
 {
  public:
+  StrategyBase(TheoryId id,
+               TheoryState* state = nullptr,
+               InferenceManagerBuffered* im = nullptr,
+               Valuation* valuation = nullptr);
+
   /** a destructor */
   virtual ~StrategyBase();
 
@@ -83,7 +91,25 @@ class StrategyBase
    */
   virtual void initializeStrategy() = 0;
 
+  /**
+   * The standard full/last-call effort check loop, lifted from
+   * TheoryStrings::postCheck. It repeatedly runs the strategy and sends pending
+   * facts/lemmas until a conflict or lemma is produced or nothing is pending.
+   * Currently driven by the strings collaborators held below; to be generalized
+   * for reuse by other theories.
+   */
+  virtual void postCheck(Theory::Effort e);
+
+  /**ToDo: move this to InferenceManagerBuffered with new field TheoryState */
+  void doPending();
+
  protected:
+  /**
+   * Run the steps registered for the current effort. Theory-specific dispatch;
+   * the default is a no-op placeholder until this is generalized.
+   */
+  virtual void runStrategy(Theory::Effort e);
+
   /**
    * Append step s (running at the given effort index) to the strategy. If
    * addBreak is true (default), a BREAK marker is appended after it, which the
@@ -113,6 +139,10 @@ class StrategyBase
   void finishInit();
 
  private:
+  TheoryId d_theoryId;
+  TheoryState* d_state;
+  InferenceManagerBuffered* d_im;
+  Valuation* d_valuation;
   /** Whether the strategy has been initialized. */
   bool d_strategyInit;
   /** The flat ordered list of steps, with BREAK markers interleaved. */

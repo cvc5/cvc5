@@ -29,7 +29,10 @@ namespace sets {
 class Strategy : public StrategyBase
 {
  public:
-  Strategy();
+  Strategy(TheoryState* state = nullptr,
+           InferenceManagerBuffered* im = nullptr,
+           Valuation* valuation = nullptr);
+
   ~Strategy();
   /** initialize the strategy
    *

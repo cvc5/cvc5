@@ -16,7 +16,12 @@ namespace cvc5::internal {
 namespace theory {
 namespace sets {
 
-Strategy::Strategy() {}
+Strategy::Strategy(TheoryState* state,
+                   InferenceManagerBuffered* im,
+                   Valuation* valuation)
+    : StrategyBase(TheoryId::THEORY_SETS, state, im, valuation)
+{
+}
 
 Strategy::~Strategy() {}
 
