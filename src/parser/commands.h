@@ -478,6 +478,28 @@ class CVC5_EXPORT CheckSatAssumingCommand : public Cmd
   cvc5::Result d_result;
 }; /* class CheckSatAssumingCommand */
 
+/**
+ * The command when parsing check-sat-ffd.
+ * This command will force the first decisions of the solver based on the terms
+ * argument.
+ */
+class CVC5_EXPORT CheckSatFFDCommand : public Cmd
+{
+ public:
+  CheckSatFFDCommand(const std::vector<cvc5::Term>& terms);
+
+  const std::vector<cvc5::Term>& getTerms() const;
+  cvc5::Result getResult() const;
+  void invoke(cvc5::Solver* solver, parser::SymManager* sm) override;
+  void printResult(cvc5::Solver* solver, std::ostream& out) const override;
+  std::string getCommandName() const override;
+  void toStream(std::ostream& out) const override;
+
+ private:
+  std::vector<cvc5::Term> d_terms;
+  cvc5::Result d_result;
+}; /* class CheckSatFFDCommand */
+
 /* ------------------- sygus commands  ------------------ */
 
 /** Declares a sygus universal variable */
