@@ -12,6 +12,9 @@
 
 #include "theory/sets/strategy.h"
 
+#include "theory/inference_manager_buffered.h"
+#include "theory/theory_state.h"
+
 namespace cvc5::internal {
 namespace theory {
 namespace sets {
@@ -45,7 +48,23 @@ void Strategy::initializeStrategy()
   finishInit();
 }
 
-void Strategy::runStep(Step, Theory::Effort, unsigned) {}
+void Strategy::runStep(Step s, Theory::Effort, unsigned effort)
+{
+  Trace("strings-process") << "Run " << s;
+  if (effort > 0)
+  {
+    Trace("strings-process") << ", effort = " << effort;
+  }
+  Trace("strings-process") << "..." << std::endl;
+  switch (s)
+  {
+    case Step::SETS_CHECK_BASIC: break;
+    default: Unreachable(); break;
+  }
+  Trace("process") << "Done " << s << ", addedFact = " << d_im->hasPendingFact()
+                   << ", addedLemma = " << d_im->hasPendingLemma()
+                   << ", conflict = " << d_state->isInConflict() << std::endl;
+}
 
 }  // namespace sets
 }  // namespace theory

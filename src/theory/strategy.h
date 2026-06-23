@@ -144,7 +144,7 @@ class StrategyBase
 
   bool hasProcessed() const;
 
- private:
+ protected:
   TheoryId d_theoryId;
   TheoryState* d_state;
   InferenceManagerBuffered* d_im;
