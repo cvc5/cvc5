@@ -101,24 +101,6 @@ void StrategyBase::finishInit()
   d_strategyInit = true;
 }
 
-std::vector<std::pair<Step, unsigned>>::iterator StrategyBase::stepBegin(
-    Theory::Effort e)
-{
-  std::map<Theory::Effort, std::pair<unsigned, unsigned>>::const_iterator it =
-      d_stratSteps.find(e);
-  Assert(it != d_strat_steps.end());
-  return d_steps.begin() + it->second.first;
-}
-
-std::vector<std::pair<Step, unsigned>>::iterator StrategyBase::stepEnd(
-    Theory::Effort e)
-{
-  std::map<Theory::Effort, std::pair<unsigned, unsigned>>::const_iterator it =
-      d_stratSteps.find(e);
-  Assert(it != d_strat_steps.end());
-  return d_steps.begin() + it->second.second;
-}
-
 void StrategyBase::runStrategy(Theory::Effort e)
 {
   std::vector<std::pair<Step, unsigned>>::iterator it = stepBegin(e);
@@ -149,6 +131,8 @@ void StrategyBase::runStrategy(Theory::Effort e)
   }
   Trace("strings-process") << "----finished round---" << std::endl;
 }
+
+void StrategyBase::runStep(Step, Theory::Effort, unsigned) {}
 
 bool StrategyBase::hasProcessed() const
 {

@@ -41,7 +41,7 @@ class InferenceManagerBuffered;
  *   3. implementing initializeStrategy() to build the list using the protected
  *      helpers below (markStartEffort / addStrategyStep / markEndEffort /
  *      finishInit).
- * The theory's own check loop (typically runStrategy / runInferStep) is
+ * The theory's own check loop (typically runStrategy / runStep) is
  * intentionally NOT part of this class: those dispatch to theory-specific
  * sub-solvers.
  * This class owns only the *recipe* (the ordered list and its per-effort
@@ -103,12 +103,17 @@ class StrategyBase
 
  protected:
   /**
-   * Run the steps registered for the current effort. Theory-specific dispatch;
-   * the default is a no-op placeholder until this is generalized.
+   * Run the steps registered for effort e in order, dispatching each via
+   * runStep() and yielding at BREAK markers once something has been
+   * processed or a conflict is found.
    */
   void runStrategy(Theory::Effort e);
 
-  virtual void runInferStep(Step s, Theory::Effort e, unsigned effort);
+  /**
+   * Execute a single inference step. Theory-specific dispatch; the default is a
+   * no-op placeholder until this is generalized.
+   */
+  virtual void runStep(Step s, Theory::Effort e, unsigned effort);
 
   /**
    * Append step s (running at the given effort index) to the strategy. If
@@ -137,10 +142,6 @@ class StrategyBase
    * after all steps and effort marks have been added.
    */
   void finishInit();
-
-  std::vector<std::pair<Step, unsigned>>::iterator stepBegin(Theory::Effort e);
-
-  std::vector<std::pair<Step, unsigned>>::iterator stepEnd(Theory::Effort e);
 
   bool hasProcessed() const;
 
