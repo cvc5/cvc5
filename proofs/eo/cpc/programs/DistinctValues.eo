@@ -97,7 +97,7 @@
 
 ;;;;; Theory of datatypes
 
-; program: $dt_distinct_terms_arg
+; program: $dt_distinct_terms
 ; args:
 ; - t T: The first term, expected to be of datatype type.
 ; - s T: The second term, expected to be of datatype type.
@@ -105,6 +105,8 @@
 ;   True if we can show that t and s denote distinct terms. This is true
 ;   if t and s are distinct constructor applications, or are applications
 ;   of the same constructor and one of their arguments can be shown distinct.
+;   This method gets stuck if the given terms are not applications of datatype
+;   constructors.
 (program $dt_distinct_terms
   ((T Type) (U Type) (ct T) (cs T) (f (-> U T)) (a U) (g (-> U T)) (b U))
   :signature (T T) Bool
@@ -142,7 +144,10 @@
   (($are_distinct_terms_type t s Bool)        (eo::and (eo::is_bool t) (eo::is_bool s)))
   (($are_distinct_terms_type st ss (Set U))   (eo::or ($set_is_not_subset st ss U) ($set_is_not_subset ss st U)))
   (($are_distinct_terms_type sst sss (Seq U)) ($seq_distinct_terms sst sss U))
-  (($are_distinct_terms_type t s T)           ($dt_distinct_terms t s)) ; otherwise assume we are a user datatype
+  (($are_distinct_terms_type t s T)
+    ; Otherwise assume we are a user datatype. We check if the datatypes are
+    ; distinct, also handling the case where the side condition above is stuck.
+    (eo::define ((res ($dt_distinct_terms t s))) (eo::ite (eo::is_ok res) res false)))
   )
 )
 
