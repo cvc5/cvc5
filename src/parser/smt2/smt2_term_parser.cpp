@@ -12,7 +12,7 @@
 
 #include "parser/smt2/smt2_term_parser.h"
 
-#include <string.h>
+#include <cstring>
 
 #include "base/check.h"
 #include "base/output.h"

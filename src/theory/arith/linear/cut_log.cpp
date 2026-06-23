@@ -11,9 +11,7 @@
 
 #include "theory/arith/linear/cut_log.h"
 
-#include <limits.h>
-#include <math.h>
-
+#include <climits>
 #include <cmath>
 #include <iomanip>
 #include <map>

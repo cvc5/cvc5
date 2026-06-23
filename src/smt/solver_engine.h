@@ -907,6 +907,17 @@ class CVC5_EXPORT SolverEngine
   void assertFormulaInternal(const Node& formula);
 
   /**
+   * If we are producing proofs that do not permit subtypes (mixed arithmetic),
+   * return the result of eliminating subtypes from n; otherwise return n
+   * unchanged. This is applied to formulas and definitions before they are
+   * added to the assertions, so that they match the subtype-eliminated proof
+   * and do not require a trust step for an irreducible mixed-arithmetic term
+   * (e.g. division by zero). This is a no-op for internal subsolvers, since it
+   * only impacts having exportable, complete proofs.
+   */
+  Node eliminateSubtypesForProof(const Node& n) const;
+
+  /**
    * Check that a generated proof checks. This method is the same as getProof,
    * but does not return the proof. Like that method, it should be called
    * after an UNSAT response. It ensures that a well-formed proof of false

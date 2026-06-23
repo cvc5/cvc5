@@ -4,13 +4,15 @@
 ;  This is the generic tester predicate whose first argument is expected to be
 ;  a constructor symbol for datatype D. We do not currently check this is the
 ;  case.
-(declare-parameterized-const is ((C Type :implicit) (D Type :implicit)) (-> C D Bool))
+(declare-parameterized-const is ((C Type :implicit) (D Type :implicit) (c C :opaque)) (-> D Bool))
 
 ; note: >
-;  This is the generic updater whose first argument is expected to be
+;  This is the generic updater whose first argument s is expected to be
 ;  a selector symbol for datatype D. We do not currently check this is the
 ;  case.
-(declare-parameterized-const update ((D Type :implicit) (T Type :implicit) (S Type :implicit)) (-> S D T D))
+(declare-parameterized-const update 
+  ((D Type :implicit) (T Type :implicit) (S Type :implicit) (s S :opaque))
+  (-> D T D))
 
 ; disclaimer: >
 ;   This sort is not in the SMT-LIB standard. All further function
@@ -23,8 +25,9 @@
 
 (declare-const tuple.unit UnitTuple)
 (declare-parameterized-const tuple ((T Type :implicit) (U Type :implicit)) (-> T U (_ Tuple T U)) :right-assoc-nil tuple.unit)
-(declare-parameterized-const tuple.select ((T Type :implicit) (i Int)) (-> T (eo::list_nth Tuple T i)))
+(declare-parameterized-const tuple.select ((T Type :implicit) (i Int :opaque)) (-> T (eo::list_nth Tuple T i)))
 
 ; disclaimer: This function is not in the SMT-LIB standard.
-(declare-parameterized-const tuple.update ((T Type :implicit) (U Type :implicit) (i Int))
+(declare-parameterized-const tuple.update 
+  ((T Type :implicit) (U Type :implicit) (i Int :opaque))
   (-> T U (eo::requires U (eo::list_nth Tuple T i) T)))

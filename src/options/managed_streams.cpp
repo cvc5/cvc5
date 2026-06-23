@@ -15,9 +15,8 @@
 
 #include "options/managed_streams.h"
 
-#include <string.h>
-
 #include <cerrno>
+#include <cstring>
 #include <fstream>
 #include <iostream>
 #include <sstream>
