@@ -92,11 +92,9 @@ class StrategyBase
   virtual void initializeStrategy() = 0;
 
   /**
-   * The standard full/last-call effort check loop, lifted from
-   * TheoryStrings::postCheck. It repeatedly runs the strategy and sends pending
+   * The standard full/last-call effort check loop.
+   * It repeatedly runs the strategy and sends pending
    * facts/lemmas until a conflict or lemma is produced or nothing is pending.
-   * Currently driven by the strings collaborators held below; to be generalized
-   * for reuse by other theories.
    */
   virtual void postCheck(Theory::Effort e);
 

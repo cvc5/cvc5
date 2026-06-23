@@ -134,7 +134,7 @@ void StrategyBase::postCheck(Theory::Effort e)
     {
       d_im->reset();
       // ++(d_statistics->d_strategyRuns);
-      Trace("strings-check") << "  * Run strategy..." << std::endl;
+      Trace("check") << "  * Run strategy..." << std::endl;
       runStrategy(e);
       // remember if we had pending facts or lemmas
       hadPending = d_im->hasPending();
@@ -148,24 +148,24 @@ void StrategyBase::postCheck(Theory::Effort e)
       // (2) unsuccessfully processed pending lemmas.
       // In either case, we repeat the strategy if we are not in conflict.
       sentLemma = d_im->hasSentLemma();
-      if (TraceIsOn("strings-check"))
+      if (TraceIsOn("check"))
       {
-        Trace("strings-check") << "  ...finish run strategy: ";
-        Trace("strings-check") << (hadPending ? "hadPending " : "");
-        Trace("strings-check") << (sentLemma ? "sentLemma " : "");
-        Trace("strings-check") << (d_state->isInConflict() ? "conflict " : "");
+        Trace("check") << "  ...finish run strategy: ";
+        Trace("check") << (hadPending ? "hadPending " : "");
+        Trace("check") << (sentLemma ? "sentLemma " : "");
+        Trace("check") << (d_state->isInConflict() ? "conflict " : "");
         if (!hadPending && !sentLemma && !d_state->isInConflict())
         {
-          Trace("strings-check") << "(none)";
+          Trace("check") << "(none)";
         }
-        Trace("strings-check") << std::endl;
+        Trace("check") << std::endl;
       }
       // repeat if we did not add a lemma or conflict, and we had pending
       // facts or lemmas.
     } while (!d_state->isInConflict() && !sentLemma && hadPending);
   }
-  Trace("strings-check") << "Theory of strings, done check : " << e
-                         << std::endl;
+  Trace("check") << "Theory of " << d_theoryId << ", done check : " << e
+                 << std::endl;
   Assert(!d_im->hasPendingFact());
   Assert(!d_im->hasPendingLemma());
 }
