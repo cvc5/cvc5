@@ -110,15 +110,30 @@
   :signature (T T) Bool
   (
   (($dt_distinct_terms (f a) (g b))
-    ; Note that if the operators were shown to be distinct, then we return true.
-    ; If we returned false, then f and g are (partial) applications of the same
-    ; constructor, hence a and b have the same type and we recurse.
-    (eo::ite ($dt_distinct_terms f g) true ($are_distinct_terms (eo::typeof a) a b)))
+    ; If the operators were shown to be distinct, then we return true.
+    ; Otherwise, we may only recurse on the arguments a and b when f and g are
+    ; (partial) applications of the *same constructor*, since constructors are
+    ; injective. We must guard on this explicitly: f and g being non-distinct
+    ; does not imply they are constructors (e.g. they could be the same
+    ; selector or uninterpreted function, which are not injective). Without
+    ; this guard we could unsoundly conclude e.g. (sel x) and (sel y) distinct
+    ; whenever x and y are distinct. If f and g are not constructor
+    ; applications, we cannot conclude distinctness and return false.
+    (eo::ite ($dt_distinct_terms f g)
+      true
+      (eo::ite (eo::and ($is_cons_app f) ($is_cons_app g))
+        ($are_distinct_terms (eo::typeof a) a b)
+        false)))
   (($dt_distinct_terms ct (g a))  ($dt_distinct_terms ct g))
   (($dt_distinct_terms (f a) cs)  ($dt_distinct_terms f cs))
   (($dt_distinct_terms ct cs)
-    (eo::requires (eo::and ($dt_is_cons ct) ($dt_is_cons cs)) true
-      (eo::not (eo::eq ct cs))))
+    ; ct and cs may be arbitrary datatype terms reached when recursing on
+    ; constructor arguments (e.g. selectors or variables). They are distinct
+    ; only if both are (distinct) constructors; otherwise we cannot conclude
+    ; distinctness and return false.
+    (eo::ite (eo::and ($dt_is_cons ct) ($dt_is_cons cs))
+      (eo::not (eo::eq ct cs))
+      false))
   )
 )
 
