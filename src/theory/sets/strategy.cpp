@@ -50,20 +50,27 @@ void Strategy::initializeStrategy()
 
 void Strategy::runStep(Step s, Theory::Effort, unsigned effort)
 {
-  Trace("strings-process") << "Run " << s;
+  Trace("sets-process") << "Run " << s;
   if (effort > 0)
   {
-    Trace("strings-process") << ", effort = " << effort;
+    Trace("sets-process") << ", effort = " << effort;
   }
-  Trace("strings-process") << "..." << std::endl;
+  Trace("sets-process") << "..." << std::endl;
   switch (s)
   {
     case Step::SETS_CHECK_BASIC: break;
+    case Step::SETS_CHECK_CARDINALITY: break;
+    case Step::SETS_CHECK_RELATIONS: break;
+    case Step::SETS_CHECK_TRANSITIVE_CLOSURE: break;
+    case Step::SETS_CHECK_FOLD: break;
+
     default: Unreachable(); break;
   }
-  Trace("process") << "Done " << s << ", addedFact = " << d_im->hasPendingFact()
-                   << ", addedLemma = " << d_im->hasPendingLemma()
-                   << ", conflict = " << d_state->isInConflict() << std::endl;
+  Trace("sets-process") << "Done " << s
+                        << ", addedFact = " << d_im->hasPendingFact()
+                        << ", addedLemma = " << d_im->hasPendingLemma()
+                        << ", conflict = " << d_state->isInConflict()
+                        << std::endl;
 }
 
 }  // namespace sets
