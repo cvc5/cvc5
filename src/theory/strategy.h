@@ -69,10 +69,10 @@ class StrategyBase
   bool hasStrategyEffort(Theory::Effort e) const;
 
   /** Begin iterator over the steps to run at effort e. */
-  std::vector<std::pair<Step, int> >::iterator stepBegin(Theory::Effort e);
+  std::vector<std::pair<Step, unsigned>>::iterator stepBegin(Theory::Effort e);
 
   /** End iterator over the steps to run at effort e. */
-  std::vector<std::pair<Step, int> >::iterator stepEnd(Theory::Effort e);
+  std::vector<std::pair<Step, unsigned>>::iterator stepEnd(Theory::Effort e);
 
   /**
    * Build the strategy. Implemented by each theory's derived class. A typical
@@ -106,7 +106,9 @@ class StrategyBase
    * Run the steps registered for the current effort. Theory-specific dispatch;
    * the default is a no-op placeholder until this is generalized.
    */
-  virtual void runStrategy(Theory::Effort e);
+  void runStrategy(Theory::Effort e);
+
+  virtual void runInferStep(Step s, Theory::Effort e, unsigned effort);
 
   /**
    * Append step s (running at the given effort index) to the strategy. If
@@ -136,6 +138,12 @@ class StrategyBase
    */
   void finishInit();
 
+  std::vector<std::pair<Step, unsigned>>::iterator stepBegin(Theory::Effort e);
+
+  std::vector<std::pair<Step, unsigned>>::iterator stepEnd(Theory::Effort e);
+
+  bool hasProcessed() const;
+
  private:
   TheoryId d_theoryId;
   TheoryState* d_state;
@@ -144,13 +152,13 @@ class StrategyBase
   /** Whether the strategy has been initialized. */
   bool d_strategyInit;
   /** The flat ordered list of steps, with BREAK markers interleaved. */
-  std::vector<std::pair<Step, int> > d_inferSteps;
+  std::vector<std::pair<Step, unsigned>> d_steps;
   /** For each effort, the [begin,end] index range into d_inferSteps. */
-  std::map<Theory::Effort, std::pair<size_t, size_t> > d_stratSteps;
+  std::map<Theory::Effort, std::pair<unsigned, unsigned>> d_stratSteps;
   /** Scratch: per-effort begin indices recorded by markStartEffort. */
-  std::map<Theory::Effort, size_t> d_stepBegin;
+  std::map<Theory::Effort, unsigned> d_stepBegin;
   /** Scratch: per-effort end indices recorded by markEndEffort. */
-  std::map<Theory::Effort, size_t> d_stepEnd;
+  std::map<Theory::Effort, unsigned> d_stepEnd;
 }; /* class StrategyBase */
 
 }  // namespace theory
