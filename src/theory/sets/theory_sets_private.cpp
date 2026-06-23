@@ -1355,8 +1355,14 @@ void TheorySetsPrivate::postCheck(Theory::Effort level)
 {
   Trace("sets-check") << "Sets finished assertions effort " << level
                       << std::endl;
-  if (level == Theory::EFFORT_FULL && !d_state.isInConflict()
-      && !d_external.d_valuation.needCheck())
+  // Decide once, from the pre-check state, whether this is a full-effort check
+  // that should run. The old fullEffortCheck likewise read isInConflict() and
+  // needCheck() a single time before running; capturing it here keeps the
+  // incompleteness guard below structurally identical to the old code and
+  // independent of whether these predicates change while the strategy runs.
+  const bool runFullCheck = level == Theory::EFFORT_FULL && !d_state.isInConflict()
+                            && !d_external.d_valuation.needCheck();
+  if (runFullCheck)
   {
     // Collect the relevant terms once for this check. checkBasic reuses them
     // while registering terms on every strategy pass; this is the hoist that
@@ -1375,8 +1381,8 @@ void TheorySetsPrivate::postCheck(Theory::Effort level)
   d_strategy.postCheck(level);
   // If full-effort registration flagged a source of incompleteness and we
   // neither found a conflict nor sent a lemma, report the model as unsound.
-  if (level == Theory::EFFORT_FULL && !d_external.d_valuation.needCheck()
-      && !d_state.isInConflict() && !d_im.hasSentLemma() && d_fullCheckIncomplete)
+  if (runFullCheck && !d_state.isInConflict() && !d_im.hasSentLemma()
+      && d_fullCheckIncomplete)
   {
     d_im.setModelUnsound(d_fullCheckIncompleteId);
   }
