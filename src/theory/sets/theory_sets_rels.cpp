@@ -345,51 +345,31 @@ void TheorySetsRels::collectRelsInfo()
           if (is_true_eq)
           {
             // acyclic((R1,...,Rk)) is acyclic(R1 ∪ ... ∪ Rk); key by the
-            // union's representative so the down-rule (a membership in
+            // union's representative so the acyclic down rule (a membership in
             // TC(union)) finds it directly.
             Node u = mkRelUnion(TupleUtils::getTupleElements(eqc_node[0]));
             d_acyclic_cache[getRepresentative(u)].push_back(eqc_node);
 
-            // ===== NEW (cycle-ext): drive TC processing from acyclic(u) =====
-            // The acyclic-down rule is term-driven: it can only contradict a
-            // self-loop (a,a) in TC(u), and that membership is only ever
-            // materialized if (a) u itself is a registered relation whose
-            // members are populated -- for a union u = R1 u ... u Rk this needs
-            // the core solver's set-union up-rule, which only fires once u is a
-            // registered term -- and (b) (rel.tclosure u) is processed by the
-            // TC solver. If the user never mentions u / (rel.tclosure u),
-            // nothing registers them, the cycle is never derived, and we
-            // wrongly answer sat (and the extracted unsat core, which drops the
-            // user's tclosure assertion, re-checks as sat).
+            // The acyclic-down rule contradicts reflexive memberships in TC(u)
+            // (for u = R1 U ... U Rk, and acyclic((R1,...,Rk)) a constraint). 
+            // Such memberships are only ever materialized if (a) u itself is 
+            // a registered relation whose members are populated in the 
+            // solver's data structures, and (b) (rel.tclosure u) is processed 
+            // by the TC solver. If the user never mentions u and/or 
+            // (rel.tclosure u), nothing registers them, the cycle is never 
+            // derived, and we wrongly answer sat.
             //
-            // OLD CODE (insufficient): synthesize TC(u) straight into the
-            // relations solver's scratch index. This only worked for a single
-            // relation, where u == R already has its members; for a union it
-            // leaves R u S unregistered, so union-up never fires and R u S has
-            // no members to build a closure from. (It also keyed TC(u) under
-            // rep(u) rather than rep(TC(u)), feeding the m_it-loop rules u's
-            // base members as if they were TC(u) members.)
-            //   Node tc = nodeManager()->mkNode(Kind::RELATION_TCLOSURE, u);
-            //   d_terms_cache[getRepresentative(u)][Kind::RELATION_TCLOSURE]
-            //       .push_back(tc);
-            //
-            // NEW CODE: emit the vacuous lemma acyclic(u) => u <= TC(u). The
-            // consequent (u is a subset of its own transitive closure) is
-            // always true, so it constrains nothing; its only job is to
-            // introduce u and TC(u) as registered terms, so union-up
-            // materializes u's members and the TC solver builds the closure and
-            // derives the self-loop.
+            // Solution: emit the vacuous lemma acyclic(u) => u <= TC(u) to
+            // register u and TC(u) as terms. 
             //
             // NOTE: the consequent must SURVIVE rewriting to actually register
             // the terms. A reflexive equality TC(u) = TC(u) does not -- the
             // lemma path rewrites it to true before the term registers, so it
-            // registers nothing (verified: even the single-relation case stays
-            // sat with that consequent). subset(u, TC(u)) has no such
+            // registers nothing. subset(u, TC(u)) has no such
             // collapsing rewrite, so the terms survive into the registered set.
             Node tc = nodeManager()->mkNode(Kind::RELATION_TCLOSURE, u);
             Node reg = nodeManager()->mkNode(Kind::SET_SUBSET, u, tc);
             sendInfer(reg, InferenceId::SETS_RELS_ACYCLIC_DOWN, eqc_node);
-            // ===== END NEW =====
           }
           else
           {
@@ -1548,31 +1528,13 @@ void TheorySetsRels::applyUnrollCycle(std::vector<Node>& rels,
  * may exist between two non-adjacent nodes of the cycle, i.e. we forbid
  * (s[q],s[r]) IN TC(R) for every 0 <= q < r-1 < cnt.
  *
- * This does not prune real cycles: edges of s are in TC(R), not base R, so any
- * cyclic R has some a with (a,a) IN TC(R), and the identity cycle s = [a,a] is
- * itself minimal (no non-adjacent pair, no chord). A longer cycle a->b->c->a is
- * correctly pruned as non-minimal, collapsing to that self-loop. (Base R for
- * the edges would break this; the self-loop fallback relies on TC.)
+ * The reason we attach is exp = NOT ACYCLIC((R1,...,Rk)), the justification for
+ * ((R1,...,Rk),s,cnt) being in C.
  *
- * TODO We emit the full set of pairs each round (re-emitted lemmas are
- * deduped by the inference manager). Once d_cycle_sequences is context
- * dependent and cnt rolls back correctly, this can be specialized to only the
- * newly-usable index r = cnt-1 per round.
- *
- * The reason we attach is  exp /\ (r < len(s)),  where exp = NOT ACYCLIC(R) is
- * the justification for (R,s,cnt) being in C. The (r < len(s)) conjunct is a
- * soundness guard. Note: in any accepted model SplitCycle
- * already forces len(s) >= cnt > r, so this guard is in principle redundant --
- * but only as long as cnt is correctly bounded by len(s). Since cnt is not yet
- * context dependent and can over-increment, we add the guard explicitly so
- * this rule stays sound independent of cnt management; this keeps it
- * committable before the d_cycle_sequences -> CDHashMap change rather than
- * depending on it.
- * TODO once we change d_cycle_sequences, we can safely remove this guard.
- *
- * TODO once InstCycle flattens unions, rels may hold more than one relation
- * and exp must be the justification for that tuple's C-entry rather than
- * NOT ACYCLIC(rels[0]).
+ * We attach no explicit (r < len(s)) in-bounds guard, even though r indexes the
+ * sequence s, because SplitCycleLen emits exp => cnt <= len(s) for the same cnt
+ * in the same doCycleInference round. Here, r < cnt, so r < len(s) holds in 
+ * every model satisfying exp.
  */
 void TheorySetsRels::applyContrMinimalRule(const std::vector<Node>& rels,
                                            Node seq,
@@ -1586,7 +1548,7 @@ void TheorySetsRels::applyContrMinimalRule(const std::vector<Node>& rels,
   // need r >= 2 and q <= r-2, so the smallest usable case is q=0, r=2
   if (cnt < 3) return;
   NodeManager* nm = nodeManager();
-  Node seq_len = nm->mkNode(Kind::STRING_LENGTH, seq);
+
   for (const Node& Ri : rels)
   {
     TypeNode tt = Ri.getType().getSetElementType();
@@ -1595,10 +1557,7 @@ void TheorySetsRels::applyContrMinimalRule(const std::vector<Node>& rels,
     for (size_t r = 2; r < cnt; ++r)
     {
       Node sr = nm->mkNode(Kind::SEQ_NTH, seq, nm->mkConstInt(Rational(r)));
-      // In-bounds guard: r < len(s). With q < r this also keeps s[q] in bounds.
-      Node in_bounds =
-          nm->mkNode(Kind::LT, nm->mkConstInt(Rational(r)), seq_len);
-      Node reason = nm->mkNode(Kind::AND, exp, in_bounds);
+      Node reason = exp;
       for (size_t q = 0; q + 2 <= r; ++q)
       {
         Node sq = nm->mkNode(Kind::SEQ_NTH, seq, nm->mkConstInt(Rational(q)));
@@ -1702,8 +1661,9 @@ void TheorySetsRels::doCycleInference()
     // in the case that we're in the < case?
     applyUnrollCycle(rels, seq, cnt, exp);
     // Minimality: forbid shortcut edges in the cycle. The reason is the
-    // justification for (rels,seq,cnt) being in C, i.e. NOT ACYCLIC(rels[0]).
-    // TODO single relation only; revisit when InstCycle flattens unions.
+    // justification for (rels,seq,cnt) being in C, i.e. NOT ACYCLIC of the whole
+    // relation tuple (rels may hold several relations once InstCycle flattens a
+    // union).
     Node acyc_exp = nodeManager()
                         ->mkNode(Kind::RELATION_ACYCLIC, mkRelTuple(rels))
                         .negate();
