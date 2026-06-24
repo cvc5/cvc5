@@ -26,7 +26,6 @@ void Pow2ProofRuleChecker::registerTo(ProofChecker* pc)
 {
   pc->registerChecker(ProofRule::ARITH_POW2_INIT_REFINE, this);
   pc->registerChecker(ProofRule::ARITH_POW2_MONOTONE_REFINE, this);
-  pc->registerChecker(ProofRule::ARITH_POW2_NEG_REFINE, this);
   pc->registerChecker(ProofRule::ARITH_POW2_DIV0_REFINE, this);
   pc->registerChecker(ProofRule::ARITH_POW2_LOWER_BOUND_REFINE, this);
   pc->registerChecker(ProofRule::ARITH_POW2_VALUE_REFINE, this);
@@ -41,7 +40,6 @@ Node Pow2ProofRuleChecker::checkInternal(
   {
     case ProofRule::ARITH_POW2_INIT_REFINE:
     case ProofRule::ARITH_POW2_MONOTONE_REFINE:
-    case ProofRule::ARITH_POW2_NEG_REFINE:
     case ProofRule::ARITH_POW2_DIV0_REFINE:
     case ProofRule::ARITH_POW2_LOWER_BOUND_REFINE:
     case ProofRule::ARITH_POW2_VALUE_REFINE: return Node::null();

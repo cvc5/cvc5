@@ -171,7 +171,6 @@ const char* toString(ProofRule rule)
     case ProofRule::ARITH_POW2_INIT_REFINE: return "ARITH_POW2_INIT_REFINE";
     case ProofRule::ARITH_POW2_MONOTONE_REFINE:
       return "ARITH_POW2_MONOTONE_REFINE";
-    case ProofRule::ARITH_POW2_NEG_REFINE: return "ARITH_POW2_NEG_REFINE";
     case ProofRule::ARITH_POW2_DIV0_REFINE: return "ARITH_POW2_DIV0_REFINE";
     case ProofRule::ARITH_POW2_LOWER_BOUND_REFINE:
       return "ARITH_POW2_LOWER_BOUND_REFINE";

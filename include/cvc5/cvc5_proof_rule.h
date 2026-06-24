@@ -2182,7 +2182,8 @@ enum ENUM(ProofRule)
    *
    *   \inferrule{- \mid t}{
    *     ((t \geq 0) \rightarrow (\texttt{pow2}(t) > 0))
-   *     \land ((t \neq 0) \rightarrow (\texttt{pow2}(t) \bmod 2 = 0))}
+   *     \land ((t \neq 0) \rightarrow (\texttt{pow2}(t) \bmod 2 = 0))
+   *     \land (t < 0) \rightarrow (\texttt{pow2}(t) = 0)}
    *
    * where :math:`t` is an integer term.
    * \endverbatim
@@ -2202,18 +2203,6 @@ enum ENUM(ProofRule)
    * \endverbatim
    */
   EVALUE(ARITH_POW2_MONOTONE_REFINE),
-  /**
-   * \verbatim embed:rst:leading-asterisk
-   * **Arithmetic -- Pow2 -- Negative argument refinement**
-   *
-   * .. math::
-   *
-   *   \inferrule{- \mid t}{(t < 0) \rightarrow (\texttt{pow2}(t) = 0)}
-   *
-   * where :math:`t` is an integer term.
-   * \endverbatim
-   */
-  EVALUE(ARITH_POW2_NEG_REFINE),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Pow2 -- Division refinement**
