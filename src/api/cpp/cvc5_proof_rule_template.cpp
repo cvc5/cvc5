@@ -174,7 +174,6 @@ const char* toString(ProofRule rule)
     case ProofRule::ARITH_POW2_DIV0_REFINE: return "ARITH_POW2_DIV0_REFINE";
     case ProofRule::ARITH_POW2_LOWER_BOUND_REFINE:
       return "ARITH_POW2_LOWER_BOUND_REFINE";
-    case ProofRule::ARITH_POW2_VALUE_REFINE: return "ARITH_POW2_VALUE_REFINE";
     case ProofRule::ARITH_REDUCTION: return "ARITH_REDUCTION";
     case ProofRule::ARITH_POLY_NORM: return "ARITH_POLY_NORM";
     case ProofRule::ARITH_POLY_NORM_REL: return "ARITH_POLY_NORM_REL";

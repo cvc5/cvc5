@@ -2231,22 +2231,6 @@ enum ENUM(ProofRule)
   EVALUE(ARITH_POW2_LOWER_BOUND_REFINE),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Arithmetic -- Pow2 -- Value refinement**
-   *
-   * .. math::
-   *
-   *   \inferrule{- \mid t, v}{(t = v) \rightarrow (\texttt{pow2}(t) = \texttt{pow2}(v))}
-   *
-   * where :math:`t` is an integer term and :math:`v` is an integer constant.
-   * The conclusion is intended to be used after rewriting, where
-   * :math:`\texttt{pow2}(v)` evaluates to :math:`2^v` if :math:`v \geq 0` and
-   * to :math:`0` otherwise.
-   * \endverbatim
-   */
-  EVALUE(ARITH_POW2_VALUE_REFINE),
-
-  /**
-   * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Transcendentals -- Assert bounds on Pi**
    *
    * .. math::
