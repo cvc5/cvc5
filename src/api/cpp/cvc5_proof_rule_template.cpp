@@ -214,13 +214,15 @@ const char* toString(ProofRule rule)
     case ProofRule::FF_FIELD_POLYS: return "FF_FIELD_POLYS";
     case ProofRule::FF_ONE_UNSAT: return "FF_ONE_UNSAT";
     case ProofRule::FF_POLY_CONVERSION: return "FF_POLY_CONVERSION";
-    case ProofRule::FF_IDEAL_ZERO: return "FF_IDEAL_ZERO";
     case ProofRule::FF_IDEAL_GENERATOR: return "FF_IDEAL_GENERATOR";
-    case ProofRule::FF_IDEAL_REDUCE_UP: return "F_IDEAL_REDUCE_UP";
-    case ProofRule::FF_IDEAL_REDUCE_DOWN: return "FF_IDEAL_REDUCE_DOWN";
-    case ProofRule::FF_IDEAL_SPOLY: return "FF_IDEAL_SPOLY";
-    case ProofRule::FF_IDEAL_MONIC: return "FF_IDEAL_MONIC";
-    //================================================= External rules
+    case ProofRule::MACRO_FF_POLY_COMBINATION:
+      return "MACRO_FF_POLY_COMBINATION";
+    case ProofRule::FF_POLY_COMBINATION: return "FF_POLY_COMBINATION";
+    case ProofRule::FF_DISEQ: return "FF_DISEQ";
+    case ProofRule::FF_POLY_NORM: return "FF_POLY_NORM";
+    case ProofRule::FF_POLY_NORM_EQ:
+      return "FF_POLY_NORM_EQ";
+      //================================================= External rules
     case ProofRule::LFSC_RULE: return "LFSC_RULE";
     case ProofRule::ALETHE_RULE: return "ALETHE_RULE";
     //================================================= Unknown rule

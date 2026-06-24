@@ -213,6 +213,18 @@ void ExtfSolver::doReduction(Node n, int pol)
     std::vector<Node> new_nodes;
     Node res = d_preproc.simplify(n, new_nodes);
     Assert(res != n);
+    // If we reduced a Boolean extended function (e.g. str.<=), then n is
+    // replaced by a fresh purification skolem standing for a Boolean term.
+    // Register it as a Boolean term skolem, so that it is consistently treated
+    // as a theory atom (and not as a plain Boolean variable). This matters in
+    // incremental mode, where the skolem may be reused as a Boolean term in a
+    // term position (e.g. an array element) in a subsequent check-sat: its CNF
+    // classification is fixed when its literal is first created here, so it
+    // must be registered before that point.
+    if (res.isVar() && res.getType().isBoolean())
+    {
+      d_env.registerBooleanTermSkolem(res);
+    }
     new_nodes.push_back(n.eqNode(res));
     Node nnlem =
         new_nodes.size() == 1 ? new_nodes[0] : nm->mkNode(Kind::AND, new_nodes);
