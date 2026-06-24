@@ -44,10 +44,8 @@ Node Pow2ProofRuleChecker::checkInternal(
     case ProofRule::ARITH_POW2_NEG_REFINE:
     case ProofRule::ARITH_POW2_DIV0_REFINE:
     case ProofRule::ARITH_POW2_LOWER_BOUND_REFINE:
-    case ProofRule::ARITH_POW2_VALUE_REFINE:
-      return Node::null();
-    default:
-      return Node::null();
+    case ProofRule::ARITH_POW2_VALUE_REFINE: return Node::null();
+    default: return Node::null();
   }
 }
 

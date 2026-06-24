@@ -15,8 +15,8 @@
 #include <vector>
 
 #include "test_smt.h"
-#include "theory/arith/nl/pow2_solver.h"
 #include "theory/arith/nl/pow2_proof_checker.h"
+#include "theory/arith/nl/pow2_solver.h"
 #include "util/rational.h"
 
 namespace cvc5::internal {
@@ -47,10 +47,11 @@ TEST_F(TestTheoryWhiteArithPow2, pow2_proof_checker_basic)
   std::vector<Node> children;
   // Simple argument
   std::vector<Node> args = {x};
-  
+
   // trivial implementation returns null
-  Node result = checker.checkInternal(ProofRule::ARITH_POW2_INIT_REFINE, children, args);
-  ASSERT_TRUE(result.isNull()); 
+  Node result =
+      checker.checkInternal(ProofRule::ARITH_POW2_INIT_REFINE, children, args);
+  ASSERT_TRUE(result.isNull());
 }
 
 }  // namespace test
