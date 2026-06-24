@@ -82,9 +82,13 @@ CVC5_EXPORT const char* cvc5_capi_get_error_message();
  * through and returns its default-initialized return value; the caller is
  * expected to check `cvc5_has_error()`.
  *
- * @note The trailing `catch (...)` ensures that even foreign exception types
- *       that do not derive from `std::exception` cannot escape the `extern "C"`
- *       boundary (which would call `std::terminate`).
+ * @note The trailing `catch (...)` ensures that no exception can escape the
+ *       `extern "C"` boundary, which would call `std::terminate`. This is not
+ *       merely theoretical: cvc5 links third-party libraries whose exception
+ *       types do not derive from `std::exception` (e.g. CoCoALib's
+ *       `CoCoA::ErrorInfo`, used by the finite-field theory). Should such an
+ *       exception ever reach the C API uncaught (e.g. via a missed catch on
+ *       some C++ code path), the catch-all records it instead of aborting.
  */
 #define CVC5_CAPI_TRY_CATCH_END                                            \
   }                                                                        \
