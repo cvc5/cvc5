@@ -904,7 +904,9 @@
   :signature ((Seq U)) (Seq U)
   (
     (($str_flatten (str.++ t tail))
-        ; otherwise, check whether t is a word constant of length greater than one
+        ; otherwise, check whether t is a word constant.
+        ; we check for any word constant length here, since e.g. t may be empty
+        ; in which case it must be dropped from the concatenation.
         (eo::ite (eo::is_str t)
           ; if so, we flatten the word using the method above and concatenate it.
           ($str_concat ($str_flatten_word t) ($str_flatten tail))
