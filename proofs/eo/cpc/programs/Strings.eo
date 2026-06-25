@@ -486,8 +486,14 @@
 ;   The result of ensuring that the input t is not a singleton str.++
 ;   application. In particular, if t is of the form (str.++ t1 empty) where
 ;   empty is the empty string for the type of t, we return t1.
-(define $str_nary_elim ((T Type :implicit) (t (Seq T)))
-  (eo::list_singleton_elim str.++ t))
+(program $str_nary_elim ((T Type) (t (Seq T)) (ss (Seq T) :list))
+    :signature ((Seq T)) (Seq T)
+    (
+        (($str_nary_elim (str.++ t ss)) (eo::define ((nil ($seq_empty (eo::typeof t))))
+                                           (eo::ite (eo::eq ss nil) t (str.++ t ss))))
+        (($str_nary_elim t)             ($str_self_if_empty t))
+    )
+)
 
 ; program: $re_nary_elim
 ; args:
@@ -496,8 +502,13 @@
 ;   Regular expression nary-elimination, which ensures that the input t is not a
 ;   singleton re.++ application. In particular, if t is of the form
 ;   (re.++ t1 @re.empty), we return t1.
-(define $re_nary_elim ((r RegLan))
-  (eo::list_singleton_elim re.++ r))
+(program $re_nary_elim ((t RegLan) (ss RegLan :list))
+    :signature (RegLan) RegLan
+    (
+        (($re_nary_elim (re.++ t ss)) (eo::ite (eo::eq ss @re.empty) t (re.++ t ss)))
+        (($re_nary_elim t)            t)
+    )
+)
 
 ;;-------------------- Reductions
 
