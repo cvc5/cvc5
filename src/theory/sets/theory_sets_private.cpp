@@ -257,7 +257,6 @@ void TheorySetsPrivate::fullEffortReset()
 void TheorySetsPrivate::checkBasic()
 {
   Trace("sets") << "...iterate full effort check..." << std::endl;
-  fullEffortReset();
 
   if (TraceIsOn("sets-eqc"))
   {

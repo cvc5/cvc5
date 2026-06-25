@@ -41,6 +41,7 @@ void Strategy::initializeStrategy()
   // the full-effort strategy
   markStartEffort(Theory::EFFORT_FULL);
   // add the ence steps
+  addStrategyStep(SETS_CHECK_RESET);
   addStrategyStep(SETS_CHECK_BASIC);
   addStrategyStep(SETS_CHECK_FILTER);
   addStrategyStep(SETS_CHECK_MAP);
@@ -66,6 +67,7 @@ void Strategy::runStep(Step s, Theory::Effort, unsigned effort)
   Assert(d_setsSolver != nullptr);
   switch (s)
   {
+    case Step::SETS_CHECK_RESET: d_setsSolver->fullEffortReset(); break;
     case Step::SETS_CHECK_BASIC: d_setsSolver->checkBasic(); break;
     case Step::SETS_CHECK_CARDINALITY: d_setsSolver->checkCardinality(); break;
     case Step::SETS_CHECK_RELATIONS: d_setsSolver->checkRelations(); break;

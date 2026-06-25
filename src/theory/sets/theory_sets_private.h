@@ -48,10 +48,6 @@ class TheorySetsPrivate : protected EnvObj
 
  private:
   /**
-   * Reset the information for a full effort check.
-   */
-  void fullEffortReset();
-  /**
    * This implements an inference schema based on the "downwards closure" of
    * set membership. This roughly corresponds to the rules SET_UNION DOWN I and
    * II, INTER DOWN I and II from Bansal et al IJCAR 2016, as well as rules for
@@ -321,6 +317,12 @@ class TheorySetsPrivate : protected EnvObj
   // invoked by sets::Strategy::runStep in the order set up by
   // Strategy::initializeStrategy. Each step asserts facts directly and/or
   // buffers lemmas; the strategy decides when to flush and when to iterate.
+  /**
+   * Reset the per-pass full-effort state (solver state, inference manager,
+   * cardinality solver and incompleteness flags). Runs first on every strategy
+   * pass, before checkBasic registers terms.
+   */
+  void fullEffortReset();
   /**
    * Register the relevant terms with the solver state and run the membership
    * downwards/upwards closure schemas. Returns as soon as a fact or lemma has

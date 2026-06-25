@@ -23,6 +23,7 @@ std::ostream& operator<<(std::ostream& out, Step s)
   {
     case Step::NONE: out << "NONE"; break;
     case Step::BREAK: out << "BREAK"; break;
+    case Step::SETS_CHECK_RESET: out << "SETS_CHECK_RESET"; break;
     case Step::SETS_CHECK_BASIC: out << "SETS_CHECK_BASIC"; break;
     case Step::SETS_CHECK_CARDINALITY: out << "SETS_CHECK_CARDINALITY"; break;
     case Step::SETS_CHECK_RELATIONS: out << "SETS_CHECK_RELATIONS"; break;

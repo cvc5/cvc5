@@ -33,6 +33,8 @@ enum Step : uint32_t
 
   // indicates that the strategy should break if lemmas or facts are added
   BREAK,
+  // reset the per-pass full-effort state
+  SETS_CHECK_RESET,
   // check basic sets operations
   SETS_CHECK_BASIC,
   // check cardinality operations
