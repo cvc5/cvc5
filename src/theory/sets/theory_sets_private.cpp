@@ -337,8 +337,8 @@ void TheorySetsPrivate::checkBasic()
     Trace("sets-state") << "Equivalence class counters:" << std::endl;
     for (std::pair<const TypeNode, unsigned>& ec : eqcTypeCount)
     {
-      Trace("sets-state")
-          << "  " << ec.first << " -> " << ec.second << std::endl;
+      Trace("sets-state") << "  " << ec.first << " -> " << ec.second
+                          << std::endl;
     }
   }
 
@@ -1360,7 +1360,8 @@ void TheorySetsPrivate::postCheck(Theory::Effort level)
   // needCheck() a single time before running; capturing it here keeps the
   // incompleteness guard below structurally identical to the old code and
   // independent of whether these predicates change while the strategy runs.
-  const bool runFullCheck = level == Theory::EFFORT_FULL && !d_state.isInConflict()
+  const bool runFullCheck = level == Theory::EFFORT_FULL
+                            && !d_state.isInConflict()
                             && !d_external.d_valuation.needCheck();
   if (runFullCheck)
   {
@@ -1374,10 +1375,11 @@ void TheorySetsPrivate::postCheck(Theory::Effort level)
     d_external.computeRelevantTerms(d_relevantTerms);
   }
   // Run the strategy. This is the loop that used to be the body of
-  // fullEffortCheck: it repeatedly runs the steps (checkBasic, checkCardinality,
-  // checkRelations, ...) and flushes pending lemmas until a conflict or lemma is
-  // produced or nothing new is asserted. It is a no-op unless we are at a
-  // registered effort and not already in conflict / needing a check.
+  // fullEffortCheck: it repeatedly runs the steps (checkBasic,
+  // checkCardinality, checkRelations, ...) and flushes pending lemmas until a
+  // conflict or lemma is produced or nothing new is asserted. It is a no-op
+  // unless we are at a registered effort and not already in conflict / needing
+  // a check.
   d_strategy.postCheck(level);
   // If full-effort registration flagged a source of incompleteness and we
   // neither found a conflict nor sent a lemma, report the model as unsound.

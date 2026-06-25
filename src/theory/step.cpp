@@ -29,7 +29,8 @@ std::ostream& operator<<(std::ostream& out, Step s)
     case Step::SETS_CHECK_TRANSITIVE_CLOSURE:
       out << "SETS_CHECK_TRANSITIVE_CLOSURE";
       break;
-    case Step::SETS_CHECK_FOLD: out << "SETS_CHECK_FOLD"; break;
+    case Step::SETS_CHECK_FILTER: out << "SETS_CHECK_FILTER"; break;
+    case Step::SETS_CHECK_MAP: out << "SETS_CHECK_MAP"; break;
     case Step::UNKNOWN: out << "?"; break;
     default:
       Unreachable();

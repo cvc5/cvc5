@@ -24,7 +24,8 @@ Strategy::Strategy(TheorySetsPrivate* parent,
                    TheoryState* state,
                    InferenceManagerBuffered* im,
                    Valuation* valuation)
-    : StrategyBase(TheoryId::THEORY_SETS, state, im, valuation), d_parent(parent)
+    : StrategyBase(TheoryId::THEORY_SETS, state, im, valuation),
+      d_setsSolver(parent)
 {
 }
 
@@ -44,7 +45,8 @@ void Strategy::initializeStrategy()
   addStrategyStep(SETS_CHECK_CARDINALITY);
   addStrategyStep(SETS_CHECK_RELATIONS);
   addStrategyStep(SETS_CHECK_TRANSITIVE_CLOSURE);
-  addStrategyStep(SETS_CHECK_FOLD);
+  addStrategyStep(SETS_CHECK_FILTER);
+  addStrategyStep(SETS_CHECK_MAP);
   markEndEffort(Theory::EFFORT_FULL);
   // set the beginning/ending ranges and mark the strategy as initialized
   finishInit();
@@ -58,17 +60,19 @@ void Strategy::runStep(Step s, Theory::Effort, unsigned effort)
     Trace("sets-process") << ", effort = " << effort;
   }
   Trace("sets-process") << "..." << std::endl;
-  Assert(d_parent != nullptr);
+  Assert(d_setsSolver != nullptr);
   switch (s)
   {
-    case Step::SETS_CHECK_BASIC: d_parent->checkBasic(); break;
-    case Step::SETS_CHECK_CARDINALITY: d_parent->checkCardinality(); break;
-    case Step::SETS_CHECK_RELATIONS: d_parent->checkRelations(); break;
+    case Step::SETS_CHECK_BASIC: d_setsSolver->checkBasic(); break;
+    case Step::SETS_CHECK_CARDINALITY: d_setsSolver->checkCardinality(); break;
+    case Step::SETS_CHECK_RELATIONS: d_setsSolver->checkRelations(); break;
     case Step::SETS_CHECK_TRANSITIVE_CLOSURE:
       // TODO: transitive closure is currently handled inside the relations
       // subsolver; this is a placeholder for splitting it out.
       break;
-    case Step::SETS_CHECK_FOLD:
+    case Step::SETS_CHECK_MAP:
+      // d_setsSolver->checkMap();
+      break;
       // TODO: fold is currently reduced at ppRewrite time; this is a
       // placeholder for handling it as a dedicated step.
       break;

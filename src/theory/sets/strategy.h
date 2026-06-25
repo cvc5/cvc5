@@ -53,7 +53,7 @@ class Strategy : public StrategyBase
 
  private:
   /** The sets solver that owns this strategy and implements the steps. */
-  TheorySetsPrivate* d_parent;
+  TheorySetsPrivate* d_setsSolver;
 }; /* class Strategy */
 
 }  // namespace sets

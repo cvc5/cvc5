@@ -41,8 +41,10 @@ enum Step : uint32_t
   SETS_CHECK_RELATIONS,
   // check transitive closure
   SETS_CHECK_TRANSITIVE_CLOSURE,
-  // check fold
-  SETS_CHECK_FOLD,
+  // check filter
+  SETS_CHECK_FILTER,
+  // check map
+  SETS_CHECK_MAP,
   // unknown inference step
   UNKNOWN
 };
