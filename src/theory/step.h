@@ -47,6 +47,10 @@ enum Step : uint32_t
   SETS_CHECK_MAP,
   // check group
   SETS_CHECK_GROUP,
+  // check disequalities
+  SETS_CHECK_DISEQUALITY,
+  // check comprehension reductions
+  SETS_CHECK_COMPREHENSION,
   // unknown inference step
   UNKNOWN
 };

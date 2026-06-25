@@ -403,20 +403,6 @@ void TheorySetsPrivate::checkBasic()
   // check upwards closure
   checkUpwardsClosure();
   d_im.doPendingLemmas();
-  if (d_im.hasSent())
-  {
-    return;
-  }
-  // check disequalities
-  checkDisequalities();
-  d_im.doPendingLemmas();
-  if (d_im.hasSent())
-  {
-    return;
-  }
-  // check reduce comprehensions
-  checkReduceComprehensions();
-  d_im.doPendingLemmas();
 }
 
 void TheorySetsPrivate::checkCardinality()

@@ -251,16 +251,6 @@ class TheorySetsPrivate : protected EnvObj
    * generate skolem variable for node n and add pending lemma for the equality
    */
   Node registerAndAssertSkolemLemma(Node& n);
-  /**
-   * This implements a strategy for splitting for set disequalities which
-   * roughly corresponds the SET DISEQUALITY rule from Bansal et al IJCAR 2016.
-   */
-  void checkDisequalities();
-  /**
-   * Check comprehensions. This adds reduction lemmas for all set comprehensions
-   * in the current context.
-   */
-  void checkReduceComprehensions();
 
   Node d_true;
   Node d_false;
@@ -332,10 +322,9 @@ class TheorySetsPrivate : protected EnvObj
   // Strategy::initializeStrategy. Each step asserts facts directly and/or
   // buffers lemmas; the strategy decides when to flush and when to iterate.
   /**
-   * Register the relevant terms with the solver state and run the core sets
-   * inference schemas (membership downwards/upwards closure, disequalities and
-   * comprehension reductions). Returns as soon as a fact or lemma has been
-   * produced, so the strategy can flush and restart.
+   * Register the relevant terms with the solver state and run the membership
+   * downwards/upwards closure schemas. Returns as soon as a fact or lemma has
+   * been produced, so the strategy can flush and restart.
    */
   void checkBasic();
   /** Run the cardinality subsolver, if cardinality constraints are present. */
@@ -348,6 +337,14 @@ class TheorySetsPrivate : protected EnvObj
   void checkMaps();
   /** Run the rel.group / table.group inference rules. */
   void checkGroups();
+  /**
+   * Split on set disequalities (SET DISEQUALITY rule from Bansal et al IJCAR
+   * 2016). Runs after the operator rules to preserve the original inference
+   * order; running it earlier slows finite model finding (see strategy order).
+   */
+  void checkDisequalities();
+  /** Add reduction lemmas for all set comprehensions in the current context. */
+  void checkReduceComprehensions();
   //--------------------------------- end strategy steps
 
   /** Collect model values in m based on the relevant terms given by termSet */
