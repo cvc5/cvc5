@@ -65,6 +65,7 @@ set(regress_0_tests
   regress0/arith/integers/arith-interval.cvc.smt2
   regress0/arith/integers/issue6146-stale-vars.smt2
   regress0/arith/issue12058.smt2
+  regress0/arith/issue12754-div-zero-intreal.smt2
   regress0/arith/issue1399.smt2
   regress0/arith/issue3412.smt2
   regress0/arith/issue3413.smt2
@@ -1529,11 +1530,14 @@ set(regress_0_tests
   regress0/proofs/dsl-cong-eval-cr.smt2
   regress0/proofs/dsl-no-eval.smt2
   regress0/proofs/dsl-rule-comp-types.smt2
+  regress0/proofs/dt-cons-eq-clash-qfdt.smt2
+  regress0/proofs/dt-cons-eq-clash-ufdt.smt2
   regress0/proofs/equal-eval-rw_340.smt2
   regress0/proofs/eval-rhs.smt2
   regress0/proofs/exists-shadow-simple.smt2
   regress0/proofs/fixed-point-rew.smt2
   regress0/proofs/fixed-point-rew-conc.smt2
+  regress0/proofs/from_code_oob_eval.smt2
   regress0/proofs/indexof-eval-rw_155.smt2
   regress0/proofs/ios_np_sf.smt2
   regress0/proofs/issue277-circuit-propagator.smt2
@@ -1547,6 +1551,7 @@ set(regress_0_tests
   regress0/proofs/issue12683-check-proofs-arith-mixed.smt2
   regress0/proofs/issue12696-check-proofs-subtype.smt2
   regress0/proofs/issue12697-check-proofs-arith.smt2
+  regress0/proofs/issue12746-bv-invert-solve-mult.smt2
   regress0/proofs/issue12708-check-proofs-arith-cm.smt2
   regress0/proofs/issue12709-open-sat-proof.smt2
   regress0/proofs/issue8983-trust-subs.smt2
@@ -1638,6 +1643,7 @@ set(regress_0_tests
   regress0/prop/cadical_bug5.smt2
   regress0/prop/cadical_bug6.smt2
   regress0/prop/cadical_bug7.smt2
+  regress0/prop/cadical_bug8.smt2
   regress0/prop/issue11867.smt2
   regress0/prop/red-psyco-134.smt2
   regress0/push-pop/boolean/fuzz_12.smt2
@@ -2173,6 +2179,7 @@ set(regress_0_tests
   regress0/strings/issue12027-str-ae.smt2
   regress0/strings/issue12241-aci.smt2
   regress0/strings/issue12322-pf-eager-len-re.smt2
+  regress0/strings/issue12756-str-inc-model.smt2
   regress0/strings/issue1189.smt2
   regress0/strings/issue2958.smt2
   regress0/strings/issue3440.smt2

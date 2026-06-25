@@ -26,7 +26,6 @@
 #include <CoCoA/RingZZ.H>
 #include <CoCoA/SmallFpImpl.H>
 #include <CoCoA/SparsePolyOps-RingElem.H>
-#include <CoCoA/SparsePolyOps-vector.H>
 #include <CoCoA/factor.H>
 #include <CoCoA/factorization.H>
 #include <CoCoA/random.H>
