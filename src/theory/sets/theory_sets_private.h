@@ -334,15 +334,19 @@ class TheorySetsPrivate : protected EnvObj
   // buffers lemmas; the strategy decides when to flush and when to iterate.
   /**
    * Register the relevant terms with the solver state and run the core sets
-   * inference schemas (membership downwards/upwards closure, filter, map,
-   * group, disequalities and comprehension reductions). Returns as soon as a
-   * fact or lemma has been produced, so the strategy can flush and restart.
+   * inference schemas (membership downwards/upwards closure, group,
+   * disequalities and comprehension reductions). Returns as soon as a fact or
+   * lemma has been produced, so the strategy can flush and restart.
    */
   void checkBasic();
   /** Run the cardinality subsolver, if cardinality constraints are present. */
   void checkCardinality();
   /** Run the relations subsolver, if relational constraints are present. */
   void checkRelations();
+  /** Run the set.filter inference rules (checkFilterUp / checkFilterDown). */
+  void checkFilters();
+  /** Run the set.map inference rules (checkMapUp / checkMapDown). */
+  void checkMaps();
   //--------------------------------- end strategy steps
 
   /** Collect model values in m based on the relevant terms given by termSet */

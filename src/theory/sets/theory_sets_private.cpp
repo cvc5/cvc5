@@ -407,35 +407,6 @@ void TheorySetsPrivate::checkBasic()
   {
     return;
   }
-  // check filter up rule
-  checkFilterUp();
-  d_im.doPendingLemmas();
-  if (d_im.hasSent())
-  {
-    return;
-  }
-  // check filter down rules
-  checkFilterDown();
-  d_im.doPendingLemmas();
-  if (d_im.hasSent())
-  {
-    return;
-  }
-
-  // check map up rules
-  checkMapUp();
-  d_im.doPendingLemmas();
-  if (d_im.hasSent())
-  {
-    return;
-  }
-  // check map down rules
-  checkMapDown();
-  d_im.doPendingLemmas();
-  if (d_im.hasSent())
-  {
-    return;
-  }
   // check group up
   checkGroups();
   d_im.doPendingLemmas();
@@ -471,6 +442,34 @@ void TheorySetsPrivate::checkRelations()
     // call the check method of the relations solver
     d_rels->check(Theory::EFFORT_FULL);
   }
+}
+
+void TheorySetsPrivate::checkFilters()
+{
+  // check filter up rule
+  checkFilterUp();
+  d_im.doPendingLemmas();
+  if (d_im.hasSent())
+  {
+    return;
+  }
+  // check filter down rules
+  checkFilterDown();
+  d_im.doPendingLemmas();
+}
+
+void TheorySetsPrivate::checkMaps()
+{
+  // check map up rules
+  checkMapUp();
+  d_im.doPendingLemmas();
+  if (d_im.hasSent())
+  {
+    return;
+  }
+  // check map down rules
+  checkMapDown();
+  d_im.doPendingLemmas();
 }
 
 void TheorySetsPrivate::checkDownwardsClosure()

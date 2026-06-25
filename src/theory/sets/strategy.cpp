@@ -70,12 +70,8 @@ void Strategy::runStep(Step s, Theory::Effort, unsigned effort)
       // TODO: transitive closure is currently handled inside the relations
       // subsolver; this is a placeholder for splitting it out.
       break;
-    case Step::SETS_CHECK_MAP:
-      // d_setsSolver->checkMap();
-      break;
-      // TODO: fold is currently reduced at ppRewrite time; this is a
-      // placeholder for handling it as a dedicated step.
-      break;
+    case Step::SETS_CHECK_FILTER: d_setsSolver->checkFilters(); break;
+    case Step::SETS_CHECK_MAP: d_setsSolver->checkMaps(); break;
 
     default: Unreachable(); break;
   }
