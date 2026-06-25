@@ -31,6 +31,7 @@ std::ostream& operator<<(std::ostream& out, Step s)
       break;
     case Step::SETS_CHECK_FILTER: out << "SETS_CHECK_FILTER"; break;
     case Step::SETS_CHECK_MAP: out << "SETS_CHECK_MAP"; break;
+    case Step::SETS_CHECK_GROUP: out << "SETS_CHECK_GROUP"; break;
     case Step::UNKNOWN: out << "?"; break;
     default:
       Unreachable();

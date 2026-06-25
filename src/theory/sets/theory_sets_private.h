@@ -107,7 +107,6 @@ class TheorySetsPrivate : protected EnvObj
    *   where x is a fresh skolem
    */
   void checkMapDown();
-  void checkGroups();
   void checkGroup(Node n);
   /**
    * @param n has form ((_ rel.group n1 ... nk) A) where A has type T
@@ -334,9 +333,9 @@ class TheorySetsPrivate : protected EnvObj
   // buffers lemmas; the strategy decides when to flush and when to iterate.
   /**
    * Register the relevant terms with the solver state and run the core sets
-   * inference schemas (membership downwards/upwards closure, group,
-   * disequalities and comprehension reductions). Returns as soon as a fact or
-   * lemma has been produced, so the strategy can flush and restart.
+   * inference schemas (membership downwards/upwards closure, disequalities and
+   * comprehension reductions). Returns as soon as a fact or lemma has been
+   * produced, so the strategy can flush and restart.
    */
   void checkBasic();
   /** Run the cardinality subsolver, if cardinality constraints are present. */
@@ -347,6 +346,8 @@ class TheorySetsPrivate : protected EnvObj
   void checkFilters();
   /** Run the set.map inference rules (checkMapUp / checkMapDown). */
   void checkMaps();
+  /** Run the rel.group / table.group inference rules. */
+  void checkGroups();
   //--------------------------------- end strategy steps
 
   /** Collect model values in m based on the relevant terms given by termSet */

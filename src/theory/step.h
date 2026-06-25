@@ -45,6 +45,8 @@ enum Step : uint32_t
   SETS_CHECK_FILTER,
   // check map
   SETS_CHECK_MAP,
+  // check group
+  SETS_CHECK_GROUP,
   // unknown inference step
   UNKNOWN
 };

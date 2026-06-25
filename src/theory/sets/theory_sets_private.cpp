@@ -407,13 +407,6 @@ void TheorySetsPrivate::checkBasic()
   {
     return;
   }
-  // check group up
-  checkGroups();
-  d_im.doPendingLemmas();
-  if (d_im.hasSent())
-  {
-    return;
-  }
   // check disequalities
   checkDisequalities();
   d_im.doPendingLemmas();
@@ -897,6 +890,7 @@ void TheorySetsPrivate::checkGroups()
   {
     checkGroup(n);
   }
+  d_im.doPendingLemmas();
 }
 
 void TheorySetsPrivate::checkGroup(Node n)

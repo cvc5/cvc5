@@ -47,6 +47,7 @@ void Strategy::initializeStrategy()
   addStrategyStep(SETS_CHECK_TRANSITIVE_CLOSURE);
   addStrategyStep(SETS_CHECK_FILTER);
   addStrategyStep(SETS_CHECK_MAP);
+  addStrategyStep(SETS_CHECK_GROUP);
   markEndEffort(Theory::EFFORT_FULL);
   // set the beginning/ending ranges and mark the strategy as initialized
   finishInit();
@@ -72,6 +73,7 @@ void Strategy::runStep(Step s, Theory::Effort, unsigned effort)
       break;
     case Step::SETS_CHECK_FILTER: d_setsSolver->checkFilters(); break;
     case Step::SETS_CHECK_MAP: d_setsSolver->checkMaps(); break;
+    case Step::SETS_CHECK_GROUP: d_setsSolver->checkGroups(); break;
 
     default: Unreachable(); break;
   }
