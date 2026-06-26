@@ -919,33 +919,25 @@
   )
 )
 
-; program: $str_collect_acc
+; program: $str_collect_merge
 ; args:
-; - t (Seq U): The string term, assumed to be a flattened str.++ list.
+; - c (Seq U): A character word constant.
+; - s (Seq U): An already-collected string, i.e. a str.++ list whose first
+;   element is either a word constant or a non-constant term.
 ; return: >
-;   The result of collecting adjacent constants in a flattened string t.
-;   This side condition takes as input a str.++ application s. It returns a
-;   pair whose concatenation is equal to s, whose first component corresponds
-;   to a word constant, and whose second component is a str.++ application whose
-;   first element is not a character. For example, for:
-;     (str.++ "A" (str.++ "B" (str.++ x "")))
-;   We return:
-;     (@pair "AB" (str.++ x ""))
-(program $str_collect_acc ((U Type) (t (Seq U)) (tail (Seq U) :list))
-  :signature ((Seq U)) (@Pair (Seq U) (Seq U))
+;   The result of prepending character c to s, merging it with the leading word
+;   constant of s when one is present. For example, given "A" and
+;   (str.++ "B" (str.++ x "")) we return (str.++ "AB" (str.++ x "")), whereas
+;   given "A" and (str.++ x "") we return (str.++ "A" (str.++ x "")).
+(program $str_collect_merge ((U Type) (c (Seq U)) (s1 (Seq U)) (stail (Seq U) :list))
+  :signature ((Seq U) (Seq U)) (Seq U)
   (
     ; sequence not handled yet
-    ; Check if t is a word constant
-    (($str_collect_acc (str.++ t tail))
-      (eo::ite ($str_check_length_one t)
-        (eo::define ((res ($str_collect_acc tail)))
-        (eo::define ((s1 ($pair_first res)))
-        (eo::define ((s2 ($pair_second res)))
-          (eo::ite (eo::eq s1 "")
-            (@pair t s2)
-            (@pair (eo::concat t s1) s2)))))    ; concatenate the constant
-        (@pair "" (str.++ t tail))))
-    (($str_collect_acc "")            (@pair "" ""))
+    (($str_collect_merge c (str.++ s1 stail))
+      (eo::ite (eo::is_str s1)
+        ($str_cons (eo::concat c s1) stail)    ; merge with the leading constant
+        ($str_cons c (str.++ s1 stail))))      ; leading element is not a constant
+    (($str_collect_merge c "")  ($str_cons c ""))
   )
 )
 
@@ -953,10 +945,10 @@
 ; args:
 ; - s (Seq U): The string term, assumed to be a flattened str.++ list.
 ; return: >
-;   Collect adjacent constants for the prefix of string s. For example:
+;   Collect adjacent constants of string s. For example:
 ;     (str.++ "A" (str.++ "B" (str.++ x "")))
 ;   we return:
-;    (str.++ (str.++ "A" (str.++ "B" "")) (str.++ x ""))
+;    (str.++ "AB" (str.++ x ""))
 ;   This side condition may fail if s is not a str.++ application.
 ;   Notice that the collection of constants is done for all word constants in the
 ;   term s recursively.
@@ -964,14 +956,11 @@
   :signature ((Seq U)) (Seq U)
   (
     (($str_collect (str.++ t s))
-      (eo::define ((res ($str_collect_acc (str.++ t s))))
-      (eo::define ((s1 ($pair_first res)))
-      (eo::define ((s2 ($pair_second res)))
-        (eo::ite (eo::eq s1 "")
-          ; did not strip a constant prefix, just append t to the result of processing s
-          ($str_cons t ($str_collect s))
-          ; stripped a constant prefix, append it to second term in the pair
-          ($str_cons s1 ($str_collect s2)))))))
+      (eo::ite ($str_check_length_one t)
+        ; t is a character: merge it into the collected remainder
+        ($str_collect_merge t ($str_collect s))
+        ; t is not a character: keep it and collect the remainder
+        ($str_cons t ($str_collect s))))
     (($str_collect t)       ($str_self_if_empty t))
   )
 )
@@ -1746,7 +1735,7 @@
     :signature ((Seq T) (Seq T)) Bool
     (
     (($str_is_compatible (str.++ c1 xs1) (str.++ c1 xs2)) ($str_is_compatible xs1 xs2))
-    (($str_is_compatible (str.++ c1 xs1) (str.++ c2 xs2)) (eo::requires ($are_distinct_terms c1 c2) true false))
+    (($str_is_compatible (str.++ c1 xs1) (str.++ c2 xs2)) (eo::requires ($are_distinct_terms (eo::typeof c1) c1 c2) true false))
     (($str_is_compatible c1 c2)                           (eo::or ($str_is_empty c1) ($str_is_empty c2)))
     )
 )
@@ -1804,18 +1793,20 @@
 
 ; program: $str_from_int_eval_rec
 ; args:
+; - is (@TList Int): The list of digits to process, used to make this method structurally recursive.
 ; - n Int: The integer to process, expected to be non-negative.
 ; - s String: The accumulated return value.
 ; returns: >
 ;   The result of evaluating `(str.from_int n)` given the current accumulated return value.
-(program $str_from_int_eval_rec ((s String) (n Int))
-  :signature (Int String) String
+(program $str_from_int_eval_rec ((s String) (n Int) (i Int) (js (@TList Int) :list))
+  :signature ((@TList Int) Int String) String
   (
-  (($str_from_int_eval_rec n s) (eo::ite (eo::eq n 0)
-                                  (eo::ite (eo::eq s "") "0" s)
-                                  ($str_from_int_eval_rec
-                                    (eo::zdiv n 10)
-                                    (eo::concat (eo::to_str (eo::add 48 (eo::zmod n 10))) s))))
+  (($str_from_int_eval_rec js 0 s) (eo::ite (eo::eq s "") "0" s))
+  (($str_from_int_eval_rec (@tlist i js) n s) 
+    ($str_from_int_eval_rec
+      js
+      (eo::zdiv n 10)
+      (eo::concat (eo::to_str (eo::add 48 (eo::zmod n 10))) s)))
   )
 )
 
@@ -1829,7 +1820,8 @@
   (eo::ite (eo::is_z n)
     (eo::ite (eo::is_neg n)
       ""
-      ($str_from_int_eval_rec n ""))
+      ; number of digits to process determined by log base 10
+      ($str_from_int_eval_rec ($iota (eo::add (eo::log 10 n) 1)) n ""))
     (str.from_int n)))
 
 ; program: $str_to_int_eval_rec
