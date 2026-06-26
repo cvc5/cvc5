@@ -232,7 +232,8 @@ void InferProofCons::convert(InferenceId infer,
       // in either order, e.g. the conflict ~is-C(a) ^ is-C(b) ^ a=b may have
       // the negated tester first. In that case, swap so that the positive
       // tester takes the tester1 role.
-      if (tester1.getKind() == Kind::NOT && lit2.getKind() == Kind::APPLY_TESTER)
+      if (tester1.getKind() == Kind::NOT
+          && lit2.getKind() == Kind::APPLY_TESTER)
       {
         std::swap(tester1, lit2);
       }
