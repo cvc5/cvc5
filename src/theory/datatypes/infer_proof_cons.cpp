@@ -267,8 +267,12 @@ void InferProofCons::convert(InferenceId infer,
           // C1(...) = x   x = C2(...)
           // ------------------------- TRANS
           // C1(...) = C2(...)
-          // ----------------- MACRO_DT_CONS_EQ + EQ_RESOLVE
+          // ----------------- DT_CONS_EQ_CLASH + EQ_RESOLVE
           /// false
+          // Note that C1 and C2 are always distinct constructors here, since
+          // this is a conflict between testers is-C1(x) and is-C2(x). Hence
+          // the equality C1(...) = C2(...) rewrites to false by the
+          // (non-macro) DT_CONS_EQ_CLASH rule.
           Rewriter* rr = d_env.getRewriter();
           std::vector<Node> insts;
           for (size_t i = 0; i < 2; i++)
@@ -290,7 +294,7 @@ void InferProofCons::convert(InferenceId infer,
           }
           Node ceq = insts[0][0].eqNode(insts[1][1]);
           cdp->addStep(ceq, ProofRule::TRANS, insts, {});
-          tryRewriteRule(ceq, fn, ProofRewriteRule::MACRO_DT_CONS_EQ, cdp);
+          tryRewriteRule(ceq, fn, ProofRewriteRule::DT_CONS_EQ_CLASH, cdp);
           Node ceqf = ceq.eqNode(fn);
           cdp->addStep(fn, ProofRule::EQ_RESOLVE, {ceq, ceqf}, {});
         }
