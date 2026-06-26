@@ -251,6 +251,7 @@ Node LogosNodeConverter::typeAsNode(TypeNode tn)
   else if (tn.isDatatype())
   {
     std::unordered_set<TypeNode> scope;
+    scope.insert(tn);
     return typeAsNodeDatatype(tn.getDType(), scope);
   }
   else if (tn.getNumChildren() > 0)
