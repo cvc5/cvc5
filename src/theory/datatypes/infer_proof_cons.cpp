@@ -226,17 +226,27 @@ void InferProofCons::convert(InferenceId infer,
     {
       Assert(2 <= expv.size() && expv.size() <= 3);
       Node tester1 = expv[0];
-      bool pol = expv[1].getKind() != Kind::NOT;
-      Node tester2 = pol ? expv[1] : expv[1][0];
+      Node lit2 = expv[1];
+      // We assume below that tester1 is a positive tester is-C1(x), which
+      // provides the argument x. The two tester literals may however be given
+      // in either order, e.g. the conflict ~is-C(a) ^ is-C(b) ^ a=b may have
+      // the negated tester first. In that case, swap so that the positive
+      // tester takes the tester1 role.
+      if (tester1.getKind() == Kind::NOT && lit2.getKind() == Kind::APPLY_TESTER)
+      {
+        std::swap(tester1, lit2);
+      }
+      bool pol = lit2.getKind() != Kind::NOT;
+      Node tester2 = pol ? lit2 : lit2[0];
       if (tester1.getKind() == Kind::APPLY_TESTER
           && tester2.getKind() == Kind::APPLY_TESTER)
       {
         Node tester1c =
-            nm->mkNode(Kind::APPLY_TESTER, tester2.getOperator(), expv[0][0]);
+            nm->mkNode(Kind::APPLY_TESTER, tester2.getOperator(), tester1[0]);
         tester1c = pol ? tester1c : tester1c.notNode();
-        if (tester1c != expv[1])
+        if (tester1c != lit2)
         {
-          std::vector<Node> targs{expv[1]};
+          std::vector<Node> targs{lit2};
           if (expv.size() == 3)
           {
             targs.push_back(expv[2]);

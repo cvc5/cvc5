@@ -3120,6 +3120,7 @@ set(regress_1_tests
   regress1/proofs/dd.SEQ035_size5.smt2
   regress1/proofs/eq-engine-corner-case-constants-disequal.smt2
   regress1/proofs/issue-dt-tester-conflict-cons-eq-clash.smt2
+  regress1/proofs/issue-dt-tester-merge-conflict-neg-order.smt2
   regress1/proofs/issue6625-unsat-core-proofs.smt2
   regress1/proofs/macro-res-exp-crowding-lit-inside-unit.smt2
   regress1/proofs/macro-res-exp-singleton-after-elimCrowd.smt2
