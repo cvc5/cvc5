@@ -322,6 +322,7 @@ set(regress_0_tests
   regress0/bv/bug734.smt2
   regress0/bv/bv-abstr-bug2.smt2
   regress0/bv/bv-card-conflict.smt2
+  regress0/bv/bv-gauss-elim-urem-neg-rhs.smt2
   regress0/bv/bv-int-collapse1.smt2
   regress0/bv/bv-int-collapse2.smt2
   regress0/bv/bv-missing-dsl-rew.smt2
