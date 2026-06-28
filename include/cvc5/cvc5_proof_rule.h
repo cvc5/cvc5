@@ -2188,7 +2188,7 @@ enum ENUM(ProofRule)
    * where :math:`t` is an integer term.
    * \endverbatim
    */
-  EVALUE(ARITH_POW2_INIT_REFINE),
+  EVALUE(ARITH_POW2_INIT),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Pow2 -- Monotonicity refinement**
@@ -2202,7 +2202,7 @@ enum ENUM(ProofRule)
    * where :math:`x,y` are integer terms.
    * \endverbatim
    */
-  EVALUE(ARITH_POW2_MONOTONE_REFINE),
+  EVALUE(ARITH_POW2_MONOTONE),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Pow2 -- Division refinement**
@@ -2215,7 +2215,7 @@ enum ENUM(ProofRule)
    * :math:`t` we have :math:`t < \texttt{pow2}(t)`.
    * \endverbatim
    */
-  EVALUE(ARITH_POW2_DIV0_REFINE),
+  EVALUE(ARITH_POW2_DIV0),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Pow2 -- Lower bound refinement**
@@ -2228,7 +2228,7 @@ enum ENUM(ProofRule)
    * where :math:`t` is an integer term and :math:`k` is an integer constant.
    * \endverbatim
    */
-  EVALUE(ARITH_POW2_LOWER_BOUND_REFINE),
+  EVALUE(ARITH_POW2_LOWER_BOUND),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Transcendentals -- Assert bounds on Pi**
