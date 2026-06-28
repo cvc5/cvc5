@@ -50,7 +50,7 @@ TEST_F(TestTheoryWhiteArithPow2, pow2_proof_checker_basic)
 
   // trivial implementation returns null
   Node result =
-      checker.checkInternal(ProofRule::ARITH_POW2_INIT_REFINE, children, args);
+      checker.checkInternal(ProofRule::ARITH_POW2_INIT, children, args);
   ASSERT_TRUE(result.isNull());
 }
 
