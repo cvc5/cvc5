@@ -88,7 +88,7 @@ void Pow2Solver::checkInitialRefine()
     Node xlt0 = nm->mkNode(Kind::LT, i[0], d_zero);
     Node eq0 = nm->mkNode(Kind::EQUAL, i, mkZero(i.getType()));
     Node neg = nm->mkNode(Kind::IMPLIES, xlt0, eq0);
-    conj.push_back(nm->mkNode(Kind::IMPLIES, xlt0, eq0));
+    conj.push_back(neg);
 
     Node lem = nm->mkAnd(conj);
     Trace("pow2-lemma") << "Pow2Solver::Lemma: " << lem << " ; INIT_REFINE"
