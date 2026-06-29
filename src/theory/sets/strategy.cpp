@@ -72,8 +72,7 @@ void Strategy::runStep(Step s, Theory::Effort, unsigned effort)
     case Step::SETS_CHECK_CARDINALITY: d_setsSolver->checkCardinality(); break;
     case Step::SETS_CHECK_RELATIONS: d_setsSolver->checkRelations(); break;
     case Step::SETS_CHECK_TRANSITIVE_CLOSURE:
-      // TODO: transitive closure is currently handled inside the relations
-      // subsolver; this is a placeholder for splitting it out.
+      d_setsSolver->checkTransitiveClosure();
       break;
     case Step::SETS_CHECK_FILTER: d_setsSolver->checkFilters(); break;
     case Step::SETS_CHECK_MAP: d_setsSolver->checkMaps(); break;

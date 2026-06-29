@@ -422,6 +422,18 @@ void TheorySetsPrivate::checkRelations()
   }
 }
 
+void TheorySetsPrivate::checkTransitiveClosure()
+{
+  // The transitive-closure down rule introduces fresh skolem elements. It does
+  // one sweep over the current TC members per call (it does not loop to a
+  // fixpoint), so it generates at most finitely many fresh elements per
+  // strategy pass; further elements are introduced on subsequent passes.
+  if (d_rels_enabled)
+  {
+    d_rels->checkTransitiveClosure();
+  }
+}
+
 void TheorySetsPrivate::checkFilters()
 {
   // check filter up rule
