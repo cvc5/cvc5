@@ -305,6 +305,9 @@ void InferProofCons::convert(InferenceId infer,
           }
           Node ceq = insts[0][0].eqNode(insts[1][1]);
           cdp->addStep(ceq, ProofRule::TRANS, insts, {});
+          // C1 and C2 are always distinct constructors here, so that ceq
+          // rewrites to false by the (non-macro) DT_CONS_EQ_CLASH rule.
+          Assert(insts[0][0].getOperator() != insts[1][1].getOperator());
           tryRewriteRule(ceq, fn, ProofRewriteRule::DT_CONS_EQ_CLASH, cdp);
           Node ceqf = ceq.eqNode(fn);
           cdp->addStep(fn, ProofRule::EQ_RESOLVE, {ceq, ceqf}, {});
