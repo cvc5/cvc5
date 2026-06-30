@@ -463,7 +463,7 @@ name   = "Arithmetic Theory"
   category   = "expert"
   long       = "nl-ext-initial-sign-lemmas"
   type       = "bool"
-  default    = "true"
+  default    = "false"
   help       = "preemptively add monomial zero-sign lemmas (v = 0 => a = 0 for each factor v of monomial a) before model-based refinement"
 
 [[option]]
