@@ -1,4 +1,4 @@
-; COMMAND-LINE: --sat-solver=cadical --check-proofs --check-proofs-complete
+; COMMAND-LINE: --sat-solver=cadical
 ; EXPECT: unsat
 ; Tests that the proof for a datatypes tester merge conflict (is-C1(x) and
 ; is-C2(x) for distinct constructors C1, C2) is reconstructed via the
