@@ -3707,6 +3707,7 @@ const char* plugin_unsat_get_name() { return "PluginUnsat"; }
 
 TEST_F(TestCApiBlackSolver, plugin_unsat)
 {
+  cvc5_set_option(d_solver, "sat-solver", "minisat");
   Cvc5Plugin plugin{&plugin_unsat_check,
                     nullptr,
                     nullptr,
@@ -3734,7 +3735,8 @@ const char* plugin_listen_get_name() { return "PluginListen"; }
 
 TEST_F(TestCApiBlackSolver, plugin_listen)
 {
-  bool clause_seen, lemma_seen;
+  bool clause_seen = false;
+  bool lemma_seen = false;
   Cvc5Plugin plugin{nullptr,
                     &plugin_listen_notify_sat_clause,
                     &plugin_listen_notify_theory_lemma,
@@ -3743,8 +3745,8 @@ TEST_F(TestCApiBlackSolver, plugin_listen)
                     &clause_seen,
                     &lemma_seen};
 
-  // NOTE: this shouldn't be necessary but ensures notify_sat_clause is called
-  // here.
+  cvc5_set_option(d_solver, "sat-solver", "minisat");
+  // Allow notifications for unit clauses added before the main solve.
   cvc5_set_option(d_solver, "plugin-notify-sat-clause-in-solve", "false");
   cvc5_add_plugin(d_solver, &plugin);
   Cvc5Sort string_sort = cvc5_get_string_sort(d_tm);
