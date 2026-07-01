@@ -42,9 +42,13 @@ elseif(CMAKE_HOST_SYSTEM_NAME STREQUAL "Darwin")
     set(BUILD_TRIPLET "aarch64-apple-darwin")
   endif()
 elseif(CMAKE_HOST_SYSTEM_NAME STREQUAL "Windows")
-  if(CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "x86_64")
+  # Native Windows CMake reports the processor as AMD64/ARM64 (from
+  # %PROCESSOR_ARCHITECTURE%), which config.sub does not recognize.
+  if(CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "x86_64"
+     OR CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "AMD64")
     set(BUILD_TRIPLET "x86_64-w64-mingw32")
-  elseif(CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "aarch64")
+  elseif(CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "aarch64"
+         OR CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "ARM64")
     set(BUILD_TRIPLET "aarch64-w64-mingw32")
   endif()
 endif()
