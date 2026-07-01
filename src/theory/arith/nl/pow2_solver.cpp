@@ -84,6 +84,12 @@ void Pow2Solver::checkInitialRefine()
     Node even = nm->mkNode(Kind::EQUAL, mod2, d_zero);
     conj.push_back(nm->mkNode(Kind::IMPLIES, xgt0, even));
 
+    // neg: x < 0 -> pow2(x) = 0
+    Node xlt0 = nm->mkNode(Kind::LT, i[0], d_zero);
+    Node eq0 = nm->mkNode(Kind::EQUAL, i, mkZero(i.getType()));
+    Node neg = nm->mkNode(Kind::IMPLIES, xlt0, eq0);
+    conj.push_back(neg);
+
     Node lem = nm->mkAnd(conj);
     Trace("pow2-lemma") << "Pow2Solver::Lemma: " << lem << " ; INIT_REFINE"
                         << std::endl;
@@ -165,16 +171,6 @@ void Pow2Solver::checkFullRefine()
         d_im.addPendingLemma(
             lem, InferenceId::ARITH_NL_POW2_MONOTONE_REFINE, nullptr, true);
       }
-    }
-
-    // neg lemmas: pow2(x) = 0 whenever x < 0
-    if (x < 0 && pow2x != 0)
-    {
-      Node assumption = nm->mkNode(Kind::LT, n[0], d_zero);
-      Node conclusion = nm->mkNode(Kind::EQUAL, n, mkZero(n.getType()));
-      Node lem = nm->mkNode(Kind::IMPLIES, assumption, conclusion);
-      d_im.addPendingLemma(
-          lem, InferenceId::ARITH_NL_POW2_NEG_REFINE, nullptr, true);
     }
 
     // div 0: x div pow2(x) = 0 whenever x >= 0
