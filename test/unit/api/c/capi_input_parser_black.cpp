@@ -18,6 +18,7 @@ extern "C" {
 #include <sstream>
 
 #include "gtest/gtest.h"
+#include "test_capi.h"
 
 namespace cvc5::internal::test {
 
@@ -61,7 +62,7 @@ TEST_F(TestCApiBlackInputParser, get_solver)
 
 TEST_F(TestCApiBlackInputParser, set_file_input)
 {
-  ASSERT_DEATH(cvc5_parser_new(nullptr, d_sm), "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_parser_new(nullptr, d_sm), "unexpected NULL argument");
 
   const char* filename = "parse.smt2";
   std::ofstream smt2(filename);
@@ -72,16 +73,16 @@ TEST_F(TestCApiBlackInputParser, set_file_input)
   Cvc5InputParser* parser = cvc5_parser_new(d_solver, nullptr);
   cvc5_parser_set_file_input(
       parser, CVC5_INPUT_LANGUAGE_SMT_LIB_2_6, "parse.smt2");
-  ASSERT_DEATH(cvc5_parser_set_file_input(
-                   nullptr, CVC5_INPUT_LANGUAGE_SMT_LIB_2_6, "parse.smt2"),
-               "unexpected NULL argument");
-  ASSERT_DEATH(cvc5_parser_set_file_input(
-                   parser, CVC5_INPUT_LANGUAGE_SMT_LIB_2_6, nullptr),
-               "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_parser_set_file_input(
+                        nullptr, CVC5_INPUT_LANGUAGE_SMT_LIB_2_6, "parse.smt2"),
+                    "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_parser_set_file_input(
+                        parser, CVC5_INPUT_LANGUAGE_SMT_LIB_2_6, nullptr),
+                    "unexpected NULL argument");
   std::remove(filename);
-  ASSERT_DEATH(cvc5_parser_set_file_input(
-                   parser, CVC5_INPUT_LANGUAGE_SMT_LIB_2_6, "parse.smt2"),
-               "Couldn't open file");
+  ASSERT_CVC5_ERROR(cvc5_parser_set_file_input(
+                        parser, CVC5_INPUT_LANGUAGE_SMT_LIB_2_6, "parse.smt2"),
+                    "Couldn't open file");
   cvc5_parser_delete(parser);
 }
 
@@ -92,17 +93,19 @@ TEST_F(TestCApiBlackInputParser, set_and_append_inc_str_input)
       parser, CVC5_INPUT_LANGUAGE_SMT_LIB_2_6, "parser_black");
   ASSERT_FALSE(cvc5_parser_done(parser));
 
-  ASSERT_DEATH(cvc5_parser_set_inc_str_input(
-                   nullptr, CVC5_INPUT_LANGUAGE_SMT_LIB_2_6, "parser_black"),
-               "unexpected NULL argument");
-  ASSERT_DEATH(cvc5_parser_set_inc_str_input(
-                   parser, CVC5_INPUT_LANGUAGE_SMT_LIB_2_6, nullptr),
-               "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(
+      cvc5_parser_set_inc_str_input(
+          nullptr, CVC5_INPUT_LANGUAGE_SMT_LIB_2_6, "parser_black"),
+      "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_parser_set_inc_str_input(
+                        parser, CVC5_INPUT_LANGUAGE_SMT_LIB_2_6, nullptr),
+                    "unexpected NULL argument");
 
-  ASSERT_DEATH(cvc5_parser_append_inc_str_input(nullptr, "(set-logic ALL)"),
-               "unexpected NULL argument");
-  ASSERT_DEATH(cvc5_parser_append_inc_str_input(parser, nullptr),
-               "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(
+      cvc5_parser_append_inc_str_input(nullptr, "(set-logic ALL)"),
+      "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_parser_append_inc_str_input(parser, nullptr),
+                    "unexpected NULL argument");
 
   cvc5_parser_append_inc_str_input(parser, "(set-logic ALL)");
   cvc5_parser_append_inc_str_input(parser, "(declare-fun a () Bool)");
@@ -159,8 +162,8 @@ TEST_F(TestCApiBlackInputParser, set_and_append_inc_str_input_interleave)
 TEST_F(TestCApiBlackInputParser, append_inc_str_no_set)
 {
   Cvc5InputParser* parser = cvc5_parser_new(d_solver, nullptr);
-  ASSERT_DEATH(cvc5_parser_append_inc_str_input(parser, "(set-logic ALL)"),
-               "parser not initialized");
+  ASSERT_CVC5_ERROR(cvc5_parser_append_inc_str_input(parser, "(set-logic ALL)"),
+                    "parser not initialized");
   cvc5_parser_delete(parser);
 }
 
@@ -168,16 +171,16 @@ TEST_F(TestCApiBlackInputParser, set_str_input)
 {
   Cvc5InputParser* parser = cvc5_parser_new(d_solver, nullptr);
 
-  ASSERT_DEATH(cvc5_parser_set_str_input(nullptr,
-                                         CVC5_INPUT_LANGUAGE_SMT_LIB_2_6,
-                                         "(set-logic ALL)",
-                                         "parser_black"),
-               "unexpected NULL argument");
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(cvc5_parser_set_str_input(nullptr,
+                                              CVC5_INPUT_LANGUAGE_SMT_LIB_2_6,
+                                              "(set-logic ALL)",
+                                              "parser_black"),
+                    "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(
       cvc5_parser_set_str_input(
           parser, CVC5_INPUT_LANGUAGE_SMT_LIB_2_6, nullptr, "parser_black"),
       "unexpected NULL argument");
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
       cvc5_parser_set_str_input(
           parser, CVC5_INPUT_LANGUAGE_SMT_LIB_2_6, "(set-logic ALL)", nullptr),
       "unexpected NULL argument");
@@ -202,15 +205,16 @@ TEST_F(TestCApiBlackInputParser, next_command)
 {
   const char* error_msg;
   Cvc5InputParser* parser = cvc5_parser_new(d_solver, nullptr);
-  ASSERT_DEATH(cvc5_parser_next_command(parser, &error_msg), "not initialized");
+  ASSERT_CVC5_ERROR(cvc5_parser_next_command(parser, &error_msg),
+                    "not initialized");
   cvc5_parser_set_str_input(
       parser, CVC5_INPUT_LANGUAGE_SMT_LIB_2_6, "", "parser_black");
   Cvc5Command cmd = cvc5_parser_next_command(parser, &error_msg);
   ASSERT_EQ(cmd, nullptr);
-  ASSERT_DEATH(cvc5_parser_next_command(nullptr, &error_msg),
-               "unexpected NULL argument");
-  ASSERT_DEATH(cvc5_parser_next_command(parser, nullptr),
-               "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_parser_next_command(nullptr, &error_msg),
+                    "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_parser_next_command(parser, nullptr),
+                    "unexpected NULL argument");
   cvc5_parser_delete(parser);
 }
 
@@ -232,16 +236,17 @@ TEST_F(TestCApiBlackInputParser, next_term)
 {
   const char* error_msg;
   Cvc5InputParser* parser = cvc5_parser_new(d_solver, nullptr);
-  ASSERT_DEATH(cvc5_parser_next_term(parser, &error_msg), "not initialized");
+  ASSERT_CVC5_ERROR(cvc5_parser_next_term(parser, &error_msg),
+                    "not initialized");
   cvc5_parser_set_str_input(
       parser, CVC5_INPUT_LANGUAGE_SMT_LIB_2_6, "", "parser_black");
   Cvc5Term term = cvc5_parser_next_term(parser, &error_msg);
   ASSERT_EQ(term, nullptr);
   ASSERT_EQ(error_msg, nullptr);
-  ASSERT_DEATH(cvc5_parser_next_term(nullptr, &error_msg),
-               "unexpected NULL argument");
-  ASSERT_DEATH(cvc5_parser_next_term(parser, nullptr),
-               "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_parser_next_term(nullptr, &error_msg),
+                    "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_parser_next_term(parser, nullptr),
+                    "unexpected NULL argument");
   cvc5_parser_delete(parser);
 }
 
@@ -287,7 +292,7 @@ TEST_F(TestCApiBlackInputParser, multiple_parsers)
   ASSERT_EQ(cvc5_sm_is_logic_set(d_sm), true);
   ASSERT_EQ(cvc5_sm_get_logic(d_sm), std::string("QF_LIA"));
   // cannot set logic on solver now
-  ASSERT_DEATH(cvc5_set_logic(d_solver, "QF_LRA"), "logic is already set");
+  ASSERT_CVC5_ERROR(cvc5_set_logic(d_solver, "QF_LRA"), "logic is already set");
   // possible to construct another parser with the same solver and symbol
   // manager
   Cvc5InputParser* parser2 = cvc5_parser_new(d_solver, d_sm);
@@ -315,9 +320,10 @@ TEST_F(TestCApiBlackInputParser, multiple_parsers)
   Cvc5* solver4 = cvc5_new(d_tm);
   cvc5_set_logic(solver4, "QF_LRA");
   Cvc5InputParser* parser5 = cvc5_parser_new(solver4, d_sm);
-  ASSERT_DEATH(cvc5_parser_set_inc_str_input(
-                   parser5, CVC5_INPUT_LANGUAGE_SMT_LIB_2_6, "parser_black"),
-               "Logic mismatch");
+  ASSERT_CVC5_ERROR(
+      cvc5_parser_set_inc_str_input(
+          parser5, CVC5_INPUT_LANGUAGE_SMT_LIB_2_6, "parser_black"),
+      "Logic mismatch");
   cvc5_parser_delete(parser5);
   cvc5_parser_delete(parser4);
   cvc5_parser_delete(parser3);
