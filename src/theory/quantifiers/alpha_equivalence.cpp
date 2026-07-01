@@ -16,6 +16,7 @@
 #include "proof/method_id.h"
 #include "proof/proof.h"
 #include "proof/proof_node.h"
+#include "proof/proof_node_algorithm.h"
 #include "theory/builtin/proof_checker.h"
 
 using namespace cvc5::internal::kind;
@@ -23,15 +24,6 @@ using namespace cvc5::internal::kind;
 namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
-
-struct sortTypeOrder
-{
-  expr::TermCanonize* d_tu;
-  bool operator()(TypeNode i, TypeNode j)
-  {
-    return d_tu->getIdForType(i) < d_tu->getIdForType(j);
-  }
-};
 
 AlphaEquivalenceTypeNode::AlphaEquivalenceTypeNode(context::Context* c)
     : d_quant(c)
@@ -155,9 +147,7 @@ Node AlphaEquivalenceDb::addTermToTypeTrie(Node t, Node q)
       typs.push_back(tn);
     }
   }
-  sortTypeOrder sto;
-  sto.d_tu = d_tc;
-  std::sort(typs.begin(), typs.end(), sto);
+  std::sort(typs.begin(), typs.end());
   Trace("aeq-debug") << "  ";
   Node ret = d_ae_typ_trie.registerNode(d_context, q, t, typs, typCount);
   Trace("aeq") << "  ...result : " << ret << std::endl;
@@ -215,6 +205,7 @@ TrustNode AlphaEquivalence::reduceQuantifier(Node q)
     // remove patterns from both sides
     if (q.getNumChildren() == 3)
     {
+      Trace("alpha-eq") << "...remove pattern" << std::endl;
       Node qo = q;
       q = builtin::BuiltinProofRuleChecker::getEncodeEqIntro(nm, q);
       if (q != qo)
@@ -230,6 +221,7 @@ TrustNode AlphaEquivalence::reduceQuantifier(Node q)
     }
     if (ret.getNumChildren() == 3)
     {
+      Trace("alpha-eq") << "...remove pattern return" << std::endl;
       Node reto = ret;
       ret = builtin::BuiltinProofRuleChecker::getEncodeEqIntro(nm, ret);
       if (ret != reto)
@@ -260,9 +252,12 @@ TrustNode AlphaEquivalence::reduceQuantifier(Node q)
       {
         isubs.emplace_back(NodeManager::mkBoundVar(v.getType()));
       }
+      Trace("alpha-eq") << "...initial aeq subs " << vars << " -> " << isubs
+                        << std::endl;
       // ---------- ALPHA_EQUIV
       // ret = iret
       Node ieq = addAlphaEquivStep(cdp, ret, vars, isubs);
+      Trace("alpha-eq") << "...initial alpha equivalent " << ieq << std::endl;
       transEq.emplace_back(ieq);
       ret = ieq[1];
       vars = isubs;
@@ -270,12 +265,14 @@ TrustNode AlphaEquivalence::reduceQuantifier(Node q)
     // ---------- ALPHA_EQUIV
     // ret = sret
     Node eq = addAlphaEquivStep(cdp, ret, vars, subs);
+    Trace("alpha-eq") << "...alpha equivalent " << eq << std::endl;
     Assert(eq.getKind() == Kind::EQUAL);
     Node sret = eq[1];
     transEq.emplace_back(eq);
     Assert(sret.getKind() == Kind::FORALL);
     if (sret[0] != q[0])
     {
+      Trace("alpha-eq") << "...reordering " << sret << " vs " << q << std::endl;
       // variable reorder?
       std::vector<Node> children;
       children.push_back(q[0]);
@@ -290,6 +287,7 @@ TrustNode AlphaEquivalence::reduceQuantifier(Node q)
       {
         transEq.push_back(eqqr);
         sret = sreorder;
+        Trace("alpha-eq") << "...reordering success, now " << sret << std::endl;
       }
       // if var reordering did not apply, we likely will not succeed below
     }
@@ -303,20 +301,43 @@ TrustNode AlphaEquivalence::reduceQuantifier(Node q)
     {
       Node eq2 = sret.eqNode(q);
       transEq.push_back(eq2);
-      Node eq2r = extendedRewrite(eq2);
-      if (eq2r.isConst() && eq2r.getConst<bool>())
+      std::map<Node, Node> canonCache;
+      expr::EqualityNodeLessCallback orderChildren =
+          [this, &canonCache](const Node& a, const Node& b) {
+            auto getCanon = [this, &canonCache](const Node& n) -> Node {
+              std::map<Node, Node>::iterator it = canonCache.find(n);
+              if (it != canonCache.end())
+              {
+                return it->second;
+              }
+              Node cn = d_termCanon.getCanonicalTerm(n, true);
+              canonCache[n] = cn;
+              return cn;
+            };
+            Node ac = getCanon(a);
+            Node bc = getCanon(b);
+            return ac == bc ? a < b : d_termCanon.getTermOrder(ac, bc);
+          };
+      if (expr::proveEqualityWithRewriteSteps(
+              d_env, cdp, sret, q, true, orderChildren))
       {
-        // ---------- MACRO_SR_PRED_INTRO
-        // sret = q
-        std::vector<Node> pfArgs2;
-        pfArgs2.push_back(eq2);
-        addMethodIds(nodeManager(),
-                     pfArgs2,
-                     MethodId::SB_DEFAULT,
-                     MethodId::SBA_SEQUENTIAL,
-                     MethodId::RW_EXT_REWRITE);
-        cdp.addStep(eq2, ProofRule::MACRO_SR_PRED_INTRO, {}, pfArgs2);
         success = true;
+      }
+      else
+      {
+        Node eq2r = extendedRewrite(eq2, false);
+        if (eq2r.isConst() && eq2r.getConst<bool>())
+        {
+          std::vector<Node> pfArgs2;
+          pfArgs2.push_back(eq2);
+          addMethodIds(nodeManager(),
+                       pfArgs2,
+                       MethodId::SB_DEFAULT,
+                       MethodId::SBA_SEQUENTIAL,
+                       MethodId::RW_EXT_REWRITE);
+          cdp.addStep(eq2, ProofRule::MACRO_SR_PRED_INTRO, {}, pfArgs2);
+          success = true;
+        }
       }
     }
     // if successful, store the proof and remember the proof generator
