@@ -321,6 +321,23 @@ Node TheoryModel::getModelValue(TNode n) const
     Trace("model-getvalue-debug")
         << "get value from representative " << ret << "..." << std::endl;
     ret = getRepresentative(ret);
+    // If the representative is a lambda function value whose body still applies
+    // other (model-assigned) functions, e.g. (lambda (e) (r e c)) for a
+    // purified higher-order predicate, evaluate the body under the model so
+    // that the inner functions are resolved to their model values. Otherwise
+    // consumers of this value (e.g. set.filter/set.all over the predicate) and
+    // the model checkers observe an unevaluated function application and cannot
+    // verify an otherwise sound model.
+    if (ret.getKind() == Kind::LAMBDA
+        && (expr::hasSubtermKind(Kind::APPLY_UF, ret[1])
+            || expr::hasSubtermKind(Kind::HO_APPLY, ret[1])))
+    {
+      Node bodyVal = getModelValue(ret[1]);
+      if (bodyVal != ret[1])
+      {
+        ret = rewrite(nm->mkNode(Kind::LAMBDA, ret[0], bodyVal));
+      }
+    }
     d_modelCache[n] = ret;
     Trace("model-getvalue-debug") << "...set rep is " << ret << std::endl;
     return ret;
@@ -880,6 +897,43 @@ void TheoryModel::assignFunctionDefaultHo(Node f) const
     if (itht != d_ho_uf_terms.end())
     {
       hoTerms.insert(hoTerms.end(), itht->second.begin(), itht->second.end());
+    }
+  }
+  // If there are no applications to constrain f and f is a purification skolem
+  // for a function term (e.g. a relation/predicate passed first-class to a set
+  // operation), its value is fixed by the term it purifies: f = t is asserted.
+  // The arbitrary default assigned below would not respect f = t and could make
+  // the model violate constraints that only mention f through t (this happens
+  // for higher-order set.filter/set.all/set.min/max predicates over symbolic
+  // sets, where the predicate is never applied at concrete points). Use the
+  // model value of the original (un-purified) form instead.
+  //
+  // The d_hoAssignInProgress guard breaks cycles: if evaluating the purified
+  // term recurses back into assigning f (a self-referential definition such as
+  // f = (lambda (x y) (f y x))), we fall through to the arbitrary default.
+  if (hoTerms.empty()
+      && d_hoAssignInProgress.find(f) == d_hoAssignInProgress.end())
+  {
+    Node orig = SkolemManager::getOriginalForm(f);
+    if (orig != f)
+    {
+      d_hoAssignInProgress.insert(f);
+      Node oval = uf::FunctionConst::toLambda(getModelValue(orig));
+      d_hoAssignInProgress.erase(f);
+      // f may have been assigned during the recursive evaluation above; if so,
+      // keep that assignment rather than reassigning.
+      if (d_uf_models.find(f) != d_uf_models.end())
+      {
+        return;
+      }
+      if (!oval.isNull() && oval.getKind() == Kind::LAMBDA
+          && oval.getType() == f.getType())
+      {
+        Trace("model-builder") << "  Assign function value for " << f
+                               << " from purified term " << orig << std::endl;
+        assignFunctionDefinition(f, oval);
+        return;
+      }
     }
   }
   Trace("model-builder-debug") << "Assign HO function " << f << std::endl;
