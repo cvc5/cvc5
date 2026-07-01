@@ -154,13 +154,22 @@ class JustificationStrategy : public DecisionEngine
    * @param lems The lemmas to add.
    */
   void addLocalAssertions(const std::vector<TNode>& lems) override;
+  /**
+   * Adds assertions lems to satisfy that persist in the user context, but
+   * are considered only after all other assertions are satisfied. This is
+   * used for instantiation lemmas under --inst-defer.
+   * @param lems The lemmas to add.
+   */
+  void addDeferredAssertions(const std::vector<TNode>& lems) override;
 
  private:
   /**
-   * Helper method to insert assertions in `lems` to `d_assertions` or
-   * `d_localAssertions` when `local` is true.
+   * Helper method to insert assertions in `lems` to the assertion list `al`,
+   * where `sizeStat` is the statistic tracking its maximal size.
    */
-  void insertToAssertionList(const std::vector<TNode>& lems, bool local);
+  void insertToAssertionList(const std::vector<TNode>& lems,
+                             AssertionList& al,
+                             IntStat& sizeStat);
   /**
    * Refresh current assertion. This ensures that d_stack has a current
    * assertion to satisfy. If it does not already have one, we take the next
@@ -175,12 +184,13 @@ class JustificationStrategy : public DecisionEngine
    * Implements the above function for the case where d_stack must get a new
    * assertion to satisfy.
    *
-   * @param local If this is true, we pull the next assertion from
-   * the list of relevant local assertions.
+   * @param al The assertion list to pull the next assertion from.
+   * @param doWatchStatus Whether to track activity status for the
+   * assertions of this list (done for the main assertions only).
    * @return true if we successfully initialized d_stack with the next
    * assertion to satisfy.
    */
-  bool refreshCurrentAssertionFromList(bool local);
+  bool refreshCurrentAssertionFromList(AssertionList& al, bool doWatchStatus);
   /**
    * Let n be the node referenced by ji.
    *
@@ -205,6 +215,12 @@ class JustificationStrategy : public DecisionEngine
   AssertionList d_assertions;
   /** The local assertions, which are SAT-context depdendent */
   AssertionList d_localAssertions;
+  /**
+   * The deferred assertions (instantiation lemmas under --inst-defer),
+   * which are user-context dependent and considered only after all other
+   * assertions are satisfied.
+   */
+  AssertionList d_deferredAssertions;
 
   /** A justification cache */
   JustifyCache d_jcache;

@@ -34,7 +34,10 @@ enum class LemmaProperty : uint32_t
   // the lemma can be inprocessed
   INPROCESS = 8,
   // the lemma is local to the SAT context
-  LOCAL = 16
+  LOCAL = 16,
+  // the lemma is deprioritized in the decision engine: it is considered for
+  // justification only after all other assertions are satisfied
+  DEFER = 32
 };
 /** Define operator lhs | rhs */
 LemmaProperty operator|(LemmaProperty lhs, LemmaProperty rhs);
@@ -54,6 +57,8 @@ bool isLemmaPropertyNeedsJustify(LemmaProperty p);
 bool isLemmaPropertyInprocess(LemmaProperty p);
 /** is the local bit set on p? */
 bool isLemmaPropertyLocal(LemmaProperty p);
+/** is the defer bit set on p? */
+bool isLemmaPropertyDefer(LemmaProperty p);
 
 /**
  * Writes an lemma property name to a stream.

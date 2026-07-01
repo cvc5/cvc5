@@ -185,6 +185,7 @@ void PropEngine::assertLemma(theory::InferenceId id,
 {
   bool removable = isLemmaPropertyRemovable(p);
   bool local = isLemmaPropertyLocal(p);
+  bool defer = isLemmaPropertyDefer(p);
   bool inprocess = isLemmaPropertyInprocess(p);
 
   // call preprocessor
@@ -219,7 +220,8 @@ void PropEngine::assertLemma(theory::InferenceId id,
   }
 
   // now, assert the lemmas
-  assertLemmasInternal(id, tplemma, ppLemmas, removable, inprocess, local);
+  assertLemmasInternal(
+      id, tplemma, ppLemmas, removable, inprocess, local, defer);
 }
 
 void PropEngine::assertTrustedLemmaInternal(theory::InferenceId id,
@@ -314,7 +316,8 @@ void PropEngine::assertLemmasInternal(
     const std::vector<theory::SkolemLemma>& ppLemmas,
     bool removable,
     bool inprocess,
-    bool local)
+    bool local,
+    bool defer)
 {
   // notify skolem definitions first to ensure that the computation of
   // when a literal contains a skolem is accurate in the calls below.
@@ -355,11 +358,13 @@ void PropEngine::assertLemmasInternal(
   if (!trn.isNull())
   {
     // notify the theory proxy of the lemma
-    d_theoryProxy->notifyAssertion(trn.getProven(), TNode::null(), true, local);
+    d_theoryProxy->notifyAssertion(
+        trn.getProven(), TNode::null(), true, local, defer);
   }
   for (const theory::SkolemLemma& lem : ppLemmas)
   {
-    d_theoryProxy->notifyAssertion(lem.getProven(), lem.d_skolem, true, local);
+    d_theoryProxy->notifyAssertion(
+        lem.getProven(), lem.d_skolem, true, local, defer);
   }
   Trace("prop") << "Finish " << trn << std::endl;
 }

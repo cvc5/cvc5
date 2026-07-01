@@ -57,6 +57,10 @@ bool isLemmaPropertyLocal(LemmaProperty p)
 {
   return (p & LemmaProperty::LOCAL) == LemmaProperty::LOCAL;
 }
+bool isLemmaPropertyDefer(LemmaProperty p)
+{
+  return (p & LemmaProperty::DEFER) == LemmaProperty::DEFER;
+}
 
 std::ostream& operator<<(std::ostream& out, LemmaProperty p)
 {
@@ -86,6 +90,10 @@ std::ostream& operator<<(std::ostream& out, LemmaProperty p)
     if (isLemmaPropertyLocal(p))
     {
       out << " LOCAL";
+    }
+    if (isLemmaPropertyDefer(p))
+    {
+      out << " DEFER";
     }
     out << " }";
   }

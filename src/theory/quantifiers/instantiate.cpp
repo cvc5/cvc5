@@ -186,10 +186,20 @@ bool Instantiate::addInstantiationInternal(
   }
 #endif
   bool isLocal = false;
+  // Whether the instantiation is deferred: it is recorded globally (and is
+  // hence never re-derived), but is treated like a local assertion in the
+  // justification heuristic. The justification heuristic keeps deferred
+  // assertions in a user-context list (see JustificationStrategy), which is
+  // required since deferred instantiations are never re-sent.
+  bool isDefer = false;
   if (options().quantifiers.instLocal)
   {
     // determine if it is an instantiation type that is treated as local
     isLocal = isLocalInstId(id);
+  }
+  else if (options().quantifiers.instDefer)
+  {
+    isDefer = isLocalInstId(id);
   }
 
   // Note we check for entailment before checking for term vector duplication.
@@ -332,6 +342,10 @@ bool Instantiate::addInstantiationInternal(
   if (isLocal)
   {
     p = LemmaProperty::LOCAL;
+  }
+  else if (isDefer)
+  {
+    p = LemmaProperty::DEFER;
   }
   if (hasProof)
   {
