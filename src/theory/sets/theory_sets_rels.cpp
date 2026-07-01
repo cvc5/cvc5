@@ -119,14 +119,11 @@ void TheorySetsRels::check()
           applyProductRule(product_terms[j], rel_rep, exp);
         }
       }
-      if (kind_terms.find(Kind::RELATION_TCLOSURE) != kind_terms.end())
-      {
-        std::vector<Node>& tc_terms = kind_terms[Kind::RELATION_TCLOSURE];
-        for (unsigned int j = 0; j < tc_terms.size(); j++)
-        {
-          applyTCRule(mem, tc_terms[j], rel_rep, exp);
-        }
-      }
+      // Note: the transitive-closure DOWN rule (applyTCRule) is not applied
+      // here. It introduces fresh skolem elements and can do so unboundedly, so
+      // it is run as its own step (checkTransitiveClosure), at most once per
+      // postCheck. The UP rule (doTCInference, below) still runs here, using
+      // the TC graph built by buildTCGraphForRel.
       if (kind_terms.find(Kind::RELATION_JOIN_IMAGE) != kind_terms.end())
       {
         std::vector<Node>& join_image_terms =
@@ -182,14 +179,8 @@ void TheorySetsRels::check()
           ++term_it;
         }
       }
-      else if (k_t_it->first == Kind::RELATION_TCLOSURE)
-      {
-        while (term_it != k_t_it->second.end())
-        {
-          buildTCGraphForRel(*term_it);
-          ++term_it;
-        }
-      }
+      // RELATION_TCLOSURE is handled in checkTransitiveClosure (its own step),
+      // not here, because the down and up rules must run together.
       else if (k_t_it->first == Kind::RELATION_JOIN_IMAGE)
       {
         while (term_it != k_t_it->second.end())
@@ -210,9 +201,14 @@ void TheorySetsRels::check()
     }
     ++t_it;
   }
-  doTCInference();
+  // Note: doTCInference() (the TC up rule) is run by checkTransitiveClosure,
+  // together with the down rule, not here.
 
-  // clean up
+  clearCaches();
+}
+
+void TheorySetsRels::clearCaches()
+{
   d_tuple_reps.clear();
   d_rReps_memberReps_exp_cache.clear();
   d_terms_cache.clear();
@@ -222,6 +218,62 @@ void TheorySetsRels::check()
   d_rRep_tcGraph.clear();
   d_tcr_tcGraph_exps.clear();
   d_tcr_tcGraph.clear();
+}
+
+void TheorySetsRels::checkTransitiveClosure()
+{
+  Trace("rels") << "\n[sets-rels] *********** Start transitive closure "
+                   "***********\n"
+                << std::endl;
+  collectRelsInfo();
+  // DOWN rule: for every (member, TC term) pair, apply applyTCRule. This both
+  // emits the down-rule split (introducing fresh skolems) and records the TC
+  // membership in d_tcr_tcGraph, which the UP rule (doTCInference) consumes. A
+  // single sweep over the current members is performed (no fixpoint loop), so
+  // only finitely many fresh elements are introduced per call.
+  for (MEM_IT m_it = d_rReps_memberReps_cache.begin();
+       m_it != d_rReps_memberReps_cache.end();
+       ++m_it)
+  {
+    Node rel_rep = m_it->first;
+    std::map<Kind, std::vector<Node> >& kind_terms = d_terms_cache[rel_rep];
+    if (kind_terms.find(Kind::RELATION_TCLOSURE) == kind_terms.end())
+    {
+      continue;
+    }
+    std::vector<Node>& tc_terms = kind_terms[Kind::RELATION_TCLOSURE];
+    for (unsigned int i = 0; i < m_it->second.size(); i++)
+    {
+      Node mem = d_rReps_memberReps_cache[rel_rep][i];
+      Node exp = d_rReps_memberReps_exp_cache[rel_rep][i];
+      for (unsigned int j = 0; j < tc_terms.size(); j++)
+      {
+        applyTCRule(mem, tc_terms[j], rel_rep, exp);
+      }
+    }
+  }
+  // Build the TC graph for every TC term (also adds base-relation members),
+  // then run the UP rule. The down rule above and this up rule share
+  // d_tcr_tcGraph, so they must run in the same call.
+  for (TERM_IT t_it = d_terms_cache.begin(); t_it != d_terms_cache.end();
+       ++t_it)
+  {
+    KIND_TERM_IT k_t_it = t_it->second.find(Kind::RELATION_TCLOSURE);
+    if (k_t_it != t_it->second.end())
+    {
+      for (const Node& tc_term : k_t_it->second)
+      {
+        buildTCGraphForRel(tc_term);
+      }
+    }
+  }
+  doTCInference();
+  d_im.doPendingLemmas();
+  clearCaches();
+  Assert(!d_im.hasPendingLemma());
+  Trace("rels") << "\n[sets-rels] *********** Done with transitive closure "
+                   "***********\n"
+                << std::endl;
 }
 
 /*

@@ -1139,6 +1139,8 @@ libcvc5_add_sources(
   theory/sets/skolem_cache.h
   theory/sets/solver_state.cpp
   theory/sets/solver_state.h
+  theory/sets/strategy.cpp
+  theory/sets/strategy.h
   theory/sets/term_registry.cpp
   theory/sets/term_registry.h
   theory/sets/theory_sets.cpp
@@ -1169,6 +1171,10 @@ libcvc5_add_sources(
   theory/partition_generator.h
   theory/plugin_module.cpp
   theory/plugin_module.h
+  theory/step.cpp
+  theory/step.h
+  theory/strategy.cpp
+  theory/strategy.h
   theory/strings/array_solver.cpp
   theory/strings/array_solver.h
   theory/strings/array_core_solver.cpp
