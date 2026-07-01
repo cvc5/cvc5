@@ -18,6 +18,7 @@
 #include <map>
 #include <vector>
 
+#include "theory/strategy.h"
 #include "theory/theory.h"
 
 namespace cvc5::internal {
@@ -85,42 +86,23 @@ std::ostream& operator<<(std::ostream& out, InferStep i);
  * The strategy of theory of strings.
  *
  * This stores a sequence of the above enum that indicates the calls to
- * runInferStep to make on the theory of strings, given by parent.
+ * runInferStep to make on the theory of strings, given by parent. All of the
+ * generic bookkeeping (storing the ordered list, inserting BREAK markers and
+ * recording per-effort ranges) is inherited from theory::StrategyBase; this
+ * class only supplies the strings-specific step ordering in
+ * initializeStrategy().
  */
-class Strategy : protected EnvObj
+class Strategy : public StrategyBase<InferStep>, protected EnvObj
 {
  public:
   Strategy(Env& env);
   ~Strategy();
-  /** is this strategy initialized? */
-  bool isStrategyInit() const;
-  /** do we have a strategy for effort e? */
-  bool hasStrategyEffort(Theory::Effort e) const;
-  /** begin and end iterators for effort e */
-  std::vector<std::pair<InferStep, int> >::iterator stepBegin(Theory::Effort e);
-  std::vector<std::pair<InferStep, int> >::iterator stepEnd(Theory::Effort e);
   /** initialize the strategy
    *
-   * This initializes the above information based on the options. This makes
-   * a series of calls to addStrategyStep above.
+   * This initializes the strategy based on the options. This makes a series of
+   * calls to addStrategyStep (inherited from StrategyBase).
    */
-  void initializeStrategy();
-
- private:
-  /** add strategy step
-   *
-   * This adds (s,effort) as a strategy step to the vectors d_infer_steps and
-   * d_infer_step_effort. This indicates that a call to runInferStep should
-   * be run as the next step in the strategy. If addBreak is true, we add
-   * a BREAK to the strategy following this step.
-   */
-  void addStrategyStep(InferStep s, int effort = 0, bool addBreak = true);
-  /** is strategy initialized */
-  bool d_strategy_init;
-  /** the strategy */
-  std::vector<std::pair<InferStep, int> > d_infer_steps;
-  /** the range (begin, end) of steps to run at given efforts */
-  std::map<Theory::Effort, std::pair<unsigned, unsigned> > d_strat_steps;
+  void initializeStrategy() override;
 }; /* class Strategy */
 
 }  // namespace strings

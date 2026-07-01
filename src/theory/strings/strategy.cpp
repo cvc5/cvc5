@@ -70,114 +70,73 @@ std::ostream& operator<<(std::ostream& out, InferStep s)
   return out;
 }
 
-Strategy::Strategy(Env& env) : EnvObj(env), d_strategy_init(false) {}
+Strategy::Strategy(Env& env)
+    : StrategyBase<InferStep>(InferStep::BREAK), EnvObj(env)
+{
+}
 
 Strategy::~Strategy() {}
-
-bool Strategy::isStrategyInit() const { return d_strategy_init; }
-
-bool Strategy::hasStrategyEffort(Theory::Effort e) const
-{
-  return d_strat_steps.find(e) != d_strat_steps.end();
-}
-
-std::vector<std::pair<InferStep, int> >::iterator Strategy::stepBegin(
-    Theory::Effort e)
-{
-  std::map<Theory::Effort, std::pair<unsigned, unsigned> >::const_iterator it =
-      d_strat_steps.find(e);
-  Assert(it != d_strat_steps.end());
-  return d_infer_steps.begin() + it->second.first;
-}
-
-std::vector<std::pair<InferStep, int> >::iterator Strategy::stepEnd(
-    Theory::Effort e)
-{
-  std::map<Theory::Effort, std::pair<unsigned, unsigned> >::const_iterator it =
-      d_strat_steps.find(e);
-  Assert(it != d_strat_steps.end());
-  return d_infer_steps.begin() + it->second.second;
-}
-
-void Strategy::addStrategyStep(InferStep s, int effort, bool addBreak)
-{
-  // must run check init first
-  Assert((s == InferStep::CHECK_INIT) == d_infer_steps.empty());
-  d_infer_steps.push_back(std::pair<InferStep, int>(s, effort));
-  if (addBreak)
-  {
-    d_infer_steps.push_back(std::pair<InferStep, int>(InferStep::BREAK, 0));
-  }
-}
 
 void Strategy::initializeStrategy()
 {
   // initialize the strategy if not already done so
-  if (!d_strategy_init)
+  if (isStrategyInit())
   {
-    std::map<Theory::Effort, unsigned> step_begin;
-    std::map<Theory::Effort, unsigned> step_end;
-    d_strategy_init = true;
-    // beginning indices
-    step_begin[Theory::EFFORT_FULL] = 0;
-    // add the inference steps
-    addStrategyStep(InferStep::CHECK_INIT);
-    addStrategyStep(InferStep::CHECK_CONST_EQC);
-    addStrategyStep(InferStep::CHECK_EXTF_EVAL, 0);
-    if (options().strings.seqArray == options::SeqArrayMode::EAGER)
-    {
-      addStrategyStep(InferStep::CHECK_SEQUENCES_ARRAY_EAGER);
-    }
-    // we must check cycles before using flat forms
-    addStrategyStep(InferStep::CHECK_CYCLES);
-    if (options().strings.stringFlatForms)
-    {
-      addStrategyStep(InferStep::CHECK_FLAT_FORMS);
-    }
-    addStrategyStep(InferStep::CHECK_EXTF_REDUCTION_EAGER);
-    addStrategyStep(InferStep::CHECK_MEMBERSHIP_EAGER);
-    addStrategyStep(InferStep::CHECK_NORMAL_FORMS_EQ_PROP);
-    addStrategyStep(InferStep::CHECK_NORMAL_FORMS_EQ);
-    addStrategyStep(InferStep::CHECK_EXTF_EVAL, 1);
-    addStrategyStep(InferStep::CHECK_NORMAL_FORMS_DEQ);
-    addStrategyStep(InferStep::CHECK_CODES);
-    if (options().strings.stringLenNorm)
-    {
-      addStrategyStep(InferStep::CHECK_LENGTH_EQC);
-    }
-    if (options().strings.seqArray != options::SeqArrayMode::NONE)
-    {
-      addStrategyStep(InferStep::CHECK_SEQUENCES_ARRAY_CONCAT);
-      addStrategyStep(InferStep::CHECK_SEQUENCES_ARRAY);
-    }
+    return;
+  }
+  // the full-effort strategy
+  markStartEffort(Theory::EFFORT_FULL);
+  // add the inference steps
+  addStrategyStep(InferStep::CHECK_INIT);
+  addStrategyStep(InferStep::CHECK_CONST_EQC);
+  addStrategyStep(InferStep::CHECK_EXTF_EVAL, 0);
+  if (options().strings.seqArray == options::SeqArrayMode::EAGER)
+  {
+    addStrategyStep(InferStep::CHECK_SEQUENCES_ARRAY_EAGER);
+  }
+  // we must check cycles before using flat forms
+  addStrategyStep(InferStep::CHECK_CYCLES);
+  if (options().strings.stringFlatForms)
+  {
+    addStrategyStep(InferStep::CHECK_FLAT_FORMS);
+  }
+  addStrategyStep(InferStep::CHECK_EXTF_REDUCTION_EAGER);
+  addStrategyStep(InferStep::CHECK_MEMBERSHIP_EAGER);
+  addStrategyStep(InferStep::CHECK_NORMAL_FORMS_EQ_PROP);
+  addStrategyStep(InferStep::CHECK_NORMAL_FORMS_EQ);
+  addStrategyStep(InferStep::CHECK_EXTF_EVAL, 1);
+  addStrategyStep(InferStep::CHECK_NORMAL_FORMS_DEQ);
+  addStrategyStep(InferStep::CHECK_CODES);
+  if (options().strings.stringLenNorm)
+  {
+    addStrategyStep(InferStep::CHECK_LENGTH_EQC);
+  }
+  if (options().strings.seqArray != options::SeqArrayMode::NONE)
+  {
+    addStrategyStep(InferStep::CHECK_SEQUENCES_ARRAY_CONCAT);
+    addStrategyStep(InferStep::CHECK_SEQUENCES_ARRAY);
+  }
+  if (options().strings.stringExp)
+  {
+    addStrategyStep(InferStep::CHECK_EXTF_REDUCTION);
+  }
+  addStrategyStep(InferStep::CHECK_MEMBERSHIP);
+  addStrategyStep(InferStep::CHECK_CARDINALITY);
+  markEndEffort(Theory::EFFORT_FULL);
+  if (options().strings.stringModelBasedReduction)
+  {
+    // the last-call effort strategy
+    markStartEffort(Theory::EFFORT_LAST_CALL);
+    addStrategyStep(InferStep::CHECK_EXTF_EVAL, 3);
     if (options().strings.stringExp)
     {
       addStrategyStep(InferStep::CHECK_EXTF_REDUCTION);
     }
     addStrategyStep(InferStep::CHECK_MEMBERSHIP);
-    addStrategyStep(InferStep::CHECK_CARDINALITY);
-    step_end[Theory::EFFORT_FULL] = d_infer_steps.size() - 1;
-    if (options().strings.stringModelBasedReduction)
-    {
-      step_begin[Theory::EFFORT_LAST_CALL] = d_infer_steps.size();
-      addStrategyStep(InferStep::CHECK_EXTF_EVAL, 3);
-      if (options().strings.stringExp)
-      {
-        addStrategyStep(InferStep::CHECK_EXTF_REDUCTION);
-      }
-      addStrategyStep(InferStep::CHECK_MEMBERSHIP);
-      step_end[Theory::EFFORT_LAST_CALL] = d_infer_steps.size() - 1;
-    }
-    // set the beginning/ending ranges
-    for (const std::pair<const Theory::Effort, unsigned>& it_begin : step_begin)
-    {
-      Theory::Effort e = it_begin.first;
-      std::map<Theory::Effort, unsigned>::iterator it_end = step_end.find(e);
-      Assert(it_end != step_end.end());
-      d_strat_steps[e] =
-          std::pair<unsigned, unsigned>(it_begin.second, it_end->second);
-    }
+    markEndEffort(Theory::EFFORT_LAST_CALL);
   }
+  // set the beginning/ending ranges and mark the strategy as initialized
+  finishInit();
 }
 
 }  // namespace strings
