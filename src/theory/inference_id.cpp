@@ -447,6 +447,12 @@ const char* toString(InferenceId i)
     case InferenceId::SETS_RELS_PRODUCT_SPLIT: return "SETS_RELS_PRODUCT_SPLIT";
     case InferenceId::SETS_RELS_TCLOSURE_FWD: return "SETS_RELS_TCLOSURE_FWD";
     case InferenceId::SETS_RELS_TCLOSURE_UP: return "SETS_RELS_TCLOSURE_UP";
+    case InferenceId::SETS_RELS_CONTR_MINIMAL: return "SETS_RELS_CONTR_MINIMAL";
+    case InferenceId::SETS_RELS_ACYCLIC_DOWN: return "SETS_RELS_ACYCLIC_DOWN";
+    case InferenceId::SETS_RELS_INST_CYCLE: return "SETS_RELS_INST_CYCLE";
+    case InferenceId::SETS_RELS_SPLIT_CYCLE_LEN:
+      return "SETS_RELS_SPLIT_CYCLE_LEN";
+    case InferenceId::SETS_RELS_UNROLL_CYCLE: return "SETS_RELS_UNROLL_CYCLE";
     case InferenceId::SETS_RELS_TRANSPOSE_EQ: return "SETS_RELS_TRANSPOSE_EQ";
     case InferenceId::SETS_RELS_TRANSPOSE_REV: return "SETS_RELS_TRANSPOSE_REV";
     case InferenceId::SETS_RELS_TUPLE_REDUCTION:
