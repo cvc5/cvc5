@@ -102,7 +102,7 @@ class Pow2Solver : protected EnvObj
    */
   bool isProofEnabled() const;
   /**
-   * Creates and returns a new LazyCDProof that can be used to prove some lemma.
+   * Creates and returns a new CDProof that can be used to prove some lemma.
    */
   CDProof* getProof();
 
