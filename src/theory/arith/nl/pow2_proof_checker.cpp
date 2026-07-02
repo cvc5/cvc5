@@ -12,11 +12,6 @@
 
 #include "theory/arith/nl/pow2_proof_checker.h"
 
-#include "theory/arith/arith_utilities.h"
-#include "util/rational.h"
-
-using namespace cvc5::internal::kind;
-
 namespace cvc5::internal {
 namespace theory {
 namespace arith {
@@ -29,8 +24,6 @@ Pow2ProofRuleChecker::Pow2ProofRuleChecker(NodeManager* nm)
 
 void Pow2ProofRuleChecker::registerTo(ProofChecker* pc)
 {
-  // These rules are registered as trusted (their conclusions are accepted
-  // as-is). Full checking is introduced in a follow-up.
   pc->registerTrustedChecker(ProofRule::ARITH_POW2_INIT, nullptr, 1);
   pc->registerTrustedChecker(ProofRule::ARITH_POW2_MONOTONE, nullptr, 1);
   pc->registerTrustedChecker(ProofRule::ARITH_POW2_DIV0, nullptr, 1);
@@ -40,34 +33,16 @@ void Pow2ProofRuleChecker::registerTo(ProofChecker* pc)
 Node Pow2ProofRuleChecker::checkInternal(
     ProofRule id,
     [[maybe_unused]] const std::vector<Node>& children,
-    const std::vector<Node>& args)
+    [[maybe_unused]] const std::vector<Node>& args)
 {
-  NodeManager* nm = nodeManager();
-  Node zero = nm->mkConstInt(Rational(0));
-  Node two = nm->mkConstInt(Rational(2));
-  if (id == ProofRule::ARITH_POW2_INIT)
+  switch (id)
   {
-    Assert(children.empty());
-    Assert(args.size() == 1);
-    Node t = args[0];
-    if (!t.getType().isInteger())
-    {
-      return Node::null();
-    }
-    Node pt = nm->mkNode(Kind::POW2, t);
-    Node nonneg = nm->mkNode(Kind::IMPLIES,
-                             nm->mkNode(Kind::GEQ, t, zero),
-                             nm->mkNode(Kind::GT, pt, zero));
-    Node even = nm->mkNode(
-        Kind::IMPLIES,
-        nm->mkNode(Kind::DISTINCT, t, zero),
-        nm->mkNode(Kind::EQUAL, nm->mkNode(Kind::INTS_MODULUS, pt, two), zero));
-    Node neg = nm->mkNode(Kind::IMPLIES,
-                          nm->mkNode(Kind::LT, t, zero),
-                          nm->mkNode(Kind::EQUAL, pt, zero));
-    return nm->mkNode(Kind::AND, nonneg, even, neg);
+    case ProofRule::ARITH_POW2_INIT:
+    case ProofRule::ARITH_POW2_MONOTONE:
+    case ProofRule::ARITH_POW2_DIV0:
+    case ProofRule::ARITH_POW2_LOWER_BOUND:
+    default: return Node::null();
   }
-  return Node::null();
 }
 
 }  // namespace nl
