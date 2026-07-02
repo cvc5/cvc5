@@ -426,36 +426,6 @@
   :conclusion ($mk_arith_mult_abs_comparison F)
 )
 
-
-; rule: arith_pow2_init
-; implements: ProofRule::ARITH_POW2_INIT
-(declare-rule arith_pow2_init ((t Int))
-  :args (t)
-  :conclusion true
-)
-
-; rule: arith_pow2_monotone
-; implements: ProofRule::ARITH_POW2_MONOTONE
-(declare-rule arith_pow2_monotone ((x Int) (y Int))
-  :args (x y)
-  :conclusion true
-)
-
-; rule: arith_pow2_div0
-; implements: ProofRule::ARITH_POW2_DIV0
-(declare-rule arith_pow2_div0 ((t Int))
-  :args (t)
-  :conclusion true
-)
-
-; rule: arith_pow2_lower_bound
-; implements: ProofRule::ARITH_POW2_LOWER_BOUND
-(declare-rule arith_pow2_lower_bound ((t Int) (k Int))
-  :args (t k)
-  :conclusion true
-)
-
-
 ;;;;; ProofRule::ARITH_REDUCTION
 
 ; define: $arith_to_int_reduction
