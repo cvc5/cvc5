@@ -43,7 +43,7 @@ Node Pow2ProofRuleChecker::checkInternal(
   NodeManager* nm = nodeManager();
   Node zero = nm->mkConstInt(Rational(0));
   Node two = nm->mkConstInt(Rational(2));
-  if (id == ProofRule::ARITH_POW2_INIT_REFINE)
+  if (id == ProofRule::ARITH_POW2_INIT)
   {
     Assert(children.empty());
     Assert(args.size() == 1);
@@ -62,7 +62,7 @@ Node Pow2ProofRuleChecker::checkInternal(
         nm->mkNode(Kind::EQUAL, nm->mkNode(Kind::INTS_MODULUS, pt, two), zero));
     return nm->mkNode(Kind::AND, nonneg, even);
   }
-  else if (id == ProofRule::ARITH_POW2_MONOTONE_REFINE)
+  else if (id == ProofRule::ARITH_POW2_MONOTONE)
   {
     Assert(children.empty());
     Assert(args.size() == 2);
@@ -78,21 +78,7 @@ Node Pow2ProofRuleChecker::checkInternal(
         Kind::LT, nm->mkNode(Kind::POW2, x), nm->mkNode(Kind::POW2, y));
     return nm->mkNode(Kind::IMPLIES, assumption, conclusion);
   }
-  else if (id == ProofRule::ARITH_POW2_NEG_REFINE)
-  {
-    Assert(children.empty());
-    Assert(args.size() == 1);
-    Node t = args[0];
-    if (!t.getType().isInteger())
-    {
-      return Node::null();
-    }
-    Node pt = nm->mkNode(Kind::POW2, t);
-    return nm->mkNode(Kind::IMPLIES,
-                      nm->mkNode(Kind::LT, t, zero),
-                      nm->mkNode(Kind::EQUAL, pt, zero));
-  }
-  else if (id == ProofRule::ARITH_POW2_DIV0_REFINE)
+  else if (id == ProofRule::ARITH_POW2_DIV0)
   {
     Assert(children.empty());
     Assert(args.size() == 1);
@@ -107,7 +93,7 @@ Node Pow2ProofRuleChecker::checkInternal(
                       nm->mkNode(Kind::GEQ, t, zero),
                       nm->mkNode(Kind::EQUAL, div, zero));
   }
-  else if (id == ProofRule::ARITH_POW2_LOWER_BOUND_REFINE)
+  else if (id == ProofRule::ARITH_POW2_LOWER_BOUND)
   {
     Assert(children.empty());
     Assert(args.size() == 2);
@@ -127,21 +113,6 @@ Node Pow2ProofRuleChecker::checkInternal(
     Node bound = nm->mkNode(Kind::ADD, kt, kk);
     return nm->mkNode(
         Kind::IMPLIES, assumption, nm->mkNode(Kind::GT, pt, bound));
-  }
-  else if (id == ProofRule::ARITH_POW2_VALUE_REFINE)
-  {
-    Assert(children.empty());
-    Assert(args.size() == 2);
-    Node t = args[0];
-    Node v = args[1];
-    if (!t.getType().isInteger() || !v.getType().isInteger() || !v.isConst())
-    {
-      return Node::null();
-    }
-    Node lhs = nm->mkNode(Kind::EQUAL, t, v);
-    Node rhs = nm->mkNode(
-        Kind::EQUAL, nm->mkNode(Kind::POW2, t), nm->mkNode(Kind::POW2, v));
-    return nm->mkNode(Kind::IMPLIES, lhs, rhs);
   }
   return Node::null();
 }

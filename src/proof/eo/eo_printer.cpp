@@ -144,12 +144,10 @@ bool EoPrinter::isHandled(const Options& opts, const ProofNode* pfn)
     case ProofRule::ARITH_MULT_TANGENT:
     case ProofRule::ARITH_MULT_SIGN:
     case ProofRule::ARITH_MULT_ABS_COMPARISON:
-    case ProofRule::ARITH_POW2_INIT_REFINE:
-    case ProofRule::ARITH_POW2_MONOTONE_REFINE:
-    case ProofRule::ARITH_POW2_NEG_REFINE:
-    case ProofRule::ARITH_POW2_DIV0_REFINE:
-    case ProofRule::ARITH_POW2_LOWER_BOUND_REFINE:
-    case ProofRule::ARITH_POW2_VALUE_REFINE:
+    case ProofRule::ARITH_POW2_INIT:
+    case ProofRule::ARITH_POW2_MONOTONE:
+    case ProofRule::ARITH_POW2_DIV0:
+    case ProofRule::ARITH_POW2_LOWER_BOUND:
     case ProofRule::ARITH_TRICHOTOMY:
     case ProofRule::INT_TIGHT_LB:
     case ProofRule::INT_TIGHT_UB:

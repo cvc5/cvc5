@@ -87,11 +87,13 @@ void Pow2Solver::checkInitialRefine()
     }
     d_initRefine.insert(i);
     // x>=0 -> pow2(x) > 0
+    // initial refinement lemmas
+    std::vector<Node> conj;
     Node xgeq0 = nm->mkNode(Kind::GEQ, i[0], d_zero);
     Node nonegative = nm->mkNode(Kind::GT, i, d_zero);
-    Node nonegImpl = nm->mkNode(Kind::IMPLIES, xgeq0, nonegative);
+    conj.push_back(nm->mkNode(Kind::IMPLIES, xgeq0, nonegative));
     // even: x != 0 -> pow2(x) mod 2 = 0
-    Node xneq0 = nm->mkNode(Kind::DISTINCT, i[0], d_zero);
+    Node xgt0 = nm->mkNode(Kind::DISTINCT, i[0], d_zero);
     Node mod2 = nm->mkNode(Kind::INTS_MODULUS, i, d_two);
     Node even = nm->mkNode(Kind::EQUAL, mod2, d_zero);
     conj.push_back(nm->mkNode(Kind::IMPLIES, xgt0, even));
@@ -103,13 +105,13 @@ void Pow2Solver::checkInitialRefine()
     conj.push_back(neg);
 
     Node lem = nm->mkAnd(conj);
-    Trace("pow2-lemma") << "Pow2Solver::Lemma: " << lem << " ; INIT_REFINE"
+    Trace("pow2-lemma") << "Pow2Solver::Lemma: " << lem << " ; INIT"
                         << std::endl;
     CDProof* proof = nullptr;
     if (isProofEnabled())
     {
       proof = getProof();
-      proof->addStep(lem, ProofRule::ARITH_POW2_INIT_REFINE, {}, {i[0]});
+      proof->addStep(lem, ProofRule::ARITH_POW2_INIT, {}, {i[0]});
     }
     d_im.addPendingLemma(lem, InferenceId::ARITH_NL_POW2_INIT_REFINE, proof);
   }
@@ -180,7 +182,7 @@ void Pow2Solver::checkFullRefine()
         {
           proof = getProof();
           proof->addStep(
-              lem, ProofRule::ARITH_POW2_MONOTONE_REFINE, {}, {n[0], m[0]});
+              lem, ProofRule::ARITH_POW2_MONOTONE, {}, {n[0], m[0]});
         }
         d_im.addPendingLemma(
             lem, InferenceId::ARITH_NL_POW2_MONOTONE_REFINE, proof, true);
@@ -198,7 +200,7 @@ void Pow2Solver::checkFullRefine()
         {
           proof = getProof();
           proof->addStep(
-              lem, ProofRule::ARITH_POW2_MONOTONE_REFINE, {}, {m[0], n[0]});
+              lem, ProofRule::ARITH_POW2_MONOTONE, {}, {m[0], n[0]});
         }
         d_im.addPendingLemma(
             lem, InferenceId::ARITH_NL_POW2_MONOTONE_REFINE, proof, true);
@@ -216,7 +218,7 @@ void Pow2Solver::checkFullRefine()
       if (isProofEnabled())
       {
         proof = getProof();
-        proof->addStep(lem, ProofRule::ARITH_POW2_DIV0_REFINE, {}, {n[0]});
+        proof->addStep(lem, ProofRule::ARITH_POW2_DIV0, {}, {n[0]});
       }
       d_im.addPendingLemma(
           lem, InferenceId::ARITH_NL_POW2_DIV0_CASE_REFINE, proof, true);
@@ -239,7 +241,7 @@ void Pow2Solver::checkFullRefine()
       {
         proof = getProof();
         proof->addStep(lem,
-                       ProofRule::ARITH_POW2_LOWER_BOUND_REFINE,
+                       ProofRule::ARITH_POW2_LOWER_BOUND,
                        {},
                        {n[0], valXConcrete});
       }
@@ -255,15 +257,9 @@ void Pow2Solver::checkFullRefine()
     Node lem = nm->mkNode(Kind::IMPLIES,
                           n[0].eqNode(valXConcrete),
                           n.eqNode(nm->mkNode(Kind::POW2, valXConcrete)));
-    Trace("pow2-lemma") << "Pow2Solver::Lemma: " << lem << " ; VALUE_REFINE"
+    Trace("pow2-lemma") << "Pow2Solver::Lemma: " << lem << " ; VALUE"
                         << std::endl;
     CDProof* proof = nullptr;
-    if (isProofEnabled())
-    {
-      proof = getProof();
-      proof->addStep(
-          lem, ProofRule::ARITH_POW2_VALUE_REFINE, {}, {n[0], valXConcrete});
-    }
     // send the value lemma
     d_im.addPendingLemma(
         lem, InferenceId::ARITH_NL_POW2_VALUE_REFINE, proof, true);
