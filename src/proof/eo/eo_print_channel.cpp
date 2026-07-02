@@ -123,6 +123,28 @@ void EoPrintChannelOut::printStepInternal(const std::string& rname,
   d_out << ")" << std::endl;
 }
 
+/**
+ * Returns a Eunoia rule name to emit for a given TrustId, or the empty
+ * string if no specific rule is registered. A rule is considered
+ * "registered" when there is a corresponding `(declare-rule <name> ...)`
+ * in the Eunoia signatures so that the external eo checker can validate
+ * the step (typically as a `:sorry` axiom). Steps emitted under a
+ * registered name are not flagged with `; WARNING: add trust step for
+ * TRUST`, since the printer is no longer falling back to the generic
+ * catch-all `trust` rule for them.
+ */
+static std::string trustIdRuleName(TrustId tid)
+{
+  switch (tid)
+  {
+    case TrustId::ARITH_LIA_STAR_NONNEGATIVE:
+      return "arith_lia_star_nonnegative";
+    case TrustId::ARITH_LIA_STAR_CONTAINS_REDUCE:
+      return "arith_lia_star_contains_reduce";
+    default: return std::string();
+  }
+}
+
 void EoPrintChannelOut::printTrustStep(ProofRule r,
                                        TNode n,
                                        size_t i,
@@ -131,6 +153,24 @@ void EoPrintChannelOut::printTrustStep(ProofRule r,
                                        TNode nc)
 {
   Assert(!nc.isNull());
+  // If this is a TRUST step with a known TrustId, emit it under the
+  // TrustId-specific Eunoia rule and skip the generic "trust" warning
+  // and `; trust ...` comment.
+  if (r == ProofRule::TRUST)
+  {
+    TrustId tid;
+    if (getTrustId(args[0], tid))
+    {
+      std::string rname = trustIdRuleName(tid);
+      if (!rname.empty())
+      {
+        // Mirror the shape of the generic `trust` rule: one :args entry
+        // carrying the conclusion, and the (possibly empty) premise list.
+        printStepInternal(rname, n, i, premises, {nc}, false, true);
+        return;
+      }
+    }
+  }
   if (d_trackWarn)
   {
     if (d_warnedRules.find(r) == d_warnedRules.end())
