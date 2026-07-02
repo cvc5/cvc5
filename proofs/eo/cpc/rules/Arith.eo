@@ -433,11 +433,13 @@
 ; - t Int: The argument of the pow2 application.
 ; conclusion: >
 ;   The initial refinement axiom for (int.pow2 t): pow2(t) is positive when
-;   t is non-negative, and pow2(t) is even when t is nonzero.
+;   t is non-negative, pow2(t) is even when t is nonzero, and pow2(t) is zero
+;   when t is negative.
 (declare-rule arith_pow2_init ((t Int))
   :args (t)
   :conclusion (and (=> (>= t 0) (> (int.pow2 t) 0))
-                   (=> (distinct t 0) (= (mod (int.pow2 t) 2) 0)))
+                   (=> (distinct t 0) (= (mod (int.pow2 t) 2) 0))
+                   (=> (< t 0) (= (int.pow2 t) 0)))
 )
 
 ;;;;; ProofRule::ARITH_POW2_MONOTONE
