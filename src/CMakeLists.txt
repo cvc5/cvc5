@@ -536,8 +536,6 @@ libcvc5_add_sources(
   theory/arith/nl/nonlinear_extension.h
   theory/arith/nl/poly_conversion.cpp
   theory/arith/nl/poly_conversion.h
-  theory/arith/nl/pow2_proof_checker.cpp
-  theory/arith/nl/pow2_proof_checker.h
   theory/arith/nl/pow2_solver.cpp
   theory/arith/nl/pow2_solver.h
   theory/arith/nl/pow2_proof_checker.cpp

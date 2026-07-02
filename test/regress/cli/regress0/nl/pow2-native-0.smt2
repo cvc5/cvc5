@@ -1,5 +1,4 @@
 ; EXPECT: unsat
-; DISABLE-TESTER: alethe
 (set-logic QF_NIA)
 (declare-fun x () Int)
 (assert (< x 0))

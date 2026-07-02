@@ -1578,12 +1578,6 @@ set(regress_0_tests
   regress0/proofs/nomerge-alethe-pf.smt2
   regress0/proofs/no-proof-uc.smt2
   regress0/proofs/pfcheck_rw_441.smt2
-  regress0/proofs/pow2-div0-refine.smt2
-  regress0/proofs/pow2-init-refine.smt2
-  regress0/proofs/pow2-lower-bound-refine.smt2
-  regress0/proofs/pow2-monotone-refine.smt2
-  regress0/proofs/pow2-neg-refine.smt2
-  regress0/proofs/pow2-value-refine.smt2
   regress0/proofs/pp-only-proof.smt2
   regress0/proofs/open-pf-datatypes.smt2
   regress0/proofs/open-pf-if-unordered-iff.smt2

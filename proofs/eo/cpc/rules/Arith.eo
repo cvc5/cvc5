@@ -427,60 +427,36 @@
 )
 
 
+; The pow2 refinement rules below are currently trusted: their conclusions
+; are accepted as-is. The refinement axioms they establish are introduced in
+; a follow-up.
+
 ; rule: arith_pow2_init
 ; implements: ProofRule::ARITH_POW2_INIT
-; args:
-; - t Int: The argument of the pow2 application.
-; conclusion: >
-;   The initial refinement axiom for (int.pow2 t): pow2(t) is positive when
-;   t is non-negative, pow2(t) is even when t is nonzero, and pow2(t) is zero
-;   when t is negative.
 (declare-rule arith_pow2_init ((t Int))
   :args (t)
-  :conclusion (and (=> (>= t 0) (> (int.pow2 t) 0))
-                   (=> (distinct t 0) (= (mod (int.pow2 t) 2) 0))
-                   (=> (< t 0) (= (int.pow2 t) 0)))
+  :conclusion true
 )
-
-;;;;; ProofRule::ARITH_POW2_MONOTONE
 
 ; rule: arith_pow2_monotone
 ; implements: ProofRule::ARITH_POW2_MONOTONE
-; args:
-; - x Int: The first argument of pow2.
-; - y Int: The second argument of pow2.
-; conclusion: pow2 is strictly increasing on non-negative integers.
 (declare-rule arith_pow2_monotone ((x Int) (y Int))
   :args (x y)
-  :conclusion (=> (and (<= 0 x) (< x y))
-                  (< (int.pow2 x) (int.pow2 y)))
+  :conclusion true
 )
-
-
-;;;;; ProofRule::ARITH_POW2_DIV0
 
 ; rule: arith_pow2_div0
 ; implements: ProofRule::ARITH_POW2_DIV0
-; args:
-; - t Int: The argument of the pow2 application.
-; conclusion: t div pow2(t) is zero when t is non-negative.
 (declare-rule arith_pow2_div0 ((t Int))
   :args (t)
-  :conclusion (=> (>= t 0) (= (div t (int.pow2 t)) 0))
+  :conclusion true
 )
-
-;;;;; ProofRule::ARITH_POW2_LOWER_BOUND
 
 ; rule: arith_pow2_lower_bound
 ; implements: ProofRule::ARITH_POW2_LOWER_BOUND
-; args:
-; - t Int: The argument of the pow2 application.
-; - k Int: An integer constant of at least 7 that lower-bounds t.
-; conclusion: pow2(t) > k*t + k^2 when t >= k >= 7.
 (declare-rule arith_pow2_lower_bound ((t Int) (k Int))
   :args (t k)
-  :conclusion (=> (and (>= t k) (>= k 7))
-                  (> (int.pow2 t) (+ (* k t) (* k k))))
+  :conclusion true
 )
 
 

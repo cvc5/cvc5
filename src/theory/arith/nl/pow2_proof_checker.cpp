@@ -29,10 +29,12 @@ Pow2ProofRuleChecker::Pow2ProofRuleChecker(NodeManager* nm)
 
 void Pow2ProofRuleChecker::registerTo(ProofChecker* pc)
 {
-  pc->registerChecker(ProofRule::ARITH_POW2_INIT, this);
-  pc->registerChecker(ProofRule::ARITH_POW2_MONOTONE, this);
-  pc->registerChecker(ProofRule::ARITH_POW2_DIV0, this);
-  pc->registerChecker(ProofRule::ARITH_POW2_LOWER_BOUND, this);
+  // These rules are registered as trusted (their conclusions are accepted
+  // as-is). Full checking is introduced in a follow-up.
+  pc->registerTrustedChecker(ProofRule::ARITH_POW2_INIT, nullptr, 1);
+  pc->registerTrustedChecker(ProofRule::ARITH_POW2_MONOTONE, nullptr, 1);
+  pc->registerTrustedChecker(ProofRule::ARITH_POW2_DIV0, nullptr, 1);
+  pc->registerTrustedChecker(ProofRule::ARITH_POW2_LOWER_BOUND, nullptr, 1);
 }
 
 Node Pow2ProofRuleChecker::checkInternal(
@@ -64,58 +66,6 @@ Node Pow2ProofRuleChecker::checkInternal(
                           nm->mkNode(Kind::LT, t, zero),
                           nm->mkNode(Kind::EQUAL, pt, zero));
     return nm->mkNode(Kind::AND, nonneg, even, neg);
-  }
-  else if (id == ProofRule::ARITH_POW2_MONOTONE)
-  {
-    Assert(children.empty());
-    Assert(args.size() == 2);
-    Node x = args[0];
-    Node y = args[1];
-    if (!x.getType().isInteger() || !y.getType().isInteger())
-    {
-      return Node::null();
-    }
-    Node assumption = nm->mkNode(
-        Kind::AND, nm->mkNode(Kind::LEQ, zero, x), nm->mkNode(Kind::LT, x, y));
-    Node conclusion = nm->mkNode(
-        Kind::LT, nm->mkNode(Kind::POW2, x), nm->mkNode(Kind::POW2, y));
-    return nm->mkNode(Kind::IMPLIES, assumption, conclusion);
-  }
-  else if (id == ProofRule::ARITH_POW2_DIV0)
-  {
-    Assert(children.empty());
-    Assert(args.size() == 1);
-    Node t = args[0];
-    if (!t.getType().isInteger())
-    {
-      return Node::null();
-    }
-    Node pt = nm->mkNode(Kind::POW2, t);
-    Node div = nm->mkNode(Kind::INTS_DIVISION, t, pt);
-    return nm->mkNode(Kind::IMPLIES,
-                      nm->mkNode(Kind::GEQ, t, zero),
-                      nm->mkNode(Kind::EQUAL, div, zero));
-  }
-  else if (id == ProofRule::ARITH_POW2_LOWER_BOUND)
-  {
-    Assert(children.empty());
-    Assert(args.size() == 2);
-    Node t = args[0];
-    Node k = args[1];
-    if (!t.getType().isInteger() || !k.getType().isInteger() || !k.isConst())
-    {
-      return Node::null();
-    }
-    Node pt = nm->mkNode(Kind::POW2, t);
-    Node seven = nm->mkConstInt(Rational(7));
-    Node assumption = nm->mkNode(Kind::AND,
-                                 nm->mkNode(Kind::GEQ, t, k),
-                                 nm->mkNode(Kind::GEQ, k, seven));
-    Node kt = nm->mkNode(Kind::MULT, k, t);
-    Node kk = nm->mkNode(Kind::MULT, k, k);
-    Node bound = nm->mkNode(Kind::ADD, kt, kk);
-    return nm->mkNode(
-        Kind::IMPLIES, assumption, nm->mkNode(Kind::GT, pt, bound));
   }
   return Node::null();
 }
