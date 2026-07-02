@@ -92,12 +92,18 @@ class Pow2Solver : protected EnvObj
    * Cleared at each last call effort check.
    * */
   std::vector<Node> d_pow2s;
-  /** A CDProofSet that hands out CDProof objects for our lemmas. */
+  /**
+   * A CDProofSet that hands out CDProof objects for lemmas.
+   */
   std::unique_ptr<CDProofSet<CDProof>> d_proof;
 
-  /** Whether proof production is enabled in this solver. */
+  /**
+   * Checks whether proofs are enabled.
+   */
   bool isProofEnabled() const;
-  /** Allocate a fresh CDProof for a lemma. */
+  /**
+   * Creates and returns a new LazyCDProof that can be used to prove some lemma.
+   */
   CDProof* getProof();
 
   /**

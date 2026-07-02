@@ -86,12 +86,13 @@ void Pow2Solver::checkInitialRefine()
       continue;
     }
     d_initRefine.insert(i);
-    // x>=0 -> pow2(x) > 0
     // initial refinement lemmas
     std::vector<Node> conj;
+    // x>=0 -> pow2(x) > 0
     Node xgeq0 = nm->mkNode(Kind::GEQ, i[0], d_zero);
     Node nonegative = nm->mkNode(Kind::GT, i, d_zero);
     conj.push_back(nm->mkNode(Kind::IMPLIES, xgeq0, nonegative));
+
     // even: x != 0 -> pow2(x) mod 2 = 0
     Node xgt0 = nm->mkNode(Kind::DISTINCT, i[0], d_zero);
     Node mod2 = nm->mkNode(Kind::INTS_MODULUS, i, d_two);
@@ -105,7 +106,7 @@ void Pow2Solver::checkInitialRefine()
     conj.push_back(neg);
 
     Node lem = nm->mkAnd(conj);
-    Trace("pow2-lemma") << "Pow2Solver::Lemma: " << lem << " ; INIT"
+    Trace("pow2-lemma") << "Pow2Solver::Lemma: " << lem << " ; INIT_REFINE"
                         << std::endl;
     CDProof* proof = nullptr;
     if (isProofEnabled())
