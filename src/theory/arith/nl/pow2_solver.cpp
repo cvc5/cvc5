@@ -181,8 +181,7 @@ void Pow2Solver::checkFullRefine()
         if (isProofEnabled())
         {
           proof = getProof();
-          proof->addStep(
-              lem, ProofRule::ARITH_POW2_MONOTONE, {}, {n[0], m[0]});
+          proof->addStep(lem, ProofRule::ARITH_POW2_MONOTONE, {}, {n[0], m[0]});
         }
         d_im.addPendingLemma(
             lem, InferenceId::ARITH_NL_POW2_MONOTONE_REFINE, proof, true);
@@ -199,8 +198,7 @@ void Pow2Solver::checkFullRefine()
         if (isProofEnabled())
         {
           proof = getProof();
-          proof->addStep(
-              lem, ProofRule::ARITH_POW2_MONOTONE, {}, {m[0], n[0]});
+          proof->addStep(lem, ProofRule::ARITH_POW2_MONOTONE, {}, {m[0], n[0]});
         }
         d_im.addPendingLemma(
             lem, InferenceId::ARITH_NL_POW2_MONOTONE_REFINE, proof, true);
@@ -240,10 +238,8 @@ void Pow2Solver::checkFullRefine()
       if (isProofEnabled())
       {
         proof = getProof();
-        proof->addStep(lem,
-                       ProofRule::ARITH_POW2_LOWER_BOUND,
-                       {},
-                       {n[0], valXConcrete});
+        proof->addStep(
+            lem, ProofRule::ARITH_POW2_LOWER_BOUND, {}, {n[0], valXConcrete});
       }
       d_im.addPendingLemma(
           lem, InferenceId::ARITH_NL_POW2_LOWER_BOUND_CASE_REFINE, proof, true);
