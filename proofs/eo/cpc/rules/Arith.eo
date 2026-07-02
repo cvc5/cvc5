@@ -427,10 +427,6 @@
 )
 
 
-; The pow2 refinement rules below are currently trusted: their conclusions
-; are accepted as-is. The refinement axioms they establish are introduced in
-; a follow-up.
-
 ; rule: arith_pow2_init
 ; implements: ProofRule::ARITH_POW2_INIT
 (declare-rule arith_pow2_init ((t Int))
