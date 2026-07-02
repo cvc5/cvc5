@@ -149,24 +149,54 @@ void CadicalPropagator::notify_backtrack(size_t level)
     d_decisions.pop_back();
   }
 
-  // Backtrack assignments, resend fixed theory literals that got backtracked
+  // Backtrack assignments. Genuine decision-level assignments are undone,
+  // but fixed assignments are permanent (decision level 0): we keep them
+  // assigned and retain them in d_assignments so that the user_pop()
+  // renotification machinery still sees them (it relies on d_assignments
+  // holding exactly the fixed literals once we are back at decision level 0).
+  // The corresponding theory literals are re-enqueued below, after notifying
+  // the theory proxy about the backtrack.
   Assert(!d_assignment_control.empty());
   size_t pop_to = d_assignment_control[level];
   d_assignment_control.resize(level);
 
-  while (pop_to < d_assignments.size())
+  size_t keep = pop_to;
+  std::vector<SatLiteral> renotify;
+  for (size_t i = pop_to, n = d_assignments.size(); i < n; ++i)
   {
-    SatLiteral lit = d_assignments.back();
-    d_assignments.pop_back();
+    SatLiteral lit = d_assignments[i];
     SatVariable var = lit.getSatVariable();
     auto& info = d_var_info[var];
-    Trace("cadical::propagator") << "unassign: " << var << std::endl;
-    info.assignment = 0;
+    if (info.is_fixed)
+    {
+      // Permanent assignment: keep it and retain it in d_assignments.
+      Trace("cadical::propagator") << "keep fixed: " << var << std::endl;
+      d_assignments[keep++] = lit;
+      if (info.is_theory_atom)
+      {
+        renotify.push_back(lit);
+      }
+    }
+    else
+    {
+      Trace("cadical::propagator") << "unassign: " << var << std::endl;
+      info.assignment = 0;
+    }
   }
+  d_assignments.resize(keep);
 
   // Notify theory proxy about backtrack
   d_proxy->notifyBacktrack();
-  // Clear the propgations since they are not valid anymore.
+  // Re-enqueue fixed theory literals that got backtracked at the theory level
+  // but remain assigned at the SAT level. This must happen after
+  // notifyBacktrack(), otherwise the theory backtrack would discard them.
+  for (const SatLiteral& lit : renotify)
+  {
+    Trace("cadical::propagator")
+        << "re-enqueue (backtrack): " << lit << std::endl;
+    d_proxy->enqueueTheoryLiteral(lit);
+  }
+  // Clear the propagations since they are not valid anymore.
   d_propagations.clear();
   ++d_stats.notifyBacktrack;
 
@@ -338,7 +368,7 @@ int CadicalPropagator::cb_propagate()
   {
     // Only propagate if all activation literals are processed. Activation
     // literals are always assumed first. If we don't do this, explanations
-    // for theory propgations may force activation literals to different
+    // for theory propagations may force activation literals to different
     // values before they can get decided on.
     if (d_decisions.size() < current_user_level())
     {

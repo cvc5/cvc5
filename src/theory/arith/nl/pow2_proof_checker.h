@@ -24,7 +24,7 @@ namespace arith {
 namespace nl {
 
 /**
- * A checker for the axioms emitted by Pow2Solver.
+ * A checker for Pow2 proofs.
  */
 class Pow2ProofRuleChecker : public ProofRuleChecker
 {

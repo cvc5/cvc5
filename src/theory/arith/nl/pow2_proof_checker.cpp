@@ -29,12 +29,10 @@ Pow2ProofRuleChecker::Pow2ProofRuleChecker(NodeManager* nm)
 
 void Pow2ProofRuleChecker::registerTo(ProofChecker* pc)
 {
-  pc->registerChecker(ProofRule::ARITH_POW2_INIT_REFINE, this);
-  pc->registerChecker(ProofRule::ARITH_POW2_MONOTONE_REFINE, this);
-  pc->registerChecker(ProofRule::ARITH_POW2_NEG_REFINE, this);
-  pc->registerChecker(ProofRule::ARITH_POW2_DIV0_REFINE, this);
-  pc->registerChecker(ProofRule::ARITH_POW2_LOWER_BOUND_REFINE, this);
-  pc->registerChecker(ProofRule::ARITH_POW2_VALUE_REFINE, this);
+  pc->registerChecker(ProofRule::ARITH_POW2_INIT, this);
+  pc->registerChecker(ProofRule::ARITH_POW2_MONOTONE, this);
+  pc->registerChecker(ProofRule::ARITH_POW2_DIV0, this);
+  pc->registerChecker(ProofRule::ARITH_POW2_LOWER_BOUND, this);
 }
 
 Node Pow2ProofRuleChecker::checkInternal(

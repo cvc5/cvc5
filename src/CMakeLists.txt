@@ -540,6 +540,8 @@ libcvc5_add_sources(
   theory/arith/nl/pow2_proof_checker.h
   theory/arith/nl/pow2_solver.cpp
   theory/arith/nl/pow2_solver.h
+  theory/arith/nl/pow2_proof_checker.cpp
+  theory/arith/nl/pow2_proof_checker.h
   theory/arith/nl/stats.cpp
   theory/arith/nl/stats.h
   theory/arith/nl/strategy.cpp
@@ -1609,6 +1611,12 @@ if(BUILD_SHARED_LIBS)
   target_link_libraries(cvc5 PRIVATE $<BUILD_INTERFACE:GMP> $<INSTALL_INTERFACE:gmp>)
 else()
   target_link_libraries(cvc5 PUBLIC $<BUILD_INTERFACE:GMP> $<INSTALL_INTERFACE:gmp>)
+endif()
+
+if(CVC5_USE_MPFR)
+  add_dependencies(cvc5-obj MPFR)
+  target_include_directories(cvc5-obj PRIVATE ${MPFR_INCLUDE_DIR})
+  target_link_libraries(cvc5 PRIVATE $<BUILD_INTERFACE:MPFR> $<INSTALL_INTERFACE:mpfr>)
 endif()
 
 #-----------------------------------------------------------------------------#

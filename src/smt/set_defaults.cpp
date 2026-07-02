@@ -847,7 +847,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
   // DIO solver typically makes things worse for quantifier-free logics with
   // non-linear arithmetic.
   if (!logic.isQuantified() && logic.isTheoryEnabled(THEORY_ARITH)
-      && !logic.isLinear())
+      && !logic.isLinear() && !opts.arith.arithDioSolverWasSetByUser)
   {
     SET_AND_NOTIFY(
         arith, arithDioSolver, false, "quantifier-free non-linear logic");
@@ -1026,6 +1026,15 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
   if (isOutputOn(OutputTag::NORMALIZE))
   {
     SET_AND_NOTIFY(base, preprocessOnly, true, "normalize output");
+  }
+  if (logic.isQuantified())
+  {
+    SET_AND_NOTIFY_IF_NOT_USER(
+        arith,
+        nlExtInitialSignLemmas,
+        false,
+        "Preemptive lemmas for incremental linearization are disabled "
+        "when the logic has quantifiers");
   }
 }
 
@@ -1275,7 +1284,6 @@ bool SetDefaults::incompatibleWithIncremental(const LogicInfo& logic,
 
   // disable modes not supported by incremental
   SET_AND_NOTIFY(smt, sortInference, false, "incremental solving");
-  SET_AND_NOTIFY(uf, ufssFairnessMonotone, false, "incremental solving");
   SET_AND_NOTIFY(quantifiers, globalNegate, false, "incremental solving");
   SET_AND_NOTIFY(quantifiers, cegqiNestedQE, false, "incremental solving");
   SET_AND_NOTIFY(arith, arithMLTrick, false, "incremental solving");

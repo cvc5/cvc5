@@ -94,8 +94,15 @@ void Pow2Solver::checkInitialRefine()
     Node xneq0 = nm->mkNode(Kind::DISTINCT, i[0], d_zero);
     Node mod2 = nm->mkNode(Kind::INTS_MODULUS, i, d_two);
     Node even = nm->mkNode(Kind::EQUAL, mod2, d_zero);
-    Node evenImpl = nm->mkNode(Kind::IMPLIES, xneq0, even);
-    Node lem = nm->mkNode(Kind::AND, nonegImpl, evenImpl);
+    conj.push_back(nm->mkNode(Kind::IMPLIES, xgt0, even));
+
+    // neg: x < 0 -> pow2(x) = 0
+    Node xlt0 = nm->mkNode(Kind::LT, i[0], d_zero);
+    Node eq0 = nm->mkNode(Kind::EQUAL, i, mkZero(i.getType()));
+    Node neg = nm->mkNode(Kind::IMPLIES, xlt0, eq0);
+    conj.push_back(neg);
+
+    Node lem = nm->mkAnd(conj);
     Trace("pow2-lemma") << "Pow2Solver::Lemma: " << lem << " ; INIT_REFINE"
                         << std::endl;
     CDProof* proof = nullptr;
@@ -178,12 +185,9 @@ void Pow2Solver::checkFullRefine()
         d_im.addPendingLemma(
             lem, InferenceId::ARITH_NL_POW2_MONOTONE_REFINE, proof, true);
       }
-      else if (y <= 0 && y < x && pow2x <= pow2y)
+      else if (y >= 0 && y < x && pow2x <= pow2y)
       {
         // 0 <= y /\ y < x => pow2(y) < pow2(x).
-        // We include the 0 <= y precondition (matching the comment): without
-        // it the lemma is unsound, since pow2 is only strictly increasing on
-        // non-negative integers (pow2 of a negative integer is 0).
         Node y_lt_x = nm->mkNode(Kind::LT, m[0], n[0]);
         Node ygeq0 = nm->mkNode(Kind::LEQ, d_zero, m[0]);
         Node assumption = nm->mkNode(Kind::AND, ygeq0, y_lt_x);
@@ -199,22 +203,6 @@ void Pow2Solver::checkFullRefine()
         d_im.addPendingLemma(
             lem, InferenceId::ARITH_NL_POW2_MONOTONE_REFINE, proof, true);
       }
-    }
-
-    // neg lemmas: pow2(x) = 0 whenever x < 0
-    if (x < 0 && pow2x != 0)
-    {
-      Node assumption = nm->mkNode(Kind::LT, n[0], d_zero);
-      Node conclusion = nm->mkNode(Kind::EQUAL, n, mkZero(n.getType()));
-      Node lem = nm->mkNode(Kind::IMPLIES, assumption, conclusion);
-      CDProof* proof = nullptr;
-      if (isProofEnabled())
-      {
-        proof = getProof();
-        proof->addStep(lem, ProofRule::ARITH_POW2_NEG_REFINE, {}, {n[0]});
-      }
-      d_im.addPendingLemma(
-          lem, InferenceId::ARITH_NL_POW2_NEG_REFINE, proof, true);
     }
 
     // div 0: x div pow2(x) = 0 whenever x >= 0
