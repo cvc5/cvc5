@@ -60,7 +60,10 @@ Node Pow2ProofRuleChecker::checkInternal(
         Kind::IMPLIES,
         nm->mkNode(Kind::DISTINCT, t, zero),
         nm->mkNode(Kind::EQUAL, nm->mkNode(Kind::INTS_MODULUS, pt, two), zero));
-    return nm->mkNode(Kind::AND, nonneg, even);
+    Node neg = nm->mkNode(Kind::IMPLIES,
+                          nm->mkNode(Kind::LT, t, zero),
+                          nm->mkNode(Kind::EQUAL, pt, zero));
+    return nm->mkNode(Kind::AND, nonneg, even, neg);
   }
   else if (id == ProofRule::ARITH_POW2_MONOTONE)
   {
