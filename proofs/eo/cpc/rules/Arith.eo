@@ -426,85 +426,61 @@
   :conclusion ($mk_arith_mult_abs_comparison F)
 )
 
-;;;;; ProofRule::ARITH_POW2_INIT_REFINE
 
-; rule: arith_pow2_init_refine
-; implements: ProofRule::ARITH_POW2_INIT_REFINE
+; rule: arith_pow2_init
+; implements: ProofRule::ARITH_POW2_INIT
 ; args:
 ; - t Int: The argument of the pow2 application.
 ; conclusion: >
 ;   The initial refinement axiom for (int.pow2 t): pow2(t) is positive when
 ;   t is non-negative, and pow2(t) is even when t is nonzero.
-(declare-rule arith_pow2_init_refine ((t Int))
+(declare-rule arith_pow2_init ((t Int))
   :args (t)
   :conclusion (and (=> (>= t 0) (> (int.pow2 t) 0))
                    (=> (distinct t 0) (= (mod (int.pow2 t) 2) 0)))
 )
 
-;;;;; ProofRule::ARITH_POW2_MONOTONE_REFINE
+;;;;; ProofRule::ARITH_POW2_MONOTONE
 
-; rule: arith_pow2_monotone_refine
-; implements: ProofRule::ARITH_POW2_MONOTONE_REFINE
+; rule: arith_pow2_monotone
+; implements: ProofRule::ARITH_POW2_MONOTONE
 ; args:
 ; - x Int: The first argument of pow2.
 ; - y Int: The second argument of pow2.
 ; conclusion: pow2 is strictly increasing on non-negative integers.
-(declare-rule arith_pow2_monotone_refine ((x Int) (y Int))
+(declare-rule arith_pow2_monotone ((x Int) (y Int))
   :args (x y)
   :conclusion (=> (and (<= 0 x) (< x y))
                   (< (int.pow2 x) (int.pow2 y)))
 )
 
-;;;;; ProofRule::ARITH_POW2_NEG_REFINE
 
-; rule: arith_pow2_neg_refine
-; implements: ProofRule::ARITH_POW2_NEG_REFINE
-; args:
-; - t Int: The argument of the pow2 application.
-; conclusion: pow2 is zero on strictly negative integers.
-(declare-rule arith_pow2_neg_refine ((t Int))
-  :args (t)
-  :conclusion (=> (< t 0) (= (int.pow2 t) 0))
-)
+;;;;; ProofRule::ARITH_POW2_DIV0
 
-;;;;; ProofRule::ARITH_POW2_DIV0_REFINE
-
-; rule: arith_pow2_div0_refine
-; implements: ProofRule::ARITH_POW2_DIV0_REFINE
+; rule: arith_pow2_div0
+; implements: ProofRule::ARITH_POW2_DIV0
 ; args:
 ; - t Int: The argument of the pow2 application.
 ; conclusion: t div pow2(t) is zero when t is non-negative.
-(declare-rule arith_pow2_div0_refine ((t Int))
+(declare-rule arith_pow2_div0 ((t Int))
   :args (t)
   :conclusion (=> (>= t 0) (= (div t (int.pow2 t)) 0))
 )
 
-;;;;; ProofRule::ARITH_POW2_LOWER_BOUND_REFINE
+;;;;; ProofRule::ARITH_POW2_LOWER_BOUND
 
-; rule: arith_pow2_lower_bound_refine
-; implements: ProofRule::ARITH_POW2_LOWER_BOUND_REFINE
+; rule: arith_pow2_lower_bound
+; implements: ProofRule::ARITH_POW2_LOWER_BOUND
 ; args:
 ; - t Int: The argument of the pow2 application.
 ; - k Int: An integer constant of at least 7 that lower-bounds t.
 ; conclusion: pow2(t) > k*t + k^2 when t >= k >= 7.
-(declare-rule arith_pow2_lower_bound_refine ((t Int) (k Int))
+(declare-rule arith_pow2_lower_bound ((t Int) (k Int))
   :args (t k)
   :conclusion (=> (and (>= t k) (>= k 7))
                   (> (int.pow2 t) (+ (* k t) (* k k))))
 )
 
-;;;;; ProofRule::ARITH_POW2_VALUE_REFINE
-
-; rule: arith_pow2_value_refine
-; implements: ProofRule::ARITH_POW2_VALUE_REFINE
-; args:
-; - t Int: The symbolic argument of pow2.
-; - v Int: A value that t is being constrained to.
-; conclusion: pow2 is a function: equal inputs imply equal outputs.
-(declare-rule arith_pow2_value_refine ((t Int) (v Int))
-  :args (t v)
-  :conclusion (=> (= t v) (= (int.pow2 t) (int.pow2 v)))
-)
 
 ;;;;; ProofRule::ARITH_REDUCTION
 
