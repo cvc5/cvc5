@@ -99,6 +99,13 @@ class Pow2Solver : protected EnvObj
   bool isProofEnabled() const;
   /** Allocate a fresh CDProof for a lemma. */
   CDProof* getProof();
+
+  /**
+   * Value-based refinement lemma for i of the form (pow2 x). Returns:
+   *   x = M(x) /\ x>= 0 ---->
+   *     (pow2 x) = rewrite((pow2 M(x)))
+   */
+  Node valueBasedLemma(Node i);
 }; /* class Pow2Solver */
 
 }  // namespace nl

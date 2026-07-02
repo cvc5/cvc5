@@ -254,16 +254,27 @@ void Pow2Solver::checkFullRefine()
     // End of additional lemma schemas
 
     // this is the most naive model-based schema based on model values
-    Node lem = nm->mkNode(Kind::IMPLIES,
-                          n[0].eqNode(valXConcrete),
-                          n.eqNode(nm->mkNode(Kind::POW2, valXConcrete)));
-    Trace("pow2-lemma") << "Pow2Solver::Lemma: " << lem << " ; VALUE"
+    Node lem = valueBasedLemma(n);
+    Trace("pow2-lemma") << "Pow2Solver::Lemma: " << lem << " ; VALUE_REFINE"
                         << std::endl;
-    CDProof* proof = nullptr;
     // send the value lemma
     d_im.addPendingLemma(
-        lem, InferenceId::ARITH_NL_POW2_VALUE_REFINE, proof, true);
+        lem, InferenceId::ARITH_NL_POW2_VALUE_REFINE, nullptr, true);
   }
+}
+
+Node Pow2Solver::valueBasedLemma(Node i)
+{
+  Assert(i.getKind() == Kind::POW2);
+  Node x = i[0];
+
+  Node valX = d_model.computeConcreteModelValue(x);
+
+  NodeManager* nm = nodeManager();
+  Node valC = nm->mkNode(Kind::POW2, valX);
+  valC = rewrite(valC);
+
+  return nm->mkNode(Kind::IMPLIES, {x.eqNode(valX), i.eqNode(valC)});
 }
 
 }  // namespace nl
