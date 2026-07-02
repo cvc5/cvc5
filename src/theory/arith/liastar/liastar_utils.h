@@ -20,6 +20,7 @@
 
 #include "expr/node.h"
 #include "smt/env.h"
+#include "theory/arith/liastar/liastar_stats.h"
 #include "theory/arith/linear/normal_form.h"
 #include "util/result.h"
 namespace cvc5::internal {
@@ -40,25 +41,32 @@ class LiaStarUtils
   static std::pair<Node, Node> getVectorPredicate(Node n, NodeManager* nm);
   /**
    * @param a node in LIA that only contains =, >=, ite in its tree
+   * @param stats optional statistics collector, may be nullptr
    * @return a node in DNF where ite and = are eliminated
    */
-  static Node toDNF(Node n, Env* e);
+  static Node toDNF(Node n, Env* e, LiaStarStatistics* stats = nullptr);
 
   /**
    * @param a node in LIA that only contains =, >=, ite in its tree
+   * @param stats optional statistics collector, may be nullptr
    * @return an equivalent node that does not contain ite expressions
    * without introducing new variables
    */
-  static Node removeItes(Node n, Env* e);
+  static Node removeItes(Node n, Env* e, LiaStarStatistics* stats = nullptr);
 
-  static Node distribute(Node n, Env* e);
+  static Node distribute(Node n, Env* e, LiaStarStatistics* stats = nullptr);
 
-  static Result areAssertionsUnsat(const std::vector<Node>& assertions, Env* e);
+  static Result areAssertionsUnsat(const std::vector<Node>& assertions,
+                                   Env* e,
+                                   LiaStarStatistics* stats = nullptr);
 
   static Result cvc5CheckSat(const std::vector<Node>& freeVariables,
                              Node assertion,
-                             Env* e);
-  static Result normalizCheckSat(Node variables, Node assertion);
+                             Env* e,
+                             LiaStarStatistics* stats = nullptr);
+  static Result normalizCheckSat(Node variables,
+                                 Node assertion,
+                                 LiaStarStatistics* stats = nullptr);
 
   /**
    * This function returns a list of matrices representing cones (disjunctions)
@@ -71,7 +79,8 @@ class LiaStarUtils
       Node variables, Node n);
 
  private:
-  static std::vector<std::pair<Node, Node>> removeIntegerItes(Node n, Env* e);
+  static std::vector<std::pair<Node, Node>> removeIntegerItes(
+      Node n, Env* e, LiaStarStatistics* stats = nullptr);
   static Node removeNot(Node n, Env* e);
   static Node recursiveFlatten(NodeManager* nm, Node n);
   static std::string getString(Node variables, linear::Polynomial& p);

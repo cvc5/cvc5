@@ -65,7 +65,8 @@ LiaStarExtension::LiaStarExtension(Env& env, TheoryArith& containing)
       d_checkCounter(0),
       d_extTheoryCb(),
       d_extTheory(env, d_extTheoryCb, d_im),
-      d_hasLiaStarTerms(context(), false)
+      d_hasLiaStarTerms(context(), false),
+      d_stats(statisticsRegistry())
 {
   d_extTheory.addFunctionKind(Kind::STAR_CONTAINS);
   d_true = nodeManager()->mkConst(true);
@@ -118,16 +119,19 @@ void LiaStarExtension::getAssertions(std::vector<Node>& assertions)
 void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
                                        const std::set<Node>& termSet)
 {
+  d_stats.d_checkFullEffortTime.start();
   // run a last call effort check
   Trace("liastar-ext") << "interceptModel: do model-based refinement"
                        << std::endl;
   Trace("liastar-ext") << " model is : " << arithModel << std::endl;
   Trace("liastar-ext") << " termSet is: " << termSet << std::endl;
   d_checkCounter++;
+  ++d_stats.d_checkRuns;
 
   // get the assertions
   std::vector<Node> assertions;
   getAssertions(assertions);
+  d_stats.d_starContainsLiterals += assertions.size();
 
   Trace("liastar-ext") << "liastar assertions: " << assertions << std::endl;
   NodeManager* nm = nodeManager();
@@ -160,6 +164,8 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
     }
     if (options().arith.arithLiaStarModelValue)
     {
+      d_stats.d_modelValueTime.start();
+      ++d_stats.d_modelValueChecks;
       std::vector<Node> keys;
       std::vector<Node> values;
 
@@ -177,14 +183,18 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
 
       if (value == d_true)
       {
+        ++d_stats.d_modelValueSolved;
         Trace("liastar-ext-debug")
             << "----------------------------------------" << std::endl;
         Trace("liastar-ext-debug")
             << literal << " is satisfied in the current model" << std::endl;
         Trace("liastar-ext-debug")
             << "----------------------------------------" << std::endl;
+        d_stats.d_modelValueTime.stop();
+        d_stats.d_checkFullEffortTime.stop();
         return;
       }
+      d_stats.d_modelValueTime.stop();
     }
 
     if (std::find(
@@ -260,8 +270,10 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
     d_im.addPendingLemma(
         lemma, InferenceId::ARITH_LIA_STAR_EXISTS, d_proofGen.get());
     d_processedStarTerms.push_back(literal);
+    ++d_stats.d_starTermsReduced;
     d_im.doPendingLemmas();
   }
+  d_stats.d_checkFullEffortTime.stop();
 }
 
 std::pair<std::vector<std::pair<Node, libnormaliz::Cone<Integer>>>,
@@ -269,9 +281,11 @@ std::pair<std::vector<std::pair<Node, libnormaliz::Cone<Integer>>>,
 LiaStarExtension::getCones(
     Node n, const std::vector<std::pair<std::vector<std::string>, Node>>& pairs)
 {
+  d_stats.d_getConesTime.start();
   std::vector<std::pair<Node, Cone<Integer>>> cones;
   std::vector<Node> vec(n.begin() + 1, n.end());
   size_t dimension = vec.size();
+  d_stats.d_dimensionMax.maxAssign(dimension);
   std::vector<Integer> zeroVector(dimension, Integer(0));
   std::vector<std::pair<Vector, std::vector<Vector>>> lambdas;
   std::vector<Node> starConstraints;
@@ -309,18 +323,23 @@ LiaStarExtension::getCones(
     // because libnormaliz.so only has implementation for
     // readNormalizInput<mpq_class>
     std::map<Type::InputType, libnormaliz::Matrix<mpq_class>> input;
+    d_stats.d_normalizInputTime.start();
     input = libnormaliz::readNormalizInput<mpq_class>(ss,
                                                       options,
                                                       num_param_input,
                                                       bool_param_input,
                                                       poly_param_input,
                                                       number_field_ref);
+    d_stats.d_normalizInputTime.stop();
+    ++d_stats.d_normalizCalls;
+    d_stats.d_normalizComputeTime.start();
     Cone<Integer> cone(input);
     cone.setNonnegative(true);
     // always use infinite precision for integers
     cone.deactivateChangeOfPrecision();
     cone.compute(ConeProperty::HilbertBasis);
     cone.compute(ConeProperty::ModuleGenerators);
+    d_stats.d_normalizComputeTime.stop();
 
     if (cone.isInhomogeneous())
     {
@@ -329,9 +348,15 @@ LiaStarExtension::getCones(
       {
         // the cone is empty skip.
         Trace("liastar-ext") << "empty cone" << std::endl;
+        ++d_stats.d_conesEmpty;
         continue;
       }
     }
+    ++d_stats.d_conesNonempty;
+    d_stats.d_hilbertBasisTotal += cone.getHilbertBasis().size();
+    d_stats.d_hilbertBasisMax.maxAssign(cone.getHilbertBasis().size());
+    d_stats.d_moduleGeneratorsTotal += cone.getModuleGenerators().size();
+    d_stats.d_moduleGeneratorsMax.maxAssign(cone.getModuleGenerators().size());
 
     Trace("liastar-ext") << "Hilbert basis:" << std::endl;
     for (const auto& basis : cone.getHilbertBasis())
@@ -406,12 +431,14 @@ LiaStarExtension::getCones(
     starConstraints.push_back(vec[i].eqNode(sums[i]));
   }
 
+  d_stats.d_getConesTime.stop();
   return std::make_pair(cones, starConstraints);
 }
 
 std::vector<std::pair<Node, Node>> LiaStarExtension::getLia(
     Node n, std::vector<std::pair<Node, libnormaliz::Cone<Integer>>>& cones)
 {
+  d_stats.d_getLiaTime.start();
   Node vec = n[0];
   size_t dimension = vec.getNumChildren();
   std::vector<std::pair<Node, Node>> disjunctions;
@@ -490,6 +517,7 @@ std::vector<std::pair<Node, Node>> LiaStarExtension::getLia(
     }
   }
 
+  d_stats.d_getLiaTime.stop();
   return disjunctions;
 }
 
@@ -534,13 +562,18 @@ LiaStarExtension::convertQFLIAToMatrices(Node n)
     }
   }
 
-  Node dnf = LiaStarUtils::toDNF(predicate, &d_env);
+  Node dnf = LiaStarUtils::toDNF(predicate, &d_env, &d_stats);
 
   Trace("liastar-ext") << "predicate in dnf: " << dnf << std::endl;
   Trace("liastar-ext") << "lia constraint: " << std::endl;
 
+  d_stats.d_getMatricesTime.start();
   std::vector<std::pair<std::vector<std::string>, Node>> pairs =
       LiaStarUtils::getMatrices(variables, dnf);
+  d_stats.d_getMatricesTime.stop();
+  ++d_stats.d_dnfCalls;
+  d_stats.d_dnfDisjuncts += pairs.size();
+  d_stats.d_dnfDisjunctsMax.maxAssign(pairs.size());
   return pairs;
 }
 

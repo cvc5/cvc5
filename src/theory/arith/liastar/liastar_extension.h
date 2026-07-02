@@ -26,6 +26,7 @@
 #include "proof/proof_set.h"
 #include "smt/env_obj.h"
 #include "theory/arith/liastar/liastar_proof_generator.h"
+#include "theory/arith/liastar/liastar_stats.h"
 #include "theory/ext_theory.h"
 #include "theory/theory.h"
 #include "util/result.h"
@@ -162,6 +163,9 @@ class LiaStarExtension : EnvObj
    * STAR_CONTAINS reduction). Allocated only when proofs are enabled.
    */
   std::unique_ptr<LiaStarProofGenerator> d_proofGen;
+
+  /** Statistics for the liastar extension */
+  LiaStarStatistics d_stats;
 
 }; /* class LiaStarExtension */
 

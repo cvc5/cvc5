@@ -422,6 +422,8 @@ libcvc5_add_sources(
   theory/arith/liastar/liastar_extension.h
   theory/arith/liastar/liastar_proof_generator.cpp
   theory/arith/liastar/liastar_proof_generator.h
+  theory/arith/liastar/liastar_stats.cpp
+  theory/arith/liastar/liastar_stats.h
   theory/arith/liastar/liastar_utils.cpp
   theory/arith/liastar/liastar_utils.h
   theory/arith/linear/approx_simplex.cpp

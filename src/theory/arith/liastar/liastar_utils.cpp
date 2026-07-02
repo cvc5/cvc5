@@ -62,13 +62,18 @@ std::pair<Node, Node> LiaStarUtils::getVectorPredicate(Node n, NodeManager* nm)
   return std::make_pair(substitute, nonnegativeConstraints);
 }
 
-Node LiaStarUtils::toDNF(Node n, Env* e)
+Node LiaStarUtils::toDNF(Node n, Env* e, LiaStarStatistics* stats)
 {
+  if (stats) stats->d_toDnfTime.start();
   // eliminate ites
-  Node noItes = removeItes(n, e);
+  if (stats) stats->d_removeItesTime.start();
+  Node noItes = removeItes(n, e, stats);
+  if (stats) stats->d_removeItesTime.stop();
   Trace("liastar-ext-debug") << "noItes: " << noItes << std::endl;
   // eliminate negation
+  if (stats) stats->d_removeNotTime.start();
   Node nnf = removeNot(noItes, e);
+  if (stats) stats->d_removeNotTime.stop();
   Trace("liastar-ext-debug") << "nnf: " << nnf << std::endl;
   if (TraceIsOn("liastar-ext-smt"))
   {
@@ -98,9 +103,11 @@ Node LiaStarUtils::toDNF(Node n, Env* e)
     Trace("liastar-ext-smt") << "(pop 1)" << std::endl;
   }
   // distributes conjunctions over disjunctions
-  Node dnf = distribute(nnf, e);
+  if (stats) stats->d_distributeTime.start();
+  Node dnf = distribute(nnf, e, stats);
   Trace("liastar-ext-debug") << "dnf: " << dnf << std::endl;
   dnf = recursiveFlatten(e->getNodeManager(), dnf);
+  if (stats) stats->d_distributeTime.stop();
   if (TraceIsOn("liastar-ext-smt"))
   {
     Trace("liastar-ext-smt") << "(push 1)" << std::endl;
@@ -115,6 +122,7 @@ Node LiaStarUtils::toDNF(Node n, Env* e)
     Trace("liastar-ext-smt") << "(check-sat)" << std::endl;
     Trace("liastar-ext-smt") << "(pop 1)" << std::endl;
   }
+  if (stats) stats->d_toDnfTime.stop();
   return dnf;
 }
 
@@ -134,7 +142,7 @@ Node LiaStarUtils::recursiveFlatten(NodeManager* nm, Node n)
   return nm->mkNode(flat.getKind(), children);
 }
 
-Node LiaStarUtils::distribute(Node n, Env* e)
+Node LiaStarUtils::distribute(Node n, Env* e, LiaStarStatistics* stats)
 {
   Assert(n.getType().isBoolean())
       << "Expected " << n << " to be boolean" << std::endl;
@@ -162,7 +170,7 @@ Node LiaStarUtils::distribute(Node n, Env* e)
       std::vector<Node> conjunctions;
       for (Node child : n)
       {
-        Node childDnf = distribute(child, e);
+        Node childDnf = distribute(child, e, stats);
         childDnf = expr::algorithm::flatten(nm, childDnf);
         conjunctions.push_back(childDnf);
       }
@@ -194,10 +202,11 @@ Node LiaStarUtils::distribute(Node n, Env* e)
             for (std::vector<Node>& v : copy)
             {
               v.push_back(disjunct);
-              Result r = areAssertionsUnsat(v, e);
+              Result r = areAssertionsUnsat(v, e, stats);
               if (r.getStatus() == Result::Status::UNSAT)
               {
                 // we can discard unsat conjunctions
+                if (stats) ++stats->d_disjunctsPrunedUnsat;
                 continue;
               }
               else
@@ -219,10 +228,11 @@ Node LiaStarUtils::distribute(Node n, Env* e)
       std::vector<Node> final_disjuncts;
       for (std::vector<Node>& v : disjunctions)
       {
-        Result r = areAssertionsUnsat(v, e);
+        Result r = areAssertionsUnsat(v, e, stats);
         if (r.getStatus() == Result::Status::UNSAT)
         {
           // we can discard unsat conjunctions
+          if (stats) ++stats->d_disjunctsPrunedUnsat;
           continue;
         }
         if (v.size() == 1)
@@ -250,7 +260,7 @@ Node LiaStarUtils::distribute(Node n, Env* e)
 
       for (size_t i = 0; i < n.getNumChildren(); i++)
       {
-        Node childDnf = distribute(n[i], e);
+        Node childDnf = distribute(n[i], e, stats);
         childDnf = expr::algorithm::flatten(nm, childDnf);
         disjuncts.push_back(childDnf);
       }
@@ -267,7 +277,7 @@ Node LiaStarUtils::distribute(Node n, Env* e)
                   << " has kind: " << n.getKind() << std::endl;
 }
 
-Node LiaStarUtils::removeItes(Node n, Env* e)
+Node LiaStarUtils::removeItes(Node n, Env* e, LiaStarStatistics* stats)
 {
   NodeManager* nm = e->getNodeManager();
   Node falseConst = nm->mkConst<bool>(false);
@@ -284,8 +294,10 @@ Node LiaStarUtils::removeItes(Node n, Env* e)
     case Kind::GEQ:
     case Kind::EQUAL:
     {
-      std::vector<std::pair<Node, Node>> left = removeIntegerItes(n[0], e);
-      std::vector<std::pair<Node, Node>> right = removeIntegerItes(n[1], e);
+      std::vector<std::pair<Node, Node>> left =
+          removeIntegerItes(n[0], e, stats);
+      std::vector<std::pair<Node, Node>> right =
+          removeIntegerItes(n[1], e, stats);
       if (left.size() == 1 && right.size() == 1)
       {
         return n;
@@ -314,8 +326,9 @@ Node LiaStarUtils::removeItes(Node n, Env* e)
     }
     case Kind::ITE:
     {
-      Node l = removeItes(n[0].andNode(n[1]), e);
-      Node r = removeItes(n[0].notNode().andNode(n[2]), e);
+      if (stats) ++stats->d_itesRemoved;
+      Node l = removeItes(n[0].andNode(n[1]), e, stats);
+      Node r = removeItes(n[0].notNode().andNode(n[2]), e, stats);
       return l.orNode(r);
     }
     case Kind::AND:
@@ -323,7 +336,7 @@ Node LiaStarUtils::removeItes(Node n, Env* e)
       std::vector<Node> conjuncts;
       for (Node child : n)
       {
-        conjuncts.push_back(removeItes(child, e));
+        conjuncts.push_back(removeItes(child, e, stats));
       }
       return nm->mkNode(Kind::AND, conjuncts);
     }
@@ -332,13 +345,13 @@ Node LiaStarUtils::removeItes(Node n, Env* e)
       std::vector<Node> disjuncts;
       for (Node child : n)
       {
-        disjuncts.push_back(removeItes(child, e));
+        disjuncts.push_back(removeItes(child, e, stats));
       }
       return nm->mkNode(Kind::OR, disjuncts);
     }
     case Kind::NOT:
     {
-      return removeItes(n[0], e).notNode();
+      return removeItes(n[0], e, stats).notNode();
     }
     default:
     {
@@ -432,8 +445,8 @@ Node LiaStarUtils::removeNot(Node n, Env* e)
                   << " has kind: " << n.getKind() << std::endl;
 }
 
-std::vector<std::pair<Node, Node>> LiaStarUtils::removeIntegerItes(Node n,
-                                                                   Env* e)
+std::vector<std::pair<Node, Node>> LiaStarUtils::removeIntegerItes(
+    Node n, Env* e, LiaStarStatistics* stats)
 {
   Assert(n.getType().isInteger());
   // (+
@@ -458,8 +471,10 @@ std::vector<std::pair<Node, Node>> LiaStarUtils::removeIntegerItes(Node n,
     case Kind::SUB:
     case Kind::MULT:
     {
-      std::vector<std::pair<Node, Node>> left = removeIntegerItes(n[0], e);
-      std::vector<std::pair<Node, Node>> right = removeIntegerItes(n[1], e);
+      std::vector<std::pair<Node, Node>> left =
+          removeIntegerItes(n[0], e, stats);
+      std::vector<std::pair<Node, Node>> right =
+          removeIntegerItes(n[1], e, stats);
       std::vector<std::pair<Node, Node>> combined;
       // combine the conditions of left and right
       for (const auto& l : left)
@@ -475,9 +490,11 @@ std::vector<std::pair<Node, Node>> LiaStarUtils::removeIntegerItes(Node n,
     }
     case Kind::ITE:
     {
+      if (stats) ++stats->d_itesRemoved;
       std::vector<std::pair<Node, Node>> iteResult;
-      Node condition = removeItes(n[0], e);
-      std::vector<std::pair<Node, Node>> thenPart = removeIntegerItes(n[1], e);
+      Node condition = removeItes(n[0], e, stats);
+      std::vector<std::pair<Node, Node>> thenPart =
+          removeIntegerItes(n[1], e, stats);
       for (const auto& pair : thenPart)
       {
         Node newCondition;
@@ -495,7 +512,8 @@ std::vector<std::pair<Node, Node>> LiaStarUtils::removeIntegerItes(Node n,
       // todo: restore this line Node notCondition =
       // rw->rewrite(condition.notNode());
       Node notCondition = condition.notNode();
-      std::vector<std::pair<Node, Node>> elsePart = removeIntegerItes(n[2], e);
+      std::vector<std::pair<Node, Node>> elsePart =
+          removeIntegerItes(n[2], e, stats);
       for (const auto& pair : elsePart)
       {
         Node newCondition;
@@ -522,11 +540,17 @@ std::vector<std::pair<Node, Node>> LiaStarUtils::removeIntegerItes(Node n,
 }
 
 Result LiaStarUtils::areAssertionsUnsat(const std::vector<Node>& assertions,
-                                        Env* e)
+                                        Env* e,
+                                        LiaStarStatistics* stats)
 {
   if (!e->getOptions().arith.arithLiaStarSubSolver)
   {
     return Result();
+  }
+  if (stats)
+  {
+    ++stats->d_subSolverCalls;
+    stats->d_subSolverTime.start();
   }
   NodeManager* nm = e->getNodeManager();
   Node assertion;
@@ -541,22 +565,36 @@ Result LiaStarUtils::areAssertionsUnsat(const std::vector<Node>& assertions,
   std::unordered_set<Node> fvs;
   expr::getFreeVariables(assertion, fvs);
   std::vector<Node> freeVariables(fvs.begin(), fvs.end());
+  Result result;
   if (fvs.size() > 0 && e->getOptions().arith.arithLiaStarNormalizAsSubSolver)
   {
     Node variables = nm->mkNode(Kind::BOUND_VAR_LIST, freeVariables);
     assertion = expr::algorithm::flatten(nm, assertion);
-    return normalizCheckSat(variables, assertion);
+    result = normalizCheckSat(variables, assertion, stats);
   }
   else
   {
-    return cvc5CheckSat(freeVariables, assertion, e);
+    result = cvc5CheckSat(freeVariables, assertion, e, stats);
   }
+  if (stats)
+  {
+    switch (result.getStatus())
+    {
+      case Result::Status::SAT: ++stats->d_subSolverSat; break;
+      case Result::Status::UNSAT: ++stats->d_subSolverUnsat; break;
+      default: ++stats->d_subSolverUnknown; break;
+    }
+    stats->d_subSolverTime.stop();
+  }
+  return result;
 }
 
 Result LiaStarUtils::cvc5CheckSat(const std::vector<Node>& freeVariables,
                                   Node assertion,
-                                  Env* e)
+                                  Env* e,
+                                  LiaStarStatistics* stats)
 {
+  if (stats) stats->d_cvc5SubSolverTime.start();
   Options subOptions;
   SubsolverSetupInfo ssi(*e, subOptions);
 
@@ -580,11 +618,15 @@ Result LiaStarUtils::cvc5CheckSat(const std::vector<Node>& freeVariables,
   }
   Trace("liastar-ext-cvc5CheckSat")
       << "Conjunction: " << assertion << " is " << result << std::endl;
+  if (stats) stats->d_cvc5SubSolverTime.stop();
   return result;
 }
 
-Result LiaStarUtils::normalizCheckSat(Node variables, Node assertion)
+Result LiaStarUtils::normalizCheckSat(Node variables,
+                                      Node assertion,
+                                      LiaStarStatistics* stats)
 {
+  if (stats) stats->d_normalizSubSolverTime.start();
   Trace("liastar-normalizCheckSat")
       << "---------------------------" << std::endl;
   Trace("liastar-normalizCheckSat")
@@ -604,8 +646,10 @@ Result LiaStarUtils::normalizCheckSat(Node variables, Node assertion)
   ss << "constraints "
      << (assertion.getKind() == Kind::AND ? assertion.getNumChildren() : 1)
      << " symbolic" << std::endl;
-  const std::vector<std::pair<std::vector<std::string>, Node>>& matrices =
+  if (stats) stats->d_getMatricesTime.start();
+  const std::vector<std::pair<std::vector<std::string>, Node>> matrices =
       getMatrices(variables, assertion);
+  if (stats) stats->d_getMatricesTime.stop();
 
   ss << matrices[0].first << std::endl;
 
@@ -619,18 +663,26 @@ Result LiaStarUtils::normalizCheckSat(Node variables, Node assertion)
   // because libnormaliz.so only has implementation for
   // readNormalizInput<mpq_class>
   std::map<Type::InputType, libnormaliz::Matrix<mpq_class>> input;
+  if (stats) stats->d_normalizInputTime.start();
   input = libnormaliz::readNormalizInput<mpq_class>(ss,
                                                     options,
                                                     num_param_input,
                                                     bool_param_input,
                                                     poly_param_input,
                                                     number_field_ref);
+  if (stats) stats->d_normalizInputTime.stop();
+  if (stats)
+  {
+    ++stats->d_normalizCalls;
+    stats->d_normalizComputeTime.start();
+  }
   Cone<Integer> cone(input);
   cone.setNonnegative(true);
   // always use infinite precision for integers
   cone.deactivateChangeOfPrecision();
   cone.compute(ConeProperty::HilbertBasis);
   cone.compute(ConeProperty::ModuleGenerators);
+  if (stats) stats->d_normalizComputeTime.stop();
 
   Result result;
   if (cone.isInhomogeneous())
@@ -646,6 +698,7 @@ Result LiaStarUtils::normalizCheckSat(Node variables, Node assertion)
   }
   Trace("liastar-ext-normalizCheckSat")
       << "Constraints are " << result << std::endl;
+  if (stats) stats->d_normalizSubSolverTime.stop();
   return result;
 }
 
