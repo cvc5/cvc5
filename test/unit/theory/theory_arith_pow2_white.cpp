@@ -54,14 +54,16 @@ TEST_F(TestTheoryWhiteArithPow2, pow2_proof_checker_basic)
   Node zero = nm->mkConstInt(Rational(0));
   Node two = nm->mkConstInt(Rational(2));
   Node pt = nm->mkNode(Kind::POW2, x);
-  Node nonneg = nm->mkNode(
-      Kind::IMPLIES, nm->mkNode(Kind::GEQ, x, zero), nm->mkNode(Kind::GT, pt, zero));
+  Node nonneg = nm->mkNode(Kind::IMPLIES,
+                           nm->mkNode(Kind::GEQ, x, zero),
+                           nm->mkNode(Kind::GT, pt, zero));
   Node even = nm->mkNode(
       Kind::IMPLIES,
       nm->mkNode(Kind::DISTINCT, x, zero),
       nm->mkNode(Kind::EQUAL, nm->mkNode(Kind::INTS_MODULUS, pt, two), zero));
-  Node neg = nm->mkNode(
-      Kind::IMPLIES, nm->mkNode(Kind::LT, x, zero), nm->mkNode(Kind::EQUAL, pt, zero));
+  Node neg = nm->mkNode(Kind::IMPLIES,
+                        nm->mkNode(Kind::LT, x, zero),
+                        nm->mkNode(Kind::EQUAL, pt, zero));
   Node expected = nm->mkNode(Kind::AND, nonneg, even, neg);
 
   ASSERT_EQ(result, expected);
