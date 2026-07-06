@@ -192,7 +192,7 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
             << "----------------------------------------" << std::endl;
         d_stats.d_modelValueTime.stop();
         d_stats.d_checkFullEffortTime.stop();
-        return;
+        continue;
       }
       d_stats.d_modelValueTime.stop();
     }
