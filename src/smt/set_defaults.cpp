@@ -405,6 +405,11 @@ void SetDefaults::setDefaultsPre(Options& opts)
 
 void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
 {
+  if (opts.base.incrementalSolving && !opts.prop.satSolverWasSetByUser)
+  {
+    // use minisat by default if incremental is enabled, due to performance
+    SET_AND_NOTIFY_VAL_SYM(prop,satSolver,options::SatSolverMode::MINISAT, "incremental");
+  }
   if (opts.quantifiers.sygusInstWasSetByUser)
   {
     if (opts.quantifiers.sygusInst && isSygus(opts))
