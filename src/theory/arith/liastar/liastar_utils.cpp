@@ -27,6 +27,7 @@
 #include "theory/datatypes/tuple_utils.h"
 #include "theory/rewriter.h"
 #include "theory/smt_engine_subsolver.h"
+#include "theory/uf/function_const.h"
 #include "util/rational.h"
 
 using namespace cvc5::internal::kind;
@@ -43,7 +44,11 @@ using libnormaliz::operator<<;
 std::pair<Node, Node> LiaStarUtils::getVectorPredicate(Node n, NodeManager* nm)
 {
   Assert(n.getKind() == Kind::STAR_CONTAINS);
-  Node lambda = n[0];
+  // the rewriter may normalize a constant lambda to a function array
+  // constant, so convert the first child back to a lambda if needed
+  Node lambda = uf::FunctionConst::toLambda(n[0]);
+  Assert(!lambda.isNull() && lambda.getKind() == Kind::LAMBDA)
+      << "Expected a lambda as the first child of " << n << std::endl;
   std::vector<Node> vars(lambda[0].begin(), lambda[0].end());
   std::vector<Node> vecElements(n.begin() + 1, n.end());
 

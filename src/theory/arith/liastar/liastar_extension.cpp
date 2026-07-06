@@ -31,6 +31,7 @@
 #include "theory/ext_theory.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
+#include "theory/uf/function_const.h"
 #include "util/rational.h"
 
 using namespace cvc5::internal::kind;
@@ -137,8 +138,12 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
   NodeManager* nm = nodeManager();
   for (const auto& literal : assertions)
   {
-    Node lambda = literal[0];
     Assert(literal.getKind() == Kind::STAR_CONTAINS);
+    // the rewriter may normalize a constant lambda to a function array
+    // constant, so convert the first child back to a lambda if needed
+    Node lambda = uf::FunctionConst::toLambda(literal[0]);
+    Assert(!lambda.isNull() && lambda.getKind() == Kind::LAMBDA)
+        << "Expected a lambda as the first child of " << literal << std::endl;
     auto [vectorPredicate, nonnegative] =
         LiaStarUtils::getVectorPredicate(literal, nm);
     // assert that vector elements are non negative
@@ -191,7 +196,6 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
         Trace("liastar-ext-debug")
             << "----------------------------------------" << std::endl;
         d_stats.d_modelValueTime.stop();
-        d_stats.d_checkFullEffortTime.stop();
         continue;
       }
       d_stats.d_modelValueTime.stop();
