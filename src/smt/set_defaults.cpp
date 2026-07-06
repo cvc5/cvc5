@@ -160,8 +160,6 @@ void SetDefaults::setDefaultsPre(Options& opts)
       SET_AND_NOTIFY(arith, nlCov, false, "safe options");
       // never use symmetry breaker, which does not have proofs
       SET_AND_NOTIFY(uf, ufSymmetryBreaker, false, "safe options");
-      // always use cegqi midpoint, which avoids virtual term substitution
-      SET_AND_NOTIFY(quantifiers, cegqiMidpoint, true, "safe options");
       // proofs not yet supported on main
       SET_AND_NOTIFY(quantifiers, cegqiBv, false, "safe options");
       // class of rewrites in quantifiers we don't have proof support for but is
@@ -1026,6 +1024,15 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
   if (isOutputOn(OutputTag::NORMALIZE))
   {
     SET_AND_NOTIFY(base, preprocessOnly, true, "normalize output");
+  }
+  if (logic.isQuantified())
+  {
+    SET_AND_NOTIFY_IF_NOT_USER(
+        arith,
+        nlExtInitialSignLemmas,
+        false,
+        "Preemptive lemmas for incremental linearization are disabled "
+        "when the logic has quantifiers");
   }
 }
 
