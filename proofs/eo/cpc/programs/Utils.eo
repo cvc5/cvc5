@@ -63,19 +63,6 @@
   (($typed_list_element_type (@TList T)) T)
   )
 )
-
-; program: $typed_list_to_untyped
-; args:
-; - xs (@TList T): the typed list.
-; return: The result of converting xs to an untyped (heterogeneous) list.
-(program $typed_list_to_untyped ((T Type) (x T) (xs (@TList T) :list))
-  :signature ((@TList T)) @List
-  (
-  (($typed_list_to_untyped (@tlist x xs))   (_ @list x ($typed_list_to_untyped xs)))
-  (($typed_list_to_untyped (@tlist.nil T))  @list.nil)
-  )
-)
-
   
 ;; =============== evaluation utilities
 

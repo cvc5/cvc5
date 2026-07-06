@@ -35,19 +35,44 @@
   )
 )
 
+; program: $is_seq_const_rec
+; args:
+; - s (Seq T): The sequence term.
+; return: true if s is a (non standalone seq.unit) sequence constant.
+(program $is_seq_const_rec ((T Type) (e T) (ss (Seq T) :list))
+  :signature ((Seq T)) Int
+  (
+  (($is_seq_const_rec (seq.++ (seq.unit e) ss))   ($is_seq_const_rec ss))
+  (($is_seq_const_rec (as seq.empty (Seq T)))     true)
+  (($is_seq_const_rec ss)                         false)
+  )
+)
+
+; program: $is_seq_const
+; args:
+; - s (Seq T): The sequence term.
+; return: true if s is a sequence constant.
+(program $is_seq_const ((T Type) (e T) (ss (Seq T)))
+  :signature ((Seq T)) Int
+  (
+  (($is_seq_const (seq.unit e)) true)
+  (($is_seq_const ss)           ($is_seq_const_rec ss))
+  )
+)
+
 ; program: $str_value_len
 ; args:
 ; - s (Seq T): The sequence term.
 ; return: >
 ;   The length of s, if it denotes a "value-like" sequence, that
 ;   is, either a string literal or a concatenation of sequence units.
-(program $str_value_len ((T Type) (s (Seq T)) (e T) (ss (Seq T) :list))
+(program $str_value_len ((T Type) (e T) (s (Seq T)))
   :signature ((Seq T)) Int
   (
-    (($str_value_len (seq.++ (seq.unit e) ss))  (eo::add 1 ($str_value_len ss)))
-    (($str_value_len (as seq.empty (Seq T)))    0)
-    (($str_value_len (seq.unit e))              1)
-    (($str_value_len s)                         (eo::requires (eo::is_str s) true (eo::len s)))
+  (($str_value_len (seq.unit e))  1)
+  (($str_value_len s)
+    (eo::ite (eo::is_str s) (eo::len s)
+      (eo::requires ($is_seq_const s) true (eo::list_len seq.++ s))))
   )
 )
 
@@ -159,17 +184,19 @@
 ; - r RegLan: The regular language to check.
 ; returns: Bool
 ;   Whether the regular language r contains the empty string.
-(program $re_nullable ((r RegLan) (rr RegLan :list))
+(program $re_nullable ((r RegLan) (rr RegLan :list) (s String) (t String))
   :signature (RegLan) Bool
   (
-    (($re_nullable re.all)          true)
-    (($re_nullable @re.empty)       true)
-    (($re_nullable (re.* r))        true)
-    (($re_nullable (re.union r rr)) (eo::or ($re_nullable r) ($re_nullable rr)))
-    (($re_nullable (re.inter r rr)) (eo::and ($re_nullable r) ($re_nullable rr)))
-    (($re_nullable (re.++ r rr))    (eo::and ($re_nullable r) ($re_nullable rr)))
-    (($re_nullable (re.comp r))     (eo::not ($re_nullable r)))
-    (($re_nullable r)               false)
+  (($re_nullable re.all)          true)
+  (($re_nullable re.none)         false)
+  (($re_nullable re.allchar)      false)
+  (($re_nullable (str.to_re s))   (eo::requires (eo::is_str s) true (eo::eq s "")))
+  (($re_nullable (re.* r))        true)
+  (($re_nullable (re.range s t))  false)
+  (($re_nullable (re.union r rr)) (eo::or ($re_nullable r) ($re_nullable rr)))
+  (($re_nullable (re.inter r rr)) (eo::and ($re_nullable r) ($re_nullable rr)))
+  (($re_nullable (re.++ r rr))    (eo::and ($re_nullable r) ($re_nullable rr)))
+  (($re_nullable (re.comp r))     (eo::not ($re_nullable r)))
   )
 )
 
@@ -234,7 +261,7 @@
     (($derivative c (re.comp r))       (re.comp ($derivative c r)))
     (($derivative c (re.* r))          ($re_concat_merge ($derivative c r) (re.* r)))
     (($derivative c @re.empty)         re.none)
-    (($derivative c (str.to_re s1))    (eo::ite (eo::is_eq (eo::extract s1 0 0) c) (str.to_re (eo::extract s1 1 (eo::add -1 (eo::len s1)))) re.none))
+    (($derivative c (str.to_re s1))    (eo::ite (eo::eq (eo::extract s1 0 0) c) (str.to_re (eo::extract s1 1 (eo::add -1 (eo::len s1)))) re.none))
     (($derivative c (re.range s1 s2))  (eo::ite (eo::and ($compare_geq (eo::to_z c) (eo::to_z s1)) ($compare_geq (eo::to_z s2) (eo::to_z c))) @re.empty re.none))
     (($derivative c re.none)           re.none)
     (($derivative c re.all)            re.all)
@@ -439,15 +466,8 @@
 ;   The result of ensuring that the input t is a str.++ list.
 ;   In particular, if it is not a str.++ and not the empty string, then we
 ;   return (str.++ t empty) where empty is the empty string for the type of t.
-(program $str_nary_intro
-    ((T Type) (t (Seq T)) (ss (Seq T) :list))
-    :signature ((Seq T)) (Seq T)
-    (
-        (($str_nary_intro (str.++ t ss)) (str.++ t ss))
-        (($str_nary_intro t)             (eo::define ((nil ($seq_empty (eo::typeof t))))
-                                            (eo::ite (eo::eq t nil) t ($str_cons t nil))))
-    )
-)
+(define $str_nary_intro ((T Type :implicit) (t (Seq T)))
+  (eo::list_singleton_intro str.++ t))
 
 ; program: $re_nary_intro
 ; args:
@@ -456,14 +476,8 @@
 ;   Regular expression nary-intro, which returns the regular expression equivalent
 ;   to t that is a re.++ list. In particular, if t is not a re.++ and not the empty
 ;   regular expression, then we return (re.++ t @re.empty).
-(program $re_nary_intro ((t RegLan) (ss RegLan :list))
-    :signature (RegLan) RegLan
-    (
-        (($re_nary_intro (re.++ t ss))    (re.++ t ss))
-        (($re_nary_intro @re.empty)       @re.empty)
-        (($re_nary_intro t)               (_ re.++ t @re.empty))
-    )
-)
+(define $re_nary_intro ((r RegLan))
+  (eo::list_singleton_intro re.++ r))
 
 ; program: $str_nary_elim
 ; args:
@@ -844,12 +858,6 @@
 ; return: true if the length of s evaluates to one, false otherwise.
 (define $str_check_length_one ((s String)) (eo::is_eq (eo::len s) 1))
 
-; define: $str_check_len_gt_one
-; args:
-; - s String: The string term.
-; return: true if the length of s evaluates to greater than one, false otherwise.
-(define $str_check_len_gt_one ((s String)) (eo::is_eq (eo::is_neg (eo::add 1 (eo::neg (eo::len s)))) true))
-
 ; Flatten constants in str.++ application s. Notice that the rewritten form
 ; of strings in cvc5 are such that constants are grouped into constants of
 ; length >=1 which we call "word" constants. For example, the cvc5 rewritten
@@ -872,19 +880,29 @@
 ; This rule may fail if s is not a str.++ application corresponding to a term
 ; in cvc5 rewritten form.
 
-; program: $str_flatten_word
+; program: $str_flatten_word_rec
+; args:
+; - ns (@TList Int): A list of indices to process in t.
+; - t String: A string term, assumed to be a string literal.
+; return: >
+;   The result of "flattening" t, for example given "AB", this returns the term
+;   (str.++ "A" (str.++ "B" "")).
+(program $str_flatten_word_rec ((U Type) (t (Seq U)) (n Int) (ns (@TList Int) :list))
+  :signature ((@TList Int) (Seq U)) (Seq U)
+  (
+  (($str_flatten_word_rec (@tlist.nil Int) t) "")
+  (($str_flatten_word_rec (@tlist n ns) t)    ($str_cons (eo::extract t n n) ($str_flatten_word_rec ns t)))
+  )
+)
+
+; define: $str_flatten_word
 ; args:
 ; - t String: A string term, assumed to be a string literal.
 ; return: >
 ;   The result of "flattening" t, for example given "AB", this returns the term
 ;   (str.++ "A" (str.++ "B" "")).
-(program $str_flatten_word ((U Type) (t (Seq U)))
-  :signature ((Seq U)) (Seq U)  ; NOTE: this could be string, but leads to upstream type checking issues
-  (
-    (($str_flatten_word "") "")
-    (($str_flatten_word t)  ($str_cons (eo::extract t 0 0) ($str_flatten_word (eo::extract t 1 (eo::len t)))))
-  )
-)
+(define $str_flatten_word ((U Type :implicit) (s (Seq U)))
+  ($str_flatten_word_rec ($iota (eo::len s)) s))
 
 ; program: $str_flatten
 ; args:
@@ -897,8 +915,10 @@
   :signature ((Seq U)) (Seq U)
   (
     (($str_flatten (str.++ t tail))
-        ; otherwise, check whether t is a word constant of length greater than one
-        (eo::ite ($str_check_len_gt_one t)
+        ; otherwise, check whether t is a word constant.
+        ; we check for any word constant length here, since e.g. t may be empty
+        ; in which case it must be dropped from the concatenation.
+        (eo::ite (eo::is_str t)
           ; if so, we flatten the word using the method above and concatenate it.
           ($str_concat ($str_flatten_word t) ($str_flatten tail))
           ; if not, we just append it to the result of the recursive call
@@ -907,33 +927,25 @@
   )
 )
 
-; program: $str_collect_acc
+; program: $str_collect_merge
 ; args:
-; - t (Seq U): The string term, assumed to be a flattened str.++ list.
+; - c (Seq U): A character word constant.
+; - s (Seq U): An already-collected string, i.e. a str.++ list whose first
+;   element is either a word constant or a non-constant term.
 ; return: >
-;   The result of collecting adjacent constants in a flattened string t.
-;   This side condition takes as input a str.++ application s. It returns a
-;   pair whose concatenation is equal to s, whose first component corresponds
-;   to a word constant, and whose second component is a str.++ application whose
-;   first element is not a character. For example, for:
-;     (str.++ "A" (str.++ "B" (str.++ x "")))
-;   We return:
-;     (@pair "AB" (str.++ x ""))
-(program $str_collect_acc ((U Type) (t (Seq U)) (tail (Seq U) :list))
-  :signature ((Seq U)) (@Pair (Seq U) (Seq U))
+;   The result of prepending character c to s, merging it with the leading word
+;   constant of s when one is present. For example, given "A" and
+;   (str.++ "B" (str.++ x "")) we return (str.++ "AB" (str.++ x "")), whereas
+;   given "A" and (str.++ x "") we return (str.++ "A" (str.++ x "")).
+(program $str_collect_merge ((U Type) (c (Seq U)) (s1 (Seq U)) (stail (Seq U) :list))
+  :signature ((Seq U) (Seq U)) (Seq U)
   (
     ; sequence not handled yet
-    ; Check if t is a word constant
-    (($str_collect_acc (str.++ t tail))
-      (eo::ite ($str_check_length_one t)
-        (eo::define ((res ($str_collect_acc tail)))
-        (eo::define ((s1 ($pair_first res)))
-        (eo::define ((s2 ($pair_second res)))
-          (eo::ite (eo::eq s1 "")
-            (@pair t s2)
-            (@pair (eo::concat t s1) s2)))))    ; concatenate the constant
-        (@pair "" (str.++ t tail))))
-    (($str_collect_acc "")            (@pair "" ""))
+    (($str_collect_merge c (str.++ s1 stail))
+      (eo::ite (eo::is_str s1)
+        ($str_cons (eo::concat c s1) stail)    ; merge with the leading constant
+        ($str_cons c (str.++ s1 stail))))      ; leading element is not a constant
+    (($str_collect_merge c "")  ($str_cons c ""))
   )
 )
 
@@ -941,10 +953,10 @@
 ; args:
 ; - s (Seq U): The string term, assumed to be a flattened str.++ list.
 ; return: >
-;   Collect adjacent constants for the prefix of string s. For example:
+;   Collect adjacent constants of string s. For example:
 ;     (str.++ "A" (str.++ "B" (str.++ x "")))
 ;   we return:
-;    (str.++ (str.++ "A" (str.++ "B" "")) (str.++ x ""))
+;    (str.++ "AB" (str.++ x ""))
 ;   This side condition may fail if s is not a str.++ application.
 ;   Notice that the collection of constants is done for all word constants in the
 ;   term s recursively.
@@ -952,14 +964,11 @@
   :signature ((Seq U)) (Seq U)
   (
     (($str_collect (str.++ t s))
-      (eo::define ((res ($str_collect_acc (str.++ t s))))
-      (eo::define ((s1 ($pair_first res)))
-      (eo::define ((s2 ($pair_second res)))
-        (eo::ite (eo::eq s1 "")
-          ; did not strip a constant prefix, just append t to the result of processing s
-          ($str_cons t ($str_collect s))
-          ; stripped a constant prefix, append it to second term in the pair
-          ($str_cons s1 ($str_collect s2)))))))
+      (eo::ite ($str_check_length_one t)
+        ; t is a character: merge it into the collected remainder
+        ($str_collect_merge t ($str_collect s))
+        ; t is not a character: keep it and collect the remainder
+        ($str_cons t ($str_collect s))))
     (($str_collect t)       ($str_self_if_empty t))
   )
 )
@@ -986,8 +995,7 @@
 
 ; program: $str_mk_re_loop_elim_rec
 ; args:
-; - n Int: The minimum number of iterations for a re.loop term.
-; - d Int: The difference between the min and max iterations for a re.loop term.
+; - ns (@TList Int): A list of zeroes whose length is the difference between the min and max iterations for a re.loop term.
 ; - r RegLan: The regular expression argument of re.loop.
 ; - rr RegLan: The current accumulated regular expression.
 ; return: >
@@ -996,15 +1004,14 @@
 ;   is zero, while accumulating rr. When n is zero, then rr is r^n.
 ;   We then decrement d until it is zero, while adding regular expressions
 ;   to a union, giving us (re.union r^n ... r^{n+d}).
-(program $str_mk_re_loop_elim_rec ((n Int) (d Int) (r RegLan) (rr RegLan :list))
-  :signature (Int Int RegLan RegLan) RegLan
+(program $str_mk_re_loop_elim_rec
+  ((n Int) (ns (@TList Int) :list) (r RegLan) (rr RegLan :list))
+  :signature ((@TList Int) RegLan RegLan) RegLan
   (
-    (($str_mk_re_loop_elim_rec 0 0 r rr)
-      (_ re.union (eo::list_singleton_elim re.++ rr) re.none))
-    (($str_mk_re_loop_elim_rec 0 d r rr)
-      (_ re.union (eo::list_singleton_elim re.++ rr) ($str_mk_re_loop_elim_rec 0 (eo::add d -1) r (re.++ r rr))))
-    (($str_mk_re_loop_elim_rec n d r rr)
-      ($str_mk_re_loop_elim_rec (eo::add n -1) d r (re.++ r rr)))
+  (($str_mk_re_loop_elim_rec (@tlist.nil Int) r rr)
+    (_ re.union (eo::list_singleton_elim re.++ rr) re.none))
+  (($str_mk_re_loop_elim_rec (@tlist 0 ns) r rr)
+    (_ re.union (eo::list_singleton_elim re.++ rr) ($str_mk_re_loop_elim_rec ns r (re.++ r rr))))
   )
 )
 
@@ -1021,7 +1028,8 @@
 ;   where r^k is (re.++ r ... r), where r is repeated k times when k>1, or
 ;   r if k=1 or @re.empty if k=0.
 (define $str_mk_re_loop_elim ((n Int) (d Int) (r RegLan))
-  (eo::list_singleton_elim re.union ($str_mk_re_loop_elim_rec n d r @re.empty)))
+  (eo::list_singleton_elim re.union
+    ($str_mk_re_loop_elim_rec (eo::list_repeat @tlist 0 d) r (eo::list_repeat re.++ r n))))
 
 ; program: $str_mk_str_in_re_concat_star_char
 ; args:
@@ -1127,7 +1135,7 @@
 ; returns: Bool
 ;   Checks if string literal s is accepted by the regular language L(r).
 (define $str_eval_str_in_re ((s String) (r RegLan))
-  ($str_eval_str_in_re_rec ($str_to_flat_form s false) r))
+  (eo::requires (eo::is_str s) true ($str_eval_str_in_re_rec ($str_to_flat_form s false) r)))
 
 ; define: $str_first_match
 ; args:
@@ -1735,7 +1743,7 @@
     :signature ((Seq T) (Seq T)) Bool
     (
     (($str_is_compatible (str.++ c1 xs1) (str.++ c1 xs2)) ($str_is_compatible xs1 xs2))
-    (($str_is_compatible (str.++ c1 xs1) (str.++ c2 xs2)) (eo::requires ($are_distinct_terms c1 c2) true false))
+    (($str_is_compatible (str.++ c1 xs1) (str.++ c2 xs2)) (eo::requires ($are_distinct_terms (eo::typeof c1) c1 c2) true false))
     (($str_is_compatible c1 c2)                           (eo::or ($str_is_empty c1) ($str_is_empty c2)))
     )
 )
@@ -1793,18 +1801,20 @@
 
 ; program: $str_from_int_eval_rec
 ; args:
+; - is (@TList Int): The list of digits to process, used to make this method structurally recursive.
 ; - n Int: The integer to process, expected to be non-negative.
 ; - s String: The accumulated return value.
 ; returns: >
 ;   The result of evaluating `(str.from_int n)` given the current accumulated return value.
-(program $str_from_int_eval_rec ((s String) (n Int))
-  :signature (Int String) String
+(program $str_from_int_eval_rec ((s String) (n Int) (i Int) (js (@TList Int) :list))
+  :signature ((@TList Int) Int String) String
   (
-  (($str_from_int_eval_rec n s) (eo::ite (eo::eq n 0)
-                                  (eo::ite (eo::eq s "") "0" s)
-                                  ($str_from_int_eval_rec
-                                    (eo::zdiv n 10)
-                                    (eo::concat (eo::to_str (eo::add 48 (eo::zmod n 10))) s))))
+  (($str_from_int_eval_rec js 0 s) (eo::ite (eo::eq s "") "0" s))
+  (($str_from_int_eval_rec (@tlist i js) n s) 
+    ($str_from_int_eval_rec
+      js
+      (eo::zdiv n 10)
+      (eo::concat (eo::to_str (eo::add 48 (eo::zmod n 10))) s)))
   )
 )
 
@@ -1818,7 +1828,8 @@
   (eo::ite (eo::is_z n)
     (eo::ite (eo::is_neg n)
       ""
-      ($str_from_int_eval_rec n ""))
+      ; number of digits to process determined by log base 10
+      ($str_from_int_eval_rec ($iota (eo::add (eo::log 10 n) 1)) n ""))
     (str.from_int n)))
 
 ; program: $str_to_int_eval_rec
