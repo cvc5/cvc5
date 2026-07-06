@@ -10,7 +10,7 @@
 (declare-fun I (Int) SP)
 (declare-sort ST 0)
 (declare-sort SD 0)
-(declare-datatypes ((SeB 0) (Ss 0) (Sre 0) (Se 0) (St 0) (SrB 0) (Sb 0) (SbB 0) (Sv 0) (Sp 0) (Sm 0) (Sli 0) (Su 0) (Sl 0)) (((or)) ((e)) ((re (e SP)) (e (l SP))) ((or)) ((u)) ((u)) ((b!)) ((v)) ((v)) ((p)) ((m)) ((b!)) ((u)) ((u (l SP) (p SP)))))
+(declare-datatypes ((SeB 0) (Ss 0) (Sre 0) (Se 0) (St 0) (SrB 0) (Sb 0) (SbB 0) (Sv 0) (Sp 0) (Sm 0) (Sli 0) (Su 0) (Sl 0)) (((or)) ((e)) ((re (e SP)) (e (l SP))) ((or)) ((u)) ((u)) ((b!)) ((vB)) ((v)) ((p)) ((m)) ((b!)) ((u)) ((u (l SP) (p SP)))))
 (declare-fun c (Sre) SP)
 (declare-fun l (SbB) SP)
 (declare-fun t (Sl) SP)
