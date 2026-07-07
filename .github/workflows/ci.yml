@@ -246,7 +246,7 @@ jobs:
           # but are not currently uploaded.
           - name: win64:production-gpl
             os: windows-latest
-            config: production --auto-download --gpl --cocoa
+            config: production --auto-download --gpl --cocoa --normaliz
             cache-key: production-win64-native-gpl
             strip-bin: strip
             windows-build: true
@@ -255,7 +255,7 @@ jobs:
 
           - name: win64:production-arm64-gpl
             os: windows-11-arm
-            config: production --auto-download --gpl --cocoa
+            config: production --auto-download --gpl --cocoa --normaliz
             cache-key: production-win64-native-arm64-gpl
             strip-bin: strip
             java-version: 21
