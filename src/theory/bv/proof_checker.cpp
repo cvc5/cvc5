@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mathias Preiner, Andrew Reynolds, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -29,7 +26,7 @@ BVProofRuleChecker::BVProofRuleChecker(NodeManager* nm) : ProofRuleChecker(nm)
 void BVProofRuleChecker::registerTo(ProofChecker* pc)
 {
   pc->registerTrustedChecker(ProofRule::MACRO_BV_BITBLAST, this, 2);
-  pc->registerTrustedChecker(ProofRule::BV_BITBLAST_STEP, this, 2);
+  pc->registerChecker(ProofRule::BV_BITBLAST_STEP, this);
   pc->registerChecker(ProofRule::BV_POLY_NORM, this);
   pc->registerChecker(ProofRule::BV_POLY_NORM_EQ, this);
   pc->registerChecker(ProofRule::BV_EAGER_ATOM, this);
@@ -93,7 +90,8 @@ Node BVProofRuleChecker::checkInternal(ProofRule id,
     }
     Node l = children[0][0];
     Node r = children[0][1];
-    if (l.getKind() != Kind::BITVECTOR_MULT || r.getKind() != Kind::BITVECTOR_MULT)
+    if (l.getKind() != Kind::BITVECTOR_MULT
+        || r.getKind() != Kind::BITVECTOR_MULT)
     {
       return Node::null();
     }

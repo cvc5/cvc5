@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Morgan Deters
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -29,7 +26,8 @@ namespace cvc5::internal {
 namespace theory {
 namespace uf {
 
-TypeNode UfTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode UfTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
+                                    CVC5_UNUSED TNode n)
 {
   return TypeNode::null();
 }
@@ -38,6 +36,7 @@ TypeNode UfTypeRule::computeType(NodeManager* nodeManager,
                                  bool check,
                                  std::ostream* errOut)
 {
+  Assert(n.getKind() == Kind::APPLY_UF);
   TNode f = n.getOperator();
   TypeNode fType = f.getTypeOrNull();
   if (!fType.isFunction())
@@ -54,16 +53,16 @@ TypeNode UfTypeRule::computeType(NodeManager* nodeManager,
     // otherwise, application of abstract function is always abstract
     return nodeManager->mkAbstractType(Kind::ABSTRACT_TYPE);
   }
+  if (fType.getNumChildren() <= n.getNumChildren())
+  {
+    if (errOut)
+    {
+      (*errOut) << "too many arguments to operator";
+    }
+    return TypeNode::null();
+  }
   if (check)
   {
-    if (n.getNumChildren() != fType.getNumChildren() - 1)
-    {
-      if (errOut)
-      {
-        (*errOut) << "number of arguments does not match the function type";
-      }
-      return TypeNode::null();
-    }
     TNode::iterator argument_it = n.begin();
     TNode::iterator argument_it_end = n.end();
     TypeNode::iterator argument_type_it = fType.begin();
@@ -87,11 +86,21 @@ TypeNode UfTypeRule::computeType(NodeManager* nodeManager,
       }
     }
   }
-  return fType.getRangeType();
+  TypeNode ret = fType.getRangeType();
+  // If partially applied, we return the function type. Note we generally
+  // never construct APPLY_UF like this; moreover all such APPLY_UF terms are
+  // rewritten to HO_APPLY chains.
+  if (n.getNumChildren() != fType.getNumChildren() - 1)
+  {
+    std::vector<TypeNode> argTypes(fType.begin() + n.getNumChildren(),
+                                   fType.end() - 1);
+    ret = nodeManager->mkFunctionType(argTypes, ret);
+  }
+  return ret;
 }
 
-TypeNode CardinalityConstraintOpTypeRule::preComputeType(NodeManager* nm,
-                                                         TNode n)
+TypeNode CardinalityConstraintOpTypeRule::preComputeType(
+    CVC5_UNUSED NodeManager* nm, CVC5_UNUSED TNode n)
 {
   return TypeNode::null();
 }
@@ -124,7 +133,7 @@ TypeNode CardinalityConstraintOpTypeRule::computeType(NodeManager* nodeManager,
 }
 
 TypeNode CombinedCardinalityConstraintOpTypeRule::preComputeType(
-    NodeManager* nm, TNode n)
+    CVC5_UNUSED NodeManager* nm, CVC5_UNUSED TNode n)
 {
   return TypeNode::null();
 }
@@ -147,7 +156,8 @@ TypeNode CombinedCardinalityConstraintOpTypeRule::computeType(
   return nodeManager->builtinOperatorType();
 }
 
-TypeNode HoApplyTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode HoApplyTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
+                                         CVC5_UNUSED TNode n)
 {
   return TypeNode::null();
 }
@@ -204,16 +214,17 @@ TypeNode HoApplyTypeRule::computeType(NodeManager* nodeManager,
   }
 }
 
-TypeNode LambdaTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode LambdaTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
+                                        CVC5_UNUSED TNode n)
 {
   return TypeNode::null();
 }
 TypeNode LambdaTypeRule::computeType(NodeManager* nodeManager,
                                      TNode n,
-                                     bool check,
+                                     CVC5_UNUSED bool check,
                                      std::ostream* errOut)
 {
-  if (n[0].getTypeOrNull() != nodeManager->boundVarListType())
+  if (!CVC5_EQUAL(n[0].getTypeOrNull(), nodeManager->boundVarListType()))
   {
     if (errOut)
     {
@@ -231,14 +242,16 @@ TypeNode LambdaTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->mkFunctionType(argTypes, rangeType);
 }
 
-TypeNode FunctionArrayConstTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode FunctionArrayConstTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
+                                                    CVC5_UNUSED TNode n)
 {
   return TypeNode::null();
 }
-TypeNode FunctionArrayConstTypeRule::computeType(NodeManager* nodeManager,
-                                                 TNode n,
-                                                 bool check,
-                                                 std::ostream* errOut)
+TypeNode FunctionArrayConstTypeRule::computeType(
+    CVC5_UNUSED NodeManager* nodeManager,
+    TNode n,
+    CVC5_UNUSED bool check,
+    CVC5_UNUSED std::ostream* errOut)
 {
   Assert(n.getKind() == Kind::FUNCTION_ARRAY_CONST);
   const FunctionArrayConst& fc = n.getConst<FunctionArrayConst>();
@@ -283,13 +296,14 @@ Node FunctionProperties::mkGroundTerm(TypeNode type)
   return NodeManager::mkNode(Kind::LAMBDA, bvl, ret);
 }
 
-TypeNode IntToBitVectorOpTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode IntToBitVectorOpTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
+                                                  CVC5_UNUSED TNode n)
 {
   return TypeNode::null();
 }
 TypeNode IntToBitVectorOpTypeRule::computeType(NodeManager* nodeManager,
                                                TNode n,
-                                               bool check,
+                                               CVC5_UNUSED bool check,
                                                std::ostream* errOut)
 {
   Assert(n.getKind() == Kind::INT_TO_BITVECTOR_OP);
@@ -307,44 +321,76 @@ TypeNode IntToBitVectorOpTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode BitVectorConversionTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
-  if (n.getKind() == Kind::BITVECTOR_TO_NAT)
+  if (n.getKind() == Kind::INT_TO_BITVECTOR)
   {
-    return nm->integerType();
+    size_t bvSize = n.getOperator().getConst<IntToBitVector>();
+    return nm->mkBitVectorType(bvSize);
   }
-  size_t bvSize = n.getOperator().getConst<IntToBitVector>();
-  return nm->mkBitVectorType(bvSize);
+  return nm->integerType();
 }
 TypeNode BitVectorConversionTypeRule::computeType(NodeManager* nodeManager,
                                                   TNode n,
                                                   bool check,
                                                   std::ostream* errOut)
 {
-  if (n.getKind() == Kind::BITVECTOR_TO_NAT)
+  if (n.getKind() == Kind::INT_TO_BITVECTOR)
   {
-    if (check && !n[0].getTypeOrNull().isMaybeKind(Kind::BITVECTOR_TYPE))
+    size_t bvSize = n.getOperator().getConst<IntToBitVector>();
+    TypeNode tn = n[0].getTypeOrNull();
+    if (check && !tn.isInteger() && !tn.isFullyAbstract())
     {
       if (errOut)
       {
-        (*errOut) << "expecting bit-vector term";
+        (*errOut) << "expecting integer term";
       }
       return TypeNode::null();
     }
-    return nodeManager->integerType();
+    return nodeManager->mkBitVectorType(bvSize);
   }
-  Assert(n.getKind() == Kind::INT_TO_BITVECTOR);
-  size_t bvSize = n.getOperator().getConst<IntToBitVector>();
-  TypeNode tn = n[0].getTypeOrNull();
-  if (check && !tn.isInteger() && !tn.isFullyAbstract())
+  Assert(n.getKind() == Kind::BITVECTOR_UBV_TO_INT
+         || n.getKind() == Kind::BITVECTOR_SBV_TO_INT);
+  if (check && !n[0].getTypeOrNull().isMaybeKind(Kind::BITVECTOR_TYPE))
   {
     if (errOut)
     {
-      (*errOut) << "expecting integer term";
+      (*errOut) << "expecting bit-vector term";
     }
     return TypeNode::null();
   }
-  return nodeManager->mkBitVectorType(bvSize);
+  return nodeManager->integerType();
 }
 
+TypeNode DistinctTypeRule::preComputeType(NodeManager* nm, CVC5_UNUSED TNode n)
+{
+  return nm->booleanType();
+}
+
+TypeNode DistinctTypeRule::computeType(NodeManager* nodeManager,
+                                       TNode n,
+                                       bool check,
+                                       std::ostream* errOut)
+{
+  if (check)
+  {
+    TNode::iterator child_it = n.begin();
+    TNode::iterator child_it_end = n.end();
+    TypeNode joinType = (*child_it).getTypeOrNull();
+    for (++child_it; child_it != child_it_end; ++child_it)
+    {
+      TypeNode currentType = (*child_it).getType();
+      joinType = joinType.leastUpperBound(currentType);
+      if (joinType.isNull())
+      {
+        if (errOut)
+        {
+          (*errOut) << "Not all arguments are of the same type";
+        }
+        return TypeNode::null();
+      }
+    }
+  }
+  return nodeManager->booleanType();
+}
 }  // namespace uf
 }  // namespace theory
 }  // namespace cvc5::internal

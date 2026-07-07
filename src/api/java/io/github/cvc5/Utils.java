@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mudathir Mohamed, Daniel Larraz, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,12 +24,117 @@ import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
-public class Utils
+/**
+ * A utility class containing static helper methods commonly used across the application.
+ * <p>
+ * This class is not meant to be instantiated. All methods are static and stateless.
+ */
+public final class Utils
 {
+  /**
+   * Represent the operating system types supported by cvc5.
+   *
+   * It includes logic to detect the current operating system at runtime.
+   */
+  public enum OS
+  {
+    /**
+     * Microsoft Windows operating system.
+     */
+    WINDOWS,
+    /**
+     * Apple macOS operating system.
+     */
+    OSX,
+    /**
+     * Linux-based operating system.
+     */
+    LINUX,
+    /**
+     * Unknown or unsupported operating system.
+     */
+    UNKNOWN;
+
+    /**
+     * The detected operating system on which the application is currently running.
+     */
+    public static final OS CURRENT = detectOS();
+
+    /**
+     * Detect the current operating system by examining the {@code os.name} system property.
+     *
+     * @return the {@link OS} enum constant that matches the current operating system,
+     *         or {@link #UNKNOWN} if it cannot be determined.
+     */
+    private static OS detectOS()
+    {
+      String osName = System.getProperty("os.name").toLowerCase(Locale.ROOT);
+      if (osName.startsWith("windows"))
+        return WINDOWS;
+      if (osName.startsWith("mac"))
+        return OSX;
+      if (osName.startsWith("linux"))
+        return LINUX;
+      return UNKNOWN;
+    }
+  }
+
+  /**
+   * Represent the CPU architecture supported by cvc5.
+   *
+   * It includes logic to detect the current CPU architecture at runtime.
+   */
+  public enum CPUArchitecture
+  {
+    /**
+     * ARMv8 64 bit.
+     */
+    AARCH_64,
+    /**
+     * Intel x86_64/AMD 64 bit.
+     */
+    X86_64,
+    /**
+     * Unknown or unsupported CPU architecture.
+     */
+    UNKNOWN;
+
+    /**
+     * The detected CPU architecture on which the application is currently running.
+     */
+    public static final CPUArchitecture CURRENT = detectCPUArchitecture();
+
+    /**
+     * Detect the current CPU architecture by examining the {@code os.arch} system property.
+     *
+     * @return the {@link CPUArchitecture} enum constant that matches the current CPU architecture,
+     *         or {@link #UNKNOWN} if it cannot be determined.
+     */
+    private static CPUArchitecture detectCPUArchitecture()
+    {
+      String osArch = System.getProperty("os.arch").toLowerCase(Locale.ROOT);
+      switch (osArch)
+      {
+        case "aarch64": return AARCH_64;
+        case "amd64":
+        case "x86_64": return X86_64;
+        default: return UNKNOWN;
+      }
+    }
+  }
+
+  /**
+   * The base path inside the JAR where native libraries are stored.
+   */
   public static final String LIBPATH_IN_JAR = "/cvc5-libs";
 
+  /**
+   * Flag indicating whether the native cvc5 libraries have already been loaded.
+   */
   private static boolean areLibrariesLoaded = false;
 
   static
@@ -41,53 +143,20 @@ public class Utils
   }
 
   /**
-   * Reads a text file from the specified path within the JAR file and returns a list of library
-   * filenames.
-   * @param pathInJar The path to the text file inside the JAR
-   * @return a list of filenames read from the file
-   * @throws FileNotFoundException If the text file does not exist
-   * @throws IOException If an I/O error occurs
+   * Private constructor to prevent instantiation of this utility class.
    */
-  public static List<String> readLibraryFilenames(String pathInJar)
-      throws FileNotFoundException, IOException
-  {
-    List<String> filenames = new ArrayList<>();
-
-    // Load the input stream from the resource path within the JAR
-    try (InputStream inputStream = Utils.class.getResourceAsStream(pathInJar))
-    {
-      // Check if the input stream is null (resource not found)
-      if (inputStream == null)
-      {
-        throw new FileNotFoundException("Resource not found: " + pathInJar);
-      }
-
-      try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream)))
-      {
-        String line;
-        // Read each line from the file and add it to the list
-        while ((line = reader.readLine()) != null)
-        {
-          filenames.add(line);
-        }
-      }
-    }
-
-    return filenames;
-  }
+  private Utils() {}
 
   /**
-   * Transfers all bytes from the provided {@link InputStream} to the specified {@link
-   * FileOutputStream}.
+   * Transfer all bytes from the provided {@link InputStream} to the specified
+   * {@link FileOutputStream}.
    *
-   * <p>Note: This method replicates the functionality of {@link
-   * InputStream#transferTo(OutputStream)}, which was introduced in Java 9 (currently, the minimum
-   * required Java version is 1.8)</p>
+   * <p>Note: This method replicates the functionality of InputStream#transferTo(OutputStream),
+   * which was introduced in Java 9 (currently, the minimum required Java version is 1.8)</p>
    *
    * @param inputStream The input stream from which data is read
    * @param outputStream The output stream to which data is written
    * @throws IOException If an I/O error occurs during reading or writing
-   * @see InputStream#transferTo(OutputStream)
    */
   public static void transferTo(InputStream inputStream, FileOutputStream outputStream)
       throws IOException
@@ -101,15 +170,16 @@ public class Utils
   }
 
   /**
-   * Loads a native library from a specified path within a JAR file and loads it into the JVM.
+   * Load a native library from a specified path within a JAR file and loads it into the JVM.
    *
+   * @param tempDir The temporary directory where the extracted native library will be written.
    * @param path The path inside the JAR where the library is located (e.g., "/cvc5-libs").
    * @param filename The name of the library file (e.g., "libcvc5.so").
    * @throws FileNotFoundException If the library cannot be found
    * @throws Exception If an I/O error occurs or the library cannot be loaded
    */
   public static void loadLibraryFromJar(Path tempDir, String path, String filename)
-    throws FileNotFoundException, Exception
+      throws FileNotFoundException, Exception
   {
     String pathInJar = path + "/" + filename;
     // Extract the library from the JAR
@@ -149,17 +219,24 @@ public class Utils
     {
       try
       {
-        // Try to extract the libraries from a JAR in the classpath
-        List<String> filenames = readLibraryFilenames(LIBPATH_IN_JAR + "/filenames.txt");
+        String filename;
+        switch (OS.CURRENT)
+        {
+          case WINDOWS: filename = "cvc5jni.dll"; break;
+          case OSX: filename = "libcvc5jni.dylib"; break;
+          default:
+            // We assume it is Linux or a Unix-based system.
+            // If not, there's nothing more we can do anyway.
+            filename = "libcvc5jni.so";
+        }
 
+        String subdir = "/" + OS.CURRENT.name() + "/" + CPUArchitecture.CURRENT.name();
+        subdir = subdir.toLowerCase(Locale.ROOT);
         // Create a temporary directory to store the libraries
         Path tempDir = Files.createTempDirectory("cvc5-libs");
         tempDir.toFile().deleteOnExit(); // Mark the directory for deletion on exit
 
-        for (String filename : filenames)
-        {
-          loadLibraryFromJar(tempDir, LIBPATH_IN_JAR, filename);
-        }
+        loadLibraryFromJar(tempDir, LIBPATH_IN_JAR + subdir, filename);
       }
       catch (Exception ex)
       {
@@ -177,6 +254,8 @@ public class Utils
   }
 
   /**
+   * Construct an array of {@link Sort} objects from an array of native pointers.
+   *
    * @return Sorts array from array of Sort pointers.
    * @param pointers The array of pointers.
    */
@@ -191,6 +270,8 @@ public class Utils
   }
 
   /**
+   * Construct an array of {@link Term} objects from an array of native pointers.
+   *
    * @return Terms array from array of Term pointers.
    * @param pointers The array of pointers.
    */
@@ -205,7 +286,9 @@ public class Utils
   }
 
   /**
-   * @return proofs array from array of pointers
+   * Construct an array of {@link Proof} objects from an array of native pointers.
+   *
+   * @return proofs array from array of Proof pointers
    * @param pointers The array of pointers.
    */
   public static Proof[] getProofs(long[] pointers)
@@ -219,6 +302,8 @@ public class Utils
   }
 
   /**
+   * Extract native pointer values from a one-dimensional array of {@link IPointer} objects.
+   *
    * @return Pointers from one dimensional array.
    * @param objects The one dimensional array of pointers.
    */
@@ -233,6 +318,8 @@ public class Utils
   }
 
   /**
+   * Extract native pointer values from a two-dimensional matrix of {@link IPointer} objects.
+   *
    * @return Pointers from two dimensional matrix.
    * @param objects The two dimensional array of pointers.
    */
@@ -250,6 +337,13 @@ public class Utils
     return pointers;
   }
 
+  /**
+   * Validate that the specified integer is non-negative (unsigned).
+   *
+   * @param integer The integer value to validate
+   * @param name A name to use in the exception message for identification
+   * @throws CVC5ApiException if the value is negative
+   */
   public static void validateUnsigned(int integer, String name) throws CVC5ApiException
   {
     if (integer < 0)
@@ -258,6 +352,13 @@ public class Utils
     }
   }
 
+  /**
+   * Validate that the specified long integer is non-negative (unsigned).
+   *
+   * @param integer The long value to validate
+   * @param name A name to use in the exception message for identification
+   * @throws CVC5ApiException if the value is negative
+   */
   public static void validateUnsigned(long integer, String name) throws CVC5ApiException
   {
     if (integer < 0)
@@ -266,6 +367,13 @@ public class Utils
     }
   }
 
+  /**
+   * Validate that all elements in the given array are non-negative (unsigned).
+   *
+   * @param integers The array of integers to validate
+   * @param name A name to use in the exception message for identification
+   * @throws CVC5ApiException if any element in the array is negative
+   */
   public static void validateUnsigned(int[] integers, String name) throws CVC5ApiException
   {
     for (int i = 0; i < integers.length; i++)
@@ -278,6 +386,13 @@ public class Utils
     }
   }
 
+  /**
+   * Validate that all elements in the given array are non-negative (unsigned).
+   *
+   * @param integers The array of long integers to validate
+   * @param name A name to use in the exception message for identification
+   * @throws CVC5ApiException if any element in the array is negative
+   */
   public static void validateUnsigned(long[] integers, String name) throws CVC5ApiException
   {
     for (int i = 0; i < integers.length; i++)
@@ -290,6 +405,17 @@ public class Utils
     }
   }
 
+  /**
+   * Convert an array of {@code Pair} objects, where the second element extends {@link
+   * AbstractPointer}, into an array of {@code Pair} objects with the second element as a {@code
+   * Long} representing the native pointer.
+   *
+   * @param <K> The type of the first element in the pairs.
+   * @param abstractPointers The input array of pairs with {@code AbstractPointer} as the second
+   *     element.
+   * @return An array of pairs where the second element is the native pointer value as a {@code
+   *     Long}.
+   */
   @SuppressWarnings("unchecked")
   public static <K> Pair<K, Long>[] getPairs(Pair<K, ? extends AbstractPointer>[] abstractPointers)
   {

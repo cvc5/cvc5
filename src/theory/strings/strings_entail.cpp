@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -121,7 +118,7 @@ bool StringsEntail::stripSymbolicLength(std::vector<Node>& n1,
 {
   Assert(dir == 1 || dir == -1);
   Assert(nr.empty());
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = curr.getNodeManager();
   Node zero = nm->mkConstInt(cvc5::internal::Rational(0));
   bool ret = false;
   bool success = true;
@@ -598,7 +595,9 @@ bool StringsEntail::stripConstantEndpoints(std::vector<Node>& n1,
         {
           // inconclusive
         }
-        Trace("strings-rewrite-debug2") << "rem = " << removeComponent << ", overlap = " << overlap << std::endl;
+        Trace("strings-rewrite-debug2")
+            << "rem = " << removeComponent << ", overlap = " << overlap
+            << std::endl;
         // process the overlap
         if (overlap < slen)
         {
@@ -741,7 +740,7 @@ bool StringsEntail::checkLengthOne(Node s, bool strict)
     size_t len = Word::getLength(s);
     return strict ? (len == 1) : (len <= 1);
   }
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = s.getNodeManager();
   Node one = nm->mkConstInt(Rational(1));
   Node len = nm->mkNode(Kind::STRING_LENGTH, s);
   len = d_arithEntail.rewriteArith(len);
@@ -871,7 +870,7 @@ Node StringsEntail::checkHomogeneousString(Node a)
 
 Node StringsEntail::getMultisetApproximation(Node a)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = a.getNodeManager();
   while (a.getKind() == Kind::STRING_SUBSTR)
   {
     a = a[0];
@@ -944,9 +943,9 @@ Node StringsEntail::getStringOrEmpty(Node n)
 
 Node StringsEntail::inferEqsFromContains(Node x, Node y)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = x.getNodeManager();
   Node emp = Word::mkEmptyWord(x.getType());
-  Assert(x.getType() == y.getType());
+  AssertEqual(x.getType(), y.getType());
   TypeNode stype = x.getType();
 
   Node xLen = nm->mkNode(Kind::STRING_LENGTH, x);
@@ -1034,7 +1033,7 @@ Node StringsEntail::rewriteViaMacroSubstrStripSymLength(const Node& node,
                                                         std::vector<Node>& ch2)
 {
   Assert(node.getKind() == Kind::STRING_SUBSTR);
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = node.getNodeManager();
   utils::getConcat(node[0], ch1);
   TypeNode stype = node[0].getType();
   Node zero = nm->mkConstInt(Rational(0));

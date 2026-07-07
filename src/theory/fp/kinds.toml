@@ -1,0 +1,487 @@
+# kinds.toml
+#
+# For documentation on this file format, please refer to
+# src/theory/builtin/kinds.toml.
+#
+
+[theory]
+id                 = "THEORY_FP"
+base_class         = "::cvc5::internal::theory::fp::TheoryFp"
+base_class_header  = "theory/fp/theory_fp.h"
+properties         = ["check"]
+typechecker_header = "theory/fp/theory_fp_type_rules.h"
+
+[rewriter]
+class  = "::cvc5::internal::theory::fp::TheoryFpRewriter"
+header = "theory/fp/theory_fp_rewriter.h"
+
+# Theory content goes here.
+
+# constants...
+[[kinds]]
+type      = "constant"
+name      = "CONST_FLOATINGPOINT"
+class_key = "class"
+cpp_type  = "FloatingPoint"
+hasher    = "::cvc5::internal::FloatingPointHashFunction"
+header    = "util/floatingpoint.h"
+comment   = "a floating-point literal"
+typerule  = "::cvc5::internal::theory::fp::FloatingPointConstantTypeRule"
+
+[[kinds]]
+type      = "constant"
+name      = "CONST_ROUNDINGMODE"
+class_key = "enum class"
+cpp_type  = "RoundingMode"
+hasher    = "::cvc5::internal::RoundingModeHashFunction"
+header    = "util/roundingmode.h"
+comment   = "a floating-point rounding mode"
+typerule  = "::cvc5::internal::theory::fp::RoundingModeConstantTypeRule"
+
+# types...
+
+[[kinds]]
+type = "sort"
+name                     = "ROUNDINGMODE_TYPE"
+cardinality              = 5
+well_founded             = true
+ground-term              = "nm->mkConst<RoundingMode>(RoundingMode())"
+header                   = "expr/node_manager.h"
+comment                  = "floating-point rounding mode"
+[kinds.enumerator]
+class  = "::cvc5::internal::theory::fp::RoundingModeEnumerator"
+header = "theory/fp/type_enumerator.h"
+
+[[kinds]]
+type      = "constant"
+name      = "FLOATINGPOINT_TYPE"
+class_key = "class"
+cpp_type  = "FloatingPointSize"
+hasher    = "::cvc5::internal::FloatingPointSizeHashFunction"
+header    = "util/floatingpoint.h"
+comment   = "floating-point type"
+[kinds.cardinality]
+computer = "::cvc5::internal::theory::fp::CardinalityComputer::computeCardinality(%TYPE%)"
+header   = "theory/fp/theory_fp_type_rules.h"
+[kinds.enumerator]
+class  = "::cvc5::internal::theory::fp::FloatingPointEnumerator"
+header = "theory/fp/type_enumerator.h"
+[kinds.well-founded]
+wellfoundedness-computer = true
+ground-term-computer     = "(*cvc5::internal::theory::TypeEnumerator(%TYPE%))"
+header                   = "theory/type_enumerator.h"
+
+# operators...
+[[kinds]]
+type     = "operator"
+name     = "FLOATINGPOINT_FP"
+children = 3
+comment  = "construct a floating-point literal from bit vectors"
+typerule = "::cvc5::internal::theory::fp::FloatingPointFPTypeRule"
+
+[[kinds]]
+type     = "operator"
+name     = "FLOATINGPOINT_EQ"
+children = "2:"
+comment  = "floating-point equality"
+typerule = "::cvc5::internal::theory::fp::FloatingPointTestTypeRule"
+
+[[kinds]]
+type     = "operator"
+name     = "FLOATINGPOINT_ABS"
+children = 1
+comment  = "floating-point absolute value"
+typerule = "::cvc5::internal::theory::fp::FloatingPointOperationTypeRule"
+
+[[kinds]]
+type     = "operator"
+name     = "FLOATINGPOINT_NEG"
+children = 1
+comment  = "floating-point negation"
+typerule = "::cvc5::internal::theory::fp::FloatingPointOperationTypeRule"
+
+[[kinds]]
+type     = "operator"
+name     = "FLOATINGPOINT_ADD"
+children = 3
+comment  = "floating-point addition"
+typerule = "::cvc5::internal::theory::fp::FloatingPointRoundingOperationTypeRule"
+
+[[kinds]]
+type     = "operator"
+name     = "FLOATINGPOINT_SUB"
+children = 3
+comment  = "floating-point sutraction"
+typerule = "::cvc5::internal::theory::fp::FloatingPointRoundingOperationTypeRule"
+
+[[kinds]]
+type     = "operator"
+name     = "FLOATINGPOINT_MULT"
+children = 3
+comment  = "floating-point multiply"
+typerule = "::cvc5::internal::theory::fp::FloatingPointRoundingOperationTypeRule"
+
+[[kinds]]
+type     = "operator"
+name     = "FLOATINGPOINT_DIV"
+children = 3
+comment  = "floating-point division"
+typerule = "::cvc5::internal::theory::fp::FloatingPointRoundingOperationTypeRule"
+
+[[kinds]]
+type     = "operator"
+name     = "FLOATINGPOINT_FMA"
+children = 4
+comment  = "floating-point fused multiply and add"
+typerule = "::cvc5::internal::theory::fp::FloatingPointRoundingOperationTypeRule"
+
+[[kinds]]
+type     = "operator"
+name     = "FLOATINGPOINT_SQRT"
+children = 2
+comment  = "floating-point square root"
+typerule = "::cvc5::internal::theory::fp::FloatingPointRoundingOperationTypeRule"
+
+[[kinds]]
+type     = "operator"
+name     = "FLOATINGPOINT_REM"
+children = 2
+comment  = "floating-point remainder"
+typerule = "::cvc5::internal::theory::fp::FloatingPointOperationTypeRule"
+
+[[kinds]]
+type     = "operator"
+name     = "FLOATINGPOINT_RTI"
+children = 2
+comment  = "floating-point round to integral"
+typerule = "::cvc5::internal::theory::fp::FloatingPointRoundingOperationTypeRule"
+
+[[kinds]]
+type     = "operator"
+name     = "FLOATINGPOINT_MIN"
+children = 2
+comment  = "floating-point minimum"
+typerule = "::cvc5::internal::theory::fp::FloatingPointOperationTypeRule"
+
+[[kinds]]
+type     = "operator"
+name     = "FLOATINGPOINT_MAX"
+children = 2
+comment  = "floating-point maximum"
+typerule = "::cvc5::internal::theory::fp::FloatingPointOperationTypeRule"
+
+[[kinds]]
+type     = "operator"
+name     = "FLOATINGPOINT_MIN_TOTAL"
+children = 3
+comment  = "floating-point minimum (defined for all inputs)"
+typerule = "::cvc5::internal::theory::fp::FloatingPointPartialOperationTypeRule"
+
+[[kinds]]
+type     = "operator"
+name     = "FLOATINGPOINT_MAX_TOTAL"
+children = 3
+comment  = "floating-point maximum (defined for all inputs)"
+typerule = "::cvc5::internal::theory::fp::FloatingPointPartialOperationTypeRule"
+
+[[kinds]]
+type     = "operator"
+name     = "FLOATINGPOINT_LEQ"
+children = "2:"
+comment  = "floating-point less than or equal"
+typerule = "::cvc5::internal::theory::fp::FloatingPointTestTypeRule"
+
+[[kinds]]
+type     = "operator"
+name     = "FLOATINGPOINT_LT"
+children = "2:"
+comment  = "floating-point less than"
+typerule = "::cvc5::internal::theory::fp::FloatingPointTestTypeRule"
+
+[[kinds]]
+type     = "operator"
+name     = "FLOATINGPOINT_GEQ"
+children = "2:"
+comment  = "floating-point greater than or equal"
+typerule = "::cvc5::internal::theory::fp::FloatingPointTestTypeRule"
+
+[[kinds]]
+type     = "operator"
+name     = "FLOATINGPOINT_GT"
+children = "2:"
+comment  = "floating-point greater than"
+typerule = "::cvc5::internal::theory::fp::FloatingPointTestTypeRule"
+
+[[kinds]]
+type     = "operator"
+name     = "FLOATINGPOINT_IS_NORMAL"
+children = 1
+comment  = "floating-point is normal"
+typerule = "::cvc5::internal::theory::fp::FloatingPointTestTypeRule"
+
+[[kinds]]
+type     = "operator"
+name     = "FLOATINGPOINT_IS_SUBNORMAL"
+children = 1
+comment  = "floating-point is sub-normal"
+typerule = "::cvc5::internal::theory::fp::FloatingPointTestTypeRule"
+
+[[kinds]]
+type     = "operator"
+name     = "FLOATINGPOINT_IS_ZERO"
+children = 1
+comment  = "floating-point is zero"
+typerule = "::cvc5::internal::theory::fp::FloatingPointTestTypeRule"
+
+[[kinds]]
+type     = "operator"
+name     = "FLOATINGPOINT_IS_INF"
+children = 1
+comment  = "floating-point is infinite"
+typerule = "::cvc5::internal::theory::fp::FloatingPointTestTypeRule"
+
+[[kinds]]
+type     = "operator"
+name     = "FLOATINGPOINT_IS_NAN"
+children = 1
+comment  = "floating-point is NaN"
+typerule = "::cvc5::internal::theory::fp::FloatingPointTestTypeRule"
+
+[[kinds]]
+type     = "operator"
+name     = "FLOATINGPOINT_IS_NEG"
+children = 1
+comment  = "floating-point is negative"
+typerule = "::cvc5::internal::theory::fp::FloatingPointTestTypeRule"
+
+[[kinds]]
+type     = "operator"
+name     = "FLOATINGPOINT_IS_POS"
+children = 1
+comment  = "floating-point is positive"
+typerule = "::cvc5::internal::theory::fp::FloatingPointTestTypeRule"
+
+[[kinds]]
+type      = "constant"
+name      = "FLOATINGPOINT_TO_FP_FROM_IEEE_BV_OP"
+class_key = "class"
+cpp_type  = "FloatingPointToFPIEEEBitVector"
+hasher    = "::cvc5::internal::FloatingPointConvertSortHashFunction<0x1>"
+header    = "util/floatingpoint.h"
+comment   = "operator for to_fp from bit vector"
+typerule  = "SimpleTypeRule<RBuiltinOperator>"
+
+[[kinds]]
+type     = "parameterized"
+K1       = "FLOATINGPOINT_TO_FP_FROM_IEEE_BV"
+K2       = "FLOATINGPOINT_TO_FP_FROM_IEEE_BV_OP"
+children = 1
+comment  = "convert an IEEE-754 bit vector to floating-point"
+typerule = "::cvc5::internal::theory::fp::FloatingPointToFPIEEEBitVectorTypeRule"
+
+[[kinds]]
+type      = "constant"
+name      = "FLOATINGPOINT_TO_FP_FROM_FP_OP"
+class_key = "class"
+cpp_type  = "FloatingPointToFPFloatingPoint"
+hasher    = "::cvc5::internal::FloatingPointConvertSortHashFunction<0x2>"
+header    = "util/floatingpoint.h"
+comment   = "operator for to_fp from floating point"
+typerule  = "SimpleTypeRule<RBuiltinOperator>"
+
+[[kinds]]
+type     = "parameterized"
+K1       = "FLOATINGPOINT_TO_FP_FROM_FP"
+K2       = "FLOATINGPOINT_TO_FP_FROM_FP_OP"
+children = 2
+comment  = "convert between floating-point sorts"
+typerule = "::cvc5::internal::theory::fp::FloatingPointToFPFloatingPointTypeRule"
+
+[[kinds]]
+type      = "constant"
+name      = "FLOATINGPOINT_TO_FP_FROM_REAL_OP"
+class_key = "class"
+cpp_type  = "FloatingPointToFPReal"
+hasher    = "::cvc5::internal::FloatingPointConvertSortHashFunction<0x4>"
+header    = "util/floatingpoint.h"
+comment   = "operator for to_fp from real"
+typerule  = "SimpleTypeRule<RBuiltinOperator>"
+
+[[kinds]]
+type     = "parameterized"
+K1       = "FLOATINGPOINT_TO_FP_FROM_REAL"
+K2       = "FLOATINGPOINT_TO_FP_FROM_REAL_OP"
+children = 2
+comment  = "convert a real to floating-point"
+typerule = "::cvc5::internal::theory::fp::FloatingPointToFPRealTypeRule"
+
+[[kinds]]
+type      = "constant"
+name      = "FLOATINGPOINT_TO_FP_FROM_SBV_OP"
+class_key = "class"
+cpp_type  = "FloatingPointToFPSignedBitVector"
+hasher    = "::cvc5::internal::FloatingPointConvertSortHashFunction<0x8>"
+header    = "util/floatingpoint.h"
+comment   = "operator for to_fp from signed bit vector"
+typerule  = "SimpleTypeRule<RBuiltinOperator>"
+
+[[kinds]]
+type     = "parameterized"
+K1       = "FLOATINGPOINT_TO_FP_FROM_SBV"
+K2       = "FLOATINGPOINT_TO_FP_FROM_SBV_OP"
+children = 2
+comment  = "convert a signed bit vector to floating-point"
+typerule = "::cvc5::internal::theory::fp::FloatingPointToFPSignedBitVectorTypeRule"
+
+[[kinds]]
+type      = "constant"
+name      = "FLOATINGPOINT_TO_FP_FROM_UBV_OP"
+class_key = "class"
+cpp_type  = "FloatingPointToFPUnsignedBitVector"
+hasher    = "::cvc5::internal::FloatingPointConvertSortHashFunction<0x10>"
+header    = "util/floatingpoint.h"
+comment   = "operator for to_fp from unsigned bit vector"
+typerule  = "SimpleTypeRule<RBuiltinOperator>"
+
+[[kinds]]
+type     = "parameterized"
+K1       = "FLOATINGPOINT_TO_FP_FROM_UBV"
+K2       = "FLOATINGPOINT_TO_FP_FROM_UBV_OP"
+children = 2
+comment  = "convert an unsigned bit vector to floating-point"
+typerule = "::cvc5::internal::theory::fp::FloatingPointToFPUnsignedBitVectorTypeRule"
+
+[[kinds]]
+type      = "constant"
+name      = "FLOATINGPOINT_TO_UBV_OP"
+class_key = "class"
+cpp_type  = "FloatingPointToUBV"
+hasher    = "::cvc5::internal::FloatingPointToBVHashFunction<0x1>"
+header    = "util/floatingpoint.h"
+comment   = "operator for to_ubv"
+typerule  = "SimpleTypeRule<RBuiltinOperator>"
+
+[[kinds]]
+type     = "parameterized"
+K1       = "FLOATINGPOINT_TO_UBV"
+K2       = "FLOATINGPOINT_TO_UBV_OP"
+children = 2
+comment  = "convert a floating-point value to an unsigned bit vector"
+typerule = "::cvc5::internal::theory::fp::FloatingPointToUBVTypeRule"
+
+[[kinds]]
+type      = "constant"
+name      = "FLOATINGPOINT_TO_UBV_TOTAL_OP"
+class_key = "class"
+cpp_type  = "FloatingPointToUBVTotal"
+hasher    = "::cvc5::internal::FloatingPointToBVHashFunction<0x4>"
+header    = "util/floatingpoint.h"
+comment   = "operator for to_ubv_total"
+typerule  = "SimpleTypeRule<RBuiltinOperator>"
+
+[[kinds]]
+type     = "parameterized"
+K1       = "FLOATINGPOINT_TO_UBV_TOTAL"
+K2       = "FLOATINGPOINT_TO_UBV_TOTAL_OP"
+children = 3
+comment  = "convert a floating-point value to an unsigned bit vector (defined for all inputs)"
+typerule = "::cvc5::internal::theory::fp::FloatingPointToUBVTotalTypeRule"
+
+[[kinds]]
+type      = "constant"
+name      = "FLOATINGPOINT_TO_SBV_OP"
+class_key = "class"
+cpp_type  = "FloatingPointToSBV"
+hasher    = "::cvc5::internal::FloatingPointToBVHashFunction<0x2>"
+header    = "util/floatingpoint.h"
+comment   = "operator for to_sbv"
+typerule  = "SimpleTypeRule<RBuiltinOperator>"
+
+[[kinds]]
+type     = "parameterized"
+K1       = "FLOATINGPOINT_TO_SBV"
+K2       = "FLOATINGPOINT_TO_SBV_OP"
+children = 2
+comment  = "convert a floating-point value to a signed bit vector"
+typerule = "::cvc5::internal::theory::fp::FloatingPointToSBVTypeRule"
+
+[[kinds]]
+type      = "constant"
+name      = "FLOATINGPOINT_TO_SBV_TOTAL_OP"
+class_key = "class"
+cpp_type  = "FloatingPointToSBVTotal"
+hasher    = "::cvc5::internal::FloatingPointToBVHashFunction<0x8>"
+header    = "util/floatingpoint.h"
+comment   = "operator for to_sbv_total"
+typerule  = "SimpleTypeRule<RBuiltinOperator>"
+
+[[kinds]]
+type     = "parameterized"
+K1       = "FLOATINGPOINT_TO_SBV_TOTAL"
+K2       = "FLOATINGPOINT_TO_SBV_TOTAL_OP"
+children = 3
+comment  = "convert a floating-point value to a signed bit vector (defined for all inputs)"
+typerule = "::cvc5::internal::theory::fp::FloatingPointToSBVTotalTypeRule"
+
+[[kinds]]
+type     = "operator"
+name     = "FLOATINGPOINT_TO_REAL"
+children = 1
+comment  = "floating-point to real"
+typerule = "::cvc5::internal::theory::fp::FloatingPointToRealTypeRule"
+
+[[kinds]]
+type     = "operator"
+name     = "FLOATINGPOINT_TO_REAL_TOTAL"
+children = 2
+comment  = "floating-point to real (defined for all inputs)"
+typerule = "::cvc5::internal::theory::fp::FloatingPointToRealTotalTypeRule"
+
+[[kinds]]
+type     = "operator"
+name     = "FLOATINGPOINT_COMPONENT_NAN"
+children = 1
+comment  = "NaN component of a word-blasted floating-point number"
+typerule = "::cvc5::internal::theory::fp::FloatingPointComponentBit"
+
+[[kinds]]
+type     = "operator"
+name     = "FLOATINGPOINT_COMPONENT_INF"
+children = 1
+comment  = "Inf component of a word-blasted floating-point number"
+typerule = "::cvc5::internal::theory::fp::FloatingPointComponentBit"
+
+[[kinds]]
+type     = "operator"
+name     = "FLOATINGPOINT_COMPONENT_ZERO"
+children = 1
+comment  = "Zero component of a word-blasted floating-point number"
+typerule = "::cvc5::internal::theory::fp::FloatingPointComponentBit"
+
+[[kinds]]
+type     = "operator"
+name     = "FLOATINGPOINT_COMPONENT_SIGN"
+children = 1
+comment  = "Sign component of a word-blasted floating-point number"
+typerule = "::cvc5::internal::theory::fp::FloatingPointComponentBit"
+
+[[kinds]]
+type     = "operator"
+name     = "FLOATINGPOINT_COMPONENT_EXPONENT"
+children = 1
+comment  = "Exponent component of a word-blasted floating-point number"
+typerule = "::cvc5::internal::theory::fp::FloatingPointComponentExponent"
+
+[[kinds]]
+type     = "operator"
+name     = "FLOATINGPOINT_COMPONENT_SIGNIFICAND"
+children = 1
+comment  = "Significand component of a word-blasted floating-point number"
+typerule = "::cvc5::internal::theory::fp::FloatingPointComponentSignificand"
+
+[[kinds]]
+type     = "operator"
+name     = "ROUNDINGMODE_BITBLAST"
+children = 1
+comment  = "The bit-vector for a non-deterministic rounding mode"
+typerule = "::cvc5::internal::theory::fp::RoundingModeBitBlast"

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Martin Brain, Aina Niemetz, Daniel Larraz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -40,78 +37,78 @@
 namespace symfpu {
 using namespace cvc5::internal::theory::fp::symfpuSymbolic;
 
-#define CVC5_SYM_ITE_DFN(T)                                                  \
-  template <>                                                                \
-  struct ite<symbolicProposition, T>                                         \
-  {                                                                          \
-    static const T iteOp(const symbolicProposition& _cond,                   \
-                         const T& _l,                                        \
-                         const T& _r)                                        \
-    {                                                                        \
-      cvc5::internal::NodeManager* nm = _cond.getNodeManager();              \
-                                                                             \
-      cvc5::internal::Node cond = _cond;                                     \
-      cvc5::internal::Node l = _l;                                           \
-      cvc5::internal::Node r = _r;                                           \
-                                                                             \
-      /* Handle some common symfpu idioms */                                 \
-      if (cond.isConst())                                                    \
-      {                                                                      \
-        return (cond == nm->mkConst(cvc5::internal::BitVector(1U, 1U))) ? l  \
-                                                                        : r; \
-      }                                                                      \
-      else                                                                   \
-      {                                                                      \
-        if (l.getKind() == cvc5::internal::Kind::BITVECTOR_ITE)              \
-        {                                                                    \
-          if (l[1] == r)                                                     \
-          {                                                                  \
-            return nm->mkNode(                                               \
-                cvc5::internal::Kind::BITVECTOR_ITE,                         \
-                nm->mkNode(                                                  \
-                    cvc5::internal::Kind::BITVECTOR_AND,                     \
-                    cond,                                                    \
-                    nm->mkNode(cvc5::internal::Kind::BITVECTOR_NOT, l[0])),  \
-                l[2],                                                        \
-                r);                                                          \
-          }                                                                  \
-          else if (l[2] == r)                                                \
-          {                                                                  \
-            return nm->mkNode(                                               \
-                cvc5::internal::Kind::BITVECTOR_ITE,                         \
-                nm->mkNode(cvc5::internal::Kind::BITVECTOR_AND, cond, l[0]), \
-                l[1],                                                        \
-                r);                                                          \
-          }                                                                  \
-        }                                                                    \
-        else if (r.getKind() == cvc5::internal::Kind::BITVECTOR_ITE)         \
-        {                                                                    \
-          if (r[1] == l)                                                     \
-          {                                                                  \
-            return nm->mkNode(                                               \
-                cvc5::internal::Kind::BITVECTOR_ITE,                         \
-                nm->mkNode(                                                  \
-                    cvc5::internal::Kind::BITVECTOR_AND,                     \
-                    nm->mkNode(cvc5::internal::Kind::BITVECTOR_NOT, cond),   \
-                    nm->mkNode(cvc5::internal::Kind::BITVECTOR_NOT, r[0])),  \
-                r[2],                                                        \
-                l);                                                          \
-          }                                                                  \
-          else if (r[2] == l)                                                \
-          {                                                                  \
-            return nm->mkNode(                                               \
-                cvc5::internal::Kind::BITVECTOR_ITE,                         \
-                nm->mkNode(                                                  \
-                    cvc5::internal::Kind::BITVECTOR_AND,                     \
-                    nm->mkNode(cvc5::internal::Kind::BITVECTOR_NOT, cond),   \
-                    r[0]),                                                   \
-                r[1],                                                        \
-                l);                                                          \
-          }                                                                  \
-        }                                                                    \
-      }                                                                      \
-      return T(nm->mkNode(cvc5::internal::Kind::BITVECTOR_ITE, cond, l, r)); \
-    }                                                                        \
+#define CVC5_SYM_ITE_DFN(T)                                                   \
+  template <>                                                                 \
+  struct ite<symbolicProposition, T>                                          \
+  {                                                                           \
+    static const T iteOp(const symbolicProposition& _cond,                    \
+                         const T& _l,                                         \
+                         const T& _r)                                         \
+    {                                                                         \
+      cvc5::internal::NodeManager* nm = _cond.getNodeManager();               \
+                                                                              \
+      cvc5::internal::Node cond = _cond;                                      \
+      cvc5::internal::Node l = _l;                                            \
+      cvc5::internal::Node r = _r;                                            \
+                                                                              \
+      /* Handle some common symfpu idioms */                                  \
+      if (cond.isConst())                                                     \
+      {                                                                       \
+        return (cond == nm->mkConst(cvc5::internal::BitVector(1U, 1U))) ? l   \
+                                                                        : r;  \
+      }                                                                       \
+      else                                                                    \
+      {                                                                       \
+        if (l.getKind() == cvc5::internal::Kind::BITVECTOR_ITE)               \
+        {                                                                     \
+          if (l[1] == r)                                                      \
+          {                                                                   \
+            return nm->mkNode(                                                \
+                cvc5::internal::Kind::BITVECTOR_ITE,                          \
+                nm->mkNode(                                                   \
+                    cvc5::internal::Kind::BITVECTOR_AND,                      \
+                    cond,                                                     \
+                    nm->mkNode(cvc5::internal::Kind::BITVECTOR_NOT, l[0])),   \
+                l[2],                                                         \
+                r);                                                           \
+          }                                                                   \
+          else if (l[2] == r)                                                 \
+          {                                                                   \
+            return nm->mkNode(                                                \
+                cvc5::internal::Kind::BITVECTOR_ITE,                          \
+                nm->mkNode(cvc5::internal::Kind::BITVECTOR_AND, cond, l[0]),  \
+                l[1],                                                         \
+                r);                                                           \
+          }                                                                   \
+        }                                                                     \
+        else if (r.getKind() == cvc5::internal::Kind::BITVECTOR_ITE)          \
+        {                                                                     \
+          if (r[1] == l)                                                      \
+          {                                                                   \
+            return nm->mkNode(                                                \
+                cvc5::internal::Kind::BITVECTOR_ITE,                          \
+                nm->mkNode(                                                   \
+                    cvc5::internal::Kind::BITVECTOR_AND,                      \
+                    {nm->mkNode(cvc5::internal::Kind::BITVECTOR_NOT, cond),   \
+                     nm->mkNode(cvc5::internal::Kind::BITVECTOR_NOT, r[0])}), \
+                r[2],                                                         \
+                l);                                                           \
+          }                                                                   \
+          else if (r[2] == l)                                                 \
+          {                                                                   \
+            return nm->mkNode(                                                \
+                cvc5::internal::Kind::BITVECTOR_ITE,                          \
+                nm->mkNode(                                                   \
+                    cvc5::internal::Kind::BITVECTOR_AND,                      \
+                    nm->mkNode(cvc5::internal::Kind::BITVECTOR_NOT, cond),    \
+                    r[0]),                                                    \
+                r[1],                                                         \
+                l);                                                           \
+          }                                                                   \
+        }                                                                     \
+      }                                                                       \
+      return T(nm->mkNode(cvc5::internal::Kind::BITVECTOR_ITE, cond, l, r));  \
+    }                                                                         \
   }
 
 // Can (unsurprisingly) only ITE things which contain Nodes
@@ -121,6 +118,23 @@ CVC5_SYM_ITE_DFN(traits::sbv);
 CVC5_SYM_ITE_DFN(traits::ubv);
 
 #undef CVC5_SYM_ITE_DFN
+
+#define CVC5_SYM_ITE_BOOL_DFN(T)                                   \
+  template <>                                                      \
+  struct ite<bool, T>                                              \
+  {                                                                \
+    static const T iteOp(const bool& cond, const T& l, const T& r) \
+    {                                                              \
+      return cond ? l : r;                                         \
+    }                                                              \
+  }
+
+CVC5_SYM_ITE_BOOL_DFN(traits::rm);
+CVC5_SYM_ITE_BOOL_DFN(traits::prop);
+CVC5_SYM_ITE_BOOL_DFN(traits::sbv);
+CVC5_SYM_ITE_BOOL_DFN(traits::ubv);
+
+#undef CVC5_SYM_ITE_BOOL_DFN
 
 template <>
 traits::ubv orderEncode<traits, traits::ubv>(const traits::ubv& b)
@@ -136,8 +150,8 @@ stickyRightShiftResult<traits> stickyRightShift(const traits::ubv& input,
 }
 
 template <>
-void probabilityAnnotation<traits, traits::prop>(const traits::prop& p,
-                                                 const probability& pr)
+void probabilityAnnotation<traits, traits::prop>(
+    CVC5_UNUSED const traits::prop& p, CVC5_UNUSED const probability& pr)
 {
   // For now, do nothing...
   return;
@@ -155,28 +169,30 @@ symbolicRoundingMode traits::RTP(void) { return symbolicRoundingMode(0x04); };
 symbolicRoundingMode traits::RTN(void) { return symbolicRoundingMode(0x08); };
 symbolicRoundingMode traits::RTZ(void) { return symbolicRoundingMode(0x10); };
 
-void traits::precondition(const bool b)
+void traits::precondition(CVC5_UNUSED const bool b)
 {
   Assert(b);
   return;
 }
-void traits::postcondition(const bool b)
+void traits::postcondition(CVC5_UNUSED const bool b)
 {
   Assert(b);
   return;
 }
-void traits::invariant(const bool b)
+void traits::invariant(CVC5_UNUSED const bool b)
 {
   Assert(b);
   return;
 }
 
-void traits::precondition(const prop& p) { return; }
-void traits::postcondition(const prop& p) { return; }
-void traits::invariant(const prop& p) { return; }
+void traits::precondition(CVC5_UNUSED const prop& p) { return; }
+void traits::postcondition(CVC5_UNUSED const prop& p) { return; }
+void traits::invariant(CVC5_UNUSED const prop& p) { return; }
 // This allows us to use the symfpu literal / symbolic assertions in the
 // symbolic back-end
 typedef traits t;
+
+thread_local NodeManager* SymFpuNM::s_nm = nullptr;
 
 bool symbolicProposition::checkNodeType(const TNode node)
 {
@@ -189,14 +205,7 @@ symbolicProposition::symbolicProposition(const Node n) : nodeWrapper(n)
   Assert(checkNodeType(*this));
 }  // Only used within this header so could be friend'd
 symbolicProposition::symbolicProposition(bool v)
-    : nodeWrapper(
-        NodeManager::currentNM()->mkConst(BitVector(1U, (v ? 1U : 0U))))
-{
-  Assert(checkNodeType(*this));
-}
-
-symbolicProposition::symbolicProposition(const symbolicProposition& old)
-    : nodeWrapper(old)
+    : nodeWrapper(SymFpuNM::get()->mkConst(BitVector(1U, (v ? 1U : 0U))))
 {
   Assert(checkNodeType(*this));
 }
@@ -245,16 +254,10 @@ symbolicRoundingMode::symbolicRoundingMode(const Node n) : nodeWrapper(n)
 }
 
 symbolicRoundingMode::symbolicRoundingMode(const unsigned v)
-    : nodeWrapper(NodeManager::currentNM()->mkConst(
-        BitVector(SYMFPU_NUMBER_OF_ROUNDING_MODES, v)))
+    : nodeWrapper(SymFpuNM::get()->mkConst(
+          BitVector(SYMFPU_NUMBER_OF_ROUNDING_MODES, v)))
 {
   Assert((v & (v - 1)) == 0 && v != 0);  // Exactly one bit set
-  Assert(checkNodeType(*this));
-}
-
-symbolicRoundingMode::symbolicRoundingMode(const symbolicRoundingMode& old)
-    : nodeWrapper(old)
-{
   Assert(checkNodeType(*this));
 }
 
@@ -266,17 +269,17 @@ symbolicProposition symbolicRoundingMode::valid(void) const
   // Is there a better encoding of this?
   return symbolicProposition(nm->mkNode(
       Kind::BITVECTOR_AND,
-      nm->mkNode(
-          Kind::BITVECTOR_COMP,
-          nm->mkNode(Kind::BITVECTOR_AND,
-                     *this,
-                     nm->mkNode(Kind::BITVECTOR_SUB,
-                                *this,
-                                nm->mkConst(BitVector(
-                                    SYMFPU_NUMBER_OF_ROUNDING_MODES, 1u)))),
-          zero),
-      nm->mkNode(Kind::BITVECTOR_NOT,
-                 nm->mkNode(Kind::BITVECTOR_COMP, *this, zero))));
+      {nm->mkNode(
+           Kind::BITVECTOR_COMP,
+           nm->mkNode(Kind::BITVECTOR_AND,
+                      *this,
+                      nm->mkNode(Kind::BITVECTOR_SUB,
+                                 *this,
+                                 nm->mkConst(BitVector(
+                                     SYMFPU_NUMBER_OF_ROUNDING_MODES, 1u)))),
+           zero),
+       nm->mkNode(Kind::BITVECTOR_NOT,
+                  nm->mkNode(Kind::BITVECTOR_COMP, *this, zero))}));
 }
 
 symbolicProposition symbolicRoundingMode::operator==(
@@ -291,10 +294,9 @@ Node symbolicBitVector<isSigned>::boolNodeToBV(Node node) const
 {
   Assert(node.getType().isBoolean());
   NodeManager* nm = getNodeManager();
-  return nm->mkNode(Kind::ITE,
-                    node,
-                    nm->mkConst(BitVector(1U, 1U)),
-                    nm->mkConst(BitVector(1U, 0U)));
+  return nm->mkNode(
+      Kind::ITE,
+      {node, nm->mkConst(BitVector(1U, 1U)), nm->mkConst(BitVector(1U, 0U))});
 }
 
 template <bool isSigned>
@@ -331,7 +333,7 @@ bool symbolicBitVector<isSigned>::checkNodeType(const TNode n)
 
 template <bool isSigned>
 symbolicBitVector<isSigned>::symbolicBitVector(const bwt w, const unsigned v)
-    : nodeWrapper(NodeManager::currentNM()->mkConst(BitVector(w, v)))
+    : nodeWrapper(SymFpuNM::get()->mkConst(BitVector(w, v)))
 {
   Assert(checkNodeType(*this));
 }
@@ -341,15 +343,8 @@ symbolicBitVector<isSigned>::symbolicBitVector(const symbolicProposition& p)
 {
 }
 template <bool isSigned>
-symbolicBitVector<isSigned>::symbolicBitVector(
-    const symbolicBitVector<isSigned>& old)
-    : nodeWrapper(old)
-{
-  Assert(checkNodeType(*this));
-}
-template <bool isSigned>
 symbolicBitVector<isSigned>::symbolicBitVector(const BitVector& old)
-    : nodeWrapper(NodeManager::currentNM()->mkConst(old))
+    : nodeWrapper(SymFpuNM::get()->mkConst(old))
 {
   Assert(checkNodeType(*this));
 }
@@ -567,6 +562,13 @@ symbolicBitVector<isSigned> symbolicBitVector<isSigned>::modularAdd(
 }
 
 template <bool isSigned>
+symbolicBitVector<isSigned> symbolicBitVector<isSigned>::modularSubtract(
+    const symbolicBitVector<isSigned>& op) const
+{
+  return *this - op;
+}
+
+template <bool isSigned>
 symbolicBitVector<isSigned> symbolicBitVector<isSigned>::modularNegate() const
 {
   return -(*this);
@@ -587,14 +589,20 @@ symbolicProposition symbolicBitVector<isSigned>::operator<=(
     const symbolicBitVector<isSigned>& op) const
 {
   // Consider adding Kind::BITVECTOR_SLEBV and BITVECTOR_ULEBV
-  return (*this < op) || (*this == op);
+  // Explicitly sequence the calls to < and == to ensure deterministic node id
+  // assignment
+  symbolicProposition isLess = (*this < op);
+  return isLess || (*this == op);
 }
 
 template <bool isSigned>
 symbolicProposition symbolicBitVector<isSigned>::operator>=(
     const symbolicBitVector<isSigned>& op) const
 {
-  return (*this > op) || (*this == op);
+  // Explicitly sequence the calls to > and == to ensure deterministic node id
+  // assignment
+  symbolicProposition isGreater = (*this > op);
+  return isGreater || (*this == op);
 }
 
 template <bool isSigned>
@@ -687,8 +695,9 @@ template <bool isSigned>
 symbolicBitVector<isSigned> symbolicBitVector<isSigned>::matchWidth(
     const symbolicBitVector<isSigned>& op) const
 {
-  Assert(this->getWidth() <= op.getWidth());
-  return this->extend(op.getWidth() - this->getWidth());
+  auto width = this->getWidth();  // Ensure deterministic node id assignment
+  Assert(width <= op.getWidth());
+  return this->extend(op.getWidth() - width);
 }
 
 template <bool isSigned>
@@ -728,14 +737,15 @@ floatingPointTypeInfo::floatingPointTypeInfo(const floatingPointTypeInfo& old)
 {
 }
 
-TypeNode floatingPointTypeInfo::getTypeNode(void) const
+TypeNode floatingPointTypeInfo::getTypeNode(NodeManager* nm) const
 {
-  return NodeManager::currentNM()->mkFloatingPointType(*this);
+  return nm->mkFloatingPointType(*this);
 }
 }  // namespace symfpuSymbolic
 
-FpWordBlaster::FpWordBlaster(context::UserContext* user)
+FpWordBlaster::FpWordBlaster(NodeManager* nm, context::UserContext* user)
     : d_additionalAssertions(user),
+      d_nm(nm),
       d_fpMap(user),
       d_rmMap(user),
       d_boolMap(user),
@@ -748,9 +758,8 @@ FpWordBlaster::~FpWordBlaster() {}
 
 Node FpWordBlaster::ufToNode(const fpt& format, const uf& u) const
 {
-  NodeManager* nm = NodeManager::currentNM();
-
-  FloatingPointSize fps(format.getTypeNode().getConst<FloatingPointSize>());
+  symfpuSymbolic::SymFpuNM snm(d_nm);
+  FloatingPointSize fps(format.getTypeNode(d_nm).getConst<FloatingPointSize>());
 
   // This is not entirely obvious but it builds a float from components
   // Particularly, if the components can be constant folded, it should
@@ -758,14 +767,13 @@ Node FpWordBlaster::ufToNode(const fpt& format, const uf& u) const
 
   ubv packed(symfpu::pack<traits>(format, u));
   Node value =
-      nm->mkNode(nm->mkConst(FloatingPointToFPIEEEBitVector(fps)), packed);
+      d_nm->mkNode(d_nm->mkConst(FloatingPointToFPIEEEBitVector(fps)), packed);
   return value;
 }
 
 Node FpWordBlaster::rmToNode(const rm& r) const
 {
-  NodeManager* nm = NodeManager::currentNM();
-
+  symfpuSymbolic::SymFpuNM snm(d_nm);
   Node transVar = r;
 
   Node RNE = traits::RNE();
@@ -774,30 +782,30 @@ Node FpWordBlaster::rmToNode(const rm& r) const
   Node RTN = traits::RTN();
   Node RTZ = traits::RTZ();
 
-  Node value = nm->mkNode(
+  Node value = d_nm->mkNode(
       Kind::ITE,
-      nm->mkNode(Kind::EQUAL, transVar, RNE),
-      nm->mkConst(RoundingMode::ROUND_NEAREST_TIES_TO_EVEN),
-      nm->mkNode(
-          Kind::ITE,
-          nm->mkNode(Kind::EQUAL, transVar, RNA),
-          nm->mkConst(RoundingMode::ROUND_NEAREST_TIES_TO_AWAY),
-          nm->mkNode(
-              Kind::ITE,
-              nm->mkNode(Kind::EQUAL, transVar, RTP),
-              nm->mkConst(RoundingMode::ROUND_TOWARD_POSITIVE),
-              nm->mkNode(Kind::ITE,
-                         nm->mkNode(Kind::EQUAL, transVar, RTN),
-                         nm->mkConst(RoundingMode::ROUND_TOWARD_NEGATIVE),
-                         nm->mkConst(RoundingMode::ROUND_TOWARD_ZERO)))));
+      {d_nm->mkNode(Kind::EQUAL, transVar, RNE),
+       d_nm->mkConst(RoundingMode::ROUND_NEAREST_TIES_TO_EVEN),
+       d_nm->mkNode(
+           Kind::ITE,
+           {d_nm->mkNode(Kind::EQUAL, transVar, RNA),
+            d_nm->mkConst(RoundingMode::ROUND_NEAREST_TIES_TO_AWAY),
+            d_nm->mkNode(
+                Kind::ITE,
+                {d_nm->mkNode(Kind::EQUAL, transVar, RTP),
+                 d_nm->mkConst(RoundingMode::ROUND_TOWARD_POSITIVE),
+                 d_nm->mkNode(
+                     Kind::ITE,
+                     {d_nm->mkNode(Kind::EQUAL, transVar, RTN),
+                      d_nm->mkConst(RoundingMode::ROUND_TOWARD_NEGATIVE),
+                      d_nm->mkConst(RoundingMode::ROUND_TOWARD_ZERO)})})})});
   return value;
 }
 
 Node FpWordBlaster::propToNode(const prop& p) const
 {
-  NodeManager* nm = NodeManager::currentNM();
-  Node value = nm->mkNode(
-      Kind::EQUAL, p, nm->mkConst(cvc5::internal::BitVector(1U, 1U)));
+  Node value = d_nm->mkNode(
+      Kind::EQUAL, p, d_nm->mkConst(cvc5::internal::BitVector(1U, 1U)));
   return value;
 }
 Node FpWordBlaster::ubvToNode(const ubv& u) const { return u; }
@@ -808,13 +816,17 @@ FpWordBlaster::uf FpWordBlaster::buildComponents(TNode current)
   Assert(Theory::isLeafOf(current, THEORY_FP)
          || current.getKind() == Kind::FLOATINGPOINT_TO_FP_FROM_REAL);
 
-  uf tmp(
-      NodeManager::mkNode(Kind::FLOATINGPOINT_COMPONENT_NAN, current),
-      NodeManager::mkNode(Kind::FLOATINGPOINT_COMPONENT_INF, current),
-      NodeManager::mkNode(Kind::FLOATINGPOINT_COMPONENT_ZERO, current),
-      NodeManager::mkNode(Kind::FLOATINGPOINT_COMPONENT_SIGN, current),
-      NodeManager::mkNode(Kind::FLOATINGPOINT_COMPONENT_EXPONENT, current),
-      NodeManager::mkNode(Kind::FLOATINGPOINT_COMPONENT_SIGNIFICAND, current));
+  // Use nan, inf, zero, sign, exp, and sig to ensure deterministic node ID
+  // assignments
+  Node nan = NodeManager::mkNode(Kind::FLOATINGPOINT_COMPONENT_NAN, current);
+  Node inf = NodeManager::mkNode(Kind::FLOATINGPOINT_COMPONENT_INF, current);
+  Node zero = NodeManager::mkNode(Kind::FLOATINGPOINT_COMPONENT_ZERO, current);
+  Node sign = NodeManager::mkNode(Kind::FLOATINGPOINT_COMPONENT_SIGN, current);
+  Node exp =
+      NodeManager::mkNode(Kind::FLOATINGPOINT_COMPONENT_EXPONENT, current);
+  Node sig =
+      NodeManager::mkNode(Kind::FLOATINGPOINT_COMPONENT_SIGNIFICAND, current);
+  uf tmp(nan, inf, zero, sign, exp, sig);
 
   d_additionalAssertions.push_back(tmp.valid(fpt(current.getType())));
 
@@ -825,6 +837,8 @@ Node FpWordBlaster::wordBlast(TNode node)
 {
   std::vector<TNode> visit;
   std::unordered_map<TNode, bool> visited;
+
+  symfpuSymbolic::SymFpuNM snm(d_nm);
 
   visit.push_back(node);
 
@@ -921,10 +935,11 @@ Node FpWordBlaster::wordBlast(TNode node)
         {
           if (kind == Kind::CONST_FLOATINGPOINT)
           {
-            d_fpMap.insert(
-                cur,
-                symfpu::unpackedFloat<traits>(
-                    cur.getConst<FloatingPoint>().getLiteral()->getSymUF()));
+            const FloatingPoint& fp = cur.getConst<FloatingPoint>();
+            FloatingPointSize fps = fp.getSize();
+            fpt format(fps.exponentWidth(), fps.significandWidth());
+            ubv packed(d_nm->mkConst(fp.pack()));
+            d_fpMap.insert(cur, symfpu::unpack<traits>(format, packed));
           }
           else
           {
@@ -1283,7 +1298,7 @@ Node FpWordBlaster::wordBlast(TNode node)
   return node;
 }
 
-Node FpWordBlaster::getValue(Valuation& val, TNode var)
+Node FpWordBlaster::getValue(TNode var)
 {
   Assert(var.getKind() == Kind::FLOATINGPOINT_TO_FP_FROM_SBV
          || var.getKind() == Kind::FLOATINGPOINT_TO_FP_FROM_UBV

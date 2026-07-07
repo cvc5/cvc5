@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -277,8 +274,8 @@ bool SingleInvocationPartition::init(std::vector<Node>& funcs,
         Trace("si-prt") << std::endl;
         cr = nm->mkOr(children);
         cr = sb.apply(cr);
-        Trace("si-prt-debug") << "...normalized invocations to " << cr
-                              << std::endl;
+        Trace("si-prt-debug")
+            << "...normalized invocations to " << cr << std::endl;
         // now must check if it has other bound variables
         std::unordered_set<Node> fvs;
         expr::getFreeVariables(cr, fvs);
@@ -329,8 +326,8 @@ bool SingleInvocationPartition::init(std::vector<Node>& funcs,
               {
                 termsNs.push_back(v);
                 subsNs.push_back(d_si_vars[k]);
-                Trace("si-prt-debug") << "  ...use " << d_si_vars[k]
-                                      << std::endl;
+                Trace("si-prt-debug")
+                    << "  ...use " << d_si_vars[k] << std::endl;
                 break;
               }
             }
@@ -498,8 +495,8 @@ bool SingleInvocationPartition::processConjunct(Node n,
           }
           else
           {
-            Trace("si-prt-debug") << "... " << f << " is a bad operator."
-                                  << std::endl;
+            Trace("si-prt-debug")
+                << "... " << f << " is a bad operator." << std::endl;
             ret = false;
           }
         }
@@ -581,7 +578,7 @@ Node SingleInvocationPartition::getConjunct(int index)
                     : nodeManager()->mkNode(Kind::AND, d_conjuncts[index]));
 }
 
-void SingleInvocationPartition::debugPrint(const char* c)
+void SingleInvocationPartition::debugPrint(CVC5_UNUSED const char* c)
 {
   Trace(c) << "Single invocation variables : ";
   for (unsigned i = 0; i < d_si_vars.size(); i++)

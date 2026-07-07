@@ -4,36 +4,93 @@
 ; - y T: The second term to compare.
 ; return: true if x >= y, where x and y are assumed to be arithmetic values.
 (define $compare_geq ((T Type :implicit) (x T) (y T))
-  (eo::ite (eo::is_eq x y) true (eo::gt x y)))
+  (eo::ite (eo::eq x y) true (eo::gt x y)))
 
-; define: $sgn
+(declare-const @@Pair (-> Type Type Type))
+(define @Pair () @@Pair)
+(declare-parameterized-const @@pair ((U Type :implicit) (T Type :implicit)) (-> U T (@Pair U T)))
+(define @pair () @@pair)
+
+; program: $pair_first
 ; args:
-; - x T: The term to inspect. Assumed to be an arithmetic value.
-; return: The sign of x: -1 if x < 0, 1 if x > 0, and 0 otherwise.
-(define $sgn ((T Type :implicit) (x T))
-  (eo::ite (eo::is_neg x) -1 (eo::ite (eo::is_neg (eo::neg x)) 1 0)))
-
-(declare-type @Pair (Type Type))
-(declare-const @pair (-> (! Type :var U :implicit) (! Type :var T :implicit) U T (@Pair U T)))
-
-; untyped list
-(declare-type @List ())
-(declare-const @list.nil @List)
-(declare-const @list (-> (! Type :var T :implicit) T @List @List) :right-assoc-nil @list.nil)
-
-; program: $get_fun
-; args:
-; - t S: The term to inspect.
-; return: >
-;   The function at the head of the application of t, or t itself if it is not
-;   an application.
-(program $get_fun ((T Type) (S Type) (U Type) (f (-> T S)) (x T) (y S))
-  (S) U
+; - t (@Pair T S)
+; return: The first element in the pair
+(program $pair_first ((T Type) (S Type) (t T) (s S))
+  :signature ((@Pair T S)) T
   (
-    (($get_fun (f x))  ($get_fun f))
-    (($get_fun y)      y)
+  (($pair_first (@pair t s)) t)
   )
 )
+
+; program: $pair_second
+; args:
+; - t (@Pair T S)
+; return: The second element in the pair
+(program $pair_second ((T Type) (S Type) (t T) (s S))
+  :signature ((@Pair T S)) S
+  (
+  (($pair_second (@pair t s)) s)
+  )
+)
+
+;; =============== untyped list
+
+; untyped list.
+; note: >
+;   We use this as a synonym for eo::List. We use this syntax as it avoids
+;   the usage of eo:: in proofs.
+(define @List () eo::List)
+(define @list.nil () eo::List::nil)
+(define @list () eo::List::cons)
+
+;; =============== homogeneous list
+
+(declare-parameterized-const @@TypedList ((T Type)) Type)
+(declare-parameterized-const @@TypedList.nil ((T Type)) (@@TypedList T))
+(declare-parameterized-const @@TypedList.cons ((T Type :implicit))
+  (-> T (@@TypedList T) (@@TypedList T)) :right-assoc-nil (@@TypedList.nil T))
+(define @TList () @@TypedList)
+(define @tlist.nil () @@TypedList.nil)
+(define @tlist () @@TypedList.cons)
+
+; program: $typed_list_element_type
+; args:
+; - T Type: the type in question
+; return: The element type of T, if it is a typed list.
+(program $typed_list_element_type ((T Type))
+  :signature (Type) Type
+  (
+  (($typed_list_element_type (@TList T)) T)
+  )
+)
+  
+;; =============== evaluation utilities
+
+; note: This is a forward declaration of $evaluate_list defined in Cpc.eo.
+(program $evaluate_list () :signature (@List) @List)
+
+; program: $evaluate_internal
+; args:
+; - t T: The original term.
+; - l @List: A list containing the evaluation of t.
+; return: The evaluation of t.
+(program $evaluate_internal ((T Type) (t T) (tev T))
+  :signature (T @List) T
+  (
+  (($evaluate_internal t (@list tev)) tev)
+  )
+)
+
+; define: $evaluate
+; args:
+; - t S: The term to evaluate.
+; return: The result of evaluating t.
+; note: >
+;   This method is defined in terms of the forward declaration $evaluate_list here.
+;   The implementation of this method depends on defining the evaluation for all
+;   theories and thus is contained in Cpc.eo.
+(define $evaluate ((T Type :implicit) (t T))
+  ($evaluate_internal t ($evaluate_list (@list t))))
 
 ; program: $get_arg_list_rec
 ; args:
@@ -43,9 +100,9 @@
 ;   The list of arguments provided to the function at the head of t appended to
 ;   acc, or acc if t is not a function application.
 (program $get_arg_list_rec ((T Type) (S Type) (f (-> T S)) (x T) (y S) (acc @List))
-  (S @List) @List
+  :signature (S @List) @List
   (
-    (($get_arg_list_rec (f x) acc)  ($get_arg_list_rec f (eo::cons @list x acc)))
+    (($get_arg_list_rec (f x) acc)  ($get_arg_list_rec f (_ @list x acc)))
     (($get_arg_list_rec y acc)      acc)
   )
 )
@@ -63,11 +120,23 @@
 ; - f (-> T U): The function.
 ; - t S: The term to inspect.
 ; return: True if and only if t is an application of f.
-(program $is_app ((T Type) (S Type) (U Type) (f (-> T U)) (g (-> T S)) (x T) (y S))
-  ((-> T U) S) Bool
+(program $is_app ((T Type) (S Type) (U Type) (f (-> T U)) (g (-> T S)) (x T))
+  :signature ((-> T U) S) Bool
   (
     (($is_app f (g x))  ($is_app f g))
-    (($is_app f x)      (eo::is_eq f x))
+    (($is_app f x)      (eo::eq f x))
+  )
+)
+
+; program: $is_var_list
+; args:
+; - xs @List: The list of terms.
+; return: true if all terms in xs are variables.
+(program $is_var_list ((U Type) (x U) (xs @List :list))
+  :signature (@List) Bool
+  (
+    (($is_var_list (@list x xs))  (eo::ite (eo::is_var x) ($is_var_list xs) false))
+    (($is_var_list @list.nil)     true)
   )
 )
 
@@ -86,147 +155,13 @@
 (define $compare_var ((T Type :implicit) (U Type :implicit) (a T) (b U))
   (eo::cmp b a))
 
-; define: $head
-; args:
-; - x S: The term to inspect.
-; return: the head of x, where x is expected to be a function application.
-(define $head ((S Type :implicit) (x S))
-  (eo::match ((T Type) (U Type) (f (-> T U U)) (x1 T) (x2 U :list))
-    x
-    (((f x1 x2) x1)))
-)
-
-; define: $tail
-; args:
-; - x S: The term to inspect.
-; return: >
-;   The tail of x, where x is expected to be an application of an n-ary
-;   function marked :right-assoc-nil.
-(define $tail ((U Type :implicit) (x U))
-  (eo::match ((T Type) (U Type) (f (-> T U U)) (x1 T) (x2 U :list))
-    x
-    (((f x1 x2) x2)))
-)
-
-; program: $singleton_elim
-; args:
-; - s S: The term to proces.
-; return: >
-;   The result of applying singleton elimination for s. In particular,
-;   if s is of the form (f x1 x2) where x2 is the nil terminator of f, then we
-;   return x1. Otherwise, we return s unchanged.
-(program $singleton_elim ((T Type) (S Type) (U Type) (f (-> T U S)) (x S) (x1 T) (x2 T :list))
-  (S) S
-  (
-    (($singleton_elim (f x1 x2))  (eo::ite (eo::is_eq x2 (eo::nil f x1 x2)) x1 (f x1 x2)))
-    (($singleton_elim x)          x)
-  )
-)
-
-; program: $singleton_elim_aci
-; args:
-; - f (-> T U S): The function we are considering.
-; - id S: The nil terminator of f.
-; - s S: The term to process.
-; return: >
-;   The result of applying singleton elimination for s, where s should
-;   be an application of f. In particular, if s is of the form (f x1 x2) where
-;   x2 is the nil terminator of f, then we return x1. Otherwise, we return s
-;   unchanged.
-; note: >
-;   This method is similar in purpose to $singleton_elim, but insists that
-;   the function and its nil terminator are provided explicitly.
-(program $singleton_elim_aci ((T Type) (S Type) (U Type) (f (-> T U S)) (id S) (x S) (x1 T) (x2 U :list))
-  ((-> T U S) S S) S
-  (
-    (($singleton_elim_aci f id (f x1 x2))  (eo::ite (eo::is_eq x2 id) x1 (f x1 x2)))
-    (($singleton_elim_aci f id x)          x)
-  )
-)
-
-;; =============== for ACI_NORM associative, commutative and idempotent
-
-; program: $ac_append
-; args:
-; - f (-> T U S): The function, which is assumed to be associative, commutative, idempotent and has the given identity.
-; - id S: The nil terminator of f.
-; - s1 S: The first term to process.
-; - s2 S: The second term to process.
-; return: the result of appending the children of two applications s1 and s2 of the ACI operator f.
-(program $ac_append ((T Type) (S Type) (U Type) (f (-> T U S)) (id S) (x S) (x1 T) (x2 U :list) (y1 T) (y2 U :list))
-  ((-> T U S) S S S) S
-  (
-    (($ac_append f id (f x1 x2) (f y1 y2)) (eo::ite (eo::is_eq x1 y1)
-                                             ($ac_append f id (f x1 x2) y2)
-                                           (eo::ite ($compare_var x1 y1)
-                                             (eo::cons f x1 ($ac_append f id x2 (f y1 y2)))
-                                             (eo::cons f y1 ($ac_append f id (f x1 x2) y2)))))
-    (($ac_append f id (f x1 x2) id)        (f x1 x2))
-    (($ac_append f id id (f y1 y2))        (f y1 y2))
-    (($ac_append f id id id)               id)
-  )
-)
-
-; program: $get_aci_norm_rec
-; args:
-; - f (-> T U S): The function, which is assumed to be associative, commutative, idempotent and has the given identity.
-; - id S: The nil terminator of f.
-; - s S: The term to process.
-; return: the result of normalizing s based on ACI reasoning.
-(program $get_aci_norm_rec ((T Type) (S Type) (U Type) (f (-> T U S)) (id S) (x S) (x1 T) (x2 U :list))
-  ((-> T U S) S S) S
-  (
-    (($get_aci_norm_rec f id (f id x2))   ($get_aci_norm_rec f id x2))
-    (($get_aci_norm_rec f id (f x1 x2))   ($ac_append f id ($get_aci_norm_rec f id x1) ($get_aci_norm_rec f id x2)))
-    (($get_aci_norm_rec f id id)          id)
-    (($get_aci_norm_rec f id x)           (eo::cons f x id))
-  )
-)
-
-; define: $get_aci_norm
-; args:
-; - t T: The term to process.
-; return: the result of normalizing s based on ACI reasoning.
-(define $get_aci_norm ((T Type :implicit) (t T))
-  (eo::match ((S Type) (U Type) (V Type) (f (-> S U V)) (x S) (y U :list))
-    t
-    (((f x y) (eo::define ((id (eo::nil f x y))) ($singleton_elim_aci f id ($get_aci_norm_rec f id t))))))
-)
-
-;; =============== for ACI_NORM associative
-
-; program: $get_a_norm_rec
-; args:
-; - f (-> T U S): The function we are considering, which is assumed to be associative and has the given identity.
-; - id S: The nil terminator of f.
-; - s S: The term to process.
-; return: the result of normalizing s based on associative+identity reasoning.
-(program $get_a_norm_rec ((T Type) (S Type) (U Type) (f (-> T U S)) (id S) (x S) (x1 T) (x2 U :list))
-  ((-> T U S) S S) S
-  (
-    (($get_a_norm_rec f id (f id x2))  ($get_a_norm_rec f id x2))
-    (($get_a_norm_rec f id (f x1 x2))  (eo::list_concat f ($get_a_norm_rec f id x1) ($get_a_norm_rec f id x2)))
-    (($get_a_norm_rec f id id)         id)
-    (($get_a_norm_rec f id x)          (eo::cons f x id))
-  )
-)
-
-; define: $get_a_norm
-; args:
-; - t T: The term to process.
-; return: the result of normalizing s based on associative+identity reasoning.
-(define $get_a_norm ((T Type :implicit) (t T))
-  (eo::match ((S Type) (U Type) (V Type) (f (-> S U V)) (x S) (y U :list))
-    t
-    (((f x y) (eo::define ((id (eo::nil f x y))) ($singleton_elim_aci f id ($get_a_norm_rec f id t))))))
-)
-
-
 ;; =============== for results
 
 ; Used for representing partial results of the method below.
-(declare-const @result.null Bool)
-(declare-const @result.invalid Bool)
+(declare-const @@result.null Bool)
+(define @result.null () @@result.null)
+(declare-const @@result.invalid Bool)
+(define @result.invalid () @@result.invalid)
 
 ; program: $result_combine
 ; args:
@@ -239,7 +174,7 @@
 ;   In summary, ($result_combine b1 ... ($result_combine bn @result.null)) returns
 ;   b1 if b1...bn are the same or @result.invalid otherwise.
 (program $result_combine ((b1 Bool) (b2 Bool))
-  (Bool Bool) Bool
+  :signature (Bool Bool) Bool
   (
     (($result_combine b1 @result.null) b1)
     (($result_combine b1 b1)           b1)

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -66,12 +63,13 @@ Result quickCheck(Node& query)
   return Result(Result::UNKNOWN, UnknownExplanation::REQUIRES_FULL_CHECK);
 }
 
-void initializeSubsolver(std::unique_ptr<SolverEngine>& smte,
+void initializeSubsolver(NodeManager* nm,
+                         std::unique_ptr<SolverEngine>& smte,
                          const SubsolverSetupInfo& info,
                          bool needsTimeout,
                          unsigned long timeout)
 {
-  smte.reset(new SolverEngine(&info.d_opts));
+  smte.reset(new SolverEngine(nm, &info.d_opts));
   smte->setIsInternalSubsolver();
   smte->setLogic(info.d_logicInfo);
   // set the options
@@ -91,7 +89,7 @@ void initializeSubsolver(std::unique_ptr<SolverEngine>& smte,
                          unsigned long timeout)
 {
   SubsolverSetupInfo ssi(env);
-  initializeSubsolver(smte, ssi, needsTimeout, timeout);
+  initializeSubsolver(env.getNodeManager(), smte, ssi, needsTimeout, timeout);
 }
 
 Result checkWithSubsolver(std::unique_ptr<SolverEngine>& smte,
@@ -106,7 +104,8 @@ Result checkWithSubsolver(std::unique_ptr<SolverEngine>& smte,
   {
     return r;
   }
-  initializeSubsolver(smte, info, needsTimeout, timeout);
+  initializeSubsolver(
+      query.getNodeManager(), smte, info, needsTimeout, timeout);
   smte->assertFormula(query);
   return smte->checkSat();
 }
@@ -147,7 +146,8 @@ Result checkWithSubsolver(Node query,
     return r;
   }
   std::unique_ptr<SolverEngine> smte;
-  initializeSubsolver(smte, info, needsTimeout, timeout);
+  initializeSubsolver(
+      query.getNodeManager(), smte, info, needsTimeout, timeout);
   smte->assertFormula(query);
   r = smte->checkSat();
   if (r.getStatus() == Result::SAT || r.getStatus() == Result::UNKNOWN)

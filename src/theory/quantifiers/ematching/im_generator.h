@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Clark Barrett
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -70,7 +67,7 @@ class IMGenerator : protected EnvObj
    * otherwise. An example of when it returns false is if it can be determined
    * that no appropriate matchable terms occur based on eqc.
    */
-  virtual bool reset(Node eqc) { return true; }
+  virtual bool reset(CVC5_UNUSED Node eqc) { return true; }
   /** Get the next match.
    *
    * Must call reset( eqc ) before this function. This constructs an
@@ -80,7 +77,7 @@ class IMGenerator : protected EnvObj
    * @param m the InstMatch object we are generating
    * @return a value >0 if an instantiation was successfully generated
    */
-  virtual int getNextMatch(InstMatch& m) { return 0; }
+  virtual int getNextMatch(CVC5_UNUSED InstMatch& m) { return 0; }
   /** add instantiations
    *
    * This adds all available instantiations for the quantified formula of m
@@ -90,12 +87,16 @@ class IMGenerator : protected EnvObj
    * It returns the number of instantiations added using calls to
    * Instantiate::addInstantiation(...).
    */
-  virtual uint64_t addInstantiations(InstMatch& m) { return 0; }
+  virtual uint64_t addInstantiations(CVC5_UNUSED InstMatch& m) { return 0; }
   /** get active score
    *
    * A heuristic value indicating how active this generator is.
    */
   virtual int getActiveScore() { return 0; }
+  /**
+   * Get the inference id, for statistics.
+   */
+  virtual InferenceId getInferenceId() = 0;
 
  protected:
   /** send instantiation
@@ -107,7 +108,7 @@ class IMGenerator : protected EnvObj
    * indicating that an instantiation was enqueued in the quantifier engine's
    * lemma cache.
    */
-  bool sendInstantiation(std::vector<Node>& terms, InferenceId id);
+  bool sendInstantiation(std::vector<Node>& terms);
   /** The parent trigger that owns this */
   Trigger* d_tparent;
   /** Reference to the state of the quantifiers engine */
@@ -117,8 +118,8 @@ class IMGenerator : protected EnvObj
 }; /* class IMGenerator */
 
 }  // namespace inst
-}
-}
+}  // namespace quantifiers
+}  // namespace theory
 }  // namespace cvc5::internal
 
 #endif

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -44,11 +41,13 @@ void InstMatch::setEvaluatorMode(ieval::TermEvaluatorMode tev)
   }
 }
 
-void InstMatch::debugPrint( const char* c ){
+void InstMatch::debugPrint(CVC5_UNUSED const char* c)
+{
   for (unsigned i = 0, size = d_vals.size(); i < size; i++)
   {
-    if( !d_vals[i].isNull() ){
-      Trace( c ) << "   " << i << " -> " << d_vals[i] << std::endl;
+    if (!d_vals[i].isNull())
+    {
+      Trace(c) << "   " << i << " -> " << d_vals[i] << std::endl;
     }
   }
 }

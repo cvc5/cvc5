@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Morgan Deters, Aina Niemetz, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -37,13 +34,13 @@ TypeEnumeratorInterface* TypeEnumerator::mkTypeEnumerator(
       switch (type.getConst<TypeConstant>())
       {
         // clang-format off
-        ${mk_type_enumerator_type_constant_cases}
+${mk_type_enumerator_type_constant_cases}
           // clang-format on
         default: Unhandled() << "No type enumerator for type `" << type << "'";
       }
       Unreachable();
       // clang-format off
-      ${mk_type_enumerator_cases}
+${mk_type_enumerator_cases}
       // clang-format on
     default: Unhandled() << "No type enumerator for type `" << type << "'";
   }

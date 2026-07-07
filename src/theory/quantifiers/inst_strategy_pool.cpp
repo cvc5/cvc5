@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -46,7 +43,7 @@ bool InstStrategyPool::needsCheck(Theory::Effort e)
   return d_qstate.getInstWhenNeedsCheck(e);
 }
 
-void InstStrategyPool::reset_round(Theory::Effort e) {}
+void InstStrategyPool::reset_round(CVC5_UNUSED Theory::Effort e) {}
 
 void InstStrategyPool::registerQuantifier(Node q)
 {
@@ -149,7 +146,8 @@ bool InstStrategyPool::hasTupleSemantics(Node q, Node p)
   return true;
 }
 
-void InstStrategyPool::check(Theory::Effort e, QEffort quant_e)
+void InstStrategyPool::check(CVC5_UNUSED Theory::Effort e,
+                             CVC5_UNUSED QEffort quant_e)
 {
   if (d_userPools.empty())
   {

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -31,7 +28,11 @@ void ArithSubs::addArith(const Node& v, const Node& s)
 
 Node ArithSubs::applyArith(const Node& n, bool traverseNlMult) const
 {
-  NodeManager* nm = NodeManager::currentNM();
+  if (d_vars.empty())
+  {
+    return n;
+  }
+  NodeManager* nm = n.getNodeManager();
   std::unordered_map<TNode, Node> visited;
   std::vector<TNode> visit;
   visit.push_back(n);
@@ -44,7 +45,6 @@ Node ArithSubs::applyArith(const Node& n, bool traverseNlMult) const
     if (it == visited.end())
     {
       visited[cur] = Node::null();
-      Kind ck = cur.getKind();
       auto s = find(cur);
       if (s)
       {
@@ -56,12 +56,7 @@ Node ArithSubs::applyArith(const Node& n, bool traverseNlMult) const
       }
       else
       {
-        TheoryId ctid = theory::kindToTheoryId(ck);
-        if ((ctid != THEORY_ARITH && ctid != THEORY_BOOL
-             && ctid != THEORY_BUILTIN)
-            || isTranscendentalKind(ck)
-            || (!traverseNlMult
-                && (ck == Kind::NONLINEAR_MULT || ck == Kind::IAND)))
+        if (!shouldTraverse(cur, traverseNlMult))
         {
           // Do not traverse beneath applications that belong to another theory
           // besides (core) arithmetic. Notice that transcendental function
@@ -105,6 +100,44 @@ Node ArithSubs::applyArith(const Node& n, bool traverseNlMult) const
   Assert(visited.find(n) != visited.end());
   Assert(!visited.find(n)->second.isNull());
   return visited[n];
+}
+
+bool ArithSubs::shouldTraverse(const Node& n, bool traverseNlMult)
+{
+  Kind k = n.getKind();
+  TheoryId ctid = theory::kindToTheoryId(k);
+  // We always treat transcendental kinds and extended nonlinear kinds
+  // as black boxes.
+  if ((ctid != THEORY_ARITH && ctid != THEORY_BOOL && ctid != THEORY_BUILTIN)
+      || isTranscendentalKind(k) || isExtendedNonLinearKind(k)
+      || (!traverseNlMult && k == Kind::NONLINEAR_MULT))
+  {
+    return false;
+  }
+  return true;
+}
+
+bool ArithSubs::hasArithSubterm(TNode n, TNode t, bool traverseNlMult)
+{
+  std::unordered_set<TNode> visited;
+  std::vector<TNode> toProcess;
+  toProcess.push_back(n);
+  TNode cur;
+  do
+  {
+    cur = toProcess.back();
+    toProcess.pop_back();
+    if (cur == t)
+    {
+      return true;
+    }
+    if (!visited.insert(cur).second || !shouldTraverse(cur, traverseNlMult))
+    {
+      continue;
+    }
+    toProcess.insert(toProcess.end(), cur.begin(), cur.end());
+  } while (!toProcess.empty());
+  return false;
 }
 
 }  // namespace arith

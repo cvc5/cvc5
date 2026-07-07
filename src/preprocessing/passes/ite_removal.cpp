@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -62,12 +59,11 @@ PreprocessingPassResult IteRemoval::applyInternal(AssertionPipeline* assertions)
   }
   for (unsigned i = 0, size = assertions->size(); i < size; ++i)
   {
-    assertions->replace(i, rewrite((*assertions)[i]));
+    assertions->ensureRewritten(i);
   }
 
   return PreprocessingPassResult::NO_CONFLICT;
 }
-
 
 }  // namespace passes
 }  // namespace preprocessing

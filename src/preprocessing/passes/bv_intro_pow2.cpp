@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mathias Preiner, Liana Hadarean, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -33,7 +30,7 @@ using NodeMap = std::unordered_map<Node, Node>;
 using namespace cvc5::internal::theory;
 
 BvIntroPow2::BvIntroPow2(PreprocessingPassContext* preprocContext)
-    : PreprocessingPass(preprocContext, "bv-intro-pow2"){};
+    : PreprocessingPass(preprocContext, "bv-intro-pow2") {};
 
 PreprocessingPassResult BvIntroPow2::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
@@ -88,9 +85,9 @@ Node BvIntroPow2::rewritePowerOfTwo(TNode node)
   uint32_t size = bv::utils::getSize(term);
   Node diff = rewrite(nm->mkNode(Kind::BITVECTOR_SUB, a, b));
   Assert(diff.isConst());
-  Node one = bv::utils::mkOne(size);
+  Node one = bv::utils::mkOne(nm, size);
   TNode x = diff == one ? a : b;
-  Node sk = bv::utils::mkVar(size);
+  Node sk = bv::utils::mkVar(nm, size);
   Node sh = nm->mkNode(Kind::BITVECTOR_SHL, one, sk);
   Node x_eq_sh = nm->mkNode(Kind::EQUAL, x, sh);
   return x_eq_sh;

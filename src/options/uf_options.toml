@@ -3,10 +3,11 @@ name   = "Uninterpreted Functions Theory"
 
 [[option]]
   name       = "ufSymmetryBreaker"
-  category   = "expert"
+  category   = "regular"
   long       = "symmetry-breaker"
   type       = "bool"
   default    = "true"
+  no_support = ["proofs"]
   help       = "use UF symmetry breaker (Deharbe et al., CADE 2011)"
 
 [[option]]
@@ -42,14 +43,6 @@ name   = "Uninterpreted Functions Theory"
   type       = "bool"
   default    = "true"
   help       = "use fair strategy for finite model finding multiple sorts"
-
-[[option]]
-  name       = "ufssFairnessMonotone"
-  category   = "expert"
-  long       = "uf-ss-fair-monotone"
-  type       = "bool"
-  default    = "false"
-  help       = "group monotone sorts when enforcing fairness for finite model finding"
 
 [[option]]
   name       = "ufHoExt"

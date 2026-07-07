@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Morgan Deters
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -16,6 +13,7 @@
 
 #include "expr/ascription_type.h"
 #include "expr/dtype.h"
+#include "expr/node_algorithm.h"
 #include "expr/node_manager.h"
 #include "expr/type_matcher.h"
 #include "options/datatypes_options.h"
@@ -53,11 +51,8 @@ void DTypeConstructor::addArg(std::string selectorName, TypeNode rangeType)
   // create the proper selector type)
   Assert(!isResolved());
   Assert(!rangeType.isNull());
-  Node sel =
-      NodeManager::mkDummySkolem("unresolved_" + selectorName,
-                                 rangeType,
-                                 "is an unresolved selector type placeholder",
-                                 SkolemFlags::SKOLEM_EXACT_NAME);
+  Node sel = NodeManager::mkDummySkolem(
+      "unresolved_" + selectorName, rangeType, SkolemFlags::SKOLEM_EXACT_NAME);
   // can use null updater for now
   Node nullNode;
   Trace("datatypes") << "DTypeConstructor::addArg: " << sel << std::endl;
@@ -91,7 +86,7 @@ Node DTypeConstructor::getConstructor() const
 Node DTypeConstructor::getInstantiatedConstructor(TypeNode returnType) const
 {
   Assert(isResolved());
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = returnType.getNodeManager();
   return nm->mkNode(
       Kind::APPLY_TYPE_ASCRIPTION,
       nm->mkConst(AscriptionType(getInstantiatedConstructorType(returnType))),
@@ -186,7 +181,7 @@ const std::vector<std::shared_ptr<DTypeSelector> >& DTypeConstructor::getArgs()
   return d_args;
 }
 
-Cardinality DTypeConstructor::getCardinality(TypeNode t) const
+Cardinality DTypeConstructor::getCardinality() const
 {
   Assert(isResolved());
 
@@ -388,12 +383,19 @@ bool DTypeConstructor::computeWellFounded(
   for (size_t i = 0, nargs = getNumArgs(); i < nargs; i++)
   {
     TypeNode t = getArgType(i);
-    if (t.isDatatype())
+    // must look at all types that occur as subterms of t, as we could have
+    // nested recursion.
+    std::unordered_set<TypeNode> ctypes;
+    expr::getComponentTypes(t, ctypes);
+    for (const TypeNode& ct : ctypes)
     {
-      const DType& dt = t.getDType();
-      if (!dt.computeWellFounded(processing))
+      if (ct.isDatatype())
       {
-        return false;
+        const DType& dt = ct.getDType();
+        if (!dt.computeWellFounded(processing))
+        {
+          return false;
+        }
       }
     }
   }
@@ -405,7 +407,7 @@ Node DTypeConstructor::computeGroundTerm(TypeNode t,
                                          std::map<TypeNode, Node>& gt,
                                          bool isValue) const
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = t.getNodeManager();
   std::vector<Node> groundTerms;
   groundTerms.push_back(getConstructor());
   Trace("datatypes-init") << "cons " << d_constructor
@@ -536,7 +538,7 @@ bool DTypeConstructor::resolve(
   Trace("datatypes") << "DTypeConstructor::resolve, self type is " << self
                      << std::endl;
 
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = self.getNodeManager();
   size_t index = 0;
   std::vector<TypeNode> argTypes;
   Trace("datatypes-init") << "Initialize constructor " << d_name << std::endl;
@@ -602,13 +604,11 @@ bool DTypeConstructor::resolve(
     arg->d_selector =
         NodeManager::mkDummySkolem(argName,
                                    nm->mkSelectorType(self, range),
-                                   "is a selector",
                                    SkolemFlags::SKOLEM_EXACT_NAME);
     std::string updateName("update_" + argName);
     arg->d_updater =
         NodeManager::mkDummySkolem(updateName,
                                    nm->mkDatatypeUpdateType(self, range),
-                                   "is a selector",
                                    SkolemFlags::SKOLEM_EXACT_NAME);
     // must set indices to ensure datatypes::utils::indexOf works
     arg->d_selector.setAttribute(DTypeConsIndexAttr(), cindex);
@@ -637,14 +637,11 @@ bool DTypeConstructor::resolve(
   // The name of the tester variable does not matter, it is only used
   // internally.
   std::string testerName("is_" + d_name);
-  d_tester = NodeManager::mkDummySkolem(testerName,
-                                        nm->mkTesterType(self),
-                                        "is a tester",
-                                        SkolemFlags::SKOLEM_EXACT_NAME);
+  d_tester = NodeManager::mkDummySkolem(
+      testerName, nm->mkTesterType(self), SkolemFlags::SKOLEM_EXACT_NAME);
   d_constructor =
       NodeManager::mkDummySkolem(getName(),
                                  nm->mkConstructorType(argTypes, self),
-                                 "is a constructor",
                                  SkolemFlags::SKOLEM_EXACT_NAME);
   Assert(d_constructor.getType().isDatatypeConstructor());
   // associate constructor with all selectors
@@ -694,7 +691,7 @@ TypeNode DTypeConstructor::doParametricSubstitution(
       }
     }
   }
-  NodeBuilder nb(NodeManager::currentNM(), range.getKind());
+  NodeBuilder nb(range.getNodeManager(), range.getKind());
   for (size_t i = 0, csize = children.size(); i < csize; ++i)
   {
     nb << children[i];

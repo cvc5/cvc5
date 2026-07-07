@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Martin Brain, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -34,14 +31,14 @@ Integer getCardinality(const TypeNode& type)
    * 1                    NaN
    * 2*1                  Infinities
    * 2*1                  Zeros
-   * 2*2^(s-1)            Subnormal
+   * 2*(2^(s-1) -1)       Subnormal
    * 2*((2^e)-2)*2^(s-1)  Normal
    *
-   *  = 1 + 2*2 + 2*((2^e)-1)*2^(s-1)
-   *  =       5 + ((2^e)-1)*2^s
+   *  = 1 + 2*2 + 2^s - 2 + 2^s * (2^e - 2)
+   *  =       3 + 2^s * ((2^e)-1)
    */
 
-  return Integer(5)
+  return Integer(3)
          + Integer(2).pow(fps.significandWidth())
                * (Integer(2).pow(fps.exponentWidth()) - Integer(1));
 }
@@ -62,7 +59,7 @@ void checkForExperimentalFloatingPointType(const Node& n)
             "are supported in default mode. Try the experimental solver via "
             "--fp-exp. Note: There are known issues with the experimental "
             "solver, use at your own risk.";
-      throw LogicException(ss.str());
+      throw SafeLogicException(ss.str());
     }
   }
 }

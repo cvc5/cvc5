@@ -1,10 +1,7 @@
 ###############################################################################
-# Top contributors (to current version):
-#   Gereon Kremer, Daniel Larraz, Alex Ozdemir
-#
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -59,7 +56,7 @@ if(NOT CoCoA_FOUND_SYSTEM)
 
   include(ExternalProject)
 
-  set(CoCoA_VERSION "0.99800")
+  set(CoCoA_VERSION "0.99850")
 
   if("${CMAKE_GENERATOR}" STREQUAL "Unix Makefiles")
     # use $(MAKE) instead of "make" to allow for parallel builds
@@ -87,14 +84,16 @@ if(NOT CoCoA_FOUND_SYSTEM)
     CoCoA-EP
     ${COMMON_EP_CONFIG}
     URL https://github.com/cvc5/cvc5-deps/blob/main/CoCoALib-${CoCoA_VERSION}.tgz?raw=true
-    URL_HASH SHA256=f8bb227e2e1729e171cf7ac2008af71df25914607712c35db7bcb5a044a928c6
+    URL_HASH SHA256=d3e7af0153c6950f83f4e3556540f0177fedf5179f0f7667b7d6d670268fd445
     # CoCoA requires C++14, but the check does not work with compilers that
     # default to C++17 or newer. The patch fixes the check.
     PATCH_COMMAND patch -p1 -d <SOURCE_DIR>
         -i ${CMAKE_CURRENT_LIST_DIR}/deps-utils/CoCoALib-${CoCoA_VERSION}-trace.patch
     BUILD_IN_SOURCE YES
+    # We only need CoCoALib itself, not CoCoA-5; --only-cocoalib avoids the
+    # otherwise mandatory configure-time dependency on BOOST.
     CONFIGURE_COMMAND ${SHELL} ./configure --prefix=<INSTALL_DIR> --with-libgmp=${GMP_LIBRARY}
-        --with-cxx=${CMAKE_CXX_COMPILER} --with-cxxflags=${CoCoA_CXXFLAGS}
+        --with-cxx=${CMAKE_CXX_COMPILER} --with-cxxflags=${CoCoA_CXXFLAGS} --only-cocoalib
     BUILD_COMMAND ${make_cmd} library
     BUILD_BYPRODUCTS <INSTALL_DIR>/lib/libcocoa.a
   )

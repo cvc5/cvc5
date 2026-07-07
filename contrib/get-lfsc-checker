@@ -62,8 +62,8 @@ chmod +x $BASE_DIR/bin/lfsc_gen_and_check.sh
 cat << EOF > $BASE_DIR/bin/lfsc_gen.sh
 #!/usr/bin/env bash
 
-# call cvc5 and remove the first line of the output (should be "unsat")
-\$@ --dump-proofs --proof-format=lfsc | tail -n +2
+# call cvc5 and remove the first, second and last lines of the output (should be "unsat", "(", ")")
+\$@ --dump-proofs --proof-format=lfsc | tail -n +3 | head -n -1
 EOF
 chmod +x $BASE_DIR/bin/lfsc_gen.sh
 

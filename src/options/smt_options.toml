@@ -3,7 +3,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "ackermann"
-  category   = "regular"
+  category   = "expert"
   long       = "ackermann"
   type       = "bool"
   default    = "false"
@@ -47,6 +47,7 @@ name   = "SMT Layer"
   long       = "learned-rewrite"
   type       = "bool"
   default    = "false"
+  no_support = ["proofs", "unsat-cores"]
   help       = "rewrite the input based on learned literals"
 
 [[option]]
@@ -68,7 +69,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "debugCheckModels"
-  category   = "expert"
+  category   = "common"
   long       = "debug-check-models"
   type       = "bool"
   default    = "false"
@@ -81,6 +82,14 @@ name   = "SMT Layer"
   type       = "bool"
   default    = "true"
   help       = "allow variable elimination based on unevaluatable terms to variables"
+
+[[option]]
+  name       = "checkModelSubsolver"
+  category   = "common"
+  long       = "check-model-subsolver"
+  type       = "bool"
+  default    = "true"
+  help       = "use subsolver to compute values when applicable in calls to get-value and check-models"
 
 [[option]]
   name       = "modelCoresMode"
@@ -200,7 +209,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "unsatAssumptions"
-  category   = "regular"
+  category   = "common"
   long       = "produce-unsat-assumptions"
   type       = "bool"
   default    = "false"
@@ -234,7 +243,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "checkSynthSol"
-  category   = "regular"
+  category   = "common"
   long       = "check-synth-sol"
   type       = "bool"
   default    = "false"
@@ -361,6 +370,7 @@ name   = "SMT Layer"
   long       = "solve-bv-as-int=MODE"
   type       = "SolveBVAsIntMode"
   default    = "OFF"
+  no_support = ["proofs"]
   help       = "mode for translating BVAnd to integer"
   help_mode  = "solve-bv-as-int modes."
 [[option.mode.OFF]]
@@ -417,7 +427,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "solveIntAsBV"
-  category   = "regular"
+  category   = "expert"
   long       = "solve-int-as-bv=N"
   type       = "uint64_t"
   default    = "0"
@@ -474,7 +484,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "checkInterpolants"
-  category   = "regular"
+  category   = "common"
   long       = "check-interpolants"
   type       = "bool"
   default    = "false"
@@ -482,7 +492,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "checkAbducts"
-  category   = "regular"
+  category   = "common"
   long       = "check-abducts"
   type       = "bool"
   default    = "false"
@@ -529,3 +539,11 @@ name   = "SMT Layer"
   type       = "uint64_t"
   default    = "10000"
   help       = "timeout (in milliseconds) for satisfiability checks for timeout cores"
+
+[[option]]
+  name       = "printDefs"
+  category   = "expert"
+  long       = "output-print-defs"
+  type       = "bool"
+  default    = "true"
+  help       = "print define-fun commands for top-level substitutions when dumping assertions"

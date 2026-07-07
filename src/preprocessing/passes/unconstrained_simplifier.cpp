@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Clark Barrett, Andres Noetzli, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -124,13 +121,9 @@ void UnconstrainedSimplifier::visitAll(TNode assertion)
   }
 }
 
-Node UnconstrainedSimplifier::newUnconstrainedVar(TypeNode t, TNode var)
+Node UnconstrainedSimplifier::newUnconstrainedVar(TypeNode t)
 {
-  Node n = NodeManager::mkDummySkolem(
-      "unconstrained",
-      t,
-      "a new var introduced because of unconstrained variable "
-          + var.toString());
+  Node n = NodeManager::mkDummySkolem("unconstrained", t);
   return n;
 }
 
@@ -239,7 +232,7 @@ void UnconstrainedSimplifier::processUnconstrained()
                 {
                   currentSub = current;
                 }
-                currentSub = newUnconstrainedVar(parent.getType(), currentSub);
+                currentSub = newUnconstrainedVar(parent.getType());
                 current = parent;
               }
             }
@@ -253,7 +246,7 @@ void UnconstrainedSimplifier::processUnconstrained()
         case Kind::EQUAL:
         {
           // equality uses strict type rule
-          Assert(parent[0].getType() == parent[1].getType());
+          AssertEqual(parent[0].getType(), parent[1].getType());
           CardinalityClass c = parent[0].getType().getCardinalityClass();
           if (c == CardinalityClass::ONE)
           {
@@ -292,7 +285,7 @@ void UnconstrainedSimplifier::processUnconstrained()
             {
               currentSub = current;
             }
-            currentSub = newUnconstrainedVar(parent.getType(), currentSub);
+            currentSub = newUnconstrainedVar(parent.getType());
             current = parent;
           }
           else
@@ -325,7 +318,7 @@ void UnconstrainedSimplifier::processUnconstrained()
           {
             currentSub = current;
           }
-          currentSub = newUnconstrainedVar(parent.getType(), currentSub);
+          currentSub = newUnconstrainedVar(parent.getType());
           current = parent;
           break;
 
@@ -430,7 +423,7 @@ void UnconstrainedSimplifier::processUnconstrained()
               {
                 currentSub = current;
               }
-              currentSub = newUnconstrainedVar(parent.getType(), currentSub);
+              currentSub = newUnconstrainedVar(parent.getType());
               current = parent;
             }
             else
@@ -528,7 +521,7 @@ void UnconstrainedSimplifier::processUnconstrained()
               // TODO(#2377): could build ITE here
               Node test = other.eqNode(
                   nm->mkConstRealOrInt(other.getType(), Rational(0)));
-              if (rewrite(test) != nm->mkConst<bool>(false))
+              if (!CVC5_EQUAL(rewrite(test), nm->mkConst<bool>(false)))
               {
                 break;
               }
@@ -571,7 +564,7 @@ void UnconstrainedSimplifier::processUnconstrained()
               Node test = nm->mkNode(extractOp, children);
               BitVector one(1, unsigned(1));
               test = test.eqNode(nm->mkConst<BitVector>(one));
-              if (rewrite(test) != nm->mkConst<bool>(true))
+              if (!CVC5_EQUAL(rewrite(test), nm->mkConst<bool>(true)))
               {
                 done = true;
                 break;
@@ -604,7 +597,7 @@ void UnconstrainedSimplifier::processUnconstrained()
             }
             // always introduce a new variable; it is unsound to try to reuse
             // currentSub as the variable, see issue #4469.
-            currentSub = newUnconstrainedVar(parent.getType(), currentSub);
+            currentSub = newUnconstrainedVar(parent.getType());
             current = parent;
           }
           else
@@ -624,7 +617,7 @@ void UnconstrainedSimplifier::processUnconstrained()
               currentSub = current;
             }
             currentSub = newUnconstrainedVar(
-                current.getType().getArrayConstituentType(), currentSub);
+                current.getType().getArrayConstituentType());
             current = parent;
           }
           break;
@@ -727,7 +720,7 @@ void UnconstrainedSimplifier::processUnconstrained()
               {
                 currentSub = current;
               }
-              currentSub = newUnconstrainedVar(parent.getType(), currentSub);
+              currentSub = newUnconstrainedVar(parent.getType());
               current = parent;
             }
             else
@@ -749,7 +742,7 @@ void UnconstrainedSimplifier::processUnconstrained()
             {
               currentSub = current;
             }
-            currentSub = newUnconstrainedVar(parent.getType(), currentSub);
+            currentSub = newUnconstrainedVar(parent.getType());
             current = parent;
             Node test = rewrite(other.eqNode(nm->mkConst<BitVector>(bv)));
             if (test == nm->mkConst<bool>(false))
@@ -878,7 +871,6 @@ PreprocessingPassResult UnconstrainedSimplifier::applyInternal(
 
   return PreprocessingPassResult::NO_CONFLICT;
 }
-
 
 }  // namespace passes
 }  // namespace preprocessing

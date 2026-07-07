@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -15,8 +12,8 @@
 
 #include "theory/arith/arith_msum.h"
 
+#include "theory/arith/arith_utilities.h"
 #include "theory/rewriter.h"
-#include "util/rational.h"
 
 using namespace cvc5::internal::kind;
 
@@ -95,7 +92,7 @@ bool ArithMSum::getMonomialSumLit(Node lit, std::map<Node, Node>& msum)
       {
         // subtract the other side
         std::map<Node, Node> msum2;
-        NodeManager* nm = NodeManager::currentNM();
+        NodeManager* nm = lit.getNodeManager();
         if (getMonomialSum(lit[1], msum2))
         {
           for (std::map<Node, Node>::iterator it = msum2.begin();
@@ -115,10 +112,10 @@ bool ArithMSum::getMonomialSumLit(Node lit, std::map<Node, Node>& msum)
             }
             else
             {
-              msum[it->first] = it->second.isNull()
-                                    ? nm->mkConstInt(Rational(-1))
-                                    : nm->mkConstRealOrInt(
-                                          -it->second.getConst<Rational>());
+              msum[it->first] =
+                  it->second.isNull()
+                      ? nm->mkConstInt(Rational(-1))
+                      : nm->mkConstRealOrInt(-it->second.getConst<Rational>());
             }
           }
           return true;
@@ -129,9 +126,8 @@ bool ArithMSum::getMonomialSumLit(Node lit, std::map<Node, Node>& msum)
   return false;
 }
 
-Node ArithMSum::mkNode(const std::map<Node, Node>& msum)
+Node ArithMSum::mkNode(NodeManager* nm, const std::map<Node, Node>& msum)
 {
-  NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> children;
   for (std::map<Node, Node>::const_iterator it = msum.begin(); it != msum.end();
        ++it)
@@ -154,6 +150,29 @@ Node ArithMSum::mkNode(const std::map<Node, Node>& msum)
                                      : nm->mkConstInt(Rational(0)));
 }
 
+Node ArithMSum::mkCoeffTerm(Node c, Node t)
+{
+  if (c.isNull())
+  {
+    return t;
+  }
+  Assert(c.isConst());
+  NodeManager* nm = t.getNodeManager();
+  Rational r = c.getConst<Rational>();
+  TypeNode tt = t.getType();
+  // ensure no mixed arithmetic
+  if (!r.isIntegral())
+  {
+    if (!tt.isReal())
+    {
+      Assert(tt.isInteger());
+      return nm->mkNode(Kind::MULT, c, nm->mkNode(Kind::TO_REAL, t));
+    }
+  }
+  return nm->mkNode(
+      Kind::MULT, nm->mkConstRealOrInt(tt, c.getConst<Rational>()), t);
+}
+
 int ArithMSum::isolate(
     Node v, const std::map<Node, Node>& msum, Node& veq_c, Node& val, Kind k)
 {
@@ -161,7 +180,8 @@ int ArithMSum::isolate(
   std::map<Node, Node>::const_iterator itv = msum.find(v);
   if (itv != msum.end())
   {
-    NodeManager* nm = NodeManager::currentNM();
+    bool isReal = v.getType().isReal();
+    NodeManager* nm = v.getNodeManager();
     std::vector<Node> children;
     Rational r =
         itv->second.isNull() ? Rational(1) : itv->second.getConst<Rational>();
@@ -183,13 +203,19 @@ int ArithMSum::isolate(
           {
             m = it->second;
           }
+          if (isReal && !m.getType().isReal())
+          {
+            Assert(m.getType().isInteger());
+            m = arith::castToReal(nm, m);
+          }
           children.push_back(m);
         }
       }
       val = children.size() > 1
                 ? nm->mkNode(Kind::ADD, children)
-                : (children.size() == 1 ? children[0]
-                                        : nm->mkConstInt(Rational(0)));
+                : (children.size() == 1
+                       ? children[0]
+                       : nm->mkConstRealOrInt(v.getType(), Rational(0)));
       if (!r.isOne() && !r.isNegativeOne())
       {
         if (vtn.isInteger())
@@ -202,9 +228,11 @@ int ArithMSum::isolate(
               Kind::MULT, val, nm->mkConstReal(Rational(1) / r.abs()));
         }
       }
-      val = r.sgn() == 1 ? nm->mkNode(
-                Kind::MULT, nm->mkConstRealOrInt(Rational(-1)), val)
-                         : val;
+      val = r.sgn() == 1
+                ? nm->mkNode(Kind::MULT,
+                             nm->mkConstRealOrInt(val.getType(), Rational(-1)),
+                             val)
+                : val;
       return (r.sgn() == 1 || k == Kind::EQUAL) ? 1 : -1;
     }
   }
@@ -220,7 +248,7 @@ int ArithMSum::isolate(
   int ires = isolate(v, msum, veq_c, val, k);
   if (ires != 0)
   {
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = v.getNodeManager();
     Node vc = v;
     if (!veq_c.isNull())
     {
@@ -247,7 +275,7 @@ int ArithMSum::isolate(
       {
         val = nm->mkNode(Kind::TO_INTEGER, val);
       }
-      Assert(val.getType() == vc.getType())
+      AssertEqual(val.getType(), vc.getType())
           << val << " " << vc << " " << val.getType() << " " << vc.getType();
     }
     veq = nm->mkNode(k, inOrder ? vc : val, inOrder ? val : vc);
@@ -302,14 +330,15 @@ bool ArithMSum::decompose(Node n, Node v, Node& coeff, Node& rem)
     {
       coeff = it->second;
       msum.erase(v);
-      rem = mkNode(msum);
+      rem = mkNode(n.getNodeManager(), msum);
       return true;
     }
   }
   return false;
 }
 
-void ArithMSum::debugPrintMonomialSum(std::map<Node, Node>& msum, const char* c)
+void ArithMSum::debugPrintMonomialSum(std::map<Node, Node>& msum,
+                                      CVC5_UNUSED const char* c)
 {
   for (std::map<Node, Node>::iterator it = msum.begin(); it != msum.end(); ++it)
   {

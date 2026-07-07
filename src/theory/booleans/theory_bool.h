@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Haniel Barbosa, Andres Noetzli, Morgan Deters
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,7 +24,8 @@ namespace cvc5::internal {
 namespace theory {
 namespace booleans {
 
-class TheoryBool : public Theory {
+class TheoryBool : public Theory
+{
  public:
   TheoryBool(Env& env, OutputChannel& out, Valuation valuation);
 
@@ -45,7 +43,7 @@ class TheoryBool : public Theory {
   TheoryBoolRewriter d_rewriter;
   /** Proof rule checker */
   BoolProofRuleChecker d_checker;
-};/* class TheoryBool */
+}; /* class TheoryBool */
 
 }  // namespace booleans
 }  // namespace theory

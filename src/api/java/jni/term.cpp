@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mudathir Mohamed, Andres Noetzli, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -13,9 +10,9 @@
  * The cvc5 Java API.
  */
 
-#include <cstdint>
-
 #include <cvc5/cvc5.h>
+
+#include <cstdint>
 
 #include "api_utilities.h"
 #include "io_github_cvc5_Term.h"
@@ -41,7 +38,7 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Term_getNullTerm(JNIEnv* env,
  * Method:    deletePointer
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_io_github_cvc5_Term_deletePointer(JNIEnv* env,
+JNIEXPORT void JNICALL Java_io_github_cvc5_Term_deletePointer(JNIEnv*,
                                                               jobject,
                                                               jlong pointer)
 {
@@ -546,18 +543,31 @@ JNIEXPORT jstring JNICALL Java_io_github_cvc5_Term_getStringValue(JNIEnv* env,
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Term* current = reinterpret_cast<Term*>(pointer);
-  std::wstring termString = current->getStringValue();
+  std::u32string termString = current->getU32StringValue();
 
-  size_t length = termString.length();
-  jchar* unicode = new jchar[length];
-  const wchar_t* s = termString.c_str();
-  for (size_t i = 0; i < length; i++)
+  std::u16string utf16String;
+  for (char32_t wc : termString)
   {
-    unicode[i] = s[i];
+    if (wc <= 0xFFFF)
+    {
+      // BMP character (directly store it)
+      utf16String.push_back(static_cast<char16_t>(wc));
+    }
+    else
+    {
+      // Convert to surrogate pair
+      char32_t codepoint = wc - 0x10000;
+      char16_t highSurrogate =
+          static_cast<char16_t>((codepoint >> 10) + 0xD800);
+      char16_t lowSurrogate =
+          static_cast<char16_t>((codepoint & 0x3FF) + 0xDC00);
+      utf16String.push_back(highSurrogate);
+      utf16String.push_back(lowSurrogate);
+    }
   }
-  jstring ret = env->NewString(unicode, length);
-  delete[] unicode;
-  return ret;
+
+  return env->NewString(reinterpret_cast<const jchar*>(utf16String.c_str()),
+                        utf16String.length());
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
 }
 
@@ -858,7 +868,7 @@ JNIEXPORT jboolean JNICALL Java_io_github_cvc5_Term_isFloatingPointValue(
  * Signature: (J)Lio/github/cvc5/Triplet;
  */
 JNIEXPORT jobject JNICALL Java_io_github_cvc5_Term_getFloatingPointValue(
-    JNIEnv* env, jobject thisObject, jlong pointer)
+    JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Term* current = reinterpret_cast<Term*>(pointer);

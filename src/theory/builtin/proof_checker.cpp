@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Hans-Joerg Schurr, Hanna Lachnitt
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -51,6 +48,7 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(ProofRule::EVALUATE, this);
   pc->registerChecker(ProofRule::DISTINCT_VALUES, this);
   pc->registerChecker(ProofRule::ACI_NORM, this);
+  pc->registerChecker(ProofRule::ABSORB, this);
   pc->registerChecker(ProofRule::ITE_EQ, this);
   pc->registerChecker(ProofRule::ENCODE_EQ_INTRO, this);
   pc->registerChecker(ProofRule::DSL_REWRITE, this);
@@ -79,6 +77,10 @@ Node BuiltinProofRuleChecker::applySubstitutionRewrite(
     MethodId idr)
 {
   Node nks = applySubstitution(n, exp, ids, ida);
+  if (nks.isNull())
+  {
+    return nks;
+  }
   return d_env.rewriteViaMethod(nks, idr);
 }
 
@@ -87,6 +89,7 @@ bool BuiltinProofRuleChecker::getSubstitutionForLit(Node exp,
                                                     TNode& subs,
                                                     MethodId ids)
 {
+  NodeManager* nm = exp.getNodeManager();
   if (ids == MethodId::SB_DEFAULT)
   {
     if (exp.getKind() != Kind::EQUAL)
@@ -100,18 +103,18 @@ bool BuiltinProofRuleChecker::getSubstitutionForLit(Node exp,
   {
     bool polarity = exp.getKind() != Kind::NOT;
     var = polarity ? exp : exp[0];
-    subs = NodeManager::currentNM()->mkConst(polarity);
+    subs = nm->mkConst(polarity);
   }
   else if (ids == MethodId::SB_FORMULA)
   {
     var = exp;
-    subs = NodeManager::currentNM()->mkConst(true);
+    subs = nm->mkConst(true);
   }
   else
   {
-    Assert(false) << "BuiltinProofRuleChecker::applySubstitution: no "
-                     "substitution for "
-                  << ids << std::endl;
+    DebugUnhandled() << "BuiltinProofRuleChecker::applySubstitution: no "
+                        "substitution for "
+                     << ids << std::endl;
     return false;
   }
   return true;
@@ -288,7 +291,7 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
   {
     Assert(children.empty());
     Assert(args.size() == 2);
-    Assert(args[0].getType() == args[1].getType());
+    AssertEqual(args[0].getType(), args[1].getType());
     if (!args[0].isConst() || !args[1].isConst() || args[0] == args[1])
     {
       return Node::null();
@@ -305,6 +308,25 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
       return Node::null();
     }
     if (!expr::isACINorm(args[0][0], args[0][1]))
+    {
+      return Node::null();
+    }
+    return args[0];
+  }
+  else if (id == ProofRule::ABSORB)
+  {
+    Assert(children.empty());
+    Assert(args.size() == 1);
+    if (args[0].getKind() != Kind::EQUAL)
+    {
+      return Node::null();
+    }
+    if (expr::getZeroElement(nm, args[0][0].getKind(), args[0][0].getType())
+        != args[0][1])
+    {
+      return Node::null();
+    }
+    if (!expr::isAbsorb(args[0][0], args[0][1]))
     {
       return Node::null();
     }
@@ -341,8 +363,9 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
       return Node::null();
     }
     Trace("builtin-pfcheck") << "Result is " << res << std::endl;
-    Trace("builtin-pfcheck") << "Witness form is "
-                             << SkolemManager::getOriginalForm(res) << std::endl;
+    Trace("builtin-pfcheck")
+        << "Witness form is " << SkolemManager::getOriginalForm(res)
+        << std::endl;
     // **** NOTE: can rewrite the witness form here. This enables certain lemmas
     // to be provable, e.g. (= k t) where k is a purification Skolem for t.
     res = d_rewriter->rewrite(SkolemManager::getOriginalForm(res));
@@ -388,6 +411,10 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
     exp.insert(exp.end(), children.begin() + 1, children.end());
     Node res1 = applySubstitutionRewrite(children[0], exp, ids, ida, idr);
     Node res2 = applySubstitutionRewrite(args[0], exp, ids, ida, idr);
+    if (res1.isNull() || res2.isNull())
+    {
+      return Node::null();
+    }
     // if not already equal, do rewriting
     if (res1 != res2)
     {

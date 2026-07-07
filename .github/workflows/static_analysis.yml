@@ -1,0 +1,60 @@
+on:
+  schedule:
+    - cron: '0 4 * * *'
+  workflow_dispatch:
+
+name: Static Analysis
+
+jobs:
+  static-analysis:
+    name: ubuntu:clang-tidy
+    if: (github.repository == 'cvc5/cvc5') || (github.event_name != 'schedule')
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v6
+
+    - name: Install CodeQL
+      run: |
+        wget -q https://github.com/github/codeql-cli-binaries/releases/latest/download/codeql-linux64.zip
+        unzip codeql-linux64.zip
+        echo "$(pwd)/codeql" >> $GITHUB_PATH
+
+    - name: Install dependencies
+      uses: ./.github/actions/install-dependencies
+      with:
+        use-clang: true
+
+    - name: Build cvc5 tidy checks plugin
+      run: |
+        sudo apt-get install -y libclang-18-dev
+        BUILD_DIR="deps/cvc5-tidy-checks/"
+        mkdir -p $BUILD_DIR && cd $BUILD_DIR
+        # Pass the correct paths for LLVM and Clang installations
+        cmake ../../contrib/tidy-checks/ \
+              -DLLVM_DIR=/usr/lib/llvm-18/lib/cmake/llvm \
+              -DClang_DIR=/usr/lib/llvm-18/lib/cmake/clang
+        make -j${{ env.num_proc }}
+
+    - name: Configure and build cvc5 with CodeQL database
+      id: configure-and-build
+      run: |
+        ./configure.sh production --auto-download --assertions
+        cd build/
+        # Build cvc5 and create CodeQL database for clang-tidy checks
+        codeql database create codeql-db --language=cpp --command="make -j${{ env.num_proc }}"
+
+    - name: Run CodeQL analysis
+      run: |
+        codeql pack install ./contrib/codeql
+        cd build/
+        CODEQL_QUERY="../contrib/codeql/IdentifyNodeIdDependentCalls.ql"
+        codeql query run "$CODEQL_QUERY" --database=codeql-db --output=node_id_dependencies.bqrs
+        codeql bqrs decode node_id_dependencies.bqrs --format=csv --output=node_id_dependencies.csv
+
+    - name: Run clang-tidy and cvc5 tidy checks
+      run: |
+        export NODE_DEP_PATH=$(pwd)/build/node_id_dependencies.csv
+        CFG='{InheritParentConfig: true, CheckOptions: [{key: cvc5-node-id-determinism.NodeIdDependencyListPath, value: "'"$NODE_DEP_PATH"'"}]}'
+        run-clang-tidy -quiet -warnings-as-errors "*" -config="$CFG" -load deps/cvc5-tidy-checks/Cvc5TidyChecks.so -p build

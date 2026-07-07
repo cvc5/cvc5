@@ -1,5 +1,5 @@
 (set-logic QF_UFBVLIA)
 (set-info :status sat)
 (declare-fun t () Int)
-(assert (= t (bv2nat ((_ int2bv 1) t))))
+(assert (= t (ubv_to_int ((_ int_to_bv 1) t))))
 (check-sat)

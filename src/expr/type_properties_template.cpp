@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mathias Preiner, Morgan Deters, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,7 +15,7 @@
 namespace cvc5::internal {
 namespace kind {
 
-Node mkGroundTerm(TypeConstant tc)
+Node mkGroundTerm(NodeManager* nm, TypeConstant tc)
 {
   switch (tc)
   {
@@ -36,7 +33,8 @@ Node mkGroundTerm(TypeNode typeNode)
   switch (Kind k = typeNode.getKind())
   {
     case Kind::TYPE_CONSTANT:
-      return mkGroundTerm(typeNode.getConst<TypeConstant>());
+      return mkGroundTerm(typeNode.getNodeManager(),
+                          typeNode.getConst<TypeConstant>());
       // clang-format off
 ${type_groundterms}
       // clang-format on

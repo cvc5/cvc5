@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Gereon Kremer, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -35,10 +32,21 @@ namespace cvc5::main {
 class ExecutionContext
 {
  public:
+  ExecutionContext(CommandExecutor* executor)
+      : d_executor(executor), d_hasReadCheckSat(false)
+  {
+  }
+
   /** The command executor used for solving */
   CommandExecutor* d_executor;
+  /* Whether a check-sat command has been read */
+  bool d_hasReadCheckSat;
   /** The logic, if it has been set by a command */
   std::optional<std::string> d_logic;
+  /** The last stored declarations and named terms **/
+  std::vector<cvc5::Sort> d_sorts;
+  std::vector<cvc5::Term> d_terms;
+  std::map<cvc5::Term, std::string> d_named_terms;
 
   /** Retrieve the solver object from the command executor */
   Solver& solver() { return *d_executor->getSolver(); }
@@ -47,12 +55,44 @@ class ExecutionContext
    * Read commands from the parser and continuously execute them. If
    * stopAtSetLogic is true, stop when the logic has been set to some value.
    * If this happens, d_logic is set to the respective value.
-   * Otherwise (if stopAtSetLogic is false or the logic is never set) all
+   * If stopAtCheckSat is true, stop when the a check-sat command has been read.
+   * If this happens, d_hasReadCheckSat is set to true.
+   * Otherwise (if stopAtSetLogic is false or the logic is never set, or
+   * stopAtCheckSat is false or a check-sat command is never read) all
    * commands are executed until a quit command is found or the whole input
    * has been parsed.
    * Returns true if the commands have been executed without being interrupted.
    */
-  bool solveContinuous(parser::InputParser* parser, bool stopAtSetLogic);
+  bool solveContinuous(parser::InputParser* parser,
+                       bool stopAtSetLogic,
+                       bool stopAtCheckSat = false);
+
+  /**
+   * Store the current declarations and named terms to be used by
+   * continueAfterSolving().
+   */
+  void storeDeclarationsAndNamedTerms();
+
+  /**
+   * Read commands from the parser and continuously execute them.
+   * If a (get-model) command is detected, the last stored declarations are
+   * used. If a (get-unsat-core) command is detected, the last stored named
+   * terms are used. Returns true if the commands were executed without
+   * interruption.
+   */
+  bool continueAfterSolving(parser::InputParser* parser);
+
+  /**
+   * Execute a check-sat command.
+   * @return true if the command was executed successfully.
+   */
+  bool runCheckSatCommand();
+
+  /**
+   * Execute a reset command.
+   * @return true if the command was executed successfully.
+   */
+  bool runResetCommand();
 
   /**
    * Execute the given commands.
@@ -145,7 +185,10 @@ class PortfolioDriver
   bool solve(std::unique_ptr<CommandExecutor>& executor);
 
  private:
-  PortfolioStrategy getStrategy(const std::string& logic);
+  PortfolioStrategy getStrategy(bool incremental_solving,
+                                const std::string& logic);
+  PortfolioStrategy getIncrementalStrategy(const std::string& logic);
+  PortfolioStrategy getNonIncrementalStrategy(const std::string& logic);
 
   /** The parser we use to get the commands */
   parser::InputParser* d_parser;

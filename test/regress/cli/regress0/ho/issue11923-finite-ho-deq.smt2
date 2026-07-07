@@ -1,0 +1,12 @@
+; EXPECT: sat
+(set-logic HO_ALL)
+(declare-sort U 0)
+(declare-fun f (Bool (-> U Bool)) (-> Bool Int))
+(declare-fun n (U) Bool)
+(declare-fun fn (Bool) (-> Bool Int))
+(declare-fun n3 ((-> Int Bool) U Int) (-> Bool Int))
+(declare-fun n4 (Int) Bool)
+(declare-const c U)
+(declare-const c1 (-> Bool Bool Int))
+(assert (and (= (fn true) (f false n)) (distinct (f false n) (n3 n4 c (c1 false true)))))
+(check-sat)

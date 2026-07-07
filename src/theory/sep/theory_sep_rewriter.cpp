@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -32,7 +29,8 @@ void TheorySepRewriter::getStarChildren(Node n,
 {
   Assert(n.getKind() == Kind::SEP_STAR);
   Node tr = nodeManager()->mkConst(true);
-  for( unsigned i=0; i<n.getNumChildren(); i++ ){
+  for (unsigned i = 0; i < n.getNumChildren(); i++)
+  {
     if (n[i].getKind() == Kind::SEP_EMP)
     {
       scs.push_back(n[i]);
@@ -65,8 +63,9 @@ void TheorySepRewriter::getStarChildren(Node n,
       {
         to_add = nodeManager()->mkNode(Kind::AND, temp_scs);
       }
-      if( !to_add.isNull() ){
-        //flatten star
+      if (!to_add.isNull())
+      {
+        // flatten star
         if (to_add.getKind() == Kind::SEP_STAR)
         {
           getStarChildren(to_add, scs, nscs);
@@ -86,19 +85,23 @@ void TheorySepRewriter::getAndChildren(Node n,
 {
   if (n.getKind() == Kind::AND)
   {
-    for( unsigned i=0; i<n.getNumChildren(); i++ ){
+    for (unsigned i = 0; i < n.getNumChildren(); i++)
+    {
       getAndChildren(n[i], scs, nscs);
     }
   }
   else
   {
-    std::map< Node, bool > visited;
-    if( isSpatial( n, visited ) ){
+    std::map<Node, bool> visited;
+    if (isSpatial(n, visited))
+    {
       if (std::find(scs.begin(), scs.end(), n) == scs.end())
       {
         scs.push_back(n);
       }
-    }else{
+    }
+    else
+    {
       if (std::find(nscs.begin(), nscs.end(), n) == nscs.end())
       {
         if (n != nodeManager()->mkConst(true))
@@ -112,7 +115,8 @@ void TheorySepRewriter::getAndChildren(Node n,
 
 bool TheorySepRewriter::isSpatial(Node n, std::map<Node, bool>& visited) const
 {
-  if( visited.find( n )==visited.end() ){
+  if (visited.find(n) == visited.end())
+  {
     visited[n] = true;
     if (n.getKind() == Kind::SEP_STAR || n.getKind() == Kind::SEP_PTO
         || n.getKind() == Kind::SEP_EMP || n.getKind() == Kind::SEP_LABEL)
@@ -121,8 +125,10 @@ bool TheorySepRewriter::isSpatial(Node n, std::map<Node, bool>& visited) const
     }
     else if (n.getType().isBoolean())
     {
-      for( unsigned i=0; i<n.getNumChildren(); i++ ){
-        if( isSpatial( n[i], visited ) ){
+      for (unsigned i = 0; i < n.getNumChildren(); i++)
+      {
+        if (isSpatial(n[i], visited))
+        {
           return true;
         }
       }
@@ -131,13 +137,15 @@ bool TheorySepRewriter::isSpatial(Node n, std::map<Node, bool>& visited) const
   return false;
 }
 
-RewriteResponse TheorySepRewriter::postRewrite(TNode node) {
+RewriteResponse TheorySepRewriter::postRewrite(TNode node)
+{
   Trace("sep-postrewrite") << "Sep::postRewrite start " << node << std::endl;
   Node retNode = node;
-  switch (node.getKind()) {
+  switch (node.getKind())
+  {
     case Kind::SEP_STAR:
     {
-      //flatten
+      // flatten
       std::vector<Node> scs;
       std::vector<Node> nscs;
       getStarChildren(node, scs, nscs);
@@ -167,25 +175,30 @@ RewriteResponse TheorySepRewriter::postRewrite(TNode node) {
     }
     case Kind::EQUAL:
     {
-      if(node[0] == node[1]) {
+      if (node[0] == node[1])
+      {
         return RewriteResponse(REWRITE_DONE, nodeManager()->mkConst(true));
       }
-      else if (node[0].isConst() && node[1].isConst()) {
+      else if (node[0].isConst() && node[1].isConst())
+      {
         return RewriteResponse(REWRITE_DONE, nodeManager()->mkConst(false));
       }
-      if (node[0] > node[1]) {
+      if (node[0] > node[1])
+      {
         Node newNode = nodeManager()->mkNode(node.getKind(), node[1], node[0]);
         return RewriteResponse(REWRITE_DONE, newNode);
       }
       break;
     }
-    default:
-      break;
+    default: break;
   }
-  if( node!=retNode ){
-    Trace("sep-rewrite") << "Sep::rewrite : " << node << " -> " << retNode << std::endl;
+  if (node != retNode)
+  {
+    Trace("sep-rewrite") << "Sep::rewrite : " << node << " -> " << retNode
+                         << std::endl;
   }
-  return RewriteResponse(node==retNode ? REWRITE_DONE : REWRITE_AGAIN_FULL, retNode);
+  return RewriteResponse(node == retNode ? REWRITE_DONE : REWRITE_AGAIN_FULL,
+                         retNode);
 }
 
 }  // namespace sep

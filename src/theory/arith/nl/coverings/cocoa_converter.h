@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -42,6 +39,8 @@ namespace coverings {
 class CoCoAConverter
 {
  public:
+  CoCoAConverter(const poly::Context& ctx) : d_polyCtx(ctx) {}
+
   /** Add mapping from libpoly variable to a CoCoA variable */
   void addVar(const poly::Variable& pv, const CoCoA::RingElem& cv)
   {
@@ -103,10 +102,13 @@ class CoCoAConverter
   }
 
  private:
-
   /** Helper class for the conversion of a libpoly polynomial to CoCoA. */
   struct CoCoAPolyConstructor
   {
+    CoCoAPolyConstructor(const CoCoAConverter& state, const CoCoA::ring& ring)
+        : d_state(state), d_ring(ring)
+    {
+    }
     const CoCoAConverter& d_state;
     const CoCoA::ring& d_ring;
     CoCoA::RingElem d_result;
@@ -125,6 +127,9 @@ class CoCoAConverter
    * variables.
    */
   std::map<std::pair<long, size_t>, poly::Variable> d_varCP;
+
+  /** The libpoly context */
+  const poly::Context& d_polyCtx;
 };
 
 }  // namespace coverings

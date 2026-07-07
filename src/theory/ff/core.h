@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Alex Ozdemir
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -67,8 +64,19 @@ class Tracer
 
   /**
    * Unhook from CoCoA callbacks. Should be called after you're done tracing.
+   * Also clears the global handler `std::function`s so they don't retain
+   * captured pointers into this Tracer past its lifetime.
    */
   void unsetFunctionPointers();
+
+  /**
+   * Destructor. If `setFunctionPointers()` was called and
+   * `unsetFunctionPointers()` has not yet run (e.g. stack unwinding through a
+   * `FfTimeoutException`), the global CoCoA handler slots still hold
+   * `std::function`s that captured `this`. Detach them here so a later CoCoA
+   * call doesn't dereference freed memory.
+   */
+  ~Tracer();
 
  private:
   /** CoCoA calls these functions */
@@ -118,6 +126,9 @@ class Tracer
   std::function<void(CoCoA::ConstRefRingElem)> d_reductionStart{};
   std::function<void(CoCoA::ConstRefRingElem)> d_reductionStep{};
   std::function<void(CoCoA::ConstRefRingElem)> d_reductionEnd{};
+
+  /** True between `setFunctionPointers()` and `unsetFunctionPointers()`. */
+  bool d_handlersRegistered{false};
 };
 
 }  // namespace ff

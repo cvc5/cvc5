@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Morgan Deters, Alex Ozdemir
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -339,13 +336,12 @@ TEST_F(TestNodeBlackTypeCardinality, lessThan)
   ASSERT_FALSE(d_nodeManager->mkBitVectorType(8).isCardinalityLessThan(256));
   ASSERT_TRUE(d_nodeManager->mkBitVectorType(8).isCardinalityLessThan(257));
   ASSERT_FALSE(
-      d_nodeManager->mkFloatingPointType(3, 5).isCardinalityLessThan(229));
+      d_nodeManager->mkFloatingPointType(3, 5).isCardinalityLessThan(227));
   ASSERT_TRUE(
-      d_nodeManager->mkFloatingPointType(3, 5).isCardinalityLessThan(230));
+      d_nodeManager->mkFloatingPointType(3, 5).isCardinalityLessThan(228));
   ASSERT_FALSE(d_nodeManager->roundingModeType().isCardinalityLessThan(5));
   ASSERT_TRUE(d_nodeManager->roundingModeType().isCardinalityLessThan(6));
-  ASSERT_FALSE(
-      d_nodeManager->mkFiniteFieldType(11).isCardinalityLessThan(11));
+  ASSERT_FALSE(d_nodeManager->mkFiniteFieldType(11).isCardinalityLessThan(11));
   ASSERT_TRUE(d_nodeManager->mkFiniteFieldType(11).isCardinalityLessThan(13));
 }
 }  // namespace test

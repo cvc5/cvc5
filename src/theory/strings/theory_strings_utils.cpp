@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -17,11 +14,12 @@
 
 #include <sstream>
 
-#include "expr/attribute.h"
 #include "expr/bound_var_manager.h"
 #include "expr/sequence.h"
 #include "expr/skolem_manager.h"
+#include "expr/sort_to_term.h"
 #include "options/strings_options.h"
+#include "proof/valid_witness_proof_generator.h"
 #include "theory/quantifiers/fmf/bounded_integers.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/rewriter.h"
@@ -133,7 +131,7 @@ Node mkConcat(const std::vector<Node>& c, TypeNode tn)
   {
     return c[0];
   }
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = tn.getNodeManager();
   if (c.empty())
   {
     if (tn.isRegExp())
@@ -150,7 +148,7 @@ Node mkConcat(const std::vector<Node>& c, TypeNode tn)
 
 Node mkPrefix(Node t, Node n)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = t.getNodeManager();
   return nm->mkNode(Kind::STRING_SUBSTR, t, nm->mkConstInt(Rational(0)), n);
 }
 
@@ -166,12 +164,11 @@ Node mkSuffix(Node t, Node n)
 
 Node mkPrefixExceptLen(Node t, Node n)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = t.getNodeManager();
   Node lent = nm->mkNode(Kind::STRING_LENGTH, t);
-  return nm->mkNode(Kind::STRING_SUBSTR,
-                    t,
-                    nm->mkConstInt(Rational(0)),
-                    nm->mkNode(Kind::SUB, lent, n));
+  return nm->mkNode(
+      Kind::STRING_SUBSTR,
+      {t, nm->mkConstInt(Rational(0)), nm->mkNode(Kind::SUB, lent, n)});
 }
 
 Node mkSuffixOfLen(Node t, Node n)
@@ -406,7 +403,7 @@ void printConcat(std::ostream& out, std::vector<Node>& n)
   }
 }
 
-void printConcatTrace(std::vector<Node>& n, const char* c)
+void printConcatTrace(std::vector<Node>& n, CVC5_UNUSED const char* c)
 {
   std::stringstream ss;
   printConcat(ss, n);
@@ -446,14 +443,13 @@ TypeNode getOwnerStringType(Node n)
   }
   else if (isStringKind(k))
   {
-    tn = NodeManager::currentNM()->stringType();
+    tn = n.getNodeManager()->stringType();
   }
   else
   {
     tn = n.getType();
   }
-  AlwaysAssert(tn.isStringLike())
-      << "Unexpected term in getOwnerStringType : " << n << ", type " << tn;
+  // otherwise return null
   return tn;
 }
 
@@ -480,38 +476,23 @@ Node mkForallInternal(NodeManager* nm, Node bvl, Node body)
   return quantifiers::BoundedIntegers::mkBoundedForall(nm, bvl, body);
 }
 
-/**
- * Mapping to the variable used for binding the witness term for the abstract
- * value below.
- */
-struct StringValueForLengthVarAttributeId
-{
-};
-typedef expr::Attribute<StringValueForLengthVarAttributeId, Node>
-    StringValueForLengthVarAttribute;
-
 Node mkAbstractStringValueForLength(Node n, Node len, size_t id)
 {
-  NodeManager* nm = NodeManager::currentNM();
-  BoundVarManager* bvm = nm->getBoundVarManager();
-  Node cacheVal = BoundVarManager::getCacheValue(n, len);
-  Node v = bvm->mkBoundVar<StringValueForLengthVarAttribute>(
-      cacheVal, "s", n.getType());
-  Node pred = nm->mkNode(Kind::STRING_LENGTH, v).eqNode(len);
-  // return (witness ((v String)) (= (str.len v) len))
-  Node bvl = nm->mkNode(Kind::BOUND_VAR_LIST, v);
-  std::stringstream ss;
-  ss << "w" << id;
-  return quantifiers::mkNamedQuant(Kind::WITNESS, bvl, pred, ss.str());
+  NodeManager* nm = n.getNodeManager();
+  Node tn = nm->mkConst(SortToTerm(n.getType()));
+  Node idn = nm->mkConstInt(Rational(id));
+  Node w = ValidWitnessProofGenerator::mkWitness(
+      nm, ProofRule::EXISTS_STRING_LENGTH, {tn, len, idn});
+  return w;
 }
 
 Node mkCodeRange(Node t, uint32_t alphaCard)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = t.getNodeManager();
   return nm->mkNode(
       Kind::AND,
-      nm->mkNode(Kind::GEQ, t, nm->mkConstInt(Rational(0))),
-      nm->mkNode(Kind::LT, t, nm->mkConstInt(Rational(alphaCard))));
+      {nm->mkNode(Kind::GEQ, t, nm->mkConstInt(Rational(0))),
+       nm->mkNode(Kind::LT, t, nm->mkConstInt(Rational(alphaCard)))});
 }
 
 }  // namespace utils

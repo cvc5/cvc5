@@ -1,5 +1,4 @@
 ; EXPECT: unsat
-; DISABLE-TESTER: proof
 (set-logic ALL)
 (declare-const x238 Bool)
 (declare-const x24 Bool)

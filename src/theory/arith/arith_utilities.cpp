@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Alex Ozdemir
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -102,10 +99,7 @@ Kind transKinds(Kind k1, Kind k2)
   return Kind::UNDEFINED_KIND;
 }
 
-Node mkZero(const TypeNode& tn)
-{
-  return NodeManager::currentNM()->mkConstRealOrInt(tn, 0);
-}
+Node mkZero(const TypeNode& tn) { return NodeManager::mkConstRealOrInt(tn, 0); }
 
 bool isZero(const Node& n)
 {
@@ -115,7 +109,7 @@ bool isZero(const Node& n)
 
 Node mkOne(const TypeNode& tn, bool isNeg)
 {
-  return NodeManager::currentNM()->mkConstRealOrInt(tn, isNeg ? -1 : 1);
+  return NodeManager::mkConstRealOrInt(tn, isNeg ? -1 : 1);
 }
 
 bool isTranscendentalKind(Kind k)
@@ -142,11 +136,23 @@ bool isTranscendentalKind(Kind k)
   return false;
 }
 
+bool isExtendedNonLinearKind(Kind k)
+{
+  switch (k)
+  {
+    case Kind::IAND:
+    case Kind::POW2:
+    case Kind::POW: return true;
+    default: break;
+  }
+  return false;
+}
+
 Node getApproximateConstant(Node c, bool isLower, unsigned prec)
 {
   if (!c.isConst())
   {
-    Assert(false) << "getApproximateConstant: non-constant input " << c;
+    DebugUnhandled() << "getApproximateConstant: non-constant input " << c;
     return Node::null();
   }
   Rational cr = c.getConst<Rational>();
@@ -180,7 +186,7 @@ Node getApproximateConstant(Node c, bool isLower, unsigned prec)
 
   // now do binary search
   Rational two = Rational(2);
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = c.getNodeManager();
   Node cret;
   do
   {
@@ -218,11 +224,11 @@ Node getApproximateConstant(Node c, bool isLower, unsigned prec)
   return cret;
 }
 
-void printRationalApprox(const char* c, Node cr, unsigned prec)
+void printRationalApprox(CVC5_UNUSED const char* c, Node cr, unsigned prec)
 {
   if (!cr.isConst())
   {
-    Assert(false) << "printRationalApprox: non-constant input " << cr;
+    DebugUnhandled() << "printRationalApprox: non-constant input " << cr;
     Trace(c) << cr;
     return;
   }
@@ -241,8 +247,8 @@ void printRationalApprox(const char* c, Node cr, unsigned prec)
 Node mkBounded(Node l, Node a, Node u)
 {
   return NodeManager::mkNode(Kind::AND,
-                             NodeManager::mkNode(Kind::GEQ, a, l),
-                             NodeManager::mkNode(Kind::LEQ, a, u));
+                             {NodeManager::mkNode(Kind::GEQ, a, l),
+                              NodeManager::mkNode(Kind::LEQ, a, u)});
 }
 
 Rational leastIntGreaterThan(const Rational& q) { return q.floor() + 1; }
@@ -282,7 +288,7 @@ Node multConstants(const Node& c1, const Node& c2)
 {
   Assert(!c1.isNull() && c1.isConst());
   Assert(!c2.isNull() && c2.isConst());
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = c1.getNodeManager();
   // real type if either has type real
   TypeNode tn = c1.getType();
   if (tn.isInteger())
@@ -299,7 +305,7 @@ Node mkEquality(const Node& a, const Node& b)
   Assert(a.getType().isRealOrInt());
   Assert(b.getType().isRealOrInt());
   // if they have the same type, just make them equal
-  if (a.getType() == b.getType())
+  if (CVC5_EQUAL(a.getType(), b.getType()))
   {
     return NodeManager::mkNode(Kind::EQUAL, a, b);
   }
@@ -314,7 +320,7 @@ Node castToReal(NodeManager* nm, const Node& n)
                      : nm->mkNode(Kind::TO_REAL, n);
 }
 
-std::pair<Node,Node> mkSameType(const Node& a, const Node& b)
+std::pair<Node, Node> mkSameType(const Node& a, const Node& b)
 {
   TypeNode at = a.getType();
   TypeNode bt = b.getType();
@@ -335,9 +341,9 @@ std::pair<Node,Node> mkSameType(const Node& a, const Node& b)
 Node eliminateBv2Nat(TNode node)
 {
   const unsigned size = bv::utils::getSize(node[0]);
-  NodeManager* const nm = NodeManager::currentNM();
+  NodeManager* const nm = node.getNodeManager();
   const Node z = nm->mkConstInt(Rational(0));
-  const Node bvone = bv::utils::mkOne(1);
+  const Node bvone = bv::utils::mkOne(nm, 1);
 
   Integer i = 1;
   std::vector<Node> children;
@@ -357,9 +363,9 @@ Node eliminateBv2Nat(TNode node)
 Node eliminateInt2Bv(TNode node)
 {
   const uint32_t size = node.getOperator().getConst<IntToBitVector>().d_size;
-  NodeManager* const nm = NodeManager::currentNM();
-  const Node bvzero = bv::utils::mkZero(1);
-  const Node bvone = bv::utils::mkOne(1);
+  NodeManager* const nm = node.getNodeManager();
+  const Node bvzero = bv::utils::mkZero(nm, 1);
+  const Node bvone = bv::utils::mkOne(nm, 1);
 
   std::vector<Node> v;
   Integer i = 2;
@@ -367,9 +373,9 @@ Node eliminateInt2Bv(TNode node)
   {
     Node cond = nm->mkNode(
         Kind::GEQ,
-        nm->mkNode(
-            Kind::INTS_MODULUS_TOTAL, node[0], nm->mkConstInt(Rational(i))),
-        nm->mkConstInt(Rational(i, 2)));
+        {nm->mkNode(
+             Kind::INTS_MODULUS_TOTAL, node[0], nm->mkConstInt(Rational(i))),
+         nm->mkConstInt(Rational(i, 2))});
     v.push_back(nm->mkNode(Kind::ITE, cond, bvone, bvzero));
     i *= 2;
   }

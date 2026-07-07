@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Caleb Donovick, Andrew Reynolds, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -30,8 +27,9 @@ namespace passes {
 using namespace std;
 using namespace cvc5::internal::theory;
 
-QuantifiersPreprocess::QuantifiersPreprocess(PreprocessingPassContext* preprocContext)
-    : PreprocessingPass(preprocContext, "quantifiers-preprocess"){};
+QuantifiersPreprocess::QuantifiersPreprocess(
+    PreprocessingPassContext* preprocContext)
+    : PreprocessingPass(preprocContext, "quantifiers-preprocess") {};
 
 PreprocessingPassResult QuantifiersPreprocess::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
@@ -51,12 +49,15 @@ PreprocessingPassResult QuantifiersPreprocess::applyInternal(
       Trace("quantifiers-preprocess") << "*** Pre-skolemize " << prev << endl;
       Trace("quantifiers-preprocess")
           << "   ...got " << (*assertionsToPreprocess)[i] << endl;
+      if (assertionsToPreprocess->isInConflict())
+      {
+        return PreprocessingPassResult::CONFLICT;
+      }
     }
   }
 
   return PreprocessingPassResult::NO_CONFLICT;
 }
-
 
 }  // namespace passes
 }  // namespace preprocessing

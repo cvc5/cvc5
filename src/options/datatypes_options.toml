@@ -59,10 +59,10 @@ name   = "Datatypes Theory"
 
 [[option]]
   name       = "dtSharedSelectors"
-  category   = "regular"
+  category   = "expert"
   long       = "dt-share-sel"
   type       = "bool"
-  default    = "true"
+  default    = "false"
   help       = "internally use shared selectors across multiple constructors"
 
 [[option]]
@@ -171,4 +171,4 @@ name   = "Datatypes Theory"
   long       = "datatypes-exp"
   type       = "bool"
   default    = "true"
-  help       = "enables reasoning about codatatypes"
+  help       = "enables reasoning about codatatypes and extended datatype terms"

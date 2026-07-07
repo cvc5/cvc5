@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -148,8 +145,7 @@ void InstMatchGeneratorSimple::addInstantiations(InstMatch& m,
     }
     // we do not need the trigger parent for simple triggers (no post-processing
     // required)
-    if (sendInstantiation(terms,
-                          InferenceId::QUANTIFIERS_INST_E_MATCHING_SIMPLE))
+    if (sendInstantiation(terms))
     {
       addedLemmas++;
       Trace("simple-trigger")
@@ -208,6 +204,10 @@ int InstMatchGeneratorSimple::getActiveScore()
   return static_cast<int>(ngt);
 }
 
+InferenceId InstMatchGeneratorSimple::getInferenceId()
+{
+  return InferenceId::QUANTIFIERS_INST_E_MATCHING_SIMPLE;
+}
 }  // namespace inst
 }  // namespace quantifiers
 }  // namespace theory

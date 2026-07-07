@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Gereon Kremer, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -60,7 +57,7 @@ Node buildRelation(Kind kind, Node left, Node right, bool negate = false);
  * to the left side of the equality and make its coefficient positive.
  * The sum is taken as rvalue as it is modified in the process.
  */
-Node buildIntegerEquality(Sum&& sum);
+Node buildIntegerEquality(NodeManager* nm, Sum&& sum);
 
 /**
  * Build a real equality from the given sum. The result is equivalent to the sum
@@ -69,7 +66,7 @@ Node buildIntegerEquality(Sum&& sum);
  * term being equal to the rest of the sum.
  * The sum is taken as rvalue as it is modified in the process.
  */
-Node buildRealEquality(Sum&& sum);
+Node buildRealEquality(NodeManager* nm, Sum&& sum);
 
 /**
  * Build an integer inequality from the given sum. The result is equivalent to
@@ -79,7 +76,7 @@ Node buildRealEquality(Sum&& sum);
  * where the overall inequalit is possibly negated.
  * The sum is taken as rvalue as it is modified in the process.
  */
-Node buildIntegerInequality(Sum&& sum, Kind k);
+Node buildIntegerInequality(NodeManager* nm, Sum&& sum, Kind k);
 
 /**
  * Build a real inequality from the given sum. The result is equivalent to
@@ -87,7 +84,7 @@ Node buildIntegerInequality(Sum&& sum, Kind k);
  * The result is the resulting sum compared with the constant.
  * The sum is taken as rvalue as it is modified in the process.
  */
-Node buildRealInequality(Sum&& sum, Kind k);
+Node buildRealInequality(NodeManager* nm, Sum&& sum, Kind k);
 
 /**
  * Decompose sum into a (non-constant, constant) part.

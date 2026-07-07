@@ -1,10 +1,7 @@
 ###############################################################################
-# Top contributors (to current version):
-#   Gereon Kremer, Mathias Preiner, Andres Noetzli
-#
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -21,7 +18,29 @@ find_library(GTest_MAIN_LIBRARIES NAMES gtest_main)
 
 set(GTest_FOUND_SYSTEM FALSE)
 if(GTest_INCLUDE_DIR AND GTest_LIBRARIES AND GTest_MAIN_LIBRARIES)
+    # Set FOUND_SYSTEM to true; check_system_version will unset this if the
+    # system version is less than the minimum required version.
     set(GTest_FOUND_SYSTEM TRUE)
+
+    # GTest does not expose its version through a header macro, so we query the
+    # gtest.pc pkg-config file (shipped by GTest) to determine the version.
+    find_package(PkgConfig QUIET)
+    if(PKG_CONFIG_FOUND)
+        pkg_check_modules(PC_GTest QUIET gtest)
+        set(GTest_VERSION "${PC_GTest_VERSION}")
+    endif()
+
+    # Minimum required version, set by find_package(GTest <version> ...).
+    if(GTest_FIND_VERSION AND NOT GTest_VERSION)
+        message(STATUS "Could not determine the version of the system GTest \
+installation; assuming it does not satisfy the minimum required version \
+${GTest_FIND_VERSION}")
+        set(GTest_FOUND_SYSTEM FALSE)
+    else()
+        # Check the detected version against the required version; this unsets
+        # GTest_FOUND_SYSTEM if the version is too old.
+        check_system_version("GTest")
+    endif()
 endif()
 
 if(NOT GTest_FOUND_SYSTEM)
@@ -32,13 +51,13 @@ if(NOT GTest_FOUND_SYSTEM)
 
     include(ExternalProject)
 
-    set(GTest_VERSION "1.11.0")
+    set(GTest_VERSION "1.17.0")
 
     ExternalProject_Add(
         GTest-EP
         ${COMMON_EP_CONFIG}
-        URL https://github.com/google/googletest/archive/refs/tags/release-${GTest_VERSION}.tar.gz
-        URL_HASH SHA256=b4870bf121ff7795ba20d20bcdd8627b8e088f2d1dab299a031c1034eddc93d5
+        URL https://github.com/google/googletest/archive/refs/tags/v${GTest_VERSION}.tar.gz
+        URL_HASH SHA256=65fab701d9829d38cb77c14acdc431d2108bfdbf8979e40eb8ae567edf10b27c
         DOWNLOAD_NAME gtest.tar.gz
         CMAKE_ARGS
           -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
@@ -48,13 +67,13 @@ if(NOT GTest_FOUND_SYSTEM)
         COMMAND ${CMAKE_COMMAND} --build .
             --config ${CMAKE_BUILD_TYPE} --target gtest_main
         BUILD_BYPRODUCTS
-            <INSTALL_DIR>/lib/libgtest.a
-            <INSTALL_DIR>/lib/libgtest_main.a
+            <INSTALL_DIR>/${CMAKE_INSTALL_LIBDIR}/libgtest.a
+            <INSTALL_DIR>/${CMAKE_INSTALL_LIBDIR}/libgtest_main.a
     )
 
     set(GTest_INCLUDE_DIR "${DEPS_BASE}/include/")
-    set(GTest_LIBRARIES "${DEPS_BASE}/lib/libgtest.a")
-    set(GTest_MAIN_LIBRARIES "${DEPS_BASE}/lib/libgtest_main.a")
+    set(GTest_LIBRARIES "${DEPS_BASE}/${CMAKE_INSTALL_LIBDIR}/libgtest.a")
+    set(GTest_MAIN_LIBRARIES "${DEPS_BASE}/${CMAKE_INSTALL_LIBDIR}/libgtest_main.a")
 endif()
 
 set(GTest_FOUND TRUE)

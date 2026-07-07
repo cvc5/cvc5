@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mathias Preiner, Andrew Reynolds, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -135,7 +132,7 @@ BVSolverBitblast::BVSolverBitblast(Env& env,
   initSatSolver();
 }
 
-bool BVSolverBitblast::needsEqualityEngine(EeSetupInfo& esi)
+bool BVSolverBitblast::needsEqualityEngine(CVC5_UNUSED EeSetupInfo& esi)
 {
   // we always need the equality engine if sharing is enabled for processing
   // equality engine and shared terms
@@ -241,12 +238,25 @@ void BVSolverBitblast::postCheck(Theory::Effort level)
       std::vector<Node> assertions(d_assertions.begin(), d_assertions.end());
       conflict = nm->mkAnd(assertions);
     }
-    d_im.conflict(conflict, InferenceId::BV_BITBLAST_CONFLICT);
+    TrustNode tconflict;
+    if (d_epg != nullptr)
+    {
+      tconflict = d_epg->mkTrustNodeTrusted(
+          conflict, TrustId::BV_BITBLAST_CONFLICT, {}, {}, true);
+    }
+    else
+    {
+      tconflict = TrustNode::mkTrustConflict(conflict, nullptr);
+    }
+    d_im.trustedConflict(tconflict, InferenceId::BV_BITBLAST_CONFLICT);
   }
 }
 
-bool BVSolverBitblast::preNotifyFact(
-    TNode atom, bool pol, TNode fact, bool isPrereg, bool isInternal)
+bool BVSolverBitblast::preNotifyFact(CVC5_UNUSED TNode atom,
+                                     CVC5_UNUSED bool pol,
+                                     TNode fact,
+                                     CVC5_UNUSED bool isPrereg,
+                                     CVC5_UNUSED bool isInternal)
 {
   Valuation& val = d_state.getValuation();
 
@@ -265,7 +275,7 @@ bool BVSolverBitblast::preNotifyFact(
   {
     d_bbFacts.push_back(fact);
   }
-  
+
   // Return false to enable equality engine reasoning in Theory, which is
   // available if we are using the equality engine.
   return !logicInfo().isSharingEnabled() && !options().bv.bvEqEngine;
@@ -336,21 +346,13 @@ bool BVSolverBitblast::collectModelValues(TheoryModel* m,
 
 void BVSolverBitblast::initSatSolver()
 {
-  switch (options().bv.bvSatSolver)
-  {
-    case options::BvSatSolverMode::CRYPTOMINISAT:
-      d_satSolver.reset(prop::SatSolverFactory::createCryptoMinisat(
-          statisticsRegistry(),
-          d_env.getResourceManager(),
-          "theory::bv::BVSolverBitblast::"));
-      break;
-    default:
-      d_satSolver.reset(prop::SatSolverFactory::createCadical(
-          d_env,
-          statisticsRegistry(),
-          d_env.getResourceManager(),
-          "theory::bv::BVSolverBitblast::"));
-  }
+  const auto factory =
+      prop::SatSolverFactory::getFactory(options().bv.bvSatSolver);
+  d_satSolver.reset(factory(d_env,
+                            statisticsRegistry(),
+                            d_env.getResourceManager(),
+                            "theory::bv::BVSolverBitblast::"));
+
   d_cnfStream.reset(new prop::CnfStream(d_env,
                                         d_satSolver.get(),
                                         d_bbRegistrar.get(),
@@ -366,9 +368,10 @@ Node BVSolverBitblast::getValue(TNode node, bool initialize)
     return node;
   }
 
+  NodeManager* nm = node.getNodeManager();
   if (!d_bitblaster->hasBBTerm(node))
   {
-    return initialize ? utils::mkConst(utils::getSize(node), 0u) : Node();
+    return initialize ? utils::mkConst(nm, utils::getSize(node), 0u) : Node();
   }
 
   std::vector<Node> bits;
@@ -389,7 +392,7 @@ Node BVSolverBitblast::getValue(TNode node, bool initialize)
     }
     value = value * 2 + bit;
   }
-  return utils::mkConst(bits.size(), value);
+  return utils::mkConst(nm, bits.size(), value);
 }
 
 void BVSolverBitblast::handleEagerAtom(TNode fact, bool assertFact)

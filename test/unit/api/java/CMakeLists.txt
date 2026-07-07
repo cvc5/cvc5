@@ -1,10 +1,7 @@
 ###############################################################################
-# Top contributors (to current version):
-#   Mudathir Mohamed, Gereon Kremer, Aina Niemetz
-#
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -18,7 +15,7 @@ include(UseJava)
 find_package(JUnit REQUIRED)
 
 get_target_property(CVC5_JAR_PATH cvc5jar JAR_FILE)
-get_filename_component(CVC5_JNI_PATH ${CVC5_JAR_PATH} DIRECTORY)
+get_target_property(CVC5_JNI_LIBDIR cvc5jni LIBRARY_OUTPUT_DIRECTORY)
 
 # specify source files for junit tests
 set(java_test_src_files
@@ -27,7 +24,9 @@ set(java_test_src_files
   ${CMAKE_CURRENT_SOURCE_DIR}/FiniteFieldTest.java
   ${CMAKE_CURRENT_SOURCE_DIR}/GrammarTest.java
   ${CMAKE_CURRENT_SOURCE_DIR}/InputParserTest.java
+  ${CMAKE_CURRENT_SOURCE_DIR}/LifetimeTest.java
   ${CMAKE_CURRENT_SOURCE_DIR}/OpTest.java
+  ${CMAKE_CURRENT_SOURCE_DIR}/ParserLifetimeTest.java
   ${CMAKE_CURRENT_SOURCE_DIR}/ParserTest.java
   ${CMAKE_CURRENT_SOURCE_DIR}/ResultTest.java
   ${CMAKE_CURRENT_SOURCE_DIR}/SolverTest.java
@@ -39,13 +38,19 @@ set(java_test_src_files
   ${CMAKE_CURRENT_SOURCE_DIR}/ProofTest.java
 )
 
+if(WIN32)
+  set(PATH_SEP ";")
+else()
+  set(PATH_SEP ":")
+endif()
+
 # build junit tests
 add_custom_command(
   OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/tests/SolverTest.class
   DEPENDS JUnit-EP-jar cvc5jar ${java_test_src_files}
   COMMAND
     ${Java_JAVAC_EXECUTABLE} ${java_test_src_files}
-    -cp ${JUnit_JAR}:${CVC5_JAR_PATH} # add JUnit and cvc5 jar files to the class path
+    -cp "${JUnit_JAR}${PATH_SEP}${CVC5_JAR_PATH}" # add JUnit and cvc5 jar files to the class path
     -d . # specify the output directory for the generated .class files
   COMMENT "Build junit tests"
   VERBATIM
@@ -58,10 +63,11 @@ add_dependencies(build-units build-junit-tests)
 macro(cvc5_add_java_api_test name)
   add_test (NAME unit/api/java/${name}
     COMMAND
+      ${ENV_PATH_CMD}
       ${Java_JAVA_EXECUTABLE}
-      -Djava.library.path=${CVC5_JNI_PATH}
+      -Djava.library.path=${CVC5_JNI_LIBDIR}
       -jar ${JUnit_JAR}
-      -cp ${JUnit_JAR}:${CVC5_JAR_PATH}:.
+      -cp "${JUnit_JAR}${PATH_SEP}${CVC5_JAR_PATH}${PATH_SEP}."
       -select-package tests
       -n tests.${name}
   )
@@ -75,6 +81,8 @@ cvc5_add_java_api_test(CommandTest)
 cvc5_add_java_api_test(DatatypeTest)
 cvc5_add_java_api_test(GrammarTest)
 cvc5_add_java_api_test(InputParserTest)
+cvc5_add_java_api_test(LifetimeTest)
+cvc5_add_java_api_test(ParserLifetimeTest)
 cvc5_add_java_api_test(OpTest)
 cvc5_add_java_api_test(ResultTest)
 cvc5_add_java_api_test(SolverTest)

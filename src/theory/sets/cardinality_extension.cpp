@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Mudathir Mohamed, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -152,6 +149,31 @@ void CardinalityExtension::checkCardinalityExtended(TypeNode& t)
     // the universe set is a subset of itself
     if (representative != d_state.getRepresentative(univ))
     {
+      // Negative members are members of the universe set. This is sound for
+      // any representative (independent of whether it is a variable set),
+      // since an excluded element is still an element of the universe. It is
+      // crucial to do this for all representatives: a negative membership on a
+      // set whose equivalence class only contains skolems or derived terms
+      // (e.g. set.minus terms) would otherwise be invisible to the universe
+      // cardinality reasoning, which can lead to unsound models for finite
+      // types where a slack element is assigned the excluded value.
+      const std::map<Node, Node>& negativeMembers =
+          d_state.getNegativeMembers(representative);
+
+      for (const auto& negativeMember : negativeMembers)
+      {
+        Node member = nm->mkNode(Kind::SET_MEMBER, negativeMember.first, univ);
+        // negativeMember.second is the reason for the negative membership and
+        // has kind SET_MEMBER. So we specify the negation as the reason for the
+        // negative membership lemma
+        Node notMember = nm->mkNode(Kind::NOT, negativeMember.second);
+        // (=>
+        //    (not (member negativeMember representative)))
+        //    (member negativeMember (as univset t)))
+        d_im.assertInference(
+            member, InferenceId::SETS_CARD_NEGATIVE_MEMBER, notMember, 1);
+      }
+
       // here we only add representatives with variables to avoid adding
       // infinite equivalent generated terms to the cardinality graph
       Node variable = d_state.getVariableSet(representative);
@@ -169,24 +191,6 @@ void CardinalityExtension::checkCardinalityExtended(TypeNode& t)
       {
         d_im.assertInference(
             subset, InferenceId::SETS_CARD_UNIV_SUPERSET, d_true, 1);
-      }
-
-      // negative members are members in the universe set
-      const std::map<Node, Node>& negativeMembers =
-          d_state.getNegativeMembers(representative);
-
-      for (const auto& negativeMember : negativeMembers)
-      {
-        Node member = nm->mkNode(Kind::SET_MEMBER, negativeMember.first, univ);
-        // negativeMember.second is the reason for the negative membership and
-        // has kind SET_MEMBER. So we specify the negation as the reason for the
-        // negative membership lemma
-        Node notMember = nm->mkNode(Kind::NOT, negativeMember.second);
-        // (=>
-        //    (not (member negativeMember representative)))
-        //    (member negativeMember (as univset t)))
-        d_im.assertInference(
-            member, InferenceId::SETS_CARD_NEGATIVE_MEMBER, notMember, 1);
       }
     }
   }
@@ -295,9 +299,9 @@ void CardinalityExtension::registerCardinalityTerm(Node n)
         pos_lem, InferenceId::SETS_CARD_POSITIVE, d_emp_exp, 1);
     if (nn != nk)
     {
-      Node lem = nm->mkNode(Kind::EQUAL,
-                            nm->mkNode(Kind::SET_CARD, nk),
-                            nm->mkNode(Kind::SET_CARD, nn));
+      Node lem = nm->mkNode(
+          Kind::EQUAL,
+          {nm->mkNode(Kind::SET_CARD, nk), nm->mkNode(Kind::SET_CARD, nn)});
       lem = rewrite(lem);
       Trace("sets-card") << "  " << k << " : " << lem << std::endl;
       d_im.assertInference(lem, InferenceId::SETS_CARD_EQUAL, d_emp_exp, 1);
@@ -362,7 +366,7 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
     else
     {
       // should be guaranteed based on not exploring equal parents
-      Assert(false);
+      DebugUnhandled();
     }
     return;
   }
@@ -440,7 +444,8 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
           conc.push_back(n[e].eqNode(sib[e]));
         }
       }
-      d_im.assertInference(conc, InferenceId::SETS_CARD_GRAPH_EMP, n.eqNode(emp_set));
+      d_im.assertInference(
+          conc, InferenceId::SETS_CARD_GRAPH_EMP, n.eqNode(emp_set));
       d_im.doPendingLemmas();
       if (d_im.hasSent())
       {
@@ -464,8 +469,10 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
       {
         Trace("sets-debug") << "  it is empty..." << std::endl;
         Assert(!d_state.areEqual(n, emp_set));
+        // Use conc to ensure deterministic node ID assignments
+        Node conc = n.eqNode(emp_set);
         d_im.assertInference(
-            n.eqNode(emp_set), InferenceId::SETS_CARD_GRAPH_EMP_PARENT, p.eqNode(emp_set));
+            conc, InferenceId::SETS_CARD_GRAPH_EMP_PARENT, p.eqNode(emp_set));
         d_im.doPendingLemmas();
         if (d_im.hasSent())
         {
@@ -512,7 +519,8 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
         }
         Trace("sets-debug")
             << "...derived " << conc.size() << " conclusions" << std::endl;
-        d_im.assertInference(conc, InferenceId::SETS_CARD_GRAPH_EQ_PARENT, n.eqNode(p));
+        d_im.assertInference(
+            conc, InferenceId::SETS_CARD_GRAPH_EQ_PARENT, n.eqNode(p));
         d_im.doPendingLemmas();
         if (d_im.hasSent())
         {
@@ -565,7 +573,8 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
         if (eq_parent)
         {
           Node conc = n.eqNode(cpk);
-          d_im.assertInference(conc, InferenceId::SETS_CARD_GRAPH_PARENT_SINGLETON, exps);
+          d_im.assertInference(
+              conc, InferenceId::SETS_CARD_GRAPH_PARENT_SINGLETON, exps);
           d_im.doPendingLemmas();
         }
         else
@@ -835,8 +844,7 @@ void CardinalityExtension::checkNormalForm(Node eqc,
             {
               // Just try to make them equal. This is analogous
               // to the STRINGS_LEN_SPLIT inference in strings.
-              d_im.split(
-                  o0.eqNode(o1), InferenceId::SETS_CARD_SPLIT_EQ, 1);
+              d_im.split(o0.eqNode(o1), InferenceId::SETS_CARD_SPLIT_EQ, 1);
               Assert(d_im.hasSent());
               return;
             }
@@ -854,7 +862,7 @@ void CardinalityExtension::checkNormalForm(Node eqc,
                 {
                   Trace("sets-nf-debug")
                       << "Split term already exists, but not in cardinality "
-                        "graph : "
+                         "graph : "
                       << r1r2i << ", should be empty." << std::endl;
                   // their intersection is empty (probably?)
                   // e.g. these are two disjoint venn regions, proceed to next
@@ -871,8 +879,8 @@ void CardinalityExtension::checkNormalForm(Node eqc,
                 Node kca = d_treg.getProxy(o0);
                 Node kcb = d_treg.getProxy(o1);
                 Node intro = rewrite(nm->mkNode(Kind::SET_INTER, kca, kcb));
-                Trace("sets-nf") << "   Intro split : " << o0 << " against " << o1
-                                << ", term is " << intro << std::endl;
+                Trace("sets-nf") << "   Intro split : " << o0 << " against "
+                                 << o1 << ", term is " << intro << std::endl;
                 intro_sets.push_back(intro);
                 Assert(!d_state.hasTerm(intro));
                 return;
@@ -1061,7 +1069,9 @@ void CardinalityExtension::mkModelValueElementsFor(
         throw LogicException(ss.str());
       }
       std::uint32_t vu = v.getConst<Rational>().getNumerator().toUnsignedInt();
-      Assert(els.size() <= vu);
+      // The members collected in els are syntactic witnesses. They may be
+      // assigned the same model value unless they are known to be disequal, so
+      // els.size() can exceed the cardinality value here.
       NodeManager* nm = nodeManager();
       if (elementTypeFinite)
       {
@@ -1117,7 +1127,7 @@ void CardinalityExtension::mkModelValueElementsFor(
       }
       else
       {
-        Assert(false);
+        DebugUnhandled();
       }
     }
   }

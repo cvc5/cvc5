@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,6 +16,7 @@
 
 #include "base/modal_exception.h"
 #include "expr/node_algorithm.h"
+#include "expr/subtype_elim_node_converter.h"
 #include "options/base_options.h"
 #include "options/expr_options.h"
 #include "options/language.h"
@@ -43,9 +41,7 @@ Assertions::Assertions(Env& env)
 {
 }
 
-Assertions::~Assertions()
-{
-}
+Assertions::~Assertions() {}
 
 void Assertions::refresh()
 {
@@ -102,24 +98,19 @@ std::unordered_set<Node> Assertions::getCurrentAssertionListDefitions() const
   return defSet;
 }
 
-void Assertions::addFormula(TNode n,
-                            bool isFunDef,
-                            bool maybeHasFv)
+void Assertions::addFormula(TNode n, bool isFunDef, bool maybeHasFv)
 {
   // add to assertion list
   d_assertionList.push_back(n);
-  if (isFunDef)
-  {
-    d_assertionListDefs.push_back(n);
-  }
   if (n.isConst() && n.getConst<bool>())
   {
     // true, nothing to do
     return;
   }
-  Trace("smt") << "Assertions::addFormula(" << n
-               << ", isFunDef = " << isFunDef << std::endl;
-  if (isFunDef)
+  Trace("smt") << "Assertions::addFormula(" << n << ", isFunDef = " << isFunDef
+               << std::endl;
+  // In non-incremental, we treat higher-order equality as define-fun
+  if (!options().base.incrementalSolving || isFunDef)
   {
     // if a non-recursive define-fun, just add as a top-level substitution
     if (n.getKind() == Kind::EQUAL && n[0].isVar())
@@ -128,6 +119,12 @@ void Assertions::addFormula(TNode n,
           << "Define fun: " << n[0] << " = " << n[1] << std::endl;
       NodeManager* nm = nodeManager();
       TrustSubstitutionMap& tsm = d_env.getTopLevelSubstitutions();
+      if (!isFunDef
+          && (tsm.get().hasSubstitution(n[0])
+              || n[1].getKind() != Kind::LAMBDA))
+      {
+        return;
+      }
       // If it is a lambda, we rewrite the body, otherwise we rewrite itself.
       // For lambdas, we prefer rewriting only the body since we don't want
       // higher-order rewrites (e.g. value normalization) to apply by default.
@@ -148,6 +145,10 @@ void Assertions::addFormula(TNode n,
         defRew = defRewBody.getNode();
         defRew = nm->mkNode(Kind::LAMBDA, n[1][0], defRew);
       }
+      if (expr::hasSubterm(defRew, n[0]))
+      {
+        return;
+      }
       // if we need to track proofs
       if (d_env.isProofProducing())
       {
@@ -165,7 +166,7 @@ void Assertions::addFormula(TNode n,
           Node eqBody = defRewBody.getProven();
           d_defFunRewPf->addLazyStep(eqBody, defRewBody.getGenerator());
           Node eqRew = n[1].eqNode(defRew);
-          Assert (n[1].getKind() == Kind::LAMBDA);
+          Assert(n[1].getKind() == Kind::LAMBDA);
           // congruence over the binder
           std::vector<Node> cargs;
           ProofRule cr = expr::getCongRule(n[1], cargs);
@@ -182,6 +183,7 @@ void Assertions::addFormula(TNode n,
         }
       }
       Trace("smt-define-fun") << "...rewritten to " << defRew << std::endl;
+      d_assertionListDefs.push_back(n);
       d_env.getTopLevelSubstitutions().addSubstitution(
           n[0], defRew, d_defFunRewPf.get());
       return;

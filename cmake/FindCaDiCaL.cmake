@@ -1,10 +1,7 @@
 ###############################################################################
-# Top contributors (to current version):
-#   Gereon Kremer, Andrew V. Teylu, Mathias Preiner
-#
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -18,17 +15,17 @@
 
 include(deps-helper)
 
-find_path(CaDiCaL_INCLUDE_DIR NAMES cadical.hpp)
+find_path(CaDiCaL_INCLUDE_DIR NAMES cadical/cadical.hpp cadical/tracer.hpp)
 find_library(CaDiCaL_LIBRARIES NAMES cadical)
 
 set(CaDiCaL_FOUND_SYSTEM FALSE)
 if(CaDiCaL_INCLUDE_DIR AND CaDiCaL_LIBRARIES)
 
-  # Generate our version check file in CMAKE_BINARY_DIR
-  set(CaDiCaL_version_src "${CMAKE_BINARY_DIR}/CaDiCaL_version.cpp")
+  # Generate our version check file in PROJECT_BINARY_DIR
+  set(CaDiCaL_version_src "${PROJECT_BINARY_DIR}/CaDiCaL_version.cpp")
   file(WRITE ${CaDiCaL_version_src}
     "
-    #include <cadical.hpp>
+    #include <cadical/cadical.hpp>
     #include <iostream>
 
     int main(void)
@@ -51,7 +48,7 @@ if(CaDiCaL_INCLUDE_DIR AND CaDiCaL_LIBRARIES)
   # Try to compile and run our version file
   try_run(RUN_RESULT_VAR
     COMPILE_RESULT_VAR
-    ${CMAKE_BINARY_DIR}
+    ${PROJECT_BINARY_DIR}
     ${CaDiCaL_version_src}
     LINK_LIBRARIES ${CaDiCaL_LIBRARIES}
     RUN_OUTPUT_VARIABLE CaDiCaL_VERSION
@@ -66,7 +63,9 @@ if(CaDiCaL_INCLUDE_DIR AND CaDiCaL_LIBRARIES)
   endif()
 
   # Minimum supported version
-  set(CaDiCaL_FIND_VERSION "1.6.0")
+  set(CaDiCaL_FIND_VERSION "2.1.0")
+  # Maximum supported version
+  set(CaDiCaL_FIND_VERSION_MAX "2.1.3")
 
   # Set FOUND_SYSTEM to true; check_system_version will unset this if the
   # version is less than the minimum required
@@ -85,8 +84,8 @@ if(NOT CaDiCaL_FOUND_SYSTEM)
   include(CheckSymbolExists)
   include(ExternalProject)
 
-  set(CaDiCaL_VERSION "rel-2.0.0")
-  set(CaDiCaL_CHECKSUM "9afe5f6439442d854e56fc1fac3244ce241dbb490735939def8fd03584f89331")
+  set(CaDiCaL_VERSION "rel-2.1.3-elevate")
+  set(CaDiCaL_CHECKSUM "15e1e82f7f9a9da0e97070cb8ac41d5b32139f65d54f72d2ff84849b0466ef92")
 
   # avoid configure script and instantiate the makefile manually the configure
   # scripts unnecessarily fails for cross compilation thus we do the bare
@@ -100,6 +99,11 @@ if(NOT CaDiCaL_FOUND_SYSTEM)
   check_symbol_exists("getc_unlocked" "cstdio" HAVE_UNLOCKED_IO)
   if(NOT HAVE_UNLOCKED_IO)
     string(APPEND CaDiCaL_CXXFLAGS " -DNUNLOCKED")
+  endif()
+  # check for closefrom
+  check_symbol_exists("closefrom" "fcntl.h" HAVE_CLOSEFROM)
+  if(NOT HAVE_CLOSEFROM)
+    string(APPEND CaDiCaL_CXXFLAGS " -DNCLOSEFROM")
   endif()
 
   # On macOS, we have to set `-isysroot` to make sure that include headers are
@@ -141,7 +145,9 @@ if(NOT CaDiCaL_FOUND_SYSTEM)
     INSTALL_COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/build/libcadical.a
                     <INSTALL_DIR>/lib/libcadical.a
     COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/src/cadical.hpp
-            <INSTALL_DIR>/include/cadical.hpp
+            <INSTALL_DIR>/include/cadical/cadical.hpp
+    COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/src/tracer.hpp
+            <INSTALL_DIR>/include/cadical/tracer.hpp
     BUILD_BYPRODUCTS <INSTALL_DIR>/lib/libcadical.a
   )
 

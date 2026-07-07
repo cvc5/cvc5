@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -51,7 +48,10 @@ void InferProofCons::notifyFact(const std::shared_ptr<DatatypesInference>& di)
   d_lazyFactMap.insert(fact, di);
 }
 
-void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* cdp)
+void InferProofCons::convert(InferenceId infer,
+                             TNode conc,
+                             TNode exp,
+                             CDProof* cdp)
 {
   Trace("dt-ipc") << "convert: " << infer << ": " << conc << " by " << exp
                   << std::endl;
@@ -226,17 +226,28 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
     {
       Assert(2 <= expv.size() && expv.size() <= 3);
       Node tester1 = expv[0];
-      bool pol = expv[1].getKind() != Kind::NOT;
-      Node tester2 = pol ? expv[1] : expv[1][0];
+      Node lit2 = expv[1];
+      // We assume below that tester1 is a positive tester is-C1(x), which
+      // provides the argument x. The two tester literals may however be given
+      // in either order, e.g. the conflict ~is-C(a) ^ is-C(b) ^ a=b may have
+      // the negated tester first. In that case, swap so that the positive
+      // tester takes the tester1 role.
+      if (tester1.getKind() == Kind::NOT
+          && lit2.getKind() == Kind::APPLY_TESTER)
+      {
+        std::swap(tester1, lit2);
+      }
+      bool pol = lit2.getKind() != Kind::NOT;
+      Node tester2 = pol ? lit2 : lit2[0];
       if (tester1.getKind() == Kind::APPLY_TESTER
           && tester2.getKind() == Kind::APPLY_TESTER)
       {
         Node tester1c =
-            nm->mkNode(Kind::APPLY_TESTER, tester2.getOperator(), expv[0][0]);
+            nm->mkNode(Kind::APPLY_TESTER, tester2.getOperator(), tester1[0]);
         tester1c = pol ? tester1c : tester1c.notNode();
-        if (tester1c != expv[1])
+        if (tester1c != lit2)
         {
-          std::vector<Node> targs{expv[1]};
+          std::vector<Node> targs{lit2};
           if (expv.size() == 3)
           {
             targs.push_back(expv[2]);
@@ -251,12 +262,56 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
         //            is-C2(y)  y = x
         //            ----------------- MACRO_SR_PRED_TRANSFORM
         // is-C1(x)   is-C2(x)
-        // ------------------- DT_CLASH
+        // -------------------
         // false
-        cdp->addStep(fn,
-                     pol ? ProofRule::DT_CLASH : ProofRule::CONTRA,
-                     {tester1, tester1c},
-                     {});
+        // in the latter, case we prove this by DT_INST + rewriting below.
+        if (!pol)
+        {
+          cdp->addStep(fn, ProofRule::CONTRA, {tester1, tester1c}, {});
+        }
+        else
+        {
+          // is-C1(x)
+          // ----------- DT_INST + EQ_RESOLVE
+          // x = C1(...)   is-C2(x)
+          // -----------   ----------- DT_INST + EQ_RESOLVE
+          // C1(...) = x   x = C2(...)
+          // ------------------------- TRANS
+          // C1(...) = C2(...)
+          // ----------------- DT_CONS_EQ_CLASH + EQ_RESOLVE
+          /// false
+          // Note that C1 and C2 are always distinct constructors here, since
+          // this is a conflict between testers is-C1(x) and is-C2(x). Hence
+          // the equality C1(...) = C2(...) rewrites to false by the
+          // (non-macro) DT_CONS_EQ_CLASH rule.
+          Rewriter* rr = d_env.getRewriter();
+          std::vector<Node> insts;
+          for (size_t i = 0; i < 2; i++)
+          {
+            Node t = i == 0 ? tester1 : tester1c;
+            Node inst = rr->rewriteViaRule(ProofRewriteRule::DT_INST, t);
+            Assert(!inst.isNull());
+            Assert(inst.getKind() == Kind::EQUAL);
+            Node eq = t.eqNode(inst);
+            cdp->addTheoryRewriteStep(eq, ProofRewriteRule::DT_INST);
+            cdp->addStep(inst, ProofRule::EQ_RESOLVE, {t, eq}, {});
+            if (i == 0)
+            {
+              Node instsym = inst[1].eqNode(inst[0]);
+              cdp->addStep(instsym, ProofRule::SYMM, {inst}, {});
+              inst = instsym;
+            }
+            insts.push_back(inst);
+          }
+          Node ceq = insts[0][0].eqNode(insts[1][1]);
+          cdp->addStep(ceq, ProofRule::TRANS, insts, {});
+          // C1 and C2 are always distinct constructors here, so that ceq
+          // rewrites to false by the (non-macro) DT_CONS_EQ_CLASH rule.
+          Assert(insts[0][0].getOperator() != insts[1][1].getOperator());
+          tryRewriteRule(ceq, fn, ProofRewriteRule::DT_CONS_EQ_CLASH, cdp);
+          Node ceqf = ceq.eqNode(fn);
+          cdp->addStep(fn, ProofRule::EQ_RESOLVE, {ceq, ceqf}, {});
+        }
         success = true;
       }
     }
@@ -408,10 +463,22 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
           d_env.getRewriter()->rewriteViaRule(ProofRewriteRule::DT_CYCLE, eq1);
       if (!falsen.isNull())
       {
+        // If eq1 is already one of the premises modulo symmetry, let CDProof
+        // use that premise directly. Adding a TRANS proof for it would make
+        // the premise's assumption depend on itself via automatic symmetry.
+        bool cycleEqIsPremise = false;
+        for (const Node& e : expv)
+        {
+          if (CDProof::isSame(e, eq1))
+          {
+            cycleEqIsPremise = true;
+            break;
+          }
+        }
         Node eqq = eq1.eqNode(falsen);
         cdp->addTheoryRewriteStep(eqq, ProofRewriteRule::DT_CYCLE);
         cdp->addStep(falsen, ProofRule::EQ_RESOLVE, {eq1, eqq}, {});
-        if (eq1 != lastEq)
+        if (eq1 != lastEq && !cycleEqIsPremise)
         {
           cdp->addStep(eq1, ProofRule::TRANS, {lastEq, eq}, {});
         }

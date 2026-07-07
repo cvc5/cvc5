@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Andrew Reynolds, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -40,7 +37,7 @@ TEST_F(TestNodeWhiteNodeManager, mkConst_rational)
 
 TEST_F(TestNodeWhiteNodeManager, oversized_node_builder)
 {
-  NodeBuilder nb(d_nodeManager);
+  NodeBuilder nb(d_nodeManager.get());
 
   ASSERT_NO_THROW(nb.realloc(15));
   ASSERT_NO_THROW(nb.realloc(25));
@@ -76,6 +73,17 @@ TEST_F(TestNodeWhiteNodeManager, topological_sort)
   {
     std::vector<NodeValue*> roots = {n2.d_nv, n1.d_nv};
     std::vector<NodeValue*> result = {n1.d_nv, n2.d_nv};
+    ASSERT_EQ(NodeManager::TopologicalSort(roots), result);
+  }
+
+  {
+    TypeNode intType = d_nodeManager->integerType();
+    TypeNode fnType = d_nodeManager->mkFunctionType(intType, intType);
+    Node f = d_skolemManager->mkDummySkolem("f", fnType);
+    Node x = d_skolemManager->mkDummySkolem("x", intType);
+    Node fx = d_nodeManager->mkNode(Kind::APPLY_UF, f, x);
+    std::vector<NodeValue*> roots = {fx.d_nv, f.d_nv};
+    std::vector<NodeValue*> result = {f.d_nv, fx.d_nv};
     ASSERT_EQ(NodeManager::TopologicalSort(roots), result);
   }
 }

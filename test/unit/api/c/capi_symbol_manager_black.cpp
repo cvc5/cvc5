@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -34,9 +31,9 @@ class TestCApiBlackSymbolManager : public ::testing::Test
   }
   void TearDown() override
   {
+    cvc5_symbol_manager_delete(d_sm);
     cvc5_delete(d_solver);
     cvc5_term_manager_delete(d_tm);
-    cvc5_symbol_manager_delete(d_sm);
   }
 
   void parse_and_set_logic(const char* logic)
@@ -103,7 +100,7 @@ TEST_F(TestCApiBlackSymbolManager, getNamedTerms)
 {
   parse_and_set_logic("QF_LIA");
   size_t size;
-  Cvc5Term *terms;
+  Cvc5Term* terms;
   const char** names;
   (void)cvc5_sm_get_named_terms(d_sm, &size, &terms, &names);
   ASSERT_EQ(size, 0);

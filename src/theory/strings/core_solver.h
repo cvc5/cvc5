@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Tianyi Liang
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -318,7 +315,7 @@ class CoreSolver : public InferSideEffectProcess, protected EnvObj
   /**
    * This returns the conclusion of the extensionality rule, see
    * ProofRule::STRING_EXT.
-   * 
+   *
    * @param nm Pointer to the node manager
    * @param a The first string term
    * @param a The second string term

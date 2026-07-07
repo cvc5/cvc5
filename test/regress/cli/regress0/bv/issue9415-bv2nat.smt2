@@ -3,6 +3,6 @@
 (set-info :status unsat)
 
 (declare-const bv (_ BitVec 32))
-(assert (not (<= 0 (bv2nat bv))))
+(assert (not (<= 0 (ubv_to_int bv))))
 
 (check-sat)

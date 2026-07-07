@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -38,8 +35,8 @@ std::ostream& operator<<(std::ostream& os, RewriteStatus rs)
 {
   switch (rs)
   {
-    case RewriteStatus::REWRITE_DONE:       return os << "DONE";
-    case RewriteStatus::REWRITE_AGAIN:      return os << "AGAIN";
+    case RewriteStatus::REWRITE_DONE: return os << "DONE";
+    case RewriteStatus::REWRITE_AGAIN: return os << "AGAIN";
     case RewriteStatus::REWRITE_AGAIN_FULL: return os << "AGAIN_FULL";
   }
   Unreachable();
@@ -86,13 +83,14 @@ TrustNode TheoryRewriter::rewriteEqualityExtWithProof(Node node)
   return TrustNode::null();
 }
 
-Node TheoryRewriter::expandDefinition(Node node)
+Node TheoryRewriter::expandDefinition(CVC5_UNUSED Node node)
 {
   // no expansion
   return Node::null();
 }
 
-Node TheoryRewriter::rewriteViaRule(ProofRewriteRule pr, const Node& n)
+Node TheoryRewriter::rewriteViaRule(CVC5_UNUSED ProofRewriteRule pr,
+                                    const Node& n)
 {
   return n;
 }
@@ -141,6 +139,8 @@ RewriteResponse NoOpTheoryRewriter::preRewrite(TNode node)
   ss << "The theory " << d_tid
      << " is disabled in this configuration, but got a constraint in that "
         "theory.";
+  // suggested options only in non-safe builds
+#if !defined(CVC5_SAFE_MODE) && !defined(CVC5_STABLE_MODE)
   // hardcoded, for better error messages.
   switch (d_tid)
   {
@@ -150,7 +150,8 @@ RewriteResponse NoOpTheoryRewriter::preRewrite(TNode node)
     case THEORY_SEP: ss << " Try --sep."; break;
     default: break;
   }
-  throw LogicException(ss.str());
+#endif
+  throw SafeLogicException(ss.str());
   return RewriteResponse(REWRITE_DONE, node);
 }
 

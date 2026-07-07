@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -166,7 +163,7 @@ class NfaState
           // the string, each connected via single characters
           const std::vector<unsigned>& vec = str.getVec();
           NfaState* curr = s;
-          NodeManager* nm = NodeManager::currentNM();
+          NodeManager* nm = r.getNodeManager();
           for (size_t i = 0, nvec = vec.size(); i < nvec; i++)
           {
             std::vector<unsigned> charVec{vec[i]};

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -183,7 +180,7 @@ Node PatternTermSelector::getIsUsableTrigger(Node n, Node q) const
     pol = !pol;
     n = n[0];
   }
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = n.getNodeManager();
   if (n.getKind() == Kind::INST_CONSTANT)
   {
     return pol ? n : nm->mkNode(Kind::EQUAL, n, nm->mkConst(true)).notNode();
@@ -265,7 +262,7 @@ bool PatternTermSelector::isUsableTrigger(Node n, Node q) const
 // to falsify the quantified formula
 void PatternTermSelector::collectTermsInternal(
     Node n,
-    std::map<Node, std::vector<Node> >& visited,
+    std::map<Node, std::vector<Node>>& visited,
     std::map<Node, TriggerTermInfo>& tinfo,
     options::TriggerSelMode tstrt,
     std::vector<Node>& added,
@@ -275,7 +272,7 @@ void PatternTermSelector::collectTermsInternal(
     bool hasEPol,
     bool knowIsUsable)
 {
-  std::map<Node, std::vector<Node> >::iterator itv = visited.find(n);
+  std::map<Node, std::vector<Node>>::iterator itv = visited.find(n);
   if (itv != visited.end())
   {
     // already visited
@@ -441,7 +438,7 @@ void PatternTermSelector::collectInternal(
     options::TriggerSelMode tstrt,
     bool filterInst)
 {
-  std::map<Node, std::vector<Node> > visited;
+  std::map<Node, std::vector<Node>> visited;
   if (filterInst)
   {
     // immediately do not consider any term t for which another term is an
@@ -504,8 +501,8 @@ void PatternTermSelector::collectInternal(
 
 int PatternTermSelector::isInstanceOf(Node n1,
                                       Node n2,
-                                      const std::vector<Node>& fv1,
-                                      const std::vector<Node>& fv2) const
+                                      const std::unordered_set<Node>& fv1,
+                                      const std::unordered_set<Node>& fv2) const
 {
   Assert(n1 != n2);
   int status = 0;
@@ -514,7 +511,7 @@ int PatternTermSelector::isInstanceOf(Node n1,
       std::pair<TNode, TNode>,
       PairHashFunction<TNode, TNode, std::hash<TNode>, std::hash<TNode>>>
       visited;
-  std::vector<std::pair<TNode, TNode> > visit;
+  std::vector<std::pair<TNode, TNode>> visit;
   std::pair<TNode, TNode> cur;
   TNode cur1;
   TNode cur2;
@@ -572,9 +569,8 @@ int PatternTermSelector::isInstanceOf(Node n1,
           if (TriggerTermInfo::getTriggerWeight(curj) == 0)
           {
             // must occur in the free variables in the other
-            const std::vector<Node>& free_vars = r == 0 ? fv2 : fv1;
-            if (std::find(free_vars.begin(), free_vars.end(), curi)
-                != free_vars.end())
+            const std::unordered_set<Node>& free_vars = r == 0 ? fv2 : fv1;
+            if (free_vars.find(curi) != free_vars.end())
             {
               status = r == 0 ? 1 : -1;
               subs_vars.insert(curi);
@@ -595,16 +591,16 @@ int PatternTermSelector::isInstanceOf(Node n1,
 
 void PatternTermSelector::filterInstances(std::vector<Node>& nodes) const
 {
-  std::map<unsigned, std::vector<Node> > fvs;
+  std::map<unsigned, std::unordered_set<Node>> fvs;
   for (size_t i = 0, size = nodes.size(); i < size; i++)
   {
-    quantifiers::TermUtil::computeInstConstContains(nodes[i], fvs[i]);
+    expr::getSubtermsKind(Kind::INST_CONSTANT, nodes[i], fvs[i]);
   }
   std::vector<bool> active;
   active.resize(nodes.size(), true);
   for (size_t i = 0, size = nodes.size(); i < size; i++)
   {
-    std::vector<Node>& fvsi = fvs[i];
+    std::unordered_set<Node>& fvsi = fvs[i];
     if (!active[i])
     {
       continue;
@@ -698,7 +694,7 @@ Node PatternTermSelector::getInversion(Node n, Node x)
   }
   else if (nk == Kind::ADD || nk == Kind::MULT)
   {
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = n.getNodeManager();
     int cindex = -1;
     bool cindexSet = false;
     for (size_t i = 0, nchild = n.getNumChildren(); i < nchild; i++)

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Mudathir Mohamed
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,10 +16,11 @@
 
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
-#include "theory/evaluator.h"
 #include "theory/datatypes/project_op.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
+#include "theory/evaluator.h"
 #include "util/bitvector.h"
+#include "util/divisible.h"
 #include "util/floatingpoint.h"
 #include "util/iand.h"
 #include "util/rational.h"
@@ -55,7 +53,8 @@ bool GenericOp::operator==(const GenericOp& op) const
 
 bool GenericOp::isNumeralIndexedOperatorKind(Kind k)
 {
-  return k == Kind::REGEXP_LOOP || k == Kind::BITVECTOR_EXTRACT
+  return k == Kind::DIVISIBLE || k == Kind::REGEXP_LOOP
+         || k == Kind::REGEXP_REPEAT || k == Kind::BITVECTOR_EXTRACT
          || k == Kind::BITVECTOR_REPEAT || k == Kind::BITVECTOR_ZERO_EXTEND
          || k == Kind::BITVECTOR_SIGN_EXTEND || k == Kind::BITVECTOR_ROTATE_LEFT
          || k == Kind::BITVECTOR_ROTATE_RIGHT || k == Kind::INT_TO_BITVECTOR
@@ -82,10 +81,22 @@ bool GenericOp::isIndexedOperatorKind(Kind k)
 
 std::vector<Node> GenericOp::getIndicesForOperator(Kind k, Node n)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = n.getNodeManager();
   std::vector<Node> indices;
   switch (k)
   {
+    case Kind::DIVISIBLE:
+    {
+      const Divisible& op = n.getConst<Divisible>();
+      indices.push_back(nm->mkConstInt(Rational(op.k)));
+      break;
+    }
+    case Kind::REGEXP_REPEAT:
+    {
+      const RegExpRepeat& op = n.getConst<RegExpRepeat>();
+      indices.push_back(nm->mkConstInt(Rational(op.d_repeatAmount)));
+      break;
+    }
     case Kind::REGEXP_LOOP:
     {
       const RegExpLoop& op = n.getConst<RegExpLoop>();
@@ -283,6 +294,12 @@ Node GenericOp::getOperatorForIndices(NodeManager* nm,
     }
     switch (k)
     {
+      case Kind::DIVISIBLE:
+        Assert(numerals.size() == 1);
+        return nm->mkConst(Divisible(numerals[0]));
+      case Kind::REGEXP_REPEAT:
+        Assert(numerals.size() == 1);
+        return nm->mkConst(RegExpRepeat(numerals[0]));
       case Kind::REGEXP_LOOP:
         Assert(numerals.size() == 2);
         return nm->mkConst(RegExpLoop(numerals[0], numerals[1]));
@@ -356,8 +373,10 @@ Node GenericOp::getOperatorForIndices(NodeManager* nm,
         return nm->mkConst(Kind::TABLE_PROJECT_OP, ProjectOp(numerals));
       case Kind::TABLE_AGGREGATE:
         return nm->mkConst(Kind::TABLE_AGGREGATE_OP, ProjectOp(numerals));
-      case Kind::TABLE_JOIN: return nm->mkConst(Kind::TABLE_JOIN_OP, ProjectOp(numerals));
-      case Kind::TABLE_GROUP: return nm->mkConst(Kind::TABLE_GROUP_OP, ProjectOp(numerals));
+      case Kind::TABLE_JOIN:
+        return nm->mkConst(Kind::TABLE_JOIN_OP, ProjectOp(numerals));
+      case Kind::TABLE_GROUP:
+        return nm->mkConst(Kind::TABLE_GROUP_OP, ProjectOp(numerals));
       default:
         Unhandled() << "GenericOp::getOperatorForIndices: unhandled kind " << k;
         break;
@@ -401,7 +420,7 @@ Node GenericOp::getConcreteApp(const Node& app)
   // usually one, but we handle cases where it is >1.
   size_t nargs = metakind::getMinArityForKind(okind);
   std::vector<Node> indices(app.begin(), app.end() - nargs);
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = app.getNodeManager();
   Node op = getOperatorForIndices(nm, okind, indices);
   // could have a bad index, in which case we don't rewrite
   if (op.isNull())

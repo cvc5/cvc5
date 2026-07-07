@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -35,7 +32,7 @@ namespace preprocessing {
 namespace passes {
 
 SygusInference::SygusInference(PreprocessingPassContext* preprocContext)
-    : PreprocessingPass(preprocContext, "sygus-infer"){};
+    : PreprocessingPass(preprocContext, "sygus-infer") {};
 
 PreprocessingPassResult SygusInference::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
@@ -88,6 +85,8 @@ bool SygusInference::solveSygus(const std::vector<Node>& assertions,
   if (assertions.empty())
   {
     Trace("sygus-infer") << "...fail: empty assertions." << std::endl;
+    Warning() << "Cannot convert to sygus since there are no assertions."
+              << std::endl;
     return false;
   }
 
@@ -154,6 +153,9 @@ bool SygusInference::solveSygus(const std::vector<Node>& assertions,
       {
         Trace("sygus-infer")
             << "...fail: non-standard top-level quantifier." << std::endl;
+        Warning() << "Cannot convert to sygus since there is a non-standard "
+                     "top-level quantified formula: "
+                  << pas << std::endl;
         return false;
       }
       // infer prefix
@@ -217,6 +219,9 @@ bool SygusInference::solveSygus(const std::vector<Node>& assertions,
         {
           Trace("sygus-infer")
               << "...fail: non-top-level quantifier." << std::endl;
+          Warning() << "Cannot convert to sygus since there is a non-top-level "
+                       "quantified formula: "
+                    << cur << std::endl;
           return false;
         }
         for (const TNode& cn : cur)
@@ -231,6 +236,9 @@ bool SygusInference::solveSygus(const std::vector<Node>& assertions,
   // no functions to synthesize
   if (free_functions.empty())
   {
+    Warning()
+        << "Cannot convert to sygus since there are no free function symbols."
+        << std::endl;
     Trace("sygus-infer") << "...fail: no free function symbols." << std::endl;
     return false;
   }
@@ -298,6 +306,13 @@ bool SygusInference::solveSygus(const std::vector<Node>& assertions,
   if (!rrSygus->getSubsolverSynthSolutions(synth_sols))
   {
     // failed, conjecture was infeasible
+    if (options().quantifiers.sygusInference == options::SygusInferenceMode::ON)
+    {
+      std::stringstream ss;
+      ss << "Translated to sygus, but failed to show problem to be satisfiable "
+            "with --sygus-inference.";
+      throw LogicException(ss.str());
+    }
     return false;
   }
 
@@ -324,7 +339,6 @@ bool SygusInference::solveSygus(const std::vector<Node>& assertions,
   }
   return true;
 }
-
 
 }  // namespace passes
 }  // namespace preprocessing

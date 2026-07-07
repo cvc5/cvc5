@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Hans-Joerg Schurr, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -42,9 +39,10 @@ bool DifficultyPostprocessCallback::setCurrentDifficulty(Node d)
   return false;
 }
 
-bool DifficultyPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
-                                                 const std::vector<Node>& fa,
-                                                 bool& continueUpdate)
+bool DifficultyPostprocessCallback::shouldUpdate(
+    std::shared_ptr<ProofNode> pn,
+    CVC5_UNUSED const std::vector<Node>& fa,
+    bool& continueUpdate)
 {
   ProofRule r = pn->getRule();
   if (r == ProofRule::ASSUME)
@@ -64,10 +62,9 @@ bool DifficultyPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
 }
 
 void DifficultyPostprocessCallback::getDifficultyMap(
-    std::map<Node, Node>& dmap) const
+    NodeManager* nm, std::map<Node, Node>& dmap) const
 {
   Assert(dmap.empty());
-  NodeManager* nm = NodeManager::currentNM();
   for (const std::pair<const Node, uint64_t>& d : d_accMap)
   {
     dmap[d.first] = nm->mkConstInt(Rational(d.second));

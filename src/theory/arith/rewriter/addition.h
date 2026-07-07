@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -45,7 +42,7 @@ namespace rewriter {
  * done in-place instead of copying the result out of the std::unordered_map
  * into a sortable container.
  */
-using Sum = std::map<Node, RealAlgebraicNumber, TermComparator>;
+using Sum = std::map<Node, RealAlgebraicNumber, LeafNodeComparator>;
 
 /**
  * Print a sum. Does not use a particularly useful syntax and is thus only meant
@@ -67,14 +64,36 @@ bool isIntegral(const Sum& sum);
  * it should not be a deeply nested sum, as it simply recurses). Otherwise, `n`
  * is treated as a single summand, that is a (possibly unary) product.
  * It does not consider sums within the product.
+ * @param sum The sum to add to.
+ * @param n The term to add to sum.
+ * @param negate Whether to negate n.
  */
 void addToSum(Sum& sum, TNode n, bool negate = false);
+
+/**
+ * Same as above, but also handles occurrences of TO_REAL.
+ * @param sum The sum to add to.
+ * @param n The term to add to sum.
+ * @param negate Whether to negate n.
+ */
+void addToSumNoMixed(Sum& sum, TNode n, bool negate = false);
+/**
+ * Add the arithmetic term `product` to the given sum with coefficient
+ * `multiplicity`. It should be the case that `product` is itself a monomial
+ * (not an addition term).
+ * @param sum The sum to add to.
+ * @param product The term to add to sum.
+ * @param multiplicity The coefficient for product.
+ */
+void addMonomialToSum(Sum& sum,
+                      TNode product,
+                      RealAlgebraicNumber& multiplicity);
 
 /**
  * Evaluates the sum object (mapping monomials to their multiplicities) into a
  * single node (of kind `ADD`, unless the sum has less than two summands).
  */
-Node collectSum(const Sum& sum);
+Node collectSum(NodeManager* nm, const Sum& sum);
 
 /**
  * Distribute a multiplication over one or more additions. The multiplication
@@ -89,7 +108,8 @@ Node collectSum(const Sum& sum);
  * monomials or products. This allows to combine summands with identical
  * monomials immediately and avoid a potential blow-up.
  */
-Node distributeMultiplication(const std::vector<TNode>& factors);
+Node distributeMultiplication(NodeManager* nm,
+                              const std::vector<TNode>& factors);
 
 }  // namespace rewriter
 }  // namespace arith

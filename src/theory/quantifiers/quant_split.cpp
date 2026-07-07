@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -52,6 +49,12 @@ class QuantDSplitProofGenerator : protected EnvObj, public ProofGenerator
    *
    * where the variables in q' is reordered from q such that the variable to
    * split comes first.
+   *
+   * Note that this elaboration relies on the fact that the variables
+   * introduced for QuantDSplit::split(nm, q', 0) are the same as those for
+   * QuantDSplit::split(nm, q, n), since q and q' have the same body
+   * and these two splits refer to the same variables, which is the basis
+   * for the bound variables introduced (QDSplitVarAttribute).
    */
   std::shared_ptr<ProofNode> getProofFor(Node fact) override
   {
@@ -60,7 +63,7 @@ class QuantDSplitProofGenerator : protected EnvObj, public ProofGenerator
     context::CDHashMap<Node, size_t>::iterator it = d_index.find(fact);
     if (it == d_index.end())
     {
-      Assert(false) << "QuantDSplitProofGenerator failed to get proof";
+      DebugUnhandled() << "QuantDSplitProofGenerator failed to get proof";
       return nullptr;
     }
     Assert(fact.getKind() == Kind::EQUAL && fact[0].getKind() == Kind::FORALL);
@@ -109,19 +112,6 @@ class QuantDSplitProofGenerator : protected EnvObj, public ProofGenerator
   context::CDHashMap<Node, size_t> d_index;
 };
 
-/**
- * Attributes used for constructing bound variables in a canonical way. These
- * are attributes that map to bound variable, introduced for the following
- * purpose:
- * - QDSplitVarAttribute: cached on (q, v, i) where QuantDSplit::split is called
- * to split the variable v of q. We introduce bound variables, where the i^th
- * variable created in that method is cached based on i.
- */
-struct QDSplitVarAttributeId
-{
-};
-using QDSplitVarAttribute = expr::Attribute<QDSplitVarAttributeId, Node>;
-
 QuantDSplit::QuantDSplit(Env& env,
                          QuantifiersState& qs,
                          QuantifiersInferenceManager& qim,
@@ -153,16 +143,19 @@ void QuantDSplit::checkOwnership(Node q)
   bool takeOwnership = false;
   bool doSplit = false;
   QuantifiersBoundInference& qbi = d_qreg.getQuantifiersBoundInference();
-  Trace("quant-dsplit-debug") << "Check split quantified formula : " << q << std::endl;
+  Trace("quant-dsplit-debug")
+      << "Check split quantified formula : " << q << std::endl;
   for (size_t i = 0, nvars = q[0].getNumChildren(); i < nvars; i++)
   {
     TypeNode tn = q[0][i].getType();
-    if( tn.isDatatype() ){
+    if (tn.isDatatype())
+    {
       bool isFinite = d_env.isFiniteType(tn);
       const DType& dt = tn.getDType();
       if (dt.isRecursiveSingleton(tn))
       {
-        Trace("quant-dsplit-debug") << "Datatype " << dt.getName() << " is recursive singleton." << std::endl;
+        Trace("quant-dsplit-debug") << "Datatype " << dt.getName()
+                                    << " is recursive singleton." << std::endl;
       }
       else
       {
@@ -222,19 +215,21 @@ void QuantDSplit::checkOwnership(Node q)
 }
 
 /* whether this module needs to check this round */
-bool QuantDSplit::needsCheck( Theory::Effort e ) {
-  return e>=Theory::EFFORT_FULL && !d_quant_to_reduce.empty();
+bool QuantDSplit::needsCheck(Theory::Effort e)
+{
+  return e >= Theory::EFFORT_FULL && !d_quant_to_reduce.empty();
 }
 
-bool QuantDSplit::checkCompleteFor( Node q ) {
+bool QuantDSplit::checkCompleteFor(Node q)
+{
   // true if we split q
-  return d_added_split.find( q )!=d_added_split.end();
+  return d_added_split.find(q) != d_added_split.end();
 }
 
 /* Call during quantifier engine's check */
-void QuantDSplit::check(Theory::Effort e, QEffort quant_e)
+void QuantDSplit::check(CVC5_UNUSED Theory::Effort e, QEffort quant_e)
 {
-  //add lemmas ASAP (they are a reduction)
+  // add lemmas ASAP (they are a reduction)
   if (quant_e != QEFFORT_CONFLICT)
   {
     return;
@@ -298,7 +293,7 @@ Node QuantDSplit::split(NodeManager* nm, const Node& q, size_t index)
       TypeNode tns = dtjtn[k];
       Node cacheVal = bvm->getCacheValue(q[1], q[0][index], varCount);
       varCount++;
-      Node v = bvm->mkBoundVar<QDSplitVarAttribute>(cacheVal, tns);
+      Node v = bvm->mkBoundVar(BoundVarId::QUANT_DT_SPLIT, cacheVal, tns);
       vars.push_back(v);
     }
     std::vector<Node> bvs_cmb;
@@ -323,6 +318,21 @@ Node QuantDSplit::split(NodeManager* nm, const Node& q, size_t index)
     cons.push_back(body);
   }
   return nm->mkAnd(cons);
+}
+
+std::shared_ptr<ProofNode> QuantDSplit::getQuantDtSplitProof(Env& env,
+                                                             const Node& q,
+                                                             size_t index)
+{
+  Node qs = split(env.getNodeManager(), q, index);
+  if (qs.isNull())
+  {
+    return nullptr;
+  }
+  Node eq = q.eqNode(qs);
+  QuantDSplitProofGenerator pg(env);
+  pg.notifyLemma(eq, index);
+  return pg.getProofFor(eq);
 }
 
 }  // namespace quantifiers

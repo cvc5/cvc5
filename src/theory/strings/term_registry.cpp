@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -36,19 +33,15 @@ namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
-TermRegistry::TermRegistry(Env& env,
-                           Theory& t,
-                           SolverState& s,
-                           SequencesStatistics& statistics)
+TermRegistry::TermRegistry(Env& env, Theory& t, SolverState& s)
     : EnvObj(env),
       d_theory(t),
       d_state(s),
       d_im(nullptr),
-      d_statistics(statistics),
       d_hasStrCode(false),
       d_hasSeqUpdate(false),
       d_skCache(nodeManager(), env.getRewriter()),
-      d_aent(env.getRewriter()),
+      d_aent(nodeManager(), env.getRewriter()),
       d_functionsTerms(context()),
       d_inputVars(userContext()),
       d_preregisteredTerms(context()),
@@ -57,10 +50,12 @@ TermRegistry::TermRegistry(Env& env,
       d_proxyVar(userContext()),
       d_proxyVarToLength(userContext()),
       d_lengthLemmaTermsCache(userContext()),
-      d_epg(
-          env.isTheoryProofProducing() ? new EagerProofGenerator(
-              env, userContext(), "strings::TermRegistry::EagerProofGenerator")
-                                       : nullptr),
+      d_epg(env.isTheoryProofProducing()
+                ? new EagerProofGenerator(
+                      env,
+                      userContext(),
+                      "strings::TermRegistry::EagerProofGenerator")
+                : nullptr),
       d_inFullEffortCheck(false)
 {
   NodeManager* nm = nodeManager();
@@ -79,7 +74,7 @@ void TermRegistry::finishInit(InferenceManager* im) { d_im = im; }
 
 Node TermRegistry::eagerReduce(Node t, SkolemCache* sc, uint32_t alphaCard)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = t.getNodeManager();
   Node lemma;
   Kind tk = t.getKind();
   if (tk == Kind::STRING_TO_CODE)
@@ -121,10 +116,10 @@ Node TermRegistry::eagerReduce(Node t, SkolemCache* sc, uint32_t alphaCard)
     // where f in { str.indexof, str.indexof_re }
     Node l = nm->mkNode(Kind::STRING_LENGTH, t[0]);
     lemma = nm->mkNode(Kind::AND,
-                       nm->mkNode(Kind::OR,
-                                  t.eqNode(nm->mkConstInt(Rational(-1))),
-                                  nm->mkNode(Kind::GEQ, t, t[2])),
-                       nm->mkNode(Kind::LEQ, t, l));
+                       {nm->mkNode(Kind::OR,
+                                   {t.eqNode(nm->mkConstInt(Rational(-1))),
+                                    nm->mkNode(Kind::GEQ, t, t[2])}),
+                        nm->mkNode(Kind::LEQ, t, l)});
   }
   else if (tk == Kind::STRING_STOI)
   {
@@ -159,20 +154,19 @@ Node TermRegistry::eagerReduce(Node t, SkolemCache* sc, uint32_t alphaCard)
     Node tc = t[0];
     Node card = nm->mkConstInt(Rational(alphaCard));
     Node cond = nm->mkNode(Kind::AND,
-                           nm->mkNode(Kind::LEQ, nm->mkConstInt(0), tc),
-                           nm->mkNode(Kind::LT, tc, card));
+                           {nm->mkNode(Kind::LEQ, nm->mkConstInt(0), tc),
+                            nm->mkNode(Kind::LT, tc, card)});
     Node emp = Word::mkEmptyWord(t.getType());
-    lemma = nm->mkNode(Kind::ITE,
-                       cond,
-                       tc.eqNode(nm->mkNode(Kind::STRING_TO_CODE, k)),
-                       k.eqNode(emp));
+    lemma = nm->mkNode(
+        Kind::ITE,
+        {cond, tc.eqNode(nm->mkNode(Kind::STRING_TO_CODE, k)), k.eqNode(emp)});
   }
   return lemma;
 }
 
 Node TermRegistry::lengthPositive(Node t)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = t.getNodeManager();
   Node zero = nm->mkConstInt(Rational(0));
   Node emp = Word::mkEmptyWord(t.getType());
   Node tlen = nm->mkNode(Kind::STRING_LENGTH, t);
@@ -196,6 +190,17 @@ void TermRegistry::preRegisterTerm(TNode n)
       << "TheoryString::preregister : " << n << std::endl;
   // check for logic exceptions
   Kind k = n.getKind();
+  if (k == Kind::EQUAL && n[0].getType().isRegExp())
+  {
+    // if an equality between regular expressions was introduced during solving,
+    // e.g. by theory combination, we send the equivalance for its quantified
+    // reduction here, e.g.
+    // (R1 = R2) = (forall s. (s in R1) = (s in R2)).
+    Node res =
+        d_env.getRewriter()->rewriteViaRule(ProofRewriteRule::RE_EQ_ELIM, n);
+    Node lem = nodeManager()->mkNode(Kind::EQUAL, n, res);
+    d_im->lemma(lem, InferenceId::STRINGS_RE_EQ_ELIM_EQUIV);
+  }
   if (k == Kind::STRING_IN_REGEXP)
   {
     d_im->preferPhase(n, true);
@@ -207,6 +212,48 @@ void TermRegistry::preRegisterTerm(TNode n)
   else if (k == Kind::SEQ_NTH || k == Kind::STRING_UPDATE)
   {
     d_hasSeqUpdate = true;
+  }
+  else if (k == Kind::CONST_SEQUENCE)
+  {
+    // If we are a constant sequence that has "nested" constant sequences
+    // implicitly, e.g. for sequences of sequences, then we must ensure that
+    // all subterms of this constant are also considered as terms by the
+    // solver. Otherwise, these terms would be hidden inside of the sequence
+    // constant. To do so, we ensure a purify skolem is introduced for each
+    // subterm. For example, for the sequence constant t:
+    //   (str.++ (as seq.empty (Seq Int)) (seq.unit (str.++ 0 1)))
+    // We add the lemma:
+    //   k1 = (as seq.empty (Seq Int)) ^ k2 = (seq.unit (str.++ 0 1)) ^
+    //   t = (str.++ k1 k2).
+    // The right hand sides of the first two equalties will lead to
+    // preregistering these sequence constants in the same way.
+    // These lemmas can be justified trivially by MACRO_SR_PRED_INTRO.
+    Node nc = utils::mkConcatForConstSequence(n);
+    Kind nck = nc.getKind();
+    if (nck != Kind::CONST_SEQUENCE)
+    {
+      std::vector<Node> eqs;
+      std::vector<Node> children;
+      for (const Node& ncc : nc)
+      {
+        if (ncc.getKind() == Kind::CONST_SEQUENCE)
+        {
+          Node skolem = SkolemManager::mkPurifySkolem(ncc);
+          children.push_back(skolem);
+          eqs.push_back(skolem.eqNode(ncc));
+        }
+        else
+        {
+          children.push_back(ncc);
+        }
+      }
+      Node ret = nodeManager()->mkNode(nck, children);
+      eqs.push_back(n.eqNode(ret));
+      Node lem = nodeManager()->mkAnd(eqs);
+      Trace("strings-preregister")
+          << "Const sequence lemma: " << lem << std::endl;
+      d_im->lemma(lem, InferenceId::STRINGS_CONST_SEQ_PURIFY);
+    }
   }
   if (options().strings.stringEagerReg)
   {
@@ -271,7 +318,7 @@ void TermRegistry::registerSubterms(Node n)
       if (k == Kind::EQUAL || theory::kindToTheoryId(k) == THEORY_STRINGS)
       {
         // strings does not have any closure kinds
-        Assert (!cur.isClosure());
+        Assert(!cur.isClosure());
         visit.insert(visit.end(), cur.begin(), cur.end());
       }
     }
@@ -377,7 +424,8 @@ TrustNode TermRegistry::getRegisterTermLemma(Node n)
   //  for variables, split on empty vs positive length
   //  for concat/const/replace, introduce proxy var and state length relation
   Node lsum;
-  if (n.getKind() != Kind::STRING_CONCAT && !n.isConst())
+  Kind nk = n.getKind();
+  if (nk != Kind::STRING_CONCAT && !n.isConst())
   {
     Node lsumb = nm->mkNode(Kind::STRING_LENGTH, n);
     lsum = rewrite(lsumb);
@@ -394,13 +442,13 @@ TrustNode TermRegistry::getRegisterTermLemma(Node n)
   // If we are introducing a proxy for a constant or concat term, we do not
   // need to send lemmas about its length, since its length is already
   // implied.
-  if (n.isConst() || n.getKind() == Kind::STRING_CONCAT)
+  if (n.isConst() || nk == Kind::STRING_CONCAT)
   {
     // do not send length lemma for sk.
     registerTermAtomic(sk, LENGTH_IGNORE);
   }
   Node skl = nm->mkNode(Kind::STRING_LENGTH, sk);
-  if (n.getKind() == Kind::STRING_CONCAT)
+  if (nk == Kind::STRING_CONCAT)
   {
     std::vector<Node> nodeVec;
     NodeNodeMap::const_iterator itl;

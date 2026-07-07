@@ -27,6 +27,22 @@ The following enum classes define such configuration modes.
 
 ----
 
+.. doxygenenum:: Cvc5FindSynthTarget
+    :project: cvc5_c
+
+.. doxygenfunction:: cvc5_modes_find_synth_target_to_string
+    :project: cvc5_c
+
+----
+
+.. doxygenenum:: Cvc5OptionCategory
+    :project: cvc5_c
+
+.. doxygenfunction:: cvc5_modes_option_category_to_string
+    :project: cvc5_c
+
+----
+
 .. doxygenenum:: Cvc5ProofComponent
     :project: cvc5_c
 
@@ -39,12 +55,4 @@ The following enum classes define such configuration modes.
     :project: cvc5_c
 
 .. doxygenfunction:: cvc5_modes_proof_format_to_string
-    :project: cvc5_c
-
-----
-
-.. doxygenenum:: Cvc5FindSynthTarget
-    :project: cvc5_c
-
-.. doxygenfunction:: cvc5_modes_find_synth_target_to_string
     :project: cvc5_c

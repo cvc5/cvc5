@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Hans-Joerg Schurr, Haniel Barbosa
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,6 +18,7 @@
 #include <vector>
 
 #include "context/cdhashmap.h"
+#include "cvc5/cvc5_proof_rule.h"
 #include "expr/node.h"
 #include "proof/proof_generator.h"
 #include "proof/proof_step_buffer.h"
@@ -138,7 +136,7 @@ class CDProof : protected EnvObj, public ProofGenerator
 {
  public:
   /**
-   * @param pnm The proof node manager responsible for constructor ProofNode
+   * @param env Reference to the environment
    * @param c The context this proof depends on
    * @param name The name of this proof (for debugging)
    * @param autoSymm Whether this proof automatically adds symmetry steps based
@@ -248,6 +246,8 @@ class CDProof : protected EnvObj, public ProofGenerator
                 bool doCopy = false);
   /** Return true if fact already has a proof step */
   bool hasStep(Node fact);
+  /** Return true if fact already has any proof node, including assumptions. */
+  bool hasFact(Node fact) const;
   /** Return how many proof nodes currently in proof */
   size_t getNumProofNodes() const;
   /** Get the proof manager for this proof */

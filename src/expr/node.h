@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Morgan Deters, Dejan Jovanovic, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -53,7 +50,8 @@ class NodeTemplate;
  * Exception thrown during the type-checking phase, it can be
  * thrown by node.getType().
  */
-class TypeCheckingExceptionPrivate : public Exception {
+class TypeCheckingExceptionPrivate : public Exception
+{
  private:
   /** The node responsible for the failure */
   NodeTemplate<true>* d_node;
@@ -82,12 +80,13 @@ class TypeCheckingExceptionPrivate : public Exception {
    */
   void toStream(std::ostream& out) const override;
 
-};/* class TypeCheckingExceptionPrivate */
+}; /* class TypeCheckingExceptionPrivate */
 
-class UnknownTypeException : public TypeCheckingExceptionPrivate {
+class UnknownTypeException : public TypeCheckingExceptionPrivate
+{
  public:
   UnknownTypeException(NodeTemplate<false> node);
-};/* class UnknownTypeException */
+}; /* class UnknownTypeException */
 
 /**
  * \typedef NodeTemplate<true> Node;
@@ -154,13 +153,13 @@ namespace expr {
 
 class NodeValue;
 
-  namespace attr {
-    class AttributeManager;
-    struct SmtAttributes;
-    }  // namespace attr
+namespace attr {
+class AttributeManager;
+struct SmtAttributes;
+}  // namespace attr
 
-  class ExprSetDepth;
-  }  // namespace expr
+class ExprSetDepth;
+}  // namespace expr
 
 /**
  * Encapsulation of an NodeValue pointer.  The reference count is
@@ -168,7 +167,8 @@ class NodeValue;
  * @param ref_count if true reference are counted in the NodeValue
  */
 template <bool ref_count>
-class NodeTemplate {
+class NodeTemplate
+{
   /**
    * The NodeValue has access to the private constructors, so that the
    * iterators can can create new nodes.
@@ -219,100 +219,100 @@ class NodeTemplate {
   // is not positive.
   inline void assertTNodeNotExpired() const
   {
-    if(!ref_count) {
+    if (!ref_count)
+    {
       Assert(d_nv->d_rc > 0) << "TNode pointing to an expired NodeValue";
     }
   }
 
-public:
+ public:
+  /**
+   * Cache-aware, recursive version of substitute() used by the public
+   * member function with a similar signature.
+   */
+  Node substitute(TNode node,
+                  TNode replacement,
+                  std::unordered_map<TNode, TNode>& cache) const;
 
   /**
    * Cache-aware, recursive version of substitute() used by the public
    * member function with a similar signature.
    */
- Node substitute(TNode node,
-                 TNode replacement,
-                 std::unordered_map<TNode, TNode>& cache) const;
+  template <class Iterator1, class Iterator2>
+  Node substitute(Iterator1 nodesBegin,
+                  Iterator1 nodesEnd,
+                  Iterator2 replacementsBegin,
+                  Iterator2 replacementsEnd,
+                  std::unordered_map<TNode, TNode>& cache) const;
 
- /**
-  * Cache-aware, recursive version of substitute() used by the public
-  * member function with a similar signature.
-  */
- template <class Iterator1, class Iterator2>
- Node substitute(Iterator1 nodesBegin,
-                 Iterator1 nodesEnd,
-                 Iterator2 replacementsBegin,
-                 Iterator2 replacementsEnd,
-                 std::unordered_map<TNode, TNode>& cache) const;
+  /**
+   * Cache-aware, recursive version of substitute() used by the public
+   * member function with a similar signature.
+   */
+  template <class Iterator>
+  Node substitute(Iterator substitutionsBegin,
+                  Iterator substitutionsEnd,
+                  std::unordered_map<TNode, TNode>& cache) const;
 
- /**
-  * Cache-aware, recursive version of substitute() used by the public
-  * member function with a similar signature.
-  */
- template <class Iterator>
- Node substitute(Iterator substitutionsBegin,
-                 Iterator substitutionsEnd,
-                 std::unordered_map<TNode, TNode>& cache) const;
+  /** Default constructor, makes a null expression.
+   *
+   * This constructor is `explicit` to avoid accidentially creating a null node
+   * from an empty braced-init-list.
+   */
+  explicit NodeTemplate() : d_nv(&expr::NodeValue::null()) {}
 
- /** Default constructor, makes a null expression.
-  *
-  * This constructor is `explicit` to avoid accidentially creating a null node
-  * from an empty braced-init-list.
-  */
- explicit NodeTemplate() : d_nv(&expr::NodeValue::null()) {}
+  /**
+   * Conversion between nodes that are reference-counted and those that are
+   * not.
+   * @param node the node to make copy of
+   */
+  NodeTemplate(const NodeTemplate<!ref_count>& node);
 
- /**
-  * Conversion between nodes that are reference-counted and those that are
-  * not.
-  * @param node the node to make copy of
-  */
- NodeTemplate(const NodeTemplate<!ref_count>& node);
+  /**
+   * Copy constructor.  Note that GCC does NOT recognize an instantiation of
+   * the above template as a copy constructor and problems ensue.  So we
+   * provide an explicit one here.
+   * @param node the node to make copy of
+   */
+  NodeTemplate(const NodeTemplate& node);
 
- /**
-  * Copy constructor.  Note that GCC does NOT recognize an instantiation of
-  * the above template as a copy constructor and problems ensue.  So we
-  * provide an explicit one here.
-  * @param node the node to make copy of
-  */
- NodeTemplate(const NodeTemplate& node);
+  /**
+   * Assignment operator for nodes, copies the relevant information from node
+   * to this node.
+   * @param node the node to copy
+   * @return reference to this node
+   */
+  NodeTemplate& operator=(const NodeTemplate& node);
 
- /**
-  * Assignment operator for nodes, copies the relevant information from node
-  * to this node.
-  * @param node the node to copy
-  * @return reference to this node
-  */
- NodeTemplate& operator=(const NodeTemplate& node);
+  /**
+   * Assignment operator for nodes, copies the relevant information from node
+   * to this node.
+   * @param node the node to copy
+   * @return reference to this node
+   */
+  NodeTemplate& operator=(const NodeTemplate<!ref_count>& node);
 
- /**
-  * Assignment operator for nodes, copies the relevant information from node
-  * to this node.
-  * @param node the node to copy
-  * @return reference to this node
-  */
- NodeTemplate& operator=(const NodeTemplate<!ref_count>& node);
+  /**
+   * Destructor. If ref_count is true it will decrement the reference count
+   * and, if zero, collect the NodeValue.
+   */
+  ~NodeTemplate();
 
- /**
-  * Destructor. If ref_count is true it will decrement the reference count
-  * and, if zero, collect the NodeValue.
-  */
- ~NodeTemplate();
+  /**
+   * Return the null node.
+   * @return the null node
+   */
+  static NodeTemplate null() { return s_null; }
 
- /**
-  * Return the null node.
-  * @return the null node
-  */
- static NodeTemplate null() { return s_null; }
-
- /**
-  * Returns true if this expression is a null expression.
-  * @return true if null
-  */
- bool isNull() const
- {
-   assertTNodeNotExpired();
-   return d_nv == &expr::NodeValue::null();
- }
+  /**
+   * Returns true if this expression is a null expression.
+   * @return true if null
+   */
+  bool isNull() const
+  {
+    assertTNodeNotExpired();
+    return d_nv == &expr::NodeValue::null();
+  }
 
   /**
    * Structural comparison operator for expressions.
@@ -320,7 +320,8 @@ public:
    * @return true if expressions are equal, false otherwise
    */
   template <bool ref_count_1>
-  bool operator==(const NodeTemplate<ref_count_1>& node) const {
+  bool operator==(const NodeTemplate<ref_count_1>& node) const
+  {
     assertTNodeNotExpired();
     node.assertTNodeNotExpired();
     return d_nv == node.d_nv;
@@ -332,7 +333,8 @@ public:
    * @return false if expressions are equal, true otherwise
    */
   template <bool ref_count_1>
-  bool operator!=(const NodeTemplate<ref_count_1>& node) const {
+  bool operator!=(const NodeTemplate<ref_count_1>& node) const
+  {
     assertTNodeNotExpired();
     node.assertTNodeNotExpired();
     return d_nv != node.d_nv;
@@ -345,7 +347,8 @@ public:
    * @return true if this expression is smaller
    */
   template <bool ref_count_1>
-  inline bool operator<(const NodeTemplate<ref_count_1>& node) const {
+  inline bool operator<(const NodeTemplate<ref_count_1>& node) const
+  {
     assertTNodeNotExpired();
     node.assertTNodeNotExpired();
     return d_nv->d_id < node.d_nv->d_id;
@@ -358,7 +361,8 @@ public:
    * @return true if this expression is greater
    */
   template <bool ref_count_1>
-  inline bool operator>(const NodeTemplate<ref_count_1>& node) const {
+  inline bool operator>(const NodeTemplate<ref_count_1>& node) const
+  {
     assertTNodeNotExpired();
     node.assertTNodeNotExpired();
     return d_nv->d_id > node.d_nv->d_id;
@@ -371,7 +375,8 @@ public:
    * @return true if this expression is smaller than or equal to
    */
   template <bool ref_count_1>
-  inline bool operator<=(const NodeTemplate<ref_count_1>& node) const {
+  inline bool operator<=(const NodeTemplate<ref_count_1>& node) const
+  {
     assertTNodeNotExpired();
     node.assertTNodeNotExpired();
     return d_nv->d_id <= node.d_nv->d_id;
@@ -384,7 +389,8 @@ public:
    * @return true if this expression is greater than or equal to
    */
   template <bool ref_count_1>
-  inline bool operator>=(const NodeTemplate<ref_count_1>& node) const {
+  inline bool operator>=(const NodeTemplate<ref_count_1>& node) const
+  {
     assertTNodeNotExpired();
     node.assertTNodeNotExpired();
     return d_nv->d_id >= node.d_nv->d_id;
@@ -395,7 +401,8 @@ public:
    * @param i the index of the child
    * @return the node representing the i-th child
    */
-  NodeTemplate operator[](int i) const {
+  NodeTemplate operator[](int i) const
+  {
     assertTNodeNotExpired();
     return NodeTemplate(d_nv->getChild(i));
   }
@@ -410,7 +417,8 @@ public:
    * Returns true if this node represents a variable
    * @return true if variable
    */
-  inline bool isVar() const {
+  inline bool isVar() const
+  {
     assertTNodeNotExpired();
     return getMetaKind() == kind::metakind::VARIABLE;
   }
@@ -418,7 +426,8 @@ public:
   /**
    * Returns true if this node represents a nullary operator
    */
-  inline bool isNullaryOp() const {
+  inline bool isNullaryOp() const
+  {
     assertTNodeNotExpired();
     return getMetaKind() == kind::metakind::NULLARY_OPERATOR;
   }
@@ -427,7 +436,8 @@ public:
    * Returns true if this node represents a closure, that is an expression
    * that binds variables.
    */
-  inline bool isClosure() const {
+  inline bool isClosure() const
+  {
     assertTNodeNotExpired();
     return isClosureKind(getKind());
   }
@@ -528,8 +538,7 @@ public:
    * pairs (x,y) for the rewrites [x->y].
    */
   template <class Iterator>
-  Node substitute(Iterator substitutionsBegin,
-                  Iterator substitutionsEnd) const;
+  Node substitute(Iterator substitutionsBegin, Iterator substitutionsEnd) const;
 
   /**
    * Simultaneous substitution of Nodes in cache.
@@ -540,7 +549,8 @@ public:
    * Returns the kind of this node.
    * @return the kind
    */
-  inline Kind getKind() const {
+  inline Kind getKind() const
+  {
     assertTNodeNotExpired();
     return Kind(d_nv->d_kind);
   }
@@ -549,7 +559,8 @@ public:
    * Returns the metakind of this node.
    * @return the metakind
    */
-  inline kind::MetaKind getMetaKind() const {
+  inline kind::MetaKind getMetaKind() const
+  {
     assertTNodeNotExpired();
     return kind::metaKindOf(getKind());
   }
@@ -564,7 +575,7 @@ public:
    * If this is a CONST_* Node, extract the constant from it.
    */
   template <class T>
-  inline const T& getConst() const;
+  CVC5_NO_DANGLING inline const T& getConst() const;
 
   /**
    * @return true if this is a skolem function.
@@ -591,9 +602,7 @@ public:
    * Returns the reference count of this node.
    * @return the refcount
    */
-  unsigned getRefCount() const {
-    return d_nv->getRefCount();
-  }
+  unsigned getRefCount() const { return d_nv->getRefCount(); }
 
   /**
    * Returns the value of the given attribute that this has been attached.
@@ -601,7 +610,8 @@ public:
    * @return the value of the attribute
    */
   template <class AttrKind>
-  inline typename AttrKind::value_type getAttribute(const AttrKind& attKind) const;
+  inline typename AttrKind::value_type getAttribute(
+      const AttrKind& attKind) const;
 
   // Note that there are two, distinct hasAttribute() declarations for
   // a reason (rather than using a pointer-valued argument with a
@@ -640,7 +650,7 @@ public:
                            const typename AttrKind::value_type& value);
 
   /** Iterator allowing for scanning through the children. */
-  typedef typename expr::NodeValue::iterator< NodeTemplate<ref_count> > iterator;
+  typedef typename expr::NodeValue::iterator<NodeTemplate<ref_count>> iterator;
   /** Constant iterator allowing for scanning through the children. */
   using const_iterator =
       typename expr::NodeValue::iterator<NodeTemplate<ref_count>>;
@@ -651,67 +661,62 @@ public:
   using const_reverse_iterator = std::reverse_iterator<
       typename expr::NodeValue::iterator<NodeTemplate<ref_count>>>;
 
-  class kinded_iterator {
+  class kinded_iterator
+  {
     friend class NodeTemplate<ref_count>;
 
     NodeTemplate<ref_count> d_node;
     ssize_t d_child;
 
-    kinded_iterator(TNode node, ssize_t child) :
-      d_node(node),
-      d_child(child) {
-    }
+    kinded_iterator(TNode node, ssize_t child) : d_node(node), d_child(child) {}
 
     // These are factories to serve as clients to Node::begin<K>() and
     // Node::end<K>().
-    static kinded_iterator begin(TNode n, Kind k) {
+    static kinded_iterator begin(TNode n, Kind k)
+    {
       return kinded_iterator(n, n.getKind() == k ? 0 : -2);
     }
-    static kinded_iterator end(TNode n, Kind k) {
+    static kinded_iterator end(TNode n, Kind k)
+    {
       return kinded_iterator(n, n.getKind() == k ? n.getNumChildren() : -1);
     }
 
-  public:
+   public:
     typedef NodeTemplate<ref_count> value_type;
     typedef std::ptrdiff_t difference_type;
     typedef NodeTemplate<ref_count>* pointer;
     typedef NodeTemplate<ref_count>& reference;
 
-    kinded_iterator() :
-      d_node(NodeTemplate<ref_count>::null()),
-      d_child(-2) {
-    }
+    kinded_iterator() : d_node(NodeTemplate<ref_count>::null()), d_child(-2) {}
 
-    kinded_iterator(const kinded_iterator& i) :
-      d_node(i.d_node),
-      d_child(i.d_child) {
-    }
-
-    NodeTemplate<ref_count> operator*() {
+    NodeTemplate<ref_count> operator*()
+    {
       return d_child < 0 ? d_node : d_node[d_child];
     }
 
-    bool operator==(const kinded_iterator& i) {
+    bool operator==(const kinded_iterator& i)
+    {
       return d_node == i.d_node && d_child == i.d_child;
     }
 
-    bool operator!=(const kinded_iterator& i) {
-      return !(*this == i);
-    }
+    bool operator!=(const kinded_iterator& i) { return !(*this == i); }
 
-    kinded_iterator& operator++() {
-      if(d_child != -1) {
+    kinded_iterator& operator++()
+    {
+      if (d_child != -1)
+      {
         ++d_child;
       }
       return *this;
     }
 
-    kinded_iterator operator++(int) {
+    kinded_iterator operator++(int)
+    {
       kinded_iterator i = *this;
       ++*this;
       return i;
     }
-  };/* class NodeTemplate<ref_count>::kinded_iterator */
+  }; /* class NodeTemplate<ref_count>::kinded_iterator */
 
   typedef kinded_iterator const_kinded_iterator;
 
@@ -719,9 +724,10 @@ public:
    * Returns the iterator pointing to the first child.
    * @return the iterator
    */
-  inline iterator begin() {
+  inline iterator begin()
+  {
     assertTNodeNotExpired();
-    return d_nv->begin< NodeTemplate<ref_count> >();
+    return d_nv->begin<NodeTemplate<ref_count>>();
   }
 
   /**
@@ -729,9 +735,10 @@ public:
    * last one).
    * @return the end of the children iterator.
    */
-  inline iterator end() {
+  inline iterator end()
+  {
     assertTNodeNotExpired();
-    return d_nv->end< NodeTemplate<ref_count> >();
+    return d_nv->end<NodeTemplate<ref_count>>();
   }
 
   /**
@@ -746,7 +753,8 @@ public:
    * @return the kinded_iterator iterating over this Node (if its kind
    * is not the passed kind) or its children
    */
-  inline kinded_iterator begin(Kind kind) {
+  inline kinded_iterator begin(Kind kind)
+  {
     assertTNodeNotExpired();
     return kinded_iterator::begin(*this, kind);
   }
@@ -764,7 +772,8 @@ public:
    * @return the kinded_iterator pointing off-the-end of this Node (if
    * its kind is not the passed kind) or off-the-end of its children
    */
-  inline kinded_iterator end(Kind kind) {
+  inline kinded_iterator end(Kind kind)
+  {
     assertTNodeNotExpired();
     return kinded_iterator::end(*this, kind);
   }
@@ -776,7 +785,7 @@ public:
   const_iterator begin() const
   {
     assertTNodeNotExpired();
-    return d_nv->begin< NodeTemplate<ref_count> >();
+    return d_nv->begin<NodeTemplate<ref_count>>();
   }
 
   /**
@@ -787,7 +796,7 @@ public:
   const_iterator end() const
   {
     assertTNodeNotExpired();
-    return d_nv->end< NodeTemplate<ref_count> >();
+    return d_nv->end<NodeTemplate<ref_count>>();
   }
 
   /**
@@ -822,7 +831,8 @@ public:
    * @return the kinded_iterator iterating over this Node (if its kind
    * is not the passed kind) or its children
    */
-  inline const_kinded_iterator begin(Kind kind) const {
+  inline const_kinded_iterator begin(Kind kind) const
+  {
     assertTNodeNotExpired();
     return const_kinded_iterator::begin(*this, kind);
   }
@@ -840,7 +850,8 @@ public:
    * @return the kinded_iterator pointing off-the-end of this Node (if
    * its kind is not the passed kind) or off-the-end of its children
    */
-  inline const_kinded_iterator end(Kind kind) const {
+  inline const_kinded_iterator end(Kind kind) const
+  {
     assertTNodeNotExpired();
     return const_kinded_iterator::end(*this, kind);
   }
@@ -849,7 +860,8 @@ public:
    * Converts this node into a string representation.
    * @return the string representation of this node.
    */
-  inline std::string toString() const {
+  inline std::string toString() const
+  {
     assertTNodeNotExpired();
     return d_nv->toString();
   }
@@ -890,12 +902,13 @@ public:
   template <bool ref_count2, bool ref_count3>
   NodeTemplate<true> iteNode(const NodeTemplate<ref_count2>& thenpart,
                              const NodeTemplate<ref_count3>& elsepart) const;
+  NodeTemplate<true> iteNode(const TNode (&args)[2]) const;
   template <bool ref_count2>
   NodeTemplate<true> impNode(const NodeTemplate<ref_count2>& right) const;
   template <bool ref_count2>
   NodeTemplate<true> xorNode(const NodeTemplate<ref_count2>& right) const;
 
-};/* class NodeTemplate<ref_count> */
+}; /* class NodeTemplate<ref_count> */
 
 /**
  * Serializes a given node to the given stream.
@@ -904,7 +917,8 @@ public:
  * @param n the node to output to the stream
  * @return the stream
  */
-inline std::ostream& operator<<(std::ostream& out, TNode n) {
+inline std::ostream& operator<<(std::ostream& out, TNode n)
+{
   n.toStream(out);
   return out;
 }
@@ -963,9 +977,8 @@ std::ostream& operator<<(
  * @return the stream
  */
 template <bool RC, typename V>
-std::ostream& operator<<(
-    std::ostream& out,
-    const std::map<NodeTemplate<RC>, V>& container)
+std::ostream& operator<<(std::ostream& out,
+                         const std::map<NodeTemplate<RC>, V>& container)
 {
   container_to_stream(out, container);
   return out;
@@ -989,7 +1002,7 @@ std::ostream& operator<<(
 
 }  // namespace cvc5::internal
 
-//#include "expr/attribute.h"
+// #include "expr/attribute.h"
 #include "expr/node_manager.h"
 
 namespace cvc5::internal {
@@ -998,22 +1011,25 @@ using TNodePairHashFunction =
     PairHashFunction<TNode, TNode, std::hash<TNode>, std::hash<TNode>>;
 
 template <bool ref_count>
-inline size_t NodeTemplate<ref_count>::getNumChildren() const {
+inline size_t NodeTemplate<ref_count>::getNumChildren() const
+{
   assertTNodeNotExpired();
   return d_nv->getNumChildren();
 }
 
 template <bool ref_count>
 template <class T>
-inline const T& NodeTemplate<ref_count>::getConst() const {
+inline const T& NodeTemplate<ref_count>::getConst() const
+{
   assertTNodeNotExpired();
   return d_nv->getConst<T>();
 }
 
 template <bool ref_count>
 template <class AttrKind>
-inline typename AttrKind::value_type NodeTemplate<ref_count>::
-getAttribute(const AttrKind&) const {
+inline typename AttrKind::value_type NodeTemplate<ref_count>::getAttribute(
+    const AttrKind&) const
+{
   assertTNodeNotExpired();
 
   return d_nv->getNodeManager()->getAttribute(*this, AttrKind());
@@ -1021,8 +1037,8 @@ getAttribute(const AttrKind&) const {
 
 template <bool ref_count>
 template <class AttrKind>
-inline bool NodeTemplate<ref_count>::
-hasAttribute(const AttrKind&) const {
+inline bool NodeTemplate<ref_count>::hasAttribute(const AttrKind&) const
+{
   assertTNodeNotExpired();
 
   return d_nv->getNodeManager()->hasAttribute(*this, AttrKind());
@@ -1030,8 +1046,9 @@ hasAttribute(const AttrKind&) const {
 
 template <bool ref_count>
 template <class AttrKind>
-inline bool NodeTemplate<ref_count>::getAttribute(const AttrKind&,
-                                                  typename AttrKind::value_type& ret) const {
+inline bool NodeTemplate<ref_count>::getAttribute(
+    const AttrKind&, typename AttrKind::value_type& ret) const
+{
   assertTNodeNotExpired();
 
   return d_nv->getNodeManager()->getAttribute(*this, AttrKind(), ret);
@@ -1039,27 +1056,33 @@ inline bool NodeTemplate<ref_count>::getAttribute(const AttrKind&,
 
 template <bool ref_count>
 template <class AttrKind>
-inline void NodeTemplate<ref_count>::
-setAttribute(const AttrKind&, const typename AttrKind::value_type& value) {
+inline void NodeTemplate<ref_count>::setAttribute(
+    const AttrKind&, const typename AttrKind::value_type& value)
+{
   assertTNodeNotExpired();
 
   d_nv->getNodeManager()->setAttribute(*this, AttrKind(), value);
 }
 
 template <bool ref_count>
-NodeTemplate<ref_count> NodeTemplate<ref_count>::s_null(&expr::NodeValue::null());
+NodeTemplate<ref_count> NodeTemplate<ref_count>::s_null(
+    &expr::NodeValue::null());
 
 // FIXME: escape from type system convenient but is there a better
 // way?  Nodes conceptually don't change their expr values but of
 // course they do modify the refcount.  But it's nice to be able to
 // support node_iterators over const NodeValue*.  So.... hm.
 template <bool ref_count>
-NodeTemplate<ref_count>::NodeTemplate(const expr::NodeValue* ev) :
-  d_nv(const_cast<expr::NodeValue*> (ev)) {
-  Assert(d_nv != NULL) << "Expecting a non-NULL expression value!";
-  if(ref_count) {
+NodeTemplate<ref_count>::NodeTemplate(const expr::NodeValue* ev)
+    : d_nv(const_cast<expr::NodeValue*>(ev))
+{
+  Assert(d_nv != nullptr) << "Expecting a non-NULL expression value!";
+  if (ref_count)
+  {
     d_nv->inc();
-  } else {
+  }
+  else
+  {
     Assert(d_nv->d_rc > 0 || d_nv == &expr::NodeValue::null())
         << "TNode constructed from NodeValue with rc == 0";
   }
@@ -1070,35 +1093,45 @@ NodeTemplate<ref_count>::NodeTemplate(const expr::NodeValue* ev) :
 // class.
 
 template <bool ref_count>
-NodeTemplate<ref_count>::NodeTemplate(const NodeTemplate<!ref_count>& e) {
-  Assert(e.d_nv != NULL) << "Expecting a non-NULL expression value!";
+NodeTemplate<ref_count>::NodeTemplate(const NodeTemplate<!ref_count>& e)
+{
+  Assert(e.d_nv != nullptr) << "Expecting a non-NULL expression value!";
   d_nv = e.d_nv;
-  if(ref_count) {
+  if (ref_count)
+  {
     Assert(d_nv->d_rc > 0) << "Node constructed from TNode with rc == 0";
     d_nv->inc();
-  } else {
+  }
+  else
+  {
     // shouldn't ever fail
     Assert(d_nv->d_rc > 0) << "TNode constructed from Node with rc == 0";
   }
 }
 
 template <bool ref_count>
-NodeTemplate<ref_count>::NodeTemplate(const NodeTemplate& e) {
-  Assert(e.d_nv != NULL) << "Expecting a non-NULL expression value!";
+NodeTemplate<ref_count>::NodeTemplate(const NodeTemplate& e)
+{
+  Assert(e.d_nv != nullptr) << "Expecting a non-NULL expression value!";
   d_nv = e.d_nv;
-  if(ref_count) {
+  if (ref_count)
+  {
     // shouldn't ever fail
     Assert(d_nv->d_rc > 0) << "Node constructed from Node with rc == 0";
     d_nv->inc();
-  } else {
+  }
+  else
+  {
     Assert(d_nv->d_rc > 0) << "TNode constructed from TNode with rc == 0";
   }
 }
 
 template <bool ref_count>
-NodeTemplate<ref_count>::~NodeTemplate() {
-  Assert(d_nv != NULL) << "Expecting a non-NULL expression value!";
-  if(ref_count) {
+NodeTemplate<ref_count>::~NodeTemplate()
+{
+  Assert(d_nv != nullptr) << "Expecting a non-NULL expression value!";
+  if (ref_count)
+  {
     // shouldn't ever fail
     Assert(d_nv->d_rc > 0) << "Node reference count would be negative";
     d_nv->dec();
@@ -1106,32 +1139,42 @@ NodeTemplate<ref_count>::~NodeTemplate() {
 }
 
 template <bool ref_count>
-void NodeTemplate<ref_count>::assignNodeValue(expr::NodeValue* ev) {
+void NodeTemplate<ref_count>::assignNodeValue(expr::NodeValue* ev)
+{
   d_nv = ev;
-  if(ref_count) {
+  if (ref_count)
+  {
     d_nv->inc();
-  } else {
+  }
+  else
+  {
     Assert(d_nv->d_rc > 0) << "TNode assigned to NodeValue with rc == 0";
   }
 }
 
 template <bool ref_count>
-NodeTemplate<ref_count>& NodeTemplate<ref_count>::
-operator=(const NodeTemplate& e) {
-  Assert(d_nv != NULL) << "Expecting a non-NULL expression value!";
-  Assert(e.d_nv != NULL) << "Expecting a non-NULL expression value on RHS!";
-  if(__builtin_expect( ( d_nv != e.d_nv ), true )) {
-    if(ref_count) {
+NodeTemplate<ref_count>& NodeTemplate<ref_count>::operator=(
+    const NodeTemplate& e)
+{
+  Assert(d_nv != nullptr) << "Expecting a non-NULL expression value!";
+  Assert(e.d_nv != nullptr) << "Expecting a non-NULL expression value on RHS!";
+  if (__builtin_expect((d_nv != e.d_nv), true))
+  {
+    if (ref_count)
+    {
       // shouldn't ever fail
       Assert(d_nv->d_rc > 0) << "Node reference count would be negative";
       d_nv->dec();
     }
     d_nv = e.d_nv;
-    if(ref_count) {
+    if (ref_count)
+    {
       // shouldn't ever fail
       Assert(d_nv->d_rc > 0) << "Node assigned from Node with rc == 0";
       d_nv->inc();
-    } else {
+    }
+    else
+    {
       Assert(d_nv->d_rc > 0) << "TNode assigned from TNode with rc == 0";
     }
   }
@@ -1139,21 +1182,27 @@ operator=(const NodeTemplate& e) {
 }
 
 template <bool ref_count>
-NodeTemplate<ref_count>& NodeTemplate<ref_count>::
-operator=(const NodeTemplate<!ref_count>& e) {
-  Assert(d_nv != NULL) << "Expecting a non-NULL expression value!";
-  Assert(e.d_nv != NULL) << "Expecting a non-NULL expression value on RHS!";
-  if(__builtin_expect( ( d_nv != e.d_nv ), true )) {
-    if(ref_count) {
+NodeTemplate<ref_count>& NodeTemplate<ref_count>::operator=(
+    const NodeTemplate<!ref_count>& e)
+{
+  Assert(d_nv != nullptr) << "Expecting a non-NULL expression value!";
+  Assert(e.d_nv != nullptr) << "Expecting a non-NULL expression value on RHS!";
+  if (__builtin_expect((d_nv != e.d_nv), true))
+  {
+    if (ref_count)
+    {
       // shouldn't ever fail
       Assert(d_nv->d_rc > 0) << "Node reference count would be negative";
       d_nv->dec();
     }
     d_nv = e.d_nv;
-    if(ref_count) {
+    if (ref_count)
+    {
       Assert(d_nv->d_rc > 0) << "Node assigned from TNode with rc == 0";
       d_nv->inc();
-    } else {
+    }
+    else
+    {
       // shouldn't ever happen
       Assert(d_nv->d_rc > 0) << "TNode assigned from Node with rc == 0";
     }
@@ -1163,20 +1212,23 @@ operator=(const NodeTemplate<!ref_count>& e) {
 
 template <bool ref_count>
 template <bool ref_count2>
-NodeTemplate<true>
-NodeTemplate<ref_count>::eqNode(const NodeTemplate<ref_count2>& right) const {
+NodeTemplate<true> NodeTemplate<ref_count>::eqNode(
+    const NodeTemplate<ref_count2>& right) const
+{
   assertTNodeNotExpired();
   return d_nv->getNodeManager()->mkNode(Kind::EQUAL, *this, right);
 }
 
 template <bool ref_count>
-NodeTemplate<true> NodeTemplate<ref_count>::notNode() const {
+NodeTemplate<true> NodeTemplate<ref_count>::notNode() const
+{
   assertTNodeNotExpired();
   return d_nv->getNodeManager()->mkNode(Kind::NOT, *this);
 }
 
 template <bool ref_count>
-NodeTemplate<true> NodeTemplate<ref_count>::negate() const {
+NodeTemplate<true> NodeTemplate<ref_count>::negate() const
+{
   assertTNodeNotExpired();
   return (getKind() == Kind::NOT)
              ? NodeTemplate<true>(d_nv->getChild(0))
@@ -1185,48 +1237,62 @@ NodeTemplate<true> NodeTemplate<ref_count>::negate() const {
 
 template <bool ref_count>
 template <bool ref_count2>
-NodeTemplate<true>
-NodeTemplate<ref_count>::andNode(const NodeTemplate<ref_count2>& right) const {
+NodeTemplate<true> NodeTemplate<ref_count>::andNode(
+    const NodeTemplate<ref_count2>& right) const
+{
   assertTNodeNotExpired();
   return d_nv->getNodeManager()->mkNode(Kind::AND, *this, right);
 }
 
 template <bool ref_count>
 template <bool ref_count2>
-NodeTemplate<true>
-NodeTemplate<ref_count>::orNode(const NodeTemplate<ref_count2>& right) const {
+NodeTemplate<true> NodeTemplate<ref_count>::orNode(
+    const NodeTemplate<ref_count2>& right) const
+{
   assertTNodeNotExpired();
   return d_nv->getNodeManager()->mkNode(Kind::OR, *this, right);
 }
 
 template <bool ref_count>
 template <bool ref_count2, bool ref_count3>
-NodeTemplate<true>
-NodeTemplate<ref_count>::iteNode(const NodeTemplate<ref_count2>& thenpart,
-                                 const NodeTemplate<ref_count3>& elsepart) const {
+NodeTemplate<true> NodeTemplate<ref_count>::iteNode(
+    const NodeTemplate<ref_count2>& thenpart,
+    const NodeTemplate<ref_count3>& elsepart) const
+{
   assertTNodeNotExpired();
   return d_nv->getNodeManager()->mkNode(Kind::ITE, *this, thenpart, elsepart);
 }
 
 template <bool ref_count>
+NodeTemplate<true> NodeTemplate<ref_count>::iteNode(
+    const TNode (&args)[2]) const
+{
+  assertTNodeNotExpired();
+  return d_nv->getNodeManager()->mkNode(Kind::ITE, *this, args[0], args[1]);
+}
+
+template <bool ref_count>
 template <bool ref_count2>
-NodeTemplate<true>
-NodeTemplate<ref_count>::impNode(const NodeTemplate<ref_count2>& right) const {
+NodeTemplate<true> NodeTemplate<ref_count>::impNode(
+    const NodeTemplate<ref_count2>& right) const
+{
   assertTNodeNotExpired();
   return d_nv->getNodeManager()->mkNode(Kind::IMPLIES, *this, right);
 }
 
 template <bool ref_count>
 template <bool ref_count2>
-NodeTemplate<true>
-NodeTemplate<ref_count>::xorNode(const NodeTemplate<ref_count2>& right) const {
+NodeTemplate<true> NodeTemplate<ref_count>::xorNode(
+    const NodeTemplate<ref_count2>& right) const
+{
   assertTNodeNotExpired();
   return d_nv->getNodeManager()->mkNode(Kind::XOR, *this, right);
 }
 
 template <bool ref_count>
-inline void
-NodeTemplate<ref_count>::printAst(std::ostream& out, int indent) const {
+inline void NodeTemplate<ref_count>::printAst(std::ostream& out,
+                                              int indent) const
+{
   assertTNodeNotExpired();
   d_nv->printAst(out, indent);
 }
@@ -1257,7 +1323,8 @@ NodeTemplate<true> NodeTemplate<ref_count>::getOperator() const
  * or a constant).
  */
 template <bool ref_count>
-inline bool NodeTemplate<ref_count>::hasOperator() const {
+inline bool NodeTemplate<ref_count>::hasOperator() const
+{
   assertTNodeNotExpired();
   return NodeManager::hasOperator(getKind());
 }
@@ -1285,9 +1352,11 @@ TypeNode NodeTemplate<ref_count>::getTypeOrNull(bool check) const
 }
 
 template <bool ref_count>
-inline Node
-NodeTemplate<ref_count>::substitute(TNode node, TNode replacement) const {
-  if (node == *this) {
+inline Node NodeTemplate<ref_count>::substitute(TNode node,
+                                                TNode replacement) const
+{
+  if (node == *this)
+  {
     return replacement;
   }
   std::unordered_map<TNode, TNode> cache;
@@ -1310,17 +1379,22 @@ Node NodeTemplate<ref_count>::substitute(
   // in cache?
   typename std::unordered_map<TNode, TNode>::const_iterator i =
       cache.find(*this);
-  if(i != cache.end()) {
+  if (i != cache.end())
+  {
     return (*i).second;
   }
 
   // otherwise compute
   NodeBuilder nb(getNodeManager(), getKind());
-  if(getMetaKind() == kind::metakind::PARAMETERIZED) {
+  if (getMetaKind() == kind::metakind::PARAMETERIZED)
+  {
     // push the operator
-    if(getOperator() == node) {
+    if (getOperator() == node)
+    {
       nb << replacement;
-    } else {
+    }
+    else
+    {
       nb << getOperator().substitute(node, replacement, cache);
     }
   }
@@ -1344,14 +1418,14 @@ Node NodeTemplate<ref_count>::substitute(
 
 template <bool ref_count>
 template <class Iterator1, class Iterator2>
-inline Node
-NodeTemplate<ref_count>::substitute(Iterator1 nodesBegin,
-                                    Iterator1 nodesEnd,
-                                    Iterator2 replacementsBegin,
-                                    Iterator2 replacementsEnd) const {
+inline Node NodeTemplate<ref_count>::substitute(Iterator1 nodesBegin,
+                                                Iterator1 nodesEnd,
+                                                Iterator2 replacementsBegin,
+                                                Iterator2 replacementsEnd) const
+{
   std::unordered_map<TNode, TNode> cache;
-  return substitute(nodesBegin, nodesEnd,
-                    replacementsBegin, replacementsEnd, cache);
+  return substitute(
+      nodesBegin, nodesEnd, replacementsBegin, replacementsEnd, cache);
 }
 
 template <bool ref_count>
@@ -1366,7 +1440,8 @@ Node NodeTemplate<ref_count>::substitute(
   // in cache?
   typename std::unordered_map<TNode, TNode>::const_iterator i =
       cache.find(*this);
-  if(i != cache.end()) {
+  if (i != cache.end())
+  {
     return (*i).second;
   }
 
@@ -1375,22 +1450,27 @@ Node NodeTemplate<ref_count>::substitute(
          == std::distance(replacementsBegin, replacementsEnd))
       << "Substitution iterator ranges must be equal size";
   Iterator1 j = std::find(nodesBegin, nodesEnd, TNode(*this));
-  if(j != nodesEnd) {
+  if (j != nodesEnd)
+  {
     Iterator2 b = replacementsBegin;
     std::advance(b, std::distance(nodesBegin, j));
     Node n = *b;
     cache[*this] = n;
     return n;
-  } else if(getNumChildren() == 0) {
+  }
+  else if (getNumChildren() == 0)
+  {
     cache[*this] = *this;
     return *this;
-  } else {
+  }
+  else
+  {
     NodeBuilder nb(getNodeManager(), getKind());
-    if(getMetaKind() == kind::metakind::PARAMETERIZED) {
+    if (getMetaKind() == kind::metakind::PARAMETERIZED)
+    {
       // push the operator
-      nb << getOperator().substitute(nodesBegin, nodesEnd,
-                                     replacementsBegin, replacementsEnd,
-                                     cache);
+      nb << getOperator().substitute(
+          nodesBegin, nodesEnd, replacementsBegin, replacementsEnd, cache);
     }
     for (const_iterator it = begin(), iend = end(); it != iend; ++it)
     {
@@ -1405,9 +1485,9 @@ Node NodeTemplate<ref_count>::substitute(
 
 template <bool ref_count>
 template <class Iterator>
-inline Node
-NodeTemplate<ref_count>::substitute(Iterator substitutionsBegin,
-                                    Iterator substitutionsEnd) const {
+inline Node NodeTemplate<ref_count>::substitute(Iterator substitutionsBegin,
+                                                Iterator substitutionsEnd) const
+{
   std::unordered_map<TNode, TNode> cache;
   return substitute(substitutionsBegin, substitutionsEnd, cache);
 }
@@ -1432,27 +1512,35 @@ Node NodeTemplate<ref_count>::substitute(
   // in cache?
   typename std::unordered_map<TNode, TNode>::const_iterator i =
       cache.find(*this);
-  if(i != cache.end()) {
+  if (i != cache.end())
+  {
     return (*i).second;
   }
 
   // otherwise compute
-  Iterator j = find_if(
-      substitutionsBegin,
-      substitutionsEnd,
-      [this](const auto& subst){ return subst.first == *this; });
-  if(j != substitutionsEnd) {
+  Iterator j =
+      find_if(substitutionsBegin, substitutionsEnd, [this](const auto& subst) {
+        return subst.first == *this;
+      });
+  if (j != substitutionsEnd)
+  {
     Node n = (*j).second;
     cache[*this] = n;
     return n;
-  } else if(getNumChildren() == 0) {
+  }
+  else if (getNumChildren() == 0)
+  {
     cache[*this] = *this;
     return *this;
-  } else {
+  }
+  else
+  {
     NodeBuilder nb(getNodeManager(), getKind());
-    if(getMetaKind() == kind::metakind::PARAMETERIZED) {
+    if (getMetaKind() == kind::metakind::PARAMETERIZED)
+    {
       // push the operator
-      nb << getOperator().substitute(substitutionsBegin, substitutionsEnd, cache);
+      nb << getOperator().substitute(
+          substitutionsBegin, substitutionsEnd, cache);
     }
     for (const_iterator it = begin(), iend = end(); it != iend; ++it)
     {

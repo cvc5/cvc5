@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -26,6 +23,7 @@
 namespace cvc5::internal {
 
 class TConvProofGenerator;
+class CDProof;
 
 namespace theory {
 namespace booleans {
@@ -61,6 +59,26 @@ class TheoryBoolRewriter : public TheoryRewriter
                              const Node& n,
                              TConvProofGenerator* pg = nullptr);
 
+  /**
+   * Get BV invert solve, given input t1 = t2 and variable x, returns the solved
+   * form r for x, where x = r is equivalent to t1 = t2.
+   *
+   * @param nm Pointer to node manager.
+   * @param lit The node to rewrite.
+   * @param var The variable to solve for.
+   * @param disallowedKinds The set of kinds we are not allowed to traverse on
+   * the path to var.
+   * @param cdp If provided, we add a proof of (= lit ret) to cdp, where ret is
+   * the equality returned by this method.
+   * @return The right hand side r corresponding to the solved form for var in
+   * lit, or null if we fail.
+   */
+  static Node getBvInvertSolve(NodeManager* nm,
+                               const Node& lit,
+                               const Node& var,
+                               std::unordered_set<Kind>& disallowedKinds,
+                               CDProof* cdp = nullptr);
+
  protected:
   /**
    * Helper method for computeNnfNorm.
@@ -85,7 +103,12 @@ class TheoryBoolRewriter : public TheoryRewriter
    * @param n The node to negate
    * @return The negation of n.
    */
-  Node makeNegation(TNode n);
+  Node makeNegation(TNode n) const;
+  /**
+   * Rewrite based on ProofRewriteRule::MACRO_BOOL_EQ_CONST_EQ.
+   * Returns a non-null node iff the rewrite applies.
+   */
+  Node rewriteViaEqConstEq(const Node& n) const;
   /** Common constants */
   Node d_true;
   Node d_false;

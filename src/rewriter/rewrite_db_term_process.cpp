@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Daniel Larraz, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -67,6 +64,14 @@ Node RewriteDbNodeConverter::postConvert(Node n)
   else if (k == Kind::CONST_SEQUENCE)
   {
     Node ret = theory::strings::utils::mkConcatForConstSequence(n);
+    recordProofStep(n, ret, ProofRule::ENCODE_EQ_INTRO);
+    return ret;
+  }
+  else if (k == Kind::NONLINEAR_MULT)
+  {
+    // NONLINEAR_MULT and MULT are the same
+    std::vector<Node> children(n.begin(), n.end());
+    Node ret = d_nm->mkNode(Kind::MULT, children);
     recordProofStep(n, ret, ProofRule::ENCODE_EQ_INTRO);
     return ret;
   }
@@ -144,7 +149,7 @@ Node RewriteDbNodeConverter::postConvert(Node n)
   // since string constants are converted to concatenation terms, we ensure
   // these are flattened using ACI_NORM. This ensures (str.++ "AB" x) is
   // handled as (str.++ "A" "B" x), not (str.++ (str.++ "A" "B") x).
-  if (k==Kind::STRING_CONCAT)
+  if (k == Kind::STRING_CONCAT)
   {
     Node nacc = expr::getACINormalForm(n);
     recordProofStep(n, nacc, ProofRule::ACI_NORM);

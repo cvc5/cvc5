@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -42,20 +39,20 @@ namespace preprocessing {
 namespace passes {
 
 SynthRewRulesPass::SynthRewRulesPass(PreprocessingPassContext* preprocContext)
-    : PreprocessingPass(preprocContext, "synth-rr"){};
+    : PreprocessingPass(preprocContext, "synth-rr") {};
 
 PreprocessingPassResult SynthRewRulesPass::applyInternal(
-    AssertionPipeline* assertionsToPreprocess)
+    CVC5_UNUSED AssertionPipeline* assertionsToPreprocess)
 {
   return PreprocessingPassResult::NO_CONFLICT;
 }
 
 std::vector<TypeNode> SynthRewRulesPass::getGrammarsFrom(
-    NodeManager* nm, const std::vector<Node>& assertions, uint64_t nvars)
+    Env& env, const std::vector<Node>& assertions, uint64_t nvars)
 {
   std::vector<TypeNode> ret;
   std::map<TypeNode, TypeNode> tlGrammarTypes =
-      constructTopLevelGrammar(nm, assertions, nvars);
+      constructTopLevelGrammar(env, assertions, nvars);
   for (std::pair<const TypeNode, TypeNode> ttp : tlGrammarTypes)
   {
     ret.push_back(ttp.second);
@@ -64,13 +61,14 @@ std::vector<TypeNode> SynthRewRulesPass::getGrammarsFrom(
 }
 
 std::map<TypeNode, TypeNode> SynthRewRulesPass::constructTopLevelGrammar(
-    NodeManager* nm, const std::vector<Node>& assertions, uint64_t nvars)
+    Env& env, const std::vector<Node>& assertions, uint64_t nvars)
 {
   std::map<TypeNode, TypeNode> tlGrammarTypes;
   if (assertions.empty())
   {
     return tlGrammarTypes;
   }
+  NodeManager* nm = env.getNodeManager();
   // initialize the candidate rewrite
   std::unordered_map<TNode, bool> visited;
   std::unordered_map<TNode, bool>::iterator it;
@@ -148,7 +146,7 @@ std::map<TypeNode, TypeNode> SynthRewRulesPass::constructTopLevelGrammar(
             typesFound[tn] = true;
             // add the standard constants for this type
             theory::quantifiers::SygusGrammarCons::mkSygusConstantsForType(
-                nm, tn, consts[tn]);
+                env, tn, consts[tn]);
             // We prepend them so that they come first in the grammar
             // construction. The motivation is we'd prefer seeing e.g. "true"
             // instead of (= x x) as a canonical term.
@@ -175,7 +173,7 @@ std::map<TypeNode, TypeNode> SynthRewRulesPass::constructTopLevelGrammar(
     TypeNode tn = tfp.first;
     // we do not allocate variables for non-first class types, e.g. regular
     // expressions
-    if (!tn.isFirstClass())
+    if (!env.isFirstClassType(tn))
     {
       continue;
     }
@@ -365,10 +363,7 @@ std::map<TypeNode, TypeNode> SynthRewRulesPass::constructTopLevelGrammar(
           Trace("srs-input-cons") << "Add (nested chain) " << lambdaOp << " "
                                   << lambdaOp.getType() << std::endl;
           // ID function is not printed and does not count towards weight
-          sdts[i].addConstructor(lambdaOp,
-                                 sscs.str(),
-                                 argListc,
-                                 0);
+          sdts[i].addConstructor(lambdaOp, sscs.str(), argListc, 0);
           j++;
         }
         // recursive apply
@@ -437,10 +432,7 @@ std::map<TypeNode, TypeNode> SynthRewRulesPass::constructTopLevelGrammar(
       std::stringstream ssc;
       ssc << "Ctl_" << i;
       // the no-op should not be printed, hence we pass an empty callback
-      sdttl.addConstructor(lambdaOp,
-                           ssc.str(),
-                           argList,
-                           0);
+      sdttl.addConstructor(lambdaOp, ssc.str(), argList, 0);
       Trace("srs-input-debug")
           << "Grammar for subterm " << n << " is: " << std::endl;
       Trace("srs-input-debug") << subtermTypes[n].getDType() << std::endl;

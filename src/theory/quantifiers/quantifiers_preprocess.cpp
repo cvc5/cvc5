@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Haniel Barbosa
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -84,7 +81,7 @@ Node QuantifiersPreprocess::computePrenexAgg(
     std::vector<Node> args, nargs;
     Node nn = d_qrew.computePrenex(q, n, args, nargs, true, true);
     std::unordered_set<Node> argsSet(args.begin(), args.end());
-    std::unordered_set<Node> nargsSet(args.begin(), args.end());
+    std::unordered_set<Node> nargsSet(nargs.begin(), nargs.end());
     Assert(n != nn || argsSet.empty());
     Assert(n != nn || nargsSet.empty());
     if (n != nn)
@@ -207,14 +204,14 @@ Node QuantifiersPreprocess::preSkolemizeQuantifiers(
       if (k == Kind::ITE)
       {
         nn = nm->mkNode(Kind::AND,
-                        nm->mkNode(Kind::OR, n[0].notNode(), n[1]),
-                        nm->mkNode(Kind::OR, n[0], n[2]));
+                        {nm->mkNode(Kind::OR, n[0].notNode(), n[1]),
+                         nm->mkNode(Kind::OR, n[0], n[2])});
       }
       else if (k == Kind::EQUAL)
       {
         nn = nm->mkNode(Kind::AND,
-                        nm->mkNode(Kind::OR, n[0].notNode(), n[1]),
-                        nm->mkNode(Kind::OR, n[0], n[1].notNode()));
+                        {nm->mkNode(Kind::OR, n[0].notNode(), n[1]),
+                         nm->mkNode(Kind::OR, n[0], n[1].notNode())});
       }
       ret = preSkolemizeQuantifiers(nn, polarity, fvs, visited);
     }

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Yoni Zohar, Andrew Reynolds, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -100,7 +97,7 @@ Node ForeignTheoryRewriter::foreignRewrite(Node n)
   if ((n.getKind() == Kind::GEQ || n.getKind() == Kind::EQUAL)
       && n[0].getType().isInteger())
   {
-    theory::strings::ArithEntail ae(d_env.getRewriter());
+    theory::strings::ArithEntail ae(nodeManager(), d_env.getRewriter());
     Node r = ae.rewritePredViaEntailment(n);
     if (!r.isNull())
     {

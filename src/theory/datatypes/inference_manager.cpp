@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -33,21 +30,21 @@ InferenceManager::InferenceManager(Env& env, Theory& t, TheoryState& state)
     : InferenceManagerBuffered(env, t, state, "theory::datatypes::"),
       d_ipc(isProofEnabled() ? new InferProofCons(env, context()) : nullptr),
       d_lemPg(isProofEnabled() ? new EagerProofGenerator(
-                  env, userContext(), "datatypes::lemPg")
+                                     env, userContext(), "datatypes::lemPg")
                                : nullptr)
 {
   d_false = nodeManager()->mkConst(false);
 }
 
-InferenceManager::~InferenceManager()
-{
-}
+InferenceManager::~InferenceManager() {}
 
 void InferenceManager::addPendingInference(Node conc,
                                            InferenceId id,
                                            Node exp,
                                            bool forceLemma)
 {
+  Trace("dt-im") << "Pending inference: " << conc << " / " << exp << " / " << id
+                 << std::endl;
   // if we are forcing the inference to be processed as a lemma, if the
   // dtInferAsLemmas option is set, or if the inference must be sent as a lemma
   // based on the policy in mustCommunicateFact.
@@ -77,19 +74,19 @@ void InferenceManager::process()
   doPendingFacts();
 }
 
-void InferenceManager::sendDtLemma(Node lem, InferenceId id, LemmaProperty p)
+bool InferenceManager::sendDtLemma(Node lem, InferenceId id, LemmaProperty p)
 {
   if (isProofEnabled())
   {
     TrustNode trn = processDtLemma(lem, Node::null(), id);
-    trustedLemma(trn, id);
-    return;
+    return trustedLemma(trn, id);
   }
   // otherwise send as a normal lemma directly
-  lemma(lem, id, p);
+  return lemma(lem, id, p);
 }
 
-void InferenceManager::sendDtConflict(const std::vector<Node>& conf, InferenceId id)
+void InferenceManager::sendDtConflict(const std::vector<Node>& conf,
+                                      InferenceId id)
 {
   if (isProofEnabled())
   {

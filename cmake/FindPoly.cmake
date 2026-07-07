@@ -1,10 +1,7 @@
 ###############################################################################
-# Top contributors (to current version):
-#   Gereon Kremer, Andres Noetzli, Daniel Larraz
-#
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -18,8 +15,20 @@
 
 include(deps-helper)
 
+# On Windows we always link LibPoly statically, even into a shared libcvc5.
+# A LibPoly DLL auto-exports the GMP symbols it statically embeds (MinGW
+# auto-export), and those re-exported symbols (e.g. __gmp_default_allocate)
+# then collide with cvc5's own static GMP when linking libcvc5.dll, which lld
+# rejects with "<sym> was replaced". A static (PIC) LibPoly has no export
+# table, so there is nothing to collide.
+if(BUILD_SHARED_LIBS AND NOT WIN32)
+  set(POLY_BUILD_SHARED ON)
+else()
+  set(POLY_BUILD_SHARED OFF)
+endif()
+
 find_path(Poly_INCLUDE_DIR NAMES poly/poly.h)
-if(BUILD_SHARED_LIBS)
+if(POLY_BUILD_SHARED)
   find_library(Poly_LIBRARIES NAMES poly)
   find_library(PolyXX_LIBRARIES NAMES polyxx)
 else()
@@ -50,15 +59,29 @@ if(NOT Poly_FOUND_SYSTEM)
 
   include(ExternalProject)
 
-  set(Poly_VERSION "0.1.13")
+  set(Poly_VERSION "0.2.1")
+
+  set(POLY_PATCH_KWD PATCH_COMMAND)
+  if (NO_GLOBAL_POLY_CTX)
+    find_program(PATCH_BIN patch)
+    if(NOT PATCH_BIN)
+      message(FATAL_ERROR "Can not patch LibPoly, missing binary for patch")
+    endif()
+    set(POLY_PATCH_CMD
+      ${POLY_PATCH_KWD}
+        patch -p1 -d <SOURCE_DIR>
+        -i ${CMAKE_CURRENT_LIST_DIR}/deps-utils/poly-global-ctx.patch
+    )
+    set(POLY_PATCH_KWD COMMAND)
+  endif()
 
   check_if_cross_compiling(CCWIN "Windows" "")
   if(CCWIN)
-    set(POLY_PATCH_CMD COMMAND
-      ${CMAKE_SOURCE_DIR}/cmake/deps-utils/Poly-windows-patch.sh <SOURCE_DIR>
+    set(POLY_PATCH_CMD
+      ${POLY_PATCH_KWD}
+        ${PROJECT_SOURCE_DIR}/cmake/deps-utils/Poly-windows-patch.sh <SOURCE_DIR>
     )
-  else()
-    unset(POLY_PATCH_CMD)
+    set(POLY_PATCH_KWD COMMAND)
   endif()
 
   # On Windows, CMake's default install action places DLLs into the runtime
@@ -75,7 +98,7 @@ if(NOT Poly_FOUND_SYSTEM)
 
   set(Poly_INCLUDE_DIR "${DEPS_BASE}/include/")
 
-  if(BUILD_SHARED_LIBS)
+  if(POLY_BUILD_SHARED)
     set(POLY_BUILD_STATIC OFF)
     set(POLY_TARGETS poly polyxx)
     set(POLY_INSTALL_CMD
@@ -139,7 +162,7 @@ if(NOT Poly_FOUND_SYSTEM)
     # of the static libraries, so remove the installation targets for the other
     # versions of LibPoly
     set(POLY_PATCH_CMD ${POLY_PATCH_CMD}
-      COMMAND
+      ${POLY_PATCH_KWD}
         sed -ri.orig
           "/TARGETS (poly|polyxx|static_poly|static_polyxx) /d"
           <SOURCE_DIR>/src/CMakeLists.txt
@@ -155,6 +178,14 @@ if(NOT Poly_FOUND_SYSTEM)
       "${DEPS_BASE}/lib/libpicpolyxx${CMAKE_STATIC_LIBRARY_SUFFIX}")
   endif()
 
+  # Disable a warning triggered by compilers (Emscripten, Apple Clang, etc.)
+  # due to deprecated literal operator syntax in a GMP header used by LibPoly.
+  set(POLY_CXX_FLAGS "")
+  check_cxx_compiler_flag(-Wno-error=deprecated-literal-operator HAVE_CXX_FLAGWno_error_deprecated_literal_operator)
+  if(HAVE_CXX_FLAGWno_error_deprecated_literal_operator)
+    set(POLY_CXX_FLAGS -DCMAKE_CXX_FLAGS=-Wno-error=deprecated-literal-operator)
+  endif()
+  
   # We pass the full path of GMP to LibPoly, s.t. we can ensure that LibPoly is
   # able to find the correct version of GMP if we built it locally. This is
   # primarily important for cross-compiling cvc5, because LibPoly's search
@@ -163,19 +194,8 @@ if(NOT Poly_FOUND_SYSTEM)
     Poly-EP
     ${COMMON_EP_CONFIG}
     URL https://github.com/SRI-CSL/libpoly/archive/refs/tags/v${Poly_VERSION}.tar.gz
-    URL_HASH SHA256=ca7092eeeced3dd8bd86cdd3410207802ef1752d7052d92eee3e9e6bb496763c
-    PATCH_COMMAND
-      sed -i.orig
-      "s,add_subdirectory(test/polyxx),add_subdirectory(test/polyxx EXCLUDE_FROM_ALL),g"
-      <SOURCE_DIR>/CMakeLists.txt
-    COMMAND
-      # LibPoly declares a variable `enabled_count` whose value is only written
-      # and never read. Newer versions of Clang throw a warning for this, which
-      # aborts the compilation when -Wall is enabled.
-      sed -i.orig
-      "/enabled_count/d"
-      <SOURCE_DIR>/src/upolynomial/factorization.c
-      ${POLY_PATCH_CMD}
+    URL_HASH SHA256=f9920afc876f998633348b9cbfcf180757ada48cc872040256c60ad0707b5a0f
+    ${POLY_PATCH_CMD}
     CMAKE_ARGS -DCMAKE_BUILD_TYPE=Release
                -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
                -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
@@ -185,6 +205,8 @@ if(NOT Poly_FOUND_SYSTEM)
                -DGMP_INCLUDE_DIR=${GMP_INCLUDE_DIR}
                -DGMP_LIBRARY=${GMP_LIBRARIES}
                -DCMAKE_SKIP_INSTALL_ALL_DEPENDENCY=TRUE
+               -DBUILD_TESTING=OFF
+               ${POLY_CXX_FLAGS}
     BUILD_COMMAND ${CMAKE_MAKE_PROGRAM} ${POLY_TARGETS}
     ${POLY_INSTALL_CMD}
     BUILD_BYPRODUCTS ${POLY_BYPRODUCTS}
@@ -200,7 +222,7 @@ endif()
 set(Poly_FOUND TRUE)
 
 
-if(BUILD_SHARED_LIBS)
+if(POLY_BUILD_SHARED)
   add_library(Poly SHARED IMPORTED GLOBAL)
   add_library(Polyxx SHARED IMPORTED GLOBAL)
   if(CMAKE_SYSTEM_NAME STREQUAL "Windows")

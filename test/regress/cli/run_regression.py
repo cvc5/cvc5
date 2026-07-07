@@ -1,11 +1,8 @@
 #!/usr/bin/env python3
 ###############################################################################
-# Top contributors (to current version):
-#   Andres Noetzli, Abdalrhman Mohamed, Andrew Reynolds
-#
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -26,6 +23,7 @@ import subprocess
 import sys
 import tempfile
 import threading
+import time
 
 g_args = None
 
@@ -42,6 +40,7 @@ class Color:
     ENDC = "\033[0m"
 
 is_windows = sys.platform.startswith('win')
+ADMISSIBLE_MODE_ERROR = re.compile(r'in (?:safe|stable) mode')
 
 class BulletSymbol:
     # On Windows, the special characters cause this error:
@@ -60,6 +59,10 @@ def print_ok(msg):
 def print_error(err):
     print(Color.RED + BulletSymbol.ERROR + err + Color.ENDC)
 
+def has_admissible_mode_error(output, error):
+    return bool(ADMISSIBLE_MODE_ERROR.search(output.decode()) or
+                ADMISSIBLE_MODE_ERROR.search(error.decode()))
+
 class Tester:
 
     def __init__(self, name):
@@ -70,9 +73,11 @@ class Tester:
 
     def check_exit_status(self, expected_exit_status, exit_status, output,
                           error, flags):
-        if exit_status == STATUS_TIMEOUT:
+        if is_timeout(exit_status, output, error):
             print_error("Timeout")
-            return EXIT_SKIP if g_args.skip_timeout else EXIT_FAILURE
+            return EXIT_SKIP if g_args.skip_timeout else EXIT_TIMEOUT
+        elif exit_status == EXIT_SKIP:
+            return EXIT_SKIP
         elif exit_status != expected_exit_status:
             print_error(
                 'Unexpected exit status: expected "{}" but got "{}"'.format(
@@ -96,7 +101,8 @@ class Tester:
         exit_code = self.check_exit_status(benchmark_info.expected_exit_status,
                                            exit_status, output, error,
                                            benchmark_info.command_line_args)
-        if exit_code == EXIT_SKIP:
+
+        if exit_code == EXIT_SKIP or exit_code == EXIT_TIMEOUT:
             return exit_code
 
         if benchmark_info.compare_outputs and output != benchmark_info.expected_output:
@@ -114,6 +120,14 @@ class Tester:
         if exit_code == EXIT_OK:
             print_ok("OK")
         return exit_code
+
+    def strip_proof_body(self, output):
+        # strip the unsat and parentheses
+        if not output.startswith("unsat\n(\n".encode()) or not output.endswith("\n)\n".encode()):
+            print_error("Failed to parse result for proof")
+            return output, EXIT_FAILURE
+        output = output[8:-2]
+        return output, EXIT_OK
 
 
 ################################################################################
@@ -181,30 +195,8 @@ class ProofTester(Tester):
         return super().run_internal(
             benchmark_info._replace(
                 command_line_args=benchmark_info.command_line_args +
-                ["--sat-solver=minisat",
-                 "--check-proofs",
-                 "--proof-granularity=theory-rewrite",
+                ["--check-proofs",
                  "--proof-check=lazy"]
-            )
-        )
-
-class DslProofTester(Tester):
-
-    def __init__(self):
-        super().__init__("dsl-proof")
-
-    def applies(self, benchmark_info):
-        expected_output_lines = benchmark_info.expected_output.split()
-        return (
-            benchmark_info.benchmark_ext != ".sy"
-            and "unsat" in benchmark_info.expected_output.split()
-        )
-
-    def run_internal(self, benchmark_info):
-        return super().run_internal(
-            benchmark_info._replace(
-                command_line_args=benchmark_info.command_line_args +
-                ["--check-proofs", "--proof-granularity=dsl-rewrite", "--proof-check=lazy"]
             )
         )
 
@@ -221,6 +213,9 @@ class LfscTester(Tester):
 
     def run_internal(self, benchmark_info):
         exit_code = EXIT_OK
+        # lfsc is not supported in safe mode
+        if benchmark_info.safe_mode:
+            return EXIT_SKIP
         with tempfile.NamedTemporaryFile() as tmpf:
             cvc5_args = [
                 "--dump-proofs",
@@ -236,11 +231,17 @@ class LfscTester(Tester):
                 benchmark_info.benchmark_dir,
                 benchmark_info.timeout,
             )
-            tmpf.write(output.strip("unsat\n".encode()))
-            tmpf.flush()
-            output, error = output.decode(), error.decode()
             exit_code = self.check_exit_status(EXIT_OK, exit_status, output,
                                                error, cvc5_args)
+            if exit_code != EXIT_OK:
+                return exit_code
+            # strip the unsat and parentheses
+            output, exit_code = self.strip_proof_body(output)
+            if exit_code == EXIT_FAILURE:
+                return EXIT_FAILURE
+            tmpf.write(output)
+            tmpf.flush()
+            output, error = output.decode(), error.decode()
             if "check" not in output:
                 print_error("Empty proof")
                 print()
@@ -257,6 +258,8 @@ class LfscTester(Tester):
             output, error = output.decode(), error.decode()
             exit_code = self.check_exit_status(EXIT_OK, exit_status, output,
                                                error, cvc5_args)
+            if exit_code != EXIT_OK:
+                return exit_code
             if "success" not in output:
                 print_error("Invalid proof")
                 print()
@@ -278,10 +281,15 @@ class AletheTester(Tester):
 
     def run_internal(self, benchmark_info):
         exit_code = EXIT_OK
+        # alethe is not supported in safe mode
+        if benchmark_info.safe_mode:
+            return EXIT_SKIP
         with tempfile.NamedTemporaryFile(suffix=".smt2.proof") as tmpf:
             cvc5_args = benchmark_info.command_line_args + [
                 "--dump-proofs",
-                "--proof-format=alethe"
+                "--proof-format=alethe",
+                "--proof-granularity=dsl-rewrite",
+                "--proof-alethe-testing"
             ]
             # remove duplicates
             cvc5_args = list(dict.fromkeys(cvc5_args))
@@ -292,22 +300,29 @@ class AletheTester(Tester):
                 benchmark_info.benchmark_dir,
                 benchmark_info.timeout,
             )
-            tmpf.write(output.strip("unsat\n".encode()))
-            tmpf.flush()
-            output, error = output.decode(), error.decode()
+            if (re.search(r'Proof unsupported by Alethe', output.decode()) or re.search(r'Proof unsupported by Alethe', error.decode())):
+                return EXIT_SKIP
             exit_code = self.check_exit_status(EXIT_OK, exit_status, output,
                                                error, cvc5_args)
-            if re.match(r'^unsat\n\(error "Proof unsupported by Alethe:', output):
-                print_ok("OK")
-                return exit_code
-
             if exit_code != EXIT_OK:
                 return exit_code
+            # strip the unsat and parentheses
+            output, exit_code = self.strip_proof_body(output)
+            if exit_code == EXIT_FAILURE:
+                return EXIT_FAILURE
+            tmpf.write(output)
+            tmpf.flush()
+            output, error = output.decode(), error.decode()
             original_file = benchmark_info.benchmark_dir + '/' + benchmark_info.benchmark_basename
             carcara_args = [
                 "--allow-int-real-subtyping",
                 "--expand-let-bindings",
-                "--ignore-unknown-rules"
+                "--allowed-rules",
+                "undefined",
+                "la_mult_sign",
+                "la_mult_abs_comparison",
+                "--rare-file",
+                benchmark_info.carcara_rare,
             ]
             output, error, exit_status = run_process(
                 [benchmark_info.carcara_binary] + ["check"] +
@@ -318,7 +333,9 @@ class AletheTester(Tester):
             output, error = output.decode(), error.decode()
             exit_code = self.check_exit_status(EXIT_OK, exit_status, output,
                                                error, cvc5_args)
-            if "valid" not in output and "holey" not in output:
+            if exit_code != EXIT_OK:
+                return exit_code
+            if "valid" not in output:
                 print_error("Invalid proof")
                 print()
                 print_outputs(output, error)
@@ -343,8 +360,6 @@ class CpcTester(Tester):
         with tempfile.NamedTemporaryFile() as tmpf:
             cvc5_args = [
                 "--dump-proofs",
-                "--proof-format=cpc",
-                "--proof-granularity=dsl-rewrite",
                 "--proof-print-conclusion",
             ] + benchmark_info.command_line_args
             output, error, exit_status = run_process(
@@ -354,17 +369,29 @@ class CpcTester(Tester):
                 benchmark_info.benchmark_dir,
                 benchmark_info.timeout,
             )
-            cpc_sig_dir = os.path.abspath(g_args.cpc_sig_dir)
-            tmpf.write(("(include \"" + cpc_sig_dir + "/cpc/Cpc.eo\")").encode())
-            tmpf.write(output.strip("unsat\n".encode()))
-            tmpf.flush()
-            output, error = output.decode(), error.decode()
+            # if we throw an admissible error (with text "in safe mode" or
+            # "in stable mode"), we allow the benchmark to be skipped.
+            if ((benchmark_info.safe_mode or benchmark_info.stable_mode) and
+                has_admissible_mode_error(output, error)):
+                return EXIT_SKIP
             exit_code = self.check_exit_status(EXIT_OK, exit_status, output,
                                                error, cvc5_args)
+            if exit_code != EXIT_OK:
+                return exit_code
+            cpc_sig_dir = os.path.abspath(g_args.cpc_sig_dir)
+            tmpf.write(("(include \"" + cpc_sig_dir + "/cpc/Cpc.eo\")").encode())
+            # note this line is not necessary if in a safe build
+            if not benchmark_info.safe_mode:
+                tmpf.write(("(include \"" + cpc_sig_dir + "/cpc/expert/CpcExpert.eo\")").encode())
+            # strip the unsat and parentheses
+            output, exit_code = self.strip_proof_body(output)
+            if exit_code == EXIT_FAILURE:
+                return EXIT_FAILURE
+            tmpf.write(output)
+            tmpf.flush()
+            output, error = output.decode(), error.decode()
             if ("step" not in output) and ("assume" not in output):
                 print_error("Empty proof")
-                print()
-                print_outputs(output, error)
                 return EXIT_FAILURE
             if exit_code != EXIT_OK:
                 return exit_code
@@ -377,6 +404,8 @@ class CpcTester(Tester):
             output, error = output.decode(), error.decode()
             exit_code = self.check_exit_status(EXIT_OK, exit_status, output,
                                                error, cvc5_args)
+            if exit_code != EXIT_OK:
+                return exit_code
             if ("correct" not in output) and ("incomplete" not in output):
                 print_error("Invalid proof")
                 print()
@@ -477,7 +506,7 @@ class DumpTester(Tester):
                 "raw-benchmark",
                 "--output-lang={}".format(ext_to_lang[benchmark_info.benchmark_ext]),
             ]
-            dump_output, _, _ = run_process(
+            dump_output, dump_error, dump_exit_status = run_process(
                 [benchmark_info.cvc5_binary]
                 + benchmark_info.command_line_args
                 + dump_args
@@ -485,6 +514,9 @@ class DumpTester(Tester):
                 benchmark_info.benchmark_dir,
                 benchmark_info.timeout,
             )
+            if is_timeout(dump_exit_status, dump_output, dump_error):
+                print_error("Timeout")
+                return EXIT_SKIP if g_args.skip_timeout else EXIT_TIMEOUT
 
             tmpf_name = tmpf.name
             tmpf.write(dump_output)
@@ -517,7 +549,6 @@ g_testers = {
     "synth": SynthTester(),
     "abduct": AbductTester(),
     "dump": DumpTester(),
-    "dsl-proof": DslProofTester(),
     "alethe": AletheTester(),
     "cpc": CpcTester()
 }
@@ -545,6 +576,7 @@ BenchmarkInfo = collections.namedtuple(
         "lfsc_binary",
         "lfsc_sigs",
         "carcara_binary",
+        "carcara_rare",
         "ethos_binary",
         "benchmark_dir",
         "benchmark_basename",
@@ -555,6 +587,8 @@ BenchmarkInfo = collections.namedtuple(
         "expected_exit_status",
         "command_line_args",
         "compare_outputs",
+        "safe_mode",
+        "stable_mode"
     ],
 )
 
@@ -570,7 +604,57 @@ DISABLE_TESTER = "DISABLE-TESTER:"
 EXIT_OK = 0
 EXIT_FAILURE = 1
 EXIT_SKIP = 77
-STATUS_TIMEOUT = 124
+EXIT_TIMEOUT = 124
+STATUS_TIMEOUT = EXIT_TIMEOUT
+CTEST_TIMEOUT_ENV = "CVC5_REGRESSION_TIMEOUT_AS_CTEST_TIMEOUT"
+CTEST_TIMEOUT_MARKER = "CVC5_REGRESSION_CTEST_TIMEOUT"
+CTEST_TIMEOUT_SLEEP = 2
+# Some testers run cvc5 plus an external checker or scrubbers.
+CTEST_TIMEOUT_PROCESS_FACTOR = 4
+CTEST_TIMEOUT_MARGIN = 60
+
+
+def ctest_timeout_enabled():
+    return os.environ.get(CTEST_TIMEOUT_ENV) == "1"
+
+
+def emit_ctest_timeout_marker():
+    print(CTEST_TIMEOUT_MARKER)
+    sys.stdout.flush()
+    sys.stderr.flush()
+
+
+def ctest_timeout_watchdog():
+    emit_ctest_timeout_marker()
+    while True:
+        time.sleep(CTEST_TIMEOUT_SLEEP)
+
+
+def start_ctest_timeout_watchdog(timeout, num_tests):
+    if not ctest_timeout_enabled():
+        return None
+
+    watchdog_timeout = int(
+        timeout * max(1, num_tests) * CTEST_TIMEOUT_PROCESS_FACTOR
+        + CTEST_TIMEOUT_MARGIN
+    )
+    watchdog = threading.Timer(max(1, watchdog_timeout), ctest_timeout_watchdog)
+    watchdog.daemon = True
+    watchdog.start()
+    return watchdog
+
+
+def is_timeout(exit_status, output, error):
+    """Returns true if the process result indicates a timeout."""
+    if exit_status == STATUS_TIMEOUT:
+        return True
+
+    for stream in (output, error):
+        if isinstance(stream, bytes):
+            stream = stream.decode(errors="replace")
+        if "interrupted by timeout" in stream:
+            return True
+    return False
 
 
 def print_colored(color, text):
@@ -651,10 +735,15 @@ def run_process(args, cwd, timeout, s_input=None):
     return out, err, exit_status
 
 
-def get_cvc5_features(cvc5_binary):
+def get_cvc5_features(cvc5_binary, timeout):
     """Returns a list of features supported by the cvc5 binary `cvc5_binary`."""
 
-    output, _, _ = run_process([cvc5_binary, "--show-config"], None, None)
+    output, error, exit_status = run_process([cvc5_binary, "--show-config"],
+                                             None, timeout)
+    if is_timeout(exit_status, output, error):
+        print_error("Timeout")
+        return None, None
+
     if isinstance(output, bytes):
         output = output.decode()
 
@@ -703,16 +792,25 @@ def run_benchmark(benchmark_info):
         benchmark_info.benchmark_dir,
         benchmark_info.timeout,
     )
+    # For all testers, if we throw an admissible error (with text
+    # "in safe mode" or "in stable mode"), we allow the benchmark to be skipped.
+    if ((benchmark_info.safe_mode or benchmark_info.stable_mode) and
+        has_admissible_mode_error(output, error)):
+        return (output, error, EXIT_SKIP)
+    if is_timeout(exit_status, output, error):
+        return (output, error, STATUS_TIMEOUT)
 
     # If a scrubber command has been specified then apply it to the output.
     scrubber_error = ""
     if benchmark_info.scrubber:
-        output, scrubber_error, _ = run_process(
+        output, scrubber_error, scrubber_exit_status = run_process(
             benchmark_info.scrubber,
             benchmark_info.benchmark_dir,
             benchmark_info.timeout,
             output,
         )
+        if scrubber_exit_status == STATUS_TIMEOUT:
+            return (output, scrubber_error, STATUS_TIMEOUT)
     # Make sure that the scrubber itself did not print anything to its error output
     check_result =  check_scrubber(scrubber_error, benchmark_info.scrubber)
     if check_result != None:
@@ -720,12 +818,14 @@ def run_benchmark(benchmark_info):
 
     scrubber_error = ""
     if benchmark_info.error_scrubber:
-        error, scrubber_error, _ = run_process(
+        error, scrubber_error, scrubber_exit_status = run_process(
             benchmark_info.error_scrubber,
             benchmark_info.benchmark_dir,
             benchmark_info.timeout,
             error,
         )
+        if scrubber_exit_status == STATUS_TIMEOUT:
+            return (output, scrubber_error, STATUS_TIMEOUT)
     # Make sure that the error scrubber itself did not print anything to its error output
     check_result =  check_scrubber(scrubber_error, benchmark_info.error_scrubber)
     if check_result != None:
@@ -751,6 +851,7 @@ def run_regression(
     lfsc_binary,
     lfsc_sigs,
     carcara_binary,
+    carcara_rare,
     ethos_binary,
     benchmark_path,
     timeout,
@@ -763,7 +864,10 @@ def run_regression(
     if not os.path.isfile(benchmark_path):
         sys.exit('"{}" does not exist or is not a file'.format(benchmark_path))
 
-    cvc5_features, cvc5_disabled_features = get_cvc5_features(cvc5_binary)
+    cvc5_features, cvc5_disabled_features = get_cvc5_features(cvc5_binary,
+                                                              timeout)
+    if cvc5_features is None:
+        return EXIT_TIMEOUT
 
     basic_command_line_args = []
 
@@ -821,14 +925,9 @@ def run_regression(
                 return EXIT_FAILURE
             if disable_tester in testers:
                 testers.remove(disable_tester)
-            if disable_tester == "dsl-proof":
-                if "cpc" in testers:
-                    testers.remove("cpc")
             if disable_tester == "proof":
                 if "lfsc" in testers:
                     testers.remove("lfsc")
-                if "dsl-proof" in testers:
-                    testers.remove("dsl-proof")
                 if "alethe" in testers:
                     testers.remove("alethe")
                 if "cpc" in testers:
@@ -898,6 +997,7 @@ def run_regression(
             lfsc_binary=lfsc_binary,
             lfsc_sigs=lfsc_sigs,
             carcara_binary=carcara_binary,
+            carcara_rare=carcara_rare,
             ethos_binary=ethos_binary,
             benchmark_dir=benchmark_dir,
             benchmark_basename=benchmark_basename,
@@ -908,6 +1008,8 @@ def run_regression(
             expected_exit_status=expected_exit_status,
             command_line_args=all_args,
             compare_outputs=True,
+            safe_mode=("safe-mode" in cvc5_features),
+            stable_mode=("stable-mode" in cvc5_features)
         )
         for tester_name, tester in g_testers.items():
             if tester_name in testers and tester.applies(benchmark_info):
@@ -920,12 +1022,19 @@ def run_regression(
     # Run cvc5 on the benchmark with the different testers and check whether
     # the exit status, stdout output, stderr output are as expected.
     exit_code = EXIT_OK
-    for tester, benchmark_info in tests:
-        test_exit_code = tester.run(benchmark_info)
-        if exit_code == EXIT_FAILURE or test_exit_code == EXIT_FAILURE:
-            exit_code = EXIT_FAILURE
-        else:
-            exit_code = test_exit_code
+    watchdog = start_ctest_timeout_watchdog(timeout, len(tests))
+    try:
+        for tester, benchmark_info in tests:
+            test_exit_code = tester.run(benchmark_info)
+            if exit_code == EXIT_FAILURE or test_exit_code == EXIT_FAILURE:
+                exit_code = EXIT_FAILURE
+            elif exit_code == EXIT_TIMEOUT or test_exit_code == EXIT_TIMEOUT:
+                exit_code = EXIT_TIMEOUT
+            else:
+                exit_code = test_exit_code
+    finally:
+        if watchdog is not None:
+            watchdog.cancel()
 
     return exit_code
 
@@ -939,7 +1048,7 @@ def main():
     parser = argparse.ArgumentParser(
         description="Runs benchmark and checks for correct exit status and output."
     )
-    
+
     g_testers_keys = list(g_testers.keys())
     tester_choices = ["all"] + g_testers_keys
     parser.add_argument("--use-skip-return-code", action="store_true")
@@ -949,6 +1058,7 @@ def main():
     parser.add_argument("--lfsc-binary", default="")
     parser.add_argument("--lfsc-sig-dir", default="")
     parser.add_argument("--carcara-binary", default="")
+    parser.add_argument("--carcara-rare", default="")
     parser.add_argument("--ethos-binary", default="")
     parser.add_argument("--cpc-sig-dir", default="")
     parser.add_argument("wrapper", nargs="*")
@@ -965,6 +1075,7 @@ def main():
     cvc5_binary = os.path.abspath(g_args.cvc5_binary)
     lfsc_binary = os.path.abspath(g_args.lfsc_binary)
     carcara_binary = os.path.abspath(g_args.carcara_binary)
+    carcara_rare = os.path.abspath(g_args.carcara_rare)
     ethos_binary = os.path.abspath(g_args.ethos_binary)
 
     wrapper = g_args.wrapper
@@ -994,17 +1105,24 @@ def main():
         lfsc_sigs = [os.path.join(lfsc_sig_dir, sig + ".plf")
                      for sig in lfsc_sigs]
     cpc_sig_dir = os.path.abspath(g_args.cpc_sig_dir)
-    return run_regression(
+    exit_code = run_regression(
         testers,
         wrapper,
         cvc5_binary,
         lfsc_binary,
         lfsc_sigs,
         carcara_binary,
+        carcara_rare,
         ethos_binary,
         g_args.benchmark,
         timeout,
     )
+    if exit_code == EXIT_TIMEOUT and ctest_timeout_enabled():
+        # Let CTest terminate this process so its native summary reports the
+        # test as a timeout.
+        emit_ctest_timeout_marker()
+        time.sleep(CTEST_TIMEOUT_SLEEP)
+    return exit_code
 
 
 if __name__ == "__main__":
