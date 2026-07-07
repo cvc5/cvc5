@@ -20,6 +20,7 @@
 #include <unordered_set>
 
 #include "expr/node_algorithm.h"
+#include "expr/node_value.h"
 #include "theory/bv/theory_bv_rewrite_rules.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/rewriter.h"
@@ -154,6 +155,13 @@ inline Node RewriteRule<FlattenAssocCommut>::apply(TNode node)
     else
     {
       children.push_back(current);
+      // Do not flatten beyond the hard limit for children of a node. Returning
+      // the original node changes rewriting only when the flattened node cannot
+      // be represented.
+      if (children.size() > expr::NodeValue::MAX_CHILDREN)
+      {
+        return node;
+      }
     }
   }
   if (node.getKind() == Kind::BITVECTOR_ADD

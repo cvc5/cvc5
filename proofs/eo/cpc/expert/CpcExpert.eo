@@ -34,6 +34,8 @@
 
 ; Used in the --ho-elim preprocessing pass
 (declare-const @ho-elim-sort (-> Type Type))
+; Used in the --sort-inference preprocessing pass
+(declare-const @sort-infer-subsort (-> Int Type))
 (declare-parameterized-const @fmf-fun-sort ((T Type :implicit)) (-> T Type))
 
 ; Datatypes shared selector

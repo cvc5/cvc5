@@ -459,6 +459,14 @@ name   = "Arithmetic Theory"
   help       = "initial splits on zero for all variables"
 
 [[option]]
+  name       = "nlExtInitialSignLemmas"
+  category   = "expert"
+  long       = "nl-ext-initial-sign-lemmas"
+  type       = "bool"
+  default    = "false"
+  help       = "preemptively add monomial zero-sign lemmas (v = 0 => a = 0 for each factor v of monomial a) before model-based refinement"
+
+[[option]]
   name       = "nlExtTfTaylorDegree"
   category   = "expert"
   long       = "nl-ext-tf-taylor-deg=N"

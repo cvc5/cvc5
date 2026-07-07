@@ -180,7 +180,7 @@ versions; more recent versions should be compatible.
   + module `pyparsing <https://pypi.org/project/pyparsing/>`_
 - `GMP v6.3 (GNU Multi-Precision arithmetic library) <https://gmplib.org>`_
 - `CaDiCaL >= 2.1.0 (SAT solver) <https://github.com/arminbiere/cadical>`_
-- `SymFPU <https://github.com/martin-cs/symfpu/tree/CVC4>`_
+- `SymFPU <https://github.com/martin-cs/symfpu/tree/main>`_
 
 If ``--auto-download`` is given, the Python modules will be installed automatically in
 a virtual environment if they are missing. To install the modules globally and skip
@@ -205,7 +205,7 @@ automatically when ``--auto-download`` is given.
 SymFPU (Support for the Theory of Floating Point Numbers)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`SymFPU <https://github.com/martin-cs/symfpu/tree/CVC4>`_ is an implementation
+`SymFPU <https://github.com/martin-cs/symfpu/tree/main>`_ is an implementation
 of SMT-LIB/IEEE-754 floating-point operations in terms of bit-vector operations.
 It is required for supporting the theory of floating-point numbers and can be
 downloaded and built automatically.

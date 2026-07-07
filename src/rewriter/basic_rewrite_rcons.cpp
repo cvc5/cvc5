@@ -408,7 +408,11 @@ bool BasicRewriteRCons::ensureProofMacroBoolBvInvertSolve(CDProof* cdp,
   Assert(eq[0].getKind() == Kind::EQUAL);
   Assert(eq[0][0].getKind() == Kind::EQUAL
          && eq[0][1].getKind() == Kind::EQUAL);
+  // Use the same disallowed kinds as the rewrite (see rewriteViaRule for
+  // MACRO_BOOL_BV_INVERT_SOLVE), so that proof reconstruction matches the
+  // solving that was actually performed by the rewrite.
   std::unordered_set<Kind> disallowedKinds;
+  disallowedKinds.insert(Kind::BITVECTOR_CONCAT);
   theory::booleans::TheoryBoolRewriter::getBvInvertSolve(
       nodeManager(), eq[0][0], eq[0][1][0], disallowedKinds, cdp);
   // finish proof

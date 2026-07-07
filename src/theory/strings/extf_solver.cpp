@@ -213,6 +213,18 @@ void ExtfSolver::doReduction(Node n, int pol)
     std::vector<Node> new_nodes;
     Node res = d_preproc.simplify(n, new_nodes);
     Assert(res != n);
+    // If we reduced a Boolean extended function (e.g. str.<=), then n is
+    // replaced by a fresh purification skolem standing for a Boolean term.
+    // Register it as a Boolean term skolem, so that it is consistently treated
+    // as a theory atom (and not as a plain Boolean variable). This matters in
+    // incremental mode, where the skolem may be reused as a Boolean term in a
+    // term position (e.g. an array element) in a subsequent check-sat: its CNF
+    // classification is fixed when its literal is first created here, so it
+    // must be registered before that point.
+    if (res.isVar() && res.getType().isBoolean())
+    {
+      d_env.registerBooleanTermSkolem(res);
+    }
     new_nodes.push_back(n.eqNode(res));
     Node nnlem =
         new_nodes.size() == 1 ? new_nodes[0] : nm->mkNode(Kind::AND, new_nodes);
@@ -803,9 +815,38 @@ Node ExtfSolver::getCurrentSubstitutionFor(int effort,
     return ns;
   }
   // otherwise, we use the best content heuristic
-  Node c = d_bsolver.explainBestContentEqc(n, nr, exp);
+  std::vector<Node> cexp;
+  Node c = d_bsolver.explainBestContentEqc(n, nr, cexp);
+  if (!c.isNull() && n.getKind() == Kind::STRING_CONCAT)
+  {
+    cexp.clear();
+    // Similar to above, if we are a string concatentation, we ask for the
+    // best content of each of our children and concatenate them together.
+    // We consider the substitution only if at least one child had a best
+    // content. This prevents substitutions with concatenation terms on the
+    // left hand side, which can lead to cycles in the algorithm that elaborates
+    // proofs in very rare cases.
+    std::vector<Node> vec;
+    for (const Node& nc : n)
+    {
+      Node ncr = d_state.getRepresentative(nc);
+      Node cc = d_bsolver.explainBestContentEqc(nc, ncr, cexp);
+      if (!cc.isNull())
+      {
+        vec.push_back(cc);
+      }
+      else
+      {
+        // otherwise keep the same
+        vec.push_back(nc);
+      }
+    }
+    TypeNode stype = n.getType();
+    c = d_termReg.mkNConcat(vec, stype);
+  }
   if (!c.isNull())
   {
+    exp.insert(exp.end(), cexp.begin(), cexp.end());
     return c;
   }
   return n;

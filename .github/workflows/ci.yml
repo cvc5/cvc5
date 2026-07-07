@@ -242,6 +242,27 @@ jobs:
             macos-target: 11.0
             gpl-tag: -gpl
 
+          # Windows builds with CoCoALib are generated for testing purposes only
+          # but are not currently uploaded.
+          - name: win64:production-gpl
+            os: windows-latest
+            config: production --auto-download --gpl --cocoa
+            cache-key: production-win64-native-gpl
+            strip-bin: strip
+            windows-build: true
+            shell: 'msys2 {0}'
+            gpl-tag: -gpl
+
+          - name: win64:production-arm64-gpl
+            os: windows-11-arm
+            config: production --auto-download --gpl --cocoa
+            cache-key: production-win64-native-arm64-gpl
+            strip-bin: strip
+            java-version: 21
+            windows-build: true
+            shell: 'msys2 {0}'
+            gpl-tag: -gpl
+
         exclude:
           - gpl-build: false
             build:
@@ -255,7 +276,12 @@ jobs:
           - gpl-build: false
             build:
               name: macos:production-arm64-gpl
-
+          - gpl-build: false
+            build:
+              name: win64:production-gpl
+          - gpl-build: false
+            build:
+              name: win64:production-arm64-gpl
 
     name: ${{ matrix.build.name }}
     runs-on: ${{ matrix.build.os }}

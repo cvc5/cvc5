@@ -183,7 +183,7 @@ Node EoNodeConverter::postConvert(Node n)
   {
     TypeNode tn = n.getType();
     std::vector<Node> iargs(n.begin(), n.begin() + n.getNumChildren() - 1);
-    Node list = mkList(iargs);
+    Node list = mkTypedList(iargs);
     return mkInternalApp("set.insert", {list, n[n.getNumChildren() - 1]}, tn);
   }
   else if (k == Kind::CONST_SEQUENCE)
@@ -421,6 +421,13 @@ Node EoNodeConverter::mkList(const std::vector<Node>& args)
   TypeNode tn = d_nm->booleanType();
   // singleton lists are handled due to (@list x) ---> (@list x eo::nil)
   return mkInternalApp("@list", args, tn);
+}
+
+Node EoNodeConverter::mkTypedList(const std::vector<Node>& args)
+{
+  Assert(!args.empty());
+  TypeNode tn = d_nm->booleanType();
+  return mkInternalApp("@tlist", args, tn);
 }
 
 Node EoNodeConverter::mkInternalSymbol(const std::string& name,
