@@ -387,7 +387,7 @@ LiaStarExtension::getCones(
       Vector point;
       for (const auto& element : generator)
       {
-        Node constant = d_nm->mkConstInt(Rational(element));
+        Node constant = d_nm->mkConstInt(Rational(element.get_str()));
         Node monomial = d_nm->mkNode(Kind::MULT, constant, mu);
         point.push_back(monomial);
       }
@@ -405,7 +405,7 @@ LiaStarExtension::getCones(
         Vector ray;
         for (const auto& element : basis)
         {
-          Node constant = d_nm->mkConstInt(Rational(element));
+          Node constant = d_nm->mkConstInt(Rational(element.get_str()));
           Node monomial = d_nm->mkNode(Kind::MULT, constant, lambda);
           ray.push_back(monomial);
         }
@@ -470,7 +470,7 @@ std::vector<std::pair<Node, Node>> LiaStarExtension::getLia(
       Vector point;
       for (const auto& element : generator)
       {
-        Node constant = d_nm->mkConstInt(Rational(element));
+        Node constant = d_nm->mkConstInt(Rational(element.get_str()));
         point.push_back(constant);
       }
 
@@ -489,7 +489,7 @@ std::vector<std::pair<Node, Node>> LiaStarExtension::getLia(
         Vector ray;
         for (const auto& element : basis)
         {
-          Node constant = d_nm->mkConstInt(Rational(element));
+          Node constant = d_nm->mkConstInt(Rational(element.get_str()));
           Node monomial = rewrite(d_nm->mkNode(Kind::MULT, constant, lambda));
           ray.push_back(monomial);
         }
