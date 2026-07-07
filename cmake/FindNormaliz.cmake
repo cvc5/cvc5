@@ -54,6 +54,12 @@ if(NOT Normaliz_FOUND_SYSTEM)
   # correctly). Normaliz is compiled with --with-pic, so this is safe.
   if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     set(Normaliz_STATIC_BUILD TRUE)
+    # The msys2 CLANG64 toolchain provides no gcc/g++, so without explicit
+    # CC/CXX Normaliz's configure falls back to whatever gcc is on PATH
+    # (e.g. the GitHub runner's stock MinGW), which neither finds the msys2
+    # GMP headers nor matches the libc++ ABI of the rest of the build.
+    set(CONFIGURE_ENV ${CONFIGURE_ENV} ${CMAKE_COMMAND} -E env
+      "CC=${CMAKE_C_COMPILER}" "CXX=${CMAKE_CXX_COMPILER}")
   else()
     set(Normaliz_STATIC_BUILD FALSE)
   endif()
