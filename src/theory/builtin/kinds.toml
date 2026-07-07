@@ -362,13 +362,6 @@ comment  = "equality (two parameters only, sorts must match)"
 typerule = "::cvc5::internal::theory::builtin::EqualityTypeRule"
 
 [[kinds]]
-type     = "operator"
-name     = "DISTINCT"
-children = "2:" 
-comment  = "disequality (N-ary, sorts must match)"
-typerule = "::cvc5::internal::theory::builtin::DistinctTypeRule"
-
-[[kinds]]
 type    = "variable"
 name    = "VARIABLE"
 comment = "a variable (not permitted in bindings)"
@@ -422,6 +415,11 @@ comment      = "the type of a symbolic expression"
 type    = "variable"
 name    = "RAW_SYMBOL"
 comment = "a variable that is not quoted in the smt2 printer (internal only)"
+
+[[kinds]]
+type    = "variable"
+name    = "RAW_SYMBOL_TYPE"
+comment = "a type that is not quoted in the smt2 printer (internal only)"
 
 [[kinds]]
 type      = "constant"

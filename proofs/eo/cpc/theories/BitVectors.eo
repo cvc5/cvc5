@@ -27,13 +27,13 @@
   (-> (BitVec n) (BitVec m) (BitVec (eo::add n m)))
   :right-assoc-nil @bv_empty)
 
-(declare-parameterized-const extract ((n Int :implicit) (h Int) (l Int))
+(declare-parameterized-const extract ((n Int :implicit) (h Int :opaque) (l Int :opaque))
   (-> (BitVec n)
       (BitVec (eo::requires (eo::gt (eo::add l 1) 0) true
               (eo::requires (eo::gt n h) true
                 (eo::add h (eo::neg l) 1))))))
 
-(declare-parameterized-const repeat ((n Int :implicit) (i Int))
+(declare-parameterized-const repeat ((n Int :implicit) (i Int :opaque))
   (-> (BitVec n) (BitVec (eo::mul i n))))
 
 (declare-parameterized-const bvnot ((m Int :implicit))
@@ -141,73 +141,50 @@
 (declare-parameterized-const bvashr ((m Int :implicit))
   (-> (BitVec m) (BitVec m) (BitVec m)))
 
-(declare-parameterized-const zero_extend ((m Int :implicit) (i Int))
+(declare-parameterized-const zero_extend ((m Int :implicit) (i Int :opaque))
   (-> (BitVec m) (BitVec (eo::add m i))))
 
-; disclaimer: >
-;   The type of this function currently permits evaluatable terms as
-;   indices to support RARE.
-(declare-parameterized-const sign_extend ((m Int :implicit) (i Int))
+(declare-parameterized-const sign_extend ((m Int :implicit) (i Int :opaque))
   (-> (BitVec m) (BitVec (eo::add m i))))
 
-(declare-parameterized-const rotate_left ((m Int :implicit))
-  (-> Int (BitVec m) (BitVec m)))
+(declare-parameterized-const rotate_left ((m Int :implicit) (i Int :opaque))
+  (-> (BitVec m) (BitVec m)))
  
-(declare-parameterized-const rotate_right ((m Int :implicit))
-  (-> Int (BitVec m) (BitVec m)))
- 
-(declare-parameterized-const reduce_and ((m Int :implicit))
-  (-> (BitVec m) (BitVec 1)))
-
-(declare-parameterized-const reduce_or ((m Int :implicit))
-  (-> (BitVec m) (BitVec 1)))
-
-(declare-parameterized-const reduce_xor ((m Int :implicit))
-  (-> (BitVec m) (BitVec 1)))
+(declare-parameterized-const rotate_right ((m Int :implicit) (i Int :opaque))
+  (-> (BitVec m) (BitVec m)))
 
 ; NOTE: does not require branches to be bitvector
 ; disclaimer: This function is not a function in SMT-LIB.
 (declare-parameterized-const bvite ((T Type :implicit)) (-> (BitVec 1) T T T))
 
-; disclaimer: This function is not a function in SMT-LIB.
-(declare-parameterized-const bv1ult ((m Int :implicit))
-  (-> (BitVec m) (BitVec m) (BitVec 1)))
-
-; disclaimer: This function is not a function in SMT-LIB.
 (declare-parameterized-const bvuaddo ((m Int :implicit))
   (-> (BitVec m) (BitVec m) Bool))
 
-; disclaimer: This function is not a function in SMT-LIB.
 (declare-parameterized-const bvnego ((m Int :implicit)) (-> (BitVec m) Bool))
 
-; disclaimer: This function is not a function in SMT-LIB.
 (declare-parameterized-const bvsaddo ((m Int :implicit))
   (-> (BitVec m) (BitVec m) Bool))
 
-; disclaimer: This function is not a function in SMT-LIB.
 (declare-parameterized-const bvumulo ((m Int :implicit))
   (-> (BitVec m) (BitVec m) Bool))
 
-; disclaimer: This function is not a function in SMT-LIB.
 (declare-parameterized-const bvsmulo ((m Int :implicit))
   (-> (BitVec m) (BitVec m) Bool))
 
-; disclaimer: This function is not a function in SMT-LIB.
 (declare-parameterized-const bvusubo ((m Int :implicit))
   (-> (BitVec m) (BitVec m) Bool))
 
-; disclaimer: This function is not a function in SMT-LIB.
 (declare-parameterized-const bvssubo ((m Int :implicit))
   (-> (BitVec m) (BitVec m) Bool))
 
-; disclaimer: This function is not a function in SMT-LIB.
 (declare-parameterized-const bvsdivo ((m Int :implicit))
   (-> (BitVec m) (BitVec m) Bool))
 
-
+; disclaimer: This function is not a function in SMT-LIB.
 (declare-parameterized-const bvultbv ((m Int :implicit))
   (-> (BitVec m) (BitVec m) (BitVec 1)))
 
+; disclaimer: This function is not a function in SMT-LIB.
 (declare-parameterized-const bvsltbv ((m Int :implicit))
   (-> (BitVec m) (BitVec m) (BitVec 1)))
 
@@ -221,11 +198,12 @@
 
 ; internal operators
 
-(declare-parameterized-const @bit ((m Int :implicit)) (-> Int (BitVec m) Bool))
+(declare-parameterized-const @bit ((m Int :implicit) (i Int :opaque)) 
+  (-> (BitVec m) Bool))
 
 (declare-parameterized-const @from_bools ((n Int :implicit))
   (-> Bool (BitVec n) (BitVec (eo::add 1 n)))
   :right-assoc-nil @bv_empty)
 
 ; symbolic constant
-(declare-parameterized-const @bv ((value Int) (w Int)) (BitVec w))
+(declare-parameterized-const @bv ((value Int :opaque) (w Int :opaque)) (BitVec w))

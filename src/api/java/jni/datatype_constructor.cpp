@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mudathir Mohamed, Andres Noetzli, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -25,10 +22,8 @@ using namespace cvc5;
  * Method:    deletePointer
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL
-Java_io_github_cvc5_DatatypeConstructor_deletePointer(JNIEnv*,
-                                                          jobject,
-                                                          jlong pointer)
+JNIEXPORT void JNICALL Java_io_github_cvc5_DatatypeConstructor_deletePointer(
+    JNIEnv*, jobject, jlong pointer)
 {
   delete ((DatatypeConstructor*)pointer);
 }
@@ -100,10 +95,8 @@ Java_io_github_cvc5_DatatypeConstructor_getInstantiatedTerm(
  * Method:    getTesterTerm
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_DatatypeConstructor_getTesterTerm(JNIEnv* env,
-                                                          jobject,
-                                                          jlong pointer)
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_DatatypeConstructor_getTesterTerm(
+    JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   DatatypeConstructor* current = (DatatypeConstructor*)pointer;
@@ -117,10 +110,8 @@ Java_io_github_cvc5_DatatypeConstructor_getTesterTerm(JNIEnv* env,
  * Method:    getNumSelectors
  * Signature: (J)I
  */
-JNIEXPORT jint JNICALL
-Java_io_github_cvc5_DatatypeConstructor_getNumSelectors(JNIEnv* env,
-                                                            jobject,
-                                                            jlong pointer)
+JNIEXPORT jint JNICALL Java_io_github_cvc5_DatatypeConstructor_getNumSelectors(
+    JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   DatatypeConstructor* current = (DatatypeConstructor*)pointer;
@@ -133,11 +124,8 @@ Java_io_github_cvc5_DatatypeConstructor_getNumSelectors(JNIEnv* env,
  * Method:    getSelector
  * Signature: (JI)J
  */
-JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_DatatypeConstructor_getSelector__JI(JNIEnv* env,
-                                                            jobject,
-                                                            jlong pointer,
-                                                            jint index)
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_DatatypeConstructor_getSelector__JI(
+    JNIEnv* env, jobject, jlong pointer, jint index)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   DatatypeConstructor* current = (DatatypeConstructor*)pointer;

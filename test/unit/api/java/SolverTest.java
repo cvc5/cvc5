@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mudathir Mohamed, Andrew Reynolds, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -24,6 +21,7 @@ import io.github.cvc5.*;
 import io.github.cvc5.modes.BlockModelsMode;
 import io.github.cvc5.modes.FindSynthTarget;
 import io.github.cvc5.modes.LearnedLitType;
+import io.github.cvc5.modes.OptionCategory;
 import io.github.cvc5.modes.ProofComponent;
 import io.github.cvc5.modes.ProofFormat;
 import java.math.BigInteger;
@@ -672,6 +670,7 @@ class SolverTest
     {
       OptionInfo info = d_solver.getOptionInfo("verbose");
       assertions.add(() -> assertEquals("verbose", info.getName()));
+      assertions.add(() -> assertEquals(OptionCategory.COMMON, info.getCategory()));
       assertions.add(
           () -> assertEquals(Arrays.asList(new String[] {}), Arrays.asList(info.getAliases())));
       assertions.add(() -> assertTrue(info.getBaseInfo() instanceof OptionInfo.VoidInfo));
@@ -681,6 +680,7 @@ class SolverTest
       // bool type with default
       OptionInfo info = d_solver.getOptionInfo("print-success");
       assertions.add(() -> assertEquals("print-success", info.getName()));
+      assertions.add(() -> assertEquals(OptionCategory.COMMON, info.getCategory()));
       assertions.add(
           () -> assertEquals(Arrays.asList(new String[] {}), Arrays.asList(info.getAliases())));
       assertions.add(() -> assertTrue(info.getBaseInfo().getClass() == OptionInfo.ValueInfo.class));
@@ -696,6 +696,7 @@ class SolverTest
       // int64 type with default
       OptionInfo info = d_solver.getOptionInfo("verbosity");
       assertions.add(() -> assertEquals("verbosity", info.getName()));
+      assertions.add(() -> assertEquals(OptionCategory.COMMON, info.getCategory()));
       assertions.add(
           () -> assertEquals(Arrays.asList(new String[] {}), Arrays.asList(info.getAliases())));
       assertions.add(
@@ -714,6 +715,7 @@ class SolverTest
     {
       OptionInfo info = d_solver.getOptionInfo("rlimit");
       assertEquals(info.getName(), "rlimit");
+      assertions.add(() -> assertEquals(OptionCategory.COMMON, info.getCategory()));
       assertEquals(Arrays.asList(info.getAliases()), Arrays.asList(new String[] {}));
       assertTrue(info.getBaseInfo().getClass() == OptionInfo.NumberInfo.class);
       OptionInfo.NumberInfo<BigInteger> ni = (OptionInfo.NumberInfo<BigInteger>) info.getBaseInfo();
@@ -726,6 +728,7 @@ class SolverTest
     {
       OptionInfo info = d_solver.getOptionInfo("random-freq");
       assertEquals(info.getName(), "random-freq");
+      assertEquals(OptionCategory.EXPERT, info.getCategory());
       assertEquals(
           Arrays.asList(info.getAliases()), Arrays.asList(new String[] {"random-frequency"}));
       assertTrue(info.getBaseInfo().getClass() == OptionInfo.NumberInfo.class);
@@ -742,6 +745,7 @@ class SolverTest
     {
       OptionInfo info = d_solver.getOptionInfo("force-logic");
       assertEquals(info.getName(), "force-logic");
+      assertEquals(OptionCategory.COMMON, info.getCategory());
       assertEquals(Arrays.asList(info.getAliases()), Arrays.asList(new String[] {}));
       assertTrue(info.getBaseInfo().getClass() == OptionInfo.ValueInfo.class);
       OptionInfo.ValueInfo<String> ni = (OptionInfo.ValueInfo<String>) info.getBaseInfo();
@@ -755,6 +759,7 @@ class SolverTest
       OptionInfo info = d_solver.getOptionInfo("simplification");
       assertions.clear();
       assertions.add(() -> assertEquals("simplification", info.getName()));
+      assertions.add(() -> assertEquals(OptionCategory.REGULAR, info.getCategory()));
       assertions.add(()
                          -> assertEquals(Arrays.asList(new String[] {"simplification-mode"}),
                              Arrays.asList(info.getAliases())));
@@ -766,7 +771,8 @@ class SolverTest
       assertions.add(() -> assertTrue(Arrays.asList(modeInfo.getModes()).contains("batch")));
       assertions.add(() -> assertTrue(Arrays.asList(modeInfo.getModes()).contains("none")));
       assertEquals(info.toString(),
-          "OptionInfo{ simplification, simplification-mode | mode | batch | default batch | modes: batch, none }");
+          "OptionInfo{ simplification, simplification-mode | mode | batch | default batch | modes: "
+              + "batch, none }");
     }
     assertAll(assertions);
   }
@@ -1847,10 +1853,10 @@ class SolverTest
   @Test
   void setOption() throws CVC5ApiException
   {
-    assertDoesNotThrow(() -> d_solver.setOption("bv-sat-solver", "minisat"));
+    assertDoesNotThrow(() -> d_solver.setOption("bv-sat-solver", "cadical"));
     assertThrows(CVC5ApiException.class, () -> d_solver.setOption("bv-sat-solver", "1"));
     d_solver.assertFormula(d_solver.mkTrue());
-    assertThrows(CVC5ApiException.class, () -> d_solver.setOption("bv-sat-solver", "minisat"));
+    assertThrows(CVC5ApiException.class, () -> d_solver.setOption("bv-sat-solver", "cadical"));
   }
 
   @Test

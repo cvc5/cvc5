@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Mudathir Mohamed
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -87,6 +84,8 @@ enum ENUM(SkolemId)
    * - Number of skolem indices: ``1``
    *   - ``1:`` The term t that this skolem purifies.
    * - Sort: The sort of t.
+   * 
+   * The term `(@purify t)` is equivalent to `t`.
    */
   EVALUE(PURIFY),
   /**
@@ -95,6 +94,8 @@ enum ENUM(SkolemId)
    * - Number of skolem indices: ``1``
    *   - ``1:`` A term that represents the sort of the term.
    * - Sort: The sort given by the index.
+   * 
+   * The term `(@ground_term T)` is totally unconstrained.
    */
   EVALUE(GROUND_TERM),
   /**
@@ -112,34 +113,39 @@ enum ENUM(SkolemId)
    *
    * - Number of skolem indices: ``0``
    * - Type: ``(_ BitVec 0)``
+   * 
+   * The term `@bv_empty` is equivalent to the empty bit-vector.
    */
   EVALUE(BV_EMPTY),
   /**
-   * The function for division by zero. This is semantically equivalent to the
-   * SMT-LIB term ``(lambda ((x Real)) (/ x 0.0))``.
+   * The function for division by zero.
    *
    * - Number of skolem indices: ``0``
    * - Sort: ``(-> Real Real)``
+   *
+   * The term `@div_by_zero` is equivalent to `(lambda ((x Real)) (/ x 0.0))`.
    */
   EVALUE(DIV_BY_ZERO),
   /**
-   * The function for integer division by zero. This is semantically equivalent
-   * to the SMT-LIB term ``(lambda ((x Int)) (div x 0))``.
+   * The function for integer division by zero.
    *
    * - Number of skolem indices: ``0``
    * - Sort: ``(-> Int Int)``
+   *
+   * The term `@int_div_by_zero` is equivalent to `(lambda ((x Int)) (div x 0))`.
    */
   EVALUE(INT_DIV_BY_ZERO),
   /**
-   * The function for integer modulus by zero. This is semantically equivalent
-   * to the SMT-LIB term ``(lambda ((x Int)) (mod x 0))``.
+   * The function for integer modulus by zero.
    *
    * - Number of skolem indices: ``0``
    * - Sort: ``(-> Int Int)``
+   * 
+   * The term `@int_mod_by_zero` is equivalent to `(lambda ((x Int)) (mod x 0))`.
    */
   EVALUE(MOD_BY_ZERO),
   /**
-   * A function introduced to eliminate extended trancendental functions.
+   * A function introduced to eliminate extended transcendental functions.
    * Transcendental functions like sqrt, arccos, arcsin, etc. are replaced
    * during processing with uninterpreted functions that are unique to
    * each function.
@@ -148,15 +154,17 @@ enum ENUM(SkolemId)
    *   - ``1:`` A lambda corresponding to the function, e.g.,
    *   `(lambda ((x Real)) (sqrt x))`.
    * - Sort: ``(-> Real Real)``
+   * 
+   * The term `(@transcendental_purify f)` is equivalent to `f`.
    */
   EVALUE(TRANSCENDENTAL_PURIFY),
   /**
-   * Argument used to purify trancendental function app ``(f x)``.
+   * Argument used to purify transcendental function app ``(f x)``.
    * For ``(sin x)``, this is a variable that is assumed to be in phase with
    * ``x`` that is between ``-pi`` and ``pi``.
    *
    * - Number of skolem indices: ``1``
-   *   - ``1:`` The application of a trancendental function.
+   *   - ``1:`` The application of a transcendental function.
    * - Sort: ``Real``
    */
   EVALUE(TRANSCENDENTAL_PURIFY_ARG),
@@ -194,7 +202,7 @@ enum ENUM(SkolemId)
    * infinity.  This skolem is expected to appear in instantiations
    * and immediately be rewritten via virtual term substitution.
    *
-   * - Number of skolem indices: ``0``
+   * - Number of skolem indices: ``1``
    *   - ``1:`` A term that represents an arithmetic sort (Int or Real).
    * - Sort: The sort given by the index.
    */
@@ -204,13 +212,13 @@ enum ENUM(SkolemId)
    * infinity. Unlike ARITH_VTS_INFINITY, this skolem may appear in
    * lemmas.
    *
-   * - Number of skolem indices: ``0``
+   * - Number of skolem indices: ``1``
    *   - ``1:`` A term that represents an arithmetic sort (Int or Real).
    * - Sort: The sort given by the index.
    */
   EVALUE(ARITH_VTS_INFINITY_FREE),
   /** 
-   * A shared datatype selector, see Reynolds et. al. "Datatypes with Shared
+   * A shared datatype selector, see Reynolds et al. "Datatypes with Shared
    * Selectors", IJCAR 2018. Represents a selector that can extract fields
    * of multiple constructors.
    *
@@ -224,10 +232,10 @@ enum ENUM(SkolemId)
    */
   EVALUE(SHARED_SELECTOR),
   /**
-   * The higher-roder diff skolem, which is the witness k for the inference
+   * The higher-order diff skolem, which is the witness k for the inference
    * ``(=> (not (= A B)) (not (= (A k1 ... kn) (B k1 ... kn))))``.
    *
-   * - Number of skolem indices: ``2``
+   * - Number of skolem indices: ``3``
    *   - ``1:`` The first function of sort ``(-> T1 ... Tn T)``.
    *   - ``2:`` The second function of sort ``(-> T1 ... Tn T)``.
    *   - ``3:`` The argument index i.
@@ -238,7 +246,7 @@ enum ENUM(SkolemId)
    * The n^th skolem for the negation of universally quantified formula Q.
    *
    * - Number of skolem indices: ``2``
-   *   - ``1:`` The quantified formula Q.
+   *   - ``1:`` The universally quantified formula Q.
    *   - ``2:`` The index of the variable in the binder of Q to skolemize.
    * - Sort: The type of the variable referenced by the second index.
    */
@@ -313,22 +321,10 @@ enum ENUM(SkolemId)
    */
   EVALUE(STRINGS_OCCUR_INDEX_RE),
   /**
-   * A function k where for x = 0...n, ``(k x)`` is the length of
-   * the x^th occurrence of R in a (excluding matches of empty strings) where R
-   * is a regular expression, n is the number of occurrences of R in a, and
-   * ``(= (k 0) 0)``.
-   *
-   * - Number of skolem indices: ``2``
-   *   - ``1:`` The string to match.
-   *   - ``2:`` The regular expression to find.
-   * - Sort: ``(-> Int Int)``
-   */
-  EVALUE(STRINGS_OCCUR_LEN_RE),
-  /**
    * Difference index for string disequalities, such that k is the witness for
    * the inference
    *  ``(=> (not (= a b)) (not (= (substr a k 1) (substr b k 1))))``
-   * where note that `k` may be out of bounds for at most of a,b.
+   * where note that `k` may be out of bounds for at most one of `a` and `b`.
    *
    * - Number of skolem indices: ``2``
    *   - ``1:`` The first string.
@@ -357,70 +353,37 @@ enum ENUM(SkolemId)
    * - Number of skolem indices: ``1``
    *   - ``1:`` The argument to str.from_int.
    * - Sort: ``(-> Int Int)``
+   *
+   * The term `(@strings_itos_result n)` is equivalent to
+   * `(lambda ((x Int)) (mod n (** 10 x)))`.
    */
   EVALUE(STRINGS_ITOS_RESULT),
   /**
-   * A function used to define intermediate results of str.from_int
-   * applications. This is a function k of type ``(-> Int String)`` denoting the
+   * A function used to define intermediate results of str.to_int
+   * applications. This is a function k of type ``(-> Int Int)`` denoting the
    * result of processing the first n characters of the argument.
    *
    * - Number of skolem indices: ``1``
    *   - ``1:`` The argument to str.to_int.
-   * - Sort: ``(-> Int String)``
+   * - Sort: ``(-> Int Int)``
+   *
+   * The term `(@strings_stoi_result s)` is equivalent to
+   * `(lambda ((x Int)) (str.to_int (str.substr s 0 x)))`.
    */
   EVALUE(STRINGS_STOI_RESULT),
   /**
    * A position containing a non-digit in a string, used when ``(str.to_int a)``
    * is equal to -1. This is an integer that returns a position for which the
-   * argument string is not a digit if one exists, or is unconstrained otherwise.
+   * argument string is not a digit if one exists, or -1 otherwise.
    *
    * - Number of skolem indices: ``1``
    *   - ``1:`` The argument to str.to_int.
    * - Sort: ``Int``
+   *
+   * The term `(@strings_stoi_non_digit s)` is equivalent to
+   * `(str.indexof_re s (re.comp (re.range "0" "9")) 0)`.
    */
   EVALUE(STRINGS_STOI_NON_DIGIT),
-  /**
-   * The next three skolems are used to decompose the match of a regular
-   * expression in string.
-   *
-   * For string a and regular expression R, this skolem is the prefix of
-   * string a before the first, shortest match of R in a. Formally, if
-   * ``(str.in_re a (re.++ (re.* re.allchar) R (re.* re.allchar)))``, then
-   * there exists strings k_pre, k_match, k_post such that:
-   *       ``(= a (str.++ k_pre k_match k_post))`` and
-   *       ``(= (len k_pre) (indexof_re a R 0))`` and
-   *       ``(forall ((l Int)) (=> (< 0 l (len k_match))
-   *         (not (str.in_re (substr k_match 0 l) R))))`` and
-   *       ``(str.in_re k_match R)``
-   * This skolem is k_pre, and the proceeding two skolems are k_match and
-   * k_post.
-   *
-   * - Number of skolem indices: ``2``
-   *   - ``1:`` The string.
-   *   - ``2:`` The regular expression to match.
-   * - Sort: ``String``
-   */
-  EVALUE(RE_FIRST_MATCH_PRE),
-  /**
-   * For string a and regular expression R, this skolem is the string that
-   * the first, shortest match of R was matched to in a.
-   *
-   * - Number of skolem indices: ``2``
-   *   - ``1:`` The string.
-   *   - ``2:`` The regular expression to match.
-   * - Sort: ``String``
-   */
-  EVALUE(RE_FIRST_MATCH),
-  /**
-   * For string a and regular expression ``R``, this skolem is the remainder
-   * of a after the first, shortest match of ``R`` in a.
-   *
-   * - Number of skolem indices: ``2``
-   *   - ``1:`` The string.
-   *   - ``2:`` The regular expression to match.
-   * - Sort: ``String``
-   */
-  EVALUE(RE_FIRST_MATCH_POST),
   /**
    * Regular expression unfold component: if ``(str.in_re a R)``, where R is
    * ``(re.++ R0 ... Rn)``, then the ``RE_UNFOLD_POS_COMPONENT`` for indices
@@ -480,7 +443,7 @@ enum ENUM(SkolemId)
   /**
    * An uninterpreted function for bag.fold operator:
    * To compute ``(bag.fold f t A)``, we need a function that
-   * accumulates intermidiate values. We call this function
+   * accumulates intermediate values. We call this function
    * combine of type Int -> T2 where:
    * combine(0) = t
    * combine(i) = f(elements(i), combine(i - 1)) for 1 <= i <= n.
@@ -686,7 +649,7 @@ enum ENUM(SkolemId)
   /**
    * An uninterpreted function for set.fold operator:
    * To compute ``(set.fold f t A)``, we need a function that
-   * accumulates intermidiate values. We call this function
+   * accumulates intermediate values. We call this function
    * combine of type Int -> T2 where:
    * combine(0) = t
    * combine(i) = f(elements(i), combine(i - 1)) for 1 <= i <= n

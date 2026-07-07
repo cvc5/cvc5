@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -59,8 +56,8 @@ Node OracleChecker::evaluateApp(Node app)
   bool ranOracle = caller.callOracle(app, retv);
   if (retv.size() != 1)
   {
-    Assert(false) << "Failed to evaluate " << app
-                  << " to a single return value, got: " << retv << std::endl;
+    DebugUnhandled() << "Failed to evaluate " << app
+                     << " to a single return value, got: " << retv << std::endl;
     return app;
   }
   Node ret = retv[0];
@@ -79,7 +76,7 @@ Node OracleChecker::evaluateApp(Node app)
         "Evaluated an oracle call that is not associated with the term manager "
         "of this solver");
   }
-  if (ret.getType() != app.getType())
+  if (!CVC5_EQUAL(ret.getType(), app.getType()))
   {
     std::stringstream ss;
     ss << "Evaluated an oracle call with an unexpected type: " << app << " = "

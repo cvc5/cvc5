@@ -18,9 +18,5 @@ if [ -n "$2" ]; then
   out_file="$2/err.log"
 fi
 
-result="$({ $cvc5 -L smt2.6 --no-incremental --no-type-checking --no-interactive --fp-exp --use-portfolio $bench; } 2>&1)"
-case "$result" in
-  sat|unsat) echo "$result"; exit 0;;
-  *)         echo "$result" &> "$out_file";;
-esac
+$cvc5 -L smt2.6 --no-incremental --no-type-checking --no-interactive --fp-exp --use-portfolio $bench
 

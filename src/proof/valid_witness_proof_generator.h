@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -46,7 +43,7 @@ class ValidWitnessProofGenerator : protected EnvObj, public ProofGenerator
   std::shared_ptr<ProofNode> getProofFor(Node fact) override;
   /** identify */
   std::string identify() const override;
-  /** 
+  /**
    * Make the appropriate witness term for proof rule r with arguments args.
    * This is a term (WITNESS (BOUND_VAR_LIST v) F (INST_PATTERN_LIST attr))
    * where v is a canonical variable for (r, args), F is mkAxiom(nm, v, r args),
@@ -93,8 +90,7 @@ class ValidWitnessProofGenerator : protected EnvObj, public ProofGenerator
    * @param args The arguments to the proof rule stored for attr.
    * @return true if the information r and args was successfully extracted.
    */
-  static bool getProofSpec(NodeManager* nm,
-                           const Node& attr,
+  static bool getProofSpec(const Node& attr,
                            ProofRule& r,
                            std::vector<Node>& args);
 };

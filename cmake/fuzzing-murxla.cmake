@@ -1,10 +1,7 @@
 ###############################################################################
-# Top contributors (to current version):
-#   Gereon Kremer, Mathias Preiner, Alex Ozdemir
-#
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -29,9 +26,9 @@ ExternalProject_Add(
   ${COMMON_EP_CONFIG}
   URL https://github.com/murxla/murxla/archive/${Murxla_COMMIT}.tar.gz
   URL_HASH SHA256=b3ae1042ff9887d91db1eee990c32be5cbebe809e0350f8b3b3e334a4c6bd0d9
-  SOURCE_DIR ${CMAKE_BINARY_DIR}/murxla
+  SOURCE_DIR ${PROJECT_BINARY_DIR}/murxla
   CMAKE_ARGS
-    -DCMAKE_PREFIX_PATH=${CMAKE_BINARY_DIR}/murxla-install/usr/local/
+    -DCMAKE_PREFIX_PATH=${PROJECT_BINARY_DIR}/murxla-install/usr/local/
     -DENABLE_BITWUZLA=OFF
     -DENABLE_BOOLECTOR=OFF
     -DENABLE_YICES=OFF
@@ -45,8 +42,8 @@ set(MURXLA_BINARY "deps/bin/murxla")
 add_custom_target(fuzz-murxla
   COMMAND echo ""
   COMMAND echo "Run Murxla as follows:"
-  COMMAND echo "  LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/murxla-install/usr/local/lib/ ${MURXLA_BINARY} -t 1 -d --cvc5"
+  COMMAND echo "  LD_LIBRARY_PATH=${PROJECT_BINARY_DIR}/murxla-install/usr/local/lib/ ${MURXLA_BINARY} -t 1 -d --cvc5"
   COMMAND echo "Convert traces to SMT-LIB as follows:"
-  COMMAND echo "  LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/murxla-install/usr/local/lib/ ${MURXLA_BINARY} --smt2 -u \\<filename\\>"
+  COMMAND echo "  LD_LIBRARY_PATH=${PROJECT_BINARY_DIR}/murxla-install/usr/local/lib/ ${MURXLA_BINARY} --smt2 -u \\<filename\\>"
   DEPENDS Murxla-EP
 )

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Gereon Kremer, Andrew Reynolds, Daniel Larraz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -51,7 +48,8 @@ Node mkMultTerm(const RealAlgebraicNumber& multiplicity, TNode monomial)
   }
   std::vector<Node> prod;
   prod.emplace_back(mterm);
-  if (monomial.getKind() == Kind::MULT || monomial.getKind() == Kind::NONLINEAR_MULT)
+  if (monomial.getKind() == Kind::MULT
+      || monomial.getKind() == Kind::NONLINEAR_MULT)
   {
     prod.insert(prod.end(), monomial.begin(), monomial.end());
   }

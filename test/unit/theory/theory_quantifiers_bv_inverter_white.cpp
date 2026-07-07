@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -114,9 +111,9 @@ class TestTheoryWhiteQuantifiersBvInverter : public TestSmtNoFinishInit
     Node scl =
         ksc == Kind::IMPLIES ? sc[0] : bv::utils::mkTrue(d_nodeManager.get());
     Node body = idx == 0 ? d_nodeManager->mkNode(
-                    litk, d_nodeManager->mkNode(k, d_x, d_s), d_t)
+                               litk, d_nodeManager->mkNode(k, d_x, d_s), d_t)
                          : d_nodeManager->mkNode(
-                             litk, d_nodeManager->mkNode(k, d_s, d_x), d_t);
+                               litk, d_nodeManager->mkNode(k, d_s, d_x), d_t);
     Node scr = d_nodeManager->mkNode(
         Kind::EXISTS, d_bvarlist, pol ? body : body.notNode());
     Node a = d_nodeManager->mkNode(Kind::DISTINCT, scl, scr);

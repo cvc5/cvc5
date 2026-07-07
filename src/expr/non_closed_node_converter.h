@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -48,7 +45,7 @@ class NonClosedNodeConverter : protected EnvObj, public NodeConverter
   /** Get the purification skolems introduced */
   const std::vector<Node>& getSkolems() const;
   /** Is this node "closed", i.e. able to be re-asserted in a normal input? */
-  static bool isClosed(const Env& env, const Node& n);
+  static bool isClosed(Env& env, const Node& n);
 
  private:
   /** Get the non-closed kinds, based on the options */

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -61,6 +58,7 @@ IllegalChecker::IllegalChecker(Env& e)
   if (logicInfo().isTheoryEnabled(theory::THEORY_ARITH)
       && !options().arith.arithExp)
   {
+    d_illegalKinds.insert(Kind::POW);
     d_illegalKinds.insert(Kind::PI);
     d_illegalKinds.insert(Kind::EXPONENTIAL);
     d_illegalKinds.insert(Kind::SINE);
@@ -77,12 +75,16 @@ IllegalChecker::IllegalChecker(Env& e)
     d_illegalKinds.insert(Kind::ARCCOTANGENT);
     d_illegalKinds.insert(Kind::SQRT);
     d_illegalKinds.insert(Kind::IAND);
+    d_illegalKinds.insert(Kind::PIAND);
     d_illegalKinds.insert(Kind::POW2);
+    d_illegalKinds.insert(Kind::INTS_LOG2);
   }
   if (logicInfo().isTheoryEnabled(theory::THEORY_DATATYPES)
       && !options().datatypes.datatypesExp)
   {
     d_illegalKinds.insert(Kind::MATCH);
+    // catches all occurrences of nullables
+    d_illegalKinds.insert(Kind::NULLABLE_TYPE);
   }
   if (logicInfo().hasCardinalityConstraints() && !options().uf.ufCardExp)
   {
@@ -168,7 +170,7 @@ void IllegalChecker::checkAssertions(Assertions& as)
       ss << "Cannot handle assertion with term of kind " << k
          << " in this configuration.";
       // suggested options only in non-safe builds
-#ifndef CVC5_SAFE_MODE
+#if !defined(CVC5_SAFE_MODE) && !defined(CVC5_STABLE_MODE)
       if (k == Kind::STORE_ALL)
       {
         ss << " Try --arrays-exp.";

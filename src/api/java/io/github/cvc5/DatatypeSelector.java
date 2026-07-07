@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Mudathir Mohamed, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -57,7 +54,11 @@ public class DatatypeSelector extends AbstractPointer
 
   private native boolean equals(long pointer1, long pointer2);
 
-  /** @return The Name of this Datatype selector. */
+  /**
+   * Get the Name of this Datatype selector.
+   *
+   * @return The Name of this Datatype selector.
+   */
   public String getName()
   {
     return getName(pointer);
@@ -99,7 +100,11 @@ public class DatatypeSelector extends AbstractPointer
 
   private native long getUpdaterTerm(long pointer);
 
-  /** @return The Codomain sort of this selector. */
+  /**
+   * Get the Codomain sort of this selector.
+   *
+   * @return The Codomain sort of this selector.
+   */
   public Sort getCodomainSort()
   {
     long sortPointer = getCodomainSort(pointer);
@@ -109,6 +114,8 @@ public class DatatypeSelector extends AbstractPointer
   private native long getCodomainSort(long pointer);
 
   /**
+   * Determine if this DatatypeSelector is a null object.
+   *
    * @return True If this DatatypeSelector is a null object.
    */
   public boolean isNull()

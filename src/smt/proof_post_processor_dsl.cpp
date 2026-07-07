@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Hans-Joerg Schurr, Haniel Barbosa
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -67,7 +64,7 @@ void ProofPostprocessDsl::reconstruct(
 }
 
 bool ProofPostprocessDsl::shouldUpdate(std::shared_ptr<ProofNode> pn,
-                                       const std::vector<Node>& fa,
+                                       CVC5_UNUSED const std::vector<Node>& fa,
                                        bool& continueUpdate)
 {
   ProofRule id = pn->getRule();
@@ -103,7 +100,7 @@ void ProofPostprocessDsl::finalize(std::shared_ptr<ProofNode> pn)
 
 bool ProofPostprocessDsl::update(Node res,
                                  ProofRule id,
-                                 const std::vector<Node>& children,
+                                 CVC5_UNUSED const std::vector<Node>& children,
                                  const std::vector<Node>& args,
                                  CDProof* cdp,
                                  bool& continueUpdate)
@@ -122,6 +119,9 @@ bool ProofPostprocessDsl::update(Node res,
   TheoryId tid = THEORY_LAST;
   MethodId mid = MethodId::RW_REWRITE;
   rewriter::TheoryRewriteMode tm = d_tmode;
+  Trace("pp-dsl") << "Prove " << res << " from " << tid << " / " << mid
+                  << ", in mode " << tm << std::endl;
+  Trace("pp-dsl") << "...proof rule " << id << std::endl;
   // if theory rewrite, get diagnostic information
   if (id == ProofRule::TRUST_THEORY_REWRITE)
   {
@@ -132,6 +132,7 @@ bool ProofPostprocessDsl::update(Node res,
   {
     TrustId trid;
     getTrustId(args[0], trid);
+    Trace("pp-dsl") << "...trust id " << trid << std::endl;
     if (trid == TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE)
     {
       // If we are MACRO_THEORY_REWRITE_RCONS_SIMPLE, we do not use
@@ -140,8 +141,6 @@ bool ProofPostprocessDsl::update(Node res,
       tm = rewriter::TheoryRewriteMode::NEVER;
     }
   }
-  Trace("pp-dsl") << "Prove " << res << " from " << tid << " / " << mid
-                  << ", in mode " << tm << std::endl;
   int64_t recLimit = options().proof.proofRewriteRconsRecLimit;
   int64_t stepLimit = options().proof.proofRewriteRconsStepLimit;
   // Attempt to reconstruct the proof of the equality into cdp using the
@@ -164,8 +163,9 @@ bool ProofPostprocessDsl::update(Node res,
     return true;
   }
   // clean up traversing, since we are setting continueUpdate to false
-  Assert (!d_traversing.empty());
-  Trace("pp-dsl-process") << "...pop due to fail " << d_traversing.back().get() << std::endl;
+  Assert(!d_traversing.empty());
+  Trace("pp-dsl-process") << "...pop due to fail " << d_traversing.back().get()
+                          << std::endl;
   d_traversing.pop_back();
   // otherwise no update
   return false;

@@ -1,10 +1,7 @@
 ###############################################################################
-# Top contributors (to current version):
-#   Daniel Larraz, Mathias Preiner
-#
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -83,6 +80,11 @@ if(NOT GLPK_FOUND_SYSTEM)
 
   set(CONFIGURE_ENV "")
   set(CONFIGURE_OPTS "")
+
+  # Newer versions of gcc use C23 as default C standard but GLPK
+  # only supports C17. To also support older compiler versions, we fix the
+  # standard for GLPK to C99.
+  set(GLPK_CFLAGS "-std=c99")
   if(CMAKE_CROSSCOMPILING OR CMAKE_CROSSCOMPILING_MACOS)
     set(CONFIGURE_OPTS
       --host=${TOOLCHAIN_PREFIX}
@@ -91,14 +93,16 @@ if(NOT GLPK_FOUND_SYSTEM)
     set(CONFIGURE_ENV ${CONFIGURE_ENV} ${CMAKE_COMMAND} -E
       env "CC_FOR_BUILD=cc")
     if (CMAKE_CROSSCOMPILING_MACOS)
-      set(CONFIGURE_ENV
-        ${CONFIGURE_ENV}
-        env "CFLAGS=--target=${TOOLCHAIN_PREFIX}"
+      set(CONFIGURE_ENV ${CONFIGURE_ENV}
         env "LDFLAGS=-arch ${CMAKE_OSX_ARCHITECTURES}")
+      set(GLPK_CFLAGS "${GLPK_CFLAGS} --target=${TOOLCHAIN_PREFIX}")
     endif()
   else()
     set(CONFIGURE_OPTS --build=${BUILD_TRIPLET}) # Defined in Helpers
   endif()
+
+  set(CONFIGURE_ENV ${CONFIGURE_ENV}
+    env "CFLAGS=${GLPK_CFLAGS}")
 
   ExternalProject_Add(
     GLPK-EP

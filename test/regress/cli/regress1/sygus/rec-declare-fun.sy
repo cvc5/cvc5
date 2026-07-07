@@ -1,0 +1,11 @@
+; COMMAND-LINE: --sygus-out=status
+; EXPECT: feasible
+(set-logic ALL)
+(declare-fun f (Int) Int)
+
+(assert (forall ((x Int)) (= (f x) (ite (= x 0) 0 (+ (f (- x 1)) 1)))))
+
+(synth-fun g () Int)
+
+(constraint (= (f g) 5))
+(check-synth)

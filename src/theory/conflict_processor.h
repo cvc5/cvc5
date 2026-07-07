@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -42,7 +39,8 @@ class ConflictProcessor : protected EnvObj
   /**
    * The constructor for this class.
    * @param env The environment.
-   * @param useExtRewriter Whether we use the extended rewriter when evaluating substitutions below.
+   * @param useExtRewriter Whether we use the extended rewriter when evaluating
+   * substitutions below.
    */
   ConflictProcessor(Env& env, bool useExtRewriter = false);
   ~ConflictProcessor() {}
@@ -56,7 +54,7 @@ class ConflictProcessor : protected EnvObj
    * This method also may minimize the antecedant corresponding to a
    * substituion, e.g. (=> (and (= x a) (= y b)) B) may be replaced by
    * (=> (= x a) B) if B[a/x] rewrites to true.
-   * 
+   *
    * @param lem The lemma.
    * @return A trust node for a lemma that implies lem.
    */

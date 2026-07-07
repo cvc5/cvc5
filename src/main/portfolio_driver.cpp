@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Gereon Kremer, Daniel Larraz, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -14,9 +11,10 @@
 #include "main/portfolio_driver.h"
 
 #if HAVE_SYS_WAIT_H
-#include <signal.h>
 #include <sys/wait.h>
 #include <unistd.h>
+
+#include <csignal>
 #endif
 
 #include <cvc5/cvc5.h>
@@ -30,8 +28,8 @@
 #include "base/exception.h"
 #include "base/output.h"
 #include "main/command_executor.h"
-#include "parser/commands.h"
 #include "parser/command_status.h"
+#include "parser/commands.h"
 
 using namespace cvc5::parser;
 
@@ -48,16 +46,9 @@ bool ExecutionContext::solveContinuous(parser::InputParser* parser,
                                        bool stopAtCheckSat)
 {
   Command cmd;
-  bool interrupted = false;
   bool status = true;
   while (status)
   {
-    if (interrupted)
-    {
-      solver().getDriverOptions().out() << CommandInterrupted();
-      d_executor->reset();
-      break;
-    }
     cmd = parser->nextCommand();
     if (cmd.isNull())
     {
@@ -73,9 +64,10 @@ bool ExecutionContext::solveContinuous(parser::InputParser* parser,
       }
     }
     status = d_executor->doCommand(&cmd);
-    if (cc->interrupted() && status == 0)
+    if (!status && cc->interrupted())
     {
-      interrupted = true;
+      solver().getDriverOptions().out() << CommandInterrupted();
+      d_executor->reset();
       break;
     }
     if (dynamic_cast<QuitCommand*>(cc) != nullptr)
@@ -98,16 +90,9 @@ bool ExecutionContext::solveContinuous(parser::InputParser* parser,
 bool ExecutionContext::continueAfterSolving(parser::InputParser* parser)
 {
   Command cmd;
-  bool interrupted = false;
   bool status = true;
   while (status)
   {
-    if (interrupted)
-    {
-      solver().getDriverOptions().out() << CommandInterrupted();
-      d_executor->reset();
-      break;
-    }
     cmd = parser->nextCommand();
     if (cmd.isNull())
     {
@@ -154,9 +139,10 @@ bool ExecutionContext::continueAfterSolving(parser::InputParser* parser)
     {
       status = d_executor->doCommand(&cmd);
     }
-    if (cc->interrupted() && status == 0)
+    if (!status && cc->interrupted())
     {
-      interrupted = true;
+      solver().getDriverOptions().out() << CommandInterrupted();
+      d_executor->reset();
       break;
     }
     if (dynamic_cast<QuitCommand*>(cc) != nullptr)
@@ -211,22 +197,15 @@ std::vector<Command> ExecutionContext::parseCommands(
 
 bool ExecutionContext::solveCommands(std::vector<Command>& cmds)
 {
-  bool interrupted = false;
   bool status = true;
   for (Command& cmd : cmds)
   {
-    if (interrupted)
+    status = d_executor->doCommand(&cmd);
+    Cmd* cc = cmd.d_cmd.get();
+    if (!status && cc->interrupted())
     {
       solver().getDriverOptions().out() << CommandInterrupted();
       d_executor->reset();
-      break;
-    }
-
-    status = d_executor->doCommand(&cmd);
-    Cmd* cc = cmd.d_cmd.get();
-    if (cc->interrupted() && status == 0)
-    {
-      interrupted = true;
       break;
     }
 
@@ -351,16 +330,27 @@ class PortfolioProcessPool
    */
   struct Job
   {
+    Job(PortfolioConfig config)
+        : d_config(config),
+          d_worker(-1),
+          d_timeout(-1),
+          d_errPipe(),
+          d_outPipe(),
+          d_state(JobState::PENDING)
+    {
+    }
     PortfolioConfig d_config;
-    pid_t d_worker = -1;
-    pid_t d_timeout = -1;
+    pid_t d_worker;
+    pid_t d_timeout;
     Pipe d_errPipe;
     Pipe d_outPipe;
-    JobState d_state = JobState::PENDING;
+    JobState d_state;
   };
 
  public:
-  PortfolioProcessPool(ExecutionContext& ctx, parser::InputParser* parser, uint64_t timeout)
+  PortfolioProcessPool(ExecutionContext& ctx,
+                       parser::InputParser* parser,
+                       uint64_t timeout)
       : d_ctx(ctx),
         d_parser(parser),
         d_maxJobs(ctx.solver().getOptionInfo("portfolio-jobs").uintValue()),
@@ -503,17 +493,15 @@ class PortfolioProcessPool
       if (child != -1 && job.d_worker != child) continue;
 
       int wstatus = 0;
-      pid_t res = 0;
       if (child == -1)
       {
-        res = waitpid(job.d_worker, &wstatus, WNOHANG);
+        pid_t res = waitpid(job.d_worker, &wstatus, WNOHANG);
         // has not terminated yet
         if (res == 0) continue;
         if (res == -1) continue;
       }
       else
       {
-        res = child;
         wstatus = status;
       }
       // mark as analyzed
@@ -587,7 +575,8 @@ bool PortfolioDriver::solve(std::unique_ptr<CommandExecutor>& executor)
 
   bool incremental_solving = solver.getOption("incremental") == "true";
   PortfolioStrategy strategy = getStrategy(incremental_solving, *ctx.d_logic);
-  Assert(!strategy.d_strategies.empty()) << "The portfolio strategy should never be empty.";
+  Assert(!strategy.d_strategies.empty())
+      << "The portfolio strategy should never be empty.";
   if (strategy.d_strategies.size() == 1)
   {
     PortfolioConfig& config = strategy.d_strategies.front();
@@ -600,7 +589,7 @@ bool PortfolioDriver::solve(std::unique_ptr<CommandExecutor>& executor)
   uint64_t total_timeout = ctx.solver().getOptionInfo("tlimit").uintValue();
   if (total_timeout == 0)
   {
-    total_timeout = 1'200'000; // miliseconds
+    total_timeout = 1'200'000;  // miliseconds
   }
 
   if (dry_run)
@@ -615,7 +604,8 @@ bool PortfolioDriver::solve(std::unique_ptr<CommandExecutor>& executor)
   bool uninterrupted = ctx.solveContinuous(d_parser, false, true);
   if (uninterrupted && ctx.d_hasReadCheckSat)
   {
-    PortfolioProcessPool pool(ctx, d_parser, total_timeout);  // ctx.parseCommands(d_parser));
+    PortfolioProcessPool pool(
+        ctx, d_parser, total_timeout);  // ctx.parseCommands(d_parser));
     bool solved = pool.run(strategy);
     if (!solved)
     {
@@ -757,35 +747,19 @@ PortfolioStrategy PortfolioDriver::getNonIncrementalStrategy(
   }
   else if (isOneOf(logic, "QF_NIA"))
   {
-    s.add(0.35)
-        .set("nl-ext-tplanes")
-        .set("decision", "justification");
-    s.add(0.05)
-        .set("nl-ext-tplanes")
-        .set("decision", "internal");
-    s.add(0.05)
-        .unset("nl-ext-tplanes")
-        .set("decision", "internal");
+    s.add(0.35).set("nl-ext-tplanes").set("decision", "justification");
+    s.add(0.05).set("nl-ext-tplanes").set("decision", "internal");
+    s.add(0.05).unset("nl-ext-tplanes").set("decision", "internal");
     s.add(0.05)
         .unset("arith-brab")
         .set("nl-ext-tplanes")
         .set("decision", "internal");
     // totals to more than 100%, but smaller bit-widths usually fail quickly
-    s.add(0.25)
-        .set("solve-int-as-bv", "2")
-        .set("bitblast", "eager");
-    s.add(0.25)
-        .set("solve-int-as-bv", "4")
-        .set("bitblast", "eager");
-    s.add(0.25)
-        .set("solve-int-as-bv", "8")
-        .set("bitblast", "eager");
-    s.add(0.25)
-        .set("solve-int-as-bv", "16")
-        .set("bitblast", "eager");
-    s.add(0.5)
-        .set("solve-int-as-bv", "32")
-        .set("bitblast", "eager");
+    s.add(0.25).set("solve-int-as-bv", "2").set("bitblast", "eager");
+    s.add(0.25).set("solve-int-as-bv", "4").set("bitblast", "eager");
+    s.add(0.25).set("solve-int-as-bv", "8").set("bitblast", "eager");
+    s.add(0.25).set("solve-int-as-bv", "16").set("bitblast", "eager");
+    s.add(0.5).set("solve-int-as-bv", "32").set("bitblast", "eager");
     s.add().set("nl-ext-tplanes").set("decision", "internal");
   }
   else if (isOneOf(logic, "QF_NRA"))
@@ -825,16 +799,11 @@ PortfolioStrategy PortfolioDriver::getNonIncrementalStrategy(
     // initial runs
     s.add(0.025).set("simplification", "none").set("enum-inst");
     s.add(0.025).unset("e-matching").set("enum-inst");
-    s.add(0.025)
-        .unset("e-matching")
-        .set("enum-inst")
-        .set("enum-inst-sum");
+    s.add(0.025).unset("e-matching").set("enum-inst").set("enum-inst-sum");
     // trigger selections
     s.add(0.025).set("relevant-triggers").set("enum-inst");
     s.add(0.025).set("trigger-sel", "max").set("enum-inst");
-    s.add(0.025)
-        .set("multi-trigger-when-single")
-        .set("enum-inst");
+    s.add(0.025).set("multi-trigger-when-single").set("enum-inst");
     s.add(0.025)
         .set("multi-trigger-when-single")
         .set("multi-trigger-priority")
@@ -844,10 +813,7 @@ PortfolioStrategy PortfolioDriver::getNonIncrementalStrategy(
     // other
     s.add(0.025).set("pre-skolem-quant", "on").set("enum-inst");
     s.add(0.025).set("inst-when", "full").set("enum-inst");
-    s.add(0.025)
-        .unset("e-matching")
-        .unset("cbqi")
-        .set("enum-inst");
+    s.add(0.025).unset("e-matching").unset("cbqi").set("enum-inst");
     s.add(0.025).set("enum-inst").set("quant-ind");
     s.add(0.025)
         .set("decision", "internal")
@@ -864,9 +830,7 @@ PortfolioStrategy PortfolioDriver::getNonIncrementalStrategy(
     s.add(0.025).set("preregister-mode", "lazy").set("enum-inst");
     // finite model find
     s.add(0.025).set("finite-model-find").set("fmf-mbqi", "none");
-    s.add(0.025)
-        .set("finite-model-find")
-        .set("decision", "internal");
+    s.add(0.025).set("finite-model-find").set("decision", "internal");
     s.add(0.025)
         .set("finite-model-find")
         .set("macros-quant")
@@ -874,9 +838,7 @@ PortfolioStrategy PortfolioDriver::getNonIncrementalStrategy(
     s.add(0.05).set("finite-model-find").set("e-matching");
     s.add(0.05).set("mbqi");
     // long runs
-    s.add(0.15)
-        .set("finite-model-find")
-        .set("decision", "internal");
+    s.add(0.15).set("finite-model-find").set("decision", "internal");
     s.add().set("enum-inst");
   }
   else if (isOneOf(logic, "UFBV"))
@@ -888,14 +850,8 @@ PortfolioStrategy PortfolioDriver::getNonIncrementalStrategy(
         .set("enum-inst")
         .set("cegqi-nested-qe")
         .set("decision", "internal");
-    s.add(0.25)
-        .set("mbqi-enum")
-        .unset("cegqi")
-        .unset("sygus-inst");
-    s.add(0.025)
-        .set("enum-inst")
-        .unset("cegqi-innermost")
-        .set("global-negate");
+    s.add(0.25).set("mbqi-enum").unset("cegqi").unset("sygus-inst");
+    s.add(0.025).set("enum-inst").unset("cegqi-innermost").set("global-negate");
     ;
     s.add().set("finite-model-find");
   }
@@ -903,27 +859,29 @@ PortfolioStrategy PortfolioDriver::getNonIncrementalStrategy(
   {
     s.add(0.066666667).set("sygus-inst");
     s.add(0.066666667).set("mbqi").unset("cegqi").unset("sygus-inst");
-    s.add(0.25)
-        .set("mbqi-enum")
-        .unset("cegqi")
-        .unset("sygus-inst");
+    s.add(0.25).set("mbqi-enum").unset("cegqi").unset("sygus-inst");
     s.add(0.25)
         .set("enum-inst")
         .set("cegqi-nested-qe")
         .set("decision", "internal");
     s.add(0.025).set("enum-inst").unset("cegqi-bv");
-    s.add(0.025)
+    s.add(0.025).set("enum-inst").set("cegqi-bv-ineq", "eq-slack");
+    s.add(0.066666667)
         .set("enum-inst")
-        .set("cegqi-bv-ineq", "eq-slack");
-    s.add(0.066666667).set("enum-inst").unset("cegqi-innermost").set("global-negate");
+        .unset("cegqi-innermost")
+        .set("global-negate");
     s.add().set("enum-inst");
   }
-  else if (isOneOf(logic, "ABVFP", "ABVFPLRA", "BVFP", "FP", "NIA", "NRA", "BVFPLRA"))
+  else if (isOneOf(logic,
+                   "ABVFP",
+                   "ABVFPLRA",
+                   "BVFP",
+                   "FP",
+                   "NIA",
+                   "NRA",
+                   "BVFPLRA"))
   {
-    s.add(0.25)
-        .set("mbqi-enum")
-        .unset("cegqi")
-        .unset("sygus-inst");
+    s.add(0.25).set("mbqi-enum").unset("cegqi").unset("sygus-inst");
     s.add(0.25).set("enum-inst").set("nl-ext-tplanes");
     s.add(0.05).set("mbqi").unset("cegqi").unset("sygus-inst");
     s.add().set("sygus-inst");
@@ -933,14 +891,8 @@ PortfolioStrategy PortfolioDriver::getNonIncrementalStrategy(
     s.add(0.025).set("enum-inst");
     s.add(0.25).set("enum-inst").set("cegqi-nested-qe");
     s.add(0.025).set("mbqi").unset("cegqi").unset("sygus-inst");
-    s.add(0.025)
-        .set("mbqi-enum")
-        .unset("cegqi")
-        .unset("sygus-inst");
-    s.add()
-        .set("enum-inst")
-        .set("cegqi-nested-qe")
-        .set("decision", "internal");
+    s.add(0.025).set("mbqi-enum").unset("cegqi").unset("sygus-inst");
+    s.add().set("enum-inst").set("cegqi-nested-qe").set("decision", "internal");
   }
   else if (isOneOf(logic, "QF_AUFBV"))
   {
@@ -949,10 +901,7 @@ PortfolioStrategy PortfolioDriver::getNonIncrementalStrategy(
   }
   else if (isOneOf(logic, "QF_ABV"))
   {
-    s.add(0.41666667)
-        .set("ite-simp")
-        .set("simp-with-care")
-        .set("repeat-simp");
+    s.add(0.41666667).set("ite-simp").set("simp-with-care").set("repeat-simp");
     s.add();
   }
   else if (isOneOf(logic, "QF_BV"))
@@ -995,10 +944,7 @@ PortfolioStrategy PortfolioDriver::getNonIncrementalStrategy(
   }
   else if (isOneOf(logic, "QF_S", "QF_SLIA"))
   {
-    s.add(0.25)
-        .set("strings-exp")
-        .set("strings-fmf")
-        .unset("jh-rlv-order");
+    s.add(0.25).set("strings-exp").set("strings-fmf").unset("jh-rlv-order");
     s.add().set("strings-exp").unset("jh-rlv-order");
   }
   else

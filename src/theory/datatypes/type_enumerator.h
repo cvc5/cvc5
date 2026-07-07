@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Tim King, Morgan Deters
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -28,10 +25,10 @@ namespace cvc5::internal {
 namespace theory {
 namespace datatypes {
 
-
-class DatatypesEnumerator : public TypeEnumeratorBase<DatatypesEnumerator> {
+class DatatypesEnumerator : public TypeEnumeratorBase<DatatypesEnumerator>
+{
   /** type properties */
-  TypeEnumeratorProperties * d_tep;
+  TypeEnumeratorProperties* d_tep;
   /** The datatype we're enumerating */
   const DType& d_datatype;
   /** extra cons */
@@ -45,18 +42,19 @@ class DatatypesEnumerator : public TypeEnumeratorBase<DatatypesEnumerator> {
   /** Whether we are currently considering the above term */
   bool d_zeroTermActive;
   /** list of type enumerators (one for each type in a selector argument) */
-  std::map< TypeNode, unsigned > d_te_index;
-  std::vector< TypeEnumerator > d_children;
-  //std::vector< DatatypesEnumerator > d_dt_children;
+  std::map<TypeNode, unsigned> d_te_index;
+  std::vector<TypeEnumerator> d_children;
+  // std::vector< DatatypesEnumerator > d_dt_children;
   /** terms produced for types */
-  std::map< TypeNode, std::vector< Node > > d_terms;
+  std::map<TypeNode, std::vector<Node> > d_terms;
   /** arg type of each selector, for each constructor */
-  std::vector< std::vector< TypeNode > > d_sel_types;
+  std::vector<std::vector<TypeNode> > d_sel_types;
   /** current index for each argument, for each constructor */
-  std::vector< std::vector< unsigned > > d_sel_index;
+  std::vector<std::vector<unsigned> > d_sel_index;
   /** current sum of argument indicies for each constructor */
-  std::vector< int > d_sel_sum;
-  /** current bound on the number of times we can iterate argument enumerators */
+  std::vector<int> d_sel_sum;
+  /** current bound on the number of times we can iterate argument enumerators
+   */
   unsigned d_size_limit;
   /** child */
   bool d_child_enum;
@@ -66,20 +64,29 @@ class DatatypesEnumerator : public TypeEnumeratorBase<DatatypesEnumerator> {
     return dt.isRecursiveSingleton(d_type)
            || dt.getCardinalityClass(d_type) == CardinalityClass::INFINITE;
   }
-  bool hasCycles( TypeNode tn ){
-    if( tn.isDatatype() ){
+  bool hasCycles(TypeNode tn)
+  {
+    if (tn.isDatatype())
+    {
       const DType& dt = tn.getDType();
-      return hasCyclesDt( dt );
-    }else{
+      return hasCyclesDt(dt);
+    }
+    else
+    {
       return false;
     }
   }
 
-  Node getTermEnum( TypeNode tn, unsigned i );
+  Node getTermEnum(TypeNode tn, unsigned i);
 
-  bool increment( unsigned index );
+  bool increment(unsigned index);
 
-  Node getCurrentTerm( unsigned index );
+  Node getCurrentTerm(unsigned index);
+
+  bool isEnumerationComplete()
+  {
+    return d_ctor >= d_has_debruijn + d_datatype.getNumConstructors();
+  }
 
   void init();
 
@@ -117,23 +124,39 @@ class DatatypesEnumerator : public TypeEnumeratorBase<DatatypesEnumerator> {
         d_zeroTerm(de.d_zeroTerm),
         d_zeroTermActive(de.d_zeroTermActive)
   {
-    for( std::map< TypeNode, unsigned >::const_iterator it = de.d_te_index.begin(); it != de.d_te_index.end(); ++it ){
+    for (std::map<TypeNode, unsigned>::const_iterator it =
+             de.d_te_index.begin();
+         it != de.d_te_index.end();
+         ++it)
+    {
       d_te_index[it->first] = it->second;
     }
-    for( std::map< TypeNode, std::vector< Node > >::const_iterator it = de.d_terms.begin(); it != de.d_terms.end(); ++it ){
-      d_terms[it->first].insert( d_terms[it->first].end(), it->second.begin(), it->second.end() );
+    for (std::map<TypeNode, std::vector<Node> >::const_iterator it =
+             de.d_terms.begin();
+         it != de.d_terms.end();
+         ++it)
+    {
+      d_terms[it->first].insert(
+          d_terms[it->first].end(), it->second.begin(), it->second.end());
     }
-    for( unsigned i=0; i<de.d_sel_types.size(); i++ ){
-      d_sel_types.push_back( std::vector< TypeNode >() );
-      d_sel_types[i].insert( d_sel_types[i].end(), de.d_sel_types[i].begin(), de.d_sel_types[i].end() );
+    for (unsigned i = 0; i < de.d_sel_types.size(); i++)
+    {
+      d_sel_types.push_back(std::vector<TypeNode>());
+      d_sel_types[i].insert(d_sel_types[i].end(),
+                            de.d_sel_types[i].begin(),
+                            de.d_sel_types[i].end());
     }
-    for( unsigned i=0; i<de.d_sel_index.size(); i++ ){
-      d_sel_index.push_back( std::vector< unsigned >() );
-      d_sel_index[i].insert( d_sel_index[i].end(), de.d_sel_index[i].begin(), de.d_sel_index[i].end() );
+    for (unsigned i = 0; i < de.d_sel_index.size(); i++)
+    {
+      d_sel_index.push_back(std::vector<unsigned>());
+      d_sel_index[i].insert(d_sel_index[i].end(),
+                            de.d_sel_index[i].begin(),
+                            de.d_sel_index[i].end());
     }
 
-    d_children.insert( d_children.end(), de.d_children.begin(), de.d_children.end() );
-    d_sel_sum.insert( d_sel_sum.end(), de.d_sel_sum.begin(), de.d_sel_sum.end() );
+    d_children.insert(
+        d_children.end(), de.d_children.begin(), de.d_children.end());
+    d_sel_sum.insert(d_sel_sum.end(), de.d_sel_sum.begin(), de.d_sel_sum.end());
     d_size_limit = de.d_size_limit;
     d_has_debruijn = de.d_has_debruijn;
     d_child_enum = de.d_child_enum;
@@ -148,19 +171,16 @@ class DatatypesEnumerator : public TypeEnumeratorBase<DatatypesEnumerator> {
     }
     else if (d_ctor < d_has_debruijn + d_datatype.getNumConstructors())
     {
-      return getCurrentTerm( d_ctor );
+      return getCurrentTerm(d_ctor);
     }
     throw NoMoreValuesException(getType());
   }
 
   DatatypesEnumerator& operator++() override;
 
-  bool isFinished() override
-  {
-    return d_ctor >= d_has_debruijn+d_datatype.getNumConstructors();
-  }
+  bool isFinished() override { return isEnumerationComplete(); }
 
-};/* DatatypesEnumerator */
+}; /* DatatypesEnumerator */
 
 }  // namespace datatypes
 }  // namespace theory

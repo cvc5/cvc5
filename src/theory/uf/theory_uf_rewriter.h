@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -68,30 +65,37 @@ class TheoryUfRewriter : public TheoryRewriter
   static Node decomposeHoApply(TNode n,
                                std::vector<TNode>& args,
                                bool opInArgs = false);
-  /** returns true if this node can be used as an operator of an APPLY_UF node.  In higher-order logic,
-   * terms can have function types and not just variables. 
-   * Currently, we want only free variables to be used as operators of APPLY_UF nodes. This is motivated by
-   * E-matching, ite-lifting among other things.  For example:
-   * f: Int -> Int, g : Int -> Int
-   * forall x : ( Int -> Int ), y : Int. (x y) = (f 0)
-   * Then, f and g can be used as APPLY_UF operators, but (ite C f g), (lambda x1. (f x1)) as well as the variable x above are not.
+  /** returns true if this node can be used as an operator of an APPLY_UF node.
+   * In higher-order logic, terms can have function types and not just
+   * variables. Currently, we want only free variables to be used as operators
+   * of APPLY_UF nodes. This is motivated by E-matching, ite-lifting among other
+   * things.  For example: f: Int -> Int, g : Int -> Int forall x : ( Int -> Int
+   * ), y : Int. (x y) = (f 0) Then, f and g can be used as APPLY_UF operators,
+   * but (ite C f g), (lambda x1. (f x1)) as well as the variable x above are
+   * not.
    */
   static bool canUseAsApplyUfOperator(TNode n);
-
- private:
   /**
    * Can we eliminate the lambda n? This is true if n is of the form
    * (LAMBDA x (APPLY_UF f x)), which is equivalent to f.
    * @param n The lambda in question.
    * @return the result of eliminating n, if possible, or null otherwise.
    */
-  static Node canEliminateLambda(const Node& n);
+  static Node canEliminateLambda(NodeManager* nm, const Node& n);
+  /**
+   * Blast distinct, which eliminates the distinct operator.
+   */
+  static Node blastDistinct(NodeManager* nm, TNode node);
+
+ private:
   /** Entry point for rewriting lambdas */
   Node rewriteLambda(Node node);
   /** rewrite ubv_to_int */
   RewriteResponse rewriteBVToInt(TNode node);
   /** rewrite int_to_bv */
   RewriteResponse rewriteIntToBV(TNode node);
+  /** rewrite distinct */
+  RewriteResponse rewriteDistinct(TNode node);
 }; /* class TheoryUfRewriter */
 
 }  // namespace uf

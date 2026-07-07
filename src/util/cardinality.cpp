@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Morgan Deters, Tim King, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -35,58 +32,74 @@ const Cardinality Cardinality::INTEGERS(CardinalityBeth(0));
 const Cardinality Cardinality::REALS(CardinalityBeth(1));
 const Cardinality Cardinality::UNKNOWN_CARD((CardinalityUnknown()));
 
-CardinalityBeth::CardinalityBeth(const Integer& beth) : d_index(beth) {
+CardinalityBeth::CardinalityBeth(const Integer& beth) : d_index(beth)
+{
   Assert(beth >= 0) << "Beth index must be a nonnegative integer, not "
                     << beth.toString().c_str();
 }
 
-Cardinality::Cardinality(long card) : d_card(card) {
+Cardinality::Cardinality(long card) : d_card(card)
+{
   Assert(card >= 0) << "Cardinality must be a nonnegative integer, not "
                     << card;
   d_card += 1;
 }
 
-Cardinality::Cardinality(const Integer& card) : d_card(card) {
+Cardinality::Cardinality(const Integer& card) : d_card(card)
+{
   Assert(card >= 0) << "Cardinality must be a nonnegative integer, not "
                     << card.toString().c_str();
   d_card += 1;
 }
 
-Integer Cardinality::getFiniteCardinality() const {
+Integer Cardinality::getFiniteCardinality() const
+{
   Assert(isFinite()) << "This cardinality is not finite.";
   Assert(!isLargeFinite())
       << "This cardinality is finite, but too large to represent.";
   return d_card - 1;
 }
 
-Integer Cardinality::getBethNumber() const {
+Integer Cardinality::getBethNumber() const
+{
   Assert(!isFinite() && !isUnknown())
       << "This cardinality is not infinite (or is unknown).";
   return -d_card - 1;
 }
 
-Cardinality& Cardinality::operator+=(const Cardinality& c) {
-  if (isUnknown()) {
+Cardinality& Cardinality::operator+=(const Cardinality& c)
+{
+  if (isUnknown())
+  {
     return *this;
-  } else if (c.isUnknown()) {
+  }
+  else if (c.isUnknown())
+  {
     d_card = s_unknownCard;
     return *this;
   }
 
-  if (c.isFinite() && isLargeFinite()) {
+  if (c.isFinite() && isLargeFinite())
+  {
     return *this;
-  } else if (isFinite() && c.isLargeFinite()) {
+  }
+  else if (isFinite() && c.isLargeFinite())
+  {
     d_card = s_largeFiniteCard;
     return *this;
   }
 
-  if (isFinite() && c.isFinite()) {
+  if (isFinite() && c.isFinite())
+  {
     d_card += c.d_card - 1;
     return *this;
   }
-  if (compare(c) == LESS) {
+  if (compare(c) == LESS)
+  {
     return *this = c;
-  } else {
+  }
+  else
+  {
     return *this;
   }
 
@@ -94,30 +107,45 @@ Cardinality& Cardinality::operator+=(const Cardinality& c) {
 }
 
 /** Assigning multiplication of this cardinality with another. */
-Cardinality& Cardinality::operator*=(const Cardinality& c) {
-  if (isUnknown()) {
+Cardinality& Cardinality::operator*=(const Cardinality& c)
+{
+  if (isUnknown())
+  {
     return *this;
-  } else if (c.isUnknown()) {
+  }
+  else if (c.isUnknown())
+  {
     d_card = s_unknownCard;
     return *this;
   }
 
-  if (c.isFinite() && isLargeFinite()) {
+  if (c.isFinite() && isLargeFinite())
+  {
     return *this;
-  } else if (isFinite() && c.isLargeFinite()) {
+  }
+  else if (isFinite() && c.isLargeFinite())
+  {
     d_card = s_largeFiniteCard;
     return *this;
   }
 
-  if (compare(0) == EQUAL || c.compare(0) == EQUAL) {
+  if (compare(0) == EQUAL || c.compare(0) == EQUAL)
+  {
     return *this = 0;
-  } else if (!isFinite() || !c.isFinite()) {
-    if (compare(c) == LESS) {
+  }
+  else if (!isFinite() || !c.isFinite())
+  {
+    if (compare(c) == LESS)
+    {
       return *this = c;
-    } else {
+    }
+    else
+    {
       return *this;
     }
-  } else {
+  }
+  else
+  {
     d_card -= 1;
     d_card *= c.d_card - 1;
     d_card += 1;
@@ -128,60 +156,87 @@ Cardinality& Cardinality::operator*=(const Cardinality& c) {
 }
 
 /** Assigning exponentiation of this cardinality with another. */
-Cardinality& Cardinality::operator^=(const Cardinality& c) {
-  if (isUnknown()) {
+Cardinality& Cardinality::operator^=(const Cardinality& c)
+{
+  if (isUnknown())
+  {
     return *this;
-  } else if (c.isUnknown()) {
+  }
+  else if (c.isUnknown())
+  {
     d_card = s_unknownCard;
     return *this;
   }
 
-  if (c.isFinite() && isLargeFinite()) {
+  if (c.isFinite() && isLargeFinite())
+  {
     return *this;
-  } else if (isFinite() && c.isLargeFinite()) {
+  }
+  else if (isFinite() && c.isLargeFinite())
+  {
     d_card = s_largeFiniteCard;
     return *this;
   }
 
-  if (c.compare(0) == EQUAL) {
+  if (c.compare(0) == EQUAL)
+  {
     // (anything) ^ 0 == 1
     d_card = 2;  // remember, +1 for finite cardinalities
     return *this;
-  } else if (compare(0) == EQUAL) {
+  }
+  else if (compare(0) == EQUAL)
+  {
     // 0 ^ (>= 1) == 0
     return *this;
-  } else if (compare(1) == EQUAL) {
+  }
+  else if (compare(1) == EQUAL)
+  {
     // 1 ^ (>= 1) == 1
     return *this;
-  } else if (c.compare(1) == EQUAL) {
+  }
+  else if (c.compare(1) == EQUAL)
+  {
     // (anything) ^ 1 == (that thing)
     return *this;
-  } else if (isFinite() && c.isFinite()) {
+  }
+  else if (isFinite() && c.isFinite())
+  {
     // finite ^ finite == finite
-    try {
+    try
+    {
       // Note: can throw an assertion if c is too big for
       // exponentiation
-      if (d_card - 1 >= 2 && c.d_card - 1 >= 64) {
+      if (d_card - 1 >= 2 && c.d_card - 1 >= 64)
+      {
         // don't bother, it's too large anyways
         d_card = s_largeFiniteCard;
-      } else {
+      }
+      else
+      {
         d_card = (d_card - 1).pow(c.d_card.getUnsignedInt() - 1) + 1;
       }
-    } catch (IllegalArgumentException&) {
+    }
+    catch (IllegalArgumentException&)
+    {
       d_card = s_largeFiniteCard;
     }
     return *this;
-  } else if (!isFinite() && c.isFinite()) {
+  }
+  else if (!isFinite() && c.isFinite())
+  {
     // inf ^ finite == inf
     return *this;
-  } else {
+  }
+  else
+  {
     Assert(compare(2) != LESS && !c.isFinite())
         << "fall-through case not as expected:\n"
         << this << "\n"
         << c;
     // (>= 2) ^ beth_k == beth_(k+1)
     // unless the base is already > the exponent
-    if (compare(c) == GREATER) {
+    if (compare(c) == GREATER)
+    {
       return *this;
     }
     d_card = c.d_card - 1;
@@ -192,37 +247,62 @@ Cardinality& Cardinality::operator^=(const Cardinality& c) {
 }
 
 Cardinality::CardinalityComparison Cardinality::compare(
-    const Cardinality& c) const {
-  if (isUnknown() || c.isUnknown()) {
+    const Cardinality& c) const
+{
+  if (isUnknown() || c.isUnknown())
+  {
     return UNKNOWN;
-  } else if (isLargeFinite()) {
-    if (c.isLargeFinite()) {
+  }
+  else if (isLargeFinite())
+  {
+    if (c.isLargeFinite())
+    {
       return UNKNOWN;
-    } else if (c.isFinite()) {
+    }
+    else if (c.isFinite())
+    {
       return GREATER;
-    } else {
+    }
+    else
+    {
       Assert(c.isInfinite());
       return LESS;
     }
-  } else if (c.isLargeFinite()) {
-    if (isLargeFinite()) {
+  }
+  else if (c.isLargeFinite())
+  {
+    if (isLargeFinite())
+    {
       return UNKNOWN;
-    } else if (isFinite()) {
+    }
+    else if (isFinite())
+    {
       return LESS;
-    } else {
+    }
+    else
+    {
       Assert(isInfinite());
       return GREATER;
     }
-  } else if (isInfinite()) {
-    if (c.isFinite()) {
+  }
+  else if (isInfinite())
+  {
+    if (c.isFinite())
+    {
       return GREATER;
-    } else {
+    }
+    else
+    {
       return d_card < c.d_card ? GREATER : (d_card == c.d_card ? EQUAL : LESS);
     }
-  } else if (c.isInfinite()) {
+  }
+  else if (c.isInfinite())
+  {
     Assert(isFinite());
     return LESS;
-  } else {
+  }
+  else
+  {
     Assert(isFinite() && !isLargeFinite());
     Assert(c.isFinite() && !c.isLargeFinite());
     return d_card < c.d_card ? LESS : (d_card == c.d_card ? EQUAL : GREATER);
@@ -231,29 +311,38 @@ Cardinality::CardinalityComparison Cardinality::compare(
   Unreachable();
 }
 
-bool Cardinality::knownLessThanOrEqual(const Cardinality& c) const {
+bool Cardinality::knownLessThanOrEqual(const Cardinality& c) const
+{
   CardinalityComparison cmp = this->compare(c);
   return cmp == LESS || cmp == EQUAL;
 }
 
-std::string Cardinality::toString() const {
+std::string Cardinality::toString() const
+{
   std::stringstream ss;
   ss << *this;
   return ss.str();
 }
 
-std::ostream& operator<<(std::ostream& out, CardinalityBeth b) {
+std::ostream& operator<<(std::ostream& out, CardinalityBeth b)
+{
   out << "beth[" << b.getNumber() << ']';
 
   return out;
 }
 
-std::ostream& operator<<(std::ostream& out, const Cardinality& c) {
-  if (c.isUnknown()) {
+std::ostream& operator<<(std::ostream& out, const Cardinality& c)
+{
+  if (c.isUnknown())
+  {
     out << "Cardinality::UNKNOWN";
-  } else if (c.isFinite()) {
+  }
+  else if (c.isFinite())
+  {
     out << c.getFiniteCardinality();
-  } else {
+  }
+  else
+  {
     out << CardinalityBeth(c.getBethNumber());
   }
 

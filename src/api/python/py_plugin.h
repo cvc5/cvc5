@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Daniel Larraz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -16,6 +13,8 @@
 #ifndef CVC5__PY_PLUGIN_H
 #define CVC5__PY_PLUGIN_H
 
+// Python.h must come first to avoid libc macro redefinition warnings
+#include <Python.h>
 #include <cvc5/cvc5.h>
 
 // Created by Cython when providing 'public api' keywords

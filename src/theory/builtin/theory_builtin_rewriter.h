@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -33,15 +30,6 @@ class TheoryBuiltinRewriter : public TheoryRewriter
 
   RewriteResponse preRewrite(TNode node) override;
 
-  /**
-   * Rewrite n based on the proof rewrite rule id.
-   * @param id The rewrite rule.
-   * @param n The node to rewrite.
-   * @return The rewritten version of n based on id, or Node::null() if n
-   * cannot be rewritten.
-   */
-  Node rewriteViaRule(ProofRewriteRule id, const Node& n) override;
-
  public:
   /**
    * The default rewriter for rewrites that occur at both pre and post rewrite.
@@ -56,10 +44,6 @@ class TheoryBuiltinRewriter : public TheoryRewriter
    * Main entry point for rewriting APPLY_INDEXED_SYMBOLIC terms.
    */
   static Node rewriteApplyIndexedSymbolic(TNode node);
-  /**
-   * Blast distinct, which eliminates the distinct operator.
-   */
-  Node blastDistinct(TNode node);
 }; /* class TheoryBuiltinRewriter */
 
 }  // namespace builtin

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Dejan Jovanovic, Clark Barrett
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -14,6 +11,7 @@
  */
 
 #include "theory/substitutions.h"
+
 #include "expr/node_algorithm.h"
 #include "theory/rewriter.h"
 
@@ -52,28 +50,31 @@ Node SubstitutionMap::toFormula(NodeManager* nm) const
   return nm->mkAnd(conj);
 }
 
-struct substitution_stack_element {
+struct substitution_stack_element
+{
   TNode d_node;
   bool d_children_added;
   substitution_stack_element(TNode node) : d_node(node), d_children_added(false)
   {
   }
-};/* struct substitution_stack_element */
+}; /* struct substitution_stack_element */
 
 Node SubstitutionMap::internalSubstitute(TNode t,
                                          NodeCache& cache,
                                          std::set<TNode>* tracker,
                                          const ShouldTraverseCallback* stc)
 {
-  Trace("substitution::internal") << "SubstitutionMap::internalSubstitute(" << t << ")" << endl;
+  Trace("substitution::internal")
+      << "SubstitutionMap::internalSubstitute(" << t << ")" << endl;
 
-  if (d_substitutions.empty()) {
+  if (d_substitutions.empty())
+  {
     return t;
   }
 
   // Do a topological sort of the subexpressions and substitute them
   vector<substitution_stack_element> toVisit;
-  toVisit.push_back((TNode) t);
+  toVisit.push_back((TNode)t);
 
   while (!toVisit.empty())
   {
@@ -81,17 +82,20 @@ Node SubstitutionMap::internalSubstitute(TNode t,
     substitution_stack_element& stackHead = toVisit.back();
     TNode current = stackHead.d_node;
 
-    Trace("substitution::internal") << "SubstitutionMap::internalSubstitute(" << t << "): processing " << current << endl;
+    Trace("substitution::internal") << "SubstitutionMap::internalSubstitute("
+                                    << t << "): processing " << current << endl;
 
     // If node already in the cache we're done, pop from the stack
     NodeCache::iterator find = cache.find(current);
-    if (find != cache.end()) {
+    if (find != cache.end())
+    {
       toVisit.pop_back();
       continue;
     }
 
     NodeMap::iterator find2 = d_substitutions.find(current);
-    if (find2 != d_substitutions.end()) {
+    if (find2 != d_substitutions.end())
+    {
       Node rhs = (*find2).second;
       // if the substitution changes the current term
       if (rhs != current)
@@ -134,14 +138,18 @@ Node SubstitutionMap::internalSubstitute(TNode t,
       }
       // Mark the substitution and continue
       Node result = builder;
-      if (result != current) {
+      if (result != current)
+      {
         find = cache.find(result);
-        if (find != cache.end()) {
+        if (find != cache.end())
+        {
           result = find->second;
         }
-        else {
+        else
+        {
           find2 = d_substitutions.find(result);
-          if (find2 != d_substitutions.end()) {
+          if (find2 != d_substitutions.end())
+          {
             Node rhs = (*find2).second;
             if (rhs != result)
             {
@@ -167,7 +175,9 @@ Node SubstitutionMap::internalSubstitute(TNode t,
           }
         }
       }
-      Trace("substitution::internal") << "SubstitutionMap::internalSubstitute(" << t << "): setting " << current << " -> " << result << endl;
+      Trace("substitution::internal")
+          << "SubstitutionMap::internalSubstitute(" << t << "): setting "
+          << current << " -> " << result << endl;
       cache[current] = result;
       toVisit.pop_back();
     }
@@ -181,18 +191,24 @@ Node SubstitutionMap::internalSubstitute(TNode t,
       {
         stackHead.d_children_added = true;
         // We need to add the operator, if any
-        if(current.getMetaKind() == kind::metakind::PARAMETERIZED) {
+        if (current.getMetaKind() == kind::metakind::PARAMETERIZED)
+        {
           TNode opNode = current.getOperator();
           NodeCache::iterator opFind = cache.find(opNode);
-          if (opFind == cache.end()) {
+          if (opFind == cache.end())
+          {
             toVisit.push_back(opNode);
           }
         }
         // We need to add the children
-        for(TNode::iterator child_it = current.begin(); child_it != current.end(); ++ child_it) {
+        for (TNode::iterator child_it = current.begin();
+             child_it != current.end();
+             ++child_it)
+        {
           TNode childNode = *child_it;
           NodeCache::iterator childFind = cache.find(childNode);
-          if (childFind == cache.end()) {
+          if (childFind == cache.end())
+          {
             toVisit.push_back(childNode);
           }
         }
@@ -200,7 +216,9 @@ Node SubstitutionMap::internalSubstitute(TNode t,
       else
       {
         // No children, so we're done
-        Trace("substitution::internal") << "SubstitutionMap::internalSubstitute(" << t << "): setting " << current << " -> " << current << endl;
+        Trace("substitution::internal")
+            << "SubstitutionMap::internalSubstitute(" << t << "): setting "
+            << current << " -> " << current << endl;
         cache[current] = current;
         toVisit.pop_back();
       }
@@ -215,7 +233,8 @@ void SubstitutionMap::addSubstitution(TNode x, TNode t, bool invalidateCache)
 {
   // don't check type equal here, since this utility may be used in conversions
   // that change the types of terms
-  Trace("substitution") << "SubstitutionMap::addSubstitution(" << x << ", " << t << ")" << endl;
+  Trace("substitution") << "SubstitutionMap::addSubstitution(" << x << ", " << t
+                        << ")" << endl;
   // Shouldn't use compression if replacing a current substitution, or otherwise
   // the range of other d_substitutions can be out of sync.
   // For example, if we have substitution { y -> f(x) } and then later add
@@ -230,27 +249,32 @@ void SubstitutionMap::addSubstitution(TNode x, TNode t, bool invalidateCache)
   d_substitutions[x] = t;
 
   // Also invalidate the cache if necessary
-  if (invalidateCache) {
+  if (invalidateCache)
+  {
     d_cacheInvalidated = true;
   }
-  else {
+  else
+  {
     d_substitutionCache[x] = d_substitutions[x];
   }
 }
 
-
-void SubstitutionMap::addSubstitutions(SubstitutionMap& subMap, bool invalidateCache)
+void SubstitutionMap::addSubstitutions(SubstitutionMap& subMap,
+                                       bool invalidateCache)
 {
   NodeMap::const_iterator it = subMap.begin();
   NodeMap::const_iterator it_end = subMap.end();
-  for (; it != it_end; ++ it) {
+  for (; it != it_end; ++it)
+  {
     Assert(d_substitutions.find((*it).first) == d_substitutions.end());
     d_substitutions[(*it).first] = (*it).second;
-    if (!invalidateCache) {
+    if (!invalidateCache)
+    {
       d_substitutionCache[(*it).first] = d_substitutions[(*it).first];
     }
   }
-  if (invalidateCache) {
+  if (invalidateCache)
+  {
     d_cacheInvalidated = true;
   }
 }
@@ -275,7 +299,8 @@ Node SubstitutionMap::apply(TNode t,
   Trace("substitution") << "SubstitutionMap::apply(" << t << ")" << endl;
 
   // Setup the cache
-  if (d_cacheInvalidated) {
+  if (d_cacheInvalidated)
+  {
     d_substitutionCache.clear();
     d_cacheInvalidated = false;
     Trace("substitution") << "-- reset the cache" << endl;
@@ -283,7 +308,8 @@ Node SubstitutionMap::apply(TNode t,
 
   // Perform the substitution
   Node result = internalSubstitute(t, d_substitutionCache, tracker, stc);
-  Trace("substitution") << "SubstitutionMap::apply(" << t << ") => " << result << endl;
+  Trace("substitution") << "SubstitutionMap::apply(" << t << ") => " << result
+                        << endl;
 
   if (r != nullptr)
   {
@@ -297,10 +323,12 @@ Node SubstitutionMap::apply(TNode t,
   return result;
 }
 
-void SubstitutionMap::print(ostream& out) const {
+void SubstitutionMap::print(ostream& out) const
+{
   NodeMap::const_iterator it = d_substitutions.begin();
   NodeMap::const_iterator it_end = d_substitutions.end();
-  for (; it != it_end; ++ it) {
+  for (; it != it_end; ++it)
+  {
     out << (*it).first << " -> " << (*it).second << endl;
   }
 }
@@ -314,7 +342,9 @@ std::string SubstitutionMap::toString() const
 
 }  // namespace theory
 
-std::ostream& operator<<(std::ostream& out, const theory::SubstitutionMap::iterator& i) {
+std::ostream& operator<<(std::ostream& out,
+                         CVC5_UNUSED const theory::SubstitutionMap::iterator& i)
+{
   return out << "[CDMap-iterator]";
 }
 

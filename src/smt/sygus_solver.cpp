@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -68,7 +65,6 @@ void SygusSolver::declareSygusVar(Node var)
 
 void SygusSolver::declareSynthFun(Node fn,
                                   TypeNode sygusType,
-                                  bool isInv,
                                   const std::vector<Node>& vars)
 {
   Trace("smt") << "SygusSolver::declareSynthFun: " << fn << "\n";
@@ -267,7 +263,7 @@ SynthResult SygusSolver::checkSynth(bool isNext)
       // the existential, not the rewritten form of the existential itself,
       // which could permit eliminating variables that are equal to terms
       // involving functions to synthesize.
-      Node ppBody = body.getKind()==Kind::EXISTS ? body[1] : body;
+      Node ppBody = body.getKind() == Kind::EXISTS ? body[1] : body;
       ppBody = d_smtSolver.getPreprocessor()->applySubstitutions(ppBody);
       ppBody = rewrite(ppBody);
       std::unordered_set<Node> vs;
@@ -318,11 +314,9 @@ SynthResult SygusSolver::checkSynth(bool isNext)
     {
       ntrivSynthFuns = listToVector(d_sygusFunSymbols);
     }
-    if (!ntrivSynthFuns.empty())
-    {
-      body = quantifiers::SygusUtils::mkSygusConjecture(
-          nodeManager(), ntrivSynthFuns, body);
-    }
+    body = ntrivSynthFuns.empty() ? body.negate()
+                                  : quantifiers::SygusUtils::mkSygusConjecture(
+                                        nodeManager(), ntrivSynthFuns, body);
     Trace("smt-debug") << "...constructed forall " << body << std::endl;
 
     Trace("smt") << "Check synthesis conjecture: " << body << std::endl;
@@ -352,12 +346,14 @@ SynthResult SygusSolver::checkSynth(bool isNext)
   Result r;
   if (usingSygusSubsolver())
   {
-    Trace("smt-sygus") << "SygusSolver: check sat with subsolver..." << std::endl;
+    Trace("smt-sygus") << "SygusSolver: check sat with subsolver..."
+                       << std::endl;
     r = d_subsolver->checkSat();
   }
   else
   {
-    Trace("smt-sygus") << "SygusSolver: check sat with main solver..." << std::endl;
+    Trace("smt-sygus") << "SygusSolver: check sat with main solver..."
+                       << std::endl;
     std::vector<Node> query;
     query.push_back(d_conj);
     // use a single call driver
@@ -392,7 +388,12 @@ SynthResult SygusSolver::checkSynth(bool isNext)
   // solved.
   SynthResult sr;
   std::map<Node, Node> sol_map;
-  if (getSynthSolutions(sol_map))
+  if (r.getStatus() == Result::UNSAT)
+  {
+    // unsat means no solution
+    sr = SynthResult(SynthResult::NO_SOLUTION);
+  }
+  else if (getSynthSolutions(sol_map))
   {
     // if we have solutions, we return "solution"
     sr = SynthResult(SynthResult::SOLUTION);
@@ -402,11 +403,6 @@ SynthResult SygusSolver::checkSynth(bool isNext)
       Assertions& as = d_smtSolver.getAssertions();
       checkSynthSolution(as, sol_map);
     }
-  }
-  else if (r.getStatus() == Result::UNSAT)
-  {
-    // unsat means no solution
-    sr = SynthResult(SynthResult::NO_SOLUTION);
   }
   else
   {
@@ -439,8 +435,8 @@ bool SygusSolver::getSynthSolutions(std::map<Node, Node>& solMap)
     {
       Node sf = quantifiers::SygusUtils::mkSygusTermFor(f);
       Trace("smt-debug") << "Got " << sf << " for trivial function " << f
-                        << std::endl;
-      Assert(f.getType() == sf.getType());
+                         << std::endl;
+      AssertEqual(f.getType(), sf.getType());
       solMap[f] = sf;
     }
   }
@@ -528,10 +524,7 @@ void SygusSolver::checkSynthSolution(Assertions& as,
     solChecker->getOptions().write_smt().checkSynthSol = false;
     solChecker->getOptions().write_quantifiers().sygusRecFun = false;
     Node conjBody = conj;
-    if (conj.getKind() == Kind::FORALL)
-    {
-      conjBody = conjBody[1];
-    }
+    conjBody = conj.getKind() == Kind::FORALL ? conjBody[1] : conj.negate();
     // we must apply substitutions here, since define-fun may contain the
     // function-to-synthesize, which needs to be substituted.
     conjBody = d_smtSolver.getPreprocessor()->applySubstitutions(conjBody);

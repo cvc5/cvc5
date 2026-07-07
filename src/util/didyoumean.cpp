@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Gereon Kremer, Kshitij Bansal, Tim King
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -31,7 +28,8 @@ namespace cvc5::internal {
 
 namespace {
 
-uint64_t editDistance(const std::string& a, const std::string& b) {
+uint64_t editDistance(const std::string& a, const std::string& b)
+{
   // input string: a
   // desired string: b
 
@@ -45,7 +43,7 @@ uint64_t editDistance(const std::string& a, const std::string& b) {
   uint64_t len2 = b.size();
 
   std::array<std::vector<uint64_t>, 3> C;
-  for (auto& c: C)
+  for (auto& c : C)
   {
     c.resize(len2 + 1);
   }
@@ -68,19 +66,25 @@ uint64_t editDistance(const std::string& a, const std::string& b) {
     {
       C[cur][j] = 100000000;  // INF
 
-      if (a[i - 1] == b[j - 1]) {
+      if (a[i - 1] == b[j - 1])
+      {
         // match
         C[cur][j] = std::min(C[cur][j], C[prv][j - 1]);
-      } else if (tolower(a[i - 1]) == tolower(b[j - 1])) {
+      }
+      else if (tolower(a[i - 1]) == tolower(b[j - 1]))
+      {
         // switch case
         C[cur][j] = std::min(C[cur][j], C[prv][j - 1] + switchCaseCost);
-      } else {
+      }
+      else
+      {
         // substitute
         C[cur][j] = std::min(C[cur][j], C[prv][j - 1] + substituteCost);
       }
 
       // swap
-      if (i >= 2 && j >= 2 && a[i - 1] == b[j - 2] && a[i - 2] == b[j - 1]) {
+      if (i >= 2 && j >= 2 && a[i - 1] == b[j - 2] && a[i - 2] == b[j - 1])
+      {
         C[cur][j] = std::min(C[cur][j], C[pr2][j - 2] + swapCost);
       }
 
@@ -94,7 +98,7 @@ uint64_t editDistance(const std::string& a, const std::string& b) {
   return C[len1 % 3][len2];
 }
 
-}
+}  // namespace
 
 std::vector<std::string> DidYouMean::getMatch(const std::string& input)
 {
@@ -108,23 +112,27 @@ std::vector<std::string> DidYouMean::getMatch(const std::string& input)
   constexpr uint64_t similarityThreshold = 10;
   constexpr uint64_t numMatchesThreshold = 10;
 
-  std::vector<std::pair<uint64_t,std::string>> scores;
+  std::vector<std::pair<uint64_t, std::string>> scores;
   std::vector<std::string> ret;
-  for (const auto& s: d_words) {
-    if (s == input) {
+  for (const auto& s : d_words)
+  {
+    if (s == input)
+    {
       // if input matches AS-IS just return that
       ret.emplace_back(s);
       return ret;
     }
     uint64_t score = 0;
-    if (s.compare(0, input.size(), input) != 0) {
+    if (s.compare(0, input.size(), input) != 0)
+    {
       score = editDistance(input, s) + 1;
     }
     scores.emplace_back(std::make_pair(score, s));
   }
   std::sort(scores.begin(), scores.end());
   const uint64_t min_score = scores.begin()->first;
-  for (const auto& score: scores) {
+  for (const auto& score : scores)
+  {
     // from here on, matches are not similar enough
     if (score.first > similarityThreshold) break;
     // from here on, matches are way worse than the best one
@@ -140,11 +148,15 @@ std::string DidYouMean::getMatchAsString(const std::string& input)
 {
   std::vector<std::string> matches = getMatch(input);
   std::ostringstream oss;
-  if (matches.size() > 0) {
+  if (matches.size() > 0)
+  {
     oss << std::endl << std::endl;
-    if (matches.size() == 1) {
+    if (matches.size() == 1)
+    {
       oss << "Did you mean this?";
-    } else {
+    }
+    else
+    {
       oss << "Did you mean any of these?";
     }
     for (size_t i = 0; i < matches.size(); ++i)

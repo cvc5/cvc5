@@ -1,10 +1,7 @@
 ###############################################################################
-# Top contributors (to current version):
-#   Daniel Larraz, Andres Noetzli, Andrew Reynolds
-#
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -84,8 +81,8 @@ function(_add_python_test example subdir)
 
   add_test(
     NAME     ${test_name}
-    COMMAND  "${Python_EXECUTABLE}"
-             "${CMAKE_SOURCE_DIR}/${subdir}/${example}.py"
+    COMMAND  "${Python_EXECUTABLE}" ${ARGN}
+             "${PROJECT_SOURCE_DIR}/${subdir}/${example}.py"
   )
   set_tests_properties(${test_name} PROPERTIES
     LABELS      "example"
@@ -99,7 +96,16 @@ function(create_python_example example)
 
   # Only add the Pythonic version if it is in the list
   if (example IN_LIST EXAMPLES_API_PYTHON_PYTHONIC)
-    _add_python_test(${example} "api/python/pythonic")
+    # The Pythonic version of the bitvectors_and_arrays example is known to
+    # cause a SEGFAULT on ARM64 Windows but it eludes any attempt to debug it.
+    # We run it with debbugging options to get more information if it fails.
+    if(example STREQUAL "bitvectors_and_arrays" AND
+       WIN32 AND
+       CMAKE_SYSTEM_PROCESSOR MATCHES "^(ARM64|arm64|aarch64)$")
+      _add_python_test(${example} "api/python/pythonic" -X dev -X faulthandler)
+    else()
+      _add_python_test(${example} "api/python/pythonic")
+    endif()
   endif()
 endfunction()
 
@@ -107,7 +113,7 @@ foreach(example ${EXAMPLES_API_PYTHON})
   create_python_example(${example})
 endforeach()
 
-if(NOT CVC5_SAFE_BUILD)
+if((NOT CVC5_SAFE_BUILD) AND (NOT CVC5_STABLE_BUILD))
   create_python_example("floating_point")
   create_python_example("bags")
   create_python_example("relations")

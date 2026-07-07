@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Tim King, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -39,7 +36,7 @@ int main()
   TermManager tm;
   Solver slv(tm);
   slv.setOption("produce-models", "true");  // Produce Models
-  slv.setOption("dag-thresh", "0"); // Disable dagifying the output
+  slv.setOption("dag-thresh", "0");         // Disable dagifying the output
   slv.setLogic("QF_UFLIRA");
 
   // Sorts
@@ -81,7 +78,8 @@ int main()
   slv.assertFormula(assertions);
 
   cout << "Given the following assertions:" << endl
-       << assertions << endl << endl;
+       << assertions << endl
+       << endl;
 
   cout << "Prove x /= y is entailed." << endl
        << "cvc5: " << slv.checkSatAssuming(tm.mkTerm(Kind::EQUAL, {x, y}))
@@ -92,30 +90,25 @@ int main()
        << "cvc5: " << slv.checkSat() << "." << endl
        << endl;
 
-  cout << "Call slv.getValue(...) on terms of interest."
-       << endl;
+  cout << "Call slv.getValue(...) on terms of interest." << endl;
   cout << "slv.getValue(" << f_x << "): " << slv.getValue(f_x) << endl;
   cout << "slv.getValue(" << f_y << "): " << slv.getValue(f_y) << endl;
   cout << "slv.getValue(" << sum << "): " << slv.getValue(sum) << endl;
   cout << "slv.getValue(" << p_0 << "): " << slv.getValue(p_0) << endl;
-  cout << "slv.getValue(" << p_f_y << "): " << slv.getValue(p_f_y)
-       << endl << endl;
+  cout << "slv.getValue(" << p_f_y << "): " << slv.getValue(p_f_y) << endl
+       << endl;
 
   cout << "Alternatively, iterate over assertions and call slv.getValue(...) "
-       << "on all terms."
-       << endl;
+       << "on all terms." << endl;
   prefixPrintGetValue(slv, assertions);
 
   cout << endl;
   cout << "You can also use nested loops to iterate over terms." << endl;
-  for (Term::const_iterator it = assertions.begin();
-       it != assertions.end();
+  for (Term::const_iterator it = assertions.begin(); it != assertions.end();
        ++it)
   {
     cout << "term: " << *it << endl;
-    for (Term::const_iterator it2 = (*it).begin();
-         it2 != (*it).end();
-         ++it2)
+    for (Term::const_iterator it2 = (*it).begin(); it2 != (*it).end(); ++it2)
     {
       cout << " + child: " << *it2 << std::endl;
     }

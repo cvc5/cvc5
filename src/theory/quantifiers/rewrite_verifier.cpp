@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -46,7 +43,7 @@ bool RewriteVerifier::checkEquivalent(Node bv, Node bvr, std::ostream* out)
   }
   if (d_sampler == nullptr || d_sampler->getNumSamplePoints() == 0)
   {
-    Assert(false) << "Expected a sampler to test rewrites";
+    DebugUnhandled() << "Expected a sampler to test rewrites";
     return true;
   }
   // check if it has variables from d_vars, if not, we only test one point

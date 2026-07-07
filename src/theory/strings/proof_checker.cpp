@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Hans-Joerg Schurr, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -245,15 +242,22 @@ Node StringProofRuleChecker::checkInternal(ProofRule id,
   }
   else if (id == ProofRule::STRING_DECOMPOSE)
   {
-    Assert(children.size() == 1);
+    Assert(children.size() == 2);
     Assert(args.size() == 1);
     bool isRev;
     if (!getBool(args[0], isRev))
     {
       return Node::null();
     }
-    Node atom = children[0];
-    if (atom.getKind() != Kind::GEQ || atom[0].getKind() != Kind::STRING_LENGTH)
+    Node geq = children[0];
+    Node atom = children[1];
+    Node zero = nm->mkConstInt(Rational(0));
+    if (geq.getKind() != Kind::GEQ || geq[1] != zero)
+    {
+      return Node::null();
+    }
+    if (atom.getKind() != Kind::GEQ || atom[0].getKind() != Kind::STRING_LENGTH
+        || geq[0] != atom[1])
     {
       return Node::null();
     }
@@ -321,7 +325,10 @@ Node StringProofRuleChecker::checkInternal(ProofRule id,
   }
   else if (id == ProofRule::RE_INTER)
   {
-    Assert(children.size() >= 1);
+    if (children.size() < 2)
+    {
+      return Node::null();
+    }
     Assert(args.empty());
     std::vector<Node> reis;
     Node x;
@@ -344,13 +351,15 @@ Node StringProofRuleChecker::checkInternal(ProofRule id,
       }
       reis.push_back(c[1]);
     }
-    Node rei =
-        reis.size() == 1 ? reis[0] : nm->mkNode(Kind::REGEXP_INTER, reis);
+    Node rei = nm->mkNode(Kind::REGEXP_INTER, reis);
     return nm->mkNode(Kind::STRING_IN_REGEXP, x, rei);
   }
   else if (id == ProofRule::RE_CONCAT)
   {
-    Assert(children.size() >= 2);
+    if (children.size() < 2)
+    {
+      return Node::null();
+    }
     Assert(args.empty());
     std::vector<Node> ts;
     std::vector<Node> rs;
@@ -476,7 +485,7 @@ Node StringProofRuleChecker::checkInternal(ProofRule id,
     Trace("strings-pfcheck-debug")
         << "STRING_SEQ_UNIT_INJ: " << children[0] << " => " << t[0]
         << " == " << t[1] << std::endl;
-    AlwaysAssert(t[0].getType() == t[1].getType());
+    AlwaysAssert(CVC5_EQUAL(t[0].getType(), t[1].getType()));
     return t[0].eqNode(t[1]);
   }
   else if (id == ProofRule::STRING_EXT)

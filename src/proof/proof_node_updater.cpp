@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Hans-Joerg Schurr
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,39 +24,44 @@ namespace cvc5::internal {
 ProofNodeUpdaterCallback::ProofNodeUpdaterCallback() {}
 ProofNodeUpdaterCallback::~ProofNodeUpdaterCallback() {}
 
-bool ProofNodeUpdaterCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
-                                            const std::vector<Node>& fa,
-                                            bool& continueUpdate)
+bool ProofNodeUpdaterCallback::shouldUpdate(
+    CVC5_UNUSED std::shared_ptr<ProofNode> pn,
+    CVC5_UNUSED const std::vector<Node>& fa,
+    CVC5_UNUSED bool& continueUpdate)
 {
   return false;
 }
 
-bool ProofNodeUpdaterCallback::update(Node res,
-                                      ProofRule id,
-                                      const std::vector<Node>& children,
-                                      const std::vector<Node>& args,
-                                      CDProof* cdp,
-                                      bool& continueUpdate)
+bool ProofNodeUpdaterCallback::update(
+    CVC5_UNUSED Node res,
+    CVC5_UNUSED ProofRule id,
+    CVC5_UNUSED const std::vector<Node>& children,
+    CVC5_UNUSED const std::vector<Node>& args,
+    CVC5_UNUSED CDProof* cdp,
+    CVC5_UNUSED bool& continueUpdate)
 {
   return false;
 }
 
-bool ProofNodeUpdaterCallback::shouldUpdatePost(std::shared_ptr<ProofNode> pn,
-                                                const std::vector<Node>& fa)
+bool ProofNodeUpdaterCallback::shouldUpdatePost(
+    CVC5_UNUSED std::shared_ptr<ProofNode> pn,
+    CVC5_UNUSED const std::vector<Node>& fa)
 {
   return false;
 }
 
-bool ProofNodeUpdaterCallback::updatePost(Node res,
-                                          ProofRule id,
-                                          const std::vector<Node>& children,
-                                          const std::vector<Node>& args,
-                                          CDProof* cdp)
+bool ProofNodeUpdaterCallback::updatePost(
+    CVC5_UNUSED Node res,
+    CVC5_UNUSED ProofRule id,
+    CVC5_UNUSED const std::vector<Node>& children,
+    CVC5_UNUSED const std::vector<Node>& args,
+    CVC5_UNUSED CDProof* cdp)
 {
   return false;
 }
 
-void ProofNodeUpdaterCallback::finalize(std::shared_ptr<ProofNode> pn)
+void ProofNodeUpdaterCallback::finalize(
+    CVC5_UNUSED std::shared_ptr<ProofNode> pn)
 {
   // do nothing
 }

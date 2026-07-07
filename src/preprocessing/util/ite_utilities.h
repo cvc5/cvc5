@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Tim King, Aina Niemetz, Clark Barrett
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -196,7 +193,7 @@ class ITECompressor : protected EnvObj
   Node d_true;  /* Copy of true. */
   Node d_false; /* Copy of false. */
 
-  ContainsTermITEVisitor* d_contains;
+  CVC5_UNUSED_FIELD ContainsTermITEVisitor* d_contains;  // Only used in DEBUG
   AssertionPipeline* d_assertions;
   IncomingArcCounter d_incoming;
 
@@ -378,18 +375,18 @@ class ITECareSimplifier
     CareSetPtr(CareSetPtrVal* val) : d_val(val) {}
 
    public:
-    CareSetPtr() : d_val(NULL) {}
+    CareSetPtr() : d_val(nullptr) {}
     CareSetPtr(const CareSetPtr& cs)
     {
       d_val = cs.d_val;
-      if (d_val != NULL)
+      if (d_val != nullptr)
       {
         ++(d_val->d_refCount);
       }
     }
     ~CareSetPtr()
     {
-      if (d_val != NULL && (--(d_val->d_refCount) == 0))
+      if (d_val != nullptr && (--(d_val->d_refCount) == 0))
       {
         d_val->d_iteSimplifier.careSetPtrGC(d_val);
       }
@@ -398,12 +395,12 @@ class ITECareSimplifier
     {
       if (d_val != cs.d_val)
       {
-        if (d_val != NULL && (--(d_val->d_refCount) == 0))
+        if (d_val != nullptr && (--(d_val->d_refCount) == 0))
         {
           d_val->d_iteSimplifier.careSetPtrGC(d_val);
         }
         d_val = cs.d_val;
-        if (d_val != NULL)
+        if (d_val != nullptr)
         {
           ++(d_val->d_refCount);
         }
@@ -415,7 +412,7 @@ class ITECareSimplifier
     static CareSetPtr mkNew(ITECareSimplifier& simp);
     static CareSetPtr recycle(CareSetPtrVal* val)
     {
-      Assert(val != NULL && val->d_refCount == 0);
+      Assert(val != nullptr && val->d_refCount == 0);
       val->d_refCount = 1;
       return CareSetPtr(val);
     }

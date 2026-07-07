@@ -1,6 +1,6 @@
 (include "../theories/Builtin.eo")
 
-(declare-type Array (Type Type))
+(declare-const Array (-> Type Type Type))
 
 ; Core operators.
 (declare-parameterized-const select ((U Type :implicit) (T Type :implicit))

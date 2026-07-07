@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Daniel Larraz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -39,6 +36,7 @@ class SubtypeElimNodeConverter : public NodeConverter
   ~SubtypeElimNodeConverter() {}
   /** convert node n as described above during post-order traversal */
   Node postConvert(Node n) override;
+
  private:
   /** Is real type (not integer)? */
   static bool isRealTypeStrict(TypeNode tn);

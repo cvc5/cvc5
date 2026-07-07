@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Gereon Kremer, Andrew Reynolds, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -40,6 +37,9 @@ namespace nl {
 /** Bijective mapping between cvc5 variables and poly variables. */
 struct VariableMapper
 {
+  VariableMapper(const poly::Context& ctx) : polyCtx(ctx) {}
+  /** The libpoly context */
+  const poly::Context& polyCtx;
   /** A mapping from cvc5 variables to poly variables. */
   std::map<cvc5::internal::Node, poly::Variable> mVarCVCpoly;
   /** A mapping from poly variables to cvc5 variables. */
@@ -53,7 +53,7 @@ struct VariableMapper
 
 /** Convert a poly univariate polynomial to a cvc5::internal::Node. */
 cvc5::internal::Node as_cvc_upolynomial(const poly::UPolynomial& p,
-                              const cvc5::internal::Node& var);
+                                        const cvc5::internal::Node& var);
 
 /**
  * Convert a cvc5::internal::Node to a poly univariate polynomial. Is robust to
@@ -71,12 +71,13 @@ poly::UPolynomial as_poly_upolynomial(const cvc5::internal::Node& n,
  * Once the polynomial has been fully constructed, we can oftentimes ignore the
  * denominator (except for its sign, which is always positive, though).
  * This is the case if we are solely interested in the roots of the polynomials
- * (like in the context of coverings). If we need the actual polynomial (for example
- * in the context of ICP) the second overload provides the denominator in the
- * third argument.
- * The method is robust to n being a `Kind::TO_REAL` wrapper node.
+ * (like in the context of coverings). If we need the actual polynomial (for
+ * example in the context of ICP) the second overload provides the denominator
+ * in the third argument. The method is robust to n being a `Kind::TO_REAL`
+ * wrapper node.
  */
-poly::Polynomial as_poly_polynomial(const cvc5::internal::Node& n, VariableMapper& vm);
+poly::Polynomial as_poly_polynomial(const cvc5::internal::Node& n,
+                                    VariableMapper& vm);
 poly::Polynomial as_poly_polynomial(const cvc5::internal::Node& n,
                                     VariableMapper& vm,
                                     poly::Rational& denominator);
@@ -153,7 +154,8 @@ poly::Value node_to_value(const Node& n, const Node& ran_variable);
  */
 std::size_t bitsize(const poly::Value& v);
 
-poly::IntervalAssignment getBounds(VariableMapper& vm, const BoundInference& bi);
+poly::IntervalAssignment getBounds(VariableMapper& vm,
+                                   const BoundInference& bi);
 
 }  // namespace nl
 }  // namespace arith

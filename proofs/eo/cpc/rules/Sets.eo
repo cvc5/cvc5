@@ -36,46 +36,46 @@
 ; return: >
 ;   A list of elements, whose union is equal to s.
 (program $set_union_to_list ((T Type) (t (Set T)) (e T))
-  :signature ((Set T)) @List
+  :signature ((Set T)) (@TList T)
   (
-    (($set_union_to_list (set.union (set.singleton e) t)) (eo::cons @list e ($set_union_to_list t)))
-    (($set_union_to_list (as set.empty (Set T)))          @list.nil)
-    (($set_union_to_list (set.singleton e))               (eo::cons @list e @list.nil))
+  (($set_union_to_list (set.union (set.singleton e) t)) (_ @tlist e ($set_union_to_list t)))
+  (($set_union_to_list (as set.empty (Set T)))          (@tlist.nil T))
+  (($set_union_to_list (set.singleton e))               (@tlist e))
   )
 )
 
 ; program: $eval_sets_inter
 ; args:
-; - @List (Set T): The list of elements in the first set left to process.
-; - @List (Set T): The list of elements in the second set.
+; - s (@TList T): The list of elements in the first set left to process.
+; - t (@TList T): The list of elements in the second set.
 ; return: >
 ;   The elements in the set resulting in the set intersection of the arguments.
-(program $eval_sets_inter ((T Type) (a T) (as @List :list) (bs @List))
-  :signature (@List @List) @List
+(program $eval_sets_inter ((T Type) (a T) (as (@TList T) :list) (bs (@TList T)))
+  :signature ((@TList T) (@TList T)) (@TList T)
   (
-    (($eval_sets_inter (@list a as) bs)  (eo::define ((r ($eval_sets_inter as bs)))
-                                         (eo::ite (eo::is_neg (eo::list_find @list bs a))
+    (($eval_sets_inter (@tlist a as) bs)  (eo::define ((r ($eval_sets_inter as bs)))
+                                         (eo::ite (eo::is_neg (eo::list_find @tlist bs a))
                                            (eo::requires ($are_distinct_terms_list_rec a bs (eo::typeof a)) true r)
-                                           (eo::cons @list a r))))
-    (($eval_sets_inter @list.nil bs)     @list.nil)
+                                           (_ @tlist a r))))
+    (($eval_sets_inter (@tlist.nil T) bs)   (@tlist.nil T))
   )
 )
 
 ; program: $eval_sets_minus
 ; args:
-; - @List (Set T): The list of elements in the first set left to process.
-; - @List (Set T): The list of elements in the second set.
+; - s (@TList T): The list of elements in the first set left to process.
+; - t (@TList T): The list of elements in the second set.
 ; return: >
 ;   The elements in the set resulting in the set difference of the arguments.
-(program $eval_sets_minus ((T Type) (a T) (as @List :list) (bs @List))
-  :signature (@List @List) @List
+(program $eval_sets_minus ((T Type) (a T) (as (@TList T) :list) (bs (@TList T)))
+  :signature ((@TList T) (@TList T)) (@TList T)
   (
-    (($eval_sets_minus (@list a as) bs)  (eo::define ((r ($eval_sets_minus as bs)))
-                                         (eo::ite (eo::is_neg (eo::list_find @list bs a))
-                                           (eo::requires ($are_distinct_terms_list_rec a bs (eo::typeof a)) true
-                                             (eo::cons @list a r))
+    (($eval_sets_minus (@tlist a as) bs)  (eo::define ((r ($eval_sets_minus as bs)))
+                                          (eo::ite (eo::is_neg (eo::list_find @tlist bs a))
+                                            (eo::requires ($are_distinct_terms_list_rec a bs (eo::typeof a)) true
+                                              (_ @tlist a r))
                                             r)))
-    (($eval_sets_minus @list.nil bs)     @list.nil)
+    (($eval_sets_minus (@tlist.nil T) bs)  (@tlist.nil T))
   )
 )
 
@@ -84,10 +84,10 @@
 ; - s (Set T): The set to process, expected to be a set operator applied to values
 ; return: >
 ;   The result of evaluating the operator.
-(program $eval_sets_op ((T Type) (s (Set T)) (t (Set T)) (r (Set T)))
-  :signature ((Set T)) @List
+(program $eval_sets_op ((T Type) (s (Set T)) (t (Set T)))
+  :signature ((Set T)) (@TList T)
   (
-    (($eval_sets_op (set.union s t)) (eo::list_concat @list ($set_union_to_list s) ($set_union_to_list t)))
+    (($eval_sets_op (set.union s t)) (eo::list_concat @tlist ($set_union_to_list s) ($set_union_to_list t)))
     (($eval_sets_op (set.inter s t)) ($eval_sets_inter ($set_union_to_list s) ($set_union_to_list t)))
     (($eval_sets_op (set.minus s t)) ($eval_sets_minus ($set_union_to_list s) ($set_union_to_list t)))
   )
@@ -102,8 +102,8 @@
 ; conclusion: The given equality.
 (declare-rule sets-eval-op ((T Type) (a (Set T)) (b (Set T)))
   :args ((= a b))
-  :requires (((eo::list_meq @list
-              (eo::list_setof @list ($eval_sets_op a))
+  :requires (((eo::list_meq @tlist
+              (eo::list_setof @tlist ($eval_sets_op a))
               ($set_union_to_list b)) true))    ; b is already assumed to have no duplicates
   :conclusion (= a b)
 )
@@ -116,11 +116,11 @@
 ; - t (Set T): The set to insert into.
 ; return: >
 ;   The union of elements in es with t.
-(program $set_eval_insert ((T Type) (x T) (xs @List :list) (t (Set T)))
-  :signature (@List (Set T)) (Set T)
+(program $set_eval_insert ((T Type) (x T) (xs (@TList T) :list) (t (Set T)))
+  :signature ((@TList T) (Set T)) (Set T)
   (
-    (($set_eval_insert (@list x xs) t) (set.union (set.singleton x) ($set_eval_insert xs t)))
-    (($set_eval_insert @list.nil t)    t)
+    (($set_eval_insert (@tlist x xs) t) (set.union (set.singleton x) ($set_eval_insert xs t)))
+    (($set_eval_insert (@tlist.nil T) t)    t)
   )
 )
 
@@ -130,7 +130,7 @@
 ; - eq Bool: The equality to prove with this rule.
 ; requires: the union of the elements in the first argument with the last argument equal the right hand side.
 ; conclusion: the equality between a and b.
-(declare-rule sets-insert-elim ((T Type) (s (Set T)) (es @List) (t (Set T)))
+(declare-rule sets-insert-elim ((T Type) (s (Set T)) (es (@TList T)) (t (Set T)))
   :args ((= (set.insert es s) t))
   :requires ((($set_eval_insert es s) t))
   :conclusion (= (set.insert es s) t)

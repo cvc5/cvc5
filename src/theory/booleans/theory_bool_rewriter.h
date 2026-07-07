@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -106,7 +103,12 @@ class TheoryBoolRewriter : public TheoryRewriter
    * @param n The node to negate
    * @return The negation of n.
    */
-  Node makeNegation(TNode n);
+  Node makeNegation(TNode n) const;
+  /**
+   * Rewrite based on ProofRewriteRule::MACRO_BOOL_EQ_CONST_EQ.
+   * Returns a non-null node iff the rewrite applies.
+   */
+  Node rewriteViaEqConstEq(const Node& n) const;
   /** Common constants */
   Node d_true;
   Node d_false;

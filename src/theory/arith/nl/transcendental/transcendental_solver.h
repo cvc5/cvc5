@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -190,12 +187,12 @@ class TranscendentalSolver : protected EnvObj
 
   /** get concavity
    *
-   * Returns whether we are concave (+1) or convex (-1)
+   * Returns whether we are convex or concave
    * in region of transcendental function with kind k,
    * where region is defined above.
-   * Returns 0 if region is invalid.
+   * Returns UNKNOWN if the region is invalid.
    */
-  int regionToConcavity(Kind k, int region);
+  Convexity regionToConcavity(Kind k, TranscendentalRegion region);
 
   /** A reference to the arithmetic state object */
   TheoryState& d_astate;

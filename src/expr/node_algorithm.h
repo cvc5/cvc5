@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Abdalrhman Mohamed
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -65,18 +62,23 @@ bool hasSubtermKinds(const std::unordered_set<Kind, kind::KindHashFunction>& ks,
  * @param ts The subterms of n that have that kind.
  * @param nested Whether we search beneath other applications of k.
  */
-void getSubtermsKind(Kind k, TNode n, std::unordered_set<Node>& ts, bool nested=true);
+void getSubtermsKind(Kind k,
+                     TNode n,
+                     std::unordered_set<Node>& ts,
+                     bool nested = true);
 
 /**
  * @param ks The kinds of node to check
  * @param n The node to search in.
  * @param ts Maps kinds to the subterms of n that have that kind.
- * @param nested Whether we search beneath other applications of terms with kinds in ks.
+ * @param nested Whether we search beneath other applications of terms with
+ * kinds in ks.
  */
 void getSubtermsKinds(
     const std::unordered_set<Kind, kind::KindHashFunction>& ks,
     TNode n,
-    std::map<Kind, std::unordered_set<Node>>& ts, bool nested=true);
+    std::map<Kind, std::unordered_set<Node>>& ts,
+    bool nested = true);
 
 /**
  * @param ks The kinds of node to check
@@ -105,6 +107,14 @@ bool hasSubterm(TNode n, const std::vector<Node>& t, bool strict = false);
  * @return true iff this node contains a bound variable
  */
 bool hasBoundVar(TNode n);
+
+/**
+ * @param n The node under investigation
+ * @param fvs The variables to find
+ * @return true iff n contains a variable fvs as a bound variable (i.e. as
+ * the child of a variable list of a binder).
+ */
+bool hasBoundVar(TNode n, const std::unordered_set<Node>& fvs);
 
 /**
  * Returns true iff the node n contains a free variable, that is, a node

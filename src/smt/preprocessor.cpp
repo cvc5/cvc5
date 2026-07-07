@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -33,15 +30,13 @@ using namespace cvc5::internal::kind;
 namespace cvc5::internal {
 namespace smt {
 
-Preprocessor::Preprocessor(Env& env,
-                           SolverEngineStatistics& stats)
+Preprocessor::Preprocessor(Env& env, SolverEngineStatistics& stats)
     : EnvObj(env),
       d_pppg(nullptr),
       d_propagator(env, true, true),
       d_assertionsProcessed(env.getUserContext(), false),
       d_processor(env, stats)
 {
-
 }
 
 Preprocessor::~Preprocessor() {}

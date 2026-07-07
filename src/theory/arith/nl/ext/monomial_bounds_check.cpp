@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Tim King
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -33,7 +30,8 @@ namespace arith {
 namespace nl {
 
 namespace {
-void debugPrintBound(const char* c, Node coeff, Node x, Kind type, Node rhs)
+void debugPrintBound(
+    CVC5_UNUSED const char* c, Node coeff, Node x, Kind type, Node rhs)
 {
   Node t = ArithMSum::mkCoeffTerm(coeff, x);
   Trace(c) << t << " " << type << " " << rhs;
@@ -347,11 +345,11 @@ void MonomialBoundsCheck::checkBounds(const std::vector<Node>& asserts,
                                            : ProofRule::ARITH_MULT_NEG,
                              {},
                              {mult, simpleeq});
-              if (type == Kind::EQUAL && (rewrite(simpleeq) != rewrite(exp[1])))
+              if (type == Kind::EQUAL
+                  && (!CVC5_EQUAL(rewrite(simpleeq), rewrite(exp[1]))))
               {
-                // it is not identical under rewriting and we need to do some work here
-                // The proof looks like this:
-                // (SCOPE
+                // it is not identical under rewriting and we need to do some
+                // work here The proof looks like this: (SCOPE
                 //   (MODUS_PONENS
                 //     <tmplem>
                 //     (AND_INTRO
@@ -378,7 +376,7 @@ void MonomialBoundsCheck::checkBounds(const std::vector<Node>& asserts,
                                {nm->mkConstInt(Rational(1))});
                 Node lb = nm->mkNode(Kind::GEQ, simpleeq[0], simpleeq[1]);
                 Node rb = nm->mkNode(Kind::LEQ, simpleeq[0], simpleeq[1]);
-                if (rewrite(lb) == rewrite(exp[1][0]))
+                if (CVC5_EQUAL(rewrite(lb), rewrite(exp[1][0])))
                 {
                   proof->addStep(lb,
                                  ProofRule::MACRO_SR_PRED_TRANSFORM,

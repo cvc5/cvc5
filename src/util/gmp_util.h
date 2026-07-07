@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew V. Teylu, Tim King, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -30,15 +27,17 @@
 namespace cvc5::internal {
 
 /** Hashes the gmp integer primitive in a word by word fashion. */
-inline size_t gmpz_hash(const mpz_t toHash) {
+inline size_t gmpz_hash(const mpz_t toHash)
+{
   size_t hash = 0;
-  for (int i = 0, n = mpz_size(toHash); i < n; ++i){
+  for (int i = 0, n = mpz_size(toHash); i < n; ++i)
+  {
     mp_limb_t limb = mpz_getlimbn(toHash, i);
     hash = hash * 2;
     hash = hash ^ limb;
   }
   return hash;
-}/* gmpz_hash() */
+} /* gmpz_hash() */
 
 #ifdef CVC5_NEED_INT64_T_OVERLOADS
 /*

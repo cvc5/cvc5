@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Dejan Jovanovic
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -36,7 +33,8 @@ class Evaluator;
 /**
  * The main rewriter class.
  */
-class Rewriter {
+class Rewriter
+{
   friend class cvc5::internal::Env;  // to set the resource manager
  public:
   Rewriter(NodeManager* nm);
@@ -83,8 +81,7 @@ class Rewriter {
    * @return The trust node of kind TrustNodeKind::REWRITE that contains the
    * rewritten form of node.
    */
-  TrustNode rewriteWithProof(TNode node,
-                             bool isExtEq = false);
+  TrustNode rewriteWithProof(TNode node, bool isExtEq = false);
 
   /** Finish init, which sets up the proof manager if applicable */
   void finishInit(Env& env);
@@ -122,7 +119,6 @@ class Rewriter {
   ProofRewriteRule findRule(const Node& a, const Node& b, TheoryRewriteCtx ctx);
 
  private:
-
   /** Returns the appropriate cache for a node */
   Node getPreRewriteCache(theory::TheoryId theoryId, TNode node);
 
@@ -190,7 +186,7 @@ class Rewriter {
 #ifdef CVC5_ASSERTIONS
   std::unique_ptr<std::unordered_set<Node>> d_rewriteStack = nullptr;
 #endif /* CVC5_ASSERTIONS */
-};/* class Rewriter */
+}; /* class Rewriter */
 
 }  // namespace theory
 }  // namespace cvc5::internal

@@ -15,11 +15,11 @@ jobs:
 
     steps:
     - name: Setup cmake
-      uses: jwlawson/actions-setup-cmake@v1.9
+      uses: jwlawson/actions-setup-cmake@v2
       with:
         cmake-version: ${{ matrix.cmake_version }}
 
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v6
 
     - name: Adapt cmake version checks
       run: |
