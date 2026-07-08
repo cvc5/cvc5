@@ -219,6 +219,7 @@
 ; conclusion: The given witness skolem has length n.
 (declare-rule exists_string_length ((U Type) (n Int) (id Int))
   :args ((Seq U) n id)
+  :requires (((eo::gt n -1) true))
   :conclusion (= (str.len (@witness_string_length (Seq U) n id)) n)
 )
 
