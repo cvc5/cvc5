@@ -56,6 +56,46 @@ class FloatingPoint
    */
   static uint32_t getUnpackedSignificandWidth(FloatingPointSize& size);
 
+  /**
+   * The successor of a floating-point value in the floating-point value
+   * order.
+   *
+   * The floating-point value order is the total order on the non-NaN values
+   * of a format that orders them by the extended real values they denote:
+   *
+   *   -oo < -maxNormal < ... < -minSubnormal < 0 < +minSubnormal < ...
+   *       < +maxNormal < +oo
+   *
+   * Since -0 and +0 both denote the real value 0, they are treated as a
+   * single value in this order (the zero class). This is the order
+   * underlying fp.leq and fp.geq, which treat -0 and +0 as equal; it is not
+   * the order of the packed encodings, which is reversed on the negative
+   * values.
+   *
+   * The successor of fp is its immediate neighbor above in this order: no
+   * value of the same format lies strictly between fp and its successor.
+   * If the successor is the zero class, it is returned as +0. The successor
+   * of +maxNormal is +oo.
+   *
+   * @param fp The value to take the successor of; must be finite (neither
+   *           NaN nor infinity).
+   * @return The next floating-point value strictly above fp.
+   */
+  static FloatingPoint successor(const FloatingPoint& fp);
+
+  /**
+   * The predecessor of a floating-point value in the floating-point value
+   * order, i.e., the dual of successor() (see there for the definition of
+   * the order): the immediate neighbor below fp, with -0 and +0 treated as
+   * the single zero class. If the predecessor is the zero class, it is
+   * returned as +0. The predecessor of -maxNormal is -oo.
+   *
+   * @param fp The value to take the predecessor of; must be finite (neither
+   *           NaN nor infinity).
+   * @return The next floating-point value strictly below fp.
+   */
+  static FloatingPoint predecessor(const FloatingPoint& fp);
+
   /** Constructors. */
 
   /** Create a FP value from its IEEE bit-vector representation. */
