@@ -1408,7 +1408,8 @@
 ;   inclusion dispatcher: it assumes both of its arguments are already in
 ;   (operator-preserving) flat form, so the recursion never reconverts to flat
 ;   form, which is what makes the inclusion test structurally recursive. The public
-;   $str_re_includes below flattens its arguments once and calls it.
+;   $str_re_includes below likewise assumes its arguments are already in flat form;
+;   callers (see rules/Strings.eo) apply $re_to_flat_form once before invoking it.
 (program $str_re_includes_rec () :signature (RegLan RegLan) Bool)
 
 ; define: $str_re_includes
@@ -1417,19 +1418,21 @@
 ; - r2 RegLan: The second regular expression.
 ; return: >
 ;   true if we can infer that all strings in r2 are also in r1. This is the public
-;   entry point. It converts both arguments once to (operator-preserving) flat
-;   form and hands off to the structurally recursive $str_re_includes_rec. The
-;   one-time conversion here is what lets the rest of the family avoid reconverting
-;   during recursion, which is what makes the inclusion test structurally recursive.
+;   entry point. Both arguments are assumed to already be in (operator-preserving)
+;   flat form; callers (see rules/Strings.eo) apply $re_to_flat_form once before
+;   invoking it. After a fast equality check it hands off to the structurally
+;   recursive $str_re_includes_rec. Because flattening happens once, up front, the
+;   rest of the family never reconverts during recursion, which is what makes the
+;   inclusion test structurally recursive.
 (define $str_re_includes ((r1 RegLan) (r3 RegLan))
   (eo::ite (eo::eq r1 r3) true ($str_re_includes_rec r1 r3)))
 
 ; The following three programs are helpers for $str_re_includes_base, dispatching
 ; the union / intersection / star inclusion heuristics. They recurse back into
-; $str_re_includes_rec on a union / intersection child or a star body (each a re.++
+; $str_re_includes on a union / intersection child or a star body (each a re.++
 ; list in flat form) paired against the whole opposite side (a bare component handed
 ; in by $str_re_includes_base). $str_re_includes_rec collapses a singleton list back
-; to its component (via $re_nary_elim) before handing the pair to
+; to its component (via its (re.++ r1) patterns) before handing the pair to
 ; $str_re_includes_base, so a union child is compared against the whole other side
 ; rather than being paired component-by-component.
 
