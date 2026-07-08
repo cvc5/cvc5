@@ -219,7 +219,7 @@
 ; conclusion: The given witness skolem has length n.
 (declare-rule exists_string_length ((U Type) (n Int) (id Int))
   :args ((Seq U) n id)
-  :requires (((eo::gt n -1) true))
+  :requires ((($is_numeral n) true) (($is_numeral id) true))
   :conclusion (= (str.len (@witness_string_length (Seq U) n id)) n)
 )
 
@@ -307,10 +307,7 @@
       (or
         (= t "")
         (str.in_re t r)
-        (and
-            (and (= t (str.++ k1 k2 k3)) M)
-            (not (= k1 ""))
-            (not (= k3 "")))))
+        (and (= t (str.++ k1 k2 k3)) M)))
   )
 )
 
@@ -322,13 +319,14 @@
 (program $mk_re_unfold_pos ((t String) (r1 RegLan) (r2 RegLan :list))
   :signature (String RegLan) Bool
   (
-    (($mk_re_unfold_pos t (re.* r1))
-       ($mk_re_unfold_pos_star t r1 ($re_unfold_pos_concat t (re.++ r1 (re.* r1) r1))))
-    (($mk_re_unfold_pos t (re.++ r1 r2))
-        (eo::define ((res ($re_unfold_pos_concat t (re.++ r1 r2))))
-        (eo::define ((teq (= t ($pair_first res))))
-        (eo::define ((M ($pair_second res)))
-          (eo::ite (eo::eq M true) teq (_ and teq M))))))
+  (($mk_re_unfold_pos t (re.* r1))
+    (eo::define ((rd1 (re.diff r1 (str.to_re ""))))
+      ($mk_re_unfold_pos_star t r1 ($re_unfold_pos_concat t (re.++ rd1 (re.* r1) rd1)))))
+  (($mk_re_unfold_pos t (re.++ r1 r2))
+      (eo::define ((res ($re_unfold_pos_concat t (re.++ r1 r2))))
+      (eo::define ((teq (= t ($pair_first res))))
+      (eo::define ((M ($pair_second res)))
+        (eo::ite (eo::eq M true) teq (_ and teq M))))))
   )
 )
 
@@ -575,7 +573,7 @@
 ; conclusion: The given equality.
 (declare-rule re-inter-inclusion ((r1 RegLan) (r2 RegLan))
   :args ((= (re.inter r1 (re.comp r2)) re.none))
-  :requires ((($str_re_includes r2 r1) true))
+  :requires ((($str_re_includes ($re_to_flat_form r2 false) ($re_to_flat_form r1 false)) true))
   :conclusion (= (re.inter r1 (re.comp r2)) re.none)
 )
 
@@ -589,7 +587,7 @@
 ; conclusion: The given equality.
 (declare-rule re-union-inclusion ((r1 RegLan) (r2 RegLan))
   :args ((= (re.union r1 (re.comp r2)) (re.* re.allchar)))
-  :requires ((($str_re_includes r1 r2) true))
+  :requires ((($str_re_includes ($re_to_flat_form r1 false) ($re_to_flat_form r2 false)) true))
   :conclusion (= (re.union r1 (re.comp r2)) (re.* re.allchar))
 )
 
@@ -943,7 +941,7 @@
 ; conclusion: The given equality.
 (declare-rule str-replace-re-all-eval ((s String) (r RegLan) (t String) (u String))
   :args ((= (str.replace_re_all s r t) u))
-  :requires ((($str_eval_replace_re_all s r t) u))
+  :requires (((eo::is_str s) true) (($str_eval_replace_re_all s r t) u))
   :conclusion (= (str.replace_re_all s r t) u)
 )
 
