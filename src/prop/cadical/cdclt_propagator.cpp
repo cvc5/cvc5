@@ -393,6 +393,7 @@ int CadicalPropagator::cb_add_reason_clause_lit(int propagated_lit)
 bool CadicalPropagator::cb_has_external_clause(bool& forgettable)
 {
   ++d_stats.cbHasExternalClause;
+  forgettable = false;
   if (!d_new_clauses_forgettable.empty())
   {
     Assert(!d_new_clauses.empty());

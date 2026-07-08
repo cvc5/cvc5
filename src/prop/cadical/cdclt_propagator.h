@@ -325,7 +325,7 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator,
    */
   std::deque<CadicalLit> d_new_clauses;
   /** Keep track of forgettable status of clauses buffered in d_new_clauses. */
-  std::deque<CadicalLit> d_new_clauses_forgettable;
+  std::deque<bool> d_new_clauses_forgettable;
 
   /**
    * Flag indicating whether cb_add_reason_clause_lit() is currently
