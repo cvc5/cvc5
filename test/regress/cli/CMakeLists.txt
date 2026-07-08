@@ -2845,6 +2845,7 @@ set(regress_1_tests
   regress1/fp/issue8242-fp-eq-sub-div.smt2
   regress1/fp/issue8242-fp-max-div.smt2
   regress1/fp/issue8242-nested-div.smt2
+  regress1/fp/proj-issue327-nested-conversions.smt2
   regress1/fp/rti_3_5_bug_report.smt2
   regress1/fmf-fun-dbu.smt2
   regress1/fmf/ALG008-1.smt2
