@@ -15,8 +15,6 @@
 
 #include "util/floatingpoint.h"
 
-#include <cmath>
-
 #include "base/check.h"
 #include "util/floatingpoint_literal.h"
 #include "util/integer.h"
@@ -35,6 +33,61 @@ uint32_t FloatingPoint::getUnpackedExponentWidth(FloatingPointSize& size)
 uint32_t FloatingPoint::getUnpackedSignificandWidth(FloatingPointSize& size)
 {
   return FloatingPointLiteral::getUnpackedSignificandWidth(size);
+}
+
+FloatingPoint FloatingPoint::successor(const FloatingPoint& fp)
+{
+  Assert(!fp.isNaN() && !fp.isInfinite());
+  const FloatingPointSize& size = fp.getSize();
+  BitVector packed = fp.pack();
+  uint32_t psize = packed.getSize();
+  const Integer& val = packed.getValue();
+  // The value of the sign bit in the packed representation, 2^(psize - 1).
+  Integer signBitValue = Integer(1).multiplyByPow2(psize - 1);
+  if (val < signBitValue)
+  {
+    // non-negative (including +zero): increment the magnitude
+    return FloatingPoint(size, BitVector(psize, val + 1));
+  }
+  // The packed encoding of the absolute value; for negative values the
+  // encoding order is reversed relative to the value order, so the successor
+  // has the next smaller magnitude.
+  Integer magnitude = val - signBitValue;
+  if (magnitude <= 1)
+  {
+    // -zero: the successor of -zero is the smallest positive subnormal
+    // -minSubnormal: the successor is the zero class
+    return magnitude == 0 ? FloatingPoint::makeMinSubnormal(size, false)
+                          : FloatingPoint::makeZero(size, false);
+  }
+  return FloatingPoint(size, BitVector(psize, signBitValue + (magnitude - 1)));
+}
+
+FloatingPoint FloatingPoint::predecessor(const FloatingPoint& fp)
+{
+  Assert(!fp.isNaN() && !fp.isInfinite());
+  const FloatingPointSize& size = fp.getSize();
+  BitVector packed = fp.pack();
+  uint32_t psize = packed.getSize();
+  const Integer& val = packed.getValue();
+  // The value of the sign bit in the packed representation, 2^(psize - 1).
+  Integer signBitValue = Integer(1).multiplyByPow2(psize - 1);
+  if (val == 0 || val == signBitValue)
+  {
+    // +zero or -zero: the predecessor of the zero class is the smallest
+    // negative subnormal
+    return FloatingPoint::makeMinSubnormal(size, true);
+  }
+  if (val < signBitValue)
+  {
+    // positive: decrement the magnitude (may reach +zero, real value 0)
+    return FloatingPoint(size, BitVector(psize, val - 1));
+  }
+  // The packed encoding of the absolute value; for negative values the
+  // encoding order is reversed relative to the value order, so the
+  // predecessor has the next larger magnitude (may reach -infinity).
+  Integer magnitude = val - signBitValue;
+  return FloatingPoint(size, BitVector(psize, signBitValue + (magnitude + 1)));
 }
 
 FloatingPoint::FloatingPoint(uint32_t d_exp_size,

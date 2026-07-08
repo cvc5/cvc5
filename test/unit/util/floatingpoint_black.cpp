@@ -124,6 +124,60 @@ class TestUtilBlackFloatingPoint : public TestInternal
     }
   }
 
+  /**
+   * Check the successor/predecessor round trips for the value with packed
+   * representation bv: predecessor(successor(fp)) and
+   * successor(predecessor(fp)) are fp again (with the zero class represented
+   * by +0), unless the first step reaches an infinity. Does nothing for NaN
+   * and the infinities.
+   */
+  void checkSuccPredRoundTrip(const FloatingPointSize& fmt, const BitVector& bv)
+  {
+    FloatingPoint fp(fmt, bv);
+    if (fp.isNaN() || fp.isInfinite())
+    {
+      return;
+    }
+
+    FloatingPoint succ = FloatingPoint::successor(fp);
+    ASSERT_FALSE(succ.isNaN());
+    if (succ.isInfinite())
+    {
+      ASSERT_TRUE(succ.isPositive());
+    }
+    else
+    {
+      FloatingPoint back = FloatingPoint::predecessor(succ);
+      if (fp.isZero())
+      {
+        ASSERT_TRUE(back.isZero());
+      }
+      else
+      {
+        ASSERT_EQ(back.pack(), bv);
+      }
+    }
+
+    FloatingPoint pred = FloatingPoint::predecessor(fp);
+    ASSERT_FALSE(pred.isNaN());
+    if (pred.isInfinite())
+    {
+      ASSERT_TRUE(pred.isNegative());
+    }
+    else
+    {
+      FloatingPoint back = FloatingPoint::successor(pred);
+      if (fp.isZero())
+      {
+        ASSERT_TRUE(back.isZero());
+      }
+      else
+      {
+        ASSERT_EQ(back.pack(), bv);
+      }
+    }
+  }
+
   Random& d_rng;
 
   FloatingPointSize d_fp16;
@@ -217,6 +271,93 @@ TEST_F(TestUtilBlackFloatingPoint, fromSbv1)
                        sign);
     }
   }
+}
+
+TEST_F(TestUtilBlackFloatingPoint, successorPredecessorSpecial)
+{
+  for (const auto& size : d_all_formats)
+  {
+    FloatingPoint pzero = FloatingPoint::makeZero(size, false);
+    FloatingPoint nzero = FloatingPoint::makeZero(size, true);
+    FloatingPoint minSub = FloatingPoint::makeMinSubnormal(size, false);
+    FloatingPoint nminSub = FloatingPoint::makeMinSubnormal(size, true);
+    FloatingPoint maxSub = FloatingPoint::makeMaxSubnormal(size, false);
+    FloatingPoint nmaxSub = FloatingPoint::makeMaxSubnormal(size, true);
+    FloatingPoint minNorm = FloatingPoint::makeMinNormal(size, false);
+    FloatingPoint nminNorm = FloatingPoint::makeMinNormal(size, true);
+    FloatingPoint maxNorm = FloatingPoint::makeMaxNormal(size, false);
+    FloatingPoint nmaxNorm = FloatingPoint::makeMaxNormal(size, true);
+
+    // the successor of the zero class is the smallest positive subnormal,
+    // its predecessor the smallest negative subnormal
+    ASSERT_EQ(FloatingPoint::successor(pzero).pack(), minSub.pack());
+    ASSERT_EQ(FloatingPoint::successor(nzero).pack(), minSub.pack());
+    ASSERT_EQ(FloatingPoint::predecessor(pzero).pack(), nminSub.pack());
+    ASSERT_EQ(FloatingPoint::predecessor(nzero).pack(), nminSub.pack());
+    // when the result is the zero class, it is returned as +0
+    ASSERT_EQ(FloatingPoint::successor(nminSub).pack(), pzero.pack());
+    ASSERT_EQ(FloatingPoint::predecessor(minSub).pack(), pzero.pack());
+    // crossing the subnormal/normal boundary
+    ASSERT_EQ(FloatingPoint::successor(maxSub).pack(), minNorm.pack());
+    ASSERT_EQ(FloatingPoint::predecessor(minNorm).pack(), maxSub.pack());
+    ASSERT_EQ(FloatingPoint::successor(nminNorm).pack(), nmaxSub.pack());
+    ASSERT_EQ(FloatingPoint::predecessor(nmaxSub).pack(), nminNorm.pack());
+    // stepping beyond the largest normals reaches the infinities
+    ASSERT_TRUE(FloatingPoint::successor(maxNorm).isInfinite());
+    ASSERT_TRUE(FloatingPoint::successor(maxNorm).isPositive());
+    ASSERT_TRUE(FloatingPoint::predecessor(nmaxNorm).isInfinite());
+    ASSERT_TRUE(FloatingPoint::predecessor(nmaxNorm).isNegative());
+  }
+}
+
+TEST_F(TestUtilBlackFloatingPoint, successorPredecessorRoundTrip)
+{
+  // Round trips through successor/predecessor. Exhaustive for Float16 if
+  // CVC5_SLOW_TESTS is enabled, else only a random subset is tested for
+  // Float16 (as with the other formats). The exhaustive run additionally
+  // establishes adjacency in the value order: if successor skipped over a
+  // value b, the round trip starting at b would not return to b.
+  auto fun16 = [this](const BitVector& bvexp, const BitVector& bvsig) {
+    for (bool sign : {false, true})
+    {
+      BitVector bvsign = sign ? BitVector::mkOne(1) : BitVector::mkZero(1);
+      checkSuccPredRoundTrip(d_fp16, bvsign.concat(bvexp).concat(bvsig));
+    }
+  };
+  testForFloat16(fun16);
+  testForFormats(d_test_formats,
+                 N_TESTS,
+                 [this](const FloatingPointSize& fmt, const BitVector& bv) {
+                   checkSuccPredRoundTrip(fmt, bv);
+                 });
+}
+
+TEST_F(TestUtilBlackFloatingPoint, successorPredecessorOrder)
+{
+  // Successor and predecessor are strictly above resp. below in the value
+  // order (checked on the exact rationals the values denote), for random
+  // values of all formats.
+  Rational zero(0);
+  testForFormats(d_all_formats,
+                 N_TESTS,
+                 [&](const FloatingPointSize& fmt, const BitVector& bv) {
+                   FloatingPoint fp(fmt, bv);
+                   if (fp.isNaN() || fp.isInfinite())
+                   {
+                     return;
+                   }
+                   Rational rfp = fp.convertToRationalTotal(zero);
+                   FloatingPoint succ = FloatingPoint::successor(fp);
+                   if (!succ.isInfinite())
+                   {
+                     ASSERT_TRUE(rfp < succ.convertToRationalTotal(zero));
+                   }
+                   FloatingPoint pred = FloatingPoint::predecessor(fp);
+                   if (!pred.isInfinite())
+                   {
+                     ASSERT_TRUE(pred.convertToRationalTotal(zero) < rfp);
+                   }
+                 });
 }
 
 /* -------------------------------------------------------------------------- */
