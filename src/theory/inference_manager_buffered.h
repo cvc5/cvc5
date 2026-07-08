@@ -128,6 +128,20 @@ class InferenceManagerBuffered : public TheoryInferenceManager
    */
   void doPendingLemmas();
   /**
+   * Do pending method. This processes all pending facts, lemmas and pending
+   * phase requests based on the policy of this manager. This means that
+   * we process the pending facts first and abort if in conflict. Otherwise, we
+   * process the pending lemmas and then the pending phase requirements.
+   * Notice that we process the pending lemmas even if there were facts.
+   */
+  void doPending();
+  /**
+   * Have we processed an inference during this call to check? In particular,
+   * this returns true if we have a pending fact or lemma, or have encountered
+   * a conflict.
+   */
+  bool hasProcessed() const;
+  /**
    * Do pending phase requirements. Calls the output channel for all pending
    * phase requirements and clears d_pendingReqPhase.
    */

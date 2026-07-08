@@ -127,6 +127,25 @@ void InferenceManagerBuffered::doPendingLemmas()
   d_processingPendingLemmas = false;
 }
 
+void InferenceManagerBuffered::doPending()
+{
+  doPendingFacts();
+  if (d_theoryState.isInConflict())
+  {
+    // just clear the pending vectors, nothing else to do
+    clearPendingLemmas();
+    clearPendingPhaseRequirements();
+    return;
+  }
+  doPendingLemmas();
+  doPendingPhaseRequirements();
+}
+
+bool InferenceManagerBuffered::hasProcessed() const
+{
+  return d_theoryState.isInConflict() || hasPending();
+}
+
 void InferenceManagerBuffered::doPendingPhaseRequirements()
 {
   // process the pending require phase calls
