@@ -6,12 +6,6 @@
 (declare-consts <numeral> Int)
 (declare-consts <rational> Real)
 
-; define: $is_numeral
-; args:
-; - n Int: The term
-; return: true iff n is a non-negative numeral literal.
-(define $is_numeral ((n Int)) (eo::gt n -1))
-
 ; program: $arith_mk_zero
 ; args:
 ; - T Type : The type of the zero, which should be Int or Real.
