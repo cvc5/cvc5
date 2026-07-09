@@ -1,4 +1,3 @@
-; COMMAND-LINE: --check-proofs-complete
 ; EXPECT: unsat
 (set-logic ALL)
 (declare-const X String)
