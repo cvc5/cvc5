@@ -653,6 +653,8 @@ libcvc5_add_sources(
   theory/builtin/type_enumerator.h
   theory/bv/abstract/abstraction_lemmas.cpp
   theory/bv/abstract/abstraction_lemmas.h
+  theory/bv/abstract/abstraction_module.cpp
+  theory/bv/abstract/abstraction_module.h
   theory/bv/bitblast/bitblast_proof_generator.cpp
   theory/bv/bitblast/bitblast_proof_generator.h
   theory/bv/bitblast/bitblast_strategies_template.h
