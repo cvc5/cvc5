@@ -975,36 +975,41 @@ Node TheoryFp::purifyConversions(TNode n)
     toVisit.pop_back();
 
     Kind k = curr.getKind();
-    const auto& it = result.find(curr);
-    if (it != result.end())
+    auto [it, inserted] = result.emplace(curr, Node::null());
+    if (!inserted)
     {
       if (it->second.isNull())
       {
         NodeBuilder nb(nm, k);
         if (curr.getMetaKind() == kind::metakind::PARAMETERIZED)
         {
-          nb << result[curr.getOperator()];
+          auto itc = result.find(curr.getOperator());
+          Assert(itc != result.end());
+          Assert(!itc->second.isNull());
+          nb << itc->second;
         }
         for (TNode nc : curr)
         {
-          nb << result[nc];
+          auto itc = result.find(nc);
+          Assert(itc != result.end());
+          Assert(!itc->second.isNull());
+          nb << itc->second;
         }
-        result[curr] = nb;
+        it->second = nb;
       }
     }
     else if (curr.getNumChildren() == 0)
     {
-      result[curr] = curr;
+      it->second = curr;
     }
     else if (k == Kind::FLOATINGPOINT_TO_REAL_TOTAL
              || k == Kind::FLOATINGPOINT_TO_FP_FROM_REAL)
     {
       Node sk = sm->mkPurifySkolem(curr);
-      result[curr] = sk;
+      it->second = sk;
     }
     else
     {
-      result[curr] = Node::null();
       toVisit.push_back(curr);
       if (curr.getMetaKind() == kind::metakind::PARAMETERIZED)
       {
@@ -1013,7 +1018,7 @@ Node TheoryFp::purifyConversions(TNode n)
       toVisit.insert(toVisit.end(), curr.begin(), curr.end());
     }
   }
-  return result[n];
+  return result.at(n);
 }
 
 }  // namespace fp

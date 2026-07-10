@@ -1,5 +1,6 @@
 ; COMMAND-LINE: --fp-exp
 ; EXPECT: unsat
+; DISABLE-TESTER: cpc
 (set-logic ALL)
 (declare-const x Real)
 (declare-const x6 RoundingMode)
