@@ -58,9 +58,9 @@ class AbstractionModule : protected EnvObj
 
   /**
    * Replace every abstractable arithmetic subterm of `fact` (down to theory
-   * leafs, we do not descend into theory leafs) by a fresh constant, recording
+   * leaves, we do not descend into theory leafs) by a fresh constant, recording
    * the abstraction map. Abstractable terms are binary bvmul/bvudiv/bvurem
-   * nodes whose bit-width is at least the abstraction threshold (d_threshold).
+   * nodes whose bit-width is at least the abstraction threshold (d_absSize).
    *
    * @param fact The fact to abstract.
    * @return The abstracted fact (`fact` if nothing was abstracted).
@@ -73,7 +73,7 @@ class AbstractionModule : protected EnvObj
    *
    * For each abstracted term, to check consistency with the actual semantics
    * of the abstracted operation, its value under the current model is evaluated
-   * via `TheoryBv::getValue()`. In case of inconsistency, one violated lemma
+   * via `TheoryBV::getValue()`. In case of inconsistency, one violated lemma
    * per abstracted term is collected. This is "lazy" on purpose as to not
    * overwhelm the SAT solver with refinement lemmas. If no tier-1/2 lemmas are
    * violated and the allowance for adding value instantiation lemmas (tier-3)
@@ -114,7 +114,7 @@ class AbstractionModule : protected EnvObj
   /** The associated bit-vector theory engine. */
   TheoryBV* d_bv;
 
-  /** Minimum bit-width to abstract (option --bv-abstraction-bitwidth). */
+  /** Minimum bit-width to abstract (option --bv-abstraction-size). */
   uint64_t d_absSize;
   /**
    * Limiter for value instantiations, limit is <num insts> < bvsize/d_valLim
