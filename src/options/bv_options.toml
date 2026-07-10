@@ -151,7 +151,7 @@ name   = "Bitvector Theory"
   category   = "expert"
   long       = "bv-abstraction-size=N"
   type       = "uint64_t"
-  default    = "32"
+  default    = "33"
   help       = "minimum bit-width of bit-vector arithmetic terms to abstract with --bv-abstraction"
 
 [[option]]
