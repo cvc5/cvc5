@@ -114,7 +114,7 @@ void StrategyBase::runStrategy(Theory::Effort e)
     if (curr == Step::BREAK)
     {
       // if we have a pending inference or lemma, we will process it
-      if (hasProcessed())
+      if (d_im->hasProcessed())
       {
         break;
       }
@@ -130,29 +130,6 @@ void StrategyBase::runStrategy(Theory::Effort e)
     ++it;
   }
   Trace("strings-process") << "----finished round---" << std::endl;
-}
-
-bool StrategyBase::hasProcessed() const
-{
-  // A step may either buffer its conclusions as pending facts/lemmas (caught by
-  // hasPending) or assert facts / send lemmas immediately (caught by hasSent,
-  // which also covers conflicts). Accounting for both lets the BREAK markers
-  // fire regardless of which style a theory uses to emit inferences.
-  return d_im->hasSent() || d_im->hasPending();
-}
-
-void StrategyBase::doPending()
-{
-  d_im->doPendingFacts();
-  if (d_state->isInConflict())
-  {
-    // just clear the pending vectors, nothing else to do
-    d_im->clearPendingLemmas();
-    d_im->clearPendingPhaseRequirements();
-    return;
-  }
-  d_im->doPendingLemmas();
-  d_im->doPendingPhaseRequirements();
 }
 
 void StrategyBase::postCheck(Theory::Effort e)
@@ -184,7 +161,7 @@ void StrategyBase::postCheck(Theory::Effort e)
       // Send the facts *and* the lemmas. We send lemmas regardless of whether
       // we send facts since some lemmas cannot be dropped. Other lemmas are
       // otherwise avoided by aborting the strategy when a fact is ready.
-      doPending();
+      d_im->doPending();
       // Did we successfully send a lemma? Notice that if hasPending = true
       // and sentLemma = false, then the above call may have:
       // (1) had no pending lemmas, but successfully processed pending facts,

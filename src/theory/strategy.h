@@ -98,9 +98,6 @@ class StrategyBase
    */
   virtual void postCheck(Theory::Effort e);
 
-  /**ToDo: move this to InferenceManagerBuffered with new field TheoryState */
-  void doPending();
-
  protected:
   /**
    * Run the steps registered for effort e in order, dispatching each via
@@ -141,8 +138,6 @@ class StrategyBase
    * after all steps and effort marks have been added.
    */
   void finishInit();
-
-  bool hasProcessed() const;
 
  protected:
   TheoryId d_theoryId;
