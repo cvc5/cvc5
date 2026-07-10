@@ -32,7 +32,6 @@ namespace test {
 class TestUtilBlackFloatingPoint : public TestInternal
 {
  protected:
-  static constexpr bool ENABLE_SLOW_TESTS = false;
   /** Default number of random tests when not exhaustively testing. */
   static constexpr uint32_t N_TESTS = 1000;
   /** Number of tests fp.rem (significantly slower than other operators). */
@@ -49,10 +48,14 @@ class TestUtilBlackFloatingPoint : public TestInternal
         d_fp128(15, 113),
         d_all_formats({d_fp16, d_fp32, d_fp64, d_fp128}),
         d_formats_32_128({d_fp32, d_fp64, d_fp128}),
-        // If slow tests are enabled, we exhaustively test for Float16,
-        // and randomly for other formats. Else, we test randomly for
-        // all formats, for N_TESTS each.
-        d_test_formats(ENABLE_SLOW_TESTS ? d_formats_32_128 : d_all_formats)
+  // If slow tests are enabled (CVC5_SLOW_TESTS), we exhaustively test
+  // for Float16, and randomly for other formats. Else, we test randomly
+  // for all formats, for N_TESTS each.
+#ifdef CVC5_SLOW_TESTS
+        d_test_formats(d_formats_32_128)
+#else
+        d_test_formats(d_all_formats)
+#endif
   {
   }
 
@@ -81,24 +84,27 @@ class TestUtilBlackFloatingPoint : public TestInternal
     return d_all_formats[d_rng.pick<size_t>() % d_all_formats.size()];
   }
 
-  /** Test `fun` exhaustively for all Float16 values. */
+  /**
+   * Test `fun` exhaustively for all Float16 values.
+   * Does nothing unless compiled with CVC5_SLOW_TESTS.
+   */
   void testForFloat16(
-      std::function<void(const BitVector&, const BitVector&)> fun)
+      [[maybe_unused]] std::function<void(const BitVector&, const BitVector&)>
+          fun)
   {
-    if (ENABLE_SLOW_TESTS)
+#ifdef CVC5_SLOW_TESTS
+    uint32_t expSize = 5;
+    uint32_t sigBits = 10;  // significand width minus hidden bit
+    for (uint32_t i = 0; i < (1u << expSize); ++i)
     {
-      uint32_t expSize = 5;
-      uint32_t sigBits = 10;  // significand width minus hidden bit
-      for (uint32_t i = 0; i < (1u << expSize); ++i)
+      BitVector bvexp(expSize, i);
+      for (uint32_t j = 0; j < (1u << sigBits); ++j)
       {
-        BitVector bvexp(expSize, i);
-        for (uint32_t j = 0; j < (1u << sigBits); ++j)
-        {
-          BitVector bvsig(sigBits, j);
-          fun(bvexp, bvsig);
-        }
+        BitVector bvsig(sigBits, j);
+        fun(bvexp, bvsig);
       }
     }
+#endif
   }
 
   /** Test `fun` for given formats. */
@@ -128,7 +134,7 @@ class TestUtilBlackFloatingPoint : public TestInternal
   std::vector<FloatingPointSize> d_all_formats;
   std::vector<FloatingPointSize> d_formats_32_128;
   std::vector<RoundingMode> d_all_rms;
-  std::vector<FloatingPointSize>& d_test_formats;
+  const std::vector<FloatingPointSize>& d_test_formats;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -236,7 +242,8 @@ FloatingPointLiteralSymFPU fpSymFPU(const FloatingPointSize& fmt,
 
 TEST_F(TestUtilBlackFloatingPoint, pack)
 {
-  // Exhaustive for Float16
+  // Exhaustive for Float16 if CVC5_SLOW_TESTS is enabled, else only a random
+  // subset is tested for Float16 (as with the other formats).
   auto fun16 = [this](const BitVector& bvexp, const BitVector& bvsig) {
     for (bool sign : {false, true})
     {
@@ -425,28 +432,27 @@ TEST_F(TestUtilBlackFloatingPoint, specialConstants)
 
 TEST_F(TestUtilBlackFloatingPoint, fromUbvSbv)
 {
-  // Only test exhaustively for Float16 if SLOW_TESTS enabled.
-  if (ENABLE_SLOW_TESTS)
+#ifdef CVC5_SLOW_TESTS
+  // Test exhaustively for Float16.
+  for (uint64_t bw = 2; bw <= 16; ++bw)
   {
-    for (uint64_t bw = 2; bw <= 16; ++bw)
+    for (uint64_t i = 0; i < (1ul << bw); ++i)
     {
-      for (uint64_t i = 0; i < (1ul << bw); ++i)
+      BitVector bv = BitVector(bw, i);
+      for (RoundingMode rm : d_all_rms)
       {
-        BitVector bv = BitVector(bw, i);
-        for (RoundingMode rm : d_all_rms)
+        for (bool sign : {false, true})
         {
-          for (bool sign : {false, true})
-          {
-            FloatingPointLiteralMPFR mpfr(d_fp16, rm, bv, sign);
-            FloatingPointLiteralSymFPU symfpu(d_fp16, rm, bv, sign);
-            ASSERT_EQ(mpfr.pack(), symfpu.pack());
-          }
+          FloatingPointLiteralMPFR mpfr(d_fp16, rm, bv, sign);
+          FloatingPointLiteralSymFPU symfpu(d_fp16, rm, bv, sign);
+          ASSERT_EQ(mpfr.pack(), symfpu.pack());
         }
       }
     }
   }
-  // Test randomly for all formats if SLOW_TESTS disabled, else only test this
-  // for larger formats since we already tested for Float16 exhaustively.
+#endif
+  // Test randomly for all formats if CVC5_SLOW_TESTS is not defined, else
+  // only for larger formats since we already tested Float16 exhaustively.
   for (const auto& f : d_test_formats)
   {
     for (uint64_t bw = 1; bw <= 16; ++bw)
@@ -545,7 +551,9 @@ TEST_UNARY_RM_OP(fpRti, rti)
 
 TEST_F(TestUtilBlackFloatingPoint, fpRem)
 {
-  // Exhaustive for Float16 (one operand exhaustive, other random)
+  // Exhaustive for Float16 (one operand exhaustive, other random) if
+  // CVC5_SLOW_TESTS is not enabled, else only a random subset is tested for
+  // Float16 (as with the other formats).
   auto fun16 = [this](const BitVector& bvexp, const BitVector& bvsig) {
     bool sign = pickBool();
     BitVector bvsign = sign ? BitVector::mkOne(1) : BitVector::mkZero(1);
