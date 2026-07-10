@@ -52,7 +52,7 @@ class TestTheoryWhiteBvAbstractionLemmas : public TestSmtNoFinishInit
   /**
    * Check all symbolic (non-value) lemmas for the given operator.
    * A purely symbolic lemma implements the 3-argument `instance(x, s, t)`
-   * and returns a null Node for `instance(x, s, t, xval, sval, tval)`.
+   * and returns a null Node for `instance(x, s, t, xval, sval)`.
    */
   void checkSymbolicLemma(Kind op)
   {
@@ -79,7 +79,7 @@ class TestTheoryWhiteBvAbstractionLemmas : public TestSmtNoFinishInit
   /**
    * Check all model-value-based (power-of-two) lemmas for the given operator.
    * A model-value-based lemma returns a null node for `instance(x, s, t)`
-   * and implements the 6-argument `instance(x, s, t, xval, sval, tval)`.
+   * and implements the 5-argument `instance(x, s, t, xval, sval)`.
    */
   void checkModelValueBasedLemma(Kind op)
   {
@@ -104,7 +104,7 @@ class TestTheoryWhiteBvAbstractionLemmas : public TestSmtNoFinishInit
           {
             // val_x and val_s both set to the candidate; the builder reads the
             // operand relevant to its operator and ignores the other.
-            Node inst = lemma->instance(x, s, t, val, val, t);
+            Node inst = lemma->instance(x, s, t, val, val);
             if (inst.isNull())
             {
               continue;
