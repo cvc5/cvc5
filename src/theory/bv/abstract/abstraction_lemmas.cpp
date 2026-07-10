@@ -53,8 +53,7 @@ Node AbstractionLemma::instance(CVC5_UNUSED TNode x,
                                 CVC5_UNUSED TNode s,
                                 CVC5_UNUSED TNode t,
                                 CVC5_UNUSED TNode xval,
-                                CVC5_UNUSED TNode sval,
-                                CVC5_UNUSED TNode tval) const
+                                CVC5_UNUSED TNode sval) const
 {
   return Node();
 }
@@ -68,7 +67,7 @@ Node AbstractionLemma::instance(CVC5_UNUSED TNode x,
 #define LEMMA_VAL(kind)                  \
   template <>                            \
   Node Lemma<LemmaKind::kind>::instance( \
-      TNode x, TNode s, TNode t, TNode xval, TNode sval, TNode tval) const
+      TNode x, TNode s, TNode t, TNode xval, TNode sval) const
 
 // Multiplication lemmas
 
@@ -244,12 +243,8 @@ Node ones(NodeManager* nm, TNode x)
 
 // 1*: (=> (= x 2^i) (= t (bvshl s i)))
 template <>
-Node Lemma<LemmaKind::MUL_POW2>::instance(TNode x,
-                                          TNode s,
-                                          TNode t,
-                                          TNode xval,
-                                          CVC5_UNUSED TNode sval,
-                                          CVC5_UNUSED TNode tval) const
+Node Lemma<LemmaKind::MUL_POW2>::instance(
+    TNode x, TNode s, TNode t, TNode xval, CVC5_UNUSED TNode sval) const
 {
   Assert(xval.isConst());
   const BitVector& bv = xval.getConst<BitVector>();
@@ -261,12 +256,8 @@ Node Lemma<LemmaKind::MUL_POW2>::instance(TNode x,
 
 // 2*: (=> (= x -2^i) (= t (bvshl (bvneg s) i)))
 template <>
-Node Lemma<LemmaKind::MUL_NEG_POW2>::instance(TNode x,
-                                              TNode s,
-                                              TNode t,
-                                              TNode xval,
-                                              CVC5_UNUSED TNode sval,
-                                              CVC5_UNUSED TNode tval) const
+Node Lemma<LemmaKind::MUL_NEG_POW2>::instance(
+    TNode x, TNode s, TNode t, TNode xval, CVC5_UNUSED TNode sval) const
 {
   Assert(xval.isConst());
   const BitVector& bv = xval.getConst<BitVector>();
@@ -431,12 +422,8 @@ Node Lemma<LemmaKind::MUL_REF12>::instance(TNode x, TNode s, TNode t) const
 
 // 1*: (=> (= s 2^i) (= t (bvlshr x i)))
 template <>
-Node Lemma<LemmaKind::UDIV_POW2>::instance(TNode x,
-                                           TNode s,
-                                           TNode t,
-                                           CVC5_UNUSED TNode xval,
-                                           TNode sval,
-                                           CVC5_UNUSED TNode tval) const
+Node Lemma<LemmaKind::UDIV_POW2>::instance(
+    TNode x, TNode s, TNode t, CVC5_UNUSED TNode xval, TNode sval) const
 {
   Assert(sval.isConst());
   const BitVector& bv = sval.getConst<BitVector>();
@@ -734,12 +721,8 @@ Node Lemma<LemmaKind::UDIV_REF38>::instance(TNode x,
 
 // 1*: (=> (= s 2^i) (= t (concat 0[w-i] x[i-1:0])))
 template <>
-Node Lemma<LemmaKind::UREM_POW2>::instance(TNode x,
-                                           TNode s,
-                                           TNode t,
-                                           CVC5_UNUSED TNode xval,
-                                           TNode sval,
-                                           CVC5_UNUSED TNode tval) const
+Node Lemma<LemmaKind::UREM_POW2>::instance(
+    TNode x, TNode s, TNode t, CVC5_UNUSED TNode xval, TNode sval) const
 {
   Assert(sval.isConst());
   const BitVector& bv = sval.getConst<BitVector>();
@@ -763,9 +746,7 @@ Node Lemma<LemmaKind::UREM_POW2>::instance(TNode x,
 
 // 2*: (=> (distinct s 0) (bvult t s))
 template <>
-Node Lemma<LemmaKind::UREM_REF1>::instance(TNode x,
-                                           CVC5_UNUSED TNode s,
-                                           TNode t) const
+Node Lemma<LemmaKind::UREM_REF1>::instance(TNode x, TNode s, TNode t) const
 {
   return impl(d_nm, distinct(d_nm, s, zero(d_nm, x)), bvult(d_nm, t, s));
 }
@@ -781,27 +762,21 @@ Node Lemma<LemmaKind::UREM_REF2>::instance(TNode x,
 
 // 4*: (=> (= s 0) (= t x))
 template <>
-Node Lemma<LemmaKind::UREM_REF3>::instance(TNode x,
-                                           CVC5_UNUSED TNode s,
-                                           TNode t) const
+Node Lemma<LemmaKind::UREM_REF3>::instance(TNode x, TNode s, TNode t) const
 {
   return impl(d_nm, eq(d_nm, s, zero(d_nm, x)), eq(d_nm, t, x));
 }
 
 // 5*: (=> (= s x) (= t 0))
 template <>
-Node Lemma<LemmaKind::UREM_REF4>::instance(TNode x,
-                                           CVC5_UNUSED TNode s,
-                                           TNode t) const
+Node Lemma<LemmaKind::UREM_REF4>::instance(TNode x, TNode s, TNode t) const
 {
   return impl(d_nm, eq(d_nm, s, x), eq(d_nm, t, zero(d_nm, x)));
 }
 
 // 6*: (=> (bvult x s) (= t x))
 template <>
-Node Lemma<LemmaKind::UREM_REF5>::instance(TNode x,
-                                           CVC5_UNUSED TNode s,
-                                           TNode t) const
+Node Lemma<LemmaKind::UREM_REF5>::instance(TNode x, TNode s, TNode t) const
 {
   return impl(d_nm, bvult(d_nm, x, s), eq(d_nm, t, x));
 }
@@ -817,9 +792,7 @@ Node Lemma<LemmaKind::UREM_REF6>::instance(CVC5_UNUSED TNode x,
 
 // 8: (= x (bvand x (bvor s (bvor t (bvneg s)))))
 template <>
-Node Lemma<LemmaKind::UREM_REF7>::instance(TNode x,
-                                           CVC5_UNUSED TNode s,
-                                           TNode t) const
+Node Lemma<LemmaKind::UREM_REF7>::instance(TNode x, TNode s, TNode t) const
 {
   return eq(
       d_nm, x, bvand(d_nm, x, bvor(d_nm, s, bvor(d_nm, t, bvneg(d_nm, s)))));
@@ -827,18 +800,14 @@ Node Lemma<LemmaKind::UREM_REF7>::instance(TNode x,
 
 // 9: (not (bvult x (bvor t (bvand x s))))
 template <>
-Node Lemma<LemmaKind::UREM_REF8>::instance(TNode x,
-                                           CVC5_UNUSED TNode s,
-                                           TNode t) const
+Node Lemma<LemmaKind::UREM_REF8>::instance(TNode x, TNode s, TNode t) const
 {
   return bvuge(d_nm, x, bvor(d_nm, t, bvand(d_nm, x, s)));
 }
 
 // 10: (not (= 1 (bvand t (bvnot (bvor x s)))))
 template <>
-Node Lemma<LemmaKind::UREM_REF9>::instance(TNode x,
-                                           CVC5_UNUSED TNode s,
-                                           TNode t) const
+Node Lemma<LemmaKind::UREM_REF9>::instance(TNode x, TNode s, TNode t) const
 {
   return distinct(
       d_nm, one(d_nm, x), bvand(d_nm, t, bvnot(d_nm, bvor(d_nm, x, s))));
@@ -846,18 +815,14 @@ Node Lemma<LemmaKind::UREM_REF9>::instance(TNode x,
 
 // 11: (not (= t (bvor (bvnot x) (bvneg s))))
 template <>
-Node Lemma<LemmaKind::UREM_REF10>::instance(TNode x,
-                                            CVC5_UNUSED TNode s,
-                                            TNode t) const
+Node Lemma<LemmaKind::UREM_REF10>::instance(TNode x, TNode s, TNode t) const
 {
   return distinct(d_nm, t, bvor(d_nm, bvnot(d_nm, x), bvneg(d_nm, s)));
 }
 
 // 12: (not (bvult (bvand t (bvor x s)) (bvand t 1)))
 template <>
-Node Lemma<LemmaKind::UREM_REF11>::instance(TNode x,
-                                            CVC5_UNUSED TNode s,
-                                            TNode t) const
+Node Lemma<LemmaKind::UREM_REF11>::instance(TNode x, TNode s, TNode t) const
 {
   return bvuge(
       d_nm, bvand(d_nm, t, bvor(d_nm, x, s)), bvand(d_nm, t, one(d_nm, x)));
@@ -876,18 +841,14 @@ Node Lemma<LemmaKind::UREM_REF12>::instance(TNode x,
 
 // 14: (not (bvult (bvadd x (bvneg s)) t))
 template <>
-Node Lemma<LemmaKind::UREM_REF13>::instance(TNode x,
-                                            CVC5_UNUSED TNode s,
-                                            TNode t) const
+Node Lemma<LemmaKind::UREM_REF13>::instance(TNode x, TNode s, TNode t) const
 {
   return bvuge(d_nm, bvadd(d_nm, x, bvneg(d_nm, s)), t);
 }
 
 // 15: (not (bvult (bvxor (bvneg s) (bvor x s)) t))
 template <>
-Node Lemma<LemmaKind::UREM_REF14>::instance(TNode x,
-                                            CVC5_UNUSED TNode s,
-                                            TNode t) const
+Node Lemma<LemmaKind::UREM_REF14>::instance(TNode x, TNode s, TNode t) const
 {
   return bvuge(d_nm, bvxor(d_nm, bvneg(d_nm, s), bvor(d_nm, x, s)), t);
 }

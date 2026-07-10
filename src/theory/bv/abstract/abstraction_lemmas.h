@@ -141,7 +141,7 @@ class AbstractionLemma
   LemmaKind getKind() const { return d_kind; }
 
   /**
-   * For a bit-vector arithmetic term (op s t) that is abstracted with t,
+   * For a bit-vector arithmetic term (op x s) that is abstracted with t,
    * determine the instantiation of a purely symbolic lemma.
    *
    * @param x     The x operand.
@@ -152,21 +152,20 @@ class AbstractionLemma
   virtual Node instance(TNode x, TNode s, TNode t) const;
 
   /**
-   * For a bit-vector arithmetic term (op s t) that is abstracted with t,
-   * determine the instantiation of a lemma that depends on the model values
-   * of x, s, and t.
+   * For a bit-vector arithmetic term (op x s) that is abstracted with t,
+   * determine the instantiation of a lemma that depends on the model
+   * values of x and/or s.
    *
    * @param nm   The associated node manager.
-   * @param xval The model value of x.
-   * @param sval The model value of s.
-   * @param tval The model value of t.
    * @param x    The x operand.
    * @param s    The s operand.
    * @param t    The t operand.
+   * @param xval The model value of x.
+   * @param sval The model value of s.
    * @return The instantiation of the lemma.
    */
   virtual Node instance(
-      TNode x, TNode s, TNode t, TNode xval, TNode sval, TNode tval) const;
+      TNode x, TNode s, TNode t, TNode xval, TNode sval) const;
 
  protected:
   /** The associated node manager. */
@@ -191,8 +190,7 @@ class Lemma : public AbstractionLemma
                 CVC5_UNUSED TNode s,
                 CVC5_UNUSED TNode t,
                 CVC5_UNUSED TNode xval,
-                CVC5_UNUSED TNode sval,
-                CVC5_UNUSED TNode tval) const override
+                CVC5_UNUSED TNode sval) const override
   {
     return Node();
   }
