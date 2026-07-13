@@ -1,7 +1,19 @@
 This file contains a summary of important user-visible changes.
 
-cvc5 1.3.4 prerelease
+cvc5 1.3.5 prerelease
 =====================
+
+## Changes
+
+- The C API no longer terminates the process when an error occurs. Instead of
+  printing to stderr and calling `exit()`, C API functions now record the error
+  in thread-local state and return a default value (e.g., `NULL`, `false`, or
+  `0`). Callers can query the error via the new functions `cvc5_has_error()` and
+  `cvc5_get_error_message()`, and clear it via `cvc5_reset_error()`. The error
+  state is reset at the start of the next C API call that can raise an error.
+
+cvc5 1.3.4
+==========
 
 ## Changes
 
@@ -21,6 +33,12 @@ cvc5 1.3.4 prerelease
   called after an unsat response when uninterpreted sorts are present.
 - Fixes issues related to theory combination with arrays and non-linear
   arithmetic.
+- Added full proof support in CaDiCaL, meaning `--sat-solver=cadical` can now be
+  used in combination with proofs `--produce-proofs`.
+- Improved proof support for Alethe: full translation for CPC fragment for
+  logics in AUFNIRA.
+- Minor updates and fixes to the CPC proof signature. The current CPC proofs are
+  checkable by Ethos 0.2.3 (`./contrib/get-ethos-checker`).
 
 cvc5 1.3.3
 ==========

@@ -121,8 +121,6 @@ const char* toString(InferenceId i)
       return "ARITH_NL_POW2_VALUE_REFINE";
     case InferenceId::ARITH_NL_POW2_MONOTONE_REFINE:
       return "ARITH_NL_POW2_MONOTONE_REFINE";
-    case InferenceId::ARITH_NL_POW2_NEG_REFINE:
-      return "ARITH_NL_POW2_NEG_REFINE";
     case InferenceId::ARITH_NL_POW2_DIV0_CASE_REFINE:
       return "ARITH_NL_POW2_DIV0_CASE_REFINE";
     case InferenceId::ARITH_NL_POW2_LOWER_BOUND_CASE_REFINE:

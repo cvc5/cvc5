@@ -30,6 +30,7 @@ namespace arith {
 ArithProofRuleChecker::ArithProofRuleChecker(NodeManager* nm)
     : ProofRuleChecker(nm),
       d_extChecker(nm),
+      d_pow2Checker(nm),
       d_trChecker(nm)
 #ifdef CVC5_POLY_IMP
       ,
@@ -52,6 +53,7 @@ void ArithProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(ProofRule::ARITH_POLY_NORM_REL, this);
   // register the extended proof checkers
   d_extChecker.registerTo(pc);
+  d_pow2Checker.registerTo(pc);
   d_trChecker.registerTo(pc);
 #ifdef CVC5_POLY_IMP
   d_covChecker.registerTo(pc);
@@ -85,8 +87,8 @@ Node ArithProofRuleChecker::checkInternal(ProofRule id,
       Assert(args.size() == 2);
       Node mult = args[0];
       Kind rel = args[1].getKind();
-      Assert(rel == Kind::EQUAL || rel == Kind::DISTINCT || rel == Kind::LT
-             || rel == Kind::LEQ || rel == Kind::GT || rel == Kind::GEQ);
+      Assert(rel == Kind::EQUAL || rel == Kind::LT || rel == Kind::LEQ
+             || rel == Kind::GT || rel == Kind::GEQ);
       Node lhs = args[1][0];
       Node rhs = args[1][1];
       Node zero = nm->mkConstRealOrInt(mult.getType(), Rational(0));
@@ -103,9 +105,9 @@ Node ArithProofRuleChecker::checkInternal(ProofRule id,
       Assert(args.size() == 2);
       Node mult = args[0];
       Kind rel = args[1].getKind();
-      Assert(rel == Kind::EQUAL || rel == Kind::DISTINCT || rel == Kind::LT
-             || rel == Kind::LEQ || rel == Kind::GT || rel == Kind::GEQ);
-      Kind rel_inv = (rel == Kind::DISTINCT ? rel : reverseRelationKind(rel));
+      Assert(rel == Kind::EQUAL || rel == Kind::LT || rel == Kind::LEQ
+             || rel == Kind::GT || rel == Kind::GEQ);
+      Kind rel_inv = reverseRelationKind(rel);
       Node lhs = args[1][0];
       Node rhs = args[1][1];
       Node zero = nm->mkConstRealOrInt(mult.getType(), Rational(0));

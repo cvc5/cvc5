@@ -21,7 +21,7 @@
 ; - b1 Bool: The first Boolean.
 ; - b2 Bool: The second Boolean.
 ; return: the result of applying f to b1 and b2.
-(program $bv_bitblast_binary_app ((T Type) (f (-> T T Bool)) (a Bool) (b Bool))
+(program $bv_bitblast_binary_app ((T Type) (a Bool) (b Bool))
   :signature ((-> T T Bool) Bool Bool) Bool
   (
   (($bv_bitblast_binary_app and a b)  (and a b))
@@ -31,18 +31,13 @@
   )
 )
 
-; program: $bv_bitblast_repeat
+; define: $bv_bitblast_repeat
 ; args:
 ; - b Bool: The Boolean to repeat
 ; - n Int: The number of times to repeat it.
 ; return: the list of bits containing b, n times.
-(program $bv_bitblast_repeat ((b Bool) (n Int))
-  :signature (Bool (eo::quote n)) (BitVec n)
-  (
-    (($bv_bitblast_repeat b 0)  @bv_empty)
-    (($bv_bitblast_repeat b n)  (_ @from_bools b ($bv_bitblast_repeat b (eo::add n -1))))
-  )
-)
+(define $bv_bitblast_repeat ((b Bool) (n Int))
+  (eo::list_repeat @from_bools b n))
 
 ; program: $bv_bitblast_prefix
 ; args:
@@ -413,16 +408,16 @@
 ; - x (BitVec n): The first argument to div/rem, expected to be a list of bits.
 ; - y (BitVec n): The second argument to div/rem, expected to be a list of bits.
 ; - zero (BitVec n): A list of bits corresponding to the zero bitvector of the given width.
-; - sz Int: The number of bits left to process.
+; - xs (@TList Int): The list of bit indices left to process, used to make this method structurally recursive.
 ; return:
 ;   A pair corresponding to the bitblasted form of the quotient/remainder of x and y.
-(program $bv_div_mod_impl ((n Int) (a1 (BitVec n)) (a2 (BitVec n)) (sz Int) (zero (BitVec n)))
-  :signature ((BitVec n) (BitVec n) (BitVec n) Int) (@Pair (BitVec n) (BitVec n))
+(program $bv_div_mod_impl ((n Int) (a1 (BitVec n)) (a2 (BitVec n)) (i Int) (xs (@TList Int) :list) (zero (BitVec n)))
+  :signature ((BitVec n) (BitVec n) (BitVec n) (eo::quote xs)) (@Pair (BitVec n) (BitVec n))
   (
-  (($bv_div_mod_impl a1 a2 zero 0)    (@pair zero zero))
-  (($bv_div_mod_impl zero a2 zero sz) (@pair zero zero))
-  (($bv_div_mod_impl a1 a2 zero sz)
-        (eo::define ((recres ($bv_div_mod_impl ($bv_bitblast_rshift a1 1) a2 zero (eo::add sz -1))))
+  (($bv_div_mod_impl a1 a2 zero (@tlist.nil Int)) (@pair zero zero))
+  (($bv_div_mod_impl zero a2 zero xs)             (@pair zero zero))
+  (($bv_div_mod_impl a1 a2 zero (@tlist i xs))
+        (eo::define ((recres ($bv_div_mod_impl ($bv_bitblast_rshift a1 1) a2 zero xs)))
         (eo::define ((isodd ($bv_bitblast_head a1)))
         (eo::define ((q1s ($bv_bitblast_lshift ($pair_first recres) 1)))
         (eo::define ((r1s ($bv_bitblast_lshift ($pair_second recres) 1)))
@@ -448,7 +443,7 @@
 (define $bv_mk_bitblast_step_udiv ((n Int :implicit) (a1 (BitVec n)) (a2 (BitVec n)))
   (eo::define ((sz ($bv_bitwidth (eo::typeof a1))))
   (eo::define ((zero ($bv_bitblast_zero sz)))
-  (eo::define ((res ($bv_div_mod_impl a1 a2 zero sz)))
+  (eo::define ((res ($bv_div_mod_impl a1 a2 zero ($iota sz))))
   (eo::define ((isz ($bv_mk_bitblast_step_eq a2 zero)))
     ($bv_bitblast_apply_ite isz ($bv_bitblast_repeat true sz) ($pair_first res)))))))
 
@@ -460,7 +455,7 @@
 (define $bv_mk_bitblast_step_urem ((n Int :implicit) (a1 (BitVec n)) (a2 (BitVec n)))
   (eo::define ((sz ($bv_bitwidth (eo::typeof a1))))
   (eo::define ((zero ($bv_bitblast_zero sz)))
-  (eo::define ((res ($bv_div_mod_impl a1 a2 zero sz)))
+  (eo::define ((res ($bv_div_mod_impl a1 a2 zero ($iota sz))))
   (eo::define ((isz ($bv_mk_bitblast_step_eq a2 zero)))
     ($bv_bitblast_apply_ite isz a1 ($pair_second res)))))))
 
@@ -486,14 +481,14 @@
 ; program: $bv_const_to_bitlist_rec
 ; args:
 ; - c (BitVec n): The bitvector constant to process.
-; - i Int: The index we are currently processing.
-; - n Int: The bitwidth of c.
-; return: the bitlist for a starting with index i.
-(program $bv_const_to_bitlist_rec ((n Int) (c (BitVec n)) (i Int))
-  :signature ((BitVec n) (eo::quote i) Int) (BitVec (eo::add n (eo::neg i)))
+; - xs (@TList Int): The list of bits left to process.
+; return: the bitlist for a, for bits listed by xs.
+(program $bv_const_to_bitlist_rec ((n Int) (c (BitVec n)) (i Int) (xs (@TList Int) :list))
+  :signature ((BitVec n) (eo::quote xs)) (BitVec (eo::list_len @tlist xs))
   (
-    (($bv_const_to_bitlist_rec c n n)   @bv_empty)
-    (($bv_const_to_bitlist_rec c i n)   (_ @from_bools ($bv_bit_set c i) ($bv_const_to_bitlist_rec c (eo::add i 1) n)))
+  (($bv_const_to_bitlist_rec c (@tlist.nil Int))   @bv_empty)
+  (($bv_const_to_bitlist_rec c (@tlist i xs))
+    (_ @from_bools ($bv_bit_set c i) ($bv_const_to_bitlist_rec c xs)))
   )
 )
 
@@ -502,7 +497,7 @@
 ; - a (BitVec n): The bitvector constant to bitblast.
 ; return: the bitblasted term for a, which is its reverse bitlist.
 (define $bv_mk_bitblast_step_const ((n Int :implicit) (a (BitVec n)))
-  ($bv_const_to_bitlist_rec a 0 (eo::len a)))
+  ($bv_const_to_bitlist_rec a ($iota (eo::len a))))
 
 ;;; shifts
 
@@ -619,13 +614,13 @@
 ; program: $bv_mk_bitblast_step_var_rec
 ; args:
 ; - a (BitVec n): The bitvector variable to bitblast.
-; - i Int: The index of the bit we are currently processing.
-; return: the bitblasted term for variable a.
-(program $bv_mk_bitblast_step_var_rec ((n Int) (a (BitVec n)) (i Int))
-  :signature ((BitVec n) (eo::quote i)) (BitVec (eo::add i 1))
+; - xs (@TList Int): The list of bit indices left to process.
+; return: the bitblasted term for variable a, for bits listed by xs.
+(program $bv_mk_bitblast_step_var_rec ((n Int) (a (BitVec n)) (i Int) (xs (@TList Int) :list))
+  :signature ((BitVec n) (eo::quote xs)) (BitVec (eo::list_len @tlist xs))
   (
-    (($bv_mk_bitblast_step_var_rec a -1)  @bv_empty)
-    (($bv_mk_bitblast_step_var_rec a i)   (_ @from_bools (@bit i a) ($bv_mk_bitblast_step_var_rec a (eo::add i -1))))
+    (($bv_mk_bitblast_step_var_rec a (@tlist.nil Int))  @bv_empty)
+    (($bv_mk_bitblast_step_var_rec a (@tlist i xs))     (_ @from_bools (@bit i a) ($bv_mk_bitblast_step_var_rec a xs)))
   )
 )
 
@@ -634,7 +629,7 @@
 ; - a (BitVec n): The bitvector variable to bitblast.
 ; return: the bitblasted term for variable a.
 (define $bv_mk_bitblast_step_var ((n Int :implicit) (a (BitVec n)))
-  (eo::list_rev @from_bools ($bv_mk_bitblast_step_var_rec a (eo::add ($bv_bitwidth (eo::typeof a)) -1))))
+  ($bv_mk_bitblast_step_var_rec a ($iota ($bv_bitwidth (eo::typeof a)))))
 
 ;;; $bv_mk_bitblast_step
 

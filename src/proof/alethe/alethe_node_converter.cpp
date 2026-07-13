@@ -264,8 +264,8 @@ Node AletheNodeConverter::postConvert(Node n)
         Node select =
             d_nm->mkNode(Kind::NOT,
                          d_nm->mkNode(Kind::EQUAL,
-                                      d_nm->mkNode(Kind::SELECT, a, var),
-                                      d_nm->mkNode(Kind::SELECT, b, var)));
+                                      {d_nm->mkNode(Kind::SELECT, a, var),
+                                       d_nm->mkNode(Kind::SELECT, b, var)}));
         Node body = d_nm->mkNode(Kind::OR, eq, select);
         Node choice = d_nm->mkNode(
             Kind::WITNESS, d_nm->mkNode(Kind::BOUND_VAR_LIST, var), body);
@@ -450,6 +450,7 @@ Node AletheNodeConverter::postConvert(Node n)
     case Kind::BITVECTOR_SIGN_EXTEND:
     case Kind::BITVECTOR_ZERO_EXTEND_OP:
     case Kind::BITVECTOR_ZERO_EXTEND:
+    case Kind::BITVECTOR_ITE:
     /* from datatypes */
     case Kind::CONSTRUCTOR_TYPE:
     case Kind::SELECTOR_TYPE:

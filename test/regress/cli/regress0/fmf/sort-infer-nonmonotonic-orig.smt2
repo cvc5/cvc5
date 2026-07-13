@@ -1,0 +1,18 @@
+; COMMAND-LINE: --finite-model-find --sort-inference
+; EXPECT: unsat
+; DISABLE-TESTER: lfsc
+(set-logic UFC)
+(declare-sort U 0)
+(declare-fun r (U) Bool)
+(declare-fun f (U) U)
+(declare-const a U)
+(declare-const b U)
+(declare-const c U)
+(assert (_ fmf.card U 2))
+(assert (not (= a b)))
+(assert (r a))
+(assert (r b))
+(assert (forall ((X U) (Y U)) (or (= X Y) (r X))))
+(assert (forall ((X U)) (not (= (f X) c))))
+(assert (forall ((X U) (Y U)) (=> (= (f X) (f Y)) (= X Y))))
+(check-sat)

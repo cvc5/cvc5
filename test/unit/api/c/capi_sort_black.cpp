@@ -16,6 +16,7 @@ extern "C" {
 
 #include "base/output.h"
 #include "gtest/gtest.h"
+#include "test_capi.h"
 
 namespace cvc5::internal::test {
 
@@ -64,7 +65,7 @@ class TestCApiBlackSort : public ::testing::Test
 
 TEST_F(TestCApiBlackSort, hash)
 {
-  ASSERT_DEATH(cvc5_sort_hash(nullptr), "invalid sort");
+  ASSERT_CVC5_ERROR(cvc5_sort_hash(nullptr), "invalid sort");
   (void)cvc5_sort_hash(d_int);
   ASSERT_EQ(cvc5_sort_hash(d_int), cvc5_sort_hash(d_int));
   ASSERT_NE(cvc5_sort_hash(d_int), cvc5_sort_hash(d_bool));
@@ -72,8 +73,8 @@ TEST_F(TestCApiBlackSort, hash)
 
 TEST_F(TestCApiBlackSort, copy_release)
 {
-  ASSERT_DEATH(cvc5_sort_copy(nullptr), "invalid sort");
-  ASSERT_DEATH(cvc5_sort_release(nullptr), "invalid sort");
+  ASSERT_CVC5_ERROR(cvc5_sort_copy(nullptr), "invalid sort");
+  ASSERT_CVC5_ERROR(cvc5_sort_release(nullptr), "invalid sort");
   size_t hash1 = cvc5_sort_hash(d_int);
   Cvc5Sort int_copy = cvc5_sort_copy(d_int);
   size_t hash2 = cvc5_sort_hash(int_copy);
@@ -87,8 +88,8 @@ TEST_F(TestCApiBlackSort, copy_release)
 
 TEST_F(TestCApiBlackSort, compare)
 {
-  ASSERT_DEATH(cvc5_sort_compare(d_int, nullptr), "invalid sort");
-  ASSERT_DEATH(cvc5_sort_compare(nullptr, d_int), "invalid sort");
+  ASSERT_CVC5_ERROR(cvc5_sort_compare(d_int, nullptr), "invalid sort");
+  ASSERT_CVC5_ERROR(cvc5_sort_compare(nullptr, d_int), "invalid sort");
   ASSERT_TRUE(cvc5_sort_is_equal(d_int, d_int));
   ASSERT_TRUE(cvc5_sort_is_disequal(d_int, d_bool));
   ASSERT_FALSE(cvc5_sort_is_equal(d_int, nullptr));
@@ -98,7 +99,7 @@ TEST_F(TestCApiBlackSort, compare)
 
 TEST_F(TestCApiBlackSort, get_kind)
 {
-  ASSERT_DEATH(cvc5_sort_get_kind(nullptr), "invalid sort");
+  ASSERT_CVC5_ERROR(cvc5_sort_get_kind(nullptr), "invalid sort");
   ASSERT_EQ(cvc5_sort_get_kind(d_bool), CVC5_SORT_KIND_BOOLEAN_SORT);
   Cvc5Sort dt_sort = create_datatype_sort();
   ASSERT_EQ(cvc5_sort_get_kind(dt_sort), CVC5_SORT_KIND_DATATYPE_SORT);
@@ -123,8 +124,8 @@ TEST_F(TestCApiBlackSort, has_get_symbol)
   ASSERT_TRUE(cvc5_sort_has_symbol(s0));
   ASSERT_TRUE(cvc5_sort_has_symbol(s1));
 
-  ASSERT_DEATH(cvc5_sort_get_symbol(nullptr), "invalid sort");
-  ASSERT_DEATH(cvc5_sort_get_symbol(d_bool), "has no symbol");
+  ASSERT_CVC5_ERROR(cvc5_sort_get_symbol(nullptr), "invalid sort");
+  ASSERT_CVC5_ERROR(cvc5_sort_get_symbol(d_bool), "has no symbol");
   ASSERT_EQ(cvc5_sort_get_symbol(s0), std::string("s0"));
   ASSERT_EQ(cvc5_sort_get_symbol(s1), std::string("|s1\\|"));
 }
@@ -203,7 +204,7 @@ TEST_F(TestCApiBlackSort, is_dt_constructor)
 {
   Cvc5Sort dt_sort = create_datatype_sort();
   Cvc5Datatype dt = cvc5_sort_get_datatype(dt_sort);
-  ASSERT_DEATH(cvc5_dt_get_constructor(dt, 3), "index out of bounds");
+  ASSERT_CVC5_ERROR(cvc5_dt_get_constructor(dt, 3), "index out of bounds");
   Cvc5DatatypeConstructor cons = cvc5_dt_get_constructor(dt, 0);
   Cvc5Sort cons_sort = cvc5_term_get_sort(cvc5_dt_cons_get_term(cons));
   ASSERT_FALSE(cvc5_sort_is_dt(nullptr));
@@ -216,7 +217,7 @@ TEST_F(TestCApiBlackSort, is_dt_selector)
   Cvc5Sort dt_sort = create_datatype_sort();
   Cvc5Datatype dt = cvc5_sort_get_datatype(dt_sort);
   Cvc5DatatypeConstructor cons = cvc5_dt_get_constructor(dt, 0);
-  ASSERT_DEATH(cvc5_dt_cons_get_selector(cons, 2), "index out of bounds");
+  ASSERT_CVC5_ERROR(cvc5_dt_cons_get_selector(cons, 2), "index out of bounds");
   Cvc5DatatypeSelector sel = cvc5_dt_cons_get_selector(cons, 1);
   Cvc5Sort sel_sort = cvc5_term_get_sort(cvc5_dt_sel_get_term(sel));
   ASSERT_FALSE(cvc5_sort_is_dt_selector(nullptr));
@@ -363,7 +364,7 @@ TEST_F(TestCApiBlackSort, get_datatype)
   Cvc5Sort dt_sort = create_datatype_sort();
   (void)cvc5_sort_get_datatype(dt_sort);
   // create bv sort, check should fail
-  ASSERT_DEATH(cvc5_sort_get_datatype(d_int), "expected datatype sort");
+  ASSERT_CVC5_ERROR(cvc5_sort_get_datatype(d_int), "expected datatype sort");
 }
 
 TEST_F(TestCApiBlackSort, dt_domain_codomain_sorts)
@@ -372,15 +373,15 @@ TEST_F(TestCApiBlackSort, dt_domain_codomain_sorts)
   Cvc5Sort sort = create_datatype_sort();
   Cvc5Datatype dt = cvc5_sort_get_datatype(sort);
   ASSERT_FALSE(cvc5_sort_is_dt_constructor(sort));
-  ASSERT_DEATH(cvc5_sort_dt_constructor_get_codomain(sort),
-               "not a constructor sort");
-  ASSERT_DEATH(cvc5_sort_dt_constructor_get_domain(sort, &size),
-               "not a constructor sort");
-  ASSERT_DEATH(cvc5_sort_dt_constructor_get_arity(sort),
-               "not a constructor sort");
+  ASSERT_CVC5_ERROR(cvc5_sort_dt_constructor_get_codomain(sort),
+                    "not a constructor sort");
+  ASSERT_CVC5_ERROR(cvc5_sort_dt_constructor_get_domain(sort, &size),
+                    "not a constructor sort");
+  ASSERT_CVC5_ERROR(cvc5_sort_dt_constructor_get_arity(sort),
+                    "not a constructor sort");
 
   // get constructor
-  ASSERT_DEATH(cvc5_dt_get_constructor(nullptr, 0), "invalid datatype");
+  ASSERT_CVC5_ERROR(cvc5_dt_get_constructor(nullptr, 0), "invalid datatype");
   Cvc5DatatypeConstructor cons = cvc5_dt_get_constructor(dt, 0);
   Cvc5Sort cons_sort = cvc5_term_get_sort(cvc5_dt_cons_get_term(cons));
   ASSERT_TRUE(cvc5_sort_is_dt_constructor(cons_sort));
@@ -395,10 +396,12 @@ TEST_F(TestCApiBlackSort, dt_domain_codomain_sorts)
       cvc5_sort_dt_constructor_get_codomain(cons_sort), sort));
 
   // get tester
-  ASSERT_DEATH(cvc5_dt_cons_get_tester_term(nullptr),
-               "invalid datatype constructor");
-  ASSERT_DEATH(cvc5_sort_dt_tester_get_domain(d_bool), "not a tester sort");
-  ASSERT_DEATH(cvc5_sort_dt_tester_get_codomain(d_bool), "not a tester sort");
+  ASSERT_CVC5_ERROR(cvc5_dt_cons_get_tester_term(nullptr),
+                    "invalid datatype constructor");
+  ASSERT_CVC5_ERROR(cvc5_sort_dt_tester_get_domain(d_bool),
+                    "not a tester sort");
+  ASSERT_CVC5_ERROR(cvc5_sort_dt_tester_get_codomain(d_bool),
+                    "not a tester sort");
   Cvc5Term tester = cvc5_dt_cons_get_tester_term(cons);
   Cvc5Sort tester_sort = cvc5_term_get_sort(tester);
   ASSERT_TRUE(cvc5_sort_is_dt_tester(tester_sort));
@@ -408,11 +411,12 @@ TEST_F(TestCApiBlackSort, dt_domain_codomain_sorts)
                                  d_bool));
 
   // get selector
-  ASSERT_DEATH(cvc5_dt_cons_get_selector(nullptr, 1),
-               "invalid datatype constructor");
-  ASSERT_DEATH(cvc5_sort_dt_selector_get_domain(d_bool), "not a selector sort");
-  ASSERT_DEATH(cvc5_sort_dt_selector_get_codomain(d_bool),
-               "not a selector sort");
+  ASSERT_CVC5_ERROR(cvc5_dt_cons_get_selector(nullptr, 1),
+                    "invalid datatype constructor");
+  ASSERT_CVC5_ERROR(cvc5_sort_dt_selector_get_domain(d_bool),
+                    "not a selector sort");
+  ASSERT_CVC5_ERROR(cvc5_sort_dt_selector_get_codomain(d_bool),
+                    "not a selector sort");
   Cvc5DatatypeSelector sel = cvc5_dt_cons_get_selector(cons, 1);
   Cvc5Term tail = cvc5_dt_sel_get_term(sel);
   Cvc5Sort tail_sort = cvc5_term_get_sort(tail);
@@ -429,8 +433,8 @@ TEST_F(TestCApiBlackSort, instantiate)
   (void)cvc5_sort_instantiate(param_sort, 1, args.data());
   // instantiate non-parametric datatype sort, check should fail
   Cvc5Sort sort = create_datatype_sort();
-  ASSERT_DEATH(cvc5_sort_instantiate(sort, 1, args.data()),
-               "expected parametric datatype or sort constructor sort");
+  ASSERT_CVC5_ERROR(cvc5_sort_instantiate(sort, 1, args.data()),
+                    "expected parametric datatype or sort constructor sort");
   // instantiate uninterpreted sort constructor
   Cvc5Sort sort_cons_sort =
       cvc5_mk_uninterpreted_sort_constructor_sort(d_tm, 1, "s");
@@ -475,16 +479,16 @@ TEST_F(TestCApiBlackSort, get_instantiated_parameters)
   cvc5_dt_decl_add_constructor(decl, nil);
   Cvc5Sort sort = cvc5_mk_dt_sort(d_tm, decl);
 
-  ASSERT_DEATH(cvc5_sort_get_instantiated_parameters(nullptr, &size),
-               "invalid sort");
-  ASSERT_DEATH(cvc5_sort_get_instantiated_parameters(sort, &size),
-               "expected instantiated parametric sort");
+  ASSERT_CVC5_ERROR(cvc5_sort_get_instantiated_parameters(nullptr, &size),
+                    "invalid sort");
+  ASSERT_CVC5_ERROR(cvc5_sort_get_instantiated_parameters(sort, &size),
+                    "expected instantiated parametric sort");
 
   {
     std::vector<Cvc5Sort> args = {d_real, d_bool};
     Cvc5Sort inst_sort = cvc5_sort_instantiate(sort, 2, args.data());
-    ASSERT_DEATH(cvc5_sort_get_instantiated_parameters(inst_sort, nullptr),
-                 "unexpected NULL argument");
+    ASSERT_CVC5_ERROR(cvc5_sort_get_instantiated_parameters(inst_sort, nullptr),
+                      "unexpected NULL argument");
 
     const Cvc5Sort* inst_sorts =
         cvc5_sort_get_instantiated_parameters(inst_sort, &size);
@@ -495,8 +499,9 @@ TEST_F(TestCApiBlackSort, get_instantiated_parameters)
   // uninterpreted sort constructor sort instantiation
   Cvc5Sort sort_cons_sort =
       cvc5_mk_uninterpreted_sort_constructor_sort(d_tm, 4, "a");
-  ASSERT_DEATH(cvc5_sort_get_instantiated_parameters(sort_cons_sort, &size),
-               "expected instantiated parametric sort");
+  ASSERT_CVC5_ERROR(
+      cvc5_sort_get_instantiated_parameters(sort_cons_sort, &size),
+      "expected instantiated parametric sort");
 
   {
     std::vector<Cvc5Sort> args = {d_bool, d_int, bv_sort, d_real};
@@ -509,8 +514,8 @@ TEST_F(TestCApiBlackSort, get_instantiated_parameters)
     ASSERT_TRUE(cvc5_sort_is_equal(inst_sorts[3], d_real));
   }
 
-  ASSERT_DEATH(cvc5_sort_get_instantiated_parameters(d_int, &size),
-               "expected instantiated parametric sort");
+  ASSERT_CVC5_ERROR(cvc5_sort_get_instantiated_parameters(d_int, &size),
+                    "expected instantiated parametric sort");
 }
 
 TEST_F(TestCApiBlackSort, get_uninterpreted_sort_constructor)
@@ -518,10 +523,10 @@ TEST_F(TestCApiBlackSort, get_uninterpreted_sort_constructor)
   Cvc5Sort bv_sort = cvc5_mk_bv_sort(d_tm, 8);
   Cvc5Sort sort = cvc5_mk_uninterpreted_sort_constructor_sort(d_tm, 4, "s");
   std::vector<Cvc5Sort> args = {d_bool, d_int, bv_sort, d_real};
-  ASSERT_DEATH(cvc5_sort_get_uninterpreted_sort_constructor(nullptr),
-               "invalid sort");
-  ASSERT_DEATH(cvc5_sort_get_uninterpreted_sort_constructor(sort),
-               "expected instantiated uninterpreted sort");
+  ASSERT_CVC5_ERROR(cvc5_sort_get_uninterpreted_sort_constructor(nullptr),
+                    "invalid sort");
+  ASSERT_CVC5_ERROR(cvc5_sort_get_uninterpreted_sort_constructor(sort),
+                    "expected instantiated uninterpreted sort");
   Cvc5Sort inst_sort = cvc5_sort_instantiate(sort, 4, args.data());
   ASSERT_TRUE(cvc5_sort_is_equal(
       sort, cvc5_sort_get_uninterpreted_sort_constructor(inst_sort)));
@@ -532,8 +537,8 @@ TEST_F(TestCApiBlackSort, get_fun_arity)
   std::vector<Cvc5Sort> domain = {cvc5_mk_uninterpreted_sort(d_tm, "u"), d_int};
   Cvc5Sort sort = cvc5_mk_fun_sort(d_tm, 2, domain.data(), d_int);
   ASSERT_EQ(cvc5_sort_fun_get_arity(sort), 2);
-  ASSERT_DEATH(cvc5_sort_fun_get_arity(nullptr), "invalid sort");
-  ASSERT_DEATH(cvc5_sort_fun_get_arity(d_int), "not a function sort");
+  ASSERT_CVC5_ERROR(cvc5_sort_fun_get_arity(nullptr), "invalid sort");
+  ASSERT_CVC5_ERROR(cvc5_sort_fun_get_arity(d_int), "not a function sort");
 }
 
 TEST_F(TestCApiBlackSort, get_fun_domain_sorts)
@@ -546,10 +551,11 @@ TEST_F(TestCApiBlackSort, get_fun_domain_sorts)
   ASSERT_EQ(size, 2);
   ASSERT_TRUE(cvc5_sort_is_equal(sorts[0], usort));
   ASSERT_TRUE(cvc5_sort_is_equal(sorts[1], d_int));
-  ASSERT_DEATH(cvc5_sort_fun_get_domain(nullptr, &size), "invalid sort");
-  ASSERT_DEATH(cvc5_sort_fun_get_domain(sort, nullptr),
-               "unexpected NULL argument");
-  ASSERT_DEATH(cvc5_sort_fun_get_domain(d_int, &size), "not a function sort");
+  ASSERT_CVC5_ERROR(cvc5_sort_fun_get_domain(nullptr, &size), "invalid sort");
+  ASSERT_CVC5_ERROR(cvc5_sort_fun_get_domain(sort, nullptr),
+                    "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_sort_fun_get_domain(d_int, &size),
+                    "not a function sort");
 }
 
 TEST_F(TestCApiBlackSort, get_fun_codomain)
@@ -558,8 +564,8 @@ TEST_F(TestCApiBlackSort, get_fun_codomain)
   std::vector<Cvc5Sort> domain = {usort, d_int};
   Cvc5Sort sort = cvc5_mk_fun_sort(d_tm, 2, domain.data(), d_int);
   ASSERT_TRUE(cvc5_sort_is_equal(cvc5_sort_fun_get_codomain(sort), d_int));
-  ASSERT_DEATH(cvc5_sort_fun_get_codomain(nullptr), "invalid sort");
-  ASSERT_DEATH(cvc5_sort_fun_get_codomain(d_int), "not a function sort");
+  ASSERT_CVC5_ERROR(cvc5_sort_fun_get_codomain(nullptr), "invalid sort");
+  ASSERT_CVC5_ERROR(cvc5_sort_fun_get_codomain(d_int), "not a function sort");
 }
 
 TEST_F(TestCApiBlackSort, get_array_index_element)
@@ -571,26 +577,27 @@ TEST_F(TestCApiBlackSort, get_array_index_element)
       cvc5_sort_is_equal(cvc5_sort_array_get_index_sort(sort), index_sort));
   ASSERT_TRUE(
       cvc5_sort_is_equal(cvc5_sort_array_get_element_sort(sort), elem_sort));
-  ASSERT_DEATH(cvc5_sort_array_get_index_sort(nullptr), "invalid sort");
-  ASSERT_DEATH(cvc5_sort_array_get_element_sort(nullptr), "invalid sort");
-  ASSERT_DEATH(cvc5_sort_array_get_index_sort(d_int), "not an array sort");
-  ASSERT_DEATH(cvc5_sort_array_get_element_sort(d_int), "not an array sort");
+  ASSERT_CVC5_ERROR(cvc5_sort_array_get_index_sort(nullptr), "invalid sort");
+  ASSERT_CVC5_ERROR(cvc5_sort_array_get_element_sort(nullptr), "invalid sort");
+  ASSERT_CVC5_ERROR(cvc5_sort_array_get_index_sort(d_int), "not an array sort");
+  ASSERT_CVC5_ERROR(cvc5_sort_array_get_element_sort(d_int),
+                    "not an array sort");
 }
 
 TEST_F(TestCApiBlackSort, get_set_element)
 {
   Cvc5Sort sort = cvc5_mk_set_sort(d_tm, d_int);
   ASSERT_TRUE(cvc5_sort_is_equal(cvc5_sort_set_get_element_sort(sort), d_int));
-  ASSERT_DEATH(cvc5_sort_set_get_element_sort(nullptr), "invalid sort");
-  ASSERT_DEATH(cvc5_sort_set_get_element_sort(d_int), "not a set sort");
+  ASSERT_CVC5_ERROR(cvc5_sort_set_get_element_sort(nullptr), "invalid sort");
+  ASSERT_CVC5_ERROR(cvc5_sort_set_get_element_sort(d_int), "not a set sort");
 }
 
 TEST_F(TestCApiBlackSort, get_bag_element)
 {
   Cvc5Sort sort = cvc5_mk_bag_sort(d_tm, d_int);
   ASSERT_TRUE(cvc5_sort_is_equal(cvc5_sort_bag_get_element_sort(sort), d_int));
-  ASSERT_DEATH(cvc5_sort_bag_get_element_sort(nullptr), "invalid sort");
-  ASSERT_DEATH(cvc5_sort_bag_get_element_sort(d_int), "not a bag sort");
+  ASSERT_CVC5_ERROR(cvc5_sort_bag_get_element_sort(nullptr), "invalid sort");
+  ASSERT_CVC5_ERROR(cvc5_sort_bag_get_element_sort(d_int), "not a bag sort");
 }
 
 TEST_F(TestCApiBlackSort, get_sequence_element)
@@ -598,9 +605,10 @@ TEST_F(TestCApiBlackSort, get_sequence_element)
   Cvc5Sort sort = cvc5_mk_sequence_sort(d_tm, d_int);
   ASSERT_TRUE(
       cvc5_sort_is_equal(cvc5_sort_sequence_get_element_sort(sort), d_int));
-  ASSERT_DEATH(cvc5_sort_sequence_get_element_sort(nullptr), "invalid sort");
-  ASSERT_DEATH(cvc5_sort_sequence_get_element_sort(d_int),
-               "not a sequence sort");
+  ASSERT_CVC5_ERROR(cvc5_sort_sequence_get_element_sort(nullptr),
+                    "invalid sort");
+  ASSERT_CVC5_ERROR(cvc5_sort_sequence_get_element_sort(d_int),
+                    "not a sequence sort");
 }
 
 TEST_F(TestCApiBlackSort, abstract_get_kind)
@@ -611,7 +619,7 @@ TEST_F(TestCApiBlackSort, abstract_get_kind)
   // is an Array sort, not an abstract sort and its abstract kind cannot be
   // extracted.
   sort = cvc5_mk_abstract_sort(d_tm, CVC5_SORT_KIND_ARRAY_SORT);
-  ASSERT_DEATH(cvc5_sort_abstract_get_kind(sort), "not an abstract sort");
+  ASSERT_CVC5_ERROR(cvc5_sort_abstract_get_kind(sort), "not an abstract sort");
   sort = cvc5_mk_abstract_sort(d_tm, CVC5_SORT_KIND_ABSTRACT_SORT);
   ASSERT_EQ(cvc5_sort_abstract_get_kind(sort), CVC5_SORT_KIND_ABSTRACT_SORT);
 }
@@ -620,34 +628,34 @@ TEST_F(TestCApiBlackSort, get_uninterpreted_sort_constructor_name)
 {
   Cvc5Sort sort = cvc5_mk_uninterpreted_sort_constructor_sort(d_tm, 2, "s");
   ASSERT_EQ(cvc5_sort_get_symbol(sort), std::string("s"));
-  ASSERT_DEATH(cvc5_sort_get_symbol(nullptr), "invalid sort");
-  ASSERT_DEATH(cvc5_sort_get_symbol(d_int), "has no symbol");
+  ASSERT_CVC5_ERROR(cvc5_sort_get_symbol(nullptr), "invalid sort");
+  ASSERT_CVC5_ERROR(cvc5_sort_get_symbol(d_int), "has no symbol");
 }
 
 TEST_F(TestCApiBlackSort, uninterpreted_sort_constructor_get_arity)
 {
   Cvc5Sort sort = cvc5_mk_uninterpreted_sort_constructor_sort(d_tm, 2, "s");
   ASSERT_EQ(cvc5_sort_uninterpreted_sort_constructor_get_arity(sort), 2);
-  ASSERT_DEATH(cvc5_sort_uninterpreted_sort_constructor_get_arity(nullptr),
-               "invalid sort");
-  ASSERT_DEATH(cvc5_sort_uninterpreted_sort_constructor_get_arity(d_int),
-               "not a sort constructor sort");
+  ASSERT_CVC5_ERROR(cvc5_sort_uninterpreted_sort_constructor_get_arity(nullptr),
+                    "invalid sort");
+  ASSERT_CVC5_ERROR(cvc5_sort_uninterpreted_sort_constructor_get_arity(d_int),
+                    "not a sort constructor sort");
 }
 
 TEST_F(TestCApiBlackSort, bv_get_size)
 {
   Cvc5Sort sort = cvc5_mk_bv_sort(d_tm, 32);
   ASSERT_EQ(cvc5_sort_bv_get_size(sort), 32);
-  ASSERT_DEATH(cvc5_sort_bv_get_size(nullptr), "invalid sort");
-  ASSERT_DEATH(cvc5_sort_bv_get_size(d_int), "not a bit-vector sort");
+  ASSERT_CVC5_ERROR(cvc5_sort_bv_get_size(nullptr), "invalid sort");
+  ASSERT_CVC5_ERROR(cvc5_sort_bv_get_size(d_int), "not a bit-vector sort");
 }
 
 TEST_F(TestCApiBlackSort, ff_get_size)
 {
   Cvc5Sort sort = cvc5_mk_ff_sort(d_tm, "31", 10);
   ASSERT_EQ(cvc5_sort_ff_get_size(sort), std::string("31"));
-  ASSERT_DEATH(cvc5_sort_ff_get_size(nullptr), "invalid sort");
-  ASSERT_DEATH(cvc5_sort_ff_get_size(d_int), "not a finite field sort");
+  ASSERT_CVC5_ERROR(cvc5_sort_ff_get_size(nullptr), "invalid sort");
+  ASSERT_CVC5_ERROR(cvc5_sort_ff_get_size(d_int), "not a finite field sort");
 }
 
 TEST_F(TestCApiBlackSort, fp_get_exp_sig_size)
@@ -655,10 +663,12 @@ TEST_F(TestCApiBlackSort, fp_get_exp_sig_size)
   Cvc5Sort sort = cvc5_mk_fp_sort(d_tm, 8, 24);
   ASSERT_EQ(cvc5_sort_fp_get_exp_size(sort), 8);
   ASSERT_EQ(cvc5_sort_fp_get_sig_size(sort), 24);
-  ASSERT_DEATH(cvc5_sort_fp_get_exp_size(nullptr), "invalid sort");
-  ASSERT_DEATH(cvc5_sort_fp_get_exp_size(d_int), "not a floating-point sort");
-  ASSERT_DEATH(cvc5_sort_fp_get_sig_size(nullptr), "invalid sort");
-  ASSERT_DEATH(cvc5_sort_fp_get_sig_size(d_int), "not a floating-point sort");
+  ASSERT_CVC5_ERROR(cvc5_sort_fp_get_exp_size(nullptr), "invalid sort");
+  ASSERT_CVC5_ERROR(cvc5_sort_fp_get_exp_size(d_int),
+                    "not a floating-point sort");
+  ASSERT_CVC5_ERROR(cvc5_sort_fp_get_sig_size(nullptr), "invalid sort");
+  ASSERT_CVC5_ERROR(cvc5_sort_fp_get_sig_size(d_int),
+                    "not a floating-point sort");
 }
 
 TEST_F(TestCApiBlackSort, dt_get_arity)
@@ -667,8 +677,8 @@ TEST_F(TestCApiBlackSort, dt_get_arity)
   Cvc5Sort sort = create_datatype_sort();
   ASSERT_EQ(cvc5_sort_dt_get_arity(sort), 0);
   // create bv sort, check should fail
-  ASSERT_DEATH(cvc5_sort_dt_get_arity(nullptr), "invalid sort");
-  ASSERT_DEATH(cvc5_sort_dt_get_arity(d_int), "not a datatype sort");
+  ASSERT_CVC5_ERROR(cvc5_sort_dt_get_arity(nullptr), "invalid sort");
+  ASSERT_CVC5_ERROR(cvc5_sort_dt_get_arity(d_int), "not a datatype sort");
 }
 
 TEST_F(TestCApiBlackSort, tuple_get_length)
@@ -676,8 +686,8 @@ TEST_F(TestCApiBlackSort, tuple_get_length)
   std::vector<Cvc5Sort> args = {d_int, d_int};
   Cvc5Sort sort = cvc5_mk_tuple_sort(d_tm, 2, args.data());
   ASSERT_EQ(cvc5_sort_tuple_get_length(sort), 2);
-  ASSERT_DEATH(cvc5_sort_tuple_get_length(nullptr), "invalid sort");
-  ASSERT_DEATH(cvc5_sort_tuple_get_length(d_int), "not a tuple sort");
+  ASSERT_CVC5_ERROR(cvc5_sort_tuple_get_length(nullptr), "invalid sort");
+  ASSERT_CVC5_ERROR(cvc5_sort_tuple_get_length(d_int), "not a tuple sort");
 }
 
 TEST_F(TestCApiBlackSort, tuple_get_element_sorts)
@@ -688,12 +698,12 @@ TEST_F(TestCApiBlackSort, tuple_get_element_sorts)
   const Cvc5Sort* sorts = cvc5_sort_tuple_get_element_sorts(sort, &size);
   ASSERT_TRUE(cvc5_sort_is_equal(sorts[0], d_int));
   ASSERT_TRUE(cvc5_sort_is_equal(sorts[1], d_int));
-  ASSERT_DEATH(cvc5_sort_tuple_get_element_sorts(nullptr, &size),
-               "invalid sort");
-  ASSERT_DEATH(cvc5_sort_tuple_get_element_sorts(sort, nullptr),
-               "unexpected NULL argument");
-  ASSERT_DEATH(cvc5_sort_tuple_get_element_sorts(d_int, &size),
-               "not a tuple sort");
+  ASSERT_CVC5_ERROR(cvc5_sort_tuple_get_element_sorts(nullptr, &size),
+                    "invalid sort");
+  ASSERT_CVC5_ERROR(cvc5_sort_tuple_get_element_sorts(sort, nullptr),
+                    "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_sort_tuple_get_element_sorts(d_int, &size),
+                    "not a tuple sort");
 }
 
 TEST_F(TestCApiBlackSort, nullable_get_element_sort)
@@ -701,9 +711,10 @@ TEST_F(TestCApiBlackSort, nullable_get_element_sort)
   Cvc5Sort sort = cvc5_mk_nullable_sort(d_tm, d_real);
   ASSERT_TRUE(
       cvc5_sort_is_equal(cvc5_sort_nullable_get_element_sort(sort), d_real));
-  ASSERT_DEATH(cvc5_sort_nullable_get_element_sort(nullptr), "invalid sort");
-  ASSERT_DEATH(cvc5_sort_nullable_get_element_sort(d_int),
-               "not a nullable sort");
+  ASSERT_CVC5_ERROR(cvc5_sort_nullable_get_element_sort(nullptr),
+                    "invalid sort");
+  ASSERT_CVC5_ERROR(cvc5_sort_nullable_get_element_sort(d_int),
+                    "not a nullable sort");
 }
 
 TEST_F(TestCApiBlackSort, scoped_to_string)

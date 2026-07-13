@@ -1,5 +1,5 @@
 diff --git a/configuration/cxx14.sh b/configuration/cxx14.sh
-index a5472cd..2a3e608 100755
+index e974ab6..65cd94e 100755
 --- a/configuration/cxx14.sh
 +++ b/configuration/cxx14.sh
 @@ -51,7 +51,7 @@ int main() {
@@ -11,7 +11,7 @@ index a5472cd..2a3e608 100755
  if [ $? -ne 0 ]
  then
      echo "ERROR: compilation unexpectedly failed; is $CXX a c++ compiler?   $SCRIPT_NAME" > /dev/stderr
-@@ -74,7 +74,7 @@ fi
+@@ -76,7 +76,7 @@ fi
  # Compilation without flag is not C++14 standard; try with -std=c++14
  
  CXX14="-std=c++14"
@@ -19,55 +19,85 @@ index a5472cd..2a3e608 100755
 +"$CXX" $CXXFLAGS  $CXX14  language-version.C  -o language-version  >> LogFile  2>& 1 
  if [ $? -ne 0 ]
  then
-     echo "ERROR: compilation with flag $CXX14 failed   $SCRIPT_NAME" > /dev/stderr
+     echo "ERROR: compilation with flag $CXX14 failed   $SCRIPT_NAME"                      > /dev/stderr
 diff --git a/configuration/gmp-version.sh b/configuration/gmp-version.sh
-index ebd85c7..5693280 100755
+index 4fe33b8..2a17749 100755
 --- a/configuration/gmp-version.sh
 +++ b/configuration/gmp-version.sh
-@@ -73,7 +73,7 @@ int main()
- EOF
+@@ -74,7 +74,7 @@ EOF
  
  # Use c++ compiler specified in CXX; no need to specify libgmp as all info is in header file!!
--$CXX -I"$COCOA_EXTLIB_DIR/include"  test-gmp-version.C  -o test-gmp-version  > LogFile 2>&1
-+$CXX $CXXFLAGS -I"$COCOA_EXTLIB_DIR/include"  test-gmp-version.C  -o test-gmp-version  > LogFile 2>&1
+ echo "$CXX -I"$EXTLIB_DIR_FULL/include"  test-gmp-version.C  -o test-gmp-version"  > LogFile
+-$CXX -I"$EXTLIB_DIR_FULL/include"  test-gmp-version.C  -o test-gmp-version  >> LogFile 2>&1
++$CXX $CXXFLAGS -I"$EXTLIB_DIR_FULL/include"  test-gmp-version.C  -o test-gmp-version  >> LogFile 2>&1
  
  # Check whether compilation failed; if so, complain.
  if [ $? -ne 0 ]
+diff --git a/configuration/shell-fns.sh b/configuration/shell-fns.sh
+index 46d8155..3687819 100755
+--- a/configuration/shell-fns.sh
++++ b/configuration/shell-fns.sh
+@@ -27,13 +27,13 @@ mktempdir()
+ echounderline()
+ {
+   echo "$*"
+-  echo "$*" | tr "\040-\377" "[-*]"
++  echo "$*" | tr "\040-\377" "-"
+ }
+ 
+ echobox()
+ {
+   mesg=">>>>  $*  <<<<"
+-  dashes=`echo "$mesg" | tr "\040-\377" "[-*]"`
++  dashes=`echo "$mesg" | tr "\040-\377" "-"`
+   echo "$dashes"
+   echo "$mesg"
+   echo "$dashes"
+@@ -42,7 +42,7 @@ echobox()
+ echoerror()
+ {
+   mesg=">>>>>  $*  <<<<<"
+-  equals=`echo "$mesg" | tr "\040-\377" "[=*]"`
++  equals=`echo "$mesg" | tr "\040-\377" "="`
+   echo "$equals"
+   echo "$mesg"
+   echo "$equals"
 diff --git a/configuration/verify-compiler.sh b/configuration/verify-compiler.sh
-index 7a70933..c752e34 100755
+index b5f5a95..8c28263 100755
 --- a/configuration/verify-compiler.sh
 +++ b/configuration/verify-compiler.sh
-@@ -55,15 +55,6 @@ int main()
+@@ -58,16 +58,6 @@ int main()
  }
  EOF
  
 -# Try plain compiler (without CXXFLAGS):
--$CXX test-compiler-gnu.C -o test-compiler-gnu  > LogFile  2>&1
--if [ $? -ne 0 -o \! -f test-compiler-gnu -o \! -x test-compiler-gnu ]
+-$CXX test-compiler-type.C -o test-compiler-type  > LogFile  2>&1
+-if [ $? -ne 0 -o \! -f test-compiler-type -o \! -x test-compiler-type ]
 -then
 -  echo "ERROR: Are you sure \"$CXX\" is a C++ compiler?   $SCRIPT_NAME"  > /dev/stderr
+-  echo "LOGFILE: $TMP_DIR/LogFile   $SCRIPT_NAME"                        > /dev/stderr
 -  exit 1
 -fi
--/bin/rm test-compiler-gnu  # not necessary, just being tidy :-)
+-/bin/rm test-compiler-type  # not necessary, just being tidy :-)
 -
  # Try compiler with CXXFLAGS:
- $CXX $CXXFLAGS test-compiler-gnu.C -o test-compiler-gnu  > LogFile  2>&1
- if [ $? -ne 0 -o \! -f test-compiler-gnu -o \! -x test-compiler-gnu ]
-diff --git a/configuration/shell-fns.sh b/configuration/shell-fns.sh
-index 190dbb4..c8d281f 100755
---- a/configuration/shell-fns.sh
-+++ b/configuration/shell-fns.sh
-@@ -11,7 +11,7 @@ mktempdir()
+ $CXX $CXXFLAGS test-compiler-type.C -o test-compiler-type  > LogFile  2>&1
+ if [ $? -ne 0 -o \! -f test-compiler-type -o \! -x test-compiler-type ]
+diff --git a/include/CoCoA/MakeUnifiedHeader.sh b/include/CoCoA/MakeUnifiedHeader.sh
+index e0e713b..156461b 100755
+--- a/include/CoCoA/MakeUnifiedHeader.sh
++++ b/include/CoCoA/MakeUnifiedHeader.sh
+@@ -33,7 +33,7 @@ fi
+ echobox()
  {
-     TODAY=`date "+%Y%m%d"`
-     TIME=`date "+%H%M%S"`
--    TMP_DIR="/tmp/CoCoALib-config/$USER-$TODAY/$1-$TIME-$$"
-+    TMP_DIR="/tmp/CoCoALib-config-$USER/$USER-$TODAY/$1-$TIME-$$"
-     /bin/rm -rf "$TMP_DIR"  &&  /bin/mkdir -p "$TMP_DIR"
-     if [ $? -ne 0 ]
-     then
+   mesg=">>>>  $*  <<<<"
+-  dashes=`echo "$mesg" | tr "\040-\377" "[-*]"`
++  dashes=`echo "$mesg" | tr "\040-\377" "-"`
+   echo "$dashes"
+   echo "$mesg"
+   echo "$dashes"
 diff --git a/include/CoCoA/TmpGPoly.H b/include/CoCoA/TmpGPoly.H
-index 4c4d51e..efe50f7 100644
+index 4c4d51e..b57fc17 100644
 --- a/include/CoCoA/TmpGPoly.H
 +++ b/include/CoCoA/TmpGPoly.H
 @@ -29,6 +29,7 @@
@@ -78,7 +108,7 @@ index 4c4d51e..efe50f7 100644
  #include<list>
  // using std::list; // for GPolyList; GPolyPtrList;
  #include<vector>
-@@ -46,6 +47,11 @@ enum ClearMarker {clear};
+@@ -46,6 +47,12 @@ enum ClearMarker {clear};
  
  class GPoly;
  
@@ -87,9 +117,23 @@ index 4c4d51e..efe50f7 100644
 +extern std::function<void(ConstRefRingElem p)> reductionStartHandler;
 +extern std::function<void(ConstRefRingElem q)> reductionStepHandler;
 +extern std::function<void(ConstRefRingElem r)> reductionEndHandler;
++
  
  typedef std::list<GPoly> GPolyList;
  
+diff --git a/src/AlgebraicCore/CheckSourceFiles.sh b/src/AlgebraicCore/CheckSourceFiles.sh
+index b669e0f..cb0a66c 100755
+--- a/src/AlgebraicCore/CheckSourceFiles.sh
++++ b/src/AlgebraicCore/CheckSourceFiles.sh
+@@ -24,7 +24,7 @@ do
+ done
+ sort "$TMPFILE2" > "$TMPFILE1"
+ 
+-/bin/ls -d ./*.C | cut -b 3- > "$TMPFILE2"
++/bin/ls -d ./*.C | cut -b 3- | sort > "$TMPFILE2"
+ 
+ cmp "$TMPFILE1" "$TMPFILE2" > /dev/null
+ if [ $? = 0 ]
 diff --git a/src/AlgebraicCore/PolyRing-content.C b/src/AlgebraicCore/PolyRing-content.C
 index c5d0a0a..36d6d2b 100644
 --- a/src/AlgebraicCore/PolyRing-content.C
@@ -113,26 +157,26 @@ index c5d0a0a..36d6d2b 100644
    }
  
 diff --git a/src/AlgebraicCore/SparsePolyOps-reduce.C b/src/AlgebraicCore/SparsePolyOps-reduce.C
-index b5b8b43..11687f0 100644
+index 30e407a..b8789e2 100644
 --- a/src/AlgebraicCore/SparsePolyOps-reduce.C
 +++ b/src/AlgebraicCore/SparsePolyOps-reduce.C
-@@ -134,6 +134,7 @@ degree HereForProfilingOnlyWDeg(ConstRefPPMonoidElem cofactor1)
-       v.myGRingInfo().myCheckForTimeout("ReduceActiveLM");
+@@ -145,6 +145,7 @@ degree HereForProfilingOnlyWDeg(ConstRefPPMonoidElem cofactor1)
        s->myUpdate(F, *g);
+       //      std::cout << "ReduceActiveLM after s->myUpdate" << std::endl;
        F->myReduce(poly(*g), NumTerms(*g));
 +      if ( handlersEnabled ) reductionStepHandler(poly(*g));
      }//while
    }//ReduceActiveLM
  
-@@ -269,6 +270,7 @@ degree HereForProfilingOnlyWDeg(ConstRefPPMonoidElem cofactor1)
+@@ -283,6 +284,7 @@ degree HereForProfilingOnlyWDeg(ConstRefPPMonoidElem cofactor1)
    void GPoly::myReduce(const Reductors& theReductors)
    {
      if ( IsZero(*this) ) return;
 +    if ( handlersEnabled ) reductionStartHandler(myPoly());
      ReductionCog F = ChooseReductionCogGeobucket(myGRingInfo());
+     //    std::cout << "myreduce1: F is " << F << std::endl;
      F->myAssignReset(myPolyValue, myNumTerms); // myPolyValue gets 0
-     reduce(F, mySugar, theReductors); // mySugar updated
-@@ -278,6 +280,7 @@ degree HereForProfilingOnlyWDeg(ConstRefPPMonoidElem cofactor1)
+@@ -298,6 +300,7 @@ degree HereForProfilingOnlyWDeg(ConstRefPPMonoidElem cofactor1)
      if ( !IsZero(*this) && !IsOne(myLCValue) ) // makes myPolyValue monic
        if ( myGRingInfo().myCoeffRingType()==CoeffEncoding::Field )
          myGRingInfo().myNewSPR()->myDivByCoeff(raw(myPolyValue), raw(myLCValue));
@@ -141,7 +185,7 @@ index b5b8b43..11687f0 100644
      // if CoeffEncoding::FrFldOfGCDDomain myRelease makes poly content free
    }
 diff --git a/src/AlgebraicCore/TmpGPoly.C b/src/AlgebraicCore/TmpGPoly.C
-index ea250d4..3447d86 100644
+index 3163ca9..c10b8c2 100644
 --- a/src/AlgebraicCore/TmpGPoly.C
 +++ b/src/AlgebraicCore/TmpGPoly.C
 @@ -47,6 +47,11 @@ using std::vector;
@@ -156,7 +200,7 @@ index ea250d4..3447d86 100644
  
    //---------class GPoly-------------------------------
  
-@@ -301,7 +306,10 @@ void GPoly::myUpdateLenLPPLCDegComp()
+@@ -291,7 +296,10 @@ void GPoly::myUpdateLenLPPLCDegComp()
      if (the_gp.IsInputPoly())
        myPolyValue = poly(the_gp.myFirstGPoly());
      else
@@ -167,36 +211,3 @@ index ea250d4..3447d86 100644
      myUpdateLenLPPLCDegComp();
      myAge = the_age;
      // MAX: do these things only if necessary.
-diff --git a/configuration/gmp-check-cxxflags.sh b/configuration/gmp-check-cxxflags.sh
-index f34c10d..6c167a3 100755
---- a/configuration/gmp-check-cxxflags.sh
-+++ b/configuration/gmp-check-cxxflags.sh
-@@ -59,7 +59,7 @@ fi
- 
- 
- GMP_LDLIB=-lgmp
--if [ -f "$COCOA_EXTLIB_DIR"/lib/libgmp-symlink.a ]
-+if [ -f "$COCOA_EXTLIB_DIR"/lib/libgmp-symlink."$GMP_LIB_EXTN" ]
- then
-   GMP_LDLIB=-lgmp-symlink
- fi
-diff --git a/configure b/configure
-index 769750d..5ac5e90 100755
---- a/configure
-+++ b/configure
-@@ -336,6 +336,7 @@ fi
- # Next two lines required by the scripts which check GMP (see below).
- export CXX
- export CXXFLAGS
-+export GMP_LIB_EXTN
- 
- # Check compiler and flags are sane.
- # If all is well, result is either "gnu" or "not gnu" & return code is 0.
-@@ -467,6 +468,7 @@ else
-       # gmp-find.sh script worked, so message is full path of GMP library
-       /bin/ln -s "$GMP_MESG" $EXTLIBS/lib/libgmp-symlink.a
-       GMP_LIB="$GMP_MESG"
-+      GMP_LIB_EXTN="a"
-     fi
-   fi
- fi

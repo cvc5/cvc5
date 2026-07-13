@@ -71,9 +71,31 @@ void Tracer::setFunctionPointers()
   CoCoA::reductionStartHandler = d_reductionStart;
   CoCoA::reductionStepHandler = d_reductionStep;
   CoCoA::reductionEndHandler = d_reductionEnd;
+  d_handlersRegistered = true;
 }
 
-void Tracer::unsetFunctionPointers() { CoCoA::handlersEnabled = false; }
+void Tracer::unsetFunctionPointers()
+{
+  CoCoA::handlersEnabled = false;
+  CoCoA::sPolyHandler = {};
+  CoCoA::reductionStartHandler = {};
+  CoCoA::reductionStepHandler = {};
+  CoCoA::reductionEndHandler = {};
+  d_handlersRegistered = false;
+}
+
+Tracer::~Tracer()
+{
+  // RAII safety: if an exception unwound the stack between
+  // setFunctionPointers() and unsetFunctionPointers(), the explicit unset
+  // never ran. Detach the global CoCoA handlers here so the next CoCoA
+  // call doesn't invoke a std::function capturing pointers into our
+  // (about to be destroyed) storage.
+  if (d_handlersRegistered)
+  {
+    unsetFunctionPointers();
+  }
+}
 
 std::vector<size_t> Tracer::trace(const CoCoA::RingElem& i) const
 {

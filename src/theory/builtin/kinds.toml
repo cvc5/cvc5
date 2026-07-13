@@ -417,6 +417,11 @@ name    = "RAW_SYMBOL"
 comment = "a variable that is not quoted in the smt2 printer (internal only)"
 
 [[kinds]]
+type    = "variable"
+name    = "RAW_SYMBOL_TYPE"
+comment = "a type that is not quoted in the smt2 printer (internal only)"
+
+[[kinds]]
 type      = "constant"
 name      = "ABSTRACT_TYPE"
 class_key = "class"
