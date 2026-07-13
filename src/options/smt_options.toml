@@ -370,7 +370,7 @@ name   = "SMT Layer"
   long       = "distinct-elim-threshold=N"
   type       = "uint64_t"
   default    = "0"
-  help       = "if this option is set, run a preprocessing pass that eagerly eliminates (blasts) distinct terms with at most N children into pairwise disequalities; 0 means no limit, i.e. all distinct terms are eliminated"
+  help       = "if this option is set, run a preprocessing pass that eagerly eliminates (blasts) distinct terms with at most N children into pairwise disequalities; 0 means no limit, i.e. all distinct terms are eliminated. Note the rewriter already eliminates distinct terms with at most 10 children, so values 1 to 10 have no effect; use 0 or a value greater than 10"
 
 [[option]]
   name       = "solveBVAsInt"
