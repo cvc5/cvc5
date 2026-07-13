@@ -30,7 +30,7 @@ ConversionsSolver::ConversionsSolver(Env& env,
     : EnvObj(env),
       d_state(state),
       d_im(im),
-      d_preRegistered(userContext()),
+      d_preRegistered(context()),
       d_reduced(userContext())
 {
 }
