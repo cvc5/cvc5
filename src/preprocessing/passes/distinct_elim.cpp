@@ -27,13 +27,43 @@ DistinctElim::DistinctElim(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "distinct-elim"),
       d_threshold(options().smt.distinctElimThreshold)
 {
+  if (options().smt.produceProofs)
+  {
+    d_tpg.reset(new TConvProofGenerator(d_env,
+                                        userContext(),
+                                        TConvPolicy::FIXPOINT,
+                                        TConvCachePolicy::NEVER,
+                                        "DistinctElim::tpg"));
+  }
 }
 
-Node DistinctElim::convert(TNode n)
+PreprocessingPassResult DistinctElim::applyInternal(
+    AssertionPipeline* assertionsToPreprocess)
+{
+  for (size_t i = 0, nasserts = assertionsToPreprocess->size(); i < nasserts;
+       ++i)
+  {
+    TrustNode trn = eliminate((*assertionsToPreprocess)[i]);
+    if (trn.isNull())
+    {
+      continue;
+    }
+    assertionsToPreprocess->replaceTrusted(i, trn);
+    if (assertionsToPreprocess->isInConflict())
+    {
+      return PreprocessingPassResult::CONFLICT;
+    }
+  }
+  return PreprocessingPassResult::NO_CONFLICT;
+}
+
+TrustNode DistinctElim::eliminate(TNode n)
 {
   NodeManager* nm = nodeManager();
   std::unordered_map<TNode, Node> visited;
   std::unordered_map<TNode, Node>::iterator it;
+  // to ensure all intermediate nodes are ref counted
+  std::unordered_set<Node> keep;
   std::vector<TNode> visit;
   visit.push_back(n);
   do
@@ -48,29 +78,38 @@ Node DistinctElim::convert(TNode n)
     else if (it->second.isNull())
     {
       // reconstruct with processed children
+      Node ret = cur;
+      bool childChanged = false;
       std::vector<Node> children;
       if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
       {
         children.push_back(cur.getOperator());
       }
-      bool childChanged = false;
       for (const Node& cn : cur)
       {
-        Node ccn = visited[cn];
-        Assert(!ccn.isNull());
-        childChanged = childChanged || (cn != ccn);
-        children.push_back(ccn);
+        Assert(visited.find(cn) != visited.end());
+        Assert(!visited[cn].isNull());
+        childChanged = childChanged || cn != visited[cn];
+        children.push_back(visited[cn]);
       }
-      Node ret = cur;
       if (childChanged)
       {
         ret = nm->mkNode(cur.getKind(), children);
+        keep.insert(ret);
       }
       // blast distinct if it is within the threshold (0 means no limit)
       if (ret.getKind() == Kind::DISTINCT
           && (d_threshold == 0 || ret.getNumChildren() <= d_threshold))
       {
-        ret = theory::uf::TheoryUfRewriter::blastDistinct(nm, ret);
+        Node blasted = theory::uf::TheoryUfRewriter::blastDistinct(nm, ret);
+        keep.insert(blasted);
+        if (d_tpg != nullptr)
+        {
+          // justify (= ret blasted) via the DISTINCT_ELIM proof rewrite rule
+          d_tpg->addTheoryRewriteStep(
+              ret, blasted, ProofRewriteRule::DISTINCT_ELIM);
+        }
+        ret = blasted;
       }
       visited[cur] = ret;
       visit.pop_back();
@@ -82,30 +121,13 @@ Node DistinctElim::convert(TNode n)
   } while (!visit.empty());
   Assert(visited.find(n) != visited.end());
   Assert(!visited.find(n)->second.isNull());
-  return visited[n];
-}
-
-PreprocessingPassResult DistinctElim::applyInternal(
-    AssertionPipeline* assertionsToPreprocess)
-{
-  for (size_t i = 0, nasserts = assertionsToPreprocess->size(); i < nasserts;
-       ++i)
+  Node ret = visited[n];
+  if (ret == n)
   {
-    const Node& a = (*assertionsToPreprocess)[i];
-    Node ar = convert(a);
-    if (a == ar)
-    {
-      continue;
-    }
-    assertionsToPreprocess->replace(
-        i, ar, nullptr, TrustId::PREPROCESS_DISTINCT_ELIM);
-    assertionsToPreprocess->ensureRewritten(i);
-    if (assertionsToPreprocess->isInConflict())
-    {
-      return PreprocessingPassResult::CONFLICT;
-    }
+    return TrustNode::null();
   }
-  return PreprocessingPassResult::NO_CONFLICT;
+  // use the term conversion proof generator if it exists
+  return TrustNode::mkTrustRewrite(n, ret, d_tpg.get());
 }
 
 }  // namespace passes

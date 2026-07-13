@@ -95,8 +95,6 @@ enum class TrustId : uint32_t
   PREPROCESS_BV_INTRO_POW2,
   /** ForeignTheoryRewrite preprocessing pass */
   PREPROCESS_FOREIGN_THEORY_REWRITE,
-  /** DistinctElim preprocessing pass */
-  PREPROCESS_DISTINCT_ELIM,
   /** UnconstrainedSimp preprocessing pass */
   PREPROCESS_UNCONSTRAINED_SIMP,
   /** QuantifiersPreprocess preprocessing pass */

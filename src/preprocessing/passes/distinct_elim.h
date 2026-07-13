@@ -20,6 +20,8 @@
 
 #include "expr/node.h"
 #include "preprocessing/preprocessing_pass.h"
+#include "proof/conv_proof_generator.h"
+#include "proof/trust_node.h"
 
 namespace cvc5::internal {
 namespace preprocessing {
@@ -35,15 +37,21 @@ class DistinctElim : public PreprocessingPass
       AssertionPipeline* assertionsToPreprocess) override;
   /**
    * Traverse n and blast every distinct term whose number of children is at
-   * most the threshold. A threshold of 0 means no limit, i.e. all distinct
-   * terms are blasted.
+   * most the threshold (a threshold of 0 means no limit, i.e. all distinct
+   * terms are blasted) into pairwise disequalities. Returns the trust node
+   * corresponding to the rewrite, whose proof (if enabled) justifies each
+   * elimination via the DISTINCT_ELIM proof rewrite rule.
    */
-  Node convert(TNode n);
+  TrustNode eliminate(TNode n);
+
+ private:
   /**
    * The maximum number of children a distinct term may have to be eliminated,
    * or 0 for no limit.
    */
   uint64_t d_threshold;
+  /** A term conversion proof generator */
+  std::unique_ptr<TConvProofGenerator> d_tpg;
 };
 
 }  // namespace passes
