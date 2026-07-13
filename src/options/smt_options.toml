@@ -365,6 +365,14 @@ name   = "SMT Layer"
   help       = "Cross-theory rewrites"
 
 [[option]]
+  name       = "distinctElimThreshold"
+  category   = "expert"
+  long       = "distinct-elim-threshold=N"
+  type       = "uint64_t"
+  default    = "0"
+  help       = "if this option is set, run a preprocessing pass that eagerly eliminates (blasts) distinct terms with at most N children into pairwise disequalities; 0 means no limit, i.e. all distinct terms are eliminated"
+
+[[option]]
   name       = "solveBVAsInt"
   category   = "regular"
   long       = "solve-bv-as-int=MODE"
