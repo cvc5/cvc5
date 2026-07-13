@@ -59,7 +59,7 @@ TheorySetsPrivate::TheorySetsPrivate(Env& env,
       d_card_enabled(false),
       d_higher_order_kinds_enabled(false),
       d_cpacb(cpacb),
-      d_strategy(this, &state, &im, &external.getValuation())
+      d_strategy(this, &state, &im)
 {
   d_true = nodeManager()->mkConst(true);
   d_false = nodeManager()->mkConst(false);
@@ -1370,7 +1370,7 @@ void TheorySetsPrivate::postCheck(Theory::Effort level)
   // conflict or lemma is produced or nothing new is asserted. It is a no-op
   // unless we are at a registered effort and not already in conflict / needing
   // a check.
-  d_strategy.postCheck(level);
+  d_im.postCheck(d_strategy, level);
   // If full-effort registration flagged a source of incompleteness and we
   // neither found a conflict nor sent a lemma, report the model as unsound.
   if (runFullCheck && !d_state.isInConflict() && !d_im.hasSentLemma()

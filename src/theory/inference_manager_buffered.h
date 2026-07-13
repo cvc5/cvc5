@@ -16,11 +16,14 @@
 #define CVC5__THEORY__INFERENCE_MANAGER_BUFFERED_H
 
 #include "expr/node.h"
+#include "theory/theory.h"
 #include "theory/theory_inference.h"
 #include "theory/theory_inference_manager.h"
 
 namespace cvc5::internal {
 namespace theory {
+
+class StrategyBase;
 
 /**
  * The buffered inference manager.  This class implements standard methods
@@ -141,6 +144,15 @@ class InferenceManagerBuffered : public TheoryInferenceManager
    * a conflict.
    */
   bool hasProcessed() const;
+  /**
+   * The standard full/last-call effort check loop for a theory whose
+   * inference steps are organized as a strategy (see StrategyBase). It
+   * repeatedly runs the strategy for effort e and sends the resulting pending
+   * facts/lemmas until a conflict or lemma is produced or nothing is pending.
+   * It is a no-op if we are already in conflict, a new SAT decision is
+   * pending, or the strategy has no steps registered for effort e.
+   */
+  void postCheck(StrategyBase& strategy, Theory::Effort e);
   /**
    * Do pending phase requirements. Calls the output channel for all pending
    * phase requirements and clears d_pendingReqPhase.

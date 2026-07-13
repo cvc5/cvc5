@@ -22,10 +22,8 @@ namespace sets {
 
 Strategy::Strategy(TheorySetsPrivate* parent,
                    TheoryState* state,
-                   InferenceManagerBuffered* im,
-                   Valuation* valuation)
-    : StrategyBase(TheoryId::THEORY_SETS, state, im, valuation),
-      d_setsSolver(parent)
+                   InferenceManagerBuffered* im)
+    : StrategyBase(TheoryId::THEORY_SETS, state, im), d_setsSolver(parent)
 {
 }
 

@@ -41,11 +41,11 @@ class InferenceManagerBuffered;
  *   3. implementing initializeStrategy() to build the list using the protected
  *      helpers below (markStartEffort / addStrategyStep / markEndEffort /
  *      finishInit).
- * The theory's own check loop (typically runStrategy / runStep) is
- * intentionally NOT part of this class: those dispatch to theory-specific
- * sub-solvers.
- * This class owns only the *recipe* (the ordered list and its per-effort
- * slices); the theory owns how the recipe is executed.
+ * This class owns the *recipe* (the ordered list and its per-effort slices)
+ * and the single-pass driver runStrategy(); the standard fixpoint check loop
+ * that repeatedly runs the strategy and flushes pending inferences is
+ * InferenceManagerBuffered::postCheck. The per-step dispatch (runStep) is
+ * implemented by each theory, since steps map to theory-specific sub-solvers.
  *
  * The step list is stored flat. For an effort e, the steps to run are the
  * half-open iterator range [stepBegin(e), stepEnd(e)).
@@ -56,8 +56,7 @@ class StrategyBase
  public:
   StrategyBase(TheoryId id,
                TheoryState* state = nullptr,
-               InferenceManagerBuffered* im = nullptr,
-               Valuation* valuation = nullptr);
+               InferenceManagerBuffered* im = nullptr);
 
   /** a destructor */
   virtual ~StrategyBase();
@@ -94,20 +93,14 @@ class StrategyBase
   virtual void initializeStrategy() = 0;
 
   /**
-   * The standard full/last-call effort check loop.
-   * It repeatedly runs the strategy and sends pending
-   * facts/lemmas until a conflict or lemma is produced or nothing is pending.
-   */
-  virtual void postCheck(Theory::Effort e);
-
- protected:
-  /**
    * Run the steps registered for effort e in order, dispatching each via
    * runStep() and yielding at BREAK markers once something has been
-   * processed or a conflict is found.
+   * processed or a conflict is found. This is a single pass; the standard
+   * check loop around it is InferenceManagerBuffered::postCheck.
    */
   void runStrategy(Theory::Effort e);
 
+ protected:
   /**
    * Execute a single inference step.
    */
@@ -147,7 +140,6 @@ class StrategyBase
   TheoryId d_theoryId;
   TheoryState* d_state;
   InferenceManagerBuffered* d_im;
-  Valuation* d_valuation;
   /** Whether the strategy has been initialized. */
   bool d_strategyInit;
   /** The flat ordered list of steps, with BREAK markers interleaved. */

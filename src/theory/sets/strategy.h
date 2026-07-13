@@ -34,8 +34,7 @@ class Strategy : public StrategyBase
  public:
   Strategy(TheorySetsPrivate* parent = nullptr,
            TheoryState* state = nullptr,
-           InferenceManagerBuffered* im = nullptr,
-           Valuation* valuation = nullptr);
+           InferenceManagerBuffered* im = nullptr);
 
   ~Strategy();
   /** initialize the strategy
