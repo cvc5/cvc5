@@ -117,6 +117,29 @@ TEST_F(TestApiBlackProof, getChildren)
   ASSERT_FALSE(children.empty());
 }
 
+TEST_F(TestApiBlackProof, annotateTheoryLemmas)
+{
+  d_solver->setOption("proof-annotate-theory-lemmas", "true");
+  Proof proof = createProof();
+  std::vector<Proof> stack{proof};
+  bool foundAnnotate = false;
+  while (!stack.empty())
+  {
+    Proof cur = stack.back();
+    stack.pop_back();
+    if (cur.getRule() == ProofRule::ANNOTATE)
+    {
+      foundAnnotate = true;
+      ASSERT_EQ(cur.getChildren().size(), 1);
+      ASSERT_GE(cur.getArguments().size(), 2);
+      break;
+    }
+    std::vector<Proof> children = cur.getChildren();
+    stack.insert(stack.end(), children.begin(), children.end());
+  }
+  ASSERT_TRUE(foundAnnotate);
+}
+
 TEST_F(TestApiBlackProof, getArguments)
 {
   Proof proof = createProof();

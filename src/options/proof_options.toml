@@ -34,6 +34,14 @@ name   = "Proof"
   help       = "Print conclusion of proof steps when printing AST"
 
 [[option]]
+  name       = "proofAnnotateTheoryLemmas"
+  category   = "expert"
+  long       = "proof-annotate-theory-lemmas"
+  type       = "bool"
+  default    = "false"
+  help       = "Wrap asserted theory lemma proofs in ANNOTATE steps"
+
+[[option]]
   name       = "proofDagGlobal"
   category   = "expert"
   long       = "proof-dag-global"

@@ -20,6 +20,7 @@
 #include "cvc5/cvc5_proof_rule.h"
 #include "expr/kind.h"
 #include "expr/node.h"
+#include "proof/annotation_id.h"
 #include "proof/method_id.h"
 #include "proof/trust_id.h"
 #include "rewriter/rewrites.h"
@@ -64,6 +65,8 @@ class ProofNodeToSExpr
     METHOD_ID,
     // print the arugment as a trust id
     TRUST_ID,
+    // print the argument as an annotation id
+    ANNOTATION_ID,
     // print the argument as an inference id
     INFERENCE_ID,
     // print the argument as a DSL rewrite id
@@ -89,6 +92,8 @@ class ProofNodeToSExpr
   std::map<MethodId, Node> d_midMap;
   /** map trust ids to a variable displaying the method id they represent */
   std::map<TrustId, Node> d_tridMap;
+  /** map annotation ids to a variable displaying the annotation id */
+  std::map<AnnotationId, Node> d_annidMap;
   /** map infer ids to a variable displaying the inference id they represent */
   std::map<theory::InferenceId, Node> d_iidMap;
   /** map dsl rewrite ids to a variable displaying the dsl rewrite id they
@@ -115,6 +120,8 @@ class ProofNodeToSExpr
   Node getOrMkMethodIdVariable(TNode n);
   /** get or make trust id variable */
   Node getOrMkTrustIdVariable(TNode n);
+  /** get or make annotation id variable */
+  Node getOrMkAnnotationIdVariable(TNode n);
   /** get or make inference id variable */
   Node getOrMkInferenceIdVariable(TNode n);
   /** get or make DSL rewrite id variable */
