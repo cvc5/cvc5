@@ -11,6 +11,7 @@ cvc5 1.3.5 prerelease
   `0`). Callers can query the error via the new functions `cvc5_has_error()` and
   `cvc5_get_error_message()`, and clear it via `cvc5_reset_error()`. The error
   state is reset at the start of the next C API call that can raise an error.
+- We now eagerly expand applications of `distinct` having at most 10 children. A further option `--distinct-elim-threshold=N` is added to eliminate `distinct` constraints have up to `N` children (where `0` indicates no limit).
 
 cvc5 1.3.4
 ==========
