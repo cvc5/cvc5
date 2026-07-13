@@ -69,10 +69,12 @@ class StrategyBase
   bool hasStrategyEffort(Theory::Effort e) const;
 
   /** Begin iterator over the steps to run at effort e. */
-  std::vector<std::pair<Step, unsigned>>::iterator stepBegin(Theory::Effort e);
+  std::vector<std::pair<Step, Theory::Effort>>::iterator stepBegin(
+      Theory::Effort e);
 
   /** End iterator over the steps to run at effort e. */
-  std::vector<std::pair<Step, unsigned>>::iterator stepEnd(Theory::Effort e);
+  std::vector<std::pair<Step, Theory::Effort>>::iterator stepEnd(
+      Theory::Effort e);
 
   /**
    * Build the strategy. Implemented by each theory's derived class. A typical
@@ -109,14 +111,16 @@ class StrategyBase
   /**
    * Execute a single inference step.
    */
-  virtual void runStep(Step s, Theory::Effort e, unsigned effort) = 0;
+  virtual void runStep(Step s, Theory::Effort e, Theory::Effort effort) = 0;
 
   /**
-   * Append step s (running at the given effort index) to the strategy. If
+   * Append step s (running at the given effort) to the strategy. If
    * addBreak is true (default), a BREAK marker is appended after it, which the
    * theory's runStrategy uses as a yield point.
    */
-  void addStrategyStep(Step s, int effort = 0, bool addBreak = true);
+  void addStrategyStep(Step s,
+                       Theory::Effort effort = Theory::EFFORT_FULL,
+                       bool addBreak = true);
 
   /**
    * Mark that the steps for effort e begin at the current end of the list.
@@ -147,7 +151,7 @@ class StrategyBase
   /** Whether the strategy has been initialized. */
   bool d_strategyInit;
   /** The flat ordered list of steps, with BREAK markers interleaved. */
-  std::vector<std::pair<Step, unsigned>> d_steps;
+  std::vector<std::pair<Step, Theory::Effort>> d_steps;
   /** For each effort, the [begin,end] index range into d_inferSteps. */
   std::map<Theory::Effort, std::pair<unsigned, unsigned>> d_stratSteps;
   /** Scratch: per-effort begin indices recorded by markStartEffort. */

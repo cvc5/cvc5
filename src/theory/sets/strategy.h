@@ -49,7 +49,7 @@ class Strategy : public StrategyBase
    * Execute a single inference step by dispatching to the matching check
    * method on the owning TheorySetsPrivate.
    */
-  void runStep(Step s, Theory::Effort e, unsigned effort) override;
+  void runStep(Step s, Theory::Effort e, Theory::Effort effort) override;
 
  private:
   /** The sets solver that owns this strategy and implements the steps. */

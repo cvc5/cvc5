@@ -42,7 +42,7 @@ bool StrategyBase::hasStrategyEffort(Theory::Effort e) const
   return d_stratSteps.find(e) != d_stratSteps.end();
 }
 
-std::vector<std::pair<Step, unsigned>>::iterator StrategyBase::stepBegin(
+std::vector<std::pair<Step, Theory::Effort>>::iterator StrategyBase::stepBegin(
     Theory::Effort e)
 {
   std::map<Theory::Effort, std::pair<unsigned, unsigned>>::const_iterator it =
@@ -51,7 +51,7 @@ std::vector<std::pair<Step, unsigned>>::iterator StrategyBase::stepBegin(
   return d_steps.begin() + it->second.first;
 }
 
-std::vector<std::pair<Step, unsigned>>::iterator StrategyBase::stepEnd(
+std::vector<std::pair<Step, Theory::Effort>>::iterator StrategyBase::stepEnd(
     Theory::Effort e)
 {
   std::map<Theory::Effort, std::pair<unsigned, unsigned>>::const_iterator it =
@@ -60,13 +60,13 @@ std::vector<std::pair<Step, unsigned>>::iterator StrategyBase::stepEnd(
   return d_steps.begin() + it->second.second;
 }
 
-void StrategyBase::addStrategyStep(Step s, int effort, bool addBreak)
+void StrategyBase::addStrategyStep(Step s, Theory::Effort effort, bool addBreak)
 {
   Assert(s != BREAK);
-  d_steps.push_back(std::pair<Step, unsigned>(s, effort));
+  d_steps.push_back(std::pair<Step, Theory::Effort>(s, effort));
   if (addBreak)
   {
-    d_steps.push_back(std::pair<Step, unsigned>(BREAK, 0));
+    d_steps.push_back(std::pair<Step, Theory::Effort>(BREAK, effort));
   }
 }
 
@@ -103,14 +103,14 @@ void StrategyBase::finishInit()
 
 void StrategyBase::runStrategy(Theory::Effort e)
 {
-  std::vector<std::pair<Step, unsigned>>::iterator it = stepBegin(e);
-  std::vector<std::pair<Step, unsigned>>::iterator end = stepEnd(e);
+  std::vector<std::pair<Step, Theory::Effort>>::iterator it = stepBegin(e);
+  std::vector<std::pair<Step, Theory::Effort>>::iterator end = stepEnd(e);
 
   Trace("strings-process") << "----check, next round---" << std::endl;
   while (it != end)
   {
     Step curr = it->first;
-    int effort = it->second;
+    Theory::Effort effort = it->second;
     if (curr == Step::BREAK)
     {
       // if we have a pending inference or lemma, we will process it

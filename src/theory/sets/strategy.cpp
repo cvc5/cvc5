@@ -56,14 +56,10 @@ void Strategy::initializeStrategy()
   finishInit();
 }
 
-void Strategy::runStep(Step s, Theory::Effort, unsigned effort)
+void Strategy::runStep(Step s, Theory::Effort, Theory::Effort effort)
 {
-  Trace("sets-process") << "Run " << s;
-  if (effort > 0)
-  {
-    Trace("sets-process") << ", effort = " << effort;
-  }
-  Trace("sets-process") << "..." << std::endl;
+  Trace("sets-process") << "Run " << s << ", effort = " << effort << "..."
+                        << std::endl;
   Assert(d_setsSolver != nullptr);
   switch (s)
   {
