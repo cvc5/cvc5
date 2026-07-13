@@ -104,7 +104,7 @@ jobs:
           pushd target-releases/
           python3 genversions.py
           popd
-          cp -rf "${TARGET_DIR}" docs-new
+          cp -rfT "${TARGET_DIR}" docs-new
 
       - name: Update docs
         run: |
