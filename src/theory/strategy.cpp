@@ -45,7 +45,7 @@ bool StrategyBase::hasStrategyEffort(Theory::Effort e) const
 std::vector<std::pair<Step, Theory::Effort>>::iterator StrategyBase::stepBegin(
     Theory::Effort e)
 {
-  std::map<Theory::Effort, std::pair<unsigned, unsigned>>::const_iterator it =
+  std::map<Theory::Effort, std::pair<size_t, size_t>>::const_iterator it =
       d_stratSteps.find(e);
   Assert(it != d_stratSteps.end());
   return d_steps.begin() + it->second.first;
@@ -54,7 +54,7 @@ std::vector<std::pair<Step, Theory::Effort>>::iterator StrategyBase::stepBegin(
 std::vector<std::pair<Step, Theory::Effort>>::iterator StrategyBase::stepEnd(
     Theory::Effort e)
 {
-  std::map<Theory::Effort, std::pair<unsigned, unsigned>>::const_iterator it =
+  std::map<Theory::Effort, std::pair<size_t, size_t>>::const_iterator it =
       d_stratSteps.find(e);
   Assert(it != d_stratSteps.end());
   return d_steps.begin() + it->second.second;
@@ -86,13 +86,12 @@ void StrategyBase::markEndEffort(Theory::Effort e)
 
 void StrategyBase::finishInit()
 {
-  for (const std::pair<const Theory::Effort, unsigned>& b : d_stepBegin)
+  for (const std::pair<const Theory::Effort, size_t>& b : d_stepBegin)
   {
     Theory::Effort e = b.first;
-    std::map<Theory::Effort, unsigned>::const_iterator itEnd =
-        d_stepEnd.find(e);
+    std::map<Theory::Effort, size_t>::const_iterator itEnd = d_stepEnd.find(e);
     Assert(itEnd != d_stepEnd.end());
-    d_stratSteps[e] = std::pair<unsigned, unsigned>(b.second, itEnd->second);
+    d_stratSteps[e] = std::pair<size_t, size_t>(b.second, itEnd->second);
   }
   // the begin/end marks are scratch state only needed while building the
   // strategy; drop them so no stale data persists after initialization.

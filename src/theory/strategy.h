@@ -153,11 +153,11 @@ class StrategyBase
   /** The flat ordered list of steps, with BREAK markers interleaved. */
   std::vector<std::pair<Step, Theory::Effort>> d_steps;
   /** For each effort, the [begin,end] index range into d_inferSteps. */
-  std::map<Theory::Effort, std::pair<unsigned, unsigned>> d_stratSteps;
+  std::map<Theory::Effort, std::pair<size_t, size_t>> d_stratSteps;
   /** Scratch: per-effort begin indices recorded by markStartEffort. */
-  std::map<Theory::Effort, unsigned> d_stepBegin;
+  std::map<Theory::Effort, size_t> d_stepBegin;
   /** Scratch: per-effort end indices recorded by markEndEffort. */
-  std::map<Theory::Effort, unsigned> d_stepEnd;
+  std::map<Theory::Effort, size_t> d_stepEnd;
 }; /* class StrategyBase */
 
 }  // namespace theory
