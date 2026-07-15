@@ -98,8 +98,7 @@
 ;   The result of prepending string x to string y where the former is treated
 ;   as an element and the latter is treated as a list.
 (define $str_cons ((T Type :implicit) (x (Seq T)) (y (Seq T)))
-  (_ str.++ x y)
-)
+  (_ str.++ x y))
 
 ; define: $str_is_code_point
 ; args:
@@ -486,14 +485,8 @@
 ;   The result of ensuring that the input t is not a singleton str.++
 ;   application. In particular, if t is of the form (str.++ t1 empty) where
 ;   empty is the empty string for the type of t, we return t1.
-(program $str_nary_elim ((T Type) (t (Seq T)) (ss (Seq T) :list))
-    :signature ((Seq T)) (Seq T)
-    (
-        (($str_nary_elim (str.++ t ss)) (eo::define ((nil ($seq_empty (eo::typeof t))))
-                                           (eo::ite (eo::eq ss nil) t (str.++ t ss))))
-        (($str_nary_elim t)             ($str_self_if_empty t))
-    )
-)
+(define $str_nary_elim ((T Type :implicit) (t (Seq T)))
+  (eo::list_singleton_elim str.++ t))
 
 ; program: $re_nary_elim
 ; args:
@@ -502,13 +495,8 @@
 ;   Regular expression nary-elimination, which ensures that the input t is not a
 ;   singleton re.++ application. In particular, if t is of the form
 ;   (re.++ t1 @re.empty), we return t1.
-(program $re_nary_elim ((t RegLan) (ss RegLan :list))
-    :signature (RegLan) RegLan
-    (
-        (($re_nary_elim (re.++ t ss)) (eo::ite (eo::eq ss @re.empty) t (re.++ t ss)))
-        (($re_nary_elim t)            t)
-    )
-)
+(define $re_nary_elim ((r RegLan))
+  (eo::list_singleton_elim re.++ r))
 
 ;;-------------------- Reductions
 
@@ -911,9 +899,11 @@
 ;   The result of "flattening" all children of t. For example, given
 ;   (str.++ "AB" x "CD"), this returns the term
 ;   (str.++ "A" (str.++ "B" (str.++ x (str.++ "C" (str.++ "D" ""))))).
-(program $str_flatten ((U Type) (t (Seq U)) (tail (Seq U) :list))
+(program $str_flatten ((U Type) (t (Seq U)) (tail (Seq U) :list) (tail2 (Seq U) :list))
   :signature ((Seq U)) (Seq U)
   (
+    (($str_flatten (str.++ (str.++ t tail) tail2))
+      (eo::list_concat str.++ ($str_flatten (str.++ t tail)) ($str_flatten tail2)))
     (($str_flatten (str.++ t tail))
         ; otherwise, check whether t is a word constant.
         ; we check for any word constant length here, since e.g. t may be empty
@@ -1163,38 +1153,6 @@
       ($str_first_match_rec_smallest s r 0)
       -1)))
 
-; program: $re_str_to_flat_form
-; args:
-; - rev Bool: Whether to reverse the strings that occur in r.
-; - r RegLan: The regular expression to process.
-; return: 
-;   The result of converting the strings s occurring as direct
-;   children (str.to_re s) of regular expression concatenation r to their flat
-;   form, reversing if rev is true.
-(program $re_str_to_flat_form ((r1 RegLan) (r2 RegLan :list) (s String) (rev Bool))
-  :signature (Bool RegLan) RegLan
-  (
-    (($re_str_to_flat_form rev (re.++ (str.to_re s) r2))  (_ re.++ (str.to_re ($str_to_flat_form s rev)) ($re_str_to_flat_form rev r2)))
-    (($re_str_to_flat_form rev (re.++ r1 r2))             (_ re.++ r1 ($re_str_to_flat_form rev r2)))
-    (($re_str_to_flat_form rev r1)                        r1)
-  )
-)
-
-; define: $re_to_flat_form
-; args:
-; - r RegLan: The regular expression to process.
-; - rev Bool: Whether to reverse the content of r.
-; return: >
-;   Converts a regular expression term to "flat form". This consists of the
-;   following steps:
-;   (1) convert r to n-ary form if it not already a re.++ application,
-;   (2) (optionally) reverse,
-;   (3) convert the strings s occurring as direct children (str.to_re s) of the
-;   result to their flat form. Note that other strings in r, i.e. those that
-;   occur beneath other children remain unchanged.
-(define $re_to_flat_form ((r RegLan) (rev Bool))
-  ($re_str_to_flat_form rev ($str_re_rev rev ($re_nary_intro r))))
-
 ; define: $str_from_flat_form
 ; args:
 ; - s (Seq U): The string term.
@@ -1206,6 +1164,8 @@
 ;   (1) (optionally) reverse,
 ;   (2) collect constants
 ;   (3) eliminate n-ary form to its element if the term is a singleton list.
+;   Note s is assumed to be a str.++ list; callers that may pass a bare string
+;   (e.g. a single character) must first apply $str_nary_intro.
 (define $str_from_flat_form ((U Type :implicit) (s (Seq U)) (rev Bool))
   ; reverse, collect, elim
   ($str_nary_elim ($str_collect ($str_rev rev s))))
@@ -1223,48 +1183,264 @@
 (define $str_from_nary_form ((U Type :implicit) (s (Seq U)) (rev Bool))
   ($str_nary_elim ($str_rev rev s)))
 
-; program: $re_str_from_flat_form
+;;;;; flat form (used by $str_re_consume and $str_re_includes)
+;
+; The "flat form" of a regular expression flattens the strings occurring as
+; (str.to_re s) children, and additionally puts the body of every re.* and the
+; children of every re.inter / re.union into flat form as well. This is used by
+; $str_re_consume and $str_re_includes so that their recursive workers never have
+; to (re)convert one of their recursive arguments to flat form: every regular
+; expression they recurse on is already flat. This is what makes those methods
+; structurally recursive.
+;
+; Flattening and un-flattening are each a single recursive program. The boolean
+; argument distinguishes the two roles a regular expression plays: as a re.++
+; list whose components are mapped (aslist = true), or as a single component that
+; is flattened, descending into re.* bodies and re.inter / re.union children
+; (aslist = false). Every recursive call is on a strict subterm of the input,
+; except the aslist true->false step on the same term, so termination holds by
+; the lexicographic measure (size of r, aslist). Flattening and un-flattening
+; produce / consume content in forward order; the (order) reversal is factored out
+; into the shared helper $re_rev_rec, which recursively reverses the entire regular
+; expression (the order of every re.++ list) and is applied once by
+; $re_to_flat_form / $re_from_flat_form.
+
+; program: $re_split_str_to_re
 ; args:
-; - rev Bool: Whether to reverse the strings that occur in r.
-; - r RegLan: The regular expression to process.
-; return:
-;   The result of converting the strings s occurring as direct
-;   children (str.to_re s) of regular expression concatenation r from their flat
-;   form, reversing if rev is true.
-(program $re_str_from_flat_form ((r1 RegLan) (r2 RegLan :list) (s String) (rev Bool))
+; - s (Seq U): A string in flat form, i.e. a str.++ list whose elements are single
+;   characters (for constants) or non-constant terms.
+; - tail RegLan: The (already-flattened) re.++ list to append after the components.
+; return: >
+;   The re.++ list that prepends (str.to_re ci) for every element ci of s onto
+;   tail. For example, given (str.++ "a" (str.++ "b" "")) and (re.++ X @re.empty),
+;   this returns (re.++ (str.to_re "a") (str.to_re "b") X @re.empty). The empty
+;   string yields no component, so tail is returned unchanged.
+(program $re_split_str_to_re ((U Type) (c (Seq U)) (s (Seq U) :list) (tail RegLan))
+  :signature ((Seq U) RegLan) RegLan
+  (
+  (($re_split_str_to_re (str.++ c s) tail)  (_ re.++ (str.to_re c) ($re_split_str_to_re s tail)))
+  (($re_split_str_to_re c tail)             tail) ; empty-string terminator
+  )
+)
+
+; note: >
+;   Forward declaration of $re_rev_comp, used by $re_rev_map below to recursively
+;   reverse the content of a single component.
+(program $re_rev_comp () :signature (RegLan) RegLan)
+
+; program: $re_rev_map_rev
+; args:
+; - r RegLan: A re.++ list (in flat form).
+; return: >
+;   The result of recursively reversing the content of every component of r, with
+;   the list order of r itself preserved. Used by $re_rev_rec (which reverses the
+;   list order) and by $re_rev_comp (for re.* bodies and re.inter / re.union
+;   children).
+(program $re_rev_map_rev
+  ((a RegLan) (b RegLan :list) (acc RegLan :list))
+  :signature (RegLan RegLan) RegLan
+  (
+  (($re_rev_map_rev @re.empty acc)    acc)
+  (($re_rev_map_rev (re.++ a b) acc)  ($re_rev_map_rev b (re.++ ($re_rev_comp a) acc)))
+  )
+)
+
+; program: $re_rev_comp
+; args:
+; - c RegLan: A single component (in flat form).
+; return: >
+;   The component with its content recursively reversed: the body of a re.* and
+;   each child of a re.inter / re.union is reversed (order of its re.++ list and,
+;   recursively, the content of its components). Single-character str.to_re
+;   components and the re.all / re.none terminators are returned unchanged. As in
+;   $re_flatten, a bare re.all / re.none must be matched before the
+;   (re.inter c1 c2) / (re.union c1 c2) patterns, since it matches them as a
+;   singleton list.
+(program $re_rev_comp
+  ((body RegLan) (c1 RegLan) (c2 RegLan :list) (c RegLan))
+  :signature (RegLan) RegLan
+  (
+  (($re_rev_comp re.all)           re.all)
+  (($re_rev_comp re.none)          re.none)
+  (($re_rev_comp (re.* body))      (re.* ($re_rev_map_rev body @re.empty)))
+  (($re_rev_comp (re.inter c1 c2)) (_ re.inter ($re_rev_map_rev c1 @re.empty) ($re_rev_comp c2)))
+  (($re_rev_comp (re.union c1 c2)) (_ re.union ($re_rev_map_rev c1 @re.empty) ($re_rev_comp c2)))
+  (($re_rev_comp c)                c)
+  )
+)
+
+; define: $re_rev_rec
+; args:
+; - rev Bool: Whether to reverse content.
+; - r RegLan: A re.++ list (in flat form).
+; return: >
+;   If rev is true, the result of recursively reversing r: the order of its
+;   top-level re.++ list and, recursively, the content of every re.* body and
+;   re.inter / re.union child. If rev is false, r is returned unchanged. This is
+;   the shared reversal that $re_to_flat_form / $re_from_flat_form factor out of
+;   $re_flatten / $re_unflatten. It is its own inverse: applying it twice restores
+;   the original term.
+(define $re_rev_rec ((rev Bool) (r RegLan))
+  (eo::ite rev ($re_rev_map_rev r @re.empty) r))
+
+; program: $re_flatten
+; args:
+; - aslist Bool: Whether r is treated as a re.++ list (true) or a component (false).
+; - r RegLan: The regular expression to flatten.
+; return: >
+;   The flat form of r, with content in forward (non-reversed) order. The (order)
+;   reversal is applied separately, by $re_rev_rec in $re_to_flat_form.
+(program $re_flatten
+  ((aslist Bool) (a RegLan) (a2 RegLan :list) (b RegLan :list) (s String)
+   (body RegLan) (c1 RegLan) (c2 RegLan :list) (c RegLan))
   :signature (Bool RegLan) RegLan
   (
-    (($re_str_from_flat_form rev (re.++ (str.to_re s) r2))  (_ re.++ (str.to_re ($str_from_flat_form s rev)) ($re_str_from_flat_form rev r2)))
-    (($re_str_from_flat_form rev (re.++ r1 r2))             (_ re.++ r1 ($re_str_from_flat_form rev r2)))
-    (($re_str_from_flat_form rev r1)                        r1)
+  ; list mode: map flattening over the re.++ list (head as component, tail as list)
+  (($re_flatten true @re.empty)        @re.empty)
+  ; a str.to_re component is split into a concatenation of single-character
+  ; str.to_re terms, spliced into the surrounding list. The split is done in
+  ; forward order; the (order) reversal is applied once, non-recursively, by
+  ; $re_rev_rec, so the single characters need no per-string reversal.
+  (($re_flatten true (re.++ (str.to_re s) b))
+    ($re_split_str_to_re ($str_flatten ($str_nary_intro s)) ($re_flatten true b)))
+  (($re_flatten true (re.++ (re.++ a a2) b))
+    (eo::list_concat re.++ ($re_flatten true (re.++ a a2)) ($re_flatten true b)))
+  (($re_flatten true (re.++ a b))      (_ re.++ ($re_flatten false a) ($re_flatten true b)))
+  (($re_flatten true (str.to_re s))    ($re_split_str_to_re ($str_flatten ($str_nary_intro s)) @re.empty)) ; bare str.to_re
+  (($re_flatten true c)                (_ re.++ ($re_flatten false c) @re.empty)) ; bare component -> singleton list
+  ; component mode (str.to_re is handled in list mode above)
+  ; A bare re.all / re.none terminator must be returned as-is: it matches the
+  ; (re.inter c1 c2) / (re.union c1 c2) patterns below as a singleton list, so without
+  ; re.all and re.none only occur as the nil terminator of re.inter and re.union,
+  ; we return these unchanged.
+  (($re_flatten false re.all)          re.all)
+  (($re_flatten false re.none)         re.none)
+  (($re_flatten false (re.* body))     (re.* ($re_flatten true body)))
+  (($re_flatten false (re.inter c1 c2)) (_ re.inter ($re_flatten true c1) ($re_flatten false c2)))
+  (($re_flatten false (re.union c1 c2)) (_ re.union ($re_flatten true c1) ($re_flatten false c2)))
+  (($re_flatten false c)               c)
+  )
+)
+
+; define: $re_to_flat_form
+; args:
+; - r RegLan: The regular expression to process.
+; - rev Bool: Whether to reverse the content of r.
+; return: >
+;   Converts a regular expression term to "flat form": flattens the strings
+;   occurring as (str.to_re s) children, and recursively flattens the body of every
+;   re.* and the children of every re.inter / re.union. The content order is
+;   reversed (recursively, at every re.++ list) by $re_rev_rec when rev is true.
+(define $re_to_flat_form ((r RegLan) (rev Bool))
+  ($re_rev_rec rev ($re_flatten true r)))
+
+; note: >
+;   Forward declaration of $re_unflatten_str, used by $re_unflatten below to merge
+;   a maximal run of single-character str.to_re components back into one str.to_re.
+(program $re_unflatten_str () :signature (String RegLan) RegLan)
+
+; program: $re_unflatten
+; args:
+; - aslist Bool: Whether r is treated as a re.++ list (true) or a component (false).
+; - r RegLan: The regular expression (in forward-order flat form) to un-flatten.
+; return: >
+;   The dual of $re_flatten. The (order) reversal is applied separately, by
+;   $re_rev_rec in $re_from_flat_form (which reverses its input before
+;   un-flattening), so this program operates on forward-order content.
+(program $re_unflatten
+  ((aslist Bool) (a RegLan) (b RegLan :list) (s String) (body RegLan)
+   (c1 RegLan) (c2 RegLan :list) (c RegLan))
+  :signature (Bool RegLan) RegLan
+  (
+  ; list mode: a maximal run of (single-character) str.to_re components is merged
+  ; back into one str.to_re (collecting their characters); other components are
+  ; un-flattened individually.
+  (($re_unflatten true (re.++ (str.to_re s) b))  ($re_unflatten_str ($str_nary_intro s) b))
+  (($re_unflatten true (re.++ a b))      (_ re.++ ($re_unflatten false a) ($re_unflatten true b)))
+  (($re_unflatten true c)                c) ; @re.empty terminator
+  ; component mode (str.to_re is handled in list mode above)
+  (($re_unflatten false (re.* body))     (re.* ($re_nary_elim ($re_unflatten true body))))
+  (($re_unflatten false (re.inter c1 c2))
+    (_ re.inter ($re_nary_elim ($re_unflatten true c1)) ($re_unflatten false c2)))
+  (($re_unflatten false (re.union c1 c2))
+    (_ re.union ($re_nary_elim ($re_unflatten true c1)) ($re_unflatten false c2)))
+  (($re_unflatten false c)               c)
+  )
+)
+
+; program: $re_unflatten_str
+; args:
+; - acc String: The accumulated string (a str.++ list of single characters, in
+;   flat-form / list order) for the current run of str.to_re components.
+; - r RegLan: The remaining re.++ list to process.
+; return: >
+;   Collects a maximal run of (str.to_re ...) components from the head of r,
+;   concatenating their strings into acc, then emits a single un-flattened
+;   (str.to_re ...) (applying $str_from_flat_form, which collects adjacent
+;   constants) followed by the un-flattening of the remainder of r. The content is
+;   in forward order (any reversal was already undone by $re_rev_rec), so no
+;   per-string reversal is applied here.
+(program $re_unflatten_str ((acc String) (s String) (b RegLan :list))
+  :signature (String RegLan) RegLan
+  (
+    (($re_unflatten_str acc (re.++ (str.to_re s) b))
+       ($re_unflatten_str ($str_concat acc ($str_nary_intro s)) b))
+    (($re_unflatten_str acc b)
+       (_ re.++ (str.to_re ($str_from_flat_form acc false)) ($re_unflatten true b)))
   )
 )
 
 ; define: $re_from_flat_form
 ; args:
-; - r RegLan: The regular expression to process.
+; - r RegLan: The regular expression in flat form.
 ; - rev Bool: Whether to reverse the content of r.
 ; return: >
-;   Converts a regular expression term in "flat form" to a term that is in a form
-;   that corresponds to one in cvc5 rewritten form. This is the dual method to
-;   $re_to_flat_form. This consists of the following steps:
-;   (1) convert the strings s occurring as direct children (str.to_re s) from their flat form,
-;   (2) (optionally) reverse,
-;   (3) eliminate n-ary form to its element if the term is a singleton list.
+;   The dual of $re_to_flat_form: converts r (flat form) back to the form used
+;   elsewhere, recursively un-flattening re.* bodies and re.inter / re.union
+;   children. When rev is true, the content order is first undone (recursively) by
+;   $re_rev_rec, which is its own inverse, reducing un-flattening to the
+;   forward-order case.
 (define $re_from_flat_form ((r RegLan) (rev Bool))
-  ; (un?)flatten, reverse, elim
-  ($re_nary_elim ($str_re_rev rev ($re_str_from_flat_form rev r))))
+  ($re_nary_elim ($re_unflatten true ($re_rev_rec rev r))))
 
-; note: This is a forward declaration of $str_re_includes below.
-(program $str_re_includes () :signature (RegLan RegLan) Bool)
+; note: >
+;   Forward declaration of $str_re_includes_rec below. This is the flat-form
+;   inclusion dispatcher: it assumes both of its arguments are already in
+;   (operator-preserving) flat form, so the recursion never reconverts to flat
+;   form, which is what makes the inclusion test structurally recursive. The public
+;   $str_re_includes below likewise assumes its arguments are already in flat form;
+;   callers (see rules/Strings.eo) apply $re_to_flat_form once before invoking it.
+(program $str_re_includes_rec () :signature (RegLan RegLan) Bool)
+
+; define: $str_re_includes
+; args:
+; - r1 RegLan: The first regular expression.
+; - r2 RegLan: The second regular expression.
+; return: >
+;   true if we can infer that all strings in r2 are also in r1. This is the public
+;   entry point. Both arguments are assumed to already be in (operator-preserving)
+;   flat form; callers (see rules/Strings.eo) apply $re_to_flat_form once before
+;   invoking it. After a fast equality check it hands off to the structurally
+;   recursive $str_re_includes_rec. Because flattening happens once, up front, the
+;   rest of the family never reconverts during recursion, which is what makes the
+;   inclusion test structurally recursive.
+(define $str_re_includes ((r1 RegLan) (r3 RegLan))
+  (eo::ite (eo::eq r1 r3) true ($str_re_includes_rec r1 r3)))
+
+; The following three programs are helpers for $str_re_includes_base, dispatching
+; the union / intersection / star inclusion heuristics. They recurse back into
+; $str_re_includes on a union / intersection child or a star body (each a re.++
+; list in flat form) paired against the whole opposite side (a bare component handed
+; in by $str_re_includes_base). $str_re_includes_rec collapses a singleton list back
+; to its component (via its (re.++ r1) patterns) before handing the pair to
+; $str_re_includes_base, so a union child is compared against the whole other side
+; rather than being paired component-by-component.
 
 ; program: $str_re_includes_lhs_union
 ; args:
-; - r RegLan: The first regular expression.
-; - s RegLan: The second regular expression.
-; return: >
-;   true if r is of the form (re.union r1 ... rn), and we can infer
-;   that s is contained in some ri.
+; - r RegLan: The first regular expression (flat form).
+; - s RegLan: The second regular expression (flat form).
+; return: true if r is (re.union r1 ... rn) and s is contained in some ri.
 (program $str_re_includes_lhs_union ((r1 RegLan) (r2 RegLan :list) (r3 RegLan))
   :signature (RegLan RegLan) Bool
   (
@@ -1273,72 +1449,34 @@
   )
 )
 
-; Helper for `$str_re_includes`.
 ; program: $str_re_includes_rhs_inter
 ; args:
-; - r RegLan: The first regular expression.
-; - s RegLan: The second regular expression.
-; return: >
-;   true if s is of the form (re.inter s1 ... sn), and we can infer
-;   that r is contained in some si.
+; - r RegLan: The first regular expression (flat form).
+; - s RegLan: The second regular expression (flat form).
+; return: true if s is (re.inter s1 ... sn) and r is contained in some si.
 (program $str_re_includes_rhs_inter ((r1 RegLan) (r2 RegLan :list) (r3 RegLan))
   :signature (RegLan RegLan) Bool
   (
-  (($str_re_includes_rhs_inter r1 (re.inter r3 r2)) (eo::ite ($str_re_includes r1 r3) true ($str_re_includes_rhs_inter r1 r2)))
+  (($str_re_includes_rhs_inter r1 (re.inter r3 r2)) 
+    (eo::ite ($str_re_includes r1 r3) true ($str_re_includes_rhs_inter r1 r2)))
   (($str_re_includes_rhs_inter r1 r3)               false)
   )
 )
 
-; program $str_maybe_get_star_body
-; args:
-; - r RegLan: The regular expression
-; return: The body of r if it is a star, or r itself otherwise.
-(program $str_maybe_get_star_body ((r RegLan))
-  :signature (RegLan) RegLan
-  (
-    (($str_maybe_get_star_body (re.* r)) r)
-    (($str_maybe_get_star_body r)        r)
-  )
-)
-
-; Helper for `$str_re_includes`.
 ; program: $str_re_includes_lhs_star
 ; args:
-; - r RegLan: The first regular expression.
-; - s RegLan: The second regular expression.
+; - r RegLan: The first regular expression (flat form).
+; - s RegLan: The second regular expression (flat form).
 ; return: >
-;   true if r is of the form (re.* r1), and we can infer that either
-;   s is included in r1, or s1 is included in r1 where s is of the form
-;   (re.* s1).
+;   true if r is (re.* r1) and either s is included in r1, or s1 is included in r1
+;   where s is of the form (re.* s1).
 (program $str_re_includes_lhs_star ((r1 RegLan) (r2 RegLan))
   :signature (RegLan RegLan) Bool
   (
-  (($str_re_includes_lhs_star (re.* r1) r2) (eo::ite (eo::eq r1 re.allchar)
-                                              true
-                                              ($str_re_includes r1 ($str_maybe_get_star_body r2)))) ; use body if a star
+  (($str_re_includes_lhs_star (re.* (re.++ re.allchar)) r2) true)
+  (($str_re_includes_lhs_star (re.* r1) (re.* r2)) ($str_re_includes r1 r2)) ; use body if a star
+  (($str_re_includes_lhs_star (re.* r1) r2) ($str_re_includes r1 r2))
   (($str_re_includes_lhs_star r1 r2)        false)
-  )
-)
-
-; Helper for `$str_re_includes`.
-; program: $str_re_includes_is_rec
-; args:
-; - r1 RegLan: The first regular expression.
-; - r2 RegLan: The second regular expression.
-; return: >
-;   true if the inclusion of r2 into r1 is not handled by one of the
-;   three cases above (union or star on LHS, or intersection on RHS).
-;   We also require that one of r1 or r2 is a concatenation, or else
-;   we already checked for their inclusion directly.
-(program $str_re_includes_is_rec ((r1 RegLan) (r2 RegLan :list) (r3 RegLan))
-  :signature (RegLan RegLan) Bool
-  (
-  (($str_re_includes_is_rec r1 (re.inter r3 r2)) false)
-  (($str_re_includes_is_rec (re.union r1 r2) r3) false)
-  (($str_re_includes_is_rec (re.* r1) r3)        false)
-  (($str_re_includes_is_rec (re.++ r1 r2) r3)    true)
-  (($str_re_includes_is_rec r3 (re.++ r1 r2))    true)
-  (($str_re_includes_is_rec r1 r3)               false)
   )
 )
 
@@ -1349,85 +1487,117 @@
 ;   true if r is of the form (re.++ re.allchar ... re.allchar (re.* re.allchar) ...).
 ;   This method is used for checking if there is no upper bound on the number of
 ;   arbitrary characters that can be consumed at the current position.
+; note: >
+;   r is assumed to be in flat form, where (re.* re.allchar) appears as
+;   (re.* (re.++ re.allchar)).
 (program $re_is_unbound_wildcard ((r1 RegLan) (r2 RegLan :list))
   :signature (RegLan) Bool
   (
-  (($re_is_unbound_wildcard (re.++ (re.* re.allchar) r2))  true)
-  (($re_is_unbound_wildcard (re.++ re.allchar r2))         ($re_is_unbound_wildcard r2))
-  (($re_is_unbound_wildcard r1)                            false)
+  (($re_is_unbound_wildcard (re.++ (re.* (re.++ re.allchar)) r2))  true)
+  (($re_is_unbound_wildcard (re.++ re.allchar r2))                 ($re_is_unbound_wildcard r2))
+  (($re_is_unbound_wildcard r1)                                    false)
   )
 )
 
-; program: $str_re_includes_rec
+; program: $str_re_includes_base_rec
 ; args:
-; - r1 RegLan: The first regular expression.
-; - r2 RegLan: The second regular expression.
+; - r1 RegLan: The first regular expression to consider.
+; - r2 RegLan: The second regular expression to consider, assumed to be distinct from r1.
 ; return: >
-;   true if we can infer r2 is included in r1. We assume that r1 and r2
-;   are re.++ lists that have been put into normal form with $re_to_flat_form.
-(program $str_re_includes_rec ((s1 String) (s2 String :list) (r1 RegLan) (r2 RegLan :list) (r3 RegLan) (r4 RegLan :list))
+;   true if we can determine the language of r1 includes the language of r2.
+;   This method handles the case where we are not reasoning about the
+;   concatenation case of r1 or r2.
+(program $str_re_includes_base_rec
+  ((s1 String) (s2 String) (s3 String) (s4 String)
+   (r1 RegLan) (r2 RegLan :list) (r3 RegLan) (r4 RegLan :list))
   :signature (RegLan RegLan) Bool
   (
-  ; true if equal, which includes if r1 is @re.empty
-  (($str_re_includes_rec r1 r1)                                     true)
-  ; consider components one at a time
-  (($str_re_includes_rec (re.++ (str.to_re (str.++ s1 s2)) r2) r3)  ($str_re_includes_rec (re.++ (str.to_re s1) (str.to_re s2) r2) r3))
-  (($str_re_includes_rec (re.++ (str.to_re "") r2) r3)              ($str_re_includes_rec r2 r3))
-  (($str_re_includes_rec r1 (re.++ (str.to_re (str.++ s1 s2)) r4))  ($str_re_includes_rec r1 (re.++ (str.to_re s1) (str.to_re s2) r4)))
-  (($str_re_includes_rec r1 (re.++ (str.to_re "") r4))              ($str_re_includes_rec r1 r4))
+  ; r1 is un-flattened to a normal regular expression for evaluation. Since the
+  ; flat form splits every str.to_re into single-character components, s1 is a
+  ; single character (a flat str.++ list of length one is also accepted, as
+  ; $str_eval_str_in_re normalizes via $str_to_flat_form).
+  (($str_re_includes_base_rec r1 (str.to_re s1))
+    ($str_eval_str_in_re s1 r1)) ; requires constant s1/r1
+  (($str_re_includes_base_rec (str.to_re s1) r1)                   false)
+  (($str_re_includes_base_rec (re.range s1 s2) (re.range s3 s4))
+    (eo::define ((z1 (eo::to_z s1)))
+    (eo::define ((z2 (eo::to_z s2)))
+    (eo::define ((z3 (eo::to_z s3)))
+    (eo::define ((z4 (eo::to_z s4)))
+    (eo::requires (eo::is_neg z1) false
+    (eo::requires (eo::is_neg z2) false
+    (eo::requires (eo::is_neg z3) false
+    (eo::requires (eo::is_neg z4) false
+      (eo::and ($compare_geq z2 z3) ($compare_geq z3 z1)
+            ($compare_geq z2 z4) ($compare_geq z4 z1)))))))))))
+  (($str_re_includes_base_rec r1 r3)
+    ; See if reasoning about union, intersection, or star suffices.
+    ; Note these cases are not disjoint, so they are tried in the default case,
+    ; one after another.
+    (eo::ite (eo::eq ($str_re_includes_lhs_union r1 r3) true) true
+    (eo::ite (eo::eq ($str_re_includes_rhs_inter r1 r3) true) true
+    (eo::ite (eo::eq ($str_re_includes_lhs_star r1 r3) true) true
+      false))))
+  )
+)
+
+; program: $str_re_includes_base
+; args:
+; - r1 RegLan: The first regular expression to consider.
+; - r2 RegLan: The second regular expression to consider.
+; return: >
+;   true if we can determine the language of r1 includes the language of r2.
+;   This method handles the case where we are not reasoning about the
+;   concatenation case of r1 or r2.
+(define $str_re_includes_base ((r1 RegLan) (r2 RegLan))
+  (eo::ite (eo::eq r1 r2) true ($str_re_includes_base_rec r1 r2)))
+
+; program: $str_re_includes_rec
+; args:
+; - r1 RegLan: The first regular expression, assumed to be in flat form.
+; - r2 RegLan: The second regular expression, assumed to be in flat form and distinct from r1.
+; return: >
+;   true if we can infer that all strings in r2 are also in r1. We either
+;   call $str_re_includes_base if either r1 or r2 is not a (non-singleton)
+;   concatenation. Otherwise we use three heuristics if both r1 and r2 are
+;   concatenations.
+(program $str_re_includes_rec
+  ((s1 String) (s2 String) (s3 String) (s4 String)
+   (r1 RegLan) (r2 RegLan :list) (r3 RegLan) (r4 RegLan :list))
+  :signature (RegLan RegLan) Bool
+  (
+  ; When either side is a singleton list, there is no list structure left to
+  ; decompose on it, so we hand its sole component (and the whole other side) to
+  ; $str_re_includes_base for component-level reasoning (string membership, range,
+  ; or the union / star / inter heuristics).
+  (($str_re_includes_rec (re.++ r1) (re.++ r3)) ($str_re_includes_base r1 r3))
+  (($str_re_includes_rec (re.++ r1) r3) ($str_re_includes_base r1 r3))
+  (($str_re_includes_rec r1 (re.++ r3)) ($str_re_includes_base r1 r3))
   ; otherwise we recurse for three possible cases
   (($str_re_includes_rec (re.++ r1 r2) (re.++ r3 r4))
-    (eo::ite (eo::ite ($str_re_includes ($re_from_flat_form r1 false) ($re_from_flat_form r3 false)) ; can skip both if we have a base inclusion
-               ($str_re_includes_rec r2 r4)
+    ; can skip both if we have a base inclusion
+    (eo::ite (eo::ite ($str_re_includes_base r1 r3)
+               ($str_re_includes r2 r4)
                false)
       true
-    (eo::ite (eo::ite ($re_is_unbound_wildcard (re.++ r1 r2))  ; can skip RHS if unbounded wildcard
-              ($str_re_includes_rec (re.++ r1 r2) r4)
+    ; can skip RHS if unbounded wildcard
+    (eo::ite (eo::ite ($re_is_unbound_wildcard (re.++ r1 r2))
+              (eo::ite (eo::eq (re.++ r1 r2) r4) true ($str_re_includes (re.++ r1 r2) r4))
               false)
       true
-    (eo::ite (eo::ite (eo::eq r1 (re.* re.allchar))         ; can skip LHS if it is sigma star
-              ($str_re_includes_rec r2 (re.++ r3 r4))
+    ; can skip LHS if it is sigma star
+    (eo::ite (eo::ite (eo::eq r1 (re.* (re.++ re.allchar)))
+              ($str_re_includes r2 (re.++ r3 r4))
               false)
       true
       false))))
   ; handles the case where there is a leftover (re.* re.allchar) on the LHS
-  (($str_re_includes_rec (re.++ r1 r2) @re.empty)       (eo::and (eo::eq r1 (re.* re.allchar)) (eo::eq r2 @re.empty)))
+  (($str_re_includes_rec (re.++ r1 r2) @re.empty)
+    (eo::and (eo::eq r1 (re.* (re.++ re.allchar))) (eo::eq r2 @re.empty)))
   (($str_re_includes_rec r1 r3)                         false)
   )
 )
 
-; program: $str_re_includes
-; args:
-; - r1 RegLan: The first regular expression.
-; - r2 RegLan: The second regular expression.
-; return: >
-;   true if we can infer that all strings in r2 are also in r1.
-(program $str_re_includes ((s1 String) (s2 String) (s3 String) (s4 String) (r1 RegLan) (r3 RegLan))
-  :signature (RegLan RegLan) Bool
-  (
-  (($str_re_includes r1 r1)                               true)
-  (($str_re_includes r1 (str.to_re s1))                   ($str_eval_str_in_re s1 r1)) ; requires constant s1/r1
-  (($str_re_includes (str.to_re s1) r1)                   false)
-  (($str_re_includes (re.range s1 s2) (re.range s3 s4))   (eo::define ((z1 (eo::to_z s1)))
-                                                          (eo::define ((z2 (eo::to_z s2)))
-                                                          (eo::define ((z3 (eo::to_z s3)))
-                                                          (eo::define ((z4 (eo::to_z s4)))
-                                                          (eo::requires (eo::is_neg z1) false
-                                                          (eo::requires (eo::is_neg z2) false
-                                                          (eo::requires (eo::is_neg z3) false
-                                                          (eo::requires (eo::is_neg z4) false
-                                                            (eo::and ($compare_geq z2 z3) ($compare_geq z3 z1)
-                                                                  ($compare_geq z2 z4) ($compare_geq z4 z1)))))))))))
-  (($str_re_includes r1 r3)                               (eo::ite (eo::eq ($str_re_includes_lhs_union r1 r3) true) true
-                                                          (eo::ite (eo::eq ($str_re_includes_rhs_inter r1 r3) true) true
-                                                          (eo::ite (eo::eq ($str_re_includes_lhs_star r1 r3) true) true
-                                                          ; don't recurse if we checked one of the 3 cases above
-                                                          (eo::ite ($str_re_includes_is_rec r1 r3)
-                                                              ($str_re_includes_rec ($re_to_flat_form r1 false) ($re_to_flat_form r3 false))
-                                                              false)))))
-
-  )
-)
 ; program: $str_arith_entail_simple_rec
 ; args:
 ; - p @Polynomial: A polynomial term to process.
@@ -1580,93 +1750,197 @@
   )
 )
 
+; note: >
+;   Forward declarations of the main method for $str_re_consume_rec below.
+;   This is used by the intersection and union helpers below.
+(program $str_re_consume_rec () :signature (String RegLan String) Bool)
+
+; program: $str_re_consume_inter
+; args:
+; - s String: The string argument of the membership.
+; - r RegLan: An intersection (re.inter c1 ... re.all), each child in flat form.
+; - fuel String: Overapproximation fuel, forwarded to $str_re_consume_rec.
+; return: >
+;   false if consuming s in some child is a conflict; (str.in_re sr @re.empty) when
+;   every child fully consumes s down to the same residual sr; otherwise the
+;   membership is returned unchanged to signal that no consumption is possible.
+; note: >
+;   Implemented as a single right fold over the children, with no separate residual /
+;   accumulator argument. Each child's result must agree with the folded result of the
+;   remaining children, where "agree" means consuming to the same residual (tested by
+;   equating the two (str.in_re sr @re.empty) results). The last child is matched by the
+;   single-element pattern (re.inter c1), so the empty intersection is never reached.
+(program $str_re_consume_inter
+  ((s String) (c1 RegLan) (c2 RegLan :list) (fuel String))
+  :signature (String RegLan String) Bool
+  (
+  (($str_re_consume_inter s (re.inter c1) fuel) ($str_re_consume_rec s c1 fuel))
+  (($str_re_consume_inter s (re.inter c1 c2) fuel)
+    (eo::define ((a ($str_re_consume_rec s c1 fuel)))
+    (eo::ite (eo::is_eq a false)
+      false                                          ; this child conflicts
+      (eo::ite (eo::eq ($str_membership_re a) @re.empty)
+        ; this child fully consumed; reconcile with the remaining children
+        (eo::define ((b ($str_re_consume_inter s c2 fuel)))
+        (eo::ite (eo::is_eq b false)
+          false
+          (eo::ite (eo::eq a b)
+            a                                      ; all children agree on the residual
+            (str.in_re s (re.inter c1 c2)))))     ; children disagree -> stuck
+        ; this child did not fully consume, so we cannot determine a residual from it.
+        ; The intersection is still false if any remaining child conflicts (s is then in
+        ; no superset of the intersection); otherwise we are stuck.
+        (eo::ite (eo::is_eq ($str_re_consume_inter s c2 fuel) false)
+          false
+          (str.in_re s (re.inter c1 c2)))))))
+  )
+)
+
+; program: $str_re_consume_union
+; args:
+; - s String: The string argument of the membership.
+; - r RegLan: A union (re.union c1 ... re.none), each child in flat form.
+; - fuel String: Overapproximation fuel, forwarded to $str_re_consume_rec.
+; return: >
+;   false if every child is a conflict; (str.in_re sr @re.empty) when every
+;   non-conflicting child fully consumes s down to the same residual sr; otherwise
+;   the membership is returned unchanged. Conflicting children are ignored.
+; note: >
+;   Implemented as a single right fold over the children (dual to
+;   $str_re_consume_inter): a conflicting head is skipped in favour of the folded
+;   result of the remaining children, and a feasible head must agree with that result
+;   (or the remaining children must all be conflicts, in which case the head's result
+;   stands). The last child is matched by the single-element pattern (re.union c1), so
+;   the empty union is never reached.
+(program $str_re_consume_union
+  ((s String) (c1 RegLan) (c2 RegLan :list) (fuel String))
+  :signature (String RegLan String) Bool
+  (
+  (($str_re_consume_union s (re.union c1) fuel)
+    ($str_re_consume_rec s c1 fuel))
+  (($str_re_consume_union s (re.union c1 c2) fuel)
+    (eo::define ((a ($str_re_consume_rec s c1 fuel)))
+    (eo::ite (eo::is_eq a false)
+      ($str_re_consume_union s c2 fuel)
+      (eo::ite (eo::eq ($str_membership_re a) @re.empty)
+        ; this child fully consumed; reconcile with the remaining children
+        (eo::define ((b ($str_re_consume_union s c2 fuel)))
+        (eo::ite (eo::is_eq b false)
+          a                                        ; remaining children all conflict -> just this child
+          (eo::ite (eo::eq a b)
+            a                                      ; feasible children agree on the residual
+            (str.in_re s (re.union c1 c2)))))     ; children disagree -> stuck
+        (str.in_re s (re.union c1 c2))))))           ; this feasible child not fully consumed -> stuck
+  )
+)
+
 ; program: $str_re_consume_rec
 ; args:
 ; - s String: The string argument of the membership to rewrite.
 ; - r RegLan: The regular expression argument of the membership to rewrite.
-; - b Bool: >
-;   Stores temporary results when we are processing a union or intersection
-;   regular expression as argument r. Otherwise, this argument is @result.null.
-; - rev Bool: >
-;   Indicates whether s and r were reversed, in which case their components must
-;   be reversed when we recurse on non-str.to_re children.
+; - fuel String: >
+;   Overapproximation fuel: a flat-form string whose length is an upper bound on the
+;   number of re.* unrollings that can still occur. It is threaded unchanged through
+;   every recursive call except the re.* "consume one copy and repeat" step, whose
+;   clause matches the fuel as (str.++ fc fr) and recurses on the peeled tail fr. The
+;   fuel passed in by $str_re_consume_process is the (flat-form) input string itself,
+;   whose length bounds the unrollings since each unrolling consumes at least one
+;   character.
 ; return: >
-;   The result of implied consumption of string s in regular expression r.
+;   The result of implied consumption of string s in regular expression r: false if
+;   the membership is unsatisfiable, (str.in_re sr rr) for the residual string sr
+;   and regular expression rr after consuming a prefix, or the membership unchanged
+;   when no further consumption is possible.
+; note: >
+;   An r of the form (re.inter ...) or (re.union ...) is dispatched to the helpers
+;   $str_re_consume_inter / $str_re_consume_union, which combine the per-child
+;   results directly. This replaces the previous @result.null / @result.invalid /
+;   $result_combine accumulator that was threaded as an extra argument.
+; note: >
+;   Since r is in flat form, every recursive call either (1) recurses on a strict
+;   subterm of r (its tail r2, a re.* body r3, or a re.inter / re.union child r1), or
+;   (2) is the re.* "consume one copy and repeat" step, which recurses on a strict
+;   subterm of the fuel (the tail fr of the matched (str.++ fc fr)). Thus the method
+;   terminates under the lexicographic measure (length of fuel, size of r), both of
+;   which are syntactic: the repeat step no longer relies on the residual sr being a
+;   strict suffix of the input string.
 (program $str_re_consume_rec
-  ((s1 String) (s2 String :list) (r1 RegLan) (r2 RegLan :list) (b Bool) (rev Bool)
-   (s3 String) (s4 String :list) (s5 String) (r3 RegLan))
-  :signature (String RegLan Bool Bool) Bool
+  ((s1 String) (s2 String :list) (r1 RegLan) (r2 RegLan :list)
+   (s3 String) (s5 String) (r3 RegLan) (fuel String) (fc String) (fr String :list))
+  :signature (String RegLan String) Bool
   (
-    (($str_re_consume_rec (str.++ s1 s2) (re.++ (str.to_re (str.++ s3 s4)) r2) @result.null rev)
+    ; an empty (str.to_re "") component, including the @re.empty terminator, is
+    ; skipped; matched before the str.to_re case below since @re.empty is
+    ; (str.to_re "")
+    (($str_re_consume_rec (str.++ s1 s2) (re.++ @re.empty r2) fuel)
+      ($str_re_consume_rec (str.++ s1 s2) r2 fuel)) ; finished current component
+    ; str.to_re components are single characters in flat form, so each is consumed
+    ; in one step
+    (($str_re_consume_rec (str.++ s1 s2) (re.++ (str.to_re s3) r2) fuel)
       (eo::ite (eo::eq s1 s3)
-        ($str_re_consume_rec s2 (re.++ (str.to_re s4) r2) @result.null rev)
+        ($str_re_consume_rec s2 r2 fuel)  ; consumed this character, move on
         (eo::ite (eo::and ($str_check_length_one s1) ($str_check_length_one s3))
           false                                       ; conflicting characters
-          (str.in_re (str.++ s1 s2) (re.++ (str.to_re (str.++ s3 s4)) r2))))) ; otherwise stuck
-    (($str_re_consume_rec (str.++ s1 s2) (re.++ @re.empty r2) @result.null rev)
-      ($str_re_consume_rec (str.++ s1 s2) r2 @result.null rev)) ; finished current component
-    (($str_re_consume_rec (str.++ s1 s2) (re.++ (re.range s3 s5) r2) @result.null rev)
+          (str.in_re (str.++ s1 s2) (re.++ (str.to_re s3) r2))))) ; otherwise stuck
+    (($str_re_consume_rec (str.++ s1 s2) (re.++ (re.range s3 s5) r2) fuel)
       (eo::ite (eo::and ($str_check_length_one s1) ($str_is_char_range s3 s5))
         (eo::ite ($str_eval_str_in_re s1 (re.range s3 s5))
-          ($str_re_consume_rec s2 r2 @result.null rev)
+          ($str_re_consume_rec s2 r2 fuel)
           false)
         (str.in_re (str.++ s1 s2) (re.++ (re.range s3 s5) r2))))
-    (($str_re_consume_rec (str.++ s1 s2) (re.++ re.allchar r2) @result.null rev)
+    (($str_re_consume_rec (str.++ s1 s2) (re.++ re.allchar r2) fuel)
       (eo::ite ($str_check_length_one s1)
-        ($str_re_consume_rec s2 r2 @result.null rev)
+        ($str_re_consume_rec s2 r2 fuel)
         (str.in_re (str.++ s1 s2) (re.++ re.allchar r2))))
-    (($str_re_consume_rec (str.++ s1 s2) (re.++ (re.* r3) r2) @result.null rev)
+    ; the fuel is matched as (str.++ fc fr) so that the "consume one copy and repeat"
+    ; branch below can recurse on the peeled tail fr, a strict subterm of the fuel
+    (($str_re_consume_rec (str.++ s1 s2) (re.++ (re.* r3) r2) (str.++ fc fr))
       (eo::define ((r1 (re.* r3)))
-      ; see what happens if we unroll once
-      (eo::define ((res ($str_re_consume_rec (str.++ s1 s2) ($re_to_flat_form r3 rev) @result.null rev)))
+      (eo::define ((fuel (str.++ fc fr)))
+      ; see what happens if we unroll once. Note r3 is already in flat form
+      ; (see $re_to_flat_form), so we recurse on it directly.
+      (eo::define ((res ($str_re_consume_rec (str.++ s1 s2) r3 fuel)))
       (eo::ite (eo::eq res false)
         ; We can't unroll even once, thus we must skip it.
-        ($str_re_consume_rec (str.++ s1 s2) r2 @result.null rev)
+        ($str_re_consume_rec (str.++ s1 s2) r2 fuel)
         (eo::ite (eo::eq ($str_membership_re res) @re.empty)
           ; If we fully consumed, now we go back and check if we get a conflict if we skip.
-          (eo::define ((res2 ($str_re_consume_rec (str.++ s1 s2) r2 @result.null rev)))
+          (eo::define ((res2 ($str_re_consume_rec (str.++ s1 s2) r2 fuel)))
           (eo::ite (eo::is_eq res2 false)
             ; Skipping would give a conflict.
             (eo::define ((sr ($str_membership_str res)))
             (eo::ite (eo::eq (str.++ s1 s2) sr)
               ; if we did not consume anything, we are stuck.
               (str.in_re (str.++ s1 s2) (re.++ r1 r2))
-              ; otherwise, we continue with the RE consumed once.
-              ($str_re_consume_rec sr (re.++ r1 r2) @result.null rev)))
+              ; otherwise, we continue with the RE consumed once, on the peeled fuel fr
+              ; so that this repeat recurses on a strict subterm of the fuel.
+              ($str_re_consume_rec sr (re.++ r1 r2) fr)))
             ; Otherwise we are stuck.
             (str.in_re (str.++ s1 s2) (re.++ r1 r2))))
           ; Otherwise we are stuck.
-          (str.in_re (str.++ s1 s2) (re.++ r1 r2)))))))
-    (($str_re_consume_rec (str.++ s1 s2) (re.++ r1 r2) @result.null rev)
-      ; likely intersection or union, process cases recursively
-      (eo::define ((res ($str_re_consume_rec (str.++ s1 s2) r1 @result.null rev)))
+          (str.in_re (str.++ s1 s2) (re.++ r1 r2))))))))
+    ; out of fuel: unreachable in practice, since the fuel length is at least the
+    ; (non-empty) string length here; returning the membership unchanged is sound and
+    ; keeps the program total
+    (($str_re_consume_rec (str.++ s1 s2) (re.++ (re.* r3) r2) fuel)
+      (str.in_re (str.++ s1 s2) (re.++ (re.* r3) r2)))
+    (($str_re_consume_rec (str.++ s1 s2) (re.++ r1 r2) fuel)
+      ; r1 is an intersection / union component; consume it as a whole
+      (eo::define ((res ($str_re_consume_rec (str.++ s1 s2) r1 fuel)))
       (eo::ite (eo::is_eq res false)
         ; conflict
         false
         (eo::ite (eo::is_eq ($str_membership_re res) @re.empty)
-          ; if all cases consumed the same, continue
-          ($str_re_consume_rec ($str_membership_str res) r2 @result.null rev)
+          ; the component was fully consumed, continue with its residual
+          ($str_re_consume_rec ($str_membership_str res) r2 fuel)
           ; otherwise we are stuck
           (str.in_re (str.++ s1 s2) (re.++ r1 r2))))))
-    (($str_re_consume_rec s1 (re.++ @re.empty r2) @result.null rev)
-      ($str_re_consume_rec s1 r2 @result.null rev)) ; finished current component
-    ; Intersection reports conflicts eagerly, and otherwise combines the results
-    (($str_re_consume_rec s1 (re.inter r1 r2) b rev)   (eo::define ((r1r ($re_to_flat_form r1 rev)))
-                                                       (eo::define ((bb ($str_re_consume_rec s1 r1r @result.null rev)))
-                                                         (eo::ite (eo::eq bb false)
-                                                           false
-                                                           ($str_re_consume_rec s1 r2 ($result_combine bb b) rev)))))
-    (($str_re_consume_rec s1 re.all @result.null rev)  (str.in_re "" @re.empty)) ; only used if re.all appears in unexpected position
-    (($str_re_consume_rec s1 re.all b rev)             b)                        ; end of re.inter
-    ; Union ignores conflicts, and otherwise combines the results. We report a conflict if all children give conflicts.
-    (($str_re_consume_rec s1 (re.union r1 r2) b rev)   (eo::define ((r1r ($re_to_flat_form r1 rev)))
-                                                       (eo::define ((bb ($str_re_consume_rec s1 r1r @result.null rev)))
-                                                         (eo::ite (eo::eq bb false)
-                                                           ($str_re_consume_rec s1 r2 b rev)
-                                                           ($str_re_consume_rec s1 r2 ($result_combine bb b) rev)))))
-    (($str_re_consume_rec s1 re.none @result.null rev) false)     ; end of re.union, conflict, also used if re.none appears in unexpected position
-    (($str_re_consume_rec s1 re.none b rev)            b)         ; end of re.union, no conflict
-    (($str_re_consume_rec s1 r1 @result.null rev)      (str.in_re s1 r1))
+    (($str_re_consume_rec s1 (re.++ @re.empty r2) fuel)
+      ($str_re_consume_rec s1 r2 fuel)) ; finished current component
+    ; intersection and union are handled by dedicated helpers
+    (($str_re_consume_rec s1 (re.inter r1 r2) fuel)  ($str_re_consume_inter s1 (re.inter r1 r2) fuel))
+    (($str_re_consume_rec s1 (re.union r1 r2) fuel)  ($str_re_consume_union s1 (re.union r1 r2) fuel))
+    (($str_re_consume_rec s1 r1 fuel)       (str.in_re s1 r1))
   )
 )
 
@@ -1683,9 +1957,11 @@
 ;   them again and consume from the beginning of the remainder. Finally, we convert
 ;   back from flat form when applicable.
 (define $str_re_consume_process ((s String) (r RegLan) (oneDir Bool))
-  (eo::define ((ss ($str_to_flat_form s true)))  
+  (eo::define ((ss ($str_to_flat_form s true)))
   (eo::define ((rr ($re_to_flat_form r true)))
-  (eo::define ((resrev ($str_re_consume_rec ss rr @result.null true)))
+  ; the flat-form string ss is used as the initial overapproximation fuel: its
+  ; length bounds the number of re.* unrollings (each consumes >= 1 character)
+  (eo::define ((resrev ($str_re_consume_rec ss rr ss)))
   (eo::ite (eo::eq resrev false)
     false
     (eo::define ((s1 ($str_membership_str resrev)))
@@ -1694,7 +1970,7 @@
     (eo::define ((revert (eo::and oneDir (eo::not (eo::eq r1 @re.empty)))))
     (eo::define ((s1r ($str_rev true (eo::ite revert ss s1)))
                   (r1r ($re_to_flat_form (eo::ite revert rr r1) true)))
-    (eo::define ((resfwd ($str_re_consume_rec s1r r1r @result.null false)))
+    (eo::define ((resfwd ($str_re_consume_rec s1r r1r s1r)))
     (eo::ite (eo::eq resfwd false)
       false
       (eo::define ((s2 ($str_membership_str resfwd)))
