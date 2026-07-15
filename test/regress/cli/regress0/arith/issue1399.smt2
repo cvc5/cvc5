@@ -1,3 +1,4 @@
+; COMMAND-LINE: --sat-solver=minisat
 (set-logic NIA)
 (set-info :status sat)
 
