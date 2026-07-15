@@ -19,6 +19,7 @@
 #include <vector>
 
 #include "base/configuration.h"
+#include "expr/node_builder.h"
 #include "expr/skolem_manager.h"
 #include "options/fp_options.h"
 #include "smt/logic_exception.h"
@@ -522,23 +523,31 @@ void TheoryFp::registerTerm(TNode node)
   else if (k == Kind::FLOATINGPOINT_TO_REAL_TOTAL)
   {
     // Purify (fp.to_real x)
-    SkolemManager* sm = nm->getSkolemManager();
-    Node sk = sm->mkPurifySkolem(node);
+    Node sk = purifyConversions(node);
+    Assert(sk.getKind() == Kind::SKOLEM);
+    // Purify the children of this node and use it for the lemmas/refining the
+    // abstraction. This is required to properly process nested conversions.
+    // Otherwise, when getting the values for those terms from the model, we
+    // may get unexpected results if the nested conversions need to be refined
+    // still.
+    Node pn = nm->mkNode(Kind::FLOATINGPOINT_TO_REAL_TOTAL,
+                         purifyConversions(node[0]),
+                         purifyConversions(node[1]));
     handleLemma(node.eqNode(sk), InferenceId::FP_REGISTER_TERM);
-    d_abstractionMap.insert(sk, node);
+    d_abstractionMap.insert(sk, pn);
 
-    Node pd = nm->mkNode(
-        Kind::IMPLIES,
-        {nm->mkNode(Kind::OR,
-                    {nm->mkNode(Kind::FLOATINGPOINT_IS_NAN, node[0]),
-                     nm->mkNode(Kind::FLOATINGPOINT_IS_INF, node[0])}),
-         nm->mkNode(Kind::EQUAL, node, node[1])});
+    Node pd =
+        nm->mkNode(Kind::IMPLIES,
+                   {nm->mkNode(Kind::OR,
+                               {nm->mkNode(Kind::FLOATINGPOINT_IS_NAN, pn[0]),
+                                nm->mkNode(Kind::FLOATINGPOINT_IS_INF, pn[0])}),
+                    nm->mkNode(Kind::EQUAL, pn, pn[1])});
     handleLemma(pd, InferenceId::FP_REGISTER_TERM);
 
     Node z = nm->mkNode(
         Kind::IMPLIES,
-        {nm->mkNode(Kind::FLOATINGPOINT_IS_ZERO, node[0]),
-         nm->mkNode(Kind::EQUAL, node, nm->mkConstReal(Rational(0U)))});
+        {nm->mkNode(Kind::FLOATINGPOINT_IS_ZERO, pn[0]),
+         nm->mkNode(Kind::EQUAL, pn, nm->mkConstReal(Rational(0U)))});
     handleLemma(z, InferenceId::FP_REGISTER_TERM);
     return;
 
@@ -547,23 +556,31 @@ void TheoryFp::registerTerm(TNode node)
   else if (k == Kind::FLOATINGPOINT_TO_FP_FROM_REAL)
   {
     // Purify ((_ to_fp eb sb) rm x)
-    SkolemManager* sm = nm->getSkolemManager();
-    Node sk = sm->mkPurifySkolem(node);
+    Node sk = purifyConversions(node);
+    Assert(sk.getKind() == Kind::SKOLEM);
+    // Purify the children of this node and use it for the lemmas/refining the
+    // abstraction. This is required to properly process nested conversions.
+    // Otherwise, when getting the values for those terms from the model, we
+    // may get unexpected results if the nested conversions need to be refined
+    // still.
+    Node pn = nm->mkNode(Kind::FLOATINGPOINT_TO_FP_FROM_REAL,
+                         {node.getOperator(),
+                          purifyConversions(node[0]),
+                          purifyConversions(node[1])});
     handleLemma(node.eqNode(sk), InferenceId::FP_REGISTER_TERM);
-    d_abstractionMap.insert(sk, node);
+    d_abstractionMap.insert(sk, pn);
 
     Node nnan =
-        nm->mkNode(Kind::NOT, nm->mkNode(Kind::FLOATINGPOINT_IS_NAN, node));
+        nm->mkNode(Kind::NOT, nm->mkNode(Kind::FLOATINGPOINT_IS_NAN, pn));
     handleLemma(nnan, InferenceId::FP_REGISTER_TERM);
 
     Node z = nm->mkNode(
         Kind::IMPLIES,
-        {nm->mkNode(Kind::EQUAL, node[1], nm->mkConstReal(Rational(0U))),
-         nm->mkNode(
-             Kind::EQUAL,
-             node,
-             nm->mkConst(FloatingPoint::makeZero(
-                 node.getType().getConst<FloatingPointSize>(), false)))});
+        {nm->mkNode(Kind::EQUAL, pn[1], nm->mkConstReal(Rational(0U))),
+         nm->mkNode(Kind::EQUAL,
+                    pn,
+                    nm->mkConst(FloatingPoint::makeZero(
+                        pn.getType().getConst<FloatingPointSize>(), false)))});
     handleLemma(z, InferenceId::FP_REGISTER_TERM);
     return;
 
@@ -943,6 +960,65 @@ bool TheoryFp::collectModelValues(TheoryModel* m, const std::set<Node>& termSet)
   }
 
   return true;
+}
+
+Node TheoryFp::purifyConversions(TNode n)
+{
+  NodeManager* nm = nodeManager();
+  SkolemManager* sm = nm->getSkolemManager();
+
+  std::vector<TNode> toVisit = {n};
+  std::unordered_map<TNode, Node> result;
+  while (!toVisit.empty())
+  {
+    TNode curr = toVisit.back();
+    toVisit.pop_back();
+
+    Kind k = curr.getKind();
+    auto [it, inserted] = result.emplace(curr, Node::null());
+    if (!inserted)
+    {
+      if (it->second.isNull())
+      {
+        NodeBuilder nb(nm, k);
+        if (curr.getMetaKind() == kind::metakind::PARAMETERIZED)
+        {
+          auto itc = result.find(curr.getOperator());
+          Assert(itc != result.end());
+          Assert(!itc->second.isNull());
+          nb << itc->second;
+        }
+        for (TNode nc : curr)
+        {
+          auto itc = result.find(nc);
+          Assert(itc != result.end());
+          Assert(!itc->second.isNull());
+          nb << itc->second;
+        }
+        it->second = nb;
+      }
+    }
+    else if (curr.getNumChildren() == 0)
+    {
+      it->second = curr;
+    }
+    else if (k == Kind::FLOATINGPOINT_TO_REAL_TOTAL
+             || k == Kind::FLOATINGPOINT_TO_FP_FROM_REAL)
+    {
+      Node sk = sm->mkPurifySkolem(curr);
+      it->second = sk;
+    }
+    else
+    {
+      toVisit.push_back(curr);
+      if (curr.getMetaKind() == kind::metakind::PARAMETERIZED)
+      {
+        toVisit.push_back(curr.getOperator());
+      }
+      toVisit.insert(toVisit.end(), curr.begin(), curr.end());
+    }
+  }
+  return result.at(n);
 }
 
 }  // namespace fp

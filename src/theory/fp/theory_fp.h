@@ -113,6 +113,11 @@ class TheoryFp : public Theory
 
   bool refineAbstraction(TheoryModel* m, TNode abstract, TNode concrete);
 
+  /**
+   * Purifies operators that convert between real and floating-point.
+   */
+  Node purifyConversions(TNode n);
+
   /** The terms registered via registerTerm(). */
   context::CDHashSet<Node> d_registeredTerms;
 
