@@ -80,7 +80,14 @@ class TheoryDatatypes : public Theory
    public:
     EqcInfo(context::Context* c);
     ~EqcInfo() {}
-    // whether we have instantiatied this eqc
+    /**
+     * Whether we have instantiated this eqc, that is, whether the inference
+     * computed by the instantiate rule for this eqc was sent. Note this is set
+     * when that inference is sent (see TheoryDatatypes::notifyInstantiate) and
+     * not when it is computed, since the latter may be discarded before being
+     * sent, which would leave this field set for an eqc that never receives a
+     * constructor.
+     */
     context::CDO<bool> d_inst;
     // constructor equal to this eqc
     context::CDO<Node> d_constructor;
@@ -201,6 +208,14 @@ class TheoryDatatypes : public Theory
   void conflict(TNode a, TNode b);
   /** explain */
   TrustNode explain(TNode literal) override;
+  /**
+   * Called when the inference computed by the instantiate rule for the
+   * equivalence class containing t is sent, which marks that equivalence class
+   * as instantiated. This is called by our inference manager, and *not* by
+   * instantiate below, so that an equivalence class is never marked as
+   * instantiated based on an inference that was discarded before being sent.
+   */
+  void notifyInstantiate(TNode t);
   /** called when a new equivalance class is created */
   void eqNotifyNewClass(TNode t);
   /** called when two equivalance classes have merged */
@@ -280,15 +295,6 @@ class TheoryDatatypes : public Theory
   Node getInstantiateCons(Node n, const DType& dt, int index);
   /** check instantiate, return true if an inference was generated. */
   bool instantiate(EqcInfo* eqc, Node n);
-  /**
-   * Ensure that the instantiate rule has taken effect for the equivalence
-   * class of n, whose label is known. In other words, ensure that a
-   * constructor term belongs to this equivalence class, applying the
-   * instantiate rule again if the inference from a previous application of
-   * that rule was discarded before it was sent. Returns true if an inference
-   * was generated.
-   */
-  bool ensureInstantiated(EqcInfo* eqc, Node n);
 
  private:
   // equality queries
