@@ -137,3 +137,27 @@ name   = "Bitvector Theory"
   type       = "bool"
   default    = "false"
   help       = "perform eager context-dependent evaluation for applications of bv kinds in the equality engine"
+
+[[option]]
+  name       = "bvAbstraction"
+  category   = "expert"
+  long       = "bv-abstraction"
+  type       = "bool"
+  default    = "false"
+  help       = "enable CEGAR abstraction-refinement for bit-vector arithmetic (bvmul/bvudiv/bvurem), only with --bv-solver=bitblast"
+
+[[option]]
+  name       = "bvAbstractionSize"
+  category   = "expert"
+  long       = "bv-abstraction-size=N"
+  type       = "uint64_t"
+  default    = "33"
+  help       = "minimum bit-width of bit-vector arithmetic terms to abstract with --bv-abstraction"
+
+[[option]]
+  name       = "bvAbstractionValueLimiter"
+  category   = "expert"
+  long       = "bv-abstraction-value-limiter=N"
+  type       = "uint64_t"
+  default    = "8"
+  help       = "per-term budget of tier-3 value-instantiation refinement lemmas is bit-width/N before falling back to bit-blasting (--bv-abstraction)"
