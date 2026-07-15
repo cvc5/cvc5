@@ -39,6 +39,7 @@
 #include "options/theory_options.h"
 #include "preprocessing/passes/synth_rew_rules.h"
 #include "printer/printer.h"
+#include "printer/tptp/smt2_tptp_printer.h"
 #include "proof/unsat_core.h"
 #include "prop/prop_engine.h"
 #include "smt/abduction_solver.h"
@@ -373,6 +374,10 @@ void SolverEngine::setInfo(const std::string& key, const std::string& value)
   else if (key == "status")
   {
     d_state->notifyExpectedStatus(value);
+  }
+  else if (key == "tptp-dialect")
+  {
+    d_tptpDialect = value;
   }
 }
 
@@ -1400,7 +1405,14 @@ std::string SolverEngine::getModel(const std::vector<TypeNode>& declaredSorts,
   // use the smt::Model model utility for printing
   const Options& opts = d_env->getOptions();
   bool isKnownSat = (d_state->getMode() == SmtMode::SAT);
-  Model m(isKnownSat, opts.driver.filename);
+  printer::smt2::TptpModel m(
+      isKnownSat,
+      opts.driver.filename,
+      opts.driver.tptpModelVerification,
+      printer::smt2::tptpDialectFromString(d_tptpDialect));
+  // Allow printers to query values of closed terms beyond declared symbols.
+  m.setEvaluator(
+      [tm](TNode n) { return tm != nullptr ? tm->getValue(n) : Node::null(); });
   // set the model declarations, which determines what is printed in the model
   for (const TypeNode& tn : declaredSorts)
   {
