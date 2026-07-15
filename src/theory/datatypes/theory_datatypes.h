@@ -280,6 +280,15 @@ class TheoryDatatypes : public Theory
   Node getInstantiateCons(Node n, const DType& dt, int index);
   /** check instantiate, return true if an inference was generated. */
   bool instantiate(EqcInfo* eqc, Node n);
+  /**
+   * Ensure that the instantiate rule has taken effect for the equivalence
+   * class of n, whose label is known. In other words, ensure that a
+   * constructor term belongs to this equivalence class, applying the
+   * instantiate rule again if the inference from a previous application of
+   * that rule was discarded before it was sent. Returns true if an inference
+   * was generated.
+   */
+  bool ensureInstantiated(EqcInfo* eqc, Node n);
 
  private:
   // equality queries

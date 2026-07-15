@@ -1422,6 +1422,28 @@ bool TheoryDatatypes::instantiate(EqcInfo* eqc, Node n)
   return true;
 }
 
+bool TheoryDatatypes::ensureInstantiated(EqcInfo* eqc, Node n)
+{
+  // If the equivalence class already contains a constructor term, the
+  // instantiate rule has taken effect and there is nothing to do.
+  if (eqc == nullptr || !eqc->d_constructor.get().isNull())
+  {
+    return false;
+  }
+  // Otherwise, the inference from a previous application of the instantiate
+  // rule was discarded before it was sent, since otherwise the equality it
+  // concludes would have been asserted to us, adding a constructor to this
+  // equivalence class. Clear d_inst so that instantiate applies again. Note
+  // that this does not lead to the same inference being sent twice: a sent
+  // inference is a clause of the SAT solver from that point onwards, so the
+  // equality it concludes is propagated to us whenever its label holds.
+  Trace("datatypes-debug")
+      << "Re-instantiate " << n << ", the previous inference was dropped"
+      << std::endl;
+  eqc->d_inst = false;
+  return instantiate(eqc, n);
+}
+
 void TheoryDatatypes::checkCycles()
 {
   Trace("datatypes-cycle-check") << "Check acyclicity" << std::endl;
@@ -1815,6 +1837,18 @@ void TheoryDatatypes::checkSplit()
     {
       Trace("datatypes-debug")
           << "Has constructor " << eqc->d_constructor.get() << std::endl;
+      // The constructor for this equivalence class is known, so we do not
+      // split. We must however ensure the instantiate rule has taken effect
+      // for it, which is ordinarily guaranteed since that rule is applied
+      // eagerly when the label of an equivalence class becomes known. It may
+      // not be the case here, since that rule marks the equivalence class as
+      // instantiated before its inference is sent, and that inference may be
+      // discarded before it is sent, e.g. if it is pending as a lemma when a
+      // conflict is raised. As d_inst is not reverted if we backtrack to the
+      // level at which it was set, the equivalence class would otherwise be
+      // left permanently without a constructor, which is unsound: the model
+      // builder is free to assign it an arbitrary value (see issue #12794).
+      ensureInstantiated(eqc, n);
       continue;
     }
     Trace("datatypes-debug") << "No constructor..." << std::endl;
