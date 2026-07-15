@@ -178,7 +178,8 @@ versions; more recent versions should be compatible.
 - `Python >= 3.7 <https://www.python.org>`_
   + module `tomli <https://pypi.org/project/tomli/>`_ (Python < 3.11)
   + module `pyparsing <https://pypi.org/project/pyparsing/>`_
-- `GMP v6.3 (GNU Multi-Precision arithmetic library) <https://gmplib.org>`_
+- `GMP >= v6.3 (GNU Multi-Precision arithmetic library) <https://gmplib.org>`_
+- `MPFR >= v4.2.1 (GNU Multiple Precision Floating-Point Reliable Library) <https://www.mpfr.org>`_
 - `CaDiCaL >= 2.1.0 (SAT solver) <https://github.com/arminbiere/cadical>`_
 - `SymFPU <https://github.com/martin-cs/symfpu/tree/main>`_
 
@@ -193,12 +194,20 @@ CaDiCaL (SAT solver)
 used for the bit-vector solver. It can be downloaded and built automatically.
 
 
-GMP (GNU Multi-Precision arithmetic library)
+GMP (GNU Multi-Precision Arithmetic Library)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 GMP is usually available on your distribution and should be used from there. If
 it is not, or you want to cross-compile, or you want to build cvc5 statically
 but the distribution does not ship static libraries, cvc5 builds GMP
+automatically when ``--auto-download`` is given.
+
+MPFR (GNU Multi-Precision Floating-Point Reliable Library)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+MPFR is usually available on your distribution and should be used from there. If
+it is not, or you want to cross-compile, or you want to build cvc5 statically
+but the distribution does not ship static libraries, cvc5 builds MPFR
 automatically when ``--auto-download`` is given.
 
 
