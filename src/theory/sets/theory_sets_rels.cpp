@@ -186,7 +186,15 @@ void TheorySetsRels::check()
       {
         while (term_it != k_t_it->second.end())
         {
-          buildTCGraphForRel(*term_it);
+          // Protect d_tcr_tcGraph from being overwritten,
+          // if it already exists
+          if (d_rel_nodes.find(*term_it) == d_rel_nodes.end()
+              && d_rRep_tcGraph.find(getRepresentative((*term_it)[0]))
+                     == d_rRep_tcGraph.end())
+          {
+            buildTCGraphForRel(*term_it);
+            d_rel_nodes.insert(*term_it);
+          }
           ++term_it;
         }
       }
