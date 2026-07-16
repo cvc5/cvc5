@@ -1,0 +1,18 @@
+; COMMAND-LINE: -i --check-models
+; EXPECT: sat
+(set-logic ALL)
+(set-info :status sat)
+(declare-const x Bool)
+(declare-fun b!16 () Bool)
+(declare-datatypes ((o 0) (e 0) (f! 0)) (((p) (g (h e))) ((e (i f!) (j Bool))) ((!1))))
+(declare-fun k () o)
+(assert (or b!16 (= !1 (i (h k)))))
+(declare-datatypes ((l 0)) (((l (i (_ BitVec 1)) (j Bool) (m f!)))))
+(declare-fun n (l) o)
+(assert (or x (= p (n (l (_ bv0 1) false !1)))))
+(declare-fun f () f!)
+(assert (= b!16 (j (h (n (l (_ bv0 1) false f))))))
+(declare-fun b!23 () Bool)
+(assert (= (not b!23) (not b!16)))
+(assert (= b!23 (= (n (l (_ bv0 1) false f)) (ite false p (g (e !1 false))))))
+(check-sat)
