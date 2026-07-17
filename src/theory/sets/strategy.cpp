@@ -44,6 +44,7 @@ void Strategy::initializeStrategy()
   addStrategyStep(SETS_CHECK_RESET);
   addStrategyStep(SETS_CHECK_BASIC);
   addStrategyStep(SETS_CHECK_RELATIONS);
+  addStrategyStep(SETS_CHECK_ACYCLICITY);
   addStrategyStep(SETS_CHECK_TRANSITIVE_CLOSURE);
   addStrategyStep(SETS_CHECK_FILTER);
   addStrategyStep(SETS_CHECK_MAP);
@@ -71,6 +72,7 @@ void Strategy::runStep(Step s, Theory::Effort, unsigned effort)
     case Step::SETS_CHECK_BASIC: d_setsSolver->checkBasic(); break;
     case Step::SETS_CHECK_CARDINALITY: d_setsSolver->checkCardinality(); break;
     case Step::SETS_CHECK_RELATIONS: d_setsSolver->checkRelations(); break;
+    case Step::SETS_CHECK_ACYCLICITY: d_setsSolver->checkAcyclicity(); break;
     case Step::SETS_CHECK_TRANSITIVE_CLOSURE:
       d_setsSolver->checkTransitiveClosure();
       break;

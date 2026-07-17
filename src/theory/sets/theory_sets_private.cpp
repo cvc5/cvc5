@@ -422,6 +422,18 @@ void TheorySetsPrivate::checkRelations()
   }
 }
 
+void TheorySetsPrivate::checkAcyclicity()
+{
+  // The acyclicity check creates fresh skolem sequences representing cycles for
+  // constraints of the form (not (rel.acyclic R)), case splits on the
+  // length of the cycles, and unrolls a fresh edge of the cycle.
+  // via applyInstCycleRule, applySplitCycleLenRule, and applyUnrollCycleRule.
+  if (d_rels_enabled)
+  {
+    d_rels->checkAcyclicity();
+  }
+}
+
 void TheorySetsPrivate::checkTransitiveClosure()
 {
   // The transitive-closure down rule introduces fresh skolem elements. It does

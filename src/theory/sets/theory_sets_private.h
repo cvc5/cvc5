@@ -333,6 +333,9 @@ class TheorySetsPrivate : protected EnvObj
   void checkCardinality();
   /** Run the relations subsolver, if relational constraints are present. */
   void checkRelations();
+  /** Run the acyclicity subsolver, if not-acyclicity constraints are present.
+   */
+  void checkAcyclicity();
   /**
    * Run transitive-closure reasoning (TheorySetsRels::checkTransitiveClosure):
    * the down rule, which introduces fresh skolem elements, together with the up

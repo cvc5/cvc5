@@ -101,6 +101,12 @@ class TheorySetsRels : protected EnvObj
    * set of assertions is satisfiable with respect to relations.
    */
   void check(Theory::Effort e);
+  /** The acyclicity check creates fresh skolem sequences representing cycles
+   * for constraints of the form (not (rel.acyclic R)), case splits on the
+   * length of the cycles, and unrolls a fresh edge of the cycle.
+   * via applyInstCycleRule, applySplitCycleLenRule, and applyUnrollCycleRule.
+   */
+  void checkAcyclicity();
   /**
    * Apply the transitive-closure DOWN rule for each asserted TC membership.
    * This rule introduces fresh skolem elements (see applyTCRule) and may do so
