@@ -364,6 +364,17 @@
 
 ;;;;; ProofRewriteRule::QUANT_DT_SPLIT
 
+; define: $is_quant_dt_split_conj_subs
+; args:
+; - x T: The variable we are eliminating.
+; - c C: The constructor term we are substituting x with.
+; - F Bool: The body of the left hand side of the equality.
+; - G Bool: The conjunct we are testing.
+; return: >
+;   True if G is the result of replacing x in F by c, and x and c have the same type.
+(define $is_quant_dt_split_conj_subs ((T Type :implicit) (x T) (c T) (F Bool) (G Bool))
+  (eo::requires (eo::typeof c) (eo::typeof x) (eo::eq ($substitute x c F) G)))
+
 ; program: $is_quant_dt_split_conj
 ; args:
 ; - x T: The variable we are eliminating.
@@ -384,8 +395,10 @@
       (eo::requires (eo::list_find @list zs y) -1  ; ensure no shadowing
       (eo::requires ($contains_atomic_term_free F y) false
         ($is_quant_dt_split_conj x (c y) @list.nil F (forall zs G)))))
-    (($is_quant_dt_split_conj x c @list.nil F (forall @list.nil G))       ($is_quant_dt_split_conj x c @list.nil F G))
-    (($is_quant_dt_split_conj x cx @list.nil F G)                         (eo::eq ($substitute x cx F) G))
+    (($is_quant_dt_split_conj x cx @list.nil F (forall @list.nil G))
+      ($is_quant_dt_split_conj_subs x cx F G))
+    (($is_quant_dt_split_conj x cx @list.nil F G)
+      ($is_quant_dt_split_conj_subs x cx F G))
   )
 )
 
