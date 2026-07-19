@@ -86,6 +86,12 @@ class TheorySetsRels : protected EnvObj
    * set of assertions is satisfiable with respect to relations.
    */
   void check(Theory::Effort e);
+  /**
+   * Apply the transitive-closure DOWN rule for each asserted TC membership.
+   * This rule introduces fresh skolem elements (see applyTCRule) and may do so
+   * unboundedly, so the caller should invoke it at most once per postCheck.
+   */
+  void checkTransitiveClosure();
   /** Is kind k a kind that belongs to the relation theory? */
   static bool isRelationKind(Kind k);
 
@@ -153,6 +159,8 @@ class TheorySetsRels : protected EnvObj
 
   /** Methods used in full effort */
   void check();
+  /** Clear the per-check caches populated by collectRelsInfo. */
+  void clearCaches();
   void collectRelsInfo();
   void applyTransposeRule(std::vector<Node> tp_terms);
   void applyTransposeRule(Node rel, Node rel_rep, Node exp);

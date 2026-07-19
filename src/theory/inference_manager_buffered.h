@@ -16,6 +16,7 @@
 #define CVC5__THEORY__INFERENCE_MANAGER_BUFFERED_H
 
 #include "expr/node.h"
+#include "theory/theory.h"
 #include "theory/theory_inference.h"
 #include "theory/theory_inference_manager.h"
 
