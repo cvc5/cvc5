@@ -584,6 +584,7 @@ struct Cvc5
     void notifySatClause(const cvc5::Term& clause) override;
     void notifyTheoryLemma(const cvc5::Term& lemma) override;
     std::string getName() override;
+    void handlePartitionSolved() override;
 
    private:
     Cvc5* d_cvc5;
