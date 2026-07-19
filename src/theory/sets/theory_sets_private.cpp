@@ -1370,7 +1370,7 @@ void TheorySetsPrivate::postCheck(Theory::Effort level)
   // conflict or lemma is produced or nothing new is asserted. It is a no-op
   // unless we are at a registered effort and not already in conflict / needing
   // a check.
-  d_im.postCheck(d_strategy, level);
+  d_strategy.postCheck(level);
   // If full-effort registration flagged a source of incompleteness and we
   // neither found a conflict nor sent a lemma, report the model as unsound.
   if (runFullCheck && !d_state.isInConflict() && !d_im.hasSentLemma()

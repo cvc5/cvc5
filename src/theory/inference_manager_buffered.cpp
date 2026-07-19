@@ -15,10 +15,8 @@
 #include "base/check.h"
 #include "base/output.h"
 #include "theory/rewriter.h"
-#include "theory/strategy.h"
 #include "theory/theory.h"
 #include "theory/theory_state.h"
-#include "theory/valuation.h"
 
 using namespace cvc5::internal::kind;
 
@@ -148,65 +146,6 @@ void InferenceManagerBuffered::doPending()
 bool InferenceManagerBuffered::hasProcessed() const
 {
   return d_theoryState.isInConflict() || hasPending();
-}
-
-void InferenceManagerBuffered::postCheck(StrategyBase& strategy,
-                                         Theory::Effort e)
-{
-  doPendingFacts();
-
-  Assert(strategy.isStrategyInit());
-  if (!d_theoryState.isInConflict() && !d_theory.getValuation().needCheck()
-      && strategy.hasStrategyEffort(e))
-  {
-    Trace("check-debug") << "Theory of " << d_theory.getId() << " " << e
-                         << " effort check " << std::endl;
-
-    // ToDo: ++(d_statistics->d_checkRuns);
-    bool sentLemma = false;
-    bool hadPending = false;
-    do
-    {
-      reset();
-      // ++(d_statistics->d_strategyRuns);
-      Trace("check") << "  * Run strategy..." << std::endl;
-      strategy.runStrategy(e);
-      // Remember if this round produced work. Conclusions may be buffered as
-      // pending facts/lemmas (hasPending), or facts may be asserted immediately
-      // to the equality engine, which only shows up via hasSentFact. Either
-      // case means the round was productive and we should iterate again (unless
-      // we end up sending a lemma or hitting a conflict below).
-      hadPending = hasPending() || hasSentFact();
-      // Send the facts *and* the lemmas. We send lemmas regardless of whether
-      // we send facts since some lemmas cannot be dropped. Other lemmas are
-      // otherwise avoided by aborting the strategy when a fact is ready.
-      doPending();
-      // Did we successfully send a lemma? Notice that if hasPending = true
-      // and sentLemma = false, then the above call may have:
-      // (1) had no pending lemmas, but successfully processed pending facts,
-      // (2) unsuccessfully processed pending lemmas.
-      // In either case, we repeat the strategy if we are not in conflict.
-      sentLemma = hasSentLemma();
-      if (TraceIsOn("check"))
-      {
-        Trace("check") << "  ...finish run strategy: ";
-        Trace("check") << (hadPending ? "hadPending " : "");
-        Trace("check") << (sentLemma ? "sentLemma " : "");
-        Trace("check") << (d_theoryState.isInConflict() ? "conflict " : "");
-        if (!hadPending && !sentLemma && !d_theoryState.isInConflict())
-        {
-          Trace("check") << "(none)";
-        }
-        Trace("check") << std::endl;
-      }
-      // repeat if we did not add a lemma or conflict, and we had pending
-      // facts or lemmas.
-    } while (!d_theoryState.isInConflict() && !sentLemma && hadPending);
-  }
-  Trace("check") << "Theory of " << d_theory.getId() << ", done check : " << e
-                 << std::endl;
-  Assert(!hasPendingFact());
-  Assert(!hasPendingLemma());
 }
 
 void InferenceManagerBuffered::doPendingPhaseRequirements()

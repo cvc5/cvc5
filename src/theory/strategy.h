@@ -41,11 +41,11 @@ class InferenceManagerBuffered;
  *   3. implementing initializeStrategy() to build the list using the protected
  *      helpers below (markStartEffort / addStrategyStep / markEndEffort /
  *      finishInit).
- * This class owns the *recipe* (the ordered list and its per-effort slices)
- * and the single-pass driver runStrategy(); the standard fixpoint check loop
- * that repeatedly runs the strategy and flushes pending inferences is
- * InferenceManagerBuffered::postCheck. The per-step dispatch (runStep) is
- * implemented by each theory, since steps map to theory-specific sub-solvers.
+ * This class owns the *recipe* (the ordered list and its per-effort slices),
+ * the single-pass driver runStrategy(), and the standard fixpoint check loop
+ * postCheck() that repeatedly runs the strategy and flushes pending
+ * inferences. The per-step dispatch (runStep) is implemented by each theory,
+ * since steps map to theory-specific sub-solvers.
  *
  * The step list is stored flat. For an effort e, the steps to run are the
  * half-open iterator range [stepBegin(e), stepEnd(e)).
@@ -96,9 +96,20 @@ class StrategyBase
    * Run the steps registered for effort e in order, dispatching each via
    * runStep() and yielding at BREAK markers once something has been
    * processed or a conflict is found. This is a single pass; the standard
-   * check loop around it is InferenceManagerBuffered::postCheck.
+   * check loop around it is postCheck().
    */
   void runStrategy(Theory::Effort e);
+
+  /**
+   * The standard full/last-call effort check loop for a theory whose
+   * inference steps are organized as a strategy. It repeatedly runs the
+   * strategy for effort e and sends the resulting pending facts/lemmas via
+   * the inference manager until a conflict or lemma is produced or nothing
+   * is pending. It is a no-op if we are already in conflict, a new SAT
+   * decision is pending, or the strategy has no steps registered for effort
+   * e.
+   */
+  void postCheck(Theory::Effort e);
 
  protected:
   /**

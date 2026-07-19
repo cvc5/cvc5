@@ -16,6 +16,7 @@
 #include "base/output.h"
 #include "theory/inference_manager_buffered.h"
 #include "theory/theory_state.h"
+#include "theory/valuation.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -123,6 +124,64 @@ void StrategyBase::runStrategy(Theory::Effort e)
     ++it;
   }
   Trace("strings-process") << "----finished round---" << std::endl;
+}
+
+void StrategyBase::postCheck(Theory::Effort e)
+{
+  d_im->doPendingFacts();
+
+  Assert(isStrategyInit());
+  if (!d_state->isInConflict() && !d_state->getValuation().needCheck()
+      && hasStrategyEffort(e))
+  {
+    Trace("check-debug") << "Theory of " << d_theoryId << " " << e
+                         << " effort check " << std::endl;
+
+    // ToDo: ++(d_statistics->d_checkRuns);
+    bool sentLemma = false;
+    bool hadPending = false;
+    do
+    {
+      d_im->reset();
+      // ++(d_statistics->d_strategyRuns);
+      Trace("check") << "  * Run strategy..." << std::endl;
+      runStrategy(e);
+      // Remember if this round produced work. Conclusions may be buffered as
+      // pending facts/lemmas (hasPending), or facts may be asserted immediately
+      // to the equality engine, which only shows up via hasSentFact. Either
+      // case means the round was productive and we should iterate again (unless
+      // we end up sending a lemma or hitting a conflict below).
+      hadPending = d_im->hasPending() || d_im->hasSentFact();
+      // Send the facts *and* the lemmas. We send lemmas regardless of whether
+      // we send facts since some lemmas cannot be dropped. Other lemmas are
+      // otherwise avoided by aborting the strategy when a fact is ready.
+      d_im->doPending();
+      // Did we successfully send a lemma? Notice that if hasPending = true
+      // and sentLemma = false, then the above call may have:
+      // (1) had no pending lemmas, but successfully processed pending facts,
+      // (2) unsuccessfully processed pending lemmas.
+      // In either case, we repeat the strategy if we are not in conflict.
+      sentLemma = d_im->hasSentLemma();
+      if (TraceIsOn("check"))
+      {
+        Trace("check") << "  ...finish run strategy: ";
+        Trace("check") << (hadPending ? "hadPending " : "");
+        Trace("check") << (sentLemma ? "sentLemma " : "");
+        Trace("check") << (d_state->isInConflict() ? "conflict " : "");
+        if (!hadPending && !sentLemma && !d_state->isInConflict())
+        {
+          Trace("check") << "(none)";
+        }
+        Trace("check") << std::endl;
+      }
+      // repeat if we did not add a lemma or conflict, and we had pending
+      // facts or lemmas.
+    } while (!d_state->isInConflict() && !sentLemma && hadPending);
+  }
+  Trace("check") << "Theory of " << d_theoryId << ", done check : " << e
+                 << std::endl;
+  Assert(!d_im->hasPendingFact());
+  Assert(!d_im->hasPendingLemma());
 }
 
 }  // namespace theory
