@@ -26,7 +26,7 @@ namespace theory {
  * This enums contains steps for all theory solvers that implement a
  * strategy.
  */
-enum Step : uint32_t
+enum class Step : uint32_t
 {
   // placeholder specfying no inference step
   NONE,

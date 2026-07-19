@@ -39,16 +39,16 @@ void Strategy::initializeStrategy()
   // the full-effort strategy
   markStartEffort(Theory::EFFORT_FULL);
   // add the ence steps
-  addStrategyStep(SETS_CHECK_RESET);
-  addStrategyStep(SETS_CHECK_BASIC);
-  addStrategyStep(SETS_CHECK_RELATIONS);
-  addStrategyStep(SETS_CHECK_TRANSITIVE_CLOSURE);
-  addStrategyStep(SETS_CHECK_FILTER);
-  addStrategyStep(SETS_CHECK_MAP);
-  addStrategyStep(SETS_CHECK_GROUP);
-  addStrategyStep(SETS_CHECK_DISEQUALITY);
-  addStrategyStep(SETS_CHECK_CARDINALITY);
-  addStrategyStep(SETS_CHECK_COMPREHENSION);
+  addStrategyStep(Step::SETS_CHECK_RESET);
+  addStrategyStep(Step::SETS_CHECK_BASIC);
+  addStrategyStep(Step::SETS_CHECK_RELATIONS);
+  addStrategyStep(Step::SETS_CHECK_TRANSITIVE_CLOSURE);
+  addStrategyStep(Step::SETS_CHECK_FILTER);
+  addStrategyStep(Step::SETS_CHECK_MAP);
+  addStrategyStep(Step::SETS_CHECK_GROUP);
+  addStrategyStep(Step::SETS_CHECK_DISEQUALITY);
+  addStrategyStep(Step::SETS_CHECK_CARDINALITY);
+  addStrategyStep(Step::SETS_CHECK_COMPREHENSION);
   markEndEffort(Theory::EFFORT_FULL);
   // set the beginning/ending ranges and mark the strategy as initialized
   finishInit();

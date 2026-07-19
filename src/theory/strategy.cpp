@@ -60,7 +60,7 @@ void StrategyBase::addStrategyStep(Step s, Theory::Effort effort, bool addBreak)
   d_steps.push_back(std::pair<Step, Theory::Effort>(s, effort));
   if (addBreak)
   {
-    d_steps.push_back(std::pair<Step, Theory::Effort>(BREAK, effort));
+    d_steps.push_back(std::pair<Step, Theory::Effort>(Step::BREAK, effort));
   }
 }
 
