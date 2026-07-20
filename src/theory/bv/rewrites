@@ -150,7 +150,7 @@
 
 (define-cond-rule bv-mult-slt-mult-1
   ((x ?BitVec) (y ?BitVec) (a ?BitVec) (n Int) (m Int) (tn Int) (an Int))
-  (and (= tn (@bvsize x)) (= an (@bvsize a)))
+  (and (= tn (@bvsize x)) (= an (@bvsize a)) (>= n tn) (>= m an))
   (bvslt
     (bvmul (sign_extend n y) (sign_extend m a))
     (bvmul (sign_extend n x) (sign_extend m a))
@@ -161,7 +161,7 @@
     (= (bvslt y x) (bvsgt a (@bv 0 an)))))
 (define-cond-rule bv-mult-slt-mult-2
   ((x ?BitVec) (y ?BitVec) (a ?BitVec) (n Int) (m Int) (tn Int) (an Int))
-  (and (= tn (@bvsize x)) (= an (@bvsize a)))
+  (and (= tn (@bvsize x)) (= an (@bvsize a)) (>= n tn) (>= m an))
   (bvslt
     (bvmul (zero_extend n y) (sign_extend m a))
     (bvmul (zero_extend n x) (sign_extend m a))
