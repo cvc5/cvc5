@@ -38,7 +38,7 @@ if(NOT GLPK_FOUND_SYSTEM)
 
   include(ExternalProject)
 
-  set(GLPK_VERSION "4.52")
+  set(GLPK_VERSION "5.0")
 
   if("${CMAKE_GENERATOR}" STREQUAL "Unix Makefiles")
     # use $(MAKE) instead of "make" to allow for parallel builds
@@ -108,7 +108,7 @@ if(NOT GLPK_FOUND_SYSTEM)
     GLPK-EP
     ${COMMON_EP_CONFIG}
     URL "https://ftp.gnu.org/gnu/glpk/glpk-${GLPK_VERSION}.tar.gz"
-    URL_HASH SHA256=9a5dab356268b4f177c33e00ddf8164496dc2434e83bd1114147024df983a3bb
+    URL_HASH SHA256=4a1013eebb50f728fc601bdd833b0b2870333c3b3e5a816eeba921d95bec6f15
     PATCH_COMMAND ${Patch_EXECUTABLE} -p1 -d <SOURCE_DIR>
         -i ${CMAKE_CURRENT_LIST_DIR}/deps-utils/glpk-cut-log.patch
     CONFIGURE_COMMAND ${CMAKE_COMMAND} -E chdir <SOURCE_DIR> ${LIBTOOLIZE}
@@ -117,7 +117,7 @@ if(NOT GLPK_FOUND_SYSTEM)
     COMMAND ${CMAKE_COMMAND} -E chdir <SOURCE_DIR> ${AUTOCONF}
     COMMAND ${CMAKE_COMMAND} -E chdir <SOURCE_DIR> ${AUTOMAKE} --add-missing
     COMMAND ${CONFIGURE_ENV} ${SHELL} <SOURCE_DIR>/configure
-            --prefix=<INSTALL_DIR> --disable-shared
+            --prefix=<INSTALL_DIR> --libdir=<INSTALL_DIR>/lib --disable-shared
             --enable-static --with-pic ${CONFIGURE_OPTS}
     BUILD_COMMAND ${MAKE_CMD} install
     BUILD_BYPRODUCTS <INSTALL_DIR>/lib/libglpk.a
