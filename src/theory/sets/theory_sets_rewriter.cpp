@@ -422,6 +422,9 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node)
     case Kind::SET_ALL: return postRewriteAll(node);
     case Kind::SET_SOME: return postRewriteSome(node);
     case Kind::SET_FOLD: return postRewriteFold(node);
+    case Kind::RELATION_ACYCLIC: return postRewriteAcyclic(node);
+    case Kind::RELATION_RCLOSURE: return postRewriteRClosure(node);
+    case Kind::RELATION_RTCLOSURE: return postRewriteRTClosure(node);
     case Kind::RELATION_TABLE_JOIN:
     case Kind::RELATION_TRANSPOSE:
     case Kind::RELATION_PRODUCT:
@@ -879,6 +882,117 @@ RewriteResponse TheorySetsRewriter::postRewriteTableJoin(TNode n)
     return RewriteResponse(REWRITE_AGAIN_FULL, ret);
   }
   return RewriteResponse(REWRITE_DONE, n);
+}
+
+RewriteResponse TheorySetsRewriter::postRewriteAcyclic(TNode n)
+{
+  Assert(n.getKind() == Kind::RELATION_ACYCLIC);
+  NodeManager* nm = nodeManager();
+  // acyclic((R1,...,Rk)) is acyclic(R1 union ... union Rk). If every component
+  // relation is constant, decide it directly: the union's edge set is acyclic
+  // iff its transitive closure contains no self-loop (a,a). Otherwise leave the
+  // term for the solver.
+  std::vector<Node> rels = TupleUtils::getTupleElements(n[0]);
+  std::set<Node> rel_mems;
+  for (const Node& r : rels)
+  {
+    if (!r.isConst())
+    {
+      return RewriteResponse(REWRITE_DONE, n);
+    }
+    if (r.getKind() != Kind::SET_EMPTY)
+    {
+      std::set<Node> m = NormalForm::getElementsFromNormalConstant(r);
+      rel_mems.insert(m.begin(), m.end());
+    }
+  }
+  if (rel_mems.empty())
+  {
+    // the empty union is acyclic
+    return RewriteResponse(REWRITE_DONE, nm->mkConst(true));
+  }
+  // rels[0] is only a type carrier for constructing the closure pairs
+  std::set<Node> tc_rel_mems = RelsUtils::computeTC(rel_mems, rels[0]);
+  bool acyclic = true;
+  for (const Node& tuple : tc_rel_mems)
+  {
+    Node x = TupleUtils::nthElementOfTuple(tuple, 0);
+    Node y = TupleUtils::nthElementOfTuple(tuple, 1);
+    if (x == y)
+    {
+      acyclic = false;
+      break;
+    }
+  }
+  return RewriteResponse(REWRITE_AGAIN_FULL, nm->mkConst(acyclic));
+}
+
+RewriteResponse TheorySetsRewriter::postRewriteRClosure(TNode n)
+{
+  Assert(n.getKind() == Kind::RELATION_RCLOSURE);
+  NodeManager* nm = nodeManager();
+  Kind k = n[0].getKind();
+  switch (k)
+  {
+    case Kind::SET_EMPTY:
+    {
+      // (rel.rclosure (as set.empty (Relation T T))) = (as set.empty (Relation
+      // T T))
+      Node ret = n[0];
+      return RewriteResponse(REWRITE_DONE, ret);
+    }
+    case Kind::SET_SINGLETON:
+    {
+      // (rel.rclosure (set.singleton (tuple x y))) =
+      //   (set.insert (tuple y y) (set.insert (tuple x x) (set.singleton (tuple
+      //   x y))))
+      Node tuple = n[0][0];
+      Node x = TupleUtils::nthElementOfTuple(tuple, 0);
+      Node y = TupleUtils::nthElementOfTuple(tuple, 1);
+
+      Node ret = n[0];
+      Node tuplex =
+          TupleUtils::constructTupleFromElements(tuple.getType(), {x, x}, 0, 1);
+      Node singletonx = nm->mkNode(Kind::SET_SINGLETON, tuplex);
+      ret = nm->mkNode(Kind::SET_UNION, singletonx, ret);
+      Node tupley =
+          TupleUtils::constructTupleFromElements(tuple.getType(), {y, y}, 0, 1);
+      Node singletony = nm->mkNode(Kind::SET_SINGLETON, tupley);
+      ret = nm->mkNode(Kind::SET_UNION, singletony, ret);
+
+      return RewriteResponse(REWRITE_AGAIN_FULL, ret);
+    }
+    case Kind::SET_UNION:
+    {
+      // (rel.rclosure (set.union A B)) = (set.union (rel.rclosure A)
+      // (rel.rclosure B))
+      Node A = n[0];
+      Node B = n[1];
+
+      Node rcloseA = nm->mkNode(Kind::RELATION_RCLOSURE, A);
+      Node rcloseB = nm->mkNode(Kind::RELATION_RCLOSURE, B);
+
+      Node ret = nm->mkNode(Kind::SET_UNION, rcloseA, rcloseB);
+
+      return RewriteResponse(REWRITE_AGAIN_FULL, ret);
+    }
+
+    default: break;
+  }
+  return RewriteResponse(REWRITE_DONE, n);
+}
+
+RewriteResponse TheorySetsRewriter::postRewriteRTClosure(TNode n)
+{
+  Assert(n.getKind() == Kind::RELATION_RTCLOSURE);
+  NodeManager* nm = nodeManager();
+  // (rel.rtclosure A) = (set.union (rel.tclosure A) (rel.rclosure A))
+  Node A = n[0];
+  Node rcloseA = nm->mkNode(Kind::RELATION_RCLOSURE, A);
+  Node tcloseA = nm->mkNode(Kind::RELATION_TCLOSURE, A);
+  Node ret = nm->mkNode(Kind::SET_UNION, rcloseA, tcloseA);
+
+  return RewriteResponse(REWRITE_AGAIN_FULL, ret);
 }
 
 RewriteResponse TheorySetsRewriter::postRewriteMap(TNode n)

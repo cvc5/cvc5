@@ -83,6 +83,7 @@ void TheorySets::finishInit()
   d_equalityEngine->addFunctionKind(Kind::RELATION_TABLE_JOIN);
   d_equalityEngine->addFunctionKind(Kind::RELATION_TRANSPOSE);
   d_equalityEngine->addFunctionKind(Kind::RELATION_TCLOSURE);
+  d_equalityEngine->addFunctionKind(Kind::RELATION_ACYCLIC);
   d_equalityEngine->addFunctionKind(Kind::RELATION_JOIN_IMAGE);
   d_equalityEngine->addFunctionKind(Kind::RELATION_IDEN);
   d_equalityEngine->addFunctionKind(Kind::APPLY_CONSTRUCTOR);
