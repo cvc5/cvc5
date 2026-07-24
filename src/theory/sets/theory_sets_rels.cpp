@@ -300,7 +300,7 @@ void TheorySetsRels::checkTransitiveClosure()
        ++m_it)
   {
     Node rel_rep = m_it->first;
-    std::map<Kind, std::vector<Node> >& kind_terms = d_terms_cache[rel_rep];
+    std::map<Kind, std::vector<Node>>& kind_terms = d_terms_cache[rel_rep];
     if (kind_terms.find(Kind::RELATION_TCLOSURE) == kind_terms.end())
     {
       continue;
@@ -331,7 +331,7 @@ void TheorySetsRels::checkTransitiveClosure()
         // if it already exists
         if (d_rel_nodes.find(tc_term) == d_rel_nodes.end()
             && d_rRep_tcGraph.find(getRepresentative(tc_term[0]))
-                    == d_rRep_tcGraph.end())
+                   == d_rRep_tcGraph.end())
         {
           buildTCGraphForRel(tc_term);
           d_rel_nodes.insert(tc_term);
@@ -413,16 +413,16 @@ void TheorySetsRels::collectRelsInfo()
             d_acyclic_cache[getRepresentative(u)].push_back(eqc_node);
 
             // The acyclic-down rule contradicts reflexive memberships in TC(u)
-            // (for u = R1 U ... U Rk, and acyclic((R1,...,Rk)) a constraint). 
-            // Such memberships are only ever materialized if (a) u itself is 
-            // a registered relation whose members are populated in the 
-            // solver's data structures, and (b) (rel.tclosure u) is processed 
-            // by the TC solver. If the user never mentions u and/or 
-            // (rel.tclosure u), nothing registers them, the cycle is never 
+            // (for u = R1 U ... U Rk, and acyclic((R1,...,Rk)) a constraint).
+            // Such memberships are only ever materialized if (a) u itself is
+            // a registered relation whose members are populated in the
+            // solver's data structures, and (b) (rel.tclosure u) is processed
+            // by the TC solver. If the user never mentions u and/or
+            // (rel.tclosure u), nothing registers them, the cycle is never
             // derived, and we wrongly answer sat.
             //
             // Solution: emit the vacuous lemma acyclic(u) => u <= TC(u) to
-            // register u and TC(u) as terms. 
+            // register u and TC(u) as terms.
             //
             // NOTE: the consequent must SURVIVE rewriting to actually register
             // the terms. A reflexive equality TC(u) = TC(u) does not -- the
@@ -1595,7 +1595,7 @@ void TheorySetsRels::applyUnrollCycle(std::vector<Node>& rels,
  *
  * We attach no explicit (r < len(s)) in-bounds guard, even though r indexes the
  * sequence s, because SplitCycleLen emits exp => cnt <= len(s) for the same cnt
- * in the same doCycleInference round. Here, r < cnt, so r < len(s) holds in 
+ * in the same doCycleInference round. Here, r < cnt, so r < len(s) holds in
  * every model satisfying exp.
  */
 void TheorySetsRels::applyContrMinimalRule(const std::vector<Node>& rels,
@@ -1723,9 +1723,9 @@ void TheorySetsRels::doCycleInference()
     // in the case that we're in the < case?
     applyUnrollCycle(rels, seq, cnt, exp);
     // Minimality: forbid shortcut edges in the cycle. The reason is the
-    // justification for (rels,seq,cnt) being in C, i.e. NOT ACYCLIC of the whole
-    // relation tuple (rels may hold several relations once InstCycle flattens a
-    // union).
+    // justification for (rels,seq,cnt) being in C, i.e. NOT ACYCLIC of the
+    // whole relation tuple (rels may hold several relations once InstCycle
+    // flattens a union).
     Node acyc_exp = nodeManager()
                         ->mkNode(Kind::RELATION_ACYCLIC, mkRelTuple(rels))
                         .negate();
