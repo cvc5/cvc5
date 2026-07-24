@@ -305,6 +305,7 @@ name   = "Arithmetic Theory"
   type       = "int64_t"
   default    = "1"
   minimum    = "1"
+  maximum    = "2147483647"
   help       = "multiples of the depths to try to close the approx log eagerly"
 
 [[option]]
