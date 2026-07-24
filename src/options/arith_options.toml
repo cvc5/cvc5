@@ -230,6 +230,8 @@ name   = "Arithmetic Theory"
   long       = "approx-branch-depth=N"
   type       = "int64_t"
   default    = "200"
+  minimum    = "0"
+  maximum    = "2147483647"
   help       = "maximum branch depth the approximate solver is allowed to take"
 
 [[option]]
@@ -302,6 +304,7 @@ name   = "Arithmetic Theory"
   long       = "replay-early-close-depth=N"
   type       = "int64_t"
   default    = "1"
+  minimum    = "1"
   help       = "multiples of the depths to try to close the approx log eagerly"
 
 [[option]]
