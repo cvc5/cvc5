@@ -758,12 +758,11 @@ Node StringsPreprocess::reduce(Node t,
         Kind::ITE,
         {matchesEmpty,
          res1,
-         nm->mkNode(
-             Kind::ITE,
-             {idx.eqNode(negOne),
-              k.eqNode(x),
-              nm->mkNode(Kind::AND,
-                         {split, k1Len, shortestMatch, match, res})})}));
+         nm->mkNode(Kind::ITE,
+                    {idx.eqNode(negOne),
+                     k.eqNode(x),
+                     nm->mkNode(Kind::AND,
+                                {split, k1Len, shortestMatch, match, res})})}));
     retNode = k;
   }
   else if (t.getKind() == Kind::STRING_REPLACE_RE_ALL)

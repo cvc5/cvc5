@@ -1130,11 +1130,11 @@ TEST_F(TestApiBlackTermManager, getNumIndicesForSkolemId)
   ASSERT_EQ(d_tm.getNumIndicesForSkolemId(SkolemId::WITNESS_INV_CONDITION), 1);
   ASSERT_EQ(d_tm.getNumIndicesForSkolemId(SkolemId::HO_DEQ_DIFF), 3);
   ASSERT_EQ(d_tm.getNumIndicesForSkolemId(SkolemId::WITNESS_STRING_LENGTH), 3);
-  ASSERT_EQ(
-      d_tm.getNumIndicesForSkolemId(SkolemId::STRINGS_REPLACE_ALL_RESULT), 3);
-  ASSERT_EQ(d_tm.getNumIndicesForSkolemId(
-                SkolemId::STRINGS_REPLACE_RE_ALL_RESULT),
+  ASSERT_EQ(d_tm.getNumIndicesForSkolemId(SkolemId::STRINGS_REPLACE_ALL_RESULT),
             3);
+  ASSERT_EQ(
+      d_tm.getNumIndicesForSkolemId(SkolemId::STRINGS_REPLACE_RE_ALL_RESULT),
+      3);
   ASSERT_EQ(d_tm.getNumIndicesForSkolemId(SkolemId::BAGS_MAP_INDEX), 5);
 }
 
