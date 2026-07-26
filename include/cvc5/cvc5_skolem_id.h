@@ -333,18 +333,32 @@ enum ENUM(SkolemId)
    */
   EVALUE(STRINGS_DEQ_DIFF),
   /**
-   * A function used to define intermediate results of str.replace_all and
-   * str.replace_re_all applications. This denotes a function that denotes the
-   * result of processing the string or sequence after processing the n^th
-   * occurrence of string or match of the regular expression in the given
-   * replace_all term.
+   * A function used to define intermediate results of str.replace_all
+   * applications. This denotes a function that denotes the result of processing
+   * the string or sequence after processing the n^th occurrence of the string
+   * in the given replace_all term.
    *
-   * - Number of skolem indices: ``1``
-   *   - ``1:`` The application of replace_all or replace_all_re.
+   * - Number of skolem indices: ``3``
+   *   - ``1:`` The string or sequence to process.
+   *   - ``2:`` The string or sequence to replace.
+   *   - ``3:`` The replacement string or sequence.
    * - Sort: ``(-> Int S)`` where S is either ``String`` or ``(Seq T)`` for
    * some ``T``.
    */
   EVALUE(STRINGS_REPLACE_ALL_RESULT),
+  /**
+   * A function used to define intermediate results of str.replace_re_all
+   * applications. This denotes a function that denotes the result of processing
+   * the string after processing the n^th match of the regular expression in the
+   * given replace_re_all term.
+   *
+   * - Number of skolem indices: ``3``
+   *   - ``1:`` The string to process.
+   *   - ``2:`` The regular expression to match.
+   *   - ``3:`` The replacement string.
+   * - Sort: ``(-> Int String)``
+   */
+  EVALUE(STRINGS_REPLACE_RE_ALL_RESULT),
   /**
    * A function used to define intermediate results of str.from_int
    * applications. This is a function k denoting the result
