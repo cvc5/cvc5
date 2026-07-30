@@ -36,6 +36,7 @@ https://link.springer.com/chapter/10.1007/978-3-540-78163-9_20
   (int.star-contains 
     (lambda ((x1 Int) (L Int) (x Int) (z1 Int) (z2 Int))
       (and 
+        (>= x1 0) (>= L 0) (>= x 0) (>= z1 0) (>= z2 0)
         (= z1 
           (ite 
             (= x1 

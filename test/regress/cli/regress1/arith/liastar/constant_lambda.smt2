@@ -6,5 +6,5 @@
 (set-option :quiet true)
 (declare-const a Int)
 (declare-const b Int)
-(assert (int.star-contains (lambda ((x Int) (y Int)) (and (= x 0) (= y 0))) a b))
+(assert (int.star-contains (lambda ((x Int) (y Int)) (and (>= x 0) (>= y 0) (= x 0) (= y 0))) a b))
 (check-sat)

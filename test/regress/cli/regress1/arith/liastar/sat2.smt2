@@ -13,8 +13,8 @@
 (declare-const v3_z Int)
 
 (assert (distinct v1_x v1_y v1_z v2_x v2_y v2_z v3_x v3_y v3_z))
-(assert (int.star-contains (lambda ((x Int) (y Int) (z Int)) (= x (+ y z))) v1_x v1_y v1_z))
-(assert (int.star-contains (lambda ((x Int) (y Int) (z Int)) (= x (+ y z))) v2_x v2_y v2_z))
-(assert (int.star-contains (lambda ((x Int) (y Int) (z Int)) (= x (+ y z))) v3_x v3_y v3_z))
+(assert (int.star-contains (lambda ((x Int) (y Int) (z Int)) (and (>= x 0) (>= y 0) (>= z 0) (= x (+ y z)))) v1_x v1_y v1_z))
+(assert (int.star-contains (lambda ((x Int) (y Int) (z Int)) (and (>= x 0) (>= y 0) (>= z 0) (= x (+ y z)))) v2_x v2_y v2_z))
+(assert (int.star-contains (lambda ((x Int) (y Int) (z Int)) (and (>= x 0) (>= y 0) (>= z 0) (= x (+ y z)))) v3_x v3_y v3_z))
 
 (check-sat)

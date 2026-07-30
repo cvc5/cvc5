@@ -10,7 +10,7 @@
 (declare-const y3 Int)
 (assert (and (not (= x1 y1))
   ; a = b = c = 0 => x1 = x2 = x3 = 0
-  (int.star-contains (lambda ((a Int) (b Int) (c Int)) (and (and (= a 0) (= b 0)) (= c 0))) x1 x2 x3)  
+  (int.star-contains (lambda ((a Int) (b Int) (c Int)) (and (>= a 0) (>= b 0) (>= c 0) (= a 0) (= b 0) (= c 0))) x1 x2 x3)  
   ; a = b = c = 0 => y1 = y2 = y3 = 0
-  (int.star-contains (lambda ((a Int) (b Int) (c Int)) (and (and (= a 0) (= b 0)) (= c 0))) y1 y2 y3)))
+  (int.star-contains (lambda ((a Int) (b Int) (c Int)) (and (>= a 0) (>= b 0) (>= c 0) (= a 0) (= b 0) (= c 0))) y1 y2 y3)))
 (check-sat)

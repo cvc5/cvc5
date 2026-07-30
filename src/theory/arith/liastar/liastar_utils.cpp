@@ -147,7 +147,10 @@ Node LiaStarUtils::recursiveFlatten(NodeManager* nm, Node n)
   return nm->mkNode(flat.getKind(), children);
 }
 
-Node LiaStarUtils::distribute(Node n, Env* e, LiaStarStatistics* stats)
+Node LiaStarUtils::distribute(Node n,
+                              Env* e,
+                              LiaStarStatistics* stats,
+                              const std::vector<Node>& context)
 {
   Assert(n.getType().isBoolean())
       << "Expected " << n << " to be boolean" << std::endl;
@@ -172,10 +175,21 @@ Node LiaStarUtils::distribute(Node n, Env* e, LiaStarStatistics* stats)
     }
     case Kind::AND:
     {
+      // the non-OR conjuncts of this conjunction hold in every branch
+      // below it: make them part of the pruning context up front
+      std::vector<Node> childContext = context;
+      for (Node child : n)
+      {
+        if (child.getKind() != Kind::OR && child.getKind() != Kind::AND
+            && child.getKind() != Kind::ITE)
+        {
+          childContext.push_back(child);
+        }
+      }
       std::vector<Node> conjunctions;
       for (Node child : n)
       {
-        Node childDnf = distribute(child, e, stats);
+        Node childDnf = distribute(child, e, stats, childContext);
         childDnf = expr::algorithm::flatten(nm, childDnf);
         conjunctions.push_back(childDnf);
       }
@@ -197,8 +211,14 @@ Node LiaStarUtils::distribute(Node n, Env* e, LiaStarStatistics* stats)
       // disjunctions: {a,c, d},{b, d, d},{a, c, e},{b, c, e}
       for (const Node& conjunct : conjunctions)
       {
-        Kind conjunctKind = conjunct.getKind();
-        if (conjunctKind == Kind::OR)
+        if (conjunct.getKind() != Kind::OR)
+        {
+          disjunctions[0].push_back(conjunct);
+        }
+      }
+      for (const Node& conjunct : conjunctions)
+      {
+        if (conjunct.getKind() == Kind::OR)
         {
           std::vector<std::vector<Node>> tmp;
           for (const Node& disjunct : conjunct)
@@ -207,7 +227,9 @@ Node LiaStarUtils::distribute(Node n, Env* e, LiaStarStatistics* stats)
             for (std::vector<Node>& v : copy)
             {
               v.push_back(disjunct);
-              Result r = areAssertionsUnsat(v, e, stats);
+              std::vector<Node> query = v;
+              query.insert(query.end(), context.begin(), context.end());
+              Result r = areAssertionsUnsat(query, e, stats);
               if (r.getStatus() == Result::Status::UNSAT)
               {
                 // we can discard unsat conjunctions
@@ -222,18 +244,13 @@ Node LiaStarUtils::distribute(Node n, Env* e, LiaStarStatistics* stats)
           }
           disjunctions = std::move(tmp);
         }
-        else
-        {
-          for (size_t i = 0; i < disjunctions.size(); i++)
-          {
-            disjunctions[i].push_back(conjunct);
-          }
-        }
       }
       std::vector<Node> final_disjuncts;
       for (std::vector<Node>& v : disjunctions)
       {
-        Result r = areAssertionsUnsat(v, e, stats);
+        std::vector<Node> query = v;
+        query.insert(query.end(), context.begin(), context.end());
+        Result r = areAssertionsUnsat(query, e, stats);
         if (r.getStatus() == Result::Status::UNSAT)
         {
           // we can discard unsat conjunctions
@@ -265,7 +282,7 @@ Node LiaStarUtils::distribute(Node n, Env* e, LiaStarStatistics* stats)
 
       for (size_t i = 0; i < n.getNumChildren(); i++)
       {
-        Node childDnf = distribute(n[i], e, stats);
+        Node childDnf = distribute(n[i], e, stats, context);
         childDnf = expr::algorithm::flatten(nm, childDnf);
         disjuncts.push_back(childDnf);
       }
@@ -575,7 +592,11 @@ Result LiaStarUtils::areAssertionsUnsat(const std::vector<Node>& assertions,
   {
     Node variables = nm->mkNode(Kind::BOUND_VAR_LIST, freeVariables);
     assertion = expr::algorithm::flatten(nm, assertion);
-    result = normalizCheckSat(variables, assertion, stats);
+    result =
+        normalizCheckSat(variables,
+                         assertion,
+                         e->getOptions().arith.arithLiaStarAssumeNonnegative,
+                         stats);
   }
   else
   {
@@ -611,11 +632,15 @@ Result LiaStarUtils::cvc5CheckSat(const std::vector<Node>& freeVariables,
   else
   {
     NodeManager* nm = e->getNodeManager();
-    Node zero = nm->mkConstInt(Rational(0));
-    // all variables are nonnegative.
-    for (Node var : freeVariables)
+    // by default nonnegativity is not assumed: the star-contains lambda
+    // body (part of `assertion`) carries the user's constraints
+    if (e->getOptions().arith.arithLiaStarAssumeNonnegative)
     {
-      assertion = assertion.andNode(nm->mkNode(Kind::GEQ, var, zero));
+      Node zero = nm->mkConstInt(Rational(0));
+      for (Node var : freeVariables)
+      {
+        assertion = assertion.andNode(nm->mkNode(Kind::GEQ, var, zero));
+      }
     }
     Node boundVariables = nm->mkNode(Kind::BOUND_VAR_LIST, freeVariables);
     Node exists = nm->mkNode(Kind::EXISTS, boundVariables, assertion);
@@ -629,6 +654,7 @@ Result LiaStarUtils::cvc5CheckSat(const std::vector<Node>& freeVariables,
 
 Result LiaStarUtils::normalizCheckSat(Node variables,
                                       Node assertion,
+                                      bool assumeNonnegative,
                                       LiaStarStatistics* stats)
 {
   if (stats) stats->d_normalizSubSolverTime.start();
@@ -658,7 +684,23 @@ Result LiaStarUtils::normalizCheckSat(Node variables,
 
   ss << matrices[0].first << std::endl;
 
-  ss << "nonnegative" << std::endl;
+  if (assumeNonnegative)
+  {
+    ss << "nonnegative" << std::endl;
+  }
+  else
+  {
+    // nonnegativity is not assumed -- the star-contains lambda carries
+    // the user's constraints -- so declare every coordinate
+    // sign-unrestricted: normaliz's constraint-only input defaults to
+    // the nonnegative orthant
+    ss << "signs" << std::endl;
+    for (size_t sj = 0; sj < variables.getNumChildren(); sj++)
+    {
+      ss << (sj == 0 ? "" : " ") << "0";
+    }
+    ss << std::endl;
+  }
   ss << "HilbertBasis" << std::endl;
   ss << "ModuleGenerators" << std::endl;
   Trace("liastar-normalizCheckSat") << "normaliz input:" << std::endl;
@@ -682,7 +724,10 @@ Result LiaStarUtils::normalizCheckSat(Node variables,
     stats->d_normalizComputeTime.start();
   }
   Cone<Integer> cone(input);
-  cone.setNonnegative(true);
+  if (assumeNonnegative)
+  {
+    cone.setNonnegative(true);
+  }
   // always use infinite precision for integers
   cone.deactivateChangeOfPrecision();
   cone.compute(ConeProperty::HilbertBasis);

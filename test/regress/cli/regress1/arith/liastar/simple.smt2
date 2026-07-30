@@ -30,6 +30,8 @@
  (int.star-contains 
   (lambda ((x Int) (y Int))
     (and     
+      (>= x 0)
+      (>= y 0)
       (>= (+ (+ x y) (- 5)) 0) ; y >= 5-x
       (>= (+ (+ (* (- 1) x) y) 5) 0) ; y >= x - 5
     )
@@ -44,6 +46,8 @@
  (int.star-contains 
   (lambda ((x Int) (y Int)) 
     (and     
+      (>= x 0)
+      (>= y 0)
       (>= (+ (+ x y) (- 5)) 0) ; y >= 5-x
       (>= (+ (+ (* (- 1) x) y) 5) 0) ; y >= x - 5
     )

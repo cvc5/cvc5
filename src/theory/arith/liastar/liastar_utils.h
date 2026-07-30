@@ -54,7 +54,14 @@ class LiaStarUtils
    */
   static Node removeItes(Node n, Env* e, LiaStarStatistics* stats = nullptr);
 
-  static Node distribute(Node n, Env* e, LiaStarStatistics* stats = nullptr);
+  // `context` holds conjuncts known to hold wherever n occurs (the
+  // accumulated non-OR conjuncts of ancestor conjunctions). It is used
+  // only to strengthen the pruning subsolver checks -- it is never part
+  // of the returned DNF.
+  static Node distribute(Node n,
+                         Env* e,
+                         LiaStarStatistics* stats = nullptr,
+                         const std::vector<Node>& context = {});
 
   static Result areAssertionsUnsat(const std::vector<Node>& assertions,
                                    Env* e,
@@ -66,6 +73,7 @@ class LiaStarUtils
                              LiaStarStatistics* stats = nullptr);
   static Result normalizCheckSat(Node variables,
                                  Node assertion,
+                                 bool assumeNonnegative,
                                  LiaStarStatistics* stats = nullptr);
 
   /**

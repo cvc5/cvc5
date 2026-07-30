@@ -7,6 +7,8 @@
  (int.star-contains 
   (lambda ((x Int) (y Int)) 
     (and 
+      (>= x 0)
+      (>= y 0)
       (>= (+ (* 5 x) (* 2 y)) 17)
       (<= (- (* 3 x) y) 8)
       (<= (+ (* 2 x) (* 3 y)) 20)

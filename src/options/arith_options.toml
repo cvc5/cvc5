@@ -639,3 +639,11 @@ name   = "Arithmetic Theory"
   type       = "bool"
   default    = "false"
   help       = "whether to use Normaliz or cvc5 as a subsolver when arithLiaStarSubSolver is enabled"
+
+[[option]]
+  name       = "arithLiaStarAssumeNonnegative"
+  category   = "regular"
+  long       = "arith-liastar-assume-nonnegative"
+  type       = "bool"
+  default    = "false"
+  help       = "assume every star-contains summand vector is nonnegative"

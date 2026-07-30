@@ -6,5 +6,5 @@
 (declare-const b Int)
 (declare-const c Int)
 (assert (distinct a b c))
-(assert (int.star-contains (lambda ((x Int) (y Int) (z Int)) (= x (+ y z))) a b c))
+(assert (int.star-contains (lambda ((x Int) (y Int) (z Int)) (and (>= x 0) (>= y 0) (>= z 0) (= x (+ y z)))) a b c))
 (check-sat)

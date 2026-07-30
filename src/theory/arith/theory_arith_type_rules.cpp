@@ -342,7 +342,10 @@ TypeNode StarContainsTypeRule::computeType(NodeManager* nodeManager,
       return TypeNode::null();
     }
 
-    if (lambda.getKind() != Kind::LAMBDA)
+    // the rewriter may normalize a constant lambda to a function array
+    // constant, so both kinds are admissible here
+    if (lambda.getKind() != Kind::LAMBDA
+        && lambda.getKind() != Kind::FUNCTION_ARRAY_CONST)
     {
       if (errOut)
       {

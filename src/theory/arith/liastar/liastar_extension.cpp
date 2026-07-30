@@ -146,13 +146,22 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
         << "Expected a lambda as the first child of " << literal << std::endl;
     auto [vectorPredicate, nonnegative] =
         LiaStarUtils::getVectorPredicate(literal, nm);
-    // assert that vector elements are non negative
-    if (d_proofGen != nullptr)
+
+    if (options().arith.arithLiaStarAssumeNonnegative)
     {
-      d_proofGen->registerNonnegative(nonnegative, literal);
+      // assert that vector elements are non negative. The nonnegativity
+      // only holds under the originating star-contains literal, so guard
+      // the lemma with it: an unguarded lemma would be treated as valid
+      // by the SAT solver, corrupting unsat cores and other contexts
+      // where the literal does not hold.
+      Node lemma = literal.impNode(nonnegative);
+      if (d_proofGen != nullptr)
+      {
+        d_proofGen->registerNonnegative(lemma, literal);
+      }
+      d_im.addPendingLemma(
+          lemma, InferenceId::ARITH_LIA_STAR_NONNEGATIVE, d_proofGen.get());
     }
-    d_im.addPendingLemma(
-        nonnegative, InferenceId::ARITH_LIA_STAR_NONNEGATIVE, d_proofGen.get());
     // add a spliting lemma for vector predicate
     Node split = vectorPredicate.orNode(vectorPredicate.notNode());
     if (d_proofGen != nullptr)
@@ -293,6 +302,7 @@ LiaStarExtension::getCones(
   std::vector<Integer> zeroVector(dimension, Integer(0));
   std::vector<std::pair<Vector, std::vector<Vector>>> lambdas;
   std::vector<Node> starConstraints;
+  const bool assumeNonnegative = options().arith.arithLiaStarAssumeNonnegative;
 
   for (size_t i = 0; i < pairs.size(); i++)
   {
@@ -317,7 +327,25 @@ LiaStarExtension::getCones(
     {
       ss << constraint << std::endl;
     }
-    ss << "nonnegative" << std::endl;
+    if (assumeNonnegative)
+    {
+      ss << "nonnegative" << std::endl;
+    }
+    else
+    {
+      // nonnegativity is not assumed so declare every coordinate
+      // sign-unrestricted
+      // signs is a vector with entries in {−1, 0, 1}.
+      // The entry 1 at the i-th component means x_i >= 0,
+      // and entry -1 at the i-th component means x_i <= 0
+      // The entry 0 does not impose an inequality.
+      ss << "signs" << std::endl;
+      for (size_t sj = 0; sj < dimension; sj++)
+      {
+        ss << (sj == 0 ? "" : " ") << "0";
+      }
+      ss << std::endl;
+    }
     ss << "HilbertBasis" << std::endl;
     ss << "ModuleGenerators" << std::endl;
     Trace("liastar-ext") << "normaliz input:" << std::endl;
@@ -338,7 +366,14 @@ LiaStarExtension::getCones(
     ++d_stats.d_normalizCalls;
     d_stats.d_normalizComputeTime.start();
     Cone<Integer> cone(input);
-    cone.setNonnegative(true);
+    if (assumeNonnegative)
+    {
+      cone.setNonnegative(true);
+    }
+    else
+    {
+      cone.setNonnegative(false);
+    }
     // always use infinite precision for integers
     cone.deactivateChangeOfPrecision();
     cone.compute(ConeProperty::HilbertBasis);

@@ -88,17 +88,16 @@ std::shared_ptr<ProofNode> LiaStarProofGenerator::mkSplitProof(Node lemma,
 }
 
 std::shared_ptr<ProofNode> LiaStarProofGenerator::mkNonnegativeProof(
-    Node lemma, const Info& info)
+    Node lemma, const Info& /*info*/)
 {
-  // The non-negativity lemma is only valid given the originating
-  // STAR_CONTAINS literal. We emit a TRUST step with the literal as a
-  // premise, making the proof shape structurally
-  //   `STAR_CONTAINS(lambda, v) ⊢ (>= v_1 0) ∧ ... ∧ (>= v_n 0)`.
-  // The TRUST tag remains until a real lia* proof is supplied (e.g. via
-  // a subsolver call).
+  // The non-negativity lemma is guarded by the originating STAR_CONTAINS
+  // literal, i.e. it has the shape
+  //   `STAR_CONTAINS(lambda, v) => (>= v_1 0) ∧ ... ∧ (>= v_n 0)`,
+  // which is valid under the assume-nonnegative interpretation of
+  // STAR_CONTAINS. The TRUST tag remains until a real lia* proof is
+  // supplied (e.g. via a subsolver call).
   CDProof cdp(d_env);
-  cdp.addTrustedStep(
-      lemma, TrustId::ARITH_LIA_STAR_NONNEGATIVE, {info.d_aux}, {});
+  cdp.addTrustedStep(lemma, TrustId::ARITH_LIA_STAR_NONNEGATIVE, {}, {});
   return cdp.getProofFor(lemma);
 }
 
