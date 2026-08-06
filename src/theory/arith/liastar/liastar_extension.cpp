@@ -546,7 +546,15 @@ std::vector<std::pair<Node, Node>> LiaStarExtension::getLia(
       {
         conjunctions.push_back(vec[i].eqNode(sums[i]));
       }
-      Node conjunction = d_nm->mkNode(Kind::AND, conjunctions);
+      Node conjunction;
+      if (conjunctions.size() == 1)
+      {
+        conjunction = conjunctions[0];
+      }
+      else
+      {
+        conjunction = d_nm->mkNode(Kind::AND, conjunctions);
+      }
       if (boundVariables.size() > 0)
       {
         Node variables = d_nm->mkNode(Kind::BOUND_VAR_LIST, boundVariables);

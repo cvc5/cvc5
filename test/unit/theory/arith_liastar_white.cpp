@@ -104,8 +104,8 @@ TEST_F(TestLiaStarUtils, distribute1)
   Node dnf = LiaStarUtils::distribute(and_outer, e);
   dnf = LiaStarUtils::recursiveFlatten(nm, dnf);
   ASSERT_EQ(
-      "(or (and u a b) (and v a b) (and f x z a b) (and g x z a b) (and f y z "
-      "a b) (and g y z a b))",
+      "(or (and a b u) (and a b v) (and a b z f x) (and a b z g x) (and a b z "
+      "f y) (and a b z g y))",
       dnf.toString());
 }
 
