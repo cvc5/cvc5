@@ -639,6 +639,7 @@ if(USE_COCOA)
 endif()
 
 if(USE_NORMALIZ)
+  set(GPL_LIBS "${GPL_LIBS} normaliz")
   find_package(Normaliz REQUIRED)
   add_definitions(-DCVC5_USE_NORMALIZ)
 endif()
