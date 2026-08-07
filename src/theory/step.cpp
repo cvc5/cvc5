@@ -27,10 +27,6 @@ std::ostream& operator<<(std::ostream& out, Step s)
     case Step::SETS_CHECK_BASIC: out << "SETS_CHECK_BASIC"; break;
     case Step::SETS_CHECK_CARDINALITY: out << "SETS_CHECK_CARDINALITY"; break;
     case Step::SETS_CHECK_RELATIONS: out << "SETS_CHECK_RELATIONS"; break;
-    case Step::SETS_CHECK_ACYCLICITY: out << "SETS_CHECK_ACYCLICITY"; break;
-    case Step::SETS_CHECK_TRANSITIVE_CLOSURE:
-      out << "SETS_CHECK_TRANSITIVE_CLOSURE";
-      break;
     case Step::SETS_CHECK_FILTER: out << "SETS_CHECK_FILTER"; break;
     case Step::SETS_CHECK_MAP: out << "SETS_CHECK_MAP"; break;
     case Step::SETS_CHECK_GROUP: out << "SETS_CHECK_GROUP"; break;

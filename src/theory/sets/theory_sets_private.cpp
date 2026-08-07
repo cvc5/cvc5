@@ -359,8 +359,11 @@ void TheorySetsPrivate::checkBasic()
   }
 
   // We may have sent lemmas while registering the terms in the loop above,
-  // e.g. the cardinality solver.
-  if (d_im.hasSent())
+  // e.g. the cardinality solver. Don't flush here; check hasPending (not yet
+  // flushed) in addition to hasSent (already sent directly), so whatever is
+  // queued stays visible to the strategy's own BREAK check instead of being
+  // silently flushed away before it gets a chance to stop the round.
+  if (d_im.hasSent() || d_im.hasPending())
   {
     return;
   }
@@ -387,21 +390,18 @@ void TheorySetsPrivate::checkBasic()
       Trace("sets-mem") << std::endl;
     }
   }
-  d_im.doPendingLemmas();
-  if (d_im.hasSent())
+  if (d_im.hasSent() || d_im.hasPending())
   {
     return;
   }
   // check downwards closure
   checkDownwardsClosure();
-  d_im.doPendingLemmas();
-  if (d_im.hasSent())
+  if (d_im.hasSent() || d_im.hasPending())
   {
     return;
   }
   // check upwards closure
   checkUpwardsClosure();
-  d_im.doPendingLemmas();
 }
 
 void TheorySetsPrivate::checkCardinality()
@@ -422,56 +422,30 @@ void TheorySetsPrivate::checkRelations()
   }
 }
 
-void TheorySetsPrivate::checkAcyclicity()
-{
-  // The acyclicity check creates fresh skolem sequences representing cycles for
-  // constraints of the form (not (rel.acyclic R)), case splits on the
-  // length of the cycles, and unrolls a fresh edge of the cycle.
-  // via applyInstCycleRule, applySplitCycleLenRule, and applyUnrollCycleRule.
-  if (d_rels_enabled)
-  {
-    d_rels->checkAcyclicity();
-  }
-}
-
-void TheorySetsPrivate::checkTransitiveClosure()
-{
-  // The transitive-closure down rule introduces fresh skolem elements. It does
-  // one sweep over the current TC members per call (it does not loop to a
-  // fixpoint), so it generates at most finitely many fresh elements per
-  // strategy pass; further elements are introduced on subsequent passes.
-  if (d_rels_enabled)
-  {
-    d_rels->checkTransitiveClosure();
-  }
-}
-
 void TheorySetsPrivate::checkFilters()
 {
   // check filter up rule
   checkFilterUp();
-  d_im.doPendingLemmas();
-  if (d_im.hasSent())
+  // don't flush; see the comment in checkBasic().
+  if (d_im.hasSent() || d_im.hasPending())
   {
     return;
   }
   // check filter down rules
   checkFilterDown();
-  d_im.doPendingLemmas();
 }
 
 void TheorySetsPrivate::checkMaps()
 {
   // check map up rules
   checkMapUp();
-  d_im.doPendingLemmas();
-  if (d_im.hasSent())
+  // don't flush; see the comment in checkBasic().
+  if (d_im.hasSent() || d_im.hasPending())
   {
     return;
   }
   // check map down rules
   checkMapDown();
-  d_im.doPendingLemmas();
 }
 
 void TheorySetsPrivate::checkDownwardsClosure()
@@ -899,7 +873,7 @@ void TheorySetsPrivate::checkGroups()
   {
     checkGroup(n);
   }
-  d_im.doPendingLemmas();
+  // don't flush; see the comment in checkBasic().
 }
 
 void TheorySetsPrivate::checkGroup(Node n)
@@ -1303,8 +1277,8 @@ void TheorySetsPrivate::checkDisequalities()
     Node mem2 = nm->mkNode(Kind::SET_MEMBER, x, deq[1]);
     Node mdeq = nm->mkNode(Kind::EQUAL, mem1, mem2).negate();
     d_im.assertInference(mdeq, InferenceId::SETS_DEQ, deq.notNode(), 1);
-    d_im.doPendingLemmas();
-    if (d_im.hasSent())
+    // don't flush; see the comment in checkBasic().
+    if (d_im.hasSent() || d_im.hasPending())
     {
       return;
     }

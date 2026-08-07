@@ -75,9 +75,11 @@ void TheorySetsRels::check(Theory::Effort level)
   {
     collectRelsInfo();
     check();
-    d_im.doPendingLemmas();
+    checkTransitiveClosureRules();
+    doCycleInference();
+    // don't flush; see the comment in TheorySetsPrivate::checkBasic().
+    clearCaches();
   }
-  Assert(!d_im.hasPendingLemma());
   Trace("rels") << "\n[sets-rels] ******************************* Done with "
                    "the relational solver *******************************\n"
                 << std::endl;
@@ -254,10 +256,9 @@ void TheorySetsRels::check()
     }
     ++t_it;
   }
-  // Note: doTCInference() (the TC up rule) is run by checkTransitiveClosure,
-  // together with the down rule, not here.
-
-  clearCaches();
+  // Note: the TC down/up rules (checkTransitiveClosureRules) and the
+  // acyclicity rules (doCycleInference) run after this, against the same
+  // collected caches; the caller clears the caches once, after all three.
 }
 
 void TheorySetsRels::clearCaches()
@@ -274,22 +275,11 @@ void TheorySetsRels::clearCaches()
   d_acyclic_cache.clear();
 }
 
-void TheorySetsRels::checkAcyclicity()
-{
-  Trace("rels")
-      << "\n[sets-rels] *********** Start acyclicity check ***********\n"
-      << std::endl;
-  collectRelsInfo();
-  // TODO FINISH THIS
-  doCycleInference();
-}
-
-void TheorySetsRels::checkTransitiveClosure()
+void TheorySetsRels::checkTransitiveClosureRules()
 {
   Trace("rels") << "\n[sets-rels] *********** Start transitive closure "
                    "***********\n"
                 << std::endl;
-  collectRelsInfo();
   // DOWN rule: for every (member, TC term) pair, apply applyTCRule. This both
   // emits the down-rule split (introducing fresh skolems) and records the TC
   // membership in d_tcr_tcGraph, which the UP rule (doTCInference) consumes. A
@@ -340,9 +330,6 @@ void TheorySetsRels::checkTransitiveClosure()
     }
   }
   doTCInference();
-  d_im.doPendingLemmas();
-  clearCaches();
-  Assert(!d_im.hasPendingLemma());
   Trace("rels") << "\n[sets-rels] *********** Done with transitive closure "
                    "***********\n"
                 << std::endl;

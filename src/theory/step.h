@@ -39,12 +39,8 @@ enum Step : uint32_t
   SETS_CHECK_BASIC,
   // check cardinality operations
   SETS_CHECK_CARDINALITY,
-  // check basic relational operators
+  // check basic relational operators, acyclicity, and transitive closure
   SETS_CHECK_RELATIONS,
-  // check acyclicity
-  SETS_CHECK_ACYCLICITY,
-  // check transitive closure
-  SETS_CHECK_TRANSITIVE_CLOSURE,
   // check filter
   SETS_CHECK_FILTER,
   // check map

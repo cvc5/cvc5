@@ -99,20 +99,23 @@ class TheorySetsRels : protected EnvObj
    * will make calls to TheorySetsPrivate::processInference to assert facts,
    * lemmas, and conflicts. If this class makes no such call, then the current
    * set of assertions is satisfiable with respect to relations.
+   *
+   * At full effort, this collects relational term/membership info once
+   * (collectRelsInfo), then runs the basic relational-operator rules, the
+   * acyclicity rules (doCycleInference: applyInstCycleRule,
+   * applySplitCycleLenRule, applyUnrollCycle), and the transitive-closure
+   * down/up rules -- all against that single snapshot -- before flushing
+   * pending lemmas and clearing the caches once, at the end. These three
+   * pieces must share one snapshot (the acyclic-down and TC-up rules both
+   * consult d_acyclic_cache / d_tcr_tcGraph populated during collection), and
+   * the whole sequence must run as one uninterruptible call: if collection
+   * and the final clear were split across separately-dispatched strategy
+   * steps instead, a BREAK or a conflict between them could let the strategy
+   * yield before the clear ever ran, leaving that round's collected caches
+   * to be added to (rather than cleared and replaced) by the next attempt --
+   * unboundedly, not just duplicated a fixed number of times.
    */
   void check(Theory::Effort e);
-  /** The acyclicity check creates fresh skolem sequences representing cycles
-   * for constraints of the form (not (rel.acyclic R)), case splits on the
-   * length of the cycles, and unrolls a fresh edge of the cycle.
-   * via applyInstCycleRule, applySplitCycleLenRule, and applyUnrollCycleRule.
-   */
-  void checkAcyclicity();
-  /**
-   * Apply the transitive-closure DOWN rule for each asserted TC membership.
-   * This rule introduces fresh skolem elements (see applyTCRule) and may do so
-   * unboundedly, so the caller should invoke it at most once per postCheck.
-   */
-  void checkTransitiveClosure();
   /** Is kind k a kind that belongs to the relation theory? */
   static bool isRelationKind(Kind k);
 
@@ -194,6 +197,16 @@ class TheorySetsRels : protected EnvObj
 
   /** Methods used in full effort */
   void check();
+  /**
+   * Apply the transitive-closure DOWN rule for each asserted TC membership
+   * (introduces fresh skolem elements via applyTCRule; one sweep over the
+   * current TC members, no fixpoint loop), build the TC graph for every TC
+   * term, and run the UP rule (doTCInference). Assumes collectRelsInfo has
+   * already populated the caches this round; does not collect, flush, or
+   * clear on its own -- the caller (check(Theory::Effort)) does that once,
+   * around this and the other full-effort rule-application methods.
+   */
+  void checkTransitiveClosureRules();
   /** Clear the per-check caches populated by collectRelsInfo. */
   void clearCaches();
   void collectRelsInfo();
