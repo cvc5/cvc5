@@ -52,6 +52,21 @@ class TupleTrie
   void clear() { d_data.clear(); }
 }; /* class TupleTrie */
 
+/**
+ * Hash function for vector of nodes, used for the context-dependent map
+ * d_cycle_sequences, which maps a relation list to its sequence representation
+ * and count.
+ */
+struct VectorNodeHashFunction
+{
+  size_t operator()(const std::vector<Node>& v) const
+  {
+    size_t h = 0;
+    for (const Node& n : v) h = h * 31 + std::hash<Node>()(n);
+    return h;
+  }
+};
+
 /** The relations extension of the theory of sets
  *
  * This class implements inference schemes described in Meng et al. CADE 2017
@@ -84,6 +99,21 @@ class TheorySetsRels : protected EnvObj
    * will make calls to TheorySetsPrivate::processInference to assert facts,
    * lemmas, and conflicts. If this class makes no such call, then the current
    * set of assertions is satisfiable with respect to relations.
+   *
+   * At full effort, this collects relational term/membership info once
+   * (collectRelsInfo), then runs the basic relational-operator rules, the
+   * acyclicity rules (doCycleInference: applyInstCycleRule,
+   * applySplitCycleLenRule, applyUnrollCycle), and the transitive-closure
+   * down/up rules -- all against that single snapshot -- before flushing
+   * pending lemmas and clearing the caches once, at the end. These three
+   * pieces must share one snapshot (the acyclic-down and TC-up rules both
+   * consult d_acyclic_cache / d_tcr_tcGraph populated during collection), and
+   * the whole sequence must run as one uninterruptible call: if collection
+   * and the final clear were split across separately-dispatched strategy
+   * steps instead, a BREAK or a conflict between them could let the strategy
+   * yield before the clear ever ran, leaving that round's collected caches
+   * to be added to (rather than cleared and replaced) by the next attempt --
+   * unboundedly, not just duplicated a fixed number of times.
    */
   void check(Theory::Effort e);
   /** Is kind k a kind that belongs to the relation theory? */
@@ -106,7 +136,7 @@ class TheorySetsRels : protected EnvObj
 
   std::unordered_set<Node> d_rel_nodes;
   /** a map from tuples to their elements' representatives*/
-  std::map<Node, std::vector<Node> > d_tuple_reps;
+  std::map<Node, std::vector<Node>> d_tuple_reps;
   /** a map from relation terms to their member tuples*/
   std::map<Node, TupleTrie> d_membership_trie;
 
@@ -114,20 +144,34 @@ class TheorySetsRels : protected EnvObj
   std::unordered_set<Node> d_symbolic_tuples;
 
   /** Mapping between relation and its member representatives */
-  std::map<Node, std::vector<Node> > d_rReps_memberReps_cache;
+  std::map<Node, std::vector<Node>> d_rReps_memberReps_cache;
 
   /** Mapping between relation and its member representatives explanation */
-  std::map<Node, std::vector<Node> > d_rReps_memberReps_exp_cache;
+  std::map<Node, std::vector<Node>> d_rReps_memberReps_exp_cache;
 
   /** Mapping between a relation representative and its equivalent relations
    * involving relational operators */
-  std::map<Node, std::map<Kind, std::vector<Node> > > d_terms_cache;
+  std::map<Node, std::map<Kind, std::vector<Node>>> d_terms_cache;
 
   /** Mapping between transitive closure relation TC(r) and its TC graph
    * constructed based on the members of r*/
-  std::map<Node, std::map<Node, std::unordered_set<Node> > > d_rRep_tcGraph;
-  std::map<Node, std::map<Node, std::unordered_set<Node> > > d_tcr_tcGraph;
-  std::map<Node, std::map<Node, Node> > d_tcr_tcGraph_exps;
+
+  /** Mapping from acyclic relation representative to its explanation(s) */
+  std::map<Node, std::vector<Node>> d_acyclic_cache;
+
+  /** Mapping from acyclic relation representatives to their sequence
+   * representations and counts */
+  // TODO Explain why this needs to be context depedent
+  context::CDHashMap<std::vector<Node>,
+                     std::pair<Node, size_t>,
+                     VectorNodeHashFunction>
+      d_cycle_sequences;
+
+  /** Mapping between transitive closure relation TC(r) and its TC graph
+   * constructed based on the members of r*/
+  std::map<Node, std::map<Node, std::unordered_set<Node>>> d_rRep_tcGraph;
+  std::map<Node, std::map<Node, std::unordered_set<Node>>> d_tcr_tcGraph;
+  std::map<Node, std::map<Node, Node>> d_tcr_tcGraph_exps;
 
  private:
   /** Send infer
@@ -153,9 +197,36 @@ class TheorySetsRels : protected EnvObj
 
   /** Methods used in full effort */
   void check();
+  /**
+   * Apply the transitive-closure DOWN rule for each asserted TC membership
+   * (introduces fresh skolem elements via applyTCRule; one sweep over the
+   * current TC members, no fixpoint loop), build the TC graph for every TC
+   * term, and run the UP rule (doTCInference). Assumes collectRelsInfo has
+   * already populated the caches this round; does not collect, flush, or
+   * clear on its own -- the caller (check(Theory::Effort)) does that once,
+   * around this and the other full-effort rule-application methods.
+   */
+  void checkTransitiveClosureRules();
+  /** Clear the per-check caches populated by collectRelsInfo. */
+  void clearCaches();
   void collectRelsInfo();
   void applyTransposeRule(std::vector<Node> tp_terms);
   void applyTransposeRule(Node rel, Node rel_rep, Node exp);
+  void applyContrMinimalRule(const std::vector<Node>& rels,
+                             Node seq,
+                             size_t cnt,
+                             Node exp);
+  void applyAcyclicDownRule(Node mem, Node rel, Node exp);
+  void applyInstCycleRule(Node rel_rep, Node exp);
+  /** Build a tuple term whose elements are the given relations. */
+  Node mkRelTuple(const std::vector<Node>& rels);
+  /** Build the (rewritten) union of the given relations. */
+  Node mkRelUnion(const std::vector<Node>& rels);
+  Node applySplitCycleLenRule(std::vector<Node> rels, Node seq, size_t cnt);
+  void applyUnrollCycle(std::vector<Node>& rels,
+                        Node seq,
+                        size_t cnt,
+                        Node exp);
   void applyProductRule(Node rel, Node rel_rep, Node exp);
   void applyJoinRule(Node rel, Node rel_rep, Node exp);
   /**
@@ -176,13 +247,14 @@ class TheorySetsRels : protected EnvObj
   void applyIdenRule(Node mem_rep, Node rel_rep, Node exp);
   void applyTCRule(Node mem, Node rel, Node rel_rep, Node exp);
   void buildTCGraphForRel(Node tc_rel);
+  void doCycleInference();
   void doTCInference();
-  void doTCInference(std::map<Node, std::unordered_set<Node> > rel_tc_graph,
+  void doTCInference(std::map<Node, std::unordered_set<Node>> rel_tc_graph,
                      std::map<Node, Node> rel_tc_graph_exps,
                      Node tc_rel);
   void doTCInference(Node tc_rel,
                      std::vector<Node> reasons,
-                     std::map<Node, std::unordered_set<Node> >& tc_graph,
+                     std::map<Node, std::unordered_set<Node>>& tc_graph,
                      std::map<Node, Node>& rel_tc_graph_exps,
                      Node start_node_rep,
                      Node cur_node_rep,
@@ -211,7 +283,7 @@ class TheorySetsRels : protected EnvObj
   void isTCReachable(Node start,
                      Node dest,
                      std::unordered_set<Node>& hasSeen,
-                     std::map<Node, std::unordered_set<Node> >& tc_graph,
+                     std::map<Node, std::unordered_set<Node>>& tc_graph,
                      bool& isReachable);
 
   /** Helper functions */
@@ -224,7 +296,7 @@ class TheorySetsRels : protected EnvObj
   Node getRepresentative(Node t);
   inline void addToMembershipDB(Node, Node, Node);
   inline Node constructPair(Node tc_rep, Node a, Node b);
-  bool safelyAddToMap(std::map<Node, std::vector<Node> >&, Node, Node);
+  bool safelyAddToMap(std::map<Node, std::vector<Node>>&, Node, Node);
   bool isRel(Node n)
   {
     return n.getType().isSet() && n.getType().getSetElementType().isTuple();

@@ -298,6 +298,27 @@ typerule = "::cvc5::internal::theory::sets::RelTransClosureTypeRule"
 
 [[kinds]]
 type     = "operator"
+name     = "RELATION_RCLOSURE"
+children = 1
+comment  = "relation reflexive closure"
+typerule = "::cvc5::internal::theory::sets::RelReflClosureTypeRule"
+
+[[kinds]]
+type     = "operator"
+name     = "RELATION_RTCLOSURE"
+children = 1
+comment  = "relation reflexive transitive closure"
+typerule = "::cvc5::internal::theory::sets::RelReflTransClosureTypeRule"
+
+[[kinds]]
+type     = "operator"
+name     = "RELATION_ACYCLIC"
+children = 1
+comment  = "relation acyclic"
+typerule = "::cvc5::internal::theory::sets::RelAcyclicTypeRule"
+
+[[kinds]]
+type     = "operator"
 name     = "RELATION_JOIN_IMAGE"
 children = 2
 comment  = "relation join image"

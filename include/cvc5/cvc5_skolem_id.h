@@ -708,6 +708,16 @@ enum ENUM(SkolemId)
    */
   EVALUE(SETS_MAP_DOWN_ELEMENT),
   /**
+   * The relational cycle skolem, which is the witness sequence s
+   * for the inference ``(not (acyclic (R1 U ... U Rk)))
+   * => ((R1,...,Rk),s,1) in C`` for binary relations R1 ... Rk
+   *
+   * - Number of skolem indices: ``1``
+   *   - ``1:`` a relation of type ``(Set (Tuple E E))``.
+   * - Sort: ``(Seq E)``
+   */
+  EVALUE(RELS_SEQUENCE),
+  /**
    * A skolem function that is unique per floating-point sort, introduced for
    * the undefined zero case of ``fp.min``.
    *
