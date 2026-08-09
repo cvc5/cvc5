@@ -74,7 +74,7 @@ NonlinearExtension::~NonlinearExtension() {}
 void NonlinearExtension::preRegisterTerm(TNode n)
 {
   // register terms with extended theory, to find extended terms that can be
-  // eliminated by context-depedendent simplification.
+  // eliminated by context-dependent simplification.
   if (d_extTheory.hasFunctionKind(n.getKind()))
   {
     d_hasNlTerms = true;
