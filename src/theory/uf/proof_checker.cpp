@@ -108,8 +108,12 @@ Node UfProofRuleChecker::checkInternal(ProofRule id,
       lchildren.push_back(t.getOperator());
       rchildren.push_back(t.getOperator());
     }
-    // congruence automatically adds variable lists
-    if (t.isClosure())
+    // True binders (FORALL/EXISTS/LAMBDA/...) carry their bound variable
+    // list as the first child; congruence treats it as an argument rather
+    // than a premise. Some kinds register as closures for term-registration
+    // purposes (e.g. STAR_CONTAINS) without actually having a BOUND_VAR_LIST
+    // as their first child; for those, every child is a regular premise.
+    if (t.isClosure() && t[0].getKind() == Kind::BOUND_VAR_LIST)
     {
       lchildren.push_back(t[0]);
       rchildren.push_back(t[0]);

@@ -492,12 +492,16 @@ Node TConvProofGenerator::getProofForRewriting(Node t,
           std::vector<Node> pfArgs;
           ProofRule congRule = expr::getCongRule(cur, pfArgs);
           size_t startIndex = 0;
-          if (cur.isClosure())
+          if (cur.isClosure() && cur[0].getKind() == Kind::BOUND_VAR_LIST)
           {
-            // Closures always provide the bound variable list as an argument.
-            // We skip the bound variable list and add it as an argument.
+            // True binders (FORALL/EXISTS/LAMBDA/...) provide the bound
+            // variable list as their first child, which is added as an
+            // argument and not as a congruence premise. The variable list
+            // should never change. Some kinds register as closures for
+            // term-registration purposes (e.g. STAR_CONTAINS) without
+            // actually having a BOUND_VAR_LIST as their first child;
+            // those are handled by the regular CONG path.
             startIndex = 1;
-            // The variable list should never change.
             Assert(cur[0] == ret[0]);
           }
           else if (ck == Kind::APPLY_UF && children[0] != cur.getOperator())
