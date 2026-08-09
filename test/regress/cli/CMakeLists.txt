@@ -2627,6 +2627,24 @@ set(regress_1_tests
   regress1/abduction/sygus-abduct-test-user.smt2
   regress1/abduction/uf-abduct.smt2
   regress1/abduction/yoni-true-sol.smt2
+  regress1/arith/liastar/assume_not_nonnegative.smt2
+  regress1/arith/liastar/assume_nonnegative.smt2
+  regress1/arith/liastar/constant_lambda.smt2
+  regress1/arith/liastar/disjoint_union.smt2
+  regress1/arith/liastar/f2_sat.smt2
+  regress1/arith/liastar/f2_unsat.smt2
+  regress1/arith/liastar/neg_line.smt2
+  regress1/arith/liastar/neg_mixed_sat.smt2
+  regress1/arith/liastar/neg_parity_unsat.smt2
+  regress1/arith/liastar/neg_sum_sat.smt2
+  regress1/arith/liastar/neg_sum_unsat.smt2
+  regress1/arith/liastar/paper2008.smt2
+  regress1/arith/liastar/paper2020.smt2
+  regress1/arith/liastar/query026.smt2
+  regress1/arith/liastar/sat1.smt2
+  regress1/arith/liastar/sat2.smt2
+  regress1/arith/liastar/simple.smt2
+  regress1/arith/liastar/two-star-predicates.smt2
   regress1/arith/arith-brab-test.smt2
   regress1/arith/arith-int-004.cvc.smt2
   regress1/arith/arith-int-011.cvc.smt2
