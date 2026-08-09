@@ -418,6 +418,8 @@ libcvc5_add_sources(
   theory/arith/equality_solver.h
   theory/arith/inference_manager.cpp
   theory/arith/inference_manager.h
+  theory/arith/liastar/liastar_extension.cpp
+  theory/arith/liastar/liastar_extension.h
   theory/arith/liastar/liastar_stats.cpp
   theory/arith/liastar/liastar_stats.h
   theory/arith/liastar/liastar_utils.cpp
