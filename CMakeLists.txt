@@ -134,7 +134,7 @@ option(USE_GLPK          "Use GLPK simplex solver")
 option(USE_KISSAT        "Use Kissat SAT solver")
 option(USE_MPFR          "Use MPFR for FP constant folding instead of SymFPU")
 option(USE_POLY          "Use LibPoly for polynomial arithmetic")
-option(USE_NORMALIZ      "Use Normaliz int.star-contains operator")
+option(USE_NORMALIZ      "Use Normaliz for liastar solver extension")
 
 # Custom install directories for dependencies
 # If no directory is provided by the user, we first check if the dependency was
