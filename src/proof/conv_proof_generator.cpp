@@ -494,13 +494,8 @@ Node TConvProofGenerator::getProofForRewriting(Node t,
           size_t startIndex = 0;
           if (cur.isClosure())
           {
-            // True binders (FORALL/EXISTS/LAMBDA/...) provide the bound
-            // variable list as their first child, which is added as an
-            // argument and not as a congruence premise. The variable list
-            // should never change. Some kinds register as closures for
-            // term-registration purposes (e.g. STAR_CONTAINS) without
-            // actually having a BOUND_VAR_LIST as their first child;
-            // those are handled by the regular CONG path.
+            // Closures always provide the bound variable list as an argument.
+            // We skip the bound variable list and add it as an argument.
             startIndex = 1;
             // The variable list should never change.
             Assert(cur[0] == ret[0]);
