@@ -492,7 +492,7 @@ Node TConvProofGenerator::getProofForRewriting(Node t,
           std::vector<Node> pfArgs;
           ProofRule congRule = expr::getCongRule(cur, pfArgs);
           size_t startIndex = 0;
-          if (cur.isClosure() && cur[0].getKind() == Kind::BOUND_VAR_LIST)
+          if (cur.isClosure())
           {
             // True binders (FORALL/EXISTS/LAMBDA/...) provide the bound
             // variable list as their first child, which is added as an
@@ -502,6 +502,7 @@ Node TConvProofGenerator::getProofForRewriting(Node t,
             // actually having a BOUND_VAR_LIST as their first child;
             // those are handled by the regular CONG path.
             startIndex = 1;
+            // The variable list should never change.
             Assert(cur[0] == ret[0]);
           }
           else if (ck == Kind::APPLY_UF && children[0] != cur.getOperator())
