@@ -615,3 +615,27 @@ name   = "Arithmetic Theory"
   type       = "bool"
   default    = "true"
   help       = "do arithmetic static learning for ite terms based on bounds when static learning is enabled"
+
+[[option]]
+  name       = "arithLiaStarSubSolver"
+  category   = "regular"
+  long       = "arith-liastar-subsolver"
+  type       = "bool"
+  default    = "true"
+  help       = "remove unsat conjunctions from DNF representation"
+
+[[option]]
+  name       = "arithLiaStarNormalizAsSubSolver"
+  category   = "regular"
+  long       = "arith-liastar-subsolver-normaliz-as-subsolver"
+  type       = "bool"
+  default    = "false"
+  help       = "whether to use Normaliz or cvc5 as a subsolver when arithLiaStarSubSolver is enabled"
+
+[[option]]
+  name       = "arithLiaStarAssumeNonnegative"
+  category   = "regular"
+  long       = "arith-liastar-assume-nonnegative"
+  type       = "bool"
+  default    = "false"
+  help       = "assume every star-contains summand vector is nonnegative"
