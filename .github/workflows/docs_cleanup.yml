@@ -35,7 +35,15 @@ jobs:
             mod=`git log -1 HEAD --pretty="%ai" $file`
             touch -d "$mod" $file
           done
-          find ./ -maxdepth 1 -name "docs-*" -mtime +7 -exec git rm --quiet -r {} +
+          # Never prune the current main documentation: keep the docs-main
+          # symlink and the directory it points to regardless of age, since it
+          # is only refreshed when the main docs change and would otherwise be
+          # removed after 7 quiet days. Orphaned docs-main-* directories (no
+          # longer referenced by the symlink) still age out normally.
+          keep_main=
+          [ -L docs-main ] && keep_main=`readlink docs-main`
+          find ./ -maxdepth 1 -name "docs-*" ! -name docs-main ${keep_main:+! -name "$keep_main"} \
+            -mtime +7 -exec git rm --quiet -r {} +
           find ./ -maxdepth 1 -name "docs-*" -xtype l -exec git rm --quiet {} +
           git commit -m "Prune docs" --quiet || echo "Nothing to prune"
 

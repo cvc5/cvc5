@@ -22,6 +22,7 @@ extern "C" {
 #include "base/check.h"
 #include "base/output.h"
 #include "gtest/gtest.h"
+#include "test_capi.h"
 
 namespace cvc5::internal::test {
 
@@ -96,8 +97,8 @@ TEST_F(TestCApiBlackSolver, pow2_large1)
   args = {t74, t180};
   Cvc5Term t258 = cvc5_mk_term(d_tm, CVC5_KIND_GEQ, args.size(), args.data());
   cvc5_assert_formula(d_solver, t258);
-  ASSERT_DEATH(cvc5_simplify(d_solver, t82, true),
-               "can only be a positive integral constant below");
+  ASSERT_CVC5_ERROR(cvc5_simplify(d_solver, t82, true),
+                    "can only be a positive integral constant below");
 }
 
 TEST_F(TestCApiBlackSolver, pow2_large2)
@@ -113,7 +114,7 @@ TEST_F(TestCApiBlackSolver, pow2_large2)
   Cvc5Term t4 =
       cvc5_mk_term(d_tm, CVC5_KIND_DISTINCT, args.size(), args.data());
   std::vector<Cvc5Term> assumptions = {t4};
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
       cvc5_check_sat_assuming(d_solver, assumptions.size(), assumptions.data()),
       "can only be a positive integral constant below");
 }
@@ -157,8 +158,9 @@ TEST_F(TestCApiBlackSolver, simplify)
   Cvc5Term x = cvc5_mk_const(d_tm, bv_sort, "x");
   (void)cvc5_simplify(d_solver, x, false);
 
-  ASSERT_DEATH(cvc5_simplify(nullptr, x, false), "unexpected NULL argument");
-  ASSERT_DEATH(cvc5_simplify(d_solver, nullptr, false), "invalid term");
+  ASSERT_CVC5_ERROR(cvc5_simplify(nullptr, x, false),
+                    "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_simplify(d_solver, nullptr, false), "invalid term");
 
   Cvc5Term a = cvc5_mk_const(d_tm, bv_sort, "a");
   (void)cvc5_simplify(d_solver, a, false);
@@ -245,8 +247,9 @@ TEST_F(TestCApiBlackSolver, simplify)
 
   Cvc5TermManager* tm = cvc5_term_manager_new();
   Cvc5* slv = cvc5_new(tm);
-  ASSERT_DEATH(cvc5_simplify(slv, x, false),
-               "term is not associated with the term manager of this solver");
+  ASSERT_CVC5_ERROR(
+      cvc5_simplify(slv, x, false),
+      "term is not associated with the term manager of this solver");
   cvc5_delete(slv);
   cvc5_term_manager_delete(tm);
 }
@@ -267,51 +270,52 @@ TEST_F(TestCApiBlackSolver, simplify_apply_subs)
 
 TEST_F(TestCApiBlackSolver, assert_formula)
 {
-  ASSERT_DEATH(cvc5_assert_formula(nullptr, cvc5_mk_true(d_tm)),
-               "unexpected NULL argument");
-  ASSERT_DEATH(cvc5_assert_formula(d_solver, nullptr), "invalid term");
+  ASSERT_CVC5_ERROR(cvc5_assert_formula(nullptr, cvc5_mk_true(d_tm)),
+                    "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_assert_formula(d_solver, nullptr), "invalid term");
 
   cvc5_assert_formula(d_solver, cvc5_mk_true(d_tm));
 
   Cvc5TermManager* tm = cvc5_term_manager_new();
   Cvc5* slv = cvc5_new(tm);
-  ASSERT_DEATH(cvc5_assert_formula(slv, cvc5_mk_true(d_tm)),
-               "term is not associated with the term manager of this solver");
+  ASSERT_CVC5_ERROR(
+      cvc5_assert_formula(slv, cvc5_mk_true(d_tm)),
+      "term is not associated with the term manager of this solver");
   cvc5_delete(slv);
   cvc5_term_manager_delete(tm);
 }
 
 TEST_F(TestCApiBlackSolver, check_sat)
 {
-  ASSERT_DEATH(cvc5_check_sat(nullptr), "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_check_sat(nullptr), "unexpected NULL argument");
 
   cvc5_set_option(d_solver, "incremental", "false");
   cvc5_check_sat(d_solver);
-  ASSERT_DEATH(cvc5_check_sat(d_solver), "cannot make multiple queries");
+  ASSERT_CVC5_ERROR(cvc5_check_sat(d_solver), "cannot make multiple queries");
 }
 
 TEST_F(TestCApiBlackSolver, check_sat_assuming)
 {
   std::vector<Cvc5Term> assumptions = {nullptr};
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
       cvc5_check_sat_assuming(d_solver, assumptions.size(), assumptions.data()),
       "invalid term at index 0");
   assumptions = {cvc5_mk_true(d_tm)};
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
       cvc5_check_sat_assuming(nullptr, assumptions.size(), assumptions.data()),
       "unexpected NULL argument");
-  ASSERT_DEATH(cvc5_check_sat_assuming(d_solver, 0, nullptr),
-               "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_check_sat_assuming(d_solver, 0, nullptr),
+                    "unexpected NULL argument");
 
   cvc5_set_option(d_solver, "incremental", "false");
   cvc5_check_sat_assuming(d_solver, assumptions.size(), assumptions.data());
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
       cvc5_check_sat_assuming(d_solver, assumptions.size(), assumptions.data()),
       "cannot make multiple queries");
 
   Cvc5TermManager* tm = cvc5_term_manager_new();
   Cvc5* slv = cvc5_new(tm);
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
       cvc5_check_sat_assuming(slv, assumptions.size(), assumptions.data()),
       "expected a term associated with the term manager of this solver");
   ;
@@ -420,31 +424,34 @@ TEST_F(TestCApiBlackSolver, declare_datatype)
   cons = cvc5_mk_dt_cons_decl(d_tm, "cons");
   nil = cvc5_mk_dt_cons_decl(d_tm, "nil");
   ctors = {cons, nil};
-  ASSERT_DEATH(cvc5_declare_dt(nullptr, "c", ctors.size(), ctors.data()),
-               "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_declare_dt(nullptr, "c", ctors.size(), ctors.data()),
+                    "unexpected NULL argument");
   ctors = {nullptr};
-  ASSERT_DEATH(cvc5_declare_dt(d_solver, "c", ctors.size(), ctors.data()),
-               "invalid datatype constructor declaration at index 0");
+  ASSERT_CVC5_ERROR(cvc5_declare_dt(d_solver, "c", ctors.size(), ctors.data()),
+                    "invalid datatype constructor declaration at index 0");
 
   // must have at least one constructor
   ctors = {};
-  ASSERT_DEATH(cvc5_declare_dt(d_solver, "c", ctors.size(), ctors.data()),
-               "expected a datatype declaration with at least one constructor");
+  ASSERT_CVC5_ERROR(
+      cvc5_declare_dt(d_solver, "c", ctors.size(), ctors.data()),
+      "expected a datatype declaration with at least one constructor");
   // constructors may not be reused
   Cvc5DatatypeConstructorDecl ctor1 = cvc5_mk_dt_cons_decl(d_tm, "_x21");
   Cvc5DatatypeConstructorDecl ctor2 = cvc5_mk_dt_cons_decl(d_tm, "_x31");
   ctors = {ctor1, ctor2};
   (void)cvc5_declare_dt(d_solver, "_x17", ctors.size(), ctors.data());
-  ASSERT_DEATH(cvc5_declare_dt(d_solver, "_x86", ctors.size(), ctors.data()),
-               "cannot use a constructor for multiple datatypes");
+  ASSERT_CVC5_ERROR(
+      cvc5_declare_dt(d_solver, "_x86", ctors.size(), ctors.data()),
+      "cannot use a constructor for multiple datatypes");
 
   Cvc5TermManager* tm = cvc5_term_manager_new();
   Cvc5* slv = cvc5_new(tm);
   nil = cvc5_mk_dt_cons_decl(d_tm, "nil");
   ctors = {nil};
-  ASSERT_DEATH(cvc5_declare_dt(slv, "a", ctors.size(), ctors.data()),
-               "expected a datatype constructor declaration associated with "
-               "the term manager of this solver");
+  ASSERT_CVC5_ERROR(
+      cvc5_declare_dt(slv, "a", ctors.size(), ctors.data()),
+      "expected a datatype constructor declaration associated with "
+      "the term manager of this solver");
   cvc5_delete(slv);
   cvc5_term_manager_delete(tm);
 }
@@ -459,10 +466,10 @@ TEST_F(TestCApiBlackSolver, dt_get_arity)
 
 TEST_F(TestCApiBlackSolver, declare_fun)
 {
-  ASSERT_DEATH(cvc5_declare_fun(nullptr, "b", 0, nullptr, d_bool, true),
-               "unexpected NULL argument");
-  ASSERT_DEATH(cvc5_declare_fun(d_solver, "b", 0, nullptr, nullptr, true),
-               "invalid sort");
+  ASSERT_CVC5_ERROR(cvc5_declare_fun(nullptr, "b", 0, nullptr, d_bool, true),
+                    "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_declare_fun(d_solver, "b", 0, nullptr, nullptr, true),
+                    "invalid sort");
 
   Cvc5Sort bv_sort = cvc5_mk_bv_sort(d_tm, 32);
   std::vector<Cvc5Sort> domain = {d_uninterpreted};
@@ -472,22 +479,24 @@ TEST_F(TestCApiBlackSolver, declare_fun)
   domain = {bv_sort, d_int};
   (void)cvc5_declare_fun(
       d_solver, "f3", domain.size(), domain.data(), bv_sort, true);
-  ASSERT_DEATH(cvc5_declare_fun(d_solver, "f3", 0, nullptr, fun_sort, true),
-               "invalid argument");
+  ASSERT_CVC5_ERROR(
+      cvc5_declare_fun(d_solver, "f3", 0, nullptr, fun_sort, true),
+      "invalid argument");
   // functions as arguments is allowed
   domain = {bv_sort, fun_sort};
   (void)cvc5_declare_fun(
       d_solver, "f4", domain.size(), domain.data(), bv_sort, true);
   domain = {bv_sort, bv_sort};
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
       cvc5_declare_fun(
           d_solver, "f5", domain.size(), domain.data(), fun_sort, true),
       "invalid argument");
 
   Cvc5TermManager* tm = cvc5_term_manager_new();
   Cvc5* slv = cvc5_new(tm);
-  ASSERT_DEATH(cvc5_declare_fun(slv, "f1", 0, nullptr, bv_sort, true),
-               "sort is not associated with the term manager of this solver");
+  ASSERT_CVC5_ERROR(
+      cvc5_declare_fun(slv, "f1", 0, nullptr, bv_sort, true),
+      "sort is not associated with the term manager of this solver");
   cvc5_delete(slv);
   cvc5_term_manager_delete(tm);
 }
@@ -508,8 +517,9 @@ TEST_F(TestCApiBlackSolver, declare_fun_fresh)
 
   Cvc5TermManager* tm = cvc5_term_manager_new();
   Cvc5* slv = cvc5_new(tm);
-  ASSERT_DEATH(cvc5_declare_fun(slv, "b", 0, nullptr, d_int, false),
-               "sort is not associated with the term manager of this solver");
+  ASSERT_CVC5_ERROR(
+      cvc5_declare_fun(slv, "b", 0, nullptr, d_int, false),
+      "sort is not associated with the term manager of this solver");
   ;
   cvc5_delete(slv);
   cvc5_term_manager_delete(tm);
@@ -517,10 +527,10 @@ TEST_F(TestCApiBlackSolver, declare_fun_fresh)
 
 TEST_F(TestCApiBlackSolver, declare_sort)
 {
-  ASSERT_DEATH(cvc5_declare_sort(nullptr, "s", 0, true),
-               "unexpected NULL argument");
-  ASSERT_DEATH(cvc5_declare_sort(d_solver, nullptr, 0, true),
-               "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_declare_sort(nullptr, "s", 0, true),
+                    "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_declare_sort(d_solver, nullptr, 0, true),
+                    "unexpected NULL argument");
   (void)cvc5_declare_sort(d_solver, "s", 0, true);
   (void)cvc5_declare_sort(d_solver, "s", 2, true);
   (void)cvc5_declare_sort(d_solver, "", 2, true);
@@ -528,10 +538,10 @@ TEST_F(TestCApiBlackSolver, declare_sort)
 
 TEST_F(TestCApiBlackSolver, declare_sort_fresh)
 {
-  ASSERT_DEATH(cvc5_declare_sort(nullptr, "b", 0, true),
-               "unexpected NULL argument");
-  ASSERT_DEATH(cvc5_declare_sort(d_solver, nullptr, 0, true),
-               "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_declare_sort(nullptr, "b", 0, true),
+                    "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_declare_sort(d_solver, nullptr, 0, true),
+                    "unexpected NULL argument");
 
   Cvc5Sort s1 = cvc5_declare_sort(d_solver, "b", 0, true);
   Cvc5Sort s2 = cvc5_declare_sort(d_solver, "b", 0, false);
@@ -560,11 +570,13 @@ TEST_F(TestCApiBlackSolver, define_fun)
   Cvc5Term v1 = cvc5_mk_const(d_tm, bv_sort, "v1");
   Cvc5Term v2 = cvc5_mk_const(d_tm, fun_sort, "v2");
 
-  ASSERT_DEATH(cvc5_define_fun(nullptr, "f", 0, nullptr, bv_sort, v1, false),
-               "unexpected NULL argument");
-  ASSERT_DEATH(cvc5_define_fun(d_solver, "f", 0, nullptr, nullptr, v1, false),
-               "invalid sort");
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
+      cvc5_define_fun(nullptr, "f", 0, nullptr, bv_sort, v1, false),
+      "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(
+      cvc5_define_fun(d_solver, "f", 0, nullptr, nullptr, v1, false),
+      "invalid sort");
+  ASSERT_CVC5_ERROR(
       cvc5_define_fun(d_solver, "f", 0, nullptr, bv_sort, nullptr, false),
       "invalid term");
 
@@ -573,14 +585,16 @@ TEST_F(TestCApiBlackSolver, define_fun)
   (void)cvc5_define_fun(
       d_solver, "f", vars.size(), vars.data(), bv_sort, v1, false);
   vars = {v1, b2};
-  ASSERT_DEATH(cvc5_define_fun(
-                   d_solver, "f", vars.size(), vars.data(), bv_sort, v1, false),
-               "invalid bound variable");
+  ASSERT_CVC5_ERROR(
+      cvc5_define_fun(
+          d_solver, "f", vars.size(), vars.data(), bv_sort, v1, false),
+      "invalid bound variable");
   vars = {b1};
-  ASSERT_DEATH(cvc5_define_fun(
-                   d_solver, "f", vars.size(), vars.data(), bv_sort, v2, false),
-               "invalid sort of function body");
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
+      cvc5_define_fun(
+          d_solver, "f", vars.size(), vars.data(), bv_sort, v2, false),
+      "invalid sort of function body");
+  ASSERT_CVC5_ERROR(
       cvc5_define_fun(
           d_solver, "f", vars.size(), vars.data(), fun_sort, v2, false),
       "invalid argument");
@@ -596,25 +610,25 @@ TEST_F(TestCApiBlackSolver, define_fun)
   Cvc5Term b12 = cvc5_mk_var(tm, bv_sort2, "b1");
   Cvc5Term b22 = cvc5_mk_var(tm, cvc5_get_integer_sort(tm), "b2");
   vars = {};
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
       cvc5_define_fun(slv, "f", vars.size(), vars.data(), bv_sort, v12, false),
       "sort is not associated with the term manager of this solver");
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
       cvc5_define_fun(slv, "f", vars.size(), vars.data(), bv_sort2, v1, false),
       "term is not associated with the term manager of this solver");
   vars = {b1, b22};
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
       cvc5_define_fun(slv, "f", vars.size(), vars.data(), bv_sort2, v12, false),
       "expected a term associated with the term manager of this solver");
   vars = {b12, b2};
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
       cvc5_define_fun(slv, "f", vars.size(), vars.data(), bv_sort2, v12, false),
       "expected a term associated with the term manager of this solver");
   vars = {b12, b22};
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
       cvc5_define_fun(slv, "f", vars.size(), vars.data(), bv_sort, v12, false),
       "sort is not associated with the term manager of this solver");
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
       cvc5_define_fun(slv, "f", vars.size(), vars.data(), bv_sort2, v1, false),
       "term is not associated with the term manager of this solver");
   cvc5_delete(slv);
@@ -690,60 +704,62 @@ TEST_F(TestCApiBlackSolver, define_fun_rec)
   (void)cvc5_define_fun_rec(
       d_solver, "f", vars.size(), vars.data(), bv_sort, v1, false);
 
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
       cvc5_define_fun_rec(nullptr, "f", 0, nullptr, bv_sort, v1, false),
       "unexpected NULL argument");
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
       cvc5_define_fun_rec(d_solver, nullptr, 0, nullptr, bv_sort, v1, false),
       "unexpected NULL argument");
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
       cvc5_define_fun_rec(d_solver, "f", 0, nullptr, nullptr, v1, false),
       "invalid sort");
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
       cvc5_define_fun_rec(d_solver, "f", 0, nullptr, bv_sort, nullptr, false),
       "invalid term");
 
   vars = {b1};
-  ASSERT_DEATH(cvc5_define_fun_rec(
-                   d_solver, "f", vars.size(), vars.data(), bv_sort, v3, false),
-               "invalid sort");
+  ASSERT_CVC5_ERROR(
+      cvc5_define_fun_rec(
+          d_solver, "f", vars.size(), vars.data(), bv_sort, v3, false),
+      "invalid sort");
   vars = {b1, v2};
-  ASSERT_DEATH(cvc5_define_fun_rec(
-                   d_solver, "f", vars.size(), vars.data(), bv_sort, v1, false),
-               "invalid bound variable");
+  ASSERT_CVC5_ERROR(
+      cvc5_define_fun_rec(
+          d_solver, "f", vars.size(), vars.data(), bv_sort, v1, false),
+      "invalid bound variable");
   vars = {b1};
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
       cvc5_define_fun_rec(
           d_solver, "f", vars.size(), vars.data(), fun_sort2, v3, false),
       "invalid argument");
 
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
       cvc5_define_fun_rec_from_const(nullptr, f1, 0, nullptr, v1, false),
       "unexpected NULL argument");
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
       cvc5_define_fun_rec_from_const(d_solver, nullptr, 0, nullptr, v1, false),
       "invalid term");
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
       cvc5_define_fun_rec_from_const(d_solver, f1, 0, nullptr, nullptr, false),
       "invalid term");
 
   vars = {b1};
-  ASSERT_DEATH(cvc5_define_fun_rec_from_const(
-                   d_solver, f1, vars.size(), vars.data(), v1, false),
-               "invalid size of argument 'bound_vars'");
-  ASSERT_DEATH(cvc5_define_fun_rec_from_const(
-                   d_solver, f2, vars.size(), vars.data(), v2, false),
-               "invalid sort");
-  ASSERT_DEATH(cvc5_define_fun_rec_from_const(
-                   d_solver, f3, vars.size(), vars.data(), v1, false),
-               "invalid argument");
+  ASSERT_CVC5_ERROR(cvc5_define_fun_rec_from_const(
+                        d_solver, f1, vars.size(), vars.data(), v1, false),
+                    "invalid size of argument 'bound_vars'");
+  ASSERT_CVC5_ERROR(cvc5_define_fun_rec_from_const(
+                        d_solver, f2, vars.size(), vars.data(), v2, false),
+                    "invalid sort");
+  ASSERT_CVC5_ERROR(cvc5_define_fun_rec_from_const(
+                        d_solver, f3, vars.size(), vars.data(), v1, false),
+                    "invalid argument");
   vars = {b1, b11};
-  ASSERT_DEATH(cvc5_define_fun_rec_from_const(
-                   d_solver, f1, vars.size(), vars.data(), v2, false),
-               "invalid sort");
-  ASSERT_DEATH(cvc5_define_fun_rec_from_const(
-                   d_solver, f1, vars.size(), vars.data(), v3, false),
-               "invalid sort");
+  ASSERT_CVC5_ERROR(cvc5_define_fun_rec_from_const(
+                        d_solver, f1, vars.size(), vars.data(), v2, false),
+                    "invalid sort");
+  ASSERT_CVC5_ERROR(cvc5_define_fun_rec_from_const(
+                        d_solver, f1, vars.size(), vars.data(), v3, false),
+                    "invalid sort");
 
   Cvc5TermManager* tm = cvc5_term_manager_new();
   Cvc5* slv = cvc5_new(tm);
@@ -752,26 +768,28 @@ TEST_F(TestCApiBlackSolver, define_fun_rec)
   Cvc5Term b22 = cvc5_mk_var(tm, cvc5_get_integer_sort(tm), "b2");
   Cvc5Term v12 = cvc5_mk_const(tm, bv_sort2, "v1");
   vars = {};
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
       cvc5_define_fun_rec(
           d_solver, "f", vars.size(), vars.data(), bv_sort2, v12, false),
       "term is not associated with the term manager of this solver");
-  ASSERT_DEATH(cvc5_define_fun_rec(
-                   slv, "f", vars.size(), vars.data(), bv_sort, v12, false),
-               "sort is not associated with the term manager of this solver");
-  ASSERT_DEATH(cvc5_define_fun_rec(
-                   slv, "f", vars.size(), vars.data(), bv_sort2, v1, false),
-               "term is not associated with the term manager of this solver");
+  ASSERT_CVC5_ERROR(
+      cvc5_define_fun_rec(
+          slv, "f", vars.size(), vars.data(), bv_sort, v12, false),
+      "sort is not associated with the term manager of this solver");
+  ASSERT_CVC5_ERROR(
+      cvc5_define_fun_rec(
+          slv, "f", vars.size(), vars.data(), bv_sort2, v1, false),
+      "term is not associated with the term manager of this solver");
   vars = {b12, b22};
   (void)cvc5_define_fun_rec(
       slv, "f", vars.size(), vars.data(), bv_sort2, v12, false);
   vars = {b1, b22};
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
       cvc5_define_fun_rec(
           slv, "f", vars.size(), vars.data(), bv_sort2, v12, false),
       "expected a term associated with the term manager of this solver");
   vars = {b12, b2};
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
       cvc5_define_fun_rec(
           slv, "f", vars.size(), vars.data(), bv_sort2, v12, false),
       "expected a term associated with the term manager of this solver");
@@ -790,13 +808,14 @@ TEST_F(TestCApiBlackSolver, define_fun_rec_wrong_logic)
   Cvc5Term v = cvc5_mk_var(d_tm, bv_sort, "v");
   Cvc5Term f = cvc5_mk_var(d_tm, fun_sort, "f");
   std::vector<Cvc5Term> vars = {};
-  ASSERT_DEATH(cvc5_define_fun_rec(
-                   d_solver, "f", vars.size(), vars.data(), bv_sort, v, false),
-               "require a logic with quantifiers");
+  ASSERT_CVC5_ERROR(
+      cvc5_define_fun_rec(
+          d_solver, "f", vars.size(), vars.data(), bv_sort, v, false),
+      "require a logic with quantifiers");
   vars = {b, b};
-  ASSERT_DEATH(cvc5_define_fun_rec_from_const(
-                   d_solver, f, vars.size(), vars.data(), v, false),
-               "require a logic with quantifiers");
+  ASSERT_CVC5_ERROR(cvc5_define_fun_rec_from_const(
+                        d_solver, f, vars.size(), vars.data(), v, false),
+                    "require a logic with quantifiers");
 }
 
 TEST_F(TestCApiBlackSolver, define_fun_rec_global)
@@ -840,7 +859,7 @@ TEST_F(TestCApiBlackSolver, define_fun_rec_global)
   Cvc5Term bb = cvc5_mk_var(tm, cvc5_get_boolean_sort(tm), "b");
   domain = {d_bool};
   vars = {bb};
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
       cvc5_define_fun_rec_from_const(
           slv,
           cvc5_mk_const(
@@ -854,7 +873,7 @@ TEST_F(TestCApiBlackSolver, define_fun_rec_global)
       "term is not associated with the term manager of this solver");
   vars = {b};
   domain = {cvc5_get_boolean_sort(tm)};
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
       cvc5_define_fun_rec_from_const(
           slv,
           cvc5_mk_const(
@@ -907,59 +926,59 @@ TEST_F(TestCApiBlackSolver, define_funs_rec)
                        false);
   vars1 = {v1, b11};
   vars = {vars1.data(), vars2.data()};
-  ASSERT_DEATH(cvc5_define_funs_rec(d_solver,
-                                    funs.size(),
-                                    funs.data(),
-                                    nvars.data(),
-                                    vars.data(),
-                                    terms.data(),
-                                    false),
-               "invalid bound variable");
+  ASSERT_CVC5_ERROR(cvc5_define_funs_rec(d_solver,
+                                         funs.size(),
+                                         funs.data(),
+                                         nvars.data(),
+                                         vars.data(),
+                                         terms.data(),
+                                         false),
+                    "invalid bound variable");
   funs = {f1, f3};
   vars1 = {b1, b11};
   vars = {vars1.data(), vars2.data()};
-  ASSERT_DEATH(cvc5_define_funs_rec(d_solver,
-                                    funs.size(),
-                                    funs.data(),
-                                    nvars.data(),
-                                    vars.data(),
-                                    terms.data(),
-                                    false),
-               "invalid argument");
+  ASSERT_CVC5_ERROR(cvc5_define_funs_rec(d_solver,
+                                         funs.size(),
+                                         funs.data(),
+                                         nvars.data(),
+                                         vars.data(),
+                                         terms.data(),
+                                         false),
+                    "invalid argument");
   funs = {f1, f2};
   vars1 = {b1};
   vars = {vars1.data(), vars2.data()};
   nvars = {1, 1};
-  ASSERT_DEATH(cvc5_define_funs_rec(d_solver,
-                                    funs.size(),
-                                    funs.data(),
-                                    nvars.data(),
-                                    vars.data(),
-                                    terms.data(),
-                                    false),
-               "invalid size of argument");
+  ASSERT_CVC5_ERROR(cvc5_define_funs_rec(d_solver,
+                                         funs.size(),
+                                         funs.data(),
+                                         nvars.data(),
+                                         vars.data(),
+                                         terms.data(),
+                                         false),
+                    "invalid size of argument");
   vars1 = {b1, b2};
   vars = {vars1.data(), vars2.data()};
   nvars = {2, 1};
-  ASSERT_DEATH(cvc5_define_funs_rec(d_solver,
-                                    funs.size(),
-                                    funs.data(),
-                                    nvars.data(),
-                                    vars.data(),
-                                    terms.data(),
-                                    false),
-               "invalid sort");
+  ASSERT_CVC5_ERROR(cvc5_define_funs_rec(d_solver,
+                                         funs.size(),
+                                         funs.data(),
+                                         nvars.data(),
+                                         vars.data(),
+                                         terms.data(),
+                                         false),
+                    "invalid sort");
   vars1 = {b1, b11};
   vars = {vars1.data(), vars2.data()};
   terms = {v1, v4};
-  ASSERT_DEATH(cvc5_define_funs_rec(d_solver,
-                                    funs.size(),
-                                    funs.data(),
-                                    nvars.data(),
-                                    vars.data(),
-                                    terms.data(),
-                                    false),
-               "invalid sort");
+  ASSERT_CVC5_ERROR(cvc5_define_funs_rec(d_solver,
+                                         funs.size(),
+                                         funs.data(),
+                                         nvars.data(),
+                                         vars.data(),
+                                         terms.data(),
+                                         false),
+                    "invalid sort");
 
   Cvc5TermManager* tm = cvc5_term_manager_new();
   Cvc5* slv = cvc5_new(tm);
@@ -995,7 +1014,7 @@ TEST_F(TestCApiBlackSolver, define_funs_rec)
                        terms.data(),
                        false);
   funs = {f1, f22};
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
       cvc5_define_funs_rec(slv,
                            funs.size(),
                            funs.data(),
@@ -1007,7 +1026,7 @@ TEST_F(TestCApiBlackSolver, define_funs_rec)
   funs = {f12, f22};
   vars1 = {b1, b112};
   vars = {vars1.data(), vars2.data()};
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
       cvc5_define_funs_rec(slv,
                            funs.size(),
                            funs.data(),
@@ -1018,7 +1037,7 @@ TEST_F(TestCApiBlackSolver, define_funs_rec)
       "expected a term associated with the term manager of this solver");
   vars1 = {b12, b11};
   vars = {vars1.data(), vars2.data()};
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
       cvc5_define_funs_rec(slv,
                            funs.size(),
                            funs.data(),
@@ -1030,7 +1049,7 @@ TEST_F(TestCApiBlackSolver, define_funs_rec)
   vars2 = {b42};
   vars = {vars1.data(), vars2.data()};
   terms = {v1, v22};
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
       cvc5_define_funs_rec(slv,
                            funs.size(),
                            funs.data(),
@@ -1040,7 +1059,7 @@ TEST_F(TestCApiBlackSolver, define_funs_rec)
                            false),
       "expected a term associated with the term manager of this solver");
   terms = {v12, v2};
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
       cvc5_define_funs_rec(slv,
                            funs.size(),
                            funs.data(),
@@ -1077,14 +1096,14 @@ TEST_F(TestCApiBlackSolver, define_funs_rec_wrong_logic)
   std::vector<const Cvc5Term*> vars = {vars1.data(), vars2.data()};
   std::vector<Cvc5Term> terms = {v1, v2};
 
-  ASSERT_DEATH(cvc5_define_funs_rec(d_solver,
-                                    funs.size(),
-                                    funs.data(),
-                                    nvars.data(),
-                                    vars.data(),
-                                    terms.data(),
-                                    false),
-               "require a logic with quantifiers");
+  ASSERT_CVC5_ERROR(cvc5_define_funs_rec(d_solver,
+                                         funs.size(),
+                                         funs.data(),
+                                         nvars.data(),
+                                         vars.data(),
+                                         terms.data(),
+                                         false),
+                    "require a logic with quantifiers");
 }
 
 TEST_F(TestCApiBlackSolver, define_funs_rec_global)
@@ -1139,26 +1158,29 @@ TEST_F(TestCApiBlackSolver, get_assertions)
   ASSERT_EQ(size, 2);
   ASSERT_TRUE(cvc5_term_is_equal(a, res[0]));
   ASSERT_TRUE(cvc5_term_is_equal(b, res[1]));
-  ASSERT_DEATH(cvc5_get_assertions(nullptr, &size), "unexpected NULL argument");
-  ASSERT_DEATH(cvc5_get_assertions(d_solver, nullptr),
-               "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_get_assertions(nullptr, &size),
+                    "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_get_assertions(d_solver, nullptr),
+                    "unexpected NULL argument");
 }
 
 TEST_F(TestCApiBlackSolver, get_info)
 {
   ASSERT_EQ(cvc5_get_info(d_solver, "name"), std::string("\"cvc5\""));
-  ASSERT_DEATH(cvc5_get_info(d_solver, "asdf"), "unrecognized flag");
-  ASSERT_DEATH(cvc5_get_info(nullptr, "name"), "unexpected NULL argument");
-  ASSERT_DEATH(cvc5_get_info(d_solver, nullptr), "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_get_info(d_solver, "asdf"), "unrecognized flag");
+  ASSERT_CVC5_ERROR(cvc5_get_info(nullptr, "name"), "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_get_info(d_solver, nullptr),
+                    "unexpected NULL argument");
 }
 
 TEST_F(TestCApiBlackSolver, get_option)
 {
   ASSERT_EQ(cvc5_get_option(d_solver, "incremental"), std::string("true"));
-  ASSERT_DEATH(cvc5_get_option(d_solver, "asdf"), "Unrecognized option");
-  ASSERT_DEATH(cvc5_get_option(nullptr, "incremental"),
-               "unexpected NULL argument");
-  ASSERT_DEATH(cvc5_get_option(d_solver, nullptr), "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_get_option(d_solver, "asdf"), "Unrecognized option");
+  ASSERT_CVC5_ERROR(cvc5_get_option(nullptr, "incremental"),
+                    "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_get_option(d_solver, nullptr),
+                    "unexpected NULL argument");
 }
 
 TEST_F(TestCApiBlackSolver, get_option_names)
@@ -1181,23 +1203,23 @@ TEST_F(TestCApiBlackSolver, get_option_names)
   }
   ASSERT_TRUE(found_verbose);
   ASSERT_FALSE(found_foobar);
-  ASSERT_DEATH(cvc5_get_option_names(nullptr, &size),
-               "unexpected NULL argument");
-  ASSERT_DEATH(cvc5_get_option_names(d_solver, nullptr),
-               "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_get_option_names(nullptr, &size),
+                    "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_get_option_names(d_solver, nullptr),
+                    "unexpected NULL argument");
 }
 
 TEST_F(TestCApiBlackSolver, get_option_info)
 {
   Cvc5OptionInfo info;
-  ASSERT_DEATH(cvc5_get_option_info(nullptr, "verbose", &info),
-               "unexpected NULL argument");
-  ASSERT_DEATH(cvc5_get_option_info(d_solver, nullptr, &info),
-               "unexpected NULL argument");
-  ASSERT_DEATH(cvc5_get_option_info(d_solver, "verbose", nullptr),
-               "unexpected NULL argument");
-  ASSERT_DEATH(cvc5_get_option_info(d_solver, "asdf-invalid", &info),
-               "Unrecognized option");
+  ASSERT_CVC5_ERROR(cvc5_get_option_info(nullptr, "verbose", &info),
+                    "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_get_option_info(d_solver, nullptr, &info),
+                    "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_get_option_info(d_solver, "verbose", nullptr),
+                    "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_get_option_info(d_solver, "asdf-invalid", &info),
+                    "Unrecognized option");
 
   cvc5_set_option(d_solver, "verbosity", "2");
 
@@ -1307,12 +1329,12 @@ TEST_F(TestCApiBlackSolver, get_unsat_assumptions1)
   std::vector<Cvc5Term> assumptions = {cvc5_mk_false(d_tm)};
   cvc5_check_sat_assuming(d_solver, assumptions.size(), assumptions.data());
   size_t size;
-  ASSERT_DEATH(cvc5_get_unsat_assumptions(nullptr, &size),
-               "unexpected NULL argument");
-  ASSERT_DEATH(cvc5_get_unsat_assumptions(d_solver, nullptr),
-               "unexpected NULL argument");
-  ASSERT_DEATH(cvc5_get_unsat_assumptions(d_solver, &size),
-               "cannot get unsat assumptions");
+  ASSERT_CVC5_ERROR(cvc5_get_unsat_assumptions(nullptr, &size),
+                    "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_get_unsat_assumptions(d_solver, nullptr),
+                    "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_get_unsat_assumptions(d_solver, &size),
+                    "cannot get unsat assumptions");
 }
 
 TEST_F(TestCApiBlackSolver, get_unsat_assumptions2)
@@ -1322,8 +1344,8 @@ TEST_F(TestCApiBlackSolver, get_unsat_assumptions2)
   std::vector<Cvc5Term> assumptions = {cvc5_mk_false(d_tm)};
   cvc5_check_sat_assuming(d_solver, assumptions.size(), assumptions.data());
   size_t size;
-  ASSERT_DEATH(cvc5_get_unsat_assumptions(d_solver, &size),
-               "cannot get unsat assumptions");
+  ASSERT_CVC5_ERROR(cvc5_get_unsat_assumptions(d_solver, &size),
+                    "cannot get unsat assumptions");
 }
 
 TEST_F(TestCApiBlackSolver, get_unsat_assumptions3)
@@ -1338,8 +1360,8 @@ TEST_F(TestCApiBlackSolver, get_unsat_assumptions3)
   ASSERT_TRUE(cvc5_term_is_equal(res[0], cvc5_mk_false(d_tm)));
   assumptions = {cvc5_mk_true(d_tm)};
   cvc5_check_sat_assuming(d_solver, assumptions.size(), assumptions.data());
-  ASSERT_DEATH(cvc5_get_unsat_assumptions(d_solver, &size),
-               "cannot get unsat assumptions");
+  ASSERT_CVC5_ERROR(cvc5_get_unsat_assumptions(d_solver, &size),
+                    "cannot get unsat assumptions");
 }
 
 TEST_F(TestCApiBlackSolver, get_unsat_core0)
@@ -1348,9 +1370,10 @@ TEST_F(TestCApiBlackSolver, get_unsat_core0)
   cvc5_assert_formula(d_solver, cvc5_mk_false(d_tm));
   cvc5_check_sat(d_solver);
   size_t size;
-  ASSERT_DEATH(cvc5_get_unsat_core(nullptr, &size), "unexpected NULL argument");
-  ASSERT_DEATH(cvc5_get_unsat_core(d_solver, nullptr),
-               "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_get_unsat_core(nullptr, &size),
+                    "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_get_unsat_core(d_solver, nullptr),
+                    "unexpected NULL argument");
 }
 
 TEST_F(TestCApiBlackSolver, get_unsat_core1)
@@ -1359,7 +1382,8 @@ TEST_F(TestCApiBlackSolver, get_unsat_core1)
   cvc5_assert_formula(d_solver, cvc5_mk_false(d_tm));
   cvc5_check_sat(d_solver);
   size_t size;
-  ASSERT_DEATH(cvc5_get_unsat_core(d_solver, &size), "cannot get unsat core");
+  ASSERT_CVC5_ERROR(cvc5_get_unsat_core(d_solver, &size),
+                    "cannot get unsat core");
 }
 
 TEST_F(TestCApiBlackSolver, get_unsat_core2)
@@ -1369,7 +1393,8 @@ TEST_F(TestCApiBlackSolver, get_unsat_core2)
   cvc5_assert_formula(d_solver, cvc5_mk_false(d_tm));
   cvc5_check_sat(d_solver);
   size_t size;
-  ASSERT_DEATH(cvc5_get_unsat_core(d_solver, &size), "cannot get unsat core");
+  ASSERT_CVC5_ERROR(cvc5_get_unsat_core(d_solver, &size),
+                    "cannot get unsat core");
 }
 
 TEST_F(TestCApiBlackSolver, get_unsat_core_and_proof)
@@ -1445,17 +1470,17 @@ TEST_F(TestCApiBlackSolver, get_unsat_core_lemmas1)
 
   size_t size;
   // cannot ask before a check sat
-  ASSERT_DEATH(cvc5_get_unsat_core_lemmas(d_solver, &size),
-               "cannot get unsat core");
+  ASSERT_CVC5_ERROR(cvc5_get_unsat_core_lemmas(d_solver, &size),
+                    "cannot get unsat core");
 
   cvc5_assert_formula(d_solver, cvc5_mk_false(d_tm));
   ASSERT_TRUE(cvc5_result_is_unsat(cvc5_check_sat(d_solver)));
   (void)cvc5_get_unsat_core_lemmas(d_solver, &size);
 
-  ASSERT_DEATH(cvc5_get_unsat_core_lemmas(nullptr, &size),
-               "unexpected NULL argument");
-  ASSERT_DEATH(cvc5_get_unsat_core_lemmas(d_solver, nullptr),
-               "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_get_unsat_core_lemmas(nullptr, &size),
+                    "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_get_unsat_core_lemmas(d_solver, nullptr),
+                    "unexpected NULL argument");
 }
 
 TEST_F(TestCApiBlackSolver, get_unsat_core_lemmas2)
@@ -1516,17 +1541,17 @@ TEST_F(TestCApiBlackSolver, get_difficulty)
   cvc5_set_option(d_solver, "produce-difficulty", "true");
   size_t size;
   Cvc5Term *inputs, *values;
-  ASSERT_DEATH(cvc5_get_difficulty(nullptr, &size, &inputs, &values),
-               "unexpected NULL argument");
-  ASSERT_DEATH(cvc5_get_difficulty(d_solver, nullptr, &inputs, &values),
-               "unexpected NULL argument");
-  ASSERT_DEATH(cvc5_get_difficulty(d_solver, &size, nullptr, &values),
-               "unexpected NULL argument");
-  ASSERT_DEATH(cvc5_get_difficulty(d_solver, &size, &inputs, nullptr),
-               "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_get_difficulty(nullptr, &size, &inputs, &values),
+                    "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_get_difficulty(d_solver, nullptr, &inputs, &values),
+                    "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_get_difficulty(d_solver, &size, nullptr, &values),
+                    "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_get_difficulty(d_solver, &size, &inputs, nullptr),
+                    "unexpected NULL argument");
   // cannot ask before a check sat
-  ASSERT_DEATH(cvc5_get_difficulty(d_solver, &size, &inputs, &values),
-               "cannot get difficulty");
+  ASSERT_CVC5_ERROR(cvc5_get_difficulty(d_solver, &size, &inputs, &values),
+                    "cannot get difficulty");
   cvc5_check_sat(d_solver);
   cvc5_get_difficulty(d_solver, &size, &inputs, &values);
 }
@@ -1537,8 +1562,8 @@ TEST_F(TestCApiBlackSolver, get_difficulty2)
   size_t size;
   Cvc5Term *inputs, *values;
   // option is not set
-  ASSERT_DEATH(cvc5_get_difficulty(d_solver, &size, &inputs, &values),
-               "Cannot get difficulty");
+  ASSERT_CVC5_ERROR(cvc5_get_difficulty(d_solver, &size, &inputs, &values),
+                    "Cannot get difficulty");
 }
 
 TEST_F(TestCApiBlackSolver, get_difficulty3)
@@ -1588,12 +1613,12 @@ TEST_F(TestCApiBlackSolver, get_timeout_core)
   ASSERT_EQ(size, 1);
   ASSERT_TRUE(cvc5_term_is_equal(core[0], hard));
 
-  ASSERT_DEATH(cvc5_get_timeout_core(nullptr, &result, &size),
-               "unexpected NULL argument");
-  ASSERT_DEATH(cvc5_get_timeout_core(d_solver, nullptr, &size),
-               "unexpected NULL argument");
-  ASSERT_DEATH(cvc5_get_timeout_core(d_solver, &result, nullptr),
-               "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_get_timeout_core(nullptr, &result, &size),
+                    "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_get_timeout_core(d_solver, nullptr, &size),
+                    "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_get_timeout_core(d_solver, &result, nullptr),
+                    "unexpected NULL argument");
 }
 
 TEST_F(TestCApiBlackSolver, get_timeout_core_unsat)
@@ -1636,7 +1661,7 @@ TEST_F(TestCApiBlackSolver, get_timeout_core_assuming_empty)
   std::vector<Cvc5Term> assumptions = {};
   Cvc5Result result;
   size_t size;
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
       cvc5_get_timeout_core_assuming(
           d_solver, assumptions.size(), assumptions.data(), &result, &size),
       "unexpected NULL argument");
@@ -1690,10 +1715,11 @@ TEST_F(TestCApiBlackSolver, get_proof_and_proof_to_string)
   ASSERT_TRUE(cvc5_result_is_unsat(cvc5_check_sat(d_solver)));
 
   size_t size;
-  ASSERT_DEATH(cvc5_get_proof(nullptr, CVC5_PROOF_COMPONENT_FULL, &size),
-               "unexpected NULL");
-  ASSERT_DEATH(cvc5_get_proof(d_solver, CVC5_PROOF_COMPONENT_FULL, nullptr),
-               "unexpected NULL");
+  ASSERT_CVC5_ERROR(cvc5_get_proof(nullptr, CVC5_PROOF_COMPONENT_FULL, &size),
+                    "unexpected NULL");
+  ASSERT_CVC5_ERROR(
+      cvc5_get_proof(d_solver, CVC5_PROOF_COMPONENT_FULL, nullptr),
+      "unexpected NULL");
 
   const Cvc5Proof* proofs =
       cvc5_get_proof(d_solver, CVC5_PROOF_COMPONENT_FULL, &size);
@@ -1749,7 +1775,7 @@ TEST_F(TestCApiBlackSolver, get_learned_literals)
 
   size_t size;
   // cannot ask before a check sat
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
       cvc5_get_learned_literals(d_solver, CVC5_LEARNED_LIT_TYPE_INPUT, &size),
       "cannot get learned literals");
 
@@ -1758,10 +1784,10 @@ TEST_F(TestCApiBlackSolver, get_learned_literals)
   (void)cvc5_get_learned_literals(
       d_solver, CVC5_LEARNED_LIT_TYPE_PREPROCESS, &size);
 
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
       cvc5_get_learned_literals(nullptr, CVC5_LEARNED_LIT_TYPE_INPUT, &size),
       "unexpected NULL argument");
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
       cvc5_get_learned_literals(d_solver, CVC5_LEARNED_LIT_TYPE_INPUT, nullptr),
       "unexpected NULL argument");
 }
@@ -1794,7 +1820,7 @@ TEST_F(TestCApiBlackSolver, get_value1)
   Cvc5Term t = cvc5_mk_true(d_tm);
   cvc5_assert_formula(d_solver, t);
   cvc5_check_sat(d_solver);
-  ASSERT_DEATH(cvc5_get_value(d_solver, t), "cannot get value");
+  ASSERT_CVC5_ERROR(cvc5_get_value(d_solver, t), "cannot get value");
 }
 
 TEST_F(TestCApiBlackSolver, get_value2)
@@ -1803,7 +1829,7 @@ TEST_F(TestCApiBlackSolver, get_value2)
   Cvc5Term t = cvc5_mk_false(d_tm);
   cvc5_assert_formula(d_solver, t);
   cvc5_check_sat(d_solver);
-  ASSERT_DEATH(cvc5_get_value(d_solver, t), "cannot get value");
+  ASSERT_CVC5_ERROR(cvc5_get_value(d_solver, t), "cannot get value");
 }
 
 TEST_F(TestCApiBlackSolver, get_value3)
@@ -1860,8 +1886,8 @@ TEST_F(TestCApiBlackSolver, get_value3)
   (void)cvc5_get_value(d_solver, sum);
   (void)cvc5_get_value(d_solver, p_f_y);
 
-  ASSERT_DEATH(cvc5_get_value(nullptr, x), "unexpected NULL argument");
-  ASSERT_DEATH(cvc5_get_value(d_solver, nullptr), "invalid term");
+  ASSERT_CVC5_ERROR(cvc5_get_value(nullptr, x), "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_get_value(d_solver, nullptr), "invalid term");
 
   std::vector<Cvc5Term> a = {cvc5_get_value(d_solver, x),
                              cvc5_get_value(d_solver, y),
@@ -1873,20 +1899,21 @@ TEST_F(TestCApiBlackSolver, get_value3)
   ASSERT_EQ(size, 3);
   ASSERT_TRUE(cvc5_term_is_equal(a[0], b[0]));
   ASSERT_TRUE(cvc5_term_is_equal(a[1], b[1]));
-  ASSERT_DEATH(cvc5_get_values(nullptr, terms.size(), terms.data(), &size),
-               "unexpected NULL argument");
-  ASSERT_DEATH(cvc5_get_values(d_solver, terms.size(), nullptr, &size),
-               "unexpected NULL argument");
-  ASSERT_DEATH(cvc5_get_values(d_solver, terms.size(), terms.data(), nullptr),
-               "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_get_values(nullptr, terms.size(), terms.data(), &size),
+                    "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_get_values(d_solver, terms.size(), nullptr, &size),
+                    "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(
+      cvc5_get_values(d_solver, terms.size(), terms.data(), nullptr),
+      "unexpected NULL argument");
 
   Cvc5* slv = cvc5_new(d_tm);
-  ASSERT_DEATH(cvc5_get_value(slv, x), "cannot get value");
+  ASSERT_CVC5_ERROR(cvc5_get_value(slv, x), "cannot get value");
   cvc5_delete(slv);
 
   slv = cvc5_new(d_tm);
   cvc5_set_option(slv, "produce-models", "true");
-  ASSERT_DEATH(cvc5_get_value(slv, x), "cannot get value");
+  ASSERT_CVC5_ERROR(cvc5_get_value(slv, x), "cannot get value");
   cvc5_delete(slv);
 
   slv = cvc5_new(d_tm);
@@ -1899,8 +1926,9 @@ TEST_F(TestCApiBlackSolver, get_value3)
   slv = cvc5_new(tm);
   cvc5_set_option(slv, "produce-models", "true");
   cvc5_check_sat(slv);
-  ASSERT_DEATH(cvc5_get_value(slv, x),
-               "term is not associated with the term manager of this solver");
+  ASSERT_CVC5_ERROR(
+      cvc5_get_value(slv, x),
+      "term is not associated with the term manager of this solver");
   cvc5_delete(slv);
   cvc5_term_manager_delete(tm);
 }
@@ -1918,22 +1946,24 @@ TEST_F(TestCApiBlackSolver, get_modelDomain_elements)
   size_t size;
   (void)cvc5_get_model_domain_elements(d_solver, d_uninterpreted, &size);
   ASSERT_TRUE(size >= 3);
-  ASSERT_DEATH(cvc5_get_model_domain_elements(nullptr, d_uninterpreted, &size),
-               "unexpected NULL argument");
-  ASSERT_DEATH(cvc5_get_model_domain_elements(d_solver, nullptr, &size),
-               "invalid sort");
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
+      cvc5_get_model_domain_elements(nullptr, d_uninterpreted, &size),
+      "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_get_model_domain_elements(d_solver, nullptr, &size),
+                    "invalid sort");
+  ASSERT_CVC5_ERROR(
       cvc5_get_model_domain_elements(d_solver, d_uninterpreted, nullptr),
       "unexpected NULL argument");
-  ASSERT_DEATH(cvc5_get_model_domain_elements(d_solver, d_int, &size),
-               "expected an uninterpreted sort");
+  ASSERT_CVC5_ERROR(cvc5_get_model_domain_elements(d_solver, d_int, &size),
+                    "expected an uninterpreted sort");
 
   Cvc5TermManager* tm = cvc5_term_manager_new();
   Cvc5* slv = cvc5_new(tm);
   cvc5_set_option(slv, "produce-models", "true");
   cvc5_check_sat(slv);
-  ASSERT_DEATH(cvc5_get_model_domain_elements(slv, d_uninterpreted, &size),
-               "sort is not associated with the term manager of this solver");
+  ASSERT_CVC5_ERROR(
+      cvc5_get_model_domain_elements(slv, d_uninterpreted, &size),
+      "sort is not associated with the term manager of this solver");
   cvc5_delete(slv);
   cvc5_term_manager_delete(tm);
 }
@@ -1975,18 +2005,19 @@ TEST_F(TestCApiBlackSolver, is_model_core_symbol)
   ASSERT_TRUE(cvc5_is_model_core_symbol(d_solver, y));
   ASSERT_FALSE(cvc5_is_model_core_symbol(d_solver, z));
 
-  ASSERT_DEATH(cvc5_is_model_core_symbol(nullptr, x),
-               "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_is_model_core_symbol(nullptr, x),
+                    "unexpected NULL argument");
   ASSERT_FALSE(cvc5_is_model_core_symbol(d_solver, nullptr));
-  ASSERT_DEATH(cvc5_is_model_core_symbol(d_solver, zero),
-               "expected a free constant");
+  ASSERT_CVC5_ERROR(cvc5_is_model_core_symbol(d_solver, zero),
+                    "expected a free constant");
 
   Cvc5TermManager* tm = cvc5_term_manager_new();
   Cvc5* slv = cvc5_new(tm);
   cvc5_set_option(slv, "produce-models", "true");
   cvc5_check_sat(slv);
-  ASSERT_DEATH(cvc5_is_model_core_symbol(slv, x),
-               "term is not associated with the term manager of this solver");
+  ASSERT_CVC5_ERROR(
+      cvc5_is_model_core_symbol(slv, x),
+      "term is not associated with the term manager of this solver");
   cvc5_delete(slv);
   cvc5_term_manager_delete(tm);
 }
@@ -2007,18 +2038,20 @@ TEST_F(TestCApiBlackSolver, get_model)
   (void)cvc5_get_model(
       d_solver, sorts.size(), sorts.data(), terms.size(), terms.data());
 
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
       cvc5_get_model(
           nullptr, sorts.size(), sorts.data(), terms.size(), terms.data()),
       "unexpected NULL argument");
-  ASSERT_DEATH(cvc5_get_model(
-                   d_solver, sorts.size(), nullptr, terms.size(), terms.data()),
-               "unexpected NULL argument");
-  ASSERT_DEATH(cvc5_get_model(
-                   d_solver, sorts.size(), sorts.data(), terms.size(), nullptr),
-               "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(
+      cvc5_get_model(
+          d_solver, sorts.size(), nullptr, terms.size(), terms.data()),
+      "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(
+      cvc5_get_model(
+          d_solver, sorts.size(), sorts.data(), terms.size(), nullptr),
+      "unexpected NULL argument");
   terms.push_back(nullptr);
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
       cvc5_get_model(
           d_solver, sorts.size(), sorts.data(), terms.size(), terms.data()),
       "");
@@ -2029,7 +2062,7 @@ TEST_F(TestCApiBlackSolver, get_model2)
   cvc5_set_option(d_solver, "produce-models", "true");
   std::vector<Cvc5Sort> sorts;
   std::vector<Cvc5Term> terms;
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
       cvc5_get_model(
           d_solver, sorts.size(), sorts.data(), terms.size(), terms.data()),
       "unexpected NULL argument");
@@ -2041,12 +2074,12 @@ TEST_F(TestCApiBlackSolver, get_model3)
   std::vector<Cvc5Sort> sorts;
   std::vector<Cvc5Term> terms;
   cvc5_check_sat(d_solver);
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
       cvc5_get_model(
           d_solver, sorts.size(), sorts.data(), terms.size(), terms.data()),
       "unexpected NULL argument");
   sorts.push_back(d_int);
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
       cvc5_get_model(
           d_solver, sorts.size(), sorts.data(), terms.size(), terms.data()),
       "unexpected NULL argument");
@@ -2064,19 +2097,21 @@ TEST_F(TestCApiBlackSolver, get_quantifier_elimination)
   Cvc5Term forall =
       cvc5_mk_term(d_tm, CVC5_KIND_FORALL, args.size(), args.data());
 
-  ASSERT_DEATH(cvc5_get_quantifier_elimination(nullptr, forall),
-               "unexpected NULL argument");
-  ASSERT_DEATH(cvc5_get_quantifier_elimination(d_solver, nullptr),
-               "invalid term");
-  ASSERT_DEATH(cvc5_get_quantifier_elimination(d_solver, cvc5_mk_false(d_tm)),
-               "Expecting a quantified formula");
+  ASSERT_CVC5_ERROR(cvc5_get_quantifier_elimination(nullptr, forall),
+                    "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_get_quantifier_elimination(d_solver, nullptr),
+                    "invalid term");
+  ASSERT_CVC5_ERROR(
+      cvc5_get_quantifier_elimination(d_solver, cvc5_mk_false(d_tm)),
+      "Expecting a quantified formula");
   (void)cvc5_get_quantifier_elimination(d_solver, forall);
 
   Cvc5TermManager* tm = cvc5_term_manager_new();
   Cvc5* slv = cvc5_new(tm);
   cvc5_check_sat(slv);
-  ASSERT_DEATH(cvc5_get_quantifier_elimination(slv, forall),
-               "term is not associated with the term manager of this solver");
+  ASSERT_CVC5_ERROR(
+      cvc5_get_quantifier_elimination(slv, forall),
+      "term is not associated with the term manager of this solver");
   cvc5_delete(slv);
   cvc5_term_manager_delete(tm);
 }
@@ -2093,11 +2128,11 @@ TEST_F(TestCApiBlackSolver, get_quantifier_elimination_disjunct)
   Cvc5Term forall =
       cvc5_mk_term(d_tm, CVC5_KIND_FORALL, args.size(), args.data());
 
-  ASSERT_DEATH(cvc5_get_quantifier_elimination_disjunct(nullptr, forall),
-               "unexpected NULL argument");
-  ASSERT_DEATH(cvc5_get_quantifier_elimination_disjunct(d_solver, nullptr),
-               "invalid term");
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(cvc5_get_quantifier_elimination_disjunct(nullptr, forall),
+                    "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_get_quantifier_elimination_disjunct(d_solver, nullptr),
+                    "invalid term");
+  ASSERT_CVC5_ERROR(
       cvc5_get_quantifier_elimination_disjunct(d_solver, cvc5_mk_false(d_tm)),
       "Expecting a quantified formula");
   (void)cvc5_get_quantifier_elimination_disjunct(d_solver, forall);
@@ -2105,8 +2140,9 @@ TEST_F(TestCApiBlackSolver, get_quantifier_elimination_disjunct)
   Cvc5TermManager* tm = cvc5_term_manager_new();
   Cvc5* slv = cvc5_new(tm);
   cvc5_check_sat(slv);
-  ASSERT_DEATH(cvc5_get_quantifier_elimination(slv, forall),
-               "term is not associated with the term manager of this solver");
+  ASSERT_CVC5_ERROR(
+      cvc5_get_quantifier_elimination(slv, forall),
+      "term is not associated with the term manager of this solver");
   cvc5_delete(slv);
   cvc5_term_manager_delete(tm);
 }
@@ -2117,26 +2153,28 @@ TEST_F(TestCApiBlackSolver, declare_sep_heap)
   cvc5_set_option(d_solver, "incremental", "false");
   cvc5_declare_sep_heap(d_solver, d_int, d_int);
   // cannot declare separation logic heap more than once
-  ASSERT_DEATH(cvc5_declare_sep_heap(d_solver, d_int, d_int),
-               "cannot declare heap types");
+  ASSERT_CVC5_ERROR(cvc5_declare_sep_heap(d_solver, d_int, d_int),
+                    "cannot declare heap types");
 
   Cvc5TermManager* tm = cvc5_term_manager_new();
   // no logic set yet
   Cvc5* slv = cvc5_new(tm);
-  ASSERT_DEATH(cvc5_declare_sep_heap(d_solver, d_int, d_int),
-               "cannot declare heap types");
+  ASSERT_CVC5_ERROR(cvc5_declare_sep_heap(d_solver, d_int, d_int),
+                    "cannot declare heap types");
   cvc5_delete(slv);
 
   slv = cvc5_new(tm);
   cvc5_set_logic(slv, "ALL");
-  ASSERT_DEATH(cvc5_declare_sep_heap(slv, cvc5_get_integer_sort(tm), d_int),
-               "sort is not associated with the term manager of this solver");
+  ASSERT_CVC5_ERROR(
+      cvc5_declare_sep_heap(slv, cvc5_get_integer_sort(tm), d_int),
+      "sort is not associated with the term manager of this solver");
   cvc5_delete(slv);
 
   slv = cvc5_new(tm);
   cvc5_set_logic(slv, "ALL");
-  ASSERT_DEATH(cvc5_declare_sep_heap(slv, d_int, cvc5_get_integer_sort(tm)),
-               "sort is not associated with the term manager of this solver");
+  ASSERT_CVC5_ERROR(
+      cvc5_declare_sep_heap(slv, d_int, cvc5_get_integer_sort(tm)),
+      "sort is not associated with the term manager of this solver");
   cvc5_delete(slv);
   cvc5_term_manager_delete(tm);
 }
@@ -2148,8 +2186,8 @@ TEST_F(TestCApiBlackSolver, get_value_sep_heap1)
   cvc5_set_option(d_solver, "produce-models", "true");
   Cvc5Term t = cvc5_mk_true(d_tm);
   cvc5_assert_formula(d_solver, t);
-  ASSERT_DEATH(cvc5_get_value_sep_heap(d_solver),
-               "cannot obtain separation logic expressions");
+  ASSERT_CVC5_ERROR(cvc5_get_value_sep_heap(d_solver),
+                    "cannot obtain separation logic expressions");
 }
 
 TEST_F(TestCApiBlackSolver, get_value_sep_heap2)
@@ -2158,8 +2196,8 @@ TEST_F(TestCApiBlackSolver, get_value_sep_heap2)
   cvc5_set_option(d_solver, "incremental", "false");
   cvc5_set_option(d_solver, "produce-models", "false");
   check_simple_separation_constraints();
-  ASSERT_DEATH(cvc5_get_value_sep_heap(d_solver),
-               "cannot get separation heap term");
+  ASSERT_CVC5_ERROR(cvc5_get_value_sep_heap(d_solver),
+                    "cannot get separation heap term");
 }
 
 TEST_F(TestCApiBlackSolver, get_value_sep_heap3)
@@ -2170,7 +2208,7 @@ TEST_F(TestCApiBlackSolver, get_value_sep_heap3)
   Cvc5Term t = cvc5_mk_false(d_tm);
   cvc5_assert_formula(d_solver, t);
   cvc5_check_sat(d_solver);
-  ASSERT_DEATH(cvc5_get_value_sep_heap(d_solver), "after SAT or UNKNOWN");
+  ASSERT_CVC5_ERROR(cvc5_get_value_sep_heap(d_solver), "after SAT or UNKNOWN");
 }
 
 TEST_F(TestCApiBlackSolver, get_value_sep_heap4)
@@ -2181,7 +2219,8 @@ TEST_F(TestCApiBlackSolver, get_value_sep_heap4)
   Cvc5Term t = cvc5_mk_true(d_tm);
   cvc5_assert_formula(d_solver, t);
   cvc5_check_sat(d_solver);
-  ASSERT_DEATH(cvc5_get_value_sep_heap(d_solver), "Failed to obtain heap/nil");
+  ASSERT_CVC5_ERROR(cvc5_get_value_sep_heap(d_solver),
+                    "Failed to obtain heap/nil");
 }
 
 TEST_F(TestCApiBlackSolver, get_value_sep_heap5)
@@ -2200,8 +2239,8 @@ TEST_F(TestCApiBlackSolver, get_value_sep_nil1)
   cvc5_set_option(d_solver, "produce-models", "true");
   Cvc5Term t = cvc5_mk_true(d_tm);
   cvc5_assert_formula(d_solver, t);
-  ASSERT_DEATH(cvc5_get_value_sep_nil(d_solver),
-               "cannot obtain separation logic expressions");
+  ASSERT_CVC5_ERROR(cvc5_get_value_sep_nil(d_solver),
+                    "cannot obtain separation logic expressions");
 }
 
 TEST_F(TestCApiBlackSolver, get_value_sep_nil2)
@@ -2210,7 +2249,8 @@ TEST_F(TestCApiBlackSolver, get_value_sep_nil2)
   cvc5_set_option(d_solver, "incremental", "false");
   cvc5_set_option(d_solver, "produce-models", "false");
   check_simple_separation_constraints();
-  ASSERT_DEATH(cvc5_get_value_sep_nil(d_solver), "cannot get separation nil");
+  ASSERT_CVC5_ERROR(cvc5_get_value_sep_nil(d_solver),
+                    "cannot get separation nil");
 }
 
 TEST_F(TestCApiBlackSolver, get_value_sep_nil3)
@@ -2221,7 +2261,7 @@ TEST_F(TestCApiBlackSolver, get_value_sep_nil3)
   Cvc5Term t = cvc5_mk_false(d_tm);
   cvc5_assert_formula(d_solver, t);
   cvc5_check_sat(d_solver);
-  ASSERT_DEATH(cvc5_get_value_sep_nil(d_solver), "after SAT or UNKNOWN");
+  ASSERT_CVC5_ERROR(cvc5_get_value_sep_nil(d_solver), "after SAT or UNKNOWN");
 }
 
 TEST_F(TestCApiBlackSolver, get_value_sep_nil4)
@@ -2232,8 +2272,8 @@ TEST_F(TestCApiBlackSolver, get_value_sep_nil4)
   Cvc5Term t = cvc5_mk_true(d_tm);
   cvc5_assert_formula(d_solver, t);
   cvc5_check_sat(d_solver);
-  ASSERT_DEATH(cvc5_get_value_sep_nil(d_solver),
-               "Failed to obtain heap/nil expressions");
+  ASSERT_CVC5_ERROR(cvc5_get_value_sep_nil(d_solver),
+                    "Failed to obtain heap/nil expressions");
 }
 
 TEST_F(TestCApiBlackSolver, get_value_sep_nil5)
@@ -2249,34 +2289,34 @@ TEST_F(TestCApiBlackSolver, push1)
 {
   cvc5_set_option(d_solver, "incremental", "true");
   cvc5_push(d_solver, 1);
-  ASSERT_DEATH(cvc5_set_option(d_solver, "incremental", "false"),
-               "is already fully initialized");
-  ASSERT_DEATH(cvc5_set_option(d_solver, "incremental", "true"),
-               "is already fully initialized");
+  ASSERT_CVC5_ERROR(cvc5_set_option(d_solver, "incremental", "false"),
+                    "is already fully initialized");
+  ASSERT_CVC5_ERROR(cvc5_set_option(d_solver, "incremental", "true"),
+                    "is already fully initialized");
 }
 
 TEST_F(TestCApiBlackSolver, push2)
 {
   cvc5_set_option(d_solver, "incremental", "false");
-  ASSERT_DEATH(cvc5_push(d_solver, 1), "cannot push");
+  ASSERT_CVC5_ERROR(cvc5_push(d_solver, 1), "cannot push");
 }
 
 TEST_F(TestCApiBlackSolver, push3)
 {
   cvc5_set_option(d_solver, "incremental", "false");
-  ASSERT_DEATH(cvc5_push(nullptr, 1), "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_push(nullptr, 1), "unexpected NULL argument");
 }
 
 TEST_F(TestCApiBlackSolver, pop1)
 {
   cvc5_set_option(d_solver, "incremental", "false");
-  ASSERT_DEATH(cvc5_pop(d_solver, 1), "cannot pop");
+  ASSERT_CVC5_ERROR(cvc5_pop(d_solver, 1), "cannot pop");
 }
 
 TEST_F(TestCApiBlackSolver, pop2)
 {
   cvc5_set_option(d_solver, "incremental", "true");
-  ASSERT_DEATH(cvc5_pop(d_solver, 1), "cannot pop");
+  ASSERT_CVC5_ERROR(cvc5_pop(d_solver, 1), "cannot pop");
 }
 
 TEST_F(TestCApiBlackSolver, pop3)
@@ -2284,30 +2324,30 @@ TEST_F(TestCApiBlackSolver, pop3)
   cvc5_set_option(d_solver, "incremental", "true");
   cvc5_push(d_solver, 1);
   cvc5_pop(d_solver, 1);
-  ASSERT_DEATH(cvc5_pop(d_solver, 1), "cannot pop");
+  ASSERT_CVC5_ERROR(cvc5_pop(d_solver, 1), "cannot pop");
 }
 
 TEST_F(TestCApiBlackSolver, pop4)
 {
   cvc5_set_option(d_solver, "incremental", "false");
-  ASSERT_DEATH(cvc5_pop(nullptr, 1), "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_pop(nullptr, 1), "unexpected NULL argument");
 }
 
 TEST_F(TestCApiBlackSolver, set_info)
 {
-  ASSERT_DEATH(cvc5_set_info(d_solver, "cvc5-lagic", "QF_BV"),
-               "unrecognized keyword");
-  ASSERT_DEATH(cvc5_set_info(d_solver, "cvc2-logic", "QF_BV"),
-               "unrecognized keyword");
-  ASSERT_DEATH(cvc5_set_info(d_solver, "cvc5-logic", "asdf"),
-               "unrecognized keyword");
+  ASSERT_CVC5_ERROR(cvc5_set_info(d_solver, "cvc5-lagic", "QF_BV"),
+                    "unrecognized keyword");
+  ASSERT_CVC5_ERROR(cvc5_set_info(d_solver, "cvc2-logic", "QF_BV"),
+                    "unrecognized keyword");
+  ASSERT_CVC5_ERROR(cvc5_set_info(d_solver, "cvc5-logic", "asdf"),
+                    "unrecognized keyword");
 
-  ASSERT_DEATH(cvc5_set_info(nullptr, "source", "asdf"),
-               "unexpected NULL argument");
-  ASSERT_DEATH(cvc5_set_info(d_solver, nullptr, "asdf"),
-               "unexpected NULL argument");
-  ASSERT_DEATH(cvc5_set_info(d_solver, "source", nullptr),
-               "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_set_info(nullptr, "source", "asdf"),
+                    "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_set_info(d_solver, nullptr, "asdf"),
+                    "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_set_info(d_solver, "source", nullptr),
+                    "unexpected NULL argument");
 
   cvc5_set_info(d_solver, "source", "asdf");
   cvc5_set_info(d_solver, "category", "asdf");
@@ -2321,30 +2361,34 @@ TEST_F(TestCApiBlackSolver, set_info)
   cvc5_set_info(d_solver, "smt-lib-version", "2.0");
   cvc5_set_info(d_solver, "smt-lib-version", "2.5");
   cvc5_set_info(d_solver, "smt-lib-version", "2.6");
-  ASSERT_DEATH(cvc5_set_info(d_solver, "smt-lib-version", ".0"),
-               "invalid argument");
+  ASSERT_CVC5_ERROR(cvc5_set_info(d_solver, "smt-lib-version", ".0"),
+                    "invalid argument");
 
   cvc5_set_info(d_solver, "status", "sat");
   cvc5_set_info(d_solver, "status", "unsat");
   cvc5_set_info(d_solver, "status", "unknown");
-  ASSERT_DEATH(cvc5_set_info(d_solver, "status", "asdf"), "invalid argument");
+  ASSERT_CVC5_ERROR(cvc5_set_info(d_solver, "status", "asdf"),
+                    "invalid argument");
 }
 
 TEST_F(TestCApiBlackSolver, set_logic)
 {
-  ASSERT_DEATH(cvc5_set_logic(nullptr, "AUFLIRA"), "unexpected NULL argument");
-  ASSERT_DEATH(cvc5_set_logic(d_solver, nullptr), "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_set_logic(nullptr, "AUFLIRA"),
+                    "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_set_logic(d_solver, nullptr),
+                    "unexpected NULL argument");
 
   cvc5_set_logic(d_solver, "AUFLIRA");
 
-  ASSERT_DEATH(cvc5_set_logic(d_solver, "AF_BV"), "logic is already set");
+  ASSERT_CVC5_ERROR(cvc5_set_logic(d_solver, "AF_BV"), "logic is already set");
   cvc5_assert_formula(d_solver, cvc5_mk_true(d_tm));
-  ASSERT_DEATH(cvc5_set_logic(d_solver, "AUFLIRA"), "logic is already set");
+  ASSERT_CVC5_ERROR(cvc5_set_logic(d_solver, "AUFLIRA"),
+                    "logic is already set");
 }
 
 TEST_F(TestCApiBlackSolver, is_logic_set)
 {
-  ASSERT_DEATH(cvc5_is_logic_set(nullptr), "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_is_logic_set(nullptr), "unexpected NULL argument");
   ASSERT_FALSE(cvc5_is_logic_set(d_solver));
   cvc5_set_logic(d_solver, "QF_BV");
   ASSERT_TRUE(cvc5_is_logic_set(d_solver));
@@ -2352,8 +2396,8 @@ TEST_F(TestCApiBlackSolver, is_logic_set)
 
 TEST_F(TestCApiBlackSolver, get_logic)
 {
-  ASSERT_DEATH(cvc5_get_logic(nullptr), "unexpected NULL argument");
-  ASSERT_DEATH(cvc5_get_logic(d_solver), "logic has not yet been set");
+  ASSERT_CVC5_ERROR(cvc5_get_logic(nullptr), "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_get_logic(d_solver), "logic has not yet been set");
   cvc5_set_logic(d_solver, "QF_BV");
   ASSERT_EQ(cvc5_get_logic(d_solver), std::string("QF_BV"));
 }
@@ -2361,21 +2405,21 @@ TEST_F(TestCApiBlackSolver, get_logic)
 TEST_F(TestCApiBlackSolver, set_option)
 {
   cvc5_set_option(d_solver, "bv-sat-solver", "cadical");
-  ASSERT_DEATH(cvc5_set_option(d_solver, "bv-sat-solver", "1"),
-               "unknown option");
+  ASSERT_CVC5_ERROR(cvc5_set_option(d_solver, "bv-sat-solver", "1"),
+                    "unknown option");
   cvc5_assert_formula(d_solver, cvc5_mk_true(d_tm));
-  ASSERT_DEATH(cvc5_set_option(d_solver, "bv-sat-solver", "cadical"),
-               "fully initialized");
+  ASSERT_CVC5_ERROR(cvc5_set_option(d_solver, "bv-sat-solver", "cadical"),
+                    "fully initialized");
 }
 
 TEST_F(TestCApiBlackSolver, reset_assertions)
 {
-  ASSERT_DEATH(cvc5_set_option(nullptr, "incremental", "true"),
-               "unexpected NULL argument");
-  ASSERT_DEATH(cvc5_set_option(d_solver, nullptr, "true"),
-               "unexpected NULL argument");
-  ASSERT_DEATH(cvc5_set_option(d_solver, "incremental", nullptr),
-               "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_set_option(nullptr, "incremental", "true"),
+                    "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_set_option(d_solver, nullptr, "true"),
+                    "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_set_option(d_solver, "incremental", nullptr),
+                    "unexpected NULL argument");
 
   cvc5_set_option(d_solver, "incremental", "true");
 
@@ -2409,21 +2453,23 @@ TEST_F(TestCApiBlackSolver, declare_sygus_var)
   (void)cvc5_declare_sygus_var(d_solver, "", fun_sort);
   (void)cvc5_declare_sygus_var(d_solver, "b", d_bool);
 
-  ASSERT_DEATH(cvc5_declare_sygus_var(nullptr, "", d_bool),
-               "unexpected NULL argument");
-  ASSERT_DEATH(cvc5_declare_sygus_var(d_solver, nullptr, d_bool),
-               "unexpected NULL argument");
-  ASSERT_DEATH(cvc5_declare_sygus_var(d_solver, "", nullptr), "invalid sort");
+  ASSERT_CVC5_ERROR(cvc5_declare_sygus_var(nullptr, "", d_bool),
+                    "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_declare_sygus_var(d_solver, nullptr, d_bool),
+                    "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_declare_sygus_var(d_solver, "", nullptr),
+                    "invalid sort");
 
   Cvc5* slv = cvc5_new(d_tm);
-  ASSERT_DEATH(cvc5_declare_sygus_var(slv, "", d_bool), "cannot call");
+  ASSERT_CVC5_ERROR(cvc5_declare_sygus_var(slv, "", d_bool), "cannot call");
   cvc5_delete(slv);
 
   Cvc5TermManager* tm = cvc5_term_manager_new();
   slv = cvc5_new(tm);
   cvc5_set_option(slv, "sygus", "true");
-  ASSERT_DEATH(cvc5_declare_sygus_var(slv, "", d_bool),
-               "sort is not associated with the term manager of this solver");
+  ASSERT_CVC5_ERROR(
+      cvc5_declare_sygus_var(slv, "", d_bool),
+      "sort is not associated with the term manager of this solver");
   cvc5_delete(slv);
   cvc5_term_manager_delete(tm);
 }
@@ -2442,35 +2488,35 @@ TEST_F(TestCApiBlackSolver, mk_grammar)
   (void)cvc5_mk_grammar(
       d_solver, bvars.size(), bvars.data(), symbols.size(), symbols.data());
 
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
       cvc5_mk_grammar(
           nullptr, bvars.size(), bvars.data(), symbols.size(), symbols.data()),
       "unexpected NULL argument");
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
       cvc5_mk_grammar(
           d_solver, bvars.size(), bvars.data(), symbols.size(), nullptr),
       "unexpected NULL argument");
 
   symbols = {nullptr};
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
       cvc5_mk_grammar(
           d_solver, bvars.size(), bvars.data(), symbols.size(), nullptr),
       "unexpected NULL argument");
   bvars = {nullptr};
   symbols = {iv};
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
       cvc5_mk_grammar(
           d_solver, bvars.size(), bvars.data(), symbols.size(), nullptr),
       "unexpected NULL argument");
   bvars = {};
   symbols = {bt};
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
       cvc5_mk_grammar(
           d_solver, bvars.size(), bvars.data(), symbols.size(), nullptr),
       "unexpected NULL argument");
   bvars = {bt};
   symbols = {iv};
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
       cvc5_mk_grammar(
           d_solver, bvars.size(), bvars.data(), symbols.size(), nullptr),
       "unexpected NULL argument");
@@ -2479,13 +2525,13 @@ TEST_F(TestCApiBlackSolver, mk_grammar)
   Cvc5* slv = cvc5_new(tm);
   bvars = {};
   symbols = {iv};
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
       cvc5_mk_grammar(
           slv, bvars.size(), bvars.data(), symbols.size(), symbols.data()),
       "expected a term associated with the term manager of this solver");
   bvars = {bv};
   symbols = {cvc5_mk_var(tm, cvc5_get_integer_sort(tm), "")};
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
       cvc5_mk_grammar(
           d_solver, bvars.size(), bvars.data(), symbols.size(), symbols.data()),
       "expected a term associated with the term manager of this solver");
@@ -2508,9 +2554,9 @@ TEST_F(TestCApiBlackSolver, synth_fun)
 
   (void)cvc5_synth_fun(d_solver, "", 0, nullptr, d_bool);
   (void)cvc5_synth_fun(d_solver, "f1", bvars.size(), bvars.data(), d_bool);
-  ASSERT_DEATH(cvc5_synth_fun_with_grammar(
-                   d_solver, "f2", bvars.size(), bvars.data(), d_bool, g1),
-               "invalid grammar");
+  ASSERT_CVC5_ERROR(cvc5_synth_fun_with_grammar(
+                        d_solver, "f2", bvars.size(), bvars.data(), d_bool, g1),
+                    "invalid grammar");
 
   cvc5_grammar_add_rule(g1, start1, cvc5_mk_false(d_tm));
 
@@ -2521,23 +2567,25 @@ TEST_F(TestCApiBlackSolver, synth_fun)
 
   cvc5_synth_fun_with_grammar(
       d_solver, "f2", bvars.size(), bvars.data(), d_bool, g1);
-  ASSERT_DEATH(cvc5_synth_fun_with_grammar(
-                   nullptr, "f2", bvars.size(), bvars.data(), d_bool, g1),
-               "unexpected NULL argument");
-  ASSERT_DEATH(cvc5_synth_fun_with_grammar(
-                   d_solver, "f2", bvars.size(), bvars.data(), nullptr, g1),
-               "invalid sort");
-  ASSERT_DEATH(cvc5_synth_fun_with_grammar(
-                   d_solver, "f2", bvars.size(), bvars.data(), d_bool, nullptr),
-               "invalid grammar");
+  ASSERT_CVC5_ERROR(cvc5_synth_fun_with_grammar(
+                        nullptr, "f2", bvars.size(), bvars.data(), d_bool, g1),
+                    "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(
+      cvc5_synth_fun_with_grammar(
+          d_solver, "f2", bvars.size(), bvars.data(), nullptr, g1),
+      "invalid sort");
+  ASSERT_CVC5_ERROR(
+      cvc5_synth_fun_with_grammar(
+          d_solver, "f2", bvars.size(), bvars.data(), d_bool, nullptr),
+      "invalid grammar");
 
-  ASSERT_DEATH(cvc5_synth_fun_with_grammar(
-                   d_solver, "f6", bvars.size(), bvars.data(), d_bool, g2),
-               "invalid Start symbol");
+  ASSERT_CVC5_ERROR(cvc5_synth_fun_with_grammar(
+                        d_solver, "f6", bvars.size(), bvars.data(), d_bool, g2),
+                    "invalid Start symbol");
 
   Cvc5TermManager* tm = cvc5_term_manager_new();
   Cvc5* slv = cvc5_new(tm);
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
       cvc5_synth_fun_with_grammar(
           slv, "f8", bvars.size(), bvars.data(), d_bool, g1),
       "expected a term associated with the term manager of this solver");
@@ -2558,12 +2606,13 @@ TEST_F(TestCApiBlackSolver, declare_pool)
   // pool should have the same sort
   ASSERT_TRUE(cvc5_sort_is_equal(cvc5_term_get_sort(p), set_sort));
 
-  ASSERT_DEATH(cvc5_declare_pool(nullptr, "p", d_int, args.size(), args.data()),
-               "unexpected NULL argument");
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
+      cvc5_declare_pool(nullptr, "p", d_int, args.size(), args.data()),
+      "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(
       cvc5_declare_pool(d_solver, nullptr, d_int, args.size(), args.data()),
       "unexpected NULL argument");
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
       cvc5_declare_pool(d_solver, "p", nullptr, args.size(), args.data()),
       "invalid sort");
 
@@ -2571,15 +2620,15 @@ TEST_F(TestCApiBlackSolver, declare_pool)
   (void)cvc5_declare_pool(d_solver, "p", d_int, 0, nullptr);
 
   args = {nullptr, x, y};
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
       cvc5_declare_pool(d_solver, "p", d_int, args.size(), args.data()),
       "invalid term at index 0");
   args = {zero, nullptr, y};
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
       cvc5_declare_pool(d_solver, "p", d_int, args.size(), args.data()),
       "invalid term at index 1");
   args = {zero, x, nullptr};
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
       cvc5_declare_pool(d_solver, "p", d_int, args.size(), args.data()),
       "invalid term at index 2");
 
@@ -2590,14 +2639,15 @@ TEST_F(TestCApiBlackSolver, declare_pool)
   Cvc5Term x2 = cvc5_mk_const(tm, cvc5_get_integer_sort(tm), "x");
   Cvc5Term y2 = cvc5_mk_const(tm, cvc5_get_integer_sort(tm), "y");
   std::vector<Cvc5Term> args2 = {zero2, x2, y2};
-  ASSERT_DEATH(cvc5_declare_pool(slv, "p", d_int, args2.size(), args2.data()),
-               "sort is not associated with the term manager of this solver");
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
+      cvc5_declare_pool(slv, "p", d_int, args2.size(), args2.data()),
+      "sort is not associated with the term manager of this solver");
+  ASSERT_CVC5_ERROR(
       cvc5_declare_pool(
           slv, "p", cvc5_get_integer_sort(tm), args.size(), args.data()),
       "expected a term associated with the term manager of this solver");
   args2 = {zero2, x, y2};
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
       cvc5_declare_pool(
           slv, "p", cvc5_get_integer_sort(tm), args2.size(), args2.data()),
       "expected a term associated with the term manager of this solver");
@@ -2642,7 +2692,7 @@ TEST_F(TestCApiBlackSolver, declare_oracle_fun_unsat)
   cvc5_set_option(slv, "oracles", "true");
   Cvc5Sort int_sort = cvc5_get_integer_sort(tm);
   std::vector<Cvc5Sort> sorts2 = {int_sort};
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
       cvc5_declare_oracle_fun(
           slv,
           "f",
@@ -2660,24 +2710,24 @@ TEST_F(TestCApiBlackSolver, declare_oracle_fun_unsat)
             return cvc5_mk_integer_int64(ctm, 0);
           }),
       "expected a sort associated with the term manager of this solver");
-  ASSERT_DEATH(cvc5_declare_oracle_fun(
-                   slv,
-                   "f",
-                   sorts2.size(),
-                   sorts2.data(),
-                   d_int,
-                   tm,
-                   [](size_t, const Cvc5Term* input, void* state) {
-                     Cvc5TermManager* ctm =
-                         static_cast<Cvc5TermManager*>(state);
-                     if (cvc5_term_is_uint32_value(input[0]))
-                     {
-                       return cvc5_mk_integer_int64(
-                           ctm, cvc5_term_get_uint32_value(input[0]) + 1);
-                     }
-                     return cvc5_mk_integer_int64(ctm, 0);
-                   }),
-               "sort is not associated with the term manager of this solver");
+  ASSERT_CVC5_ERROR(
+      cvc5_declare_oracle_fun(
+          slv,
+          "f",
+          sorts2.size(),
+          sorts2.data(),
+          d_int,
+          tm,
+          [](size_t, const Cvc5Term* input, void* state) {
+            Cvc5TermManager* ctm = static_cast<Cvc5TermManager*>(state);
+            if (cvc5_term_is_uint32_value(input[0]))
+            {
+              return cvc5_mk_integer_int64(
+                  ctm, cvc5_term_get_uint32_value(input[0]) + 1);
+            }
+            return cvc5_mk_integer_int64(ctm, 0);
+          }),
+      "sort is not associated with the term manager of this solver");
   // this cannot be caught during declaration, is caught during check-sat
   Cvc5Term f2 = cvc5_declare_oracle_fun(
       slv,
@@ -2703,9 +2753,10 @@ TEST_F(TestCApiBlackSolver, declare_oracle_fun_unsat)
   cvc5_assert_formula(
       slv, cvc5_mk_term(tm, CVC5_KIND_EQUAL, args2.size(), args2.data()));
   // (f 3) = 5
-  ASSERT_DEATH(cvc5_check_sat(slv),
-               "Evaluated an oracle call that is not associated with the term "
-               "manager of this solver");
+  ASSERT_CVC5_ERROR(
+      cvc5_check_sat(slv),
+      "Evaluated an oracle call that is not associated with the term "
+      "manager of this solver");
   cvc5_delete(slv);
   cvc5_term_manager_delete(tm);
 }
@@ -2788,34 +2839,37 @@ TEST_F(TestCApiBlackSolver, declare_oracle_fun_error1)
 {
   cvc5_set_option(d_solver, "oracles", "true");
   std::vector<Cvc5Sort> sorts = {d_int, d_int};
-  ASSERT_DEATH(cvc5_declare_oracle_fun(
-                   nullptr,
-                   "eq",
-                   sorts.size(),
-                   sorts.data(),
-                   d_bool,
-                   d_tm,
-                   [](size_t size, const Cvc5Term* input, void* state) {
-                     Assert(size == 2);
-                     return cvc5_mk_boolean(
-                         static_cast<Cvc5TermManager*>(state),
-                         cvc5_term_is_equal(input[0], input[1]));
-                   }),
-               "unexpected NULL argument");
-  ASSERT_DEATH(cvc5_declare_oracle_fun(
-                   d_solver,
-                   nullptr,
-                   sorts.size(),
-                   sorts.data(),
-                   d_bool,
-                   d_tm,
-                   [](size_t size, const Cvc5Term* input, void* state) {
-                     Assert(size == 2);
-                     return cvc5_mk_boolean(
-                         static_cast<Cvc5TermManager*>(state),
-                         cvc5_term_is_equal(input[0], input[1]));
-                   }),
-               "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_declare_oracle_fun(
+                        nullptr,
+                        "eq",
+                        sorts.size(),
+                        sorts.data(),
+                        d_bool,
+                        d_tm,
+                        [](size_t size, const Cvc5Term* input, void* state) {
+                          Assert(size == 2);
+                          return cvc5_mk_boolean(
+                              static_cast<Cvc5TermManager*>(state),
+                              cvc5_term_is_equal(input[0], input[1]));
+                        }),
+                    "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_declare_oracle_fun(
+                        d_solver,
+                        nullptr,
+                        sorts.size(),
+                        sorts.data(),
+                        d_bool,
+                        d_tm,
+                        [](size_t size, const Cvc5Term* input, void* state) {
+                          Assert(size == 2);
+                          return cvc5_mk_boolean(
+                              static_cast<Cvc5TermManager*>(state),
+                              cvc5_term_is_equal(input[0], input[1]));
+                        }),
+                    "unexpected NULL argument");
+  // Declaring an oracle function with no argument sorts triggers an internal
+  // (debug-only) cvc5 assertion that aborts the process via FatalStream; this
+  // is not a recoverable C API error, so it remains a death test.
   ASSERT_DEATH(cvc5_declare_oracle_fun(
                    d_solver,
                    "eq",
@@ -2830,20 +2884,20 @@ TEST_F(TestCApiBlackSolver, declare_oracle_fun_error1)
                          cvc5_term_is_equal(input[0], input[1]));
                    }),
                "");
-  ASSERT_DEATH(cvc5_declare_oracle_fun(
-                   d_solver,
-                   "eq",
-                   sorts.size(),
-                   sorts.data(),
-                   nullptr,
-                   d_tm,
-                   [](size_t size, const Cvc5Term* input, void* state) {
-                     Assert(size == 2);
-                     return cvc5_mk_boolean(
-                         static_cast<Cvc5TermManager*>(state),
-                         cvc5_term_is_equal(input[0], input[1]));
-                   }),
-               "invalid sort");
+  ASSERT_CVC5_ERROR(cvc5_declare_oracle_fun(
+                        d_solver,
+                        "eq",
+                        sorts.size(),
+                        sorts.data(),
+                        nullptr,
+                        d_tm,
+                        [](size_t size, const Cvc5Term* input, void* state) {
+                          Assert(size == 2);
+                          return cvc5_mk_boolean(
+                              static_cast<Cvc5TermManager*>(state),
+                              cvc5_term_is_equal(input[0], input[1]));
+                        }),
+                    "invalid sort");
   // this won't die when declaring the function, only when the actual oracle
   // fun is called
   (void)cvc5_declare_oracle_fun(
@@ -2858,7 +2912,7 @@ TEST_F(TestCApiBlackSolver, declare_oracle_fun_error1)
         return cvc5_mk_boolean(static_cast<Cvc5TermManager*>(state),
                                cvc5_term_is_equal(input[0], input[1]));
       });
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
       cvc5_declare_oracle_fun(
           d_solver, "eq", sorts.size(), sorts.data(), d_bool, d_tm, nullptr),
       "unexpected NULL argument");
@@ -2868,7 +2922,7 @@ TEST_F(TestCApiBlackSolver, declare_oracle_fun_error2)
 {
   std::vector<Cvc5Sort> sorts = {d_int};
   // cannot declare without option
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
       cvc5_declare_oracle_fun(d_solver,
                               "f",
                               sorts.size(),
@@ -2919,8 +2973,9 @@ TEST_F(TestCApiBlackSolver, get_interpolant)
   // We expect the resulting output to be a boolean formula
   ASSERT_TRUE(cvc5_sort_is_boolean(cvc5_term_get_sort(output)));
 
-  ASSERT_DEATH(cvc5_get_interpolant(nullptr, conj), "unexpected NULL argument");
-  ASSERT_DEATH(cvc5_get_interpolant(d_solver, nullptr), "invalid term");
+  ASSERT_CVC5_ERROR(cvc5_get_interpolant(nullptr, conj),
+                    "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_get_interpolant(d_solver, nullptr), "invalid term");
 
   // try with a grammar, a simple grammar admitting true
   Cvc5Term ttrue = cvc5_mk_true(d_tm);
@@ -2932,8 +2987,8 @@ TEST_F(TestCApiBlackSolver, get_interpolant)
   args = {zero, zero};
   Cvc5Term conj2 =
       cvc5_mk_term(d_tm, CVC5_KIND_EQUAL, args.size(), args.data());
-  ASSERT_DEATH(cvc5_get_interpolant_with_grammar(d_solver, conj2, g),
-               "invalid grammar, must have at least one rule");
+  ASSERT_CVC5_ERROR(cvc5_get_interpolant_with_grammar(d_solver, conj2, g),
+                    "invalid grammar, must have at least one rule");
   cvc5_grammar_add_rule(g, start, ttrue);
 
   // Call the interpolation api, while the resulting interpolant is the output
@@ -2941,12 +2996,12 @@ TEST_F(TestCApiBlackSolver, get_interpolant)
   // interpolant must be true
   ASSERT_TRUE(cvc5_term_is_equal(output2, ttrue));
 
-  ASSERT_DEATH(cvc5_get_interpolant_with_grammar(nullptr, conj2, g),
-               "unexpected NULL argument");
-  ASSERT_DEATH(cvc5_get_interpolant_with_grammar(d_solver, nullptr, g),
-               "invalid term");
-  ASSERT_DEATH(cvc5_get_interpolant_with_grammar(d_solver, conj2, nullptr),
-               "invalid grammar");
+  ASSERT_CVC5_ERROR(cvc5_get_interpolant_with_grammar(nullptr, conj2, g),
+                    "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_get_interpolant_with_grammar(d_solver, nullptr, g),
+                    "invalid term");
+  ASSERT_CVC5_ERROR(cvc5_get_interpolant_with_grammar(d_solver, conj2, nullptr),
+                    "invalid grammar");
 
   Cvc5TermManager* tm = cvc5_term_manager_new();
   Cvc5* slv = cvc5_new(tm);
@@ -2961,11 +3016,13 @@ TEST_F(TestCApiBlackSolver, get_interpolant)
   Cvc5Term cconj2 =
       cvc5_mk_term(tm, CVC5_KIND_EQUAL, aargs.size(), aargs.data());
   (void)cvc5_get_interpolant_with_grammar(slv, cconj2, gg);
-  ASSERT_DEATH(cvc5_get_interpolant(slv, conj2),
-               "term is not associated with the term manager of this solver");
-  ASSERT_DEATH(cvc5_get_interpolant_with_grammar(slv, conj2, gg),
-               "term is not associated with the term manager of this solver");
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
+      cvc5_get_interpolant(slv, conj2),
+      "term is not associated with the term manager of this solver");
+  ASSERT_CVC5_ERROR(
+      cvc5_get_interpolant_with_grammar(slv, conj2, gg),
+      "term is not associated with the term manager of this solver");
+  ASSERT_CVC5_ERROR(
       cvc5_get_interpolant_with_grammar(slv, cconj2, g),
       "grammar is not associated with the term manager of this solver");
   cvc5_delete(slv);
@@ -3005,10 +3062,12 @@ TEST_F(TestCApiBlackSolver, get_interpolant_next)
   Cvc5Term output = cvc5_get_interpolant(d_solver, conj);
   Cvc5Term output2 = cvc5_get_interpolant_next(d_solver);
 
-  ASSERT_DEATH(cvc5_get_interpolant(nullptr, conj), "unexpected NULL argument");
-  ASSERT_DEATH(cvc5_get_interpolant(d_solver, nullptr), "invalid term");
+  ASSERT_CVC5_ERROR(cvc5_get_interpolant(nullptr, conj),
+                    "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_get_interpolant(d_solver, nullptr), "invalid term");
 
-  ASSERT_DEATH(cvc5_get_interpolant_next(nullptr), "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_get_interpolant_next(nullptr),
+                    "unexpected NULL argument");
 
   // We expect the next output to be distinct
   ASSERT_TRUE(cvc5_term_is_disequal(output, output2));
@@ -3036,8 +3095,8 @@ TEST_F(TestCApiBlackSolver, get_abduct)
   // We expect the resulting output to be a boolean formula
   ASSERT_TRUE(cvc5_sort_is_boolean(cvc5_term_get_sort(output)));
 
-  ASSERT_DEATH(cvc5_get_abduct(nullptr, conj), "unexpected NULL argument");
-  ASSERT_DEATH(cvc5_get_abduct(d_solver, nullptr), "invalid term");
+  ASSERT_CVC5_ERROR(cvc5_get_abduct(nullptr, conj), "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_get_abduct(d_solver, nullptr), "invalid term");
 
   // try with a grammar, a simple grammar admitting true
   Cvc5Term ttrue = cvc5_mk_true(d_tm);
@@ -3047,8 +3106,8 @@ TEST_F(TestCApiBlackSolver, get_abduct)
       cvc5_mk_grammar(d_solver, 0, nullptr, symbols.size(), symbols.data());
   args = {x, zero};
   Cvc5Term conj2 = cvc5_mk_term(d_tm, CVC5_KIND_GT, args.size(), args.data());
-  ASSERT_DEATH(cvc5_get_abduct_with_grammar(d_solver, conj2, g),
-               "invalid grammar, must have at least one rule");
+  ASSERT_CVC5_ERROR(cvc5_get_abduct_with_grammar(d_solver, conj2, g),
+                    "invalid grammar, must have at least one rule");
   cvc5_grammar_add_rule(g, start, ttrue);
 
   // Call the abduction api, while the resulting abduct is the output
@@ -3056,12 +3115,12 @@ TEST_F(TestCApiBlackSolver, get_abduct)
   // abduct must be true
   ASSERT_TRUE(cvc5_term_is_equal(output2, ttrue));
 
-  ASSERT_DEATH(cvc5_get_abduct_with_grammar(nullptr, conj2, g),
-               "unexpected NULL argument");
-  ASSERT_DEATH(cvc5_get_abduct_with_grammar(d_solver, nullptr, g),
-               "invalid term");
-  ASSERT_DEATH(cvc5_get_abduct_with_grammar(d_solver, conj2, nullptr),
-               "invalid grammar");
+  ASSERT_CVC5_ERROR(cvc5_get_abduct_with_grammar(nullptr, conj2, g),
+                    "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_get_abduct_with_grammar(d_solver, nullptr, g),
+                    "invalid term");
+  ASSERT_CVC5_ERROR(cvc5_get_abduct_with_grammar(d_solver, conj2, nullptr),
+                    "invalid grammar");
 
   Cvc5TermManager* tm = cvc5_term_manager_new();
   Cvc5* slv = cvc5_new(tm);
@@ -3084,11 +3143,13 @@ TEST_F(TestCApiBlackSolver, get_abduct)
   Cvc5Term cconj2 =
       cvc5_mk_term(tm, CVC5_KIND_EQUAL, aargs.size(), aargs.data());
   (void)cvc5_get_abduct_with_grammar(slv, cconj2, gg);
-  ASSERT_DEATH(cvc5_get_abduct(slv, conj2),
-               "term is not associated with the term manager of this solver");
-  ASSERT_DEATH(cvc5_get_abduct_with_grammar(slv, conj2, gg),
-               "term is not associated with the term manager of this solver");
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
+      cvc5_get_abduct(slv, conj2),
+      "term is not associated with the term manager of this solver");
+  ASSERT_CVC5_ERROR(
+      cvc5_get_abduct_with_grammar(slv, conj2, gg),
+      "term is not associated with the term manager of this solver");
+  ASSERT_CVC5_ERROR(
       cvc5_get_abduct_with_grammar(slv, cconj2, g),
       "grammar is not associated with the term manager of this solver");
   cvc5_delete(slv);
@@ -3111,7 +3172,8 @@ TEST_F(TestCApiBlackSolver, get_abduct2)
   args = {y, zero};
   Cvc5Term conj = cvc5_mk_term(d_tm, CVC5_KIND_GT, args.size(), args.data());
   // Fails due to option not set
-  ASSERT_DEATH(cvc5_get_abduct(d_solver, conj), "unless abducts are enabled");
+  ASSERT_CVC5_ERROR(cvc5_get_abduct(d_solver, conj),
+                    "unless abducts are enabled");
 }
 
 TEST_F(TestCApiBlackSolver, get_abduct_next)
@@ -3135,10 +3197,10 @@ TEST_F(TestCApiBlackSolver, get_abduct_next)
   Cvc5Term output = cvc5_get_abduct(d_solver, conj);
   Cvc5Term output2 = cvc5_get_abduct_next(d_solver);
 
-  ASSERT_DEATH(cvc5_get_abduct(nullptr, conj), "unexpected NULL argument");
-  ASSERT_DEATH(cvc5_get_abduct(d_solver, nullptr), "invalid term");
+  ASSERT_CVC5_ERROR(cvc5_get_abduct(nullptr, conj), "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_get_abduct(d_solver, nullptr), "invalid term");
 
-  ASSERT_DEATH(cvc5_get_abduct_next(nullptr), "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_get_abduct_next(nullptr), "unexpected NULL argument");
 
   // should produce a different output
   ASSERT_TRUE(cvc5_term_is_disequal(output, output2));
@@ -3151,8 +3213,8 @@ TEST_F(TestCApiBlackSolver, block_model1)
   cvc5_assert_formula(
       d_solver, cvc5_mk_term(d_tm, CVC5_KIND_EQUAL, args.size(), args.data()));
   cvc5_check_sat(d_solver);
-  ASSERT_DEATH(cvc5_block_model(d_solver, CVC5_BLOCK_MODELS_MODE_LITERALS),
-               "cannot get value");
+  ASSERT_CVC5_ERROR(cvc5_block_model(d_solver, CVC5_BLOCK_MODELS_MODE_LITERALS),
+                    "cannot get value");
 }
 
 TEST_F(TestCApiBlackSolver, block_model2)
@@ -3162,8 +3224,8 @@ TEST_F(TestCApiBlackSolver, block_model2)
   std::vector<Cvc5Term> args = {x, x};
   cvc5_assert_formula(
       d_solver, cvc5_mk_term(d_tm, CVC5_KIND_EQUAL, args.size(), args.data()));
-  ASSERT_DEATH(cvc5_block_model(d_solver, CVC5_BLOCK_MODELS_MODE_LITERALS),
-               "after SAT or UNKNOWN");
+  ASSERT_CVC5_ERROR(cvc5_block_model(d_solver, CVC5_BLOCK_MODELS_MODE_LITERALS),
+                    "after SAT or UNKNOWN");
 }
 
 TEST_F(TestCApiBlackSolver, block_model3)
@@ -3175,8 +3237,8 @@ TEST_F(TestCApiBlackSolver, block_model3)
       d_solver, cvc5_mk_term(d_tm, CVC5_KIND_EQUAL, args.size(), args.data()));
   cvc5_check_sat(d_solver);
   cvc5_block_model(d_solver, CVC5_BLOCK_MODELS_MODE_LITERALS);
-  ASSERT_DEATH(cvc5_block_model(nullptr, CVC5_BLOCK_MODELS_MODE_LITERALS),
-               "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_block_model(nullptr, CVC5_BLOCK_MODELS_MODE_LITERALS),
+                    "unexpected NULL argument");
 }
 
 TEST_F(TestCApiBlackSolver, block_model_values1)
@@ -3190,20 +3252,20 @@ TEST_F(TestCApiBlackSolver, block_model_values1)
   args = {cvc5_mk_true(d_tm)};
   cvc5_block_model_values(d_solver, args.size(), args.data());
 
-  ASSERT_DEATH(cvc5_block_model_values(nullptr, args.size(), args.data()),
-               "unexpected NULL argument");
-  ASSERT_DEATH(cvc5_block_model_values(d_solver, 0, nullptr),
-               "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_block_model_values(nullptr, args.size(), args.data()),
+                    "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_block_model_values(d_solver, 0, nullptr),
+                    "unexpected NULL argument");
   args = {nullptr};
-  ASSERT_DEATH(cvc5_block_model_values(d_solver, args.size(), args.data()),
-               "invalid term at index 0");
+  ASSERT_CVC5_ERROR(cvc5_block_model_values(d_solver, args.size(), args.data()),
+                    "invalid term at index 0");
 
   Cvc5TermManager* tm = cvc5_term_manager_new();
   Cvc5* slv = cvc5_new(tm);
   cvc5_set_option(slv, "produce-models", "true");
   cvc5_check_sat(slv);
   args = {cvc5_mk_true(d_tm)};
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
       cvc5_block_model_values(slv, args.size(), args.data()),
       "expected a term associated with the term manager of this solver");
   cvc5_delete(slv);
@@ -3230,8 +3292,8 @@ TEST_F(TestCApiBlackSolver, block_model_values3)
       d_solver, cvc5_mk_term(d_tm, CVC5_KIND_EQUAL, args.size(), args.data()));
   cvc5_check_sat(d_solver);
   args = {x};
-  ASSERT_DEATH(cvc5_block_model_values(d_solver, args.size(), args.data()),
-               "cannot get value");
+  ASSERT_CVC5_ERROR(cvc5_block_model_values(d_solver, args.size(), args.data()),
+                    "cannot get value");
 }
 
 TEST_F(TestCApiBlackSolver, block_model_values4)
@@ -3242,8 +3304,8 @@ TEST_F(TestCApiBlackSolver, block_model_values4)
   cvc5_assert_formula(
       d_solver, cvc5_mk_term(d_tm, CVC5_KIND_EQUAL, args.size(), args.data()));
   args = {x};
-  ASSERT_DEATH(cvc5_block_model_values(d_solver, args.size(), args.data()),
-               "SAT or UNKNOWN response");
+  ASSERT_CVC5_ERROR(cvc5_block_model_values(d_solver, args.size(), args.data()),
+                    "SAT or UNKNOWN response");
 }
 
 TEST_F(TestCApiBlackSolver, block_model_values5)
@@ -3278,11 +3340,12 @@ TEST_F(TestCApiBlackSolver, get_instantiations)
   args = {cvc5_mk_term(d_tm, CVC5_KIND_APPLY_UF, args.size(), args.data())};
   Cvc5Term app2 = cvc5_mk_term(d_tm, CVC5_KIND_NOT, args.size(), args.data());
   cvc5_assert_formula(d_solver, app2);
-  ASSERT_DEATH(cvc5_get_instantiations(d_solver),
-               "after a UNSAT, SAT or UNKNOWN response");
+  ASSERT_CVC5_ERROR(cvc5_get_instantiations(d_solver),
+                    "after a UNSAT, SAT or UNKNOWN response");
   cvc5_check_sat(d_solver);
   cvc5_get_instantiations(d_solver);
-  ASSERT_DEATH(cvc5_get_instantiations(nullptr), "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_get_instantiations(nullptr),
+                    "unexpected NULL argument");
 }
 
 TEST_F(TestCApiBlackSolver, add_sygus_constraint)
@@ -3291,15 +3354,17 @@ TEST_F(TestCApiBlackSolver, add_sygus_constraint)
   Cvc5Term tbool = cvc5_mk_true(d_tm);
 
   cvc5_add_sygus_constraint(d_solver, tbool);
-  ASSERT_DEATH(cvc5_add_sygus_constraint(nullptr, tbool),
-               "unexpected NULL argument");
-  ASSERT_DEATH(cvc5_add_sygus_constraint(d_solver, nullptr), "invalid term");
+  ASSERT_CVC5_ERROR(cvc5_add_sygus_constraint(nullptr, tbool),
+                    "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_add_sygus_constraint(d_solver, nullptr),
+                    "invalid term");
 
   Cvc5TermManager* tm = cvc5_term_manager_new();
   Cvc5* slv = cvc5_new(tm);
   cvc5_set_option(slv, "sygus", "true");
-  ASSERT_DEATH(cvc5_add_sygus_constraint(slv, tbool),
-               "term is not associated with the term manager of this solver");
+  ASSERT_CVC5_ERROR(
+      cvc5_add_sygus_constraint(slv, tbool),
+      "term is not associated with the term manager of this solver");
   cvc5_delete(slv);
   cvc5_term_manager_delete(tm);
 }
@@ -3315,10 +3380,10 @@ TEST_F(TestCApiBlackSolver, get_sygus_constraints)
   const Cvc5Term* constraints = cvc5_get_sygus_constraints(d_solver, &size);
   ASSERT_TRUE(cvc5_term_is_equal(ttrue, constraints[0]));
   ASSERT_TRUE(cvc5_term_is_equal(tfalse, constraints[1]));
-  ASSERT_DEATH(cvc5_get_sygus_constraints(nullptr, &size),
-               "unexpected NULL argument");
-  ASSERT_DEATH(cvc5_get_sygus_constraints(d_solver, nullptr),
-               "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_get_sygus_constraints(nullptr, &size),
+                    "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_get_sygus_constraints(d_solver, nullptr),
+                    "unexpected NULL argument");
 }
 
 TEST_F(TestCApiBlackSolver, add_sygus_assume)
@@ -3328,16 +3393,17 @@ TEST_F(TestCApiBlackSolver, add_sygus_assume)
   Cvc5Term tint = cvc5_mk_integer_int64(d_tm, 1);
 
   cvc5_add_sygus_assume(d_solver, tbool);
-  ASSERT_DEATH(cvc5_add_sygus_assume(nullptr, tbool),
-               "unexpected NULL argument");
-  ASSERT_DEATH(cvc5_add_sygus_assume(d_solver, nullptr), "invalid term");
-  ASSERT_DEATH(cvc5_add_sygus_assume(d_solver, tint), "invalid argument");
+  ASSERT_CVC5_ERROR(cvc5_add_sygus_assume(nullptr, tbool),
+                    "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_add_sygus_assume(d_solver, nullptr), "invalid term");
+  ASSERT_CVC5_ERROR(cvc5_add_sygus_assume(d_solver, tint), "invalid argument");
 
   Cvc5TermManager* tm = cvc5_term_manager_new();
   Cvc5* slv = cvc5_new(tm);
   cvc5_set_option(slv, "sygus", "true");
-  ASSERT_DEATH(cvc5_add_sygus_assume(slv, tbool),
-               "term is not associated with the term manager of this solver");
+  ASSERT_CVC5_ERROR(
+      cvc5_add_sygus_assume(slv, tbool),
+      "term is not associated with the term manager of this solver");
   cvc5_delete(slv);
   cvc5_term_manager_delete(tm);
 }
@@ -3355,10 +3421,10 @@ TEST_F(TestCApiBlackSolver, get_sygus_assumptions)
   const Cvc5Term* assumptions = cvc5_get_sygus_assumptions(d_solver, &size);
   ASSERT_TRUE(cvc5_term_is_equal(ttrue, assumptions[0]));
   ASSERT_TRUE(cvc5_term_is_equal(tfalse, assumptions[1]));
-  ASSERT_DEATH(cvc5_get_sygus_assumptions(nullptr, &size),
-               "unexpected NULL argument");
-  ASSERT_DEATH(cvc5_get_sygus_assumptions(d_solver, nullptr),
-               "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_get_sygus_assumptions(nullptr, &size),
+                    "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_get_sygus_assumptions(d_solver, nullptr),
+                    "unexpected NULL argument");
 }
 
 TEST_F(TestCApiBlackSolver, add_sygus_inv_constraint)
@@ -3392,38 +3458,49 @@ TEST_F(TestCApiBlackSolver, add_sygus_inv_constraint)
 
   cvc5_add_sygus_inv_constraint(d_solver, inv, pre, trans, post);
 
-  ASSERT_DEATH(cvc5_add_sygus_inv_constraint(nullptr, inv, pre, trans, post),
-               "unexpected NULL argument");
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
+      cvc5_add_sygus_inv_constraint(nullptr, inv, pre, trans, post),
+      "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(
       cvc5_add_sygus_inv_constraint(d_solver, nullptr, pre, trans, post),
       "invalid term");
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
       cvc5_add_sygus_inv_constraint(d_solver, inv, nullptr, trans, post),
       "invalid term");
-  ASSERT_DEATH(cvc5_add_sygus_inv_constraint(d_solver, inv, pre, nullptr, post),
-               "invalid term");
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
+      cvc5_add_sygus_inv_constraint(d_solver, inv, pre, nullptr, post),
+      "invalid term");
+  ASSERT_CVC5_ERROR(
       cvc5_add_sygus_inv_constraint(d_solver, inv, pre, trans, nullptr),
       "invalid term");
 
-  ASSERT_DEATH(cvc5_add_sygus_inv_constraint(d_solver, tint, pre, trans, post),
-               "invalid argument");
-  ASSERT_DEATH(cvc5_add_sygus_inv_constraint(d_solver, inv1, pre, trans, post),
-               "invalid argument");
-  ASSERT_DEATH(cvc5_add_sygus_inv_constraint(d_solver, inv, trans, trans, post),
-               "have the same sort");
-  ASSERT_DEATH(cvc5_add_sygus_inv_constraint(d_solver, inv, pre, tint, post),
-               "expected the sort of trans");
-  ASSERT_DEATH(cvc5_add_sygus_inv_constraint(d_solver, inv, pre, pre, post),
-               "expected the sort of trans");
-  ASSERT_DEATH(cvc5_add_sygus_inv_constraint(d_solver, inv, pre, trans1, post),
-               "expected the sort of trans");
-  ASSERT_DEATH(cvc5_add_sygus_inv_constraint(d_solver, inv, pre, trans2, post),
-               "expected the sort of trans");
-  ASSERT_DEATH(cvc5_add_sygus_inv_constraint(d_solver, inv, pre, trans3, post),
-               "expected the sort of trans");
-  ASSERT_DEATH(cvc5_add_sygus_inv_constraint(d_solver, inv, pre, trans, trans),
-               "expected inv and post to have the same sort");
+  ASSERT_CVC5_ERROR(
+      cvc5_add_sygus_inv_constraint(d_solver, tint, pre, trans, post),
+      "invalid argument");
+  ASSERT_CVC5_ERROR(
+      cvc5_add_sygus_inv_constraint(d_solver, inv1, pre, trans, post),
+      "invalid argument");
+  ASSERT_CVC5_ERROR(
+      cvc5_add_sygus_inv_constraint(d_solver, inv, trans, trans, post),
+      "have the same sort");
+  ASSERT_CVC5_ERROR(
+      cvc5_add_sygus_inv_constraint(d_solver, inv, pre, tint, post),
+      "expected the sort of trans");
+  ASSERT_CVC5_ERROR(
+      cvc5_add_sygus_inv_constraint(d_solver, inv, pre, pre, post),
+      "expected the sort of trans");
+  ASSERT_CVC5_ERROR(
+      cvc5_add_sygus_inv_constraint(d_solver, inv, pre, trans1, post),
+      "expected the sort of trans");
+  ASSERT_CVC5_ERROR(
+      cvc5_add_sygus_inv_constraint(d_solver, inv, pre, trans2, post),
+      "expected the sort of trans");
+  ASSERT_CVC5_ERROR(
+      cvc5_add_sygus_inv_constraint(d_solver, inv, pre, trans3, post),
+      "expected the sort of trans");
+  ASSERT_CVC5_ERROR(
+      cvc5_add_sygus_inv_constraint(d_solver, inv, pre, trans, trans),
+      "expected inv and post to have the same sort");
 
   Cvc5TermManager* tm = cvc5_term_manager_new();
   Cvc5* slv = cvc5_new(tm);
@@ -3442,14 +3519,18 @@ TEST_F(TestCApiBlackSolver, add_sygus_inv_constraint)
   Cvc5Term post22 = cvc5_declare_fun(
       slv, "post", domain2.size(), domain2.data(), bool_sort, true);
   cvc5_add_sygus_inv_constraint(slv, inv22, pre22, trans22, post22);
-  ASSERT_DEATH(cvc5_add_sygus_inv_constraint(slv, inv, pre22, trans22, post22),
-               "term is not associated with the term manager of this solver");
-  ASSERT_DEATH(cvc5_add_sygus_inv_constraint(slv, inv22, pre, trans22, post22),
-               "term is not associated with the term manager of this solver");
-  ASSERT_DEATH(cvc5_add_sygus_inv_constraint(slv, inv22, pre22, trans, post22),
-               "term is not associated with the term manager of this solver");
-  ASSERT_DEATH(cvc5_add_sygus_inv_constraint(slv, inv22, pre22, trans22, post),
-               "term is not associated with the term manager of this solver");
+  ASSERT_CVC5_ERROR(
+      cvc5_add_sygus_inv_constraint(slv, inv, pre22, trans22, post22),
+      "term is not associated with the term manager of this solver");
+  ASSERT_CVC5_ERROR(
+      cvc5_add_sygus_inv_constraint(slv, inv22, pre, trans22, post22),
+      "term is not associated with the term manager of this solver");
+  ASSERT_CVC5_ERROR(
+      cvc5_add_sygus_inv_constraint(slv, inv22, pre22, trans, post22),
+      "term is not associated with the term manager of this solver");
+  ASSERT_CVC5_ERROR(
+      cvc5_add_sygus_inv_constraint(slv, inv22, pre22, trans22, post),
+      "term is not associated with the term manager of this solver");
   cvc5_delete(slv);
   cvc5_term_manager_delete(tm);
 }
@@ -3457,11 +3538,11 @@ TEST_F(TestCApiBlackSolver, add_sygus_inv_constraint)
 TEST_F(TestCApiBlackSolver, check_synth)
 {
   // requires option to be set
-  ASSERT_DEATH(cvc5_check_synth(d_solver),
-               "cannot check for a synthesis solution");
+  ASSERT_CVC5_ERROR(cvc5_check_synth(d_solver),
+                    "cannot check for a synthesis solution");
   cvc5_set_option(d_solver, "sygus", "true");
   cvc5_check_synth(d_solver);
-  ASSERT_DEATH(cvc5_check_synth(nullptr), "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_check_synth(nullptr), "unexpected NULL argument");
 }
 
 TEST_F(TestCApiBlackSolver, get_synth_solution)
@@ -3472,7 +3553,7 @@ TEST_F(TestCApiBlackSolver, get_synth_solution)
   Cvc5Term x = cvc5_mk_false(d_tm);
   Cvc5Term f = cvc5_synth_fun(d_solver, "f", 0, nullptr, d_bool);
 
-  ASSERT_DEATH(cvc5_get_synth_solution(d_solver, f), "not in a state");
+  ASSERT_CVC5_ERROR(cvc5_get_synth_solution(d_solver, f), "not in a state");
 
   Cvc5SynthResult res = cvc5_check_synth(d_solver);
   ASSERT_TRUE(cvc5_synth_result_has_solution(res));
@@ -3480,15 +3561,17 @@ TEST_F(TestCApiBlackSolver, get_synth_solution)
   cvc5_get_synth_solution(d_solver, f);
   cvc5_get_synth_solution(d_solver, f);
 
-  ASSERT_DEATH(cvc5_get_synth_solution(nullptr, f), "unexpected NULL argument");
-  ASSERT_DEATH(cvc5_get_synth_solution(d_solver, nullptr), "invalid term");
-  ASSERT_DEATH(cvc5_get_synth_solution(d_solver, x),
-               "synthesis solution not found for given term");
+  ASSERT_CVC5_ERROR(cvc5_get_synth_solution(nullptr, f),
+                    "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_get_synth_solution(d_solver, nullptr), "invalid term");
+  ASSERT_CVC5_ERROR(cvc5_get_synth_solution(d_solver, x),
+                    "synthesis solution not found for given term");
 
   Cvc5TermManager* tm = cvc5_term_manager_new();
   Cvc5* slv = cvc5_new(tm);
-  ASSERT_DEATH(cvc5_get_synth_solution(slv, f),
-               "term is not associated with the term manager of this solver");
+  ASSERT_CVC5_ERROR(
+      cvc5_get_synth_solution(slv, f),
+      "term is not associated with the term manager of this solver");
   cvc5_delete(slv);
   cvc5_term_manager_delete(tm);
 }
@@ -3502,8 +3585,9 @@ TEST_F(TestCApiBlackSolver, get_synth_solutions)
   Cvc5Term f = cvc5_synth_fun(d_solver, "f", 0, nullptr, d_bool);
 
   std::vector<Cvc5Term> args{f};
-  ASSERT_DEATH(cvc5_get_synth_solutions(d_solver, args.size(), args.data()),
-               "not in a state");
+  ASSERT_CVC5_ERROR(
+      cvc5_get_synth_solutions(d_solver, args.size(), args.data()),
+      "not in a state");
 
   cvc5_check_synth(d_solver);
 
@@ -3511,20 +3595,22 @@ TEST_F(TestCApiBlackSolver, get_synth_solutions)
   args = {f, f};
   cvc5_get_synth_solutions(d_solver, args.size(), args.data());
 
-  ASSERT_DEATH(cvc5_get_synth_solutions(d_solver, 0, nullptr),
-               "unexpected NULL argument");
-  ASSERT_DEATH(cvc5_get_synth_solutions(nullptr, args.size(), args.data()),
-               "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_get_synth_solutions(d_solver, 0, nullptr),
+                    "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_get_synth_solutions(nullptr, args.size(), args.data()),
+                    "unexpected NULL argument");
   args = {nullptr};
-  ASSERT_DEATH(cvc5_get_synth_solutions(d_solver, args.size(), args.data()),
-               "invalid term at index 0");
+  ASSERT_CVC5_ERROR(
+      cvc5_get_synth_solutions(d_solver, args.size(), args.data()),
+      "invalid term at index 0");
   args = {x};
-  ASSERT_DEATH(cvc5_get_synth_solutions(d_solver, args.size(), args.data()),
-               "synthesis solution not found for term at index 0");
+  ASSERT_CVC5_ERROR(
+      cvc5_get_synth_solutions(d_solver, args.size(), args.data()),
+      "synthesis solution not found for term at index 0");
 
   Cvc5TermManager* tm = cvc5_term_manager_new();
   Cvc5* slv = cvc5_new(tm);
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
       cvc5_get_synth_solutions(slv, args.size(), args.data()),
       "expected a term associated with the term manager of this solver");
   cvc5_delete(slv);
@@ -3548,7 +3634,7 @@ TEST_F(TestCApiBlackSolver, check_synth_next)
   ASSERT_TRUE(cvc5_synth_result_has_solution(res));
   cvc5_get_synth_solutions(d_solver, args.size(), args.data());
 
-  ASSERT_DEATH(cvc5_check_synth_next(nullptr), "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_check_synth_next(nullptr), "unexpected NULL argument");
 }
 
 TEST_F(TestCApiBlackSolver, check_synth_next2)
@@ -3557,8 +3643,8 @@ TEST_F(TestCApiBlackSolver, check_synth_next2)
   cvc5_set_option(d_solver, "incremental", "false");
   (void)cvc5_synth_fun(d_solver, "f", 0, nullptr, d_bool);
   cvc5_check_synth(d_solver);
-  ASSERT_DEATH(cvc5_check_synth_next(d_solver),
-               "cannot check for a next synthesis solution");
+  ASSERT_CVC5_ERROR(cvc5_check_synth_next(d_solver),
+                    "cannot check for a next synthesis solution");
 }
 
 TEST_F(TestCApiBlackSolver, check_synth_next3)
@@ -3566,7 +3652,8 @@ TEST_F(TestCApiBlackSolver, check_synth_next3)
   cvc5_set_option(d_solver, "sygus", "true");
   cvc5_set_option(d_solver, "incremental", "true");
   (void)cvc5_synth_fun(d_solver, "f", 0, nullptr, d_bool);
-  ASSERT_DEATH(cvc5_check_synth_next(d_solver), "unless immediately preceded");
+  ASSERT_CVC5_ERROR(cvc5_check_synth_next(d_solver),
+                    "unless immediately preceded");
 }
 
 TEST_F(TestCApiBlackSolver, find_synth)
@@ -3577,7 +3664,7 @@ TEST_F(TestCApiBlackSolver, find_synth)
   Cvc5Grammar g =
       cvc5_mk_grammar(d_solver, 0, nullptr, symbols.size(), symbols.data());
 
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
       cvc5_synth_fun_with_grammar(d_solver, "f", 0, nullptr, d_bool, g),
       "invalid grammar");
 
@@ -3591,20 +3678,21 @@ TEST_F(TestCApiBlackSolver, find_synth)
   Cvc5Term t = cvc5_find_synth(d_solver, CVC5_FIND_SYNTH_TARGET_ENUM);
   ASSERT_TRUE(t && cvc5_sort_is_boolean(cvc5_term_get_sort(t)));
 
-  ASSERT_DEATH(cvc5_find_synth(nullptr, CVC5_FIND_SYNTH_TARGET_ENUM),
-               "unexpected NULL argument");
-  ASSERT_DEATH(cvc5_find_synth(d_solver, static_cast<Cvc5FindSynthTarget>(125)),
-               "invalid find synthesis target");
+  ASSERT_CVC5_ERROR(cvc5_find_synth(nullptr, CVC5_FIND_SYNTH_TARGET_ENUM),
+                    "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(
+      cvc5_find_synth(d_solver, static_cast<Cvc5FindSynthTarget>(125)),
+      "invalid find synthesis target");
 
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
       cvc5_find_synth_with_grammar(nullptr, CVC5_FIND_SYNTH_TARGET_ENUM, g),
       "unexpected NULL argument");
-  ASSERT_DEATH(cvc5_find_synth_with_grammar(
-                   d_solver, static_cast<Cvc5FindSynthTarget>(125), g),
-               "invalid find synthesis target");
-  ASSERT_DEATH(cvc5_find_synth_with_grammar(
-                   d_solver, CVC5_FIND_SYNTH_TARGET_ENUM, nullptr),
-               "invalid grammar");
+  ASSERT_CVC5_ERROR(cvc5_find_synth_with_grammar(
+                        d_solver, static_cast<Cvc5FindSynthTarget>(125), g),
+                    "invalid find synthesis target");
+  ASSERT_CVC5_ERROR(cvc5_find_synth_with_grammar(
+                        d_solver, CVC5_FIND_SYNTH_TARGET_ENUM, nullptr),
+                    "invalid grammar");
 }
 
 TEST_F(TestCApiBlackSolver, find_synth2)
@@ -3628,12 +3716,12 @@ TEST_F(TestCApiBlackSolver, find_synth2)
   t = cvc5_find_synth_next(d_solver);
   ASSERT_TRUE(t && cvc5_sort_is_boolean(cvc5_term_get_sort(t)));
 
-  ASSERT_DEATH(cvc5_find_synth_next(nullptr), "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_find_synth_next(nullptr), "unexpected NULL argument");
 }
 
 TEST_F(TestCApiBlackSolver, get_statistics)
 {
-  ASSERT_DEATH(cvc5_get_statistics(nullptr), "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_get_statistics(nullptr), "unexpected NULL argument");
 
   // do some reasoning to make sure we have statistics
   {
@@ -3818,7 +3906,7 @@ TEST_F(TestCApiBlackSolver, tuple_project)
       args.size(),
       args.data());
 
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
       cvc5_mk_term_from_op(
           d_tm,
           cvc5_mk_op(
@@ -3826,7 +3914,7 @@ TEST_F(TestCApiBlackSolver, tuple_project)
           args.size(),
           args.data()),
       "Project index 4");
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
       cvc5_mk_term_from_op(
           d_tm,
           cvc5_mk_op(
@@ -3998,25 +4086,26 @@ TEST_F(TestCApiBlackSolver, basic_finite_field_base)
 
 TEST_F(TestCApiBlackSolver, output1)
 {
-  ASSERT_DEATH(cvc5_is_output_on(nullptr, "inst"), "unexpected NULL argument");
-  ASSERT_DEATH(cvc5_is_output_on(d_solver, nullptr),
-               "unexpected NULL argument");
-  ASSERT_DEATH(cvc5_is_output_on(d_solver, "foo-invalid"),
-               "invalid output tag");
+  ASSERT_CVC5_ERROR(cvc5_is_output_on(nullptr, "inst"),
+                    "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_is_output_on(d_solver, nullptr),
+                    "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_is_output_on(d_solver, "foo-invalid"),
+                    "invalid output tag");
 
-  ASSERT_DEATH(cvc5_get_output(nullptr, "inst", "<stdout>"),
-               "unexpected NULL argument");
-  ASSERT_DEATH(cvc5_get_output(d_solver, nullptr, "<stdout>"),
-               "unexpected NULL argument");
-  ASSERT_DEATH(cvc5_get_output(d_solver, "inst", nullptr),
-               "unexpected NULL argument");
-  ASSERT_DEATH(cvc5_get_output(d_solver, "foo-invalid", "<stdout>"),
-               "invalid output tag");
+  ASSERT_CVC5_ERROR(cvc5_get_output(nullptr, "inst", "<stdout>"),
+                    "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_get_output(d_solver, nullptr, "<stdout>"),
+                    "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_get_output(d_solver, "inst", nullptr),
+                    "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_get_output(d_solver, "foo-invalid", "<stdout>"),
+                    "invalid output tag");
 
-  ASSERT_DEATH(cvc5_close_output(nullptr, "<stdout>"),
-               "unexpected NULL argument");
-  ASSERT_DEATH(cvc5_close_output(d_solver, nullptr),
-               "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_close_output(nullptr, "<stdout>"),
+                    "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_close_output(d_solver, nullptr),
+                    "unexpected NULL argument");
   // should not fail
   cvc5_close_output(d_solver, "<stdout>");
 }

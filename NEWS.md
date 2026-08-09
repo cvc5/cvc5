@@ -1,5 +1,17 @@
 This file contains a summary of important user-visible changes.
 
+cvc5 1.3.5 prerelease
+=====================
+
+## Changes
+
+- The C API no longer terminates the process when an error occurs. Instead of
+  printing to stderr and calling `exit()`, C API functions now record the error
+  in thread-local state and return a default value (e.g., `NULL`, `false`, or
+  `0`). Callers can query the error via the new functions `cvc5_has_error()` and
+  `cvc5_get_error_message()`, and clear it via `cvc5_reset_error()`. The error
+  state is reset at the start of the next C API call that can raise an error.
+
 cvc5 1.3.4
 ==========
 
