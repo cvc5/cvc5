@@ -108,6 +108,7 @@ Node UfProofRuleChecker::checkInternal(ProofRule id,
       lchildren.push_back(t.getOperator());
       rchildren.push_back(t.getOperator());
     }
+    // congruence automatically adds variable lists
     if (t.isClosure())
     {
       lchildren.push_back(t[0]);
