@@ -1,7 +1,4 @@
 ###############################################################################
-# Top contributors (to current version):
-#   Mudathir Mohamed
-#
 # This file is part of the cvc5 project.
 #
 # Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
