@@ -1,11 +1,10 @@
-; COMMAND-LINE: --distinct-elim-threshold=12 -o post-asserts
+; COMMAND-LINE: --distinct-elim-threshold=0 -o post-asserts
 ; SCRUBBER: grep -o "distinct x\|distinct y\|^sat$"
-; EXPECT: distinct y
 ; EXPECT: sat
-; Tests the finite boundary of the distinct-elim preprocessing pass. Both
+; Tests the unlimited case of the distinct-elim preprocessing pass. Both
 ; distinct applications below have more than 10 children, hence neither is
-; eliminated by the rewriter. The pass eliminates the one over x1...x12, which
-; is within the threshold, and retains the one over y1...y13, which is not.
+; eliminated by the rewriter. Since the threshold is 0, i.e. no limit, the pass
+; eliminates both, so that no distinct remains after preprocessing.
 (set-logic QF_UF)
 (declare-sort U 0)
 (declare-fun x1 () U)
