@@ -72,8 +72,7 @@ bool isClosureKind(cvc5::internal::Kind k)
     case Kind::FORALL:
     case Kind::WITNESS:
     case Kind::SET_COMPREHENSION:
-    case Kind::MATCH_BIND_CASE:
-    case Kind::STAR_CONTAINS: return true;
+    case Kind::MATCH_BIND_CASE: return true;
 
     default: return false;
   }
