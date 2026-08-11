@@ -68,8 +68,8 @@ class AbstractionModule : protected EnvObj
   Node abstract(TNode fact);
 
   /**
-   * Check the current model for consistency with every abstracted terms
-   * and collect refinemente lemmas.
+   * Check the current model for consistency with every abstracted term
+   * and collect refinement lemmas.
    *
    * For each abstracted term, to check consistency with the actual semantics
    * of the abstracted operation, its value under the current model is evaluated
