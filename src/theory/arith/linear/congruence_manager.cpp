@@ -62,6 +62,7 @@ ArithCongruenceManager::ArithCongruenceManager(
     : EnvObj(env),
       d_inConflict(context()),
       d_raiseConflict(raiseConflict),
+      d_sharedToReal(context()),
       d_keepAlive(context()),
       d_propagatations(context()),
       d_explanationMap(context()),
@@ -813,6 +814,51 @@ void ArithCongruenceManager::setProofFor(TNode f,
   d_pfGenEe->mkTrustNode(symF, symPf);
 }
 
+void ArithCongruenceManager::notifySharedTermToReal(TNode n)
+{
+  Assert(n.getKind() == Kind::TO_REAL);
+  if (d_sharedToReal.find(n[0]) == d_sharedToReal.end())
+  {
+    Trace("arith-ee") << "Shared to_real term " << n << std::endl;
+    d_sharedToReal[n[0]] = n;
+  }
+}
+
+void ArithCongruenceManager::assertEqualsConstant(
+    const Node& x,
+    const Node& c,
+    const Node& reason,
+    std::shared_ptr<ProofNode> pf)
+{
+  Node eq = x.eqNode(c);
+  d_keepAlive.push_back(eq);
+  Trace("arith-ee") << "Assert equalsConstant " << eq << ", reason " << reason
+                    << std::endl;
+  assertLitToEqualityEngine(eq, reason, pf);
+  // If (to_real x) is shared with another theory, we must additionally assert
+  // that it is equal to the real form of c. The equality engine cannot infer
+  // this by congruence from (= x c), since the congruent term (to_real c) is
+  // a distinct node from the real constant c.
+  NodeToNodeMap::const_iterator it = d_sharedToReal.find(x);
+  if (it == d_sharedToReal.end())
+  {
+    return;
+  }
+  Node xr = (*it).second;
+  Node cr = nodeManager()->mkConstReal(c.getConst<Rational>());
+  Node eqr = xr.eqNode(cr);
+  d_keepAlive.push_back(eqr);
+  std::shared_ptr<ProofNode> pfr;
+  if (isProofEnabled())
+  {
+    // (= x c) and (= (to_real x) cr) have the same rewritten form
+    pfr = ensurePredTransform(d_pnm, pf, eqr);
+  }
+  Trace("arith-ee") << "Assert equalsConstant (real) " << eqr << ", reason "
+                    << reason << std::endl;
+  assertLitToEqualityEngine(eqr, reason, pfr);
+}
+
 void ArithCongruenceManager::equalsConstant(ConstraintCP c)
 {
   Assert(c->isEquality());
@@ -826,19 +872,14 @@ void ArithCongruenceManager::equalsConstant(ConstraintCP c)
   Node asRational = nm->mkConstRealOrInt(
       xAsNode.getType(), c->getValue().getNoninfinitesimalPart());
 
-  // No guarentee this is in normal form!
-  // Note though, that it happens to be in proof normal form!
-  Node eq = xAsNode.eqNode(asRational);
-  d_keepAlive.push_back(eq);
-
   NodeBuilder nb(nodeManager(), Kind::AND);
   auto pf = c->externalExplainByAssertions(nb);
   Node reason = mkAndFromBuilder(nodeManager(), nb);
   d_keepAlive.push_back(reason);
 
-  Trace("arith-ee") << "Assert equalsConstant " << eq << ", reason " << reason
-                    << std::endl;
-  assertLitToEqualityEngine(eq, reason, pf);
+  // No guarentee this is in normal form!
+  // Note though, that it happens to be in proof normal form!
+  assertEqualsConstant(xAsNode, asRational, reason, pf);
 }
 
 void ArithCongruenceManager::equalsConstant(ConstraintCP lb, ConstraintCP ub)
@@ -870,13 +911,9 @@ void ArithCongruenceManager::equalsConstant(ConstraintCP lb, ConstraintCP ub)
   {
     pf = d_pnm->mkNode(ProofRule::ARITH_TRICHOTOMY, {pfLb, pfUb}, {}, eq);
   }
-  d_keepAlive.push_back(eq);
   d_keepAlive.push_back(reason);
 
-  Trace("arith-ee") << "Assert equalsConstant2 " << eq << ", reason " << reason
-                    << std::endl;
-
-  assertLitToEqualityEngine(eq, reason, pf);
+  assertEqualsConstant(xAsNode, asRational, reason, pf);
 }
 
 bool ArithCongruenceManager::isProofEnabled() const { return d_pnm != nullptr; }

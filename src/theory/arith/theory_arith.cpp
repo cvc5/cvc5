@@ -176,7 +176,8 @@ void TheoryArith::preRegisterTerm(TNode n)
 
 void TheoryArith::notifySharedTerm(TNode n)
 {
-  n = n.getKind() == Kind::TO_REAL ? n[0] : n;
+  // Note that TO_REAL is stripped by the method below, which additionally
+  // tracks that the real cast of the term is shared.
   d_internal.notifySharedTerm(n);
 }
 
