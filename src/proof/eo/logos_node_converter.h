@@ -16,6 +16,7 @@
 
 #include <iostream>
 #include <map>
+#include <vector>
 
 #include "expr/node.h"
 #include "proof/eo/eo_node_converter.h"
@@ -89,10 +90,21 @@ static std::string replace_all(std::string str,
   size_t d_constIdCount;
   /** Cache for typeAsNode */
   std::map<TypeNode, Node> d_ltypeAsNode;
+  /** Cache for datatype */
+  std::map<TypeNode, Node> d_dtToDecl;
   /** The number of uninterpreted sorts we have allocated */
   size_t d_sortIdCount;
-  /** type as node datatype */
-  Node typeAsNodeDatatype(const DType& dt, std::unordered_set<TypeNode>& scope);
+  /**
+   * Add to scope the datatype types reachable from the fields of dt.
+   */
+  void getDatatypeScope(const DType& dt, std::vector<TypeNode>& scope);
+  /**
+   * Order scope so that a datatype can construct a default value using only
+   * datatype declarations that occur later in scope.
+   */
+  void orderDatatypeScope(std::vector<TypeNode>& scope);
+  /** Convert the body of a datatype declaration. */
+  Node typeAsNodeDatatype(const DType& dt);
   /** make list */
   Node mkLogosList(const std::vector<Node>& args, const TypeNode& tn);
   Node mkLogosTypedList(const std::vector<Node>& args, const TypeNode& tn);

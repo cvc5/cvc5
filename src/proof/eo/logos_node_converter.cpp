@@ -12,7 +12,9 @@
 
 #include "proof/eo/logos_node_converter.h"
 
+#include <algorithm>
 #include <cstdlib>
+#include <unordered_set>
 
 #include "expr/aci_norm.h"
 #include "expr/dtype.h"
@@ -250,9 +252,32 @@ Node LogosNodeConverter::typeAsNode(TypeNode tn)
   }
   else if (tn.isDatatype())
   {
-    std::unordered_set<TypeNode> scope;
-    scope.insert(tn);
-    return typeAsNodeDatatype(tn.getDType(), scope);
+    std::map<TypeNode, Node>::iterator itd = d_dtToDecl.find(tn);
+    if (itd!=d_dtToDecl.end())
+    {
+      return itd->second;
+    }
+    std::vector<TypeNode> scope;
+    scope.push_back(tn);
+    getDatatypeScope(tn.getDType(), scope);
+    orderDatatypeScope(scope);
+    Node ddret = mkInternalSymbol("DatatypeDecl.nil", d_sortType);
+    // Build the list from back to front so that scope is the order in which
+    // the declarations occur in ddret.
+    for (auto its = scope.rbegin(); its != scope.rend(); ++its)
+    {
+      TypeNode tns = *its;
+      Assert (tns.isDatatype());
+      Node dtName = mkNativeStringLit(d_nm->mkConst(String(tns.getDType().getName())));
+      Node dret = typeAsNodeDatatype(tns.getDType());
+      ddret = mkInternalApp("DatatypeDecl.cons", {dtName, dret, ddret}, d_sortType);
+    }
+    for (const TypeNode& tns : scope)
+    {
+      Node dtName = mkNativeStringLit(d_nm->mkConst(String(tns.getDType().getName())));
+      d_dtToDecl[tns] = mkInternalApp("Term.DatatypeType", {dtName, ddret}, d_sortType);
+    }
+    return d_dtToDecl[tn];
   }
   else if (tn.getNumChildren() > 0)
   {
@@ -301,8 +326,81 @@ Node LogosNodeConverter::typeAsNode(TypeNode tn)
   return ret;
 }
 
-Node LogosNodeConverter::typeAsNodeDatatype(const DType& dt,
-                                            std::unordered_set<TypeNode>& scope)
+void LogosNodeConverter::getDatatypeScope(const DType& dt,
+                                          std::vector<TypeNode>& scope)
+{
+  for (size_t j = 0, ncons = dt.getNumConstructors(); j < ncons; j++)
+  {
+    // traverse the argument types
+    for (size_t k = 0, nargs = dt[j].getNumArgs(); k < nargs; k++)
+    {
+      TypeNode argt = dt[j].getArgType(k);
+      if (argt.isDatatype() && d_dtToDecl.find(argt)==d_dtToDecl.end())
+      {
+        if (std::find(scope.begin(), scope.end(), argt)==scope.end())
+        {
+          scope.push_back(argt);
+          getDatatypeScope(argt.getDType(), scope);
+        }
+      }
+    }
+  }
+}
+
+void LogosNodeConverter::orderDatatypeScope(std::vector<TypeNode>& scope)
+{
+  // Construct the order from back to front. At each step, a datatype is
+  // eligible if it has a constructor whose datatype fields have already been
+  // placed in the suffix.
+  std::unordered_set<TypeNode> unprocessed(scope.begin(), scope.end());
+  std::vector<TypeNode> reverseOrder;
+  while (!unprocessed.empty())
+  {
+    bool found = false;
+    for (const TypeNode& tn : scope)
+    {
+      if (unprocessed.find(tn) == unprocessed.end())
+      {
+        continue;
+      }
+      const DType& dt = tn.getDType();
+      for (size_t i = 0, ncons = dt.getNumConstructors(); i < ncons; ++i)
+      {
+        const DTypeConstructor& cons = dt[i];
+        bool canConstruct = true;
+        for (size_t j = 0, nargs = cons.getNumArgs(); j < nargs; ++j)
+        {
+          TypeNode argType = cons.getArgType(j);
+          if (argType.isDatatype()
+              && unprocessed.find(argType) != unprocessed.end())
+          {
+            canConstruct = false;
+            break;
+          }
+        }
+        if (canConstruct)
+        {
+          reverseOrder.push_back(tn);
+          unprocessed.erase(tn);
+          found = true;
+          break;
+        }
+      }
+      if (found)
+      {
+        break;
+      }
+    }
+    // This search cannot get stuck. Otherwise, every constructor of every
+    // remaining datatype would have a field whose type is also remaining.
+    // Following such a field at each constructor would give an infinite
+    // descending chain of datatype values, contradicting well-foundedness.
+    AlwaysAssert(found) << "Could not order well-founded datatype declarations";
+  }
+  scope.assign(reverseOrder.rbegin(), reverseOrder.rend());
+}
+
+Node LogosNodeConverter::typeAsNodeDatatype(const DType& dt)
 {
   Node ret = mkInternalSymbol("Datatype.null", d_sortType);
   Node consUnit = mkInternalSymbol("DatatypeCons.unit", d_sortType);
@@ -315,18 +413,10 @@ Node LogosNodeConverter::typeAsNodeDatatype(const DType& dt,
     {
       Node an;
       TypeNode argt = dt[jj].getArgType((nargs - 1) - k);
-      if (argt.isDatatype())
+      if (argt.isDatatype() && d_dtToDecl.find(argt)==d_dtToDecl.end())
       {
-        if (scope.insert(argt).second)
-        {
-          an = typeAsNodeDatatype(argt.getDType(), scope);
-          scope.erase(argt);
-        }
-        else
-        {
-          Node dtName = mkNativeStringLit(d_nm->mkConst(String(argt.getDType().getName())));
-          an = mkInternalApp("Term.DatatypeTypeRef", {dtName}, d_sortType);
-        }
+        Node dtName = mkNativeStringLit(d_nm->mkConst(String(argt.getDType().getName())));
+        an = mkInternalApp("Term.DatatypeTypeRef", {dtName}, d_sortType);
       }
       else
       {
@@ -336,8 +426,6 @@ Node LogosNodeConverter::typeAsNodeDatatype(const DType& dt,
     }
     ret = mkInternalApp("Datatype.sum", {cons, ret}, d_sortType);
   }
-  Node dtName = mkNativeStringLit(d_nm->mkConst(String(dt.getName())));
-  ret = mkInternalApp("Term.DatatypeType", {dtName, ret}, d_sortType);
   return ret;
 }
 
