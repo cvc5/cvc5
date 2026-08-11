@@ -71,83 +71,83 @@ Node AbstractionLemma::instance(CVC5_UNUSED TNode x,
 
 // Multiplication lemmas
 
-LEMMA(MUL_IC);
-LEMMA(MUL_ODD);
-LEMMA_VAL(MUL_POW2);
-LEMMA_VAL(MUL_NEG_POW2);
-LEMMA(MUL_REF1);
-LEMMA(MUL_REF3);
-LEMMA(MUL_REFN3);
-LEMMA(MUL_REFN4);
-LEMMA(MUL_REFN5);
-LEMMA(MUL_REFN6);
-LEMMA(MUL_REFN9);
-LEMMA(MUL_REFN11);
-LEMMA(MUL_REF12);
-LEMMA(MUL_REFN12);
-LEMMA(MUL_REF13);
-LEMMA(MUL_REFN13);
-LEMMA(MUL_REF14);
-LEMMA(MUL_REF15);
-LEMMA(MUL_REF18);
+LEMMA_VAL(MUL1_POW2);
+LEMMA_VAL(MUL2_NEG_POW2);
+LEMMA(MUL3_IC);
+LEMMA(MUL4_ODD);
+LEMMA(MUL5_REF1);
+LEMMA(MUL6_REF3);
+LEMMA(MUL7_REFN3);
+LEMMA(MUL8_REFN14);
+LEMMA(MUL9_REFN5);
+LEMMA(MUL10_REFN6);
+LEMMA(MUL13_REFN9);
+LEMMA(MUL15_REFN11);
+LEMMA(MUL19_REF12);
+LEMMA(MUL16_REFN12);
+LEMMA(MUL18_REF13);
+LEMMA(MUL17_REFN13);
+LEMMA(MUL11_REF14);
+LEMMA(MUL12_REF15);
+LEMMA(MUL14_REF18);
 
 // Unsigned division lemmas
 
-LEMMA_VAL(UDIV_POW2);
-LEMMA(UDIV_REF1);
-LEMMA(UDIV_REF2);
-LEMMA(UDIV_REF3);
-LEMMA(UDIV_REF4);
-LEMMA(UDIV_REF5);
-LEMMA(UDIV_REF6);
-LEMMA(UDIV_REF7);
-LEMMA(UDIV_REF8);
-LEMMA(UDIV_REF9);
-LEMMA(UDIV_REF10);
-LEMMA(UDIV_REF11);
-LEMMA(UDIV_REF12);
-LEMMA(UDIV_REF13);
-LEMMA(UDIV_REF14);
-LEMMA(UDIV_REF15);
-LEMMA(UDIV_REF16);
-LEMMA(UDIV_REF17);
-LEMMA(UDIV_REF18);
-LEMMA(UDIV_REF19);
-LEMMA(UDIV_REF20);
-LEMMA(UDIV_REF21);
-LEMMA(UDIV_REF23);
-LEMMA(UDIV_REF24);
-LEMMA(UDIV_REF25);
-LEMMA(UDIV_REF26);
-LEMMA(UDIV_REF27);
-LEMMA(UDIV_REF28);
-LEMMA(UDIV_REF29);
-LEMMA(UDIV_REF30);
-LEMMA(UDIV_REF31);
-LEMMA(UDIV_REF32);
-LEMMA(UDIV_REF33);
-LEMMA(UDIV_REF34);
-LEMMA(UDIV_REF36);
-LEMMA(UDIV_REF37);
-LEMMA(UDIV_REF38);
+LEMMA_VAL(UDIV1_POW2);
+LEMMA(UDIV__REF1);
+LEMMA(UDIV2_REF2);
+LEMMA(UDIV3_REF3);
+LEMMA(UDIV4_REF4);
+LEMMA(UDIV5_REF5);
+LEMMA(UDIV6_REF6);
+LEMMA(UDIV7_REF7);
+LEMMA(UDIV8_REF8);
+LEMMA(UDIV9_REF9);
+LEMMA(UDIV10_REF10);
+LEMMA(UDIV11_REF11);
+LEMMA(UDIV12_REF12);
+LEMMA(UDIV13_REF13);
+LEMMA(UDIV14_REF14);
+LEMMA(UDIV15_REF15);
+LEMMA(UDIV16_REF16);
+LEMMA(UDIV17_REF17);
+LEMMA(UDIV18_REF18);
+LEMMA(UDIV19_REF19);
+LEMMA(UDIV20_REF20);
+LEMMA(UDIV21_REF21);
+LEMMA(UDIV22_REF23);
+LEMMA(UDIV23_REF24);
+LEMMA(UDIV24_REF25);
+LEMMA(UDIV25_REF26);
+LEMMA(UDIV26_REF27);
+LEMMA(UDIV27_REF28);
+LEMMA(UDIV28_REF29);
+LEMMA(UDIV29_REF30);
+LEMMA(UDIV30_REF31);
+LEMMA(UDIV31_REF32);
+LEMMA(UDIV32_REF33);
+LEMMA(UDIV33_REF34);
+LEMMA(UDIV34_REF36);
+LEMMA(UDIV35_REF37);
+LEMMA(UDIV36_REF38);
 
 // Unsigned remainder lemmas
 
-LEMMA_VAL(UREM_POW2);
-LEMMA(UREM_REF1);
-LEMMA(UREM_REF2);
-LEMMA(UREM_REF3);
-LEMMA(UREM_REF4);
-LEMMA(UREM_REF5);
-LEMMA(UREM_REF6);
-LEMMA(UREM_REF7);
-LEMMA(UREM_REF8);
-LEMMA(UREM_REF9);
-LEMMA(UREM_REF10);
-LEMMA(UREM_REF11);
-LEMMA(UREM_REF12);
-LEMMA(UREM_REF13);
-LEMMA(UREM_REF14);
+LEMMA_VAL(UREM1_POW2);
+LEMMA(UREM2_REF1);
+LEMMA(UREM3_REF2);
+LEMMA(UREM4_REF3);
+LEMMA(UREM5_REF4);
+LEMMA(UREM6_REF5);
+LEMMA(UREM7_REF6);
+LEMMA(UREM8_REF7);
+LEMMA(UREM9_REF8);
+LEMMA(UREM10_REF9);
+LEMMA(UREM11_REF10);
+LEMMA(UREM12_REF11);
+LEMMA(UREM13_REF12);
+LEMMA(UREM14_REF13);
+LEMMA(UREM15_REF14);
 
 #undef LEMMA
 #undef LEMMA_VAL
@@ -243,7 +243,7 @@ Node ones(NodeManager* nm, TNode x)
 
 // 1*: (=> (= x 2^i) (= t (bvshl s i)))
 template <>
-Node Lemma<LemmaKind::MUL_POW2>::instance(
+Node Lemma<LemmaKind::MUL1_POW2>::instance(
     TNode x, TNode s, TNode t, TNode xval, CVC5_UNUSED TNode sval) const
 {
   Assert(xval.isConst());
@@ -256,7 +256,7 @@ Node Lemma<LemmaKind::MUL_POW2>::instance(
 
 // 2*: (=> (= x -2^i) (= t (bvshl (bvneg s) i)))
 template <>
-Node Lemma<LemmaKind::MUL_NEG_POW2>::instance(
+Node Lemma<LemmaKind::MUL2_NEG_POW2>::instance(
     TNode x, TNode s, TNode t, TNode xval, CVC5_UNUSED TNode sval) const
 {
   Assert(xval.isConst());
@@ -276,16 +276,16 @@ Node Lemma<LemmaKind::MUL_NEG_POW2>::instance(
 
 // 3*: (= (bvand (bvor (bvneg s) s) t) t)
 template <>
-Node Lemma<LemmaKind::MUL_IC>::instance(CVC5_UNUSED TNode x,
-                                        TNode s,
-                                        TNode t) const
+Node Lemma<LemmaKind::MUL3_IC>::instance(CVC5_UNUSED TNode x,
+                                         TNode s,
+                                         TNode t) const
 {
   return eq(d_nm, bvand(d_nm, bvor(d_nm, bvneg(d_nm, s), s), t), t);
 }
 
 // 4*: (= ((_ extract 0 0) t) (bvand x[0] s[0]))
 template <>
-Node Lemma<LemmaKind::MUL_ODD>::instance(TNode x, TNode s, TNode t) const
+Node Lemma<LemmaKind::MUL4_ODD>::instance(TNode x, TNode s, TNode t) const
 {
   return eq(d_nm,
             utils::mkExtract(t, 0, 0),
@@ -294,7 +294,7 @@ Node Lemma<LemmaKind::MUL_ODD>::instance(TNode x, TNode s, TNode t) const
 
 // 5: (not (= s (bvnot (bvor t (bvand 1 (bvor x s))))))
 template <>
-Node Lemma<LemmaKind::MUL_REF1>::instance(TNode x, TNode s, TNode t) const
+Node Lemma<LemmaKind::MUL5_REF1>::instance(TNode x, TNode s, TNode t) const
 {
   Assert(utils::getSize(x) >= 2) << "MUL_REF1 is not valid for bit-width 1";
   return distinct(
@@ -305,7 +305,7 @@ Node Lemma<LemmaKind::MUL_REF1>::instance(TNode x, TNode s, TNode t) const
 
 // 6: (not (= (bvand x t) (bvor s (bvnot t))))
 template <>
-Node Lemma<LemmaKind::MUL_REF3>::instance(TNode x, TNode s, TNode t) const
+Node Lemma<LemmaKind::MUL6_REF3>::instance(TNode x, TNode s, TNode t) const
 {
   Assert(utils::getSize(x) >= 2) << "MUL_REF3 is not valid for bit-width 1";
   return distinct(d_nm, bvand(d_nm, x, t), bvor(d_nm, s, bvnot(d_nm, t)));
@@ -313,7 +313,7 @@ Node Lemma<LemmaKind::MUL_REF3>::instance(TNode x, TNode s, TNode t) const
 
 // 7: (not (= t (bvshl (bvor s 1) (bvshl t x))))
 template <>
-Node Lemma<LemmaKind::MUL_REFN3>::instance(TNode x, TNode s, TNode t) const
+Node Lemma<LemmaKind::MUL7_REFN3>::instance(TNode x, TNode s, TNode t) const
 {
   Assert(utils::getSize(x) >= 2) << "MUL_REFN3 is not valid for bit-width 1";
   return distinct(
@@ -322,7 +322,7 @@ Node Lemma<LemmaKind::MUL_REFN3>::instance(TNode x, TNode s, TNode t) const
 
 // 8: (= s (bvshl s (bvand x (bvlshr 1 t))))
 template <>
-Node Lemma<LemmaKind::MUL_REFN4>::instance(TNode x, TNode s, TNode t) const
+Node Lemma<LemmaKind::MUL8_REFN14>::instance(TNode x, TNode s, TNode t) const
 {
   return eq(
       d_nm, s, bvshl(d_nm, s, bvand(d_nm, x, bvlshr(d_nm, one(d_nm, x), t))));
@@ -330,7 +330,7 @@ Node Lemma<LemmaKind::MUL_REFN4>::instance(TNode x, TNode s, TNode t) const
 
 // 9: (bvuge t (bvand 1 (bvlshr (bvand x s) 1)))
 template <>
-Node Lemma<LemmaKind::MUL_REFN5>::instance(TNode x, TNode s, TNode t) const
+Node Lemma<LemmaKind::MUL9_REFN5>::instance(TNode x, TNode s, TNode t) const
 {
   Assert(utils::getSize(x) != 2) << "MUL_REFN5 is not valid for bit-width 2";
   Node o = one(d_nm, x);
@@ -339,7 +339,7 @@ Node Lemma<LemmaKind::MUL_REFN5>::instance(TNode x, TNode s, TNode t) const
 
 // 10: (not (= x (bvxor 1 (bvshl x (bvxor s t)))))
 template <>
-Node Lemma<LemmaKind::MUL_REFN6>::instance(TNode x, TNode s, TNode t) const
+Node Lemma<LemmaKind::MUL10_REFN6>::instance(TNode x, TNode s, TNode t) const
 {
   return distinct(
       d_nm, x, bvxor(d_nm, one(d_nm, x), bvshl(d_nm, x, bvxor(d_nm, s, t))));
@@ -347,7 +347,7 @@ Node Lemma<LemmaKind::MUL_REFN6>::instance(TNode x, TNode s, TNode t) const
 
 // 11: (not (= t (bvor 1 (bvnot (bvxor x s)))))
 template <>
-Node Lemma<LemmaKind::MUL_REF14>::instance(TNode x, TNode s, TNode t) const
+Node Lemma<LemmaKind::MUL11_REF14>::instance(TNode x, TNode s, TNode t) const
 {
   Assert(utils::getSize(x) >= 2) << "MUL_REF14 is not valid for bit-width 1";
   return distinct(
@@ -356,7 +356,7 @@ Node Lemma<LemmaKind::MUL_REF14>::instance(TNode x, TNode s, TNode t) const
 
 // 12: (not (= t (bvor (bvnot 1) (bvxor x s))))
 template <>
-Node Lemma<LemmaKind::MUL_REF15>::instance(TNode x, TNode s, TNode t) const
+Node Lemma<LemmaKind::MUL12_REF15>::instance(TNode x, TNode s, TNode t) const
 {
   Assert(utils::getSize(x) >= 2) << "MUL_REF15 is not valid for bit-width 1";
   return distinct(
@@ -365,7 +365,7 @@ Node Lemma<LemmaKind::MUL_REF15>::instance(TNode x, TNode s, TNode t) const
 
 // 13: (not (= x (bvsub (bvshl x (bvadd s t)) 1)))
 template <>
-Node Lemma<LemmaKind::MUL_REFN9>::instance(TNode x, TNode s, TNode t) const
+Node Lemma<LemmaKind::MUL13_REFN9>::instance(TNode x, TNode s, TNode t) const
 {
   return distinct(
       d_nm, x, bvsub(d_nm, bvshl(d_nm, x, bvadd(d_nm, s, t)), one(d_nm, x)));
@@ -373,7 +373,7 @@ Node Lemma<LemmaKind::MUL_REFN9>::instance(TNode x, TNode s, TNode t) const
 
 // 14: (not (= x (bvsub 1 (bvshl x (bvsub s t)))))
 template <>
-Node Lemma<LemmaKind::MUL_REF18>::instance(TNode x, TNode s, TNode t) const
+Node Lemma<LemmaKind::MUL14_REF18>::instance(TNode x, TNode s, TNode t) const
 {
   return distinct(
       d_nm, x, bvsub(d_nm, one(d_nm, x), bvshl(d_nm, x, bvsub(d_nm, s, t))));
@@ -381,7 +381,7 @@ Node Lemma<LemmaKind::MUL_REF18>::instance(TNode x, TNode s, TNode t) const
 
 // 15: (not (= s (bvadd 1 (bvshl s (bvsub t x)))))
 template <>
-Node Lemma<LemmaKind::MUL_REFN11>::instance(TNode x, TNode s, TNode t) const
+Node Lemma<LemmaKind::MUL15_REFN11>::instance(TNode x, TNode s, TNode t) const
 {
   return distinct(
       d_nm, s, bvadd(d_nm, one(d_nm, x), bvshl(d_nm, s, bvsub(d_nm, t, x))));
@@ -389,7 +389,7 @@ Node Lemma<LemmaKind::MUL_REFN11>::instance(TNode x, TNode s, TNode t) const
 
 // 16: (not (= s (bvsub 1 (bvshl s (bvsub t x)))))
 template <>
-Node Lemma<LemmaKind::MUL_REFN12>::instance(TNode x, TNode s, TNode t) const
+Node Lemma<LemmaKind::MUL16_REFN12>::instance(TNode x, TNode s, TNode t) const
 {
   return distinct(
       d_nm, s, bvsub(d_nm, one(d_nm, x), bvshl(d_nm, s, bvsub(d_nm, t, x))));
@@ -397,7 +397,7 @@ Node Lemma<LemmaKind::MUL_REFN12>::instance(TNode x, TNode s, TNode t) const
 
 // 17: (not (= s (bvadd 1 (bvshl s (bvsub x t)))))
 template <>
-Node Lemma<LemmaKind::MUL_REFN13>::instance(TNode x, TNode s, TNode t) const
+Node Lemma<LemmaKind::MUL17_REFN13>::instance(TNode x, TNode s, TNode t) const
 {
   return distinct(
       d_nm, s, bvadd(d_nm, one(d_nm, x), bvshl(d_nm, s, bvsub(d_nm, x, t))));
@@ -405,7 +405,7 @@ Node Lemma<LemmaKind::MUL_REFN13>::instance(TNode x, TNode s, TNode t) const
 
 // 18: (not (= t (bvor 1 (bvadd x s))))
 template <>
-Node Lemma<LemmaKind::MUL_REF13>::instance(TNode x, TNode s, TNode t) const
+Node Lemma<LemmaKind::MUL18_REF13>::instance(TNode x, TNode s, TNode t) const
 {
   Assert(utils::getSize(x) >= 2) << "MUL_REF13 is not valid for bit-width 1";
   return distinct(d_nm, t, bvor(d_nm, one(d_nm, x), bvadd(d_nm, x, s)));
@@ -413,7 +413,7 @@ Node Lemma<LemmaKind::MUL_REF13>::instance(TNode x, TNode s, TNode t) const
 
 // 19: (not (= x (bvnot (bvshl x (bvadd s t)))))
 template <>
-Node Lemma<LemmaKind::MUL_REF12>::instance(TNode x, TNode s, TNode t) const
+Node Lemma<LemmaKind::MUL19_REF12>::instance(TNode x, TNode s, TNode t) const
 {
   return distinct(d_nm, x, bvnot(d_nm, bvshl(d_nm, x, bvadd(d_nm, s, t))));
 }
@@ -422,7 +422,7 @@ Node Lemma<LemmaKind::MUL_REF12>::instance(TNode x, TNode s, TNode t) const
 
 // 1*: (=> (= s 2^i) (= t (bvlshr x i)))
 template <>
-Node Lemma<LemmaKind::UDIV_POW2>::instance(
+Node Lemma<LemmaKind::UDIV1_POW2>::instance(
     TNode x, TNode s, TNode t, CVC5_UNUSED TNode xval, TNode sval) const
 {
   Assert(sval.isConst());
@@ -435,14 +435,14 @@ Node Lemma<LemmaKind::UDIV_POW2>::instance(
 
 // (=> (= s 1) (= t x))
 template <>
-Node Lemma<LemmaKind::UDIV_REF1>::instance(TNode x, TNode s, TNode t) const
+Node Lemma<LemmaKind::UDIV__REF1>::instance(TNode x, TNode s, TNode t) const
 {
   return impl(d_nm, eq(d_nm, s, one(d_nm, x)), eq(d_nm, t, x));
 }
 
 // 2*: (=> (and (= s x) (distinct s 0)) (= t 1))
 template <>
-Node Lemma<LemmaKind::UDIV_REF2>::instance(TNode x, TNode s, TNode t) const
+Node Lemma<LemmaKind::UDIV2_REF2>::instance(TNode x, TNode s, TNode t) const
 {
   return impl(d_nm,
               andn(d_nm, eq(d_nm, s, x), distinct(d_nm, s, zero(d_nm, x))),
@@ -451,14 +451,14 @@ Node Lemma<LemmaKind::UDIV_REF2>::instance(TNode x, TNode s, TNode t) const
 
 // 3*: (=> (= s 0) (= t (bvnot 0)))
 template <>
-Node Lemma<LemmaKind::UDIV_REF3>::instance(TNode x, TNode s, TNode t) const
+Node Lemma<LemmaKind::UDIV3_REF3>::instance(TNode x, TNode s, TNode t) const
 {
   return impl(d_nm, eq(d_nm, s, zero(d_nm, x)), eq(d_nm, t, ones(d_nm, x)));
 }
 
 // 4*: (=> (and (= x 0) (distinct s 0)) (= t 0))
 template <>
-Node Lemma<LemmaKind::UDIV_REF4>::instance(TNode x, TNode s, TNode t) const
+Node Lemma<LemmaKind::UDIV4_REF4>::instance(TNode x, TNode s, TNode t) const
 {
   return impl(
       d_nm,
@@ -468,14 +468,14 @@ Node Lemma<LemmaKind::UDIV_REF4>::instance(TNode x, TNode s, TNode t) const
 
 // 5*: (=> (distinct s 0) (bvule t x))
 template <>
-Node Lemma<LemmaKind::UDIV_REF5>::instance(TNode x, TNode s, TNode t) const
+Node Lemma<LemmaKind::UDIV5_REF5>::instance(TNode x, TNode s, TNode t) const
 {
   return impl(d_nm, distinct(d_nm, s, zero(d_nm, x)), bvule(d_nm, t, x));
 }
 
 // 6*: (=> (and (= s ~0) (distinct x ~0)) (= t 0))
 template <>
-Node Lemma<LemmaKind::UDIV_REF6>::instance(TNode x, TNode s, TNode t) const
+Node Lemma<LemmaKind::UDIV6_REF6>::instance(TNode x, TNode s, TNode t) const
 {
   return impl(
       d_nm,
@@ -485,7 +485,7 @@ Node Lemma<LemmaKind::UDIV_REF6>::instance(TNode x, TNode s, TNode t) const
 
 // 7: (not (bvult x (bvneg (bvand (bvneg s) (bvneg t)))))
 template <>
-Node Lemma<LemmaKind::UDIV_REF7>::instance(TNode x, TNode s, TNode t) const
+Node Lemma<LemmaKind::UDIV7_REF7>::instance(TNode x, TNode s, TNode t) const
 {
   return bvuge(
       d_nm, x, bvneg(d_nm, bvand(d_nm, bvneg(d_nm, s), bvneg(d_nm, t))));
@@ -493,21 +493,21 @@ Node Lemma<LemmaKind::UDIV_REF7>::instance(TNode x, TNode s, TNode t) const
 
 // 8: (not (bvult (bvneg (bvor s 1)) t))
 template <>
-Node Lemma<LemmaKind::UDIV_REF8>::instance(TNode x, TNode s, TNode t) const
+Node Lemma<LemmaKind::UDIV8_REF8>::instance(TNode x, TNode s, TNode t) const
 {
   return bvuge(d_nm, bvneg(d_nm, bvor(d_nm, s, one(d_nm, x))), t);
 }
 
 // 9: (not (= t (bvneg (bvand s (bvnot x)))))
 template <>
-Node Lemma<LemmaKind::UDIV_REF9>::instance(TNode x, TNode s, TNode t) const
+Node Lemma<LemmaKind::UDIV9_REF9>::instance(TNode x, TNode s, TNode t) const
 {
   return distinct(d_nm, t, bvneg(d_nm, bvand(d_nm, s, bvnot(d_nm, x))));
 }
 
 // 10: (not (= (bvor s t) (bvand x (bvnot 1))))
 template <>
-Node Lemma<LemmaKind::UDIV_REF10>::instance(TNode x, TNode s, TNode t) const
+Node Lemma<LemmaKind::UDIV10_REF10>::instance(TNode x, TNode s, TNode t) const
 {
   return distinct(
       d_nm, bvor(d_nm, s, t), bvand(d_nm, x, bvnot(d_nm, one(d_nm, x))));
@@ -515,7 +515,7 @@ Node Lemma<LemmaKind::UDIV_REF10>::instance(TNode x, TNode s, TNode t) const
 
 // 11: (not (= (bvor s 1) (bvand x (bvnot t))))
 template <>
-Node Lemma<LemmaKind::UDIV_REF11>::instance(TNode x, TNode s, TNode t) const
+Node Lemma<LemmaKind::UDIV11_REF11>::instance(TNode x, TNode s, TNode t) const
 {
   return distinct(
       d_nm, bvor(d_nm, s, one(d_nm, x)), bvand(d_nm, x, bvnot(d_nm, t)));
@@ -523,21 +523,21 @@ Node Lemma<LemmaKind::UDIV_REF11>::instance(TNode x, TNode s, TNode t) const
 
 // 12: (not (bvult (bvand x (bvneg t)) (bvand s t)))
 template <>
-Node Lemma<LemmaKind::UDIV_REF12>::instance(TNode x, TNode s, TNode t) const
+Node Lemma<LemmaKind::UDIV12_REF12>::instance(TNode x, TNode s, TNode t) const
 {
   return bvuge(d_nm, bvand(d_nm, x, bvneg(d_nm, t)), bvand(d_nm, s, t));
 }
 
 // 13: (not (bvult s (bvlshr x t)))
 template <>
-Node Lemma<LemmaKind::UDIV_REF13>::instance(TNode x, TNode s, TNode t) const
+Node Lemma<LemmaKind::UDIV13_REF13>::instance(TNode x, TNode s, TNode t) const
 {
   return bvuge(d_nm, s, bvlshr(d_nm, x, t));
 }
 
 // 14: (not (bvult x (bvshl (bvlshr s (bvshl s t)) 1)))
 template <>
-Node Lemma<LemmaKind::UDIV_REF14>::instance(TNode x, TNode s, TNode t) const
+Node Lemma<LemmaKind::UDIV14_REF14>::instance(TNode x, TNode s, TNode t) const
 {
   return bvuge(
       d_nm, x, bvshl(d_nm, bvlshr(d_nm, s, bvshl(d_nm, s, t)), one(d_nm, x)));
@@ -545,7 +545,7 @@ Node Lemma<LemmaKind::UDIV_REF14>::instance(TNode x, TNode s, TNode t) const
 
 // 15: (not (bvult x (bvlshr (bvshl t 1) (bvshl t s))))
 template <>
-Node Lemma<LemmaKind::UDIV_REF15>::instance(TNode x, TNode s, TNode t) const
+Node Lemma<LemmaKind::UDIV15_REF15>::instance(TNode x, TNode s, TNode t) const
 {
   return bvuge(
       d_nm, x, bvlshr(d_nm, bvshl(d_nm, t, one(d_nm, x)), bvshl(d_nm, t, s)));
@@ -553,14 +553,14 @@ Node Lemma<LemmaKind::UDIV_REF15>::instance(TNode x, TNode s, TNode t) const
 
 // 16: (not (bvult t (bvshl (bvlshr x s) 1)))
 template <>
-Node Lemma<LemmaKind::UDIV_REF16>::instance(TNode x, TNode s, TNode t) const
+Node Lemma<LemmaKind::UDIV16_REF16>::instance(TNode x, TNode s, TNode t) const
 {
   return bvuge(d_nm, t, bvshl(d_nm, bvlshr(d_nm, x, s), one(d_nm, x)));
 }
 
 // 17: (not (bvult x (bvand (bvor x t) (bvshl s 1))))
 template <>
-Node Lemma<LemmaKind::UDIV_REF17>::instance(TNode x, TNode s, TNode t) const
+Node Lemma<LemmaKind::UDIV17_REF17>::instance(TNode x, TNode s, TNode t) const
 {
   return bvuge(
       d_nm, x, bvand(d_nm, bvor(d_nm, x, t), bvshl(d_nm, s, one(d_nm, x))));
@@ -568,7 +568,7 @@ Node Lemma<LemmaKind::UDIV_REF17>::instance(TNode x, TNode s, TNode t) const
 
 // 18: (not (bvult x (bvand (bvor x s) (bvshl t 1))))
 template <>
-Node Lemma<LemmaKind::UDIV_REF18>::instance(TNode x, TNode s, TNode t) const
+Node Lemma<LemmaKind::UDIV18_REF18>::instance(TNode x, TNode s, TNode t) const
 {
   return bvuge(
       d_nm, x, bvand(d_nm, bvor(d_nm, x, s), bvshl(d_nm, t, one(d_nm, x))));
@@ -576,14 +576,14 @@ Node Lemma<LemmaKind::UDIV_REF18>::instance(TNode x, TNode s, TNode t) const
 
 // 19: (not (= (bvlshr x t) (bvor s t)))
 template <>
-Node Lemma<LemmaKind::UDIV_REF19>::instance(TNode x, TNode s, TNode t) const
+Node Lemma<LemmaKind::UDIV19_REF19>::instance(TNode x, TNode s, TNode t) const
 {
   return distinct(d_nm, bvlshr(d_nm, x, t), bvor(d_nm, s, t));
 }
 
 // 20: (not (= s (bvnot (bvlshr s (bvlshr t 1)))))
 template <>
-Node Lemma<LemmaKind::UDIV_REF20>::instance(TNode x, TNode s, TNode t) const
+Node Lemma<LemmaKind::UDIV20_REF20>::instance(TNode x, TNode s, TNode t) const
 {
   return distinct(
       d_nm, s, bvnot(d_nm, bvlshr(d_nm, s, bvlshr(d_nm, t, one(d_nm, x)))));
@@ -591,9 +591,9 @@ Node Lemma<LemmaKind::UDIV_REF20>::instance(TNode x, TNode s, TNode t) const
 
 // 21: (not (= x (bvnot (bvand x (bvshl t 1)))))
 template <>
-Node Lemma<LemmaKind::UDIV_REF21>::instance(TNode x,
-                                            CVC5_UNUSED TNode s,
-                                            TNode t) const
+Node Lemma<LemmaKind::UDIV21_REF21>::instance(TNode x,
+                                              CVC5_UNUSED TNode s,
+                                              TNode t) const
 {
   Assert(utils::getSize(x) >= 2) << "UDIV_REF21 is not valid for bit-width 1";
   return distinct(
@@ -602,28 +602,28 @@ Node Lemma<LemmaKind::UDIV_REF21>::instance(TNode x,
 
 // 22: (not (bvult t (bvlshr (bvshl x 1) s)))
 template <>
-Node Lemma<LemmaKind::UDIV_REF23>::instance(TNode x, TNode s, TNode t) const
+Node Lemma<LemmaKind::UDIV22_REF23>::instance(TNode x, TNode s, TNode t) const
 {
   return bvuge(d_nm, t, bvlshr(d_nm, bvshl(d_nm, x, one(d_nm, x)), s));
 }
 
 // 23: (not (bvult x (bvshl s (bvnot (bvor x t)))))
 template <>
-Node Lemma<LemmaKind::UDIV_REF24>::instance(TNode x, TNode s, TNode t) const
+Node Lemma<LemmaKind::UDIV23_REF24>::instance(TNode x, TNode s, TNode t) const
 {
   return bvuge(d_nm, x, bvshl(d_nm, s, bvnot(d_nm, bvor(d_nm, x, t))));
 }
 
 // 24: (not (bvult x (bvshl t (bvnot (bvor x s)))))
 template <>
-Node Lemma<LemmaKind::UDIV_REF25>::instance(TNode x, TNode s, TNode t) const
+Node Lemma<LemmaKind::UDIV24_REF25>::instance(TNode x, TNode s, TNode t) const
 {
   return bvuge(d_nm, x, bvshl(d_nm, t, bvnot(d_nm, bvor(d_nm, x, s))));
 }
 
 // 25: (not (bvult x (bvxor t (bvlshr t (bvlshr s 1)))))
 template <>
-Node Lemma<LemmaKind::UDIV_REF26>::instance(TNode x, TNode s, TNode t) const
+Node Lemma<LemmaKind::UDIV25_REF26>::instance(TNode x, TNode s, TNode t) const
 {
   return bvuge(
       d_nm, x, bvxor(d_nm, t, bvlshr(d_nm, t, bvlshr(d_nm, s, one(d_nm, x)))));
@@ -631,7 +631,7 @@ Node Lemma<LemmaKind::UDIV_REF26>::instance(TNode x, TNode s, TNode t) const
 
 // 26: (not (bvult x (bvxor s (bvlshr s (bvlshr t 1)))))
 template <>
-Node Lemma<LemmaKind::UDIV_REF27>::instance(TNode x, TNode s, TNode t) const
+Node Lemma<LemmaKind::UDIV26_REF27>::instance(TNode x, TNode s, TNode t) const
 {
   return bvuge(
       d_nm, x, bvxor(d_nm, s, bvlshr(d_nm, s, bvlshr(d_nm, t, one(d_nm, x)))));
@@ -639,30 +639,30 @@ Node Lemma<LemmaKind::UDIV_REF27>::instance(TNode x, TNode s, TNode t) const
 
 // 27: (not (bvult x (bvshl s (bvnot (bvxor x t)))))
 template <>
-Node Lemma<LemmaKind::UDIV_REF28>::instance(TNode x, TNode s, TNode t) const
+Node Lemma<LemmaKind::UDIV27_REF28>::instance(TNode x, TNode s, TNode t) const
 {
   return bvuge(d_nm, x, bvshl(d_nm, s, bvnot(d_nm, bvxor(d_nm, x, t))));
 }
 
 // 28: (not (bvult x (bvshl t (bvnot (bvxor x s)))))
 template <>
-Node Lemma<LemmaKind::UDIV_REF29>::instance(TNode x, TNode s, TNode t) const
+Node Lemma<LemmaKind::UDIV28_REF29>::instance(TNode x, TNode s, TNode t) const
 {
   return bvuge(d_nm, x, bvshl(d_nm, t, bvnot(d_nm, bvxor(d_nm, x, s))));
 }
 
 // 29: (not (= x (bvadd t (bvor s (bvadd x s)))))
 template <>
-Node Lemma<LemmaKind::UDIV_REF30>::instance(TNode x, TNode s, TNode t) const
+Node Lemma<LemmaKind::UDIV29_REF30>::instance(TNode x, TNode s, TNode t) const
 {
   return distinct(d_nm, x, bvadd(d_nm, t, bvor(d_nm, s, bvadd(d_nm, x, s))));
 }
 
 // 30: (not (= x (bvadd t (bvadd 1 (bvshl 1 x)))))
 template <>
-Node Lemma<LemmaKind::UDIV_REF31>::instance(TNode x,
-                                            CVC5_UNUSED TNode s,
-                                            TNode t) const
+Node Lemma<LemmaKind::UDIV30_REF31>::instance(TNode x,
+                                              CVC5_UNUSED TNode s,
+                                              TNode t) const
 {
   Assert(utils::getSize(x) >= 3) << "UDIV_REF31 is not valid for bit-width < 3";
   Node o = one(d_nm, x);
@@ -671,14 +671,14 @@ Node Lemma<LemmaKind::UDIV_REF31>::instance(TNode x,
 
 // 31: (not (bvult s (bvlshr (bvadd x t) t)))
 template <>
-Node Lemma<LemmaKind::UDIV_REF32>::instance(TNode x, TNode s, TNode t) const
+Node Lemma<LemmaKind::UDIV31_REF32>::instance(TNode x, TNode s, TNode t) const
 {
   return bvuge(d_nm, s, bvlshr(d_nm, bvadd(d_nm, x, t), t));
 }
 
 // 32: (not (= x (bvadd t (bvadd t (bvor x s)))))
 template <>
-Node Lemma<LemmaKind::UDIV_REF33>::instance(TNode x, TNode s, TNode t) const
+Node Lemma<LemmaKind::UDIV32_REF33>::instance(TNode x, TNode s, TNode t) const
 {
   Assert(utils::getSize(x) >= 2) << "UDIV_REF33 is not valid for bit-width 1";
   return distinct(d_nm, x, bvadd(d_nm, t, bvadd(d_nm, t, bvor(d_nm, x, s))));
@@ -686,7 +686,7 @@ Node Lemma<LemmaKind::UDIV_REF33>::instance(TNode x, TNode s, TNode t) const
 
 // 33: (not (bvult (bvxor s (bvor x t)) (bvxor t 1)))
 template <>
-Node Lemma<LemmaKind::UDIV_REF34>::instance(TNode x, TNode s, TNode t) const
+Node Lemma<LemmaKind::UDIV33_REF34>::instance(TNode x, TNode s, TNode t) const
 {
   return bvuge(
       d_nm, bvxor(d_nm, s, bvor(d_nm, x, t)), bvxor(d_nm, t, one(d_nm, x)));
@@ -694,23 +694,23 @@ Node Lemma<LemmaKind::UDIV_REF34>::instance(TNode x, TNode s, TNode t) const
 
 // 34: (not (bvult t (bvlshr x (bvsub s 1))))
 template <>
-Node Lemma<LemmaKind::UDIV_REF36>::instance(TNode x, TNode s, TNode t) const
+Node Lemma<LemmaKind::UDIV34_REF36>::instance(TNode x, TNode s, TNode t) const
 {
   return bvuge(d_nm, t, bvlshr(d_nm, x, bvsub(d_nm, s, one(d_nm, x))));
 }
 
 // 35: (not (bvult (bvsub s 1) (bvlshr x t)))
 template <>
-Node Lemma<LemmaKind::UDIV_REF37>::instance(TNode x, TNode s, TNode t) const
+Node Lemma<LemmaKind::UDIV35_REF37>::instance(TNode x, TNode s, TNode t) const
 {
   return bvuge(d_nm, bvsub(d_nm, s, one(d_nm, x)), bvlshr(d_nm, x, t));
 }
 
 // 36: (not (= x (bvsub 1 (bvshl x (bvsub x t)))))
 template <>
-Node Lemma<LemmaKind::UDIV_REF38>::instance(TNode x,
-                                            CVC5_UNUSED TNode s,
-                                            TNode t) const
+Node Lemma<LemmaKind::UDIV36_REF38>::instance(TNode x,
+                                              CVC5_UNUSED TNode s,
+                                              TNode t) const
 {
   Assert(utils::getSize(x) != 2) << "UDIV_REF38 is not valid for bit-width 2";
   return distinct(
@@ -721,7 +721,7 @@ Node Lemma<LemmaKind::UDIV_REF38>::instance(TNode x,
 
 // 1*: (=> (= s 2^i) (= t (concat 0[w-i] x[i-1:0])))
 template <>
-Node Lemma<LemmaKind::UREM_POW2>::instance(
+Node Lemma<LemmaKind::UREM1_POW2>::instance(
     TNode x, TNode s, TNode t, CVC5_UNUSED TNode xval, TNode sval) const
 {
   Assert(sval.isConst());
@@ -746,53 +746,53 @@ Node Lemma<LemmaKind::UREM_POW2>::instance(
 
 // 2*: (=> (distinct s 0) (bvult t s))
 template <>
-Node Lemma<LemmaKind::UREM_REF1>::instance(TNode x, TNode s, TNode t) const
+Node Lemma<LemmaKind::UREM2_REF1>::instance(TNode x, TNode s, TNode t) const
 {
   return impl(d_nm, distinct(d_nm, s, zero(d_nm, x)), bvult(d_nm, t, s));
 }
 
 // 3*: (=> (= x 0) (= t 0))
 template <>
-Node Lemma<LemmaKind::UREM_REF2>::instance(TNode x,
-                                           CVC5_UNUSED TNode s,
-                                           TNode t) const
+Node Lemma<LemmaKind::UREM3_REF2>::instance(TNode x,
+                                            CVC5_UNUSED TNode s,
+                                            TNode t) const
 {
   return impl(d_nm, eq(d_nm, x, zero(d_nm, x)), eq(d_nm, t, zero(d_nm, x)));
 }
 
 // 4*: (=> (= s 0) (= t x))
 template <>
-Node Lemma<LemmaKind::UREM_REF3>::instance(TNode x, TNode s, TNode t) const
+Node Lemma<LemmaKind::UREM4_REF3>::instance(TNode x, TNode s, TNode t) const
 {
   return impl(d_nm, eq(d_nm, s, zero(d_nm, x)), eq(d_nm, t, x));
 }
 
 // 5*: (=> (= s x) (= t 0))
 template <>
-Node Lemma<LemmaKind::UREM_REF4>::instance(TNode x, TNode s, TNode t) const
+Node Lemma<LemmaKind::UREM5_REF4>::instance(TNode x, TNode s, TNode t) const
 {
   return impl(d_nm, eq(d_nm, s, x), eq(d_nm, t, zero(d_nm, x)));
 }
 
 // 6*: (=> (bvult x s) (= t x))
 template <>
-Node Lemma<LemmaKind::UREM_REF5>::instance(TNode x, TNode s, TNode t) const
+Node Lemma<LemmaKind::UREM6_REF5>::instance(TNode x, TNode s, TNode t) const
 {
   return impl(d_nm, bvult(d_nm, x, s), eq(d_nm, t, x));
 }
 
 // 7*: (bvuge (bvnot (bvneg s)) t)
 template <>
-Node Lemma<LemmaKind::UREM_REF6>::instance(CVC5_UNUSED TNode x,
-                                           TNode s,
-                                           TNode t) const
+Node Lemma<LemmaKind::UREM7_REF6>::instance(CVC5_UNUSED TNode x,
+                                            TNode s,
+                                            TNode t) const
 {
   return bvuge(d_nm, bvnot(d_nm, bvneg(d_nm, s)), t);
 }
 
 // 8: (= x (bvand x (bvor s (bvor t (bvneg s)))))
 template <>
-Node Lemma<LemmaKind::UREM_REF7>::instance(TNode x, TNode s, TNode t) const
+Node Lemma<LemmaKind::UREM8_REF7>::instance(TNode x, TNode s, TNode t) const
 {
   return eq(
       d_nm, x, bvand(d_nm, x, bvor(d_nm, s, bvor(d_nm, t, bvneg(d_nm, s)))));
@@ -800,14 +800,14 @@ Node Lemma<LemmaKind::UREM_REF7>::instance(TNode x, TNode s, TNode t) const
 
 // 9: (not (bvult x (bvor t (bvand x s))))
 template <>
-Node Lemma<LemmaKind::UREM_REF8>::instance(TNode x, TNode s, TNode t) const
+Node Lemma<LemmaKind::UREM9_REF8>::instance(TNode x, TNode s, TNode t) const
 {
   return bvuge(d_nm, x, bvor(d_nm, t, bvand(d_nm, x, s)));
 }
 
 // 10: (not (= 1 (bvand t (bvnot (bvor x s)))))
 template <>
-Node Lemma<LemmaKind::UREM_REF9>::instance(TNode x, TNode s, TNode t) const
+Node Lemma<LemmaKind::UREM10_REF9>::instance(TNode x, TNode s, TNode t) const
 {
   return distinct(
       d_nm, one(d_nm, x), bvand(d_nm, t, bvnot(d_nm, bvor(d_nm, x, s))));
@@ -815,14 +815,14 @@ Node Lemma<LemmaKind::UREM_REF9>::instance(TNode x, TNode s, TNode t) const
 
 // 11: (not (= t (bvor (bvnot x) (bvneg s))))
 template <>
-Node Lemma<LemmaKind::UREM_REF10>::instance(TNode x, TNode s, TNode t) const
+Node Lemma<LemmaKind::UREM11_REF10>::instance(TNode x, TNode s, TNode t) const
 {
   return distinct(d_nm, t, bvor(d_nm, bvnot(d_nm, x), bvneg(d_nm, s)));
 }
 
 // 12: (not (bvult (bvand t (bvor x s)) (bvand t 1)))
 template <>
-Node Lemma<LemmaKind::UREM_REF11>::instance(TNode x, TNode s, TNode t) const
+Node Lemma<LemmaKind::UREM12_REF11>::instance(TNode x, TNode s, TNode t) const
 {
   return bvuge(
       d_nm, bvand(d_nm, t, bvor(d_nm, x, s)), bvand(d_nm, t, one(d_nm, x)));
@@ -830,9 +830,9 @@ Node Lemma<LemmaKind::UREM_REF11>::instance(TNode x, TNode s, TNode t) const
 
 // 13: (not (= x (bvor (bvneg x) (bvneg (bvnot t)))))
 template <>
-Node Lemma<LemmaKind::UREM_REF12>::instance(TNode x,
-                                            CVC5_UNUSED TNode s,
-                                            TNode t) const
+Node Lemma<LemmaKind::UREM13_REF12>::instance(TNode x,
+                                              CVC5_UNUSED TNode s,
+                                              TNode t) const
 {
   Assert(utils::getSize(x) >= 3) << "UREM_REF12 is not valid for bit-width < 3";
   return distinct(
@@ -841,14 +841,14 @@ Node Lemma<LemmaKind::UREM_REF12>::instance(TNode x,
 
 // 14: (not (bvult (bvadd x (bvneg s)) t))
 template <>
-Node Lemma<LemmaKind::UREM_REF13>::instance(TNode x, TNode s, TNode t) const
+Node Lemma<LemmaKind::UREM14_REF13>::instance(TNode x, TNode s, TNode t) const
 {
   return bvuge(d_nm, bvadd(d_nm, x, bvneg(d_nm, s)), t);
 }
 
 // 15: (not (bvult (bvxor (bvneg s) (bvor x s)) t))
 template <>
-Node Lemma<LemmaKind::UREM_REF14>::instance(TNode x, TNode s, TNode t) const
+Node Lemma<LemmaKind::UREM15_REF14>::instance(TNode x, TNode s, TNode t) const
 {
   return bvuge(d_nm, bvxor(d_nm, bvneg(d_nm, s), bvor(d_nm, x, s)), t);
 }
@@ -876,85 +876,85 @@ const std::vector<std::unique_ptr<AbstractionLemma>>& LemmaRegistry::lemmas(
 
 void LemmaRegistry::initMul(NodeManager* nm)
 {
-  d_mul.push_back(std::make_unique<Lemma<LemmaKind::MUL_POW2>>(nm));
-  d_mul.push_back(std::make_unique<Lemma<LemmaKind::MUL_NEG_POW2>>(nm));
-  d_mul.push_back(std::make_unique<Lemma<LemmaKind::MUL_IC>>(nm));
-  d_mul.push_back(std::make_unique<Lemma<LemmaKind::MUL_ODD>>(nm));
-  d_mul.push_back(std::make_unique<Lemma<LemmaKind::MUL_REF1>>(nm));
-  d_mul.push_back(std::make_unique<Lemma<LemmaKind::MUL_REF3>>(nm));
-  d_mul.push_back(std::make_unique<Lemma<LemmaKind::MUL_REFN3>>(nm));
-  d_mul.push_back(std::make_unique<Lemma<LemmaKind::MUL_REFN4>>(nm));
-  d_mul.push_back(std::make_unique<Lemma<LemmaKind::MUL_REFN5>>(nm));
-  d_mul.push_back(std::make_unique<Lemma<LemmaKind::MUL_REFN6>>(nm));
-  d_mul.push_back(std::make_unique<Lemma<LemmaKind::MUL_REF14>>(nm));
-  d_mul.push_back(std::make_unique<Lemma<LemmaKind::MUL_REF15>>(nm));
-  d_mul.push_back(std::make_unique<Lemma<LemmaKind::MUL_REFN9>>(nm));
-  d_mul.push_back(std::make_unique<Lemma<LemmaKind::MUL_REF18>>(nm));
-  d_mul.push_back(std::make_unique<Lemma<LemmaKind::MUL_REFN11>>(nm));
-  d_mul.push_back(std::make_unique<Lemma<LemmaKind::MUL_REFN12>>(nm));
-  d_mul.push_back(std::make_unique<Lemma<LemmaKind::MUL_REFN13>>(nm));
-  d_mul.push_back(std::make_unique<Lemma<LemmaKind::MUL_REF13>>(nm));
-  d_mul.push_back(std::make_unique<Lemma<LemmaKind::MUL_REF12>>(nm));
+  d_mul.push_back(std::make_unique<Lemma<LemmaKind::MUL1_POW2>>(nm));
+  d_mul.push_back(std::make_unique<Lemma<LemmaKind::MUL2_NEG_POW2>>(nm));
+  d_mul.push_back(std::make_unique<Lemma<LemmaKind::MUL3_IC>>(nm));
+  d_mul.push_back(std::make_unique<Lemma<LemmaKind::MUL4_ODD>>(nm));
+  d_mul.push_back(std::make_unique<Lemma<LemmaKind::MUL5_REF1>>(nm));
+  d_mul.push_back(std::make_unique<Lemma<LemmaKind::MUL6_REF3>>(nm));
+  d_mul.push_back(std::make_unique<Lemma<LemmaKind::MUL7_REFN3>>(nm));
+  d_mul.push_back(std::make_unique<Lemma<LemmaKind::MUL8_REFN14>>(nm));
+  d_mul.push_back(std::make_unique<Lemma<LemmaKind::MUL9_REFN5>>(nm));
+  d_mul.push_back(std::make_unique<Lemma<LemmaKind::MUL10_REFN6>>(nm));
+  d_mul.push_back(std::make_unique<Lemma<LemmaKind::MUL11_REF14>>(nm));
+  d_mul.push_back(std::make_unique<Lemma<LemmaKind::MUL12_REF15>>(nm));
+  d_mul.push_back(std::make_unique<Lemma<LemmaKind::MUL13_REFN9>>(nm));
+  d_mul.push_back(std::make_unique<Lemma<LemmaKind::MUL14_REF18>>(nm));
+  d_mul.push_back(std::make_unique<Lemma<LemmaKind::MUL15_REFN11>>(nm));
+  d_mul.push_back(std::make_unique<Lemma<LemmaKind::MUL16_REFN12>>(nm));
+  d_mul.push_back(std::make_unique<Lemma<LemmaKind::MUL17_REFN13>>(nm));
+  d_mul.push_back(std::make_unique<Lemma<LemmaKind::MUL18_REF13>>(nm));
+  d_mul.push_back(std::make_unique<Lemma<LemmaKind::MUL19_REF12>>(nm));
 }
 
 void LemmaRegistry::initUdiv(NodeManager* nm)
 {
-  d_udiv.push_back(std::make_unique<Lemma<LemmaKind::UDIV_POW2>>(nm));
-  d_udiv.push_back(std::make_unique<Lemma<LemmaKind::UDIV_REF1>>(nm));
-  d_udiv.push_back(std::make_unique<Lemma<LemmaKind::UDIV_REF2>>(nm));
-  d_udiv.push_back(std::make_unique<Lemma<LemmaKind::UDIV_REF3>>(nm));
-  d_udiv.push_back(std::make_unique<Lemma<LemmaKind::UDIV_REF4>>(nm));
-  d_udiv.push_back(std::make_unique<Lemma<LemmaKind::UDIV_REF5>>(nm));
-  d_udiv.push_back(std::make_unique<Lemma<LemmaKind::UDIV_REF6>>(nm));
-  d_udiv.push_back(std::make_unique<Lemma<LemmaKind::UDIV_REF7>>(nm));
-  d_udiv.push_back(std::make_unique<Lemma<LemmaKind::UDIV_REF8>>(nm));
-  d_udiv.push_back(std::make_unique<Lemma<LemmaKind::UDIV_REF9>>(nm));
-  d_udiv.push_back(std::make_unique<Lemma<LemmaKind::UDIV_REF10>>(nm));
-  d_udiv.push_back(std::make_unique<Lemma<LemmaKind::UDIV_REF11>>(nm));
-  d_udiv.push_back(std::make_unique<Lemma<LemmaKind::UDIV_REF12>>(nm));
-  d_udiv.push_back(std::make_unique<Lemma<LemmaKind::UDIV_REF13>>(nm));
-  d_udiv.push_back(std::make_unique<Lemma<LemmaKind::UDIV_REF14>>(nm));
-  d_udiv.push_back(std::make_unique<Lemma<LemmaKind::UDIV_REF15>>(nm));
-  d_udiv.push_back(std::make_unique<Lemma<LemmaKind::UDIV_REF16>>(nm));
-  d_udiv.push_back(std::make_unique<Lemma<LemmaKind::UDIV_REF17>>(nm));
-  d_udiv.push_back(std::make_unique<Lemma<LemmaKind::UDIV_REF18>>(nm));
-  d_udiv.push_back(std::make_unique<Lemma<LemmaKind::UDIV_REF19>>(nm));
-  d_udiv.push_back(std::make_unique<Lemma<LemmaKind::UDIV_REF20>>(nm));
-  d_udiv.push_back(std::make_unique<Lemma<LemmaKind::UDIV_REF21>>(nm));
-  d_udiv.push_back(std::make_unique<Lemma<LemmaKind::UDIV_REF23>>(nm));
-  d_udiv.push_back(std::make_unique<Lemma<LemmaKind::UDIV_REF24>>(nm));
-  d_udiv.push_back(std::make_unique<Lemma<LemmaKind::UDIV_REF25>>(nm));
-  d_udiv.push_back(std::make_unique<Lemma<LemmaKind::UDIV_REF26>>(nm));
-  d_udiv.push_back(std::make_unique<Lemma<LemmaKind::UDIV_REF27>>(nm));
-  d_udiv.push_back(std::make_unique<Lemma<LemmaKind::UDIV_REF28>>(nm));
-  d_udiv.push_back(std::make_unique<Lemma<LemmaKind::UDIV_REF29>>(nm));
-  d_udiv.push_back(std::make_unique<Lemma<LemmaKind::UDIV_REF30>>(nm));
-  d_udiv.push_back(std::make_unique<Lemma<LemmaKind::UDIV_REF31>>(nm));
-  d_udiv.push_back(std::make_unique<Lemma<LemmaKind::UDIV_REF32>>(nm));
-  d_udiv.push_back(std::make_unique<Lemma<LemmaKind::UDIV_REF33>>(nm));
-  d_udiv.push_back(std::make_unique<Lemma<LemmaKind::UDIV_REF34>>(nm));
-  d_udiv.push_back(std::make_unique<Lemma<LemmaKind::UDIV_REF36>>(nm));
-  d_udiv.push_back(std::make_unique<Lemma<LemmaKind::UDIV_REF37>>(nm));
-  d_udiv.push_back(std::make_unique<Lemma<LemmaKind::UDIV_REF38>>(nm));
+  d_udiv.push_back(std::make_unique<Lemma<LemmaKind::UDIV1_POW2>>(nm));
+  d_udiv.push_back(std::make_unique<Lemma<LemmaKind::UDIV__REF1>>(nm));
+  d_udiv.push_back(std::make_unique<Lemma<LemmaKind::UDIV2_REF2>>(nm));
+  d_udiv.push_back(std::make_unique<Lemma<LemmaKind::UDIV3_REF3>>(nm));
+  d_udiv.push_back(std::make_unique<Lemma<LemmaKind::UDIV4_REF4>>(nm));
+  d_udiv.push_back(std::make_unique<Lemma<LemmaKind::UDIV5_REF5>>(nm));
+  d_udiv.push_back(std::make_unique<Lemma<LemmaKind::UDIV6_REF6>>(nm));
+  d_udiv.push_back(std::make_unique<Lemma<LemmaKind::UDIV7_REF7>>(nm));
+  d_udiv.push_back(std::make_unique<Lemma<LemmaKind::UDIV8_REF8>>(nm));
+  d_udiv.push_back(std::make_unique<Lemma<LemmaKind::UDIV9_REF9>>(nm));
+  d_udiv.push_back(std::make_unique<Lemma<LemmaKind::UDIV10_REF10>>(nm));
+  d_udiv.push_back(std::make_unique<Lemma<LemmaKind::UDIV11_REF11>>(nm));
+  d_udiv.push_back(std::make_unique<Lemma<LemmaKind::UDIV12_REF12>>(nm));
+  d_udiv.push_back(std::make_unique<Lemma<LemmaKind::UDIV13_REF13>>(nm));
+  d_udiv.push_back(std::make_unique<Lemma<LemmaKind::UDIV14_REF14>>(nm));
+  d_udiv.push_back(std::make_unique<Lemma<LemmaKind::UDIV15_REF15>>(nm));
+  d_udiv.push_back(std::make_unique<Lemma<LemmaKind::UDIV16_REF16>>(nm));
+  d_udiv.push_back(std::make_unique<Lemma<LemmaKind::UDIV17_REF17>>(nm));
+  d_udiv.push_back(std::make_unique<Lemma<LemmaKind::UDIV18_REF18>>(nm));
+  d_udiv.push_back(std::make_unique<Lemma<LemmaKind::UDIV19_REF19>>(nm));
+  d_udiv.push_back(std::make_unique<Lemma<LemmaKind::UDIV20_REF20>>(nm));
+  d_udiv.push_back(std::make_unique<Lemma<LemmaKind::UDIV21_REF21>>(nm));
+  d_udiv.push_back(std::make_unique<Lemma<LemmaKind::UDIV22_REF23>>(nm));
+  d_udiv.push_back(std::make_unique<Lemma<LemmaKind::UDIV23_REF24>>(nm));
+  d_udiv.push_back(std::make_unique<Lemma<LemmaKind::UDIV24_REF25>>(nm));
+  d_udiv.push_back(std::make_unique<Lemma<LemmaKind::UDIV25_REF26>>(nm));
+  d_udiv.push_back(std::make_unique<Lemma<LemmaKind::UDIV26_REF27>>(nm));
+  d_udiv.push_back(std::make_unique<Lemma<LemmaKind::UDIV27_REF28>>(nm));
+  d_udiv.push_back(std::make_unique<Lemma<LemmaKind::UDIV28_REF29>>(nm));
+  d_udiv.push_back(std::make_unique<Lemma<LemmaKind::UDIV29_REF30>>(nm));
+  d_udiv.push_back(std::make_unique<Lemma<LemmaKind::UDIV30_REF31>>(nm));
+  d_udiv.push_back(std::make_unique<Lemma<LemmaKind::UDIV31_REF32>>(nm));
+  d_udiv.push_back(std::make_unique<Lemma<LemmaKind::UDIV32_REF33>>(nm));
+  d_udiv.push_back(std::make_unique<Lemma<LemmaKind::UDIV33_REF34>>(nm));
+  d_udiv.push_back(std::make_unique<Lemma<LemmaKind::UDIV34_REF36>>(nm));
+  d_udiv.push_back(std::make_unique<Lemma<LemmaKind::UDIV35_REF37>>(nm));
+  d_udiv.push_back(std::make_unique<Lemma<LemmaKind::UDIV36_REF38>>(nm));
 }
 
 void LemmaRegistry::initUrem(NodeManager* nm)
 {
-  d_urem.push_back(std::make_unique<Lemma<LemmaKind::UREM_POW2>>(nm));
-  d_urem.push_back(std::make_unique<Lemma<LemmaKind::UREM_REF1>>(nm));
-  d_urem.push_back(std::make_unique<Lemma<LemmaKind::UREM_REF2>>(nm));
-  d_urem.push_back(std::make_unique<Lemma<LemmaKind::UREM_REF3>>(nm));
-  d_urem.push_back(std::make_unique<Lemma<LemmaKind::UREM_REF4>>(nm));
-  d_urem.push_back(std::make_unique<Lemma<LemmaKind::UREM_REF5>>(nm));
-  d_urem.push_back(std::make_unique<Lemma<LemmaKind::UREM_REF6>>(nm));
-  d_urem.push_back(std::make_unique<Lemma<LemmaKind::UREM_REF7>>(nm));
-  d_urem.push_back(std::make_unique<Lemma<LemmaKind::UREM_REF8>>(nm));
-  d_urem.push_back(std::make_unique<Lemma<LemmaKind::UREM_REF9>>(nm));
-  d_urem.push_back(std::make_unique<Lemma<LemmaKind::UREM_REF10>>(nm));
-  d_urem.push_back(std::make_unique<Lemma<LemmaKind::UREM_REF11>>(nm));
-  d_urem.push_back(std::make_unique<Lemma<LemmaKind::UREM_REF12>>(nm));
-  d_urem.push_back(std::make_unique<Lemma<LemmaKind::UREM_REF13>>(nm));
-  d_urem.push_back(std::make_unique<Lemma<LemmaKind::UREM_REF14>>(nm));
+  d_urem.push_back(std::make_unique<Lemma<LemmaKind::UREM1_POW2>>(nm));
+  d_urem.push_back(std::make_unique<Lemma<LemmaKind::UREM2_REF1>>(nm));
+  d_urem.push_back(std::make_unique<Lemma<LemmaKind::UREM3_REF2>>(nm));
+  d_urem.push_back(std::make_unique<Lemma<LemmaKind::UREM4_REF3>>(nm));
+  d_urem.push_back(std::make_unique<Lemma<LemmaKind::UREM5_REF4>>(nm));
+  d_urem.push_back(std::make_unique<Lemma<LemmaKind::UREM6_REF5>>(nm));
+  d_urem.push_back(std::make_unique<Lemma<LemmaKind::UREM7_REF6>>(nm));
+  d_urem.push_back(std::make_unique<Lemma<LemmaKind::UREM8_REF7>>(nm));
+  d_urem.push_back(std::make_unique<Lemma<LemmaKind::UREM9_REF8>>(nm));
+  d_urem.push_back(std::make_unique<Lemma<LemmaKind::UREM10_REF9>>(nm));
+  d_urem.push_back(std::make_unique<Lemma<LemmaKind::UREM11_REF10>>(nm));
+  d_urem.push_back(std::make_unique<Lemma<LemmaKind::UREM12_REF11>>(nm));
+  d_urem.push_back(std::make_unique<Lemma<LemmaKind::UREM13_REF12>>(nm));
+  d_urem.push_back(std::make_unique<Lemma<LemmaKind::UREM14_REF13>>(nm));
+  d_urem.push_back(std::make_unique<Lemma<LemmaKind::UREM15_REF14>>(nm));
 }
 
 }  // namespace bv::abstract
@@ -969,79 +969,79 @@ std::string to_string(cvc5::internal::theory::bv::abstract::LemmaKind kind)
   using namespace cvc5::internal::theory::bv::abstract;
   switch (kind)
   {
-    case LemmaKind::MUL_POW2: return "MUL_POW2";
-    case LemmaKind::MUL_NEG_POW2: return "MUL_NEG_POW2";
-    case LemmaKind::MUL_IC: return "MUL_IC";
-    case LemmaKind::MUL_ODD: return "MUL_ODD";
-    case LemmaKind::MUL_REF1: return "MUL_REF1";
-    case LemmaKind::MUL_REF3: return "MUL_REF3";
-    case LemmaKind::MUL_REFN3: return "MUL_REFN3";
-    case LemmaKind::MUL_REFN4: return "MUL_REFN4";
-    case LemmaKind::MUL_REFN5: return "MUL_REFN5";
-    case LemmaKind::MUL_REFN6: return "MUL_REFN6";
-    case LemmaKind::MUL_REF14: return "MUL_REF14";
-    case LemmaKind::MUL_REF15: return "MUL_REF15";
-    case LemmaKind::MUL_REFN9: return "MUL_REFN9";
-    case LemmaKind::MUL_REF18: return "MUL_REF18";
-    case LemmaKind::MUL_REFN11: return "MUL_REFN11";
-    case LemmaKind::MUL_REFN12: return "MUL_REFN12";
-    case LemmaKind::MUL_REFN13: return "MUL_REFN13";
-    case LemmaKind::MUL_REF13: return "MUL_REF13";
-    case LemmaKind::MUL_REF12: return "MUL_REF12";
+    case LemmaKind::MUL1_POW2: return "MUL1_POW2";
+    case LemmaKind::MUL2_NEG_POW2: return "MUL2_NEG_POW2";
+    case LemmaKind::MUL3_IC: return "MUL3_IC";
+    case LemmaKind::MUL4_ODD: return "MUL4_ODD";
+    case LemmaKind::MUL5_REF1: return "MUL5_REF1";
+    case LemmaKind::MUL6_REF3: return "MUL6_REF3";
+    case LemmaKind::MUL7_REFN3: return "MUL7_REFN3";
+    case LemmaKind::MUL8_REFN14: return "MUL8_REFN4";
+    case LemmaKind::MUL9_REFN5: return "MUL9_REFN5";
+    case LemmaKind::MUL10_REFN6: return "MUL10_REFN6";
+    case LemmaKind::MUL11_REF14: return "MUL11_REF14";
+    case LemmaKind::MUL12_REF15: return "MUL12_REF15";
+    case LemmaKind::MUL13_REFN9: return "MUL13_REFN9";
+    case LemmaKind::MUL14_REF18: return "MUL14_REF18";
+    case LemmaKind::MUL15_REFN11: return "MUL15_REFN11";
+    case LemmaKind::MUL16_REFN12: return "MUL16_REFN12";
+    case LemmaKind::MUL17_REFN13: return "MUL17_REFN13";
+    case LemmaKind::MUL18_REF13: return "MUL18_REF13";
+    case LemmaKind::MUL19_REF12: return "MUL19_REF12";
 
-    case LemmaKind::UDIV_POW2: return "UDIV_POW2";
-    case LemmaKind::UDIV_REF1: return "UDIV_REF1";
-    case LemmaKind::UDIV_REF2: return "UDIV_REF2";
-    case LemmaKind::UDIV_REF3: return "UDIV_REF3";
-    case LemmaKind::UDIV_REF4: return "UDIV_REF4";
-    case LemmaKind::UDIV_REF5: return "UDIV_REF5";
-    case LemmaKind::UDIV_REF6: return "UDIV_REF6";
-    case LemmaKind::UDIV_REF7: return "UDIV_REF7";
-    case LemmaKind::UDIV_REF8: return "UDIV_REF8";
-    case LemmaKind::UDIV_REF9: return "UDIV_REF9";
-    case LemmaKind::UDIV_REF10: return "UDIV_REF10";
-    case LemmaKind::UDIV_REF11: return "UDIV_REF11";
-    case LemmaKind::UDIV_REF12: return "UDIV_REF12";
-    case LemmaKind::UDIV_REF13: return "UDIV_REF13";
-    case LemmaKind::UDIV_REF14: return "UDIV_REF14";
-    case LemmaKind::UDIV_REF15: return "UDIV_REF15";
-    case LemmaKind::UDIV_REF16: return "UDIV_REF16";
-    case LemmaKind::UDIV_REF17: return "UDIV_REF17";
-    case LemmaKind::UDIV_REF18: return "UDIV_REF18";
-    case LemmaKind::UDIV_REF19: return "UDIV_REF19";
-    case LemmaKind::UDIV_REF20: return "UDIV_REF20";
-    case LemmaKind::UDIV_REF21: return "UDIV_REF21";
-    case LemmaKind::UDIV_REF23: return "UDIV_REF23";
-    case LemmaKind::UDIV_REF24: return "UDIV_REF24";
-    case LemmaKind::UDIV_REF25: return "UDIV_REF25";
-    case LemmaKind::UDIV_REF26: return "UDIV_REF26";
-    case LemmaKind::UDIV_REF27: return "UDIV_REF27";
-    case LemmaKind::UDIV_REF28: return "UDIV_REF28";
-    case LemmaKind::UDIV_REF29: return "UDIV_REF29";
-    case LemmaKind::UDIV_REF30: return "UDIV_REF30";
-    case LemmaKind::UDIV_REF31: return "UDIV_REF31";
-    case LemmaKind::UDIV_REF32: return "UDIV_REF32";
-    case LemmaKind::UDIV_REF33: return "UDIV_REF33";
-    case LemmaKind::UDIV_REF34: return "UDIV_REF34";
-    case LemmaKind::UDIV_REF36: return "UDIV_REF36";
-    case LemmaKind::UDIV_REF37: return "UDIV_REF37";
-    case LemmaKind::UDIV_REF38: return "UDIV_REF38";
+    case LemmaKind::UDIV1_POW2: return "UDIV1_POW2";
+    case LemmaKind::UDIV__REF1: return "UDIV__REF1";
+    case LemmaKind::UDIV2_REF2: return "UDIV2_REF2";
+    case LemmaKind::UDIV3_REF3: return "UDIV3_REF3";
+    case LemmaKind::UDIV4_REF4: return "UDIV4_REF4";
+    case LemmaKind::UDIV5_REF5: return "UDIV5_REF5";
+    case LemmaKind::UDIV6_REF6: return "UDIV6_REF6";
+    case LemmaKind::UDIV7_REF7: return "UDIV7_REF7";
+    case LemmaKind::UDIV8_REF8: return "UDIV8_REF8";
+    case LemmaKind::UDIV9_REF9: return "UDIV9_REF9";
+    case LemmaKind::UDIV10_REF10: return "UDIV10_REF10";
+    case LemmaKind::UDIV11_REF11: return "UDIV11_REF11";
+    case LemmaKind::UDIV12_REF12: return "UDIV12_REF12";
+    case LemmaKind::UDIV13_REF13: return "UDIV13_REF13";
+    case LemmaKind::UDIV14_REF14: return "UDIV14_REF14";
+    case LemmaKind::UDIV15_REF15: return "UDIV15_REF15";
+    case LemmaKind::UDIV16_REF16: return "UDIV16_REF16";
+    case LemmaKind::UDIV17_REF17: return "UDIV17_REF17";
+    case LemmaKind::UDIV18_REF18: return "UDIV18_REF18";
+    case LemmaKind::UDIV19_REF19: return "UDIV19_REF19";
+    case LemmaKind::UDIV20_REF20: return "UDIV20_REF20";
+    case LemmaKind::UDIV21_REF21: return "UDIV21_REF21";
+    case LemmaKind::UDIV22_REF23: return "UDIV22_REF23";
+    case LemmaKind::UDIV23_REF24: return "UDIV23_REF24";
+    case LemmaKind::UDIV24_REF25: return "UDIV24_REF25";
+    case LemmaKind::UDIV25_REF26: return "UDIV25_REF26";
+    case LemmaKind::UDIV26_REF27: return "UDIV26_REF27";
+    case LemmaKind::UDIV27_REF28: return "UDIV27_REF28";
+    case LemmaKind::UDIV28_REF29: return "UDIV28_REF29";
+    case LemmaKind::UDIV29_REF30: return "UDIV29_REF30";
+    case LemmaKind::UDIV30_REF31: return "UDIV30_REF31";
+    case LemmaKind::UDIV31_REF32: return "UDIV31_REF32";
+    case LemmaKind::UDIV32_REF33: return "UDIV32_REF33";
+    case LemmaKind::UDIV33_REF34: return "UDIV33_REF34";
+    case LemmaKind::UDIV34_REF36: return "UDIV34_REF36";
+    case LemmaKind::UDIV35_REF37: return "UDIV35_REF37";
+    case LemmaKind::UDIV36_REF38: return "UDIV36_REF38";
 
-    case LemmaKind::UREM_POW2: return "UREM_POW2";
-    case LemmaKind::UREM_REF1: return "UREM_REF1";
-    case LemmaKind::UREM_REF2: return "UREM_REF2";
-    case LemmaKind::UREM_REF3: return "UREM_REF3";
-    case LemmaKind::UREM_REF4: return "UREM_REF4";
-    case LemmaKind::UREM_REF5: return "UREM_REF5";
-    case LemmaKind::UREM_REF6: return "UREM_REF6";
-    case LemmaKind::UREM_REF7: return "UREM_REF7";
-    case LemmaKind::UREM_REF8: return "UREM_REF8";
-    case LemmaKind::UREM_REF9: return "UREM_REF9";
-    case LemmaKind::UREM_REF10: return "UREM_REF10";
-    case LemmaKind::UREM_REF11: return "UREM_REF11";
-    case LemmaKind::UREM_REF12: return "UREM_REF12";
-    case LemmaKind::UREM_REF13: return "UREM_REF13";
-    case LemmaKind::UREM_REF14: return "UREM_REF14";
+    case LemmaKind::UREM1_POW2: return "UREM1_POW2";
+    case LemmaKind::UREM2_REF1: return "UREM2_REF1";
+    case LemmaKind::UREM3_REF2: return "UREM3_REF2";
+    case LemmaKind::UREM4_REF3: return "UREM4_REF3";
+    case LemmaKind::UREM5_REF4: return "UREM5_REF4";
+    case LemmaKind::UREM6_REF5: return "UREM6_REF5";
+    case LemmaKind::UREM7_REF6: return "UREM7_REF6";
+    case LemmaKind::UREM8_REF7: return "UREM8_REF7";
+    case LemmaKind::UREM9_REF8: return "UREM9_REF8";
+    case LemmaKind::UREM10_REF9: return "UREM10_REF9";
+    case LemmaKind::UREM11_REF10: return "UREM11_REF10";
+    case LemmaKind::UREM12_REF11: return "UREM12_REF11";
+    case LemmaKind::UREM13_REF12: return "UREM13_REF12";
+    case LemmaKind::UREM14_REF13: return "UREM14_REF13";
+    case LemmaKind::UREM15_REF14: return "UREM15_REF14";
   }
   return "?";
 }
