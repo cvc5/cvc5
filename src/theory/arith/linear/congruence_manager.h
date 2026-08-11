@@ -72,12 +72,6 @@ class ArithCongruenceManager : protected EnvObj
 
   void addWatchedPair(ArithVar s, TNode x, TNode y);
 
-  /**
-   * Notify that (to_real n) is a term that is shared with another theory,
-   * where n is an integer term. See d_sharedToReal for details.
-   */
-  void notifySharedTermToReal(TNode n);
-
   bool isWatchedVariable(ArithVar s) const
   {
     return d_watchedVariables.isMember(s);
@@ -98,17 +92,6 @@ class ArithCongruenceManager : protected EnvObj
   /** Assert that the value is congruent to a constant. */
   void equalsConstant(ConstraintCP eq);
   void equalsConstant(ConstraintCP lb, ConstraintCP ub);
-
-  /**
-   * Assert (= x c) to the equality engine, where x is an arithmetic term and
-   * c is a constant, with the given reason and proof. Additionally, if
-   * (to_real x) is shared with another theory, assert that it is equal to the
-   * real-valued form of c.
-   */
-  void assertEqualsConstant(const Node& x,
-                            const Node& c,
-                            const Node& reason,
-                            std::shared_ptr<ProofNode> pf);
 
   bool inConflict() const;
 
@@ -135,19 +118,6 @@ class ArithCongruenceManager : protected EnvObj
   DenseSet d_watchedVariables;
   /** d_watchedVariables |-> (= x y) */
   ArithVarToNodeMap d_watchedEqualities;
-
-  /**
-   * Maps integer terms x to (to_real x), for those (to_real x) that are shared
-   * with another theory.
-   *
-   * The equality engine cannot infer (= (to_real x) 1.0) from (= x 1) by
-   * congruence, since the congruent term (to_real 1) is not the same node as
-   * the real constant 1.0. We thus assert such equalities explicitly, which is
-   * necessary for theory combination: another theory that has (to_real x) as a
-   * shared term must be notified that it is equal to 1.0.
-   */
-  using NodeToNodeMap = context::CDHashMap<Node, Node>;
-  NodeToNodeMap d_sharedToReal;
 
   context::CDList<Node> d_keepAlive;
 

@@ -1057,14 +1057,6 @@ bool TheoryArithPrivate::AssertDisequality(ConstraintP constraint)
 void TheoryArithPrivate::notifySharedTerm(TNode n)
 {
   Trace("arith::notifySharedTerm") << "notifySharedTerm: " << n << endl;
-  if (n.getKind() == Kind::TO_REAL)
-  {
-    // Remember that the real cast of n[0] is shared, so that we propagate
-    // equalities involving it to other theories. We then continue with n[0],
-    // which is the term this theory reasons about.
-    d_congruenceManager.notifySharedTermToReal(n);
-    n = n[0];
-  }
   if (n.isConst())
   {
     d_partialModel.invalidateDelta();

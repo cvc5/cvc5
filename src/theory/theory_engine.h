@@ -550,6 +550,22 @@ class TheoryEngine : protected EnvObj
              theory::LemmaProperty p,
              theory::TheoryId from = theory::THEORY_LAST);
 
+  /**
+   * Ensure that equalities in n whose rewritten form is an equality of a
+   * different type are sent to the shared solver.
+   *
+   * The rewritten form of an equality preserves its type, with the exception
+   * that an equality between real terms may rewrite to an equality between
+   * integer terms, e.g. (= (to_real x) 1.0) rewrites to (= x 1). Only the
+   * latter is known to the SAT solver, whereas the terms of the former are the
+   * ones that may be shared with other theories. Asserting (= x 1) thus does
+   * not notify the shared solver that (to_real x) and 1.0 are equal, and a
+   * theory that has (to_real x) as a shared term, e.g. as an array index, would
+   * never learn the status of this pair. We therefore request that the original
+   * equality is asserted to the shared solver whenever the literal of its
+   * rewritten form is assigned.
+   */
+  void ensureSharedAtoms(TNode n);
   /** Ensure atoms from the given node are sent to the given theory */
   void ensureLemmaAtoms(TNode n, theory::TheoryId atomsTo);
   /** Ensure that the given atoms are sent to the given theory */

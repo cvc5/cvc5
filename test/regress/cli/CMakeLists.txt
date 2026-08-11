@@ -181,6 +181,8 @@ set(regress_0_tests
   regress0/arrays/issue10494-2.smt2
   regress0/arrays/issue11889-eec-unsat.smt2
   regress0/arrays/issue12805-to-real-index.smt2
+  regress0/arrays/issue12805-to-real-index-2.smt2
+  regress0/arrays/issue12805-to-real-index-3.smt2
   regress0/arrays/proj-issue322-has-term.smt2
   regress0/arrays/proj-issue391-minisat-elim.smt2
   regress0/arrays/proj-issue467-cm.smt2
