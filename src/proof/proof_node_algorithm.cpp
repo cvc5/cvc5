@@ -401,16 +401,16 @@ bool proveEqualityWithRewriteSteps(
         cdp.addStep(eq, ProofRule::ACI_NORM, {}, {eq});
         continue;
       }
-      if (lhs.getType() == rhs.getType())
+      TypeNode lhsTn = lhs.getType();
+      if (lhsTn == rhs.getType())
       {
-        TypeNode tn = lhs.getType();
-        if (tn.isBitVector()
+        if (lhsTn.isBitVector()
             && theory::arith::PolyNorm::isArithPolyNorm(lhs, rhs))
         {
           cdp.addStep(eq, ProofRule::BV_POLY_NORM, {}, {eq});
           continue;
         }
-        if (tn.isRealOrInt()
+        if (lhsTn.isRealOrInt()
             && theory::arith::PolyNorm::isArithPolyNorm(lhs, rhs))
         {
           cdp.addStep(eq, ProofRule::ARITH_POLY_NORM, {}, {eq});
