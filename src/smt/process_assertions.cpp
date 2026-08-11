@@ -53,7 +53,10 @@ class ScopeCounter
 };
 
 ProcessAssertions::ProcessAssertions(Env& env, SolverEngineStatistics& stats)
-    : EnvObj(env), d_slvStats(stats), d_preprocessingPassContext(nullptr)
+    : EnvObj(env),
+      d_slvStats(stats),
+      d_preprocessingPassContext(nullptr),
+      d_simplifyAssertionsDepth(0)
 {
   d_true = nodeManager()->mkConst(true);
 }
