@@ -159,7 +159,7 @@ Node LogosNodeConverter::postConvert(Node n)
     std::vector<Node> args(n.begin(), n.end());
     return convert(mkInternalApp(id, args, tn));
   }
-  else if (k==Kind::BOUND_VARIABLE)
+  else if (k == Kind::BOUND_VARIABLE)
   {
     std::stringstream sss;
     sss << n;
@@ -189,8 +189,8 @@ Node LogosNodeConverter::postConvert(Node n)
 }
 
 std::string LogosNodeConverter::replace_all(std::string str,
-                        const std::string& from,
-                        const std::string& to)
+                                            const std::string& from,
+                                            const std::string& to)
 {
   if (from.empty()) return str;  // avoid infinite loop
 
@@ -253,7 +253,7 @@ Node LogosNodeConverter::typeAsNode(TypeNode tn)
   else if (tn.isDatatype())
   {
     std::map<TypeNode, Node>::iterator itd = d_dtToDecl.find(tn);
-    if (itd!=d_dtToDecl.end())
+    if (itd != d_dtToDecl.end())
     {
       return itd->second;
     }
@@ -267,15 +267,19 @@ Node LogosNodeConverter::typeAsNode(TypeNode tn)
     for (auto its = scope.rbegin(); its != scope.rend(); ++its)
     {
       TypeNode tns = *its;
-      Assert (tns.isDatatype());
-      Node dtName = mkNativeStringLit(d_nm->mkConst(String(tns.getDType().getName())));
+      Assert(tns.isDatatype());
+      Node dtName =
+          mkNativeStringLit(d_nm->mkConst(String(tns.getDType().getName())));
       Node dret = typeAsNodeDatatype(tns.getDType());
-      ddret = mkInternalApp("DatatypeDecl.cons", {dtName, dret, ddret}, d_sortType);
+      ddret =
+          mkInternalApp("DatatypeDecl.cons", {dtName, dret, ddret}, d_sortType);
     }
     for (const TypeNode& tns : scope)
     {
-      Node dtName = mkNativeStringLit(d_nm->mkConst(String(tns.getDType().getName())));
-      d_dtToDecl[tns] = mkInternalApp("Term.DatatypeType", {dtName, ddret}, d_sortType);
+      Node dtName =
+          mkNativeStringLit(d_nm->mkConst(String(tns.getDType().getName())));
+      d_dtToDecl[tns] =
+          mkInternalApp("Term.DatatypeType", {dtName, ddret}, d_sortType);
     }
     return d_dtToDecl[tn];
   }
@@ -335,9 +339,9 @@ void LogosNodeConverter::getDatatypeScope(const DType& dt,
     for (size_t k = 0, nargs = dt[j].getNumArgs(); k < nargs; k++)
     {
       TypeNode argt = dt[j].getArgType(k);
-      if (argt.isDatatype() && d_dtToDecl.find(argt)==d_dtToDecl.end())
+      if (argt.isDatatype() && d_dtToDecl.find(argt) == d_dtToDecl.end())
       {
-        if (std::find(scope.begin(), scope.end(), argt)==scope.end())
+        if (std::find(scope.begin(), scope.end(), argt) == scope.end())
         {
           scope.push_back(argt);
           getDatatypeScope(argt.getDType(), scope);
@@ -406,16 +410,17 @@ Node LogosNodeConverter::typeAsNodeDatatype(const DType& dt)
   Node consUnit = mkInternalSymbol("DatatypeCons.unit", d_sortType);
   for (size_t j = 0, ncons = dt.getNumConstructors(); j < ncons; j++)
   {
-    size_t jj = (ncons-1)-j;
+    size_t jj = (ncons - 1) - j;
     Node cons = consUnit;
     // traverse the argument types
     for (size_t k = 0, nargs = dt[jj].getNumArgs(); k < nargs; k++)
     {
       Node an;
       TypeNode argt = dt[jj].getArgType((nargs - 1) - k);
-      if (argt.isDatatype() && d_dtToDecl.find(argt)==d_dtToDecl.end())
+      if (argt.isDatatype() && d_dtToDecl.find(argt) == d_dtToDecl.end())
       {
-        Node dtName = mkNativeStringLit(d_nm->mkConst(String(argt.getDType().getName())));
+        Node dtName =
+            mkNativeStringLit(d_nm->mkConst(String(argt.getDType().getName())));
         an = mkInternalApp("Term.DatatypeTypeRef", {dtName}, d_sortType);
       }
       else
@@ -429,7 +434,8 @@ Node LogosNodeConverter::typeAsNodeDatatype(const DType& dt)
   return ret;
 }
 
-Node LogosNodeConverter::mkLogosList(const std::vector<Node>& args, const TypeNode& tn)
+Node LogosNodeConverter::mkLogosList(const std::vector<Node>& args,
+                                     const TypeNode& tn)
 {
   Node ret = mkInternalSymbol("Term.__eo_List_nil", tn);
   Node cons = mkInternalSymbol("Term.__eo_List_cons", tn);
@@ -443,9 +449,10 @@ Node LogosNodeConverter::mkLogosList(const std::vector<Node>& args, const TypeNo
   return ret;
 }
 
-Node LogosNodeConverter::mkLogosTypedList(const std::vector<Node>& args, const TypeNode& tn)
+Node LogosNodeConverter::mkLogosTypedList(const std::vector<Node>& args,
+                                          const TypeNode& tn)
 {
-  Assert (!args.empty());
+  Assert(!args.empty());
   Node nilu = mkInternalSymbol(mkUserOpId("_at__at_TypedList_nil"), tn);
   Node niltype = typeAsNode(args[0].getType());
   Node ret = mkInternalApp("Term.Apply", {nilu, niltype}, tn);
@@ -461,9 +468,9 @@ Node LogosNodeConverter::mkLogosTypedList(const std::vector<Node>& args, const T
 }
 
 Node LogosNodeConverter::mkIndexedApp(const std::string& name,
-                    const std::vector<Node>& args,
-                    TypeNode ret,
-                    bool useRawSym)
+                                      const std::vector<Node>& args,
+                                      TypeNode ret,
+                                      bool useRawSym)
 {
   std::vector<Node> targs;
   std::stringstream sso;

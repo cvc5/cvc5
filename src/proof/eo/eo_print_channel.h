@@ -70,9 +70,7 @@ class EoPrintChannel
 class EoPrintChannelOut : public EoPrintChannel
 {
  public:
-  EoPrintChannelOut(std::ostream& out,
-                     const LetBinding* lbind,
-                     bool trackWarn);
+  EoPrintChannelOut(std::ostream& out, const LetBinding* lbind, bool trackWarn);
   void printNode(TNode n) override;
   void printTypeNode(TypeNode tn) override;
   void printAssume(TNode n, size_t i, bool isPush) override;
@@ -158,9 +156,9 @@ class EoPrintChannelPre : public EoPrintChannel
   void processInternal(const Node& n);
 };
 
-/** 
+/**
  * Prints the proof to output stream d_out in the form expected by Logos.
- * 
+ *
  * Eunoia proof commands step, step-pop, assume, assume-pop correspond
  * one-to-one with the output of this proof channel. An example of the proof
  * output from this checker is the following:
@@ -174,7 +172,7 @@ class EoPrintChannelPre : public EoPrintChannel
  * def s4 : CState := (logos_invoke_cmd s3 (CCmd.step CRule.contra CArgList.nil
  *                    (CIndexList.cons 2 (CIndexList.cons 0 CIndexList.nil))))
  * #eval! (logos_state_is_refutation s4)
- * 
+ *
  * Note that premise ids refer to the relative distance of the premise from the
  * top of the stack, where 0 refers to the last formula proven, and so on.
  */
@@ -206,7 +204,7 @@ class CpcLogosChannelOut : public EoPrintChannelOut
  private:
   /** The output state definition */
   std::stringstream d_stateDef;
-  /** 
+  /**
    * mapping premise ids to their distance from the top of the stack of formulas
    * we have proven, used to lookup premises in logos
    */

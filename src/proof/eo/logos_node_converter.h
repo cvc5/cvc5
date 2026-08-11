@@ -27,9 +27,9 @@ namespace proof {
 /**
  * This is a helper class for the Eunoia printer that prints a proof in the
  * format expected by the Logos checker.
- * 
+ *
  * An example of such a proof is:
- * 
+ *
  * import Cpc.Logos
  * open Eo
  * def t1 : Term := (Term.UConst 1 Term.Int)
@@ -47,7 +47,7 @@ namespace proof {
  * def s4 : CState := (logos_invoke_cmd s3 (CCmd.step CRule.contra CArgList.nil
  *                    (CIndexList.cons 2 (CIndexList.cons 0 CIndexList.nil))))
  * #eval! (logos_state_is_refutation s4)
- * 
+ *
  * This node converter involves rewriting cvc5 terms to their corresponding
  * deep embedding syntax in the Lean signature.
  */
@@ -67,10 +67,12 @@ class LogosNodeConverter : public EoNodeConverter
    * passed as arguments to terms and proof rules.
    */
   Node typeAsNode(TypeNode tni) override;
-  /** Replace all string utility, replaces all occurrences of from by to in str. */
-static std::string replace_all(std::string str,
-                        const std::string& from,
-                        const std::string& to);
+  /** Replace all string utility, replaces all occurrences of from by to in str.
+   */
+  static std::string replace_all(std::string str,
+                                 const std::string& from,
+                                 const std::string& to);
+
  private:
   /** Returns the Lean identifier for an SMT-LIB identifier. */
   std::string cleanSmtId(const std::string& str);
@@ -82,9 +84,9 @@ static std::string replace_all(std::string str,
    * returned variable is always fresh.
    */
   Node mkIndexedApp(const std::string& name,
-                     const std::vector<Node>& args,
-                     TypeNode ret,
-                     bool useRawSym = true);
+                    const std::vector<Node>& args,
+                    TypeNode ret,
+                    bool useRawSym = true);
   Node mkNativeStringLit(const Node& n);
   /** The number of uninterpreted constants we have allocated */
   size_t d_constIdCount;

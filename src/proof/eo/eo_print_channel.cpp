@@ -17,9 +17,9 @@
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "printer/printer.h"
+#include "proof/eo/logos_node_converter.h"
 #include "proof/trust_id.h"
 #include "rewriter/rewrite_db.h"
-#include "proof/eo/logos_node_converter.h"
 
 namespace cvc5::internal {
 namespace proof {
@@ -29,11 +29,9 @@ EoPrintChannel::EoPrintChannel() {}
 EoPrintChannel::~EoPrintChannel() {}
 
 EoPrintChannelOut::EoPrintChannelOut(std::ostream& out,
-                                       const LetBinding* lbind,
-                                       bool trackWarn)
-    : d_out(out),
-      d_lbind(lbind),
-      d_trackWarn(trackWarn)
+                                     const LetBinding* lbind,
+                                     bool trackWarn)
+    : d_out(out), d_lbind(lbind), d_trackWarn(trackWarn)
 {
 }
 
@@ -67,12 +65,12 @@ void EoPrintChannelOut::printStep(const std::string& rname,
   printStepInternal(rname, n, i, premises, args, isPop, false);
 }
 void EoPrintChannelOut::printStepInternal(const std::string& rname,
-                                           TNode n,
-                                           size_t i,
-                                           const std::vector<size_t>& premises,
-                                           const std::vector<Node>& args,
-                                           bool isPop,
-                                           bool reqPremises)
+                                          TNode n,
+                                          size_t i,
+                                          const std::vector<size_t>& premises,
+                                          const std::vector<Node>& args,
+                                          bool isPop,
+                                          bool reqPremises)
 {
   d_out << "(" << (isPop ? "step-pop" : "step") << " @p" << i;
   if (!n.isNull())
@@ -266,12 +264,12 @@ void CpcLogosChannelOut::printAssume(TNode n, size_t i, bool isPush)
     d_stateDef << "def s" << d_stateId << " : CState := (logos_invoke_cmd s";
     d_stateDef << (d_stateId - 1) << " (CCmd.assume_push ";
     printNodeInternal(d_stateDef, n);
-    d_stateDef <<  "))" << std::endl;
+    d_stateDef << "))" << std::endl;
   }
   else
   {
-    d_stateDef << "def s" << d_stateId
-               << " : CState := (logos_invoke_assume s" << (d_stateId - 1) << " ";
+    d_stateDef << "def s" << d_stateId << " : CState := (logos_invoke_assume s"
+               << (d_stateId - 1) << " ";
     printNodeInternal(d_stateDef, n);
     d_stateDef << ")" << std::endl;
   }
@@ -291,7 +289,7 @@ void CpcLogosChannelOut::printStep(const std::string& rname,
   d_stateId++;
   d_stateDef << "def s" << d_stateId << " : CState := (logos_invoke_cmd s"
              << (d_stateId - 1);
-  d_stateDef << " (CCmd.step" << (isPop ? "_pop" : "") <<  " CRule." << rnameUse;
+  d_stateDef << " (CCmd.step" << (isPop ? "_pop" : "") << " CRule." << rnameUse;
   // get the premise indices in terms of depth on the stack
   std::vector<size_t> pindices;
   std::map<size_t, size_t>::iterator its;
