@@ -28,15 +28,8 @@ namespace abstract {
 AbstractionModule::AbstractionModule(Env& env, TheoryBV* bv)
     : EnvObj(env),
       d_bv(bv),
-      // Some lemma schemes are not valid for bit-vectors of size 1 or 2 (see
-      // the size invariants asserted in abstraction_lemmas.cpp).
-      // Following Bitwuzla, since for these sizes the bit-level circuits for
-      // the abstracted operators are usually trivial, we never abstract below
-      // size 3 instead of guarding each lemma separately, so the refinement
-      // loop can apply every scheme unconditionally.
-      d_absSize(std::max<uint64_t>(options().bv.bvAbstractionSize, 3)),
-      d_valLimiter(
-          std::max<uint64_t>(options().bv.bvAbstractionValueLimiter, 1)),
+      d_absSize(options().bv.bvAbstractionSize),
+      d_valLimiter(options().bv.bvAbstractionValueLimiter),
       d_lemmas(nodeManager()),
       d_stats(statisticsRegistry())
 {
