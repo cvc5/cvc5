@@ -300,8 +300,8 @@ the Python module `pexpect <https://pexpect.readthedocs.io/en/stable/>`_.
 Normaliz (Optional rational cones library)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Normaliz <https://www.normaliz.uni-osnabrueck.de/>`_ is required for int.star-contains
-operator and for bags reasoning. We recommend downloading it using the ``--auto-download`` 
+`Normaliz <https://www.normaliz.uni-osnabrueck.de/>`_ is required for 
+liastar solver extension. We recommend downloading it using the ``--auto-download`` 
 configuration flag. It is included in the build through the
 ``--normaliz --gpl`` configuration flag.
 

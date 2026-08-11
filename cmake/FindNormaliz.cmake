@@ -43,6 +43,18 @@ if(NOT Normaliz_FOUND_SYSTEM)
 
   set(Normaliz_INCLUDE_DIR "${DEPS_BASE}/include/")
 
+  # CMake's tarball extraction does not preserve the relative order of the
+  # timestamps of the autotools inputs (Makefile.am, configure.ac, aclocal.m4)
+  # and the generated files shipped in the tarball (Makefile.in, configure).
+  # If an input ends up newer, make tries to regenerate the generated files
+  # with automake/autoconf, which need not be installed, and the build fails
+  # with e.g. "automake-1.16: command not found". Point the maintainer tools
+  # at `:` so the shipped generated files are used as-is. These variables are
+  # picked up by automake's AM_MISSING_PROG at configure time and substituted
+  # into the generated Makefiles.
+  set(CONFIGURE_ENV ${CONFIGURE_ENV} ${CMAKE_COMMAND} -E env
+    "AUTOMAKE=:" "AUTOCONF=:" "AUTOHEADER=:" "ACLOCAL=:" "MAKEINFO=:")
+
   # On Windows, libtool cannot build a shared C++ library with clang: it links
   # the DLL with -nostdlib, which drops clang's compiler-rt builtins (e.g.
   # __chkstk_ms), and mingw's order-sensitive linker then cannot resolve them.
@@ -100,23 +112,14 @@ if(NOT Normaliz_FOUND_SYSTEM)
   # passed as $0 (same approach as FindCoCoA).
   set(Normaliz_BUILD_COMMAND "")
   set(Normaliz_INSTALL_COMMAND "")
-  if(Normaliz_STATIC_BUILD)
-    # CMake's tarball extraction can leave Makefile.am newer than the shipped
-    # Makefile.in, which makes make try to regenerate it with automake (not
-    # installed). Neutralise the maintainer regeneration tools so the shipped
-    # generated files are used as-is.
-    set(Normaliz_NO_REGEN AUTOMAKE=: AUTOCONF=: AUTOHEADER=: ACLOCAL=: MAKEINFO=:)
+  if(Normaliz_STATIC_BUILD AND NOT BUILD_SHARED_LIBS)
     # For a self-contained cvc5 (BUILD_SHARED_LIBS OFF), also link the standalone
     # normaliz tool statically (-all-static) so the installed normaliz.exe carries
     # no libc++/libgmp DLL dependencies, matching the static cvc5.exe. This only
     # affects Normaliz's own programs; the libnormaliz.a that cvc5 consumes is an
     # archive and is unaffected.
-    set(Normaliz_EXE_LDFLAGS "")
-    if(NOT BUILD_SHARED_LIBS)
-      set(Normaliz_EXE_LDFLAGS LDFLAGS=-all-static)
-    endif()
-    set(Normaliz_BUILD_COMMAND BUILD_COMMAND make ${Normaliz_NO_REGEN} ${Normaliz_EXE_LDFLAGS})
-    set(Normaliz_INSTALL_COMMAND INSTALL_COMMAND make install ${Normaliz_NO_REGEN} ${Normaliz_EXE_LDFLAGS})
+    set(Normaliz_BUILD_COMMAND BUILD_COMMAND make LDFLAGS=-all-static)
+    set(Normaliz_INSTALL_COMMAND INSTALL_COMMAND make install LDFLAGS=-all-static)
   endif()
 
   ExternalProject_Add(
