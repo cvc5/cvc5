@@ -16,6 +16,7 @@
 
 #include "liastar_extension.h"
 
+#include "expr/skolem_manager.h"
 #include "liastar_utils.h"
 #include "libnormaliz/input.h"
 #include "options/arith_options.h"
@@ -139,9 +140,11 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
   for (const auto& literal : assertions)
   {
     Assert(literal.getKind() == Kind::STAR_CONTAINS);
-    // the rewriter may normalize a constant lambda to a function array
-    // constant, so convert the first child back to a lambda if needed
-    Node lambda = uf::FunctionConst::toLambda(literal[0]);
+    // The first child may have been purified into a skolem by lambda
+    // lifting, and the rewriter may normalize a constant lambda to a
+    // function array constant; recover the lambda from either form.
+    Node lambda =
+        uf::FunctionConst::toLambda(SkolemManager::getOriginalForm(literal[0]));
     Assert(!lambda.isNull() && lambda.getKind() == Kind::LAMBDA)
         << "Expected a lambda as the first child of " << literal << std::endl;
     auto [vectorPredicate, nonnegative] =

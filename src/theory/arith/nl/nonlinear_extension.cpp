@@ -325,6 +325,11 @@ void NonlinearExtension::checkFullEffort(std::map<Node, Node>& arithModel,
   std::unordered_map<TNode, Node> revSharedTermsPre;
   for (TNode st : sts)
   {
+    if (!st.getType().isRealOrInt())
+    {
+      // e.g. the function child of int.star-contains
+      continue;
+    }
     Node stv = d_model.computeAbstractModelValue(st);
     Trace("nl-model-final")
         << "- shared term value " << st << " = " << stv << std::endl;

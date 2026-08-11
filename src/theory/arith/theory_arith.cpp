@@ -190,6 +190,12 @@ void TheoryArith::preRegisterTerm(TNode n)
 void TheoryArith::notifySharedTerm(TNode n)
 {
   n = n.getKind() == Kind::TO_REAL ? n[0] : n;
+  if (!n.getType().isRealOrInt())
+  {
+    // Arithmetic has nothing to say about non-arithmetic shared terms,
+    // e.g. the function child of int.star-contains.
+    return;
+  }
   d_internal.notifySharedTerm(n);
 }
 
