@@ -2,6 +2,11 @@
 ; COMMAND-LINE: --distinct-elim-threshold=12 -o post-asserts --check-proofs
 ; SCRUBBER: grep -o "distinct\|^unsat$"
 ; EXPECT: unsat
+; The proof checker testers dump the proof to stdout, which the benchmark
+; printed by -o post-asserts interferes with, hence we disable them here.
+; DISABLE-TESTER: lfsc
+; DISABLE-TESTER: alethe
+; DISABLE-TESTER: cpc
 ; The distinct below has more than 10 children, so it is not eliminated by the
 ; rewriter and only the distinct-elim pass removes it, as witnessed by the
 ; absence of distinct in the output of the pass. Either disjunct of the second
