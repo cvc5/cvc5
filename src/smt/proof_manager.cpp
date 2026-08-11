@@ -21,6 +21,7 @@
 #include "proof/alethe/alethe_printer.h"
 #include "proof/dot/dot_printer.h"
 #include "proof/eo/eo_printer.h"
+#include "proof/eo/logos_node_converter.h"
 #include "proof/lfsc/lfsc_post_processor.h"
 #include "proof/lfsc/lfsc_printer.h"
 #include "proof/proof_checker.h"
@@ -334,6 +335,12 @@ void PfManager::printProof(std::ostream& out,
   {
     proof::EoNodeConverter atp(nodeManager());
     proof::EoPrinter eop(d_env, atp, d_rewriteDb.get());
+    eop.print(out, fp, scopeMode);
+  }
+  else if (mode == options::ProofFormatMode::CPC_LOGOS)
+  {
+    proof::LogosNodeConverter atp(nodeManager());
+    proof::EoPrinter eop(d_env, atp, d_rewriteDb.get(), 1);
     eop.print(out, fp, scopeMode);
   }
   else if (mode == options::ProofFormatMode::ALETHE)
