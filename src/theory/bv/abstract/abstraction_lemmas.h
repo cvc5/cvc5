@@ -35,6 +35,7 @@
 #include <ostream>
 #include <vector>
 
+#include "expr/kind.h"
 #include "expr/node.h"
 
 namespace cvc5::internal {
@@ -147,9 +148,10 @@ class AbstractionLemma
    * @param x     The x operand.
    * @param s     The s operand.
    * @param t     The t operand.
-   * @return The instantiation of the lemma.
+   * @return The instantiation of the lemma, or the null node if this scheme
+   *         depends on model values (see the overload below).
    */
-  virtual Node instance(TNode x, TNode s, TNode t) const;
+  virtual Node instance(TNode x, TNode s, TNode t) const = 0;
 
   /**
    * For a bit-vector arithmetic term (op x s) that is abstracted with t,
@@ -159,12 +161,15 @@ class AbstractionLemma
    * @param x    The x operand.
    * @param s    The s operand.
    * @param t    The t operand.
-   * @param xval The model value of x.
-   * @param sval The model value of s.
-   * @return The instantiation of the lemma.
+   * @param xval The model value of x, must be a bit-vector value.
+   * @param sval The model value of s, must be a bit-vector value.
+   * @return The instantiation of the lemma, or the null node if this scheme is
+   *         purely symbolic (see the overload above), or if the model values
+   *         do not match the pattern of this scheme (e.g., xval is not a power
+   *         of two for MUL1_POW2).
    */
   virtual Node instance(
-      TNode x, TNode s, TNode t, TNode xval, TNode sval) const;
+      TNode x, TNode s, TNode t, TNode xval, TNode sval) const = 0;
 
  protected:
   /** The associated node manager. */
@@ -202,7 +207,7 @@ class Lemma : public AbstractionLemma
 class LemmaRegistry
 {
  public:
-  LemmaRegistry(NodeManager* nm);
+  explicit LemmaRegistry(NodeManager* nm);
 
   /**
    * @return The lemma scheme as an ordered list of lemmas for the given kind
@@ -219,7 +224,6 @@ class LemmaRegistry
   std::vector<std::unique_ptr<AbstractionLemma>> d_mul;
   std::vector<std::unique_ptr<AbstractionLemma>> d_udiv;
   std::vector<std::unique_ptr<AbstractionLemma>> d_urem;
-  std::vector<std::unique_ptr<AbstractionLemma>> d_empty;
 };
 
 }  // namespace bv::abstract

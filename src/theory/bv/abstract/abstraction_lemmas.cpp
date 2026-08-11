@@ -22,7 +22,6 @@
 #include "theory/bv/abstract/abstraction_lemmas.h"
 
 #include "base/check.h"
-#include "cvc5_public.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "util/bitvector.h"
 
@@ -38,27 +37,11 @@ std::ostream& operator<<(std::ostream& os, LemmaKind kind)
   return os;
 }
 
-/* --- AbstractionLemma ----------------------------------------------------- */
-
-// Default instances; specialized per LemmaKind below. A purely symbolic lemma
-// returns a null Node for the value instance, and vice versa.
-Node AbstractionLemma::instance(CVC5_UNUSED TNode x,
-                                CVC5_UNUSED TNode s,
-                                CVC5_UNUSED TNode t) const
-{
-  return Node();
-}
-
-Node AbstractionLemma::instance(CVC5_UNUSED TNode x,
-                                CVC5_UNUSED TNode s,
-                                CVC5_UNUSED TNode t,
-                                CVC5_UNUSED TNode xval,
-                                CVC5_UNUSED TNode sval) const
-{
-  return Node();
-}
-
 /* --- Lemma ---------------------------------------------------------------- */
+
+// Lemma<K> provides both instances as null-node defaults; each scheme below
+// specializes exactly one of them. A purely symbolic lemma thus returns a null
+// Node for the value instance, and vice versa.
 
 #define LEMMA(kind) \
   template <>       \
@@ -246,7 +229,7 @@ template <>
 Node Lemma<LemmaKind::MUL1_POW2>::instance(
     TNode x, TNode s, TNode t, TNode xval, CVC5_UNUSED TNode sval) const
 {
-  Assert(xval.isConst());
+  Assert(xval.getKind() == Kind::CONST_BITVECTOR);
   const BitVector& bv = xval.getConst<BitVector>();
   unsigned p = bv.isPow2();
   if (p == 0) return Node();
@@ -259,7 +242,7 @@ template <>
 Node Lemma<LemmaKind::MUL2_NEG_POW2>::instance(
     TNode x, TNode s, TNode t, TNode xval, CVC5_UNUSED TNode sval) const
 {
-  Assert(xval.isConst());
+  Assert(xval.getKind() == Kind::CONST_BITVECTOR);
   const BitVector& bv = xval.getConst<BitVector>();
   unsigned w = bv.getSize();
   // bvneg of the minimum signed value is itself (a power of two), but the
@@ -425,7 +408,7 @@ template <>
 Node Lemma<LemmaKind::UDIV1_POW2>::instance(
     TNode x, TNode s, TNode t, CVC5_UNUSED TNode xval, TNode sval) const
 {
-  Assert(sval.isConst());
+  Assert(sval.getKind() == Kind::CONST_BITVECTOR);
   const BitVector& bv = sval.getConst<BitVector>();
   unsigned p = bv.isPow2();
   if (p == 0) return Node();
@@ -724,7 +707,7 @@ template <>
 Node Lemma<LemmaKind::UREM1_POW2>::instance(
     TNode x, TNode s, TNode t, CVC5_UNUSED TNode xval, TNode sval) const
 {
-  Assert(sval.isConst());
+  Assert(sval.getKind() == Kind::CONST_BITVECTOR);
   const BitVector& bv = sval.getConst<BitVector>();
   unsigned p = bv.isPow2();
   if (p == 0) return Node();
@@ -865,12 +848,13 @@ LemmaRegistry::LemmaRegistry(NodeManager* nm)
 const std::vector<std::unique_ptr<AbstractionLemma>>& LemmaRegistry::lemmas(
     Kind kind) const
 {
+  static const std::vector<std::unique_ptr<AbstractionLemma>> empty;
   switch (kind)
   {
     case Kind::BITVECTOR_MULT: return d_mul;
     case Kind::BITVECTOR_UDIV: return d_udiv;
     case Kind::BITVECTOR_UREM: return d_urem;
-    default: return d_empty;
+    default: return empty;
   }
 }
 
@@ -946,7 +930,7 @@ void LemmaRegistry::initUrem(NodeManager* nm)
   d_urem.push_back(std::make_unique<Lemma<LemmaKind::UREM4>>(nm));
   d_urem.push_back(std::make_unique<Lemma<LemmaKind::UREM5>>(nm));
   d_urem.push_back(std::make_unique<Lemma<LemmaKind::UREM6>>(nm));
-  d_urem.push_back(std::make_unique<Lemma<LemmaKind::UREM7>>(nm));
+  // UREM7 is implied by UREM2 and thus not registered (same as in Bitwuzla).
   d_urem.push_back(std::make_unique<Lemma<LemmaKind::UREM8>>(nm));
   d_urem.push_back(std::make_unique<Lemma<LemmaKind::UREM9>>(nm));
   d_urem.push_back(std::make_unique<Lemma<LemmaKind::UREM10>>(nm));
