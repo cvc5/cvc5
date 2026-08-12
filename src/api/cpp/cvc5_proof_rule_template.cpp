@@ -39,6 +39,7 @@ const char* toString(ProofRule rule)
     case ProofRule::ITE_EQ: return "ITE_EQ";
     //================================================= Trusted rules
     case ProofRule::TRUST: return "TRUST";
+    case ProofRule::ANNOTATE: return "ANNOTATE";
     case ProofRule::TRUST_THEORY_REWRITE: return "TRUST_THEORY_REWRITE";
     case ProofRule::SAT_REFUTATION: return "SAT_REFUTATION";
     case ProofRule::DRAT_REFUTATION: return "DRAT_REFUTATION";
