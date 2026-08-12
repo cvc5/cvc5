@@ -68,11 +68,11 @@ name   = "SMT Layer"
   help       = "after SAT/INVALID/UNKNOWN, check that the generated model satisfies user assertions"
 
 [[option]]
-  name       = "checkModelsUnknown"
+  name       = "modelVerify"
   category   = "regular"
-  long       = "check-models-unknown"
+  long       = "model-verify"
   type       = "bool"
-  default    = "false"
+  default    = "true"
   help       = "after UNKNOWN, check whether the candidate model satisfies the user assertions; if successful, respond SAT instead. Requires produce-models"
 
 [[option]]

@@ -1,4 +1,4 @@
-; COMMAND-LINE: --check-models-unknown --produce-models
+; COMMAND-LINE: --model-verify --produce-models
 ; EXPECT: unknown
 (set-logic HO_ALL)
 (set-option :sets-exp true)

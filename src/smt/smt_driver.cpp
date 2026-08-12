@@ -120,7 +120,7 @@ Result SmtDriver::checkSat(const std::vector<Node>& assumptions)
   // case if the candidate model can be verified to satisfy the input
   // assertions. Note this is done before the context is popped below, so that
   // the assumptions of this call are taken into account.
-  if (options().smt.checkModelsUnknown)
+  if (options().smt.modelVerify)
   {
     if (result.getStatus() == Result::UNKNOWN && verifyUnknownModel(result))
     {

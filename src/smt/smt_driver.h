@@ -136,7 +136,7 @@ class SmtDriver : protected EnvObj
   IllegalChecker d_illegalChecker;
   /**
    * The utility used for verifying candidate models, when the option
-   * checkModelsUnknown is enabled.
+   * modelVerify is enabled.
    */
   ModelVerifier d_modelVerifier;
 };
