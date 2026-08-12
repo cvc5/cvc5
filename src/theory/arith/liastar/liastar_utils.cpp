@@ -67,6 +67,500 @@ std::pair<Node, Node> LiaStarUtils::getVectorPredicate(Node n, NodeManager* nm)
   return std::make_pair(substitute, nonnegativeConstraints);
 }
 
+Node LiaStarUtils::toDNF(Node n, Env* e, LiaStarStatistics* stats)
+{
+  if (stats) stats->d_toDnfTime.start();
+  // eliminate ites
+  if (stats) stats->d_removeItesTime.start();
+  Node noItes = removeItes(n, e, stats);
+  if (stats) stats->d_removeItesTime.stop();
+  Trace("liastar-ext-debug") << "noItes: " << noItes << std::endl;
+  // eliminate negation
+  if (stats) stats->d_removeNotTime.start();
+  Node nnf = removeNot(noItes, e);
+  if (stats) stats->d_removeNotTime.stop();
+  Trace("liastar-ext-debug") << "nnf: " << nnf << std::endl;
+  if (TraceIsOn("liastar-ext-smt"))
+  {
+    // noItes
+    Trace("liastar-ext-smt") << "(push 1)" << std::endl;
+    Trace("liastar-ext-smt") << "(echo \"noItes\")" << std::endl;
+    Trace("liastar-ext-smt") << "(assert " << std::endl
+                             << "  (distinct" << std::endl
+                             << "    ";
+    Trace("liastar-ext-smt") << n << std::endl << "    ";
+    Trace("liastar-ext-smt") << noItes << std::endl
+                             << "  )" << std::endl
+                             << ")" << std::endl;
+    Trace("liastar-ext-smt") << "(check-sat)" << std::endl;
+    // nnf
+    Trace("liastar-ext-smt") << "(pop 1)" << std::endl;
+    Trace("liastar-ext-smt") << "(push 1)" << std::endl;
+    Trace("liastar-ext-smt") << "(echo \"nnf\")" << std::endl;
+    Trace("liastar-ext-smt") << "(assert " << std::endl
+                             << "  (distinct" << std::endl
+                             << "    ";
+    Trace("liastar-ext-smt") << noItes << std::endl << "    ";
+    Trace("liastar-ext-smt") << nnf << std::endl
+                             << "  )" << std::endl
+                             << ")" << std::endl;
+    Trace("liastar-ext-smt") << "(check-sat)" << std::endl;
+    Trace("liastar-ext-smt") << "(pop 1)" << std::endl;
+  }
+  // distributes conjunctions over disjunctions
+  if (stats) stats->d_distributeTime.start();
+  Node dnf = distribute(nnf, e, stats);
+  Trace("liastar-ext-debug") << "dnf: " << dnf << std::endl;
+  dnf = recursiveFlatten(e->getNodeManager(), dnf);
+  if (stats) stats->d_distributeTime.stop();
+  if (TraceIsOn("liastar-ext-smt"))
+  {
+    Trace("liastar-ext-smt") << "(push 1)" << std::endl;
+    Trace("liastar-ext-smt") << "(echo \"dnf\")" << std::endl;
+    Trace("liastar-ext-smt") << "(assert " << std::endl
+                             << "  (distinct" << std::endl
+                             << "    ";
+    Trace("liastar-ext-smt") << nnf << std::endl << "    ";
+    Trace("liastar-ext-smt") << dnf << std::endl
+                             << "  )" << std::endl
+                             << ")" << std::endl;
+    Trace("liastar-ext-smt") << "(check-sat)" << std::endl;
+    Trace("liastar-ext-smt") << "(pop 1)" << std::endl;
+  }
+  if (stats) stats->d_toDnfTime.stop();
+  return dnf;
+}
+
+Node LiaStarUtils::recursiveFlatten(NodeManager* nm, Node n)
+{
+  Trace("liastar-ext-dnf") << "recursiveFlatten::n: " << n << std::endl;
+  if (n.getNumChildren() == 0)
+  {
+    return n;
+  }
+  Node flat = expr::algorithm::flatten(nm, n);
+  std::vector<Node> children;
+  for (const auto& child : flat)
+  {
+    children.push_back(expr::algorithm::flatten(nm, child));
+  }
+  return nm->mkNode(flat.getKind(), children);
+}
+
+Node LiaStarUtils::distribute(Node n,
+                              Env* e,
+                              LiaStarStatistics* stats,
+                              const std::vector<Node>& context)
+{
+  Assert(n.getType().isBoolean())
+      << "Expected " << n << " to be boolean" << std::endl;
+  Trace("liastar-ext-dnf") << "distribute::n: " << n << std::endl;
+  NodeManager* nm = e->getNodeManager();
+  Node falseConst = nm->mkConst<bool>(false);
+  Node trueConst = nm->mkConst<bool>(true);
+
+  Kind k = n.getKind();
+  switch (k)
+  {
+    case Kind::VARIABLE:
+    case Kind::BOUND_VARIABLE:
+    case Kind::CONST_BOOLEAN:
+    case Kind::LT:
+    case Kind::GT:
+    case Kind::LEQ:
+    case Kind::GEQ:
+    case Kind::EQUAL:
+    {
+      return n;
+    }
+    case Kind::AND:
+    {
+      // the non-OR conjuncts of this conjunction hold in every branch
+      // below it: make them part of the pruning context up front
+      std::vector<Node> childContext = context;
+      for (Node child : n)
+      {
+        if (child.getKind() != Kind::OR && child.getKind() != Kind::AND
+            && child.getKind() != Kind::ITE)
+        {
+          childContext.push_back(child);
+        }
+      }
+      std::vector<Node> conjunctions;
+      for (Node child : n)
+      {
+        Node childDnf = distribute(child, e, stats, childContext);
+        childDnf = expr::algorithm::flatten(nm, childDnf);
+        conjunctions.push_back(childDnf);
+      }
+
+      if (conjunctions.size() == 1)
+      {
+        return conjunctions[0];
+      }
+      // basically we compute the cartesian product
+      std::vector<std::vector<Node>> disjunctions;
+      disjunctions.push_back({});
+      // {a, b}
+      // {c}
+      // {d, e}
+      // ****
+      // disjunctions: {}
+      // disjunctions: {a}, {b}
+      // disjunctions: {a, c}, {b, c}
+      // disjunctions: {a,c, d},{b, d, d},{a, c, e},{b, c, e}
+      for (const Node& conjunct : conjunctions)
+      {
+        if (conjunct.getKind() != Kind::OR)
+        {
+          disjunctions[0].push_back(conjunct);
+        }
+      }
+      for (const Node& conjunct : conjunctions)
+      {
+        if (conjunct.getKind() == Kind::OR)
+        {
+          std::vector<std::vector<Node>> tmp;
+          for (const Node& disjunct : conjunct)
+          {
+            auto copy = disjunctions;
+            for (std::vector<Node>& v : copy)
+            {
+              v.push_back(disjunct);
+              std::vector<Node> query = v;
+              query.insert(query.end(), context.begin(), context.end());
+              Result r = areAssertionsUnsat(query, e, stats);
+              if (r.getStatus() == Result::Status::UNSAT)
+              {
+                // we can discard unsat conjunctions
+                if (stats) ++stats->d_disjunctsPrunedUnsat;
+                continue;
+              }
+              else
+              {
+                tmp.push_back(v);
+              }
+            }
+          }
+          disjunctions = std::move(tmp);
+        }
+      }
+      std::vector<Node> final_disjuncts;
+      for (std::vector<Node>& v : disjunctions)
+      {
+        std::vector<Node> query = v;
+        query.insert(query.end(), context.begin(), context.end());
+        Result r = areAssertionsUnsat(query, e, stats);
+        if (r.getStatus() == Result::Status::UNSAT)
+        {
+          // we can discard unsat conjunctions
+          if (stats) ++stats->d_disjunctsPrunedUnsat;
+          continue;
+        }
+        if (v.size() == 1)
+        {
+          final_disjuncts.push_back(v[0]);
+        }
+        else
+        {
+          final_disjuncts.push_back(nm->mkNode(Kind::AND, v));
+        }
+      }
+      if (final_disjuncts.size() == 0)
+      {
+        return nm->mkConst<bool>(false);
+      }
+      if (final_disjuncts.size() == 1)
+      {
+        return final_disjuncts[0];
+      }
+      return nm->mkNode(Kind::OR, final_disjuncts);
+    }
+    case Kind::OR:
+    {
+      std::vector<Node> disjuncts;
+
+      for (size_t i = 0; i < n.getNumChildren(); i++)
+      {
+        Node childDnf = distribute(n[i], e, stats, context);
+        childDnf = expr::algorithm::flatten(nm, childDnf);
+        disjuncts.push_back(childDnf);
+      }
+
+      return nm->mkNode(Kind::OR, disjuncts);
+    }
+
+    default:
+    {
+      break;
+    }
+  }
+  InternalError() << "Unexpected kind. Node " << n
+                  << " has kind: " << n.getKind() << std::endl;
+}
+
+Node LiaStarUtils::removeItes(Node n, Env* e, LiaStarStatistics* stats)
+{
+  NodeManager* nm = e->getNodeManager();
+  Node falseConst = nm->mkConst<bool>(false);
+  Node trueConst = nm->mkConst<bool>(true);
+  Kind k = n.getKind();
+  switch (k)
+  {
+    case Kind::VARIABLE:
+    case Kind::BOUND_VARIABLE:
+    case Kind::CONST_BOOLEAN: return n;
+    case Kind::LT:
+    case Kind::GT:
+    case Kind::LEQ:
+    case Kind::GEQ:
+    case Kind::EQUAL:
+    {
+      std::vector<std::pair<Node, Node>> left =
+          removeIntegerItes(n[0], e, stats);
+      std::vector<std::pair<Node, Node>> right =
+          removeIntegerItes(n[1], e, stats);
+      if (left.size() == 1 && right.size() == 1)
+      {
+        return n;
+      }
+
+      // combine the conditions of left and right
+      std::vector<Node> disjunctions;
+      for (const auto& l : left)
+      {
+        for (const auto& r : right)
+        {
+          Node result = nm->mkNode(k, l.second, r.second);
+          Node combined = result;
+          if (r.first != trueConst)
+          {
+            combined = combined.andNode(r.first);
+          }
+          else if (l.first != trueConst)
+          {
+            combined = combined.andNode(l.first);
+          }
+          disjunctions.push_back(combined);
+        }
+      }
+      return nm->mkNode(Kind::OR, disjunctions);
+    }
+    case Kind::ITE:
+    {
+      if (stats) ++stats->d_itesRemoved;
+      Node l = removeItes(n[0].andNode(n[1]), e, stats);
+      Node r = removeItes(n[0].notNode().andNode(n[2]), e, stats);
+      return l.orNode(r);
+    }
+    case Kind::AND:
+    {
+      std::vector<Node> conjuncts;
+      for (Node child : n)
+      {
+        conjuncts.push_back(removeItes(child, e, stats));
+      }
+      return nm->mkNode(Kind::AND, conjuncts);
+    }
+    case Kind::OR:
+    {
+      std::vector<Node> disjuncts;
+      for (Node child : n)
+      {
+        disjuncts.push_back(removeItes(child, e, stats));
+      }
+      return nm->mkNode(Kind::OR, disjuncts);
+    }
+    case Kind::NOT:
+    {
+      return removeItes(n[0], e, stats).notNode();
+    }
+    default:
+    {
+      break;
+    }
+  }
+  InternalError() << "Unexpected kind. Node " << n
+                  << " has kind: " << n.getKind() << std::endl;
+}
+
+Node LiaStarUtils::removeNot(Node n, Env* e)
+{
+  NodeManager* nm = e->getNodeManager();
+  // eliminate negation nodes of the form (not (or ...)), (not (and ...))
+  Node nnf = booleans::TheoryBoolRewriter::computeNnfNorm(nm, n);
+  Kind k = nnf.getKind();
+  switch (k)
+  {
+    case Kind::VARIABLE:
+    case Kind::BOUND_VARIABLE:
+    case Kind::CONST_BOOLEAN:
+    case Kind::LT:
+    case Kind::GT:
+    case Kind::LEQ:
+    case Kind::GEQ:
+    case Kind::EQUAL: return nnf;
+    case Kind::AND:
+    {
+      std::vector<Node> conjuncts;
+      for (Node child : nnf)
+      {
+        conjuncts.push_back(removeNot(child, e));
+      }
+      return nm->mkNode(Kind::AND, conjuncts);
+    }
+    case Kind::OR:
+    {
+      std::vector<Node> disjuncts;
+      for (Node child : nnf)
+      {
+        disjuncts.push_back(removeNot(child, e));
+      }
+      return nm->mkNode(Kind::OR, disjuncts);
+    }
+    case Kind::NOT:
+    {
+      Kind kind = nnf[0].getKind();
+      switch (kind)
+      {
+        case Kind::LT:
+        {
+          //(not (< a b)) is rewritten as (>= a b)
+          return nm->mkNode(Kind::GEQ, nnf[0][0], nnf[0][1]);
+        }
+        case Kind::GT:
+        {
+          //(not (> a b)) is rewritten as (<= a b)
+          return nm->mkNode(Kind::LEQ, nnf[0][0], nnf[0][1]);
+        }
+        case Kind::LEQ:
+        {
+          //(not (<= a b)) is rewritten as (> a b)
+          return nm->mkNode(Kind::GT, nnf[0][0], nnf[0][1]);
+        }
+        case Kind::GEQ:
+        {
+          //(not (>= a b)) is rewritten as (< a b)
+          return nm->mkNode(Kind::LT, nnf[0][0], nnf[0][1]);
+        }
+        case Kind::EQUAL:
+        {
+          // (not (= a b)) is rewritten as (or (> a b) (< a b))
+          Node a = nnf[0][0];
+          Node b = nnf[0][1];
+          Node gt = nm->mkNode(Kind::GT, a, b);
+          Node lt = nm->mkNode(Kind::LT, a, b);
+          return gt.orNode(lt);
+        }
+        default:
+          InternalError() << "Unexpected negated kind. Node " << n
+                          << " has kind: " << n.getKind() << std::endl;
+      }
+      break;
+    }
+    default:
+    {
+      break;
+    }
+  }
+  InternalError() << "Unexpected kind. Node " << n
+                  << " has kind: " << n.getKind() << std::endl;
+}
+
+std::vector<std::pair<Node, Node>> LiaStarUtils::removeIntegerItes(
+    Node n, Env* e, LiaStarStatistics* stats)
+{
+  Assert(n.getType().isInteger());
+  // (+
+  //    (ite c1 a b)
+  //    (ite c2 c d))
+  // should return 4 pairs:
+  // <(and c1 c2)           ,(+ a c)>
+  // <(and c1 (not c2)      ,(+ a d)>
+  // <(and (not c1) c2)     ,(+ b c)>
+  // <(and (not c1) (not c2),(+ b d)>
+  NodeManager* nm = e->getNodeManager();
+  Node trueConst = nm->mkConst<bool>(true);
+  auto rw = e->getRewriter();
+  Kind k = n.getKind();
+  switch (k)
+  {
+    case Kind::VARIABLE:
+    case Kind::BOUND_VARIABLE:
+    case Kind::NEG:
+    case Kind::CONST_INTEGER: return {{trueConst, n}};
+    case Kind::ADD:
+    case Kind::SUB:
+    case Kind::MULT:
+    {
+      std::vector<std::pair<Node, Node>> left =
+          removeIntegerItes(n[0], e, stats);
+      std::vector<std::pair<Node, Node>> right =
+          removeIntegerItes(n[1], e, stats);
+      std::vector<std::pair<Node, Node>> combined;
+      // combine the conditions of left and right
+      for (const auto& l : left)
+      {
+        for (const auto& r : right)
+        {
+          Node condition = rw->rewrite(l.first.andNode(r.first));
+          Node result = rw->rewrite(nm->mkNode(k, l.second, r.second));
+          combined.push_back({condition, result});
+        }
+      }
+      return combined;
+    }
+    case Kind::ITE:
+    {
+      if (stats) ++stats->d_itesRemoved;
+      std::vector<std::pair<Node, Node>> iteResult;
+      Node condition = removeItes(n[0], e, stats);
+      std::vector<std::pair<Node, Node>> thenPart =
+          removeIntegerItes(n[1], e, stats);
+      for (const auto& pair : thenPart)
+      {
+        Node newCondition;
+        if (pair.first == trueConst)
+        {
+          newCondition = condition;
+        }
+        else
+        {
+          newCondition = pair.first.andNode(condition);
+        }
+        iteResult.push_back({newCondition, pair.second});
+      }
+
+      // todo: restore this line Node notCondition =
+      // rw->rewrite(condition.notNode());
+      Node notCondition = condition.notNode();
+      std::vector<std::pair<Node, Node>> elsePart =
+          removeIntegerItes(n[2], e, stats);
+      for (const auto& pair : elsePart)
+      {
+        Node newCondition;
+        if (pair.first == trueConst)
+        {
+          newCondition = notCondition;
+        }
+        else
+        {
+          newCondition = pair.first.andNode(notCondition);
+        }
+        iteResult.push_back({newCondition, pair.second});
+      }
+      return iteResult;
+    }
+
+    default:
+    {
+      break;
+    }
+  }
+  InternalError() << "Unexpected kind. Node " << n
+                  << " has kind: " << n.getKind() << std::endl;
+}
+
 Result LiaStarUtils::areAssertionsUnsat(const std::vector<Node>& assertions,
                                         Env* e,
                                         LiaStarStatistics* stats)
