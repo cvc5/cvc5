@@ -1105,14 +1105,6 @@ class CVC5_EXPORT SolverEngine
   std::unique_ptr<smt::CheckModels> d_checkModels;
 
   /**
-   * Whether the "sat" response of the last check-sat was obtained by verifying
-   * the candidate model of an "unknown" response (see verifyUnknownModel). In
-   * this case, the model to use is the current model of the theory engine, and
-   * not its built model.
-   */
-  bool d_satFromVerifiedModel;
-
-  /**
    * The proof manager, which manages all things related to checking,
    * processing, and printing proofs.
    */

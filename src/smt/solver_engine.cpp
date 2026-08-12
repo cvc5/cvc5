@@ -108,7 +108,6 @@ SolverEngine::SolverEngine(NodeManager* nm, const Options* optr)
       d_smtSolver(nullptr),
       d_smtDriver(nullptr),
       d_checkModels(nullptr),
-      d_satFromVerifiedModel(false),
       d_pfManager(nullptr),
       d_ucManager(nullptr),
       d_sygusSolver(nullptr),
@@ -695,14 +694,10 @@ TheoryModel* SolverEngine::getAvailableModel(const char* c) const
   // while building or getting the model. In general, we should not be spending
   // resources while building a model, but this ensures that we return a model
   // if a problem was solved within the allocated resources.
-  // Note that if we are in SAT mode based on verifying the candidate model of
-  // an unknown response, we similarly use the latest available model, which is
-  // the one that was verified.
   getResourceManager()->setEnabled(false);
-  TheoryModel* m =
-      (d_state->getMode() == SmtMode::SAT_UNKNOWN || d_satFromVerifiedModel)
-          ? te->getModel()
-          : te->getBuiltModel();
+  TheoryModel* m = d_state->getMode() == SmtMode::SAT_UNKNOWN
+                       ? te->getModel()
+                       : te->getBuiltModel();
   getResourceManager()->setEnabled(true);
 
   if (m == nullptr)
@@ -829,20 +824,25 @@ Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions)
 
   Trace("smt") << "SolverEngine::checkSat(" << assumptions << ") => " << r
                << endl;
-  // If the result is unknown, we may be able to verify that the candidate
-  // model satisfies the input assertions, in which case we strengthen the
-  // response to "sat".
-  d_satFromVerifiedModel = false;
-  if (r.getStatus() == Result::UNKNOWN && verifyUnknownModel(r))
-  {
-    Trace("smt") << "SolverEngine::checkSat(" << assumptions
-                 << ") => sat, based on verifying the candidate model" << endl;
-    d_satFromVerifiedModel = true;
-    r = Result(Result::SAT);
-  }
   // notify our state of the check-sat result
   d_state->notifyCheckSatResult(r);
 
+  // Check whether UNKNOWN results can be strengthened to SAT, which is the
+  // case if the candidate model can be verified to satisfy the input
+  // assertions.
+  if (d_env->getOptions().smt.checkModelsUnknown)
+  {
+    if (r.getStatus() == Result::UNKNOWN && verifyUnknownModel(r))
+    {
+      Trace("smt") << "SolverEngine::checkSat(" << assumptions
+                   << ") => sat, based on verifying the candidate model"
+                   << endl;
+      r = Result(Result::SAT);
+      // update our state, which notably makes the model available as if we
+      // had responded SAT in the first place
+      d_state->notifyCheckSatResult(r);
+    }
+  }
   // Check that SAT results generate a model correctly.
   if (d_env->getOptions().smt.checkModels)
   {
@@ -1827,14 +1827,11 @@ void SolverEngine::checkModel(bool hardFailure)
 bool SolverEngine::verifyUnknownModel(const Result& r)
 {
   Assert(r.getStatus() == Result::UNKNOWN);
-  if (!d_env->getOptions().smt.checkModelsUnknown)
-  {
-    return false;
-  }
-  // we require having a model, which additionally requires that functions are
-  // assigned values
-  if (!d_env->getOptions().smt.produceModels
-      || !d_env->getOptions().theory.assignFunctionValues)
+  // We require having a model, which additionally requires that functions are
+  // assigned values. Note that we return false instead of throwing an
+  // exception here, since this method is a best effort attempt at
+  // strengthening the response of the current query.
+  if (!options().smt.produceModels || !options().theory.assignFunctionValues)
   {
     return false;
   }
@@ -1847,16 +1844,11 @@ bool SolverEngine::verifyUnknownModel(const Result& r)
   {
     return false;
   }
-  TheoryEngine* te = d_smtSolver->getTheoryEngine();
-  Assert(te != nullptr);
-  // Use the current model, which is the model that would be returned by
-  // get-model if we responded unknown for this query.
-  TheoryModel* m = te->getModel();
-  if (m == nullptr)
-  {
-    return false;
-  }
   TimerStat::CodeTimer verifyModelTimer(d_stats->d_verifyUnknownModelTime);
+  // Since we are in "unknown" mode, this is the candidate model that would be
+  // returned by a call to get-model.
+  TheoryModel* m = getAvailableModel("verify unknown model");
+  Assert(m != nullptr);
   const CDList<Node>& al = d_smtSolver->getAssertions().getAssertionList();
   // We disable the resource manager while verifying the model, similar to what
   // is done when building or getting models.
