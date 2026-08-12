@@ -71,6 +71,8 @@ libcvc5_add_sources(
   preprocessing/passes/bv_to_bool.h
   preprocessing/passes/bv_to_int.cpp
   preprocessing/passes/bv_to_int.h
+  preprocessing/passes/distinct_elim.cpp
+  preprocessing/passes/distinct_elim.h
   preprocessing/passes/extended_rewriter_pass.cpp
   preprocessing/passes/extended_rewriter_pass.h
   preprocessing/passes/ff_bitsum.cpp
@@ -1596,6 +1598,16 @@ if(USE_COCOA)
   add_dependencies(cvc5-obj CoCoA)
   target_include_directories(cvc5-obj SYSTEM PRIVATE ${CoCoA_INCLUDE_DIR})
   target_link_libraries(cvc5 PRIVATE $<BUILD_INTERFACE:CoCoA> $<INSTALL_INTERFACE:cocoa>)
+endif()
+
+if(USE_NORMALIZ)
+  add_dependencies(cvc5-obj Normaliz)
+  target_include_directories(cvc5-obj PRIVATE ${Normaliz_INCLUDE_DIR})
+  if(BUILD_SHARED_LIBS)
+    target_link_libraries(cvc5 PRIVATE $<BUILD_INTERFACE:Normaliz> $<INSTALL_INTERFACE:Normaliz>)
+  else()
+    target_link_libraries(cvc5 PUBLIC $<BUILD_INTERFACE:Normaliz> $<INSTALL_INTERFACE:Normaliz>)
+  endif()
 endif()
 
 add_dependencies(cvc5-obj SymFPU)

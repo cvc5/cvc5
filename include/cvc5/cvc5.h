@@ -7049,6 +7049,16 @@ class CVC5_EXPORT Solver
   Solver(TermManager& tm, std::unique_ptr<internal::Options>&& original);
 
   /**
+   * Reset this solver to the state it had right after construction: the
+   * underlying SMT engine is rebuilt from the original option settings.
+   *
+   * Note that this preserves the identity of this object, so pointers and
+   * references to it (e.g. the one held by InputParser) stay valid, as does
+   * its term manager and hence all terms and sorts created so far.
+   */
+  void resetInternal();
+
+  /**
    * Synthesize n-ary function following specified syntactic constraints.
    *
    * SMT-LIB:
