@@ -15,13 +15,13 @@
 #ifndef CVC5__SMT__MODEL_VERIFIER_H
 #define CVC5__SMT__MODEL_VERIFIER_H
 
-#include <unordered_map>
 #include <unordered_set>
 
 #include "context/cdlist.h"
 #include "expr/node.h"
 #include "expr/subs.h"
 #include "smt/env_obj.h"
+#include "util/statistics_stats.h"
 
 namespace cvc5::internal {
 
@@ -48,9 +48,6 @@ namespace smt {
  * conclusions are trustworthy up to the correctness of the rewriter, and are
  * independent of e.g. how truth values were assigned to quantified formulas or
  * to applications of unevaluatable operators.
- *
- * Note that an instance of this class caches the model values it computes,
- * hence a given instance should be used for a single model only.
  */
 class ModelVerifier : protected EnvObj
 {
@@ -70,18 +67,21 @@ class ModelVerifier : protected EnvObj
  private:
   /**
    * Add the model values of the symbols occurring in n to the substitution
-   * d_mvs, if they have not been added already.
+   * mvs, if they have not been added already.
    *
    * @param m The model.
    * @param n The term whose symbols we are processing.
+   * @param mvs The substitution mapping symbols to their model values.
+   * @param processed The symbols we have already added to mvs.
    * @return false if the model value of a symbol of n could not be determined,
    * in which case we cannot verify assertions containing n.
    */
-  bool addModelValues(theory::TheoryModel* m, const Node& n);
-  /** The substitution mapping symbols to their model values */
-  Subs d_mvs;
-  /** The symbols we have already processed in addModelValues */
-  std::unordered_set<Node> d_processed;
+  bool addModelValues(theory::TheoryModel* m,
+                      const Node& n,
+                      Subs& mvs,
+                      std::unordered_set<Node>& processed);
+  /** Time spent in calls to verify */
+  TimerStat d_verifyTime;
 };
 
 }  // namespace smt

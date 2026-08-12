@@ -23,11 +23,17 @@ using namespace cvc5::internal::theory;
 namespace cvc5::internal {
 namespace smt {
 
-ModelVerifier::ModelVerifier(Env& e) : EnvObj(e) {}
+ModelVerifier::ModelVerifier(Env& e)
+    : EnvObj(e),
+      d_verifyTime(
+          statisticsRegistry().registerTimer("smt::ModelVerifier::verifyTime"))
+{
+}
 
 bool ModelVerifier::verify(TheoryModel* m, const context::CDList<Node>& al)
 {
   Trace("model-verify") << "ModelVerifier: verify model" << std::endl;
+  TimerStat::CodeTimer verifyTimer(d_verifyTime);
   Node sepHeap, sepNeq;
   if (m->getHeapModel(sepHeap, sepNeq))
   {
@@ -39,6 +45,9 @@ bool ModelVerifier::verify(TheoryModel* m, const context::CDList<Node>& al)
   ExpandDefs expDef(d_env);
   std::unordered_map<Node, Node> cache;
   SubstitutionMap& sm = d_env.getTopLevelSubstitutions().get();
+  // the substitution mapping symbols to their model values
+  Subs mvs;
+  std::unordered_set<Node> processed;
   for (const Node& assertion : al)
   {
     Trace("model-verify") << "check assertion " << assertion << std::endl;
@@ -57,13 +66,13 @@ bool ModelVerifier::verify(TheoryModel* m, const context::CDList<Node>& al)
       continue;
     }
     // get the model values of the symbols of n
-    if (!addModelValues(m, n))
+    if (!addModelValues(m, n, mvs, processed))
     {
       return false;
     }
     // The assertion is satisfied if replacing its symbols by their model
     // values results in a formula that rewrites to true.
-    Node nv = rewrite(d_mvs.apply(n));
+    Node nv = rewrite(mvs.apply(n));
     if (!nv.isConst() || !nv.getConst<bool>())
     {
       Trace("model-verify") << "...fail: assertion " << assertion
@@ -75,13 +84,16 @@ bool ModelVerifier::verify(TheoryModel* m, const context::CDList<Node>& al)
   return true;
 }
 
-bool ModelVerifier::addModelValues(TheoryModel* m, const Node& n)
+bool ModelVerifier::addModelValues(TheoryModel* m,
+                                   const Node& n,
+                                   Subs& mvs,
+                                   std::unordered_set<Node>& processed)
 {
   std::unordered_set<Node> syms;
   expr::getSymbols(n, syms);
   for (const Node& s : syms)
   {
-    if (!d_processed.insert(s).second)
+    if (!processed.insert(s).second)
     {
       // already computed the model value of this symbol
       continue;
@@ -106,7 +118,7 @@ bool ModelVerifier::addModelValues(TheoryModel* m, const Node& n)
                             << " is not closed" << std::endl;
       return false;
     }
-    d_mvs.add(s, v);
+    mvs.add(s, v);
   }
   return true;
 }

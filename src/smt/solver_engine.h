@@ -939,17 +939,6 @@ class CVC5_EXPORT SolverEngine
   void checkModel(bool hardFailure = true);
 
   /**
-   * Called when the result of the last check-sat was unknown. This attempts to
-   * verify that the current candidate model satisfies the input assertions.
-   *
-   * @param r The (unknown) result of the last check-sat.
-   * @return true if we successfully verified that the current candidate model
-   * satisfies the input assertions, in which case the response of the
-   * check-sat can be strengthened to "sat".
-   */
-  bool verifyUnknownModel(const Result& r);
-
-  /**
    * Check that a solution to an interpolation problem is indeed a solution.
    *
    * The check is made by determining that the assertions imply the solution of

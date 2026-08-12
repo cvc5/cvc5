@@ -15,17 +15,24 @@
 #include "options/base_options.h"
 #include "options/main_options.h"
 #include "options/smt_options.h"
+#include "options/theory_options.h"
 #include "prop/prop_engine.h"
 #include "smt/context_manager.h"
 #include "smt/env.h"
 #include "smt/logic_exception.h"
 #include "smt/smt_solver.h"
+#include "theory/theory_engine.h"
 
 namespace cvc5::internal {
 namespace smt {
 
 SmtDriver::SmtDriver(Env& env, SmtSolver& smt, ContextManager* ctx)
-    : EnvObj(env), d_smt(smt), d_ctx(ctx), d_ap(env), d_illegalChecker(env)
+    : EnvObj(env),
+      d_smt(smt),
+      d_ctx(ctx),
+      d_ap(env),
+      d_illegalChecker(env),
+      d_modelVerifier(env)
 {
   // set up proofs, this is done after options are finalized, so the
   // preprocess proof has been setup
@@ -109,11 +116,56 @@ Result SmtDriver::checkSat(const std::vector<Node>& assumptions)
     d_smt.getPropEngine()->resetTrail();
     throw;
   }
+  // Check whether an unknown result can be strengthened to "sat", which is the
+  // case if the candidate model can be verified to satisfy the input
+  // assertions. Note this is done before the context is popped below, so that
+  // the assumptions of this call are taken into account.
+  if (options().smt.checkModelsUnknown)
+  {
+    if (result.getStatus() == Result::UNKNOWN && verifyUnknownModel(result))
+    {
+      Trace("smt") << "SmtDriver::checkSat: strengthen unknown to sat, based "
+                      "on verifying the candidate model"
+                   << std::endl;
+      result = Result(Result::SAT);
+    }
+  }
   if (d_ctx)
   {
     d_ctx->notifyCheckSatResult(hasAssumptions);
   }
   return result;
+}
+
+bool SmtDriver::verifyUnknownModel(const Result& r)
+{
+  Assert(r.getStatus() == Result::UNKNOWN);
+  // We require having a model, which additionally requires that functions are
+  // assigned values.
+  if (!options().smt.produceModels || !options().theory.assignFunctionValues)
+  {
+    return false;
+  }
+  // Do not attempt this if we were interrupted or ran out of resources, since
+  // in this case the user asked us to stop spending resources on this query.
+  UnknownExplanation uexp = r.getUnknownExplanation();
+  if (uexp != UnknownExplanation::INCOMPLETE
+      && uexp != UnknownExplanation::UNKNOWN_REASON
+      && uexp != UnknownExplanation::OTHER)
+  {
+    return false;
+  }
+  // This is the candidate model that would be returned by a call to get-model
+  // if we responded unknown for this query.
+  theory::TheoryModel* m = d_smt.getTheoryEngine()->getModel();
+  const context::CDList<Node>& al = d_smt.getAssertions().getAssertionList();
+  // We disable the resource manager while verifying the model, similar to what
+  // is done when building or getting models.
+  ResourceManager* rm = d_env.getResourceManager();
+  rm->setEnabled(false);
+  bool ret = d_modelVerifier.verify(m, al);
+  rm->setEnabled(true);
+  return ret;
 }
 
 void SmtDriver::getNextAssertionsInternal(preprocessing::AssertionPipeline& ap)

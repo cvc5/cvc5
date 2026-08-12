@@ -54,7 +54,6 @@
 #include "smt/model.h"
 #include "smt/model_blocker.h"
 #include "smt/model_core_builder.h"
-#include "smt/model_verifier.h"
 #include "smt/preprocessor.h"
 #include "smt/proof_manager.h"
 #include "smt/quant_elim_solver.h"
@@ -827,22 +826,6 @@ Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions)
   // notify our state of the check-sat result
   d_state->notifyCheckSatResult(r);
 
-  // Check whether UNKNOWN results can be strengthened to SAT, which is the
-  // case if the candidate model can be verified to satisfy the input
-  // assertions.
-  if (d_env->getOptions().smt.checkModelsUnknown)
-  {
-    if (r.getStatus() == Result::UNKNOWN && verifyUnknownModel(r))
-    {
-      Trace("smt") << "SolverEngine::checkSat(" << assumptions
-                   << ") => sat, based on verifying the candidate model"
-                   << endl;
-      r = Result(Result::SAT);
-      // update our state, which notably makes the model available as if we
-      // had responded SAT in the first place
-      d_state->notifyCheckSatResult(r);
-    }
-  }
   // Check that SAT results generate a model correctly.
   if (d_env->getOptions().smt.checkModels)
   {
@@ -1822,41 +1805,6 @@ void SolverEngine::checkModel(bool hardFailure)
   // check the model with the check models utility
   Assert(d_checkModels != nullptr);
   d_checkModels->checkModel(m, al, hardFailure);
-}
-
-bool SolverEngine::verifyUnknownModel(const Result& r)
-{
-  Assert(r.getStatus() == Result::UNKNOWN);
-  // We require having a model, which additionally requires that functions are
-  // assigned values. Note that we return false instead of throwing an
-  // exception here, since this method is a best effort attempt at
-  // strengthening the response of the current query.
-  if (!options().smt.produceModels || !options().theory.assignFunctionValues)
-  {
-    return false;
-  }
-  // Do not attempt this if we were interrupted or ran out of resources, since
-  // in this case the user asked us to stop spending resources on this query.
-  UnknownExplanation uexp = r.getUnknownExplanation();
-  if (uexp != UnknownExplanation::INCOMPLETE
-      && uexp != UnknownExplanation::UNKNOWN_REASON
-      && uexp != UnknownExplanation::OTHER)
-  {
-    return false;
-  }
-  TimerStat::CodeTimer verifyModelTimer(d_stats->d_verifyUnknownModelTime);
-  // Since we are in "unknown" mode, this is the candidate model that would be
-  // returned by a call to get-model.
-  TheoryModel* m = getAvailableModel("verify unknown model");
-  Assert(m != nullptr);
-  const CDList<Node>& al = d_smtSolver->getAssertions().getAssertionList();
-  // We disable the resource manager while verifying the model, similar to what
-  // is done when building or getting models.
-  getResourceManager()->setEnabled(false);
-  ModelVerifier mv(*d_env.get());
-  bool ret = mv.verify(m, al);
-  getResourceManager()->setEnabled(true);
-  return ret;
 }
 
 UnsatCore SolverEngine::getUnsatCore()

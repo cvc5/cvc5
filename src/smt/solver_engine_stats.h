@@ -35,8 +35,6 @@ struct SolverEngineStatistics
   IntStat d_numAssertionsPost;
   /** time spent in checkModel() */
   TimerStat d_checkModelTime;
-  /** time spent in verifyUnknownModel() */
-  TimerStat d_verifyUnknownModelTime;
   /** time spent in checkUnsatCore() */
   TimerStat d_checkUnsatCoreTime;
   /** time spent in PropEngine::checkSat() */
