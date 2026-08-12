@@ -971,6 +971,13 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
       }
       SET_AND_NOTIFY(smt, checkModels, false, sOptNoModel);
     }
+    if (opts.smt.checkModelsUnknown)
+    {
+      // Note we do not throw an exception if this was set by the user, since
+      // this option is a best effort attempt at strengthening unknown
+      // responses, which we simply disable here.
+      SET_AND_NOTIFY(smt, checkModelsUnknown, false, sOptNoModel);
+    }
   }
 
   if (opts.bv.bitblastMode == options::BitblastMode::EAGER
@@ -1916,6 +1923,7 @@ void SetDefaults::disableChecking(Options& opts)
   opts.write_smt().checkProofs = false;
   opts.write_smt().debugCheckModels = false;
   opts.write_smt().checkModels = false;
+  opts.write_smt().checkModelsUnknown = false;
   opts.write_proof().checkProofSteps = false;
   opts.write_proof().proofLog = false;
 }

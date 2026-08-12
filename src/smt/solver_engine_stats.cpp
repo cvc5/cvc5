@@ -23,6 +23,8 @@ SolverEngineStatistics::SolverEngineStatistics(StatisticsRegistry& sr,
       d_numAssertionsPre(sr.registerInt(name + "numAssertionsPreITERemoval")),
       d_numAssertionsPost(sr.registerInt(name + "numAssertionsPostITERemoval")),
       d_checkModelTime(sr.registerTimer(name + "checkModelTime")),
+      d_verifyUnknownModelTime(
+          sr.registerTimer(name + "verifyUnknownModelTime")),
       d_checkUnsatCoreTime(sr.registerTimer(name + "checkUnsatCoreTime")),
       d_solveTime(sr.registerTimer(name + "solveTime")),
       d_pushPopTime(sr.registerTimer(name + "pushPopTime")),
