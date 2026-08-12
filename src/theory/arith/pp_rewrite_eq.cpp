@@ -13,8 +13,8 @@
 #include "theory/arith/pp_rewrite_eq.h"
 
 #include "options/arith_options.h"
-#include "smt/env.h"
 #include "proof/proof_node_manager.h"
+#include "smt/env.h"
 #include "theory/arith/arith_poly_norm.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/rewriter.h"
