@@ -1,5 +1,4 @@
 ; EXPECT: unknown
-; DISABLE-TESTER: lfsc
 (set-logic ALL)
 (set-option :sets-exp true)
 (declare-sort u 0)

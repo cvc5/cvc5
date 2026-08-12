@@ -1,7 +1,6 @@
 ; COMMAND-LINE: --dt-stc-ind --conjecture-gen
 ; DISABLE-TESTER: unsat-core
 ; DISABLE-TESTER: cpc
-; DISABLE-TESTER: lfsc
 ; EXPECT: unsat
 (set-logic UFDT)
 (declare-datatype Nat ((zero) (succ (p Nat))))

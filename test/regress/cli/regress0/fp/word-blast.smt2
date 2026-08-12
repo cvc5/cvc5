@@ -1,4 +1,3 @@
-; DISABLE-TESTER: lfsc
 ; DISABLE-TESTER: proof
 ; COMMAND-LINE: --fp-lazy-wb
 ; EXPECT: unsat

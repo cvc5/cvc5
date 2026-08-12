@@ -200,75 +200,6 @@ class ProofTester(Tester):
             )
         )
 
-class LfscTester(Tester):
-
-    def __init__(self):
-        super().__init__("lfsc")
-
-    def applies(self, benchmark_info):
-        return (
-            benchmark_info.benchmark_ext != ".sy"
-            and benchmark_info.expected_output.strip() == "unsat"
-        )
-
-    def run_internal(self, benchmark_info):
-        exit_code = EXIT_OK
-        # lfsc is not supported in safe mode
-        if benchmark_info.safe_mode:
-            return EXIT_SKIP
-        with tempfile.NamedTemporaryFile() as tmpf:
-            cvc5_args = [
-                "--dump-proofs",
-                "--no-dt-share-sel",
-                "--proof-format=lfsc",
-                "--proof-granularity=theory-rewrite",
-                "--proof-check=lazy",
-            ] + benchmark_info.command_line_args
-            output, error, exit_status = run_process(
-                [benchmark_info.cvc5_binary]
-                + cvc5_args
-                + [benchmark_info.benchmark_basename],
-                benchmark_info.benchmark_dir,
-                benchmark_info.timeout,
-            )
-            exit_code = self.check_exit_status(EXIT_OK, exit_status, output,
-                                               error, cvc5_args)
-            if exit_code != EXIT_OK:
-                return exit_code
-            # strip the unsat and parentheses
-            output, exit_code = self.strip_proof_body(output)
-            if exit_code == EXIT_FAILURE:
-                return EXIT_FAILURE
-            tmpf.write(output)
-            tmpf.flush()
-            output, error = output.decode(), error.decode()
-            if "check" not in output:
-                print_error("Empty proof")
-                print()
-                print_outputs(output, error)
-                return EXIT_FAILURE
-            if exit_code != EXIT_OK:
-                return exit_code
-            output, error, exit_status = run_process(
-                [benchmark_info.lfsc_binary] +
-                benchmark_info.lfsc_sigs + [tmpf.name],
-                benchmark_info.benchmark_dir,
-                timeout=benchmark_info.timeout,
-            )
-            output, error = output.decode(), error.decode()
-            exit_code = self.check_exit_status(EXIT_OK, exit_status, output,
-                                               error, cvc5_args)
-            if exit_code != EXIT_OK:
-                return exit_code
-            if "success" not in output:
-                print_error("Invalid proof")
-                print()
-                print_outputs(output, error)
-                return EXIT_FAILURE
-        if exit_code == EXIT_OK:
-            print_ok("OK")
-        return exit_code
-
 class AletheTester(Tester):
     def __init__(self):
         super().__init__("alethe")
@@ -544,7 +475,6 @@ g_testers = {
     "base": BaseTester(),
     "unsat-core": UnsatCoreTester(),
     "proof": ProofTester(),
-    "lfsc": LfscTester(),
     "model": ModelTester(),
     "synth": SynthTester(),
     "abduct": AbductTester(),
@@ -573,8 +503,6 @@ BenchmarkInfo = collections.namedtuple(
         "error_scrubber",
         "timeout",
         "cvc5_binary",
-        "lfsc_binary",
-        "lfsc_sigs",
         "carcara_binary",
         "carcara_rare",
         "ethos_binary",
@@ -848,8 +776,6 @@ def run_regression(
     testers,
     wrapper,
     cvc5_binary,
-    lfsc_binary,
-    lfsc_sigs,
     carcara_binary,
     carcara_rare,
     ethos_binary,
@@ -926,8 +852,6 @@ def run_regression(
             if disable_tester in testers:
                 testers.remove(disable_tester)
             if disable_tester == "proof":
-                if "lfsc" in testers:
-                    testers.remove("lfsc")
                 if "alethe" in testers:
                     testers.remove("alethe")
                 if "cpc" in testers:
@@ -994,8 +918,6 @@ def run_regression(
             error_scrubber=error_scrubber,
             timeout=timeout,
             cvc5_binary=cvc5_binary,
-            lfsc_binary=lfsc_binary,
-            lfsc_sigs=lfsc_sigs,
             carcara_binary=carcara_binary,
             carcara_rare=carcara_rare,
             ethos_binary=ethos_binary,
@@ -1055,8 +977,6 @@ def main():
     parser.add_argument("--skip-timeout", action="store_true")
     parser.add_argument("--tester", choices=tester_choices, action="append")
     parser.add_argument("--tester-exc", choices=g_testers_keys, action="append")
-    parser.add_argument("--lfsc-binary", default="")
-    parser.add_argument("--lfsc-sig-dir", default="")
     parser.add_argument("--carcara-binary", default="")
     parser.add_argument("--carcara-rare", default="")
     parser.add_argument("--ethos-binary", default="")
@@ -1073,7 +993,6 @@ def main():
     g_args = parser.parse_args(argv)
 
     cvc5_binary = os.path.abspath(g_args.cvc5_binary)
-    lfsc_binary = os.path.abspath(g_args.lfsc_binary)
     carcara_binary = os.path.abspath(g_args.carcara_binary)
     carcara_rare = os.path.abspath(g_args.carcara_rare)
     ethos_binary = os.path.abspath(g_args.ethos_binary)
@@ -1093,24 +1012,11 @@ def main():
     if g_args.tester_exc:
         testers = [t for t in testers if t not in g_args.tester_exc]
 
-    lfsc_sigs = []
-    if not g_args.lfsc_sig_dir == "":
-        lfsc_sig_dir = os.path.abspath(g_args.lfsc_sig_dir)
-        # `os.listdir` would be more appropriate if lfsc did not force us to
-        # list the signatures in order.
-        lfsc_sigs = ["core_defs", "util_defs", "theory_def", "nary_programs",
-                     "boolean_programs", "boolean_rules", "cnf_rules",
-                     "equality_rules", "arith_programs", "arith_rules",
-                     "strings_programs", "strings_rules", "quantifiers_rules"]
-        lfsc_sigs = [os.path.join(lfsc_sig_dir, sig + ".plf")
-                     for sig in lfsc_sigs]
     cpc_sig_dir = os.path.abspath(g_args.cpc_sig_dir)
     exit_code = run_regression(
         testers,
         wrapper,
         cvc5_binary,
-        lfsc_binary,
-        lfsc_sigs,
         carcara_binary,
         carcara_rare,
         ethos_binary,

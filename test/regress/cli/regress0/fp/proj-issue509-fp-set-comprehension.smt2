@@ -1,4 +1,3 @@
-; DISABLE-TESTER: lfsc
 (set-logic ALL)
 (set-option :sets-exp true)
 (declare-datatype d ((c (s RoundingMode))))

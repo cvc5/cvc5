@@ -1559,7 +1559,6 @@ set(regress_0_tests
   regress0/proofs/issue8983-trust-subs.smt2
   regress0/proofs/issue9156-doublePropProof.smt2
   regress0/proofs/issue9172-doublePropProof.smt2
-  regress0/proofs/issue9200-lfsc-inst-sorts.smt2
   regress0/proofs/issue9205-eqProofNary.smt2
   regress0/proofs/issue9393-optResReconstruction-alethebug.smt2
   regress0/proofs/issue9515-alethe-skolems-crash.smt2
@@ -1571,7 +1570,6 @@ set(regress_0_tests
   regress0/proofs/issue12240-cyclic-proof.smt2
   regress0/proofs/issue12355-cm-mixed-arith.smt2
   regress0/proofs/issue12632-datatypes-check-proofs.smt2
-  regress0/proofs/lfsc-test-1.smt2
   regress0/proofs/macro-eq-const-eq.smt2
   regress0/proofs/macro-quant-prenex-simple.smt2
   regress0/proofs/mod-total-256.smt2
@@ -3127,7 +3125,6 @@ set(regress_1_tests
   regress1/proofs/alpha-eq-var-shadow.smt2
   regress1/proofs/alpha-eq-var-shadow-name-only.smt2
   regress1/proofs/alpha-eq-var-shadow-name-only2.smt2
-  regress1/proofs/base-lfsc-treesize.smt2
   regress1/proofs/dd.SEQ035_size5.smt2
   regress1/proofs/eq-engine-corner-case-constants-disequal.smt2
   regress1/proofs/issue-dt-tester-conflict-cons-eq-clash.smt2
@@ -4509,7 +4506,6 @@ set(testers
   base
   unsat-core
   proof
-  lfsc
   model
   synth
   abduct
@@ -4554,8 +4550,6 @@ macro(cvc5_add_regression_test level file)
     ${Python_EXECUTABLE}
     ${run_regress_script}
     ${RUN_REGRESSION_ARGS}
-    --lfsc-binary ${PROJECT_SOURCE_DIR}/deps/bin/lfscc
-    --lfsc-sig-dir ${PROJECT_SOURCE_DIR}/proofs/lfsc/signatures
     --carcara-binary ${PROJECT_SOURCE_DIR}/deps/bin/carcara
     --carcara-rare ${PROJECT_SOURCE_DIR}/deps/rare/rewrites.eo
     --ethos-binary ${PROJECT_SOURCE_DIR}/deps/bin/ethos

@@ -143,4 +143,4 @@ Multiple testers can be disabled using multiple `DISABLE-TESTER` directives. In
 general, each `DISABLE-TESTER` directive disables only the specified tester. The
 only exception to this rule is the proof tester. Disabling the proof tester,
 which directs cvc5 to check generated proofs internally, also disables testers
-that check the printed versions of those proofs (e.g., the lfsc tester).
+that check the printed versions of those proofs.
