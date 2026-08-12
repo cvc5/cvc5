@@ -1498,54 +1498,6 @@ struct AtomsCollect
   std::vector<TNode> getAtoms() const { return d_atoms; }
 };
 
-void TheoryEngine::ensureSharedAtoms(TNode n)
-{
-  // Only relevant if we are doing theory combination in a logic where an
-  // equality between real terms may rewrite to an equality between integer
-  // terms.
-  const LogicInfo& li = logicInfo();
-  if (!li.isSharingEnabled() || !li.isTheoryEnabled(THEORY_ARITH)
-      || !li.areIntegersUsed() || !li.areRealsUsed())
-  {
-    return;
-  }
-  std::vector<TNode> atoms;
-  std::unordered_set<TNode> visited;
-  std::vector<TNode> visit{n};
-  do
-  {
-    TNode cur = visit.back();
-    visit.pop_back();
-    if (!visited.insert(cur).second)
-    {
-      continue;
-    }
-    // The only equalities whose rewritten form has a different type are those
-    // that apply to_real to one of their sides.
-    if (cur.getKind() == Kind::EQUAL
-        && (cur[0].getKind() == Kind::TO_REAL
-            || cur[1].getKind() == Kind::TO_REAL))
-    {
-      Node curr = rewrite(cur);
-      if (curr.getKind() == Kind::EQUAL && curr[0].getType().isInteger())
-      {
-        Trace("theory::atoms")
-            << "TheoryEngine::ensureSharedAtoms: " << cur << " rewrites to the "
-            << "integer equality " << curr << std::endl;
-        atoms.push_back(cur);
-      }
-      continue;
-    }
-    visit.insert(visit.end(), cur.begin(), cur.end());
-  } while (!visit.empty());
-  if (!atoms.empty())
-  {
-    // Send the atoms to the shared solver, which notifies every theory that
-    // has the terms of the equality as shared terms.
-    ensureLemmaAtoms(atoms, THEORY_BUILTIN);
-  }
-}
-
 void TheoryEngine::ensureLemmaAtoms(TNode n, theory::TheoryId atomsTo)
 {
   Assert(atomsTo != THEORY_LAST);
@@ -1702,10 +1654,6 @@ void TheoryEngine::lemma(TrustNode tlemma,
     tlemma.debugCheckClosed(
         options(), "te-proof-debug", "TheoryEngine::lemma_initial");
   }
-
-  // ensure that equalities in the lemma that lose their shared terms when
-  // rewritten are still communicated to the shared solver
-  ensureSharedAtoms(lemma);
 
   // assert the lemma
   d_propEngine->assertLemma(id, tlemma, p);

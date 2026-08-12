@@ -15,7 +15,9 @@
 #include "expr/node.h"
 #include "expr/skolem_manager.h"
 #include "proof/proof.h"
+#include "proof/proof_node_algorithm.h"
 #include "theory/arith/arith_msum.h"
+#include "theory/arith/arith_poly_norm.h"
 #include "theory/arith/inference_manager.h"
 #include "theory/arith/nl/ext/ext_state.h"
 #include "theory/arith/nl/nl_model.h"
@@ -170,10 +172,59 @@ void FactoringCheck::check(const std::vector<Node>& asserts,
             Node k_eq = kf.eqNode(sum);
             Node split = nm->mkNode(Kind::OR, lit, lit.notNode());
             proof->addStep(split, ProofRule::SPLIT, {}, {lit});
-            proof->addStep(flem,
-                           ProofRule::MACRO_SR_PRED_TRANSFORM,
-                           {split, k_eq},
-                           {flem});
+            // The atom of the given literal and the atom of the conclusion
+            // where the factor skolem is replaced by its definition are
+            // equivalent up to polynomial normalization. Note they are not
+            // equivalent under rewriting alone, since equalities are not
+            // normalized by the rewriter, see rewriter::normalizeEquality.
+            // We thus prove the equivalence via ARITH_POLY_NORM_REL below.
+            Node polyns = polyn.substitute(TNode(kf), TNode(sum));
+            Node katoms = nm->mkNode(atom.getKind(), polyns, zero);
+            Rational ca, cb;
+            if (PolyNorm::isArithPolyNormRel(atom, katoms, ca, cb))
+            {
+              Node premise =
+                  PolyNorm::getArithPolyNormRelPremise(atom, katoms, ca, cb);
+              proof->addStep(
+                  premise, ProofRule::ARITH_POLY_NORM, {}, {premise});
+              Node equiv = atom.eqNode(katoms);
+              proof->addStep(
+                  equiv, ProofRule::ARITH_POLY_NORM_REL, {premise}, {equiv});
+              Node cl = katoms;
+              if (!polarity)
+              {
+                cl = katoms.notNode();
+                Node nequiv = lit.eqNode(cl);
+                std::vector<Node> cargs;
+                ProofRule cr = expr::getCongRule(lit, cargs);
+                proof->addStep(nequiv, cr, {equiv}, cargs);
+                equiv = nequiv;
+              }
+              Node nlit = lit.notNode();
+              Node rrefl = nlit.eqNode(nlit);
+              proof->addStep(rrefl, ProofRule::REFL, {}, {nlit});
+              // flems is flem where the factor skolem is expanded and the
+              // literals are in the order of split
+              Node flems = nm->mkNode(Kind::OR, cl, nlit);
+              std::vector<Node> cargs2;
+              ProofRule cr2 = expr::getCongRule(split, cargs2);
+              Node dequiv = split.eqNode(flems);
+              proof->addStep(dequiv, cr2, {equiv, rrefl}, cargs2);
+              proof->addStep(flems, ProofRule::EQ_RESOLVE, {split, dequiv}, {});
+              // The final step accounts for the definition of the factor
+              // skolem, double negation and the order of the disjunction.
+              proof->addStep(flem,
+                             ProofRule::MACRO_SR_PRED_TRANSFORM,
+                             {flems, k_eq},
+                             {flem});
+            }
+            else
+            {
+              proof->addStep(flem,
+                             ProofRule::MACRO_SR_PRED_TRANSFORM,
+                             {split, k_eq},
+                             {flem});
+            }
           }
           d_data->d_im.addPendingLemma(
               flem, InferenceId::ARITH_NL_FACTOR, proof);

@@ -77,6 +77,28 @@ TEST_F(TestTheoryArithRewriterBlack, RealAlgebraicNumber)
   }
 }
 
+TEST_F(TestTheoryArithRewriterBlack, Equality)
+{
+  auto* rr = d_slvEngine->getEnv().getRewriter();
+  Node x = d_skolemManager->mkDummySkolem("x", d_nodeManager->integerType());
+  Node one = d_nodeManager->mkConstInt(Rational(1));
+  Node two = d_nodeManager->mkConstInt(Rational(2));
+
+  // Rewriting an equality only rewrites its sides and orients them according
+  // to the node ordering. In particular, it does not solve this equality for
+  // x by polynomial normalization.
+  Node lhs = rr->rewrite(d_nodeManager->mkNode(Kind::ADD, x, one));
+  Node eq = lhs.eqNode(two);
+  Node expected = lhs > two ? two.eqNode(lhs) : eq;
+  EXPECT_EQ(rr->rewrite(eq), expected);
+
+  // Equalities that are constant after normalization are still folded.
+  EXPECT_EQ(rr->rewrite(x.eqNode(x)), d_nodeManager->mkConst(true));
+  EXPECT_EQ(rr->rewrite(one.eqNode(two)), d_nodeManager->mkConst(false));
+  Node twiceX = d_nodeManager->mkNode(Kind::MULT, two, x);
+  EXPECT_EQ(rr->rewrite(twiceX.eqNode(one)), d_nodeManager->mkConst(false));
+}
+
 TEST_F(TestTheoryArithRewriterBlack, Abs)
 {
   {

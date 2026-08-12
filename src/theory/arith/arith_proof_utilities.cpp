@@ -122,19 +122,19 @@ Node expandMacroSumUb(NodeManager* nm,
 }
 
 /**
- * Does n have a TO_REAL as a direct child of its (possibly negated) relation?
- * This is used to recognize when two predicates differ only in whether their
- * arguments are cast to real, e.g. (= (to_real x) 0.0) versus (= x 0).
+ * Is n a (possibly negated) arithmetic relation, i.e. one that can be related
+ * to another arithmetic relation via polynomial normalization?
  */
-bool hasToRealArg(const Node& n)
+bool isArithRel(const Node& n)
 {
   Node atom = n.getKind() == Kind::NOT ? n[0] : n;
-  if (atom.getNumChildren() != 2)
+  Kind k = atom.getKind();
+  if (k != Kind::EQUAL && k != Kind::GEQ && k != Kind::LEQ && k != Kind::GT
+      && k != Kind::LT)
   {
     return false;
   }
-  return atom[0].getKind() == Kind::TO_REAL
-         || atom[1].getKind() == Kind::TO_REAL;
+  return atom[0].getType().isRealOrInt();
 }
 
 std::shared_ptr<ProofNode> ensurePredTransform(ProofNodeManager* pnm,
@@ -146,12 +146,13 @@ std::shared_ptr<ProofNode> ensurePredTransform(ProofNodeManager* pnm,
   {
     return pf;
   }
-  // The rewriter does not change the type of an equality, hence e.g.
-  // (= (to_real x) 0.0) and (= x 0) have distinct rewritten forms and cannot
+  // The rewriter does not normalize equalities and does not change the type
+  // of an equality, hence e.g. (= (+ x 1) 2) and (= x 1), or
+  // (= (to_real x) 0.0) and (= x 0), have distinct rewritten forms and cannot
   // be related by MACRO_SR_PRED_TRANSFORM. We relate such predicates by
-  // polynomial normalization instead.
+  // polynomial normalization instead, whenever possible.
   bool negated = (res.getKind() == Kind::NOT);
-  if (hasToRealArg(res) != hasToRealArg(pred)
+  if (isArithRel(res) && isArithRel(pred)
       && negated == (pred.getKind() == Kind::NOT))
   {
     Node ratom = negated ? res[0] : res;

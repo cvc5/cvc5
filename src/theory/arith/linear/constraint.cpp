@@ -1373,8 +1373,8 @@ ConstraintP ConstraintDatabase::addLiteral(TNode literal, TNode nliteral)
 
     delete posC;
 
-    hit->setLiteral(atomNode);
-    hit->getNegation()->setLiteral(negationNode);
+    hit->setLiteral(atomNode, nAtomNode);
+    hit->getNegation()->setLiteral(negationNode, nAtomNode.notNode());
     return isNot ? hit->getNegation() : hit;
   }
   else
@@ -1418,8 +1418,8 @@ ConstraintP ConstraintDatabase::addLiteral(TNode literal, TNode nliteral)
     posC->initialize(this, posI, negC);
     negC->initialize(this, negI, posC);
 
-    posC->setLiteral(atomNode);
-    negC->setLiteral(negationNode);
+    posC->setLiteral(atomNode, nAtomNode);
+    negC->setLiteral(negationNode, nAtomNode.notNode());
 
     return isNot ? negC : posC;
   }
@@ -2301,11 +2301,15 @@ ConstraintDatabase::Watches::Watches(context::Context* satContext,
 {
 }
 
-void Constraint::setLiteral(Node n)
+void Constraint::setLiteral(Node n, Node nn)
 {
   Trace("arith::constraint") << "Mapping " << *this << " to " << n << std::endl;
-  Assert(Comparison::isNormalAtom(n));
-  Assert(sanityChecking(n));
+  // Note that we check the normal form nn of the literal here, not the
+  // literal n itself. The literal may be an equality that is not in normal
+  // form, e.g. (= (+ x 1) 2), (= 1 x) or (= (to_real x) 0.0), since the
+  // rewriter does not normalize equalities, see rewriter::normalizeEquality.
+  Assert(Comparison::isNormalAtom(nn));
+  Assert(sanityChecking(nn));
   NodetoConstraintMap& map = d_database->d_nodetoConstraintMap;
   Assert(map.find(n) == map.end());
   map.insert(make_pair(n, this));

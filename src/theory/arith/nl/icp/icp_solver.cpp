@@ -21,6 +21,7 @@
 #include "theory/arith/inference_manager.h"
 #include "theory/arith/linear/normal_form.h"
 #include "theory/arith/nl/poly_conversion.h"
+#include "theory/arith/rewriter/rewrite_atom.h"
 #include "theory/rewriter.h"
 #include "util/poly_util.h"
 
@@ -87,6 +88,20 @@ std::vector<Node> ICPSolver::collectVariables(const Node& n) const
 std::vector<Candidate> ICPSolver::constructCandidates(const Node& n)
 {
   Node tmp = rewrite(n);
+  if (tmp.getKind() == Kind::NOT && tmp[0].getKind() == Kind::EQUAL)
+  {
+    // Disequalities are not used for propagation. Note they cannot be parsed
+    // as a comparison below, since equalities are not normalized by the
+    // rewriter, see rewriter::normalizeEquality.
+    return {};
+  }
+  if (tmp.getKind() == Kind::EQUAL)
+  {
+    // Equalities are not normalized by the rewriter, see
+    // rewriter::normalizeEquality. We normalize them here, so that they can
+    // be parsed as a comparison below.
+    tmp = rewriter::normalizeEquality(nodeManager(), tmp);
+  }
   if (tmp.isConst())
   {
     return {};

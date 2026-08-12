@@ -36,9 +36,8 @@
 #include "proof/proof_generator.h"
 #include "proof/proof_node_manager.h"
 #include "smt/logic_exception.h"
-#include "theory/arith/arith_proof_rcons.h"
 #include "theory/arith/arith_poly_norm.h"
-#include "theory/arith/rewriter/rewrite_atom.h"
+#include "theory/arith/arith_proof_rcons.h"
 #include "theory/arith/arith_proof_utilities.h"
 #include "theory/arith/arith_rewriter.h"
 #include "theory/arith/arith_utilities.h"
@@ -56,6 +55,7 @@
 #include "theory/arith/linear/partial_model.h"
 #include "theory/arith/linear/simplex.h"
 #include "theory/arith/nl/nonlinear_extension.h"
+#include "theory/arith/rewriter/rewrite_atom.h"
 #include "theory/arith/theory_arith.h"
 #include "theory/ext_theory.h"
 #include "theory/quantifiers/fmf/bounded_integers.h"
@@ -1403,12 +1403,18 @@ void TheoryArithPrivate::setupAtom(TNode atom)
     // Note the normal form is not a Boolean constant, since atom is in
     // rewritten form, which evaluates equalities between constant sides.
     Assert(natom.getKind() == Kind::EQUAL);
-    if (!isSetup(natom))
+    // The normal form itself may not be in rewritten form, since the rewriter
+    // orients equalities based on the node ordering of their sides. We compute
+    // the rewritten form of the normal form, which is the canonical form of
+    // the atom known to the SAT solver.
+    Node rnatom = rewrite(natom);
+    if (rnatom != atom && !isSetup(rnatom))
     {
-      // Set up the normal form first, so that it is the literal of the
-      // constraint. This ensures we always propagate and explain using the
-      // normalized atom.
-      setupAtom(natom);
+      // Set up the rewritten normal form first, so that it is the literal of
+      // the constraint. This ensures we always propagate and explain using
+      // the (rewritten) normalized atom, which is the form that is made known
+      // to the SAT solver via the lemma below.
+      setupAtom(rnatom);
     }
   }
   Assert(Comparison::isNormalAtom(natom)) << natom;
@@ -1793,6 +1799,14 @@ ConstraintP TheoryArithPrivate::constraintFromFactQueue(TNode assertion)
       // rewriter::normalizeEquality. We compute the normal form here, which
       // determines the constraint this assertion corresponds to.
       reEq = rewriter::normalizeEquality(nodeManager(), reEq);
+      if (reEq.getKind() == Kind::EQUAL)
+      {
+        // The normal form may not be in rewritten form, since the rewriter
+        // orients equalities based on the node ordering of their sides. We
+        // use the rewritten form of the normal form, which is the canonical
+        // form used for the literals of constraints, see setupAtom.
+        reEq = rewrite(reEq);
+      }
     }
     Trace("arith::distinct::const") << "Assertion: " << assertion << std::endl;
     Trace("arith::distinct::const") << "Eq       : " << eq << std::endl;

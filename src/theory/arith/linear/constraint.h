@@ -431,7 +431,19 @@ class Constraint
 
   bool hasLiteral() const { return !d_literal.isNull(); }
 
-  void setLiteral(Node n);
+  /**
+   * Set the literal of this constraint to n, or record n as an alternative
+   * literal for this constraint if it already has one.
+   *
+   * @param n The literal, which maps to this constraint in the node to
+   * constraint map of the database.
+   * @param nn The normal form of n, which is used for sanity checking that n
+   * indeed corresponds to this constraint. Note that n itself may not be in
+   * normal form, e.g. it may be an equality that is unnormalized or oriented
+   * differently, since the rewriter does not normalize equalities, see
+   * rewriter::normalizeEquality.
+   */
+  void setLiteral(Node n, Node nn);
 
   Node getLiteral() const
   {

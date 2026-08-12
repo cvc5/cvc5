@@ -15,6 +15,7 @@
 #include "smt/env.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/linear/normal_form.h"
+#include "theory/arith/rewriter/rewrite_atom.h"
 #include "theory/rewriter.h"
 
 using namespace cvc5::internal::kind;
@@ -56,6 +57,20 @@ const std::map<Node, Bounds>& BoundInference::get() const { return d_bounds; }
 bool BoundInference::add(const Node& n, bool onlyVariables)
 {
   Node tmp = rewrite(n);
+  if (tmp.getKind() == Kind::NOT && tmp[0].getKind() == Kind::EQUAL)
+  {
+    // Disequalities are not used for bound inference. Note they cannot be
+    // parsed as a comparison below, since equalities are not normalized by
+    // the rewriter, see rewriter::normalizeEquality.
+    return false;
+  }
+  if (tmp.getKind() == Kind::EQUAL)
+  {
+    // Equalities are not normalized by the rewriter, see
+    // rewriter::normalizeEquality. We normalize them here, so that they can
+    // be parsed as a comparison below.
+    tmp = rewriter::normalizeEquality(nodeManager(), tmp);
+  }
   if (tmp.getKind() == Kind::CONST_BOOLEAN)
   {
     return false;

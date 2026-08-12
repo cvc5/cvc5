@@ -406,9 +406,25 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
   if (kind == Kind::EQUAL)
   {
     // We do not normalize equalities here, since this does not preserve their
-    // terms, see rewriter::normalizeEquality. Note we do not reorient the
-    // equality either, since the orientation of an equality is significant
-    // for its normal form, e.g. (= x 1) is normalized whereas (= 1 x) is not.
+    // terms, see rewriter::normalizeEquality. However, if the normal form of
+    // the equality is a Boolean constant, we return that constant, which e.g.
+    // is the case for (= (* 2 x) 1) for integer x. This ensures that the
+    // rewritten form of an equality is a Boolean constant whenever it is
+    // equivalent to one, which is relied upon e.g. when setting up atoms in
+    // the linear solver.
+    Node norm = rewriter::normalizeEquality(d_nm, atom);
+    if (norm.isConst())
+    {
+      return RewriteResponse(REWRITE_DONE, norm);
+    }
+    // Otherwise, we apply the standard rewrite for equality, used by the
+    // other theory rewriters, which orients the equality so that the left
+    // hand side is smaller in the node ordering.
+    if (atom[0] > atom[1])
+    {
+      return RewriteResponse(REWRITE_DONE,
+                             d_nm->mkNode(Kind::EQUAL, atom[1], atom[0]));
+    }
     return RewriteResponse(REWRITE_DONE, atom);
   }
 
