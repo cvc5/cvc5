@@ -2301,7 +2301,7 @@ ConstraintDatabase::Watches::Watches(context::Context* satContext,
 {
 }
 
-void Constraint::setLiteral(Node n, Node nn)
+void Constraint::setLiteral(Node n, CVC5_UNUSED Node nn)
 {
   Trace("arith::constraint") << "Mapping " << *this << " to " << n << std::endl;
   // Note that we check the normal form nn of the literal here, not the
