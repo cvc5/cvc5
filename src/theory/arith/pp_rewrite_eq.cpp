@@ -14,6 +14,8 @@
 
 #include "options/arith_options.h"
 #include "smt/env.h"
+#include "proof/proof_node_manager.h"
+#include "theory/arith/arith_poly_norm.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/rewriter.h"
 
@@ -52,6 +54,35 @@ TrustNode PreprocessRewriteEq::ppRewriteEq(TNode atom)
             TrustId::THEORY_INFERENCE_ARITH, {}, {}, eq));
   }
   return TrustNode::mkTrustRewrite(atom, rewritten, nullptr);
+}
+
+TrustNode PreprocessRewriteEq::ppNormalizeEq(TNode eq, TNode eqn)
+{
+  Assert(eq.getKind() == Kind::EQUAL);
+  if (d_env.isTheoryProofProducing())
+  {
+    Node equiv = eq.eqNode(eqn);
+    // The two are equivalent up to polynomial normalization, unless the
+    // normalized form is a Boolean constant.
+    Rational ca, cb;
+    if (eqn.getKind() == Kind::EQUAL
+        && PolyNorm::isArithPolyNormRel(eq, eqn, ca, cb))
+    {
+      Node premise = PolyNorm::getArithPolyNormRelPremise(eq, eqn, ca, cb);
+      ProofNodeManager* pnm = d_env.getProofNodeManager();
+      std::shared_ptr<ProofNode> ppf =
+          pnm->mkNode(ProofRule::ARITH_POLY_NORM, {}, {premise}, premise);
+      std::shared_ptr<ProofNode> pf =
+          pnm->mkNode(ProofRule::ARITH_POLY_NORM_REL, {ppf}, {equiv}, equiv);
+      return d_ppPfGen.mkTrustedRewrite(eq, eqn, pf);
+    }
+    return d_ppPfGen.mkTrustedRewrite(
+        eq,
+        eqn,
+        d_env.getProofNodeManager()->mkTrustedNode(
+            TrustId::THEORY_INFERENCE_ARITH, {}, {}, equiv));
+  }
+  return TrustNode::mkTrustRewrite(eq, eqn, nullptr);
 }
 
 }  // namespace arith

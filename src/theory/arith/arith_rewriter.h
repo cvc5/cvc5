@@ -33,6 +33,20 @@ class ArithRewriter : public TheoryRewriter
   ArithRewriter(NodeManager* nm, OperatorElim& oe, bool expertEnabled = true);
   RewriteResponse preRewrite(TNode n) override;
   RewriteResponse postRewrite(TNode n) override;
+
+  /**
+   * Return the normal form of the arithmetic equality atom, which is computed
+   * by moving all terms to the left hand side and normalizing the resulting
+   * sum. For example, this returns (= x 1) for the input (= (+ x 1) 2).
+   *
+   * Note that this normalization is *not* applied by the rewriter, since it
+   * does not preserve the terms of the equality. Doing so would be incorrect
+   * for theory combination, where an equality between shared terms may be
+   * requested as a literal by another theory, see e.g. the comments in
+   * TheoryPreprocessor::preprocessWithProof. Instead, it is applied to
+   * equalities in the input only, via ppStaticRewrite.
+   */
+  Node normalizeEquality(TNode atom);
   /**
    * Expand definition, which eliminates extended operators like div/mod in
    * the given node.

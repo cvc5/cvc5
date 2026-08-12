@@ -391,6 +391,36 @@ std::pair<Node, Node> decomposeSum(NodeManager* nm, Sum&& sum)
   return decomposeSum(nm, std::move(sum), negated, false);
 }
 
+Node normalizeEquality(NodeManager* nm, TNode atom)
+{
+  Assert(atom.getKind() == Kind::EQUAL);
+  Assert(atom[0].getType().isRealOrInt());
+  Node left = removeToReal(atom[0]);
+  Node right = removeToReal(atom[1]);
+  if (auto response = tryEvaluateRelationReflexive(Kind::EQUAL, left, right);
+      response)
+  {
+    return mkConst(nm, *response);
+  }
+  if (auto response = tryEvaluateRelation(Kind::EQUAL, left, right); response)
+  {
+    return mkConst(nm, *response);
+  }
+  Sum sum;
+  addToSum(sum, left, false);
+  addToSum(sum, right, true);
+  if (isIntegral(sum))
+  {
+    // Note that we may be normalizing an equality between real terms, e.g.
+    // (= (to_real x) 1.0) for integer x. In this case, we ensure the
+    // normalized form is an equality between real terms as well, since the
+    // normalized form of an equality must have the same type.
+    bool isReal = atom[0].getType().isReal();
+    return buildIntegerEquality(nm, std::move(sum), isReal);
+  }
+  return buildRealEquality(nm, std::move(sum));
+}
+
 std::pair<Node, Node> decomposeRelation(NodeManager* nm,
                                         const Node& a,
                                         const Node& b)

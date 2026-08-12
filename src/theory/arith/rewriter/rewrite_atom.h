@@ -92,6 +92,19 @@ Node buildIntegerInequality(NodeManager* nm, Sum&& sum, Kind k);
 Node buildRealInequality(NodeManager* nm, Sum&& sum, Kind k);
 
 /**
+ * Return the normal form of the arithmetic equality atom, which is computed by
+ * moving all terms to the left hand side and normalizing the resulting sum.
+ * For example, this returns (= x 1) for the input (= (+ x 1) 2). The returned
+ * node is either an equality or a Boolean constant.
+ *
+ * Note that this normalization is *not* applied by the rewriter, since it does
+ * not preserve the terms of the equality, which is incompatible with theory
+ * combination. It is applied to equalities in the input via ppStaticRewrite,
+ * and by the linear arithmetic solver when setting up an atom.
+ */
+Node normalizeEquality(NodeManager* nm, TNode atom);
+
+/**
  * Decompose sum into a (non-constant, constant) part.
  * @param nm Pointer to node manager.
  * @param sum The sum.

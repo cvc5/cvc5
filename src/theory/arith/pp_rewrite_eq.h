@@ -41,6 +41,11 @@ class PreprocessRewriteEq : protected EnvObj
    * distinct from ppRewrite since it is not allowed to construct lemmas.
    */
   TrustNode ppRewriteEq(TNode eq);
+  /**
+   * Return a trust node proving that eq is equivalent to its normalized form
+   * eqn, which is computed by ArithRewriter::normalizeEquality.
+   */
+  TrustNode ppNormalizeEq(TNode eq, TNode eqn);
 
  private:
   /** Used to prove pp-rewrites */

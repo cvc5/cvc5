@@ -38,6 +38,7 @@
 #include "smt/logic_exception.h"
 #include "theory/arith/arith_proof_rcons.h"
 #include "theory/arith/arith_poly_norm.h"
+#include "theory/arith/rewriter/rewrite_atom.h"
 #include "theory/arith/arith_proof_utilities.h"
 #include "theory/arith/arith_rewriter.h"
 #include "theory/arith/arith_utilities.h"
@@ -1111,7 +1112,17 @@ bool TheoryArithPrivate::ppAssert(TrustNode tin,
   if (in.getKind() == Kind::EQUAL
       && Theory::theoryOf(in[0].getType()) == THEORY_ARITH)
   {
-    Comparison cmp = Comparison::parseNormalForm(in);
+    // Equalities are not normalized by the rewriter, see
+    // rewriter::normalizeEquality. We compute the normal form here, which is
+    // required for solving for a variable below. Note that the substitution we
+    // infer is justified by tin, which proves the original equality.
+    Node inn = rewriter::normalizeEquality(nodeManager(), in);
+    if (inn.getKind() != Kind::EQUAL)
+    {
+      // normalized to a Boolean constant, no substitution
+      return false;
+    }
+    Comparison cmp = Comparison::parseNormalForm(inn);
 
     Polynomial left = cmp.getLeft();
 
@@ -1376,11 +1387,33 @@ void TheoryArithPrivate::setupPolynomial(const Polynomial& poly)
 void TheoryArithPrivate::setupAtom(TNode atom)
 {
   Assert(isRelationOperator(atom.getKind())) << atom;
-  Assert(Comparison::isNormalAtom(atom));
   Assert(!isSetup(atom));
   Assert(!d_constraintDatabase.hasLiteral(atom));
 
-  Comparison cmp = Comparison::parseNormalForm(atom);
+  // Equalities are not normalized by the rewriter, since normalizing an
+  // equality does not preserve its terms, which is incompatible with theory
+  // combination, see rewriter::normalizeEquality. We thus compute the normal
+  // form here, which determines the constraint that atom corresponds to.
+  Node natom = atom;
+  if (atom.getKind() == Kind::EQUAL && !Comparison::isNormalAtom(atom))
+  {
+    natom = rewriter::normalizeEquality(nodeManager(), atom);
+    Trace("arith::setup") << "Normalize " << atom << " to " << natom
+                          << std::endl;
+    // Note the normal form is not a Boolean constant, since atom is in
+    // rewritten form, which evaluates equalities between constant sides.
+    Assert(natom.getKind() == Kind::EQUAL);
+    if (!isSetup(natom))
+    {
+      // Set up the normal form first, so that it is the literal of the
+      // constraint. This ensures we always propagate and explain using the
+      // normalized atom.
+      setupAtom(natom);
+    }
+  }
+  Assert(Comparison::isNormalAtom(natom)) << natom;
+
+  Comparison cmp = Comparison::parseNormalForm(natom);
   Polynomial nvp = cmp.normalizedVariablePart();
   Assert(!nvp.isZero());
 
@@ -1389,14 +1422,13 @@ void TheoryArithPrivate::setupAtom(TNode atom)
     setupPolynomial(nvp);
   }
 
-  ConstraintP c = d_constraintDatabase.addLiteral(atom);
+  ConstraintP c = d_constraintDatabase.addLiteral(atom, natom);
 
-  // It is possible that two distinct atoms correspond to the same constraint.
-  // This is the case for equalities, whose rewritten form retains the type of
-  // the equality, e.g. both (= x 0) and (= (to_real x) 0.0) may be atoms for
-  // an integer variable x. In this case, the atoms are distinct literals for
-  // the SAT solver, which would have to discover their equivalence lazily via
-  // conflicts. We instead send a lemma stating that they are equivalent.
+  // It is possible that two distinct atoms correspond to the same constraint,
+  // which is the case when atom is not in normal form. In this case, the atoms
+  // are distinct literals for the SAT solver, which would have to discover
+  // their equivalence lazily via conflicts. We instead send a lemma stating
+  // that they are equivalent.
   Node lit = c->getLiteral();
   // Note we mark the atom as setup before sending the lemma below, since
   // sending a lemma may lead to this atom being preregistered again.
@@ -1755,6 +1787,13 @@ ConstraintP TheoryArithPrivate::constraintFromFactQueue(TNode assertion)
     Node eq = (simpleKind == Kind::DISTINCT) ? assertion[0] : assertion;
     Assert(!isSetup(eq));
     Node reEq = rewrite(eq);
+    if (reEq.getKind() == Kind::EQUAL)
+    {
+      // Equalities are not normalized by the rewriter, see
+      // rewriter::normalizeEquality. We compute the normal form here, which
+      // determines the constraint this assertion corresponds to.
+      reEq = rewriter::normalizeEquality(nodeManager(), reEq);
+    }
     Trace("arith::distinct::const") << "Assertion: " << assertion << std::endl;
     Trace("arith::distinct::const") << "Eq       : " << eq << std::endl;
     Trace("arith::distinct::const") << "reEq     : " << reEq << std::endl;

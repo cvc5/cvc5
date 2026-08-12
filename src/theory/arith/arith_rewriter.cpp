@@ -403,6 +403,15 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
     return RewriteResponse(REWRITE_DONE, rewriter::mkConst(d_nm, *response));
   }
 
+  if (kind == Kind::EQUAL)
+  {
+    // We do not normalize equalities here, since this does not preserve their
+    // terms, see rewriter::normalizeEquality. Note we do not reorient the
+    // equality either, since the orientation of an equality is significant
+    // for its normal form, e.g. (= x 1) is normalized whereas (= 1 x) is not.
+    return RewriteResponse(REWRITE_DONE, atom);
+  }
+
   bool negate = false;
 
   switch (atom.getKind())
@@ -453,6 +462,11 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
         REWRITE_DONE,
         rewriter::buildRealInequality(d_nm, std::move(sum), kind));
   }
+}
+
+Node ArithRewriter::normalizeEquality(TNode atom)
+{
+  return rewriter::normalizeEquality(d_nm, atom);
 }
 
 RewriteResponse ArithRewriter::preRewriteTerm(TNode t)

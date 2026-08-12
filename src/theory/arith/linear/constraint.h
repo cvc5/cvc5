@@ -1116,8 +1116,15 @@ class ConstraintDatabase : protected EnvObj
 
   ~ConstraintDatabase();
 
-  /** Adds a literal to the database. */
-  ConstraintP addLiteral(TNode lit);
+  /**
+   * Adds a literal to the database.
+   *
+   * @param lit The literal, i.e. an atom or its negation.
+   * @param nlit The normal form of lit, which determines the constraint that
+   * lit corresponds to. This may differ from lit for equalities, whose normal
+   * form is not computed by the rewriter, see rewriter::normalizeEquality.
+   */
+  ConstraintP addLiteral(TNode lit, TNode nlit);
 
   /**
    * If hasLiteral() is true, returns the constraint.

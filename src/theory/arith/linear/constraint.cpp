@@ -1326,16 +1326,20 @@ bool ConstraintDatabase::hasLiteral(TNode literal) const
   return lookup(literal) != NullConstraint;
 }
 
-ConstraintP ConstraintDatabase::addLiteral(TNode literal)
+ConstraintP ConstraintDatabase::addLiteral(TNode literal, TNode nliteral)
 {
   Assert(!hasLiteral(literal));
   bool isNot = (literal.getKind() == Kind::NOT);
   Node atomNode = (isNot ? literal[0] : literal);
   Node negationNode = atomNode.notNode();
+  // The normal form of the atom, which determines the constraint this literal
+  // maps to. Note this may be distinct from atomNode.
+  Node nAtomNode = (nliteral.getKind() == Kind::NOT ? nliteral[0] : nliteral);
+  Assert((nliteral.getKind() == Kind::NOT) == isNot);
 
   Assert(!hasLiteral(atomNode));
   Assert(!hasLiteral(negationNode));
-  Comparison posCmp = Comparison::parseNormalForm(atomNode);
+  Comparison posCmp = Comparison::parseNormalForm(nAtomNode);
 
   ConstraintType posType = Constraint::constraintTypeOfComparison(posCmp);
 
@@ -1375,7 +1379,7 @@ ConstraintP ConstraintDatabase::addLiteral(TNode literal)
   }
   else
   {
-    Comparison negCmp = Comparison::parseNormalForm(negationNode);
+    Comparison negCmp = Comparison::parseNormalForm(nAtomNode.notNode());
 
     ConstraintType negType = Constraint::constraintTypeOfComparison(negCmp);
     DeltaRational negDR = negCmp.normalizedDeltaRational();
