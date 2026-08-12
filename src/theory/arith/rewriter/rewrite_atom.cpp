@@ -257,7 +257,7 @@ Node buildRelation(Kind kind, Node left, Node right, bool negate)
   return NodeManager::mkNode(kind, left, right);
 }
 
-Node buildIntegerEquality(NodeManager* nm, Sum&& sum)
+Node buildIntegerEquality(NodeManager* nm, Sum&& sum, bool isReal)
 {
   Trace("arith-rewriter") << "building integer equality from " << sum
                           << std::endl;
@@ -298,6 +298,12 @@ Node buildIntegerEquality(NodeManager* nm, Sum&& sum)
   Node rhs = collectSum(nm, sum);
   Assert(left.getType().isInteger());
   Assert(rhs.getType().isInteger());
+  if (isReal)
+  {
+    // The equality we are rewriting was between real terms. We must not
+    // change the type of the equality, hence we cast both sides back to real.
+    return buildRelation(Kind::EQUAL, ensureReal(left), ensureReal(rhs));
+  }
   return buildRelation(Kind::EQUAL, left, rhs);
 }
 
@@ -321,14 +327,9 @@ Node buildRealEquality(NodeManager* nm, Sum&& sum)
   Node rhs = collectSum(nm, sum);
   Node lhsr = ensureReal(lhs);
   Node rhsr = ensureReal(rhs);
-  if (lhsr != lhs && rhsr != rhs)
-  {
-    // if both were changed, then this implies we could make an integer equality
-    // instead.
-    Assert(lhs.getType().isInteger());
-    Assert(rhs.getType().isInteger());
-    return buildRelation(Kind::EQUAL, lhs, rhs);
-  }
+  // Note that even if both sides are integer, we keep the equality between
+  // real terms here, since the rewritten form of an equality must have the
+  // same type as the equality we are rewriting.
   Assert(lhsr.getType().isReal() || lhsr.getType().isFullyAbstract());
   Assert(rhsr.getType().isReal() || rhsr.getType().isFullyAbstract());
   return buildRelation(Kind::EQUAL, lhsr, rhsr);

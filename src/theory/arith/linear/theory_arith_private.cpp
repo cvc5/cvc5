@@ -37,6 +37,7 @@
 #include "proof/proof_node_manager.h"
 #include "smt/logic_exception.h"
 #include "theory/arith/arith_proof_rcons.h"
+#include "theory/arith/arith_poly_norm.h"
 #include "theory/arith/arith_proof_utilities.h"
 #include "theory/arith/arith_rewriter.h"
 #include "theory/arith/arith_utilities.h"
@@ -1388,9 +1389,45 @@ void TheoryArithPrivate::setupAtom(TNode atom)
     setupPolynomial(nvp);
   }
 
-  d_constraintDatabase.addLiteral(atom);
+  ConstraintP c = d_constraintDatabase.addLiteral(atom);
 
+  // It is possible that two distinct atoms correspond to the same constraint.
+  // This is the case for equalities, whose rewritten form retains the type of
+  // the equality, e.g. both (= x 0) and (= (to_real x) 0.0) may be atoms for
+  // an integer variable x. In this case, the atoms are distinct literals for
+  // the SAT solver, which would have to discover their equivalence lazily via
+  // conflicts. We instead send a lemma stating that they are equivalent.
+  Node lit = c->getLiteral();
+  // Note we mark the atom as setup before sending the lemma below, since
+  // sending a lemma may lead to this atom being preregistered again.
   markSetup(atom);
+  if (lit != atom)
+  {
+    Assert(lit.getKind() == Kind::EQUAL && atom.getKind() == Kind::EQUAL);
+    Node lem = lit.eqNode(atom);
+    TrustNode tlem;
+    if (proofsEnabled())
+    {
+      // The two atoms are equivalent up to polynomial normalization.
+      Rational ca, cb;
+      bool isPolyNorm = PolyNorm::isArithPolyNormRel(lit, atom, ca, cb);
+      Assert(isPolyNorm) << lit << " and " << atom << " are not poly norm";
+      if (isPolyNorm)
+      {
+        Node premise = PolyNorm::getArithPolyNormRelPremise(lit, atom, ca, cb);
+        Pf ppf =
+            d_pnm->mkNode(ProofRule::ARITH_POLY_NORM, {}, {premise}, premise);
+        Pf pf =
+            d_pnm->mkNode(ProofRule::ARITH_POLY_NORM_REL, {ppf}, {lem}, lem);
+        tlem = d_pfGen->mkTrustNode(lem, pf);
+      }
+    }
+    if (tlem.isNull())
+    {
+      tlem = TrustNode::mkTrustLemma(lem, nullptr);
+    }
+    outputTrustedLemma(tlem, InferenceId::ARITH_EQUIV_ATOM);
+  }
 }
 
 void TheoryArithPrivate::preRegisterTerm(TNode n)
@@ -1412,8 +1449,12 @@ void TheoryArithPrivate::preRegisterTerm(TNode n)
       Assert(c != NullConstraint);
 
       Trace("arith::preregister") << "setup constraint" << c << endl;
-      Assert(!c->canBePropagated());
-      c->setPreregistered();
+      // Note that the constraint may already be preregistered, since multiple
+      // atoms may correspond to the same constraint, see setupAtom.
+      if (!c->canBePropagated())
+      {
+        c->setPreregistered();
+      }
     }
   }
   catch (LogicException& le)

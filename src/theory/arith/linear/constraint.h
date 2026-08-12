@@ -1000,6 +1000,15 @@ class ConstraintDatabase : protected EnvObj
   NodetoConstraintMap d_nodetoConstraintMap;
 
   /**
+   * Maps a constraint to the literals, other than its own literal, that map
+   * to it in d_nodetoConstraintMap. This is non-empty only in the rare case
+   * where multiple atoms normalize to the same constraint, which is possible
+   * for equalities between integer terms, e.g. (= x 0) and (= (to_real x) 0.0).
+   * It is used to clean up d_nodetoConstraintMap when a constraint is deleted.
+   */
+  std::unordered_map<ConstraintP, std::vector<Node>> d_altLiterals;
+
+  /**
    * A queue of propagated constraints.
    * ConstraintCP are pointers.
    * The elements of the queue do not require destruction.

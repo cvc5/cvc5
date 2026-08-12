@@ -428,8 +428,14 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
     Trace("arith-rewriter") << "...sum is integral" << std::endl;
     if (kind == Kind::EQUAL)
     {
+      // Note that we may be rewriting an equality between real terms, e.g.
+      // (= (to_real x) 1.0) for integer x. In this case, we ensure the
+      // rewritten form is an equality between real terms as well, since the
+      // rewritten form of an equality must have the same type.
+      bool isReal = atom[0].getType().isReal();
       return RewriteResponse(
-          REWRITE_DONE, rewriter::buildIntegerEquality(d_nm, std::move(sum)));
+          REWRITE_DONE,
+          rewriter::buildIntegerEquality(d_nm, std::move(sum), isReal));
     }
     return RewriteResponse(
         REWRITE_DONE,

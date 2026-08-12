@@ -56,8 +56,13 @@ Node buildRelation(Kind kind, Node left, Node right, bool negate = false);
  * the result is false. We then put the term with minimal absolute coefficient
  * to the left side of the equality and make its coefficient positive.
  * The sum is taken as rvalue as it is modified in the process.
+ *
+ * If isReal is true, the sides of the returned equality are cast to real
+ * (via TO_REAL). This is used when the equality we are rewriting is an
+ * equality between real terms, since the rewritten form of an equality must
+ * have the same type as the equality we are rewriting.
  */
-Node buildIntegerEquality(NodeManager* nm, Sum&& sum);
+Node buildIntegerEquality(NodeManager* nm, Sum&& sum, bool isReal = false);
 
 /**
  * Build a real equality from the given sum. The result is equivalent to the sum

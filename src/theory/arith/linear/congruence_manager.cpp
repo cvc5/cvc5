@@ -268,7 +268,10 @@ void ArithCongruenceManager::watchedVariableCannotBeZero(ConstraintCP c)
   {
     if (c->getType() == ConstraintType::Disequality)
     {
-      Assert(c->getLiteral() == d_watchedEqualities[s].negate());
+      // Note that the literal of c may differ from the negation of the watched
+      // equality, since multiple atoms may correspond to the same constraint,
+      // e.g. (= x 0) and (= (to_real x) 0.0). This is accounted for by the
+      // call below.
       // We have to prove equivalence to the watched disequality.
       pf = ensurePredTransform(d_pnm, pf, disEq);
     }
@@ -547,6 +550,11 @@ bool ArithCongruenceManager::propagate(TNode x)
           Node peqi = peq[0][0].eqNode(ic);
           Node equiv = peq.eqNode(peqi);
           Rational cx, cy;
+          // Compute the coefficients relating the two sides. Note that
+          // ARITH_POLY_NORM_REL requires these to be non-zero.
+          bool isPolyNorm = PolyNorm::isArithPolyNormRel(peq, peqi, cx, cy);
+          Assert(isPolyNorm) << peq << " and " << peqi << " not poly norm";
+          AlwaysAssert(isPolyNorm);
           Node premise =
               PolyNorm::getArithPolyNormRelPremise(peq, peqi, cx, cy);
           cdp.addStep(premise, ProofRule::ARITH_POLY_NORM, {}, {premise});

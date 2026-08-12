@@ -494,6 +494,16 @@ Constraint::~Constraint()
     {
       d_database->d_nodetoConstraintMap.erase(getLiteral());
     }
+    std::unordered_map<ConstraintP, std::vector<Node>>::iterator ita =
+        d_database->d_altLiterals.find(this);
+    if (ita != d_database->d_altLiterals.end())
+    {
+      for (const Node& l : ita->second)
+      {
+        d_database->d_nodetoConstraintMap.erase(l);
+      }
+      d_database->d_altLiterals.erase(ita);
+    }
   }
 }
 
@@ -2291,12 +2301,24 @@ void Constraint::setLiteral(Node n)
 {
   Trace("arith::constraint") << "Mapping " << *this << " to " << n << std::endl;
   Assert(Comparison::isNormalAtom(n));
-  Assert(!hasLiteral());
   Assert(sanityChecking(n));
-  d_literal = n;
   NodetoConstraintMap& map = d_database->d_nodetoConstraintMap;
   Assert(map.find(n) == map.end());
-  map.insert(make_pair(d_literal, this));
+  map.insert(make_pair(n, this));
+  if (hasLiteral())
+  {
+    // Multiple atoms may normalize to the same constraint. This is possible
+    // for equalities, whose rewritten form retains the type of the original
+    // equality, e.g. both (= x 0) and (= (to_real x) 0.0) may occur for an
+    // integer variable x. We keep the first such atom as the literal of this
+    // constraint and remember the others so that the node-to-constraint map
+    // can be cleaned up when this constraint is deleted. Note the constraint
+    // may still be asserted or explained using any of these atoms, which is
+    // handled by tracking the witness of the assertion.
+    d_database->d_altLiterals[this].push_back(n);
+    return;
+  }
+  d_literal = n;
 }
 
 Node Constraint::getProofLiteral() const

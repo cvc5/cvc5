@@ -378,6 +378,38 @@ void NlModel::setUsedApproximate() { d_used_approx = true; }
 
 bool NlModel::usedApproximate() const { return d_used_approx; }
 
+/**
+ * Return the equality equivalent to eq in which casts to real are removed from
+ * both of its sides, if applicable. For example, this returns (= x y) for the
+ * input (= (to_real x) (to_real y)), and (= x 1) for (= (to_real x) 1.0).
+ */
+Node removeToReal(NodeManager* nm, const Node& eq)
+{
+  Assert(eq.getKind() == Kind::EQUAL);
+  if (!eq[0].getType().isReal())
+  {
+    return eq;
+  }
+  Node ret[2];
+  for (size_t i = 0; i < 2; i++)
+  {
+    if (eq[i].getKind() == Kind::TO_REAL)
+    {
+      ret[i] = eq[i][0];
+    }
+    else if (eq[i].isConst() && eq[i].getConst<Rational>().isIntegral())
+    {
+      ret[i] = nm->mkConstInt(eq[i].getConst<Rational>());
+    }
+    else
+    {
+      // one of the sides is not an integer term, do not modify
+      return eq;
+    }
+  }
+  return ret[0].eqNode(ret[1]);
+}
+
 bool NlModel::solveEqualitySimple(Node eq,
                                   unsigned d,
                                   std::vector<NlLemma>& lemmas)
@@ -399,6 +431,11 @@ bool NlModel::solveEqualitySimple(Node eq,
   }
   Trace("nl-ext-cms") << "simple solve equality " << seq << "..." << std::endl;
   Assert(seq.getKind() == Kind::EQUAL);
+  // Remove casts to real. The rewritten form of an equality preserves its
+  // type, hence an equality between integer terms that occurs in a real
+  // context is e.g. (= (to_real x) (to_real y)). We solve for the integer
+  // terms in this case.
+  seq = removeToReal(nodeManager(), seq);
   std::map<Node, Node> msum;
   if (!ArithMSum::getMonomialSumLit(seq, msum))
   {

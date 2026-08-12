@@ -12,7 +12,9 @@
 
 #include "theory/arith/arith_proof_utilities.h"
 
+#include "proof/proof_node_algorithm.h"
 #include "proof/proof_node_manager.h"
+#include "theory/arith/arith_poly_norm.h"
 #include "util/rational.h"
 
 namespace cvc5::internal {
@@ -119,13 +121,58 @@ Node expandMacroSumUb(NodeManager* nm,
   return sumBounds;
 }
 
+/**
+ * Does n have a TO_REAL as a direct child of its (possibly negated) relation?
+ * This is used to recognize when two predicates differ only in whether their
+ * arguments are cast to real, e.g. (= (to_real x) 0.0) versus (= x 0).
+ */
+bool hasToRealArg(const Node& n)
+{
+  Node atom = n.getKind() == Kind::NOT ? n[0] : n;
+  if (atom.getNumChildren() != 2)
+  {
+    return false;
+  }
+  return atom[0].getKind() == Kind::TO_REAL
+         || atom[1].getKind() == Kind::TO_REAL;
+}
+
 std::shared_ptr<ProofNode> ensurePredTransform(ProofNodeManager* pnm,
                                                std::shared_ptr<ProofNode>& pf,
                                                const Node& pred)
 {
-  if (pf->getResult() == pred)
+  Node res = pf->getResult();
+  if (res == pred)
   {
     return pf;
+  }
+  // The rewriter does not change the type of an equality, hence e.g.
+  // (= (to_real x) 0.0) and (= x 0) have distinct rewritten forms and cannot
+  // be related by MACRO_SR_PRED_TRANSFORM. We relate such predicates by
+  // polynomial normalization instead.
+  bool negated = (res.getKind() == Kind::NOT);
+  if (hasToRealArg(res) != hasToRealArg(pred)
+      && negated == (pred.getKind() == Kind::NOT))
+  {
+    Node ratom = negated ? res[0] : res;
+    Node patom = negated ? pred[0] : pred;
+    Rational ca, cb;
+    if (PolyNorm::isArithPolyNormRel(ratom, patom, ca, cb))
+    {
+      Node premise = PolyNorm::getArithPolyNormRelPremise(ratom, patom, ca, cb);
+      Pf ppf = pnm->mkNode(ProofRule::ARITH_POLY_NORM, {}, {premise}, premise);
+      Node equiv = ratom.eqNode(patom);
+      Pf epf =
+          pnm->mkNode(ProofRule::ARITH_POLY_NORM_REL, {ppf}, {equiv}, equiv);
+      if (negated)
+      {
+        Node nequiv = res.eqNode(pred);
+        std::vector<Node> cargs;
+        ProofRule cr = expr::getCongRule(res, cargs);
+        epf = pnm->mkNode(cr, {epf}, cargs, nequiv);
+      }
+      return pnm->mkNode(ProofRule::EQ_RESOLVE, {pf, epf}, {}, pred);
+    }
   }
   // give the predicate as the expected result, which is important for
   // performance (does not require proof checking).
