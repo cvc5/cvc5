@@ -433,6 +433,8 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
     return RewriteResponse(REWRITE_DONE, atom);
   }
 
+  // Equalities were handled above, hence the atom is an inequality here.
+  Assert(kind != Kind::EQUAL);
   bool negate = false;
 
   switch (atom.getKind())
@@ -456,17 +458,6 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
   if (rewriter::isIntegral(sum))
   {
     Trace("arith-rewriter") << "...sum is integral" << std::endl;
-    if (kind == Kind::EQUAL)
-    {
-      // Note that we may be rewriting an equality between real terms, e.g.
-      // (= (to_real x) 1.0) for integer x. In this case, we ensure the
-      // rewritten form is an equality between real terms as well, since the
-      // rewritten form of an equality must have the same type.
-      bool isReal = atom[0].getType().isReal();
-      return RewriteResponse(
-          REWRITE_DONE,
-          rewriter::buildIntegerEquality(d_nm, std::move(sum), isReal));
-    }
     return RewriteResponse(
         REWRITE_DONE,
         rewriter::buildIntegerInequality(d_nm, std::move(sum), kind));
@@ -474,11 +465,6 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
   else
   {
     Trace("arith-rewriter") << "...sum is not integral" << std::endl;
-    if (kind == Kind::EQUAL)
-    {
-      return RewriteResponse(REWRITE_DONE,
-                             rewriter::buildRealEquality(d_nm, std::move(sum)));
-    }
     return RewriteResponse(
         REWRITE_DONE,
         rewriter::buildRealInequality(d_nm, std::move(sum), kind));

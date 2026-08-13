@@ -257,7 +257,29 @@ Node buildRelation(Kind kind, Node left, Node right, bool negate)
   return NodeManager::mkNode(kind, left, right);
 }
 
-Node buildIntegerEquality(NodeManager* nm, Sum&& sum, bool isReal, bool* negated)
+namespace {
+
+/**
+ * Build an integer equality from the given sum. The result is equivalent to the
+ * sum being equal to zero. We first normalize the non-constant coefficients to
+ * integers (using GCD and LCM). If the coefficient is non-integral after that,
+ * the result is false. We then put the term with minimal absolute coefficient
+ * to the left side of the equality and make its coefficient positive.
+ * The sum is taken as rvalue as it is modified in the process.
+ *
+ * If isReal is true, the sides of the returned equality are cast to real
+ * (via TO_REAL). This is used when the equality we are normalizing is an
+ * equality between real terms, since the normal form of an equality must have
+ * the same type as the equality we are normalizing.
+ *
+ * If negated is non-null, it is set to true if the difference of the sides of
+ * the returned equality is a *negative* multiple of the given sum, and false
+ * if it is a positive one.
+ */
+Node buildIntegerEquality(NodeManager* nm,
+                          Sum&& sum,
+                          bool isReal,
+                          bool* negated)
 {
   Trace("arith-rewriter") << "building integer equality from " << sum
                           << std::endl;
@@ -315,6 +337,17 @@ Node buildIntegerEquality(NodeManager* nm, Sum&& sum, bool isReal, bool* negated
   return buildRelation(Kind::EQUAL, left, rhs);
 }
 
+/**
+ * Build a real equality from the given sum. The result is equivalent to the sum
+ * being equal to zero. We first extract the leading term and normalize its
+ * coefficient to be plus or minus one. The result is the (normalized) leading
+ * term being equal to the rest of the sum.
+ * The sum is taken as rvalue as it is modified in the process.
+ *
+ * If negated is non-null, it is set to true if the difference of the sides of
+ * the returned equality is a *negative* multiple of the given sum, and false
+ * if it is a positive one.
+ */
 Node buildRealEquality(NodeManager* nm, Sum&& sum, bool* negated)
 {
   Trace("arith-rewriter") << "building real equality from " << sum << std::endl;
@@ -348,6 +381,8 @@ Node buildRealEquality(NodeManager* nm, Sum&& sum, bool* negated)
   Assert(rhsr.getType().isReal() || rhsr.getType().isFullyAbstract());
   return buildRelation(Kind::EQUAL, lhsr, rhsr);
 }
+
+}  // namespace
 
 Node buildIntegerInequality(NodeManager* nm, Sum&& sum, Kind k)
 {
