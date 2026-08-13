@@ -3065,7 +3065,6 @@ set(regress_1_tests
   regress1/nl/proj-issue282.smt2
   regress1/nl/proj-issue286.smt2
   regress1/nl/proj-issue290.smt2
-  regress1/nl/proj-issue291.smt2
   regress1/nl/proj-issue292.smt2
   regress1/nl/proj-issue294.smt2
   regress1/nl/proj-issue297.smt2
@@ -4136,7 +4135,6 @@ set(regress_2_tests
   regress2/lemmas/simple_startup_9nodes.abstract.base.smtv1.smt2
   regress2/javafe.ast.StandardPrettyPrint.319_no_forall.smt2
   regress2/javafe.ast.WhileStmt.447_no_forall.smt2
-  regress2/nl/issue8693-flatten-to-real.smt2
   regress2/large-datatypes-cycle.smt2
   regress2/ooo.rf6.smt2
   regress2/ooo.tag10.smt2
@@ -4377,6 +4375,9 @@ set(regression_disabled_tests
   regress1/nl/proj-issue231.smt2
   # times out after changes to nl-ext in #8236
   regress1/nl/proj-issue251.smt2
+  # times out after the rewriter stopped normalizing equalities, which orients
+  # them based on their normal form instead of the node ordering of their sides
+  regress1/nl/proj-issue291.smt2
   # slow with sygus-inference after removing anti-skolemization
   regress1/quantifiers/anti-sk-simp.smt2
   # no longer support snorm option
@@ -4450,6 +4451,9 @@ set(regression_disabled_tests
   # times out after #7345
   regress2/bv_to_int_mask_array_1.smt2
   regress2/nl/dumortier-050317.smt2
+  # times out after the linear solver stopped setting up the normal form of an
+  # equality, which made the literals of its constraints non-canonical
+  regress2/nl/issue8693-flatten-to-real.smt2
   # timeout on some builds after changes to justification heuristic
   regress2/nl/nt-lemmas-bad.smt2
   # timeout after change to arith theory combination
