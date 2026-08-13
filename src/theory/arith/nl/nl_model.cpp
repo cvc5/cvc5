@@ -19,6 +19,7 @@
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/nl/nl_lemma_utils.h"
+#include "theory/arith/rewriter/rewrite_atom.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
 
@@ -166,10 +167,48 @@ int NlModel::compareValue(TNode i, TNode j, bool isAbsolute) const
   return iabs < jabs ? -1 : 1;
 }
 
-bool NlModel::checkModel(const std::vector<Node>& assertions,
+Node NlModel::normalizeEqualityLit(const Node& lit)
+{
+  bool neg = (lit.getKind() == Kind::NOT);
+  Node atom = neg ? lit[0] : lit;
+  if (atom.getKind() != Kind::EQUAL || !atom[0].getType().isRealOrInt())
+  {
+    return lit;
+  }
+  Node natom = rewriter::normalizeEquality(nodeManager(), atom);
+  if (natom == atom)
+  {
+    return lit;
+  }
+  if (natom.isConst())
+  {
+    return neg ? nodeManager()->mkConst(!natom.getConst<bool>()) : natom;
+  }
+  // Rewrite the normal form, which ensures the returned literal is canonical.
+  // Note this is expected to be a no-op, since the rewriter orients an
+  // equality in the same direction as its normal form, see
+  // ArithRewriter::postRewriteAtom.
+  natom = rewrite(natom);
+  return neg ? natom.notNode() : natom;
+}
+
+bool NlModel::checkModel(const std::vector<Node>& iassertions,
                          unsigned d,
                          std::vector<NlLemma>& lemmas)
 {
+  // Normalize the (possibly negated) arithmetic equalities in the assertions,
+  // see normalizeEqualityLit. Note this also collapses distinct assertions
+  // that are variants of the same equality.
+  std::vector<Node> assertions;
+  std::unordered_set<Node> processed;
+  for (const Node& a : iassertions)
+  {
+    Node an = normalizeEqualityLit(a);
+    if (processed.insert(an).second)
+    {
+      assertions.push_back(an);
+    }
+  }
   Trace("nl-ext-cm-debug") << "NlModel::checkModel: solve for equalities..."
                            << std::endl;
   for (const Node& atom : assertions)

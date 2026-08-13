@@ -84,13 +84,20 @@ TEST_F(TestTheoryArithRewriterBlack, Equality)
   Node one = d_nodeManager->mkConstInt(Rational(1));
   Node two = d_nodeManager->mkConstInt(Rational(2));
 
-  // Rewriting an equality only rewrites its sides and orients them according
-  // to the node ordering. In particular, it does not solve this equality for
-  // x by polynomial normalization.
+  // Rewriting an equality only rewrites its sides and orients them. In
+  // particular, it does not solve this equality for x by polynomial
+  // normalization.
   Node lhs = rr->rewrite(d_nodeManager->mkNode(Kind::ADD, x, one));
   Node eq = lhs.eqNode(two);
-  Node expected = lhs > two ? two.eqNode(lhs) : eq;
-  EXPECT_EQ(rr->rewrite(eq), expected);
+  EXPECT_EQ(rr->rewrite(eq), eq);
+  // The equality is oriented in the same direction as its normal form, which
+  // is (= x 1) here. Hence the reverse of the above equality is oriented to
+  // the above equality.
+  EXPECT_EQ(rr->rewrite(two.eqNode(lhs)), eq);
+  // Rewriting is idempotent, i.e. the normal form of an equality is itself in
+  // rewritten form.
+  Node norm = x.eqNode(one);
+  EXPECT_EQ(rr->rewrite(norm), norm);
 
   // Equalities that are constant after normalization are still folded.
   EXPECT_EQ(rr->rewrite(x.eqNode(x)), d_nodeManager->mkConst(true));

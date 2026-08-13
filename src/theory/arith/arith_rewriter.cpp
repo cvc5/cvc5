@@ -412,15 +412,20 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
     // rewritten form of an equality is a Boolean constant whenever it is
     // equivalent to one, which is relied upon e.g. when setting up atoms in
     // the linear solver.
-    Node norm = rewriter::normalizeEquality(d_nm, atom);
+    bool negated = false;
+    Node norm = rewriter::normalizeEquality(d_nm, atom, &negated);
     if (norm.isConst())
     {
       return RewriteResponse(REWRITE_DONE, norm);
     }
-    // Otherwise, we apply the standard rewrite for equality, used by the
-    // other theory rewriters, which orients the equality so that the left
-    // hand side is smaller in the node ordering.
-    if (atom[0] > atom[1])
+    // Otherwise, we only orient the equality, which we do so that it points in
+    // the same direction as its normal form, i.e. so that the difference of
+    // its sides is a positive multiple of the difference of the sides of norm.
+    // Note this makes the normal form of an equality itself in rewritten form,
+    // which ensures that the linear solver does not have to introduce a second
+    // atom for an equality that is already in normal form, see
+    // TheoryArithPrivate::setupAtom.
+    if (negated)
     {
       return RewriteResponse(REWRITE_DONE,
                              d_nm->mkNode(Kind::EQUAL, atom[1], atom[0]));

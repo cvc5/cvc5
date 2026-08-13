@@ -177,6 +177,15 @@ class NlModel : protected EnvObj
   Node getSubstitutedForm(TNode s) const;
 
  private:
+  /**
+   * Return the normalized form of the (possibly negated) arithmetic equality
+   * literal lit, or lit itself if it is not one. The rewriter does not
+   * normalize arithmetic equalities, see rewriter::normalizeEquality, hence
+   * the same equality may be asserted in several syntactically distinct forms,
+   * e.g. (= 0.0 (+ (* (- 1) x) y)) and (= y x). The techniques in this class
+   * assume equalities are in normal form, thus we normalize them here.
+   */
+  Node normalizeEqualityLit(const Node& lit);
   /** Cache for concrete model values */
   std::map<Node, Node> d_concreteModelCache;
   /** Cache for abstract model values */

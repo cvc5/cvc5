@@ -61,8 +61,15 @@ Node buildRelation(Kind kind, Node left, Node right, bool negate = false);
  * (via TO_REAL). This is used when the equality we are rewriting is an
  * equality between real terms, since the rewritten form of an equality must
  * have the same type as the equality we are rewriting.
+ *
+ * If negated is non-null, it is set to true if the difference of the sides of
+ * the returned equality is a *negative* multiple of the given sum, and false
+ * if it is a positive one.
  */
-Node buildIntegerEquality(NodeManager* nm, Sum&& sum, bool isReal = false);
+Node buildIntegerEquality(NodeManager* nm,
+                          Sum&& sum,
+                          bool isReal = false,
+                          bool* negated = nullptr);
 
 /**
  * Build a real equality from the given sum. The result is equivalent to the sum
@@ -70,8 +77,12 @@ Node buildIntegerEquality(NodeManager* nm, Sum&& sum, bool isReal = false);
  * coefficient to be plus or minus one. The result is the (normalized) leading
  * term being equal to the rest of the sum.
  * The sum is taken as rvalue as it is modified in the process.
+ *
+ * If negated is non-null, it is set to true if the difference of the sides of
+ * the returned equality is a *negative* multiple of the given sum, and false
+ * if it is a positive one.
  */
-Node buildRealEquality(NodeManager* nm, Sum&& sum);
+Node buildRealEquality(NodeManager* nm, Sum&& sum, bool* negated = nullptr);
 
 /**
  * Build an integer inequality from the given sum. The result is equivalent to
@@ -101,8 +112,14 @@ Node buildRealInequality(NodeManager* nm, Sum&& sum, Kind k);
  * not preserve the terms of the equality, which is incompatible with theory
  * combination. It is applied to equalities in the input via ppStaticRewrite,
  * and by the linear arithmetic solver when setting up an atom.
+ *
+ * If negated is non-null, it is set to true if the difference of the sides of
+ * the returned equality is a *negative* multiple of the difference of the
+ * sides of atom, and false if it is a positive one. This is used by the
+ * rewriter to orient atom in the same direction as its normal form, which
+ * ensures that a normal form is itself in rewritten form.
  */
-Node normalizeEquality(NodeManager* nm, TNode atom);
+Node normalizeEquality(NodeManager* nm, TNode atom, bool* negated = nullptr);
 
 /**
  * Decompose sum into a (non-constant, constant) part.
