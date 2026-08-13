@@ -200,20 +200,7 @@ TrustNode TheoryArith::ppStaticRewrite(TNode atom)
   Kind k = atom.getKind();
   if (k == Kind::EQUAL)
   {
-    TrustNode teq = d_ppre.ppRewriteEq(atom);
-    if (!teq.isNull())
-    {
-      return teq;
-    }
-    // Normalize the equality. Note this is applied here and not in the
-    // rewriter, since normalizing an equality does not preserve its terms,
-    // which is incompatible with theory combination for equalities that are
-    // generated as literals in lemmas.
-    Node atomn = d_rewriter.normalizeEquality(atom);
-    if (atomn != atom)
-    {
-      return d_ppre.ppNormalizeEq(atom, atomn);
-    }
+    return d_ppre.ppRewriteEq(atom);
   }
   else if (k == Kind::GEQ)
   {

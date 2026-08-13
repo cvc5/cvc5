@@ -16,6 +16,7 @@
 #include "proof/proof_node_manager.h"
 #include "smt/env.h"
 #include "theory/arith/arith_poly_norm.h"
+#include "theory/arith/rewriter/rewrite_atom.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/rewriter.h"
 
@@ -31,11 +32,21 @@ PreprocessRewriteEq::PreprocessRewriteEq(Env& env)
 TrustNode PreprocessRewriteEq::ppRewriteEq(TNode atom)
 {
   Assert(atom.getKind() == Kind::EQUAL);
+  Assert(atom[0].getType().isRealOrInt());
   if (!options().arith.arithRewriteEq)
   {
-    return TrustNode::null();
+    // We are not splitting the equality into inequalities below, in which case
+    // we normalize it. Note this is applied here and not in the rewriter,
+    // since normalizing an equality does not preserve its terms, which is
+    // incompatible with theory combination for equalities that are generated
+    // as literals in lemmas.
+    Node atomn = rewriter::normalizeEquality(nodeManager(), atom);
+    if (atomn == atom)
+    {
+      return TrustNode::null();
+    }
+    return ppNormalizeEq(atom, atomn);
   }
-  Assert(atom[0].getType().isRealOrInt());
   Node leq = NodeBuilder(nodeManager(), Kind::LEQ) << atom[0] << atom[1];
   Node geq = NodeBuilder(nodeManager(), Kind::GEQ) << atom[0] << atom[1];
   Node rewritten = leq.andNode(geq);

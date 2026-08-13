@@ -471,11 +471,6 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
   }
 }
 
-Node ArithRewriter::normalizeEquality(TNode atom)
-{
-  return rewriter::normalizeEquality(d_nm, atom);
-}
-
 RewriteResponse ArithRewriter::preRewriteTerm(TNode t)
 {
   if (t.isConst())
