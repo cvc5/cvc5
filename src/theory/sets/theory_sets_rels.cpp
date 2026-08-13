@@ -179,8 +179,22 @@ void TheorySetsRels::check()
           ++term_it;
         }
       }
-      // RELATION_TCLOSURE is handled in checkTransitiveClosure (its own step),
-      // not here, because the down and up rules must run together.
+      else if (k_t_it->first == Kind::RELATION_TCLOSURE)
+      {
+        while (term_it != k_t_it->second.end())
+        {
+          // Protect d_tcr_tcGraph from being overwritten,
+          // if it already exists
+          if (d_rel_nodes.find(*term_it) == d_rel_nodes.end()
+              && d_rRep_tcGraph.find(getRepresentative((*term_it)[0]))
+                     == d_rRep_tcGraph.end())
+          {
+            buildTCGraphForRel(*term_it);
+            d_rel_nodes.insert(*term_it);
+          }
+          ++term_it;
+        }
+      }
       else if (k_t_it->first == Kind::RELATION_JOIN_IMAGE)
       {
         while (term_it != k_t_it->second.end())
