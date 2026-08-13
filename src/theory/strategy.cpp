@@ -137,13 +137,11 @@ void StrategyBase::postCheck(Theory::Effort e)
     Trace("check-debug") << "Theory of " << d_theoryId << " " << e
                          << " effort check " << std::endl;
 
-    // ToDo: ++(d_statistics->d_checkRuns);
     bool sentLemma = false;
     bool hadPending = false;
     do
     {
       d_im->reset();
-      // ++(d_statistics->d_strategyRuns);
       Trace("check") << "  * Run strategy..." << std::endl;
       runStrategy(e);
       // Remember if this round produced work. Conclusions may be buffered as
