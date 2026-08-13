@@ -250,12 +250,6 @@ Node OperatorElim::eliminateOperators(NodeManager* nm,
       wasNonLinear = true;
       Node rw = nm->mkNode(k, num, den);
       Node v = sm->mkPurifySkolem(rw);
-      // Note that the guard below is stated using the original denominator,
-      // and not its real cast. This ensures we do not introduce a second atom
-      // for the same constraint, since the rewritten form of an equality
-      // preserves its type, i.e. (= (to_real d) 0.0) does not rewrite to
-      // (= d 0) for an integer term d.
-      Node denEq0 = den.eqNode(mkZero(den.getType()));
       if (num.getType().isInteger())
       {
         num = nm->mkNode(Kind::TO_REAL, num);
@@ -266,7 +260,7 @@ Node OperatorElim::eliminateOperators(NodeManager* nm,
       }
       Node lem = nm->mkNode(
           Kind::IMPLIES,
-          {denEq0.negate(),
+          {den.eqNode(mkZero(den.getType())).negate(),
            nm->mkNode(Kind::EQUAL, nm->mkNode(Kind::MULT, den, v), num)});
       lems.emplace_back(lem, v);
       return v;

@@ -19,7 +19,6 @@
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/nl/nl_lemma_utils.h"
-#include "theory/arith/rewriter/rewrite_atom.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
 
@@ -167,48 +166,10 @@ int NlModel::compareValue(TNode i, TNode j, bool isAbsolute) const
   return iabs < jabs ? -1 : 1;
 }
 
-Node NlModel::normalizeEqualityLit(const Node& lit)
-{
-  bool neg = (lit.getKind() == Kind::NOT);
-  Node atom = neg ? lit[0] : lit;
-  if (atom.getKind() != Kind::EQUAL || !atom[0].getType().isRealOrInt())
-  {
-    return lit;
-  }
-  Node natom = rewriter::normalizeEquality(nodeManager(), atom);
-  if (natom == atom)
-  {
-    return lit;
-  }
-  if (natom.isConst())
-  {
-    return neg ? nodeManager()->mkConst(!natom.getConst<bool>()) : natom;
-  }
-  // Rewrite the normal form, which ensures the returned literal is canonical.
-  // Note this is expected to be a no-op, since the rewriter orients an
-  // equality in the same direction as its normal form, see
-  // ArithRewriter::postRewriteAtom.
-  natom = rewrite(natom);
-  return neg ? natom.notNode() : natom;
-}
-
-bool NlModel::checkModel(const std::vector<Node>& iassertions,
+bool NlModel::checkModel(const std::vector<Node>& assertions,
                          unsigned d,
                          std::vector<NlLemma>& lemmas)
 {
-  // Normalize the (possibly negated) arithmetic equalities in the assertions,
-  // see normalizeEqualityLit. Note this also collapses distinct assertions
-  // that are variants of the same equality.
-  std::vector<Node> assertions;
-  std::unordered_set<Node> processed;
-  for (const Node& a : iassertions)
-  {
-    Node an = normalizeEqualityLit(a);
-    if (processed.insert(an).second)
-    {
-      assertions.push_back(an);
-    }
-  }
   Trace("nl-ext-cm-debug") << "NlModel::checkModel: solve for equalities..."
                            << std::endl;
   for (const Node& atom : assertions)
@@ -417,38 +378,6 @@ void NlModel::setUsedApproximate() { d_used_approx = true; }
 
 bool NlModel::usedApproximate() const { return d_used_approx; }
 
-/**
- * Return the equality equivalent to eq in which casts to real are removed from
- * both of its sides, if applicable. For example, this returns (= x y) for the
- * input (= (to_real x) (to_real y)), and (= x 1) for (= (to_real x) 1.0).
- */
-Node removeToReal(NodeManager* nm, const Node& eq)
-{
-  Assert(eq.getKind() == Kind::EQUAL);
-  if (!eq[0].getType().isReal())
-  {
-    return eq;
-  }
-  Node ret[2];
-  for (size_t i = 0; i < 2; i++)
-  {
-    if (eq[i].getKind() == Kind::TO_REAL)
-    {
-      ret[i] = eq[i][0];
-    }
-    else if (eq[i].isConst() && eq[i].getConst<Rational>().isIntegral())
-    {
-      ret[i] = nm->mkConstInt(eq[i].getConst<Rational>());
-    }
-    else
-    {
-      // one of the sides is not an integer term, do not modify
-      return eq;
-    }
-  }
-  return ret[0].eqNode(ret[1]);
-}
-
 bool NlModel::solveEqualitySimple(Node eq,
                                   unsigned d,
                                   std::vector<NlLemma>& lemmas)
@@ -470,11 +399,6 @@ bool NlModel::solveEqualitySimple(Node eq,
   }
   Trace("nl-ext-cms") << "simple solve equality " << seq << "..." << std::endl;
   Assert(seq.getKind() == Kind::EQUAL);
-  // Remove casts to real. The rewritten form of an equality preserves its
-  // type, hence an equality between integer terms that occurs in a real
-  // context is e.g. (= (to_real x) (to_real y)). We solve for the integer
-  // terms in this case.
-  seq = removeToReal(nodeManager(), seq);
   std::map<Node, Node> msum;
   if (!ArithMSum::getMonomialSumLit(seq, msum))
   {
