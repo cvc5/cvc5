@@ -16,7 +16,7 @@
 #include "proof/proof.h"
 #include "proof/proof_node.h"
 #include "theory/arith/arith_msum.h"
-#include "theory/arith/arith_poly_norm.h"
+#include "theory/arith/arith_proof_utilities.h"
 #include "theory/arith/arith_subs.h"
 #include "theory/arith/rewriter/rewrite_atom.h"
 #include "util/rational.h"
@@ -98,18 +98,13 @@ bool ArithProofRCons::solveEquality(CDProof& cdp,
     Node eq = m.first.eqNode(val);
     if (!CDProof::isSame(as, eq))
     {
-      // The solved equality is equivalent to as up to polynomial
-      // normalization. Note the two are not equivalent under rewriting alone,
-      // since equalities are not normalized by the rewriter, see
+      // Note the solved equality is typically equivalent to as up to
+      // polynomial normalization only, and not under rewriting alone, since
+      // equalities are not normalized by the rewriter, see
       // rewriter::normalizeEquality.
-      Rational ca, cb;
-      if (PolyNorm::isArithPolyNormRel(as, eq, ca, cb))
+      if (addArithPolyNormRel(cdp, as, eq))
       {
-        Node premise = PolyNorm::getArithPolyNormRelPremise(as, eq, ca, cb);
-        cdp.addStep(premise, ProofRule::ARITH_POLY_NORM, {}, {premise});
-        Node equiv = as.eqNode(eq);
-        cdp.addStep(equiv, ProofRule::ARITH_POLY_NORM_REL, {premise}, {equiv});
-        cdp.addStep(eq, ProofRule::EQ_RESOLVE, {as, equiv}, {});
+        cdp.addStep(eq, ProofRule::EQ_RESOLVE, {as, as.eqNode(eq)}, {});
       }
       else
       {

@@ -17,7 +17,7 @@
 #include "proof/proof.h"
 #include "proof/proof_node_algorithm.h"
 #include "theory/arith/arith_msum.h"
-#include "theory/arith/arith_poly_norm.h"
+#include "theory/arith/arith_proof_utilities.h"
 #include "theory/arith/inference_manager.h"
 #include "theory/arith/nl/ext/ext_state.h"
 #include "theory/arith/nl/nl_model.h"
@@ -180,26 +180,12 @@ void FactoringCheck::check(const std::vector<Node>& asserts,
             // We thus prove the equivalence via ARITH_POLY_NORM_REL below.
             Node polyns = polyn.substitute(TNode(kf), TNode(sum));
             Node katoms = nm->mkNode(atom.getKind(), polyns, zero);
-            Rational ca, cb;
-            if (PolyNorm::isArithPolyNormRel(atom, katoms, ca, cb))
+            // Note that the literals are negated when polarity is false, in
+            // which case the equivalence is lifted to the negations below.
+            Node cl = polarity ? katoms : katoms.notNode();
+            if (addArithPolyNormRel(*proof, lit, cl))
             {
-              Node premise =
-                  PolyNorm::getArithPolyNormRelPremise(atom, katoms, ca, cb);
-              proof->addStep(
-                  premise, ProofRule::ARITH_POLY_NORM, {}, {premise});
-              Node equiv = atom.eqNode(katoms);
-              proof->addStep(
-                  equiv, ProofRule::ARITH_POLY_NORM_REL, {premise}, {equiv});
-              Node cl = katoms;
-              if (!polarity)
-              {
-                cl = katoms.notNode();
-                Node nequiv = lit.eqNode(cl);
-                std::vector<Node> cargs;
-                ProofRule cr = expr::getCongRule(lit, cargs);
-                proof->addStep(nequiv, cr, {equiv}, cargs);
-                equiv = nequiv;
-              }
+              Node equiv = lit.eqNode(cl);
               Node nlit = lit.notNode();
               Node rrefl = nlit.eqNode(nlit);
               proof->addStep(rrefl, ProofRule::REFL, {}, {nlit});

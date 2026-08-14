@@ -16,7 +16,7 @@
 #include "options/arith_options.h"
 #include "proof/proof.h"
 #include "theory/arith/arith_msum.h"
-#include "theory/arith/arith_poly_norm.h"
+#include "theory/arith/arith_proof_utilities.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/inference_manager.h"
 #include "theory/arith/nl/ext/ext_state.h"
@@ -372,21 +372,13 @@ void MonomialBoundsCheck::checkBounds(const std::vector<Node>& asserts,
                 // by the rewriter, see rewriter::normalizeEquality. In this
                 // case, the two are equivalent up to polynomial
                 // normalization.
-                Rational ca, cb;
                 if (exp[1].getKind() == Kind::EQUAL
-                    && PolyNorm::isArithPolyNormRel(exp[1], simpleeq, ca, cb))
+                    && addArithPolyNormRel(*proof, exp[1], simpleeq))
                 {
-                  Node premise = PolyNorm::getArithPolyNormRelPremise(
-                      exp[1], simpleeq, ca, cb);
-                  proof->addStep(
-                      premise, ProofRule::ARITH_POLY_NORM, {}, {premise});
-                  Node equiv = exp[1].eqNode(simpleeq);
-                  proof->addStep(equiv,
-                                 ProofRule::ARITH_POLY_NORM_REL,
-                                 {premise},
-                                 {equiv});
-                  proof->addStep(
-                      simpleeq, ProofRule::EQ_RESOLVE, {exp[1], equiv}, {});
+                  proof->addStep(simpleeq,
+                                 ProofRule::EQ_RESOLVE,
+                                 {exp[1], exp[1].eqNode(simpleeq)},
+                                 {});
                 }
                 else
                 {

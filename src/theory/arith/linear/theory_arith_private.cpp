@@ -36,7 +36,6 @@
 #include "proof/proof_generator.h"
 #include "proof/proof_node_manager.h"
 #include "smt/logic_exception.h"
-#include "theory/arith/arith_poly_norm.h"
 #include "theory/arith/arith_proof_rcons.h"
 #include "theory/arith/arith_proof_utilities.h"
 #include "theory/arith/arith_rewriter.h"
@@ -1446,16 +1445,10 @@ void TheoryArithPrivate::setupAtom(TNode atom)
     if (proofsEnabled())
     {
       // The two atoms are equivalent up to polynomial normalization.
-      Rational ca, cb;
-      bool isPolyNorm = PolyNorm::isArithPolyNormRel(lit, atom, ca, cb);
-      Assert(isPolyNorm) << lit << " and " << atom << " are not poly norm";
-      if (isPolyNorm)
+      Pf pf = mkArithPolyNormRel(d_pnm, lit, atom);
+      Assert(pf != nullptr) << lit << " and " << atom << " are not poly norm";
+      if (pf != nullptr)
       {
-        Node premise = PolyNorm::getArithPolyNormRelPremise(lit, atom, ca, cb);
-        Pf ppf =
-            d_pnm->mkNode(ProofRule::ARITH_POLY_NORM, {}, {premise}, premise);
-        Pf pf =
-            d_pnm->mkNode(ProofRule::ARITH_POLY_NORM_REL, {ppf}, {lem}, lem);
         tlem = d_pfGen->mkTrustNode(lem, pf);
       }
     }
