@@ -24,6 +24,7 @@ def solver(tm):
 
 
 def test_disjoint_union_unsat(tm, solver):
+    solver.setLogic("HO_ALL")
     solver.setOption("produce-models", "true")
     solver.setOption("trace", "liastar-ext")
     integer = tm.getIntegerSort()
