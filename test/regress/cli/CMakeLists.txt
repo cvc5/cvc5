@@ -4199,7 +4199,6 @@ set(regress_2_tests
   regress2/sygus/lustre-real.sy
   regress2/sygus/max2-univ.sy
   regress2/sygus/min_IC_1.sy
-  regress2/sygus/mpg_guard1-dd.sy
   regress2/sygus/multi-udiv.sy
   regress2/sygus/no-bad-filter.sy
   regress2/sygus/no-syntax-test-no-si.sy
@@ -4464,6 +4463,11 @@ set(regression_disabled_tests
   regress2/quantifiers/exp-trivially-dd3.smt2
   # timeout on some builds
   regress2/quantifiers/issue10805-syqi-no-arr-const.smt2
+  # runs out of memory on arm64 after the rewriter stopped normalizing
+  # equalities, which weakens the redundancy filtering of the candidate terms
+  # enumerated for its grammar. Note the enumeration order depends on the node
+  # ordering, hence this only manifests on some platforms.
+  regress2/sygus/mpg_guard1-dd.sy
   # time out
   regress3/unifpi-solve-car_1.lus.sy
   # unknown (is sat)
