@@ -16,7 +16,6 @@
 #include "proof/proof_node_manager.h"
 #include "smt/env.h"
 #include "theory/arith/arith_proof_utilities.h"
-#include "theory/arith/rewriter/rewrite_atom.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/rewriter.h"
 
@@ -36,11 +35,12 @@ TrustNode PreprocessRewriteEq::ppRewriteEq(TNode atom)
   if (!options().arith.arithRewriteEq)
   {
     // We are not splitting the equality into inequalities below, in which case
-    // we normalize it. Note this is applied here and not in the rewriter,
+    // we normalize it. Note this is applied here and not by Rewriter::rewrite,
     // since normalizing an equality does not preserve its terms, which is
     // incompatible with theory combination for equalities that are generated
-    // as literals in lemmas.
-    Node atomn = rewriter::normalizeEquality(nodeManager(), atom);
+    // as literals in lemmas. It is instead an extended equality rewrite, see
+    // ArithRewriter::rewriteEqualityExt.
+    Node atomn = rewriteEqualityExt(atom);
     if (atomn == atom)
     {
       return TrustNode::null();
