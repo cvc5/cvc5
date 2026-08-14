@@ -57,7 +57,7 @@ std::vector<std::pair<Step, Theory::Effort>>::iterator StrategyBase::stepEnd(
 
 void StrategyBase::addStrategyStep(Step s, Theory::Effort effort, bool addBreak)
 {
-  Assert(s != BREAK);
+  Assert(s != Step::BREAK);
   d_steps.push_back(std::pair<Step, Theory::Effort>(s, effort));
   if (addBreak)
   {
