@@ -280,6 +280,22 @@ TrustNode ProofEqEngine::assertLemma(Node conc,
   // LazyCDProofChain::getProofFor will expand the leaves of this proof via
   // calls to curr.
   LazyCDProofChain outer(d_env, true, nullptr, curr, false);
+  // The literals in assumps are exactly the arguments of the SCOPE that
+  // ensureProofForFact introduces below, hence they must be the leaves of the
+  // proof we construct. We explicitly mark them as assumptions here so that
+  // the expansion above does not prove them by other means. This is necessary
+  // since a literal returned by the equality engine as an explanation may
+  // *also* have been derived as an internal fact, in which case curr has a
+  // proof for it. Expanding it would then reintroduce the premises of that
+  // fact as free assumptions, and those premises need not occur in assumps,
+  // making the proof not closed by the SCOPE (see issue #12797).
+  for (const TNode& a : assumps)
+  {
+    if (a != conc)
+    {
+      outer.addLazyStep(a, &d_assumpPg);
+    }
+  }
   outer.addLazyStep(conc, pg);
   return ensureProofForFact(conc, assumps, tnk, &outer);
 }
