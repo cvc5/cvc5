@@ -334,12 +334,17 @@ class TheorySetsPrivate : protected EnvObj
   /** Run the relations subsolver, if relational constraints are present. */
   void checkRelations();
   /**
-   * Run transitive-closure reasoning (TheorySetsRels::checkTransitiveClosure):
-   * the down rule, which introduces fresh skolem elements, together with the up
-   * rule. One sweep over the current TC members is done per call, so only
+   * Run the transitive-closure down rule, which introduces fresh skolem
+   * elements. One sweep over the current TC members is done per call, so only
    * finitely many fresh elements are introduced per strategy pass.
    */
-  void checkTransitiveClosure();
+  void checkTransitiveClosureDown();
+  /**
+   * Run the transitive-closure up rule, which chains the closure graph built by
+   * checkTransitiveClosureDown. It must run in the same strategy pass as the
+   * down rule, since the two share that graph.
+   */
+  void checkTransitiveClosureUp();
   /** Run the set.filter inference rules (checkFilterUp / checkFilterDown). */
   void checkFilters();
   /** Run the set.map inference rules (checkMapUp / checkMapDown). */

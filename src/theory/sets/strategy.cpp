@@ -42,7 +42,13 @@ void Strategy::initializeStrategy()
   addStrategyStep(Step::SETS_CHECK_RESET);
   addStrategyStep(Step::SETS_CHECK_BASIC);
   addStrategyStep(Step::SETS_CHECK_RELATIONS);
-  addStrategyStep(Step::SETS_CHECK_TRANSITIVE_CLOSURE);
+  // The transitive-closure down and up rules share the closure graph the down
+  // rule builds, so they run back-to-back in the same pass (no BREAK between
+  // them), mirroring TheorySetsRels::check() before the strategy refactor.
+  addStrategyStep(Step::SETS_CHECK_TRANSITIVE_CLOSURE_DOWN,
+                  Theory::EFFORT_FULL,
+                  false);
+  addStrategyStep(Step::SETS_CHECK_TRANSITIVE_CLOSURE_UP);
   addStrategyStep(Step::SETS_CHECK_FILTER);
   addStrategyStep(Step::SETS_CHECK_MAP);
   addStrategyStep(Step::SETS_CHECK_GROUP);
@@ -65,8 +71,11 @@ void Strategy::runStep(Step s, Theory::Effort, Theory::Effort effort)
     case Step::SETS_CHECK_BASIC: d_setsSolver->checkBasic(); break;
     case Step::SETS_CHECK_CARDINALITY: d_setsSolver->checkCardinality(); break;
     case Step::SETS_CHECK_RELATIONS: d_setsSolver->checkRelations(); break;
-    case Step::SETS_CHECK_TRANSITIVE_CLOSURE:
-      d_setsSolver->checkTransitiveClosure();
+    case Step::SETS_CHECK_TRANSITIVE_CLOSURE_DOWN:
+      d_setsSolver->checkTransitiveClosureDown();
+      break;
+    case Step::SETS_CHECK_TRANSITIVE_CLOSURE_UP:
+      d_setsSolver->checkTransitiveClosureUp();
       break;
     case Step::SETS_CHECK_FILTER: d_setsSolver->checkFilters(); break;
     case Step::SETS_CHECK_MAP: d_setsSolver->checkMaps(); break;

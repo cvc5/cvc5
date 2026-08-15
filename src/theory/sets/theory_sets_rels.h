@@ -87,11 +87,23 @@ class TheorySetsRels : protected EnvObj
    */
   void check(Theory::Effort e);
   /**
-   * Apply the transitive-closure DOWN rule for each asserted TC membership.
-   * This rule introduces fresh skolem elements (see applyTCRule) and may do so
-   * unboundedly, so the caller should invoke it at most once per postCheck.
+   * Seed the closure graph of every TC term with the members of its base
+   * relation, then apply the transitive-closure DOWN rule for each asserted TC
+   * membership. The down rule introduces fresh skolem elements (see
+   * applyTCRule) and may do so unboundedly, so the caller should invoke this at
+   * most once per postCheck.
+   *
+   * Both operations add edges to the closure graph (d_tcr_tcGraph) that
+   * checkTransitiveClosureUp consumes. Requires the caches collected by
+   * check(Theory::Effort) earlier in the same check.
    */
-  void checkTransitiveClosure();
+  void checkTransitiveClosureDown();
+  /**
+   * Apply the transitive-closure UP rule: chain the edges of the graph left by
+   * checkTransitiveClosureDown (doTCInference), which must have run earlier in
+   * the same check.
+   */
+  void checkTransitiveClosureUp();
   /** Is kind k a kind that belongs to the relation theory? */
   static bool isRelationKind(Kind k);
 
@@ -136,30 +148,27 @@ class TheorySetsRels : protected EnvObj
    * representation of the known members of a binary relation, i.e. a map
    * from element representative a to the set of element representatives b
    * such that the pair (a, b) is currently asserted to be a member. These
-   * graphs are built lazily during a full-effort check (see
-   * buildTCGraphForRel) and cleared at the end of each such check; they are
-   * caches for a single call to check(Theory::Effort), not context-dependent
-   * data structures.
+   * graphs are built during a full-effort check (see buildTCGraphForRel) and
+   * cleared at the start of the next one; they are caches for a single
+   * full-effort check, not context-dependent data structures. Edges are only
+   * ever added to a graph, never removed or replaced.
    */
   /**
    * Mapping between the representative of a base relation r (the argument of a
    * rel.tclosure term) and the TC graph induced by the asserted members of r
    * only. Used by isTCReachable to recognize memberships of TC(r) that are
    * already derivable from the members of r, in which case applyTCRule
-   * skips sending a redundant lemma. Also serves as a "graph already built"
-   * marker: check() and applyTCRule test this map before calling
-   * buildTCGraphForRel, which protects the entries in d_tcr_tcGraph from
-   * being overwritten (buildTCGraphForRel would discard the edges that
-   * applyTCRule has added there in the meantime).
+   * skips sending a redundant lemma.
    */
   std::map<Node, std::map<Node, std::unordered_set<Node> > > d_rRep_tcGraph;
   /**
    * Mapping between a transitive closure term TC(r) = (rel.tclosure r) and its
-   * TC graph. Seeded by buildTCGraphForRel with the edges of d_rRep_tcGraph for
-   * r's representative, and extended by applyTCRule with pairs that are
-   * asserted to be members of TC(r) directly (and are not already reachable in
-   * the base graph). At the end of a full-effort check, doTCInference() closes
-   * each of these graphs transitively and infers the implied memberships.
+   * TC graph. Seeded by buildTCGraphForRel with the asserted members of r, and
+   * extended by applyTCRule with pairs that are asserted to be members of TC(r)
+   * directly (and are not already reachable in the base graph). Both go through
+   * addTCEdge, so the two sets of edges accumulate. Once per full-effort check,
+   * doTCInference() closes each of these graphs transitively and infers the
+   * implied memberships.
    */
   std::map<Node, std::map<Node, std::unordered_set<Node> > > d_tcr_tcGraph;
   /**
@@ -196,7 +205,12 @@ class TheorySetsRels : protected EnvObj
 
   /** Methods used in full effort */
   void check();
-  /** Clear the per-check caches populated by collectRelsInfo. */
+  /**
+   * Clear the per-check caches populated by collectRelsInfo. Called once per
+   * full-effort check, from check(Theory::Effort), immediately before
+   * collectRelsInfo; the caches stay live for the transitive-closure steps that
+   * run later in the same check.
+   */
   void clearCaches();
   void collectRelsInfo();
   void applyTransposeRule(std::vector<Node> tp_terms);
@@ -243,13 +257,20 @@ class TheorySetsRels : protected EnvObj
    */
   void applyTCRule(Node mem, Node rel, Node rel_rep, Node exp);
   /**
-   * Construct the (partial) TC graph for tc_rel = (rel.tclosure r) from the
-   * currently asserted members of r, with all nodes and edges expressed in
-   * terms of representatives. If r has at least one member, the graph is stored
-   * in d_rRep_tcGraph (keyed by r's representative) and in d_tcr_tcGraph /
-   * d_tcr_tcGraph_exps (keyed by tc_rel), overwriting any existing entries;
-   * callers must check d_rRep_tcGraph and d_rel_nodes first so that edges
-   * previously added to d_tcr_tcGraph by applyTCRule are not lost.
+   * Add the edge (fst_rep, snd_rep), justified by exp, to the TC graph of
+   * tc_rel. Edges are only added: if the edge is already present it keeps the
+   * explanation it was first added with. This is the only way d_tcr_tcGraph and
+   * d_tcr_tcGraph_exps are written.
+   */
+  void addTCEdge(Node tc_rel, Node fst_rep, Node snd_rep, Node exp);
+  /**
+   * Seed the TC graph of tc_rel = (rel.tclosure r) with the currently asserted
+   * members of r, with all nodes and edges expressed in terms of
+   * representatives. The edges are added to d_tcr_tcGraph / d_tcr_tcGraph_exps
+   * (keyed by tc_rel) via addTCEdge and to d_rRep_tcGraph (keyed by r's
+   * representative); nothing is overwritten, so this can be called at any point
+   * of a check without discarding the edges applyTCRule contributed. It is
+   * called once per TC term per check, by checkTransitiveClosureDown.
    */
   void buildTCGraphForRel(Node tc_rel);
   /**

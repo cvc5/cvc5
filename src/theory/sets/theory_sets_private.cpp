@@ -422,7 +422,7 @@ void TheorySetsPrivate::checkRelations()
   }
 }
 
-void TheorySetsPrivate::checkTransitiveClosure()
+void TheorySetsPrivate::checkTransitiveClosureDown()
 {
   // The transitive-closure down rule introduces fresh skolem elements. It does
   // one sweep over the current TC members per call (it does not loop to a
@@ -430,7 +430,17 @@ void TheorySetsPrivate::checkTransitiveClosure()
   // strategy pass; further elements are introduced on subsequent passes.
   if (d_rels_enabled)
   {
-    d_rels->checkTransitiveClosure();
+    d_rels->checkTransitiveClosureDown();
+  }
+}
+
+void TheorySetsPrivate::checkTransitiveClosureUp()
+{
+  // The up rule chains the closure graph the down rule contributed to, so it
+  // must run in the same strategy pass as checkTransitiveClosureDown.
+  if (d_rels_enabled)
+  {
+    d_rels->checkTransitiveClosureUp();
   }
 }
 

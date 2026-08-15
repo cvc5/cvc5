@@ -107,8 +107,13 @@ void StrategyBase::runStrategy(Theory::Effort e)
     Theory::Effort effort = it->second;
     if (curr == Step::BREAK)
     {
-      // if we have a pending inference or lemma, we will process it
-      if (d_im->hasProcessed())
+      // A step may either buffer its conclusions as pending facts/lemmas
+      // (caught by hasPending) or assert facts / send lemmas immediately
+      // (caught by hasSent, which also covers conflicts). Accounting for both
+      // lets the BREAK markers fire regardless of which style a theory uses to
+      // emit inferences: the relations solver, for instance, flushes its own
+      // lemmas, so nothing is left pending for hasPending to see.
+      if (d_im->hasSent() || d_im->hasPending())
       {
         break;
       }
