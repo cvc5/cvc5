@@ -211,7 +211,7 @@ ClauseId CadicalSolver::addClause(const SatClause& clause, bool removable)
   }
   if (d_propagator)
   {
-    d_propagator->add_clause(clause);
+    d_propagator->add_clause(clause, removable);
   }
   else
   {
