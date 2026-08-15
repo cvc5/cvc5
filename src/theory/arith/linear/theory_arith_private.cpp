@@ -677,8 +677,6 @@ bool TheoryArithPrivate::AssertUpper(ConstraintP constraint)
   // Assert(!constraint->hasLiteral() || original == constraint->getLiteral());
   Assert(!isInteger(x_i) || c_i.isIntegral());
 
-  Trace("arith") << "AssertUpper(" << x_i << " " << c_i << ")" << std::endl;
-
   if (d_partialModel.greaterThanUpperBound(x_i, c_i))
   {                // \upperbound(x_i) <= c_i
     return false;  // sat
