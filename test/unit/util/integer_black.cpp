@@ -332,6 +332,83 @@ TEST_F(TestUtilBlackInteger, parse_errors)
   ASSERT_THROW(Integer("0b123", 0), std::invalid_argument);
 }
 
+/**
+ * The strings below were accepted by exactly one of the two arithmetic
+ * backends, and in every case the accepting backend returned a value rather
+ * than reporting an error. That means the same input silently meant different
+ * things depending on how cvc5 was configured: a value in one build, an
+ * exception in the other. They are now rejected by both.
+ */
+TEST_F(TestUtilBlackInteger, parse_rejects_backend_specific_strings)
+{
+  // GMP ignores whitespace anywhere in the string, so a literal containing a
+  // stray space was read as though the space were not there: Integer("1 2")
+  // returned 12. A typo in a literal became a different number instead of an
+  // error, at every base.
+  ASSERT_THROW(Integer("1 2"), std::invalid_argument);
+  ASSERT_THROW(Integer(" 12"), std::invalid_argument);
+  ASSERT_THROW(Integer("12 "), std::invalid_argument);
+  ASSERT_THROW(Integer("1\t2"), std::invalid_argument);
+  ASSERT_THROW(Integer("1\n2"), std::invalid_argument);
+  ASSERT_THROW(Integer("1 2", 0), std::invalid_argument);
+  ASSERT_THROW(Integer("1 2", 16), std::invalid_argument);
+  ASSERT_THROW(Integer("0x1 2", 0), std::invalid_argument);
+
+  // GMP read a base prefix with no digits after it as zero, so a truncated
+  // literal became 0 rather than an error.
+  ASSERT_THROW(Integer("0x", 0), std::invalid_argument);
+  ASSERT_THROW(Integer("0b", 0), std::invalid_argument);
+  ASSERT_THROW(Integer("-0x", 0), std::invalid_argument);
+  ASSERT_THROW(Integer("-0b", 0), std::invalid_argument);
+
+  // CLN read an empty or sign-only string as zero, so a missing value became 0
+  // rather than an error.
+  ASSERT_THROW(Integer(""), std::invalid_argument);
+  ASSERT_THROW(Integer("-"), std::invalid_argument);
+  ASSERT_THROW(Integer("", 0), std::invalid_argument);
+  ASSERT_THROW(Integer("-", 0), std::invalid_argument);
+  ASSERT_THROW(Integer("", 16), std::invalid_argument);
+  ASSERT_THROW(Integer("-", 2), std::invalid_argument);
+
+  // CLN accepted a leading '+' and GMP did not, so the same string parsed in
+  // one build and threw in the other.
+  ASSERT_THROW(Integer("+1"), std::invalid_argument);
+  ASSERT_THROW(Integer("+0", 0), std::invalid_argument);
+  ASSERT_THROW(Integer("+010", 0), std::invalid_argument);
+  ASSERT_THROW(Integer("+ff", 16), std::invalid_argument);
+}
+
+/**
+ * Restricting the accepted syntax must not narrow it below what both backends
+ * already accepted, so pin the shape of what stays valid.
+ */
+TEST_F(TestUtilBlackInteger, parse_accepts)
+{
+  ASSERT_EQ(Integer("0"), 0);
+  ASSERT_EQ(Integer("-0"), 0);
+  // Leading zeroes are permitted, unlike the SMT-LIB numeral syntax enforced
+  // at the API level.
+  ASSERT_EQ(Integer("007"), 7);
+  ASSERT_EQ(Integer("-007"), -7);
+  ASSERT_EQ(Integer(s_lots_of_leading_zeros), 1);
+  // Digits above 9 are accepted in either case.
+  ASSERT_EQ(Integer("ff", 16), 255);
+  ASSERT_EQ(Integer("FF", 16), 255);
+  ASSERT_EQ(Integer("-ff", 16), -255);
+  ASSERT_EQ(Integer("0FF", 16), 255);
+  ASSERT_EQ(Integer("z", 36), 35);
+  ASSERT_EQ(Integer("Z", 36), 35);
+  ASSERT_EQ(Integer("1010", 2), 10);
+  ASSERT_EQ(Integer("-1010", 2), -10);
+  ASSERT_EQ(Integer("777", 8), 511);
+  // A base prefix is only recognised when the base is inferred.
+  ASSERT_THROW(Integer("0x10", 16), std::invalid_argument);
+  // Digits must be in range for the given base.
+  ASSERT_THROW(Integer("2", 2), std::invalid_argument);
+  ASSERT_THROW(Integer("8", 8), std::invalid_argument);
+  ASSERT_THROW(Integer("g", 16), std::invalid_argument);
+}
+
 TEST_F(TestUtilBlackInteger, pow)
 {
   ASSERT_EQ(Integer(1), Integer(1).pow(0));

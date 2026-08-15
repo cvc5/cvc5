@@ -28,6 +28,7 @@
 #endif /* CVC5_CLN_IMP */
 
 #include "base/check.h"
+#include "util/integer_parse.h"
 #include "util/random.h"
 
 using namespace std;
@@ -379,6 +380,15 @@ bool Integer::isNegativeOne() const { return d_value == -1; }
 
 void Integer::parseInt(const std::string& s, unsigned base)
 {
+  if (!isValidIntegerLiteral(s, base))
+  {
+    // Reject here rather than relying on CLN, which reads "" and "-" as zero
+    // and accepts a leading '+', so that both Integer implementations accept
+    // exactly the same strings.
+    std::stringstream ss;
+    ss << "Integer() failed to parse value \"" << s << "\" in base " << base;
+    throw std::invalid_argument(ss.str());
+  }
   cln::cl_read_flags flags;
   flags.syntax = cln::syntax_integer;
   flags.lsyntax = cln::lsyntax_standard;
