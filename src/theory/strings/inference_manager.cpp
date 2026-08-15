@@ -401,6 +401,48 @@ TrustNode InferenceManager::processLemma(InferInfo& ii, LemmaProperty& p)
     {
       utils::flattenOp(Kind::AND, ecn, noExplain);
     }
+    if (d_ipcl != nullptr)
+    {
+      // If an explicit premise occurs in the explanation of an earlier
+      // premise, prepend an extra occurrence so that it is regressed first.
+      // Otherwise, the proof equality engine may consider the first occurrence
+      // final and skip regressing the explicit occurrence later in exp.
+      const size_t n = exp.size();
+      std::vector<bool> regressFirst(n, false);
+      for (size_t i = 0; i < n; ++i)
+      {
+        if (std::find(noExplain.begin(), noExplain.end(), exp[i])
+            != noExplain.end())
+        {
+          continue;
+        }
+        std::vector<TNode> assumptions;
+        explain(exp[i], assumptions);
+        for (size_t j = i + 1; j < n; ++j)
+        {
+          if (std::find(noExplain.begin(), noExplain.end(), exp[j])
+                  == noExplain.end()
+              && std::find(assumptions.begin(), assumptions.end(), exp[j])
+                     != assumptions.end())
+          {
+            regressFirst[j] = true;
+          }
+        }
+      }
+      std::vector<Node> expRegressFirst;
+      expRegressFirst.reserve(2 * n);
+      // Use reverse order so that a chain of such premises is regressed from
+      // the last premise first.
+      for (size_t i = n; i > 0; --i)
+      {
+        if (regressFirst[i - 1])
+        {
+          expRegressFirst.push_back(exp[i - 1]);
+        }
+      }
+      expRegressFirst.insert(expRegressFirst.end(), exp.begin(), exp.end());
+      exp = std::move(expRegressFirst);
+    }
   }
   // ensure that the proof generator is ready to explain the final conclusion
   // of the lemma (ii.d_conc).
