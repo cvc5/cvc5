@@ -306,6 +306,16 @@ TEST_F(TestUtilBlackInteger, base_inference)
   ASSERT_EQ(Integer("42", 0), 42);
   ASSERT_EQ(Integer("0", 0), 0);
   ASSERT_EQ(Integer("-0", 0), 0);
+  // A leading '-' precedes the base prefix and must not defeat the inference.
+  ASSERT_EQ(Integer("-0xa", 0), -10);
+  ASSERT_EQ(Integer("-0xff", 0), -255);
+  ASSERT_EQ(Integer("-0XFF", 0), -255);
+  ASSERT_EQ(Integer("-011", 0), -9);
+  ASSERT_EQ(Integer("-0010", 0), -8);
+  ASSERT_EQ(Integer("-0b1010", 0), -10);
+  ASSERT_EQ(Integer("-0B1010", 0), -10);
+  ASSERT_EQ(Integer("-00", 0), 0);
+  ASSERT_EQ(Integer("-42", 0), -42);
 }
 
 TEST_F(TestUtilBlackInteger, fits_signed_int)
@@ -330,6 +340,10 @@ TEST_F(TestUtilBlackInteger, parse_errors)
   ASSERT_THROW(Integer("0xff", 10), std::invalid_argument);
   ASSERT_THROW(Integer("#x5", 0), std::invalid_argument);
   ASSERT_THROW(Integer("0b123", 0), std::invalid_argument);
+  ASSERT_THROW(Integer("08", 0), std::invalid_argument);
+  ASSERT_THROW(Integer("-08", 0), std::invalid_argument);
+  ASSERT_THROW(Integer("-0b123", 0), std::invalid_argument);
+  ASSERT_THROW(Integer("-0xg", 0), std::invalid_argument);
 }
 
 /**
