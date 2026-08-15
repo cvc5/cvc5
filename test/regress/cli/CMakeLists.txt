@@ -998,6 +998,7 @@ set(regress_0_tests
   regress0/fp/proj-issue744-safe.smt2
   regress0/fp/proj-issue745-safe.smt2
   regress0/fp/proj-issue746-safe.smt2
+  regress0/fp/real-fp-real-roundtrip.smt2
   regress0/fp/rti_3_5_bug.smt2
   regress0/fp/simple.smt2
   regress0/fp/word-blast.smt2
@@ -2863,6 +2864,7 @@ set(regress_1_tests
   regress1/fp/issue8242-fp-max-div.smt2
   regress1/fp/issue8242-nested-div.smt2
   regress1/fp/proj-issue327-nested-conversions.smt2
+  regress1/fp/real-fp-real-roundtrip-idempotent.smt2
   regress1/fp/rti_3_5_bug_report.smt2
   regress1/fmf-fun-dbu.smt2
   regress1/fmf/ALG008-1.smt2
