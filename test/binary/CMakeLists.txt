@@ -49,4 +49,11 @@ if (USE_EDITLINE)
     WORKING_DIRECTORY "${PROJECT_BINARY_DIR}"
   )
   set_tests_properties(issue_10258 PROPERTIES LABELS "binary")
+  add_test(
+    NAME interactive_shell_no_home
+    COMMAND
+    "${Python_EXECUTABLE}" "${PROJECT_SOURCE_DIR}/test/binary/interactive_shell_no_home.py"
+    WORKING_DIRECTORY "${PROJECT_BINARY_DIR}"
+  )
+  set_tests_properties(interactive_shell_no_home PROPERTIES LABELS "binary")
 endif()
