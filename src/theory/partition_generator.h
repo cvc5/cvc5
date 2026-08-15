@@ -97,7 +97,8 @@ class PartitionGenerator : public TheoryEngineModule
    */
   Node makeScatterPartitions(LiteralListType litType,
                              bool timedOut,
-                             bool randomize);
+                             bool randomize,
+                             bool ffd);
 
   /**
    * Partition by taking a list of literals and emitting mutually exclusive
@@ -113,7 +114,12 @@ class PartitionGenerator : public TheoryEngineModule
    */
   Node makeCubePartitions(LiteralListType litType,
                           bool emitZLL,
-                          bool randomize);
+                          bool randomize,
+                          bool ffd);
+  /**
+   * Generate the list of decisions for forcing the first decision(s).
+   */
+  Node makeFFDList(bool randomize);
 
   /**
    * Generate a lemma that is the negation of toBlock which ultimately blocks

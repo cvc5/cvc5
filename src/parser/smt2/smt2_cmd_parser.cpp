@@ -27,6 +27,7 @@ Smt2CmdParser::Smt2CmdParser(Smt2Lexer& lex,
   // initialize the command tokens
   d_table["assert"] = Token::ASSERT_TOK;
   d_table["check-sat-assuming"] = Token::CHECK_SAT_ASSUMING_TOK;
+  d_table["check-sat-ffd"] = Token::CHECK_SAT_FFD_TOK;
   d_table["check-sat"] = Token::CHECK_SAT_TOK;
   d_table["declare-codatatypes"] = Token::DECLARE_CODATATYPES_TOK;
   d_table["declare-codatatype"] = Token::DECLARE_CODATATYPE_TOK;
@@ -188,6 +189,14 @@ std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
       d_state.checkThatLogicIsSet();
       std::vector<Term> terms = d_tparser.parseTermList();
       cmd.reset(new CheckSatAssumingCommand(terms));
+    }
+    break;
+    // (check-sat-ffd (<term>*))
+    case Token::CHECK_SAT_FFD_TOK:
+    {
+      d_state.checkThatLogicIsSet();
+      std::vector<Term> terms = d_tparser.parseTermList();
+      cmd.reset(new CheckSatFFDCommand(terms));
     }
     break;
     // (check-synth)

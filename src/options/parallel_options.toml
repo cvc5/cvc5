@@ -99,6 +99,15 @@ name   = "Parallel"
 [[option.mode.LEMMA_CUBE]]
   name = "lemma-cube"
   help = "Creates mutually exclusive cubes from the lemmas sent to the SAT solver."
+[[option.mode.FFD_LIST]]
+  name = "ffd-list"
+  help = "Creates a list of literals that can be used for check-sat-ffd."
+[[option.mode.FFD_CUBE]]
+  name = "ffd-cube"
+  help = "Creates a cube-style formulas for check-sat-ffd."
+[[option.mode.FFD_SCATTER]]
+  name = "ffd-scatter"
+  help = "Creates a cube-style formulas for check-sat-ffd."
 
 [[option]]
   name       = "partitionCheck"
@@ -141,3 +150,27 @@ name   = "Parallel"
   type       = "bool"
   default    = "false"
   help       = "create random partitions"
+
+[[option]]
+  name       = "forceFirstDecisionsOnce"
+  category   = "expert"
+  long       = "ffd-once"
+  type       = "bool"
+  default    = "false"
+  help       = "Force first decisions only once"
+
+[[option]]
+  name       = "ffdPartitionMode"
+  category   = "expert"
+  long       = "ffd-partition-mode"
+  type       = "bool"
+  default    = "false"
+  help       = "Terminate early with ffd"
+
+[[option]]
+  name       = "ffdFastPartitionMode"
+  category   = "expert"
+  long       = "ffd-fast-partition-mode"
+  type       = "bool"
+  default    = "false"
+  help       = "Terminate extra early with ffd"
