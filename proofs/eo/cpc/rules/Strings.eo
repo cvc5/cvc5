@@ -573,7 +573,7 @@
 ; conclusion: The given equality.
 (declare-rule re-inter-inclusion ((r1 RegLan) (r2 RegLan))
   :args ((= (re.inter r1 (re.comp r2)) re.none))
-  :requires ((($str_re_includes r2 r1) true))
+  :requires ((($str_re_includes ($re_to_flat_form r2 false) ($re_to_flat_form r1 false)) true))
   :conclusion (= (re.inter r1 (re.comp r2)) re.none)
 )
 
@@ -587,7 +587,7 @@
 ; conclusion: The given equality.
 (declare-rule re-union-inclusion ((r1 RegLan) (r2 RegLan))
   :args ((= (re.union r1 (re.comp r2)) (re.* re.allchar)))
-  :requires ((($str_re_includes r1 r2) true))
+  :requires ((($str_re_includes ($re_to_flat_form r1 false) ($re_to_flat_form r2 false)) true))
   :conclusion (= (re.union r1 (re.comp r2)) (re.* re.allchar))
 )
 
