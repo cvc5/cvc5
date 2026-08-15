@@ -390,7 +390,7 @@ int CadicalPropagator::cb_add_reason_clause_lit(int propagated_lit)
     SatLiteral slit = toSatLiteral(propagated_lit);
     SatClause clause;
     d_proxy->explainPropagation(slit, clause);
-    // CaDiCaL may materialize delayed external propagation reasons from paths
+    // CaDiCaL may ask for external propagation reasons from paths
     // outside the main solve() call, e.g., while processing assumptions between
     // incremental checks. The reason is still a theory explanation and needs
     // the same user-level activation guard as reasons requested during search.
