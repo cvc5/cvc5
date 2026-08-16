@@ -1,0 +1,7 @@
+(set-logic HO_ALL)
+(set-info :status sat)
+(declare-fun s () (Set Int))
+(declare-fun x () Int)
+(assert (set.member x s))
+(assert (= s (set.map (lambda ((x Int)) x) s)))
+(check-sat)

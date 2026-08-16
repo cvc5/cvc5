@@ -494,6 +494,12 @@ class TheoryModel : protected EnvObj
    * type that appear as terms in d_equalityEngine.
    */
   mutable std::map<Node, Node> d_uf_models;
+  /**
+   * Functions whose default value is currently being assigned from the term
+   * they purify (see assignFunctionDefaultHo). Used to break cycles in
+   * self-referential higher-order definitions.
+   */
+  mutable std::unordered_set<Node> d_hoAssignInProgress;
   //---------------------------- end function values
 }; /* class TheoryModel */
 
