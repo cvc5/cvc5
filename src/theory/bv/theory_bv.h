@@ -95,10 +95,20 @@ class TheoryBV : public Theory
 
   EqualityStatus getEqualityStatus(TNode a, TNode b) override;
 
+  /**
+   * Get the model value of given `node`.
+   *
+   * Recursively evaluates `node` from its leaves using the model of the
+   * internal bit-vector solver (leaves that have not been bit-blasted are
+   * value-initialized to 0).
+   *
+   * @param node The Node to evaluate under the current model.
+   * @return A node representing the value of the given node.
+   */
+  Node getValue(TNode node);
+
  private:
   void notifySharedTerm(TNode t) override;
-
-  Node getValue(TNode node);
 
   /** Internal BV solver. */
   std::unique_ptr<BVSolver> d_internal;
