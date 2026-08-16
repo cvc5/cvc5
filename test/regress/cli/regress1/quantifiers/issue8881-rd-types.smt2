@@ -1,4 +1,5 @@
-; EXPECT: unknown
+; COMMAND-LINE: --produce-models
+; EXPECT: sat
 (set-logic ALL)
 (set-option :full-saturate-quant true)
 (declare-fun q2 (Real Real) Bool)

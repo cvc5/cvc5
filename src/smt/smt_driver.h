@@ -22,6 +22,7 @@
 #include "smt/assertions.h"
 #include "smt/env_obj.h"
 #include "smt/illegal_checker.h"
+#include "smt/model_verifier.h"
 #include "util/result.h"
 
 namespace cvc5::internal {
@@ -91,6 +92,17 @@ class SmtDriver : protected EnvObj
    */
   void getNextAssertionsInternal(preprocessing::AssertionPipeline& ap);
   /**
+   * Called when the result of a check-sat was unknown. This attempts to verify
+   * that the candidate model of the underlying SMT solver satisfies the input
+   * assertions.
+   *
+   * @param r The (unknown) result of the check-sat.
+   * @return true if we successfully verified that the candidate model
+   * satisfies the input assertions, in which case the response of the
+   * check-sat can be strengthened to "sat".
+   */
+  bool verifyUnknownModel(const Result& r);
+  /**
    * Check satisfiability next, return the result.
    *
    * If the result is unknown with UnknownExplanation REQUIRES_CHECK_AGAIN,
@@ -122,6 +134,11 @@ class SmtDriver : protected EnvObj
    * The utility used for checking for illegal inputs
    */
   IllegalChecker d_illegalChecker;
+  /**
+   * The utility used for verifying candidate models, when the option
+   * modelVerify is enabled.
+   */
+  ModelVerifier d_modelVerifier;
 };
 
 /**

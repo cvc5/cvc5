@@ -2022,6 +2022,7 @@ set(regress_0_tests
   regress0/sets/error1.smt2
   regress0/sets/error2.smt2
   regress0/sets/eval-test.smt2
+  regress0/sets/filter-card-model-verify.smt2
   regress0/sets/filter-up-unsat.smt2
   regress0/sets/filter-qe-simple.smt2
   regress0/sets/filter-qe-simple-bv.smt2
@@ -2029,6 +2030,7 @@ set(regress_0_tests
   regress0/sets/int-real-univ-unsat.smt2
   regress0/sets/int-real-univ.smt2
   regress0/sets/issue10584-card-fmf-bound.smt2
+  regress0/sets/issue12814-filter-card.smt2
   regress0/sets/issue5400-card-minus-univ.smt2
   regress0/sets/issue5400-2-card-minus-univ.smt2
   regress0/sets/issue5402-1-card.smt2

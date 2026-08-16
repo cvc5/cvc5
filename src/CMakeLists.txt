@@ -342,6 +342,8 @@ libcvc5_add_sources(
   smt/model.h
   smt/model_core_builder.cpp
   smt/model_core_builder.h
+  smt/model_verifier.cpp
+  smt/model_verifier.h
   smt/model_blocker.cpp
   smt/model_blocker.h
   smt/quant_elim_solver.cpp
