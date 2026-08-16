@@ -2703,21 +2703,6 @@ enum ENUM(ProofRule)
   EVALUE(FF_ONE_UNSAT),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **External -- LFSC**
-   *
-   * Place holder for LFSC rules.
-   *
-   * .. math::
-   *
-   *   \inferrule{P_1, \dots, P_n\mid \texttt{id}, Q, A_1,\dots, A_m}{Q}
-   *
-   * Note that the premises and arguments are arbitrary. It's expected that
-   * :math:`\texttt{id}` refer to a proof rule in the external LFSC calculus.
-   * \endverbatim
-   */
-  EVALUE(LFSC_RULE),
-  /**
-   * \verbatim embed:rst:leading-asterisk
    * **External -- Alethe**
    *
    * Place holder for Alethe rules.

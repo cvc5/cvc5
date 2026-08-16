@@ -1,4 +1,3 @@
-; DISABLE-TESTER: lfsc
 ; EXPECT: unsat
 (set-logic ALL)
 (set-option :incremental false)

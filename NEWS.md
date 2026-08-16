@@ -12,6 +12,9 @@ cvc5 1.3.5 prerelease
   `cvc5_get_error_message()`, and clear it via `cvc5_reset_error()`. The error
   state is reset at the start of the next C API call that can raise an error.
 - We now eagerly expand applications of `distinct` having at most 10 children. A further option `--distinct-elim-threshold=N` is added to eliminate `distinct` constraints having up to `N` children (where `0` indicates no limit).
+- Removed support for LFSC proof output, including the
+  `--proof-format-mode=lfsc` option and the `ProofFormat::LFSC` and
+  `ProofRule::LFSC_RULE` API enum values.
 
 cvc5 1.3.4
 ==========

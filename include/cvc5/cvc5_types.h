@@ -475,8 +475,6 @@ enum ENUM(ProofFormat)
   EVALUE(NONE) = 0,
   /** Output DOT proof. */
   EVALUE(DOT),
-  /** Output LFSC proof. */
-  EVALUE(LFSC),
   /** Output Alethe proof. */
   EVALUE(ALETHE),
   /** Output Cooperating Proof Calculus proof based on Eunoia signatures. */

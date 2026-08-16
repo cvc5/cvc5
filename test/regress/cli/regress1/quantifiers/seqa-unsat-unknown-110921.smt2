@@ -1,4 +1,3 @@
-; DISABLE-TESTER: lfsc
 ; COMMAND-LINE: --seq-array=eager
 ; EXPECT: unsat
 (set-logic ALL)

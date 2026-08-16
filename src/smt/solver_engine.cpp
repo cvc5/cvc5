@@ -1570,7 +1570,6 @@ void SolverEngine::printProof(std::ostream& out,
       mode = options::ProofFormatMode::ALETHE;
       break;
     case modes::ProofFormat::CPC: mode = options::ProofFormatMode::CPC; break;
-    case modes::ProofFormat::LFSC: mode = options::ProofFormatMode::LFSC; break;
   }
 
   d_pfManager->printProof(out,

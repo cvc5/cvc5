@@ -219,7 +219,6 @@ const char* toString(ProofRule rule)
     case ProofRule::FF_POLY_NORM_EQ:
       return "FF_POLY_NORM_EQ";
       //================================================= External rules
-    case ProofRule::LFSC_RULE: return "LFSC_RULE";
     case ProofRule::ALETHE_RULE: return "ALETHE_RULE";
     //================================================= Unknown rule
     case ProofRule::UNKNOWN: return "UNKNOWN";

@@ -1,5 +1,4 @@
 ; DISABLE-TESTER: proof
-; DISABLE-TESTER: lfsc
 (set-logic BV)
 (set-info :source | 
 Hardware fixpoint check problems.

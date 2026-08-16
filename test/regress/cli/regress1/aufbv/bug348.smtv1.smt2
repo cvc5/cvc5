@@ -1,4 +1,3 @@
-; DISABLE-TESTER: lfsc
 ; COMMAND-LINE: --bv-solver=bitblast
 (set-option :incremental false)
 (set-info :status unsat)

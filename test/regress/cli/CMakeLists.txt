@@ -4513,7 +4513,6 @@ set(testers
   base
   unsat-core
   proof
-  lfsc
   model
   synth
   abduct
@@ -4558,8 +4557,6 @@ macro(cvc5_add_regression_test level file)
     ${Python_EXECUTABLE}
     ${run_regress_script}
     ${RUN_REGRESSION_ARGS}
-    --lfsc-binary ${PROJECT_SOURCE_DIR}/deps/bin/lfscc
-    --lfsc-sig-dir ${PROJECT_SOURCE_DIR}/proofs/lfsc/signatures
     --carcara-binary ${PROJECT_SOURCE_DIR}/deps/bin/carcara
     --carcara-rare ${PROJECT_SOURCE_DIR}/deps/rare/rewrites.eo
     --ethos-binary ${PROJECT_SOURCE_DIR}/deps/bin/ethos
