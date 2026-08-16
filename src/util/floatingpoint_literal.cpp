@@ -13,15 +13,24 @@
 #include "util/floatingpoint_literal.h"
 
 #include "base/check.h"
-#include "util/floatingpoint_literal_symfpu.h"
 #include "util/floatingpoint_literal_symfpu_traits.h"
 #include "util/rational.h"
+
+// #ifdef CVC5_USE_MPFR
+// #include "util/floatingpoint_literal_mpfr.h"
+// #else
+#include "util/floatingpoint_literal_symfpu.h"
+// #endif
 
 /* -------------------------------------------------------------------------- */
 
 namespace cvc5::internal {
 
+// #ifdef CVC5_USE_MPFR
+// using FPLit = FloatingPointLiteralMPFR;
+// #else
 using FPLit = FloatingPointLiteralSymFPU;
+// #endif
 
 using SymFPUUnpackedFloatLiteral =
     ::symfpu::unpackedFloat<symfpuLiteral::traits>;
