@@ -2271,6 +2271,8 @@ set(regress_0_tests
   regress0/strings/re-include-union.smt2
   regress0/strings/re-inclusion-am-pf.smt2
   regress0/strings/re-inter-all.smt2
+  regress0/strings/re-inter-inclusion-flat.smt2
+  regress0/strings/re-inter-inclusion-union.smt2
   regress0/strings/re_diff.smt2
   regress0/strings/re-in-rewrite.smt2
   regress0/strings/re-mem-eval-large.smt2
@@ -2306,6 +2308,7 @@ set(regress_0_tests
   regress0/strings/str_unsound_ext_rew_eq.smt2
   regress0/strings/str-dsl-missing-rew.smt2
   regress0/strings/str-in-re-mixed-include.smt2
+  regress0/strings/str-in-re-consume-inter-star.smt2
   regress0/strings/str-pred-small-rw_429.smt2
   regress0/strings/str-pred-small-rw_538.smt2
   regress0/strings/str-pred-small-rw_593.smt2
