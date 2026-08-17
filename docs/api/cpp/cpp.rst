@@ -42,6 +42,7 @@ entry point to cvc5.
     classes/synthresult
     classes/term
     classes/termmanager
+    classes/weight
     enums/unknownexplanation
 
 
@@ -79,6 +80,8 @@ Class hierarchy
   * class :doc:`classes/term`
 
     * class :cpp:class:`const_iterator <cvc5::Term::const_iterator>`
+
+  * class :doc:`classes/weight`
 
   * enum class :doc:`enums/kind`
   * enum class :doc:`enums/sortkind`

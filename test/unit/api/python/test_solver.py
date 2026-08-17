@@ -2075,10 +2075,10 @@ def test_synth_fun(tm, solver):
     start1 = tm.mkVar(boolean)
     start2 = tm.mkVar(integer)
 
-    g1 = solver.mkGrammar(x, [start1])
+    g1 = solver.mkGrammar([x], [start1])
     g1.addRule(start1, tm.mkBoolean(False))
 
-    g2 = solver.mkGrammar(x, [start2])
+    g2 = solver.mkGrammar([x], [start2])
     g2.addRule(start2, tm.mkInteger(0))
 
     solver.synthFun("", [], boolean)

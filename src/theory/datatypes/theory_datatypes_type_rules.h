@@ -149,6 +149,48 @@ class DtSygusEvalTypeRule
 };
 
 /**
+ * The type rule for sygus weight functions. DT_SYGUS_WEIGHT expects a weight
+ * and a datatype and returns the integer type.
+ */
+class DtSygusWeightTypeRule
+{
+ public:
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
+};
+
+/**
+ * The type rule for sygus weight symbol operator, which is indexed by a weight
+ * and a function to synthesize. Ensures that weight is a variable with weight
+ * attribute and returns the builtin type.
+ */
+class WeightSymbolOpTypeRule
+{
+ public:
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
+};
+
+/**
+ * A weight symbol specified by its operator, returns the integer type.
+ */
+class WeightSymbolTypeRule
+{
+ public:
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
+};
+
+/**
  * The type rule for match. Recall that a match term:
  *   (match l (((cons h t) h) (nil 0)))
  * is represented by the AST
