@@ -12,7 +12,9 @@
 
 #include "theory/arith/arith_proof_utilities.h"
 
+#include "proof/proof_node_algorithm.h"
 #include "proof/proof_node_manager.h"
+#include "theory/arith/arith_poly_norm.h"
 #include "util/rational.h"
 
 namespace cvc5::internal {
@@ -119,17 +121,84 @@ Node expandMacroSumUb(NodeManager* nm,
   return sumBounds;
 }
 
+/**
+ * Is n a (possibly negated) arithmetic relation, i.e. one that can be related
+ * to another arithmetic relation via polynomial normalization?
+ */
+bool isArithRel(const Node& n)
+{
+  Node atom = n.getKind() == Kind::NOT ? n[0] : n;
+  Kind k = atom.getKind();
+  if (k != Kind::EQUAL && k != Kind::GEQ && k != Kind::LEQ && k != Kind::GT
+      && k != Kind::LT)
+  {
+    return false;
+  }
+  return atom[0].getType().isRealOrInt();
+}
+
 std::shared_ptr<ProofNode> ensurePredTransform(ProofNodeManager* pnm,
                                                std::shared_ptr<ProofNode>& pf,
                                                const Node& pred)
 {
-  if (pf->getResult() == pred)
+  Node res = pf->getResult();
+  if (res == pred)
   {
     return pf;
+  }
+  // Two arithmetic relations may be equivalent while having distinct rewritten
+  // forms, e.g. (= (+ x 1) 2) and (= x 1), or (= (to_real x) 0.0) and (= x 0),
+  // in which case they cannot be related by MACRO_SR_PRED_TRANSFORM. We relate
+  // such predicates by polynomial normalization instead, whenever possible.
+  if (Pf epf = mkArithPolyNormRel(pnm, res, pred); epf != nullptr)
+  {
+    return pnm->mkNode(ProofRule::EQ_RESOLVE, {pf, epf}, {}, pred);
   }
   // give the predicate as the expected result, which is important for
   // performance (does not require proof checking).
   return pnm->mkNode(ProofRule::MACRO_SR_PRED_TRANSFORM, {pf}, {pred}, pred);
+}
+
+std::shared_ptr<ProofNode> mkArithPolyNormRel(ProofNodeManager* pnm,
+                                              const Node& a,
+                                              const Node& b)
+{
+  bool negated = (a.getKind() == Kind::NOT);
+  if (!isArithRel(a) || !isArithRel(b) || negated != (b.getKind() == Kind::NOT))
+  {
+    return nullptr;
+  }
+  Node aatom = negated ? a[0] : a;
+  Node batom = negated ? b[0] : b;
+  Rational ca, cb;
+  if (!PolyNorm::isArithPolyNormRel(aatom, batom, ca, cb))
+  {
+    return nullptr;
+  }
+  Node premise = PolyNorm::getArithPolyNormRelPremise(aatom, batom, ca, cb);
+  Pf ppf = pnm->mkNode(ProofRule::ARITH_POLY_NORM, {}, {premise}, premise);
+  Node equiv = aatom.eqNode(batom);
+  Pf epf = pnm->mkNode(ProofRule::ARITH_POLY_NORM_REL, {ppf}, {equiv}, equiv);
+  if (negated)
+  {
+    // lift the equivalence of the atoms to the negated relations
+    Node nequiv = a.eqNode(b);
+    std::vector<Node> cargs;
+    ProofRule cr = expr::getCongRule(a, cargs);
+    epf = pnm->mkNode(cr, {epf}, cargs, nequiv);
+  }
+  return epf;
+}
+
+bool addArithPolyNormRel(CDProof& cdp, const Node& a, const Node& b)
+{
+  Pf pf = mkArithPolyNormRel(cdp.getManager(), a, b);
+  if (pf == nullptr)
+  {
+    return false;
+  }
+  cdp.addProof(pf);
+  return true;
 }
 
 }  // namespace arith
