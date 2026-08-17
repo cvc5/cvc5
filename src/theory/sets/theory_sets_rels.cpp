@@ -832,7 +832,10 @@ void TheorySetsRels::isTCReachable(
   }
 }
 
-void TheorySetsRels::addTCEdge(Node tc_rel, Node fst_rep, Node snd_rep, Node exp)
+void TheorySetsRels::addTCEdge(Node tc_rel,
+                               Node fst_rep,
+                               Node snd_rep,
+                               Node exp)
 {
   // A closure graph only ever grows: an edge and its explanation are added if
   // the edge is new, and an edge already in the graph keeps the explanation it

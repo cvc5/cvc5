@@ -45,9 +45,8 @@ void Strategy::initializeStrategy()
   // The transitive-closure down and up rules share the closure graph the down
   // rule builds, so they run back-to-back in the same pass (no BREAK between
   // them), mirroring TheorySetsRels::check() before the strategy refactor.
-  addStrategyStep(Step::SETS_CHECK_TRANSITIVE_CLOSURE_DOWN,
-                  Theory::EFFORT_FULL,
-                  false);
+  addStrategyStep(
+      Step::SETS_CHECK_TRANSITIVE_CLOSURE_DOWN, Theory::EFFORT_FULL, false);
   addStrategyStep(Step::SETS_CHECK_TRANSITIVE_CLOSURE_UP);
   addStrategyStep(Step::SETS_CHECK_FILTER);
   addStrategyStep(Step::SETS_CHECK_MAP);
