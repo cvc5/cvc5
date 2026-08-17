@@ -43,13 +43,15 @@ void Strategy::initializeStrategy()
   // add the ence steps
   addStrategyStep(SETS_CHECK_RESET);
   addStrategyStep(SETS_CHECK_BASIC);
+  addStrategyStep(SETS_CHECK_RELATIONS);
+  addStrategyStep(SETS_CHECK_ACYCLICITY);
+  addStrategyStep(SETS_CHECK_TRANSITIVE_CLOSURE);
   addStrategyStep(SETS_CHECK_FILTER);
   addStrategyStep(SETS_CHECK_MAP);
   addStrategyStep(SETS_CHECK_GROUP);
   addStrategyStep(SETS_CHECK_DISEQUALITY);
   addStrategyStep(SETS_CHECK_COMPREHENSION);
   addStrategyStep(SETS_CHECK_CARDINALITY);
-  addStrategyStep(SETS_CHECK_RELATIONS);
   markEndEffort(Theory::EFFORT_FULL);
   // set the beginning/ending ranges and mark the strategy as initialized
   finishInit();
@@ -70,6 +72,10 @@ void Strategy::runStep(Step s, Theory::Effort, unsigned effort)
     case Step::SETS_CHECK_BASIC: d_setsSolver->checkBasic(); break;
     case Step::SETS_CHECK_CARDINALITY: d_setsSolver->checkCardinality(); break;
     case Step::SETS_CHECK_RELATIONS: d_setsSolver->checkRelations(); break;
+    case Step::SETS_CHECK_ACYCLICITY: d_setsSolver->checkAcyclicity(); break;
+    case Step::SETS_CHECK_TRANSITIVE_CLOSURE:
+      d_setsSolver->checkTransitiveClosure();
+      break;
     case Step::SETS_CHECK_FILTER: d_setsSolver->checkFilters(); break;
     case Step::SETS_CHECK_MAP: d_setsSolver->checkMaps(); break;
     case Step::SETS_CHECK_GROUP: d_setsSolver->checkGroups(); break;

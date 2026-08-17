@@ -331,16 +331,18 @@ class TheorySetsPrivate : protected EnvObj
   void checkBasic();
   /** Run the cardinality subsolver, if cardinality constraints are present. */
   void checkCardinality();
-  /**
-   * Run the relations subsolver, if relational constraints are present:
-   * the basic relational-operator rules, the acyclicity rules, and
-   * transitive-closure reasoning (the down rule, which introduces fresh
-   * skolem elements -- one sweep over the current TC members per call, not a
-   * fixpoint loop -- together with the up rule). See
-   * TheorySetsRels::check(Theory::Effort) for why these must run together
-   * against one collected snapshot.
-   */
+  /** Run the relations subsolver, if relational constraints are present. */
   void checkRelations();
+  /** Run the acyclicity subsolver, if not-acyclicity constraints are present.
+   */
+  void checkAcyclicity();
+  /**
+   * Run transitive-closure reasoning (TheorySetsRels::checkTransitiveClosure):
+   * the down rule, which introduces fresh skolem elements, together with the up
+   * rule. One sweep over the current TC members is done per call, so only
+   * finitely many fresh elements are introduced per strategy pass.
+   */
+  void checkTransitiveClosure();
   /** Run the set.filter inference rules (checkFilterUp / checkFilterDown). */
   void checkFilters();
   /** Run the set.map inference rules (checkMapUp / checkMapDown). */

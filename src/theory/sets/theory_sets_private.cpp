@@ -111,12 +111,26 @@ void TheorySetsPrivate::eqNotifyMerge(TNode t1, TNode t2)
         {
           if (s1.getKind() == s2.getKind())
           {
-            Trace("sets-prop") << "Propagate eq inference : " << s1
-                               << " == " << s2 << std::endl;
-            // infer equality between elements of singleton
-            Node exp = s1.eqNode(s2);
-            Node eq = s1[0].eqNode(s2[0]);
-            d_im.assertSetsFact(eq, true, InferenceId::SETS_SINGLETON_EQ, exp);
+            // Only assert if the elements aren't already known equal --
+            // eqNotifyMerge fires on every merge of two set equivalence
+            // classes that both have a known singleton, which can happen
+            // many times for the same underlying element pair (e.g. once per
+            // additional singleton-wrapper term that later joins either
+            // class). Without this check, each of those re-derives an
+            // already-known fact, and since the underlying elements here are
+            // shared (uninterpreted-sort) terms, each redundant assertion
+            // still propagates across theories, touching the output channel
+            // every time and blocking the round from ever going quiescent.
+            if (!d_state.areEqual(s1[0], s2[0]))
+            {
+              Trace("sets-prop") << "Propagate eq inference : " << s1
+                                 << " == " << s2 << std::endl;
+              // infer equality between elements of singleton
+              Node exp = s1.eqNode(s2);
+              Node eq = s1[0].eqNode(s2[0]);
+              d_im.assertSetsFact(
+                  eq, true, InferenceId::SETS_SINGLETON_EQ, exp);
+            }
           }
           else
           {
@@ -418,7 +432,31 @@ void TheorySetsPrivate::checkRelations()
   if (d_rels_enabled)
   {
     // call the check method of the relations solver
-    d_rels->check(Theory::EFFORT_FULL);
+    d_rels->checkRelations();
+  }
+}
+
+void TheorySetsPrivate::checkAcyclicity()
+{
+  // The acyclicity check creates fresh skolem sequences representing cycles for
+  // constraints of the form (not (rel.acyclic R)), case splits on the
+  // length of the cycles, and unrolls a fresh edge of the cycle.
+  // via applyInstCycleRule, applySplitCycleLenRule, and applyUnrollCycleRule.
+  if (d_rels_enabled)
+  {
+    d_rels->checkAcyclicity();
+  }
+}
+
+void TheorySetsPrivate::checkTransitiveClosure()
+{
+  // The transitive-closure down rule introduces fresh skolem elements. It does
+  // one sweep over the current TC members per call (it does not loop to a
+  // fixpoint), so it generates at most finitely many fresh elements per
+  // strategy pass; further elements are introduced on subsequent passes.
+  if (d_rels_enabled)
+  {
+    d_rels->checkTransitiveClosure();
   }
 }
 
@@ -1388,7 +1426,13 @@ void TheorySetsPrivate::notifyFact(TNode atom,
         Node pexp = nodeManager()->mkNode(Kind::AND, atom, atom[1].eqNode(s));
         if (s.getKind() == Kind::SET_SINGLETON)
         {
-          if (s[0] != atom[0])
+          // Check semantic equality (areEqual), not just syntactic
+          // inequality (!=): notifyFact fires on every new SET_MEMBER fact
+          // for this set, which can recur many times for elements that are
+          // already known equal to s[0] via different syntactic terms.
+          // Without this check, each such recurrence redundantly re-derives
+          // an already-known fact.
+          if (!d_state.areEqual(s[0], atom[0]))
           {
             Trace("sets-prop") << "Propagate mem-eq : " << pexp << std::endl;
             Node eq = s[0].eqNode(atom[0]);

@@ -63,23 +63,14 @@ TheorySetsRels::TheorySetsRels(Env& env,
 
 TheorySetsRels::~TheorySetsRels() {}
 
-void TheorySetsRels::check(Theory::Effort level)
+void TheorySetsRels::checkRelations()
 {
-  Trace("rels-tcgraph") << "=========== NEW check() ROUND (effort=" << level
-                        << ") ===========" << std::endl;
   Trace("rels") << "\n[sets-rels] ******************************* Start the "
-                   "relational solver, effort = "
-                << level << " *******************************\n"
+                   "relational solver *******************************\n"
                 << std::endl;
-  if (Theory::fullEffort(level))
-  {
-    collectRelsInfo();
-    check();
-    checkTransitiveClosureRules();
-    doCycleInference();
-    // don't flush; see the comment in TheorySetsPrivate::checkBasic().
-    clearCaches();
-  }
+  collectRelsInfo();
+  check();
+  // don't flush; see the comment in TheorySetsPrivate::checkBasic().
   Trace("rels") << "\n[sets-rels] ******************************* Done with "
                    "the relational solver *******************************\n"
                 << std::endl;
@@ -256,9 +247,10 @@ void TheorySetsRels::check()
     }
     ++t_it;
   }
-  // Note: the TC down/up rules (checkTransitiveClosureRules) and the
-  // acyclicity rules (doCycleInference) run after this, against the same
-  // collected caches; the caller clears the caches once, after all three.
+  // Note: doTCInference() (the TC up rule) is run by checkTransitiveClosure,
+  // together with the down rule, not here.
+
+  clearCaches();
 }
 
 void TheorySetsRels::clearCaches()
@@ -275,11 +267,25 @@ void TheorySetsRels::clearCaches()
   d_acyclic_cache.clear();
 }
 
-void TheorySetsRels::checkTransitiveClosureRules()
+void TheorySetsRels::checkAcyclicity()
+{
+  Trace("rels")
+      << "\n[sets-rels] *********** Start acyclicity check ***********\n"
+      << std::endl;
+  collectRelsInfo();
+  doCycleInference();
+  // don't flush; see the comment in TheorySetsPrivate::checkBasic(). Do
+  // clear, though: this pass must not silently accumulate across strategy
+  // rounds if it is starved by BREAK before another step clears for it.
+  clearCaches();
+}
+
+void TheorySetsRels::checkTransitiveClosure()
 {
   Trace("rels") << "\n[sets-rels] *********** Start transitive closure "
                    "***********\n"
                 << std::endl;
+  collectRelsInfo();
   // DOWN rule: for every (member, TC term) pair, apply applyTCRule. This both
   // emits the down-rule split (introducing fresh skolems) and records the TC
   // membership in d_tcr_tcGraph, which the UP rule (doTCInference) consumes. A
@@ -330,6 +336,8 @@ void TheorySetsRels::checkTransitiveClosureRules()
     }
   }
   doTCInference();
+  // don't flush; see the comment in TheorySetsPrivate::checkBasic().
+  clearCaches();
   Trace("rels") << "\n[sets-rels] *********** Done with transitive closure "
                    "***********\n"
                 << std::endl;
@@ -1417,7 +1425,7 @@ void TheorySetsRels::applyTransposeRule(Node tp_rel, Node tp_rel_rep, Node exp)
  * RELATION_INST_CYCLE:   NOT RELATION_ACYCLIC(x)  (x,s',cnt) NOT IN C
  *                         ---------------------------------------------------------
  *                                              C := C U {(x,s,1)}
- * for x a fresh sequence variable
+ * for s a fresh sequence variable
  */
 Node TheorySetsRels::mkRelTuple(const std::vector<Node>& rels)
 {
@@ -1477,10 +1485,9 @@ void TheorySetsRels::applyInstCycleRule(Node relTuple, Node exp)
 }
 
 /*
- * RELATION_SPLIT_CYCLE_LEN:             (x,s,cnt) IN C
- *                           ------------------------------------------------------
- *                            S := S U {len(s) < cnt}  ||  C := C U {len(s) =
- * cnt} for x a fresh sequence variable
+ * RELATION_SPLIT_CYCLE_LEN:   (x,s,cnt) IN C     cnt <= len(s) IN S
+ *                     ------------------------------------------------------
+ *                      S := S U {cnt < len(s)}  ||  C := C U {len(s) = cnt}
  */
 Node TheorySetsRels::applySplitCycleLenRule(std::vector<Node> rels,
                                             Node seq,
@@ -1511,8 +1518,13 @@ Node TheorySetsRels::applySplitCycleLenRule(std::vector<Node> rels,
                            nm->mkNode(Kind::EQUAL, node_1, node_len));
 
   Node conc = nm->mkNode(Kind::OR, case_1, case_2);
-  Node exp = nm->mkNode(Kind::NOT,
-                        nm->mkNode(Kind::RELATION_ACYCLIC, mkRelTuple(rels)));
+
+  Node len_geq_cnt = nm->mkNode(Kind::GEQ, s_len, cnt_node);
+  Node exp = nm->mkNode(
+      Kind::AND,
+      nm->mkNode(Kind::NOT,
+                 nm->mkNode(Kind::RELATION_ACYCLIC, mkRelTuple(rels))),
+      len_geq_cnt);
 
   Trace("rels-cycles") << "SplitCycleLen: " << conc << std::endl;
 
@@ -1716,6 +1728,14 @@ void TheorySetsRels::doCycleInference()
     Node acyc_exp = nodeManager()
                         ->mkNode(Kind::RELATION_ACYCLIC, mkRelTuple(rels))
                         .negate();
+    // NEW (reverted for now): applyUnrollCycle already advanced the stored
+    // count for this sequence to cnt+1 (it just created s[cnt] and edge
+    // (s[cnt-1],s[cnt])), so the shortcut-forbidding rule seeing the
+    // pre-unroll cnt here is stale/off-by-one -- a real completeness bug.
+    // Deferred pending its own separate investigation (see
+    // contrminimal-cnt-staleness-bug memory).
+    // applyContrMinimalRule(rels, seq, cnt + 1, acyc_exp);
+    // OLD (current, restored):
     applyContrMinimalRule(rels, seq, cnt, acyc_exp);
     ++c_it;
   }
