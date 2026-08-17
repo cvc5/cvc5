@@ -371,7 +371,7 @@ Node buildRealInequality(NodeManager* nm, Sum&& sum, Kind k)
   return buildRelation(k, collectSum(nm, sum), rhs);
 }
 
-Node normalizeEquality(NodeManager* nm, TNode atom)
+Node normalizeEquality(CVC5_UNUSED NodeManager* nm, TNode atom)
 {
   Assert(atom.getKind() == Kind::EQUAL);
   Assert(atom[0].getType().isRealOrInt());
