@@ -547,6 +547,11 @@ bool ArithCongruenceManager::propagate(TNode x)
           Node peqi = peq[0][0].eqNode(ic);
           Node equiv = peq.eqNode(peqi);
           Rational cx, cy;
+          // Compute the coefficients relating the two sides. Note that
+          // ARITH_POLY_NORM_REL requires these to be non-zero.
+          bool isPolyNorm = PolyNorm::isArithPolyNormRel(peq, peqi, cx, cy);
+          Assert(isPolyNorm) << peq << " and " << peqi << " not poly norm";
+          AlwaysAssert(isPolyNorm);
           Node premise =
               PolyNorm::getArithPolyNormRelPremise(peq, peqi, cx, cy);
           cdp.addStep(premise, ProofRule::ARITH_POLY_NORM, {}, {premise});
@@ -704,11 +709,16 @@ TrustNode ArithCongruenceManager::explain(TNode external)
       assumptionPfs.push_back(
           d_pnm->mkNode(ProofRule::TRUE_INTRO, {d_pnm->mkAssume(a)}, {}));
     }
-    // uses substitution to true
+    // uses substitution to true, which proves the internal form of the fact
+    Node internalp = trn.getProven()[1];
     auto litPf = d_pnm->mkNode(ProofRule::MACRO_SR_PRED_TRANSFORM,
                                {assumptionPfs},
-                               {external},
-                               external);
+                               {internalp},
+                               internalp);
+    // The internal and external forms may be equivalent arithmetic relations
+    // that nevertheless have distinct rewritten forms. We thus relate the two
+    // by polynomial normalization if necessary.
+    litPf = ensurePredTransform(d_pnm, litPf, external);
     auto extPf = d_pnm->mkScope(litPf, assumptions);
     return d_pfGenExplain->mkTrustedPropagation(external, trn.getNode(), extPf);
   }
