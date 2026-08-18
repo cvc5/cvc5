@@ -15,6 +15,7 @@
 #include "expr/dtype.h"
 #include "options/datatypes_options.h"
 #include "proof/eager_proof_generator.h"
+#include "theory/datatypes/theory_datatypes.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
 #include "theory/theory_state.h"
@@ -26,8 +27,11 @@ namespace cvc5::internal {
 namespace theory {
 namespace datatypes {
 
-InferenceManager::InferenceManager(Env& env, Theory& t, TheoryState& state)
+InferenceManager::InferenceManager(Env& env,
+                                   TheoryDatatypes& t,
+                                   TheoryState& state)
     : InferenceManagerBuffered(env, t, state, "theory::datatypes::"),
+      d_dt(t),
       d_ipc(isProofEnabled() ? new InferProofCons(env, context()) : nullptr),
       d_lemPg(isProofEnabled() ? new EagerProofGenerator(
                                      env, userContext(), "datatypes::lemPg")
@@ -147,6 +151,20 @@ Node InferenceManager::prepareDtInference(Node conc,
 {
   Trace("dt-lemma-debug") << "prepareDtInference : " << conc << " via " << exp
                           << " by " << id << std::endl;
+  if (id == InferenceId::DATATYPES_INST)
+  {
+    // Mark the equivalence class as instantiated. Note this method is the
+    // single point through which all datatypes inferences pass when they are
+    // sent, either as a lemma (processDtLemma) or as an internal fact
+    // (processDtFact). Marking the equivalence class here, and not when the
+    // inference was computed, guarantees that it is marked as instantiated if
+    // and only if the inference of the instantiate rule was sent. In
+    // particular, if the inference is discarded while still pending, e.g. when
+    // a conflict is raised, then the equivalence class is left unmarked and we
+    // will apply the instantiate rule to it again. See issue #12794.
+    Assert(conc.getKind() == Kind::EQUAL);
+    d_dt.notifyInstantiate(conc[0]);
+  }
   if (isProofEnabled())
   {
     Assert(ipc != nullptr);

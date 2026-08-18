@@ -37,6 +37,12 @@ add_custom_target(units
 set(CVC5_UNIT_TEST_FLAGS_BLACK
   -D__BUILDING_CVC5LIB_UNIT_TEST -D__BUILDING_CVC5PARSERLIB_UNIT_TEST -Dcvc5_obj_EXPORTS)
 
+# Enable slow (exhaustive) unit tests with -DENABLE_SLOW_TESTS=ON.
+option(ENABLE_SLOW_TESTS "Enable slow (exhaustive) unit tests" OFF)
+if(ENABLE_SLOW_TESTS)
+  list(APPEND CVC5_UNIT_TEST_FLAGS_BLACK -DCVC5_SLOW_TESTS)
+endif()
+
 # Generate and add unit test.
 macro(cvc5_add_unit_test is_white name output_dir)
   # Only enable white box unit tests if the compiler supports it and the build
