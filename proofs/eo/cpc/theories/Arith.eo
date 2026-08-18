@@ -71,9 +71,7 @@
       :chainable and)
 
 ; Conversion functions.
-; disclaimer: The type of this function in SMT-LIB only accepts an Int as argument.
-(declare-parameterized-const to_real ((T Type :implicit))
-  (-> T (eo::requires ($is_arith_type T) true Real)))
+(declare-const to_real (-> Int Real))
 (declare-const to_int (-> Real Int))
 (declare-const is_int (-> Real Bool))
 ; disclaimer: The type of this function in SMT-LIB only accepts an Int as argument.
