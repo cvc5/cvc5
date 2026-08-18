@@ -29,6 +29,7 @@
 
 // internal includes
 #include "expr/node.h"
+#include "proof/proof.h"
 #include "theory/ff/cocoa_util.h"
 #include "theory/ff/core.h"
 #include "theory/ff/util.h"
@@ -60,8 +61,13 @@ CoCoA::symbol cocoaSym(const std::string& varName,
 class CocoaEncoder : public FieldObj
 {
  public:
-  /** Create a new encoder, for this field. */
-  CocoaEncoder(NodeManager* nm, const FfSize& size);
+  /**
+   * Create a new encoder, for this field.
+   *
+   * If cdp is non-null, proofs that relate each encoded fact to its polynomial
+   * form are added to it while encoding.
+   */
+  CocoaEncoder(NodeManager* nm, const FfSize& size, CDProof* cdp = nullptr);
   /** Add a fact (one must call this twice per fact, once per stage). */
   void addFact(const Node& fact);
   /** Start Stage::Encode. */
@@ -82,6 +88,26 @@ class CocoaEncoder : public FieldObj
    * Available in Stage::Encode.
    */
   const Poly& getTermEncoding(const Node& t) const { return d_cache.at(t); }
+  /**
+   * Get the map from facts to the equalities that encode them, before they
+   * are scaled to be monic.
+   * Available in Stage::Encode.
+   */
+  const std::unordered_map<Node, Node>& getTranslation() const
+  {
+    return d_factToConv;
+  }
+  /**
+   * Get the map from facts to their monic encoding: a pair (scale factor,
+   * monic polynomial).
+   * Available in Stage::Encode.
+   */
+  const std::unordered_map<Node, std::pair<Node, Node>>& getMonicMapping() const
+  {
+    return d_extraMonic;
+  }
+  /** Build the term that this polynomial represents. */
+  Node decode(CoCoA::ConstRefRingElem p);
   /**
    * Get the bitsum terms (for the bitsumPolys).
    * Available in Stage::Encode.
@@ -165,6 +191,10 @@ class CocoaEncoder : public FieldObj
   std::unordered_map<std::string, Poly> d_symPolys{};
   /** map: symbol name to term */
   std::unordered_map<std::string, Node> d_symNodes{};
+  /** map: diseq symbol name to the witness of that disequality */
+  std::unordered_map<std::string, Node> d_diseqNodes{};
+  /** map: term (a != b) to the witness skolem for the inverse of (a - b) */
+  std::unordered_map<Node, Node> d_diseqWitnesses{};
 
   // populated at the end of Stage::Scan
 
@@ -183,6 +213,13 @@ class CocoaEncoder : public FieldObj
   std::vector<Poly> d_bitsumPolys{};
   /** polys to the facts that imply them */
   std::unordered_map<std::string, Node> d_polyFacts{};
+  /** map: fact to the equality that encodes it (before scaling to monic) */
+  std::unordered_map<Node, Node> d_factToConv{};
+  /** map: fact to its (scale factor, monic polynomial) encoding */
+  std::unordered_map<Node, std::pair<Node, Node>> d_extraMonic{};
+
+  /** the proof to add encoding proofs to; null if proofs are off */
+  CDProof* d_proof;
 };
 
 }  // namespace ff

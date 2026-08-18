@@ -26,7 +26,9 @@
 
 // internal includes
 #include "expr/node_traversal.h"
+#include "expr/skolem_manager.h"
 #include "theory/ff/cocoa_util.h"
+#include "theory/ff/proof_utils.h"
 #include "theory/theory.h"
 
 namespace cvc5::internal {
@@ -73,8 +75,8 @@ CoCoA::symbol cocoaSym(const std::string& varName, std::optional<size_t> index)
   return index.has_value() ? CoCoA::symbol(s, *index) : CoCoA::symbol(s);
 }
 
-CocoaEncoder::CocoaEncoder(NodeManager* nm, const FfSize& size)
-    : FieldObj(nm, size)
+CocoaEncoder::CocoaEncoder(NodeManager* nm, const FfSize& size, CDProof* cdp)
+    : FieldObj(nm, size), d_proof(cdp)
 {
 }
 
@@ -151,7 +153,11 @@ void CocoaEncoder::addFact(const Node& fact)
       {
         Trace("ff::cocoa") << "CoCoA != sym for " << node << std::endl;
         CoCoA::symbol sym = freshSym("diseq", d_diseqSyms.size());
+        Node witness = nodeManager()->getSkolemManager()->mkSkolemFunction(
+            SkolemId::FF_DISEQ_WITNESS, node);
         d_diseqSyms.insert({node, sym});
+        d_diseqNodes.insert({extractStr(sym), witness});
+        d_diseqWitnesses.insert({node, witness});
       }
       else if (node.getKind() == Kind::FINITE_FIELD_BITSUM)
       {
@@ -312,6 +318,12 @@ void CocoaEncoder::encodeFact(const Node& f)
     encodeTerm(f[0]);
     encodeTerm(f[1]);
     p = d_cache.at(f[0]) - d_cache.at(f[1]);
+    Node pNode = decode(p);
+    if (d_proof != nullptr)
+    {
+      registerEqualityProof(nodeManager(), f, pNode, d_proof);
+    }
+    d_factToConv.insert({f, nodeManager()->mkNode(Kind::EQUAL, pNode, zero())});
   }
   // !=
   else
@@ -320,15 +332,79 @@ void CocoaEncoder::encodeFact(const Node& f)
     encodeTerm(f[0][1]);
     Poly diff = d_cache.at(f[0][0]) - d_cache.at(f[0][1]);
     p = diff * symPoly(d_diseqSyms.at(f)) - 1;
+    Node pNode = decode(p);
+    if (d_proof != nullptr)
+    {
+      registerDisequalityProof(
+          nodeManager(), f, pNode, d_diseqWitnesses.at(f), d_proof);
+    }
+    d_factToConv.insert({f, nodeManager()->mkNode(Kind::EQUAL, pNode, zero())});
   }
   if (!CoCoA::IsZero(p))
   {
     // normalize; if we don't do it, CoCoA will in GB input, confusing our
-    // tracer.
-    p = p / CoCoA::LC(p);
+    // tracer. We remember the scaling factor, since a proof of the encoding
+    // must account for it.
+    Poly scale = 1 / CoCoA::LC(p);
+    p = scale * p;
+    d_extraMonic.insert({f, {decode(scale), decode(p)}});
   }
   d_cache.insert({f, p});
   d_polyFacts.insert({extractStr(p), f});
+}
+
+Node CocoaEncoder::decode(CoCoA::ConstRefRingElem p)
+{
+  const std::string strRep = extractStr(p);
+  Trace("ff::cocoa::decode") << "Decoding " << strRep << std::endl;
+  // if this polynomial is a symbol, we already have a term for it
+  if (d_symNodes.count(strRep))
+  {
+    return d_symNodes.at(strRep);
+  }
+  if (CoCoA::IsFiniteField(CoCoA::owner(p)))
+  {
+    return mkConst(cocoaFfToFfVal(p));
+  }
+  const std::vector<CoCoA::RingElem> indets = CoCoA::indets(CoCoA::owner(p));
+  std::vector<Node> monomials;
+  for (CoCoA::SparsePolyIter it = CoCoA::BeginIter(p); !CoCoA::IsEnded(it);
+       ++it)
+  {
+    // start with the coefficient, then multiply by the indeterminates of this
+    // power product, each repeated as often as its exponent
+    std::vector<Node> factors{mkConst(cocoaFfToFfVal(CoCoA::coeff(it)))};
+    const auto pp = CoCoA::PP(it);
+    for (size_t idx = 0, n = indets.size(); idx < n; ++idx)
+    {
+      const auto exponent = CoCoA::exponent(pp, idx);
+      if (exponent == 0)
+      {
+        continue;
+      }
+      const std::string indetRep = extractStr(indets[idx]);
+      Node indet;
+      if (d_symNodes.count(indetRep))
+      {
+        indet = d_symNodes.at(indetRep);
+      }
+      else
+      {
+        Assert(d_diseqNodes.count(indetRep));
+        indet = d_diseqNodes.at(indetRep);
+      }
+      factors.insert(factors.end(), exponent, indet);
+    }
+    // drop a leading coefficient of one
+    if (factors.size() > 1 && factors[0] == one())
+    {
+      factors.erase(factors.begin());
+    }
+    monomials.push_back(mkMul(factors));
+  }
+  Node result = mkAdd(monomials);
+  Trace("ff::cocoa::decode") << "\tResult: " << result << std::endl;
+  return result;
 }
 
 }  // namespace ff

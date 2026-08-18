@@ -53,12 +53,18 @@ class FieldObj
   /** create a product (with as few as 0 elements); accepts Nodes or TNodes */
   template <bool ref_count>
   Node mkMul(const std::vector<NodeTemplate<ref_count>>& summands);
+  /** create the constant of this field with this value */
+  Node mkConst(const FiniteFieldValue& value) const;
   /** the one constant in this field */
   const Node& one() const { return d_one; }
   /** the zero constant in this field */
   const Node& zero() const { return d_zero; }
   /** the size of this field */
   const FfSize& size() const { return d_size; }
+
+ protected:
+  /** the node manager that this object creates nodes with */
+  NodeManager* nodeManager() const { return d_nm; }
 
  private:
   FfSize d_size;

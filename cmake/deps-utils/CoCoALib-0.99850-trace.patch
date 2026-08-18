@@ -97,10 +97,19 @@ index e0e713b..156461b 100755
    echo "$mesg"
    echo "$dashes"
 diff --git a/include/CoCoA/TmpGPoly.H b/include/CoCoA/TmpGPoly.H
-index 4c4d51e..b57fc17 100644
+index 4c4d51e..698fb75 100644
 --- a/include/CoCoA/TmpGPoly.H
 +++ b/include/CoCoA/TmpGPoly.H
-@@ -29,6 +29,7 @@
+@@ -20,6 +20,8 @@
+ //   along with CoCoALib.  If not, see <http://www.gnu.org/licenses/>.
+ 
+ 
++#include "CoCoA/DistrMPolyInlFpPP.H"
++#include "CoCoA/DistrMPolyInlPP.H"
+ #include "CoCoA/FreeModule.H"
+ #include "CoCoA/GBEnv.H"
+ #include "CoCoA/PPWithMask.H"
+@@ -29,6 +31,7 @@
  #include "CoCoA/TmpGTypes.H"
  #include "CoCoA/utils.H"
  
@@ -108,7 +117,7 @@ index 4c4d51e..b57fc17 100644
  #include<list>
  // using std::list; // for GPolyList; GPolyPtrList;
  #include<vector>
-@@ -46,6 +47,12 @@ enum ClearMarker {clear};
+@@ -46,6 +49,29 @@ enum ClearMarker {clear};
  
  class GPoly;
  
@@ -117,6 +126,23 @@ index 4c4d51e..b57fc17 100644
 +extern std::function<void(ConstRefRingElem p)> reductionStartHandler;
 +extern std::function<void(ConstRefRingElem q)> reductionStepHandler;
 +extern std::function<void(ConstRefRingElem r)> reductionEndHandler;
++
++// Hooks for proof production.  They are called only when proofEnabled is set;
++// membershipTest tells the multiplier hooks whether we are reducing modulo a
++// Groebner basis (membership test) or computing one.
++extern bool proofEnabled;
++extern bool membershipTest;
++extern std::function<void(ConstRefRingElem p, ConstRefRingElem q, ConstRefRingElem s)> sPolyProof;
++extern std::function<void(ConstRefRingElem p)> reductionStartProof;
++extern std::function<void(ConstRefRingElem q)> reductionStepProof;
++extern std::function<void(ConstRefRingElem r)> reductionEndProof;
++extern std::function<void(ConstRefRingElem p, ConstRefRingElem q)> monicProof;
++extern std::function<void(ConstRefRingElem p)> membershipStart;
++extern std::function<void(RingElem s)> membershipStep;
++extern std::function<void(void)> membershipEnd;
++extern std::function<void(ConstRefRingElem p)> storeMultiplier;
++extern std::function<void(DistrMPolyInlPP& p)> storeMultiplierRaw;
++extern std::function<void(DistrMPolyInlFpPP& p)> storeMultiplierRawFp;
 +
  
  typedef std::list<GPoly> GPolyList;
@@ -134,8 +160,48 @@ index b669e0f..cb0a66c 100755
  
  cmp "$TMPFILE1" "$TMPFILE2" > /dev/null
  if [ $? = 0 ]
+diff --git a/src/AlgebraicCore/DistrMPolyInlFpPP.C b/src/AlgebraicCore/DistrMPolyInlFpPP.C
+index b1b4eec..8d3905f 100644
+--- a/src/AlgebraicCore/DistrMPolyInlFpPP.C
++++ b/src/AlgebraicCore/DistrMPolyInlFpPP.C
+@@ -22,6 +22,7 @@
+ 
+ #include "CoCoA/BigIntOps.H"
+ #include "CoCoA/BigRatOps.H"
++#include "CoCoA/TmpGPoly.H"
+ #include "CoCoA/error.H"
+ 
+ 
+@@ -413,6 +414,7 @@ namespace CoCoA
+ 
+     DivLM(tmp_poly, *this, g);
+     tmp_poly.myNegate();
++    if ( proofEnabled ) storeMultiplierRawFp(tmp_poly);
+     myDeleteLM();
+     myAddMulLM(tmp_poly, g, /*SkipLMg = */ true );
+   }
+diff --git a/src/AlgebraicCore/DistrMPolyInlPP.C b/src/AlgebraicCore/DistrMPolyInlPP.C
+index 5d55f94..340ffdf 100644
+--- a/src/AlgebraicCore/DistrMPolyInlPP.C
++++ b/src/AlgebraicCore/DistrMPolyInlPP.C
+@@ -21,6 +21,7 @@
+ #include "CoCoA/DistrMPolyInlPP.H"
+ 
+ #include "CoCoA/BigInt.H"  // uses binomial
++#include "CoCoA/TmpGPoly.H"
+ #include "CoCoA/error.H"
+ 
+ 
+@@ -463,6 +464,7 @@ namespace CoCoA
+ 
+     DivLM(tmp_poly, *this, g);
+     tmp_poly.myNegate();
++    if ( proofEnabled ) storeMultiplierRaw(tmp_poly);
+     myDeleteLM();
+     myAddMulLM(tmp_poly, g, /*SkipLMg = */ true );
+   }
 diff --git a/src/AlgebraicCore/PolyRing-content.C b/src/AlgebraicCore/PolyRing-content.C
-index c5d0a0a..36d6d2b 100644
+index c5d0a0a..670af0b 100644
 --- a/src/AlgebraicCore/PolyRing-content.C
 +++ b/src/AlgebraicCore/PolyRing-content.C
 @@ -33,6 +33,7 @@
@@ -146,49 +212,113 @@ index c5d0a0a..36d6d2b 100644
  
  
  #include <vector>
-@@ -128,7 +129,9 @@ namespace CoCoA
+@@ -128,7 +129,10 @@ namespace CoCoA
    {
      const PolyRing Rx = owner(f);
      RingElem ans(Rx);
 +    if (handlersEnabled) reductionStartHandler(f);
      Rx->myMonic(raw(ans), raw(f));
 +    if (handlersEnabled) reductionEndHandler(ans);
++    if (proofEnabled) monicProof(f, ans);
      return ans;
    }
  
 diff --git a/src/AlgebraicCore/SparsePolyOps-reduce.C b/src/AlgebraicCore/SparsePolyOps-reduce.C
-index 30e407a..b8789e2 100644
+index 30e407a..b29f8b6 100644
 --- a/src/AlgebraicCore/SparsePolyOps-reduce.C
 +++ b/src/AlgebraicCore/SparsePolyOps-reduce.C
-@@ -145,6 +145,7 @@ degree HereForProfilingOnlyWDeg(ConstRefPPMonoidElem cofactor1)
+@@ -20,6 +20,7 @@
+ #include "CoCoA/TmpGPoly.H"
+ 
+ #include "CoCoA/BigIntOps.H"
++#include "CoCoA/SparsePolyOps-RingElem.H"
+ #include "CoCoA/ReductionCog.H"
+ #include "CoCoA/SugarDegree.H"
+ #include "CoCoA/VectorOps.H" // for debugging only
+@@ -145,6 +146,8 @@ degree HereForProfilingOnlyWDeg(ConstRefPPMonoidElem cofactor1)
        s->myUpdate(F, *g);
        //      std::cout << "ReduceActiveLM after s->myUpdate" << std::endl;
        F->myReduce(poly(*g), NumTerms(*g));
 +      if ( handlersEnabled ) reductionStepHandler(poly(*g));
++      if ( proofEnabled ) reductionStepProof(poly(*g));
      }//while
    }//ReduceActiveLM
  
-@@ -283,6 +284,7 @@ degree HereForProfilingOnlyWDeg(ConstRefPPMonoidElem cofactor1)
+@@ -245,7 +248,9 @@ degree HereForProfilingOnlyWDeg(ConstRefPPMonoidElem cofactor1)
+   void GPoly::myPolySetSPoly(const GPoly& f, const GPoly& g)
+   {
+     myPolyValue = poly(f);
+-    (owner(f))->myMulByPP(raw(myPolyValue), raw(colon(LPPForOrd(g), LPPForOrd(f))));
++    const PPMonoidElem SPolyCofactor = colon(LPPForOrd(g), LPPForOrd(f));
++    if ( proofEnabled ) storeMultiplier(monomial(owner(f), SPolyCofactor));
++    (owner(f))->myMulByPP(raw(myPolyValue), raw(SPolyCofactor));
+     ReductionCog F = ChooseReductionCogPoly(myGRingInfo());
+     F->myAssignReset(myPolyValue, f.myNumTerms);
+     F->myReduce(poly(g), NumTerms(g));
+@@ -283,6 +288,8 @@ degree HereForProfilingOnlyWDeg(ConstRefPPMonoidElem cofactor1)
    void GPoly::myReduce(const Reductors& theReductors)
    {
      if ( IsZero(*this) ) return;
 +    if ( handlersEnabled ) reductionStartHandler(myPoly());
++    if ( proofEnabled ) reductionStartProof(myPoly());
      ReductionCog F = ChooseReductionCogGeobucket(myGRingInfo());
      //    std::cout << "myreduce1: F is " << F << std::endl;
      F->myAssignReset(myPolyValue, myNumTerms); // myPolyValue gets 0
-@@ -298,6 +300,7 @@ degree HereForProfilingOnlyWDeg(ConstRefPPMonoidElem cofactor1)
+@@ -295,9 +302,15 @@ degree HereForProfilingOnlyWDeg(ConstRefPPMonoidElem cofactor1)
+     F->myRelease(myPolyValue); // myPolyValue gets the value of F
+     myUpdateLenLPPLCDegComp(); // myNumTerms, myWDeg, myComponent are updated
+ 
++    if ( proofEnabled ) reductionEndProof(myPoly());
      if ( !IsZero(*this) && !IsOne(myLCValue) ) // makes myPolyValue monic
        if ( myGRingInfo().myCoeffRingType()==CoeffEncoding::Field )
++      {
++        const RingElem PolyBeforeMonic(myPoly());
          myGRingInfo().myNewSPR()->myDivByCoeff(raw(myPolyValue), raw(myLCValue));
++        if ( proofEnabled ) monicProof(PolyBeforeMonic, myPoly());
++      }
 +    if ( handlersEnabled ) reductionEndHandler(myPoly());
      // if CoeffEncoding::Field myRelease does NOT make poly monic
      // if CoeffEncoding::FrFldOfGCDDomain myRelease makes poly content free
    }
+diff --git a/src/AlgebraicCore/SparsePolyOps-vector.C b/src/AlgebraicCore/SparsePolyOps-vector.C
+index e21da90..3116859 100644
+--- a/src/AlgebraicCore/SparsePolyOps-vector.C
++++ b/src/AlgebraicCore/SparsePolyOps-vector.C
+@@ -24,6 +24,7 @@
+ #include "CoCoA/ReductionCog.H"
+ #include "CoCoA/RingQQ.H"
+ #include "CoCoA/SparsePolyIter.H"
++#include "CoCoA/TmpGPoly.H"
+ #include "CoCoA/VectorOps.H"
+ #include "CoCoA/geobucket.H" // for myMul
+ #include "CoCoA/interrupt.H"
+@@ -166,6 +167,7 @@ namespace CoCoA
+     while ( (i = FindReducerIndex(F, v) ) != -1)
+     {
+       CheckForInterrupt("ReduceActiveLM");
++      if ( proofEnabled ) membershipStep(v[i]);
+       F->myReduce(v[i]);
+     }
+   }
+@@ -192,11 +194,13 @@ namespace CoCoA
+       CoCoA_THROW_ERROR(ERR::MixedRings, FnName);
+     if ( IsZero(f) ) return f;
+     if ( v.empty() ) return f;
++    if ( proofEnabled ) membershipStart(f);
+     RingElem ans(f);
+     ReductionCog F = NewRedCogGeobucketField(owner(ans));
+     F->myAssignReset(ans);
+     reduce(F, v);
+     F->myRelease(ans);
++    if ( proofEnabled ) membershipEnd();
+     return ans;
+   }
+ 
 diff --git a/src/AlgebraicCore/TmpGPoly.C b/src/AlgebraicCore/TmpGPoly.C
-index 3163ca9..c10b8c2 100644
+index 3163ca9..4800715 100644
 --- a/src/AlgebraicCore/TmpGPoly.C
 +++ b/src/AlgebraicCore/TmpGPoly.C
-@@ -47,6 +47,11 @@ using std::vector;
+@@ -47,6 +47,25 @@ using std::vector;
  namespace CoCoA
  {  
  
@@ -197,17 +327,56 @@ index 3163ca9..c10b8c2 100644
 +  std::function<void(ConstRefRingElem p)> reductionStartHandler = nullptr;
 +  std::function<void(ConstRefRingElem q)> reductionStepHandler = nullptr;
 +  std::function<void(ConstRefRingElem r)> reductionEndHandler = nullptr;
++
++  bool proofEnabled = false;
++  bool membershipTest = false;
++  std::function<void(ConstRefRingElem p, ConstRefRingElem q, ConstRefRingElem s)> sPolyProof = nullptr;
++  std::function<void(ConstRefRingElem p)> reductionStartProof = nullptr;
++  std::function<void(ConstRefRingElem q)> reductionStepProof = nullptr;
++  std::function<void(ConstRefRingElem r)> reductionEndProof = nullptr;
++  std::function<void(ConstRefRingElem p, ConstRefRingElem q)> monicProof = nullptr;
++  std::function<void(ConstRefRingElem p)> membershipStart = nullptr;
++  std::function<void(RingElem s)> membershipStep = nullptr;
++  std::function<void(void)> membershipEnd = nullptr;
++  std::function<void(ConstRefRingElem p)> storeMultiplier = nullptr;
++  std::function<void(DistrMPolyInlPP& p)> storeMultiplierRaw = nullptr;
++  std::function<void(DistrMPolyInlFpPP& p)> storeMultiplierRawFp = nullptr;
  
    //---------class GPoly-------------------------------
  
-@@ -291,7 +296,10 @@ void GPoly::myUpdateLenLPPLCDegComp()
+@@ -291,7 +310,11 @@ void GPoly::myUpdateLenLPPLCDegComp()
      if (the_gp.IsInputPoly())
        myPolyValue = poly(the_gp.myFirstGPoly());
      else
 +    {
        myPolySetSPoly(the_gp.myFirstGPoly(), the_gp.mySecondGPoly());
 +      if ( handlersEnabled ) sPolyHandler(the_gp.myFirstGPoly().myPoly(), the_gp.mySecondGPoly().myPoly(), myPoly());
++      if ( proofEnabled ) sPolyProof(the_gp.myFirstGPoly().myPoly(), the_gp.mySecondGPoly().myPoly(), myPoly());
 +    }
      myUpdateLenLPPLCDegComp();
      myAge = the_age;
      // MAX: do these things only if necessary.
+diff --git a/src/AlgebraicCore/geobucket.C b/src/AlgebraicCore/geobucket.C
+index 8115f61..9620a0e 100644
+--- a/src/AlgebraicCore/geobucket.C
++++ b/src/AlgebraicCore/geobucket.C
+@@ -18,6 +18,7 @@
+ 
+ #include "CoCoA/geobucket.H"
+ 
++#include "CoCoA/TmpGPoly.H"
+ #include "CoCoA/assert.H"
+ #include "CoCoA/utils.H"
+ 
+@@ -420,7 +421,11 @@ namespace CoCoA
+     RingElem tmp_poly(P);
+ 
+     P->myDivLM(raw(tmp_poly), raw(poly(gbk.myBuckets[0])), raw(g));
++    // during a membership test the reduction is not negated, so the multiplier
++    // has to be recorded before the negation
++    if ( proofEnabled && membershipTest ) storeMultiplier(tmp_poly);
+     P->myNegate(raw(tmp_poly), raw(tmp_poly));
++    if ( proofEnabled && !membershipTest ) storeMultiplier(tmp_poly);
+     gbk.myDeleteLM();
+     gbk.myAddMulLM(tmp_poly, g, RedLen, SparsePolyRingBase::SkipLMg);
+   }
