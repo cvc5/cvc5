@@ -1,16 +1,14 @@
 #!/usr/bin/env bash
-# Wrapper em torno do em++ usado apenas no --with-cxx do ./configure do
-# CoCoALib para builds Emscripten/wasm. O ./configure do CoCoALib assume
-# um compilador nativo: seus scripts auxiliares compilam programas de
-# teste e os executam diretamente ("./programa") para checar propriedades
-# do compilador/bibliotecas. Sob Emscripten isso quebra de duas formas:
-#   1. A saida do em++ nao tem bit de execucao nem shebang;
-#   2. Sem -s EXIT_RUNTIME=1, o runtime do Emscripten nao descarrega
-#      stdio ao sair, entao a saida capturada fica vazia mesmo quando
-#      o teste "passa" (exit code 0).
-# Este wrapper injeta -s EXIT_RUNTIME=1 na etapa de link e marca o
-# binario resultante como executavel (com shebang para node), para que
-# o ./configure do CoCoALib consiga rodá-lo como um binário nativo comum.
+# Wrapper around `em++` used exclusively in the `--with-cxx` option of CoCoALib's `./configure` for Emscripten/wasm builds. 
+# The CoCoALib `./configure` assumes a native compiler: its helper scripts compile test programs and execute them directly (`./program`) to check compiler/library properties. Under Emscripten, this breaks in two ways:
+# 1. The output produced by `em++` has neither an executable bit nor a shebang;
+# 2. Without `-s EXIT_RUNTIME=1`, the Emscripten runtime does not flush
+# stdio on exit, so the captured output remains empty even when the
+# test "passes" (exit code 0).
+# This wrapper injects `-s EXIT_RUNTIME=1` into the linking step and marks the
+# resulting binary as executable (with a shebang for Node), so that
+# CoCoALib's `./configure` can run it like a regular native binary.
+
 REAL_EMXX="@CMAKE_CXX_COMPILER@"
 
 is_link=1
