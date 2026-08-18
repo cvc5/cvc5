@@ -59,9 +59,26 @@ class MembershipProofManager : protected EnvObj
 
   /**
    * Install our hooks into CoCoALib. They are then called by CoCoALib during
-   * reduction and computation of S-polynomials.
+   * reduction and computation of S-polynomials. Don't move the object after
+   * calling this. Must be called before CoCoA is used.
    */
   void setFunctionPointers();
+
+  /**
+   * Unhook from CoCoA callbacks. Should be called after you're done producing
+   * proofs. Also clears the global proof `std::function`s so they don't retain
+   * captured pointers into this manager past its lifetime.
+   */
+  void unsetFunctionPointers();
+
+  /**
+   * Destructor. If `setFunctionPointers()` was called and
+   * `unsetFunctionPointers()` has not yet run (e.g. stack unwinding through a
+   * `FfTimeoutException`), the global CoCoA proof slots still hold
+   * `std::function`s that captured `this`. Detach them here so a later CoCoA
+   * call doesn't dereference freed memory.
+   */
+  ~MembershipProofManager();
   /**
    * Get the membership fact for a polynomial.
    * @param poly a polynomial that is already registered in this manager.
@@ -162,6 +179,9 @@ class MembershipProofManager : protected EnvObj
   CoCoA::RingElem d_reducingPoly;
   /** the proof that we add our steps to */
   CDProof* d_proof;
+
+  /** True between `setFunctionPointers()` and `unsetFunctionPointers()`. */
+  bool d_handlersRegistered{false};
 };
 
 }  // namespace ff

@@ -87,6 +87,8 @@ void MembershipProofManager::setFunctionPointers()
   d_storeMultiplierRawFp = std::function(
       [=](CoCoA::DistrMPolyInlFpPP& mul) { t->storeMultiplierRaw(mul); });
 
+  Assert(!CoCoA::proofEnabled);
+  CoCoA::proofEnabled = true;
   CoCoA::sPolyProof = d_sPoly;
   CoCoA::reductionStartProof = d_reductionStart;
   CoCoA::reductionStepProof = d_reductionStep;
@@ -98,6 +100,38 @@ void MembershipProofManager::setFunctionPointers()
   CoCoA::storeMultiplier = d_storeMultiplier;
   CoCoA::storeMultiplierRaw = d_storeMultiplierRaw;
   CoCoA::storeMultiplierRawFp = d_storeMultiplierRawFp;
+  d_handlersRegistered = true;
+}
+
+void MembershipProofManager::unsetFunctionPointers()
+{
+  CoCoA::proofEnabled = false;
+  CoCoA::membershipTest = false;
+  CoCoA::sPolyProof = {};
+  CoCoA::reductionStartProof = {};
+  CoCoA::reductionStepProof = {};
+  CoCoA::reductionEndProof = {};
+  CoCoA::membershipStart = {};
+  CoCoA::membershipStep = {};
+  CoCoA::membershipEnd = {};
+  CoCoA::monicProof = {};
+  CoCoA::storeMultiplier = {};
+  CoCoA::storeMultiplierRaw = {};
+  CoCoA::storeMultiplierRawFp = {};
+  d_handlersRegistered = false;
+}
+
+MembershipProofManager::~MembershipProofManager()
+{
+  // RAII safety: if an exception unwound the stack between
+  // setFunctionPointers() and unsetFunctionPointers(), the explicit unset
+  // never ran. Detach the global CoCoA hooks here so the next CoCoA call
+  // doesn't invoke a std::function capturing pointers into our (about to be
+  // destroyed) storage.
+  if (d_handlersRegistered)
+  {
+    unsetFunctionPointers();
+  }
 }
 
 void MembershipProofManager::storeProof(Node poly,
