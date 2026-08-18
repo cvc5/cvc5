@@ -64,7 +64,7 @@ class FieldObj
 
  protected:
   /** the node manager that this object creates nodes with */
-  NodeManager* nodeManager() const { return d_nm; }
+  NodeManager* getNodeManager() const { return d_nm; }
 
  private:
   FfSize d_size;

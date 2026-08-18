@@ -153,7 +153,7 @@ void CocoaEncoder::addFact(const Node& fact)
       {
         Trace("ff::cocoa") << "CoCoA != sym for " << node << std::endl;
         CoCoA::symbol sym = freshSym("diseq", d_diseqSyms.size());
-        Node witness = nodeManager()->getSkolemManager()->mkSkolemFunction(
+        Node witness = getNodeManager()->getSkolemManager()->mkSkolemFunction(
             SkolemId::FF_DISEQ_WITNESS, node);
         d_diseqSyms.insert({node, sym});
         d_diseqNodes.insert({extractStr(sym), witness});
@@ -321,9 +321,9 @@ void CocoaEncoder::encodeFact(const Node& f)
     Node pNode = decode(p);
     if (d_proof != nullptr)
     {
-      registerEqualityProof(nodeManager(), f, pNode, d_proof);
+      registerEqualityProof(getNodeManager(), f, pNode, d_proof);
     }
-    d_factToConv.insert({f, nodeManager()->mkNode(Kind::EQUAL, pNode, zero())});
+    d_factToConv.insert({f, getNodeManager()->mkNode(Kind::EQUAL, pNode, zero())});
   }
   // !=
   else
@@ -336,9 +336,9 @@ void CocoaEncoder::encodeFact(const Node& f)
     if (d_proof != nullptr)
     {
       registerDisequalityProof(
-          nodeManager(), f, pNode, d_diseqWitnesses.at(f), d_proof);
+          getNodeManager(), f, pNode, d_diseqWitnesses.at(f), d_proof);
     }
-    d_factToConv.insert({f, nodeManager()->mkNode(Kind::EQUAL, pNode, zero())});
+    d_factToConv.insert({f, getNodeManager()->mkNode(Kind::EQUAL, pNode, zero())});
   }
   if (!CoCoA::IsZero(p))
   {
