@@ -2545,7 +2545,6 @@ set(regress_0_tests
   regress0/unconstrained/bvconcat.smt2
   regress0/unconstrained/bvconcat2.smt2
   regress0/unconstrained/bvext.smt2
-  #regress0/unconstrained/bvite.smt2 TODO(wishue #151)
   regress0/unconstrained/bvmul.smt2
   regress0/unconstrained/bvmul2.smt2
   regress0/unconstrained/bvmul3.smt2
@@ -4344,6 +4343,10 @@ set(regression_disabled_tests
   regress0/aufbv/no_init_multi_delete14.smtv1.smt2
   regress0/aufbv/try3_sameret_functions_fse-bfs_tac.calc_next.il.fse-bfs.smtv1.smt2
   regress0/auflia/fuzz01.smtv1.smt2
+  # parse error output is not captured by the regression expectations
+  regress0/issue10813-set-logic.smt2
+  # times out with unconstrained simplification (TODO(wishue #151))
+  regress0/unconstrained/bvite.smt2
   ###
   # timeout on some builds with proofs, unsat cores after #12178
   regress0/bv/bv_to_int_bvmul2.smt2
@@ -4420,6 +4423,8 @@ set(regression_disabled_tests
   regress1/quantifiers/issue9477-mbqi-ran.smt2
   # proof testing times out on nightlies
   regress1/quantifiers/mbqi-enum-dtype-ops.smt2
+  # invalid converted input references a missing TPTP source file
+  regress1/quantifiers/intersection-example-onelaneroof-node22337.smt2.smt2
   ###
   regress1/rels/garbage_collect.cvc.smt2
   regress1/sets/setofsets-disequal.smt2
@@ -4431,6 +4436,8 @@ set(regression_disabled_tests
   regress1/simple-rdl-definefun.smt2
   # cannot solve with naive approach to RE equality
   regress1/strings/re-uf-unsat.smt2
+  # uses the removed ext-rew-prep-agg option
+  regress1/strings/issue6545-extr.smt2
   # does not solve after minor modification to search
   regress1/sygus/car_3.lus.sy
   regress1/sygus/Base16_1.sy
