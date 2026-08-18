@@ -699,7 +699,7 @@ class TermTest
     assertEquals(t1.getChild(0), two);
     assertEquals(t1.getNumChildren(), 2);
     Term tnull = new Term();
-    assertThrows(CVC5ApiException.class, () -> tnull.getNumChildren());
+    assertEquals(tnull.getNumChildren(), 0);
 
     // apply term f(2)
     Sort intSort = d_tm.getIntegerSort();
