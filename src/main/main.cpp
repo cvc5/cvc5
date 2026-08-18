@@ -23,8 +23,8 @@
 #endif
 
 #ifdef __EMSCRIPTEN__
-#include <cstring>
 #include <cstdint>
+#include <cstring>
 
 /**
  * Override Emscripten's `__syscall_getrusage` stub, which corrupts memory.
