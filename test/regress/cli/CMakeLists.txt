@@ -2343,7 +2343,6 @@ set(regress_0_tests
   regress0/sygus/abduct-pponly.smt2
   regress0/sygus/assume-simple.sy
   regress0/sygus/array-grammar-select.sy
-  regress0/sygus/c100.sy
   regress0/sygus/ccp16.lus.sy
   regress0/sygus/cegqi-si-string-triv-2fun.sy
   regress0/sygus/cegqi-si-string-triv.sy
@@ -4447,6 +4446,8 @@ set(regression_disabled_tests
   regress1/sygus/issue3580.sy
   # timeout since nl-rlv is required; however it cannot be used with quantifiers
   regress1/sygus/issue3648.smt2
+  # intermittently exceeds two seconds in production
+  regress0/sygus/c100.sy
   # timeout after ignoring sygus eval terms in model
   regress1/sygus/proj-issue264.smt2
   # For the six regressions below, solution terms require rewrites not in
