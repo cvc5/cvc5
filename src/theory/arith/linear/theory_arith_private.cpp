@@ -4510,6 +4510,11 @@ Rational TheoryArithPrivate::deltaValueForTotalOrder() const
     Node sharedCurr = *shared_iter;
     sharedCurr =
         sharedCurr.getKind() == Kind::TO_REAL ? sharedCurr[0] : sharedCurr;
+    if (!sharedCurr.getType().isRealOrInt())
+    {
+      // e.g. the function child of int.star-contains
+      continue;
+    }
 
     // ModelException is fatal as this point. Don't catch!
     // DeltaRationalException is fatal as this point. Don't catch!

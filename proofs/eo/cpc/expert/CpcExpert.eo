@@ -13,6 +13,7 @@
 ; =============================================================================
 
 (include "./rules/ArithExt.eo")
+(include "./rules/ArithLiaStar.eo")
 (include "./theories/Bags.eo")
 (include "./theories/FloatingPoints.eo")
 (include "./theories/FiniteFields.eo")
