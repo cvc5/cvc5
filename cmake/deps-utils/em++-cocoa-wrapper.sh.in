@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+# Wrapper em torno do em++ usado apenas no --with-cxx do ./configure do
+# CoCoALib para builds Emscripten/wasm. O ./configure do CoCoALib assume
+# um compilador nativo: seus scripts auxiliares compilam programas de
+# teste e os executam diretamente ("./programa") para checar propriedades
+# do compilador/bibliotecas. Sob Emscripten isso quebra de duas formas:
+#   1. A saida do em++ nao tem bit de execucao nem shebang;
+#   2. Sem -s EXIT_RUNTIME=1, o runtime do Emscripten nao descarrega
+#      stdio ao sair, entao a saida capturada fica vazia mesmo quando
+#      o teste "passa" (exit code 0).
+# Este wrapper injeta -s EXIT_RUNTIME=1 na etapa de link e marca o
+# binario resultante como executavel (com shebang para node), para que
+# o ./configure do CoCoALib consiga rodá-lo como um binário nativo comum.
+REAL_EMXX="@CMAKE_CXX_COMPILER@"
+
+is_link=1
+outfile=""
+prev=""
+for arg in "$@"; do
+  if [ "$prev" = "-o" ]; then
+    outfile="$arg"
+  fi
+  if [ "$arg" = "-c" ]; then
+    is_link=0
+  fi
+  prev="$arg"
+done
+
+if [ "$is_link" -eq 1 ]; then
+  "$REAL_EMXX" "$@" -s EXIT_RUNTIME=1
+  rc=$?
+else
+  "$REAL_EMXX" "$@"
+  rc=$?
+fi
+
+if [ $rc -eq 0 ] && [ "$is_link" -eq 1 ] && [ -n "$outfile" ] && [ -f "$outfile" ]; then
+  first_two=$(head -c 2 "$outfile" 2>/dev/null)
+  if [ "$first_two" != "#!" ]; then
+    sed -i '1i #!/usr/bin/env node' "$outfile" 2>/dev/null
+  fi
+  chmod +x "$outfile" 2>/dev/null
+fi
+
+exit $rc
