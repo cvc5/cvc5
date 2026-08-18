@@ -323,7 +323,8 @@ void CocoaEncoder::encodeFact(const Node& f)
     {
       registerEqualityProof(getNodeManager(), f, pNode, d_proof);
     }
-    d_factToConv.insert({f, getNodeManager()->mkNode(Kind::EQUAL, pNode, zero())});
+    d_factToConv.insert(
+        {f, getNodeManager()->mkNode(Kind::EQUAL, pNode, zero())});
   }
   // !=
   else
@@ -338,7 +339,8 @@ void CocoaEncoder::encodeFact(const Node& f)
       registerDisequalityProof(
           getNodeManager(), f, pNode, d_diseqWitnesses.at(f), d_proof);
     }
-    d_factToConv.insert({f, getNodeManager()->mkNode(Kind::EQUAL, pNode, zero())});
+    d_factToConv.insert(
+        {f, getNodeManager()->mkNode(Kind::EQUAL, pNode, zero())});
   }
   if (!CoCoA::IsZero(p))
   {
