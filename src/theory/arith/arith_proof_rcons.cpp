@@ -16,6 +16,7 @@
 #include "proof/proof.h"
 #include "proof/proof_node.h"
 #include "theory/arith/arith_msum.h"
+#include "theory/arith/arith_proof_utilities.h"
 #include "theory/arith/arith_subs.h"
 #include "util/rational.h"
 
@@ -85,7 +86,16 @@ bool ArithProofRCons::solveEquality(CDProof& cdp,
     Node eq = m.first.eqNode(val);
     if (!CDProof::isSame(as, eq))
     {
-      cdp.addStep(eq, ProofRule::MACRO_SR_PRED_TRANSFORM, {as}, {eq});
+      // Note the solved equality may be equivalent to as up to polynomial
+      // normalization only, and not under rewriting alone.
+      if (addArithPolyNormRel(cdp, as, eq))
+      {
+        cdp.addStep(eq, ProofRule::EQ_RESOLVE, {as, as.eqNode(eq)}, {});
+      }
+      else
+      {
+        cdp.addStep(eq, ProofRule::MACRO_SR_PRED_TRANSFORM, {as}, {eq});
+      }
     }
     // to ensure a fixed point substitution, we apply the current
     // substitution to the range of previous substitutions
