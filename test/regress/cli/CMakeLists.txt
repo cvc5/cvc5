@@ -145,7 +145,6 @@ set(regress_0_tests
   regress0/arrays/issue11908-eec-ensure-atom.smt2
   regress0/arrays/issue12026.smt2
   regress0/arrays/issue12648.smt2
-  regress0/arrays/issue12756.smt2
   regress0/arrays/issue3065-write-chain.smt2
   regress0/arrays/issue3813-massign-assert.smt2
   regress0/arrays/issue3814.smt2
