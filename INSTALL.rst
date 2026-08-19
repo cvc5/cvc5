@@ -292,18 +292,20 @@ CLN is covered by the GPLv3 license; see `Licensing of GPL dependencies
 <#licensing-of-gpl-dependencies>`__ for the ramifications of this.
 
 
-glpk-cut-log (A fork of the GNU Linear Programming Kit)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+GLPK with cut-log support (The GNU Linear Programming Kit)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`glpk-cut-log <https://github.com/timothy-king/glpk-cut-log/>`_ is a fork of
-`GLPK <http://www.gnu.org/software/glpk/>`_ (the GNU Linear Programming Kit).
-This can be used to speed up certain classes of problems for the arithmetic
+`GLPK <https://www.gnu.org/software/glpk/>`_ (the GNU Linear Programming Kit)
+can be used to speed up certain classes of problems for the arithmetic
 implementation in cvc5. (This is not recommended for most users.)
 
-cvc5 is not compatible with the official version of the GLPK library.
-To use the patched version of it, we recommend downloading it using
-the ``--auto-download`` configuration flag, which applies
-the patch automatically.
+cvc5 cannot use a stock GLPK library: it requires the cut logging interface
+added by ``cmake/deps-utils/glpk-cut-log.patch``, and the build fails if the
+GLPK it finds does not provide it. We therefore recommend obtaining this
+dependency with the ``--auto-download`` configuration flag, which downloads the
+GLPK release from `ftp.gnu.org <https://ftp.gnu.org/gnu/glpk/>`_ and applies
+the patch automatically. The patch itself is taken from `glpk-cut-log
+<https://github.com/timothy-king/glpk-cut-log/>`_.
 Configure cvc5 with ``configure.sh --glpk --gpl`` to build with this dependency.
 
 GLPK and glpk-cut-log are covered by the GPLv3 license; see `Licensing of GPL

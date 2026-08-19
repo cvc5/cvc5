@@ -121,10 +121,15 @@ Numbers, available here:
 
   http://www.ginac.de/CLN/
 
-cvc5 can be optionally configured to link against glpk-cut-log, a modified
-version of GLPK, the GNU Linear Programming Kit, available here:
+cvc5 can be optionally configured to link against a modified version of GLPK,
+the GNU Linear Programming Kit, available here:
 
-  https://github.com/timothy-king/glpk-cut-log
+  https://ftp.gnu.org/gnu/glpk/
+
+The modifications are the cut-log patch in cmake/deps-utils/glpk-cut-log.patch,
+which cvc5's build system applies to the GLPK release it downloads from there.
+That patch is taken from https://github.com/timothy-king/glpk-cut-log and is
+covered by the same license as GLPK itself.
 
 cvc5 can be optionally configured to link against CoCoALib, a C++ library for
 doing Computations in Commutative Algebra, available here:
