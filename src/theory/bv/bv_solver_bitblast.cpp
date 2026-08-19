@@ -483,16 +483,15 @@ prop::SatValue BVSolverBitblast::refine(
     // d_im.trustedConflict()).
     //
     // A refinement lemma constrains these internal abstraction constants,
-    // thus we do not send it to the main SAT solver via d_im.lemma() (since
-    // it is unaware of the abstraction).
+    // thus we do not send it to the main SAT solver via d_im.lemma()
+    // (it is unaware of the abstraction).
     //
     // The lemmas are T_BV-valid given the abstracted term semantics, hence
     // sound to assert permanently (they accumulate across solve calls and are
     // dropped when the SAT solver is rebuilt on reset-assertions). A lemma is
     // an arbitrary Boolean combination of bit-vector atoms, so we assert it
     // through the CNF stream and let the bit-blast registrar bit-blast the
-    // atoms it contains (the BITVECTOR_EAGER_ATOM mechanism). Rewriting
-    // normalizes atoms (e.g. bvuge) into the forms the registrar recognizes.
+    // atoms it contains (via the BITVECTOR_EAGER_ATOM mechanism).
     for (const Node& lem : lemmas)
     {
       Node eager = nm->mkNode(Kind::BITVECTOR_EAGER_ATOM, rewrite(lem));
