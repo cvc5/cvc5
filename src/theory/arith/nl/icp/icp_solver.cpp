@@ -90,9 +90,8 @@ std::vector<Candidate> ICPSolver::constructCandidates(const Node& n)
   Node tmp = rewrite(n);
   if (tmp.getKind() == Kind::NOT && tmp[0].getKind() == Kind::EQUAL)
   {
-    // Disequalities are not used for propagation. Note they cannot be parsed
-    // as a comparison below, since equalities are not normalized by the
-    // rewriter, see rewriter::normalizeEquality.
+    // Disequalities are not used for propagation. Note we return here, since a
+    // disequality cannot necessarily be parsed as a comparison below.
     return {};
   }
   if (tmp.getKind() == Kind::EQUAL)

@@ -32,10 +32,21 @@ namespace test {
 class TestUtilBlackFloatingPoint : public TestInternal
 {
  protected:
+  // With CVC5_SLOW_TESTS, these complement the exhaustive Float16 testing
+  // below and we can afford a large number of them. Without it, they run on
+  // every CI and nightly build, where the cross-checks are otherwise by far
+  // the slowest unit test, so we use lower counts.
+#ifdef CVC5_SLOW_TESTS
   /** Default number of random tests when not exhaustively testing. */
   static constexpr uint32_t N_TESTS = 1000;
   /** Number of tests fp.rem (significantly slower than other operators). */
   static constexpr uint32_t N_TESTS_REM = 500;
+#else
+  /** Default number of random tests when not exhaustively testing. */
+  static constexpr uint32_t N_TESTS = 100;
+  /** Number of tests fp.rem (significantly slower than other operators). */
+  static constexpr uint32_t N_TESTS_REM = 50;
+#endif
   /** Min/max bit-vector width used in convertToBV cross-checks. */
   static constexpr uint32_t MIN_SIZE_TO_BV = 4;
   static constexpr uint32_t MAX_SIZE_TO_BV = 64;

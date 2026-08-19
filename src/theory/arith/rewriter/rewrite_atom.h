@@ -75,15 +75,20 @@ Node buildRealInequality(NodeManager* nm, Sum&& sum, Kind k);
  *
  * Note that this normalization is *not* applied by the rewriter, since it does
  * not preserve the terms of the equality, which is incompatible with theory
- * combination. It is applied to equalities in the input via ppStaticRewrite,
- * by the extended rewriter, and by the linear arithmetic solver when setting
- * up an atom.
+ * combination. It is instead applied to equalities in the input via
+ * ppStaticRewrite, by the extended rewriter, by the linear arithmetic solver,
+ * and by utilities that require equalities in normal form.
  *
  * If negated is non-null, it is set to true if the difference of the sides of
  * the returned equality is a *negative* multiple of the difference of the
  * sides of atom, and false if it is a positive one. This is used by the
  * rewriter to orient atom in the same direction as its normal form, which
  * ensures that a normal form is itself in rewritten form.
+ *
+ * @param nm Pointer to the node manager.
+ * @param atom The equality to normalize.
+ * @param negated Whether the returned equality is a negative multiple of atom.
+ * @return The normal form of atom.
  */
 Node normalizeEquality(NodeManager* nm, TNode atom, bool* negated = nullptr);
 
