@@ -11,7 +11,15 @@ cvc5 1.3.5 prerelease
   `0`). Callers can query the error via the new functions `cvc5_has_error()` and
   `cvc5_get_error_message()`, and clear it via `cvc5_reset_error()`. The error
   state is reset at the start of the next C API call that can raise an error.
-- We now eagerly expand applications of `distinct` having at most 10 children. A further option `--distinct-elim-threshold=N` is added to eliminate `distinct` constraints having up to `N` children (where `0` indicates no limit).
+
+- We now eagerly expand applications of `distinct` having at most 10 children.
+  A further option `--distinct-elim-threshold=N` is added to eliminate
+  `distinct` constraints having up to `N` children (where `0` indicates no
+  limit).
+
+- **MPFR >= 4.2.1** is now the default **floating-point constant-folding** back
+  end (instead of SymFPU). To use SymFPU as the back-end, configure the build
+  with `./configure.sh --no-mpfr`.
 
 cvc5 1.3.4
 ==========
