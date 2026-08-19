@@ -7,9 +7,9 @@ original or modified versions; distribution is under the terms of the modified
 BSD license (reproduced below).  Please note that cvc5 can be configured
 (however, by default it is not) to link against some GPLed libraries, and
 therefore the use of these builds may be restricted in non-GPL-compatible
-projects.  See below for a discussion of CLN and GLPK (the two GPLed optional
-library dependences for cvc5), and how to ensure you have a build that doesn't
-link against GPLed libraries.
+projects.  See below for a discussion of the GPLed optional library dependences
+for cvc5 (CLN, glpk-cut-log, CoCoALib, and Normaliz), and how to ensure you have
+a build that doesn't link against GPLed libraries.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are

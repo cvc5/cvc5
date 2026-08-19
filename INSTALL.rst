@@ -224,6 +224,25 @@ Optional Dependencies
 ---------------------
 
 
+Licensing of GPL dependencies
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+cvc5 itself is distributed under the modified BSD license, and by default it is
+built without any GPL-licensed dependency. Several of the optional dependencies
+below (CoCoA, CLN, glpk-cut-log and Normaliz) are covered by the `GNU General
+Public License, version 3 <https://www.gnu.org/licenses/gpl-3.0.en.html>`_. If
+you link cvc5 against any of them, the resulting combined work is covered by
+the GPLv3 as well.
+
+Each of these dependencies therefore requires the ``--gpl`` configuration flag
+in addition to its own flag. Configuring with ``--no-gpl`` (the default)
+guarantees that no GPL-licensed library is linked in, so that cvc5 can be used
+under the terms of the modified BSD license.
+
+See the section "OPTIONAL GPLv3 libraries" of the file ``COPYING`` in the cvc5
+source distribution for the full statement.
+
+
 CryptoMiniSat (Optional SAT solver)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -259,7 +278,8 @@ recommend downloading it using the ``--auto-download`` configuration flag,
 which applies our patch automatically. It is included in the build through the
 ``--cocoa --gpl`` configuration flag.
 
-CoCoA is covered by the GPLv3 license. See below for the ramifications of this.
+CoCoA is covered by the GPLv3 license; see `Licensing of GPL dependencies
+<#licensing-of-gpl-dependencies>`__ for the ramifications of this.
 
 CLN >= v1.3 (Class Library for Numbers)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -268,11 +288,8 @@ CLN >= v1.3 (Class Library for Numbers)
 package that may offer better performance and memory footprint than GMP.
 Configure cvc5 with ``configure.sh --cln --gpl`` to build with this dependency.
 
-Note that CLN is covered by the `GNU General Public License, version 3
-<https://www.gnu.org/licenses/gpl-3.0.en.html>`_. If you choose to use cvc5 with
-CLN support, you are licensing cvc5 under that same license. (Usually cvc5's
-license is more permissive than GPL, see the file `COPYING` in the cvc5 source
-distribution for details.)
+CLN is covered by the GPLv3 license; see `Licensing of GPL dependencies
+<#licensing-of-gpl-dependencies>`__ for the ramifications of this.
 
 
 glpk-cut-log (A fork of the GNU Linear Programming Kit)
@@ -289,10 +306,8 @@ the ``--auto-download`` configuration flag, which applies
 the patch automatically.
 Configure cvc5 with ``configure.sh --glpk --gpl`` to build with this dependency.
 
-Note that GLPK and glpk-cut-log are covered by the `GNU General Public License,
-version 3 <https://www.gnu.org/licenses/gpl-3.0.en.html>`_. If you choose to use
-cvc5 with GLPK support, you are licensing cvc5 under that same license. (Usually
-cvc5's license is more permissive; see above discussion.)
+GLPK and glpk-cut-log are covered by the GPLv3 license; see `Licensing of GPL
+dependencies <#licensing-of-gpl-dependencies>`__ for the ramifications of this.
 
 
 Editline library (Improved Interactive Experience)
@@ -314,7 +329,8 @@ liastar solver extension. We recommend downloading it using the ``--auto-downloa
 configuration flag. It is included in the build through the
 ``--normaliz --gpl`` configuration flag.
 
-Normaliz is covered by the GPLv3 license. See below for the ramifications of this.
+Normaliz is covered by the GPLv3 license; see `Licensing of GPL dependencies
+<#licensing-of-gpl-dependencies>`__ for the ramifications of this.
 
 
 Google Test Unit Testing Framework (Unit Tests)
