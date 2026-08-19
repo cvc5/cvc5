@@ -763,6 +763,7 @@ BagsRewriteResponse BagsRewriter::postRewriteProject(const TNode& n) const
   TypeNode tableType = n.getType();
   if (n[0].getKind() == Kind::BAG_EMPTY)
   {
+    // ((_ table.project i_1 ... i_n) (as bag.empty T1)) = (as bag.empty T2)
     Node empty = d_nm->mkConst(EmptyBag(tableType));
     return BagsRewriteResponse(empty, Rewrite::PROJECT_EMPTY);
   }
