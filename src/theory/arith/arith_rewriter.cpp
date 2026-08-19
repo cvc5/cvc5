@@ -449,6 +449,16 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
   }
 }
 
+Node ArithRewriter::rewriteEqualityExt(Node node)
+{
+  Assert(node.getKind() == Kind::EQUAL);
+  if (!node[0].getType().isRealOrInt())
+  {
+    return node;
+  }
+  return rewriter::normalizeEquality(d_nm, node);
+}
+
 RewriteResponse ArithRewriter::preRewriteTerm(TNode t)
 {
   if (t.isConst())
