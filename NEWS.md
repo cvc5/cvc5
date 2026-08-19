@@ -13,6 +13,16 @@ cvc5 1.3.5 prerelease
   state is reset at the start of the next C API call that can raise an error.
 - We now eagerly expand applications of `distinct` having at most 10 children. A further option `--distinct-elim-threshold=N` is added to eliminate `distinct` constraints having up to `N` children (where `0` indicates no limit).
 
+- Added new **abstraction refinement strategy** for abstracting **bit-vector
+  arithmetic** operators, see [Aina Niemetz, Mathias Preiner and Yoni Zohar.
+  Scalable Bit-Blasting with Abstractions. CAV 2024, Springer, 2024](
+  https://doi.org/10.1007/978-3-031-65627-9_9).
+  Enable with option `--bv-abstraction`, the minimum bit-width of relevant terms
+  to abstract can be configured via option `--bv-abstraction-size`.
+  Right now, this is *not* supported in combination with option
+  `--bv-solver=bitblast-internal` (enabling option `--bv-abstraction` has no
+  effect).
+
 cvc5 1.3.4
 ==========
 
