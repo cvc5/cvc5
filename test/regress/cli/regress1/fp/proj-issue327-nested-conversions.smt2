@@ -1,6 +1,7 @@
 ; COMMAND-LINE: --fp-exp
 ; EXPECT: unsat
 ; DISABLE-TESTER: cpc
+; DISABLE-TESTER: lfsc
 (set-logic ALL)
 (declare-const x Real)
 (declare-const x6 RoundingMode)

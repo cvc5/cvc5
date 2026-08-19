@@ -83,6 +83,28 @@ std::shared_ptr<ProofNode> ensurePredTransform(ProofNodeManager* pnm,
                                                std::shared_ptr<ProofNode>& pf,
                                                const Node& pred);
 
+/**
+ * Return a proof of (= a b) by ProofRule::ARITH_POLY_NORM_REL, extended by a
+ * congruence step if a and b are negated. This is used for relating arithmetic
+ * relations that are equivalent but are not equivalent under rewriting alone,
+ * e.g. (= (+ x 1) 2) and (= x 1).
+ *
+ * @param pnm Reference to the proof manager.
+ * @param a The first relation, or its negation.
+ * @param b The second relation, or its negation.
+ * @return The proof of (= a b), or nullptr if a and b are not arithmetic
+ * relations that are equivalent up to polynomial normalization.
+ */
+std::shared_ptr<ProofNode> mkArithPolyNormRel(ProofNodeManager* pnm,
+                                              const Node& a,
+                                              const Node& b);
+
+/**
+ * Same as above, but adds the steps proving (= a b) to cdp. Returns false and
+ * adds no steps if a and b are not related by polynomial normalization.
+ */
+bool addArithPolyNormRel(CDProof& cdp, const Node& a, const Node& b);
+
 }  // namespace arith
 }  // namespace theory
 }  // namespace cvc5::internal

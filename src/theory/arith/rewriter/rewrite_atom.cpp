@@ -371,6 +371,16 @@ Node buildRealInequality(NodeManager* nm, Sum&& sum, Kind k)
   return buildRelation(k, collectSum(nm, sum), rhs);
 }
 
+Node normalizeEquality(CVC5_UNUSED NodeManager* nm, TNode atom)
+{
+  Assert(atom.getKind() == Kind::EQUAL);
+  Assert(atom[0].getType().isRealOrInt());
+  // TODO: normalize the equality, which requires that the rewriter no longer
+  // normalizes equalities itself. Until then, the rewritten form of an
+  // equality is already its normal form, hence this is a no-op.
+  return atom;
+}
+
 std::pair<Node, Node> decomposeSum(NodeManager* nm,
                                    Sum&& sum,
                                    bool& negated,

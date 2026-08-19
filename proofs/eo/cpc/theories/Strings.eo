@@ -196,8 +196,11 @@
   ((s String :opaque) (r RegLan :opaque))
   (-> Int Int))
 (declare-parameterized-const @strings_replace_all_result
-  ((T Type :implicit) (t (Seq T) :opaque))
+  ((T Type :implicit) (s (Seq T)) (t (Seq T)) (r (Seq T)))
   (-> Int (Seq T)))
+(declare-parameterized-const @strings_replace_re_all_result
+  ((s String) (r RegLan) (t String))
+  (-> Int String))
 
 (declare-parameterized-const @witness_string_length 
   ((T Type :opaque) (len Int :opaque) (id Int :opaque))
