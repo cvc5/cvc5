@@ -193,7 +193,7 @@ void BoundInference::update_lower_bound(const Node& origin,
       // (equivalent to) the equality we would construct here. We use it, which
       // avoids constructing an equality of a different form, e.g. one whose
       // sides are cast to real.
-      Node eq = b.lower_origin == b.upper_origin ? Node(b.lower_origin)
+      Node eq = b.lower_origin == b.upper_origin ? b.lower_origin
                                                  : mkEquality(lhs, value);
       b.lower_bound = b.upper_bound = rewrite(eq);
     }
@@ -233,7 +233,7 @@ void BoundInference::update_upper_bound(const Node& origin,
       // (equivalent to) the equality we would construct here. We use it, which
       // avoids constructing an equality of a different form, e.g. one whose
       // sides are cast to real.
-      Node eq = b.lower_origin == b.upper_origin ? Node(b.lower_origin)
+      Node eq = b.lower_origin == b.upper_origin ? b.lower_origin
                                                  : mkEquality(lhs, value);
       b.lower_bound = b.upper_bound = rewrite(eq);
     }
