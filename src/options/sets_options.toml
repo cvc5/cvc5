@@ -32,3 +32,11 @@ name   = "Sets Theory"
   type       = "bool"
   default    = "true"
   help       = "enable the cardinality extension of the theory of sets"
+
+[[option]]
+  name       = "relsAcyclicHammer"
+  category   = "expert"
+  long       = "rels-acyclic-hammer"
+  type       = "bool"
+  default    = "false"
+  help       = "disable the TCLOSURE_UP and JOIN_SPLIT relational lemmas"

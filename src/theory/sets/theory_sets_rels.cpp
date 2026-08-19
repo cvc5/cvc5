@@ -15,6 +15,7 @@
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/skolem_manager.h"
+#include "options/sets_options.h"
 #include "theory/datatypes/project_op.h"
 #include "theory/datatypes/tuple_utils.h"
 #include "theory/sets/theory_sets.h"
@@ -871,6 +872,14 @@ void TheorySetsRels::applyTCRule(Node mem_rep,
   // reachable, skip the TClos-Down case split.
   if (reachable) return;
 
+  if (options().sets.relsAcyclicHammer)
+  {
+    // TCLOSURE_UP disabled: the TC edge above is still recorded for
+    // doTCInference (TCLOSURE_FWD) to consume; only this case-split lemma is
+    // skipped.
+    return;
+  }
+
   Node fst_element = TupleUtils::nthElementOfTuple(exp[0], 0);
   Node snd_element = TupleUtils::nthElementOfTuple(exp[0], 1);
   Node sk_1 = d_skCache.mkTypedSkolemCached(fst_element.getType(),
@@ -1293,10 +1302,13 @@ void TheorySetsRels::applyJoinRule(Node join_rel, Node join_rel_rep, Node exp)
         reason,
         nodeManager()->mkNode(Kind::EQUAL, join_rel, exp[1]));
   }
-  Node fact = nodeManager()->mkNode(Kind::SET_MEMBER, mem1, join_rel[0]);
-  sendInfer(fact, InferenceId::SETS_RELS_JOIN_SPLIT_1, reason);
-  fact = nodeManager()->mkNode(Kind::SET_MEMBER, mem2, join_rel[1]);
-  sendInfer(fact, InferenceId::SETS_RELS_JOIN_SPLIT_2, reason);
+  if (!options().sets.relsAcyclicHammer)
+  {
+    Node fact = nodeManager()->mkNode(Kind::SET_MEMBER, mem1, join_rel[0]);
+    sendInfer(fact, InferenceId::SETS_RELS_JOIN_SPLIT_1, reason);
+    fact = nodeManager()->mkNode(Kind::SET_MEMBER, mem2, join_rel[1]);
+    sendInfer(fact, InferenceId::SETS_RELS_JOIN_SPLIT_2, reason);
+  }
   makeSharedTerm(shared_x);
 }
 
@@ -1590,12 +1602,9 @@ void TheorySetsRels::applyUnrollCycle(std::vector<Node>& rels,
  * (s[q],s[r]) IN TC(R) for every 0 <= q < r-1 < cnt.
  *
  * The reason we attach is exp = NOT ACYCLIC((R1,...,Rk)), the justification for
- * ((R1,...,Rk),s,cnt) being in C.
- *
- * We attach no explicit (r < len(s)) in-bounds guard, even though r indexes the
- * sequence s, because SplitCycleLen emits exp => cnt <= len(s) for the same cnt
- * in the same doCycleInference round. Here, r < cnt, so r < len(s) holds in
- * every model satisfying exp.
+ * ((R1,...,Rk),s,cnt) being in C, together with an explicit (r < len(s))
+ * in-bounds guard: r indexes the sequence s, so this rule should only apply
+ * while r is actually a valid position of s.
  */
 void TheorySetsRels::applyContrMinimalRule(const std::vector<Node>& rels,
                                            Node seq,
@@ -1614,11 +1623,13 @@ void TheorySetsRels::applyContrMinimalRule(const std::vector<Node>& rels,
   {
     TypeNode tt = Ri.getType().getSetElementType();
     Node Ri_tc = nm->mkNode(Kind::RELATION_TCLOSURE, Ri);
-    // 0 <= q < r-1 < cnt  =>  r in [2, cnt-1], q in [0, r-2]
+    // 0 <= q < r < cnt <= len(s) =>  r in [2, cnt-1], q in [0, r-2]
     for (size_t r = 2; r < cnt; ++r)
     {
       Node sr = nm->mkNode(Kind::SEQ_NTH, seq, nm->mkConstInt(Rational(r)));
-      Node reason = exp;
+      Node s_len = nm->mkNode(Kind::STRING_LENGTH, seq);
+      Node r_lt_len = nm->mkNode(Kind::LT, nm->mkConstInt(Rational(r)), s_len);
+      Node reason = nm->mkNode(Kind::AND, exp, r_lt_len);
       for (size_t q = 0; q + 2 <= r; ++q)
       {
         Node sq = nm->mkNode(Kind::SEQ_NTH, seq, nm->mkConstInt(Rational(q)));
@@ -1728,15 +1739,16 @@ void TheorySetsRels::doCycleInference()
     Node acyc_exp = nodeManager()
                         ->mkNode(Kind::RELATION_ACYCLIC, mkRelTuple(rels))
                         .negate();
-    // NEW (reverted for now): applyUnrollCycle already advanced the stored
-    // count for this sequence to cnt+1 (it just created s[cnt] and edge
-    // (s[cnt-1],s[cnt])), so the shortcut-forbidding rule seeing the
-    // pre-unroll cnt here is stale/off-by-one -- a real completeness bug.
-    // Deferred pending its own separate investigation (see
-    // contrminimal-cnt-staleness-bug memory).
-    // applyContrMinimalRule(rels, seq, cnt + 1, acyc_exp);
-    // OLD (current, restored):
-    applyContrMinimalRule(rels, seq, cnt, acyc_exp);
+    // TEMP EXPERIMENT (re-enabled again 2026-08-17): applyUnrollCycle already
+    // advanced the stored count for this sequence to cnt+1 (it just created
+    // s[cnt] and edge (s[cnt-1],s[cnt])), so the shortcut-forbidding rule
+    // seeing the pre-unroll cnt here is stale/off-by-one -- a real
+    // completeness bug (see contrminimal-cnt-staleness-bug memory for the
+    // history of testing this on/off against acyclic9-full.smt2). NEW
+    // (enabled):
+    applyContrMinimalRule(rels, seq, cnt + 1, acyc_exp);
+    // OLD (disabled above):
+    // applyContrMinimalRule(rels, seq, cnt, acyc_exp);
     ++c_it;
   }
 
