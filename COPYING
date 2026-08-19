@@ -56,6 +56,15 @@ licenses/lgpl-3.0.txt for a copy of that license.  Note that according to the
 terms of the LGPL, both cvc5's source, and the combined work (cvc5 linked with
 GMP) may (and do) remain under the more permissive modified BSD license.
 
+cvc5 can be optionally configured to link against The GNU Multiple Precision
+Floating-Point Reliable Library (MPFR), which it uses as the back end for
+floating-point constant folding.  This is enabled by default and can be turned
+off by configuring cvc5 with the "--no-mpfr" option, in which case cvc5 does
+not link against MPFR.  MPFR is licensed under GNU LGPL v3; see the file
+licenses/lgpl-3.0.txt for a copy of that license.  As with GMP, the terms of
+the LGPL allow both cvc5's source, and the combined work (cvc5 linked with
+MPFR), to remain under the more permissive modified BSD license.
+
 cvc5 also links against the CaDiCaL library
 (https://github.com/arminbiere/cadical), which is licensed under
 the MIT license.
