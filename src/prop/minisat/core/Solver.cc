@@ -658,7 +658,14 @@ void Solver::removeClause(CRef cr) {
         {
           d_pfManager->addResolutionStep(c[i]);
         }
-        d_pfManager->endResChain(c[0]);
+        // The propagated literal c[0] remains valid at its own user level,
+        // which may be below the current user level (e.g. it is a level-zero
+        // propagation but the clause is being removed during a push). We pass
+        // this level so that the eagerly computed proof is saved and restored
+        // across backtracking, rather than being lost when the user context is
+        // popped. Otherwise the propagation, which stays asserted, would be
+        // left as an unjustified free assumption in the final proof.
+        d_pfManager->endResChain(c[0], user_level(var(c[0])) + 1);
       }
       vardata[var(c[0])].d_reason = CRef_Undef;
     }
