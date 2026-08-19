@@ -76,7 +76,8 @@ Node buildRealInequality(NodeManager* nm, Sum&& sum, Kind k);
  * Note that this normalization is *not* applied by the rewriter, since it does
  * not preserve the terms of the equality, which is incompatible with theory
  * combination. It is applied to equalities in the input via ppStaticRewrite,
- * and by the linear arithmetic solver when setting up an atom.
+ * by the extended rewriter, and by the linear arithmetic solver when setting
+ * up an atom.
  *
  * If negated is non-null, it is set to true if the difference of the sides of
  * the returned equality is a *negative* multiple of the difference of the
