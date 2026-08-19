@@ -173,15 +173,14 @@ void FactoringCheck::check(const std::vector<Node>& asserts,
             Node split = nm->mkNode(Kind::OR, lit, lit.notNode());
             proof->addStep(split, ProofRule::SPLIT, {}, {lit});
             // The atom of the given literal and the atom of the conclusion
-            // where the factor skolem is replaced by its definition are
-            // equivalent up to polynomial normalization. Note they are not
-            // equivalent under rewriting alone, since equalities are not
-            // normalized by the rewriter, see rewriter::normalizeEquality.
-            // We thus prove the equivalence via ARITH_POLY_NORM_REL below.
+            // where the factor skolem is replaced by its definition may be
+            // equivalent up to polynomial normalization only, and not under
+            // rewriting alone. We prove the equivalence via
+            // ARITH_POLY_NORM_REL in that case.
             Node polyns = polyn.substitute(TNode(kf), TNode(sum));
             Node katoms = nm->mkNode(atom.getKind(), polyns, zero);
             // Note that the literals are negated when polarity is false, in
-            // which case the equivalence is lifted to the negations below.
+            // which case the equivalence is lifted to the negations.
             Node cl = polarity ? katoms : katoms.notNode();
             if (addArithPolyNormRel(*proof, lit, cl))
             {

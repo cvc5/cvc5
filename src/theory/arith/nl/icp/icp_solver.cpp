@@ -96,9 +96,8 @@ std::vector<Candidate> ICPSolver::constructCandidates(const Node& n)
   }
   if (tmp.getKind() == Kind::EQUAL)
   {
-    // Equalities are not normalized by the rewriter, see
-    // rewriter::normalizeEquality. We normalize them here, so that they can
-    // be parsed as a comparison below.
+    // Normalize the equality, so that it can be parsed as a comparison below,
+    // see rewriter::normalizeEquality.
     tmp = rewriter::normalizeEquality(nodeManager(), tmp);
   }
   if (tmp.isConst())

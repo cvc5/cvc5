@@ -367,11 +367,9 @@ void MonomialBoundsCheck::checkBounds(const std::vector<Node>& asserts,
                 // ARITH_TRICHOTOMY expects, and also their order is not clear.
                 // Hence, we apply MACRO_SR_PRED_TRANSFORM to them, and check
                 // which corresponds to which subterm of the premise.
-                // Note that the explanation may also be an equality that
-                // differs from simpleeq, since equalities are not normalized
-                // by the rewriter, see rewriter::normalizeEquality. In this
-                // case, the two are equivalent up to polynomial
-                // normalization.
+                // Note that the explanation may also be an equality that is
+                // equivalent to simpleeq up to polynomial normalization only,
+                // in which case we relate the two directly.
                 if (exp[1].getKind() == Kind::EQUAL
                     && addArithPolyNormRel(*proof, exp[1], simpleeq))
                 {
