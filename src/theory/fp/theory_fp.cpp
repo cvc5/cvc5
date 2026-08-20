@@ -530,9 +530,9 @@ void TheoryFp::registerTerm(TNode node)
     // Otherwise, when getting the values for those terms from the model, we
     // may get unexpected results if the nested conversions need to be refined
     // still.
-    Node pn = nm->mkNode(Kind::FLOATINGPOINT_TO_REAL_TOTAL,
-                         purifyConversions(node[0]),
-                         purifyConversions(node[1]));
+    Node pn =
+        nm->mkNode(Kind::FLOATINGPOINT_TO_REAL_TOTAL,
+                   {purifyConversions(node[0]), purifyConversions(node[1])});
     handleLemma(node.eqNode(sk), InferenceId::FP_REGISTER_TERM);
     d_abstractionMap.insert(sk, pn);
 
