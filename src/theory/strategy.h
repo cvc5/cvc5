@@ -1,0 +1,169 @@
+/******************************************************************************
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A generic, reusable strategy container shared by theory solvers.
+ */
+
+#include "cvc5_private.h"
+
+#ifndef CVC5__THEORY__STRATEGY_H
+#define CVC5__THEORY__STRATEGY_H
+
+#include <map>
+#include <string>
+#include <utility>
+#include <vector>
+
+#include "theory/step.h"
+#include "theory/theory.h"
+
+namespace cvc5::internal {
+namespace theory {
+
+class InferenceManagerBuffered;
+
+/**
+ * Generic base class for a theory "strategy".
+ *
+ * A strategy is an ordered list of inference steps that a theory runs during
+ * its standard, full or last-call effort check.
+ *
+ * A new theory can add a strategy with only a few lines of theory-specific
+ * code. A theory specializes it by:
+ *   1. adding enum `Step` with its own inference steps.
+ *   2. deriving `class Strategy : public StrategyBase { ... }`;
+ *   3. implementing initializeStrategy() to build the list using the protected
+ *      helpers below (markStartEffort / addStrategyStep / markEndEffort /
+ *      finishInit).
+ * This class owns the *recipe* (the ordered list and its per-effort slices),
+ * the single-pass driver runStrategy(), and the standard fixpoint check loop
+ * postCheck() that repeatedly runs the strategy and flushes pending
+ * inferences. The per-step dispatch (runStep) is implemented by each theory,
+ * since steps map to theory-specific sub-solvers.
+ *
+ * The step list is stored flat. For an effort e, the steps to run are the
+ * half-open iterator range [stepBegin(e), stepEnd(e)).
+ *
+ */
+class StrategyBase
+{
+ public:
+  StrategyBase(TheoryId id,
+               TheoryState* state = nullptr,
+               InferenceManagerBuffered* im = nullptr);
+
+  /** a destructor */
+  virtual ~StrategyBase();
+
+  /** Has initializeStrategy() finished building the strategy? */
+  bool isStrategyInit() const;
+
+  /** Is there a sequence of steps registered for effort e? */
+  bool hasStrategyEffort(Theory::Effort e) const;
+
+  /** Begin iterator over the steps to run at effort e. */
+  std::vector<std::pair<Step, Theory::Effort>>::iterator stepBegin(
+      Theory::Effort e);
+
+  /** End iterator over the steps to run at effort e. */
+  std::vector<std::pair<Step, Theory::Effort>>::iterator stepEnd(
+      Theory::Effort e);
+
+  /**
+   * Build the strategy. Implemented by each theory's derived class. A typical
+   * implementation looks like:
+   *
+   *   if (isStrategyInit()) return;
+   *   markStartEffort(Theory::EFFORT_FULL);
+   *   addStrategyStep(MY_FIRST_STEP);
+   *   ...
+   *   addStrategyStep(MY_LAST_STEP);
+   *   markEndEffort(Theory::EFFORT_FULL);
+   *   finishInit();
+   *
+   * Multiple efforts (e.g. EFFORT_LAST_CALL) can be registered by issuing
+   * additional markStartEffort/.../markEndEffort blocks before finishInit().
+   */
+  virtual void initializeStrategy() = 0;
+
+  /**
+   * Run the steps registered for effort e in order, dispatching each via
+   * runStep() and yielding at BREAK markers once something has been
+   * processed or a conflict is found. This is a single pass; the standard
+   * check loop around it is postCheck().
+   */
+  void runStrategy(Theory::Effort e);
+
+  /**
+   * The standard full/last-call effort check loop for a theory whose
+   * inference steps are organized as a strategy. It repeatedly runs the
+   * strategy for effort e and sends the resulting pending facts/lemmas via
+   * the inference manager until a conflict or lemma is produced or nothing
+   * is pending. It is a no-op if we are already in conflict, a new SAT
+   * decision is pending, or the strategy has no steps registered for effort
+   * e.
+   */
+  void postCheck(Theory::Effort e);
+
+ protected:
+  /**
+   * Execute a single inference step.
+   */
+  virtual void runStep(Step s, Theory::Effort e, Theory::Effort effort) = 0;
+
+  /**
+   * Append step s (running at the given effort) to the strategy. If
+   * addBreak is true (default), a BREAK marker is appended after it, which the
+   * theory's runStrategy uses as a yield point.
+   */
+  void addStrategyStep(Step s,
+                       Theory::Effort effort = Theory::EFFORT_FULL,
+                       bool addBreak = true);
+
+  /**
+   * Mark that the steps for effort e begin at the current end of the list.
+   * Call this immediately before adding the steps for effort e.
+   */
+  void markStartEffort(Theory::Effort e);
+
+  /**
+   * Mark that the steps for effort e end at the current end of the list. Call
+   * this immediately after adding the steps for effort e. The recorded end
+   * index is the trailing BREAK of the last step (size()-1), which is excluded
+   * from iteration; see the class-level note on stepEnd().
+   */
+  void markEndEffort(Theory::Effort e);
+
+  /**
+   * Finalize the strategy: compute the per-effort index ranges from the marks
+   * recorded above and flag the strategy as initialized. Must be called once,
+   * after all steps and effort marks have been added.
+   */
+  void finishInit();
+
+ protected:
+  TheoryId d_theoryId;
+  TheoryState* d_state;
+  InferenceManagerBuffered* d_im;
+  /** Whether the strategy has been initialized. */
+  bool d_strategyInit;
+  /** The flat ordered list of steps, with BREAK markers interleaved. */
+  std::vector<std::pair<Step, Theory::Effort>> d_steps;
+  /** For each effort, the [begin,end] index range into d_inferSteps. */
+  std::map<Theory::Effort, std::pair<size_t, size_t>> d_stratSteps;
+  /** Scratch: per-effort begin indices recorded by markStartEffort. */
+  std::map<Theory::Effort, size_t> d_stepBegin;
+  /** Scratch: per-effort end indices recorded by markEndEffort. */
+  std::map<Theory::Effort, size_t> d_stepEnd;
+}; /* class StrategyBase */
+
+}  // namespace theory
+}  // namespace cvc5::internal
+
+#endif /* CVC5__THEORY__STRATEGY_H */
