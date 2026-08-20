@@ -390,6 +390,17 @@ TEST_F(TestUtilBlackInteger, parse_rejects_backend_specific_strings)
   ASSERT_THROW(Integer("+0", 0), std::invalid_argument);
   ASSERT_THROW(Integer("+010", 0), std::invalid_argument);
   ASSERT_THROW(Integer("+ff", 16), std::invalid_argument);
+
+  // GMP reads bases 37 to 62, where CLN reports an error, so a literal in one
+  // of those bases parsed in a GMP build and threw in a CLN build. Base 1 is
+  // not a base at all and is rejected with them.
+  ASSERT_THROW(Integer("z", 37), std::invalid_argument);
+  ASSERT_THROW(Integer("Z", 37), std::invalid_argument);
+  ASSERT_THROW(Integer("9", 37), std::invalid_argument);
+  ASSERT_THROW(Integer("9", 62), std::invalid_argument);
+  ASSERT_THROW(Integer("9", 63), std::invalid_argument);
+  ASSERT_THROW(Integer("0", 1), std::invalid_argument);
+  ASSERT_THROW(Integer("1", 1), std::invalid_argument);
 }
 
 /**
@@ -410,8 +421,11 @@ TEST_F(TestUtilBlackInteger, parse_accepts)
   ASSERT_EQ(Integer("FF", 16), 255);
   ASSERT_EQ(Integer("-ff", 16), -255);
   ASSERT_EQ(Integer("0FF", 16), 255);
+  // The supported bases run to 36 inclusive.
   ASSERT_EQ(Integer("z", 36), 35);
   ASSERT_EQ(Integer("Z", 36), 35);
+  ASSERT_EQ(Integer("zz", 36), 1295);
+  ASSERT_EQ(Integer("1", 2), 1);
   ASSERT_EQ(Integer("1010", 2), 10);
   ASSERT_EQ(Integer("-1010", 2), -10);
   ASSERT_EQ(Integer("777", 8), 511);

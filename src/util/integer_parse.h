@@ -23,9 +23,11 @@ namespace cvc5::internal {
  * Determine whether s is a valid string representation of an integer in the
  * given base.
  *
- * The accepted syntax is an optional '-' followed by a magnitude. For a base
- * in [2,36] the magnitude is a non-empty sequence of digits valid in that
- * base, upper or lower case. For base 0 the base of the magnitude is inferred:
+ * The base must be 0 or in [2,36]; any other base is rejected, since the two
+ * libraries do not support the same range. The accepted syntax is an optional
+ * '-' followed by a magnitude. For a base in [2,36] the magnitude is a
+ * non-empty sequence of digits valid in that base, upper or lower case. For
+ * base 0 the base of the magnitude is inferred:
  * "0x"/"0X" followed by at least one hexadecimal digit is hexadecimal,
  * "0b"/"0B" followed by at least one binary digit is binary, a leading '0'
  * followed by any number of octal digits is octal, and anything else is
@@ -34,8 +36,9 @@ namespace cvc5::internal {
  * Both underlying arithmetic libraries accept strings outside this syntax, but
  * they do not accept the same ones, so the Integer implementations reject
  * anything this function rejects in order to behave identically. In particular
- * GMP silently ignores whitespace anywhere in the string and reads a bare
- * "0x" as zero, while CLN reads "" and "-" as zero and accepts a leading '+'.
+ * GMP silently ignores whitespace anywhere in the string, reads a bare "0x" as
+ * zero and supports bases up to 62, while CLN reads "" and "-" as zero and
+ * accepts a leading '+'.
  *
  * Note this is a purely syntactic check and is deliberately more permissive
  * than the SMT-LIB <numeral> syntax enforced at the API level, which allows

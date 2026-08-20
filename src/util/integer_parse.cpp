@@ -43,6 +43,13 @@ bool isDigitInBase(char c, unsigned base)
 
 bool isValidIntegerLiteral(const std::string& s, unsigned base)
 {
+  if (base != 0 && (base < 2 || base > 36))
+  {
+    // Not a base both libraries support. GMP reads up to base 62, where CLN
+    // reports an error, so accepting those here would reintroduce exactly the
+    // kind of difference this check exists to remove.
+    return false;
+  }
   size_t i = (!s.empty() && s[0] == '-') ? 1 : 0;
   if (i == s.size())
   {
