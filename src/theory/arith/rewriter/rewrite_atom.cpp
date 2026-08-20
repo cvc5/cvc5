@@ -363,7 +363,13 @@ Node buildRealEquality(NodeManager* nm, Sum&& sum, bool* negated)
   {
     // If the coefficient c of the leading term t is negative, the difference of
     // the equality we build below is the sum scaled by 1/c, hence negative.
-    *negated = (lterm.second.sgn() <= 0);
+    // Note the coefficient is never zero here: it is zero only if the sum has
+    // no leading term, i.e. it is empty or contains only a constant, in which
+    // case it is integral and thus normalizeEquality used buildIntegerEquality
+    // instead. This matters since marking both orientations of an equality as
+    // negated would make the rewriter non-terminating.
+    Assert(!lterm.second.isZero());
+    *negated = (lterm.second.sgn() < 0);
   }
   if (lterm.second.isZero())
   {
