@@ -5017,6 +5017,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(RE_IN_CSTRING),
   /** Auto-generated from RARE rule re-in-comp */
   EVALUE(RE_IN_COMP),
+  /** Auto-generated from RARE rule str-in-re-emp-star */
+  EVALUE(STR_IN_RE_EMP_STAR),
   /** Auto-generated from RARE rule str-in-re-union-elim */
   EVALUE(STR_IN_RE_UNION_ELIM),
   /** Auto-generated from RARE rule str-in-re-inter-elim */
