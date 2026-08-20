@@ -32,7 +32,9 @@
 #include "rewriter/rewrite_db.h"
 #include "smt/print_benchmark.h"
 #include "theory/builtin/generic_op.h"
+#include "theory/strings/regexp_entail.h"
 #include "theory/strings/theory_strings_utils.h"
+#include "theory/strings/word.h"
 #include "theory/theory.h"
 #include "util/string.h"
 
@@ -351,8 +353,18 @@ bool EoPrinter::isHandledTheoryRewrite(const Options& opts,
     case ProofRewriteRule::STR_CTN_MULTISET_SUBSET:
     case ProofRewriteRule::SEQ_EVAL_OP: return true;
     case ProofRewriteRule::STR_IN_RE_EVAL:
+    {
       Assert(n[0].getKind() == Kind::STRING_IN_REGEXP && n[0][0].isConst());
+      if (theory::strings::Word::isEmpty(n[0][0]))
+      {
+        // If the string is empty, the signature only requires determining
+        // whether the regular expression is nullable, which does not require
+        // it to be evaluatable.
+        bool res;
+        return theory::strings::RegExpEntail::isNullable(n[0][1], res);
+      }
       return canEvaluateRegExp(n[0][1]);
+    }
     case ProofRewriteRule::ARITH_POW_ELIM:
     case ProofRewriteRule::ARRAYS_SELECT_CONST:
     case ProofRewriteRule::LAMBDA_ELIM:
