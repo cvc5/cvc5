@@ -1403,6 +1403,7 @@ set(regress_0_tests
   regress0/parser/quoted-define-fun.smt2
   regress0/parser/rational-tok.smt2
   regress0/parser/real-numerals.smt2
+  regress0/parser/reserved-symbol-datatype.smt2
   regress0/parser/set-bag-left-associative.smt2
   regress0/parser/shadow_fun_symbol_all.smt2
   regress0/parser/shadow_fun_symbol_nirat.smt2
