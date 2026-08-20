@@ -3693,6 +3693,7 @@ set(regress_1_tests
   regress1/strings/issue10196.smt2
   regress1/strings/issue1105.smt2
   regress1/strings/issue12147-idof-same.smt2
+  regress1/strings/issue12863.smt2
   regress1/strings/issue1684-regex.smt2
   regress1/strings/issue2060.smt2
   regress1/strings/issue2429-code.smt2
