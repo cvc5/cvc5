@@ -51,4 +51,4 @@
   :arg-list @tlist)
   
 ; The purification skolem.
-(declare-parameterized-const @purify ((A Type :implicit) (t A :opaque)) A)
+(declare-parameterized-const @purify ((A Type :implicit) (t A)) A)
