@@ -39,14 +39,15 @@ class ArithRewriter : public TheoryRewriter
    */
   Node expandDefinition(Node node) override;
   /**
-   * Return the normal form of the arithmetic equality node, see
-   * rewriter::normalizeEquality. The returned node is either an equality or a
-   * Boolean constant.
+   * Return the normal form of the arithmetic equality node, which is computed
+   * by moving all terms to the left hand side and normalizing the resulting
+   * sum, e.g. this returns (= x 1) for the input (= (+ x 1) 2). The returned
+   * node is either an equality or a Boolean constant.
    *
    * Note this normalization is not applied by postRewrite, since it does not
    * preserve the terms of the equality, which is incompatible with theory
-   * combination. It is instead applied to equalities in the input via
-   * ppStaticRewrite, and by the extended rewriter.
+   * combination, see rewriter::normalizeEquality. It is applied to equalities
+   * in the input via ppStaticRewrite, and by the extended rewriter.
    */
   Node rewriteEqualityExt(Node node) override;
   /**
