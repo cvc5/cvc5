@@ -147,8 +147,8 @@ JNIEXPORT jboolean JNICALL Java_io_github_cvc5_Proof_equals(JNIEnv* env,
  * Signature: (J)J
  */
 JNIEXPORT jlong JNICALL Java_io_github_cvc5_Proof_hashCode(JNIEnv* env,
-                                                          jobject,
-                                                          jlong pointer)
+                                                           jobject,
+                                                           jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Proof* current = reinterpret_cast<Proof*>(pointer);

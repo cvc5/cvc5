@@ -1118,8 +1118,8 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Sort_getNullableElementSort(
  * Signature: (J)J
  */
 JNIEXPORT jlong JNICALL Java_io_github_cvc5_Sort_hashCode(JNIEnv* env,
-                                                         jobject,
-                                                         jlong pointer)
+                                                          jobject,
+                                                          jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Sort* result = reinterpret_cast<Sort*>(pointer);

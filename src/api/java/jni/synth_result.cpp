@@ -135,8 +135,8 @@ Java_io_github_cvc5_SynthResult_toString(JNIEnv* env, jobject, jlong pointer)
  * Signature: (J)J
  */
 JNIEXPORT jlong JNICALL Java_io_github_cvc5_SynthResult_hashCode(JNIEnv* env,
-                                                                jobject,
-                                                                jlong pointer)
+                                                                 jobject,
+                                                                 jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   SynthResult* result = reinterpret_cast<SynthResult*>(pointer);

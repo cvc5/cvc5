@@ -155,8 +155,8 @@ JNIEXPORT jstring JNICALL Java_io_github_cvc5_Result_toString(JNIEnv* env,
  * Signature: (J)J
  */
 JNIEXPORT jlong JNICALL Java_io_github_cvc5_Result_hashCode(JNIEnv* env,
-                                                           jobject,
-                                                           jlong pointer)
+                                                            jobject,
+                                                            jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Result* result = reinterpret_cast<Result*>(pointer);
