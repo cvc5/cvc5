@@ -248,6 +248,14 @@ class TheorySep : public Theory
    * if sep.wand constraints are present.
    */
   std::map<Node, std::vector<Node> > d_parentMap;
+
+  /**
+   * The set of labels, other than those in d_parentMap, known to denote a
+   * fragment of the heap. See recordHeapModelLabel. Like d_parentMap this
+   * accumulates over the life of the theory: the property it records does not
+   * become false once established.
+   */
+  std::unordered_set<Node> d_heapModelLabels;
   /**
    * Maps label sets to their direct children. This map is only stored for
    * labels with children that do not share a root label with the base label.
@@ -270,6 +278,29 @@ class TheorySep : public Theory
    * Do p and q have a root label in common?
    */
   bool sharesRootLabel(Node p, Node q) const;
+  /**
+   * Does `lbl` denote a fragment of the heap this model describes, i.e. is the
+   * base label above it in the disjoint union relation recorded by
+   * d_parentMap?
+   *
+   * The labels recorded by recordHeapModelLabel act as additional roots: the
+   * label graph mixes the labels getLabel introduces with set terms built
+   * directly by instantiateLabel, and only the former have parents.
+   *
+   * This is false for the labels a sep.wand introduces. makeDisjointHeap makes
+   * the wand's consequent label the parent of both the current label and the
+   * antecedent label, so walking up from the antecedent leaves the heap the
+   * model describes instead of reaching the base label. It is conservatively
+   * false for a label whose only route to the base label is through such a
+   * parent as well.
+   */
+  bool isHeapModelLabel(Node lbl) const;
+  /**
+   * Note that `lbl` labels a fragment of the heap `o_lbl` describes. Used for
+   * the labels instantiateLabel builds directly out of set terms, which have
+   * no entry in d_parentMap for isHeapModelLabel to follow.
+   */
+  void recordHeapModelLabel(Node lbl, Node o_lbl);
 
   // term model
   std::map<Node, Node> d_tmodel;

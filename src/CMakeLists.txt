@@ -1124,6 +1124,8 @@ libcvc5_add_sources(
   theory/rewriter.cpp
   theory/rewriter.h
   theory/rewriter_attributes.h
+  theory/sep/sep_model_checker.cpp
+  theory/sep/sep_model_checker.h
   theory/sep/theory_sep.cpp
   theory/sep/theory_sep.h
   theory/sep/theory_sep_rewriter.cpp
