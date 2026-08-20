@@ -6,7 +6,6 @@
 ; EXPECT: sep.emp
 ; EXPECT: (= (as sep.nil Int) 0)
 ; EXPECT: )
-; DISABLE-TESTER: model
 (set-logic ALL)
 (set-option :produce-models true)
 (declare-heap (Int Int))

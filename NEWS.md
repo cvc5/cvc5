@@ -31,6 +31,17 @@ cvc5 1.3.5 prerelease
   `--bv-solver=bitblast-internal` (enabling option `--bv-abstraction` has no
   effect).
 
+- Option `--check-models` now **checks models containing a separation logic
+  heap**, instead of refusing with "Cannot run check-model on a model with a
+  separation logic heap". Spatial assertions are evaluated against the concrete
+  heap model. What direct evaluation cannot decide -- notably the magic wand,
+  whose semantics quantify over all extension heaps -- is cross-checked with a
+  subsolver holding the heap fixed, or else reported as unverified rather than
+  assumed to hold.
+
+- `get-value` on a separation logic atom now returns a Boolean, evaluated
+  against the model heap, rather than returning the atom unchanged.
+
 cvc5 1.3.4
 ==========
 

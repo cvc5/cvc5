@@ -1927,8 +1927,19 @@ set(regress_0_tests
   regress0/rels/relations-ops.smt2
   regress0/rels/rels-sharing-simp.cvc.smt2
   regress0/reset-i.smt2
+  regress0/sep/check-model-debug-clean.smt2
+  regress0/sep/check-model-emp.smt2
+  regress0/sep/check-model-mixed.smt2
+  regress0/sep/check-model-pto.smt2
+  regress0/sep/check-model-sep-wand.smt2
+  regress0/sep/check-model-sep.smt2
+  regress0/sep/check-model-wand-label-gate.smt2
+  regress0/sep/check-model-wand-no-subsolver.smt2
+  regress0/sep/check-model-wand-nonvacuous.smt2
+  regress0/sep/check-model-wand-subsolver.smt2
   regress0/sep/dispose-1.smt2
   regress0/sep/dup-nemp.smt2
+  regress0/sep/get-value-spatial.smt2
   regress0/sep/issue10213-empty-model.smt2
   regress0/sep/issue3720-check-model.smt2
   regress0/sep/issue5343-err.smt2
@@ -3503,6 +3514,10 @@ set(regress_1_tests
   regress1/rr-verify/fp-bool.sy
   regress1/rr-verify/string-term.sy
   regress1/sep/chain-int.smt2
+  regress1/sep/check-model-detects-unsound-emp.smt2
+  regress1/sep/check-model-detects-unsound-learned-rewrite.smt2
+  regress1/sep/check-model-detects-unsound-wand.smt2
+  regress1/sep/check-model-large-heap.smt2
   regress1/sep/crash1220.smt2
   regress1/sep/dispose-list-4-init.smt2
   regress1/sep/fmf-nemp-2.smt2
