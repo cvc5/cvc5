@@ -270,9 +270,11 @@ Node Lemma<LemmaKind::MUL3_IC>::instance(CVC5_UNUSED TNode x,
 template <>
 Node Lemma<LemmaKind::MUL4_ODD>::instance(TNode x, TNode s, TNode t) const
 {
-  return eq(d_nm,
-            utils::mkExtract(t, 0, 0),
-            bvand(d_nm, utils::mkExtract(x, 0, 0), utils::mkExtract(s, 0, 0)));
+  // Use extract_* variables to ensure deterministic node ID assignments
+  Node extract_t = utils::mkExtract(t, 0, 0);
+  Node extract_x = utils::mkExtract(x, 0, 0);
+  Node extract_s = utils::mkExtract(s, 0, 0);
+  return eq(d_nm, extract_t, bvand(d_nm, extract_x, extract_s));
 }
 
 // 5: (not (= s (bvnot (bvor t (bvand 1 (bvor x s))))))
@@ -720,9 +722,10 @@ Node Lemma<LemmaKind::UREM1_POW2>::instance(
   }
   else
   {
+    // Use extract_x to ensure deterministic node ID assignments
+    Node extract_x = utils::mkExtract(x, ctz - 1, 0);
     // zero_extend by (w - ctz) of the low ctz bits of x.
-    rem = utils::mkConcat(utils::mkZero(d_nm, w - ctz),
-                          utils::mkExtract(x, ctz - 1, 0));
+    rem = utils::mkConcat(utils::mkZero(d_nm, w - ctz), extract_x);
   }
   return impl(d_nm, eq(d_nm, s, sval), eq(d_nm, t, rem));
 }
