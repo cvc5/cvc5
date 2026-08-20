@@ -5,7 +5,6 @@
 (define-rule re-in-sigma-star ((t String)) (str.in_re t (re.* re.allchar)) true)
 (define-rule re-in-cstring ((t String) (s String)) (str.in_re t (str.to_re s)) (= t s))
 (define-rule re-in-comp ((t String) (r RegLan)) (str.in_re t (re.comp r)) (not (str.in_re t r)))
-(define-rule str-in-re-emp-star ((r RegLan)) (str.in_re "" (re.* r)) true)
 
 (define-rule* str-in-re-union-elim ((s String) (r1 RegLan) (r2 RegLan) (rs RegLan :list))
   (str.in_re s (re.union r1 r2 rs))
