@@ -283,6 +283,13 @@ Node buildIntegerEquality(NodeManager* nm,
 {
   Trace("arith-rewriter") << "building integer equality from " << sum
                           << std::endl;
+  if (sum.empty())
+  {
+    // The difference of the sides of the equality is zero, hence it is true.
+    // Note this is possible if the sides of the equality are not in rewritten
+    // form, e.g. for (= (+ x y) (+ y x)).
+    return mkConst(nm, true);
+  }
   normalizeGCDLCM(sum);
 
   Trace("arith-rewriter::debug") << "\tnormalized to " << sum << std::endl;

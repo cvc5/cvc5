@@ -33,6 +33,7 @@
 #include "options/base_options.h"
 #include "options/smt_options.h"
 #include "preprocessing/util/ite_utilities.h"
+#include "proof/lazy_proof.h"
 #include "proof/proof_generator.h"
 #include "proof/proof_node_manager.h"
 #include "smt/logic_exception.h"
@@ -95,6 +96,8 @@ TheoryArithPrivate::TheoryArithPrivate(Env& env,
       d_pnm(d_env.isTheoryProofProducing() ? d_env.getProofNodeManager()
                                            : nullptr),
       d_pfGen(new EagerProofGenerator(env, userContext())),
+      d_ppAssertPf(new LazyCDProof(
+          env, nullptr, userContext(), "TheoryArithPrivate::ppAssertPf")),
       d_constraintDatabase(d_env,
                            d_partialModel,
                            d_congruenceManager,
@@ -1151,6 +1154,16 @@ bool TheoryArithPrivate::ppAssert(TrustNode tin,
       {
         elim = nodeManager()->mkNode(Kind::TO_REAL, elim);
       }
+      else if (minVar.getType().isInteger() && !elim.getType().isInteger()
+               && elim.isConst() && elim.getConst<Rational>().isIntegral())
+      {
+        // The normal form of an equality between real terms is an equality
+        // between real terms as well, e.g. the normal form of
+        // (= (to_real x) 0.0) is itself. Since Comparison::getLeft strips the
+        // cast, we may have solved for an integer variable, in which case we
+        // convert the solved form to an integer constant here.
+        elim = nodeManager()->mkConstInt(elim.getConst<Rational>());
+      }
       if (right.size() > options().arith.ppAssertMaxSubSize)
       {
         Trace("simplify")
@@ -1166,7 +1179,8 @@ bool TheoryArithPrivate::ppAssert(TrustNode tin,
         Trace("simplify") << "TheoryArithPrivate::solve(): substitution "
                           << minVar << " |-> " << elim << endl;
         AssertEqual(elim.getType(), minVar.getType());
-        outSubstitutions.addSubstitutionSolved(minVar, elim, tin);
+        outSubstitutions.addSubstitutionSolved(
+            minVar, elim, mkSolvedEq(minVar, elim, tin));
         return true;
       }
       else
@@ -1196,6 +1210,35 @@ bool TheoryArithPrivate::ppAssert(TrustNode tin,
   }
 
   return false;
+}
+
+TrustNode TheoryArithPrivate::mkSolvedEq(const Node& x,
+                                         const Node& t,
+                                         TrustNode tin)
+{
+  Node eq = x.eqNode(t);
+  Node in = tin.getNode();
+  if (eq == in || !proofsEnabled() || tin.getGenerator() == nullptr)
+  {
+    // no proof required, or no proof to base the solved form on
+    return tin;
+  }
+  // Note that eq is *not* the rewritten form of in, since the rewriter does
+  // not normalize equalities, see rewriter::normalizeEquality. Hence we
+  // cannot rely on TrustSubstitutionMap::addSubstitutionSolved to relate the
+  // two by rewriting, which would introduce a trust step (SUBS_EQ). Instead we
+  // prove eq from in by polynomial normalization here.
+  Pf pf = mkArithPolyNormRel(d_pnm, in, eq);
+  Assert(pf != nullptr) << in << " and " << eq << " are not poly norm";
+  if (pf == nullptr)
+  {
+    return tin;
+  }
+  // the proof of in is provided lazily by the generator of tin
+  d_ppAssertPf->addLazyStep(in, tin.getGenerator());
+  d_ppAssertPf->addProof(pf);
+  d_ppAssertPf->addStep(eq, ProofRule::EQ_RESOLVE, {in, in.eqNode(eq)}, {});
+  return TrustNode::mkTrustLemma(eq, d_ppAssertPf.get());
 }
 
 void TheoryArithPrivate::ppStaticLearn(TNode n, std::vector<TrustNode>& learned)
