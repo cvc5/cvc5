@@ -18,6 +18,7 @@
 #include "base/check.h"
 #include "base/cvc5config.h"
 #include "util/integer.h"
+#include "util/integer_parse.h"
 #include "util/random.h"
 #include "util/rational.h"
 
@@ -29,9 +30,33 @@ using namespace std;
 
 namespace cvc5::internal {
 
-Integer::Integer(const char* s, unsigned base) : d_value(s, base) {}
+namespace {
 
-Integer::Integer(const std::string& s, unsigned base) : d_value(s, base) {}
+/**
+ * Construct the GMP value for s in the given base, rejecting anything outside
+ * the syntax that both Integer implementations accept. GMP itself silently
+ * ignores whitespace anywhere in the string, so that "1 2" reads as 12, and
+ * reads a prefix with no digits such as "0x" as zero.
+ */
+mpz_class parseInt(const std::string& s, unsigned base)
+{
+  if (!isValidIntegerLiteral(s, base))
+  {
+    std::stringstream ss;
+    ss << "Integer() failed to parse value \"" << s << "\" in base " << base;
+    throw std::invalid_argument(ss.str());
+  }
+  return mpz_class(s, base);
+}
+
+}  // namespace
+
+Integer::Integer(const char* s, unsigned base) : d_value(parseInt(s, base)) {}
+
+Integer::Integer(const std::string& s, unsigned base)
+    : d_value(parseInt(s, base))
+{
+}
 
 #ifdef CVC5_NEED_INT64_T_OVERLOADS
 Integer::Integer(int64_t z) : d_value(construct_mpz(z)) {}

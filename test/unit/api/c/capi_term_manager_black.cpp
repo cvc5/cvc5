@@ -1015,7 +1015,7 @@ TEST_F(TestCApiBlackTermManager, mkReal)
   ASSERT_CVC5_ERROR(cvc5_mk_real(d_tm, ""), "cannot construct Real");
   ASSERT_CVC5_ERROR(cvc5_mk_real(d_tm, "asdf"), "cannot construct Real");
   ASSERT_CVC5_ERROR(cvc5_mk_real(d_tm, "1.2/3"), "cannot construct Real");
-  ASSERT_CVC5_ERROR(cvc5_mk_real(d_tm, "."), "invalid argument '.'");
+  ASSERT_CVC5_ERROR(cvc5_mk_real(d_tm, "."), "cannot construct Real");
   ASSERT_CVC5_ERROR(cvc5_mk_real(d_tm, "/"), "cannot construct Real");
   ASSERT_CVC5_ERROR(cvc5_mk_real(d_tm, "2/"), "cannot construct Real");
   ASSERT_CVC5_ERROR(cvc5_mk_real(d_tm, "/2"), "cannot construct Real");
