@@ -125,7 +125,8 @@ class TheoryFp : public Theory
    * (leaf) arguments (see purifyArgument), and sends lemmas fixing the value
    * of the abstraction for the special cases (for fp.to_real: NaN/infinity
    * arguments yield the undefined-value argument, zero yields 0; for to_fp
-   * from Real: the result is never NaN, a zero argument yields +zero).
+   * from Real: the result is never NaN, a zero argument yields +zero, and the
+   * sign of the result is the sign of the argument).
    *
    * Called from postCheck() at LAST_CALL effort for every abstraction that
    * occurs in the candidate model. Compares the model value of `abstract`
