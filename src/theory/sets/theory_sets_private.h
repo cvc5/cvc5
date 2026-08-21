@@ -343,6 +343,17 @@ class TheorySetsPrivate : protected EnvObj
    * finitely many fresh elements are introduced per strategy pass.
    */
   void checkTransitiveClosure();
+  /**
+   * Last-call check: give open relation-acyclicity cycle obligations one
+   * more chance to catch up to a now-fixed cycle length before the model is
+   * accepted. See TheorySetsRels::checkAcyclicityLastCall.
+   */
+  void checkAcyclicityLastCall();
+  /**
+   * True if there is an open relation-acyclicity cycle obligation, used to
+   * drive TheorySets::needsCheckLastEffort().
+   */
+  bool hasOpenCycleObligation() const;
   /** Run the set.filter inference rules (checkFilterUp / checkFilterDown). */
   void checkFilters();
   /** Run the set.map inference rules (checkMapUp / checkMapDown). */

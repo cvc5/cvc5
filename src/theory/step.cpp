@@ -38,6 +38,9 @@ std::ostream& operator<<(std::ostream& out, Step s)
     case Step::SETS_CHECK_COMPREHENSION:
       out << "SETS_CHECK_COMPREHENSION";
       break;
+    case Step::SETS_CHECK_ACYCLICITY_LAST_CALL:
+      out << "SETS_CHECK_ACYCLICITY_LAST_CALL";
+      break;
     case Step::UNKNOWN: out << "?"; break;
     default:
       Unreachable();

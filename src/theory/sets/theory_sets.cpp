@@ -99,6 +99,11 @@ void TheorySets::finishInit()
 
 void TheorySets::postCheck(Effort level) { d_internal->postCheck(level); }
 
+bool TheorySets::needsCheckLastEffort()
+{
+  return d_internal->hasOpenCycleObligation();
+}
+
 void TheorySets::notifyFact(TNode atom,
                             bool polarity,
                             TNode fact,

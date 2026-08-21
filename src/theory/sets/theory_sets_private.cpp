@@ -460,6 +460,19 @@ void TheorySetsPrivate::checkTransitiveClosure()
   }
 }
 
+void TheorySetsPrivate::checkAcyclicityLastCall()
+{
+  if (d_rels_enabled)
+  {
+    d_rels->checkAcyclicityLastCall(getValuation());
+  }
+}
+
+bool TheorySetsPrivate::hasOpenCycleObligation() const
+{
+  return d_rels_enabled && d_rels->hasOpenCycleObligation();
+}
+
 void TheorySetsPrivate::checkFilters()
 {
   // check filter up rule

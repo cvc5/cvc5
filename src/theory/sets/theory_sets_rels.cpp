@@ -18,8 +18,11 @@
 #include "options/sets_options.h"
 #include "theory/datatypes/project_op.h"
 #include "theory/datatypes/tuple_utils.h"
+#include "theory/incomplete_id.h"
 #include "theory/sets/theory_sets.h"
 #include "theory/sets/theory_sets_private.h"
+#include "theory/valuation.h"
+#include "util/integer.h"
 #include "util/rational.h"
 
 using namespace std;
@@ -1638,6 +1641,24 @@ void TheorySetsRels::applyContrMinimalRule(const std::vector<Node>& rels,
         Node conc = mem.notNode();
         sendInfer(conc, InferenceId::SETS_RELS_CONTR_MINIMAL, reason);
 
+        // s[q] and s[r] must be pairwise distinct, EXCEPT for the one
+        // allowed coincidence: q=0 (the first element) and r = len(s)-1
+        // (the wraparound), which is exactly the closing equality. For
+        // q=0, guard with the real (r+1 < len(s)) so this becomes vacuous
+        // precisely when r turns out to be the wraparound -- not the local,
+        // per-round cnt (which keeps growing regardless of closing, and
+        // would incorrectly stop exempting this pair once cnt outgrows it).
+        Node reason_diseq = reason;
+        if (q == 0)
+        {
+          Node r_plus_1_lt_len =
+              nm->mkNode(Kind::LT, nm->mkConstInt(Rational(r + 1)), s_len);
+          reason_diseq = nm->mkNode(Kind::AND, reason, r_plus_1_lt_len);
+        }
+        Node conc_diseq = nm->mkNode(Kind::EQUAL, sq, sr).notNode();
+        sendInfer(
+            conc_diseq, InferenceId::SETS_RELS_CONTR_MINIMAL, reason_diseq);
+
         Trace("rels-cycles") << "ContrMinimal: exp = " << reason
                              << ", conc = " << conc << std::endl;
       }
@@ -1753,6 +1774,72 @@ void TheorySetsRels::doCycleInference()
   }
 
   // UnrollCycle
+}
+
+bool TheorySetsRels::hasOpenCycleObligation() const
+{
+  return !d_cycle_sequences.empty();
+}
+
+void TheorySetsRels::checkAcyclicityLastCall(Valuation& val)
+{
+  // Bounds the O(cnt^2) cost of applyContrMinimalRule's shortcut-forbidding
+  // loop; a length beyond this is not something we can feasibly catch up on.
+  static constexpr size_t MAX_CATCHUP_LEN = 10000;
+
+  NodeManager* nm = nodeManager();
+  CYC_IT c_it = d_cycle_sequences.begin();
+  while (c_it != d_cycle_sequences.end())
+  {
+    std::vector<Node> rels = c_it->first;
+    Node seq = c_it->second.first;
+    size_t cnt = c_it->second.second;
+
+    Node seqLen = nm->mkNode(Kind::STRING_LENGTH, seq);
+    Node lenVal = val.getCandidateModelValue(seqLen);
+    bool haveLen = !lenVal.isNull() && lenVal.isConst();
+    Integer lenInt;
+    if (haveLen)
+    {
+      lenInt = lenVal.getConst<Rational>().getNumerator();
+      haveLen =
+          lenInt.fitsUnsignedInt() && lenInt.toUnsignedInt() <= MAX_CATCHUP_LEN;
+    }
+    if (!haveLen)
+    {
+      // The cycle-sequence's length was not determined to be a concrete,
+      // practically-sized value: we cannot confirm that the cycle-unrolling
+      // rules have been fully applied for whatever length the model will
+      // ultimately pick, so we cannot let this model through unconfirmed.
+      Trace("rels-debug")
+          << "[Theory::Rels] checkAcyclicityLastCall: length of " << seq
+          << " is not a concrete, practically-sized value (got " << lenVal
+          << "); reporting model unsound" << std::endl;
+      d_im.setModelUnsound(IncompleteId::SETS_RELS_ACYCLIC_LEN_UNKNOWN);
+    }
+    else
+    {
+      size_t N = lenInt.toUnsignedInt();
+      Trace("rels-debug") << "[Theory::Rels] checkAcyclicityLastCall: " << seq
+                          << " has length " << N << ", catching up cnt from "
+                          << cnt << std::endl;
+      // <=, not <: d_cycle_sequences stores the *next* cnt to process (it's
+      // bumped by applyUnrollCycle right after processing the current one),
+      // so when cnt already equals N, SplitCycleLen(cnt=N) -- the lemma
+      // whose case_2 forces s[0]=s[N-1] once len(s)=N is fixed -- has not
+      // been generated yet and still needs to be.
+      while (cnt <= N)
+      {
+        Node acyc_exp =
+            nm->mkNode(Kind::RELATION_ACYCLIC, mkRelTuple(rels)).negate();
+        Node exp = applySplitCycleLenRule(rels, seq, cnt);
+        applyUnrollCycle(rels, seq, cnt, exp);
+        applyContrMinimalRule(rels, seq, cnt + 1, acyc_exp);
+        ++cnt;
+      }
+    }
+    ++c_it;
+  }
 }
 
 void TheorySetsRels::doTCInference()

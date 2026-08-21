@@ -27,6 +27,9 @@
 
 namespace cvc5::internal {
 namespace theory {
+
+class Valuation;
+
 namespace sets {
 
 class TheorySetsPrivate;
@@ -114,6 +117,21 @@ class TheorySetsRels : protected EnvObj
    * unboundedly, so the caller should invoke it at most once per postCheck.
    */
   void checkTransitiveClosure();
+  /**
+   * Last-call check: for each open cycle-sequence obligation whose length
+   * has been fixed to a concrete, practically-sized value N in the current
+   * candidate model, ensure that SplitCycleLen/UnrollCycle/ContrMinimal have
+   * been applied for every count up to N (cheap no-ops for counts already
+   * sent, thanks to sendInfer's lemma cache). If an obligation's length
+   * cannot be determined to be a concrete, practically-sized value, reports
+   * the model as unsound.
+   */
+  void checkAcyclicityLastCall(Valuation& val);
+  /**
+   * True if there is at least one relation acyclicity cycle-sequence
+   * currently being tracked (used to drive needsCheckLastEffort()).
+   */
+  bool hasOpenCycleObligation() const;
   /** Is kind k a kind that belongs to the relation theory? */
   static bool isRelationKind(Kind k);
 

@@ -65,6 +65,10 @@ enum class IncompleteId
   SETS_RELS_CARD,
   // finite model finding used in combination with set cardinality constraints
   SETS_FMF_BOUND_CARD,
+  // a relation acyclicity cycle-sequence's length was not determined to be a
+  // concrete, practically-sized value at last call, so we could not confirm
+  // whether the cycle unrolling rules had been fully applied for it
+  SETS_RELS_ACYCLIC_LEN_UNKNOWN,
   // we skipped processing a looping word equation
   STRINGS_LOOP_SKIP,
   // we could not simplify a regular expression membership

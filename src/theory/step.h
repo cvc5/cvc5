@@ -55,6 +55,10 @@ enum Step : uint32_t
   SETS_CHECK_DISEQUALITY,
   // check comprehension reductions
   SETS_CHECK_COMPREHENSION,
+  // last-call check that relation acyclicity cycle-sequences whose length
+  // has been fixed have had all applicable SplitCycleLen/UnrollCycle/
+  // ContrMinimal lemmas applied
+  SETS_CHECK_ACYCLICITY_LAST_CALL,
   // unknown inference step
   UNKNOWN
 };

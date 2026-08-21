@@ -53,6 +53,12 @@ void Strategy::initializeStrategy()
   addStrategyStep(SETS_CHECK_COMPREHENSION);
   addStrategyStep(SETS_CHECK_CARDINALITY);
   markEndEffort(Theory::EFFORT_FULL);
+  // the last-call effort strategy: give open relation-acyclicity cycle
+  // obligations one more chance to catch up to a now-fixed cycle length
+  // before the engine accepts the current model.
+  markStartEffort(Theory::EFFORT_LAST_CALL);
+  addStrategyStep(SETS_CHECK_ACYCLICITY_LAST_CALL);
+  markEndEffort(Theory::EFFORT_LAST_CALL);
   // set the beginning/ending ranges and mark the strategy as initialized
   finishInit();
 }
@@ -84,6 +90,9 @@ void Strategy::runStep(Step s, Theory::Effort, unsigned effort)
       break;
     case Step::SETS_CHECK_COMPREHENSION:
       d_setsSolver->checkReduceComprehensions();
+      break;
+    case Step::SETS_CHECK_ACYCLICITY_LAST_CALL:
+      d_setsSolver->checkAcyclicityLastCall();
       break;
 
     default: Unreachable(); break;
