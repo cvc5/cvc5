@@ -50,6 +50,7 @@ const char* toString(InferenceId i)
       return "ARITH_CONF_REPLAY_LOG_REC";
     case InferenceId::ARITH_CONF_UNATE_PROP: return "ARITH_CONF_UNATE_PROP";
     case InferenceId::ARITH_SPLIT_DEQ: return "ARITH_SPLIT_DEQ";
+    case InferenceId::ARITH_EQUIV_ATOM: return "ARITH_EQUIV_ATOM";
     case InferenceId::ARITH_TIGHTEN_CEIL: return "ARITH_TIGHTEN_CEIL";
     case InferenceId::ARITH_TIGHTEN_FLOOR: return "ARITH_TIGHTEN_FLOOR";
     case InferenceId::ARITH_APPROX_CUT: return "ARITH_APPROX_CUT";

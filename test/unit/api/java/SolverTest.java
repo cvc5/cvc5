@@ -49,6 +49,15 @@ class SolverTest
   }
 
   @Test
+  void equalHash()
+  {
+    Solver solver = new Solver(d_tm);
+    assertEquals(d_solver, d_solver);
+    assertNotEquals(d_solver, solver);
+    assertEquals(d_solver.hashCode(), d_solver.hashCode());
+  }
+
+  @Test
   void recoverableException() throws CVC5ApiException
   {
     d_solver.setOption("produce-models", "true");
