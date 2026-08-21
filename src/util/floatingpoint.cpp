@@ -39,55 +39,43 @@ FloatingPoint FloatingPoint::successor(const FloatingPoint& fp)
 {
   Assert(!fp.isNaN() && !fp.isInfinite());
   const FloatingPointSize& size = fp.getSize();
+  if (fp.isZero())
+  {
+    // the successor of the zero class is the smallest positive subnormal
+    return FloatingPoint::makeMinSubnormal(size, false);
+  }
   BitVector packed = fp.pack();
-  uint32_t psize = packed.getSize();
-  const Integer& val = packed.getValue();
-  // The value of the sign bit in the packed representation, 2^(psize - 1).
-  Integer signBitValue = Integer(1).multiplyByPow2(psize - 1);
-  if (val < signBitValue)
+  BitVector one = BitVector::mkOne(packed.getSize());
+  if (!fp.getSign())
   {
-    // non-negative (including +zero): increment the magnitude
-    return FloatingPoint(size, BitVector(psize, val + 1));
+    // positive: increment the magnitude (may reach +infinity)
+    return FloatingPoint(size, packed + one);
   }
-  // The packed encoding of the absolute value; for negative values the
-  // encoding order is reversed relative to the value order, so the successor
-  // has the next smaller magnitude.
-  Integer magnitude = val - signBitValue;
-  if (magnitude <= 1)
-  {
-    // -zero: the successor of -zero is the smallest positive subnormal
-    // -minSubnormal: the successor is the zero class
-    return magnitude == 0 ? FloatingPoint::makeMinSubnormal(size, false)
-                          : FloatingPoint::makeZero(size, false);
-  }
-  return FloatingPoint(size, BitVector(psize, signBitValue + (magnitude - 1)));
+  // For negative values the packed encoding order is reversed relative to the
+  // value order, thus the successor has the next smaller magnitude.
+  BitVector res = packed - one;
+  // The successor of -minSubnormal is the zero class, normalize to +zero.
+  return res == BitVector::mkMinSigned(res.getSize())
+             ? FloatingPoint::makeZero(size, false)
+             : FloatingPoint(size, res);
 }
 
 FloatingPoint FloatingPoint::predecessor(const FloatingPoint& fp)
 {
   Assert(!fp.isNaN() && !fp.isInfinite());
   const FloatingPointSize& size = fp.getSize();
-  BitVector packed = fp.pack();
-  uint32_t psize = packed.getSize();
-  const Integer& val = packed.getValue();
-  // The value of the sign bit in the packed representation, 2^(psize - 1).
-  Integer signBitValue = Integer(1).multiplyByPow2(psize - 1);
-  if (val == 0 || val == signBitValue)
+  if (fp.isZero())
   {
-    // +zero or -zero: the predecessor of the zero class is the smallest
-    // negative subnormal
+    // the predecessor of the zero class is the negative subnormal closest to
+    // zero
     return FloatingPoint::makeMinSubnormal(size, true);
   }
-  if (val < signBitValue)
-  {
-    // positive: decrement the magnitude (may reach +zero, real value 0)
-    return FloatingPoint(size, BitVector(psize, val - 1));
-  }
-  // The packed encoding of the absolute value; for negative values the
-  // encoding order is reversed relative to the value order, so the
-  // predecessor has the next larger magnitude (may reach -infinity).
-  Integer magnitude = val - signBitValue;
-  return FloatingPoint(size, BitVector(psize, signBitValue + (magnitude + 1)));
+  BitVector packed = fp.pack();
+  BitVector one = BitVector::mkOne(packed.getSize());
+  // positive: decrement the magnitude (may reach +zero)
+  // negative: the encoding order is reversed relative to the value order, thus
+  // the predecessor has the next larger magnitude (may reach -infinity)
+  return FloatingPoint(size, fp.getSign() ? packed + one : packed - one);
 }
 
 FloatingPoint::FloatingPoint(uint32_t d_exp_size,
