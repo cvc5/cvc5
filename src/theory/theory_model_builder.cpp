@@ -13,6 +13,7 @@
 
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
+#include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "expr/sort_to_term.h"
 #include "expr/sort_type_size.h"
@@ -1127,6 +1128,11 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
 
   Trace("model-builder") << "Copy representatives to model..." << std::endl;
   tm->d_reps.clear();
+  // Equivalence classes whose model value is a lambda whose body still
+  // contains symbols after the normalization below. These are assigned after
+  // this loop (see assignLambdaRepresentative), since their value may depend
+  // on the value of a function symbol, which is computed on demand.
+  std::map<Node, Node> lambdaReps;
   std::map<Node, Node>::iterator itMap;
   for (itMap = d_constantReps.begin(); itMap != d_constantReps.end(); ++itMap)
   {
@@ -1138,6 +1144,15 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
     if (!normc.isConst())
     {
       normc = normalize(tm, normc, true);
+    }
+    if (normc.getKind() == Kind::LAMBDA && hasSymbol(normc))
+    {
+      // The body of the lambda refers to symbols whose model value we do not
+      // have yet, process it below.
+      Trace("model-builder") << "  Defer lambda value " << normc << " for "
+                             << itMap->first << std::endl;
+      lambdaReps[itMap->first] = normc;
+      continue;
     }
     // mark this as the final representative
     tm->assignRepresentative(itMap->first, normc, true);
@@ -1156,6 +1171,22 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
     {
       tm->assignRepresentative(node, node, false);
     }
+  }
+
+  if (!lambdaReps.empty())
+  {
+    Trace("model-builder") << "Assign lambda representatives..." << std::endl;
+    // All other representatives are now available, hence we can evaluate the
+    // bodies of the lambdas we deferred above.
+    std::unordered_set<Node> processing;
+    for (const std::pair<const Node, Node>& lr : lambdaReps)
+    {
+      assignLambdaRepresentative(tm, lr.first, lambdaReps, processing);
+    }
+    // Values may have been cached above for terms whose value depends on an
+    // equivalence class that was not assigned yet at that point, hence we
+    // clear the cache.
+    tm->d_modelCache.clear();
   }
 
   // modelBuilder-specific initialization
@@ -1241,6 +1272,64 @@ void TheoryEngineModelBuilder::debugCheckModel(TheoryModel* tm)
 
   // builder-specific debugging
   debugModel(tm);
+}
+
+bool TheoryEngineModelBuilder::hasSymbol(TNode n)
+{
+  std::unordered_set<Node> syms;
+  expr::getSymbols(n, syms);
+  return !syms.empty();
+}
+
+void TheoryEngineModelBuilder::assignLambdaRepresentative(
+    TheoryModel* tm,
+    const Node& eqc,
+    const std::map<Node, Node>& lambdaReps,
+    std::unordered_set<Node>& processing)
+{
+  if (tm->d_reps.find(eqc) != tm->d_reps.end())
+  {
+    // already assigned
+    return;
+  }
+  std::map<Node, Node>::const_iterator itl = lambdaReps.find(eqc);
+  Assert(itl != lambdaReps.end());
+  Node lam = itl->second;
+  if (processing.insert(eqc).second)
+  {
+    // Ensure that the equivalence classes that the body of this lambda refers
+    // to are assigned first, so that the lambda is fully evaluated below.
+    // Note that if there is a cyclic dependency between lambdas, we do not
+    // recurse here, and the value of this equivalence class may be an
+    // arbitrary function value.
+    std::unordered_set<Node> syms;
+    expr::getSymbols(lam, syms);
+    for (const Node& s : syms)
+    {
+      if (!tm->d_equalityEngine->hasTerm(s))
+      {
+        continue;
+      }
+      Node sr = tm->d_equalityEngine->getRepresentative(s);
+      if (lambdaReps.find(sr) != lambdaReps.end())
+      {
+        assignLambdaRepresentative(tm, sr, lambdaReps, processing);
+      }
+    }
+    // The equivalence class may have been assigned while processing its
+    // dependencies above, in which case we are done.
+    if (tm->d_reps.find(eqc) != tm->d_reps.end())
+    {
+      return;
+    }
+  }
+  // Compute the value of the lambda, which evaluates the symbols in its body
+  // based on their model values. Note that the model values of function
+  // symbols are computed on demand here.
+  Node v = tm->getValue(lam);
+  Trace("model-builder") << "  Normalized lambda value " << lam << " to " << v
+                         << std::endl;
+  tm->assignRepresentative(eqc, v, true);
 }
 
 Node TheoryEngineModelBuilder::normalize(TheoryModel* m, TNode r, bool evalOnly)
