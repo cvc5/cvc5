@@ -429,7 +429,7 @@ bool TheoryFp::refineAbstraction(TheoryModel* m, TNode abstract, TNode concrete)
       // rounding mode, to_fp(rm, x) >=_fp c holds iff x is (strictly) above
       // the exact real lower boundary of c's rounding cell, and dually
       // to_fp(rm, x) <=_fp c holds iff x is (strictly) below the lower
-      // boundary of the cell of c's successor. Unlike equivalences anchored
+      // boundary of the cell of nextUp(c). Unlike equivalences anchored
       // at the model value of x (cf. the comment above), these are sound,
       // and they exclude the whole spurious rounding cell in one step, which
       // is required for the refinement loop to converge (the model value of
@@ -455,7 +455,7 @@ bool TheoryFp::refineAbstraction(TheoryModel* m, TNode abstract, TNode concrete)
                                      nm->mkConstReal(lb))}));
           sent = handleLemma(lower, InferenceId::FP_PREPROCESS) || sent;
         }
-        FloatingPoint s = FloatingPoint::successor(c);
+        FloatingPoint s = FloatingPoint::nextUp(c);
         Rational ub;
         bool sstrict;
         if (!s.isInfinite()

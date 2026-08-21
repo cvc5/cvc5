@@ -15,7 +15,6 @@
 
 #include "util/floatingpoint.h"
 
-#include "base/check.h"
 #include "util/floatingpoint_literal.h"
 #include "util/integer.h"
 
@@ -35,46 +34,56 @@ uint32_t FloatingPoint::getUnpackedSignificandWidth(FloatingPointSize& size)
   return FloatingPointLiteral::getUnpackedSignificandWidth(size);
 }
 
-FloatingPoint FloatingPoint::successor(const FloatingPoint& fp)
+FloatingPoint FloatingPoint::nextUp(const FloatingPoint& fp)
 {
-  Assert(!fp.isNaN() && !fp.isInfinite());
   const FloatingPointSize& size = fp.getSize();
+  if (fp.isNaN())
+  {
+    return FloatingPoint::makeNaN(size);
+  }
+  if (fp.isInfinite())
+  {
+    // +oo has no value above it, the value above -oo is -maxNormal
+    return fp.getSign() ? FloatingPoint::makeMaxNormal(size, true)
+                        : FloatingPoint::makeInf(size, false);
+  }
   if (fp.isZero())
   {
-    // the successor of the zero class is the smallest positive subnormal
     return FloatingPoint::makeMinSubnormal(size, false);
   }
   BitVector packed = fp.pack();
   BitVector one = BitVector::mkOne(packed.getSize());
-  if (!fp.getSign())
-  {
-    // positive: increment the magnitude (may reach +infinity)
-    return FloatingPoint(size, packed + one);
-  }
-  // For negative values the packed encoding order is reversed relative to the
-  // value order, thus the successor has the next smaller magnitude.
-  BitVector res = packed - one;
-  // The successor of -minSubnormal is the zero class, normalize to +zero.
-  return res == BitVector::mkMinSigned(res.getSize())
-             ? FloatingPoint::makeZero(size, false)
-             : FloatingPoint(size, res);
+  // The packed encoding of the positive values is ordered like the values
+  // they denote, thus incrementing it yields the next larger value (for
+  // +maxNormal, +oo). For the negative values the encoding order is reversed
+  // relative to the value order, thus decrementing it yields the next larger
+  // value (for -minSubnormal, -0).
+  return FloatingPoint(size, fp.getSign() ? packed - one : packed + one);
 }
 
-FloatingPoint FloatingPoint::predecessor(const FloatingPoint& fp)
+FloatingPoint FloatingPoint::nextDown(const FloatingPoint& fp)
 {
-  Assert(!fp.isNaN() && !fp.isInfinite());
   const FloatingPointSize& size = fp.getSize();
+  if (fp.isNaN())
+  {
+    return FloatingPoint::makeNaN(size);
+  }
+  if (fp.isInfinite())
+  {
+    // -oo has no value below it, the value below +oo is +maxNormal
+    return fp.getSign() ? FloatingPoint::makeInf(size, true)
+                        : FloatingPoint::makeMaxNormal(size, false);
+  }
   if (fp.isZero())
   {
-    // the predecessor of the zero class is the negative subnormal closest to
-    // zero
     return FloatingPoint::makeMinSubnormal(size, true);
   }
   BitVector packed = fp.pack();
   BitVector one = BitVector::mkOne(packed.getSize());
-  // positive: decrement the magnitude (may reach +zero)
-  // negative: the encoding order is reversed relative to the value order, thus
-  // the predecessor has the next larger magnitude (may reach -infinity)
+  // The dual of nextUp(): decrementing the encoding of a positive value
+  // yields the next smaller value (for +minSubnormal, +0), incrementing the
+  // encoding of a negative value yields the next smaller value (for
+  // -maxNormal, -oo).
   return FloatingPoint(size, fp.getSign() ? packed + one : packed - one);
 }
 

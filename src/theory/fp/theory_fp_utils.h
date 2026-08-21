@@ -50,7 +50,7 @@ void checkForExperimentalFloatingPointType(const Node& n);
  * @param t0 The resulting threshold.
  * @param strict True if the resulting lower bound is strict.
  * @return True if the threshold is computable, i.e., c is neither NaN nor
- *         infinite and its predecessor is not -infinity.
+ *         infinite and nextDown(c) is not -infinity.
  */
 bool roundingCellLowerBound(const FloatingPoint& c,
                             RoundingMode rm,

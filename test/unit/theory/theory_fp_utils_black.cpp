@@ -97,7 +97,7 @@ TEST_F(TestTheoryBlackFpUtils, roundingCellLowerBoundUndefined)
           FloatingPoint::makeInf(size, false), rm, t0, strict));
       ASSERT_FALSE(utils::roundingCellLowerBound(
           FloatingPoint::makeInf(size, true), rm, t0, strict));
-      // the predecessor of -maxNormal is -oo, so its cell has no finite
+      // nextDown(-maxNormal) is -oo, so its cell has no finite
       // lower boundary
       ASSERT_FALSE(utils::roundingCellLowerBound(
           FloatingPoint::makeMaxNormal(size, true), rm, t0, strict));
@@ -107,8 +107,8 @@ TEST_F(TestTheoryBlackFpUtils, roundingCellLowerBoundUndefined)
 
 TEST_F(TestTheoryBlackFpUtils, roundingCellLowerBoundKnownValues)
 {
-  // Hand-computed boundaries for c = 1.0 in Float16 (5, 11). The
-  // predecessor of 1.0 is 1 - 2^-11 = 2047/2048, so the midpoint towards
+  // Hand-computed boundaries for c = 1.0 in Float16 (5, 11). The value
+  // below 1.0 is 1 - 2^-11 = 2047/2048, so the midpoint towards
   // 1.0 is 4095/4096. The significand of 1.0 is even (all stored bits 0).
   FloatingPointSize f16(5, 11);
   FloatingPoint one(f16, RoundingMode::ROUND_NEAREST_TIES_TO_EVEN, Rational(1));
@@ -143,7 +143,7 @@ TEST_F(TestTheoryBlackFpUtils, roundingCellLowerBoundKnownValues)
   ASSERT_EQ(t0, Rational(4095, 4096));
   ASSERT_FALSE(strict);
 
-  // For c = -1.0, the predecessor is -(1 + 2^-10) = -1025/1024 and the
+  // For c = -1.0, the value below is -(1 + 2^-10) = -1025/1024 and the
   // midpoint towards -1.0 is -2049/2048.
   FloatingPoint mone(
       f16, RoundingMode::ROUND_NEAREST_TIES_TO_EVEN, Rational(-1));
@@ -198,12 +198,12 @@ TEST_F(TestTheoryBlackFpUtils, roundingCellLowerBoundContract)
         if (!utils::roundingCellLowerBound(c, rm, t0, strict))
         {
           ASSERT_TRUE(c.isNaN() || c.isInfinite()
-                      || FloatingPoint::predecessor(c).isInfinite());
+                      || FloatingPoint::nextDown(c).isInfinite());
           continue;
         }
         Rational rc = c.convertToRationalTotal(Rational(0));
         Rational rp =
-            FloatingPoint::predecessor(c).convertToRationalTotal(Rational(0));
+            FloatingPoint::nextDown(c).convertToRationalTotal(Rational(0));
         Rational quarter = (rc - rp) / 4;
         for (const Rational& x : {t0,
                                   t0 - quarter,
