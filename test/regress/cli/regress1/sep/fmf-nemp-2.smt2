@@ -1,6 +1,5 @@
 ; COMMAND-LINE: --finite-model-find
 ; EXPECT: sat
-; DISABLE-TESTER: model
 (set-logic ALL)
 (declare-sort U 0)
 (declare-heap (U Int))
