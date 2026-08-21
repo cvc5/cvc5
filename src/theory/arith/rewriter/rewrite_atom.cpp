@@ -337,9 +337,12 @@ Node buildIntegerEquality(NodeManager* nm,
   Assert(rhs.getType().isInteger());
   if (isReal)
   {
+    // Use lhsr and rhsr to ensure deterministic node ID assignments
+    Node lhsr = ensureReal(left);
+    Node rhsr = ensureReal(rhs);
     // The equality we are rewriting was between real terms. We must not
     // change the type of the equality, hence we cast both sides back to real.
-    return buildRelation(Kind::EQUAL, ensureReal(left), ensureReal(rhs));
+    return buildRelation(Kind::EQUAL, lhsr, rhsr);
   }
   return buildRelation(Kind::EQUAL, left, rhs);
 }
