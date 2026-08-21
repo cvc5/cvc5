@@ -10,6 +10,8 @@
  * Black box testing of the FP theory utility functions.
  */
 
+#include <tuple>
+
 #include "test.h"
 #include "theory/fp/theory_fp_utils.h"
 #include "util/bitvector.h"
@@ -82,28 +84,28 @@ class TestTheoryBlackFpUtils : public TestInternal
 
 /* -------------------------------------------------------------------------- */
 
-TEST_F(TestTheoryBlackFpUtils, roundingCellLowerBoundUndefined)
+#ifdef CVC5_ASSERTIONS
+TEST_F(TestTheoryBlackFpUtils, roundingCellLowerBoundPreconditions)
 {
-  Rational t0;
-  bool strict;
-  for (const auto& size : d_all_formats)
-  {
-    for (RoundingMode rm : d_all_rms)
-    {
-      // no rounding cell for NaN and the infinities
-      ASSERT_FALSE(utils::roundingCellLowerBound(
-          FloatingPoint::makeNaN(size), rm, t0, strict));
-      ASSERT_FALSE(utils::roundingCellLowerBound(
-          FloatingPoint::makeInf(size, false), rm, t0, strict));
-      ASSERT_FALSE(utils::roundingCellLowerBound(
-          FloatingPoint::makeInf(size, true), rm, t0, strict));
-      // nextDown(-maxNormal) is -oo, so its cell has no finite
-      // lower boundary
-      ASSERT_FALSE(utils::roundingCellLowerBound(
-          FloatingPoint::makeMaxNormal(size, true), rm, t0, strict));
-    }
-  }
+  // the preconditions do not depend on the format, one is enough here (death
+  // tests fork the process and are expensive)
+  FloatingPointSize size(5, 11);
+  RoundingMode rm = RoundingMode::ROUND_NEAREST_TIES_TO_EVEN;
+  // no rounding cell for NaN and the infinities
+  ASSERT_DEATH(utils::roundingCellLowerBound(FloatingPoint::makeNaN(size), rm),
+               "!c.isNaN\\(\\) && !c.isInfinite\\(\\)");
+  ASSERT_DEATH(
+      utils::roundingCellLowerBound(FloatingPoint::makeInf(size, false), rm),
+      "!c.isNaN\\(\\) && !c.isInfinite\\(\\)");
+  ASSERT_DEATH(
+      utils::roundingCellLowerBound(FloatingPoint::makeInf(size, true), rm),
+      "!c.isNaN\\(\\) && !c.isInfinite\\(\\)");
+  // nextDown(-maxNormal) is -oo, so its cell has no finite lower boundary
+  ASSERT_DEATH(utils::roundingCellLowerBound(
+                   FloatingPoint::makeMaxNormal(size, true), rm),
+               "!p.isInfinite\\(\\)");
 }
+#endif
 
 TEST_F(TestTheoryBlackFpUtils, roundingCellLowerBoundKnownValues)
 {
@@ -115,31 +117,31 @@ TEST_F(TestTheoryBlackFpUtils, roundingCellLowerBoundKnownValues)
   Rational t0;
   bool strict;
 
-  ASSERT_TRUE(utils::roundingCellLowerBound(
-      one, RoundingMode::ROUND_TOWARD_POSITIVE, t0, strict));
+  std::tie(t0, strict) =
+      utils::roundingCellLowerBound(one, RoundingMode::ROUND_TOWARD_POSITIVE);
   ASSERT_EQ(t0, Rational(2047, 2048));
   ASSERT_TRUE(strict);
 
-  ASSERT_TRUE(utils::roundingCellLowerBound(
-      one, RoundingMode::ROUND_TOWARD_NEGATIVE, t0, strict));
+  std::tie(t0, strict) =
+      utils::roundingCellLowerBound(one, RoundingMode::ROUND_TOWARD_NEGATIVE);
   ASSERT_EQ(t0, Rational(1));
   ASSERT_FALSE(strict);
 
   // positive values round towards zero as for ROUND_TOWARD_NEGATIVE
-  ASSERT_TRUE(utils::roundingCellLowerBound(
-      one, RoundingMode::ROUND_TOWARD_ZERO, t0, strict));
+  std::tie(t0, strict) =
+      utils::roundingCellLowerBound(one, RoundingMode::ROUND_TOWARD_ZERO);
   ASSERT_EQ(t0, Rational(1));
   ASSERT_FALSE(strict);
 
   // the tie rounds to 1.0 (even), so the boundary is inclusive
-  ASSERT_TRUE(utils::roundingCellLowerBound(
-      one, RoundingMode::ROUND_NEAREST_TIES_TO_EVEN, t0, strict));
+  std::tie(t0, strict) = utils::roundingCellLowerBound(
+      one, RoundingMode::ROUND_NEAREST_TIES_TO_EVEN);
   ASSERT_EQ(t0, Rational(4095, 4096));
   ASSERT_FALSE(strict);
 
   // the positive tie rounds away from zero, i.e., up to 1.0
-  ASSERT_TRUE(utils::roundingCellLowerBound(
-      one, RoundingMode::ROUND_NEAREST_TIES_TO_AWAY, t0, strict));
+  std::tie(t0, strict) = utils::roundingCellLowerBound(
+      one, RoundingMode::ROUND_NEAREST_TIES_TO_AWAY);
   ASSERT_EQ(t0, Rational(4095, 4096));
   ASSERT_FALSE(strict);
 
@@ -148,32 +150,32 @@ TEST_F(TestTheoryBlackFpUtils, roundingCellLowerBoundKnownValues)
   FloatingPoint mone(
       f16, RoundingMode::ROUND_NEAREST_TIES_TO_EVEN, Rational(-1));
 
-  ASSERT_TRUE(utils::roundingCellLowerBound(
-      mone, RoundingMode::ROUND_TOWARD_POSITIVE, t0, strict));
+  std::tie(t0, strict) =
+      utils::roundingCellLowerBound(mone, RoundingMode::ROUND_TOWARD_POSITIVE);
   ASSERT_EQ(t0, Rational(-1025, 1024));
   ASSERT_TRUE(strict);
 
-  ASSERT_TRUE(utils::roundingCellLowerBound(
-      mone, RoundingMode::ROUND_TOWARD_NEGATIVE, t0, strict));
+  std::tie(t0, strict) =
+      utils::roundingCellLowerBound(mone, RoundingMode::ROUND_TOWARD_NEGATIVE);
   ASSERT_EQ(t0, Rational(-1));
   ASSERT_FALSE(strict);
 
   // negative values round towards zero as for ROUND_TOWARD_POSITIVE
-  ASSERT_TRUE(utils::roundingCellLowerBound(
-      mone, RoundingMode::ROUND_TOWARD_ZERO, t0, strict));
+  std::tie(t0, strict) =
+      utils::roundingCellLowerBound(mone, RoundingMode::ROUND_TOWARD_ZERO);
   ASSERT_EQ(t0, Rational(-1025, 1024));
   ASSERT_TRUE(strict);
 
   // the tie rounds to -1.0 (even), so the boundary is inclusive
-  ASSERT_TRUE(utils::roundingCellLowerBound(
-      mone, RoundingMode::ROUND_NEAREST_TIES_TO_EVEN, t0, strict));
+  std::tie(t0, strict) = utils::roundingCellLowerBound(
+      mone, RoundingMode::ROUND_NEAREST_TIES_TO_EVEN);
   ASSERT_EQ(t0, Rational(-2049, 2048));
   ASSERT_FALSE(strict);
 
   // the negative tie rounds away from zero, i.e., down to -1025/1024, so
   // the boundary of -1.0's cell is exclusive
-  ASSERT_TRUE(utils::roundingCellLowerBound(
-      mone, RoundingMode::ROUND_NEAREST_TIES_TO_AWAY, t0, strict));
+  std::tie(t0, strict) = utils::roundingCellLowerBound(
+      mone, RoundingMode::ROUND_NEAREST_TIES_TO_AWAY);
   ASSERT_EQ(t0, Rational(-2049, 2048));
   ASSERT_TRUE(strict);
 }
@@ -185,22 +187,21 @@ TEST_F(TestTheoryBlackFpUtils, roundingCellLowerBoundContract)
   // against the exact from-rational conversion, at sample points around the
   // boundary, at the cell's own values, and far away on both sides. The
   // equivalence is global, so any sample point must agree.
-  Rational t0;
-  bool strict;
   for (const auto& size : d_all_formats)
   {
     uint32_t bvSize = size.exponentWidth() + size.significandWidth();
     for (uint32_t i = 0; i < N_TESTS; ++i)
     {
       FloatingPoint c(size, BitVector::mkRandom(bvSize));
+      // the preconditions of roundingCellLowerBound
+      if (c.isNaN() || c.isInfinite()
+          || FloatingPoint::nextDown(c).isInfinite())
+      {
+        continue;
+      }
       for (RoundingMode rm : d_all_rms)
       {
-        if (!utils::roundingCellLowerBound(c, rm, t0, strict))
-        {
-          ASSERT_TRUE(c.isNaN() || c.isInfinite()
-                      || FloatingPoint::nextDown(c).isInfinite());
-          continue;
-        }
+        auto [t0, strict] = utils::roundingCellLowerBound(c, rm);
         Rational rc = c.convertToRationalTotal(Rational(0));
         Rational rp =
             FloatingPoint::nextDown(c).convertToRationalTotal(Rational(0));

@@ -441,10 +441,11 @@ bool TheoryFp::refineAbstraction(TheoryModel* m, TNode abstract, TNode concrete)
           return;
         }
         Node cn = nm->mkConst(c);
-        Rational lb;
-        bool lstrict;
-        if (utils::roundingCellLowerBound(c, rm, lb, lstrict))
+        // the cell of c has a finite lower boundary unless c is the smallest
+        // finite value of its format
+        if (!FloatingPoint::nextDown(c).isInfinite())
         {
+          auto [lb, lstrict] = utils::roundingCellLowerBound(c, rm);
           Node lower = nm->mkNode(
               Kind::IMPLIES,
               correctRoundingMode,
@@ -456,12 +457,12 @@ bool TheoryFp::refineAbstraction(TheoryModel* m, TNode abstract, TNode concrete)
           sent = handleLemma(lower, InferenceId::FP_PREPROCESS) || sent;
         }
         FloatingPoint s = FloatingPoint::nextUp(c);
-        Rational ub;
-        bool sstrict;
-        if (!s.isInfinite()
-            && utils::roundingCellLowerBound(s, rm, ub, sstrict))
+        if (!s.isInfinite())
         {
-          // F <=_fp c  iff  not (F >=_fp succ(c))  for non-NaN F
+          // nextDown(s) is c (up to the sign of zero) and thus finite, hence
+          // s being finite is all the preconditions require here
+          auto [ub, sstrict] = utils::roundingCellLowerBound(s, rm);
+          // F <=_fp c  iff  not (F >=_fp s)  for non-NaN F
           Node upper = nm->mkNode(
               Kind::IMPLIES,
               correctRoundingMode,

@@ -61,64 +61,39 @@ void checkForExperimentalFloatingPointType(const Node& n)
   }
 }
 
-bool roundingCellLowerBound(const FloatingPoint& c,
-                            RoundingMode rm,
-                            Rational& t0,
-                            bool& strict)
+std::pair<Rational, bool> roundingCellLowerBound(const FloatingPoint& c,
+                                                 RoundingMode rm)
 {
-  if (c.isNaN() || c.isInfinite())
-  {
-    return false;
-  }
+  Assert(!c.isNaN() && !c.isInfinite());
   FloatingPoint p = FloatingPoint::nextDown(c);
-  if (p.isInfinite())
-  {
-    return false;
-  }
+  Assert(!p.isInfinite());
   Rational rc = c.convertToRationalTotal(Rational(0));
   Rational rp = p.convertToRationalTotal(Rational(0));
   switch (rm)
   {
     case RoundingMode::ROUND_TOWARD_POSITIVE:
       // x in (real(p), real(c)] rounds up to c
-      t0 = rp;
-      strict = true;
-      return true;
+      return {rp, true};
     case RoundingMode::ROUND_TOWARD_NEGATIVE:
-      // x in [real(c), real(succ(c))) rounds down to c
-      t0 = rc;
-      strict = false;
-      return true;
+      // x in [real(c), real(nextUp(c))) rounds down to c
+      return {rc, false};
     case RoundingMode::ROUND_TOWARD_ZERO:
-      if (rc > 0)
-      {
-        // positive: rounds down, as for ROUND_TOWARD_NEGATIVE
-        t0 = rc;
-        strict = false;
-      }
-      else
-      {
-        // negative and zero: rounds up, as for ROUND_TOWARD_POSITIVE
-        t0 = rp;
-        strict = true;
-      }
-      return true;
+      // positive: rounds down, as for ROUND_TOWARD_NEGATIVE
+      // negative and zero: rounds up, as for ROUND_TOWARD_POSITIVE
+      return rc > 0 ? std::make_pair(rc, false) : std::make_pair(rp, true);
     case RoundingMode::ROUND_NEAREST_TIES_TO_EVEN:
-    {
-      // the tie (midpoint) rounds to the neighbor with even significand;
-      // the significand lsbs of adjacent packed values alternate
-      t0 = (rp + rc) / 2;
-      bool cEven = !c.pack().getValue().testBit(0);
-      strict = !cEven;
-      return true;
-    }
+      // the tie (midpoint) rounds to the neighbor with even significand; the
+      // significand lsbs of adjacent packed values alternate, thus the
+      // boundary is strict iff the significand of c is odd
+      return {(rp + rc) / 2, c.pack().getValue().testBit(0)};
     case RoundingMode::ROUND_NEAREST_TIES_TO_AWAY:
+    {
       // the tie rounds away from zero: to c if the midpoint is positive,
       // to p if it is negative
-      t0 = (rp + rc) / 2;
-      strict = t0 < 0;
-      return true;
-    default: Unreachable() << "Unknown rounding mode"; return false;
+      Rational t0 = (rp + rc) / 2;
+      return {t0, t0 < 0};
+    }
+    default: Unreachable() << "Unknown rounding mode";
   }
 }
 

@@ -15,6 +15,8 @@
 #ifndef CVC5__THEORY__FP__UTILS_H
 #define CVC5__THEORY__FP__UTILS_H
 
+#include <utility>
+
 #include "expr/type_node.h"
 #include "util/floatingpoint.h"
 #include "util/integer.h"
@@ -45,17 +47,17 @@ void checkForExperimentalFloatingPointType(const Node& n);
  * floating-point value c under rounding mode rm: the rational threshold t0
  * such that for all reals x,
  *   to_fp(rm, x) >=_fp c  iff  (strict ? x > t0 : x >= t0).
+ *
+ * Requires that c is neither NaN nor infinite, and that the cell of c has a
+ * finite lower boundary, i.e., that nextDown(c) is not -infinity.
+ *
  * @param c The floating-point value whose rounding cell is considered.
  * @param rm The rounding mode.
- * @param t0 The resulting threshold.
- * @param strict True if the resulting lower bound is strict.
- * @return True if the threshold is computable, i.e., c is neither NaN nor
- *         infinite and nextDown(c) is not -infinity.
+ * @return The threshold t0 and a flag that is true if the lower bound is
+ *         strict.
  */
-bool roundingCellLowerBound(const FloatingPoint& c,
-                            RoundingMode rm,
-                            Rational& t0,
-                            bool& strict);
+std::pair<Rational, bool> roundingCellLowerBound(const FloatingPoint& c,
+                                                 RoundingMode rm);
 
 }  // namespace utils
 }  // namespace fp
