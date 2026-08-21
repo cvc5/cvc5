@@ -98,6 +98,21 @@ public class Solver extends AbstractPointer
   }
 
   /**
+   * Return a hash code value for this solver.
+   *
+   * The hash code is derived from the underlying native pointer, which is what
+   * {@link #equals(Object)} compares, so that instances that are equal have the
+   * same hash code.
+   *
+   * @return a hash code value for this solver
+   */
+  @Override
+  public int hashCode()
+  {
+    return Long.hashCode(pointer);
+  }
+
+  /**
    * Get the associated term manager instance
    * @return The term manager.
    */
