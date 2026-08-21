@@ -70,7 +70,7 @@ bool roundingCellLowerBound(const FloatingPoint& c,
   {
     return false;
   }
-  FloatingPoint p = FloatingPoint::predecessor(c);
+  FloatingPoint p = FloatingPoint::nextDown(c);
   if (p.isInfinite())
   {
     return false;

@@ -57,44 +57,52 @@ class FloatingPoint
   static uint32_t getUnpackedSignificandWidth(FloatingPointSize& size);
 
   /**
-   * The successor of a floating-point value in the floating-point value
-   * order.
+   * The nextUp operation as defined in IEEE 754-2019, Section 5.3.1: the
+   * least floating-point value of the same format that compares greater
+   * than fp.
    *
-   * The floating-point value order is the total order on the non-NaN values
-   * of a format that orders them by the extended real values they denote:
+   * The underlying order is the total order on the non-NaN values of a
+   * format that orders them by the extended real values they denote:
    *
    *   -oo < -maxNormal < ... < -minSubnormal < 0 < +minSubnormal < ...
    *       < +maxNormal < +oo
    *
-   * Since -0 and +0 both denote the real value 0, they are treated as a
-   * single value in this order (the zero class). This is the order
-   * underlying fp.leq and fp.geq, which treat -0 and +0 as equal; it is not
-   * the order of the packed encodings, which is reversed on the negative
-   * values.
+   * Since -0 and +0 both denote the real value 0, they compare equal in this
+   * order (the zero class). This is the order underlying fp.leq and fp.geq;
+   * it is not the order of the packed encodings, which is reversed on the
+   * negative values.
    *
-   * The successor of fp is its immediate neighbor above in this order: no
-   * value of the same format lies strictly between fp and its successor.
-   * If the successor is the zero class, it is returned as +0. The successor
-   * of +maxNormal is +oo.
+   * Special cases:
+   *   nextUp(+-0)           = +minSubnormal
+   *   nextUp(-minSubnormal) = -0
+   *   nextUp(+maxNormal)    = +oo
+   *   nextUp(+oo)           = +oo
+   *   nextUp(-oo)           = -maxNormal
+   *   nextUp(NaN)           = NaN
    *
-   * @param fp The value to take the successor of; must be finite (neither
-   *           NaN nor infinity).
-   * @return The next floating-point value strictly above fp.
+   * @param fp The value to compute nextUp for.
+   * @return The least value of the same format that compares greater than fp.
    */
-  static FloatingPoint successor(const FloatingPoint& fp);
+  static FloatingPoint nextUp(const FloatingPoint& fp);
 
   /**
-   * The predecessor of a floating-point value in the floating-point value
-   * order, i.e., the dual of successor() (see there for the definition of
-   * the order): the immediate neighbor below fp, with -0 and +0 treated as
-   * the single zero class. If the predecessor is the zero class, it is
-   * returned as +0. The predecessor of -maxNormal is -oo.
+   * The nextDown operation as defined in IEEE 754-2019, Section 5.3.1: the
+   * greatest floating-point value of the same format that compares less than
+   * fp. This is the dual of nextUp(), i.e., nextDown(fp) = -nextUp(-fp) (see
+   * nextUp() for the definition of the order).
    *
-   * @param fp The value to take the predecessor of; must be finite (neither
-   *           NaN nor infinity).
-   * @return The next floating-point value strictly below fp.
+   * Special cases:
+   *   nextDown(+-0)           = -minSubnormal
+   *   nextDown(+minSubnormal) = +0
+   *   nextDown(-maxNormal)    = -oo
+   *   nextDown(-oo)           = -oo
+   *   nextDown(+oo)           = +maxNormal
+   *   nextDown(NaN)           = NaN
+   *
+   * @param fp The value to compute nextDown for.
+   * @return The greatest value of the same format that compares less than fp.
    */
-  static FloatingPoint predecessor(const FloatingPoint& fp);
+  static FloatingPoint nextDown(const FloatingPoint& fp);
 
   /** Constructors. */
 

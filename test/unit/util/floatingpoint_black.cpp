@@ -125,13 +125,14 @@ class TestUtilBlackFloatingPoint : public TestInternal
   }
 
   /**
-   * Check the successor/predecessor round trips for the value with packed
-   * representation bv: predecessor(successor(fp)) and
-   * successor(predecessor(fp)) are fp again (with the zero class represented
-   * by +0), unless the first step reaches an infinity. Does nothing for NaN
-   * and the infinities.
+   * Check the nextUp/nextDown round trips for the value with packed
+   * representation bv: nextDown(nextUp(fp)) and nextUp(nextDown(fp)) are fp
+   * again (up to the sign of zero, since the two zeros compare equal),
+   * unless the first step reaches an infinity. Does nothing for NaN and the
+   * infinities.
    */
-  void checkSuccPredRoundTrip(const FloatingPointSize& fmt, const BitVector& bv)
+  void checkNextUpDownRoundTrip(const FloatingPointSize& fmt,
+                                const BitVector& bv)
   {
     FloatingPoint fp(fmt, bv);
     if (fp.isNaN() || fp.isInfinite())
@@ -139,15 +140,15 @@ class TestUtilBlackFloatingPoint : public TestInternal
       return;
     }
 
-    FloatingPoint succ = FloatingPoint::successor(fp);
-    ASSERT_FALSE(succ.isNaN());
-    if (succ.isInfinite())
+    FloatingPoint up = FloatingPoint::nextUp(fp);
+    ASSERT_FALSE(up.isNaN());
+    if (up.isInfinite())
     {
-      ASSERT_TRUE(succ.isPositive());
+      ASSERT_TRUE(up.isPositive());
     }
     else
     {
-      FloatingPoint back = FloatingPoint::predecessor(succ);
+      FloatingPoint back = FloatingPoint::nextDown(up);
       if (fp.isZero())
       {
         ASSERT_TRUE(back.isZero());
@@ -158,15 +159,15 @@ class TestUtilBlackFloatingPoint : public TestInternal
       }
     }
 
-    FloatingPoint pred = FloatingPoint::predecessor(fp);
-    ASSERT_FALSE(pred.isNaN());
-    if (pred.isInfinite())
+    FloatingPoint down = FloatingPoint::nextDown(fp);
+    ASSERT_FALSE(down.isNaN());
+    if (down.isInfinite())
     {
-      ASSERT_TRUE(pred.isNegative());
+      ASSERT_TRUE(down.isNegative());
     }
     else
     {
-      FloatingPoint back = FloatingPoint::successor(pred);
+      FloatingPoint back = FloatingPoint::nextUp(down);
       if (fp.isZero())
       {
         ASSERT_TRUE(back.isZero());
@@ -273,10 +274,13 @@ TEST_F(TestUtilBlackFloatingPoint, fromSbv1)
   }
 }
 
-TEST_F(TestUtilBlackFloatingPoint, successorPredecessorSpecial)
+TEST_F(TestUtilBlackFloatingPoint, nextUpNextDownSpecial)
 {
   for (const auto& size : d_all_formats)
   {
+    FloatingPoint nan = FloatingPoint::makeNaN(size);
+    FloatingPoint pinf = FloatingPoint::makeInf(size, false);
+    FloatingPoint ninf = FloatingPoint::makeInf(size, true);
     FloatingPoint pzero = FloatingPoint::makeZero(size, false);
     FloatingPoint nzero = FloatingPoint::makeZero(size, true);
     FloatingPoint minSub = FloatingPoint::makeMinSubnormal(size, false);
@@ -288,55 +292,62 @@ TEST_F(TestUtilBlackFloatingPoint, successorPredecessorSpecial)
     FloatingPoint maxNorm = FloatingPoint::makeMaxNormal(size, false);
     FloatingPoint nmaxNorm = FloatingPoint::makeMaxNormal(size, true);
 
-    // the successor of the zero class is the smallest positive subnormal,
-    // its predecessor the smallest negative subnormal
-    ASSERT_EQ(FloatingPoint::successor(pzero).pack(), minSub.pack());
-    ASSERT_EQ(FloatingPoint::successor(nzero).pack(), minSub.pack());
-    ASSERT_EQ(FloatingPoint::predecessor(pzero).pack(), nminSub.pack());
-    ASSERT_EQ(FloatingPoint::predecessor(nzero).pack(), nminSub.pack());
-    // when the result is the zero class, it is returned as +0
-    ASSERT_EQ(FloatingPoint::successor(nminSub).pack(), pzero.pack());
-    ASSERT_EQ(FloatingPoint::predecessor(minSub).pack(), pzero.pack());
+    // nextUp(NaN) and nextDown(NaN) are NaN
+    ASSERT_TRUE(FloatingPoint::nextUp(nan).isNaN());
+    ASSERT_TRUE(FloatingPoint::nextDown(nan).isNaN());
+    // the infinities are the extremes of the order, stepping away from them
+    // reaches the largest finite value of the respective sign
+    ASSERT_EQ(FloatingPoint::nextUp(pinf).pack(), pinf.pack());
+    ASSERT_EQ(FloatingPoint::nextUp(ninf).pack(), nmaxNorm.pack());
+    ASSERT_EQ(FloatingPoint::nextDown(ninf).pack(), ninf.pack());
+    ASSERT_EQ(FloatingPoint::nextDown(pinf).pack(), maxNorm.pack());
+    // nextUp of the zero class is the smallest positive subnormal, its
+    // nextDown the negative subnormal of smallest magnitude
+    ASSERT_EQ(FloatingPoint::nextUp(pzero).pack(), minSub.pack());
+    ASSERT_EQ(FloatingPoint::nextUp(nzero).pack(), minSub.pack());
+    ASSERT_EQ(FloatingPoint::nextDown(pzero).pack(), nminSub.pack());
+    ASSERT_EQ(FloatingPoint::nextDown(nzero).pack(), nminSub.pack());
+    // when the result is the zero class, its sign is the sign of the argument
+    ASSERT_EQ(FloatingPoint::nextUp(nminSub).pack(), nzero.pack());
+    ASSERT_EQ(FloatingPoint::nextDown(minSub).pack(), pzero.pack());
     // crossing the subnormal/normal boundary
-    ASSERT_EQ(FloatingPoint::successor(maxSub).pack(), minNorm.pack());
-    ASSERT_EQ(FloatingPoint::predecessor(minNorm).pack(), maxSub.pack());
-    ASSERT_EQ(FloatingPoint::successor(nminNorm).pack(), nmaxSub.pack());
-    ASSERT_EQ(FloatingPoint::predecessor(nmaxSub).pack(), nminNorm.pack());
+    ASSERT_EQ(FloatingPoint::nextUp(maxSub).pack(), minNorm.pack());
+    ASSERT_EQ(FloatingPoint::nextDown(minNorm).pack(), maxSub.pack());
+    ASSERT_EQ(FloatingPoint::nextUp(nminNorm).pack(), nmaxSub.pack());
+    ASSERT_EQ(FloatingPoint::nextDown(nmaxSub).pack(), nminNorm.pack());
     // stepping beyond the largest normals reaches the infinities
-    ASSERT_TRUE(FloatingPoint::successor(maxNorm).isInfinite());
-    ASSERT_TRUE(FloatingPoint::successor(maxNorm).isPositive());
-    ASSERT_TRUE(FloatingPoint::predecessor(nmaxNorm).isInfinite());
-    ASSERT_TRUE(FloatingPoint::predecessor(nmaxNorm).isNegative());
+    ASSERT_EQ(FloatingPoint::nextUp(maxNorm).pack(), pinf.pack());
+    ASSERT_EQ(FloatingPoint::nextDown(nmaxNorm).pack(), ninf.pack());
   }
 }
 
-TEST_F(TestUtilBlackFloatingPoint, successorPredecessorRoundTrip)
+TEST_F(TestUtilBlackFloatingPoint, nextUpNextDownRoundTrip)
 {
-  // Round trips through successor/predecessor. Exhaustive for Float16 if
+  // Round trips through nextUp/nextDown. Exhaustive for Float16 if
   // CVC5_SLOW_TESTS is enabled, else only a random subset is tested for
   // Float16 (as with the other formats). The exhaustive run additionally
-  // establishes adjacency in the value order: if successor skipped over a
+  // establishes adjacency in the value order: if nextUp skipped over a
   // value b, the round trip starting at b would not return to b.
   auto fun16 = [this](const BitVector& bvexp, const BitVector& bvsig) {
     for (bool sign : {false, true})
     {
       BitVector bvsign = sign ? BitVector::mkOne(1) : BitVector::mkZero(1);
-      checkSuccPredRoundTrip(d_fp16, bvsign.concat(bvexp).concat(bvsig));
+      checkNextUpDownRoundTrip(d_fp16, bvsign.concat(bvexp).concat(bvsig));
     }
   };
   testForFloat16(fun16);
   testForFormats(d_test_formats,
                  N_TESTS,
                  [this](const FloatingPointSize& fmt, const BitVector& bv) {
-                   checkSuccPredRoundTrip(fmt, bv);
+                   checkNextUpDownRoundTrip(fmt, bv);
                  });
 }
 
-TEST_F(TestUtilBlackFloatingPoint, successorPredecessorOrder)
+TEST_F(TestUtilBlackFloatingPoint, nextUpNextDownOrder)
 {
-  // Successor and predecessor are strictly above resp. below in the value
-  // order (checked on the exact rationals the values denote), for random
-  // values of all formats.
+  // nextUp and nextDown are strictly above resp. below in the value order
+  // (checked on the exact rationals the values denote), for random values of
+  // all formats.
   Rational zero(0);
   testForFormats(d_all_formats,
                  N_TESTS,
@@ -347,15 +358,15 @@ TEST_F(TestUtilBlackFloatingPoint, successorPredecessorOrder)
                      return;
                    }
                    Rational rfp = fp.convertToRationalTotal(zero);
-                   FloatingPoint succ = FloatingPoint::successor(fp);
-                   if (!succ.isInfinite())
+                   FloatingPoint up = FloatingPoint::nextUp(fp);
+                   if (!up.isInfinite())
                    {
-                     ASSERT_TRUE(rfp < succ.convertToRationalTotal(zero));
+                     ASSERT_TRUE(rfp < up.convertToRationalTotal(zero));
                    }
-                   FloatingPoint pred = FloatingPoint::predecessor(fp);
-                   if (!pred.isInfinite())
+                   FloatingPoint down = FloatingPoint::nextDown(fp);
+                   if (!down.isInfinite())
                    {
-                     ASSERT_TRUE(pred.convertToRationalTotal(zero) < rfp);
+                     ASSERT_TRUE(down.convertToRationalTotal(zero) < rfp);
                    }
                  });
 }
