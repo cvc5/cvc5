@@ -69,6 +69,16 @@ Node FieldObj::mkMul(const std::vector<NodeTemplate<ref_count>>& factors)
   }
 }
 
+template Node FieldObj::mkAdd<true>(const std::vector<Node>& summands);
+template Node FieldObj::mkAdd<false>(const std::vector<TNode>& summands);
+template Node FieldObj::mkMul<true>(const std::vector<Node>& factors);
+template Node FieldObj::mkMul<false>(const std::vector<TNode>& factors);
+
+Node FieldObj::mkConst(const FiniteFieldValue& value) const
+{
+  return d_nm->mkConst(value);
+}
+
 bool isFfLeaf(const Node& n)
 {
   return n.getType().isFiniteField() && Theory::isLeafOf(n, THEORY_FF);
