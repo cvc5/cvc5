@@ -3535,8 +3535,14 @@ void TheoryArithPrivate::importSolution(
   {
     static constexpr int64_t pass2Limit = 20;
     SimplexDecisionProcedure& simplex = selectSimplex(false);
+    // The pivot limit is state on the SimplexDecisionProcedure, not an
+    // argument to findModel(), so lowering it here would otherwise leak into
+    // every later call on this object -- including pass 1, which is the same
+    // object under --use-fcsimplex and --use-soi. Put it back afterwards.
+    int64_t savedLimit = simplex.getVarOrderPivotLimit();
     simplex.setVarOrderPivotLimit(pass2Limit);
     d_qflraStatus = simplex.findModel(false);
+    simplex.setVarOrderPivotLimit(savedLimit);
   }
 
   if (TraceIsOn("arith::importSolution"))
