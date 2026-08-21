@@ -698,14 +698,34 @@ void TheoryFp::registerTerm(TNode node)
         nm->mkNode(Kind::NOT, nm->mkNode(Kind::FLOATINGPOINT_IS_NAN, sk));
     handleLemma(nnan, InferenceId::FP_REGISTER_TERM);
 
+    Node zero = nm->mkConstReal(Rational(0U));
     Node z = nm->mkNode(
         Kind::IMPLIES,
-        {nm->mkNode(Kind::EQUAL, pn[1], nm->mkConstReal(Rational(0U))),
+        {nm->mkNode(Kind::EQUAL, pn[1], zero),
          nm->mkNode(Kind::EQUAL,
                     sk,
                     nm->mkConst(FloatingPoint::makeZero(
                         sk.getType().getConst<FloatingPointSize>(), false)))});
     handleLemma(z, InferenceId::FP_REGISTER_TERM);
+
+    // The sign of the result is the sign of the argument, in every rounding
+    // mode and also when the conversion underflows to zero. Constraining the
+    // sign here is required: the refinement lemmas in refineAbstraction are
+    // formulated in terms of fp.leq/fp.geq and of the rationals the results
+    // denote, all of which identify -zero and +zero, and can therefore not
+    // rule out a model that assigns the abstraction a zero whose sign
+    // differs from the sign of the correct rounding.
+    Node sp = nm->mkNode(
+        Kind::IMPLIES,
+        {nm->mkNode(Kind::GT, pn[1], zero),
+         nm->mkNode(Kind::NOT, nm->mkNode(Kind::FLOATINGPOINT_IS_NEG, sk))});
+    handleLemma(sp, InferenceId::FP_REGISTER_TERM);
+
+    Node sn = nm->mkNode(
+        Kind::IMPLIES,
+        {nm->mkNode(Kind::LT, pn[1], zero),
+         nm->mkNode(Kind::NOT, nm->mkNode(Kind::FLOATINGPOINT_IS_POS, sk))});
+    handleLemma(sn, InferenceId::FP_REGISTER_TERM);
     return;
 
     // TODO : rounding-mode specific bounds on floats that don't give infinity
