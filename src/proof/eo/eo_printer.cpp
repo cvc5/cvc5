@@ -970,8 +970,8 @@ void EoPrinter::printAssumeBodyStep(EoPrintChannelOut& aout,
   // The body of the proof is an assumption. This is the case e.g. if false is
   // one of the input assertions, in which case the proof of false is the
   // assumption of false itself. Since we require that proofs end with a step
-  // (concluding false), we print a dummy derivation of the assumed formula F
-  // from the assumption of F:
+  // and not an assume command, we print a dummy derivation of the assumed
+  // formula F from the assumption of F:
   //
   //                            ------------- refl
   //   @p_a: F                  @p_r: (= F F)
@@ -991,6 +991,10 @@ void EoPrinter::printAssumeBodyStep(EoPrintChannelOut& aout,
   aout.printStep("refl", f.eqNode(f), rid, {}, {f});
   d_pfIdCounter++;
   aout.printStep("eq_resolve", f, d_pfIdCounter, {aid, rid}, {});
+  // Note that F is not necessarily false here, since this method applies to
+  // any proof whose body is an assumption, e.g. the preprocessed input proof
+  // printed when proof logging. The dummy step is unnecessary in that case,
+  // but harmless.
 }
 
 void EoPrinter::printNext(EoPrintChannelOut& aout,

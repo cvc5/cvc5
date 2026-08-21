@@ -31,6 +31,10 @@ cvc5 1.3.5 prerelease
   `--bv-solver=bitblast-internal` (enabling option `--bv-abstraction` has no
   effect).
 
+- CPC proofs now always end with a `step` command. Previously, when `false` was
+  directly an input assertion, the proof would instead end with an `assume`
+  command.
+
 cvc5 1.3.4
 ==========
 
