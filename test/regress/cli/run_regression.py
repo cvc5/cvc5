@@ -397,6 +397,7 @@ class CpcTester(Tester):
                 return exit_code
             output, error, exit_status = run_process(
                 [benchmark_info.ethos_binary] +
+                ["--require-proof-of-false"] +
                 [tmpf.name],
                 benchmark_info.benchmark_dir,
                 timeout=benchmark_info.timeout,
