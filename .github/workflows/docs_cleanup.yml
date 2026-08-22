@@ -10,7 +10,8 @@ jobs:
     steps:
       - name: Install Packages
         run: |
-          sudo apt-get update
+          # Temporarily disabled: apt-get update hangs in CI
+          # sudo apt-get update
           sudo apt-get install -y python3 python3-jinja2
 
       - name: Setup Deploy Key

@@ -702,6 +702,7 @@ bool EoNodeConverter::isHandledSkolemId(SkolemId id)
     case SkolemId::STRINGS_OCCUR_INDEX_RE:
     case SkolemId::STRINGS_DEQ_DIFF:
     case SkolemId::STRINGS_REPLACE_ALL_RESULT:
+    case SkolemId::STRINGS_REPLACE_RE_ALL_RESULT:
     case SkolemId::STRINGS_ITOS_RESULT:
     case SkolemId::STRINGS_STOI_RESULT:
     case SkolemId::STRINGS_STOI_NON_DIGIT:

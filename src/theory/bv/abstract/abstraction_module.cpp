@@ -135,7 +135,7 @@ Node AbstractionModule::abstract(TNode fact)
       {
         ret = abstractNode(ret);
       }
-      it->second = ret;
+      it->second = rewrite(ret);
     }
     visit.pop_back();
   } while (!visit.empty());
@@ -220,8 +220,8 @@ void AbstractionModule::check(std::vector<Node>& lemmas)
       // Tier 3: value instantiation.
       lemmas.push_back(
           nm->mkNode(Kind::IMPLIES,
-                     nm->mkNode(Kind::AND, x.eqNode(xval), s.eqNode(sval)),
-                     t.eqNode(value)));
+                     {nm->mkNode(Kind::AND, {x.eqNode(xval), s.eqNode(sval)}),
+                      t.eqNode(value)}));
       ++d_valueInstCount[t];
       ++d_stats.d_numLemmasTier3;
     }
