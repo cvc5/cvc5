@@ -382,117 +382,107 @@ bool TheoryFp::refineAbstraction(TheoryModel* m, TNode abstract, TNode concrete)
       Node correctRoundingMode = nm->mkNode(Kind::EQUAL, concrete[0], rmValue);
       // TODO : Generalise to all rounding modes  #1914
 
-      // The lemmas below only use the monotonicity direction
-      //   x >= v  -->  to_fp(rm, x) >=_fp to_fp(rm, v)
-      // (and dually for <=). The converse direction is NOT valid: rounding
-      // is monotone but not injective, so to_fp(rm, x) >=_fp to_fp(rm, v)
-      // does not imply x >= v (x slightly below v may round to the same
-      // float). Asserting the equivalence excludes satisfiable regions
-      // around the model value and makes the solver refutation unsound
-      // (see issues #12370, #12780). The implications still exclude the
-      // current spurious model: if the model value of the abstraction is
-      // below (resp. above) the correct rounding, the forward (resp.
-      // backward-directed) implication is violated.
-
-      // First the "forward" constraints
-      Node fg = nm->mkNode(
-          Kind::IMPLIES,
-          correctRoundingMode,
-          nm->mkNode(
-              Kind::IMPLIES,
-              {nm->mkNode(Kind::GEQ, concrete[1], realValue),
-               nm->mkNode(Kind::FLOATINGPOINT_GEQ, abstract, concreteValue)}));
-      bool sent = handleLemma(fg, InferenceId::FP_PREPROCESS);
-
-      Node fl = nm->mkNode(
-          Kind::IMPLIES,
-          correctRoundingMode,
-          nm->mkNode(
-              Kind::IMPLIES,
-              {nm->mkNode(Kind::LEQ, concrete[1], realValue),
-               nm->mkNode(Kind::FLOATINGPOINT_LEQ, abstract, concreteValue)}));
-      sent = handleLemma(fl, InferenceId::FP_PREPROCESS) || sent;
-
-      // Then the backwards constraints
-      if (!abstractValue.getConst<FloatingPoint>().isInfinite())
-      {
-        Node realValueOfAbstract =
-            rewrite(nm->mkNode(Kind::FLOATINGPOINT_TO_REAL_TOTAL,
-                               abstractValue,
-                               nm->mkConstReal(Rational(0U))));
-
-        Node bg = nm->mkNode(
-            Kind::IMPLIES,
-            correctRoundingMode,
-            nm->mkNode(
-                Kind::IMPLIES,
-                {nm->mkNode(Kind::GEQ, concrete[1], realValueOfAbstract),
-                 nm->mkNode(
-                     Kind::FLOATINGPOINT_GEQ, abstract, abstractValue)}));
-        sent = handleLemma(bg, InferenceId::FP_PREPROCESS) || sent;
-
-        Node bl = nm->mkNode(
-            Kind::IMPLIES,
-            correctRoundingMode,
-            nm->mkNode(
-                Kind::IMPLIES,
-                {nm->mkNode(Kind::LEQ, concrete[1], realValueOfAbstract),
-                 nm->mkNode(
-                     Kind::FLOATINGPOINT_LEQ, abstract, abstractValue)}));
-        sent = handleLemma(bl, InferenceId::FP_PREPROCESS) || sent;
-      }
-
-      // Cell-boundary equivalences: for a float constant c and a fixed
-      // rounding mode, to_fp(rm, x) >=_fp c holds iff x is (strictly) above
-      // the exact real lower boundary of c's rounding cell, and dually
-      // to_fp(rm, x) <=_fp c holds iff x is (strictly) below the lower
-      // boundary of the cell of nextUp(c). Unlike equivalences anchored
-      // at the model value of x (cf. the comment above), these are sound,
-      // and they exclude the whole spurious rounding cell in one step, which
-      // is required for the refinement loop to converge (the model value of
-      // x could otherwise slide within one cell indefinitely).
       RoundingMode rm = rmValue.getConst<RoundingMode>();
-      auto sendCellLemmas = [&](const FloatingPoint& c) {
-        if (c.isNaN() || c.isInfinite())
-        {
-          return;
-        }
+      bool sent = false;
+
+      // For a float constant c and a fixed rounding mode, to_fp(rm, x) >=_fp c
+      // holds iff x is (strictly) above the exact real lower boundary of c's
+      // rounding cell, and dually to_fp(rm, x) <=_fp c holds iff x is
+      // (strictly) below the lower boundary of the cell of nextUp(c). These
+      // cell-boundary equivalences are sound and exclude the whole spurious
+      // rounding cell in one step, which is required for the refinement loop
+      // to converge (the model value of x could otherwise slide from cell to
+      // cell indefinitely).
+      //
+      // Where the boundary is not available, i.e., if c is an infinity or if
+      // the cell of c is unbounded (c is the largest resp. smallest finite
+      // value of its format), fall back to the monotonicity implication
+      // anchored at a real v that converts to c:
+      //   x >= v  -->  to_fp(rm, x) >=_fp c
+      // and dually for <=. Note that only this direction is valid: rounding
+      // is monotone but not injective, thus to_fp(rm, x) >=_fp to_fp(rm, v)
+      // does not imply x >= v (x slightly below v may round to the same
+      // float). Asserting the equivalence excludes satisfiable regions around
+      // v and makes the solver refutation unsound (see issues #12370,
+      // #12780). Since v is in the cell of c, this implication is the weaker,
+      // model-anchored variant of the cell-boundary equivalence above.
+      //
+      // Note that the equivalences also imply the monotonicity implications
+      // for every real in the cell of c, thus no additional lemmas anchored
+      // at the model values are required.
+      //
+      // @param c The float to anchor the lemmas at, must not be NaN.
+      // @param v A real that converts to c, null if there is none.
+      auto sendCellLemmas = [&](const FloatingPoint& c, TNode v) {
+        Assert(!c.isNaN());
         Node cn = nm->mkConst(c);
-        // the cell of c has a finite lower boundary unless c is the smallest
-        // finite value of its format
-        if (!FloatingPoint::nextDown(c).isInfinite())
+        Node geq = nm->mkNode(Kind::FLOATINGPOINT_GEQ, abstract, cn);
+        Node leq = nm->mkNode(Kind::FLOATINGPOINT_LEQ, abstract, cn);
+        Node lower, upper;
+        // The cell of c has a finite lower boundary unless c is an infinity or
+        // the smallest finite value of its format.
+        if (!c.isInfinite() && !FloatingPoint::nextDown(c).isInfinite())
         {
           auto [lb, lstrict] = utils::roundingCellLowerBound(c, rm);
-          Node lower = nm->mkNode(
-              Kind::IMPLIES,
-              correctRoundingMode,
-              nm->mkNode(Kind::EQUAL,
-                         {nm->mkNode(Kind::FLOATINGPOINT_GEQ, abstract, cn),
-                          nm->mkNode(lstrict ? Kind::GT : Kind::GEQ,
-                                     concrete[1],
-                                     nm->mkConstReal(lb))}));
-          sent = handleLemma(lower, InferenceId::FP_PREPROCESS) || sent;
+          lower = nm->mkNode(Kind::EQUAL,
+                             {geq,
+                              nm->mkNode(lstrict ? Kind::GT : Kind::GEQ,
+                                         concrete[1],
+                                         nm->mkConstReal(lb))});
         }
+        else if (!v.isNull())
+        {
+          lower = nm->mkNode(Kind::IMPLIES,
+                             {nm->mkNode(Kind::GEQ, concrete[1], v), geq});
+        }
+        // The cell of c has a finite upper boundary, the lower boundary of the
+        // cell of nextUp(c), unless c is an infinity or the largest finite
+        // value of its format. Note that F <=_fp c iff not (F >=_fp nextUp(c))
+        // for non-NaN F.
         FloatingPoint s = FloatingPoint::nextUp(c);
-        if (!s.isInfinite())
+        if (!c.isInfinite() && !s.isInfinite())
         {
           // nextDown(s) is c (up to the sign of zero) and thus finite, hence
           // s being finite is all the preconditions require here
           auto [ub, sstrict] = utils::roundingCellLowerBound(s, rm);
-          // F <=_fp c  iff  not (F >=_fp s)  for non-NaN F
-          Node upper = nm->mkNode(
-              Kind::IMPLIES,
-              correctRoundingMode,
-              nm->mkNode(Kind::EQUAL,
-                         {nm->mkNode(Kind::FLOATINGPOINT_LEQ, abstract, cn),
-                          nm->mkNode(sstrict ? Kind::LEQ : Kind::LT,
-                                     concrete[1],
-                                     nm->mkConstReal(ub))}));
-          sent = handleLemma(upper, InferenceId::FP_PREPROCESS) || sent;
+          upper = nm->mkNode(Kind::EQUAL,
+                             {leq,
+                              nm->mkNode(sstrict ? Kind::LEQ : Kind::LT,
+                                         concrete[1],
+                                         nm->mkConstReal(ub))});
+        }
+        else if (!v.isNull())
+        {
+          upper = nm->mkNode(Kind::IMPLIES,
+                             {nm->mkNode(Kind::LEQ, concrete[1], v), leq});
+        }
+        for (const Node& l : {lower, upper})
+        {
+          if (!l.isNull())
+          {
+            sent =
+                handleLemma(nm->mkNode(Kind::IMPLIES, correctRoundingMode, l),
+                            InferenceId::FP_PREPROCESS)
+                || sent;
+          }
         }
       };
-      sendCellLemmas(concreteValue.getConst<FloatingPoint>());
-      sendCellLemmas(abstractValue.getConst<FloatingPoint>());
+
+      // Anchor the lemmas at the correct rounding of the model value of x,
+      // which the model value of the abstraction disagrees with, ...
+      sendCellLemmas(concreteValue.getConst<FloatingPoint>(), realValue);
+      // ... and at the model value of the abstraction, which converts to
+      // itself unless it is an infinity.
+      const FloatingPoint& av = abstractValue.getConst<FloatingPoint>();
+      Node realValueOfAbstract;
+      if (!av.isInfinite())
+      {
+        realValueOfAbstract =
+            rewrite(nm->mkNode(Kind::FLOATINGPOINT_TO_REAL_TOTAL,
+                               abstractValue,
+                               nm->mkConstReal(Rational(0U))));
+      }
+      sendCellLemmas(av, realValueOfAbstract);
 
       if (!sent)
       {
