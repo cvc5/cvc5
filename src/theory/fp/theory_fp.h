@@ -204,6 +204,33 @@ class TheoryFp : public Theory
 
   /** True constant. */
   Node d_true;
+
+  /** TheoryFp statistics. */
+  struct Statistics
+  {
+    Statistics(StatisticsRegistry& reg, const std::string& name);
+    /**
+     * Number of times refineAbstraction() abandoned a candidate model
+     * because the model values of an abstraction or its arguments were not
+     * usable, i.e., not constants.
+     */
+    IntStat d_abstractionUnusableValues;
+    /**
+     * Number of times refineAbstraction() abandoned a candidate model
+     * because its values for an abstraction contradict the registration
+     * lemmas of registerTerm(). Should only happen for models that are
+     * already known to be unsound.
+     */
+    IntStat d_abstractionInconsistentValues;
+    /**
+     * Number of times refineAbstraction() abandoned a candidate model
+     * because no refinement lemma that was not already sent could be derived
+     * from its values. Should only happen for models that are already known
+     * to be unsound, or if the refinement lemmas are too weak to exclude the
+     * candidate model.
+     */
+    IntStat d_abstractionNoProgress;
+  } d_stats;
 };
 
 }  // namespace fp
