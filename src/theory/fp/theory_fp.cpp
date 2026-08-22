@@ -49,7 +49,8 @@ TheoryFp::TheoryFp(Env& env, OutputChannel& out, Valuation valuation)
       d_notify(d_im),
       d_wbFactsCache(userContext()),
       d_invalidateModelCache(context(), true),
-      d_true(nodeManager()->mkConst(true))
+      d_true(nodeManager()->mkConst(true)),
+      d_stats(statisticsRegistry(), "theory::fp::")
 {
   // indicate we are using the default theory state and inference manager
   d_theoryState = &d_state;
@@ -176,6 +177,7 @@ bool TheoryFp::refineAbstraction(TheoryModel* m, TNode abstract, TNode concrete)
       // cannot refine. This can happen when model construction involving
       // other theories fails to produce constants (see issue #12759). Give
       // up on this model rather than refine with corrupted values.
+      ++d_stats.d_abstractionUnusableValues;
       d_im.setModelUnsound(IncompleteId::FP_ABSTRACTION_REFINEMENT);
       return false;
     }
@@ -210,6 +212,10 @@ bool TheoryFp::refineAbstraction(TheoryModel* m, TNode abstract, TNode concrete)
       const FloatingPoint& fv = floatValue.getConst<FloatingPoint>();
       if (!fv.isNormal() && !fv.isSubnormal())
       {
+        Assert(getValuation().isModelUnsound())
+            << "model value " << floatValue << " of " << concrete[0]
+            << " contradicts the registration lemmas of " << abstract;
+        ++d_stats.d_abstractionInconsistentValues;
         d_im.setModelUnsound(IncompleteId::FP_ABSTRACTION_REFINEMENT);
         return false;
       }
@@ -288,10 +294,16 @@ bool TheoryFp::refineAbstraction(TheoryModel* m, TNode abstract, TNode concrete)
 
       if (!sent)
       {
-        // All refinement lemmas for these model values were already sent in
-        // a previous round, yet the model still violates them: the model is
+        // All refinement lemmas for these model values were already sent in a
+        // previous round, yet the model still violates them: the model is
         // inconsistent with the current assertions (cf. the non-normal case
-        // above). Give up on this model rather than accept it.
+        // above). Note that fg and fl above are equivalences and that their
+        // left-hand sides hold in the model (concrete[0] is floatValue), thus
+        // together they force abstract to be concreteValue and do exclude
+        // this model. Give up on it rather than accept it.
+        Assert(getValuation().isModelUnsound())
+            << "model of " << abstract << " violates its refinement lemmas";
+        ++d_stats.d_abstractionNoProgress;
         d_im.setModelUnsound(IncompleteId::FP_ABSTRACTION_REFINEMENT);
       }
       return sent;
@@ -322,6 +334,7 @@ bool TheoryFp::refineAbstraction(TheoryModel* m, TNode abstract, TNode concrete)
         || !realValue.isConst())
     {
       // See the FLOATINGPOINT_TO_REAL_TOTAL case above.
+      ++d_stats.d_abstractionUnusableValues;
       d_im.setModelUnsound(IncompleteId::FP_ABSTRACTION_REFINEMENT);
       return false;
     }
@@ -358,6 +371,10 @@ bool TheoryFp::refineAbstraction(TheoryModel* m, TNode abstract, TNode concrete)
       if (abstractValue.getConst<FloatingPoint>().isNaN()
           || concreteValue.getConst<FloatingPoint>().isNaN())
       {
+        Assert(getValuation().isModelUnsound())
+            << "NaN model value of " << abstract
+            << " contradicts its registration lemmas";
+        ++d_stats.d_abstractionInconsistentValues;
         d_im.setModelUnsound(IncompleteId::FP_ABSTRACTION_REFINEMENT);
         return false;
       }
@@ -479,10 +496,19 @@ bool TheoryFp::refineAbstraction(TheoryModel* m, TNode abstract, TNode concrete)
 
       if (!sent)
       {
-        // All refinement lemmas for these model values were already sent in
-        // a previous round, yet the model still violates them: the model is
-        // inconsistent with the current assertions (cf. the NaN case above).
+        // All refinement lemmas for these model values were already sent in a
+        // previous round. Either the model is inconsistent with the current
+        // assertions (cf. the NaN case above), or the lemmas are too weak to
+        // exclude it: unlike in the FLOATINGPOINT_TO_REAL_TOTAL case above,
+        // they are implications rather than equivalences, and they are
+        // formulated in terms of fp.leq/fp.geq and of the rationals the
+        // results denote, all of which identify -zero and +zero (which is why
+        // registerTerm() constrains the sign of the abstraction separately).
         // Give up on this model rather than accept it.
+        Assert(getValuation().isModelUnsound())
+            << "model of " << abstract
+            << " is not excluded by its refinement lemmas";
+        ++d_stats.d_abstractionNoProgress;
         d_im.setModelUnsound(IncompleteId::FP_ABSTRACTION_REFINEMENT);
       }
       return sent;
@@ -1120,6 +1146,17 @@ Node TheoryFp::purifyArgument(TNode n)
     handleLemma(n.eqNode(sk), InferenceId::FP_REGISTER_TERM);
   }
   return sk;
+}
+
+TheoryFp::Statistics::Statistics(StatisticsRegistry& reg,
+                                 const std::string& name)
+    : d_abstractionUnusableValues(
+          reg.registerInt(name + "NumAbstractionUnusableValues")),
+      d_abstractionInconsistentValues(
+          reg.registerInt(name + "NumAbstractionInconsistentValues")),
+      d_abstractionNoProgress(
+          reg.registerInt(name + "NumAbstractionNoProgress"))
+{
 }
 
 }  // namespace fp
