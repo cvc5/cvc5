@@ -15,8 +15,6 @@
 
 #include "util/floatingpoint.h"
 
-#include <cmath>
-
 #include "base/check.h"
 #include "util/floatingpoint_literal.h"
 #include "util/integer.h"
@@ -35,6 +33,82 @@ uint32_t FloatingPoint::getUnpackedExponentWidth(FloatingPointSize& size)
 uint32_t FloatingPoint::getUnpackedSignificandWidth(FloatingPointSize& size)
 {
   return FloatingPointLiteral::getUnpackedSignificandWidth(size);
+}
+
+FloatingPoint FloatingPoint::nextUp(const FloatingPoint& fp)
+{
+  // Note: isPositive() and isNegative() are both false for NaN.
+  if (fp.isPositive())
+  {
+    if (fp.isInfinite())
+    {
+      // +oo is the largest value, there is no value above it
+      return fp;
+    }
+    // The packed encoding of the positive values is ordered like the values
+    // they denote, thus incrementing it yields the next larger value. This
+    // also covers +zero (which yields the positive subnormal of smallest
+    // magnitude) and +maxNormal (which yields +oo).
+    BitVector packed = fp.pack();
+    return FloatingPoint(fp.getSize(),
+                         packed + BitVector::mkOne(packed.getSize()));
+  }
+  if (fp.isNegative())
+  {
+    if (fp.isZero())
+    {
+      // Decrementing the encoding of -zero would wrap around to the largest
+      // positive value, thus this case has to be handled separately.
+      return FloatingPoint::makeMinSubnormal(fp.getSize(), false);
+    }
+    // For the negative values the encoding order is reversed relative to the
+    // value order, thus decrementing the encoding yields the next larger
+    // value. This also covers -minSubnormal (which yields -zero) and -oo
+    // (which yields -maxNormal).
+    BitVector packed = fp.pack();
+    return FloatingPoint(fp.getSize(),
+                         packed - BitVector::mkOne(packed.getSize()));
+  }
+  Assert(fp.isNaN());
+  return fp;
+}
+
+FloatingPoint FloatingPoint::nextDown(const FloatingPoint& fp)
+{
+  // Note: isPositive() and isNegative() are both false for NaN.
+  if (fp.isNegative())
+  {
+    if (fp.isInfinite())
+    {
+      // -oo is the smallest value, there is no value below it
+      return fp;
+    }
+    // For the negative values the encoding order is reversed relative to the
+    // value order, thus incrementing the encoding yields the next smaller
+    // value. This also covers -zero (which yields the negative subnormal of
+    // smallest magnitude) and -maxNormal (which yields -oo).
+    BitVector packed = fp.pack();
+    return FloatingPoint(fp.getSize(),
+                         packed + BitVector::mkOne(packed.getSize()));
+  }
+  if (fp.isPositive())
+  {
+    if (fp.isZero())
+    {
+      // Decrementing the encoding of +zero would wrap around to NaN, thus
+      // this case has to be handled separately.
+      return FloatingPoint::makeMinSubnormal(fp.getSize(), true);
+    }
+    // The packed encoding of the positive values is ordered like the values
+    // they denote, thus decrementing it yields the next smaller value. This
+    // also covers +minSubnormal (which yields +zero) and +oo (which yields
+    // +maxNormal).
+    BitVector packed = fp.pack();
+    return FloatingPoint(fp.getSize(),
+                         packed - BitVector::mkOne(packed.getSize()));
+  }
+  Assert(fp.isNaN());
+  return fp;
 }
 
 FloatingPoint::FloatingPoint(uint32_t d_exp_size,

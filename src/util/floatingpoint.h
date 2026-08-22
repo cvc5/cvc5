@@ -56,6 +56,54 @@ class FloatingPoint
    */
   static uint32_t getUnpackedSignificandWidth(FloatingPointSize& size);
 
+  /**
+   * The nextUp operation as defined in IEEE 754-2019, Section 5.3.1: the
+   * least floating-point value of the same format that compares greater
+   * than fp.
+   *
+   * The underlying order is the total order on the non-NaN values of a
+   * format that orders them by the extended real values they denote:
+   *
+   *   -oo < -maxNormal < ... < -minSubnormal < 0 < +minSubnormal < ...
+   *       < +maxNormal < +oo
+   *
+   * Since -0 and +0 both denote the real value 0, they compare equal in this
+   * order (the zero class). This is the order underlying fp.leq and fp.geq;
+   * it is not the order of the packed encodings, which is reversed on the
+   * negative values.
+   *
+   * Special cases:
+   *   nextUp(+-0)           = +minSubnormal
+   *   nextUp(-minSubnormal) = -0
+   *   nextUp(+maxNormal)    = +oo
+   *   nextUp(+oo)           = +oo
+   *   nextUp(-oo)           = -maxNormal
+   *   nextUp(NaN)           = NaN
+   *
+   * @param fp The value to compute nextUp for.
+   * @return The least value of the same format that compares greater than fp.
+   */
+  static FloatingPoint nextUp(const FloatingPoint& fp);
+
+  /**
+   * The nextDown operation as defined in IEEE 754-2019, Section 5.3.1: the
+   * greatest floating-point value of the same format that compares less than
+   * fp. This is the dual of nextUp(), i.e., nextDown(fp) = -nextUp(-fp) (see
+   * nextUp() for the definition of the order).
+   *
+   * Special cases:
+   *   nextDown(+-0)           = -minSubnormal
+   *   nextDown(+minSubnormal) = +0
+   *   nextDown(-maxNormal)    = -oo
+   *   nextDown(-oo)           = -oo
+   *   nextDown(+oo)           = +maxNormal
+   *   nextDown(NaN)           = NaN
+   *
+   * @param fp The value to compute nextDown for.
+   * @return The greatest value of the same format that compares less than fp.
+   */
+  static FloatingPoint nextDown(const FloatingPoint& fp);
+
   /** Constructors. */
 
   /** Create a FP value from its IEEE bit-vector representation. */
