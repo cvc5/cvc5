@@ -389,14 +389,12 @@ class CpcTester(Tester):
                 return EXIT_FAILURE
             tmpf.write(output)
             tmpf.flush()
-            output, error = output.decode(), error.decode()
-            if ("step" not in output) and ("assume" not in output):
-                print_error("Empty proof")
-                return EXIT_FAILURE
-            if exit_code != EXIT_OK:
-                return exit_code
+            # note we do not check that the proof is non-empty here, since
+            # ethos is run with --require-proof-of-false below, which fails on
+            # an empty proof as it has no step concluding false.
             output, error, exit_status = run_process(
                 [benchmark_info.ethos_binary] +
+                ["--require-proof-of-false"] +
                 [tmpf.name],
                 benchmark_info.benchmark_dir,
                 timeout=benchmark_info.timeout,
@@ -405,6 +403,11 @@ class CpcTester(Tester):
             exit_code = self.check_exit_status(EXIT_OK, exit_status, output,
                                                error, cvc5_args)
             if exit_code != EXIT_OK:
+                if exit_code == EXIT_FAILURE:
+                    # print the output of ethos, which says why it failed, e.g.
+                    # a step did not check or the proof did not conclude false.
+                    print()
+                    print_outputs(output, error)
                 return exit_code
             if ("correct" not in output) and ("incomplete" not in output):
                 print_error("Invalid proof")
