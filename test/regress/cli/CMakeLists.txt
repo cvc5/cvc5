@@ -1651,6 +1651,7 @@ set(regress_0_tests
   regress0/proofs/qgu-fuzz-3-chainres-checking.smt2
   regress0/proofs/qgu-fuzz-4-bool-chainres-postprocessing-singleton.smt2
   regress0/proofs/qgu-fuzz-5-bool-open-sat.smt2
+  regress0/proofs/re-emp-star-eval.smt2
   regress0/proofs/re-range-empty.smt2
   regress0/proofs/re-range-refl.smt2
   regress0/proofs/RF-11-aci-norm-ndet.smt2
@@ -2219,6 +2220,7 @@ set(regress_0_tests
   regress0/strings/issue12241-aci.smt2
   regress0/strings/issue12322-pf-eager-len-re.smt2
   regress0/strings/issue12756-str-inc-model.smt2
+  regress0/strings/issue12863-re-inc-neg.smt2
   regress0/strings/issue1189.smt2
   regress0/strings/issue2958.smt2
   regress0/strings/issue3440.smt2
@@ -4393,6 +4395,9 @@ set(regression_disabled_tests
   regress0/strings/issue7974-incomplete-neg-member.smt2
   # unknown after change to datatypes split policy, requires forcing split
   regress1/fmf/issue3587.smt2
+  # too slow to run by default, the fix for this issue is covered by
+  # regress0/strings/issue12863-re-inc-neg.smt2
+  regress1/strings/issue12863.smt2
   # demonstrates instance where RE inference in necessary, times out
   regress1/strings/re-uf.smt2
   ###
