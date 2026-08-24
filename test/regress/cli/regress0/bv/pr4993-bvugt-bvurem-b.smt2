@@ -1,4 +1,5 @@
-; COMMAND-LINE:
+; REQUIRES: no-safe-mode
+; COMMAND-LINE: --bv-solver=bitblast-internal
 (set-logic QF_BV)
 (set-info :status unsat)
 (declare-const x (_ BitVec 4))

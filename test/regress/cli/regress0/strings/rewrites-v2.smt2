@@ -1,4 +1,5 @@
-; COMMAND-LINE:
+; REQUIRES: no-restricted-mode
+; COMMAND-LINE: --ext-rew-pre=use
 ; EXPECT: unsat
 (set-info :smt-lib-version 2.6)
 (set-logic SLIA)

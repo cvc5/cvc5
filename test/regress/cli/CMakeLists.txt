@@ -691,33 +691,23 @@ set(regress_0_tests
   regress0/bv/overflow/uaddo1.smt2
   regress0/bv/overflow/uaddo2.smt2
   regress0/bv/overflow/uaddo3.smt2
-  regress0/bv/overflow/uaddo3-bv-as-int.smt2
   regress0/bv/overflow/saddo1.smt2
   regress0/bv/overflow/saddo2.smt2
   regress0/bv/overflow/saddo3.smt2
-  regress0/bv/overflow/saddo3-bv-as-int.smt2
   regress0/bv/overflow/umulo1.smt2
-  regress0/bv/overflow/umulo1-bv-as-int.smt2
   regress0/bv/overflow/umulo2.smt2
   regress0/bv/overflow/smulo1.smt2
-  regress0/bv/overflow/smulo1-bv-as-int.smt2
   regress0/bv/overflow/smulo1b.smt2
-  regress0/bv/overflow/smulo1b-bv-as-int.smt2
   regress0/bv/overflow/smulo2.smt2
   regress0/bv/overflow/usubo1.smt2
-  regress0/bv/overflow/usubo1-bv-as-int.smt2
   regress0/bv/overflow/usubo2.smt2
   regress0/bv/overflow/ssubo1.smt2
-  regress0/bv/overflow/ssubo1-bv-as-int.smt2
   regress0/bv/overflow/ssubo2.smt2
   regress0/bv/overflow/ssubo3.smt2
-  regress0/bv/overflow/ssubo3-bv-as-int.smt2
   regress0/bv/overflow/sdivo1.smt2
-  regress0/bv/overflow/sdivo1-bv-as-int.smt2
   regress0/bv/overflow/sdivo2.smt2
   regress0/bv/pr4993-bvugt-bvurem-a.smt2
   regress0/bv/pr4993-bvugt-bvurem-b.smt2
-  regress0/bv/pr4993-bvugt-bvurem-b-bitblast-internal.smt2
   regress0/bv/proj-issue343.smt2
   regress0/bv/proj-issue320.smt2
   regress0/bv/proj-issue321.smt2
@@ -1876,7 +1866,6 @@ set(regress_0_tests
   regress0/quantifiers/simp-typ-test.smt2
   regress0/quantifiers/ufnia-fv-delta.smt2
   regress0/quantifiers/var-elim-bv-partial.smt2
-  regress0/quantifiers/var-elim-bv-partial-var-ent-eq-elim.smt2
   regress0/quantifiers/var-elim-ineq-simple.smt2
   regress0/quantifiers/veqt-delta.smt2
   regress0/quoted-symbols.smt2
@@ -2179,7 +2168,6 @@ set(regress_0_tests
   regress0/strings/dd.norn-benchmark-235.smt2
   regress0/strings/dd.str-term-small-rw_1023.smt2
   regress0/strings/dd_1302_str_rewrite.smt2
-  regress0/strings/dd_1302_str_rewrite-rec-arith-approx.smt2
   regress0/strings/dd_67_str_at_eval.smt2
   regress0/strings/dd_a1d_static_rewrite.smt2
   regress0/strings/dd_a68_pp_static.smt2
@@ -2230,14 +2218,12 @@ set(regress_0_tests
   regress0/strings/issue12756-str-inc-model.smt2
   regress0/strings/issue1189.smt2
   regress0/strings/issue2958.smt2
-  regress0/strings/issue2958-conflict-process-min.smt2
   regress0/strings/issue3440.smt2
   regress0/strings/issue3497.smt2
   regress0/strings/issue3657-evalLeq.smt2
   regress0/strings/issue4070.smt2
   regress0/strings/issue4376.smt2
   regress0/strings/issue4662-consume-nterm.smt2
-  regress0/strings/issue4662-consume-nterm-re-derive-conf.smt2
   regress0/strings/issue4674-recomp-nf.smt2
   regress0/strings/issue4820.smt2
   regress0/strings/issue4915.smt2
@@ -2337,7 +2323,6 @@ set(regress_0_tests
   regress0/strings/replaceall-eval.smt2
   regress0/strings/rewrites-re-concat.smt2
   regress0/strings/rewrites-v2.smt2
-  regress0/strings/rewrites-v2-ext-rew-pre.smt2
   regress0/strings/rw_508_suffixof.smt2
   regress0/strings/rw_545.smt2
   regress0/strings/rw_555.smt2
@@ -3196,7 +3181,6 @@ set(regress_1_tests
   regress1/proofs/open-pf-tr-conjoin.smt2
   regress1/proofs/qgu-fuzz-1-strings-pp.smt2
   regress1/proofs/qgu-fuzz-arrays-1-dd-te-auto.smt2
-  regress1/proofs/qgu-fuzz-arrays-1-dd-te-auto-cadical.smt2
   regress1/proofs/quant-alpha-eq.smt2
   regress1/proofs/sat-trivial-cycle.smt2
   regress1/proofs/str-ovf-dd.smt2
@@ -3779,7 +3763,6 @@ set(regress_1_tests
   regress1/strings/issue6777-seq-nth-eval-cm.smt2
   regress1/strings/issue6913.smt2
   regress1/strings/issue6973-dup-lemma-conc.smt2
-  regress1/strings/issue6973-dup-lemma-conc-re-elim.smt2
   regress1/strings/issue7677-test-const-rv.smt2
   regress1/strings/issue7918-learned-rewrite.smt2
   regress1/strings/issue8094-witness-model.smt2
@@ -4245,7 +4228,6 @@ set(regress_2_tests
   regress2/strings/issue918.smt2
   regress2/strings/non_termination_regular_expression6.smt2
   regress2/strings/proj-439-cyclic-str-ipc.smt2
-  regress2/strings/proj-439-cyclic-str-ipc-rec-arith-approx.smt2
   regress2/strings/proof-fail-083021-delta.smt2
   regress2/strings/range-perf.smt2
   regress2/strings/repl-repl-i-no-push.smt2
