@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --ho-elim --finite-model-find --uf-ss=no-minimal
 ; EXPECT: sat
 ; EXIT: 0

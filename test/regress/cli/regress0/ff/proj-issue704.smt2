@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; SCRUBBER: grep -w 'sat'
 (set-option :check-models true)
 (set-logic QF_FF)

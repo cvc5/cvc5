@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --produce-difficulty
 ; SCRUBBER: sed 's/.*//g'
 ; EXIT: 0

@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --bv-abstraction
 ; EXPECT: sat
 ; Ported from Bitwuzla test/regress/solver/abstract/red-bench-8002.smt2

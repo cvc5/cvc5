@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --decision=justification
 ; EXPECT: sat
 (set-logic ALIA)

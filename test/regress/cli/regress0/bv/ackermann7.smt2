@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --ackermann
 ; EXPECT: sat
 (set-logic QF_UFBV)

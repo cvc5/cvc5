@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --prenex-quant=norm -q
 ; EXPECT: sat
 (set-logic ALL)

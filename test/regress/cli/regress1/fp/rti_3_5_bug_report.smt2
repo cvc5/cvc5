@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; DISABLE-TESTER: lfsc
 ; DISABLE-TESTER: cpc
 ; COMMAND-LINE: --fp-exp

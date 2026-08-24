@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; EXPECT: sat
 ; EXPECT: (
 ; EXPECT: ; cardinality of U is 1

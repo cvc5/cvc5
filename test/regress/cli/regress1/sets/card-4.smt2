@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 (set-logic QF_UFLIAFS)
 (set-info :status sat)
 (declare-sort E 0)

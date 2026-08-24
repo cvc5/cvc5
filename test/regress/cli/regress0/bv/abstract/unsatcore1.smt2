@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --bv-abstraction --produce-unsat-cores
 ; EXPECT: unsat
 ; DISABLE-TESTER: proof

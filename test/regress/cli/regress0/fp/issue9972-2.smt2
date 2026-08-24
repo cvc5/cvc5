@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; EXPECT: sat
 (set-logic QF_BVFP)
 (set-option :check-models true)

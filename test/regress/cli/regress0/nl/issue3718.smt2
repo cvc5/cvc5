@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --quiet
 ; EXPECT: sat
 (set-logic QF_NRAT)

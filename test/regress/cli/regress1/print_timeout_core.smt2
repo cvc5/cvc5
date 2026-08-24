@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: -o timeout-core-benchmark --timeout-core-timeout=500
 ; REQUIRES: no-competition
 ; EXPECT: ;; timeout core

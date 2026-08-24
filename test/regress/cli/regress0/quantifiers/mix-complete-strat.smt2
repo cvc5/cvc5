@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --cegqi --finite-model-find
 ; EXPECT: sat
 (set-logic UFLIA)

@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --fmf-fun-rlv -i
 ; EXPECT: sat
 ; EXPECT: sat

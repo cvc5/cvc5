@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; EXPECT: unknown
 (set-logic HO_ALL)
 (declare-sort $$unsorted 0)

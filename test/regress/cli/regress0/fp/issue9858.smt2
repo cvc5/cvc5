@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --incremental
 (set-logic ALL)
 (set-option :incremental true)

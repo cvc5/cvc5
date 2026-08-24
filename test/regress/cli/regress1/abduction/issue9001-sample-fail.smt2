@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; EXPECT: fail
 (set-logic ALL)
 (set-option :produce-abducts true)                                                 

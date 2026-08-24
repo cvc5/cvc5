@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 (set-logic SLIA)
 
 (set-option :strings-fmf true)

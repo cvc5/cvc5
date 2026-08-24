@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --solve-int-as-bv=64 --ackermann
 ; DISABLE-TESTER: model
 ; EXPECT: sat

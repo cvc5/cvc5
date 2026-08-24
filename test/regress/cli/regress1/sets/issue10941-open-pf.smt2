@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: -q --produce-proofs
 ; EXPECT: sat
 (set-logic ALL)

@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; DISABLE-TESTER: dump
 ; REQUIRES: no-competition
 ; SCRUBBER: grep -o "Cannot handle assertion with term of kind"

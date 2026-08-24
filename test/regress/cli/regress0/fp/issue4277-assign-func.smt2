@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; EXPECT: sat
 (set-logic HO_ALL)
 (set-option :assign-function-values false)

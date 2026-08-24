@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --fresh-binders
 ; EXPECT: unsat
 ; DISABLE-TESTER: proof

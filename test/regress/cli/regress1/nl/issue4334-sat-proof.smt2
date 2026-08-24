@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: -i --produce-unsat-cores --nl-ext-purify
 ; EXPECT: sat
 ; EXPECT: sat

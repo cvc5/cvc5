@@ -1,5 +1,4 @@
 ; COMMAND-LINE: --finite-model-find -i
-; COMMAND-LINE: --finite-model-find -i --sub-cbqi
 ; EXPECT: sat
 ; EXPECT: unsat
 (set-logic ALL)

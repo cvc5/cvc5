@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --miplib-trick
 ; EXPECT: sat
 (set-logic ALL)

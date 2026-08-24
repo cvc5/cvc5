@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --ext-rew-prep=use
 ; EXPECT: sat
 (set-logic QF_NRA)   

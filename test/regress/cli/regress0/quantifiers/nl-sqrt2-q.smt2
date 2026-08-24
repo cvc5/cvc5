@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --no-cegqi --mbqi
 ; EXPECT: unsat
 ; REQUIRES: poly

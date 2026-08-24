@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --produce-models --decision=internal --nl-rlv=always -q
 ; EXPECT: sat
 (set-logic QF_NRAT)

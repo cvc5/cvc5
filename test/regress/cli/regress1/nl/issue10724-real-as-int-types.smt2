@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --solve-real-as-int -q
 ; EXPECT: sat
 (set-logic ALL)

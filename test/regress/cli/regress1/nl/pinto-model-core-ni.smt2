@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --nl-ext-tplanes --produce-models --model-core=non-implied
 ; EXPECT: sat
 (set-logic ALL)

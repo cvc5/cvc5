@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; EXPECT: sat
 ; COMMAND-LINE: -q
 (set-logic ALL)

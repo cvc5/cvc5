@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --incremental --fmf-fun
 ; DISABLE-TESTER: model
 (set-logic UFDTLIA)

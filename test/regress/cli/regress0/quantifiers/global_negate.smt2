@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; EXPECT: sat
 (set-option :global-declarations true)
 (set-logic QF_FP)

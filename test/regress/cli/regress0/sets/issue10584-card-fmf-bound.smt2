@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; EXPECT: unknown
 (set-logic ALL)
 (set-option :produce-models true)

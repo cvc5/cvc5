@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --strict-parsing
 ; EXPECT: sat
 (set-logic QF_FP)

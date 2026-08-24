@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --sort-inference
 ; EXPECT: sat
 (set-logic HO_ALL)

@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --finite-model-find
 ; EXPECT: sat
 (set-logic HO_UF)

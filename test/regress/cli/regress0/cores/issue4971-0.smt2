@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --incremental --cegqi-full --produce-unsat-cores
 ; EXPECT: unsat
 ; EXPECT: unsat

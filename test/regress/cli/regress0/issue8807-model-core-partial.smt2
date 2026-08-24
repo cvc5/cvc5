@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --model-cores=simple -q
 ; EXPECT: sat
 (set-logic ALL)

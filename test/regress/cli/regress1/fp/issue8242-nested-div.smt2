@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --check-models
 ; EXPECT: sat
 (set-logic QF_FP)

@@ -1,6 +1,5 @@
 ; COMMAND-LINE: --bitblast=lazy
 ; COMMAND-LINE: --bitblast=eager
-; COMMAND-LINE: --bv-solver=bitblast-internal
 ; EXPECT: sat
 ; DISABLE-TESTER: model
 ; Note we disable model testing since the 2nd config is incompatible with models, while the other 2 configurations are.

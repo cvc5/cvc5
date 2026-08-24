@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 (set-logic QF_UFNIA)
 (set-info :status sat)
 (set-option :nl-ext-ent-conf true)

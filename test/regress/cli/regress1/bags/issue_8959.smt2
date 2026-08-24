@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 (set-logic ALL)
 (set-info :status sat)
 (declare-fun e () (Table String String String))

@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --dump-proofs --proof-format-mode=lfsc
 ; EXIT: 0
 ; SCRUBBER: grep -v -E '.*' 

@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --incremental --use-soi
 ; EXPECT: sat
 ; EXPECT: sat

@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --nl-ext-tplanes
 ; EXPECT: sat
 (set-logic ALL)

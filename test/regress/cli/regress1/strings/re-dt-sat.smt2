@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --re-first-class
 ; EXPECT: sat
 (set-logic ALL)

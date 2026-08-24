@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 (set-logic QF_ABV)
 (set-option :bv-solver bitblast-internal)
 (set-option :check-models true)

@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 (set-logic HO_ALL)
 (set-info :status sat)
 (define-fun iabs ((x Int)) Int (ite (< x 0) (- x) x))

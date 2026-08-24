@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --ext-rew-prep=use
 (set-logic QF_SLIA)
 (declare-fun a () String)

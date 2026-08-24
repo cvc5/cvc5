@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 (set-logic HO_ALL)
 (set-info :status sat)
 (declare-fun p (Int) Bool)

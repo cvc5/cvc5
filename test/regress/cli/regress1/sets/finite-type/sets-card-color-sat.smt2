@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 (set-logic QF_BVDTLIAFS)
 (set-info :status sat)
 (set-option :produce-models true)

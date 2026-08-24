@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --quiet
 (set-logic ALL)
 (set-info :status sat)

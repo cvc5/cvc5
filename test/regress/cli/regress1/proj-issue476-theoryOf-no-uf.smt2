@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --datatypes-exp
 ; EXPECT: sat
 (set-logic QF_ADTNIA)

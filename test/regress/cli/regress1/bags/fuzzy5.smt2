@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 (set-logic ALL)
 (set-option :produce-models true)
 (set-info :status sat)

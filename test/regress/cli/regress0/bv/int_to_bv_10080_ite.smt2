@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; EXPECT: sat
 ; COMMAND-LINE: --solve-int-as-bv=8
 (set-logic QF_LIA)

@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --nl-ext=full --no-nl-ext-tf-tplanes --no-nl-ext-inc-prec
 ; EXPECT: sat
 (set-logic UFNRAT)

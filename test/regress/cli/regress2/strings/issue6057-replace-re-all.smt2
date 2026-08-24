@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --no-jh-rlv-order
 (set-logic QF_SLIA)
 (declare-fun literal_0 () String)

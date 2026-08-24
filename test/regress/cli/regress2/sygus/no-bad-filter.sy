@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --sygus-out=status --sygus-si=all --sygus-si-rcons-p=1
 ; EXPECT: feasible
 

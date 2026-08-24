@@ -40,7 +40,6 @@ class Color:
     ENDC = "\033[0m"
 
 is_windows = sys.platform.startswith('win')
-ADMISSIBLE_MODE_ERROR = re.compile(r'in (?:safe|stable) mode')
 
 class BulletSymbol:
     # On Windows, the special characters cause this error:
@@ -58,10 +57,6 @@ def print_ok(msg):
 
 def print_error(err):
     print(Color.RED + BulletSymbol.ERROR + err + Color.ENDC)
-
-def has_admissible_mode_error(output, error):
-    return bool(ADMISSIBLE_MODE_ERROR.search(output.decode()) or
-                ADMISSIBLE_MODE_ERROR.search(error.decode()))
 
 class Tester:
 
@@ -590,7 +585,6 @@ BenchmarkInfo = collections.namedtuple(
         "command_line_args",
         "compare_outputs",
         "safe_mode",
-        "stable_mode"
     ],
 )
 
@@ -802,11 +796,6 @@ def run_benchmark(benchmark_info):
         benchmark_info.benchmark_dir,
         benchmark_info.timeout,
     )
-    # For all testers, if we throw an admissible error (with text
-    # "in safe mode" or "in stable mode"), we allow the benchmark to be skipped.
-    if ((benchmark_info.safe_mode or benchmark_info.stable_mode) and
-        has_admissible_mode_error(output, error)):
-        return (output, error, EXIT_SKIP)
     if is_timeout(exit_status, output, error):
         return (output, error, STATUS_TIMEOUT)
 
@@ -1019,7 +1008,6 @@ def run_regression(
             command_line_args=all_args,
             compare_outputs=True,
             safe_mode=("safe-mode" in cvc5_features),
-            stable_mode=("stable-mode" in cvc5_features)
         )
         for tester_name, tester in g_testers.items():
             if tester_name in testers and tester.applies(benchmark_info):

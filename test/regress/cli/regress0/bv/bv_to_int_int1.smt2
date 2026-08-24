@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --solve-bv-as-int=sum --bvand-integer-granularity=1
 ; EXPECT: sat
 (set-logic QF_ALL)

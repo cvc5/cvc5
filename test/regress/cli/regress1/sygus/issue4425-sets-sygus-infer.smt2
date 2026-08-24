@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --sygus-inference=try -q
 ; EXPECT: unsat
 ; DISABLE-TESTER: unsat-core

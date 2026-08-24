@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --decision=stoponly --sygus-inference=try -q
 ; EXPECT: sat
 (set-logic ALL)

@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --solve-int-as-bv=4
 (set-logic QF_NIA)
 (declare-const x Int)

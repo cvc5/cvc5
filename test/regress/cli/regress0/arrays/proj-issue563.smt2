@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; SCRUBBER: sed -e 's/((f.*/((f/g'
 ; EXPECT: sat
 ; EXPECT: ((f

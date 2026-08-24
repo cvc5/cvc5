@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; EXPECT: sat
 (set-info :smt-lib-version 2.6)
 (set-logic HO_UFIDL)

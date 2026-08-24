@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; EXPECT: feasible
 ; COMMAND-LINE: --sygus-out=status --sygus-si=none --sygus-repair-const --lang=sygus2
 (set-logic LIA)

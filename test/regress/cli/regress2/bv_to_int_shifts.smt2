@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --solve-bv-as-int=sum --bvand-integer-granularity=1
 ; COMMAND-LINE: --solve-bv-as-int=sum --bvand-integer-granularity=1 --bv-to-int-use-pow2
 ; EXPECT: sat

@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 (set-logic HO_ALL)
 (set-info :status sat)
 (define-fun plus ((x Int) (y Int)) Int (+ x y))

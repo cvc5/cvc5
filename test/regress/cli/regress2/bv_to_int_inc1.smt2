@@ -1,7 +1,6 @@
-; COMMAND-LINE: --incremental --solve-bv-as-int=sum
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --incremental --solve-bv-as-int=bitwise
 ; COMMAND-LINE: --incremental --solve-bv-as-int=iand
-; COMMAND-LINE: --incremental --solve-bv-as-int=bv
 ; EXPECT sat
 ; EXPECT sat
 ; EXPECT unsat

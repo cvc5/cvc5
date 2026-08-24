@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --rlimit=10000
 ; EXPECT: unknown
 ;

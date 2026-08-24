@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --incremental --nl-ext=full --fmf-fun-rlv
 ; DISABLE-TESTER: model
 (set-logic UFNIA)

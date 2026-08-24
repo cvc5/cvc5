@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --mbqi --strings-fmf
 ; EXPECT: sat
 (set-logic ALL)

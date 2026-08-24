@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --sort-inference
 ; REQUIRES: poly
 ; EXPECT: sat

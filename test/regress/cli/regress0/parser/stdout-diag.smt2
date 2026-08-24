@@ -1,4 +1,5 @@
 ; Ensure that no `stdout` or `"stdout"` file is created
+; REQUIRES: no-restricted-mode
 ; SCRUBBER: [ -f  stdout ] || [ -f \"stdout\" ] || echo success
 ; EXPECT: success
 (set-option :global-declarations true)

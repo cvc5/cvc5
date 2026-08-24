@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --bvand-integer-granularity=9
 ; EXPECT-ERROR: Error in option parsing
 ; ERROR-SCRUBBER: grep -o "Error in option parsing"

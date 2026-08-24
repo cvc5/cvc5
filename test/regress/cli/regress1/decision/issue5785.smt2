@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --fmf-fun -i --decision=justification
 ; EXPECT: sat
 ; DISABLE-TESTER: model

@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --distinct-elim-threshold=0 -o post-asserts --check-proofs
 ; COMMAND-LINE: --distinct-elim-threshold=12 -o post-asserts --check-proofs
 ; SCRUBBER: grep -o "distinct\|^unsat$"

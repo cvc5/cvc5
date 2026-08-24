@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --produce-models --default-function-value-mode=first-enum
 ; EXPECT: sat
 ; EXPECT: (

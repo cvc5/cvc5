@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; EXPECT: unsat
 ; EXPECT: (
 ; EXPECT: a0

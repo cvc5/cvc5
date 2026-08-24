@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; EXPECT: unknown
 ; DISABLE-TESTER: lfsc
 (set-logic ALL)

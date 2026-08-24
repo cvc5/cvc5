@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 (set-logic HO_UF)
 (set-info :status sat)
 (set-option :fmf-bound true)

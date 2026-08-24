@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE:
 ; EXPECT: sat
 (set-logic HO_NIA)

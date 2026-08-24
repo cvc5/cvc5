@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; DISABLE-TESTER: lfsc
 ; DISABLE-TESTER: cpc
 (set-logic ALL)

@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --dt-nested-rec
 ; EXPECT: sat
 (set-logic ALL)

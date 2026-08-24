@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 (set-logic ALL)
 (declare-const A (Bag Bool))
 (set-info :status sat)

@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; SCRUBBER: sed -e 's/((x.*//g'
 ; EXPECT: sat
 (set-logic ALL)

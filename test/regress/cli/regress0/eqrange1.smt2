@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 (set-logic QF_AUFBV)
 (set-option :arrays-exp true)
 (set-option :quiet true) ; Suppress check-model warnings involving quantifiers

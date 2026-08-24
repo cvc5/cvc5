@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; DISABLE-TESTER: model
 (set-logic ALL)
 (set-info :status sat)

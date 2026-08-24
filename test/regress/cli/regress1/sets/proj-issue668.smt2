@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; EXPECT: sat
 ; EXPECT: sat
 (set-logic ALL)

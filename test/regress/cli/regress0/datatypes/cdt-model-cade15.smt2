@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 (set-logic ALL)
 (set-info :status sat)
 (declare-codatatypes ((Stream 0)) (((C (c Stream)) (D (d Stream)) (E (e Stream)))))

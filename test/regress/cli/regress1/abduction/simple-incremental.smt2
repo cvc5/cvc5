@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --produce-abducts
 ; SCRUBBER: grep -v -E '(\(define-fun)'
 ; EXIT: 0

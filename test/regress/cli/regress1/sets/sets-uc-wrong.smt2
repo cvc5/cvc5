@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: -i
 ; EXPECT: sat
 ; EXPECT: sat

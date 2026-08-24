@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --solve-bv-as=iand --check-models
 ; EXPECT: sat
 (set-logic ALL)

@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; DISABLE-TESTER: unsat-core
 ; DISABLE-TESTER: proof
 ; EXPECT: unsat

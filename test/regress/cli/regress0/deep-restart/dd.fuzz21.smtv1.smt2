@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --deep-restart=input
 ; EXPECT: unsat
 ; DISABLE-TESTER: unsat-core

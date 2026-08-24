@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; EXPECT: sat
 ; COMMAND-LINE: --sygus-inference=try --quiet
 (set-logic HO_ALL)

@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --dt-stc-ind --conjecture-gen
 ; DISABLE-TESTER: unsat-core
 ; DISABLE-TESTER: cpc

@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; EXPECT: sat
 (set-logic ALL)
 (set-option :solve-int-as-bv 3714675145)

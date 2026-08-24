@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --cegqi-nested-qe -q
 ; EXPECT: sat
 (set-logic BV)

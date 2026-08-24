@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; EXPECT: feasible
 ; COMMAND-LINE: --lang=sygus2 --sygus-out=status --cegqi-bv
 (set-logic BV)

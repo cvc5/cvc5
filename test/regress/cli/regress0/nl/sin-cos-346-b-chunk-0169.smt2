@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --nl-ext-tplanes --nl-cov
 ; REQUIRES: poly
 ; EXPECT: sat

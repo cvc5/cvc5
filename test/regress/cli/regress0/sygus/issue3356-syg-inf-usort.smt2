@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --sygus-inference=try
 ; EXPECT: sat
 (set-logic ALL)

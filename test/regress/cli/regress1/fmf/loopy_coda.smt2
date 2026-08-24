@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --finite-model-find --e-matching
 ; EXPECT: sat
 (set-logic ALL)

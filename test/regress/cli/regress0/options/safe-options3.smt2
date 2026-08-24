@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --safe-mode=safe --full-saturate-quant
 ; EXPECT: sat
 ; DISABLE-TESTER: model

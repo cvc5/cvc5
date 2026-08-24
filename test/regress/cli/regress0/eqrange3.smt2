@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 (set-logic QF_AUFLIA)
 (set-option :arrays-exp true)
 (set-option :quiet true) ; Suppress Warning

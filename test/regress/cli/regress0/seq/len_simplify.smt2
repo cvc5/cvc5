@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --foreign-theory-rewrite -q
 ; EXPECT: sat
 (set-logic ALL)

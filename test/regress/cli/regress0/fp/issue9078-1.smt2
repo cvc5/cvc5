@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; EXPECT: sat
 (set-logic ALL)
 (declare-const x (_ FloatingPoint 11 53))

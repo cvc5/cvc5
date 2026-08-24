@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; EXPECT: sat
 (set-logic HO_QF_AUFBVLIA)
 (declare-fun a (Int) Int)

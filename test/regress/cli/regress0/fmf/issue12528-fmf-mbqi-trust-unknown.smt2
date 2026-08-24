@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --finite-model-find --fmf-mbqi=trust -o incomplete
 ; EXPECT: (incomplete INCOMPLETE QUANTIFIERS_FMF)
 ; EXPECT: unknown

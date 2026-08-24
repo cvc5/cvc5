@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --bv-gauss-elim
 ; EXPECT: sat
 ; Regression for a bug where Gaussian elimination over UREM equations produced

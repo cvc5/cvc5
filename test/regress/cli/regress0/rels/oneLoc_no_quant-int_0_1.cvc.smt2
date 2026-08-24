@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; EXPECT: sat
 (set-option :incremental false)
 (set-logic QF_UFDTFS)

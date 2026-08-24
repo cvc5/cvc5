@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --produce-interpolants
 ; EXPECT: sat
 (set-logic ALL)

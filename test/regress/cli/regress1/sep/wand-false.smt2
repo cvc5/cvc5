@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; EXPECT: sat
 ; DISABLE-TESTER: model
 (set-logic QF_ALL)
