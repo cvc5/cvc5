@@ -1160,6 +1160,15 @@ Node DatatypesRewriter::expandUpdater(const Node& n)
     }
   }
   ret = b;
+  // Tuples have a single constructor, so the tester would be trivially true
+  // and the ITE would immediately rewrite away. We do not introduce it at all,
+  // so that (is tuple t) never appears in a term or a proof. The Eunoia rule
+  // dt-updater-elim expects the bare updated tuple as the right hand side in
+  // this case.
+  if (tn.isTuple())
+  {
+    return ret;
+  }
   // note it may be that this dt has one constructor, in which case this
   // tester will rewrite to true.
   // must be the right constructor to update

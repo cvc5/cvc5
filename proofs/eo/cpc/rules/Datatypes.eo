@@ -376,20 +376,52 @@
   )
 )
 
+; program: $mk_dt_updater_elim_conc
+; args:
+; - u D: The update term.
+; - rhs D: The claimed right hand side of the equality.
+; return: true if rhs is the correct right hand side for eliminating u.
+; note: >
+;   For an ordinary datatype, the right hand side is an ITE guarded by the
+;   tester for the constructor of the updater. That ITE is also where the
+;   constructor c is obtained from, since a selector does not determine its
+;   constructor on its own.
+;
+;   Tuples have a single constructor, so the tester would be trivially true and
+;   the ITE would collapse immediately. We require the updated tuple directly
+;   instead, so that (is tuple t) never appears in a proof. Note tuple.unit has
+;   no arguments and hence is never updated.
+(program $mk_dt_updater_elim_conc
+  ((D Type) (T Type) (C Type) (s (-> D T)) (t D) (a T) (n Int) (c C) (tu D))
+  :signature (D D) Bool
+  (
+  (($mk_dt_updater_elim_conc (tuple.update n t a) tu)
+    (eo::requires
+      ($mk_dt_updater_elim_rhs (tuple.update n t a) tuple ($dt_get_selectors (eo::typeof t) tuple)) tu
+      true))
+  (($mk_dt_updater_elim_conc (update s t a) (ite (is c t) tu t))
+    (eo::requires
+      ($mk_dt_updater_elim_rhs (update s t a) c ($dt_get_selectors (eo::typeof t) c)) tu
+      true))
+  )
+)
+
 ; rule: dt-updater-elim
 ; implements: ProofRewriteRule::DT_UPDATER_ELIM
 ; args:
 ; - eq Bool: The equality to prove.
 ; requires: >
-;   We require that the right hand side is an ITE where the then branch is
-;   obtained by updating the proper argument of t, as implemented by $is_dt_updater_elim.
+;   We require that the right hand side is the one computed by
+;   $mk_dt_updater_elim_conc: an ITE on the tester whose then branch is obtained
+;   by updating the proper argument of t, or, for a tuple, that updated term on
+;   its own.
 ; conclusion: The given equality.
 ; note: The parameter u is expected to be an updater (either update or tuple.update). Its
 ;       given type is U here (which is unconstrained). The parameter s is either
 ;       a selector or an integer.
 (declare-rule dt-updater-elim
-  ((D Type) (T Type) (C Type) (t D) (a T) (u (-> D T D)) (tu D) (c C))
-  :args ((= (u t a) (ite (is c t) tu t)))
-  :requires ((($mk_dt_updater_elim_rhs (u t a) c ($dt_get_selectors (eo::typeof t) c)) tu))
-  :conclusion (= (u t a) (ite (is c t) tu t))
+  ((D Type) (T Type) (t D) (a T) (u (-> D T D)) (rhs D))
+  :args ((= (u t a) rhs))
+  :requires ((($mk_dt_updater_elim_conc (u t a) rhs) true))
+  :conclusion (= (u t a) rhs)
 )
