@@ -164,11 +164,14 @@ void ExponentialSolver::checkMonotonic()
   for (const Node& tf : it->second)
   {
     Node mva = d_data->d_model.computeAbstractModelValue(tf);
-    if (mva == tf)
+    if (!mva.isConst())
     {
-      // if it was not assigned a model value by the linear solver, it is
-      // not a relevant term. This can happen for terms like (exp (exp 1.0)),
+      // If it was not assigned a model value by the linear solver, it is not
+      // a relevant term. This can happen for terms like (exp (exp 1.0)),
       // where (exp 1.0) is not relevant until we purify (exp (exp 1.0)).
+      // Note that the abstract model value of such a term is not necessarily
+      // the term itself: it is computed from the model values of its
+      // arguments, e.g. (exp c) for a constant c, which does not evaluate.
       continue;
     }
     Node a = tf[0];

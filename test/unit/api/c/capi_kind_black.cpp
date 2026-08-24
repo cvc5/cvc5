@@ -13,6 +13,7 @@
 #include <cvc5/c/cvc5.h>
 
 #include "gtest/gtest.h"
+#include "test_capi.h"
 
 namespace cvc5::internal::test {
 
@@ -22,8 +23,8 @@ class TestCApiKind : public ::testing::Test
 
 TEST_F(TestCApiKind, kind_to_string)
 {
-  ASSERT_DEATH(cvc5_kind_to_string(static_cast<Cvc5Kind>(-5)),
-               "invalid term kind");
+  ASSERT_CVC5_ERROR(cvc5_kind_to_string(static_cast<Cvc5Kind>(-5)),
+                    "invalid term kind");
 
   for (int32_t k = static_cast<int32_t>(CVC5_KIND_INTERNAL_KIND);
        k < static_cast<int32_t>(CVC5_KIND_LAST_KIND);

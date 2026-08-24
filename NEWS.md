@@ -1,5 +1,40 @@
 This file contains a summary of important user-visible changes.
 
+cvc5 1.3.5 prerelease
+=====================
+
+## Changes
+
+- The C API no longer terminates the process when an error occurs. Instead of
+  printing to stderr and calling `exit()`, C API functions now record the error
+  in thread-local state and return a default value (e.g., `NULL`, `false`, or
+  `0`). Callers can query the error via the new functions `cvc5_has_error()` and
+  `cvc5_get_error_message()`, and clear it via `cvc5_reset_error()`. The error
+  state is reset at the start of the next C API call that can raise an error.
+
+- We now eagerly expand applications of `distinct` having at most 10 children.
+  A further option `--distinct-elim-threshold=N` is added to eliminate
+  `distinct` constraints having up to `N` children (where `0` indicates no
+  limit).
+
+- **MPFR >= 4.2.1** is now the default **floating-point constant-folding** back
+  end (instead of SymFPU). To use SymFPU as the back-end, configure the build
+  with `./configure.sh --no-mpfr`.
+
+- Added new **abstraction refinement strategy** for abstracting **bit-vector
+  arithmetic** operators, see [Aina Niemetz, Mathias Preiner and Yoni Zohar.
+  Scalable Bit-Blasting with Abstractions. CAV 2024, Springer, 2024](
+  https://doi.org/10.1007/978-3-031-65627-9_9).
+  Enable with option `--bv-abstraction`, the minimum bit-width of relevant terms
+  to abstract can be configured via option `--bv-abstraction-size`.
+  Right now, this is *not* supported in combination with option
+  `--bv-solver=bitblast-internal` (enabling option `--bv-abstraction` has no
+  effect).
+
+- CPC proofs now always end with a `step` command. Previously, when `false` was
+  directly an input assertion, the proof would instead end with an `assume`
+  command.
+
 cvc5 1.3.4
 ==========
 

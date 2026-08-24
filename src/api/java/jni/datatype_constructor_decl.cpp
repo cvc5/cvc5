@@ -142,14 +142,15 @@ JNIEXPORT jstring JNICALL Java_io_github_cvc5_DatatypeConstructorDecl_toString(
 /*
  * Class:     io_github_cvc5_DatatypeConstructorDecl
  * Method:    hashCode
- * Signature: (J)I
+ * Signature: (J)J
  */
-JNIEXPORT jint JNICALL Java_io_github_cvc5_DatatypeConstructorDecl_hashCode(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_DatatypeConstructorDecl_hashCode(
     JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   DatatypeConstructorDecl* result =
       reinterpret_cast<DatatypeConstructorDecl*>(pointer);
-  return static_cast<jint>(std::hash<cvc5::DatatypeConstructorDecl>()(*result));
+  return static_cast<jlong>(
+      std::hash<cvc5::DatatypeConstructorDecl>()(*result));
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }

@@ -153,6 +153,59 @@ typedef struct cvc5_stat_t* Cvc5Stat;
 typedef struct cvc5_stats_t* Cvc5Statistics;
 
 /* -------------------------------------------------------------------------- */
+/* Error handling                                                             */
+/* -------------------------------------------------------------------------- */
+
+/** \addtogroup c_error_handling
+ *  @{
+ */
+
+/**
+ * Determine if an error occurred during the most recent cvc5 C API call on the
+ * current thread.
+ *
+ * Rather than terminating the process, cvc5 C API functions record errors in
+ * thread-local state and return a default value (e.g., `NULL`, `false`, or `0`)
+ * on failure. After invoking a C API function, the caller can use this function
+ * to check whether the call succeeded, and `cvc5_get_error_message()` to
+ * retrieve the associated error message.
+ *
+ * The error state is reset at the beginning of each (non-query) C API call,
+ * thus it always reflects the outcome of the most recent such call. It can also
+ * be reset manually via `cvc5_reset_error()`.
+ *
+ * @note This function does not itself modify the error state.
+ *
+ * @return True if the most recent C API call on this thread resulted in an
+ *         error.
+ */
+CVC5_EXPORT bool cvc5_has_error(void);
+
+/**
+ * Retrieve the error message associated with the most recent error on the
+ * current thread.
+ *
+ * @note This function does not itself modify the error state. The returned
+ *       pointer is owned by cvc5 and is only valid until the next C API call on
+ *       this thread.
+ *
+ * @return The message of the most recent error, or the empty string if no
+ *         error has occurred (i.e., if `cvc5_has_error()` returns false).
+ */
+CVC5_EXPORT const char* cvc5_get_error_message(void);
+
+/**
+ * Reset the thread-local error state.
+ *
+ * After calling this function, `cvc5_has_error()` returns false and
+ * `cvc5_get_error_message()` returns the empty string, until the next error
+ * occurs.
+ */
+CVC5_EXPORT void cvc5_reset_error(void);
+
+/** @} */
+
+/* -------------------------------------------------------------------------- */
 /* Cvc5Result                                                                 */
 /* -------------------------------------------------------------------------- */
 
