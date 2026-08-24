@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 (set-logic UFBV)
 (set-option :cegqi-all true)
 (set-info :status unsat)

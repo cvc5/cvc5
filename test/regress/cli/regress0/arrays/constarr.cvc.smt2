@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --arrays-exp
 ; EXPECT: unsat
 (set-logic ALL)

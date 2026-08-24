@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --relational-triggers --full-saturate-quant
 ; EXPECT: unsat
 (set-logic UFNIA)

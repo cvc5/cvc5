@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 (set-logic QF_SEP_LIA)
 (set-info :status unsat)
 (declare-heap (Int Int))

@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; DISABLE-TESTER: alethe
 ; COMMAND-LINE: --cegqi-inf-int
 ; EXPECT: unsat

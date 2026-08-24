@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; EXPECT: unsat
 (set-logic ALL)
 (declare-fun x () Int)

@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --finite-model-find --sort-inference
 ; EXPECT: unsat
 ; DISABLE-TESTER: lfsc

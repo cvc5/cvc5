@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; EXPECT: unsat
 (set-option :incremental false)
 (set-option :sets-exp true)

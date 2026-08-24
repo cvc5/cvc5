@@ -1,3 +1,4 @@
+; REQUIRES: no-safe-mode
 ; COMMAND-LINE: --cegqi-nested-qe
 ; EXPECT: unsat
 (set-logic LRA)

@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --solve-bv-as-int=sum --sygus-inst
 ; EXPECT: unsat
 (set-logic UFBV)

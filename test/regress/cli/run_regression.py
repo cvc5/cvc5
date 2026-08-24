@@ -369,11 +369,6 @@ class CpcTester(Tester):
                 benchmark_info.benchmark_dir,
                 benchmark_info.timeout,
             )
-            # if we throw an admissible error (with text "in safe mode" or
-            # "in stable mode"), we allow the benchmark to be skipped.
-            if ((benchmark_info.safe_mode or benchmark_info.stable_mode) and
-                has_admissible_mode_error(output, error)):
-                return EXIT_SKIP
             exit_code = self.check_exit_status(EXIT_OK, exit_status, output,
                                                error, cvc5_args)
             if exit_code != EXIT_OK:
@@ -406,8 +401,15 @@ class CpcTester(Tester):
                                                error, cvc5_args)
             if exit_code != EXIT_OK:
                 return exit_code
-            if ("correct" not in output) and ("incomplete" not in output):
-                print_error("Invalid proof")
+            # Proofs that contain trust steps are reported as "incomplete" by
+            # ethos. These are tolerated, apart from in safe mode, where all
+            # features that lack proof support are disabled and hence proofs
+            # are expected to be complete.
+            valid = ["correct"] if benchmark_info.safe_mode \
+                else ["correct", "incomplete"]
+            if not any(v in output for v in valid):
+                print_error("Incomplete proof" if "incomplete" in output
+                            else "Invalid proof")
                 print()
                 print_outputs(output, error)
                 return EXIT_FAILURE
@@ -757,6 +759,14 @@ def get_cvc5_features(cvc5_binary, timeout):
                 features.append(key)
             elif value == "no":
                 disabled_features.append(key)
+
+    # Safe and stable builds are both "restricted" builds. This synthetic
+    # feature allows a benchmark that is not admissible in either to be
+    # excluded with a single "REQUIRES: no-restricted-mode".
+    if "safe-mode" in features or "stable-mode" in features:
+        features.append("restricted-mode")
+    else:
+        disabled_features.append("restricted-mode")
 
     return features, disabled_features
 

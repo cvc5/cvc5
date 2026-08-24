@@ -1,5 +1,4 @@
 ; COMMAND-LINE:
-; COMMAND-LINE: --re-elim=agg
 (set-logic QF_SLIA)
 (set-info :status unsat)
 (declare-fun a () String)

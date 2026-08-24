@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; EXPECT: unsat
 (set-logic HO_ALL)
 (declare-sort A$ 0)

@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --ieval=use
 ; EXPECT: unsat
 (set-logic HO_ALL)

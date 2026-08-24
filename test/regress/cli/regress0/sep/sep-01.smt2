@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 (set-logic QF_ALL)
 (set-info :status unsat)
 (declare-heap (Int Int))

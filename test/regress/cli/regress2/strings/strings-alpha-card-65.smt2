@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --strings-alpha-card=32 --simplification=none
 ; EXPECT: unsat
 (set-logic QF_SLIA)

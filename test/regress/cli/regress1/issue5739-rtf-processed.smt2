@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --cegqi-full
 ; EXPECT: unsat
 (set-logic ALL)

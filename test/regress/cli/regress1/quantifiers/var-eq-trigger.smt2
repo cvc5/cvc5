@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --relational-triggers
 ; EXPECT: unsat
 (set-logic UFNIA)

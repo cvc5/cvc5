@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --arrays-exp
 (set-logic QF_A)
 (set-info :status unsat)

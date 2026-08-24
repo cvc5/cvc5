@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 (set-logic LIRA)
 (set-info :status unsat)
 (set-option :cegqi-inf-int true)

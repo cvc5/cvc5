@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --parse-skolem-definitions --print-skolem-definitions
 ;; Non-SMT-LIB benchmark
 ; DISABLE-TESTER: alethe

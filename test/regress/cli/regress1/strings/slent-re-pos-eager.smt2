@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --strings-re-posc-eager
 ; EXPECT: unsat
 (set-logic QF_SLIA)

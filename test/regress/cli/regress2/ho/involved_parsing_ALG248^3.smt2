@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --ho-elim
 (set-logic HO_ALL)
 (set-info :status unsat)

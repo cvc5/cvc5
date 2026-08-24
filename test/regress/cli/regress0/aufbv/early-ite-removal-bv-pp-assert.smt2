@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --early-ite-removal
 ; EXPECT: unsat
 (set-logic QF_ABV)

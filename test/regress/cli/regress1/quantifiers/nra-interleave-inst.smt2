@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --cegqi-multi-inst
 ; EXPECT: unsat
 (set-info :smt-lib-version 2.6)

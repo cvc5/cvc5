@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --sat-solver=cadical
 ; EXPECT: unsat
 ; Tests proof reconstruction of a datatypes tester merge conflict where the

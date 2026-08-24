@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --mbqi
 ; EXPECT: unsat
 (set-logic HO_ALL)

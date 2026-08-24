@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --sort-inference --finite-model-find
 ; EXPECT: unsat
 ; DISABLE-TESTER: unsat-core

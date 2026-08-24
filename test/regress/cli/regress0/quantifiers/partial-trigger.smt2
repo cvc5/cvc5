@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --partial-triggers
 ; EXPECT: unsat
 (set-logic ALL)

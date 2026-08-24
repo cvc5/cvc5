@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; DISABLE-TESTER: lfsc
 (set-logic HO_ALL)
 (set-info :status unsat)

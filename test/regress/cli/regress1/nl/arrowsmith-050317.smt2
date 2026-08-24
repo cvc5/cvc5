@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; DISABLE-TESTER: unsat-core
 ; COMMAND-LINE: --nl-ext=full
 ; EXPECT: unsat

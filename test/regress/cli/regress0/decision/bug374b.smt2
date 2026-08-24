@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --decision=justification --no-unconstrained
 ; EXPECT: unsat
 

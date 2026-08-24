@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --unconstrained-simp
 ; EXPECT: unsat
 (set-logic ALL)

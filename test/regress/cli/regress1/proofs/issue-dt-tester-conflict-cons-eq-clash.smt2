@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --sat-solver=cadical
 ; EXPECT: unsat
 ; Tests that the proof for a datatypes tester merge conflict (is-C1(x) and

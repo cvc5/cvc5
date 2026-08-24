@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 (set-logic ALL)
 (set-info :status unsat)
 (declare-fun A () (Table Int Int Int))

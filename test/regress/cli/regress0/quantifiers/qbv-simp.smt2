@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --cegqi-bv --no-cegqi-full
 ; EXPECT: unsat
 (set-logic BV)

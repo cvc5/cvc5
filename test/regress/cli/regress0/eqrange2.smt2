@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 (set-logic AUFBV)
 (set-option :arrays-exp true)
 (set-info :status unsat)

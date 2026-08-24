@@ -1,3 +1,4 @@
+; REQUIRES: no-safe-mode
 ; DISABLE-TESTER: lfsc
 ; COMMAND-LINE: --bv-solver=bitblast
 (set-option :incremental false)

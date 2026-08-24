@@ -1,3 +1,4 @@
+; REQUIRES: no-safe-mode
 (set-logic QF_ABV)
 (set-info :status unsat)
 (set-option :bv-solver bitblast-internal)

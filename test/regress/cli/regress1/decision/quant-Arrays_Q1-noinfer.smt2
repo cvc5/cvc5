@@ -1,5 +1,4 @@
 ; COMMAND-LINE: --decision=justification
-; COMMAND-LINE: --sub-cbqi
 ; EXPECT: unsat
 
 (set-logic AUFLIA)

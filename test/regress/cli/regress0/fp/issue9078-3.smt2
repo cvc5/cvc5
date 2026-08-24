@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; EXPECT: unsat
 (set-logic QF_BVFP)
 (declare-const __ (_ BitVec 1))

@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --mbqi --leibniz-elim
 ; EXPECT: unsat
 (set-logic HO_ALL)

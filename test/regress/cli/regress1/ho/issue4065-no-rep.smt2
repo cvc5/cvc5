@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 (set-logic HO_AUFBV)
 (set-info :status unsat)
 (set-option :fmf-bound true)

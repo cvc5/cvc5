@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --seq-array=eager
 ; DISABLE-TESTER: unsat-core
 ; timeout with unsat cores

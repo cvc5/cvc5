@@ -1,3 +1,4 @@
+; REQUIRES: no-restricted-mode
 ; COMMAND-LINE: --ackermann
 ; EXPECT: unsat
 ; DISABLE-TESTER: unsat-core
