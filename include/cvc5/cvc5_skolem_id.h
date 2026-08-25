@@ -787,6 +787,16 @@ enum ENUM(SkolemId)
    *   otherwise.
    */
   EVALUE(BV_TO_INT_UF),
+  /**
+   * The witness of a finite field disequality ``(not (= a b))``, i.e. the
+   * inverse of ``(- a b)``. It is used to encode the disequality as the
+   * polynomial equation ``(= (+ (* (- a b) k) -1) 0)``.
+   *
+   * - Number of skolem indices: ``1``
+   *   - ``1:`` The disequality.
+   * - Sort: The finite field sort of the disequality.
+   */
+  EVALUE(FF_DISEQ_WITNESS),
 
   //================================================= Unknown rule
   /** Indicates this is not a skolem. */
