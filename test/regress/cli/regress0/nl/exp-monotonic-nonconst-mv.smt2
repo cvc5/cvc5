@@ -1,5 +1,5 @@
 ; COMMAND-LINE: --rlimit=10000
-; EXPECT: unknown
+; EXPECT: sat
 ;
 ; Reduced from regress2/nl/dumortier-050317.smt2. When checking monotonicity of
 ; exponential terms, an (exp t) term whose value was not assigned by the linear
@@ -7,8 +7,6 @@
 ; term itself. That value is instead computed from the model values of the
 ; arguments, e.g. (exp c) for a constant c, which is not itself constant. Such
 ; terms were thus not filtered out, leading to an assertion failure.
-;
-; Note this benchmark does not terminate on its own, hence the resource limit.
 (set-logic QF_NRAT)
 (declare-fun t0 () Real)
 (declare-fun t1 () Real)
