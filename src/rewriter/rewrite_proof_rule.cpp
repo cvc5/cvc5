@@ -120,8 +120,8 @@ void RewriteProofRule::init(ProofRewriteRule id,
           && expr::hasSubtermKind(Kind::APPLY_INDEXED_SYMBOLIC, d_context));
   for (const Node& c : d_cond)
   {
-    d_hasIndexedOp = d_hasIndexedOp
-                     || expr::hasSubtermKind(Kind::APPLY_INDEXED_SYMBOLIC, c);
+    d_hasIndexedOp =
+        d_hasIndexedOp || expr::hasSubtermKind(Kind::APPLY_INDEXED_SYMBOLIC, c);
   }
 
   d_numFv = fvs.size();

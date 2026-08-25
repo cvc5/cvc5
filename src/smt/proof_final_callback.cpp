@@ -13,7 +13,6 @@
 #include "smt/proof_final_callback.h"
 
 #include "expr/node_algorithm.h"
-
 #include "expr/skolem_manager.h"
 #include "options/base_options.h"
 #include "options/proof_options.h"

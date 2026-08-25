@@ -168,8 +168,8 @@ bool RewriteDbProofCons::proveEqStratified(CDProof* cdp,
   // traverse eqi when it is the (unconverted) input equality. Note also that
   // this flag may additionally be set during the search below, if a RARE rule
   // that mentions an indexed operator is applied.
-  d_currFold = (eq != eqi)
-               && expr::hasSubtermKind(Kind::APPLY_INDEXED_SYMBOLIC, eqi);
+  d_currFold =
+      (eq != eqi) && expr::hasSubtermKind(Kind::APPLY_INDEXED_SYMBOLIC, eqi);
   bool success = false;
   // first, try the basic utility, which is run on the folded form of eqi
   Node eqif = fold(eqi);
@@ -1669,8 +1669,8 @@ Node RewriteDbProofCons::fold(const Node& n)
 }
 
 void RewriteDbProofCons::getCongPremises(const Node& n,
-                                        const Node& fn,
-                                        std::vector<Node>& ps)
+                                         const Node& fn,
+                                         std::vector<Node>& ps)
 {
   if (n.getKind() != Kind::APPLY_INDEXED_SYMBOLIC
       || fn.getKind() == Kind::APPLY_INDEXED_SYMBOLIC)
