@@ -163,10 +163,13 @@ bool RewriteDbProofCons::proveEqStratified(CDProof* cdp,
 {
   // Determine whether the search below may involve indexed operators that were
   // lifted to APPLY_INDEXED_SYMBOLIC. If so, the proof we construct is for the
-  // folded form of eqi, which is the form of terms used in proofs. Note this
-  // may additionally be set during the search below, if a RARE rule that
-  // mentions an indexed operator is applied.
-  d_currFold = expr::hasSubtermKind(Kind::APPLY_INDEXED_SYMBOLIC, eqi);
+  // folded form of eqi, which is the form of terms used in proofs. Note that
+  // lifting is the only way such terms are introduced, hence we do not have to
+  // traverse eqi when it is the (unconverted) input equality. Note also that
+  // this flag may additionally be set during the search below, if a RARE rule
+  // that mentions an indexed operator is applied.
+  d_currFold = (eq != eqi)
+               && expr::hasSubtermKind(Kind::APPLY_INDEXED_SYMBOLIC, eqi);
   bool success = false;
   // first, try the basic utility, which is run on the folded form of eqi
   Node eqif = fold(eqi);
