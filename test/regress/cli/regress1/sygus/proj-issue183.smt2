@@ -1,4 +1,4 @@
-; COMMAND-LINE:
+; COMMAND-LINE: --sat-solver=minisat
 ; EXPECT: sat
 (set-logic ALL)
 (set-option :sygus-inference try)
