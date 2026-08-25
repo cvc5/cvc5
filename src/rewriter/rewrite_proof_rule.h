@@ -86,6 +86,13 @@ class RewriteProofRule
    * d_context is (lambda x (f a (g x b))), then d_pathToCtx = [1,0].
    */
   const std::vector<size_t> getPathToContextVar() const { return d_pathToCtx; }
+  /**
+   * Does the statement of this rule mention an indexed operator whose indices
+   * are given as explicit arguments (APPLY_INDEXED_SYMBOLIC)? If so, instances
+   * of this rule must be folded when constructing proofs, since such terms
+   * have no counterpart in external proof formats.
+   */
+  bool hasIndexedOperator() const;
   /** Does this rule have conditions? */
   bool hasConditions() const;
   /** Get (declared) conditions */
@@ -205,6 +212,8 @@ class RewriteProofRule
   std::vector<Node> d_fvs;
   /** number of free variables */
   size_t d_numFv;
+  /** Whether this rule mentions an indexed operator, see above */
+  bool d_hasIndexedOp;
   /**
    * The free variables that do not occur in the conditions. These cannot be
    * "holes" in a proof.

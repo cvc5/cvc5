@@ -361,6 +361,12 @@ enum ENUM(ProofRule)
    * formulas or change the representation of :math:`t` in a way that is a
    * no-op in external proof formats.
    *
+   * Note that this conversion never introduces applications of indexed
+   * operators whose indices are given as explicit arguments (internally
+   * represented as `APPLY_INDEXED_SYMBOLIC`). Such terms are used internally by
+   * RARE rewrite reconstruction only; they are folded away by
+   * :cpp:enumerator:`DSL_REWRITE` and hence do not appear in proofs.
+   *
    * Note this rule can be treated as a
    * :cpp:enumerator:`REFL <cvc5::ProofRule::REFL>` when appropriate in
    * external proof formats.
@@ -378,8 +384,9 @@ enum ENUM(ProofRule)
    * where `id` is a :cpp:enum:`ProofRewriteRule` whose definition in the
    * RARE DSL is
    * :math:`\forall x_1 \dots x_n. (G_1 \wedge \cdots \wedge G_n) \Rightarrow G`
-   * where for :math:`i=1, \dots n`, we have that :math:`F_i = \sigma(G_i)`
-   * and :math:`F = \sigma(G)` where :math:`\sigma` is the substitution
+   * where for :math:`i=1, \dots n`, we have that
+   * :math:`F_i = \downarrow\sigma(G_i)` and :math:`F = \downarrow\sigma(G)`
+   * where :math:`\sigma` is the substitution
    * :math:`\{x_1\mapsto t_1,\dots,x_n\mapsto t_n\}`.
    *
    * Notice that the application of the substitution takes into account the
@@ -389,6 +396,15 @@ enum ENUM(ProofRule)
    * :math:`\texttt{expr::narySubstitute}` (for details, see
    * :cvc5src:`expr/nary_term_util.h`) which replaces each :math:`x_i` with the
    * list :math:`t_i` in its place.
+   *
+   * Here, :math:`\downarrow t` denotes the *folding* of :math:`t`, which
+   * replaces each application of an indexed operator whose indices are given as
+   * explicit arguments by the corresponding ordinary application of that
+   * indexed operator, e.g. the term denoting `(extract 3 0 x)` is folded to
+   * `((_ extract 3 0) x)`. This is applied to all subterms of :math:`t` whose
+   * indices evaluate to numeral constants; subterms whose indices do not are
+   * left unchanged. Note that folding is the identity for RARE rules that do
+   * not mention indexed operators, which is the common case.
    * \endverbatim
    */
   EVALUE(DSL_REWRITE),

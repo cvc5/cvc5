@@ -16,6 +16,7 @@
 #include "expr/attribute.h"
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
+#include "expr/node_algorithm.h"
 #include "proof/conv_proof_generator.h"
 #include "theory/builtin/generic_op.h"
 #include "theory/bv/theory_bv_utils.h"
@@ -33,9 +34,10 @@ namespace cvc5::internal {
 namespace rewriter {
 
 RewriteDbNodeConverter::RewriteDbNodeConverter(NodeManager* nm,
+                                               bool liftIndexed,
                                                TConvProofGenerator* tpg,
                                                CDProof* p)
-    : NodeConverter(nm), d_tpg(tpg), d_proof(p)
+    : NodeConverter(nm), d_liftIndexed(liftIndexed), d_tpg(tpg), d_proof(p)
 {
 }
 
@@ -135,8 +137,8 @@ Node RewriteDbNodeConverter::postConvert(Node n)
       }
     }
   }
-  // convert indexed operators to symbolic
-  if (GenericOp::isNumeralIndexedOperatorKind(k))
+  // convert indexed operators to symbolic, if applicable
+  if (d_liftIndexed && GenericOp::isNumeralIndexedOperatorKind(k))
   {
     std::vector<Node> indices =
         GenericOp::getIndicesForOperator(k, n.getOperator());
@@ -198,6 +200,33 @@ void RewriteDbNodeConverter::recordProofStep(const Node& n,
   }
 }
 
+IndexedOpFoldNodeConverter::IndexedOpFoldNodeConverter(NodeManager* nm)
+    : NodeConverter(nm)
+{
+}
+
+Node IndexedOpFoldNodeConverter::postConvert(Node n)
+{
+  if (n.getKind() == Kind::APPLY_INDEXED_SYMBOLIC)
+  {
+    // note this returns n itself if the indices are not numeral constants
+    return GenericOp::getConcreteApp(n);
+  }
+  return n;
+}
+
+Node IndexedOpFoldNodeConverter::fold(NodeManager* nm, const Node& n)
+{
+  // check first, to avoid allocating the caches of the converter in the
+  // (common) case where there is nothing to fold
+  if (!expr::hasSubtermKind(Kind::APPLY_INDEXED_SYMBOLIC, n))
+  {
+    return n;
+  }
+  IndexedOpFoldNodeConverter c(nm);
+  return c.convert(n);
+}
+
 ProofRewriteDbNodeConverter::ProofRewriteDbNodeConverter(Env& env)
     : EnvObj(env),
       d_wktc(Kind::INST_PATTERN_LIST),
@@ -215,7 +244,7 @@ ProofRewriteDbNodeConverter::ProofRewriteDbNodeConverter(Env& env)
 
 std::shared_ptr<ProofNode> ProofRewriteDbNodeConverter::convert(const Node& n)
 {
-  RewriteDbNodeConverter rdnc(nodeManager(), &d_tpg, &d_proof);
+  RewriteDbNodeConverter rdnc(nodeManager(), false, &d_tpg, &d_proof);
   Node nr = rdnc.convert(n);
   Node equiv = n.eqNode(nr);
   return d_tpg.getProofFor(equiv);
