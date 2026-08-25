@@ -1483,9 +1483,13 @@ class Comparison : public NodeWrapper
 
   static Comparison parseNormalForm(TNode n);
 
+  /**
+   * Is n an atom in normal form? Note this method does not assume that n is
+   * in normal form, in contrast to parseNormalForm.
+   */
   inline static bool isNormalAtom(TNode n)
   {
-    Comparison parse = Comparison::parseNormalForm(n);
+    Comparison parse(n);
     return parse.isNormalForm();
   }
 

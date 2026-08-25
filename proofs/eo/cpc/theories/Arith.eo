@@ -6,6 +6,18 @@
 (declare-consts <numeral> Int)
 (declare-consts <rational> Real)
 
+; define: $is_numeral
+; args:
+; - n Int: The term
+; return: true iff n is a non-negative numeral literal.
+(define $is_numeral ((n Int)) (eo::gt n -1))
+
+; define: $is_pos_numeral
+; args:
+; - n Int: The term
+; return: true iff n is a positive numeral literal.
+(define $is_pos_numeral ((n Int)) (eo::gt n 0))
+
 ; program: $arith_mk_zero
 ; args:
 ; - T Type : The type of the zero, which should be Int or Real.
@@ -71,9 +83,7 @@
       :chainable and)
 
 ; Conversion functions.
-; disclaimer: The type of this function in SMT-LIB only accepts an Int as argument.
-(declare-parameterized-const to_real ((T Type :implicit))
-  (-> T (eo::requires ($is_arith_type T) true Real)))
+(declare-const to_real (-> Int Real))
 (declare-const to_int (-> Real Int))
 (declare-const is_int (-> Real Bool))
 ; disclaimer: The type of this function in SMT-LIB only accepts an Int as argument.
