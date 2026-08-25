@@ -14,13 +14,29 @@ include_directories(${PROJECT_SOURCE_DIR}/src)
 include_directories(${PROJECT_SOURCE_DIR}/src/include)
 include_directories(${PROJECT_BINARY_DIR}/src)
 
+# Portfolio uses POSIX fork/wait. After one worker solves, siblings and their
+# timeout children must be reaped before the parent exits. --use-portfolio is
+# an expert option, so skip safe/stable builds.
+if (UNIX AND NOT ENABLE_SAFE_MODE AND NOT ENABLE_STABLE_MODE)
+  add_test(
+    NAME portfolio_stop_siblings
+    COMMAND
+    "${Python_EXECUTABLE}" "${PROJECT_SOURCE_DIR}/test/binary/portfolio_stop_siblings.py"
+    WORKING_DIRECTORY "${PROJECT_BINARY_DIR}"
+  )
+  set_tests_properties(portfolio_stop_siblings PROPERTIES LABELS "binary")
+endif()
+
+# Convenience target for every test labeled "binary" (portfolio and editline).
+# Keep this outside USE_EDITLINE so non-editline builds still have it.
+add_custom_target(binarytests
+  COMMAND ctest --output-on-failure -L "binary" -j${CTEST_NTHREADS} $$ARGS)
+
 # if we've built using libedit, (--editline) then we want the interactive shell tests
 if (USE_EDITLINE)
 
   check_python_module(pexpect)
 
-  add_custom_target(binarytests
-    COMMAND ctest --output-on-failure -L "binary" -j${CTEST_NTHREADS} $$ARGS)
   add_test(
     NAME interactive_shell
     COMMAND

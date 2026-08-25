@@ -393,7 +393,10 @@ int CadicalPropagator::cb_add_reason_clause_lit(int propagated_lit)
     SatLiteral slit = toSatLiteral(propagated_lit);
     SatClause clause;
     d_proxy->explainPropagation(slit, clause);
-    Assert(d_in_search);
+    // CaDiCaL may ask for external propagation reasons from paths
+    // outside the main solve() call, e.g., while processing assumptions between
+    // incremental checks. The reason is still a theory explanation and needs
+    // the same user-level activation guard as reasons requested during search.
     // Add activation literal of the clause's user level to the reason.
     SatLiteral alit = activation_lit(clause_user_level(clause));
     if (alit != undefSatLiteral)

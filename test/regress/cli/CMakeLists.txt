@@ -180,6 +180,9 @@ set(regress_0_tests
   regress0/arrays/issue10494.smt2
   regress0/arrays/issue10494-2.smt2
   regress0/arrays/issue11889-eec-unsat.smt2
+  regress0/arrays/issue12805-to-real-index.smt2
+  regress0/arrays/issue12805-to-real-index-2.smt2
+  regress0/arrays/issue12805-to-real-index-3.smt2
   regress0/arrays/proj-issue322-has-term.smt2
   regress0/arrays/proj-issue391-minisat-elim.smt2
   regress0/arrays/proj-issue467-cm.smt2
@@ -305,6 +308,7 @@ set(regress_0_tests
   regress0/bv/abstract/bv_urem_pow2.smt2
   regress0/bv/abstract/cross-term-div-mul-rem.smt2
   regress0/bv/abstract/eagerrefine1.smt2
+  regress0/bv/abstract/issue9874.smt2
   regress0/bv/abstract/murxla-346218efd24c9aba.min.smt2
   regress0/bv/abstract/murxla-67f411058e7b0ea7.min.smt2
   regress0/bv/abstract/murxla-a2f5f3aa83d5a854.min.smt2
@@ -1175,6 +1179,7 @@ set(regress_0_tests
   regress0/nl/dd.polypaver-bench-exp-3d-chunk-0067.smt2
   regress0/nl/dd.sin-cos-346-b-chunk-0210.smt2
   regress0/nl/dd.sin-cos-346-b-chunk-0210_unsat.smt2
+  regress0/nl/exp-monotonic-nonconst-mv.smt2
   regress0/nl/iand0.smt2
   regress0/nl/iand-no-init.smt2
   regress0/nl/issue10145-ir-pow.smt2
@@ -1514,6 +1519,9 @@ set(regress_0_tests
   regress0/proj-issue750-real-to-int-safe.smt2
   regress0/proofs/alethe-res-need-or-step.smt2
   regress0/proofs/arith-poly-norm-rel-mixed.smt2
+  regress0/proofs/arith-pp-assert-solved-eq.smt2
+  regress0/proofs/assume-false-final-step-check.smt2
+  regress0/proofs/assume-false-final-step.smt2
   regress0/proofs/big-rec-len.smt2
   regress0/proofs/big-ss-len-include.smt2
   regress0/proofs/cyclic-ucp.smt2
@@ -3105,7 +3113,6 @@ set(regress_1_tests
   regress1/nl/proj-issue282.smt2
   regress1/nl/proj-issue286.smt2
   regress1/nl/proj-issue290.smt2
-  regress1/nl/proj-issue291.smt2
   regress1/nl/proj-issue292.smt2
   regress1/nl/proj-issue294.smt2
   regress1/nl/proj-issue297.smt2
@@ -4181,7 +4188,6 @@ set(regress_2_tests
   regress2/lemmas/simple_startup_9nodes.abstract.base.smtv1.smt2
   regress2/javafe.ast.StandardPrettyPrint.319_no_forall.smt2
   regress2/javafe.ast.WhileStmt.447_no_forall.smt2
-  regress2/nl/issue8693-flatten-to-real.smt2
   regress2/large-datatypes-cycle.smt2
   regress2/ooo.rf6.smt2
   regress2/ooo.tag10.smt2
@@ -4246,7 +4252,6 @@ set(regress_2_tests
   regress2/sygus/lustre-real.sy
   regress2/sygus/max2-univ.sy
   regress2/sygus/min_IC_1.sy
-  regress2/sygus/mpg_guard1-dd.sy
   regress2/sygus/multi-udiv.sy
   regress2/sygus/no-bad-filter.sy
   regress2/sygus/no-syntax-test-no-si.sy
@@ -4412,6 +4417,9 @@ set(regression_disabled_tests
   regress1/nl/issue3307.smt2
   # times out on various builds
   regress1/nl/proj-issue231.smt2
+  # times out after the rewriter stopped normalizing equalities, which orients
+  # them based on their normal form instead of the node ordering of their sides
+  regress1/nl/proj-issue291.smt2
   # slow with sygus-inference after removing anti-skolemization
   regress1/quantifiers/anti-sk-simp.smt2
   # no longer support snorm option
@@ -4484,6 +4492,9 @@ set(regression_disabled_tests
   # unknown answer after optimizing map formulas
   regress2/bags/pull_null.smt2
   regress2/nl/dumortier-050317.smt2
+  # times out after the linear solver stopped setting up the normal form of an
+  # equality, which made the literals of its constraints non-canonical
+  regress2/nl/issue8693-flatten-to-real.smt2
   # timeout on some builds after changes to justification heuristic
   regress2/nl/nt-lemmas-bad.smt2
   # timeout after change to arith theory combination
@@ -4492,6 +4503,11 @@ set(regression_disabled_tests
   regress2/quantifiers/exp-trivially-dd3.smt2
   # timeout on some builds
   regress2/quantifiers/issue10805-syqi-no-arr-const.smt2
+  # runs out of memory on arm64 after the rewriter stopped normalizing
+  # equalities, which weakens the redundancy filtering of the candidate terms
+  # enumerated for its grammar. Note the enumeration order depends on the node
+  # ordering, hence this only manifests on some platforms.
+  regress2/sygus/mpg_guard1-dd.sy
   # time out
   regress3/unifpi-solve-car_1.lus.sy
   # unknown (is sat)

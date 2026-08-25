@@ -146,14 +146,14 @@ Java_io_github_cvc5_DatatypeDecl_getName(JNIEnv* env, jobject, jlong pointer)
 /*
  * Class:     io_github_cvc5_DatatypeDecl
  * Method:    hashCode
- * Signature: (J)I
+ * Signature: (J)J
  */
-JNIEXPORT jint JNICALL Java_io_github_cvc5_DatatypeDecl_hashCode(JNIEnv* env,
-                                                                 jobject,
-                                                                 jlong pointer)
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_DatatypeDecl_hashCode(JNIEnv* env,
+                                                                  jobject,
+                                                                  jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   DatatypeDecl* result = reinterpret_cast<DatatypeDecl*>(pointer);
-  return static_cast<jint>(std::hash<cvc5::DatatypeDecl>()(*result));
+  return static_cast<jlong>(std::hash<cvc5::DatatypeDecl>()(*result));
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
