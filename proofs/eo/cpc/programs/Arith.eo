@@ -19,39 +19,15 @@
 ;   arguments cannot be statically computed.
 (define $arith_mk_binary_minus ((T Type :implicit) (U Type :implicit) (x T) (y U)) (- x y))
 
-; program: $arith_eval_int_log_2_rec
-; args:
-; - x  Int: The term to compute the log (base 2) of, assumed to be a positive numeral value.
-; return: The log base 2 of x.
-; note: Helper method for $arith_eval_int_log_2 below.
-(program $arith_eval_int_log_2_rec ((x Int))
-  :signature (Int) Int
-  (
-  (($arith_eval_int_log_2_rec 1) 0)
-  (($arith_eval_int_log_2_rec x) (eo::add 1 ($arith_eval_int_log_2_rec (eo::zdiv x 2))))
-  )
-)
-
 ; define: $arith_eval_int_log_2
 ; args:
 ; - x Int: The term to compute the log (base 2) of.
 ; return: >
 ;   the log base 2 of x. If x is not strictly positive, we return 0.
 (define $arith_eval_int_log_2 ((x Int))
-  (eo::ite (eo::is_neg (eo::neg x)) ($arith_eval_int_log_2_rec x) 0))
-
-; program: $arith_eval_int_pow_2_rec
-; args:
-; - x  Int: The term to compute 2 to the power of, assumed to be a positive numeral value.
-; return: 2 to the power of x.
-; note: Helper method for $arith_eval_int_pow_2 below.
-(program $arith_eval_int_pow_2_rec ((x Int))
-  :signature (Int) Int
-  (
-  (($arith_eval_int_pow_2_rec 0) 1)
-  (($arith_eval_int_pow_2_rec x) (eo::mul 2 ($arith_eval_int_pow_2_rec (eo::add x -1))))
-  )
-)
+  (eo::ite (eo::is_z x)
+    (eo::ite (eo::is_neg x) 0 (eo::log 2 x))
+    (int.log2 x)))
 
 ; define: $arith_eval_int_pow_2
 ; args:
@@ -61,7 +37,7 @@
 ;   the term (int.pow2 x).
 (define $arith_eval_int_pow_2 ((x Int))
   (eo::ite (eo::is_z x)
-    (eo::ite (eo::is_neg x) 0 ($arith_eval_int_pow_2_rec x))
+    (eo::ite (eo::is_neg x) 0 (eo::pow 2 x))
     (int.pow2 x)))
 
 ; define: $arith_eval_int_is_pow_2
@@ -74,5 +50,5 @@
   (eo::ite (eo::is_z x) 
     (eo::ite (eo::is_neg x)
       false
-      (eo::eq x ($arith_eval_int_pow_2 ($arith_eval_int_log_2 x))))
+      (eo::eq x (eo::pow 2 ($arith_eval_int_log_2 x))))
     (int.ispow2 x)))

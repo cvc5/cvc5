@@ -70,6 +70,18 @@ TheoryDatatypes::TheoryDatatypes(Env& env,
   // indicate we are using the default theory state object
   d_theoryState = &d_state;
   d_inferManager = &d_im;
+
+  // This theory queues pending inferences based on equality engine
+  // notifications which are processed at the beginning of postCheck.
+  // If we are using the central equality engine, we may receive such
+  // notifications even when no facts are asserted explicitly to this theory.
+  // Thus, we should always check at STANDARD effort. We set d_checkEarlyExit
+  // to false to disable an optimization in the base Theory class which would
+  // otherwise skip these checks.
+  if (options().theory.eeMode == options::EqEngineMode::CENTRAL)
+  {
+    d_checkEarlyExit = false;
+  }
 }
 
 TheoryDatatypes::~TheoryDatatypes()
@@ -1376,11 +1388,13 @@ bool TheoryDatatypes::instantiate(EqcInfo* eqc, Node n)
   TypeNode ttn = tt.getType();
   const DType& dt = ttn.getDType();
   // instantiate this equivalence class
-  eqc->d_inst = true;
   Node tt_cons = getInstantiateCons(tt, dt, index);
   if (tt == tt_cons)
   {
-    // not necessary
+    // Not necessary, tt is already the (nullary) constructor application for
+    // this equivalence class. We mark the equivalence class as instantiated
+    // here, since no inference is computed below.
+    eqc->d_inst = true;
     return false;
   }
   Node eq = tt.eqNode(tt_cons);
@@ -1406,8 +1420,27 @@ bool TheoryDatatypes::instantiate(EqcInfo* eqc, Node n)
                                  << " forceLemma = " << forceLemma << std::endl;
   Trace("datatypes-infer") << "DtInfer : instantiate : " << eq << " by " << exp
                            << std::endl;
+  // Notice that we do *not* mark eqc as instantiated here. Instead, this is
+  // done when the inference below is sent, via notifyInstantiate. This is
+  // required for correctness: the inference may be discarded before it is
+  // sent, e.g. if it is still pending when a conflict is raised, in which case
+  // the pending inferences are cleared. Since d_inst is context-dependent
+  // whereas the pending inference vectors are not, marking eqc as instantiated
+  // here may lie if we subsequently backtrack to the level at which d_inst was
+  // set, leaving the equivalence class permanently without a constructor. This
+  // in turn is unsound, since the model builder is then free to assign an
+  // arbitrary value to it (see issue #12794).
   d_im.addPendingInference(eq, InferenceId::DATATYPES_INST, exp, forceLemma);
   return true;
+}
+
+void TheoryDatatypes::notifyInstantiate(TNode t)
+{
+  // Note we use the current representative of t, which may have changed since
+  // the inference for the instantiate rule was computed.
+  EqcInfo* ei = getOrMakeEqcInfo(getRepresentative(t), true);
+  Trace("datatypes-debug") << "Instantiated: " << t << std::endl;
+  ei->d_inst = true;
 }
 
 void TheoryDatatypes::checkCycles()

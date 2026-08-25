@@ -293,22 +293,23 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf, unsigned d)
   Trace("nl-ext-tftp-debug") << "  arg value in model : " << c << std::endl;
 
   // compute the concavity
-  int region = -1;
-  std::unordered_map<Node, int>::iterator itr = d_tstate.d_tf_region.find(tf);
+  TranscendentalRegion region = TranscendentalRegion::INVALID;
+  std::unordered_map<Node, TranscendentalRegion>::iterator itr =
+      d_tstate.d_tf_region.find(tf);
   if (itr != d_tstate.d_tf_region.end())
   {
     region = itr->second;
     Trace("nl-ext-tftp-debug") << "  region is : " << region << std::endl;
   }
-  if (region == -1)
+  if (!isValidRegion(region))
   {
     // the region cannot be assigned, return false without lemma
     return false;
   }
   // Figure 3 : conc
-  int concavity = regionToConcavity(k, itr->second);
+  Convexity concavity = regionToConcavity(k, region);
   Trace("nl-ext-tftp-debug") << "  concavity is : " << concavity << std::endl;
-  if (concavity == 0)
+  if (concavity == Convexity::UNKNOWN)
   {
     // no secant/tangent plane is necessary
     return true;
@@ -350,14 +351,14 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf, unsigned d)
         if (r == 0)
         {
           poly_approx = poly_approx_bounds[r][csign];
-          is_tangent = concavity == 1;
-          is_secant = concavity == -1;
+          is_tangent = concavity == Convexity::CONVEX;
+          is_secant = concavity == Convexity::CONCAVE;
         }
         else
         {
           poly_approx = poly_approx_bounds[r][csign];
-          is_tangent = concavity == -1;
-          is_secant = concavity == 1;
+          is_tangent = concavity == Convexity::CONCAVE;
+          is_secant = concavity == Convexity::CONVEX;
         }
         if (TraceIsOn("nl-ext-tftp"))
         {
@@ -421,27 +422,30 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf, unsigned d)
   return true;
 }
 
-int TranscendentalSolver::regionToConcavity(Kind k, int region)
+Convexity TranscendentalSolver::regionToConcavity(Kind k,
+                                                  TranscendentalRegion region)
 {
   if (k == Kind::EXPONENTIAL)
   {
-    if (region == 1)
+    if (region == TranscendentalRegion::EXPONENTIAL)
     {
-      return 1;
+      return Convexity::CONVEX;
     }
   }
   else if (k == Kind::SINE)
   {
-    if (region == 1 || region == 2)
+    if (region == TranscendentalRegion::SINE_PI_OVER_TWO_TO_PI
+        || region == TranscendentalRegion::SINE_ZERO_TO_PI_OVER_TWO)
     {
-      return -1;
+      return Convexity::CONCAVE;
     }
-    else if (region == 3 || region == 4)
+    else if (region == TranscendentalRegion::SINE_NEG_PI_OVER_TWO_TO_ZERO
+             || region == TranscendentalRegion::SINE_NEG_PI_TO_NEG_PI_OVER_TWO)
     {
-      return 1;
+      return Convexity::CONVEX;
     }
   }
-  return 0;
+  return Convexity::UNKNOWN;
 }
 
 void TranscendentalSolver::postProcessModel(std::map<Node, Node>& arithModel,

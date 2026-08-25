@@ -12,7 +12,7 @@
 
 #include "theory/quantifiers/sygus/sygus_unif_io.h"
 
-#include <math.h>
+#include <cmath>
 
 #include "options/quantifiers_options.h"
 #include "theory/datatypes/sygus_datatype_utils.h"

@@ -67,6 +67,7 @@ The C API offers **two modes** of memory management:
   .. toctree::
 
    quickstart
+   error_handling
    types/cvc5
    types/cvc5command
    types/cvc5datatype

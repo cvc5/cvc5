@@ -954,6 +954,47 @@ void EoPrinter::print(EoPrintChannelOut& aout,
     // [5] print proof body
     printProofInternal(ao, pnBody, i == 1);
   }
+  // [6] If the body of the proof is an assumption, then no step was printed
+  // for it above and the proof would end with an assume command. We print a
+  // dummy step here so that the proof always ends with a step.
+  if (pnBody->getRule() == ProofRule::ASSUME)
+  {
+    printAssumeBodyStep(aout, pnBody);
+  }
+}
+
+void EoPrinter::printAssumeBodyStep(EoPrintChannelOut& aout,
+                                    const ProofNode* pn)
+{
+  Assert(pn->getRule() == ProofRule::ASSUME);
+  // The body of the proof is an assumption. This is the case e.g. if false is
+  // one of the input assertions, in which case the proof of false is the
+  // assumption of false itself. Since we require that proofs end with a step
+  // and not an assume command, we print a dummy derivation of the assumed
+  // formula F from the assumption of F:
+  //
+  //                            ------------- refl
+  //   @p_a: F                  @p_r: (= F F)
+  //  ------------------------------------------ eq_resolve
+  //   @p_c: F
+  Node f = d_tproc.convert(pn->getResult());
+  bool wasAlloc = false;
+  size_t aid = allocateAssumeId(pn->getResult(), wasAlloc);
+  if (wasAlloc)
+  {
+    // Print the assumption if it was not printed above, which should only
+    // happen if we are not printing the proof within a scope.
+    aout.printAssume(f, aid, false);
+  }
+  d_pfIdCounter++;
+  size_t rid = d_pfIdCounter;
+  aout.printStep("refl", f.eqNode(f), rid, {}, {f});
+  d_pfIdCounter++;
+  aout.printStep("eq_resolve", f, d_pfIdCounter, {aid, rid}, {});
+  // Note that F is not necessarily false here, since this method applies to
+  // any proof whose body is an assumption, e.g. the preprocessed input proof
+  // printed when proof logging. The dummy step is unnecessary in that case,
+  // but harmless.
 }
 
 void EoPrinter::printNext(EoPrintChannelOut& aout,
@@ -1058,6 +1099,16 @@ void EoPrinter::getChildrenFromProofRule(
   {
     case ProofRule::CONG:
     {
+      // Ignore prefix of premises that are just REFL. Moreover this is required
+      // to ensure CONG over APPLY_INDEXED_SYMBOLIC do not include premises
+      // stating equality over indices to indexed operators, which cong does
+      // not handle.
+      size_t start = 0;
+      while (start < cc.size()
+             && cc[start]->getResult()[0] == cc[start]->getResult()[1])
+      {
+        start++;
+      }
       Node res = pn->getResult();
       if (res[0].isClosure())
       {
@@ -1065,7 +1116,13 @@ void EoPrinter::getChildrenFromProofRule(
         // This ensures that we ignore e.g. equalities between patterns
         // which can appear in term conversion proofs.
         size_t arity = kind::metakind::getMinArityForKind(res[0].getKind());
-        children.insert(children.end(), cc.begin(), cc.begin() + arity - 1);
+        children.insert(
+            children.end(), cc.begin() + start, cc.begin() + arity - 1);
+        return;
+      }
+      else if (start > 0)
+      {
+        children.insert(children.end(), cc.begin() + start, cc.end());
         return;
       }
     }

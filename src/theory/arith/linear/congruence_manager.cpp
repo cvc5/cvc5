@@ -177,6 +177,12 @@ void ArithCongruenceManager::pushBack(TNode n, TNode r, TNode w)
   ++(d_statistics.d_propagations);
 }
 
+void ArithCongruenceManager::pushBackAlias(TNode n)
+{
+  Assert(d_propagatations.size() > 0);
+  d_explanationMap.insert(n, d_propagatations.size() - 1);
+}
+
 void ArithCongruenceManager::watchedVariableIsZero(ConstraintCP lb,
                                                    ConstraintCP ub)
 {
@@ -268,7 +274,10 @@ void ArithCongruenceManager::watchedVariableCannotBeZero(ConstraintCP c)
   {
     if (c->getType() == ConstraintType::Disequality)
     {
-      Assert(c->getLiteral() == d_watchedEqualities[s].negate());
+      // Note that the literal of c may differ from the negation of the watched
+      // equality, since multiple atoms may correspond to the same constraint,
+      // e.g. (= x 0) and (= (to_real x) 0.0). This is accounted for by the
+      // call below.
       // We have to prove equivalence to the watched disequality.
       pf = ensurePredTransform(d_pnm, pf, disEq);
     }
@@ -393,6 +402,7 @@ bool ArithCongruenceManager::propagate(TNode x)
       CDProof cdp(d_env);
       Node falsen = nm->mkConst(false);
       Node finalPfNeg = finalPf.notNode();
+      ProofChecker* pc = d_env.getProofNodeManager()->getChecker();
       cdp.addProof(texpC.toProofNode());
       Node proven = texpC.getProven();
       Trace("arith-cm-proof") << "Proven was " << proven << std::endl;
@@ -436,6 +446,89 @@ bool ArithCongruenceManager::propagate(TNode x)
           break;
         }
       }
+      if (!success && proven[1].getKind() == Kind::NOT
+          && proven[1][0].getKind() == Kind::EQUAL)
+      {
+        // The equality engine proved a disequality while arithmetic proved
+        // bounds implying the corresponding equality.
+        Node peq = proven[1][0];
+        Node triEq = peq;
+        if (triEq[0].isConst() && !triEq[1].isConst())
+        {
+          triEq = triEq[1].eqNode(triEq[0]);
+        }
+        if (triEq[0].getKind() == Kind::TO_REAL && triEq[1].isConst()
+            && triEq[1].getConst<Rational>().isIntegral())
+        {
+          Node ic = nm->mkConstInt(triEq[1].getConst<Rational>());
+          triEq = triEq[0][0].eqNode(ic);
+        }
+        else if (triEq[1].getKind() == Kind::TO_REAL && triEq[0].isConst()
+                 && triEq[0].getConst<Rational>().isIntegral())
+        {
+          Node ic = nm->mkConstInt(triEq[0].getConst<Rational>());
+          triEq = triEq[1][0].eqNode(ic);
+        }
+        if (triEq[0].getType().isRealOrInt() && triEq[1].getType().isRealOrInt()
+            && CVC5_EQUAL(triEq[0].getType(), triEq[1].getType()))
+        {
+          std::vector<Node> negc = andComponents(nm, neg);
+          std::vector<Node> triChildren;
+          std::vector<Node> targets{nm->mkNode(Kind::GEQ, triEq[0], triEq[1]),
+                                    nm->mkNode(Kind::LEQ, triEq[0], triEq[1])};
+          for (const Node& target : targets)
+          {
+            Node source;
+            for (const Node& nc : negc)
+            {
+              if (nc == target)
+              {
+                source = nc;
+                break;
+              }
+              Node res = pc->checkDebug(
+                  ProofRule::MACRO_SR_PRED_TRANSFORM, {nc}, {target}, target);
+              if (!res.isNull())
+              {
+                source = nc;
+                break;
+              }
+            }
+            if (source.isNull())
+            {
+              triChildren.clear();
+              break;
+            }
+            if (source != target)
+            {
+              cdp.addStep(target,
+                          ProofRule::MACRO_SR_PRED_TRANSFORM,
+                          {source},
+                          {target});
+            }
+            triChildren.push_back(target);
+          }
+          if (triChildren.size() == 2)
+          {
+            cdp.addStep(triEq, ProofRule::ARITH_TRICHOTOMY, triChildren, {});
+            if (triEq != peq)
+            {
+              Node res = pc->checkDebug(
+                  ProofRule::MACRO_SR_PRED_TRANSFORM, {triEq}, {peq}, peq);
+              if (!res.isNull())
+              {
+                cdp.addStep(
+                    peq, ProofRule::MACRO_SR_PRED_TRANSFORM, {triEq}, {peq});
+              }
+            }
+            if (triEq == peq || cdp.hasStep(peq))
+            {
+              cdp.addStep(falsen, ProofRule::CONTRA, {peq, proven[1]}, {});
+              success = true;
+            }
+          }
+        }
+      }
       if (!success && proven[1].getKind() == Kind::EQUAL)
       {
         // otherwise typically proven[1] is of the form (= t c) or (= c t) where
@@ -443,6 +536,13 @@ bool ArithCongruenceManager::propagate(TNode x)
         Node peq = proven[1][0].isConst() ? proven[1][1].eqNode(proven[1][0])
                                           : proven[1];
         Assert(peq.getKind() == Kind::EQUAL);
+        // Prefer the side that occurs in the contradictory literal.
+        if (peq[0].getKind() == Kind::TO_REAL && !peq[1].isConst()
+            && !ArithSubs::hasArithSubterm(neg, peq[0], false)
+            && ArithSubs::hasArithSubterm(neg, peq[1], false))
+        {
+          peq = peq[1].eqNode(peq[0]);
+        }
         if (peq[0].getKind() == Kind::TO_REAL)
         {
           // if we have (= (to_real t) c) where c is a rational, we do:
@@ -456,6 +556,11 @@ bool ArithCongruenceManager::propagate(TNode x)
           Node peqi = peq[0][0].eqNode(ic);
           Node equiv = peq.eqNode(peqi);
           Rational cx, cy;
+          // Compute the coefficients relating the two sides. Note that
+          // ARITH_POLY_NORM_REL requires these to be non-zero.
+          bool isPolyNorm = PolyNorm::isArithPolyNormRel(peq, peqi, cx, cy);
+          Assert(isPolyNorm) << peq << " and " << peqi << " not poly norm";
+          AlwaysAssert(isPolyNorm);
           Node premise =
               PolyNorm::getArithPolyNormRelPremise(peq, peqi, cx, cy);
           cdp.addStep(premise, ProofRule::ARITH_POLY_NORM, {}, {premise});
@@ -464,7 +569,6 @@ bool ArithCongruenceManager::propagate(TNode x)
           cdp.addStep(peqi, ProofRule::EQ_RESOLVE, {peq, equiv}, {});
           peq = peqi;
         }
-        ProofChecker* pc = d_env.getProofNodeManager()->getChecker();
         // We substitute t -> c within the arithmetic context of neg.
         // In particular using an arithmetic context ensures that this rewrite
         // should be locally handled as an ARITH_POLY_NORM step.
@@ -548,6 +652,14 @@ bool ArithCongruenceManager::propagate(TNode x)
     c->setEqualityEngineProof();
     if (c->canBePropagated() && !c->assertedToTheTheory())
     {
+      // Note that the propagation of c below is stated in terms of its
+      // literal, which may be distinct from rewritten. This is the case when
+      // several atoms correspond to c, in which case the first one that was
+      // set up is its literal, see Constraint::setLiteral. We thus ensure that
+      // the literal of c can be explained by this class as well, since
+      // otherwise we would explain it (trivially) by itself below, see
+      // Constraint::externalExplain.
+      pushBackAlias(c->getLiteral());
       ++(d_statistics.d_propagateConstraints);
       c->propagate();
     }
@@ -614,11 +726,17 @@ TrustNode ArithCongruenceManager::explain(TNode external)
       assumptionPfs.push_back(
           d_pnm->mkNode(ProofRule::TRUE_INTRO, {d_pnm->mkAssume(a)}, {}));
     }
-    // uses substitution to true
+    // uses substitution to true, which proves the internal form of the fact
+    Node internalp = trn.getProven()[1];
     auto litPf = d_pnm->mkNode(ProofRule::MACRO_SR_PRED_TRANSFORM,
                                {assumptionPfs},
-                               {external},
-                               external);
+                               {internalp},
+                               internalp);
+    // The internal and external forms may differ by more than rewriting, e.g.
+    // when external is an equality that is not in normal form, since the
+    // rewriter does not normalize equalities, see rewriter::normalizeEquality.
+    // We thus relate the two by polynomial normalization if necessary.
+    litPf = ensurePredTransform(d_pnm, litPf, external);
     auto extPf = d_pnm->mkScope(litPf, assumptions);
     return d_pfGenExplain->mkTrustedPropagation(external, trn.getNode(), extPf);
   }

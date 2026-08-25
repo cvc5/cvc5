@@ -15,7 +15,7 @@
 
 #include "util/floatingpoint.h"
 
-#include <math.h>
+#include <cmath>
 
 #include "base/check.h"
 #include "util/floatingpoint_literal.h"

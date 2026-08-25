@@ -178,9 +178,10 @@ versions; more recent versions should be compatible.
 - `Python >= 3.7 <https://www.python.org>`_
   + module `tomli <https://pypi.org/project/tomli/>`_ (Python < 3.11)
   + module `pyparsing <https://pypi.org/project/pyparsing/>`_
-- `GMP v6.3 (GNU Multi-Precision arithmetic library) <https://gmplib.org>`_
+- `GMP >= v6.3 (GNU Multi-Precision arithmetic library) <https://gmplib.org>`_
+- `MPFR >= v4.2.1 (GNU Multiple Precision Floating-Point Reliable Library) <https://www.mpfr.org>`_
 - `CaDiCaL >= 2.1.0 (SAT solver) <https://github.com/arminbiere/cadical>`_
-- `SymFPU <https://github.com/martin-cs/symfpu/tree/CVC4>`_
+- `SymFPU <https://github.com/martin-cs/symfpu/tree/main>`_
 
 If ``--auto-download`` is given, the Python modules will be installed automatically in
 a virtual environment if they are missing. To install the modules globally and skip
@@ -193,7 +194,7 @@ CaDiCaL (SAT solver)
 used for the bit-vector solver. It can be downloaded and built automatically.
 
 
-GMP (GNU Multi-Precision arithmetic library)
+GMP (GNU Multi-Precision Arithmetic Library)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 GMP is usually available on your distribution and should be used from there. If
@@ -201,11 +202,19 @@ it is not, or you want to cross-compile, or you want to build cvc5 statically
 but the distribution does not ship static libraries, cvc5 builds GMP
 automatically when ``--auto-download`` is given.
 
+MPFR (GNU Multi-Precision Floating-Point Reliable Library)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+MPFR is usually available on your distribution and should be used from there. If
+it is not, or you want to cross-compile, or you want to build cvc5 statically
+but the distribution does not ship static libraries, cvc5 builds MPFR
+automatically when ``--auto-download`` is given.
+
 
 SymFPU (Support for the Theory of Floating Point Numbers)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`SymFPU <https://github.com/martin-cs/symfpu/tree/CVC4>`_ is an implementation
+`SymFPU <https://github.com/martin-cs/symfpu/tree/main>`_ is an implementation
 of SMT-LIB/IEEE-754 floating-point operations in terms of bit-vector operations.
 It is required for supporting the theory of floating-point numbers and can be
 downloaded and built automatically.
@@ -213,6 +222,25 @@ downloaded and built automatically.
 
 Optional Dependencies
 ---------------------
+
+
+Licensing of GPL dependencies
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+cvc5 itself is distributed under the modified BSD license, and by default it is
+built without any GPL-licensed dependency. Several of the optional dependencies
+below (CoCoA, CLN, glpk-cut-log and Normaliz) are covered by the `GNU General
+Public License, version 3 <https://www.gnu.org/licenses/gpl-3.0.en.html>`_. If
+you link cvc5 against any of them, the resulting combined work is covered by
+the GPLv3 as well.
+
+Each of these dependencies therefore requires the ``--gpl`` configuration flag
+in addition to its own flag. Configuring with ``--no-gpl`` (the default)
+guarantees that no GPL-licensed library is linked in, so that cvc5 can be used
+under the terms of the modified BSD license.
+
+See the section "OPTIONAL GPLv3 libraries" of the file ``COPYING`` in the cvc5
+source distribution for the full statement.
 
 
 CryptoMiniSat (Optional SAT solver)
@@ -250,7 +278,8 @@ recommend downloading it using the ``--auto-download`` configuration flag,
 which applies our patch automatically. It is included in the build through the
 ``--cocoa --gpl`` configuration flag.
 
-CoCoA is covered by the GPLv3 license. See below for the ramifications of this.
+CoCoA is covered by the GPLv3 license; see `Licensing of GPL dependencies
+<#licensing-of-gpl-dependencies>`__ for the ramifications of this.
 
 CLN >= v1.3 (Class Library for Numbers)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -259,31 +288,28 @@ CLN >= v1.3 (Class Library for Numbers)
 package that may offer better performance and memory footprint than GMP.
 Configure cvc5 with ``configure.sh --cln --gpl`` to build with this dependency.
 
-Note that CLN is covered by the `GNU General Public License, version 3
-<https://www.gnu.org/licenses/gpl-3.0.en.html>`_. If you choose to use cvc5 with
-CLN support, you are licensing cvc5 under that same license. (Usually cvc5's
-license is more permissive than GPL, see the file `COPYING` in the cvc5 source
-distribution for details.)
+CLN is covered by the GPLv3 license; see `Licensing of GPL dependencies
+<#licensing-of-gpl-dependencies>`__ for the ramifications of this.
 
 
-glpk-cut-log (A fork of the GNU Linear Programming Kit)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+GLPK with cut-log support (The GNU Linear Programming Kit)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`glpk-cut-log <https://github.com/timothy-king/glpk-cut-log/>`_ is a fork of
-`GLPK <http://www.gnu.org/software/glpk/>`_ (the GNU Linear Programming Kit).
-This can be used to speed up certain classes of problems for the arithmetic
+`GLPK <https://www.gnu.org/software/glpk/>`_ (the GNU Linear Programming Kit)
+can be used to speed up certain classes of problems for the arithmetic
 implementation in cvc5. (This is not recommended for most users.)
 
-cvc5 is not compatible with the official version of the GLPK library.
-To use the patched version of it, we recommend downloading it using
-the ``--auto-download`` configuration flag, which applies
-the patch automatically.
+cvc5 cannot use a stock GLPK library: it requires the cut logging interface
+added by ``cmake/deps-utils/glpk-cut-log.patch``, and the build fails if the
+GLPK it finds does not provide it. We therefore recommend obtaining this
+dependency with the ``--auto-download`` configuration flag, which downloads the
+GLPK release from `ftp.gnu.org <https://ftp.gnu.org/gnu/glpk/>`_ and applies
+the patch automatically. The patch itself is taken from `glpk-cut-log
+<https://github.com/timothy-king/glpk-cut-log/>`_.
 Configure cvc5 with ``configure.sh --glpk --gpl`` to build with this dependency.
 
-Note that GLPK and glpk-cut-log are covered by the `GNU General Public License,
-version 3 <https://www.gnu.org/licenses/gpl-3.0.en.html>`_. If you choose to use
-cvc5 with GLPK support, you are licensing cvc5 under that same license. (Usually
-cvc5's license is more permissive; see above discussion.)
+GLPK and glpk-cut-log are covered by the GPLv3 license; see `Licensing of GPL
+dependencies <#licensing-of-gpl-dependencies>`__ for the ramifications of this.
 
 
 Editline library (Improved Interactive Experience)
@@ -296,6 +322,17 @@ a package named `libedit-dev`, `libedit-devel`, or similar.  Configure cvc5 with
 ``configure.sh --editline`` to build with this dependency.  Additionally,
 to run tests related to interactive mode with this dependency, you will need
 the Python module `pexpect <https://pexpect.readthedocs.io/en/stable/>`_.
+
+Normaliz (Optional rational cones library)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+`Normaliz <https://www.normaliz.uni-osnabrueck.de/>`_ is required for 
+liastar solver extension. We recommend downloading it using the ``--auto-download`` 
+configuration flag. It is included in the build through the
+``--normaliz --gpl`` configuration flag.
+
+Normaliz is covered by the GPLv3 license; see `Licensing of GPL dependencies
+<#licensing-of-gpl-dependencies>`__ for the ramifications of this.
 
 
 Google Test Unit Testing Framework (Unit Tests)

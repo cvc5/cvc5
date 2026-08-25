@@ -635,7 +635,7 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
       if (n.hasName())
       {
         std::string s = n.getName();
-        if (k == Kind::RAW_SYMBOL)
+        if (k == Kind::RAW_SYMBOL || k == Kind::RAW_SYMBOL_TYPE)
         {
           // raw symbols are never quoted
           out << s;

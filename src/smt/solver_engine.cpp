@@ -562,7 +562,8 @@ void SolverEngine::defineFunction(Node func,
     def = nm->mkNode(
         Kind::LAMBDA, nm->mkNode(Kind::BOUND_VAR_LIST, formals), def);
   }
-  Node feq = func.eqNode(def);
+  // eliminate subtypes (mixed arithmetic) if proof producing, see cvc5#12754
+  Node feq = eliminateSubtypesForProof(func.eqNode(def));
   d_smtSolver->getAssertions().addDefineFunDefinition(feq, global);
 }
 
@@ -572,7 +573,8 @@ void SolverEngine::defineFunction(Node func, Node lambda, bool global)
   // A define-fun is treated as a (higher-order) assertion. It is provided
   // to the assertions object. It will be added as a top-level substitution
   // within this class, possibly multiple times if global is true.
-  Node feq = func.eqNode(lambda);
+  // eliminate subtypes (mixed arithmetic) if proof producing, see cvc5#12754
+  Node feq = eliminateSubtypesForProof(func.eqNode(lambda));
   d_smtSolver->getAssertions().addDefineFunDefinition(feq, global);
 }
 
@@ -638,6 +640,8 @@ void SolverEngine::defineFunctionsRec(
     // directly, since we should call a private member method since we have
     // already ensuring this SolverEngine is initialized above.
     // add define recursive definition to the assertions
+    // eliminate subtypes (mixed arithmetic) if proof producing, see cvc5#12754
+    lem = eliminateSubtypesForProof(lem);
     d_smtSolver->getAssertions().addDefineFunDefinition(lem, global);
   }
 }
@@ -948,12 +952,8 @@ void SolverEngine::assertFormula(const Node& formula)
   assertFormulaInternal(formula);
 }
 
-void SolverEngine::assertFormulaInternal(const Node& formula)
+Node SolverEngine::eliminateSubtypesForProof(const Node& n) const
 {
-  // as an optimization we do not check whether formula is well-formed here, and
-  // defer this check for certain cases within the assertions module.
-  Trace("smt") << "SolverEngine::assertFormula(" << formula << ")" << endl;
-  Node f = formula;
   // If we are proof producing and don't permit subtypes, we rewrite now.
   // Otherwise we will have an assumption with mixed arithmetic which is
   // not permitted in proofs that cannot be eliminated, and will require a
@@ -961,16 +961,23 @@ void SolverEngine::assertFormulaInternal(const Node& formula)
   // We don't care if we are an internal subsolver, as this rewriting only
   // impacts having exportable, complete proofs, which is not an issue for
   // internal subsolvers.
-  if (d_env->isProofProducing() && !d_isInternalSubsolver)
+  if (d_env->isProofProducing() && !d_isInternalSubsolver
+      && options().proof.proofElimSubtypes)
   {
-    if (options().proof.proofElimSubtypes)
-    {
-      SubtypeElimNodeConverter senc(d_env->getNodeManager());
-      f = senc.convert(formula);
-      // note we could throw a warning here if formula and f are different,
-      // but currently don't.
-    }
+    SubtypeElimNodeConverter senc(d_env->getNodeManager());
+    return senc.convert(n);
   }
+  return n;
+}
+
+void SolverEngine::assertFormulaInternal(const Node& formula)
+{
+  // as an optimization we do not check whether formula is well-formed here, and
+  // defer this check for certain cases within the assertions module.
+  Trace("smt") << "SolverEngine::assertFormula(" << formula << ")" << endl;
+  // note we could throw a warning here if formula and f are different,
+  // but currently don't.
+  Node f = eliminateSubtypesForProof(formula);
   d_smtSolver->getAssertions().assertFormula(f);
 }
 

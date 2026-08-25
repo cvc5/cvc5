@@ -14,8 +14,6 @@
  */
 #include "theory/arith/linear/approx_simplex.h"
 
-#include <math.h>
-
 #include <cfloat>
 #include <cmath>
 #include <unordered_set>

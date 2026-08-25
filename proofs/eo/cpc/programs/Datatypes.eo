@@ -9,7 +9,7 @@
 ;   constructor. Parametric datatypes must reference the type constructor to
 ;   extract their constructors, which generates a list of *unannotated*
 ;   datatype constructors.
-(program $dt_get_constructors ((D Type) (T Type) (c T) (T1 Type) (T2 Type :list) (U Type) (DC (-> Type Type)))
+(program $dt_get_constructors ((D Type) (T Type) (T1 Type) (T2 Type :list) (U Type) (DC (-> Type Type)))
   :signature (U) eo::List
   (
     (($dt_get_constructors (Tuple T1 T2)) (_ eo::List::cons tuple eo::List::nil))
@@ -43,7 +43,7 @@
 ; note: >
 ;   Tuples use a special selector tuple.select indexed by an integer, which is
 ;   why they require a special method here.
-(program $tuple_get_selectors_rec ((D Type) (T Type) (t T) (T1 Type) (T2 Type :list) (n Int))
+(program $tuple_get_selectors_rec ((T1 Type) (T2 Type :list) (n Int))
   :signature (Type Int) eo::List
   (
     (($tuple_get_selectors_rec UnitTuple n)     eo::List::nil)
@@ -88,7 +88,9 @@
 (define $dt_is_cons ((T Type :implicit) (t T))
   (eo::ite (eo::is_eq t tuple)    ; must check this first
     true
-    (eo::is_ok (eo::dt_selectors t)))) ; if it has selectors, then it is a constructor
+    (eo::ite (eo::is_eq t tuple.unit)
+      true
+      (eo::is_ok (eo::dt_selectors t))))) ; if it has selectors, then it is a constructor
 
 ; program: $is_cons_app
 ; args:
@@ -102,18 +104,31 @@
   )
 )
 
+; program: $tuple_arg_list
+; args:
+; - t T: The term to inspect, expected to be a tuple constructor application.
+; return: >
+;   The list of arguments of the tuple constructor application t.
+(program $tuple_arg_list ((T Type) (V Type) (W Type) (t T) (t1 V) (t2 W :list))
+  :signature (T) eo::List
+  (
+  (($tuple_arg_list (tuple t1 t2))  (_ @list t1 ($tuple_arg_list t2)))
+  (($tuple_arg_list tuple.unit)     @list.nil)
+  )
+)
+
 ; program: $dt_arg_list
 ; args:
 ; - t T: The term to inspect, expected to be a constructor application.
 ; return: >
 ;   The list of arguments of the constructor application t.
-(program $dt_arg_list ((T Type) (U Type) (V Type) (W Type) (t T) (n Int) (t1 V) (t2 W :list))
+(program $dt_arg_list ((T Type) (V Type) (W Type) (t T) (t1 V) (t2 W :list))
   :signature (T) eo::List
   (
-    ; for tuples, we manually accumulate the list.
-    (($dt_arg_list (tuple t1 t2))  (_ @list t1 ($dt_arg_list t2)))
-    ; otherwise we get the argument list using the utility method
-    (($dt_arg_list t)              ($get_arg_list t))
+  ; for tuples, we manually accumulate the list.
+  (($dt_arg_list (tuple t1 t2))  ($tuple_arg_list (tuple t1 t2)))
+  ; otherwise we get the argument list using the utility method
+  (($dt_arg_list t)              ($get_arg_list t))
   )
 )
 
@@ -143,18 +158,5 @@
                               (eo::ite (eo::eq ct cs)
                                 true
                                 (eo::requires ($dt_is_cons cs) true false))))
-  )
-)
-
-; program: $tuple_nth
-; args:
-; - t T: The tuple term.
-; - n Int: The index.
-; return: The n^th component of the tuple.
-(program $tuple_nth ((T Type) (S Type) (U Type) (n Int) (s S) (ts U :list))
-  :signature (T (eo::quote n)) (eo::list_nth Tuple T n)
-  (
-  (($tuple_nth (tuple s ts) 0) s)
-  (($tuple_nth (tuple s ts) n) ($tuple_nth ts (eo::add n -1)))
   )
 )

@@ -15,6 +15,7 @@
 #include <vector>
 
 #include "test_smt.h"
+#include "theory/arith/nl/pow2_proof_checker.h"
 #include "theory/arith/nl/pow2_solver.h"
 #include "util/rational.h"
 
@@ -34,5 +35,24 @@ class TestTheoryWhiteArithPow2 : public TestSmtNoFinishInit
     d_slvEngine->finishInit();
   }
 };
+
+TEST_F(TestTheoryWhiteArithPow2, pow2_proof_checker_basic)
+{
+  NodeManager* nm = d_nodeManager.get();
+  arith::nl::Pow2ProofRuleChecker checker(nm);
+
+  // Create an integer variable
+  Node x = nm->mkVar("x", nm->integerType());
+  // Empty for pow2 proof rules
+  std::vector<Node> children;
+  // Simple argument
+  std::vector<Node> args = {x};
+
+  // trivial implementation returns null
+  Node result =
+      checker.checkInternal(ProofRule::ARITH_POW2_INIT, children, args);
+  ASSERT_TRUE(result.isNull());
+}
+
 }  // namespace test
 }  // namespace cvc5::internal

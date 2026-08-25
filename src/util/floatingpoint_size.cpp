@@ -29,10 +29,4 @@ FloatingPointSize::FloatingPointSize(const FloatingPointSize& other)
   Assert(validSignificandSize(d_sig_size));
 }
 
-FloatingPointSize& FloatingPointSize::operator=(const FloatingPointSize& other)
-{
-  d_exp_size = other.d_exp_size;
-  d_sig_size = other.d_sig_size;
-  return *this;
-}
 }  // namespace cvc5::internal

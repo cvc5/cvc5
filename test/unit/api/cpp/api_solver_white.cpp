@@ -43,11 +43,11 @@ TEST_F(TestApiWhiteSolver, getOp)
   Term listhead = d_tm.mkTerm(Kind::APPLY_SELECTOR, {headTerm, listcons1});
 
   ASSERT_EQ(listnil.getOp(),
-            Op(&d_solver->getTermManager(), Kind::APPLY_CONSTRUCTOR));
+            Op(d_solver->getTermManager().d_nm, Kind::APPLY_CONSTRUCTOR));
   ASSERT_EQ(listcons1.getOp(),
-            Op(&d_solver->getTermManager(), Kind::APPLY_CONSTRUCTOR));
+            Op(d_solver->getTermManager().d_nm, Kind::APPLY_CONSTRUCTOR));
   ASSERT_EQ(listhead.getOp(),
-            Op(&d_solver->getTermManager(), Kind::APPLY_SELECTOR));
+            Op(d_solver->getTermManager().d_nm, Kind::APPLY_SELECTOR));
 }
 
 }  // namespace test

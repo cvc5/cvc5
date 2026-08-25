@@ -71,6 +71,7 @@ Theory::Theory(TheoryId id,
       d_quantEngine(nullptr),
       d_pnm(d_env.isTheoryProofProducing() ? d_env.getProofNodeManager()
                                            : nullptr),
+      d_checkEarlyExit(true),
       d_id(id),
       d_facts(d_env.getContext()),
       d_factsHead(d_env.getContext(), 0),
@@ -542,7 +543,7 @@ EqualityStatus Theory::getEqualityStatus(TNode a, TNode b)
 void Theory::check(Effort level)
 {
   // see if we are already done (as an optimization)
-  if (done() && level < EFFORT_FULL)
+  if (d_checkEarlyExit && done() && level < EFFORT_FULL)
   {
     return;
   }

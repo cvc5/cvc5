@@ -17,6 +17,7 @@ extern "C" {
 #include <sstream>
 
 #include "gtest/gtest.h"
+#include "test_capi.h"
 
 namespace cvc5::internal::test {
 
@@ -74,10 +75,12 @@ TEST_F(TestCApiBlackCommand, invoke)
       "(error \"cannot get model unless model generation is enabled (try "
       "--produce-models)\")\n",
       std::string(out));
-  ASSERT_DEATH(cvc5_cmd_invoke(nullptr, d_solver, d_sm), "invalid command");
-  ASSERT_DEATH(cvc5_cmd_invoke(cmd, nullptr, d_sm), "unexpected NULL argument");
-  ASSERT_DEATH(cvc5_cmd_invoke(cmd, d_solver, nullptr),
-               "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_cmd_invoke(nullptr, d_solver, d_sm),
+                    "invalid command");
+  ASSERT_CVC5_ERROR(cvc5_cmd_invoke(cmd, nullptr, d_sm),
+                    "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_cmd_invoke(cmd, d_solver, nullptr),
+                    "unexpected NULL argument");
   // logic already set
   parse_command(
       "(set-logic QF_LRA)", &cmd, true, "Only one set-logic is allowed");
@@ -90,7 +93,7 @@ TEST_F(TestCApiBlackCommand, to_string)
   ASSERT_NE(cmd, nullptr);
   // note normalizes wrt whitespace
   ASSERT_EQ(cvc5_cmd_to_string(cmd), std::string("(set-logic QF_LIA)"));
-  ASSERT_DEATH(cvc5_cmd_to_string(nullptr), "invalid command");
+  ASSERT_CVC5_ERROR(cvc5_cmd_to_string(nullptr), "invalid command");
 }
 
 TEST_F(TestCApiBlackCommand, get_name)
@@ -99,6 +102,6 @@ TEST_F(TestCApiBlackCommand, get_name)
   parse_command("(get-model)", &cmd);
   ASSERT_NE(cmd, nullptr);
   ASSERT_EQ(cvc5_cmd_get_name(cmd), std::string("get-model"));
-  ASSERT_DEATH(cvc5_cmd_get_name(nullptr), "invalid command");
+  ASSERT_CVC5_ERROR(cvc5_cmd_get_name(nullptr), "invalid command");
 }
 }  // namespace cvc5::internal::test

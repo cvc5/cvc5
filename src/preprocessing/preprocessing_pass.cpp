@@ -12,10 +12,13 @@
 
 #include "preprocessing/preprocessing_pass.h"
 
+#include <unordered_map>
+
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_context.h"
 #include "printer/printer.h"
 #include "smt/env.h"
+#include "theory/trust_substitutions.h"
 #include "util/statistics_stats.h"
 
 namespace cvc5::internal {
@@ -30,6 +33,20 @@ PreprocessingPassResult PreprocessingPass::apply(
   PreprocessingPassResult result = applyInternal(assertionsToPreprocess);
   Trace("preprocessing") << "POST " << d_name << std::endl;
   return result;
+}
+
+void PreprocessingPass::addSubstitutions(
+    AssertionPipeline* assertionsToPreprocess, theory::TrustSubstitutionMap& tm)
+{
+  const std::unordered_map<Node, Node> subs = tm.get().getSubstitutions();
+  for (const std::pair<const Node, Node>& s : subs)
+  {
+    if (s.first.getKind() == Kind::SKOLEM)
+    {
+      assertionsToPreprocess->removeIteSkolem(s.first);
+    }
+  }
+  d_preprocContext->addSubstitutions(tm);
 }
 
 PreprocessingPass::PreprocessingPass(PreprocessingPassContext* preprocContext,

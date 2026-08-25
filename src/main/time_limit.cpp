@@ -41,8 +41,9 @@
 #include "base/cvc5config.h"
 
 #if HAVE_SETITIMER
-#include <signal.h>
 #include <sys/time.h>
+
+#include <csignal>
 #else
 #include <atomic>
 #include <chrono>

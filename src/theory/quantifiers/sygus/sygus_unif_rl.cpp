@@ -12,7 +12,7 @@
 
 #include "theory/quantifiers/sygus/sygus_unif_rl.h"
 
-#include <math.h>
+#include <cmath>
 
 #include "expr/skolem_manager.h"
 #include "options/base_options.h"

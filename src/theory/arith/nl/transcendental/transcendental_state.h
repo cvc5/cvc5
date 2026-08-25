@@ -13,6 +13,8 @@
 #ifndef CVC5__THEORY__ARITH__NL__TRANSCENDENTAL__TRANSCENDENTAL_STATE_H
 #define CVC5__THEORY__ARITH__NL__TRANSCENDENTAL__TRANSCENDENTAL_STATE_H
 
+#include <iosfwd>
+
 #include "context/cdhashmap.h"
 #include "context/cdhashset.h"
 #include "expr/node.h"
@@ -51,6 +53,60 @@ inline std::ostream& operator<<(std::ostream& os, Convexity c)
   {
     case Convexity::CONVEX: return os << "CONVEX";
     case Convexity::CONCAVE: return os << "CONCAVE";
+    default: return os << "UNKNOWN";
+  }
+}
+
+/**
+ * The region of a transcendental-function argument with respect to the
+ * monotonicity / concavity partitioning used by the nonlinear arithmetic
+ * solver.
+ */
+enum class TranscendentalRegion
+{
+  INVALID,
+  EXPONENTIAL,
+  SINE_PI_OVER_TWO_TO_PI,
+  SINE_ZERO_TO_PI_OVER_TWO,
+  SINE_NEG_PI_OVER_TWO_TO_ZERO,
+  SINE_NEG_PI_TO_NEG_PI_OVER_TWO
+};
+inline std::ostream& operator<<(std::ostream& os, TranscendentalRegion r)
+{
+  switch (r)
+  {
+    case TranscendentalRegion::INVALID: return os << "INVALID";
+    case TranscendentalRegion::EXPONENTIAL: return os << "EXPONENTIAL";
+    case TranscendentalRegion::SINE_PI_OVER_TWO_TO_PI:
+      return os << "SINE_PI_OVER_TWO_TO_PI";
+    case TranscendentalRegion::SINE_ZERO_TO_PI_OVER_TWO:
+      return os << "SINE_ZERO_TO_PI_OVER_TWO";
+    case TranscendentalRegion::SINE_NEG_PI_OVER_TWO_TO_ZERO:
+      return os << "SINE_NEG_PI_OVER_TWO_TO_ZERO";
+    case TranscendentalRegion::SINE_NEG_PI_TO_NEG_PI_OVER_TWO:
+      return os << "SINE_NEG_PI_TO_NEG_PI_OVER_TWO";
+    default: return os << "UNKNOWN";
+  }
+}
+inline bool isValidRegion(TranscendentalRegion region)
+{
+  return region != TranscendentalRegion::INVALID;
+}
+
+/** Monotonicity direction for a transcendental region. */
+enum class MonotonicityDirection
+{
+  NONE,
+  INCREASING,
+  DECREASING
+};
+inline std::ostream& operator<<(std::ostream& os, MonotonicityDirection d)
+{
+  switch (d)
+  {
+    case MonotonicityDirection::NONE: return os << "NONE";
+    case MonotonicityDirection::INCREASING: return os << "INCREASING";
+    case MonotonicityDirection::DECREASING: return os << "DECREASING";
     default: return os << "UNKNOWN";
   }
 }
@@ -223,25 +279,22 @@ class TranscendentalState : protected EnvObj
 
   /** concavity region for transcendental functions
    *
-   * This stores an integer that identifies an interval in
+   * This stores the interval in
    * which the current model value for an argument of an
    * application of a transcendental function resides.
    *
    * For exp( x ):
-   *   region #1 is -infty < x < infty
+   *   region EXPONENTIAL is -infty < x < infty
    * For sin( x ):
-   *   region #0 is pi < x < infty (this is an invalid region)
-   *   region #1 is pi/2 < x <= pi
-   *   region #2 is 0 < x <= pi/2
-   *   region #3 is -pi/2 < x <= 0
-   *   region #4 is -pi < x <= -pi/2
-   *   region #5 is -infty < x <= -pi (this is an invalid region)
-   * All regions not listed above, as well as regions 0 and 5
-   * for SINE are "invalid". We only process applications
+   *   region SINE_PI_OVER_TWO_TO_PI is pi/2 < x <= pi
+   *   region SINE_ZERO_TO_PI_OVER_TWO is 0 < x <= pi/2
+   *   region SINE_NEG_PI_OVER_TWO_TO_ZERO is -pi/2 < x <= 0
+   *   region SINE_NEG_PI_TO_NEG_PI_OVER_TWO is -pi < x <= -pi/2
+   * All regions not listed above are invalid. We only process applications
    * of transcendental functions whose arguments have model
    * values that reside in valid regions.
    */
-  std::unordered_map<Node, int> d_tf_region;
+  std::unordered_map<Node, TranscendentalRegion> d_tf_region;
   /**
    * Maps representives of a congruence class to the members of that class.
    *
