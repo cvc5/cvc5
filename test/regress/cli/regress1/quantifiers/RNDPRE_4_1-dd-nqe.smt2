@@ -1,5 +1,5 @@
 ; REQUIRES: no-safe-mode
-; COMMAND-LINE: --cegqi-nested-qe
+; COMMAND-LINE: --cegqi-nested-qe --sat-solver=minisat
 ; EXPECT: unsat
 (set-logic LRA)
 

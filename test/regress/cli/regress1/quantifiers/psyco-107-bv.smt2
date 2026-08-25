@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --cegqi-bv --cegqi-bv-ineq=eq-boundary
 ; EXPECT: unsat
 (set-logic BV)

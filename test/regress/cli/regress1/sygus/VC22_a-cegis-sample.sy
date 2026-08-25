@@ -1,5 +1,5 @@
 ; EXPECT: feasible
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --lang=sygus2 --sygus-out=status --cegis-sample=use
 (set-logic LIA)
 

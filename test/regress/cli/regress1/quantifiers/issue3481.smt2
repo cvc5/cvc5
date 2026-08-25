@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --enum-inst --enum-inst-limit=2
 ; EXPECT: unsat
 

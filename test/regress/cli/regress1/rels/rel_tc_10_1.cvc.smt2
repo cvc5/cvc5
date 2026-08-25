@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; EXPECT: sat
 (set-option :incremental false)
 (set-logic ALL)

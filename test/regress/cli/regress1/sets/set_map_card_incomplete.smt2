@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; EXPECT: unknown
 (set-logic HO_ALL)
 ; this problem is unsat, but the solver returns unknown for now

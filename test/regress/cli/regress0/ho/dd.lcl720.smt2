@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --mbqi --mbqi-enum
 ; EXPECT: sat
 (set-logic HO_ALL)

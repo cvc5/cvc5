@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --ext-rew-prep=agg
 ; EXPECT: unsat
 (set-info :smt-lib-version 2.6)

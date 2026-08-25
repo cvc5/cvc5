@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; EXPECT: sat
 ; EXPECT: sat
 (set-logic QF_AFP)

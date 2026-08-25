@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --conflict-process=min
 (set-info :smt-lib-version 2.6)
 (set-logic QF_SLIA)

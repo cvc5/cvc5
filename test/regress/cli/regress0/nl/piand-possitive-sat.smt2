@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; EXPECT: sat
 (set-logic QF_NIA)
 (declare-const k Int)

@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; DISABLE-TESTER: lfsc
 ; DISABLE-TESTER: proof
 ; COMMAND-LINE: --fp-lazy-wb

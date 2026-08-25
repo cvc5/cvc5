@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; EXPECT: unsat
 (set-option :proof-elim-subtypes true)
 (set-logic NIRA)

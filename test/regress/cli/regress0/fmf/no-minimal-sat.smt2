@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --finite-model-find --uf-ss=no-minimal
 ; EXPECT: sat
 (set-logic UF)

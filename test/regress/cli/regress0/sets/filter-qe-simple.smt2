@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --uf-lambda-qe -q
 ; EXPECT: sat
 (set-logic HO_ALL)

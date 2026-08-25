@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --dump-proofs --proof-format-mode=alethe --dag-thresh=0 --proof-granularity=theory-rewrite
 ; EXIT: 0
 ; SCRUBBER: grep -v -E '.*'

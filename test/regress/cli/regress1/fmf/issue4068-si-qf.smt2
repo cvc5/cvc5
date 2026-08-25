@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --fmf-fun --sort-inference
 ; EXPECT: sat
 (set-logic QF_UFNIA)

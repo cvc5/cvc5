@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; EXPECT: unsat
 (set-logic ALL)
 (declare-const x774336__fresh Bool)

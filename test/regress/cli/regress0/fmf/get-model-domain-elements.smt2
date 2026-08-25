@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; DISABLE-TESTER: dump
 ; REQUIRES: no-competition
 ; COMMAND-LINE: --finite-model-find

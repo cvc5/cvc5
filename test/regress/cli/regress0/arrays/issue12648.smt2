@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: -i --check-models
 ; EXPECT: unsat
 ; EXPECT: unsat

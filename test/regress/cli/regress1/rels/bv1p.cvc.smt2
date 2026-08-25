@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --jh-rlv-order
 ; EXPECT: unsat
 (set-option :incremental false)

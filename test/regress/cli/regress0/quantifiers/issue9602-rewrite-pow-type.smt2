@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; EXPECT: sat
 (set-logic ALL)
 (assert (forall ((t Int)) (<= 0.0 (* 1.0 (^ 0.0 1.0)))))

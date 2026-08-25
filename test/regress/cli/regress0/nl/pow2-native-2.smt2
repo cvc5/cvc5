@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; EXPECT: unsat
 ; DISABLE-TESTER: alethe
 (set-logic QF_NIA)

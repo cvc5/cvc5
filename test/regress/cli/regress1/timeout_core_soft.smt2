@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --timeout-core-timeout=200
 ; REQUIRES: no-competition
 ; EXPECT: unknown

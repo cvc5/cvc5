@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; EXPECT: unsat
 ;; Unsat core checking with proofs at one point had issues for
 ;; this benchmark due to cycle detection in LazyCDProofChain

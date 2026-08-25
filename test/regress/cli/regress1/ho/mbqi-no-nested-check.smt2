@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --mbqi-enum --no-mbqi-nested-check
 ; EXPECT: unsat
 (set-logic HO_ALL)

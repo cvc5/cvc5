@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --proof-prune-input
 ; SCRUBBER: grep -E "define|unsat"
 ; EXPECT: unsat

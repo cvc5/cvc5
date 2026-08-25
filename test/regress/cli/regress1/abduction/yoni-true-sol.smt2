@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --produce-abducts
 ; EXPECT: (define-fun A () Bool (>= j i))
 (set-logic QF_LIA)

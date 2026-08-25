@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --bool-to-bv=ite --bv-solver=bitblast-internal
 ; EXPECT: sat
 (set-logic QF_BV)

@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --bv-intro-pow2
 ; DISABLE-TESTER: unsat-core
 (set-info :smt-lib-version 2.6)

@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --ackermann
 ; EXPECT: unsat
 (set-logic QF_UFLIA)

@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --mbqi-enum --no-cegqi
 ; EXPECT: unsat
 (set-logic BV)

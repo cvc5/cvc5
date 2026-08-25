@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ;; Originally a seg fault cause by a zero width vector, fixed by SymFPU 1.2.0
 
 (set-info :smt-lib-version 2.6)

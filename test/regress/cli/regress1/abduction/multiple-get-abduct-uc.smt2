@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; SCRUBBER: grep -v -E '(\(define-fun)'
 ; EXIT: 0
 (set-option :produce-models true)

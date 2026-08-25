@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --uf-lazy-ll --mbqi
 ; EXPECT: sat
 (set-logic HO_ALL)

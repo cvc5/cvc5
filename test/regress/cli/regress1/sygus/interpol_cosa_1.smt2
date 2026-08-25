@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --produce-interpolants --interpolants-mode=conjecture --sygus-enum=fast --check-interpolants
 ; SCRUBBER: grep -v -E '(\(define-fun)'
 ; EXIT: 0

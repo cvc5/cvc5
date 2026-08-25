@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --cegqi-inf-int --cegqi-inf-real
 ; EXPECT: unsat
 (set-info :smt-lib-version 2.6)

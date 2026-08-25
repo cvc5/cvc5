@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --sat-solver=cadical
 ; EXPECT: sat
 (set-logic QF_AUFLIA)

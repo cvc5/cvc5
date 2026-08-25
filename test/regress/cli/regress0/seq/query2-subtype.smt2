@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --simplification=none --strings-fmf
 ; EXPECT: sat
 (set-logic ALL)

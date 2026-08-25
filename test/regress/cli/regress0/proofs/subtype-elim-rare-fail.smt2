@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --proof-elim-subtypes
 ; EXPECT: unsat
 (set-logic LRA)

@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 (set-logic QF_ALL)
 (declare-const X (_ FloatingPoint 8 24))
 (declare-const R Real)

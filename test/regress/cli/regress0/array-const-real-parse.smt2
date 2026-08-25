@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --arrays-exp --print-arith-lit-token
 (set-logic QF_AUFLIRA)
 (set-info :status sat)

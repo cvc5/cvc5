@@ -1,6 +1,6 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; DISABLE-TESTER: alethe
-; COMMAND-LINE: --cegqi-inf-int
+; COMMAND-LINE: --cegqi-inf-int --sat-solver=minisat
 ; EXPECT: unsat
 (set-logic ALL)
 (declare-fun a () Real)

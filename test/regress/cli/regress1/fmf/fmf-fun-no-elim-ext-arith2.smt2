@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --fmf-fun -q
 ; EXPECT: sat
 (set-logic UFNIA)

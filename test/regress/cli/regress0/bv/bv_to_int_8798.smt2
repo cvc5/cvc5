@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --solve-bv-as-int=iand --mbqi
 ; EXPECT: sat
 (set-logic ALL)

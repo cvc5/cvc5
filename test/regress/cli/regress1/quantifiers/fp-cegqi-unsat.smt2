@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 (set-info :smt-lib-version 2.6)
 (set-logic FPLRA)
 (set-info :status unsat)

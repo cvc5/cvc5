@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --cegqi-bv --bv-solver=bitblast
 ; EXPECT: unsat
 (set-logic BV)

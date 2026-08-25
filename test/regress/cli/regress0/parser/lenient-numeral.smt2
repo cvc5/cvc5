@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --parsing-mode=lenient
 ; EXPECT: unsat
 (set-logic QF_LIRA)

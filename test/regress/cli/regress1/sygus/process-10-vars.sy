@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --lang=sygus2 --sygus-si=none --sygus-out=status --sygus-arg-relevant
 ; EXPECT: feasible
 (set-logic LIA)

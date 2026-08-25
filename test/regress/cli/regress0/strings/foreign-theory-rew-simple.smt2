@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --foreign-theory-rewrite
 ; EXPECT: unsat
 (set-logic ALL)

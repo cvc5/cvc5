@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; EXPECT: fail
 (set-logic ALL)
 (set-option :preprocess-only true)

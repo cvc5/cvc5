@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 (set-logic BV)
 (set-info :status sat)
 (set-option :finite-model-find true)

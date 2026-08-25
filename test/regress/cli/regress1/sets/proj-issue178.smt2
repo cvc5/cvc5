@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 (set-logic ALL)
 (set-info :status sat)
 (set-option :sygus-inference try)

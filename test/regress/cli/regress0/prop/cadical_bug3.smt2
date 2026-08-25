@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: -i --sat-solver=cadical
 ; EXPECT: unknown
 ; EXPECT: unknown

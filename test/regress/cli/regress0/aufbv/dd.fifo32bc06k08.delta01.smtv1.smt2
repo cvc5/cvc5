@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --bitwise-eq
 ; EXPECT: unsat
 (set-logic ALL)

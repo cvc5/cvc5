@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: -i
 ; SCRUBBER: grep -v -E '(\(define-fun)'
 ; EXIT: 0

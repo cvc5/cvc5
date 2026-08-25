@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --solve-bv-as-int=iand --iand-mode=bitwise --nl-ext-tplanes
 ; EXPECT: sat
 (set-logic ALL)

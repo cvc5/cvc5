@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --solve-int-as-bv=4
 ; SCRUBBER: grep -o "Cannot translate to BV"
 ; EXPECT: Cannot translate to BV

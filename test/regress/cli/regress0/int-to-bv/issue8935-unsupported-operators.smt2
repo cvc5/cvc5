@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; SCRUBBER: grep -o "Cannot translate to BV"
 ; EXPECT: Cannot translate to BV
 ; EXIT: 1

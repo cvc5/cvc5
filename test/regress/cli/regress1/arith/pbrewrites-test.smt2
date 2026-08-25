@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --pb-rewrites
 ; EXPECT: sat
 (set-info :smt-lib-version 2.6)

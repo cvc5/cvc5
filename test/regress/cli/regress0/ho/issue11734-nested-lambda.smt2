@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; EXPECT: sat
 (set-logic HO_ALL)
 (declare-const lambdaAdd (-> Int (-> Int Int) ))

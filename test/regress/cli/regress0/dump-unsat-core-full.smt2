@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --print-cores-full --dump-unsat-cores
 ; EXPECT: unsat
 ; EXPECT: (

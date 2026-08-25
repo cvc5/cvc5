@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 (set-logic ALL)
 (set-info :status unsat)
 (declare-fun st1 () (Set Int))

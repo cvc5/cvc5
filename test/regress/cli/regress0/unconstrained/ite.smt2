@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --unconstrained-simp
 (set-logic QF_AUFBV )
 (set-info :status sat)

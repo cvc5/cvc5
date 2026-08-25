@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --learned-rewrite
 ; EXPECT: unsat
 ; DISABLE-TESTER: unsat-core

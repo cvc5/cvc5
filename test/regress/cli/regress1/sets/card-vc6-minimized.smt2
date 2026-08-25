@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; EXPECT: unsat
 (set-logic QF_UFLIAFS)
 (declare-fun x () Int)

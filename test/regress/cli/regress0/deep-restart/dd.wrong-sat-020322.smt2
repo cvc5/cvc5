@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --deep-restart=input-and-prop
 ; EXPECT: unsat
 ; DISABLE-TESTER: unsat-core

@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --solve-int-as-bv=32 
 (set-logic QF_NIA)
 (set-info :status sat)

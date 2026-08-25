@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --finite-model-find -i --sub-cbqi
 ; EXPECT: sat
 ; EXPECT: unsat

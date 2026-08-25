@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --sets-exp --finite-model-find
 ; EXPECT: sat
 (set-logic UFFS)

@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --incremental --fmf-fun
 ; DISABLE-TESTER: model
 (set-logic ALL)

@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: -q
 ; SCRUBBER: sed -e 's/(define-fun.*/(define-fun/'
 ; EXPECT: (define-fun

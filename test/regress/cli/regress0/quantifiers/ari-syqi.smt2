@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --sygus-inst --no-cegqi
 ; EXPECT: unsat
 (set-logic BV)

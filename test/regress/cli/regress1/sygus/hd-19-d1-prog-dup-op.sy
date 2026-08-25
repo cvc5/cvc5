@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; EXPECT: feasible
 ; COMMAND-LINE: --lang=sygus2 --sygus-si=all --sygus-si-rcons-p=1 --sygus-out=status
 

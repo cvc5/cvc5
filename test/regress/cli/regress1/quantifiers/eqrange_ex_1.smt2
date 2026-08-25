@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --arrays-exp
 ; EXPECT: unsat
 ; DISABLE-TESTER: proof

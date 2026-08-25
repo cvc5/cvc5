@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; DISABLE-TESTER: lfsc
 ; COMMAND-LINE: --seq-array=eager
 ; EXPECT: unsat

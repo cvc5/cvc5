@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --ext-rew-prep=agg --check-models
 ; EXPECT: sat
 (set-logic QF_ABV)

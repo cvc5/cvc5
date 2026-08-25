@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; EXPECT: unknown
 (set-logic ALL)
 (set-option :produce-unsat-cores true)

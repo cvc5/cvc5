@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --enum-inst
 ; EXPECT: unsat
 (set-logic HO_ALL)

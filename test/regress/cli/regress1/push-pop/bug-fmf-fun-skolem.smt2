@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --incremental --fmf-fun
 (set-logic ALL)
 (declare-datatypes ((Lst 0)) (((cons (head Int) (tail Lst)) (nil))))

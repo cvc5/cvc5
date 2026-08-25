@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --produce-difficulty --difficulty-mode=model-check
 ; SCRUBBER: sed 's/.*//g'
 ; EXIT: 0

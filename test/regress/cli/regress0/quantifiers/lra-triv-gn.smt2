@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --global-negate
 ; EXPECT: unsat
 ; DISABLE-TESTER: unsat-core

@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 (set-logic QF_DTLIA)
 (set-info :status sat)
 (declare-codatatypes ((a 0)) (((b (c Int) (d a)))))

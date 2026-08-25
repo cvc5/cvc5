@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; EXPECT: sat
 (set-logic HO_ALL)
 (declare-fun f (Bool (-> Bool Int)) Bool)

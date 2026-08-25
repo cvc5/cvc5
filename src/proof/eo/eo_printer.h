@@ -141,6 +141,16 @@ class EoPrinter : protected EnvObj
                           const ProofNode* pn,
                           bool addToCache);
   /**
+   * Helper for print. Prints a (dummy) step concluding the formula assumed by
+   * pn, which is expected to be an application of ProofRule::ASSUME that is
+   * the body of the proof we are printing. This ensures that proofs always end
+   * with a step and not an assume command.
+   *
+   * @param aout The output channel to print to.
+   * @param pn The (assumption) proof node that is the body of the proof.
+   */
+  void printAssumeBodyStep(EoPrintChannelOut& aout, const ProofNode* pn);
+  /**
    * Called at preorder traversal of proof node pn. Prints (if necessary) to
    * out.
    */

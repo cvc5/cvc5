@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --no-strings-lazy-pp -i
 ; EXPECT: unsat
 (set-logic QF_S)

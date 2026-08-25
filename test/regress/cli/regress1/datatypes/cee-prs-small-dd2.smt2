@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --arrays-exp --ee-mode=distributed
 ; COMMAND-LINE: --arrays-exp --ee-mode=central
 ; EXPECT: unsat

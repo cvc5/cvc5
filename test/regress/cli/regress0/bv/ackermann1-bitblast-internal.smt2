@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --bitblast=eager --bv-solver=bitblast-internal 
 ; EXPECT: sat
 ; DISABLE-TESTER: model

@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; EXPECT: unsat
 ; COMMAND-LINE: --incremental --repeat-simp
 ; DISABLE-TESTER: unsat-core

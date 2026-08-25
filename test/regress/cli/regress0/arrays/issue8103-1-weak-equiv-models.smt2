@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --produce-models --arrays-weak-equiv
 ; SCRUBBER: grep -o "Cannot use arrays-weak-equiv with model generation"
 ; EXPECT: Cannot use arrays-weak-equiv with model generation

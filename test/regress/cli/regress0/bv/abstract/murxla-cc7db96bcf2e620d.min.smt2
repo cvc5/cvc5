@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --bv-abstraction
 ; EXPECT: unsat
 ; DISABLE-TESTER: proof

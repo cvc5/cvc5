@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --unconstrained-simp
 (set-logic ALL)
 (declare-fun a () Bool)

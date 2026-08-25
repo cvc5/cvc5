@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --ext-rew-prep=agg
 ; EXPECT: sat
 (set-logic ALL)

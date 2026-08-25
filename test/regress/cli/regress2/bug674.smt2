@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --quant-ind --incremental --ieval=off --term-db-mode=all
 (set-logic ALL)
 (declare-datatypes ((Lst 0)) (((cons (head Int) (tail Lst)) (nil))))

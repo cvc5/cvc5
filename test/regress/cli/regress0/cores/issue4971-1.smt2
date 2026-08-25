@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --incremental --produce-unsat-cores
 ; COMMAND-LINE: --incremental --unsat-cores-mode=sat-proof --produce-unsat-cores
 ; EXPECT: sat

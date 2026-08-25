@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --fmf-fun-rlv
 ; EXPECT: sat
 ; DISABLE-TESTER: model

@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --bv-solver=bitblast --bitblast=eager
 (set-logic QF_BV)
 (set-info :status sat)

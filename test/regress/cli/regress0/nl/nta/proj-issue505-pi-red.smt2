@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; EXPECT: unsat
 (set-logic ALL)
 (assert (is_int (arcsin real.pi)))

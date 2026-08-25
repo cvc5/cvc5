@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --cegqi-bv --no-cegqi-full
 ; EXPECT: sat
 (set-logic BV)

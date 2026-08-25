@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --theoryof-mode=type
 ; COMMAND-LINE: --theoryof-mode=term
 ; SCRUBBER: grep -o "ITE branches of type RegLan are currently not supported"

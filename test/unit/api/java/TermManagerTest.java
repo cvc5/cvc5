@@ -43,6 +43,15 @@ class TermManagerTest
   }
 
   @Test
+  void equalHash()
+  {
+    TermManager tm = new TermManager();
+    assertEquals(d_tm, d_tm);
+    assertNotEquals(d_tm, tm);
+    assertEquals(d_tm.hashCode(), d_tm.hashCode());
+  }
+
+  @Test
   void getBooleanSort() throws CVC5ApiException
   {
     assertDoesNotThrow(() -> d_tm.getBooleanSort());

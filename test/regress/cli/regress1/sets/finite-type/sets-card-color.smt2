@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 (set-logic QF_BVDTLIAFS)
 (set-info :status unsat)
 (set-option :produce-models true)

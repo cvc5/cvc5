@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --nl-ext-flatten-mon
 ; EXPECT: unsat
 (set-logic QF_NIA)

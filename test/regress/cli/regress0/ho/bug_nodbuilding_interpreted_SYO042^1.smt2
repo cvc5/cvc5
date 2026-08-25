@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 (set-logic HO_ALL)
 (set-info :status unsat)
 (declare-sort $$unsorted 0)

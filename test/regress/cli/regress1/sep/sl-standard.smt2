@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 (set-logic QF_ALL)
 (set-info :source | CVC4 - Andrew Reynolds |)
 (set-info :smt-lib-version 2.6)

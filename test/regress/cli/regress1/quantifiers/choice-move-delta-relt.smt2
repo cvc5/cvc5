@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --relational-triggers --user-pat=use
 ; EXPECT: unsat
 (set-logic ALL)

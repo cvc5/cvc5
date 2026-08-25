@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; EXPECT: stdout
 ; EXPECT: stderr
 ; EXPECT: stdin

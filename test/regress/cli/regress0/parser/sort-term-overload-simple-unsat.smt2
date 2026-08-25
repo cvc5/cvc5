@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --term-sort-overload
 ; EXPECT: unsat
 ; DISABLE-TESTER: cpc

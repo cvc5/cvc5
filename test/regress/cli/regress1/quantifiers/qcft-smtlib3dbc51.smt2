@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --cbqi-tconstraint --ieval=off
 ; EXPECT: unsat
 ;; slow conversion

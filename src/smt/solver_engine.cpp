@@ -2324,7 +2324,7 @@ void SolverEngine::setOption(const std::string& key,
                                ? "stable mode"
                                : "safe mode";
     // Note that a regression that sets such an option must be marked with
-    // "REQUIRES: no-restricted-mode" (or "REQUIRES: no-safe-mode" if the
+    // "REQUIRES: unrestricted-mode" (or "REQUIRES: no-safe-mode" if the
     // option is admissible in stable mode), as the regression testers do not
     // infer this from the output of cvc5.
     if (key == "trace")

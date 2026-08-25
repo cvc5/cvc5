@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --no-term-sort-overload
 ; DISABLE-TESTER: dump
 ; REQUIRES: no-competition

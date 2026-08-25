@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --bool-to-bv=all --simplification=none
 ; EXPECT: sat
 ; checks that bool-to-bv pass handles arrays over booleans correctly

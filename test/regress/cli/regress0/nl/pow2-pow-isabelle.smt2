@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --solve-bv-as-int=sum --nl-ext-tplanes 
 ; EXPECT: unsat
 ; causes exception with large exponents on some builds

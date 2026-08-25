@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; EXPECT: unsat
 (set-logic ALL)
 (declare-datatype FList ((cons (head (Set (_ FloatingPoint 4 5))) (tail FList)) (nil)))

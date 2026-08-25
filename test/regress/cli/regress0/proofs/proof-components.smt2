@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; SCRUBBER: grep -v -E '(\(|\)|:proves)'
 ; COMMAND-LINE: --simplification=none --proof-format=none
 ; EXPECT: unsat

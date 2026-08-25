@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: -i --sat-solver=cadical
 ; DISABLE-TESTER: proof
 (set-logic QF_BV)

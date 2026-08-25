@@ -1,4 +1,4 @@
-; REQUIRES: no-restricted-mode
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --cegqi-all --no-relational-triggers --no-sygus-inst
 ; EXPECT: unsat
 (set-logic NIA)
