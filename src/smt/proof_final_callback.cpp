@@ -82,11 +82,8 @@ void ProofFinalCallback::finalize(std::shared_ptr<ProofNode> pn)
   ProofRule r = pn->getRule();
   ProofNodeManager* pnm = d_env.getProofNodeManager();
   Assert(pnm != nullptr);
-  // TEMPORARY DEBUG CHECK
-  if (expr::hasSubtermKind(Kind::APPLY_INDEXED_SYMBOLIC, pn->getResult()))
-  {
-    std::cout << "AIS-IN-PROOF " << r << " : " << pn->getResult() << std::endl;
-  }
+  // APPLY_INDEXED_SYMBOLIC should only be used internally during RARE reconstruction
+  Assert (!expr::hasSubtermKind(Kind::APPLY_INDEXED_SYMBOLIC, pn->getResult()));
   // if not doing eager pedantic checking, fail if below threshold
   if (options().proof.proofCheck != options::ProofCheckMode::EAGER)
   {
