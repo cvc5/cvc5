@@ -79,27 +79,12 @@ jobs:
         python3 -m venv ~/.venv
         echo "$HOME/.venv/bin" >> $GITHUB_PATH
 
-    - uses: msys2/setup-msys2@v2
-      if: runner.os == 'Windows' && runner.arch == 'X64'
+    - name: Install cvc5 dependencies (Windows)
+      if: runner.os == 'Windows'
+      uses: ./.github/actions/install-dependencies
       with:
-        msystem: clang64
-        path-type: inherit
-        install: |
-          make
-          mingw-w64-clang-x86_64-cmake
-          mingw-w64-clang-x86_64-clang
-          mingw-w64-clang-x86_64-gmp
-
-    - uses: msys2/setup-msys2@v2
-      if: runner.os == 'Windows' && runner.arch == 'ARM64'
-      with:
-        msystem: clangarm64
-        path-type: inherit
-        install: |
-          make
-          mingw-w64-clang-aarch64-cmake
-          mingw-w64-clang-aarch64-clang
-          mingw-w64-clang-aarch64-gmp
+        windows-build: true
+        shell: ${{ matrix.shell }}
 
     # cibuildwheel requires pyproject.toml to be present from the beginning
     - name: Create pyproject.toml

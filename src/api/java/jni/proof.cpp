@@ -144,14 +144,14 @@ JNIEXPORT jboolean JNICALL Java_io_github_cvc5_Proof_equals(JNIEnv* env,
 /*
  * Class:     io_github_cvc5_Proof
  * Method:    hashCode
- * Signature: (J)I
+ * Signature: (J)J
  */
-JNIEXPORT jint JNICALL Java_io_github_cvc5_Proof_hashCode(JNIEnv* env,
-                                                          jobject,
-                                                          jlong pointer)
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Proof_hashCode(JNIEnv* env,
+                                                           jobject,
+                                                           jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Proof* current = reinterpret_cast<Proof*>(pointer);
-  return static_cast<jint>(std::hash<cvc5::Proof>()(*current));
+  return static_cast<jlong>(std::hash<cvc5::Proof>()(*current));
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }

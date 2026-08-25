@@ -1,4 +1,4 @@
-; COMMAND-LINE: --nl-ext=full
+; COMMAND-LINE: --nl-ext=full --sat-solver=minisat
 ; EXPECT: sat
 (set-logic QF_NRA)
 (set-info :status sat)

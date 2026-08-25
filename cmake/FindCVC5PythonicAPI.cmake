@@ -31,12 +31,12 @@ else()
     check_auto_download("CVC5PythonicAPI" "--no-python-bindings")
   endif()
 
-  set(CVC5PythonicAPI_VERSION "cdcac7cb2da79d922fc44628c1c3c5f60c2eeec4")
+  set(CVC5PythonicAPI_VERSION "bfc0e248e2dbd4746a458852fe847491bdf10eab")
   ExternalProject_Add(
     CVC5PythonicAPI
     ${COMMON_EP_CONFIG}
     URL https://github.com/cvc5/cvc5_pythonic_api/archive/${CVC5PythonicAPI_VERSION}.zip
-    URL_HASH SHA256=85630465037f1cd864452d3999dd4e2a2f074822a8a310f1179d672dc8d24d16
+    URL_HASH SHA256=f8d51faee78d5b799b18176552f2bdfc03515f82e15e83bc7ca5e6503a6915f1
     CONFIGURE_COMMAND ""
     BUILD_COMMAND ""
     INSTALL_COMMAND ""
