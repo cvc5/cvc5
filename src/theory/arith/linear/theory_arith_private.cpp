@@ -33,6 +33,7 @@
 #include "options/base_options.h"
 #include "options/smt_options.h"
 #include "preprocessing/util/ite_utilities.h"
+#include "proof/lazy_proof.h"
 #include "proof/proof_generator.h"
 #include "proof/proof_node_manager.h"
 #include "smt/logic_exception.h"
@@ -54,6 +55,7 @@
 #include "theory/arith/linear/partial_model.h"
 #include "theory/arith/linear/simplex.h"
 #include "theory/arith/nl/nonlinear_extension.h"
+#include "theory/arith/rewriter/rewrite_atom.h"
 #include "theory/arith/theory_arith.h"
 #include "theory/ext_theory.h"
 #include "theory/quantifiers/fmf/bounded_integers.h"
@@ -94,6 +96,8 @@ TheoryArithPrivate::TheoryArithPrivate(Env& env,
       d_pnm(d_env.isTheoryProofProducing() ? d_env.getProofNodeManager()
                                            : nullptr),
       d_pfGen(new EagerProofGenerator(env, userContext())),
+      d_ppAssertPf(new LazyCDProof(
+          env, nullptr, userContext(), "TheoryArithPrivate::ppAssertPf")),
       d_constraintDatabase(d_env,
                            d_partialModel,
                            d_congruenceManager,
@@ -1108,7 +1112,17 @@ bool TheoryArithPrivate::ppAssert(TrustNode tin,
   if (in.getKind() == Kind::EQUAL
       && Theory::theoryOf(in[0].getType()) == THEORY_ARITH)
   {
-    Comparison cmp = Comparison::parseNormalForm(in);
+    // Equalities are not normalized by the rewriter, see
+    // rewriter::normalizeEquality. We compute the normal form here, which is
+    // required for solving for a variable below. Note that the substitution we
+    // infer is justified by tin, which proves the original equality.
+    Node inn = rewriter::normalizeEquality(nodeManager(), in);
+    if (inn.getKind() != Kind::EQUAL)
+    {
+      // normalized to a Boolean constant, no substitution
+      return false;
+    }
+    Comparison cmp = Comparison::parseNormalForm(inn);
 
     Polynomial left = cmp.getLeft();
 
@@ -1140,6 +1154,16 @@ bool TheoryArithPrivate::ppAssert(TrustNode tin,
       {
         elim = nodeManager()->mkNode(Kind::TO_REAL, elim);
       }
+      else if (minVar.getType().isInteger() && !elim.getType().isInteger()
+               && elim.isConst() && elim.getConst<Rational>().isIntegral())
+      {
+        // The normal form of an equality between real terms is an equality
+        // between real terms as well, e.g. the normal form of
+        // (= (to_real x) 0.0) is itself. Since Comparison::getLeft strips the
+        // cast, we may have solved for an integer variable, in which case we
+        // convert the solved form to an integer constant here.
+        elim = nodeManager()->mkConstInt(elim.getConst<Rational>());
+      }
       if (right.size() > options().arith.ppAssertMaxSubSize)
       {
         Trace("simplify")
@@ -1155,7 +1179,8 @@ bool TheoryArithPrivate::ppAssert(TrustNode tin,
         Trace("simplify") << "TheoryArithPrivate::solve(): substitution "
                           << minVar << " |-> " << elim << endl;
         AssertEqual(elim.getType(), minVar.getType());
-        outSubstitutions.addSubstitutionSolved(minVar, elim, tin);
+        outSubstitutions.addSubstitutionSolved(
+            minVar, elim, mkSolvedEq(minVar, elim, tin));
         return true;
       }
       else
@@ -1185,6 +1210,35 @@ bool TheoryArithPrivate::ppAssert(TrustNode tin,
   }
 
   return false;
+}
+
+TrustNode TheoryArithPrivate::mkSolvedEq(const Node& x,
+                                         const Node& t,
+                                         TrustNode tin)
+{
+  Node eq = x.eqNode(t);
+  Node in = tin.getNode();
+  if (eq == in || !proofsEnabled() || tin.getGenerator() == nullptr)
+  {
+    // no proof required, or no proof to base the solved form on
+    return tin;
+  }
+  // Note that eq is *not* the rewritten form of in, since the rewriter does
+  // not normalize equalities, see rewriter::normalizeEquality. Hence we
+  // cannot rely on TrustSubstitutionMap::addSubstitutionSolved to relate the
+  // two by rewriting, which would introduce a trust step (SUBS_EQ). Instead we
+  // prove eq from in by polynomial normalization here.
+  Pf pf = mkArithPolyNormRel(d_pnm, in, eq);
+  Assert(pf != nullptr) << in << " and " << eq << " are not poly norm";
+  if (pf == nullptr)
+  {
+    return tin;
+  }
+  // the proof of in is provided lazily by the generator of tin
+  d_ppAssertPf->addLazyStep(in, tin.getGenerator());
+  d_ppAssertPf->addProof(pf);
+  d_ppAssertPf->addStep(eq, ProofRule::EQ_RESOLVE, {in, in.eqNode(eq)}, {});
+  return TrustNode::mkTrustLemma(eq, d_ppAssertPf.get());
 }
 
 void TheoryArithPrivate::ppStaticLearn(TNode n, std::vector<TrustNode>& learned)
@@ -1373,11 +1427,35 @@ void TheoryArithPrivate::setupPolynomial(const Polynomial& poly)
 void TheoryArithPrivate::setupAtom(TNode atom)
 {
   Assert(isRelationOperator(atom.getKind())) << atom;
-  Assert(Comparison::isNormalAtom(atom));
   Assert(!isSetup(atom));
   Assert(!d_constraintDatabase.hasLiteral(atom));
 
-  Comparison cmp = Comparison::parseNormalForm(atom);
+  // Equalities are not normalized by the rewriter, since normalizing an
+  // equality does not preserve its terms, which is incompatible with theory
+  // combination, see rewriter::normalizeEquality. We thus compute the normal
+  // form here, which determines the constraint that atom corresponds to.
+  // Note we normalize all equalities here, and not only those for which
+  // Comparison::isNormalAtom is false, since the latter is not a sufficient
+  // criterion. For example (= x (* (- 6) x)) is structurally a normal atom,
+  // although its normal form is (= x 0).
+  Node natom = atom;
+  if (atom.getKind() == Kind::EQUAL)
+  {
+    natom = rewriter::normalizeEquality(nodeManager(), atom);
+    Trace("arith::setup") << "Normalize " << atom << " to " << natom
+                          << std::endl;
+    // Note the normal form is not a Boolean constant, since atom is in
+    // rewritten form, which evaluates equalities between constant sides.
+    Assert(natom.getKind() == Kind::EQUAL);
+    // Note that we do *not* set up the normal form of atom here. Doing so
+    // would introduce a second literal for the constraint of atom, which the
+    // SAT solver would then have to relate to atom via the lemma below. It
+    // suffices to make atom itself the literal of its constraint, in which
+    // case propagations and explanations are stated in terms of atom.
+  }
+  Assert(Comparison::isNormalAtom(natom)) << natom;
+
+  Comparison cmp = Comparison::parseNormalForm(natom);
   Polynomial nvp = cmp.normalizedVariablePart();
   Assert(!nvp.isZero());
 
@@ -1386,9 +1464,41 @@ void TheoryArithPrivate::setupAtom(TNode atom)
     setupPolynomial(nvp);
   }
 
-  d_constraintDatabase.addLiteral(atom);
+  ConstraintP c = d_constraintDatabase.addLiteral(atom, natom);
 
+  // It is possible that two distinct atoms correspond to the same constraint,
+  // which is the case when atom is not in normal form and another atom with
+  // the same normal form was already set up. In this rare case, the atoms are
+  // distinct literals for the SAT solver, which would otherwise have to
+  // discover their equivalence lazily via conflicts. We instead send a lemma
+  // stating that they are equivalent. Note that if atom is the first literal
+  // of its constraint, no lemma is required, since the linear solver states
+  // its propagations and explanations in terms of the literal of a constraint.
+  Node lit = c->getLiteral();
+  // Note we mark the atom as setup before sending the lemma below, since
+  // sending a lemma may lead to this atom being preregistered again.
   markSetup(atom);
+  if (lit != atom)
+  {
+    Assert(lit.getKind() == Kind::EQUAL && atom.getKind() == Kind::EQUAL);
+    Node lem = lit.eqNode(atom);
+    TrustNode tlem;
+    if (proofsEnabled())
+    {
+      // The two atoms are equivalent up to polynomial normalization.
+      Pf pf = mkArithPolyNormRel(d_pnm, lit, atom);
+      Assert(pf != nullptr) << lit << " and " << atom << " are not poly norm";
+      if (pf != nullptr)
+      {
+        tlem = d_pfGen->mkTrustNode(lem, pf);
+      }
+    }
+    if (tlem.isNull())
+    {
+      tlem = TrustNode::mkTrustLemma(lem, nullptr);
+    }
+    outputTrustedLemma(tlem, InferenceId::ARITH_EQUIV_ATOM);
+  }
 }
 
 void TheoryArithPrivate::preRegisterTerm(TNode n)
@@ -1410,8 +1520,12 @@ void TheoryArithPrivate::preRegisterTerm(TNode n)
       Assert(c != NullConstraint);
 
       Trace("arith::preregister") << "setup constraint" << c << endl;
-      Assert(!c->canBePropagated());
-      c->setPreregistered();
+      // Note that the constraint may already be preregistered, since multiple
+      // atoms may correspond to the same constraint, see setupAtom.
+      if (!c->canBePropagated())
+      {
+        c->setPreregistered();
+      }
     }
   }
   catch (LogicException& le)
@@ -1711,6 +1825,11 @@ ConstraintP TheoryArithPrivate::constraintFromFactQueue(TNode assertion)
     bool isDistinct = simpleKind == Kind::DISTINCT;
     Node eq = (simpleKind == Kind::DISTINCT) ? assertion[0] : assertion;
     Assert(!isSetup(eq));
+    // Note that the rewritten form of an equality is a Boolean constant
+    // whenever it is equivalent to one, even though the rewriter does not
+    // otherwise normalize equalities, see rewriter::normalizeEquality. Hence
+    // it suffices to consider the rewritten form here; setupAtom below
+    // computes the normal form that determines the constraint.
     Node reEq = rewrite(eq);
     Trace("arith::distinct::const") << "Assertion: " << assertion << std::endl;
     Trace("arith::distinct::const") << "Eq       : " << eq << std::endl;
