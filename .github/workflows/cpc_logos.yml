@@ -4,16 +4,14 @@ on:
       - main
     paths:
       - 'proofs/eo/**'
-      - 'contrib/get-cpc-compiler'
-      - 'contrib/check-cpc-logos'
+      - 'contrib/check-logos-compilation'
       - '.github/workflows/cpc_logos.yml'
   pull_request:
     # Keep in sync with the push filter above; GitHub Actions does not support
     # YAML anchors.
     paths:
       - 'proofs/eo/**'
-      - 'contrib/get-cpc-compiler'
-      - 'contrib/check-cpc-logos'
+      - 'contrib/check-logos-compilation'
       - '.github/workflows/cpc_logos.yml'
   schedule:
     - cron: '0 6 * * *'
@@ -34,7 +32,7 @@ permissions:
   contents: read
 
 jobs:
-  check-cpc-logos:
+  check-logos-compilation:
     name: Check CPC against pinned Logos
     runs-on: ubuntu-latest
     steps:
@@ -49,7 +47,7 @@ jobs:
           sudo apt-get install -y libgmp-dev
 
       # The pinned Logos commit and, transitively, the ethos commit it pins are
-      # both fixed by contrib/get-cpc-compiler, so its hash is the whole
+      # both fixed by contrib/check-logos-compilation, so its hash is the whole
       # cache key.
       # Restore and save are separate so that a failed install is not written
       # to the cache, where it would be restored by every later run under a key
@@ -59,18 +57,21 @@ jobs:
         uses: actions/cache/restore@v5
         with:
           path: deps/cpc-compiler
-          key: ${{ runner.os }}-cpc-compiler-${{ hashFiles('contrib/get-cpc-compiler') }}
+          key: ${{ runner.os }}-cpc-compiler-${{ hashFiles('contrib/check-logos-compilation') }}
 
+      # The check sets the compiler up itself when it is not there, but doing
+      # it as its own step is what lets the cache be saved separately from the
+      # check's own outcome.
       - name: Install the Eunoia compiler and the pinned Logos
         if: steps.cpc-compiler-cache.outputs.cache-hit != 'true'
-        run: ./contrib/get-cpc-compiler
+        run: ./contrib/check-logos-compilation --setup-only
 
       - name: Save CPC compiler cache
         if: success() && steps.cpc-compiler-cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@v5
         with:
           path: deps/cpc-compiler
-          key: ${{ runner.os }}-cpc-compiler-${{ hashFiles('contrib/get-cpc-compiler') }}
+          key: ${{ runner.os }}-cpc-compiler-${{ hashFiles('contrib/check-logos-compilation') }}
 
       # Two outcomes, reported differently. A signature that does not compile
       # is a change to proofs/eo that the pull request can fix, so it fails the
@@ -84,15 +85,15 @@ jobs:
           STRICT: ${{ (github.event_name == 'schedule' || inputs.strict) && '--strict' || '' }}
         run: |
           status=0
-          ./contrib/check-cpc-logos ${STRICT} || status=$?
+          ./contrib/check-logos-compilation ${STRICT} || status=$?
           if [ "${status}" -eq 2 ]; then
-            echo "::warning title=CPC is ahead of the pinned Logos::proofs/eo/cpc no longer matches the Cpc package of the Logos commit pinned in contrib/get-cpc-compiler. Regenerate Logos, then move LOGOS_VERSION."
+            echo "::warning title=CPC is ahead of the pinned Logos::proofs/eo/cpc no longer matches the Cpc package of the Logos commit pinned in contrib/check-logos-compilation. Regenerate Logos, then move LOGOS_VERSION."
             {
               echo "### CPC is ahead of the pinned Logos"
               echo
               echo "The signature compiles, but \`Cpc\` at the pinned Logos commit was"
               echo "generated from an older version of it. Regenerate Logos against this"
-              echo "signature and move \`LOGOS_VERSION\` in \`contrib/get-cpc-compiler\`."
+              echo "signature and move \`LOGOS_VERSION\` in \`contrib/check-logos-compilation\`."
             } >> "${GITHUB_STEP_SUMMARY}"
             exit 0
           fi

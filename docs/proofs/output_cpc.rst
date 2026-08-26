@@ -66,13 +66,12 @@ definitions of the calculus are the same definition.
 
 Since that compilation consumes the signature in this repository, a change to
 :cvc5repo:`proofs/eo/cpc <proofs/eo/cpc>` can leave Logos behind.
-The :cvc5repo:`script <contrib/get-cpc-compiler>`
-``contrib/get-cpc-compiler`` downloads a pinned commit of Logos together
-with the Eunoia compiler that compiles this signature, and
-:cvc5repo:`contrib/check-cpc-logos <contrib/check-cpc-logos>` reports whether
-the signature still compiles and whether that pinned Logos was generated from
-the current version of it.
-The ``cpc-logos`` CI workflow runs both.
+The :cvc5repo:`script <contrib/check-logos-compilation>`
+``contrib/check-logos-compilation`` pins a commit of Logos, sets up the Eunoia
+compiler that performs the compilation, and reports whether the signature
+still compiles and whether that pinned Logos was generated from the current
+version of it.
+It is run by the ``cpc-logos`` CI workflow.
 When the signature has moved ahead, Logos is regenerated and repaired against
-it in its own repository, and ``LOGOS_VERSION`` in
-``contrib/get-cpc-compiler`` is moved to the resulting commit afterwards.
+it in its own repository, and ``LOGOS_VERSION`` in that script is moved to the
+resulting commit afterwards.
