@@ -175,11 +175,13 @@ class TheorySetsRels : protected EnvObj
   /** Mapping from acyclic relation representative to its explanation(s) */
   std::map<Node, std::vector<Node>> d_acyclic_cache;
 
-  /** Mapping from acyclic relation representatives to their sequence
-   * representations and counts */
-  // TODO Explain why this needs to be context depedent
+  /** Mapping from acyclic relation representatives to the cycle-witness
+   * elements created so far (s1,...,s_cnt) and the symbolic eventual length of
+   * the cycle, l. This must be context-dependent: it needs to correctly roll
+   * back if the search backtracks past the point where some of these elements
+   * were created. */
   context::CDHashMap<std::vector<Node>,
-                     std::pair<Node, size_t>,
+                     std::pair<std::vector<Node>, Node>,
                      VectorNodeHashFunction>
       d_cycle_sequences;
 
@@ -218,9 +220,13 @@ class TheorySetsRels : protected EnvObj
   void collectRelsInfo();
   void applyTransposeRule(std::vector<Node> tp_terms);
   void applyTransposeRule(Node rel, Node rel_rep, Node exp);
+  /**
+   * Forbid shortcut edges/duplicate positions among the cycle-witness
+   * elements in s, relative to the symbolic eventual length l.
+   */
   void applyContrMinimalRule(const std::vector<Node>& rels,
-                             Node seq,
-                             size_t cnt,
+                             const std::vector<Node>& s,
+                             Node l,
                              Node exp);
   void applyAcyclicDownRule(Node mem, Node rel, Node exp);
   void applyInstCycleRule(Node rel_rep, Node exp);
@@ -228,11 +234,21 @@ class TheorySetsRels : protected EnvObj
   Node mkRelTuple(const std::vector<Node>& rels);
   /** Build the (rewritten) union of the given relations. */
   Node mkRelUnion(const std::vector<Node>& rels);
-  Node applySplitCycleLenRule(std::vector<Node> rels, Node seq, size_t cnt);
-  void applyUnrollCycle(std::vector<Node>& rels,
-                        Node seq,
-                        size_t cnt,
-                        Node exp);
+  /**
+   * Case-splits on whether the cycle closes at the current last element of
+   * s (cnt = l) or continues past it (cnt < l).
+   */
+  void applySplitCycleLenRule(const std::vector<Node>& rels,
+                              const std::vector<Node>& s,
+                              Node l);
+  /**
+   * Creates a new cycle-witness element s_{cnt+1}. Asserts that it is connected
+   * to s_{cnt} via the transitive closure of some Ri in rels. Returns the new,
+   * extended vector.
+   */
+  std::vector<Node> applyUnrollCycle(const std::vector<Node>& rels,
+                                     const std::vector<Node>& s,
+                                     Node l);
   void applyProductRule(Node rel, Node rel_rep, Node exp);
   void applyJoinRule(Node rel, Node rel_rep, Node exp);
   /**

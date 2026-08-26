@@ -14,7 +14,6 @@
 
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
-#include "expr/skolem_manager.h"
 #include "options/sets_options.h"
 #include "theory/datatypes/project_op.h"
 #include "theory/datatypes/tuple_utils.h"
@@ -35,7 +34,7 @@ namespace sets {
 
 typedef std::map<Node, std::vector<Node>>::iterator MEM_IT;
 typedef context::CDHashMap<std::vector<Node>,
-                           std::pair<Node, size_t>,
+                           std::pair<std::vector<Node>, Node>,
                            VectorNodeHashFunction>::iterator CYC_IT;
 typedef std::map<Kind, std::vector<Node>>::iterator KIND_TERM_IT;
 typedef std::map<Node, std::unordered_set<Node>>::iterator TC_GRAPH_IT;
@@ -269,6 +268,8 @@ void TheorySetsRels::clearCaches()
   d_tcr_tcGraph_exps.clear();
   d_tcr_tcGraph.clear();
   d_acyclic_cache.clear();
+
+  // d_cycle_sequences.clear();
 }
 
 void TheorySetsRels::checkAcyclicity()
@@ -1437,10 +1438,10 @@ void TheorySetsRels::applyTransposeRule(Node tp_rel, Node tp_rel_rep, Node exp)
 }
 
 /*
- * RELATION_INST_CYCLE:   NOT RELATION_ACYCLIC(x)  (x,s',cnt) NOT IN C
+ * RELATION_INST_CYCLE:   NOT RELATION_ACYCLIC(x)  (x,_,_) NOT IN C
  *                         ---------------------------------------------------------
- *                                              C := C U {(x,s,1)}
- * for s a fresh sequence variable
+ *                                              C := C U {(x,<s1>,l)}
+ * for s1 and l fresh variables.
  */
 Node TheorySetsRels::mkRelTuple(const std::vector<Node>& rels)
 {
@@ -1478,105 +1479,110 @@ void TheorySetsRels::applyInstCycleRule(Node relTuple, Node exp)
   }
 
   NodeManager* nm = nodeManager();
-  SkolemManager* sm = nm->getSkolemManager();
 
-  // Key the sequence skolem on the union relation (a Set of binary tuples),
-  // not the tuple-of-relations: RELS_SEQUENCE's type rule derives the sequence
-  // element type from the relation's node type. For a single-relation tuple
-  // this is just that relation, matching the original behavior.
-  Node s = sm->mkSkolemFunction(SkolemId::RELS_SEQUENCE, {mkRelUnion(rels)});
+  // Key both skolems on the cyclic relation. s1 is the first element of the
+  // cycle.
+  Node relUnion = mkRelUnion(rels);
+  TypeNode elementType =
+      relUnion.getType().getSetElementType().getTupleTypes()[0];
+  Node s1 = d_skCache.mkTypedSkolemCached(elementType,
+                                          relUnion,
+                                          nm->mkConstInt(Rational(1)),
+                                          SkolemCache::SK_CYCLE_ELEM,
+                                          "cyc");
+  // l is the symbolic eventual length of the cycle.
+  Node l = d_skCache.mkTypedSkolemCached(
+      nm->integerType(), relUnion, SkolemCache::SK_CYCLE_LEN, "cyclen");
 
-  d_cycle_sequences.insert(rels, std::make_pair(s, 1));
+  d_cycle_sequences.insert(rels, std::make_pair(std::vector<Node>{s1}, l));
 
-  Node conc = nm->mkNode(Kind::LT,
-                         nm->mkConstInt(Rational(1)),
-                         nm->mkNode(Kind::STRING_LENGTH, s));
+  Node conc = nm->mkNode(Kind::LT, nm->mkConstInt(Rational(1)), l);
 
   Trace("rels-cycles") << "InstCycleRule: exp = " << exp << ", conc = " << conc
                        << std::endl;
 
-  // QUESTION: What's the reason?
   sendInfer(conc, InferenceId::SETS_RELS_INST_CYCLE, exp);
 }
 
 /*
- * RELATION_SPLIT_CYCLE_LEN:   (x,s,cnt) IN C     cnt <= len(s) IN S
+ * RELATION_SPLIT_CYCLE_LEN:   (x,<s_1,...,s_cnt>,l) IN C     cnt <= l IN S
  *                     ------------------------------------------------------
- *                      S := S U {cnt < len(s)}  ||  C := C U {len(s) = cnt}
+ *                      S := S U {cnt < l}  ||  C := C U {s_1 = s_cnt, l = cnt}
  */
-Node TheorySetsRels::applySplitCycleLenRule(std::vector<Node> rels,
-                                            Node seq,
-                                            size_t cnt)
+void TheorySetsRels::applySplitCycleLenRule(const std::vector<Node>& rels,
+                                            const std::vector<Node>& s,
+                                            Node l)
 {
-  // For each cycle split the cycle len
-  // QUESTION: should we check if the max len has already been reached in the
-  // constraints? Or will the solver filter this case out easily enough?
-
+  size_t cnt = s.size();
   Trace("rels-debug") << "\n[Theory::Rels] *********** Applying "
-                         "RELATION_SPLIT_CYCLE_LEN rule on sequence "
-                      << seq << ", cnt = " << cnt << std::endl;
-  //
+                         "RELATION_SPLIT_CYCLE_LEN rule, cnt = "
+                      << cnt << ", l = " << l << std::endl;
+
   NodeManager* nm = nodeManager();
 
-  Node s_len = nm->mkNode(Kind::STRING_LENGTH, seq);
   Node cnt_node = nm->mkConstInt(Rational(cnt));
 
-  Node case_1 = nm->mkNode(Kind::LT, cnt_node, s_len);
+  Node case_1 = nm->mkNode(Kind::LT, cnt_node, l);
 
-  Node zero = nm->mkConstInt(Rational(0));
-  Node one = nm->mkConstInt(Rational(1));
-  Node s_len_1 = nm->mkNode(Kind::SUB, s_len, one);
-  Node node_1 = nm->mkNode(Kind::SEQ_NTH, seq, zero);
-  Node node_len = nm->mkNode(Kind::SEQ_NTH, seq, s_len_1);
   Node case_2 = nm->mkNode(Kind::AND,
-                           nm->mkNode(Kind::EQUAL, cnt_node, s_len),
-                           nm->mkNode(Kind::EQUAL, node_1, node_len));
+                           nm->mkNode(Kind::EQUAL, cnt_node, l),
+                           nm->mkNode(Kind::EQUAL, s[0], s.back()));
 
   Node conc = nm->mkNode(Kind::OR, case_1, case_2);
 
-  Node len_geq_cnt = nm->mkNode(Kind::GEQ, s_len, cnt_node);
+  Node l_geq_cnt = nm->mkNode(Kind::GEQ, l, cnt_node);
   Node exp = nm->mkNode(
       Kind::AND,
       nm->mkNode(Kind::NOT,
                  nm->mkNode(Kind::RELATION_ACYCLIC, mkRelTuple(rels))),
-      len_geq_cnt);
+      l_geq_cnt);
 
   Trace("rels-cycles") << "SplitCycleLen: " << conc << std::endl;
 
   sendInfer(conc, InferenceId::SETS_RELS_SPLIT_CYCLE_LEN, exp);
-
-  return case_1;
 }
 
 /*
- * RELATION_UNROLL_CYCLE:   ((R1,...,Rk),s,cnt) IN C  cnt < len(s) IN S
- *                            C' === C  \ {(R,s,cnt)} U {(R,s,cnt+1)}
- *                         ---------------------------------------------------------
- *                         C := C'   S := S U {(s[cnt],s[cnt+1]) IS_IN
- * RELATION_TCLOSURE(R1)}
- *                        || ... || C := C'   S := S U {(s[cnt],s[cnt+1]) IS_IN
- * RELATION_TCLOSURE(Rk)}
+ * RELATION_UNROLL_CYCLE:
+ *      ((R1,...,Rk),<s_1,...,s_cnt>,l) IN C  cnt < l IN S
+ *            C' === C  \ {(R,<s_1,...,s_cnt>,l)}
+ *                   U {(R,<s_1,...,s_cnt,s_{cnt+1}>,l)}
+ *    ---------------------------------------------------------
+ *       C := C'   S := S U {(s_cnt,s_{cnt+1}) IS_IN RELATION_TCLOSURE(R1)}
+ *    || ...
+ *    || C := C'   S := S U {(s_cnt,s_{cnt+1}) IS_IN RELATION_TCLOSURE(Rk)}
+ *
+ * A fresh (vector, l) pair is constructed and re-inserted in d_cycle_sequences,
+ * since it is a context-dependent data structure.
  */
-void TheorySetsRels::applyUnrollCycle(std::vector<Node>& rels,
-                                      Node seq,
-                                      size_t cnt,
-                                      Node exp)
+std::vector<Node> TheorySetsRels::applyUnrollCycle(
+    const std::vector<Node>& rels, const std::vector<Node>& s, Node l)
 {
   Assert(0 < rels.size());
+  Assert(!s.empty());
 
   NodeManager* nm = nodeManager();
-  Node one = nm->mkConstInt(Rational(1));
-  Node cnt_node = nm->mkConstInt(Rational(cnt));
-  Node seq_cnt = nm->mkNode(Kind::SEQ_NTH, seq, cnt_node);
-  Node seq_cnt_1 =
-      nm->mkNode(Kind::SEQ_NTH, seq, nm->mkNode(Kind::SUB, cnt_node, one));
+  size_t cnt = s.size();
+  Node exp = nm->mkNode(Kind::LT, nm->mkConstInt(Rational(cnt)), l);
+
+  // Create a new cycle element, keyed on the cycle relation and its position.
+  Node relUnion = mkRelUnion(rels);
+  TypeNode elementType =
+      relUnion.getType().getSetElementType().getTupleTypes()[0];
+  Node newElem =
+      d_skCache.mkTypedSkolemCached(elementType,
+                                    relUnion,
+                                    nm->mkConstInt(Rational(cnt + 1)),
+                                    SkolemCache::SK_CYCLE_ELEM,
+                                    "cyc");
+  Node sPrev = s.back();
 
   std::vector<Node> disjs;
   for (const Node& Ri : rels)
   {
     TypeNode tt = Ri.getType().getSetElementType();
     Node tup =
-        TupleUtils::constructTupleFromElements(tt, {seq_cnt_1, seq_cnt}, 0, 1);
+        TupleUtils::constructTupleFromElements(tt, {sPrev, newElem}, 0, 1);
     Node Ri_tclos = nm->mkNode(Kind::RELATION_TCLOSURE, Ri);
     disjs.push_back(nm->mkNode(Kind::SET_MEMBER, tup, Ri_tclos));
   }
@@ -1588,37 +1594,41 @@ void TheorySetsRels::applyUnrollCycle(std::vector<Node>& rels,
 
   sendInfer(disj, InferenceId::SETS_RELS_UNROLL_CYCLE, exp);
 
-  // Increment cnt
-  std::pair<Node, size_t> new_c = std::make_pair(seq, cnt + 1);
-  d_cycle_sequences.insert(rels, new_c);
+  std::vector<Node> sNew = s;
+  sNew.push_back(newElem);
+  d_cycle_sequences.insert(rels, std::make_pair(sNew, l));
+  return sNew;
 }
 
 /*
- * RELATION_CONTR_MINIMAL:        ((R1,...,Rk),s,cnt) IN C
- *                           0 <= q < r-1 < cnt       b IN [1,k]
+ * RELATION_CONTR_MINIMAL I:   ((R1,...,Rk),(s_1,...,s_cnt),l) IN C
+ *                           1 <= q < r - 1 <= cnt - 1  r <= l  b IN [1,k]
  *                         ---------------------------------------
  *                           (s[q],s[r]) NOT IN RELATION_TCLOSURE(Rb)
  *
- * Given that the cycle (R,s,cnt) is in C (justified by exp = NOT ACYCLIC(R)),
- * and by definition s is a minimal cycle in R1 U ... U Rk, no "shortcut" edge
- * may exist between two non-adjacent nodes of the cycle, i.e. we forbid
- * (s[q],s[r]) IN TC(R) for every 0 <= q < r-1 < cnt.
+ * RELATION_CONTR_MINIMAL II:  ((R1,...,Rk),(s_1,...,s_cnt),l) IN C
+ *                           1 <= q < r <= cnt  !(q == 1 and r == l)   b IN
+ * [1,k]
+ *                         ---------------------------------------
+ *                           (s[q],s[r]) NOT IN RELATION_TCLOSURE(Rb)
  *
- * The reason we attach is exp = NOT ACYCLIC((R1,...,Rk)), the justification for
- * ((R1,...,Rk),s,cnt) being in C, together with an explicit (r < len(s))
- * in-bounds guard: r indexes the sequence s, so this rule should only apply
- * while r is actually a valid position of s.
+ * Given that the cycle (R,(s_1,...,s_cnt),l) is in C (i.e., NOT ACYCLIC(R) in
+ * S), and by definition (s_1,...,s_cnt) is a minimal cycle in R1 U ... U Rk, no
+ * "shortcut" edge may exist between two non-adjacent nodes of the cycle, i.e.
+ * we forbid (s_q,s_r) IN TC(R) for every 1 <= q < r - 1 <= cnt - 1. Also, we
+ * forbid s_q = s_r for every 1 <= q < r <= cnt, except for the one allowed by
+ * the cycle definition: q = 1  and r = cnt.
  */
 void TheorySetsRels::applyContrMinimalRule(const std::vector<Node>& rels,
-                                           Node seq,
-                                           size_t cnt,
+                                           const std::vector<Node>& s,
+                                           Node l,
                                            Node exp)
 {
+  size_t cnt = s.size();
   Trace("rels-debug") << "\n[Theory::Rels] *********** Applying "
-                         "RELATION_CONTR_MINIMAL rule on seq = "
-                      << seq << ", cnt = " << cnt << ", exp = " << exp
-                      << std::endl;
-  // need r >= 2 and q <= r-2, so the smallest usable case is q=0, r=2
+                         "RELATION_CONTR_MINIMAL rule, cnt = "
+                      << cnt << ", l = " << l << ", exp = " << exp << std::endl;
+  // need r >= 3 and q <= r-2, so the smallest usable case is q=1, r=3
   if (cnt < 3) return;
   NodeManager* nm = nodeManager();
 
@@ -1626,34 +1636,28 @@ void TheorySetsRels::applyContrMinimalRule(const std::vector<Node>& rels,
   {
     TypeNode tt = Ri.getType().getSetElementType();
     Node Ri_tc = nm->mkNode(Kind::RELATION_TCLOSURE, Ri);
-    // 0 <= q < r < cnt <= len(s) =>  r in [2, cnt-1], q in [0, r-2]
-    for (size_t r = 2; r < cnt; ++r)
+    // 1 <= q < r - 1 <= cnt - 1 =>  r in [3, cnt], q in [1, r-2]
+    for (size_t r = 3; r <= cnt; ++r)
     {
-      Node sr = nm->mkNode(Kind::SEQ_NTH, seq, nm->mkConstInt(Rational(r)));
-      Node s_len = nm->mkNode(Kind::STRING_LENGTH, seq);
-      Node r_lt_len = nm->mkNode(Kind::LT, nm->mkConstInt(Rational(r)), s_len);
-      Node reason = nm->mkNode(Kind::AND, exp, r_lt_len);
-      for (size_t q = 0; q + 2 <= r; ++q)
+      Node sr = s[r - 1];  // Adjust for 0-based indexing
+      Node r_leq_l = nm->mkNode(Kind::LEQ, nm->mkConstInt(Rational(r)), l);
+      Node reason = nm->mkNode(Kind::AND, exp, r_leq_l);
+      for (size_t q = 1; q + 2 <= r; ++q)
       {
-        Node sq = nm->mkNode(Kind::SEQ_NTH, seq, nm->mkConstInt(Rational(q)));
+        Node sq = s[q - 1];  // Adjust for 0-based indexing
         Node tup = TupleUtils::constructTupleFromElements(tt, {sq, sr}, 0, 1);
         Node mem = nm->mkNode(Kind::SET_MEMBER, tup, Ri_tc);
         Node conc = mem.notNode();
         sendInfer(conc, InferenceId::SETS_RELS_CONTR_MINIMAL, reason);
 
-        // s[q] and s[r] must be pairwise distinct, EXCEPT for the one
-        // allowed coincidence: q=0 (the first element) and r = len(s)-1
-        // (the wraparound), which is exactly the closing equality. For
-        // q=0, guard with the real (r+1 < len(s)) so this becomes vacuous
-        // precisely when r turns out to be the wraparound -- not the local,
-        // per-round cnt (which keeps growing regardless of closing, and
-        // would incorrectly stop exempting this pair once cnt outgrows it).
+        // s_q and s_r must be pairwise distinct, EXCEPT when they are the first
+        // and last cycle elements (q=1 and r=l).
         Node reason_diseq = reason;
-        if (q == 0)
+        if (q == 1)
         {
-          Node r_plus_1_lt_len =
-              nm->mkNode(Kind::LT, nm->mkConstInt(Rational(r + 1)), s_len);
-          reason_diseq = nm->mkNode(Kind::AND, reason, r_plus_1_lt_len);
+          Node r_neq_l =
+              nm->mkNode(Kind::EQUAL, nm->mkConstInt(Rational(r)), l).notNode();
+          reason_diseq = nm->mkNode(Kind::AND, reason, r_neq_l);
         }
         Node conc_diseq = nm->mkNode(Kind::EQUAL, sq, sr).notNode();
         sendInfer(
@@ -1684,7 +1688,7 @@ void TheorySetsRels::applyAcyclicDownRule(Node mem_rep,
                       << ", with explanation = " << exp_tc << std::endl;
   // Step 1: find rep of the transitively closed relation in d_acyclic_cache
   // This means that some relation in the equivalence class of tc_rel[0] is
-  // acyclic Meaning tc_rel[0] is also acyclic
+  // acyclic, meaning tc_rel[0] is also acyclic
   if (d_acyclic_cache.find(tc_rel0_rep) == d_acyclic_cache.end())
   {
     return;
@@ -1741,39 +1745,24 @@ void TheorySetsRels::applyAcyclicDownRule(Node mem_rep,
 
 void TheorySetsRels::doCycleInference()
 {
-  // SplitCycleLen
   CYC_IT c_it = d_cycle_sequences.begin();
 
   while (c_it != d_cycle_sequences.end())
   {
     std::vector<Node> rels = c_it->first;
-    Node seq = c_it->second.first;
-    size_t cnt = c_it->second.second;
-    Node exp = applySplitCycleLenRule(rels, seq, cnt);
-    // Question: how do we only apply the second function
-    // in the case that we're in the < case?
-    applyUnrollCycle(rels, seq, cnt, exp);
-    // Minimality: forbid shortcut edges in the cycle. The reason is the
-    // justification for (rels,seq,cnt) being in C, i.e. NOT ACYCLIC of the
-    // whole relation tuple (rels may hold several relations once InstCycle
-    // flattens a union).
+    std::vector<Node> s = c_it->second.first;
+    Node l = c_it->second.second;
+    // applyUnrollCycle returns the extended vector with the newly-created
+    // element appended.
+    s = applyUnrollCycle(rels, s, l);
+    applySplitCycleLenRule(rels, s, l);
+    // Minimality: forbid shortcut edges in the cycle.
     Node acyc_exp = nodeManager()
                         ->mkNode(Kind::RELATION_ACYCLIC, mkRelTuple(rels))
                         .negate();
-    // TEMP EXPERIMENT (re-enabled again 2026-08-17): applyUnrollCycle already
-    // advanced the stored count for this sequence to cnt+1 (it just created
-    // s[cnt] and edge (s[cnt-1],s[cnt])), so the shortcut-forbidding rule
-    // seeing the pre-unroll cnt here is stale/off-by-one -- a real
-    // completeness bug (see contrminimal-cnt-staleness-bug memory for the
-    // history of testing this on/off against acyclic9-full.smt2). NEW
-    // (enabled):
-    applyContrMinimalRule(rels, seq, cnt + 1, acyc_exp);
-    // OLD (disabled above):
-    // applyContrMinimalRule(rels, seq, cnt, acyc_exp);
+    applyContrMinimalRule(rels, s, l, acyc_exp);
     ++c_it;
   }
-
-  // UnrollCycle
 }
 
 bool TheorySetsRels::hasOpenCycleObligation() const
@@ -1792,50 +1781,46 @@ void TheorySetsRels::checkAcyclicityLastCall(Valuation& val)
   while (c_it != d_cycle_sequences.end())
   {
     std::vector<Node> rels = c_it->first;
-    Node seq = c_it->second.first;
-    size_t cnt = c_it->second.second;
+    std::vector<Node> s = c_it->second.first;
+    Node l = c_it->second.second;
 
-    Node seqLen = nm->mkNode(Kind::STRING_LENGTH, seq);
-    Node lenVal = val.getCandidateModelValue(seqLen);
-    bool haveLen = !lenVal.isNull() && lenVal.isConst();
-    Integer lenInt;
-    if (haveLen)
+    // The model's current candidate value for l.
+    Node lVal = val.getCandidateModelValue(l);
+    bool haveL = !lVal.isNull() && lVal.isConst();
+    size_t N = 0;
+    if (haveL)
     {
-      lenInt = lenVal.getConst<Rational>().getNumerator();
-      haveLen =
-          lenInt.fitsUnsignedInt() && lenInt.toUnsignedInt() <= MAX_CATCHUP_LEN;
+      Integer lInt = lVal.getConst<Rational>().getNumerator();
+      haveL = lInt.fitsUnsignedInt() && lInt.toUnsignedInt() <= MAX_CATCHUP_LEN;
+      if (haveL)
+      {
+        N = lInt.toUnsignedInt();
+      }
     }
-    if (!haveLen)
+
+    if (!haveL)
     {
-      // The cycle-sequence's length was not determined to be a concrete,
-      // practically-sized value: we cannot confirm that the cycle-unrolling
-      // rules have been fully applied for whatever length the model will
-      // ultimately pick, so we cannot let this model through unconfirmed.
       Trace("rels-debug")
-          << "[Theory::Rels] checkAcyclicityLastCall: length of " << seq
-          << " is not a concrete, practically-sized value (got " << lenVal
-          << "); reporting model unsound" << std::endl;
+          << "[Theory::Rels] checkAcyclicityLastCall: l = " << l
+          << " is not a concrete, practically-sized value; reporting model "
+             "unsound"
+          << std::endl;
       d_im.setModelUnsound(IncompleteId::SETS_RELS_ACYCLIC_LEN_UNKNOWN);
     }
     else
     {
-      size_t N = lenInt.toUnsignedInt();
-      Trace("rels-debug") << "[Theory::Rels] checkAcyclicityLastCall: " << seq
-                          << " has length " << N << ", catching up cnt from "
-                          << cnt << std::endl;
-      // <=, not <: d_cycle_sequences stores the *next* cnt to process (it's
-      // bumped by applyUnrollCycle right after processing the current one),
-      // so when cnt already equals N, SplitCycleLen(cnt=N) -- the lemma
-      // whose case_2 forces s[0]=s[N-1] once len(s)=N is fixed -- has not
-      // been generated yet and still needs to be.
-      while (cnt <= N)
+      Trace("rels-debug") << "[Theory::Rels] checkAcyclicityLastCall: "
+                          << "catching up cnt from " << s.size() << " to " << N
+                          << " (l = " << l << ")" << std::endl;
+      // Ensure that all cycle-unrolling lemmas have been applied up to the
+      // model's current value of l.
+      while (s.size() < N)
       {
         Node acyc_exp =
             nm->mkNode(Kind::RELATION_ACYCLIC, mkRelTuple(rels)).negate();
-        Node exp = applySplitCycleLenRule(rels, seq, cnt);
-        applyUnrollCycle(rels, seq, cnt, exp);
-        applyContrMinimalRule(rels, seq, cnt + 1, acyc_exp);
-        ++cnt;
+        s = applyUnrollCycle(rels, s, l);
+        applySplitCycleLenRule(rels, s, l);
+        applyContrMinimalRule(rels, s, l, acyc_exp);
       }
     }
     ++c_it;
