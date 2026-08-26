@@ -269,6 +269,32 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
   d_stats.d_checkFullEffortTime.stop();
 }
 
+/**
+ * Normaliz's `getHilbertBasis()` covers only the *pointed* part of a cone: for
+ * a cone containing a line it is relative to the cone's maximal subspace (its
+ * lineality space), so non-negative combinations of it miss lattice points. The
+ * maximal subspace is appended to complete it, once per generator, with a
+ * sign-unrestricted multiplier -- a lineality direction is available in both
+ * directions. Appending `m` and `-m` instead would also be correct, but gives
+ * every point infinitely many representations, which the arithmetic search then
+ * has to enumerate.
+ *
+ * `numPointed` returns how many leading entries came from `getHilbertBasis()`
+ * and so must keep a non-negative multiplier. For a pointed cone the maximal
+ * subspace is empty and the result is exactly `getHilbertBasis()`.
+ */
+static std::vector<std::vector<Integer>> getHilbertBasisWithLineality(
+    libnormaliz::Cone<Integer>& cone, size_t& numPointed)
+{
+  std::vector<std::vector<Integer>> basis = cone.getHilbertBasis();
+  numPointed = basis.size();
+  for (const std::vector<Integer>& generator : cone.getMaximalSubspace())
+  {
+    basis.push_back(generator);
+  }
+  return basis;
+}
+
 std::pair<std::vector<std::pair<Node, libnormaliz::Cone<Integer>>>,
           std::vector<Node>>
 LiaStarExtension::getCones(
@@ -358,6 +384,8 @@ LiaStarExtension::getCones(
     cone.deactivateChangeOfPrecision();
     cone.compute(ConeProperty::HilbertBasis);
     cone.compute(ConeProperty::ModuleGenerators);
+    // completes the Hilbert basis for a non-pointed cone
+    cone.compute(ConeProperty::MaximalSubspace);
     d_stats.d_normalizComputeTime.stop();
 
     if (cone.isInhomogeneous())
@@ -372,13 +400,16 @@ LiaStarExtension::getCones(
       }
     }
     ++d_stats.d_conesNonempty;
-    d_stats.d_hilbertBasisTotal += cone.getHilbertBasis().size();
-    d_stats.d_hilbertBasisMax.maxAssign(cone.getHilbertBasis().size());
+    size_t numPointed = 0;
+    const std::vector<std::vector<Integer>> hilbertBasis =
+        getHilbertBasisWithLineality(cone, numPointed);
+    d_stats.d_hilbertBasisTotal += hilbertBasis.size();
+    d_stats.d_hilbertBasisMax.maxAssign(hilbertBasis.size());
     d_stats.d_moduleGeneratorsTotal += cone.getModuleGenerators().size();
     d_stats.d_moduleGeneratorsMax.maxAssign(cone.getModuleGenerators().size());
 
     Trace("liastar-ext") << "Hilbert basis:" << std::endl;
-    for (const auto& basis : cone.getHilbertBasis())
+    for (const auto& basis : hilbertBasis)
     {
       Trace("liastar-ext") << toString(basis) << std::endl;
     }
@@ -407,11 +438,15 @@ LiaStarExtension::getCones(
         point.push_back(monomial);
       }
       std::vector<Vector> rays;
-      for (const auto& basis : cone.getHilbertBasis())
+      for (size_t j = 0; j < hilbertBasis.size(); j++)
       {
+        const std::vector<Integer>& basis = hilbertBasis[j];
         Node lambda = d_nm->mkDummySkolem("l", d_nm->integerType());
-        // (>= l 0)
-        starConstraints.push_back(d_nm->mkNode(Kind::GEQ, lambda, d_zero));
+        if (j < numPointed)
+        {
+          // Coefficients for Hilbert bases are nonnegative
+          starConstraints.push_back(d_nm->mkNode(Kind::GEQ, lambda, d_zero));
+        }
         // (=> (= mu 0) (= l 0))
         starConstraints.push_back(
             d_nm->mkNode(Kind::EQUAL, mu, d_zero)
@@ -467,8 +502,11 @@ std::vector<std::pair<Node, Node>> LiaStarExtension::getLia(
   {
     Node node = pair.first;
     libnormaliz::Cone<Integer> cone = pair.second;
+    size_t numPointed = 0;
+    const std::vector<std::vector<Integer>> hilbertBasis =
+        getHilbertBasisWithLineality(cone, numPointed);
     Trace("liastar-ext") << "Hilbert basis:" << std::endl;
-    for (const auto& basis : cone.getHilbertBasis())
+    for (const auto& basis : hilbertBasis)
     {
       Trace("liastar-ext") << toString(basis) << std::endl;
     }
@@ -491,15 +529,18 @@ std::vector<std::pair<Node, Node>> LiaStarExtension::getLia(
 
       std::vector<Vector> rays;
       std::vector<Node> boundVariables;
-      auto bases = cone.getHilbertBasis();
+      const std::vector<std::vector<Integer>>& bases = hilbertBasis;
       for (size_t index = 0; index < bases.size(); index++)
       {
-        auto basis = bases[index];
+        const std::vector<Integer>& basis = bases[index];
         std::string name = "l" + std::to_string(index + 1);
         Node lambda = d_nm->mkBoundVar(name, d_nm->integerType());
         boundVariables.push_back(lambda);
-        // (>= l 0)
-        conjunctions.push_back(d_nm->mkNode(Kind::GEQ, lambda, d_zero));
+        if (index < numPointed)
+        {
+          // (>= l 0); a lineality direction is unrestricted in sign
+          conjunctions.push_back(d_nm->mkNode(Kind::GEQ, lambda, d_zero));
+        }
 
         Vector ray;
         for (const auto& element : basis)
