@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # Ask whether proofs/eo/cpc is still in sync with the Cpc package of the Logos
-# commit pinned in contrib/get-logos, which must have been run first.
+# commit pinned in contrib/get-cpc-compiler, which must have been run first.
 #
 # The work is done by Logos' own scripts/install-cpc.sh --check: it compiles
 # this CPC signature with ethos-eoc, performs the whole install into a
@@ -46,16 +46,29 @@ done
 
 SCRIPT_DIR="$(dirname "$(realpath "$0")")"
 CVC_DIR="$(realpath "$SCRIPT_DIR/../")"
-LOGOS_DIR="$CVC_DIR/deps/logos"
+CPC_COMPILER_DIR="$CVC_DIR/deps/cpc-compiler"
 SIGNATURE="$CVC_DIR/proofs/eo/cpc/Cpc.eo"
 
-if [ ! -x "$LOGOS_DIR/scripts/install-cpc.sh" ]; then
-  echo "error: $LOGOS_DIR is not set up. Run contrib/get-logos first." >&2
+if [ ! -x "$CPC_COMPILER_DIR/scripts/install-cpc.sh" ]; then
+  echo "error: $CPC_COMPILER_DIR is not set up. Run contrib/get-cpc-compiler first." >&2
   exit 1
 fi
-if [ ! -f "$LOGOS_DIR/deps/eoc-env.sh" ]; then
-  echo "error: the Eunoia compiler was not built under $LOGOS_DIR/deps." >&2
-  echo "Rerun contrib/get-logos." >&2
+if [ ! -f "$CPC_COMPILER_DIR/deps/eoc-env.sh" ]; then
+  echo "error: the Eunoia compiler was not built under $CPC_COMPILER_DIR/deps." >&2
+  echo "Rerun contrib/get-cpc-compiler." >&2
+  exit 1
+fi
+
+# eoc-env.sh records absolute paths, so a deps directory that was moved or
+# restored under a different workspace still has the file while pointing
+# nowhere. Say so here rather than letting it look like a compile failure.
+EOC_ETHOS_DIR=""
+# shellcheck source=/dev/null
+source "$CPC_COMPILER_DIR/deps/eoc-env.sh"
+if [ ! -f "$EOC_ETHOS_DIR/tools/eoc/driver.py" ]; then
+  echo "error: $CPC_COMPILER_DIR/deps/eoc-env.sh points at $EOC_ETHOS_DIR, which is" >&2
+  echo "not there. The directory was set up under a different path; rerun" >&2
+  echo "contrib/get-cpc-compiler." >&2
   exit 1
 fi
 if [ ! -f "$SIGNATURE" ]; then
@@ -63,13 +76,13 @@ if [ ! -f "$SIGNATURE" ]; then
   exit 1
 fi
 
-echo "=== Checking $SIGNATURE against Logos $(cat "$LOGOS_DIR/.cvc5-logos-version" 2>/dev/null || echo '<unknown>')"
+echo "=== Checking $SIGNATURE against Logos $(cat "$CPC_COMPILER_DIR/.cvc5-logos-version" 2>/dev/null || echo '<unknown>')"
 
 # install-cpc.sh exits 1 both when the compile fails and when the package is
 # merely out of date, so the two are told apart by the line it prints on the
 # latter. Keeping the run's exit status requires pipefail, which is set above.
 set +e
-output="$("$LOGOS_DIR/scripts/install-cpc.sh" --signature "$SIGNATURE" --check \
+output="$("$CPC_COMPILER_DIR/scripts/install-cpc.sh" --signature "$SIGNATURE" --check \
           "${EXTRA_ARGS[@]}" 2>&1)"
 status=$?
 set -e
@@ -98,7 +111,7 @@ echo "  1. regenerate and repair Logos against this signature:"
 echo "       <logos>/scripts/install-cpc.sh --signature $SIGNATURE"
 echo "       <logos>/scripts/build.sh Cpc"
 echo "  2. land that in ajreynol/logos"
-echo "  3. move LOGOS_VERSION in contrib/get-logos to the resulting commit"
+echo "  3. move LOGOS_VERSION in contrib/get-cpc-compiler to the resulting commit"
 echo ""
 
 if [ "$STRICT" -eq 1 ]; then

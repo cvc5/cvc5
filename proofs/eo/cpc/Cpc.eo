@@ -59,7 +59,15 @@
 ; An additional set of theory definitions and rules can be found at
 ; ./expert/CpcExpert.eo. This contains all definitions of theories and rules
 ; that are not supported by cvc5 when safe mode is enabled.
-; 
+;
+; Beyond being the signature that the Ethos checker checks CPC proofs against,
+; this signature is the definition from which the proof rules of Logos
+; (https://github.com/ajreynol/logos) are compiled. Logos is a proof checker
+; for CPC written in Lean whose soundness is proven in Lean against a
+; correctness specification. It does not carry a second definition of the
+; calculus: its proof rules, its specification and its model of SMT-LIB
+; semantics are all generated from this signature.
+;
 ; Typically, we use $ as the prefix of symbols introduced by define and
 ; program.  For clarity, we sometimes use @ as the prefix of symbols introduced
 ; by simple define commands.
