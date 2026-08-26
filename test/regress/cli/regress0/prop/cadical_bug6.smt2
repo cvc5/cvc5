@@ -1,4 +1,3 @@
-; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: -i --sat-solver=cadical
 ; DISABLE-TESTER: proof
 ; EXPECT: unsat

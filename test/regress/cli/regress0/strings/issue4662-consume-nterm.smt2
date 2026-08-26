@@ -1,4 +1,5 @@
 ; REQUIRES: unrestricted-mode
+; COMMAND-LINE:
 ; COMMAND-LINE: --strings-re-derive-conf
 (set-logic QF_S)
 (set-info :status unsat)

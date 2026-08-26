@@ -1,4 +1,5 @@
 ; REQUIRES: unrestricted-mode
+; COMMAND-LINE:
 ; COMMAND-LINE: --strings-rec-arith-approx
 ; EXPECT: unsat
 (set-logic ALL)

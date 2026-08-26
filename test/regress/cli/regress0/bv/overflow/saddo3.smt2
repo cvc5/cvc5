@@ -1,4 +1,5 @@
 ; REQUIRES: no-safe-mode
+; COMMAND-LINE:
 ; COMMAND-LINE: --solve-bv-as-int=sum
 ; EXPECT: unsat
 (set-logic QF_BV)

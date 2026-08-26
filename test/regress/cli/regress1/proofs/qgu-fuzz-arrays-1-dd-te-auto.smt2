@@ -1,4 +1,4 @@
-; REQUIRES: unrestricted-mode
+; COMMAND-LINE:
 ; COMMAND-LINE: --sat-solver=cadical
 (set-logic ALL)
 (set-info :status unsat)

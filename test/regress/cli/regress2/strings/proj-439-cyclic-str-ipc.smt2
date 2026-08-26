@@ -1,4 +1,5 @@
 ; REQUIRES: unrestricted-mode
+; COMMAND-LINE:
 ; COMMAND-LINE: --strings-rec-arith-approx
 (set-logic QF_SLIA)
 (set-info :status unsat)
